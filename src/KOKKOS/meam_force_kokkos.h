@@ -131,7 +131,7 @@ KOKKOS_INLINE_FUNCTION void MEAMKokkos<DeviceType>::operator()(TagMEAMForce<NEIG
   double drho3mdr1, drho3mdr2, drho3mds1, drho3mds2;
   double drho3mdrm1[3], drho3mdrm2[3];
 
-  // The f, etc. arrays are duplicated for OpenMP, atomic for CUDA, and neither for Serial
+  // The f, etc. arrays are duplicated for OpenMP, atomic for GPU, and neither for Serial
 
   auto v_f =
       ScatterViewHelper<NeedDup_v<NEIGHFLAG, DeviceType>, decltype(dup_f), decltype(ndup_f)>::get(

@@ -23,42 +23,82 @@
 namespace Kokkos {
 namespace Experimental {
 
-template <class ExecutionSpace, class IteratorType, class PredicateType>
+//
+// overload set accepting execution space
+//
+template <
+    typename ExecutionSpace, typename IteratorType, typename PredicateType,
+    std::enable_if_t<::Kokkos::is_execution_space_v<ExecutionSpace>, int> = 0>
 IteratorType find_if(const ExecutionSpace& ex, IteratorType first,
                      IteratorType last, PredicateType predicate) {
-  return Impl::find_if_or_not_impl<true>("Kokkos::find_if_iterator_api_default",
-                                         ex, first, last, std::move(predicate));
+  return Impl::find_if_or_not_exespace_impl<true>(
+      "Kokkos::find_if_iterator_api_default", ex, first, last,
+      std::move(predicate));
 }
 
-template <class ExecutionSpace, class IteratorType, class PredicateType>
+template <
+    typename ExecutionSpace, typename IteratorType, typename PredicateType,
+    std::enable_if_t<::Kokkos::is_execution_space_v<ExecutionSpace>, int> = 0>
 IteratorType find_if(const std::string& label, const ExecutionSpace& ex,
                      IteratorType first, IteratorType last,
                      PredicateType predicate) {
-  return Impl::find_if_or_not_impl<true>(label, ex, first, last,
-                                         std::move(predicate));
+  return Impl::find_if_or_not_exespace_impl<true>(label, ex, first, last,
+                                                  std::move(predicate));
 }
 
-template <class ExecutionSpace, class DataType, class... Properties,
-          class Predicate>
+template <typename ExecutionSpace, typename DataType, typename... Properties,
+          typename Predicate,
+          std::enable_if_t<::Kokkos::is_execution_space<ExecutionSpace>::value,
+                           int> = 0>
 auto find_if(const ExecutionSpace& ex,
              const ::Kokkos::View<DataType, Properties...>& v,
              Predicate predicate) {
   Impl::static_assert_is_admissible_to_kokkos_std_algorithms(v);
   namespace KE = ::Kokkos::Experimental;
-  return Impl::find_if_or_not_impl<true>("Kokkos::find_if_view_api_default", ex,
-                                         KE::begin(v), KE::end(v),
-                                         std::move(predicate));
+  return Impl::find_if_or_not_exespace_impl<true>(
+      "Kokkos::find_if_view_api_default", ex, KE::begin(v), KE::end(v),
+      std::move(predicate));
 }
 
-template <class ExecutionSpace, class DataType, class... Properties,
-          class Predicate>
+template <typename ExecutionSpace, typename DataType, typename... Properties,
+          typename Predicate,
+          std::enable_if_t<::Kokkos::is_execution_space<ExecutionSpace>::value,
+                           int> = 0>
 auto find_if(const std::string& label, const ExecutionSpace& ex,
              const ::Kokkos::View<DataType, Properties...>& v,
              Predicate predicate) {
   Impl::static_assert_is_admissible_to_kokkos_std_algorithms(v);
   namespace KE = ::Kokkos::Experimental;
-  return Impl::find_if_or_not_impl<true>(label, ex, KE::begin(v), KE::end(v),
-                                         std::move(predicate));
+  return Impl::find_if_or_not_exespace_impl<true>(
+      label, ex, KE::begin(v), KE::end(v), std::move(predicate));
+}
+
+//
+// overload set accepting a team handle
+// Note: for now omit the overloads accepting a label
+// since they cause issues on device because of the string allocation.
+//
+template <typename TeamHandleType, typename IteratorType,
+          typename PredicateType,
+          std::enable_if_t<::Kokkos::is_team_handle_v<TeamHandleType>, int> = 0>
+KOKKOS_FUNCTION IteratorType find_if(const TeamHandleType& teamHandle,
+                                     IteratorType first, IteratorType last,
+                                     PredicateType predicate) {
+  return Impl::find_if_or_not_team_impl<true>(teamHandle, first, last,
+                                              std::move(predicate));
+}
+
+template <
+    typename TeamHandleType, typename DataType, typename... Properties,
+    typename Predicate,
+    std::enable_if_t<::Kokkos::is_team_handle<TeamHandleType>::value, int> = 0>
+KOKKOS_FUNCTION auto find_if(const TeamHandleType& teamHandle,
+                             const ::Kokkos::View<DataType, Properties...>& v,
+                             Predicate predicate) {
+  Impl::static_assert_is_admissible_to_kokkos_std_algorithms(v);
+  namespace KE = ::Kokkos::Experimental;
+  return Impl::find_if_or_not_team_impl<true>(teamHandle, KE::begin(v),
+                                              KE::end(v), std::move(predicate));
 }
 
 }  // namespace Experimental

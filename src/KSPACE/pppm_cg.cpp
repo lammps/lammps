@@ -34,17 +34,13 @@
 using namespace LAMMPS_NS;
 using namespace MathConst;
 
-#define OFFSET 16384
-#define SMALLQ 0.00001
+static constexpr int OFFSET = 16384;
+static constexpr double SMALLQ = 0.00001;
 
 enum{REVERSE_RHO};
 enum{FORWARD_IK,FORWARD_AD,FORWARD_IK_PERATOM,FORWARD_AD_PERATOM};
 
-#ifdef FFT_SINGLE
-#define ZEROF 0.0f
-#else
-#define ZEROF 0.0
-#endif
+static constexpr FFT_SCALAR ZEROF = 0.0;
 
 /* ---------------------------------------------------------------------- */
 

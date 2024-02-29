@@ -1,4 +1,4 @@
-#!/bin/bash -e
+#!/usr/bin/env bash
 #
 #   This script allows CMAKE_CXX_COMPILER to be a standard
 #   C++ compiler and Kokkos sets RULE_LAUNCH_COMPILE and
@@ -12,6 +12,8 @@
 #   the original command. Examples of when $2 will not equal
 #   $1 are 'ar', 'cmake', etc. during the linking phase
 #
+
+set -e
 
 # emit a message about the underlying command executed
 : ${DEBUG:=0}

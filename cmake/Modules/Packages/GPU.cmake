@@ -1,3 +1,10 @@
+
+# Silence CMake warnings about FindCUDA being obsolete.
+# We may need to eventually rewrite this section to use enable_language(CUDA)
+if(POLICY CMP0146)
+  cmake_policy(SET CMP0146 OLD)
+endif()
+
 set(GPU_SOURCES_DIR ${LAMMPS_SOURCE_DIR}/GPU)
 set(GPU_SOURCES ${GPU_SOURCES_DIR}/gpu_extra.h
                 ${GPU_SOURCES_DIR}/fix_gpu.h
@@ -151,10 +158,10 @@ if(GPU_API STREQUAL "CUDA")
   endif()
 
   cuda_compile_fatbin(GPU_GEN_OBJS ${GPU_LIB_CU} OPTIONS ${CUDA_REQUEST_PIC}
-          -DUNIX -O3 --use_fast_math -Wno-deprecated-gpu-targets -DNV_KERNEL -DUCL_CUDADR ${GPU_CUDA_GENCODE} -D_${GPU_PREC_SETTING} -DLAMMPS_${LAMMPS_SIZES})
+          -DUNIX -O3 --use_fast_math -Wno-deprecated-gpu-targets -allow-unsupported-compiler -DNV_KERNEL -DUCL_CUDADR ${GPU_CUDA_GENCODE} -D_${GPU_PREC_SETTING} -DLAMMPS_${LAMMPS_SIZES})
 
   cuda_compile(GPU_OBJS ${GPU_LIB_CUDPP_CU} OPTIONS ${CUDA_REQUEST_PIC}
-          -DUNIX -O3 --use_fast_math -Wno-deprecated-gpu-targets -DUCL_CUDADR ${GPU_CUDA_GENCODE} -D_${GPU_PREC_SETTING} -DLAMMPS_${LAMMPS_SIZES})
+          -DUNIX -O3 --use_fast_math -Wno-deprecated-gpu-targets -allow-unsupported-compiler -DUCL_CUDADR ${GPU_CUDA_GENCODE} -D_${GPU_PREC_SETTING} -DLAMMPS_${LAMMPS_SIZES})
 
   foreach(CU_OBJ ${GPU_GEN_OBJS})
     get_filename_component(CU_NAME ${CU_OBJ} NAME_WE)

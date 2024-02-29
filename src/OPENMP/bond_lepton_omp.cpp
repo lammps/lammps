@@ -89,10 +89,17 @@ void BondLeptonOMP::eval(int nfrom, int nto, ThrData *const thr)
 {
   std::vector<Lepton::CompiledExpression> bondforce;
   std::vector<Lepton::CompiledExpression> bondpot;
+  std::vector<bool> has_ref;
   try {
     for (const auto &expr : expressions) {
       auto parsed = Lepton::Parser::parse(LeptonUtils::substitute(expr, Pointers::lmp));
       bondforce.emplace_back(parsed.differentiate("r").createCompiledExpression());
+      has_ref.push_back(true);
+      try {
+        bondforce.back().getVariableReference("r");
+      } catch (Lepton::Exception &) {
+        has_ref.back() = false;
+      }
       if (EFLAG) bondpot.emplace_back(parsed.createCompiledExpression());
     }
   } catch (std::exception &e) {
@@ -122,7 +129,7 @@ void BondLeptonOMP::eval(int nfrom, int nto, ThrData *const thr)
 
     double fbond = 0.0;
     if (r > 0.0) {
-      bondforce[idx].getVariableReference("r") = dr;
+      if (has_ref[idx]) bondforce[idx].getVariableReference("r") = dr;
       fbond = -bondforce[idx].evaluate() / r;
     }
 
@@ -142,7 +149,11 @@ void BondLeptonOMP::eval(int nfrom, int nto, ThrData *const thr)
 
     double ebond = 0.0;
     if (EFLAG) {
-      bondpot[idx].getVariableReference("r") = dr;
+      try {
+        bondpot[idx].getVariableReference("r") = dr;
+      } catch (Lepton::Exception &) {
+        ;    // ignore -> constant potential
+      }
       ebond = bondpot[idx].evaluate() - offset[type];
     }
     if (EVFLAG)

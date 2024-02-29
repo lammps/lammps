@@ -28,6 +28,12 @@ Documentation, examples, and supporting code can be downloaded at:
 
 http://www.moltemplate.org
 
+
+## Tutorial files
+
+The folder tutorial-files contains the files used in the "Moltemplate Howto"
+in the LAMMPS manual.
+
 ## Requirements
 
 Moltemplate requires the Bourne-shell, and a recent version of python

@@ -1081,17 +1081,17 @@ void FixAveTime::options(int iarg, int narg, char **arg)
       format = format_user;
       iarg += 2;
     } else if (strcmp(arg[iarg],"title1") == 0) {
-      if (iarg+2 > narg) error->all(FLERR,"Illegal fix ave/spatial command");
+      if (iarg+2 > narg) error->all(FLERR,"Illegal fix ave/time command");
       delete[] title1;
       title1 = utils::strdup(arg[iarg+1]);
       iarg += 2;
     } else if (strcmp(arg[iarg],"title2") == 0) {
-      if (iarg+2 > narg) error->all(FLERR,"Illegal fix ave/spatial command");
+      if (iarg+2 > narg) error->all(FLERR,"Illegal fix ave/time command");
       delete[] title2;
       title2 = utils::strdup(arg[iarg+1]);
       iarg += 2;
     } else if (strcmp(arg[iarg],"title3") == 0) {
-      if (iarg+2 > narg) error->all(FLERR,"Illegal fix ave/spatial command");
+      if (iarg+2 > narg) error->all(FLERR,"Illegal fix ave/time command");
       delete[] title3;
       title3 = utils::strdup(arg[iarg+1]);
       iarg += 2;

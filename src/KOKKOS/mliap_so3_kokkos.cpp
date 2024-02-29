@@ -32,7 +32,7 @@ using namespace LAMMPS_NS;
 using namespace MathConst;
 using namespace MathSpecialKokkos;
 
-#define SMALL 1.0e-8
+static constexpr double SMALL = 1.0e-8;
 
 /* ---------------------------------------------------------------------- */
 

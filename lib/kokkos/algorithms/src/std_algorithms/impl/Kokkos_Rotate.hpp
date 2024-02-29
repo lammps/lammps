@@ -20,6 +20,7 @@
 #include <Kokkos_Core.hpp>
 #include "Kokkos_Constraints.hpp"
 #include "Kokkos_HelperPredicates.hpp"
+#include "Kokkos_Reverse.hpp"
 #include <std_algorithms/Kokkos_Move.hpp>
 #include <std_algorithms/Kokkos_Distance.hpp>
 #include <string>
@@ -165,15 +166,17 @@ IteratorType rotate_with_pivot_in_right_half(const std::string& label,
 }
 
 template <class ExecutionSpace, class IteratorType>
-IteratorType rotate_impl(const std::string& label, const ExecutionSpace& ex,
-                         IteratorType first, IteratorType n_first,
-                         IteratorType last) {
+IteratorType rotate_exespace_impl(const std::string& label,
+                                  const ExecutionSpace& ex, IteratorType first,
+                                  IteratorType n_first, IteratorType last) {
   // checks
   Impl::static_assert_random_access_and_accessible(ex, first);
   Impl::expect_valid_range(first, last);
   Impl::expect_valid_range(first, n_first);
   Impl::expect_valid_range(n_first, last);
 
+  // might be worth checking if for exespace we should do
+  // something similar to what we do for team since it avoids a new allocation
   namespace KE                     = ::Kokkos::Experimental;
   const auto num_elements          = KE::distance(first, last);
   const auto n_distance_from_first = KE::distance(first, n_first);
@@ -182,6 +185,31 @@ IteratorType rotate_impl(const std::string& label, const ExecutionSpace& ex,
   } else {
     return rotate_with_pivot_in_right_half(label, ex, first, n_first, last);
   }
+}
+
+template <class TeamHandleType, class IteratorType>
+KOKKOS_FUNCTION IteratorType rotate_team_impl(const TeamHandleType& teamHandle,
+                                              IteratorType first,
+                                              IteratorType n_first,
+                                              IteratorType last) {
+  // checks
+  Impl::static_assert_random_access_and_accessible(teamHandle, first);
+  Impl::expect_valid_range(first, last);
+  Impl::expect_valid_range(first, n_first);
+  Impl::expect_valid_range(n_first, last);
+
+  namespace KE = ::Kokkos::Experimental;
+
+  auto result = first + (last - n_first);
+  // first reverse the whole range
+  KE::Impl::reverse_team_impl(teamHandle, first, last);
+  // re-reverse each piece
+  KE::Impl::reverse_team_impl(teamHandle, first, result);
+  KE::Impl::reverse_team_impl(teamHandle, result, last);
+
+  // no need for barrier here since reverse already calls it
+
+  return result;
 }
 
 }  // namespace Impl

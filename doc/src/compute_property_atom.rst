@@ -23,8 +23,9 @@ Syntax
                              spx, spy, spz, sp, fmx, fmy, fmz,
                              nbonds,
                              radius, diameter, omegax, omegay, omegaz,
+                             temperature, heatflow,
                              angmomx, angmomy, angmomz,
-                             shapex,shapey, shapez,
+                             shapex, shapey, shapez,
                              quatw, quati, quatj, quatk, tqx, tqy, tqz,
                              end1x, end1y, end1z, end2x, end2y, end2z,
                              corner1x, corner1y, corner1z,
@@ -56,6 +57,8 @@ Syntax
            *nbonds* = number of bonds assigned to an atom
            *radius,diameter* = radius,diameter of spherical particle
            *omegax,omegay,omegaz* = angular velocity of spherical particle
+           *temperature* = internal temperature of spherical particle
+           *heatflow* = internal heat flow of spherical particle
            *angmomx,angmomy,angmomz* = angular momentum of aspherical particle
            *shapex,shapey,shapez* = 3 diameters of aspherical particle
            *quatw,quati,quatj,quatk* = quaternion components for aspherical or body particles
@@ -128,9 +131,9 @@ Attributes *i_name*, *d_name*, *i2_name*, *d2_name* refer to custom
 per-atom integer and floating-point vectors or arrays that have been
 added via the :doc:`fix property/atom <fix_property_atom>` command.
 When that command is used specific names are given to each attribute
-which are the "name" portion of these attributes.  For arrays *i2_name*
-and *d2_name*, the column of the array must also be included following
-the name in brackets (e.g., d2_xyz[2] or i2_mySpin[3]).
+which are the "name" portion of these attributes.  For arrays
+*i2_name* and *d2_name*, the column of the array must also be included
+following the name in brackets (e.g., d2_xyz[2] or i2_mySpin[3]).
 
 The additional quantities only accessible via this command, and not
 directly via the :doc:`dump custom <dump>` command, are as follows.

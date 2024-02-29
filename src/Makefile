@@ -474,7 +474,7 @@ tar:
 	@cd STUBS; $(MAKE)
 	@echo "Created $(ROOT)_src.tar.gz"
 
-check: check-whitespace check-permissions check-homepage check-errordocs check-version
+check: check-whitespace check-permissions check-homepage check-errordocs check-docs check-version
 
 check-whitespace:
 	$(PYTHON) ../tools/coding_standard/whitespace.py ..
@@ -500,8 +500,12 @@ check-errordocs:
 fix-errordocs:
 	$(PYTHON) ../tools/coding_standard/errordocs.py .. -f
 
+check-docs:
+	$(MAKE) $(MFLAGS) -C ../doc anchor_check style_check package_check role_check
+
 check-version:
-	$(PYTHON) ../tools/coding_standard/versiontags.py ..
+	$(PYTHON) ../tools/coding_standard/versiontags.py .. || echo
+
 
 format-src:
 	clang-format -i --verbose --style=file *.cpp *.h */*.cpp */*.h

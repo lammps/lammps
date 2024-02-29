@@ -27,13 +27,18 @@ namespace Kokkos {
 namespace Experimental {
 namespace Impl {
 
-template <class IndexType, class InputIterator, class OutputIterator>
+template <class InputIterator, class OutputIterator>
 struct StdCopyFunctor {
+  // we can use difference type from InputIterator since
+  // the calling functions below already static assert that
+  // the iterators have matching difference type
+  using index_type = typename InputIterator::difference_type;
+
   InputIterator m_first;
   OutputIterator m_dest_first;
 
   KOKKOS_FUNCTION
-  void operator()(IndexType i) const { m_dest_first[i] = m_first[i]; }
+  void operator()(index_type i) const { m_dest_first[i] = m_first[i]; }
 
   KOKKOS_FUNCTION
   StdCopyFunctor(InputIterator _first, OutputIterator _dest_first)
@@ -41,23 +46,20 @@ struct StdCopyFunctor {
 };
 
 template <class ExecutionSpace, class InputIterator, class OutputIterator>
-OutputIterator copy_impl(const std::string& label, const ExecutionSpace& ex,
-                         InputIterator first, InputIterator last,
-                         OutputIterator d_first) {
+OutputIterator copy_exespace_impl(const std::string& label,
+                                  const ExecutionSpace& ex, InputIterator first,
+                                  InputIterator last, OutputIterator d_first) {
   // checks
   Impl::static_assert_random_access_and_accessible(ex, first, d_first);
   Impl::static_assert_iterators_have_matching_difference_type(first, d_first);
   Impl::expect_valid_range(first, last);
 
-  // aliases
-  using index_type = typename InputIterator::difference_type;
-  using func_t     = StdCopyFunctor<index_type, InputIterator, OutputIterator>;
-
   // run
   const auto num_elements = Kokkos::Experimental::distance(first, last);
   ::Kokkos::parallel_for(label,
                          RangePolicy<ExecutionSpace>(ex, 0, num_elements),
-                         func_t(first, d_first));
+                         // use CTAD
+                         StdCopyFunctor(first, d_first));
   ex.fence("Kokkos::copy: fence after operation");
 
   // return
@@ -66,16 +68,61 @@ OutputIterator copy_impl(const std::string& label, const ExecutionSpace& ex,
 
 template <class ExecutionSpace, class InputIterator, class Size,
           class OutputIterator>
-OutputIterator copy_n_impl(const std::string& label, const ExecutionSpace& ex,
-                           InputIterator first_from, Size count,
-                           OutputIterator first_dest) {
+OutputIterator copy_n_exespace_impl(const std::string& label,
+                                    const ExecutionSpace& ex,
+                                    InputIterator first_from, Size count,
+                                    OutputIterator first_dest) {
   // checks
   Impl::static_assert_random_access_and_accessible(ex, first_from, first_dest);
   Impl::static_assert_iterators_have_matching_difference_type(first_from,
                                                               first_dest);
 
   if (count > 0) {
-    return copy_impl(label, ex, first_from, first_from + count, first_dest);
+    return copy_exespace_impl(label, ex, first_from, first_from + count,
+                              first_dest);
+  } else {
+    return first_dest;
+  }
+}
+
+//
+// team-level impl
+//
+template <class TeamHandleType, class InputIterator, class OutputIterator>
+KOKKOS_FUNCTION OutputIterator copy_team_impl(const TeamHandleType& teamHandle,
+                                              InputIterator first,
+                                              InputIterator last,
+                                              OutputIterator d_first) {
+  // checks
+  Impl::static_assert_random_access_and_accessible(teamHandle, first, d_first);
+  Impl::static_assert_iterators_have_matching_difference_type(first, d_first);
+  Impl::expect_valid_range(first, last);
+
+  // run
+  const auto num_elements = Kokkos::Experimental::distance(first, last);
+  ::Kokkos::parallel_for(TeamThreadRange(teamHandle, 0, num_elements),
+                         // use CTAD
+                         StdCopyFunctor(first, d_first));
+  teamHandle.team_barrier();
+
+  // return
+  return d_first + num_elements;
+}
+
+template <class TeamHandleType, class InputIterator, class Size,
+          class OutputIterator>
+KOKKOS_FUNCTION OutputIterator
+copy_n_team_impl(const TeamHandleType& teamHandle, InputIterator first_from,
+                 Size count, OutputIterator first_dest) {
+  // checks
+  Impl::static_assert_random_access_and_accessible(teamHandle, first_from,
+                                                   first_dest);
+  Impl::static_assert_iterators_have_matching_difference_type(first_from,
+                                                              first_dest);
+
+  if (count > 0) {
+    return copy_team_impl(teamHandle, first_from, first_from + count,
+                          first_dest);
   } else {
     return first_dest;
   }

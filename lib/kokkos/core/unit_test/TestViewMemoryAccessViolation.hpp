@@ -18,7 +18,6 @@
 
 #include <gtest/gtest.h>
 
-#ifndef KOKKOS_COMPILER_NVHPC  // FIXME_NVHPC
 template <class View, class ExecutionSpace>
 struct TestViewMemoryAccessViolation {
   View v;
@@ -182,7 +181,12 @@ TEST(TEST_CATEGORY_DEATH, view_memory_access_violations_from_device) {
                     "able to abort from the device";
   }
 #endif
+#if defined(KOKKOS_ENABLE_OPENACC)  // FIXME_OPENACC
+  if (std::is_same<ExecutionSpace, Kokkos::Experimental::OpenACC>::value) {
+    GTEST_SKIP() << "skipping because OpenACC backend is currently not "
+                    "able to abort from the device";
+  }
+#endif
 
   test_view_memory_access_violations_from_device<ExecutionSpace>();
 }
-#endif

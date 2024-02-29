@@ -22,7 +22,6 @@
 
 #include <cstdio>
 #include <climits>
-#include <iostream>
 #include <iomanip>
 
 namespace Kokkos {
@@ -226,8 +225,8 @@ struct UnorderedMapPrint {
     uint32_t list = m_map.m_hash_lists(i);
     for (size_type curr = list, ii = 0; curr != invalid_index;
          curr = m_map.m_next_index[curr], ++ii) {
-      KOKKOS_IMPL_DO_NOT_USE_PRINTF("%d[%d]: %d->%d\n", list, ii,
-                                    m_map.key_at(curr), m_map.value_at(curr));
+      Kokkos::printf("%d[%d]: %d->%d\n", list, ii, m_map.key_at(curr),
+                     m_map.value_at(curr));
     }
   }
 };

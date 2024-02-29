@@ -27,7 +27,6 @@ static_assert(false,
 #include <impl/Kokkos_FunctorAnalysis.hpp>
 #include <impl/Kokkos_Tools_Generic.hpp>
 #include <type_traits>
-#include <iostream>
 
 namespace Kokkos {
 

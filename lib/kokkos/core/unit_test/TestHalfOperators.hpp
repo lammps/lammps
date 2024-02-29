@@ -241,10 +241,27 @@ enum OP_TESTS {
   OR,
   EQ,
   NEQ,
-  LT,
-  GT,
-  LE,
-  GE,  // TODO: TW,
+  LT_H_H,
+  LT_H_S,
+  LT_S_H,
+  LT_H_D,
+  LT_D_H,
+  GT_H_H,
+  GT_H_S,
+  GT_S_H,
+  GT_H_D,
+  GT_D_H,
+  LE_H_H,
+  LE_H_S,
+  LE_S_H,
+  LE_H_D,
+  LE_D_H,
+  GE_H_H,
+  GE_H_S,
+  GE_S_H,
+  GE_H_D,
+  GE_D_H,
+  // TODO: TW,
   PASS_BY_REF,
   AO_IMPL_HALF,
   AO_HALF_T,
@@ -292,20 +309,20 @@ struct Functor_TestHalfVolatileOperators {
     actual_lhs(ASSIGN)   = static_cast<double>(nv_tmp);
     expected_lhs(ASSIGN) = d_lhs;
 
-    actual_lhs(LT)   = h_lhs < h_rhs;
-    expected_lhs(LT) = d_lhs < d_rhs;
+    actual_lhs(LT_H_H)   = h_lhs < h_rhs;
+    expected_lhs(LT_H_H) = d_lhs < d_rhs;
 
-    actual_lhs(LE)   = h_lhs <= h_rhs;
-    expected_lhs(LE) = d_lhs <= d_rhs;
+    actual_lhs(LE_H_H)   = h_lhs <= h_rhs;
+    expected_lhs(LE_H_H) = d_lhs <= d_rhs;
 
     actual_lhs(NEQ)   = h_lhs != h_rhs;
     expected_lhs(NEQ) = d_lhs != d_rhs;
 
-    actual_lhs(GT)   = h_lhs > h_rhs;
-    expected_lhs(GT) = d_lhs > d_rhs;
+    actual_lhs(GT_H_H)   = h_lhs > h_rhs;
+    expected_lhs(GT_H_H) = d_lhs > d_rhs;
 
-    actual_lhs(GE)   = h_lhs >= h_rhs;
-    expected_lhs(GE) = d_lhs >= d_rhs;
+    actual_lhs(GE_H_H)   = h_lhs >= h_rhs;
+    expected_lhs(GE_H_H) = d_lhs >= d_rhs;
 
     actual_lhs(EQ)   = h_lhs == h_rhs;
     expected_lhs(EQ) = d_lhs == d_rhs;
@@ -879,17 +896,49 @@ struct Functor_TestHalfOperators {
     actual_lhs(NEQ)   = h_lhs != h_rhs;
     expected_lhs(NEQ) = d_lhs != d_rhs;
 
-    actual_lhs(LT)   = h_lhs < h_rhs;
-    expected_lhs(LT) = d_lhs < d_rhs;
+    actual_lhs(LT_H_H)   = h_lhs < h_rhs;
+    expected_lhs(LT_H_H) = d_lhs < d_rhs;
+    actual_lhs(LT_H_S)   = h_lhs < static_cast<float>(h_rhs);
+    expected_lhs(LT_H_S) = d_lhs < d_rhs;
+    actual_lhs(LT_S_H)   = static_cast<float>(h_lhs) < h_rhs;
+    expected_lhs(LT_S_H) = d_lhs < d_rhs;
+    actual_lhs(LT_H_D)   = h_lhs < static_cast<double>(h_rhs);
+    expected_lhs(LT_H_D) = d_lhs < d_rhs;
+    actual_lhs(LT_D_H)   = static_cast<double>(h_lhs) < h_rhs;
+    expected_lhs(LT_D_H) = d_lhs < d_rhs;
 
-    actual_lhs(GT)   = h_lhs > h_rhs;
-    expected_lhs(GT) = d_lhs > d_rhs;
+    actual_lhs(GT_H_H)   = h_lhs > h_rhs;
+    expected_lhs(GT_H_H) = d_lhs > d_rhs;
+    actual_lhs(GT_H_S)   = h_lhs > static_cast<float>(h_rhs);
+    expected_lhs(GT_H_S) = d_lhs > d_rhs;
+    actual_lhs(GT_S_H)   = static_cast<float>(h_lhs) > h_rhs;
+    expected_lhs(GT_S_H) = d_lhs > d_rhs;
+    actual_lhs(GT_H_D)   = h_lhs > static_cast<double>(h_rhs);
+    expected_lhs(GT_H_D) = d_lhs > d_rhs;
+    actual_lhs(GT_D_H)   = static_cast<double>(h_lhs) > h_rhs;
+    expected_lhs(GT_D_H) = d_lhs > d_rhs;
 
-    actual_lhs(LE)   = h_lhs <= h_rhs;
-    expected_lhs(LE) = d_lhs <= d_rhs;
+    actual_lhs(LE_H_H)   = h_lhs <= h_rhs;
+    expected_lhs(LE_H_H) = d_lhs <= d_rhs;
+    actual_lhs(LE_H_S)   = h_lhs <= static_cast<float>(h_rhs);
+    expected_lhs(LE_H_S) = d_lhs <= d_rhs;
+    actual_lhs(LE_S_H)   = static_cast<float>(h_lhs) <= h_rhs;
+    expected_lhs(LE_S_H) = d_lhs <= d_rhs;
+    actual_lhs(LE_H_D)   = h_lhs <= static_cast<double>(h_rhs);
+    expected_lhs(LE_H_D) = d_lhs <= d_rhs;
+    actual_lhs(LE_D_H)   = static_cast<double>(h_lhs) <= h_rhs;
+    expected_lhs(LE_D_H) = d_lhs <= d_rhs;
 
-    actual_lhs(GE)   = h_lhs >= h_rhs;
-    expected_lhs(GE) = d_lhs >= d_rhs;
+    actual_lhs(GE_H_H)   = h_lhs >= h_rhs;
+    expected_lhs(GE_H_H) = d_lhs >= d_rhs;
+    actual_lhs(GE_H_S)   = h_lhs >= static_cast<float>(h_rhs);
+    expected_lhs(GE_H_S) = d_lhs >= d_rhs;
+    actual_lhs(GE_S_H)   = static_cast<float>(h_lhs) >= h_rhs;
+    expected_lhs(GE_S_H) = d_lhs >= d_rhs;
+    actual_lhs(GE_H_D)   = h_lhs >= static_cast<double>(h_rhs);
+    expected_lhs(GE_H_D) = d_lhs >= d_rhs;
+    actual_lhs(GE_D_H)   = static_cast<double>(h_lhs) >= h_rhs;
+    expected_lhs(GE_D_H) = d_lhs >= d_rhs;
 
     // actual_lhs(TW)   = h_lhs <=> h_rhs;  // Need C++20?
     // expected_lhs(TW) = d_lhs <=> d_rhs;  // Need C++20?
@@ -926,7 +975,7 @@ struct Functor_TestHalfOperators {
 
 template <class half_type>
 void __test_half_operators(half_type h_lhs, half_type h_rhs) {
-  double epsilon = Kokkos::Experimental::epsilon<half_type>::value;
+  half_type epsilon = Kokkos::Experimental::epsilon<half_type>::value;
 
   Functor_TestHalfOperators<ViewType, half_type> f_device(h_lhs, h_rhs);
   Functor_TestHalfOperators<ViewTypeHost, half_type> f_host(h_lhs, h_rhs);
@@ -941,9 +990,9 @@ void __test_half_operators(half_type h_lhs, half_type h_rhs) {
   for (int op_test = 0; op_test < N_OP_TESTS; op_test++) {
     // printf("op_test = %d\n", op_test);
     ASSERT_NEAR(f_device_actual_lhs(op_test), f_device_expected_lhs(op_test),
-                epsilon);
+                static_cast<double>(epsilon));
     ASSERT_NEAR(f_host.actual_lhs(op_test), f_host.expected_lhs(op_test),
-                epsilon);
+                static_cast<double>(epsilon));
   }
 
 // volatile-qualified parameter type 'volatile half_type' is deprecated
@@ -961,14 +1010,14 @@ void __test_half_operators(half_type h_lhs, half_type h_rhs) {
   Kokkos::deep_copy(f_device_expected_lhs, f_device.expected_lhs);
   for (int op_test = 0; op_test < N_OP_TESTS; op_test++) {
     // printf("op_test = %d\n", op_test);
-    if (op_test == ASSIGN || op_test == LT || op_test == LE || op_test == NEQ ||
-        op_test == EQ || op_test == GT || op_test == GE ||
-        op_test == CADD_H_H || op_test == CSUB_H_H || op_test == CMUL_H_H ||
-        op_test == CDIV_H_H) {
+    if (op_test == ASSIGN || op_test == LT_H_H || op_test == LE_H_H ||
+        op_test == NEQ || op_test == EQ || op_test == GT_H_H ||
+        op_test == GE_H_H || op_test == CADD_H_H || op_test == CSUB_H_H ||
+        op_test == CMUL_H_H || op_test == CDIV_H_H) {
       ASSERT_NEAR(f_device_actual_lhs(op_test), f_device_expected_lhs(op_test),
-                  epsilon);
+                  static_cast<double>(epsilon));
       ASSERT_NEAR(f_host.actual_lhs(op_test), f_host.expected_lhs(op_test),
-                  epsilon);
+                  static_cast<double>(epsilon));
     }
   }
 #endif

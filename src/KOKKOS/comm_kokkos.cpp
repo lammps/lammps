@@ -36,9 +36,9 @@
 
 using namespace LAMMPS_NS;
 
-#define BUFFACTOR 1.5
-#define BUFMIN 10000
-#define BUFEXTRA 1000
+static constexpr double BUFFACTOR = 1.5;
+static constexpr int BUFMIN = 10000;
+static constexpr int BUFEXTRA = 1000;
 
 /* ----------------------------------------------------------------------
    setup MPI and allocate buffer space
@@ -729,6 +729,14 @@ void CommKokkos::exchange_device()
   double lo,hi;
   MPI_Request request;
 
+  // clear global->local map for owned and ghost atoms
+  // b/c atoms migrate to new procs in exchange() and
+  //   new ghosts are created in borders()
+  // map_set() is done at end of borders()
+
+  if (lmp->kokkos->atom_map_classic)
+    if (map_style != Atom::MAP_NONE) atom->map_clear();
+
   // clear ghost count and any ghost bonus data internal to AtomVec
 
   atom->nghost = 0;
@@ -864,7 +872,7 @@ void CommKokkos::exchange_device()
         if (nrecv) {
 
           if (atom->nextra_grow) {
-            if (k_indices.extent(0) < nrecv/data_size)
+            if ((int) k_indices.extent(0) < nrecv/data_size)
               MemoryKokkos::realloc_kokkos(k_indices,"comm:indices",nrecv/data_size);
           } else if (k_indices.h_view.data())
            k_indices = DAT::tdual_int_1d();
@@ -931,6 +939,7 @@ void CommKokkos::exchange_device()
             if (nextrarecv) {
               kkbase->unpack_exchange_kokkos(
                 k_buf_recv,k_indices,nrecv/data_size,
+                nrecv1/data_size,nextrarecv1,
                 ExecutionSpaceFromDevice<DeviceType>::space);
               DeviceType().fence();
             }

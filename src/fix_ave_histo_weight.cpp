@@ -38,7 +38,7 @@ enum { DEFAULT, GLOBAL, PERATOM, LOCAL };
 enum { IGNORE, END, EXTRA };
 enum { SINGLE, VALUE };
 
-#define BIG 1.0e20
+static constexpr double BIG = 1.0e20;
 
 /* ---------------------------------------------------------------------- */
 

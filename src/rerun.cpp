@@ -30,7 +30,7 @@
 
 using namespace LAMMPS_NS;
 
-#define EPSDT 1.0e-6
+static constexpr double EPSDT = 1.0e-6;
 /* ---------------------------------------------------------------------- */
 
 Rerun::Rerun(LAMMPS *lmp) : Command(lmp) {}

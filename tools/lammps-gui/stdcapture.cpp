@@ -38,7 +38,7 @@
 StdCapture::StdCapture() : m_oldStdOut(0), m_capturing(false)
 {
     // make stdout unbuffered so that we don't need to flush the stream
-    setvbuf(stdout, NULL, _IONBF, 0);
+    setvbuf(stdout, nullptr, _IONBF, 0);
 
     m_pipe[READ]  = 0;
     m_pipe[WRITE] = 0;
@@ -106,7 +106,7 @@ bool StdCapture::EndCapture()
 
 std::string StdCapture::GetChunk()
 {
-    if (!m_capturing) return std::string();
+    if (!m_capturing) return {};
     int bytesRead = 0;
     buf[0]        = '\0';
 
@@ -120,7 +120,7 @@ std::string StdCapture::GetChunk()
     if (bytesRead > 0) {
         buf[bytesRead] = '\0';
     }
-    return std::string(buf);
+    return {buf};
 }
 
 std::string StdCapture::GetCapture()

@@ -419,6 +419,10 @@ class PairAmoeba : public Pair {
   double ewaldcof(double);
   int factorable(int);
 
+  double final_accuracy_mpole();
+  double rms(int km, double prd, bigint natoms, double g_ewald, double q2);
+  double two_charge_force;
+
   // debug methods
 
   FILE *fp_uind;

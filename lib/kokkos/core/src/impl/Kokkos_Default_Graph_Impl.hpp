@@ -161,8 +161,6 @@ struct GraphImpl : private ExecutionSpaceInstanceStorage<ExecutionSpace> {
 
 }  // end namespace Kokkos
 
-#include <OpenMP/Kokkos_OpenMP_Parallel.hpp>
-
 #include <impl/Kokkos_Default_GraphNodeKernel.hpp>
 #include <impl/Kokkos_Default_GraphNode_Impl.hpp>
 

@@ -224,7 +224,7 @@ void BondBPM::settings(int narg, char **arg)
 
       ifix = modify->get_fix_by_id(id_fix_prop_atom);
       if (!ifix)
-        ifix = modify->add_fix(fmt::format("{} all property/atom {} {} {} ghost yes",
+        ifix = modify->add_fix(fmt::format("{} all property/atom d_{} d_{} d_{} ghost yes",
                                            id_fix_prop_atom, x_ref_id, y_ref_id, z_ref_id));
 
       int type_flag;
@@ -357,7 +357,6 @@ void BondBPM::process_broken(int i, int j)
   if (i < nlocal) {
     for (m = 0; m < num_bond[i]; m++) {
       if (bond_atom[i][m] == tag[j]) {
-        bond_type[i][m] = 0;
         n = num_bond[i];
         bond_type[i][m] = bond_type[i][n - 1];
         bond_atom[i][m] = bond_atom[i][n - 1];
@@ -372,7 +371,6 @@ void BondBPM::process_broken(int i, int j)
   if (j < nlocal) {
     for (m = 0; m < num_bond[j]; m++) {
       if (bond_atom[j][m] == tag[i]) {
-        bond_type[j][m] = 0;
         n = num_bond[j];
         bond_type[j][m] = bond_type[j][n - 1];
         bond_atom[j][m] = bond_atom[j][n - 1];

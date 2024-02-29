@@ -19,9 +19,9 @@
 #include "atom.h"
 #include "comm.h"
 #include "force.h"
+#include "math_extra.h"
 #include "neighbor.h"
 #include "suffix.h"
-#include "math_extra.h"
 
 #include <cmath>
 
@@ -94,10 +94,17 @@ void DihedralLeptonOMP::eval(int nfrom, int nto, ThrData *const thr)
 {
   std::vector<Lepton::CompiledExpression> dihedralforce;
   std::vector<Lepton::CompiledExpression> dihedralpot;
+  std::vector<bool> has_ref;
   try {
     for (const auto &expr : expressions) {
       auto parsed = Lepton::Parser::parse(LeptonUtils::substitute(expr, Pointers::lmp));
       dihedralforce.emplace_back(parsed.differentiate("phi").createCompiledExpression());
+      has_ref.push_back(true);
+      try {
+        dihedralforce.back().getVariableReference("phi");
+      } catch (Lepton::Exception &) {
+        has_ref.back() = false;
+      }
       if (EFLAG) dihedralpot.emplace_back(parsed.createCompiledExpression());
     }
   } catch (std::exception &e) {
@@ -106,7 +113,7 @@ void DihedralLeptonOMP::eval(int nfrom, int nto, ThrData *const thr)
 
   const double *const *const x = atom->x;
   auto *_noalias const f = (dbl3_t *) thr->get_f()[0];
-  const int * const * const dihedrallist = neighbor->dihedrallist;
+  const int *const *const dihedrallist = neighbor->dihedrallist;
   const int nlocal = atom->nlocal;
 
   // The dihedral angle "phi" is the angle between n123 and n234
@@ -279,7 +286,7 @@ void DihedralLeptonOMP::eval(int nfrom, int nto, ThrData *const thr)
     }
 
     const int idx = type2expression[type];
-    dihedralforce[idx].getVariableReference("phi") = phi;
+    if (has_ref[idx]) dihedralforce[idx].getVariableReference("phi") = phi;
     double m_du_dphi = -dihedralforce[idx].evaluate();
 
     // ----- Step 4: Calculate the force direction in real space -----
@@ -323,7 +330,11 @@ void DihedralLeptonOMP::eval(int nfrom, int nto, ThrData *const thr)
 
     double edihedral = 0.0;
     if (EFLAG) {
-      dihedralpot[idx].getVariableReference("phi") = phi;
+      try {
+        dihedralpot[idx].getVariableReference("phi") = phi;
+      } catch (Lepton::Exception &) {
+        ;    // ignore -> constant potential
+      }
       edihedral = dihedralpot[idx].evaluate();
     }
     if (EVFLAG)

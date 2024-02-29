@@ -19,7 +19,6 @@
 #include <regex>
 #include <Kokkos_Core.hpp>
 
-#ifndef KOKKOS_COMPILER_NVHPC  // FIXME_NVHPC
 TEST(TEST_CATEGORY_DEATH, abort_from_host) {
   ::testing::FLAGS_gtest_death_test_style = "threadsafe";
 
@@ -81,7 +80,13 @@ void test_abort_from_device() {
   } else {
     TestAbortCausingAbnormalProgramTerminationAndPrinting<ExecutionSpace>();
   }
-#elif defined(KOKKOS_ENABLE_SYCL)  // FIXME_SYCL
+#elif defined(KOKKOS_ENABLE_OPENACC)  // FIXME_OPENACC
+  if (std::is_same<ExecutionSpace, Kokkos::Experimental::OpenACC>::value) {
+    TestAbortPrintingToStdout<ExecutionSpace>();
+  } else {
+    TestAbortCausingAbnormalProgramTerminationAndPrinting<ExecutionSpace>();
+  }
+#elif defined(KOKKOS_ENABLE_SYCL)     // FIXME_SYCL
   if (std::is_same<ExecutionSpace, Kokkos::Experimental::SYCL>::value) {
 #ifdef NDEBUG
     TestAbortPrintingToStdout<ExecutionSpace>();
@@ -100,4 +105,3 @@ TEST(TEST_CATEGORY_DEATH, abort_from_device) {
   ::testing::FLAGS_gtest_death_test_style = "threadsafe";
   test_abort_from_device<TEST_EXECSPACE>();
 }
-#endif

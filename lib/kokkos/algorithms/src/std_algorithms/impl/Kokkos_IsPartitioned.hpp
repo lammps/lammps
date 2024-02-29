@@ -62,9 +62,9 @@ struct StdIsPartitionedFunctor {
 };
 
 template <class ExecutionSpace, class IteratorType, class PredicateType>
-bool is_partitioned_impl(const std::string& label, const ExecutionSpace& ex,
-                         IteratorType first, IteratorType last,
-                         PredicateType pred) {
+bool is_partitioned_exespace_impl(const std::string& label,
+                                  const ExecutionSpace& ex, IteratorType first,
+                                  IteratorType last, PredicateType pred) {
   // true if all elements in the range [first, last) that satisfy
   // the predicate "pred" appear before all elements that don't.
   // Also returns true if [first, last) is empty.
@@ -97,6 +97,7 @@ bool is_partitioned_impl(const std::string& label, const ExecutionSpace& ex,
   const auto num_elements = Kokkos::Experimental::distance(first, last);
   ::Kokkos::parallel_reduce(label,
                             RangePolicy<ExecutionSpace>(ex, 0, num_elements),
+
                             func_t(first, reducer, pred), reducer);
 
   // fence not needed because reducing into scalar
@@ -109,8 +110,72 @@ bool is_partitioned_impl(const std::string& label, const ExecutionSpace& ex,
 
   if (red_result.max_loc_true != red_id_max &&
       red_result.min_loc_false != red_id_min) {
+    // this occurs when the reduction yields nontrivial values
     return red_result.max_loc_true < red_result.min_loc_false;
+  } else if (red_result.max_loc_true == red_id_max &&
+             red_result.min_loc_false == 0) {
+    // this occurs when all values do NOT satisfy
+    // the predicate, and this corner case should also be true
+    return true;
   } else if (first + red_result.max_loc_true == --last) {
+    // this occurs when all values satisfy the predicate,
+    // this corner case should also be true
+    return true;
+  } else {
+    return false;
+  }
+}
+
+template <class TeamHandleType, class IteratorType, class PredicateType>
+KOKKOS_FUNCTION bool is_partitioned_team_impl(const TeamHandleType& teamHandle,
+                                              IteratorType first,
+                                              IteratorType last,
+                                              PredicateType pred) {
+  /* see exespace impl for the description of the impl */
+
+  // checks
+  Impl::static_assert_random_access_and_accessible(teamHandle, first);
+  Impl::expect_valid_range(first, last);
+
+  // trivial case
+  if (first == last) {
+    return true;
+  }
+
+  // aliases
+  using index_type           = typename IteratorType::difference_type;
+  using reducer_type         = StdIsPartitioned<index_type>;
+  using reduction_value_type = typename reducer_type::value_type;
+  using func_t =
+      StdIsPartitionedFunctor<IteratorType, reducer_type, PredicateType>;
+
+  // run
+  reduction_value_type red_result;
+  reducer_type reducer(red_result);
+  const auto num_elements = Kokkos::Experimental::distance(first, last);
+  ::Kokkos::parallel_reduce(TeamThreadRange(teamHandle, 0, num_elements),
+                            func_t(first, reducer, pred), reducer);
+
+  // fence not needed because reducing into scalar
+
+  // decide and return
+  constexpr index_type red_id_min =
+      ::Kokkos::reduction_identity<index_type>::min();
+  constexpr index_type red_id_max =
+      ::Kokkos::reduction_identity<index_type>::max();
+
+  if (red_result.max_loc_true != red_id_max &&
+      red_result.min_loc_false != red_id_min) {
+    // this occurs when the reduction yields nontrivial values
+    return red_result.max_loc_true < red_result.min_loc_false;
+  } else if (red_result.max_loc_true == red_id_max &&
+             red_result.min_loc_false == 0) {
+    // this occurs when all values do NOT satisfy
+    // the predicate, and this corner case should also be true
+    return true;
+  } else if (first + red_result.max_loc_true == --last) {
+    // this occurs when all values satisfy the predicate,
+    // this corner case should also be true
     return true;
   } else {
     return false;

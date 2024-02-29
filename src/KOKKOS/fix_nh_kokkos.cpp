@@ -39,8 +39,8 @@
 using namespace LAMMPS_NS;
 using namespace FixConst;
 
-#define DELTAFLIP 0.1
-#define TILTMAX 1.5
+static constexpr double DELTAFLIP = 0.1;
+static constexpr double TILTMAX = 1.5;
 
 enum{NOBIAS,BIAS};
 enum{NONE,XYZ,XY,YZ,XZ};

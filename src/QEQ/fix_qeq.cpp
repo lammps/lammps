@@ -338,12 +338,6 @@ void FixQEq::setup_pre_force(int vflag)
   if (force->newton_pair == 0)
     error->all(FLERR,"QEQ with 'newton pair off' not supported");
 
-  if (force->pair) {
-    if (force->pair->suffix_flag & (Suffix::INTEL|Suffix::GPU))
-      error->all(FLERR,"QEQ is not compatiple with suffix version "
-                 "of pair style");
-  }
-
   deallocate_storage();
   allocate_storage();
 

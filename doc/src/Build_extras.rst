@@ -626,22 +626,22 @@ They must be specified in uppercase.
    *  - HOPPER90
       - GPU
       - NVIDIA Hopper generation CC 9.0 GPU
-   *  - VEGA900
+   *  - AMD_GFX906
       - GPU
-      - AMD GPU MI25 GFX900
-   *  - VEGA906
+      - AMD GPU MI50/MI60
+   *  - AMD_GFX908
       - GPU
-      - AMD GPU MI50/MI60 GFX906
-   *  - VEGA908
+      - AMD GPU MI100
+   *  - AMD_GFX90A
       - GPU
-      - AMD GPU MI100 GFX908
-   *  - VEGA90A
+      - AMD GPU MI200
+   *  - AMD_GFX942
       - GPU
-      - AMD GPU MI200 GFX90A
-   *  - NAVI1030
+      - AMD GPU MI300
+   *  - AMD_GFX1030
       - GPU
       - AMD GPU V620/W6800
-   *  - NAVI1100
+   *  - AMD_GFX1100
       - GPU
       - AMD GPU RX7900XTX
    *  - INTEL_GEN
@@ -666,7 +666,7 @@ They must be specified in uppercase.
       - GPU
       - Intel GPU Ponte Vecchio
 
-This list was last updated for version 4.0.1 of the Kokkos library.
+This list was last updated for version 4.2 of the Kokkos library.
 
 .. tabs::
 

@@ -30,7 +30,7 @@
 using namespace LAMMPS_NS;
 using namespace FixConst;
 
-#define BIG 1.0e20
+static constexpr double BIG = 1.0e20;
 
 /* ---------------------------------------------------------------------- */
 

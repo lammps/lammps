@@ -62,8 +62,7 @@ struct pair {
   ///
   /// This calls the copy constructors of T1 and T2.  It won't compile
   /// if those copy constructors are not defined and public.
-#ifdef KOKKOS_COMPILER_NVHPC  // FIXME_NVHPC bug in NVHPC regarding constexpr
-                              // constructors used in device code
+#if defined(KOKKOS_COMPILER_NVHPC) && KOKKOS_COMPILER_NVHPC < 230700
   KOKKOS_FORCEINLINE_FUNCTION
 #else
   KOKKOS_FORCEINLINE_FUNCTION constexpr
@@ -75,8 +74,7 @@ struct pair {
   /// This calls the copy constructors of T1 and T2.  It won't compile
   /// if those copy constructors are not defined and public.
   template <class U, class V>
-#ifdef KOKKOS_COMPILER_NVHPC  // FIXME_NVHPC bug in NVHPC regarding constexpr
-                              // constructors used in device code
+#if defined(KOKKOS_COMPILER_NVHPC) && KOKKOS_COMPILER_NVHPC < 230700
   KOKKOS_FORCEINLINE_FUNCTION
 #else
   KOKKOS_FORCEINLINE_FUNCTION constexpr

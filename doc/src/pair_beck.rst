@@ -30,11 +30,11 @@ Description
 
 Style *beck* computes interactions based on the potential by
 :ref:`(Beck) <Beck>`, originally designed for simulation of Helium.  It
-includes truncation at a cutoff distance Rc.
+includes truncation at a cutoff distance :math:`r_c`.
 
 .. math::
 
-   E(r) &= A \exp\left[-\alpha r - \beta r^6\right] - \frac{B}{\left(r^2+a^2\right)^3} \left(1+\frac{2.709+3a^2}{r^2+a^2}\right) \qquad r < R_c \\
+   E(r) &= A \exp\left[-\alpha r - \beta r^6\right] - \frac{B}{\left(r^2+a^2\right)^3} \left(1+\frac{2.709+3a^2}{r^2+a^2}\right) \qquad r < r_c \\
 
 The following coefficients must be defined for each pair of atoms
 types via the :doc:`pair_coeff <pair_coeff>` command as in the examples
@@ -50,7 +50,7 @@ commands.
 * cutoff (distance units)
 
 The last coefficient is optional.  If not specified, the global cutoff
-:math:`R_c` is used.
+:math:`r_c` is used.
 
 ----------
 

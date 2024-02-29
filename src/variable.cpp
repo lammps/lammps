@@ -48,13 +48,13 @@
 using namespace LAMMPS_NS;
 using namespace MathConst;
 
-#define VARDELTA 4
-#define MAXLEVEL 4
-#define MAXLINE 256
-#define CHUNK 1024
-#define MAXFUNCARG 6
+static constexpr int VARDELTA = 4;
+static constexpr int MAXLEVEL = 4;
+static constexpr int MAXLINE = 256;
+static constexpr int CHUNK = 1024;
+static constexpr int MAXFUNCARG = 6;
 
-#define MYROUND(a) (( (a)-floor(a) ) >= .5) ? ceil(a) : floor(a)
+static inline double MYROUND(double a) { return ((a - floor(a)) >= 0.5) ? ceil(a) : floor(a); }
 
 enum{ARG,OP};
 
@@ -65,8 +65,9 @@ enum{ARG,OP};
 enum{DONE,ADD,SUBTRACT,MULTIPLY,DIVIDE,CARAT,MODULO,UNARY,
      NOT,EQ,NE,LT,LE,GT,GE,AND,OR,XOR,
      SQRT,EXP,LN,LOG,ABS,SIN,COS,TAN,ASIN,ACOS,ATAN,ATAN2,
-     RANDOM,NORMAL,CEIL,FLOOR,ROUND,RAMP,STAGGER,LOGFREQ,LOGFREQ2,
-     LOGFREQ3,STRIDE,STRIDE2,VDISPLACE,SWIGGLE,CWIGGLE,GMASK,RMASK,
+     RANDOM,NORMAL,CEIL,FLOOR,ROUND,TERNARY,
+     RAMP,STAGGER,LOGFREQ,LOGFREQ2,LOGFREQ3,STRIDE,STRIDE2,
+     VDISPLACE,SWIGGLE,CWIGGLE,GMASK,RMASK,
      GRMASK,IS_ACTIVE,IS_DEFINED,IS_AVAILABLE,IS_FILE,EXTRACT_SETTING,
      VALUE,ATOMARRAY,TYPEARRAY,INTARRAY,BIGINTARRAY,VECTORARRAY};
 
@@ -1280,7 +1281,12 @@ void Variable::remove(int n)
     reader[i-1] = reader[i];
     data[i-1] = data[i];
     dvalue[i-1] = dvalue[i];
+
+    // copy VecVar struct from vecs[i] to vecs[i-1]
+
+    memcpy(&vecs[i-1],&vecs[i],sizeof(VecVar));
   }
+
   nvar--;
   data[nvar] = nullptr;
   reader[nvar] = nullptr;
@@ -1345,6 +1351,7 @@ void Variable::copy(int narg, char **from, char **to)
      special function = sum(x),min(x), ...
      atom value = x[i], y[i], vx[i], ...
      atom vector = x, y, vx, ...
+     custom atom property = i/d_name, i/d_name[i], i/d2_name[i], i/d2_name[i][j]
      compute = c_ID, c_ID[i], c_ID[i][j]
      fix = f_ID, f_ID[i], f_ID[i][j]
      variable = v_name, v_name[i]
@@ -1441,7 +1448,9 @@ double Variable::evaluate(char *str, Tree **tree, int ivar)
 
     // ----------------
     // letter: c_ID, c_ID[], c_ID[][], f_ID, f_ID[], f_ID[][],
-    //         v_name, v_name[], exp(), xcm(,), x, x[], PI, vol
+    //         v_name, v_name[], exp(), xcm(,), x, x[], PI, vol,
+    //         i/d_name, i/d_name[],  i/d_name[][],
+    //         i/d2_name, i/d2_name[],  i/d2_name[][]
     // ----------------
 
     } else if (isalpha(onechar)) {
@@ -1501,7 +1510,7 @@ double Variable::evaluate(char *str, Tree **tree, int ivar)
 
         // equal-style or immediate variable is being evaluated
 
-        if ((style[ivar] == EQUAL) || (ivar < 0)) {
+        if ((ivar < 0) || (style[ivar] == EQUAL)) {
 
           // c_ID = scalar from global scalar
 
@@ -1769,7 +1778,7 @@ double Variable::evaluate(char *str, Tree **tree, int ivar)
 
         // equal-style or immediate variable is being evaluated
 
-        if ((style[ivar] == EQUAL) || (ivar < 0)) {
+        if ((ivar < 0) || (style[ivar] == EQUAL)) {
 
           // f_ID = scalar from global scalar
 
@@ -1968,12 +1977,12 @@ double Variable::evaluate(char *str, Tree **tree, int ivar)
 
       } else if (strncmp(word,"v_",2) == 0) {
 
-        int ivar = find(word+2);
-        if (ivar < 0)
+        int jvar = find(word+2);
+        if (jvar < 0)
           print_var_error(FLERR,fmt::format("Invalid variable reference {} in variable formula",word),
-                          ivar);
-        if (eval_in_progress[ivar])
-          print_var_error(FLERR,"has a circular dependency",ivar);
+                          jvar);
+        if (eval_in_progress[jvar])
+          print_var_error(FLERR,"has a circular dependency",jvar);
 
         // parse zero or one trailing brackets
         // point i beyond last bracket
@@ -1997,9 +2006,9 @@ double Variable::evaluate(char *str, Tree **tree, int ivar)
           // scalar from internal-style variable
           // access value directly
 
-          if (style[ivar] == INTERNAL) {
+          if (style[jvar] == INTERNAL) {
 
-            value1 = dvalue[ivar];
+            value1 = dvalue[jvar];
             if (tree) {
               auto newtree = new Tree();
               newtree->type = VALUE;
@@ -2010,13 +2019,13 @@ double Variable::evaluate(char *str, Tree **tree, int ivar)
             // scalar from any style variable except VECTOR, ATOM, ATOMFILE
             // access value via retrieve()
 
-          } else if (style[ivar] != ATOM && style[ivar] != ATOMFILE && style[ivar] != VECTOR) {
+          } else if (style[jvar] != ATOM && style[jvar] != ATOMFILE && style[jvar] != VECTOR) {
 
             char *var = retrieve(word+2);
             if (var == nullptr)
-              print_var_error(FLERR,"Invalid variable evaluation in variable formula",ivar);
+              print_var_error(FLERR,"Invalid variable evaluation in variable formula",jvar);
             if (!utils::is_double(var))
-              print_var_error(FLERR,"Non-numeric variable value in variable formula",ivar);
+              print_var_error(FLERR,"Non-numeric variable value in variable formula",jvar);
             if (tree) {
               auto newtree = new Tree();
               newtree->type = VALUE;
@@ -2027,15 +2036,15 @@ double Variable::evaluate(char *str, Tree **tree, int ivar)
           // vector from vector-style variable
           // evaluate the vector-style variable, put result in newtree
 
-          } else if (style[ivar] == VECTOR) {
+          } else if (style[jvar] == VECTOR) {
 
             if (tree == nullptr)
-              print_var_error(FLERR,"Vector-style variable in equal-style variable formula",ivar);
+              print_var_error(FLERR,"Vector-style variable in equal-style variable formula",jvar);
             if (treetype == ATOM)
-              print_var_error(FLERR,"Vector-style variable in atom-style variable formula",ivar);
+              print_var_error(FLERR,"Vector-style variable in atom-style variable formula",jvar);
 
             double *vec;
-            int nvec = compute_vector(ivar,&vec);
+            int nvec = compute_vector(jvar,&vec);
 
             auto newtree = new Tree();
             newtree->type = VECTORARRAY;
@@ -2047,36 +2056,36 @@ double Variable::evaluate(char *str, Tree **tree, int ivar)
           // vector from atom-style variable
           // evaluate the atom-style variable as newtree
 
-          } else if (style[ivar] == ATOM) {
+          } else if (style[jvar] == ATOM) {
 
             if (tree == nullptr)
-              print_var_error(FLERR,"Atom-style variable in equal-style variable formula",ivar);
+              print_var_error(FLERR,"Atom-style variable in equal-style variable formula",jvar);
             if (treetype == VECTOR)
-              print_var_error(FLERR,"Atom-style variable in vector-style variable formula",ivar);
+              print_var_error(FLERR,"Atom-style variable in vector-style variable formula",jvar);
 
             Tree *newtree = nullptr;
-            evaluate(data[ivar][0],&newtree,ivar);
+            evaluate(data[jvar][0],&newtree,jvar);
             treestack[ntreestack++] = newtree;
 
           // vector from atomfile-style variable
           // point to the values in FixStore instance
 
-          } else if (style[ivar] == ATOMFILE) {
+          } else if (style[jvar] == ATOMFILE) {
 
             if (tree == nullptr)
-              print_var_error(FLERR,"Atomfile-style variable in equal-style variable formula",ivar);
+              print_var_error(FLERR,"Atomfile-style variable in equal-style variable formula",jvar);
             if (treetype == VECTOR)
-              print_var_error(FLERR,"Atomfile-style variable in vector-style variable formula",ivar);
+              print_var_error(FLERR,"Atomfile-style variable in vector-style variable formula",jvar);
 
             auto newtree = new Tree();
             newtree->type = ATOMARRAY;
-            newtree->array = reader[ivar]->fixstore->vstore;
+            newtree->array = reader[jvar]->fixstore->vstore;
             newtree->nstride = 1;
             treestack[ntreestack++] = newtree;
 
           // no other possibilities for variable with no bracket
 
-          } else print_var_error(FLERR,"Mismatched variable in variable formula",ivar);
+          } else print_var_error(FLERR,"Mismatched variable in variable formula",jvar);
 
         // vname[i] with one bracket
 
@@ -2085,12 +2094,12 @@ double Variable::evaluate(char *str, Tree **tree, int ivar)
           // scalar from vector-style variable
           // compute the vector-style variable, extract single value
 
-          if (style[ivar] == VECTOR) {
+          if (style[jvar] == VECTOR) {
 
             double *vec;
-            int nvec = compute_vector(ivar,&vec);
+            int nvec = compute_vector(jvar,&vec);
             if (index <= 0 || index > nvec)
-              print_var_error(FLERR,"Invalid index into vector-style variable",ivar);
+              print_var_error(FLERR,"Invalid index into vector-style variable",jvar);
             int m = index;   // convert from tagint to int
 
             if (tree) {
@@ -2104,30 +2113,140 @@ double Variable::evaluate(char *str, Tree **tree, int ivar)
           // compute the per-atom variable in result
           // use peratom2global to extract single value from result
 
-          } else if (style[ivar] == ATOM) {
+          } else if (style[jvar] == ATOM) {
 
             double *result;
             memory->create(result,atom->nlocal,"variable:result");
-            compute_atom(ivar,0,result,1,0);
+            compute_atom(jvar,0,result,1,0);
             peratom2global(1,nullptr,result,1,index,tree,treestack,ntreestack,argstack,nargstack);
             memory->destroy(result);
 
           // scalar from atomfile-style variable
           // use peratom2global to extract single value from FixStore instance
 
-          } else if (style[ivar] == ATOMFILE) {
+          } else if (style[jvar] == ATOMFILE) {
 
-            peratom2global(1,nullptr,reader[ivar]->fixstore->vstore,1,index,
+            peratom2global(1,nullptr,reader[jvar]->fixstore->vstore,1,index,
                            tree,treestack,ntreestack,argstack,nargstack);
 
           // no other possibilities for variable with one bracket
 
-          } else print_var_error(FLERR,"Mismatched variable in variable formula",ivar);
+          } else print_var_error(FLERR,"Mismatched variable in variable formula",jvar);
         }
 
       // ----------------
-      // math/group/special/labelmap function or atom value/vector or
-      // constant or thermo keyword
+      // custom atom property
+      // ----------------
+
+      } else if (utils::strmatch(word,"^[id]2?_")) {
+        if (domain->box_exist == 0)
+          print_var_error(FLERR,"Variable evaluation before simulation box is defined",ivar);
+
+        int index_custom,type_custom,cols_custom;
+        if (word[1] == '2') index_custom = atom->find_custom(word+3,type_custom,cols_custom);
+        else index_custom = atom->find_custom(word+2,type_custom,cols_custom);
+
+        if (index_custom < 0)
+          print_var_error(FLERR,fmt::format("Invalid custom atom property reference {} in variable formula",word),
+                          ivar);
+
+        // parse zero or one or two trailing brackets
+        // point i beyond last bracket
+        // nbracket = # of bracket pairs
+        // index1,index2 = int inside each bracket pair, possibly an atom ID
+
+        int nbracket;
+        tagint index1,index2;
+        if (str[i] != '[') nbracket = 0;
+        else {
+          nbracket = 1;
+          ptr = &str[i];
+          index1 = int_between_brackets(ptr,1);
+          i = ptr-str+1;
+          if (str[i] == '[') {
+            nbracket = 2;
+            ptr = &str[i];
+            index2 = int_between_brackets(ptr,1);
+            i = ptr-str+1;
+          }
+        }
+
+        // custom atom property with no bracket
+        // can only mean use a per-atom vector
+
+        if (nbracket == 0) {
+          if (cols_custom == 0) {
+            auto newtree = new Tree();
+            treestack[ntreestack++] = newtree;
+            if (type_custom == 0) {
+              newtree->type = INTARRAY;
+              newtree->iarray = atom->ivector[index_custom];
+            } else {
+              newtree->type = ATOMARRAY;
+              newtree->array = atom->dvector[index_custom];
+            }
+            newtree->nstride = 1;
+
+          } else if (cols_custom) {
+            print_var_error(FLERR,fmt::format("Invalid custom atom property reference {} in variable formula",word),
+                            ivar);
+          }
+
+        // custom atom property with one bracket
+        // can mean either extract a single value from a per-atom vector
+        // or use a column from a per-atom array
+
+        } else if (nbracket == 1) {
+
+          if (cols_custom == 0) {
+            if (type_custom == 0) {
+              custom2global(atom->ivector[index_custom],nullptr,1,index1,
+                            tree,treestack,ntreestack,argstack,nargstack);
+            } else {
+              custom2global(nullptr,atom->dvector[index_custom],1,index1,
+                            tree,treestack,ntreestack,argstack,nargstack);
+            }
+
+          } else if (cols_custom) {
+            if (index1 <= 0 || index1 > cols_custom)
+              print_var_error(FLERR,fmt::format("Invalid custom atom property reference {} in variable formula",word),
+                              ivar);
+            auto newtree = new Tree();
+            treestack[ntreestack++] = newtree;
+            if (type_custom == 0) {
+              newtree->type = INTARRAY;
+              newtree->iarray = &atom->iarray[index_custom][0][index1-1];
+            } else {
+              newtree->type = ATOMARRAY;
+              newtree->array = &atom->darray[index_custom][0][index1-1];
+            }
+            newtree->nstride = cols_custom;
+          }
+
+        // custom atom property with two brackets
+        // can only mean extract a single value from per-atom array
+
+        } else if (nbracket == 2) {
+          if (cols_custom == 0) {
+            print_var_error(FLERR,fmt::format("Invalid custom atom property reference {} in variable formula",word),
+                            ivar);
+
+          } else if (cols_custom) {
+            if (index2 <= 0 || index2 > cols_custom)
+              print_var_error(FLERR,fmt::format("Invalid custom atom property reference {} in variable formula",word),
+                              ivar);
+            if (type_custom == 0) {
+              custom2global(&atom->iarray[index_custom][0][index2],nullptr,cols_custom,index1,
+                            tree,treestack,ntreestack,argstack,nargstack);
+            } else {
+              custom2global(nullptr,&atom->darray[index_custom][0][index2],cols_custom,index1,
+                            tree,treestack,ntreestack,argstack,nargstack);
+            }
+          }
+        }
+
+      // ----------------
+      // math/group/special/labelmap function or atom value/vector or constant or thermo keyword
       // ----------------
 
       } else {
@@ -2385,9 +2504,9 @@ double Variable::evaluate(char *str, Tree **tree, int ivar)
    this enables optimal eval_tree loop over atoms
    customize by adding a function:
      sqrt(),exp(),ln(),log(),abs(),sin(),cos(),tan(),asin(),acos(),atan(),
-     atan2(y,x),random(x,y,z),normal(x,y,z),ceil(),floor(),round(),
+     atan2(y,x),random(x,y,z),normal(x,y,z),ceil(),floor(),round(),ternary(x,y,z),
      ramp(x,y),stagger(x,y),logfreq(x,y,z),logfreq2(x,y,z),
-     logfreq3(x,y,z),stride(x,y,z),vdisplace(x,y),swiggle(x,y,z),
+     logfreq3(x,y,z),stride(x,y,z),stride2(x,y,z,a,b,c),vdisplace(x,y),swiggle(x,y,z),
      cwiggle(x,y,z),gmask(x),rmask(x),grmask(x,y)
 ---------------------------------------------------------------------- */
 
@@ -2726,6 +2845,17 @@ double Variable::collapse_tree(Tree *tree)
     return tree->value;
   }
 
+  if (tree->type == TERNARY) {
+    arg1 = collapse_tree(tree->first);
+    arg2 = collapse_tree(tree->second);
+    arg3 = collapse_tree(tree->extra[0]);
+    if (tree->first->type != VALUE) return 0.0;
+    tree->type = VALUE;
+    if (arg1) tree->value = arg2;
+    else tree->value = arg3;
+    return tree->value;
+  }
+
   if (tree->type == RAMP) {
     arg1 = collapse_tree(tree->first);
     arg2 = collapse_tree(tree->second);
@@ -2942,9 +3072,9 @@ double Variable::collapse_tree(Tree *tree)
    tree was created by one-time parsing of formula string via evaluate()
    customize by adding a function:
      sqrt(),exp(),ln(),log(),sin(),cos(),tan(),asin(),acos(),atan(),
-     atan2(y,x),random(x,y,z),normal(x,y,z),ceil(),floor(),round(),
+     atan2(y,x),random(x,y,z),normal(x,y,z),ceil(),floor(),round(),ternary(x,y,z),
      ramp(x,y),stagger(x,y),logfreq(x,y,z),logfreq2(x,y,z),
-     logfreq3(x,y,z),stride(x,y,z),stride2(x,y,z),vdisplace(x,y),
+     logfreq3(x,y,z),stride(x,y,z),stride2(x,y,z,a,b,c),vdisplace(x,y),
      swiggle(x,y,z),cwiggle(x,y,z),gmask(x),rmask(x),grmask(x,y)
 ---------------------------------------------------------------------- */
 
@@ -3106,6 +3236,14 @@ double Variable::eval_tree(Tree *tree, int i)
     return floor(eval_tree(tree->first,i));
   if (tree->type == ROUND)
     return MYROUND(eval_tree(tree->first,i));
+
+  if (tree->type == TERNARY) {
+    double first = eval_tree(tree->first,i);
+    double second = eval_tree(tree->second,i);
+    double third = eval_tree(tree->extra[0],i);
+    if (first) return second;
+    else return third;
+  }
 
   if (tree->type == RAMP) {
     arg1 = eval_tree(tree->first,i);
@@ -3421,7 +3559,7 @@ tagint Variable::int_between_brackets(char *&ptr, int varallow)
    return 0 if not a match, 1 if successfully processed
    customize by adding a math function:
      sqrt(),exp(),ln(),log(),abs(),sin(),cos(),tan(),asin(),acos(),atan(),
-     atan2(y,x),random(x,y,z),normal(x,y,z),ceil(),floor(),round(),
+     atan2(y,x),random(x,y,z),normal(x,y,z),ceil(),floor(),round(),ternary(),
      ramp(x,y),stagger(x,y),logfreq(x,y,z),logfreq2(x,y,z),
      logfreq3(x,y,z),stride(x,y,z),stride2(x,y,z,a,b,c),vdisplace(x,y),
      swiggle(x,y,z),cwiggle(x,y,z)
@@ -3432,15 +3570,12 @@ int Variable::math_function(char *word, char *contents, Tree **tree, Tree **tree
 {
   // word not a match to any math function
 
-  if (strcmp(word,"sqrt") != 0 && strcmp(word,"exp") &&
-      strcmp(word,"ln") != 0 && strcmp(word,"log") != 0 &&
-      strcmp(word,"abs") != 0 &&
-      strcmp(word,"sin") != 0 && strcmp(word,"cos") != 0 &&
-      strcmp(word,"tan") != 0 && strcmp(word,"asin") != 0 &&
-      strcmp(word,"acos") != 0 && strcmp(word,"atan") != 0 &&
-      strcmp(word,"atan2") != 0 && strcmp(word,"random") != 0 &&
-      strcmp(word,"normal") != 0 && strcmp(word,"ceil") != 0 &&
-      strcmp(word,"floor") != 0 && strcmp(word,"round") != 0 &&
+  if (strcmp(word,"sqrt") != 0 && strcmp(word,"exp") && strcmp(word,"ln") != 0 &&
+      strcmp(word,"log") != 0 &&  strcmp(word,"abs") != 0 && strcmp(word,"sin") != 0 &&
+      strcmp(word,"cos") != 0 &&  strcmp(word,"tan") != 0 && strcmp(word,"asin") != 0 &&
+      strcmp(word,"acos") != 0 && strcmp(word,"atan") != 0 && strcmp(word,"atan2") != 0 &&
+      strcmp(word,"random") != 0 && strcmp(word,"normal") != 0 && strcmp(word,"ceil") != 0 &&
+      strcmp(word,"floor") != 0 && strcmp(word,"round") != 0 && strcmp(word,"ternary") != 0 &&
       strcmp(word,"ramp") != 0 && strcmp(word,"stagger") != 0 &&
       strcmp(word,"logfreq") != 0 && strcmp(word,"logfreq2") != 0 &&
       strcmp(word,"logfreq3") != 0 && strcmp(word,"stride") != 0 &&
@@ -3621,6 +3756,15 @@ int Variable::math_function(char *word, char *contents, Tree **tree, Tree **tree
       print_var_error(FLERR,"Invalid math function in variable formula",ivar);
     if (tree) newtree->type = ROUND;
     else argstack[nargstack++] = MYROUND(value1);
+
+  } else if (strcmp(word,"ternary") == 0) {
+    if (narg != 3)
+      print_var_error(FLERR,"Invalid math function in variable formula",ivar);
+    if (tree) newtree->type = TERNARY;
+    else {
+      if (value1) argstack[nargstack++] = value2;
+      else argstack[nargstack++] = values[0];
+    }
 
   } else if (strcmp(word,"ramp") == 0) {
     if (narg != 2)
@@ -4646,20 +4790,20 @@ int Variable::feature_function(char *word, char *contents, Tree **tree, Tree **t
    extract a global value from a per-atom quantity in a formula
    flag = 0 -> word is an atom vector
    flag = 1 -> vector is a per-atom compute or fix quantity with nstride
-   id = global ID of atom, converted to local index
+   id = global ID of atom, converted here to local index via atom map
    push result onto tree or arg stack
    customize by adding an atom vector:
-     id,mass,type,mol,x,y,z,vx,vy,vz,fx,fy,fz,q
+     id,mass,type,mol,radius,q,x,y,z,vx,vy,vz,fx,fy,fz,q
 ------------------------------------------------------------------------- */
 
 void Variable::peratom2global(int flag, char *word, double *vector, int nstride, tagint id, Tree **tree,
                               Tree **treestack, int &ntreestack, double *argstack, int &nargstack)
 {
-  // error check for ID larger than any atom
-  // int_between_brackets() already checked for ID <= 0
-
   if (atom->map_style == Atom::MAP_NONE)
     error->all(FLERR, "Indexed per-atom vector in variable formula without atom map");
+
+  // error check for ID larger than any atom
+  // int_between_brackets() already checked for ID <= 0
 
   if (id > atom->map_tag_max)
     error->all(FLERR,"Variable atom ID is too large");
@@ -4673,17 +4817,27 @@ void Variable::peratom2global(int flag, char *word, double *vector, int nstride,
   if (index >= 0 && index < atom->nlocal) {
 
     if (flag == 0) {
-      if (strcmp(word,"id") == 0) mine = atom->tag[index];
-      else if (strcmp(word,"mass") == 0) {
+      if (strcmp(word,"id") == 0) {
+        mine = atom->tag[index];
+      } else if (strcmp(word,"mass") == 0) {
         if (atom->rmass) mine = atom->rmass[index];
         else mine = atom->mass[atom->type[index]];
-      }
-      else if (strcmp(word,"type") == 0) mine = atom->type[index];
-      else if (strcmp(word,"mol") == 0) {
+      } else if (strcmp(word,"type") == 0) {
+        mine = atom->type[index];
+      } else if (strcmp(word,"mol") == 0) {
         if (!atom->molecule_flag)
           error->one(FLERR,"Variable uses atom property that isn't allocated");
         mine = atom->molecule[index];
+      } else if (strcmp(word,"radius") == 0) {
+        if (!atom->radius_flag)
+          error->one(FLERR,"Variable uses atom property that isn't allocated");
+        mine = atom->radius[index];
+      } else if (strcmp(word,"q") == 0) {
+        if (!atom->q_flag)
+          error->one(FLERR,"Variable uses atom property that isn't allocated");
+        mine = atom->q[index];
       }
+
       else if (strcmp(word,"x") == 0) mine = atom->x[index][0];
       else if (strcmp(word,"y") == 0) mine = atom->x[index][1];
       else if (strcmp(word,"z") == 0) mine = atom->x[index][2];
@@ -4693,11 +4847,6 @@ void Variable::peratom2global(int flag, char *word, double *vector, int nstride,
       else if (strcmp(word,"fx") == 0) mine = atom->f[index][0];
       else if (strcmp(word,"fy") == 0) mine = atom->f[index][1];
       else if (strcmp(word,"fz") == 0) mine = atom->f[index][2];
-      else if (strcmp(word,"q") == 0) {
-        if (!atom->q_flag)
-          error->one(FLERR,"Variable uses atom property that isn't allocated");
-        mine = atom->q[index];
-      }
       else error->one(FLERR,"Invalid atom vector {} in variable formula", word);
 
     } else mine = vector[index*nstride];
@@ -4716,10 +4865,53 @@ void Variable::peratom2global(int flag, char *word, double *vector, int nstride,
 }
 
 /* ----------------------------------------------------------------------
+   extract a global value from a custom atom property in a formula
+   ivector = ptr to integer per-atom property with nstride
+   dvector = ptr to floating-point per-atom property with nstride
+     exactly one if ivector/dvector is non-NULL
+   id = global ID of atom, converted here to local index via atom map
+   push result onto tree or arg stack
+------------------------------------------------------------------------- */
+
+void Variable::custom2global(int *ivector, double *dvector, int nstride, tagint id, Tree **tree,
+                             Tree **treestack, int &ntreestack, double *argstack, int &nargstack)
+{
+  if (atom->map_style == Atom::MAP_NONE)
+    error->all(FLERR, "Referenced custom atom property in variable formula without atom map");
+
+  // error check for ID larger than any atom
+  // int_between_brackets() already checked for ID <= 0
+
+  if (id > atom->map_tag_max)
+    error->all(FLERR,"Variable atom ID is too large");
+
+  // if ID does not exist, index will be -1 for all procs,
+  // and mine will be set to 0.0
+
+  int index = atom->map(id);
+
+  double mine;
+  if (index >= 0 && index < atom->nlocal) {
+    if (ivector) mine = ivector[index*nstride];
+    else mine = dvector[index*nstride];
+  } else mine = 0.0;
+
+  double value;
+  MPI_Allreduce(&mine,&value,1,MPI_DOUBLE,MPI_SUM,world);
+
+  if (tree) {
+    auto newtree = new Tree();
+    newtree->type = VALUE;
+    newtree->value = value;
+    treestack[ntreestack++] = newtree;
+  } else argstack[nargstack++] = value;
+}
+
+/* ----------------------------------------------------------------------
    check if word matches an atom vector
    return 1 if yes, else 0
    customize by adding an atom vector:
-     id,mass,type,mol,x,y,z,vx,vy,vz,fx,fy,fz,q
+     id,mass,type,mol,radius,q,x,y,z,vx,vy,vz,fx,fy,fz
 ------------------------------------------------------------------------- */
 
 int Variable::is_atom_vector(char *word)
@@ -4727,8 +4919,9 @@ int Variable::is_atom_vector(char *word)
   if (strcmp(word,"id") == 0) return 1;
   if (strcmp(word,"mass") == 0) return 1;
   if (strcmp(word,"type") == 0) return 1;
-  if (strcmp(word,"radius") == 0) return 1;
   if (strcmp(word,"mol") == 0) return 1;
+  if (strcmp(word,"radius") == 0) return 1;
+  if (strcmp(word,"q") == 0) return 1;
   if (strcmp(word,"x") == 0) return 1;
   if (strcmp(word,"y") == 0) return 1;
   if (strcmp(word,"z") == 0) return 1;
@@ -4738,7 +4931,6 @@ int Variable::is_atom_vector(char *word)
   if (strcmp(word,"fx") == 0) return 1;
   if (strcmp(word,"fy") == 0) return 1;
   if (strcmp(word,"fz") == 0) return 1;
-  if (strcmp(word,"q") == 0) return 1;
   return 0;
 }
 
@@ -4747,7 +4939,7 @@ int Variable::is_atom_vector(char *word)
    push result onto tree
    word = atom vector
    customize by adding an atom vector:
-     id,mass,type,mol,x,y,z,vx,vy,vz,fx,fy,fz,q
+     id,mass,type,mol,radius,q,x,y,z,vx,vy,vz,fx,fy,fz
 ------------------------------------------------------------------------- */
 
 void Variable::atom_vector(char *word, Tree **tree, Tree **treestack, int &ntreestack)

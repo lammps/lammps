@@ -14,6 +14,8 @@
 //
 //@HEADER
 
+#include <iostream>
+
 #include <Kokkos_Core.hpp>
 
 #if !defined(KOKKOS_ENABLE_TASKDAG) || \

@@ -117,8 +117,8 @@ template <unsigned int maxT = 0 /* Max threads per block */
 struct LaunchBounds {
   using launch_bounds = LaunchBounds;
   using type          = LaunchBounds<maxT, minB>;
-  static unsigned int constexpr maxTperB{maxT};
-  static unsigned int constexpr minBperSM{minB};
+  static constexpr unsigned int maxTperB{maxT};
+  static constexpr unsigned int minBperSM{minB};
 };
 
 }  // namespace Kokkos

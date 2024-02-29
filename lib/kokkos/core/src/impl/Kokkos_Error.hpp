@@ -20,81 +20,13 @@
 #include <string>
 #include <iosfwd>
 #include <Kokkos_Macros.hpp>
-#ifdef KOKKOS_ENABLE_CUDA
-#include <Cuda/Kokkos_Cuda_abort.hpp>
-#endif
-#ifdef KOKKOS_ENABLE_HIP
-#include <HIP/Kokkos_HIP_Abort.hpp>
-#endif
-#ifdef KOKKOS_ENABLE_SYCL
-#include <SYCL/Kokkos_SYCL_Abort.hpp>
-#endif
+#include <Kokkos_Abort.hpp>
+#include <Kokkos_Assert.hpp>
 
 namespace Kokkos {
 namespace Impl {
 
-[[noreturn]] void host_abort(const char *const);
-
-#if defined(KOKKOS_ENABLE_CUDA) && defined(__CUDA_ARCH__)
-
-#if defined(KOKKOS_ENABLE_DEBUG_BOUNDS_CHECK)
-// required to workaround failures in random number generator unit tests with
-// pre-volta architectures
-#define KOKKOS_IMPL_ABORT_NORETURN
-#else
-// cuda_abort aborts when building for other platforms than macOS
-#define KOKKOS_IMPL_ABORT_NORETURN [[noreturn]]
-#endif
-
-#elif defined(KOKKOS_COMPILER_NVHPC)
-
-#define KOKKOS_IMPL_ABORT_NORETURN
-
-#elif defined(KOKKOS_ENABLE_HIP) && defined(__HIP_DEVICE_COMPILE__)
-// HIP aborts
-#define KOKKOS_IMPL_ABORT_NORETURN [[noreturn]]
-#elif defined(KOKKOS_ENABLE_SYCL) && defined(__SYCL_DEVICE_ONLY__)
-// FIXME_SYCL SYCL doesn't abort
-#define KOKKOS_IMPL_ABORT_NORETURN
-#elif !defined(KOKKOS_ENABLE_OPENMPTARGET) && !defined(KOKKOS_ENABLE_OPENACC)
-// Host aborts
-#define KOKKOS_IMPL_ABORT_NORETURN [[noreturn]]
-#else
-// Everything else does not abort
-#define KOKKOS_IMPL_ABORT_NORETURN
-#endif
-
-// FIXME_SYCL
-// Accomodate host pass for device functions that are not [[noreturn]]
-#if defined(KOKKOS_ENABLE_SYCL) || \
-    (defined(KOKKOS_ENABLE_CUDA) && defined(KOKKOS_ENABLE_DEBUG_BOUNDS_CHECK))
-#define KOKKOS_IMPL_ABORT_NORETURN_DEVICE
-#else
-#define KOKKOS_IMPL_ABORT_NORETURN_DEVICE KOKKOS_IMPL_ABORT_NORETURN
-#endif
-
-#if defined(KOKKOS_ENABLE_CUDA) || defined(KOKKOS_ENABLE_HIP) ||          \
-    defined(KOKKOS_ENABLE_SYCL) || defined(KOKKOS_ENABLE_OPENMPTARGET) || \
-    defined(KOKKOS_ENABLE_OPENACC)
-KOKKOS_IMPL_ABORT_NORETURN_DEVICE inline KOKKOS_IMPL_DEVICE_FUNCTION void
-device_abort(const char *const msg) {
-#if defined(KOKKOS_ENABLE_CUDA)
-  ::Kokkos::Impl::cuda_abort(msg);
-#elif defined(KOKKOS_ENABLE_HIP)
-  ::Kokkos::Impl::hip_abort(msg);
-#elif defined(KOKKOS_ENABLE_SYCL)
-  ::Kokkos::Impl::sycl_abort(msg);
-#elif defined(KOKKOS_ENABLE_OPENMPTARGET) || defined(KOKKOS_ENABLE_OPENACC)
-  printf("%s", msg);  // FIXME_OPENMPTARGET FIXME_OPENACC
-#else
-#error faulty logic
-#endif
-}
-#endif
-
 [[noreturn]] void throw_runtime_exception(const std::string &msg);
-
-void traceback_callstack(std::ostream &);
 
 std::string human_memory_size(size_t arg_bytes);
 
@@ -113,9 +45,11 @@ class RawMemoryAllocationFailure : public std::bad_alloc {
   };
   enum class AllocationMechanism {
     StdMalloc,
-    PosixMemAlign,
-    PosixMMap,
-    IntelMMAlloc,
+#ifdef KOKKOS_ENABLE_DEPRECATED_CODE_4
+    PosixMemAlign KOKKOS_DEPRECATED,
+    PosixMMap KOKKOS_DEPRECATED,
+    IntelMMAlloc KOKKOS_DEPRECATED,
+#endif
     CudaMalloc,
     CudaMallocManaged,
     CudaHostAlloc,
@@ -192,73 +126,5 @@ class RawMemoryAllocationFailure : public std::bad_alloc {
 }  // end namespace Experimental
 
 }  // namespace Kokkos
-
-//----------------------------------------------------------------------------
-//----------------------------------------------------------------------------
-
-namespace Kokkos {
-
-KOKKOS_IMPL_ABORT_NORETURN KOKKOS_INLINE_FUNCTION void abort(
-    const char *const message) {
-  KOKKOS_IF_ON_HOST(::Kokkos::Impl::host_abort(message);)
-  KOKKOS_IF_ON_DEVICE(::Kokkos::Impl::device_abort(message);)
-}
-
-#undef KOKKOS_IMPL_ABORT_NORETURN
-
-}  // namespace Kokkos
-
-//----------------------------------------------------------------------------
-//----------------------------------------------------------------------------
-
-#if !defined(NDEBUG) || defined(KOKKOS_ENFORCE_CONTRACTS) || \
-    defined(KOKKOS_ENABLE_DEBUG)
-#define KOKKOS_EXPECTS(...)                                                    \
-  {                                                                            \
-    if (!bool(__VA_ARGS__)) {                                                  \
-      ::Kokkos::abort(                                                         \
-          "Kokkos contract violation:\n  "                                     \
-          "  Expected precondition `" #__VA_ARGS__                             \
-          "` evaluated false.\n"                                               \
-          "Error at " KOKKOS_IMPL_TOSTRING(__FILE__) ":" KOKKOS_IMPL_TOSTRING( \
-              __LINE__) " \n");                                                \
-    }                                                                          \
-  }
-#define KOKKOS_ENSURES(...)                                                    \
-  {                                                                            \
-    if (!bool(__VA_ARGS__)) {                                                  \
-      ::Kokkos::abort(                                                         \
-          "Kokkos contract violation:\n  "                                     \
-          "  Ensured postcondition `" #__VA_ARGS__                             \
-          "` evaluated false.\n"                                               \
-          "Error at " KOKKOS_IMPL_TOSTRING(__FILE__) ":" KOKKOS_IMPL_TOSTRING( \
-              __LINE__) " \n");                                                \
-    }                                                                          \
-  }
-// some projects already define this for themselves, so don't mess
-// them up
-#ifndef KOKKOS_ASSERT
-#define KOKKOS_ASSERT(...)                                                     \
-  {                                                                            \
-    if (!bool(__VA_ARGS__)) {                                                  \
-      ::Kokkos::abort(                                                         \
-          "Kokkos contract violation:\n  "                                     \
-          "  Asserted condition `" #__VA_ARGS__                                \
-          "` evaluated false.\n"                                               \
-          "Error at " KOKKOS_IMPL_TOSTRING(__FILE__) ":" KOKKOS_IMPL_TOSTRING( \
-              __LINE__) " \n");                                                \
-    }                                                                          \
-  }
-#endif  // ifndef KOKKOS_ASSERT
-#else   // not debug mode
-#define KOKKOS_EXPECTS(...)
-#define KOKKOS_ENSURES(...)
-#ifndef KOKKOS_ASSERT
-#define KOKKOS_ASSERT(...)
-#endif  // ifndef KOKKOS_ASSERT
-#endif  // end debug mode ifdefs
-
-//----------------------------------------------------------------------------
-//----------------------------------------------------------------------------
 
 #endif /* #ifndef KOKKOS_IMPL_ERROR_HPP */

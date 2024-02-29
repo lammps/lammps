@@ -1,4 +1,3 @@
-// clang-format off
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    https://www.lammps.org/, Sandia National Laboratories
@@ -42,31 +41,30 @@ using namespace LAMMPS_NS;
 using namespace FixConst;
 
 static const char cite_user_bocs_package[] =
-  "BOCS package: doi:10.1021/acs.jpcb.7b09993\n\n"
-  "@Article{Dunn2018,\n"
-  " author = {N. J. H. Dunn and K. M. Lebold and M. R. {DeLyser} and\n"
-  "    J. F. Rudzinski and W. G. Noid},\n"
-  " title = {{BOCS}: Bottom-Up Open-Source Coarse-Graining Software},\n"
-  " journal = {J.~Phys.\\ Chem.~B},\n"
-  " year =    2018,\n"
-  " volume =  122,\n"
-  " number =  13,\n"
-  " pages =   {3363--3377}\n"
-  "}\n\n";
+    "BOCS package: doi:10.1021/acs.jpcb.7b09993\n\n"
+    "@Article{Dunn2018,\n"
+    " author = {N. J. H. Dunn and K. M. Lebold and M. R. {DeLyser} and\n"
+    "    J. F. Rudzinski and W. G. Noid},\n"
+    " title = {{BOCS}: Bottom-Up Open-Source Coarse-Graining Software},\n"
+    " journal = {J.~Phys.\\ Chem.~B},\n"
+    " year =    2018,\n"
+    " volume =  122,\n"
+    " number =  13,\n"
+    " pages =   {3363--3377}\n"
+    "}\n\n";
 
+static constexpr double DELTAFLIP = 0.1;
+static constexpr double TILTMAX = 1.5;
+static constexpr int NUM_INPUT_DATA_COLUMNS = 2;    // columns in the pressure correction file
 
-#define DELTAFLIP 0.1
-#define TILTMAX 1.5
-
-enum{NOBIAS,BIAS};
-enum{NONE,XYZ,XY,YZ,XZ};
-enum{ISO,ANISO,TRICLINIC};
-
-const int NUM_INPUT_DATA_COLUMNS = 2;     // columns in the pressure correction file
+enum { NOBIAS, BIAS };
+enum { NONE, XYZ, XY, YZ, XZ };
+enum { ISO, ANISO, TRICLINIC };
 
 /* ----------------------------------------------------------------------
    NVT,NPH,NPT integrators for improved Nose-Hoover equations of motion
  ---------------------------------------------------------------------- */
+// clang-format off
 
 FixBocs::FixBocs(LAMMPS *lmp, int narg, char **arg) :
     Fix(lmp, narg, arg), id_dilate(nullptr), irregular(nullptr), id_temp(nullptr),
@@ -75,7 +73,7 @@ FixBocs::FixBocs(LAMMPS *lmp, int narg, char **arg) :
 {
   if (lmp->citeme) lmp->citeme->add(cite_user_bocs_package);
 
-  if (narg < 4) error->all(FLERR,"Illegal fix bocs command");
+  if (narg < 4) utils::missing_cmd_args(FLERR,"fix bocs",error);
 
   restart_global = 1;
   dynamic_group_allow = 1;
@@ -102,8 +100,6 @@ FixBocs::FixBocs(LAMMPS *lmp, int narg, char **arg) :
   omega_mass_flag = 0;
   etap_mass_flag = 0;
   flipflag = 1;
-  dipole_flag = 0;
-  dlm_flag = 0;
 
   tcomputeflag = 0;
   pcomputeflag = 0;
@@ -265,13 +261,6 @@ FixBocs::FixBocs(LAMMPS *lmp, int narg, char **arg) :
     error->all(FLERR,"Cannot use fix bocs on a non-periodic dimension");
   if (p_flag[2] && domain->zperiodic == 0)
     error->all(FLERR,"Cannot use fix bocs on a non-periodic dimension");
-
-  if (dipole_flag) {
-    if (!atom->sphere_flag)
-      error->all(FLERR,"Using update dipole flag requires atom style sphere");
-    if (!atom->mu_flag)
-      error->all(FLERR,"Using update dipole flag requires atom attribute mu");
-  }
 
   if ((tstat_flag && t_period <= 0.0) ||
       (p_flag[0] && p_period[0] <= 0.0) ||
@@ -616,8 +605,8 @@ int FixBocs::read_F_table( char *filename, int p_basis_type )
     // Data file lines hold two floating point numbers.
     // Line length we allocate should be long enough without being too long.
     // 128 seems safe for a line we expect to be < 30 chars.
-    const int MAX_F_TABLE_LINE_LENGTH = 128;
-    char line[MAX_F_TABLE_LINE_LENGTH];
+    constexpr int MAX_F_TABLE_LINE_LENGTH = 128;
+    char line[MAX_F_TABLE_LINE_LENGTH] = {'\0'};
     std::vector<std::string> inputLines;
     while (fgets(line, MAX_F_TABLE_LINE_LENGTH, fpi)) {
       inputLines.emplace_back(line);
@@ -649,17 +638,13 @@ int FixBocs::read_F_table( char *filename, int p_basis_type )
     for (int i = 0; i < (int)inputLines.size(); ++i) {
       lineNum++;  // count each line processed now so lineNum messages can be 1-based
       test_sscanf = sscanf(inputLines.at(i).c_str()," %f , %f ",&f1, &f2);
-      if (test_sscanf == 2)
-      {
+      if (test_sscanf == 2) {
         data[VOLUME][i] = (double)f1;
         data[PRESSURE_CORRECTION][i] = (double)f2;
-        if (i == 1)
-        {
+        if (i == 1) {
           // second entry is used to compute the validation interval used below
           stdVolumeInterval = data[VOLUME][i] - data[VOLUME][i-1];
-        }
-        else if (i > 1)
-        {
+        } else if (i > 1) {
           // after second entry, all intervals are validated
           currVolumeInterval = data[VOLUME][i] - data[VOLUME][i-1];
           if (fabs(currVolumeInterval - stdVolumeInterval) > volumeIntervalTolerance) {
@@ -673,17 +658,14 @@ int FixBocs::read_F_table( char *filename, int p_basis_type )
           }
           // no concluding else is intentional: i = 0, first line, no interval to validate
         }
-      }
-      else
-      {
+      } else {
         if (comm->me == 0)
           error->warning(FLERR,"Bad input format: did not find 2 comma separated numeric"
                          " values in line {} of file {}\nWARNING:\tline: {}",
                          lineNum, filename, inputLines.at(i));
         badInput = true;
       }
-      if (badInput)
-      {
+      if (badInput) {
         numBadVolumeIntervals++;
       }
     }
@@ -700,18 +682,13 @@ int FixBocs::read_F_table( char *filename, int p_basis_type )
     error->warning(FLERR,"Bad volume / pressure-correction data: {}\nSee details above", filename);
   }
 
-  if (p_basis_type == BASIS_LINEAR_SPLINE)
-  {
+  if (p_basis_type == BASIS_LINEAR_SPLINE) {
     spline_length = numEntries;
     numEntries = build_linear_splines(data);
-  }
-  else if (p_basis_type == BASIS_CUBIC_SPLINE)
-  {
+  } else if (p_basis_type == BASIS_CUBIC_SPLINE) {
     spline_length = numEntries;
     numEntries = build_cubic_splines(data);
-  }
-  else
-  {
+  } else {
     error->all(FLERR,"ERROR: invalid p_basis_type value of {} in read_F_table", p_basis_type);
   }
 
@@ -724,8 +701,7 @@ int FixBocs::build_linear_splines(double **data) {
   splines[VOLUME] = (double *) calloc(spline_length,sizeof(double));
   splines[PRESSURE_CORRECTION] = (double *) calloc(spline_length,sizeof(double));
 
-  for (int i = 0; i < spline_length; ++i)
-  {
+  for (int i = 0; i < spline_length; ++i) {
     splines[VOLUME][i] = data[VOLUME][i];
     splines[PRESSURE_CORRECTION][i] = data[PRESSURE_CORRECTION][i];
   }
@@ -758,18 +734,15 @@ int FixBocs::build_cubic_splines(double **data)
   memory->create(mu, n, "mu");
   memory->create(z, n, "z");
 
-  for (int i=0; i<n; i++)
-  {
+  for (int i=0; i<n; i++) {
     a[i] = data[1][i];
     b[i] = 0.0;
     d[i] = 0.0;
-    if (i<(n-1))
-    {
+    if (i<(n-1)) {
       h[i] = (data[0][i+1] - data[0][i]);
     }
     double alpha_i;
-    if (i>1 && i<(n-1))
-    {
+    if (i>1 && i<(n-1)) {
       alpha_i = (3.0 / h[i]) * ( data[1][i+1] - data[1][i]) - (3.0 / h[i-1] )
                                                               * ( data[1][i] - data[1][i-1] );
       alpha[i-1] = alpha_i;
@@ -779,8 +752,7 @@ int FixBocs::build_cubic_splines(double **data)
   mu[0] = 0.0;
   z[0] = 0.0;
 
-  for (int i=1; i<n-1; i++)
-  {
+  for (int i=1; i<n-1; i++) {
     l[i] = 2*(data[0][i+1] - data[0][i-1]) - h[i-1] * mu[i-1];
     mu[i] = h[i]/l[i];
     z[i] = (alpha[i] - h[i-1] * z[i-1]) / l[i];
@@ -797,19 +769,15 @@ int FixBocs::build_cubic_splines(double **data)
   c[n] = 0.0;
   d[n] = 0.0;
 
-  for (int j=n-1; j>=0; j--)
-  {
+  for (int j=n-1; j>=0; j--) {
     c[j] = z[j] - mu[j]*c[j+1];
-
     b[j] = (a[j+1]-a[j])/h[j] - h[j]*(c[j+1] + 2.0 * c[j])/3.0;
-
     d[j] = (c[j+1]-c[j])/(3.0 * h[j]);
   }
 
   int numSplines = n - 1;
   memory->create(splines, NUM_CUBIC_SPLINE_COLUMNS, numSplines, "splines");
-  for (int idx = 0; idx < numSplines; ++idx)
-  {
+  for (int idx = 0; idx < numSplines; ++idx) {
     splines[0][idx] = data[0][idx];
     splines[1][idx] = a[idx];
     splines[2][idx] = b[idx];

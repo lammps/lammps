@@ -84,13 +84,15 @@ struct StdLexicographicalCompareFunctor {
         m_comparator(std::move(_comp)) {}
 };
 
+//
+// exespace impl
+//
 template <class ExecutionSpace, class IteratorType1, class IteratorType2,
           class ComparatorType>
-bool lexicographical_compare_impl(const std::string& label,
-                                  const ExecutionSpace& ex,
-                                  IteratorType1 first1, IteratorType1 last1,
-                                  IteratorType2 first2, IteratorType2 last2,
-                                  ComparatorType comp) {
+bool lexicographical_compare_exespace_impl(
+    const std::string& label, const ExecutionSpace& ex, IteratorType1 first1,
+    IteratorType1 last1, IteratorType2 first2, IteratorType2 last2,
+    ComparatorType comp) {
   // checks
   Impl::static_assert_random_access_and_accessible(ex, first1, first2);
   Impl::static_assert_iterators_have_matching_difference_type(first1, first2);
@@ -139,16 +141,84 @@ bool lexicographical_compare_impl(const std::string& label,
 }
 
 template <class ExecutionSpace, class IteratorType1, class IteratorType2>
-bool lexicographical_compare_impl(const std::string& label,
-                                  const ExecutionSpace& ex,
-                                  IteratorType1 first1, IteratorType1 last1,
-                                  IteratorType2 first2, IteratorType2 last2) {
+bool lexicographical_compare_exespace_impl(
+    const std::string& label, const ExecutionSpace& ex, IteratorType1 first1,
+    IteratorType1 last1, IteratorType2 first2, IteratorType2 last2) {
   using value_type_1 = typename IteratorType1::value_type;
   using value_type_2 = typename IteratorType2::value_type;
   using predicate_t =
       Impl::StdAlgoLessThanBinaryPredicate<value_type_1, value_type_2>;
-  return lexicographical_compare_impl(label, ex, first1, last1, first2, last2,
-                                      predicate_t());
+  return lexicographical_compare_exespace_impl(label, ex, first1, last1, first2,
+                                               last2, predicate_t());
+}
+
+//
+// team impl
+//
+template <class TeamHandleType, class IteratorType1, class IteratorType2,
+          class ComparatorType>
+KOKKOS_FUNCTION bool lexicographical_compare_team_impl(
+    const TeamHandleType& teamHandle, IteratorType1 first1, IteratorType1 last1,
+    IteratorType2 first2, IteratorType2 last2, ComparatorType comp) {
+  // checks
+  Impl::static_assert_random_access_and_accessible(teamHandle, first1, first2);
+  Impl::static_assert_iterators_have_matching_difference_type(first1, first2);
+  Impl::expect_valid_range(first1, last1);
+  Impl::expect_valid_range(first2, last2);
+
+  // aliases
+  using index_type           = typename IteratorType1::difference_type;
+  using reducer_type         = FirstLoc<index_type>;
+  using reduction_value_type = typename reducer_type::value_type;
+
+  // run
+  const auto d1    = Kokkos::Experimental::distance(first1, last1);
+  const auto d2    = Kokkos::Experimental::distance(first2, last2);
+  const auto range = Kokkos::min(d1, d2);
+  reduction_value_type red_result;
+  reducer_type reducer(red_result);
+  using func1_t =
+      StdLexicographicalCompareFunctor<index_type, IteratorType1, IteratorType2,
+                                       reducer_type, ComparatorType>;
+
+  ::Kokkos::parallel_reduce(TeamThreadRange(teamHandle, 0, range),
+                            func1_t(first1, first2, reducer, comp), reducer);
+
+  teamHandle.team_barrier();
+
+  // no mismatch
+  if (red_result.min_loc_true ==
+      ::Kokkos::reduction_identity<index_type>::min()) {
+    auto new_last1 = first1 + range;
+    auto new_last2 = first2 + range;
+    bool is_prefix = (new_last1 == last1) && (new_last2 != last2);
+    return is_prefix;
+  }
+
+  // check mismatched
+  int less      = 0;
+  auto it1      = first1 + red_result.min_loc_true;
+  auto it2      = first2 + red_result.min_loc_true;
+  using func2_t = StdCompareFunctor<index_type, IteratorType1, IteratorType2,
+                                    ComparatorType>;
+  ::Kokkos::parallel_reduce(TeamThreadRange(teamHandle, 0, 1),
+                            func2_t(it1, it2, comp), less);
+
+  teamHandle.team_barrier();
+
+  return static_cast<bool>(less);
+}
+
+template <class TeamHandleType, class IteratorType1, class IteratorType2>
+KOKKOS_FUNCTION bool lexicographical_compare_team_impl(
+    const TeamHandleType& teamHandle, IteratorType1 first1, IteratorType1 last1,
+    IteratorType2 first2, IteratorType2 last2) {
+  using value_type_1 = typename IteratorType1::value_type;
+  using value_type_2 = typename IteratorType2::value_type;
+  using predicate_t =
+      Impl::StdAlgoLessThanBinaryPredicate<value_type_1, value_type_2>;
+  return lexicographical_compare_team_impl(teamHandle, first1, last1, first2,
+                                           last2, predicate_t());
 }
 
 }  // namespace Impl

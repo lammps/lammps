@@ -63,12 +63,16 @@ struct StdMinMaxElemFunctor {
       : m_first(std::move(first)), m_reducer(std::move(reducer)) {}
 };
 
+//
+// exespace impl
+//
 template <template <class... Args> class ReducerType, class ExecutionSpace,
           class IteratorType, class... Args>
-IteratorType min_or_max_element_impl(const std::string& label,
-                                     const ExecutionSpace& ex,
-                                     IteratorType first, IteratorType last,
-                                     Args&&... args) {
+IteratorType min_or_max_element_exespace_impl(const std::string& label,
+                                              const ExecutionSpace& ex,
+                                              IteratorType first,
+                                              IteratorType last,
+                                              Args&&... args) {
   // checks
   Impl::static_assert_random_access_and_accessible(ex, first);
   Impl::expect_valid_range(first, last);
@@ -100,7 +104,7 @@ IteratorType min_or_max_element_impl(const std::string& label,
 
 template <template <class... Args> class ReducerType, class ExecutionSpace,
           class IteratorType, class... Args>
-::Kokkos::pair<IteratorType, IteratorType> minmax_element_impl(
+::Kokkos::pair<IteratorType, IteratorType> minmax_element_exespace_impl(
     const std::string& label, const ExecutionSpace& ex, IteratorType first,
     IteratorType last, Args&&... args) {
   // checks
@@ -127,6 +131,75 @@ template <template <class... Args> class ReducerType, class ExecutionSpace,
                             func_t(first, reducer), reducer);
 
   // fence not needed because reducing into scalar
+
+  // return
+  return {first + red_result.min_loc, first + red_result.max_loc};
+}
+
+//
+// team level impl
+//
+template <template <class... Args> class ReducerType, class TeamHandleType,
+          class IteratorType, class... Args>
+KOKKOS_FUNCTION IteratorType min_or_max_element_team_impl(
+    const TeamHandleType& teamHandle, IteratorType first, IteratorType last,
+    Args&&... args) {
+  // checks
+  Impl::static_assert_random_access_and_accessible(teamHandle, first);
+  Impl::expect_valid_range(first, last);
+
+  if (first == last) {
+    return last;
+  }
+
+  // aliases
+  using index_type           = typename IteratorType::difference_type;
+  using value_type           = typename IteratorType::value_type;
+  using reducer_type         = ReducerType<value_type, index_type, Args...>;
+  using reduction_value_type = typename reducer_type::value_type;
+  using func_t = StdMinOrMaxElemFunctor<IteratorType, reducer_type>;
+
+  // run
+  reduction_value_type red_result;
+  reducer_type reducer(red_result, std::forward<Args>(args)...);
+  const auto num_elements = Kokkos::Experimental::distance(first, last);
+  ::Kokkos::parallel_reduce(TeamThreadRange(teamHandle, 0, num_elements),
+                            func_t(first, reducer), reducer);
+  teamHandle.team_barrier();
+  // maybe the barrier is not needed since reducing into scalar?
+
+  // return
+  return first + red_result.loc;
+}
+
+template <template <class... Args> class ReducerType, class TeamHandleType,
+          class IteratorType, class... Args>
+KOKKOS_FUNCTION ::Kokkos::pair<IteratorType, IteratorType>
+minmax_element_team_impl(const TeamHandleType& teamHandle, IteratorType first,
+                         IteratorType last, Args&&... args) {
+  // checks
+  Impl::static_assert_random_access_and_accessible(teamHandle, first);
+  Impl::expect_valid_range(first, last);
+
+  if (first == last) {
+    return {first, first};
+  }
+
+  // aliases
+  using index_type           = typename IteratorType::difference_type;
+  using value_type           = typename IteratorType::value_type;
+  using reducer_type         = ReducerType<value_type, index_type, Args...>;
+  using reduction_value_type = typename reducer_type::value_type;
+  using func_t               = StdMinMaxElemFunctor<IteratorType, reducer_type>;
+
+  // run
+  reduction_value_type red_result;
+  reducer_type reducer(red_result, std::forward<Args>(args)...);
+  const auto num_elements = Kokkos::Experimental::distance(first, last);
+  ::Kokkos::parallel_reduce(TeamThreadRange(teamHandle, 0, num_elements),
+                            func_t(first, reducer), reducer);
+  teamHandle.team_barrier();
+  // maybe the barrier is not needed since reducing into scalar?
 
   // return
   return {first + red_result.min_loc, first + red_result.max_loc};

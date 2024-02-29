@@ -1,8 +1,10 @@
 .. index:: pair_style lj/cut/soft
 .. index:: pair_style lj/cut/soft/omp
 .. index:: pair_style lj/cut/coul/cut/soft
+.. index:: pair_style lj/cut/coul/cut/soft/gpu
 .. index:: pair_style lj/cut/coul/cut/soft/omp
 .. index:: pair_style lj/cut/coul/long/soft
+.. index:: pair_style lj/cut/coul/long/soft/gpu
 .. index:: pair_style lj/cut/coul/long/soft/omp
 .. index:: pair_style lj/cut/tip4p/long/soft
 .. index:: pair_style lj/cut/tip4p/long/soft/omp
@@ -27,12 +29,12 @@ Accelerator Variants: *lj/cut/soft/omp*
 pair_style lj/cut/coul/cut/soft command
 =======================================
 
-Accelerator Variants: *lj/cut/coul/cut/soft/omp*
+Accelerator Variants: *lj/cut/coul/cut/soft/gpu*, *lj/cut/coul/cut/soft/omp*
 
 pair_style lj/cut/coul/long/soft command
 ========================================
 
-Accelerator Variants: *lj/cut/coul/long/soft/omp*
+Accelerator Variants: *lj/cut/coul/long/soft/gpu*, *lj/cut/coul/long/soft/omp*
 
 pair_style lj/cut/tip4p/long/soft command
 =========================================

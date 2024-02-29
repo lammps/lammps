@@ -42,9 +42,9 @@ using namespace LAMMPS_NS;
 using namespace FixConst;
 
 #define MAXBODY 2    // currently 2 since only linear chains allowed
-#define DELTA 128
-#define TOLERANCE 1.0e-6
-#define EPSILON 1.0e-7
+
+static constexpr double TOLERANCE = 1.0e-6;
+static constexpr double EPSILON = 1.0e-7;
 
 static const char cite_fix_poems[] =
     "fix poems command: doi:10.1016/j.ijnonlinmec.2008.04.003\n\n"
@@ -855,7 +855,7 @@ void FixPOEMS::pre_neighbor() {}
    count # of degrees-of-freedom removed by fix_poems for atoms in igroup
 ------------------------------------------------------------------------- */
 
-int FixPOEMS::dof(int igroup)
+bigint FixPOEMS::dof(int igroup)
 {
   int groupbit = group->bitmask[igroup];
 
@@ -877,17 +877,17 @@ int FixPOEMS::dof(int igroup)
 
   // remove 3N - 6 dof for each rigid body if at least 2 atoms are in igroup
 
-  int n = 0;
+  bigint n = 0;
   for (int ibody = 0; ibody < nbody; ibody++)
     if (nall[ibody] > 2) n += 3 * nall[ibody] - 6;
 
   // subtract 3 additional dof for each joint if atom is also in igroup
 
-  int m = 0;
+  bigint m = 0;
   for (int i = 0; i < nlocal; i++)
     if (natom2body[i] > 1 && (mask[i] & groupbit)) m += 3 * (natom2body[i] - 1);
-  int mall;
-  MPI_Allreduce(&m, &mall, 1, MPI_INT, MPI_SUM, world);
+  bigint mall;
+  MPI_Allreduce(&m, &mall, 1, MPI_LMP_BIGINT, MPI_SUM, world);
   n += mall;
 
   // delete local memory

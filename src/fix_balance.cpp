@@ -1,4 +1,3 @@
-// clang-format off
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    https://www.lammps.org/, Sandia National Laboratories
@@ -34,7 +33,9 @@
 using namespace LAMMPS_NS;
 using namespace FixConst;
 
-enum{SHIFT,BISECTION};
+enum { SHIFT, BISECTION };
+
+// clang-format off
 
 /* ---------------------------------------------------------------------- */
 
@@ -66,10 +67,9 @@ FixBalance::FixBalance(LAMMPS *lmp, int narg, char **arg) :
 
   int iarg = 5;
   if (lbstyle == SHIFT) {
-    if (iarg+4 > narg) error->all(FLERR,"Illegal fix balance command");
-    if (strlen(arg[iarg+1]) > Balance::BSTR_SIZE)
-      error->all(FLERR,"Illegal fix balance command");
-    strncpy(bstr,arg[iarg+1], Balance::BSTR_SIZE+1);
+    if (iarg+4 > narg) utils::missing_cmd_args(FLERR, "fix balance shift", error);
+    bstr = arg[iarg+1];
+    if (bstr.size() > Balance::BSTR_SIZE) error->all(FLERR,"Illegal fix balance shift command");
     nitermax = utils::inumeric(FLERR,arg[iarg+2],false,lmp);
     if (nitermax <= 0) error->all(FLERR,"Illegal fix balance command");
     stopthresh = utils::numeric(FLERR,arg[iarg+3],false,lmp);
@@ -83,7 +83,7 @@ FixBalance::FixBalance(LAMMPS *lmp, int narg, char **arg) :
   // error checks
 
   if (lbstyle == SHIFT) {
-    int blen = strlen(bstr);
+    const int blen = bstr.size();
     for (int i = 0; i < blen; i++) {
       if (bstr[i] != 'x' && bstr[i] != 'y' && bstr[i] != 'z')
         error->all(FLERR,"Fix balance shift string is invalid");
@@ -103,7 +103,7 @@ FixBalance::FixBalance(LAMMPS *lmp, int narg, char **arg) :
   // process remaining optional args via Balance
 
   balance = new Balance(lmp);
-  if (lbstyle == SHIFT) balance->shift_setup(bstr,nitermax,thresh);
+  if (lbstyle == SHIFT) balance->shift_setup(bstr.c_str(),nitermax,thresh);
   balance->options(iarg,narg,arg,0);
   wtflag = balance->wtflag;
   sortflag = balance->sortflag;

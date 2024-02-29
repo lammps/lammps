@@ -23,7 +23,7 @@
 
 using namespace LAMMPS_NS;
 
-#define PGDELTA 1
+static constexpr int PGDELTA = 1;
 
 /* ---------------------------------------------------------------------- */
 

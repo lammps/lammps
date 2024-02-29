@@ -43,8 +43,11 @@ ELSE()
 ENDIF()
 KOKKOS_ENABLE_OPTION(CUDA_LAMBDA ${CUDA_LAMBDA_DEFAULT} "Whether to allow lambda expressions on the device with NVCC **DEPRECATED**")
 
-# As of 08/12/2021 CudaMallocAsync causes issues if UCX is used as MPI communication layer.
-KOKKOS_ENABLE_OPTION(IMPL_CUDA_MALLOC_ASYNC      OFF  "Whether to enable CudaMallocAsync (requires CUDA Toolkit 11.2)")
+# May be used to disable our use of CudaMallocAsync.  It had caused issues in
+# the past when UCX was used as MPI communication layer.  We expect it is
+# resolved but we keep the option around a bit longer to be safe.
+KOKKOS_ENABLE_OPTION(IMPL_CUDA_MALLOC_ASYNC ON  "Whether to enable CudaMallocAsync (requires CUDA Toolkit 11.2)")
+KOKKOS_ENABLE_OPTION(IMPL_NVHPC_AS_DEVICE_COMPILER OFF "Whether to allow nvc++ as Cuda device compiler")
 KOKKOS_ENABLE_OPTION(DEPRECATED_CODE_3    OFF "Whether code deprecated in major release 3 is available" )
 KOKKOS_ENABLE_OPTION(DEPRECATED_CODE_4    ON "Whether code deprecated in major release 4 is available" )
 KOKKOS_ENABLE_OPTION(DEPRECATION_WARNINGS ON "Whether to emit deprecation warnings" )
@@ -74,7 +77,7 @@ KOKKOS_ENABLE_OPTION(DESUL_ATOMICS_EXTERNAL OFF "Whether to use an external desu
 
 KOKKOS_ENABLE_OPTION(IMPL_MDSPAN OFF "Whether to enable experimental mdspan support")
 KOKKOS_ENABLE_OPTION(MDSPAN_EXTERNAL OFF BOOL "Whether to use an external version of mdspan")
-KOKKOS_ENABLE_OPTION(IMPL_SKIP_COMPILER_MDSPAN OFF BOOL "Whether to use an internal version of mdspan even if the compiler supports mdspan")
+KOKKOS_ENABLE_OPTION(IMPL_SKIP_COMPILER_MDSPAN ON BOOL "Whether to use an internal version of mdspan even if the compiler supports mdspan")
 mark_as_advanced(Kokkos_ENABLE_IMPL_MDSPAN)
 mark_as_advanced(Kokkos_ENABLE_MDSPAN_EXTERNAL)
 mark_as_advanced(Kokkos_ENABLE_IMPL_SKIP_COMPILER_MDSPAN)

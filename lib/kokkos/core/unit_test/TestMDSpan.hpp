@@ -30,12 +30,12 @@ void test_mdspan_minimal_functional() {
       "FillSequence", Kokkos::RangePolicy<TEST_EXECSPACE>(0, N),
       KOKKOS_LAMBDA(int i) { a(i) = i; });
 
-  mdspan_ns::mdspan<int, mdspan_ns::dextents<int, 1>> a_mds(a.data(), N);
+  Kokkos::mdspan<int, Kokkos::dextents<int, 1>> a_mds(a.data(), N);
   int errors;
   Kokkos::parallel_reduce(
       "CheckMinimalMDSpan", Kokkos::RangePolicy<TEST_EXECSPACE>(0, N),
       KOKKOS_LAMBDA(int i, int& err) {
-        mdspan_ns::mdspan<int, mdspan_ns::dextents<int, 1>> b_mds(a.data(), N);
+        Kokkos::mdspan<int, Kokkos::dextents<int, 1>> b_mds(a.data(), N);
 #ifdef KOKKOS_ENABLE_CXX23
         if (a_mds[i] != i) err++;
         if (b_mds[i] != i) err++;

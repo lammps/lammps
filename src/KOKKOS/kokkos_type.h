@@ -454,13 +454,6 @@ struct alignas(2*sizeof(F_FLOAT)) s_FLOAT2 {
   }
 
   KOKKOS_INLINE_FUNCTION
-  s_FLOAT2(const s_FLOAT2 & rhs) {
-    for (int i = 0; i < 2; i++){
-      v[i] = rhs.v[i];
-    }
-  }
-
-  KOKKOS_INLINE_FUNCTION
   void operator+=(const s_FLOAT2 &rhs) {
     v[0] += rhs.v[0];
     v[1] += rhs.v[1];

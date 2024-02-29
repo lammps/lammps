@@ -48,7 +48,7 @@
 using namespace LAMMPS_NS;
 using namespace MathConst;
 
-#define SMALL 1e-16
+static constexpr double SMALL = 1e-16;
 
 extern "C" {
 void dgetrf_(const int *M, const int *N, double *A, const int *lda, int *ipiv, int *info);

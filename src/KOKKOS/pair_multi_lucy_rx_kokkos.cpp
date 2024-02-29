@@ -43,8 +43,6 @@ using MathConst::MY_PI;
 
 enum{NONE,RLINEAR,RSQ};
 
-#define MAXLINE 1024
-
 #ifdef DBL_EPSILON
   #define MY_EPSILON (10.0*DBL_EPSILON)
 #else

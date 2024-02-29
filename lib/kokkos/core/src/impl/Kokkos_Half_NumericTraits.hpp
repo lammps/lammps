@@ -70,7 +70,7 @@
 ///
 template <>
 struct Kokkos::Experimental::Impl::infinity_helper<Kokkos::Experimental::half_t> {
-  static constexpr int value = 0x7C00;
+  static constexpr Kokkos::Experimental::half_t::bit_comparison_type value{0b0'11111'0000000000};
 };
 
 /// \brief: Minimum normalized number
@@ -87,7 +87,7 @@ struct Kokkos::Experimental::Impl::infinity_helper<Kokkos::Experimental::half_t>
 template <>
 struct Kokkos::Experimental::Impl::finite_min_helper<
     Kokkos::Experimental::half_t> {
-  static constexpr float value = -65504.0F;
+  static constexpr Kokkos::Experimental::half_t::bit_comparison_type value{0b1'11110'1111111111}; // -65504
 };
 
 /// \brief: Maximum normalized number
@@ -104,7 +104,7 @@ struct Kokkos::Experimental::Impl::finite_min_helper<
 template <>
 struct Kokkos::Experimental::Impl::finite_max_helper<
     Kokkos::Experimental::half_t> {
-  static constexpr float value = 65504.0F;
+  static constexpr Kokkos::Experimental::half_t::bit_comparison_type value{0b0'11110'1111111111}; // +65504
 };
 
 /// \brief: This is the difference between 1 and the smallest floating point
@@ -123,7 +123,7 @@ struct Kokkos::Experimental::Impl::finite_max_helper<
 template <>
 struct Kokkos::Experimental::Impl::epsilon_helper<
     Kokkos::Experimental::half_t> {
-  static constexpr float value = 0.0009765625F;
+  static constexpr Kokkos::Experimental::half_t::bit_comparison_type value{0b0'00101'0000000000}; // 0.0009765625
 };
 
 /// @brief: The largest possible rounding error in ULPs
@@ -134,7 +134,7 @@ struct Kokkos::Experimental::Impl::epsilon_helper<
 template <>
 struct Kokkos::Experimental::Impl::round_error_helper<
     Kokkos::Experimental::half_t> {
-  static constexpr float value = 0.5F;
+  static constexpr Kokkos::Experimental::half_t::bit_comparison_type value{0b0'01110'0000000000}; // 0.5
 };
 
 /// \brief: Minimum normalized positive half precision number
@@ -152,35 +152,35 @@ struct Kokkos::Experimental::Impl::round_error_helper<
 template <>
 struct Kokkos::Experimental::Impl::norm_min_helper<
     Kokkos::Experimental::half_t> {
-  static constexpr float value = 0.00006103515625F;
+  static constexpr Kokkos::Experimental::half_t::bit_comparison_type value{0b0'00001'0000000000}; // 0.00006103515625
 };
 
 /// \brief: Quiet not a half precision number
-///
-/// IEEE 754 defines this as all exponent bits high.
-///
-/// Quiet NaN in binary16:
-///             [s  e  e  e  e  e  f f f f f f f f f f]
-///             [1  1  1  1  1  1  0 0 0 0 0 0 0 0 0 0]
-/// bit index:   15 14 13 12 11 10 9 8 7 6 5 4 3 2 1 0
-template <>
-struct Kokkos::Experimental::Impl::quiet_NaN_helper<
-    Kokkos::Experimental::half_t> {
-  static constexpr float value = 0xfc000;
-};
-
-/// \brief: Signaling not a half precision number
 ///
 /// IEEE 754 defines this as all exponent bits and the first fraction bit high.
 ///
 /// Quiet NaN in binary16:
 ///             [s  e  e  e  e  e  f f f f f f f f f f]
-///             [1  1  1  1  1  1  1 0 0 0 0 0 0 0 0 0]
+///             [0  1  1  1  1  1  1 0 0 0 0 0 0 0 0 0]
+/// bit index:   15 14 13 12 11 10 9 8 7 6 5 4 3 2 1 0
+template <>
+struct Kokkos::Experimental::Impl::quiet_NaN_helper<
+    Kokkos::Experimental::half_t> {
+  static constexpr Kokkos::Experimental::half_t::bit_comparison_type value{0b0'11111'1000000000};
+};
+
+/// \brief: Signaling not a half precision number
+///
+/// IEEE 754 defines this as all exponent bits and the second fraction bit high.
+///
+/// Quiet NaN in binary16:
+///             [s  e  e  e  e  e  f f f f f f f f f f]
+///             [0  1  1  1  1  1  0 1 0 0 0 0 0 0 0 0]
 /// bit index:   15 14 13 12 11 10 9 8 7 6 5 4 3 2 1 0
 template <>
 struct Kokkos::Experimental::Impl::signaling_NaN_helper<
     Kokkos::Experimental::half_t> {
-  static constexpr float value = 0xfe000;
+  static constexpr Kokkos::Experimental::half_t::bit_comparison_type value{0b0'11111'0100000000};
 };
 
 /// \brief: Number of digits in the matissa that can be represented
@@ -267,49 +267,49 @@ struct Kokkos::Experimental::Impl::max_exponent_helper<
 ///
 template <>
 struct Kokkos::Experimental::Impl::infinity_helper<Kokkos::Experimental::bhalf_t> {
-  static constexpr int value = 0x7F80;
+  static constexpr Kokkos::Experimental::bhalf_t::bit_comparison_type value{0b0'11111111'0000000};
 };
 
 // Minimum normalized number
 template <>
 struct Kokkos::Experimental::Impl::finite_min_helper<
     Kokkos::Experimental::bhalf_t> {
-  static constexpr float value = -3.38953139e38;
+  static constexpr Kokkos::Experimental::bhalf_t::bit_comparison_type value{0b1'11111110'1111111}; // -3.38953139e38
 };
 // Maximum normalized number
 template <>
 struct Kokkos::Experimental::Impl::finite_max_helper<
     Kokkos::Experimental::bhalf_t> {
-  static constexpr float value = 3.38953139e38;
+  static constexpr Kokkos::Experimental::bhalf_t::bit_comparison_type value{0b0'11111110'1111111}; // +3.38953139e3
 };
 // 1/2^7
 template <>
 struct Kokkos::Experimental::Impl::epsilon_helper<
     Kokkos::Experimental::bhalf_t> {
-  static constexpr float value = 0.0078125F;
+  static constexpr Kokkos::Experimental::bhalf_t::bit_comparison_type value{0b0'01111000'0000000}; // 0.0078125
 };
 template <>
 struct Kokkos::Experimental::Impl::round_error_helper<
     Kokkos::Experimental::bhalf_t> {
-  static constexpr float value = 0.5F;
+  static constexpr Kokkos::Experimental::bhalf_t::bit_comparison_type value{0b0'01111110'0000000}; // 0.5
 };
 // Minimum normalized positive bhalf number
 template <>
 struct Kokkos::Experimental::Impl::norm_min_helper<
     Kokkos::Experimental::bhalf_t> {
-  static constexpr float value = 1.1754494351e-38;
+  static constexpr Kokkos::Experimental::bhalf_t::bit_comparison_type value{0b0'00000001'0000000}; // 1.175494351e-38
 };
 // Quiet not a bhalf number
 template <>
 struct Kokkos::Experimental::Impl::quiet_NaN_helper<
     Kokkos::Experimental::bhalf_t> {
-  static constexpr float value = 0x7fc000;
+  static constexpr Kokkos::Experimental::bhalf_t::bit_comparison_type value{0b0'11111111'1000000};
 };
 // Signaling not a bhalf number
 template <>
 struct Kokkos::Experimental::Impl::signaling_NaN_helper<
     Kokkos::Experimental::bhalf_t> {
-  static constexpr float value = 0x7fe000;
+  static constexpr Kokkos::Experimental::bhalf_t::bit_comparison_type value{0b0'11111111'0100000};
 };
 // Number of digits in the matissa that can be represented
 // without losing precision.

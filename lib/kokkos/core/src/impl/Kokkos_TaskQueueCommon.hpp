@@ -143,14 +143,14 @@ class TaskQueueCommonMixin {
  public:
   KOKKOS_INLINE_FUNCTION
   bool is_done() const noexcept {
-    // TODO @tasking @memory_order DSH Memory order, instead of volatile
-    return (*(volatile int*)(&m_ready_count)) == 0;
+    return desul::atomic_load(&m_ready_count, desul::MemoryOrderAcquire(),
+                              desul::MemoryScopeDevice()) == 0;
   }
 
   KOKKOS_INLINE_FUNCTION
   int32_t ready_count() const noexcept {
-    // TODO @tasking @memory_order DSH Memory order, instead of volatile
-    return (*(volatile int*)(&m_ready_count));
+    return desul::atomic_load(&m_ready_count, desul::MemoryOrderAcquire(),
+                              desul::MemoryScopeDevice());
   }
 
   template <class TaskQueueTraits, class TeamSchedulerInfo>

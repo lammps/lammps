@@ -1,4 +1,3 @@
-// clang-format off
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    https://www.lammps.org/, Sandia National Laboratories
@@ -51,7 +50,7 @@ ComputeContactAtom::ComputeContactAtom(LAMMPS *lmp, int narg, char **arg) :
 
   // error checks
 
-  if (!atom->sphere_flag) error->all(FLERR, "Compute contact/atom requires atom style sphere");
+  if (!atom->radius_flag) error->all(FLERR, "Compute contact/atom requires atom attribute radius");
 }
 
 /* ---------------------------------------------------------------------- */
@@ -67,10 +66,10 @@ ComputeContactAtom::~ComputeContactAtom()
 void ComputeContactAtom::init()
 {
   if (force->pair == nullptr)
-    error->all(FLERR,"Compute contact/atom requires a pair style be defined");
+    error->all(FLERR, "Compute contact/atom requires a pair style be defined");
 
   if (modify->get_compute_by_style("contact/atom").size() > 1 && comm->me == 0)
-    error->warning(FLERR,"More than one compute contact/atom");
+    error->warning(FLERR, "More than one compute contact/atom");
 
   // need an occasional neighbor list
 
@@ -88,10 +87,10 @@ void ComputeContactAtom::init_list(int /*id*/, NeighList *ptr)
 
 void ComputeContactAtom::compute_peratom()
 {
-  int i,j,ii,jj,inum,jnum;
-  double xtmp,ytmp,ztmp,delx,dely,delz,rsq;
-  double radi,radsum,radsumsq;
-  int *ilist,*jlist,*numneigh,**firstneigh;
+  int i, j, ii, jj, inum, jnum;
+  double xtmp, ytmp, ztmp, delx, dely, delz, rsq;
+  double radi, radsum, radsumsq;
+  int *ilist, *jlist, *numneigh, **firstneigh;
 
   invoked_peratom = update->ntimestep;
 
@@ -100,7 +99,7 @@ void ComputeContactAtom::compute_peratom()
   if (atom->nmax > nmax) {
     memory->destroy(contact);
     nmax = atom->nmax;
-    memory->create(contact,nmax,"contact/atom:contact");
+    memory->create(contact, nmax, "contact/atom:contact");
     vector_atom = contact;
   }
 
@@ -130,7 +129,7 @@ void ComputeContactAtom::compute_peratom()
     i = ilist[ii];
 
     // Only proceed if i is either part of the compute group or will contribute to contacts
-    if (! (mask[i] & groupbit) && ! (mask[i] & jgroupbit)) continue;
+    if (!(mask[i] & groupbit) && !(mask[i] & jgroupbit)) continue;
 
     xtmp = x[i][0];
     ytmp = x[i][1];
@@ -146,7 +145,7 @@ void ComputeContactAtom::compute_peratom()
       // Only tally for atoms in compute group (groupbit) if neighbor is in group2 (jgroupbit)
       update_i_flag = (mask[i] & groupbit) && (mask[j] & jgroupbit);
       update_j_flag = (mask[j] & groupbit) && (mask[i] & jgroupbit);
-      if (! update_i_flag && ! update_j_flag) continue;
+      if (!update_i_flag && !update_j_flag) continue;
 
       delx = xtmp - x[j][0];
       dely = ytmp - x[j][1];
@@ -170,12 +169,11 @@ void ComputeContactAtom::compute_peratom()
 
 int ComputeContactAtom::pack_reverse_comm(int n, int first, double *buf)
 {
-  int i,m,last;
+  int i, m, last;
 
   m = 0;
   last = first + n;
-  for (i = first; i < last; i++)
-    buf[m++] = contact[i];
+  for (i = first; i < last; i++) buf[m++] = contact[i];
   return m;
 }
 
@@ -183,7 +181,7 @@ int ComputeContactAtom::pack_reverse_comm(int n, int first, double *buf)
 
 void ComputeContactAtom::unpack_reverse_comm(int n, int *list, double *buf)
 {
-  int i,j,m;
+  int i, j, m;
 
   m = 0;
   for (i = 0; i < n; i++) {
@@ -198,6 +196,6 @@ void ComputeContactAtom::unpack_reverse_comm(int n, int *list, double *buf)
 
 double ComputeContactAtom::memory_usage()
 {
-  double bytes = (double)nmax * sizeof(double);
+  double bytes = (double) nmax * sizeof(double);
   return bytes;
 }

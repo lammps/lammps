@@ -65,6 +65,7 @@ src/MANYBODY/pair_nb3b_screened.*   @flodesani
 src/REPLICA/*_grem.*                @dstelter92
 src/EXTRA-COMPUTE/compute_stress_mop*.* @RomainVermorel
 src/EXTRA-COMPUTE/compute_born_matrix.* @Bibobu @athomps
+src/EXTRA-FIX/fix_deform_pressure.* @jtclemm
 src/MISC/*_tracker.*                @jtclemm
 src/MC/fix_gcmc.*                   @athomps
 src/MC/fix_sgcmc.*                  @athomps

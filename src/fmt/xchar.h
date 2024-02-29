@@ -11,6 +11,7 @@
 #include <cwchar>
 
 #include "format.h"
+#include "ranges.h"
 
 #ifndef FMT_STATIC_THOUSANDS_SEPARATOR
 #  include <locale>
@@ -22,7 +23,7 @@ namespace detail {
 template <typename T>
 using is_exotic_char = bool_constant<!std::is_same<T, char>::value>;
 
-inline auto write_loc(std::back_insert_iterator<detail::buffer<wchar_t>> out,
+inline auto write_loc(back_insert_iterator<detail::buffer<wchar_t>> out,
                       loc_value value, const format_specs<wchar_t>& specs,
                       locale_ref loc) -> bool {
 #ifndef FMT_STATIC_THOUSANDS_SEPARATOR
@@ -63,14 +64,15 @@ template <> struct is_char<char16_t> : std::true_type {};
 template <> struct is_char<char32_t> : std::true_type {};
 
 template <typename... T>
-constexpr format_arg_store<wformat_context, T...> make_wformat_args(
-    const T&... args) {
+constexpr auto make_wformat_args(const T&... args)
+    -> format_arg_store<wformat_context, T...> {
   return {args...};
 }
 
 inline namespace literals {
 #if FMT_USE_USER_DEFINED_LITERALS && !FMT_USE_NONTYPE_TEMPLATE_ARGS
-constexpr detail::udl_arg<wchar_t> operator"" _a(const wchar_t* s, size_t) {
+constexpr auto operator""_a(const wchar_t* s, size_t)
+    -> detail::udl_arg<wchar_t> {
   return {s};
 }
 #endif
@@ -93,6 +95,12 @@ template <typename T>
 auto join(std::initializer_list<T> list, wstring_view sep)
     -> join_view<const T*, const T*, wchar_t> {
   return join(std::begin(list), std::end(list), sep);
+}
+
+template <typename... T>
+auto join(const std::tuple<T...>& tuple, basic_string_view<wchar_t> sep)
+    -> tuple_join_view<wchar_t, T...> {
+  return {tuple, sep};
 }
 
 template <typename Char, FMT_ENABLE_IF(!std::is_same<Char, char>::value)>
@@ -172,11 +180,11 @@ inline auto vformat_to(
   return detail::get_iterator(buf, out);
 }
 
-template <
-    typename OutputIt, typename Locale, typename S, typename... T,
-    typename Char = char_t<S>,
-    bool enable = detail::is_output_iterator<OutputIt, Char>::value&&
-        detail::is_locale<Locale>::value&& detail::is_exotic_char<Char>::value>
+template <typename OutputIt, typename Locale, typename S, typename... T,
+          typename Char = char_t<S>,
+          bool enable = detail::is_output_iterator<OutputIt, Char>::value &&
+                        detail::is_locale<Locale>::value &&
+                        detail::is_exotic_char<Char>::value>
 inline auto format_to(OutputIt out, const Locale& loc, const S& format_str,
                       T&&... args) ->
     typename std::enable_if<enable, OutputIt>::type {

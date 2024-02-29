@@ -128,7 +128,7 @@ void FixNVTSllodKokkos<DeviceType>::nh_v_temp()
 
   d_h_two = Few<double, 6>(h_two);
 
-  if (vdelu.extent(0) < atomKK->nmax)
+  if ((int)vdelu.extent(0) < atomKK->nmax)
     vdelu = typename AT::t_v_array(Kokkos::NoInit("nvt/sllod/kk:vdelu"), atomKK->nmax);
 
   if (!this->psllod_flag) {

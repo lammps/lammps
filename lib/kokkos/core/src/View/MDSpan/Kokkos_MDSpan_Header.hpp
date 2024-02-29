@@ -23,12 +23,28 @@ static_assert(false,
 #define KOKKOS_EXPERIMENTAL_MDSPAN_HPP
 
 // Look for the right mdspan
-#if __has_include(<mdspan>)
+#if __cplusplus >= 202002L
+#include <version>
+#endif
+
+// Only use standard library mdspan if we are not running Cuda or HIP.
+// Likely these implementations won't be supported on device, so we should use
+// our own device-compatible version for now.
+#if (__cpp_lib_mdspan >= 202207L) && !defined(KOKKOS_ENABLE_CUDA) && \
+    !defined(KOKKOS_ENABLE_HIP)
 #include <mdspan>
-namespace mdspan_ns = std;
+namespace Kokkos {
+using std::default_accessor;
+using std::dextents;
+using std::dynamic_extent;
+using std::extents;
+using std::layout_left;
+using std::layout_right;
+using std::layout_stride;
+using std::mdspan;
+}  // namespace Kokkos
 #else
-#include <experimental/mdspan>
-namespace mdspan_ns = std::experimental;
+#include <mdspan/mdspan.hpp>
 #endif
 
 #endif  // KOKKOS_EXPERIMENTAL_MDSPAN_HPP

@@ -20,6 +20,7 @@ Available topics in mostly chronological order are:
 - `Use ev_init() to initialize variables derived from eflag and vflag`_
 - `Use utils::numeric() functions instead of force->numeric()`_
 - `Use utils::open_potential() function to open potential files`_
+- `Use symbolic Atom and AtomVec constants instead of numerical values`_
 - `Simplify customized error messages`_
 - `Use of "override" instead of "virtual"`_
 - `Simplified and more compact neighbor list requests`_
@@ -195,6 +196,71 @@ New:
 .. code-block:: c++
 
    fp = utils::open_potential(filename, lmp);
+
+Use symbolic Atom and AtomVec constants instead of numerical values
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+.. versionchanged:: 18Sep2020
+
+Properties in LAMMPS that were represented by integer values (0, 1,
+2, 3) to indicate settings in the ``Atom`` and ``AtomVec`` classes (or
+classes derived from it) (and its derived classes) have been converted
+to use scoped enumerators instead.
+
+.. list-table::
+   :header-rows: 1
+   :widths: auto
+
+   * - Symbolic Constant
+     - Value
+     - Symbolic Constant
+     - Value
+   * - Atom::GROW
+     - 0
+     - Atom::MAP_NONE
+     - 0
+   * - Atom::RESTART
+     - 1
+     - Atom::MAP_ARRAY
+     - 1
+   * - Atom::BORDER
+     - 2
+     - Atom::MAP_HASH
+     - 2
+   * - Atom::ATOMIC
+     - 0
+     - Atom::MAP_YES
+     - 3
+   * - Atom::MOLECULAR
+     - 1
+     - AtomVec::PER_ATOM
+     - 0
+   * - Atom::TEMPLATE
+     - 2
+     - AtomVec::PER_TYPE
+     - 1
+
+Old:
+
+.. code-block:: c++
+
+   molecular = 0;
+   mass_type = 1;
+   if (atom->molecular == 2)
+   if (atom->map_style == 2)
+   atom->add_callback(0);
+   atom->delete_callback(id,1);
+
+New:
+
+.. code-block:: c++
+
+   molecular = Atom::ATOMIC;
+   mass_type = AtomVec::PER_TYPE;
+   if (atom->molecular == Atom::TEMPLATE)
+   if (atom->map_style == Atom::MAP_HASH)
+   atom->add_callback(Atom::GROW);
+   atom->delete_callback(id,Atom::RESTART);
 
 Simplify customized error messages
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^

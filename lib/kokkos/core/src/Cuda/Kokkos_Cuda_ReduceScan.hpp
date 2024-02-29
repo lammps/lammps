@@ -315,7 +315,7 @@ struct CudaReductionsFunctor<FunctorType, false, false> {
     __syncwarp(mask);
 
     for (int delta = skip_vector ? blockDim.x : 1; delta < width; delta *= 2) {
-      if (lane_id + delta < 32) {
+      if ((lane_id + delta < 32) && (lane_id % (delta * 2) == 0)) {
         functor.join(value, value + delta);
       }
       __syncwarp(mask);

@@ -180,7 +180,7 @@ class Atom : protected Pointers {
   // 1 if variable is used, 0 if not
 
   int labelmapflag, types_style;
-  int sphere_flag, ellipsoid_flag, line_flag, tri_flag, body_flag;
+  int ellipsoid_flag, line_flag, tri_flag, body_flag;
   int peri_flag, electron_flag;
   int wavepacket_flag, sph_flag;
 
@@ -242,6 +242,7 @@ class Atom : protected Pointers {
   int *icols, *dcols;
   char **ivname, **dvname, **ianame, **daname;
   int nivector, ndvector, niarray, ndarray;
+  int *ivghost, *dvghost, *iaghost, *daghost;
 
   // molecule templates
   // each template can be a set of consecutive molecules
@@ -363,7 +364,8 @@ class Atom : protected Pointers {
   void update_callback(int);
 
   int find_custom(const char *, int &, int &);
-  virtual int add_custom(const char *, int, int);
+  int find_custom_ghost(const char *, int &, int &, int &);
+  virtual int add_custom(const char *, int, int, int ghost = 0);
   virtual void remove_custom(int, int, int);
 
   void *extract(const char *);

@@ -254,10 +254,8 @@ void LAMMPS_NS::update_pair_energy(MLIAPData *data, double *eij)
     double e = 0.5 * eij[ii];
 
     // must not count any contribution where i is not a local atom
-    if (i < nlocal) {
-      data->eatoms[i] += e;
-      e_total += e;
-    }
+    data->eatoms[i] += e;
+    e_total += e;
   }
   data->energy = e_total;
 }
@@ -277,17 +275,14 @@ void LAMMPS_NS::update_pair_forces(MLIAPData *data, double *fij)
     int i = data->pair_i[ii];
     int j = data->jatoms[ii];
 
-    // must not count any contribution where i is not a local atom
-    if (i < nlocal) {
-      f[i][0] += fij[ii3];
-      f[i][1] += fij[ii3 + 1];
-      f[i][2] += fij[ii3 + 2];
-      f[j][0] -= fij[ii3];
-      f[j][1] -= fij[ii3 + 1];
-      f[j][2] -= fij[ii3 + 2];
+    f[i][0] += fij[ii3];
+    f[i][1] += fij[ii3 + 1];
+    f[i][2] += fij[ii3 + 2];
+    f[j][0] -= fij[ii3];
+    f[j][1] -= fij[ii3 + 1];
+    f[j][2] -= fij[ii3 + 2];
 
-      if (data->vflag) data->pairmliap->v_tally(i, j, &fij[ii3], data->rij[ii]);
-    }
+    if (data->vflag) data->pairmliap->v_tally(i, j, &fij[ii3], data->rij[ii]);
   }
 }
 

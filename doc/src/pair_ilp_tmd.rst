@@ -22,12 +22,12 @@ Examples
 .. code-block:: LAMMPS
 
    pair_style  hybrid/overlay ilp/tmd 16.0 1
-   pair_coeff  * * ilp/tmd  MoS2.ILP Mo S S
+   pair_coeff  * * ilp/tmd  TMD.ILP Mo S S
 
    pair_style  hybrid/overlay sw/mod sw/mod ilp/tmd 16.0
    pair_coeff  * * sw/mod 1  tmd.sw.mod Mo S S NULL NULL NULL
-   pair_coeff  * * sw/mod 2  tmd.sw.mod NULL NULL NULL Mo S S
-   pair_coeff  * * ilp/tmd   MoS2.ILP   Mo S S Mo S S
+   pair_coeff  * * sw/mod 2  tmd.sw.mod NULL NULL NULL W Se Se
+   pair_coeff  * * ilp/tmd   TMD.ILP   Mo S S W Se Se
 
 Description
 """""""""""
@@ -36,7 +36,7 @@ Description
 
 The *ilp/tmd* style computes the registry-dependent interlayer
 potential (ILP) potential for transition metal dichalcogenides (TMD)
-as described in :ref:`(Ouyang7) <Ouyang7>`.
+as described in :ref:`(Ouyang7) <Ouyang7>` and :ref:`(Jiang) <Jiang>`.
 
 .. math::
 
@@ -69,7 +69,7 @@ calculating the normals.
    each atom `i`, its six nearest neighboring atoms belonging to the same
    sub-layer are chosen to define the normal vector `{\bf n}_i`.
 
-The parameter file (e.g. MoS2.ILP), is intended for use with *metal*
+The parameter file (e.g. TMD.ILP), is intended for use with *metal*
 :doc:`units <units>`, with energies in meV. Two additional parameters,
 *S*, and *rcut* are included in the parameter file. *S* is designed to
 facilitate scaling of energies. *rcut* is designed to build the neighbor
@@ -77,7 +77,7 @@ list for calculating the normals for each atom pair.
 
 .. note::
 
-   The parameters presented in the parameter file (e.g. MoS2.ILP),
+   The parameters presented in the parameter file (e.g. TMD.ILP),
    are fitted with taper function by setting the cutoff equal to 16.0
    Angstrom.  Using different cutoff or taper function should be careful.
    These parameters provide a good description in both short- and long-range
@@ -133,10 +133,10 @@ if LAMMPS was built with that package.  See the :doc:`Build package
 This pair style requires the newton setting to be *on* for pair
 interactions.
 
-The MoS2.ILP potential file provided with LAMMPS (see the potentials
+The TMD.ILP potential file provided with LAMMPS (see the potentials
 directory) are parameterized for *metal* units.  You can use this
 potential with any LAMMPS units, but you would need to create your own
-custom MoS2.ILP potential file with coefficients listed in the appropriate
+custom TMD.ILP potential file with coefficients listed in the appropriate
 units, if your simulation does not use *metal* units.
 
 Related commands
@@ -164,3 +164,7 @@ tap_flag = 1
 .. _Ouyang7:
 
 **(Ouyang7)** W. Ouyang, et al., J. Chem. Theory Comput. 17, 7237 (2021).
+
+.. _Jiang:
+
+**(Jiang)** W. Jiang, et al., J. Phys. Chem. A, 127, 46, 9820-9830 (2023).

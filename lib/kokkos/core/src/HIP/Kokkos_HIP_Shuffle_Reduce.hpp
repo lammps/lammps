@@ -40,7 +40,7 @@ __device__ inline void hip_intra_warp_shuffle_reduction(
   unsigned int shift = 1;
 
   // Reduce over values from threads with different threadIdx.y
-  unsigned int constexpr warp_size = HIPTraits::WarpSize;
+  constexpr unsigned int warp_size = HIPTraits::WarpSize;
   while (blockDim.x * shift < warp_size) {
     ValueType const tmp = shfl_down(result, blockDim.x * shift, warp_size);
     // Only join if upper thread is active (this allows non power of two for
@@ -59,8 +59,8 @@ template <typename ValueType, typename ReducerType>
 __device__ inline void hip_inter_warp_shuffle_reduction(
     ValueType& value, const ReducerType& reducer,
     const int max_active_thread = blockDim.y) {
-  unsigned int constexpr warp_size = HIPTraits::WarpSize;
-  int constexpr step_width         = 8;
+  constexpr unsigned int warp_size = HIPTraits::WarpSize;
+  constexpr int step_width         = 8;
   // Depending on the ValueType __shared__ memory must be aligned up to 8 byte
   // boundaries. The reason not to use ValueType directly is that for types with
   // constructors it could lead to race conditions.
@@ -118,13 +118,14 @@ __device__ inline bool hip_inter_block_shuffle_reduction(
     pointer_type global =
         reinterpret_cast<pointer_type>(m_scratch_space) + blockIdx.x;
     *global = value;
+    __threadfence();
   }
 
   // One warp of last block performs inter block reduction through loading the
   // block values from global scratch_memory
   bool last_block = false;
   __syncthreads();
-  int constexpr warp_size = HIPTraits::WarpSize;
+  constexpr int warp_size = HIPTraits::WarpSize;
   if (id < warp_size) {
     HIP::size_type count;
 

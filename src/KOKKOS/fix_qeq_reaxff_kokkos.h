@@ -143,6 +143,7 @@ class FixQEqReaxFFKokkos : public FixQEqReaxFF, public KokkosBase {
 
   void unpack_exchange_kokkos(DAT::tdual_xfloat_2d &k_buf,
                               DAT::tdual_int_1d &indices,int nrecv,
+                              int nrecv1,int nextrarecv1,
                               ExecutionSpace space) override;
 
   struct params_qeq{

@@ -1448,7 +1448,6 @@ struct AtomVecSphereKokkos_PackExchangeFunctor {
     const typename AT::tdual_xfloat_2d buf,
     typename AT::tdual_int_1d sendlist,
     typename AT::tdual_int_1d copylist):
-    _size_exchange(atom->avecKK->size_exchange),
     _x(atom->k_x.view<DeviceType>()),
     _v(atom->k_v.view<DeviceType>()),
     _tag(atom->k_tag.view<DeviceType>()),
@@ -1468,7 +1467,8 @@ struct AtomVecSphereKokkos_PackExchangeFunctor {
     _rmassw(atom->k_rmass.view<DeviceType>()),
     _omegaw(atom->k_omega.view<DeviceType>()),
     _sendlist(sendlist.template view<DeviceType>()),
-    _copylist(copylist.template view<DeviceType>()) {
+    _copylist(copylist.template view<DeviceType>()),
+    _size_exchange(atom->avecKK->size_exchange) {
     const int maxsend = (buf.template view<DeviceType>().extent(0)*buf.template view<DeviceType>().extent(1))/_size_exchange;
 
     _buf = typename AT::t_xfloat_2d_um(buf.template view<DeviceType>().data(),maxsend,_size_exchange);
@@ -1572,7 +1572,6 @@ struct AtomVecSphereKokkos_UnpackExchangeFunctor {
     typename AT::tdual_int_1d nlocal,
     typename AT::tdual_int_1d indices,
     int dim, X_FLOAT lo, X_FLOAT hi):
-      _size_exchange(atom->avecKK->size_exchange),
       _x(atom->k_x.view<DeviceType>()),
       _v(atom->k_v.view<DeviceType>()),
       _tag(atom->k_tag.view<DeviceType>()),
@@ -1584,9 +1583,7 @@ struct AtomVecSphereKokkos_UnpackExchangeFunctor {
       _omega(atom->k_omega.view<DeviceType>()),
       _nlocal(nlocal.template view<DeviceType>()),
       _indices(indices.template view<DeviceType>()),
-      _dim(dim),
-      _lo(lo),_hi(hi)
-  {
+      _dim(dim),_lo(lo),_hi(hi),_size_exchange(atom->avecKK->size_exchange) {
     const size_t size_exchange = 16;
     const int maxsendlist = (buf.template view<DeviceType>().extent(0)*buf.template view<DeviceType>().extent(1))/size_exchange;
 

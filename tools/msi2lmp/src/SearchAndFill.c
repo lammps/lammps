@@ -12,6 +12,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <ctype.h>
+#include <errno.h>
 
 #if defined(_WIN32)
 #define strdup(x) _strdup(x)
@@ -91,10 +92,14 @@ void SearchAndFill(struct FrcFieldItem *item)
   }
 
   file_pos = ftell(FrcF);
+  if (file_pos < 0) {
+    fprintf(stderr, "Could not obtain file stream position: %s\n", strerror(errno));
+    exit(2);
+  }
 
   /* Count the number of lines until next item is found */
 
-  while( strncmp(fgets(line,MAX_LINE_LENGTH,FrcF), "#", 1) != 0 )
+  while (strncmp(fgets(line,MAX_LINE_LENGTH,FrcF), "#", 1) != 0 )
     ctr++;
 
   /* Allocate the memory using calloc */
@@ -110,7 +115,10 @@ void SearchAndFill(struct FrcFieldItem *item)
 
   /* Read lines until keyword is found */
 
-  fseek(FrcF,file_pos,SEEK_SET);
+  if (fseek(FrcF,file_pos,SEEK_SET) < 0) {
+    fprintf(stderr, "Resetting file stream failed: %s\n", strerror(errno));
+    exit(2);
+  }
   strcpy(line,"empty");
 
   /* Read lines until data starts (when !--- is found) */

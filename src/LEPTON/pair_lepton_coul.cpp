@@ -28,6 +28,8 @@
 
 #include "Lepton.h"
 #include "lepton_utils.h"
+
+#include <array>
 #include <cmath>
 
 using namespace LAMMPS_NS;
@@ -79,25 +81,30 @@ template <int EVFLAG, int EFLAG, int NEWTON_PAIR> void PairLeptonCoul::eval()
 
   std::vector<Lepton::CompiledExpression> pairforce;
   std::vector<Lepton::CompiledExpression> pairpot;
-  std::vector<std::pair<bool, bool>> have_q;
+  std::vector<std::array<bool, 3>> has_ref;
   try {
     for (const auto &expr : expressions) {
       auto parsed = Lepton::Parser::parse(LeptonUtils::substitute(expr, lmp), functions);
       pairforce.emplace_back(parsed.differentiate("r").createCompiledExpression());
+      has_ref.push_back({true, true, true});
+      try {
+        pairforce.back().getVariableReference("r");
+      } catch (Lepton::Exception &) {
+        has_ref.back()[0] = false;
+      }
       if (EFLAG) pairpot.emplace_back(parsed.createCompiledExpression());
-      pairforce.back().getVariableReference("r");
-      have_q.emplace_back(true, true);
 
       // check if there are references to charges
+
       try {
         pairforce.back().getVariableReference("qi");
-      } catch (std::exception &) {
-        have_q.back().first = false;
+      } catch (Lepton::Exception &) {
+        has_ref.back()[1] = false;
       }
       try {
         pairforce.back().getVariableReference("qj");
-      } catch (std::exception &) {
-        have_q.back().second = false;
+      } catch (Lepton::Exception &) {
+        has_ref.back()[2] = false;
       }
     }
   } catch (std::exception &e) {
@@ -130,9 +137,9 @@ template <int EVFLAG, int EFLAG, int NEWTON_PAIR> void PairLeptonCoul::eval()
       if (rsq < cutsq[itype][jtype]) {
         const double r = sqrt(rsq);
         const int idx = type2expression[itype][jtype];
-        pairforce[idx].getVariableReference("r") = r;
-        if (have_q[idx].first) pairforce[idx].getVariableReference("qi") = q2e * q[i];
-        if (have_q[idx].second) pairforce[idx].getVariableReference("qj") = q2e * q[j];
+        if (has_ref[idx][0]) pairforce[idx].getVariableReference("r") = r;
+        if (has_ref[idx][1]) pairforce[idx].getVariableReference("qi") = q2e * q[i];
+        if (has_ref[idx][2]) pairforce[idx].getVariableReference("qj") = q2e * q[j];
         const double fpair = -pairforce[idx].evaluate() / r * factor_coul;
 
         fxtmp += delx * fpair;
@@ -146,9 +153,14 @@ template <int EVFLAG, int EFLAG, int NEWTON_PAIR> void PairLeptonCoul::eval()
 
         double ecoul = 0.0;
         if (EFLAG) {
-          pairpot[idx].getVariableReference("r") = r;
-          if (have_q[idx].first) pairpot[idx].getVariableReference("qi") = q2e * q[i];
-          if (have_q[idx].second) pairpot[idx].getVariableReference("qj") = q2e * q[j];
+          try {
+            pairpot[idx].getVariableReference("r") = r;
+          } catch (Lepton::Exception &) {
+            ;    // ignore -> constant potential
+          }
+          if (has_ref[idx][1]) pairpot[idx].getVariableReference("qi") = q2e * q[i];
+          if (has_ref[idx][2]) pairpot[idx].getVariableReference("qj") = q2e * q[j];
+
           ecoul = pairpot[idx].evaluate();
           ecoul *= factor_coul;
         }
@@ -242,25 +254,29 @@ void PairLeptonCoul::read_restart_settings(FILE *fp)
 double PairLeptonCoul::single(int i, int j, int itype, int jtype, double rsq, double factor_coul,
                               double /* factor_lj */, double &fforce)
 {
-  auto expr = expressions[type2expression[itype][jtype]];
+  const auto &expr = expressions[type2expression[itype][jtype]];
   auto parsed = Lepton::Parser::parse(LeptonUtils::substitute(expr, lmp), functions);
   auto pairpot = parsed.createCompiledExpression();
   auto pairforce = parsed.differentiate("r").createCompiledExpression();
 
   const double r = sqrt(rsq);
   const double q2e = sqrt(force->qqrd2e);
-  pairpot.getVariableReference("r") = r;
-  pairforce.getVariableReference("r") = r;
+  try {
+    pairpot.getVariableReference("r") = r;
+    pairforce.getVariableReference("r") = r;
+  } catch (Lepton::Exception &) {
+    ;    // ignore -> constant potential or force
+  }
   try {
     pairpot.getVariableReference("qi") = q2e * atom->q[i];
     pairforce.getVariableReference("qi") = q2e * atom->q[i];
-  } catch (std::exception &) {
+  } catch (Lepton::Exception &) {
     /* ignore */
   }
   try {
     pairpot.getVariableReference("qj") = q2e * atom->q[j];
     pairforce.getVariableReference("qj") = q2e * atom->q[j];
-  } catch (std::exception &) {
+  } catch (Lepton::Exception &) {
     /* ignore */
   }
 

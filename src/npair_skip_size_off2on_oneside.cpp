@@ -24,7 +24,8 @@ using namespace LAMMPS_NS;
 
 /* ---------------------------------------------------------------------- */
 
-NPairSkipSizeOff2onOneside::NPairSkipSizeOff2onOneside(LAMMPS *lmp) :
+template<int TRIM>
+NPairSkipSizeOff2onOnesideTemp<TRIM>::NPairSkipSizeOff2onOnesideTemp(LAMMPS *lmp) :
   NPair(lmp) {}
 
 /* ----------------------------------------------------------------------
@@ -34,10 +35,11 @@ NPairSkipSizeOff2onOneside::NPairSkipSizeOff2onOneside(LAMMPS *lmp) :
      this skip list is newton on and onesided
 ------------------------------------------------------------------------- */
 
-void NPairSkipSizeOff2onOneside::build(NeighList *list)
+template<int TRIM>
+void NPairSkipSizeOff2onOnesideTemp<TRIM>::build(NeighList *list)
 {
-  int i,j,ii,jj,itype,jnum,joriginal,flip,tmp;
-  int *surf,*jlist;
+  int i, j, ii, jj, itype, jnum, joriginal, flip, tmp;
+  int *surf, *jlist;
 
   int *type = atom->type;
   int nlocal = atom->nlocal;
@@ -61,6 +63,11 @@ void NPairSkipSizeOff2onOneside::build(NeighList *list)
   int inum = 0;
   ipage->reset();
 
+  double **x = atom->x;
+  double xtmp, ytmp, ztmp;
+  double delx, dely, delz, rsq;
+  double cutsq_custom = cutoff_custom * cutoff_custom;
+
   // two loops over parent list required, one to count, one to store
   // because onesided constraint means pair I,J may be stored with I or J
   // so don't know in advance how much space to alloc for each atom's neighs
@@ -76,6 +83,12 @@ void NPairSkipSizeOff2onOneside::build(NeighList *list)
     itype = type[i];
     if (iskip[itype]) continue;
 
+    if (TRIM) {
+      xtmp = x[i][0];
+      ytmp = x[i][1];
+      ztmp = x[i][2];
+    }
+
     // loop over parent non-skip size list
 
     jlist = firstneigh_skip[i];
@@ -85,6 +98,14 @@ void NPairSkipSizeOff2onOneside::build(NeighList *list)
       joriginal = jlist[jj];
       j = joriginal & NEIGHMASK;
       if (ijskip[itype][type[j]]) continue;
+
+      if (TRIM) {
+        delx = xtmp - x[j][0];
+        dely = ytmp - x[j][1];
+        delz = ztmp - x[j][2];
+        rsq = delx * delx + dely * dely + delz * delz;
+        if (rsq > cutsq_custom) continue;
+      }
 
       // flip I,J if necessary to satisfy onesided constraint
       // do not keep if I is now ghost
@@ -107,8 +128,7 @@ void NPairSkipSizeOff2onOneside::build(NeighList *list)
   for (i = 0; i < nlocal; i++) {
     if (numneigh[i] == 0) continue;
     firstneigh[i] = ipage->get(numneigh[i]);
-    if (ipage->status())
-      error->one(FLERR,"Neighbor list overflow, boost neigh_modify one");
+    if (ipage->status()) error->one(FLERR, "Neighbor list overflow, boost neigh_modify one");
   }
 
   // second loop over atoms in other list to store neighbors
@@ -122,6 +142,12 @@ void NPairSkipSizeOff2onOneside::build(NeighList *list)
     itype = type[i];
     if (iskip[itype]) continue;
 
+    if (TRIM) {
+      xtmp = x[i][0];
+      ytmp = x[i][1];
+      ztmp = x[i][2];
+    }
+
     // loop over parent non-skip size list and optionally its history info
 
     jlist = firstneigh_skip[i];
@@ -131,6 +157,14 @@ void NPairSkipSizeOff2onOneside::build(NeighList *list)
       joriginal = jlist[jj];
       j = joriginal & NEIGHMASK;
       if (ijskip[itype][type[j]]) continue;
+
+      if (TRIM) {
+        delx = xtmp - x[j][0];
+        dely = ytmp - x[j][1];
+        delz = ztmp - x[j][2];
+        rsq = delx * delx + dely * dely + delz * delz;
+        if (rsq > cutsq_custom) continue;
+      }
 
       // flip I,J if necessary to satisfy onesided constraint
       // do not keep if I is now ghost
@@ -157,4 +191,9 @@ void NPairSkipSizeOff2onOneside::build(NeighList *list)
   }
 
   list->inum = inum;
+}
+
+namespace LAMMPS_NS {
+template class NPairSkipSizeOff2onOnesideTemp<0>;
+template class NPairSkipSizeOff2onOnesideTemp<1>;
 }

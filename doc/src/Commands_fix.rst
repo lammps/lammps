@@ -61,6 +61,7 @@ OPT.
    * :doc:`controller <fix_controller>`
    * :doc:`damping/cundall <fix_damping_cundall>`
    * :doc:`deform (k) <fix_deform>`
+   * :doc:`deform/pressure <fix_deform_pressure>`
    * :doc:`deposit <fix_deposit>`
    * :doc:`dpd/energy (k) <fix_dpd_energy>`
    * :doc:`drag <fix_drag>`
@@ -122,6 +123,7 @@ OPT.
    * :doc:`mvv/tdpd <fix_mvv_dpd>`
    * :doc:`neb <fix_neb>`
    * :doc:`neb/spin <fix_neb_spin>`
+   * :doc:`nonaffine/displacement <fix_nonaffine_displacement>`
    * :doc:`nph (ko) <fix_nh>`
    * :doc:`nph/asphere (o) <fix_nph_asphere>`
    * :doc:`nph/body <fix_nph_body>`
@@ -238,10 +240,10 @@ OPT.
    * :doc:`store/force <fix_store_force>`
    * :doc:`store/state <fix_store_state>`
    * :doc:`tdpd/source <fix_dpd_source>`
-   * :doc:`temp/berendsen <fix_temp_berendsen>`
+   * :doc:`temp/berendsen (k) <fix_temp_berendsen>`
    * :doc:`temp/csld <fix_temp_csvr>`
    * :doc:`temp/csvr <fix_temp_csvr>`
-   * :doc:`temp/rescale <fix_temp_rescale>`
+   * :doc:`temp/rescale (k) <fix_temp_rescale>`
    * :doc:`temp/rescale/eff <fix_temp_rescale_eff>`
    * :doc:`tfmc <fix_tfmc>`
    * :doc:`tgnpt/drude <fix_tgnh_drude>`
@@ -261,6 +263,7 @@ OPT.
    * :doc:`wall/body/polyhedron <fix_wall_body_polyhedron>`
    * :doc:`wall/colloid <fix_wall>`
    * :doc:`wall/ees <fix_wall_ees>`
+   * :doc:`wall/flow (k) <fix_wall_flow>`
    * :doc:`wall/gran (k) <fix_wall_gran>`
    * :doc:`wall/gran/region <fix_wall_gran_region>`
    * :doc:`wall/harmonic <fix_wall>`

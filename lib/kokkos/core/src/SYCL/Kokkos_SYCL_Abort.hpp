@@ -17,7 +17,7 @@
 #ifndef KOKKOS_SYCL_ABORT_HPP
 #define KOKKOS_SYCL_ABORT_HPP
 
-#include <Kokkos_Macros.hpp>
+#include <Kokkos_Printf.hpp>
 #if defined(KOKKOS_ENABLE_SYCL)
 // FIXME_SYCL
 #if __has_include(<sycl/sycl.hpp>)
@@ -31,7 +31,7 @@ namespace Impl {
 
 inline void sycl_abort(char const* msg) {
 #ifdef NDEBUG
-  KOKKOS_IMPL_DO_NOT_USE_PRINTF("Aborting with message %s.\n", msg);
+  Kokkos::printf("Aborting with message %s.\n", msg);
 #else
   // Choosing "" here causes problems but a single whitespace character works.
   const char* empty = " ";

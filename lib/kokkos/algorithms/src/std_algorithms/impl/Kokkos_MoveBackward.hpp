@@ -27,43 +27,61 @@ namespace Kokkos {
 namespace Experimental {
 namespace Impl {
 
-template <class IndexType, class IteratorType1, class IteratorType2>
+template <class IteratorType1, class IteratorType2>
 struct StdMoveBackwardFunctor {
-  static_assert(std::is_signed<IndexType>::value,
+  using index_type = typename IteratorType1::difference_type;
+  static_assert(std::is_signed<index_type>::value,
                 "Kokkos: StdMoveBackwardFunctor requires signed index type");
 
   IteratorType1 m_last;
   IteratorType2 m_dest_last;
 
   KOKKOS_FUNCTION
-  void operator()(IndexType i) const {
+  void operator()(index_type i) const {
     m_dest_last[-i - 1] = std::move(m_last[-i - 1]);
   }
 
+  KOKKOS_FUNCTION
   StdMoveBackwardFunctor(IteratorType1 _last, IteratorType2 _dest_last)
       : m_last(std::move(_last)), m_dest_last(std::move(_dest_last)) {}
 };
 
 template <class ExecutionSpace, class IteratorType1, class IteratorType2>
-IteratorType2 move_backward_impl(const std::string& label,
-                                 const ExecutionSpace& ex, IteratorType1 first,
-                                 IteratorType1 last, IteratorType2 d_last) {
+IteratorType2 move_backward_exespace_impl(const std::string& label,
+                                          const ExecutionSpace& ex,
+                                          IteratorType1 first,
+                                          IteratorType1 last,
+                                          IteratorType2 d_last) {
   // checks
   Impl::static_assert_random_access_and_accessible(ex, first, d_last);
   Impl::static_assert_iterators_have_matching_difference_type(first, d_last);
   Impl::expect_valid_range(first, last);
 
-  // aliases
-  using index_type = typename IteratorType1::difference_type;
-  using func_t =
-      StdMoveBackwardFunctor<index_type, IteratorType1, IteratorType2>;
-
   // run
   const auto num_elements = Kokkos::Experimental::distance(first, last);
   ::Kokkos::parallel_for(label,
                          RangePolicy<ExecutionSpace>(ex, 0, num_elements),
-                         func_t(last, d_last));
+                         StdMoveBackwardFunctor(last, d_last));
   ex.fence("Kokkos::move_backward: fence after operation");
+
+  // return
+  return d_last - num_elements;
+}
+
+template <class TeamHandleType, class IteratorType1, class IteratorType2>
+KOKKOS_FUNCTION IteratorType2
+move_backward_team_impl(const TeamHandleType& teamHandle, IteratorType1 first,
+                        IteratorType1 last, IteratorType2 d_last) {
+  // checks
+  Impl::static_assert_random_access_and_accessible(teamHandle, first, d_last);
+  Impl::static_assert_iterators_have_matching_difference_type(first, d_last);
+  Impl::expect_valid_range(first, last);
+
+  // run
+  const auto num_elements = Kokkos::Experimental::distance(first, last);
+  ::Kokkos::parallel_for(TeamThreadRange(teamHandle, 0, num_elements),
+                         StdMoveBackwardFunctor(last, d_last));
+  teamHandle.team_barrier();
 
   // return
   return d_last - num_elements;

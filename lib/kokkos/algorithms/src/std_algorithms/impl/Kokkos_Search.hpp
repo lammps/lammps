@@ -81,12 +81,16 @@ struct StdSearchFunctor {
         m_p(std::move(p)) {}
 };
 
+//
+// exespace impl
+//
 template <class ExecutionSpace, class IteratorType1, class IteratorType2,
           class BinaryPredicateType>
-IteratorType1 search_impl(const std::string& label, const ExecutionSpace& ex,
-                          IteratorType1 first, IteratorType1 last,
-                          IteratorType2 s_first, IteratorType2 s_last,
-                          const BinaryPredicateType& pred) {
+IteratorType1 search_exespace_impl(const std::string& label,
+                                   const ExecutionSpace& ex,
+                                   IteratorType1 first, IteratorType1 last,
+                                   IteratorType2 s_first, IteratorType2 s_last,
+                                   const BinaryPredicateType& pred) {
   // checks
   Impl::static_assert_random_access_and_accessible(ex, first, s_first);
   Impl::static_assert_iterators_have_matching_difference_type(first, s_first);
@@ -98,7 +102,6 @@ IteratorType1 search_impl(const std::string& label, const ExecutionSpace& ex,
   const auto num_elements = KE::distance(first, last);
   const auto s_count      = KE::distance(s_first, s_last);
   KOKKOS_EXPECTS(num_elements >= s_count);
-  (void)s_count;  // needed when macro above is a no-op
 
   if (s_first == s_last) {
     return first;
@@ -110,7 +113,8 @@ IteratorType1 search_impl(const std::string& label, const ExecutionSpace& ex,
 
   // special case where the two ranges have equal size
   if (num_elements == s_count) {
-    const auto equal_result = equal_impl(label, ex, first, last, s_first, pred);
+    const auto equal_result =
+        equal_exespace_impl(label, ex, first, last, s_first, pred);
     return (equal_result) ? first : last;
   } else {
     using index_type           = typename IteratorType1::difference_type;
@@ -149,13 +153,99 @@ IteratorType1 search_impl(const std::string& label, const ExecutionSpace& ex,
 }
 
 template <class ExecutionSpace, class IteratorType1, class IteratorType2>
-IteratorType1 search_impl(const std::string& label, const ExecutionSpace& ex,
-                          IteratorType1 first, IteratorType1 last,
-                          IteratorType2 s_first, IteratorType2 s_last) {
+IteratorType1 search_exespace_impl(const std::string& label,
+                                   const ExecutionSpace& ex,
+                                   IteratorType1 first, IteratorType1 last,
+                                   IteratorType2 s_first,
+                                   IteratorType2 s_last) {
   using value_type1    = typename IteratorType1::value_type;
   using value_type2    = typename IteratorType2::value_type;
   using predicate_type = StdAlgoEqualBinaryPredicate<value_type1, value_type2>;
-  return search_impl(label, ex, first, last, s_first, s_last, predicate_type());
+  return search_exespace_impl(label, ex, first, last, s_first, s_last,
+                              predicate_type());
+}
+
+//
+// team impl
+//
+template <class TeamHandleType, class IteratorType1, class IteratorType2,
+          class BinaryPredicateType>
+KOKKOS_FUNCTION IteratorType1
+search_team_impl(const TeamHandleType& teamHandle, IteratorType1 first,
+                 IteratorType1 last, IteratorType2 s_first,
+                 IteratorType2 s_last, const BinaryPredicateType& pred) {
+  // checks
+  Impl::static_assert_random_access_and_accessible(teamHandle, first, s_first);
+  Impl::static_assert_iterators_have_matching_difference_type(first, s_first);
+  Impl::expect_valid_range(first, last);
+  Impl::expect_valid_range(s_first, s_last);
+
+  // the target sequence should not be larger than the range [first, last)
+  namespace KE            = ::Kokkos::Experimental;
+  const auto num_elements = KE::distance(first, last);
+  const auto s_count      = KE::distance(s_first, s_last);
+  KOKKOS_EXPECTS(num_elements >= s_count);
+
+  if (s_first == s_last) {
+    return first;
+  }
+
+  if (first == last) {
+    return last;
+  }
+
+  // special case where the two ranges have equal size
+  if (num_elements == s_count) {
+    const auto equal_result =
+        equal_team_impl(teamHandle, first, last, s_first, pred);
+    return (equal_result) ? first : last;
+  } else {
+    using index_type           = typename IteratorType1::difference_type;
+    using reducer_type         = FirstLoc<index_type>;
+    using reduction_value_type = typename reducer_type::value_type;
+    using func_t = StdSearchFunctor<index_type, IteratorType1, IteratorType2,
+                                    reducer_type, BinaryPredicateType>;
+
+    // run
+    reduction_value_type red_result;
+    reducer_type reducer(red_result);
+
+    // decide the size of the range policy of the par_red:
+    // note that the last feasible index to start looking is the index
+    // whose distance from the "last" is equal to the sequence count.
+    // the +1 is because we need to include that location too.
+    const auto range_size = num_elements - s_count + 1;
+
+    // run par reduce
+    ::Kokkos::parallel_reduce(
+        TeamThreadRange(teamHandle, 0, range_size),
+        func_t(first, last, s_first, s_last, reducer, pred), reducer);
+
+    teamHandle.team_barrier();
+
+    // decide and return
+    if (red_result.min_loc_true ==
+        ::Kokkos::reduction_identity<index_type>::min()) {
+      // location has not been found
+      return last;
+    } else {
+      // location has been found
+      return first + red_result.min_loc_true;
+    }
+  }
+}
+
+template <class TeamHandleType, class IteratorType1, class IteratorType2>
+KOKKOS_FUNCTION IteratorType1 search_team_impl(const TeamHandleType& teamHandle,
+                                               IteratorType1 first,
+                                               IteratorType1 last,
+                                               IteratorType2 s_first,
+                                               IteratorType2 s_last) {
+  using value_type1    = typename IteratorType1::value_type;
+  using value_type2    = typename IteratorType2::value_type;
+  using predicate_type = StdAlgoEqualBinaryPredicate<value_type1, value_type2>;
+  return search_team_impl(teamHandle, first, last, s_first, s_last,
+                          predicate_type());
 }
 
 }  // namespace Impl

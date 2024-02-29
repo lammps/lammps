@@ -44,10 +44,6 @@ TEST(TEST_CATEGORY, dynrankview_perf) {
 }
 
 TEST(TEST_CATEGORY, global_2_local) {
-#if defined(KOKKOS_ENABLE_CUDA) && \
-    defined(KOKKOS_COMPILER_NVHPC)  // FIXME_NVHPC
-  GTEST_SKIP() << "errors reported for all sizes";
-#endif
   std::cout << "Cuda" << std::endl;
   std::cout << "size, create, generate, fill, find" << std::endl;
   for (unsigned i = Performance::begin_id_size; i <= Performance::end_id_size;

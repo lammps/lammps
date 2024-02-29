@@ -121,7 +121,7 @@ will be suppressed and only a summary printed, but adding
 the '-V' option will then produce output from the tests
 above like the following:
 
-.. code-block::
+.. code-block:: console
 
    [...]
    1: [ RUN      ] Tokenizer.empty_string
@@ -180,19 +180,11 @@ discarded but by setting the verbose flag (via setting the ``TEST_ARGS``
 environment variable, ``TEST_ARGS=-v``) it can be printed and used to
 understand why tests fail unexpectedly.
 
-Another complexity of these tests stems from the need to capture
-situations where LAMMPS will stop with an error, i.e. handle so-called
-"death tests".  Here the LAMMPS code will operate differently depending
-on whether it was configured to throw C++ exceptions on errors or call
-either ``exit()`` or ``MPI_Abort()``.  In the latter case, the test code
-also needs to detect whether LAMMPS was compiled with the OpenMPI
-library, as OpenMPI is **only** compatible the death test options of the
-GoogleTest library when C++ exceptions are enabled; otherwise those
-"death tests" must be skipped to avoid reporting bogus failures.  The
-specifics of this step are implemented in the ``TEST_FAILURE()``
-macro. These tests operate by capturing the screen output when executing
-the failing command and then comparing that with a provided regular
-expression string pattern.  Example:
+The specifics of so-called "death tests", i.e. conditions where LAMMPS
+should fail and throw an exception, are implemented in the
+``TEST_FAILURE()`` macro. These tests operate by capturing the screen
+output when executing the failing command and then comparing that with a
+provided regular expression string pattern.  Example:
 
 .. code-block:: c++
 
@@ -282,9 +274,7 @@ Tests for using the Fortran module are in the ``unittest/fortran``
 folder.  Since they are also using the GoogleTest library, they require
 to also implement test wrappers in C++ that will call fortran functions
 which provide a C function interface through ISO_C_BINDINGS that will in
-turn call the functions in the LAMMPS Fortran module.  This part of the
-unit tests is incomplete since the Fortran module it is based on is
-incomplete as well.
+turn call the functions in the LAMMPS Fortran module.
 
 Tests for the C++-style library interface
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
@@ -405,10 +395,10 @@ compare with the reference and also start from the data file.  A final
 check will use multi-cutoff r-RESPA (if supported by the pair style) at
 a 1:1 split and compare to the Verlet results.  These sets of tests are
 run with multiple test fixtures for accelerated styles (OPT, OPENMP,
-INTEL) and for the latter two with 4 OpenMP threads enabled.  For
-these tests the relative error (epsilon) is lowered by a common factor
-due to the additional numerical noise, but the tests are still comparing
-to the same reference data.
+INTEL, KOKKOS (OpenMP only)) and for the latter three with 4 OpenMP
+threads enabled.  For these tests the relative error (epsilon) is lowered
+by a common factor due to the additional numerical noise, but the tests
+are still comparing to the same reference data.
 
 Additional tests will check whether all listed extract keywords are
 supported and have the correct dimensionality and the final set of tests
@@ -442,17 +432,19 @@ The ``test_pair_style`` tester is used with 4 categories of test inputs:
   pair style is defined, but the computation of the pair style contributions
   is disabled.
 
-The ``test_bond_style`` and ``test_angle_style`` are set up in a similar
-fashion and share support functions with the pair style tester.  The final
-group of tests in this section is for fix styles that add/manipulate forces
-and velocities, e.g. for time integration, thermostats and more.
+The ``test_bond_style``, ``test_angle_style``, ``test_dihedral_style``, and
+``test_improper_style`` tester programs are set up in a similar fashion and
+share support functions with the pair style tester.  The final group of
+tests in this section is for fix styles that add/manipulate forces and
+velocities, e.g. for time integration, thermostats and more.
 
-Adding a new test is easiest done by copying and modifying an existing test
-for a style that is similar to one to be tested.  The file name should follow
-the naming conventions described above and after copying the file, the first
-step is to replace the style names where needed.  The coefficient values
-do not have to be meaningful, just in a reasonable range for the given system.
-It does not matter if some forces are large, for as long as they do not diverge.
+Adding a new test is easiest done by copying and modifying an existing YAML
+file for a style that is similar to one to be tested.  The file name should
+follow the naming conventions described above and after copying the file,
+the first step is to replace the style names where needed.  The coefficient
+values do not have to be meaningful, just in a reasonable range for the
+given system.  It does not matter if some forces are large, for as long as
+they do not diverge.
 
 The template input files define a large number of index variables at the top
 that can be modified inside the YAML file to control the behavior.  For example,
@@ -480,7 +472,7 @@ Note that this disables computing the kspace contribution, but still will run
 the setup.  The "gewald" parameter should be set explicitly to speed up the run.
 For styles with long-range electrostatics, typically two tests are added one using
 the (slower) analytic approximation of the erfc() function and the other using
-the tabulated coulomb, to test both code paths. The reference results in the YAML
+the tabulated coulomb, to test both code paths.  The reference results in the YAML
 files then should be compared manually, if they agree well enough within the limits
 of those two approximations.
 
@@ -534,3 +526,102 @@ The ``unittest/tools`` folder contains tests for programs in the
 shell, which are implemented as a python scripts using the ``unittest``
 Python module and launching the tool commands through the ``subprocess``
 Python module.
+
+
+Troubleshooting failed unit tests
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+The are by default no unit tests for newly added features (e.g. pair, fix,
+or compute styles) unless your pull request also includes tests for the
+added features.  If you are modifying some features, you may see failures
+for existing tests, if your modifications have some unexpected side effects
+or your changes render the existing text invalid.  If you are adding an
+accelerated version of an existing style, then only tests for INTEL,
+KOKKOS (with OpenMP only), OPENMP, and OPT will be run automatically.
+Tests for the GPU package are time consuming and thus are only run
+*after* a merge, or when a special label, ``gpu_unit_tests`` is added
+to the pull request.  After the test has started, it is often best to
+remove the label since every PR activity will re-trigger the test (that
+is a limitation of triggering a test with a label).  Support for unit
+tests with using KOKKOS with GPU acceleration is currently not supported.
+
+When you see a failed build on GitHub, click on ``Details`` to be taken
+to the corresponding LAMMPS Jenkins CI web page.  Click on the "Exit"
+symbol near the ``Logout`` button on the top right of that page to go to
+the "classic view".  In the classic view, there is a list of the
+individual runs that make up this test run (they are shown but cannot be
+inspected in the default view).  You can click on any of those.
+Clicking on ``Test Result`` will display the list of failed tests. Click
+on the "Status" column to sort the tests based on their Failed or Passed
+status.  Then click on the failed test to expand its output.
+
+For example, the following output snippet shows the failed unit test
+
+.. code-block:: console
+
+   [ RUN      ] PairStyle.gpu
+   /home/builder/workspace/dev/pull_requests/ubuntu_gpu/unit_tests/cmake_gpu_opencl_mixed_smallbig_clang_static/unittest/force-styles/test_main.cpp:63: Failure
+   Expected: (err) <= (epsilon)
+   Actual: 0.00018957912910606503 vs 0.0001
+   Google Test trace:
+   /home/builder/workspace/dev/pull_requests/ubuntu_gpu/unit_tests/cmake_gpu_opencl_mixed_smallbig_clang_static/unittest/force-styles/test_main.cpp:56: EXPECT_FORCES: init_forces (newton off)
+   /home/builder/workspace/dev/pull_requests/ubuntu_gpu/unit_tests/cmake_gpu_opencl_mixed_smallbig_clang_static/unittest/force-styles/test_main.cpp:64: Failure
+   Expected: (err) <= (epsilon)
+   Actual: 0.00022892713393549854 vs 0.0001
+
+The failed assertions provide line numbers in the test source
+(e.g. ``test_main.cpp:56``), from which one can understand what
+specific assertion failed.
+
+Note that the force style engine runs one of a small number of systems
+in a rather off-equilibrium configuration with a few atoms for a few
+steps, writes data and restart files, uses :doc:`the clear command
+<clear>` to reset LAMMPS, and then runs from those files with different
+settings (e.g. newton on/off) and integrators (e.g. verlet vs. respa).
+Beyond potential issues/bugs in the source code, the mismatch between
+the expected and actual values could be that force arrays are not
+properly cleared between multiple run commands or that class members are
+not correctly initialized or written to or read from a data or restart
+file.
+
+While the epsilon (relative precision) for a single, `IEEE 754 compliant
+<https://en.wikipedia.org/wiki/IEEE_754>`_, double precision floating
+point operation is at about 2.2e-16, the achievable precision for the
+tests is lower due to most numbers being sums over intermediate results
+and the non-associativity of floating point math leading to larger
+errors.  In some cases specific properties of the tested style.  As a
+rule of thumb, the test epsilon can often be in the range 5.0e-14 to
+1.0e-13.  But for "noisy" force kernels, e.g. those a larger amount of
+arithmetic operations involving `exp()`, `log()` or `sin()` functions,
+and also due to the effect of compiler optimization or differences
+between compilers or platforms, epsilon may need to be further relaxed,
+sometimes epsilon can be relaxed to 1.0e-12. If interpolation or lookup
+tables are used, epsilon may need to be set to 1.0e-10 or even higher.
+For tests of accelerated styles, the per-test epsilon is multiplied
+by empirical factors that take into account the differences in the order
+of floating point operations or that some or most intermediate operations
+may be done using approximations or with single precision floating point
+math.
+
+To rerun the failed unit test individually, change to the ``build`` directory
+and run the test with verbose output. For example,
+
+.. code-block:: bash
+
+    env TEST_ARGS=-v ctest -R ^MolPairStyle:lj_cut_coul_long -V
+
+``ctest`` with the ``-V`` flag also shows the exact command line
+of the test. One can then use ``gdb --args`` to further debug and
+catch exceptions with the test command, for example,
+
+.. code-block:: bash
+
+    gdb --args /path/to/lammps/build/test_pair_style /path/to/lammps/unittest/force-styles/tests/mol-pair-lj_cut_coul_long.yaml
+
+
+It is recommended to configure the build with ``-D
+BUILD_SHARED_LIBS=on`` and use a custom linker to shorten the build time
+during recompilation.  Installing `ccache` in your development
+environment helps speed up recompilation by caching previous
+compilations and detecting when the same compilation is being done
+again.  Please see :doc:`Build_development` for further details.

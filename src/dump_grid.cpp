@@ -35,8 +35,8 @@ using namespace LAMMPS_NS;
 
 enum {COMPUTE,FIX};
 
-#define ONEFIELD 32
-#define DELTA 1048576
+static constexpr int ONEFIELD = 32;
+static constexpr int DELTA = 1048576;
 
 /* ---------------------------------------------------------------------- */
 

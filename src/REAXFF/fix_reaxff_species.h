@@ -15,7 +15,6 @@
 #ifdef FIX_CLASS
 // clang-format off
 FixStyle(reaxff/species,FixReaxFFSpecies);
-FixStyle(reax/c/species,FixReaxFFSpecies);
 // clang-format on
 #else
 

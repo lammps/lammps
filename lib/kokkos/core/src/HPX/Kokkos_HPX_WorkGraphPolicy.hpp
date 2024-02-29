@@ -19,8 +19,7 @@
 
 #include <HPX/Kokkos_HPX.hpp>
 
-#include <hpx/local/algorithm.hpp>
-#include <hpx/local/execution.hpp>
+#include <hpx/execution.hpp>
 
 namespace Kokkos {
 namespace Impl {

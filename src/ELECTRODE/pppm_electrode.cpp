@@ -45,22 +45,14 @@ using namespace LAMMPS_NS;
 using namespace MathConst;
 using namespace MathSpecial;
 
-#define MAXORDER 7
-#define OFFSET 16384
-#define LARGE 10000.0
-#define SMALL 0.00001
-#define EPS_HOC 1.0e-7
+static constexpr int MAXORDER = 7;
+static constexpr int OFFSET = 16384;
+static constexpr double EPS_HOC = 1.0e-7;
 
 enum { REVERSE_RHO };
 enum { FORWARD_IK, FORWARD_AD, FORWARD_IK_PERATOM, FORWARD_AD_PERATOM };
 
-#ifdef FFT_SINGLE
-#define ZEROF 0.0f
-#define ONEF 1.0f
-#else
-#define ZEROF 0.0
-#define ONEF 1.0
-#endif
+static constexpr FFT_SCALAR ZEROF = 0.0;
 
 static const char cite_pppm_electrode[] =
     "kspace_style pppm/electrode command:\n\n"
@@ -633,7 +625,9 @@ void PPPMElectrode::project_psi(double *vec, int sensor_grpbit)
   // project u_brick with weight matrix
   double **x = atom->x;
   int *mask = atom->mask;
-  double const scaleinv = 1.0 / (nx_pppm * ny_pppm * nz_pppm);
+  const bigint ngridtotal = (bigint) nx_pppm * ny_pppm * nz_pppm;
+  const double scaleinv = 1.0 / ngridtotal;
+
   for (int i = 0; i < atom->nlocal; i++) {
     if (!(mask[i] & sensor_grpbit)) continue;
     double v = 0.;
@@ -1362,7 +1356,7 @@ double PPPMElectrode::compute_qopt()
   // each proc calculates contributions from every Pth grid point
 
   bigint ngridtotal = (bigint) nx_pppm * ny_pppm * nz_pppm;
-  int nxy_pppm = nx_pppm * ny_pppm;
+  bigint nxy_pppm = (bigint) nx_pppm * ny_pppm;
 
   double qopt = 0.0;
 

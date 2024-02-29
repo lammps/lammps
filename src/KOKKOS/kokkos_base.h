@@ -47,6 +47,7 @@ class KokkosBase {
                                    ExecutionSpace /*space*/) { return 0; }
   virtual void unpack_exchange_kokkos(DAT::tdual_xfloat_2d & /*k_buf*/,
                                       DAT::tdual_int_1d & /*indices*/, int /*nrecv*/,
+                                      int /*nrecv1*/, int /*nextrarecv1*/,
                                       ExecutionSpace /*space*/) {}
 
   // Region

@@ -33,7 +33,7 @@ using namespace FixConst;
 enum{NOBIAS,BIAS};
 enum{ISO,ANISO,TRICLINIC};
 
-#define TILTMAX 1.5
+static constexpr double TILTMAX = 1.5;
 
 typedef struct { double x,y,z; } dbl3_t;
 

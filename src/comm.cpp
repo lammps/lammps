@@ -42,7 +42,7 @@
 
 using namespace LAMMPS_NS;
 
-#define BUFEXTRA 1024
+static constexpr int BUFEXTRA = 1024;
 
 enum{ONELEVEL,TWOLEVEL,NUMA,CUSTOM};
 enum{CART,CARTREORDER,XYZ};

@@ -54,10 +54,15 @@ struct StdIsSortedUntilFunctor {
         m_reducer(std::move(reducer)) {}
 };
 
+//
+// overloads accepting exespace
+//
 template <class ExecutionSpace, class IteratorType, class ComparatorType>
-IteratorType is_sorted_until_impl(const std::string& label,
-                                  const ExecutionSpace& ex, IteratorType first,
-                                  IteratorType last, ComparatorType comp) {
+IteratorType is_sorted_until_exespace_impl(const std::string& label,
+                                           const ExecutionSpace& ex,
+                                           IteratorType first,
+                                           IteratorType last,
+                                           ComparatorType comp) {
   // checks
   Impl::static_assert_random_access_and_accessible(ex, first);
   Impl::expect_valid_range(first, last);
@@ -81,7 +86,6 @@ IteratorType is_sorted_until_impl(const std::string& label,
       label,
       // use num_elements-1 because each index handles i and i+1
       RangePolicy<ExecutionSpace>(ex, 0, num_elements - 1),
-      // use CTAD
       StdIsSortedUntilFunctor(first, comp, reducer), reducer);
 
   /* If the reduction result is equal to the initial value,
@@ -98,12 +102,66 @@ IteratorType is_sorted_until_impl(const std::string& label,
 }
 
 template <class ExecutionSpace, class IteratorType>
-IteratorType is_sorted_until_impl(const std::string& label,
-                                  const ExecutionSpace& ex, IteratorType first,
-                                  IteratorType last) {
+IteratorType is_sorted_until_exespace_impl(const std::string& label,
+                                           const ExecutionSpace& ex,
+                                           IteratorType first,
+                                           IteratorType last) {
   using value_type = typename IteratorType::value_type;
   using pred_t     = Impl::StdAlgoLessThanBinaryPredicate<value_type>;
-  return is_sorted_until_impl(label, ex, first, last, pred_t());
+  return is_sorted_until_exespace_impl(label, ex, first, last, pred_t());
+}
+
+//
+// overloads accepting team handle
+//
+template <class ExecutionSpace, class IteratorType, class ComparatorType>
+KOKKOS_FUNCTION IteratorType
+is_sorted_until_team_impl(const ExecutionSpace& teamHandle, IteratorType first,
+                          IteratorType last, ComparatorType comp) {
+  // checks
+  Impl::static_assert_random_access_and_accessible(teamHandle, first);
+  Impl::expect_valid_range(first, last);
+
+  const auto num_elements = Kokkos::Experimental::distance(first, last);
+
+  // trivial case
+  if (num_elements <= 1) {
+    return last;
+  }
+
+  /*
+    Do a par_reduce computing the *min* index that breaks the sorting.
+    If one such index is found, then the range is sorted until that element,
+    if no such index is found, then it means the range is sorted until the end.
+  */
+  using index_type = typename IteratorType::difference_type;
+  index_type red_result;
+  index_type red_result_init;
+  ::Kokkos::Min<index_type> reducer(red_result);
+  reducer.init(red_result_init);
+  ::Kokkos::parallel_reduce(  // use num_elements-1 because each index handles i
+                              // and i+1
+      TeamThreadRange(teamHandle, 0, num_elements - 1),
+      StdIsSortedUntilFunctor(first, comp, reducer), reducer);
+  teamHandle.team_barrier();
+
+  /* If the reduction result is equal to the initial value,
+     and it means the range is sorted until the end */
+  if (red_result == red_result_init) {
+    return last;
+  } else {
+    /* If  such index is found, then the range is sorted until there and
+       we need to return an iterator past the element found so do +1 */
+    return first + (red_result + 1);
+  }
+}
+
+template <class ExecutionSpace, class IteratorType>
+KOKKOS_FUNCTION IteratorType is_sorted_until_team_impl(
+    const ExecutionSpace& teamHandle, IteratorType first, IteratorType last) {
+  using value_type = typename IteratorType::value_type;
+  using pred_t     = Impl::StdAlgoLessThanBinaryPredicate<value_type>;
+  return is_sorted_until_team_impl(teamHandle, first, last, pred_t());
 }
 
 }  // namespace Impl

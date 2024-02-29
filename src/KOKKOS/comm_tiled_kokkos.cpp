@@ -625,9 +625,7 @@ void CommTiledKokkos::grow_list(int iswap, int iwhich, int n)
   k_sendlist.sync<LMPHostType>();
   k_sendlist.modify<LMPHostType>();
 
-  int nsend = k_sendlist.extent(1);
-
-  if (size > k_sendlist.extent(2)) {
+  if (size > (int)k_sendlist.extent(2)) {
     memoryKK->grow_kokkos(k_sendlist,sendlist,maxswap,maxsend,size,"comm:sendlist");
 
     for (int i = 0; i < maxswap; i++)
@@ -640,7 +638,7 @@ void CommTiledKokkos::grow_list(int iswap, int iwhich, int n)
    ditto for complementary recv for swap I+1 or I-1, as invoked by caller
 ------------------------------------------------------------------------- */
 
-void CommTiledKokkos::grow_swap_send(int i, int n, int nold)
+void CommTiledKokkos::grow_swap_send(int i, int n, int /*nold*/)
 {
   delete [] sendproc[i];
   sendproc[i] = new int[n];

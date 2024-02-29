@@ -625,7 +625,6 @@ void MEAM::meam_force(int i, int eflag_global, int eflag_atom, int vflag_global,
         }
 
         // Compute derivatives of energy wrt rij, sij and rij[3]
-        // MS-MEAM affects phip
 
         dUdrij = phip * sij + frhop[i] * drhodr1 + frhop[j] * drhodr2;
         dUdsij = 0.0;

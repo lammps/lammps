@@ -16,7 +16,7 @@
 #include "atom_masks.h"
 #include "atom_vec.h"
 #include "atom_vec_kokkos.h"
-#include "comm_kokkos.h"
+#include "comm.h"
 #include "domain.h"
 #include "error.h"
 #include "kokkos.h"

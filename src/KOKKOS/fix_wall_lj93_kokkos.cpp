@@ -13,7 +13,7 @@
 ------------------------------------------------------------------------- */
 
 #include "fix_wall_lj93_kokkos.h"
-#include <cmath>
+
 #include "atom_kokkos.h"
 #include "error.h"
 #include "atom_masks.h"

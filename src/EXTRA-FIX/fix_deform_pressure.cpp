@@ -18,17 +18,13 @@
 
 #include "fix_deform_pressure.h"
 
-#include "atom.h"
 #include "comm.h"
 #include "compute.h"
 #include "domain.h"
 #include "error.h"
-#include "force.h"
 #include "group.h"
 #include "input.h"
 #include "irregular.h"
-#include "kspace.h"
-#include "lattice.h"
 #include "math_const.h"
 #include "modify.h"
 #include "update.h"
@@ -36,7 +32,6 @@
 
 #include <cmath>
 #include <cstring>
-#include <unordered_map>
 
 using namespace LAMMPS_NS;
 using namespace FixConst;

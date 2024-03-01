@@ -20,15 +20,17 @@
 #include "group.h"
 #include "neighbor.h"
 
+#include "ATC_Error.h"
 #include "ATC_Method.h"
-#include "ATC_TransferKernel.h"
-#include "ATC_TransferPartitionOfUnity.h"
 #include "ATC_CouplingEnergy.h"
 #include "ATC_CouplingMomentum.h"
 #include "ATC_CouplingMass.h"
 #include "ATC_CouplingMomentumEnergy.h"
+#include "ATC_TransferKernel.h"
+#include "ATC_TransferPartitionOfUnity.h"
+#include "ATC_TypeDefs.h"
+#include "ExtrinsicModel.h"
 #include "LammpsInterface.h"
-
 #include <cstring>
 
 using namespace LAMMPS_NS;

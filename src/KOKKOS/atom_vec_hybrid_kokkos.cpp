@@ -15,14 +15,7 @@
 #include "atom_vec_hybrid_kokkos.h"
 
 #include "atom_kokkos.h"
-#include "atom_masks.h"
-#include "domain.h"
 #include "error.h"
-#include "fix.h"
-#include "memory_kokkos.h"
-#include "modify.h"
-
-#include <cstring>
 
 using namespace LAMMPS_NS;
 

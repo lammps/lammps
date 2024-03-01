@@ -27,6 +27,8 @@
 #include "neigh_list.h"
 #include "neighbor.h"
 
+#include <cmath>
+
 using namespace LAMMPS_NS;
 using namespace NeighConst;
 

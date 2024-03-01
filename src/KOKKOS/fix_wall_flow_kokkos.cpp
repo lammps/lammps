@@ -19,9 +19,11 @@
 #include "fix_wall_flow_kokkos.h"
 #include "atom_kokkos.h"
 #include "atom_masks.h"
-#include "force.h"
+#include "comm.h"
 #include "math_const.h"
 #include "memory_kokkos.h"
+
+#include <cmath>
 
 using namespace LAMMPS_NS;
 

@@ -17,6 +17,8 @@
 #include "granular_model.h"
 #include "math_special.h"
 
+#include <cmath>
+
 using namespace LAMMPS_NS;
 using namespace Granular_NS;
 

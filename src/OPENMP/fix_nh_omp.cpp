@@ -22,7 +22,6 @@
 #include "compute.h"
 #include "domain.h"
 #include "error.h"
-#include "modify.h"
 
 #include <cmath>
 

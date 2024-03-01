@@ -21,7 +21,6 @@
 #include "error.h"
 #include "math_const.h"
 #include "math_special_kokkos.h"
-#include "memory.h"
 #include "memory_kokkos.h"
 #include "mliap_so3_math.h"
 

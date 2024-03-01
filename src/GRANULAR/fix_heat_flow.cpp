@@ -16,11 +16,11 @@
 #include "atom.h"
 #include "comm.h"
 #include "error.h"
-#include "force.h"
 #include "memory.h"
 #include "modify.h"
-#include "respa.h"
 #include "update.h"
+
+#include <cstring>
 
 using namespace LAMMPS_NS;
 using namespace FixConst;

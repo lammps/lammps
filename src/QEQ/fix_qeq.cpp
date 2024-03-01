@@ -27,9 +27,7 @@
 #include "memory.h"
 #include "modify.h"
 #include "neigh_list.h"
-#include "pair.h"
 #include "respa.h"
-#include "suffix.h"
 #include "text_file_reader.h"
 #include "update.h"
 

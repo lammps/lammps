@@ -29,7 +29,6 @@
 #include "update.h"
 #include "modify_kokkos.h"
 #include "timer.h"
-#include "memory_kokkos.h"
 #include "kokkos.h"
 
 using namespace LAMMPS_NS;

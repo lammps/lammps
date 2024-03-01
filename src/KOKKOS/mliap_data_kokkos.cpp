@@ -22,8 +22,6 @@
 #include "kokkos_type.h"
 #include "pair_mliap_kokkos.h"
 #include "atom_masks.h"
-#include "mliap_descriptor.h"
-#include "lammps.h"
 #include "kokkos.h"
 
 /* ---------------------------------------------------------------------- */

@@ -20,6 +20,7 @@
 #include "angle.h"
 #include "atom.h"
 #include "bond.h"
+#include "boundary_correction.h"
 #include "citeme.h"
 #include "comm.h"
 #include "domain.h"

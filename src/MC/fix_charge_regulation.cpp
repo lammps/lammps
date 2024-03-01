@@ -46,6 +46,7 @@
 
 #include <cmath>
 #include <cstring>
+#include <exception>
 #include <memory>
 
 using namespace LAMMPS_NS;

@@ -18,16 +18,12 @@
 
 #include "compute_reaxff_atom_kokkos.h"
 #include "atom.h"
-#include "molecule.h"
 #include "update.h"
-#include "force.h"
-#include "memory.h"
 #include "error.h"
 #include "neigh_list.h"
 
 #include "memory_kokkos.h"
 #include "pair_reaxff_kokkos.h"
-#include "reaxff_api.h"
 
 using namespace LAMMPS_NS;
 using namespace ReaxFF;

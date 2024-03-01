@@ -20,8 +20,8 @@ PairStyle(rebomos,PairREBOMoS);
 #ifndef LMP_PAIR_REBOMOS_H
 #define LMP_PAIR_REBOMOS_H
 
-#include "pair.h"
 #include "math_const.h"
+#include "pair.h"
 
 #include <cmath>
 
@@ -39,9 +39,6 @@ class PairREBOMoS : public Pair {
   double memory_usage() override;
 
  protected:
-  double cutljrebosq;    // cut for when to compute
-                         // REBO neighs of ghost atoms
-
   double **lj1, **lj2, **lj3, **lj4;    // pre-computed LJ coeffs for M,S types
   double cut3rebo;                      // maximum distance for 3rd REBO neigh
 
@@ -52,7 +49,6 @@ class PairREBOMoS : public Pair {
   int *REBO_numneigh;       // # of pair neighbors for each atom
   int **REBO_firstneigh;    // ptr to 1st neighbor of each atom
 
-  double *closestdistsq;    // closest owned atom dist to each ghost
   double *nM, *nS;          // sum of weighting fns with REBO neighs
 
   double rcmin[2][2], rcmax[2][2], rcmaxsq[2][2], rcmaxp[2][2];

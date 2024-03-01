@@ -27,6 +27,7 @@
 #include "force.h"
 #include "memory_kokkos.h"
 #include "modify.h"
+#include "neighbor.h"
 #include "output.h"
 #include "thermo.h"
 #include "update.h"

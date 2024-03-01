@@ -380,7 +380,7 @@ void LAMMPS_NS::update_atom_energy(MLIAPDataKokkosDevice *data, double *ei)
 
   Kokkos::parallel_reduce(nlocal, KOKKOS_LAMBDA(int i, double &local_sum){
     double e = ei[i];
-    
+
     d_eatoms[i] = e;
     local_sum += e;
   },*data->energy);

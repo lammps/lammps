@@ -24,6 +24,8 @@
 #include "math_extra.h"
 #include "memory.h"
 
+#include <cstring>
+
 using namespace LAMMPS_NS;
 
 static constexpr int DELTA = 16;

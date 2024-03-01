@@ -66,7 +66,6 @@
 
 #include "lmpinstalledpkgs.h"
 #include "lmpgitversion.h"
-#include "lmpfftsettings.h"
 
 #if defined(LAMMPS_UPDATE)
 #define UPDATE_STRING " - " LAMMPS_UPDATE

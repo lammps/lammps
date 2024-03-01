@@ -24,13 +24,11 @@
 #include "comm.h"
 #include "error.h"
 #include "force.h"
-#include "integrate.h"
 #include "kokkos.h"
 #include "memory_kokkos.h"
 #include "neigh_list_kokkos.h"
 #include "neigh_request.h"
 #include "neighbor.h"
-#include "pair_reaxff_kokkos.h"
 #include "update.h"
 
 #include <cmath>

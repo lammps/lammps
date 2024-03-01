@@ -21,11 +21,8 @@
 #include "error.h"
 #include "fix.h"
 #include "math_const.h"
-#include "memory.h"
 #include "memory_kokkos.h"
 #include "modify.h"
-
-#include <cstring>
 
 using namespace LAMMPS_NS;
 using namespace MathConst;

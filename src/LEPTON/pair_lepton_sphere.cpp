@@ -21,15 +21,15 @@
 #include "comm.h"
 #include "error.h"
 #include "force.h"
-#include "memory.h"
 #include "neigh_list.h"
 #include "neighbor.h"
-#include "update.h"
 
 #include "Lepton.h"
 #include "lepton_utils.h"
+
 #include <array>
 #include <cmath>
+#include <exception>
 
 using namespace LAMMPS_NS;
 

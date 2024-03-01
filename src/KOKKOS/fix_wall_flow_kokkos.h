@@ -27,7 +27,6 @@ FixStyle(wall/flow/kk/host,FixWallFlowKokkos<LMPHostType>);
 #include "kokkos_type.h"
 #include "kokkos_base.h"
 #include "Kokkos_Random.hpp"
-#include "comm_kokkos.h"
 
 namespace LAMMPS_NS {
 

@@ -24,9 +24,6 @@
 #include "error.h"
 #include "force.h"
 
-#include <cmath>
-#include <cstring>
-
 using namespace LAMMPS_NS;
 
 static const char cite_aip_water[] =

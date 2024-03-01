@@ -28,7 +28,6 @@ PairStyle(pace/extrapolation,PairPACEExtrapolation)
 #define LMP_PAIR_PACE_AL_H
 
 #include "pair.h"
-#include <vector>
 
 namespace LAMMPS_NS {
 

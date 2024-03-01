@@ -24,7 +24,6 @@
 #include "modify.h"
 
 #include <cmath>
-#include <cstring>
 
 using namespace LAMMPS_NS;
 using namespace FixConst;

@@ -1,0 +1,126 @@
+LAMMPS (7 Feb 2024 - Development - patch_7Feb2024_update1-182-g93942f2013-modified)
+OMP_NUM_THREADS environment is not set. Defaulting to 1 thread. (src/comm.cpp:98)
+  using 1 OpenMP thread(s) per MPI task
+# Test of MEAM potential for HGa
+
+# ------------------------ INITIALIZATION ----------------------------
+units           metal
+dimension       3
+boundary        p       p       p
+atom_style      atomic
+variable latparam equal 4.646
+variable ncell equal 3
+
+# ----------------------- ATOM DEFINITION ----------------------------
+region          box block -4 4 -4 4 -4 4
+create_box      2 box
+Created orthogonal box = (-4 -4 -4) to (4 4 4)
+  1 by 1 by 1 MPI processor grid
+
+#
+
+include potential.mod
+# NOTE: This script can be modified for different pair styles
+# See in.elastic for more info.
+
+variable Pu string H
+print "potential chosen ${Pu}"
+potential chosen H
+# Choose potential
+pair_style meam/ms
+print		"we just executed"
+we just executed
+
+pair_coeff      * * library.msmeam ${Pu} Ga4  HGa.msmeam ${Pu} Ga4
+pair_coeff      * * library.msmeam H Ga4  HGa.msmeam ${Pu} Ga4
+pair_coeff      * * library.msmeam H Ga4  HGa.msmeam H Ga4
+Reading MEAM library file library.msmeam with DATE: 2018-09-22
+# Setup neighbor style
+neighbor 1.0 bin
+neigh_modify once no every 1 delay 0 check yes
+
+# Setup minimization style
+variable dmax equal 1.0e-2
+min_style	     cg
+min_modify	     dmax ${dmax} line quadratic
+min_modify	     dmax 0.01 line quadratic
+compute eng all pe/atom
+compute eatoms all reduce sum c_eng
+
+# Setup output
+thermo		100
+thermo_style custom step temp etotal  press pxx pyy pzz pxy pxz pyz lx ly lz vol c_eatoms
+thermo_modify norm yes
+create_atoms    1 single 0 0 0  units box
+Created 1 atoms
+  using box units in orthogonal box = (-4 -4 -4) to (4 4 4)
+  create_atoms CPU = 0.000 seconds
+create_atoms    2 single 2.2 0 0  units box
+Created 1 atoms
+  using box units in orthogonal box = (-4 -4 -4) to (4 4 4)
+  create_atoms CPU = 0.000 seconds
+create_atoms    2 single 0.3 2.3 0  units box
+Created 1 atoms
+  using box units in orthogonal box = (-4 -4 -4) to (4 4 4)
+  create_atoms CPU = 0.000 seconds
+# ---------- Define Settings ---------------------
+variable        teng equal "c_eatoms"
+compute pot_energy all pe/atom
+compute stress all stress/atom NULL
+# dump 1 all custom 1 dump.msmeam id x y z fx fy fz c_pot_energy c_stress[1] c_stress[2] c_stress[3] c_stress[4] c_stress[5] c_stress[6]
+run     1
+WARNING: No fixes with time integration, atoms won't move (src/verlet.cpp:60)
+Neighbor list info ...
+  update: every = 1 steps, delay = 0 steps, check = yes
+  max neighbors/atom: 2000, page size: 100000
+  master list distance cutoff = 6.9
+  ghost atom cutoff = 6.9
+  binsize = 3.45, bins = 3 3 3
+  2 neighbor lists, perpetual/occasional/extra = 2 0 0
+  (1) pair meam/ms, perpetual
+      attributes: full, newton on
+      pair build: full/bin/atomonly
+      stencil: full/bin/3d
+      bin: standard
+  (2) pair meam/ms, perpetual, half/full from (1)
+      attributes: half, newton on
+      pair build: halffull/newton
+      stencil: none
+      bin: none
+Per MPI rank memory allocation (min/avg/max) = 8.587 | 8.587 | 8.587 Mbytes
+   Step          Temp          TotEng         Press           Pxx            Pyy            Pzz            Pxy            Pxz            Pyz             Lx             Ly             Lz           Volume        c_eatoms   
+         0   0              15.433079      491354.7       838670.96      635393.15      0              80195.797      0              0              8              8              8              512            15.433079    
+         1   0              15.433079      491354.7       838670.96      635393.15      0              80195.797      0              0              8              8              8              512            15.433079    
+Loop time of 4.4446e-05 on 1 procs for 1 steps with 3 atoms
+
+Performance: 1943.932 ns/day, 0.012 hours/ns, 22499.213 timesteps/s, 67.498 katom-step/s
+31.5% CPU use with 1 MPI tasks x 1 OpenMP threads
+
+MPI task timing breakdown:
+Section |  min time  |  avg time  |  max time  |%varavg| %total
+---------------------------------------------------------------
+Pair    | 2.9908e-05 | 2.9908e-05 | 2.9908e-05 |   0.0 | 67.29
+Neigh   | 0          | 0          | 0          |   0.0 |  0.00
+Comm    | 1.033e-06  | 1.033e-06  | 1.033e-06  |   0.0 |  2.32
+Output  | 9.347e-06  | 9.347e-06  | 9.347e-06  |   0.0 | 21.03
+Modify  | 2.02e-07   | 2.02e-07   | 2.02e-07   |   0.0 |  0.45
+Other   |            | 3.956e-06  |            |       |  8.90
+
+Nlocal:              3 ave           3 max           3 min
+Histogram: 1 0 0 0 0 0 0 0 0 0
+Nghost:             78 ave          78 max          78 min
+Histogram: 1 0 0 0 0 0 0 0 0 0
+Neighs:              7 ave           7 max           7 min
+Histogram: 1 0 0 0 0 0 0 0 0 0
+FullNghs:           14 ave          14 max          14 min
+Histogram: 1 0 0 0 0 0 0 0 0 0
+
+Total # of neighbors = 14
+Ave neighs/atom = 4.6666667
+Neighbor list builds = 0
+Dangerous builds = 0
+#write_data      data.msmeam
+
+print "All done!"
+All done!
+Total wall time: 0:00:00

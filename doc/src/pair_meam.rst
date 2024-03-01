@@ -378,7 +378,7 @@ elt, lat, z, ielement, atwt, alpha, b0, b1, b2, b3, b1m, b2m, b3m, alat, esub, a
 t0, t1, t2, t3, t1m, t2m, t3m, rozero, ibar
 
 The 6 extra MS-MEAM parameters are *b1m, b2m, b3m, t1m, t2m, t3m*.
-In the LAMMPS ``potentials`` folder, compatible files have an ".msmeam" extension. Many of the standard *meam* parameters are not defined for *meam/ms* and should not be used. 
+In the LAMMPS ``potentials`` folder, compatible files have an ".msmeam" extension. Many of the standard *meam* parameters are not defined for *meam/ms* and should not be used.
 
 ----------
 

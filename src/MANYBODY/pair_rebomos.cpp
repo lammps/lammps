@@ -1064,12 +1064,6 @@ void PairREBOMoS::read_file(char *filename)
     rcLJmax[0][1] = 2.5*sigma[0][1];
     rcLJmax[1][0] = rcLJmax[0][1];
     rcLJmax[1][1] = 2.5*sigma[1][1];
-
-    rcLJmaxsq[0][0] = rcLJmax[0][0]*rcLJmax[0][0];
-    rcLJmaxsq[1][0] = rcLJmax[1][0]*rcLJmax[1][0];
-    rcLJmaxsq[0][1] = rcLJmax[0][1]*rcLJmax[0][1];
-    rcLJmaxsq[1][1] = rcLJmax[1][1]*rcLJmax[1][1];
-
   }
 
   // broadcast read-in and setup values
@@ -1108,7 +1102,6 @@ void PairREBOMoS::read_file(char *filename)
 
   MPI_Bcast(&rcLJmin[0][0],4,MPI_DOUBLE,0,world);
   MPI_Bcast(&rcLJmax[0][0],4,MPI_DOUBLE,0,world);
-  MPI_Bcast(&rcLJmaxsq[0][0],4,MPI_DOUBLE,0,world);
   MPI_Bcast(&epsilon[0][0],4,MPI_DOUBLE,0,world);
   MPI_Bcast(&sigma[0][0],4,MPI_DOUBLE,0,world);
 }

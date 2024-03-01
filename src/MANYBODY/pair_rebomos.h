@@ -56,7 +56,7 @@ class PairREBOMoS : public Pair {
   double b0[2], b1[2], b2[2], b3[2], b4[2], b5[2], b6[2];
   double bg0[2], bg1[2], bg2[2], bg3[2], bg4[2], bg5[2], bg6[2];
   double a0[2], a1[2], a2[2], a3[2];
-  double rcLJmin[2][2], rcLJmax[2][2], rcLJmaxsq[2][2];
+  double rcLJmin[2][2], rcLJmax[2][2];
   double epsilon[2][2], sigma[2][2];
 
   void REBO_neigh();

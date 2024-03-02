@@ -46,7 +46,7 @@ ComputeRDF::ComputeRDF(LAMMPS *lmp, int narg, char **arg) :
   hist(nullptr), histall(nullptr), typecount(nullptr), icount(nullptr), jcount(nullptr),
   duplicates(nullptr)
 {
-  if (narg < 4) error->all(FLERR,"Illegal compute rdf command");
+  if (narg < 4) utils::missing_cmd_args(FLERR,"compute rdf", error);
 
   array_flag = 1;
   extarray = 0;
@@ -67,14 +67,14 @@ ComputeRDF::ComputeRDF(LAMMPS *lmp, int narg, char **arg) :
 
   while (iarg < narg) {
     if (strcmp(arg[iarg],"cutoff") == 0) {
-      if (iarg+2 > narg) error->all(FLERR,"Illegal compute rdf command");
+      if (iarg+2 > narg) utils::missing_cmd_args(FLERR,"compute rdf cutoff", error);
       if ((neighbor->style == Neighbor::MULTI) || (neighbor->style == Neighbor::MULTI_OLD))
         error->all(FLERR, "Compute rdf with custom cutoff requires neighbor style 'bin' or 'nsq'");
       cutoff_user = utils::numeric(FLERR,arg[iarg+1],false,lmp);
       if (cutoff_user <= 0.0) cutflag = 0;
       else cutflag = 1;
       iarg += 2;
-    } else error->all(FLERR,"Illegal compute rdf command");
+    } else error->all(FLERR,"Unknown compute rdf keyword {}", arg[iarg]);
   }
 
   // pairwise args
@@ -141,17 +141,17 @@ ComputeRDF::~ComputeRDF()
 {
   memory->destroy(rdfpair);
   memory->destroy(nrdfpair);
-  delete [] ilo;
-  delete [] ihi;
-  delete [] jlo;
-  delete [] jhi;
+  delete[] ilo;
+  delete[] ihi;
+  delete[] jlo;
+  delete[] jhi;
   memory->destroy(hist);
   memory->destroy(histall);
   memory->destroy(array);
-  delete [] typecount;
-  delete [] icount;
-  delete [] jcount;
-  delete [] duplicates;
+  delete[] typecount;
+  delete[] icount;
+  delete[] jcount;
+  delete[] duplicates;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -160,8 +160,7 @@ void ComputeRDF::init()
 {
 
   if (!force->pair && !cutflag)
-    error->all(FLERR,"Compute rdf requires a pair style be defined "
-               "or cutoff specified");
+    error->all(FLERR,"Compute rdf requires a pair style or an explicit cutoff");
 
   if (cutflag) {
     double skin = neighbor->skin;
@@ -256,7 +255,7 @@ void ComputeRDF::init_norm()
   for (i = 0; i < npairs; i++) jcount[i] = scratch[i];
   MPI_Allreduce(duplicates,scratch,npairs,MPI_INT,MPI_SUM,world);
   for (i = 0; i < npairs; i++) duplicates[i] = scratch[i];
-  delete [] scratch;
+  delete[] scratch;
 }
 
 /* ---------------------------------------------------------------------- */

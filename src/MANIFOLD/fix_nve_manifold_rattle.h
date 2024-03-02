@@ -75,7 +75,7 @@ class FixNVEManifoldRattle : public Fix {
   void init() override;
   void reset_dt() override;
   void end_of_step() override;
-  int dof(int) override;
+  bigint dof(int) override;
   void setup(int) override {}    // Not needed for fixNVE but is for fixNVT
   double memory_usage() override;
 

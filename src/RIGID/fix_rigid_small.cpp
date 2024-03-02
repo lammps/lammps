@@ -1123,7 +1123,7 @@ void FixRigidSmall::enforce2d()
    return total count of DOF
 ------------------------------------------------------------------------- */
 
-int FixRigidSmall::dof(int tgroup)
+bigint FixRigidSmall::dof(int tgroup)
 {
   int i,j;
 
@@ -1195,7 +1195,7 @@ int FixRigidSmall::dof(int tgroup)
 
   double *inertia;
 
-  int n = 0;
+  bigint n = 0;
   nlinear = 0;
   if (domain->dimension == 3) {
     for (int ibody = 0; ibody < nlocal_body; ibody++) {
@@ -1216,8 +1216,8 @@ int FixRigidSmall::dof(int tgroup)
 
   memory->destroy(counts);
 
-  int nall;
-  MPI_Allreduce(&n,&nall,1,MPI_INT,MPI_SUM,world);
+  bigint nall;
+  MPI_Allreduce(&n,&nall,1,MPI_LMP_BIGINT,MPI_SUM,world);
   return nall;
 }
 

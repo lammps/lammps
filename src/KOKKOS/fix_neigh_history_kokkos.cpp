@@ -453,8 +453,12 @@ KOKKOS_INLINE_FUNCTION
 void FixNeighHistoryKokkos<DeviceType>::operator()(TagFixNeighHistoryUnpackExchange, const int &i) const
 {
   int index = d_indices(i);
+
   if (index > -1) {
     int m = (int) d_ubuf(d_buf(i)).i;
+    if (i >= nrecv1)
+      m = nextrarecv1 + (int) d_ubuf(d_buf(nextrarecv1 + i - nrecv1)).i;
+
     int n = (int) d_ubuf(d_buf(m++)).i;
     d_npartner(index) = n;
     for (int p = 0; p < n; p++) {
@@ -471,12 +475,16 @@ void FixNeighHistoryKokkos<DeviceType>::operator()(TagFixNeighHistoryUnpackExcha
 template<class DeviceType>
 void FixNeighHistoryKokkos<DeviceType>::unpack_exchange_kokkos(
   DAT::tdual_xfloat_2d &k_buf, DAT::tdual_int_1d &k_indices, int nrecv,
+  int nrecv1, int nextrarecv1,
   ExecutionSpace /*space*/)
 {
   d_buf = typename AT::t_xfloat_1d_um(
     k_buf.template view<DeviceType>().data(),
     k_buf.extent(0)*k_buf.extent(1));
   d_indices = k_indices.view<DeviceType>();
+
+  this->nrecv1 = nrecv1;
+  this->nextrarecv1 = nextrarecv1;
 
   d_npartner = k_npartner.template view<DeviceType>();
   d_partner = k_partner.template view<DeviceType>();

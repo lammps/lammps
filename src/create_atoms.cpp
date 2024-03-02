@@ -504,7 +504,7 @@ void CreateAtoms::command(int narg, char **arg)
 
     // molcreate = # of molecules I created
 
-    tagint molcreate = (atom->nlocal - nlocal_previous) / onemol->natoms;
+    tagint molcreate = (atom->nlocal - nlocal_previous) / onemol->natoms * onemol->nmolecules;
 
     // increment total bonds,angles,etc
 

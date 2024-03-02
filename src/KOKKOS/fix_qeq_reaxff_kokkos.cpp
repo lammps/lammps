@@ -1416,6 +1416,7 @@ KOKKOS_INLINE_FUNCTION
 void FixQEqReaxFFKokkos<DeviceType>::operator()(TagQEqUnpackExchange, const int &i) const
 {
   int index = d_indices(i);
+
   if (index > -1) {
     for (int m = 0; m < nprev; m++) d_s_hist(index,m) = d_buf(i*nprev*2 + m);
     for (int m = 0; m < nprev; m++) d_t_hist(index,m) = d_buf(i*nprev*2 + nprev+m);
@@ -1427,6 +1428,7 @@ void FixQEqReaxFFKokkos<DeviceType>::operator()(TagQEqUnpackExchange, const int 
 template <class DeviceType>
 void FixQEqReaxFFKokkos<DeviceType>::unpack_exchange_kokkos(
   DAT::tdual_xfloat_2d &k_buf, DAT::tdual_int_1d &k_indices, int nrecv,
+  int /*nrecv1*/, int /*nextrarecv1*/,
   ExecutionSpace /*space*/)
 {
   k_buf.sync<DeviceType>();

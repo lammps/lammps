@@ -43,5 +43,5 @@ function(ExternalCMakeProject target url hash basedir cmakedir cmakefile)
       "${CMAKE_BINARY_DIR}/_deps/${target}-src/${cmakedir}/CMakeLists.txt")
   endif()
   add_subdirectory("${CMAKE_BINARY_DIR}/_deps/${target}-src/${cmakedir}"
-    "${CMAKE_BINARY_DIR}/_deps/${target}-build")
+    "${CMAKE_BINARY_DIR}/_deps/${target}-build" EXCLUDE_FROM_ALL)
 endfunction(ExternalCMakeProject)

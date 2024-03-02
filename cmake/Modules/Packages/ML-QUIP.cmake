@@ -18,7 +18,7 @@ if(DOWNLOAD_QUIP)
     set(temp "${temp}F77FLAGS += -fpp -fixed -fPIC\n")
     set(temp "${temp}F95_PRE_FILENAME_FLAG = -Tf\n")
   elseif(CMAKE_Fortran_COMPILER_ID STREQUAL GNU)
-    set(temp "${temp}FPP=${CMAKE_Fortran_COMPILER} -E -x f95-cpp-input\nOPTIM=${CMAKE_Fortran_FLAGS_${BTYPE}}\n")
+    set(temp "${temp}FPP=${CMAKE_Fortran_COMPILER} -E -x f95-cpp-input\nOPTIM=${CMAKE_Fortran_FLAGS_${BTYPE}} -fmax-stack-var-size=6553600\n")
     set(temp "${temp}DEFINES += -DGETARG_F2003 -DGETENV_F2003 -DGFORTRAN -DFORTRAN_UNDERSCORE\n")
     set(temp "${temp}F95FLAGS += -x f95-cpp-input -ffree-line-length-none -ffree-form -fno-second-underscore -fPIC\n")
     set(temp "${temp}F77FLAGS += -x f77-cpp-input -fno-second-underscore -fPIC\n")
@@ -41,6 +41,11 @@ if(DOWNLOAD_QUIP)
   set(temp "${temp}HAVE_TURBOGAP=0\nHAVE_QR=1\nHAVE_THIRDPARTY=0\nHAVE_FX=0\nHAVE_SCME=0\nHAVE_MTP=0\n")
   set(temp "${temp}HAVE_MBD=0\nHAVE_TTM_NF=0\nHAVE_CH4=0\nHAVE_NETCDF4=0\nHAVE_MDCORE=0\nHAVE_ASAP=0\n")
   set(temp "${temp}HAVE_CGAL=0\nHAVE_METIS=0\nHAVE_LMTO_TBE=0\nHAVE_SCALAPACK=0\n")
+  # for gfortran, the -std= flag, if present, *must* be -std=gnu or else the compilation will fail.
+  if(CMAKE_Fortran_COMPILER_ID STREQUAL GNU)
+    string(REGEX REPLACE -std=f[0-9]+ -std=gnu newtemp "${temp}")
+    set(temp "${newtemp}")
+  endif()
   file(WRITE ${CMAKE_BINARY_DIR}/quip.config "${temp}")
 
   message(STATUS "QUIP download via git requested - we will build our own")
@@ -56,7 +61,7 @@ if(DOWNLOAD_QUIP)
     GIT_SUBMODULES "src/fox;src/GAP"
     PATCH_COMMAND ${CMAKE_COMMAND} -E copy_if_different ${CMAKE_BINARY_DIR}/quip.config <SOURCE_DIR>/arch/Makefile.lammps
     CONFIGURE_COMMAND env QUIP_ARCH=lammps make config
-    BUILD_COMMAND env QUIP_ARCH=lammps make libquip
+    BUILD_COMMAND env QUIP_ARCH=lammps make -j1 libquip
     INSTALL_COMMAND ""
     BUILD_IN_SOURCE YES
     BUILD_BYPRODUCTS <SOURCE_DIR>/build/lammps/${CMAKE_STATIC_LIBRARY_PREFIX}quip${CMAKE_STATIC_LIBRARY_SUFFIX}

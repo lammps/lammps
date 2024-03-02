@@ -303,8 +303,8 @@ void ComputeCentroidStressAtom::compute_peratom()
   // add in per-atom contributions from relevant fixes
   // skip if vatom = nullptr
   // possible during setup phase if fix has not initialized its vatom yet
-  // e.g. fix ave/spatial defined before fix shake,
-  //   and fix ave/spatial uses a per-atom stress from this compute as input
+  // e.g. fix ave/chunk defined before fix shake,
+  //   and fix ave/chunk uses a per-atom stress from this compute as input
   // fix styles are CENTROID_SAME, CENTROID_AVAIL or CENTROID_NOTAVAIL
 
   if (fixflag) {

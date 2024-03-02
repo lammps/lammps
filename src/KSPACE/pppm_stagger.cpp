@@ -302,7 +302,7 @@ double PPPMStagger::compute_qopt()
   // each proc calculates contributions from every Pth grid point
 
   bigint ngridtotal = (bigint) nx_pppm * ny_pppm * nz_pppm;
-  int nxy_pppm = nx_pppm * ny_pppm;
+  bigint nxy_pppm = (bigint) nx_pppm * ny_pppm;
 
   double qopt = 0.0;
 
@@ -398,7 +398,7 @@ double PPPMStagger::compute_qopt_ad()
   // each proc calculates contributions from every Pth grid point
 
   bigint ngridtotal = (bigint) nx_pppm * ny_pppm * nz_pppm;
-  int nxy_pppm = nx_pppm * ny_pppm;
+  bigint nxy_pppm = (bigint) nx_pppm * ny_pppm;
 
   double qopt = 0.0;
 

@@ -640,7 +640,7 @@ void Grid3dKokkos<DeviceType>::forward_comm(int caller, void *ptr, int which, in
                             MPI_Datatype datatype)
 {
   if (caller == KSPACE) {
-    if (layout != Comm::LAYOUT_TILED)
+    if (comm->layout != Comm::LAYOUT_TILED)
     forward_comm_kspace_brick((KSpace *) ptr,which,nper,k_buf1,k_buf2,datatype);
   else
     forward_comm_kspace_tiled((KSpace *) ptr,which,nper,k_buf1,k_buf2,datatype);
@@ -780,7 +780,7 @@ void Grid3dKokkos<DeviceType>::reverse_comm(int caller, void *ptr, int which, in
                             MPI_Datatype datatype)
 {
   if (caller == KSPACE) {
-    if (layout != Comm::LAYOUT_TILED)
+    if (comm->layout != Comm::LAYOUT_TILED)
       reverse_comm_kspace_brick((KSpace *) ptr,which,nper,k_buf1,k_buf2,datatype);
     else
       reverse_comm_kspace_tiled((KSpace *) ptr,which,nper,k_buf1,k_buf2,datatype);

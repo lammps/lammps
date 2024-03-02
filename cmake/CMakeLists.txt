@@ -126,6 +126,19 @@ if((CMAKE_CXX_COMPILER_ID STREQUAL "NVHPC") OR (CMAKE_CXX_COMPILER_ID STREQUAL "
   set(CMAKE_TUNE_DEFAULT "-Minform=severe")
 endif()
 
+# this hack is required to compile fmt lib with CrayClang version 15.0.2
+# CrayClang is only directly recognized by version 3.28 and later
+if(CMAKE_VERSION VERSION_LESS 3.28)
+  get_filename_component(_exe "${CMAKE_CXX_COMPILER}" NAME)
+  if((CMAKE_CXX_COMPILER_ID STREQUAL "Clang") AND (_exe STREQUAL "crayCC"))
+    set(CMAKE_TUNE_DEFAULT "-DFMT_STATIC_THOUSANDS_SEPARATOR")
+  endif()
+else()
+  if(CMAKE_CXX_COMPILER_ID STREQUAL "CrayClang")
+    set(CMAKE_TUNE_DEFAULT "-DFMT_STATIC_THOUSANDS_SEPARATOR")
+  endif()
+endif()
+
 # silence nvcc warnings
 if((PKG_KOKKOS) AND (Kokkos_ENABLE_CUDA) AND NOT (CMAKE_CXX_COMPILER_ID STREQUAL "Clang"))
   set(CMAKE_TUNE_DEFAULT "${CMAKE_TUNE_DEFAULT} -Xcudafe --diag_suppress=unrecognized_pragma")
@@ -212,6 +225,10 @@ endif()
 add_executable(lmp ${MAIN_SOURCES})
 target_link_libraries(lmp PRIVATE lammps)
 set_target_properties(lmp PROPERTIES OUTPUT_NAME ${LAMMPS_BINARY})
+# re-export all symbols for plugins
+if(PKG_PLUGIN AND (NOT ((CMAKE_SYSTEM_NAME STREQUAL "Windows"))))
+  set_target_properties(lmp PROPERTIES ENABLE_EXPORTS TRUE)
+endif()
 install(TARGETS lmp EXPORT LAMMPS_Targets DESTINATION ${CMAKE_INSTALL_BINDIR})
 
 option(CMAKE_VERBOSE_MAKEFILE "Generate verbose Makefiles" OFF)
@@ -426,6 +443,7 @@ if(BUILD_OMP)
       (CMAKE_CXX_COMPILER_ID STREQUAL "IntelLLVM") OR (CMAKE_CXX_COMPILER_ID STREQUAL "XLClang") OR
       ((CMAKE_CXX_COMPILER_ID STREQUAL "AppleClang") AND (CMAKE_CXX_COMPILER_VERSION VERSION_GREATER_EQUAL 10.0)) OR
       ((CMAKE_CXX_COMPILER_ID STREQUAL "Clang") AND (CMAKE_CXX_COMPILER_VERSION VERSION_GREATER_EQUAL 10.0)) OR
+      ((CMAKE_CXX_COMPILER_ID STREQUAL "CrayClang") AND (CMAKE_CXX_COMPILER_VERSION VERSION_GREATER_EQUAL 10.0)) OR
       ((CMAKE_CXX_COMPILER_ID STREQUAL "Intel") AND (CMAKE_CXX_COMPILER_VERSION VERSION_GREATER_EQUAL 19.0)))
     # GCC 9.x and later plus Clang 10.x and later implement strict OpenMP 4.0 semantics for consts.
     # Intel 18.0 was tested to support both, so we switch to OpenMP 4+ from 19.x onward to be safe.

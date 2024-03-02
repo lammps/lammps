@@ -420,7 +420,9 @@ void PPPMElectrodeIntel::project_psi(IntelBuffers<flt_t, acc_t> *buffers, double
 #endif
   {
     int *mask = atom->mask;
-    const flt_t scaleinv = 1.0 / (nx_pppm * ny_pppm * nz_pppm);
+
+    const bigint ngridtotal = (bigint) nx_pppm * ny_pppm * nz_pppm;
+    const flt_t scaleinv = 1.0 / ngridtotal;
 
     const flt_t lo0 = boxlo[0];
     const flt_t lo1 = boxlo[1];

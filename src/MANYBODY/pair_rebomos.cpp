@@ -54,7 +54,9 @@ static constexpr int PGDELTA = 1;
 
 /* ---------------------------------------------------------------------- */
 
-PairREBOMoS::PairREBOMoS(LAMMPS *lmp) : Pair(lmp)
+PairREBOMoS::PairREBOMoS(LAMMPS *lmp) :
+    Pair(lmp), lj1(nullptr), lj2(nullptr), lj3(nullptr), lj4(nullptr), ipage(nullptr),
+    REBO_numneigh(nullptr), REBO_firstneigh(nullptr), nM(nullptr), nS(nullptr)
 {
   single_enable = 0;
   restartinfo = 0;
@@ -63,12 +65,9 @@ PairREBOMoS::PairREBOMoS(LAMMPS *lmp) : Pair(lmp)
   manybody_flag = 1;
   centroidstressflag = CENTROID_NOTAVAIL;
 
+  cut3rebo = 0.0;
   maxlocal = 0;
-  REBO_numneigh = nullptr;
-  REBO_firstneigh = nullptr;
-  ipage = nullptr;
   pgsize = oneatom = 0;
-  nM = nS = nullptr;
 }
 
 // clang-format off

@@ -94,6 +94,7 @@ void ComputeCompositionAtom::init()
                  "use comm_modify cutoff command");
   }
 
+  int cutflag = 1;
   if (force->pair) {
     if (cutoff == 0.0) { cutoff = force->pair->cutforce; }
     if (cutoff <= force->pair->cutforce + skin) cutflag = 0;
@@ -107,7 +108,7 @@ void ComputeCompositionAtom::init()
   // need an occasional full neighbor list
 
   auto req = neighbor->add_request(this, NeighConst::REQ_FULL | NeighConst::REQ_OCCASIONAL);
-  req->set_cutoff(cutoff);
+  if (cutflag) req->set_cutoff(cutoff);
 }
 
 /* ---------------------------------------------------------------------- */

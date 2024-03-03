@@ -96,7 +96,7 @@ ComputeRDF::ComputeRDF(LAMMPS *lmp, int narg, char **arg) :
   jlo = new int[npairs];
   jhi = new int[npairs];
 
-  if (nargpair == 0) {
+  if (!nargpair) {
     ilo[0] = 1; ihi[0] = ntypes;
     jlo[0] = 1; jhi[0] = ntypes;
   } else {
@@ -206,7 +206,11 @@ void ComputeRDF::init()
   //   than cutoff_user apart, just like a normal neighbor list does
 
   auto req = neighbor->add_request(this, NeighConst::REQ_OCCASIONAL);
-  if (cutflag) req->set_cutoff(mycutneigh);
+  if (cutflag) {
+    if ((neighbor->style == Neighbor::MULTI) || (neighbor->style == Neighbor::MULTI_OLD))
+      error->all(FLERR, "Compute rdf with custom cutoff requires neighbor style 'bin' or 'nsq'");
+    req->set_cutoff(mycutneigh);
+  }
 }
 
 /* ---------------------------------------------------------------------- */

@@ -167,6 +167,10 @@ void FixOMP::init()
   // adjust number of data objects when the number of OpenMP
   // threads has been changed somehow
   const int nthreads = comm->nthreads;
+#if defined(_OPENMP)
+  // make certain threads are initialized correctly. avoids segfaults with LAMMPS-GUI
+  if (nthreads != omp_get_max_threads()) omp_set_num_threads(nthreads);
+#endif
   if (_nthr != nthreads) {
     if (comm->me == 0)
       utils::logmesg(lmp,"Re-init OPENMP for {} OpenMP thread(s)\n", nthreads);

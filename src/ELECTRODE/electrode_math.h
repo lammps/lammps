@@ -19,8 +19,9 @@
 #define LMP_ELECTRODE_MATH_H
 
 #include "ewald_const.h"
-#include "math.h"
 #include "math_const.h"
+
+#include <cmath>
 
 namespace LAMMPS_NS {
 using namespace EwaldConst;
@@ -30,7 +31,7 @@ namespace ElectrodeMath {
 
   static double safe_erfc(double x)
   {
-    if (x > ERFCMAX) return 0.;
+    if (x > ERFCMAX) return 0.0;
     double expm2 = exp(-x * x);
     double t = 1.0 / (1.0 + EWALD_P * x);
     return t * (A1 + t * (A2 + t * (A3 + t * (A4 + t * A5)))) * expm2;
@@ -39,14 +40,14 @@ namespace ElectrodeMath {
   static double safe_derfcr(double x, double &erfc)
   {
     if (x > ERFCMAX) {
-      erfc = 0.;
-      return 0.;
+      erfc = 0.0;
+      return 0.0;
     }
     double x2 = x * x;
     double expm2 = exp(-x2);
     double t = 1.0 / (1.0 + EWALD_P * x);
     erfc = t * (A1 + t * (A2 + t * (A3 + t * (A4 + t * A5)))) * expm2;
-    return -erfc - 2 * expm2 * x / MathConst::MY_PIS;
+    return -erfc - 2.0 * expm2 * x / MathConst::MY_PIS;
   }
 }    // namespace ElectrodeMath
 

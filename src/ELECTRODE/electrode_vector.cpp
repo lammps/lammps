@@ -170,11 +170,11 @@ void ElectrodeVector::pair_contribution(double *vector)
       if (rsq >= cutsq[itype][jtype]) continue;
       double const eta_j = etaflag ? atom->dvector[eta_index][j] : eta;
       double etaij;
-      if (i_in_sensor && j_in_sensor)
+      if (i_in_sensor && j_in_sensor) {
         etaij = eta_i * eta_j / sqrt(eta_i * eta_i + eta_j * eta_j);
-      else if (i_in_sensor)
+      } else if (i_in_sensor) {
         etaij = eta_i;
-      else {
+      } else {
         assert(j_in_sensor);
         etaij = eta_j;
       }

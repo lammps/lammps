@@ -45,7 +45,7 @@ Syntax
                 rng_v = integer used to initialize random number generator
 
 * zero or more keyword/value pairs may be appended
-* keyword = *algo* or *symm* or *couple* or *etypes* or *ffield* or *write_mat* or *write_inv* or *read_mat* or *read_inv* or *qtotal*
+* keyword = *algo* or *symm* or *couple* or *etypes* or *ffield* or *write_mat* or *write_inv* or *read_mat* or *read_inv* or *qtotal* or *eta*
 
 .. parsed-literal::
 

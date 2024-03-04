@@ -31,6 +31,7 @@
 #include "style_gran_sub_mod.h"    // IWYU pragma: keep
 
 #include <cmath>
+#include <cstring>
 
 using namespace LAMMPS_NS;
 using namespace Granular_NS;

@@ -25,13 +25,12 @@
 #include "math_special_kokkos.h"
 #include "memory_kokkos.h"
 #include "modify.h"
-#include "neigh_list_kokkos.h"
 #include "neigh_request.h"
 #include "neighbor.h"
 #include "update.h"
 
 #include <cfloat> // DBL_EPSILON
-#include <cstring>
+#include <cmath>
 
 using namespace LAMMPS_NS;
 using namespace FixConst;

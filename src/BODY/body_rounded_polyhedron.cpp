@@ -32,9 +32,9 @@
 using namespace LAMMPS_NS;
 
 static constexpr double EPSILON = 1.0e-7;
-#define MAX_FACE_SIZE 4  // maximum number of vertices per face (for now)
+static constexpr int MAX_FACE_SIZE = 4;  // maximum number of vertices per face (for now)
 
-enum{SPHERE,LINE};       // also in DumpImage
+enum { SPHERE, LINE };       // also in DumpImage
 
 /* ---------------------------------------------------------------------- */
 

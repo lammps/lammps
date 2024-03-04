@@ -32,7 +32,7 @@ Examples
 Description
 """""""""""
 
-.. versionadded:: TBD
+.. versionadded:: 7Feb2024
 
 Define a compute that identifies rattlers in a system. Rattlers are often
 identified in granular or glassy packings as under-coordinated atoms that

@@ -54,7 +54,7 @@ struct remap_plan_3d_kokkos {
   int usecollective;                // use collective or point-to-point MPI
   int commringlen;                  // length of commringlist
   int *commringlist;                // ranks on communication ring of this plan
-  int usecuda_aware;                // use CUDA-Aware MPI or not
+  int usegpu_aware;                 // use GPU-Aware MPI or not
 };
 
 template<class DeviceType>

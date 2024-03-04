@@ -20,6 +20,7 @@
 
 #include "atom_kokkos.h"
 #include "atom_masks.h"
+#include "comm.h"
 #include "domain.h"
 #include "error.h"
 #include "fft3d_kokkos.h"
@@ -41,15 +42,12 @@ using namespace MathSpecialKokkos;
 
 static constexpr int MAXORDER = 7;
 static constexpr int OFFSET = 16384;
-static constexpr double LARGE = 10000.0;
 static constexpr double SMALL = 0.00001;
 static constexpr double EPS_HOC = 1.0e-7;
-
-enum{REVERSE_RHO};
-enum{FORWARD_IK,FORWARD_IK_PERATOM};
-
 static constexpr FFT_SCALAR ZEROF = 0.0;
-static constexpr FFT_SCALAR ONEF =  1.0;
+
+enum { REVERSE_RHO };
+enum { FORWARD_IK, FORWARD_IK_PERATOM };
 
 /* ---------------------------------------------------------------------- */
 
@@ -108,6 +106,13 @@ PPPMKokkos<DeviceType>::PPPMKokkos(LAMMPS *lmp) : PPPM(lmp)
   fft1 = nullptr;
   fft2 = nullptr;
   remap = nullptr;
+
+#if defined (LMP_KOKKOS_GPU)
+  #if defined(FFT_KOKKOS_KISS)
+    if (comm->me == 0)
+      error->warning(FLERR,"Using default KISS FFT with Kokkos GPU backends may give suboptimal performance");
+  #endif
+#endif
 }
 
 /* ----------------------------------------------------------------------
@@ -280,7 +285,7 @@ void PPPMKokkos<DeviceType>::init()
                        estimated_accuracy);
     mesg += fmt::format("  estimated relative force accuracy = {:.8g}\n",
                        estimated_accuracy/two_charge_force);
-    mesg += "  using " LMP_FFT_PREC " precision " LMP_FFT_LIB "\n";
+    mesg += "  using " LMP_FFT_PREC " precision " LMP_FFT_KOKKOS_LIB "\n";
     mesg += fmt::format("  3d grid and FFT values/proc = {} {}\n",
                        ngrid_max,nfft_both_max);
     utils::logmesg(lmp,mesg);

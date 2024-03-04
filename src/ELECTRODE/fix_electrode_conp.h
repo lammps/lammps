@@ -29,7 +29,6 @@ FixStyle(electrode/conp, FixElectrodeConp);
 #include "fix.h"
 
 #include <map>
-#include <memory>
 #include <unordered_map>
 
 namespace LAMMPS_NS {

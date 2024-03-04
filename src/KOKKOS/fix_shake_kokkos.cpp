@@ -14,20 +14,12 @@
 
 #include "fix_shake_kokkos.h"
 
-#include "fix_rattle.h"
 #include "atom_kokkos.h"
-#include "atom_vec.h"
-#include "molecule.h"
 #include "update.h"
-#include "respa.h"
-#include "modify.h"
 #include "domain.h"
 #include "force.h"
-#include "bond.h"
-#include "angle.h"
 #include "comm.h"
 #include "group.h"
-#include "fix_respa.h"
 #include "math_const.h"
 #include "memory_kokkos.h"
 #include "error.h"
@@ -35,16 +27,10 @@
 #include "atom_masks.h"
 
 #include <cmath>
-#include <cstring>
 
 using namespace LAMMPS_NS;
 using namespace FixConst;
 using namespace MathConst;
-
-static constexpr int RVOUS = 1;   // 0 for irregular, 1 for all2all
-
-static constexpr double BIG = 1.0e20;
-static constexpr double MASSDELTA = 0.1;
 
 /* ---------------------------------------------------------------------- */
 
@@ -643,7 +629,7 @@ KOKKOS_INLINE_FUNCTION
 void FixShakeKokkos<DeviceType>::shake(int ilist, EV_FLOAT& ev) const
 {
 
-  // The f array is duplicated for OpenMP, atomic for CUDA, and neither for Serial
+  // The f array is duplicated for OpenMP, atomic for GPU, and neither for Serial
 
   auto v_f = ScatterViewHelper<NeedDup_v<NEIGHFLAG,DeviceType>,decltype(dup_f),decltype(ndup_f)>::get(dup_f,ndup_f);
   auto a_f = v_f.template access<AtomicDup_v<NEIGHFLAG,DeviceType>>();
@@ -753,7 +739,7 @@ KOKKOS_INLINE_FUNCTION
 void FixShakeKokkos<DeviceType>::shake3(int ilist, EV_FLOAT& ev) const
 {
 
-  // The f array is duplicated for OpenMP, atomic for CUDA, and neither for Serial
+  // The f array is duplicated for OpenMP, atomic for GPU, and neither for Serial
 
   auto v_f = ScatterViewHelper<NeedDup_v<NEIGHFLAG,DeviceType>,decltype(dup_f),decltype(ndup_f)>::get(dup_f,ndup_f);
   auto a_f = v_f.template access<AtomicDup_v<NEIGHFLAG,DeviceType>>();
@@ -933,7 +919,7 @@ KOKKOS_INLINE_FUNCTION
 void FixShakeKokkos<DeviceType>::shake4(int ilist, EV_FLOAT& ev) const
 {
 
-  // The f array is duplicated for OpenMP, atomic for CUDA, and neither for Serial
+  // The f array is duplicated for OpenMP, atomic for GPU, and neither for Serial
 
   auto v_f = ScatterViewHelper<NeedDup_v<NEIGHFLAG,DeviceType>,decltype(dup_f),decltype(ndup_f)>::get(dup_f,ndup_f);
   auto a_f = v_f.template access<AtomicDup_v<NEIGHFLAG,DeviceType>>();
@@ -1190,7 +1176,7 @@ KOKKOS_INLINE_FUNCTION
 void FixShakeKokkos<DeviceType>::shake3angle(int ilist, EV_FLOAT& ev) const
 {
 
-  // The f array is duplicated for OpenMP, atomic for CUDA, and neither for Serial
+  // The f array is duplicated for OpenMP, atomic for GPU, and neither for Serial
 
   auto v_f = ScatterViewHelper<NeedDup_v<NEIGHFLAG,DeviceType>,decltype(dup_f),decltype(ndup_f)>::get(dup_f,ndup_f);
   auto a_f = v_f.template access<AtomicDup_v<NEIGHFLAG,DeviceType>>();

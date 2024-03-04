@@ -39,8 +39,7 @@ using namespace LAMMPS_NS;
 static constexpr double BUFFACTOR = 1.5;
 static constexpr int BUFMIN = 1024;
 static constexpr double EPSILON = 1.0e-6;
-
-#define DELTA_PROCS 16
+static constexpr int DELTA_PROCS = 16;
 
 /* ---------------------------------------------------------------------- */
 

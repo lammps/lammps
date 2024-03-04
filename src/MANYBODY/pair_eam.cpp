@@ -33,8 +33,6 @@
 
 using namespace LAMMPS_NS;
 
-static constexpr int MAXLINE = 1024;
-
 /* ---------------------------------------------------------------------- */
 
 PairEAM::PairEAM(LAMMPS *lmp) : Pair(lmp)

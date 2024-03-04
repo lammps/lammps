@@ -1254,7 +1254,7 @@ class lammps(object):
   def set_variable(self,name,value):
     """Set a new value for a LAMMPS string style variable
 
-    .. deprecated:: TBD
+    .. deprecated:: 7Feb2024
 
     This is a wrapper around the :cpp:func:`lammps_set_variable`
     function of the C-library interface.
@@ -1278,7 +1278,7 @@ class lammps(object):
   def set_string_variable(self,name,value):
     """Set a new value for a LAMMPS string style variable
 
-    .. versionadded:: TBD
+    .. versionadded:: 7Feb2024
 
     This is a wrapper around the :cpp:func:`lammps_set_string_variable`
     function of the C-library interface.
@@ -1302,7 +1302,7 @@ class lammps(object):
   def set_internal_variable(self,name,value):
     """Set a new value for a LAMMPS internal style variable
 
-    .. versionadded:: TBD
+    .. versionadded:: 7Feb2024
 
     This is a wrapper around the :cpp:func:`lammps_set_internal_variable`
     function of the C-library interface.

@@ -21,9 +21,7 @@
 #include "error.h"
 #include "input.h"
 #include "memory.h"
-#include "modify.h"
 
-#include <cstdlib>
 #include <cstring>
 
 #include <mdi.h>

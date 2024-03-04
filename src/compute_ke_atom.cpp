@@ -12,6 +12,7 @@
 ------------------------------------------------------------------------- */
 
 #include "compute_ke_atom.h"
+
 #include "atom.h"
 #include "comm.h"
 #include "error.h"
@@ -19,7 +20,6 @@
 #include "memory.h"
 #include "modify.h"
 #include "update.h"
-#include <cstring>
 
 using namespace LAMMPS_NS;
 

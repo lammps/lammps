@@ -33,6 +33,7 @@
 #include <cerrno>
 #include <cstring>
 #include <ctime>
+#include <stdexcept>
 
 /*! \file utils.cpp */
 

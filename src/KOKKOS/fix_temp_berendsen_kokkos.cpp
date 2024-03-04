@@ -15,11 +15,9 @@
 #include "fix_temp_berendsen_kokkos.h"
 
 #include "atom_kokkos.h"
-#include "comm.h"
 #include "compute.h"
 #include "error.h"
 #include "force.h"
-#include "group.h"
 #include "input.h"
 #include "modify.h"
 #include "update.h"
@@ -27,7 +25,6 @@
 #include "atom_masks.h"
 
 #include <cmath>
-#include <cstring>
 
 using namespace LAMMPS_NS;
 using namespace FixConst;

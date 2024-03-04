@@ -40,14 +40,14 @@
 using namespace LAMMPS_NS;
 
 static constexpr int DELTA = 10000;
-static constexpr double EPSILON = 1e-3;    // dimensionless threshold (dot products, end point checks, contact checks)
-#define MAX_CONTACTS 4  // maximum number of contacts for 2D models
-#define EFF_CONTACTS 2  // effective contacts for 2D models
+static constexpr double EPSILON = 1.0e-3; // dimensionless threshold (dot products, end point checks, contact checks)
+static constexpr int MAX_CONTACTS = 4;    // maximum number of contacts for 2D models
+static constexpr int EFF_CONTACTS = 2;    // effective contacts for 2D models
 
 //#define _CONVEX_POLYGON
 //#define _POLYGON_DEBUG
 
-enum {INVALID=0,NONE=1,VERTEXI=2,VERTEXJ=3,EDGE=4};
+enum { INVALID=0, NONE=1, VERTEXI=2, VERTEXJ=3, EDGE=4 };
 
 /* ---------------------------------------------------------------------- */
 

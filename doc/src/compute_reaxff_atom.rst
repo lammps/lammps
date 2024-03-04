@@ -40,7 +40,7 @@ Examples
 Description
 """""""""""
 
-.. versionadded:: TBD
+.. versionadded:: 7Feb2024
 
 Define a computation that extracts bond information computed by the ReaxFF
 potential specified by :doc:`pair_style reaxff <pair_reaxff>`.

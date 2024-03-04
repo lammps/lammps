@@ -37,7 +37,6 @@ using namespace LAMMPS_NS;
 using namespace MathConst;
 using namespace MathExtra;
 
-static constexpr int MAXLINE = 1024;
 static constexpr int DELTA = 4;
 static constexpr int PGDELTA = 1;
 

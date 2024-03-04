@@ -36,8 +36,6 @@ using namespace LAMMPS_NS;
 using namespace MathConst;
 using namespace MathSpecial;
 
-static constexpr double EPSILON = 1.0e-10;
-
 /* ---------------------------------------------------------------------- */
 
 PairBrownianOMP::PairBrownianOMP(LAMMPS *lmp) :

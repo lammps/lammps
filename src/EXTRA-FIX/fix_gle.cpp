@@ -41,8 +41,6 @@ enum{CONSTANT,EQUAL,ATOM};
 
 //#define GLE_DEBUG 1
 
-static constexpr int MAXLINE = 1024;
-
 /* syntax for fix_gle:
  * fix nfix id-group gle ns Tstart Tstop seed amatrix [noneq cmatrix] [every nmts]
  *

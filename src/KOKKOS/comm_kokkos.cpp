@@ -729,6 +729,14 @@ void CommKokkos::exchange_device()
   double lo,hi;
   MPI_Request request;
 
+  // clear global->local map for owned and ghost atoms
+  // b/c atoms migrate to new procs in exchange() and
+  //   new ghosts are created in borders()
+  // map_set() is done at end of borders()
+
+  if (lmp->kokkos->atom_map_classic)
+    if (map_style != Atom::MAP_NONE) atom->map_clear();
+
   // clear ghost count and any ghost bonus data internal to AtomVec
 
   atom->nghost = 0;

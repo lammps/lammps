@@ -36,7 +36,6 @@
 
 using namespace LAMMPS_NS;
 
-static constexpr int MAXLINE = 1024;
 static constexpr int DELTA = 4;
 static constexpr double HALF = 0.5;
 

@@ -29,7 +29,7 @@
 
 using namespace LAMMPS_NS;
 
-#define NUM_GROUPS 2
+static constexpr int NUM_GROUPS = 2;
 static constexpr double SMALL = 0.00001;
 
 /* ----------------------------------------------------------------------- */

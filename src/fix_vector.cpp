@@ -22,6 +22,8 @@
 #include "update.h"
 #include "variable.h"
 
+#include <cstring>
+
 using namespace LAMMPS_NS;
 using namespace FixConst;
 

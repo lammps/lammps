@@ -1673,7 +1673,7 @@ CONTAINS
     CHARACTER(LEN=*), INTENT(IN) :: name
     REAL(KIND=c_double), INTENT(IN) :: val
     INTEGER :: err
-    TYPE(c_ptr) :: Cstr, Cname
+    TYPE(c_ptr) :: Cname
 
     Cname = f2c_string(name)
     err = lammps_set_internal_variable(self%handle, Cname, val)

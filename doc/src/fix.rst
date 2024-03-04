@@ -226,6 +226,7 @@ accelerated styles exist.
 * :doc:`controller <fix_controller>` - apply control loop feedback mechanism
 * :doc:`damping/cundall <fix_damping_cundall>` - Cundall non-viscous damping for granular simulations
 * :doc:`deform <fix_deform>` - change the simulation box size/shape
+* :doc:`deform/pressure <fix_deform_pressure>` - change the simulation box size/shape with additional loading conditions
 * :doc:`deposit <fix_deposit>` - add new atoms above a surface
 * :doc:`dpd/energy <fix_dpd_energy>` - constant energy dissipative particle dynamics
 * :doc:`drag <fix_drag>` - drag atoms towards a defined coordinate
@@ -427,6 +428,7 @@ accelerated styles exist.
 * :doc:`wall/body/polyhedron <fix_wall_body_polyhedron>` - time integration for body particles of style :doc:`rounded/polyhedron <Howto_body>`
 * :doc:`wall/colloid <fix_wall>` - Lennard-Jones wall interacting with finite-size particles
 * :doc:`wall/ees <fix_wall_ees>` - wall for ellipsoidal particles
+* :doc:`wall/flow <fix_wall_flow>` - flow boundary conditions
 * :doc:`wall/gran <fix_wall_gran>` - frictional wall(s) for granular simulations
 * :doc:`wall/gran/region <fix_wall_gran_region>` - :doc:`fix wall/region <fix_wall_region>` equivalent for use with granular particles
 * :doc:`wall/harmonic <fix_wall>` - harmonic spring wall

@@ -191,8 +191,7 @@ void WriteData::write(const std::string &file)
   if (me == 0) {
     fp = fopen(file.c_str(),"w");
     if (fp == nullptr)
-      error->one(FLERR,"Cannot open data file {}: {}",
-                                   file, utils::getsyserror());
+      error->one(FLERR,"Cannot open data file {}: {}", file, utils::getsyserror());
   }
 
   // proc 0 writes header, ntype-length arrays, force fields
@@ -206,9 +205,15 @@ void WriteData::write(const std::string &file)
   }
 
   // per atom info in Atoms and Velocities sections
+  // must not write velocities without tags since we cannot read them back
 
   if (natoms) atoms();
-  if (natoms) velocities();
+  if (atom->tag_enable) {
+    if (natoms) velocities();
+  } else {
+    if (me == 0)
+      error->warning(FLERR, "Not writing Velocities section of data file without atom IDs");
+  }
 
   // molecular topology info if defined
   // do not write molecular topology for atom_style template

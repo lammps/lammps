@@ -67,7 +67,7 @@ static const char cite_nonaffine_d2min[] =
 FixNonaffineDisplacement::FixNonaffineDisplacement(LAMMPS *lmp, int narg, char **arg) :
   Fix(lmp, narg, arg), id_fix(nullptr), X(nullptr), Y(nullptr), F(nullptr), norm(nullptr)
 {
-  if (narg < 4) error->all(FLERR,"Illegal fix nonaffine/displacement command");
+  if (narg < 4) utils::missing_cmd_args(FLERR,"fix nonaffine/displacement", error);
 
   nevery = utils::inumeric(FLERR, arg[3], false, lmp);
   if (nevery <= 0) error->all(FLERR,"Illegal nevery value {} in fix nonaffine/displacement", nevery);
@@ -79,14 +79,16 @@ FixNonaffineDisplacement::FixNonaffineDisplacement(LAMMPS *lmp, int narg, char *
     nevery = 1;
     iarg += 1;
   } else if (strcmp(arg[iarg], "d2min") == 0) {
-    if (iarg + 1 > narg) error->all(FLERR,"Illegal fix nonaffine/displacement command");
+    if (iarg + 1 > narg) utils::missing_cmd_args(FLERR,"fix nonaffine/displacement d2min", error);
     nad_style = D2MIN;
     if (strcmp(arg[iarg + 1], "type") == 0) {
       cut_style = TYPE;
     } else if (strcmp(arg[iarg + 1], "radius") == 0) {
       cut_style = RADIUS;
     } else if (strcmp(arg[iarg + 1], "custom") == 0) {
-      if (iarg + 2 > narg) error->all(FLERR,"Illegal fix nonaffine/displacement command");
+      if (iarg + 2 > narg) utils::missing_cmd_args(FLERR,"fix nonaffine/displacement custom", error);
+      if ((neighbor->style == Neighbor::MULTI) || (neighbor->style == Neighbor::MULTI_OLD))
+        error->all(FLERR, "Fix nonaffine/displacement with custom cutoff requires neighbor style 'bin' or 'nsq'");
       cut_style = CUSTOM;
       cutoff_custom = utils::numeric(FLERR, arg[iarg + 2], false, lmp);
       cutsq_custom = cutoff_custom * cutoff_custom;
@@ -97,7 +99,7 @@ FixNonaffineDisplacement::FixNonaffineDisplacement(LAMMPS *lmp, int narg, char *
     iarg += 2;
   } else error->all(FLERR,"Illegal nonaffine displacement style {} in fix nonaffine/displacement", arg[iarg]);
 
-  if (iarg + 2 > narg) error->all(FLERR,"Illegal fix nonaffine/displacement command");
+  if (iarg + 2 > narg) utils::missing_cmd_args(FLERR,"fix nonaffine/displacement", error);
   if (strcmp(arg[iarg], "fixed") == 0) {
     reference_style = FIXED;
     reference_timestep = utils::inumeric(FLERR, arg[iarg + 1], false, lmp);
@@ -207,6 +209,9 @@ void FixNonaffineDisplacement::init()
     } else {
       auto req = neighbor->add_request(this, NeighConst::REQ_OCCASIONAL);
       if (cut_style == CUSTOM) {
+        if ((neighbor->style == Neighbor::MULTI) || (neighbor->style == Neighbor::MULTI_OLD))
+          error->all(FLERR, "Fix nonaffine/displacement with custom cutoff requires neighbor style 'bin' or 'nsq'");
+
         double skin = neighbor->skin;
         mycutneigh = cutoff_custom + skin;
 

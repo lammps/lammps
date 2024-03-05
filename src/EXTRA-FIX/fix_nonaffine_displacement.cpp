@@ -76,7 +76,6 @@ FixNonaffineDisplacement::FixNonaffineDisplacement(LAMMPS *lmp, int narg, char *
   int iarg = 4;
   if (strcmp(arg[iarg], "integrated") == 0) {
     nad_style = INTEGRATED;
-    nevery = 1;
     iarg += 1;
   } else if (strcmp(arg[iarg], "d2min") == 0) {
     if (iarg + 1 > narg) utils::missing_cmd_args(FLERR,"fix nonaffine/displacement d2min", error);
@@ -108,7 +107,7 @@ FixNonaffineDisplacement::FixNonaffineDisplacement(LAMMPS *lmp, int narg, char *
   } else if (strcmp(arg[iarg], "update") == 0) {
     reference_style = UPDATE;
     update_timestep = utils::inumeric(FLERR, arg[iarg + 1], false, lmp);
-    if (update_timestep < 0)
+    if (update_timestep <= 0)
       error->all(FLERR, "Illegal update timestep {} in fix nonaffine/displacement", arg[iarg + 1]);
   } else if (strcmp(arg[iarg], "offset") == 0) {
     reference_style = OFFSET;
@@ -120,9 +119,6 @@ FixNonaffineDisplacement::FixNonaffineDisplacement(LAMMPS *lmp, int narg, char *
   if (nad_style == D2MIN)
     if (cut_style == RADIUS && (!atom->radius_flag))
       error->all(FLERR, "Fix nonaffine/displacement radius style requires atom attribute radius");
-
-  if (nad_style == INTEGRATED && reference_style == OFFSET)
-    error->all(FLERR, "Fix nonaffine/displacement cannot use the integrated style with an offset reference state");
 
   peratom_flag = 1;
   peratom_freq = nevery;
@@ -154,8 +150,9 @@ FixNonaffineDisplacement::~FixNonaffineDisplacement()
     memory->destroy(F);
     memory->destroy(norm);
     memory->destroy(D2min);
-    memory->destroy(array_atom);
   }
+
+  memory->destroy(array_atom);
 }
 
 /* ---------------------------------------------------------------------- */
@@ -179,11 +176,7 @@ void FixNonaffineDisplacement::post_constructor()
   id_fix = utils::strdup(id + std::string("_FIX_PA"));
   fix = dynamic_cast<FixStoreAtom *>(modify->add_fix(fmt::format("{} {} STORE/ATOM 3 0 {} 1", id_fix, group->names[igroup], ghost_status)));
 
-  array_atom = fix->astore;
-
-  if (nad_style == D2MIN)
-    grow_arrays(atom->nmax);
-
+  grow_arrays(atom->nmax);
   for (int i = 0; i < atom->nlocal; i++)
     for (int j = 0; j < 3; j++) array_atom[i][j] = 0.0;
 }
@@ -251,6 +244,15 @@ void FixNonaffineDisplacement::post_force(int /*vflag*/)
   if (reference_saved && (!update->setupflag)) {
     if (nad_style == INTEGRATED) {
       integrate_velocity();
+      if ((update->ntimestep % nevery) == 0) {
+        if (atom->nmax > nmax)
+          grow_arrays(atom->nmax);
+
+        double **x_nonaffine = fix->astore;
+        for (int i = 0; i < atom->nlocal; i++)
+          for (int m = 0; m < 3; m++)
+            array_atom[i][m] = x_nonaffine[i][m];
+      }
     } else {
       if ((update->ntimestep % nevery) == 0) calculate_D2Min();
     }
@@ -306,8 +308,6 @@ void FixNonaffineDisplacement::integrate_velocity()
       }
     }
   }
-
-  array_atom = x_nonaffine;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -733,16 +733,18 @@ void FixNonaffineDisplacement::minimum_image0(double *delta)
 void FixNonaffineDisplacement::grow_arrays(int nmax_new)
 {
   nmax = nmax_new;
-  memory->destroy(X);
-  memory->destroy(Y);
-  memory->destroy(F);
-  memory->destroy(D2min);
-  memory->destroy(norm);
   memory->destroy(array_atom);
-  memory->create(X, nmax, 3, 3, "fix_nonaffine_displacement:X");
-  memory->create(Y, nmax, 3, 3, "fix_nonaffine_displacement:Y");
-  memory->create(F, nmax, 3, 3, "fix_nonaffine_displacement:F");
-  memory->create(D2min, nmax, "fix_nonaffine_displacement:D2min");
-  memory->create(norm, nmax, "fix_nonaffine_displacement:norm");
-  memory->create(array_atom, nmax, "fix_nonaffine_displacement:array_atom");
+  memory->create(array_atom, nmax, 3, "fix_nonaffine_displacement:array_atom");
+  if (nad_style == D2MIN) {
+    memory->destroy(X);
+    memory->destroy(Y);
+    memory->destroy(F);
+    memory->destroy(D2min);
+    memory->destroy(norm);
+    memory->create(X, nmax, 3, 3, "fix_nonaffine_displacement:X");
+    memory->create(Y, nmax, 3, 3, "fix_nonaffine_displacement:Y");
+    memory->create(F, nmax, 3, 3, "fix_nonaffine_displacement:F");
+    memory->create(D2min, nmax, "fix_nonaffine_displacement:D2min");
+    memory->create(norm, nmax, "fix_nonaffine_displacement:norm");
+  }
 }

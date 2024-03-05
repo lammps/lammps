@@ -7,8 +7,10 @@ See the doc page for the fix electrode/conp command to get started.  There are
 example scripts for using this package in examples/PACKAGES/electrode.
 
 This package uses an external library in lib/electrode which must be compiled
-before making LAMMPS. See the doc page on "Packages with extra build options"
-for more information.
+before making LAMMPS. For a CMake build, the location of the LAPACK library
+should be linked automatically. Alternatively, the "USE_INTERNAL_LINALG" option
+can be used to enable the bundled library. See the doc page on "Packages with
+extra build options" for more information.
 
 The primary people who created this package are Ludwig Ahrens-Iwers, Shern Tee
 (s.tee@griffith.edu.au) and Robert Meißner (robert.meissner@tuhh.de). Contact

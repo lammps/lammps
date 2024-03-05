@@ -61,9 +61,18 @@ FixBalance::FixBalance(LAMMPS *lmp, int narg, char **arg) :
   if (nevery < 0) error->all(FLERR,"Illegal fix balance command");
   thresh = utils::numeric(FLERR,arg[4],false,lmp);
 
-  if (strcmp(arg[5],"shift") == 0) lbstyle = SHIFT;
-  else if (strcmp(arg[5],"rcb") == 0) lbstyle = BISECTION;
-  else error->all(FLERR,"Illegal fix balance command");
+  reportonly = 0;
+  if (strcmp(arg[5],"shift") == 0) {
+    lbstyle = SHIFT;
+  } else if (strcmp(arg[5],"shift/report") == 0) {
+    lbstyle = SHIFT;
+    reportonly = 1;
+  } else if (strcmp(arg[5],"rcb") == 0) {
+    lbstyle = BISECTION;
+  } else if (strcmp(arg[5],"rcb/report") == 0) {
+    lbstyle = BISECTION;
+    reportonly = 1;
+  } else error->all(FLERR,"Unknown fix balance style {}", arg[5]);
 
   int iarg = 5;
   if (lbstyle == SHIFT) {
@@ -75,7 +84,6 @@ FixBalance::FixBalance(LAMMPS *lmp, int narg, char **arg) :
     stopthresh = utils::numeric(FLERR,arg[iarg+3],false,lmp);
     if (stopthresh < 1.0) error->all(FLERR,"Illegal fix balance command");
     iarg += 4;
-
   } else if (lbstyle == BISECTION) {
     iarg++;
   }
@@ -175,7 +183,7 @@ void FixBalance::setup(int /*vflag*/)
 void FixBalance::setup_pre_exchange()
 {
   // do not allow rebalancing twice on same timestep
-  // even if wanted to, can mess up elapsed time in ImbalanceTime
+  // even if you wanted to, it can mess up elapsed time in ImbalanceTime
 
   if (update->ntimestep == lastbalance) return;
   lastbalance = update->ntimestep;
@@ -195,6 +203,7 @@ void FixBalance::setup_pre_exchange()
 
   balance->set_weights();
   imbnow = balance->imbalance_factor(maxloadperproc);
+
   if (imbnow > thresh) rebalance();
 
   // next timestep to rebalance
@@ -263,6 +272,13 @@ void FixBalance::pre_neighbor()
 
 void FixBalance::rebalance()
 {
+  // return immediately if only reporting of the imbalance is requested
+
+  if (reportonly) {
+    imbprev = imbfinal = imbnow;
+    return;
+  }
+  
   imbprev = imbnow;
 
   // invoke balancer and reset comm->uniform flag

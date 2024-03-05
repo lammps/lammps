@@ -45,7 +45,7 @@ Syntax
                 rng_v = integer used to initialize random number generator
 
 * zero or more keyword/value pairs may be appended
-* keyword = *algo* or *symm* or *couple* or *etypes* or *ffield* or *write_mat* or *write_inv* or *read_mat* or *read_inv*
+* keyword = *algo* or *symm* or *couple* or *etypes* or *ffield* or *write_mat* or *write_inv* or *read_mat* or *read_inv* or *qtotal* or *eta*
 
 .. parsed-literal::
 
@@ -68,6 +68,10 @@ Syntax
         filename = file from which to read elastance matrix
     *read_inv* value = filename
         filename = file from which to read inverted matrix
+    *qtotal* value = number or *v_* equal-style variable
+        add overall potential so that all electrode charges add up to *qtotal*
+    *eta* value = d_propname
+        d_propname = a custom double vector defined via fix property/atom
 
 Examples
 """"""""
@@ -248,6 +252,26 @@ simply use the active pair style's neighbor list.  This feature cannot
 be enabled if any electrode particle has the same type as any
 electrolyte particle (which would be unusual in a typical simulation)
 and the fix will issue an error in that case.
+
+.. versionadded:: TBD
+
+The keyword *qtotal* causes *fix electrode/conp* and *fix electrode/thermo*
+to add an overall potential to all electrodes so that the total charge on
+the electrodes is a specified amount (which may be an equal-style variable).
+For example, if a user wanted to simulate a solution of excess cations
+such that the total electrolyte charge is +2, setting *qtotal -2* would cause
+the total electrode charge to be -2, so that the simulation box remains overall
+electroneutral. Since *fix electrode/conq* constrains the total charges of
+individual electrodes, and since *symm on* constrains the total charge of all
+electrodes to be zero, either option is incompatible with the *qtotal* keyword
+(even if *qtotal* is set to zero).
+
+.. versionadded:: TBD
+
+The keyword *eta* takes the name of a custom double vector defined via fix
+property/atom.  The values will be used instead of the standard eta value.  The
+property/atom fix must be for vector of double values and use the *ghost on*
+option.
 
 Restart, fix_modify, output, run start/stop, minimize info
 """""""""""""""""""""""""""""""""""""""""""""""""""""""""""

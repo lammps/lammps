@@ -278,7 +278,7 @@ void FixBalance::rebalance()
     imbprev = imbfinal = imbnow;
     return;
   }
-  
+
   imbprev = imbnow;
 
   // invoke balancer and reset comm->uniform flag

@@ -52,7 +52,7 @@ class FixNonaffineDisplacement : public Fix {
   double cutoff_custom, cutsq_custom, mycutneigh;
   double xprd0, yprd0, zprd0, xprd0_half, yprd0_half, zprd0_half, xy0, xz0, yz0;
 
-  double ***X, ***Y, ***F;
+  double *D2min, ***X, ***Y, ***F;
   int *norm;
 
   class NeighList *list;    // half neighbor list

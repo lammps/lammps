@@ -253,7 +253,7 @@ be enabled if any electrode particle has the same type as any
 electrolyte particle (which would be unusual in a typical simulation)
 and the fix will issue an error in that case.
 
-.. versionchanged:: qtotal
+.. versionadded:: TBD
 
 The keyword *qtotal* causes *fix electrode/conp* and *fix electrode/thermo*
 to add an overall potential to all electrodes so that the total charge on
@@ -265,6 +265,8 @@ electroneutral. Since *fix electrode/conq* constrains the total charges of
 individual electrodes, and since *symm on* constrains the total charge of all
 electrodes to be zero, either option is incompatible with the *qtotal* keyword
 (even if *qtotal* is set to zero).
+
+.. versionadded:: TBD
 
 The keyword *eta* takes the name of a custom double vector defined via fix
 property/atom.  The values will be used instead of the standard eta value.  The

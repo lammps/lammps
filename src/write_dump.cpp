@@ -47,7 +47,8 @@ void WriteDump::command(int narg, char **arg)
 
   // work around "fix not computed at compatible times" errors.
 
-  const int dumpfreq = MAX(1, update->nsteps);
+  int dumpfreq = MAX(1, update->nsteps);
+  dumpfreq += update->ntimestep % dumpfreq;
 
   auto dumpargs = new char *[modindex + 2];
   dumpargs[0] = (char *) "WRITE_DUMP";                      // dump id

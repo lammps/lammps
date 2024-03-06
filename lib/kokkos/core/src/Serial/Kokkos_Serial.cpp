@@ -58,8 +58,6 @@ void SerialInternal::finalize() {
     m_thread_team_data.scratch_assign(nullptr, 0, 0, 0, 0, 0);
   }
 
-  Kokkos::Profiling::finalize();
-
   m_is_initialized = false;
 }
 

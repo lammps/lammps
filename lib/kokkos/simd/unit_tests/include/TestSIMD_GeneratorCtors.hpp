@@ -42,6 +42,7 @@ inline void host_check_gen_ctor() {
   simd_type blend;
   blend.copy_from(expected, Kokkos::Experimental::element_aligned_tag());
 
+#if !(defined(KOKKOS_ENABLE_CUDA) && defined(KOKKOS_COMPILER_MSVC))
   if constexpr (std::is_same_v<Abi, Kokkos::Experimental::simd_abi::scalar>) {
     simd_type basic(KOKKOS_LAMBDA(std::size_t i) { return init[i]; });
     host_check_equality(basic, rhs, lanes);
@@ -63,6 +64,7 @@ inline void host_check_gen_ctor() {
 
     host_check_equality(blend, result, lanes);
   }
+#endif
 }
 
 template <typename Abi, typename... DataTypes>

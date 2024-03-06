@@ -110,8 +110,8 @@ struct TestNumericTraits {
 
   KOKKOS_FUNCTION void operator()(Epsilon, int, int& e) const {
     using Kokkos::Experimental::epsilon;
-    auto const eps = epsilon<T>::value;
-    auto const one = T(1);
+    T const eps = epsilon<T>::value;
+    T const one = 1;
     // Avoid higher precision intermediate representation
     compare() = one + eps;
     e += (int)!(compare() != one);

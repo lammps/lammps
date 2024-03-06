@@ -30,7 +30,8 @@ namespace Impl {
 
 struct HIPTraits {
 #if defined(KOKKOS_ARCH_AMD_GFX906) || defined(KOKKOS_ARCH_AMD_GFX908) || \
-    defined(KOKKOS_ARCH_AMD_GFX90A) || defined(KOKKOS_ARCH_AMD_GFX942)
+    defined(KOKKOS_ARCH_AMD_GFX90A) || defined(KOKKOS_ARCH_AMD_GFX940) || \
+    defined(KOKKOS_ARCH_AMD_GFX942)
   static constexpr int WarpSize       = 64;
   static constexpr int WarpIndexMask  = 0x003f; /* hexadecimal for 63 */
   static constexpr int WarpIndexShift = 6;      /* WarpSize == 1 << WarpShift*/

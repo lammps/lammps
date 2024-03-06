@@ -27,9 +27,7 @@
 #include "memory.h"
 #include "modify.h"
 #include "neigh_list.h"
-#include "pair.h"
 #include "respa.h"
-#include "suffix.h"
 #include "text_file_reader.h"
 #include "update.h"
 
@@ -337,12 +335,6 @@ void FixQEq::setup_pre_force(int vflag)
 {
   if (force->newton_pair == 0)
     error->all(FLERR,"QEQ with 'newton pair off' not supported");
-
-  if (force->pair) {
-    if (force->pair->suffix_flag & (Suffix::INTEL|Suffix::GPU))
-      error->all(FLERR,"QEQ is not compatiple with suffix version "
-                 "of pair style");
-  }
 
   deallocate_storage();
   allocate_storage();

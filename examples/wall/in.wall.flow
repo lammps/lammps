@@ -1,0 +1,79 @@
+variable nrun equal 1000
+variable dump_count equal 10
+
+variable nwall equal 4
+variable w1 equal 67
+variable w2 equal 71
+variable w3 equal 75
+variable w4 equal 79
+
+variable x_cylinder equal 20
+variable y_cylinder equal 17
+variable r_cylinder equal 4
+
+variable MASS  equal 1
+variable TEMP  equal 0.4
+variable VFLOW equal 0.5
+
+units         lj
+atom_style    atomic
+
+lattice       fcc 0.3
+region        sim_box block 0 84 0 34 0 10
+
+boundary      p p p
+
+create_box    2 sim_box
+region        reg_cylinder cylinder z ${x_cylinder} ${y_cylinder} ${r_cylinder} EDGE EDGE
+
+create_atoms  1 box
+
+## setup obstacle ##
+group  g_obst region reg_cylinder
+group  g_flow subtract all g_obst
+set    group g_obst type 2 
+
+mass          1 ${MASS}
+mass          2 ${MASS}
+
+velocity  g_flow create ${TEMP} 4928459 rot yes dist gaussian
+velocity  g_obst set    0.0 0.0 0.0
+
+pair_style  lj/cut 1.122462
+pair_coeff  1 1 1.0 1.0
+pair_coeff  1 2 1.0 1.0
+pair_coeff  2 2 1.0 1.0
+pair_modify shift yes
+
+neighbor      0.3 bin
+neigh_modify  delay 0 every 20 check no
+
+fix    1     g_flow nve
+fix    2     g_flow wall/flow  x ${VFLOW} ${TEMP} 123 ${nwall} ${w1} ${w2} ${w3} ${w4}
+
+variable dump_every equal ${nrun}/${dump_count}
+variable thermo_every equal ${dump_every}
+variable restart_every equal ${nrun}/10
+
+##### uncomment for grid aggregation #####
+#variable gr_Nx equal 42
+#variable gr_Ny equal 17
+#variable gr_Nz equal 1
+#variable gr_Nevery equal ${dump_every}
+#variable gr_Nrepeat equal 1
+#variable gr_Nfreq equal ${dump_every}
+#fix    3     g_flow ave/grid ${gr_Nevery} ${gr_Nrepeat} ${gr_Nfreq} ${gr_Nx} ${gr_Ny} ${gr_Nz} vx vy vz density/mass norm all ave one
+#compute ct_gridId g_flow property/grid ${gr_Nx} ${gr_Ny} ${gr_Nz} id
+#dump   dmp_grid  g_flow grid ${dump_every} grid.lammpstrj c_ct_gridId:grid:data f_3:grid:data[*]
+##########################################
+
+#dump   dmp_coord all atom ${dump_every} dump.lammpstrj
+
+#compute ct_Temp   g_flow temp/com
+#thermo_style custom step temp epair emol etotal press c_ct_Temp
+
+#restart  ${restart_every} flow.restart
+
+timestep 0.005
+thermo   ${thermo_every}
+run      ${nrun}

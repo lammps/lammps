@@ -83,7 +83,7 @@ FixBalance::FixBalance(LAMMPS *lmp, int narg, char **arg) :
   // error checks
 
   if (lbstyle == SHIFT) {
-    int blen = bstr.size();
+    const int blen = bstr.size();
     for (int i = 0; i < blen; i++) {
       if (bstr[i] != 'x' && bstr[i] != 'y' && bstr[i] != 'z')
         error->all(FLERR,"Fix balance shift string is invalid");

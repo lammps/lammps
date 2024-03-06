@@ -454,13 +454,6 @@ struct alignas(2*sizeof(F_FLOAT)) s_FLOAT2 {
   }
 
   KOKKOS_INLINE_FUNCTION
-  s_FLOAT2(const s_FLOAT2 & rhs) {
-    for (int i = 0; i < 2; i++){
-      v[i] = rhs.v[i];
-    }
-  }
-
-  KOKKOS_INLINE_FUNCTION
   void operator+=(const s_FLOAT2 &rhs) {
     v[0] += rhs.v[0];
     v[1] += rhs.v[1];
@@ -695,6 +688,14 @@ typedef tdual_int_2d_dl::t_dev_const t_int_2d_const_dl;
 typedef tdual_int_2d_dl::t_dev_um t_int_2d_um_dl;
 typedef tdual_int_2d_dl::t_dev_const_um t_int_2d_const_um_dl;
 typedef tdual_int_2d_dl::t_dev_const_randomread t_int_2d_randomread_dl;
+
+typedef Kokkos::
+  DualView<int***, Kokkos::LayoutRight, LMPDeviceType> tdual_int_3d;
+typedef tdual_int_3d::t_dev t_int_3d;
+typedef tdual_int_3d::t_dev_const t_int_3d_const;
+typedef tdual_int_3d::t_dev_um t_int_3d_um;
+typedef tdual_int_3d::t_dev_const_um t_int_3d_const_um;
+typedef tdual_int_3d::t_dev_const_randomread t_int_3d_randomread;
 
 typedef Kokkos::
   DualView<LAMMPS_NS::tagint*, LMPDeviceType::array_layout, LMPDeviceType>
@@ -1012,6 +1013,13 @@ typedef tdual_int_2d_dl::t_host_const t_int_2d_const_dl;
 typedef tdual_int_2d_dl::t_host_um t_int_2d_um_dl;
 typedef tdual_int_2d_dl::t_host_const_um t_int_2d_const_um_dl;
 typedef tdual_int_2d_dl::t_host_const_randomread t_int_2d_randomread_dl;
+
+typedef Kokkos::DualView<int***, Kokkos::LayoutRight, LMPDeviceType> tdual_int_3d;
+typedef tdual_int_3d::t_host t_int_3d;
+typedef tdual_int_3d::t_host_const t_int_3d_const;
+typedef tdual_int_3d::t_host_um t_int_3d_um;
+typedef tdual_int_3d::t_host_const_um t_int_3d_const_um;
+typedef tdual_int_3d::t_host_const_randomread t_int_3d_randomread;
 
 typedef Kokkos::DualView<LAMMPS_NS::tagint*, LMPDeviceType::array_layout, LMPDeviceType> tdual_tagint_1d;
 typedef tdual_tagint_1d::t_host t_tagint_1d;

@@ -32,7 +32,7 @@ class FixNonaffineDisplacement : public Fix {
   void post_constructor() override;
   void init() override;
   void init_list(int, class NeighList *) override;
-  void setup(int);
+  void setup(int) override;
   void post_force(int) override;
   void write_restart(FILE *fp) override;
   void restart(char *buf) override;
@@ -62,7 +62,7 @@ class FixNonaffineDisplacement : public Fix {
   void calculate_D2Min();
   void save_reference_state();
   void minimum_image0(double *);
-  void grow_arrays(int);
+  void grow_arrays(int) override;
 };
 
 }    // namespace LAMMPS_NS

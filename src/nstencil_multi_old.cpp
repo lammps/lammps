@@ -65,9 +65,9 @@ void NStencilMultiOld<HALF, DIM_3D, TRI>::create()
 
           // Now only include "upper right" bins for half and ortho stencils
           if (HALF && (!DIM_3D) && (!TRI))
-            if (! (j > 0 || (j == 0 && i > 0))) continue;
+            if (j <= 0 && (j != 0 || i <= 0)) continue;
           if (HALF && DIM_3D && (!TRI))
-            if (! (k > 0 || j > 0 || (j == 0 && i > 0))) continue;
+            if (k <= 0 && j <= 0 && (j != 0 || i <= 0)) continue;
 
           rsq = bin_distance(i, j, k);
           if (rsq < typesq) {

@@ -19,7 +19,6 @@
 #include "mliap_model_linear_kokkos.h"
 
 #include "mliap_data_kokkos.h"
-#include "error.h"
 
 using namespace LAMMPS_NS;
 

@@ -1247,7 +1247,7 @@ void FixRigid::enforce2d()
    return total count of DOF
 ------------------------------------------------------------------------- */
 
-int FixRigid::dof(int tgroup)
+bigint FixRigid::dof(int tgroup)
 {
   // cannot count DOF correctly unless setup_bodies_static() has been called
 
@@ -1306,7 +1306,7 @@ int FixRigid::dof(int tgroup)
   // 3d body with any finite-size M should have 6 dof, remove (3N+6M) - 6
   // 2d body with any finite-size M should have 3 dof, remove (2N+3M) - 3
 
-  int n = 0;
+  bigint n = 0;
   nlinear = 0;
   if (domain->dimension == 3) {
     for (int ibody = 0; ibody < nbody; ibody++)
@@ -2300,7 +2300,7 @@ void FixRigid::readfile(int which, double *vec, double **array1, double **array2
   int nlines;
   FILE *fp;
   char *eof,*start,*next,*buf;
-  char line[MAXLINE];
+  char line[MAXLINE] = {'\0'};
 
   // open file and read and parse first non-empty, non-comment line containing the number of bodies
   if (comm->me == 0) {

@@ -138,7 +138,7 @@ class UCL_Device {
   /** \note You cannot delete the default stream **/
   inline void pop_command_queue() {
     if (_cq.size()<2) return;
-    CU_SAFE_CALL_NS(cuStreamDestroy(_cq.back()));
+    cuStreamDestroy(_cq.back());
     _cq.pop_back();
   }
 
@@ -426,8 +426,8 @@ void UCL_Device::clear() {
   if (_device>-1) {
     for (int i=1; i<num_queues(); i++) pop_command_queue();
 #if GERYON_NVD_PRIMARY_CONTEXT
-    CU_SAFE_CALL_NS(cuCtxSetCurrent(_old_context));
-    CU_SAFE_CALL_NS(cuDevicePrimaryCtxRelease(_cu_device));
+    cuCtxSetCurrent(_old_context);
+    cuDevicePrimaryCtxRelease(_cu_device);
 #else
     cuCtxDestroy(_context);
 #endif

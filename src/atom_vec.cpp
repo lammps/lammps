@@ -1714,7 +1714,7 @@ void AtomVec::data_atom(double *coord, imageint imagetmp, const std::vector<std:
 
   // error checks applicable to all styles
 
-  if (tag[nlocal] <= 0)
+  if ((atom->tag_enable && (tag[nlocal] <= 0)) || (!atom->tag_enable && (tag[nlocal] != 0)))
     error->one(FLERR, "Invalid atom ID {} in line {} of Atoms section of data file", tag[nlocal],
                nlocal + 1);
 

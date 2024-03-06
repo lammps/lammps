@@ -362,7 +362,7 @@ __kernel void k_sph_lj_fast(const __global numtyp4 *restrict x_,
           // Lucy Kernel, 2d
           wfd = (numtyp)-19.098593171027440292 * wfd * wfd * ihsq * ihsq * ihsq;
         }
-        
+
         // function call to LJ EOS
         numtyp fcj[2];
         LJEOS2(rhoj, esphj, cvj, fcj);
@@ -404,7 +404,7 @@ __kernel void k_sph_lj_fast(const __global numtyp4 *restrict x_,
         drhoEacc.y += deltaE;
 
         if (EVFLAG && eflag) {
-          numtyp e = (numtyp)0;          
+          numtyp e = (numtyp)0;
           energy+=e;
         }
         if (EVFLAG && vflag) {

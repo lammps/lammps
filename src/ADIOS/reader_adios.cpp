@@ -30,7 +30,7 @@
 
 using namespace LAMMPS_NS;
 
-#define SMALL 1.0e-6
+static constexpr double SMALL = 1.0e-6;
 
 namespace LAMMPS_NS {
 class ReadADIOSInternal {

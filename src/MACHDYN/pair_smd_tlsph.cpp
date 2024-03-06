@@ -51,11 +51,9 @@ using namespace Eigen;
 using namespace LAMMPS_NS;
 using namespace SMD_Math;
 
-#define JAUMANN false
-#define DETF_MIN 0.2 // maximum compression deformation allow
-#define DETF_MAX 2.0 // maximum tension deformation allowed
-#define TLSPH_DEBUG 0
-#define PLASTIC_STRAIN_AVERAGE_WINDOW 100.0
+static constexpr bool JAUMANN = false;
+static constexpr double DETF_MIN = 0.2; // maximum compression deformation allow
+static constexpr double DETF_MAX = 2.0; // maximum tension deformation allowed
 
 /* ---------------------------------------------------------------------- */
 

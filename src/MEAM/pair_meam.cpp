@@ -34,7 +34,7 @@
 
 using namespace LAMMPS_NS;
 
-#define MAXLINE 1024
+static constexpr int MAXLINE = 1024;
 
 static const int nkeywords = 22;
 static const char *keywords[] = {
@@ -241,11 +241,10 @@ void PairMEAM::coeff(int narg, char **arg)
 
   nlibelements = paridx - 3;
   if (nlibelements < 1) error->all(FLERR, "Incorrect args for pair coefficients");
-  if (nlibelements > maxelt)
+  if (nlibelements > MAXELT)
     error->all(FLERR,
                "Too many elements extracted from MEAM library (current limit: {}). "
-               "Increase 'maxelt' in meam.h and recompile.",
-               maxelt);
+               "Increase 'MAXELT' in meam.h and recompile.", MAXELT);
 
   for (int i = 0; i < nlibelements; i++) {
     if (std::any_of(libelements.begin(), libelements.end(), [&](const std::string &elem) {

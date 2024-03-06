@@ -4,6 +4,9 @@
 fix deform command
 ==================
 
+:doc:`fix deform/pressure <fix_deform_pressure>` command
+========================================================
+
 Accelerator Variants: *deform/kk*
 
 Syntax
@@ -11,18 +14,18 @@ Syntax
 
 .. code-block:: LAMMPS
 
-   fix ID group-ID deform N parameter args ... keyword value ...
+   fix ID group-ID fix_style N parameter style args ... keyword value ...
 
 * ID, group-ID are documented in :doc:`fix <fix>` command
-* deform = style name of this fix command
+* fix_style = *deform* or *deform/pressure*
 * N = perform box deformation every this many timesteps
-* one or more parameter/arg pairs may be appended
+* one or more parameter/style/args sequences of arguments may be appended
 
   .. parsed-literal::
 
      parameter = *x* or *y* or *z* or *xy* or *xz* or *yz*
        *x*, *y*, *z* args = style value(s)
-         style = *final* or *delta* or *scale* or *vel* or *erate* or *trate* or *volume* or *wiggle* or *variable*
+         style = *final* or *delta* or *scale* or *vel* or *erate* or *trate* or *volume* or *wiggle* or *variable* or *pressure* or *pressure/mean*
            *final* values = lo hi
              lo hi = box boundaries at end of run (distance units)
            *delta* values = dlo dhi
@@ -43,8 +46,15 @@ Syntax
            *variable* values = v_name1 v_name2
              v_name1 = variable with name1 for box length change as function of time
              v_name2 = variable with name2 for change rate as function of time
+           *pressure* values = target gain (ONLY available in :doc:`fix deform/pressure <fix_deform_pressure>` command)
+             target = target pressure (pressure units)
+             gain = proportional gain constant (1/(time * pressure) or 1/time units)
+           *pressure/mean* values = target gain (ONLY available in :doc:`fix deform/pressure <fix_deform_pressure>` command)
+             target = target pressure (pressure units)
+             gain = proportional gain constant (1/(time * pressure) or 1/time units)
+
        *xy*, *xz*, *yz* args = style value
-         style = *final* or *delta* or *vel* or *erate* or *trate* or *wiggle*
+         style = *final* or *delta* or *vel* or *erate* or *trate* or *wiggle* or *variable*
            *final* value = tilt
              tilt = tilt factor at end of run (distance units)
            *delta* value = dtilt
@@ -62,9 +72,12 @@ Syntax
            *variable* values = v_name1 v_name2
              v_name1 = variable with name1 for tilt change as function of time
              v_name2 = variable with name2 for change rate as function of time
+           *pressure* values = target gain (ONLY available in :doc:`fix deform/pressure <fix_deform_pressure>` command)
+             target = target pressure (pressure units)
+             gain = proportional gain constant (1/(time * pressure) or 1/time units)
 
 * zero or more keyword/value pairs may be appended
-* keyword = *remap* or *flip* or *units*
+* keyword = *remap* or *flip* or *units* or *couple* or *vol/balance/p* or *max/rate* or *normalize/pressure*
 
   .. parsed-literal::
 
@@ -77,6 +90,15 @@ Syntax
        *units* value = *lattice* or *box*
          lattice = distances are defined in lattice units
          box = distances are defined in simulation box units
+       *couple* value = *none* or *xyz* or *xy* or *yz* or *xz* (ONLY available in :doc:`fix deform/pressure <fix_deform_pressure>` command)
+         couple pressure values of various dimensions
+       *vol/balance/p* value = *yes* or *no* (ONLY available in :doc:`fix deform/pressure <fix_deform_pressure>` command)
+         Modifies the behavior of the *volume* option to try and balance pressures
+       *max/rate* value = *rate* (ONLY available in :doc:`fix deform/pressure <fix_deform_pressure>` command)
+         rate = maximum strain rate for pressure control
+       *normalize/pressure* value = *yes* or *no* (ONLY available in :doc:`fix deform/pressure <fix_deform_pressure>` command)
+         Modifies pressure controls such that the deviation in pressure is normalized by the target pressure
+
 
 Examples
 """"""""
@@ -88,6 +110,8 @@ Examples
    fix 1 all deform 1 xy erate 0.001 remap v
    fix 1 all deform 10 y delta -0.5 0.5 xz vel 1.0
 
+See examples for :doc:`fix deform/pressure <fix_deform_pressure>` on its doc page
+
 Description
 """""""""""
 
@@ -95,29 +119,46 @@ Change the volume and/or shape of the simulation box during a dynamics
 run.  Orthogonal simulation boxes have 3 adjustable parameters
 (x,y,z).  Triclinic (non-orthogonal) simulation boxes have 6
 adjustable parameters (x,y,z,xy,xz,yz).  Any or all of them can be
-adjusted independently and simultaneously by this command.
+adjusted independently and simultaneously.
 
-This fix can be used to perform non-equilibrium MD (NEMD) simulations
-of a continuously strained system.  See the :doc:`fix nvt/sllod <fix_nvt_sllod>` and :doc:`compute temp/deform <compute_temp_deform>` commands for more details.  Note
-that simulation of a continuously extended system (extensional flow)
-can be modeled using the :ref:`UEF package <PKG-UEF>` and its :doc:`fix commands <fix_nh_uef>`.
+The fix deform command allows use of all the arguments listed above,
+except those flagged as available ONLY for the :doc:`fix
+deform/pressure <fix_deform_pressure>` command, which are
+pressure-based controls.  The fix deform/pressure command allows use
+of all the arguments listed above.
+
+The rest of this doc page explains the options common to both
+commands.  The :doc:`fix deform/pressure <fix_deform_pressure>` doc
+page explains the options available ONLY with the fix deform/pressure
+command.  Note that a simulation can define only a single deformation
+command: fix deform or fix deform/pressure.
+
+Both these fixes can be used to perform non-equilibrium MD (NEMD)
+simulations of a continuously strained system.  See the :doc:`fix
+nvt/sllod <fix_nvt_sllod>` and :doc:`compute temp/deform
+<compute_temp_deform>` commands for more details.  Note that
+simulation of a continuously extended system (extensional flow) can be
+modeled using the :ref:`UEF package <PKG-UEF>` and its :doc:`fix
+commands <fix_nh_uef>`.
 
 For the *x*, *y*, *z* parameters, the associated dimension cannot be
 shrink-wrapped.  For the *xy*, *yz*, *xz* parameters, the associated
-second dimension cannot be shrink-wrapped.  Dimensions not varied by this
-command can be periodic or non-periodic.  Dimensions corresponding to
-unspecified parameters can also be controlled by a :doc:`fix npt <fix_nh>` or :doc:`fix nph <fix_nh>` command.
+second dimension cannot be shrink-wrapped.  Dimensions not varied by
+this command can be periodic or non-periodic.  Dimensions
+corresponding to unspecified parameters can also be controlled by a
+:doc:`fix npt <fix_nh>` or :doc:`fix nph <fix_nh>` command.
 
 The size and shape of the simulation box at the beginning of the
-simulation run were either specified by the
-:doc:`create_box <create_box>` or :doc:`read_data <read_data>` or
-:doc:`read_restart <read_restart>` command used to setup the simulation
-initially if it is the first run, or they are the values from the end
-of the previous run.  The :doc:`create_box <create_box>`, :doc:`read data <read_data>`, and :doc:`read_restart <read_restart>` commands
-specify whether the simulation box is orthogonal or non-orthogonal
-(triclinic) and explain the meaning of the xy,xz,yz tilt factors.  If
-fix deform changes the xy,xz,yz tilt factors, then the simulation box
-must be triclinic, even if its initial tilt factors are 0.0.
+simulation run were either specified by the :doc:`create_box
+<create_box>` or :doc:`read_data <read_data>` or :doc:`read_restart
+<read_restart>` command used to setup the simulation initially if it
+is the first run, or they are the values from the end of the previous
+run.  The :doc:`create_box <create_box>`, :doc:`read data
+<read_data>`, and :doc:`read_restart <read_restart>` commands specify
+whether the simulation box is orthogonal or non-orthogonal (triclinic)
+and explain the meaning of the xy,xz,yz tilt factors.  If fix deform
+changes the xy,xz,yz tilt factors, then the simulation box must be
+triclinic, even if its initial tilt factors are 0.0.
 
 As described below, the desired simulation box size and shape at the
 end of the run are determined by the parameters of the fix deform
@@ -258,21 +299,22 @@ of the units keyword below.
 
 The *variable* style changes the specified box length dimension by
 evaluating a variable, which presumably is a function of time.  The
-variable with *name1* must be an :doc:`equal-style variable <variable>`
-and should calculate a change in box length in units of distance.
-Note that this distance is in box units, not lattice units; see the
-discussion of the *units* keyword below.  The formula associated with
-variable *name1* can reference the current timestep.  Note that it
-should return the "change" in box length, not the absolute box length.
-This means it should evaluate to 0.0 when invoked on the initial
-timestep of the run following the definition of fix deform.  It should
-evaluate to a value > 0.0 to dilate the box at future times, or a
-value < 0.0 to compress the box.
+variable with *name1* must be an :doc:`equal-style variable
+<variable>` and should calculate a change in box length in units of
+distance.  Note that this distance is in box units, not lattice units;
+see the discussion of the *units* keyword below.  The formula
+associated with variable *name1* can reference the current timestep.
+Note that it should return the "change" in box length, not the
+absolute box length.  This means it should evaluate to 0.0 when
+invoked on the initial timestep of the run following the definition of
+fix deform.  It should evaluate to a value > 0.0 to dilate the box at
+future times, or a value < 0.0 to compress the box.
 
-The variable *name2* must also be an :doc:`equal-style variable <variable>` and should calculate the rate of box length
-change, in units of distance/time, i.e. the time-derivative of the
-*name1* variable.  This quantity is used internally by LAMMPS to reset
-atom velocities when they cross periodic boundaries.  It is computed
+The variable *name2* must also be an :doc:`equal-style variable
+<variable>` and should calculate the rate of box length change, in
+units of distance/time, i.e. the time-derivative of the *name1*
+variable.  This quantity is used internally by LAMMPS to reset atom
+velocities when they cross periodic boundaries.  It is computed
 internally for the other styles, but you must provide it when using an
 arbitrary variable.
 
@@ -414,12 +456,13 @@ can reference the current timestep.  Note that it should return the
 should evaluate to 0.0 when invoked on the initial timestep of the run
 following the definition of fix deform.
 
-The variable *name2* must also be an :doc:`equal-style variable <variable>` and should calculate the rate of tilt change,
-in units of distance/time, i.e. the time-derivative of the *name1*
-variable.  This quantity is used internally by LAMMPS to reset atom
-velocities when they cross periodic boundaries.  It is computed
-internally for the other styles, but you must provide it when using an
-arbitrary variable.
+The variable *name2* must also be an :doc:`equal-style variable
+<variable>` and should calculate the rate of tilt change, in units of
+distance/time, i.e. the time-derivative of the *name1* variable.  This
+quantity is used internally by LAMMPS to reset atom velocities when
+they cross periodic boundaries.  It is computed internally for the
+other styles, but you must provide it when using an arbitrary
+variable.
 
 Here is an example of using the *variable* style to perform the same
 box deformation as the *wiggle* style formula listed above, where we
@@ -510,33 +553,40 @@ box without explicit remapping of their coordinates.
 .. note::
 
    For non-equilibrium MD (NEMD) simulations using "remap v" it is
-   usually desirable that the fluid (or flowing material, e.g. granular
-   particles) stream with a velocity profile consistent with the
-   deforming box.  As mentioned above, using a thermostat such as :doc:`fix nvt/sllod <fix_nvt_sllod>` or :doc:`fix lavgevin <fix_langevin>`
-   (with a bias provided by :doc:`compute temp/deform <compute_temp_deform>`), will typically accomplish
-   that.  If you do not use a thermostat, then there is no driving force
-   pushing the atoms to flow in a manner consistent with the deforming
-   box.  E.g. for a shearing system the box deformation velocity may vary
+   usually desirable that the fluid (or flowing material,
+   e.g. granular particles) stream with a velocity profile consistent
+   with the deforming box.  As mentioned above, using a thermostat
+   such as :doc:`fix nvt/sllod <fix_nvt_sllod>` or :doc:`fix lavgevin
+   <fix_langevin>` (with a bias provided by :doc:`compute temp/deform
+   <compute_temp_deform>`), will typically accomplish that.  If you do
+   not use a thermostat, then there is no driving force pushing the
+   atoms to flow in a manner consistent with the deforming box.
+   E.g. for a shearing system the box deformation velocity may vary
    from 0 at the bottom to 10 at the top of the box.  But the stream
-   velocity profile of the atoms may vary from -5 at the bottom to +5 at
-   the top.  You can monitor these effects using the :doc:`fix ave/chunk <fix_ave_chunk>`, :doc:`compute temp/deform <compute_temp_deform>`, and :doc:`compute temp/profile <compute_temp_profile>` commands.  One way to induce
-   atoms to stream consistent with the box deformation is to give them an
+   velocity profile of the atoms may vary from -5 at the bottom to +5
+   at the top.  You can monitor these effects using the :doc:`fix
+   ave/chunk <fix_ave_chunk>`, :doc:`compute temp/deform
+   <compute_temp_deform>`, and :doc:`compute temp/profile
+   <compute_temp_profile>` commands.  One way to induce atoms to
+   stream consistent with the box deformation is to give them an
    initial velocity profile, via the :doc:`velocity ramp <velocity>`
-   command, that matches the box deformation rate.  This also typically
-   helps the system come to equilibrium more quickly, even if a
-   thermostat is used.
+   command, that matches the box deformation rate.  This also
+   typically helps the system come to equilibrium more quickly, even
+   if a thermostat is used.
 
 .. note::
 
    If a :doc:`fix rigid <fix_rigid>` is defined for rigid bodies, and
    *remap* is set to *x*, then the center-of-mass coordinates of rigid
-   bodies will be remapped to the changing simulation box.  This will be
-   done regardless of whether atoms in the rigid bodies are in the fix
-   deform group or not.  The velocity of the centers of mass are not
-   remapped even if *remap* is set to *v*, since :doc:`fix nvt/sllod <fix_nvt_sllod>` does not currently do anything special
+   bodies will be remapped to the changing simulation box.  This will
+   be done regardless of whether atoms in the rigid bodies are in the
+   fix deform group or not.  The velocity of the centers of mass are
+   not remapped even if *remap* is set to *v*, since :doc:`fix
+   nvt/sllod <fix_nvt_sllod>` does not currently do anything special
    for rigid particles.  If you wish to perform a NEMD simulation of
    rigid particles, you can either thermostat them independently or
-   include a background fluid and thermostat the fluid via :doc:`fix nvt/sllod <fix_nvt_sllod>`.
+   include a background fluid and thermostat the fluid via :doc:`fix
+   nvt/sllod <fix_nvt_sllod>`.
 
 The *flip* keyword allows the tilt factors for a triclinic box to
 exceed half the distance of the parallel box length, as discussed
@@ -568,7 +618,8 @@ command if you want to include lattice spacings in a variable formula.
 Restart, fix_modify, output, run start/stop, minimize info
 """""""""""""""""""""""""""""""""""""""""""""""""""""""""""
 
-This fix will restore the initial box settings from :doc:`binary restart files <restart>`, which allows the fix to be properly continue
+This fix will restore the initial box settings from :doc:`binary
+restart files <restart>`, which allows the fix to be properly continue
 deformation, when using the start/stop options of the :doc:`run <run>`
 command.  None of the :doc:`fix_modify <fix_modify>` options are
 relevant to this fix.  No global or per-atom quantities are stored by
@@ -586,12 +637,14 @@ Restrictions
 You cannot apply x, y, or z deformations to a dimension that is
 shrink-wrapped via the :doc:`boundary <boundary>` command.
 
-You cannot apply xy, yz, or xz deformations to a second dimension (y in
-xy) that is shrink-wrapped via the :doc:`boundary <boundary>` command.
+You cannot apply xy, yz, or xz deformations to a second dimension (y
+in xy) that is shrink-wrapped via the :doc:`boundary <boundary>`
+command.
 
 Related commands
 """"""""""""""""
 
+:doc:`fix deform/pressure <fix_deform_pressure>`,
 :doc:`change_box <change_box>`
 
 Default

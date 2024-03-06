@@ -36,7 +36,7 @@ int main(int argc, char *argv[])
 
     LammpsGui w(nullptr, infile);
     w.show();
-    return a.exec();
+    return QApplication::exec();
 }
 
 // Local Variables:

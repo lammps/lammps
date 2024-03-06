@@ -17,8 +17,6 @@
 #include "atom_kokkos.h"
 #include "atom_masks.h"
 
-#include <cstring>
-
 using namespace LAMMPS_NS;
 using namespace FixConst;
 

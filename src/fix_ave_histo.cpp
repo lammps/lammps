@@ -35,7 +35,7 @@ enum { SCALAR, VECTOR, WINDOW };
 enum { DEFAULT, GLOBAL, PERATOM, LOCAL };
 enum { IGNORE, END, EXTRA };
 
-#define BIG 1.0e20
+static constexpr double BIG = 1.0e20;
 /* ---------------------------------------------------------------------- */
 
 FixAveHisto::FixAveHisto(LAMMPS *lmp, int narg, char **arg) :

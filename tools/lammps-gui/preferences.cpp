@@ -177,7 +177,7 @@ void Preferences::accept()
         msg.exec();
         const char *path = mystrdup(QCoreApplication::applicationFilePath());
         const char *arg0 = mystrdup(QCoreApplication::arguments().at(0));
-        execl(path, arg0, (char *)NULL);
+        execl(path, arg0, (char *)nullptr);
     }
 
     // reformatting settings

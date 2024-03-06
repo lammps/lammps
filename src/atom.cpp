@@ -26,6 +26,7 @@
 #include "input.h"
 #include "label_map.h"
 #include "math_const.h"
+#include "math_extra.h"
 #include "memory.h"
 #include "modify.h"
 #include "molecule.h"
@@ -47,9 +48,8 @@
 using namespace LAMMPS_NS;
 using namespace MathConst;
 
-#define DELTA 1
-#define EPSILON 1.0e-6
-#define MAXLINE 256
+static constexpr int DELTA = 1;
+static constexpr double EPSILON = 1.0e-6;
 
 /* ----------------------------------------------------------------------
    one instance per AtomVec style in style_atom.h
@@ -234,6 +234,7 @@ Atom::Atom(LAMMPS *_lmp) : Pointers(_lmp), atom_style(nullptr), avec(nullptr), a
   darray = nullptr;
   icols = dcols = nullptr;
   ivname = dvname = ianame = daname = nullptr;
+  ivghost = dvghost = iaghost = daghost = nullptr;
 
   // initialize atom style and array existence flags
 
@@ -333,6 +334,10 @@ Atom::~Atom()
   memory->sfree(darray);
   memory->sfree(icols);
   memory->sfree(dcols);
+  memory->destroy(ivghost);
+  memory->destroy(dvghost);
+  memory->destroy(iaghost);
+  memory->destroy(daghost);
 
   // delete user-defined molecules
 
@@ -618,7 +623,7 @@ void Atom::set_atomflag_defaults()
   // identical list as 2nd customization in atom.h
 
   labelmapflag = 0;
-  sphere_flag = ellipsoid_flag = line_flag = tri_flag = body_flag = 0;
+  ellipsoid_flag = line_flag = tri_flag = body_flag = 0;
   quat_flag = 0;
   peri_flag = electron_flag = 0;
   wavepacket_flag = sph_flag = 0;
@@ -2112,6 +2117,15 @@ std::vector<Molecule *>Atom::get_molecule_by_id(const std::string &id)
 void Atom::add_molecule_atom(Molecule *onemol, int iatom, int ilocal, tagint offset)
 {
   if (onemol->qflag && q_flag) q[ilocal] = onemol->q[iatom];
+  if (onemol->muflag && mu_flag) {
+    double r[3], rotmat[3][3];
+    MathExtra::quat_to_mat(onemol->quat_external, rotmat);
+    MathExtra::matvec(rotmat, onemol->mu[iatom], r);
+    mu[ilocal][0] = r[0];
+    mu[ilocal][1] = r[1];
+    mu[ilocal][2] = r[2];
+    mu[ilocal][3] = sqrt(r[0] * r[0] + r[1] * r[1] + r[2] * r[2]);
+  }
   if (onemol->radiusflag && radius_flag) radius[ilocal] = onemol->radius[iatom];
   if (onemol->rmassflag && rmass_flag) rmass[ilocal] = onemol->rmass[iatom];
   else if (rmass_flag)
@@ -2599,6 +2613,18 @@ void Atom::update_callback(int ifix)
     if (extra_border[i] > ifix) extra_border[i]--;
 }
 
+/** \brief Find a custom per-atom property with given name
+\verbatim embed:rst
+
+This function returns the list index of a custom per-atom property
+with the name "name", also returning by reference its data type and
+number of values per atom.
+\endverbatim
+ * \param name Name of the property (w/o a "i_" or "d_" or "i2_" or "d2_" prefix)
+ * \param &flag Returns data type of property: 0 for int, 1 for double
+ * \param &cols Returns number of values: 0 for a single value, 1 or more for a vector of values
+ * \return index of property in the respective list of properties
+ */
 /* ----------------------------------------------------------------------
    find custom per-atom vector with name
    return index if found, -1 if not found
@@ -2642,6 +2668,33 @@ int Atom::find_custom(const char *name, int &flag, int &cols)
   return -1;
 }
 
+/** \brief Find a custom per-atom property with given name and retrieve ghost property
+\verbatim embed:rst
+
+This function returns the list index of a custom per-atom property
+with the name "name", also returning by reference its data type,
+number of values per atom, and if it is communicated to ghost particles.
+Classes rarely need to check on ghost communication and so `find_custom`
+is typically preferred to this function. See :doc:`pair amoeba <pair_amoeba>`
+for an example where checking ghost communication is necessary.
+\endverbatim
+ * \param name Name of the property (w/o a "i_" or "d_" or "i2_" or "d2_" prefix)
+ * \param &flag Returns data type of property: 0 for int, 1 for double
+ * \param &cols Returns number of values: 0 for a single value, 1 or more for a vector of values
+ * \param &ghost Returns whether property is communicated to ghost atoms: 0 for no, 1 for yes
+ * \return index of property in the respective list of properties
+ */
+int Atom::find_custom_ghost(const char *name, int &flag, int &cols, int &ghost)
+{
+  int i = find_custom(name, flag, cols);
+  if (i == -1) return i;
+  if ((flag == 0) && (cols == 0)) ghost = ivghost[i];
+  else if ((flag == 1) && (cols == 0)) ghost = dvghost[i];
+  else if ((flag == 0) && (cols == 1)) ghost = iaghost[i];
+  else if ((flag == 1) && (cols == 1)) ghost = daghost[i];
+  return i;
+}
+
 /** \brief Add a custom per-atom property with the given name and type and size
 \verbatim embed:rst
 
@@ -2652,9 +2705,10 @@ This function is called, e.g. from :doc:`fix property/atom <fix_property_atom>`.
  * \param name Name of the property (w/o a "i_" or "d_" or "i2_" or "d2_" prefix)
  * \param flag Data type of property: 0 for int, 1 for double
  * \param cols Number of values: 0 for a single value, 1 or more for a vector of values
+ * \param ghost Whether property is communicated to ghost atoms: 0 for no, 1 for yes
  * \return index of property in the respective list of properties
  */
-int Atom::add_custom(const char *name, int flag, int cols)
+int Atom::add_custom(const char *name, int flag, int cols, int ghost)
 {
   int index = -1;
 
@@ -2663,6 +2717,8 @@ int Atom::add_custom(const char *name, int flag, int cols)
     nivector++;
     ivname = (char **) memory->srealloc(ivname,nivector*sizeof(char *),"atom:ivname");
     ivname[index] = utils::strdup(name);
+    ivghost = (int *) memory->srealloc(ivghost,nivector*sizeof(int),"atom:ivghost");
+    ivghost[index] = ghost;
     ivector = (int **) memory->srealloc(ivector,nivector*sizeof(int *),"atom:ivector");
     memory->create(ivector[index],nmax,"atom:ivector");
 
@@ -2671,6 +2727,8 @@ int Atom::add_custom(const char *name, int flag, int cols)
     ndvector++;
     dvname = (char **) memory->srealloc(dvname,ndvector*sizeof(char *),"atom:dvname");
     dvname[index] = utils::strdup(name);
+    dvghost = (int *) memory->srealloc(dvghost,ndvector*sizeof(int),"atom:dvghost");
+    dvghost[index] = ghost;
     dvector = (double **) memory->srealloc(dvector,ndvector*sizeof(double *),"atom:dvector");
     memory->create(dvector[index],nmax,"atom:dvector");
 
@@ -2679,6 +2737,8 @@ int Atom::add_custom(const char *name, int flag, int cols)
     niarray++;
     ianame = (char **) memory->srealloc(ianame,niarray*sizeof(char *),"atom:ianame");
     ianame[index] = utils::strdup(name);
+    iaghost = (int *) memory->srealloc(iaghost,niarray*sizeof(int),"atom:iaghost");
+    iaghost[index] = ghost;
     iarray = (int ***) memory->srealloc(iarray,niarray*sizeof(int **),"atom:iarray");
     memory->create(iarray[index],nmax,cols,"atom:iarray");
     icols = (int *) memory->srealloc(icols,niarray*sizeof(int),"atom:icols");
@@ -2689,6 +2749,8 @@ int Atom::add_custom(const char *name, int flag, int cols)
     ndarray++;
     daname = (char **) memory->srealloc(daname,ndarray*sizeof(char *),"atom:daname");
     daname[index] = utils::strdup(name);
+    daghost = (int *) memory->srealloc(daghost,ndarray*sizeof(int),"atom:daghost");
+    daghost[index] = ghost;
     darray = (double ***) memory->srealloc(darray,ndarray*sizeof(double **),"atom:darray");
     memory->create(darray[index],nmax,cols,"atom:darray");
     dcols = (int *) memory->srealloc(dcols,ndarray*sizeof(int),"atom:dcols");
@@ -2697,6 +2759,7 @@ int Atom::add_custom(const char *name, int flag, int cols)
 
   if (index < 0)
     error->all(FLERR,"Invalid call to Atom::add_custom()");
+
   return index;
 }
 

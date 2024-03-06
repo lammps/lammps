@@ -11,24 +11,21 @@
 ------------------------------------------------------------------------- */
 
 #include "compute_pace.h"
-#include "ace-evaluator/ace_evaluator.h"
+
 #include "ace-evaluator/ace_c_basis.h"
-#include "ace-evaluator/ace_abstract_basis.h"
+#include "ace-evaluator/ace_evaluator.h"
 #include "ace-evaluator/ace_types.h"
-#include <cstring>
-#include <map>
 
 #include "atom.h"
-#include "update.h"
-#include "modify.h"
-#include "neighbor.h"
-#include "neigh_list.h"
-#include "neigh_request.h"
-#include "force.h"
-#include "pair.h"
 #include "comm.h"
-#include "memory.h"
 #include "error.h"
+#include "force.h"
+#include "memory.h"
+#include "modify.h"
+#include "neigh_list.h"
+#include "neighbor.h"
+#include "pair.h"
+#include "update.h"
 
 namespace LAMMPS_NS {
 struct ACECimpl {
@@ -41,14 +38,14 @@ struct ACECimpl {
   ACECTildeBasisSet *basis_set;
   ACECTildeEvaluator *ace;
 };
-}
+}    // namespace LAMMPS_NS
 
 using namespace LAMMPS_NS;
 
-enum{SCALAR,VECTOR,ARRAY};
+enum { SCALAR, VECTOR, ARRAY };
 ComputePACE::ComputePACE(LAMMPS *lmp, int narg, char **arg) :
-  Compute(lmp, narg, arg), cutsq(nullptr), list(nullptr), pace(nullptr),
-  paceall(nullptr), pace_peratom(nullptr), map(nullptr), cg(nullptr)
+    Compute(lmp, narg, arg), cutsq(nullptr), list(nullptr), pace(nullptr), paceall(nullptr),
+    pace_peratom(nullptr), map(nullptr), c_pe(nullptr), c_virial(nullptr), acecimpl(nullptr)
 {
   array_flag = 1;
   extarray = 0;
@@ -71,33 +68,24 @@ ComputePACE::ComputePACE(LAMMPS *lmp, int narg, char **arg) :
   //read in file with CG coefficients or c_tilde coefficients
 
   auto potential_file_name = utils::get_potential_file_path(arg[3]);
-  delete acecimpl -> basis_set;
-  acecimpl -> basis_set = new ACECTildeBasisSet(potential_file_name);
-  double cut = acecimpl -> basis_set->cutoffmax;
-  cutmax = acecimpl -> basis_set->cutoffmax;
-  double cuti;
-  double radelemall = 0.5;
+  delete acecimpl->basis_set;
+  acecimpl->basis_set = new ACECTildeBasisSet(potential_file_name);
+  cutmax = acecimpl->basis_set->cutoffmax;
 
   //# of rank 1, rank > 1 functions
 
   int n_r1, n_rp = 0;
-  n_r1 = acecimpl -> basis_set->total_basis_size_rank1[0];
-  n_rp = acecimpl -> basis_set->total_basis_size[0];
+  n_r1 = acecimpl->basis_set->total_basis_size_rank1[0];
+  n_rp = acecimpl->basis_set->total_basis_size[0];
 
   int ncoeff = n_r1 + n_rp;
-
-  //int nvalues = ncoeff;
-
   nvalues = ncoeff;
-
-  //-----------------------------------------------------------
-  //nperdim = ncoeff;
 
   ndims_force = 3;
   ndims_virial = 6;
   bik_rows = 1;
-  yoffset = nvalues; //nperdim;
-  zoffset = 2*nvalues; //nperdim;
+  yoffset = nvalues;
+  zoffset = 2*nvalues;
   natoms = atom->natoms;
   if (bikflag) bik_rows = natoms;
     dgrad_rows = ndims_force*natoms;
@@ -120,6 +108,8 @@ ComputePACE::ComputePACE(LAMMPS *lmp, int narg, char **arg) :
 
 ComputePACE::~ComputePACE()
 {
+  modify->delete_compute(id_virial);
+
   delete acecimpl;
   memory->destroy(pace);
   memory->destroy(paceall);
@@ -141,10 +131,7 @@ void ComputePACE::init()
   // need an occasional full neighbor list
   neighbor->add_request(this, NeighConst::REQ_FULL | NeighConst::REQ_OCCASIONAL);
 
-  int count = 0;
-  for (int i = 0; i < modify->ncompute; i++)
-    if (strcmp(modify->compute[i]->style,"pace") == 0) count++;
-  if (count > 1 && comm->me == 0)
+  if (modify->get_compute_by_style("pace").size() > 1 && comm->me == 0)
     error->warning(FLERR,"More than one compute pace");
 
   // allocate memory for global array
@@ -154,22 +141,13 @@ void ComputePACE::init()
 
   // find compute for reference energy
 
-  std::string id_pe = std::string("thermo_pe");
-  int ipe = modify->find_compute(id_pe);
-  if (ipe == -1)
-    error->all(FLERR,"compute thermo_pe does not exist.");
-  c_pe = modify->compute[ipe];
+  c_pe = modify->get_compute_by_id("thermo_pe");
+  if (!c_pe) error->all(FLERR,"Compute thermo_pe does not exist.");
 
   // add compute for reference virial tensor
 
-  std::string id_virial = std::string("pace_press");
-  std::string pcmd = id_virial + " all pressure NULL virial";
-  modify->add_compute(pcmd);
-
-  int ivirial = modify->find_compute(id_virial);
-  if (ivirial == -1)
-    error->all(FLERR,"compute pace_press does not exist.");
-  c_virial = modify->compute[ivirial];
+  id_virial = id + std::string("_press");
+  c_virial = modify->add_compute(id_virial + " all pressure NULL virial");
 }
 
 /* ---------------------------------------------------------------------- */
@@ -184,7 +162,6 @@ void ComputePACE::init_list(int /*id*/, NeighList *ptr)
 void ComputePACE::compute_array()
 {
   int ntotal = atom->nlocal + atom->nghost;
-  double **f = atom->f;
   invoked_array = update->ntimestep;
 
   // grow pace_peratom array if necessary
@@ -214,9 +191,6 @@ void ComputePACE::compute_array()
   // invoke full neighbor list (will copy or build if necessary)
 
   neighbor->build_one(list);
-  SPECIES_TYPE *mus;
-  NS_TYPE *ns;
-  LS_TYPE *ls;
 
   const int inum = list->inum;
   const int* const ilist = list->ilist;
@@ -240,7 +214,6 @@ void ComputePACE::compute_array()
   // compute pace derivatives for each atom in group
   // use full neighbor list to count atoms less than cutoff
 
-  double** const x = atom->x;
   const int* const mask = atom->mask;
   const int ntypes = atom->ntypes;
 
@@ -255,27 +228,26 @@ void ComputePACE::compute_array()
       const int typeoffset_local = ndims_peratom*nvalues*(itype-1);
       const int typeoffset_global = nvalues*(itype-1);
 
-      delete acecimpl -> ace;
-      acecimpl -> ace = new ACECTildeEvaluator(*acecimpl -> basis_set);
-      acecimpl -> ace->compute_projections = 1;
-      acecimpl -> ace->compute_b_grad = 1;
+      delete acecimpl->ace;
+      acecimpl->ace = new ACECTildeEvaluator(*acecimpl->basis_set);
+      acecimpl->ace->compute_projections = true;
+      acecimpl->ace->compute_b_grad = true;
       int n_r1, n_rp = 0;
-      n_r1 = acecimpl -> basis_set->total_basis_size_rank1[0];
-      n_rp = acecimpl -> basis_set->total_basis_size[0];
+      n_r1 = acecimpl->basis_set->total_basis_size_rank1[0];
+      n_rp = acecimpl->basis_set->total_basis_size[0];
 
       int ncoeff = n_r1 + n_rp;
-      acecimpl -> ace->element_type_mapping.init(ntypes+1);
+      acecimpl->ace->element_type_mapping.init(ntypes+1);
       for (int ik = 1; ik <= ntypes; ik++) {
-        for(int mu = 0; mu < acecimpl -> basis_set ->nelements; mu++){
+        for(int mu = 0; mu < acecimpl->basis_set->nelements; mu++){
           if (mu != -1) {
             if (mu == ik - 1) {
               map[ik] = mu;
-              acecimpl -> ace->element_type_mapping(ik) = mu;
+              acecimpl->ace->element_type_mapping(ik) = mu;
             }
           }
         }
       }
-
 
       if (dgradflag) {
 
@@ -307,9 +279,9 @@ void ComputePACE::compute_array()
       }
 
       // resize the neighbor cache after setting the basis
-      acecimpl -> ace->resize_neighbours_cache(max_jnum);
-      acecimpl -> ace->compute_atom(i, atom->x, atom->type, list->numneigh[i], list->firstneigh[i]);
-      Array1D<DOUBLE_TYPE> Bs = acecimpl -> ace -> projections;
+      acecimpl->ace->resize_neighbours_cache(max_jnum);
+      acecimpl->ace->compute_atom(i, atom->x, atom->type, list->numneigh[i], list->firstneigh[i]);
+      Array1D<DOUBLE_TYPE> Bs = acecimpl->ace->projections;
 
       for (int jj = 0; jj < jnum; jj++) {
         const int j = jlist[jj];
@@ -322,9 +294,9 @@ void ComputePACE::compute_array()
           // dimension: (n_descriptors,max_jnum,3)
           //example to access entries for neighbour jj after running compute_atom for atom i:
           for (int func_ind =0; func_ind < n_r1 + n_rp; func_ind++){
-            DOUBLE_TYPE fx_dB = acecimpl -> ace -> neighbours_dB(func_ind,jj,0);
-            DOUBLE_TYPE fy_dB = acecimpl -> ace -> neighbours_dB(func_ind,jj,1);
-            DOUBLE_TYPE fz_dB = acecimpl -> ace -> neighbours_dB(func_ind,jj,2);
+            DOUBLE_TYPE fx_dB = acecimpl->ace->neighbours_dB(func_ind,jj,0);
+            DOUBLE_TYPE fy_dB = acecimpl->ace->neighbours_dB(func_ind,jj,1);
+            DOUBLE_TYPE fz_dB = acecimpl->ace->neighbours_dB(func_ind,jj,2);
             pacedi[func_ind] += fx_dB;
             pacedi[func_ind+yoffset] += fy_dB;
             pacedi[func_ind+zoffset] += fz_dB;
@@ -333,15 +305,13 @@ void ComputePACE::compute_array()
             pacedj[func_ind+zoffset] -= fz_dB;
             }
          } else {
-            //printf("inside dBi/dRj logical : ncoeff = %d \n", ncoeff);
             for (int iicoeff = 0; iicoeff < ncoeff; iicoeff++) {
 
               // add to pace array for this proc
-              //printf("inside dBi/dRj loop\n");
               // dBi/dRj
-              DOUBLE_TYPE fx_dB = acecimpl -> ace -> neighbours_dB(iicoeff,jj,0);
-              DOUBLE_TYPE fy_dB = acecimpl -> ace -> neighbours_dB(iicoeff,jj,1);
-              DOUBLE_TYPE fz_dB = acecimpl -> ace -> neighbours_dB(iicoeff,jj,2);
+              DOUBLE_TYPE fx_dB = acecimpl->ace->neighbours_dB(iicoeff,jj,0);
+              DOUBLE_TYPE fy_dB = acecimpl->ace->neighbours_dB(iicoeff,jj,1);
+              DOUBLE_TYPE fz_dB = acecimpl->ace->neighbours_dB(iicoeff,jj,2);
               pace[bik_rows + ((atom->tag[j]-1)*3*natoms) + 3*(atom->tag[i]-1) + 0][iicoeff+3] -= fx_dB;
               pace[bik_rows + ((atom->tag[j]-1)*3*natoms) + 3*(atom->tag[i]-1) + 1][iicoeff+3] -= fy_dB;
               pace[bik_rows + ((atom->tag[j]-1)*3*natoms) + 3*(atom->tag[i]-1) + 2][iicoeff+3] -= fz_dB;

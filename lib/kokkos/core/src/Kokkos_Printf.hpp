@@ -31,7 +31,7 @@ namespace Kokkos {
 // backends. The GPU backends always return 1 and NVHPC only compiles if we
 // don't ask for the return value.
 template <typename... Args>
-KOKKOS_FUNCTION void printf(const char* format, Args... args) {
+KOKKOS_FORCEINLINE_FUNCTION void printf(const char* format, Args... args) {
 #ifdef KOKKOS_ENABLE_SYCL
   // Some compilers warn if "args" is empty and format is not a string literal
   if constexpr (sizeof...(Args) == 0)

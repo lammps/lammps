@@ -39,6 +39,7 @@
 #include "memory.h"
 #include "potential_file_reader.h"
 #include "respa.h"
+#include "text_file_reader.h"
 #include "update.h"
 
 #include <cmath>
@@ -49,15 +50,14 @@ using namespace LAMMPS_NS;
 using namespace FixConst;
 using namespace MathConst;
 
-#define MAXLINE 256
-#define LISTDELTA 10000
-#define LB_FACTOR 1.5
+static constexpr int LISTDELTA = 10000;
+static constexpr double LB_FACTOR = 1.5;
 
-#define CMAPMAX 6   // max # of CMAP terms stored by one atom
-#define CMAPDIM 24  // grid map dimension is 24 x 24
-#define CMAPXMIN -360.0
-#define CMAPXMIN2 -180.0
-#define CMAPDX 15.0 // 360/CMAPDIM
+static constexpr int CMAPMAX = 6;   // max # of CMAP terms stored by one atom
+static constexpr int CMAPDIM = 24;  // grid map dimension is 24 x 24
+static constexpr double CMAPXMIN = -360.0;
+static constexpr double CMAPXMIN2 = -180.0;
+static constexpr double CMAPDX = 15.0; // 360/CMAPDIM
 
 /* ---------------------------------------------------------------------- */
 
@@ -86,17 +86,15 @@ FixCMAP::FixCMAP(LAMMPS *lmp, int narg, char **arg) :
   wd_section = 1;
   respa_level_support = 1;
   ilevel_respa = 0;
-
-  MPI_Comm_rank(world,&me);
-  MPI_Comm_size(world,&nprocs);
+  eflag_caller = 1;
 
   // allocate memory for CMAP data
 
   memory->create(g_axis,CMAPDIM,"cmap:g_axis");
-  memory->create(cmapgrid,6,CMAPDIM,CMAPDIM,"cmap:grid");
-  memory->create(d1cmapgrid,6,CMAPDIM,CMAPDIM,"cmap:d1grid");
-  memory->create(d2cmapgrid,6,CMAPDIM,CMAPDIM,"cmap:d2grid");
-  memory->create(d12cmapgrid,6,CMAPDIM,CMAPDIM,"cmap:d12grid");
+  memory->create(cmapgrid,CMAPMAX,CMAPDIM,CMAPDIM,"cmap:grid");
+  memory->create(d1cmapgrid,CMAPMAX,CMAPDIM,CMAPDIM,"cmap:d1grid");
+  memory->create(d2cmapgrid,CMAPMAX,CMAPDIM,CMAPDIM,"cmap:d2grid");
+  memory->create(d12cmapgrid,CMAPMAX,CMAPDIM,CMAPDIM,"cmap:d12grid");
 
   // read and setup CMAP data
 
@@ -184,10 +182,6 @@ void FixCMAP::init()
   for (i = 0; i < 6; i++)
     set_map_derivatives(cmapgrid[i],d1cmapgrid[i],d2cmapgrid[i],d12cmapgrid[i]);
 
-  // define newton_bond here in case restart file was read (not data file)
-
-  newton_bond = force->newton_bond;
-
   if (utils::strmatch(update->integrate_style,"^respa")) {
     ilevel_respa = (dynamic_cast<Respa *>(update->integrate))->nlevels-1;
     if (respa_level >= 0) ilevel_respa = MIN(respa_level,ilevel_respa);
@@ -238,6 +232,8 @@ void FixCMAP::min_setup(int vflag)
 void FixCMAP::pre_neighbor()
 {
   int i,m,atom1,atom2,atom3,atom4,atom5;
+  const int me = comm->me;
+  const int nprocs = comm->nprocs;
 
   // guesstimate initial length of local crossterm list
   // if ncmap was not set (due to read_restart, no read_data),
@@ -637,15 +633,22 @@ void FixCMAP::read_grid_map(char *cmapfile)
 {
   if (comm->me == 0) {
     try {
-      memset(&cmapgrid[0][0][0], 0, 6*CMAPDIM*CMAPDIM*sizeof(double));
+      ncrosstermtypes = 0;
+      memset(&cmapgrid[0][0][0], 0, CMAPMAX*CMAPDIM*CMAPDIM*sizeof(double));
+      utils::logmesg(lmp, "Reading CMAP parameters from: {}\n", cmapfile);
       PotentialFileReader reader(lmp, cmapfile, "cmap grid");
 
-      // there are six maps in this order.
+      // there may be up to six maps.
+      // the charmm36.cmap file has in this order.
       // alanine, alanine-proline, proline, proline-proline, glycine, glycine-proline.
-      // read as one big blob of numbers while ignoring comments
+      // custom CMAP files created by charmm-gui may have fewer entries
+      // read one map at a time as a blob of numbers while ignoring comments
+      // and stop reading when whe have reached EOF.
+      for (ncrosstermtypes = 0; ncrosstermtypes < CMAPMAX; ++ncrosstermtypes)
+        reader.next_dvector(&cmapgrid[ncrosstermtypes][0][0],CMAPDIM*CMAPDIM);
 
-      reader.next_dvector(&cmapgrid[0][0][0],6*CMAPDIM*CMAPDIM);
-
+    } catch (EOFException &) {
+      utils::logmesg(lmp, "  Read in CMAP data for {} crossterm types\n", ncrosstermtypes);
     } catch (std::exception &e) {
       error->one(FLERR,"Error reading CMAP potential file: {}", e.what());
     }
@@ -934,10 +937,6 @@ void FixCMAP::read_data_header(char *line)
   } catch (std::exception &e) {
     error->all(FLERR,"Invalid read data header line for fix cmap: {}", e.what());
   }
-
-  // not set in constructor because this fix could be defined before newton command
-
-  newton_bond = force->newton_bond;
 }
 
 /* ----------------------------------------------------------------------
@@ -957,10 +956,10 @@ void FixCMAP::read_data_section(char * /*keyword*/, int /*n*/, char *buf,
 
   // loop over lines of CMAP crossterms
   // tokenize the line into values
-  // add crossterm to one of my atoms, depending on newton_bond
+  // add crossterm to one of my atoms
 
   for (const auto &line : lines) {
-    ValueTokenizer values(line);
+    ValueTokenizer values(utils::trim_comment(line));
     try {
       values.skip();
       itype = values.next_int();

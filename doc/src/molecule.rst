@@ -126,14 +126,50 @@ molecule (header keyword = inertia).
 Format of a molecule file
 """""""""""""""""""""""""
 
-The format of an individual molecule file is similar but
-(not identical) to the data file read by the :doc:`read_data <read_data>`
-commands, and is as follows.
+The format of an individual molecule file looks similar but is
+different than that of a data file read by the :doc:`read_data <read_data>`
+commands.  Here is a simple example for a TIP3P water molecule:
+
+.. code-block::
+
+   # Water molecule. TIP3P geometry
+   # header section:
+   3 atoms
+   2 bonds
+   1 angles
+
+   # body section:
+   Coords
+
+   1    0.00000  -0.06556   0.00000
+   2    0.75695   0.52032   0.00000
+   3   -0.75695   0.52032   0.00000
+
+   Types
+
+   1        1   # O
+   2        2   # H
+   3        2   # H
+
+   Charges
+
+   1       -0.834
+   2        0.417
+   3        0.417
+
+   Bonds
+
+   1   1      1      2
+   2   1      1      3
+
+   Angles
+
+   1   1      2      1      3
 
 A molecule file has a header and a body.  The header appears first.  The
-first line of the header and thus of the molecule file is *always* skipped;
-it typically contains a description of the file or a comment from the software
-that created the file.
+first line of the header and thus of the molecule file is *always*
+skipped; it typically contains a description of the file or a comment
+from the software that created the file.
 
 Then lines are read one line at a time.  Lines can have a trailing
 comment starting with '#' that is ignored.  There *must* be at least one
@@ -158,25 +194,62 @@ appear if the value(s) are different than the default, except when
 defining a *body* particle, which requires setting the number of
 *atoms* to 1, and setting the *inertia* in a specific section (see below).
 
-* N *atoms* = # of atoms N in molecule, default = 0
-* Nb *bonds* = # of bonds Nb in molecule, default = 0
-* Na *angles* = # of angles Na in molecule, default = 0
-* Nd *dihedrals* = # of dihedrals Nd in molecule, default = 0
-* Ni *impropers* = # of impropers Ni in molecule, default = 0
-* Nf *fragments* = # of fragments Nf in molecule, default = 0
-* Ninteger Ndouble *body* = # of integer and floating-point values
-  in body particle, default = 0
-* Mtotal *mass* = total mass of molecule
-* Xc Yc Zc *com* = coordinates of center-of-mass of molecule
-* Ixx Iyy Izz Ixy Ixz Iyz *inertia* = 6 components of inertia tensor of molecule
+   .. list-table::
+      :header-rows: 1
+      :widths: auto
 
-For *mass*, *com*, and *inertia*, the default is for LAMMPS to
-calculate this quantity itself if needed, assuming the molecules
-consist of a set of point particles or finite-size particles (with a
-non-zero diameter) that do not overlap.  If finite-size particles in
-the molecule do overlap, LAMMPS will not account for the overlap
-effects when calculating any of these 3 quantities, so you should
-pre-compute them yourself and list the values in the file.
+      * - Number(s)
+        - Keyword
+        - Meaning
+        - Default Value
+      * - N
+        - atoms
+        - # of atoms N in molecule
+        - 0
+      * - Nb
+        - bonds
+        - # of bonds Nb in molecule
+        - 0
+      * - Na
+        - angles
+        - # of angles Na in molecule
+        - 0
+      * - Nd
+        - dihedrals
+        - # of dihedrals Nd in molecule
+        - 0
+      * - Ni
+        - impropers
+        - # of impropers Ni in molecule
+        - 0
+      * - Nf
+        - fragments
+        - # of fragments Nf in molecule
+        - 0
+      * - Ninteger Ndouble
+        - body
+        - # of integer and floating-point values in body particle
+        - 0
+      * - Mtotal
+        - mass
+        - total mass of molecule
+        - computed
+      * - Xc Yc Zc
+        - com
+        - coordinates of center-of-mass of molecule
+        - computed
+      * - Ixx Iyy Izz Ixy Ixz Iyz
+        - inertia
+        - 6 components of inertia tensor of molecule
+        - computed
+
+For *mass*, *com*, and *inertia*, the default is for LAMMPS to calculate
+this quantity itself if needed, assuming the molecules consist of a set
+of point particles or finite-size particles (with a non-zero diameter)
+that do **not** overlap.  If finite-size particles in the molecule
+**do** overlap, LAMMPS will not account for the overlap effects when
+calculating any of these 3 quantities, so you should pre-compute them
+yourself and list the values in the file.
 
 The mass and center-of-mass coordinates (Xc,Yc,Zc) are
 self-explanatory.  The 6 moments of inertia (ixx,iyy,izz,ixy,ixz,iyz)
@@ -188,7 +261,7 @@ internally.
 
 These are the allowed section keywords for the body of the file.
 
-* *Coords, Types, Molecules, Fragments, Charges, Diameters, Masses* = atom-property sections
+* *Coords, Types, Molecules, Fragments, Charges, Diameters, Dipoles, Masses* = atom-property sections
 * *Bonds, Angles, Dihedrals, Impropers* = molecular topology sections
 * *Special Bond Counts, Special Bonds* = special neighbor info
 * *Shake Flags, Shake Atoms, Shake Bond Types* = SHAKE info
@@ -300,6 +373,21 @@ on each atom in the molecule is 0.0.
 This section is only allowed for :doc:`atom styles <atom_style>` that
 support finite-size spherical particles, e.g. atom_style sphere.  If
 not listed, the default diameter of each atom in the molecule is 1.0.
+
+----------
+
+.. versionadded:: 7Feb2024
+
+*Dipoles* section:
+
+* one line per atom
+* line syntax: ID mux muy muz
+* mux,muy,muz = x-, y-, and z-component of point dipole vector of atom
+
+This section is only allowed for :doc:`atom styles <atom_style>` that
+support particles with point dipoles, e.g. atom_style dipole.  If not
+listed, the default dipole component of each atom in the molecule is set
+to 0.0.
 
 ----------
 

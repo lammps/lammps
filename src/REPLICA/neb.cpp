@@ -36,32 +36,16 @@
 using namespace LAMMPS_NS;
 using namespace MathConst;
 
-#define MAXLINE 256
-#define CHUNK 1024
-#define ATTRIBUTE_PERLINE 4
+static constexpr int MAXLINE = 256;
+static constexpr int CHUNK = 1024;
+static constexpr int ATTRIBUTE_PERLINE = 4;
 
 enum { DEFAULT, TERSE, VERBOSE };
 
 /* ---------------------------------------------------------------------- */
 
-NEB::NEB(LAMMPS *lmp) : Command(lmp), fp(nullptr), all(nullptr), rdist(nullptr) {}
-
-/* ----------------------------------------------------------------------
-   internal NEB constructor, called from TAD
-------------------------------------------------------------------------- */
-
-NEB::NEB(LAMMPS *lmp, double etol_in, double ftol_in, int n1steps_in, int n2steps_in, int nevery_in,
-         double *buf_init, double *buf_final) :
-    Command(lmp),
-    fp(nullptr), all(nullptr), rdist(nullptr)
+NEB::NEB(LAMMPS *lmp) : Command(lmp), fp(nullptr), all(nullptr), rdist(nullptr)
 {
-  double delx, dely, delz;
-
-  etol = etol_in;
-  ftol = ftol_in;
-  n1steps = n1steps_in;
-  n2steps = n2steps_in;
-  nevery = nevery_in;
   print_mode = DEFAULT;
 
   // replica info
@@ -71,8 +55,25 @@ NEB::NEB(LAMMPS *lmp, double etol_in, double ftol_in, int n1steps_in, int n2step
   me_universe = universe->me;
   uworld = universe->uworld;
   MPI_Comm_rank(world, &me);
+}
 
-  // generate linear interpolate replica
+/* ----------------------------------------------------------------------
+   internal NEB constructor, called from TAD
+------------------------------------------------------------------------- */
+
+NEB::NEB(LAMMPS *lmp, double etol_in, double ftol_in, int n1steps_in, int n2steps_in, int nevery_in,
+         double *buf_init, double *buf_final) :
+    NEB(lmp)
+{
+  double delx, dely, delz;
+
+  etol = etol_in;
+  ftol = ftol_in;
+  n1steps = n1steps_in;
+  n2steps = n2steps_in;
+  nevery = nevery_in;
+
+  // generate linear interpolated replica
   double fraction = ireplica / (nreplica - 1.0);
   double **x = atom->x;
   int nlocal = atom->nlocal;
@@ -129,19 +130,11 @@ void NEB::command(int narg, char **arg)
   if (nevery <= 0)
     error->universe_all(FLERR, fmt::format("Illegal NEB command every parameter: {}", nevery));
   if (n1steps % nevery)
-    error->universe_all(FLERR, fmt::format("NEB N1 value {} incompatible with every {}",
-                                           n1steps, nevery));
+    error->universe_all(FLERR,
+                        fmt::format("NEB N1 value {} incompatible with every {}", n1steps, nevery));
   if (n2steps % nevery)
-    error->universe_all(FLERR, fmt::format("NEB N2 value {} incompatible with every {}",
-                                           n2steps, nevery));
-
-  // replica info
-
-  nreplica = universe->nworlds;
-  ireplica = universe->iworld;
-  me_universe = universe->me;
-  uworld = universe->uworld;
-  MPI_Comm_rank(world, &me);
+    error->universe_all(FLERR,
+                        fmt::format("NEB N2 value {} incompatible with every {}", n2steps, nevery));
 
   // error checks
 
@@ -437,7 +430,7 @@ void NEB::readfile(char *file, int flag)
   int i, nchunk, eofflag, nlines;
   tagint tag;
   char *eof, *start, *next, *buf;
-  char line[MAXLINE];
+  char line[MAXLINE] = {'\0'};
   double delx, dely, delz;
 
   if (me_universe == 0 && universe->uscreen)

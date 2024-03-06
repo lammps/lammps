@@ -22,12 +22,14 @@
 #include "modify.h"
 #include "update.h"
 
+#include <cstring>
+
 using namespace LAMMPS_NS;
 using namespace FixConst;
 
 enum { NATIVE, REAL, METAL };    // LAMMPS units which MDI supports
 
-#define MAXELEMENT 118
+static constexpr int MAXELEMENT = 118;
 
 // prototype for non-class compare function for sorting QM IDs
 

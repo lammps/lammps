@@ -35,7 +35,7 @@ using namespace LAMMPS_NS;
 using namespace FixConst;
 using namespace MathConst;
 
-#define BIG 1000000000
+static constexpr int BIG = 1000000000;
 
 static const char cite_fix_orient_fcc[] =
   "fix orient/fcc command: doi:10.1038/nmat1559\n\n"

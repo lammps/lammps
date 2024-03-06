@@ -17,8 +17,8 @@
 ------------------------------------------------------------------------- */
 
 #include "compute_reaxff_atom.h"
+
 #include "atom.h"
-#include "molecule.h"
 #include "update.h"
 #include "force.h"
 #include "memory.h"
@@ -34,17 +34,17 @@ using namespace ReaxFF;
 /* ---------------------------------------------------------------------- */
 
 ComputeReaxFFAtom::ComputeReaxFFAtom(LAMMPS *lmp, int narg, char **arg) :
-  Compute(lmp, narg, arg),
-  abo(nullptr), neighid(nullptr), bondcount(nullptr), reaxff(nullptr)
+    Compute(lmp, narg, arg), neighid(nullptr), abo(nullptr), bondcount(nullptr), reaxff(nullptr)
 {
   if (atom->tag_consecutive() == 0)
-    error->all(FLERR,"Atom IDs must be consecutive for compute reaxff/atom");
+    error->all(FLERR, "Atom IDs must be consecutive for compute reaxff/atom");
 
   peratom_flag = 1;
 
   // initialize output
 
-  nlocal = -1;
+  nmax = -1;
+  nbonds = 0;
   prev_nbonds = -1;
 
   size_peratom_cols = 3;
@@ -162,19 +162,21 @@ void ComputeReaxFFAtom::compute_bonds()
 {
   invoked_bonds = update->ntimestep;
 
-  if (atom->nlocal > nlocal) {
+  if (atom->nmax > nmax) {
     memory->destroy(abo);
     memory->destroy(neighid);
     memory->destroy(bondcount);
     memory->destroy(array_atom);
-    nlocal = atom->nlocal;
+    nmax = atom->nmax;
     if (store_bonds) {
-      memory->create(abo, nlocal, MAXREAXBOND, "reaxff/atom:abo");
-      memory->create(neighid, nlocal, MAXREAXBOND, "reaxff/atom:neighid");
+      memory->create(abo, nmax, MAXREAXBOND, "reaxff/atom:abo");
+      memory->create(neighid, nmax, MAXREAXBOND, "reaxff/atom:neighid");
     }
-    memory->create(bondcount, nlocal, "reaxff/atom:bondcount");
-    memory->create(array_atom, nlocal, 3, "reaxff/atom:array_atom");
+    memory->create(bondcount, nmax, "reaxff/atom:bondcount");
+    memory->create(array_atom, nmax, 3, "reaxff/atom:array_atom");
   }
+
+  const int nlocal = atom->nlocal;
 
   for (int i = 0; i < nlocal; i++) {
     bondcount[i] = 0;
@@ -208,6 +210,8 @@ void ComputeReaxFFAtom::compute_local()
 
   int b = 0;
 
+  const int nlocal = atom->nlocal;
+
   for (int i = 0; i < nlocal; ++i) {
     const int numbonds = bondcount[i];
 
@@ -230,6 +234,8 @@ void ComputeReaxFFAtom::compute_peratom()
     compute_bonds();
   }
 
+  const int nlocal = atom->nlocal;
+
   for (int i = 0; i < nlocal; ++i) {
     auto ptr = array_atom[i];
     ptr[0] = reaxff->api->workspace->total_bond_order[i];
@@ -244,10 +250,10 @@ void ComputeReaxFFAtom::compute_peratom()
 
 double ComputeReaxFFAtom::memory_usage()
 {
-  double bytes = (double)(nlocal*3) * sizeof(double);
-  bytes += (double)(nlocal) * sizeof(int);
+  double bytes = (double)(nmax*3) * sizeof(double);
+  bytes += (double)(nmax) * sizeof(int);
   if (store_bonds) {
-    bytes += (double)(2*nlocal*MAXREAXBOND) * sizeof(double);
+    bytes += (double)(2*nmax*MAXREAXBOND) * sizeof(double);
     bytes += (double)(nbonds*3) * sizeof(double);
   }
   return bytes;

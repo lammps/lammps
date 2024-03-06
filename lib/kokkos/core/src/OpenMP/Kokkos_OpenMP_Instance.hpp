@@ -219,8 +219,6 @@ KOKKOS_DEPRECATED void OpenMP::partition_master(F const& f, int num_partitions,
     Exec::validate_partition_impl(prev_instance->m_pool_size, num_partitions,
                                   partition_size);
 
-    OpenMP::memory_space space;
-
 #pragma omp parallel num_threads(num_partitions)
     {
       Exec thread_local_instance(partition_size);

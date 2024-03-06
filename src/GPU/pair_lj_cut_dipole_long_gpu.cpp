@@ -20,6 +20,7 @@
 #include "atom.h"
 #include "domain.h"
 #include "error.h"
+#include "ewald_const.h"
 #include "force.h"
 #include "gpu_extra.h"
 #include "kspace.h"
@@ -32,16 +33,9 @@
 #include <cmath>
 #include <cstring>
 
-#define EWALD_F 1.12837917
-#define EWALD_P 0.3275911
-#define A1 0.254829592
-#define A2 -0.284496736
-#define A3 1.421413741
-#define A4 -1.453152027
-#define A5 1.061405429
-
 using namespace LAMMPS_NS;
 using namespace MathConst;
+using namespace EwaldConst;
 
 // External functions from cuda library for atom decomposition
 
@@ -207,7 +201,7 @@ void PairLJCutDipoleLongGPU::cpu_compute(int start, int inum, int eflag, int vfl
   double pdotp, pidotr, pjdotr, pre1, pre2, pre3;
   double grij, expm2, t, erfc;
   double g0, g1, g2, b0, b1, b2, b3, d0, d1, d2, d3;
-  double zdix, zdiy, zdiz, zdjx, zdjy, zdjz, zaix, zaiy, zaiz, zajx, zajy, zajz;
+  double zdix, zdiy, zdiz, zaix, zaiy, zaiz;
   double g0b1_g1b2_g2b3, g0d1_g1d2_g2d3;
   double forcelj, factor_coul, factor_lj, facm1;
   double evdwl, ecoul;
@@ -290,9 +284,6 @@ void PairLJCutDipoleLongGPU::cpu_compute(int start, int inum, int eflag, int vfl
             zdix = delx * (q[j] * b1 + b2 * pjdotr) - b1 * mu[j][0];
             zdiy = dely * (q[j] * b1 + b2 * pjdotr) - b1 * mu[j][1];
             zdiz = delz * (q[j] * b1 + b2 * pjdotr) - b1 * mu[j][2];
-            zdjx = delx * (-qtmp * b1 + b2 * pidotr) - b1 * mu[i][0];
-            zdjy = dely * (-qtmp * b1 + b2 * pidotr) - b1 * mu[i][1];
-            zdjz = delz * (-qtmp * b1 + b2 * pidotr) - b1 * mu[i][2];
 
             if (factor_coul < 1.0) {
               fdx *= factor_coul;
@@ -301,14 +292,10 @@ void PairLJCutDipoleLongGPU::cpu_compute(int start, int inum, int eflag, int vfl
               zdix *= factor_coul;
               zdiy *= factor_coul;
               zdiz *= factor_coul;
-              zdjx *= factor_coul;
-              zdjy *= factor_coul;
-              zdjz *= factor_coul;
             }
           } else {
             fdx = fdy = fdz = 0.0;
             zdix = zdiy = zdiz = 0.0;
-            zdjx = zdjy = zdjz = 0.0;
           }
 
           if (factor_coul < 1.0) {
@@ -328,9 +315,6 @@ void PairLJCutDipoleLongGPU::cpu_compute(int start, int inum, int eflag, int vfl
             zaix = delx * (q[j] * d1 + d2 * pjdotr) - d1 * mu[j][0];
             zaiy = dely * (q[j] * d1 + d2 * pjdotr) - d1 * mu[j][1];
             zaiz = delz * (q[j] * d1 + d2 * pjdotr) - d1 * mu[j][2];
-            zajx = delx * (-qtmp * d1 + d2 * pidotr) - d1 * mu[i][0];
-            zajy = dely * (-qtmp * d1 + d2 * pidotr) - d1 * mu[i][1];
-            zajz = delz * (-qtmp * d1 + d2 * pidotr) - d1 * mu[i][2];
 
             if (factor_coul > 0.0) {
               facm1 = 1.0 - factor_coul;
@@ -340,14 +324,10 @@ void PairLJCutDipoleLongGPU::cpu_compute(int start, int inum, int eflag, int vfl
               zaix *= facm1;
               zaiy *= facm1;
               zaiz *= facm1;
-              zajx *= facm1;
-              zajy *= facm1;
-              zajz *= facm1;
             }
           } else {
             fax = fay = faz = 0.0;
             zaix = zaiy = zaiz = 0.0;
-            zajx = zajy = zajz = 0.0;
           }
 
           forcecoulx = fdx + fax;

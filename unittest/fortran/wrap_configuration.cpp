@@ -234,7 +234,7 @@ TEST_F(LAMMPS_configuration, style_count)
 {
     Info info(lmp);
     for (const auto &c : style_category)
-        EXPECT_EQ(f_lammps_style_count(c.c_str()), info.get_available_styles(c.c_str()).size());
+        EXPECT_EQ(f_lammps_style_count(c.c_str()), info.get_available_styles(c).size());
 };
 
 TEST_F(LAMMPS_configuration, style_name)

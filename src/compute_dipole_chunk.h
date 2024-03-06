@@ -23,7 +23,6 @@ ComputeStyle(dipole/chunk,ComputeDipoleChunk);
 #include "compute_chunk.h"
 
 namespace LAMMPS_NS {
-class Fix;
 
 class ComputeDipoleChunk : public ComputeChunk {
  public:
@@ -43,8 +42,6 @@ class ComputeDipoleChunk : public ComputeChunk {
 
   void allocate() override;
 };
-
 }    // namespace LAMMPS_NS
-
 #endif
 #endif

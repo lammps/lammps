@@ -36,7 +36,7 @@ Examples
 Description
 """""""""""
 
-.. versionadded:: TBD
+.. versionadded:: 7Feb2024
 
 This compute calculates a set of quantities related to the atomic
 cluster expansion (ACE) descriptors of the atoms in a group.  ACE

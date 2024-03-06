@@ -19,10 +19,10 @@
 #include "compute_mliap.h"
 
 #include "mliap_data.h"
-#include "mliap_model_linear.h"
-#include "mliap_model_quadratic.h"
 #include "mliap_descriptor_snap.h"
 #include "mliap_descriptor_so3.h"
+#include "mliap_model_linear.h"
+#include "mliap_model_quadratic.h"
 #ifdef MLIAP_PYTHON
 #include "mliap_model_python.h"
 #endif
@@ -34,6 +34,7 @@
 #include "memory.h"
 #include "modify.h"
 #include "neighbor.h"
+#include "neigh_list.h"
 #include "pair.h"
 #include "update.h"
 
@@ -41,17 +42,17 @@
 
 using namespace LAMMPS_NS;
 
-enum{SCALAR,VECTOR,ARRAY};
+enum { SCALAR, VECTOR, ARRAY };
 
 ComputeMLIAP::ComputeMLIAP(LAMMPS *lmp, int narg, char **arg) :
-  Compute(lmp, narg, arg), mliaparray(nullptr),
-  mliaparrayall(nullptr), map(nullptr)
+    Compute(lmp, narg, arg), mliaparray(nullptr), mliaparrayall(nullptr), list(nullptr),
+    map(nullptr), model(nullptr), descriptor(nullptr), data(nullptr), c_pe(nullptr),
+    c_virial(nullptr)
 {
   array_flag = 1;
   extarray = 0;
 
-  if (narg < 4)
-    error->all(FLERR,"Illegal compute mliap command");
+  if (narg < 4) utils::missing_cmd_args(FLERR, "compute mliap", error);
 
   // default values
 
@@ -130,7 +131,6 @@ ComputeMLIAP::ComputeMLIAP(LAMMPS *lmp, int narg, char **arg) :
 
 ComputeMLIAP::~ComputeMLIAP()
 {
-
   modify->delete_compute(id_virial);
 
   memory->destroy(mliaparray);
@@ -180,23 +180,13 @@ void ComputeMLIAP::init()
 
   // find compute for reference energy
 
-  std::string id_pe = std::string("thermo_pe");
-  int ipe = modify->find_compute(id_pe);
-  if (ipe == -1)
-    error->all(FLERR,"compute thermo_pe does not exist.");
-  c_pe = modify->compute[ipe];
+  c_pe = modify->get_compute_by_id("thermo_pe");
+  if (!c_pe) error->all(FLERR,"Compute thermo_pe does not exist.");
 
   // add compute for reference virial tensor
 
   id_virial = id + std::string("_press");
-  std::string pcmd = id_virial + " all pressure NULL virial";
-  modify->add_compute(pcmd);
-
-  int ivirial = modify->find_compute(id_virial);
-  if (ivirial == -1)
-    error->all(FLERR,"compute mliap_press does not exist.");
-  c_virial = modify->compute[ivirial];
-
+  c_virial = modify->add_compute(id_virial + " all pressure NULL virial");
 }
 
 

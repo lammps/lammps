@@ -64,26 +64,34 @@ FixBalance::FixBalance(LAMMPS *lmp, int narg, char **arg) :
   reportonly = 0;
   if (strcmp(arg[5],"shift") == 0) {
     lbstyle = SHIFT;
-  } else if (strcmp(arg[5],"shift/report") == 0) {
-    lbstyle = SHIFT;
-    reportonly = 1;
   } else if (strcmp(arg[5],"rcb") == 0) {
     lbstyle = BISECTION;
-  } else if (strcmp(arg[5],"rcb/report") == 0) {
-    lbstyle = BISECTION;
+  } else if (strcmp(arg[5],"report") == 0) {
+    lbstyle = SHIFT;
     reportonly = 1;
   } else error->all(FLERR,"Unknown fix balance style {}", arg[5]);
 
   int iarg = 5;
   if (lbstyle == SHIFT) {
-    if (iarg+4 > narg) utils::missing_cmd_args(FLERR, "fix balance shift", error);
-    bstr = arg[iarg+1];
-    if (bstr.size() > Balance::BSTR_SIZE) error->all(FLERR,"Illegal fix balance shift command");
-    nitermax = utils::inumeric(FLERR,arg[iarg+2],false,lmp);
-    if (nitermax <= 0) error->all(FLERR,"Illegal fix balance command");
-    stopthresh = utils::numeric(FLERR,arg[iarg+3],false,lmp);
-    if (stopthresh < 1.0) error->all(FLERR,"Illegal fix balance command");
-    iarg += 4;
+    if (reportonly) {
+      if (dimension == 2)
+        bstr = "xy";
+      else
+        bstr = "xyz";
+      nitermax = 5;
+      stopthresh = 1.1;
+      iarg++;
+    } else {
+      if (iarg+4 > narg) utils::missing_cmd_args(FLERR, "fix balance shift", error);
+      bstr = arg[iarg+1];
+      if (bstr.size() > Balance::BSTR_SIZE) error->all(FLERR,"Illegal fix balance shift command");
+      nitermax = utils::inumeric(FLERR,arg[iarg+2],false,lmp);
+      if (nitermax <= 0) error->all(FLERR,"Illegal fix balance command");
+      stopthresh = utils::numeric(FLERR,arg[iarg+3],false,lmp);
+      if (stopthresh < 1.0) error->all(FLERR,"Illegal fix balance command");
+      iarg += 4;
+    }
+
   } else if (lbstyle == BISECTION) {
     iarg++;
   }

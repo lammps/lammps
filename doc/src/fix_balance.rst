@@ -14,15 +14,15 @@ Syntax
 * balance = style name of this fix command
 * Nfreq = perform dynamic load balancing every this many steps
 * thresh = imbalance threshold that must be exceeded to perform a re-balance
-* style = *shift* *shift/report* or *rcb* or *rcb/report*
-
+* style = *shift* or *rcb* or *report*
   .. parsed-literal::
 
-       *shift* or *shift/report* args = dimstr Niter stopthresh
+       *shift* args = dimstr Niter stopthresh
          dimstr = sequence of letters containing *x* or *y* or *z*, each not more than once
          Niter = # of times to iterate within each dimension of dimstr sequence
          stopthresh = stop balancing when this imbalance threshold is reached
-       *rcb* or *rcb/report* args = none
+       *rcb* args = none
+       *report* args = none
 
 * zero or more keyword/arg pairs may be appended
 * keyword = *weight* or *out*
@@ -72,10 +72,10 @@ perform "static" balancing, before or between runs, see the
 
 .. versionadded:: TBD
 
-The *shift/report* and *rcb/report* styles only compute the
-load imbalance but do not attempt any re-balancing.  This way
-the load imbalance information can be used otherwise, for
-instance for stopping a run with :doc:`fix halt <fix_halt>`.
+The *report* balance style only computes the load imbalance but
+does not attempt any re-balancing.  This way the load imbalance
+information can be used otherwise, for instance for stopping a
+run with :doc:`fix halt <fix_halt>`.
 
 Load-balancing is typically most useful if the particles in the
 simulation box have a spatially-varying density distribution or

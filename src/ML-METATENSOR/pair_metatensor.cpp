@@ -49,19 +49,19 @@ PairMetatensor::PairMetatensor(LAMMPS *lmp) : Pair(lmp) {
     this->evaluation_options = torch::make_intrusive<metatensor_torch::ModelEvaluationOptionsHolder>();
     auto energy_unit = std::string();
     if (strcmp(update->unit_style, "real") == 0) {
-        this->evaluation_options->length_unit = "angstrom";
+        this->evaluation_options->set_length_unit("angstrom");
         energy_unit = "kcal/mol";
     } else if (strcmp(update->unit_style, "metal") == 0) {
-        this->evaluation_options->length_unit = "angstrom";
+        this->evaluation_options->set_length_unit("angstrom");
         energy_unit = "eV";
     } else if (strcmp(update->unit_style, "si") == 0) {
-        this->evaluation_options->length_unit = "meter";
+        this->evaluation_options->set_length_unit("meter");
         energy_unit = "joule";
     } else if (strcmp(update->unit_style, "cgs") == 0) {
-        this->evaluation_options->length_unit = "centimeter";
+        this->evaluation_options->set_length_unit("centimeter");
         energy_unit = "erg";
     } else if (strcmp(update->unit_style, "electron") == 0) {
-        this->evaluation_options->length_unit = "Bohr";
+        this->evaluation_options->set_length_unit("Bohr");
         energy_unit = "Hartree";
     } else {
         error->all(FLERR, "unsupported units '{}' for pair metatensor ", update->unit_style);
@@ -69,8 +69,8 @@ PairMetatensor::PairMetatensor(LAMMPS *lmp) : Pair(lmp) {
 
     auto output = torch::make_intrusive<metatensor_torch::ModelOutputHolder>();
     output->explicit_gradients = {};
-    output->quantity = "energy";
-    output->unit = std::move(energy_unit);
+    output->set_quantity("energy");
+    output->set_unit(std::move(energy_unit));
     output->per_atom = false; // TODO, make this configurable
 
     this->evaluation_options->outputs.insert("energy", output);
@@ -175,10 +175,7 @@ void PairMetatensor::init_style() {
 
     // TODO: explain
     int n_requests = 0;
-    auto requested_nl = this->torch_model->run_method(
-        "requested_neighbors_lists",
-        this->evaluation_options->length_unit
-    );
+    auto requested_nl = this->torch_model->run_method("requested_neighbors_lists");
     for (const auto& ivalue: requested_nl.toList()) {
         auto options = ivalue.get().toCustomClass<metatensor_torch::NeighborsListOptionsHolder>();
         this->neigh_options.emplace_back(options);
@@ -188,7 +185,7 @@ void PairMetatensor::init_style() {
         // the pairs to only include each pair once where needed.
         auto request = neighbor->add_request(this, NeighConst::REQ_FULL);
         request->set_id(n_requests);
-        request->set_cutoff(options->engine_cutoff());
+        request->set_cutoff(options->engine_cutoff(this->evaluation_options->length_unit()));
 
         n_requests += 1;
     }
@@ -204,7 +201,7 @@ void PairMetatensor::init_list(int id, NeighList *ptr) {
 
 
 double PairMetatensor::init_one(int /*i*/, int /*j*/) {
-    auto range = this->capabilities->engine_interaction_range();
+    auto range = this->capabilities->engine_interaction_range(this->evaluation_options->length_unit());
 
     if (range < 0) {
         error->all(FLERR, "interaction_range is negative for this model");
@@ -305,10 +302,7 @@ void PairMetatensor::load_torch_model(const char* path) {
         error->all(FLERR, "failed to load metatensor model at '{}': {}", path, e.what());
     }
 
-    auto capabilities_ivalue = this->torch_model->run_method(
-        "capabilities",
-        this->evaluation_options->length_unit
-    );
+    auto capabilities_ivalue = this->torch_model->run_method("capabilities");
 
     this->capabilities = capabilities_ivalue.toCustomClass<metatensor_torch::ModelCapabilitiesHolder>();
 
@@ -420,7 +414,18 @@ metatensor_torch::System PairMetatensor::system_from_lmp() {
         auto* list = this->neigh_lists[i];
         auto& cache = this->neigh_data_cache[i];
 
-        auto cutoff2 = options->engine_cutoff() * options->engine_cutoff();
+        if (cache.cutoff < 0) {
+            cache.cutoff = options->engine_cutoff(this->evaluation_options->length_unit());
+            if (cache.cutoff < 0 || !std::isfinite(cache.cutoff)) {
+                error->all(FLERR,
+                    "model requested an invalid cutoff for neighbors list: {} "
+                    "(cutoff in model units is {})",
+                    cache.cutoff, options->cutoff()
+                );
+            }
+        }
+
+        auto cutoff2 = cache.cutoff * cache.cutoff;
 
         // convert from LAMMPS neighbors list to metatensor format
         cache.samples.clear();

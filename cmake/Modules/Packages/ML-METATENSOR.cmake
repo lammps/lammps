@@ -1,19 +1,30 @@
 include(FetchContent)
-set(BUILD_METATENSOR_TORCH ON)
+
+set(URL_BASE "https://github.com/lab-cosmo/metatensor/releases/download")
+
+set(METATENSOR_CORE_VERSION "0.1.4")
 FetchContent_Declare(metatensor
-    GIT_REPOSITORY https://github.com/lab-cosmo/metatensor
-    GIT_TAG        6c807e1550fac9c309cd2e78930a2d9610240feb
-    GIT_SHALLOW    ON
+    URL ${URL_BASE}/metatensor-core-v${METATENSOR_CORE_VERSION}/metatensor-core-cxx-${METATENSOR_CORE_VERSION}.tar.gz
+    URL_HASH SHA1=fd896b3f63911761e82ff56be612a8a19143ce6d
 )
 
-message(STATUS "Fetching metatensor from github")
+message(STATUS "Fetching metatensor v${METATENSOR_CORE_VERSION} from github")
 FetchContent_MakeAvailable(metatensor)
+
+
+set(METATENSOR_TORCH_VERSION "0.3.0")
+FetchContent_Declare(metatensor-torch
+    URL ${URL_BASE}/metatensor-torch-v${METATENSOR_TORCH_VERSION}/metatensor-torch-cxx-${METATENSOR_TORCH_VERSION}.tar.gz
+    URL_HASH SHA1=a0c4891776766a3691106ba5c7131481291d11a1
+)
+
+message(STATUS "Fetching metatensor-torch v${METATENSOR_TORCH_VERSION} from github")
+FetchContent_MakeAvailable(metatensor-torch)
+
 
 ################ lammps target modifications ################
 
-# find_package(metatensor_torch)
 target_link_libraries(lammps PRIVATE metatensor_torch)
-
 
 if (BUILD_OMP AND APPLE)
     message(FATAL_ERROR

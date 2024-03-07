@@ -48,6 +48,7 @@ private:
 
     // cached allocations for the neighbors list TensorBlock
     struct NeighborsData {
+        double cutoff = -1;
         std::vector<int32_t> samples;
         std::vector<double> distances;
     };

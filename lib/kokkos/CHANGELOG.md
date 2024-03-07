@@ -1,5 +1,26 @@
 # CHANGELOG
 
+## [4.2.01](https://github.com/kokkos/kokkos/tree/4.2.01) (2023-12-07)
+[Full Changelog](https://github.com/kokkos/kokkos/compare/4.2.00...4.2.01)
+
+### Backend and Architecture Enhancements:
+
+#### CUDA:
+- Add warp sync for `parallel_reduce` to avoid race condition [\#6630](https://github.com/kokkos/kokkos/pull/6630), [\#6746](https://github.com/kokkos/kokkos/pull/6746)
+
+#### HIP:
+- Fix Graph "multiple definition of" linking error (missing `inline` specifier) [\#6624](https://github.com/kokkos/kokkos/pull/6624)
+- Add support for gfx940 (AMD Instinct MI300 GPU) [\#6671](https://github.com/kokkos/kokkos/pull/6671)
+
+### Build System
+- CMake: Don't let Kokkos set `CMAKE_CXX_FLAGS` for Trilinos builds [\#6742](https://github.com/kokkos/kokkos/pull/6742)
+
+### Bug Fixes
+- Remove deprecation warning for `AllocationMechanism` for GCC <11.0 [\#6653](https://github.com/kokkos/kokkos/pull/6653)
+- Fix bug early tools finalize with non-default host execution instances [\#6635](https://github.com/kokkos/kokkos/pull/6635)
+- Fix various issues for MSVC CUDA builds [\#6659](https://github.com/kokkos/kokkos/pull/6659)
+- Fix "extra `;`" warning with `-pedantic` flag in `<Kokkos_SIMD_Scalar.hpp>` [\#6510](https://github.com/kokkos/kokkos/pull/6510)
+
 ## [4.2.00](https://github.com/kokkos/kokkos/tree/4.2.00) (2023-11-06)
 [Full Changelog](https://github.com/kokkos/kokkos/compare/4.1.00...4.2.00)
 
@@ -43,7 +64,7 @@
 
 #### SYCL:
 - Enforce external `sycl::queues` to be in-order [\#6246](https://github.com/kokkos/kokkos/pull/6246)
-- Improve reduction performance: [\#6272](https://github.com/kokkos/kokkos/pull/6272) [\#6271](https://github.com/kokkos/kokkos/pull/6271) [\#6270](https://github.com/kokkos/kokkos/pull/6270) [\#6264](https://github.com/kokkos/kokkos/pull/6264) 
+- Improve reduction performance: [\#6272](https://github.com/kokkos/kokkos/pull/6272) [\#6271](https://github.com/kokkos/kokkos/pull/6271) [\#6270](https://github.com/kokkos/kokkos/pull/6270) [\#6264](https://github.com/kokkos/kokkos/pull/6264)
 - Allow using the SYCL execution space on AMD GPUs [\#6321](https://github.com/kokkos/kokkos/pull/6321)
 - Allow sorting via native oneDPL to support Views with stride=1 [\#6322](https://github.com/kokkos/kokkos/pull/6322)
 - Make in-order queues the default via macro [\#6189](https://github.com/kokkos/kokkos/pull/6189)
@@ -64,7 +85,7 @@
 - Add converting assignment to `DualView`:  [\#6474](https://github.com/kokkos/kokkos/pull/6474)
 
 
-### Build System Changes 
+### Build System Changes
 
 - Export `Kokkos_CXX_COMPILER_VERSION` [\#6282](https://github.com/kokkos/kokkos/pull/6282)
 - Disable default oneDPL support in Trilinos [\#6342](https://github.com/kokkos/kokkos/pull/6342)

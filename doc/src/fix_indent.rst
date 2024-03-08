@@ -44,8 +44,8 @@ Syntax
   .. parsed-literal::
 
        *side* value = *in* or *out*
-         *in* = the indenter acts on particles inside the sphere or cylinder
-         *out* = the indenter acts on particles outside the sphere or cylinder
+         *in* = the indenter acts on particles inside the sphere or cylinder or cone
+         *out* = the indenter acts on particles outside the sphere or cylinder or cone
        *units* value = *lattice* or *box*
          lattice = the geometry is defined in lattice units
          box = the geometry is defined in simulation box units
@@ -64,7 +64,7 @@ Description
 
 Insert an indenter within a simulation box.  The indenter repels all
 atoms in the group that touch it, so it can be used to push into a
-material or as an obstacle in a flow.  Or it can be used as a
+material or as an obstacle in a flow.  Alternatively, it can be used as a
 constraining wall around a simulation; see the discussion of the
 *side* keyword below.
 

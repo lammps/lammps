@@ -65,7 +65,7 @@ FixIndent::FixIndent(LAMMPS *lmp, int narg, char **arg) :
 
   int iarg = geometry(narg-4,&arg[4]) + 4;
   options(narg-iarg,&arg[iarg]);
-  
+
   // setup scaling
 
   const double xscale { scaleflag ? domain->lattice->xlattice : 1.0};
@@ -268,7 +268,7 @@ void FixIndent::post_force(int /*vflag*/)
   if (istyle == SPHERE) {
 
     // remap indenter center into periodic box
-    
+
     domain->remap(ctr);
 
     double radius { rstr ? input->variable->compute_equal(rvar) : rvalue};
@@ -388,7 +388,7 @@ void FixIndent::post_force(int /*vflag*/)
 
         // compute the force from the center of the cone
         // this is different from how it is done in fix wall/region
-        
+
         dr = sqrt(x0[0] * x0[0] + x0[1] * x0[1] + x0[2] * x0[2]);
 
         int force_sign = { point_inside_cone ? 1 : -1 };
@@ -509,7 +509,7 @@ int FixIndent::geometry(int narg, char **arg)
   }
 
   // cylinder
-  
+
   if (strcmp(arg[0],"cylinder") == 0) {
     if (istyle != NONE) error->all(FLERR, "Fix indent requires a single geometry keyword");
     if (5 > narg) utils::missing_cmd_args(FLERR, "fix indent cylinder", error);
@@ -539,21 +539,21 @@ int FixIndent::geometry(int narg, char **arg)
           ystr = utils::strdup(arg[3]+2);
         } else yvalue = utils::numeric(FLERR,arg[3],false,lmp);
     } else error->all(FLERR,"Unknown fix indent cylinder argument: {}", arg[1]);
-    
+
     if (utils::strmatch(arg[4],"^v_")) {
       rstr = utils::strdup(arg[4]+2);
     } else rvalue = utils::numeric(FLERR,arg[4],false,lmp);
-    
+
     istyle = CYLINDER;
     return 5;
   }
 
   // cone
-  
+
   if (strcmp(arg[0],"cone") == 0) {
     if (istyle != NONE) error->all(FLERR, "Fix indent requires a single geometry keyword");
     if (8 > narg) utils::missing_cmd_args(FLERR, "fix indent cone", error);
-    
+
     if (strcmp(arg[1],"x") == 0) {
       cdim = 0;
       if (utils::strmatch(arg[2],"^v_")) {
@@ -562,7 +562,7 @@ int FixIndent::geometry(int narg, char **arg)
       if (utils::strmatch(arg[3],"^v_")) {
         zstr = utils::strdup(arg[3]+2);
       } else zvalue = utils::numeric(FLERR,arg[3],false,lmp);
-      
+
     } else if (strcmp(arg[1],"y") == 0) {
       cdim = 1;
       if (utils::strmatch(arg[2],"^v_")) {
@@ -571,7 +571,7 @@ int FixIndent::geometry(int narg, char **arg)
       if (utils::strmatch(arg[3],"^v_")) {
         zstr = utils::strdup(arg[3]+2);
       } else zvalue = utils::numeric(FLERR,arg[3],false,lmp);
-      
+
     } else if (strcmp(arg[1],"z") == 0) {
       cdim = 2;
       if (utils::strmatch(arg[2],"^v_")) {
@@ -580,9 +580,9 @@ int FixIndent::geometry(int narg, char **arg)
       if (utils::strmatch(arg[3],"^v_")) {
         ystr = utils::strdup(arg[3]+2);
       } else yvalue = utils::numeric(FLERR,arg[3],false,lmp);
-      
+
     } else error->all(FLERR,"Unknown fix indent cone argument: {}", arg[1]);
-    
+
     if (utils::strmatch(arg[4],"^v_")) {
       rlostr = utils::strdup(arg[4]+2);
     } else rlovalue = utils::numeric(FLERR,arg[4],false,lmp);
@@ -638,7 +638,7 @@ void FixIndent::options(int narg, char **arg)
   side = OUTSIDE;
 
   int iarg = 0;
-  
+
   while (iarg < narg) {
     if (strcmp(arg[iarg],"units") == 0) {
       if (iarg+2 > narg) utils::missing_cmd_args(FLERR, "fix indent units", error);
@@ -653,7 +653,7 @@ void FixIndent::options(int narg, char **arg)
       else if (strcmp(arg[iarg+1],"out") == 0) side = OUTSIDE;
       else error->all(FLERR,"Unknown fix indent side argument: {}", arg[iarg+1]);
       iarg += 2;
-      
+
     } else error->all(FLERR,"Unknown fix indent argument: {}", arg[iarg]);
   }
 }
@@ -712,21 +712,21 @@ void FixIndent::DistanceExteriorPoint(int dir, double *center, double lo, double
   corner4[dir] = hi;
 
   // initialize distance to a big number
-  
+
   double distsq = 1.0e20;
 
   // check the first triangle
-  
+
   point_on_line_segment(corner1, corner2, point, xp);
   distsq = closest(point, xp, nearest, distsq);
 
   // check the second triangle
-  
+
   point_on_line_segment(corner1, corner3, point, xp);
   distsq = closest(point, xp, nearest, distsq);
 
   // check the third triangle
-  
+
   point_on_line_segment(corner2, corner4, point, xp);
   distsq = closest(point, xp, nearest, distsq);
 
@@ -751,7 +751,7 @@ void FixIndent::DistanceInteriorPoint(int dir, double *center,
   double point[3] {0.0, 0.0, 0.0};
 
   // initial check with the two disks
-  
+
   if ( (initial_point[dir] - lo) < (hi - initial_point[dir]) ) {
     dist_disk = (initial_point[dir] - lo) * (initial_point[dir] - lo);
     point[dir] = initial_point[dir] - lo;
@@ -761,7 +761,7 @@ void FixIndent::DistanceInteriorPoint(int dir, double *center,
   }
 
   // check with the points in the conical surface
-  
+
   double del[3] {x - center[0], y - center[1], z - center[2]};
   del[dir] = 0.0;
   r = sqrt(del[0] * del[0] + del[1] * del[1] + del[2] * del[2]);

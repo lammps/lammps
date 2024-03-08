@@ -173,7 +173,8 @@ void PairMetatensor::init_style() {
         error->all(FLERR, "Pair style metatensor requires newton pair on");
     }
 
-    // TODO: explain
+    // Translate from the metatensor neighbors lists requests to LAMMPS
+    // neighbors lists requests.
     int n_requests = 0;
     auto requested_nl = this->torch_model->run_method("requested_neighbors_lists");
     for (const auto& ivalue: requested_nl.toList()) {
@@ -481,8 +482,33 @@ metatensor_torch::System PairMetatensor::system_from_lmp() {
                     shift_c = static_cast<int32_t>(std::round(cell_shift[2]));
 
                     if (!options->full_list() && original_atom_i == original_atom_j) {
-                        if (shift_a < 0 || shift_b < 0 || shift_c < 0) {
-                            // TODO: explain
+                        // If a half neighbors list has been requested, do
+                        // not include the same pair between an atom and
+                        // it's periodic image twice with opposite cell
+                        // shifts (e.g. [1, -1, 1] and [-1, 1, -1]).
+                        //
+                        // Instead we pick pairs in the positive plan of
+                        // shifts.
+                        if (shift_a + shift_b + shift_c < 0) {
+                            // drop shifts on the negative half-space
+                            continue;
+                        }
+
+                        if ((shift_a + shift_b + shift_c == 0)
+                            && (shift_c < 0 || (shift_c == 0 && shift_b < 0))) {
+                            // drop shifts in the negative half plane or the
+                            // negative shift[1] axis. See below for a
+                            // graphical representation: we are keeping the
+                            // shifts indicated with `O` and dropping the
+                            // ones indicated with `X`
+                            //
+                            //  O O O │ O O O
+                            //  O O O │ O O O
+                            //  O O O │ O O O
+                            // ─X─X─X─┼─O─O─O─
+                            //  X X X │ X X X
+                            //  X X X │ X X X
+                            //  X X X │ X X X
                             continue;
                         }
                     }

@@ -71,7 +71,7 @@ PairMetatensor::PairMetatensor(LAMMPS *lmp) : Pair(lmp) {
     output->explicit_gradients = {};
     output->set_quantity("energy");
     output->set_unit(std::move(energy_unit));
-    output->per_atom = false; // TODO, make this configurable
+    output->per_atom = false;
 
     this->evaluation_options->outputs.insert("energy", output);
 
@@ -223,6 +223,12 @@ void PairMetatensor::compute(int eflag, int vflag) {
         evflag = vflag_fdotr = eflag_global = eflag_atom = 0;
     }
 
+    if (eflag_atom) {
+        this->evaluation_options->outputs.at("energy")->per_atom = true;
+    } else {
+        this->evaluation_options->outputs.at("energy")->per_atom = false;
+    }
+
     // transform from LAMMPS to metatensor System
     auto system = this->system_from_lmp();
 
@@ -251,29 +257,35 @@ void PairMetatensor::compute(int eflag, int vflag) {
     auto result = result_ivalue.toGenericDict();
     auto energy = result.at("energy").toCustomClass<metatensor_torch::TensorMapHolder>();
     auto energy_tensor = metatensor_torch::TensorMapHolder::block_by_id(energy, 0)->values();
+    energy_tensor = energy_tensor.to(torch::kCPU).to(torch::kFloat64);
 
-    // store the global energy returned by the model
+    // store the energy returned by the model
+    torch::Tensor global_energy;
+    if (eflag_atom) {
+        auto energies = energy_tensor.accessor<double, 2>();
+        for (int i=0; i<atom->nlocal + atom->nghost; i++) {
+            eatom[i] += energies[i][0];
+        }
+
+        global_energy = energy_tensor.sum(0);
+        assert(energy_tensor.sizes() == std::vector<int64_t>({1}));
+    } else {
+        assert(energy_tensor.sizes() == std::vector<int64_t>({1, 1}));
+        global_energy = energy_tensor.reshape({1});
+    }
+
     if (eflag_global) {
         eng_vdwl += energy_tensor.item<double>();
     }
 
-    if (eflag_atom) {
-        error->all(FLERR, "per atom energy is not implemented yet");
-    }
-
-    if (system->positions().size(0) != 0) {
-        // if we have 0 atoms, we lost all of them! We'll let LAMMPS check for
-        // this and report it later.
-
-        energy_tensor.backward(-torch::ones_like(energy_tensor));
-
-        auto forces_tensor = system->positions().grad().reshape({-1, 3});
-        auto forces = forces_tensor.accessor<double, 2>();
-        for (int i=0; i<atom->nlocal + atom->nghost; i++) {
-            atom->f[i][0] += forces[i][0];
-            atom->f[i][1] += forces[i][1];
-            atom->f[i][2] += forces[i][2];
-        }
+    // compute forces/virial with backward propagation
+    energy_tensor.backward(-torch::ones_like(energy_tensor));
+    auto forces_tensor = system->positions().grad();
+    auto forces = forces_tensor.accessor<double, 2>();
+    for (int i=0; i<atom->nlocal + atom->nghost; i++) {
+        atom->f[i][0] += forces[i][0];
+        atom->f[i][1] += forces[i][1];
+        atom->f[i][2] += forces[i][2];
     }
 
     assert(!vflag_fdotr);

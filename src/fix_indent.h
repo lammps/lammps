@@ -54,12 +54,12 @@ class FixIndent : public Fix {
   double rlovalue, rhivalue, lovalue, hivalue;
 
   // methods for argument parsing
-  
+
   int geometry(int, char **);
   void options(int, char **);
 
   // methods for conical indenter
-  
+
   bool PointInsideCone(int, double *, double, double, double, double, double *);
   void DistanceExteriorPoint(int, double *, double, double, double, double,
                              double &, double &, double &);

@@ -230,7 +230,7 @@ void PairMetatensor::compute(int eflag, int vflag) {
     }
 
     // transform from LAMMPS to metatensor System
-    auto system = this->system_from_lmp();
+    auto system = this->system_from_lmp(static_cast<bool>(vflag_global));
 
     // only run the calculation for atoms actually in the current domain
     selected_atoms_values.resize_({atom->nlocal, 2});
@@ -291,7 +291,16 @@ void PairMetatensor::compute(int eflag, int vflag) {
     assert(!vflag_fdotr);
 
     if (vflag_global) {
-        error->warning(FLERR, "virial is not implemented yet");
+        auto virial_tensor = this->strain.grad();
+        auto predicted_virial = virial_tensor.accessor<double, 2>();
+
+        virial[0] += predicted_virial[0][0];
+        virial[1] += predicted_virial[1][1];
+        virial[2] += predicted_virial[2][2];
+
+        virial[3] += 0.5 * (predicted_virial[1][0] + predicted_virial[0][1]);
+        virial[4] += 0.5 * (predicted_virial[2][0] + predicted_virial[0][2]);
+        virial[5] += 0.5 * (predicted_virial[2][1] + predicted_virial[1][2]);
     }
 
     if (vflag_atom) {
@@ -361,7 +370,7 @@ void PairMetatensor::load_torch_model(const char* path) {
 }
 
 
-metatensor_torch::System PairMetatensor::system_from_lmp() {
+metatensor_torch::System PairMetatensor::system_from_lmp(bool do_virial) {
     double** x = atom->x;
 
     auto n_atoms = atom->nlocal + atom->nghost;
@@ -371,18 +380,17 @@ metatensor_torch::System PairMetatensor::system_from_lmp() {
         this->atomic_types[i] = this->lammps_to_metatensor_types[atom->type[i]];
     }
 
+    auto tensor_options = torch::TensorOptions().dtype(torch::kFloat64).device(torch::kCPU);
+
     // atom->x contains "real" and then ghost atoms, in that order
     auto positions = torch::from_blob(
         *x, {n_atoms, 3},
+        [](void*) { std::cout << "deleting positions" << std::endl; },
         // requires_grad=true since we always need gradients w.r.t. positions
-        torch::TensorOptions().dtype(torch::kDouble).requires_grad(true)
+        tensor_options.requires_grad(true)
     );
 
-    auto cell = torch::zeros(
-        {3, 3},
-        torch::TensorOptions().dtype(torch::kDouble)
-    );
-
+    auto cell = torch::zeros({3, 3}, tensor_options);
     cell[0][0] = domain->xprd;
 
     cell[1][0] = domain->xy;
@@ -393,6 +401,17 @@ metatensor_torch::System PairMetatensor::system_from_lmp() {
     cell[2][2] = domain->zprd;
 
     auto cell_inv = cell.inverse().t();
+
+    if (do_virial) {
+        this->strain = torch::eye(3, tensor_options.requires_grad(true));
+
+        // pretend to scale positions/cell by the strain so that it enters the
+        // computational graph.
+        positions = positions.matmul(this->strain);
+        positions.retain_grad();
+
+        cell = cell.matmul(this->strain);
+    }
 
     auto system = torch::make_intrusive<metatensor_torch::SystemHolder>(atomic_types, positions, cell);
 

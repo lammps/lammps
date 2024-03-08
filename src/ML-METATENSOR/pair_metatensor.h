@@ -44,7 +44,7 @@ public:
 
 private:
     void load_torch_model(const char* path);
-    metatensor_torch::System system_from_lmp();
+    metatensor_torch::System system_from_lmp(bool do_virial);
 
     // cached allocations for the neighbors list TensorBlock
     struct NeighborsData {
@@ -66,6 +66,9 @@ private:
     // various allocation caches
     torch::Tensor selected_atoms_values;
     torch::Tensor atomic_types;
+
+    // explicit strain for virial calculations
+    torch::Tensor strain;
 
     // mapping from LAMMPS types to metatensor types
     int32_t* lammps_to_metatensor_types = nullptr;

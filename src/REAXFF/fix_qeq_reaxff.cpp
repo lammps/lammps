@@ -141,7 +141,7 @@ FixQEqReaxFF::FixQEqReaxFF(LAMMPS *lmp, int narg, char **arg) :
   // perform initial allocation of atom-based arrays
   // register with Atom class
 
-  reaxff = dynamic_cast<PairReaxFF *>(force->pair_match("^reax..",0));
+  reaxff = dynamic_cast<PairReaxFF *>(force->pair_match("^reaxff",0));
 
   s_hist = t_hist = nullptr;
   atom->add_callback(Atom::GROW);
@@ -217,6 +217,8 @@ void FixQEqReaxFF::pertype_parameters(char *arg)
     if (chi == nullptr || eta == nullptr || gamma == nullptr)
       error->all(FLERR, "Fix qeq/reaxff could not extract params from pair reaxff");
     return;
+  } else if (utils::strmatch(arg,"^reax/c")) {
+    error->all(FLERR, "Fix qeq/reaxff keyword 'reax/c' is obsolete; please use 'reaxff'");
   }
 
   reaxflag = 0;

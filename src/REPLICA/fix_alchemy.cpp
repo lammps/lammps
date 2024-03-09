@@ -21,7 +21,6 @@
 #include "input.h"
 #include "memory.h"
 #include "modify.h"
-#include "respa.h"
 #include "universe.h"
 #include "update.h"
 #include "variable.h"

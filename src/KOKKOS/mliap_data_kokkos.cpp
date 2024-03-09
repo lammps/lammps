@@ -22,8 +22,6 @@
 #include "kokkos_type.h"
 #include "pair_mliap_kokkos.h"
 #include "atom_masks.h"
-#include "mliap_descriptor.h"
-#include "lammps.h"
 #include "kokkos.h"
 
 /* ---------------------------------------------------------------------- */
@@ -59,7 +57,6 @@ MLIAPDataKokkos<DeviceType>::~MLIAPDataKokkos() {
   memoryKK->destroy_kokkos(k_pair_i,pair_i);
   memoryKK->destroy_kokkos(k_jelems,jelems);
   memoryKK->destroy_kokkos(k_elems,elems);
-  memoryKK->destroy_kokkos(k_ij);
   memoryKK->destroy_kokkos(k_rij,rij);
   memoryKK->destroy_kokkos(k_graddesc,graddesc);
 }
@@ -213,7 +210,6 @@ void MLIAPDataKokkos<DeviceType>::grow_neigharrays() {
     memoryKK->create_kokkos(k_iatoms, iatoms, natomneigh_max, "mliap_data:iatoms");
     memoryKK->destroy_kokkos(k_ielems,ielems);
     memoryKK->create_kokkos(k_ielems, ielems, natomneigh_max, "mliap_data:ielems");
-    memoryKK->destroy_kokkos(k_ij);
     memoryKK->create_kokkos(k_ij, natomneigh_max, "mliap_data:ij");
     memoryKK->destroy_kokkos(k_numneighs,numneighs);
     memoryKK->create_kokkos(k_numneighs, numneighs, natomneigh_max, "mliap_data:numneighs");

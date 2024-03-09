@@ -41,7 +41,6 @@
 #include "random_mars.h"
 #include "universe.h"
 #include "update.h"
-#include "utils.h"
 
 #include <cmath>
 #include <cstring>

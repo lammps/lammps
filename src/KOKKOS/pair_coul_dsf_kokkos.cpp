@@ -20,7 +20,6 @@
 
 #include "atom_kokkos.h"
 #include "atom_masks.h"
-#include "error.h"
 #include "ewald_const.h"
 #include "force.h"
 #include "kokkos.h"

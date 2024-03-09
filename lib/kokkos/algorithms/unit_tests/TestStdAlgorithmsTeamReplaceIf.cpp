@@ -103,7 +103,7 @@ void test_A(std::size_t numTeams, std::size_t numCols, int apiId) {
       stdDataView(i, j) = cloneOfDataViewBeforeOp_h(i, j);
     }
   }
-  GreaterThanValueFunctor predicate(threshold);
+  GreaterThanValueFunctor<ValueType> predicate(threshold);
   for (std::size_t i = 0; i < dataView.extent(0); ++i) {
     auto thisRow = Kokkos::subview(stdDataView, i, Kokkos::ALL());
     std::replace_if(KE::begin(thisRow), KE::end(thisRow), predicate, newVal);

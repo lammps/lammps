@@ -877,6 +877,9 @@ Bibliography
 **(PLUMED)**
    G.A. Tribello, M. Bonomi, D. Branduardi, C. Camilloni and G. Bussi, Comp. Phys. Comm 185, 604 (2014)
 
+**(Pavlov)**
+D Pavlov, V Galigerov, D Kolotinskii, V Nikolskiy, V Stegailov, International Journal of High Performance Computing Applications, 38, 34-49 (2024).
+
 **(Paquay)**
    Paquay and Kusters, Biophys. J., 110, 6, (2016). preprint available at `arXiv:1411.3019 <https://arxiv.org/abs/1411.3019/>`_.
 

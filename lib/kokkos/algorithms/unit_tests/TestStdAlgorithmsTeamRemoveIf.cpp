@@ -127,7 +127,7 @@ void test_A(std::size_t numTeams, std::size_t numCols, int apiId) {
   // -----------------------------------------------
   // check against std
   // -----------------------------------------------
-  GreaterThanValueFunctor predicate(threshold);
+  GreaterThanValueFunctor<ValueType> predicate(threshold);
   auto dataViewAfterOp_h       = create_host_space_copy(dataView);
   auto distancesView_h         = create_host_space_copy(distancesView);
   auto intraTeamSentinelView_h = create_host_space_copy(intraTeamSentinelView);

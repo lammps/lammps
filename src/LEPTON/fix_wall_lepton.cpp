@@ -19,6 +19,8 @@
 #include "Lepton.h"
 #include "lepton_utils.h"
 
+#include <exception>
+
 using namespace LAMMPS_NS;
 
 /* ---------------------------------------------------------------------- */

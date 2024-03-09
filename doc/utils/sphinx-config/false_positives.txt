@@ -1783,6 +1783,7 @@ Kolafa
 Kollman
 kolmogorov
 Kolmogorov
+Kolotinskii
 Kondor
 konglt
 Koning
@@ -2279,6 +2280,7 @@ morris
 Morriss
 morse
 Morteza
+MoS
 Mosayebi
 Moseler
 Moskalev
@@ -2791,6 +2793,7 @@ PEigenDense
 Peng
 peptide
 peratom
+Perf
 Pergamon
 pergrid
 peri
@@ -3087,6 +3090,7 @@ reaxff
 ReaxFF
 REAXFF
 rebo
+rebomos
 recurse
 recursing
 Ree
@@ -3614,6 +3618,7 @@ tesselation
 tesselations
 Tetot
 tex
+textrm
 tfac
 tfmc
 tfMC
@@ -3901,7 +3906,9 @@ Verlet
 versa
 Verstraelen
 ves
+vf
 vflag
+vflow
 vfrac
 vhi
 vibrational

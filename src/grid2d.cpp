@@ -23,6 +23,8 @@
 #include "memory.h"
 #include "pair.h"
 
+#include <cstring>
+
 using namespace LAMMPS_NS;
 
 static constexpr int DELTA = 16;

@@ -50,7 +50,6 @@ class FixWallLJ93Kokkos : public FixWallLJ93 {
   typename AT::t_x_array x;
   typename AT::t_f_array f;
   typename AT::t_int_1d mask;
-  typename AT::t_int_scalar d_oneflag;
 };
 
 template <class DeviceType>

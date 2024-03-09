@@ -29,6 +29,7 @@
 #include "neighbor.h"
 
 #include <cmath>
+#include <exception>
 
 #include "Lepton.h"
 #include "lepton_utils.h"

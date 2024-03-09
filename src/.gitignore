@@ -791,6 +791,8 @@
 /fix_cmap.h
 /fix_damping_cundall.cpp
 /fix_damping_cundall.h
+/fix_deform_pressure.cpp
+/fix_deform_pressure.h
 /fix_dpd_energy.cpp
 /fix_dpd_energy.h
 /fix_efield_tip4p.cpp
@@ -1023,6 +1025,8 @@
 /fix_wall_colloid.h
 /fix_wall_ees.cpp
 /fix_wall_ees.h
+/fix_wall_flow.cpp
+/fix_wall_flow.h
 /fix_wall_region_ees.cpp
 /fix_wall_region_ees.h
 /fix_wall_reflect_stochastic.cpp
@@ -1369,6 +1373,8 @@
 /pair_reaxff.h
 /pair_rebo.cpp
 /pair_rebo.h
+/pair_rebomos.cpp
+/pair_rebomos.h
 /pair_resquared.cpp
 /pair_resquared.h
 /pair_saip_metal.cpp

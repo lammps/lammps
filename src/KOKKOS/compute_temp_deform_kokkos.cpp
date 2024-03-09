@@ -24,7 +24,6 @@
 #include "domain_kokkos.h"
 #include "error.h"
 #include "force.h"
-#include "memory_kokkos.h"
 #include "update.h"
 
 using namespace LAMMPS_NS;

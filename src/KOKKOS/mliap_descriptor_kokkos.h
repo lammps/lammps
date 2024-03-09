@@ -29,13 +29,11 @@ template <class DeviceType> class MLIAPDescriptorKokkos : virtual protected Poin
   MLIAPDescriptorKokkos(LAMMPS *lmp, MLIAPDescriptor *descriptor_in) :
       Pointers(lmp), descriptor(descriptor_in)
   {
-    memoryKK->destroy_kokkos(k_wjelem);
   }
 
   void init_data()
   {
     int num_elems = descriptor->nelements;
-    memoryKK->destroy_kokkos(k_wjelem);
     memoryKK->create_kokkos(k_wjelem, num_elems, "MLIAPDescriptorKokkos::k_wjelem");
     for (int i = 0; i < num_elems; ++i) k_wjelem.h_view(i) = descriptor->wjelem[i];
     k_wjelem.modify<LMPHostType>();
@@ -44,7 +42,6 @@ template <class DeviceType> class MLIAPDescriptorKokkos : virtual protected Poin
 
   virtual ~MLIAPDescriptorKokkos()
   {
-    memoryKK->destroy_kokkos(k_wjelem);
   }
 
   MLIAPDescriptor *descriptor;

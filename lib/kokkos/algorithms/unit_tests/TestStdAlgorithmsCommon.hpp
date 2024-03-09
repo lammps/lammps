@@ -198,8 +198,9 @@ auto create_deep_copyable_compatible_view_with_same_extent(ViewType view) {
 
   // this is needed for intel to avoid
   // error #1011: missing return statement at end of non-void function
-#if defined KOKKOS_COMPILER_INTEL || \
-    (defined(KOKKOS_COMPILER_NVCC) && KOKKOS_COMPILER_NVCC >= 1130)
+#if defined KOKKOS_COMPILER_INTEL ||                                  \
+    (defined(KOKKOS_COMPILER_NVCC) && KOKKOS_COMPILER_NVCC >= 1130 && \
+     !defined(KOKKOS_COMPILER_MSVC))
   __builtin_unreachable();
 #endif
 }

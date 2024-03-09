@@ -16,7 +16,6 @@
 
 #include "atom_kokkos.h"
 #include "atom_masks.h"
-#include "atom_vec.h"
 #include "input.h"
 #include "modify.h"
 #include "update.h"

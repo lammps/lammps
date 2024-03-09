@@ -160,6 +160,7 @@ display_help_text() {
       echo "                 AMD_GFX906      = AMD GPU MI50/MI60 GFX906"
       echo "                 AMD_GFX908      = AMD GPU MI100 GFX908"
       echo "                 AMD_GFX90A      = AMD GPU MI200 GFX90A"
+      echo "                 AMD_GFX940      = AMD GPU MI300 GFX940"
       echo "                 AMD_GFX942      = AMD GPU MI300 GFX942"
       echo "                 AMD_GFX1030     = AMD GPU V620/W6800 GFX1030"
       echo "                 AMD_GFX1100     = AMD GPU RX 7900 XT(X) GFX1100"

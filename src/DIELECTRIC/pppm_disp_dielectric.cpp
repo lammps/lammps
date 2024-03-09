@@ -25,10 +25,12 @@
 #include "error.h"
 #include "force.h"
 #include "grid3d.h"
+#include "lmpfftsettings.h"
 #include "math_const.h"
 #include "memory.h"
 
 #include <cmath>
+#include <cstring>
 
 using namespace LAMMPS_NS;
 using namespace MathConst;

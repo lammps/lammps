@@ -25,7 +25,6 @@
 #include "error.h"
 #include "fix_deform.h"
 #include "force.h"
-#include "group.h"
 #include "irregular.h"
 #include "kspace.h"
 #include "memory.h"
@@ -64,15 +63,15 @@ enum { ISO, ANISO, TRICLINIC };
 /* ----------------------------------------------------------------------
    NVT,NPH,NPT integrators for improved Nose-Hoover equations of motion
  ---------------------------------------------------------------------- */
-// clang-format off
 
 FixBocs::FixBocs(LAMMPS *lmp, int narg, char **arg) :
-    Fix(lmp, narg, arg), id_dilate(nullptr), irregular(nullptr), id_temp(nullptr),
-    id_press(nullptr), eta(nullptr), eta_dot(nullptr), eta_dotdot(nullptr), eta_mass(nullptr),
-    etap(nullptr), etap_dot(nullptr), etap_dotdot(nullptr), etap_mass(nullptr)
+    Fix(lmp, narg, arg), irregular(nullptr), id_temp(nullptr), id_press(nullptr), eta(nullptr),
+    eta_dot(nullptr), eta_dotdot(nullptr), eta_mass(nullptr), etap(nullptr), etap_dot(nullptr),
+    etap_dotdot(nullptr), etap_mass(nullptr)
 {
   if (lmp->citeme) lmp->citeme->add(cite_user_bocs_package);
 
+  // clang-format off
   if (narg < 4) utils::missing_cmd_args(FLERR,"fix bocs",error);
 
   restart_global = 1;
@@ -89,8 +88,6 @@ FixBocs::FixBocs(LAMMPS *lmp, int narg, char **arg) :
 
   pcouple = NONE;
   drag = 0.0;
-  allremap = 1;
-  id_dilate = nullptr;
   mtchain = mpchain = 3;
   nc_tchain = nc_pchain = 1;
   mtk_flag = 1;
@@ -147,15 +144,14 @@ FixBocs::FixBocs(LAMMPS *lmp, int narg, char **arg) :
 
   while (iarg < narg) {
     if (strcmp(arg[iarg],"temp") == 0) {
-      if (iarg+4 > narg) error->all(FLERR,"Illegal fix bocs command");
+      if (iarg+4 > narg) utils::missing_cmd_args(FLERR,"fix bocs temp", error);
       tstat_flag = 1;
       t_start = utils::numeric(FLERR,arg[iarg+1],false,lmp);
       t_target = t_start;
       t_stop = utils::numeric(FLERR,arg[iarg+2],false,lmp);
       t_period = utils::numeric(FLERR,arg[iarg+3],false,lmp);
       if (t_start <= 0.0 || t_stop <= 0.0)
-        error->all(FLERR,
-                   "Target temperature for fix bocs cannot be 0.0");
+        error->all(FLERR, "Target temperature for fix bocs cannot be 0.0");
       iarg += 4;
     } else if (strcmp(arg[iarg],"iso") == 0) {
       error->all(FLERR,"Illegal fix bocs command. Pressure fix must be "
@@ -166,12 +162,9 @@ FixBocs::FixBocs(LAMMPS *lmp, int narg, char **arg) :
                          "followed by: P_0 P_f P_coupl");
       p_match_flag = 1;
       pcouple = XYZ;
-      p_start[0] = p_start[1] = p_start[2] =
-                                        utils::numeric(FLERR,arg[iarg+1],false,lmp);
-      p_stop[0] = p_stop[1] = p_stop[2] =
-                                        utils::numeric(FLERR,arg[iarg+2],false,lmp);
-      p_period[0] = p_period[1] = p_period[2] =
-                                        utils::numeric(FLERR,arg[iarg+3],false,lmp);
+      p_start[0] = p_start[1] = p_start[2] = utils::numeric(FLERR,arg[iarg+1],false,lmp);
+      p_stop[0] = p_stop[1] = p_stop[2] = utils::numeric(FLERR,arg[iarg+2],false,lmp);
+      p_period[0] = p_period[1] = p_period[2] = utils::numeric(FLERR,arg[iarg+3],false,lmp);
 
       p_flag[0] = p_flag[1] = p_flag[2] = 1;
       p_flag[3] = p_flag[4] = p_flag[5] = 0; // MRD
@@ -288,7 +281,6 @@ FixBocs::FixBocs(LAMMPS *lmp, int narg, char **arg) :
     if (p_flag[4]) box_change |= BOX_CHANGE_XZ;
     if (p_flag[5]) box_change |= BOX_CHANGE_XY;
     no_change_box = 1;
-    if (allremap == 0) restart_pbc = 1;
 
     pstyle = ISO; // MRD this is the only one that can happen
 
@@ -386,7 +378,7 @@ FixBocs::FixBocs(LAMMPS *lmp, int narg, char **arg) :
   // and thus its KE/temperature contribution should use group all
 
   id_temp = utils::strdup(std::string(id)+"_temp");
-  modify->add_compute(fmt::format("{} all temp",id_temp));
+  temperature = modify->add_compute(fmt::format("{} all temp",id_temp));
   tcomputeflag = 1;
 
   // create a new compute pressure style
@@ -394,7 +386,7 @@ FixBocs::FixBocs(LAMMPS *lmp, int narg, char **arg) :
   // pass id_temp as 4th arg to pressure constructor
 
   id_press = utils::strdup(std::string(id)+"_press");
-  modify->add_compute(fmt::format("{} all PRESSURE/BOCS {}",id_press,id_temp));
+  pressure = modify->add_compute(fmt::format("{} all PRESSURE/BOCS {}",id_press,id_temp));
   pcomputeflag = 1;
 
 /*~ MRD End of stuff copied from fix_npt.cpp~*/
@@ -407,7 +399,6 @@ FixBocs::~FixBocs()
 {
   if (copymode) return;
 
-  delete[] id_dilate;
   delete irregular;
 
   // delete temperature and pressure if fix created them
@@ -458,14 +449,6 @@ int FixBocs::setmask()
 
 void FixBocs::init()
 {
-  // recheck that dilate group has not been deleted
-  if (allremap == 0) {
-    int idilate = group->find(id_dilate);
-    if (idilate == -1)
-      error->all(FLERR,"Fix bocs dilate group ID does not exist");
-    dilate_group_bit = group->bitmask[idilate];
-  }
-
   // ensure no conflict with fix deform
 
   if (pstat_flag) {
@@ -1125,19 +1108,15 @@ void FixBocs::couple()
 }
 
 /* ----------------------------------------------------------------------
-   change box size
-   remap all atoms or dilate group atoms depending on allremap flag
+   change box size, remap all atoms
    if rigid bodies exist, scale rigid body centers-of-mass
 ------------------------------------------------------------------------- */
 
 void FixBocs::remap()
 {
-  int i;
   double oldlo,oldhi;
   double expfac;
 
-  double **x = atom->x;
-  int *mask = atom->mask;
   int nlocal = atom->nlocal;
   double *h = domain->h;
 
@@ -1147,12 +1126,7 @@ void FixBocs::remap()
 
   // convert pertinent atoms and rigid bodies to lamda coords
 
-  if (allremap) domain->x2lamda(nlocal);
-  else {
-    for (i = 0; i < nlocal; i++)
-      if (mask[i] & dilate_group_bit)
-        domain->x2lamda(x[i],x[i]);
-  }
+  domain->x2lamda(nlocal);
 
   for (auto &ifix : rfix) ifix->deform(0);
 
@@ -1292,12 +1266,7 @@ void FixBocs::remap()
 
   // convert pertinent atoms and rigid bodies back to box coords
 
-  if (allremap) domain->lamda2x(nlocal);
-  else {
-    for (i = 0; i < nlocal; i++)
-      if (mask[i] & dilate_group_bit)
-        domain->lamda2x(x[i],x[i]);
-  }
+  domain->lamda2x(nlocal);
 
   for (auto &ifix : rfix) ifix->deform(1);
 }
@@ -1461,24 +1430,22 @@ int FixBocs::modify_param(int narg, char **arg)
     delete[] id_temp;
     id_temp = utils::strdup(arg[1]);
 
-    int icompute = modify->find_compute(arg[1]);
-    if (icompute < 0)
-      error->all(FLERR,"Could not find fix_modify temperature ID");
-    temperature = modify->compute[icompute];
+    temperature = modify->get_compute_by_id(id_temp);
+    if (!temperature)
+      error->all(FLERR,"Could not find fix_modify temperature compute {}", id_temp);
 
     if (temperature->tempflag == 0)
-      error->all(FLERR,
-                 "Fix_modify temperature ID does not compute temperature");
+      error->all(FLERR, "Fix_modify temperature compute {} does not compute temperature", id_temp);
     if (temperature->igroup != 0 && comm->me == 0)
-      error->warning(FLERR,"Temperature for fix modify is not for group all");
+      error->warning(FLERR,"Temperature compute {} for fix modify is not for group all", id_temp);
 
     // reset id_temp of pressure to new temperature ID
 
     if (pstat_flag) {
-      icompute = modify->find_compute(id_press);
-      if (icompute < 0)
-        error->all(FLERR,"Pressure ID for fix modify does not exist");
-      modify->compute[icompute]->reset_extra_compute_fix(id_temp);
+      pressure = modify->get_compute_by_id(id_press);
+      if (!pressure)
+        error->all(FLERR,"Pressure ID {} for fix modify does not exist", id_press);
+      pressure->reset_extra_compute_fix(id_temp);
     }
 
     return 2;

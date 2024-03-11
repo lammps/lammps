@@ -185,7 +185,7 @@ pytorch model using `convert_mliap_lin_ACE.py`.
 in.mliap.pytorch.ace
 ------------------
 
-Example of linear model with ACE descriptors for Ta
+Example of linear model with ACE descriptors for minimal Ta dataset
 
 in.mliap.ace.compute
 ------------------
@@ -195,9 +195,9 @@ Example for calculating multi-element ACE descriptors through ML-IAP
 in.mliap.pytorch.ace.NN
 ------------------
 
-Example of NN model with ACE descriptors for Ta
+Example of NN model with ACE descriptors for minimal Ta dataset
 
 mliap_pytorch_ACE.py
 ------------------
 
-Example of NN model with ACE descriptors for Ta through mliappy
+Example of NN model with ACE descriptors for minimal Ta dataset through mliappy

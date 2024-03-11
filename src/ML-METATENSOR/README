@@ -2,12 +2,37 @@ The ML-METATENSOR package provides the metatensor pair style, which allow to use
 arbitrary machine learning models with LAMMPS.
 
 
-The easiest way to build and install this code is with CMake, by configuring
-LAMMPS with `cmake -DPKG_ML-METATENSOR=ON`. This will download and build
-metatensor-torch for you. You still need to provide an installation of the C++
-libtorch. The easiest way to do this is to install one with pip/conda, and then pass
-`-DCMAKE_PREFIX_PATH=$(python -c "import torch; print(torch.utils.cmake_prefix_path)")`
-to cmake during configuration.
+The easiest way to build and install this code is with CMake. You'll need to
+fist install libtorch, either by installing PyTorch itself with Python, or by
+downloading the prebuilt C++ library from https://pytorch.org/get-started/locally/.
+
+```bash
+# point this to the path where you extracted the C++ libtorch
+TORCH_PREFIX=../../..
+# if you used Python to install torch, you can do this:
+TORCH_PREFIX=$(python -c "import torch; print(torch.utils.cmake_prefix_path)")
+
+# get the code for this branch
+git clone https://github.com/luthaf/LAMMPS --branch ml-metatensor --depth=1
+cd LAMMPS
+mkdir build
+cd build
+
+# patch a bug from torch's MKL detection
+./../src/ML-METATENSOR/patch-torch.sh "$TORCH_PREFIX"
+
+# configure cmake
+cmake -DPKG_ML-METATENSOR=ON -DCMAKE_PREFIX_PATH="$TORCH_PREFIX" ../cmake
+
+# optional: enable other packages you need
+ccmake .
+
+# compile
+cmake --build . --parallel 10
+
+# optional: install the result of the compilation
+cmake --build . --target install
+```
 
 
 TODO: build without CMake

@@ -24,6 +24,10 @@ FetchContent_MakeAvailable(metatensor-torch)
 
 ################ lammps target modifications ################
 
+# Bring the `torch` target in scope to allow evaluation
+# of cmake generator expression from `metatensor_torch`
+find_package(Torch REQUIRED)
+
 target_link_libraries(lammps PRIVATE metatensor_torch)
 
 if (BUILD_OMP AND APPLE)

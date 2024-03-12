@@ -373,10 +373,10 @@ void PairMetatensor::load_torch_model(const char* path) {
 metatensor_torch::System PairMetatensor::system_from_lmp(bool do_virial) {
     double** x = atom->x;
 
-    auto n_atoms = atom->nlocal + atom->nghost;
+    auto total_n_atoms = atom->nlocal + atom->nghost;
 
-    this->atomic_types.resize_({n_atoms});
-    for (int i=0; i<n_atoms; i++) {
+    this->atomic_types.resize_({total_n_atoms});
+    for (int i=0; i<total_n_atoms; i++) {
         this->atomic_types[i] = this->lammps_to_metatensor_types[atom->type[i]];
     }
 
@@ -384,8 +384,7 @@ metatensor_torch::System PairMetatensor::system_from_lmp(bool do_virial) {
 
     // atom->x contains "real" and then ghost atoms, in that order
     auto positions = torch::from_blob(
-        *x, {n_atoms, 3},
-        [](void*) { std::cout << "deleting positions" << std::endl; },
+        *x, {total_n_atoms, 3},
         // requires_grad=true since we always need gradients w.r.t. positions
         tensor_options.requires_grad(true)
     );
@@ -422,9 +421,10 @@ metatensor_torch::System PairMetatensor::system_from_lmp(bool do_virial) {
     // the main atoms, but using the actual distance vector between the atom and
     // the ghost.
     auto original_atom_id = std::vector<int>();
-    original_atom_id.reserve(n_atoms);
+    original_atom_id.reserve(total_n_atoms);
 
     // identify all local atom by their LAMMPS atom tag.
+    // TODO: cache this allocation
     auto local_atoms_tags = std::unordered_map<tagint, int>();
     for (int i=0; i<atom->nlocal; i++) {
         original_atom_id.emplace_back(i);
@@ -432,12 +432,27 @@ metatensor_torch::System PairMetatensor::system_from_lmp(bool do_virial) {
     }
 
     // now loop over ghosts & map them back to the main cell if needed
-    for (int i=atom->nlocal; i<n_atoms; i++) {
-        auto it = local_atoms_tags.find(atom->tag[i]);
+    auto ghost_atoms_tags = std::unordered_map<tagint, int>();
+    for (int i=atom->nlocal; i<total_n_atoms; i++) {
+        auto tag = atom->tag[i];
+        auto it = local_atoms_tags.find(tag);
         if (it != local_atoms_tags.end()) {
+            // this is the periodic image of an atom already owned by this domain
             original_atom_id.emplace_back(it->second);
         } else {
-            original_atom_id.emplace_back(i);
+            // this can either be a periodic image of an atom owned by another
+            // domain, or directly an atom from another domain. Since we can not
+            // really distinguish between these, we take the first atom as the
+            // "main" one and remap all atoms with the same tag to the first one
+            auto it = ghost_atoms_tags.find(tag);
+            if (it != ghost_atoms_tags.end()) {
+                // we already found this atom elsewhere in the system
+                original_atom_id.emplace_back(it->second);
+            } else {
+                // this is the first time we are seeing this atom
+                original_atom_id.emplace_back(i);
+                ghost_atoms_tags.emplace(tag, i);
+            }
         }
     }
 
@@ -554,6 +569,21 @@ metatensor_torch::System PairMetatensor::system_from_lmp(bool do_virial) {
                 cache.samples.emplace_back(shift_a);
                 cache.samples.emplace_back(shift_b);
                 cache.samples.emplace_back(shift_c);
+
+                if (options->full_list() && original_atom_j >= atom->nlocal) {
+                    // Even with `NeighConst::REQ_FULL`, we only get pairs from
+                    // `local -> ghost` and not `ghost -> local`, so let's add
+                    // these manually.
+                    cache.distances.emplace_back(-xx);
+                    cache.distances.emplace_back(-yy);
+                    cache.distances.emplace_back(-zz);
+
+                    cache.samples.emplace_back(original_atom_j);
+                    cache.samples.emplace_back(original_atom_i);
+                    cache.samples.emplace_back(-shift_a);
+                    cache.samples.emplace_back(-shift_b);
+                    cache.samples.emplace_back(-shift_c);
+                }
             }
         }
 

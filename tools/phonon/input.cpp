@@ -7,10 +7,8 @@
  * ---------------------------------------------------------------- */ 
 UserInput::UserInput(int flag)
 {
-   fp = NULL;
+   fp = nullptr;
    if (flag) fp = fopen("script.inp", "w");
-
-   return;
 }
 
 /* -------------------------------------------------------------------
@@ -19,7 +17,7 @@ UserInput::UserInput(int flag)
 UserInput::~UserInput()
 {
    if (fp) fclose(fp);
-   fp = NULL;
+   fp = nullptr;
 }
 
 /* -------------------------------------------------------------------
@@ -29,7 +27,5 @@ void UserInput::read_stdin(char *str)
 {
    fgets(str, MAXLINE, stdin);
    if (fp) fprintf(fp, "%s", str);
-
-   return;
 }
 /* ---------------------------------------------------------------- */

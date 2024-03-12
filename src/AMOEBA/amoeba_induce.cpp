@@ -41,7 +41,7 @@ enum{GEAR,ASPC,LSQR};
 enum{BUILD,APPLY};
 enum{GORDON1,GORDON2};
 
-#define DEBYE 4.80321    // conversion factor from q-Angs (real units) to Debye
+static constexpr double DEBYE = 4.80321;    // conversion factor from q-Angs (real units) to Debye
 
 /* ----------------------------------------------------------------------
    induce = induced dipole moments via pre-conditioned CG solver

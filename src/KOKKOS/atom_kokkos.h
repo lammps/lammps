@@ -14,7 +14,6 @@
 
 #include "atom.h"               // IWYU pragma: export
 #include "kokkos_type.h"
-#include "fix_property_atom_kokkos.h"
 
 #include <Kokkos_Sort.hpp>
 
@@ -27,7 +26,7 @@ class AtomKokkos : public Atom {
  public:
   bool sort_classic;
   int nprop_atom;
-  FixPropertyAtomKokkos** fix_prop_atom;
+  class FixPropertyAtomKokkos **fix_prop_atom;
 
   DAT::tdual_tagint_1d k_tag;
   DAT::tdual_int_1d k_type, k_mask;
@@ -104,7 +103,8 @@ class AtomKokkos : public Atom {
 
   using MapKeyViewType = decltype(d_tag_sorted);
   using BinOpMap = Kokkos::BinOp1D<MapKeyViewType>;
-  Kokkos::BinSort<MapKeyViewType, BinOpMap> Sorter;
+  BinOpMap mapBinner;
+  Kokkos::BinSort<MapKeyViewType, BinOpMap> mapSorter;
 
   class AtomVecKokkos* avecKK;
 
@@ -154,9 +154,13 @@ class AtomKokkos : public Atom {
   void sync_overlapping_device(const ExecutionSpace space, unsigned int mask);
   void sort() override;
   virtual void grow(unsigned int mask);
-  int add_custom(const char *, int, int) override;
+  int add_custom(const char *, int, int, int border = 0) override;
   void remove_custom(int, int, int) override;
   virtual void deallocate_topology();
+
+  void map_set_device();
+  void map_set_host();
+
  private:
   void sort_device();
   class AtomVec *new_avec(const std::string &, int, int &) override;

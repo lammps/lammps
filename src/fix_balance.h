@@ -45,6 +45,7 @@ class FixBalance : public Fix {
   std::string bstr;
   int wtflag;               // 1 for weighted balancing
   int sortflag;             // 1 for sorting comm messages
+  int reportonly;           // 1 if skipping rebalancing and only computing imbalance
 
   double imbnow;            // current imbalance factor
   double imbprev;           // imbalance factor before last rebalancing

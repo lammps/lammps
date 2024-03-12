@@ -26,7 +26,7 @@
 
 using namespace LAMMPS_NS;
 
-#define EPSILON 1.0e-7
+static constexpr double EPSILON = 1.0e-7;
 enum{SPHERE,LINE,TRI};           // also in DumpImage
 
 /* ---------------------------------------------------------------------- */

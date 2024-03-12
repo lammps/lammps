@@ -240,7 +240,7 @@ void test_A(std::size_t numTeams, std::size_t numCols, int apiId,
       "stdDestTrueView", numTeams, numCols);
   Kokkos::View<ValueType**, Kokkos::HostSpace> stdDestFalseView(
       "stdDestFalseView", numTeams, numCols);
-  GreaterThanValueFunctor predicate(threshold);
+  GreaterThanValueFunctor<ValueType> predicate(threshold);
 
   for (std::size_t i = 0; i < sourceView_dc_h.extent(0); ++i) {
     auto myRowSource    = Kokkos::subview(sourceView_dc_h, i, Kokkos::ALL());

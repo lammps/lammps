@@ -30,7 +30,7 @@ FixElectrodeConq::FixElectrodeConq(LAMMPS *lmp, int narg, char **arg) :
     FixElectrodeConp(lmp, narg, arg)
 {
   // copy const-style values across because update_psi will change group_psi
-  group_q = group_psi;
+  group_q = group_psi_const;
 
   if (symm) {
     if (num_of_groups == 1)

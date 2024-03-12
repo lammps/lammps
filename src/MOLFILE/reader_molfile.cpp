@@ -29,7 +29,7 @@ using namespace LAMMPS_NS;
 typedef MolfileInterface MFI;
 using namespace MathConst;
 
-#define SMALL 1.0e-6
+static constexpr double SMALL = 1.0e-6;
 
 // true if the difference between two floats is "small".
 // cannot use fabsf() since it is not fully portable.

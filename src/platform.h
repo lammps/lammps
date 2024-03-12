@@ -377,6 +377,15 @@ namespace platform {
 
   bool file_is_readable(const std::string &path);
 
+  /*! Return free disk space in bytes of file system pointed to by path
+   *
+   * Returns -1.0 if the path is invalid or free space reporting not supported.
+   *
+   * \param path file or folder path in file system
+   * \return  */
+
+  double disk_free(const std::string &path);
+
   /*! Check if a file name ends in a known extension for a compressed file format
    *
    * Currently supported file extensions are: .gz, .bz2, .zst, .xz, .lzma, lz4

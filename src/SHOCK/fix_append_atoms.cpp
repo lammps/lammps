@@ -14,8 +14,6 @@
 
 #include "fix_append_atoms.h"
 
-#include <cmath>
-#include <cstring>
 #include "atom.h"
 #include "atom_vec.h"
 #include "comm.h"
@@ -27,11 +25,13 @@
 #include "error.h"
 #include "force.h"
 
+#include <cmath>
+#include <cstring>
+
 using namespace LAMMPS_NS;
 using namespace FixConst;
 
-#define BIG      1.0e30
-#define EPSILON  1.0e-6
+static constexpr double BIG = 1.0e30;
 
 /* ---------------------------------------------------------------------- */
 
@@ -43,7 +43,7 @@ FixAppendAtoms::FixAppendAtoms(LAMMPS *lmp, int narg, char **arg) :
   next_reneighbor = -1;
   time_depend = 1;
 
-  if (narg < 4) error->all(FLERR,"Illegal fix append/atoms command");
+  if (narg < 4) utils::missing_cmd_args(FLERR,"fix append/atoms", error);
 
   // default settings
 
@@ -121,8 +121,7 @@ FixAppendAtoms::FixAppendAtoms(LAMMPS *lmp, int narg, char **arg) :
     } else if (strcmp(arg[iarg],"spatial") == 0) {
       if (iarg+3 > narg) error->all(FLERR,"Illegal fix append/atoms command");
       if (strcmp(arg[iarg+1],"f_") == 0)
-        error->all(FLERR,
-                   "Bad fix ID in fix append/atoms command");
+        error->all(FLERR, "Bad fix ID in fix append/atoms command");
       spatflag = 1;
       spatialid = utils::strdup(arg[iarg+1]+2);
       spatlead = utils::numeric(FLERR,arg[iarg+2],false,lmp);
@@ -208,14 +207,14 @@ FixAppendAtoms::FixAppendAtoms(LAMMPS *lmp, int narg, char **arg) :
 
 FixAppendAtoms::~FixAppendAtoms()
 {
-  delete [] basistype;
+  delete[] basistype;
 
   if (ranflag) delete randomx;
   if (spatflag) delete[] spatialid;
   if (tempflag) {
     delete randomt;
-    delete [] gfactor1;
-    delete [] gfactor2;
+    delete[] gfactor1;
+    delete[] gfactor2;
   }
 }
 
@@ -239,22 +238,30 @@ void FixAppendAtoms::initial_integrate(int /*vflag*/)
 
 /* ---------------------------------------------------------------------- */
 
+void FixAppendAtoms::init()
+{
+  if (spatflag) {
+    Fix *ifix = modify->get_fix_by_id(spatialid);
+    if (!ifix) error->all(FLERR,"Fix ID {} for fix ave/chunk does not exist", spatialid);
+    if (!utils::strmatch(ifix->style, "^ave/chunk"))
+      error->all(FLERR,"Fix {} for spatial keyword is not fix style ave/chunk", spatialid);}
+}
+
+/* ---------------------------------------------------------------------- */
+
 void FixAppendAtoms::setup(int vflag)
 {
   /*** CALL TO CREATE GROUP?  SEE POST_FORCE ***/
   post_force(vflag);
 }
 
-
 /* ---------------------------------------------------------------------- */
 
 int FixAppendAtoms::get_spatial()
 {
   if (update->ntimestep % freq == 0) {
-    int ifix = modify->find_fix(spatialid);
-    if (ifix < 0)
-      error->all(FLERR,"Fix ID for fix ave/spatial does not exist");
-    Fix *fix = modify->fix[ifix];
+    Fix *fix = modify->get_fix_by_id(spatialid);
+    if (!fix) error->all(FLERR,"Fix ID {} for fix ave/chunk does not exist", spatialid);
 
     int failed = 0;
     int count = 0;
@@ -319,8 +326,8 @@ int FixAppendAtoms::get_spatial()
 
     if (domain->boxhi[2] - shockfront_loc < spatlead) advance = 1;
 
-    delete [] pos;
-    delete [] val;
+    delete[] pos;
+    delete[] val;
   }
 
   advance_sum = 0;
@@ -433,22 +440,14 @@ void FixAppendAtoms::pre_exchange()
       xmin = ymin = zmin = BIG;
       xmax = ymax = zmax = -BIG;
 
-      domain->lattice->bbox(1,bboxlo[0],bboxlo[1],bboxlo[2],
-                            xmin,ymin,zmin,xmax,ymax,zmax);
-      domain->lattice->bbox(1,bboxhi[0],bboxlo[1],bboxlo[2],
-                            xmin,ymin,zmin,xmax,ymax,zmax);
-      domain->lattice->bbox(1,bboxlo[0],bboxhi[1],bboxlo[2],
-                            xmin,ymin,zmin,xmax,ymax,zmax);
-      domain->lattice->bbox(1,bboxhi[0],bboxhi[1],bboxlo[2],
-                            xmin,ymin,zmin,xmax,ymax,zmax);
-      domain->lattice->bbox(1,bboxlo[0],bboxlo[1],bboxhi[2],
-                            xmin,ymin,zmin,xmax,ymax,zmax);
-      domain->lattice->bbox(1,bboxhi[0],bboxlo[1],bboxhi[2],
-                            xmin,ymin,zmin,xmax,ymax,zmax);
-      domain->lattice->bbox(1,bboxlo[0],bboxhi[1],bboxhi[2],
-                            xmin,ymin,zmin,xmax,ymax,zmax);
-      domain->lattice->bbox(1,bboxhi[0],bboxhi[1],bboxhi[2],
-                            xmin,ymin,zmin,xmax,ymax,zmax);
+      domain->lattice->bbox(1,bboxlo[0],bboxlo[1],bboxlo[2],xmin,ymin,zmin,xmax,ymax,zmax);
+      domain->lattice->bbox(1,bboxhi[0],bboxlo[1],bboxlo[2],xmin,ymin,zmin,xmax,ymax,zmax);
+      domain->lattice->bbox(1,bboxlo[0],bboxhi[1],bboxlo[2],xmin,ymin,zmin,xmax,ymax,zmax);
+      domain->lattice->bbox(1,bboxhi[0],bboxhi[1],bboxlo[2],xmin,ymin,zmin,xmax,ymax,zmax);
+      domain->lattice->bbox(1,bboxlo[0],bboxlo[1],bboxhi[2],xmin,ymin,zmin,xmax,ymax,zmax);
+      domain->lattice->bbox(1,bboxhi[0],bboxlo[1],bboxhi[2],xmin,ymin,zmin,xmax,ymax,zmax);
+      domain->lattice->bbox(1,bboxlo[0],bboxhi[1],bboxhi[2],xmin,ymin,zmin,xmax,ymax,zmax);
+      domain->lattice->bbox(1,bboxhi[0],bboxhi[1],bboxhi[2],xmin,ymin,zmin,xmax,ymax,zmax);
 
       int ilo,ihi,jlo,jhi,klo,khi;
       ilo = static_cast<int> (xmin);

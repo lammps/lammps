@@ -37,7 +37,7 @@ src/MESONT/*          @iafoss
 src/ML-HDNNP/*        @singraber
 src/ML-IAP/*          @athomps
 src/ML-PACE/*         @yury-lysogorskiy
-src/ML-POD/*          @exapde @rohskopf
+src/ML-POD/*          @exapde
 src/MOFFF/*           @hheenen
 src/MOLFILE/*         @akohlmey
 src/NETCDF/*          @pastewka
@@ -65,9 +65,12 @@ src/MANYBODY/pair_nb3b_screened.*   @flodesani
 src/REPLICA/*_grem.*                @dstelter92
 src/EXTRA-COMPUTE/compute_stress_mop*.* @RomainVermorel
 src/EXTRA-COMPUTE/compute_born_matrix.* @Bibobu @athomps
+src/EXTRA-FIX/fix_deform_pressure.* @jtclemm
 src/MISC/*_tracker.*                @jtclemm
 src/MC/fix_gcmc.*                   @athomps
 src/MC/fix_sgcmc.*                  @athomps
+src/REAXFF/compute_reaxff_atom.*    @rbberger
+src/KOKKOS/compute_reaxff_atom_kokkos.*    @rbberger
 src/REPLICA/fix_pimd_langevin.*     @Yi-FanLi
 
 # core LAMMPS classes

@@ -46,7 +46,7 @@ static constexpr double EPSILON = 1.0e-6;
 enum{NONE,TYPE,MOLECULE,ID};
 enum{LT,LE,GT,GE,EQ,NEQ,BETWEEN};
 
-#define BIG 1.0e20
+static constexpr double BIG = 1.0e20;
 
 /* ----------------------------------------------------------------------
    initialize group memory

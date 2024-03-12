@@ -32,9 +32,9 @@
 using namespace LAMMPS_NS;
 using namespace MathConst;
 
-#define TOLERANCE 0.05
-#define SMALL     0.001
-#define SMALLER   0.00001
+static constexpr double TOLERANCE = 0.05;
+static constexpr double SMALL =     0.001;
+static constexpr double SMALLER =   0.00001;
 
 /* ---------------------------------------------------------------------- */
 
@@ -338,7 +338,7 @@ void DihedralQuadratic::born_matrix(int nd, int i1, int i2, int i3, int i4,
   double sb1,sb3,rb1,rb3,c0,b1mag2,b1mag,b2mag2;
   double b2mag,b3mag2,b3mag,ctmp,r12c1,c1mag,r12c2;
   double c2mag,sc1,sc2,s12,c;
-  double s1,s2,cx,cy,cz,cmag,dx,phi,si,siinv,sin2;
+  double cx,cy,cz,cmag,dx,phi,si,siinv,sin2;
 
   int **dihedrallist = neighbor->dihedrallist;
   double **x = atom->x;
@@ -405,8 +405,6 @@ void DihedralQuadratic::born_matrix(int nd, int i1, int i2, int i3, int i4,
   if (sc2 < SMALL) sc2 = SMALL;
   sc2 = 1.0/sc2;
 
-  s1 = sc1 * sc1;
-  s2 = sc2 * sc2;
   s12 = sc1 * sc2;
   c = (c0 + c1mag*c2mag) * s12;
 

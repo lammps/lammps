@@ -1,10 +1,10 @@
-# DATE: 2021-12-02 UNITS: metal CONTRIBUTOR: Wengen Ouyang w.g.ouyang@gmail.com 
+# DATE: 2021-12-02 UNITS: metal CONTRIBUTOR: Wengen Ouyang w.g.ouyang@gmail.com
 # CITATION: W. Ouyang, et al., J. Chem. Theory Comput. 17, 7237 (2021).
 # CITATION: W.  Jiang, et al., J. Phys. Chem. A, 127, 46, 9820–9830 (2023).
 # Interlayer Potential (ILP) for bilayer and bulk Group-VI Transition Metal Dichalcogenides.
 # The parameters below are fitted against the HSE + MBD-NL DFT reference data.
 #
-# -------------------- Repulsion Potential -------------------++++++++++++++++ Vdw Potential ++++++++++++++++********* 
+# -------------------- Repulsion Potential -------------------++++++++++++++++ Vdw Potential ++++++++++++++++*********
 #       beta(A)     alpha    delta(A)  epsilon(meV)  C(meV)         d         sR     reff(A)    C6(meV*A^6)    S   rcut
 Mo Mo  5.579450   9.377662   2.027222  144.151775   97.978570   89.437597  2.059031  5.122055  491850.316195  1.0  4.0
 W   W  5.530854   6.624992   1.983208    0.271792  140.174059  107.392585  1.356333  4.437591  691850.243962  1.0  4.0

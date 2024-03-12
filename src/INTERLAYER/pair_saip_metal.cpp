@@ -33,10 +33,6 @@
 using namespace LAMMPS_NS;
 using namespace InterLayer;
 
-#define MAXLINE 1024
-#define DELTA 4
-#define PGDELTA 1
-
 static const char cite_saip[] =
     "saip/metal potential: doi:10.1021/acs.jctc.1c00622\n\n"
     "@Article{Ouyang2021\n"

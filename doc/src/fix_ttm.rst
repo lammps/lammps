@@ -96,11 +96,11 @@ each processor, which is acceptable when the overall grid is reasonably
 small.  For larger grids you should use fix *ttm/grid* instead.
 
 Fix *ttm/mod* adds options to account for external heat sources (e.g. at
-a surface) and for specifying parameters that allow the electronic
-heat capacity to depend strongly on electronic temperature.  It is
-more expensive computationally than fix *ttm* because it treats the
-thermal diffusion equation as non-linear.  More details on fix *ttm/mod*
-are given below.
+a surface) and for specifying parameters that allow the electronic heat
+capacity to depend strongly on electronic temperature.  It is more
+expensive computationally than fix *ttm* because it treats the thermal
+diffusion equation as non-linear.  More details on fix *ttm/mod* are
+given below.
 
 Heat transfer between the electronic and atomic subsystems is carried
 out via an inhomogeneous Langevin thermostat.  Only atoms in the fix
@@ -303,15 +303,15 @@ The current fix ttm/mod implementation allows TTM simulations with a
 vacuum. The vacuum region is defined as the grid cells with zero
 electronic temperature. The numerical scheme does not allow energy
 exchange with such cells. Since the material can expand to previously
-unoccupied region in some simulations, the vacuum border can be
-allowed to move. It is controlled by the *surface_movement* parameter
-in the *init_file*. If it is set to 1, then "vacuum" cells can be
-changed to "electron-filled" cells with the temperature *T_e_min* if
-atoms move into them (currently only implemented for the case of
-1-dimensional motion of flat surface normal to the X axis). The
-initial borders of vacuum can be set in the *init_file* via *lsurface*
-and *rsurface* parameters. In this case, electronic pressure gradient
-is calculated as
+unoccupied region in some simulations, the vacuum border can be allowed
+to move. It is controlled by the *surface_movement* parameter in the
+*init_file*. If it is set to 1, then "vacuum" cells can be changed to
+"electron-filled" cells with the temperature *T_e_min* if atoms move
+into them (currently only implemented for the case of 1-dimensional
+motion of a flat surface normal to the X axis). The initial locations of
+the interfaces of the electron density to the vacuum can be set in the
+*init_file* via *lsurface* and *rsurface* parameters. In this case,
+electronic pressure gradient is calculated as
 
 .. math::
 

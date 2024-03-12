@@ -45,6 +45,7 @@
 
 #include <cmath>
 #include <cstring>
+#include <exception>
 
 using namespace LAMMPS_NS;
 using namespace FixConst;
@@ -52,14 +53,14 @@ using namespace MathConst;
 
 // large energy value used to signal overlap
 
-#define MAXENERGYSIGNAL 1.0e100
+static constexpr double MAXENERGYSIGNAL = 1.0e100;
 
 // this must be lower than MAXENERGYSIGNAL
 // by a large amount, so that it is still
 // less than total energy when negative
 // energy contributions are added to MAXENERGYSIGNAL
 
-#define MAXENERGYTEST 1.0e50
+static constexpr double MAXENERGYTEST = 1.0e50;
 
 enum { EXCHATOM, EXCHMOL };          // exchmode
 enum { NONE, MOVEATOM, MOVEMOL };    // movemode
@@ -463,6 +464,10 @@ int FixGCMC::setmask()
 
 void FixGCMC::init()
 {
+  if (!atom->mass) error->all(FLERR, "Fix gcmc requires per atom type masses");
+  if (atom->rmass_flag && (comm->me == 0))
+    error->warning(FLERR, "Fix gcmc will use per atom type masses for velocity initialization");
+
   triclinic = domain->triclinic;
 
   // set index and check validity of region

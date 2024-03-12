@@ -742,6 +742,11 @@ class ParallelReduce<CombinedFunctorReducerType,
 
       if (CudaTraits::WarpSize < word_count.value) {
         __syncthreads();
+      } else {
+        // In the above call to final(), shared might have been updated by a
+        // single thread within a warp without synchronization. Synchronize
+        // threads within warp to avoid potential race condition.
+        __syncwarp(0xffffffff);
       }
 
       for (unsigned i = threadIdx.y; i < word_count.value; i += blockDim.y) {

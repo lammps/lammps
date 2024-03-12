@@ -27,6 +27,8 @@
 #include "neighbor.h"
 #include "pair.h"
 
+#include <cmath>
+
 using namespace LAMMPS_NS;
 
 /* ---------------------------------------------------------------------- */

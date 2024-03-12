@@ -31,17 +31,10 @@
 #include "neigh_list.h"
 #include "memory.h"
 #include "error.h"
-
+#include "ewald_const.h"
 
 using namespace LAMMPS_NS;
-
-#define EWALD_F   1.12837917
-#define EWALD_P   0.3275911
-#define A1        0.254829592
-#define A2       -0.284496736
-#define A3        1.421413741
-#define A4       -1.453152027
-#define A5        1.061405429
+using namespace EwaldConst;
 
 /* ---------------------------------------------------------------------- */
 

@@ -315,6 +315,10 @@ of the contents of the :f:mod:`LIBLAMMPS` Fortran interface to LAMMPS.
    :ftype extract_variable: function
    :f set_variable: :f:subr:`set_variable`
    :ftype set_variable: subroutine
+   :f set_string_variable: :f:subr:`set_set_string_variable`
+   :ftype set_string_variable: subroutine
+   :f set_internal_variable: :f:subr:`set_internal_variable`
+   :ftype set_internal_variable: subroutine
    :f gather_atoms: :f:subr:`gather_atoms`
    :ftype gather_atoms: subroutine
    :f gather_atoms_concat: :f:subr:`gather_atoms_concat`
@@ -1398,7 +1402,28 @@ Procedures Bound to the :f:type:`lammps` Derived Type
 
    Set the value of a string-style variable.
 
-   .. versionadded:: 3Nov2022
+   .. deprecated:: 7Feb2024
+
+   This function assigns a new value from the string *str* to the string-style
+   variable *name*\ . If *name* does not exist or is not a string-style
+   variable, an error is generated.
+
+   .. warning::
+
+      This subroutine is deprecated and :f:subr:`set_string_variable`
+      should be used instead.
+
+   :p character(len=*) name: name of the variable
+   :p character(len=*) str:  new value to assign to the variable
+   :to: :cpp:func:`lammps_set_variable`
+
+--------
+
+.. f:subroutine:: set_string_variable(name, str)
+
+   Set the value of a string-style variable.
+
+   .. versionadded:: 7Feb2024
 
    This function assigns a new value from the string *str* to the string-style
    variable *name*\ . If *name* does not exist or is not a string-style
@@ -1406,7 +1431,23 @@ Procedures Bound to the :f:type:`lammps` Derived Type
 
    :p character(len=*) name: name of the variable
    :p character(len=*) str:  new value to assign to the variable
-   :to: :cpp:func:`lammps_set_variable`
+   :to: :cpp:func:`lammps_set_string_variable`
+
+--------
+
+.. f:subroutine:: set_internal_variable(name, val)
+
+   Set the value of a internal-style variable.
+
+   .. versionadded:: 7Feb2024
+
+   This function assigns a new value from the floating-point number *val* to
+   the internal-style variable *name*\ . If *name* does not exist or is not
+   an internal-style variable, an error is generated.
+
+   :p character(len=*) name: name of the variable
+   :p read(c_double) val:  new value to assign to the variable
+   :to: :cpp:func:`lammps_set_internal_variable`
 
 --------
 

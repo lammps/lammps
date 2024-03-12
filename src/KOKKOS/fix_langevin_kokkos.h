@@ -27,7 +27,6 @@ FixStyle(langevin/kk/host,FixLangevinKokkos<LMPHostType>);
 #include "kokkos_type.h"
 #include "kokkos_base.h"
 #include "Kokkos_Random.hpp"
-#include "comm_kokkos.h"
 
 namespace LAMMPS_NS {
 
@@ -103,8 +102,6 @@ namespace LAMMPS_NS {
       void end_of_step_rmass_item(int) const;
 
   private:
-    class CommKokkos *commKK;
-
     typename ArrayTypes<DeviceType>::t_float_1d rmass;
     typename ArrayTypes<DeviceType>::t_float_1d mass;
     typename ArrayTypes<DeviceType>::tdual_double_2d k_franprev;

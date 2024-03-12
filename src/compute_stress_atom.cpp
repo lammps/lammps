@@ -54,11 +54,11 @@ ComputeStressAtom::ComputeStressAtom(LAMMPS *lmp, int narg, char **arg) :
     id_temp = nullptr;
   else {
     id_temp = utils::strdup(arg[3]);
-
-    int icompute = modify->find_compute(id_temp);
-    if (icompute < 0) error->all(FLERR, "Could not find compute stress/atom temperature ID");
-    if (modify->compute[icompute]->tempflag == 0)
-      error->all(FLERR, "Compute stress/atom temperature ID does not compute temperature");
+    auto icompute = modify->get_compute_by_id(id_temp);
+    if (!icompute)
+      error->all(FLERR, "Could not find compute stress/atom temperature compute {}", id_temp);
+    if (icompute->tempflag == 0)
+      error->all(FLERR, "Compute stress/atom compute {} does not compute temperature", id_temp);
   }
 
   // process optional args
@@ -122,9 +122,9 @@ void ComputeStressAtom::init()
   // fixes could have changed or compute_modify could have changed it
 
   if (id_temp) {
-    int icompute = modify->find_compute(id_temp);
-    if (icompute < 0) error->all(FLERR, "Could not find compute stress/atom temperature ID");
-    temperature = modify->compute[icompute];
+    temperature = modify->get_compute_by_id(id_temp);
+    if (!temperature)
+      error->all(FLERR, "Could not find compute stress/atom temperature compute {}", id_temp);
     if (temperature->tempbias)
       biasflag = BIAS;
     else
@@ -216,8 +216,8 @@ void ComputeStressAtom::compute_peratom()
   // add in per-atom contributions from relevant fixes
   // skip if vatom = nullptr
   // possible during setup phase if fix has not initialized its vatom yet
-  // e.g. fix ave/spatial defined before fix shake,
-  //   and fix ave/spatial uses a per-atom stress from this compute as input
+  // e.g. fix ave/chunk defined before fix shake,
+  //   and fix ave/chunk uses a per-atom stress from this compute as input
 
   if (fixflag) {
     for (auto &ifix : modify->get_fix_list())

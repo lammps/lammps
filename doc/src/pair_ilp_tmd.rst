@@ -167,4 +167,4 @@ tap_flag = 1
 
 .. _Jiang:
 
-**(Jiang)** W. Jiang, et al., J. Phys. Chem. A, 127, 46, 9820–9830 (2023).
+**(Jiang)** W. Jiang, et al., J. Phys. Chem. A, 127, 46, 9820-9830 (2023).

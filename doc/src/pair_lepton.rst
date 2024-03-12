@@ -72,7 +72,7 @@ interactions between particles which depend on the distance and have a
 cutoff.  The potential function must be provided as an expression string
 using "r" as the distance variable.  With pair style *lepton/coul* one
 may additionally reference the charges of the two atoms of the pair with
-"qi" and "qj", respectively.  With pair style *lepton/coul* one may
+"qi" and "qj", respectively.  With pair style *lepton/sphere* one may
 instead reference the radii of the two atoms of the pair with "radi" and
 "radj", respectively; this is half of the diameter that can be set in
 :doc:`data files <read_data>` or the :doc:`set command <set>`.
@@ -166,8 +166,8 @@ mixing.  Thus, expressions for *all* I,J pairs must be specified
 explicitly.
 
 Only pair style *lepton* supports the :doc:`pair_modify shift <pair_modify>`
-option for shifting the energy of the pair interaction so that it is
-0 at the cutoff, pair styles *lepton/coul* and *lepton/sphere* do *not*.
+option for shifting the potential energy of the pair interaction so that
+it is 0 at the cutoff, pair styles *lepton/coul* and *lepton/sphere* do *not*.
 
 The :doc:`pair_modify table <pair_modify>` options are not relevant for
 the these pair styles.

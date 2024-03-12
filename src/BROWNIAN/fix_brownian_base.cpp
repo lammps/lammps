@@ -204,7 +204,7 @@ FixBrownianBase::~FixBrownianBase()
     delete[] gamma_r_invsqrt;
   }
 
-  if (dipole_flag) { delete[] dipole_body; }
+  if (dipole_flag) delete[] dipole_body;
   delete rng;
 }
 

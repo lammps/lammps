@@ -70,7 +70,9 @@ __kernel void k_sph_heatconduction(const __global numtyp4 *restrict x_,
   atom_info(t_per_atom,ii,tid,offset);
 
   int n_stride;
+#if (SHUFFLE_AVAIL == 0)
   local_allocate_store_pair();
+#endif
 
   acctyp dEacc = (acctyp)0;
 
@@ -171,7 +173,9 @@ __kernel void k_sph_heatconduction_fast(const __global numtyp4 *restrict x_,
   #endif
 
   int n_stride;
+#if (SHUFFLE_AVAIL == 0)
   local_allocate_store_pair();
+#endif
 
   acctyp dEacc = (acctyp)0;
 
@@ -234,7 +238,7 @@ __kernel void k_sph_heatconduction_fast(const __global numtyp4 *restrict x_,
           // Lucy Kernel, 2d
           wfd = (numtyp)-19.098593171027440292 * wfd * wfd * ihsq * ihsq * ihsq;
         }
-        
+
         // total thermal energy increment
         numtyp D = coeffx; // alpha[itype][jtype]  diffusion coefficient
         numtyp deltaE = (numtyp)2.0 * mass_itype * mass_jtype / (mass_itype + mass_jtype);

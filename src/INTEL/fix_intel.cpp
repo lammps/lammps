@@ -553,6 +553,9 @@ void FixIntel::kspace_init_check()
 
   if (intel_pair == 0)
     error->all(FLERR,"Intel styles for kspace require intel pair style.");
+
+  if (utils::strmatch(update->integrate_style, "^verlet/split"))
+    error->all(FLERR,"Intel styles for kspace are not compatible with run_style verlet/split");
 }
 
 /* ---------------------------------------------------------------------- */

@@ -39,8 +39,8 @@
 using namespace LAMMPS_NS;
 using namespace InterLayer;
 
-#define DELTA 4
-#define PGDELTA 1
+static constexpr int DELTA = 4;
+static constexpr int PGDELTA = 1;
 
 static const char cite_ilp[] =
     "ilp/graphene/hbn potential doi:10.1021/acs.nanolett.8b02848\n"

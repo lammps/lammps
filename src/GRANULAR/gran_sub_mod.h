@@ -14,50 +14,50 @@
 #ifndef LMP_GRAN_SUB_MOD_H
 #define LMP_GRAN_SUB_MOD_H
 
-#include "granular_model.h"
 #include "pointers.h"    // IWYU pragma: export
 
 namespace LAMMPS_NS {
 namespace Granular_NS {
+  class GranularModel;
 
-class GranSubMod : protected Pointers {
- public:
-  GranSubMod(class GranularModel *, class LAMMPS *);
-  ~GranSubMod() override;
+  class GranSubMod : protected Pointers {
+   public:
+    GranSubMod(class GranularModel *, class LAMMPS *);
+    ~GranSubMod() override;
 
-  int num_coeffs;
-  double *coeffs;
-  void read_restart();
-  virtual void mix_coeffs(double*, double*);
-  virtual void coeffs_to_local() {};
-  virtual void init() {}; // called after all sub models + coeffs defined
+    int num_coeffs;
+    double *coeffs;
+    void read_restart();
+    virtual void mix_coeffs(double *, double *);
+    virtual void coeffs_to_local(){};
+    virtual void init(){};    // called after all sub models + coeffs defined
 
-  void allocate_coeffs();
-  std::string name;
+    void allocate_coeffs();
+    std::string name;
 
-  int size_history;
-  int nondefault_history_transfer;
-  double *transfer_history_factor;
+    int size_history;
+    int nondefault_history_transfer;
+    double *transfer_history_factor;
 
-  int history_index;
-  int beyond_contact;       // If the sub model contact extends beyond overlap
-  int allow_cohesion;       // If the sub model works with a cohesive normal force
-  int contact_radius_flag;  // If the sub model requires contact radius
+    int history_index;
+    int beyond_contact;         // If the sub model contact extends beyond overlap
+    int allow_cohesion;         // If the sub model works with a cohesive normal force
+    int contact_radius_flag;    // If the sub model requires contact radius
 
-  GranularModel *gm;
+    GranularModel *gm;
 
- protected:
-  int allocated;
+   protected:
+    int allocated;
 
-  double mix_stiffnessE(double, double, double, double);
-  double mix_stiffnessG(double, double, double, double);
-  double mix_stiffnessE_wall(double, double);
-  double mix_stiffnessG_wall(double, double);
-  double mix_geom(double, double);
-  double mix_mean(double, double);
-};
+    double mix_stiffnessE(double, double, double, double);
+    double mix_stiffnessG(double, double, double, double);
+    double mix_stiffnessE_wall(double, double);
+    double mix_stiffnessG_wall(double, double);
+    double mix_geom(double, double);
+    double mix_mean(double, double);
+  };
 
-}    // namespace GranularModel
+}    // namespace Granular_NS
 }    // namespace LAMMPS_NS
 
 #endif /* GRAN_SUB_MOD_H */

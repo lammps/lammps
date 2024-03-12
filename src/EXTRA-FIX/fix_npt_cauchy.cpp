@@ -42,8 +42,8 @@
 using namespace LAMMPS_NS;
 using namespace FixConst;
 
-#define DELTAFLIP 0.1
-#define TILTMAX 1.5
+static constexpr double DELTAFLIP = 0.1;
+static constexpr double TILTMAX = 1.5;
 
 enum{NOBIAS,BIAS};
 enum{NONE,XYZ,XY,YZ,XZ};
@@ -91,8 +91,6 @@ FixNPTCauchy::FixNPTCauchy(LAMMPS *lmp, int narg, char **arg) :
   omega_mass_flag = 0;
   etap_mass_flag = 0;
   flipflag = 1;
-  dipole_flag = 0;
-  dlm_flag = 0;
 
   tcomputeflag = 0;
   pcomputeflag = 0;
@@ -327,14 +325,6 @@ FixNPTCauchy::FixNPTCauchy(LAMMPS *lmp, int narg, char **arg) :
       if (iarg+2 > narg) error->all(FLERR,"Illegal fix npt/cauchy command");
       flipflag = utils::logical(FLERR,arg[iarg+1],false,lmp);
       iarg += 2;
-    } else if (strcmp(arg[iarg],"update") == 0) {
-      if (iarg+2 > narg) error->all(FLERR,"Illegal fix npt/cauchy command");
-      if (strcmp(arg[iarg+1],"dipole") == 0) dipole_flag = 1;
-      else if (strcmp(arg[iarg+1],"dipole/dlm") == 0) {
-        dipole_flag = 1;
-        dlm_flag = 1;
-      } else error->all(FLERR,"Illegal fix npt/cauchy command");
-      iarg += 2;
     } else if (strcmp(arg[iarg],"alpha") == 0) {
       alpha = utils::numeric(FLERR,arg[iarg+1],false,lmp);
       iarg += 2;
@@ -348,20 +338,6 @@ FixNPTCauchy::FixNPTCauchy(LAMMPS *lmp, int narg, char **arg) :
       fixedpoint[1] = utils::numeric(FLERR,arg[iarg+2],false,lmp);
       fixedpoint[2] = utils::numeric(FLERR,arg[iarg+3],false,lmp);
       iarg += 4;
-
-    // disc keyword is also parsed in fix/nh/sphere
-
-    } else if (strcmp(arg[iarg],"disc") == 0) {
-      iarg++;
-
-    // keywords erate, strain, and ext are also parsed in fix/nh/uef
-
-    } else if (strcmp(arg[iarg],"erate") == 0) {
-      iarg += 3;
-    } else if (strcmp(arg[iarg],"strain") == 0) {
-      iarg += 3;
-    } else if (strcmp(arg[iarg],"ext") == 0) {
-      iarg += 2;
 
     } else error->all(FLERR,"Illegal fix npt/cauchy command");
   }
@@ -452,13 +428,6 @@ FixNPTCauchy::FixNPTCauchy(LAMMPS *lmp, int narg, char **arg) :
       (p_start[0] != p_start[2] || p_stop[0] != p_stop[2] ||
        p_period[0] != p_period[2]))
     error->all(FLERR,"Invalid fix npt/cauchy pressure settings");
-
-  if (dipole_flag) {
-    if (!atom->sphere_flag)
-      error->all(FLERR,"Using update dipole flag requires atom style sphere");
-    if (!atom->mu_flag)
-      error->all(FLERR,"Using update dipole flag requires atom attribute mu");
-  }
 
   if ((tstat_flag && t_period <= 0.0) ||
       (p_flag[0] && p_period[0] <= 0.0) ||

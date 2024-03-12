@@ -18,18 +18,14 @@
 
 #include "fix_nh_kokkos.h"
 
-#include "atom.h"
 #include "atom_kokkos.h"
 #include "atom_masks.h"
-#include "comm.h"
 #include "compute.h"
 #include "domain_kokkos.h"
 #include "error.h"
-#include "fix_deform.h"
 #include "force.h"
 #include "irregular.h"
 #include "kspace.h"
-#include "memory_kokkos.h"
 #include "neighbor.h"
 #include "update.h"
 
@@ -39,8 +35,8 @@
 using namespace LAMMPS_NS;
 using namespace FixConst;
 
-#define DELTAFLIP 0.1
-#define TILTMAX 1.5
+static constexpr double DELTAFLIP = 0.1;
+static constexpr double TILTMAX = 1.5;
 
 enum{NOBIAS,BIAS};
 enum{NONE,XYZ,XY,YZ,XZ};

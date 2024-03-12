@@ -36,9 +36,6 @@
 using namespace LAMMPS_NS;
 using namespace MathConst;
 
-#define MAXLINE 1024
-#define DELTA 4
-
 /* ---------------------------------------------------------------------- */
 
 template<class DeviceType>

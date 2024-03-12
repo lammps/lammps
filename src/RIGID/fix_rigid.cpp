@@ -2300,7 +2300,7 @@ void FixRigid::readfile(int which, double *vec, double **array1, double **array2
   int nlines;
   FILE *fp;
   char *eof,*start,*next,*buf;
-  char line[MAXLINE];
+  char line[MAXLINE] = {'\0'};
 
   // open file and read and parse first non-empty, non-comment line containing the number of bodies
   if (comm->me == 0) {

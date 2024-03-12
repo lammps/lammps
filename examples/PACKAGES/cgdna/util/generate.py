@@ -22,22 +22,26 @@
 """
 Import basic modules
 """
+
+# for python2/3 compatibility
+from __future__ import print_function
+
 import sys, os, timeit
 
 from timeit import default_timer as timer
 start_time = timer()
 """
-Try to import numpy; if failed, import a local version mynumpy 
+Try to import numpy; if failed, import a local version mynumpy
 which needs to be provided
 """
 try:
     import numpy as np
 except:
-    print >> sys.stderr, "numpy not found. Exiting."
+    print("numpy not found. Exiting.", file=sys.stderr)
     sys.exit(1)
 
 """
-Check that the required arguments (box offset and size in simulation units 
+Check that the required arguments (box offset and size in simulation units
 and the sequence file were provided
 """
 try:
@@ -45,8 +49,8 @@ try:
     box_length = float(sys.argv[2])
     infile = sys.argv[3]
 except:
-    print >> sys.stderr, "Usage: %s <%s> <%s> <%s>" % (sys.argv[0], \
-	"box offset", "box length", "file with sequences")
+    print( "Usage: %s <%s> <%s> <%s>" % (sys.argv[0], \
+	"box offset", "box length", "file with sequences"), file=sys.stderr)
     sys.exit(1)
 box = np.array ([box_length, box_length, box_length])
 
@@ -57,8 +61,7 @@ try:
     inp = open (infile, 'r')
     inp.close()
 except:
-    print >> sys.stderr, "Could not open file '%s' for reading. \
-					      Aborting." % infile
+    print( "Could not open file '%s' for reading. Aborting." % infile, file=sys.stderr)
     sys.exit(2)
 
 # return parts of a string
@@ -86,7 +89,7 @@ Define auxiliary variables for the construction of a helix
 # center of the double strand
 CM_CENTER_DS = POS_BASE + 0.2
 
-# ideal distance between base sites of two nucleotides 
+# ideal distance between base sites of two nucleotides
 # which are to be base paired in a duplex
 BASE_BASE = 0.3897628551303122
 
@@ -118,7 +121,7 @@ strandnum = []
 
 bonds = []
 
-""" 
+"""
 Convert local body frame to quaternion DOF
 """
 def exyz_to_quat (mya1, mya3):
@@ -135,25 +138,25 @@ def exyz_to_quat (mya1, mya3):
     # compute other components from it
 
     if q0sq >= 0.25:
-	myquat[0] = np.sqrt(q0sq)
-	myquat[1] = (mya2[2] - mya3[1]) / (4.0*myquat[0])
-	myquat[2] = (mya3[0] - mya1[2]) / (4.0*myquat[0])
-	myquat[3] = (mya1[1] - mya2[0]) / (4.0*myquat[0])
+        myquat[0] = np.sqrt(q0sq)
+        myquat[1] = (mya2[2] - mya3[1]) / (4.0*myquat[0])
+        myquat[2] = (mya3[0] - mya1[2]) / (4.0*myquat[0])
+        myquat[3] = (mya1[1] - mya2[0]) / (4.0*myquat[0])
     elif q1sq >= 0.25:
-	myquat[1] = np.sqrt(q1sq)
-	myquat[0] = (mya2[2] - mya3[1]) / (4.0*myquat[1])
-	myquat[2] = (mya2[0] + mya1[1]) / (4.0*myquat[1])
-	myquat[3] = (mya1[2] + mya3[0]) / (4.0*myquat[1])
+        myquat[1] = np.sqrt(q1sq)
+        myquat[0] = (mya2[2] - mya3[1]) / (4.0*myquat[1])
+        myquat[2] = (mya2[0] + mya1[1]) / (4.0*myquat[1])
+        myquat[3] = (mya1[2] + mya3[0]) / (4.0*myquat[1])
     elif q2sq >= 0.25:
-	myquat[2] = np.sqrt(q2sq)
-	myquat[0] = (mya3[0] - mya1[2]) / (4.0*myquat[2])
-	myquat[1] = (mya2[0] + mya1[1]) / (4.0*myquat[2])
-	myquat[3] = (mya3[1] + mya2[2]) / (4.0*myquat[2])
+        myquat[2] = np.sqrt(q2sq)
+        myquat[0] = (mya3[0] - mya1[2]) / (4.0*myquat[2])
+        myquat[1] = (mya2[0] + mya1[1]) / (4.0*myquat[2])
+        myquat[3] = (mya3[1] + mya2[2]) / (4.0*myquat[2])
     elif q3sq >= 0.25:
-	myquat[3] = np.sqrt(q3sq)
-	myquat[0] = (mya1[1] - mya2[0]) / (4.0*myquat[3])
-	myquat[1] = (mya3[0] + mya1[2]) / (4.0*myquat[3])
-	myquat[2] = (mya3[1] + mya2[2]) / (4.0*myquat[3])
+        myquat[3] = np.sqrt(q3sq)
+        myquat[0] = (mya1[1] - mya2[0]) / (4.0*myquat[3])
+        myquat[1] = (mya3[0] + mya1[2]) / (4.0*myquat[3])
+        myquat[2] = (mya3[1] + mya2[2]) / (4.0*myquat[3])
 
     norm = 1.0/np.sqrt(myquat[0]*myquat[0] + myquat[1]*myquat[1] + \
 			  myquat[2]*myquat[2] + myquat[3]*myquat[3])
@@ -169,62 +172,62 @@ Adds a strand to the system by appending it to the array of previous strands
 """
 def add_strands (mynewpositions, mynewa1s, mynewa3s):
     overlap = False
-	
-    # This is a simple check for each of the particles where for previously 
-    # placed particles i we check whether it overlaps with any of the 
+
+    # This is a simple check for each of the particles where for previously
+    # placed particles i we check whether it overlaps with any of the
     # newly created particles j
 
-    print >> sys.stdout, "## Checking for overlaps"
+    print( "## Checking for overlaps", file=sys.stdout)
 
-    for i in xrange(len(positions)):
+    for i in range(len(positions)):
 
-	p = positions[i]
-	pa1 = a1s[i]
+        p = positions[i]
+        pa1 = a1s[i]
 
-	for j in xrange (len(mynewpositions)):
+        for j in range (len(mynewpositions)):
 
-	    q = mynewpositions[j]
-	    qa1 = mynewa1s[j]
+            q = mynewpositions[j]
+            qa1 = mynewa1s[j]
 
-	    # skip particles that are anyway too far away
-	    dr = p - q
-	    dr -= box * np.rint (dr / box)
-	    if np.dot(dr, dr) > RC2:
-		continue
+            # skip particles that are anyway too far away
+            dr = p - q
+            dr -= box * np.rint(dr / box)
+            if np.dot(dr, dr) > RC2:
+                continue
 
-	    # base site and backbone site of the two particles
+            # base site and backbone site of the two particles
             p_pos_back = p + pa1 * POS_BACK
             p_pos_base = p + pa1 * POS_BASE
             q_pos_back = q + qa1 * POS_BACK
             q_pos_base = q + qa1 * POS_BASE
 
-	    # check for no overlap between the two backbone sites
+            # check for no overlap between the two backbone sites
             dr = p_pos_back - q_pos_back
-            dr -= box * np.rint (dr / box)
+            dr -= box * np.rint(dr / box)
             if np.dot(dr, dr) < RC2_BACK:
                 overlap = True
 
-	    # check for no overlap between the two base sites
+            # check for no overlap between the two base sites
             dr = p_pos_base -  q_pos_base
-            dr -= box * np.rint (dr / box)
+            dr -= box * np.rint(dr / box)
             if np.dot(dr, dr) < RC2_BASE:
                 overlap = True
 
-	    # check for no overlap between backbone site of particle p 
-	    # with base site of particle q
+            # check for no overlap between backbone site of particle p
+            # with base site of particle q
             dr = p_pos_back - q_pos_base
             dr -= box * np.rint (dr / box)
             if np.dot(dr, dr) < RC2_BACK_BASE:
                 overlap = True
 
-	    # check for no overlap between base site of particle p and 
-	    # backbone site of particle q
+            # check for no overlap between base site of particle p and
+            # backbone site of particle q
             dr = p_pos_base - q_pos_back
             dr -= box * np.rint (dr / box)
             if np.dot(dr, dr) < RC2_BACK_BASE:
                 overlap = True
 
-	    # exit if there is an overlap
+            # exit if there is an overlap
             if overlap:
                 return False
 
@@ -237,10 +240,10 @@ def add_strands (mynewpositions, mynewa1s, mynewa3s):
             a1s.append (p)
         for p in mynewa3s:
             a3s.append (p)
-	# calculate quaternion from local body frame and append
-	for ia in xrange(len(mynewpositions)):
-	    mynewquaternions = exyz_to_quat(mynewa1s[ia],mynewa3s[ia])
-	    quaternions.append(mynewquaternions)
+        # calculate quaternion from local body frame and append
+        for ia in range(len(mynewpositions)):
+            mynewquaternions = exyz_to_quat(mynewa1s[ia],mynewa3s[ia])
+            quaternions.append(mynewquaternions)
 
     return True
 
@@ -281,7 +284,7 @@ def get_rotation_matrix(axis, anglest):
                     [olc*x*z-st*y, olc*y*z+st*x, olc*z*z+ct]])
 
 """
-Generates the position and orientation vectors of a 
+Generates the position and orientation vectors of a
 (single or double) strand from a sequence string
 """
 def generate_strand(bp, sequence=None, start_pos=np.array([0, 0, 0]), \
@@ -295,76 +298,75 @@ def generate_strand(bp, sequence=None, start_pos=np.array([0, 0, 0]), \
     # overall direction of the helix
     dir = np.array(dir, dtype=float)
     if sequence == None:
-	sequence = np.random.randint(1, 5, bp)
+        sequence = np.random.randint(1, 5, bp)
 
-    # the elseif here is most likely redundant 
+    # the elseif here is most likely redundant
     elif len(sequence) != bp:
-	n = bp - len(sequence)
-	sequence += np.random.randint(1, 5, n)
-	print >> sys.stderr, "sequence is too short, adding %d random bases" % n
+        n = bp - len(sequence)
+        sequence += np.random.randint(1, 5, n)
+        print( "sequence is too short, adding %d random bases" % n, file=sys.stderr)
 
     # normalize direction
     dir_norm = np.sqrt(np.dot(dir,dir))
     if dir_norm < 1e-10:
-	print >> sys.stderr, "direction must be a valid vector, \
-			      defaulting to (0, 0, 1)"
-	dir = np.array([0, 0, 1])
+        print( "direction must be a valid vector, defaulting to (0, 0, 1)", file=sys.stderr)
+        dir = np.array([0, 0, 1])
     else: dir /= dir_norm
 
     # find a vector orthogonal to dir to act as helix direction,
     # if not provided switch off random orientation
     if perp is None or perp is False:
-	v1 = np.random.random_sample(3)
-	v1 -= dir * (np.dot(dir, v1))
-	v1 /= np.sqrt(sum(v1*v1))
+        v1 = np.random.random_sample(3)
+        v1 -= dir * (np.dot(dir, v1))
+        v1 /= np.sqrt(sum(v1*v1))
     else:
-	v1 = perp;
+        v1 = perp;
 
     # generate rotational matrix representing the overall rotation of the helix
     R0 = get_rotation_matrix(dir, rot)
-	    
+
     # rotation matrix corresponding to one step along the helix
     R = get_rotation_matrix(dir, [1, "bp"])
 
-    # set the vector a1 (backbone to base) to v1 
+    # set the vector a1 (backbone to base) to v1
     a1 = v1
-    
-    # apply the global rotation to a1 
+
+    # apply the global rotation to a1
     a1 = np.dot(R0, a1)
-    
+
     # set the position of the fist backbone site to start_pos
     rb = np.array(start_pos)
-	    
+
     # set a3 to the direction of the helix
     a3 = dir
     for i in range(bp):
     # work out the position of the centre of mass of the nucleotide
-	rcdm = rb - CM_CENTER_DS * a1
-	
-	# append to newpositions
-	mynewpositions.append(rcdm)
-	mynewa1s.append(a1)
-	mynewa3s.append(a3)
-	
-	# if we are not at the end of the helix, we work out a1 and rb for the 
-	# next nucleotide along the helix
-	if i != bp - 1:
-	    a1 = np.dot(R, a1)
-	    rb += a3 * BASE_BASE
+        rcdm = rb - CM_CENTER_DS * a1
 
-    # if we are working on a double strand, we do a cycle similar 
+        # append to newpositions
+        mynewpositions.append(rcdm)
+        mynewa1s.append(a1)
+        mynewa3s.append(a3)
+
+        # if we are not at the end of the helix, we work out a1 and rb for the
+        # next nucleotide along the helix
+        if i != bp - 1:
+            a1 = np.dot(R, a1)
+            rb += a3 * BASE_BASE
+
+    # if we are working on a double strand, we do a cycle similar
     # to the previous one but backwards
     if double == True:
-	a1 = -a1
-	a3 = -dir
-	R = R.transpose()
-	for i in range(bp):
-	    rcdm = rb - CM_CENTER_DS * a1
-	    mynewpositions.append (rcdm)
-	    mynewa1s.append (a1)
-	    mynewa3s.append (a3)
-	    a1 = np.dot(R, a1)
-	    rb += a3 * BASE_BASE
+        a1 = -a1
+        a3 = -dir
+        R = R.transpose()
+        for i in range(bp):
+            rcdm = rb - CM_CENTER_DS * a1
+            mynewpositions.append (rcdm)
+            mynewa1s.append (a1)
+            mynewa3s.append (a3)
+            a1 = np.dot(R, a1)
+            rb += a3 * BASE_BASE
 
     assert (len (mynewpositions) > 0)
 
@@ -391,10 +393,10 @@ def read_strands(filename):
     try:
         infile = open (filename)
     except:
-        print >> sys.stderr, "Could not open file '%s'. Aborting." % filename
+        print( "Could not open file '%s'. Aborting." % filename, file=sys.stderr )
         sys.exit(2)
 
-    # This block works out the number of nucleotides and strands by reading 
+    # This block works out the number of nucleotides and strands by reading
     # the number of non-empty lines in the input file and the number of letters,
     # taking the possible DOUBLE keyword into account.
     nstrands, nnucl, nbonds = 0, 0, 0
@@ -406,30 +408,29 @@ def read_strands(filename):
         if line[:6] == 'DOUBLE':
             line = line.split()[1]
             length = len(line)
-            print >> sys.stdout, "## Found duplex of %i base pairs" % length
+            print( "## Found duplex of %i base pairs" % length, file=sys.stdout)
             nnucl += 2*length
             nstrands += 2
-	    nbonds += (2*length-2)
+            nbonds += (2*length-2)
         else:
             line = line.split()[0]
             length = len(line)
-            print >> sys.stdout, \
-		    "## Found single strand of %i bases" % length
+            print( "## Found single strand of %i bases" % length, file=sys.stdout)
             nnucl += length
             nstrands += 1
-	    nbonds += length-1
+            nbonds += length-1
     # rewind the sequence input file
     infile.seek(0)
 
-    print >> sys.stdout, "## nstrands, nnucl = ", nstrands, nnucl
+    print( "## nstrands, nnucl = ", nstrands, nnucl, file=sys.stdout)
 
     # generate the data file in LAMMPS format
     try:
         out = open ("data.oxdna", "w")
     except:
-        print >> sys.stderr, "Could not open data file for writing. Aborting."
+        print( "Could not open data file for writing. Aborting.", file=sys.stderr)
         sys.exit(2)
-	
+
     lines = infile.readlines()
     nlines = len(lines)
     i = 1
@@ -440,115 +441,114 @@ def read_strands(filename):
         line = line.upper().strip()
 
         # skip empty lines
-        if len(line) == 0: 
-	    i += 1
-	    continue
+        if len(line) == 0:
+            i += 1
+            continue
 
-	# block for duplexes: last argument of the generate function 
-	# is set to 'True'
+        # block for duplexes: last argument of the generate function
+        # is set to 'True'
         if line[:6] == 'DOUBLE':
             line = line.split()[1]
             length = len(line)
             seq = [(base_to_number[x]) for x in line]
 
-	    myns += 1
-	    for b in xrange(length):
-		basetype.append(seq[b])
-		strandnum.append(myns)
+            myns += 1
+            for b in range(length):
+                basetype.append(seq[b])
+                strandnum.append(myns)
 
-	    for b in xrange(length-1):
-		bondpair = [noffset + b, noffset + b + 1]
-		bonds.append(bondpair)
-	    noffset += length
+            for b in range(length-1):
+                bondpair = [noffset + b, noffset + b + 1]
+                bonds.append(bondpair)
+            noffset += length
 
-	    # create the sequence of the second strand as made of 
-	    # complementary bases
-	    seq2 = [5-s for s in seq]
-	    seq2.reverse()
+            # create the sequence of the second strand as made of
+            # complementary bases
+            seq2 = [5-s for s in seq]
+            seq2.reverse()
 
-	    myns += 1
-	    for b in xrange(length):
-		basetype.append(seq2[b])
-		strandnum.append(myns)
+            myns += 1
+            for b in range(length):
+                basetype.append(seq2[b])
+                strandnum.append(myns)
 
-	    for b in xrange(length-1):
-		bondpair = [noffset + b, noffset + b + 1]
-		bonds.append(bondpair)
-	    noffset += length
- 
-            print >> sys.stdout, "## Created duplex of %i bases" % (2*length)
+            for b in range(length-1):
+                bondpair = [noffset + b, noffset + b + 1]
+                bonds.append(bondpair)
+            noffset += length
 
-	    # generate random position of the first nucleotide
+            print( "## Created duplex of %i bases" % (2*length), file=sys.stdout)
+
+            # generate random position of the first nucleotide
             cdm = box_offset + np.random.random_sample(3) * box
 
-            # generate the random direction of the helix 
+            # generate the random direction of the helix
             axis = np.random.random_sample(3)
             axis /= np.sqrt(np.dot(axis, axis))
 
-            # use the generate function defined above to create 
-	    # the position and orientation vector of the strand 
+            # use the generate function defined above to create
+            # the position and orientation vector of the strand
             newpositions, newa1s, newa3s = generate_strand(len(line), \
-		    sequence=seq, dir=axis, start_pos=cdm, double=True)
+                sequence=seq, dir=axis, start_pos=cdm, double=True)
 
             # generate a new position for the strand until it does not overlap
-	    # with anything already present
-	    start = timer()
+            # with anything already present
+            start = timer()
             while not add_strands(newpositions, newa1s, newa3s):
                 cdm = box_offset + np.random.random_sample(3) * box
                 axis = np.random.random_sample(3)
                 axis /= np.sqrt(np.dot(axis, axis))
                 newpositions, newa1s, newa3s = generate_strand(len(line), \
-		      sequence=seq, dir=axis, start_pos=cdm, double=True)
-                print >> sys.stdout, "## Trying %i" % i
-	    end = timer()
-            print >> sys.stdout, "## Added duplex of %i bases (line %i/%i) in %.2fs, now at %i/%i" % \
-				      (2*length, i, nlines, end-start, len(positions), nnucl)
+                    sequence=seq, dir=axis, start_pos=cdm, double=True)
+                print( "## Trying %i" % i, file=sys.stdout)
+            end = timer()
+            print( "## Added duplex of %i bases (line %i/%i) in %.2fs, now at %i/%i" % \
+				      (2*length, i, nlines, end-start, len(positions), nnucl), file=sys.stdout)
 
-	# block for single strands: last argument of the generate function 
-	# is set to 'False'
+        # block for single strands: last argument of the generate function
+        # is set to 'False'
         else:
             length = len(line)
             seq = [(base_to_number[x]) for x in line]
 
-	    myns += 1
-	    for b in xrange(length):
-		basetype.append(seq[b])
-		strandnum.append(myns)
+            myns += 1
+            for b in range(length):
+                basetype.append(seq[b])
+                strandnum.append(myns)
 
-	    for b in xrange(length-1):
-		bondpair = [noffset + b, noffset + b + 1]
-		bonds.append(bondpair)
-	    noffset += length
+            for b in range(length-1):
+                bondpair = [noffset + b, noffset + b + 1]
+                bonds.append(bondpair)
+            noffset += length
 
-	    # generate random position of the first nucleotide
+            # generate random position of the first nucleotide
             cdm = box_offset + np.random.random_sample(3) * box
 
-            # generate the random direction of the helix 
+            # generate the random direction of the helix
             axis = np.random.random_sample(3)
             axis /= np.sqrt(np.dot(axis, axis))
 
-            print >> sys.stdout, \
-		      "## Created single strand of %i bases" % length
+            print("## Created single strand of %i bases" % length, file=sys.stdout)
 
             newpositions, newa1s, newa3s = generate_strand(length, \
 		      sequence=seq, dir=axis, start_pos=cdm, double=False)
-	    start = timer()
+            start = timer()
             while not add_strands(newpositions, newa1s, newa3s):
                 cdm = box_offset + np.random.random_sample(3) * box
                 axis = np.random.random_sample(3)
-		axis /= np.sqrt(np.dot(axis, axis))
+                axis /= np.sqrt(np.dot(axis, axis))
                 newpositions, newa1s, newa3s = generate_strand(length, \
-			  sequence=seq, dir=axis, start_pos=cdm, double=False)
+                    sequence=seq, dir=axis, start_pos=cdm, double=False)
                 print >> sys.stdout, "## Trying  %i" % (i)
-	    end = timer()
-            print >> sys.stdout, "## Added single strand of %i bases (line %i/%i) in %.2fs, now at %i/%i" % \
-				      (length, i, nlines, end-start,len(positions), nnucl)
+            end = timer()
+            print( "## Added single strand of %i bases (line %i/%i) in %.2fs, now at %i/%i" % \
+				      (length, i, nlines, end-start,len(positions), nnucl), file=sys.stdout)
 
         i += 1
 
     # sanity check
     if not len(positions) == nnucl:
-        print len(positions), nnucl
+        print( len(positions), nnucl )
         raise AssertionError
 
     out.write('# LAMMPS data file\n')
@@ -580,44 +580,41 @@ def read_strands(filename):
     out.write('Atoms\n')
     out.write('\n')
 
-    for i in xrange(nnucl):
-	out.write('%d %d %22.15le %22.15le %22.15le %d 1 1\n' \
-		  % (i+1, basetype[i], \
-		     positions[i][0], positions[i][1], positions[i][2], \
-		     strandnum[i]))
+    for i in range(nnucl):
+        out.write('%d %d %22.15le %22.15le %22.15le %d 1 1\n' \
+            % (i+1, basetype[i], positions[i][0], positions[i][1], positions[i][2], strandnum[i]))
 
     out.write('\n')
     out.write('# Atom-ID, translational, rotational velocity\n')
     out.write('Velocities\n')
     out.write('\n')
 
-    for i in xrange(nnucl):
-	out.write("%d %22.15le %22.15le %22.15le %22.15le %22.15le %22.15le\n" \
-		  % (i+1,0.0,0.0,0.0,0.0,0.0,0.0))
+    for i in range(nnucl):
+        out.write("%d %22.15le %22.15le %22.15le %22.15le %22.15le %22.15le\n" \
+            % (i+1,0.0,0.0,0.0,0.0,0.0,0.0))
 
     out.write('\n')
     out.write('# Atom-ID, shape, quaternion\n')
     out.write('Ellipsoids\n')
     out.write('\n')
 
-    for i in xrange(nnucl):
-	out.write(\
-    "%d %22.15le %22.15le %22.15le %22.15le %22.15le %22.15le %22.15le\n"  \
-      % (i+1,1.1739845031423408,1.1739845031423408,1.1739845031423408, \
-	quaternions[i][0],quaternions[i][1], quaternions[i][2],quaternions[i][3]))
- 
+    for i in range(nnucl):
+        out.write("%d %22.15le %22.15le %22.15le %22.15le %22.15le %22.15le %22.15le\n"  \
+            % (i+1,1.1739845031423408,1.1739845031423408,1.1739845031423408, \
+            quaternions[i][0],quaternions[i][1], quaternions[i][2],quaternions[i][3]))
+
     out.write('\n')
     out.write('# Bond topology\n')
     out.write('Bonds\n')
     out.write('\n')
 
-    for i in xrange(nbonds):
-	out.write("%d  %d  %d  %d\n" % (i+1,1,bonds[i][0],bonds[i][1]))
+    for i in range(nbonds):
+        out.write("%d  %d  %d  %d\n" % (i+1,1,bonds[i][0],bonds[i][1]))
 
     out.close()
 
-    print >> sys.stdout, "## Wrote data to 'data.oxdna'"
-    print >> sys.stdout, "## DONE"
+    print("## Wrote data to 'data.oxdna'", file=sys.stdout)
+    print("## DONE", file=sys.stdout)
 
 # call the above main() function, which executes the program
 read_strands (infile)
@@ -627,4 +624,6 @@ runtime = end_time-start_time
 hours = runtime/3600
 minutes = (runtime-np.rint(hours)*3600)/60
 seconds = (runtime-np.rint(hours)*3600-np.rint(minutes)*60)%60
-print >> sys.stdout, "## Total runtime %ih:%im:%.2fs" % (hours,minutes,seconds)
+print( "## Total runtime %ih:%im:%.2fs" % (hours,minutes,seconds), file=sys.stdout)
+
+

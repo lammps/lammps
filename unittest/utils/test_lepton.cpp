@@ -542,6 +542,41 @@ TEST(Lepton, Optimize)
     out.str("");
 }
 
+TEST(Lepton, Exception)
+{
+    Lepton::CompiledExpression function, derivative;
+
+    auto parsed = Lepton::Parser::parse("x*x");
+    function    = parsed.createCompiledExpression();
+    derivative  = parsed.differentiate("x").createCompiledExpression();
+
+    double x = 1.5;
+    EXPECT_NO_THROW(function.getVariableReference("x") = x;);
+    EXPECT_NO_THROW(derivative.getVariableReference("x") = x;);
+    EXPECT_DOUBLE_EQ(function.evaluate(), 2.25);
+    EXPECT_DOUBLE_EQ(derivative.evaluate(), 3.0);
+
+    parsed     = Lepton::Parser::parse("x");
+    function   = parsed.createCompiledExpression();
+    derivative = parsed.differentiate("x").createCompiledExpression();
+
+    x = 2.5;
+    EXPECT_NO_THROW(function.getVariableReference("x") = x;);
+    EXPECT_THROW(derivative.getVariableReference("x") = x;, Lepton::Exception);
+    EXPECT_DOUBLE_EQ(function.evaluate(), 2.5);
+    EXPECT_DOUBLE_EQ(derivative.evaluate(), 1.0);
+
+    parsed     = Lepton::Parser::parse("1.0");
+    function   = parsed.createCompiledExpression();
+    derivative = parsed.differentiate("x").createCompiledExpression();
+
+    x = 0.5;
+    EXPECT_THROW(function.getVariableReference("x") = x;, Lepton::Exception);
+    EXPECT_THROW(derivative.getVariableReference("x") = x;, Lepton::Exception);
+    EXPECT_DOUBLE_EQ(function.evaluate(), 1.0);
+    EXPECT_DOUBLE_EQ(derivative.evaluate(), 0.0);
+}
+
 int main(int argc, char **argv)
 {
     MPI_Init(&argc, &argv);

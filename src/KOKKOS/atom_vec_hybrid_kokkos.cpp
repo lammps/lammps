@@ -15,14 +15,7 @@
 #include "atom_vec_hybrid_kokkos.h"
 
 #include "atom_kokkos.h"
-#include "atom_masks.h"
-#include "domain.h"
 #include "error.h"
-#include "fix.h"
-#include "memory_kokkos.h"
-#include "modify.h"
-
-#include <cstring>
 
 using namespace LAMMPS_NS;
 
@@ -63,8 +56,7 @@ void AtomVecHybridKokkos::sort_kokkos(Kokkos::BinSort<KeyViewType, BinOp> &Sorte
 
 /* ---------------------------------------------------------------------- */
 
-int AtomVecHybridKokkos::pack_comm_kokkos(const int &/*n*/, const DAT::tdual_int_2d &/*k_sendlist*/,
-                                          const int & /*iswap*/,
+int AtomVecHybridKokkos::pack_comm_kokkos(const int &/*n*/, const DAT::tdual_int_1d &/*k_sendlist*/,
                                           const DAT::tdual_xfloat_2d &/*buf*/,
                                           const int &/*pbc_flag*/, const int /*pbc*/[])
 {
@@ -78,16 +70,16 @@ void AtomVecHybridKokkos::unpack_comm_kokkos(const int &/*n*/, const int &/*nfir
   error->all(FLERR,"AtomVecHybridKokkos doesn't yet support threaded comm");
 }
 
-int AtomVecHybridKokkos::pack_comm_self(const int &/*n*/, const DAT::tdual_int_2d &/*list*/,
-                                        const int & /*iswap*/, const int /*nfirst*/,
-                                        const int &/*pbc_flag*/, const int /*pbc*/[])
+int AtomVecHybridKokkos::pack_comm_self(const int &/*n*/, const DAT::tdual_int_1d &/*list*/,
+                                        const int /*nfirst*/,
+                                        const int &/*pbc_flag*/, const int pbc[])
 {
   error->all(FLERR,"AtomVecHybridKokkos doesn't yet support threaded comm");
   return 0;
 }
 
-int AtomVecHybridKokkos::pack_border_kokkos(int /*n*/, DAT::tdual_int_2d /*k_sendlist*/,
-                                            DAT::tdual_xfloat_2d /*buf*/,int /*iswap*/,
+int AtomVecHybridKokkos::pack_border_kokkos(int /*n*/, DAT::tdual_int_1d /*k_sendlist*/,
+                                            DAT::tdual_xfloat_2d /*buf*/,
                                             int /*pbc_flag*/, int * /*pbc*/, ExecutionSpace /*space*/)
 {
   error->all(FLERR,"AtomVecHybridKokkos doesn't yet support threaded comm");

@@ -42,10 +42,6 @@ using namespace LAMMPS_NS;
 using namespace MathConst;
 using namespace MathSpecial;
 
-// same as fix_wall.cpp
-
-enum{EDGE,CONSTANT,VARIABLE};
-
 /* ---------------------------------------------------------------------- */
 
 PairBrownianPoly::PairBrownianPoly(LAMMPS *lmp) : PairBrownian(lmp)
@@ -95,7 +91,7 @@ void PairBrownianPoly::compute(int eflag, int vflag)
         for (int m = 0; m < wallfix->nwall; m++) {
           int dim = wallfix->wallwhich[m] / 2;
           int side = wallfix->wallwhich[m] % 2;
-          if (wallfix->xstyle[m] == VARIABLE) {
+          if (wallfix->xstyle[m] == FixWall::VARIABLE) {
             wallcoord = input->variable->compute_equal(wallfix->xindex[m]);
           }
           else wallcoord = wallfix->coord0[m];
@@ -322,8 +318,8 @@ void PairBrownianPoly::init_style()
 {
   if (force->newton_pair == 1)
     error->all(FLERR,"Pair brownian/poly requires newton pair off");
-  if (!atom->sphere_flag)
-    error->all(FLERR,"Pair brownian/poly requires atom style sphere");
+  if (!atom->radius_flag)
+    error->all(FLERR,"Pair brownian/poly requires atom attribute radius");
 
   // ensure all particles are finite-size
   // for pair hybrid, should limit test to types using the pair style
@@ -376,7 +372,7 @@ void PairBrownianPoly::init_style()
     for (int m = 0; m < wallfix->nwall; m++) {
       int dim = wallfix->wallwhich[m] / 2;
       int side = wallfix->wallwhich[m] % 2;
-      if (wallfix->xstyle[m] == VARIABLE) {
+      if (wallfix->xstyle[m] == FixWall::VARIABLE) {
         wallfix->xindex[m] = input->variable->find(wallfix->xstr[m]);
         // Since fix->wall->init happens after pair->init_style
         wallcoord = input->variable->compute_equal(wallfix->xindex[m]);

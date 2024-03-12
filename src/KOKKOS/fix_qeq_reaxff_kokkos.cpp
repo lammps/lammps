@@ -27,10 +27,8 @@
 
 #include "fix_qeq_reaxff_kokkos.h"
 
-#include "atom.h"
 #include "atom_kokkos.h"
 #include "atom_masks.h"
-#include "atom_vec_kokkos.h"
 #include "comm.h"
 #include "error.h"
 #include "force.h"
@@ -46,8 +44,7 @@
 using namespace LAMMPS_NS;
 using namespace FixConst;
 
-#define SMALL 0.0001
-#define EV_TO_KCAL_PER_MOL 14.4
+static constexpr double EV_TO_KCAL_PER_MOL = 14.4;
 
 /* ---------------------------------------------------------------------- */
 
@@ -928,7 +925,7 @@ void FixQEqReaxFFKokkos<DeviceType>::operator()(TagQEqSparseMatvec2_Half<NEIGHFL
 {
   int k = team.league_rank() * team.team_size() + team.team_rank();
   if (k < nn) {
-    // The q array is duplicated for OpenMP, atomic for CUDA, and neither for Serial
+    // The q array is duplicated for OpenMP, atomic for GPU, and neither for Serial
     auto v_o = ScatterViewHelper<NeedDup_v<NEIGHFLAG,DeviceType>,decltype(dup_o),decltype(ndup_o)>::get(dup_o,ndup_o);
     auto a_o = v_o.template access<AtomicDup_v<NEIGHFLAG,DeviceType>>();
 
@@ -1118,12 +1115,11 @@ void FixQEqReaxFFKokkos<DeviceType>::operator()(TagQEqCalculateQ, const int &ii)
 /* ---------------------------------------------------------------------- */
 
 template<class DeviceType>
-int FixQEqReaxFFKokkos<DeviceType>::pack_forward_comm_kokkos(int n, DAT::tdual_int_2d k_sendlist,
-                                                        int iswap_in, DAT::tdual_xfloat_1d &k_buf,
+int FixQEqReaxFFKokkos<DeviceType>::pack_forward_comm_kokkos(int n, DAT::tdual_int_1d k_sendlist,
+                                                        DAT::tdual_xfloat_1d &k_buf,
                                                         int /*pbc_flag*/, int * /*pbc*/)
 {
   d_sendlist = k_sendlist.view<DeviceType>();
-  iswap = iswap_in;
   d_buf = k_buf.view<DeviceType>();
   Kokkos::parallel_for(Kokkos::RangePolicy<DeviceType, TagQEqPackForwardComm>(0,n),*this);
   if (pack_flag == 3) return n;
@@ -1135,7 +1131,7 @@ int FixQEqReaxFFKokkos<DeviceType>::pack_forward_comm_kokkos(int n, DAT::tdual_i
 template<class DeviceType>
 KOKKOS_INLINE_FUNCTION
 void FixQEqReaxFFKokkos<DeviceType>::operator()(TagQEqPackForwardComm, const int &i) const {
-  int j = d_sendlist(iswap, i);
+  int j = d_sendlist(i);
 
   if (pack_flag == 1) {
     if (!(converged & 1))
@@ -1416,6 +1412,7 @@ KOKKOS_INLINE_FUNCTION
 void FixQEqReaxFFKokkos<DeviceType>::operator()(TagQEqUnpackExchange, const int &i) const
 {
   int index = d_indices(i);
+
   if (index > -1) {
     for (int m = 0; m < nprev; m++) d_s_hist(index,m) = d_buf(i*nprev*2 + m);
     for (int m = 0; m < nprev; m++) d_t_hist(index,m) = d_buf(i*nprev*2 + nprev+m);
@@ -1427,6 +1424,7 @@ void FixQEqReaxFFKokkos<DeviceType>::operator()(TagQEqUnpackExchange, const int 
 template <class DeviceType>
 void FixQEqReaxFFKokkos<DeviceType>::unpack_exchange_kokkos(
   DAT::tdual_xfloat_2d &k_buf, DAT::tdual_int_1d &k_indices, int nrecv,
+  int /*nrecv1*/, int /*nextrarecv1*/,
   ExecutionSpace /*space*/)
 {
   k_buf.sync<DeviceType>();

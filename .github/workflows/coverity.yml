@@ -25,7 +25,7 @@ jobs:
 
     - name: Cache Coverity
       id: cache-coverity
-      uses: actions/cache@v3
+      uses: actions/cache@v4
       with:
         path: ./download/
         key: ${{ runner.os }}-download-${{ hashFiles('**/coverity_tool.*') }}

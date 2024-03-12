@@ -118,6 +118,8 @@ MODULE LIBLAMMPS
     PROCEDURE :: extract_fix            => lmp_extract_fix
     PROCEDURE :: extract_variable       => lmp_extract_variable
     PROCEDURE :: set_variable           => lmp_set_variable
+    PROCEDURE :: set_string_variable    => lmp_set_string_variable
+    PROCEDURE :: set_internal_variable  => lmp_set_internal_variable
     PROCEDURE, PRIVATE :: lmp_gather_atoms_int
     PROCEDURE, PRIVATE :: lmp_gather_atoms_double
     GENERIC   :: gather_atoms           => lmp_gather_atoms_int, &
@@ -556,6 +558,21 @@ MODULE LIBLAMMPS
       TYPE(c_ptr), VALUE :: handle, name, str
       INTEGER(c_int) :: lammps_set_variable
     END FUNCTION lammps_set_variable
+
+    FUNCTION lammps_set_string_variable(handle, name, str) BIND(C)
+      IMPORT :: c_int, c_ptr
+      IMPLICIT NONE
+      TYPE(c_ptr), VALUE :: handle, name, str
+      INTEGER(c_int) :: lammps_set_string_variable
+    END FUNCTION lammps_set_string_variable
+
+    FUNCTION lammps_set_internal_variable(handle, name, val) BIND(C)
+      IMPORT :: c_int, c_ptr, c_double
+      IMPLICIT NONE
+      TYPE(c_ptr), VALUE :: handle, name
+      REAL(c_double), VALUE :: val
+      INTEGER(c_int) :: lammps_set_internal_variable
+    END FUNCTION lammps_set_internal_variable
 
     SUBROUTINE lammps_gather_atoms(handle, name, type, count, data) BIND(C)
       IMPORT :: c_int, c_ptr
@@ -1630,6 +1647,43 @@ CONTAINS
         // '" [Fortran/set_variable]')
     END IF
   END SUBROUTINE lmp_set_variable
+
+  ! equivalent function to lammps_set_string_variable
+  SUBROUTINE lmp_set_string_variable(self, name, str)
+    CLASS(lammps), INTENT(IN) :: self
+    CHARACTER(LEN=*), INTENT(IN) :: name, str
+    INTEGER :: err
+    TYPE(c_ptr) :: Cstr, Cname
+
+    Cstr = f2c_string(str)
+    Cname = f2c_string(name)
+    err = lammps_set_string_variable(self%handle, Cname, Cstr)
+    CALL lammps_free(Cname)
+    CALL lammps_free(Cstr)
+    IF (err /= 0) THEN
+      CALL lmp_error(self, LMP_ERROR_WARNING + LMP_ERROR_WORLD, &
+        'WARNING: unable to set string variable "' // name &
+        // '" [Fortran/set_variable]')
+    END IF
+  END SUBROUTINE lmp_set_string_variable
+
+  ! equivalent function to lammps_set_internal_variable
+  SUBROUTINE lmp_set_internal_variable(self, name, val)
+    CLASS(lammps), INTENT(IN) :: self
+    CHARACTER(LEN=*), INTENT(IN) :: name
+    REAL(KIND=c_double), INTENT(IN) :: val
+    INTEGER :: err
+    TYPE(c_ptr) :: Cname
+
+    Cname = f2c_string(name)
+    err = lammps_set_internal_variable(self%handle, Cname, val)
+    CALL lammps_free(Cname)
+    IF (err /= 0) THEN
+      CALL lmp_error(self, LMP_ERROR_WARNING + LMP_ERROR_WORLD, &
+        'WARNING: unable to set internal variable "' // name &
+        // '" [Fortran/set_variable]')
+    END IF
+  END SUBROUTINE lmp_set_internal_variable
 
   ! equivalent function to lammps_gather_atoms (for integers)
   SUBROUTINE lmp_gather_atoms_int(self, name, count, data)

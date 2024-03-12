@@ -22,12 +22,9 @@
 #include "citeme.h"
 #include "comm.h"
 #include "error.h"
-#include "force.h"
 #include "memory.h"
 #include "modify.h"
 #include "neigh_list.h"
-#include "neighbor.h"
-#include "pair.h"
 #include "potential_file_reader.h"
 #include "update.h"
 

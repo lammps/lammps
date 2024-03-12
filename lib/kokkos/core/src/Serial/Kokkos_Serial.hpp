@@ -30,6 +30,7 @@ static_assert(false,
 
 #include <cstddef>
 #include <iosfwd>
+#include <iterator>
 #include <mutex>
 #include <thread>
 #include <Kokkos_Core_fwd.hpp>

@@ -43,10 +43,10 @@
 using namespace LAMMPS_NS;
 using namespace MathConst;
 
-#define DELTA 10000
-#define EPSILON 1e-3     // dimensionless threshold (dot products, end point checks, contact checks)
-#define MAX_FACE_SIZE 4  // maximum number of vertices per face (same as BodyRoundedPolyhedron)
-#define MAX_CONTACTS 32  // for 3D models (including duplicated counts)
+static constexpr int DELTA = 10000;
+static constexpr double EPSILON = 1.0e-3; // dimensionless threshold (dot products, end point checks, contact checks)
+static constexpr int MAX_FACE_SIZE = 4;   // maximum number of vertices per face (same as BodyRoundedPolyhedron)
+static constexpr int MAX_CONTACTS = 32;   // for 3D models (including duplicated counts)
 
 //#define _POLYHEDRON_DEBUG
 

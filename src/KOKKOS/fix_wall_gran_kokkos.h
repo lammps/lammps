@@ -62,12 +62,13 @@ class FixWallGranKokkos : public FixWallGranOld, public KokkosBase {
   void operator()(TagFixWallGranUnpackExchange, const int&) const;
 
   int pack_exchange_kokkos(const int &nsend,DAT::tdual_xfloat_2d &buf,
-			   DAT::tdual_int_1d k_sendlist,
-			   DAT::tdual_int_1d k_copylist,
-			   ExecutionSpace space) override;
+                           DAT::tdual_int_1d k_sendlist,
+                           DAT::tdual_int_1d k_copylist,
+                           ExecutionSpace space) override;
 
   void unpack_exchange_kokkos(DAT::tdual_xfloat_2d &k_buf,
                               DAT::tdual_int_1d &indices,int nrecv,
+                              int nrecv1,int nrecv1extra,
                               ExecutionSpace space) override;
 
  private:
@@ -91,6 +92,7 @@ class FixWallGranKokkos : public FixWallGranOld, public KokkosBase {
   typename AT::t_int_1d d_copylist;
   typename AT::t_int_1d d_indices;
 };
+
 }
 
 #endif

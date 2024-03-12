@@ -444,12 +444,11 @@ void PairEAMKokkos<DeviceType>::interpolate(int n, double delta, double *f, t_ho
 /* ---------------------------------------------------------------------- */
 
 template<class DeviceType>
-int PairEAMKokkos<DeviceType>::pack_forward_comm_kokkos(int n, DAT::tdual_int_2d k_sendlist,
-                                                        int iswap_in, DAT::tdual_xfloat_1d &buf,
+int PairEAMKokkos<DeviceType>::pack_forward_comm_kokkos(int n, DAT::tdual_int_1d k_sendlist,
+                                                        DAT::tdual_xfloat_1d &buf,
                                                         int /*pbc_flag*/, int * /*pbc*/)
 {
   d_sendlist = k_sendlist.view<DeviceType>();
-  iswap = iswap_in;
   v_buf = buf.view<DeviceType>();
   Kokkos::parallel_for(Kokkos::RangePolicy<DeviceType, TagPairEAMPackForwardComm>(0,n),*this);
   return n;
@@ -458,7 +457,7 @@ int PairEAMKokkos<DeviceType>::pack_forward_comm_kokkos(int n, DAT::tdual_int_2d
 template<class DeviceType>
 KOKKOS_INLINE_FUNCTION
 void PairEAMKokkos<DeviceType>::operator()(TagPairEAMPackForwardComm, const int &i) const {
-  int j = d_sendlist(iswap, i);
+  int j = d_sendlist(i);
   v_buf[i] = d_fp[j];
 }
 
@@ -561,7 +560,7 @@ void PairEAMKokkos<DeviceType>::operator()(TagPairEAMKernelA<NEIGHFLAG,NEWTON_PA
   // rho = density at each atom
   // loop over neighbors of my atoms
 
-  // The rho array is duplicated for OpenMP, atomic for CUDA, and neither for Serial
+  // The rho array is duplicated for OpenMP, atomic for GPU, and neither for Serial
 
   auto v_rho = ScatterViewHelper<NeedDup_v<NEIGHFLAG,DeviceType>,decltype(dup_rho),decltype(ndup_rho)>::get(dup_rho,ndup_rho);
   auto a_rho = v_rho.template access<AtomicDup_v<NEIGHFLAG,DeviceType>>();
@@ -728,7 +727,7 @@ template<int NEIGHFLAG, int NEWTON_PAIR, int EVFLAG>
 KOKKOS_INLINE_FUNCTION
 void PairEAMKokkos<DeviceType>::operator()(TagPairEAMKernelC<NEIGHFLAG,NEWTON_PAIR,EVFLAG>, const int &ii, EV_FLOAT& ev) const {
 
-  // The f array is duplicated for OpenMP, atomic for CUDA, and neither for Serial
+  // The f array is duplicated for OpenMP, atomic for GPU, and neither for Serial
 
   auto v_f = ScatterViewHelper<NeedDup_v<NEIGHFLAG,DeviceType>,decltype(dup_f),decltype(ndup_f)>::get(dup_f,ndup_f);
   auto a_f = v_f.template access<AtomicDup_v<NEIGHFLAG,DeviceType>>();
@@ -938,7 +937,7 @@ void PairEAMKokkos<DeviceType>::operator()(TagPairEAMKernelC<NEIGHFLAG,NEWTON_PA
 
   int ii = team_member.league_rank()*team_member.team_size() + team_member.team_rank();
 
-  // The f array is duplicated for OpenMP, atomic for CUDA, and neither for Serial
+  // The f array is duplicated for OpenMP, atomic for GPU, and neither for Serial
 
   auto v_f = ScatterViewHelper<NeedDup_v<NEIGHFLAG,DeviceType>,decltype(dup_f),decltype(ndup_f)>::get(dup_f,ndup_f);
   auto a_f = v_f.template access<AtomicDup_v<NEIGHFLAG,DeviceType>>();
@@ -1071,7 +1070,7 @@ void PairEAMKokkos<DeviceType>::ev_tally(EV_FLOAT &ev, const int &i, const int &
   const int EFLAG = eflag;
   const int VFLAG = vflag_either;
 
-  // The eatom and vatom arrays are duplicated for OpenMP, atomic for CUDA, and neither for Serial
+  // The eatom and vatom arrays are duplicated for OpenMP, atomic for GPU, and neither for Serial
 
   auto v_eatom = ScatterViewHelper<NeedDup_v<NEIGHFLAG,DeviceType>,decltype(dup_eatom),decltype(ndup_eatom)>::get(dup_eatom,ndup_eatom);
   auto a_eatom = v_eatom.template access<AtomicDup_v<NEIGHFLAG,DeviceType>>();

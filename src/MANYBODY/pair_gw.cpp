@@ -37,7 +37,7 @@ using namespace LAMMPS_NS;
 using namespace MathConst;
 using namespace MathExtra;
 
-#define DELTA 4
+static constexpr int DELTA = 4;
 
 /* ---------------------------------------------------------------------- */
 

@@ -25,12 +25,10 @@
 #include "error.h"
 #include "fix_mdi_engine.h"
 #include "force.h"
-#include "group.h"
 #include "input.h"
 #include "integrate.h"
 #include "irregular.h"
 #include "library.h"
-#include "library_mdi.h"
 #include "memory.h"
 #include "min.h"
 #include "modify.h"
@@ -54,7 +52,7 @@ enum { DEFAULT, MD, OPT };       // top-level MDI engine modes
 
 enum { TYPE, CHARGE, MASS, COORD, VELOCITY, FORCE, ADDFORCE };
 
-#define MAXELEMENT 118
+static constexpr int MAXELEMENT = 118;
 
 /* ----------------------------------------------------------------------
    trigger LAMMPS to start acting as an MDI engine

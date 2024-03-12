@@ -19,21 +19,20 @@
 
 #include "compute_heat_flux.h"
 
-#include <cstring>
 #include "atom.h"
-#include "update.h"
-#include "modify.h"
-#include "force.h"
 #include "error.h"
+#include "force.h"
+#include "modify.h"
+#include "update.h"
 
 using namespace LAMMPS_NS;
-
 
 /* ---------------------------------------------------------------------- */
 
 ComputeHeatFlux::ComputeHeatFlux(LAMMPS *lmp, int narg, char **arg) :
   Compute(lmp, narg, arg),
-  id_ke(nullptr), id_pe(nullptr), id_stress(nullptr)
+  id_ke(nullptr), id_pe(nullptr), id_stress(nullptr),
+  c_ke(nullptr), c_pe(nullptr), c_stress(nullptr)
 {
   if (narg != 6) error->all(FLERR,"Illegal compute heat/flux command");
 
@@ -45,22 +44,24 @@ ComputeHeatFlux::ComputeHeatFlux(LAMMPS *lmp, int narg, char **arg) :
   // ensure they are valid for these computations
 
   id_ke = utils::strdup(arg[3]);
-  id_pe = utils::strdup(arg[4]);
-  id_stress = utils::strdup(arg[5]);
+  auto ike = modify->get_compute_by_id(id_ke);
+  if (!ike) error->all(FLERR,"Could not find compute heat/flux compute ID {}", id_ke);
+  if (!utils::strmatch(ike->style,"^ke/atom"))
+    error->all(FLERR,"Compute heat/flux compute ID {} does not compute ke/atom", id_ke);
 
-  int ike = modify->find_compute(id_ke);
-  int ipe = modify->find_compute(id_pe);
-  int istress = modify->find_compute(id_stress);
-  if (ike < 0 || ipe < 0 || istress < 0)
-    error->all(FLERR,"Could not find compute heat/flux compute ID");
-  if (strcmp(modify->compute[ike]->style,"ke/atom") != 0)
-    error->all(FLERR,"Compute heat/flux compute ID does not compute ke/atom");
-  if (modify->compute[ipe]->peatomflag == 0)
-    error->all(FLERR,"Compute heat/flux compute ID does not compute pe/atom");
-  if (modify->compute[istress]->pressatomflag != 1
-      && modify->compute[istress]->pressatomflag != 2)
+  id_pe = utils::strdup(arg[4]);
+  auto ipe = modify->get_compute_by_id(id_pe);
+  if (!ipe) error->all(FLERR,"Could not find compute heat/flux compute ID {}", id_pe);
+  if (ipe->peatomflag == 0)
+    error->all(FLERR,"Compute heat/flux compute ID {} does not compute pe/atom", id_pe);
+
+  id_stress = utils::strdup(arg[5]);
+  auto istress = modify->get_compute_by_id(id_stress);
+  if (!istress) error->all(FLERR,"Could not find compute heat/flux compute ID {}", id_stress);
+  if ((istress->pressatomflag != 1) && (istress->pressatomflag != 2))
     error->all(FLERR,
-               "Compute heat/flux compute ID does not compute stress/atom or centroid/stress/atom");
+               "Compute heat/flux compute ID {} does not compute stress/atom or "
+               "centroid/stress/atom", id_stress);
 
   vector = new double[size_vector];
 }
@@ -69,10 +70,10 @@ ComputeHeatFlux::ComputeHeatFlux(LAMMPS *lmp, int narg, char **arg) :
 
 ComputeHeatFlux::~ComputeHeatFlux()
 {
-  delete [] id_ke;
-  delete [] id_pe;
-  delete [] id_stress;
-  delete [] vector;
+  delete[] id_ke;
+  delete[] id_pe;
+  delete[] id_stress;
+  delete[] vector;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -81,15 +82,12 @@ void ComputeHeatFlux::init()
 {
   // error checks
 
-  int ike = modify->find_compute(id_ke);
-  int ipe = modify->find_compute(id_pe);
-  int istress = modify->find_compute(id_stress);
-  if (ike < 0 || ipe < 0 || istress < 0)
-    error->all(FLERR,"Could not find compute heat/flux compute ID");
-
-  c_ke = modify->compute[ike];
-  c_pe = modify->compute[ipe];
-  c_stress = modify->compute[istress];
+  c_ke = modify->get_compute_by_id(id_ke);
+  if (!c_ke) error->all(FLERR,"Could not find compute heat/flux compute ID {}", id_ke);
+  c_pe = modify->get_compute_by_id(id_pe);
+  if (!c_pe) error->all(FLERR,"Could not find compute heat/flux compute ID {}", id_pe);
+  c_stress = modify->get_compute_by_id(id_stress);
+  if (!c_stress) error->all(FLERR,"Could not find compute heat/flux compute ID {}", id_stress);
 }
 
 /* ---------------------------------------------------------------------- */

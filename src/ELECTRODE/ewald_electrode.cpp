@@ -37,8 +37,6 @@
 using namespace LAMMPS_NS;
 using namespace MathConst;
 
-#define SMALL 0.00001
-
 /* ---------------------------------------------------------------------- */
 
 EwaldElectrode::EwaldElectrode(LAMMPS *lmp) : Ewald(lmp), boundcorr(nullptr)

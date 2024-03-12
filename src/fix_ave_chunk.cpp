@@ -301,8 +301,7 @@ FixAveChunk::FixAveChunk(LAMMPS *lmp, int narg, char **arg) :
   if (fp && comm->me == 0) {
     clearerr(fp);
     if (title1) fprintf(fp,"%s\n",title1);
-    else fprintf(fp,"# Chunk-averaged data for fix %s and group %s\n",
-                 id, group);
+    else fprintf(fp,"# Chunk-averaged data for fix %s and group %s\n", id, group);
     if (title2) fprintf(fp,"%s\n",title2);
     else fprintf(fp,"# Timestep Number-of-chunks Total-count\n");
     if (title3) fprintf(fp,"%s\n",title3);
@@ -485,7 +484,7 @@ void FixAveChunk::init()
 
 /* ----------------------------------------------------------------------
    only does averaging if nvalid = current timestep
-   do not call setup_chunks(), even though fix ave/spatial called setup_bins()
+   do not call setup_chunks(), even though fix ave/chunk called setup_bins()
    b/c could cause nchunk to change if Nfreq epoch crosses 2 runs
    does mean that if change_box is used between runs to change box size,
      that nchunk may not track it

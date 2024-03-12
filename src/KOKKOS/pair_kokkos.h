@@ -627,7 +627,7 @@ struct PairComputeFunctor  {
       const int itype = c.type(i);
       const F_FLOAT qtmp = c.q(i);
 
-      if (ZEROFLAG) {
+      if (NEIGHFLAG == FULL && ZEROFLAG) {
         Kokkos::single(Kokkos::PerThread(team), [&] (){
           f(i,0) = 0.0;
           f(i,1) = 0.0;
@@ -674,7 +674,7 @@ struct PairComputeFunctor  {
           const int J_CONTRIB = ((NEIGHFLAG == HALF || NEIGHFLAG == HALFTHREAD) && j < c.nlocal);
           const E_FLOAT factor = J_CONTRIB?1.0:0.5;
 
-          if ((NEIGHFLAG == HALF || NEIGHFLAG == HALFTHREAD) && j < c.nlocal) {
+          if (J_CONTRIB) {
             a_f(j,0) -= fx;
             a_f(j,1) -= fy;
             a_f(j,2) -= fz;
@@ -746,8 +746,10 @@ struct PairComputeFunctor  {
         a_f(i,1) += fev.f[1];
         a_f(i,2) += fev.f[2];
 
-        if (c.eflag_global)
+        if (c.eflag_global) {
           ev.evdwl += fev.evdwl;
+          ev.ecoul += fev.ecoul;
+        }
 
         if (c.vflag_global) {
           ev.v[0] += fev.v[0];
@@ -761,7 +763,7 @@ struct PairComputeFunctor  {
         if (NEIGHFLAG == FULL) {
 
           if (c.eflag_atom)
-            a_eatom(i) += fev.evdwl;
+            a_eatom(i) += fev.evdwl + fev.ecoul;
 
           if (c.vflag_atom) {
             a_vatom(i,0) += fev.v[0];

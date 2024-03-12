@@ -197,7 +197,7 @@ void test_A(std::size_t numTeams, std::size_t numCols, int apiId,
   auto distancesView_h         = create_host_space_copy(distancesView);
   auto dataViewAfterOp_h       = create_host_space_copy(dataView);
   auto intraTeamSentinelView_h = create_host_space_copy(intraTeamSentinelView);
-  GreaterThanValueFunctor predicate(threshold);
+  GreaterThanValueFunctor<ValueType> predicate(threshold);
 
   for (std::size_t i = 0; i < dataView_dc_h.extent(0); ++i) {
     auto myRow = Kokkos::subview(dataView_dc_h, i, Kokkos::ALL());

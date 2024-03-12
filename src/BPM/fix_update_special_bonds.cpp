@@ -21,14 +21,11 @@
 #include "modify.h"
 #include "neigh_list.h"
 #include "neighbor.h"
-#include "pair.h"
 
 #include <utility>
 
 using namespace LAMMPS_NS;
 using namespace FixConst;
-
-#define DELTA 10000
 
 /* ---------------------------------------------------------------------- */
 

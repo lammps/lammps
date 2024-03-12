@@ -11,7 +11,6 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 #define PTM_CONVEX_HULL_INCREMENTAL_H
 
 #include "ptm_constants.h"
-#include <cstdbool>
 #include <cstdint>
 
 namespace ptm {

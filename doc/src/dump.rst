@@ -104,7 +104,6 @@ Syntax
                                q, mux, muy, muz, mu,
                                radius, diameter, omegax, omegay, omegaz,
                                angmomx, angmomy, angmomz, tqx, tqy, tqz,
-                               heatflow, temperature,
                                c_ID, c_ID[I], f_ID, f_ID[I], v_name,
                                i_name, d_name, i2_name[I], d2_name[I]
 
@@ -131,8 +130,6 @@ Syntax
            omegax,omegay,omegaz = angular velocity of spherical particle
            angmomx,angmomy,angmomz = angular momentum of aspherical particle
            tqx,tqy,tqz = torque on finite-size particles
-           heatflow = rate of heat flow into particle
-           temperature = temperature of particle
            c_ID = per-atom vector calculated by a compute with ID
            c_ID[I] = Ith column of per-atom array calculated by a compute with ID, I can include wildcard (see below)
            f_ID = per-atom vector calculated by a fix with ID

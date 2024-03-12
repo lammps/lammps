@@ -224,7 +224,7 @@ template <typename T>
   using data_type = std::conditional_t<std::is_floating_point_v<T>, T, double>;
   return Experimental::simd<data_type, Experimental::simd_abi::scalar>(
       Kokkos::floor(static_cast<data_type>(a[0])));
-};
+}
 
 template <typename T>
 [[nodiscard]] KOKKOS_FORCEINLINE_FUNCTION auto ceil(
@@ -232,7 +232,7 @@ template <typename T>
   using data_type = std::conditional_t<std::is_floating_point_v<T>, T, double>;
   return Experimental::simd<data_type, Experimental::simd_abi::scalar>(
       Kokkos::ceil(static_cast<data_type>(a[0])));
-};
+}
 
 template <typename T>
 [[nodiscard]] KOKKOS_FORCEINLINE_FUNCTION auto round(
@@ -240,7 +240,7 @@ template <typename T>
   using data_type = std::conditional_t<std::is_floating_point_v<T>, T, double>;
   return Experimental::simd<data_type, Experimental::simd_abi::scalar>(
       Experimental::round_half_to_nearest_even(static_cast<data_type>(a[0])));
-};
+}
 
 template <typename T>
 [[nodiscard]] KOKKOS_FORCEINLINE_FUNCTION auto trunc(
@@ -248,7 +248,7 @@ template <typename T>
   using data_type = std::conditional_t<std::is_floating_point_v<T>, T, double>;
   return Experimental::simd<data_type, Experimental::simd_abi::scalar>(
       Kokkos::trunc(static_cast<data_type>(a[0])));
-};
+}
 
 template <class T>
 [[nodiscard]] KOKKOS_FORCEINLINE_FUNCTION

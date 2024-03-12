@@ -24,7 +24,7 @@
 
 #include <cstring>
 
-#define MAXLINE 1024
+static constexpr int MAXLINE = 1024;
 
 using namespace LAMMPS_NS;
 using namespace FixConst;
@@ -194,7 +194,7 @@ void FixEOStable::free_table(Table *tb)
 
 void FixEOStable::read_table(Table *tb, Table *tb2, char *file, char *keyword)
 {
-  char line[MAXLINE];
+  char line[MAXLINE] = {'\0'};
 
   // open file
 

@@ -28,8 +28,8 @@
 
 using namespace LAMMPS_NS;
 
-#define LB_FACTOR 1.1
-#define EPSILON   1.0e-6
+static constexpr double LB_FACTOR = 1.1;
+static constexpr double EPSILON =   1.0e-6;
 
 /* ---------------------------------------------------------------------- */
 

@@ -780,6 +780,25 @@ TEST_F(VariableTest, Format)
     //    TEST_FAILURE(".*ERROR: Incorrect conversion in format string.*",
     //                 command("print \"${f1idx}\""););
 }
+
+TEST_F(VariableTest, Set)
+{
+    BEGIN_HIDE_OUTPUT();
+    command("variable three  string    three");
+    command("variable ten    internal  10.0");
+    END_HIDE_OUTPUT();
+    ASSERT_EQ(variable->nvar, 3);
+    ASSERT_THAT(variable->retrieve("three"), StrEq("three"));
+    ASSERT_THAT(variable->retrieve("ten"), StrEq("10"));
+
+    ASSERT_EQ(variable->internalstyle(variable->find("three")), 0);
+    ASSERT_EQ(variable->internalstyle(variable->find("ten")), 1);
+
+    variable->set_string("three", "new");
+    ASSERT_THAT(variable->retrieve("three"), StrEq("new"));
+    variable->internal_set(variable->find("ten"), -2.5);
+    ASSERT_THAT(variable->retrieve("ten"), StrEq("-2.5"));
+}
 } // namespace LAMMPS_NS
 
 int main(int argc, char **argv)

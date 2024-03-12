@@ -20,7 +20,6 @@ FixStyle(wall/gran,FixWallGran);
 #ifndef LMP_FIX_WALL_GRAN_H
 #define LMP_FIX_WALL_GRAN_H
 
-#include "granular_model.h"
 #include "fix.h"
 
 namespace LAMMPS_NS {

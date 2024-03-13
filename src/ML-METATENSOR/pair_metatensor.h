@@ -19,7 +19,9 @@ PairStyle(metatensor, PairMetatensor);
 #ifndef LMP_PAIR_METATENSOR_H
 #define LMP_PAIR_METATENSOR_H
 
-#include <memory>
+#include <vector>
+#include <array>
+#include <unordered_set>
 
 #include "pair.h"
 
@@ -46,23 +48,56 @@ private:
     void load_torch_model(const char* path);
     metatensor_torch::System system_from_lmp(bool do_virial);
 
-    // cached allocations for the neighbors list TensorBlock
-    struct NeighborsData {
-        double cutoff = -1;
-        std::vector<int32_t> samples;
-        std::vector<double> distances;
-    };
+    // == data for the model
 
-    std::vector<metatensor_torch::NeighborsListOptions> neigh_options;
-    std::vector<NeighList*> neigh_lists;
-    std::vector<NeighborsData> neigh_data_cache;
-
+    // the model itself
+    std::unique_ptr<torch::jit::Module> torch_model;
+    // model capabilities
+    metatensor_torch::ModelCapabilities capabilities;
+    // run-time evaluation options, set by us
+    metatensor_torch::ModelEvaluationOptions evaluation_options;
     // TODO: make this user-configurable
     bool check_consistency = true;
 
-    std::unique_ptr<torch::jit::Module> torch_model;
-    metatensor_torch::ModelCapabilities capabilities;
-    metatensor_torch::ModelEvaluationOptions evaluation_options;
+    // == data for neighbors lists
+    struct NeighborsData {
+        // single neighbors sample containing [i, j, S_a, S_b, S_c]
+        using sample_t = std::array<int32_t, 5>;
+
+        struct SampleHasher {
+            static void hash_combine(std::size_t& seed, const int32_t& v) {
+                seed ^= std::hash<int32_t>()(v) + 0x9e3779b9 + (seed<<6) + (seed>>2);
+            }
+
+            size_t operator()(const sample_t& s) const {
+                size_t hash = 0;
+                hash_combine(hash, s[0]);
+                hash_combine(hash, s[1]);
+                hash_combine(hash, s[2]);
+                hash_combine(hash, s[3]);
+                hash_combine(hash, s[4]);
+                return hash;
+            }
+        };
+
+        double cutoff = -1;
+        // we keep the set of samples twice: once in `known_samples` to remove
+        // duplicated pairs, and once in `samples` in a format that can be
+        // used to create a torch::Tensor.
+        std::unordered_set<sample_t, SampleHasher> known_samples;
+        std::vector<sample_t> samples;
+        // pairs distances vectors
+        std::vector<std::array<double, 3>> distances;
+    };
+
+    // NL requests from the model
+    std::vector<metatensor_torch::NeighborsListOptions> neigh_options;
+    // matching LAMMPS NL
+    std::vector<NeighList*> neigh_lists;
+    // cached allocations for the LAMMPS -> metatensor NL translation
+    // TODO: report memory usage for these?
+    std::vector<NeighborsData> neigh_data_cache;
+
     // various allocation caches
     torch::Tensor selected_atoms_values;
     torch::Tensor atomic_types;

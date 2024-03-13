@@ -12,7 +12,7 @@
 ------------------------------------------------------------------------- */
 
 /* ----------------------------------------------------------------------
-   Contributing authors: TODO
+   Contributing authors: Guillaume Fraux <guillaume.fraux@epfl.ch>
 ------------------------------------------------------------------------- */
 #include "pair_metatensor.h"
 
@@ -184,7 +184,7 @@ void PairMetatensor::init_style() {
         // We ask LAMMPS for a full neighbor lists because we need to know about
         // ALL pairs, even if options->full_list() is false. We will then filter
         // the pairs to only include each pair once where needed.
-        auto request = neighbor->add_request(this, NeighConst::REQ_FULL);
+        auto request = neighbor->add_request(this, NeighConst::REQ_FULL | NeighConst::REQ_GHOST);
         request->set_id(n_requests);
         request->set_cutoff(options->engine_cutoff(this->evaluation_options->length_unit()));
 
@@ -369,6 +369,29 @@ void PairMetatensor::load_torch_model(const char* path) {
     }
 }
 
+static std::array<int32_t, 3> cell_shifts(
+    const std::array<std::array<double, 3>, 3>& cell_inv,
+    const std::array<double, 3>& pair_shift
+) {
+    auto shift_a = static_cast<int32_t>(std::round(
+        cell_inv[0][0] * pair_shift[0] +
+        cell_inv[0][1] * pair_shift[1] +
+        cell_inv[0][2] * pair_shift[2]
+    ));
+    auto shift_b = static_cast<int32_t>(std::round(
+        cell_inv[1][0] * pair_shift[0] +
+        cell_inv[1][1] * pair_shift[1] +
+        cell_inv[1][2] * pair_shift[2]
+    ));
+    auto shift_c = static_cast<int32_t>(std::round(
+        cell_inv[2][0] * pair_shift[0] +
+        cell_inv[2][1] * pair_shift[1] +
+        cell_inv[2][2] * pair_shift[2]
+    ));
+
+    return {shift_a, shift_b, shift_c};
+}
+
 
 metatensor_torch::System PairMetatensor::system_from_lmp(bool do_virial) {
     double** x = atom->x;
@@ -399,7 +422,13 @@ metatensor_torch::System PairMetatensor::system_from_lmp(bool do_virial) {
     cell[2][1] = domain->yz;
     cell[2][2] = domain->zprd;
 
-    auto cell_inv = cell.inverse().t();
+    auto cell_inv_tensor = cell.inverse().t();
+    auto cell_inv_accessor = cell_inv_tensor.accessor<double, 2>();
+    auto cell_inv = std::array<std::array<double, 3>, 3>{{
+        {{cell_inv_accessor[0][0], cell_inv_accessor[0][1], cell_inv_accessor[0][2]}},
+        {{cell_inv_accessor[1][0], cell_inv_accessor[1][1], cell_inv_accessor[1][2]}},
+        {{cell_inv_accessor[2][0], cell_inv_accessor[2][1], cell_inv_accessor[2][2]}},
+    }};
 
     if (do_virial) {
         this->strain = torch::eye(3, tensor_options.requires_grad(true));
@@ -475,9 +504,10 @@ metatensor_torch::System PairMetatensor::system_from_lmp(bool do_virial) {
         auto cutoff2 = cache.cutoff * cache.cutoff;
 
         // convert from LAMMPS neighbors list to metatensor format
+        cache.known_samples.clear();
         cache.samples.clear();
         cache.distances.clear();
-        for (int ii=0; ii<list->inum; ii++) {
+        for (int ii=0; ii<(list->inum + list->gnum); ii++) {
             auto atom_i = list->ilist[ii];
             auto original_atom_i = original_atom_id[atom_i];
 
@@ -491,41 +521,43 @@ metatensor_torch::System PairMetatensor::system_from_lmp(bool do_virial) {
                     continue;
                 }
 
-                auto xx = x[atom_j][0] - x[atom_i][0];
-                auto yy = x[atom_j][1] - x[atom_i][1];
-                auto zz = x[atom_j][2] - x[atom_i][2];
+                auto distance = std::array<double, 3>{
+                    x[atom_j][0] - x[atom_i][0],
+                    x[atom_j][1] - x[atom_i][1],
+                    x[atom_j][2] - x[atom_i][2],
+                };
 
-                auto distance2 = xx * xx + yy * yy + zz * zz;
+                auto distance2 = (
+                    distance[0] * distance[0] +
+                    distance[1] * distance[1] +
+                    distance[2] * distance[2]
+                );
                 if (distance2 > cutoff2) {
                     // LAMMPS neighbors list contains some pairs after the
                     // cutoff, we filter them here
                     continue;
                 }
 
-                // Compute the cell shift for the pair. This is non-zero only if
-                // the pair is between an atom and a periodic image. With
-                // LAMMPS, the second atoms in the pair is the one outside the
-                // main cell, so we only need to check atom_j versus
-                // original_atom_j
-                double periodic_shift[3];
-                periodic_shift[0] = x[atom_j][0] - x[original_atom_j][0];
-                periodic_shift[1] = x[atom_j][1] - x[original_atom_j][1];
-                periodic_shift[2] = x[atom_j][2] - x[original_atom_j][2];
+                // Compute the cell shift for the pair.
+                auto shift_i = std::array<double, 3>{
+                    x[atom_i][0] - x[original_atom_i][0],
+                    x[atom_i][1] - x[original_atom_i][1],
+                    x[atom_i][2] - x[original_atom_i][2],
+                };
+                auto shift_j = std::array<double, 3>{
+                    x[atom_j][0] - x[original_atom_j][0],
+                    x[atom_j][1] - x[original_atom_j][1],
+                    x[atom_j][2] - x[original_atom_j][2],
+                };
+                auto pair_shift = std::array<double, 3>{
+                    shift_j[0] - shift_i[0],
+                    shift_j[1] - shift_i[1],
+                    shift_j[2] - shift_i[2],
+                };
 
-                int32_t shift_a = 0;
-                int32_t shift_b = 0;
-                int32_t shift_c = 0;
-                if (periodic_shift[0] != 0 || periodic_shift[1] != 0 || periodic_shift[2] != 0) {
-                    auto periodic_shift_tensor = torch::tensor(
-                        {periodic_shift[0], periodic_shift[1], periodic_shift[2]},
-                        torch::TensorOptions().dtype(torch::kFloat64)
-                    );
-                    auto cell_shift_tensor = cell_inv.matmul(periodic_shift_tensor);
-                    auto cell_shift = cell_shift_tensor.accessor<double, 1>();
-
-                    shift_a = static_cast<int32_t>(std::round(cell_shift[0]));
-                    shift_b = static_cast<int32_t>(std::round(cell_shift[1]));
-                    shift_c = static_cast<int32_t>(std::round(cell_shift[2]));
+                auto shift = std::array<int32_t, 3>{0, 0, 0};
+                if (pair_shift[0] != 0 || pair_shift[1] != 0 || pair_shift[2] != 0) {
+                    shift = cell_shifts(cell_inv, pair_shift);
 
                     if (!options->full_list() && original_atom_i == original_atom_j) {
                         // If a half neighbors list has been requested, do
@@ -535,18 +567,19 @@ metatensor_torch::System PairMetatensor::system_from_lmp(bool do_virial) {
                         //
                         // Instead we pick pairs in the positive plan of
                         // shifts.
-                        if (shift_a + shift_b + shift_c < 0) {
+                        if (shift[0] + shift[1] + shift[2] < 0) {
                             // drop shifts on the negative half-space
                             continue;
                         }
 
-                        if ((shift_a + shift_b + shift_c == 0)
-                            && (shift_c < 0 || (shift_c == 0 && shift_b < 0))) {
+                        if ((shift[0] + shift[1] + shift[2] == 0)
+                            && (shift[2] < 0 || (shift[2] == 0 && shift[1] < 0))) {
                             // drop shifts in the negative half plane or the
-                            // negative shift[1] axis. See below for a
-                            // graphical representation: we are keeping the
-                            // shifts indicated with `O` and dropping the
-                            // ones indicated with `X`
+                            // negative shift[1] axis.
+                            //
+                            // See below for a graphical representation: we are
+                            // keeping the shifts indicated with `O` and
+                            // dropping the ones indicated with `X`
                             //
                             //  O O O │ O O O
                             //  O O O │ O O O
@@ -560,38 +593,27 @@ metatensor_torch::System PairMetatensor::system_from_lmp(bool do_virial) {
                     }
                 }
 
-                cache.distances.emplace_back(xx);
-                cache.distances.emplace_back(yy);
-                cache.distances.emplace_back(zz);
+                auto sample = std::array<int32_t, 5>{
+                    original_atom_i,
+                    original_atom_j,
+                    shift[0],
+                    shift[1],
+                    shift[2],
+                };
 
-                cache.samples.emplace_back(original_atom_i);
-                cache.samples.emplace_back(original_atom_j);
-                cache.samples.emplace_back(shift_a);
-                cache.samples.emplace_back(shift_b);
-                cache.samples.emplace_back(shift_c);
-
-                if (options->full_list() && original_atom_j >= atom->nlocal) {
-                    // Even with `NeighConst::REQ_FULL`, we only get pairs from
-                    // `local -> ghost` and not `ghost -> local`, so let's add
-                    // these manually.
-                    cache.distances.emplace_back(-xx);
-                    cache.distances.emplace_back(-yy);
-                    cache.distances.emplace_back(-zz);
-
-                    cache.samples.emplace_back(original_atom_j);
-                    cache.samples.emplace_back(original_atom_i);
-                    cache.samples.emplace_back(-shift_a);
-                    cache.samples.emplace_back(-shift_b);
-                    cache.samples.emplace_back(-shift_c);
+                // only add the pair if it is not already known. The same pair
+                // can occur multiple time between two periodic ghosts shifted
+                // around by the same amount, but we only want one of these pairs.
+                if (cache.known_samples.insert(sample).second) {
+                    cache.samples.emplace_back(std::move(sample));
+                    cache.distances.emplace_back(std::move(distance));
                 }
             }
         }
 
-        assert(cache.distances.size() % 3 == 0);
-        int64_t n_pairs = cache.distances.size() / 3;
-        assert(cache.samples.size() / 5 == n_pairs);
+        int64_t n_pairs = cache.samples.size();
         auto samples_values = torch::from_blob(
-            cache.samples.data(),
+            reinterpret_cast<int32_t*>(cache.samples.data()),
             {n_pairs, 5},
             torch::TensorOptions().dtype(torch::kInt32).device(torch::kCPU)
         );
@@ -602,7 +624,7 @@ metatensor_torch::System PairMetatensor::system_from_lmp(bool do_virial) {
         );
 
         auto distances_vectors = torch::from_blob(
-            cache.distances.data(),
+            reinterpret_cast<double*>(cache.distances.data()),
             {n_pairs, 3, 1},
             torch::TensorOptions().dtype(torch::kFloat64).device(torch::kCPU)
         );

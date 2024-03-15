@@ -122,15 +122,14 @@ is at :math:`2^{\frac{1}{6}} \sigma_{ij}`.
    build causes an additional speedup of about 20 percent.
 
    Rather than assigning different atom types, an alternate solution is to
-   use the optional *pairwise/nlist/cutoff* setting. With this setting,
-   LAMMPS automatically checks particles radii and calculates an appropriate
-   cutoff for each pair of particles when building the neighbor list. This
-   introduces additional overhead in the neighbor list construction and is
-   generally a less efficient option. However, it may be useful for
-   particularly broad particle size distributions where it is difficult to
-   assign atom types based on size. This option may also be useful for
-   rapidly benchmarking different binning strategies for defining
-   :doc:`collection intervals <neigh_modify>`.
+   use the optional *pairwise/nlist/cutoff* setting. When combined with
+   :doc:`collection intervals <neigh_modify>`, LAMMPS automatically
+   calculates appropriate cutoffs based on particle radii when building the
+   neighbor list. This introduces additional overhead in the neighbor list
+   construction and is generally less efficient. However, it may be useful
+   for particularly broad particle size distributions where it is difficult
+   to assign atom types based on size or for rapidly benchmarking the
+   relative performance of different size binning strategies.
 
 Coefficients
 """"""""""""

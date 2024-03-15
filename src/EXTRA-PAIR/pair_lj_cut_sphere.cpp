@@ -20,6 +20,7 @@
 #include "math_special.h"
 #include "memory.h"
 #include "neigh_list.h"
+#include "neighbor.h"
 
 #include <cstring>
 
@@ -165,7 +166,7 @@ void PairLJCutSphere::allocate()
 
 void PairLJCutSphere::settings(int narg, char **arg)
 {
-  if (narg != 1) error->all(FLERR, "Illegal pair_style command");
+  if (narg != 1 && narg != 2) error->all(FLERR, "Illegal pair_style command");
 
   cut_global = utils::numeric(FLERR, arg[0], false, lmp);
 
@@ -176,6 +177,11 @@ void PairLJCutSphere::settings(int narg, char **arg)
     for (i = 1; i <= atom->ntypes; i++)
       for (j = i; j <= atom->ntypes; j++)
         if (setflag[i][j]) cut[i][j] = cut_global;
+  }
+
+  if (narg == 2) {
+    if (strcmp(arg[1], "pairwise/nlist/cutoff")) pairwisecutflag = 1;
+    else error->all(FLERR, "Invalid pair lj/cut/sphere argument: {}", arg[1]);
   }
 }
 
@@ -215,7 +221,8 @@ void PairLJCutSphere::coeff(int narg, char **arg)
 
 void PairLJCutSphere::init_style()
 {
-  Pair::init_style();
+  if (pairwisecutflag) neighbor->add_request(this, NeighConst::REQ_PAIRWISECUT);
+  else Pair::init_style();
 
   if (!atom->radius_flag)
     error->all(FLERR, "Pair style lj/cut/sphere requires atom attribute radius");
@@ -309,6 +316,7 @@ void PairLJCutSphere::write_restart_settings(FILE *fp)
   fwrite(&cut_global, sizeof(double), 1, fp);
   fwrite(&offset_flag, sizeof(int), 1, fp);
   fwrite(&mix_flag, sizeof(int), 1, fp);
+  fwrite(&pairwisecutflag, sizeof(int), 1, fp);
 }
 
 /* ----------------------------------------------------------------------
@@ -322,10 +330,12 @@ void PairLJCutSphere::read_restart_settings(FILE *fp)
     utils::sfread(FLERR, &cut_global, sizeof(double), 1, fp, nullptr, error);
     utils::sfread(FLERR, &offset_flag, sizeof(int), 1, fp, nullptr, error);
     utils::sfread(FLERR, &mix_flag, sizeof(int), 1, fp, nullptr, error);
+    utils::sfread(FLERR, &pairwisecutflag, sizeof(int), 1, fp, nullptr, error);
   }
   MPI_Bcast(&cut_global, 1, MPI_DOUBLE, 0, world);
   MPI_Bcast(&offset_flag, 1, MPI_INT, 0, world);
   MPI_Bcast(&mix_flag, 1, MPI_INT, 0, world);
+  MPI_Bcast(&pairwisecutflag, 1, MPI_INT, 0, world);
 }
 
 /* ----------------------------------------------------------------------
@@ -378,4 +388,22 @@ void *PairLJCutSphere::extract(const char *str, int &dim)
   dim = 2;
   if (strcmp(str, "epsilon") == 0) return (void *) epsilon;
   return nullptr;
+}
+
+/* ---------------------------------------------------------------------- */
+
+double PairLJCutSphere::atom2cut(const int i)
+{
+  int itype = atom->type[i];
+  return atom->radius[i] * 2 * cut[itype][itype];
+}
+
+/* ---------------------------------------------------------------------- */
+
+double PairLJCutSphere::pair2cut(const int i, const int j)
+{
+  double *radius = atom->radius;
+  int *type = atom->type;
+
+  return (radius[i] + radius[j]) * cut[type[i]][type[j]];
 }

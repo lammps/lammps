@@ -41,6 +41,8 @@ class PairLJCutSphere : public Pair {
   void write_data_all(FILE *) override;
   double single(int, int, int, int, double, double, double, double &) override;
   void *extract(const char *, int &) override;
+  double atom2cut(int) override;
+  double pair2cut(int, int) override;
 
  protected:
   double cut_global;

@@ -1276,6 +1276,7 @@ void Neighbor::morph_skip()
 
       if (irq->ghost != jrq->ghost) continue;
       if (irq->size != jrq->size) continue;
+      if (irq->pairwisecut != jrq->pairwisecut) continue;
       if (irq->history != jrq->history) continue;
       if (irq->bond != jrq->bond) continue;
       if (irq->omp != jrq->omp) continue;
@@ -1439,6 +1440,7 @@ void Neighbor::morph_halffull()
 
       if (irq->ghost != jrq->ghost) continue;
       if (irq->size != jrq->size) continue;
+      if (irq->pairwisecut != jrq->pairwisecut) continue;
       if (irq->history != jrq->history) continue;
       if (irq->bond != jrq->bond) continue;
       if (irq->omp != jrq->omp) continue;
@@ -1549,6 +1551,7 @@ void Neighbor::morph_copy_trim()
       // NOTE: need check for 2 Kokkos flags?
 
       if (irq->size != jrq->size) continue;
+      if (irq->pairwisecut != jrq->pairwisecut) continue;
       if (irq->history != jrq->history) continue;
       if (irq->bond != jrq->bond) continue;
       if (irq->intel != jrq->intel) continue;
@@ -1823,6 +1826,7 @@ void Neighbor::print_pairwise_info()
 
     if (rq->ghost) out += ", ghost";
     if (rq->size) out += ", size";
+    if (rq->pairwisecut) out += ", pairwise/cut";
     if (rq->history) out += ", history";
     if (rq->granonesided) out += ", onesided";
     if (rq->respamiddle) out += ", respa outer/middle/inner";

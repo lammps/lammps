@@ -46,7 +46,7 @@ Syntax
        *file* arg = filename
          filename = name of file to output histogram(s) to
        *append* arg = filename
-         filename = name of file to append time averages to
+         filename = name of file to append histogram(s) to
        *ave* args = *one* or *running* or *window*
          one = output a new average value every Nfreq steps
          running = output cumulative average of all previous Nfreq steps

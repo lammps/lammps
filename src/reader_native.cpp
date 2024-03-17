@@ -289,7 +289,7 @@ bigint ReaderNative::read_header(double box[3][3], int &boxinfo, int &triclinic,
     labelline = line + strlen("ITEM: ATOMS ");
   }
 
-  Tokenizer tokens(labelline);
+  Tokenizer tokens(std::move(labelline));
   std::map<std::string, int> labels;
   nwords = 0;
 

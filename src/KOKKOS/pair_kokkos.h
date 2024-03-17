@@ -1020,7 +1020,7 @@ template<class PairStyle, class Specialisation = void>
 EV_FLOAT pair_compute (PairStyle* fpair, NeighListKokkos<typename PairStyle::device_type>* list) {
   EV_FLOAT ev;
   if (fpair->neighflag == FULL) {
-    if (utils::strmatch(fpair->lmp->force->pair_style,"^hybrid/overlay")) {
+    if (utils::strmatch(fpair->lmp->force->pair_style,"^hybrid")) {
       fpair->fuse_force_clear_flag = 0;
       ev = pair_compute_neighlist<PairStyle,FULL,0,Specialisation> (fpair,list);
     } else {

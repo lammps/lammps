@@ -65,7 +65,8 @@ static const char cite_nonaffine_d2min[] =
 /* ---------------------------------------------------------------------- */
 
 FixNonaffineDisplacement::FixNonaffineDisplacement(LAMMPS *lmp, int narg, char **arg) :
-  Fix(lmp, narg, arg), id_fix(nullptr), X(nullptr), Y(nullptr), F(nullptr), norm(nullptr), D2min(nullptr)
+  Fix(lmp, narg, arg), id_fix(nullptr), fix(nullptr), D2min(nullptr), X(nullptr), Y(nullptr),
+  F(nullptr), norm(nullptr)
 {
   if (narg < 4) utils::missing_cmd_args(FLERR,"fix nonaffine/displacement", error);
 
@@ -85,7 +86,8 @@ FixNonaffineDisplacement::FixNonaffineDisplacement(LAMMPS *lmp, int narg, char *
     } else if (strcmp(arg[iarg + 1], "radius") == 0) {
       cut_style = RADIUS;
     } else if (strcmp(arg[iarg + 1], "custom") == 0) {
-      if (iarg + 2 > narg) utils::missing_cmd_args(FLERR,"fix nonaffine/displacement custom", error);
+      if (iarg + 2 > narg)
+        utils::missing_cmd_args(FLERR,"fix nonaffine/displacement custom", error);
       if ((neighbor->style == Neighbor::MULTI) || (neighbor->style == Neighbor::MULTI_OLD))
         error->all(FLERR, "Fix nonaffine/displacement with custom cutoff requires neighbor style 'bin' or 'nsq'");
       cut_style = CUSTOM;

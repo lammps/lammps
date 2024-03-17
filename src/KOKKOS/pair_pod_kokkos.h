@@ -84,13 +84,12 @@ class PairPODKokkos : public PairPOD {
   void allocate() override;
   double memory_usage() override;
 
-  typedef Kokkos::View<int*, DeviceType> t_pod_1i;
-  typedef Kokkos::View<int**, DeviceType> t_pod_2i;
+  typedef Kokkos::View<int*, DeviceType> t_pod_1i;  
   typedef Kokkos::View<double*, DeviceType> t_pod_1d;
-  typedef Kokkos::View<double**, DeviceType> t_pod_2d;
-  typedef Kokkos::View<double**[3], DeviceType> t_pod_3d3;
-  
-    
+//   typedef Kokkos::View<int**, DeviceType> t_pod_2i;
+//   typedef Kokkos::View<double**, DeviceType> t_pod_2d;
+//   typedef Kokkos::View<double**[3], DeviceType> t_pod_3d3;
+      
   int atomBlockSize;        // size of each atom block
   int nAtomBlocks;          // number of atoms blocks
   int atomBlocks[101];      // atom blocks

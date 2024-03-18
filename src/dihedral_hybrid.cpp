@@ -277,7 +277,8 @@ void DihedralHybrid::coeff(int narg, char **arg)
     else if (strcmp(arg[1], "bb13") == 0)
       error->all(FLERR, "BondBond13 coeff for hybrid dihedral has invalid format");
     else
-      error->all(FLERR, "Dihedral coeff for hybrid has invalid style");
+      error->all(FLERR, "Expected hybrid sub-style instead of {} in dihedral_coeff command",
+                 arg[1]);
   }
 
   // move 1st arg to 2nd arg

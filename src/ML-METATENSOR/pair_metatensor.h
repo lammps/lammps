@@ -47,6 +47,7 @@ public:
 private:
     void load_torch_model(const char* path);
     metatensor_torch::System system_from_lmp(bool do_virial);
+    void pairs_with_mapping(metatensor_torch::System& system);
 
     // == data for the model
 
@@ -54,6 +55,8 @@ private:
     std::unique_ptr<torch::jit::Module> torch_model;
     // model capabilities
     metatensor_torch::ModelCapabilities capabilities;
+    // interaction range of the model, in LAMMPS units
+    double interaction_range;
     // run-time evaluation options, set by us
     metatensor_torch::ModelEvaluationOptions evaluation_options;
     // should metatensor check the data LAMMPS send to the model
@@ -81,7 +84,8 @@ private:
             }
         };
 
-        double cutoff = -1;
+        double cutoff;
+        metatensor_torch::NeighborsListOptions options;
         // we keep the set of samples twice: once in `known_samples` to remove
         // duplicated pairs, and once in `samples` in a format that can be
         // used to create a torch::Tensor.
@@ -91,13 +95,9 @@ private:
         std::vector<std::array<double, 3>> distances;
     };
 
-    // NL requests from the model
-    std::vector<metatensor_torch::NeighborsListOptions> neigh_options;
-    // matching LAMMPS NL
-    std::vector<NeighList*> neigh_lists;
     // cached allocations for the LAMMPS -> metatensor NL translation
     // TODO: report memory usage for these?
-    std::vector<NeighborsData> neigh_data_cache;
+    std::vector<NeighborsData> neigh_cache;
 
     // various allocation caches
     torch::Tensor selected_atoms_values;

@@ -45,6 +45,10 @@ PairMetatensor::PairMetatensor(LAMMPS *lmp) : Pair(lmp) {
     this->selected_atoms_values = torch::zeros({0, 2}, options);
     this->atomic_types = torch::zeros({0}, options);
 
+    this->interaction_range = -1;
+    // default to true for now, this will be changed to false later
+    this->check_consistency = true;
+
     // Initialize evaluation_options
     this->evaluation_options = torch::make_intrusive<metatensor_torch::ModelEvaluationOptionsHolder>();
     auto energy_unit = std::string();
@@ -97,8 +101,6 @@ void PairMetatensor::settings(int argc, char ** argv) {
     }
     this->load_torch_model(argv[0]);
 
-    // default to true for now, this will be changed to false later
-    this->check_consistency = true;
     for (int i=1; i<argc; i++) {
         if (strcmp(argv[i], "check_consistency") == 0) {
             if (i == argc - 1) {
@@ -202,44 +204,52 @@ void PairMetatensor::init_style() {
 
     // Translate from the metatensor neighbors lists requests to LAMMPS
     // neighbors lists requests.
-    int n_requests = 0;
     auto requested_nl = this->torch_model->run_method("requested_neighbors_lists");
     for (const auto& ivalue: requested_nl.toList()) {
         auto options = ivalue.get().toCustomClass<metatensor_torch::NeighborsListOptionsHolder>();
-        this->neigh_options.emplace_back(options);
+        auto cutoff = options->engine_cutoff(this->evaluation_options->length_unit());
 
-        // We ask LAMMPS for a full neighbor lists because we need to know about
-        // ALL pairs, even if options->full_list() is false. We will then filter
-        // the pairs to only include each pair once where needed.
-        auto request = neighbor->add_request(this, NeighConst::REQ_FULL | NeighConst::REQ_GHOST);
-        request->set_id(n_requests);
-        request->set_cutoff(options->engine_cutoff(this->evaluation_options->length_unit()));
+        if (cutoff > this->interaction_range) {
+            error->all(FLERR,
+                "Invalid metatensor model: one of the requested neighbor lists "
+                "has a cutoff ({}) larger than the model interaction range ({})",
+                cutoff, this->interaction_range
+            );
+        } else if (cutoff < 0 || !std::isfinite(cutoff)) {
+            error->all(FLERR,
+                "model requested an invalid cutoff for neighbors list: {} "
+                "(cutoff in model units is {})",
+                cutoff, options->cutoff()
+            );
+        }
 
-        n_requests += 1;
+        this->neigh_cache.emplace_back(NeighborsData{
+            cutoff,
+            options,
+            /* known_samples */ {},
+            /* samples */ {},
+            /* distances */ {},
+        });
+
     }
 
-    this->neigh_lists.resize(n_requests);
-    this->neigh_data_cache.resize(n_requests);
+    // We ask LAMMPS for a full neighbor lists because we need to know about
+    // ALL pairs, even if options->full_list() is false. We will then filter
+    // the pairs to only include each pair once where needed.
+    auto request = neighbor->add_request(this, NeighConst::REQ_FULL | NeighConst::REQ_GHOST);
+    request->set_id(0);
+    request->set_cutoff(this->interaction_range);
 }
 
 
 void PairMetatensor::init_list(int id, NeighList *ptr) {
-    this->neigh_lists[id] = ptr;
+    assert(id == 0);
+    this->list = ptr;
 }
 
 
 double PairMetatensor::init_one(int /*i*/, int /*j*/) {
-    auto range = this->capabilities->engine_interaction_range(this->evaluation_options->length_unit());
-
-    if (range < 0) {
-        error->all(FLERR, "interaction_range is negative for this model");
-    } else if (!std::isfinite(range)) {
-        error->all(FLERR, "interaction_range is infinite for this model, this is not yet supported");
-    } else if (range < 1) {
-        return 1.0;
-    } else {
-        return range;
-    }
+    return this->interaction_range;
 }
 
 
@@ -355,6 +365,17 @@ void PairMetatensor::load_torch_model(const char* path) {
 
     this->capabilities = capabilities_ivalue.toCustomClass<metatensor_torch::ModelCapabilitiesHolder>();
 
+    // get the model's interaction range
+    auto range = this->capabilities->engine_interaction_range(this->evaluation_options->length_unit());
+    if (range < 0) {
+        error->all(FLERR, "interaction_range is negative for this model");
+    } else if (!std::isfinite(range)) {
+        error->all(FLERR, "interaction_range is infinite for this model, this is not yet supported");
+    } else {
+        this->interaction_range = range;
+    }
+
+    // get the model's preferred devices
     bool found_valid_device = false;
     for (const auto& device: this->capabilities->supported_devices) {
         if (device == "cpu") {
@@ -420,55 +441,17 @@ static std::array<int32_t, 3> cell_shifts(
 }
 
 
-metatensor_torch::System PairMetatensor::system_from_lmp(bool do_virial) {
+void PairMetatensor::pairs_with_mapping(metatensor_torch::System& system) {
     double** x = atom->x;
-
     auto total_n_atoms = atom->nlocal + atom->nghost;
 
-    this->atomic_types.resize_({total_n_atoms});
-    for (int i=0; i<total_n_atoms; i++) {
-        this->atomic_types[i] = this->lammps_to_metatensor_types[atom->type[i]];
-    }
-
-    auto tensor_options = torch::TensorOptions().dtype(torch::kFloat64).device(torch::kCPU);
-
-    // atom->x contains "real" and then ghost atoms, in that order
-    auto positions = torch::from_blob(
-        *x, {total_n_atoms, 3},
-        // requires_grad=true since we always need gradients w.r.t. positions
-        tensor_options.requires_grad(true)
-    );
-
-    auto cell = torch::zeros({3, 3}, tensor_options);
-    cell[0][0] = domain->xprd;
-
-    cell[1][0] = domain->xy;
-    cell[1][1] = domain->yprd;
-
-    cell[2][0] = domain->xz;
-    cell[2][1] = domain->yz;
-    cell[2][2] = domain->zprd;
-
-    auto cell_inv_tensor = cell.inverse().t();
+    auto cell_inv_tensor = system->cell().inverse().t();
     auto cell_inv_accessor = cell_inv_tensor.accessor<double, 2>();
     auto cell_inv = std::array<std::array<double, 3>, 3>{{
         {{cell_inv_accessor[0][0], cell_inv_accessor[0][1], cell_inv_accessor[0][2]}},
         {{cell_inv_accessor[1][0], cell_inv_accessor[1][1], cell_inv_accessor[1][2]}},
         {{cell_inv_accessor[2][0], cell_inv_accessor[2][1], cell_inv_accessor[2][2]}},
     }};
-
-    if (do_virial) {
-        this->strain = torch::eye(3, tensor_options.requires_grad(true));
-
-        // pretend to scale positions/cell by the strain so that it enters the
-        // computational graph.
-        positions = positions.matmul(this->strain);
-        positions.retain_grad();
-
-        cell = cell.matmul(this->strain);
-    }
-
-    auto system = torch::make_intrusive<metatensor_torch::SystemHolder>(atomic_types, positions, cell);
 
     // Collect the local atom id of all local & ghosts atoms, mapping ghosts
     // atoms which are periodic images of local atoms back to the local atoms.
@@ -512,23 +495,9 @@ metatensor_torch::System PairMetatensor::system_from_lmp(bool do_virial) {
         }
     }
 
-    for (size_t i=0; i<this->neigh_options.size(); i++) {
-        auto options = this->neigh_options[i];
-        auto* list = this->neigh_lists[i];
-        auto& cache = this->neigh_data_cache[i];
-
-        if (cache.cutoff < 0) {
-            cache.cutoff = options->engine_cutoff(this->evaluation_options->length_unit());
-            if (cache.cutoff < 0 || !std::isfinite(cache.cutoff)) {
-                error->all(FLERR,
-                    "model requested an invalid cutoff for neighbors list: {} "
-                    "(cutoff in model units is {})",
-                    cache.cutoff, options->cutoff()
-                );
-            }
-        }
-
+    for (auto& cache: this->neigh_cache) {
         auto cutoff2 = cache.cutoff * cache.cutoff;
+        auto full_list = cache.options->full_list();
 
         // convert from LAMMPS neighbors list to metatensor format
         cache.known_samples.clear();
@@ -543,7 +512,7 @@ metatensor_torch::System PairMetatensor::system_from_lmp(bool do_virial) {
                 auto atom_j = neighbors[jj];
                 auto original_atom_j = original_atom_id[atom_j];
 
-                if (!options->full_list() && original_atom_i > original_atom_j) {
+                if (!full_list && original_atom_i > original_atom_j) {
                     // Remove extra pairs if the model requested half-lists
                     continue;
                 }
@@ -586,7 +555,7 @@ metatensor_torch::System PairMetatensor::system_from_lmp(bool do_virial) {
                 if (pair_shift[0] != 0 || pair_shift[1] != 0 || pair_shift[2] != 0) {
                     shift = cell_shifts(cell_inv, pair_shift);
 
-                    if (!options->full_list() && original_atom_i == original_atom_j) {
+                    if (!full_list && original_atom_i == original_atom_j) {
                         // If a half neighbors list has been requested, do
                         // not include the same pair between an atom and
                         // it's periodic image twice with opposite cell
@@ -666,8 +635,52 @@ metatensor_torch::System PairMetatensor::system_from_lmp(bool do_virial) {
         );
 
         metatensor_torch::register_autograd_neighbors(system, neighbors, this->check_consistency);
-        system->add_neighbors_list(options, neighbors);
+        system->add_neighbors_list(cache.options, neighbors);
+    }
+}
+
+
+metatensor_torch::System PairMetatensor::system_from_lmp(bool do_virial) {
+    double** x = atom->x;
+    auto total_n_atoms = atom->nlocal + atom->nghost;
+
+    this->atomic_types.resize_({total_n_atoms});
+    for (int i=0; i<total_n_atoms; i++) {
+        this->atomic_types[i] = this->lammps_to_metatensor_types[atom->type[i]];
     }
 
+    auto tensor_options = torch::TensorOptions().dtype(torch::kFloat64).device(torch::kCPU);
+
+    // atom->x contains "real" and then ghost atoms, in that order
+    auto positions = torch::from_blob(
+        *x, {total_n_atoms, 3},
+        // requires_grad=true since we always need gradients w.r.t. positions
+        tensor_options.requires_grad(true)
+    );
+
+    auto cell = torch::zeros({3, 3}, tensor_options);
+    cell[0][0] = domain->xprd;
+
+    cell[1][0] = domain->xy;
+    cell[1][1] = domain->yprd;
+
+    cell[2][0] = domain->xz;
+    cell[2][1] = domain->yz;
+    cell[2][2] = domain->zprd;
+
+    if (do_virial) {
+        this->strain = torch::eye(3, tensor_options.requires_grad(true));
+
+        // pretend to scale positions/cell by the strain so that it enters the
+        // computational graph.
+        positions = positions.matmul(this->strain);
+        positions.retain_grad();
+
+        cell = cell.matmul(this->strain);
+    }
+
+    auto system = torch::make_intrusive<metatensor_torch::SystemHolder>(atomic_types, positions, cell);
+
+    this->pairs_with_mapping(system);
     return system;
 }

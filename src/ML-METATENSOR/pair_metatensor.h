@@ -56,8 +56,9 @@ private:
     metatensor_torch::ModelCapabilities capabilities;
     // run-time evaluation options, set by us
     metatensor_torch::ModelEvaluationOptions evaluation_options;
-    // TODO: make this user-configurable
-    bool check_consistency = true;
+    // should metatensor check the data LAMMPS send to the model
+    // and the data the model returns?
+    bool check_consistency;
 
     // == data for neighbors lists
     struct NeighborsData {

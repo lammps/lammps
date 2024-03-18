@@ -92,10 +92,30 @@ PairMetatensor::~PairMetatensor() {
 
 // called when finding `pair_style metatensor` in the input
 void PairMetatensor::settings(int argc, char ** argv) {
-    if (argc != 1) {
-        error->all(FLERR, "expected 1 argument to pair_style metatensor, got {}", argc);
+    if (argc == 0) {
+        error->all(FLERR, "expected at least 1 argument to pair_style metatensor, got {}", argc);
     }
     this->load_torch_model(argv[0]);
+
+    // default to true for now, this will be changed to false later
+    this->check_consistency = true;
+    for (int i=1; i<argc; i++) {
+        if (strcmp(argv[i], "check_consistency") == 0) {
+            if (i == argc - 1) {
+                error->all(FLERR, "expected on/off after check_consistency in pair_style metatensor, got nothing");
+            } else if (strcmp(argv[i + 1], "on") == 0) {
+                this->check_consistency = true;
+            } else if (strcmp(argv[i + 1], "off") == 0) {
+                this->check_consistency = false;
+            } else {
+                error->all(FLERR, "expected on/off after check_consistency in pair_style metatensor, got '{}'", argv[i + 1]);
+            }
+
+            i += 1;
+        } else {
+            error->all(FLERR, "unexpected argument to pair_style metatensor: '{}'", argv[i]);
+        }
+    }
 
     if (!allocated) {
         allocate();

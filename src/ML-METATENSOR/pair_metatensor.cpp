@@ -144,20 +144,27 @@ void PairMetatensor::allocate() {
 
 // called on pair_coeff
 void PairMetatensor::coeff(int argc, char ** argv) {
-    if (argc < 3 || strcmp(argv[0], argv[1]) != 0) {
-        error->all(FLERR, "pair_coeff can only be called with the same atom type twice (i.e. pair_coeff 1 1   6)");
+    if (argc < 3 || strcmp(argv[0], "*") != 0 || strcmp(argv[1], "*") != 0) {
+        error->all(FLERR, "invalid pair_coeff, expected `pair_coeff * * <list of types>`");
     }
 
-    int lammps_type = utils::inumeric(FLERR, argv[0], true, lmp);
-    int species = utils::inumeric(FLERR, argv[2], true, lmp);
+    if (atom->ntypes != argc - 2) {
+        error->all(FLERR,
+            "invalid pair_coeff, expected `pair_coeff * * <list of types>` with {} types",
+            atom->ntypes
+        );
+    }
 
-    lammps_to_metatensor_types[lammps_type] = species;
+    for (int lammps_type=1; lammps_type<argc - 1; lammps_type++) {
+        int species = utils::inumeric(FLERR, argv[lammps_type + 1], true, lmp);
+        lammps_to_metatensor_types[lammps_type] = species;
+    }
 
-    // mark all pairs coeffs between the new atom type and already set ones as known
+    // mark all pairs coeffs as known
     for (int i = 1; i <= atom->ntypes; i++) {
-        if (lammps_to_metatensor_types[i] >= 0) {
-            setflag[i][lammps_type] = 1;
-            setflag[lammps_type][i] = 1;
+        for (int j = 1; j <= atom->ntypes; j++) {
+            setflag[i][j] = 1;
+            setflag[j][i] = 1;
         }
     }
 }

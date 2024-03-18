@@ -14,7 +14,7 @@ velocity all create 123 42
 
 
 pair_style metatensor nickel-lj.pt
-pair_coeff Ni Ni   28
+pair_coeff * * 28
 
 timestep 0.001
 fix 1 all npt temp 123 123 $(100 * dt) iso 0 0 $(100 * dt)
@@ -22,6 +22,6 @@ fix 1 all npt temp 123 123 $(100 * dt) iso 0 0 $(100 * dt)
 thermo 1
 thermo_style custom step temp pe etotal press vol
 
-dump 1 all atom 10 dump.metatensor
+# dump 1 all atom 10 dump.metatensor
 
 run 100

@@ -253,11 +253,9 @@ void FixSemiGrandCanonicalMC::init()
       error->all(FLERR, "Can not run fix sgcmc with naive total energy calculation "
                  "and more than one MPI process.");
 
-    // Create a compute that will provide the total energy of the system.
+    // Get reference to a compute that will provide the total energy of the system.
     // This is needed by computeTotalEnergy().
-    char* id_pe = (char*)"thermo_pe";
-    int ipe = modify->find_compute(id_pe);
-    compute_pe = modify->compute[ipe];
+    compute_pe = modify->get_compute_by_id("thermo_pe");
   }
   interactionRadius = force->pair->cutforce;
   if (comm->me == 0) utils::logmesg(lmp, "  SGC - Interaction radius: {}\n", interactionRadius);

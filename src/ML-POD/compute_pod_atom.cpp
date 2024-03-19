@@ -216,6 +216,7 @@ void ComputePODAtom::lammpsNeighborList(double **x, int **firstneigh, int *atomi
   nij = 0;
   int itype = map[atomtypes[gi]] + 1;
   int m = numneigh[gi];
+  ti1[nij] = itype;
   for (int l = 0; l < m; l++) {           // loop over each atom around atom i
     int gj = firstneigh[gi][l];           // atom j
     double delx = x[gj][0] - x[gi][0];    // xj - xi

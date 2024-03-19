@@ -2857,10 +2857,6 @@ void lammps_gather_atoms_concat(void *handle, const char *name, int type,
       if ((count == 1) || imgunpack) vector = (int *) vptr;
       else array = (int **) vptr;
 
-      int *copy;
-      lmp->memory->create(copy,count*natoms,"lib/gather:copy");
-      for (i = 0; i < count*natoms; i++) copy[i] = 0;
-
       int nlocal = lmp->atom->nlocal;
 
       if (count == 1) {
@@ -2872,7 +2868,10 @@ void lammps_gather_atoms_concat(void *handle, const char *name, int type,
                        MPI_INT,lmp->world);
 
       } else if (imgunpack) {
-        lmp->memory->create(copy,count*nlocal,"lib/gather:copy");
+        int *copy;
+        lmp->memory->create(copy,count*natoms,"lib/gather:copy");
+        for (i = 0; i < count*natoms; i++) copy[i] = 0;
+
         offset = 0;
         for (i = 0; i < nlocal; i++) {
           const int image = vector[i];
@@ -4328,10 +4327,6 @@ void lammps_gather_concat(void *handle, const char *name, int type, int count,
       if ((count == 1) || imgunpack) vector = (int *) vptr;
       else array = (int **) vptr;
 
-      int *copy;
-      lmp->memory->create(copy,count*natoms,"lib/gather:copy");
-      for (i = 0; i < count*natoms; i++) copy[i] = 0;
-
       int nlocal = lmp->atom->nlocal;
 
       if (count == 1) {
@@ -4343,7 +4338,10 @@ void lammps_gather_concat(void *handle, const char *name, int type, int count,
                        MPI_INT,lmp->world);
 
       } else if (imgunpack) {
-        lmp->memory->create(copy,count*nlocal,"lib/gather:copy");
+        int *copy;
+        lmp->memory->create(copy,count*natoms,"lib/gather:copy");
+        for (i = 0; i < count*natoms; i++) copy[i] = 0;
+
         offset = 0;
         for (i = 0; i < nlocal; i++) {
           const int image = vector[i];

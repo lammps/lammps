@@ -371,8 +371,7 @@ void FixSemiGrandCanonicalMC::doMC()
           // Use a random number to choose the new species if there are three or more atom types.
           newSpecies = (int)(localRandom->uniform() * (atom->ntypes-1)) + 1;
           if (newSpecies >= oldSpecies) newSpecies++;
-        }
-        else {
+        } else {
           // If there are only two atom types, then the decision is clear.
           newSpecies = (oldSpecies == 1) ? 2 : 1;
         }
@@ -392,8 +391,7 @@ void FixSemiGrandCanonicalMC::doMC()
         if (serialMode && kappa != 0.0) {
           for (int i = 2; i <= atom->ntypes; i++)
             dm += (deltamu[i] + kappa / atom->natoms * (2.0 * speciesCounts[i] + deltaN[i])) * deltaN[i];
-        }
-        else {
+        } else {
           for (int i = 2; i <= atom->ntypes; i++)
             dm += deltamu[i] * deltaN[i];
         }
@@ -434,8 +432,7 @@ void FixSemiGrandCanonicalMC::doMC()
         // Update global species counters.
         for (int i = 1; i <= atom->ntypes; i++)
           speciesCounts[i] += deltaNGlobal[i];
-      }
-      else if (serialMode) {
+      } else if (serialMode) {
         // Update the local species counters.
         for (int i = 1; i <= atom->ntypes; i++)
           speciesCounts[i] += deltaN[i];
@@ -448,8 +445,7 @@ void FixSemiGrandCanonicalMC::doMC()
         else
           flipAtomGeneric(selectedAtom, oldSpecies, newSpecies);
         nAcceptedSwapsLocal++;
-      }
-      else {
+      } else {
         nRejectedSwapsLocal++;
       }
 

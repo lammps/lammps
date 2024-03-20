@@ -216,7 +216,7 @@ void ComputePODDAtom::lammpsNeighborList(double **x, int **firstneigh, int *atom
 {
   nij = 0;
   int itype = map[atomtypes[gi]] + 1;
-  ti1[nij] = itype;
+  ti[nij] = itype;
   int m = numneigh[gi];
   for (int l = 0; l < m; l++) {           // loop over each atom around atom i
     int gj = firstneigh[gi][l];           // atom j

@@ -2137,7 +2137,8 @@ available.
 
    .. code-block:: c
 
-      double *dptr = (double *) lammps_extract_fix(handle,name,0,1,0,0);
+      double *dptr = (double *) lammps_extract_fix(handle, name,
+                                LMP_STYLE_GLOBAL, LMP_TYPE_VECTOR, 0, 0);
       double value = *dptr;
       lammps_free((void *)dptr);
 

@@ -667,28 +667,26 @@ void FixPIMDLangevin::post_force(int /*flag*/)
   imageint *image = atom->image;
   tagint *tag = atom->tag;
 
-  if (method == NMPIMD) {
-    if (atom->nmax > maxunwrap) reallocate_x_unwrap();
-    if (atom->nmax > maxxc) reallocate_xc();
-    for (int i = 0; i < nlocal; i++) {
-      x_unwrap[i][0] = x[i][0];
-      x_unwrap[i][1] = x[i][1];
-      x_unwrap[i][2] = x[i][2];
-    }
-    if (mapflag) {
-      for (int i = 0; i < nlocal; i++) { domain->unmap(x_unwrap[i], image[i]); }
-    }
-    for (int i = 0; i < nlocal; i++) {
-      xc[i][0] = xcall[3 * (tag[i] - 1) + 0];
-      xc[i][1] = xcall[3 * (tag[i] - 1) + 1];
-      xc[i][2] = xcall[3 * (tag[i] - 1) + 2];
-    }
-
-    compute_vir();
-    compute_xf_vir();
-    compute_cvir();
-    compute_t_vir();
+  if (atom->nmax > maxunwrap) reallocate_x_unwrap();
+  if (atom->nmax > maxxc) reallocate_xc();
+  for (int i = 0; i < nlocal; i++) {
+    x_unwrap[i][0] = x[i][0];
+    x_unwrap[i][1] = x[i][1];
+    x_unwrap[i][2] = x[i][2];
   }
+  if (mapflag) {
+    for (int i = 0; i < nlocal; i++) { domain->unmap(x_unwrap[i], image[i]); }
+  }
+  for (int i = 0; i < nlocal; i++) {
+    xc[i][0] = xcall[3 * (tag[i] - 1) + 0];
+    xc[i][1] = xcall[3 * (tag[i] - 1) + 1];
+    xc[i][2] = xcall[3 * (tag[i] - 1) + 2];
+  }
+
+  compute_vir();
+  compute_xf_vir();
+  compute_cvir();
+  compute_t_vir();
 
   if (method == PIMD) {
     if (mapflag) {

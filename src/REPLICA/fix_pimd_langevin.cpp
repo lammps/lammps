@@ -685,6 +685,7 @@ void FixPIMDLangevin::post_force(int /*flag*/)
     }
 
     compute_vir();
+    compute_xf_vir();
     compute_cvir();
     compute_t_vir();
   }
@@ -1384,19 +1385,31 @@ void FixPIMDLangevin::remove_com_motion()
 
 /* ---------------------------------------------------------------------- */
 
-void FixPIMDLangevin::compute_cvir()
+void FixPIMDLangevin::compute_xf_vir()
 {
   int nlocal = atom->nlocal;
   double xf = 0.0;
-  double xcf = 0.0;
-  vir_ = centroid_vir = 0.0;
+  vir_ = 0.0;
   for (int i = 0; i < nlocal; i++) {
     for (int j = 0; j < 3; j++) {
       xf += x_unwrap[i][j] * atom->f[i][j];
-      xcf += (x_unwrap[i][j] - xc[i][j]) * atom->f[i][j];
     }
   }
   MPI_Allreduce(&xf, &vir_, 1, MPI_DOUBLE, MPI_SUM, universe->uworld);
+}
+
+/* ---------------------------------------------------------------------- */
+
+void FixPIMDLangevin::compute_cvir()
+{
+  int nlocal = atom->nlocal;
+  double xcf = 0.0;
+  centroid_vir = 0.0;
+  for (int i = 0; i < nlocal; i++) {
+    for (int j = 0; j < 3; j++) {
+      xcf += (x_unwrap[i][j] - xc[i][j]) * atom->f[i][j];
+    }
+  }
   MPI_Allreduce(&xcf, &centroid_vir, 1, MPI_DOUBLE, MPI_SUM, universe->uworld);
   if (pstyle == ANISO) {
     for (int i = 0; i < 6; i++) c_vir_tensor[i] = 0.0;

@@ -153,47 +153,49 @@ void ComputePODDAtom::compute_peratom()
     // get neighbor list for atom i
     lammpsNeighborList(x, firstneigh, atom->tag, type, numneigh, rcutsq, i);
     
-    // peratom base descriptors
-    double *bd = &podptr->bd[0];
-    double *bdd = &podptr->bdd[0];
-    podptr->peratombase_descriptors(bd, bdd, rij, tmpmem, ti, tj, nij);        
-        
-    if (nClusters>1) {
-      // peratom env descriptors
-      double *pd = &podptr->pd[0];
-      double *pdd = &podptr->pdd[0];
-      podptr->peratomenvironment_descriptors(pd, pdd, bd, bdd, tmpmem, ti[0] - 1,  nij);    
-      for (int n=0; n<nij; n++) {
-        int ain = 3*ai[n];
-        int ajn = 3*aj[n];      
-        for (int k = 0; k < nClusters; k++) {
-          for (int m = 0; m < Mdesc; m++) {
-            int mk = m + Mdesc*k;          
-            int nm = 3*n + 3*nij*m;
-            int nk = 3*n + 3*nij*k;
-            pod[i][mk + Mdesc*nClusters*0 + Mdesc*nClusters*ain] += bdd[0 + nm]*pd[k] + bd[m]*pdd[0+nk];
-            pod[i][mk + Mdesc*nClusters*1 + Mdesc*nClusters*ain] += bdd[1 + nm]*pd[k] + bd[m]*pdd[1+nk];
-            pod[i][mk + Mdesc*nClusters*2 + Mdesc*nClusters*ain] += bdd[2 + nm]*pd[k] + bd[m]*pdd[2+nk];
-            pod[i][mk + Mdesc*nClusters*0 + Mdesc*nClusters*ajn] -= bdd[0 + nm]*pd[k] + bd[m]*pdd[0+nk];
-            pod[i][mk + Mdesc*nClusters*1 + Mdesc*nClusters*ajn] -= bdd[1 + nm]*pd[k] + bd[m]*pdd[1+nk];
-            pod[i][mk + Mdesc*nClusters*2 + Mdesc*nClusters*ajn] -= bdd[2 + nm]*pd[k] + bd[m]*pdd[2+nk];
-          }                  
+    if (nij > 0) {
+      // peratom base descriptors
+      double *bd = &podptr->bd[0];
+      double *bdd = &podptr->bdd[0];
+      podptr->peratombase_descriptors(bd, bdd, rij, tmpmem, ti, tj, nij);        
+
+      if (nClusters>1) {
+        // peratom env descriptors
+        double *pd = &podptr->pd[0];
+        double *pdd = &podptr->pdd[0];
+        podptr->peratomenvironment_descriptors(pd, pdd, bd, bdd, tmpmem, ti[0] - 1,  nij);    
+        for (int n=0; n<nij; n++) {
+          int ain = 3*ai[n];
+          int ajn = 3*aj[n];      
+          for (int k = 0; k < nClusters; k++) {
+            for (int m = 0; m < Mdesc; m++) {
+              int mk = m + Mdesc*k;          
+              int nm = 3*n + 3*nij*m;
+              int nk = 3*n + 3*nij*k;
+              pod[i][mk + Mdesc*nClusters*0 + Mdesc*nClusters*ain] += bdd[0 + nm]*pd[k] + bd[m]*pdd[0+nk];
+              pod[i][mk + Mdesc*nClusters*1 + Mdesc*nClusters*ain] += bdd[1 + nm]*pd[k] + bd[m]*pdd[1+nk];
+              pod[i][mk + Mdesc*nClusters*2 + Mdesc*nClusters*ain] += bdd[2 + nm]*pd[k] + bd[m]*pdd[2+nk];
+              pod[i][mk + Mdesc*nClusters*0 + Mdesc*nClusters*ajn] -= bdd[0 + nm]*pd[k] + bd[m]*pdd[0+nk];
+              pod[i][mk + Mdesc*nClusters*1 + Mdesc*nClusters*ajn] -= bdd[1 + nm]*pd[k] + bd[m]*pdd[1+nk];
+              pod[i][mk + Mdesc*nClusters*2 + Mdesc*nClusters*ajn] -= bdd[2 + nm]*pd[k] + bd[m]*pdd[2+nk];
+            }                  
+          }
         }
       }
-    }
-    else {
-      for (int n=0; n<nij; n++) {
-        int ain = 3*ai[n];
-        int ajn = 3*aj[n];
-        for (int m = 0; m < Mdesc; m++) {
-          int nm = 3*n + 3*nij*m;
-          pod[i][m + Mdesc*0 + Mdesc*ain] += bdd[0 + nm];
-          pod[i][m + Mdesc*1 + Mdesc*ain] += bdd[1 + nm];
-          pod[i][m + Mdesc*2 + Mdesc*ain] += bdd[2 + nm];
-          pod[i][m + Mdesc*0 + Mdesc*ajn] -= bdd[0 + nm];
-          pod[i][m + Mdesc*1 + Mdesc*ajn] -= bdd[1 + nm];
-          pod[i][m + Mdesc*2 + Mdesc*ajn] -= bdd[2 + nm];
-        }       
+      else {
+        for (int n=0; n<nij; n++) {
+          int ain = 3*ai[n];
+          int ajn = 3*aj[n];
+          for (int m = 0; m < Mdesc; m++) {
+            int nm = 3*n + 3*nij*m;
+            pod[i][m + Mdesc*0 + Mdesc*ain] += bdd[0 + nm];
+            pod[i][m + Mdesc*1 + Mdesc*ain] += bdd[1 + nm];
+            pod[i][m + Mdesc*2 + Mdesc*ain] += bdd[2 + nm];
+            pod[i][m + Mdesc*0 + Mdesc*ajn] -= bdd[0 + nm];
+            pod[i][m + Mdesc*1 + Mdesc*ajn] -= bdd[1 + nm];
+            pod[i][m + Mdesc*2 + Mdesc*ajn] -= bdd[2 + nm];
+          }       
+        }
       }
     }    
   }  

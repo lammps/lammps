@@ -152,51 +152,53 @@ void ComputePODLocal::compute_array()
     // get neighbor list for atom i
     lammpsNeighborList(x, firstneigh, atom->tag, type, numneigh, rcutsq, i);
     
-    // peratom base descriptors
-    double *bd = &podptr->bd[0];
-    double *bdd = &podptr->bdd[0];    
-    podptr->peratombase_descriptors(bd, bdd, rij, tmpmem, ti, tj, nij);        
-        
-    if (nClusters>1) {
-      // peratom env descriptors
-      double *pd = &podptr->pd[0];
-      double *pdd = &podptr->pdd[0];
-      podptr->peratomenvironment_descriptors(pd, pdd, bd, bdd, tmpmem, ti[0] - 1,  nij);    
-      for (int k = 0; k < nClusters; k++)
+    if (nij > 0) {
+      // peratom base descriptors
+      double *bd = &podptr->bd[0];
+      double *bdd = &podptr->bdd[0];    
+      podptr->peratombase_descriptors(bd, bdd, rij, tmpmem, ti, tj, nij);        
+
+      if (nClusters>1) {
+        // peratom env descriptors
+        double *pd = &podptr->pd[0];
+        double *pdd = &podptr->pdd[0];
+        podptr->peratomenvironment_descriptors(pd, pdd, bd, bdd, tmpmem, ti[0] - 1,  nij);    
+        for (int k = 0; k < nClusters; k++)
+          for (int m = 0; m < Mdesc; m++) {
+            int imk = m + Mdesc*k +  Mdesc*nClusters*i;
+            pod[0][imk] = pd[k]*bd[m];     
+            for (int n=0; n<nij; n++) {
+              int ain = 3*ai[n];
+              int ajn = 3*aj[n];
+              int nm = 3*n + 3*nij*m;
+              int nk = 3*n + 3*nij*k;
+              pod[1 + ain][imk] += bdd[0 + nm]*pd[k] + bd[m]*pdd[0+nk];
+              pod[2 + ain][imk] += bdd[1 + nm]*pd[k] + bd[m]*pdd[1+nk];
+              pod[3 + ain][imk] += bdd[2 + nm]*pd[k] + bd[m]*pdd[2+nk];
+              pod[1 + ajn][imk] -= bdd[0 + nm]*pd[k] + bd[m]*pdd[0+nk];
+              pod[2 + ajn][imk] -= bdd[1 + nm]*pd[k] + bd[m]*pdd[1+nk];
+              pod[3 + ajn][imk] -= bdd[2 + nm]*pd[k] + bd[m]*pdd[2+nk];
+            }                  
+          }
+      }
+      else {
         for (int m = 0; m < Mdesc; m++) {
-          int imk = m + Mdesc*k +  Mdesc*nClusters*i;
-          pod[0][imk] = pd[k]*bd[m];     
-          for (int n=0; n<nij; n++) {
+         int im = m + Mdesc*i;
+         pod[0][im] = bd[m];
+         for (int n=0; n<nij; n++) {
             int ain = 3*ai[n];
             int ajn = 3*aj[n];
             int nm = 3*n + 3*nij*m;
-            int nk = 3*n + 3*nij*k;
-            pod[1 + ain][imk] += bdd[0 + nm]*pd[k] + bd[m]*pdd[0+nk];
-            pod[2 + ain][imk] += bdd[1 + nm]*pd[k] + bd[m]*pdd[1+nk];
-            pod[3 + ain][imk] += bdd[2 + nm]*pd[k] + bd[m]*pdd[2+nk];
-            pod[1 + ajn][imk] -= bdd[0 + nm]*pd[k] + bd[m]*pdd[0+nk];
-            pod[2 + ajn][imk] -= bdd[1 + nm]*pd[k] + bd[m]*pdd[1+nk];
-            pod[3 + ajn][imk] -= bdd[2 + nm]*pd[k] + bd[m]*pdd[2+nk];
-          }                  
+            pod[1 + ain][im] += bdd[0 + nm];
+            pod[2 + ain][im] += bdd[1 + nm];
+            pod[3 + ain][im] += bdd[2 + nm];
+            pod[1 + ajn][im] -= bdd[0 + nm];
+            pod[2 + ajn][im] -= bdd[1 + nm];
+            pod[3 + ajn][im] -= bdd[2 + nm];
+          }       
         }
+      }    
     }
-    else {
-      for (int m = 0; m < Mdesc; m++) {
-       int im = m + Mdesc*i;
-       pod[0][im] = bd[m];
-       for (int n=0; n<nij; n++) {
-          int ain = 3*ai[n];
-          int ajn = 3*aj[n];
-          int nm = 3*n + 3*nij*m;
-          pod[1 + ain][im] += bdd[0 + nm];
-          pod[2 + ain][im] += bdd[1 + nm];
-          pod[3 + ain][im] += bdd[2 + nm];
-          pod[1 + ajn][im] -= bdd[0 + nm];
-          pod[2 + ajn][im] -= bdd[1 + nm];
-          pod[3 + ajn][im] -= bdd[2 + nm];
-        }       
-      }
-    }    
   }        
 }
 

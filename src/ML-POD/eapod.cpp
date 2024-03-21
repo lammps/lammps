@@ -701,6 +701,8 @@ void EAPOD::peratombase_descriptors(double *bd1, double *bdd1, double *rij, doub
   for (int i=0; i<Mdesc; i++) bd[i] = 0.0;
   for (int i=0; i<3*Nj*Mdesc; i++) bdd[i] = 0.0;
 
+  if (Nj == 0) return;
+  
   double *d2 =  &bd1[0]; // nl2
   double *d3 =  &bd1[nl2]; // nl3
   double *d4 =  &bd1[nl2 + nl3]; // nl4

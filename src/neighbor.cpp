@@ -427,6 +427,9 @@ void Neighbor::init()
         }
       }
     } else {
+      if (!force->pair)
+        error->all(FLERR, "Cannot use collection/interval command without defining a pairstyle");
+
       if (force->pair->finitecutflag) {
         finite_cut_flag = 1;
         // If cutoffs depend on finite atom sizes, use radii of intervals to find cutoffs

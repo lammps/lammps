@@ -114,7 +114,7 @@ void PairSPHLJGPU::compute(int eflag, int vflag)
         neighbor->ago, inum, nall, atom->x, atom->type,
         sublo, subhi, atom->tag, atom->nspecial, atom->special, eflag, vflag,
         eflag_atom, vflag_atom, host_start, &ilist, &numneigh,
-        cpu_time, success, atom->v);
+        cpu_time, success, atom->vest);
   } else {
     inum = list->inum;
     ilist = list->ilist;
@@ -123,7 +123,7 @@ void PairSPHLJGPU::compute(int eflag, int vflag)
     sph_lj_gpu_compute(neighbor->ago, inum, nall, atom->x, atom->type,
                        ilist, numneigh, firstneigh, eflag, vflag,
                        eflag_atom, vflag_atom, host_start, cpu_time, success,
-                       atom->tag, atom->v);
+                       atom->tag, atom->vest);
   }
   if (!success) error->one(FLERR, "Insufficient memory on accelerator");
 
@@ -136,21 +136,21 @@ void PairSPHLJGPU::compute(int eflag, int vflag)
   int nlocal = atom->nlocal;
   if (acc_float) {
     auto drhoE_ptr = (float *)drhoE_pinned;
-    int idx = 0;
-    for (int i = 0; i < nlocal; i++) {
-      drho[i] = drhoE_ptr[idx];
-      desph[i] = drhoE_ptr[idx+1];
-      idx += 2;
-    }
+    for (int i = 0; i < nlocal; i++)
+      drho[i] += drhoE_ptr[i];
+
+    drhoE_ptr += nlocal;
+    for (int i = 0; i < nlocal; i++)
+      desph[i] += drhoE_ptr[i];
 
   } else {
     auto drhoE_ptr = (double *)drhoE_pinned;
-    int idx = 0;
-    for (int i = 0; i < nlocal; i++) {
-      drho[i] = drhoE_ptr[idx];
-      desph[i] = drhoE_ptr[idx+1];
-      idx += 2;
-    }
+    for (int i = 0; i < nlocal; i++)
+      drho[i] += drhoE_ptr[i];
+
+    drhoE_ptr += nlocal;
+    for (int i = 0; i < nlocal; i++)
+      desph[i] += drhoE_ptr[i];
   }
 
   if (atom->molecular != Atom::ATOMIC && neighbor->ago == 0)

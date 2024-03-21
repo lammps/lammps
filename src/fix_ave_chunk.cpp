@@ -193,10 +193,12 @@ FixAveChunk::FixAveChunk(LAMMPS *lmp, int narg, char **arg) :
       cdof = utils::numeric(FLERR,arg[iarg+1],false,lmp);
       iarg += 2;
 
-    } else if (strcmp(arg[iarg],"file") == 0) {
-      if (iarg+2 > narg) utils::missing_cmd_args(FLERR, "fix ave/chunk file", error);
+    } else if ((strcmp(arg[iarg],"file") == 0) || (strcmp(arg[iarg],"append") == 0)) {
+      if (iarg+2 > narg)
+        utils::missing_cmd_args(FLERR, std::string("fix ave/chunk ")+arg[iarg], error);
       if (comm->me == 0) {
-        fp = fopen(arg[iarg+1],"w");
+        if (strcmp(arg[iarg],"file") == 0) fp = fopen(arg[iarg+1],"w");
+        else fp = fopen(arg[iarg+1],"a");
         if (fp == nullptr)
           error->one(FLERR, "Cannot open fix ave/chunk file {}: {}",
                      arg[iarg+1], utils::getsyserror());

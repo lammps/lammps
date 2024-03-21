@@ -1585,11 +1585,21 @@ void FixPIMDLangevin::compute_p_prim()
 void FixPIMDLangevin::compute_p_cv()
 {
   double inv_volume = 1.0 / (domain->xprd * domain->yprd * domain->zprd);
-  if (universe->iworld == 0) {
-    p_cv = THIRD * inv_volume * ((2.0 * ke_bead - centroid_vir) * force->nktv2p + vir) / np;
-  }
   p_md = THIRD * inv_volume * (totke + vir);
-  MPI_Bcast(&p_cv, 1, MPI_DOUBLE, 0, universe->uworld);
+  if (method == NMPIMD) {
+    if (universe->iworld == 0) {
+      p_cv = THIRD * inv_volume * ((2.0 * ke_bead - centroid_vir) * force->nktv2p + vir) / np;
+    }
+    MPI_Bcast(&p_cv, 1, MPI_DOUBLE, 0, universe->uworld);
+  }
+  else if (method == PIMD) {
+    p_cv = THIRD * inv_volume * ((2.0 * totke / np - centroid_vir) * force->nktv2p + vir) / np;
+  }
+  else {
+    error->universe_all(
+        FLERR,
+        "Unknown method parameter for fix pimd/langevin. Only nmpimd and pimd are supported!");
+  }
 }
 
 /* ---------------------------------------------------------------------- */

@@ -1364,7 +1364,24 @@ void FixPIMDLangevin::inter_replica_comm(double **ptr)
 
 void FixPIMDLangevin::remove_com_motion()
 {
-  if (universe->iworld == 0) {
+  if (method == NMPIMD) {
+    if (universe->iworld == 0) {
+      double **v = atom->v;
+      int *mask = atom->mask;
+      int nlocal = atom->nlocal;
+      if (dynamic) masstotal = group->mass(igroup);
+      double vcm[3];
+      group->vcm(igroup, masstotal, vcm);
+      for (int i = 0; i < nlocal; i++) {
+        if (mask[i] & groupbit) {
+          v[i][0] -= vcm[0];
+          v[i][1] -= vcm[1];
+          v[i][2] -= vcm[2];
+        }
+      }
+    }
+  }
+  else if (method == PIMD) {
     double **v = atom->v;
     int *mask = atom->mask;
     int nlocal = atom->nlocal;
@@ -1378,6 +1395,9 @@ void FixPIMDLangevin::remove_com_motion()
         v[i][2] -= vcm[2];
       }
     }
+  }
+  else {
+    error->all(FLERR, "Unknown method for fix pimd/langevin. Only nmpimd and pimd are supported!");
   }
 }
 

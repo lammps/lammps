@@ -351,6 +351,35 @@ void AtomVecLine::data_atom_bonus(int m, const std::vector<std::string> &values)
   double y1 = utils::numeric(FLERR, values[ivalue++], true, lmp);
   double x2 = utils::numeric(FLERR, values[ivalue++], true, lmp);
   double y2 = utils::numeric(FLERR, values[ivalue++], true, lmp);
+
+  // convert x1/y1 and x2/y2 from general to restricted triclniic
+  // x is already restricted triclinic
+
+  double coords[3];
+
+  if (domain->triclinic_general) {
+    coords[0] = x1; coords[1] = y1; coords[2] = 0.0;
+    domain->general_to_restricted_coords(coords);
+    x1 = coords[0]; y1 = coords[1];
+    coords[0] = x2; coords[1] = y2; coords[2] = 0.0;
+    domain->general_to_restricted_coords(coords);
+    x2 = coords[0]; y2 = coords[1];
+  }
+
+  // remap end points to be near x
+  // necessary if atom x was remapped into periodic box
+
+  coords[0] = x1; coords[1] = y1; coords[2] = 0.0;
+  domain->remap_near(coords,x[m]);
+  x1 = coords[0]; y1 = coords[1];
+  coords[0] = x2; coords[1] = y2; coords[2] = 0.0;
+  domain->remap_near(coords,x[m]);
+  x2 = coords[0]; y2 = coords[1];
+
+  // calculate length and theta
+  // error if segment center is not within EPSILON of atom x
+  // reset atom x to center point
+
   double dx = x2 - x1;
   double dy = y2 - y1;
   double length = sqrt(dx * dx + dy * dy);
@@ -477,8 +506,14 @@ int AtomVecLine::pack_data_bonus(double *buf, int /*flag*/)
   int i, j;
   double length, theta;
   double xc, yc, x1, x2, y1, y2;
+  double coords[3];
 
-  double **x = atom->x;
+  int triclinic_general = domain->triclinic_general;
+
+  double **x_bonus;
+  if (triclinic_general) x_bonus = x_hold;
+  else x_bonus = x;
+
   tagint *tag = atom->tag;
   int nlocal = atom->nlocal;
 
@@ -490,8 +525,9 @@ int AtomVecLine::pack_data_bonus(double *buf, int /*flag*/)
       j = line[i];
       length = bonus[j].length;
       theta = bonus[j].theta;
-      xc = x[i][0];
-      yc = x[i][1];
+
+      xc = x_bonus[i][0];
+      yc = x_bonus[i][1];
       x1 = xc - 0.5 * cos(theta) * length;
       y1 = yc - 0.5 * sin(theta) * length;
       x2 = xc + 0.5 * cos(theta) * length;
@@ -500,6 +536,20 @@ int AtomVecLine::pack_data_bonus(double *buf, int /*flag*/)
       buf[m++] = y1;
       buf[m++] = x2;
       buf[m++] = y2;
+
+      // if triclinic_general:
+      // rotate 4 buf values from restricted to general triclinic
+      // output by write_data_bonus() as x1/y1 and x2/y2
+
+      if (triclinic_general) {
+        coords[0] = buf[m-4]; coords[1] = buf[m-3]; coords[2] = 0.0;
+        domain->restricted_to_general_coords(coords);
+        buf[m-4] = coords[0]; buf[m-3] = coords[1];
+        coords[0] = buf[m-2]; coords[1] = buf[m-1]; coords[2] = 0.0;
+        domain->restricted_to_general_coords(coords);
+        buf[m-2] = coords[0]; buf[m-1] = coords[1];
+      }
+
     } else
       m += size_data_bonus;
   }

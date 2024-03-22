@@ -55,21 +55,22 @@ alter the number of files written.
 Restart files can be read by a :doc:`read_restart <read_restart>`
 command to restart a simulation from a particular state.  Because the
 file is binary (to enable exact restarts), it may not be readable on
-another machine.  In this case, you can use the :doc:`-r command-line switch <Run_options>` to convert a restart file to a data file.
+another machine.  In this case, you can use the :doc:`-r command-line
+switch <Run_options>` to convert a restart file to a data file.
 
 .. note::
 
    Although the purpose of restart files is to enable restarting a
    simulation from where it left off, not all information about a
-   simulation is stored in the file.  For example, the list of fixes that
-   were specified during the initial run is not stored, which means the
-   new input script must specify any fixes you want to use.  Even when
-   restart information is stored in the file, as it is for some fixes,
-   commands may need to be re-specified in the new input script, in order
-   to re-use that information. Details are usually given in the
-   documentation of the respective command. Also, see the
-   :doc:`read_restart <read_restart>` command for general information about
-   what is stored in a restart file.
+   simulation is stored in the file.  For example, the list of fixes
+   that were specified during the initial run is not stored, which
+   means the new input script must specify any fixes you want to use.
+   Even when restart information is stored in the file, as it is for
+   some fixes, commands may need to be re-specified in the new input
+   script, in order to re-use that information. Details are usually
+   given in the documentation of the respective command. Also, see the
+   :doc:`read_restart <read_restart>` command for general information
+   about what is stored in a restart file.
 
 ----------
 

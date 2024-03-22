@@ -171,14 +171,15 @@ Examples of large rigid bodies are a colloidal particle, or portions
 of a biomolecule such as a protein.
 
 Example of small rigid bodies are patchy nanoparticles, such as those
-modeled in :ref:`this paper <Zhang1>` by Sharon Glotzer's group, clumps of
-granular particles, lipid molecules consisting of one or more point
-dipoles connected to other spheroids or ellipsoids, irregular
-particles built from line segments (2d) or triangles (3d), and
-coarse-grain models of nano or colloidal particles consisting of a
-small number of constituent particles.  Note that the :doc:`fix shake <fix_shake>` command can also be used to rigidify small
-molecules of 2, 3, or 4 atoms, e.g. water molecules.  That fix treats
-the constituent atoms as point masses.
+modeled in :ref:`this paper <Zhang1>` by Sharon Glotzer's group,
+clumps of granular particles, lipid molecules consisting of one or
+more point dipoles connected to other spheroids or ellipsoids,
+irregular particles built from line segments (2d) or triangles (3d),
+and coarse-grain models of nano or colloidal particles consisting of a
+small number of constituent particles.  Note that the :doc:`fix shake
+<fix_shake>` command can also be used to rigidify small molecules of
+2, 3, or 4 atoms, e.g. water molecules.  That fix treats the
+constituent atoms as point masses.
 
 These fixes also update the positions and velocities of the atoms in
 each rigid body via time integration, in the NVE, NVT, NPT, or NPH
@@ -212,13 +213,14 @@ processors when ghost atom info is accumulated.
 
 .. note::
 
-   To use the *rigid/small* styles the ghost atom cutoff must be
-   large enough to span the distance between the atom that owns the body
-   and every other atom in the body.  This distance value is printed out
-   when the rigid bodies are defined.  If the
-   :doc:`pair_style <pair_style>` cutoff plus neighbor skin does not span
-   this distance, then you should use the :doc:`comm_modify cutoff <comm_modify>` command with a setting epsilon larger than
-   the distance.
+   To use the *rigid/small* styles the ghost atom cutoff must be large
+   enough to span the distance between the atom that owns the body and
+   every other atom in the body.  This distance value is printed out
+   when the rigid bodies are defined.  If the :doc:`pair_style
+   <pair_style>` cutoff plus neighbor skin does not span this
+   distance, then you should use the :doc:`comm_modify cutoff
+   <comm_modify>` command with a setting epsilon larger than the
+   distance.
 
 Which of the two variants is faster for a particular problem is hard
 to predict.  The best way to decide is to perform a short test run.
@@ -229,49 +231,54 @@ differences may accumulate to produce divergent trajectories.
 .. note::
 
    You should not update the atoms in rigid bodies via other
-   time-integration fixes (e.g. :doc:`fix nve <fix_nve>`, :doc:`fix nvt <fix_nh>`, :doc:`fix npt <fix_nh>`, :doc:`fix move <fix_move>`),
-   or you will have conflicting updates to positions and velocities
-   resulting in unphysical behavior in most cases. When performing a hybrid
-   simulation with some atoms in rigid bodies, and some not, a separate
-   time integration fix like :doc:`fix nve <fix_nve>` or :doc:`fix nvt <fix_nh>` should be used for the non-rigid particles.
+   time-integration fixes (e.g. :doc:`fix nve <fix_nve>`, :doc:`fix
+   nvt <fix_nh>`, :doc:`fix npt <fix_nh>`, :doc:`fix move
+   <fix_move>`), or you will have conflicting updates to positions and
+   velocities resulting in unphysical behavior in most cases. When
+   performing a hybrid simulation with some atoms in rigid bodies, and
+   some not, a separate time integration fix like :doc:`fix nve
+   <fix_nve>` or :doc:`fix nvt <fix_nh>` should be used for the
+   non-rigid particles.
 
 .. note::
 
-   These fixes are overkill if you simply want to hold a collection
-   of atoms stationary or have them move with a constant velocity.  A
-   simpler way to hold atoms stationary is to not include those atoms in
-   your time integration fix.  E.g. use "fix 1 mobile nve" instead of
-   "fix 1 all nve", where "mobile" is the group of atoms that you want to
-   move.  You can move atoms with a constant velocity by assigning them
-   an initial velocity (via the :doc:`velocity <velocity>` command),
-   setting the force on them to 0.0 (via the :doc:`fix setforce <fix_setforce>` command), and integrating them as usual
-   (e.g. via the :doc:`fix nve <fix_nve>` command).
+   These fixes are overkill if you simply want to hold a collection of
+   atoms stationary or have them move with a constant velocity.  A
+   simpler way to hold atoms stationary is to not include those atoms
+   in your time integration fix.  E.g. use "fix 1 mobile nve" instead
+   of "fix 1 all nve", where "mobile" is the group of atoms that you
+   want to move.  You can move atoms with a constant velocity by
+   assigning them an initial velocity (via the :doc:`velocity
+   <velocity>` command), setting the force on them to 0.0 (via the
+   :doc:`fix setforce <fix_setforce>` command), and integrating them
+   as usual (e.g. via the :doc:`fix nve <fix_nve>` command).
 
 .. warning::
 
-   The aggregate properties of each rigid body are
-   calculated at the start of a simulation run and are maintained in
-   internal data structures. The properties include the position and
-   velocity of the center-of-mass of the body, its moments of inertia, and
-   its angular momentum.  This is done using the properties of the
-   constituent atoms of the body at that point in time (or see the *infile*
-   keyword option).  Thereafter, changing these properties of individual
-   atoms in the body will have no effect on a rigid body's dynamics, unless
-   they effect any computation of per-atom forces or torques. If the
-   keyword *reinit* is set to *yes* (the default), the rigid body data
-   structures will be recreated at the beginning of each *run* command;
-   if the keyword *reinit* is set to *no*, the rigid body data structures
-   will be built only at the very first *run* command and maintained for
-   as long as the rigid fix is defined. For example, you might think you
-   could displace the atoms in a body or add a large velocity to each atom
-   in a body to make it move in a desired direction before a second run is
-   performed, using the :doc:`set <set>` or
-   :doc:`displace_atoms <displace_atoms>` or :doc:`velocity <velocity>`
-   commands.  But these commands will not affect the internal attributes
-   of the body unless *reinit* is set to *yes*\ . With *reinit* set to *no*
-   (or using the *infile* option, which implies *reinit* *no*\ ) the position
-   and velocity of individual atoms in the body will be reset when time
-   integration starts again.
+   The aggregate properties of each rigid body are calculated at the
+   start of a simulation run and are maintained in internal data
+   structures. The properties include the position and velocity of the
+   center-of-mass of the body, its moments of inertia, and its angular
+   momentum.  This is done using the properties of the constituent
+   atoms of the body at that point in time (or see the *infile*
+   keyword option).  Thereafter, changing these properties of
+   individual atoms in the body will have no effect on a rigid body's
+   dynamics, unless they effect any computation of per-atom forces or
+   torques. If the keyword *reinit* is set to *yes* (the default), the
+   rigid body data structures will be recreated at the beginning of
+   each *run* command; if the keyword *reinit* is set to *no*, the
+   rigid body data structures will be built only at the very first
+   *run* command and maintained for as long as the rigid fix is
+   defined. For example, you might think you could displace the atoms
+   in a body or add a large velocity to each atom in a body to make it
+   move in a desired direction before a second run is performed, using
+   the :doc:`set <set>` or :doc:`displace_atoms <displace_atoms>` or
+   :doc:`velocity <velocity>` commands.  But these commands will not
+   affect the internal attributes of the body unless *reinit* is set
+   to *yes*\ . With *reinit* set to *no* (or using the *infile*
+   option, which implies *reinit* *no*\ ) the position and velocity of
+   individual atoms in the body will be reset when time integration
+   starts again.
 
 ----------
 
@@ -316,17 +323,17 @@ to be part of rigid bodies.
 
 .. note::
 
-   To compute the initial center-of-mass position and other
-   properties of each rigid body, the image flags for each atom in the
-   body are used to "unwrap" the atom coordinates.  Thus you must ensure
-   that these image flags are consistent so that the unwrapping creates a
+   To compute the initial center-of-mass position and other properties
+   of each rigid body, the image flags for each atom in the body are
+   used to "unwrap" the atom coordinates.  Thus you must ensure that
+   these image flags are consistent so that the unwrapping creates a
    valid rigid body (one where the atoms are close together),
-   particularly if the atoms in a single rigid body straddle a periodic
-   boundary.  This means the input data file or restart file must define
-   the image flags for each atom consistently or that you have used the
-   :doc:`set <set>` command to specify them correctly.  If a dimension is
-   non-periodic then the image flag of each atom must be 0 in that
-   dimension, else an error is generated.
+   particularly if the atoms in a single rigid body straddle a
+   periodic boundary.  This means the input data file or restart file
+   must define the image flags for each atom consistently or that you
+   have used the :doc:`set <set>` command to specify them correctly.
+   If a dimension is non-periodic then the image flag of each atom
+   must be 0 in that dimension, else an error is generated.
 
 The *force* and *torque* keywords discussed next are only allowed for
 the *rigid* styles.
@@ -362,12 +369,13 @@ settings from the final keyword are used.
 
 .. note::
 
-   For computational efficiency, you may wish to turn off pairwise
-   and bond interactions within each rigid body, as they no longer
-   contribute to the motion.  The :doc:`neigh_modify exclude <neigh_modify>` and :doc:`delete_bonds <delete_bonds>`
-   commands are used to do this.  If the rigid bodies have strongly
-   overlapping atoms, you may need to turn off these interactions to
-   avoid numerical problems due to large equal/opposite intra-body forces
+   For computational efficiency, you may wish to turn off pairwise and
+   bond interactions within each rigid body, as they no longer
+   contribute to the motion.  The :doc:`neigh_modify exclude
+   <neigh_modify>` and :doc:`delete_bonds <delete_bonds>` commands are
+   used to do this.  If the rigid bodies have strongly overlapping
+   atoms, you may need to turn off these interactions to avoid
+   numerical problems due to large equal/opposite intra-body forces
    swamping the contribution of small inter-body forces.
 
 For computational efficiency, you should typically define one fix
@@ -379,7 +387,8 @@ is more expensive.
 
 The constituent particles within a rigid body can be point particles
 (the default in LAMMPS) or finite-size particles, such as spheres or
-ellipsoids or line segments or triangles.  See the :doc:`atom_style sphere and ellipsoid and line and tri <atom_style>` commands for more
+ellipsoids or line segments or triangles.  See the :doc:`atom_style
+sphere and ellipsoid and line and tri <atom_style>` commands for more
 details on these kinds of particles.  Finite-size particles contribute
 differently to the moment of inertia of a rigid body than do point
 particles.  Finite-size particles can also experience torque (e.g. due
@@ -389,7 +398,8 @@ orientation.  These contributions are accounted for by these fixes.
 Forces between particles within a body do not contribute to the
 external force or torque on the body.  Thus for computational
 efficiency, you may wish to turn off pairwise and bond interactions
-between particles within each rigid body.  The :doc:`neigh_modify exclude <neigh_modify>` and :doc:`delete_bonds <delete_bonds>`
+between particles within each rigid body.  The :doc:`neigh_modify
+exclude <neigh_modify>` and :doc:`delete_bonds <delete_bonds>`
 commands are used to do this.  For finite-size particles this also
 means the particles can be highly overlapped when creating the rigid
 body.
@@ -401,16 +411,17 @@ perform constant NVE time integration.  They are referred to below as
 the 4 NVE rigid styles.  The only difference is that the *rigid* and
 *rigid/small* styles use an integration technique based on Richardson
 iterations.  The *rigid/nve* and *rigid/small/nve* styles uses the
-methods described in the paper by :ref:`Miller <Miller3>`, which are thought
-to provide better energy conservation than an iterative approach.
+methods described in the paper by :ref:`Miller <Miller3>`, which are
+thought to provide better energy conservation than an iterative
+approach.
 
 The *rigid/nvt* and *rigid/nvt/small* styles performs constant NVT
 integration using a Nose/Hoover thermostat with chains as described
-originally in :ref:`(Hoover) <Hoover>` and :ref:`(Martyna) <Martyna2>`, which
-thermostats both the translational and rotational degrees of freedom
-of the rigid bodies.  They are referred to below as the 2 NVT rigid
-styles.  The rigid-body algorithm used by *rigid/nvt* is described in
-the paper by :ref:`Kamberaj <Kamberaj>`.
+originally in :ref:`(Hoover) <Hoover>` and :ref:`(Martyna)
+<Martyna2>`, which thermostats both the translational and rotational
+degrees of freedom of the rigid bodies.  They are referred to below as
+the 2 NVT rigid styles.  The rigid-body algorithm used by *rigid/nvt*
+is described in the paper by :ref:`Kamberaj <Kamberaj>`.
 
 The *rigid/npt*, *rigid/nph*, *rigid/npt/small*, and *rigid/nph/small*
 styles perform constant NPT or NPH integration using a Nose/Hoover
@@ -436,12 +447,12 @@ The target pressures for each of the 6 components of the stress tensor
 can be specified independently via the *x*, *y*, *z* keywords, which
 correspond to the 3 simulation box dimensions.  For each component,
 the external pressure or tensor component at each timestep is a ramped
-value during the run from *Pstart* to *Pstop*\ . If a target pressure is
-specified for a component, then the corresponding box dimension will
-change during a simulation.  For example, if the *y* keyword is used,
-the y-box length will change.  A box dimension will not change if that
-component is not specified, although you have the option to change
-that dimension via the :doc:`fix deform <fix_deform>` command.
+value during the run from *Pstart* to *Pstop*\ . If a target pressure
+is specified for a component, then the corresponding box dimension
+will change during a simulation.  For example, if the *y* keyword is
+used, the y-box length will change.  A box dimension will not change
+if that component is not specified, although you have the option to
+change that dimension via the :doc:`fix deform <fix_deform>` command.
 
 For all barostat keywords, the *Pdamp* parameter operates like the
 *Tdamp* parameter, determining the time scale on which pressure is
@@ -525,11 +536,11 @@ discussed below.
 
 The *langevin* keyword applies a Langevin thermostat to the constant
 NVE time integration performed by any of the 4 NVE rigid styles:
-*rigid*, *rigid/nve*, *rigid/small*, *rigid/small/nve*\ .  It cannot be
-used with the 2 NVT rigid styles: *rigid/nvt*, *rigid/small/nvt*\ .  The
-desired temperature at each timestep is a ramped value during the run
-from *Tstart* to *Tstop*\ .  The *Tdamp* parameter is specified in time
-units and determines how rapidly the temperature is relaxed.  For
+*rigid*, *rigid/nve*, *rigid/small*, *rigid/small/nve*\ .  It cannot
+be used with the 2 NVT rigid styles: *rigid/nvt*, *rigid/small/nvt*\ .
+The desired temperature at each timestep is a ramped value during the
+run from *Tstart* to *Tstop*\ .  The *Tdamp* parameter is specified in
+time units and determines how rapidly the temperature is relaxed.  For
 example, a value of 100.0 means to relax the temperature in a timespan
 of (roughly) 100 time units (:math:`\tau` or fs or ps - see the
 :doc:`units <units>` command).  The random # *seed* must be a positive
@@ -564,29 +575,30 @@ used.  *Tchain* is the number of thermostats in the Nose Hoover chain.
 This value, along with *Tdamp* can be varied to dampen undesirable
 oscillations in temperature that can occur in a simulation.  As a rule
 of thumb, increasing the chain length should lead to smaller
-oscillations. The keyword *pchain* specifies the number of
-thermostats in the chain thermostatting the barostat degrees of
-freedom.
+oscillations. The keyword *pchain* specifies the number of thermostats
+in the chain thermostatting the barostat degrees of freedom.
 
 .. note::
 
    There are alternate ways to thermostat a system of rigid bodies.
-   You can use :doc:`fix langevin <fix_langevin>` to treat the individual
-   particles in the rigid bodies as effectively immersed in an implicit
-   solvent, e.g. a Brownian dynamics model.  For hybrid systems with both
-   rigid bodies and solvent particles, you can thermostat only the
-   solvent particles that surround one or more rigid bodies by
-   appropriate choice of groups in the compute and fix commands for
-   temperature and thermostatting.  The solvent interactions with the
-   rigid bodies should then effectively thermostat the rigid body
-   temperature as well without use of the Langevin or Nose/Hoover options
-   associated with the fix rigid commands.
+   You can use :doc:`fix langevin <fix_langevin>` to treat the
+   individual particles in the rigid bodies as effectively immersed in
+   an implicit solvent, e.g. a Brownian dynamics model.  For hybrid
+   systems with both rigid bodies and solvent particles, you can
+   thermostat only the solvent particles that surround one or more
+   rigid bodies by appropriate choice of groups in the compute and fix
+   commands for temperature and thermostatting.  The solvent
+   interactions with the rigid bodies should then effectively
+   thermostat the rigid body temperature as well without use of the
+   Langevin or Nose/Hoover options associated with the fix rigid
+   commands.
 
 ----------
 
 The *mol* keyword can only be used with the *rigid/small* styles.  It
-must be used when other commands, such as :doc:`fix deposit <fix_deposit>` or :doc:`fix pour <fix_pour>`, add rigid
-bodies on-the-fly during a simulation.  You specify a *template-ID*
+must be used when other commands, such as :doc:`fix deposit
+<fix_deposit>` or :doc:`fix pour <fix_pour>`, add rigid bodies
+on-the-fly during a simulation.  You specify a *template-ID*
 previously defined using the :doc:`molecule <molecule>` command, which
 reads a file that defines the molecule.  You must use the same
 *template-ID* that the other fix which is adding rigid bodies uses.
@@ -670,16 +682,16 @@ cross periodic boundaries during the simulation.
 
 .. note::
 
-   If you use the *infile* or *mol* keywords and write restart
-   files during a simulation, then each time a restart file is written,
-   the fix also write an auxiliary restart file with the name
-   rfile.rigid, where "rfile" is the name of the restart file,
+   If you use the *infile* or *mol* keywords and write restart files
+   during a simulation, then each time a restart file is written, the
+   fix also write an auxiliary restart file with the name rfile.rigid,
+   where "rfile" is the name of the restart file,
    e.g. tmp.restart.10000 and tmp.restart.10000.rigid.  This auxiliary
-   file is in the same format described above.  Thus it can be used in a
-   new input script that restarts the run and re-specifies a rigid fix
-   using an *infile* keyword and the appropriate filename.  Note that the
-   auxiliary file will contain one line for every rigid body, even if the
-   original file only listed a subset of the rigid bodies.
+   file is in the same format described above.  Thus it can be used in
+   a new input script that restarts the run and re-specifies a rigid
+   fix using an *infile* keyword and the appropriate filename.  Note
+   that the auxiliary file will contain one line for every rigid body,
+   even if the original file only listed a subset of the rigid bodies.
 
 If the system has rigid bodies with finite-size overlapping particles
 and the model uses the :doc:`fix gravity <fix_gravity>` command to
@@ -728,10 +740,11 @@ also accounted for by this fix.
 
 ----------
 
-If your simulation is a hybrid model with a mixture of rigid bodies and
-non-rigid particles (e.g. solvent) there are several ways these rigid
-fixes can be used in tandem with :doc:`fix nve <fix_nve>`, :doc:`fix nvt
-<fix_nh>`, :doc:`fix npt <fix_nh>`, and :doc:`fix nph <fix_nh>`.
+If your simulation is a hybrid model with a mixture of rigid bodies
+and non-rigid particles (e.g. solvent) there are several ways these
+rigid fixes can be used in tandem with :doc:`fix nve <fix_nve>`,
+:doc:`fix nvt <fix_nh>`, :doc:`fix npt <fix_nh>`, and :doc:`fix nph
+<fix_nh>`.
 
 If you wish to perform NVE dynamics (no thermostatting or
 barostatting), use one of 4 NVE rigid styles to integrate the rigid
@@ -741,14 +754,14 @@ particles.
 If you wish to perform NVT dynamics (thermostatting, but no
 barostatting), you can use one of the 2 NVT rigid styles for the rigid
 bodies, and any thermostatting fix for the non-rigid particles
-(:doc:`fix nvt <fix_nh>`, :doc:`fix langevin <fix_langevin>`, :doc:`fix
-temp/berendsen <fix_temp_berendsen>`).  You can also use one of the 4
-NVE rigid styles for the rigid bodies and thermostat them using
-:doc:`fix langevin <fix_langevin>` on the group that contains all the
-particles in the rigid bodies.  The net force added by :doc:`fix
-langevin <fix_langevin>` to each rigid body effectively thermostats its
-translational center-of-mass motion.  Not sure how well it does at
-thermostatting its rotational motion.
+(:doc:`fix nvt <fix_nh>`, :doc:`fix langevin <fix_langevin>`,
+:doc:`fix temp/berendsen <fix_temp_berendsen>`).  You can also use one
+of the 4 NVE rigid styles for the rigid bodies and thermostat them
+using :doc:`fix langevin <fix_langevin>` on the group that contains
+all the particles in the rigid bodies.  The net force added by
+:doc:`fix langevin <fix_langevin>` to each rigid body effectively
+thermostats its translational center-of-mass motion.  Not sure how
+well it does at thermostatting its rotational motion.
 
 If you wish to perform NPT or NPH dynamics (barostatting), you cannot
 use both :doc:`fix npt <fix_nh>` and the NPT or NPH rigid styles.  This
@@ -774,12 +787,12 @@ to the global pressure and the box is scaled the same by any of the
 barostatting fixes.
 
 You could even use the second and third options for a non-hybrid
-simulation consisting of only rigid bodies, assuming you give :doc:`fix
-npt <fix_nh>` an empty group, though it's an odd thing to do.  The
-barostatting fixes (:doc:`fix npt <fix_nh>` and :doc:`fix press/berensen
-<fix_press_berendsen>`) will monitor the pressure and change the box
-dimensions, but not time integrate any particles.  The integration of
-the rigid bodies will be performed by fix rigid/nvt.
+simulation consisting of only rigid bodies, assuming you give
+:doc:`fix npt <fix_nh>` an empty group, though it's an odd thing to
+do.  The barostatting fixes (:doc:`fix npt <fix_nh>` and :doc:`fix
+press/berensen <fix_press_berendsen>`) will monitor the pressure and
+change the box dimensions, but not time integrate any particles.  The
+integration of the rigid bodies will be performed by fix rigid/nvt.
 
 ----------
 
@@ -824,10 +837,10 @@ various :doc:`output commands <Howto_output>`.  The scalar value
 calculated by these fixes is "intensive".  The scalar is the current
 temperature of the collection of rigid bodies.  This is averaged over
 all rigid bodies and their translational and rotational degrees of
-freedom.  The translational energy of a rigid body is 1/2 m v\^2, where
-m = total mass of the body and v = the velocity of its center of mass.
-The rotational energy of a rigid body is 1/2 I w\^2, where I = the
-moment of inertia tensor of the body and w = its angular velocity.
+freedom.  The translational energy of a rigid body is 1/2 m v\^2,
+where m = total mass of the body and v = the velocity of its center of
+mass.  The rotational energy of a rigid body is 1/2 I w\^2, where I =
+the moment of inertia tensor of the body and w = its angular velocity.
 Degrees of freedom constrained by the *force* and *torque* keywords
 are removed from this calculation, but only for the *rigid* and
 *rigid/nve* fixes.

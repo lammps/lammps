@@ -33,8 +33,9 @@ class DumpAtom : public Dump {
   const int ENDIAN = 0x0001;
 
  protected:
-  int scale_flag;    // 1 if atom coords are scaled, 0 if no
-  int image_flag;    // 1 if append box count to atom coords, 0 if no
+  int scale_flag;        // 1 if atom coords are scaled, 0 if no
+  int image_flag;        // 1 if append box count to atom coords, 0 if no
+  int triclinic_general; // 1 if output box & coords for general triclinic, 0 if no
 
   std::string columns;    // column labels
 
@@ -57,8 +58,10 @@ class DumpAtom : public Dump {
   FnPtrHeader header_choice;    // ptr to write header functions
   void header_binary(bigint);
   void header_binary_triclinic(bigint);
+  void header_binary_triclinic_general(bigint);
   void header_item(bigint);
   void header_item_triclinic(bigint);
+  void header_item_triclinic_general(bigint);
 
   typedef void (DumpAtom::*FnPtrPack)(tagint *);
   FnPtrPack pack_choice;    // ptr to pack functions
@@ -68,6 +71,8 @@ class DumpAtom : public Dump {
   void pack_noscale_noimage(tagint *);
   void pack_scale_image_triclinic(tagint *);
   void pack_scale_noimage_triclinic(tagint *);
+  void pack_noscale_image_triclinic_general(tagint *);
+  void pack_noscale_noimage_triclinic_general(tagint *);
 
   typedef int (DumpAtom::*FnPtrConvert)(int, double *);
   FnPtrConvert convert_choice;    // ptr to convert data functions

@@ -25,6 +25,8 @@
 #include "atom_vec_smd.h"
 
 #include "atom.h"
+#include "domain.h"
+#include "memory.h"
 
 #include <cstring>
 
@@ -56,6 +58,8 @@ AtomVecSMD::AtomVecSMD(LAMMPS *lmp) : AtomVec(lmp)
   atom->x0_flag = 1;
   atom->damage_flag = 1;
   atom->eff_plastic_strain_rate_flag = 1;
+
+  x0_hold = nullptr;
 
   // strings with peratom variables to include in each AtomVec method
   // strings cannot contain fields in corresponding AtomVec default strings
@@ -156,6 +160,13 @@ void AtomVecSMD::create_atom_post(int ilocal)
 void AtomVecSMD::data_atom_post(int ilocal)
 {
   esph[ilocal] = 0.0;
+
+  // x and x0 are in Atoms section of data file
+  // reset x0 b/c x may have been modified in Atom::data_atoms()
+  //   for PBC, shift, etc
+  // this means no need for read_data_general_to_restricted() method
+  //   to rotate x0 for general triclinic
+
   x0[ilocal][0] = x[ilocal][0];
   x0[ilocal][1] = x[ilocal][1];
   x0[ilocal][2] = x[ilocal][2];
@@ -176,4 +187,41 @@ void AtomVecSMD::data_atom_post(int ilocal)
   smd_data_9[ilocal][0] = 1.0;    // xx
   smd_data_9[ilocal][4] = 1.0;    // yy
   smd_data_9[ilocal][8] = 1.0;    // zz
+}
+
+/* ----------------------------------------------------------------------
+   convert info output by write_data from restricted to general triclinic
+   parent class operates on x and data from Velocities section of data file
+   child class operates on original coords x0
+------------------------------------------------------------------------- */
+
+void AtomVecSMD::write_data_restricted_to_general()
+{
+  AtomVec::write_data_restricted_to_general();
+
+  int nlocal = atom->nlocal;
+  memory->create(x0_hold,nlocal,3,"atomvec:x0_hold");
+  if (nlocal) memcpy(&x0_hold[0][0],&x0[0][0],3*nlocal*sizeof(double));
+  for (int i = 0; i < nlocal; i++)
+    domain->restricted_to_general_coords(x0[i]);
+
+}
+
+/* ----------------------------------------------------------------------
+   restore info output by write_data to restricted triclinic
+   original data is in "hold" arrays
+   parent class operates on x and data from Velocities section of data file
+   child class operates on original coords x0
+------------------------------------------------------------------------- */
+
+void AtomVecSMD::write_data_restore_restricted()
+{
+  AtomVec::write_data_restore_restricted();
+
+  if (!x0_hold) return;
+
+  int nlocal = atom->nlocal;
+  memcpy(&x0[0][0],&x0_hold[0][0],3*nlocal*sizeof(double));
+  memory->destroy(x0_hold);
+  x0_hold = nullptr;
 }

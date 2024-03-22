@@ -7883,12 +7883,6 @@ keyword to allow for additional bonds to be formed
    Fix poems cannot (yet) work with coupled bodies whose joints connect
    the bodies in a tree structure.
 
-*Triclinic box skew is too large*
-   The displacement in a skewed direction must be less than half the box
-   length in that dimension.  E.g. the xy tilt must be between -half and
-   +half of the x box length.  This constraint can be relaxed by using
-   the box tilt command.
-
 *Tried to convert a double to int, but input_double > INT_MAX*
    Self-explanatory.
 

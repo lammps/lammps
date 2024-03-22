@@ -57,6 +57,8 @@ class Thermo : protected Pointers {
  private:
   int nfield, nfield_initial;
   int *vtype;
+  int triclinic_general;   // set by thermo_modify
+
   std::string line;
   std::vector<std::string> keyword, format, format_column_user, keyword_user;
   std::string format_line_user, format_float_user, format_int_user, format_bigint_user;
@@ -81,6 +83,7 @@ class Thermo : protected Pointers {
   std::string image_fname;
 
   // data used by routines that compute single values
+
   int ivalue;          // integer value to print
   double dvalue;       // double value to print
   bigint bivalue;      // big integer value to print
@@ -93,8 +96,10 @@ class Thermo : protected Pointers {
   // index = where they are in computes list
   // id = ID of Compute objects
   // Compute * = ptrs to the Compute objects
+
   int index_temp, index_press_scalar, index_press_vector, index_pe;
   class Compute *temperature, *pressure, *pe;
+  double press_tensor[3][3];
 
   int ncompute;                // # of Compute objects called by thermo
   char **id_compute;           // their IDs
@@ -201,6 +206,13 @@ class Thermo : protected Pointers {
   void compute_pxy();
   void compute_pyz();
   void compute_pxz();
+
+  void compute_pxx_triclinic_general();
+  void compute_pyy_triclinic_general();
+  void compute_pzz_triclinic_general();
+  void compute_pxy_triclinic_general();
+  void compute_pyz_triclinic_general();
+  void compute_pxz_triclinic_general();
 
   void compute_fmax();
   void compute_fnorm();

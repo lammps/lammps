@@ -36,6 +36,7 @@ class DumpCustom : public Dump {
  protected:
   int nevery;        // dump frequency for output
   char *idregion;    // region ID, nullptr if no region
+  int triclinic_general;  // 1 if output box & per-atom info for general triclinic
 
   int nthresh;                        // # of defined thresholds
   int nthreshlast;                    // # of defined thresholds with value = LAST
@@ -124,8 +125,10 @@ class DumpCustom : public Dump {
   FnPtrHeader header_choice;    // ptr to write header functions
   void header_binary(bigint);
   void header_binary_triclinic(bigint);
+  void header_binary_triclinic_general(bigint);
   void header_item(bigint);
   void header_item_triclinic(bigint);
+  void header_item_triclinic_general(bigint);
 
   typedef void (DumpCustom::*FnPtrWrite)(int, double *);
   FnPtrWrite write_choice;    // ptr to write data functions
@@ -153,24 +156,34 @@ class DumpCustom : public Dump {
   void pack_x(int);
   void pack_y(int);
   void pack_z(int);
+  void pack_x_triclinic_general(int);
+  void pack_y_triclinic_general(int);
+  void pack_z_triclinic_general(int);
+
   void pack_xs(int);
   void pack_ys(int);
   void pack_zs(int);
   void pack_xs_triclinic(int);
   void pack_ys_triclinic(int);
   void pack_zs_triclinic(int);
+
   void pack_xu(int);
   void pack_yu(int);
   void pack_zu(int);
   void pack_xu_triclinic(int);
   void pack_yu_triclinic(int);
   void pack_zu_triclinic(int);
+  void pack_xu_triclinic_general(int);
+  void pack_yu_triclinic_general(int);
+  void pack_zu_triclinic_general(int);
+
   void pack_xsu(int);
   void pack_ysu(int);
   void pack_zsu(int);
   void pack_xsu_triclinic(int);
   void pack_ysu_triclinic(int);
   void pack_zsu_triclinic(int);
+
   void pack_ix(int);
   void pack_iy(int);
   void pack_iz(int);
@@ -178,26 +191,50 @@ class DumpCustom : public Dump {
   void pack_vx(int);
   void pack_vy(int);
   void pack_vz(int);
+  void pack_vx_triclinic_general(int);
+  void pack_vy_triclinic_general(int);
+  void pack_vz_triclinic_general(int);
+
   void pack_fx(int);
   void pack_fy(int);
   void pack_fz(int);
+  void pack_fx_triclinic_general(int);
+  void pack_fy_triclinic_general(int);
+  void pack_fz_triclinic_general(int);
+
   void pack_q(int);
+
   void pack_mux(int);
   void pack_muy(int);
   void pack_muz(int);
   void pack_mu(int);
+  void pack_mux_triclinic_general(int);
+  void pack_muy_triclinic_general(int);
+  void pack_muz_triclinic_general(int);
+
   void pack_radius(int);
   void pack_diameter(int);
 
   void pack_omegax(int);
   void pack_omegay(int);
   void pack_omegaz(int);
+  void pack_omegax_triclinic_general(int);
+  void pack_omegay_triclinic_general(int);
+  void pack_omegaz_triclinic_general(int);
+
   void pack_angmomx(int);
   void pack_angmomy(int);
   void pack_angmomz(int);
+  void pack_angmomx_triclinic_general(int);
+  void pack_angmomy_triclinic_general(int);
+  void pack_angmomz_triclinic_general(int);
+
   void pack_tqx(int);
   void pack_tqy(int);
   void pack_tqz(int);
+  void pack_tqx_triclinic_general(int);
+  void pack_tqy_triclinic_general(int);
+  void pack_tqz_triclinic_general(int);
 };
 
 }    // namespace LAMMPS_NS

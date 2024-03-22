@@ -322,7 +322,7 @@ TEST_F(LatticeRegionTest, lattice_sq)
     ASSERT_EQ(lattice->basis[0][1], 0.0);
     ASSERT_EQ(lattice->basis[0][2], 0.0);
 
-    TEST_FAILURE(".*ERROR: Lattice settings are not compatible with 2d simulation.*",
+    TEST_FAILURE(".*ERROR: Lattice orient vectors are not compatible with 2d simulation.*",
                  command("lattice sq 1.0 orient x 1 1 2 orient y -1 1 0 orient z -1 -1 1"););
 
     BEGIN_HIDE_OUTPUT();
@@ -463,13 +463,13 @@ TEST_F(LatticeRegionTest, lattice_custom)
     command("dimension 2");
     END_HIDE_OUTPUT();
     TEST_FAILURE(".*ERROR: No basis atoms in lattice.*", command("lattice custom 1.0"););
-    TEST_FAILURE(".*ERROR: Lattice settings are not compatible with 2d simulation.*",
+    TEST_FAILURE(".*ERROR: Lattice origin z coord must be 0.0 for 2d simulation.*",
                  command("lattice custom 1.0 origin 0.5 0.5 0.5 basis 0.0 0.0 0.0"););
-    TEST_FAILURE(".*ERROR: Lattice settings are not compatible with 2d simulation.*",
+    TEST_FAILURE(".*ERROR: Lattice a1/a2/a3 vectors are not compatible with 2d simulation.*",
                  command("lattice custom 1.0 a1 1.0 1.0 1.0 basis 0.0 0.0 0.0"););
-    TEST_FAILURE(".*ERROR: Lattice settings are not compatible with 2d simulation.*",
+    TEST_FAILURE(".*ERROR: Lattice a1/a2/a3 vectors are not compatible with 2d simulation.*",
                  command("lattice custom 1.0 a2 1.0 1.0 1.0 basis 0.0 0.0 0.0"););
-    TEST_FAILURE(".*ERROR: Lattice settings are not compatible with 2d simulation.*",
+    TEST_FAILURE(".*ERROR: Lattice a1/a2/a3 vectors are not compatible with 2d simulation.*",
                  command("lattice custom 1.0 a3 1.0 1.0 1.0 basis 0.0 0.0 0.0"););
 }
 

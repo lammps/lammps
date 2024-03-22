@@ -28,6 +28,7 @@
 #include "improper.h"
 #include "irregular.h"
 #include "label_map.h"
+#include "math_extra.h"
 #include "memory.h"
 #include "modify.h"
 #include "pair.h"
@@ -782,6 +783,12 @@ void ReadRestart::header()
       domain->xz = read_double();
     } else if (flag == YZ) {
       domain->yz = read_double();
+
+    } else if (flag == TRICLINIC_GENERAL) {
+      domain->triclinic_general = read_int();
+    } else if (flag == ROTATE_G2R) {
+      read_double_vec(9,&domain->rotate_g2r[0][0]);
+      MathExtra::transpose3(domain->rotate_g2r,domain->rotate_r2g);
 
     } else if (flag == SPECIAL_LJ) {
       read_int();

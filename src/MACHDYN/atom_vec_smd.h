@@ -43,12 +43,16 @@ class AtomVecSMD : virtual public AtomVec {
   void force_clear(int, size_t) override;
   void create_atom_post(int) override;
   void data_atom_post(int) override;
+  void write_data_restricted_to_general() override;
+  void write_data_restore_restricted() override;
 
  private:
   tagint *molecule;
   double *esph, *desph, *vfrac, *rmass, *radius, *contact_radius;
   double *eff_plastic_strain, *eff_plastic_strain_rate, *damage;
   double **x0, **smd_data_9, **smd_stress, **vest;
+
+  double **x0_hold;
 };
 
 }    // namespace LAMMPS_NS

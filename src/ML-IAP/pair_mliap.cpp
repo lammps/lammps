@@ -178,6 +178,7 @@ void PairMLIAP::settings(int narg, char ** arg)
       if (descriptor != nullptr) error->all(FLERR,"Illegal multiple pair_style mliap descriptor definition");
       if (strcmp(arg[iarg+1],"sna") == 0) {
         if (iarg+3 > narg) utils::missing_cmd_args(FLERR, "pair_style mliap descriptor sna", error);
+        if (lmp->kokkos) error->all(FLERR,"Cannot (yet) use KOKKOS package with SNAP descriptors");
         descriptor = new MLIAPDescriptorSNAP(lmp,arg[iarg+2]);
         iarg += 3;
       } else if (strcmp(arg[iarg+1],"so3") == 0) {
@@ -188,6 +189,7 @@ void PairMLIAP::settings(int narg, char ** arg)
 #ifdef MLIAP_ACE
         else if (strcmp(arg[iarg+1],"ace") == 0) {
         if (iarg+3 > narg) error->all(FLERR,"Illegal pair_style mliap command");
+        if (lmp->kokkos) error->all(FLERR,"Cannot (yet) use KOKKOS package with ACE descriptors");
         descriptor = new MLIAPDescriptorACE(lmp,arg[iarg+2]);
         iarg += 3;
       }

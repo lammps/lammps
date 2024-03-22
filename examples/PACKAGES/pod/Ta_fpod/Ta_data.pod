@@ -1,0 +1,33 @@
+file_format extxyz
+file_extension xyz
+
+path_to_training_data_set "../Ta_lpod/XYZ"
+path_to_test_data_set "../Ta_lpod/XYZ"
+
+fitting_weight_energy 100.0
+fitting_weight_force 1.0
+fitting_regularization_parameter 1e-12
+
+error_analysis_for_training_data_set 1
+error_analysis_for_test_data_set 0
+
+# Add the following basename to the name of output files
+basename_for_output_files Ta
+
+# number of digits after the decimal point for pod coefficients
+precision_for_pod_coefficients 12
+
+# Optionally declare energy and force weights of each group.
+#group_weights table 
+#Displaced_A15 100.0 1.0  
+#Displaced_BCC 100.0 1.0 
+#Displaced_FCC 100.0 1.0 
+#Elastic_BCC 100.0 1.0 
+#Elastic_FCC 100.0 1.0 
+#GSF_110 100.0 1.0 
+#GSF_112 100.0 1.0 
+#Liquid 100.0 1.0  
+#Surface 100.0 1.0  
+#Volume_A15 100.0 1.0  
+#Volume_BCC 100.0 1.0 
+#Volume_FCC 100.0 1.0 

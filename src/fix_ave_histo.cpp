@@ -839,10 +839,12 @@ void FixAveHisto::options(int iarg, int narg, char **arg)
   auto mycmd = fmt::format("fix {}", style);
 
   while (iarg < narg) {
-    if (strcmp(arg[iarg],"file") == 0) {
-      if (iarg+2 > narg) utils::missing_cmd_args(FLERR, mycmd + " file", error);
+    if ((strcmp(arg[iarg],"file") == 0) || (strcmp(arg[iarg],"append") == 0)) {
+      if (iarg+2 > narg)
+        utils::missing_cmd_args(FLERR, std::string("fix ave/histo ")+arg[iarg], error);
       if (comm->me == 0) {
-        fp = fopen(arg[iarg+1],"w");
+        if (strcmp(arg[iarg],"file") == 0) fp = fopen(arg[iarg+1],"w");
+        else fp = fopen(arg[iarg+1],"a");
         if (fp == nullptr)
           error->one(FLERR, "Cannot open fix ave/histo file {}: {}",
                      arg[iarg+1], utils::getsyserror());

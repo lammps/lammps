@@ -1255,8 +1255,8 @@ Procedures Bound to the :f:type:`lammps` Derived Type
    three elements of the global vector calculated by fix recenter into the
    variables *dx*, *dy*, and *dz*, respectively.
 
-   If asked for per-atom or local data, :f:func:`extract_compute` returns a
-   pointer to actual LAMMPS data. The pointer so returned will have the
+   If asked for per-atom or local data, :f:func:`extract_fix` returns a
+   pointer to actual LAMMPS data.  The pointer returned will have the
    appropriate size to match the internal data, and will be
    type/kind/rank-checked at the time of the assignment. For example,
 

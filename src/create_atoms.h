@@ -40,7 +40,7 @@ class CreateAtoms : public Command {
   bigint nsubset;
   double subsetfrac;
   int *basistype;
-  double xone[3], quatone[4];
+  double xone[3], quatone[4], **xmol;
   double radthresh, radscale, mesh_density;
 
   int varflag, vvar, xvar, yvar, zvar;
@@ -71,7 +71,8 @@ class CreateAtoms : public Command {
   int add_quasirandom(const double[3][3], tagint);
   void add_lattice();
   void loop_lattice(int);
-  void add_molecule(double *);
+  void get_xmol(double *);
+  void add_molecule();
   int vartest(double *);    // evaluate a variable with new atom position
 };
 

@@ -175,7 +175,7 @@ Currently three descriptor styles are available: *sna*, *so3*, and *ace*.
   :doc:`pair_style pace <pair_pace>`. Note that unlike the potential file, the
   Clebsch-Gordan coefficients in the descriptor file supplied should *NOT* be
   multiplied by linear or square root embedding terms.
-  
+
 
 The SNAP descriptor file closely follows the format of the
 :doc:`pair_style snap <pair_snap>` parameter file.  The file can contain
@@ -214,7 +214,7 @@ The *ace* descriptor files can also be extracted from ACE model fits in
 `python-ace. <https://github.com/ICAMS/python-ace>`_ It is important to
 note that order of the types listed in :doc:`pair_coeff <pair_coeff>` must
 match the order of the elements/types listed in the ACE descriptor file
-for all *mliap* styles when using *ace* descriptors. 
+for all *mliap* styles when using *ace* descriptors.
 
 See the :doc:`pair_coeff <pair_coeff>` page for alternate ways
 to specify the path for these *model* and *descriptor* files.

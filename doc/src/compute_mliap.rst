@@ -46,7 +46,7 @@ form (*model*) and the geometric quantities that characterize the atomic
 positions (*descriptor*). By defining *model* and *descriptor* separately,
 it is possible to use many different models with a given descriptor,
 or many different descriptors with a given model. Currently, the compute
-supports *linear* and *quadratic* SNAP descriptor computes used in 
+supports *linear* and *quadratic* SNAP descriptor computes used in
 :doc:`pair_style snap <pair_snap>`, *linear* SO3 descriptor computes, and
 *linear* ACE descriptor computes used in :doc:`pair_style pace <pair_pace>`,
 and it is straightforward to add new descriptor styles.

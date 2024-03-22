@@ -35,7 +35,6 @@
 #include <cmath>
 #include <cstring>
 #include <typeinfo>
-//#include <map>
 
 namespace LAMMPS_NS {
 struct ACE_ML_impl {
@@ -53,9 +52,6 @@ struct ACE_ML_impl {
 
 using namespace LAMMPS_NS;
 
-#define MAXLINE 1024
-#define MAXWORD 3
-
 /* ---------------------------------------------------------------------- */
 
 MLIAPDescriptorACE::MLIAPDescriptorACE(LAMMPS *_lmp, char *yacefilename) : Pointers(_lmp),  MLIAPDescriptor(_lmp)
@@ -64,8 +60,6 @@ MLIAPDescriptorACE::MLIAPDescriptorACE(LAMMPS *_lmp, char *yacefilename) : Point
   acemlimpl = new ACE_ML_impl;
   allocated_elements = 0;
   //read in file with CG coefficients or c_tilde coefficients
-  //auto ctilde_file = utils::get_potential_file_path(yacefilename);
-  //acemlimpl -> basis_set = new ACECTildeBasisSet(std::string(1,ctilde_file));
   ctilde_file = yacefilename;
   delete acemlimpl -> basis_set;
   acemlimpl -> basis_set = new ACECTildeBasisSet(ctilde_file);
@@ -91,8 +85,6 @@ MLIAPDescriptorACE::MLIAPDescriptorACE(LAMMPS *_lmp, char *yacefilename) : Point
     elements = new char * [nelements];
     for (int iielem = 0; iielem < nelements; iielem ++){
       elements[iielem] = utils::strdup(acemlimpl->basis_set->elements_name[iielem]);
-      //char* elemi = const_cast<char*>(acemlimpl->basis_set->elements_name[iielem].data());
-      //elements[iielem] = elemi;
     }
     allocated_elements = 1;
   }
@@ -264,7 +256,6 @@ void MLIAPDescriptorACE::compute_forces(class MLIAPData *data)
         f[j][1] -= fy_dB;
         f[j][2] -= fz_dB;
       }
-      //xi = atom-
       const double delx = x[j][0] - xtmp;
       const double dely = x[j][1] - ytmp;
       const double delz = x[j][2] - ztmp;

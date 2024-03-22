@@ -297,14 +297,17 @@ void PairReaxFF::coeff(int nargs, char **args)
   }
 
   int n = atom->ntypes;
+  eletype.resize(n+1);
 
   // pair_coeff element map
-  for (int i = 3; i < nargs; i++)
+  for (int i = 3; i < nargs; i++) {
+    eletype[i-2] = args[i];
     for (int j = 0; j < nreax_types; j++)
       if (utils::lowercase(args[i]) == utils::lowercase(api->system->reax_param.sbp[j].name)) {
         map[i-2] = j;
         itmp ++;
       }
+  }
 
   // error check
   if (itmp != n)

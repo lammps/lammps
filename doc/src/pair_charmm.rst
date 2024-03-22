@@ -112,26 +112,22 @@ Description
 These pair styles compute Lennard Jones (LJ) and Coulombic
 interactions with additional switching or shifting functions that ramp
 the energy and/or force smoothly to zero between an inner and outer
-cutoff.  They are implementations of the widely used CHARMM force
-field used in the `CHARMM <https://www.charmm.org>`_ MD code (and
-others).  See :ref:`(MacKerell) <pair-MacKerell>` for a description of the
-CHARMM force field.
+cutoff.  They implement the widely used CHARMM force field, see
+:doc:`Howto discussion on biomolecular force fields <Howto_bioFF>` for
+details.
 
 The styles with *charmm* (not *charmmfsw* or *charmmfsh*\ ) in their
 name are the older, original LAMMPS implementations.  They compute the
-LJ and Coulombic interactions with an energy switching function (esw,
-shown in the formula below as S(r)), which ramps the energy smoothly
-to zero between the inner and outer cutoff.  This can cause
-irregularities in pairwise forces (due to the discontinuous second
-derivative of energy at the boundaries of the switching region), which
-in some cases can result in detectable artifacts in an MD simulation.
+LJ and Coulombic interactions with an energy switching function which
+ramps the energy smoothly to zero between the inner and outer cutoff.
+This can cause irregularities in pairwise forces (due to the discontinuous
+second derivative of energy at the boundaries of the switching region),
+which in some cases can result in detectable artifacts in an MD simulation.
 
 The newer styles with *charmmfsw* or *charmmfsh* in their name replace
 the energy switching with force switching (fsw) and force shifting
 (fsh) functions, for LJ and Coulombic interactions respectively.
-These follow the formulas and description given in
-:ref:`(Steinbach) <Steinbach>` and :ref:`(Brooks) <Brooks1>` to minimize these
-artifacts.
+
 
 .. note::
 
@@ -151,26 +147,6 @@ artifacts.
    332.06371.  This is to enable more precise agreement by LAMMPS with
    the CHARMM force field energies and forces, when using one of these
    two CHARMM pair styles.
-
-.. math::
-
-   E = & LJ(r) \qquad \qquad \qquad r < r_{\rm in} \\
-     = & S(r) * LJ(r) \qquad \qquad r_{\rm in} < r < r_{\rm out} \\
-     = & 0 \qquad \qquad \qquad \qquad r > r_{\rm out} \\
-   E = & C(r) \qquad \qquad \qquad r < r_{\rm in} \\
-     = & S(r) * C(r) \qquad \qquad r_{\rm in} < r < r_{\rm out} \\
-     = & 0 \qquad \qquad \qquad \qquad r > r_{\rm out} \\
-   LJ(r) = & 4 \epsilon \left[ \left(\frac{\sigma}{r}\right)^{12} -
-           \left(\frac{\sigma}{r}\right)^6 \right] \\
-   C(r) = & \frac{C q_i q_j}{ \epsilon r} \\
-   S(r) = & \frac{ \left[r_{\rm out}^2 - r^2\right]^2
-     \left[r_{\rm out}^2 + 2r^2 - 3{r_{\rm in}^2}\right]}
-   { \left[r_{\rm out}^2 - {r_{\rm in}}^2\right]^3 }
-
-where S(r) is the energy switching function mentioned above for the
-*charmm* styles.  See the :ref:`(Steinbach) <Steinbach>` paper for the
-functional forms of the force switching and force shifting functions
-used in the *charmmfsw* and *charmmfsh* styles.
 
 When using the *lj/charmm/coul/charmm styles*, both the LJ and
 Coulombic terms require an inner and outer cutoff. They can be the

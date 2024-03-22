@@ -22,12 +22,23 @@ CommandStyle(replicate,Replicate);
 
 #include "command.h"
 
+#include <unordered_map>
+
 namespace LAMMPS_NS {
 
 class Replicate : public Command {
  public:
   Replicate(class LAMMPS *);
   void command(int, char **) override;
+
+ private:
+  std::unordered_map<tagint, int> old_map;
+  double **old_x;
+  double old_prd_half[3], old_center[3];
+  tagint *old_tag;
+  tagint maxtag;
+  int thisrep[3], allnrep[3];
+  void newtag(tagint, tagint &);
 };
 
 }    // namespace LAMMPS_NS

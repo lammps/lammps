@@ -63,13 +63,19 @@ void Replicate::command(int narg, char **arg)
                "Please use replicate multiple times", nx, ny, nz, nrepbig);
 
   int nrep = (int) nrepbig;
+  allnrep[0] = nx;
+  allnrep[1] = ny;
+  allnrep[2] = nz;
   if (me == 0)
     utils::logmesg(lmp, "Replication is creating a {}x{}x{} = {} times larger system...\n",
                    nx, ny, nz, nrep);
 
   int bbox_flag = 0;
-  if (narg == 4)
+  int bondlist_flag = 0;
+  if (narg == 4) {
     if (strcmp(arg[3],"bbox") == 0) bbox_flag = 1;
+    if (strcmp(arg[3],"bondlist") == 0) bondlist_flag = 1;
+  }
 
   // error and warning checks
 
@@ -92,9 +98,9 @@ void Replicate::command(int narg, char **arg)
   MPI_Barrier(world);
   double time1 = platform::walltime();
 
-  // maxtag = largest atom tag across all existing atoms
+  // maxtag = original largest atom tag across all existing atoms
 
-  tagint maxtag = 0;
+  maxtag = 0;
   if (atom->tag_enable) {
     for (i = 0; i < atom->nlocal; i++) maxtag = MAX(atom->tag[i],maxtag);
     tagint maxtag_all;
@@ -112,6 +118,12 @@ void Replicate::command(int narg, char **arg)
     maxmol = maxmol_all;
   }
 
+  // reset image flags for bondlist option
+  if (bondlist_flag)
+    for (i=0; i<atom->nlocal; ++i)
+      atom->image[i] = ((imageint) IMGMAX << IMG2BITS) |
+        ((imageint) IMGMAX << IMGBITS) | IMGMAX;
+
   // check image flags maximum extent
   // only efficient small image flags compared to new system
 
@@ -123,7 +135,7 @@ void Replicate::command(int narg, char **arg)
   _imagehi[1] = 0;
   _imagehi[2] = 0;
 
-  if (bbox_flag) {
+  if (bbox_flag || bondlist_flag) {
 
     for (i=0; i<atom->nlocal; ++i) {
       imageint image = atom->image[i];
@@ -249,6 +261,10 @@ void Replicate::command(int narg, char **arg)
   double old_xprd = domain->xprd;
   double old_yprd = domain->yprd;
   double old_zprd = domain->zprd;
+  for (i = 0; i < 3; i++) {
+    old_prd_half[i] = domain->prd_half[i];
+    old_center[i] = 0.5*(domain->boxlo[i]+domain->boxhi[i]);
+  }
   double old_xy = domain->xy;
   double old_xz = domain->xz;
   double old_yz = domain->yz;
@@ -359,13 +375,13 @@ void Replicate::command(int narg, char **arg)
   AtomVec *avec = atom->avec;
 
   int ix,iy,iz;
-  tagint atom_offset,mol_offset;
+  tagint atom_offset,mol_offset,atom0tag;
   imageint image;
   double x[3],lamda[3];
   double *coord;
   int tag_enable = atom->tag_enable;
 
-  if (bbox_flag) {
+  if (bbox_flag || bondlist_flag) {
 
     // allgather size of buf on each proc
 
@@ -438,9 +454,31 @@ void Replicate::command(int narg, char **arg)
 
     int num_replicas_added = 0;
 
+    // store x and tag for the whole system (before replication)
+
+    if (bondlist_flag) {
+      memory->create(old_x,old->natoms,3,"replicate:old_x");
+      memory->create(old_tag,old->natoms,"replicate:old_tag");
+
+      i = m = 0;
+      while (m < size_buf_all) {
+          old_x[i][0] = buf_all[m+1];
+          old_x[i][1] = buf_all[m+2];
+          old_x[i][2] = buf_all[m+3];
+          old_tag[i] = (tagint) ubuf(buf_all[m+4]).i;
+          old_map.insert({old_tag[i],i});
+          m += static_cast<int> (buf_all[m]);
+          i++;
+      }
+    }
+
     for (ix = 0; ix < nx; ix++) {
       for (iy = 0; iy < ny; iy++) {
         for (iz = 0; iz < nz; iz++) {
+
+          thisrep[0] = ix;
+          thisrep[1] = iy;
+          thisrep[2] = iz;
 
           // domain->remap() overwrites coordinates, so always recompute here
 
@@ -620,6 +658,7 @@ void Replicate::command(int narg, char **arg)
                 atom->x[i][1] = x[1];
                 atom->x[i][2] = x[2];
 
+                atom0tag = atom->tag[i];
                 atom->tag[i] += atom_offset;
                 atom->image[i] = image;
 
@@ -628,27 +667,50 @@ void Replicate::command(int narg, char **arg)
                     atom->molecule[i] += mol_offset;
                   if (atom->molecular == Atom::MOLECULAR) {
                     if (atom->avec->bonds_allow)
-                      for (j = 0; j < atom->num_bond[i]; j++)
-                        atom->bond_atom[i][j] += atom_offset;
+                      for (j = 0; j < atom->num_bond[i]; j++) {
+                        if (bondlist_flag)
+                          newtag(atom0tag,atom->bond_atom[i][j]);
+                        else atom->bond_atom[i][j] += atom_offset;
+                      }
                     if (atom->avec->angles_allow)
                       for (j = 0; j < atom->num_angle[i]; j++) {
-                        atom->angle_atom1[i][j] += atom_offset;
-                        atom->angle_atom2[i][j] += atom_offset;
-                        atom->angle_atom3[i][j] += atom_offset;
+                        if (bondlist_flag) {
+                          newtag(atom0tag,atom->angle_atom1[i][j]);
+                          newtag(atom0tag,atom->angle_atom2[i][j]);
+                          newtag(atom0tag,atom->angle_atom3[i][j]);
+                        } else {
+                          atom->angle_atom1[i][j] += atom_offset;
+                          atom->angle_atom2[i][j] += atom_offset;
+                          atom->angle_atom3[i][j] += atom_offset;
+                        }
                       }
                     if (atom->avec->dihedrals_allow)
                       for (j = 0; j < atom->num_dihedral[i]; j++) {
-                        atom->dihedral_atom1[i][j] += atom_offset;
-                        atom->dihedral_atom2[i][j] += atom_offset;
-                        atom->dihedral_atom3[i][j] += atom_offset;
-                        atom->dihedral_atom4[i][j] += atom_offset;
+                        if (bondlist_flag) {
+                          newtag(atom0tag,atom->dihedral_atom1[i][j]);
+                          newtag(atom0tag,atom->dihedral_atom2[i][j]);
+                          newtag(atom0tag,atom->dihedral_atom3[i][j]);
+                          newtag(atom0tag,atom->dihedral_atom4[i][j]);
+                        } else {
+                          atom->dihedral_atom1[i][j] += atom_offset;
+                          atom->dihedral_atom2[i][j] += atom_offset;
+                          atom->dihedral_atom3[i][j] += atom_offset;
+                          atom->dihedral_atom4[i][j] += atom_offset;
+                        }
                       }
                     if (atom->avec->impropers_allow)
                       for (j = 0; j < atom->num_improper[i]; j++) {
-                        atom->improper_atom1[i][j] += atom_offset;
-                        atom->improper_atom2[i][j] += atom_offset;
-                        atom->improper_atom3[i][j] += atom_offset;
-                        atom->improper_atom4[i][j] += atom_offset;
+                        if (bondlist_flag) {
+                          newtag(atom0tag,atom->improper_atom1[i][j]);
+                          newtag(atom0tag,atom->improper_atom2[i][j]);
+                          newtag(atom0tag,atom->improper_atom3[i][j]);
+                          newtag(atom0tag,atom->improper_atom4[i][j]);
+                        } else {
+                          atom->improper_atom1[i][j] += atom_offset;
+                          atom->improper_atom2[i][j] += atom_offset;
+                          atom->improper_atom3[i][j] += atom_offset;
+                          atom->improper_atom4[i][j] += atom_offset;
+                        }
                       }
                   }
                 }
@@ -663,6 +725,10 @@ void Replicate::command(int narg, char **arg)
     memory->destroy(size_buf_rnk);
     memory->destroy(disp_buf_rnk);
     memory->destroy(buf_all);
+    if (bondlist_flag) {
+      memory->destroy(old_x);
+      memory->destroy(old_tag);
+    }
 
     int sum = 0;
     MPI_Reduce(&num_replicas_added, &sum, 1, MPI_INT, MPI_SUM, 0, world);
@@ -759,7 +825,7 @@ void Replicate::command(int narg, char **arg)
         }
       }
     }
-  } // if (bbox_flag)
+  } // if (bbox_flag || bondlist_flag)
 
   // free communication buffer and old atom class
 
@@ -820,4 +886,29 @@ void Replicate::command(int narg, char **arg)
 
   if (me == 0)
     utils::logmesg(lmp,"  replicate CPU = {:.3f} seconds\n",platform::walltime()-time1);
+}
+
+/* ----------------------------------------------------------------------
+   find new tag for the atom 'atom2bond' bonded to atom 'atom0'
+   for bondlist option, useful for periodic loops or inconsistent image flags
+   reassign bond if > old boxlength / 2
+------------------------------------------------------------------------- */
+
+void Replicate::newtag(tagint atom0tag, tagint &tag2bond) {
+  double del;
+  int repshift,rep2bond[3];
+  int atom0 = old_map.find(atom0tag)->second;
+  int atom2bond = old_map.find(tag2bond)->second;
+  for (int i = 0; i < 3; i++) {
+    del = fabs(old_x[atom0][i] - old_x[atom2bond][i]);
+    if (del > old_prd_half[i]) {
+      if (old_x[atom0][i] > old_center[i]) repshift = 1;
+      else repshift = -1;
+    } else repshift = 0;
+    rep2bond[i] = thisrep[i] + repshift;
+    if (rep2bond[i] >= allnrep[i]) rep2bond[i] = 0;
+    if (rep2bond[i] < 0) rep2bond[i] = allnrep[i]-1;
+  }
+  tag2bond = (tag2bond + rep2bond[2]*allnrep[1]*allnrep[0]*maxtag
+             + rep2bond[1]*allnrep[0]*maxtag + rep2bond[0]*maxtag);
 }

@@ -58,8 +58,8 @@ class MLIAPData : protected Pointers {
   // data structures for mliap neighbor list
   // only neighbors strictly inside descriptor cutoff
 
-  int ntotal;                    // total number of owned and ghost atoms on this proc
-  int nlistatoms;                // current number of atoms in local atom lists
+  int ntotal;        // total number of owned and ghost atoms on this proc
+  int nlistatoms;    // current number of atoms in local atom lists
   int nlocal;
   int nlistatoms_max;            // allocated size of descriptor array
   int natomneigh;                // current number of atoms and ghosts in atom neighbor arrays
@@ -67,12 +67,14 @@ class MLIAPData : protected Pointers {
   int *numneighs;                // neighbors count for each atom
   int *iatoms;                   // index of each atom
   int *ielems;                   // element of each atom
+  int *itypes;                   // LAMMPS type of each atom for external evaluators
   int nneigh_max;                // number of ij neighbors allocated
   int npairs;                    // number of ij neighbor pairs
   int *pair_i;                   // index of each i atom for each ij pair
   int *jatoms;                   // index of each neighbor
   int *jelems;                   // element of each neighbor
   int *elems;                    // element of each atom in or not in the neighborlist
+  int **lmp_firstneigh;          // copy of list->firstneigh for external evaluators
   double **rij;                  // distance vector of each neighbor
   double ***graddesc;            // descriptor gradient w.r.t. each neighbor
   int eflag;                     // indicates if energy is needed

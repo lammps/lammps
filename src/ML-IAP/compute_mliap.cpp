@@ -21,6 +21,9 @@
 #include "mliap_data.h"
 #include "mliap_descriptor_snap.h"
 #include "mliap_descriptor_so3.h"
+#ifdef MLIAP_ACE
+#include "mliap_descriptor_ace.h"
+#endif
 #include "mliap_model_linear.h"
 #include "mliap_model_quadratic.h"
 #ifdef MLIAP_PYTHON
@@ -34,7 +37,6 @@
 #include "memory.h"
 #include "modify.h"
 #include "neighbor.h"
-#include "neigh_list.h"
 #include "pair.h"
 #include "update.h"
 
@@ -89,13 +91,23 @@ ComputeMLIAP::ComputeMLIAP(LAMMPS *lmp, int narg, char **arg) :
       if (iarg+2 > narg) error->all(FLERR,"Illegal compute mliap command");
       if (strcmp(arg[iarg+1],"sna") == 0) {
         if (iarg+3 > narg) error->all(FLERR,"Illegal compute mliap command");
+        if (lmp->kokkos) error->all(FLERR,"Cannot (yet) use KOKKOS package with SNAP descriptors");
         descriptor = new MLIAPDescriptorSNAP(lmp,arg[iarg+2]);
         iarg += 3;
       } else if (strcmp(arg[iarg+1],"so3") == 0) {
         if (iarg+3 > narg) error->all(FLERR,"Illegal pair_style mliap command");
         descriptor = new MLIAPDescriptorSO3(lmp,arg[iarg+2]);
         iarg += 3;
-      } else error->all(FLERR,"Illegal compute mliap command");
+      }
+#ifdef MLIAP_ACE
+        else if (strcmp(arg[iarg+1],"ace") == 0) {
+        if (iarg+3 > narg) error->all(FLERR,"Illegal pair_style mliap command");
+        if (lmp->kokkos) error->all(FLERR,"Cannot (yet) use KOKKOS package with ACE descriptors");
+        descriptor = new MLIAPDescriptorACE(lmp,arg[iarg+2]);
+        iarg += 3;
+      }
+#endif
+       else error->all(FLERR,"Illegal compute mliap command");
       descriptorflag = 1;
     } else if (strcmp(arg[iarg],"gradgradflag") == 0) {
       if (iarg+1 > narg) error->all(FLERR,"Illegal compute mliap command");

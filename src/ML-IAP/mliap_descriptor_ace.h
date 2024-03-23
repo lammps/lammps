@@ -30,9 +30,9 @@ class MLIAPDescriptorACE : public MLIAPDescriptor {
   double memory_usage() override;
 
   double rcutfac;
-  int allocated=0;
-  int max_num=0;
-  char* ctilde_file;
+  int allocated = 0;
+  int max_num = 0;
+  char *ctilde_file;
 
  protected:
   virtual void allocate();

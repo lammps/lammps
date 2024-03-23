@@ -3,7 +3,7 @@ lammps_version: 17 Feb 2022
 tags: slow
 date_generated: Fri Mar 18 22:17:48 2022
 epsilon: 5e-13
-skip_tests: kokkos
+skip_tests: kokkos_omp
 prerequisites: ! |
   pair mliap
   pair zbl

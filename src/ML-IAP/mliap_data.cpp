@@ -31,9 +31,9 @@ MLIAPData::MLIAPData(LAMMPS *lmp, int gradgradflag_in, int *map_in, class MLIAPM
     Pointers(lmp),
     f(nullptr), gradforce(nullptr), betas(nullptr), descriptors(nullptr), eatoms(nullptr),
     gamma(nullptr), gamma_row_index(nullptr), gamma_col_index(nullptr), egradient(nullptr),
-    numneighs(nullptr), iatoms(nullptr), ielems(nullptr), pair_i(nullptr), jatoms(nullptr),
-    jelems(nullptr), elems(nullptr), rij(nullptr), graddesc(nullptr), model(nullptr),
-    descriptor(nullptr), list(nullptr), itypes(nullptr),  lmp_firstneigh(nullptr)
+    numneighs(nullptr), iatoms(nullptr), ielems(nullptr), itypes(nullptr), pair_i(nullptr),
+    jatoms(nullptr), jelems(nullptr), elems(nullptr), lmp_firstneigh(nullptr), rij(nullptr),
+    graddesc(nullptr), model(nullptr), descriptor(nullptr), list(nullptr)
 {
   gradgradflag = gradgradflag_in;
   map = map_in;
@@ -301,11 +301,11 @@ double MLIAPData::memory_usage()
   bytes += (double) natomneigh_max * sizeof(int);    // itypes
   bytes += (double) natomneigh_max * sizeof(int);    // numneighs
 
-  bytes += (double) nneigh_max * sizeof(int);                 // pair_i
-  bytes += (double) nneigh_max * sizeof(int);                 // jatoms
-  bytes += (double) nneigh_max * sizeof(int);                 // jelems
-  bytes += (double) nneigh_max * natomneigh_max * sizeof(int);// lmp_firstneigh
-  bytes += (double) nneigh_max * 3 * sizeof(double);          // rij"
+  bytes += (double) nneigh_max * sizeof(int);                     // pair_i
+  bytes += (double) nneigh_max * sizeof(int);                     // jatoms
+  bytes += (double) nneigh_max * sizeof(int);                     // jelems
+  bytes += (double) nneigh_max * natomneigh_max * sizeof(int);    // lmp_firstneigh
+  bytes += (double) nneigh_max * 3 * sizeof(double);              // rij"
 
   if (gradgradflag == 0)
     bytes += (double) nneigh_max * ndescriptors * 3 * sizeof(double);    // graddesc

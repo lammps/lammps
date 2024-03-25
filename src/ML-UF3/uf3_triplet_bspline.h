@@ -35,7 +35,7 @@ class uf3_triplet_bspline {
   int get_starting_index_uniform(const std::vector<double>, int, double, double);
   int get_starting_index_nonuniform(const std::vector<double>, int, double, double);
   int (uf3_triplet_bspline::*get_starting_index)(const std::vector<double>, int, double, double);
-  //double knot_spacing_ij=0,knot_spacing_ik=0,knot_spacing_jk=0; 
+  //double knot_spacing_ij=0,knot_spacing_ik=0,knot_spacing_jk=0;
   //double _alignvar(, 8) ret_val[4]; // Force memory alignment on 8 byte boundaries
   double ret_val[4];
 

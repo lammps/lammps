@@ -83,7 +83,7 @@ As an example, if a LAMMPS simulation contains 2 atom types (elements 'A' and 'B
 
 If a value of "2" is specified in the :code:`pair_style uf3` command, only the two-body potential files are needed. For 3-body interaction the first atom type is the central atom. We recommend using the :code:`generate_uf3_lammps_pots.py` script (found `here <https://github.com/uf3/uf3/tree/master/lammps_plugin/scripts>`_) for generating the UF3 LAMMPS potential files from the UF3 JSON potentials.
 
-LAMMPS wild-card character "*" can also be used to specify a single UF3 LAMMPS potential file for multiple interaction. For example- 
+LAMMPS wild-card character "*" can also be used to specify a single UF3 LAMMPS potential file for multiple interaction. For example-
 
 .. code-block:: LAMMPS
 

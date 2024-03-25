@@ -71,7 +71,7 @@ template <class DeviceType> PairUF3Kokkos<DeviceType>::~PairUF3Kokkos()
 }
 
 template <class DeviceType>
-template <typename TYPE> 
+template <typename TYPE>
 void PairUF3Kokkos<DeviceType>::destroy_3d(TYPE data, typename TYPE::value_type*** &array)
 {
   if (array == nullptr) return;
@@ -81,7 +81,7 @@ void PairUF3Kokkos<DeviceType>::destroy_3d(TYPE data, typename TYPE::value_type*
 }
 
 template <class DeviceType>
-template <typename TYPE> 
+template <typename TYPE>
 void PairUF3Kokkos<DeviceType>::destroy_4d(TYPE data, typename TYPE::value_type**** &array)
 {
   if (array == nullptr) return;
@@ -127,10 +127,10 @@ template <class DeviceType> void PairUF3Kokkos<DeviceType>::coeff(int narg, char
     Kokkos::realloc(d_cut_3b_list, num_of_elements + 1, num_of_elements + 1);
   }
   //No allocation for device equivalent of --> setflag, cut, knot_spacing_type_2b,
-  //n2b_knot, n2b_coeff, n2b_knot[i], n2b_coeff[i], setflag_3b, cut_3b, 
+  //n2b_knot, n2b_coeff, n2b_knot[i], n2b_coeff[i], setflag_3b, cut_3b,
   //cut_3b_list, min_cut_3b, knot_spacing_type_3b, cut_3b_list, n3b_knot_matrix,
   //neighshort
-  
+
   //UFBS2b and UFBS3b are array of objects. Bad idea to use kokkos view(array)
   //for it
   create_2b_coefficients();
@@ -147,7 +147,7 @@ void PairUF3Kokkos<DeviceType>::allocate()
   //is created cut_3b is set to point to the host array of k_cutsq
   //memory->destroy(cut_3b);
 
-  memoryKK->create_kokkos(k_cutsq,cutsq,n+1,n+1,"pair:cutsq"); 
+  memoryKK->create_kokkos(k_cutsq,cutsq,n+1,n+1,"pair:cutsq");
   d_cutsq = k_cutsq.template view<DeviceType>(); //assignment; get the device
   //view of k_cutsq and assign it to d_cutsq; in the header file we just
   //decleared d_cutsq's type
@@ -208,7 +208,7 @@ template <class DeviceType> double PairUF3Kokkos<DeviceType>::init_one(int i, in
 template <class DeviceType> void PairUF3Kokkos<DeviceType>::create_coefficients()
 {
   coefficients_created = 1;
-  
+
   /*for (int i = 1; i < num_of_elements + 1; i++) {
     for (int j = 1; j < num_of_elements + 1; j++) {
       //Check for knot_spacing type
@@ -253,10 +253,10 @@ template <class DeviceType> void PairUF3Kokkos<DeviceType>::create_coefficients(
     Kokkos::realloc(d_cut_3b_list, num_of_elements + 1, num_of_elements + 1);
   }*/
   //No allocation for device equivalent of --> setflag, cut, knot_spacing_type_2b,
-  //n2b_knot, n2b_coeff, n2b_knot[i], n2b_coeff[i], setflag_3b, cut_3b, 
+  //n2b_knot, n2b_coeff, n2b_knot[i], n2b_coeff[i], setflag_3b, cut_3b,
   //cut_3b_list, min_cut_3b, knot_spacing_type_3b, cut_3b_list, n3b_knot_matrix,
   //neighshort
-  
+
   //UFBS2b and UFBS3b are array of objects. Bad idea to use kokkos view(array)
   //for it
   create_2b_coefficients();
@@ -815,7 +815,7 @@ template <class DeviceType> void PairUF3Kokkos<DeviceType>::compute(int eflag_in
   //the array from the host memory; this updates d_cutsq also
   k_cut_3b.template sync<DeviceType>();
   k_min_cut_3b.template sync<DeviceType>();
-  
+
   inum = list->inum;
   const int ignum = inum + list->gnum;
   NeighListKokkos<DeviceType> *k_list = static_cast<NeighListKokkos<DeviceType> *>(list);
@@ -837,7 +837,7 @@ template <class DeviceType> void PairUF3Kokkos<DeviceType>::compute(int eflag_in
 
   int max_neighs = d_neighbors.extent(1);
 
-  if (((int)d_neighbors_short.extent(1) != max_neighs) || 
+  if (((int)d_neighbors_short.extent(1) != max_neighs) ||
           ((int)d_neighbors_short.extent(0) != ignum)) {
     d_neighbors_short = Kokkos::View<int **, DeviceType>("UF3::neighbors_short", ignum, max_neighs);
   }
@@ -969,7 +969,7 @@ PairUF3Kokkos<DeviceType>::operator()(TagPairUF3ComputeFullA<NEIGHFLAG, EVFLAG>,
     const tagint jtag = tag[j];
 
     const int jtype = type[j];
-    
+
     const X_FLOAT delx = xtmp - x(j, 0);
     const X_FLOAT dely = ytmp - x(j, 1);
     const X_FLOAT delz = ztmp - x(j, 2);
@@ -979,7 +979,7 @@ PairUF3Kokkos<DeviceType>::operator()(TagPairUF3ComputeFullA<NEIGHFLAG, EVFLAG>,
 
     const F_FLOAT rij = sqrt(rsq);
     this->template twobody<EVFLAG>(itype, jtype, rij, evdwl, fpair);
-    
+
     fpair = -fpair / rij;
 
     fxtmpi += delx * fpair;
@@ -1341,7 +1341,7 @@ void PairUF3Kokkos<DeviceType>::copy_3d(V &d, T ***h, int m, int n, int o)
   //device memory
 
   //auto h_view = Kokkos::create_mirror_view(tmp); //create_mirror always copies
-  //the data. create_mirror_view only copies data if the host cannot access the 
+  //the data. create_mirror_view only copies data if the host cannot access the
   //data
   auto h_view = Kokkos::create_mirror(tmp); //Create a mirror of the device
   //view(array) tmp, as deep_copy is only possible for mirror views

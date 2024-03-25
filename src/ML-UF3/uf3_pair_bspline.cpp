@@ -28,13 +28,13 @@ uf3_pair_bspline::uf3_pair_bspline() {}
 // Constructor
 // Passing vectors by reference
 uf3_pair_bspline::uf3_pair_bspline(LAMMPS *ulmp, const std::vector<double> &uknot_vect,
-                                   const std::vector<double> &ucoeff_vect, 
+                                   const std::vector<double> &ucoeff_vect,
                                    const int &uknot_spacing_type)
 {
   lmp = ulmp;
   knot_vect = uknot_vect;
   coeff_vect = ucoeff_vect;
-  
+
   knot_spacing_type = uknot_spacing_type;
   if (knot_spacing_type==0){
     knot_spacing = knot_vect[4]-knot_vect[3];
@@ -48,10 +48,10 @@ uf3_pair_bspline::uf3_pair_bspline(LAMMPS *ulmp, const std::vector<double> &ukno
   else
     lmp->error->all(FLERR, "UF3: Expected either '0'(uniform-knots) or \n\
             '1'(non-uniform knots)");
-  
+
   knot_vect_size = uknot_vect.size();
   coeff_vect_size = ucoeff_vect.size();
-  
+
   // Initialize B-Spline Basis Functions
   for (int i = 0; i < knot_vect.size() - 4; i++)
     bspline_bases.push_back(uf3_bspline_basis3(lmp, &knot_vect[i], coeff_vect[i]));
@@ -62,7 +62,7 @@ uf3_pair_bspline::uf3_pair_bspline(LAMMPS *ulmp, const std::vector<double> &ukno
     double dntemp4 = 3 / (knot_vect[i + 4] - knot_vect[i + 1]);
     dncoeff_vect.push_back((coeff_vect[i + 1] - coeff_vect[i]) * dntemp4);
   }
-  //What we have is a clamped bspline -->i.e value of the bspline curve at the 
+  //What we have is a clamped bspline -->i.e value of the bspline curve at the
   //knots with multiplicity equal to the degree of bspline is equal to the coefficient
   //
   //Therefore for the derivative bspline the very first and last knot needs to be droped

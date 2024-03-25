@@ -1,9 +1,16 @@
-//De Boor's algorithm @
-//https://pages.mtu.edu/~shene/COURSES/cs3621/NOTES/spline/B-spline/de-Boor.html
-//For values outside the domain,
-//extrapoltaes the left(right) hand side piece of the curve
-//Only works for bspline degree upto 3 becuase of definiation of P
-//
+// clang-format off
+/* ----------------------------------------------------------------------
+   lammps - large-scale atomic/molecular massively parallel simulator
+   https://www.lammps.org/, sandia national laboratories
+   lammps development team: developers@lammps.org
+
+   copyright (2003) sandia corporation.  under the terms of contract
+   de-ac04-94al85000 with sandia corporation, the u.s. government retains
+   certain rights in this software.  this software is distributed under
+   the gnu general public license.
+
+   see the readme file in the top-level lammps directory.
+------------------------------------------------------------------------- */
 #include "pointers.h"
 
 #include <vector>

@@ -54,11 +54,9 @@ The *uf3* style computes the :ref:`Ultra-Fast Force Fields (UF3) <Xie23>` potent
 
 .. math::
 
-   E & = \sum_{i,j} V_2(r_{ij}) + \sum_{i,j,k} V_3 (r_{ij},r_{ik},r_{jk})
-
-   V_2(r_{ij}) & = \sum_{n=0}^N c_n B_n(r_{ij})
-
-   V_3 (r_{ij},r_{ik},r_{jk}) & = \sum_{l=0}^N_l \sum_{m=0}^N_m \sum_{n=0}^N_n c_{l,m,n} B_l(r_{ij}) B_m(r_{ik}) B_n(r_{jk})
+   E & = \sum_{i,j} V_2(r_{ij}) + \sum_{i,j,k} V_3 (r_{ij},r_{ik},r_{jk}) \\
+   V_2(r_{ij}) & = \sum_{n=0}^N c_n B_n(r_{ij}) \\
+   V_3 (r_{ij},r_{ik},r_{jk}) & = \sum_{l=0}^{N_l} \sum_{m=0}^{N_m} \sum_{n=0}^{N_n} c_{l,m,n} B_l(r_{ij}) B_m(r_{ik}) B_n(r_{jk})
 
 where :math:`V_2(r_{ij})` and :math:`V_3 (r_{ij},r_{ik},r_{jk})` are the two- and three-body interactions, respectively. For the two-body the summation is over all neighbours J and for the three-body the summation is over all neighbors J and K of atom I within a cutoff distance determined from the potential files. :math:`B_n(r_{ij})` are the cubic bspline basis, :math:`c_n` and :math:`c_{l,m,n}` are the machine-learned interaction parameters and :math:`N`, :math:`N_l`, :math:`N_m`, and :math:`N_n` denote the number of basis functions per spline or tensor spline dimension.
 

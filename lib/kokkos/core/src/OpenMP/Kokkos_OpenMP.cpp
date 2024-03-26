@@ -18,6 +18,8 @@
 #define KOKKOS_IMPL_PUBLIC_INCLUDE
 #endif
 
+#include <iostream>
+
 #include <OpenMP/Kokkos_OpenMP.hpp>
 #include <OpenMP/Kokkos_OpenMP_Instance.hpp>
 

@@ -72,7 +72,6 @@ Fix::Fix(LAMMPS *lmp, int /*narg*/, char **arg) :
   dynamic = 0;
   dof_flag = 0;
   special_alter_flag = 0;
-  enforce2d_flag = 0;
   respa_level_support = 0;
   respa_level = -1;
   maxexchange = 0;

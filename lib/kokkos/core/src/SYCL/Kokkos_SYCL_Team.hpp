@@ -42,6 +42,8 @@ class SYCLTeamMember {
   scratch_memory_space m_team_shared;
   int m_team_reduce_size;
   sycl::nd_item<2> m_item;
+  int m_league_rank;
+  int m_league_size;
 
  public:
   KOKKOS_INLINE_FUNCTION
@@ -61,12 +63,8 @@ class SYCLTeamMember {
     return m_team_shared.set_team_thread_mode(level, team_size(), team_rank());
   }
 
-  KOKKOS_INLINE_FUNCTION int league_rank() const {
-    return m_item.get_group_linear_id();
-  }
-  KOKKOS_INLINE_FUNCTION int league_size() const {
-    return m_item.get_group_range(1);
-  }
+  KOKKOS_INLINE_FUNCTION int league_rank() const { return m_league_rank; }
+  KOKKOS_INLINE_FUNCTION int league_size() const { return m_league_size; }
   KOKKOS_INLINE_FUNCTION int team_rank() const {
     return m_item.get_local_id(0);
   }
@@ -341,12 +339,15 @@ class SYCLTeamMember {
                  const std::size_t shared_size,
                  sycl::device_ptr<void> scratch_level_1_ptr,
                  const std::size_t scratch_level_1_size,
-                 const sycl::nd_item<2> item)
+                 const sycl::nd_item<2> item, const int arg_league_rank,
+                 const int arg_league_size)
       : m_team_reduce(shared),
         m_team_shared(static_cast<sycl::local_ptr<char>>(shared) + shared_begin,
                       shared_size, scratch_level_1_ptr, scratch_level_1_size),
         m_team_reduce_size(shared_begin),
-        m_item(item) {}
+        m_item(item),
+        m_league_rank(arg_league_rank),
+        m_league_size(arg_league_size) {}
 
  public:
   // Declare to avoid unused private member warnings which are trigger
@@ -572,15 +573,17 @@ parallel_reduce(const Impl::TeamThreadRangeBoundariesStruct<
  *  final == true.
  */
 // This is the same code as in CUDA and largely the same as in OpenMPTarget
-template <typename iType, typename FunctorType>
+template <typename iType, typename FunctorType, typename ValueType>
 KOKKOS_INLINE_FUNCTION void parallel_scan(
     const Impl::TeamThreadRangeBoundariesStruct<iType, Impl::SYCLTeamMember>&
         loop_bounds,
-    const FunctorType& lambda) {
-  // Extract value_type from lambda
-  using value_type = typename Kokkos::Impl::FunctorAnalysis<
+    const FunctorType& lambda, ValueType& return_val) {
+  // Extract ValueType from the Closure
+  using closure_value_type = typename Kokkos::Impl::FunctorAnalysis<
       Kokkos::Impl::FunctorPatternInterface::SCAN, void, FunctorType,
       void>::value_type;
+  static_assert(std::is_same_v<closure_value_type, ValueType>,
+                "Non-matching value types of closure and return type");
 
   const auto start     = loop_bounds.start;
   const auto end       = loop_bounds.end;
@@ -588,12 +591,12 @@ KOKKOS_INLINE_FUNCTION void parallel_scan(
   const auto team_size = member.team_size();
   const auto team_rank = member.team_rank();
   const auto nchunk    = (end - start + team_size - 1) / team_size;
-  value_type accum     = 0;
+  ValueType accum      = 0;
   // each team has to process one or more chunks of the prefix scan
   for (iType i = 0; i < nchunk; ++i) {
     auto ii = start + i * team_size + team_rank;
     // local accumulation for this chunk
-    value_type local_accum = 0;
+    ValueType local_accum = 0;
     // user updates value with prefix value
     if (ii < loop_bounds.end) lambda(ii, local_accum, false);
     // perform team scan
@@ -607,6 +610,21 @@ KOKKOS_INLINE_FUNCTION void parallel_scan(
     // broadcast last value to rest of the team
     member.team_broadcast(accum, team_size - 1);
   }
+
+  return_val = accum;
+}
+
+template <typename iType, class FunctorType>
+KOKKOS_INLINE_FUNCTION void parallel_scan(
+    const Impl::TeamThreadRangeBoundariesStruct<iType, Impl::SYCLTeamMember>&
+        loop_bounds,
+    const FunctorType& lambda) {
+  using value_type = typename Kokkos::Impl::FunctorAnalysis<
+      Kokkos::Impl::FunctorPatternInterface::SCAN, void, FunctorType,
+      void>::value_type;
+
+  value_type scan_val;
+  parallel_scan(loop_bounds, lambda, scan_val);
 }
 
 template <typename iType, class Closure>
@@ -807,7 +825,7 @@ parallel_scan(const Impl::ThreadVectorRangeBoundariesStruct<
     // This sets i's val to i-1's contribution to make the latter shfl_up an
     // exclusive scan -- the final accumulation of i's val will be included in
     // the second closure call later.
-    if (i < loop_boundaries.end && tidx1 > 0) closure(i - 1, val, false);
+    if (i - 1 < loop_boundaries.end && tidx1 > 0) closure(i - 1, val, false);
 
     // Bottom up exclusive scan in triangular pattern where each SYCL thread is
     // the root of a reduction tree from the zeroth "lane" to itself.
@@ -829,6 +847,7 @@ parallel_scan(const Impl::ThreadVectorRangeBoundariesStruct<
     if (i < loop_boundaries.end) closure(i, val, true);
     accum = sg.shuffle(val, mask + vector_offset);
   }
+  reducer.reference() = accum;
 }
 
 /** \brief  Intra-thread vector parallel exclusive prefix sum.
@@ -849,6 +868,32 @@ KOKKOS_INLINE_FUNCTION void parallel_scan(
       void>::value_type;
   value_type dummy;
   parallel_scan(loop_boundaries, closure, Kokkos::Sum<value_type>{dummy});
+}
+
+/** \brief  Intra-thread vector parallel exclusive prefix sum.
+ *
+ *  Executes closure(iType i, ValueType & val, bool final) for each i=[0..N)
+ *
+ *  The range [0..N) is mapped to all vector lanes in the
+ *  thread and a scan operation is performed.
+ *  The last call to closure has final == true.
+ */
+template <typename iType, class Closure, typename ValueType>
+KOKKOS_INLINE_FUNCTION void parallel_scan(
+    const Impl::ThreadVectorRangeBoundariesStruct<iType, Impl::SYCLTeamMember>&
+        loop_boundaries,
+    const Closure& closure, ValueType& return_val) {
+  // Extract ValueType from the Closure
+  using closure_value_type = typename Kokkos::Impl::FunctorAnalysis<
+      Kokkos::Impl::FunctorPatternInterface::SCAN, void, Closure,
+      void>::value_type;
+  static_assert(std::is_same<closure_value_type, ValueType>::value,
+                "Non-matching value types of closure and return type");
+
+  ValueType accum;
+  parallel_scan(loop_boundaries, closure, Kokkos::Sum<ValueType>{accum});
+
+  return_val = accum;
 }
 
 }  // namespace Kokkos

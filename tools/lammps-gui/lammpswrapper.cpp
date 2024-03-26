@@ -19,7 +19,12 @@
 #include "library.h"
 #endif
 
-LammpsWrapper::LammpsWrapper() : lammps_handle(nullptr), plugin_handle(nullptr) {}
+LammpsWrapper::LammpsWrapper() : lammps_handle(nullptr)
+{
+#if defined(LAMMPS_GUI_USE_PLUGIN)
+    plugin_handle = nullptr;
+#endif
+}
 
 void LammpsWrapper::open(int narg, char **args)
 {
@@ -30,6 +35,19 @@ void LammpsWrapper::open(int narg, char **args)
 #else
     lammps_handle = lammps_open_no_mpi(narg, args, nullptr);
 #endif
+}
+
+int LammpsWrapper::version()
+{
+    int val = 0;
+    if (lammps_handle) {
+#if defined(LAMMPS_GUI_USE_PLUGIN)
+        val = ((liblammpsplugin_t *)plugin_handle)->version(lammps_handle);
+#else
+        val = lammps_version(lammps_handle);
+#endif
+    }
+    return val;
 }
 
 int LammpsWrapper::extract_setting(const char *keyword)

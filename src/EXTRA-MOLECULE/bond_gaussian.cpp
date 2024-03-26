@@ -35,6 +35,7 @@ BondGaussian::BondGaussian(LAMMPS *lmp) :
     Bond(lmp), nterms(nullptr), bond_temperature(nullptr), alpha(nullptr), width(nullptr),
     r0(nullptr)
 {
+  born_matrix_enable = 1;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -293,4 +294,46 @@ double BondGaussian::single(int type, double rsq, int /*i*/, int /*j*/, double &
     fforce = -4.0 * (force->boltz * bond_temperature[type]) * (sum_numerator / sum_g_i) / r;
 
   return -(force->boltz * bond_temperature[type]) * log(sum_g_i);
+}
+
+/* ---------------------------------------------------------------------- */
+
+void BondGaussian::born_matrix(int type, double rsq, int /*i*/, int /*j*/, double &du, double &du2)
+{
+  double r = sqrt(rsq);
+
+  // first derivative of energy with respect to distance
+  double sum_g_i = 0.0;
+  double sum_numerator = 0.0;
+  for (int i = 0; i < nterms[type]; i++) {
+    double dr = r - r0[type][i];
+    double prefactor = (alpha[type][i] / (width[type][i] * sqrt(MY_PI2)));
+    double exponent = -2 * dr * dr / (width[type][i] * width[type][i]);
+    double g_i = prefactor * exp(exponent);
+    sum_g_i += g_i;
+    sum_numerator += g_i * dr / (width[type][i] * width[type][i]);
+  }
+
+  if (sum_g_i < SMALL) sum_g_i = SMALL;
+  du = 4.0 * (force->boltz * bond_temperature[type]) * (sum_numerator / sum_g_i);
+
+  // second derivative of energy with respect to distance
+  sum_g_i = 0.0;
+  double sum_dg_i = 0.0;
+  double sum_d2g_i = 0.0;
+  for (int i = 0; i < nterms[type]; i++) {
+    double dr = r - r0[type][i];
+    double prefactor = (alpha[type][i] / (width[type][i] * sqrt(MY_PI2)));
+    double exponent = -2 * dr * dr / (width[type][i] * width[type][i]);
+    double g_i = prefactor * exp(exponent);
+    sum_g_i += g_i;
+    sum_dg_i -= 4.0 * g_i * dr / pow(width[type][i], 2);
+    sum_d2g_i += 4.0 *  g_i * (4.0 * pow(r0[type][i], 2) - 8.0 * r0[type][i] * r - pow(width[type][i], 2) + 4.0 * r * r) / pow(width[type][i], 4) ;
+  }
+
+  if (sum_g_i < SMALL) sum_g_i = SMALL;
+  double numerator = sum_d2g_i*sum_g_i - sum_dg_i*sum_dg_i;
+  double denominator = sum_g_i * sum_g_i;
+
+  du2 = - (force->boltz * bond_temperature[type]) * numerator / denominator;
 }

@@ -1,4 +1,5 @@
 .. index:: fix spring/self
+.. index:: fix spring/self/kk
 
 fix spring/self command
 =======================
@@ -79,6 +80,12 @@ invoked by the :doc:`minimize <minimize>` command.
    total potential energy of the system (the quantity being minimized),
    you MUST enable the :doc:`fix_modify <fix_modify>` *energy* option for
    this fix.
+
+----------
+
+.. include:: accel_styles.rst
+
+----------
 
 Restrictions
 """"""""""""

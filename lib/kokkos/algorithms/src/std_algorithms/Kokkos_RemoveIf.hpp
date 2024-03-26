@@ -23,39 +23,77 @@
 namespace Kokkos {
 namespace Experimental {
 
-template <class ExecutionSpace, class Iterator, class UnaryPredicate>
+//
+// overload set accepting execution space
+//
+template <
+    typename ExecutionSpace, typename Iterator, typename UnaryPredicate,
+    std::enable_if_t<::Kokkos::is_execution_space_v<ExecutionSpace>, int> = 0>
 Iterator remove_if(const ExecutionSpace& ex, Iterator first, Iterator last,
                    UnaryPredicate pred) {
-  return Impl::remove_if_impl("Kokkos::remove_if_iterator_api_default", ex,
-                              first, last, pred);
+  return Impl::remove_if_exespace_impl("Kokkos::remove_if_iterator_api_default",
+                                       ex, first, last, pred);
 }
 
-template <class ExecutionSpace, class Iterator, class UnaryPredicate>
+template <
+    typename ExecutionSpace, typename Iterator, typename UnaryPredicate,
+    std::enable_if_t<::Kokkos::is_execution_space_v<ExecutionSpace>, int> = 0>
 Iterator remove_if(const std::string& label, const ExecutionSpace& ex,
                    Iterator first, Iterator last, UnaryPredicate pred) {
-  return Impl::remove_if_impl(label, ex, first, last, pred);
+  return Impl::remove_if_exespace_impl(label, ex, first, last, pred);
 }
 
-template <class ExecutionSpace, class DataType, class... Properties,
-          class UnaryPredicate>
+template <
+    typename ExecutionSpace, typename DataType, typename... Properties,
+    typename UnaryPredicate,
+    std::enable_if_t<::Kokkos::is_execution_space_v<ExecutionSpace>, int> = 0>
 auto remove_if(const ExecutionSpace& ex,
                const ::Kokkos::View<DataType, Properties...>& view,
                UnaryPredicate pred) {
   Impl::static_assert_is_admissible_to_kokkos_std_algorithms(view);
 
-  return Impl::remove_if_impl("Kokkos::remove_if_iterator_api_default", ex,
-                              ::Kokkos::Experimental::begin(view),
-                              ::Kokkos::Experimental::end(view), pred);
+  return Impl::remove_if_exespace_impl("Kokkos::remove_if_iterator_api_default",
+                                       ex, ::Kokkos::Experimental::begin(view),
+                                       ::Kokkos::Experimental::end(view), pred);
 }
 
-template <class ExecutionSpace, class DataType, class... Properties,
-          class UnaryPredicate>
+template <
+    typename ExecutionSpace, typename DataType, typename... Properties,
+    typename UnaryPredicate,
+    std::enable_if_t<::Kokkos::is_execution_space_v<ExecutionSpace>, int> = 0>
 auto remove_if(const std::string& label, const ExecutionSpace& ex,
                const ::Kokkos::View<DataType, Properties...>& view,
                UnaryPredicate pred) {
   Impl::static_assert_is_admissible_to_kokkos_std_algorithms(view);
-  return Impl::remove_if_impl(label, ex, ::Kokkos::Experimental::begin(view),
-                              ::Kokkos::Experimental::end(view), pred);
+  return Impl::remove_if_exespace_impl(label, ex,
+                                       ::Kokkos::Experimental::begin(view),
+                                       ::Kokkos::Experimental::end(view), pred);
+}
+
+//
+// overload set accepting a team handle
+// Note: for now omit the overloads accepting a label
+// since they cause issues on device because of the string allocation.
+//
+template <typename TeamHandleType, typename Iterator, typename UnaryPredicate,
+          std::enable_if_t<::Kokkos::is_team_handle_v<TeamHandleType>, int> = 0>
+KOKKOS_FUNCTION Iterator remove_if(const TeamHandleType& teamHandle,
+                                   Iterator first, Iterator last,
+                                   UnaryPredicate pred) {
+  return Impl::remove_if_team_impl(teamHandle, first, last, pred);
+}
+
+template <typename TeamHandleType, typename DataType, typename... Properties,
+          typename UnaryPredicate,
+          std::enable_if_t<::Kokkos::is_team_handle_v<TeamHandleType>, int> = 0>
+KOKKOS_FUNCTION auto remove_if(
+    const TeamHandleType& teamHandle,
+    const ::Kokkos::View<DataType, Properties...>& view, UnaryPredicate pred) {
+  Impl::static_assert_is_admissible_to_kokkos_std_algorithms(view);
+
+  return Impl::remove_if_team_impl(teamHandle,
+                                   ::Kokkos::Experimental::begin(view),
+                                   ::Kokkos::Experimental::end(view), pred);
 }
 
 }  // namespace Experimental

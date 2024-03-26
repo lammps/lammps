@@ -31,7 +31,8 @@
 
 using namespace LAMMPS_NS;
 
-#define BIG 1.0e20
+static constexpr double BIG = 1.0e20;
+static constexpr int MAXLOOP = 100;
 
 /* ---------------------------------------------------------------------- */
 
@@ -145,8 +146,11 @@ void ComputeFragmentAtom::compute_peratom()
 
   commflag = 1;
 
-  while (true) {
+  int counter = 0;
+  // stop after MAXLOOP iterations
+  while (counter < MAXLOOP) {
     comm->forward_comm(this);
+    ++counter;
     done = 1;
 
     // set markflag = 0 for all owned atoms, for new iteration
@@ -223,6 +227,8 @@ void ComputeFragmentAtom::compute_peratom()
     MPI_Allreduce(&done,&alldone,1,MPI_INT,MPI_MIN,world);
     if (alldone) break;
   }
+  if ((comm->me == 0) && (counter >= MAXLOOP))
+    error->warning(FLERR, "Compute fragment/atom did not converge after {} iterations", MAXLOOP);
 }
 
 /* ---------------------------------------------------------------------- */

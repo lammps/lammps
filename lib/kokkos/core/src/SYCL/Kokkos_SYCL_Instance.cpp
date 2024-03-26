@@ -20,9 +20,24 @@
 
 #include <Kokkos_Core.hpp>  //kokkos_malloc
 
+#include <impl/Kokkos_CheckedIntegerOps.hpp>
+#include <impl/Kokkos_Error.hpp>
+
 namespace Kokkos {
 namespace Experimental {
 namespace Impl {
+
+namespace {
+
+// FIXME_SYCL Should be a multiple of the maximum subgroup size.
+static constexpr auto sizeScratchGrain =
+    sizeof(Kokkos::Experimental::SYCL::size_type[32]);
+
+std::size_t scratch_count(const std::size_t size) {
+  return (size + sizeScratchGrain - 1) / sizeScratchGrain;
+}
+
+}  // namespace
 
 std::vector<std::optional<sycl::queue>*> SYCLInternal::all_queues;
 std::mutex SYCLInternal::mutex;
@@ -75,9 +90,7 @@ void SYCLInternal::initialize(const sycl::device& d) {
       Kokkos::Impl::throw_runtime_exception(
           "There was an asynchronous SYCL error!\n");
   };
-  // FIXME SYCL+Cuda Apparently, submit_barrier doesn't quite work as expected
-  // for oneAPI 2023.0.0 on NVIDIA GPUs.
-#if defined(KOKKOS_IMPL_ARCH_NVIDIA_GPU)
+#ifdef KOKKOS_IMPL_SYCL_USE_IN_ORDER_QUEUES
   initialize(
       sycl::queue{d, exception_handler, sycl::property::queue::in_order()});
 #else
@@ -87,51 +100,31 @@ void SYCLInternal::initialize(const sycl::device& d) {
 
 // FIXME_SYCL
 void SYCLInternal::initialize(const sycl::queue& q) {
+  KOKKOS_EXPECTS(!is_initialized());
+
   if (was_finalized)
     Kokkos::abort("Calling SYCL::initialize after SYCL::finalize is illegal\n");
 
-  if (is_initialized()) return;
-
-  if (!HostSpace::execution_space::impl_is_initialized()) {
-    const std::string msg(
-        "SYCL::initialize ERROR : HostSpace::execution_space is not "
-        "initialized");
-    Kokkos::Impl::throw_runtime_exception(msg);
+  m_queue = q;
+  // guard pushing to all_queues
+  {
+    std::scoped_lock lock(mutex);
+    all_queues.push_back(&m_queue);
   }
+  const sycl::device& d = m_queue->get_device();
 
-  const bool ok_init = nullptr == m_scratchSpace || nullptr == m_scratchFlags;
-  const bool ok_dev  = true;
-  if (ok_init && ok_dev) {
-    m_queue = q;
-    // guard pushing to all_queues
-    {
-      std::scoped_lock lock(mutex);
-      all_queues.push_back(&m_queue);
-    }
-    const sycl::device& d = m_queue->get_device();
+  m_maxWorkgroupSize =
+      d.template get_info<sycl::info::device::max_work_group_size>();
+  // FIXME_SYCL this should give the correct value for NVIDIA GPUs
+  m_maxConcurrency =
+      m_maxWorkgroupSize * 2 *
+      d.template get_info<sycl::info::device::max_compute_units>();
 
-    m_maxWorkgroupSize =
-        d.template get_info<sycl::info::device::max_work_group_size>();
-    // FIXME_SYCL this should give the correct value for NVIDIA GPUs
-    m_maxConcurrency =
-        m_maxWorkgroupSize * 2 *
-        d.template get_info<sycl::info::device::max_compute_units>();
+  m_maxShmemPerBlock =
+      d.template get_info<sycl::info::device::local_mem_size>();
 
-    m_maxShmemPerBlock =
-        d.template get_info<sycl::info::device::local_mem_size>();
-
-    for (auto& usm_mem : m_indirectKernelMem) {
-      usm_mem.reset(*m_queue, m_instance_id);
-    }
-
-  } else {
-    std::ostringstream msg;
-    msg << "Kokkos::Experimental::SYCL::initialize(...) FAILED";
-
-    if (!ok_init) {
-      msg << " : Already initialized";
-    }
-    Kokkos::Impl::throw_runtime_exception(msg.str());
+  for (auto& usm_mem : m_indirectKernelMem) {
+    usm_mem.reset(*m_queue, m_instance_id);
   }
 
 #ifdef KOKKOS_IMPL_SYCL_DEVICE_GLOBAL_SUPPORTED
@@ -233,11 +226,9 @@ void SYCLInternal::finalize() {
 }
 
 sycl::device_ptr<void> SYCLInternal::scratch_space(const std::size_t size) {
-  const size_type sizeScratchGrain =
-      sizeof(Kokkos::Experimental::SYCL::size_type);
   if (verify_is_initialized("scratch_space") &&
-      m_scratchSpaceCount * sizeScratchGrain < size) {
-    m_scratchSpaceCount = (size + sizeScratchGrain - 1) / sizeScratchGrain;
+      m_scratchSpaceCount < scratch_count(size)) {
+    m_scratchSpaceCount = scratch_count(size);
 
     using Record = Kokkos::Impl::SharedAllocationRecord<
         Kokkos::Experimental::SYCLDeviceUSMSpace, void>;
@@ -245,10 +236,11 @@ sycl::device_ptr<void> SYCLInternal::scratch_space(const std::size_t size) {
     if (nullptr != m_scratchSpace)
       Record::decrement(Record::get_record(m_scratchSpace));
 
-    Record* const r =
-        Record::allocate(Kokkos::Experimental::SYCLDeviceUSMSpace(*m_queue),
-                         "Kokkos::Experimental::SYCL::InternalScratchSpace",
-                         (sizeScratchGrain * m_scratchSpaceCount));
+    std::size_t alloc_size = Kokkos::Impl::multiply_overflow_abort(
+        m_scratchSpaceCount, sizeScratchGrain);
+    Record* const r = Record::allocate(
+        Kokkos::Experimental::SYCLDeviceUSMSpace(*m_queue),
+        "Kokkos::Experimental::SYCL::InternalScratchSpace", alloc_size);
 
     Record::increment(r);
 
@@ -259,11 +251,9 @@ sycl::device_ptr<void> SYCLInternal::scratch_space(const std::size_t size) {
 }
 
 sycl::device_ptr<void> SYCLInternal::scratch_flags(const std::size_t size) {
-  const size_type sizeScratchGrain =
-      sizeof(Kokkos::Experimental::SYCL::size_type);
   if (verify_is_initialized("scratch_flags") &&
-      m_scratchFlagsCount * sizeScratchGrain < size) {
-    m_scratchFlagsCount = (size + sizeScratchGrain - 1) / sizeScratchGrain;
+      m_scratchFlagsCount < scratch_count(size)) {
+    m_scratchFlagsCount = scratch_count(size);
 
     using Record = Kokkos::Impl::SharedAllocationRecord<
         Kokkos::Experimental::SYCLDeviceUSMSpace, void>;
@@ -271,10 +261,11 @@ sycl::device_ptr<void> SYCLInternal::scratch_flags(const std::size_t size) {
     if (nullptr != m_scratchFlags)
       Record::decrement(Record::get_record(m_scratchFlags));
 
-    Record* const r =
-        Record::allocate(Kokkos::Experimental::SYCLDeviceUSMSpace(*m_queue),
-                         "Kokkos::Experimental::SYCL::InternalScratchFlags",
-                         (sizeScratchGrain * m_scratchFlagsCount));
+    std::size_t alloc_size = Kokkos::Impl::multiply_overflow_abort(
+        m_scratchFlagsCount, sizeScratchGrain);
+    Record* const r = Record::allocate(
+        Kokkos::Experimental::SYCLDeviceUSMSpace(*m_queue),
+        "Kokkos::Experimental::SYCL::InternalScratchFlags", alloc_size);
 
     Record::increment(r);
 
@@ -282,7 +273,9 @@ sycl::device_ptr<void> SYCLInternal::scratch_flags(const std::size_t size) {
   }
   auto memset_event = m_queue->memset(m_scratchFlags, 0,
                                       m_scratchFlagsCount * sizeScratchGrain);
+#ifndef KOKKOS_IMPL_SYCL_USE_IN_ORDER_QUEUES
   m_queue->ext_oneapi_submit_barrier(std::vector{memset_event});
+#endif
 
   return m_scratchFlags;
 }

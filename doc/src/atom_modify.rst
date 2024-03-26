@@ -65,6 +65,11 @@ switch.  This is described on the :doc:`Build_settings <Build_settings>`
 doc page.  If atom IDs are not used, they must be specified as 0 for
 all atoms, e.g. in a data or restart file.
 
+.. note::
+
+   If a :doc:`triclinic simulation box <Howto_triclinic>` is used,
+   atom IDs are required, due to how neighbor lists are built.
+
 The *map* keyword determines how atoms with specific IDs are found
 when required.  An example are the bond (angle, etc) methods which
 need to find the local index of an atom with a specific global ID

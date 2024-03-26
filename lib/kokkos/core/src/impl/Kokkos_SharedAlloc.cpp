@@ -19,6 +19,7 @@
 #endif
 
 #include <Kokkos_Core.hpp>
+#include <iomanip>
 
 namespace Kokkos {
 namespace Impl {
@@ -285,51 +286,30 @@ void SharedAllocationRecord<void, void>::print_host_accessible_records(
   // allocation.
   const SharedAllocationRecord<void, void>* r = root->m_next;
 
-  char buffer[256];
-
+  std::ios_base::fmtflags saved_flags = s.flags();
+#define KOKKOS_PAD_HEX(ptr)                              \
+  "0x" << std::hex << std::setw(12) << std::setfill('0') \
+       << reinterpret_cast<uintptr_t>(ptr)
   if (detail) {
     while (r != root) {
-      // Formatting dependent on sizeof(uintptr_t)
-      const char* format_string;
+      s << space_name << " addr( " << KOKKOS_PAD_HEX(r) << " ) list ( "
+        << KOKKOS_PAD_HEX(r->m_prev) << ' ' << KOKKOS_PAD_HEX(r->m_next)
+        << " ) extent[ " << KOKKOS_PAD_HEX(r->m_alloc_ptr) << " + " << std::dec
+        << std::setw(8) << r->m_alloc_size << " ] count(" << r->use_count()
+        << ") dealloc(" << KOKKOS_PAD_HEX(r->m_dealloc) << ") "
+        << r->m_alloc_ptr->m_label << '\n';
 
-      if (sizeof(uintptr_t) == sizeof(unsigned long)) {
-        format_string =
-            "%s addr( 0x%.12lx ) list( 0x%.12lx 0x%.12lx ) extent[ 0x%.12lx + "
-            "%.8ld ] count(%d) dealloc(0x%.12lx) %s\n";
-      } else if (sizeof(uintptr_t) == sizeof(unsigned long long)) {
-        format_string =
-            "%s addr( 0x%.12llx ) list( 0x%.12llx 0x%.12llx ) extent[ "
-            "0x%.12llx + %.8ld ] count(%d) dealloc(0x%.12llx) %s\n";
-      }
-
-      snprintf(buffer, 256, format_string, space_name,
-               reinterpret_cast<uintptr_t>(r),
-               reinterpret_cast<uintptr_t>(r->m_prev),
-               reinterpret_cast<uintptr_t>(r->m_next),
-               reinterpret_cast<uintptr_t>(r->m_alloc_ptr), r->m_alloc_size,
-               r->use_count(), reinterpret_cast<uintptr_t>(r->m_dealloc),
-               r->m_alloc_ptr->m_label);
-      s << buffer;
       r = r->m_next;
     }
   } else {
     while (r != root) {
-      // Formatting dependent on sizeof(uintptr_t)
-      const char* format_string;
-
-      if (sizeof(uintptr_t) == sizeof(unsigned long)) {
-        format_string = "%s [ 0x%.12lx + %ld ] %s\n";
-      } else if (sizeof(uintptr_t) == sizeof(unsigned long long)) {
-        format_string = "%s [ 0x%.12llx + %ld ] %s\n";
-      }
-
-      snprintf(buffer, 256, format_string, space_name,
-               reinterpret_cast<uintptr_t>(r->data()), r->size(),
-               r->m_alloc_ptr->m_label);
-      s << buffer;
+      s << space_name << " [ " << KOKKOS_PAD_HEX(r->data()) << " + " << std::dec
+        << r->size() << " ] " << r->m_alloc_ptr->m_label << '\n';
       r = r->m_next;
     }
   }
+#undef KOKKOS_PAD_HEX
+  s.flags(saved_flags);
 }
 #else
 void SharedAllocationRecord<void, void>::print_host_accessible_records(

@@ -179,7 +179,8 @@ void CreateAtoms::command(int narg, char **arg)
       if (imol == -1)
         error->all(FLERR, "Molecule template ID {} for create_atoms does not exist", arg[iarg + 1]);
       if ((atom->molecules[imol]->nset > 1) && (comm->me == 0))
-        error->warning(FLERR, "Molecule template for create_atoms has multiple molecules");
+        error->warning(FLERR, "Molecule template for create_atoms has multiple molecule sets. "
+                       "Only the first set will be used.");
       mode = MOLECULE;
       onemol = atom->molecules[imol];
       molseed = utils::inumeric(FLERR, arg[iarg + 2], false, lmp);
@@ -300,6 +301,8 @@ void CreateAtoms::command(int narg, char **arg)
       error->all(FLERR, "Invalid atom type in create_atoms mol command");
     if (onemol->tag_require && !atom->tag_enable)
       error->all(FLERR, "Create_atoms molecule has atom IDs, but system does not");
+    if (atom->molecular == Atom::TEMPLATE && onemol != atom->avec->onemols[0])
+      error->all(FLERR, "Create_atoms molecule template ID must be same as atom style template ID");
 
     onemol->check_attributes();
 
@@ -358,7 +361,7 @@ void CreateAtoms::command(int narg, char **arg)
   //   lattice to box, but not consistent with other uses of units=lattice
   // triclinic remapping occurs in add_single()
 
-  if ((style == BOX) || (style == REGION) || (style == MESH)) {
+  if ((style == BOX) || (style == REGION)) {
     if (nbasis == 0) error->all(FLERR, "Cannot create atoms with undefined lattice");
   } else if (scaleflag == 1) {
     xone[0] *= domain->lattice->xlattice;
@@ -504,7 +507,7 @@ void CreateAtoms::command(int narg, char **arg)
 
     // molcreate = # of molecules I created
 
-    tagint molcreate = (atom->nlocal - nlocal_previous) / onemol->natoms;
+    tagint molcreate = (atom->nlocal - nlocal_previous) / onemol->natoms * onemol->nmolecules;
 
     // increment total bonds,angles,etc
 
@@ -1055,6 +1058,9 @@ void CreateAtoms::add_mesh(const char *filename)
       throw TokenizerException("Invalid STL mesh file format", "");
 
     line += 6;
+    if (utils::strmatch(line, "^binary"))
+      throw TokenizerException("Invalid STL mesh file format", "");
+
     if (comm->me == 0)
       utils::logmesg(lmp, "Reading STL object {} from text file {}\n", utils::trim(line), filename);
 
@@ -1153,6 +1159,7 @@ void CreateAtoms::add_mesh(const char *filename)
       utils::logmesg(lmp, "  read {} triangles with {:.2f} atoms per triangle added in {} mode\n",
                      ntriangle, ratio, mesh_name[mesh_style]);
   }
+  if (fp) fclose(fp);
 }
 
 /* ----------------------------------------------------------------------

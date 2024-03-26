@@ -146,10 +146,10 @@ variable i2 equal 257
 compute v1 all voronoi/atom occupation
 compute r0 all   reduce sum c_v1[1]
 compute r1 all   reduce sum c_v1[2]
-variable d5a equal c_v1[${i1}][1]
-variable d5b equal c_v1[${i2}][1]
-variable d5c equal c_v1[${i1}][2]
-variable d5d equal c_v1[${i2}][2]
+variable d5a equal C_v1[${i1}][1]
+variable d5b equal C_v1[${i2}][1]
+variable d5c equal C_v1[${i1}][2]
+variable d5d equal C_v1[${i2}][2]
 thermo_style custom c_r0 c_r1 v_d5a v_d5b v_d5c v_d5d
 
 run 0

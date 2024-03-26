@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 #
 # This shell script (nvcc_wrapper) wraps both the host compiler and
 # NVCC, if you are building legacy C or C++ code with CUDA enabled.

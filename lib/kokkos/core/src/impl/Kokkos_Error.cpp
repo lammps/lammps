@@ -21,12 +21,11 @@
 #include <cstring>
 #include <cstdlib>
 
-#include <iostream>
+#include <ostream>
 #include <sstream>
 #include <iomanip>
 #include <stdexcept>
 #include <impl/Kokkos_Error.hpp>
-#include <impl/Kokkos_Stacktrace.hpp>
 #include <Cuda/Kokkos_Cuda_Error.hpp>
 
 //----------------------------------------------------------------------------
@@ -34,24 +33,9 @@
 
 namespace Kokkos {
 namespace Impl {
-void traceback_callstack(std::ostream &msg) {
-#ifdef KOKKOS_IMPL_ENABLE_STACKTRACE
-  msg << "\nBacktrace:\n";
-  save_stacktrace();
-  print_demangled_saved_stacktrace(msg);
-#else
-  msg << "\nTraceback functionality not available\n";
-#endif
-}
 
 void throw_runtime_exception(const std::string &msg) {
   throw std::runtime_error(msg);
-}
-
-void host_abort(const char *const message) {
-  std::cerr << message;
-  traceback_callstack(std::cerr);
-  ::abort();
 }
 
 std::string human_memory_size(size_t arg_bytes) {
@@ -102,11 +86,6 @@ void Experimental::RawMemoryAllocationFailure::print_error_message(
   o << "  (The allocation mechanism was ";
   switch (m_mechanism) {
     case AllocationMechanism::StdMalloc: o << "standard malloc()."; break;
-    case AllocationMechanism::PosixMemAlign: o << "posix_memalign()."; break;
-    case AllocationMechanism::PosixMMap: o << "POSIX mmap()."; break;
-    case AllocationMechanism::IntelMMAlloc:
-      o << "the Intel _mm_malloc() intrinsic.";
-      break;
     case AllocationMechanism::CudaMalloc: o << "cudaMalloc()."; break;
     case AllocationMechanism::CudaMallocManaged:
       o << "cudaMallocManaged().";
@@ -126,6 +105,7 @@ void Experimental::RawMemoryAllocationFailure::print_error_message(
     case AllocationMechanism::SYCLMallocHost:
       o << "sycl::malloc_host().";
       break;
+    default: o << "unsupported.";
   }
   append_additional_error_information(o);
   o << ")" << std::endl;

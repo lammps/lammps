@@ -68,6 +68,8 @@
 #include "pair_kim.h"
 #include "variable.h"
 
+#include "fmt/ranges.h"
+
 #include <cstdlib>
 #include <cstring>
 #include <vector>

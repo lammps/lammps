@@ -554,9 +554,10 @@ class ParallelFor<FunctorType, Kokkos::TeamPolicy<Properties...>,
     m_shmem_size =
         (m_policy.scratch_size(0, m_team_size) +
          FunctorTeamShmemSize<FunctorType>::value(m_functor, m_team_size));
-    m_scratch_size[0] = m_policy.scratch_size(0, m_team_size);
-    m_scratch_size[1] = m_policy.scratch_size(1, m_team_size);
-    m_scratch_locks   = internal_space_instance->m_scratch_locks;
+    m_scratch_size[0]   = m_policy.scratch_size(0, m_team_size);
+    m_scratch_size[1]   = m_policy.scratch_size(1, m_team_size);
+    m_scratch_locks     = internal_space_instance->m_scratch_locks;
+    m_num_scratch_locks = internal_space_instance->m_num_scratch_locks;
 
     // Functor's reduce memory, team scan memory, and team shared memory depend
     // upon team size.
@@ -741,6 +742,11 @@ class ParallelReduce<CombinedFunctorReducerType,
 
       if (CudaTraits::WarpSize < word_count.value) {
         __syncthreads();
+      } else {
+        // In the above call to final(), shared might have been updated by a
+        // single thread within a warp without synchronization. Synchronize
+        // threads within warp to avoid potential race condition.
+        __syncwarp(0xffffffff);
       }
 
       for (unsigned i = threadIdx.y; i < word_count.value; i += blockDim.y) {

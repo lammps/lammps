@@ -53,55 +53,55 @@ half_t cast_to_half(unsigned long val) { return half_t::impl_type(val); }
 template <class T>
 KOKKOS_INLINE_FUNCTION std::enable_if_t<std::is_same<T, float>::value, T>
 cast_from_half(half_t val) {
-  return half_t::impl_type(val);
+  return static_cast<T>(half_t::impl_type(val));
 }
 template <class T>
 KOKKOS_INLINE_FUNCTION std::enable_if_t<std::is_same<T, double>::value, T>
 cast_from_half(half_t val) {
-  return half_t::impl_type(val);
+  return static_cast<T>(half_t::impl_type(val));
 }
 template <class T>
 KOKKOS_INLINE_FUNCTION std::enable_if_t<std::is_same<T, short>::value, T>
 cast_from_half(half_t val) {
-  return half_t::impl_type(val);
+  return static_cast<T>(half_t::impl_type(val));
 }
 template <class T>
 KOKKOS_INLINE_FUNCTION
     std::enable_if_t<std::is_same<T, unsigned short>::value, T>
     cast_from_half(half_t val) {
-  return half_t::impl_type(val);
+  return static_cast<T>(half_t::impl_type(val));
 }
 template <class T>
 KOKKOS_INLINE_FUNCTION std::enable_if_t<std::is_same<T, int>::value, T>
 cast_from_half(half_t val) {
-  return half_t::impl_type(val);
+  return static_cast<T>(half_t::impl_type(val));
 }
 template <class T>
 KOKKOS_INLINE_FUNCTION std::enable_if_t<std::is_same<T, unsigned int>::value, T>
 cast_from_half(half_t val) {
-  return half_t::impl_type(val);
+  return static_cast<T>(half_t::impl_type(val));
 }
 template <class T>
 KOKKOS_INLINE_FUNCTION std::enable_if_t<std::is_same<T, long long>::value, T>
 cast_from_half(half_t val) {
-  return half_t::impl_type(val);
+  return static_cast<T>(half_t::impl_type(val));
 }
 template <class T>
 KOKKOS_INLINE_FUNCTION
     std::enable_if_t<std::is_same<T, unsigned long long>::value, T>
     cast_from_half(half_t val) {
-  return half_t::impl_type(val);
+  return static_cast<T>(half_t::impl_type(val));
 }
 template <class T>
 KOKKOS_INLINE_FUNCTION std::enable_if_t<std::is_same<T, long>::value, T>
 cast_from_half(half_t val) {
-  return half_t::impl_type(val);
+  return static_cast<T>(half_t::impl_type(val));
 }
 template <class T>
 KOKKOS_INLINE_FUNCTION
     std::enable_if_t<std::is_same<T, unsigned long>::value, T>
     cast_from_half(half_t val) {
-  return half_t::impl_type(val);
+  return static_cast<T>(half_t::impl_type(val));
 }
 }  // namespace Experimental
 
@@ -128,4 +128,112 @@ struct reduction_identity<Kokkos::Experimental::half_t> {
 
 }  // namespace Kokkos
 #endif  // KOKKOS_IMPL_SYCL_HALF_TYPE_DEFINED
+
+#ifdef KOKKOS_IMPL_SYCL_BHALF_TYPE_DEFINED
+
+namespace Kokkos {
+namespace Experimental {
+
+/************************** bhalf conversions *********************************/
+KOKKOS_INLINE_FUNCTION
+bhalf_t cast_to_bhalf(bhalf_t val) { return val; }
+
+KOKKOS_INLINE_FUNCTION
+bhalf_t cast_to_bhalf(float val) { return bhalf_t::impl_type(val); }
+KOKKOS_INLINE_FUNCTION
+bhalf_t cast_to_bhalf(double val) { return bhalf_t::impl_type(val); }
+KOKKOS_INLINE_FUNCTION
+bhalf_t cast_to_bhalf(short val) { return bhalf_t::impl_type(val); }
+KOKKOS_INLINE_FUNCTION
+bhalf_t cast_to_bhalf(unsigned short val) { return bhalf_t::impl_type(val); }
+KOKKOS_INLINE_FUNCTION
+bhalf_t cast_to_bhalf(int val) { return bhalf_t::impl_type(val); }
+KOKKOS_INLINE_FUNCTION
+bhalf_t cast_to_bhalf(unsigned int val) { return bhalf_t::impl_type(val); }
+KOKKOS_INLINE_FUNCTION
+bhalf_t cast_to_bhalf(long long val) { return bhalf_t::impl_type(val); }
+KOKKOS_INLINE_FUNCTION
+bhalf_t cast_to_bhalf(unsigned long long val) {
+  return bhalf_t::impl_type(val);
+}
+KOKKOS_INLINE_FUNCTION
+bhalf_t cast_to_bhalf(long val) { return bhalf_t::impl_type(val); }
+KOKKOS_INLINE_FUNCTION
+bhalf_t cast_to_bhalf(unsigned long val) { return bhalf_t::impl_type(val); }
+
+template <class T>
+KOKKOS_INLINE_FUNCTION std::enable_if_t<std::is_same<T, float>::value, T>
+cast_from_bhalf(bhalf_t val) {
+  return static_cast<T>(bhalf_t::impl_type(val));
+}
+template <class T>
+KOKKOS_INLINE_FUNCTION std::enable_if_t<std::is_same<T, double>::value, T>
+cast_from_bhalf(bhalf_t val) {
+  return static_cast<T>(bhalf_t::impl_type(val));
+}
+template <class T>
+KOKKOS_INLINE_FUNCTION std::enable_if_t<std::is_same<T, short>::value, T>
+cast_from_bhalf(bhalf_t val) {
+  return static_cast<T>(bhalf_t::impl_type(val));
+}
+template <class T>
+KOKKOS_INLINE_FUNCTION
+    std::enable_if_t<std::is_same<T, unsigned short>::value, T>
+    cast_from_bhalf(bhalf_t val) {
+  return static_cast<T>(bhalf_t::impl_type(val));
+}
+template <class T>
+KOKKOS_INLINE_FUNCTION std::enable_if_t<std::is_same<T, int>::value, T>
+cast_from_bhalf(bhalf_t val) {
+  return static_cast<T>(bhalf_t::impl_type(val));
+}
+template <class T>
+KOKKOS_INLINE_FUNCTION std::enable_if_t<std::is_same<T, unsigned int>::value, T>
+cast_from_bhalf(bhalf_t val) {
+  return static_cast<T>(bhalf_t::impl_type(val));
+}
+template <class T>
+KOKKOS_INLINE_FUNCTION std::enable_if_t<std::is_same<T, long long>::value, T>
+cast_from_bhalf(bhalf_t val) {
+  return static_cast<T>(bhalf_t::impl_type(val));
+}
+template <class T>
+KOKKOS_INLINE_FUNCTION
+    std::enable_if_t<std::is_same<T, unsigned long long>::value, T>
+    cast_from_bhalf(bhalf_t val) {
+  return static_cast<T>(bhalf_t::impl_type(val));
+}
+template <class T>
+KOKKOS_INLINE_FUNCTION std::enable_if_t<std::is_same<T, long>::value, T>
+cast_from_bhalf(bhalf_t val) {
+  return static_cast<T>(bhalf_t::impl_type(val));
+}
+template <class T>
+KOKKOS_INLINE_FUNCTION
+    std::enable_if_t<std::is_same<T, unsigned long>::value, T>
+    cast_from_bhalf(bhalf_t val) {
+  return static_cast<T>(bhalf_t::impl_type(val));
+}
+}  // namespace Experimental
+
+// sycl::bfloat16 doesn't have constexpr constructors so we return float
+template <>
+struct reduction_identity<Kokkos::Experimental::bhalf_t> {
+  KOKKOS_FORCEINLINE_FUNCTION constexpr static float sum() noexcept {
+    return 0.f;
+  }
+  KOKKOS_FORCEINLINE_FUNCTION constexpr static float prod() noexcept {
+    return 1.0f;
+  }
+  KOKKOS_FORCEINLINE_FUNCTION constexpr static float max() noexcept {
+    return -0x7f7f;
+  }
+  KOKKOS_FORCEINLINE_FUNCTION constexpr static float min() noexcept {
+    return 0x7f7f;
+  }
+};
+
+}  // namespace Kokkos
+#endif  // KOKKOS_IMPL_SYCL_BHALF_TYPE_DEFINED
+
 #endif

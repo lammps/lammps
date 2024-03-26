@@ -213,8 +213,11 @@ TEST_F(SimpleCommandsTest, Quit)
     END_HIDE_OUTPUT();
     TEST_FAILURE(".*ERROR: Expected integer .*", command("quit xxx"););
 
-    // the following tests must be skipped with OpenMPI due to using threads
+    // the following tests must be skipped with OpenMPI or MPICH 4.1 and later due to using threads
     if (platform::mpi_vendor() == "Open MPI") GTEST_SKIP();
+#if defined(MPICH_NUMVERSION)
+    if (MPICH_NUMVERSION >= 40100000) GTEST_SKIP();
+#endif
     ASSERT_EXIT(command("quit"), ExitedWithCode(0), "");
     ASSERT_EXIT(command("quit 9"), ExitedWithCode(9), "");
 }

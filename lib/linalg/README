@@ -11,7 +11,7 @@ resulting library will follow the Fortran binary conventions.
 
 Note that this is an *incomplete* subset of full BLAS/LAPACK.
 
-The files correspond to LAPACK version 3.11.0.
+The files correspond to LAPACK version 3.12.0.
 
 You should only need to build and use the library in this directory if
 you want to build LAMMPS with one of the listed packages AND you do not

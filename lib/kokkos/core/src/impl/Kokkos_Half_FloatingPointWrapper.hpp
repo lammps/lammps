@@ -18,10 +18,23 @@
 #define KOKKOS_HALF_FLOATING_POINT_WRAPPER_HPP_
 
 #include <Kokkos_Macros.hpp>
+#include <Kokkos_BitManipulation.hpp>  // bit_cast
 
 #include <type_traits>
 #include <iosfwd>  // istream & ostream for extraction and insertion ops
 #include <string>
+
+namespace Kokkos::Experimental::Impl {
+/// @brief templated struct for determining if half_t is an alias to float.
+/// @tparam T The type to specialize on.
+template <class T>
+struct is_float16 : std::false_type {};
+
+/// @brief templated struct for determining if bhalf_t is an alias to float.
+/// @tparam T The type to specialize on.
+template <class T>
+struct is_bfloat16 : std::false_type {};
+}  // namespace Kokkos::Experimental::Impl
 
 #ifdef KOKKOS_IMPL_HALF_TYPE_DEFINED
 
@@ -44,6 +57,10 @@ class floating_point_wrapper;
 // Declare half_t (binary16)
 using half_t = Kokkos::Experimental::Impl::floating_point_wrapper<
     Kokkos::Impl::half_impl_t ::type>;
+namespace Impl {
+template <>
+struct is_float16<half_t> : std::true_type {};
+}  // namespace Impl
 KOKKOS_INLINE_FUNCTION
 half_t cast_to_half(float val);
 KOKKOS_INLINE_FUNCTION
@@ -110,7 +127,10 @@ KOKKOS_INLINE_FUNCTION
 #ifdef KOKKOS_IMPL_BHALF_TYPE_DEFINED
 using bhalf_t = Kokkos::Experimental::Impl::floating_point_wrapper<
     Kokkos::Impl ::bhalf_impl_t ::type>;
-
+namespace Impl {
+template <>
+struct is_bfloat16<bhalf_t> : std::true_type {};
+}  // namespace Impl
 KOKKOS_INLINE_FUNCTION
 bhalf_t cast_to_bhalf(float val);
 KOKKOS_INLINE_FUNCTION
@@ -196,10 +216,70 @@ cast_from_wrapper(const Kokkos::Experimental::bhalf_t& x);
 /************************** END forward declarations **************************/
 
 namespace Impl {
+
+template <typename FloatType>
+struct BitComparisonWrapper {
+  std::uint16_t value;
+
+  template <typename Number>
+  KOKKOS_FUNCTION friend bool operator==(BitComparisonWrapper a, Number b) {
+    return static_cast<FloatType>(a) == b;
+  }
+
+  template <typename Number>
+  KOKKOS_FUNCTION friend bool operator!=(BitComparisonWrapper a, Number b) {
+    return static_cast<FloatType>(a) != b;
+  }
+
+  template <typename Number>
+  KOKKOS_FUNCTION friend bool operator<(BitComparisonWrapper a, Number b) {
+    return static_cast<FloatType>(a) < b;
+  }
+
+  template <typename Number>
+  KOKKOS_FUNCTION friend bool operator<=(BitComparisonWrapper a, Number b) {
+    return static_cast<FloatType>(a) <= b;
+  }
+
+  template <typename Number>
+  KOKKOS_FUNCTION friend bool operator>(BitComparisonWrapper a, Number b) {
+    return static_cast<FloatType>(a) > b;
+  }
+
+  template <typename Number>
+  KOKKOS_FUNCTION friend bool operator>=(BitComparisonWrapper a, Number b) {
+    return static_cast<FloatType>(a) >= b;
+  }
+};
+
+template <typename FloatType>
+inline constexpr BitComparisonWrapper<FloatType> exponent_mask;
+template <typename FloatType>
+inline constexpr BitComparisonWrapper<FloatType> fraction_mask;
+
+#ifdef KOKKOS_IMPL_HALF_TYPE_DEFINED
+template <>
+inline constexpr BitComparisonWrapper<Kokkos::Experimental::half_t>
+    exponent_mask<Kokkos::Experimental::half_t>{0b0'11111'0000000000};
+template <>
+inline constexpr BitComparisonWrapper<Kokkos::Experimental::half_t>
+    fraction_mask<Kokkos::Experimental::half_t>{0b0'00000'1111111111};
+#endif
+
+#ifdef KOKKOS_IMPL_BHALF_TYPE_DEFINED
+template <>
+inline constexpr BitComparisonWrapper<Kokkos::Experimental::bhalf_t>
+    exponent_mask<Kokkos::Experimental::bhalf_t>{0b0'11111111'0000000};
+template <>
+inline constexpr BitComparisonWrapper<Kokkos::Experimental::bhalf_t>
+    fraction_mask<Kokkos::Experimental::bhalf_t>{0b0'00000000'1111111};
+#endif
+
 template <class FloatType>
 class alignas(FloatType) floating_point_wrapper {
  public:
-  using impl_type = FloatType;
+  using impl_type           = FloatType;
+  using bit_comparison_type = BitComparisonWrapper<floating_point_wrapper>;
 
  private:
   impl_type val;
@@ -248,6 +328,11 @@ class alignas(FloatType) floating_point_wrapper {
     const fixed_width_integer_type rv_val = *rv_ptr;
     val       = reinterpret_cast<const impl_type&>(rv_val);
 #endif  // KOKKOS_HALF_IS_FULL_TYPE_ON_ARCH
+  }
+
+  KOKKOS_FUNCTION
+  floating_point_wrapper(bit_comparison_type rhs) {
+    val = Kokkos::bit_cast<impl_type>(rhs);
   }
 
   // Don't support implicit conversion back to impl_type.
@@ -820,11 +905,47 @@ class alignas(FloatType) floating_point_wrapper {
     return tmp_lhs < tmp_rhs;
   }
 
+  template <class T>
+  KOKKOS_FUNCTION friend std::enable_if_t<std::is_convertible_v<T, float> &&
+                                              (std::is_same_v<T, float> ||
+                                               std::is_same_v<T, double>),
+                                          bool>
+  operator<(floating_point_wrapper lhs, T rhs) {
+    return static_cast<float>(lhs) < rhs;
+  }
+
+  template <class T>
+  KOKKOS_FUNCTION friend std::enable_if_t<std::is_convertible_v<T, float> &&
+                                              (std::is_same_v<T, float> ||
+                                               std::is_same_v<T, double>),
+                                          bool>
+  operator<(T lhs, floating_point_wrapper rhs) {
+    return lhs < static_cast<float>(rhs);
+  }
+
   KOKKOS_FUNCTION
   friend bool operator>(const volatile floating_point_wrapper& lhs,
                         const volatile floating_point_wrapper& rhs) {
     floating_point_wrapper tmp_lhs = lhs, tmp_rhs = rhs;
     return tmp_lhs > tmp_rhs;
+  }
+
+  template <class T>
+  KOKKOS_FUNCTION friend std::enable_if_t<std::is_convertible_v<T, float> &&
+                                              (std::is_same_v<T, float> ||
+                                               std::is_same_v<T, double>),
+                                          bool>
+  operator>(floating_point_wrapper lhs, T rhs) {
+    return static_cast<float>(lhs) > rhs;
+  }
+
+  template <class T>
+  KOKKOS_FUNCTION friend std::enable_if_t<std::is_convertible_v<T, float> &&
+                                              (std::is_same_v<T, float> ||
+                                               std::is_same_v<T, double>),
+                                          bool>
+  operator>(T lhs, floating_point_wrapper rhs) {
+    return lhs > static_cast<float>(rhs);
   }
 
   KOKKOS_FUNCTION
@@ -834,11 +955,47 @@ class alignas(FloatType) floating_point_wrapper {
     return tmp_lhs <= tmp_rhs;
   }
 
+  template <class T>
+  KOKKOS_FUNCTION friend std::enable_if_t<std::is_convertible_v<T, float> &&
+                                              (std::is_same_v<T, float> ||
+                                               std::is_same_v<T, double>),
+                                          bool>
+  operator<=(floating_point_wrapper lhs, T rhs) {
+    return static_cast<float>(lhs) <= rhs;
+  }
+
+  template <class T>
+  KOKKOS_FUNCTION friend std::enable_if_t<std::is_convertible_v<T, float> &&
+                                              (std::is_same_v<T, float> ||
+                                               std::is_same_v<T, double>),
+                                          bool>
+  operator<=(T lhs, floating_point_wrapper rhs) {
+    return lhs <= static_cast<float>(rhs);
+  }
+
   KOKKOS_FUNCTION
   friend bool operator>=(const volatile floating_point_wrapper& lhs,
                          const volatile floating_point_wrapper& rhs) {
     floating_point_wrapper tmp_lhs = lhs, tmp_rhs = rhs;
     return tmp_lhs >= tmp_rhs;
+  }
+
+  template <class T>
+  KOKKOS_FUNCTION friend std::enable_if_t<std::is_convertible_v<T, float> &&
+                                              (std::is_same_v<T, float> ||
+                                               std::is_same_v<T, double>),
+                                          bool>
+  operator>=(floating_point_wrapper lhs, T rhs) {
+    return static_cast<float>(lhs) >= rhs;
+  }
+
+  template <class T>
+  KOKKOS_FUNCTION friend std::enable_if_t<std::is_convertible_v<T, float> &&
+                                              (std::is_same_v<T, float> ||
+                                               std::is_same_v<T, double>),
+                                          bool>
+  operator>=(T lhs, floating_point_wrapper rhs) {
+    return lhs >= static_cast<float>(rhs);
   }
 
   // Insertion and extraction operators

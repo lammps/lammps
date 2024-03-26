@@ -18,33 +18,12 @@
 
 namespace Test {
 TEST(TEST_CATEGORY, atomic_operations_long) {
-  const int start = 1;  // Avoid zero for division.
+  const int start = -5;
   const int end   = 11;
   for (int i = start; i < end; ++i) {
-    ASSERT_TRUE((TestAtomicOperations::AtomicOperationsTestIntegralType<
-                 long int, TEST_EXECSPACE>(start, end - i, 1)));
-    ASSERT_TRUE((TestAtomicOperations::AtomicOperationsTestIntegralType<
-                 long int, TEST_EXECSPACE>(start, end - i, 2)));
-    ASSERT_TRUE((TestAtomicOperations::AtomicOperationsTestIntegralType<
-                 long int, TEST_EXECSPACE>(start, end - i, 3)));
-    ASSERT_TRUE((TestAtomicOperations::AtomicOperationsTestIntegralType<
-                 long int, TEST_EXECSPACE>(start, end - i, 4)));
-    ASSERT_TRUE((TestAtomicOperations::AtomicOperationsTestIntegralType<
-                 long int, TEST_EXECSPACE>(start, end - i, 5)));
-    ASSERT_TRUE((TestAtomicOperations::AtomicOperationsTestIntegralType<
-                 long int, TEST_EXECSPACE>(start, end - i, 6)));
-    ASSERT_TRUE((TestAtomicOperations::AtomicOperationsTestIntegralType<
-                 long int, TEST_EXECSPACE>(start, end - i, 7)));
-    ASSERT_TRUE((TestAtomicOperations::AtomicOperationsTestIntegralType<
-                 long int, TEST_EXECSPACE>(start, end - i, 8)));
-    ASSERT_TRUE((TestAtomicOperations::AtomicOperationsTestIntegralType<
-                 long int, TEST_EXECSPACE>(start, end - i, 9)));
-    ASSERT_TRUE((TestAtomicOperations::AtomicOperationsTestIntegralType<
-                 long int, TEST_EXECSPACE>(start, end - i, 11)));
-    ASSERT_TRUE((TestAtomicOperations::AtomicOperationsTestIntegralType<
-                 long int, TEST_EXECSPACE>(start, end - i, 12)));
-    ASSERT_TRUE((TestAtomicOperations::AtomicOperationsTestIntegralType<
-                 long int, TEST_EXECSPACE>(start, end - i, 13)));
+    for (int t = 0; t < 16; t++)
+      ASSERT_TRUE((TestAtomicOperations::AtomicOperationsTestIntegralType<
+                   long int, TEST_EXECSPACE>(i, end - i + start, t)));
   }
 }
 }  // namespace Test

@@ -35,7 +35,7 @@ export I_MPI_PIN_DOMAIN=core
 # End settings for your system
 #########################################################################
 
-export WORKLOADS="lj rhodo lc sw water eam airebo dpd tersoff"
+export WORKLOADS="lj rhodo lc sw water eam airebo dpd tersoff snap"
 export LMP_ARGS="-pk intel 0 -sf intel -screen none -v d 1"
 export RLMP_ARGS="-pk intel 0 lrt yes -sf intel -screen none -v d 1"
 

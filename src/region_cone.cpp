@@ -19,17 +19,22 @@
 
 #include "domain.h"
 #include "error.h"
+#include "input.h"
+#include "variable.h"
 
 #include <cmath>
 #include <cstring>
 
 using namespace LAMMPS_NS;
 
+enum { CONSTANT, VARIABLE };
+
 static constexpr double BIG = 1.0e20;
 
 /* ---------------------------------------------------------------------- */
 
-RegCone::RegCone(LAMMPS *lmp, int narg, char **arg) : Region(lmp, narg, arg), lo(0.0), hi(0.0)
+RegCone::RegCone(LAMMPS *lmp, int narg, char **arg) : Region(lmp, narg, arg), lo(0.0), hi(0.0),
+  c1str(nullptr), c2str(nullptr), rlostr(nullptr), rhistr(nullptr), lostr(nullptr), histr(nullptr)
 {
   options(narg - 9, &arg[9]);
 
@@ -44,22 +49,133 @@ RegCone::RegCone(LAMMPS *lmp, int narg, char **arg) : Region(lmp, narg, arg), lo
   axis = arg[2][0];
 
   if (axis == 'x') {
-    c1 = yscale * utils::numeric(FLERR, arg[3], false, lmp);
-    c2 = zscale * utils::numeric(FLERR, arg[4], false, lmp);
-    radiuslo = yscale * utils::numeric(FLERR, arg[5], false, lmp);
-    radiushi = yscale * utils::numeric(FLERR, arg[6], false, lmp);
+    if (utils::strmatch(arg[3], "^v_")) {
+      c1str = utils::strdup(arg[3] + 2);
+      c1 = 0.0;
+      c1style = VARIABLE;
+      varshape = 1;
+    } else {
+      c1 = yscale * utils::numeric(FLERR, arg[3], false, lmp);
+      c1style = CONSTANT;
+    }
+
+    if (utils::strmatch(arg[4], "^v_")) {
+      c2str = utils::strdup(arg[4] + 2);
+      c2 = 0.0;
+      c2style = VARIABLE;
+      varshape = 1;
+    } else {
+      c2 = zscale * utils::numeric(FLERR, arg[4], false, lmp);
+      c2style = CONSTANT;
+    }
+
+    if (utils::strmatch(arg[5], "^v_")) {
+      rlostr = utils::strdup(arg[5] + 2);
+      radiuslo = 0.0;
+      rlostyle = VARIABLE;
+      varshape = 1;
+    } else {
+      radiuslo = yscale * utils::numeric(FLERR, arg[5], false, lmp);
+      rlostyle = CONSTANT;
+    }
+
+    if (utils::strmatch(arg[6], "^v_")) {
+      rhistr = utils::strdup(arg[6] + 2);
+      radiushi = 0.0;
+      rhistyle = VARIABLE;
+      varshape = 1;
+    } else {
+      radiushi = yscale * utils::numeric(FLERR, arg[6], false, lmp);
+      rhistyle = CONSTANT;
+    }
+
   } else if (axis == 'y') {
-    c1 = xscale * utils::numeric(FLERR, arg[3], false, lmp);
-    c2 = zscale * utils::numeric(FLERR, arg[4], false, lmp);
-    radiuslo = xscale * utils::numeric(FLERR, arg[5], false, lmp);
-    radiushi = xscale * utils::numeric(FLERR, arg[6], false, lmp);
+
+    if (utils::strmatch(arg[3], "^v_")) {
+      c1str = utils::strdup(arg[3] + 2);
+      c1 = 0.0;
+      c1style = VARIABLE;
+      varshape = 1;
+    } else {
+      c1 = xscale * utils::numeric(FLERR, arg[3], false, lmp);
+      c1style = CONSTANT;
+    }
+
+    if (utils::strmatch(arg[4], "^v_")) {
+      c2str = utils::strdup(arg[4] + 2);
+      c2 = 0.0;
+      c2style = VARIABLE;
+      varshape = 1;
+    } else {
+      c2 = zscale * utils::numeric(FLERR, arg[4], false, lmp);
+      c2style = CONSTANT;
+    }
+
+    if (utils::strmatch(arg[5], "^v_")) {
+      rlostr = utils::strdup(arg[5] + 2);
+      radiuslo = 0.0;
+      rlostyle = VARIABLE;
+      varshape = 1;
+    } else {
+      radiuslo = xscale * utils::numeric(FLERR, arg[5], false, lmp);
+      rlostyle = CONSTANT;
+    }
+
+    if (utils::strmatch(arg[6], "^v_")) {
+      rhistr = utils::strdup(arg[6] + 2);
+      radiushi = 0.0;
+      rhistyle = VARIABLE;
+      varshape = 1;
+    } else {
+      radiushi = xscale * utils::numeric(FLERR, arg[6], false, lmp);
+      rhistyle = CONSTANT;
+    }
+
   } else if (axis == 'z') {
-    c1 = xscale * utils::numeric(FLERR, arg[3], false, lmp);
-    c2 = yscale * utils::numeric(FLERR, arg[4], false, lmp);
-    radiuslo = xscale * utils::numeric(FLERR, arg[5], false, lmp);
-    radiushi = xscale * utils::numeric(FLERR, arg[6], false, lmp);
+
+    if (utils::strmatch(arg[3], "^v_")) {
+      c1str = utils::strdup(arg[3] + 2);
+      c1 = 0.0;
+      c1style = VARIABLE;
+      varshape = 1;
+    } else {
+      c1 = xscale * utils::numeric(FLERR, arg[3], false, lmp);
+      c1style = CONSTANT;
+    }
+
+    if (utils::strmatch(arg[4], "^v_")) {
+      c2str = utils::strdup(arg[4] + 2);
+      c2 = 0.0;
+      c2style = VARIABLE;
+      varshape = 1;
+    } else {
+      c2 = yscale * utils::numeric(FLERR, arg[4], false, lmp);
+      c2style = CONSTANT;
+    }
+
+    if (utils::strmatch(arg[5], "^v_")) {
+      rlostr = utils::strdup(arg[5] + 2);
+      radiuslo = 0.0;
+      rlostyle = VARIABLE;
+      varshape = 1;
+    } else {
+      radiuslo = xscale * utils::numeric(FLERR, arg[5], false, lmp);
+      rlostyle = CONSTANT;
+    }
+
+    if (utils::strmatch(arg[6], "^v_")) {
+      rhistr = utils::strdup(arg[6] + 2);
+      radiushi = 0.0;
+      rhistyle = VARIABLE;
+      varshape = 1;
+    } else {
+      radiushi = xscale * utils::numeric(FLERR, arg[6], false, lmp);
+      rhistyle = CONSTANT;
+    }
+
   }
 
+  lostyle = CONSTANT;
   if (strcmp(arg[7], "INF") == 0 || strcmp(arg[7], "EDGE") == 0) {
     if (domain->box_exist == 0)
       error->all(FLERR, "Cannot use region INF or EDGE when box does not exist");
@@ -87,6 +203,11 @@ RegCone::RegCone(LAMMPS *lmp, int narg, char **arg) : Region(lmp, narg, arg), lo
       else
         lo = domain->boxlo_bound[2];
     }
+  } else if (utils::strmatch(arg[7], "^v_")) {
+    lostr = utils::strdup(arg[7] + 2);
+    lo = 0.0;
+    lostyle = VARIABLE;
+    varshape = 1;
   } else {
     if (axis == 'x') lo = xscale * utils::numeric(FLERR, arg[7], false, lmp);
     if (axis == 'y') lo = yscale * utils::numeric(FLERR, arg[7], false, lmp);
@@ -119,10 +240,20 @@ RegCone::RegCone(LAMMPS *lmp, int narg, char **arg) : Region(lmp, narg, arg), lo
       else
         hi = domain->boxhi_bound[2];
     }
+  } else if (utils::strmatch(arg[8], "^v_")) {
+    histr = utils::strdup(arg[8] + 2);
+    hi = 0.0;
+    histyle = VARIABLE;
+    varshape = 1;
   } else {
     if (axis == 'x') hi = xscale * utils::numeric(FLERR, arg[8], false, lmp);
     if (axis == 'y') hi = yscale * utils::numeric(FLERR, arg[8], false, lmp);
     if (axis == 'z') hi = zscale * utils::numeric(FLERR, arg[8], false, lmp);
+  }
+
+  if (varshape) {
+    variable_check();
+    RegCone::shape_update();
   }
 
   // error check
@@ -131,14 +262,10 @@ RegCone::RegCone(LAMMPS *lmp, int narg, char **arg) : Region(lmp, narg, arg), lo
   if (radiushi < 0.0) error->all(FLERR, "Illegal radius in region cone command");
   if (radiuslo == 0.0 && radiushi == 0.0)
     error->all(FLERR, "Illegal radius in region cone command");
-  if (hi == lo) error->all(FLERR, "Illegal cone length in region cone command");
+  if (hi <= lo) error->all(FLERR, "Illegal cone length in region cone command");
 
   // extent of cone
-
-  if (radiuslo > radiushi)
-    maxradius = radiuslo;
-  else
-    maxradius = radiushi;
+  maxradius = ( (radiuslo > radiushi) ? radiuslo : radiushi);
 
   if (interior) {
     bboxflag = 1;
@@ -174,17 +301,28 @@ RegCone::RegCone(LAMMPS *lmp, int narg, char **arg) : Region(lmp, narg, arg), lo
 
   cmax = 3;
   contact = new Contact[cmax];
-  if (interior)
-    tmax = 2;
-  else
-    tmax = 1;
+  tmax = (interior ? 2 : 1);
 }
 
 /* ---------------------------------------------------------------------- */
 
 RegCone::~RegCone()
 {
+  delete[] c1str;
+  delete[] c2str;
+  delete[] rlostr;
+  delete[] rhistr;
+  delete[] lostr;
+  delete[] histr;
   delete[] contact;
+}
+
+/* ---------------------------------------------------------------------- */
+
+void RegCone::init()
+{
+  Region::init();
+  if (varshape) variable_check();
 }
 
 /* ----------------------------------------------------------------------
@@ -619,6 +757,101 @@ int RegCone::surface_exterior(double *x, double cutoff)
     contact[0].iwall = 0;
     if (contact[0].r < cutoff) return 1;
     return 0;
+  }
+}
+
+/* ----------------------------------------------------------------------
+    change region shape via variable evaluation
+------------------------------------------------------------------------- */
+
+void RegCone::shape_update()
+{
+  if (c1style == VARIABLE) c1 = input->variable->compute_equal(c1var);
+  if (c2style == VARIABLE) c2 = input->variable->compute_equal(c2var);
+  if (rlostyle == VARIABLE) {
+    radiuslo = input->variable->compute_equal(rlovar);
+    if (radiuslo < 0.0) error->one(FLERR, "Variable evaluation in region gave bad value");
+  }
+  if (rhistyle == VARIABLE) {
+    radiushi = input->variable->compute_equal(rhivar);
+    if (radiushi < 0.0) error->one(FLERR, "Variable evaluation in region gave bad value");
+  }
+  if (lostyle == VARIABLE) lo = input->variable->compute_equal(lovar);
+  if (histyle == VARIABLE) hi = input->variable->compute_equal(hivar);
+
+  if (radiuslo == 0.0 && radiushi == 0.0)
+    error->all(FLERR, "dtion in region gave bad value");
+
+  if (axis == 'x') {
+    if (c1style == VARIABLE) c1 *= yscale;
+    if (c2style == VARIABLE) c2 *= zscale;
+    if (rlostyle == VARIABLE) radiuslo *= yscale;
+    if (rhistyle == VARIABLE) radiushi *= yscale;
+    if (lostyle == VARIABLE) lo *= xscale;
+    if (histyle == VARIABLE) hi *= xscale;
+  } else if (axis == 'y') {
+    if (c1style == VARIABLE) c1 *= xscale;
+    if (c2style == VARIABLE) c2 *= zscale;
+    if (rlostyle == VARIABLE) radiuslo *= xscale;
+    if (rhistyle == VARIABLE) radiushi *= xscale;
+    if (lostyle == VARIABLE) lo *= yscale;
+    if (histyle == VARIABLE) hi *= yscale;
+  } else {
+    if (c1style == VARIABLE) c1 *= xscale;
+    if (c2style == VARIABLE) c2 *= yscale;
+    if (rlostyle == VARIABLE) radiuslo *= xscale;
+    if (rhistyle == VARIABLE) radiushi *= xscale;
+    if (lostyle == VARIABLE) lo *= zscale;
+    if (histyle == VARIABLE) hi *= zscale;
+  }
+}
+
+/* ----------------------------------------------------------------------
+   error check on existence of variable
+------------------------------------------------------------------------- */
+
+void RegCone::variable_check()
+{
+  if (c1style == VARIABLE) {
+    c1var = input->variable->find(c1str);
+    if (c1var < 0) error->all(FLERR, "Variable {} for region cone does not exist", c1str);
+    if (!input->variable->equalstyle(c1var))
+      error->all(FLERR, "Variable {} for region cone is invalid style", c1str);
+  }
+
+  if (c2style == VARIABLE) {
+    c2var = input->variable->find(c2str);
+    if (c2var < 0) error->all(FLERR, "Variable {} for region cone does not exist", c2str);
+    if (!input->variable->equalstyle(c2var))
+      error->all(FLERR, "Variable {} for region cone is invalid style", c2str);
+  }
+
+  if (rlostyle == VARIABLE) {
+    rlovar = input->variable->find(rlostr);
+    if (rlovar < 0) error->all(FLERR, "Variable {} for region cone does not exist", rlostr);
+    if (!input->variable->equalstyle(rlovar))
+      error->all(FLERR, "Variable {} for region cone is invalid style", rlostr);
+  }
+
+  if (rhistyle == VARIABLE) {
+    rhivar = input->variable->find(rhistr);
+    if (rhivar < 0) error->all(FLERR, "Variable {} for region cone does not exist", rhistr);
+    if (!input->variable->equalstyle(rhivar))
+      error->all(FLERR, "Variable {} for region cone is invalid style", rhistr);
+  }
+
+  if (lostyle == VARIABLE) {
+    lovar = input->variable->find(lostr);
+    if (lovar < 0) error->all(FLERR, "Variable {} for region cone does not exist", lostr);
+    if (!input->variable->equalstyle(lovar))
+      error->all(FLERR, "Variable {} for region cone is invalid style", lostr);
+  }
+
+  if (histyle == VARIABLE) {
+    hivar = input->variable->find(histr);
+    if (hivar < 0) error->all(FLERR, "Variable {} for region cone does not exist", histr);
+    if (!input->variable->equalstyle(hivar))
+      error->all(FLERR, "Variable {} for region cone is invalid style", histr);
   }
 }
 

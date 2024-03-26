@@ -58,6 +58,40 @@ Examples
 Description
 """""""""""
 
+The *lj/cut/tip4p* styles implement the TIP4P water model of
+:ref:`(Jorgensen) <Jorgensen2>` and similar models, which introduce a
+massless site M located a short distance away from the oxygen atom along
+the bisector of the HOH angle.  The atomic types of the oxygen and
+hydrogen atoms, the bond and angle types for OH and HOH interactions,
+and the distance to the massless charge site are specified as pair_style
+arguments and are used to identify the TIP4P-like molecules and
+determine the position of the M site from the positions of the hydrogen
+and oxygen atoms of the water molecules.  The M site location is used
+for all Coulomb interactions instead of the oxygen atom location, also
+with all other atom types, while the location of the oxygen atom is used
+for the Lennard-Jones interactions.  Style *lj/cut/tip4p/cut* uses a
+cutoff for Coulomb interactions; style *lj/cut/tip4p/long* is for use
+with a long-range Coulombic solver (Ewald or PPPM).
+
+.. note::
+
+   For each TIP4P water molecule in your system, the atom IDs for
+   the O and 2 H atoms must be consecutive, with the O atom first.  This
+   is to enable LAMMPS to "find" the 2 H atoms associated with each O
+   atom.  For example, if the atom ID of an O atom in a TIP4P water
+   molecule is 500, then its 2 H atoms must have IDs 501 and 502.
+
+See the :doc:`Howto tip4p <Howto_tip4p>` page for more information
+on how to use the TIP4P pair styles and lists of parameters to set.
+Note that the neighbor list cutoff for Coulomb interactions is
+effectively extended by a distance 2\*qdist when using the TIP4P pair
+style, to account for the offset distance of the fictitious charges on
+O atoms in water molecules.  Thus it is typically best in an
+efficiency sense to use a LJ cutoff >= Coulombic cutoff + 2\*qdist, to
+shrink the size of the neighbor list.  This leads to slightly larger
+cost for the long-range calculation, so you can test the trade-off for
+your model.
+
 The *lj/cut/tip4p* styles compute the standard 12/6 Lennard-Jones potential,
 given by
 
@@ -91,34 +125,6 @@ specified for this style means that pairwise interactions within this
 distance are computed directly; interactions outside that distance are
 computed in reciprocal space.
 
-The *lj/cut/tip4p* styles implement the TIP4P
-water model of :ref:`(Jorgensen) <Jorgensen2>`, which introduces a massless
-site located a short distance away from the oxygen atom along the
-bisector of the HOH angle.  The atomic types of the oxygen and
-hydrogen atoms, the bond and angle types for OH and HOH interactions,
-and the distance to the massless charge site are specified as
-pair_style arguments.  Style *lj/cut/tip4p/cut* uses a cutoff for
-Coulomb interactions; style *lj/cut/tip4p/long* is for use with a
-long-range Coulombic solver (Ewald or PPPM).
-
-.. note::
-
-   For each TIP4P water molecule in your system, the atom IDs for
-   the O and 2 H atoms must be consecutive, with the O atom first.  This
-   is to enable LAMMPS to "find" the 2 H atoms associated with each O
-   atom.  For example, if the atom ID of an O atom in a TIP4P water
-   molecule is 500, then its 2 H atoms must have IDs 501 and 502.
-
-See the :doc:`Howto tip4p <Howto_tip4p>` page for more information
-on how to use the TIP4P pair styles and lists of parameters to set.
-Note that the neighbor list cutoff for Coulomb interactions is
-effectively extended by a distance 2\*qdist when using the TIP4P pair
-style, to account for the offset distance of the fictitious charges on
-O atoms in water molecules.  Thus it is typically best in an
-efficiency sense to use a LJ cutoff >= Coulombic cutoff + 2\*qdist, to
-shrink the size of the neighbor list.  This leads to slightly larger
-cost for the long-range calculation, so you can test the trade-off for
-your model.
 
 Coefficients
 """"""""""""

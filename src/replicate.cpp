@@ -22,13 +22,14 @@
 #include "error.h"
 #include "memory.h"
 #include "special.h"
+#include "label_map.h"
 
 #include <cstring>
 
 using namespace LAMMPS_NS;
 
-#define LB_FACTOR 1.1
-#define EPSILON   1.0e-6
+static constexpr double LB_FACTOR = 1.1;
+static constexpr double EPSILON =   1.0e-6;
 
 /* ---------------------------------------------------------------------- */
 
@@ -52,8 +53,16 @@ void Replicate::command(int narg, char **arg)
   int nx = utils::inumeric(FLERR,arg[0],false,lmp);
   int ny = utils::inumeric(FLERR,arg[1],false,lmp);
   int nz = utils::inumeric(FLERR,arg[2],false,lmp);
-  int nrep = nx*ny*nz;
+  if ((nx <= 0) || (ny <= 0) || (nz <= 0))
+    error->all(FLERR, "Illegal replication grid {}x{}x{}. All replications must be > 0",
+               nx, ny, nz);
 
+  bigint nrepbig = (bigint) nx * ny * nz;
+  if (nrepbig > MAXSMALLINT)
+    error->all(FLERR, "Total # of replica is too large: {}x{}x{} = {}. "
+               "Please use replicate multiple times", nx, ny, nz, nrepbig);
+
+  int nrep = (int) nrepbig;
   if (me == 0)
     utils::logmesg(lmp, "Replication is creating a {}x{}x{} = {} times larger system...\n",
                    nx, ny, nz, nrep);
@@ -224,6 +233,15 @@ void Replicate::command(int narg, char **arg)
   atom->extra_dihedral_per_atom = old->extra_dihedral_per_atom;
   atom->extra_improper_per_atom = old->extra_improper_per_atom;
   atom->maxspecial = old->maxspecial;
+
+  if (old->labelmapflag) {
+    atom->add_label_map();
+    atom->lmap->merge_lmap(old->lmap, Atom::ATOM);
+    atom->lmap->merge_lmap(old->lmap, Atom::BOND);
+    atom->lmap->merge_lmap(old->lmap, Atom::ANGLE);
+    atom->lmap->merge_lmap(old->lmap, Atom::DIHEDRAL);
+    atom->lmap->merge_lmap(old->lmap, Atom::IMPROPER);
+  }
 
   // store old simulation box
 

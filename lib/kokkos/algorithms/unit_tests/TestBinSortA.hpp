@@ -223,18 +223,8 @@ TEST(TEST_CATEGORY, BinSortGenericTests) {
   using key_type       = unsigned;
   constexpr int N      = 171;
 
-#if defined(KOKKOS_ENABLE_CUDA) && \
-    defined(KOKKOS_COMPILER_NVHPC)  // FIXME_NVHPC
-  if (!std::is_same_v<ExecutionSpace, Kokkos::Cuda>)
-#endif
-    BinSortSetA::test_3D_sort_impl<ExecutionSpace, key_type>(N);
-
-#if defined(KOKKOS_ENABLE_CUDA) && \
-    defined(KOKKOS_COMPILER_NVHPC)  // FIXME_NVHPC
-  if (!std::is_same_v<ExecutionSpace, Kokkos::Cuda>)
-#endif
-    BinSortSetA::test_issue_1160_impl<ExecutionSpace>();
-
+  BinSortSetA::test_3D_sort_impl<ExecutionSpace, key_type>(N);
+  BinSortSetA::test_issue_1160_impl<ExecutionSpace>();
   BinSortSetA::test_sort_integer_overflow<ExecutionSpace, long long>();
   BinSortSetA::test_sort_integer_overflow<ExecutionSpace, unsigned long long>();
   BinSortSetA::test_sort_integer_overflow<ExecutionSpace, int>();

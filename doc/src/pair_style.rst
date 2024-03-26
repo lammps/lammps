@@ -297,7 +297,8 @@ accelerated styles exist.
 * :doc:`morse/soft <pair_morse>` - Morse potential with a soft core
 * :doc:`multi/lucy <pair_multi_lucy>` - DPD potential with density-dependent force
 * :doc:`multi/lucy/rx <pair_multi_lucy_rx>` - reactive DPD potential with density-dependent force
-* :doc:`nb3b/harmonic <pair_nb3b_harmonic>` - non-bonded 3-body harmonic potential
+* :doc:`nb3b/harmonic <pair_nb3b>` - non-bonded 3-body harmonic potential
+* :doc:`nb3b/screened <pair_nb3b>` - non-bonded 3-body screened harmonic potential
 * :doc:`nm/cut <pair_nm>` - N-M potential
 * :doc:`nm/cut/coul/cut <pair_nm>` - N-M potential with cutoff Coulomb
 * :doc:`nm/cut/coul/long <pair_nm>` - N-M potential with long-range Coulomb
@@ -332,6 +333,7 @@ accelerated styles exist.
 * :doc:`rann <pair_rann>` -
 * :doc:`reaxff <pair_reaxff>` - ReaxFF potential
 * :doc:`rebo <pair_airebo>` - second generation REBO potential of Brenner
+* :doc:`rebomos <pair_rebomos>` - REBOMoS potential for MoS2
 * :doc:`resquared <pair_resquared>` - Everaers RE-Squared ellipsoidal potential
 * :doc:`saip/metal <pair_saip_metal>` - interlayer potential for hetero-junctions formed with hexagonal 2D materials and metal surfaces
 * :doc:`sdpd/taitwater/isothermal <pair_sdpd_taitwater_isothermal>` - smoothed dissipative particle dynamics for water at isothermal conditions

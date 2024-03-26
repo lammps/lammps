@@ -51,7 +51,7 @@ class CommTiled : public Comm {
 
   double memory_usage() override;
 
- private:
+ protected:
   int nswap;      // # of swaps to perform = 2*dim
   int maxswap;    // largest nswap can be = 6
 
@@ -117,8 +117,9 @@ class CommTiled : public Comm {
   double *sublo, *subhi;
   int dimension;
 
-  // NOTE: init_buffers is called from a constructor and must not be made virtual
+  void init_pointers();
   void init_buffers();
+  int init_buffers_flag;
 
   // box drop and other functions
 
@@ -145,11 +146,11 @@ class CommTiled : public Comm {
   int point_drop_tiled_recurse(double *, int, int);
   int closer_subbox_edge(int, double *);
 
-  void grow_send(int, int);               // reallocate send buffer
-  void grow_recv(int);                    // free/allocate recv buffer
-  void grow_list(int, int, int);          // reallocate sendlist for one swap/proc
+  virtual void grow_send(int, int);               // reallocate send buffer
+  virtual void grow_recv(int, int flag = 0);      // free/allocate recv buffer
+  virtual void grow_list(int, int, int);          // reallocate sendlist for one swap/proc
   void allocate_swap(int);                // allocate swap arrays
-  void grow_swap_send(int, int, int);     // grow swap arrays for send and recv
+  virtual void grow_swap_send(int, int, int);     // grow swap arrays for send and recv
   void grow_swap_send_multi(int, int);    // grow multi swap arrays for send and recv
   void grow_swap_recv(int, int);
   void deallocate_swap(int);    // deallocate swap arrays

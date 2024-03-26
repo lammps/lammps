@@ -77,9 +77,9 @@ struct TestBitManipFunction {
   KOKKOS_FUNCTION void operator()(int i, int& e) const {
     if (Func::eval_builtin(val_[i]) != Func::eval_constexpr(val_[i])) {
       ++e;
-      KOKKOS_IMPL_DO_NOT_USE_PRINTF(
-          "value at %x which is %d was expected to be %d\n", (unsigned)val_[i],
-          (int)Func::eval_builtin(val_[i]), (int)Func::eval_constexpr(val_[i]));
+      Kokkos::printf("value at %x which is %d was expected to be %d\n",
+                     (unsigned)val_[i], (int)Func::eval_builtin(val_[i]),
+                     (int)Func::eval_constexpr(val_[i]));
     }
   }
 };
@@ -549,7 +549,7 @@ struct TestBitRotateFunction {
     if (Func::eval_builtin(val_[i].x, val_[i].s) !=
         Func::eval_constexpr(val_[i].x, val_[i].s)) {
       ++e;
-      KOKKOS_IMPL_DO_NOT_USE_PRINTF(
+      Kokkos::printf(
           "value at %x rotated by %d which is %x was expected to be %x\n",
           (unsigned)val_[i].x, val_[i].s,
           (unsigned)Func::eval_builtin(val_[i].x, val_[i].s),
@@ -726,11 +726,10 @@ struct TestByteswapFunction {
     using Kokkos::Experimental::byteswap_builtin;
     if (byteswap_builtin(value) != expected) {
       ++e;
-      KOKKOS_IMPL_DO_NOT_USE_PRINTF(
-          "value at %llx which is %llx was expected to be %llx\n",
-          (unsigned long long)value,
-          (unsigned long long)byteswap_builtin(value),
-          (unsigned long long)expected);
+      Kokkos::printf("value at %llx which is %llx was expected to be %llx\n",
+                     (unsigned long long)value,
+                     (unsigned long long)byteswap_builtin(value),
+                     (unsigned long long)expected);
     }
   }
 };
@@ -829,7 +828,7 @@ struct TestBitCastFunction {
     }
 
 #if defined(KOKKOS_ENABLE_CUDA) && \
-    defined(KOKKOS_COMPILER_NVHPC)  // FIXME_NVHPC
+    defined(KOKKOS_COMPILER_NVHPC)  // FIXME_NVHPC 23.7
     if constexpr (std::is_same_v<Space, Kokkos::Cuda>) {
       return;
     }

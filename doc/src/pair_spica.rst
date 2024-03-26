@@ -81,7 +81,7 @@ given by
 
 as required for the SPICA (formerly called SDK) and the pSPICA Coarse-grained MD parameterization discussed in
 :ref:`(Shinoda) <Shinoda3>`, :ref:`(DeVane) <DeVane>`, :ref:`(Seo) <Seo>`, and :ref:`(Miyazaki) <Miyazaki>`.
-Rc is the cutoff.
+:math:`r_c` is the cutoff.
 Summary information on these force fields can be found at https://www.spica-ff.org
 
 Style *lj/spica/coul/long* computes the adds Coulombic interactions

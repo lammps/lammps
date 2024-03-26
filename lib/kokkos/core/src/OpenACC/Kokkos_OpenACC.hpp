@@ -39,7 +39,10 @@ static_assert(false,
 
 // FIXME_OPENACC: Below macro is temporarily enabled to avoid issues on existing
 // OpenACC compilers not supporting lambda with parallel loops.
+// LLVM/Clacc compiler does not need this.
+#ifndef KOKKOS_COMPILER_CLANG
 #define KOKKOS_ENABLE_OPENACC_COLLAPSE_HIERARCHICAL_CONSTRUCTS
+#endif
 
 namespace Kokkos::Experimental::Impl {
 class OpenACCInternal;

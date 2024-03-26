@@ -61,11 +61,15 @@ struct StdFindIfOrNotFunctor {
         m_p(std::move(p)) {}
 };
 
+//
+// exespace impl
+//
 template <bool is_find_if, class ExecutionSpace, class IteratorType,
           class PredicateType>
-IteratorType find_if_or_not_impl(const std::string& label,
-                                 const ExecutionSpace& ex, IteratorType first,
-                                 IteratorType last, PredicateType pred) {
+IteratorType find_if_or_not_exespace_impl(const std::string& label,
+                                          const ExecutionSpace& ex,
+                                          IteratorType first, IteratorType last,
+                                          PredicateType pred) {
   // checks
   Impl::static_assert_random_access_and_accessible(
       ex, first);  // only need one It per type
@@ -104,11 +108,65 @@ IteratorType find_if_or_not_impl(const std::string& label,
 }
 
 template <class ExecutionSpace, class InputIterator, class T>
-InputIterator find_impl(const std::string& label, ExecutionSpace ex,
-                        InputIterator first, InputIterator last,
-                        const T& value) {
-  return find_if_or_not_impl<true>(
+InputIterator find_exespace_impl(const std::string& label, ExecutionSpace ex,
+                                 InputIterator first, InputIterator last,
+                                 const T& value) {
+  return find_if_or_not_exespace_impl<true>(
       label, ex, first, last,
+      ::Kokkos::Experimental::Impl::StdAlgoEqualsValUnaryPredicate<T>(value));
+}
+
+//
+// team impl
+//
+template <bool is_find_if, class TeamHandleType, class IteratorType,
+          class PredicateType>
+KOKKOS_FUNCTION IteratorType
+find_if_or_not_team_impl(const TeamHandleType& teamHandle, IteratorType first,
+                         IteratorType last, PredicateType pred) {
+  // checks
+  Impl::static_assert_random_access_and_accessible(
+      teamHandle, first);  // only need one It per type
+  Impl::expect_valid_range(first, last);
+
+  if (first == last) {
+    return last;
+  }
+
+  // aliases
+  using index_type           = typename IteratorType::difference_type;
+  using reducer_type         = FirstLoc<index_type>;
+  using reduction_value_type = typename reducer_type::value_type;
+  using func_t = StdFindIfOrNotFunctor<is_find_if, index_type, IteratorType,
+                                       reducer_type, PredicateType>;
+
+  // run
+  reduction_value_type red_result;
+  reducer_type reducer(red_result);
+  const auto num_elements = Kokkos::Experimental::distance(first, last);
+  ::Kokkos::parallel_reduce(TeamThreadRange(teamHandle, 0, num_elements),
+                            func_t(first, reducer, pred), reducer);
+
+  teamHandle.team_barrier();
+
+  // decide and return
+  if (red_result.min_loc_true ==
+      ::Kokkos::reduction_identity<index_type>::min()) {
+    // here, it means a valid loc has not been found,
+    return last;
+  } else {
+    // a location has been found
+    return first + red_result.min_loc_true;
+  }
+}
+
+template <class TeamHandleType, class InputIterator, class T>
+KOKKOS_FUNCTION InputIterator find_team_impl(const TeamHandleType& teamHandle,
+                                             InputIterator first,
+                                             InputIterator last,
+                                             const T& value) {
+  return find_if_or_not_team_impl<true>(
+      teamHandle, first, last,
       ::Kokkos::Experimental::Impl::StdAlgoEqualsValUnaryPredicate<T>(value));
 }
 

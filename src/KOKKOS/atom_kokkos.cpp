@@ -16,7 +16,7 @@
 #include "atom_masks.h"
 #include "atom_vec.h"
 #include "atom_vec_kokkos.h"
-#include "comm_kokkos.h"
+#include "comm.h"
 #include "domain.h"
 #include "error.h"
 #include "kokkos.h"
@@ -25,12 +25,15 @@
 #include "kokkos_base.h"
 #include "modify.h"
 #include "fix.h"
+#include "fix_property_atom_kokkos.h"
 
 using namespace LAMMPS_NS;
 
 /* ---------------------------------------------------------------------- */
 
-AtomKokkos::AtomKokkos(LAMMPS *lmp) : Atom(lmp)
+AtomKokkos::AtomKokkos(LAMMPS *lmp) : Atom(lmp),
+mapBinner(1, 0.0, 1.0), // no default constructor, these values are not used
+mapSorter(d_tag_sorted, 0, 1, mapBinner, true)
 {
   avecKK = nullptr;
 
@@ -44,6 +47,9 @@ AtomKokkos::AtomKokkos(LAMMPS *lmp) : Atom(lmp)
 
   h_tag_min = Kokkos::subview(h_tag_min_max,0);
   h_tag_max = Kokkos::subview(h_tag_min_max,1);
+
+  nprop_atom = 0;
+  fix_prop_atom = nullptr;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -112,6 +118,7 @@ AtomKokkos::~AtomKokkos()
 
   memoryKK->destroy_kokkos(k_dvector, dvector);
   dvector = nullptr;
+  delete [] fix_prop_atom;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -125,11 +132,37 @@ void AtomKokkos::init()
 
 /* ---------------------------------------------------------------------- */
 
+void AtomKokkos::update_property_atom()
+{
+  nprop_atom = 0;
+  std::vector<Fix *> prop_atom_fixes;
+  for (auto &ifix : modify->get_fix_by_style("^property/atom")) {
+    if (!ifix->kokkosable)
+      error->all(FLERR, "KOKKOS package requires a Kokkos-enabled version of fix property/atom");
+
+    ++nprop_atom;
+    prop_atom_fixes.push_back(ifix);
+  }
+
+  delete[] fix_prop_atom;
+  fix_prop_atom = new FixPropertyAtomKokkos *[nprop_atom];
+
+  int n = 0;
+  for (auto &ifix : prop_atom_fixes)
+    fix_prop_atom[n++] = dynamic_cast<FixPropertyAtomKokkos *>(ifix);
+}
+
+/* ---------------------------------------------------------------------- */
+
 void AtomKokkos::sync(const ExecutionSpace space, unsigned int mask)
 {
-  if (space == Device && lmp->kokkos->auto_sync) avecKK->modified(Host, mask);
+  if (space == Device && lmp->kokkos->auto_sync) {
+    avecKK->modified(Host, mask);
+    for (int n = 0; n < nprop_atom; n++) fix_prop_atom[n]->modified(Host, mask);
+  }
 
   avecKK->sync(space, mask);
+  for (int n = 0; n < nprop_atom; n++) fix_prop_atom[n]->sync(space, mask);
 }
 
 /* ---------------------------------------------------------------------- */
@@ -137,13 +170,20 @@ void AtomKokkos::sync(const ExecutionSpace space, unsigned int mask)
 void AtomKokkos::modified(const ExecutionSpace space, unsigned int mask)
 {
   avecKK->modified(space, mask);
+  for (int n = 0; n < nprop_atom; n++) fix_prop_atom[n]->modified(space, mask);
 
-  if (space == Device && lmp->kokkos->auto_sync) avecKK->sync(Host, mask);
+  if (space == Device && lmp->kokkos->auto_sync) {
+    avecKK->sync(Host, mask);
+    for (int n = 0; n < nprop_atom; n++) fix_prop_atom[n]->sync(Host, mask);
+  }
 }
+
+/* ---------------------------------------------------------------------- */
 
 void AtomKokkos::sync_overlapping_device(const ExecutionSpace space, unsigned int mask)
 {
   avecKK->sync_overlapping_device(space, mask);
+  for (int n = 0; n < nprop_atom; n++) fix_prop_atom[n]->sync_overlapping_device(space, mask);
 }
 /* ---------------------------------------------------------------------- */
 
@@ -260,15 +300,17 @@ void AtomKokkos::grow(unsigned int mask)
    return index in ivector or dvector of its location
 ------------------------------------------------------------------------- */
 
-int AtomKokkos::add_custom(const char *name, int flag, int cols)
+int AtomKokkos::add_custom(const char *name, int flag, int cols, int ghost)
 {
-  int index;
+  int index = -1;
 
   if (flag == 0 && cols == 0) {
     index = nivector;
     nivector++;
     ivname = (char **) memory->srealloc(ivname, nivector * sizeof(char *), "atom:ivname");
     ivname[index] = utils::strdup(name);
+    ivghost = (int *) memory->srealloc(ivghost,nivector * sizeof(int),"atom:ivghost");
+    ivghost[index] = ghost;
     ivector = (int **) memory->srealloc(ivector, nivector * sizeof(int *), "atom:ivector");
     memory->create(ivector[index], nmax, "atom:ivector");
 
@@ -277,6 +319,8 @@ int AtomKokkos::add_custom(const char *name, int flag, int cols)
     ndvector++;
     dvname = (char **) memory->srealloc(dvname, ndvector * sizeof(char *), "atom:dvname");
     dvname[index] = utils::strdup(name);
+    dvghost = (int *) memory->srealloc(dvghost, ndvector * sizeof(int), "atom:dvghost");
+    dvghost[index] = ghost;
     dvector = (double **) memory->srealloc(dvector, ndvector * sizeof(double *), "atom:dvector");
     this->sync(Device, DVECTOR_MASK);
     memoryKK->grow_kokkos(k_dvector, dvector, ndvector, nmax, "atom:dvector");
@@ -287,6 +331,8 @@ int AtomKokkos::add_custom(const char *name, int flag, int cols)
     niarray++;
     ianame = (char **) memory->srealloc(ianame, niarray * sizeof(char *), "atom:ianame");
     ianame[index] = utils::strdup(name);
+    iaghost = (int *) memory->srealloc(iaghost, niarray * sizeof(int), "atom:iaghost");
+    iaghost[index] = ghost;
     iarray = (int ***) memory->srealloc(iarray, niarray * sizeof(int **), "atom:iarray");
     memory->create(iarray[index], nmax, cols, "atom:iarray");
 
@@ -298,12 +344,17 @@ int AtomKokkos::add_custom(const char *name, int flag, int cols)
     ndarray++;
     daname = (char **) memory->srealloc(daname, ndarray * sizeof(char *), "atom:daname");
     daname[index] = utils::strdup(name);
+    daghost = (int *) memory->srealloc(daghost, ndarray * sizeof(int), "atom:daghost");
+    daghost[index] = ghost;
     darray = (double ***) memory->srealloc(darray, ndarray * sizeof(double **), "atom:darray");
     memory->create(darray[index], nmax, cols, "atom:darray");
 
     dcols = (int *) memory->srealloc(dcols, ndarray * sizeof(int), "atom:dcols");
     dcols[index] = cols;
   }
+
+  if (index < 0)
+    error->all(FLERR,"Invalid call to AtomKokkos::add_custom()");
 
   return index;
 }
@@ -375,7 +426,7 @@ AtomVec *AtomKokkos::new_avec(const std::string &style, int trysuffix, int &sfla
   int hybrid_substyle_flag = (avec != nullptr);
 
   AtomVec *avec = Atom::new_avec(style, trysuffix, sflag);
-  if (!avec->kokkosable) error->all(FLERR, "KOKKOS package requires a kokkos enabled atom_style");
+  if (!avec->kokkosable) error->all(FLERR, "KOKKOS package requires a Kokkos-enabled atom_style");
 
   if (!hybrid_substyle_flag)
     avecKK = dynamic_cast<AtomVecKokkos*>(avec);

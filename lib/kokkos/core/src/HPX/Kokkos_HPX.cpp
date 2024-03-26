@@ -25,11 +25,11 @@
 
 #include <impl/Kokkos_ExecSpaceManager.hpp>
 
-#include <hpx/local/condition_variable.hpp>
-#include <hpx/local/init.hpp>
-#include <hpx/local/runtime.hpp>
-#include <hpx/local/thread.hpp>
-#include <hpx/local/mutex.hpp>
+#include <hpx/condition_variable.hpp>
+#include <hpx/init.hpp>
+#include <hpx/mutex.hpp>
+#include <hpx/runtime.hpp>
+#include <hpx/thread.hpp>
 #include <hpx/version.hpp>
 
 #include <atomic>
@@ -207,12 +207,7 @@ int HPX::concurrency() const {
 void HPX::impl_initialize(InitializationSettings const &settings) {
   hpx::runtime *rt = hpx::get_runtime_ptr();
   if (rt == nullptr) {
-    hpx::local::init_params i;
-    i.cfg = {
-#ifdef KOKKOS_ENABLE_DEBUG
-        "--hpx:attach-debugger=exception",
-#endif
-    };
+    hpx::init_params i;
     if (settings.has_num_threads()) {
       i.cfg.emplace_back("hpx.os_threads=" +
                          std::to_string(settings.get_num_threads()));
@@ -220,7 +215,7 @@ void HPX::impl_initialize(InitializationSettings const &settings) {
     int argc_hpx     = 1;
     char name[]      = "kokkos_hpx";
     char *argv_hpx[] = {name, nullptr};
-    hpx::local::start(nullptr, argc_hpx, argv_hpx, i);
+    hpx::start(nullptr, argc_hpx, argv_hpx, i);
 
     m_hpx_initialized = true;
   }
@@ -236,11 +231,11 @@ void HPX::impl_finalize() {
     hpx::runtime *rt = hpx::get_runtime_ptr();
     if (rt != nullptr) {
 #if HPX_VERSION_FULL >= 0x010900
-      hpx::post([]() { hpx::local::finalize(); });
+      hpx::post([]() { hpx::finalize(); });
 #else
-      hpx::apply([]() { hpx::local::finalize(); });
+      hpx::apply([]() { hpx::finalize(); });
 #endif
-      hpx::local::stop();
+      hpx::stop();
     } else {
       Kokkos::abort(
           "Kokkos::Experimental::HPX::impl_finalize: Kokkos started "
@@ -330,4 +325,4 @@ int g_hpx_space_factory_initialized =
 
 #else
 void KOKKOS_CORE_SRC_IMPL_HPX_PREVENT_LINK_ERROR() {}
-#endif  //#ifdef KOKKOS_ENABLE_HPX
+#endif  // #ifdef KOKKOS_ENABLE_HPX

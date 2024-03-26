@@ -23,7 +23,6 @@
 #include "grid3d.h"
 #include "memory.h"
 #include "modify.h"
-#include "region.h"
 #include "update.h"
 
 #include <cstring>
@@ -35,8 +34,8 @@ using namespace LAMMPS_NS;
 
 enum {COMPUTE,FIX};
 
-#define ONEFIELD 32
-#define DELTA 1048576
+static constexpr int ONEFIELD = 32;
+static constexpr int DELTA = 1048576;
 
 /* ---------------------------------------------------------------------- */
 

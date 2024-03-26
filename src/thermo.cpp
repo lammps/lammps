@@ -93,7 +93,6 @@ static constexpr char id_press[] = "thermo_press";
 static constexpr char id_pe[] = "thermo_pe";
 
 static char fmtbuf[512];
-#define DELTA 8
 
 /* ---------------------------------------------------------------------- */
 
@@ -111,6 +110,7 @@ Thermo::Thermo(LAMMPS *_lmp, int narg, char **arg) :
   lostflag = lostbond = Thermo::ERROR;
   lostbefore = warnbefore = 0;
   flushflag = 0;
+  firststep = 0;
   ntimestep = -1;
   nline = -1;
   image_fname.clear();

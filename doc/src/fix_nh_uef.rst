@@ -23,7 +23,7 @@ Syntax
   .. parsed-literal::
 
      keyword = *erate* or *ext* or *strain* or *temp* or *iso* or *x* or *y* or *z* or *tchain* or *pchain* or *tloop* or *ploop* or *mtk*
-       *erate* values = e_x e_y = engineering strain rates (required)
+       *erate* values = e_x e_y = true strain rates (required)
        *ext* value = *x* or *y* or *z* or *xy* or *yz* or *xz* = external dimensions
          sets the external dimensions used to calculate the scalar pressure
        *strain* values = e_x e_y = initial strain
@@ -62,7 +62,7 @@ performed using the :doc:`fix deform <fix_deform>`, :doc:`fix nvt/sllod
 <fix_nvt_sllod>`, and :doc:`compute temp/deform <compute_temp_deform>`
 commands.
 
-The applied flow field is set by the *eps* keyword. The values
+The applied flow field is set by the *erate* keyword. The values
 *edot_x* and *edot_y* correspond to the strain rates in the xx and yy
 directions.  It is implicitly assumed that the flow field is
 traceless, and therefore the strain rate in the zz direction is eqal

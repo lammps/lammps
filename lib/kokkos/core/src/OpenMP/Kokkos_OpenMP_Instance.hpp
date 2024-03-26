@@ -40,6 +40,18 @@
 #include <type_traits>
 #include <vector>
 
+/*--------------------------------------------------------------------------*/
+namespace Kokkos {
+namespace Impl {
+
+inline bool execute_in_serial(OpenMP const& space = OpenMP()) {
+  return (OpenMP::in_parallel(space) &&
+          !(omp_get_nested() && (omp_get_level() == 1)));
+}
+
+}  // namespace Impl
+}  // namespace Kokkos
+
 namespace Kokkos {
 namespace Impl {
 
@@ -48,7 +60,7 @@ class OpenMPInternal;
 inline int g_openmp_hardware_max_threads = 1;
 
 struct OpenMPTraits {
-  static int constexpr MAX_THREAD_COUNT = 512;
+  static constexpr int MAX_THREAD_COUNT = 512;
 };
 
 class OpenMPInternal {

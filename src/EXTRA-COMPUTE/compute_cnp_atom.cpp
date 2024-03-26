@@ -41,8 +41,8 @@
 using namespace LAMMPS_NS;
 
 //define maximum values
-#define MAXNEAR 24
-#define MAXCOMMON 12
+static constexpr int MAXNEAR = 24;
+static constexpr int MAXCOMMON = 12;
 
 enum{NCOMMON};
 

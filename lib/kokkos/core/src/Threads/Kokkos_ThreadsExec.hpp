@@ -20,13 +20,16 @@
 #include <Kokkos_Macros.hpp>
 
 #include <cstdio>
-
+#include <ostream>
 #include <utility>
+
 #include <impl/Kokkos_Spinwait.hpp>
 
 #include <Kokkos_Atomic.hpp>
+#include <Kokkos_Pair.hpp>
 
 #include <impl/Kokkos_ConcurrentBitset.hpp>
+#include <Threads/Kokkos_Threads.hpp>
 
 //----------------------------------------------------------------------------
 

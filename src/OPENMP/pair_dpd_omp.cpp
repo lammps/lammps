@@ -27,7 +27,7 @@
 #include "suffix.h"
 using namespace LAMMPS_NS;
 
-#define EPSILON 1.0e-10
+static constexpr double EPSILON = 1.0e-10;
 
 /* ---------------------------------------------------------------------- */
 

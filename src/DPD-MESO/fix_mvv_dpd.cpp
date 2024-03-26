@@ -63,13 +63,20 @@ int FixMvvDPD::setmask()
 void FixMvvDPD::init()
 {
   if (!atom->vest_flag)
-    error->all(FLERR,"Fix mvv/dpd requires atom attribute vest");
+    error->all(FLERR,"Fix mvv/dpd requires atom attribute vest e.g. from atom style mdpd");
+
+  if (!force->pair_match("^mdpd",0) && !force->pair_match("^dpd",0)) {
+    if (force->pair_match("^hybrid",0)) {
+      if (!(force->pair_match("^mdpd",0,1) || force->pair_match("^dpd",0),1)) {
+        error->all(FLERR, "Must use a dpd or mdpd pair style with fix mvv/dpd");
+      }
+    } else {
+      error->all(FLERR, "Must use a dpd or mdpd pair style with fix mvv/dpd");
+    }
+  }
 
   dtv = update->dt;
   dtf = 0.5 * update->dt * force->ftm2v;
-
-  if (!force->pair_match("^edpd",0) && !force->pair_match("^dpd",0))
-    error->all(FLERR, "Must use a dpd or edpd pair style with fix mvv/edpd");
 }
 
 /* ----------------------------------------------------------------------

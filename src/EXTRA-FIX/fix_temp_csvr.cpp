@@ -95,12 +95,12 @@ FixTempCSVR::FixTempCSVR(LAMMPS *lmp, int narg, char **arg) :
 
 FixTempCSVR::~FixTempCSVR()
 {
-  delete [] tstr;
+  delete[] tstr;
 
   // delete temperature if fix created it
 
   if (tflag) modify->delete_compute(id_temp);
-  delete [] id_temp;
+  delete[] id_temp;
 
   delete random;
   nmax = -1;
@@ -124,15 +124,14 @@ void FixTempCSVR::init()
   if (tstr) {
     tvar = input->variable->find(tstr);
     if (tvar < 0)
-      error->all(FLERR,"Variable name for fix temp/csvr does not exist");
+      error->all(FLERR,"Variable name {} for fix temp/csvr does not exist", tstr);
     if (input->variable->equalstyle(tvar)) tstyle = EQUAL;
-    else error->all(FLERR,"Variable for fix temp/csvr is invalid style");
+    else error->all(FLERR,"Variable {} for fix temp/csvr is invalid style", tstr);
   }
 
-  int icompute = modify->find_compute(id_temp);
-  if (icompute < 0)
-    error->all(FLERR,"Temperature ID for fix temp/csvr does not exist");
-  temperature = modify->compute[icompute];
+  temperature = modify->get_compute_by_id(id_temp);
+  if (!temperature)
+    error->all(FLERR,"Temperature ID {} for fix temp/csvr does not exist", id_temp);
 
   if (temperature->tempbias) which = BIAS;
   else which = NOBIAS;
@@ -154,8 +153,7 @@ void FixTempCSVR::end_of_step()
     modify->clearstep_compute();
     t_target = input->variable->compute_equal(tvar);
     if (t_target < 0.0)
-      error->one(FLERR,
-                 "Fix temp/csvr variable returned negative temperature");
+      error->one(FLERR, "Fix temp/csvr variable returned negative temperature");
     modify->addstep_compute(update->ntimestep + nevery);
   }
 
@@ -215,17 +213,14 @@ int FixTempCSVR::modify_param(int narg, char **arg)
       modify->delete_compute(id_temp);
       tflag = 0;
     }
-    delete [] id_temp;
+    delete[] id_temp;
     id_temp = utils::strdup(arg[1]);
 
-    int icompute = modify->find_compute(id_temp);
-    if (icompute < 0)
-      error->all(FLERR,"Could not find fix_modify temperature ID");
-    temperature = modify->compute[icompute];
+    temperature = modify->get_compute_by_id(id_temp);
+    if (!temperature) error->all(FLERR,"Could not find fix_modify temperature ID {}", id_temp);
 
     if (temperature->tempflag == 0)
-      error->all(FLERR,
-                 "Fix_modify temperature ID does not compute temperature");
+      error->all(FLERR, "Fix_modify temperature ID {} does not compute temperature", id_temp);
     if (temperature->igroup != igroup && comm->me == 0)
       error->warning(FLERR,"Group for fix_modify temp != fix group");
     return 2;

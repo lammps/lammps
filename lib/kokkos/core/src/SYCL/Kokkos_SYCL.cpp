@@ -59,6 +59,13 @@ SYCL::SYCL(const sycl::queue& stream)
         ptr->finalize();
         delete ptr;
       }) {
+  // In principle could be guarded with
+  // #ifdef KOKKOS_IMPL_SYCL_USE_IN_ORDER_QUEUES
+  // but we chose to require user-provided queues to be in-order
+  // unconditionally so that code downstream does not break
+  // when the backend setting changes.
+  if (!stream.is_in_order())
+    Kokkos::abort("User provided sycl::queues must be in-order!");
   Impl::SYCLInternal::singleton().verify_is_initialized(
       "SYCL instance constructor");
   m_space_instance->initialize(stream);
@@ -92,6 +99,13 @@ void SYCL::print_configuration(std::ostream& os, bool verbose) const {
 #else
   os << "macro  KOKKOS_IMPL_SYCL_DEVICE_GLOBAL_SUPPORTED : undefined\n";
 #endif
+
+#ifdef KOKKOS_IMPL_SYCL_USE_IN_ORDER_QUEUES
+  os << "macro  KOKKOS_IMPL_SYCL_USE_IN_ORDER_QUEUES : defined\n";
+#else
+  os << "macro  KOKKOS_IMPL_SYCL_USE_IN_ORDER_QUEUES : undefined\n";
+#endif
+
   if (verbose)
     SYCL::impl_sycl_info(os, m_space_instance->m_queue->get_device());
 }

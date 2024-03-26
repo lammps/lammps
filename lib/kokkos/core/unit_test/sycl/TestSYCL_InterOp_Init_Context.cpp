@@ -27,7 +27,8 @@ TEST(sycl, raw_sycl_interop_context_1) {
   Kokkos::Experimental::SYCL default_space;
   sycl::context default_context = default_space.sycl_queue().get_context();
 
-  sycl::queue queue(default_context, sycl::default_selector_v);
+  sycl::queue queue(default_context, sycl::default_selector_v,
+                    sycl::property::queue::in_order());
   constexpr int n = 100;
   int* p          = sycl::malloc_device<int>(n, queue);
 
@@ -60,7 +61,8 @@ TEST(sycl, raw_sycl_interop_context_2) {
   Kokkos::Experimental::SYCL default_space;
   sycl::context default_context = default_space.sycl_queue().get_context();
 
-  sycl::queue queue(default_context, sycl::default_selector_v);
+  sycl::queue queue(default_context, sycl::default_selector_v,
+                    sycl::property::queue::in_order());
   constexpr int n = 100;
 
   Kokkos::Experimental::SYCL space(queue);

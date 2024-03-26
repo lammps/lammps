@@ -104,15 +104,18 @@ class PairLJCutCoulCutKokkos : public PairLJCutCoulCut {
   double qqrd2e;
 
   void allocate() override;
-  friend struct PairComputeFunctor<PairLJCutCoulCutKokkos,FULL,true>;
+  friend struct PairComputeFunctor<PairLJCutCoulCutKokkos,FULL,true,0>;
+  friend struct PairComputeFunctor<PairLJCutCoulCutKokkos,FULL,true,1>;
   friend struct PairComputeFunctor<PairLJCutCoulCutKokkos,HALF,true>;
   friend struct PairComputeFunctor<PairLJCutCoulCutKokkos,HALFTHREAD,true>;
-  friend struct PairComputeFunctor<PairLJCutCoulCutKokkos,FULL,false>;
+  friend struct PairComputeFunctor<PairLJCutCoulCutKokkos,FULL,false,0>;
+  friend struct PairComputeFunctor<PairLJCutCoulCutKokkos,FULL,false,1>;
   friend struct PairComputeFunctor<PairLJCutCoulCutKokkos,HALF,false>;
   friend struct PairComputeFunctor<PairLJCutCoulCutKokkos,HALFTHREAD,false>;
-  friend EV_FLOAT pair_compute_neighlist<PairLJCutCoulCutKokkos,FULL,void>(PairLJCutCoulCutKokkos*,NeighListKokkos<DeviceType>*);
-  friend EV_FLOAT pair_compute_neighlist<PairLJCutCoulCutKokkos,HALF,void>(PairLJCutCoulCutKokkos*,NeighListKokkos<DeviceType>*);
-  friend EV_FLOAT pair_compute_neighlist<PairLJCutCoulCutKokkos,HALFTHREAD,void>(PairLJCutCoulCutKokkos*,NeighListKokkos<DeviceType>*);
+  friend EV_FLOAT pair_compute_neighlist<PairLJCutCoulCutKokkos,FULL,0>(PairLJCutCoulCutKokkos*,NeighListKokkos<DeviceType>*);
+  friend EV_FLOAT pair_compute_neighlist<PairLJCutCoulCutKokkos,FULL,1>(PairLJCutCoulCutKokkos*,NeighListKokkos<DeviceType>*);
+  friend EV_FLOAT pair_compute_neighlist<PairLJCutCoulCutKokkos,HALF>(PairLJCutCoulCutKokkos*,NeighListKokkos<DeviceType>*);
+  friend EV_FLOAT pair_compute_neighlist<PairLJCutCoulCutKokkos,HALFTHREAD>(PairLJCutCoulCutKokkos*,NeighListKokkos<DeviceType>*);
   friend EV_FLOAT pair_compute<PairLJCutCoulCutKokkos,void>(PairLJCutCoulCutKokkos*,
                                                             NeighListKokkos<DeviceType>*);
   friend void pair_virial_fdotr_compute<PairLJCutCoulCutKokkos>(PairLJCutCoulCutKokkos*);

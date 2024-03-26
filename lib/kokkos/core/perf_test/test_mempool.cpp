@@ -17,6 +17,7 @@
 #include <cstdio>
 #include <cstring>
 #include <cstdlib>
+#include <iostream>
 #include <limits>
 
 #include <benchmark/benchmark.h>

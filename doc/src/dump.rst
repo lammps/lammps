@@ -104,7 +104,6 @@ Syntax
                                q, mux, muy, muz, mu,
                                radius, diameter, omegax, omegay, omegaz,
                                angmomx, angmomy, angmomz, tqx, tqy, tqz,
-                               heatflow, temperature,
                                c_ID, c_ID[I], f_ID, f_ID[I], v_name,
                                i_name, d_name, i2_name[I], d2_name[I]
 
@@ -131,8 +130,6 @@ Syntax
            omegax,omegay,omegaz = angular velocity of spherical particle
            angmomx,angmomy,angmomz = angular momentum of aspherical particle
            tqx,tqy,tqz = torque on finite-size particles
-           heatflow = rate of heat flow into particle
-           temperature = temperature of particle
            c_ID = per-atom vector calculated by a compute with ID
            c_ID[I] = Ith column of per-atom array calculated by a compute with ID, I can include wildcard (see below)
            f_ID = per-atom vector calculated by a fix with ID
@@ -613,7 +610,7 @@ when running on large numbers of processors.
 Note that using the "\*" and "%" characters together can produce a
 large number of small dump files!
 
-.. deprecated:: TBD
+.. deprecated:: 21Nov2023
 
 The MPIIO package and the the corresponding "/mpiio" dump styles, except
 for the unrelated "netcdf/mpiio" style were removed from LAMMPS.
@@ -805,16 +802,16 @@ computes, fixes, or variables when they are evaluated, so this is a very
 general means of creating quantities to output to a dump file.
 
 The *i_name*, *d_name*, *i2_name*, *d2_name* attributes refer to
-per-atom integer and floating-point vectors or arrays that have been
-added via the :doc:`fix property/atom <fix_property_atom>` command.
-When that command is used specific names are given to each attribute
-which are the "name" portion of these keywords.  For arrays *i2_name*
-and *d2_name*, the column of the array must also be included following
-the name in brackets (e.g., d2_xyz[i], i2_mySpin[i], where :math:`i` is
-in the range from 1 to :math:`M`, where :math:`M` is the number of
-columns in the custom array). See the discussion above for how :math:`i`
-can be specified with a wildcard asterisk to effectively specify
-multiple values.
+custom per-atom integer and floating-point vectors or arrays that have
+been added via the :doc:`fix property/atom <fix_property_atom>`
+command.  When that command is used specific names are given to each
+attribute which are the "name" portion of these keywords.  For arrays
+*i2_name* and *d2_name*, the column of the array must also be included
+following the name in brackets (e.g., d2_xyz[i], i2_mySpin[i], where
+:math:`i` is in the range from 1 to :math:`M`, where :math:`M` is the
+number of columns in the custom array).  See the discussion above for
+how :math:`i` can be specified with a wildcard asterisk to effectively
+specify multiple values.
 
 See the :doc:`Modify <Modify>` page for information on how to add
 new compute and fix styles to LAMMPS to calculate per-atom quantities

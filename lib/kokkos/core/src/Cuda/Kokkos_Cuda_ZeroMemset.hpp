@@ -27,16 +27,20 @@ template <class T, class... P>
 struct ZeroMemset<Kokkos::Cuda, View<T, P...>> {
   ZeroMemset(const Kokkos::Cuda& exec_space_instance, const View<T, P...>& dst,
              typename View<T, P...>::const_value_type&) {
-    KOKKOS_IMPL_CUDA_SAFE_CALL(cudaMemsetAsync(
-        dst.data(), 0, dst.size() * sizeof(typename View<T, P...>::value_type),
-        exec_space_instance.cuda_stream()));
+    KOKKOS_IMPL_CUDA_SAFE_CALL(
+        (exec_space_instance.impl_internal_space_instance()
+             ->cuda_memset_async_wrapper(
+                 dst.data(), 0,
+                 dst.size() * sizeof(typename View<T, P...>::value_type))));
   }
 
   ZeroMemset(const View<T, P...>& dst,
              typename View<T, P...>::const_value_type&) {
+    // FIXME_CUDA_MULTIPLE_DEVICES
     KOKKOS_IMPL_CUDA_SAFE_CALL(
-        cudaMemset(dst.data(), 0,
-                   dst.size() * sizeof(typename View<T, P...>::value_type)));
+        (Kokkos::Impl::CudaInternal::singleton().cuda_memset_wrapper(
+            dst.data(), 0,
+            dst.size() * sizeof(typename View<T, P...>::value_type))));
   }
 };
 

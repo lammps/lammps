@@ -129,6 +129,8 @@ FixEfield::FixEfield(LAMMPS *lmp, int narg, char **arg) :
 
 FixEfield::~FixEfield()
 {
+  if (copymode) return;
+
   delete[] xstr;
   delete[] ystr;
   delete[] zstr;

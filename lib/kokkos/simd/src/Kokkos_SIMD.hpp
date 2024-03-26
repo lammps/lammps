@@ -19,19 +19,62 @@
 
 #include <Kokkos_SIMD_Common.hpp>
 
+// suppress NVCC warnings with the [[nodiscard]] attribute on overloaded
+// operators implemented as hidden friends
+#if defined(KOKKOS_COMPILER_NVCC) && KOKKOS_COMPILER_NVCC < 1130
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wattributes"
+#endif
+
 #include <Kokkos_SIMD_Scalar.hpp>
 
-#ifdef KOKKOS_ARCH_AVX2
+#include <Kokkos_Macros.hpp>
+
+// FIXME_OPENMPTARGET The device pass disables all compiler macros checked
+#ifdef KOKKOS_ENABLE_OPENMPTARGET
+#if defined(KOKKOS_ARCH_AVX2)
 #include <Kokkos_SIMD_AVX2.hpp>
 #endif
 
-#ifdef KOKKOS_ARCH_AVX512XEON
+#if defined(KOKKOS_ARCH_AVX512XEON)
 #include <Kokkos_SIMD_AVX512.hpp>
 #endif
 
-#ifdef __ARM_NEON
+#if defined(KOKKOS_ARCH_ARM_NEON)
 #include <Kokkos_SIMD_NEON.hpp>
 #endif
+#else  // KOKKOS_ENABLE_OPENMPTARGET
+#if defined(KOKKOS_ARCH_AVX) && !defined(__AVX__)
+#error "__AVX__ must be defined for KOKKOS_ARCH_AVX"
+#endif
+
+#if defined(KOKKOS_ARCH_AVX2)
+#if !defined(__AVX2__)
+#error "__AVX2__ must be defined for KOKKOS_ARCH_AVX2"
+#endif
+#include <Kokkos_SIMD_AVX2.hpp>
+#endif
+
+#if defined(KOKKOS_ARCH_AVX512XEON)
+#if !defined(__AVX512F__)
+#error "__AVX512F__ must be defined for KOKKOS_ARCH_AVX512XEON"
+#endif
+#include <Kokkos_SIMD_AVX512.hpp>
+#endif
+
+#if defined(KOKKOS_ARCH_ARM_NEON)
+#if !defined(__ARM_NEON)
+#error "__ARM_NEON must be definded for KOKKOS_ARCH_ARM_NEON"
+#endif
+#include <Kokkos_SIMD_NEON.hpp>
+#endif
+#endif
+
+#if defined(KOKKOS_COMPILER_NVCC) && KOKKOS_COMPILER_NVCC < 1130
+#pragma GCC diagnostic pop
+#endif
+
+#include <Kokkos_SIMD_Common_Math.hpp>
 
 namespace Kokkos {
 namespace Experimental {
@@ -44,7 +87,7 @@ namespace Impl {
 using host_native = avx512_fixed_size<8>;
 #elif defined(KOKKOS_ARCH_AVX2)
 using host_native  = avx2_fixed_size<4>;
-#elif defined(__ARM_NEON)
+#elif defined(KOKKOS_ARCH_ARM_NEON)
 using host_native  = neon_fixed_size<2>;
 #else
 using host_native   = scalar;
@@ -142,19 +185,19 @@ class data_types {};
 #if defined(KOKKOS_ARCH_AVX512XEON)
 using host_abi_set  = abi_set<simd_abi::scalar, simd_abi::avx512_fixed_size<8>>;
 using data_type_set = data_types<std::int32_t, std::uint32_t, std::int64_t,
-                                 std::uint64_t, double>;
+                                 std::uint64_t, double, float>;
 #elif defined(KOKKOS_ARCH_AVX2)
 using host_abi_set = abi_set<simd_abi::scalar, simd_abi::avx2_fixed_size<4>>;
 using data_type_set =
-    data_types<std::int32_t, std::int64_t, std::uint64_t, double>;
-#elif defined(__ARM_NEON)
+    data_types<std::int32_t, std::int64_t, std::uint64_t, double, float>;
+#elif defined(KOKKOS_ARCH_ARM_NEON)
 using host_abi_set = abi_set<simd_abi::scalar, simd_abi::neon_fixed_size<2>>;
 using data_type_set =
-    data_types<std::int32_t, std::int64_t, std::uint64_t, double>;
+    data_types<std::int32_t, std::int64_t, std::uint64_t, double, float>;
 #else
 using host_abi_set  = abi_set<simd_abi::scalar>;
 using data_type_set = data_types<std::int32_t, std::uint32_t, std::int64_t,
-                                 std::uint64_t, double>;
+                                 std::uint64_t, double, float>;
 #endif
 
 using device_abi_set = abi_set<simd_abi::scalar>;

@@ -42,8 +42,8 @@
 using namespace LAMMPS_NS;
 using namespace MathSpecialKokkos;
 
-#define MAXLINE 1024
-#define DELTA 4
+static constexpr int MAXLINE = 1024;
+static constexpr int DELTA = 4;
 
 #ifdef DBL_EPSILON
   #define MY_EPSILON (10.0*DBL_EPSILON)
@@ -1702,7 +1702,8 @@ void PairExp6rxKokkos<DeviceType>::read_file(char *file)
   // one set of params can span multiple lines
 
   int n,nwords,ispecies;
-  char line[MAXLINE],*ptr;
+  char line[MAXLINE] = {'\0'};
+  char *ptr;
   int eof = 0;
 
   while (true) {

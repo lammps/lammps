@@ -35,7 +35,7 @@ enum { SCALAR, VECTOR, WINDOW };
 enum { DEFAULT, GLOBAL, PERATOM, LOCAL };
 enum { IGNORE, END, EXTRA };
 
-#define BIG 1.0e20
+static constexpr double BIG = 1.0e20;
 /* ---------------------------------------------------------------------- */
 
 FixAveHisto::FixAveHisto(LAMMPS *lmp, int narg, char **arg) :
@@ -164,7 +164,7 @@ FixAveHisto::FixAveHisto(LAMMPS *lmp, int narg, char **arg) :
   }
 
   // check input args for kind consistency
-  // all inputs must all be global, per-atom, or local
+  // inputs must all be all either global, per-atom, or local
 
   if (nevery <= 0)
     error->all(FLERR,"Illegal {} nevery value: {}", mycmd, nevery);
@@ -839,10 +839,12 @@ void FixAveHisto::options(int iarg, int narg, char **arg)
   auto mycmd = fmt::format("fix {}", style);
 
   while (iarg < narg) {
-    if (strcmp(arg[iarg],"file") == 0) {
-      if (iarg+2 > narg) utils::missing_cmd_args(FLERR, mycmd + " file", error);
+    if ((strcmp(arg[iarg],"file") == 0) || (strcmp(arg[iarg],"append") == 0)) {
+      if (iarg+2 > narg)
+        utils::missing_cmd_args(FLERR, std::string("fix ave/histo ")+arg[iarg], error);
       if (comm->me == 0) {
-        fp = fopen(arg[iarg+1],"w");
+        if (strcmp(arg[iarg],"file") == 0) fp = fopen(arg[iarg+1],"w");
+        else fp = fopen(arg[iarg+1],"a");
         if (fp == nullptr)
           error->one(FLERR, "Cannot open fix ave/histo file {}: {}",
                      arg[iarg+1], utils::getsyserror());

@@ -36,12 +36,11 @@ FixBrownianSphere::FixBrownianSphere(LAMMPS *lmp, int narg, char **arg) :
     FixBrownianBase(lmp, narg, arg)
 {
   if (gamma_t_eigen_flag || gamma_r_eigen_flag) {
-    error->all(FLERR, "Illegal fix brownian command.");
+    error->all(FLERR, "Illegal fix brownian/sphere command.");
   }
 
-  if (!gamma_t_flag || !gamma_r_flag) { error->all(FLERR, "Illegal fix brownian command."); }
+  if (!gamma_t_flag || !gamma_r_flag) error->all(FLERR, "Illegal fix brownian/sphere command.");
   if (!atom->mu_flag) error->all(FLERR, "Fix brownian/sphere requires atom attribute mu");
-  if (!atom->sphere_flag) error->all(FLERR, "Fix brownian/sphere requires atom style sphere");
 }
 
 /* ---------------------------------------------------------------------- */

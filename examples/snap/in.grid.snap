@@ -67,18 +67,18 @@ compute 	mygridlocal all sna/grid/local grid ${ngrid} ${ngrid} ${ngrid} &
 
 # define output
 
-variable	B5atom equal c_b[2][5]
+variable	B5atom equal C_b[2][5]
 variable	B5grid equal c_mygrid[8][8]
 
 variable	rmse_global equal "sqrt(   &
 	 (c_mygrid[8][1] - x[2])^2 +      &
 	 (c_mygrid[8][2] - y[2])^2 +      &
 	 (c_mygrid[8][3] - z[2])^2 +      &
-	 (c_mygrid[8][4] - c_b[2][1])^2 + &
-	 (c_mygrid[8][5] - c_b[2][2])^2 + &
-	 (c_mygrid[8][6] - c_b[2][3])^2 + &
-	 (c_mygrid[8][7] - c_b[2][4])^2 + &
-	 (c_mygrid[8][8] - c_b[2][5])^2   &
+	 (c_mygrid[8][4] - C_b[2][1])^2 + &
+	 (c_mygrid[8][5] - C_b[2][2])^2 + &
+	 (c_mygrid[8][6] - C_b[2][3])^2 + &
+	 (c_mygrid[8][7] - C_b[2][4])^2 + &
+	 (c_mygrid[8][8] - C_b[2][5])^2   &
 	 )"
 
 thermo_style	custom step v_B5atom v_B5grid v_rmse_global

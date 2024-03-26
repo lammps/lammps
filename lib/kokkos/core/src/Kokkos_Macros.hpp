@@ -342,7 +342,7 @@
 // Temporary solution for SYCL not supporting printf in kernels.
 // Might disappear at any point once we have found another solution.
 #if !defined(KOKKOS_IMPL_DO_NOT_USE_PRINTF)
-#define KOKKOS_IMPL_DO_NOT_USE_PRINTF(...) printf(__VA_ARGS__)
+#define KOKKOS_IMPL_DO_NOT_USE_PRINTF(...) ::printf(__VA_ARGS__)
 #endif
 
 //----------------------------------------------------------------------------

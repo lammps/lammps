@@ -1,13 +1,9 @@
-// Formatting library for C++ - experimental range support
+// Formatting library for C++ - range and tuple support
 //
-// Copyright (c) 2012 - present, Victor Zverovich
+// Copyright (c) 2012 - present, Victor Zverovich and {fmt} contributors
 // All rights reserved.
 //
 // For the license information refer to format.h.
-//
-// Copyright (c) 2018 - present, Remotion (Igor Schulz)
-// All Rights Reserved
-// {fmt} support for ranges, containers and types tuple interface.
 
 #ifndef FMT_RANGES_H_
 #define FMT_RANGES_H_
@@ -187,7 +183,7 @@ template <size_t N> using make_index_sequence = std::make_index_sequence<N>;
 template <typename T, T... N> struct integer_sequence {
   using value_type = T;
 
-  static FMT_CONSTEXPR size_t size() { return sizeof...(N); }
+  static FMT_CONSTEXPR auto size() -> size_t { return sizeof...(N); }
 };
 
 template <size_t... N> using index_sequence = integer_sequence<size_t, N...>;
@@ -211,15 +207,15 @@ class is_tuple_formattable_ {
 };
 template <typename T, typename C> class is_tuple_formattable_<T, C, true> {
   template <std::size_t... Is>
-  static std::true_type check2(index_sequence<Is...>,
-                               integer_sequence<bool, (Is == Is)...>);
-  static std::false_type check2(...);
+  static auto check2(index_sequence<Is...>,
+                     integer_sequence<bool, (Is == Is)...>) -> std::true_type;
+  static auto check2(...) -> std::false_type;
   template <std::size_t... Is>
-  static decltype(check2(
+  static auto check(index_sequence<Is...>) -> decltype(check2(
       index_sequence<Is...>{},
-      integer_sequence<
-          bool, (is_formattable<typename std::tuple_element<Is, T>::type,
-                                C>::value)...>{})) check(index_sequence<Is...>);
+      integer_sequence<bool,
+                       (is_formattable<typename std::tuple_element<Is, T>::type,
+                                       C>::value)...>{}));
 
  public:
   static constexpr const bool value =
@@ -421,6 +417,12 @@ struct is_formattable_delayed
 #endif
 }  // namespace detail
 
+template <typename...> struct conjunction : std::true_type {};
+template <typename P> struct conjunction<P> : P {};
+template <typename P1, typename... Pn>
+struct conjunction<P1, Pn...>
+    : conditional_t<bool(P1::value), conjunction<Pn...>, P1> {};
+
 template <typename T, typename Char, typename Enable = void>
 struct range_formatter;
 
@@ -486,7 +488,8 @@ struct range_formatter<
     for (; it != end; ++it) {
       if (i > 0) out = detail::copy_str<Char>(separator_, out);
       ctx.advance_to(out);
-      out = underlying_.format(mapper.map(*it), ctx);
+      auto&& item = *it;
+      out = underlying_.format(mapper.map(item), ctx);
       ++i;
     }
     out = detail::copy_str<Char>(closing_bracket_, out);
@@ -570,6 +573,83 @@ struct formatter<
     : detail::range_default_formatter<range_format_kind<R, Char>::value, R,
                                       Char> {
 };
+
+template <typename It, typename Sentinel, typename Char = char>
+struct join_view : detail::view {
+  It begin;
+  Sentinel end;
+  basic_string_view<Char> sep;
+
+  join_view(It b, Sentinel e, basic_string_view<Char> s)
+      : begin(b), end(e), sep(s) {}
+};
+
+template <typename It, typename Sentinel, typename Char>
+struct formatter<join_view<It, Sentinel, Char>, Char> {
+ private:
+  using value_type =
+#ifdef __cpp_lib_ranges
+      std::iter_value_t<It>;
+#else
+      typename std::iterator_traits<It>::value_type;
+#endif
+  formatter<remove_cvref_t<value_type>, Char> value_formatter_;
+
+ public:
+  template <typename ParseContext>
+  FMT_CONSTEXPR auto parse(ParseContext& ctx) -> const Char* {
+    return value_formatter_.parse(ctx);
+  }
+
+  template <typename FormatContext>
+  auto format(const join_view<It, Sentinel, Char>& value,
+              FormatContext& ctx) const -> decltype(ctx.out()) {
+    auto it = value.begin;
+    auto out = ctx.out();
+    if (it != value.end) {
+      out = value_formatter_.format(*it, ctx);
+      ++it;
+      while (it != value.end) {
+        out = detail::copy_str<Char>(value.sep.begin(), value.sep.end(), out);
+        ctx.advance_to(out);
+        out = value_formatter_.format(*it, ctx);
+        ++it;
+      }
+    }
+    return out;
+  }
+};
+
+/**
+  Returns a view that formats the iterator range `[begin, end)` with elements
+  separated by `sep`.
+ */
+template <typename It, typename Sentinel>
+auto join(It begin, Sentinel end, string_view sep) -> join_view<It, Sentinel> {
+  return {begin, end, sep};
+}
+
+/**
+  \rst
+  Returns a view that formats `range` with elements separated by `sep`.
+
+  **Example**::
+
+    std::vector<int> v = {1, 2, 3};
+    fmt::print("{}", fmt::join(v, ", "));
+    // Output: "1, 2, 3"
+
+  ``fmt::join`` applies passed format specifiers to the range elements::
+
+    fmt::print("{:02}", fmt::join(v, ", "));
+    // Output: "01, 02, 03"
+  \endrst
+ */
+template <typename Range>
+auto join(Range&& range, string_view sep)
+    -> join_view<detail::iterator_t<Range>, detail::sentinel_t<Range>> {
+  return join(std::begin(range), std::end(range), sep);
+}
 
 template <typename Char, typename... T> struct tuple_join_view : detail::view {
   const std::tuple<T...>& tuple;
@@ -702,13 +782,6 @@ FMT_BEGIN_EXPORT
 template <typename... T>
 FMT_CONSTEXPR auto join(const std::tuple<T...>& tuple, string_view sep)
     -> tuple_join_view<char, T...> {
-  return {tuple, sep};
-}
-
-template <typename... T>
-FMT_CONSTEXPR auto join(const std::tuple<T...>& tuple,
-                        basic_string_view<wchar_t> sep)
-    -> tuple_join_view<wchar_t, T...> {
   return {tuple, sep};
 }
 

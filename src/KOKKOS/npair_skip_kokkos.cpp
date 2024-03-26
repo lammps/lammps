@@ -16,15 +16,14 @@
 
 #include "atom_kokkos.h"
 #include "atom_masks.h"
-#include "atom_vec.h"
 #include "neigh_list_kokkos.h"
 
 using namespace LAMMPS_NS;
 
 /* ---------------------------------------------------------------------- */
 
-template<class DeviceType>
-NPairSkipKokkos<DeviceType>::NPairSkipKokkos(LAMMPS *lmp) : NPair(lmp) {
+template<class DeviceType, int TRIM>
+NPairSkipKokkos<DeviceType,TRIM>::NPairSkipKokkos(LAMMPS *lmp) : NPair(lmp) {
   atomKK = (AtomKokkos *) atom;
   execution_space = ExecutionSpaceFromDevice<DeviceType>::space;
   d_inum = typename AT::t_int_scalar("npair_skip:inum");
@@ -38,13 +37,18 @@ NPairSkipKokkos<DeviceType>::NPairSkipKokkos(LAMMPS *lmp) : NPair(lmp) {
    if ghost, also store neighbors of ghost atoms & set inum,gnum correctly
 ------------------------------------------------------------------------- */
 
-template<class DeviceType>
-void NPairSkipKokkos<DeviceType>::build(NeighList *list)
+template<class DeviceType, int TRIM>
+void NPairSkipKokkos<DeviceType,TRIM>::build(NeighList *list)
 {
   atomKK->sync(execution_space,TYPE_MASK);
   type = atomKK->k_type.view<DeviceType>();
   nlocal = atom->nlocal;
 
+  if (TRIM) {
+    x = atomKK->k_x.view<DeviceType>();
+    atomKK->sync(execution_space,X_MASK);
+    cutsq_custom = cutoff_custom*cutoff_custom;
+  }
 
   NeighListKokkos<DeviceType>* k_list_skip = static_cast<NeighListKokkos<DeviceType>*>(list->listskip);
   d_ilist_skip = k_list_skip->d_ilist;
@@ -100,12 +104,19 @@ void NPairSkipKokkos<DeviceType>::build(NeighList *list)
   copymode = 0;
 }
 
-template<class DeviceType>
+template<class DeviceType, int TRIM>
 KOKKOS_INLINE_FUNCTION
-void NPairSkipKokkos<DeviceType>::operator()(TagNPairSkipCompute, const int &ii, int &inum, const bool &final) const {
+void NPairSkipKokkos<DeviceType,TRIM>::operator()(TagNPairSkipCompute, const int &ii, int &inum, const bool &final) const {
 
   const int i = d_ilist_skip(ii);
   const int itype = type(i);
+
+  F_FLOAT xtmp,ytmp,ztmp;
+  if (TRIM) {
+    xtmp = x(i,0);
+    ytmp = x(i,1);
+    ztmp = x(i,2);
+  }
 
   if (!d_iskip(itype)) {
 
@@ -123,6 +134,15 @@ void NPairSkipKokkos<DeviceType>::operator()(TagNPairSkipCompute, const int &ii,
         const int joriginal = d_neighbors_skip(i,jj);
         int j = joriginal & NEIGHMASK;
         if (d_ijskip(itype,type(j))) continue;
+
+        if (TRIM) {
+          const double delx = xtmp - x(j,0);
+          const double dely = ytmp - x(j,1);
+          const double delz = ztmp - x(j,2);
+          const double rsq = delx*delx + dely*dely + delz*delz;
+          if (rsq > cutsq_custom) continue;
+        }
+
         neighbors_i(n++) = joriginal;
       }
 
@@ -139,16 +159,17 @@ void NPairSkipKokkos<DeviceType>::operator()(TagNPairSkipCompute, const int &ii,
   }
 }
 
-template<class DeviceType>
+template<class DeviceType, int TRIM>
 KOKKOS_INLINE_FUNCTION
-void NPairSkipKokkos<DeviceType>::operator()(TagNPairSkipCountLocal, const int &i, int &num) const {
+void NPairSkipKokkos<DeviceType,TRIM>::operator()(TagNPairSkipCountLocal, const int &i, int &num) const {
   if (d_ilist[i] < nlocal) num++;
 }
 
-
 namespace LAMMPS_NS {
-template class NPairSkipKokkos<LMPDeviceType>;
+template class NPairSkipKokkos<LMPDeviceType,0>;
+template class NPairSkipKokkos<LMPDeviceType,1>;
 #ifdef LMP_KOKKOS_GPU
-template class NPairSkipKokkos<LMPHostType>;
+template class NPairSkipKokkos<LMPHostType,0>;
+template class NPairSkipKokkos<LMPHostType,1>;
 #endif
 }

@@ -25,6 +25,18 @@ NPairStyle(skip/ghost/intel,
            NP_SKIP | NP_HALF | NP_FULL |
            NP_NSQ | NP_BIN | NP_MULTI |
            NP_NEWTON | NP_NEWTOFF | NP_ORTHO | NP_TRI | NP_GHOST | NP_INTEL);
+
+NPairStyle(skip/trim/intel,
+           NPairSkipTrimIntel,
+           NP_SKIP | NP_HALF | NP_FULL |
+           NP_NSQ | NP_BIN | NP_MULTI |
+           NP_NEWTON | NP_NEWTOFF | NP_ORTHO | NP_TRI | NP_TRIM | NP_INTEL);
+
+NPairStyle(skip/trim/ghost/intel,
+           NPairSkipTrimIntel,
+           NP_SKIP | NP_HALF | NP_FULL |
+           NP_NSQ | NP_BIN | NP_MULTI |
+           NP_NEWTON | NP_NEWTOFF | NP_ORTHO | NP_TRI | NP_TRIM | NP_GHOST | NP_INTEL);
 // clang-format on
 #else
 
@@ -53,6 +65,22 @@ class NPairSkipIntel : public NPair {
 
   template <class flt_t, int THREE>
   void build_t(NeighList *, int *numhalf, int *cnumneigh, int *numhalf_skip);
+};
+
+class NPairSkipTrimIntel : public NPair {
+ public:
+  NPairSkipTrimIntel(class LAMMPS *);
+  ~NPairSkipTrimIntel() override;
+  void copy_neighbor_info() override;
+  void build(class NeighList *) override;
+
+ protected:
+  FixIntel *_fix;
+  int *_inum_starts, *_inum_counts, *_full_props;
+
+  template <class flt_t, class acc_t, int THREE>
+  void build_t(NeighList *, int *numhalf, int *cnumneigh, int *numhalf_skip,
+               IntelBuffers<flt_t, acc_t> *);
 };
 
 }    // namespace LAMMPS_NS

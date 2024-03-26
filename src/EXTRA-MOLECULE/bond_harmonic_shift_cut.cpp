@@ -31,7 +31,10 @@ using namespace LAMMPS_NS;
 
 /* ---------------------------------------------------------------------- */
 
-BondHarmonicShiftCut::BondHarmonicShiftCut(LAMMPS *lmp) : Bond(lmp) {}
+BondHarmonicShiftCut::BondHarmonicShiftCut(LAMMPS *lmp) : Bond(lmp)
+{
+  born_matrix_enable = 1;
+}
 
 /* ---------------------------------------------------------------------- */
 
@@ -218,4 +221,20 @@ double BondHarmonicShiftCut::single(int type, double rsq, int /*i*/, int /*j*/,
 
   fforce = -2.0*k[type]*dr/r;
   return k[type]*(dr*dr - dr2*dr2);
+}
+
+/* ---------------------------------------------------------------------- */
+
+void BondHarmonicShiftCut::born_matrix(int type, double rsq, int /*i*/, int /*j*/, double &du, double &du2)
+{
+  du = 0.0;
+  du2 = 0.0;
+
+  double r = sqrt(rsq);
+  if (r>r1[type]) return;
+
+  double dr = r - r0[type];
+
+  du2 = 2 * k[type];
+  if (r > 0.0) du = du2 * dr;
 }

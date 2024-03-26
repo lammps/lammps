@@ -30,8 +30,8 @@
 
 using namespace LAMMPS_NS;
 
-#define NMAT_FULL 9
-#define NMAT_SYMM 6
+static constexpr int NMAT_FULL = 9;
+static constexpr int NMAT_SYMM = 6;
 
 /* ---------------------------------------------------------------------- */
 

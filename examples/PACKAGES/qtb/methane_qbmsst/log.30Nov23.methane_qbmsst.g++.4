@@ -1,0 +1,280 @@
+LAMMPS (21 Nov 2023)
+OMP_NUM_THREADS environment is not set. Defaulting to 1 thread. (src/comm.cpp:98)
+  using 1 OpenMP thread(s) per MPI task
+## This script first uses fix qtb to equilibrate liquid methane to an initial state with quantum nuclear correction and then simulate shock induced chemical reactions through the quantum thermal bath multi-scale shock technique
+#The default system size may take a while to run you can change to a smaller size
+variable                x_rep equal 5                                                                           #x-direction replication number
+variable                y_rep equal 5                                                                           #y-direction replication number
+variable                z_rep equal 10                                                                          #z-direction replication number
+variable                temperature equal 110.0                                                                 #Target quantum temperature (K in real units)
+variable                delta_t equal 0.25                                                                      #MD timestep length (fs in real units)
+variable                damp_qtb equal 200                                                                      #1/gamma where gamma is the friction coefficient in quantum thermal bath (fs in real units)
+variable                v_msst equal 0.122                                                                      #Shock velocity (Angstrom/fs in metal units)
+variable                q_msst equal 25.0                                                                       #Box mass-like parameter in the MSST (mass^2/length^4, where mass=grams/mole and length=Angstrom in real units)
+variable                mu_msst equal 0.9                                                                       #Artificial viscosity in the MSST (mass/length/time, where mass=grams/mole, length=Angstrom and time=fs in real units)
+variable                tscale_msst equal 0.01                                                                  #Temperature reduction parameter in the MSST (unitless)
+variable                eta_qbmsst equal 1.0                                                                    #Coupling constant between the shock and the quantum thermal bath (unitless constant)
+
+
+##The included part first constructs a liquid methane structure of a given size. It then uses fix qtb to equilibrate the computational cell to the specified temperature and pressure.
+include                 methane_qtb.mod
+## This script first constructs a liquid methane structure of a given size. It then uses fix qtb to equilibrate the computational cell to the specified temperature and pressure.
+
+
+## This part defines units, methane structure, and atomic information
+#General
+units                   real
+dimension               3
+boundary                p p p
+atom_style              charge
+
+#Lattice
+lattice                 custom 1.0                         a1      3.9783624 0 0                         a2      0 3.9783624 0                         a3      0 0 3.9783624                                                 basis   0.5 0.5 0.5                         basis   0.663 0.663 0.663                         basis   0.337 0.337 0.663                         basis   0.663 0.337 0.337                         basis   0.337 0.663 0.337
+Lattice spacing in x,y,z = 3.9783624 3.9783624 3.9783624
+
+#Computational Cell
+region                  simbox block 0 3.9783624 0 3.9783624 0 3.9783624 units box
+create_box              2 simbox
+Created orthogonal box = (0 0 0) to (3.9783624 3.9783624 3.9783624)
+  1 by 2 by 2 MPI processor grid
+create_atoms            1 box                         basis   1 1                         basis   2 2                         basis   3 2                         basis   4 2                         basis   5 2
+Created 5 atoms
+  using lattice units in orthogonal box = (0 0 0) to (3.9783624 3.9783624 3.9783624)
+  create_atoms CPU = 0.000 seconds
+replicate               ${x_rep} ${y_rep} ${z_rep}
+replicate               5 ${y_rep} ${z_rep}
+replicate               5 5 ${z_rep}
+replicate               5 5 10
+Replication is creating a 5x5x10 = 250 times larger system...
+  orthogonal box = (0 0 0) to (19.891812 19.891812 39.783624)
+  1 by 1 by 4 MPI processor grid
+  1250 atoms
+  replicate CPU = 0.000 seconds
+
+#Atomic Information
+mass                    1 12.011150
+mass                    2  1.007970
+
+
+## This part defines the reax pair potential in methane, force field coefficients are specified in "ffield.reax"
+#Pair Potentials
+pair_style              reaxff NULL
+pair_coeff              * * ffield.reax C H
+fix                     0 all qeq/reax 1 0.0 10.0 1.0e-6 reaxff
+
+#Neighbor Style
+neighbor                2.5 bin
+neigh_modify            every 10 delay 0 check no
+
+
+## This part equilibrates liquid methane to a temperature of ${temperature}(unit temperatureture) with quantum nuclear effects
+#Initialization
+velocity                all create ${temperature} 93 dist gaussian sum no mom yes rot yes loop all
+velocity                all create 110 93 dist gaussian sum no mom yes rot yes loop all
+
+#Setup output
+thermo_style            custom step temp press etotal vol
+thermo                  20
+
+#Colored thermal bath
+fix                     scapegoat_qtb all nve                                                                   #NVE does the time integration
+fix                     methane_qtb all qtb temp ${temperature} damp ${damp_qtb} seed 35082 f_max 0.3 N_f 50    #Change f_max if your Debye frequency is higher
+fix                     methane_qtb all qtb temp 110 damp ${damp_qtb} seed 35082 f_max 0.3 N_f 50    
+fix                     methane_qtb all qtb temp 110 damp 200 seed 35082 f_max 0.3 N_f 50    
+timestep                ${delta_t}
+timestep                0.25
+run                     500                                                                                    #500 fs
+
+CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE
+
+Your simulation uses code contributions which should be cited:
+
+- pair reaxff command: doi:10.1016/j.parco.2011.08.005
+
+@Article{Aktulga12,
+ author = {H. M. Aktulga and J. C. Fogarty and S. A. Pandit and A. Y. Grama},
+ title = {Parallel Reactive Molecular Dynamics: {N}umerical Methods and Algorithmic Techniques},
+ journal = {Parallel Computing},
+ year =    2012,
+ volume =  38,
+ number =  {4--5},
+ pages =   {245--259}
+}
+
+- fix qeq/reaxff command: doi:10.1016/j.parco.2011.08.005
+
+@Article{Aktulga12,
+ author = {H. M. Aktulga and J. C. Fogarty and S. A. Pandit and A. Y. Grama},
+ title = {Parallel Reactive Molecular Dynamics: {N}umerical Methods and Algorithmic Techniques},
+ journal = {Parallel Computing},
+ year =    2012,
+ volume =  38,
+ pages =   {245--259}
+}
+
+CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE
+
+Neighbor list info ...
+  update: every = 10 steps, delay = 0 steps, check = no
+  max neighbors/atom: 2000, page size: 100000
+  master list distance cutoff = 12.5
+  ghost atom cutoff = 12.5
+  binsize = 6.25, bins = 4 4 7
+  2 neighbor lists, perpetual/occasional/extra = 2 0 0
+  (1) pair reaxff, perpetual
+      attributes: half, newton off, ghost
+      pair build: half/bin/newtoff/ghost
+      stencil: full/ghost/bin/3d
+      bin: standard
+  (2) fix qeq/reax, perpetual, copy from (1)
+      attributes: half, newton off
+      pair build: copy
+      stencil: none
+      bin: none
+Per MPI rank memory allocation (min/avg/max) = 125.2 | 125.3 | 125.4 Mbytes
+   Step          Temp          Press          TotEng         Volume    
+         0   110           -15717.706     -110869.31      15741.751    
+        20   133.92621      9503.0083     -110548.47      15741.751    
+        40   188.1524      -13687.131     -110344.93      15741.751    
+        60   205.85747      8421.3906     -110165.58      15741.751    
+        80   185.08989     -11337.006     -110026.24      15741.751    
+       100   245.36524      5805.0694     -109841.66      15741.751    
+       120   218.83661     -7740.8838     -109674.15      15741.751    
+       140   254.6075       3396.3936     -109589.89      15741.751    
+       160   262.20963     -3574.2575     -109413.81      15741.751    
+       180   297.89271      917.40867     -109204.79      15741.751    
+       200   315.54026     -371.17448     -109129.45      15741.751    
+       220   323.90745     -2811.4367     -108988.12      15741.751    
+       240   358.28478      3972.8358     -108848.95      15741.751    
+       260   359.12673     -6289.689      -108788.08      15741.751    
+       280   376.47656      6851.3186     -108664.07      15741.751    
+       300   404.30975     -7805.7238     -108482.75      15741.751    
+       320   410.9097       7696.2518     -108421.87      15741.751    
+       340   406.19092     -8175.1703     -108311.84      15741.751    
+       360   460.37085      7630.6182     -108139.6       15741.751    
+       380   413.96355     -7515.2307     -108150.73      15741.751    
+       400   452.17428      7148.0954     -108027.39      15741.751    
+       420   467.1725      -6662.4113     -107842.71      15741.751    
+       440   481.03775      6117.6862     -107759.03      15741.751    
+       460   509.03937     -4095.0215     -107648.46      15741.751    
+       480   533.22373      2211.9169     -107481.89      15741.751    
+       500   517.71195     -214.23969     -107489.48      15741.751    
+Loop time of 22.2711 on 4 procs for 500 steps with 1250 atoms
+
+Performance: 0.485 ns/day, 49.491 hours/ns, 22.451 timesteps/s, 28.063 katom-step/s
+99.3% CPU use with 4 MPI tasks x 1 OpenMP threads
+
+MPI task timing breakdown:
+Section |  min time  |  avg time  |  max time  |%varavg| %total
+---------------------------------------------------------------
+Pair    | 13.689     | 15.195     | 16.732     |  27.7 | 68.23
+Neigh   | 1.5325     | 1.5496     | 1.5658     |   1.0 |  6.96
+Comm    | 0.073366   | 1.6105     | 3.116      |  85.1 |  7.23
+Output  | 0.00052192 | 0.00057642 | 0.00073657 |   0.0 |  0.00
+Modify  | 3.896      | 3.9129     | 3.9306     |   0.6 | 17.57
+Other   |            | 0.00241    |            |       |  0.01
+
+Nlocal:          312.5 ave         317 max         308 min
+Histogram: 1 0 0 1 0 0 1 0 0 1
+Nghost:           4982 ave        4995 max        4967 min
+Histogram: 1 0 0 0 0 1 1 0 0 1
+Neighs:         172509 ave      174182 max      170676 min
+Histogram: 1 0 0 1 0 0 0 1 0 1
+
+Total # of neighbors = 690037
+Ave neighs/atom = 552.0296
+Neighbor list builds = 50
+Dangerous builds not checked
+unfix                   methane_qtb
+unfix                   scapegoat_qtb
+
+
+##Shock compression with quantum nuclear corrections
+reset_timestep          0
+fix                     shock all qbmsst z ${v_msst} q ${q_msst} mu ${mu_msst} tscale ${tscale_msst} damp ${damp_qtb} f_max 0.3 N_f 50 seed 35082 eta ${eta_qbmsst} beta 400 T_init ${temperature}
+fix                     shock all qbmsst z 0.122 q ${q_msst} mu ${mu_msst} tscale ${tscale_msst} damp ${damp_qtb} f_max 0.3 N_f 50 seed 35082 eta ${eta_qbmsst} beta 400 T_init ${temperature}
+fix                     shock all qbmsst z 0.122 q 25 mu ${mu_msst} tscale ${tscale_msst} damp ${damp_qtb} f_max 0.3 N_f 50 seed 35082 eta ${eta_qbmsst} beta 400 T_init ${temperature}
+fix                     shock all qbmsst z 0.122 q 25 mu 0.9 tscale ${tscale_msst} damp ${damp_qtb} f_max 0.3 N_f 50 seed 35082 eta ${eta_qbmsst} beta 400 T_init ${temperature}
+fix                     shock all qbmsst z 0.122 q 25 mu 0.9 tscale 0.01 damp ${damp_qtb} f_max 0.3 N_f 50 seed 35082 eta ${eta_qbmsst} beta 400 T_init ${temperature}
+fix                     shock all qbmsst z 0.122 q 25 mu 0.9 tscale 0.01 damp 200 f_max 0.3 N_f 50 seed 35082 eta ${eta_qbmsst} beta 400 T_init ${temperature}
+fix                     shock all qbmsst z 0.122 q 25 mu 0.9 tscale 0.01 damp 200 f_max 0.3 N_f 50 seed 35082 eta 1 beta 400 T_init ${temperature}
+fix                     shock all qbmsst z 0.122 q 25 mu 0.9 tscale 0.01 damp 200 f_max 0.3 N_f 50 seed 35082 eta 1 beta 400 T_init 110
+QBMSST parameters:
+  Shock in z direction
+  Cell mass-like parameter qmass (units of mass^2/length^4) =  2.50000e+01
+  Shock velocity =  1.22000e-01
+  Artificial viscosity (units of mass/length/time) =  9.00000e-01
+  Initial pressure calculated on first step
+  Initial volume calculated on first step
+  Initial energy calculated on first step
+fix_modify              shock energy yes
+variable                dhug equal f_shock[1]
+variable                dray equal f_shock[2]
+variable                lgr_vel equal f_shock[3]
+variable                lgr_pos equal f_shock[4]
+variable                T_qm equal f_shock[5]                                                                   #Temperature with quantum nuclear correction
+thermo_style            custom step v_T_qm press etotal vol lx ly lz pzz v_dhug v_dray v_lgr_vel v_lgr_pos
+thermo                  20
+timestep                ${delta_t}
+timestep                0.25
+#restart                 1000 restart
+run                     500
+Fix QBMSST v0 =  1.57418e+04
+Fix QBMSST p0 = -5.88788e+01
+Fix QBMSST e0 = to be -1.07489e+05
+Fix QBMSST initial strain rate of -1.02186e-04 established by reducing temperature by factor of  1.00000e-02
+Per MPI rank memory allocation (min/avg/max) = 126.1 | 126.1 | 126.1 Mbytes
+   Step         v_T_qm         Press          TotEng         Volume           Lx             Ly             Lz            Pzz           v_dhug         v_dray       v_lgr_vel      v_lgr_pos   
+         0   110           -270.21489     -107489.48      15741.751      19.891812      19.891812      39.783624     -118.93551      0             -60.056661      0              0            
+        20   110           -2180.5877     -107208.2       15733.847      19.891812      19.891812      39.763648      223.47326     -37.773571     -29.703539      6.1258507e-05 -0.60983836   
+        40   110            5004.864      -107109.95      15726.306      19.891812      19.891812      39.744592      3335.6341     -50.920246      2784.77        0.00011969641 -1.2193771    
+        60   110           -4549.1199     -106949.22      15719.136      19.891812      19.891812      39.72647      -4461.4212     -72.656651     -5295.3675      0.00017526726 -1.8286321    
+        80   110            6695.6833     -106942.12      15712.214      19.891812      19.891812      39.708976      5333.2741     -73.356417      4226.043       0.00022891479 -2.4376137    
+       100   110           -5337.7671     -106930.78      15705.644      19.891812      19.891812      39.692373     -2682.4224     -75.129348     -4049.0157      0.00027982924 -3.0463347    
+       120   110            6526.5587     -106736.15      15699.334      19.891812      19.891812      39.676424      7038.2375     -100.8809       5422.5046      0.00032873694 -3.6548061    
+       140   110           -3284.0472     -106761.36      15693.36       19.891812      19.891812      39.661329     -3999.8116     -97.977739     -5851.3636      0.00037502973 -4.2630401    
+       160   110            4792.0537     -106662.24      15687.56       19.891812      19.891812      39.64667       4484.6905     -110.86184      2404.1579      0.00041998006 -4.8710464    
+       180   110           -1253.5849     -106532.38      15682.037      19.891812      19.891812      39.632711     -723.78287     -128.58314     -3022.3825      0.00046278801 -5.4788331    
+       200   110            3276.2225     -106488.13      15676.725      19.891812      19.891812      39.619286      5117.4749     -134.15782      2609.1518      0.00050395806 -6.0864105    
+       220   110           -553.17982     -106421.17      15671.675      19.891812      19.891812      39.606524     -1360.8796     -143.56979     -4068.5641      0.00054309397 -6.6937871    
+       240   110            1329.8793     -106309.56      15666.794      19.891812      19.891812      39.594187      775.35326     -158.40869     -2125.0508      0.00058092605 -7.300972     
+       260   110            1809.8974     -106360.42      15662.075      19.891812      19.891812      39.582262      3075.2725     -151.39659     -11.4097        0.00061749364 -7.9079706    
+       280   110            24.534819     -106310.46      15657.56       19.891812      19.891812      39.570852      1043.8352     -158.25965     -2221.0935      0.00065248454 -8.5147908    
+       300   110            2854.2862     -106150.2       15653.217      19.891812      19.891812      39.559874      3727.6844     -179.54521      291.27132      0.00068614803 -9.1214393    
+       320   110           -776.61228     -106199.04      15649.041      19.891812      19.891812      39.549322     -1285.3999     -173.42703     -4886.655       0.00071850756 -9.7279234    
+       340   110            3778.2238     -106201.03      15644.958      19.891812      19.891812      39.539001      3694.462      -172.6926      -68.017561      0.00075015694 -10.334247    
+       360   110           -1505.9413     -106025.15      15641.031      19.891812      19.891812      39.529078     -1491.3768     -196.81063     -5408.8787      0.00078058882 -10.940416    
+       380   110            3414.9599     -106071.49      15637.176      19.891812      19.891812      39.519335      4956.6752     -189.93327      886.98409      0.00081046454 -11.546435    
+       400   110           -947.2273      -106003.34      15633.49       19.891812      19.891812      39.510021      726.91825     -199.51619     -3488.2795      0.0008390284  -12.152307    
+       420   46.681884      1610.2414     -105884.37      15629.905      19.891812      19.891812      39.500961     -1377.8364     -215.72223     -5734.5653      0.00086681188 -12.758039    
+       440   46.681884      2290.4653     -105923.83      15626.371      19.891812      19.891812      39.492029      6296.7177     -209.55961      1800.4591      0.00089420243 -13.363632    
+       460   46.681884     -2068.0472     -105879.44      15622.969      19.891812      19.891812      39.483432     -5629.8405     -216.88862     -10260.4        0.00092056659 -13.969092    
+       480   46.681884      5011.06       -105748.92      15619.556      19.891812      19.891812      39.474805      8649.5097     -232.72756      3884.1859      0.00094702163 -14.574419    
+       500   46.681884     -3314.8335     -105829.23      15616.305      19.891812      19.891812      39.46659      -5120.4784     -223.60669     -10014.132      0.00097221364 -15.179618    
+Loop time of 26.5748 on 4 procs for 500 steps with 1250 atoms
+
+Performance: 0.406 ns/day, 59.055 hours/ns, 18.815 timesteps/s, 23.519 katom-step/s
+99.3% CPU use with 4 MPI tasks x 1 OpenMP threads
+
+MPI task timing breakdown:
+Section |  min time  |  avg time  |  max time  |%varavg| %total
+---------------------------------------------------------------
+Pair    | 16.259     | 18.109     | 19.999     |  31.1 | 68.14
+Neigh   | 1.8265     | 1.8477     | 1.8638     |   1.0 |  6.95
+Comm    | 0.045073   | 1.9349     | 3.7845     |  95.1 |  7.28
+Output  | 0.0019058  | 0.0019666  | 0.0021202  |   0.2 |  0.01
+Modify  | 4.6619     | 4.6782     | 4.699      |   0.6 | 17.60
+Other   |            | 0.002774   |            |       |  0.01
+
+Nlocal:          312.5 ave         318 max         307 min
+Histogram: 1 0 0 0 1 1 0 0 0 1
+Nghost:           5059 ave        5080 max        5039 min
+Histogram: 1 0 1 0 0 0 1 0 0 1
+Neighs:         173854 ave      176807 max      170839 min
+Histogram: 1 0 0 1 0 0 1 0 0 1
+
+Total # of neighbors = 695414
+Ave neighs/atom = 556.3312
+Neighbor list builds = 50
+Dangerous builds not checked
+Total wall time: 0:00:49

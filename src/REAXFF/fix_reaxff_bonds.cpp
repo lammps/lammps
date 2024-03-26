@@ -56,8 +56,8 @@ FixReaxFFBonds::FixReaxFFBonds(LAMMPS *lmp, int narg, char **arg) :
       if (!fp) error->one(FLERR,"Cannot open compressed file");
     } else fp = fopen(arg[4],"w");
 
-    if (!fp) error->one(FLERR,fmt::format("Cannot open fix reaxff/bonds file {}: {}",
-                                          arg[4],utils::getsyserror()));
+    if (!fp) error->one(FLERR,"Cannot open fix reaxff/bonds file {}: {}",
+                        arg[4],utils::getsyserror());
   }
 
   if (atom->tag_consecutive() == 0)

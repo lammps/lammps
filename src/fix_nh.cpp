@@ -40,9 +40,9 @@
 using namespace LAMMPS_NS;
 using namespace FixConst;
 
-#define DELTAFLIP 0.1
-#define TILTMAX 1.5
-#define EPSILON 1.0e-6
+static constexpr double DELTAFLIP = 0.1;
+static constexpr double TILTMAX = 1.5;
+static constexpr double EPSILON = 1.0e-6;
 
 enum{NOBIAS,BIAS};
 enum{NONE,XYZ,XY,YZ,XZ};
@@ -53,12 +53,9 @@ enum{ISO,ANISO,TRICLINIC};
  ---------------------------------------------------------------------- */
 
 FixNH::FixNH(LAMMPS *lmp, int narg, char **arg) :
-  Fix(lmp, narg, arg),
-  rfix(nullptr), id_dilate(nullptr), irregular(nullptr),
-  id_temp(nullptr), id_press(nullptr),
-  eta(nullptr), eta_dot(nullptr), eta_dotdot(nullptr),
-  eta_mass(nullptr), etap(nullptr), etap_dot(nullptr), etap_dotdot(nullptr),
-  etap_mass(nullptr)
+    Fix(lmp, narg, arg), id_dilate(nullptr), irregular(nullptr), id_temp(nullptr),
+    id_press(nullptr), eta(nullptr), eta_dot(nullptr), eta_dotdot(nullptr), eta_mass(nullptr),
+    etap(nullptr), etap_dot(nullptr), etap_dotdot(nullptr), etap_mass(nullptr)
 {
   if (narg < 4) utils::missing_cmd_args(FLERR, std::string("fix ") + style, error);
 
@@ -271,7 +268,7 @@ FixNH::FixNH(LAMMPS *lmp, int narg, char **arg) :
       if (strcmp(arg[iarg+1],"all") == 0) allremap = 1;
       else {
         allremap = 0;
-        delete [] id_dilate;
+        delete[] id_dilate;
         id_dilate = utils::strdup(arg[iarg+1]);
         int idilate = group->find(id_dilate);
         if (idilate == -1)
@@ -445,10 +442,16 @@ FixNH::FixNH(LAMMPS *lmp, int narg, char **arg) :
     error->all(FLERR,"Invalid fix {} pressure settings", style);
 
   if (dipole_flag) {
-    if (!atom->sphere_flag)
-      error->all(FLERR,"Using update dipole flag requires atom style sphere");
-    if (!atom->mu_flag)
-      error->all(FLERR,"Using update dipole flag requires atom attribute mu");
+    if (strstr(style, "/sphere")) {
+      if (!atom->omega_flag)
+        error->all(FLERR,"Using update dipole flag requires atom attribute omega");
+      if (!atom->radius_flag)
+        error->all(FLERR,"Using update dipole flag requires atom attribute radius");
+      if (!atom->mu_flag)
+        error->all(FLERR,"Using update dipole flag requires atom attribute mu");
+    } else {
+      error->all(FLERR, "Must use a '/sphere' Nose-Hoover fix style for updating dipoles");
+    }
   }
 
   if ((tstat_flag && t_period <= 0.0) ||
@@ -564,9 +567,6 @@ FixNH::FixNH(LAMMPS *lmp, int narg, char **arg) :
     if (deviatoric_flag) size_vector += 1;
   }
 
-  nrigid = 0;
-  rfix = nullptr;
-
   if (pre_exchange_flag) irregular = new Irregular(lmp);
   else irregular = nullptr;
 
@@ -582,31 +582,29 @@ FixNH::~FixNH()
 {
   if (copymode) return;
 
-  delete [] id_dilate;
-  delete [] rfix;
-
+  delete[] id_dilate;
   delete irregular;
 
   // delete temperature and pressure if fix created them
 
   if (tcomputeflag) modify->delete_compute(id_temp);
-  delete [] id_temp;
+  delete[] id_temp;
 
   if (tstat_flag) {
-    delete [] eta;
-    delete [] eta_dot;
-    delete [] eta_dotdot;
-    delete [] eta_mass;
+    delete[] eta;
+    delete[] eta_dot;
+    delete[] eta_dotdot;
+    delete[] eta_mass;
   }
 
   if (pstat_flag) {
     if (pcomputeflag) modify->delete_compute(id_press);
-    delete [] id_press;
+    delete[] id_press;
     if (mpchain) {
-      delete [] etap;
-      delete [] etap_dot;
-      delete [] etap_dotdot;
-      delete [] etap_mass;
+      delete[] etap;
+      delete[] etap_dot;
+      delete[] etap_dotdot;
+      delete[] etap_mass;
     }
   }
 }
@@ -641,15 +639,17 @@ void FixNH::init()
   // ensure no conflict with fix deform
 
   if (pstat_flag)
-    for (int i = 0; i < modify->nfix; i++)
-      if (strcmp(modify->fix[i]->style,"deform") == 0) {
-        int *dimflag = (dynamic_cast<FixDeform *>(modify->fix[i]))->dimflag;
+    for (auto &ifix : modify->get_fix_by_style("^deform")) {
+      auto deform = dynamic_cast<FixDeform *>(ifix);
+      if (deform) {
+        int *dimflag = deform->dimflag;
         if ((p_flag[0] && dimflag[0]) || (p_flag[1] && dimflag[1]) ||
             (p_flag[2] && dimflag[2]) || (p_flag[3] && dimflag[3]) ||
             (p_flag[4] && dimflag[4]) || (p_flag[5] && dimflag[5]))
           error->all(FLERR,"Cannot use fix {} and fix deform on "
                      "same component of stress tensor", style);
       }
+    }
 
   // set temperature and pressure ptrs
 
@@ -718,20 +718,10 @@ void FixNH::init()
   }
 
   // detect if any rigid fixes exist so rigid bodies move when box is remapped
-  // rfix[] = indices to each fix rigid
 
-  delete [] rfix;
-  nrigid = 0;
-  rfix = nullptr;
-
-  for (int i = 0; i < modify->nfix; i++)
-    if (modify->fix[i]->rigid_flag) nrigid++;
-  if (nrigid) {
-    rfix = new int[nrigid];
-    nrigid = 0;
-    for (int i = 0; i < modify->nfix; i++)
-      if (modify->fix[i]->rigid_flag) rfix[nrigid++] = i;
-  }
+  rfix.clear();
+  for (auto &ifix : modify->get_fix_list())
+    if (ifix->rigid_flag) rfix.push_back(ifix);
 }
 
 /* ----------------------------------------------------------------------
@@ -1090,9 +1080,7 @@ void FixNH::remap()
         domain->x2lamda(x[i],x[i]);
   }
 
-  if (nrigid)
-    for (i = 0; i < nrigid; i++)
-      modify->fix[rfix[i]]->deform(0);
+  for (auto &ifix : rfix) ifix->deform(0);
 
   // reset global and local box to new size/shape
 
@@ -1237,9 +1225,7 @@ void FixNH::remap()
         domain->lamda2x(x[i],x[i]);
   }
 
-  if (nrigid)
-    for (i = 0; i < nrigid; i++)
-      modify->fix[rfix[i]]->deform(1);
+  for (auto &ifix : rfix) ifix->deform(1);
 }
 
 /* ----------------------------------------------------------------------
@@ -1398,7 +1384,7 @@ int FixNH::modify_param(int narg, char **arg)
       modify->delete_compute(id_temp);
       tcomputeflag = 0;
     }
-    delete [] id_temp;
+    delete[] id_temp;
     id_temp = utils::strdup(arg[1]);
 
     temperature = modify->get_compute_by_id(arg[1]);
@@ -1428,7 +1414,7 @@ int FixNH::modify_param(int narg, char **arg)
       modify->delete_compute(id_press);
       pcomputeflag = 0;
     }
-    delete [] id_press;
+    delete[] id_press;
     id_press = utils::strdup(arg[1]);
 
     pressure = modify->get_compute_by_id(arg[1]);

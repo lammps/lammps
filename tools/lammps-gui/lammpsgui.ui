@@ -105,7 +105,7 @@
   <widget class="QStatusBar" name="statusbar"/>
   <action name="actionNew">
    <property name="icon">
-    <iconset theme=":/document-new.png"/>
+    <iconset theme=":/icons/document-new.png"/>
    </property>
    <property name="text">
     <string>&amp;New</string>
@@ -116,7 +116,7 @@
   </action>
   <action name="actionOpen">
    <property name="icon">
-    <iconset theme=":/document-open.png"/>
+    <iconset theme=":/icons/document-open.png"/>
    </property>
    <property name="text">
     <string>&amp;Open</string>
@@ -127,7 +127,7 @@
   </action>
   <action name="actionSave">
    <property name="icon">
-    <iconset theme=":/document-save.png"/>
+    <iconset theme=":/icons/document-save.png"/>
    </property>
    <property name="text">
     <string>&amp;Save</string>
@@ -138,7 +138,7 @@
   </action>
   <action name="actionSave_As">
    <property name="icon">
-    <iconset theme=":/document-save-as.png"/>
+    <iconset theme=":/icons/document-save-as.png"/>
    </property>
    <property name="text">
     <string>Save &amp;As</string>
@@ -149,7 +149,7 @@
   </action>
   <action name="actionQuit">
    <property name="icon">
-    <iconset theme=":/application-exit.png"/>
+    <iconset theme=":/icons/application-exit.png"/>
    </property>
    <property name="text">
     <string>&amp;Quit</string>
@@ -160,7 +160,7 @@
   </action>
   <action name="actionCut">
    <property name="icon">
-    <iconset theme=":/edit-cut.png"/>
+    <iconset theme=":/icons/edit-cut.png"/>
    </property>
    <property name="text">
     <string>Cu&amp;t</string>
@@ -171,7 +171,7 @@
   </action>
   <action name="actionCopy">
    <property name="icon">
-    <iconset theme=":/edit-copy.png"/>
+    <iconset theme=":/icons/edit-copy.png"/>
    </property>
    <property name="text">
     <string>&amp;Copy</string>
@@ -182,7 +182,7 @@
   </action>
   <action name="actionPaste">
    <property name="icon">
-    <iconset theme=":/edit-paste.png"/>
+    <iconset theme=":/icons/edit-paste.png"/>
    </property>
    <property name="text">
     <string>&amp;Paste</string>
@@ -193,7 +193,7 @@
   </action>
   <action name="actionUndo">
    <property name="icon">
-    <iconset theme=":/edit-undo.png"/>
+    <iconset theme=":/icons/edit-undo.png"/>
    </property>
    <property name="text">
     <string>&amp;Undo</string>
@@ -204,7 +204,7 @@
   </action>
   <action name="actionRedo">
    <property name="icon">
-    <iconset theme=":/edit-redo.png"/>
+    <iconset theme=":/icons/edit-redo.png"/>
    </property>
    <property name="text">
     <string>&amp;Redo</string>
@@ -215,7 +215,7 @@
   </action>
   <action name="actionRun_Buffer">
    <property name="icon">
-    <iconset theme=":/system-run.png"/>
+    <iconset theme=":/icons/system-run.png"/>
    </property>
    <property name="text">
     <string>&amp;Run LAMMPS from Editor Buffer</string>
@@ -226,7 +226,7 @@
   </action>
   <action name="actionRun_File">
    <property name="icon">
-    <iconset theme=":/run-file.png"/>
+    <iconset theme=":/icons/run-file.png"/>
    </property>
    <property name="text">
     <string>&amp;Run LAMMPS from File</string>
@@ -237,7 +237,7 @@
   </action>
   <action name="actionStop_LAMMPS">
    <property name="icon">
-    <iconset theme=":/process-stop.png"/>
+    <iconset theme=":/icons/process-stop.png"/>
    </property>
    <property name="text">
     <string>&amp;Stop LAMMPS</string>
@@ -248,7 +248,7 @@
   </action>
   <action name="actionImage">
    <property name="icon">
-    <iconset theme=":/emblem-photos.png"/>
+    <iconset theme=":/icons/emblem-photos.png"/>
    </property>
    <property name="text">
     <string>Create &amp;Image</string>
@@ -259,7 +259,7 @@
   </action>
   <action name="actionAbout_LAMMPS_GUI">
    <property name="icon">
-    <iconset theme=":/help-about.png"/>
+    <iconset theme=":/icons/help-about.png"/>
    </property>
    <property name="text">
     <string>&amp;About LAMMPS</string>
@@ -270,7 +270,7 @@
   </action>
   <action name="action_Help">
    <property name="icon">
-    <iconset theme=":/help-faq.png"/>
+    <iconset theme=":/icons/help-faq.png"/>
    </property>
    <property name="text">
     <string>Quick &amp;Help</string>
@@ -281,7 +281,7 @@
   </action>
   <action name="actionPreferences">
    <property name="icon">
-    <iconset theme=":/preferences-desktop.png"/>
+    <iconset theme=":/icons/preferences-desktop.png"/>
    </property>
    <property name="text">
     <string>Pre&amp;ferences...</string>
@@ -292,7 +292,7 @@
   </action>
   <action name="actionLAMMPS_Manual">
    <property name="icon">
-    <iconset theme=":/help-browser.png"/>
+    <iconset theme=":/icons/help-browser.png"/>
    </property>
    <property name="text">
     <string>LAMMPS &amp;Manual</string>
@@ -303,7 +303,7 @@
   </action>
   <action name="actionDefaults">
    <property name="icon">
-    <iconset theme=":/document-revert.png"/>
+    <iconset theme=":/icons/document-revert.png"/>
    </property>
    <property name="text">
     <string>Reset to &amp;Defaults</string>
@@ -311,7 +311,7 @@
   </action>
   <action name="actionView_in_OVITO">
    <property name="icon">
-    <iconset theme=":/ovito.png"/>
+    <iconset theme=":/icons/ovito.png"/>
    </property>
    <property name="text">
     <string>View in &amp;OVITO</string>
@@ -322,7 +322,7 @@
   </action>
   <action name="actionView_in_VMD">
    <property name="icon">
-    <iconset theme=":/vmd.png"/>
+    <iconset theme=":/icons/vmd.png"/>
    </property>
    <property name="text">
     <string>View in VM&amp;D</string>
@@ -333,7 +333,7 @@
   </action>
   <action name="actionView_Log_Window">
    <property name="icon">
-    <iconset theme=":/utilities-terminal.png"/>
+    <iconset theme=":/icons/utilities-terminal.png"/>
    </property>
    <property name="text">
     <string>&amp;Log Window</string>
@@ -344,7 +344,7 @@
   </action>
   <action name="actionView_Graph_Window">
    <property name="icon">
-    <iconset theme=":/x-office-drawing.png"/>
+    <iconset theme=":/icons/x-office-drawing.png"/>
    </property>
    <property name="text">
     <string>&amp;Chart Window</string>
@@ -355,7 +355,7 @@
   </action>
   <action name="actionView_Slide_Show">
    <property name="icon">
-    <iconset theme=":/image-x-generic.png"/>
+    <iconset theme=":/icons/image-x-generic.png"/>
    </property>
    <property name="text">
     <string>&amp;Slide Show Window</string>
@@ -366,7 +366,7 @@
   </action>
   <action name="action_1">
    <property name="icon">
-    <iconset theme=":/document-open-recent.png"/>
+    <iconset theme=":/icons/document-open-recent.png"/>
    </property>
    <property name="text">
     <string>&amp;1.</string>
@@ -374,7 +374,7 @@
   </action>
   <action name="action_2">
    <property name="icon">
-    <iconset theme=":/document-open-recent.png"/>
+    <iconset theme=":/icons/document-open-recent.png"/>
    </property>
    <property name="text">
     <string>&amp;2.</string>
@@ -382,7 +382,7 @@
   </action>
   <action name="action_3">
    <property name="icon">
-    <iconset theme=":/document-open-recent.png"/>
+    <iconset theme=":/icons/document-open-recent.png"/>
    </property>
    <property name="text">
     <string>&amp;3.</string>
@@ -390,7 +390,7 @@
   </action>
   <action name="action_4">
    <property name="icon">
-    <iconset theme=":/document-open-recent.png"/>
+    <iconset theme=":/icons/document-open-recent.png"/>
    </property>
    <property name="text">
     <string>&amp;4.</string>
@@ -398,7 +398,7 @@
   </action>
   <action name="action_5">
    <property name="icon">
-    <iconset theme=":/document-open-recent.png"/>
+    <iconset theme=":/icons/document-open-recent.png"/>
    </property>
    <property name="text">
     <string>&amp;5.</string>
@@ -406,7 +406,7 @@
   </action>
   <action name="actionView_Image_Window">
    <property name="icon">
-    <iconset theme=":/emblem-photos.png"/>
+    <iconset theme=":/icons/emblem-photos.png"/>
    </property>
    <property name="text">
     <string>&amp;Image Window</string>
@@ -417,7 +417,7 @@
   </action>
   <action name="actionSet_Variables">
    <property name="icon">
-    <iconset theme=":/preferences-desktop-personal.png"/>
+    <iconset theme=":/icons/preferences-desktop-personal.png"/>
    </property>
    <property name="text">
     <string>Set &amp;Variables...</string>
@@ -428,7 +428,7 @@
   </action>
   <action name="actionView_Variable_Window">
    <property name="icon">
-    <iconset theme=":/preferences-desktop-personal.png"/>
+    <iconset theme=":/icons/preferences-desktop-personal.png"/>
    </property>
    <property name="text">
     <string>&amp;Variables Window</string>
@@ -439,7 +439,7 @@
   </action>
   <action name="actionLAMMPS_GUI_Howto">
    <property name="icon">
-    <iconset theme=":/system-help.png"/>
+    <iconset theme=":/icons/system-help.png"/>
    </property>
    <property name="text">
     <string>LAMMPS GUI Howto</string>

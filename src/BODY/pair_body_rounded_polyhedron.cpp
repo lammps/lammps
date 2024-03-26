@@ -43,10 +43,10 @@
 using namespace LAMMPS_NS;
 using namespace MathConst;
 
-#define DELTA 10000
-#define EPSILON 1e-3     // dimensionless threshold (dot products, end point checks, contact checks)
-#define MAX_FACE_SIZE 4  // maximum number of vertices per face (same as BodyRoundedPolyhedron)
-#define MAX_CONTACTS 32  // for 3D models (including duplicated counts)
+static constexpr int DELTA = 10000;
+static constexpr double EPSILON = 1.0e-3; // dimensionless threshold (dot products, end point checks, contact checks)
+static constexpr int MAX_FACE_SIZE = 4;   // maximum number of vertices per face (same as BodyRoundedPolyhedron)
+static constexpr int MAX_CONTACTS = 32;   // for 3D models (including duplicated counts)
 
 //#define _POLYHEDRON_DEBUG
 
@@ -1699,9 +1699,10 @@ void PairBodyRoundedPolyhedron::rescale_cohesive_forces(double** x,
       num_unique_contacts++;
     }
 
-    xc[0] /= (double)num_unique_contacts;
-    xc[1] /= (double)num_unique_contacts;
-    xc[2] /= (double)num_unique_contacts;
+    const double dble_unique_contacts = (num_unique_contacts > 0) ? (double) num_unique_contacts : 1.0;
+    xc[0] /= dble_unique_contacts;
+    xc[1] /= dble_unique_contacts;
+    xc[2] /= dble_unique_contacts;
 
     contact_area = 0.0;
     for (int m = 0; m < num_contacts; m++) {
@@ -1711,7 +1712,7 @@ void PairBodyRoundedPolyhedron::rescale_cohesive_forces(double** x,
       dz = contact_list[m].xi[2] - xc[2];
       contact_area += (dx*dx + dy*dy + dz*dz);
     }
-    contact_area *= (MY_PI/(double)num_unique_contacts);
+    contact_area *= (MY_PI/dble_unique_contacts);
   }
 
   double j_a = contact_area / (num_unique_contacts * A_ua);

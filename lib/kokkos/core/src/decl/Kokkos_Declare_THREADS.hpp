@@ -19,7 +19,17 @@
 
 #if defined(KOKKOS_ENABLE_THREADS)
 #include <Threads/Kokkos_Threads.hpp>
+#include <Threads/Kokkos_ThreadsExec.hpp>
 #include <Threads/Kokkos_Threads_MDRangePolicy.hpp>
+#include <Threads/Kokkos_Threads_ParallelFor_Range.hpp>
+#include <Threads/Kokkos_Threads_ParallelFor_MDRange.hpp>
+#include <Threads/Kokkos_Threads_ParallelFor_Team.hpp>
+#include <Threads/Kokkos_Threads_ParallelReduce_Range.hpp>
+#include <Threads/Kokkos_Threads_ParallelReduce_MDRange.hpp>
+#include <Threads/Kokkos_Threads_ParallelReduce_Team.hpp>
+#include <Threads/Kokkos_Threads_ParallelScan_Range.hpp>
+#include <Threads/Kokkos_ThreadsTeam.hpp>
+#include <Threads/Kokkos_Threads_UniqueToken.hpp>
 #endif
 
 #endif

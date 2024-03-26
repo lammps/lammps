@@ -16,33 +16,35 @@
    Contributing author: Axel Kohlmeyer (Temple U)
 ------------------------------------------------------------------------- */
 
-#include "omp_compat.h"
 #include "fix_rigid_omp.h"
 
-#include <cmath>
-#include <cstring>
 #include "atom.h"
 #include "atom_vec_ellipsoid.h"
 #include "atom_vec_line.h"
 #include "atom_vec_tri.h"
 #include "comm.h"
-#include "error.h"
 #include "domain.h"
+#include "error.h"
+#include "math_const.h"
+#include "math_extra.h"
+#include "rigid_const.h"
+
+#include <cmath>
+#include <cstring>
 
 #if defined(_OPENMP)
 #include <omp.h>
 #endif
-
-#include "math_extra.h"
-#include "math_const.h"
-#include "rigid_const.h"
+#include "omp_compat.h"
 
 using namespace LAMMPS_NS;
 using namespace FixConst;
 using namespace MathConst;
 using namespace RigidConst;
 
-typedef struct { double x,y,z; } dbl3_t;
+typedef struct {
+  double x, y, z;
+} dbl3_t;
 
 /* ---------------------------------------------------------------------- */
 
@@ -77,13 +79,11 @@ void FixRigidOMP::initial_integrate(int vflag)
     // returns new normalized quaternion, also updated omega at 1/2 step
     // update ex,ey,ez to reflect new quaternion
 
-    MathExtra::angmom_to_omega(angmom[ibody],ex_space[ibody],ey_space[ibody],
-                               ez_space[ibody],inertia[ibody],omega[ibody]);
-    MathExtra::richardson(quat[ibody],angmom[ibody],omega[ibody],
-                          inertia[ibody],dtq);
-    MathExtra::q_to_exyz(quat[ibody],
-                         ex_space[ibody],ey_space[ibody],ez_space[ibody]);
-  } // end of omp parallel for
+    MathExtra::angmom_to_omega(angmom[ibody], ex_space[ibody], ey_space[ibody], ez_space[ibody],
+                               inertia[ibody], omega[ibody]);
+    MathExtra::richardson(quat[ibody], angmom[ibody], omega[ibody], inertia[ibody], dtq);
+    MathExtra::q_to_exyz(quat[ibody], ex_space[ibody], ey_space[ibody], ez_space[ibody]);
+  }    // end of omp parallel for
 
   // virial setup before call to set_xv
 
@@ -92,16 +92,32 @@ void FixRigidOMP::initial_integrate(int vflag)
   // set coords/orient and velocity/rotation of atoms in rigid bodies
   // from quarternion and omega
 
-  if (triclinic)
-    if (evflag)
-      set_xv_thr<1,1>();
-    else
-      set_xv_thr<1,0>();
-  else
-    if (evflag)
-      set_xv_thr<0,1>();
-    else
-      set_xv_thr<0,0>();
+  if (domain->dimension == 2) {
+    if (triclinic) {
+      if (evflag)
+        set_xv_thr<1,1,2>();
+      else
+        set_xv_thr<1,0,2>();
+    } else {
+      if (evflag)
+        set_xv_thr<0,1,2>();
+      else
+        set_xv_thr<0,0,2>();
+    }
+  } else {
+
+    if (triclinic) {
+      if (evflag)
+        set_xv_thr<1,1,3>();
+      else
+        set_xv_thr<1,0,3>();
+    } else {
+      if (evflag)
+        set_xv_thr<0,1,3>();
+      else
+        set_xv_thr<0,0,3>();
+    }
+  }
 }
 
 /* ---------------------------------------------------------------------- */
@@ -152,7 +168,7 @@ void FixRigidOMP::compute_forces_and_torques()
 
   } else if (rstyle == GROUP) {
 
-     // we likely have only a rather number of groups so we loops
+     // we likely have a rather small number of groups so we loop
      // over bodies and thread over all atoms for each of them.
 
      for (int ib = 0; ib < nbody; ++ib) {
@@ -196,11 +212,13 @@ void FixRigidOMP::compute_forces_and_torques()
      // a few atoms each. so we loop over all atoms for all threads
      // and then each thread only processes some bodies.
 
-     const int nthreads=comm->nthreads;
      memset(&sum[0][0],0,6*nbody*sizeof(double));
 
 #if defined(_OPENMP)
+     const int nthreads=comm->nthreads;
 #pragma omp parallel LMP_DEFAULT_NONE
+#else
+     const int nthreads=1;
 #endif
      {
 #if defined(_OPENMP)
@@ -250,12 +268,12 @@ void FixRigidOMP::compute_forces_and_torques()
 #pragma omp parallel for LMP_DEFAULT_NONE schedule(static)
 #endif
   for (int ibody = 0; ibody < nbody; ibody++) {
-    fcm[ibody][0] = all[ibody][0] + langextra[ibody][0];
-    fcm[ibody][1] = all[ibody][1] + langextra[ibody][1];
-    fcm[ibody][2] = all[ibody][2] + langextra[ibody][2];
-    torque[ibody][0] = all[ibody][3] + langextra[ibody][3];
-    torque[ibody][1] = all[ibody][4] + langextra[ibody][4];
-    torque[ibody][2] = all[ibody][5] + langextra[ibody][5];
+    fcm[ibody][0] = all[ibody][0] + fflag[ibody][0]*langextra[ibody][0];
+    fcm[ibody][1] = all[ibody][1] + fflag[ibody][1]*langextra[ibody][1];
+    fcm[ibody][2] = all[ibody][2] + fflag[ibody][2]*langextra[ibody][2];
+    torque[ibody][0] = all[ibody][3] + tflag[ibody][0]*langextra[ibody][3];
+    torque[ibody][1] = all[ibody][4] + tflag[ibody][1]*langextra[ibody][4];
+    torque[ibody][2] = all[ibody][5] + tflag[ibody][2]*langextra[ibody][5];
   }
 
   // add gravity force to COM of each body
@@ -277,6 +295,7 @@ void FixRigidOMP::compute_forces_and_torques()
 void FixRigidOMP::final_integrate()
 {
   if (!earlyflag) compute_forces_and_torques();
+  if (domain->dimension == 2) enforce2d();
 
   // update vcm and angmom
 
@@ -306,13 +325,27 @@ void FixRigidOMP::final_integrate()
   // virial is already setup from initial_integrate
   // triclinic only matters for virial calculation.
 
-  if (evflag)
-    if (triclinic)
-      set_v_thr<1,1>();
+#if defined(_OPENMP)
+  if (domain->dimension == 2) {
+    if (evflag)
+      if (triclinic)
+        set_v_thr<1,1,2>();
+      else
+        set_v_thr<0,1,2>();
     else
-      set_v_thr<0,1>();
-  else
-    set_v_thr<0,0>();
+      set_v_thr<0,0,2>();
+  } else {
+    if (evflag)
+      if (triclinic)
+        set_v_thr<1,1,3>();
+      else
+        set_v_thr<0,1,3>();
+    else
+      set_v_thr<0,0,3>();
+  }
+#else
+  set_v();
+#endif
 }
 
 /* ----------------------------------------------------------------------
@@ -323,7 +356,7 @@ void FixRigidOMP::final_integrate()
 
    NOTE: this needs to be kept in sync with FixRigidNHOMP
 ------------------------------------------------------------------------- */
-template <int TRICLINIC, int EVFLAG>
+template <int TRICLINIC, int EVFLAG, int DIMENSION>
 void FixRigidOMP::set_xv_thr()
 {
   auto * _noalias const x = (dbl3_t *) atom->x[0];
@@ -384,6 +417,8 @@ void FixRigidOMP::set_xv_thr()
     v[i].x = omegai.y*x[i].z - omegai.z*x[i].y + vcmi.x;
     v[i].y = omegai.z*x[i].x - omegai.x*x[i].z + vcmi.y;
     v[i].z = omegai.x*x[i].y - omegai.y*x[i].x + vcmi.z;
+
+    if (DIMENSION == 2) x[i].z = v[i].z = 0.0;
 
     // add center of mass to displacement
     // map back into periodic box via xbox,ybox,zbox
@@ -523,7 +558,7 @@ void FixRigidOMP::set_xv_thr()
 
    NOTE: this needs to be kept in sync with FixRigidNHOMP
 ------------------------------------------------------------------------- */
-template <int TRICLINIC, int EVFLAG>
+template <int TRICLINIC, int EVFLAG, int DIMENSION>
 void FixRigidOMP::set_v_thr()
 {
   auto * _noalias const x = (dbl3_t *) atom->x[0];
@@ -571,6 +606,8 @@ void FixRigidOMP::set_v_thr()
     v[i].x = omegai.y*delta[2] - omegai.z*delta[1] + vcmi.x;
     v[i].y = omegai.z*delta[0] - omegai.x*delta[2] + vcmi.y;
     v[i].z = omegai.x*delta[1] - omegai.y*delta[0] + vcmi.z;
+
+    if (DIMENSION == 2) v[i].z = 0.0;
 
     // virial = unwrapped coords dotted into body constraint force
     // body constraint force = implied force due to v change minus f external

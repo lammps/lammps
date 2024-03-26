@@ -32,6 +32,7 @@ namespace LAMMPS_NS {
 // get access to number of threads and per-thread data structures via FixOMP
 #define NPAIR_OMP_INIT                 \
   const int nthreads = comm->nthreads; \
+  omp_set_num_threads(nthreads); \
   const int ifix = modify->find_fix("package_omp")
 
 // get thread id and then assign each thread a fixed chunk of atoms

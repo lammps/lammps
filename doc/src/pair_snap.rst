@@ -1,10 +1,11 @@
 .. index:: pair_style snap
+.. index:: pair_style snap/intel
 .. index:: pair_style snap/kk
 
 pair_style snap command
 =======================
 
-Accelerator Variants: *snap/kk*
+Accelerator Variants: *snap/intel*, *snap/kk*
 
 Syntax
 """"""
@@ -259,6 +260,14 @@ Restrictions
 This style is part of the ML-SNAP package.  It is only enabled if LAMMPS
 was built with that package.  See the :doc:`Build package
 <Build_package>` page for more info.
+
+The *snap/intel* accelerator variant will *only* be available if LAMMPS
+is built with Intel *compilers* and for CPUs with AVX-512 support.
+While the INTEL package in general allows multiple floating point
+precision modes to be selected, *snap/intel* will currently always use
+full double precision regardless of the precision mode selected.
+Additionally, the *intel* variant of snap will **NOT** use multiple
+threads with OpenMP.
 
 Related commands
 """"""""""""""""

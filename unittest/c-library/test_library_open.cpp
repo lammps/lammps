@@ -39,9 +39,9 @@ TEST(lammps_open, null_args)
 
 TEST(lammps_open, with_args)
 {
-    const char *args[] = {"liblammps", "-log", "none", "-nocite"};
+    const char *args[] = {"liblammps", "-log", "none", "-nocite", nullptr};
     char **argv        = (char **)args;
-    int argc           = sizeof(args) / sizeof(char *);
+    int argc           = (sizeof(args) / sizeof(char *)) - 1;
 
     // MPI is already initialized
     MPI_Comm mycomm;
@@ -78,9 +78,9 @@ TEST(lammps_open, with_args)
 TEST(lammps_open, with_kokkos)
 {
     if (!LAMMPS_NS::LAMMPS::is_installed_pkg("KOKKOS")) GTEST_SKIP();
-    const char *args[] = {"liblammps", "-k", "on", "t", "2", "-sf", "kk", "-log", "none"};
+    const char *args[] = {"liblammps", "-k", "on", "t", "2", "-sf", "kk", "-log", "none", nullptr};
     char **argv        = (char **)args;
-    int argc           = sizeof(args) / sizeof(char *);
+    int argc           = (sizeof(args) / sizeof(char *)) - 1;
 
     ::testing::internal::CaptureStdout();
     void *alt_ptr;
@@ -108,9 +108,9 @@ TEST(lammps_open, with_kokkos)
 
 TEST(lammps_open_no_mpi, no_screen)
 {
-    const char *args[] = {"liblammps", "-log", "none", "-screen", "none", "-nocite"};
+    const char *args[] = {"liblammps", "-log", "none", "-screen", "none", "-nocite", nullptr};
     char **argv        = (char **)args;
-    int argc           = sizeof(args) / sizeof(char *);
+    int argc           = (sizeof(args) / sizeof(char *)) - 1;
 
     ::testing::internal::CaptureStdout();
     void *alt_ptr;
@@ -139,9 +139,9 @@ TEST(lammps_open_no_mpi, with_omp)
 {
     if (!LAMMPS_NS::LAMMPS::is_installed_pkg("OPENMP")) GTEST_SKIP();
     const char *args[] = {"liblammps", "-pk", "omp",  "2",    "neigh",  "no",
-                          "-sf",       "omp", "-log", "none", "-nocite"};
+                          "-sf",       "omp", "-log", "none", "-nocite", nullptr};
     char **argv        = (char **)args;
-    int argc           = sizeof(args) / sizeof(char *);
+    int argc           = (sizeof(args) / sizeof(char *)) - 1;
 
     ::testing::internal::CaptureStdout();
     void *alt_ptr;
@@ -201,9 +201,9 @@ TEST(lammps_open_fortran, no_args)
 
 TEST(lammps_open_no_mpi, lammps_error)
 {
-    const char *args[] = {"liblammps", "-log", "none", "-nocite"};
+    const char *args[] = {"liblammps", "-log", "none", "-nocite", nullptr};
     char **argv        = (char **)args;
-    int argc           = sizeof(args) / sizeof(char *);
+    int argc           = (sizeof(args) / sizeof(char *)) - 1;
 
     ::testing::internal::CaptureStdout();
     void *alt_ptr;

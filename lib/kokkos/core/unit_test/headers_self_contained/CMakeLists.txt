@@ -10,6 +10,10 @@ file(GLOB KOKKOS_CONTAINERS_HEADERS RELATIVE ${BASE_DIR}/containers/src
 file(GLOB KOKKOS_ALGORITHMS_HEADERS RELATIVE  ${BASE_DIR}/algorithms/src
      ${BASE_DIR}/algorithms/src/*.hpp)
 
+if(NOT Kokkos_ENABLE_DEPRECATED_CODE_4)
+  list(REMOVE_ITEM KOKKOS_CONTAINERS_HEADERS "Kokkos_Vector.hpp")
+endif()
+
 foreach (_header ${KOKKOS_CORE_HEADERS} ${KOKKOS_CONTAINERS_HEADERS} ${KOKKOS_ALGORITHMS_HEADERS})
   string(REGEX REPLACE "[\./]" "_" header_test_name ${_header})
   set(header_test_name Kokkos_HeaderSelfContained_${header_test_name})

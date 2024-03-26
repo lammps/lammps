@@ -33,7 +33,7 @@ void MEAM::meam_setup_done(double* cutmax)
   *cutmax = cutforce;
 
   //     Augment t1 term
-  for (int i = 0; i < maxelt; i++)
+  for (int i = 0; i < MAXELT; i++)
     t1_meam[i] = t1_meam[i] + augt1 * 3.0 / 5.0 * t3_meam[i];
 
   //     Compute off-diagonal alloy parameters

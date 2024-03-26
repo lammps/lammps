@@ -160,7 +160,7 @@ void DisplaceAtoms::command(int narg, char **arg)
     int *mask = atom->mask;
     int nlocal = atom->nlocal;
 
-    double fraction,dramp;
+    double fraction, dramp;
 
     for (i = 0; i < nlocal; i++) {
       if (mask[i] & groupbit) {
@@ -255,11 +255,12 @@ void DisplaceAtoms::command(int narg, char **arg)
     int line_flag = atom->line_flag;
     int tri_flag = atom->tri_flag;
     int body_flag = atom->body_flag;
+    int quat_atom_flag = atom->quat_flag;
 
     int theta_flag = 0;
     int quat_flag = 0;
     if (line_flag) theta_flag = 1;
-    if (ellipsoid_flag || tri_flag || body_flag) quat_flag = 1;
+    if (ellipsoid_flag || tri_flag || body_flag || quat_atom_flag) quat_flag = 1;
 
     // AtomVec pointers to retrieve per-atom storage of extra quantities
 
@@ -269,6 +270,7 @@ void DisplaceAtoms::command(int narg, char **arg)
     auto avec_body = dynamic_cast<AtomVecBody *>(atom->style_match("body"));
 
     double **x = atom->x;
+    double **quat_atom = atom->quat;
     int *ellipsoid = atom->ellipsoid;
     int *line = atom->line;
     int *tri = atom->tri;
@@ -313,7 +315,7 @@ void DisplaceAtoms::command(int narg, char **arg)
 
         // quats for ellipsoids, tris, and bodies
 
-        if (quat_flag) {
+        if (quat_flag && !quat_atom_flag) {
           quat = nullptr;
           if (ellipsoid_flag && ellipsoid[i] >= 0)
             quat = avec_ellipsoid->bonus[ellipsoid[i]].quat;
@@ -322,12 +324,18 @@ void DisplaceAtoms::command(int narg, char **arg)
           else if (body_flag && body[i] >= 0)
             quat = avec_body->bonus[body[i]].quat;
           if (quat) {
-            MathExtra::quatquat(qrotate,quat,qnew);
+            MathExtra::quatquat(qrotate, quat, qnew);
             quat[0] = qnew[0];
             quat[1] = qnew[1];
             quat[2] = qnew[2];
             quat[3] = qnew[3];
           }
+        } else if (quat_atom_flag) {
+          MathExtra::quatquat(qrotate, quat_atom[i], qnew);
+          quat_atom[i][0] = qnew[0];
+          quat_atom[i][1] = qnew[1];
+          quat_atom[i][2] = qnew[2];
+          quat_atom[i][3] = qnew[3];
         }
       }
     }

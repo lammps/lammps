@@ -27,7 +27,8 @@
 namespace Kokkos {
 namespace Impl {
 class HIPInternal;
-}
+enum class ManageStream : bool { no, yes };
+}  // namespace Impl
 /// \class HIP
 /// \brief Kokkos device for multicore processors in the host memory space.
 class HIP {
@@ -47,7 +48,9 @@ class HIP {
   using scratch_memory_space = ScratchMemorySpace<HIP>;
 
   HIP();
-  HIP(hipStream_t stream, bool manage_stream = false);
+  HIP(hipStream_t stream,
+      Impl::ManageStream manage_stream = Impl::ManageStream::no);
+  KOKKOS_DEPRECATED HIP(hipStream_t stream, bool manage_stream);
 
   //@}
   //------------------------------------

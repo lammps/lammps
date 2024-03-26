@@ -62,8 +62,8 @@ void NPairTrimKokkos<DeviceType>::trim_to_kokkos(NeighList *list)
   d_ilist_copy = k_list_copy->d_ilist;
   d_numneigh_copy = k_list_copy->d_numneigh;
   d_neighbors_copy = k_list_copy->d_neighbors;
-  int inum_copy = list->listcopy->inum;
-  if (list->ghost) inum_copy += list->listcopy->gnum;
+  int inum_trim = list->listcopy->inum;
+  if (list->ghost) inum_trim += list->listcopy->gnum;
 
   NeighListKokkos<DeviceType>* k_list = static_cast<NeighListKokkos<DeviceType>*>(list);
   k_list->maxneighs = k_list_copy->maxneighs; // simple, but could be made more memory efficient
@@ -75,7 +75,7 @@ void NPairTrimKokkos<DeviceType>::trim_to_kokkos(NeighList *list)
   // loop over parent list and trim
 
   copymode = 1;
-  Kokkos::parallel_for(Kokkos::RangePolicy<DeviceType, TagNPairTrim>(0,inum_copy),*this);
+  Kokkos::parallel_for(Kokkos::RangePolicy<DeviceType, TagNPairTrim>(0,inum_trim),*this);
   copymode = 0;
 
   list->inum = k_list_copy->inum;
@@ -132,8 +132,8 @@ void NPairTrimKokkos<DeviceType>::trim_to_cpu(NeighList *list)
 
   int inum = listcopy->inum;
   int gnum = listcopy->gnum;
-  int inum_all = inum;
-  if (list->ghost) inum_all += gnum;
+  int inum_trim = inum;
+  if (list->ghost) inum_trim += gnum;
   auto h_ilist = listcopy_kk->k_ilist.h_view;
   auto h_numneigh = Kokkos::create_mirror_view_and_copy(LMPHostType(),listcopy_kk->d_numneigh);
   auto h_neighbors = Kokkos::create_mirror_view_and_copy(LMPHostType(),listcopy_kk->d_neighbors);
@@ -151,7 +151,7 @@ void NPairTrimKokkos<DeviceType>::trim_to_cpu(NeighList *list)
   MyPage<int> *ipage = list->ipage;
   ipage->reset();
 
-  for (int ii = 0; ii < inum_all; ii++) {
+  for (int ii = 0; ii < inum_trim; ii++) {
     int n = 0;
     neighptr = ipage->vget();
 

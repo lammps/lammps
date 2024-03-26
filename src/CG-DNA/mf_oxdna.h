@@ -208,7 +208,6 @@ inline double MFOxdna::DF5(double x, double a, double x_ast, double b, double x_
   } else {
     return 0.0;
   }
-  return 0;
 }
 
 /* ----------------------------------------------------------------------

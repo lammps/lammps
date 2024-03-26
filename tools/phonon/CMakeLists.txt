@@ -121,5 +121,9 @@ if(USE_SPGLIB)
   target_link_libraries(phana PRIVATE SPGLIB::SYMSPG)
 endif()
 
+# add dependency when using local linear algebra lib
+if(NOT LAPACK_FOUND OR NOT BLAS_FOUND OR USE_INTERNAL_LINALG)
+  add_dependencies(phana linalg)
+endif()
 target_link_libraries(phana PRIVATE tricubic ${LAPACK_LIBRARIES})
 install(TARGETS phana EXPORT LAMMPS_Targets DESTINATION ${CMAKE_INSTALL_BINDIR})

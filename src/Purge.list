@@ -8,6 +8,7 @@ style_compute.h
 style_dihedral.h
 style_dump.h
 style_fix.h
+style_gran_sub_mod.h
 style_improper.h
 style_integrate.h
 style_kspace.h
@@ -32,6 +33,7 @@ packages_compute.h
 packages_dihedral.h
 packages_dump.h
 packages_fix.h
+packages_gran_sub_mod.h
 packages_improper.h
 packages_integrate.h
 packages_kspace.h

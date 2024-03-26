@@ -32,7 +32,7 @@ SetVariables::SetVariables(QList<QPair<QString, QString>> &_vars, QWidget *paren
         auto *row  = new QHBoxLayout;
         auto *name = new QLineEdit(v.first);
         auto *val  = new QLineEdit(v.second);
-        auto *del  = new QPushButton(QIcon(":/edit-delete.png"), "");
+        auto *del  = new QPushButton(QIcon(":/icons/edit-delete.png"), "");
         name->setObjectName("varname");
         val->setObjectName("varval");
         del->setObjectName(QString::number(i));
@@ -55,7 +55,7 @@ SetVariables::SetVariables(QList<QPair<QString, QString>> &_vars, QWidget *paren
 
     layout->addWidget(buttonBox);
     setLayout(layout);
-    setWindowIcon(QIcon(":/lammps-icon-128x128.png"));
+    setWindowIcon(QIcon(":/icons/lammps-icon-128x128.png"));
     setWindowTitle("LAMMPS-GUI - Set Variables");
     resize(300, 200);
 }
@@ -81,7 +81,7 @@ void SetVariables::add_row()
     auto *row  = new QHBoxLayout;
     auto *name = new QLineEdit(QString());
     auto *val  = new QLineEdit(QString());
-    auto *del  = new QPushButton(QIcon(":/edit-delete.png"), "");
+    auto *del  = new QPushButton(QIcon(":/icons/edit-delete.png"), "");
     name->setObjectName("varname");
     val->setObjectName("varval");
     del->setObjectName(QString::number(nrows - 2));

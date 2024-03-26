@@ -64,9 +64,8 @@ class FixMSST : public Fix {
 
   double **old_velocity;    // saved velocities
 
-  int kspace_flag;    // 1 if KSpace invoked, 0 if not
-  int nrigid;         // number of rigid fixes
-  int *rfix;          // indices of rigid fixes
+  int kspace_flag;            // 1 if KSpace invoked, 0 if not
+  std::vector<Fix *> rfix;    // indices of rigid fixes
 
   char *id_temp, *id_press;    // strings with identifiers of
   char *id_pe;                 // created computes

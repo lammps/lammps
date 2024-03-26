@@ -21,7 +21,7 @@
 
 using namespace LAMMPS_NS;
 
-#define BIG 1.0e20
+static constexpr double BIG = 1.0e20;
 
 /* ---------------------------------------------------------------------- */
 
@@ -362,6 +362,17 @@ void ModifyKokkos::pre_reverse(int eflag, int vflag)
 
 void ModifyKokkos::post_force(int vflag)
 {
+  for (int i = 0; i < n_post_force_group; i++) {
+    atomKK->sync(fix[list_post_force_group[i]]->execution_space,
+                 fix[list_post_force_group[i]]->datamask_read);
+    int prev_auto_sync = lmp->kokkos->auto_sync;
+    if (!fix[list_post_force_group[i]]->kokkosable) lmp->kokkos->auto_sync = 1;
+    fix[list_post_force_group[i]]->post_force(vflag);
+    lmp->kokkos->auto_sync = prev_auto_sync;
+    atomKK->modified(fix[list_post_force_group[i]]->execution_space,
+                     fix[list_post_force_group[i]]->datamask_modify);
+  }
+
   for (int i = 0; i < n_post_force; i++) {
     atomKK->sync(fix[list_post_force[i]]->execution_space,
                  fix[list_post_force[i]]->datamask_read);

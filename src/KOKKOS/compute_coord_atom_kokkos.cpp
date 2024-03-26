@@ -20,8 +20,6 @@
 #include "compute_orientorder_atom_kokkos.h"
 #include "error.h"
 #include "memory_kokkos.h"
-#include "modify.h"
-#include "neigh_list.h"
 #include "neigh_request.h"
 #include "neighbor_kokkos.h"
 #include "update.h"

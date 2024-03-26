@@ -18,7 +18,7 @@ parser = ArgumentParser(prog='install.py',
                         description='LAMMPS python package installer script')
 
 parser.add_argument("-p", "--package", required=True,
-                    help="path to the LAMMPS Python package")
+                    help="path to the LAMMPS Python package folder")
 parser.add_argument("-l", "--lib", required=True,
                     help="path to the compiled LAMMPS shared library")
 parser.add_argument("-n", "--noinstall", action="store_true", default=False,
@@ -34,15 +34,21 @@ args = parser.parse_args()
 
 if args.package:
   if not os.path.exists(args.package):
-    print("ERROR: LAMMPS package folder %s does not exist" % args.package)
+    print("\nERROR: LAMMPS package folder %s does not exist\n" % args.package)
     parser.print_help()
     sys.exit(1)
   else:
     args.package = os.path.abspath(args.package)
+    if ((os.path.basename(args.package) != "lammps")
+        and ((os.path.basename(os.path.dirname(args.package)) != "python"))):
+             print("\nERROR: LAMMPS package folder path %s does not end in %s\n"
+                   % (args.package, os.path.join("python", "lammps")))
+             parser.print_help()
+             sys.exit(1)
 
 if args.lib:
   if not os.path.exists(args.lib):
-    print("ERROR: LAMMPS shared library %s does not exist" % args.lib)
+    print("\nERROR: LAMMPS shared library %s does not exist\n" % args.lib)
     parser.print_help()
     sys.exit(1)
   else:
@@ -50,7 +56,7 @@ if args.lib:
 
 if args.wheeldir:
   if not os.path.exists(args.wheeldir):
-    print("ERROR: directory %s to store the wheel does not exist" % args.wheeldir)
+    print("\nERROR: directory %s to store the wheel does not exist\n" % args.wheeldir)
     parser.print_help()
     sys.exit(1)
   else:
@@ -58,7 +64,7 @@ if args.wheeldir:
 
 if args.versionfile:
   if not os.path.exists(args.versionfile):
-    print("ERROR: LAMMPS version file at %s does not exist" % args.versionfile)
+    print("\nERROR: LAMMPS version file at %s does not exist\n" % args.versionfile)
     parser.print_help()
     sys.exit(1)
   else:

@@ -41,32 +41,65 @@ struct StdGenerateFunctor {
       : m_first(std::move(_first)), m_generator(std::move(_g)) {}
 };
 
+//
+// generate impl
+//
 template <class ExecutionSpace, class IteratorType, class Generator>
-void generate_impl(const std::string& label, const ExecutionSpace& ex,
-                   IteratorType first, IteratorType last, Generator g) {
+void generate_exespace_impl(const std::string& label, const ExecutionSpace& ex,
+                            IteratorType first, IteratorType last,
+                            Generator g) {
   // checks
   Impl::static_assert_random_access_and_accessible(ex, first);
   Impl::expect_valid_range(first, last);
-
-  // aliases
-  using func_t = StdGenerateFunctor<IteratorType, Generator>;
 
   // run
   const auto num_elements = Kokkos::Experimental::distance(first, last);
   ::Kokkos::parallel_for(label,
                          RangePolicy<ExecutionSpace>(ex, 0, num_elements),
-                         func_t(first, g));
+                         StdGenerateFunctor(first, g));
   ex.fence("Kokkos::generate: fence after operation");
 }
 
+template <class TeamHandleType, class IteratorType, class Generator>
+KOKKOS_FUNCTION void generate_team_impl(const TeamHandleType& teamHandle,
+                                        IteratorType first, IteratorType last,
+                                        Generator g) {
+  // checks
+  Impl::static_assert_random_access_and_accessible(teamHandle, first);
+  Impl::expect_valid_range(first, last);
+
+  // run
+  const auto num_elements = Kokkos::Experimental::distance(first, last);
+  ::Kokkos::parallel_for(TeamThreadRange(teamHandle, 0, num_elements),
+                         StdGenerateFunctor(first, g));
+  teamHandle.team_barrier();
+}
+
+//
+// generate_n impl
+//
 template <class ExecutionSpace, class IteratorType, class Size, class Generator>
-IteratorType generate_n_impl(const std::string& label, const ExecutionSpace& ex,
-                             IteratorType first, Size count, Generator g) {
+IteratorType generate_n_exespace_impl(const std::string& label,
+                                      const ExecutionSpace& ex,
+                                      IteratorType first, Size count,
+                                      Generator g) {
   if (count <= 0) {
     return first;
   }
 
-  generate_impl(label, ex, first, first + count, g);
+  generate_exespace_impl(label, ex, first, first + count, g);
+  return first + count;
+}
+
+template <class TeamHandleType, class IteratorType, class Size, class Generator>
+KOKKOS_FUNCTION IteratorType
+generate_n_team_impl(const TeamHandleType& teamHandle, IteratorType first,
+                     Size count, Generator g) {
+  if (count <= 0) {
+    return first;
+  }
+
+  generate_team_impl(teamHandle, first, first + count, g);
   return first + count;
 }
 

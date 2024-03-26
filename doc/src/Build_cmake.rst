@@ -177,13 +177,13 @@ configuration is selected with the *-C* flag:
 
    ctest -C Debug
 
-The CMake scripts in LAMMPS have basic support for being compiled using a
-multi-config build system, but not all of it has been ported.  This is in
-particular applicable to compiling packages that require additional libraries
-that would be downloaded and compiled by CMake.  The "windows" preset file
-tries to keep track of which packages can be compiled natively with the
-MSVC compilers out-of-the box.  Not all of those external libraries are
-portable to Windows, either.
+The CMake scripts in LAMMPS have basic support for being compiled using
+a multi-config build system, but not all of it has been ported.  This is
+in particular applicable to compiling packages that require additional
+libraries that would be downloaded and compiled by CMake.  The
+``windows.cmake`` preset file tries to keep track of which packages can
+be compiled natively with the MSVC compilers out-of-the box.  Not all of
+the external libraries are portable to Windows, either.
 
 
 Installing CMake

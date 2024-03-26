@@ -256,8 +256,6 @@ void OpenMPInternal::initialize(int thread_count) {
       }
     }
 
-    OpenMP::memory_space space;
-
     // Before any other call to OMP query the maximum number of threads
     // and save the value for re-initialization unit testing.
 
@@ -361,8 +359,6 @@ void OpenMPInternal::finalize() {
   }
 
   m_initialized = false;
-
-  Kokkos::Profiling::finalize();
 }
 
 void OpenMPInternal::print_configuration(std::ostream &s) const {

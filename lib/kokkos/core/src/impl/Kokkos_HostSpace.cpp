@@ -46,6 +46,10 @@
 #include <sstream>
 #include <cstring>
 
+#ifdef KOKKOS_COMPILER_INTEL
+#include <aligned_new>
+#endif
+
 #include <Kokkos_HostSpace.hpp>
 #include <impl/Kokkos_Error.hpp>
 #include <Kokkos_Atomic.hpp>
@@ -55,41 +59,10 @@
 
 namespace Kokkos {
 
-/* Default allocation mechanism */
-HostSpace::HostSpace()
-    : m_alloc_mech(
-#if defined(KOKKOS_ENABLE_INTEL_MM_ALLOC)
-          HostSpace::INTEL_MM_ALLOC
-#else
-          HostSpace::STD_MALLOC
+#ifdef KOKKOS_ENABLE_DEPRECATED_CODE_4
+KOKKOS_DEPRECATED HostSpace::HostSpace(const HostSpace::AllocationMechanism &)
+    : HostSpace() {}
 #endif
-      ) {
-}
-
-/* Default allocation mechanism */
-HostSpace::HostSpace(const HostSpace::AllocationMechanism &arg_alloc_mech)
-    : m_alloc_mech(HostSpace::STD_MALLOC) {
-  if (arg_alloc_mech == STD_MALLOC) {
-    m_alloc_mech = HostSpace::STD_MALLOC;
-  }
-#if defined(KOKKOS_ENABLE_INTEL_MM_ALLOC)
-  else if (arg_alloc_mech == HostSpace::INTEL_MM_ALLOC) {
-    m_alloc_mech = HostSpace::INTEL_MM_ALLOC;
-  }
-#endif
-  else {
-    const char *const mech =
-        (arg_alloc_mech == HostSpace::INTEL_MM_ALLOC)
-            ? "INTEL_MM_ALLOC"
-            : ((arg_alloc_mech == HostSpace::POSIX_MMAP) ? "POSIX_MMAP" : "");
-
-    std::string msg;
-    msg.append("Kokkos::HostSpace ");
-    msg.append(mech);
-    msg.append(" is not available");
-    Kokkos::Impl::throw_runtime_exception(msg);
-  }
-}
 
 void *HostSpace::allocate(const size_t arg_alloc_size) const {
   return allocate("[unlabeled]", arg_alloc_size);
@@ -118,33 +91,9 @@ void *HostSpace::impl_allocate(
 
   void *ptr = nullptr;
 
-  if (arg_alloc_size) {
-    if (m_alloc_mech == STD_MALLOC) {
-      // Over-allocate to and round up to guarantee proper alignment.
-      size_t size_padded = arg_alloc_size + sizeof(void *) + alignment;
-
-      void *alloc_ptr = malloc(size_padded);
-
-      if (alloc_ptr) {
-        auto address = reinterpret_cast<uintptr_t>(alloc_ptr);
-
-        // offset enough to record the alloc_ptr
-        address += sizeof(void *);
-        uintptr_t rem    = address % alignment;
-        uintptr_t offset = rem ? (alignment - rem) : 0u;
-        address += offset;
-        ptr = reinterpret_cast<void *>(address);
-        // record the alloc'd pointer
-        address -= sizeof(void *);
-        *reinterpret_cast<void **>(address) = alloc_ptr;
-      }
-    }
-#if defined(KOKKOS_ENABLE_INTEL_MM_ALLOC)
-    else if (m_alloc_mech == INTEL_MM_ALLOC) {
-      ptr = _mm_malloc(arg_alloc_size, alignment);
-    }
-#endif
-  }
+  if (arg_alloc_size)
+    ptr = operator new (arg_alloc_size, std::align_val_t(alignment),
+                        std::nothrow_t{});
 
   if ((ptr == nullptr) || (reinterpret_cast<uintptr_t>(ptr) == ~uintptr_t(0)) ||
       (reinterpret_cast<uintptr_t>(ptr) & alignment_mask)) {
@@ -159,21 +108,6 @@ void *HostSpace::impl_allocate(
     Experimental::RawMemoryAllocationFailure::AllocationMechanism alloc_mec =
         Experimental::RawMemoryAllocationFailure::AllocationMechanism::
             StdMalloc;
-    switch (m_alloc_mech) {
-      case STD_MALLOC: break;  // default
-      case POSIX_MEMALIGN:
-        alloc_mec = Experimental::RawMemoryAllocationFailure::
-            AllocationMechanism::PosixMemAlign;
-        break;
-      case POSIX_MMAP:
-        alloc_mec = Experimental::RawMemoryAllocationFailure::
-            AllocationMechanism::PosixMMap;
-        break;
-      case INTEL_MM_ALLOC:
-        alloc_mec = Experimental::RawMemoryAllocationFailure::
-            AllocationMechanism::IntelMMAlloc;
-        break;
-    }
 
     throw Kokkos::Experimental::RawMemoryAllocationFailure(
         arg_alloc_size, alignment, failure_mode, alloc_mec);
@@ -208,15 +142,9 @@ void HostSpace::impl_deallocate(
       Kokkos::Profiling::deallocateData(arg_handle, arg_label, arg_alloc_ptr,
                                         reported_size);
     }
-    if (m_alloc_mech == STD_MALLOC) {
-      void *alloc_ptr = *(reinterpret_cast<void **>(arg_alloc_ptr) - 1);
-      free(alloc_ptr);
-    }
-#if defined(KOKKOS_ENABLE_INTEL_MM_ALLOC)
-    else if (m_alloc_mech == INTEL_MM_ALLOC) {
-      _mm_free(arg_alloc_ptr);
-    }
-#endif
+    constexpr uintptr_t alignment = Kokkos::Impl::MEMORY_ALIGNMENT;
+    operator delete (arg_alloc_ptr, std::align_val_t(alignment),
+                     std::nothrow_t{});
   }
 }
 

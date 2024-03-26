@@ -57,7 +57,7 @@ void hostspace_parallel_deepcopy_async(const DefaultHostExecutionSpace& exec,
   constexpr int host_deep_copy_serial_limit = 10 * 8192;
   if ((n < host_deep_copy_serial_limit) ||
       (DefaultHostExecutionSpace().concurrency() == 1)) {
-    std::memcpy(dst, src, n);
+    if (0 < n) std::memcpy(dst, src, n);
     return;
   }
 

@@ -60,6 +60,7 @@ class MLIAPData : protected Pointers {
 
   int ntotal;                    // total number of owned and ghost atoms on this proc
   int nlistatoms;                // current number of atoms in local atom lists
+  int nlocal;
   int nlistatoms_max;            // allocated size of descriptor array
   int natomneigh;                // current number of atoms and ghosts in atom neighbor arrays
   int natomneigh_max;            // allocated size of atom neighbor arrays

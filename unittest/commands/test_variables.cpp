@@ -282,6 +282,13 @@ TEST_F(VariableTest, AtomicSystem)
     ASSERT_DOUBLE_EQ(variable->compute_equal("v_rgsum"), 3.75);
     ASSERT_DOUBLE_EQ(variable->compute_equal("v_sum[1]"), 1.25);
 
+    // check handling of immediate variables
+    ASSERT_DOUBLE_EQ(variable->compute_equal("f_press[1]"), 0.0);
+    ASSERT_DOUBLE_EQ(variable->compute_equal("c_press"), 0.0);
+    ASSERT_DOUBLE_EQ(variable->compute_equal("c_press[2]"), 0.0);
+    ASSERT_DOUBLE_EQ(variable->compute_equal("1.5+3.25"), 4.75);
+    ASSERT_DOUBLE_EQ(variable->compute_equal("-2.5*1.5"), -3.75);
+
     TEST_FAILURE(".*ERROR: Cannot redefine variable as a different style.*",
                  command("variable one atom x"););
     TEST_FAILURE(".*ERROR: Cannot redefine variable as a different style.*",
@@ -294,6 +301,8 @@ TEST_F(VariableTest, AtomicSystem)
                  variable->compute_equal("v_self"););
     TEST_FAILURE(".*ERROR: Variable sum2: Inconsistent lengths in vector-style variable.*",
                  variable->compute_equal("max(v_sum2)"););
+    TEST_FAILURE("ERROR: Mismatched fix in variable formula.*",
+                 variable->compute_equal("f_press"););
 }
 
 TEST_F(VariableTest, Expressions)
@@ -391,6 +400,8 @@ TEST_F(VariableTest, Functions)
     command("variable ten2   equal     asin(-1.0)+acos(0.0)");
     command("variable ten3   equal     floor(100*random(0.2,0.8,v_seed)+1)");
     command("variable ten4   equal     extract_setting(world_size)");
+    command("variable ten5   equal     ternary(v_one,1.1,-2.2)");
+    command("variable ten6   equal     ternary(${one}==2.0,v_nine,v_ten)");
     END_HIDE_OUTPUT();
 
     ASSERT_GT(variable->compute_equal(variable->find("two")), 0.99);
@@ -405,6 +416,8 @@ TEST_F(VariableTest, Functions)
     ASSERT_GT(variable->compute_equal(variable->find("ten3")), 19);
     ASSERT_LT(variable->compute_equal(variable->find("ten3")), 81);
     ASSERT_DOUBLE_EQ(variable->compute_equal(variable->find("ten4")), 1);
+    ASSERT_DOUBLE_EQ(variable->compute_equal(variable->find("ten5")), 1.1);
+    ASSERT_DOUBLE_EQ(variable->compute_equal(variable->find("ten6")), 3);
 
     TEST_FAILURE(".*ERROR: Variable four: Invalid syntax in variable formula.*",
                  command("print \"${four}\""););
@@ -766,6 +779,25 @@ TEST_F(VariableTest, Format)
                  command("variable xxx format one \"%g%%\""););
     //    TEST_FAILURE(".*ERROR: Incorrect conversion in format string.*",
     //                 command("print \"${f1idx}\""););
+}
+
+TEST_F(VariableTest, Set)
+{
+    BEGIN_HIDE_OUTPUT();
+    command("variable three  string    three");
+    command("variable ten    internal  10.0");
+    END_HIDE_OUTPUT();
+    ASSERT_EQ(variable->nvar, 3);
+    ASSERT_THAT(variable->retrieve("three"), StrEq("three"));
+    ASSERT_THAT(variable->retrieve("ten"), StrEq("10"));
+
+    ASSERT_EQ(variable->internalstyle(variable->find("three")), 0);
+    ASSERT_EQ(variable->internalstyle(variable->find("ten")), 1);
+
+    variable->set_string("three", "new");
+    ASSERT_THAT(variable->retrieve("three"), StrEq("new"));
+    variable->internal_set(variable->find("ten"), -2.5);
+    ASSERT_THAT(variable->retrieve("ten"), StrEq("-2.5"));
 }
 } // namespace LAMMPS_NS
 

@@ -15,7 +15,7 @@
 //@HEADER
 
 #include <Kokkos_Core.hpp>
-#include <cstdio>
+#include <iostream>
 
 struct CountFunctor {
   KOKKOS_FUNCTION void operator()(const long i, long& lcount) const {

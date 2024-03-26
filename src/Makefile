@@ -104,6 +104,7 @@ PACKAGE = \
 	ml-quip \
 	ml-rann \
 	ml-snap \
+	ml-uf3 \
 	mofff \
 	molfile \
 	netcdf \

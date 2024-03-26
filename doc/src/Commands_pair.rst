@@ -302,6 +302,7 @@ OPT.
    * :doc:`tip4p/long/soft (o) <pair_fep_soft>`
    * :doc:`tri/lj <pair_tri_lj>`
    * :doc:`ufm (got) <pair_ufm>`
+   * :doc:`uf3 (k) <pair_uf3>`
    * :doc:`vashishta (gko) <pair_vashishta>`
    * :doc:`vashishta/table (o) <pair_vashishta>`
    * :doc:`wf/cut <pair_wf_cut>`

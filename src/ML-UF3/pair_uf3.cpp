@@ -19,6 +19,7 @@
 ---------------------------------------------------------------------- */
 
 #include "pair_uf3.h"
+
 #include "uf3_pair_bspline.h"
 #include "uf3_triplet_bspline.h"
 
@@ -35,7 +36,9 @@
 #include <cmath>
 
 using namespace LAMMPS_NS;
-using namespace MathConst;
+using MathConst::THIRD;
+
+/* ---------------------------------------------------------------------- */
 
 PairUF3::PairUF3(LAMMPS *lmp) : Pair(lmp)
 {
@@ -45,10 +48,10 @@ PairUF3::PairUF3(LAMMPS *lmp) : Pair(lmp)
   neighshort = nullptr;
   centroidstressflag = CENTROID_AVAIL;
   manybody_flag = 1;
-  one_coeff = 0; //if 1 then allow only one coeff call of form 'pair_coeff * *'
-                 //by setting it to 0 we will allow multiple 'pair_coeff' calls
   bsplines_created = 0;
 }
+
+/* ---------------------------------------------------------------------- */
 
 PairUF3::~PairUF3()
 {
@@ -75,18 +78,11 @@ PairUF3::~PairUF3()
 void PairUF3::settings(int narg, char **arg)
 {
 
-  if (narg != 2)
-    error->all(FLERR, "UF3: Invalid number of argument in pair settings\n\
-            Are you running 2-body or 2 & 3-body UF potential\n\
-            Also how many elements?");
+  if (narg != 1)
+    error->all(FLERR, "Invalid number of arguments for pair_style uf3"
+               "  Are you using a 2-body or 2 & 3-body UF potential?");
   nbody_flag = utils::numeric(FLERR, arg[0], true, lmp);
-  num_of_elements = utils::numeric(FLERR, arg[1], true, lmp);    // atom->ntypes;
-  if (num_of_elements != atom->ntypes) {
-    if (comm->me == 0)
-      utils::logmesg(lmp, "\nUF3: Number of elements provided in the input file and \
-number of elements detected by lammps in the structure are not same\n\
-     proceed with caution\n");
-  }
+  num_of_elements = atom->ntypes;
   if (nbody_flag == 2) {
     pot_3b = false;
     n2body_pot_files = num_of_elements * (num_of_elements + 1) / 2;
@@ -97,7 +93,7 @@ number of elements detected by lammps in the structure are not same\n\
     n3body_pot_files = num_of_elements * (num_of_elements * (num_of_elements + 1) / 2);
     tot_pot_files = n2body_pot_files + n3body_pot_files;
   } else
-    error->all(FLERR, "UF3: UF3 not yet implemented for {}-body", nbody_flag);
+    error->all(FLERR, "Pair style uf3 not (yet) implemented for {}-body terms", nbody_flag);
 }
 
 /* ----------------------------------------------------------------------
@@ -107,131 +103,33 @@ void PairUF3::coeff(int narg, char **arg)
 {
   if (!allocated) allocate();
 
-  if (narg != 3 && narg != 5){
-     /*error->warning(FLERR, "\nUF3: WARNING!! It seems that you are using the \n\
-             older style of specifying UF3 POT files. This style of listing \n\
-             all the potential files on a single line will be depcrecated in \n\
-             the next version of ML-UF3");*/
-    if (narg == tot_pot_files + 2)
-      error->all(FLERR, "UF3 The old style of listing all the potential files\n\
-              on a single line is depcrecated");
-    else
-      error->all(FLERR, "UF3: Invalid number of argument in pair coeff;\n\
-              Provide the species number followed by the LAMMPS POT file\n\
-              Eg. 'pair_coeff 1 1 POT_FILE' for 2-body and \n\
-              'pair_coeff 3b 1 2 2 POT_FILE' for 3-body.");
-  }
-  if (narg == 3 || narg == 5){
-    int ilo, ihi, jlo, jhi, klo, khi;
-    if (narg == 3){
-      utils::bounds(FLERR, arg[0], 1, atom->ntypes, ilo, ihi, error);
-      utils::bounds(FLERR, arg[1], 1, atom->ntypes, jlo, jhi, error);
-    }
+  if (narg != 3 && narg != 5)
+    error->all(FLERR, "Invalid number of arguments uf3 in pair coeffs.");
 
-    if (narg == 5){
-      utils::bounds(FLERR, arg[1], 1, atom->ntypes, ilo, ihi, error);
-      utils::bounds(FLERR, arg[2], 1, atom->ntypes, jlo, jhi, error);
-      utils::bounds(FLERR, arg[3], 1, atom->ntypes, klo, khi, error);
-    }
-
-    if (narg == 3){
-      if (utils::strmatch(arg[0],".*\\*.*") || utils::strmatch(arg[1],".*\\*.*")){
-        for (int i = ilo; i <= ihi; i++) {
-          for (int j = MAX(jlo, i); j <= jhi; j++) {
-            if (comm->me == 0)
-              utils::logmesg(lmp, "\nUF3: Opening {} file\n", arg[2]);
-            uf3_read_pot_file(i,j,arg[2]);
-          }
-        }
-      }
-
-      else{
-        int i = utils::inumeric(FLERR, arg[0], true, lmp);
-        int j = utils::inumeric(FLERR, arg[1], true, lmp);
-        if (comm->me == 0)
-          utils::logmesg(lmp, "\nUF3: Opening {} file\n", arg[2]);
+  int ilo, ihi, jlo, jhi, klo, khi;
+  if (narg == 3) {
+    utils::bounds(FLERR, arg[0], 1, atom->ntypes, ilo, ihi, error);
+    utils::bounds(FLERR, arg[1], 1, atom->ntypes, jlo, jhi, error);
+    for (int i = ilo; i <= ihi; i++) {
+      for (int j = MAX(jlo, i); j <= jhi; j++) {
         uf3_read_pot_file(i,j,arg[2]);
       }
     }
+  } else if (narg == 5) {
+    utils::bounds(FLERR, arg[1], 1, atom->ntypes, ilo, ihi, error);
+    utils::bounds(FLERR, arg[2], 1, atom->ntypes, jlo, jhi, error);
+    utils::bounds(FLERR, arg[3], 1, atom->ntypes, klo, khi, error);
+    if (!utils::strmatch(arg[0],"^3b$"))
+      error->all(FLERR, "Pair style uf3 3-body terms require the first argument to be 3b");
 
-    if (narg == 5){
-      if (!utils::strmatch(arg[0],"3b"))
-        error->all(FLERR, "UF3: Invalid argument. For 3-body the first argument\n\
-                argument to pair_coeff needs to be 3b.\n\
-                Example pair_coeff 3b 1 2 2 A_B_B.");
-      if (utils::strmatch(arg[1],".*\\*.*") || utils::strmatch(arg[2],".*\\*.*") || utils::strmatch(arg[3],".*\\*.*")){
-        for (int i = ilo; i <= ihi; i++) {
-          for (int j = jlo; j <= jhi; j++) {
-            for (int k = MAX(klo, jlo); k <= khi; k++) {
-              if (comm->me == 0)
-                utils::logmesg(lmp, "\nUF3: Opening {} file\n", arg[4]);
-              uf3_read_pot_file(i,j,k,arg[4]);
-            }
-          }
-        }
-      }
-      else{
-        if (comm->me == 0)
-          utils::logmesg(lmp, "\nUF3: Opening {} file\n", arg[4]);
-        int i = utils::inumeric(FLERR, arg[1], true, lmp);
-        int j = utils::inumeric(FLERR, arg[2], true, lmp);
-        int k = utils::inumeric(FLERR, arg[3], true, lmp);
-        uf3_read_pot_file(i,j,k,arg[4]);
-      }
-    }
-  }
-
-  /*else{
-    if (narg != tot_pot_files + 2)
-      error->all(FLERR,"UF3: Invalid number of argument in pair coeff; \n\
-              Number of potential files provided is not correct");
-
-    error->warning(FLERR, "\nUF3: WARNING!! It seems that you are using the \n\
-            older style of specifying UF3 POT files. This style of listing \n\
-            all the potential files on a single line will be depcrecated in \n\
-            the next version of ML-UF3");
-
-    // open UF3 potential file on all proc
-    for (int i = 2; i < narg; i++) { uf3_read_pot_file(arg[i]); }
-    if (!bsplines_created) create_bsplines();
-
-    // setflag check needed here
-    for (int i = 1; i < num_of_elements + 1; i++) {
-      for (int j = 1; j < num_of_elements + 1; j++) {
-        if (setflag[i][j] != 1)
-          error->all(FLERR,"UF3: Not all 2-body UF potentials are set, \n\
-                missing potential file for {}-{} interaction",i, j);
-      }
-    }
-
-    if (pot_3b) {
-      for (int i = 1; i < num_of_elements + 1; i++) {
-        for (int j = 1; j < num_of_elements + 1; j++) {
-          for (int k = 1; k < num_of_elements + 1; k++) {
-            if (setflag_3b[i][j][k] != 1)
-              error->all(FLERR,"UF3: Not all 3-body UF potentials are set, \n\
-                    missing potential file for {}-{}-{} interaction", i, j, k);
-          }
-        }
-      }
-    }
-  for (int i = 1; i < num_of_elements + 1; i++) {
-    for (int j = i; j < num_of_elements + 1; j++) {
-      UFBS2b[i][j] = uf3_pair_bspline(lmp, n2b_knot[i][j], n2b_coeff[i][j]);
-      UFBS2b[j][i] = UFBS2b[i][j];
-    }
-    if (pot_3b) {
-      for (int j = 1; j < num_of_elements + 1; j++) {
-        for (int k = j; k < num_of_elements + 1; k++) {
-          std::string key = std::to_string(i) + std::to_string(j) + std::to_string(k);
-          UFBS3b[i][j][k] =
-              uf3_triplet_bspline(lmp, n3b_knot_matrix[i][j][k], n3b_coeff_matrix[key]);
-          UFBS3b[i][k][j] = UFBS3b[i][j][k];
+    for (int i = ilo; i <= ihi; i++) {
+      for (int j = jlo; j <= jhi; j++) {
+        for (int k = MAX(klo, jlo); k <= khi; k++) {
+          uf3_read_pot_file(i,j,k,arg[4]);
         }
       }
     }
   }
-  }*/
 }
 
 void PairUF3::allocate()
@@ -356,13 +254,13 @@ void PairUF3::uf3_read_pot_file(int itype, int jtype, char *potf_name)
             trailing_trim=3\n");
 
   std::string knot_type = fp2nd_line.next_string();
-  if (utils::strmatch(knot_type,"uk")){
+  if (utils::strmatch(knot_type,"uk")) {
     utils::logmesg(lmp, "UF3: File {} contains 2-body UF3 potential with uniform\n\
               knot spacing\n",potf_name);
     knot_spacing_type_2b[itype][jtype] = 0;
     knot_spacing_type_2b[jtype][itype] = 0;
   }
-  else if (utils::strmatch(knot_type,"nk")){
+  else if (utils::strmatch(knot_type,"nk")) {
     utils::logmesg(lmp, "UF3: File {} contains 2-body UF3 potential with non-uniform\n\
             knot spacing\n",potf_name);
     knot_spacing_type_2b[itype][jtype] = 1;
@@ -479,13 +377,13 @@ void PairUF3::uf3_read_pot_file(int itype, int jtype, int ktype, char *potf_name
             trailing_trim=3\n");
 
   std::string knot_type = fp2nd_line.next_string();
-  if (utils::strmatch(knot_type,"uk")){
+  if (utils::strmatch(knot_type,"uk")) {
     utils::logmesg(lmp, "UF3: File {} contains 3-body UF3 potential with uniform\n\
             knot spacing\n",potf_name);
     knot_spacing_type_3b[itype][jtype][ktype] = 0;
     knot_spacing_type_3b[itype][ktype][jtype] = 0;
   }
-  else if (utils::strmatch(knot_type,"nk")){
+  else if (utils::strmatch(knot_type,"nk")) {
     utils::logmesg(lmp, "UF3: File {} contains 3-body UF3 potential with non-uniform\n\
             knot spacing\n",potf_name);
     knot_spacing_type_3b[itype][jtype][ktype] = 1;
@@ -1122,7 +1020,7 @@ void PairUF3::compute(int eflag, int vflag)
           rjk = sqrt(
               ((del_rkj[0] * del_rkj[0]) + (del_rkj[1] * del_rkj[1]) + (del_rkj[2] * del_rkj[2])));
 
-          if (rjk >= min_cut_3b[itype][jtype][ktype][0]){
+          if (rjk >= min_cut_3b[itype][jtype][ktype][0]) {
             double *triangle_eval = UFBS3b[itype][jtype][ktype].eval(rij, rik, rjk);
 
             fij[0] = *(triangle_eval + 1) * (del_rji[0] / rij);
@@ -1169,7 +1067,8 @@ void PairUF3::compute(int eflag, int vflag)
 
             if (eflag) evdwl = *triangle_eval;
 
-            if (evflag) { ev_tally3(i, j, k, evdwl, 0, Fj, Fk, del_rji, del_rki);
+            if (evflag) {
+              ev_tally3(i, j, k, evdwl, 0, Fj, Fk, del_rji, del_rki);
               // Centroid stress 3-body term
               if (vflag_either && cvflag_atom) {
                 double ric[3];
@@ -1267,12 +1166,12 @@ double PairUF3::memory_usage()
   bytes += (double)(num_of_elements+1)*(num_of_elements+1)*\
            (num_of_elements+1)*3*sizeof(double);    //min_cut_3b
 
-  for (int i=1; i < num_of_elements+1; i++){
-    for (int j=i; j < num_of_elements+1; j++){
+  for (int i=1; i < num_of_elements+1; i++) {
+    for (int j=i; j < num_of_elements+1; j++) {
       bytes += (double)2*n2b_knot[i][j].size()*sizeof(double);      //n2b_knot
       bytes += (double)2*n2b_coeff[i][j].size()*sizeof(double);     //n2b_coeff
     }
-    if (pot_3b){
+    if (pot_3b) {
       for (int j = 1; j < num_of_elements + 1; j++) {
         for (int k = j; k < num_of_elements + 1; k++) {
           bytes += (double)2*n3b_knot_matrix[i][j][k][0].size()*sizeof(double);
@@ -1281,8 +1180,8 @@ double PairUF3::memory_usage()
 
           std::string key = std::to_string(i) + std::to_string(j) + std::to_string(k);
 
-          for (int l=0; l < n3b_coeff_matrix[key].size(); l++){
-            for (int m=0; m < n3b_coeff_matrix[key][l].size(); m++){
+          for (int l=0; l < n3b_coeff_matrix[key].size(); l++) {
+            for (int m=0; m < n3b_coeff_matrix[key][l].size(); m++) {
               bytes += (double)2*n3b_coeff_matrix[key][l][m].size()*sizeof(double);
               //key = ijk
               //key = ikj
@@ -1294,7 +1193,7 @@ double PairUF3::memory_usage()
   }
 
   for (int i = 1; i < num_of_elements + 1; i++) {
-    for (int j = i; j < num_of_elements + 1; j++){
+    for (int j = i; j < num_of_elements + 1; j++) {
         bytes += (double)2*UFBS2b[i][j].memory_usage(); //UFBS2b[i][j] UFBS2b[j][1]
     }
     if (pot_3b) {

@@ -1,4 +1,4 @@
-LAMMPS (7 Feb 2024 - Development - patch_7Feb2024_update1-324-gfda433a7ee-modified)
+LAMMPS (7 Feb 2024 - Development - patch_7Feb2024_update1-326-g338b9b5d61)
   using 1 OpenMP thread(s) per MPI task
 # Demonstrate UF3 W potential
 
@@ -39,10 +39,8 @@ mass            1 183.84
 
 # # ============= set pair style
 
-pair_style      uf3 2 1
+pair_style      uf3 2
 pair_coeff      1 1 W_W.uf3
-
-UF3: Opening W_W.uf3 file
 UF3: W_W.uf3 file should contain UF3 potential for 1 1
 UF3: File W_W.uf3 contains 2-body UF3 potential
 UF3: File W_W.uf3 contains 2-body UF3 potential with uniform
@@ -91,20 +89,20 @@ Per MPI rank memory allocation (min/avg/max) = 3.104 | 3.104 | 3.104 Mbytes
         80   173.31044     -4.893466       0             -4.8712389     -397601.62    
         90   150.12364     -4.8904922      0             -4.8712388     -397739.2     
        100   128.38807     -4.8877046      0             -4.8712388     -397980.01    
-Loop time of 0.0111207 on 4 procs for 100 steps with 128 atoms
+Loop time of 0.0104225 on 4 procs for 100 steps with 128 atoms
 
-Performance: 388.463 ns/day, 0.062 hours/ns, 8992.202 timesteps/s, 1.151 Matom-step/s
-98.9% CPU use with 4 MPI tasks x 1 OpenMP threads
+Performance: 414.488 ns/day, 0.058 hours/ns, 9594.626 timesteps/s, 1.228 Matom-step/s
+99.4% CPU use with 4 MPI tasks x 1 OpenMP threads
 
 MPI task timing breakdown:
 Section |  min time  |  avg time  |  max time  |%varavg| %total
 ---------------------------------------------------------------
-Pair    | 0.0087312  | 0.008777   | 0.0088396  |   0.0 | 78.92
+Pair    | 0.0076422  | 0.0077975  | 0.0081692  |   0.2 | 74.81
 Neigh   | 0          | 0          | 0          |   0.0 |  0.00
-Comm    | 0.0019835  | 0.0020323  | 0.0020742  |   0.1 | 18.27
-Output  | 7.6664e-05 | 8.1924e-05 | 9.4556e-05 |   0.0 |  0.74
-Modify  | 5.4618e-05 | 5.8768e-05 | 6.2489e-05 |   0.0 |  0.53
-Other   |            | 0.0001708  |            |       |  1.54
+Comm    | 0.001954   | 0.0022765  | 0.0024447  |   0.4 | 21.84
+Output  | 7.7086e-05 | 8.2565e-05 | 9.3188e-05 |   0.0 |  0.79
+Modify  | 4.8524e-05 | 5.011e-05  | 5.1759e-05 |   0.0 |  0.48
+Other   |            | 0.0002159  |            |       |  2.07
 
 Nlocal:             32 ave          32 max          32 min
 Histogram: 4 0 0 0 0 0 0 0 0 0

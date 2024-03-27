@@ -1933,11 +1933,11 @@ ML-UF3 package
 
 **Contents:**
 
-A pair style for the Ultra-Fast Forcefield potentials (UF3). UF3 is a
-methodology for deriving a highly accurate classical potential which is fast to
-evaluate and is fitted to a large archives of quantum mechanical (DFT) data.
-The use of bspline basis set in UF3 enables the rapid evaluation of 2-body and
-3-body interactions.
+A pair style for the ultra-fast force field potentials (UF3). UF3 is a
+methodology for deriving a highly accurate classical potential which is
+fast to evaluate and is fitted to a large archives of quantum mechanical
+(DFT) data.  The use of b-spline basis set in UF3 enables the rapid
+evaluation of 2-body and 3-body interactions.
 
 **Authors:** Ajinkya C Hire (University of Florida),
 Hendrik Krass (University of Constance),

@@ -37,3 +37,20 @@ but the :doc:`read_data <read_data>` command is missing the (optional)
 arguments that identify the fix and the header keyword and section
 keyword or those arguments are inconsistent with the keywords in the
 data file.
+
+.. _err0002:
+
+Incorrect format in ... section of data file
+--------------------------------------------
+
+This error happens when LAMMPS reads the contents of a section of a
+:doc:`data file <read_data>` and the number of parameters in the line
+differs from what is expected.  This most commonly happens, when the
+atom style is different from what is expected for a specific data file
+since changing the atom style usually changes the format of the line.
+
+This error can also happen when the number of entries indicated in the
+header of a data file (e.g. the number of atoms) is larger than the
+number of lines provided (e.g. in the corresponding Atoms section)
+and then LAMMPS will continue reading into the next section and that
+would have a completely different format.

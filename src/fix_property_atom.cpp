@@ -328,8 +328,9 @@ void FixPropertyAtom::read_data_section(char *keyword, int n, char *buf, tagint 
     try {
       ValueTokenizer values(buf);
       if ((int) values.count() != values_peratom + 1)
-        error->all(FLERR, "Incorrect format in {} section of data file: {} expected {} and got {}",
-                   keyword, buf, values_peratom + 1, values.count());
+        error->all(FLERR, "Incorrect format in {} section of data file: {}\n"
+                   "expected {} parameters and got {}{}", keyword, utils::trim(buf),
+                   values_peratom + 1, values.count(), utils::errorurl(2));
 
       itag = values.next_tagint() + id_offset;
       if (itag <= 0 || itag > map_tag_max)

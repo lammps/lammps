@@ -1360,7 +1360,8 @@ void ReadData::header(int firstpass)
   // check that exiting string is a valid section keyword
 
   parse_keyword(1);
-  if (!is_data_section(keyword)) error->all(FLERR, "Unknown identifier in data file: {}", keyword);
+  if (!is_data_section(keyword))
+    error->all(FLERR, "Unknown identifier in data file: {}{}", keyword, utils::errorurl(1));
 
   // error checks on header values
   // must be consistent with atom style and other header values

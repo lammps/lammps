@@ -39,8 +39,11 @@ FFT3dKokkos<DeviceType>::FFT3dKokkos(LAMMPS *lmp, MPI_Comm comm, int nfast, int 
   Pointers(lmp)
 {
   int nthreads = lmp->kokkos->nthreads;
+
+#if defined(LMP_KOKKOS_GPU)
   int ngpus = lmp->kokkos->ngpus;
   ExecutionSpace execution_space = ExecutionSpaceFromDevice<DeviceType>::space;
+#endif
 
 #if defined(FFT_KOKKOS_MKL)
   if (ngpus > 0 && execution_space == Device)

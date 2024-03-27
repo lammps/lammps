@@ -950,10 +950,10 @@ EV_FLOAT pair_compute_neighlist (PairStyle* fpair, std::enable_if_t<(NEIGHFLAG&P
 
     static int vectorsize = 0;
     static int atoms_per_team = 0;
-    static int teamsize_max_for = 0;
-    static int teamsize_max_reduce = 0;
 
 #if defined(LMP_KOKKOS_GPU)
+    static int teamsize_max_for = 0;
+    static int teamsize_max_reduce = 0;
     static int lastcall = -1;
     if (!vectorsize || lastcall < fpair->lmp->neighbor->lastcall) {
       lastcall = fpair->lmp->update->ntimestep;

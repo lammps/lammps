@@ -1068,7 +1068,8 @@ void Atom::data_atoms(int n, char *buf, tagint id_offset, tagint mol_offset,
   }
 
   if ((nwords != avec->size_data_atom) && (nwords != avec->size_data_atom + 3))
-    error->all(FLERR,"Incorrect format in {}: {}", location, utils::trim(buf));
+    error->all(FLERR,"Incorrect format in {}: {}{}", location,
+               utils::trim(buf), utils::errorurl(2));
 
   *next = '\n';
   // set bounds for my proc
@@ -1149,7 +1150,8 @@ void Atom::data_atoms(int n, char *buf, tagint id_offset, tagint mol_offset,
       // skip over empty or comment lines
     } else if ((nvalues < nwords) ||
                ((nvalues > nwords) && (!utils::strmatch(values[nwords],"^#")))) {
-      error->all(FLERR, "Incorrect format in {}: {}", location, utils::trim(buf));
+      error->all(FLERR, "Incorrect format in {}: {}{}", location,
+                 utils::trim(buf), utils::errorurl(2));
     } else {
       int imx = 0, imy = 0, imz = 0;
       if (imageflag) {
@@ -1243,7 +1245,8 @@ void Atom::data_vels(int n, char *buf, tagint id_offset)
     if (values.size() == 0) {
       // skip over empty or comment lines
     } else if ((int)values.size() != avec->size_data_vel) {
-      error->all(FLERR, "Incorrect velocity format in data file: {}", utils::trim(buf));
+      error->all(FLERR, "Incorrect format in Velocities section of data file: {}{}",
+                 utils::trim(buf), utils::errorurl(2));
     } else {
       tagint tagdata = utils::tnumeric(FLERR,values[0],false,lmp) + id_offset;
       if (tagdata <= 0 || tagdata > map_tag_max)
@@ -1287,7 +1290,9 @@ void Atom::data_bonds(int n, char *buf, int *count, tagint id_offset,
     // skip over empty or comment lines
     // Bonds line is: number(ignored), bond type, atomID 1, atomID 2
     if (nwords > 0) {
-      if (nwords != 4) error->all(FLERR, "Incorrect format in {}: {}", location, utils::trim(buf));
+      if (nwords != 4)
+        error->all(FLERR, "Incorrect format in {}: {}{}", location,
+                   utils::trim(buf), utils::errorurl(2));
       typestr = utils::utf8_subst(values[1]);
       atom1 = utils::tnumeric(FLERR, values[2], false, lmp);
       atom2 = utils::tnumeric(FLERR, values[3], false, lmp);
@@ -1378,7 +1383,9 @@ void Atom::data_angles(int n, char *buf, int *count, tagint id_offset,
     // skip over empty or comment lines
     // Angles line is: number(ignored), angle type, atomID 1, atomID 2, atomID 3
     if (nwords > 0) {
-      if (nwords != 5) error->all(FLERR, "Incorrect format in {}: {}", location, utils::trim(buf));
+      if (nwords != 5)
+        error->all(FLERR, "Incorrect format in {}: {}{}", location,
+                   utils::trim(buf), utils::errorurl(2));
       typestr = utils::utf8_subst(values[1]);
       atom1 = utils::tnumeric(FLERR, values[2], false, lmp);
       atom2 = utils::tnumeric(FLERR, values[3], false, lmp);
@@ -1485,7 +1492,9 @@ void Atom::data_dihedrals(int n, char *buf, int *count, tagint id_offset,
     // skip over empty or comment lines
     // Dihedrals line is: number(ignored), bond type, atomID 1, atomID 2, atomID 3, atomID 4
     if (nwords > 0) {
-      if (nwords != 6) error->all(FLERR, "Incorrect format in {}: {}", location, utils::trim(buf));
+      if (nwords != 6)
+        error->all(FLERR, "Incorrect format in {}: {}{}", location,
+                   utils::trim(buf), utils::errorurl(2));
       typestr = utils::utf8_subst(values[1]);
       atom1 = utils::tnumeric(FLERR, values[2], false, lmp);
       atom2 = utils::tnumeric(FLERR, values[3], false, lmp);
@@ -1611,7 +1620,9 @@ void Atom::data_impropers(int n, char *buf, int *count, tagint id_offset,
     // skip over empty or comment lines
     // Impropers line is: number(ignored), bond type, atomID 1, atomID 2, atomID 3, atomID 4
     if (nwords > 0) {
-      if (nwords != 6) error->all(FLERR, "Incorrect format in {}: {}", location, utils::trim(buf));
+      if (nwords != 6)
+        error->all(FLERR, "Incorrect format in {}: {}{}", location,
+                   utils::trim(buf), utils::errorurl(2));
       typestr = utils::utf8_subst(values[1]);
       atom1 = utils::tnumeric(FLERR, values[2], false, lmp);
       atom2 = utils::tnumeric(FLERR, values[3], false, lmp);
@@ -1727,7 +1738,8 @@ void Atom::data_bonus(int n, char *buf, AtomVec *avec_bonus, tagint id_offset)
     if (values.size() == 0) {
       // skip over empty or comment lines
     } else if ((int)values.size() != avec_bonus->size_data_bonus) {
-      error->all(FLERR, "Incorrect bonus data format in data file: {}", utils::trim(buf));
+      error->all(FLERR, "Incorrect format in Bonus section of data file: {}{}",
+                 utils::trim(buf), utils::errorurl(2));
     } else {
       tagint tagdata = utils::tnumeric(FLERR,values[0],false,lmp) + id_offset;
       if (tagdata <= 0 || tagdata > map_tag_max)

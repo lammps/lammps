@@ -54,7 +54,7 @@ improper = {}
 kspace = {}
 pair = {}
 
-style_pattern = re.compile("(.+)Style\((.+),(.+)\)")
+style_pattern = re.compile("(.+)Style\\((.+),(.+)\\)")
 upper = re.compile("[A-Z]+")
 gpu = re.compile("(.+)/gpu$")
 intel = re.compile("(.+)/intel$")
@@ -176,19 +176,19 @@ def check_tests(name,styles,yaml,search,skip=()):
 
 counter = 0
 counter += check_tests('pair',pair,'*-pair-*.yaml',
-                       '.*pair_style:\s*((\S+).*)?',skip=('meam','lj/sf'))
+                       '.*pair_style:\\s*((\\S+).*)?',skip=('meam','lj/sf'))
 counter += check_tests('bond',bond,'bond-*.yaml',
-                       '.*bond_style:\s*((\S+).*)?')
+                       '.*bond_style:\\s*((\\S+).*)?')
 counter += check_tests('angle',angle,'angle-*.yaml',
-                       '.*angle_style:\s*((\S+).*)?')
+                       '.*angle_style:\\s*((\\S+).*)?')
 counter += check_tests('dihedral',dihedral,'dihedral-*.yaml',
-                       '.*dihedral_style:\s*((\S+).*)?')
+                       '.*dihedral_style:\\s*((\\S+).*)?')
 counter += check_tests('improper',improper,'improper-*.yaml',
-                       '.*improper_style:\s*((\S+).*)?')
+                       '.*improper_style:\\s*((\\S+).*)?')
 counter += check_tests('kspace',kspace,'kspace-*.yaml',
-                       '.*kspace_style\s*((\S+).*)?')
+                       '.*kspace_style\\s*((\\S+).*)?')
 counter += check_tests('fix',fix,'fix-*.yaml',
-                       '  fix\s+((\S+)\s*)?')
+                       '  fix\\s+((\\S+)\\s*)?')
 
 total = len(pair)+len(bond)+len(angle)+len(dihedral)+len(improper)+len(kspace)+len(fix)
 print(f"\nTotal tests missing: {counter} of {total}")

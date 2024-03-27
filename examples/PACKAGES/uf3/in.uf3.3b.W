@@ -25,8 +25,8 @@ mass            1 183.84
 # # ============= set pair style
 
 pair_style      uf3 3 1
-pair_coeff      1 1 W_W
-pair_coeff      3b 1 1 1 W_W_W
+pair_coeff      1 1 W_W.uf3
+pair_coeff      3b 1 1 1 W_W_W.uf3
 
 
 # # ============= Setup output

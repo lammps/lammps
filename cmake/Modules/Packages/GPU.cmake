@@ -188,6 +188,9 @@ if(GPU_API STREQUAL "CUDA")
     target_compile_definitions(gpu PRIVATE -DUSE_CUDPP)
   endif()
 
+  find_package(CUDAToolkit REQUIRED)
+  target_link_libraries(gpu PRIVATE CUDA::cufft)
+
   add_executable(nvc_get_devices ${LAMMPS_LIB_SOURCE_DIR}/gpu/geryon/ucl_get_devices.cpp)
   target_compile_definitions(nvc_get_devices PRIVATE -DUCL_CUDADR)
   target_link_libraries(nvc_get_devices PRIVATE ${CUDA_LIBRARIES} ${CUDA_CUDA_LIBRARY})

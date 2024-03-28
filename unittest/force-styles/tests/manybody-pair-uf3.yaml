@@ -1,6 +1,6 @@
 ---
 lammps_version: 24 Mar 2022
-tags: generated
+tags:
 date_generated: Tue Nov 28 14:51:03 2023
 epsilon: 1e-09
 skip_tests: 
@@ -12,10 +12,10 @@ pre_commands: ! |
   variable newton_bond delete
 post_commands: ! ""
 input_file: in.manybody
-pair_style: uf3 3 8
+pair_style: uf3 3
 pair_coeff: ! |
-  * * A_A.uf3_pot
-  3b * * * A_A_A.uf3_pot
+  * * A_A.uf3
+  3b * * * A_A_A.uf3
 extract: ! ""
 natoms: 64
 init_vdwl: -76.14388662099438

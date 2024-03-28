@@ -1,0 +1,128 @@
+LAMMPS (7 Feb 2024 - Development - patch_7Feb2024_update1-326-g338b9b5d61)
+  using 1 OpenMP thread(s) per MPI task
+# Demonstrate UF3 W potential
+
+# # ============= Initialize simulation
+
+variable        nsteps index 100
+variable        nrep equal 4
+variable        a equal 3.187
+units           metal
+
+# generate the box and atom positions using a BCC lattice
+
+variable        nx equal ${nrep}
+variable        nx equal 4
+variable        ny equal ${nrep}
+variable        ny equal 4
+variable        nz equal ${nrep}
+variable        nz equal 4
+
+boundary        p p p
+
+lattice         bcc $a
+lattice         bcc 3.187
+Lattice spacing in x,y,z = 3.187 3.187 3.187
+region          box block 0 ${nx} 0 ${ny} 0 ${nz}
+region          box block 0 4 0 ${ny} 0 ${nz}
+region          box block 0 4 0 4 0 ${nz}
+region          box block 0 4 0 4 0 4
+create_box      1 box
+Created orthogonal box = (0 0 0) to (12.748 12.748 12.748)
+  1 by 2 by 2 MPI processor grid
+create_atoms    1 box
+Created 128 atoms
+  using lattice units in orthogonal box = (0 0 0) to (12.748 12.748 12.748)
+  create_atoms CPU = 0.000 seconds
+
+mass            1 183.84
+
+# # ============= set pair style
+
+pair_style      uf3 3
+pair_coeff      1 1 W_W.uf3
+UF3: W_W.uf3 file should contain UF3 potential for 1 1
+UF3: File W_W.uf3 contains 2-body UF3 potential
+UF3: File W_W.uf3 contains 2-body UF3 potential with uniform
+              knot spacing
+pair_coeff      3b 1 1 1 W_W_W.uf3
+UF3: W_W_W.uf3 file should contain UF3 potential for 1 1 1
+UF3: File W_W_W.uf3 contains 3-body UF3 potential
+UF3: File W_W_W.uf3 contains 3-body UF3 potential with uniform
+            knot spacing
+UF3: 3b min cutoff W_W_W.uf3 1-1-1_jk=1.5 1-1-1_jk=1.5
+UF3: 3b min cutoff W_W_W.uf3 1-1-1_ik=1.5 1-1-1_ik=1.5
+UF3: 3b min cutoff W_W_W.uf3 1-1-1_ij=1.5 1-1-1_ij=1.5
+
+
+# # ============= Setup output
+
+thermo          10
+thermo_modify   norm yes
+
+# # ============= Set up NVE run
+
+timestep        0.5e-3
+neighbor        1.0 bin
+neigh_modify    once no every 1 delay 0 check yes
+
+# # ============= Run MD
+
+velocity        all create 300.0 2367804 loop geom
+fix             1 all nve
+run             ${nsteps}
+run             100
+Neighbor list info ...
+  update: every = 1 steps, delay = 0 steps, check = yes
+  max neighbors/atom: 2000, page size: 100000
+  master list distance cutoff = 6.5
+  ghost atom cutoff = 6.5
+  binsize = 3.25, bins = 4 4 4
+  1 neighbor lists, perpetual/occasional/extra = 1 0 0
+  (1) pair uf3, perpetual
+      attributes: full, newton on
+      pair build: full/bin/atomonly
+      stencil: full/bin/3d
+      bin: standard
+Per MPI rank memory allocation (min/avg/max) = 3.205 | 3.205 | 3.205 Mbytes
+   Step          Temp          E_pair         E_mol          TotEng         Press     
+         0   300           -4.3916353      0             -4.3531602     -21224        
+        10   292.96093     -4.3907325      0             -4.3531602     -21177.095    
+        20   272.60651     -4.3881219      0             -4.35316       -21038.525    
+        30   241.12074     -4.3840835      0             -4.3531597     -20793.964    
+        40   201.8718      -4.3790495      0             -4.3531594     -20444.219    
+        50   159.06853     -4.3735596      0             -4.353159      -19996.634    
+        60   117.24817     -4.3681958      0             -4.3531587     -19470.011    
+        70   80.716097     -4.3635102      0             -4.3531584     -18905.505    
+        80   53.030322     -4.3599593      0             -4.3531582     -18362.596    
+        90   36.611518     -4.3578535      0             -4.3531581     -17898.612    
+       100   32.512413     -4.3573279      0             -4.3531581     -17551.048    
+Loop time of 0.135192 on 4 procs for 100 steps with 128 atoms
+
+Performance: 31.955 ns/day, 0.751 hours/ns, 739.688 timesteps/s, 94.680 katom-step/s
+99.5% CPU use with 4 MPI tasks x 1 OpenMP threads
+
+MPI task timing breakdown:
+Section |  min time  |  avg time  |  max time  |%varavg| %total
+---------------------------------------------------------------
+Pair    | 0.11876    | 0.12259    | 0.13092    |   1.4 | 90.68
+Neigh   | 0          | 0          | 0          |   0.0 |  0.00
+Comm    | 0.0035898  | 0.011903   | 0.015736   |   4.5 |  8.80
+Output  | 0.00016067 | 0.00018114 | 0.00023041 |   0.0 |  0.13
+Modify  | 9.9574e-05 | 0.00011041 | 0.00012152 |   0.0 |  0.08
+Other   |            | 0.0004092  |            |       |  0.30
+
+Nlocal:             32 ave          32 max          32 min
+Histogram: 4 0 0 0 0 0 0 0 0 0
+Nghost:            697 ave         697 max         697 min
+Histogram: 4 0 0 0 0 0 0 0 0 0
+Neighs:              0 ave           0 max           0 min
+Histogram: 4 0 0 0 0 0 0 0 0 0
+FullNghs:         2048 ave        2048 max        2048 min
+Histogram: 4 0 0 0 0 0 0 0 0 0
+
+Total # of neighbors = 8192
+Ave neighs/atom = 64
+Neighbor list builds = 0
+Dangerous builds = 0
+Total wall time: 0:00:00

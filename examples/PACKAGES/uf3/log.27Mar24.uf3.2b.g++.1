@@ -1,0 +1,120 @@
+LAMMPS (7 Feb 2024 - Development - patch_7Feb2024_update1-326-g338b9b5d61)
+  using 1 OpenMP thread(s) per MPI task
+# Demonstrate UF3 W potential
+
+# # ============= Initialize simulation
+
+variable        nsteps index 100
+variable        nrep equal 4
+variable        a equal 3.187
+units           metal
+
+# generate the box and atom positions using a BCC lattice
+
+variable        nx equal ${nrep}
+variable        nx equal 4
+variable        ny equal ${nrep}
+variable        ny equal 4
+variable        nz equal ${nrep}
+variable        nz equal 4
+
+boundary        p p p
+
+lattice         bcc $a
+lattice         bcc 3.187
+Lattice spacing in x,y,z = 3.187 3.187 3.187
+region          box block 0 ${nx} 0 ${ny} 0 ${nz}
+region          box block 0 4 0 ${ny} 0 ${nz}
+region          box block 0 4 0 4 0 ${nz}
+region          box block 0 4 0 4 0 4
+create_box      1 box
+Created orthogonal box = (0 0 0) to (12.748 12.748 12.748)
+  1 by 1 by 1 MPI processor grid
+create_atoms    1 box
+Created 128 atoms
+  using lattice units in orthogonal box = (0 0 0) to (12.748 12.748 12.748)
+  create_atoms CPU = 0.000 seconds
+
+mass            1 183.84
+
+# # ============= set pair style
+
+pair_style      uf3 2
+pair_coeff      1 1 W_W.uf3
+UF3: W_W.uf3 file should contain UF3 potential for 1 1
+UF3: File W_W.uf3 contains 2-body UF3 potential
+UF3: File W_W.uf3 contains 2-body UF3 potential with uniform
+              knot spacing
+
+
+# # ============= Setup output
+
+thermo          10
+thermo_modify   norm yes
+
+# # ============= Set up NVE run
+
+timestep        0.5e-3
+neighbor        1.0 bin
+neigh_modify    once no every 1 delay 0 check yes
+
+# # ============= Run MD
+
+velocity        all create 300.0 2367804 loop geom
+fix             1 all nve
+run             ${nsteps}
+run             100
+Neighbor list info ...
+  update: every = 1 steps, delay = 0 steps, check = yes
+  max neighbors/atom: 2000, page size: 100000
+  master list distance cutoff = 6.5
+  ghost atom cutoff = 6.5
+  binsize = 3.25, bins = 4 4 4
+  1 neighbor lists, perpetual/occasional/extra = 1 0 0
+  (1) pair uf3, perpetual
+      attributes: full, newton on
+      pair build: full/bin/atomonly
+      stencil: full/bin/3d
+      bin: standard
+Per MPI rank memory allocation (min/avg/max) = 3.113 | 3.113 | 3.113 Mbytes
+   Step          Temp          E_pair         E_mol          TotEng         Press     
+         0   300           -4.9097145      0             -4.8712394     -398022.13    
+        10   297.43433     -4.9093854      0             -4.8712394     -397994.78    
+        20   289.88359     -4.908417       0             -4.8712393     -397922.72    
+        30   277.73497     -4.9068589      0             -4.8712393     -397829.84    
+        40   261.57286     -4.904786       0             -4.8712392     -397731.28    
+        50   242.14207     -4.902294       0             -4.8712392     -397640.01    
+        60   220.31079     -4.899494       0             -4.8712391     -397572.33    
+        70   197.03391     -4.8965087      0             -4.871239      -397551.93    
+        80   173.31044     -4.893466       0             -4.8712389     -397601.62    
+        90   150.12364     -4.8904922      0             -4.8712388     -397739.2     
+       100   128.38807     -4.8877046      0             -4.8712388     -397980.01    
+Loop time of 0.0345905 on 1 procs for 100 steps with 128 atoms
+
+Performance: 124.890 ns/day, 0.192 hours/ns, 2890.965 timesteps/s, 370.044 katom-step/s
+99.2% CPU use with 1 MPI tasks x 1 OpenMP threads
+
+MPI task timing breakdown:
+Section |  min time  |  avg time  |  max time  |%varavg| %total
+---------------------------------------------------------------
+Pair    | 0.03333    | 0.03333    | 0.03333    |   0.0 | 96.36
+Neigh   | 0          | 0          | 0          |   0.0 |  0.00
+Comm    | 0.00068797 | 0.00068797 | 0.00068797 |   0.0 |  1.99
+Output  | 0.00015217 | 0.00015217 | 0.00015217 |   0.0 |  0.44
+Modify  | 0.00019786 | 0.00019786 | 0.00019786 |   0.0 |  0.57
+Other   |            | 0.0002224  |            |       |  0.64
+
+Nlocal:            128 ave         128 max         128 min
+Histogram: 1 0 0 0 0 0 0 0 0 0
+Nghost:           1113 ave        1113 max        1113 min
+Histogram: 1 0 0 0 0 0 0 0 0 0
+Neighs:              0 ave           0 max           0 min
+Histogram: 1 0 0 0 0 0 0 0 0 0
+FullNghs:         8192 ave        8192 max        8192 min
+Histogram: 1 0 0 0 0 0 0 0 0 0
+
+Total # of neighbors = 8192
+Ave neighs/atom = 64
+Neighbor list builds = 0
+Dangerous builds = 0
+Total wall time: 0:00:00

@@ -321,7 +321,7 @@ whether an extra library is needed to build and use the package:
    * - :ref:`ML-UF3 <PKG-ML-UF3>`
      - quantum-fitted ultra fast potentials
      - :doc:`pair_style uf3 <pair_uf3>`
-     - uf3
+     - PACKAGES/uf3
      - no
    * - :ref:`MOFFF <PKG-MOFFF>`
      - styles for `MOF-FF <MOFplus_>`_ force field

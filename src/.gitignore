@@ -169,6 +169,17 @@
 /rann_*.cpp
 /rann_*.h
 
+/pair_uf3.cpp
+/pair_uf3.h
+/uf3_bspline_basis2.cpp
+/uf3_bspline_basis2.h
+/uf3_bspline_basis3.cpp
+/uf3_bspline_basis3.h
+/uf3_pair_bspline.cpp
+/uf3_pair_bspline.h
+/uf3_triplet_bspline.cpp
+/uf3_triplet_bspline.h
+
 /compute_test_nbl.cpp
 /compute_test_nbl.h
 /pair_multi_lucy.cpp

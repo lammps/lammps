@@ -116,7 +116,6 @@ template: examples for using atom_style template and comparing to atom style mol
 tersoff:  regression test input for Tersoff variants
 threebody: regression test input for a variety of threebody potentials
 ttm:      two-temeperature model examples
-uf3:      examples for using uf3 potentials
 vashishta: models using the Vashishta potential
 voronoi:  Voronoi tesselation via compute voronoi/atom command
 wall:     use of reflective walls with different stochastic models

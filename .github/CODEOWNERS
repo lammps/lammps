@@ -38,6 +38,7 @@ src/ML-HDNNP/*        @singraber
 src/ML-IAP/*          @athomps
 src/ML-PACE/*         @yury-lysogorskiy
 src/ML-POD/*          @exapde
+src/ML-UF3/*          @monk-04
 src/MOFFF/*           @hheenen
 src/MOLFILE/*         @akohlmey
 src/NETCDF/*          @pastewka

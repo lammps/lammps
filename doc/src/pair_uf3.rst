@@ -25,25 +25,25 @@ Examples
 
 .. code-block:: LAMMPS
 
-    pair_style uf3 3 1
-    pair_coeff 1 1 Nb_Nb
-    pair_coeff 3b 1 1 1 Nb_Nb_Nb
+    pair_style uf3 3
+    pair_coeff 1 1 Nb_Nb.uf3
+    pair_coeff 3b 1 1 1 Nb_Nb_Nb.uf3
 
-    pair_style uf3 2 2
-    pair_coeff 1 1 Nb_Nb
-    pair_coeff 1 2 Nb_Sn
-    pair_coeff 2 2 Sn_Sn
+    pair_style uf3 2
+    pair_coeff 1 1 Nb_Nb.uf3
+    pair_coeff 1 2 Nb_Sn.uf3
+    pair_coeff 2 2 Sn_Sn.uf3
 
-    pair_style uf3 3 2
-    pair_coeff 1 1 Nb_Nb
-    pair_coeff 1 2 Nb_Sn
-    pair_coeff 2 2 Sn_Sn
-    pair_style 3b 1 1 1 Nb_Nb_Nb
-    pair_style 3b 1 1 2 Nb_Nb_Sn
-    pair_style 3b 1 2 2 Nb_Sn_Sn
-    pair_style 3b 2 1 1 Sn_Nb_Nb
-    pair_style 3b 2 1 2 Sn_Nb_Sn
-    pair_style 3b 2 2 2 Sn_Sn_Sn
+    pair_style uf3 3
+    pair_coeff 1 1 Nb_Nb.uf3
+    pair_coeff 1 2 Nb_Sn.uf3
+    pair_coeff 2 2 Sn_Sn.uf3
+    pair_style 3b 1 1 1 Nb_Nb_Nb.uf3
+    pair_style 3b 1 1 2 Nb_Nb_Sn.uf3
+    pair_style 3b 1 2 2 Nb_Sn_Sn.uf3
+    pair_style 3b 2 1 1 Sn_Nb_Nb.uf3
+    pair_style 3b 2 1 2 Sn_Nb_Sn.uf3
+    pair_style 3b 2 2 2 Sn_Sn_Sn.uf3
 
 Description
 """""""""""
@@ -87,16 +87,16 @@ As an example, if a LAMMPS simulation contains 2 atom types (elements
 
 .. code-block:: LAMMPS
 
-   pair_style uf3 3 2
-   pair_coeff 1 1 A_A
-   pair_coeff 1 2 A_B
-   pair_coeff 2 2 B_B
-   pair_coeff 3b 1 1 1 A_A_A
-   pair_coeff 3b 1 1 2 A_A_B
-   pair_coeff 3b 1 2 2 A_B_B
-   pair_coeff 3b 2 1 1 B_A_A
-   pair_coeff 3b 2 1 2 B_A_B
-   pair_coeff 3b 2 2 2 B_B_B
+   pair_style uf3 3
+   pair_coeff 1 1 A_A.uf3
+   pair_coeff 1 2 A_B.uf3
+   pair_coeff 2 2 B_B.uf3
+   pair_coeff 3b 1 1 1 A_A_A.uf3
+   pair_coeff 3b 1 1 2 A_A_B.uf3
+   pair_coeff 3b 1 2 2 A_B_B.uf3
+   pair_coeff 3b 2 1 1 B_A_A.uf3
+   pair_coeff 3b 2 1 2 B_A_B.uf3
+   pair_coeff 3b 2 2 2 B_B_B.uf3
 
 If a value of "2" is specified in the :code:`pair_style uf3` command,
 only the two-body potential files are needed. For 3-body interaction the

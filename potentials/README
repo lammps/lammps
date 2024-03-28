@@ -118,4 +118,5 @@ sw            Stillinger-Weber potential
 tersoff       Tersoff potential
 tersoff.mod   modified Tersoff potential
 tersoff.zbl   Tersoff with ZBL core
+uf3           UF3 potential
 vashishta     Vashishta 2-body and 3-body potential

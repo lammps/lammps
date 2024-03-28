@@ -33,12 +33,14 @@
 
 //#define ASYNC_DEVICE_COPY
 
+#if 0
 #if !defined(USE_OPENCL) && !defined(USE_HIP)
 // temporary workaround for int2 also defined in cufft
 #ifdef int2
 #undef int2
 #endif
 #include "cufft.h"
+#endif
 #endif
 
 namespace LAMMPS_AL {
@@ -313,10 +315,11 @@ class BaseAmoeba {
   virtual int fphi_mpole();
   virtual int polar_real(const int eflag, const int vflag) = 0;
 
-
+#if 0
   #if !defined(USE_OPENCL) && !defined(USE_HIP)
   cufftHandle plan;
   #endif
+#endif
   bool fft_plan_created;
 };
 

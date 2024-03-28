@@ -208,14 +208,11 @@ void PairUF3::allocate()
 
 void PairUF3::uf3_read_pot_file(int itype, int jtype, char *potf_name)
 {
-  utils::logmesg(lmp, "UF3: {} file should contain UF3 potential for {} {}\n", \
-          potf_name, itype, jtype);
+  if (comm->me == 0)
+    utils::logmesg(lmp, "UF3: {} file should contain UF3 potential for {} {}\n", potf_name, itype, jtype);
 
-  if (!platform::file_is_readable(potf_name))
-    error->all(FLERR, "UF3: {} file is not readable", potf_name);
-
-  FILE *fp;
-  fp = utils::open_potential(potf_name, lmp, nullptr);
+  FILE *fp = utils::open_potential(potf_name, lmp, nullptr);
+  if (!fp) error->one(FLERR,"Cannot open UF3 potential file {}", potf_name);
 
   TextFileReader txtfilereader(fp, "UF3:POTFP");
   txtfilereader.ignore_comments = false;
@@ -224,62 +221,60 @@ void PairUF3::uf3_read_pot_file(int itype, int jtype, char *potf_name)
   Tokenizer file_header(temp_line);
 
   if (file_header.count() != 2)
-    error->all(FLERR, "UF3: Expected only two words on 1st line of {} but found \n\
-            {} word/s",potf_name,file_header.count());
+    error->all(FLERR, "UF3: Expected only two words on 1st line of {} but found "
+            "{} word/s",potf_name,file_header.count());
 
   if (file_header.contains("#UF3 POT") == 0)
-    error->all(FLERR, "UF3: {} file is not UF3 POT type, 1st line of UF3 POT \n\
-            files contain '#UF3 POT'. Found {} in the header",potf_name,temp_line);
+    error->all(FLERR, "UF3: {} file is not UF3 POT type, 1st line of UF3 POT \n"
+            "files contain '#UF3 POT'. Found {} in the header",potf_name,temp_line);
 
   temp_line = txtfilereader.next_line(1);
   ValueTokenizer fp2nd_line(temp_line);
 
   if (fp2nd_line.count() != 4)
-    error->all(FLERR, "UF3: Expected 4 words on 2nd line =>\n\
-            nBody leading_trim trailing_trim type_of_knot_spacing\n\
-            Found {}",temp_line);
+    error->all(FLERR, "UF3: Expected 4 words on 2nd line =>\n"
+            "  nBody leading_trim trailing_trim type_of_knot_spacing\n"
+            "  Found {}",temp_line);
 
   std::string nbody_on_file = fp2nd_line.next_string();
   if (utils::strmatch(nbody_on_file,"2B"))
     utils::logmesg(lmp, "UF3: File {} contains 2-body UF3 potential\n",potf_name);
   else
-    error->all(FLERR, "UF3: Expected a 2B UF3 file but found {}",
-            nbody_on_file);
+    error->all(FLERR, "UF3: Expected a 2B UF3 file but found {}", nbody_on_file);
 
   int leading_trim = fp2nd_line.next_int();
   int trailing_trim = fp2nd_line.next_int();
   if (leading_trim != 0)
-    error->all(FLERR, "UF3: Current implementation is throughly tested only for\n\
-            leading_trim=0\n");
+    error->all(FLERR, "UF3: Current implementation is throughly tested only for "
+            "leading_trim=0");
   if (trailing_trim != 3)
-    error->all(FLERR, "UF3: Current implementation is throughly tested only for\n\
-            trailing_trim=3\n");
+    error->all(FLERR, "UF3: Current implementation is throughly tested only for "
+            "trailing_trim=3");
 
   std::string knot_type = fp2nd_line.next_string();
   if (utils::strmatch(knot_type,"uk")) {
-    utils::logmesg(lmp, "UF3: File {} contains 2-body UF3 potential with uniform\n\
-              knot spacing\n",potf_name);
+    utils::logmesg(lmp, "UF3: File {} contains 2-body UF3 potential with uniform "
+              "knot spacing",potf_name);
     knot_spacing_type_2b[itype][jtype] = 0;
     knot_spacing_type_2b[jtype][itype] = 0;
   }
   else if (utils::strmatch(knot_type,"nk")) {
-    utils::logmesg(lmp, "UF3: File {} contains 2-body UF3 potential with non-uniform\n\
-            knot spacing\n",potf_name);
+    utils::logmesg(lmp, "UF3: File {} contains 2-body UF3 potential with non-uniform "
+            "knot spacing",potf_name);
     knot_spacing_type_2b[itype][jtype] = 1;
     knot_spacing_type_2b[jtype][itype] = 1;
-    /*error->all(FLERR, "UF3: Current implementation only works with uniform\n\
-            knot spacing");*/
+    /*error->all(FLERR, "UF3: Current implementation only works with uniform "
+            " knot spacing");*/
   }
   else
-    error->all(FLERR, "UF3: Expected either 'uk'(uniform-knots) or 'nk'(non-uniform knots)\n\
-            Found {} on the 2nd line of {} pot file",knot_type,potf_name);
+    error->all(FLERR, "UF3: Expected either 'uk'(uniform-knots) or 'nk'(non-uniform knots) "
+            "Found {} on the 2nd line of {} pot file",knot_type,potf_name);
 
   temp_line = txtfilereader.next_line(1);
   ValueTokenizer fp3rd_line(temp_line);
   if (fp3rd_line.count() != 2)
-    error->all(FLERR, "UF3: Expected only 2 numbers on 3rd line =>\n\
-            Rij_CUTOFF NUM_OF_KNOTS\n\
-            Found {} number/s",fp3rd_line.count());
+    error->all(FLERR, "UF3: Expected only 2 numbers on 3rd line => "
+            "Rij_CUTOFF NUM_OF_KNOTS. Found {} number/s",fp3rd_line.count());
 
   //cut is used in init_one which is called by pair.cpp at line 267 where the return of init_one is squared
   cut[itype][jtype] = fp3rd_line.next_double();
@@ -291,7 +286,7 @@ void PairUF3::uf3_read_pot_file(int itype, int jtype, char *potf_name)
   ValueTokenizer fp4th_line(temp_line);
 
   if (fp4th_line.count() != num_knots_2b)
-      error->all(FLERR, "UF3: Expected {} numbers on 4th line but found {} numbers",
+    error->all(FLERR, "UF3: Expected {} numbers on 4th line but found {} numbers",
               num_knots_2b,fp4th_line.count());
 
   n2b_knot[itype][jtype].resize(num_knots_2b);
@@ -333,11 +328,8 @@ void PairUF3::uf3_read_pot_file(int itype, int jtype, int ktype, char *potf_name
   utils::logmesg(lmp, "UF3: {} file should contain UF3 potential for {} {} {}\n",
           potf_name, itype, jtype, ktype);
 
-  if (!platform::file_is_readable(potf_name))
-    error->all(FLERR, "UF3: {} file is not readable", potf_name);
-
-  FILE *fp;
-  fp = utils::open_potential(potf_name, lmp, nullptr);
+  FILE *fp = utils::open_potential(potf_name, lmp, nullptr);
+  if (!fp) error->one(FLERR,"Cannot open UF3 potential file {}", potf_name);
 
   TextFileReader txtfilereader(fp, "UF3:POTFP");
   txtfilereader.ignore_comments = false;
@@ -346,20 +338,20 @@ void PairUF3::uf3_read_pot_file(int itype, int jtype, int ktype, char *potf_name
   Tokenizer file_header(temp_line);
 
   if (file_header.count() != 2)
-    error->all(FLERR, "UF3: Expected only two words on 1st line of {} but found \n\
-            {} word/s",potf_name,file_header.count());
+    error->all(FLERR, "UF3: Expected only two words on 1st line of {} but found "
+            "{} word/s",potf_name,file_header.count());
 
   if (file_header.contains("#UF3 POT") == 0)
-    error->all(FLERR, "UF3: {} file is not UF3 POT type, 1st line of UF3 POT \n\
-            files contain '#UF3 POT'. Found {} in the header",potf_name,temp_line);
+    error->all(FLERR, "UF3: {} file is not UF3 POT type, 1st line of UF3 POT "
+            "files contain '#UF3 POT'. Found {} in the header",potf_name,temp_line);
 
   temp_line = txtfilereader.next_line(1);
   ValueTokenizer fp2nd_line(temp_line);
 
   if (fp2nd_line.count() != 4)
-    error->all(FLERR, "UF3: Expected 3 words on 2nd line =>\n\
-            nBody leading_trim trailing_trim type_of_knot_spacing\n\
-            Found {}",temp_line);
+    error->all(FLERR, "UF3: Expected 3 words on 2nd line => "
+            "nBody leading_trim trailing_trim type_of_knot_spacing "
+            "Found {}",temp_line);
 
   std::string nbody_on_file = fp2nd_line.next_string();
 
@@ -372,38 +364,36 @@ void PairUF3::uf3_read_pot_file(int itype, int jtype, int ktype, char *potf_name
   int leading_trim = fp2nd_line.next_int();
   int trailing_trim = fp2nd_line.next_int();
   if (leading_trim != 0)
-    error->all(FLERR, "UF3: Current implementation is throughly tested only for\n\
-            leading_trim=0\n");
+    error->all(FLERR, "UF3: Current implementation is throughly tested only for "
+            "leading_trim=0\n");
   if (trailing_trim != 3)
-    error->all(FLERR, "UF3: Current implementation is throughly tested only for\n\
-            trailing_trim=3\n");
+    error->all(FLERR, "UF3: Current implementation is throughly tested only for "
+            "trailing_trim=3\n");
 
   std::string knot_type = fp2nd_line.next_string();
   if (utils::strmatch(knot_type,"uk")) {
-    utils::logmesg(lmp, "UF3: File {} contains 3-body UF3 potential with uniform\n\
-            knot spacing\n",potf_name);
+    utils::logmesg(lmp, "UF3: File {} contains 3-body UF3 potential with uniform "
+            "knot spacing\n",potf_name);
     knot_spacing_type_3b[itype][jtype][ktype] = 0;
     knot_spacing_type_3b[itype][ktype][jtype] = 0;
   }
   else if (utils::strmatch(knot_type,"nk")) {
-    utils::logmesg(lmp, "UF3: File {} contains 3-body UF3 potential with non-uniform\n\
-            knot spacing\n",potf_name);
+    utils::logmesg(lmp, "UF3: File {} contains 3-body UF3 potential with non-uniform "
+            "knot spacing\n",potf_name);
     knot_spacing_type_3b[itype][jtype][ktype] = 1;
     knot_spacing_type_3b[itype][ktype][jtype] = 1;
-    /*error->all(FLERR, "UF3: Current implementation only works with uniform\n\
-            knot spacing");*/
   }
   else
-    error->all(FLERR, "UF3: Expected either 'uk'(uniform-knots) or 'nk'(non-uniform knots)\n\
-            Found {} on the 2nd line of {} pot file",knot_type,potf_name);
+    error->all(FLERR, "UF3: Expected either 'uk'(uniform-knots) or 'nk'(non-uniform knots) "
+              "Found {} on the 2nd line of {} pot file",knot_type,potf_name);
 
   temp_line = txtfilereader.next_line(6);
   ValueTokenizer fp3rd_line(temp_line);
 
   if (fp3rd_line.count() != 6)
-    error->all(FLERR, "UF3: Expected only 6 numbers on 3rd line =>\n\
-            Rjk_CUTOFF Rik_CUTOFF Rij_CUTOFF NUM_OF_KNOTS_JK NUM_OF_KNOTS_IK NUM_OF_KNOTS_IJ\n\
-            Found {} number/s",fp3rd_line.count());
+    error->all(FLERR, "UF3: Expected only 6 numbers on 3rd line => "
+            "Rjk_CUTOFF Rik_CUTOFF Rij_CUTOFF NUM_OF_KNOTS_JK NUM_OF_KNOTS_IK NUM_OF_KNOTS_IJ "
+            "Found {} number/s",fp3rd_line.count());
 
   double cut3b_rjk = fp3rd_line.next_double();
   double cut3b_rij = fp3rd_line.next_double();
@@ -414,8 +404,8 @@ void PairUF3::uf3_read_pot_file(int itype, int jtype, int ktype, char *potf_name
   }
 
   if (2 * cut3b_rik != cut3b_rjk) {
-    error->all(FLERR, "UF3: 2rij=2rik!=rik, Current implementation only works \n\
-            for 2rij=2rik!=rik");
+    error->all(FLERR, "UF3: 2rij=2rik!=rik, Current implementation only works "
+            "for 2rij=2rik!=rik");
   }
 
   cut_3b_list[itype][jtype] = std::max(cut3b_rij, cut_3b_list[itype][jtype]);
@@ -507,25 +497,25 @@ void PairUF3::uf3_read_pot_file(int itype, int jtype, int ktype, char *potf_name
   ValueTokenizer fp7th_line(temp_line);
 
   if (fp7th_line.count() != 3)
-    error->all(FLERR, "UF3: Expected 3 numbers on 7th line =>\n\
-           SHAPE_OF_COEFF_MATRIX[I][J][K] \n\
-           found {} numbers", fp7th_line.count());
+    error->all(FLERR, "UF3: Expected 3 numbers on 7th line => "
+           "SHAPE_OF_COEFF_MATRIX[I][J][K] "
+           "found {} numbers", fp7th_line.count());
 
   coeff_matrix_dim1 = fp7th_line.next_int();
   coeff_matrix_dim2 = fp7th_line.next_int();
   coeff_matrix_dim3 = fp7th_line.next_int();
 
   if (n3b_knot_matrix[itype][jtype][ktype][0].size() != coeff_matrix_dim3 + 3 + 1)
-    error->all(FLERR, "UF3: {} has incorrect knot (NUM_OF_KNOTS_JK) and \n\
-            coeff (coeff_matrix_dim3) data nknots!=ncoeffs + 3 +1", potf_name);
+    error->all(FLERR, "UF3: {} has incorrect knot (NUM_OF_KNOTS_JK) and "
+            "coeff (coeff_matrix_dim3) data nknots!=ncoeffs + 3 +1", potf_name);
 
   if (n3b_knot_matrix[itype][jtype][ktype][1].size() != coeff_matrix_dim2 + 3 + 1)
-    error->all(FLERR, "UF3: {} has incorrect knot (NUM_OF_KNOTS_IK) and \n\
-            coeff (coeff_matrix_dim2) data nknots!=ncoeffs + 3 +1",potf_name);
+    error->all(FLERR, "UF3: {} has incorrect knot (NUM_OF_KNOTS_IK) and "
+            "coeff (coeff_matrix_dim2) data nknots!=ncoeffs + 3 +1",potf_name);
 
   if (n3b_knot_matrix[itype][jtype][ktype][2].size() != coeff_matrix_dim1 + 3 + 1)
-    error->all(FLERR, "UF3: {} has incorrect knot (NUM_OF_KNOTS_IJ) and \n\
-            coeff ()coeff_matrix_dim1 data nknots!=ncoeffs + 3 +1",potf_name);
+    error->all(FLERR, "UF3: {} has incorrect knot (NUM_OF_KNOTS_IJ) and "
+            "coeff ()coeff_matrix_dim1 data nknots!=ncoeffs + 3 +1",potf_name);
 
   coeff_matrix_elements_len = coeff_matrix_dim3;
 
@@ -541,8 +531,8 @@ void PairUF3::uf3_read_pot_file(int itype, int jtype, int ktype, char *potf_name
       n3b_coeff_matrix[key][i][j].resize(coeff_matrix_dim3);
 
       if (coeff_line.count() != coeff_matrix_elements_len)
-        error->all(FLERR, "UF3: Expected {} numbers on {}th line but found \n\
-                {} numbers",coeff_matrix_elements_len, line_count+8, coeff_line.count());
+        error->all(FLERR, "UF3: Expected {} numbers on {}th line but found "
+                "{} numbers",coeff_matrix_elements_len, line_count+8, coeff_line.count());
       for (int k = 0; k < coeff_matrix_dim3; k++) {
         n3b_coeff_matrix[key][i][j][k] = coeff_line.next_double();
       }
@@ -576,9 +566,8 @@ void PairUF3::uf3_read_pot_file(char *potf_name)
 {
   if (comm->me == 0) utils::logmesg(lmp, "\nUF3: Opening {} file\n", potf_name);
 
-  FILE *fp;
-  fp = utils::open_potential(potf_name, lmp, nullptr);
-  // if (fp) error->all(FLERR,"UF3: {} file not found",potf_name);
+  FILE *fp = utils::open_potential(potf_name, lmp, nullptr);
+  if (!fp) error->all(FLERR,"Cannot open UF3 potential file {}",potf_name);
 
   TextFileReader txtfilereader(fp, "UF3:POTFP");
   txtfilereader.ignore_comments = false;
@@ -823,8 +812,8 @@ void PairUF3::create_bsplines()
   for (int i = 1; i < num_of_elements + 1; i++) {
     for (int j = 1; j < num_of_elements + 1; j++) {
       if (setflag[i][j] != 1)
-        error->all(FLERR,"UF3: Not all 2-body UF potentials are set, \n\
-                missing potential file for {}-{} interaction",i, j);
+        error->all(FLERR,"UF3: Not all 2-body UF potentials are set, "
+                "missing potential file for {}-{} interaction",i, j);
     }
   }
   if (pot_3b) {
@@ -832,8 +821,8 @@ void PairUF3::create_bsplines()
       for (int j = 1; j < num_of_elements + 1; j++) {
         for (int k = 1; k < num_of_elements + 1; k++) {
           if (setflag_3b[i][j][k] != 1)
-            error->all(FLERR,"UF3: Not all 3-body UF potentials are set, \n\
-                    missing potential file for {}-{}-{} interaction", i, j, k);
+            error->all(FLERR,"UF3: Not all 3-body UF potentials are set, "
+                    "missing potential file for {}-{}-{} interaction", i, j, k);
         }
       }
     }
@@ -1155,17 +1144,17 @@ double PairUF3::memory_usage()
   bytes += (double)5*sizeof(double);    //bsplines_created, coeff_matrix_dim1,
                                         //coeff_matrix_dim2, coeff_matrix_dim3,
                                         //coeff_matrix_elements_len
-  bytes += (double)(num_of_elements+1)*(num_of_elements+1)*\
+  bytes += (double)(num_of_elements+1)*(num_of_elements+1)*
            (num_of_elements+1)*sizeof(double);      //***setflag_3b
 
   bytes += (double)(num_of_elements+1)*(num_of_elements+1)*sizeof(double); //cut
 
-  bytes += (double)(num_of_elements+1)*(num_of_elements+1)*\
+  bytes += (double)(num_of_elements+1)*(num_of_elements+1)*
            (num_of_elements+1)*sizeof(double);      //***cut_3b
 
   bytes += (double)(num_of_elements+1)*(num_of_elements+1)*sizeof(double); //cut_3b_list
 
-  bytes += (double)(num_of_elements+1)*(num_of_elements+1)*\
+  bytes += (double)(num_of_elements+1)*(num_of_elements+1)*
            (num_of_elements+1)*3*sizeof(double);    //min_cut_3b
 
   for (int i=1; i < num_of_elements+1; i++) {

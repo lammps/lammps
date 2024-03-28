@@ -50,10 +50,10 @@ BondBPM::BondBPM(LAMMPS *_lmp) :
   // this is so final order of Modify:fix will conform to input script
   // BondHistory technically only needs this if updateflag = 1
 
-  id_fix_dummy = utils::strdup("BPM_DUMMY");
+  id_fix_dummy = utils::strdup(fmt::format("BPM_DUMMY_{}", instance_total));
   modify->add_fix(fmt::format("{} all DUMMY ", id_fix_dummy));
 
-  id_fix_dummy2 = utils::strdup("BPM_DUMMY2");
+  id_fix_dummy2 = utils::strdup(fmt::format("BPM_DUMMY2_{}", instance_total));
   modify->add_fix(fmt::format("{} all DUMMY ", id_fix_dummy2));
 }
 

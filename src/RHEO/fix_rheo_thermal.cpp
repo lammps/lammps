@@ -271,7 +271,12 @@ void FixRHEOThermal::init()
     req->set_cutoff(cut_kernel);
 
     // find instances of bond history to delete data
+    // skip history for shell, only exception
     histories = modify->get_fix_by_style("BOND_HISTORY");
+    if (n_histories > 0)
+      for (int i = 0; i < histories.size(); i++)
+        if (strcmp(histories[i]->id, "HISTORY_RHEO_SHELL") == 0)
+          histories.erase(histories.begin() + i);
     n_histories = histories.size();
   }
 }
@@ -644,6 +649,8 @@ double FixRHEOThermal::calc_cv(int i, int itype)
   if (cv_style[itype] == CONSTANT) {
     return cv[itype];
   }
+
+  return 0.0;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -653,6 +660,8 @@ double FixRHEOThermal::calc_Tc(int i, int itype)
   if (Tc_style[itype] == CONSTANT) {
     return Tc[itype];
   }
+
+  return 0.0;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -662,6 +671,8 @@ double FixRHEOThermal::calc_L(int i, int itype)
   if (L_style[itype] == CONSTANT) {
     return L[itype];
   }
+
+  return 0.0;
 }
 
 /* ---------------------------------------------------------------------- */

@@ -329,7 +329,8 @@ double ComputeRHEOInterface::correct_rho(int i, int j)
 {
   // i is wall, j is fluid
   //In future may depend on atom type j's pressure equation
-  return atom->rho[i];
+  int itype = atom->type[i];
+  return MAX(rho0[itype], atom->rho[i]);
 }
 
 /* ---------------------------------------------------------------------- */

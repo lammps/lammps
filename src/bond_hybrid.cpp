@@ -259,7 +259,12 @@ void BondHybrid::flags()
     if (styles[m]) comm_forward = MAX(comm_forward, styles[m]->comm_forward);
     if (styles[m]) comm_reverse = MAX(comm_reverse, styles[m]->comm_reverse);
     if (styles[m]) comm_reverse_off = MAX(comm_reverse_off, styles[m]->comm_reverse_off);
+    if (styles[m]) partial_flag = MAX(partial_flag, styles[m]->partial_flag);
   }
+
+  for (m = 0; m < nstyles; m++)
+    if (styles[m]->partial_flag != partial_flag)
+      error->all(FLERR, "Cannot hybridize bond styles with different topology settings");
 
   init_svector();
 }

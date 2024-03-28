@@ -85,10 +85,12 @@ void PairUF3::settings(int narg, char **arg)
   num_of_elements = atom->ntypes;
   if (nbody_flag == 2) {
     pot_3b = false;
+    manybody_flag = 0;
     n2body_pot_files = num_of_elements * (num_of_elements + 1) / 2;
     tot_pot_files = n2body_pot_files;
   } else if (nbody_flag == 3) {
     pot_3b = true;
+    single_enable = 0;
     n2body_pot_files = num_of_elements * (num_of_elements + 1) / 2;
     n3body_pot_files = num_of_elements * (num_of_elements * (num_of_elements + 1) / 2);
     tot_pot_files = n2body_pot_files + n3body_pot_files;

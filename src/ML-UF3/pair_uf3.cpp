@@ -241,9 +241,10 @@ void PairUF3::uf3_read_pot_file(int itype, int jtype, char *potf_name)
                temp_line);
 
   std::string nbody_on_file = fp2nd_line.next_string();
-  if (utils::strmatch(nbody_on_file, "2B"))
-    utils::logmesg(lmp, "UF3: File {} contains 2-body UF3 potential\n", potf_name);
-  else
+  if (nbody_on_file == "2B") {
+    if (comm->me == 0)
+      utils::logmesg(lmp, "UF3: File {} contains 2-body UF3 potential\n", potf_name);
+  } else
     error->all(FLERR, "UF3: Expected a 2B UF3 file but found {}", nbody_on_file);
 
   int leading_trim = fp2nd_line.next_int();
@@ -258,25 +259,23 @@ void PairUF3::uf3_read_pot_file(int itype, int jtype, char *potf_name)
                "trailing_trim=3");
 
   std::string knot_type = fp2nd_line.next_string();
-  if (utils::strmatch(knot_type, "uk")) {
-    utils::logmesg(lmp,
-                   "UF3: File {} contains 2-body UF3 potential with uniform "
-                   "knot spacing",
-                   potf_name);
+  if (knot_type == "uk") {
+    if (comm->me == 0)
+      utils::logmesg(lmp,
+                     "UF3: File {} contains 2-body UF3 potential with uniform knot spacing",
+                     potf_name);
     knot_spacing_type_2b[itype][jtype] = 0;
     knot_spacing_type_2b[jtype][itype] = 0;
-  } else if (utils::strmatch(knot_type, "nk")) {
-    utils::logmesg(lmp,
-                   "UF3: File {} contains 2-body UF3 potential with non-uniform "
-                   "knot spacing",
-                   potf_name);
+  } else if (knot_type == "nk") {
+    if (comm->me == 0)
+      utils::logmesg(lmp,
+                     "UF3: File {} contains 2-body UF3 potential with non-uniform knot spacing",
+                     potf_name);
     knot_spacing_type_2b[itype][jtype] = 1;
     knot_spacing_type_2b[jtype][itype] = 1;
-    /*error->all(FLERR, "UF3: Current implementation only works with uniform "
-            " knot spacing");*/
   } else
     error->all(FLERR,
-               "UF3: Expected either 'uk'(uniform-knots) or 'nk'(non-uniform knots) "
+               "UF3: Expected either 'uk'(uniform-knots) or 'nk'(non-uniform knots). "
                "Found {} on the 2nd line of {} pot file",
                knot_type, potf_name);
 
@@ -337,8 +336,9 @@ void PairUF3::uf3_read_pot_file(int itype, int jtype, char *potf_name)
 
 void PairUF3::uf3_read_pot_file(int itype, int jtype, int ktype, char *potf_name)
 {
-  utils::logmesg(lmp, "UF3: {} file should contain UF3 potential for {} {} {}\n", potf_name, itype,
-                 jtype, ktype);
+  if (comm->me == 0)
+    utils::logmesg(lmp, "UF3: {} file should contain UF3 potential for {} {} {}\n",
+                   potf_name, itype, jtype, ktype);
 
   FILE *fp = utils::open_potential(potf_name, lmp, nullptr);
   if (!fp)
@@ -374,35 +374,32 @@ void PairUF3::uf3_read_pot_file(int itype, int jtype, int ktype, char *potf_name
 
   std::string nbody_on_file = fp2nd_line.next_string();
 
-  if (utils::strmatch(nbody_on_file, "3B"))
-    utils::logmesg(lmp, "UF3: File {} contains 3-body UF3 potential\n", potf_name);
-  else
+  if (nbody_on_file == "3B") {
+    if (comm->me == 0)
+      utils::logmesg(lmp, "UF3: File {} contains 3-body UF3 potential\n", potf_name);
+  } else
     error->all(FLERR, "UF3: Expected a 3B UF3 file but found {}", nbody_on_file);
 
   int leading_trim = fp2nd_line.next_int();
   int trailing_trim = fp2nd_line.next_int();
   if (leading_trim != 0)
-    error->all(FLERR,
-               "UF3: Current implementation is throughly tested only for "
-               "leading_trim=0\n");
+    error->all(FLERR, "UF3: Current implementation is throughly tested only for leading_trim=0");
   if (trailing_trim != 3)
-    error->all(FLERR,
-               "UF3: Current implementation is throughly tested only for "
-               "trailing_trim=3\n");
+    error->all(FLERR, "UF3: Current implementation is throughly tested only for trailing_trim=3");
 
   std::string knot_type = fp2nd_line.next_string();
-  if (utils::strmatch(knot_type, "uk")) {
-    utils::logmesg(lmp,
-                   "UF3: File {} contains 3-body UF3 potential with uniform "
-                   "knot spacing\n",
-                   potf_name);
+  if (knot_type == "uk") {
+    if (comm->me == 0)
+      utils::logmesg(lmp,
+                     "UF3: File {} contains 3-body UF3 potential with uniform knot spacing\n",
+                     potf_name);
     knot_spacing_type_3b[itype][jtype][ktype] = 0;
     knot_spacing_type_3b[itype][ktype][jtype] = 0;
-  } else if (utils::strmatch(knot_type, "nk")) {
-    utils::logmesg(lmp,
-                   "UF3: File {} contains 3-body UF3 potential with non-uniform "
-                   "knot spacing\n",
-                   potf_name);
+  } else if (knot_type == "nk") {
+    if (comm->me == 0)
+      utils::logmesg(lmp,
+                     "UF3: File {} contains 3-body UF3 potential with non-uniform knot spacing\n",
+                     potf_name);
     knot_spacing_type_3b[itype][jtype][ktype] = 1;
     knot_spacing_type_3b[itype][ktype][jtype] = 1;
   } else
@@ -628,7 +625,6 @@ void PairUF3::uf3_read_pot_file(char *potf_name)
 
     //cut is used in init_one which is called by pair.cpp at line 267 where the return of init_one is squared
     cut[temp_type1][temp_type2] = fp3rd_line.next_double();
-    // if(comm->me==0) utils::logmesg(lmp,"UF3: Cutoff {}\n",cutsq[temp_type1][temp_type2]);
     cut[temp_type2][temp_type1] = cut[temp_type1][temp_type2];
 
     int temp_line_len = fp3rd_line.next_int();
@@ -649,18 +645,14 @@ void PairUF3::uf3_read_pot_file(char *potf_name)
     temp_line_len = fp5th_line.next_int();
 
     temp_line = txtfilereader.next_line(temp_line_len);
-    // utils::logmesg(lmp,"UF3:11 {}",temp_line);
     ValueTokenizer fp6th_line(temp_line);
-    // if(comm->me==0) utils::logmesg(lmp,"UF3: {}\n",temp_line_len);
     n2b_coeff[temp_type1][temp_type2].resize(temp_line_len);
     n2b_coeff[temp_type2][temp_type1].resize(temp_line_len);
 
     for (int k = 0; k < temp_line_len; k++) {
       n2b_coeff[temp_type1][temp_type2][k] = fp6th_line.next_double();
       n2b_coeff[temp_type2][temp_type1][k] = n2b_coeff[temp_type1][temp_type2][k];
-      // if(comm->me==0) utils::logmesg(lmp,"UF3: {}\n",n2b_coeff[temp_type1][temp_type2][k]);
     }
-    // for(int i=0;i<n2b_coeff[temp_type1][temp_type2].size();i++) if(comm->me==0) utils::logmesg(lmp,"UF3: {}\n",n2b_coeff[temp_type1][temp_type2][i]);
     if (n2b_knot[temp_type1][temp_type2].size() != n2b_coeff[temp_type1][temp_type2].size() + 4) {
       error->all(FLERR, "UF3: {} has incorrect knot and coeff data nknots!=ncoeffs + 3 +1",
                  potf_name);

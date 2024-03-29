@@ -1,4 +1,4 @@
-LAMMPS (7 Feb 2024 - Development - patch_7Feb2024_update1-326-g338b9b5d61)
+LAMMPS (7 Feb 2024 - Development - patch_7Feb2024_update1-331-ga26c281a63)
   using 1 OpenMP thread(s) per MPI task
 # Demonstrate UF3 W potential
 
@@ -43,13 +43,10 @@ pair_style      uf3 3
 pair_coeff      1 1 W_W.uf3
 UF3: W_W.uf3 file should contain UF3 potential for 1 1
 UF3: File W_W.uf3 contains 2-body UF3 potential
-UF3: File W_W.uf3 contains 2-body UF3 potential with uniform
-              knot spacing
-pair_coeff      3b 1 1 1 W_W_W.uf3
+UF3: File W_W.uf3 contains 2-body UF3 potential with uniform knot spacingpair_coeff      3b 1 1 1 W_W_W.uf3
 UF3: W_W_W.uf3 file should contain UF3 potential for 1 1 1
 UF3: File W_W_W.uf3 contains 3-body UF3 potential
-UF3: File W_W_W.uf3 contains 3-body UF3 potential with uniform
-            knot spacing
+UF3: File W_W_W.uf3 contains 3-body UF3 potential with uniform knot spacing
 UF3: 3b min cutoff W_W_W.uf3 1-1-1_jk=1.5 1-1-1_jk=1.5
 UF3: 3b min cutoff W_W_W.uf3 1-1-1_ik=1.5 1-1-1_ik=1.5
 UF3: 3b min cutoff W_W_W.uf3 1-1-1_ij=1.5 1-1-1_ij=1.5
@@ -97,20 +94,20 @@ Per MPI rank memory allocation (min/avg/max) = 3.205 | 3.205 | 3.205 Mbytes
         80   53.030322     -4.3599593      0             -4.3531582     -18362.596    
         90   36.611518     -4.3578535      0             -4.3531581     -17898.612    
        100   32.512413     -4.3573279      0             -4.3531581     -17551.048    
-Loop time of 0.135192 on 4 procs for 100 steps with 128 atoms
+Loop time of 0.130504 on 4 procs for 100 steps with 128 atoms
 
-Performance: 31.955 ns/day, 0.751 hours/ns, 739.688 timesteps/s, 94.680 katom-step/s
-99.5% CPU use with 4 MPI tasks x 1 OpenMP threads
+Performance: 33.102 ns/day, 0.725 hours/ns, 766.258 timesteps/s, 98.081 katom-step/s
+99.1% CPU use with 4 MPI tasks x 1 OpenMP threads
 
 MPI task timing breakdown:
 Section |  min time  |  avg time  |  max time  |%varavg| %total
 ---------------------------------------------------------------
-Pair    | 0.11876    | 0.12259    | 0.13092    |   1.4 | 90.68
+Pair    | 0.1177     | 0.12008    | 0.12246    |   0.7 | 92.01
 Neigh   | 0          | 0          | 0          |   0.0 |  0.00
-Comm    | 0.0035898  | 0.011903   | 0.015736   |   4.5 |  8.80
-Output  | 0.00016067 | 0.00018114 | 0.00023041 |   0.0 |  0.13
-Modify  | 9.9574e-05 | 0.00011041 | 0.00012152 |   0.0 |  0.08
-Other   |            | 0.0004092  |            |       |  0.30
+Comm    | 0.0074641  | 0.0098397  | 0.012226   |   2.4 |  7.54
+Output  | 0.00012713 | 0.00013807 | 0.0001675  |   0.0 |  0.11
+Modify  | 8.7486e-05 | 9.3752e-05 | 0.00010061 |   0.0 |  0.07
+Other   |            | 0.0003502  |            |       |  0.27
 
 Nlocal:             32 ave          32 max          32 min
 Histogram: 4 0 0 0 0 0 0 0 0 0

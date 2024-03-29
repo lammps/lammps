@@ -767,8 +767,7 @@ void FixDeformPressure::apply_box()
       if (fabs(v_rate) > max_h_rate)
         v_rate = max_h_rate * v_rate / fabs(v_rate);
 
-    set_extra[6].cumulative_strain += update->dt * v_rate;
-    scale = (1.0 + set_extra[6].cumulative_strain);
+    scale = (1.0 + update->dt * v_rate);
     for (i = 0; i < 3; i++) {
       shift = 0.5 * (set[i].hi_target - set[i].lo_target) * scale;
       set[i].lo_target = 0.5 * (set[i].lo_start + set[i].hi_start) - shift;
@@ -843,7 +842,6 @@ void FixDeformPressure::restart(char *buf)
     set_extra[i].saved = set_extra_restart[i].saved;
     set_extra[i].prior_rate = set_extra_restart[i].prior_rate;
     set_extra[i].prior_pressure = set_extra_restart[i].prior_pressure;
-    set_extra[i].cumulative_strain = set_extra_restart[i].cumulative_strain;
   }
 }
 

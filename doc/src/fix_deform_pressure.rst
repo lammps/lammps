@@ -91,7 +91,7 @@ corresponding component of the pressure tensor. This option attempts to
 maintain a specified target pressure using a linear controller where the
 box length :math:`L` evolves according to the equation
 
-.. parsed-literal::
+.. math::
 
    \frac{d L(t)}{dt} = L(t) k (P_t - P)
 

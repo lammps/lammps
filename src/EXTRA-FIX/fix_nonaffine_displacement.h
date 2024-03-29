@@ -57,7 +57,6 @@ class FixNonaffineDisplacement : public Fix {
 
   class NeighList *list;    // half neighbor list
 
-
   void integrate_velocity();
   void calculate_D2Min();
   void save_reference_state();

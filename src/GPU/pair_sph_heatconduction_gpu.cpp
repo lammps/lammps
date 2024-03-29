@@ -113,7 +113,7 @@ void PairSPHHeatConductionGPU::compute(int eflag, int vflag)
         neighbor->ago, inum, nall, atom->x, atom->type,
         sublo, subhi, atom->tag, atom->nspecial, atom->special, eflag, vflag,
         eflag_atom, vflag_atom, host_start, &ilist, &numneigh,
-        cpu_time, success, atom->v);
+        cpu_time, success, atom->vest);
   } else {
     inum = list->inum;
     ilist = list->ilist;
@@ -122,7 +122,7 @@ void PairSPHHeatConductionGPU::compute(int eflag, int vflag)
     sph_heatconduction_gpu_compute(neighbor->ago, inum, nall, atom->x, atom->type,
                        ilist, numneigh, firstneigh, eflag, vflag,
                        eflag_atom, vflag_atom, host_start, cpu_time, success,
-                       atom->tag, atom->v);
+                       atom->tag, atom->vest);
   }
   if (!success) error->one(FLERR, "Insufficient memory on accelerator");
 

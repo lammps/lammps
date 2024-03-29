@@ -255,23 +255,24 @@ and the fix will issue an error in that case.
 
 .. versionadded:: TBD
 
-The keyword *qtotal* causes *fix electrode/conp* and *fix electrode/thermo*
-to add an overall potential to all electrodes so that the total charge on
-the electrodes is a specified amount (which may be an equal-style variable).
-For example, if a user wanted to simulate a solution of excess cations
-such that the total electrolyte charge is +2, setting *qtotal -2* would cause
-the total electrode charge to be -2, so that the simulation box remains overall
-electroneutral. Since *fix electrode/conq* constrains the total charges of
-individual electrodes, and since *symm on* constrains the total charge of all
-electrodes to be zero, either option is incompatible with the *qtotal* keyword
-(even if *qtotal* is set to zero).
+The keyword *qtotal* causes *fix electrode/conp* and *fix
+electrode/thermo* to add an overall potential to all electrodes so that
+the total charge on the electrodes is a specified amount (which may be
+an equal-style variable).  For example, if a user wanted to simulate a
+solution of excess cations such that the total electrolyte charge is +2,
+setting *qtotal -2* would cause the total electrode charge to be -2, so
+that the simulation box remains overall electroneutral. Since *fix
+electrode/conq* constrains the total charges of individual electrodes,
+and since *symm on* constrains the total charge of all electrodes to be
+zero, either option is incompatible with the *qtotal* keyword (even if
+*qtotal* is set to zero).
 
 .. versionadded:: TBD
 
-The keyword *eta* takes the name of a custom double vector defined via fix
-property/atom.  The values will be used instead of the standard eta value.  The
-property/atom fix must be for vector of double values and use the *ghost on*
-option.
+The keyword *eta* takes the name of a custom double vector defined via
+fix property/atom.  The values will be used instead of the standard eta
+value.  The property/atom fix must be for vector of double values and
+use the *ghost on* option.
 
 Restart, fix_modify, output, run start/stop, minimize info
 """""""""""""""""""""""""""""""""""""""""""""""""""""""""""

@@ -915,20 +915,20 @@ void FixElectrodeConp::update_charges()
         a = ele_ele_interaction(q_local);
         r = add_nlocalele(b, a);
       } else {
-        r = add_nlocalele(r, scale_vector(alpha, y));
+        r = add_nlocalele(r, scale_vector(alpha, std::move(y)));
       }
       auto p = constraint_projection(r);
       double dot_new = dot_nlocalele(r, p);
-      d = add_nlocalele(p, scale_vector(dot_new / dot_old, d));
+      d = add_nlocalele(std::move(p), scale_vector(dot_new / dot_old, d));
       delta = dot_nlocalele(r, d);
       dot_old = dot_new;
     }
-    recompute_potential(b, q_local);
+    recompute_potential(std::move(b), q_local);
     if (delta > cg_threshold && comm->me == 0) error->warning(FLERR, "CG threshold not reached");
   } else {
     error->all(FLERR, "This algorithm is not implemented, yet");
   }
-  set_charges(q_local);
+  set_charges(std::move(q_local));
   update_time += MPI_Wtime() - start;
 }
 

@@ -178,7 +178,7 @@ FixAveTime::FixAveTime(LAMMPS *lmp, int narg, char **arg) :
       if (val.argindex && (val.val.f->array_flag == 0))
         error->all(FLERR,"Fix ave/time fix {} does not calculate an array", val.id);
       if (val.argindex && (val.val.f->size_array_rows_variable))
-        error->all(FLERR,"Fix ave/time fix {} array cannot be variable length", val.id);
+        error->all(FLERR,"Fix ave/time fix {} array cannot have variable row length", val.id);
       if (val.argindex && (val.argindex > val.val.f->size_array_cols))
         error->all(FLERR,"Fix ave/time fix {} array is accessed out-of-range", val.id);
       if (nevery % val.val.f->global_freq)

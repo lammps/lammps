@@ -121,7 +121,7 @@ FixAveCorrelate::FixAveCorrelate(LAMMPS *lmp, int narg, char **arg) :
       prefactor = utils::numeric(FLERR,arg[iarg+1],false,lmp);
       iarg += 2;
     } else if (strcmp(arg[iarg],"file") == 0) {
-      if (iarg+2 > narg) utils::missing_cmd_args(FLERR, "fix ave/correlate file", error);
+      if (iarg+2 > nargnew) utils::missing_cmd_args(FLERR, "fix ave/correlate file", error);
       if (comm->me == 0) {
         fp = fopen(arg[iarg+1],"w");
         if (fp == nullptr)

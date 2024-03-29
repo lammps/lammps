@@ -13,7 +13,7 @@
 
 #include "uf3_triplet_bspline.h"
 #include "error.h"
-#include <iostream>
+
 #include <vector>
 
 using namespace LAMMPS_NS;
@@ -306,6 +306,7 @@ int uf3_triplet_bspline::get_starting_index_nonuniform(const std::vector<double>
       }
     }
   }
+  return -1;
 }
 
 double uf3_triplet_bspline::memory_usage()

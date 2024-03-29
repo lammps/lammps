@@ -40,7 +40,9 @@ using MathConst::THIRD;
 
 /* ---------------------------------------------------------------------- */
 
-PairUF3::PairUF3(LAMMPS *lmp) : Pair(lmp)
+PairUF3::PairUF3(LAMMPS *lmp) :
+    Pair(lmp), setflag_3b(nullptr), knot_spacing_type_2b(nullptr), knot_spacing_type_3b(nullptr),
+    cut(nullptr), cut_3b(nullptr), cut_3b_list(nullptr), min_cut_3b(nullptr)
 {
   single_enable = 1;    // 1 if single() routine exists
   restartinfo = 0;      // 1 if pair style writes restart info
@@ -60,6 +62,7 @@ PairUF3::~PairUF3()
     memory->destroy(setflag);
     memory->destroy(cutsq);
     memory->destroy(cut);
+    memory->destroy(knot_spacing_type_2b);
 
     if (pot_3b) {
       memory->destroy(setflag_3b);
@@ -67,6 +70,7 @@ PairUF3::~PairUF3()
       memory->destroy(cut_3b_list);
       memory->destroy(min_cut_3b);
       memory->destroy(neighshort);
+      memory->destroy(knot_spacing_type_3b);
     }
   }
 }

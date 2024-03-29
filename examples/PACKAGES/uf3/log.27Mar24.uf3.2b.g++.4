@@ -1,4 +1,4 @@
-LAMMPS (7 Feb 2024 - Development - patch_7Feb2024_update1-331-ga26c281a63)
+LAMMPS (7 Feb 2024 - Development - patch_7Feb2024_update1-337-g6bdf981942-modified)
   using 1 OpenMP thread(s) per MPI task
 # Demonstrate UF3 W potential
 
@@ -41,9 +41,7 @@ mass            1 183.84
 
 pair_style      uf3 2
 pair_coeff      1 1 W_W.uf3
-UF3: W_W.uf3 file should contain UF3 potential for 1 1
-UF3: File W_W.uf3 contains 2-body UF3 potential
-UF3: File W_W.uf3 contains 2-body UF3 potential with uniform knot spacing
+
 
 # # ============= Setup output
 
@@ -88,20 +86,20 @@ Per MPI rank memory allocation (min/avg/max) = 3.104 | 3.104 | 3.104 Mbytes
         80   173.31044     -4.893466       0             -4.8712389     -397601.62    
         90   150.12364     -4.8904922      0             -4.8712388     -397739.2     
        100   128.38807     -4.8877046      0             -4.8712388     -397980.01    
-Loop time of 0.00969615 on 4 procs for 100 steps with 128 atoms
+Loop time of 0.0147453 on 4 procs for 100 steps with 128 atoms
 
-Performance: 445.538 ns/day, 0.054 hours/ns, 10313.372 timesteps/s, 1.320 Matom-step/s
-99.7% CPU use with 4 MPI tasks x 1 OpenMP threads
+Performance: 292.975 ns/day, 0.082 hours/ns, 6781.825 timesteps/s, 868.074 katom-step/s
+96.0% CPU use with 4 MPI tasks x 1 OpenMP threads
 
 MPI task timing breakdown:
 Section |  min time  |  avg time  |  max time  |%varavg| %total
 ---------------------------------------------------------------
-Pair    | 0.0075573  | 0.0076696  | 0.007725   |   0.1 | 79.10
+Pair    | 0.0086489  | 0.010103   | 0.0115     |   1.4 | 68.52
 Neigh   | 0          | 0          | 0          |   0.0 |  0.00
-Comm    | 0.0017105  | 0.0017634  | 0.0018792  |   0.2 | 18.19
-Output  | 6.7305e-05 | 7.2505e-05 | 8.2576e-05 |   0.0 |  0.75
-Modify  | 4.551e-05  | 4.8142e-05 | 5.4109e-05 |   0.0 |  0.50
-Other   |            | 0.0001425  |            |       |  1.47
+Comm    | 0.0027662  | 0.0041052  | 0.0055079  |   2.1 | 27.84
+Output  | 0.00012555 | 0.0001367  | 0.00015958 |   0.0 |  0.93
+Modify  | 6.4367e-05 | 7.9187e-05 | 9.3374e-05 |   0.0 |  0.54
+Other   |            | 0.000321   |            |       |  2.18
 
 Nlocal:             32 ave          32 max          32 min
 Histogram: 4 0 0 0 0 0 0 0 0 0

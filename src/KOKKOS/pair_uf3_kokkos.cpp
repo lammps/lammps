@@ -219,7 +219,7 @@ template <class DeviceType> void PairUF3Kokkos<DeviceType>::create_coefficients(
     }
   }*/
 
-  if (pot_3b){
+  if (pot_3b) {
     for (int i = 1; i < num_of_elements + 1; i++) {
       for (int j = 1; j < num_of_elements + 1; j++) {
         for (int k = 1; k < num_of_elements + 1; k++) {
@@ -851,7 +851,7 @@ template <class DeviceType> void PairUF3Kokkos<DeviceType>::compute(int eflag_in
 
   // loop over neighbor list of my atoms
 
-  if (evflag){
+  if (evflag) {
     Kokkos::parallel_reduce(
         Kokkos::RangePolicy<DeviceType, TagPairUF3ComputeFullA<FULL, 1>>(0, inum), *this, ev);
   }

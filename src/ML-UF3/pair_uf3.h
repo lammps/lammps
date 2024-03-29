@@ -53,7 +53,7 @@ class PairUF3 : public Pair {
   void uf3_read_pot_file(char *potf_name);
   void uf3_read_pot_file(int i, int j, char *potf_name);
   void uf3_read_pot_file(int i, int j, int k, char *potf_name);
-  int num_of_elements, nbody_flag, n2body_pot_files, n3body_pot_files, tot_pot_files;
+  int nbody_flag, n2body_pot_files, n3body_pot_files, tot_pot_files;
   int bsplines_created;
   int coeff_matrix_dim1, coeff_matrix_dim2, coeff_matrix_dim3, coeff_matrix_elements_len;
   bool pot_3b;

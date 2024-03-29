@@ -207,6 +207,7 @@ template <class DeviceType> double PairUF3Kokkos<DeviceType>::init_one(int i, in
 
 template <class DeviceType> void PairUF3Kokkos<DeviceType>::create_coefficients()
 {
+  const int num_of_elements = atom->ntypes;
   coefficients_created = 1;
 
   /*for (int i = 1; i < num_of_elements + 1; i++) {
@@ -266,6 +267,7 @@ template <class DeviceType> void PairUF3Kokkos<DeviceType>::create_coefficients(
 
 template <class DeviceType> void PairUF3Kokkos<DeviceType>::create_2b_coefficients()
 {
+  const int num_of_elements = atom->ntypes;
 
   // Setup interaction pair map
   //TODO: Instead of using map2b and map3b use simple indexing
@@ -356,6 +358,7 @@ template <class DeviceType> void PairUF3Kokkos<DeviceType>::create_2b_coefficien
 
 template <class DeviceType> void PairUF3Kokkos<DeviceType>::create_3b_coefficients()
 {
+  const int num_of_elements = atom->ntypes;
   // Init interaction map for 3B
 
   Kokkos::realloc(map3b, num_of_elements + 1, num_of_elements + 1, num_of_elements + 1);

@@ -83,7 +83,7 @@ void PairUF3::settings(int narg, char **arg)
                "Invalid number of arguments for pair_style uf3"
                "  Are you using a 2-body or 2 & 3-body UF potential?");
   nbody_flag = utils::numeric(FLERR, arg[0], true, lmp);
-  num_of_elements = atom->ntypes;
+  const int num_of_elements = atom->ntypes;
   if (nbody_flag == 2) {
     pot_3b = false;
     manybody_flag = 0;
@@ -133,6 +133,7 @@ void PairUF3::coeff(int narg, char **arg)
 void PairUF3::allocate()
 {
   allocated = 1;
+  const int num_of_elements = atom->ntypes;
 
   // Contains info about wether UF potential were found for type i and j
   memory->create(setflag, num_of_elements + 1, num_of_elements + 1, "pair:setflag");
@@ -842,6 +843,7 @@ double PairUF3::init_one(int i /*i*/, int /*j*/ j)
 
 void PairUF3::create_bsplines()
 {
+  const int num_of_elements = atom->ntypes;
   bsplines_created = 1;
   for (int i = 1; i < num_of_elements + 1; i++) {
     for (int j = 1; j < num_of_elements + 1; j++) {
@@ -1169,9 +1171,8 @@ double PairUF3::single(int /*i*/, int /*j*/, int itype, int jtype, double rsq,
 
 double PairUF3::memory_usage()
 {
+  const int num_of_elements = atom->ntypes;
   double bytes = Pair::memory_usage();
-
-  bytes = 0;
 
   bytes += (double) 5 * sizeof(double);    //num_of_elements, nbody_flag,
                                            //n2body_pot_files, n3body_pot_files,

@@ -948,8 +948,6 @@ PairUF3Kokkos<DeviceType>::operator()(TagPairUF3ComputeFullA<NEIGHFLAG, EVFLAG>,
   F_FLOAT fpair = 0;
 
   const int i = d_ilist[ii];
-
-  const tagint itag = tag[i];
   const int itype = type[i];
   const X_FLOAT xtmp = x(i, 0);
   const X_FLOAT ytmp = x(i, 1);
@@ -966,8 +964,6 @@ PairUF3Kokkos<DeviceType>::operator()(TagPairUF3ComputeFullA<NEIGHFLAG, EVFLAG>,
   for (int jj = 0; jj < jnum; jj++) {
     int j = d_neighbors_short(i, jj);
     j &= NEIGHMASK;
-    const tagint jtag = tag[j];
-
     const int jtype = type[j];
 
     const X_FLOAT delx = xtmp - x(j, 0);

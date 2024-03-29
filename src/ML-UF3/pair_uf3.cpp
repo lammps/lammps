@@ -79,7 +79,8 @@ void PairUF3::settings(int narg, char **arg)
 {
 
   if (narg != 1)
-    error->all(FLERR, "Invalid number of arguments for pair_style uf3"
+    error->all(FLERR,
+               "Invalid number of arguments for pair_style uf3"
                "  Are you using a 2-body or 2 & 3-body UF potential?");
   nbody_flag = utils::numeric(FLERR, arg[0], true, lmp);
   num_of_elements = atom->ntypes;
@@ -105,30 +106,25 @@ void PairUF3::coeff(int narg, char **arg)
 {
   if (!allocated) allocate();
 
-  if (narg != 3 && narg != 5)
-    error->all(FLERR, "Invalid number of arguments uf3 in pair coeffs.");
+  if (narg != 3 && narg != 5) error->all(FLERR, "Invalid number of arguments uf3 in pair coeffs.");
 
   int ilo, ihi, jlo, jhi, klo, khi;
   if (narg == 3) {
     utils::bounds(FLERR, arg[0], 1, atom->ntypes, ilo, ihi, error);
     utils::bounds(FLERR, arg[1], 1, atom->ntypes, jlo, jhi, error);
     for (int i = ilo; i <= ihi; i++) {
-      for (int j = MAX(jlo, i); j <= jhi; j++) {
-        uf3_read_pot_file(i,j,arg[2]);
-      }
+      for (int j = MAX(jlo, i); j <= jhi; j++) uf3_read_pot_file(i, j, arg[2]);
     }
   } else if (narg == 5) {
     utils::bounds(FLERR, arg[1], 1, atom->ntypes, ilo, ihi, error);
     utils::bounds(FLERR, arg[2], 1, atom->ntypes, jlo, jhi, error);
     utils::bounds(FLERR, arg[3], 1, atom->ntypes, klo, khi, error);
-    if (!utils::strmatch(arg[0],"^3b$"))
+    if (!utils::strmatch(arg[0], "^3b$"))
       error->all(FLERR, "Pair style uf3 3-body terms require the first argument to be 3b");
 
     for (int i = ilo; i <= ihi; i++) {
       for (int j = jlo; j <= jhi; j++) {
-        for (int k = MAX(klo, jlo); k <= khi; k++) {
-          uf3_read_pot_file(i,j,k,arg[4]);
-        }
+        for (int k = MAX(klo, jlo); k <= khi; k++) uf3_read_pot_file(i, j, k, arg[4]);
       }
     }
   }
@@ -150,7 +146,8 @@ void PairUF3::allocate()
   memory->create(cut, num_of_elements + 1, num_of_elements + 1, "pair:cut");
   //Contains info about type of knot_spacing--> 0 = uniform knot spacing (default)
   //1 = non-uniform knot spacing
-  memory->create(knot_spacing_type_2b, num_of_elements + 1, num_of_elements + 1, "pair:knot_spacing_2b");
+  memory->create(knot_spacing_type_2b, num_of_elements + 1, num_of_elements + 1,
+                 "pair:knot_spacing_2b");
 
   // Contains knot_vect of 2-body potential for type i and j
   n2b_knot.resize(num_of_elements + 1);
@@ -173,12 +170,11 @@ void PairUF3::allocate()
     memory->create(cut_3b_list, num_of_elements + 1, num_of_elements + 1, "pair:cut_3b_list");
     // Contains info about minimum 3-body cutoff distance for type i, j and k
     memory->create(min_cut_3b, num_of_elements + 1, num_of_elements + 1, num_of_elements + 1, 3,
-                    "pair:min_cut_3b");
-  //Contains info about type of knot_spacing--> 0 = uniform knot spacing (default)
-  //1 = non-uniform knot spacing
-  memory->create(knot_spacing_type_3b, num_of_elements + 1, num_of_elements + 1,
-          num_of_elements + 1, "pair:knot_spacing_3b");
-
+                   "pair:min_cut_3b");
+    //Contains info about type of knot_spacing--> 0 = uniform knot spacing (default)
+    //1 = non-uniform knot spacing
+    memory->create(knot_spacing_type_3b, num_of_elements + 1, num_of_elements + 1,
+                   num_of_elements + 1, "pair:knot_spacing_3b");
 
     // setting cut_3b and setflag = 0
     for (int i = 1; i < num_of_elements + 1; i++) {
@@ -209,7 +205,8 @@ void PairUF3::allocate()
 void PairUF3::uf3_read_pot_file(int itype, int jtype, char *potf_name)
 {
   if (comm->me == 0)
-    utils::logmesg(lmp, "UF3: {} file should contain UF3 potential for {} {}\n", potf_name, itype, jtype);
+    utils::logmesg(lmp, "UF3: {} file should contain UF3 potential for {} {}\n", potf_name, itype,
+                   jtype);
 
   FILE *fp = utils::open_potential(potf_name, lmp, nullptr);
   if (!fp)
@@ -222,60 +219,74 @@ void PairUF3::uf3_read_pot_file(int itype, int jtype, char *potf_name)
   Tokenizer file_header(temp_line);
 
   if (file_header.count() != 2)
-    error->all(FLERR, "UF3: Expected only two words on 1st line of {} but found "
-            "{} word/s",potf_name,file_header.count());
+    error->all(FLERR,
+               "UF3: Expected only two words on 1st line of {} but found "
+               "{} word/s",
+               potf_name, file_header.count());
 
   if (file_header.contains("#UF3 POT") == 0)
-    error->all(FLERR, "UF3: {} file is not UF3 POT type, 1st line of UF3 POT \n"
-            "files contain '#UF3 POT'. Found {} in the header",potf_name,temp_line);
+    error->all(FLERR,
+               "UF3: {} file is not UF3 POT type, 1st line of UF3 POT \n"
+               "files contain '#UF3 POT'. Found {} in the header",
+               potf_name, temp_line);
 
   temp_line = txtfilereader.next_line(1);
   ValueTokenizer fp2nd_line(temp_line);
 
   if (fp2nd_line.count() != 4)
-    error->all(FLERR, "UF3: Expected 4 words on 2nd line =>\n"
-            "  nBody leading_trim trailing_trim type_of_knot_spacing\n"
-            "  Found {}",temp_line);
+    error->all(FLERR,
+               "UF3: Expected 4 words on 2nd line =>\n"
+               "  nBody leading_trim trailing_trim type_of_knot_spacing\n"
+               "  Found {}",
+               temp_line);
 
   std::string nbody_on_file = fp2nd_line.next_string();
-  if (utils::strmatch(nbody_on_file,"2B"))
-    utils::logmesg(lmp, "UF3: File {} contains 2-body UF3 potential\n",potf_name);
+  if (utils::strmatch(nbody_on_file, "2B"))
+    utils::logmesg(lmp, "UF3: File {} contains 2-body UF3 potential\n", potf_name);
   else
     error->all(FLERR, "UF3: Expected a 2B UF3 file but found {}", nbody_on_file);
 
   int leading_trim = fp2nd_line.next_int();
   int trailing_trim = fp2nd_line.next_int();
   if (leading_trim != 0)
-    error->all(FLERR, "UF3: Current implementation is throughly tested only for "
-            "leading_trim=0");
+    error->all(FLERR,
+               "UF3: Current implementation is throughly tested only for "
+               "leading_trim=0");
   if (trailing_trim != 3)
-    error->all(FLERR, "UF3: Current implementation is throughly tested only for "
-            "trailing_trim=3");
+    error->all(FLERR,
+               "UF3: Current implementation is throughly tested only for "
+               "trailing_trim=3");
 
   std::string knot_type = fp2nd_line.next_string();
-  if (utils::strmatch(knot_type,"uk")) {
-    utils::logmesg(lmp, "UF3: File {} contains 2-body UF3 potential with uniform "
-              "knot spacing",potf_name);
+  if (utils::strmatch(knot_type, "uk")) {
+    utils::logmesg(lmp,
+                   "UF3: File {} contains 2-body UF3 potential with uniform "
+                   "knot spacing",
+                   potf_name);
     knot_spacing_type_2b[itype][jtype] = 0;
     knot_spacing_type_2b[jtype][itype] = 0;
-  }
-  else if (utils::strmatch(knot_type,"nk")) {
-    utils::logmesg(lmp, "UF3: File {} contains 2-body UF3 potential with non-uniform "
-            "knot spacing",potf_name);
+  } else if (utils::strmatch(knot_type, "nk")) {
+    utils::logmesg(lmp,
+                   "UF3: File {} contains 2-body UF3 potential with non-uniform "
+                   "knot spacing",
+                   potf_name);
     knot_spacing_type_2b[itype][jtype] = 1;
     knot_spacing_type_2b[jtype][itype] = 1;
     /*error->all(FLERR, "UF3: Current implementation only works with uniform "
             " knot spacing");*/
-  }
-  else
-    error->all(FLERR, "UF3: Expected either 'uk'(uniform-knots) or 'nk'(non-uniform knots) "
-            "Found {} on the 2nd line of {} pot file",knot_type,potf_name);
+  } else
+    error->all(FLERR,
+               "UF3: Expected either 'uk'(uniform-knots) or 'nk'(non-uniform knots) "
+               "Found {} on the 2nd line of {} pot file",
+               knot_type, potf_name);
 
   temp_line = txtfilereader.next_line(1);
   ValueTokenizer fp3rd_line(temp_line);
   if (fp3rd_line.count() != 2)
-    error->all(FLERR, "UF3: Expected only 2 numbers on 3rd line => "
-            "Rij_CUTOFF NUM_OF_KNOTS. Found {} number/s",fp3rd_line.count());
+    error->all(FLERR,
+               "UF3: Expected only 2 numbers on 3rd line => "
+               "Rij_CUTOFF NUM_OF_KNOTS. Found {} number/s",
+               fp3rd_line.count());
 
   //cut is used in init_one which is called by pair.cpp at line 267 where the return of init_one is squared
   cut[itype][jtype] = fp3rd_line.next_double();
@@ -287,8 +298,8 @@ void PairUF3::uf3_read_pot_file(int itype, int jtype, char *potf_name)
   ValueTokenizer fp4th_line(temp_line);
 
   if (fp4th_line.count() != num_knots_2b)
-    error->all(FLERR, "UF3: Expected {} numbers on 4th line but found {} numbers",
-              num_knots_2b,fp4th_line.count());
+    error->all(FLERR, "UF3: Expected {} numbers on 4th line but found {} numbers", num_knots_2b,
+               fp4th_line.count());
 
   n2b_knot[itype][jtype].resize(num_knots_2b);
   n2b_knot[jtype][itype].resize(num_knots_2b);
@@ -305,8 +316,8 @@ void PairUF3::uf3_read_pot_file(int itype, int jtype, char *potf_name)
   ValueTokenizer fp6th_line(temp_line);
 
   if (fp6th_line.count() != num_of_coeff_2b)
-    error->all(FLERR, "UF3: Expected {} numbers on 6th line but found {} numbers",
-            num_of_coeff_2b, fp6th_line.count());
+    error->all(FLERR, "UF3: Expected {} numbers on 6th line but found {} numbers", num_of_coeff_2b,
+               fp6th_line.count());
 
   n2b_coeff[itype][jtype].resize(num_of_coeff_2b);
   n2b_coeff[jtype][itype].resize(num_of_coeff_2b);
@@ -321,13 +332,13 @@ void PairUF3::uf3_read_pot_file(int itype, int jtype, char *potf_name)
   }
   setflag[itype][jtype] = 1;
   setflag[jtype][itype] = 1;
+  fclose(fp);
 }
-
 
 void PairUF3::uf3_read_pot_file(int itype, int jtype, int ktype, char *potf_name)
 {
-  utils::logmesg(lmp, "UF3: {} file should contain UF3 potential for {} {} {}\n",
-          potf_name, itype, jtype, ktype);
+  utils::logmesg(lmp, "UF3: {} file should contain UF3 potential for {} {} {}\n", potf_name, itype,
+                 jtype, ktype);
 
   FILE *fp = utils::open_potential(potf_name, lmp, nullptr);
   if (!fp)
@@ -340,74 +351,88 @@ void PairUF3::uf3_read_pot_file(int itype, int jtype, int ktype, char *potf_name
   Tokenizer file_header(temp_line);
 
   if (file_header.count() != 2)
-    error->all(FLERR, "UF3: Expected only two words on 1st line of {} but found "
-            "{} word/s",potf_name,file_header.count());
+    error->all(FLERR,
+               "UF3: Expected only two words on 1st line of {} but found "
+               "{} word/s",
+               potf_name, file_header.count());
 
   if (file_header.contains("#UF3 POT") == 0)
-    error->all(FLERR, "UF3: {} file is not UF3 POT type, 1st line of UF3 POT "
-            "files contain '#UF3 POT'. Found {} in the header",potf_name,temp_line);
+    error->all(FLERR,
+               "UF3: {} file is not UF3 POT type, 1st line of UF3 POT "
+               "files contain '#UF3 POT'. Found {} in the header",
+               potf_name, temp_line);
 
   temp_line = txtfilereader.next_line(1);
   ValueTokenizer fp2nd_line(temp_line);
 
   if (fp2nd_line.count() != 4)
-    error->all(FLERR, "UF3: Expected 3 words on 2nd line => "
-            "nBody leading_trim trailing_trim type_of_knot_spacing "
-            "Found {}",temp_line);
+    error->all(FLERR,
+               "UF3: Expected 3 words on 2nd line => "
+               "nBody leading_trim trailing_trim type_of_knot_spacing "
+               "Found {}",
+               temp_line);
 
   std::string nbody_on_file = fp2nd_line.next_string();
 
-  if (utils::strmatch(nbody_on_file,"3B"))
-    utils::logmesg(lmp, "UF3: File {} contains 3-body UF3 potential\n",potf_name);
+  if (utils::strmatch(nbody_on_file, "3B"))
+    utils::logmesg(lmp, "UF3: File {} contains 3-body UF3 potential\n", potf_name);
   else
-    error->all(FLERR, "UF3: Expected a 3B UF3 file but found {}",
-            nbody_on_file);
+    error->all(FLERR, "UF3: Expected a 3B UF3 file but found {}", nbody_on_file);
 
   int leading_trim = fp2nd_line.next_int();
   int trailing_trim = fp2nd_line.next_int();
   if (leading_trim != 0)
-    error->all(FLERR, "UF3: Current implementation is throughly tested only for "
-            "leading_trim=0\n");
+    error->all(FLERR,
+               "UF3: Current implementation is throughly tested only for "
+               "leading_trim=0\n");
   if (trailing_trim != 3)
-    error->all(FLERR, "UF3: Current implementation is throughly tested only for "
-            "trailing_trim=3\n");
+    error->all(FLERR,
+               "UF3: Current implementation is throughly tested only for "
+               "trailing_trim=3\n");
 
   std::string knot_type = fp2nd_line.next_string();
-  if (utils::strmatch(knot_type,"uk")) {
-    utils::logmesg(lmp, "UF3: File {} contains 3-body UF3 potential with uniform "
-            "knot spacing\n",potf_name);
+  if (utils::strmatch(knot_type, "uk")) {
+    utils::logmesg(lmp,
+                   "UF3: File {} contains 3-body UF3 potential with uniform "
+                   "knot spacing\n",
+                   potf_name);
     knot_spacing_type_3b[itype][jtype][ktype] = 0;
     knot_spacing_type_3b[itype][ktype][jtype] = 0;
-  }
-  else if (utils::strmatch(knot_type,"nk")) {
-    utils::logmesg(lmp, "UF3: File {} contains 3-body UF3 potential with non-uniform "
-            "knot spacing\n",potf_name);
+  } else if (utils::strmatch(knot_type, "nk")) {
+    utils::logmesg(lmp,
+                   "UF3: File {} contains 3-body UF3 potential with non-uniform "
+                   "knot spacing\n",
+                   potf_name);
     knot_spacing_type_3b[itype][jtype][ktype] = 1;
     knot_spacing_type_3b[itype][ktype][jtype] = 1;
-  }
-  else
-    error->all(FLERR, "UF3: Expected either 'uk'(uniform-knots) or 'nk'(non-uniform knots) "
-              "Found {} on the 2nd line of {} pot file",knot_type,potf_name);
+  } else
+    error->all(FLERR,
+               "UF3: Expected either 'uk'(uniform-knots) or 'nk'(non-uniform knots) "
+               "Found {} on the 2nd line of {} pot file",
+               knot_type, potf_name);
 
   temp_line = txtfilereader.next_line(6);
   ValueTokenizer fp3rd_line(temp_line);
 
   if (fp3rd_line.count() != 6)
-    error->all(FLERR, "UF3: Expected only 6 numbers on 3rd line => "
-            "Rjk_CUTOFF Rik_CUTOFF Rij_CUTOFF NUM_OF_KNOTS_JK NUM_OF_KNOTS_IK NUM_OF_KNOTS_IJ "
-            "Found {} number/s",fp3rd_line.count());
+    error->all(FLERR,
+               "UF3: Expected only 6 numbers on 3rd line => "
+               "Rjk_CUTOFF Rik_CUTOFF Rij_CUTOFF NUM_OF_KNOTS_JK NUM_OF_KNOTS_IK NUM_OF_KNOTS_IJ "
+               "Found {} number/s",
+               fp3rd_line.count());
 
   double cut3b_rjk = fp3rd_line.next_double();
   double cut3b_rij = fp3rd_line.next_double();
   double cut3b_rik = fp3rd_line.next_double();
 
   if (cut3b_rij != cut3b_rik) {
-     error->all(FLERR, "UF3: rij!=rik, Current implementation only works for rij=rik");
+    error->all(FLERR, "UF3: rij!=rik, Current implementation only works for rij=rik");
   }
 
   if (2 * cut3b_rik != cut3b_rjk) {
-    error->all(FLERR, "UF3: 2rij=2rik!=rik, Current implementation only works "
-            "for 2rij=2rik!=rik");
+    error->all(FLERR,
+               "UF3: 2rij=2rik!=rik, Current implementation only works "
+               "for 2rij=2rik!=rik");
   }
 
   cut_3b_list[itype][jtype] = std::max(cut3b_rij, cut_3b_list[itype][jtype]);
@@ -421,9 +446,8 @@ void PairUF3::uf3_read_pot_file(int itype, int jtype, int ktype, char *potf_name
   ValueTokenizer fp4th_line(temp_line);
 
   if (fp4th_line.count() != num_knots_3b_jk)
-    error->all(FLERR, "UF3: Expected {} numbers on 4th line but found {} numbers",
-            num_knots_3b_jk, fp4th_line.count());
-
+    error->all(FLERR, "UF3: Expected {} numbers on 4th line but found {} numbers", num_knots_3b_jk,
+               fp4th_line.count());
 
   n3b_knot_matrix[itype][jtype][ktype].resize(3);
   n3b_knot_matrix[itype][ktype][jtype].resize(3);
@@ -433,91 +457,96 @@ void PairUF3::uf3_read_pot_file(int itype, int jtype, int ktype, char *potf_name
 
   for (int i = 0; i < num_knots_3b_jk; i++) {
     n3b_knot_matrix[itype][jtype][ktype][0][i] = fp4th_line.next_double();
-    n3b_knot_matrix[itype][ktype][jtype][0][i] =
-        n3b_knot_matrix[itype][jtype][ktype][0][i];
+    n3b_knot_matrix[itype][ktype][jtype][0][i] = n3b_knot_matrix[itype][jtype][ktype][0][i];
   }
 
   min_cut_3b[itype][jtype][ktype][0] = n3b_knot_matrix[itype][jtype][ktype][0][0];
-                    //min_cut_3b[itype][jtype][ktype][0] --> cutoff for jk distance
+  //min_cut_3b[itype][jtype][ktype][0] --> cutoff for jk distance
 
   min_cut_3b[itype][ktype][jtype][0] = n3b_knot_matrix[itype][ktype][jtype][0][0];
   if (comm->me == 0)
-      utils::logmesg(lmp, "UF3: 3b min cutoff {} {}-{}-{}_jk={} {}-{}-{}_jk={}\n",
-              potf_name,itype,jtype,ktype,min_cut_3b[itype][jtype][ktype][0],
-              itype,ktype,jtype,min_cut_3b[itype][ktype][jtype][0]);
+    utils::logmesg(lmp, "UF3: 3b min cutoff {} {}-{}-{}_jk={} {}-{}-{}_jk={}\n", potf_name, itype,
+                   jtype, ktype, min_cut_3b[itype][jtype][ktype][0], itype, ktype, jtype,
+                   min_cut_3b[itype][ktype][jtype][0]);
 
   int num_knots_3b_ik = fp3rd_line.next_int();
   temp_line = txtfilereader.next_line(num_knots_3b_ik);
   ValueTokenizer fp5th_line(temp_line);
 
   if (fp5th_line.count() != num_knots_3b_ik)
-    error->all(FLERR, "UF3: Expected {} numbers on 5th line but found {} numbers",
-            num_knots_3b_ik, fp5th_line.count());
+    error->all(FLERR, "UF3: Expected {} numbers on 5th line but found {} numbers", num_knots_3b_ik,
+               fp5th_line.count());
 
   n3b_knot_matrix[itype][jtype][ktype][1].resize(num_knots_3b_ik);
   n3b_knot_matrix[itype][ktype][jtype][2].resize(num_knots_3b_ik);
   for (int i = 0; i < num_knots_3b_ik; i++) {
-      n3b_knot_matrix[itype][jtype][ktype][1][i] = fp5th_line.next_double();
-      n3b_knot_matrix[itype][ktype][jtype][2][i] =
-          n3b_knot_matrix[itype][jtype][ktype][1][i];
-    }
+    n3b_knot_matrix[itype][jtype][ktype][1][i] = fp5th_line.next_double();
+    n3b_knot_matrix[itype][ktype][jtype][2][i] = n3b_knot_matrix[itype][jtype][ktype][1][i];
+  }
 
   min_cut_3b[itype][jtype][ktype][1] = n3b_knot_matrix[itype][jtype][ktype][1][0];
-                    //min_cut_3b[itype][jtype][ktype][1] --> cutoff for ik distance
+  //min_cut_3b[itype][jtype][ktype][1] --> cutoff for ik distance
 
   min_cut_3b[itype][ktype][jtype][2] = n3b_knot_matrix[itype][ktype][jtype][2][0];
   if (comm->me == 0)
-    utils::logmesg(lmp, "UF3: 3b min cutoff {} {}-{}-{}_ik={} {}-{}-{}_ik={}\n",
-            potf_name,itype,jtype,ktype,min_cut_3b[itype][jtype][ktype][1],
-            itype,ktype,jtype,min_cut_3b[itype][ktype][jtype][2]);
+    utils::logmesg(lmp, "UF3: 3b min cutoff {} {}-{}-{}_ik={} {}-{}-{}_ik={}\n", potf_name, itype,
+                   jtype, ktype, min_cut_3b[itype][jtype][ktype][1], itype, ktype, jtype,
+                   min_cut_3b[itype][ktype][jtype][2]);
 
   int num_knots_3b_ij = fp3rd_line.next_int();
   temp_line = txtfilereader.next_line(num_knots_3b_ij);
   ValueTokenizer fp6th_line(temp_line);
 
   if (fp6th_line.count() != num_knots_3b_ij)
-    error->all(FLERR, "UF3: Expected {} numbers on 6th line but found {} numbers",
-            num_knots_3b_ij, fp5th_line.count());
+    error->all(FLERR, "UF3: Expected {} numbers on 6th line but found {} numbers", num_knots_3b_ij,
+               fp5th_line.count());
 
   n3b_knot_matrix[itype][jtype][ktype][2].resize(num_knots_3b_ij);
   n3b_knot_matrix[itype][ktype][jtype][1].resize(num_knots_3b_ij);
   for (int i = 0; i < num_knots_3b_ij; i++) {
     n3b_knot_matrix[itype][jtype][ktype][2][i] = fp6th_line.next_double();
-    n3b_knot_matrix[itype][ktype][jtype][1][i] =
-        n3b_knot_matrix[itype][jtype][ktype][2][i];
-    }
+    n3b_knot_matrix[itype][ktype][jtype][1][i] = n3b_knot_matrix[itype][jtype][ktype][2][i];
+  }
 
   min_cut_3b[itype][jtype][ktype][2] = n3b_knot_matrix[itype][jtype][ktype][2][0];
-                    //min_cut_3b[itype][jtype][ktype][2] --> cutoff for ij distance
+  //min_cut_3b[itype][jtype][ktype][2] --> cutoff for ij distance
   min_cut_3b[itype][ktype][jtype][1] = n3b_knot_matrix[itype][ktype][jtype][1][0];
   if (comm->me == 0)
-    utils::logmesg(lmp, "UF3: 3b min cutoff {} {}-{}-{}_ij={} {}-{}-{}_ij={}\n",
-            potf_name,itype,jtype,ktype,min_cut_3b[itype][jtype][ktype][2],
-            itype,ktype,jtype,min_cut_3b[itype][ktype][jtype][1]);
+    utils::logmesg(lmp, "UF3: 3b min cutoff {} {}-{}-{}_ij={} {}-{}-{}_ij={}\n", potf_name, itype,
+                   jtype, ktype, min_cut_3b[itype][jtype][ktype][2], itype, ktype, jtype,
+                   min_cut_3b[itype][ktype][jtype][1]);
 
   temp_line = txtfilereader.next_line(3);
   ValueTokenizer fp7th_line(temp_line);
 
   if (fp7th_line.count() != 3)
-    error->all(FLERR, "UF3: Expected 3 numbers on 7th line => "
-           "SHAPE_OF_COEFF_MATRIX[I][J][K] "
-           "found {} numbers", fp7th_line.count());
+    error->all(FLERR,
+               "UF3: Expected 3 numbers on 7th line => "
+               "SHAPE_OF_COEFF_MATRIX[I][J][K] "
+               "found {} numbers",
+               fp7th_line.count());
 
   coeff_matrix_dim1 = fp7th_line.next_int();
   coeff_matrix_dim2 = fp7th_line.next_int();
   coeff_matrix_dim3 = fp7th_line.next_int();
 
   if (n3b_knot_matrix[itype][jtype][ktype][0].size() != coeff_matrix_dim3 + 3 + 1)
-    error->all(FLERR, "UF3: {} has incorrect knot (NUM_OF_KNOTS_JK) and "
-            "coeff (coeff_matrix_dim3) data nknots!=ncoeffs + 3 +1", potf_name);
+    error->all(FLERR,
+               "UF3: {} has incorrect knot (NUM_OF_KNOTS_JK) and "
+               "coeff (coeff_matrix_dim3) data nknots!=ncoeffs + 3 +1",
+               potf_name);
 
   if (n3b_knot_matrix[itype][jtype][ktype][1].size() != coeff_matrix_dim2 + 3 + 1)
-    error->all(FLERR, "UF3: {} has incorrect knot (NUM_OF_KNOTS_IK) and "
-            "coeff (coeff_matrix_dim2) data nknots!=ncoeffs + 3 +1",potf_name);
+    error->all(FLERR,
+               "UF3: {} has incorrect knot (NUM_OF_KNOTS_IK) and "
+               "coeff (coeff_matrix_dim2) data nknots!=ncoeffs + 3 +1",
+               potf_name);
 
   if (n3b_knot_matrix[itype][jtype][ktype][2].size() != coeff_matrix_dim1 + 3 + 1)
-    error->all(FLERR, "UF3: {} has incorrect knot (NUM_OF_KNOTS_IJ) and "
-            "coeff ()coeff_matrix_dim1 data nknots!=ncoeffs + 3 +1",potf_name);
+    error->all(FLERR,
+               "UF3: {} has incorrect knot (NUM_OF_KNOTS_IJ) and "
+               "coeff ()coeff_matrix_dim1 data nknots!=ncoeffs + 3 +1",
+               potf_name);
 
   coeff_matrix_elements_len = coeff_matrix_dim3;
 
@@ -533,8 +562,8 @@ void PairUF3::uf3_read_pot_file(int itype, int jtype, int ktype, char *potf_name
       n3b_coeff_matrix[key][i][j].resize(coeff_matrix_dim3);
 
       if (coeff_line.count() != coeff_matrix_elements_len)
-        error->all(FLERR, "UF3: Expected {} numbers on {}th line but found "
-                "{} numbers",coeff_matrix_elements_len, line_count+8, coeff_line.count());
+        error->all(FLERR, "UF3: Expected {} numbers on {}th line but found {} numbers",
+                   coeff_matrix_elements_len, line_count + 8, coeff_line.count());
       for (int k = 0; k < coeff_matrix_dim3; k++) {
         n3b_coeff_matrix[key][i][j][k] = coeff_line.next_double();
       }
@@ -561,6 +590,7 @@ void PairUF3::uf3_read_pot_file(int itype, int jtype, int ktype, char *potf_name
 
   setflag_3b[itype][jtype][ktype] = 1;
   setflag_3b[itype][ktype][jtype] = 1;
+  fclose(fp);
 }
 
 void PairUF3::uf3_read_pot_file(char *potf_name)
@@ -681,12 +711,15 @@ void PairUF3::uf3_read_pot_file(char *potf_name)
           n3b_knot_matrix[temp_type1][temp_type2][temp_type3][0][i];
     }
 
-    min_cut_3b[temp_type1][temp_type2][temp_type3][0] = n3b_knot_matrix[temp_type1][temp_type2][temp_type3][0][0];
-    min_cut_3b[temp_type1][temp_type3][temp_type2][0] = n3b_knot_matrix[temp_type1][temp_type3][temp_type2][0][0];
+    min_cut_3b[temp_type1][temp_type2][temp_type3][0] =
+        n3b_knot_matrix[temp_type1][temp_type2][temp_type3][0][0];
+    min_cut_3b[temp_type1][temp_type3][temp_type2][0] =
+        n3b_knot_matrix[temp_type1][temp_type3][temp_type2][0][0];
     if (comm->me == 0)
-      utils::logmesg(lmp, "UF3: 3b min cutoff {} {}-{}-{}_0={} {}-{}-{}_0={}\n",
-              potf_name,temp_type1,temp_type2,temp_type3,min_cut_3b[temp_type1][temp_type2][temp_type3][0],
-              temp_type1,temp_type3,temp_type2,min_cut_3b[temp_type1][temp_type3][temp_type2][0]);
+      utils::logmesg(lmp, "UF3: 3b min cutoff {} {}-{}-{}_0={} {}-{}-{}_0={}\n", potf_name,
+                     temp_type1, temp_type2, temp_type3,
+                     min_cut_3b[temp_type1][temp_type2][temp_type3][0], temp_type1, temp_type3,
+                     temp_type2, min_cut_3b[temp_type1][temp_type3][temp_type2][0]);
 
     temp_line_len = fp3rd_line.next_int();
     temp_line = txtfilereader.next_line(temp_line_len);
@@ -699,12 +732,15 @@ void PairUF3::uf3_read_pot_file(char *potf_name)
           n3b_knot_matrix[temp_type1][temp_type2][temp_type3][1][i];
     }
 
-    min_cut_3b[temp_type1][temp_type2][temp_type3][1] = n3b_knot_matrix[temp_type1][temp_type2][temp_type3][1][0];
-    min_cut_3b[temp_type1][temp_type3][temp_type2][2] = n3b_knot_matrix[temp_type1][temp_type3][temp_type2][2][0];
+    min_cut_3b[temp_type1][temp_type2][temp_type3][1] =
+        n3b_knot_matrix[temp_type1][temp_type2][temp_type3][1][0];
+    min_cut_3b[temp_type1][temp_type3][temp_type2][2] =
+        n3b_knot_matrix[temp_type1][temp_type3][temp_type2][2][0];
     if (comm->me == 0)
-      utils::logmesg(lmp, "UF3: 3b min cutoff {} {}-{}-{}_1={} {}-{}-{}_2={}\n",
-              potf_name,temp_type1,temp_type2,temp_type3,min_cut_3b[temp_type1][temp_type2][temp_type3][1],
-              temp_type1,temp_type3,temp_type2,min_cut_3b[temp_type1][temp_type3][temp_type2][2]);
+      utils::logmesg(lmp, "UF3: 3b min cutoff {} {}-{}-{}_1={} {}-{}-{}_2={}\n", potf_name,
+                     temp_type1, temp_type2, temp_type3,
+                     min_cut_3b[temp_type1][temp_type2][temp_type3][1], temp_type1, temp_type3,
+                     temp_type2, min_cut_3b[temp_type1][temp_type3][temp_type2][2]);
 
     temp_line_len = fp3rd_line.next_int();
     temp_line = txtfilereader.next_line(temp_line_len);
@@ -717,12 +753,15 @@ void PairUF3::uf3_read_pot_file(char *potf_name)
           n3b_knot_matrix[temp_type1][temp_type2][temp_type3][2][i];
     }
 
-    min_cut_3b[temp_type1][temp_type2][temp_type3][2] = n3b_knot_matrix[temp_type1][temp_type2][temp_type3][2][0];
-    min_cut_3b[temp_type1][temp_type3][temp_type2][1] = n3b_knot_matrix[temp_type1][temp_type3][temp_type2][1][0];
+    min_cut_3b[temp_type1][temp_type2][temp_type3][2] =
+        n3b_knot_matrix[temp_type1][temp_type2][temp_type3][2][0];
+    min_cut_3b[temp_type1][temp_type3][temp_type2][1] =
+        n3b_knot_matrix[temp_type1][temp_type3][temp_type2][1][0];
     if (comm->me == 0)
-      utils::logmesg(lmp, "UF3: 3b min cutoff {} {}-{}-{}_2={} {}-{}-{}_1={}\n",
-              potf_name,temp_type1,temp_type2,temp_type3,min_cut_3b[temp_type1][temp_type2][temp_type3][2],
-              temp_type1,temp_type3,temp_type2,min_cut_3b[temp_type1][temp_type3][temp_type2][2]);
+      utils::logmesg(lmp, "UF3: 3b min cutoff {} {}-{}-{}_2={} {}-{}-{}_1={}\n", potf_name,
+                     temp_type1, temp_type2, temp_type3,
+                     min_cut_3b[temp_type1][temp_type2][temp_type3][2], temp_type1, temp_type3,
+                     temp_type2, min_cut_3b[temp_type1][temp_type3][temp_type2][2]);
 
     temp_line = txtfilereader.next_line(3);
     ValueTokenizer fp7th_line(temp_line);
@@ -774,6 +813,7 @@ void PairUF3::uf3_read_pot_file(char *potf_name)
         FLERR,
         "UF3: {} file does not contain right words indicating whether it is 2 or 3 body potential",
         potf_name);
+  fclose(fp);
 }
 
 /* ----------------------------------------------------------------------
@@ -814,8 +854,10 @@ void PairUF3::create_bsplines()
   for (int i = 1; i < num_of_elements + 1; i++) {
     for (int j = 1; j < num_of_elements + 1; j++) {
       if (setflag[i][j] != 1)
-        error->all(FLERR,"UF3: Not all 2-body UF potentials are set, "
-                "missing potential file for {}-{} interaction",i, j);
+        error->all(FLERR,
+                   "UF3: Not all 2-body UF potentials are set, "
+                   "missing potential file for {}-{} interaction",
+                   i, j);
     }
   }
   if (pot_3b) {
@@ -823,8 +865,10 @@ void PairUF3::create_bsplines()
       for (int j = 1; j < num_of_elements + 1; j++) {
         for (int k = 1; k < num_of_elements + 1; k++) {
           if (setflag_3b[i][j][k] != 1)
-            error->all(FLERR,"UF3: Not all 3-body UF potentials are set, "
-                    "missing potential file for {}-{}-{} interaction", i, j, k);
+            error->all(FLERR,
+                       "UF3: Not all 3-body UF potentials are set, "
+                       "missing potential file for {}-{}-{} interaction",
+                       i, j, k);
         }
       }
     }
@@ -832,21 +876,19 @@ void PairUF3::create_bsplines()
 
   for (int i = 1; i < num_of_elements + 1; i++) {
     for (int j = i; j < num_of_elements + 1; j++) {
-      UFBS2b[i][j] = uf3_pair_bspline(lmp, n2b_knot[i][j], n2b_coeff[i][j],
-              knot_spacing_type_2b[i][j]);
+      UFBS2b[i][j] =
+          uf3_pair_bspline(lmp, n2b_knot[i][j], n2b_coeff[i][j], knot_spacing_type_2b[i][j]);
       UFBS2b[j][i] = UFBS2b[i][j];
     }
     if (pot_3b) {
       for (int j = 1; j < num_of_elements + 1; j++) {
         for (int k = j; k < num_of_elements + 1; k++) {
           std::string key = std::to_string(i) + std::to_string(j) + std::to_string(k);
-          UFBS3b[i][j][k] =
-              uf3_triplet_bspline(lmp, n3b_knot_matrix[i][j][k], n3b_coeff_matrix[key],
-                      knot_spacing_type_3b[i][j][k]);
+          UFBS3b[i][j][k] = uf3_triplet_bspline(
+              lmp, n3b_knot_matrix[i][j][k], n3b_coeff_matrix[key], knot_spacing_type_3b[i][j][k]);
           std::string key2 = std::to_string(i) + std::to_string(k) + std::to_string(j);
-          UFBS3b[i][k][j] =
-              uf3_triplet_bspline(lmp, n3b_knot_matrix[i][k][j], n3b_coeff_matrix[key2],
-                      knot_spacing_type_3b[i][k][j]);
+          UFBS3b[i][k][j] = uf3_triplet_bspline(
+              lmp, n3b_knot_matrix[i][k][j], n3b_coeff_matrix[key2], knot_spacing_type_3b[i][k][j]);
         }
       }
     }
@@ -1004,8 +1046,8 @@ void PairUF3::compute(int eflag, int vflag)
             ((del_rki[0] * del_rki[0]) + (del_rki[1] * del_rki[1]) + (del_rki[2] * del_rki[2])));
 
         if ((rij <= cut_3b[itype][jtype][ktype]) && (rik <= cut_3b[itype][ktype][jtype]) &&
-                (rij >= min_cut_3b[itype][jtype][ktype][2]) &&
-                (rik >= min_cut_3b[itype][jtype][ktype][1])) {
+            (rij >= min_cut_3b[itype][jtype][ktype][2]) &&
+            (rik >= min_cut_3b[itype][jtype][ktype][1])) {
 
           del_rkj[0] = x[k][0] - x[j][0];
           del_rkj[1] = x[k][1] - x[j][1];
@@ -1139,43 +1181,43 @@ double PairUF3::memory_usage()
 
   bytes = 0;
 
-  bytes += (double)5*sizeof(double);     //num_of_elements, nbody_flag,
-                                        //n2body_pot_files, n3body_pot_files,
-                                        //tot_pot_files;
+  bytes += (double) 5 * sizeof(double);    //num_of_elements, nbody_flag,
+                                           //n2body_pot_files, n3body_pot_files,
+                                           //tot_pot_files;
 
-  bytes += (double)5*sizeof(double);    //bsplines_created, coeff_matrix_dim1,
-                                        //coeff_matrix_dim2, coeff_matrix_dim3,
-                                        //coeff_matrix_elements_len
-  bytes += (double)(num_of_elements+1)*(num_of_elements+1)*
-           (num_of_elements+1)*sizeof(double);      //***setflag_3b
+  bytes += (double) 5 * sizeof(double);    //bsplines_created, coeff_matrix_dim1,
+                                           //coeff_matrix_dim2, coeff_matrix_dim3,
+                                           //coeff_matrix_elements_len
+  bytes += (double) (num_of_elements + 1) * (num_of_elements + 1) * (num_of_elements + 1) *
+      sizeof(double);    //***setflag_3b
 
-  bytes += (double)(num_of_elements+1)*(num_of_elements+1)*sizeof(double); //cut
+  bytes += (double) (num_of_elements + 1) * (num_of_elements + 1) * sizeof(double);    //cut
 
-  bytes += (double)(num_of_elements+1)*(num_of_elements+1)*
-           (num_of_elements+1)*sizeof(double);      //***cut_3b
+  bytes += (double) (num_of_elements + 1) * (num_of_elements + 1) * (num_of_elements + 1) *
+      sizeof(double);    //***cut_3b
 
-  bytes += (double)(num_of_elements+1)*(num_of_elements+1)*sizeof(double); //cut_3b_list
+  bytes += (double) (num_of_elements + 1) * (num_of_elements + 1) * sizeof(double);    //cut_3b_list
 
-  bytes += (double)(num_of_elements+1)*(num_of_elements+1)*
-           (num_of_elements+1)*3*sizeof(double);    //min_cut_3b
+  bytes += (double) (num_of_elements + 1) * (num_of_elements + 1) * (num_of_elements + 1) * 3 *
+      sizeof(double);    //min_cut_3b
 
-  for (int i=1; i < num_of_elements+1; i++) {
-    for (int j=i; j < num_of_elements+1; j++) {
-      bytes += (double)2*n2b_knot[i][j].size()*sizeof(double);      //n2b_knot
-      bytes += (double)2*n2b_coeff[i][j].size()*sizeof(double);     //n2b_coeff
+  for (int i = 1; i < num_of_elements + 1; i++) {
+    for (int j = i; j < num_of_elements + 1; j++) {
+      bytes += (double) 2 * n2b_knot[i][j].size() * sizeof(double);     //n2b_knot
+      bytes += (double) 2 * n2b_coeff[i][j].size() * sizeof(double);    //n2b_coeff
     }
     if (pot_3b) {
       for (int j = 1; j < num_of_elements + 1; j++) {
         for (int k = j; k < num_of_elements + 1; k++) {
-          bytes += (double)2*n3b_knot_matrix[i][j][k][0].size()*sizeof(double);
-          bytes += (double)2*n3b_knot_matrix[i][j][k][1].size()*sizeof(double);
-          bytes += (double)2*n3b_knot_matrix[i][j][k][2].size()*sizeof(double);
+          bytes += (double) 2 * n3b_knot_matrix[i][j][k][0].size() * sizeof(double);
+          bytes += (double) 2 * n3b_knot_matrix[i][j][k][1].size() * sizeof(double);
+          bytes += (double) 2 * n3b_knot_matrix[i][j][k][2].size() * sizeof(double);
 
           std::string key = std::to_string(i) + std::to_string(j) + std::to_string(k);
 
-          for (int l=0; l < n3b_coeff_matrix[key].size(); l++) {
-            for (int m=0; m < n3b_coeff_matrix[key][l].size(); m++) {
-              bytes += (double)2*n3b_coeff_matrix[key][l][m].size()*sizeof(double);
+          for (int l = 0; l < n3b_coeff_matrix[key].size(); l++) {
+            for (int m = 0; m < n3b_coeff_matrix[key][l].size(); m++) {
+              bytes += (double) 2 * n3b_coeff_matrix[key][l][m].size() * sizeof(double);
               //key = ijk
               //key = ikj
             }
@@ -1187,19 +1229,18 @@ double PairUF3::memory_usage()
 
   for (int i = 1; i < num_of_elements + 1; i++) {
     for (int j = i; j < num_of_elements + 1; j++) {
-        bytes += (double)2*UFBS2b[i][j].memory_usage(); //UFBS2b[i][j] UFBS2b[j][1]
+      bytes += (double) 2 * UFBS2b[i][j].memory_usage();    //UFBS2b[i][j] UFBS2b[j][1]
     }
     if (pot_3b) {
       for (int j = 1; j < num_of_elements + 1; j++) {
         for (int k = j; k < num_of_elements + 1; k++) {
-          bytes += (double)2*UFBS3b[i][j][k].memory_usage();
+          bytes += (double) 2 * UFBS3b[i][j][k].memory_usage();
         }
       }
     }
   }
 
-  bytes += (double)(maxshort+1)*sizeof(int);            //neighshort, maxshort
+  bytes += (double) (maxshort + 1) * sizeof(int);    //neighshort, maxshort
 
   return bytes;
 }
-

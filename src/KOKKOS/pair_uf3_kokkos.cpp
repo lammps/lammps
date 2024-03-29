@@ -28,6 +28,7 @@
 #include "kokkos.h"
 #include "kokkos_type.h"
 #include "math_const.h"
+#include "math_special_kokkos.h"
 #include "memory.h"
 #include "memory_kokkos.h"
 #include "neigh_list_kokkos.h"
@@ -35,14 +36,15 @@
 #include "neighbor.h"
 #include "pair_kokkos.h"
 #include "text_file_reader.h"
+
 #include <algorithm>
 #include <cmath>
 #include <utility>
 
-#include <cmath>
-
 using namespace LAMMPS_NS;
 using namespace MathConst;
+using MathSpecialKokkos::cube;
+using MathSpecialKokkos::square;
 
 template <class DeviceType> PairUF3Kokkos<DeviceType>::PairUF3Kokkos(LAMMPS *lmp) : PairUF3(lmp)
 {
@@ -1363,261 +1365,261 @@ std::vector<F_FLOAT> PairUF3Kokkos<DeviceType>::get_constants(double *knots, dou
   std::vector<F_FLOAT> constants(16);
 
   constants[0] = coefficient *
-      (-pow(knots[0], 3) /
-       (-pow(knots[0], 3) + pow(knots[0], 2) * knots[1] + pow(knots[0], 2) * knots[2] +
-        pow(knots[0], 2) * knots[3] - knots[0] * knots[1] * knots[2] -
+      (-cube(knots[0]) /
+       (-cube(knots[0]) + square(knots[0]) * knots[1] + square(knots[0]) * knots[2] +
+        square(knots[0]) * knots[3] - knots[0] * knots[1] * knots[2] -
         knots[0] * knots[1] * knots[3] - knots[0] * knots[2] * knots[3] +
         knots[1] * knots[2] * knots[3]));
   constants[1] = coefficient *
-      (3 * pow(knots[0], 2) /
-       (-pow(knots[0], 3) + pow(knots[0], 2) * knots[1] + pow(knots[0], 2) * knots[2] +
-        pow(knots[0], 2) * knots[3] - knots[0] * knots[1] * knots[2] -
+      (3 * square(knots[0]) /
+       (-cube(knots[0]) + square(knots[0]) * knots[1] + square(knots[0]) * knots[2] +
+        square(knots[0]) * knots[3] - knots[0] * knots[1] * knots[2] -
         knots[0] * knots[1] * knots[3] - knots[0] * knots[2] * knots[3] +
         knots[1] * knots[2] * knots[3]));
   constants[2] = coefficient *
       (-3 * knots[0] /
-       (-pow(knots[0], 3) + pow(knots[0], 2) * knots[1] + pow(knots[0], 2) * knots[2] +
-        pow(knots[0], 2) * knots[3] - knots[0] * knots[1] * knots[2] -
+       (-cube(knots[0]) + square(knots[0]) * knots[1] + square(knots[0]) * knots[2] +
+        square(knots[0]) * knots[3] - knots[0] * knots[1] * knots[2] -
         knots[0] * knots[1] * knots[3] - knots[0] * knots[2] * knots[3] +
         knots[1] * knots[2] * knots[3]));
   constants[3] = coefficient *
       (1 /
-       (-pow(knots[0], 3) + pow(knots[0], 2) * knots[1] + pow(knots[0], 2) * knots[2] +
-        pow(knots[0], 2) * knots[3] - knots[0] * knots[1] * knots[2] -
+       (-cube(knots[0]) + square(knots[0]) * knots[1] + square(knots[0]) * knots[2] +
+        square(knots[0]) * knots[3] - knots[0] * knots[1] * knots[2] -
         knots[0] * knots[1] * knots[3] - knots[0] * knots[2] * knots[3] +
         knots[1] * knots[2] * knots[3]));
   constants[4] = coefficient *
-      (pow(knots[1], 2) * knots[4] /
-           (-pow(knots[1], 3) + pow(knots[1], 2) * knots[2] + pow(knots[1], 2) * knots[3] +
-            pow(knots[1], 2) * knots[4] - knots[1] * knots[2] * knots[3] -
+      (square(knots[1]) * knots[4] /
+           (-cube(knots[1]) + square(knots[1]) * knots[2] + square(knots[1]) * knots[3] +
+            square(knots[1]) * knots[4] - knots[1] * knots[2] * knots[3] -
             knots[1] * knots[2] * knots[4] - knots[1] * knots[3] * knots[4] +
             knots[2] * knots[3] * knots[4]) +
-       pow(knots[0], 2) * knots[2] /
-           (-pow(knots[0], 2) * knots[1] + pow(knots[0], 2) * knots[2] +
+       square(knots[0]) * knots[2] /
+           (-square(knots[0]) * knots[1] + square(knots[0]) * knots[2] +
             knots[0] * knots[1] * knots[2] + knots[0] * knots[1] * knots[3] -
-            knots[0] * pow(knots[2], 2) - knots[0] * knots[2] * knots[3] -
-            knots[1] * knots[2] * knots[3] + pow(knots[2], 2) * knots[3]) +
+            knots[0] * square(knots[2]) - knots[0] * knots[2] * knots[3] -
+            knots[1] * knots[2] * knots[3] + square(knots[2]) * knots[3]) +
        knots[0] * knots[1] * knots[3] /
-           (-knots[0] * pow(knots[1], 2) + knots[0] * knots[1] * knots[2] +
+           (-knots[0] * square(knots[1]) + knots[0] * knots[1] * knots[2] +
             knots[0] * knots[1] * knots[3] - knots[0] * knots[2] * knots[3] +
-            pow(knots[1], 2) * knots[3] - knots[1] * knots[2] * knots[3] -
-            knots[1] * pow(knots[3], 2) + knots[2] * pow(knots[3], 2)));
+            square(knots[1]) * knots[3] - knots[1] * knots[2] * knots[3] -
+            knots[1] * square(knots[3]) + knots[2] * square(knots[3])));
   constants[5] = coefficient *
-      (-pow(knots[1], 2) /
-           (-pow(knots[1], 3) + pow(knots[1], 2) * knots[2] + pow(knots[1], 2) * knots[3] +
-            pow(knots[1], 2) * knots[4] - knots[1] * knots[2] * knots[3] -
+      (-square(knots[1]) /
+           (-cube(knots[1]) + square(knots[1]) * knots[2] + square(knots[1]) * knots[3] +
+            square(knots[1]) * knots[4] - knots[1] * knots[2] * knots[3] -
             knots[1] * knots[2] * knots[4] - knots[1] * knots[3] * knots[4] +
             knots[2] * knots[3] * knots[4]) -
        2 * knots[1] * knots[4] /
-           (-pow(knots[1], 3) + pow(knots[1], 2) * knots[2] + pow(knots[1], 2) * knots[3] +
-            pow(knots[1], 2) * knots[4] - knots[1] * knots[2] * knots[3] -
+           (-cube(knots[1]) + square(knots[1]) * knots[2] + square(knots[1]) * knots[3] +
+            square(knots[1]) * knots[4] - knots[1] * knots[2] * knots[3] -
             knots[1] * knots[2] * knots[4] - knots[1] * knots[3] * knots[4] +
             knots[2] * knots[3] * knots[4]) -
-       pow(knots[0], 2) /
-           (-pow(knots[0], 2) * knots[1] + pow(knots[0], 2) * knots[2] +
+       square(knots[0]) /
+           (-square(knots[0]) * knots[1] + square(knots[0]) * knots[2] +
             knots[0] * knots[1] * knots[2] + knots[0] * knots[1] * knots[3] -
-            knots[0] * pow(knots[2], 2) - knots[0] * knots[2] * knots[3] -
-            knots[1] * knots[2] * knots[3] + pow(knots[2], 2) * knots[3]) -
+            knots[0] * square(knots[2]) - knots[0] * knots[2] * knots[3] -
+            knots[1] * knots[2] * knots[3] + square(knots[2]) * knots[3]) -
        2 * knots[0] * knots[2] /
-           (-pow(knots[0], 2) * knots[1] + pow(knots[0], 2) * knots[2] +
+           (-square(knots[0]) * knots[1] + square(knots[0]) * knots[2] +
             knots[0] * knots[1] * knots[2] + knots[0] * knots[1] * knots[3] -
-            knots[0] * pow(knots[2], 2) - knots[0] * knots[2] * knots[3] -
-            knots[1] * knots[2] * knots[3] + pow(knots[2], 2) * knots[3]) -
+            knots[0] * square(knots[2]) - knots[0] * knots[2] * knots[3] -
+            knots[1] * knots[2] * knots[3] + square(knots[2]) * knots[3]) -
        knots[0] * knots[1] /
-           (-knots[0] * pow(knots[1], 2) + knots[0] * knots[1] * knots[2] +
+           (-knots[0] * square(knots[1]) + knots[0] * knots[1] * knots[2] +
             knots[0] * knots[1] * knots[3] - knots[0] * knots[2] * knots[3] +
-            pow(knots[1], 2) * knots[3] - knots[1] * knots[2] * knots[3] -
-            knots[1] * pow(knots[3], 2) + knots[2] * pow(knots[3], 2)) -
+            square(knots[1]) * knots[3] - knots[1] * knots[2] * knots[3] -
+            knots[1] * square(knots[3]) + knots[2] * square(knots[3])) -
        knots[0] * knots[3] /
-           (-knots[0] * pow(knots[1], 2) + knots[0] * knots[1] * knots[2] +
+           (-knots[0] * square(knots[1]) + knots[0] * knots[1] * knots[2] +
             knots[0] * knots[1] * knots[3] - knots[0] * knots[2] * knots[3] +
-            pow(knots[1], 2) * knots[3] - knots[1] * knots[2] * knots[3] -
-            knots[1] * pow(knots[3], 2) + knots[2] * pow(knots[3], 2)) -
+            square(knots[1]) * knots[3] - knots[1] * knots[2] * knots[3] -
+            knots[1] * square(knots[3]) + knots[2] * square(knots[3])) -
        knots[1] * knots[3] /
-           (-knots[0] * pow(knots[1], 2) + knots[0] * knots[1] * knots[2] +
+           (-knots[0] * square(knots[1]) + knots[0] * knots[1] * knots[2] +
             knots[0] * knots[1] * knots[3] - knots[0] * knots[2] * knots[3] +
-            pow(knots[1], 2) * knots[3] - knots[1] * knots[2] * knots[3] -
-            knots[1] * pow(knots[3], 2) + knots[2] * pow(knots[3], 2)));
+            square(knots[1]) * knots[3] - knots[1] * knots[2] * knots[3] -
+            knots[1] * square(knots[3]) + knots[2] * square(knots[3])));
   constants[6] = coefficient *
       (2 * knots[1] /
-           (-pow(knots[1], 3) + pow(knots[1], 2) * knots[2] + pow(knots[1], 2) * knots[3] +
-            pow(knots[1], 2) * knots[4] - knots[1] * knots[2] * knots[3] -
+           (-cube(knots[1]) + square(knots[1]) * knots[2] + square(knots[1]) * knots[3] +
+            square(knots[1]) * knots[4] - knots[1] * knots[2] * knots[3] -
             knots[1] * knots[2] * knots[4] - knots[1] * knots[3] * knots[4] +
             knots[2] * knots[3] * knots[4]) +
        knots[4] /
-           (-pow(knots[1], 3) + pow(knots[1], 2) * knots[2] + pow(knots[1], 2) * knots[3] +
-            pow(knots[1], 2) * knots[4] - knots[1] * knots[2] * knots[3] -
+           (-cube(knots[1]) + square(knots[1]) * knots[2] + square(knots[1]) * knots[3] +
+            square(knots[1]) * knots[4] - knots[1] * knots[2] * knots[3] -
             knots[1] * knots[2] * knots[4] - knots[1] * knots[3] * knots[4] +
             knots[2] * knots[3] * knots[4]) +
        2 * knots[0] /
-           (-pow(knots[0], 2) * knots[1] + pow(knots[0], 2) * knots[2] +
+           (-square(knots[0]) * knots[1] + square(knots[0]) * knots[2] +
             knots[0] * knots[1] * knots[2] + knots[0] * knots[1] * knots[3] -
-            knots[0] * pow(knots[2], 2) - knots[0] * knots[2] * knots[3] -
-            knots[1] * knots[2] * knots[3] + pow(knots[2], 2) * knots[3]) +
+            knots[0] * square(knots[2]) - knots[0] * knots[2] * knots[3] -
+            knots[1] * knots[2] * knots[3] + square(knots[2]) * knots[3]) +
        knots[2] /
-           (-pow(knots[0], 2) * knots[1] + pow(knots[0], 2) * knots[2] +
+           (-square(knots[0]) * knots[1] + square(knots[0]) * knots[2] +
             knots[0] * knots[1] * knots[2] + knots[0] * knots[1] * knots[3] -
-            knots[0] * pow(knots[2], 2) - knots[0] * knots[2] * knots[3] -
-            knots[1] * knots[2] * knots[3] + pow(knots[2], 2) * knots[3]) +
+            knots[0] * square(knots[2]) - knots[0] * knots[2] * knots[3] -
+            knots[1] * knots[2] * knots[3] + square(knots[2]) * knots[3]) +
        knots[0] /
-           (-knots[0] * pow(knots[1], 2) + knots[0] * knots[1] * knots[2] +
+           (-knots[0] * square(knots[1]) + knots[0] * knots[1] * knots[2] +
             knots[0] * knots[1] * knots[3] - knots[0] * knots[2] * knots[3] +
-            pow(knots[1], 2) * knots[3] - knots[1] * knots[2] * knots[3] -
-            knots[1] * pow(knots[3], 2) + knots[2] * pow(knots[3], 2)) +
+            square(knots[1]) * knots[3] - knots[1] * knots[2] * knots[3] -
+            knots[1] * square(knots[3]) + knots[2] * square(knots[3])) +
        knots[1] /
-           (-knots[0] * pow(knots[1], 2) + knots[0] * knots[1] * knots[2] +
+           (-knots[0] * square(knots[1]) + knots[0] * knots[1] * knots[2] +
             knots[0] * knots[1] * knots[3] - knots[0] * knots[2] * knots[3] +
-            pow(knots[1], 2) * knots[3] - knots[1] * knots[2] * knots[3] -
-            knots[1] * pow(knots[3], 2) + knots[2] * pow(knots[3], 2)) +
+            square(knots[1]) * knots[3] - knots[1] * knots[2] * knots[3] -
+            knots[1] * square(knots[3]) + knots[2] * square(knots[3])) +
        knots[3] /
-           (-knots[0] * pow(knots[1], 2) + knots[0] * knots[1] * knots[2] +
+           (-knots[0] * square(knots[1]) + knots[0] * knots[1] * knots[2] +
             knots[0] * knots[1] * knots[3] - knots[0] * knots[2] * knots[3] +
-            pow(knots[1], 2) * knots[3] - knots[1] * knots[2] * knots[3] -
-            knots[1] * pow(knots[3], 2) + knots[2] * pow(knots[3], 2)));
+            square(knots[1]) * knots[3] - knots[1] * knots[2] * knots[3] -
+            knots[1] * square(knots[3]) + knots[2] * square(knots[3])));
   constants[7] = coefficient *
       (-1 /
-           (-pow(knots[1], 3) + pow(knots[1], 2) * knots[2] + pow(knots[1], 2) * knots[3] +
-            pow(knots[1], 2) * knots[4] - knots[1] * knots[2] * knots[3] -
+           (-cube(knots[1]) + square(knots[1]) * knots[2] + square(knots[1]) * knots[3] +
+            square(knots[1]) * knots[4] - knots[1] * knots[2] * knots[3] -
             knots[1] * knots[2] * knots[4] - knots[1] * knots[3] * knots[4] +
             knots[2] * knots[3] * knots[4]) -
        1 /
-           (-pow(knots[0], 2) * knots[1] + pow(knots[0], 2) * knots[2] +
+           (-square(knots[0]) * knots[1] + square(knots[0]) * knots[2] +
             knots[0] * knots[1] * knots[2] + knots[0] * knots[1] * knots[3] -
-            knots[0] * pow(knots[2], 2) - knots[0] * knots[2] * knots[3] -
-            knots[1] * knots[2] * knots[3] + pow(knots[2], 2) * knots[3]) -
+            knots[0] * square(knots[2]) - knots[0] * knots[2] * knots[3] -
+            knots[1] * knots[2] * knots[3] + square(knots[2]) * knots[3]) -
        1 /
-           (-knots[0] * pow(knots[1], 2) + knots[0] * knots[1] * knots[2] +
+           (-knots[0] * square(knots[1]) + knots[0] * knots[1] * knots[2] +
             knots[0] * knots[1] * knots[3] - knots[0] * knots[2] * knots[3] +
-            pow(knots[1], 2) * knots[3] - knots[1] * knots[2] * knots[3] -
-            knots[1] * pow(knots[3], 2) + knots[2] * pow(knots[3], 2)));
+            square(knots[1]) * knots[3] - knots[1] * knots[2] * knots[3] -
+            knots[1] * square(knots[3]) + knots[2] * square(knots[3])));
   constants[8] = coefficient *
-      (-knots[0] * pow(knots[3], 2) /
+      (-knots[0] * square(knots[3]) /
            (-knots[0] * knots[1] * knots[2] + knots[0] * knots[1] * knots[3] +
-            knots[0] * knots[2] * knots[3] - knots[0] * pow(knots[3], 2) +
-            knots[1] * knots[2] * knots[3] - knots[1] * pow(knots[3], 2) -
-            knots[2] * pow(knots[3], 2) + pow(knots[3], 3)) -
+            knots[0] * knots[2] * knots[3] - knots[0] * square(knots[3]) +
+            knots[1] * knots[2] * knots[3] - knots[1] * square(knots[3]) -
+            knots[2] * square(knots[3]) + cube(knots[3])) -
        knots[1] * knots[3] * knots[4] /
-           (-pow(knots[1], 2) * knots[2] + pow(knots[1], 2) * knots[3] +
+           (-square(knots[1]) * knots[2] + square(knots[1]) * knots[3] +
             knots[1] * knots[2] * knots[3] + knots[1] * knots[2] * knots[4] -
-            knots[1] * pow(knots[3], 2) - knots[1] * knots[3] * knots[4] -
-            knots[2] * knots[3] * knots[4] + pow(knots[3], 2) * knots[4]) -
-       knots[2] * pow(knots[4], 2) /
-           (-knots[1] * pow(knots[2], 2) + knots[1] * knots[2] * knots[3] +
+            knots[1] * square(knots[3]) - knots[1] * knots[3] * knots[4] -
+            knots[2] * knots[3] * knots[4] + square(knots[3]) * knots[4]) -
+       knots[2] * square(knots[4]) /
+           (-knots[1] * square(knots[2]) + knots[1] * knots[2] * knots[3] +
             knots[1] * knots[2] * knots[4] - knots[1] * knots[3] * knots[4] +
-            pow(knots[2], 2) * knots[4] - knots[2] * knots[3] * knots[4] -
-            knots[2] * pow(knots[4], 2) + knots[3] * pow(knots[4], 2)));
+            square(knots[2]) * knots[4] - knots[2] * knots[3] * knots[4] -
+            knots[2] * square(knots[4]) + knots[3] * square(knots[4])));
   constants[9] = coefficient *
       (2 * knots[0] * knots[3] /
            (-knots[0] * knots[1] * knots[2] + knots[0] * knots[1] * knots[3] +
-            knots[0] * knots[2] * knots[3] - knots[0] * pow(knots[3], 2) +
-            knots[1] * knots[2] * knots[3] - knots[1] * pow(knots[3], 2) -
-            knots[2] * pow(knots[3], 2) + pow(knots[3], 3)) +
-       pow(knots[3], 2) /
+            knots[0] * knots[2] * knots[3] - knots[0] * square(knots[3]) +
+            knots[1] * knots[2] * knots[3] - knots[1] * square(knots[3]) -
+            knots[2] * square(knots[3]) + cube(knots[3])) +
+       square(knots[3]) /
            (-knots[0] * knots[1] * knots[2] + knots[0] * knots[1] * knots[3] +
-            knots[0] * knots[2] * knots[3] - knots[0] * pow(knots[3], 2) +
-            knots[1] * knots[2] * knots[3] - knots[1] * pow(knots[3], 2) -
-            knots[2] * pow(knots[3], 2) + pow(knots[3], 3)) +
+            knots[0] * knots[2] * knots[3] - knots[0] * square(knots[3]) +
+            knots[1] * knots[2] * knots[3] - knots[1] * square(knots[3]) -
+            knots[2] * square(knots[3]) + cube(knots[3])) +
        knots[1] * knots[3] /
-           (-pow(knots[1], 2) * knots[2] + pow(knots[1], 2) * knots[3] +
+           (-square(knots[1]) * knots[2] + square(knots[1]) * knots[3] +
             knots[1] * knots[2] * knots[3] + knots[1] * knots[2] * knots[4] -
-            knots[1] * pow(knots[3], 2) - knots[1] * knots[3] * knots[4] -
-            knots[2] * knots[3] * knots[4] + pow(knots[3], 2) * knots[4]) +
+            knots[1] * square(knots[3]) - knots[1] * knots[3] * knots[4] -
+            knots[2] * knots[3] * knots[4] + square(knots[3]) * knots[4]) +
        knots[1] * knots[4] /
-           (-pow(knots[1], 2) * knots[2] + pow(knots[1], 2) * knots[3] +
+           (-square(knots[1]) * knots[2] + square(knots[1]) * knots[3] +
             knots[1] * knots[2] * knots[3] + knots[1] * knots[2] * knots[4] -
-            knots[1] * pow(knots[3], 2) - knots[1] * knots[3] * knots[4] -
-            knots[2] * knots[3] * knots[4] + pow(knots[3], 2) * knots[4]) +
+            knots[1] * square(knots[3]) - knots[1] * knots[3] * knots[4] -
+            knots[2] * knots[3] * knots[4] + square(knots[3]) * knots[4]) +
        knots[3] * knots[4] /
-           (-pow(knots[1], 2) * knots[2] + pow(knots[1], 2) * knots[3] +
+           (-square(knots[1]) * knots[2] + square(knots[1]) * knots[3] +
             knots[1] * knots[2] * knots[3] + knots[1] * knots[2] * knots[4] -
-            knots[1] * pow(knots[3], 2) - knots[1] * knots[3] * knots[4] -
-            knots[2] * knots[3] * knots[4] + pow(knots[3], 2) * knots[4]) +
+            knots[1] * square(knots[3]) - knots[1] * knots[3] * knots[4] -
+            knots[2] * knots[3] * knots[4] + square(knots[3]) * knots[4]) +
        2 * knots[2] * knots[4] /
-           (-knots[1] * pow(knots[2], 2) + knots[1] * knots[2] * knots[3] +
+           (-knots[1] * square(knots[2]) + knots[1] * knots[2] * knots[3] +
             knots[1] * knots[2] * knots[4] - knots[1] * knots[3] * knots[4] +
-            pow(knots[2], 2) * knots[4] - knots[2] * knots[3] * knots[4] -
-            knots[2] * pow(knots[4], 2) + knots[3] * pow(knots[4], 2)) +
-       pow(knots[4], 2) /
-           (-knots[1] * pow(knots[2], 2) + knots[1] * knots[2] * knots[3] +
+            square(knots[2]) * knots[4] - knots[2] * knots[3] * knots[4] -
+            knots[2] * square(knots[4]) + knots[3] * square(knots[4])) +
+       square(knots[4]) /
+           (-knots[1] * square(knots[2]) + knots[1] * knots[2] * knots[3] +
             knots[1] * knots[2] * knots[4] - knots[1] * knots[3] * knots[4] +
-            pow(knots[2], 2) * knots[4] - knots[2] * knots[3] * knots[4] -
-            knots[2] * pow(knots[4], 2) + knots[3] * pow(knots[4], 2)));
+            square(knots[2]) * knots[4] - knots[2] * knots[3] * knots[4] -
+            knots[2] * square(knots[4]) + knots[3] * square(knots[4])));
   constants[10] = coefficient *
       (-knots[0] /
            (-knots[0] * knots[1] * knots[2] + knots[0] * knots[1] * knots[3] +
-            knots[0] * knots[2] * knots[3] - knots[0] * pow(knots[3], 2) +
-            knots[1] * knots[2] * knots[3] - knots[1] * pow(knots[3], 2) -
-            knots[2] * pow(knots[3], 2) + pow(knots[3], 3)) -
+            knots[0] * knots[2] * knots[3] - knots[0] * square(knots[3]) +
+            knots[1] * knots[2] * knots[3] - knots[1] * square(knots[3]) -
+            knots[2] * square(knots[3]) + cube(knots[3])) -
        2 * knots[3] /
            (-knots[0] * knots[1] * knots[2] + knots[0] * knots[1] * knots[3] +
-            knots[0] * knots[2] * knots[3] - knots[0] * pow(knots[3], 2) +
-            knots[1] * knots[2] * knots[3] - knots[1] * pow(knots[3], 2) -
-            knots[2] * pow(knots[3], 2) + pow(knots[3], 3)) -
+            knots[0] * knots[2] * knots[3] - knots[0] * square(knots[3]) +
+            knots[1] * knots[2] * knots[3] - knots[1] * square(knots[3]) -
+            knots[2] * square(knots[3]) + cube(knots[3])) -
        knots[1] /
-           (-pow(knots[1], 2) * knots[2] + pow(knots[1], 2) * knots[3] +
+           (-square(knots[1]) * knots[2] + square(knots[1]) * knots[3] +
             knots[1] * knots[2] * knots[3] + knots[1] * knots[2] * knots[4] -
-            knots[1] * pow(knots[3], 2) - knots[1] * knots[3] * knots[4] -
-            knots[2] * knots[3] * knots[4] + pow(knots[3], 2) * knots[4]) -
+            knots[1] * square(knots[3]) - knots[1] * knots[3] * knots[4] -
+            knots[2] * knots[3] * knots[4] + square(knots[3]) * knots[4]) -
        knots[3] /
-           (-pow(knots[1], 2) * knots[2] + pow(knots[1], 2) * knots[3] +
+           (-square(knots[1]) * knots[2] + square(knots[1]) * knots[3] +
             knots[1] * knots[2] * knots[3] + knots[1] * knots[2] * knots[4] -
-            knots[1] * pow(knots[3], 2) - knots[1] * knots[3] * knots[4] -
-            knots[2] * knots[3] * knots[4] + pow(knots[3], 2) * knots[4]) -
+            knots[1] * square(knots[3]) - knots[1] * knots[3] * knots[4] -
+            knots[2] * knots[3] * knots[4] + square(knots[3]) * knots[4]) -
        knots[4] /
-           (-pow(knots[1], 2) * knots[2] + pow(knots[1], 2) * knots[3] +
+           (-square(knots[1]) * knots[2] + square(knots[1]) * knots[3] +
             knots[1] * knots[2] * knots[3] + knots[1] * knots[2] * knots[4] -
-            knots[1] * pow(knots[3], 2) - knots[1] * knots[3] * knots[4] -
-            knots[2] * knots[3] * knots[4] + pow(knots[3], 2) * knots[4]) -
+            knots[1] * square(knots[3]) - knots[1] * knots[3] * knots[4] -
+            knots[2] * knots[3] * knots[4] + square(knots[3]) * knots[4]) -
        knots[2] /
-           (-knots[1] * pow(knots[2], 2) + knots[1] * knots[2] * knots[3] +
+           (-knots[1] * square(knots[2]) + knots[1] * knots[2] * knots[3] +
             knots[1] * knots[2] * knots[4] - knots[1] * knots[3] * knots[4] +
-            pow(knots[2], 2) * knots[4] - knots[2] * knots[3] * knots[4] -
-            knots[2] * pow(knots[4], 2) + knots[3] * pow(knots[4], 2)) -
+            square(knots[2]) * knots[4] - knots[2] * knots[3] * knots[4] -
+            knots[2] * square(knots[4]) + knots[3] * square(knots[4])) -
        2 * knots[4] /
-           (-knots[1] * pow(knots[2], 2) + knots[1] * knots[2] * knots[3] +
+           (-knots[1] * square(knots[2]) + knots[1] * knots[2] * knots[3] +
             knots[1] * knots[2] * knots[4] - knots[1] * knots[3] * knots[4] +
-            pow(knots[2], 2) * knots[4] - knots[2] * knots[3] * knots[4] -
-            knots[2] * pow(knots[4], 2) + knots[3] * pow(knots[4], 2)));
+            square(knots[2]) * knots[4] - knots[2] * knots[3] * knots[4] -
+            knots[2] * square(knots[4]) + knots[3] * square(knots[4])));
   constants[11] = coefficient *
       (1 /
            (-knots[0] * knots[1] * knots[2] + knots[0] * knots[1] * knots[3] +
-            knots[0] * knots[2] * knots[3] - knots[0] * pow(knots[3], 2) +
-            knots[1] * knots[2] * knots[3] - knots[1] * pow(knots[3], 2) -
-            knots[2] * pow(knots[3], 2) + pow(knots[3], 3)) +
+            knots[0] * knots[2] * knots[3] - knots[0] * square(knots[3]) +
+            knots[1] * knots[2] * knots[3] - knots[1] * square(knots[3]) -
+            knots[2] * square(knots[3]) + cube(knots[3])) +
        1 /
-           (-pow(knots[1], 2) * knots[2] + pow(knots[1], 2) * knots[3] +
+           (-square(knots[1]) * knots[2] + square(knots[1]) * knots[3] +
             knots[1] * knots[2] * knots[3] + knots[1] * knots[2] * knots[4] -
-            knots[1] * pow(knots[3], 2) - knots[1] * knots[3] * knots[4] -
-            knots[2] * knots[3] * knots[4] + pow(knots[3], 2) * knots[4]) +
+            knots[1] * square(knots[3]) - knots[1] * knots[3] * knots[4] -
+            knots[2] * knots[3] * knots[4] + square(knots[3]) * knots[4]) +
        1 /
-           (-knots[1] * pow(knots[2], 2) + knots[1] * knots[2] * knots[3] +
+           (-knots[1] * square(knots[2]) + knots[1] * knots[2] * knots[3] +
             knots[1] * knots[2] * knots[4] - knots[1] * knots[3] * knots[4] +
-            pow(knots[2], 2) * knots[4] - knots[2] * knots[3] * knots[4] -
-            knots[2] * pow(knots[4], 2) + knots[3] * pow(knots[4], 2)));
+            square(knots[2]) * knots[4] - knots[2] * knots[3] * knots[4] -
+            knots[2] * square(knots[4]) + knots[3] * square(knots[4])));
   constants[12] = coefficient *
-      (pow(knots[4], 3) /
+      (cube(knots[4]) /
        (-knots[1] * knots[2] * knots[3] + knots[1] * knots[2] * knots[4] +
-        knots[1] * knots[3] * knots[4] - knots[1] * pow(knots[4], 2) +
-        knots[2] * knots[3] * knots[4] - knots[2] * pow(knots[4], 2) - knots[3] * pow(knots[4], 2) +
-        pow(knots[4], 3)));
+        knots[1] * knots[3] * knots[4] - knots[1] * square(knots[4]) +
+        knots[2] * knots[3] * knots[4] - knots[2] * square(knots[4]) - knots[3] * square(knots[4]) +
+        cube(knots[4])));
   constants[13] = coefficient *
-      (-3 * pow(knots[4], 2) /
+      (-3 * square(knots[4]) /
        (-knots[1] * knots[2] * knots[3] + knots[1] * knots[2] * knots[4] +
-        knots[1] * knots[3] * knots[4] - knots[1] * pow(knots[4], 2) +
-        knots[2] * knots[3] * knots[4] - knots[2] * pow(knots[4], 2) - knots[3] * pow(knots[4], 2) +
-        pow(knots[4], 3)));
+        knots[1] * knots[3] * knots[4] - knots[1] * square(knots[4]) +
+        knots[2] * knots[3] * knots[4] - knots[2] * square(knots[4]) - knots[3] * square(knots[4]) +
+        cube(knots[4])));
   constants[14] = coefficient *
       (3 * knots[4] /
        (-knots[1] * knots[2] * knots[3] + knots[1] * knots[2] * knots[4] +
-        knots[1] * knots[3] * knots[4] - knots[1] * pow(knots[4], 2) +
-        knots[2] * knots[3] * knots[4] - knots[2] * pow(knots[4], 2) - knots[3] * pow(knots[4], 2) +
-        pow(knots[4], 3)));
+        knots[1] * knots[3] * knots[4] - knots[1] * square(knots[4]) +
+        knots[2] * knots[3] * knots[4] - knots[2] * square(knots[4]) - knots[3] * square(knots[4]) +
+        cube(knots[4])));
   constants[15] = coefficient *
       (-1 /
        (-knots[1] * knots[2] * knots[3] + knots[1] * knots[2] * knots[4] +
-        knots[1] * knots[3] * knots[4] - knots[1] * pow(knots[4], 2) +
-        knots[2] * knots[3] * knots[4] - knots[2] * pow(knots[4], 2) - knots[3] * pow(knots[4], 2) +
-        pow(knots[4], 3)));
+        knots[1] * knots[3] * knots[4] - knots[1] * square(knots[4]) +
+        knots[2] * knots[3] * knots[4] - knots[2] * square(knots[4]) - knots[3] * square(knots[4]) +
+        cube(knots[4])));
 
   return constants;
 }
@@ -1628,38 +1630,38 @@ std::vector<F_FLOAT> PairUF3Kokkos<DeviceType>::get_dnconstants(double *knots, d
   std::vector<F_FLOAT> constants(9);
 
   constants[0] = coefficient *
-      (pow(knots[0], 2) /
-       (pow(knots[0], 2) - knots[0] * knots[1] - knots[0] * knots[2] + knots[1] * knots[2]));
+      (square(knots[0]) /
+       (square(knots[0]) - knots[0] * knots[1] - knots[0] * knots[2] + knots[1] * knots[2]));
   constants[1] = coefficient *
       (-2 * knots[0] /
-       (pow(knots[0], 2) - knots[0] * knots[1] - knots[0] * knots[2] + knots[1] * knots[2]));
+       (square(knots[0]) - knots[0] * knots[1] - knots[0] * knots[2] + knots[1] * knots[2]));
   constants[2] = coefficient *
-      (1 / (pow(knots[0], 2) - knots[0] * knots[1] - knots[0] * knots[2] + knots[1] * knots[2]));
+      (1 / (square(knots[0]) - knots[0] * knots[1] - knots[0] * knots[2] + knots[1] * knots[2]));
   constants[3] = coefficient *
       (-knots[1] * knots[3] /
-           (pow(knots[1], 2) - knots[1] * knots[2] - knots[1] * knots[3] + knots[2] * knots[3]) -
+           (square(knots[1]) - knots[1] * knots[2] - knots[1] * knots[3] + knots[2] * knots[3]) -
        knots[0] * knots[2] /
-           (knots[0] * knots[1] - knots[0] * knots[2] - knots[1] * knots[2] + pow(knots[2], 2)));
+           (knots[0] * knots[1] - knots[0] * knots[2] - knots[1] * knots[2] + square(knots[2])));
   constants[4] = coefficient *
       (knots[1] /
-           (pow(knots[1], 2) - knots[1] * knots[2] - knots[1] * knots[3] + knots[2] * knots[3]) +
+           (square(knots[1]) - knots[1] * knots[2] - knots[1] * knots[3] + knots[2] * knots[3]) +
        knots[3] /
-           (pow(knots[1], 2) - knots[1] * knots[2] - knots[1] * knots[3] + knots[2] * knots[3]) +
+           (square(knots[1]) - knots[1] * knots[2] - knots[1] * knots[3] + knots[2] * knots[3]) +
        knots[0] /
-           (knots[0] * knots[1] - knots[0] * knots[2] - knots[1] * knots[2] + pow(knots[2], 2)) +
+           (knots[0] * knots[1] - knots[0] * knots[2] - knots[1] * knots[2] + square(knots[2])) +
        knots[2] /
-           (knots[0] * knots[1] - knots[0] * knots[2] - knots[1] * knots[2] + pow(knots[2], 2)));
+           (knots[0] * knots[1] - knots[0] * knots[2] - knots[1] * knots[2] + square(knots[2])));
   constants[5] = coefficient *
-      (-1 / (pow(knots[1], 2) - knots[1] * knots[2] - knots[1] * knots[3] + knots[2] * knots[3]) -
-       1 / (knots[0] * knots[1] - knots[0] * knots[2] - knots[1] * knots[2] + pow(knots[2], 2)));
+      (-1 / (square(knots[1]) - knots[1] * knots[2] - knots[1] * knots[3] + knots[2] * knots[3]) -
+       1 / (knots[0] * knots[1] - knots[0] * knots[2] - knots[1] * knots[2] + square(knots[2])));
   constants[6] = coefficient *
-      (pow(knots[3], 2) /
-       (knots[1] * knots[2] - knots[1] * knots[3] - knots[2] * knots[3] + pow(knots[3], 2)));
+      (square(knots[3]) /
+       (knots[1] * knots[2] - knots[1] * knots[3] - knots[2] * knots[3] + square(knots[3])));
   constants[7] = coefficient *
       (-2 * knots[3] /
-       (knots[1] * knots[2] - knots[1] * knots[3] - knots[2] * knots[3] + pow(knots[3], 2)));
+       (knots[1] * knots[2] - knots[1] * knots[3] - knots[2] * knots[3] + square(knots[3])));
   constants[8] = coefficient *
-      (1 / (knots[1] * knots[2] - knots[1] * knots[3] - knots[2] * knots[3] + pow(knots[3], 2)));
+      (1 / (knots[1] * knots[2] - knots[1] * knots[3] - knots[2] * knots[3] + square(knots[3])));
 
   return constants;
 }

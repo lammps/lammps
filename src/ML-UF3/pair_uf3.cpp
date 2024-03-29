@@ -212,7 +212,8 @@ void PairUF3::uf3_read_pot_file(int itype, int jtype, char *potf_name)
     utils::logmesg(lmp, "UF3: {} file should contain UF3 potential for {} {}\n", potf_name, itype, jtype);
 
   FILE *fp = utils::open_potential(potf_name, lmp, nullptr);
-  if (!fp) error->one(FLERR,"Cannot open UF3 potential file {}", potf_name);
+  if (!fp)
+    error->all(FLERR, "Cannot open UF3 potential file {}: {}", potf_name, utils::getsyserror());
 
   TextFileReader txtfilereader(fp, "UF3:POTFP");
   txtfilereader.ignore_comments = false;
@@ -329,7 +330,8 @@ void PairUF3::uf3_read_pot_file(int itype, int jtype, int ktype, char *potf_name
           potf_name, itype, jtype, ktype);
 
   FILE *fp = utils::open_potential(potf_name, lmp, nullptr);
-  if (!fp) error->one(FLERR,"Cannot open UF3 potential file {}", potf_name);
+  if (!fp)
+    error->all(FLERR, "Cannot open UF3 potential file {}: {}", potf_name, utils::getsyserror());
 
   TextFileReader txtfilereader(fp, "UF3:POTFP");
   txtfilereader.ignore_comments = false;
@@ -559,7 +561,6 @@ void PairUF3::uf3_read_pot_file(int itype, int jtype, int ktype, char *potf_name
 
   setflag_3b[itype][jtype][ktype] = 1;
   setflag_3b[itype][ktype][jtype] = 1;
-
 }
 
 void PairUF3::uf3_read_pot_file(char *potf_name)
@@ -567,7 +568,8 @@ void PairUF3::uf3_read_pot_file(char *potf_name)
   if (comm->me == 0) utils::logmesg(lmp, "\nUF3: Opening {} file\n", potf_name);
 
   FILE *fp = utils::open_potential(potf_name, lmp, nullptr);
-  if (!fp) error->all(FLERR,"Cannot open UF3 potential file {}",potf_name);
+  if (!fp)
+    error->all(FLERR, "Cannot open UF3 potential file {}: {}", potf_name, utils::getsyserror());
 
   TextFileReader txtfilereader(fp, "UF3:POTFP");
   txtfilereader.ignore_comments = false;

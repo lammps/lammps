@@ -13,7 +13,7 @@
 
 /* ----------------------------------------------------------------------
    Contributing authors:
-   Joel Clemmer (SNL), Thomas O'Connor (CMU), Eric Palermo (CMU)
+   Joel Clemmer (SNL), Thomas O'Connor (CMU)
 ----------------------------------------------------------------------- */
 
 #include "compute_rheo_kernel.h"

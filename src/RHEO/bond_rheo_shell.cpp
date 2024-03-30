@@ -11,6 +11,11 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
+/* ----------------------------------------------------------------------
+   Contributing authors:
+   Joel Clemmer (SNL)
+----------------------------------------------------------------------- */
+
 #include "bond_rheo_shell.h"
 
 #include "atom.h"
@@ -40,17 +45,38 @@ BondRHEOShell::BondRHEOShell(LAMMPS *_lmp) :
     BondBPM(_lmp), k(nullptr), ecrit(nullptr), gamma(nullptr)
 {
   partial_flag = 1;
+  comm_reverse = 1;
 
   tform = rmax = -1;
 
   single_extra = 1;
   svector = new double[1];
+
+  // For nbond, create an instance of fix property atom
+  // Need restarts + exchanging with neighbors since it needs to persist
+  // between timesteps (fix property atom will handle callbacks)
+
+  int tmp1, tmp2;
+  index_nb = atom->find_custom("shell_nbond", tmp1, tmp2);
+  if (index_nb == -1) {
+    id_fix = utils::strdup("bond_rheo_shell_fix_property_atom");
+    modify->add_fix(fmt::format("{} all property/atom i_shell_nbond", id_fix));
+    index_nb = atom->find_custom("shell_nbond", tmp1, tmp2);
+  }
+  nbond = atom->ivector[index_nb];
+
+  //Store non-persistent per atom quantities, intermediate
+
+  nmax_store = atom->nmax;
+  memory->create(dbond, nmax_store, "rheo/react:dbond");
 }
 
 /* ---------------------------------------------------------------------- */
 
 BondRHEOShell::~BondRHEOShell()
 {
+  if (modify->nfix) modify->delete_fix(id_fix);
+  delete[] id_fix;
   delete[] svector;
 
   if (allocated) {
@@ -59,6 +85,8 @@ BondRHEOShell::~BondRHEOShell()
     memory->destroy(ecrit);
     memory->destroy(gamma);
   }
+
+  memory->destroy(dbond);
 }
 
 /* ----------------------------------------------------------------------
@@ -151,6 +179,15 @@ void BondRHEOShell::compute(int eflag, int vflag)
 
   double **bondstore = fix_bond_history->bondstore;
 
+  if (atom->nmax > nmax_store){
+    nmax_store = atom->nmax;
+    memory->destroy(dbond);
+    memory->create(dbond, nmax_store, "rheo/shell:dbond");
+  }
+
+  size_t nbytes = nmax_store * sizeof(int);
+  memset(&dbond[0], 0, nbytes);
+
   for (n = 0; n < nbondlist; n++) {
 
     // skip bond if already broken
@@ -196,6 +233,8 @@ void BondRHEOShell::compute(int eflag, int vflag)
       if (bondstore[n][1] >= tform) {
         bondstore[n][0] = r;
         r0 = r;
+        if (newton_bond || i1 < nlocal) dbond[i1] ++;
+        if (newton_bond || i2 < nlocal) dbond[i2] ++;
       } else {
         continue;
       }
@@ -205,6 +244,8 @@ void BondRHEOShell::compute(int eflag, int vflag)
     if (fabs(e) > ecrit[type]) {
       bondlist[n][2] = 0;
       process_broken(i1, i2);
+      if (newton_bond || i1 < nlocal) dbond[i1] --;
+      if (newton_bond || i2 < nlocal) dbond[i2] --;
       continue;
     }
 
@@ -232,6 +273,17 @@ void BondRHEOShell::compute(int eflag, int vflag)
     }
 
     if (evflag) ev_tally(i1, i2, nlocal, newton_bond, 0.0, fbond, delx, dely, delz);
+  }
+
+
+  // Communicate changes in nbond
+  if (newton_bond) comm->reverse_comm(this);
+
+  for(i = 0; i < nlocal; i++) {
+    nbond[i] += dbond[i];
+
+    // If it has bonds, no shifting
+    if (nbond[i] != 0) status[i] |= STATUS_NO_SHIFT;
   }
 }
 
@@ -417,6 +469,34 @@ void BondRHEOShell::read_restart_settings(FILE *fp)
   }
   MPI_Bcast(&tform, 1, MPI_DOUBLE, 0, world);
   MPI_Bcast(&rmax, 1, MPI_DOUBLE, 0, world);
+}
+
+
+/* ---------------------------------------------------------------------- */
+
+int BondRHEOShell::pack_reverse_comm(int n, int first, double *buf)
+{
+  int i, m, last;
+  m = 0;
+  last = first + n;
+
+  for (i = first; i < last; i++) {
+    buf[m++] = dbond[i];
+  }
+  return m;
+}
+
+/* ---------------------------------------------------------------------- */
+
+void BondRHEOShell::unpack_reverse_comm(int n, int *list, double *buf)
+{
+  int i, j, m;
+
+  m = 0;
+  for (i = 0; i < n; i++) {
+    j = list[i];
+    dbond[j] += buf[m++];
+  }
 }
 
 /* ---------------------------------------------------------------------- */

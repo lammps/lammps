@@ -56,7 +56,7 @@ ComputeRHEOPropertyAtom::ComputeRHEOPropertyAtom(LAMMPS *lmp, int narg, char **a
   if (nvalues == 1) size_peratom_cols = 0;
   else size_peratom_cols = nvalues;
 
-  pressure_flag = thermal_flag = interface_flag = surface_flag = shift_flag = 0;
+  pressure_flag = thermal_flag = interface_flag = surface_flag = shift_flag = shell_flag = 0;
 
   // parse input values
   // customize a new keyword by adding to if statement
@@ -112,6 +112,9 @@ ComputeRHEOPropertyAtom::ComputeRHEOPropertyAtom(LAMMPS *lmp, int narg, char **a
                    arg[iarg], atom->get_style());
       pack_choice[i] = &ComputeRHEOPropertyAtom::pack_atom_style;
       thermal_flag = 1;
+    } else if (strcmp(arg[iarg],"nbond/shell") == 0) {
+      shell_flag = 1;
+      pack_choice[i] = &ComputeRHEOPropertyAtom::pack_nbond_shell;
     } else {
       avec_index[i] = atom->avec->property_atom(arg[iarg]);
       if (avec_index[i] < 0)
@@ -156,6 +159,8 @@ void ComputeRHEOPropertyAtom::init()
     error->all(FLERR, "Cannot request velocity shifting property without corresponding option in fix rheo");
   if (thermal_flag && !(fix_rheo->thermal_flag))
     error->all(FLERR, "Cannot request thermal property without fix rheo/thermal");
+  if (shell_flag && !(fix_rheo->oxidation_flag))
+    error->all(FLERR, "Cannot request number of shell bonds without fix rheo/oxidation");
 
   compute_interface = fix_rheo->compute_interface;
   compute_kernel = fix_rheo->compute_kernel;

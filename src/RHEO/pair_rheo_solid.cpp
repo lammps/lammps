@@ -11,6 +11,11 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
+/* ----------------------------------------------------------------------
+   Contributing authors:
+   Joel Clemmer (SNL)
+----------------------------------------------------------------------- */
+
 #include "pair_rheo_solid.h"
 
 #include "atom.h"

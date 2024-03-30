@@ -101,6 +101,7 @@ page gives those details.
    * :ref:`QEQ <PKG-QEQ>`
    * :ref:`QMMM <PKG-QMMM>`
    * :ref:`QTB <PKG-QTB>`
+   * :ref:`RHEO <PKG-RHEO>`
    * :ref:`REACTION <PKG-REACTION>`
    * :ref:`REAXFF <PKG-REAXFF>`
    * :ref:`REPLICA <PKG-REPLICA>`
@@ -2568,6 +2569,41 @@ another set.
 * examples/prd
 * examples/tad
 * examples/PACKAGES/grem
+
+----------
+
+.. _PKG-RHEO:
+
+RHEO package
+------------
+
+**Contents:**
+
+Pair styles, bond styles, fixes, and computes for reproducing
+hydrodynamics and elastic objects. See the
+:doc:`Howto rheo <Howto_rheo>` page for an overview.
+
+**Authors:** Joel T. Clemmer (Sandia National Labs),
+Thomas C. O'Connor (Carnegie Mellon University)
+
+.. versionadded:: TBD
+
+**Supporting info:**
+
+* src/RHEO filenames -> commands
+* :doc:`Howto_rheo <Howto_rheo>`
+* :doc:`atom_style rheo <atom_style>`
+* :doc:`atom_style rheo/thermal <atom_style>`
+* :doc:`bond_style rheo/shell <bond_rheo_shell>`
+* :doc:`compute rheo/property/atom <compute_rheo_property_atom>`
+* :doc:`fix rheo <fix_rheo>`
+* :doc:`fix rheo/oxidation <fix_rheo_oxidation>`
+* :doc:`fix rheo/pressure <fix_rheo_pressure>`
+* :doc:`fix rheo/thermal <fix_rheo_thermal>`
+* :doc:`fix rheo/viscosity <fix_rheo_viscosity>`
+* :doc:`pair_style rheo <pair_rheo>`
+* :doc:`pair_style rheo/solid <pair_rheo_solid>`
+* examples/rheo
 
 ----------
 

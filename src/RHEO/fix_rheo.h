@@ -55,6 +55,7 @@ class FixRHEO : public Fix {
   int viscosity_fix_defined;
   int pressure_fix_defined;
   int thermal_fix_defined;
+  int oxidation_fix_defined;
 
   class ComputeRHEOGrad *compute_grad;
   class ComputeRHEOKernel *compute_kernel;

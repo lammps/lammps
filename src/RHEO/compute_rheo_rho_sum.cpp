@@ -11,6 +11,11 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
+/* ----------------------------------------------------------------------
+   Contributing authors:
+   Joel Clemmer (SNL)
+----------------------------------------------------------------------- */
+
 #include "compute_rheo_rho_sum.h"
 
 #include "atom.h"

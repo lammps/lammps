@@ -147,6 +147,8 @@ void ComputeRHEOVShift::compute_peratom()
 
       fluidj = !(status[j] & PHASECHECK);
       if ((!fluidi) && (!fluidj)) continue;
+
+      // Will skip shifting in FixRHEO initial integrate, but also skip here to save time
       if ((status[i] & STATUS_NO_SHIFT) && (status[j] & STATUS_NO_SHIFT)) continue;
 
       dx[0] = xtmp - x[j][0];

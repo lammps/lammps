@@ -37,11 +37,17 @@ class BondRHEOShell : public BondBPM {
   void read_restart(FILE *) override;
   void write_restart_settings(FILE *) override;
   void read_restart_settings(FILE *) override;
+  int pack_reverse_comm(int, int, double *) override;
+  void unpack_reverse_comm(int, int *, double *) override;
   double single(int, double, int, int, double &) override;
 
  protected:
   double *k, *ecrit, *gamma;
   double tform, rmax;
+
+  int *dbond, *nbond;
+  int index_nb, nmax_store;
+  char *id_fix;
 
   void process_ineligibility(int, int);
   void allocate();

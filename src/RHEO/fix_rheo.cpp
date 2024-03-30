@@ -221,7 +221,7 @@ void FixRHEO::setup_pre_force(int /*vflag*/)
 {
   // Check to confirm accessory fixes do not preceed FixRHEO
   // Note: fixes set this flag in setup_pre_force()
-  if (viscosity_fix_defined || pressure_fix_defined || thermal_fix_defined)
+  if (viscosity_fix_defined || pressure_fix_defined || thermal_fix_defined || oxidation_fix_defined)
     error->all(FLERR, "Fix RHEO must be defined before all other RHEO fixes");
 
   // Calculate surfaces

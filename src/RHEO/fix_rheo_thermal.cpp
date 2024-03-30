@@ -498,21 +498,36 @@ void FixRHEOThermal::break_bonds()
   int nlocal = atom->nlocal;
   int nall = nlocal + atom->nghost;
 
-  // Rapidly delete all bonds for local atoms that melt (no shifting)
+  // Rapidly delete all bonds for local atoms that melt of a given type
   for (int i = 0; i < nlocal; i++) {
     if (!(status[i] & STATUS_MELTING)) continue;
-    for (m = 0; m < num_bond[i]; m++) {
-      j = atom->map(bond_atom[i][m]);
-      bond_type[i][m] = 0;
+    for (m = (num_bond[i] - 1); m >= 0; m--) {
+      if (bond_type[i][m] != btype) continue;
 
-      if (n_histories > 0)
-        for (auto &ihistory: histories)
-          dynamic_cast<FixBondHistory *>(ihistory)->delete_history(i, m);
+      j = atom->map(bond_atom[i][m]);
+
+      nmax = num_bond[i] - 1;
+      if (m == nmax) {
+        if (n_histories > 0)
+          for (auto &ihistory: histories)
+            dynamic_cast<FixBondHistory *>(ihistory)->delete_history(i, m);
+      } else {
+        bond_type[i][m] = bond_type[i][nmax];
+        bond_atom[i][m] = bond_atom[i][nmax];
+        if (n_histories > 0) {
+          for (auto &ihistory: histories) {
+            auto fix_bond_history = dynamic_cast<FixBondHistory *>  (ihistory);
+            fix_bond_history->shift_history(i, m, nmax);
+            fix_bond_history->delete_history(i, nmax);
+          }
+        }
+      }
+      bond_type[i][nmax] = 0;
+      num_bond[i]--;
 
       if (fix_update_special_bonds)
         fix_update_special_bonds->add_broken_bond(i, j);
     }
-    num_bond[i] = 0;
   }
 
   // Update bond list and break solid-melted bonds
@@ -530,7 +545,7 @@ void FixRHEOThermal::break_bonds()
     // Delete bonds for non-melted local atoms (shifting)
     if (i < nlocal) {
       for (m = 0; m < num_bond[i]; m++) {
-        if (bond_atom[i][m] == tag[j]) {
+        if (bond_atom[i][m] == tag[j] && bond_type[i][m] == btype) {
           nmax = num_bond[i] - 1;
           bond_type[i][m] = bond_type[i][nmax];
           bond_atom[i][m] = bond_atom[i][nmax];
@@ -549,7 +564,7 @@ void FixRHEOThermal::break_bonds()
 
     if (j < nlocal) {
       for (m = 0; m < num_bond[j]; m++) {
-        if (bond_atom[j][m] == tag[i]) {
+        if (bond_atom[j][m] == tag[i] && bond_type[j][m] == btype) {
           nmax = num_bond[j] - 1;
           bond_type[j][m] = bond_type[j][nmax];
           bond_atom[j][m] = bond_atom[j][nmax];

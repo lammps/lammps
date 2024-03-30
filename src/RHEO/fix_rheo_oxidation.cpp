@@ -60,6 +60,7 @@ FixRHEOOxidation::~FixRHEOOxidation()
 int FixRHEOOxidation::setmask()
 {
   int mask = 0;
+  mask |= PRE_FORCE;
   mask |= POST_INTEGRATE;
   return mask;
 }
@@ -70,7 +71,7 @@ void FixRHEOOxidation::init()
 {
   auto fixes = modify->get_fix_by_style("^rheo$");
   if (fixes.size() == 0) error->all(FLERR, "Need to define fix rheo to use fix rheo/oxidation");
-  class FixRHEO *fix_rheo = dynamic_cast<FixRHEO *>(fixes[0]);
+  fix_rheo = dynamic_cast<FixRHEO *>(fixes[0]);
   double cut_kernel = fix_rheo->h;
 
   if (cut > cut_kernel)
@@ -98,6 +99,26 @@ void FixRHEOOxidation::init()
 void FixRHEOOxidation::init_list(int /*id*/, NeighList *ptr)
 {
   list = ptr;
+}
+
+/* ---------------------------------------------------------------------- */
+
+void FixRHEOOxidation::setup_pre_force(int /*vflag*/)
+{
+  // Not strictly required that this fix be after FixRHEO,
+  // but enforce to be consistent with other RHEO fixes
+  fix_rheo->oxidation_fix_defined = 1;
+
+  if (!fix_rheo->surface_flag) error->all(FLERR,
+      "fix rheo/oxidation requires surface calculation in fix rheo");
+
+  pre_force(0);
+}
+
+/* ---------------------------------------------------------------------- */
+
+void FixRHEOThermal::pre_force(int /*vflag*/)
+{
 }
 
 /* ---------------------------------------------------------------------- */
@@ -187,4 +208,10 @@ void FixRHEOOxidation::post_integrate()
       }
     }
   }
+
+  //todo:
+  // allow option to create near-surface bonds
+  // extract # of bonds in property/atom
+  // check bond style shell used, get index to bonds, share with compute property atom
+  // add type option to compute nbond/atom
 }

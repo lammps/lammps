@@ -16,8 +16,8 @@ Syntax
 
 .. parsed-literal::
 
-     *rho/damp* args = density damping prefactor :math:`\xi` (units?)
-     *artificial/visc* args = artificial viscosity prefactor :math:`\zeta` (units?)
+     *rho/damp* args = density damping prefactor :math:`\xi`
+     *artificial/visc* args = artificial viscosity prefactor :math:`\zeta`
      *harmonic/means* args = none
 
 Examples
@@ -31,7 +31,27 @@ Examples
 Description
 """""""""""
 
-pair style...
+Pair style *rheo* computes pressure and viscous forces between particles
+in the :doc:`rheo package <Howto_rheo>`. If thermal evolution is turned
+on in :doc:`fix rheo <fix_rheo>`, then the pair style also calculates
+heat exchanged between particles.
+
+The *artificial/viscosity* keyword is used to specify the magnitude
+:math:`\zeta` of an optional artificial viscosity contribution to forces.
+This factor can help stabilize simulations by smoothing out small length
+scale variations in velocity fields.
+
+The *rho/damp* keyword is used to specify the magnitude :math:`\xi` of
+an optional pairwise damping term between the density of particles. This
+factor can help stabilize simulations by smoothing out small length
+scale variations in density fields.
+
+If particles have different viscosities or conductivities, the
+*harmonic/means* keyword changes how they are averaged before calculating
+pairwise forces or heat exchanges. By default, an arithmetic averaged is
+used, however, a harmonic mean may improve stability in multiphase systems
+with large disparities in viscosities. This keyword has no effect on
+results if viscosities and conductivities are constant.
 
 No coefficients are defined for each pair of atoms types via the
 :doc:`pair_coeff <pair_coeff>` command as in the examples

@@ -33,6 +33,8 @@ class FixRHEOOxidation : public Fix {
   int setmask() override;
   void init() override;
   void init_list(int, class NeighList *) override;
+  void setup_pre_force(int) override;
+  void pre_force(int) override;
   void post_integrate() override;
 
  private:
@@ -40,6 +42,7 @@ class FixRHEOOxidation : public Fix {
   double cut, cutsq;
   class NeighList *list;
 
+  class FixRHEO *fix_rheo;
   //class FixBondHistory *fix_bond_history;
 };
 

@@ -89,7 +89,7 @@ OPT.
    * :doc:`cosine/shift (o) <angle_cosine_shift>`
    * :doc:`cosine/shift/exp (o) <angle_cosine_shift_exp>`
    * :doc:`cosine/squared (o) <angle_cosine_squared>`
-   * :doc:`cosine/squared/restricted <angle_cosine_squared_restricted>`
+   * :doc:`cosine/squared/restricted (o) <angle_cosine_squared_restricted>`
    * :doc:`cross <angle_cross>`
    * :doc:`dipole (o) <angle_dipole>`
    * :doc:`fourier (o) <angle_fourier>`

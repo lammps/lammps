@@ -1,7 +1,10 @@
 .. index:: angle_style cosine/squared/restricted
+.. index:: angle_style cosine/squared/restricted/omp
 
 angle_style cosine/squared/restricted command
 =============================================
+
+Accelerator Variants: *cosine/squared/restricted/omp*
 
 Syntax
 """"""
@@ -43,6 +46,10 @@ or :doc:`read_restart <read_restart>` commands:
 
 :math:`\theta_0` is specified in degrees, but LAMMPS converts it to radians
 internally.
+
+----------
+
+.. include:: accel_styles.rst
 
 ----------
 

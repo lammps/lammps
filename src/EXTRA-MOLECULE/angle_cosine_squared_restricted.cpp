@@ -55,8 +55,7 @@ void AngleCosineSquaredRestricted::compute(int eflag, int vflag)
   int i1, i2, i3, n, type;
   double delx1, dely1, delz1, delx2, dely2, delz2;
   double eangle, f1[3], f3[3];
-  double dcostheta, tk;
-  double rsq1, rsq2, r1, r2, c, a, a11, a12, a22;
+  double tk, rsq1, rsq2, r1, r2, c, a, a11, a12, a22;
 
   eangle = 0.0;
   ev_init(eflag, vflag);
@@ -265,7 +264,8 @@ double AngleCosineSquaredRestricted::single(int type, int i1, int i2, int i3)
 
 /* ---------------------------------------------------------------------- */
 
-void AngleCosineSquaredRestricted::born_matrix(int type, int i1, int i2, int i3, double &du, double &du2)
+void AngleCosineSquaredRestricted::born_matrix(int type, int i1, int i2, int i3, double &du,
+                                               double &du2)
 {
   double **x = atom->x;
 
@@ -291,7 +291,7 @@ void AngleCosineSquaredRestricted::born_matrix(int type, int i1, int i2, int i3,
 
   du = 2 * k[type] * (c - c0) * (1.0 - c * c0) / (sq_sin * sq_sin);
 
-  double numerator = 2.0 * c0 * c * c * c - 3.0 * (c0 * c0 + 1) * c * c  + 6 * c0 * c - c0 * c0 - 1 ;
+  double numerator = 2.0 * c0 * c * c * c - 3.0 * (c0 * c0 + 1) * c * c + 6 * c0 * c - c0 * c0 - 1;
   double denominator = sq_sin * sq_sin * sq_sin;
 
   du2 = 2 * k[type] * numerator / denominator;

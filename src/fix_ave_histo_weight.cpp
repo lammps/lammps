@@ -113,7 +113,7 @@ void FixAveHistoWeight::end_of_step()
   double weight = 0.0;
   double *weights = nullptr;
   int stride = 0;
-  auto &val = values[1];
+  auto val = values[1];
   int j = val.argindex;
 
   // atom attributes

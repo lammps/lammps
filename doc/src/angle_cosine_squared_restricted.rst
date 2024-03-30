@@ -1,7 +1,7 @@
 .. index:: angle_style cosine/squared/restricted
 
 angle_style cosine/squared/restricted command
-==================================
+=============================================
 
 Syntax
 """"""

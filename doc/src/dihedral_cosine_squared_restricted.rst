@@ -1,7 +1,7 @@
 .. index:: dihedral_style cosine/squared/restricted
 
 dihedral_style cosine/squared/restricted command
-=====================================
+================================================
 
 
 Syntax

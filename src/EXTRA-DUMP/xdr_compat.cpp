@@ -107,27 +107,6 @@ static xdr_uint32_t xdr_ntohl(xdr_uint32_t x)
   }
 }
 
-
-/*
- * Free a data structure using XDR
- * Not a filter, but a convenient utility nonetheless
- */
-void xdr_free(xdrproc_t proc, char *objp)
-{
-  XDR x;
-
-  x.x_op = XDR_FREE;
-  (*proc)(&x, objp);
-}
-
-/*
- * XDR nothing
- */
-bool_t xdr_void(void)
-{
-  return TRUE;
-}
-
 /*
  * XDR integers
  */
@@ -153,169 +132,12 @@ bool_t xdr_int(XDR *xdrs, int *ip)
   return FALSE;
 }
 
-
-/*
- * XDR unsigned integers
- */
-bool_t xdr_u_int(XDR *xdrs, unsigned int *up)
-{
-  xdr_uint32_t l;
-
-  switch (xdrs->x_op)
-  {
-    case XDR_ENCODE:
-      l = (xdr_uint32_t)(*up);
-      return xdr_putuint32(xdrs, &l);
-
-    case XDR_DECODE:
-      if (!xdr_getuint32(xdrs, &l))
-            return FALSE;
-      *up = (unsigned int) l;
-      return TRUE;
-
-    case XDR_FREE:
-      return TRUE;
-  }
-  return FALSE;
-}
-
-
-
-
-/*
- * XDR short integers
- */
-bool_t
-xdr_short(XDR *xdrs, short *sp)
-{
-  xdr_int32_t l;
-
-  switch (xdrs->x_op)
-    {
-    case XDR_ENCODE:
-      l = (xdr_int32_t) *sp;
-      return xdr_putint32(xdrs, &l);
-
-    case XDR_DECODE:
-      if (!xdr_getint32(xdrs, &l))
-        {
-          return FALSE;
-        }
-      *sp = (short) l;
-      return TRUE;
-
-    case XDR_FREE:
-      return TRUE;
-    }
-  return FALSE;
-}
-
-
-/*
- * XDR unsigned short integers
- */
-bool_t
-xdr_u_short(XDR *xdrs, unsigned short *usp)
-{
-  xdr_uint32_t l;
-
-  switch (xdrs->x_op)
-    {
-    case XDR_ENCODE:
-      l = (xdr_uint32_t) *usp;
-      return xdr_putuint32(xdrs, &l);
-
-    case XDR_DECODE:
-      if (!xdr_getuint32(xdrs, &l))
-        {
-          return FALSE;
-        }
-          *usp = (unsigned short) l;
-      return TRUE;
-
-    case XDR_FREE:
-      return TRUE;
-    }
-  return FALSE;
-}
-
-
-/*
- * XDR a char
- */
-bool_t
-xdr_char(XDR *xdrs, char *cp)
-{
-  int i;
-
-  i = (*cp);
-  if (!xdr_int(xdrs, &i))
-    {
-      return FALSE;
-    }
-  *cp = i;
-  return TRUE;
-}
-
-/*
- * XDR an unsigned char
- */
-bool_t
-xdr_u_char(XDR *xdrs, unsigned char *cp)
-{
-  unsigned int u;
-
-  u = (*cp);
-  if (!xdr_u_int(xdrs, &u))
-    {
-      return FALSE;
-    }
-  *cp = u;
-  return TRUE;
-}
-
-/*
- * XDR booleans
- */
-bool_t
-xdr_bool(XDR *xdrs, int *bp)
-{
-#define XDR_FALSE        ((xdr_int32_t) 0)
-#define XDR_TRUE        ((xdr_int32_t) 1)
-
-  xdr_int32_t lb;
-
-  switch (xdrs->x_op)
-    {
-    case XDR_ENCODE:
-      lb = *bp ? XDR_TRUE : XDR_FALSE;
-      return xdr_putint32(xdrs, &lb);
-
-    case XDR_DECODE:
-      if (!xdr_getint32(xdrs, &lb))
-        {
-          return FALSE;
-        }
-      *bp = (lb == XDR_FALSE) ? FALSE : TRUE;
-      return TRUE;
-
-    case XDR_FREE:
-      return TRUE;
-    }
-  return FALSE;
-#undef XDR_FALSE
-#undef XDR_TRUE
-}
-
-
-
 /*
  * XDR opaque data
  * Allows the specification of a fixed size sequence of opaque bytes.
  * cp points to the opaque object and cnt gives the byte length.
  */
-bool_t
-xdr_opaque(XDR *xdrs, char *cp, unsigned int cnt)
+bool_t xdr_opaque(XDR *xdrs, char *cp, unsigned int cnt)
 {
   unsigned int rndup;
   static char crud[BYTES_PER_XDR_UNIT];
@@ -360,88 +182,9 @@ xdr_opaque(XDR *xdrs, char *cp, unsigned int cnt)
 }
 
 
-/*
- * XDR null terminated ASCII strings
- * xdr_string deals with "C strings" - arrays of bytes that are
- * terminated by a nullptr character.  The parameter cpp references a
- * pointer to storage; If the pointer is null, then the necessary
- * storage is allocated.  The last parameter is the max allowed length
- * of the string as specified by a protocol.
- */
-bool_t
-xdr_string(XDR *xdrs, char **cpp, unsigned int maxsize)
-{
-  char *sp = *cpp;        /* sp is the actual string pointer */
-  unsigned int size = 0;
-  unsigned int nodesize = 0;
-
-  /*
-   * first deal with the length since xdr strings are counted-strings
-   */
-  switch (xdrs->x_op)
-    {
-    case XDR_FREE:
-      if (sp == nullptr)
-        {
-          return TRUE;                /* already free */
-        }
-      /* fall through... */
-    case XDR_ENCODE:
-      if (sp == nullptr)
-            return FALSE;
-      size = strlen(sp);
-      break;
-    case XDR_DECODE:
-      break;
-    }
-
-  if (!xdr_u_int(xdrs, &size))
-    {
-      return FALSE;
-    }
-  if (size > maxsize)
-    {
-      return FALSE;
-    }
-  nodesize = size + 1;
-
-  /*
-   * now deal with the actual bytes
-   */
-  switch (xdrs->x_op)
-    {
-    case XDR_DECODE:
-      if (nodesize == 0)
-        {
-          return TRUE;
-        }
-      if (sp == nullptr)
-        *cpp = sp = (char *) malloc(nodesize);
-      if (sp == nullptr)
-        {
-          (void) fputs("xdr_string: out of memory\n", stderr);
-          return FALSE;
-        }
-      sp[size] = 0;
-      return xdr_opaque(xdrs, sp, size);
-
-    case XDR_ENCODE:
-      return xdr_opaque(xdrs, sp, size);
-
-    case XDR_FREE:
-      free(sp);
-      *cpp = nullptr;
-      return TRUE;
-    }
-  return FALSE;
-}
-
-
-
 /* Floating-point stuff */
 
-bool_t
-xdr_float(XDR *xdrs, float *fp)
+bool_t xdr_float(XDR *xdrs, float *fp)
 {
         xdr_int32_t tmp;
 
@@ -467,76 +210,6 @@ xdr_float(XDR *xdrs, float *fp)
         return FALSE;
 }
 
-
-bool_t
-xdr_double(XDR *xdrs, double *dp)
-{
-
-  /* Windows and some other systems dont define double-precision
-   * word order in the header files, so unfortunately we have
-   * to calculate it!
-   */
-  static int LSW=-1; /* Least significant fp word */
-  int *ip;
-  xdr_int32_t tmp[2];
-
-  if (LSW<0) {
-    double x=0.987654321; /* Just a number */
-
-    /* Possible representations in IEEE double precision:
-     * (S=small endian, B=big endian)
-     *
-     * Byte order, Word order, Hex
-     *     S           S       b8 56 0e 3c dd 9a ef 3f
-     *     B           S       3c 0e 56 b8 3f ef 9a dd
-     *     S           B       dd 9a ef 3f b8 56 0e 3c
-     *     B           B       3f ef 9a dd 3c 0e 56 b8
-     */
-
-    unsigned char ix = *((char *)&x);
-
-    if (ix==0xdd || ix==0x3f)
-      LSW=1;  /* Big endian word order */
-    else if (ix==0xb8 || ix==0x3c)
-      LSW=0;  /* Small endian word order */
-    else { /* Catch strange errors */
-      printf("Error when detecting floating-point word order.\n"
-             "Do you have a non-IEEE system?\n"
-             "If possible, use the XDR libraries provided with your system,\n"
-             "instead of the Gromacs fallback XDR source.\n");
-      exit(0);
-    }
-  }
-
-  switch (xdrs->x_op) {
-
-  case XDR_ENCODE:
-    ip = (int *)dp;
-    tmp[0] = ip[!LSW];
-    tmp[1] = ip[LSW];
-    return (xdr_putint32(xdrs, tmp) &&
-               xdr_putint32(xdrs, tmp+1));
-
-    break;
-
-  case XDR_DECODE:
-    ip = (int *)dp;
-    if (xdr_getint32(xdrs, tmp+!LSW) &&
-           xdr_getint32(xdrs, tmp+LSW)) {
-        ip[0] = tmp[0];
-        ip[1] = tmp[1];
-        return TRUE;
-    }
-
-    break;
-
-  case XDR_FREE:
-    return TRUE;
-  }
-  return FALSE;
-}
-
-
 /* Array routines */
 
 /*
@@ -549,8 +222,7 @@ xdr_double(XDR *xdrs, double *dp)
  * > elemsize: size of each element
  * > xdr_elem: routine to XDR each element
  */
-bool_t
-xdr_vector(XDR *xdrs, char *basep, unsigned int nelem,
+bool_t xdr_vector(XDR *xdrs, char *basep, unsigned int nelem,
             unsigned int elemsize, xdrproc_t xdr_elem)
 {
 #define LASTUNSIGNED        ((unsigned int)0-1)
@@ -572,30 +244,20 @@ xdr_vector(XDR *xdrs, char *basep, unsigned int nelem,
 
 static bool_t xdrstdio_getbytes(XDR *, char *, unsigned int);
 static bool_t xdrstdio_putbytes(XDR *, char *, unsigned int);
-static unsigned int xdrstdio_getpos(XDR *);
-static bool_t xdrstdio_setpos(XDR *, unsigned int);
-static xdr_int32_t *xdrstdio_inline(XDR *, int);
 static void xdrstdio_destroy(XDR *);
 static bool_t xdrstdio_getint32(XDR *, xdr_int32_t *);
 static bool_t xdrstdio_putint32(XDR *, xdr_int32_t *);
-static bool_t xdrstdio_getuint32(XDR *, xdr_uint32_t *);
-static bool_t xdrstdio_putuint32(XDR *, xdr_uint32_t *);
 
 /*
  * Ops vector for stdio type XDR
  */
 static const struct xdr_ops xdrstdio_ops =
 {
-  xdrstdio_getbytes,               /* deserialize counted bytes */
-  xdrstdio_putbytes,             /* serialize counted bytes */
-  xdrstdio_getpos,                /* get offset in the stream */
-  xdrstdio_setpos,                /* set offset in the stream */
-  xdrstdio_inline,                /* prime stream for inline macros */
-  xdrstdio_destroy,                /* destroy stream */
-  xdrstdio_getint32,        /* deserialize a int */
-  xdrstdio_putint32,        /* serialize a int */
-  xdrstdio_getuint32,        /* deserialize a int */
-  xdrstdio_putuint32                /* serialize a int */
+  xdrstdio_getbytes,            /* deserialize counted bytes */
+  xdrstdio_putbytes,            /* serialize counted bytes */
+  xdrstdio_destroy,             /* destroy stream */
+  xdrstdio_getint32,            /* deserialize a int */
+  xdrstdio_putint32,            /* serialize a int */
 };
 
 /*
@@ -639,31 +301,7 @@ static bool_t xdrstdio_putbytes(XDR *xdrs, char *addr, unsigned int len)
   return TRUE;
 }
 
-static unsigned int xdrstdio_getpos(XDR *xdrs)
-{
-  return (unsigned int) ftell((FILE *) xdrs->x_private);
-}
-
-static bool_t xdrstdio_setpos(XDR *xdrs, unsigned int pos)
-{
-  return fseek((FILE *) xdrs->x_private, (xdr_int32_t) pos, 0) < 0 ? FALSE : TRUE;
-}
-
-static xdr_int32_t *xdrstdio_inline(XDR * /*xdrs*/, int /*len*/)
-{
-  /*
-   * Must do some work to implement this: must ensure
-   * enough data in the underlying stdio buffer,
-   * that the buffer is aligned so that we can indirect through a
-   * long *, and stuff this pointer in xdrs->x_buf.  Doing
-   * a fread or fwrite to a scratch buffer would defeat
-   * most of the gains to be had here and require storage
-   * management on this buffer, so we don't do this.
-   */
-  return nullptr;
-}
-
-static bool_t xdrstdio_getint32(XDR *xdrs, xdr_int32_t *ip)
+  static bool_t xdrstdio_getint32(XDR *xdrs, xdr_int32_t *ip)
 {
   xdr_int32_t mycopy;
 
@@ -681,26 +319,6 @@ static bool_t xdrstdio_putint32(XDR *xdrs, xdr_int32_t *ip)
   if (fwrite((char *) ip, 4, 1, (FILE *) xdrs->x_private) != 1)
     return FALSE;
   return TRUE;
-}
-
-static bool_t xdrstdio_getuint32(XDR *xdrs, xdr_uint32_t *ip)
-{
-        xdr_uint32_t mycopy;
-
-        if (fread((char *) &mycopy, 4, 1, (FILE *) xdrs->x_private) != 1)
-                return FALSE;
-        *ip = xdr_ntohl (mycopy);
-        return TRUE;
-}
-
-static bool_t xdrstdio_putuint32(XDR *xdrs, xdr_uint32_t *ip)
-{
-        xdr_uint32_t mycopy = xdr_htonl (*ip);
-
-        ip = &mycopy;
-        if (fwrite((char *) ip, 4, 1, (FILE *) xdrs->x_private) != 1)
-                return FALSE;
-        return TRUE;
 }
 
 #ifdef __cplusplus

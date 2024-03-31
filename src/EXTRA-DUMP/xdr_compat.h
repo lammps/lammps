@@ -83,26 +83,16 @@ struct XDR {
 };
 
 struct xdr_ops {
+  /* get some bytes from XDR stream */
   bool_t (*x_getbytes)(XDR *__xdrs, char *__addr, unsigned int __len);
-  /* get some bytes from " */
+  /* put some bytes to XDR stream */
   bool_t (*x_putbytes)(XDR *__xdrs, char *__addr, unsigned int __len);
-  /* put some bytes to " */
-  unsigned int (*x_getpostn)(XDR *__xdrs);
-  /* returns bytes off from beginning */
-  bool_t (*x_setpostn)(XDR *__xdrs, unsigned int __pos);
-  /* lets you reposition the stream */
-  xdr_int32_t *(*x_inline)(XDR *__xdrs, int __len);
-  /* buf quick ptr to buffered data */
-  void (*x_destroy)(XDR *__xdrs);
   /* free privates of this xdr_stream */
+  void (*x_destroy)(XDR *__xdrs);
+  /* get a int from XDR stream */
   bool_t (*x_getint32)(XDR *__xdrs, xdr_int32_t *__ip);
-  /* get a int from underlying stream */
+  /* put a int to XDR stream */
   bool_t (*x_putint32)(XDR *__xdrs, xdr_int32_t *__ip);
-  /* put a int to " */
-  bool_t (*x_getuint32)(XDR *__xdrs, xdr_uint32_t *__ip);
-  /* get a unsigned int from underlying stream */
-  bool_t (*x_putuint32)(XDR *__xdrs, xdr_uint32_t *__ip);
-  /* put a int to " */
 };
 
 /*
@@ -128,45 +118,20 @@ typedef bool_t (*xdrproc_t)(XDR *, void *, ...);
  */
 
 #define xdr_getint32(xdrs, int32p) (*(xdrs)->x_ops->x_getint32)(xdrs, int32p)
-
 #define xdr_putint32(xdrs, int32p) (*(xdrs)->x_ops->x_putint32)(xdrs, int32p)
-
-#define xdr_getuint32(xdrs, uint32p) (*(xdrs)->x_ops->x_getuint32)(xdrs, uint32p)
-
-#define xdr_putuint32(xdrs, uint32p) (*(xdrs)->x_ops->x_putuint32)(xdrs, uint32p)
-
 #define xdr_getbytes(xdrs, addr, len) (*(xdrs)->x_ops->x_getbytes)(xdrs, addr, len)
-
 #define xdr_putbytes(xdrs, addr, len) (*(xdrs)->x_ops->x_putbytes)(xdrs, addr, len)
-
-#define xdr_getpos(xdrs) (*(xdrs)->x_ops->x_getpostn)(xdrs)
-
-#define xdr_setpos(xdrs, pos) (*(xdrs)->x_ops->x_setpostn)(xdrs, pos)
-
-#define xdr_inline(xdrs, len) (*(xdrs)->x_ops->x_inline)(xdrs, len)
-
 #define xdr_destroy(xdrs)                                            \
   do {                                                               \
     if ((xdrs)->x_ops->x_destroy) (*(xdrs)->x_ops->x_destroy)(xdrs); \
   } while (0)
 
 extern bool_t xdr_int(XDR *__xdrs, int *__ip);
-extern bool_t xdr_u_int(XDR *__xdrs, unsigned int *__ip);
-extern bool_t xdr_short(XDR *__xdrs, short *__ip);
-extern bool_t xdr_u_short(XDR *__xdrs, unsigned short *__ip);
-extern bool_t xdr_bool(XDR *__xdrs, int *__bp);
 extern bool_t xdr_opaque(XDR *__xdrs, char *__cp, unsigned int __cnt);
-extern bool_t xdr_string(XDR *__xdrs, char **__cpp, unsigned int __maxsize);
-extern bool_t xdr_char(XDR *__xdrs, char *__cp);
-extern bool_t xdr_u_char(XDR *__xdrs, unsigned char *__cp);
 extern bool_t xdr_vector(XDR *__xdrs, char *__basep, unsigned int __nelem, unsigned int __elemsize,
                          xdrproc_t __xdr_elem);
 extern bool_t xdr_float(XDR *__xdrs, float *__fp);
-extern bool_t xdr_double(XDR *__xdrs, double *__dp);
 extern void xdrstdio_create(XDR *__xdrs, FILE *__file, enum xdr_op __xop);
-
-/* free memory buffers for xdr */
-extern void xdr_free(xdrproc_t __proc, char *__objp);
 
 #ifdef __cplusplus
 }

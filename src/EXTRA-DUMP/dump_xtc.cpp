@@ -1053,7 +1053,7 @@ int xdr3dfcoord(XDR *xdrs, float *fp, int *size, float *precision)
     }
     if (buf[1] != 0) buf[0]++;
     xdr_int(xdrs, &(buf[0])); /* buf[0] holds the length in bytes */
-    return errval * (xdr_opaque(xdrs, (caddr_t)&(buf[3]), (u_int)buf[0]));
+    return errval * (xdr_opaque(xdrs, (char *)&(buf[3]), (unsigned int)buf[0]));
   } else {
 
     /* xdrs is open for reading */
@@ -1134,7 +1134,7 @@ int xdr3dfcoord(XDR *xdrs, float *fp, int *size, float *precision)
 
     if (xdr_int(xdrs, &(buf[0])) == 0)
       return 0;
-    if (xdr_opaque(xdrs, (caddr_t)&(buf[3]), (u_int)buf[0]) == 0)
+    if (xdr_opaque(xdrs, (char *)&(buf[3]), (unsigned int)buf[0]) == 0)
       return 0;
     buf[0] = buf[1] = buf[2] = 0;
 

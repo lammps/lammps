@@ -49,13 +49,6 @@
 extern "C" {
 #endif
 
-/* compatibility typedefs */
-#if defined(_WIN32) || defined(__APPLE__) || defined(__FreeBSD__) || defined(__DragonFly__) || \
-  defined(__OpenBSD__) || defined(__NetBSD__) || (defined(__linux__) && !defined(__GLIBC_MINOR__))
-typedef char *caddr_t;
-typedef unsigned int u_int;
-#endif
-
 #ifndef FALSE
 #define FALSE (0)
 #endif

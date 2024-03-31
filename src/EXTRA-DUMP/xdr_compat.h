@@ -16,7 +16,7 @@ extern "C" {
  * The XDR sources are avaiable under the BSD 3-clause license for example in
  * the MIT Kerberos 5 distribution with the following copyright notice and license.
  *
- * @(#)xdr.h	2.2 88/07/29 4.0 RPCSRC
+ * @(#)xdr.h    2.2 88/07/29 4.0 RPCSRC
  *
  * Copyright (c) 2010, Oracle America, Inc.
  *

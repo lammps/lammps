@@ -1,5 +1,5 @@
-// clang-format off
 #include "xdr_compat.h"
+
 #include <cstdlib>
 #include <cstring>
 
@@ -67,19 +67,18 @@ static xdr_uint32_t xdr_swapbytes(xdr_uint32_t x)
 {
   xdr_uint32_t y;
   int i;
-  char *px=(char *)&x;
-  char *py=(char *)&y;
+  char *px = (char *) &x;
+  char *py = (char *) &y;
 
-  for (i=0;i<4;i++)
-    py[i]=px[3-i];
+  for (i = 0; i < 4; i++) py[i] = px[3 - i];
 
   return y;
 }
 
 static xdr_uint32_t xdr_htonl(xdr_uint32_t x)
 {
-  short s=0x0F00;
-  if (*((char *)&s)==(char)0x0F) {
+  short s = 0x0F00;
+  if (*((char *) &s) == (char) 0x0F) {
     /* bigendian, do nothing */
     return x;
   } else {
@@ -90,8 +89,8 @@ static xdr_uint32_t xdr_htonl(xdr_uint32_t x)
 
 static xdr_uint32_t xdr_ntohl(xdr_uint32_t x)
 {
-  short s=0x0F00;
-  if (*((char *)&s)==(char)0x0F) {
+  short s = 0x0F00;
+  if (*((char *) &s) == (char) 0x0F) {
     /* bigendian, do nothing */
     return x;
   } else {
@@ -107,15 +106,13 @@ bool_t xdr_int(XDR *xdrs, int *ip)
 {
   xdr_int32_t l;
 
-  switch (xdrs->x_op)
-  {
+  switch (xdrs->x_op) {
     case XDR_ENCODE:
-      l = (xdr_int32_t)(*ip);
+      l = (xdr_int32_t) (*ip);
       return xdr_putint32(xdrs, &l);
 
     case XDR_DECODE:
-      if (!xdr_getint32(xdrs, &l))
-            return FALSE;
+      if (!xdr_getint32(xdrs, &l)) return FALSE;
       *ip = (int) l;
       return TRUE;
 
@@ -138,69 +135,57 @@ bool_t xdr_opaque(XDR *xdrs, char *cp, unsigned int cnt)
   /*
    * if no data we are done
    */
-  if (cnt == 0)
-    return TRUE;
+  if (cnt == 0) return TRUE;
 
   /*
    * round byte count to full xdr units
    */
   rndup = cnt % BYTES_PER_XDR_UNIT;
-  if (rndup > 0)
-    rndup = BYTES_PER_XDR_UNIT - rndup;
+  if (rndup > 0) rndup = BYTES_PER_XDR_UNIT - rndup;
 
-  switch (xdrs->x_op)
-    {
+  switch (xdrs->x_op) {
     case XDR_DECODE:
-      if (!xdr_getbytes(xdrs, cp, cnt))
-        {
-          return FALSE;
-        }
-      if (rndup == 0)
-        return TRUE;
-      return xdr_getbytes(xdrs, (char *)crud, rndup);
+      if (!xdr_getbytes(xdrs, cp, cnt)) { return FALSE; }
+      if (rndup == 0) return TRUE;
+      return xdr_getbytes(xdrs, (char *) crud, rndup);
 
     case XDR_ENCODE:
-      if (!xdr_putbytes(xdrs, cp, cnt))
-        {
-          return FALSE;
-        }
-      if (rndup == 0)
-        return TRUE;
+      if (!xdr_putbytes(xdrs, cp, cnt)) { return FALSE; }
+      if (rndup == 0) return TRUE;
       return xdr_putbytes(xdrs, xdr_zero, rndup);
 
     case XDR_FREE:
       return TRUE;
-    }
+  }
   return FALSE;
 }
-
 
 /* Floating-point stuff */
 
 bool_t xdr_float(XDR *xdrs, float *fp)
 {
-        xdr_int32_t tmp;
+  xdr_int32_t tmp;
 
-        switch (xdrs->x_op) {
+  switch (xdrs->x_op) {
 
-        case XDR_ENCODE:
-                tmp = *(xdr_int32_t *)fp;
-               return (xdr_putint32(xdrs, &tmp));
+    case XDR_ENCODE:
+      tmp = *(xdr_int32_t *) fp;
+      return (xdr_putint32(xdrs, &tmp));
 
-                break;
+      break;
 
-        case XDR_DECODE:
-                        if (xdr_getint32(xdrs, &tmp)) {
-                                *(xdr_int32_t *)fp = tmp;
-                                return TRUE;
-                        }
+    case XDR_DECODE:
+      if (xdr_getint32(xdrs, &tmp)) {
+        *(xdr_int32_t *) fp = tmp;
+        return TRUE;
+      }
 
-                break;
+      break;
 
-        case XDR_FREE:
-                return TRUE;
-        }
-        return FALSE;
+    case XDR_FREE:
+      return TRUE;
+  }
+  return FALSE;
 }
 
 /* Array routines */
@@ -215,22 +200,18 @@ bool_t xdr_float(XDR *xdrs, float *fp)
  * > elemsize: size of each element
  * > xdr_elem: routine to XDR each element
  */
-bool_t xdr_vector(XDR *xdrs, char *basep, unsigned int nelem,
-            unsigned int elemsize, xdrproc_t xdr_elem)
+bool_t xdr_vector(XDR *xdrs, char *basep, unsigned int nelem, unsigned int elemsize,
+                  xdrproc_t xdr_elem)
 {
-#define LASTUNSIGNED        ((unsigned int)0-1)
+#define LASTUNSIGNED ((unsigned int) 0 - 1)
   unsigned int i;
   char *elptr;
 
   elptr = basep;
-  for (i = 0; i < nelem; i++)
-    {
-      if (!(*xdr_elem)(xdrs, elptr, LASTUNSIGNED))
-        {
-          return FALSE;
-        }
-      elptr += elemsize;
-    }
+  for (i = 0; i < nelem; i++) {
+    if (!(*xdr_elem)(xdrs, elptr, LASTUNSIGNED)) { return FALSE; }
+    elptr += elemsize;
+  }
   return TRUE;
 #undef LASTUNSIGNED
 }
@@ -244,13 +225,12 @@ static bool_t xdrstdio_putint32(XDR *, xdr_int32_t *);
 /*
  * Ops vector for stdio type XDR
  */
-static const struct xdr_ops xdrstdio_ops =
-{
-  xdrstdio_getbytes,            /* deserialize counted bytes */
-  xdrstdio_putbytes,            /* serialize counted bytes */
-  xdrstdio_destroy,             /* destroy stream */
-  xdrstdio_getint32,            /* deserialize a int */
-  xdrstdio_putint32,            /* serialize a int */
+static const struct xdr_ops xdrstdio_ops = {
+    xdrstdio_getbytes, /* deserialize counted bytes */
+    xdrstdio_putbytes, /* serialize counted bytes */
+    xdrstdio_destroy,  /* destroy stream */
+    xdrstdio_getint32, /* deserialize a int */
+    xdrstdio_putint32, /* serialize a int */
 };
 
 /*
@@ -279,27 +259,23 @@ static void xdrstdio_destroy(XDR *xdrs)
   /* xx should we close the file ?? */
 }
 
-
 static bool_t xdrstdio_getbytes(XDR *xdrs, char *addr, unsigned int len)
 {
-  if ((len != 0) && (fread(addr, (int) len, 1, (FILE *) xdrs->x_private) != 1))
-    return FALSE;
+  if ((len != 0) && (fread(addr, (int) len, 1, (FILE *) xdrs->x_private) != 1)) return FALSE;
   return TRUE;
 }
 
 static bool_t xdrstdio_putbytes(XDR *xdrs, char *addr, unsigned int len)
 {
-  if ((len != 0) && (fwrite(addr, (int) len, 1, (FILE *) xdrs->x_private) != 1))
-    return FALSE;
+  if ((len != 0) && (fwrite(addr, (int) len, 1, (FILE *) xdrs->x_private) != 1)) return FALSE;
   return TRUE;
 }
 
-  static bool_t xdrstdio_getint32(XDR *xdrs, xdr_int32_t *ip)
+static bool_t xdrstdio_getint32(XDR *xdrs, xdr_int32_t *ip)
 {
   xdr_int32_t mycopy;
 
-  if (fread((char *) &mycopy, 4, 1, (FILE *) xdrs->x_private) != 1)
-    return FALSE;
+  if (fread((char *) &mycopy, 4, 1, (FILE *) xdrs->x_private) != 1) return FALSE;
   *ip = xdr_ntohl(mycopy);
   return TRUE;
 }
@@ -309,8 +285,7 @@ static bool_t xdrstdio_putint32(XDR *xdrs, xdr_int32_t *ip)
   xdr_int32_t mycopy = xdr_htonl(*ip);
 
   ip = &mycopy;
-  if (fwrite((char *) ip, 4, 1, (FILE *) xdrs->x_private) != 1)
-    return FALSE;
+  if (fwrite((char *) ip, 4, 1, (FILE *) xdrs->x_private) != 1) return FALSE;
   return TRUE;
 }
 

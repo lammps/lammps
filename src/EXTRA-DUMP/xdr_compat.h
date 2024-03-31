@@ -1,7 +1,7 @@
 #ifndef LMP_XDR_COMPAT_H
 #define LMP_XDR_COMPAT_H
 
-#include <climits>
+#include <cstdint>
 #include <cstdio>
 
 #ifdef __cplusplus
@@ -9,46 +9,52 @@ extern "C" {
 #endif
 
 /*
- * This file is needed for systems, that do not provide XDR support
- * in their system libraries. It was written for windows, but will
- * most probably work on other platforms too. better make sure you
- * test that the xtc files produced are ok before using it.
+ * This file contains the definitions for Sun External Data Representation (XDR).
+ * They have been adapted specifically for the use with the LAMMPS xtc dump style
+ * to produce compressed trajectory files in the Gromacs XTC format.
  *
- * It is also needed on BG/L, BG/P and Cray XT3/XT4/XT5 as we don't
- * have XDR support in the lightweight kernel runtimes either.
+ * The XDR sources are avaiable under the BSD 3-clause license for example in
+ * the MIT Kerberos 5 distribution with the following copyright notice and license.
  *
- * This file contains the definitions for Sun External Data
- * Representation (XDR) headers and routines.
+ * @(#)xdr.h	2.2 88/07/29 4.0 RPCSRC
  *
- * Although the rest of LAMPPS is GPL, you can copy and use the XDR
- * routines in any way you want as long as you obey Sun's license:
- * Sun RPC is a product of Sun Microsystems, Inc. and is provided for
- * unrestricted use provided that this legend is included on all tape
- * media and as a part of the software program in whole or part.  Users
- * may copy or modify Sun RPC without charge, but are not authorized
- * to license or distribute it to anyone else except as part of a product or
- * program developed by the user.
+ * Copyright (c) 2010, Oracle America, Inc.
  *
- * SUN RPC IS PROVIDED AS IS WITH NO WARRANTIES OF ANY KIND INCLUDING THE
- * WARRANTIES OF DESIGN, MERCHANTIBILITY AND FITNESS FOR A PARTICULAR
- * PURPOSE, OR ARISING FROM A COURSE OF DEALING, USAGE OR TRADE PRACTICE.
+ * All rights reserved.
  *
- * Sun RPC is provided with no support and without any obligation on the
- * part of Sun Microsystems, Inc. to assist in its use, correction,
- * modification or enhancement.
+ * Redistribution and use in source and binary forms, with or without
+ * modification, are permitted provided that the following conditions are met:
  *
- * SUN MICROSYSTEMS, INC. SHALL HAVE NO LIABILITY WITH RESPECT TO THE
- * INFRINGEMENT OF COPYRIGHTS, TRADE SECRETS OR ANY PATENTS BY SUN RPC
- * OR ANY PART THEREOF.
+ *     * Redistributions of source code must retain the above copyright
+ *       notice, this list of conditions and the following disclaimer.
  *
- * In no event will Sun Microsystems, Inc. be liable for any lost revenue
- * or profits or other special, indirect and consequential damages, even if
- * Sun has been advised of the possibility of such damages.
+ *     * Redistributions in binary form must reproduce the above copyright
+ *       notice, this list of conditions and the following disclaimer in
+ *       the documentation and/or other materials provided with the
+ *       distribution.
  *
- * Sun Microsystems, Inc.
- * 2550 Garcia Avenue
- * Mountain View, California  94043
+ *     * Neither the name of the "Oracle America, Inc." nor the names of
+ *       its contributors may be used to endorse or promote products
+ *       derived from this software without specific prior written permission.
+ *
+ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS
+ * IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED
+ * TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A
+ * PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT
+ * HOLDER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,
+ * SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED
+ * TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR
+ * PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF
+ * LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING
+ * NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
+ * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+
+/* compatibility typedefs */
+typedef int bool_t;
+
+typedef int32_t xdr_int32_t;
+typedef uint32_t xdr_uint32_t;
 
 /*
  * Xdr operations.  XDR_ENCODE causes the type to be encoded into the
@@ -57,43 +63,7 @@ extern "C" {
  * XDR_DECODE request.
  */
 
-typedef int bool_t;
-
-#if defined(_WIN32) || defined(__APPLE__) || defined(__FreeBSD__) || defined(__DragonFly__) || \
-    defined(__OpenBSD__) || defined(__NetBSD__) || (defined(__linux__) && !defined(__GLIBC_MINOR__))
-typedef char *caddr_t;
-typedef unsigned int u_int;
-#endif
-
-/*
- * Aninteger type that is 32 bits wide. Check if int,
- * long or short is 32 bits and die if none of them is :-)
- */
-#if (INT_MAX == 2147483647)
-typedef int xdr_int32_t;
-typedef unsigned int xdr_uint32_t;
-#elif (LONG_MAX == 2147483647L)
-typedef long xdr_int32_t;
-typedef unsigned long xdr_uint32_t;
-#elif (SHRT_MAX == 2147483647)
-typedef short xdr_int32_t;
-typedef unsigned short xdr_uint32_t;
-#else
-#error ERROR: No 32 bit wide integer type found!
-#endif
-
 enum xdr_op { XDR_ENCODE = 0, XDR_DECODE = 1, XDR_FREE = 2 };
-
-#ifndef FALSE
-#define FALSE (0)
-#endif
-#ifndef TRUE
-#define TRUE (1)
-#endif
-
-#define BYTES_PER_XDR_UNIT (4)
-/* Macro to round up to units of 4. */
-#define XDR_RNDUP(x) (((x) + BYTES_PER_XDR_UNIT - 1) & ~(BYTES_PER_XDR_UNIT - 1))
 
 /*
  * The XDR handle.

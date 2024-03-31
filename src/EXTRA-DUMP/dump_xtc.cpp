@@ -14,7 +14,7 @@
 
 /* ----------------------------------------------------------------------
    Contributing authors: Naveen Michaud-Agrawal (Johns Hopkins U)
-                         open-source XDR routines from
+                         Open Source XDR based I/O routines from
                            Frans van Hoesel (https://www.rug.nl/staff/f.h.j.van.hoesel/)
                            are included in this file
                          Axel Kohlmeyer (Temple U)
@@ -43,8 +43,8 @@
 
 using namespace LAMMPS_NS;
 
-#define EPS 1e-5
-#define XTC_MAGIC 1995
+static constexpr double EPS = 1.0e-5;
+static constexpr int XTC_MAGIC = 1995;
 
 #define MYMIN(a,b) ((a) < (b) ? (a) : (b))
 #define MYMAX(a,b) ((a) > (b) ? (a) : (b))

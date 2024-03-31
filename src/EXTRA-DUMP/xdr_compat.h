@@ -111,10 +111,7 @@ typedef bool_t (*xdrproc_t)(XDR *, void *, ...);
  *
  * XDR          *xdrs;
  * xdr_int32_t  *int32p;
- * long         *longp;
- * char         *addr;
  * unsigned int  len;
- * unsigned int  pos;
  */
 
 #define xdr_getint32(xdrs, int32p) (*(xdrs)->x_ops->x_getint32)(xdrs, int32p)

@@ -27,12 +27,12 @@ PairStyle(uf3,PairUF3);
 #ifndef LMP_PAIR_UF3_H
 #define LMP_PAIR_UF3_H
 
-#include "uf3_pair_bspline.h"
-#include "uf3_triplet_bspline.h"
+//#include "uf3_pair_bspline.h"
+//#include "uf3_triplet_bspline.h"
 
 #include "pair.h"
 
-#include <unordered_map>
+//#include <unordered_map>
 namespace LAMMPS_NS {
 
 class PairUF3 : public Pair {
@@ -55,17 +55,27 @@ class PairUF3 : public Pair {
   void uf3_read_pot_file(int i, int j, int k, char *potf_name);
   int nbody_flag, n2body_pot_files, n3body_pot_files, tot_pot_files;
   int bsplines_created;
-  int coeff_matrix_dim1, coeff_matrix_dim2, coeff_matrix_dim3, coeff_matrix_elements_len;
+  //int coeff_matrix_dim1, coeff_matrix_dim2, coeff_matrix_dim3, coeff_matrix_elements_len;
   bool pot_3b;
   int ***setflag_3b, **knot_spacing_type_2b, ***knot_spacing_type_3b;
   double **cut, ***cut_3b, **cut_3b_list, ****min_cut_3b;
   virtual void allocate();
   void create_bsplines();
-  std::vector<std::vector<std::vector<double>>> n2b_knot, n2b_coeff;
-  std::vector<std::vector<std::vector<std::vector<std::vector<double>>>>> n3b_knot_matrix;
-  std::unordered_map<std::string, std::vector<std::vector<std::vector<double>>>> n3b_coeff_matrix;
-  std::vector<std::vector<uf3_pair_bspline>> UFBS2b;
-  std::vector<std::vector<std::vector<uf3_triplet_bspline>>> UFBS3b;
+  struct UF3Impl *uf3_impl; //PIMPLE (pointer-to-implementation)
+  UF3Impl *get_UF3Impl();
+
+  //Accessor function called by pair_uf3_kokkos.cpp
+  //Will probably be removed once std::vector are converted to arrays
+  std::vector<std::vector<std::vector<double>>>& get_n2b_knot();
+  std::vector<std::vector<std::vector<double>>>& get_n2b_coeff();
+  std::vector<std::vector<std::vector<std::vector<std::vector<double>>>>>& get_n3b_knot_matrix();
+  std::vector<std::vector<std::vector<double>>>& get_n3b_coeff_matrix_key(std::string key);
+  double get_knot_spacing_2b(int i, int j);
+  double get_knot_spacing_3b_ij(int i, int j, int k);
+  double get_knot_spacing_3b_ik(int i, int j, int k);
+  double get_knot_spacing_3b_jk(int i, int j, int k);
+  //std::vector<std::vector<uf3_pair_bspline>> UFBS2b;
+  //std::vector<std::vector<std::vector<uf3_triplet_bspline>>> UFBS3b;
   int *neighshort, maxshort;    // short neighbor list array for 3body interaction
 };
 

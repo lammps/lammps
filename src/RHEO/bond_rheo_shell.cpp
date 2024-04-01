@@ -20,6 +20,7 @@
 
 #include "atom.h"
 #include "comm.h"
+#include "compute_rheo_surface.h"
 #include "domain.h"
 #include "error.h"
 #include "fix_bond_history.h"
@@ -42,7 +43,7 @@ using namespace RHEO_NS;
 /* ---------------------------------------------------------------------- */
 
 BondRHEOShell::BondRHEOShell(LAMMPS *_lmp) :
-    BondBPM(_lmp), k(nullptr), ecrit(nullptr), gamma(nullptr)
+    BondBPM(_lmp), compute_surface(nullptr), k(nullptr), ecrit(nullptr), gamma(nullptr)
 {
   partial_flag = 1;
   comm_reverse = 1;
@@ -279,7 +280,7 @@ void BondRHEOShell::compute(int eflag, int vflag)
   // Communicate changes in nbond
   if (newton_bond) comm->reverse_comm(this);
 
-  for(i = 0; i < nlocal; i++) {
+  for(int i = 0; i < nlocal; i++) {
     nbond[i] += dbond[i];
 
     // If it has bonds, no shifting
@@ -340,6 +341,18 @@ void BondRHEOShell::init_style()
 {
   if (comm->ghost_velocity == 0)
     error->all(FLERR, "Bond rheo/shell requires ghost atoms store velocity");
+
+  auto fixes = modify->get_fix_by_style("^rheo$");
+  if (fixes.size() == 0) error->all(FLERR, "Need to define fix rheo to use bond rheo/shell");
+  class FixRHEO *fix_rheo = dynamic_cast<FixRHEO *>(fixes[0]);
+
+  if (!fix_rheo->surface_flag) error->all(FLERR,
+      "Bond rheo/shell requires surface calculation in fix rheo");
+  compute_surface = fix_rheo->compute_surface;
+
+  if (fix_rheo->oxidation_fix_defined != 1)
+    error->all(FLERR, "Need to define fix rheo/oxdiation to use bond rheo/shell");
+  // check consistency in values (copy?), swap conditions to rsurf
 
   if (!id_fix_bond_history) {
     id_fix_bond_history = utils::strdup("HISTORY_RHEO_SHELL");

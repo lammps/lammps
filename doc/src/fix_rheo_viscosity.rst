@@ -8,22 +8,18 @@ Syntax
 
 .. parsed-literal::
 
-   fix ID group-ID rheo/viscosity types style args ...
+   fix ID group-ID rheo/viscosity type1 pstyle1 args1 ... typeN pstyleN argsN
 
 * ID, group-ID are documented in :doc:`fix <fix>` command
 * rheo/viscosity = style name of this fix command
+* one or more types and viscosity styles must be appended
 * types = lists of types (see below)
-* style = *constant* or *power*
+* vstyle = *constant*
 
   .. parsed-literal::
 
-       *constant* args = viscosity (mass/(length*time))
-       *power* args = *eta* *gd0* *K* *npow* *tau0*
-         *eta* = (units)
-         *gd0* = (units)
-         *K* = (units)
-         *npow* = (units)
-         *tau0* = (units)
+       *constant* args = *eta*
+         *eta* = viscosity
 
 Examples
 """"""""
@@ -31,20 +27,27 @@ Examples
 .. code-block:: LAMMPS
 
    fix 1 all rheo/viscosity * constant 1.0
-   fix 1 all rheo/viscosity 1 constant 1.0 2 power 0.1 1e-2 0.5 0.01
+   fix 1 all rheo/viscosity 1 constant 1.0 2 constant 2.0
 
 Description
 """""""""""
 
-This fix...
+This fix defines a viscosity for RHEO particles. One can define different
+viscosities for different atom types, but a viscosity must be specified for
+every atom type.
 
-Multiple instances of this fix may be defined to apply different
-properties to different groups. However, the union of fix groups
-across all instances of fix rheo/viscosity must cover all atoms.
-If there are multiple instances of this fix, any intersection
-between fix groups will cause the viscosity for the affected atoms
-to be calculated multiple times. Any such affected atoms will enabled
-up with a viscosity calculated by the latest defined fix.
+One first defines the atom *types*. A wild-card asterisk can be used in place
+of or in conjunction with the *types* argument to set the coefficients for
+multiple pairs of atom types.  This takes the form "\*" or "\*n" or "m\*"
+or "m\*n".  If :math:`N` is the number of atom types, then an asterisk with
+no numeric values means all types from 1 to :math:`N`.  A leading asterisk
+means all types from 1 to n (inclusive).  A trailing asterisk means all types
+from m to :math:`N` (inclusive).  A middle asterisk means all types from m to n
+(inclusive).
+
+The *types* definition is followed by the viscosity style, *vstyle*. Currently,
+the only option is *constant*. Style *constant* simply applies a constant value
+of the viscosity *eta* to each particle of the assigned type.
 
 Restart, fix_modify, output, run start/stop, minimize info
 """""""""""""""""""""""""""""""""""""""""""""""""""""""""""
@@ -60,7 +63,8 @@ Restrictions
 
 This fix must be used with an atom style that includes viscosity
 such as atom_style rheo or rheo/thermal. This fix must be used in
-conjuction with :doc:`fix rheo <fix_rheo>`.
+conjuction with :doc:`fix rheo <fix_rheo>`. The fix group must be
+set to all. Only one instance of fix rheo/viscosity can be defined.
 
 This fix is part of the RHEO package.  It is only enabled if
 LAMMPS was built with that package.  See the :doc:`Build package <Build_package>` page for more info.
@@ -69,8 +73,6 @@ Related commands
 """"""""""""""""
 
 :doc:`fix rheo <fix_rheo>`,
-:doc:`fix rheo/pressure <fix_rheo_pressure>`,
-:doc:`fix rheo/thermal <fix_rheo_thermal>`,
 :doc:`pair rheo <pair_rheo>`,
 :doc:`compute rheo/property/atom <compute_rheo_property_atom>`
 

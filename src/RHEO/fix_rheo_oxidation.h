@@ -36,14 +36,15 @@ class FixRHEOOxidation : public Fix {
   void setup_pre_force(int) override;
   void pre_force(int) override;
   void post_integrate() override;
+  int *nbond;
 
  private:
-  int btype;
-  double cut, cutsq;
+  int btype, index_nb;
+  double rsurf, cut, cutsq;
   class NeighList *list;
 
+  class ComputeRHEOSurface *compute_surface;
   class FixRHEO *fix_rheo;
-  //class FixBondHistory *fix_bond_history;
 };
 
 }    // namespace LAMMPS_NS

@@ -51,6 +51,7 @@ class FixRHEO : public Fix {
   int shift_flag;
   int interface_flag;
   int surface_flag;
+  int oxidation_flag;
 
   int viscosity_fix_defined;
   int pressure_fix_defined;

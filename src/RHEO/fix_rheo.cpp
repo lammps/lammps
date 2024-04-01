@@ -48,12 +48,14 @@ FixRHEO::FixRHEO(LAMMPS *lmp, int narg, char **arg) :
   viscosity_fix_defined = 0;
   pressure_fix_defined = 0;
   thermal_fix_defined = 0;
+  oxidation_fix_defined = 0;
 
   thermal_flag = 0;
   rhosum_flag = 0;
   shift_flag = 0;
   interface_flag = 0;
   surface_flag = 0;
+  oxidation_flag = 0;
 
   int i;
   int n = atom->ntypes;
@@ -252,6 +254,7 @@ void FixRHEO::setup(int /*vflag*/)
   thermal_fix_defined = 0;
   viscosity_fix_defined = 0;
   pressure_fix_defined = 0;
+  oxidation_fix_defined = 0;
 
   // Check fixes cover all atoms (may still fail if atoms are created)
   // FixRHEOPressure currently requires group all

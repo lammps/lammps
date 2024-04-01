@@ -29,6 +29,7 @@
 #include "domain.h"
 #include "error.h"
 #include "fix_rheo.h"
+#include "fix_rheo_oxidation.h"
 #include "fix_rheo_pressure.h"
 #include "fix_rheo_thermal.h"
 #include "memory.h"
@@ -176,6 +177,11 @@ void ComputeRHEOPropertyAtom::init()
   if (pressure_flag) {
     fixes = modify->get_fix_by_style("rheo/pressure");
     fix_pressure = dynamic_cast<FixRHEOPressure *>(fixes[0]);
+  }
+
+  if (shell_flag) {
+    fixes = modify->get_fix_by_style("rheo/oxidation");
+    fix_oxidation = dynamic_cast<FixRHEOOxidation *>(fixes[0]);
   }
 }
 
@@ -381,6 +387,21 @@ void ComputeRHEOPropertyAtom::pack_pressure(int n)
 
 /* ---------------------------------------------------------------------- */
 
+void ComputeRHEOPropertyAtom::pack_nbond_shell(int n)
+{
+  int *nbond = fix_oxidation->nbond;
+  int *mask = atom->mask;
+  int nlocal = atom->nlocal;
+
+  for (int i = 0; i < nlocal; i++) {
+    if (mask[i] & groupbit) buf[n] = nbond[i];
+    else buf[n] = 0.0;
+    n += nvalues;
+  }
+}
+
+/* ---------------------------------------------------------------------- */
+
 void ComputeRHEOPropertyAtom::pack_shift_v(int n)
 {
   double **vshift = compute_vshift->vshift;
@@ -415,7 +436,7 @@ void ComputeRHEOPropertyAtom::pack_gradv(int n)
 
 void ComputeRHEOPropertyAtom::pack_atom_style(int n)
 {
-  atom->avec->pack_property_atom(avec_index[n],&buf[n],nvalues,groupbit);
+  atom->avec->pack_property_atom(avec_index[n], &buf[n], nvalues, groupbit);
 }
 
 /* ---------------------------------------------------------------------- */

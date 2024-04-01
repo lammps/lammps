@@ -20,6 +20,7 @@
 
 #include "atom.h"
 #include "atom_vec.h"
+#include "compute_rheo_surface.h"
 #include "error.h"
 #include "fix_rheo.h"
 #include "force.h"
@@ -36,15 +37,18 @@ enum {NONE, CONSTANT};
 /* ---------------------------------------------------------------------- */
 
 FixRHEOOxidation::FixRHEOOxidation(LAMMPS *lmp, int narg, char **arg) :
-  Fix(lmp, narg, arg) //, fix_bond_history(nullptr)
+  Fix(lmp, narg, arg), compute_surface(nullptr), fix_rheo(nullptr)
 {
-  if (narg != 5) error->all(FLERR,"Illegal fix command");
+  if (narg != 6) error->all(FLERR,"Illegal fix command");
 
   cut = utils::numeric(FLERR, arg[3], false, lmp);
   if (cut <= 0.0) error->all(FLERR, "Illegal bond cutoff {} in fix rheo/oxidation", cut);
 
   btype = utils::inumeric(FLERR, arg[4], false, lmp);
   if (btype < 1 || btype > atom->nbondtypes) error->all(FLERR, "Illegal value {} for bond type in fix rheo/oxidation", btype);
+
+  rsurf = utils::numeric(FLERR, arg[5], false, lmp);
+  if (rsurf <= 0.0) error->all(FLERR, "Illegal surface distance {} in fix rheo/oxidation", cut);
 
   cutsq = cut * cut;
 }
@@ -72,22 +76,21 @@ void FixRHEOOxidation::init()
   auto fixes = modify->get_fix_by_style("^rheo$");
   if (fixes.size() == 0) error->all(FLERR, "Need to define fix rheo to use fix rheo/oxidation");
   fix_rheo = dynamic_cast<FixRHEO *>(fixes[0]);
-  double cut_kernel = fix_rheo->h;
 
-  if (cut > cut_kernel)
+  if (cut > fix_rheo->h)
     error->all(FLERR, "Bonding length exceeds kernel cutoff");
+
+  if (rsurf >= fix_rheo->h)
+    error->all(FLERR, "Surface distance must be less than kernel cutoff");
 
   if (!force->bond) error->all(FLERR, "Must define a bond style with fix rheo/oxidation");
   if (!atom->avec->bonds_allow) error->all(FLERR, "Fix rheo/oxidation requires atom bonds");
 
-  //// find instances of bond history to delete data
-  //histories = modify->get_fix_by_style("BOND_HISTORY");
-  //for (auto &ihistory: histories)
-  //  if (strcmp(histories[i]->id, "HISTORY_RHEO_SHELL") == 0)
-  //    fix_bond_history = dynamic_cast<FixBondHistory *>(ihistory);
-//
-  //if (!fix_bond_history)
-  //  error->all(FLERR, "Must define bond style rheo/shell to use fix rheo/oxidation");
+  int tmp1, tmp2;
+  index_nb = atom->find_custom("shell_nbond", tmp1, tmp2);
+  if (index_nb == -1)
+    error->all(FLERR, "Must use bond style rheo/shell to use fix rheo/oxidation");
+  nbond = atom->ivector[index_nb];
 
   // need a half neighbor list
   auto req = neighbor->add_request(this, NeighConst::REQ_DEFAULT);
@@ -111,13 +114,14 @@ void FixRHEOOxidation::setup_pre_force(int /*vflag*/)
 
   if (!fix_rheo->surface_flag) error->all(FLERR,
       "fix rheo/oxidation requires surface calculation in fix rheo");
+  compute_surface = fix_rheo->compute_surface;
 
   pre_force(0);
 }
 
 /* ---------------------------------------------------------------------- */
 
-void FixRHEOThermal::pre_force(int /*vflag*/)
+void FixRHEOOxidation::pre_force(int /*vflag*/)
 {
 }
 
@@ -135,9 +139,9 @@ void FixRHEOOxidation::post_integrate()
 
   tagint *tag = atom->tag;
   tagint **bond_atom = atom->bond_atom;
-  int *status = atom->status;
   int **bond_type = atom->bond_type;
   int *num_bond = atom->num_bond;
+  double *rsurface = compute_surface->rsurface;
   double **x = atom->x;
 
   inum = list->inum;
@@ -148,7 +152,7 @@ void FixRHEOOxidation::post_integrate()
   // loop over neighbors of my atoms
   for (ii = 0; ii < inum; ii++) {
     i = ilist[ii];
-    if (!(status[i] & STATUS_SURFACE)) continue;
+    if (rsurface[i] > rsurf) continue;
 
     tagi = tag[i];
     xtmp = x[i][0];
@@ -162,7 +166,7 @@ void FixRHEOOxidation::post_integrate()
       j = jlist[jj];
       j &= NEIGHMASK;
 
-      if (!(status[j] & STATUS_SURFACE)) continue;
+      if (rsurface[j] > rsurf) continue;
 
       tagj = tag[j];
       delx = xtmp - x[j][0];
@@ -208,10 +212,4 @@ void FixRHEOOxidation::post_integrate()
       }
     }
   }
-
-  //todo:
-  // allow option to create near-surface bonds
-  // extract # of bonds in property/atom
-  // check bond style shell used, get index to bonds, share with compute property atom
-  // add type option to compute nbond/atom
 }

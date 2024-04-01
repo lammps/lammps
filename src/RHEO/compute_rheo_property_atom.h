@@ -63,6 +63,7 @@ class ComputeRHEOPropertyAtom : public Compute {
   class FixRHEO *fix_rheo;
   class FixRHEOPressure *fix_pressure;
   class FixRHEOThermal *fix_thermal;
+  class FixRHEOOxidation *fix_oxidation;
   class ComputeRHEOInterface *compute_interface;
   class ComputeRHEOKernel *compute_kernel;
   class ComputeRHEOSurface *compute_surface;

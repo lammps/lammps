@@ -25,7 +25,20 @@ using namespace LAMMPS_NS;
 ComputeNBondAtom::ComputeNBondAtom(LAMMPS *_lmp, int narg, char **arg) :
     Compute(_lmp, narg, arg), nbond(nullptr)
 {
-  if (narg < 3) utils::missing_cmd_args(FLERR, "compute nbond/atom", error);
+  if (narg < 4) utils::missing_cmd_args(FLERR, "compute nbond/atom", error);
+
+  btype = -1;
+
+  iarg = 3;
+  while (iarg < narg) {
+    if (strcmp(arg[iarg], "bond/type") == 0) {
+      if (iarg + 2 > narg) utils::missing_cmd_args(FLERR, "compute nbond/atom bond/type", error);
+      btype = utils::inumeric(FLERR, arg[iarg + 1], false, lmp);
+      iarg += 2;
+    } else {
+      error->all(FLERR, "Unknown compute nbond/type command {}", arg[iarg]);
+    }
+  }
 
   peratom_flag = 1;
   size_peratom_cols = 0;
@@ -78,6 +91,7 @@ void ComputeNBondAtom::compute_peratom()
   for (i = 0; i < nlocal; i++) {
     for (j = 0; j < num_bond[i]; j++) {
       if (bond_type[i][j] <= 0) continue;
+      if (btype != -1 && bond_type[i][j] != btype) continue;
 
       k = atom->map(bond_atom[i][j]);
       if (k < 0) continue;

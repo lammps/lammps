@@ -48,26 +48,38 @@ Examples
 Description
 """""""""""
 
-This fix...
+This fix performs time integration of temperature evolution for atom style
+rheo/thermal. In addition, it  defines multiple thermal properties of
+particles and handles melting/solidification, if applicable. For more details
+on phase transitions in RHEO, see :doc:`the RHEO howto <Howto_rheo>`.
 
-Each list consists of a series of type
-ranges separated by commas. The range can be specified as a
-single numeric value, or a wildcard asterisk can be used to specify a range
-of values.  This takes the form "\*" or "\*n" or "n\*" or "m\*n".  For
-example, if M = the number of atom types, then an asterisk with no numeric
-values means all types from 1 to M.  A leading asterisk means all types
-from 1 to n (inclusive).  A trailing asterisk means all types from n to M
-(inclusive).  A middle asterisk means all types from m to n (inclusive).
-Note that all atom types must be included in exactly one of the N collections.
+For each atom type, one can define attributes for the *conductivity*,
+*specific/heat*, *latent/heat*, and critical temperature (*Tfreeze*).
+The conductivity and specific heat must be defined for all atom types.
+The latent heat and critical temperature are optional. However, a
+critical temperature must be defined to specify a latent heat.
 
-While the *Tfreeze* keyword is optional, the *conductivity* and
-*specific/heat* keywords are mandatory.
+For each property, one must first define a list of atom types. A wild-card
+asterisk can be used in place of or in conjunction with the *types* argument
+to set the coefficients for multiple pairs of atom types.  This takes the
+form "\*" or "\*n" or "m\*" or "m\*n".  If :math:`N` is the number of atom
+types, then an asterisk with no numeric values means all types from 1 to
+:math:`N`.  A leading asterisk means all types from 1 to n (inclusive).
+A trailing asterisk means all types from m to :math:`N` (inclusive).  A
+middle asterisk means all types from m to n (inclusive).
 
-Multiple instances of this fix may be defined to apply different
-properties to different groups. However, the union of fix groups
-across all instances of fix rheo/thermal must cover all atoms.
-If there are multiple instances of this fix, any intersections in
-the fix groups will lead to incorrect thermal integration.
+The *types* definition for each property is followed by the style. Currently,
+the only option is *constant*. Style *constant* simply applies a constant value
+of respective property to each particle of the assigned type.
+
+The *react* keyword controls whether bonds are created/deleted when particles
+transition between a fluid and solid state. This option only applies to atom
+types that have a defined value of *Tfreeze*. When a fluid particle's
+temperature drops below *Tfreeze*, bonds of type *btype* are created between
+nearby solid particles within a distance of *cut*. The particle's status also
+swaps to a solid state. When a solid particle's temperature rises above
+*Tfreeze*, all bonds of type *btype* are broken and the particle's tatus swaps
+to a fluid state.
 
 Restart, fix_modify, output, run start/stop, minimize info
 """""""""""""""""""""""""""""""""""""""""""""""""""""""""""
@@ -84,7 +96,8 @@ Restrictions
 This fix must be used with an atom style that includes temperature,
 heatflow, and conductivity such as atom_tyle rheo/thermal This fix
 must be used in conjuction with :doc:`fix rheo <fix_rheo>` with the
-*thermal* setting.
+*thermal* setting. The fix group must be set to all. Only one
+instance of fix rheo/pressure can be defined.
 
 This fix is part of the RHEO package.  It is only enabled if
 LAMMPS was built with that package.  See the :doc:`Build package <Build_package>` page for more info.
@@ -93,8 +106,6 @@ Related commands
 """"""""""""""""
 
 :doc:`fix rheo <fix_rheo>`,
-:doc:`fix rheo/viscosity <fix_rheo_viscosity>`,
-:doc:`fix rheo/pressure <fix_rheo_pressure>`,
 :doc:`pair rheo <pair_rheo>`,
 :doc:`compute rheo/property/atom <compute_rheo_property_atom>`
 

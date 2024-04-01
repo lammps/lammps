@@ -49,6 +49,8 @@ class BondRHEOShell : public BondBPM {
   int index_nb, nmax_store;
   char *id_fix;
 
+  class ComputeRHEOSurface *compute_surface;
+
   void process_ineligibility(int, int);
   void allocate();
   void store_data();

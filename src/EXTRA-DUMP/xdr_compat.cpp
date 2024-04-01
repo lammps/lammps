@@ -107,17 +107,21 @@ bool_t xdr_int(XDR *xdrs, int *ip)
   xdr_int32_t l;
 
   switch (xdrs->x_op) {
+
     case XDR_ENCODE:
       l = (xdr_int32_t) (*ip);
       return xdr_putint32(xdrs, &l);
+      break;
 
     case XDR_DECODE:
       if (!xdr_getint32(xdrs, &l)) return FALSE;
       *ip = (int) l;
       return TRUE;
+      break;
 
     case XDR_FREE:
       return TRUE;
+      break;
   }
   return FALSE;
 }
@@ -144,18 +148,22 @@ bool_t xdr_opaque(XDR *xdrs, char *cp, unsigned int cnt)
   if (rndup > 0) rndup = BYTES_PER_XDR_UNIT - rndup;
 
   switch (xdrs->x_op) {
+
     case XDR_DECODE:
       if (!xdr_getbytes(xdrs, cp, cnt)) { return FALSE; }
       if (rndup == 0) return TRUE;
       return xdr_getbytes(xdrs, (char *) crud, rndup);
+      break;
 
     case XDR_ENCODE:
       if (!xdr_putbytes(xdrs, cp, cnt)) { return FALSE; }
       if (rndup == 0) return TRUE;
       return xdr_putbytes(xdrs, xdr_zero, rndup);
+      break;
 
     case XDR_FREE:
       return TRUE;
+      break;
   }
   return FALSE;
 }
@@ -171,7 +179,6 @@ bool_t xdr_float(XDR *xdrs, float *fp)
     case XDR_ENCODE:
       tmp = *(xdr_int32_t *) fp;
       return (xdr_putint32(xdrs, &tmp));
-
       break;
 
     case XDR_DECODE:
@@ -179,11 +186,11 @@ bool_t xdr_float(XDR *xdrs, float *fp)
         *(xdr_int32_t *) fp = tmp;
         return TRUE;
       }
-
       break;
 
     case XDR_FREE:
       return TRUE;
+      break;
   }
   return FALSE;
 }

@@ -14,10 +14,10 @@
 
 #include "uf3_bspline_basis2.h"
 
-#include "utils.h"
-#include <vector>
+#include "math_special.h"
 
 using namespace LAMMPS_NS;
+using MathSpecial::square;
 
 // Constructor
 // Initializes coefficients and knots
@@ -28,45 +28,45 @@ uf3_bspline_basis2::uf3_bspline_basis2(LAMMPS *ulmp, const double *knots, double
 
   double c0, c1, c2;
 
-  c0 = coefficient *
-      (pow(knots[0], 2) /
-       (pow(knots[0], 2) - knots[0] * knots[1] - knots[0] * knots[2] + knots[1] * knots[2]));
+  c0 = coefficient
+    * (square(knots[0])
+       / (square(knots[0]) - knots[0] * knots[1] - knots[0] * knots[2] + knots[1] * knots[2]));
   c1 = coefficient *
-      (-2 * knots[0] /
-       (pow(knots[0], 2) - knots[0] * knots[1] - knots[0] * knots[2] + knots[1] * knots[2]));
+      (-2.0 * knots[0] /
+       (square(knots[0]) - knots[0] * knots[1] - knots[0] * knots[2] + knots[1] * knots[2]));
   c2 = coefficient *
-      (1 / (pow(knots[0], 2) - knots[0] * knots[1] - knots[0] * knots[2] + knots[1] * knots[2]));
+      (1.0 / (square(knots[0]) - knots[0] * knots[1] - knots[0] * knots[2] + knots[1] * knots[2]));
   constants.push_back(c0);
   constants.push_back(c1);
   constants.push_back(c2);
   c0 = coefficient *
       (-knots[1] * knots[3] /
-           (pow(knots[1], 2) - knots[1] * knots[2] - knots[1] * knots[3] + knots[2] * knots[3]) -
+           (square(knots[1]) - knots[1] * knots[2] - knots[1] * knots[3] + knots[2] * knots[3]) -
        knots[0] * knots[2] /
-           (knots[0] * knots[1] - knots[0] * knots[2] - knots[1] * knots[2] + pow(knots[2], 2)));
+           (knots[0] * knots[1] - knots[0] * knots[2] - knots[1] * knots[2] + square(knots[2])));
   c1 = coefficient *
       (knots[1] /
-           (pow(knots[1], 2) - knots[1] * knots[2] - knots[1] * knots[3] + knots[2] * knots[3]) +
+           (square(knots[1]) - knots[1] * knots[2] - knots[1] * knots[3] + knots[2] * knots[3]) +
        knots[3] /
-           (pow(knots[1], 2) - knots[1] * knots[2] - knots[1] * knots[3] + knots[2] * knots[3]) +
+           (square(knots[1]) - knots[1] * knots[2] - knots[1] * knots[3] + knots[2] * knots[3]) +
        knots[0] /
-           (knots[0] * knots[1] - knots[0] * knots[2] - knots[1] * knots[2] + pow(knots[2], 2)) +
+           (knots[0] * knots[1] - knots[0] * knots[2] - knots[1] * knots[2] + square(knots[2])) +
        knots[2] /
-           (knots[0] * knots[1] - knots[0] * knots[2] - knots[1] * knots[2] + pow(knots[2], 2)));
+           (knots[0] * knots[1] - knots[0] * knots[2] - knots[1] * knots[2] + square(knots[2])));
   c2 = coefficient *
-      (-1 / (pow(knots[1], 2) - knots[1] * knots[2] - knots[1] * knots[3] + knots[2] * knots[3]) -
-       1 / (knots[0] * knots[1] - knots[0] * knots[2] - knots[1] * knots[2] + pow(knots[2], 2)));
+      (-1.0 / (square(knots[1]) - knots[1] * knots[2] - knots[1] * knots[3] + knots[2] * knots[3]) -
+       1.0 / (knots[0] * knots[1] - knots[0] * knots[2] - knots[1] * knots[2] + square(knots[2])));
   constants.push_back(c0);
   constants.push_back(c1);
   constants.push_back(c2);
   c0 = coefficient *
-      (pow(knots[3], 2) /
-       (knots[1] * knots[2] - knots[1] * knots[3] - knots[2] * knots[3] + pow(knots[3], 2)));
+      (square(knots[3]) /
+       (knots[1] * knots[2] - knots[1] * knots[3] - knots[2] * knots[3] + square(knots[3])));
   c1 = coefficient *
-      (-2 * knots[3] /
-       (knots[1] * knots[2] - knots[1] * knots[3] - knots[2] * knots[3] + pow(knots[3], 2)));
+      (-2.0 * knots[3] /
+       (knots[1] * knots[2] - knots[1] * knots[3] - knots[2] * knots[3] + square(knots[3])));
   c2 = coefficient *
-      (1 / (knots[1] * knots[2] - knots[1] * knots[3] - knots[2] * knots[3] + pow(knots[3], 2)));
+      (1.0 / (knots[1] * knots[2] - knots[1] * knots[3] - knots[2] * knots[3] + square(knots[3])));
   constants.push_back(c0);
   constants.push_back(c1);
   constants.push_back(c2);

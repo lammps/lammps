@@ -11,14 +11,13 @@ Syntax
 
 .. code-block:: LAMMPS
 
-    pair_style style BodyFlag NumAtomType
+    pair_style style BodyFlag
 
 * style = *uf3* or *uf3/kk*
 
   .. parsed-literal::
 
        BodyFlag = Indicates whether to calculate only 2-body or 2 and 3-body interactions. Possible values: 2 or 3
-       NumAtomType = Number of atoms types in the simulation
 
 Examples
 """"""""
@@ -110,7 +109,7 @@ LAMMPS potential file for multiple interaction. For example-
 
 .. code-block:: LAMMPS
 
-   pair_style uf3 3 2
+   pair_style uf3 3
    pair_coeff * * A_A
    pair_coeff 3b 1 * * A_A_A
    pair_coeff 3b 2 * * B_B_B
@@ -130,7 +129,7 @@ shows the format of a generic 2-body UF3 LAMMPS potential file-
 
 .. code-block:: LAMMPS
 
-   #UF3 POT
+   #UF3 POT UNITS: units DATE: POT_GEN_DATE AUTHOR: AUTHOR_NAME CITATION: CITE
    2B LEADING_TRIM TRAILING_TRIM
    Rij_CUTOFF NUM_OF_KNOTS
    BSPLINE_KNOTS
@@ -144,7 +143,7 @@ The format of a generic 3-body UF3 LAMMPS potential file is as follow-
 
 .. code-block:: LAMMPS
 
-   #UF3 POT
+   #UF3 POT UNITS: units DATE: POT_GEN_DATE AUTHOR: AUTHOR_NAME CITATION: CITE
    3B LEADING_TRIM TRAILING_TRIM
    Rjk_CUTOFF Rik_CUTOFF Rij_CUTOFF NUM_OF_KNOTS_JK NUM_OF_KNOTS_IK NUM_OF_KNOTS_IJ
    BSPLINE_KNOTS_FOR_JK

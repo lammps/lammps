@@ -148,7 +148,7 @@ void PairUF3Kokkos<DeviceType>::allocate()
   int n = atom->ntypes;
   memory->destroy(cutsq); //Why are we destroying cutsq? cutsq is allocated when
   //PairUF3::coeff or PairUF3::allocate is called; in the next step when k_cutsq
-  //is created cut_3b is set to point to the host array of k_cutsq
+  //is created cutsq is set to point to the host array of k_cutsq
   //memory->destroy(cut_3b);
 
   memoryKK->create_kokkos(k_cutsq,cutsq,n+1,n+1,"pair:cutsq");

@@ -27,12 +27,8 @@ PairStyle(uf3,PairUF3);
 #ifndef LMP_PAIR_UF3_H
 #define LMP_PAIR_UF3_H
 
-//#include "uf3_pair_bspline.h"
-//#include "uf3_triplet_bspline.h"
-
 #include "pair.h"
 
-//#include <unordered_map>
 namespace LAMMPS_NS {
 
 class PairUF3 : public Pair {
@@ -55,7 +51,6 @@ class PairUF3 : public Pair {
   void uf3_read_pot_file(int i, int j, int k, char *potf_name);
   int nbody_flag, n2body_pot_files, n3body_pot_files, tot_pot_files;
   int bsplines_created;
-  //int coeff_matrix_dim1, coeff_matrix_dim2, coeff_matrix_dim3, coeff_matrix_elements_len;
   bool pot_3b;
   int ***setflag_3b, **knot_spacing_type_2b, ***knot_spacing_type_3b;
   double **cut, ***cut_3b, **cut_3b_list, ****min_cut_3b;
@@ -74,8 +69,6 @@ class PairUF3 : public Pair {
   double get_knot_spacing_3b_ij(int i, int j, int k);
   double get_knot_spacing_3b_ik(int i, int j, int k);
   double get_knot_spacing_3b_jk(int i, int j, int k);
-  //std::vector<std::vector<uf3_pair_bspline>> UFBS2b;
-  //std::vector<std::vector<std::vector<uf3_triplet_bspline>>> UFBS3b;
   int *neighshort, maxshort;    // short neighbor list array for 3body interaction
 };
 

@@ -38,8 +38,6 @@
 
 namespace LAMMPS_NS{
   struct UF3Impl {
-    //int ***setflag_3b, **knot_spacing_type_2b, ***knot_spacing_type_3b;
-    //double ***cut_3b, **cut_3b_list, ****min_cut_3b;
 
     std::vector<std::vector<std::vector<double>>> n2b_knot, n2b_coeff;
     std::vector<std::vector<std::vector<std::vector<std::vector<double>>>>> n3b_knot_matrix;
@@ -55,18 +53,10 @@ using MathConst::THIRD;
 /* ---------------------------------------------------------------------- */
 
 PairUF3::PairUF3(LAMMPS *lmp) :
-    //Pair(lmp), cut(nullptr)
     Pair(lmp), setflag_3b(nullptr), knot_spacing_type_2b(nullptr), knot_spacing_type_3b(nullptr),
     cut(nullptr), cut_3b(nullptr), cut_3b_list(nullptr), min_cut_3b(nullptr)
 {
   uf3_impl = new UF3Impl;
-  //uf3_impl->setflag_3b = nullptr;
-  //uf3_impl->knot_spacing_type_2b = nullptr;
-  //uf3_impl->knot_spacing_type_3b = nullptr;
-  //uf3_impl->cut_3b = nullptr;
-  //uf3_impl->cut_3b_list = nullptr;
-  //uf3_impl->min_cut_3b = nullptr;
-
   single_enable = 1;    // 1 if single() routine exists
   restartinfo = 0;      // 1 if pair style writes restart info
   maxshort = 10;

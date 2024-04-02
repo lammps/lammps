@@ -960,6 +960,7 @@ elastance
 Electroneg
 electronegative
 electronegativity
+electroneutral
 electroneutrality
 Eleftheriou
 ElementN

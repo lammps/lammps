@@ -159,17 +159,17 @@ surface-to-volume ratio of each processor's subdomain.
    for most MPI implementations, but some MPIs provide options for this
    ordering, e.g. via environment variable settings.
 
-The *numa* style operates similar to the *twolevel* keyword except
-that it auto-detects which cores are running on which nodes.
-It will also subdivide the cores into numa domains. Currently, the
-number of numa domains is not autodetected and must be specified using
-the *numa_nodes* keyword; otherwise, the default value is used. The
-*numa* style uses a different algorithm than the *twolevel* keyword for
-doing the two-level factorization of the simulation box into a 3d
-processor grid to minimize off-node communication and communication
-across numa domains. It does its own MPI-based mapping of nodes and
-cores to the regular 3d grid.  Thus it may produce a different layout
-of the processors than the *twolevel* options.
+The *numa* style operates similar to the *twolevel* keyword except that
+it auto-detects which cores are running on which nodes.  It will also
+subdivide the cores into numa domains. Currently, the number of numa
+domains is not auto-detected and must be specified using the
+*numa_nodes* keyword; otherwise, the default value is used. The *numa*
+style uses a different algorithm than the *twolevel* keyword for doing
+the two-level factorization of the simulation box into a 3d processor
+grid to minimize off-node communication and communication across numa
+domains. It does its own MPI-based mapping of nodes and cores to the
+regular 3d grid.  Thus it may produce a different layout of the
+processors than the *twolevel* options.
 
 The *numa* style will give an error if the number of MPI processes is
 not divisible by the number of cores used per node, or any of the Px
@@ -182,7 +182,7 @@ or Py or Pz values is greater than 1.
    is because it auto-detects which processes are running on which nodes.
    However, it assumes that the lowest ranks are in the first numa
    domain, and so forth. MPI rank orderings that do not preserve this
-   property might result in more intranode communication between CPUs.
+   property might result in more intra-node communication between CPUs.
 
 The *custom* style uses the file *infile* to define both the 3d
 factorization and the mapping of processors to the grid.
@@ -213,7 +213,7 @@ any order, but no processor ID should appear more than once.
 
 ----------
 
-The *numa_nodes* keyword is used to specifiy the number of numa domains
+The *numa_nodes* keyword is used to specify the number of numa domains
 per node. It is currently only used by the *numa* style for two-level
 factorization to reduce the amount of MPI communications between CPUs.
 A good setting for this will typically be equal to the number of CPU

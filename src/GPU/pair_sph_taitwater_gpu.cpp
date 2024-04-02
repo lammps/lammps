@@ -18,6 +18,7 @@
 #include "pair_sph_taitwater_gpu.h"
 
 #include "atom.h"
+#include "comm.h"
 #include "domain.h"
 #include "error.h"
 #include "force.h"
@@ -85,6 +86,25 @@ void PairSPHTaitwaterGPU::compute(int eflag, int vflag)
 {
   ev_init(eflag, vflag);
 
+  // check consistency of pair coefficients
+
+  if (first) {
+    for (int i = 1; i <= atom->ntypes; i++) {
+      for (int j = 1; i <= atom->ntypes; i++) {
+        if (cutsq[i][j] > 1.e-32) {
+          if (!setflag[i][i] || !setflag[j][j]) {
+            if (comm->me == 0) {
+              printf(
+                  "SPH particle types %d and %d interact with cutoff=%g, but not all of their single particle properties are set.\n",
+                  i, j, sqrt(cutsq[i][j]));
+            }
+          }
+        }
+      }
+    }
+    first = 0;
+  }
+
   int nall = atom->nlocal + atom->nghost;
   int inum, host_start;
 
@@ -110,7 +130,7 @@ void PairSPHTaitwaterGPU::compute(int eflag, int vflag)
     firstneigh = sph_taitwater_gpu_compute_n(
         neighbor->ago, inum, nall, atom->x, atom->type, sublo, subhi, atom->tag, atom->nspecial,
         atom->special, eflag, vflag, eflag_atom, vflag_atom, host_start, &ilist, &numneigh,
-        cpu_time, success, atom->v);
+        cpu_time, success, atom->vest);
   } else {
     inum = list->inum;
     ilist = list->ilist;
@@ -118,7 +138,7 @@ void PairSPHTaitwaterGPU::compute(int eflag, int vflag)
     firstneigh = list->firstneigh;
     sph_taitwater_gpu_compute(neighbor->ago, inum, nall, atom->x, atom->type, ilist, numneigh, firstneigh,
                        eflag, vflag, eflag_atom, vflag_atom, host_start, cpu_time, success,
-                       atom->tag, atom->v);
+                       atom->tag, atom->vest);
   }
   if (!success) error->one(FLERR, "Insufficient memory on accelerator");
 
@@ -131,21 +151,21 @@ void PairSPHTaitwaterGPU::compute(int eflag, int vflag)
   int nlocal = atom->nlocal;
   if (acc_float) {
     auto drhoE_ptr = (float *)drhoE_pinned;
-    int idx = 0;
-    for (int i = 0; i < nlocal; i++) {
-      drho[i] = drhoE_ptr[idx];
-      desph[i] = drhoE_ptr[idx+1];
-      idx += 2;
-    }
+    for (int i = 0; i < nlocal; i++)
+      drho[i] += drhoE_ptr[i];
+
+    drhoE_ptr += nlocal;
+    for (int i = 0; i < nlocal; i++)
+      desph[i] += drhoE_ptr[i];
 
   } else {
     auto drhoE_ptr = (double *)drhoE_pinned;
-    int idx = 0;
-    for (int i = 0; i < nlocal; i++) {
-      drho[i] = drhoE_ptr[idx];
-      desph[i] = drhoE_ptr[idx+1];
-      idx += 2;
-    }
+    for (int i = 0; i < nlocal; i++)
+      drho[i] += drhoE_ptr[i];
+
+    drhoE_ptr += nlocal;
+    for (int i = 0; i < nlocal; i++)
+      desph[i] += drhoE_ptr[i];
   }
 
   if (atom->molecular != Atom::ATOMIC && neighbor->ago == 0)

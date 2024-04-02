@@ -14,8 +14,8 @@ post_commands: ! ""
 input_file: in.manybody
 pair_style: uf3 3
 pair_coeff: ! |
-  * * A_A.uf3
-  3b * * * A_A_A.uf3
+  * * Nb_Nb.uf3
+  3b * * * Nb_Nb_Nb.uf3
 extract: ! ""
 natoms: 64
 init_vdwl: -76.14388662099438

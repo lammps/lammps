@@ -234,10 +234,10 @@ void PairUF3::uf3_read_pot_file(int itype, int jtype, char *potf_name)
   std::string temp_line = txtfilereader.next_line(1);
   Tokenizer file_header(temp_line);
 
-  if (file_header.count() != 2)
+  if (file_header.count() <= 2)
     error->all(FLERR,
-               "UF3: Expected only two words on 1st line of {} but found "
-               "{} word/s",
+               "UF3: Expected more than two words on 1st line of {} \n"
+               "but found {} word/s",
                potf_name, file_header.count());
 
   if (file_header.contains("#UF3 POT") == 0)
@@ -245,6 +245,12 @@ void PairUF3::uf3_read_pot_file(int itype, int jtype, char *potf_name)
                "UF3: {} file is not UF3 POT type, 1st line of UF3 POT \n"
                "files contain '#UF3 POT'. Found {} in the header",
                potf_name, temp_line);
+  
+  if (file_header.contains("UNITS:") == 0)
+    error->all(FLERR,
+               "UF3: {} file does not contain the 'UNITS:' metadata in \n"
+               "the header",
+               potf_name);
 
   temp_line = txtfilereader.next_line(1);
   ValueTokenizer fp2nd_line(temp_line);
@@ -352,18 +358,24 @@ void PairUF3::uf3_read_pot_file(int itype, int jtype, int ktype, char *potf_name
   std::string temp_line = txtfilereader.next_line(1);
   Tokenizer file_header(temp_line);
 
-  if (file_header.count() != 2)
+  if (file_header.count() <= 2)
     error->all(FLERR,
-               "UF3: Expected only two words on 1st line of {} but found "
-               "{} word/s",
+               "UF3: Expected more than two words on 1st line of {} \n"
+               "but found {} word/s",
                potf_name, file_header.count());
 
   if (file_header.contains("#UF3 POT") == 0)
     error->all(FLERR,
-               "UF3: {} file is not UF3 POT type, 1st line of UF3 POT "
+               "UF3: {} file is not UF3 POT type, 1st line of UF3 POT \n"
                "files contain '#UF3 POT'. Found {} in the header",
                potf_name, temp_line);
 
+  if (file_header.contains("UNITS:") == 0)
+    error->all(FLERR,
+               "UF3: {} file does not contain the 'UNITS:' metadata in \n"
+               "the header",
+               potf_name);
+  
   temp_line = txtfilereader.next_line(1);
   ValueTokenizer fp2nd_line(temp_line);
 
@@ -575,9 +587,23 @@ void PairUF3::uf3_read_pot_file(char *potf_name)
   std::string temp_line = txtfilereader.next_line(2);
   Tokenizer fp1st_line(temp_line);
 
+  if (fp1st_line.count() <= 2)
+    error->all(FLERR,
+               "UF3: Expected more than two words on 1st line of {} \n"
+               "but found {} word/s",
+               potf_name, fp1st_line.count());
+
   if (fp1st_line.contains("#UF3 POT") == 0)
-    error->all(FLERR, "UF3: {} file is not UF3 POT type, found type {} {} on the file", potf_name,
-               fp1st_line.next(), fp1st_line.next());
+    error->all(FLERR,
+               "UF3: {} file is not UF3 POT type, 1st line of UF3 POT \n"
+               "files contain '#UF3 POT'. Found {} in the header",
+               potf_name, temp_line);
+  
+  if (fp1st_line.contains("UNITS:") == 0)
+    error->all(FLERR,
+               "UF3: {} file does not contain the 'UNITS:' metadata in \n"
+               "the header",
+               potf_name);
 
   temp_line = txtfilereader.next_line(1);
   Tokenizer fp2nd_line(temp_line);

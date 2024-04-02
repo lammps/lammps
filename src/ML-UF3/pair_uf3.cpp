@@ -245,7 +245,7 @@ void PairUF3::uf3_read_pot_file(int itype, int jtype, char *potf_name)
                "UF3: {} file is not UF3 POT type, 1st line of UF3 POT \n"
                "files contain '#UF3 POT'. Found {} in the header",
                potf_name, temp_line);
-  
+
   if (file_header.contains("UNITS:") == 0)
     error->all(FLERR,
                "UF3: {} file does not contain the 'UNITS:' metadata in \n"
@@ -375,7 +375,7 @@ void PairUF3::uf3_read_pot_file(int itype, int jtype, int ktype, char *potf_name
                "UF3: {} file does not contain the 'UNITS:' metadata in \n"
                "the header",
                potf_name);
-  
+
   temp_line = txtfilereader.next_line(1);
   ValueTokenizer fp2nd_line(temp_line);
 
@@ -598,7 +598,7 @@ void PairUF3::uf3_read_pot_file(char *potf_name)
                "UF3: {} file is not UF3 POT type, 1st line of UF3 POT \n"
                "files contain '#UF3 POT'. Found {} in the header",
                potf_name, temp_line);
-  
+
   if (fp1st_line.contains("UNITS:") == 0)
     error->all(FLERR,
                "UF3: {} file does not contain the 'UNITS:' metadata in \n"

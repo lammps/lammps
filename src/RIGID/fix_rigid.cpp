@@ -38,6 +38,9 @@
 #include <cmath>
 #include <cstring>
 
+// DEBUG
+#define IBODY 42
+
 using namespace LAMMPS_NS;
 using namespace FixConst;
 using namespace MathConst;
@@ -893,9 +896,12 @@ void FixRigid::setup(int vflag)
 
   // set velocities from angmom & omega
 
-  for (ibody = 0; ibody < nbody; ibody++)
+  for (ibody = 0; ibody < nbody; ibody++) {
     MathExtra::angmom_to_omega(angmom[ibody],ex_space[ibody],ey_space[ibody],
                                ez_space[ibody],inertia[ibody],omega[ibody]);
+    if (ibody == IBODY) printf("SETUP omega: %g %g %g\n",
+                               omega[ibody][0],omega[ibody][1],omega[ibody][2]);
+  }
 
   set_v();
 
@@ -944,10 +950,68 @@ void FixRigid::initial_integrate(int vflag)
 
     MathExtra::angmom_to_omega(angmom[ibody],ex_space[ibody],ey_space[ibody],
                                ez_space[ibody],inertia[ibody],omega[ibody]);
+
+    if (update->ntimestep % 1 == 0 && ibody == IBODY) {
+      printf("BODY %d: start of step %ld\n",ibody,update->ntimestep);
+      printf("         interia %g %g %g\n",
+             inertia[ibody][0],inertia[ibody][1],inertia[ibody][2]);
+      printf("         angmom %g %g %g\n",
+             angmom[ibody][0],angmom[ibody][1],angmom[ibody][2]);
+      printf("         omega %g %g %g\n",
+             omega[ibody][0],omega[ibody][1],omega[ibody][2]);
+      printf("         ex %g %g %g\n",
+             ex_space[ibody][0],ex_space[ibody][1],ex_space[ibody][2]);
+      printf("         ey %g %g %g\n",
+             ey_space[ibody][0],ey_space[ibody][1],ey_space[ibody][2]);
+      printf("         ez %g %g %g\n",
+             ez_space[ibody][0],ez_space[ibody][1],ez_space[ibody][2]);
+      printf("         quat %15.12g %15.12g %15.12g %15.12g\n",
+             quat[ibody][0],quat[ibody][1],quat[ibody][2],quat[ibody][3]);
+    }
+
     MathExtra::richardson(quat[ibody],angmom[ibody],omega[ibody],
                           inertia[ibody],dtq);
+
+    if (update->ntimestep % 1 == 0 && ibody == IBODY) {
+      printf("         richardson omega %g %g %g\n",
+             omega[ibody][0],omega[ibody][1],omega[ibody][2]);
+      printf("         richardson quat %15.12g %15.12g %15.12g %15.12g\n",
+             quat[ibody][0],quat[ibody][1],quat[ibody][2],quat[ibody][3]);
+    }
+    
     MathExtra::q_to_exyz(quat[ibody],
                          ex_space[ibody],ey_space[ibody],ez_space[ibody]);
+
+    if (update->ntimestep % 1 == 0 && ibody == IBODY) {
+      printf("         exnew %g %g %g\n",
+             ex_space[ibody][0],ex_space[ibody][1],ex_space[ibody][2]);
+      printf("         eynew %g %g %g\n",
+             ey_space[ibody][0],ey_space[ibody][1],ey_space[ibody][2]);
+      printf("         eznew %g %g %g\n",
+             ez_space[ibody][0],ez_space[ibody][1],ez_space[ibody][2]);
+    }
+
+    /*
+    if (ibody == 42) {
+      ex_space[ibody][0] = ex_space[ibody][1] = 0.0;
+      ex_space[ibody][2] = 1.0;
+      ey_space[ibody][2] = ez_space[ibody][2] = 0.0;
+      MathExtra::norm3(ey_space[ibody]);
+      MathExtra::norm3(ez_space[ibody]);
+      MathExtra::exyz_to_q(ex_space[ibody],ey_space[ibody],ez_space[ibody],quat[ibody]);
+    }
+    */
+    
+    if (update->ntimestep % 1 == 0 && ibody == IBODY) {
+      printf("         quatnew2 %15.12g %15.12g %15.12g %15.12g\n",
+             quat[ibody][0],quat[ibody][1],quat[ibody][2],quat[ibody][3]);
+      printf("         exnew2 %g %g %g\n",
+             ex_space[ibody][0],ex_space[ibody][1],ex_space[ibody][2]);
+      printf("         eynew2 %g %g %g\n",
+             ey_space[ibody][0],ey_space[ibody][1],ey_space[ibody][2]);
+      printf("         eznew2 %g %g %g\n",
+             ez_space[ibody][0],ez_space[ibody][1],ez_space[ibody][2]);
+    }
   }
 
   // virial setup before call to set_xv
@@ -1025,6 +1089,22 @@ void FixRigid::final_integrate()
 
     MathExtra::angmom_to_omega(angmom[ibody],ex_space[ibody],ey_space[ibody],
                                ez_space[ibody],inertia[ibody],omega[ibody]);
+
+    if (update->ntimestep % 1 == 0 && ibody == IBODY) {
+      printf("BODY %d: end of step %ld\n",ibody,update->ntimestep);
+      printf("         interia %g %g %g\n",
+             inertia[ibody][0],inertia[ibody][1],inertia[ibody][2]);
+      printf("         angmom %g %g %g\n",
+             angmom[ibody][0],angmom[ibody][1],angmom[ibody][2]);
+      printf("         omega %g %g %g\n",
+             omega[ibody][0],omega[ibody][1],omega[ibody][2]);
+      printf("         ex %g %g %g\n",
+             ex_space[ibody][0],ex_space[ibody][1],ex_space[ibody][2]);
+      printf("         ey %g %g %g\n",
+             ey_space[ibody][0],ey_space[ibody][1],ey_space[ibody][2]);
+      printf("         ez %g %g %g\n",
+             ez_space[ibody][0],ez_space[ibody][1],ez_space[ibody][2]);
+    }
   }
 
   // set velocity/rotation of atoms in rigid bodies

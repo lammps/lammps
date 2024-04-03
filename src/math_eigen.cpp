@@ -44,7 +44,7 @@ int MathEigen::jacobi3(double const mat[3][3], double *eval, double evec[3][3])
   // create instance of generic Jacobi class and get eigenvalues and -vectors
 
   Jacobi_v1 ecalc3(3, M, midx);
-  int ierror = ecalc3.Diagonalize(mat, eval, evec, Jacobi_v1::SORT_INCREASING_EVAL);
+  int ierror = ecalc3.Diagonalize(mat, eval, evec, Jacobi_v1::SORT_INCREASING_EVALS);
 
   // transpose the evec matrix
 

@@ -415,17 +415,14 @@ void PairBodyRoundedPolygon::init_style()
   if (!avec)
     error->all(FLERR,"Pair body/rounded/polygon requires atom style body");
   if (strcmp(avec->bptr->style,"rounded/polygon") != 0)
-    error->all(FLERR,"Pair body/rounded/polygon requires "
-               "body style rounded/polygon");
+    error->all(FLERR,"Pair body/rounded/polygon requires body style rounded/polygon");
   bptr = dynamic_cast<BodyRoundedPolygon *>(avec->bptr);
 
   if (force->newton_pair == 0)
-    error->all(FLERR,"Pair style body/rounded/polygon requires "
-               "newton pair on");
+    error->all(FLERR,"Pair style body/rounded/polygon requires newton pair on");
 
   if (comm->ghost_velocity == 0)
-    error->all(FLERR,"Pair body/rounded/polygon requires "
-               "ghost atoms store velocity");
+    error->all(FLERR,"Pair body/rounded/polygon requires ghost atoms store velocity");
 
   neighbor->add_request(this);
 
@@ -570,8 +567,7 @@ void PairBodyRoundedPolygon::body2space(int i)
   }
 
   if ((body_num_edges > 0) && (edge_ends == nullptr))
-    error->one(FLERR,"Inconsistent edge data for body of atom {}",
-                                 atom->tag[i]);
+    error->one(FLERR,"Inconsistent edge data for body of atom {}", atom->tag[i]);
 
   for (int m = 0; m < body_num_edges; m++) {
     edge[nedge][0] = static_cast<int>(edge_ends[2*m+0]);

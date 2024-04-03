@@ -704,6 +704,14 @@ void FixRigidSmall::setup(int vflag)
     Body *b = &body[ibody];
     MathExtra::angmom_to_omega(b->angmom,b->ex_space,b->ey_space,
                                b->ez_space,b->inertia,b->omega);
+    printf("IBODY %d quat %g %g %g %g omega %g %g %g idiag %g %g %g ex %g %g %g ey %g %g %g ez %g %g %g\n",
+           ibody,  
+           b->quat[0],b->quat[1],b->quat[2],b->quat[3],
+           b->omega[0],b->omega[1],b->omega[2],
+           b->inertia[0],b->inertia[1],b->inertia[2],
+           b->ex_space[0],b->ex_space[1],b->ex_space[2],
+           b->ey_space[0],b->ey_space[1],b->ey_space[2],
+           b->ez_space[0],b->ez_space[1],b->ez_space[2]);
   }
 
   commflag = FINAL;
@@ -871,6 +879,21 @@ void FixRigidSmall::final_integrate()
   // virial is already setup from initial_integrate
 
   set_v();
+
+  if (update->ntimestep == 1000) {
+    for (int ibody = 0; ibody < nlocal_body; ibody++) {
+      Body *b = &body[ibody];
+      printf("IBODY %d quat %g %g %g %g omega %g %g %g idiag %g %g %g ex %g %g %g ey %g %g %g ez %g %g %g\n",
+             ibody,  
+             b->quat[0],b->quat[1],b->quat[2],b->quat[3],
+             b->omega[0],b->omega[1],b->omega[2],
+             b->inertia[0],b->inertia[1],b->inertia[2],
+             b->ex_space[0],b->ex_space[1],b->ex_space[2],
+             b->ey_space[0],b->ey_space[1],b->ey_space[2],
+             b->ez_space[0],b->ez_space[1],b->ez_space[2]);
+    }
+  }
+
 }
 
 /* ---------------------------------------------------------------------- */
@@ -1110,11 +1133,6 @@ void FixRigidSmall::enforce2d()
     b->angmom[1] = 0.0;
     b->omega[0] = 0.0;
     b->omega[1] = 0.0;
-    if (langflag && langextra) {
-      langextra[ibody][2] = 0.0;
-      langextra[ibody][3] = 0.0;
-      langextra[ibody][4] = 0.0;
-    }
   }
 }
 
@@ -2102,6 +2120,7 @@ void FixRigidSmall::setup_bodies_static()
 
   // diagonalize inertia tensor for each body via Jacobi rotations
   // inertia = 3 eigenvalues = principal moments of inertia
+  //   jacobi3() returns them in ascending order, so that in 2d last evector is z-axis
   // evectors and exzy_space = 3 evectors = principal axes of rigid body
 
   int ierror;
@@ -2134,6 +2153,22 @@ void FixRigidSmall::setup_bodies_static()
     ez[1] = evectors[1][2];
     ez[2] = evectors[2][2];
 
+    // for 2d, ensure that evector along z axis is last
+    // necessary so that quaternion is a simple rotation around +z axis
+    //   or a 180 degree rotation for a -z axis
+    // otherwise richardson() method for a body with a tiny evalue (near-linear)
+    //  may not preserve the correct z-aligned quat and assocated evectors
+    //  over time due to round-off accumulation
+
+    if (domain->dimension == 2) {
+      if (fabs(ez[0]) > EPSILON || fabs(ez[1]) > EPSILON) {
+        std::swap(inertia[1],inertia[2]);
+        std::swap(ey[0],ez[0]);
+        std::swap(ey[1],ez[1]);
+        std::swap(ey[2],ez[2]);
+      }
+    }
+
     // if any principal moment < scaled EPSILON, set to 0.0
 
     double max;
@@ -2156,6 +2191,7 @@ void FixRigidSmall::setup_bodies_static()
 
     // convert geometric center position to principal axis coordinates
     // xcm is wrapped, but xgc is not initially
+    
     xcm = body[ibody].xcm;
     xgc = body[ibody].xgc;
     double delta[3];

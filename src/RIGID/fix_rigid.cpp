@@ -39,7 +39,7 @@
 #include <cstring>
 
 // DEBUG
-#define IBODY 42
+#define IBODY 10
 
 using namespace LAMMPS_NS;
 using namespace FixConst;
@@ -901,6 +901,14 @@ void FixRigid::setup(int vflag)
                                ez_space[ibody],inertia[ibody],omega[ibody]);
     if (ibody == IBODY) printf("SETUP omega: %g %g %g\n",
                                omega[ibody][0],omega[ibody][1],omega[ibody][2]);
+    printf("IBODY %d quat %g %g %g %g omega %g %g %g idiag %g %g %g ex %g %g %g ey %g %g %g ez %g %g %g\n",
+           ibody,  
+           quat[ibody][0],quat[ibody][1],quat[ibody][2],quat[ibody][3],
+           omega[ibody][0],omega[ibody][1],omega[ibody][2],
+           inertia[ibody][0],inertia[ibody][1],inertia[ibody][2],
+           ex_space[ibody][0],ex_space[ibody][1],ex_space[ibody][2],
+           ey_space[ibody][0],ey_space[ibody][1],ey_space[ibody][2],
+           ez_space[ibody][0],ez_space[ibody][1],ez_space[ibody][2]);
   }
 
   set_v();
@@ -951,7 +959,7 @@ void FixRigid::initial_integrate(int vflag)
     MathExtra::angmom_to_omega(angmom[ibody],ex_space[ibody],ey_space[ibody],
                                ez_space[ibody],inertia[ibody],omega[ibody]);
 
-    if (update->ntimestep % 1 == 0 && ibody == IBODY) {
+    if (update->ntimestep % 100 == 0 && ibody == IBODY) {
       printf("BODY %d: start of step %ld\n",ibody,update->ntimestep);
       printf("         interia %g %g %g\n",
              inertia[ibody][0],inertia[ibody][1],inertia[ibody][2]);
@@ -972,7 +980,7 @@ void FixRigid::initial_integrate(int vflag)
     MathExtra::richardson(quat[ibody],angmom[ibody],omega[ibody],
                           inertia[ibody],dtq);
 
-    if (update->ntimestep % 1 == 0 && ibody == IBODY) {
+    if (update->ntimestep % 100 == 0 && ibody == IBODY) {
       printf("         richardson omega %g %g %g\n",
              omega[ibody][0],omega[ibody][1],omega[ibody][2]);
       printf("         richardson quat %15.12g %15.12g %15.12g %15.12g\n",
@@ -982,7 +990,7 @@ void FixRigid::initial_integrate(int vflag)
     MathExtra::q_to_exyz(quat[ibody],
                          ex_space[ibody],ey_space[ibody],ez_space[ibody]);
 
-    if (update->ntimestep % 1 == 0 && ibody == IBODY) {
+    if (update->ntimestep % 100 == 0 && ibody == IBODY) {
       printf("         exnew %g %g %g\n",
              ex_space[ibody][0],ex_space[ibody][1],ex_space[ibody][2]);
       printf("         eynew %g %g %g\n",
@@ -1002,7 +1010,7 @@ void FixRigid::initial_integrate(int vflag)
     }
     */
     
-    if (update->ntimestep % 1 == 0 && ibody == IBODY) {
+    if (update->ntimestep % 100 == 0 && ibody == IBODY) {
       printf("         quatnew2 %15.12g %15.12g %15.12g %15.12g\n",
              quat[ibody][0],quat[ibody][1],quat[ibody][2],quat[ibody][3]);
       printf("         exnew2 %g %g %g\n",
@@ -1090,7 +1098,7 @@ void FixRigid::final_integrate()
     MathExtra::angmom_to_omega(angmom[ibody],ex_space[ibody],ey_space[ibody],
                                ez_space[ibody],inertia[ibody],omega[ibody]);
 
-    if (update->ntimestep % 1 == 0 && ibody == IBODY) {
+    if (update->ntimestep % 100 == 0 && ibody == IBODY) {
       printf("BODY %d: end of step %ld\n",ibody,update->ntimestep);
       printf("         interia %g %g %g\n",
              inertia[ibody][0],inertia[ibody][1],inertia[ibody][2]);
@@ -1111,6 +1119,20 @@ void FixRigid::final_integrate()
   // virial is already setup from initial_integrate
 
   set_v();
+
+  if (update->ntimestep == 500) {
+    for (ibody = 0; ibody < nbody; ibody++) {
+      printf("IBODY %d quat %g %g %g %g omega %g %g %g idiag %g %g %g ex %g %g %g ey %g %g %g ez %g %g %g\n",
+             ibody,  
+             quat[ibody][0],quat[ibody][1],quat[ibody][2],quat[ibody][3],
+             omega[ibody][0],omega[ibody][1],omega[ibody][2],
+             inertia[ibody][0],inertia[ibody][1],inertia[ibody][2],
+             ex_space[ibody][0],ex_space[ibody][1],ex_space[ibody][2],
+             ey_space[ibody][0],ey_space[ibody][1],ey_space[ibody][2],
+             ez_space[ibody][0],ez_space[ibody][1],ez_space[ibody][2]);
+    }
+  }
+
 }
 
 /* ---------------------------------------------------------------------- */
@@ -1314,11 +1336,6 @@ void FixRigid::enforce2d()
     angmom[ibody][1] = 0.0;
     omega[ibody][0] = 0.0;
     omega[ibody][1] = 0.0;
-    if (langflag && langextra) {
-      langextra[ibody][2] = 0.0;
-      langextra[ibody][3] = 0.0;
-      langextra[ibody][4] = 0.0;
-    }
   }
 }
 
@@ -2038,6 +2055,7 @@ void FixRigid::setup_bodies_static()
 
   // diagonalize inertia tensor for each body via Jacobi rotations
   // inertia = 3 eigenvalues = principal moments of inertia
+  //   jacobi3() returns them in ascending order, so that in 2d last evector is z-axis
   // evectors and exzy_space = 3 evectors = principal axes of rigid body
 
   int ierror;
@@ -2066,6 +2084,23 @@ void FixRigid::setup_bodies_static()
     ez_space[ibody][1] = evectors[1][2];
     ez_space[ibody][2] = evectors[2][2];
 
+    // for 2d, ensure that evector along z axis is last
+    // necessary so that quaternion is a simple rotation around +z axis
+    //   or a 180 degree rotation for a -z axis
+    // otherwise richardson() method for a body with a tiny evalue (near-linear)
+    //  may not preserve the correct z-aligned quat and assocated evectors
+    //  over time due to round-off accumulation
+
+    if (domain->dimension == 2) {
+      if (fabs(ez_space[ibody][0]) > EPSILON || fabs(ez_space[ibody][1]) > EPSILON) {
+        printf("AAA EVEC SWAP %d\n",ibody);
+        std::swap(inertia[ibody][1],inertia[ibody][2]);
+        std::swap(ey_space[ibody][0],ez_space[ibody][0]);
+        std::swap(ey_space[ibody][1],ez_space[ibody][1]);
+        std::swap(ey_space[ibody][2],ez_space[ibody][2]);
+      }
+    }
+    
     // if any principal moment < scaled EPSILON, set to 0.0
 
     double max;

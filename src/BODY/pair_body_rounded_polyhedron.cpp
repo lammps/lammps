@@ -441,27 +441,23 @@ void PairBodyRoundedPolyhedron::init_style()
   for (i = 1; i <= ntypes; i++)
     maxerad[i] = merad[i] = 0;
 
-  int ipour;
-  for (ipour = 0; ipour < modify->nfix; ipour++)
-    if (strcmp(modify->fix[ipour]->style,"pour") == 0) break;
-  if (ipour == modify->nfix) ipour = -1;
+  Fix *fixpour = nullptr;
+  auto pours = modify->get_fix_by_style("^pour");
+  if (pours.size() > 0) fixpour = pours[0];
 
-  int idep;
-  for (idep = 0; idep < modify->nfix; idep++)
-    if (strcmp(modify->fix[idep]->style,"deposit") == 0) break;
-  if (idep == modify->nfix) idep = -1;
+  Fix *fixdep = nullptr;
+  auto deps = modify->get_fix_by_style("^deposit");
+  if (deps.size() > 0) fixdep = deps[0];
 
   for (i = 1; i <= ntypes; i++) {
     merad[i] = 0.0;
-    if (ipour >= 0) {
+    if (fixpour) {
       itype = i;
-      merad[i] =
-        *((double *) modify->fix[ipour]->extract("radius",itype));
+      merad[i] = *((double *) fixpour->extract("radius",itype));
     }
-    if (idep >= 0) {
+    if (fixdep) {
       itype = i;
-      merad[i] =
-        *((double *) modify->fix[idep]->extract("radius",itype));
+      merad[i] = *((double *) fixdep->extract("radius",itype));
     }
   }
 

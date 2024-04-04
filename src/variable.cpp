@@ -1544,7 +1544,7 @@ double Variable::evaluate(char *str, Tree **tree, int ivar)
 
             // wait to check index1 until after compute invocation
             // to allow for computes with size_vector_variable == 1
-            
+
             if (index1 > compute->size_vector)
               print_var_error(FLERR,"Variable formula compute vector is accessed out-of-range",ivar,0);
 
@@ -1572,7 +1572,7 @@ double Variable::evaluate(char *str, Tree **tree, int ivar)
 
             if (index1 > compute->size_array_rows)
               print_var_error(FLERR,"Variable formula compute array is accessed out-of-range",ivar,0);
-              
+
             value1 = compute->array[index1-1][index2-1];
             argstack[nargstack++] = value1;
 
@@ -1645,7 +1645,7 @@ double Variable::evaluate(char *str, Tree **tree, int ivar)
 
             // wait to check vector size until after compute invocation
             // to allow for computes with size_vector_variable == 1
-            
+
             if (compute->size_vector == 0)
               print_var_error(FLERR,"Variable formula compute vector is zero length",ivar);
 
@@ -1671,14 +1671,10 @@ double Variable::evaluate(char *str, Tree **tree, int ivar)
               compute->compute_array();
               compute->invoked_flag |= Compute::INVOKED_ARRAY;
             }
-            // wait until after compute invocation to check size_array_rows
-            // b/c may be zero until after initial invocation
-            if (compute->size_array_rows == 0)
-              print_var_error(FLERR,"Variable formula compute array is zero length",ivar);
 
             // wait to check row count until after compute invocation
             // to allow for computes with size_array_rows_variable == 1
-            
+
             if (compute->size_array_rows == 0)
               print_var_error(FLERR,"Variable formula compute array has zero rows",ivar);
 

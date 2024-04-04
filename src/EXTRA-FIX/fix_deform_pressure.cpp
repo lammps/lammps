@@ -788,7 +788,7 @@ void FixDeformPressure::apply_box()
 void FixDeformPressure::write_restart(FILE *fp)
 {
   if (comm->me == 0) {
-    int size = 9 * sizeof(double) + 7 * sizeof(Set) + 7 * sizeof(SetExtra);
+    int size = 7 * sizeof(Set) + 7 * sizeof(SetExtra);
     fwrite(&size, sizeof(int), 1, fp);
     fwrite(set, sizeof(Set), 6, fp);
     fwrite(&set_box, sizeof(Set), 1, fp);
@@ -803,22 +803,16 @@ void FixDeformPressure::write_restart(FILE *fp)
 void FixDeformPressure::restart(char *buf)
 {
   int n = 0;
-  auto list = (double *) buf;
-  for (int i = 0; i < 6; i++)
-    h_rate[i] = list[n++];
-  for (int i = 0; i < 3; i++)
-    h_ratelo[i] = list[n++];
-
-  n = n * sizeof(double);
   int samestyle = 1;
-  Set *set_restart = (Set *) &buf[n];
+  Set *set_restart = (Set *) buf;
   for (int i = 0; i < 6; ++i) {
     // restore data from initial state
     set[i].lo_initial = set_restart[i].lo_initial;
     set[i].hi_initial = set_restart[i].hi_initial;
     set[i].vol_initial = set_restart[i].vol_initial;
     set[i].tilt_initial = set_restart[i].tilt_initial;
-    // check if style settings are consistent (should do the whole set?)
+
+    // check if style settings are consistent
     if (set[i].style != set_restart[i].style)
       samestyle = 0;
     if (set[i].substyle != set_restart[i].substyle)

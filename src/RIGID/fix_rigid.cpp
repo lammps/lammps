@@ -1987,7 +1987,7 @@ void FixRigid::setup_bodies_static()
     // necessary so that quaternion is a simple rotation around +z axis
     //   or a 180 degree rotation for a -z axis
     // otherwise richardson() method for a body with a tiny evalue (near-linear)
-    //  may not preserve the correct z-aligned quat and assocated evectors
+    //  may not preserve the correct z-aligned quat and associated evectors
     //  over time due to round-off accumulation
 
     if (domain->dimension == 2) {

@@ -416,7 +416,7 @@ void FixAveCorrelate::end_of_step()
     // evaluate equal-style or vector-style variable
     // if index exceeds vector length, use a zero value
     //   this can be useful if vector length is not known a priori
-      
+
     } else if (val.which == ArgInfo::VARIABLE) {
       if (val.argindex == 0)
         scalar = input->variable->compute_equal(val.val.v);

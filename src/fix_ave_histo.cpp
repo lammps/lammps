@@ -639,7 +639,7 @@ void FixAveHisto::end_of_step()
     modify->addstep_compute(nvalid);
     return;
   }
-  
+
   irepeat = 0;
   nvalid = ntimestep + nfreq - static_cast<bigint>(nrepeat-1)*nevery;
   modify->addstep_compute(nvalid);

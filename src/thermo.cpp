@@ -1515,6 +1515,8 @@ void Thermo::compute_fix()
   int m = field2index[ifield];
   Fix *fix = fixes[m];
 
+  // check for out-of-range access if vector/array is variable length
+
   if (argindex1[ifield] == 0) {
     dvalue = fix->compute_scalar();
     if (normflag && fix->extscalar) dvalue /= natoms;
@@ -1544,13 +1546,17 @@ void Thermo::compute_variable()
 {
   int iarg = argindex1[ifield];
 
+  // evaluate equal-style or vector-style variable
+  // if index exceeds vector length, use a zero value
+  //   this can be useful if vector length is not known a priori
+
   if (iarg == 0)
     dvalue = input->variable->compute_equal(variables[field2index[ifield]]);
   else {
     double *varvec;
     int nvec = input->variable->compute_vector(variables[field2index[ifield]], &varvec);
-    if (iarg > nvec) error->all(FLERR, "Thermo vector-style variable is accessed out-of-range");
-    dvalue = varvec[iarg - 1];
+    if (iarg > nvec) dvalue = 0.0;
+    else dvalue = varvec[iarg - 1];
   }
 }
 

@@ -704,16 +704,8 @@ void FixRigidSmall::setup(int vflag)
     Body *b = &body[ibody];
     MathExtra::angmom_to_omega(b->angmom,b->ex_space,b->ey_space,
                                b->ez_space,b->inertia,b->omega);
-    printf("IBODY %d quat %g %g %g %g omega %g %g %g idiag %g %g %g ex %g %g %g ey %g %g %g ez %g %g %g\n",
-           ibody,  
-           b->quat[0],b->quat[1],b->quat[2],b->quat[3],
-           b->omega[0],b->omega[1],b->omega[2],
-           b->inertia[0],b->inertia[1],b->inertia[2],
-           b->ex_space[0],b->ex_space[1],b->ex_space[2],
-           b->ey_space[0],b->ey_space[1],b->ey_space[2],
-           b->ez_space[0],b->ez_space[1],b->ez_space[2]);
   }
-
+  
   commflag = FINAL;
   comm->forward_comm(this,10);
 
@@ -879,21 +871,6 @@ void FixRigidSmall::final_integrate()
   // virial is already setup from initial_integrate
 
   set_v();
-
-  if (update->ntimestep == 1000) {
-    for (int ibody = 0; ibody < nlocal_body; ibody++) {
-      Body *b = &body[ibody];
-      printf("IBODY %d quat %g %g %g %g omega %g %g %g idiag %g %g %g ex %g %g %g ey %g %g %g ez %g %g %g\n",
-             ibody,  
-             b->quat[0],b->quat[1],b->quat[2],b->quat[3],
-             b->omega[0],b->omega[1],b->omega[2],
-             b->inertia[0],b->inertia[1],b->inertia[2],
-             b->ex_space[0],b->ex_space[1],b->ex_space[2],
-             b->ey_space[0],b->ey_space[1],b->ey_space[2],
-             b->ez_space[0],b->ez_space[1],b->ez_space[2]);
-    }
-  }
-
 }
 
 /* ---------------------------------------------------------------------- */
@@ -2120,7 +2097,8 @@ void FixRigidSmall::setup_bodies_static()
 
   // diagonalize inertia tensor for each body via Jacobi rotations
   // inertia = 3 eigenvalues = principal moments of inertia
-  //   jacobi3() returns them in ascending order, so that in 2d last evector is z-axis
+  //   request that jacobi3() returns them in ascending order,
+  //   so that in 2d last evector is z-axis
   // evectors and exzy_space = 3 evectors = principal axes of rigid body
 
   int ierror;
@@ -2137,7 +2115,7 @@ void FixRigidSmall::setup_bodies_static()
     tensor[0][1] = tensor[1][0] = itensor[ibody][5];
 
     inertia = body[ibody].inertia;
-    ierror = MathEigen::jacobi3(tensor,inertia,evectors);
+    ierror = MathEigen::jacobi3(tensor,inertia,evectors,1);
     if (ierror) error->all(FLERR, "Insufficient Jacobi rotations for rigid body");
 
     ex = body[ibody].ex_space;

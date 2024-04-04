@@ -343,6 +343,7 @@ void FixBondHistory::compress_history()
 void FixBondHistory::uncompress_history()
 {
   if (update_flag) {
+    int type;
     int ncomp = 0;
     for (int n = 0; n < nbondlist_orig; n++) {
       type = bondtype_orig[n];

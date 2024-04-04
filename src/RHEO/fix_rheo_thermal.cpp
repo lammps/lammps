@@ -270,13 +270,8 @@ void FixRHEOThermal::init()
     auto req = neighbor->add_request(this, NeighConst::REQ_OCCASIONAL);
     req->set_cutoff(cut_kernel);
 
-    // find instances of bond history to delete data
-    // skip history for shell, only exception
+    // find instances of bond history to delete/shift data
     histories = modify->get_fix_by_style("BOND_HISTORY");
-    if (n_histories > 0)
-      for (int i = 0; i < histories.size(); i++)
-        if (strcmp(histories[i]->id, "HISTORY_RHEO_SHELL") == 0)
-          histories.erase(histories.begin() + i);
     n_histories = histories.size();
   }
 }
@@ -498,7 +493,7 @@ void FixRHEOThermal::break_bonds()
   int nlocal = atom->nlocal;
   int nall = nlocal + atom->nghost;
 
-  // Rapidly delete all bonds for local atoms that melt of a given type
+  // Delete all bonds for local atoms that melt of a given type
   for (int i = 0; i < nlocal; i++) {
     if (!(status[i] & STATUS_MELTING)) continue;
     for (m = (num_bond[i] - 1); m >= 0; m--) {
@@ -543,7 +538,7 @@ void FixRHEOThermal::break_bonds()
     bondlist[n][2] = 0;
 
     // Delete bonds for non-melted local atoms (shifting)
-    if (i < nlocal) {
+    if (i < nlocal && !(status[i] & STATUS_MELTING)) {
       for (m = 0; m < num_bond[i]; m++) {
         if (bond_atom[i][m] == tag[j] && bond_type[i][m] == btype) {
           nmax = num_bond[i] - 1;
@@ -562,7 +557,7 @@ void FixRHEOThermal::break_bonds()
       }
     }
 
-    if (j < nlocal) {
+    if (j < nlocal && !(status[j] & STATUS_MELTING)) {
       for (m = 0; m < num_bond[j]; m++) {
         if (bond_atom[j][m] == tag[i] && bond_type[j][m] == btype) {
           nmax = num_bond[j] - 1;

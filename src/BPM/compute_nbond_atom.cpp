@@ -14,7 +14,9 @@
 #include "compute_nbond_atom.h"
 
 #include "atom.h"
+#include "atom_vec.h"
 #include "comm.h"
+#include "error.h"
 #include "force.h"
 #include "memory.h"
 
@@ -25,18 +27,20 @@ using namespace LAMMPS_NS;
 ComputeNBondAtom::ComputeNBondAtom(LAMMPS *_lmp, int narg, char **arg) :
     Compute(_lmp, narg, arg), nbond(nullptr)
 {
-  if (narg < 4) utils::missing_cmd_args(FLERR, "compute nbond/atom", error);
+  if (narg < 3) utils::missing_cmd_args(FLERR, "compute nbond/atom", error);
+
+  if (atom->avec->bonds_allow == 0)
+    error->all(FLERR,"Compute nbond/atom used when bonds are not allowed");
 
   btype = -1;
-
-  iarg = 3;
+  int iarg = 3;
   while (iarg < narg) {
     if (strcmp(arg[iarg], "bond/type") == 0) {
       if (iarg + 2 > narg) utils::missing_cmd_args(FLERR, "compute nbond/atom bond/type", error);
       btype = utils::inumeric(FLERR, arg[iarg + 1], false, lmp);
       iarg += 2;
     } else {
-      error->all(FLERR, "Unknown compute nbond/type command {}", arg[iarg]);
+      error->all(FLERR, "Unknown compute nbond/atom command {}", arg[iarg]);
     }
   }
 

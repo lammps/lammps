@@ -43,7 +43,7 @@ class BondRHEOShell : public BondBPM {
 
  protected:
   double *k, *ecrit, *gamma;
-  double tform, rmax;
+  double tform, rmax, rsurf;
 
   int *dbond, *nbond;
   int index_nb, nmax_store;

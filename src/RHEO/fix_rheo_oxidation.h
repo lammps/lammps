@@ -37,12 +37,13 @@ class FixRHEOOxidation : public Fix {
   void pre_force(int) override;
   void post_integrate() override;
   int *nbond;
+  double rsurf, cut;
 
  private:
   int btype, index_nb;
-  double rsurf, cut, cutsq;
-  class NeighList *list;
+  double cutsq;
 
+  class NeighList *list;
   class ComputeRHEOSurface *compute_surface;
   class FixRHEO *fix_rheo;
 };

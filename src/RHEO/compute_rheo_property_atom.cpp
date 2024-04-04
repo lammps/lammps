@@ -160,27 +160,30 @@ void ComputeRHEOPropertyAtom::init()
     error->all(FLERR, "Cannot request velocity shifting property without corresponding option in fix rheo");
   if (thermal_flag && !(fix_rheo->thermal_flag))
     error->all(FLERR, "Cannot request thermal property without fix rheo/thermal");
-  if (shell_flag && !(fix_rheo->oxidation_flag))
-    error->all(FLERR, "Cannot request number of shell bonds without fix rheo/oxidation");
 
   compute_interface = fix_rheo->compute_interface;
   compute_kernel = fix_rheo->compute_kernel;
   compute_surface = fix_rheo->compute_surface;
   compute_vshift = fix_rheo->compute_vshift;
   compute_grad = fix_rheo->compute_grad;
+}
 
+/* ---------------------------------------------------------------------- */
+
+void ComputeRHEOPropertyAtom::setup()
+{
   if (thermal_flag) {
-    fixes = modify->get_fix_by_style("rheo/thermal");
+    auto fixes = modify->get_fix_by_style("rheo/thermal");
     fix_thermal = dynamic_cast<FixRHEOThermal *>(fixes[0]);
   }
 
   if (pressure_flag) {
-    fixes = modify->get_fix_by_style("rheo/pressure");
+    auto fixes = modify->get_fix_by_style("rheo/pressure");
     fix_pressure = dynamic_cast<FixRHEOPressure *>(fixes[0]);
   }
 
   if (shell_flag) {
-    fixes = modify->get_fix_by_style("rheo/oxidation");
+    auto fixes = modify->get_fix_by_style("rheo/oxidation");
     fix_oxidation = dynamic_cast<FixRHEOOxidation *>(fixes[0]);
   }
 }

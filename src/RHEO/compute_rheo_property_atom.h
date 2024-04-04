@@ -29,6 +29,7 @@ class ComputeRHEOPropertyAtom : public Compute {
   ComputeRHEOPropertyAtom(class LAMMPS *, int, char **);
   ~ComputeRHEOPropertyAtom() override;
   void init() override;
+  void setup() override;
   void compute_peratom() override;
   double memory_usage() override;
 

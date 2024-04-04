@@ -25,6 +25,7 @@
 #include "error.h"
 #include "fix_bond_history.h"
 #include "fix_rheo.h"
+#include "fix_rheo_oxidation.h"
 #include "fix_store_local.h"
 #include "force.h"
 #include "memory.h"
@@ -48,7 +49,12 @@ BondRHEOShell::BondRHEOShell(LAMMPS *_lmp) :
   partial_flag = 1;
   comm_reverse = 1;
 
-  tform = rmax = -1;
+  nhistory = 2;
+  update_flag = 1;
+  id_fix_bond_history = utils::strdup("HISTORY_RHEO_SHELL");
+  ignore_special_flag = 1;
+
+  tform = -1;
 
   single_extra = 1;
   svector = new double[1];
@@ -155,11 +161,13 @@ void BondRHEOShell::store_data()
 
 void BondRHEOShell::compute(int eflag, int vflag)
 {
-
   if (!fix_bond_history->stored_flag) {
     fix_bond_history->stored_flag = true;
     store_data();
   }
+
+  if (hybrid_flag)
+    fix_bond_history->compress_history();
 
   int i1, i2, itmp, n, type;
   double delx, dely, delz, delvx, delvy, delvz;
@@ -168,6 +176,7 @@ void BondRHEOShell::compute(int eflag, int vflag)
 
   ev_init(eflag, vflag);
 
+  double *rsurface = compute_surface->rsurface;
   double **x = atom->x;
   double **v = atom->v;
   double **f = atom->f;
@@ -223,7 +232,7 @@ void BondRHEOShell::compute(int eflag, int vflag)
     if (t < tform) {
 
       // Check if eligible
-      if (r > rmax || !(status[i1] & STATUS_SURFACE) || !(status[i2] & STATUS_SURFACE)) {
+      if (r > rmax || rsurface[i1] > rsurf || rsurface[i2] > rsurf) {
         bondlist[n][2] = 0;
         process_ineligibility(i1, i2);
         continue;
@@ -286,6 +295,9 @@ void BondRHEOShell::compute(int eflag, int vflag)
     // If it has bonds, no shifting
     if (nbond[i] != 0) status[i] |= STATUS_NO_SHIFT;
   }
+
+  if (hybrid_flag)
+    fix_bond_history->uncompress_history();
 }
 
 /* ---------------------------------------------------------------------- */
@@ -339,6 +351,8 @@ void BondRHEOShell::coeff(int narg, char **arg)
 
 void BondRHEOShell::init_style()
 {
+  BondBPM::init_style();
+
   if (comm->ghost_velocity == 0)
     error->all(FLERR, "Bond rheo/shell requires ghost atoms store velocity");
 
@@ -350,37 +364,12 @@ void BondRHEOShell::init_style()
       "Bond rheo/shell requires surface calculation in fix rheo");
   compute_surface = fix_rheo->compute_surface;
 
-  if (fix_rheo->oxidation_fix_defined != 1)
-    error->all(FLERR, "Need to define fix rheo/oxdiation to use bond rheo/shell");
-  // check consistency in values (copy?), swap conditions to rsurf
+  fixes = modify->get_fix_by_style("^rheo/oxidation$");
+  if (fixes.size() == 0) error->all(FLERR, "Need to define fix rheo/oxidation to use bond rheo/shell");
+  class FixRHEOOxidation *fix_rheo_oxidation = dynamic_cast<FixRHEOOxidation *>(fixes[0]);
 
-  if (!id_fix_bond_history) {
-    id_fix_bond_history = utils::strdup("HISTORY_RHEO_SHELL");
-    fix_bond_history = dynamic_cast<FixBondHistory *>(modify->replace_fix(
-        id_fix_dummy2, fmt::format("{} all BOND_HISTORY 1 2", id_fix_bond_history), 1));
-    delete[] id_fix_dummy2;
-    id_fix_dummy2 = nullptr;
-  }
-
-  // Reproduce standard functions of BondBPM, removing special restrictions
-  // Since this bond is intended to be created by fix rheo/oxidation, it
-  // ignores special statuses
-
-  if (id_fix_store_local) {
-    auto ifix = modify->get_fix_by_id(id_fix_store_local);
-    if (!ifix) error->all(FLERR, "Cannot find fix STORE/LOCAL id {}", id_fix_store_local);
-    if (strcmp(ifix->style, "STORE/LOCAL") != 0)
-      error->all(FLERR, "Incorrect fix style matched, not STORE/LOCAL: {}", ifix->style);
-    fix_store_local = dynamic_cast<FixStoreLocal *>(ifix);
-    fix_store_local->nvalues = nvalues;
-  }
-
-  id_fix_update = nullptr;
-
-  if (force->angle || force->dihedral || force->improper)
-    error->all(FLERR, "Bond style rheo/shell cannot be used with 3,4-body interactions");
-  if (atom->molecular == 2)
-    error->all(FLERR, "Bond style rheo/shell cannot be used with atom style template");
+  rsurf = fix_rheo_oxidation->rsurf;
+  rmax = fix_rheo_oxidation->cut;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -397,20 +386,13 @@ void BondRHEOShell::settings(int narg, char **arg)
       tform = utils::numeric(FLERR, arg[iarg + 1], false, lmp);
       if (tform < 0.0) error->all(FLERR, "Illegal bond rheo/shell value for t/form, {}", tform);
       i += 1;
-    } else if (strcmp(arg[iarg], "r/max") == 0) {
-      if (iarg + 1 > narg) error->all(FLERR, "Illegal bond rheo/shell command, missing option for r/max");
-      rmax = utils::numeric(FLERR, arg[iarg + 1], false, lmp);
-      if (rmax < 0.0) error->all(FLERR, "Illegal bond rheo/shell value for r/max, {}", rmax);
-      i += 1;
     } else {
       error->all(FLERR, "Illegal bond rheo/shell command, invalid argument {}", arg[iarg]);
     }
   }
 
   if (tform < 0.0)
-    error->all(FLERR, "Illegal bond rheo/shell command, must specify t/form");
-  if (rmax < 0.0)
-    error->all(FLERR, "Illegal bond rheo/shell command, must specify r/max");
+    error->all(FLERR, "Illegal bond rheo/shell command, must specify formation time");
 }
 
 
@@ -467,7 +449,6 @@ void BondRHEOShell::read_restart(FILE *fp)
 void BondRHEOShell::write_restart_settings(FILE *fp)
 {
   fwrite(&tform, sizeof(double), 1, fp);
-  fwrite(&rmax, sizeof(double), 1, fp);
 }
 
 /* ----------------------------------------------------------------------
@@ -478,10 +459,8 @@ void BondRHEOShell::read_restart_settings(FILE *fp)
 {
   if (comm->me == 0) {
     utils::sfread(FLERR, &tform, sizeof(double), 1, fp, nullptr, error);
-    utils::sfread(FLERR, &rmax, sizeof(double), 1, fp, nullptr, error);
   }
   MPI_Bcast(&tform, 1, MPI_DOUBLE, 0, world);
-  MPI_Bcast(&rmax, 1, MPI_DOUBLE, 0, world);
 }
 
 
@@ -570,13 +549,16 @@ void BondRHEOShell::process_ineligibility(int i, int j)
 
   if (i < nlocal) {
     for (m = 0; m < num_bond[i]; m++) {
-      if (bond_atom[i][m] == tag[j]) {
+      if (bond_atom[i][m] == tag[j] && setflag[bond_type[i][m]]) {
         bond_type[i][m] = 0;
         n = num_bond[i];
         bond_type[i][m] = bond_type[i][n - 1];
         bond_atom[i][m] = bond_atom[i][n - 1];
-        fix_bond_history->shift_history(i, m, n - 1);
-        fix_bond_history->delete_history(i, n - 1);
+        for (auto &ihistory: histories) {
+          auto fix_bond_history2 = dynamic_cast<FixBondHistory *>  (ihistory);
+          fix_bond_history2->shift_history(i, m, n - 1);
+          fix_bond_history2->delete_history(i, n - 1);
+        }
         num_bond[i]--;
         break;
       }
@@ -585,13 +567,16 @@ void BondRHEOShell::process_ineligibility(int i, int j)
 
   if (j < nlocal) {
     for (m = 0; m < num_bond[j]; m++) {
-      if (bond_atom[j][m] == tag[i]) {
+      if (bond_atom[j][m] == tag[i] && setflag[bond_type[j][m]]) {
         bond_type[j][m] = 0;
         n = num_bond[j];
         bond_type[j][m] = bond_type[j][n - 1];
         bond_atom[j][m] = bond_atom[j][n - 1];
-        fix_bond_history->shift_history(j, m, n - 1);
-        fix_bond_history->delete_history(j, n - 1);
+        for (auto &ihistory: histories) {
+          auto fix_bond_history2 = dynamic_cast<FixBondHistory *>  (ihistory);
+          fix_bond_history2->shift_history(j, m, n - 1);
+          fix_bond_history2->delete_history(j, n - 1);
+        }
         num_bond[j]--;
         break;
       }

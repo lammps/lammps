@@ -327,6 +327,10 @@ double PairRHEOSolid::single(int i, int j, int itype, int jtype, double rsq, dou
 
   if (rsq > cutsq[itype][jtype]) return 0.0;
 
+  int *status = atom->status;
+  if (!(status[i] & STATUS_SOLID)) return 0.0;
+  if (!(status[j] & STATUS_SOLID)) return 0.0;
+
   double **x = atom->x;
   double **v = atom->v;
 

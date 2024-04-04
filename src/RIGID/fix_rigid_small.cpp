@@ -705,7 +705,7 @@ void FixRigidSmall::setup(int vflag)
     MathExtra::angmom_to_omega(b->angmom,b->ex_space,b->ey_space,
                                b->ez_space,b->inertia,b->omega);
   }
-  
+
   commflag = FINAL;
   comm->forward_comm(this,10);
 
@@ -2169,7 +2169,7 @@ void FixRigidSmall::setup_bodies_static()
 
     // convert geometric center position to principal axis coordinates
     // xcm is wrapped, but xgc is not initially
-    
+
     xcm = body[ibody].xcm;
     xgc = body[ibody].xgc;
     double delta[3];

@@ -38,9 +38,6 @@
 #include <cmath>
 #include <cstring>
 
-// DEBUG
-#define IBODY 10
-
 using namespace LAMMPS_NS;
 using namespace FixConst;
 using namespace MathConst;
@@ -2001,7 +1998,7 @@ void FixRigid::setup_bodies_static()
         std::swap(ey_space[ibody][2],ez_space[ibody][2]);
       }
     }
-    
+
     // if any principal moment < scaled EPSILON, set to 0.0
 
     double max;

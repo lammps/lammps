@@ -97,7 +97,7 @@ FixAveCorrelate::FixAveCorrelate(LAMMPS *lmp, int narg, char **arg) :
 
   while (iarg < nargnew) {
     if (strcmp(arg[iarg],"type") == 0) {
-      if (iarg+2 > narg) utils::missing_cmd_args(FLERR, "fix ave/correlate type", error);
+      if (iarg+2 > nargnew) utils::missing_cmd_args(FLERR, "fix ave/correlate type", error);
       if (strcmp(arg[iarg+1],"auto") == 0) type = AUTO;
       else if (strcmp(arg[iarg+1],"upper") == 0) type = UPPER;
       else if (strcmp(arg[iarg+1],"lower") == 0) type = LOWER;
@@ -107,17 +107,17 @@ FixAveCorrelate::FixAveCorrelate(LAMMPS *lmp, int narg, char **arg) :
       else error->all(FLERR,"Unknown fix ave/correlate type: {}");
       iarg += 2;
     } else if (strcmp(arg[iarg],"ave") == 0) {
-      if (iarg+2 > narg) utils::missing_cmd_args(FLERR, "fix ave/correlate ave", error);
+      if (iarg+2 > nargnew) utils::missing_cmd_args(FLERR, "fix ave/correlate ave", error);
       if (strcmp(arg[iarg+1],"one") == 0) ave = ONE;
       else if (strcmp(arg[iarg+1],"running") == 0) ave = RUNNING;
       else error->all(FLERR,"Unknown fix ave/correlate ave mode: {}", arg[iarg+1]);
       iarg += 2;
     } else if (strcmp(arg[iarg],"start") == 0) {
-      if (iarg+2 > narg) utils::missing_cmd_args(FLERR, "fix ave/correlate start", error);
+      if (iarg+2 > nargnew) utils::missing_cmd_args(FLERR, "fix ave/correlate start", error);
       startstep = utils::inumeric(FLERR,arg[iarg+1],false,lmp);
       iarg += 2;
     } else if (strcmp(arg[iarg],"prefactor") == 0) {
-      if (iarg+2 > narg) utils::missing_cmd_args(FLERR, "fix ave/correlate prefactor", error);
+      if (iarg+2 > nargnew) utils::missing_cmd_args(FLERR, "fix ave/correlate prefactor", error);
       prefactor = utils::numeric(FLERR,arg[iarg+1],false,lmp);
       iarg += 2;
     } else if (strcmp(arg[iarg],"file") == 0) {
@@ -133,17 +133,17 @@ FixAveCorrelate::FixAveCorrelate(LAMMPS *lmp, int narg, char **arg) :
       overwrite = 1;
       iarg += 1;
     } else if (strcmp(arg[iarg],"title1") == 0) {
-      if (iarg+2 > narg) utils::missing_cmd_args(FLERR, "fix ave/correlate title1", error);
+      if (iarg+2 > nargnew) utils::missing_cmd_args(FLERR, "fix ave/correlate title1", error);
       delete[] title1;
       title1 = utils::strdup(arg[iarg+1]);
       iarg += 2;
     } else if (strcmp(arg[iarg],"title2") == 0) {
-      if (iarg+2 > narg) utils::missing_cmd_args(FLERR, "fix ave/correlate title2", error);
+      if (iarg+2 > nargnew) utils::missing_cmd_args(FLERR, "fix ave/correlate title2", error);
       delete[] title2;
       title2 = utils::strdup(arg[iarg+1]);
       iarg += 2;
     } else if (strcmp(arg[iarg],"title3") == 0) {
-      if (iarg+2 > narg) utils::missing_cmd_args(FLERR, "fix ave/correlate title3", error);
+      if (iarg+2 > nargnew) utils::missing_cmd_args(FLERR, "fix ave/correlate title3", error);
       delete[] title3;
       title3 = utils::strdup(arg[iarg+1]);
       iarg += 2;

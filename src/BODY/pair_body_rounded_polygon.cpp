@@ -415,17 +415,14 @@ void PairBodyRoundedPolygon::init_style()
   if (!avec)
     error->all(FLERR,"Pair body/rounded/polygon requires atom style body");
   if (strcmp(avec->bptr->style,"rounded/polygon") != 0)
-    error->all(FLERR,"Pair body/rounded/polygon requires "
-               "body style rounded/polygon");
+    error->all(FLERR,"Pair body/rounded/polygon requires body style rounded/polygon");
   bptr = dynamic_cast<BodyRoundedPolygon *>(avec->bptr);
 
   if (force->newton_pair == 0)
-    error->all(FLERR,"Pair style body/rounded/polygon requires "
-               "newton pair on");
+    error->all(FLERR,"Pair style body/rounded/polygon requires newton pair on");
 
   if (comm->ghost_velocity == 0)
-    error->all(FLERR,"Pair body/rounded/polygon requires "
-               "ghost atoms store velocity");
+    error->all(FLERR,"Pair body/rounded/polygon requires ghost atoms store velocity");
 
   neighbor->add_request(this);
 
@@ -463,27 +460,24 @@ void PairBodyRoundedPolygon::init_style()
   for (i = 1; i <= ntypes; i++)
     maxerad[i] = merad[i] = 0;
 
-  int ipour;
-  for (ipour = 0; ipour < modify->nfix; ipour++)
-    if (strcmp(modify->fix[ipour]->style,"pour") == 0) break;
-  if (ipour == modify->nfix) ipour = -1;
+  Fix *fixpour = nullptr;
+  auto pours = modify->get_fix_by_style("^pour");
+  if (pours.size() > 0) fixpour = pours[0];
 
-  int idep;
-  for (idep = 0; idep < modify->nfix; idep++)
-    if (strcmp(modify->fix[idep]->style,"deposit") == 0) break;
-  if (idep == modify->nfix) idep = -1;
+  Fix *fixdep = nullptr;
+  auto deps = modify->get_fix_by_style("^deposit");
+  if (deps.size() > 0) fixdep = deps[0];
+
 
   for (i = 1; i <= ntypes; i++) {
     merad[i] = 0.0;
-    if (ipour >= 0) {
+    if (fixpour) {
       itype = i;
-      merad[i] =
-        *((double *) modify->fix[ipour]->extract("radius",itype));
+      merad[i] = *((double *) fixpour->extract("radius",itype));
     }
-    if (idep >= 0) {
+    if (fixdep) {
       itype = i;
-      merad[i] =
-        *((double *) modify->fix[idep]->extract("radius",itype));
+      merad[i] = *((double *) fixdep->extract("radius",itype));
     }
   }
 
@@ -570,8 +564,7 @@ void PairBodyRoundedPolygon::body2space(int i)
   }
 
   if ((body_num_edges > 0) && (edge_ends == nullptr))
-    error->one(FLERR,"Inconsistent edge data for body of atom {}",
-                                 atom->tag[i]);
+    error->one(FLERR,"Inconsistent edge data for body of atom {}", atom->tag[i]);
 
   for (int m = 0; m < body_num_edges; m++) {
     edge[nedge][0] = static_cast<int>(edge_ends[2*m+0]);

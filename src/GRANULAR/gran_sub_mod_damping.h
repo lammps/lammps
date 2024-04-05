@@ -18,8 +18,8 @@ GranSubModStyle(velocity,GranSubModDampingVelocity,DAMPING);
 GranSubModStyle(mass_velocity,GranSubModDampingMassVelocity,DAMPING);
 GranSubModStyle(viscoelastic,GranSubModDampingViscoelastic,DAMPING);
 GranSubModStyle(tsuji,GranSubModDampingTsuji,DAMPING);
-GranSubModStyle(enhooke,GranSubModDampingEnHooke,DAMPING);
-GranSubModStyle(enhertz,GranSubModDampingEnHertz,DAMPING);
+GranSubModStyle(hooke/en,GranSubModDampingHookeEn,DAMPING);
+GranSubModStyle(hertz/en,GranSubModDampingHertzEn,DAMPING);
 // clang-format on
 #else
 
@@ -88,18 +88,18 @@ namespace Granular_NS {
 
   /* ---------------------------------------------------------------------- */
 
-  class GranSubModDampingEnHooke : public GranSubModDamping {
+  class GranSubModDampingHookeEn : public GranSubModDamping {
    public:
-    GranSubModDampingEnHooke(class GranularModel *, class LAMMPS *);
+    GranSubModDampingHookeEn(class GranularModel *, class LAMMPS *);
     void init() override;
     double calculate_forces() override;
   };
 
   /* ---------------------------------------------------------------------- */
 
-  class GranSubModDampingEnHertz : public GranSubModDamping {
+  class GranSubModDampingHertzEn : public GranSubModDamping {
    public:
-    GranSubModDampingEnHertz(class GranularModel *, class LAMMPS *);
+    GranSubModDampingHertzEn(class GranularModel *, class LAMMPS *);
     void init() override;
     double calculate_forces() override;
   };

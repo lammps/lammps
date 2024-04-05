@@ -141,44 +141,44 @@ double GranSubModDampingTsuji::calculate_forces()
 }
 
 /* ----------------------------------------------------------------------
-   enhooke damping
+   hookeen damping
 ------------------------------------------------------------------------- */
 
-GranSubModDampingEnHooke::GranSubModDampingEnHooke(GranularModel *gm, LAMMPS *lmp) :
+GranSubModDampingHookeEn::GranSubModDampingHookeEn(GranularModel *gm, LAMMPS *lmp) :
     GranSubModDamping(gm, lmp)
 {
 }
 
-void GranSubModDampingEnHooke::init()
+void GranSubModDampingHookeEn::init()
 {
   double cor = gm->normal_model->get_damp();
   double logcor = log(cor);
   damp = -2*logcor/sqrt(PISQ + logcor*logcor);
 }
 
-double GranSubModDampingEnHooke::calculate_forces()
+double GranSubModDampingHookeEn::calculate_forces()
 {
   damp_prefactor = damp * sqrt(gm->meff * gm->Fnormal / gm->delta);
   return -damp_prefactor * gm->vnnr;
 }
 
 /* ----------------------------------------------------------------------
-   enhertz damping
+   hertzen damping
 ------------------------------------------------------------------------- */
 
-GranSubModDampingEnHertz::GranSubModDampingEnHertz(GranularModel *gm, LAMMPS *lmp) :
+GranSubModDampingHertzEn::GranSubModDampingHertzEn(GranularModel *gm, LAMMPS *lmp) :
     GranSubModDamping(gm, lmp)
 {
 }
 
-void GranSubModDampingEnHertz::init()
+void GranSubModDampingHertzEn::init()
 {
   double cor = gm->normal_model->get_damp();
   double logcor = log(cor);
   damp = -ROOTTHREEBYTWO*TWOROOTFIVEBYSIX*logcor/sqrt(PISQ + logcor*logcor);
 }
 
-double GranSubModDampingEnHertz::calculate_forces()
+double GranSubModDampingHertzEn::calculate_forces()
 {
   damp_prefactor = damp * sqrt(gm->meff * gm->Fnormal / gm->delta);
   return -damp_prefactor * gm->vnnr;

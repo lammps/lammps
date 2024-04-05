@@ -39,6 +39,7 @@ PairOxdnaStk::PairOxdnaStk(LAMMPS *lmp) : Pair(lmp)
 {
   single_enable = 0;
   writedata = 1;
+  trim_flag = 0;
 
   // sequence-specific stacking strength
   // A:0 C:1 G:2 T:3, 3'- [i][j] -5'

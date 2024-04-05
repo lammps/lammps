@@ -42,6 +42,7 @@ PairOxdnaExcv::PairOxdnaExcv(LAMMPS *lmp) : Pair(lmp)
 
   // set comm size needed by this Pair
   comm_forward = 9;
+  trim_flag = 0;
 }
 
 /* ---------------------------------------------------------------------- */

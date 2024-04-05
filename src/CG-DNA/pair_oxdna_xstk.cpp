@@ -40,6 +40,7 @@ PairOxdnaXstk::PairOxdnaXstk(LAMMPS *lmp) : Pair(lmp)
 {
   single_enable = 0;
   writedata = 1;
+  trim_flag = 0;
 }
 
 /* ---------------------------------------------------------------------- */

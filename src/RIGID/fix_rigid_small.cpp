@@ -2160,7 +2160,7 @@ void FixRigidSmall::setup_bodies_static()
     xgc = body[ibody].xgc;
     double delta[3];
     MathExtra::sub3(xgc,xcm,delta);
-    domain->minimum_image(delta);
+    domain->minimum_image_big(delta);
     MathExtra::transpose_matvec(ex,ey,ez,delta,body[ibody].xgc_body);
     MathExtra::add3(xcm,delta,xgc);
   }

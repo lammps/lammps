@@ -17,6 +17,8 @@
 
 import unittest
 import subprocess
+import platform
+import os
 
 PREFIX = "$<TARGET_FILE_DIR:Kokkos_CoreUnitTest_DeviceAndThreads>"
 EXECUTABLE = "$<TARGET_FILE_NAME:Kokkos_CoreUnitTest_DeviceAndThreads>"
@@ -30,7 +32,22 @@ def GetFlag(flag, *extra_args):
     return int(p.stdout)
 
 def GetNumThreads(max_threads):
-    for x in [1, 2, 3, 5, 7]:
+    args = []
+    name = platform.system()
+    if name == 'Darwin':
+        args = ['sysctl', '-n', 'hw.physicalcpu_max']
+    elif name == 'Linux':
+        args = ['nproc', '--all']
+    else:
+        args = ['wmic', 'cpu', 'get', 'NumberOfCores']
+
+    result = subprocess.run(args, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+    output = result.stdout.decode('utf-8')
+    phys_cores_count = int(output)
+    looplist = [1] + [i*phys_cores_count for i in [1,2,3,4,5,6,7]] \
+        if GetFlag("hwloc_enabled") else [1,2,3,4,5]
+
+    for x in looplist:
         if x >= max_threads:
             break
         yield x
@@ -48,13 +65,25 @@ class KokkosInitializationTestCase(unittest.TestCase):
                     "num_threads",
                     "--kokkos-num-threads={}".format(num_threads)))
 
+    def test_num_devices(self):
+        if "KOKKOS_VISIBLE_DEVICES" in os.environ:
+            self.skipTest("KOKKOS_VISIBLE_DEVICES environment variable is set")
+        num_devices = GetFlag("num_devices")
+        self.assertNotEqual(num_devices, 0)
+        if num_devices == -1:
+            self.skipTest("no device backend enabled")
+        self.assertGreaterEqual(num_devices, 1)
+
     def test_device_id(self):
-        device_count = GetFlag("device_count")
-        if device_count == 0:
-            self.skipTest("no device detected")
+        if "KOKKOS_VISIBLE_DEVICES" in os.environ:
+            self.skipTest("KOKKOS_VISIBLE_DEVICES environment variable is set")
+        num_devices = GetFlag("num_devices")
+        if num_devices == -1:
+            self.assertEqual(-1, GetFlag("device_id"))
+            self.skipTest("no device backend enabled")
         # by default use the first GPU available for execution
         self.assertEqual(0, GetFlag("device_id"))
-        for device_id in range(device_count):
+        for device_id in range(num_devices):
             self.assertEqual(
                 device_id,
                 GetFlag(

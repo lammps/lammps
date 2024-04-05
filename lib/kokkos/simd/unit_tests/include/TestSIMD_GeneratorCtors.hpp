@@ -37,10 +37,10 @@ inline void host_check_gen_ctor() {
   }
 
   simd_type rhs;
-  rhs.copy_from(init, Kokkos::Experimental::element_aligned_tag());
+  rhs.copy_from(init, Kokkos::Experimental::simd_flag_default);
 
   simd_type blend;
-  blend.copy_from(expected, Kokkos::Experimental::element_aligned_tag());
+  blend.copy_from(expected, Kokkos::Experimental::simd_flag_default);
 
 #if !(defined(KOKKOS_ENABLE_CUDA) && defined(KOKKOS_COMPILER_MSVC))
   if constexpr (std::is_same_v<Abi, Kokkos::Experimental::simd_abi::scalar>) {
@@ -98,7 +98,7 @@ KOKKOS_INLINE_FUNCTION void device_check_gen_ctor() {
 
   simd_type basic(KOKKOS_LAMBDA(std::size_t i) { return init[i]; });
   simd_type rhs;
-  rhs.copy_from(init, Kokkos::Experimental::element_aligned_tag());
+  rhs.copy_from(init, Kokkos::Experimental::simd_flag_default);
   device_check_equality(basic, rhs, lanes);
 
   simd_type lhs(KOKKOS_LAMBDA(std::size_t i) { return init[i] * 9; });
@@ -106,7 +106,7 @@ KOKKOS_INLINE_FUNCTION void device_check_gen_ctor() {
       KOKKOS_LAMBDA(std::size_t i) { return (mask[i]) ? lhs[i] : rhs[i]; });
 
   simd_type blend;
-  blend.copy_from(expected, Kokkos::Experimental::element_aligned_tag());
+  blend.copy_from(expected, Kokkos::Experimental::simd_flag_default);
   device_check_equality(result, blend, lanes);
 }
 

@@ -958,8 +958,7 @@ class TestViewAPI {
     using mirror_type = typename view_type::HostMirror;
 
     static_assert(std::is_same<typename view_type::memory_space,
-                               typename mirror_type::memory_space>::value,
-                  "");
+                               typename mirror_type::memory_space>::value);
 
     view_type a("a");
     mirror_type am = Kokkos::create_mirror_view(a);
@@ -1005,25 +1004,25 @@ class TestViewAPI {
     hView3 hv_3("dView3::HostMirror", N0);
     hView4 hv_4("dView4::HostMirror", N0);
 
-    dView0 dv_0_1(nullptr, 0);
+    dView0 dv_0_1(nullptr);
     dView0 dv_0_2(hv_0.label(), hv_0.layout());
 
-    dView1 dv_1_1(nullptr, 0);
+    dView1 dv_1_1(nullptr, N0);
     dView1 dv_1_2(hv_1.label(), hv_1.layout());
 
-    dView2 dv_2_1(nullptr, 0);
+    dView2 dv_2_1(nullptr, N0);
     dView2 dv_2_2(hv_2.label(), hv_2.layout());
 
-    dView3 dv_3_1(nullptr, 0);
+    dView3 dv_3_1(nullptr, N0);
     dView3 dv_3_2(hv_3.label(), hv_3.layout());
 
-    dView4 dv_4_1(nullptr, 0);
+    dView4 dv_4_1(nullptr, N0);
     dView4 dv_4_2(hv_4.label(), hv_4.layout());
   }
 
   static void run_test_contruction_from_layout_2() {
     using dView3_0 = Kokkos::View<T ***, device>;
-    using dView3_1 = Kokkos::View<T * * [N1], device>;
+    using dView3_1 = Kokkos::View<T * * [N2], device>;
     using dView3_2 = Kokkos::View<T * [N1][N2], device>;
     using dView3_3 = Kokkos::View<T[N0][N1][N2], device>;
 
@@ -1554,6 +1553,7 @@ class TestViewAPI {
                      Kokkos::CudaUVMSpace>::value)
       return;
 #endif
+    bool did_throw  = false;
     auto alloc_size = std::numeric_limits<size_t>::max() - 42;
     try {
       auto should_always_fail = dView1("hello_world_failure", alloc_size);
@@ -1585,7 +1585,9 @@ class TestViewAPI {
                             "because of an unknown error.", msg);
       }
 #endif
+      did_throw = true;
     }
+    ASSERT_TRUE(did_throw);
   }
 };
 

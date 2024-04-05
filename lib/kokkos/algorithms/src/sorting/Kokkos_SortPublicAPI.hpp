@@ -29,7 +29,7 @@ namespace Kokkos {
 // ---------------------------------------------------------------
 
 template <class ExecutionSpace, class DataType, class... Properties>
-void sort([[maybe_unused]] const ExecutionSpace& exec,
+void sort(const ExecutionSpace& exec,
           const Kokkos::View<DataType, Properties...>& view) {
   // constraints
   using ViewType = Kokkos::View<DataType, Properties...>;
@@ -52,6 +52,7 @@ void sort([[maybe_unused]] const ExecutionSpace& exec,
   }
 
   if constexpr (Impl::better_off_calling_std_sort_v<ExecutionSpace>) {
+    exec.fence("Kokkos::sort without comparator use std::sort");
     auto first = ::Kokkos::Experimental::begin(view);
     auto last  = ::Kokkos::Experimental::end(view);
     std::sort(first, last);
@@ -82,7 +83,7 @@ void sort(const Kokkos::View<DataType, Properties...>& view) {
 // ---------------------------------------------------------------
 template <class ExecutionSpace, class ComparatorType, class DataType,
           class... Properties>
-void sort([[maybe_unused]] const ExecutionSpace& exec,
+void sort(const ExecutionSpace& exec,
           const Kokkos::View<DataType, Properties...>& view,
           const ComparatorType& comparator) {
   // constraints
@@ -105,6 +106,7 @@ void sort([[maybe_unused]] const ExecutionSpace& exec,
   }
 
   if constexpr (Impl::better_off_calling_std_sort_v<ExecutionSpace>) {
+    exec.fence("Kokkos::sort with comparator use std::sort");
     auto first = ::Kokkos::Experimental::begin(view);
     auto last  = ::Kokkos::Experimental::end(view);
     std::sort(first, last, comparator);

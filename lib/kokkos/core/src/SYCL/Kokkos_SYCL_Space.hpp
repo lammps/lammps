@@ -66,11 +66,6 @@ class SYCLDeviceUSMSpace {
                   const size_t arg_alloc_size,
                   const size_t arg_logical_size = 0) const;
 
- private:
-  template <class, class, class, class>
-  friend class LogicalMemorySpace;
-
- public:
   static constexpr const char* name() { return "SYCLDeviceUSM"; };
 
  private:
@@ -87,6 +82,16 @@ class SYCLSharedUSMSpace {
   SYCLSharedUSMSpace();
   explicit SYCLSharedUSMSpace(sycl::queue queue);
 
+  template <typename ExecutionSpace>
+  void* allocate(const ExecutionSpace&, const size_t arg_alloc_size) const {
+    return allocate(arg_alloc_size);
+  }
+  template <typename ExecutionSpace>
+  void* allocate(const ExecutionSpace&, const char* arg_label,
+                 const size_t arg_alloc_size,
+                 const size_t arg_logical_size = 0) const {
+    return allocate(arg_label, arg_alloc_size, arg_logical_size);
+  }
   void* allocate(const SYCL& exec_space,
                  const std::size_t arg_alloc_size) const;
   void* allocate(const SYCL& exec_space, const char* arg_label,
@@ -102,11 +107,6 @@ class SYCLSharedUSMSpace {
                   const size_t arg_alloc_size,
                   const size_t arg_logical_size = 0) const;
 
- private:
-  template <class, class, class, class>
-  friend class LogicalMemorySpace;
-
- public:
   static constexpr const char* name() { return "SYCLSharedUSM"; };
 
  private:
@@ -123,6 +123,16 @@ class SYCLHostUSMSpace {
   SYCLHostUSMSpace();
   explicit SYCLHostUSMSpace(sycl::queue queue);
 
+  template <typename ExecutionSpace>
+  void* allocate(const ExecutionSpace&, const size_t arg_alloc_size) const {
+    return allocate(arg_alloc_size);
+  }
+  template <typename ExecutionSpace>
+  void* allocate(const ExecutionSpace&, const char* arg_label,
+                 const size_t arg_alloc_size,
+                 const size_t arg_logical_size = 0) const {
+    return allocate(arg_label, arg_alloc_size, arg_logical_size);
+  }
   void* allocate(const SYCL& exec_space,
                  const std::size_t arg_alloc_size) const;
   void* allocate(const SYCL& exec_space, const char* arg_label,
@@ -138,11 +148,6 @@ class SYCLHostUSMSpace {
                   const size_t arg_alloc_size,
                   const size_t arg_logical_size = 0) const;
 
- private:
-  template <class, class, class, class>
-  friend class LogicalMemorySpace;
-
- public:
   static constexpr const char* name() { return "SYCLHostUSM"; };
 
  private:
@@ -166,19 +171,16 @@ struct is_sycl_type_space<Kokkos::Experimental::SYCLHostUSMSpace>
     : public std::true_type {};
 
 static_assert(Kokkos::Impl::MemorySpaceAccess<
-                  Kokkos::Experimental::SYCLDeviceUSMSpace,
-                  Kokkos::Experimental::SYCLDeviceUSMSpace>::assignable,
-              "");
+              Kokkos::Experimental::SYCLDeviceUSMSpace,
+              Kokkos::Experimental::SYCLDeviceUSMSpace>::assignable);
 
 static_assert(Kokkos::Impl::MemorySpaceAccess<
-                  Kokkos::Experimental::SYCLSharedUSMSpace,
-                  Kokkos::Experimental::SYCLSharedUSMSpace>::assignable,
-              "");
+              Kokkos::Experimental::SYCLSharedUSMSpace,
+              Kokkos::Experimental::SYCLSharedUSMSpace>::assignable);
 
 static_assert(Kokkos::Impl::MemorySpaceAccess<
-                  Kokkos::Experimental::SYCLDeviceUSMSpace,
-                  Kokkos::Experimental::SYCLDeviceUSMSpace>::assignable,
-              "");
+              Kokkos::Experimental::SYCLDeviceUSMSpace,
+              Kokkos::Experimental::SYCLDeviceUSMSpace>::assignable);
 
 template <>
 struct MemorySpaceAccess<Kokkos::HostSpace,
@@ -310,151 +312,14 @@ struct MemorySpaceAccess<
 
 }  // namespace Impl
 
-namespace Impl {
-
-template <>
-class SharedAllocationRecord<Kokkos::Experimental::SYCLDeviceUSMSpace, void>
-    : public HostInaccessibleSharedAllocationRecordCommon<
-          Kokkos::Experimental::SYCLDeviceUSMSpace> {
- private:
-  friend class SharedAllocationRecordCommon<
-      Kokkos::Experimental::SYCLDeviceUSMSpace>;
-  friend class HostInaccessibleSharedAllocationRecordCommon<
-      Kokkos::Experimental::SYCLDeviceUSMSpace>;
-  using base_t = HostInaccessibleSharedAllocationRecordCommon<
-      Kokkos::Experimental::SYCLDeviceUSMSpace>;
-  using RecordBase = SharedAllocationRecord<void, void>;
-
-  SharedAllocationRecord(const SharedAllocationRecord&) = delete;
-  SharedAllocationRecord(SharedAllocationRecord&&)      = delete;
-  SharedAllocationRecord& operator=(const SharedAllocationRecord&) = delete;
-  SharedAllocationRecord& operator=(SharedAllocationRecord&&) = delete;
-
-#ifdef KOKKOS_ENABLE_DEBUG
-  static RecordBase s_root_record;
-#endif
-
-  const Kokkos::Experimental::SYCLDeviceUSMSpace m_space;
-
- protected:
-  ~SharedAllocationRecord();
-
-  template <typename ExecutionSpace>
-  SharedAllocationRecord(
-      const ExecutionSpace& /*exec_space*/,
-      const Kokkos::Experimental::SYCLDeviceUSMSpace& arg_space,
-      const std::string& arg_label, const size_t arg_alloc_size,
-      const RecordBase::function_type arg_dealloc = &base_t::deallocate)
-      : SharedAllocationRecord(arg_space, arg_label, arg_alloc_size,
-                               arg_dealloc) {}
-
-  SharedAllocationRecord(
-      const Kokkos::Experimental::SYCL& exec_space,
-      const Kokkos::Experimental::SYCLDeviceUSMSpace& arg_space,
-      const std::string& arg_label, const size_t arg_alloc_size,
-      const RecordBase::function_type arg_dealloc = &base_t::deallocate);
-
-  SharedAllocationRecord(
-      const Kokkos::Experimental::SYCLDeviceUSMSpace& arg_space,
-      const std::string& arg_label, const size_t arg_alloc_size,
-      const RecordBase::function_type arg_dealloc = &base_t::deallocate);
-};
-
-template <>
-class SharedAllocationRecord<Kokkos::Experimental::SYCLSharedUSMSpace, void>
-    : public SharedAllocationRecordCommon<
-          Kokkos::Experimental::SYCLSharedUSMSpace> {
- private:
-  friend class SharedAllocationRecordCommon<
-      Kokkos::Experimental::SYCLSharedUSMSpace>;
-  using base_t =
-      SharedAllocationRecordCommon<Kokkos::Experimental::SYCLSharedUSMSpace>;
-  using RecordBase = SharedAllocationRecord<void, void>;
-
-  SharedAllocationRecord(const SharedAllocationRecord&) = delete;
-  SharedAllocationRecord(SharedAllocationRecord&&)      = delete;
-  SharedAllocationRecord& operator=(const SharedAllocationRecord&) = delete;
-  SharedAllocationRecord& operator=(SharedAllocationRecord&&) = delete;
-
-  static RecordBase s_root_record;
-
-  const Kokkos::Experimental::SYCLSharedUSMSpace m_space;
-
- protected:
-  ~SharedAllocationRecord();
-
-  SharedAllocationRecord() = default;
-
-  template <typename ExecutionSpace>
-  SharedAllocationRecord(
-      const ExecutionSpace& /*exec_space*/,
-      const Kokkos::Experimental::SYCLSharedUSMSpace& arg_space,
-      const std::string& arg_label, const size_t arg_alloc_size,
-      const RecordBase::function_type arg_dealloc = &base_t::deallocate)
-      : SharedAllocationRecord(arg_space, arg_label, arg_alloc_size,
-                               arg_dealloc) {}
-
-  SharedAllocationRecord(
-      const Kokkos::Experimental::SYCL& exec_space,
-      const Kokkos::Experimental::SYCLSharedUSMSpace& arg_space,
-      const std::string& arg_label, const size_t arg_alloc_size,
-      const RecordBase::function_type arg_dealloc = &base_t::deallocate);
-
-  SharedAllocationRecord(
-      const Kokkos::Experimental::SYCLSharedUSMSpace& arg_space,
-      const std::string& arg_label, const size_t arg_alloc_size,
-      const RecordBase::function_type arg_dealloc = &base_t::deallocate);
-};
-
-template <>
-class SharedAllocationRecord<Kokkos::Experimental::SYCLHostUSMSpace, void>
-    : public SharedAllocationRecordCommon<
-          Kokkos::Experimental::SYCLHostUSMSpace> {
- private:
-  friend class SharedAllocationRecordCommon<
-      Kokkos::Experimental::SYCLHostUSMSpace>;
-  using base_t =
-      SharedAllocationRecordCommon<Kokkos::Experimental::SYCLHostUSMSpace>;
-  using RecordBase = SharedAllocationRecord<void, void>;
-
-  SharedAllocationRecord(const SharedAllocationRecord&) = delete;
-  SharedAllocationRecord(SharedAllocationRecord&&)      = delete;
-  SharedAllocationRecord& operator=(const SharedAllocationRecord&) = delete;
-  SharedAllocationRecord& operator=(SharedAllocationRecord&&) = delete;
-
-  static RecordBase s_root_record;
-
-  const Kokkos::Experimental::SYCLHostUSMSpace m_space;
-
- protected:
-  ~SharedAllocationRecord();
-
-  SharedAllocationRecord() = default;
-
-  template <typename ExecutionSpace>
-  SharedAllocationRecord(
-      const ExecutionSpace& /*exec_space*/,
-      const Kokkos::Experimental::SYCLHostUSMSpace& arg_space,
-      const std::string& arg_label, const size_t arg_alloc_size,
-      const RecordBase::function_type arg_dealloc = &base_t::deallocate)
-      : SharedAllocationRecord(arg_space, arg_label, arg_alloc_size,
-                               arg_dealloc) {}
-
-  SharedAllocationRecord(
-      const Kokkos::Experimental::SYCL& exec_space,
-      const Kokkos::Experimental::SYCLHostUSMSpace& arg_space,
-      const std::string& arg_label, const size_t arg_alloc_size,
-      const RecordBase::function_type arg_dealloc = &base_t::deallocate);
-
-  SharedAllocationRecord(
-      const Kokkos::Experimental::SYCLHostUSMSpace& arg_space,
-      const std::string& arg_label, const size_t arg_alloc_size,
-      const RecordBase::function_type arg_dealloc = &base_t::deallocate);
-};
-
-}  // namespace Impl
-
 }  // namespace Kokkos
+
+KOKKOS_IMPL_HOST_INACCESSIBLE_SHARED_ALLOCATION_SPECIALIZATION(
+    Kokkos::Experimental::SYCLDeviceUSMSpace);
+KOKKOS_IMPL_SHARED_ALLOCATION_SPECIALIZATION(
+    Kokkos::Experimental::SYCLSharedUSMSpace);
+KOKKOS_IMPL_SHARED_ALLOCATION_SPECIALIZATION(
+    Kokkos::Experimental::SYCLHostUSMSpace);
 
 #endif
 #endif

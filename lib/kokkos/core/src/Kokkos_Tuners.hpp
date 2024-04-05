@@ -256,13 +256,14 @@ auto get_point_helper(const PointType& in, const ArrayType& indices,
 template <typename PointType, typename ArrayType>
 struct GetPoint;
 
-template <typename PointType, size_t X>
-struct GetPoint<PointType,
-                std::array<Kokkos::Tools::Experimental::VariableValue, X>> {
+template <typename PointType, size_t ArraySize>
+struct GetPoint<
+    PointType,
+    std::array<Kokkos::Tools::Experimental::VariableValue, ArraySize>> {
   using index_set_type =
-      std::array<Kokkos::Tools::Experimental::VariableValue, X>;
+      std::array<Kokkos::Tools::Experimental::VariableValue, ArraySize>;
   static auto build(const PointType& in, const index_set_type& indices) {
-    return get_point_helper(in, indices, std::make_index_sequence<X>{});
+    return get_point_helper(in, indices, std::make_index_sequence<ArraySize>{});
   }
 };
 

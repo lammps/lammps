@@ -46,54 +46,54 @@ class ParallelFor<FunctorType, Kokkos::MDRangePolicy<Traits...>,
     }
   }
 
-  static void exec(ThreadsExec &exec, const void *arg) {
-    exec_schedule<typename Policy::schedule_type::type>(exec, arg);
+  static void exec(ThreadsInternal &instance, const void *arg) {
+    exec_schedule<typename Policy::schedule_type::type>(instance, arg);
   }
 
   template <class Schedule>
   static std::enable_if_t<std::is_same<Schedule, Kokkos::Static>::value>
-  exec_schedule(ThreadsExec &exec, const void *arg) {
+  exec_schedule(ThreadsInternal &instance, const void *arg) {
     const ParallelFor &self = *((const ParallelFor *)arg);
 
     auto const num_tiles = self.m_iter.m_rp.m_num_tiles;
-    WorkRange range(Policy(0, num_tiles).set_chunk_size(1), exec.pool_rank(),
-                    exec.pool_size());
+    WorkRange range(Policy(0, num_tiles).set_chunk_size(1),
+                    instance.pool_rank(), instance.pool_size());
 
     self.exec_range(range.begin(), range.end());
 
-    exec.fan_in();
+    instance.fan_in();
   }
 
   template <class Schedule>
   static std::enable_if_t<std::is_same<Schedule, Kokkos::Dynamic>::value>
-  exec_schedule(ThreadsExec &exec, const void *arg) {
+  exec_schedule(ThreadsInternal &instance, const void *arg) {
     const ParallelFor &self = *((const ParallelFor *)arg);
 
     auto const num_tiles = self.m_iter.m_rp.m_num_tiles;
-    WorkRange range(Policy(0, num_tiles).set_chunk_size(1), exec.pool_rank(),
-                    exec.pool_size());
+    WorkRange range(Policy(0, num_tiles).set_chunk_size(1),
+                    instance.pool_rank(), instance.pool_size());
 
-    exec.set_work_range(range.begin(), range.end(), 1);
-    exec.reset_steal_target();
-    exec.barrier();
+    instance.set_work_range(range.begin(), range.end(), 1);
+    instance.reset_steal_target();
+    instance.barrier();
 
-    long work_index = exec.get_work_index();
+    long work_index = instance.get_work_index();
 
     while (work_index != -1) {
       const Member begin = static_cast<Member>(work_index);
       const Member end   = begin + 1 < num_tiles ? begin + 1 : num_tiles;
 
       self.exec_range(begin, end);
-      work_index = exec.get_work_index();
+      work_index = instance.get_work_index();
     }
 
-    exec.fan_in();
+    instance.fan_in();
   }
 
  public:
   inline void execute() const {
-    ThreadsExec::start(&ParallelFor::exec, this);
-    ThreadsExec::fence();
+    ThreadsInternal::start(&ParallelFor::exec, this);
+    ThreadsInternal::fence();
   }
 
   ParallelFor(const FunctorType &arg_functor, const MDRangePolicy &arg_policy)

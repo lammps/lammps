@@ -268,96 +268,6 @@ enum OP_TESTS {
   N_OP_TESTS
 };
 
-// volatile-qualified parameter type 'volatile half_type' is deprecated
-#if !defined(KOKKOS_ENABLE_CXX20) && !defined(KOKKOS_ENABLE_CXX23)
-template <class view_type, class half_type>
-struct Functor_TestHalfVolatileOperators {
-  volatile half_type h_lhs, h_rhs;
-  view_type actual_lhs, expected_lhs;
-  double d_lhs, d_rhs;
-  Functor_TestHalfVolatileOperators(volatile half_type lhs = half_type(0),
-                                    volatile half_type rhs = half_type(0))
-      : h_lhs(lhs), h_rhs(rhs) {
-    actual_lhs   = view_type("actual_lhs", N_OP_TESTS);
-    expected_lhs = view_type("expected_lhs", N_OP_TESTS);
-    half_type nv_tmp;
-    nv_tmp = h_lhs;
-    d_lhs  = static_cast<double>(nv_tmp);
-    nv_tmp = h_rhs;
-    d_rhs  = static_cast<double>(nv_tmp);
-    if (std::is_same<view_type, ViewTypeHost>::value) {
-      auto run_on_host = *this;
-      run_on_host(0);
-    } else {
-      Kokkos::parallel_for("Test::Functor_TestHalfVolatileOperators",
-                           Kokkos::RangePolicy<ExecutionSpace>(0, 1), *this);
-    }
-  }
-
-  KOKKOS_FUNCTION
-  void operator()(int) const {
-    volatile half_type tmp_lhs;
-    half_type nv_tmp;
-
-    // Initialze output views to catch missing test invocations
-    for (int i = 0; i < N_OP_TESTS; ++i) {
-      actual_lhs(i)   = 1;
-      expected_lhs(i) = -1;
-    }
-
-    nv_tmp               = h_lhs;
-    actual_lhs(ASSIGN)   = static_cast<double>(nv_tmp);
-    expected_lhs(ASSIGN) = d_lhs;
-
-    actual_lhs(LT_H_H)   = h_lhs < h_rhs;
-    expected_lhs(LT_H_H) = d_lhs < d_rhs;
-
-    actual_lhs(LE_H_H)   = h_lhs <= h_rhs;
-    expected_lhs(LE_H_H) = d_lhs <= d_rhs;
-
-    actual_lhs(NEQ)   = h_lhs != h_rhs;
-    expected_lhs(NEQ) = d_lhs != d_rhs;
-
-    actual_lhs(GT_H_H)   = h_lhs > h_rhs;
-    expected_lhs(GT_H_H) = d_lhs > d_rhs;
-
-    actual_lhs(GE_H_H)   = h_lhs >= h_rhs;
-    expected_lhs(GE_H_H) = d_lhs >= d_rhs;
-
-    actual_lhs(EQ)   = h_lhs == h_rhs;
-    expected_lhs(EQ) = d_lhs == d_rhs;
-
-    tmp_lhs = h_lhs;
-    tmp_lhs += h_rhs;
-    nv_tmp                 = tmp_lhs;
-    actual_lhs(CADD_H_H)   = static_cast<double>(nv_tmp);
-    expected_lhs(CADD_H_H) = d_lhs;
-    expected_lhs(CADD_H_H) += d_rhs;
-
-    tmp_lhs = h_lhs;
-    tmp_lhs -= h_rhs;
-    nv_tmp                 = tmp_lhs;
-    actual_lhs(CSUB_H_H)   = static_cast<double>(nv_tmp);
-    expected_lhs(CSUB_H_H) = d_lhs;
-    expected_lhs(CSUB_H_H) -= d_rhs;
-
-    tmp_lhs = h_lhs;
-    tmp_lhs *= h_rhs;
-    nv_tmp                 = tmp_lhs;
-    actual_lhs(CMUL_H_H)   = static_cast<double>(nv_tmp);
-    expected_lhs(CMUL_H_H) = d_lhs;
-    expected_lhs(CMUL_H_H) *= d_rhs;
-
-    tmp_lhs = h_lhs;
-    tmp_lhs /= h_rhs;
-    nv_tmp                 = tmp_lhs;
-    actual_lhs(CDIV_H_H)   = static_cast<double>(nv_tmp);
-    expected_lhs(CDIV_H_H) = d_lhs;
-    expected_lhs(CDIV_H_H) /= d_rhs;
-  }
-};
-#endif
-
 template <class view_type, class half_type>
 struct Functor_TestHalfOperators {
   half_type h_lhs, h_rhs;
@@ -994,33 +904,6 @@ void __test_half_operators(half_type h_lhs, half_type h_rhs) {
     ASSERT_NEAR(f_host.actual_lhs(op_test), f_host.expected_lhs(op_test),
                 static_cast<double>(epsilon));
   }
-
-// volatile-qualified parameter type 'volatile half_type' is deprecated
-#if !defined(KOKKOS_ENABLE_CXX20) && !defined(KOKKOS_ENABLE_CXX23)
-  // Test partial volatile support
-  volatile half_type _h_lhs = h_lhs;
-  volatile half_type _h_rhs = h_rhs;
-  Functor_TestHalfVolatileOperators<ViewType, half_type> f_volatile_device(
-      _h_lhs, _h_rhs);
-  Functor_TestHalfVolatileOperators<ViewTypeHost, half_type> f_volatile_host(
-      _h_lhs, _h_rhs);
-
-  ExecutionSpace().fence();
-  Kokkos::deep_copy(f_device_actual_lhs, f_device.actual_lhs);
-  Kokkos::deep_copy(f_device_expected_lhs, f_device.expected_lhs);
-  for (int op_test = 0; op_test < N_OP_TESTS; op_test++) {
-    // printf("op_test = %d\n", op_test);
-    if (op_test == ASSIGN || op_test == LT_H_H || op_test == LE_H_H ||
-        op_test == NEQ || op_test == EQ || op_test == GT_H_H ||
-        op_test == GE_H_H || op_test == CADD_H_H || op_test == CSUB_H_H ||
-        op_test == CMUL_H_H || op_test == CDIV_H_H) {
-      ASSERT_NEAR(f_device_actual_lhs(op_test), f_device_expected_lhs(op_test),
-                  static_cast<double>(epsilon));
-      ASSERT_NEAR(f_host.actual_lhs(op_test), f_host.expected_lhs(op_test),
-                  static_cast<double>(epsilon));
-    }
-  }
-#endif
 
   // is_trivially_copyable is false with the addition of explicit
   // copy constructors that are required for supporting reductions

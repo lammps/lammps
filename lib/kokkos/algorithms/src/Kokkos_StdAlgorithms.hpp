@@ -35,7 +35,6 @@
 // following the std classification.
 
 // modifying ops
-#include "std_algorithms/Kokkos_Swap.hpp"
 #include "std_algorithms/Kokkos_IterSwap.hpp"
 
 // non-modifying sequence

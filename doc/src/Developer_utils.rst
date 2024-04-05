@@ -635,10 +635,10 @@ Tohoku University (under MIT license)
 
 ----------
 
-.. doxygenfunction:: MathEigen::jacobi3(double const *const *mat, double *eval, double **evec)
+.. doxygenfunction:: MathEigen::jacobi3(double const *const *mat, double *eval, double **evec, int sort)
    :project: progguide
 
-.. doxygenfunction:: MathEigen::jacobi3(double const mat[3][3], double *eval, double evec[3][3])
+.. doxygenfunction:: MathEigen::jacobi3(double const mat[3][3], double *eval, double evec[3][3], int sort)
    :project: progguide
 
 ---------------------------

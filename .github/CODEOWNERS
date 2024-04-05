@@ -83,7 +83,7 @@ src/bond.*                @sjplimp
 src/comm*.*               @sjplimp
 src/compute.*             @sjplimp
 src/dihedral.*            @sjplimp
-src/domain.*              @sjplimp
+src/domain.*              @sjplimp @stanmoore1
 src/dump*.*               @sjplimp
 src/error.*               @sjplimp
 src/finish.*              @sjplimp

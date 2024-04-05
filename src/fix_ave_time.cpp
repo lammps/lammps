@@ -178,7 +178,7 @@ FixAveTime::FixAveTime(LAMMPS *lmp, int narg, char **arg) :
       if (val.argindex && (val.val.f->array_flag == 0))
         error->all(FLERR,"Fix ave/time fix {} does not calculate an array", val.id);
       if (val.argindex && (val.val.f->size_array_rows_variable))
-        error->all(FLERR,"Fix ave/time fix {} array cannot be variable length", val.id);
+        error->all(FLERR,"Fix ave/time fix {} array cannot have variable row length", val.id);
       if (val.argindex && (val.argindex > val.val.f->size_array_cols))
         error->all(FLERR,"Fix ave/time fix {} array is accessed out-of-range", val.id);
       if (nevery % val.val.f->global_freq)
@@ -562,7 +562,8 @@ void FixAveTime::invoke_scalar(bigint ntimestep)
         scalar = val.val.f->compute_vector(val.argindex-1);
 
     // evaluate equal-style or vector-style variable
-    // ensure no out-of-range access to vector-style variable
+    // if index exceeds vector length, use a zero value
+    //   this can be useful if vector length is not known a priori
 
     } else if (val.which == ArgInfo::VARIABLE) {
       if (val.argindex == 0)
@@ -570,7 +571,7 @@ void FixAveTime::invoke_scalar(bigint ntimestep)
       else {
         double *varvec;
         int nvec = input->variable->compute_vector(val.val.v,&varvec);
-        if (nvec < val.argindex) scalar = 0.0;
+        if (val.argindex > nvec) scalar = 0.0;
         else scalar = varvec[val.argindex-1];
       }
     }
@@ -1033,41 +1034,44 @@ void FixAveTime::options(int iarg, int narg, char **arg)
   // optional args
 
   while (iarg < narg) {
-    if (strcmp(arg[iarg],"file") == 0) {
-      if (iarg+2 > narg) error->all(FLERR,"Illegal fix ave/time command");
+    if ((strcmp(arg[iarg],"file") == 0) || (strcmp(arg[iarg],"append") == 0)) {
+      if (iarg+2 > narg)
+        utils::missing_cmd_args(FLERR, std::string("fix ave/time ")+arg[iarg], error);
       yaml_flag = utils::strmatch(arg[iarg+1],"\\.[yY][aA]?[mM][lL]$");
       if (comm->me == 0) {
-        fp = fopen(arg[iarg+1],"w");
+        if (strcmp(arg[iarg],"file") == 0) fp = fopen(arg[iarg+1],"w");
+        else fp = fopen(arg[iarg+1],"a");
         if (fp == nullptr)
           error->one(FLERR,"Cannot open fix ave/time file {}: {}",
                      arg[iarg+1], utils::getsyserror());
       }
       iarg += 2;
     } else if (strcmp(arg[iarg],"ave") == 0) {
-      if (iarg+2 > narg) error->all(FLERR,"Illegal fix ave/time command");
+      if (iarg+2 > narg) utils::missing_cmd_args(FLERR, "fix ave/time ave", error);
       if (strcmp(arg[iarg+1],"one") == 0) ave = ONE;
       else if (strcmp(arg[iarg+1],"running") == 0) ave = RUNNING;
       else if (strcmp(arg[iarg+1],"window") == 0) ave = WINDOW;
-      else error->all(FLERR,"Illegal fix ave/time command");
+      else error->all(FLERR,"Unknown fix ave/time ave keyword {}", arg[iarg+1]);
       if (ave == WINDOW) {
-        if (iarg+3 > narg) error->all(FLERR,"Illegal fix ave/time command");
+        if (iarg+3 > narg) utils::missing_cmd_args(FLERR, "fix ave/time ave window", error);
         nwindow = utils::inumeric(FLERR,arg[iarg+2],false,lmp);
-        if (nwindow <= 0) error->all(FLERR,"Illegal fix ave/time command");
+        if (nwindow <= 0)
+          error->all(FLERR,"Illegal fix ave/time ave window argument {}; must be > 0", nwindow);
       }
       iarg += 2;
       if (ave == WINDOW) iarg++;
     } else if (strcmp(arg[iarg],"start") == 0) {
-      if (iarg+2 > narg) error->all(FLERR,"Illegal fix ave/time command");
+      if (iarg+2 > narg) utils::missing_cmd_args(FLERR, "fix ave/time start", error);
       startstep = utils::inumeric(FLERR,arg[iarg+1],false,lmp);
       iarg += 2;
     } else if (strcmp(arg[iarg],"mode") == 0) {
-      if (iarg+2 > narg) error->all(FLERR,"Illegal fix ave/time command");
+      if (iarg+2 > narg) utils::missing_cmd_args(FLERR, "fix ave/time mode", error);
       if (strcmp(arg[iarg+1],"scalar") == 0) mode = SCALAR;
       else if (strcmp(arg[iarg+1],"vector") == 0) mode = VECTOR;
-      else error->all(FLERR,"Illegal fix ave/time command");
+      else error->all(FLERR,"Unknown fix ave/time mode {}", arg[iarg+1]);
       iarg += 2;
     } else if (strcmp(arg[iarg],"off") == 0) {
-      if (iarg+2 > narg) error->all(FLERR,"Illegal fix ave/time command");
+      if (iarg+2 > narg) utils::missing_cmd_args(FLERR, "fix ave/time off", error);
       memory->grow(offlist,noff+1,"ave/time:offlist");
       offlist[noff++] = utils::inumeric(FLERR,arg[iarg+1],false,lmp);
       iarg += 2;
@@ -1075,27 +1079,27 @@ void FixAveTime::options(int iarg, int narg, char **arg)
       overwrite = 1;
       iarg += 1;
     } else if (strcmp(arg[iarg],"format") == 0) {
-      if (iarg+2 > narg) error->all(FLERR,"Illegal fix ave/time command");
+      if (iarg+2 > narg) utils::missing_cmd_args(FLERR, "fix ave/time format", error);
       delete[] format_user;
       format_user = utils::strdup(arg[iarg+1]);
       format = format_user;
       iarg += 2;
     } else if (strcmp(arg[iarg],"title1") == 0) {
-      if (iarg+2 > narg) error->all(FLERR,"Illegal fix ave/time command");
+      if (iarg+2 > narg) utils::missing_cmd_args(FLERR, "fix ave/time title1", error);
       delete[] title1;
       title1 = utils::strdup(arg[iarg+1]);
       iarg += 2;
     } else if (strcmp(arg[iarg],"title2") == 0) {
-      if (iarg+2 > narg) error->all(FLERR,"Illegal fix ave/time command");
+      if (iarg+2 > narg) utils::missing_cmd_args(FLERR, "fix ave/time title2", error);
       delete[] title2;
       title2 = utils::strdup(arg[iarg+1]);
       iarg += 2;
     } else if (strcmp(arg[iarg],"title3") == 0) {
-      if (iarg+2 > narg) error->all(FLERR,"Illegal fix ave/time command");
+      if (iarg+2 > narg) utils::missing_cmd_args(FLERR, "fix ave/time title3", error);
       delete[] title3;
       title3 = utils::strdup(arg[iarg+1]);
       iarg += 2;
-    } else error->all(FLERR,"Unknown fix ave/time command option {}", arg[iarg]);
+    } else error->all(FLERR,"Unknown fix ave/time keyword {}", arg[iarg]);
   }
 }
 

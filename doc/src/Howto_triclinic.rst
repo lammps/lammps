@@ -94,19 +94,20 @@ restricted triclinic parallelepiped.
    simulation boxes in LAMMPS.
 
 Note that the :doc:`thermo_style custom <thermo_style>` command has
-keywords for outputting the various parameters that define both
-restricted and general triclinic simulation boxes.  Thus you can check
-the restricted triclinic box parameters LAMMPS generates to rotate a
-general triclinic box to restricted triclinic form.
+keywords for outputting the various parameters that define the size
+and shape of orthogonal, restricted triclinic, and general triclinic
+simulation boxes.
+
+For orthogonal boxes there these are the 6 thermo keywords
+(xlo,ylo,zlo) and (xhi,yhi,zhi).
 
 For restricted triclinic boxes these are the 9 thermo keywords for
-(xlo,ylo,zlo), (xhi,yhi,zhi), and the (xy,xz,yz) tilt factors.  For
-general triclinic boxes these are the 12 thermo keywords for
+(xlo,ylo,zlo), (xhi,yhi,zhi), and the (xy,xz,yz) tilt factors.
+
+For general triclinic boxes these are the 12 thermo keywords for
 (xlo,ylo,zhi) and the components of the **A**, **B**, **C** edge
-vectors.  For both orthogonal and restricted triclinic boxes, the
-thermo keywords lx/ly/lz refer to the box sizes, namely lx = xhi -
-xlo, etc.  Lx,ly,lz are the box edge vector lengths for orthogonal and
-restricted/general triclinic simulation boxes.
+vectors, namely (avecx,avecy,avecz), (bvecx,bvecy,bvecz), and
+(cvecx,cvecy,cvecz),
 
 The remainder of this doc page explains (a) how LAMMPS operates with
 general triclinic simulation boxes, (b) mathematical transformations

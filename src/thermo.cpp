@@ -56,17 +56,18 @@ using namespace MathExtra;
 
 // CUSTOMIZATION: add a new keyword by adding it to this list:
 
-// step, elapsed, elaplong, dt, time, cpu, tpcpu, spcpu, cpuremain,
-// part, timeremain
+// step, elapsed, elaplong, dt, time, cpu, tpcpu, spcpu, cpuremain, part, timeremain
 // atoms, temp, press, pe, ke, etotal
 // evdwl, ecoul, epair, ebond, eangle, edihed, eimp, emol, elong, etail
 // enthalpy, ecouple, econserve
-// vol, density, lx, ly, lz, xlo, xhi, ylo, yhi, zlo, zhi, xy, xz, yz
+// vol, density, lx, ly, lz,
+// xlo, xhi, ylo, yhi, zlo, zhi, xy, xz, yz
+// avecx, avecy, avecz, bvecx, bvecy, bvecz, cvecx, cvecy, cvecz,
 // xlat, ylat, zlat
-// bonds, angles, dihedrals, impropers
-// pxx, pyy, pzz, pxy, pxz, pyz
-// fmax, fnorm, nbuild, ndanger
 // cella, cellb, cellc, cellalpha, cellbeta, cellgamma
+// pxx, pyy, pzz, pxy, pxz, pyz
+// bonds, angles, dihedrals, impropers
+// fmax, fnorm, nbuild, ndanger
 
 // CUSTOMIZATION: add a new thermo style by adding a constant to the enumerator,
 // define a new string constant with the keywords and provide default formats.
@@ -916,6 +917,7 @@ void Thermo::parse_fields(const std::string &str)
       addfield("Volume", &Thermo::compute_vol, FLOAT);
     } else if (word == "density") {
       addfield("Density", &Thermo::compute_density, FLOAT);
+      
     } else if (word == "lx") {
       addfield("Lx", &Thermo::compute_lx, FLOAT);
     } else if (word == "ly") {
@@ -943,6 +945,25 @@ void Thermo::parse_fields(const std::string &str)
     } else if (word == "yz") {
       addfield("Yz", &Thermo::compute_yz, FLOAT);
 
+    } else if (word == "avecx") {
+      addfield("Avecx", &Thermo::compute_avecx, FLOAT);
+    } else if (word == "avecy") {
+      addfield("Avecy", &Thermo::compute_avecy, FLOAT);
+    } else if (word == "avecz") {
+      addfield("Avecz", &Thermo::compute_avecz, FLOAT);
+    } else if (word == "bvecx") {
+      addfield("Bvecx", &Thermo::compute_bvecx, FLOAT);
+    } else if (word == "bvecy") {
+      addfield("Bvecy", &Thermo::compute_bvecy, FLOAT);
+    } else if (word == "bvecz") {
+      addfield("Bvecz", &Thermo::compute_bvecz, FLOAT);
+    } else if (word == "cvecx") {
+      addfield("Cvecx", &Thermo::compute_cvecx, FLOAT);
+    } else if (word == "cvecy") {
+      addfield("Cvecy", &Thermo::compute_cvecy, FLOAT);
+    } else if (word == "cvecz") {
+      addfield("Cvecz", &Thermo::compute_cvecz, FLOAT);
+
     } else if (word == "xlat") {
       addfield("Xlat", &Thermo::compute_xlat, FLOAT);
     } else if (word == "ylat") {
@@ -950,14 +971,18 @@ void Thermo::parse_fields(const std::string &str)
     } else if (word == "zlat") {
       addfield("Zlat", &Thermo::compute_zlat, FLOAT);
 
-    } else if (word == "bonds") {
-      addfield("Bonds", &Thermo::compute_bonds, BIGINT);
-    } else if (word == "angles") {
-      addfield("Angles", &Thermo::compute_angles, BIGINT);
-    } else if (word == "dihedrals") {
-      addfield("Diheds", &Thermo::compute_dihedrals, BIGINT);
-    } else if (word == "impropers") {
-      addfield("Impros", &Thermo::compute_impropers, BIGINT);
+    } else if (word == "cella") {
+      addfield("Cella", &Thermo::compute_cella, FLOAT);
+    } else if (word == "cellb") {
+      addfield("Cellb", &Thermo::compute_cellb, FLOAT);
+    } else if (word == "cellc") {
+      addfield("Cellc", &Thermo::compute_cellc, FLOAT);
+    } else if (word == "cellalpha") {
+      addfield("CellAlpha", &Thermo::compute_cellalpha, FLOAT);
+    } else if (word == "cellbeta") {
+      addfield("CellBeta", &Thermo::compute_cellbeta, FLOAT);
+    } else if (word == "cellgamma") {
+      addfield("CellGamma", &Thermo::compute_cellgamma, FLOAT);
 
     } else if (word == "pxx") {
       if (triclinic_general)
@@ -990,6 +1015,15 @@ void Thermo::parse_fields(const std::string &str)
       addfield("Pyz", &Thermo::compute_pyz, FLOAT);
       index_press_vector = add_compute(id_press, VECTOR);
 
+    } else if (word == "bonds") {
+      addfield("Bonds", &Thermo::compute_bonds, BIGINT);
+    } else if (word == "angles") {
+      addfield("Angles", &Thermo::compute_angles, BIGINT);
+    } else if (word == "dihedrals") {
+      addfield("Diheds", &Thermo::compute_dihedrals, BIGINT);
+    } else if (word == "impropers") {
+      addfield("Impros", &Thermo::compute_impropers, BIGINT);
+
     } else if (word == "fmax") {
       addfield("Fmax", &Thermo::compute_fmax, FLOAT);
     } else if (word == "fnorm") {
@@ -999,19 +1033,6 @@ void Thermo::parse_fields(const std::string &str)
       addfield("Nbuild", &Thermo::compute_nbuild, BIGINT);
     } else if (word == "ndanger") {
       addfield("Ndanger", &Thermo::compute_ndanger, BIGINT);
-
-    } else if (word == "cella") {
-      addfield("Cella", &Thermo::compute_cella, FLOAT);
-    } else if (word == "cellb") {
-      addfield("Cellb", &Thermo::compute_cellb, FLOAT);
-    } else if (word == "cellc") {
-      addfield("Cellc", &Thermo::compute_cellc, FLOAT);
-    } else if (word == "cellalpha") {
-      addfield("CellAlpha", &Thermo::compute_cellalpha, FLOAT);
-    } else if (word == "cellbeta") {
-      addfield("CellBeta", &Thermo::compute_cellbeta, FLOAT);
-    } else if (word == "cellgamma") {
-      addfield("CellGamma", &Thermo::compute_cellgamma, FLOAT);
 
       // compute value = c_ID, fix value = f_ID, variable value = v_ID
       // count trailing [] and store int arguments
@@ -1316,22 +1337,6 @@ int Thermo::evaluate_keyword(const std::string &word, double *answer)
     compute_atoms();
     dvalue = bivalue;
 
-  } else if (word == "bonds") {
-    compute_bonds();
-    dvalue = bivalue;
-
-  } else if (word == "angles") {
-    compute_angles();
-    dvalue = bivalue;
-
-  } else if (word == "dihedrals") {
-    compute_dihedrals();
-    dvalue = bivalue;
-
-  } else if (word == "impropers") {
-    compute_impropers();
-    dvalue = bivalue;
-
   } else if (word == "temp") {
     check_temp(word);
     compute_temp();
@@ -1412,6 +1417,7 @@ int Thermo::evaluate_keyword(const std::string &word, double *answer)
     compute_vol();
   else if (word == "density")
     compute_density();
+  
   else if (word == "lx")
     compute_lx();
   else if (word == "ly")
@@ -1439,12 +1445,44 @@ int Thermo::evaluate_keyword(const std::string &word, double *answer)
   else if (word == "yz")
     compute_yz();
 
+  else if (word == "avecx")
+    compute_avecx();
+  else if (word == "avecy")
+    compute_avecy();
+  else if (word == "avecz")
+    compute_avecz();
+  else if (word == "bvecx")
+    compute_bvecx();
+  else if (word == "bvecy")
+    compute_bvecy();
+  else if (word == "bvecz")
+    compute_bvecz();
+  else if (word == "cvecx")
+    compute_cvecx();
+  else if (word == "cvecy")
+    compute_cvecy();
+  else if (word == "cvecz")
+    compute_cvecz();
+  
   else if (word == "xlat")
     compute_xlat();
   else if (word == "ylat")
     compute_ylat();
   else if (word == "zlat")
     compute_zlat();
+
+  else if (word == "cella")
+    compute_cella();
+  else if (word == "cellb")
+    compute_cellb();
+  else if (word == "cellc")
+    compute_cellc();
+  else if (word == "cellalpha")
+    compute_cellalpha();
+  else if (word == "cellbeta")
+    compute_cellbeta();
+  else if (word == "cellgamma")
+    compute_cellgamma();
 
   else if (word == "pxx") {
     check_press_vector(word);
@@ -1475,9 +1513,24 @@ int Thermo::evaluate_keyword(const std::string &word, double *answer)
     check_press_vector(word);
     if (triclinic_general) compute_pyz_triclinic_general();
     else compute_pyz();
-  }
 
-  else if (word == "fmax")
+  } else if (word == "bonds") {
+    compute_bonds();
+    dvalue = bivalue;
+
+  } else if (word == "angles") {
+    compute_angles();
+    dvalue = bivalue;
+
+  } else if (word == "dihedrals") {
+    compute_dihedrals();
+    dvalue = bivalue;
+
+  } else if (word == "impropers") {
+    compute_impropers();
+    dvalue = bivalue;
+
+  } else if (word == "fmax")
     compute_fmax();
   else if (word == "fnorm")
     compute_fnorm();
@@ -1489,19 +1542,6 @@ int Thermo::evaluate_keyword(const std::string &word, double *answer)
     compute_ndanger();
     dvalue = bivalue;
   }
-
-  else if (word == "cella")
-    compute_cella();
-  else if (word == "cellb")
-    compute_cellb();
-  else if (word == "cellc")
-    compute_cellc();
-  else if (word == "cellalpha")
-    compute_cellalpha();
-  else if (word == "cellbeta")
-    compute_cellbeta();
-  else if (word == "cellgamma")
-    compute_cellgamma();
 
   else
     return 1;
@@ -1774,23 +1814,6 @@ void Thermo::compute_etotal()
 
 /* ---------------------------------------------------------------------- */
 
-void Thermo::compute_ecouple()
-{
-  dvalue = modify->energy_couple();
-}
-
-/* ---------------------------------------------------------------------- */
-
-void Thermo::compute_econserve()
-{
-  compute_etotal();
-  double dvalue_etotal = dvalue;
-  compute_ecouple();
-  dvalue += dvalue_etotal;
-}
-
-/* ---------------------------------------------------------------------- */
-
 void Thermo::compute_evdwl()
 {
   double tmp = 0.0;
@@ -1938,6 +1961,23 @@ void Thermo::compute_enthalpy()
 
 /* ---------------------------------------------------------------------- */
 
+void Thermo::compute_ecouple()
+{
+  dvalue = modify->energy_couple();
+}
+
+/* ---------------------------------------------------------------------- */
+
+void Thermo::compute_econserve()
+{
+  compute_etotal();
+  double dvalue_etotal = dvalue;
+  compute_ecouple();
+  dvalue += dvalue_etotal;
+}
+
+/* ---------------------------------------------------------------------- */
+
 void Thermo::compute_vol()
 {
   if (domain->dimension == 3)
@@ -2041,6 +2081,67 @@ void Thermo::compute_yz()
 
 /* ---------------------------------------------------------------------- */
 
+void Thermo::compute_avecx()
+{
+  dvalue = domain->avec[0];
+}
+
+/* ---------------------------------------------------------------------- */
+
+void Thermo::compute_avecy()
+{
+  dvalue = domain->avec[1];
+}
+
+/* ---------------------------------------------------------------------- */
+
+void Thermo::compute_avecz()
+{
+  dvalue = domain->avec[2];
+}
+/* ---------------------------------------------------------------------- */
+
+void Thermo::compute_bvecx()
+{
+  dvalue = domain->bvec[0];
+}
+
+/* ---------------------------------------------------------------------- */
+
+void Thermo::compute_bvecy()
+{
+  dvalue = domain->bvec[1];
+}
+
+/* ---------------------------------------------------------------------- */
+
+void Thermo::compute_bvecz()
+{
+  dvalue = domain->bvec[2];
+}
+/* ---------------------------------------------------------------------- */
+
+void Thermo::compute_cvecx()
+{
+  dvalue = domain->cvec[0];
+}
+
+/* ---------------------------------------------------------------------- */
+
+void Thermo::compute_cvecy()
+{
+  dvalue = domain->cvec[1];
+}
+
+/* ---------------------------------------------------------------------- */
+
+void Thermo::compute_cvecz()
+{
+  dvalue = domain->cvec[2];
+}
+
+/* ---------------------------------------------------------------------- */
+
 void Thermo::compute_xlat()
 {
   dvalue = domain->lattice->xlattice;
@@ -2062,30 +2163,82 @@ void Thermo::compute_zlat()
 
 /* ---------------------------------------------------------------------- */
 
-void Thermo::compute_bonds()
+void Thermo::compute_cella()
 {
-  bivalue = atom->nbonds;
+  dvalue = domain->xprd;
 }
 
 /* ---------------------------------------------------------------------- */
 
-void Thermo::compute_angles()
+void Thermo::compute_cellb()
 {
-  bivalue = atom->nangles;
+  if (!domain->triclinic)
+    dvalue = domain->yprd;
+  else {
+    double *h = domain->h;
+    dvalue = sqrt(h[1] * h[1] + h[5] * h[5]);
+  }
 }
 
 /* ---------------------------------------------------------------------- */
 
-void Thermo::compute_dihedrals()
+void Thermo::compute_cellc()
 {
-  bivalue = atom->ndihedrals;
+  if (!domain->triclinic)
+    dvalue = domain->zprd;
+  else {
+    double *h = domain->h;
+    dvalue = sqrt(h[2] * h[2] + h[3] * h[3] + h[4] * h[4]);
+  }
 }
 
 /* ---------------------------------------------------------------------- */
 
-void Thermo::compute_impropers()
+void Thermo::compute_cellalpha()
 {
-  bivalue = atom->nimpropers;
+  if (!domain->triclinic)
+    dvalue = 90.0;
+  else {
+
+    // Cos(alpha) = (xy.xz + ly.yz)/(b.c)
+
+    double *h = domain->h;
+    double cosalpha = (h[5] * h[4] + h[1] * h[3]) /
+        sqrt((h[1] * h[1] + h[5] * h[5]) * (h[2] * h[2] + h[3] * h[3] + h[4] * h[4]));
+    dvalue = acos(cosalpha) * 180.0 / MY_PI;
+  }
+}
+
+/* ---------------------------------------------------------------------- */
+
+void Thermo::compute_cellbeta()
+{
+  if (!domain->triclinic)
+    dvalue = 90.0;
+  else {
+
+    // Cos(beta) = xz/c
+
+    double *h = domain->h;
+    double cosbeta = h[4] / sqrt(h[2] * h[2] + h[3] * h[3] + h[4] * h[4]);
+    dvalue = acos(cosbeta) * 180.0 / MY_PI;
+  }
+}
+
+/* ---------------------------------------------------------------------- */
+
+void Thermo::compute_cellgamma()
+{
+  if (!domain->triclinic)
+    dvalue = 90.0;
+  else {
+
+    // Cos(gamma) = xy/b
+
+    double *h = domain->h;
+    double cosgamma = h[5] / sqrt(h[1] * h[1] + h[5] * h[5]);
+    dvalue = acos(cosgamma) * 180.0 / MY_PI;
+  }
 }
 
 /* ---------------------------------------------------------------------- */
@@ -2192,6 +2345,34 @@ void Thermo::compute_pyz_triclinic_general()
 
 /* ---------------------------------------------------------------------- */
 
+void Thermo::compute_bonds()
+{
+  bivalue = atom->nbonds;
+}
+
+/* ---------------------------------------------------------------------- */
+
+void Thermo::compute_angles()
+{
+  bivalue = atom->nangles;
+}
+
+/* ---------------------------------------------------------------------- */
+
+void Thermo::compute_dihedrals()
+{
+  bivalue = atom->ndihedrals;
+}
+
+/* ---------------------------------------------------------------------- */
+
+void Thermo::compute_impropers()
+{
+  bivalue = atom->nimpropers;
+}
+
+/* ---------------------------------------------------------------------- */
+
 void Thermo::compute_fmax()
 {
   double **f = atom->f;
@@ -2234,84 +2415,4 @@ void Thermo::compute_nbuild()
 void Thermo::compute_ndanger()
 {
   bivalue = neighbor->ndanger;
-}
-
-/* ---------------------------------------------------------------------- */
-
-void Thermo::compute_cella()
-{
-  dvalue = domain->xprd;
-}
-
-/* ---------------------------------------------------------------------- */
-
-void Thermo::compute_cellb()
-{
-  if (!domain->triclinic)
-    dvalue = domain->yprd;
-  else {
-    double *h = domain->h;
-    dvalue = sqrt(h[1] * h[1] + h[5] * h[5]);
-  }
-}
-
-/* ---------------------------------------------------------------------- */
-
-void Thermo::compute_cellc()
-{
-  if (!domain->triclinic)
-    dvalue = domain->zprd;
-  else {
-    double *h = domain->h;
-    dvalue = sqrt(h[2] * h[2] + h[3] * h[3] + h[4] * h[4]);
-  }
-}
-
-/* ---------------------------------------------------------------------- */
-
-void Thermo::compute_cellalpha()
-{
-  if (!domain->triclinic)
-    dvalue = 90.0;
-  else {
-
-    // Cos(alpha) = (xy.xz + ly.yz)/(b.c)
-
-    double *h = domain->h;
-    double cosalpha = (h[5] * h[4] + h[1] * h[3]) /
-        sqrt((h[1] * h[1] + h[5] * h[5]) * (h[2] * h[2] + h[3] * h[3] + h[4] * h[4]));
-    dvalue = acos(cosalpha) * 180.0 / MY_PI;
-  }
-}
-
-/* ---------------------------------------------------------------------- */
-
-void Thermo::compute_cellbeta()
-{
-  if (!domain->triclinic)
-    dvalue = 90.0;
-  else {
-
-    // Cos(beta) = xz/c
-
-    double *h = domain->h;
-    double cosbeta = h[4] / sqrt(h[2] * h[2] + h[3] * h[3] + h[4] * h[4]);
-    dvalue = acos(cosbeta) * 180.0 / MY_PI;
-  }
-}
-
-/* ---------------------------------------------------------------------- */
-
-void Thermo::compute_cellgamma()
-{
-  if (!domain->triclinic)
-    dvalue = 90.0;
-  else {
-
-    // Cos(gamma) = xy/b
-
-    double *h = domain->h;
-    double cosgamma = h[5] / sqrt(h[1] * h[1] + h[5] * h[5]);
-    dvalue = acos(cosgamma) * 180.0 / MY_PI;
-  }
 }

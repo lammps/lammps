@@ -1225,7 +1225,6 @@ int Variable::compute_vector(int ivar, double **result)
   int nlen = size_tree_vector(tree);
   if (nlen == 0)
     print_var_error(FLERR,"Vector-style variable has zero length",ivar);
-
   if (nlen < 0)
     print_var_error(FLERR,"Inconsistent lengths in vector-style variable",ivar);
 
@@ -1535,9 +1534,6 @@ double Variable::evaluate(char *str, Tree **tree, int ivar)
 
             if (!compute->vector_flag)
               print_var_error(FLERR,"Mismatched compute in variable formula",ivar);
-            if (index1 > compute->size_vector &&
-                compute->size_vector_variable == 0)
-              print_var_error(FLERR,"Variable formula compute vector is accessed out-of-range",ivar,0);
             if (!compute->is_initialized())
               print_var_error(FLERR,"Variable formula compute cannot be invoked before "
                               "initialization by a run",ivar);
@@ -1546,10 +1542,14 @@ double Variable::evaluate(char *str, Tree **tree, int ivar)
               compute->invoked_flag |= Compute::INVOKED_VECTOR;
             }
 
-          if (compute->size_vector_variable &&
-              index1 > compute->size_vector) value1 = 0.0;
-          else value1 = compute->vector[index1-1];
-          argstack[nargstack++] = value1;
+            // wait to check index1 until after compute invocation
+            // to allow for computes with size_vector_variable == 1
+
+            if (index1 > compute->size_vector)
+              print_var_error(FLERR,"Variable formula compute vector is accessed out-of-range",ivar,0);
+
+            value1 = compute->vector[index1-1];
+            argstack[nargstack++] = value1;
 
           // c_ID[i][j] = scalar from global array
 
@@ -1557,9 +1557,6 @@ double Variable::evaluate(char *str, Tree **tree, int ivar)
 
             if (!compute->array_flag)
               print_var_error(FLERR,"Mismatched compute in variable formula",ivar);
-            if (index1 > compute->size_array_rows &&
-                compute->size_array_rows_variable == 0)
-              print_var_error(FLERR,"Variable formula compute array is accessed out-of-range",ivar,0);
             if (index2 > compute->size_array_cols)
               print_var_error(FLERR,"Variable formula compute array is accessed out-of-range",ivar,0);
             if (!compute->is_initialized())
@@ -1570,9 +1567,13 @@ double Variable::evaluate(char *str, Tree **tree, int ivar)
               compute->invoked_flag |= Compute::INVOKED_ARRAY;
             }
 
-            if (compute->size_array_rows_variable &&
-                index1 > compute->size_array_rows) value1 = 0.0;
-            else value1 = compute->array[index1-1][index2-1];
+            // wait to check index1 until after compute invocation
+            // to allow for computes with size_array_rows_variable == 1
+
+            if (index1 > compute->size_array_rows)
+              print_var_error(FLERR,"Variable formula compute array is accessed out-of-range",ivar,0);
+
+            value1 = compute->array[index1-1][index2-1];
             argstack[nargstack++] = value1;
 
           // C_ID[i] = scalar element of per-atom vector, note uppercase "C"
@@ -1634,8 +1635,6 @@ double Variable::evaluate(char *str, Tree **tree, int ivar)
 
             if (!compute->vector_flag)
               print_var_error(FLERR,"Mismatched compute in variable formula",ivar);
-            if (compute->size_vector == 0)
-              print_var_error(FLERR,"Variable formula compute vector is zero length",ivar);
             if (!compute->is_initialized())
               print_var_error(FLERR,"Variable formula compute cannot be invoked before "
                               "initialization by a run",ivar);
@@ -1643,6 +1642,12 @@ double Variable::evaluate(char *str, Tree **tree, int ivar)
               compute->compute_vector();
               compute->invoked_flag |= Compute::INVOKED_VECTOR;
             }
+
+            // wait to check vector size until after compute invocation
+            // to allow for computes with size_vector_variable == 1
+
+            if (compute->size_vector == 0)
+              print_var_error(FLERR,"Variable formula compute vector is zero length",ivar);
 
             auto newtree = new Tree();
             newtree->type = VECTORARRAY;
@@ -1666,10 +1671,12 @@ double Variable::evaluate(char *str, Tree **tree, int ivar)
               compute->compute_array();
               compute->invoked_flag |= Compute::INVOKED_ARRAY;
             }
-            // wait until after compute invocation to check size_array_rows
-            // b/c may be zero until after initial invocation
+
+            // wait to check row count until after compute invocation
+            // to allow for computes with size_array_rows_variable == 1
+
             if (compute->size_array_rows == 0)
-              print_var_error(FLERR,"Variable formula compute array is zero length",ivar);
+              print_var_error(FLERR,"Variable formula compute array has zero rows",ivar);
 
             auto newtree = new Tree();
             newtree->type = VECTORARRAY;
@@ -1800,8 +1807,7 @@ double Variable::evaluate(char *str, Tree **tree, int ivar)
 
             if (!fix->vector_flag)
               print_var_error(FLERR,"Mismatched fix in variable formula",ivar);
-            if (index1 > fix->size_vector &&
-                fix->size_vector_variable == 0)
+            if (index1 > fix->size_vector)
               print_var_error(FLERR,"Variable formula fix vector is accessed out-of-range",ivar,0);
             if (update->whichflag > 0 && update->ntimestep % fix->global_freq)
               print_var_error(FLERR,"Fix in variable not computed at a compatible time",ivar);
@@ -1815,8 +1821,7 @@ double Variable::evaluate(char *str, Tree **tree, int ivar)
 
             if (!fix->array_flag)
               print_var_error(FLERR,"Mismatched fix in variable formula",ivar);
-            if (index1 > fix->size_array_rows &&
-                fix->size_array_rows_variable == 0)
+            if (index1 > fix->size_array_rows)
               print_var_error(FLERR,"Variable formula fix array is accessed out-of-range",ivar,0);
             if (index2 > fix->size_array_cols)
               print_var_error(FLERR,"Variable formula fix array is accessed out-of-range",ivar,0);

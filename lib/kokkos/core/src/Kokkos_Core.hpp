@@ -46,14 +46,15 @@
 
 #include <Kokkos_Half.hpp>
 #include <Kokkos_AnonymousSpace.hpp>
-#include <Kokkos_LogicalSpaces.hpp>
 #include <Kokkos_Pair.hpp>
-#include <Kokkos_MinMaxClamp.hpp>
+#include <Kokkos_Clamp.hpp>
+#include <Kokkos_MinMax.hpp>
 #include <Kokkos_MathematicalConstants.hpp>
 #include <Kokkos_MathematicalFunctions.hpp>
 #include <Kokkos_MathematicalSpecialFunctions.hpp>
 #include <Kokkos_NumericTraits.hpp>
 #include <Kokkos_BitManipulation.hpp>
+#include <Kokkos_Swap.hpp>
 #include <Kokkos_MemoryPool.hpp>
 #include <Kokkos_Array.hpp>
 #include <Kokkos_View.hpp>
@@ -101,6 +102,7 @@ void declare_configuration_metadata(const std::string& category,
 [[nodiscard]] bool is_finalized() noexcept;
 
 [[nodiscard]] int device_id() noexcept;
+[[nodiscard]] int num_devices() noexcept;
 [[nodiscard]] int num_threads() noexcept;
 
 bool show_warnings() noexcept;
@@ -299,9 +301,6 @@ std::vector<ExecSpace> partition_space(ExecSpace const& space,
 // Yet another workaround to deal with circular dependency issues because the
 // implementation of the RAII wrapper is using Kokkos::single.
 #include <Kokkos_AcquireUniqueTokenImpl.hpp>
-
-// Specializations required after core definitions
-#include <KokkosCore_Config_PostInclude.hpp>
 
 //----------------------------------------------------------------------------
 // Redefinition of the macros min and max if we pushed them at entry of

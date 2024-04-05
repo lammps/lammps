@@ -22,6 +22,7 @@
 #endif
 
 #include <Kokkos_Macros.hpp>
+#include <Kokkos_Swap.hpp>
 #include <impl/Kokkos_Error.hpp>
 #include <impl/Kokkos_StringManipulation.hpp>
 
@@ -319,6 +320,9 @@ struct Array<T, KOKKOS_INVALID_INDEX, Array<>::strided> {
                                          size_type arg_stride)
       : m_elem(arg_ptr), m_size(arg_size), m_stride(arg_stride) {}
 };
+
+template <typename T, typename... Us>
+Array(T, Us...)->Array<T, 1 + sizeof...(Us)>;
 
 }  // namespace Kokkos
 

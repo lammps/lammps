@@ -49,7 +49,7 @@ inline const char* atomic_query_version() { return "KOKKOS_DESUL_ATOMICS"; }
 #endif
 // ============================================================
 
-#ifdef KOKKOS_INTERNAL_NOT_PARALLEL
+#ifdef KOKKOS_ENABLE_ATOMICS_BYPASS
 #define KOKKOS_DESUL_MEM_SCOPE desul::MemoryScopeCaller()
 #else
 #define KOKKOS_DESUL_MEM_SCOPE desul::MemoryScopeDevice()

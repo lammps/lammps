@@ -533,9 +533,6 @@ They must be specified in uppercase.
    *  - A64FX
       - HOST
       - ARMv8.2 with SVE Support
-   *  - WSM
-      - HOST
-      - Intel Westmere CPU (SSE 4.2)
    *  - SNB
       - HOST
       - Intel Sandy/Ivy Bridge CPU (AVX 1)
@@ -566,18 +563,15 @@ They must be specified in uppercase.
    *  - KNL
       - HOST
       - Intel Knights Landing Xeon Phi
-   *  - BGQ
-      - HOST
-      - IBM Blue Gene/Q CPU
-   *  - POWER7
-      - HOST
-      - IBM POWER7 CPU
    *  - POWER8
       - HOST
       - IBM POWER8 CPU
    *  - POWER9
       - HOST
       - IBM POWER9 CPU
+   *  - RISCV_SG2042
+      - HOST
+      - SG2042 (RISC-V) CPU
    *  - KEPLER30
       - GPU
       - NVIDIA Kepler generation CC 3.0 GPU
@@ -666,7 +660,7 @@ They must be specified in uppercase.
       - GPU
       - Intel GPU Ponte Vecchio
 
-This list was last updated for version 4.2 of the Kokkos library.
+This list was last updated for version 4.3.0 of the Kokkos library.
 
 .. tabs::
 

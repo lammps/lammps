@@ -35,7 +35,7 @@ class OpenACCInternal {
 
  public:
   static int m_acc_device_num;
-  int m_async_arg = acc_async_sync;
+  int m_async_arg = acc_async_noval;
 
   OpenACCInternal() = default;
 
@@ -43,7 +43,7 @@ class OpenACCInternal {
 
   bool verify_is_initialized(const char* const label) const;
 
-  void initialize(int async_arg = acc_async_sync);
+  void initialize(int async_arg = acc_async_noval);
   void finalize();
   bool is_initialized() const;
 

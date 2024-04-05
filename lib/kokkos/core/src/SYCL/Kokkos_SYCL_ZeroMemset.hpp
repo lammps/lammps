@@ -26,20 +26,13 @@ namespace Impl {
 template <class T, class... P>
 struct ZeroMemset<Kokkos::Experimental::SYCL, View<T, P...>> {
   ZeroMemset(const Kokkos::Experimental::SYCL& exec_space,
-             const View<T, P...>& dst,
-             typename View<T, P...>::const_value_type&) {
+             const View<T, P...>& dst) {
     auto event = exec_space.impl_internal_space_instance()->m_queue->memset(
         dst.data(), 0, dst.size() * sizeof(typename View<T, P...>::value_type));
 #ifndef KOKKOS_IMPL_SYCL_USE_IN_ORDER_QUEUES
     exec_space.impl_internal_space_instance()
         ->m_queue->ext_oneapi_submit_barrier(std::vector<sycl::event>{event});
 #endif
-  }
-
-  ZeroMemset(const View<T, P...>& dst,
-             typename View<T, P...>::const_value_type&) {
-    Experimental::Impl::SYCLInternal::singleton().m_queue->memset(
-        dst.data(), 0, dst.size() * sizeof(typename View<T, P...>::value_type));
   }
 };
 

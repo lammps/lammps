@@ -27,10 +27,9 @@ struct ViewDataAnalysis<DataType, ArrayLayout, Kokkos::Array<V, N, P>> {
  private:
   using array_analysis = ViewArrayAnalysis<DataType>;
 
-  static_assert(std::is_void<P>::value, "");
+  static_assert(std::is_void<P>::value);
   static_assert(std::is_same<typename array_analysis::non_const_value_type,
-                             Kokkos::Array<V, N, P>>::value,
-                "");
+                             Kokkos::Array<V, N, P>>::value);
   static_assert(std::is_scalar<V>::value,
                 "View of Array type must be of a scalar type");
 
@@ -128,6 +127,12 @@ class ViewMapping<Traits, Kokkos::Array<>> {
   template <typename iType>
   KOKKOS_INLINE_FUNCTION constexpr size_t extent(const iType &r) const {
     return m_impl_offset.m_dim.extent(r);
+  }
+
+  static KOKKOS_INLINE_FUNCTION constexpr size_t static_extent(
+      const unsigned r) noexcept {
+    using dim_type = typename offset_type::dimension_type;
+    return dim_type::static_extent(r);
   }
 
   KOKKOS_INLINE_FUNCTION constexpr typename Traits::array_layout layout()
@@ -507,7 +512,7 @@ class ViewMapping<
                       Kokkos::LayoutStride>::value))>,
     SrcTraits, Args...> {
  private:
-  static_assert(SrcTraits::rank == sizeof...(Args), "");
+  static_assert(SrcTraits::rank == sizeof...(Args));
 
   enum : bool {
     R0 = is_integral_extent<0, Args...>::value,

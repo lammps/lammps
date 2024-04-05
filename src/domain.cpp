@@ -598,28 +598,6 @@ void Domain::define_general_triclinic(double *avec_caller, double *bvec_caller,
   xy = bprime[0];
   xz = cprime[0];
   yz = cprime[1];
-
-  // debug
-
-  /*
-  printf("Theta1: %g\n",theta1);
-  printf("Rotvec1: %g %g %g\n",rot1[0],rot1[1],rot1[2]);
-  printf("Theta2: %g\n",theta2);
-  printf("Rotvec2: %g %g %g\n",xaxis[0],xaxis[1],xaxis[2]);
-  printf("Quat: %g %g %g %g\n",
-         quat_single[0],quat_single[1],quat_single[2],quat_single[3]);
-  double angle = 2.0*acos(quat_single[0]);
-  printf("Theta: %g\n",angle);
-  printf("Rotvec: %g %g %g\n",
-         quat_single[1]/sin(0.5*angle),quat_single[2]/sin(0.5*angle),
-         quat_single[3]/sin(0.5*angle));
-  printf("Aprime: %g %g %g\n",aprime[0],aprime[1],aprime[2]);
-  printf("Bprime: %g %g %g\n",bprime[0],bprime[1],bprime[2]);
-  printf("Cprime: %g %g %g\n",cprime[0],cprime[1],cprime[2]);
-  printf("Length A: %g %g\n",MathExtra::len3(avec),MathExtra::len3(aprime));
-  printf("Length B: %g %g\n",MathExtra::len3(bvec),MathExtra::len3(bprime));
-  printf("Length C: %g %g\n",MathExtra::len3(cvec),MathExtra::len3(cprime));
-  */
 }
 
 /* ----------------------------------------------------------------------

@@ -9,9 +9,10 @@ read_data	    particles.dat add append
 group 		    mb type 1
 
 pair_style granular
-pair_coeff * * hertz/material 1e6 0.8 0.4 tangential mindlin  NULL 0.0 0.5 damping enhertz
-# pair_coeff * * hertz 1e6 0.3 tangential mindlin  1e4 1.0 0.5 damping enhertz
-# pair_coeff * * hooke 1e6 0.5 tangential mindlin  1 1.0 0.0 damping enhooke
+pair_coeff * * hertz/material 1e6 0.8 0.4 tangential mindlin  NULL 0.0 0.5 damping hertz/en
+# pair_coeff * * hertz/material 1e6 0.8 0.4 tangential mindlin  NULL 0.0 0.5 damping hooke/en #Should throw and error
+# pair_coeff * * hertz 1e6 0.3 tangential mindlin  1e4 1.0 0.5 damping hertz/en
+# pair_coeff * * hooke 1e6 0.5 tangential mindlin  1 1.0 0.0 damping hooke/en
 comm_modify     vel yes
 
 timestep 	    1e-9

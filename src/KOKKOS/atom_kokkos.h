@@ -101,11 +101,6 @@ class AtomKokkos : public Atom {
   DAT::t_tagint_scalar d_tag_min,d_tag_max;
   HAT::t_tagint_scalar h_tag_min,h_tag_max;
 
-  using MapKeyViewType = decltype(d_tag_sorted);
-  using BinOpMap = Kokkos::BinOp1D<MapKeyViewType>;
-  BinOpMap mapBinner;
-  Kokkos::BinSort<MapKeyViewType, BinOpMap> mapSorter;
-
   class AtomVecKokkos* avecKK;
 
   // map lookup function inlined for efficiency

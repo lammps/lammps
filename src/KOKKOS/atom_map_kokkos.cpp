@@ -197,59 +197,25 @@ void AtomKokkos::map_set_device()
 
   int nmax = atom->nmax;
 
-  int realloc_flag = 0;
   if (!d_tag_sorted.data() || (int)d_tag_sorted.extent(0) < nmax) {
     MemKK::realloc_kokkos(d_tag_sorted,"atom:tag_sorted",nmax);
     MemKK::realloc_kokkos(d_i_sorted,"atom:i_sorted",nmax);
-    realloc_flag = 1;
   }
 
-  h_tag_min() = MAXTAGINT;
-  h_tag_max() = 0;
+  // sort by tag
 
-  Kokkos::deep_copy(d_tag_min_max,h_tag_min_max);
-
-  auto l_tag_sorted = d_tag_sorted;
-  auto l_i_sorted = d_i_sorted;
-  auto l_tag_min = d_tag_min;
-  auto l_tag_max = d_tag_max;
+  auto l_tag_sorted = Kokkos::subview(d_tag_sorted,std::make_pair(0,nall));
+  auto l_i_sorted = Kokkos::subview(d_i_sorted,std::make_pair(0,nall));
+  auto l_tag_small = Kokkos::subview(d_tag,std::make_pair(0,nall));
   int map_style_array = (map_style == MAP_ARRAY);
 
   Kokkos::parallel_for(nall, LAMMPS_LAMBDA(int i) {
     l_i_sorted(i) = i;
-    tagint tag_i = d_tag(i);
-    l_tag_sorted(i) = tag_i;
-    Kokkos::atomic_min(&l_tag_min(),tag_i);
-    Kokkos::atomic_max(&l_tag_max(),tag_i);
+    l_tag_sorted(i) = d_tag(i);
   });
 
-  Kokkos::deep_copy(h_tag_min_max,d_tag_min_max);
-
-  tagint min = h_tag_min();
-  tagint max = h_tag_max();
-
-  using MapKeyViewType = decltype(d_tag_sorted);
-  using BinOpMap = Kokkos::BinOp1D<MapKeyViewType>;
-
-  mapBinner = BinOpMap(nall, min, max);
-
-  if (realloc_flag) {
-    mapSorter = Kokkos::BinSort<MapKeyViewType, BinOpMap>(d_tag_sorted, 0, nall, mapBinner, true);
-    MemKK::realloc_kokkos(mapSorter.bin_count_atomic,"Kokkos::SortImpl::BinSortFunctor::bin_count",nmax+1);
-    Kokkos::deep_copy(mapSorter.bin_count_atomic,0);
-    mapSorter.bin_count_const = mapSorter.bin_count_atomic;
-    MemKK::realloc_kokkos(mapSorter.bin_offsets,"Kokkos::SortImpl::BinSortFunctor::bin_offsets",nmax+1);
-    MemKK::realloc_kokkos(mapSorter.sort_order,"Kokkos::SortImpl::BinSortFunctor::sort_order",nmax);
-  } else {
-    Kokkos::deep_copy(mapSorter.bin_count_atomic,0);
-    mapSorter.bin_op = mapBinner;
-    mapSorter.range_begin = 0;
-    mapSorter.range_end = nall;
-  }
-
-  mapSorter.create_permute_vector(LMPDeviceType());
-  mapSorter.sort(LMPDeviceType(), d_tag_sorted, 0, nall);
-  mapSorter.sort(LMPDeviceType(), d_i_sorted, 0, nall);
+  Kokkos::Experimental::sort_by_key(LMPDeviceType(), l_tag_small, l_i_sorted);
+  Kokkos::sort(LMPDeviceType(),l_tag_sorted);
 
   auto d_map_array = k_map_array.d_view;
   auto d_map_hash = k_map_hash.d_view;

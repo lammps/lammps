@@ -46,15 +46,14 @@ struct StdRemoveIfStage1Functor {
   void operator()(const IndexType i, IndexType& update,
                   const bool final_pass) const {
     auto& myval = m_first_from[i];
-    if (final_pass) {
-      if (!m_must_remove(myval)) {
+
+    if (!m_must_remove(myval)) {
+      if (final_pass) {
         // calling move here is ok because we are inside final pass
         // we are calling move assign as specified by the std
         m_first_dest[update] = std::move(myval);
       }
-    }
 
-    if (!m_must_remove(myval)) {
       update += 1;
     }
   }
@@ -108,7 +107,9 @@ IteratorType remove_if_exespace_impl(const std::string& label,
     // create helper tmp view
     using value_type    = typename IteratorType::value_type;
     using tmp_view_type = Kokkos::View<value_type*, ExecutionSpace>;
-    tmp_view_type tmp_view("std_remove_if_tmp_view", keep_count);
+    tmp_view_type tmp_view(Kokkos::view_alloc(Kokkos::WithoutInitializing, ex,
+                                              "std_remove_if_tmp_view"),
+                           keep_count);
     using tmp_readwrite_iterator_type = decltype(begin(tmp_view));
 
     // in stage 1, *move* all elements to keep from original range to tmp

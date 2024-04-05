@@ -138,7 +138,7 @@ struct RunGather<Scalar, UNROLL> {
     printf(
         "SNKDRUF: %i %i %i %i %i %i %i Time: %lfs Bandwidth: %lfGiB/s GFlop/s: "
         "%lf GGather/s: %lf\n",
-        sizeof(Scalar) / 4, N, K, D, R, UNROLL, F, seconds,
+        static_cast<int>(sizeof(Scalar) / 4), N, K, D, R, UNROLL, F, seconds,
         1.0 * bytes / seconds / 1024 / 1024 / 1024, 1.e-9 * flops / seconds,
         1.e-9 * gather_ops / seconds);
   }

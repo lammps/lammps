@@ -35,6 +35,7 @@
 #include "../experimental/__p0009_bits/layout_right.hpp"
 #include "../experimental/__p0009_bits/macros.hpp"
 #if MDSPAN_HAS_CXX_17
+#include "../experimental/__p2642_bits/layout_padded.hpp"
 #include "../experimental/__p2630_bits/submdspan.hpp"
 #endif
 

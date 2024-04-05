@@ -83,7 +83,7 @@ struct IndexTypePolicyMixin : AnalyzeNextTrait {
                 "Kokkos Error: More than one index type given. Search "
                 "compiler output for 'show_extra_index_type' to see the "
                 "type of the errant tag.");
-  static_assert(std::is_integral<IntegralIndexType>::value, "");
+  static_assert(std::is_integral<IntegralIndexType>::value);
   static constexpr bool index_type_is_defaulted = false;
   using index_type = Kokkos::IndexType<IntegralIndexType>;
 };

@@ -29,7 +29,7 @@ inline void host_check_where_expr_scatter_to() {
   std::size_t nlanes = simd_type::size();
   DataType init[]    = {11, 13, 17, 19, 23, 29, 31, 37};
   simd_type src;
-  src.copy_from(init, Kokkos::Experimental::element_aligned_tag());
+  src.copy_from(init, Kokkos::Experimental::simd_flag_default);
 
   for (std::size_t idx = 0; idx < nlanes; ++idx) {
     mask_type mask(true);
@@ -46,7 +46,7 @@ inline void host_check_where_expr_scatter_to() {
     where(mask, src).scatter_to(dst, index);
 
     simd_type dst_simd;
-    dst_simd.copy_from(dst, Kokkos::Experimental::element_aligned_tag());
+    dst_simd.copy_from(dst, Kokkos::Experimental::simd_flag_default);
 
     host_check_equality(expected_result, dst_simd, nlanes);
   }
@@ -107,7 +107,7 @@ KOKKOS_INLINE_FUNCTION void device_check_where_expr_scatter_to() {
   std::size_t nlanes = simd_type::size();
   DataType init[]    = {11, 13, 17, 19, 23, 29, 31, 37};
   simd_type src;
-  src.copy_from(init, Kokkos::Experimental::element_aligned_tag());
+  src.copy_from(init, Kokkos::Experimental::simd_flag_default);
 
   for (std::size_t idx = 0; idx < nlanes; ++idx) {
     mask_type mask(true);
@@ -124,7 +124,7 @@ KOKKOS_INLINE_FUNCTION void device_check_where_expr_scatter_to() {
     where(mask, src).scatter_to(dst, index);
 
     simd_type dst_simd;
-    dst_simd.copy_from(dst, Kokkos::Experimental::element_aligned_tag());
+    dst_simd.copy_from(dst, Kokkos::Experimental::simd_flag_default);
 
     device_check_equality(expected_result, dst_simd, nlanes);
   }

@@ -1515,15 +1515,16 @@ void Thermo::compute_fix()
   int m = field2index[ifield];
   Fix *fix = fixes[m];
 
-  // check for out-of-range access if vector/array is variable length
-
   if (argindex1[ifield] == 0) {
     dvalue = fix->compute_scalar();
     if (normflag && fix->extscalar) dvalue /= natoms;
   } else if (argindex2[ifield] == 0) {
-    if (fix->size_vector_variable && argindex1[ifield] > fix->size_vector)
-      error->all(FLERR, "Thermo fix vector is accessed out-of-range");
-    dvalue = fix->compute_vector(argindex1[ifield] - 1);
+
+    // if index exceeds variable vector length, use a zero value
+    // this can be useful if vector length is not known a priori
+
+    if (fix->size_vector_variable && argindex1[ifield] > fix->size_vector) dvalue = 0.0;
+    else dvalue = fix->compute_vector(argindex1[ifield] - 1);
     if (normflag) {
       if (fix->extvector == 0)
         return;
@@ -1533,9 +1534,12 @@ void Thermo::compute_fix()
         dvalue /= natoms;
     }
   } else {
-    if (fix->size_array_rows_variable && argindex1[ifield] > fix->size_array_rows)
-      error->all(FLERR, "Thermo fix array is accessed out-of-range");
-    dvalue = fix->compute_array(argindex1[ifield] - 1, argindex2[ifield] - 1);
+
+    // if index exceeds variable array rows, use a zero value
+    // this can be useful if array size is not known a priori
+
+    if (fix->size_array_rows_variable && argindex1[ifield] > fix->size_array_rows) dvalue = 0.0;
+    else dvalue = fix->compute_array(argindex1[ifield] - 1, argindex2[ifield] - 1);
     if (normflag && fix->extarray) dvalue /= natoms;
   }
 }

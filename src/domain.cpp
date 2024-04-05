@@ -87,9 +87,6 @@ Domain::Domain(LAMMPS *lmp) : Pointers(lmp)
   boxlo[0] = boxlo[1] = boxlo[2] = -0.5;
   boxhi[0] = boxhi[1] = boxhi[2] = 0.5;
   xy = xz = yz = 0.0;
-  avec[0] = avec[1] = avec[2] = 0.0;
-  bvec[0] = bvec[1] = bvec[2] = 0.0;
-  cvec[0] = cvec[1] = cvec[2] = 0.0;
   
   h[3] = h[4] = h[5] = 0.0;
   h_inv[3] = h_inv[4] = h_inv[5] = 0.0;

@@ -247,11 +247,11 @@ was created as a general triclinic box.  See the :doc:`Howto_triclinic
 <Howto_triclinic>` doc page for a detailed explanation of orthogonal,
 restricted triclinic, and general triclinic simulation boxes.
 
-If this keyword is used, the output of pressure tensor components for
-the system is affected.  These components are specified by the
-*pxx,pyy,pzz,pxy,pxz,pyz* keywords of the :doc:`thermo_style
-<thermo_style>` command.  See the :doc:`thermo_style <thermo_style>`
-doc page for details.
+If this keyword is used, the output of the simulation box edge vectors
+and the pressure tensor components for the system are affected.  These
+are specified by the *avec,bvec,cvec* and *pxx,pyy,pzz,pxy,pxz,pyz*
+keywords of the :doc:`thermo_style <thermo_style>` command.  See the
+:doc:`thermo_style <thermo_style>` doc page for details.
 
 Restrictions
 """"""""""""

@@ -74,9 +74,9 @@ Syntax
            density = mass density of system
            xlo,xhi,ylo,yhi,zlo,zhi = box boundaries
            xy,xz,yz = box tilt for restricted triclinic (non-orthogonal) simulation boxes
-           avecx,avecy,avecz = components of edge vector A for general triclinic simulation boxes
-           bvecx,bvecy,bvecz = components of edge vector B for general triclinic simulation boxes
-           cvecx,cvecy,cvecz = components of edge vector C for general triclinic simulation boxes
+           avecx,avecy,avecz = components of edge vector A of the simulation box
+           bvecx,bvecy,bvecz = components of edge vector B of the simulation box
+           cvecx,cvecy,cvecz = components of edge vector C of the simulation box
            lx,ly,lz = box lengths in x,y,z
            xlat,ylat,zlat = lattice spacings as calculated by :doc:`lattice <lattice>` command
            cella,cellb,cellc = periodic cell lattice constants a,b,c
@@ -352,8 +352,14 @@ They are the same for restricted and general triclinic boxes.
 
 The *avecx*, *avecy*, *avecz*, *bvecx*, *bvecy*, *bvecz*, *cvecx*,
 *cvecy*, *cvecz* are the components of the 3 edge vectors of the
-current general triclinic box.  They are only non-zero if a general
-triclinic box was defined when the simultion box was created.
+current general simulation box.  If it is an orthogonal box the
+vectors are along the x, y, z coordinate axes.  If it is a restricted
+triclinic box, the **A** vector is along the x axis, the **B** vector
+is in the xy plane with a +y coordinate, and the **C** vector has a +z
+coordinate, as explained on the :doc:`Howto_triclinic
+<Howto_triclinic>` doc page.  If the :doc:`thermo_modify
+triclinic/general <thermo_modify>` option is set then they are the
+**A**, **B**, **C** vector which define the general triclinic box.
 
 The *cella*, *cellb*, *cellc*, *cellalpha*, *cellbeta*, *cellgamma*
 keywords correspond to the usual crystallographic quantities that
@@ -369,10 +375,9 @@ pressure <compute_pressure>` command doc page for details of how it is
 calculated.
 
 If the :doc:`thermo_modify triclinic/general <thermo_modify>` option
-is set and the simulation box was created as a general triclinic box,
-then the 6 components will be output as values consistent with the
-orientation of the general triclinic box relative to the standard xyz
-coordinate axes.  If this keyword is not used, the values will be
+is set then the 6 components will be output as values consistent with
+the orientation of the general triclinic box relative to the standard
+xyz coordinate axes.  If this keyword is not used, the values will be
 consistent with the orientation of the restricted triclinic box (which
 aligns with the xyz coordinate axes).  As explained on the
 :doc:`Howto_triclinic <Howto_triclinic>` doc page, even if the

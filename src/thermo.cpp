@@ -2083,61 +2083,79 @@ void Thermo::compute_yz()
 
 void Thermo::compute_avecx()
 {
-  dvalue = domain->avec[0];
+  if (!domain->triclinic) dvalue = domain->xprd;
+  else if (triclinic_general) dvalue = domain->avec[0];
+  else dvalue = domain->xprd;
 }
 
 /* ---------------------------------------------------------------------- */
 
 void Thermo::compute_avecy()
 {
-  dvalue = domain->avec[1];
+  if (!domain->triclinic) dvalue = 0.0;
+  else if (triclinic_general) dvalue = domain->avec[1];
+  else dvalue = 0.0;
 }
 
 /* ---------------------------------------------------------------------- */
 
 void Thermo::compute_avecz()
 {
-  dvalue = domain->avec[2];
+  if (!domain->triclinic) dvalue = 0.0;
+  else if (triclinic_general) dvalue = domain->avec[2];
+  else dvalue = 0.0;
 }
 /* ---------------------------------------------------------------------- */
 
 void Thermo::compute_bvecx()
 {
-  dvalue = domain->bvec[0];
+  if (!domain->triclinic) dvalue = 0.0;
+  else if (triclinic_general) dvalue = domain->bvec[0];
+  else dvalue = domain->xy;
 }
 
 /* ---------------------------------------------------------------------- */
 
 void Thermo::compute_bvecy()
 {
-  dvalue = domain->bvec[1];
+  if (!domain->triclinic) dvalue = domain->yprd;
+  else if (triclinic_general) dvalue = domain->bvec[1];
+  else dvalue = domain->yprd;
 }
 
 /* ---------------------------------------------------------------------- */
 
 void Thermo::compute_bvecz()
 {
-  dvalue = domain->bvec[2];
+  if (!domain->triclinic) dvalue = 0.0;
+  else if (triclinic_general) dvalue = domain->bvec[2];
+  else dvalue = 0.0;
 }
 /* ---------------------------------------------------------------------- */
 
 void Thermo::compute_cvecx()
 {
-  dvalue = domain->cvec[0];
+  if (!domain->triclinic) dvalue = 0.0;
+  else if (triclinic_general) dvalue = domain->cvec[0];
+  else dvalue = domain->xz;
 }
 
 /* ---------------------------------------------------------------------- */
 
 void Thermo::compute_cvecy()
 {
-  dvalue = domain->cvec[1];
+  if (!domain->triclinic) dvalue = 0.0;
+  else if (triclinic_general) dvalue = domain->cvec[1];
+  else dvalue = domain->yz;
 }
 
 /* ---------------------------------------------------------------------- */
 
 void Thermo::compute_cvecz()
 {
-  dvalue = domain->cvec[2];
+  if (!domain->triclinic) dvalue = domain->zprd;
+  else if (triclinic_general) dvalue = domain->cvec[2];
+  else dvalue = domain->zprd;
 }
 
 /* ---------------------------------------------------------------------- */

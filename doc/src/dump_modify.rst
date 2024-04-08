@@ -80,7 +80,7 @@ Syntax
          value = numeric value to compare to, or LAST
          these 3 args can be replaced by the word "none" to turn off thresholding
        *time* arg = *yes* or *no*
-       *triclinic/general* arg = none
+       *triclinic/general* arg = *yes* or *no*
        *units* arg = *yes* or *no*
        *unwrap* arg = *yes* or *no*
 
@@ -815,7 +815,7 @@ threshold criterion is met.  Otherwise it is not met.
 
 .. note::
 
-   For style *custom*, the *triclinic/general* keyword alters dump
+   For style *custom*, the *triclinic/general* keyword can alter dump
    output for general triclinic simulation boxes and their atoms.  See
    the :doc:`dump <dump>` command for details of how this changes the
    format of dump file snapshots.  The thresh keyword may access
@@ -850,23 +850,25 @@ The default setting is *no*\ .
 ----------
 
 The *triclinic/general* keyword only applies to the dump *atom* and
-*custom* styles.  It can only be used if the simulation box was
-created as a general triclinic box.  See the :doc:`Howto_triclinic
-<Howto_triclinic>` doc page for a detailed explanation of orthogonal,
-restricted triclinic, and general triclinic simulation boxes.
+*custom* styles.  It can only be used with a value of *yes* if the
+simulation box was created as a general triclinic box.  See the
+:doc:`Howto_triclinic <Howto_triclinic>` doc page for a detailed
+explanation of orthogonal, restricted triclinic, and general triclinic
+simulation boxes.
 
-If this keyword is used, the box information at the beginning of each
-snapshot will include information about the 3 arbitrary edge vectors
-**A**, **B**, **C** that define the general triclinic box as well as
-their origin.  The format is described on the :doc:`dump <dump>` doc
-page.
+If this keyword is used with a value of *yes*, the box information at
+the beginning of each snapshot will include information about the 3
+arbitrary edge vectors **A**, **B**, **C** that define the general
+triclinic box as well as their origin.  The format is described on the
+:doc:`dump <dump>` doc page.
 
-The coordinates of each atom will be output as values in (or near) the
-general triclinic box.  Likewise, per-atom vector quantities such as
-velocity, omega, dipole moment, etc will have orientations consistent
-with the general triclinic box, meaning they will be rotated relative
-to the standard xyz coordinate axes.  See the :doc:`dump <dump>` doc
-page for a full list of which dump attributes this affects.
+The coordinates of each atom will likewise be output as values in (or
+near) the general triclinic box.  Likewise, per-atom vector quantities
+such as velocity, omega, dipole moment, etc will have orientations
+consistent with the general triclinic box, meaning they will be
+rotated relative to the standard xyz coordinate axes.  See the
+:doc:`dump <dump>` doc page for a full list of which dump attributes
+this affects.
 
 ----------
 

@@ -338,7 +338,7 @@ void WriteData::header()
                domain->bvec[0],domain->bvec[1],domain->bvec[2],
                domain->cvec[0],domain->cvec[1],domain->cvec[2]);
     fmt::print(fp,"{} {} {} abc origin\n",
-               domain->boxlo[0],domain->boxlo[1],domain->boxhi[2]);
+               domain->boxlo[0],domain->boxlo[1],domain->boxlo[2]);
   }
 }
 

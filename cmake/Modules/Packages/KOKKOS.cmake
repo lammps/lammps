@@ -71,7 +71,11 @@ if(DOWNLOAD_KOKKOS)
   add_dependencies(LAMMPS::KOKKOSCORE kokkos_build)
   add_dependencies(LAMMPS::KOKKOSCONTAINERS kokkos_build)
 elseif(EXTERNAL_KOKKOS)
-  find_package(Kokkos 4.3.00 REQUIRED CONFIG)
+  if(Kokkos_ENABLE_COMPILE_AS_CMAKE_LANGUAGE)
+    find_package(Kokkos 4.3.00 REQUIRED CONFIG COMPONENTS separable_compilation)
+  else()
+    find_package(Kokkos 4.3.00 REQUIRED CONFIG)
+  endif()
   target_link_libraries(lammps PRIVATE Kokkos::kokkos)
 else()
   set(LAMMPS_LIB_KOKKOS_SRC_DIR ${LAMMPS_LIB_SOURCE_DIR}/kokkos)
@@ -86,12 +90,7 @@ else()
   endif()
   add_subdirectory(${LAMMPS_LIB_KOKKOS_SRC_DIR} ${LAMMPS_LIB_KOKKOS_BIN_DIR} EXCLUDE_FROM_ALL)
 
-  set(Kokkos_INCLUDE_DIRS ${LAMMPS_LIB_KOKKOS_SRC_DIR}/core/src
-                          ${LAMMPS_LIB_KOKKOS_SRC_DIR}/containers/src
-                          ${LAMMPS_LIB_KOKKOS_SRC_DIR}/algorithms/src
-                          ${LAMMPS_LIB_KOKKOS_BIN_DIR})
-  target_include_directories(lammps PRIVATE ${Kokkos_INCLUDE_DIRS})
-  target_link_libraries(lammps PRIVATE kokkos)
+  target_link_libraries(lammps PRIVATE Kokkos::kokkos)
   if(BUILD_SHARED_LIBS_WAS_ON)
     set(BUILD_SHARED_LIBS ON)
   endif()
@@ -205,6 +204,35 @@ if(PKG_DPD-REACT)
 endif()
 
 get_property(KOKKOS_PKG_SOURCES GLOBAL PROPERTY KOKKOS_PKG_SOURCES)
+
+if(Kokkos_ENABLE_COMPILE_AS_CMAKE_LANGUAGE)
+  if(Kokkos_ENABLE_CUDA)
+    set(Kokkos_COMPILE_LANGUAGE CUDA)
+  elseif(Kokkos_ENABLE_HIP)
+    set(Kokkos_COMPILE_LANGUAGE HIP)
+  endif()
+  enable_language(${Kokkos_COMPILE_LANGUAGE})
+  set_source_files_properties(
+    ${KOKKOS_PKG_SOURCES}
+    ${LAMMPS_SOURCE_DIR}/atom.cpp
+    ${LAMMPS_SOURCE_DIR}/comm.cpp
+    ${LAMMPS_SOURCE_DIR}/domain.cpp
+    ${LAMMPS_SOURCE_DIR}/error.cpp
+    ${LAMMPS_SOURCE_DIR}/finish.cpp
+    ${LAMMPS_SOURCE_DIR}/force.cpp
+    ${LAMMPS_SOURCE_DIR}/imbalance_neigh.cpp
+    ${LAMMPS_SOURCE_DIR}/input.cpp
+    ${LAMMPS_SOURCE_DIR}/replicate.cpp
+    ${LAMMPS_SOURCE_DIR}/lammps.cpp
+    ${LAMMPS_SOURCE_DIR}/special.cpp
+    ${LAMMPS_SOURCE_DIR}/info.cpp
+    ${LAMMPS_SOURCE_DIR}/library.cpp
+    ${LAMMPS_SOURCE_DIR}/modify.cpp
+    ${LAMMPS_SOURCE_DIR}/neighbor.cpp
+    ${LAMMPS_SOURCE_DIR}/update.cpp
+    PROPERTIES LANGUAGE ${Kokkos_COMPILE_LANGUAGE}
+  )
+endif()
 
 target_sources(lammps PRIVATE ${KOKKOS_PKG_SOURCES})
 target_include_directories(lammps PUBLIC $<BUILD_INTERFACE:${KOKKOS_PKG_SOURCES_DIR}>)

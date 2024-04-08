@@ -76,7 +76,7 @@ narrow, e.g. -0.5 to 0.5, but that is not required.  For a 2d general
 triclinic box, the z component of *avec* and *bvec* must be zero, and
 *cvec* must be (0,0,1), which is the default.  The z component of *abc
 origin* must also be -0.5, which is the default.
-                
+
 If using the :doc:`create_atoms <create_atoms>` command to create
 atoms in the 2d simulation box, all the z coordinates of created atoms
 will be zero.

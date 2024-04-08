@@ -347,7 +347,7 @@ are the values as if the box were not tilted.  For a general triclinic
 box, they are the values after it is internally rotated to be a
 restricted triclinic box.
 
-THe *xy*, *xz*, *yz* are the current tilt factors for a triclinic box.
+The *xy*, *xz*, *yz* are the current tilt factors for a triclinic box.
 They are the same for restricted and general triclinic boxes.
 
 The *avecx*, *avecy*, *avecz*, *bvecx*, *bvecy*, *bvecz*, *cvecx*,

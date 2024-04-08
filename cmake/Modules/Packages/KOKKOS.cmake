@@ -230,6 +230,43 @@ if(Kokkos_ENABLE_COMPILE_AS_CMAKE_LANGUAGE)
     ${LAMMPS_SOURCE_DIR}/modify.cpp
     ${LAMMPS_SOURCE_DIR}/neighbor.cpp
     ${LAMMPS_SOURCE_DIR}/update.cpp
+    ${LAMMPS_SOURCE_DIR}/DPD-REACT/fix_shardlow.cpp
+    # due to LAMMPS_INLINE (coming from accerlator_kokkos.h)
+    ${LAMMPS_SOURCE_DIR}/REAXFF/reaxff_init_md.cpp
+    ${LAMMPS_SOURCE_DIR}/REAXFF/compute_reaxff_atom.cpp
+    ${LAMMPS_SOURCE_DIR}/REAXFF/compute_spec_atom.cpp
+    ${LAMMPS_SOURCE_DIR}/REAXFF/fix_acks2_reaxff.cpp
+    ${LAMMPS_SOURCE_DIR}/REAXFF/fix_qeq_reaxff.cpp
+    ${LAMMPS_SOURCE_DIR}/REAXFF/fix_reaxff_bonds.cpp
+    ${LAMMPS_SOURCE_DIR}/REAXFF/fix_reaxff.cpp
+    ${LAMMPS_SOURCE_DIR}/REAXFF/fix_reaxff_species.cpp
+    ${LAMMPS_SOURCE_DIR}/REAXFF/pair_reaxff.cpp
+    ${LAMMPS_SOURCE_DIR}/REAXFF/reaxff_allocate.cpp
+    ${LAMMPS_SOURCE_DIR}/REAXFF/reaxff_bond_orders.cpp
+    ${LAMMPS_SOURCE_DIR}/REAXFF/reaxff_bonds.cpp
+    ${LAMMPS_SOURCE_DIR}/REAXFF/reaxff_control.cpp
+    ${LAMMPS_SOURCE_DIR}/REAXFF/reaxff_ffield.cpp
+    ${LAMMPS_SOURCE_DIR}/REAXFF/reaxff_forces.cpp
+    ${LAMMPS_SOURCE_DIR}/REAXFF/reaxff_hydrogen_bonds.cpp
+    ${LAMMPS_SOURCE_DIR}/REAXFF/reaxff_init_md.cpp
+    ${LAMMPS_SOURCE_DIR}/REAXFF/reaxff_list.cpp
+    ${LAMMPS_SOURCE_DIR}/REAXFF/reaxff_lookup.cpp
+    ${LAMMPS_SOURCE_DIR}/REAXFF/reaxff_multi_body.cpp
+    ${LAMMPS_SOURCE_DIR}/REAXFF/reaxff_nonbonded.cpp
+    ${LAMMPS_SOURCE_DIR}/REAXFF/reaxff_reset_tools.cpp
+    ${LAMMPS_SOURCE_DIR}/REAXFF/reaxff_tool_box.cpp
+    ${LAMMPS_SOURCE_DIR}/REAXFF/reaxff_torsion_angles.cpp
+    ${LAMMPS_SOURCE_DIR}/REAXFF/reaxff_valence_angles.cpp
+    ${LAMMPS_SOURCE_DIR}/OPENMP/reaxff_bond_orders_omp.cpp
+    ${LAMMPS_SOURCE_DIR}/OPENMP/reaxff_bonds_omp.cpp
+    ${LAMMPS_SOURCE_DIR}/OPENMP/reaxff_forces_omp.cpp
+    ${LAMMPS_SOURCE_DIR}/OPENMP/reaxff_hydrogen_bonds_omp.cpp
+    ${LAMMPS_SOURCE_DIR}/OPENMP/reaxff_init_md_omp.cpp
+    ${LAMMPS_SOURCE_DIR}/OPENMP/reaxff_multi_body_omp.cpp
+    ${LAMMPS_SOURCE_DIR}/OPENMP/reaxff_nonbonded_omp.cpp
+    ${LAMMPS_SOURCE_DIR}/OPENMP/reaxff_torsion_angles_omp.cpp
+    ${LAMMPS_SOURCE_DIR}/OPENMP/reaxff_valence_angles_omp.cpp
+    ${LAMMPS_SOURCE_DIR}/OPENMP/pair_reaxff_omp.cpp
     PROPERTIES LANGUAGE ${Kokkos_COMPILE_LANGUAGE}
   )
 endif()

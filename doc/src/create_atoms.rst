@@ -171,25 +171,28 @@ a simulation box which replicates that unit cell along each of the
    input to LAMMPS.  However, as explained on the
    :doc:`Howto_triclinic <Howto_triclinic>` doc page, internally,
    LAMMPS only uses restricted triclinic simulation boxes.  This means
-   the box created by the :doc:`create_box <create_box>` command and
-   the atoms with their per-atom information (e.g. coordinates,
-   velocities) created by this command are converted (rotated) from
-   general to restricted triclinic form when the two commands are
+   the box created by the :doc:`create_box <create_box>` command as
+   well as the atoms created by this command with their per-atom
+   information (e.g. coordinates, velocities) are converted (rotated)
+   from general to restricted triclinic form when the two commands are
    invoked.  The <Howto_triclinic>` doc page also discusses other
    LAMMPS commands which can input/output general triclinic
    representations of the simulation box and per-atom data.
 
 The *box* style will fill the entire general triclinic box with
-particles on the lattice, as explained above.  The *region* style also
-operates as explained above, but the check for particles inside the
-region is performed *after* the particle coordinates have been
-converted to the restricted triclinic box.  This means the region must
-also be defined with respect to the restricted triclinic box, not the
-general triclinic box.
+particles on the lattice, as explained above.
+
+.. note::
+
+    The *region* style also operates as explained above, but the check
+    for particles inside the region is performed *after* the particle
+    coordinates have been converted to the restricted triclinic box.
+    This means the region must also be defined with respect to the
+    restricted triclinic box, not the general triclinic box.
 
 If the simulation box is general triclinic, the *single*, *random*,
-and *mesh* styles described next operate on the box after it has been
-converted to restricted triclinic.  So all the settings for those
+and *mesh* styles described next operate on the box *after* it has
+been converted to restricted triclinic.  So all the settings for those
 styles should be made in that context.
 
 ----------

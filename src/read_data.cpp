@@ -1394,7 +1394,7 @@ void ReadData::header(int firstpass)
       if (addflag == NONE) atom->nimpropertypes = nimpropertypes + extra_improper_types;
 
     // these settings only used by first data file
-    // NOTEL these are now obsolete, we parse them to maintain backward compatibility
+    // NOTE: these are now obsolete, we parse them to maintain backward compatibility
     //   the recommended way is to set them via command keywords in the input script
     //   if these flags are set both ways, the larger of the two values is used
 

@@ -670,9 +670,9 @@ void Domain::general_to_restricted_rotation(double *a, double *b, double *c,
 
   // rotate general ABC to restricted triclinic A'B'C'
 
-  MathExtra::matvec(rotate_g2r,a,aprime);
-  MathExtra::matvec(rotate_g2r,b,bprime);
-  MathExtra::matvec(rotate_g2r,c,cprime);
+  MathExtra::matvec(rotmat,a,aprime);
+  MathExtra::matvec(rotmat,b,bprime);
+  MathExtra::matvec(rotmat,c,cprime);
 }
 
 /* ----------------------------------------------------------------------

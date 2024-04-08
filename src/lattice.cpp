@@ -245,6 +245,8 @@ Lattice::Lattice(LAMMPS *lmp, int narg, char **arg) : Pointers(lmp)
   if (collinear())
     error->all(FLERR,"Lattice primitive vectors are collinear");
 
+  // requirements for 2d system
+  
   if (dimension == 2) {
     if (origin[2] != 0.0)
       error->all(FLERR,
@@ -261,30 +263,34 @@ Lattice::Lattice(LAMMPS *lmp, int narg, char **arg) : Pointers(lmp)
         error->all(FLERR,"Lattice basis atom z coords must be zero for 2d simulation");
   }
 
-  if (spaceflag) {
-    if (xlattice <= 0.0 || ylattice <= 0.0 || zlattice <= 0.0)
-      error->all(FLERR,"Lattice spacings are invalid");
-  }
-
   // additional requirements for a general triclinic lattice
   // a123 prime are used to compute lattice spacings
 
   if (triclinic_general) {
     if (style != CUSTOM)
-      error->all(FLERR,"Lattice triclnic/general must be style = CUSTOM");
+      error->all(FLERR,"Lattice triclinic/general must be style = CUSTOM");
     if (origin[0] != 0.0 || origin[1] != 0.0 || origin[2] != 0.0)
-      error->all(FLERR,"Lattice triclnic/general must have default origin");
+      error->all(FLERR,"Lattice triclinic/general must have default origin");
     int oriented = 0;
     if (orientx[0] != 1 || orientx[1] != 0 || orientx[2] != 0) oriented = 1;
     if (orienty[0] != 0 || orienty[1] != 1 || orienty[2] != 0) oriented = 1;
     if (orientz[0] != 0 || orientz[1] != 0 || orientz[2] != 1) oriented = 1;
     if (oriented)
-      error->all(FLERR,"Lattice triclnic/general must have default orientation");
+      error->all(FLERR,"Lattice triclinic/general must have default orientation");
+    if (dimension == 2 && (a3[0] != 0.0 || a3[1] != 0.0 || a3[2] != 1.0))
+      error->all(FLERR,"Lattice triclinic/general a3 vector for a 2d simulation must be (0,0,1)");
     if (!right_handed_primitive())
-      error->all(FLERR,"Lattice triclnic/general a1,a2,a3 must be right-handed");
+      error->all(FLERR,"Lattice triclinic/general a1,a2,a3 must be right-handed");
 
     double rotmat[3][3];
     domain->general_to_restricted_rotation(a1,a2,a3,rotmat,a1_prime,a2_prime,a3_prime);
+  }
+
+  // user-defined lattice spacings must all be positive
+  
+  if (spaceflag) {
+    if (xlattice <= 0.0 || ylattice <= 0.0 || zlattice <= 0.0)
+      error->all(FLERR,"Lattice spacings are invalid");
   }
 
   // reset scale for LJ units (input scale is rho*)
@@ -334,7 +340,7 @@ Lattice::Lattice(LAMMPS *lmp, int narg, char **arg) : Pointers(lmp)
 
     // restore original general triclinic a123 transform
 
-    if (triclinic_general) setup_transform(a2,a2,a3);
+    if (triclinic_general) setup_transform(a1,a2,a3);
 
     xlattice = xmax - xmin;
     ylattice = ymax - ymin;

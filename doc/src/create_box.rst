@@ -42,13 +42,13 @@ Examples
 
    # 2d general triclinic box using primitive cell for 2d hex lattice
    lattice       custom 1.0 a1 1.0 0.0 0.0 a2 0.5 0.86602540378 0.0 &
-                 a3 0.0 0.0 1.0 basis 0.0 0.0 0.0
+                 a3 0.0 0.0 1.0 basis 0.0 0.0 0.0 triclinic/general
    create_box    1 NULL 0 5 0 5 -0.5 0.5
 
 .. code-block:: LAMMPS
 
    # 3d general triclinic box using primitive cell for 3d fcc lattice
-   lattice custom 1.0 a2 0.0 0.5 0.5 a1 0.5 0.0 0.5 a3 0.5 0.5 0.0 basis 0.0 0.0 0.0
+   lattice custom 1.0 a2 0.0 0.5 0.5 a1 0.5 0.0 0.5 a3 0.5 0.5 0.0 basis 0.0 0.0 0.0 triclinic/general
    create box 1 NULL -5 5 -10 10 0 20
 
 Description
@@ -164,13 +164,13 @@ using the :doc:`change box <change_box>` command with its *ortho* and
 
 ----------
 
-As noted above, general triclinic boxes in LAMMPS allow for arbitrary
-edge vectors **A**, **B**, **C**.  The only restrictions are that the
-three vectors be distinct, non-zero, and not co-planar.  They must
-also define a right-handed system such that (**A** x **B**) points in
-the direction of **C**.  Note that a left-handed system can be
-converted to a right-handed system by simply swapping the order of any
-pair of the **A**, **B**, **C** vectors.
+As noted above, general triclinic boxes in LAMMPS allow the box to
+have arbitrary edge vectors **A**, **B**, **C**.  The only
+restrictions are that the three vectors be distinct, non-zero, and not
+co-planar.  They must also define a right-handed system such that
+(**A** x **B**) points in the direction of **C**.  Note that a
+left-handed system can be converted to a right-handed system by simply
+swapping the order of any pair of the **A**, **B**, **C** vectors.
 
 To create a general triclinic boxes, the region is specified as NULL
 and the next 6 parameters (alo,ahi,blo,bhi,clo,chi) define the three
@@ -189,10 +189,7 @@ vectors and origin of the general triclinic box as:
 * **C** = (chi-clo) * *a3*
 * origin = (alo*a1 + blo*a2 + clo*a3)
 
-For 2d general triclinic boxes, **C** = (0,0,1) is required, and the
-z-component of the simulation box origin must be -0.5.  The easy way
-to do this is to specify clo = -0.5 and chi = 0.5 and use the
-:doc:`lattice <lattice>` command default for a3 = (0,0,1).
+For 2d general triclinic boxes, clo = -0.5 and chi = 0.5 is required.
 
 .. note::
 
@@ -214,27 +211,27 @@ to do this is to specify clo = -0.5 and chi = 0.5 and use the
 
 The optional keywords can be used to create a system that allows for
 bond (angle, dihedral, improper) interactions, or for molecules with
-special 1--2, 1--3, or 1--4 neighbors to be added later.  These optional
-keywords serve the same purpose as the analogous keywords that can be
-used in a data file which are recognized by the
+special 1--2, 1--3, or 1--4 neighbors to be added later.  These
+optional keywords serve the same purpose as the analogous keywords
+that can be used in a data file which are recognized by the
 :doc:`read_data <read_data>` command when it sets up a system.
 
 Note that if these keywords are not used, then the create_box command
 creates an atomic (non-molecular) simulation that does not allow bonds
-between pairs of atoms to be defined, or a
-:doc:`bond potential <bond_style>` to be specified, or for molecules with
-special neighbors to be added to the system by commands such as
-:doc:`create_atoms mol <create_atoms>`, :doc:`fix deposit <fix_deposit>`
-or :doc:`fix pour <fix_pour>`.
+between pairs of atoms to be defined, or a :doc:`bond potential
+<bond_style>` to be specified, or for molecules with special neighbors
+to be added to the system by commands such as :doc:`create_atoms mol
+<create_atoms>`, :doc:`fix deposit <fix_deposit>` or :doc:`fix pour
+<fix_pour>`.
 
 As an example, see the examples/deposit/in.deposit.molecule script,
 which deposits molecules onto a substrate.  Initially there are no
-molecules in the system, but they are added later by the
-:doc:`fix deposit <fix_deposit>` command.  The create_box command in the
-script uses the bond/types and extra/bond/per/atom keywords to allow
-this.  If the added molecule contained more than one special bond
-(allowed by default), an extra/special/per/atom keyword would also
-need to be specified.
+molecules in the system, but they are added later by the :doc:`fix
+deposit <fix_deposit>` command.  The create_box command in the script
+uses the bond/types and extra/bond/per/atom keywords to allow this.
+If the added molecule contained more than one special bond (allowed by
+default), an extra/special/per/atom keyword would also need to be
+specified.
 
 ----------
 

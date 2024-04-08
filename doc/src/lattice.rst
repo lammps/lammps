@@ -34,7 +34,7 @@ Syntax
          x,y,z = primitive vector components that define unit cell
        *basis* values = x y z
          x,y,z = fractional coords of a basis atom (0 <= x,y,z < 1)
-       *triclinic/general* values = no values, assume lattice tiles
+       *triclinic/general* values = no values
 
 Examples
 """"""""
@@ -172,18 +172,21 @@ The *origin* option specifies how the unit cell will be shifted or
 translated when mapping it into the simulation box.  The x,y,z values
 are fractional values (0.0 <= x,y,z < 1.0) meaning shift the lattice
 by a fraction of the lattice spacing in each dimension.  The meaning
-of "lattice spacing" is discussed below.
+of "lattice spacing" is discussed below.  For 2d simulations, the
+*origin* z value must be 0.0.
 
 The *orient* option specifies how the unit cell will be rotated when
 mapping it into the simulation box.  The *dim* argument is one of the
 3 coordinate axes in the simulation box.  The other 3 arguments are
 the crystallographic direction in the lattice that you want to orient
 along that axis, specified as integers.  E.g. "orient x 2 1 0" means
-the x-axis in the simulation box will be the [210] lattice
-direction, and similarly for y and z.  The 3 lattice directions you
-specify do not have to be unit vectors, but they must be mutually
-orthogonal and obey the right-hand rule, i.e. (X cross Y) points in
-the Z direction.
+the x-axis in the simulation box will be the [210] lattice direction,
+and similarly for y and z.  The 3 lattice directions you specify do
+not have to be unit vectors, but they must be mutually orthogonal and
+obey the right-hand rule, i.e. (X cross Y) points in the Z direction.
+For 2d simulations, the *orient* x and y vectors must define 0 for
+their 3rd component.  Similarly the *orient* z vector must define 0
+for its 1st and 2nd components.
 
 .. note::
 
@@ -211,10 +214,12 @@ and not co-planar.  In addition, they must define a right-handed
 system, such that (*a1* cross *a2*) points in the direction of *a3*.
 Note that a left-handed system can be converted to a right-handed
 system by simply swapping the order of any pair of the *a1*, *a2*,
-*a3* vectors.
+*a3* vectors.  For 2d simulations, the *a3* vector must be specified
+as (0.0,0.0,1.0), which is its default value.
 
 If this option is used, the *origin* and *orient* settings must have
-their default values.
+their default values.  Namely (0.0,0.0,0.0) for the *origin* and
+(100), (010), (001) for the *orient* vectors.
 
 The :doc:`create_box <create_box>` command can be used to create a
 general triclinic box that replicates the *a1*, *a2*, *a3* unit cell

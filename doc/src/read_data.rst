@@ -385,11 +385,18 @@ changed by the :doc:`balance <balance>` or :doc:`fix balance
 
 For an orthogonal box, only the *xlo xhi*, *ylo yhi*, *zlo zhi*
 keywords are used.  They define the extent of the simulation box in
-each dimension.  The origin (lower left corner) of the orthogonal box
-is at (xlo,ylo,zlo).  The default values for these 3 keywords are -0.5
-and 0.5 for each lo/hi pair.  For a 2d simulation, the zlo and zhi
-values must straddle zero.  The default zlo/zhi values do this, so
-that keyword is not needed in 2d.
+each dimension so that the resulting edge vectors of an orthogonal box
+are:
+
+* **A** = (xhi-xlo,0,0)
+* **B** = (0,yhi-ylo,0)
+* **C** = (0,0,zhi-zlo)
+
+The origin (lower left corner) of the orthogonal box is at
+(xlo,ylo,zlo).  The default values for these 3 keywords are -0.5 and
+0.5 for each lo/hi pair.  For a 2d simulation, the zlo and zhi values
+must straddle zero.  The default zlo/zhi values do this, so that
+keyword is not needed in 2d.
 
 For a restricted triclinic box, the *xy xz yz* keyword is used in
 addition to the *xlo xhi*, *ylo yhi*, *zlo zhi* keywords.  The three
@@ -453,10 +460,10 @@ restricted triclinic simulation box is effectively a parallelogram.
 
 For a general triclinic box, the *avec*, *bvec*, *cvec*, and *abc
 origin* keywords are used.  The *xlo xhi*, *ylo yhi*, *zlo zhi*, and
-*xy xz yz* keywords are not used.  The first 3 keywords define the 3
-edge vectors **A**, **B**, **C** of a general triclinic box.  They can
-be arbitrary vectors so long as they are distinct, non-zero, and not
-co-planar.  They must also define a right-handed system such that
+*xy xz yz* keywords are NOT used.  The first 3 keywords define the 3
+edge vectors **A**, **B**, **C** of the general triclinic box.  They
+can be arbitrary vectors so long as they are distinct, non-zero, and
+not co-planar.  They must also define a right-handed system such that
 (**A** x **B**) points in the direction of **C**.  Note that a
 left-handed system can be converted to a right-handed system by simply
 swapping the order of any pair of the **A**, **B**, **C** vectors.

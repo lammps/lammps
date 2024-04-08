@@ -119,6 +119,10 @@ void CreateBox::command(int narg, char **arg)
     double chi = utils::numeric(FLERR, arg[iarg + 5], false, lmp);
     iarg += 6;
 
+    if (domain->dimension == 2)
+      if (clo != -0.5 || chi != 0.5)
+        error->all(FLERR,"Create_box for general triclinic requires clo = -0.5 and chi = 0.5");
+
     // use lattice2box() to generate origin and ABC vectors
     // origin = abc lo
     // ABC vectors = hi in one dim - origin
@@ -149,12 +153,6 @@ void CreateBox::command(int narg, char **arg)
     cvec[0] = px - origin[0];
     cvec[1] = py - origin[1];
     cvec[2] = pz - origin[2];
-
-    if (domain->dimension == 2) {
-      if (cvec[0] != 0.0 || cvec[1] != 0.0 || cvec[2] != 1.0 || origin[2] != -0.5)
-        error->all(FLERR,"Create_box C edge vector and/or origin is invalid "
-                   "for 2d simulation with general triclinic box");
-    }
 
     // define general triclinic box within Domain class
 

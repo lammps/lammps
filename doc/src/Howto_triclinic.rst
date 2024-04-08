@@ -175,11 +175,10 @@ This is the list of commands which have general triclinic options:
 * :doc:`read_data <read_data>` - read a data file for a general triclinic system
 * :doc:`write_data <write_data>` - write a data file for a general triclinic system
 * :doc:`dump atom, dump custom <dump>` - output dump snapshots in general triclinic format
-* :doc:`dump_modify <dump_modify>` - toggle a dump file between restricted and general triclinic format
+* :doc:`dump_modify triclinic/general <dump_modify>` - select general triclinic format for dump output
 * :doc:`thermo_style <thermo_style>` - output the pressure tensor in
   general triclinic format
-* :doc:`thermo_modify <thermo_modify>` - toggle thermo-style output
-  between restricted and general triclinic format
+* :doc:`thermo_modify triclinic/general <thermo_modify>` - select general triclinic format for thermo output
 * :doc:`read_restart <read_restart>` - read a restart file for a general triclinic system
 * :doc:`write_restart <read_restart>` - write a restart file for a general triclinic system
 

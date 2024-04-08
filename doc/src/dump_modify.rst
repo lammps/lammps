@@ -960,7 +960,7 @@ The option defaults are
 * sort = id for dump styles *dcd*, *xtc*, and *xyz*
 * thresh = none
 * time = no
-* triclinic/general not specified
+* triclinic/general no
 * units = no
 * unwrap = no
 

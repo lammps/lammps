@@ -176,7 +176,7 @@ class Thermo : protected Pointers {
 
   void compute_vol();
   void compute_density();
-  
+
   void compute_lx();
   void compute_ly();
   void compute_lz();

@@ -917,7 +917,7 @@ void Thermo::parse_fields(const std::string &str)
       addfield("Volume", &Thermo::compute_vol, FLOAT);
     } else if (word == "density") {
       addfield("Density", &Thermo::compute_density, FLOAT);
-      
+
     } else if (word == "lx") {
       addfield("Lx", &Thermo::compute_lx, FLOAT);
     } else if (word == "ly") {
@@ -1417,7 +1417,7 @@ int Thermo::evaluate_keyword(const std::string &word, double *answer)
     compute_vol();
   else if (word == "density")
     compute_density();
-  
+
   else if (word == "lx")
     compute_lx();
   else if (word == "ly")
@@ -1463,7 +1463,7 @@ int Thermo::evaluate_keyword(const std::string &word, double *answer)
     compute_cvecy();
   else if (word == "cvecz")
     compute_cvecz();
-  
+
   else if (word == "xlat")
     compute_xlat();
   else if (word == "ylat")

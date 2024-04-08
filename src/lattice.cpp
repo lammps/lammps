@@ -246,7 +246,7 @@ Lattice::Lattice(LAMMPS *lmp, int narg, char **arg) : Pointers(lmp)
     error->all(FLERR,"Lattice primitive vectors are collinear");
 
   // requirements for 2d system
-  
+
   if (dimension == 2) {
     if (origin[2] != 0.0)
       error->all(FLERR,
@@ -287,7 +287,7 @@ Lattice::Lattice(LAMMPS *lmp, int narg, char **arg) : Pointers(lmp)
   }
 
   // user-defined lattice spacings must all be positive
-  
+
   if (spaceflag) {
     if (xlattice <= 0.0 || ylattice <= 0.0 || zlattice <= 0.0)
       error->all(FLERR,"Lattice spacings are invalid");

@@ -107,7 +107,7 @@ void PairPedone::compute(int eflag, int vflag)
         r = sqrt(rsq);
         dr = r - r0[itype][jtype];
         dexp = exp(-alpha[itype][jtype] * dr);
-        fpair = pedone1[itype][jtype] * (dexp * dexp - dexp) / r - pedone2[itype][jtype] * r6inv * r6inv * r2inv;
+        fpair = pedone1[itype][jtype] * (dexp * dexp - dexp) / r + pedone2[itype][jtype] * r6inv * r6inv * r2inv;
         fpair *= factor_lj;
 
         f[i][0] += delx * fpair;
@@ -120,7 +120,7 @@ void PairPedone::compute(int eflag, int vflag)
         }
 
         if (eflag) {
-          evdwl = d0[itype][jtype] * (dexp * dexp - 2.0 * dexp) - c0[itype][jtype] * r6inv * r6inv -
+          evdwl = d0[itype][jtype] * (dexp * dexp - 2.0 * dexp) + c0[itype][jtype] * r6inv * r6inv -
               offset[itype][jtype];
           evdwl *= factor_lj;
         }
@@ -362,10 +362,10 @@ double PairPedone::single(int /*i*/, int /*j*/, int itype, int jtype, double rsq
   dexp = exp(-alpha[itype][jtype] * dr);
   r2inv = 1.0 / rsq;
   r6inv = r2inv * r2inv * r2inv;
-  fforce = pedone1[itype][jtype] * (dexp * dexp - dexp) / r - pedone2[itype][jtype] * r6inv * r6inv * r2inv;
+  fforce = pedone1[itype][jtype] * (dexp * dexp - dexp) / r + pedone2[itype][jtype] * r6inv * r6inv * r2inv;
   fforce *= factor_lj;
 
-  phi = d0[itype][jtype] * (dexp * dexp - 2.0 * dexp) - c0[itype][jtype] * r6inv * r6inv -
+  phi = d0[itype][jtype] * (dexp * dexp - 2.0 * dexp) + c0[itype][jtype] * r6inv * r6inv -
       offset[itype][jtype];
   return factor_lj * phi;
 }

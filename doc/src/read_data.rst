@@ -838,7 +838,7 @@ of analysis.
    * - charge
      - atom-ID atom-type q x y z
    * - dielectric
-     - atom-ID atom-type q x y z normx normy normz area ed em epsilon curvature
+     - atom-ID atom-type q x y z mux muy muz area ed em epsilon curvature
    * - dipole
      - atom-ID atom-type q x y z mux muy muz
    * - dpd
@@ -901,8 +901,6 @@ The per-atom values have these meanings and units, listed alphabetically:
 * mass = mass of particle (mass units)
 * molecule-ID = integer ID of molecule the atom belongs to
 * mux,muy,muz = components of dipole moment of atom (dipole units) (see general triclinic note below)
-* normx,normy,normz = components of dielectric dipole moment of atom (dipole
-  units) (see general triclinic note below)
 * q = charge on atom (charge units)
 * rho = density (need units) for SPH particles
 * sp = magnitude of magnetic spin of atom (Bohr magnetons)
@@ -928,17 +926,16 @@ zero.
 
    If the data file defines a general triclinic box, then the
    following per-atom values in the list above are per-atom vectors
-   which imply an orientation: (mux,muy,muz), (normx,normy,normz),
-   (spx,spy,spz).  This means they should be specified consistent with
-   the general triclinic box and its orientation relative to the
-   standard x,y,z coordinate axes.  For example a dipole moment vector
-   which will be in the +x direction once LAMMPS converts from a
-   general to restricted triclinic box, should be specified in the
-   data file in the direction of the **A** edge vector.  Likewise the
-   (x0,y0,z0) per-atom strain-free coordinates should be inside the
-   general triclinic simulation box as explained in the note above.
-   See the :doc:`Howto triclinic <Howto_triclinic>` doc page for more
-   details.
+   which imply an orientation: (mux,muy,muz) and (spx,spy,spz).  This
+   means they should be specified consistent with the general
+   triclinic box and its orientation relative to the standard x,y,z
+   coordinate axes.  For example a dipole moment vector which will be
+   in the +x direction once LAMMPS converts from a general to
+   restricted triclinic box, should be specified in the data file in
+   the direction of the **A** edge vector.  Likewise the (x0,y0,z0)
+   per-atom strain-free coordinates should be inside the general
+   triclinic simulation box as explained in the note above.  See the
+   :doc:`Howto triclinic <Howto_triclinic>` doc page for more details.
 
 The atom-ID is used to identify the atom throughout the simulation and
 in dump files.  Normally, it is a unique value from 1 to Natoms for

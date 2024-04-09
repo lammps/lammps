@@ -107,7 +107,7 @@ void PairPedone::compute(int eflag, int vflag)
         r = sqrt(rsq);
         dr = r - r0[itype][jtype];
         dexp = exp(-alpha[itype][jtype] * dr);
-        fpair = pedone1[itype][jtype] * (dexp * dexp - dexp) / r - pedone2[itype][jtype] * r6inv * r2inv;
+        fpair = pedone1[itype][jtype] * (dexp * dexp - dexp) / r - pedone2[itype][jtype] * r6inv * r6inv * r2inv;
         fpair *= factor_lj;
 
         f[i][0] += delx * fpair;
@@ -120,7 +120,7 @@ void PairPedone::compute(int eflag, int vflag)
         }
 
         if (eflag) {
-          evdwl = d0[itype][jtype] * (dexp * dexp - 2.0 * dexp) - c0[itype][jtype] * r6inv -
+          evdwl = d0[itype][jtype] * (dexp * dexp - 2.0 * dexp) - c0[itype][jtype] * r6inv * r6inv -
               offset[itype][jtype];
           evdwl *= factor_lj;
         }
@@ -224,12 +224,12 @@ double PairPedone::init_one(int i, int j)
   if (setflag[i][j] == 0) error->all(FLERR, "All pair coeffs are not set");
 
   pedone1[i][j] = 2.0 * d0[i][j] * alpha[i][j];
-  pedone2[i][j] = 6.0 * c0[i][j];
+  pedone2[i][j] = 12.0 * c0[i][j];
 
   if (offset_flag) {
     double alpha_dr = -alpha[i][j] * (cut[i][j] - r0[i][j]);
     offset[i][j] =
-        d0[i][j] * (exp(2.0 * alpha_dr) - 2.0 * exp(alpha_dr)) - c0[i][j] / pow(cut[i][j], 6.0);
+        d0[i][j] * (exp(2.0 * alpha_dr) - 2.0 * exp(alpha_dr)) - c0[i][j] / pow(cut[i][j], 12.0);
   } else
     offset[i][j] = 0.0;
 
@@ -362,10 +362,10 @@ double PairPedone::single(int /*i*/, int /*j*/, int itype, int jtype, double rsq
   dexp = exp(-alpha[itype][jtype] * dr);
   r2inv = 1.0 / rsq;
   r6inv = r2inv * r2inv * r2inv;
-  fforce = pedone1[itype][jtype] * (dexp * dexp - dexp) / r - pedone2[itype][jtype] * r6inv * r2inv;
+  fforce = pedone1[itype][jtype] * (dexp * dexp - dexp) / r - pedone2[itype][jtype] * r6inv * r6inv * r2inv;
   fforce *= factor_lj;
 
-  phi = d0[itype][jtype] * (dexp * dexp - 2.0 * dexp) - c0[itype][jtype] * r6inv -
+  phi = d0[itype][jtype] * (dexp * dexp - 2.0 * dexp) - c0[itype][jtype] * r6inv * r6inv -
       offset[itype][jtype];
   return factor_lj * phi;
 }

@@ -29,7 +29,11 @@ pair_style: hybrid/overlay pedone 8.0 coul/dsf 0.05 8.0
 pair_coeff: ! |
   * *  coul/dsf
   1 2 pedone 0.030211 2.241334 2.923245 5.0
-extract: ! ""
+extract: ! |
+  c0 2
+  d0 2
+  r0 2
+  alpha 2
 natoms: 32
 init_vdwl: -0.05846735245123568
 init_coul: -127.6163776098739

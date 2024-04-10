@@ -106,6 +106,8 @@ Restrictions
 This compute is part of the EXTRA-COMPUTE package. It is only enabled if
 LAMMPS was built with that package.
 
+This compute requires :doc:`neighbor styles 'bin' or 'nsq' <neighbor>`.
+
 Related commands
 """"""""""""""""
 

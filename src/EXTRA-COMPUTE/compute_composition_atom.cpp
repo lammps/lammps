@@ -19,7 +19,6 @@
 
 #include "atom.h"
 #include "comm.h"
-#include "domain.h"
 #include "error.h"
 #include "force.h"
 #include "math_const.h"
@@ -102,6 +101,9 @@ void ComputeCompositionAtom::init()
   }
 
   cutsq = cutoff * cutoff;
+
+  if ((neighbor->style == Neighbor::MULTI) || (neighbor->style == Neighbor::MULTI_OLD))
+    error->all(FLERR, "Compute composition/atom requires neighbor style 'bin' or 'nsq'");
 
   // need an occasional full neighbor list
 

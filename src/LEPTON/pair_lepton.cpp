@@ -23,12 +23,12 @@
 #include "force.h"
 #include "memory.h"
 #include "neigh_list.h"
-#include "update.h"
 
 #include "Lepton.h"
 #include "lepton_utils.h"
-#include <array>
+
 #include <cmath>
+#include <exception>
 #include <map>
 
 using namespace LAMMPS_NS;

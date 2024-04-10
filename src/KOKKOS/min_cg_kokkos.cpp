@@ -13,15 +13,16 @@
 ------------------------------------------------------------------------- */
 
 #include "min_cg_kokkos.h"
-#include <mpi.h>
-#include <cmath>
-#include "update.h"
-#include "output.h"
-#include "timer.h"
+
 #include "atom_kokkos.h"
 #include "atom_masks.h"
 #include "error.h"
 #include "fix_minimize_kokkos.h"
+#include "output.h"
+#include "timer.h"
+#include "update.h"
+
+#include <cmath>
 
 using namespace LAMMPS_NS;
 

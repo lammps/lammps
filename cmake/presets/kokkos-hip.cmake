@@ -13,7 +13,7 @@ set(CMAKE_CXX_COMPILER hipcc CACHE STRING "" FORCE)
 set(CMAKE_TUNE_FLAGS "-munsafe-fp-atomics" CACHE STRING "" FORCE)
 
 # If KSPACE is also enabled, use CUFFT for FFTs
-set(FFT_KOKKOS "HIPFFT" CACHE STRING FORCE)
+set(FFT_KOKKOS "HIPFFT" CACHE STRING "" FORCE)
 
 # hide deprecation warnings temporarily for stable release
 set(Kokkos_ENABLE_DEPRECATION_WARNINGS OFF CACHE BOOL "" FORCE)

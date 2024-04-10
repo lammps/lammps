@@ -157,6 +157,10 @@ class AtomKokkos : public Atom {
   int add_custom(const char *, int, int, int border = 0) override;
   void remove_custom(int, int, int) override;
   virtual void deallocate_topology();
+
+  void map_set_device();
+  void map_set_host();
+
  private:
   void sort_device();
   class AtomVec *new_avec(const std::string &, int, int &) override;

@@ -15,16 +15,13 @@
 #include "amoeba_convolution.h"
 
 #include "comm.h"
-#include "domain.h"
 #include "fft3d_wrap.h"
 #include "grid3d.h"
-#include "math_extra.h"
 #include "memory.h"
 #include "neighbor.h"
 #include "remap_wrap.h"
 #include "timer.h"
 
-#include <cmath>
 #include <cstring>
 
 using namespace LAMMPS_NS;

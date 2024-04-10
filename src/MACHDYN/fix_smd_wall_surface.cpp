@@ -26,6 +26,7 @@
 #include "text_file_reader.h"
 
 #include <cstring>
+#include <exception>
 #include <Eigen/Eigen>
 
 using namespace LAMMPS_NS;

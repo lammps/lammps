@@ -269,7 +269,8 @@ void ImproperHybrid::coeff(int narg, char **arg)
     else if (strcmp(arg[1], "aa") == 0)
       error->all(FLERR, "AngleAngle coeff for hybrid improper has invalid format");
     else
-      error->all(FLERR, "Improper coeff for hybrid has invalid style");
+      error->all(FLERR, "Expected hybrid sub-style instead of {} in improper_coeff command",
+                 arg[1]);
   }
 
   // move 1st arg to 2nd arg

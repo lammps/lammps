@@ -256,6 +256,7 @@ OPT.
    * :doc:`rann <pair_rann>`
    * :doc:`reaxff (ko) <pair_reaxff>`
    * :doc:`rebo (io) <pair_airebo>`
+   * :doc:`rebomos (o) <pair_rebomos>`
    * :doc:`resquared (go) <pair_resquared>`
    * :doc:`saip/metal (t) <pair_saip_metal>`
    * :doc:`sdpd/taitwater/isothermal <pair_sdpd_taitwater_isothermal>`

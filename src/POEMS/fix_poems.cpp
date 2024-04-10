@@ -36,7 +36,7 @@
 
 #include <cmath>
 #include <cstring>
-#include <vector>
+#include <exception>
 
 using namespace LAMMPS_NS;
 using namespace FixConst;

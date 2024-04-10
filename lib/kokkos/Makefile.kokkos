@@ -11,7 +11,7 @@ CXXFLAGS += $(SHFLAGS)
 endif
 
 KOKKOS_VERSION_MAJOR = 4
-KOKKOS_VERSION_MINOR = 2
+KOKKOS_VERSION_MINOR = 3
 KOKKOS_VERSION_PATCH = 0
 KOKKOS_VERSION = $(shell echo $(KOKKOS_VERSION_MAJOR)*10000+$(KOKKOS_VERSION_MINOR)*100+$(KOKKOS_VERSION_PATCH) | bc)
 
@@ -22,14 +22,14 @@ KOKKOS_DEVICES ?= "OpenMP"
 # Intel:    KNC,KNL,SNB,HSW,BDW,SKL,SKX,ICL,ICX,SPR
 # NVIDIA:   Kepler,Kepler30,Kepler32,Kepler35,Kepler37,Maxwell,Maxwell50,Maxwell52,Maxwell53,Pascal60,Pascal61,Volta70,Volta72,Turing75,Ampere80,Ampere86,Ada89,Hopper90
 # ARM:      ARMv80,ARMv81,ARMv8-ThunderX,ARMv8-TX2,A64FX
-# IBM:      BGQ,Power7,Power8,Power9
-# AMD-GPUS: GFX906,GFX908,GFX90A,GFX942,GFX1030,GFX1100
+# IBM:      Power8,Power9
+# AMD-GPUS: AMD_GFX906,AMD_GFX908,AMD_GFX90A,AMD_GFX940,AMD_GFX942,AMD_GFX1030,AMD_GFX1100
 # AMD-CPUS: AMDAVX,Zen,Zen2,Zen3
 # Intel-GPUs: Gen9,Gen11,Gen12LP,DG1,XeHP,PVC
 KOKKOS_ARCH ?= ""
 # Options: yes,no
 KOKKOS_DEBUG ?= "no"
-# Options: hwloc,librt,experimental_memkind
+# Options: hwloc
 KOKKOS_USE_TPLS ?= ""
 # Options: c++17,c++1z,c++20,c++2a,c++23,c++2b
 KOKKOS_CXX_STANDARD ?= "c++17"
@@ -56,7 +56,7 @@ uppercase_internal=$(if $1,$$(subst $(firstword $1),$(call uppercase_internal,$(
 uppercase=$(eval uppercase_RESULT:=$(call uppercase_internal,$(uppercase_TABLE),$1))$(uppercase_RESULT)
 # Return a 1 if a string contains a substring and 0 if not
 # Note the search string should be without '"'
-# Example: $(call kokkos_has_string,"hwloc,librt",hwloc)
+# Example: $(call kokkos_has_string,"hwloc,libdl",hwloc)
 #   Will return a 1
 kokkos_has_string=$(if $(findstring $(call uppercase,$2),$(call uppercase,$1)),1,0)
 # Returns 1 if the path exists, 0 otherwise
@@ -73,11 +73,11 @@ KOKKOS_INTERNAL_ENABLE_CXX20 := $(call kokkos_has_string,$(KOKKOS_CXX_STANDARD),
 KOKKOS_INTERNAL_ENABLE_CXX2A := $(call kokkos_has_string,$(KOKKOS_CXX_STANDARD),c++2a)
 KOKKOS_INTERNAL_ENABLE_CXX23 := $(call kokkos_has_string,$(KOKKOS_CXX_STANDARD),c++23)
 KOKKOS_INTERNAL_ENABLE_CXX2B := $(call kokkos_has_string,$(KOKKOS_CXX_STANDARD),c++2b)
+KOKKOS_INTERNAL_ENABLE_CXX26 := $(call kokkos_has_string,$(KOKKOS_CXX_STANDARD),c++26)
+KOKKOS_INTERNAL_ENABLE_CXX2C := $(call kokkos_has_string,$(KOKKOS_CXX_STANDARD),c++2c)
 
 # Check for external libraries.
 KOKKOS_INTERNAL_USE_HWLOC := $(call kokkos_has_string,$(KOKKOS_USE_TPLS),hwloc)
-KOKKOS_INTERNAL_USE_LIBRT := $(call kokkos_has_string,$(KOKKOS_USE_TPLS),librt)
-KOKKOS_INTERNAL_USE_MEMKIND := $(call kokkos_has_string,$(KOKKOS_USE_TPLS),experimental_memkind)
 
 # Check for advanced settings.
 KOKKOS_INTERNAL_ENABLE_COMPILER_WARNINGS := $(call kokkos_has_string,$(KOKKOS_OPTIONS),compiler_warnings)
@@ -318,7 +318,6 @@ endif
 
 # Intel based.
 KOKKOS_INTERNAL_USE_ARCH_KNC := $(call kokkos_has_string,$(KOKKOS_ARCH),KNC)
-KOKKOS_INTERNAL_USE_ARCH_WSM := $(call kokkos_has_string,$(KOKKOS_ARCH),WSM)
 KOKKOS_INTERNAL_USE_ARCH_SNB := $(call kokkos_has_string,$(KOKKOS_ARCH),SNB)
 KOKKOS_INTERNAL_USE_ARCH_HSW := $(call kokkos_has_string,$(KOKKOS_ARCH),HSW)
 KOKKOS_INTERNAL_USE_ARCH_BDW := $(call kokkos_has_string,$(KOKKOS_ARCH),BDW)
@@ -398,11 +397,9 @@ KOKKOS_INTERNAL_USE_ARCH_A64FX := $(call kokkos_has_string,$(KOKKOS_ARCH),A64FX)
 KOKKOS_INTERNAL_USE_ARCH_ARM := $(strip $(shell echo $(KOKKOS_INTERNAL_USE_ARCH_ARMV80)+$(KOKKOS_INTERNAL_USE_ARCH_ARMV81)+$(KOKKOS_INTERNAL_USE_ARCH_ARMV8_THUNDERX)+$(KOKKOS_INTERNAL_USE_ARCH_ARMV8_THUNDERX2)+$(KOKKOS_INTERNAL_USE_ARCH_A64FX) | bc))
 
 # IBM based.
-KOKKOS_INTERNAL_USE_ARCH_BGQ := $(call kokkos_has_string,$(KOKKOS_ARCH),BGQ)
-KOKKOS_INTERNAL_USE_ARCH_POWER7 := $(call kokkos_has_string,$(KOKKOS_ARCH),Power7)
 KOKKOS_INTERNAL_USE_ARCH_POWER8 := $(call kokkos_has_string,$(KOKKOS_ARCH),Power8)
 KOKKOS_INTERNAL_USE_ARCH_POWER9 := $(call kokkos_has_string,$(KOKKOS_ARCH),Power9)
-KOKKOS_INTERNAL_USE_ARCH_IBM := $(strip $(shell echo $(KOKKOS_INTERNAL_USE_ARCH_BGQ)+$(KOKKOS_INTERNAL_USE_ARCH_POWER7)+$(KOKKOS_INTERNAL_USE_ARCH_POWER8)+$(KOKKOS_INTERNAL_USE_ARCH_POWER9) | bc))
+KOKKOS_INTERNAL_USE_ARCH_IBM := $(strip $(shell echo $(KOKKOS_INTERNAL_USE_ARCH_POWER8)+$(KOKKOS_INTERNAL_USE_ARCH_POWER9) | bc))
 
 # AMD based.
 KOKKOS_INTERNAL_USE_ARCH_AMDAVX := $(call kokkos_has_string,$(KOKKOS_ARCH),AMDAVX)
@@ -413,20 +410,37 @@ ifeq ($(KOKKOS_INTERNAL_USE_ARCH_ZEN3), 0)
     KOKKOS_INTERNAL_USE_ARCH_ZEN := $(call kokkos_has_string,$(KOKKOS_ARCH),Zen)
   endif
 endif
-KOKKOS_INTERNAL_USE_ARCH_AMD_GFX906 := $(or $(call kokkos_has_string,$(KOKKOS_ARCH),VEGA906),$(call kokkos_has_string,$(KOKKOS_ARCH),AMD_GFX906))
-KOKKOS_INTERNAL_USE_ARCH_AMD_GFX908 := $(or $(call kokkos_has_string,$(KOKKOS_ARCH),VEGA908),$(call kokkos_has_string,$(KOKKOS_ARCH),AMD_GFX908))
-KOKKOS_INTERNAL_USE_ARCH_AMD_GFX90A := $(or $(call kokkos_has_string,$(KOKKOS_ARCH),VEGA90A),$(call kokkos_has_string,$(KOKKOS_ARCH),AMD_GFX90A))
-KOKKOS_INTERNAL_USE_ARCH_AMD_GFX1030 := $(or $(call kokkos_has_string,$(KOKKOS_ARCH),NAVI1030),$(call kokkos_has_string,$(KOKKOS_ARCH),AMD_GFX1030))
-KOKKOS_INTERNAL_USE_ARCH_AMD_GFX1100 := $(or $(call kokkos_has_string,$(KOKKOS_ARCH),NAVI1100),$(call kokkos_has_string,$(KOKKOS_ARCH),AMD_GFX1100))
+
+KOKKOS_INTERNAL_USE_ARCH_AMD_GFX906 := $(call kokkos_has_string,$(KOKKOS_ARCH),AMD_GFX906)
+ifeq ($(KOKKOS_INTERNAL_USE_ARCH_AMD_GFX906), 0)
+  KOKKOS_INTERNAL_USE_ARCH_AMD_GFX906 := $(call kokkos_has_string,$(KOKKOS_ARCH),VEGA906)
+endif
+KOKKOS_INTERNAL_USE_ARCH_AMD_GFX908 := $(call kokkos_has_string,$(KOKKOS_ARCH),AMD_GFX908)
+ifeq ($(KOKKOS_INTERNAL_USE_ARCH_AMD_GFX908), 0)
+  KOKKOS_INTERNAL_USE_ARCH_AMD_GFX908 := $(call kokkos_has_string,$(KOKKOS_ARCH),VEGA908)
+endif
+KOKKOS_INTERNAL_USE_ARCH_AMD_GFX90A := $(call kokkos_has_string,$(KOKKOS_ARCH),AMD_GFX90A)
+ifeq ($(KOKKOS_INTERNAL_USE_ARCH_AMD_GFX90A), 0)
+  KOKKOS_INTERNAL_USE_ARCH_AMD_GFX90A := $(call kokkos_has_string,$(KOKKOS_ARCH),VEGA90A)
+endif
+KOKKOS_INTERNAL_USE_ARCH_AMD_GFX940 := $(call kokkos_has_string,$(KOKKOS_ARCH),AMD_GFX940)
+KOKKOS_INTERNAL_USE_ARCH_AMD_GFX942 := $(call kokkos_has_string,$(KOKKOS_ARCH),AMD_GFX942)
+KOKKOS_INTERNAL_USE_ARCH_AMD_GFX1030 := $(call kokkos_has_string,$(KOKKOS_ARCH),AMD_GFX1030)
+ifeq ($(KOKKOS_INTERNAL_USE_ARCH_AMD_GFX1030), 0)
+  KOKKOS_INTERNAL_USE_ARCH_AMD_GFX1030 := $(call kokkos_has_string,$(KOKKOS_ARCH),NAVI1030)
+endif
+KOKKOS_INTERNAL_USE_ARCH_AMD_GFX1100 := $(call kokkos_has_string,$(KOKKOS_ARCH),AMD_GFX1100)
+ifeq ($(KOKKOS_INTERNAL_USE_ARCH_AMD_GFX1100), 0)
+  KOKKOS_INTERNAL_USE_ARCH_AMD_GFX1100 := $(call kokkos_has_string,$(KOKKOS_ARCH),NAVI1100)
+endif
 
 # Any AVX?
-KOKKOS_INTERNAL_USE_ARCH_SSE42      := $(shell expr $(KOKKOS_INTERNAL_USE_ARCH_WSM))
 KOKKOS_INTERNAL_USE_ARCH_AVX        := $(shell expr $(KOKKOS_INTERNAL_USE_ARCH_SNB) + $(KOKKOS_INTERNAL_USE_ARCH_AMDAVX))
 KOKKOS_INTERNAL_USE_ARCH_AVX2       := $(shell expr $(KOKKOS_INTERNAL_USE_ARCH_HSW) + $(KOKKOS_INTERNAL_USE_ARCH_BDW) + $(KOKKOS_INTERNAL_USE_ARCH_ZEN) + $(KOKKOS_INTERNAL_USE_ARCH_ZEN2) + $(KOKKOS_INTERNAL_USE_ARCH_ZEN3))
 KOKKOS_INTERNAL_USE_ARCH_AVX512MIC  := $(shell expr $(KOKKOS_INTERNAL_USE_ARCH_KNL))
 
 # Incompatible flags?
-KOKKOS_INTERNAL_USE_ARCH_MULTIHOST := $(strip $(shell echo "$(KOKKOS_INTERNAL_USE_ARCH_SSE42)+$(KOKKOS_INTERNAL_USE_ARCH_AVX)+$(KOKKOS_INTERNAL_USE_ARCH_AVX2)+$(KOKKOS_INTERNAL_USE_ARCH_AVX512MIC)+$(KOKKOS_INTERNAL_USE_ARCH_SKL)+$(KOKKOS_INTERNAL_USE_ARCH_SKX)+$(KOKKOS_INTERNAL_USE_ARCH_ICL)+$(KOKKOS_INTERNAL_USE_ARCH_ICX)+$(KOKKOS_INTERNAL_USE_ARCH_SPR)+$(KOKKOS_INTERNAL_USE_ARCH_KNC)+$(KOKKOS_INTERNAL_USE_ARCH_IBM)+$(KOKKOS_INTERNAL_USE_ARCH_ARM)>1") | bc)
+KOKKOS_INTERNAL_USE_ARCH_MULTIHOST := $(strip $(shell echo "$(KOKKOS_INTERNAL_USE_ARCH_AVX)+$(KOKKOS_INTERNAL_USE_ARCH_AVX2)+$(KOKKOS_INTERNAL_USE_ARCH_AVX512MIC)+$(KOKKOS_INTERNAL_USE_ARCH_SKL)+$(KOKKOS_INTERNAL_USE_ARCH_SKX)+$(KOKKOS_INTERNAL_USE_ARCH_ICL)+$(KOKKOS_INTERNAL_USE_ARCH_ICX)+$(KOKKOS_INTERNAL_USE_ARCH_SPR)+$(KOKKOS_INTERNAL_USE_ARCH_KNC)+$(KOKKOS_INTERNAL_USE_ARCH_IBM)+$(KOKKOS_INTERNAL_USE_ARCH_ARM)>1") | bc)
 KOKKOS_INTERNAL_USE_ARCH_MULTIGPU := $(strip $(shell echo "$(KOKKOS_INTERNAL_USE_ARCH_NVIDIA)>1") | bc)
 
 ifeq ($(KOKKOS_INTERNAL_USE_ARCH_MULTIHOST), 1)
@@ -571,6 +585,16 @@ ifeq ($(KOKKOS_INTERNAL_ENABLE_CXX2B), 1)
   KOKKOS_CXXFLAGS += $(KOKKOS_INTERNAL_CXX2B_FLAG)
   tmp := $(call kokkos_append_header,"$H""define KOKKOS_ENABLE_CXX23")
 endif
+ifeq ($(KOKKOS_INTERNAL_ENABLE_CXX26), 1)
+  #I cannot make CMake add this in a good way - so add it here
+  KOKKOS_CXXFLAGS += $(KOKKOS_INTERNAL_CXX26_FLAG)
+  tmp := $(call kokkos_append_header,"$H""define KOKKOS_ENABLE_CXX26")
+endif
+ifeq ($(KOKKOS_INTERNAL_ENABLE_CXX2C), 1)
+  #I cannot make CMake add this in a good way - so add it here
+  KOKKOS_CXXFLAGS += $(KOKKOS_INTERNAL_CXX2C_FLAG)
+  tmp := $(call kokkos_append_header,"$H""define KOKKOS_ENABLE_CXX26")
+endif
 
 ifeq ($(KOKKOS_INTERNAL_ENABLE_DEBUG), 1)
   ifeq ($(KOKKOS_INTERNAL_COMPILER_NVCC), 1)
@@ -608,27 +632,6 @@ ifeq ($(KOKKOS_INTERNAL_USE_HWLOC), 1)
     KOKKOS_TPL_LIBRARY_NAMES += hwloc
   endif
   tmp := $(call kokkos_append_header,"$H""define KOKKOS_ENABLE_HWLOC")
-endif
-
-ifeq ($(KOKKOS_INTERNAL_USE_LIBRT), 1)
-  tmp := $(call kokkos_append_header,"$H""define KOKKOS_USE_LIBRT")
-  KOKKOS_LIBS += -lrt
-  KOKKOS_TPL_LIBRARY_NAMES += rt
-endif
-
-ifeq ($(KOKKOS_INTERNAL_USE_MEMKIND), 1)
-  ifneq ($(KOKKOS_CMAKE), yes)
-    ifneq ($(MEMKIND_PATH),)
-      KOKKOS_CPPFLAGS += -I$(MEMKIND_PATH)/include
-      KOKKOS_LIBDIRS += -L$(MEMKIND_PATH)/lib
-      KOKKOS_CXXLDFLAGS += -L$(MEMKIND_PATH)/lib
-      KOKKOS_TPL_INCLUDE_DIRS += $(MEMKIND_PATH)/include
-      KOKKOS_TPL_LIBRARY_DIRS += $(MEMKIND_PATH)/lib
-    endif
-    KOKKOS_LIBS += -lmemkind -lnuma
-    KOKKOS_TPL_LIBRARY_NAMES += memkind numa
-  endif
-  tmp := $(call kokkos_append_header,"$H""define KOKKOS_ENABLE_HBWSPACE")
 endif
 
 ifeq ($(KOKKOS_INTERNAL_ENABLE_LARGE_MEM_TESTS), 1)
@@ -695,10 +698,6 @@ ifeq ($(KOKKOS_INTERNAL_USE_CUDA), 1)
     ifeq ($(KOKKOS_INTERNAL_COMPILER_CLANG), 1)
       tmp := $(call kokkos_append_header,"$H""define KOKKOS_ENABLE_CUDA_CONSTEXPR")
     endif
-  endif
-
-  ifeq ($(KOKKOS_INTERNAL_COMPILER_CLANG), 1)
-    tmp := $(call kokkos_append_header,"$H""define KOKKOS_IMPL_CUDA_CLANG_WORKAROUND")
   endif
 
   ifeq ($(KOKKOS_INTERNAL_CUDA_DISABLE_MALLOC_ASYNC), 0)
@@ -822,20 +821,6 @@ ifeq ($(KOKKOS_INTERNAL_USE_ARCH_ARMV8_THUNDERX2), 1)
   else
     KOKKOS_CXXFLAGS += -mtune=thunderx2t99 -mcpu=thunderx2t99
     KOKKOS_LDFLAGS += -mtune=thunderx2t99 -mcpu=thunderx2t99
-  endif
-endif
-
-ifeq ($(KOKKOS_INTERNAL_USE_ARCH_SSE42), 1)
-  tmp := $(call kokkos_append_header,"$H""define KOKKOS_ARCH_SSE42")
-
-  ifeq ($(KOKKOS_INTERNAL_COMPILER_INTEL), 1)
-    KOKKOS_CXXFLAGS += -xSSE4.2
-    KOKKOS_LDFLAGS  += -xSSE4.2
-  else ifeq ($(KOKKOS_INTERNAL_COMPILER_CRAY), 1)
-  else
-    # Assume that this is a really a GNU compiler.
-    KOKKOS_CXXFLAGS += -msse4.2
-    KOKKOS_LDFLAGS  += -msse4.2
   endif
 endif
 
@@ -1113,6 +1098,11 @@ ifeq ($(KOKKOS_INTERNAL_USE_ARCH_AMD_GFX90A), 1)
   tmp := $(call kokkos_append_header,"$H""define KOKKOS_ARCH_AMD_GPU")
   KOKKOS_INTERNAL_HIP_ARCH_FLAG := --offload-arch=gfx90a
 endif
+ifeq ($(KOKKOS_INTERNAL_USE_ARCH_AMD_GFX940), 1)
+  tmp := $(call kokkos_append_header,"$H""define KOKKOS_ARCH_AMD_GFX940")
+  tmp := $(call kokkos_append_header,"$H""define KOKKOS_ARCH_AMD_GPU")
+  KOKKOS_INTERNAL_HIP_ARCH_FLAG := --offload-arch=gfx940
+endif
 ifeq ($(KOKKOS_INTERNAL_USE_ARCH_AMD_GFX942), 1)
   tmp := $(call kokkos_append_header,"$H""define KOKKOS_ARCH_AMD_GFX942")
   tmp := $(call kokkos_append_header,"$H""define KOKKOS_ARCH_AMD_GPU")
@@ -1242,7 +1232,6 @@ ifneq ($(KOKKOS_INTERNAL_NEW_CONFIG), 0)
   tmp := $(call kokkos_update_config_header, KOKKOS_FWD_HPP_, "KokkosCore_Config_FwdBackend.tmp", "KokkosCore_Config_FwdBackend.hpp")
   tmp := $(call kokkos_update_config_header, KOKKOS_SETUP_HPP_, "KokkosCore_Config_SetupBackend.tmp", "KokkosCore_Config_SetupBackend.hpp")
   tmp := $(call kokkos_update_config_header, KOKKOS_DECLARE_HPP_, "KokkosCore_Config_DeclareBackend.tmp", "KokkosCore_Config_DeclareBackend.hpp")
-  tmp := $(call kokkos_update_config_header, KOKKOS_POST_INCLUDE_HPP_, "KokkosCore_Config_PostInclude.tmp", "KokkosCore_Config_PostInclude.hpp")
   ifeq ($(KOKKOS_INTERNAL_USE_CUDA), 1)
     tmp := $(call kokkos_append_config_header,"$H""include <fwd/Kokkos_Fwd_CUDA.hpp>","KokkosCore_Config_FwdBackend.hpp")
     tmp := $(call kokkos_append_config_header,"$H""include <decl/Kokkos_Declare_CUDA.hpp>","KokkosCore_Config_DeclareBackend.hpp")
@@ -1281,10 +1270,6 @@ ifneq ($(KOKKOS_INTERNAL_NEW_CONFIG), 0)
   ifeq ($(KOKKOS_INTERNAL_USE_SERIAL), 1)
     tmp := $(call kokkos_append_config_header,"$H""include <fwd/Kokkos_Fwd_SERIAL.hpp>","KokkosCore_Config_FwdBackend.hpp")
     tmp := $(call kokkos_append_config_header,"$H""include <decl/Kokkos_Declare_SERIAL.hpp>","KokkosCore_Config_DeclareBackend.hpp")
-  endif
-  ifeq ($(KOKKOS_INTERNAL_USE_MEMKIND), 1)
-    tmp := $(call kokkos_append_config_header,"$H""include <fwd/Kokkos_Fwd_HBWSpace.hpp>","KokkosCore_Config_FwdBackend.hpp")
-    tmp := $(call kokkos_append_config_header,"$H""include <decl/Kokkos_Declare_HBWSpace.hpp>","KokkosCore_Config_DeclareBackend.hpp")
   endif
 endif
 
@@ -1396,11 +1381,6 @@ ifeq ($(KOKKOS_INTERNAL_USE_HPX), 1)
   KOKKOS_TPL_LIBRARY_NAMES += hpx
 endif
 
-# Don't include Kokkos_HBWSpace.cpp if not using MEMKIND to avoid a link warning.
-ifneq ($(KOKKOS_INTERNAL_USE_MEMKIND), 1)
-  KOKKOS_SRC := $(filter-out $(KOKKOS_PATH)/core/src/impl/Kokkos_HBWSpace.cpp,$(KOKKOS_SRC))
-endif
-
 # With Cygwin functions such as fdopen and fileno are not defined
 # when strict ansi is enabled. strict ansi gets enabled with -std=c++14
 # though. So we hard undefine it here. Not sure if that has any bad side effects
@@ -1454,6 +1434,12 @@ ifeq ($(KOKKOS_INTERNAL_USE_OPENMPTARGET), 1)
 else
   tmp := $(call desul_append_header,"/* $H""undef DESUL_ATOMICS_ENABLE_OPENMP */")
 endif
+
+ifeq ($(KOKKOS_INTERNAL_USE_OPENACC), 1)
+  tmp := $(call desul_append_header,"$H""define DESUL_ATOMICS_ENABLE_OPENACC")
+else
+  tmp := $(call desul_append_header,"/* $H""undef DESUL_ATOMICS_ENABLE_OPENACC */")
+endif
 tmp := $(call desul_append_header, "")
 tmp := $(call desul_append_header, "$H""endif")
 
@@ -1486,7 +1472,7 @@ include $(KOKKOS_PATH)/Makefile.targets
 kokkos-clean:
 	rm -f $(KOKKOS_OBJ_LINK) $(DESUL_CONFIG_HEADER) $(DESUL_INTERNAL_CONFIG_TMP) KokkosCore_config.h KokkosCore_config.tmp libkokkos.a KokkosCore_Config_SetupBackend.hpp \
 	KokkosCore_Config_FwdBackend.hpp KokkosCore_Config_DeclareBackend.hpp KokkosCore_Config_DeclareBackend.tmp \
-        KokkosCore_Config_FwdBackend.tmp KokkosCore_Config_PostInclude.hpp KokkosCore_Config_PostInclude.tmp KokkosCore_Config_SetupBackend.tmp
+        KokkosCore_Config_FwdBackend.tmp KokkosCore_Config_SetupBackend.tmp
 
 libkokkos.a: $(KOKKOS_OBJ_LINK) $(KOKKOS_SRC) $(KOKKOS_HEADERS)
 	ar cr libkokkos.a $(KOKKOS_OBJ_LINK)

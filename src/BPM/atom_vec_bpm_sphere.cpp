@@ -14,13 +14,10 @@
 #include "atom_vec_bpm_sphere.h"
 
 #include "atom.h"
-#include "comm.h"
 #include "error.h"
 #include "fix.h"
 #include "math_const.h"
 #include "modify.h"
-
-#include <cstring>
 
 using namespace LAMMPS_NS;
 using MathConst::MY_PI;

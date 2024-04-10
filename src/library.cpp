@@ -2137,7 +2137,8 @@ available.
 
    .. code-block:: c
 
-      double *dptr = (double *) lammps_extract_fix(handle,name,0,1,0,0);
+      double *dptr = (double *) lammps_extract_fix(handle, name,
+                                LMP_STYLE_GLOBAL, LMP_TYPE_VECTOR, 0, 0);
       double value = *dptr;
       lammps_free((void *)dptr);
 
@@ -2857,10 +2858,6 @@ void lammps_gather_atoms_concat(void *handle, const char *name, int type,
       if ((count == 1) || imgunpack) vector = (int *) vptr;
       else array = (int **) vptr;
 
-      int *copy;
-      lmp->memory->create(copy,count*natoms,"lib/gather:copy");
-      for (i = 0; i < count*natoms; i++) copy[i] = 0;
-
       int nlocal = lmp->atom->nlocal;
 
       if (count == 1) {
@@ -2868,11 +2865,13 @@ void lammps_gather_atoms_concat(void *handle, const char *name, int type,
         displs[0] = 0;
         for (i = 1; i < nprocs; i++)
           displs[i] = displs[i-1] + recvcounts[i-1];
-        MPI_Allgatherv(vector,nlocal,MPI_INT,data,recvcounts,displs,
-                       MPI_INT,lmp->world);
+        MPI_Allgatherv(vector,nlocal,MPI_INT,data,recvcounts,displs,MPI_INT,lmp->world);
 
       } else if (imgunpack) {
-        lmp->memory->create(copy,count*nlocal,"lib/gather:copy");
+        int *copy;
+        lmp->memory->create(copy,count*natoms,"lib/gather:copy");
+        for (i = 0; i < count*natoms; i++) copy[i] = 0;
+
         offset = 0;
         for (i = 0; i < nlocal; i++) {
           const int image = vector[i];
@@ -2885,8 +2884,7 @@ void lammps_gather_atoms_concat(void *handle, const char *name, int type,
         displs[0] = 0;
         for (i = 1; i < nprocs; i++)
           displs[i] = displs[i-1] + recvcounts[i-1];
-        MPI_Allgatherv(copy,count*nlocal,MPI_INT,
-                       data,recvcounts,displs,MPI_INT,lmp->world);
+        MPI_Allgatherv(copy,count*nlocal,MPI_INT,data,recvcounts,displs,MPI_INT,lmp->world);
         lmp->memory->destroy(copy);
 
       } else {
@@ -2895,8 +2893,7 @@ void lammps_gather_atoms_concat(void *handle, const char *name, int type,
         displs[0] = 0;
         for (i = 1; i < nprocs; i++)
           displs[i] = displs[i-1] + recvcounts[i-1];
-        MPI_Allgatherv(&array[0][0],count*nlocal,MPI_INT,
-                       data,recvcounts,displs,MPI_INT,lmp->world);
+        MPI_Allgatherv(&array[0][0],count*nlocal,MPI_INT,data,recvcounts,displs,MPI_INT,lmp->world);
       }
 
     } else {
@@ -2912,8 +2909,7 @@ void lammps_gather_atoms_concat(void *handle, const char *name, int type,
         displs[0] = 0;
         for (i = 1; i < nprocs; i++)
           displs[i] = displs[i-1] + recvcounts[i-1];
-        MPI_Allgatherv(vector,nlocal,MPI_DOUBLE,data,recvcounts,displs,
-                       MPI_DOUBLE,lmp->world);
+        MPI_Allgatherv(vector,nlocal,MPI_DOUBLE,data,recvcounts,displs,MPI_DOUBLE,lmp->world);
 
       } else {
         int n = count*nlocal;
@@ -3171,10 +3167,6 @@ void lammps_scatter_atoms(void *handle, const char *name, int type, int count,
       return;
     }
 
-    // copy = Natom length vector of per-atom values
-    // use atom ID to insert each atom's values into copy
-    // MPI_Allreduce with MPI_SUM to merge into data, ordered by atom ID
-
     if (type == 0) {
       int *vector = nullptr;
       int **array = nullptr;
@@ -3321,10 +3313,6 @@ void lammps_scatter_atoms_subset(void *handle, const char *name, int type,
                             "lammps_scatter_atoms_subset: unknown property name");
       return;
     }
-
-    // copy = Natom length vector of per-atom values
-    // use atom ID to insert each atom's values into copy
-    // MPI_Allreduce with MPI_SUM to merge into data, ordered by atom ID
 
     if (type == 0) {
       int *vector = nullptr;
@@ -4328,10 +4316,6 @@ void lammps_gather_concat(void *handle, const char *name, int type, int count,
       if ((count == 1) || imgunpack) vector = (int *) vptr;
       else array = (int **) vptr;
 
-      int *copy;
-      lmp->memory->create(copy,count*natoms,"lib/gather:copy");
-      for (i = 0; i < count*natoms; i++) copy[i] = 0;
-
       int nlocal = lmp->atom->nlocal;
 
       if (count == 1) {
@@ -4343,7 +4327,10 @@ void lammps_gather_concat(void *handle, const char *name, int type, int count,
                        MPI_INT,lmp->world);
 
       } else if (imgunpack) {
-        lmp->memory->create(copy,count*nlocal,"lib/gather:copy");
+        int *copy;
+        lmp->memory->create(copy,count*natoms,"lib/gather:copy");
+        for (i = 0; i < count*natoms; i++) copy[i] = 0;
+
         offset = 0;
         for (i = 0; i < nlocal; i++) {
           const int image = vector[i];
@@ -4356,8 +4343,7 @@ void lammps_gather_concat(void *handle, const char *name, int type, int count,
         displs[0] = 0;
         for (i = 1; i < nprocs; i++)
           displs[i] = displs[i-1] + recvcounts[i-1];
-        MPI_Allgatherv(copy,count*nlocal,MPI_INT,
-                       data,recvcounts,displs,MPI_INT,lmp->world);
+        MPI_Allgatherv(copy,count*nlocal,MPI_INT,data,recvcounts,displs,MPI_INT,lmp->world);
         lmp->memory->destroy(copy);
 
       } else {
@@ -4366,8 +4352,7 @@ void lammps_gather_concat(void *handle, const char *name, int type, int count,
         displs[0] = 0;
         for (i = 1; i < nprocs; i++)
           displs[i] = displs[i-1] + recvcounts[i-1];
-        MPI_Allgatherv(&array[0][0],count*nlocal,MPI_INT,
-                       data,recvcounts,displs,MPI_INT,lmp->world);
+        MPI_Allgatherv(&array[0][0],count*nlocal,MPI_INT,data,recvcounts,displs,MPI_INT,lmp->world);
       }
 
     } else {
@@ -4876,10 +4861,6 @@ void lammps_scatter(void *handle, const char *name, int type, int count,
       return;
     }
 
-    // copy = Natom length vector of per-atom values
-    // use atom ID to insert each atom's values into copy
-    // MPI_Allreduce with MPI_SUM to merge into data, ordered by atom ID
-
     if (type == 0) {
       int *vector = nullptr;
       int **array = nullptr;
@@ -5129,10 +5110,6 @@ void lammps_scatter_subset(void *handle, const char *name,int type, int count,
                                   "unknown property name");
       return;
     }
-
-    // copy = Natom length vector of per-atom values
-    // use atom ID to insert each atom's values into copy
-    // MPI_Allreduce with MPI_SUM to merge into data, ordered by atom ID
 
     if (type == 0) {
       int *vector = nullptr;
@@ -5490,7 +5467,8 @@ int lammps_neighlist_num_elements(void *handle, int idx) {
  * \param[out] numneigh   number of neighbors of atom iatom or 0
  * \param[out] neighbors  pointer to array of neighbor atom local indices or NULL */
 
-void lammps_neighlist_element_neighbors(void *handle, int idx, int element, int *iatom, int *numneigh, int **neighbors) {
+void lammps_neighlist_element_neighbors(void *handle, int idx, int element, int *iatom,
+                                        int *numneigh, int **neighbors) {
   auto   lmp = (LAMMPS *) handle;
   Neighbor * neighbor = lmp->neighbor;
   *iatom = -1;
@@ -5777,9 +5755,7 @@ otherwise 0.
  * \param  setting   string with the name of the specific setting
  * \return 1 if available, 0 if not.
  */
-int lammps_config_accelerator(const char *package,
-                              const char *category,
-                              const char *setting)
+int lammps_config_accelerator(const char *package, const char *category, const char *setting)
 {
   return Info::has_accelerator_feature(package,category,setting) ? 1 : 0;
 }
@@ -5901,8 +5877,7 @@ int lammps_style_count(void *handle, const char *category) {
  * \param buf_size size of the provided string buffer
  * \return 1 if successful, otherwise 0
  */
-int lammps_style_name(void *handle, const char *category, int idx,
-                      char *buffer, int buf_size) {
+int lammps_style_name(void *handle, const char *category, int idx, char *buffer, int buf_size) {
   auto lmp = (LAMMPS *) handle;
   Info info(lmp);
   auto styles = info.get_available_styles(category);

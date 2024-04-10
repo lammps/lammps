@@ -170,15 +170,7 @@ class ParallelReduce<CombinedFunctorReducerType, Kokkos::RangePolicy<Traits...>,
         m_functor_reducer(arg_functor_reducer),
         m_policy(arg_policy),
         m_result_ptr(arg_view.data()) {
-#ifdef KOKKOS_ENABLE_DEPRECATED_CODE_3
-    if (t_openmp_instance) {
-      m_instance = t_openmp_instance;
-    } else {
-      m_instance = arg_policy.space().impl_internal_space_instance();
-    }
-#else
     m_instance = arg_policy.space().impl_internal_space_instance();
-#endif
     static_assert(
         Kokkos::Impl::MemorySpaceAccess<typename ViewType::memory_space,
                                         Kokkos::HostSpace>::accessible,
@@ -319,15 +311,7 @@ class ParallelReduce<CombinedFunctorReducerType,
       : m_instance(nullptr),
         m_iter(arg_policy, arg_functor_reducer),
         m_result_ptr(arg_view.data()) {
-#ifdef KOKKOS_ENABLE_DEPRECATED_CODE_3
-    if (t_openmp_instance) {
-      m_instance = t_openmp_instance;
-    } else {
-      m_instance = arg_policy.space().impl_internal_space_instance();
-    }
-#else
     m_instance = arg_policy.space().impl_internal_space_instance();
-#endif
     static_assert(
         Kokkos::Impl::MemorySpaceAccess<typename ViewType::memory_space,
                                         Kokkos::HostSpace>::accessible,
@@ -543,15 +527,7 @@ class ParallelReduce<CombinedFunctorReducerType,
             arg_policy.scratch_size(0) + arg_policy.scratch_size(1) +
             FunctorTeamShmemSize<FunctorType>::value(
                 arg_functor_reducer.get_functor(), arg_policy.team_size())) {
-#ifdef KOKKOS_ENABLE_DEPRECATED_CODE_3
-    if (t_openmp_instance) {
-      m_instance = t_openmp_instance;
-    } else {
-      m_instance = arg_policy.space().impl_internal_space_instance();
-    }
-#else
     m_instance = arg_policy.space().impl_internal_space_instance();
-#endif
 
     static_assert(
         Kokkos::Impl::MemorySpaceAccess<typename ViewType::memory_space,

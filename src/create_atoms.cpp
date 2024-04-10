@@ -157,9 +157,9 @@ void CreateAtoms::command(int narg, char **arg)
   maxtry = DEFAULT_MAXTRY;
   radscale = 1.0;
   mesh_style = BISECTION;
-  radthresh = domain->lattice->xlattice;    // NOTE to Axel - I think this should be 1.0 by default
-  mesh_density = 1.0;                       //   similar to how this setting is 1.0
-                                            // see rescaling of both below if units = lattice
+  radthresh = 1.0;
+  mesh_density = 1.0;
+
   nbasis = domain->lattice->nbasis;
   basistype = new int[nbasis];
   for (int i = 0; i < nbasis; i++) basistype[i] = ntype;
@@ -375,8 +375,8 @@ void CreateAtoms::command(int narg, char **arg)
     xone[2] *= domain->lattice->zlattice;
     } else if (style == RANDOM) {
       if (overlapflag) overlap *= domain->lattice->xlattice;
-    } else if (style == MESH) {         // NOTE to Axel - here is the rescaling of both params
-      if (mesh_style == BISECTION) {    //   by lattice spacings if units = lattice, similar to xone,overlap
+    } else if (style == MESH) {
+      if (mesh_style == BISECTION) {
         radthresh *= domain->lattice->xlattice;
       } else if (mesh_style == QUASIRANDOM) {
         mesh_density /= (domain->lattice->xlattice * domain->lattice->xlattice);

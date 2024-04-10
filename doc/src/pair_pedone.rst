@@ -33,6 +33,14 @@ kspace_style pppm 1.0e-5
 pair_coeff * * coul/long
 pair_coeff 1 2 pedone 0.030211 2.241334 2.923245 5.0
 pair_coeff 2 2 pedone 0.042395 1.379316 3.618701 22.0
+
+Used in input scripts:
+
+   .. parsed-literal::
+
+      examples/PACKAGES/pedone/in.pedone.relax
+      examples/PACKAGES/pedone/in.pedone.melt
+
                 
 
 Description

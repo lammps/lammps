@@ -322,7 +322,7 @@ accelerated styles exist.
 * :doc:`oxrna2/xstk <pair_oxrna2>` -
 * :doc:`pace <pair_pace>` - Atomic Cluster Expansion (ACE) machine-learning potential
 * :doc:`pace/extrapolation <pair_pace>` - Atomic Cluster Expansion (ACE) machine-learning potential with extrapolation grades
-* :doc:`pedone <pair_pedone>` - Pedone (PMMCS) potential
+* :doc:`pedone <pair_pedone>` - Pedone (PMMCS) potential (non-Coulomb part)
 * :doc:`pod <pair_pod>` - Proper orthogonal decomposition (POD) machine-learning potential
 * :doc:`peri/eps <pair_peri>` - Peridynamic EPS potential
 * :doc:`peri/lps <pair_peri>` - Peridynamic LPS potential

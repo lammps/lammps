@@ -369,7 +369,8 @@ void Variable::set(int narg, char **arg)
     data[nvar][0] = new char[MAXLINE];
     reader[nvar] = new VarReader(lmp,arg[0],arg[2],SCALARFILE);
     int flag = reader[nvar]->read_scalar(data[nvar][0]);
-    if (flag) error->all(FLERR,"File variable could not read value");
+    if (flag)
+      error->all(FLERR,"File variable {} could not read value from {}", arg[0], arg[2]);
 
   // ATOMFILE for numbers
   // which = 1st value
@@ -387,7 +388,8 @@ void Variable::set(int narg, char **arg)
     data[nvar][0] = nullptr;
     reader[nvar] = new VarReader(lmp,arg[0],arg[2],ATOMFILE);
     int flag = reader[nvar]->read_peratom();
-    if (flag) error->all(FLERR,"Atomfile variable could not read values");
+    if (flag)
+      error->all(FLERR,"Atomfile variable {} could not read values from {}", arg[0], arg[2]);
 
   // FORMAT
   // num = 3, which = 1st value
@@ -5405,7 +5407,8 @@ VarReader::VarReader(LAMMPS *lmp, char *name, char *file, int flag) :
   if (me == 0) {
     fp = fopen(file,"r");
     if (fp == nullptr)
-      error->one(FLERR,"Cannot open file variable file {}: {}", file, utils::getsyserror());
+      error->one(FLERR,"Cannot open {} variable {} file {}: {}", (style == Variable::ATOMFILE)
+                 ? "atomfile" : "file", name, file, utils::getsyserror());
   }
 
   // if atomfile-style variable, must store per-atom values read from file
@@ -5463,14 +5466,12 @@ int VarReader::read_scalar(char *str)
     while (true) {
       ptr = fgets(str,MAXLINE,fp);
       if (!ptr) { n=0; break; }             // end of file
-      ptr[strcspn(ptr,"#")] = '\0';         // strip comment
-      ptr += strspn(ptr," \t\n\r\f");       // strip leading whitespace
-      ptr[strcspn(ptr," \t\n\r\f")] = '\0'; // strip trailing whitespace
-      n = strlen(ptr) + 1;
+      auto line = utils::trim(utils::trim_comment(str));
+      n = line.size() + 1;
       if (n == 1) continue;                 // skip if blank line
+      memcpy(str, line.c_str(), n);
       break;
     }
-    if (n > 0) memmove(str,ptr,n);                       // move trimmed string back
   }
   MPI_Bcast(&n,1,MPI_INT,0,world);
   if (n == 0) return 1;
@@ -5486,9 +5487,9 @@ int VarReader::read_scalar(char *str)
 
 int VarReader::read_peratom()
 {
-  int i,m,n,nchunk,eof;
+  int i,m,nchunk,eof;
   tagint tag;
-  char *ptr,*next;
+  char *ptr;
   double value;
 
   // set all per-atom values to 0.0
@@ -5502,24 +5503,22 @@ int VarReader::read_peratom()
   // read one string from file, convert to Nlines
 
   char str[MAXLINE];
+  bigint nlines = 0;
   if (me == 0) {
     while (true) {
       ptr = fgets(str,MAXLINE,fp);
-      if (!ptr) { n=0; break; }             // end of file
-      ptr[strcspn(ptr,"#")] = '\0';         // strip comment
-      ptr += strspn(ptr," \t\n\r\f");       // strip leading whitespace
-      ptr[strcspn(ptr," \t\n\r\f")] = '\0'; // strip trailing whitespace
-      n = strlen(ptr) + 1;
-      if (n == 1) continue;                 // skip if blank line
+      if (!ptr) { nlines = 0; break; }             // end of file
+      Tokenizer words(utils::trim(utils::trim_comment(str)));
+      if (words.count() == 0) continue;      // skip if blank or comment line
+      if (words.count() != 1)
+        error->one(FLERR, "Expected 1 token but found {} when parsing {}", words.count(), str);
+      nlines = utils::bnumeric(FLERR,words.next(),true,lmp);
       break;
     }
-    memmove(str,ptr,n);                     // move trimmed string back
   }
+  MPI_Bcast(&nlines,1,MPI_LMP_BIGINT,0,world);
+  if (nlines == 0) return 1;
 
-  MPI_Bcast(&n,1,MPI_INT,0,world);
-  if (n == 0) return 1;
-  MPI_Bcast(str,n,MPI_CHAR,0,world);
-  bigint nlines = utils::bnumeric(FLERR,str,false,lmp);
   tagint map_tag_max = atom->map_tag_max;
 
   bigint nread = 0;
@@ -5528,24 +5527,22 @@ int VarReader::read_peratom()
     eof = utils::read_lines_from_file(fp,nchunk,MAXLINE,buffer,me,world);
     if (eof) return 1;
 
-    char *buf = buffer;
-    for (i = 0; i < nchunk; i++) {
-      next = strchr(buf,'\n');
-      *next = '\0';
+    for (const auto &line : utils::split_lines(buffer)) {
       try {
-        ValueTokenizer words(buf);
+        ValueTokenizer words(utils::trim_comment(utils::trim(line)));
+        if (words.count() == 0) continue; // skip comment or empty lines
+        if (words.count() != 2)
+          throw TokenizerException(fmt::format("expected 2 tokens but found {}", words.count()), "");
         tag = words.next_bigint();
         value = words.next_double();
+        ++nread;
       } catch (TokenizerException &e) {
-        error->all(FLERR,"Invalid atomfile line '{}': {}",buf,e.what());
+        error->all(FLERR,"Invalid atomfile line '{}': {}", line, e.what());
       }
       if ((tag <= 0) || (tag > map_tag_max))
         error->all(FLERR,"Invalid atom ID {} in variable file", tag);
       if ((m = atom->map(tag)) >= 0) vstore[m] = value;
-      buf = next + 1;
     }
-
-    nread += nchunk;
   }
 
   return 0;

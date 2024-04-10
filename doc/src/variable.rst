@@ -304,7 +304,7 @@ point number with the value.  The atom-IDs may be listed in any order.
    at 0.0.
 
 Below is a small example for the atomfile variable file format:
- 
+
  .. parsed-literal::
 
    # first set

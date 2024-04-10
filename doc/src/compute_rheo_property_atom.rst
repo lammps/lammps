@@ -27,8 +27,8 @@ Syntax
 
   .. parsed-literal::
 
-           *phase* = atom phase status
-           *chi* = atom phase neighborhood metric
+           *phase* = atom phase state
+           *chi* = atom local phase metric
            *surface* = atom surface status
            *surface/r* = atom distance from the surface
            *surface/divr* = divergence of position at atom position
@@ -45,6 +45,7 @@ Syntax
            *status* = atom full status
            *rho* = atom density
            *grad/v/\** = atom velocity gradient
+           *nbond/shell* = number of oxide bonds
 
 Examples
 """"""""
@@ -52,21 +53,34 @@ Examples
 .. code-block:: LAMMPS
 
    compute 1 all rheo/property/atom phase surface/r pressure
+   compute 2 all rheo/property/atom shift/v/x grad/v/xx
 
 Description
 """""""""""
 
-Define a computation that simply stores atom attributes specific to the
-RHEO package for each atom in the group.  This is useful so that the
-values can be used by other :doc:`output commands <Howto_output>` that
-take computes as inputs. See for example, the :doc:`compute reduce
-<compute_reduce>`, :doc:`fix ave/atom <fix_ave_atom>`, :doc:`fix
-ave/histo <fix_ave_histo>`, :doc:`fix ave/chunk <fix_ave_chunk>`,
-and :doc:`atom-style variable <variable>` commands.
+.. versionadded:: TBD
+
+Define a computation that stores atom attributes specific to the RHEO
+package for each atom in the group.  This is useful so that the values
+can be used by other :doc:`output commands <Howto_output>` that take
+computes as inputs. See for example, the
+:doc:`compute reduce <compute_reduce>`,
+:doc:`fix ave/atom <fix_ave_atom>`,
+:doc:`fix ave/histo <fix_ave_histo>`,
+:doc:`fix ave/chunk <fix_ave_chunk>`, and
+:doc:`atom-style variable <variable>` commands.
 
 The possible attributes are described in more detail in other RHEO doc
-pages include :doc:`fix rheo <fix_rheo>`, :doc:`pair rheo <pair_rheo>`,
-and :doc:`the RHEO howto page <Howto_rheo>`.
+pages including :doc:`the RHEO howto page <Howto_rheo>`. Many
+properties require their respective fixes, listed below in related
+commands, be defined.
+
+The *surface/n/\** and *shift/v/\** attributes are vectors that require
+specification of the *x*, *y*, or *z* component, e.g. *surface/n/x*.
+
+The *grad/v/\** attribute is a tensor and requires specification of
+the *xx*, *yy*, *zz*, *xy*, *xz*, *yx*, *yz*, *zx*, or *zy* component,
+e.g. *grad/v/xy*.
 
 The values are stored in a per-atom vector or array as discussed
 below.  Zeroes are stored for atoms not in the specified group or for
@@ -98,7 +112,8 @@ Related commands
 :doc:`fix rheo/viscosity <fix_rheo_viscosity>`,
 :doc:`fix rheo/pressure <fix_rheo_pressure>`,
 :doc:`fix rheo/thermal <fix_rheo_thermal>`,
-:doc:`pair rheo <pair_rheo>`
+:doc:`fix rheo/oxdiation <fix_rheo_oxidation>`,
+:doc:`fix rheo <fix_rheo>`
 
 Default
 """""""

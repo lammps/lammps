@@ -43,6 +43,8 @@ Examples
 Description
 """""""""""
 
+.. versionadded:: TBD
+
 Perform time integration for RHEO particles, updating positions, velocities,
 and densities. For a detailed breakdown of the integration timestep and
 numerical details, see :ref:`(Palermo) <howto_rheo_palermo>`. For an

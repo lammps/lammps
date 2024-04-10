@@ -57,7 +57,8 @@ ComputeRHEOPropertyAtom::ComputeRHEOPropertyAtom(LAMMPS *lmp, int narg, char **a
   if (nvalues == 1) size_peratom_cols = 0;
   else size_peratom_cols = nvalues;
 
-  pressure_flag = thermal_flag = interface_flag = surface_flag = shift_flag = shell_flag = 0;
+  pressure_flag = thermal_flag = interface_flag = 0;
+  surface_flag = shift_flag = shell_flag = 0;
 
   // parse input values
   // customize a new keyword by adding to if statement
@@ -70,32 +71,34 @@ ComputeRHEOPropertyAtom::ComputeRHEOPropertyAtom(LAMMPS *lmp, int narg, char **a
   for (int iarg = 3; iarg < narg; iarg++) {
     i = iarg-3;
 
-    if (strcmp(arg[iarg],"phase") == 0) {
+    if (strcmp(arg[iarg], "phase") == 0) {
       pack_choice[i] = &ComputeRHEOPropertyAtom::pack_phase;
-    } else if (strcmp(arg[iarg],"rho") == 0) {
+    } else if (strcmp(arg[iarg], "rho") == 0) {
       pack_choice[i] = &ComputeRHEOPropertyAtom::pack_rho;
-    } else if (strcmp(arg[iarg],"chi") == 0) {
+    } else if (strcmp(arg[iarg], "chi") == 0) {
       interface_flag = 1;
       pack_choice[i] = &ComputeRHEOPropertyAtom::pack_chi;
-    } else if (strcmp(arg[iarg],"surface") == 0) {
+    } else if (strcmp(arg[iarg], "surface") == 0) {
       surface_flag = 1;
       pack_choice[i] = &ComputeRHEOPropertyAtom::pack_surface;
-    } else if (strcmp(arg[iarg],"surface/r") == 0) {
+    } else if (strcmp(arg[iarg], "surface/r") == 0) {
       surface_flag = 1;
       pack_choice[i] = &ComputeRHEOPropertyAtom::pack_surface_r;
-    } else if (strcmp(arg[iarg],"surface/divr") == 0) {
+    } else if (strcmp(arg[iarg], "surface/divr") == 0) {
       surface_flag = 1;
       pack_choice[i] = &ComputeRHEOPropertyAtom::pack_surface_divr;
     } else if (utils::strmatch(arg[iarg], "^surface/n")) {
       surface_flag = 1;
       pack_choice[i] = &ComputeRHEOPropertyAtom::pack_surface_n;
       col_index[i] = get_vector_index(arg[iarg]);
-    } else if (strcmp(arg[iarg],"coordination") == 0) {
+    } else if (strcmp(arg[iarg], "coordination") == 0) {
       pack_choice[i] = &ComputeRHEOPropertyAtom::pack_coordination;
-    } else if (strcmp(arg[iarg],"pressure") == 0) {
+    } else if (strcmp(arg[iarg], "pressure") == 0) {
       pressure_flag = 1;
       pack_choice[i] = &ComputeRHEOPropertyAtom::pack_pressure;
-    } else if (strcmp(arg[iarg],"cv") == 0) {
+    } else if (strcmp(arg[iarg], "viscosity") == 0) {
+      pack_choice[i] = &ComputeRHEOPropertyAtom::pack_viscosity;
+    } else if (strcmp(arg[iarg], "cv") == 0) {
       thermal_flag = 1;
       pack_choice[i] = &ComputeRHEOPropertyAtom::pack_cv;
     } else if (utils::strmatch(arg[iarg], "^shift/v")) {
@@ -113,7 +116,7 @@ ComputeRHEOPropertyAtom::ComputeRHEOPropertyAtom(LAMMPS *lmp, int narg, char **a
                    arg[iarg], atom->get_style());
       pack_choice[i] = &ComputeRHEOPropertyAtom::pack_atom_style;
       thermal_flag = 1;
-    } else if (strcmp(arg[iarg],"nbond/shell") == 0) {
+    } else if (strcmp(arg[iarg], "nbond/shell") == 0) {
       shell_flag = 1;
       pack_choice[i] = &ComputeRHEOPropertyAtom::pack_nbond_shell;
     } else {
@@ -124,9 +127,9 @@ ComputeRHEOPropertyAtom::ComputeRHEOPropertyAtom(LAMMPS *lmp, int narg, char **a
                    arg[iarg], atom->get_style());
       pack_choice[i] = &ComputeRHEOPropertyAtom::pack_atom_style;
 
-      if (strcmp(arg[iarg],"temperature") == 0) thermal_flag = 1;
-      if (strcmp(arg[iarg],"heatflow") == 0) thermal_flag = 1;
-      if (strcmp(arg[iarg],"conductivity") == 0) thermal_flag = 1;
+      if (strcmp(arg[iarg], "temperature") == 0) thermal_flag = 1;
+      if (strcmp(arg[iarg], "heatflow") == 0) thermal_flag = 1;
+      if (strcmp(arg[iarg], "conductivity") == 0) thermal_flag = 1;
     }
   }
 
@@ -149,7 +152,7 @@ ComputeRHEOPropertyAtom::~ComputeRHEOPropertyAtom()
 void ComputeRHEOPropertyAtom::init()
 {
   auto fixes = modify->get_fix_by_style("^rheo$");
-  if (fixes.size() == 0) error->all(FLERR, "Need to define fix rheo to use fix rheo/viscosity");
+  if (fixes.size() == 0) error->all(FLERR, "Need to define fix rheo to use compute rheo/property/atom");
   fix_rheo = dynamic_cast<FixRHEO *>(fixes[0]);
 
   if (interface_flag && !(fix_rheo->interface_flag))
@@ -390,6 +393,21 @@ void ComputeRHEOPropertyAtom::pack_pressure(int n)
 
 /* ---------------------------------------------------------------------- */
 
+void ComputeRHEOPropertyAtom::pack_viscosity(int n)
+{
+  int *mask = atom->mask;
+  double *viscosity = atom->viscosity;
+  int nlocal = atom->nlocal;
+
+  for (int i = 0; i < nlocal; i++) {
+    if (mask[i] & groupbit) buf[n] = viscosity[i];
+    else buf[n] = 0.0;
+    n += nvalues;
+  }
+}
+
+/* ---------------------------------------------------------------------- */
+
 void ComputeRHEOPropertyAtom::pack_nbond_shell(int n)
 {
   int *nbond = fix_oxidation->nbond;
@@ -490,11 +508,11 @@ int ComputeRHEOPropertyAtom::get_tensor_index(char* option)
 int ComputeRHEOPropertyAtom::get_vector_index(char* option)
 {
   int index;
-  if (utils::strmatch(option,"x$")) {
+  if (utils::strmatch(option, "x$")) {
     index = 0;
-  } else if (utils::strmatch(option,"y$")) {
+  } else if (utils::strmatch(option, "y$")) {
     index = 1;
-  } else if (utils::strmatch(option,"z$")) {
+  } else if (utils::strmatch(option, "z$")) {
     if (domain->dimension == 2)
       error->all(FLERR, "Invalid compute rheo/property/atom property {} in 2D", option);
     index = 2;

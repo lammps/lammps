@@ -48,6 +48,8 @@ Examples
 Description
 """""""""""
 
+.. versionadded:: TBD
+
 This fix performs time integration of temperature evolution for atom style
 rheo/thermal. In addition, it  defines multiple thermal properties of
 particles and handles melting/solidification, if applicable. For more details

@@ -32,6 +32,8 @@ Examples
 Description
 """""""""""
 
+.. versionadded:: TBD
+
 This fix defines a viscosity for RHEO particles. One can define different
 viscosities for different atom types, but a viscosity must be specified for
 every atom type.

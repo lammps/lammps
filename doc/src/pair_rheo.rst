@@ -31,6 +31,8 @@ Examples
 Description
 """""""""""
 
+.. versionadded:: TBD
+
 Pair style *rheo* computes pressure and viscous forces between particles
 in the :doc:`rheo package <Howto_rheo>`. If thermal evolution is turned
 on in :doc:`fix rheo <fix_rheo>`, then the pair style also calculates

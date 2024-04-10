@@ -21,6 +21,8 @@ Examples
 Description
 """""""""""
 
+.. versionadded:: TBD
+
 Style *rheo/solid* is effectively a copy of pair style
 :doc:`bpm/spring <pair_bpm_spring>` except it only applies forces
 between solid RHEO particles, determined by checking the status of

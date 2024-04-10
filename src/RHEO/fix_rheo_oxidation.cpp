@@ -20,6 +20,7 @@
 
 #include "atom.h"
 #include "atom_vec.h"
+#include "citeme.h"
 #include "compute_rheo_surface.h"
 #include "error.h"
 #include "fix_rheo.h"
@@ -33,6 +34,18 @@ using namespace LAMMPS_NS;
 using namespace RHEO_NS;
 using namespace FixConst;
 enum {NONE, CONSTANT};
+
+static const char cite_rheo_oxide[] =
+  "@article{ApplMathModel.130.310,\n"
+  " title = {A hybrid smoothed-particle hydrodynamics model of oxide skins on molten aluminum},\n"
+  " journal = {Applied Mathematical Modelling},\n"
+  " volume = {130},\n"
+  " pages = {310-326},\n"
+  " year = {2024},\n"
+  " issn = {0307-904X},\n"
+  " doi = {https://doi.org/10.1016/j.apm.2024.02.027},\n"
+  " author = {Joel T. Clemmer and Flint Pierce and Thomas C. O'Connor and Thomas D. Nevins and Elizabeth M.C. Jones and Jeremy B. Lechman and John Tencer},\n"
+  "}\n\n";
 
 /* ---------------------------------------------------------------------- */
 
@@ -51,6 +64,8 @@ FixRHEOOxidation::FixRHEOOxidation(LAMMPS *lmp, int narg, char **arg) :
   if (rsurf <= 0.0) error->all(FLERR, "Illegal surface distance {} in fix rheo/oxidation", cut);
 
   cutsq = cut * cut;
+
+  if (lmp->citeme) lmp->citeme->add(cite_rheo_oxide);
 }
 
 /* ---------------------------------------------------------------------- */

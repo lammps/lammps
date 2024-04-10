@@ -10,9 +10,12 @@ Syntax
 
    bond_style rheo/shell keyword value attribute1 attribute2 ...
 
-* optional keyword = *overlay/pair* or *store/local* or *smooth* or *break*
+* required keyword = *t/form*
+* optional keyword = *store/local*
 
   .. parsed-literal::
+
+       *t/form* value = formation time for a bond (time units)
 
        *store/local* values = fix_ID N attributes ...
           * fix_ID = ID of associated internal fix to store data
@@ -24,56 +27,56 @@ Syntax
             *x, y, z* = the center of mass position of the 2 atoms when the bond broke (distance units)
             *x/ref, y/ref, z/ref* = the initial center of mass position of the 2 atoms (distance units)
 
-       *overlay/pair* value = *yes* or *no*
-          bonded particles will still interact with pair forces
-
-       *smooth* value = *yes* or *no*
-          smooths bond forces near the breaking point
-
-       *normalize* value = *yes* or *no*
-          normalizes bond forces by the reference length
-
-       *break* value = *yes* or *no*
-          indicates whether bonds break during a run
-
 Examples
 """"""""
 
 .. code-block:: LAMMPS
 
-   bond_style bpm/spring
+   bond_style rheo/shell t/form 10.0
    bond_coeff 1 1.0 0.05 0.1
-
-   bond_style bpm/spring myfix 1000 time id1 id2
-   dump 1 all local 1000 dump.broken f_myfix[1] f_myfix[2] f_myfix[3]
-   dump_modify 1 write_header no
 
 Description
 """""""""""
 
-.. versionadded:: 4May2022
+.. versionadded:: TBD
 
-The *bpm/spring* bond style computes forces based on
-deviations from the initial reference state of the two atoms.  The
-reference state is stored by each bond when it is first computed in
+The *rheo/shell* bond style is designed to work with
+:doc:`fix rheo/oxidation <fix_rheo_oxidation>` which creates candidate
+bonds between eligible surface or near-surface particles. When a bond
+is first created, it computes no forces and starts a timer. Forces are
+not computed until the timer reaches the specified bond formation time
+and the bond is fully enabled. If the two particles move outside of the
+maximum bond distance or move into the bulk before the timer reaches
+the formation time, the bond automatically deletes itself. Not that
+this deletion does not generate any broken bond data saved to a
+*store/local* fix.
+
+Before bonds are enabled, they are still treated as regular bonds by
+all other parts of LAMMPS. This means they are written to data files
+and counted in computes such as :doc:`nbond/atom <compute_nbond_atom>`.
+To only count enabled bonds, use the *nbond/shell* attribute in
+:doc:`compute property/atom/rheo <compute_property_atom_rheo>`.
+
+When enabled, the bond then computes forces based on deviations from
+the initial reference state of the two atoms much like a BPM style
+bond (as further discussed in the :doc:`BPM howto page <Howto_bpm>`).
+The reference state is stored by each bond when it is first enabled
 the setup of a run. Data is then preserved across run commands and is
 written to :doc:`binary restart files <restart>` such that restarting
-the system will not reset the reference state of a bond.
+the system will not reset the reference state of a bond or the timer.
 
-This bond style only applies central-body forces which conserve the
-translational and rotational degrees of freedom of a bonded set of
-particles based on a model described by Clemmer and Robbins
-:ref:`(Clemmer) <fragment-Clemmer>`. The force has a magnitude of
+This bond style is based on a model described in Ref.
+:ref:`(Clemmer) <howto_rheo_clemmer>`. The force has a magnitude of
 
 .. math::
 
-   F = k (r - r_0) w
+   F = 2 k (r - r_0) + \frac{2 * k}{r_0^2 \epsilon_c^2} (r - r_0)^3
 
 where :math:`k` is a stiffness, :math:`r` is the current distance
 and :math:`r_0` is the initial distance between the two particles, and
-:math:`w` is an optional smoothing factor discussed below. Bonds will
-break at a strain of :math:`\epsilon_c`.  This is done by setting
-the bond type to 0 such that forces are no longer computed.
+:math:`\epsilon_c` is maximum strain beyond which a bond breaks. This
+is done by setting the bond type to 0 such that forces are no longer
+computed.
 
 An additional damping force is applied to the bonded
 particles.  This forces is proportional to the difference in the
@@ -88,15 +91,6 @@ where :math:`\gamma` is the damping strength, :math:`\hat{r}` is the
 radial normal vector, and :math:`\vec{v}` is the velocity difference
 between the two particles.
 
-The smoothing factor :math:`w` can be added or removed by setting the
-*smooth* keyword to *yes* or *no*, respectively. It is constructed such
-that forces smoothly go to zero, avoiding discontinuities, as bonds
-approach the critical strain
-
-.. math::
-
-   w = 1.0 - \left( \frac{r - r_0}{r_0 \epsilon_c} \right)^8 .
-
 The following coefficients must be defined for each bond type via the
 :doc:`bond_coeff <bond_coeff>` command as in the example above, or in
 the data file or restart files read by the :doc:`read_data
@@ -106,22 +100,11 @@ the data file or restart files read by the :doc:`read_data
 * :math:`\epsilon_c`    (unit less)
 * :math:`\gamma`        (force/velocity units)
 
-If the *normalize* keyword is set to *yes*, the elastic bond force will be
-normalized by :math:`r_0` such that :math:`k` must be given in force units.
-
-By default, pair forces are not calculated between bonded particles.
-Pair forces can alternatively be overlaid on top of bond forces by setting
-the *overlay/pair* keyword to *yes*. These settings require specific
-:doc:`special_bonds <special_bonds>` settings described in the
-restrictions.  Further details can be found in the :doc:`how to <Howto_bpm>`
-page on BPMs.
-
-.. versionadded:: 28Mar2023
-
-If the *break* keyword is set to *no*, LAMMPS assumes bonds should not break
-during a simulation run. This will prevent some unnecessary calculation.
-However, if a bond reaches a strain greater than :math:`\epsilon_c`,
-it will trigger an error.
+Unlike other BPM-style bonds, this bond style does not update special
+bond settings when bonds are created or deleted. This bond style also
+does not enforce specific :doc:`special_bonds <special_bonds>` settings.
+This behavior is purposeful such :doc:`RHEO pair forces <pair_rheo>`
+and heat flows are still calculated.
 
 If the *store/local* keyword is used, an internal fix will track bonds that
 break during the simulation. Whenever a bond breaks, data is processed
@@ -187,39 +170,25 @@ extra quantity can be accessed by the
 Restrictions
 """"""""""""
 
-This bond style is part of the BPM package.  It is only enabled if
+This bond style is part of the RHEO package.  It is only enabled if
 LAMMPS was built with that package.  See the :doc:`Build package
 <Build_package>` page for more info.
-
-By default if pair interactions between bonded atoms are to be disabled,
-this bond style requires setting
-
-.. code-block:: LAMMPS
-
-   special_bonds lj 0 1 1 coul 1 1 1
-
-and :doc:`newton <newton>` must be set to bond off.  If the *overlay/pair*
-keyword is set to *yes*, this bond style alternatively requires setting
-
-.. code-block:: LAMMPS
-
-   special_bonds lj/coul 1 1 1
 
 Related commands
 """"""""""""""""
 
-:doc:`bond_coeff <bond_coeff>`, :doc:`pair bpm/spring <pair_bpm_spring>`
+:doc:`bond_coeff <bond_coeff>`, :doc:`fix rheo/oxidation <fix_rheo_oxidation>`
 
 Default
 """""""
 
-The option defaults are *overlay/pair* = *no*, *smooth* = *yes*, *normalize* = *no*, and *break* = *yes*
+NA
 
 ----------
 
-.. _fragment-Clemmer:
+.. _howto_rheo_clemmer:
 
-**(Clemmer)** Clemmer and Robbins, Phys. Rev. Lett. (2022).
+**(Clemmer)** Clemmer, Pierce, O'Connor, Nevins, Jones, Lechman, Tencer, Appl. Math. Model., 130, 310-326 (2024).
 
 .. _Groot4:
 

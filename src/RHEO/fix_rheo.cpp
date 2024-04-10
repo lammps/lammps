@@ -19,6 +19,7 @@
 #include "fix_rheo.h"
 
 #include "atom.h"
+#include "citeme.h"
 #include "compute_rheo_grad.h"
 #include "compute_rheo_interface.h"
 #include "compute_rheo_surface.h"
@@ -36,6 +37,9 @@
 using namespace LAMMPS_NS;
 using namespace RHEO_NS;
 using namespace FixConst;
+
+static const char cite_rheo[] =
+  "TBD\n\n";
 
 /* ---------------------------------------------------------------------- */
 
@@ -137,6 +141,8 @@ FixRHEO::FixRHEO(LAMMPS *lmp, int narg, char **arg) :
     }
     iarg += 1;
   }
+
+  if (lmp->citeme) lmp->citeme->add(cite_rheo);
 }
 
 /* ---------------------------------------------------------------------- */

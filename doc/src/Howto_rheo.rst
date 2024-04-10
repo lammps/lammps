@@ -90,10 +90,10 @@ criteria for creating/deleting a bond or altering force calculations).
 
 ----------
 
-.. _howto-howto_rheo_palermo:
+.. _howto_rheo_palermo:
 
 **(Palermo)** Palermo, Clemmer, Wolf, O'Connor, in preparation.
 
-.. _howto-howto_rheo_clemmer:
+.. _howto_rheo_clemmer:
 
 **(Clemmer)** Clemmer, Pierce, O'Connor, Nevins, Jones, Lechman, Tencer, Appl. Math. Model., 130, 310-326 (2024).

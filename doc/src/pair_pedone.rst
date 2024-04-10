@@ -57,7 +57,7 @@ pair style :doc:`hybrid/overlay <pair_hybrid>` (see example above).
 Using *coul/long* or *could/dsf* (for solids) is recommended.
 
 The full Pedone potential function from :ref:`(Pedone) <Pedone>` for each
-pair of atom is:
+pair of atoms is:
 
 .. math::
 

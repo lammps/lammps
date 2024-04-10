@@ -695,7 +695,7 @@ void MDIEngine::mdi_md()
   if (strcmp(mdicmd, "EXIT") == 0) return;
 
   // run one step at a time forever
-  // driver triggers exit with @ command other than @COORDS,@FORCES,@ENDSTEP
+  // driver triggers exit with @ command other than @COORDS,@FORCES,@ENDSTEP,@
 
   update->integrate->setup(1);
 
@@ -711,7 +711,7 @@ void MDIEngine::mdi_md()
     update->integrate->run(1);
 
     if (strcmp(mdicmd, "@COORDS") != 0 && strcmp(mdicmd, "@FORCES") != 0 &&
-        strcmp(mdicmd, "@ENDSTEP") != 0)
+        strcmp(mdicmd, "@ENDSTEP") != 0 && strcmp(mdicmd, "@") != 0)
       break;
   }
 

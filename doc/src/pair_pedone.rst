@@ -41,10 +41,12 @@ Used in input scripts:
       examples/PACKAGES/pedone/in.pedone.relax
       examples/PACKAGES/pedone/in.pedone.melt
 
-                
+
 
 Description
 """""""""""
+
+.. versionadded:: TBD
 
 Pair style *pedone* computes the **non-Coulomb** interactions of the Pedone
 (or PMMCS) potential :ref:`(Pedone) <Pedone>` which combines Coulomb

@@ -39,7 +39,10 @@ heat exchanged between particles.
 The *artificial/viscosity* keyword is used to specify the magnitude
 :math:`\zeta` of an optional artificial viscosity contribution to forces.
 This factor can help stabilize simulations by smoothing out small length
-scale variations in velocity fields.
+scale variations in velocity fields. Artificial viscous forces are only
+exchanged by fluid particles unless interfaces are not reconstructed in
+fix rheo, in which fluid particles will also exchange artificial viscous
+forces with solid particles to improve stability.
 
 The *rho/damp* keyword is used to specify the magnitude :math:`\xi` of
 an optional pairwise damping term between the density of particles. This

@@ -54,7 +54,7 @@ template <
 bool lexicographical_compare(
     const ExecutionSpace& ex,
     const ::Kokkos::View<DataType1, Properties1...>& view1,
-    ::Kokkos::View<DataType2, Properties2...>& view2) {
+    const ::Kokkos::View<DataType2, Properties2...>& view2) {
   Impl::static_assert_is_admissible_to_kokkos_std_algorithms(view1);
   Impl::static_assert_is_admissible_to_kokkos_std_algorithms(view2);
 
@@ -71,7 +71,7 @@ template <
 bool lexicographical_compare(
     const std::string& label, const ExecutionSpace& ex,
     const ::Kokkos::View<DataType1, Properties1...>& view1,
-    ::Kokkos::View<DataType2, Properties2...>& view2) {
+    const ::Kokkos::View<DataType2, Properties2...>& view2) {
   Impl::static_assert_is_admissible_to_kokkos_std_algorithms(view1);
   Impl::static_assert_is_admissible_to_kokkos_std_algorithms(view2);
 
@@ -112,7 +112,8 @@ template <
 bool lexicographical_compare(
     const ExecutionSpace& ex,
     const ::Kokkos::View<DataType1, Properties1...>& view1,
-    ::Kokkos::View<DataType2, Properties2...>& view2, ComparatorType comp) {
+    const ::Kokkos::View<DataType2, Properties2...>& view2,
+    ComparatorType comp) {
   Impl::static_assert_is_admissible_to_kokkos_std_algorithms(view1);
   Impl::static_assert_is_admissible_to_kokkos_std_algorithms(view2);
 
@@ -129,7 +130,8 @@ template <
 bool lexicographical_compare(
     const std::string& label, const ExecutionSpace& ex,
     const ::Kokkos::View<DataType1, Properties1...>& view1,
-    ::Kokkos::View<DataType2, Properties2...>& view2, ComparatorType comp) {
+    const ::Kokkos::View<DataType2, Properties2...>& view2,
+    ComparatorType comp) {
   Impl::static_assert_is_admissible_to_kokkos_std_algorithms(view1);
   Impl::static_assert_is_admissible_to_kokkos_std_algorithms(view2);
 
@@ -161,7 +163,7 @@ template <class TeamHandleType, class DataType1, class... Properties1,
 KOKKOS_FUNCTION bool lexicographical_compare(
     const TeamHandleType& teamHandle,
     const ::Kokkos::View<DataType1, Properties1...>& view1,
-    ::Kokkos::View<DataType2, Properties2...>& view2) {
+    const ::Kokkos::View<DataType2, Properties2...>& view2) {
   Impl::static_assert_is_admissible_to_kokkos_std_algorithms(view1);
   Impl::static_assert_is_admissible_to_kokkos_std_algorithms(view2);
 
@@ -187,7 +189,8 @@ template <class TeamHandleType, class DataType1, class... Properties1,
 KOKKOS_FUNCTION bool lexicographical_compare(
     const TeamHandleType& teamHandle,
     const ::Kokkos::View<DataType1, Properties1...>& view1,
-    ::Kokkos::View<DataType2, Properties2...>& view2, ComparatorType comp) {
+    const ::Kokkos::View<DataType2, Properties2...>& view2,
+    ComparatorType comp) {
   Impl::static_assert_is_admissible_to_kokkos_std_algorithms(view1);
   Impl::static_assert_is_admissible_to_kokkos_std_algorithms(view2);
 

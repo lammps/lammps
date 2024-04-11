@@ -973,6 +973,9 @@ void Domain::subbox_too_small_check(double thresh)
    changed "if" to "while" to enable distance to
      far-away ghost atom returned by atom->map() to be wrapped back into box
      could be problem for looking up atom IDs when cutoff > boxsize
+   should be used for most cases where the difference in the image count
+     is small (usually 0 or 1)
+   use minimum_image_big() when a large difference between image counts is expected
 ------------------------------------------------------------------------- */
 
 static constexpr double MAXIMGCOUNT = 16;
@@ -1041,6 +1044,72 @@ void Domain::minimum_image(double &dx, double &dy, double &dz) const
         if (dx < 0.0) dx += xprd;
         else dx -= xprd;
       }
+    }
+  }
+}
+
+/* ----------------------------------------------------------------------
+   minimum image convention in periodic dimensions
+   use 1/2 of box size as test
+   for triclinic, also add/subtract tilt factors in other dims as needed
+   allow multiple box lengths to enable distance to
+     far-away ghost atom returned by atom->map() to be wrapped back into box
+     could be problem for looking up atom IDs when cutoff > boxsize
+   this should be used when there is a large image count difference possible
+     this applies for example to fix rigid/small
+------------------------------------------------------------------------- */
+
+void Domain::minimum_image_big(double &dx, double &dy, double &dz) const
+{
+  if (triclinic == 0) {
+    if (xperiodic) {
+      double dfactor = dx/xprd + 0.5;
+      if (dx < 0) dfactor -= 1.0;
+      if (dfactor > MAXSMALLINT)
+        error->one(FLERR, "Atoms have moved too far apart ({}) for minimum image\n", dx);
+      dx -= xprd * static_cast<int>(dfactor);
+    }
+    if (yperiodic) {
+      double dfactor = dy/yprd + 0.5;
+      if (dy < 0) dfactor -= 1.0;
+      if (dfactor > MAXSMALLINT)
+        error->one(FLERR, "Atoms have moved too far apart ({}) for minimum image\n", dy);
+      dy -= yprd * static_cast<int>(dfactor);
+    }
+    if (zperiodic) {
+      double dfactor = dz/zprd + 0.5;
+      if (dz < 0) dfactor -= 1.0;
+      if (dfactor > MAXSMALLINT)
+        error->one(FLERR, "Atoms have moved too far apart ({}) for minimum image\n", dz);
+      dz -= zprd * static_cast<int>(dfactor);
+    }
+
+  } else {
+    if (zperiodic) {
+      double dfactor = dz/zprd + 0.5;
+      if (dz < 0) dfactor -= 1.0;
+      if (dfactor > MAXSMALLINT)
+        error->one(FLERR, "Atoms have moved too far apart ({}) for minimum image\n", dz);
+      int factor = static_cast<int>(dfactor);
+      dz -= zprd * factor;
+      dy -= yz * factor;
+      dx -= xz * factor;
+    }
+    if (yperiodic) {
+      double dfactor = dy/yprd + 0.5;
+      if (dy < 0) dfactor -= 1.0;
+      if (dfactor > MAXSMALLINT)
+        error->one(FLERR, "Atoms have moved too far apart ({}) for minimum image\n", dy);
+      int factor = static_cast<int>(dfactor);
+      dy -= yprd * factor;
+      dx -= xy * factor;
+    }
+    if (xperiodic) {
+      double dfactor = dx/xprd + 0.5;
+      if (dx < 0) dfactor -= 1.0;
+      if (dfactor > MAXSMALLINT)
+        error->one(FLERR, "Atoms have moved too far apart ({}) for minimum image\n", dx);
+      dx -= xprd * static_cast<int>(dfactor);
     }
   }
 }

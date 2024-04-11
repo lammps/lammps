@@ -16,7 +16,7 @@
 
 #include <Kokkos_Core.hpp>
 #include <Kokkos_Timer.hpp>
-#include <bench.hpp>
+#include "bench.hpp"
 #include <cstdlib>
 
 extern template void run_stride_unroll<float>(int, int, int, int, int, int, int,
@@ -86,7 +86,7 @@ int main(int argc, char* argv[]) {
     printf("D must be one of 1,2,4,8,16,32\n");
     return 0;
   }
-  if ((P < 1) && (P > 2)) {
+  if ((P < 1) || (P > 4)) {
     printf("P must be one of 1,2,3,4\n");
     return 0;
   }

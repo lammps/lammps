@@ -106,8 +106,9 @@ int main(int argc, char* argv[]) {
 
   Kokkos::parallel_reduce(
       "parallel_reduce warmup", Kokkos::TeamPolicy<>(10, 1),
-      KOKKOS_LAMBDA(const Kokkos::TeamPolicy<>::member_type team,
-                    double& lval) { lval += 1; },
+      KOKKOS_LAMBDA(const Kokkos::TeamPolicy<>::member_type&, double& lval) {
+        lval += 1;
+      },
       result);
 
   using view_type_1d = Kokkos::View<double*, Kokkos::LayoutRight>;

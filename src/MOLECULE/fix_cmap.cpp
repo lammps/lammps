@@ -970,7 +970,8 @@ void FixCMAP::read_data_section(char * /*keyword*/, int /*n*/, char *buf,
       atom5 = values.next_tagint();
       if (values.has_next()) throw TokenizerException("too many items",line);
     } catch (std::exception &e) {
-      error->all(FLERR,"Incorrect format of CMAP section: {}", e.what());
+      error->all(FLERR,"Incorrect format of CMAP section in data file: {}{}",
+                 e.what(), utils::errorurl(2));
     }
 
     atom1 += id_offset;

@@ -25,6 +25,7 @@ foreach(Tag Threads;Serial;OpenMP;Cuda;HPX;HIP;SYCL;OpenMPTarget)
     set(ALGO_SORT_SOURCES)
     foreach(SOURCE_Input
 	TestSort
+	TestSortByKey
 	TestSortCustomComp
 	TestBinSortA
 	TestBinSortB
@@ -57,35 +58,37 @@ foreach(Tag Threads;Serial;OpenMP;Cuda;HPX;HIP;SYCL;OpenMPTarget)
       configure_file(${dir}/dummy.cpp ${file})
       list(APPEND ALGO_RANDOM_SOURCES ${file})
     endforeach()
+  endif()
+endforeach()
 
-    # ------------------------------------------
-    # std set A
-    # ------------------------------------------
-    set(STDALGO_SOURCES_A)
-    foreach(Name
+# ------------------------------------------
+# std set A
+# ------------------------------------------
+set(STDALGO_SOURCES_A)
+foreach(Name
 	StdReducers
 	StdAlgorithmsConstraints
 	RandomAccessIterator
-	)
-      list(APPEND STDALGO_SOURCES_A Test${Name}.cpp)
-    endforeach()
+  )
+  list(APPEND STDALGO_SOURCES_A Test${Name}.cpp)
+endforeach()
 
-    # ------------------------------------------
-    # std set B
-    # ------------------------------------------
-    set(STDALGO_SOURCES_B)
-    foreach(Name
+# ------------------------------------------
+# std set B
+# ------------------------------------------
+set(STDALGO_SOURCES_B)
+foreach(Name
 	StdAlgorithmsCommon
 	StdAlgorithmsMinMaxElementOps
-	)
-      list(APPEND STDALGO_SOURCES_B Test${Name}.cpp)
-    endforeach()
+  )
+  list(APPEND STDALGO_SOURCES_B Test${Name}.cpp)
+endforeach()
 
-    # ------------------------------------------
-    # std set C
-    # ------------------------------------------
-    set(STDALGO_SOURCES_C)
-    foreach(Name
+# ------------------------------------------
+# std set C
+# ------------------------------------------
+set(STDALGO_SOURCES_C)
+foreach(Name
 	StdAlgorithmsCommon
 	StdAlgorithmsLexicographicalCompare
 	StdAlgorithmsForEach
@@ -100,15 +103,15 @@ foreach(Tag Threads;Serial;OpenMP;Cuda;HPX;HIP;SYCL;OpenMPTarget)
 	StdAlgorithmsSearch_n
 	StdAlgorithmsMismatch
 	StdAlgorithmsMoveBackward
-	)
-      list(APPEND STDALGO_SOURCES_C Test${Name}.cpp)
-    endforeach()
+  )
+  list(APPEND STDALGO_SOURCES_C Test${Name}.cpp)
+endforeach()
 
-    # ------------------------------------------
-    # std set D
-    # ------------------------------------------
-    set(STDALGO_SOURCES_D)
-    foreach(Name
+# ------------------------------------------
+# std set D
+# ------------------------------------------
+set(STDALGO_SOURCES_D)
+foreach(Name
 	StdAlgorithmsCommon
 	StdAlgorithmsModOps
 	StdAlgorithmsModSeqOps
@@ -128,15 +131,15 @@ foreach(Tag Threads;Serial;OpenMP;Cuda;HPX;HIP;SYCL;OpenMPTarget)
 	StdAlgorithmsReverse
 	StdAlgorithmsShiftLeft
 	StdAlgorithmsShiftRight
-	)
-      list(APPEND STDALGO_SOURCES_D Test${Name}.cpp)
-    endforeach()
+  )
+  list(APPEND STDALGO_SOURCES_D Test${Name}.cpp)
+endforeach()
 
-    # ------------------------------------------
-    # std set E
-    # ------------------------------------------
-    set(STDALGO_SOURCES_E)
-    foreach(Name
+# ------------------------------------------
+# std set E
+# ------------------------------------------
+set(STDALGO_SOURCES_E)
+foreach(Name
 	StdAlgorithmsCommon
 	StdAlgorithmsIsSorted
 	StdAlgorithmsIsSortedUntil
@@ -149,83 +152,83 @@ foreach(Tag Threads;Serial;OpenMP;Cuda;HPX;HIP;SYCL;OpenMPTarget)
 	StdAlgorithmsTransformUnaryOp
 	StdAlgorithmsTransformExclusiveScan
 	StdAlgorithmsTransformInclusiveScan
-	)
-      list(APPEND STDALGO_SOURCES_E Test${Name}.cpp)
-    endforeach()
+  )
+  list(APPEND STDALGO_SOURCES_E Test${Name}.cpp)
+endforeach()
 
-    # ------------------------------------------
-    # std team Q
-    # ------------------------------------------
-    set(STDALGO_TEAM_SOURCES_Q)
-    foreach(Name
+# ------------------------------------------
+# std team Q
+# ------------------------------------------
+set(STDALGO_TEAM_SOURCES_Q)
+foreach(Name
 	StdAlgorithmsCommon
 	StdAlgorithmsTeamInclusiveScan
 	StdAlgorithmsTeamTransformInclusiveScan
-      )
-      list(APPEND STDALGO_TEAM_SOURCES_Q Test${Name}.cpp)
-    endforeach()
+  )
+  list(APPEND STDALGO_TEAM_SOURCES_Q Test${Name}.cpp)
+endforeach()
 
-    # ------------------------------------------
-    # std team P
-    # ------------------------------------------
-    set(STDALGO_TEAM_SOURCES_P)
-    foreach(Name
+# ------------------------------------------
+# std team P
+# ------------------------------------------
+set(STDALGO_TEAM_SOURCES_P)
+foreach(Name
 	StdAlgorithmsCommon
 	StdAlgorithmsTeamExclusiveScan
 	StdAlgorithmsTeamTransformExclusiveScan
-      )
-      list(APPEND STDALGO_TEAM_SOURCES_P Test${Name}.cpp)
-    endforeach()
+  )
+  list(APPEND STDALGO_TEAM_SOURCES_P Test${Name}.cpp)
+endforeach()
 
-    # ------------------------------------------
-    # std team M
-    # ------------------------------------------
-    set(STDALGO_TEAM_SOURCES_M)
-    foreach(Name
+# ------------------------------------------
+# std team M
+# ------------------------------------------
+set(STDALGO_TEAM_SOURCES_M)
+foreach(Name
 	StdAlgorithmsCommon
 	StdAlgorithmsTeamTransformUnaryOp
 	StdAlgorithmsTeamTransformBinaryOp
 	StdAlgorithmsTeamGenerate
 	StdAlgorithmsTeamGenerate_n
 	StdAlgorithmsTeamSwapRanges
-      )
-      list(APPEND STDALGO_TEAM_SOURCES_M Test${Name}.cpp)
-    endforeach()
+  )
+  list(APPEND STDALGO_TEAM_SOURCES_M Test${Name}.cpp)
+endforeach()
 
-    # ------------------------------------------
-    # std team L
-    # ------------------------------------------
-    set(STDALGO_TEAM_SOURCES_L)
-    foreach(Name
+# ------------------------------------------
+# std team L
+# ------------------------------------------
+set(STDALGO_TEAM_SOURCES_L)
+foreach(Name
 	StdAlgorithmsCommon
 	StdAlgorithmsTeamIsSorted
 	StdAlgorithmsTeamIsSortedUntil
 	StdAlgorithmsTeamIsPartitioned
 	StdAlgorithmsTeamPartitionCopy
 	StdAlgorithmsTeamPartitionPoint
-	)
-      list(APPEND STDALGO_TEAM_SOURCES_L Test${Name}.cpp)
-    endforeach()
+  )
+  list(APPEND STDALGO_TEAM_SOURCES_L Test${Name}.cpp)
+endforeach()
 
-    # ------------------------------------------
-    # std team I
-    # ------------------------------------------
-    set(STDALGO_TEAM_SOURCES_I)
-    foreach(Name
+# ------------------------------------------
+# std team I
+# ------------------------------------------
+set(STDALGO_TEAM_SOURCES_I)
+foreach(Name
 	StdAlgorithmsCommon
 	StdAlgorithmsTeamUnique
 	StdAlgorithmsTeamAdjacentDifference
 	StdAlgorithmsTeamReduce
 	StdAlgorithmsTeamTransformReduce
-	)
-      list(APPEND STDALGO_TEAM_SOURCES_I Test${Name}.cpp)
-    endforeach()
+  )
+  list(APPEND STDALGO_TEAM_SOURCES_I Test${Name}.cpp)
+endforeach()
 
-    # ------------------------------------------
-    # std team H
-    # ------------------------------------------
-    set(STDALGO_TEAM_SOURCES_H)
-    foreach(Name
+# ------------------------------------------
+# std team H
+# ------------------------------------------
+set(STDALGO_TEAM_SOURCES_H)
+foreach(Name
 	StdAlgorithmsCommon
 	StdAlgorithmsTeamCopy
 	StdAlgorithmsTeamCopy_n
@@ -236,43 +239,43 @@ foreach(Tag Threads;Serial;OpenMP;Cuda;HPX;HIP;SYCL;OpenMPTarget)
 	StdAlgorithmsTeamRemoveIf
 	StdAlgorithmsTeamRemoveCopy
 	StdAlgorithmsTeamRemoveCopyIf
-	)
-      list(APPEND STDALGO_TEAM_SOURCES_H Test${Name}.cpp)
-    endforeach()
+  )
+  list(APPEND STDALGO_TEAM_SOURCES_H Test${Name}.cpp)
+endforeach()
 
-    # ------------------------------------------
-    # std team G
-    # ------------------------------------------
-    set(STDALGO_TEAM_SOURCES_G)
-    foreach(Name
+# ------------------------------------------
+# std team G
+# ------------------------------------------
+set(STDALGO_TEAM_SOURCES_G)
+foreach(Name
 	StdAlgorithmsCommon
 	StdAlgorithmsTeamMove
 	StdAlgorithmsTeamMoveBackward
 	StdAlgorithmsTeamShiftLeft
 	StdAlgorithmsTeamShiftRight
-	)
-      list(APPEND STDALGO_TEAM_SOURCES_G Test${Name}.cpp)
-    endforeach()
+  )
+  list(APPEND STDALGO_TEAM_SOURCES_G Test${Name}.cpp)
+endforeach()
 
-    # ------------------------------------------
-    # std team F
-    # ------------------------------------------
-    set(STDALGO_TEAM_SOURCES_F)
-    foreach(Name
+# ------------------------------------------
+# std team F
+# ------------------------------------------
+set(STDALGO_TEAM_SOURCES_F)
+foreach(Name
 	StdAlgorithmsCommon
 	StdAlgorithmsTeamReverse
 	StdAlgorithmsTeamReverseCopy
 	StdAlgorithmsTeamRotate
 	StdAlgorithmsTeamRotateCopy
-      )
-      list(APPEND STDALGO_TEAM_SOURCES_F Test${Name}.cpp)
-    endforeach()
+  )
+  list(APPEND STDALGO_TEAM_SOURCES_F Test${Name}.cpp)
+endforeach()
 
-    # ------------------------------------------
-    # std team E
-    # ------------------------------------------
-    set(STDALGO_TEAM_SOURCES_E)
-    foreach(Name
+# ------------------------------------------
+# std team E
+# ------------------------------------------
+set(STDALGO_TEAM_SOURCES_E)
+foreach(Name
 	StdAlgorithmsCommon
 	StdAlgorithmsTeamFill
 	StdAlgorithmsTeamFill_n
@@ -280,28 +283,28 @@ foreach(Tag Threads;Serial;OpenMP;Cuda;HPX;HIP;SYCL;OpenMPTarget)
 	StdAlgorithmsTeamReplaceIf
 	StdAlgorithmsTeamReplaceCopy
 	StdAlgorithmsTeamReplaceCopyIf
-	)
-      list(APPEND STDALGO_TEAM_SOURCES_E Test${Name}.cpp)
-    endforeach()
+  )
+  list(APPEND STDALGO_TEAM_SOURCES_E Test${Name}.cpp)
+endforeach()
 
-    # ------------------------------------------
-    # std team D
-    # ------------------------------------------
-    set(STDALGO_TEAM_SOURCES_D)
-    foreach(Name
+# ------------------------------------------
+# std team D
+# ------------------------------------------
+set(STDALGO_TEAM_SOURCES_D)
+foreach(Name
 	StdAlgorithmsCommon
 	StdAlgorithmsTeamMinElement
 	StdAlgorithmsTeamMaxElement
 	StdAlgorithmsTeamMinMaxElement
-	)
-      list(APPEND STDALGO_TEAM_SOURCES_D Test${Name}.cpp)
-    endforeach()
+  )
+  list(APPEND STDALGO_TEAM_SOURCES_D Test${Name}.cpp)
+endforeach()
 
-    # ------------------------------------------
-    # std team C
-    # ------------------------------------------
-    set(STDALGO_TEAM_SOURCES_C)
-    foreach(Name
+# ------------------------------------------
+# std team C
+# ------------------------------------------
+set(STDALGO_TEAM_SOURCES_C)
+foreach(Name
 	StdAlgorithmsCommon
 	StdAlgorithmsTeamFind
 	StdAlgorithmsTeamFindIf
@@ -310,29 +313,29 @@ foreach(Tag Threads;Serial;OpenMP;Cuda;HPX;HIP;SYCL;OpenMPTarget)
 	StdAlgorithmsTeamAnyOf
 	StdAlgorithmsTeamNoneOf
 	StdAlgorithmsTeamSearchN
-	)
-      list(APPEND STDALGO_TEAM_SOURCES_C Test${Name}.cpp)
-    endforeach()
+  )
+  list(APPEND STDALGO_TEAM_SOURCES_C Test${Name}.cpp)
+endforeach()
 
-    # ------------------------------------------
-    # std team B
-    # ------------------------------------------
-    set(STDALGO_TEAM_SOURCES_B)
-    foreach(Name
+# ------------------------------------------
+# std team B
+# ------------------------------------------
+set(STDALGO_TEAM_SOURCES_B)
+foreach(Name
 	StdAlgorithmsCommon
 	StdAlgorithmsTeamEqual
 	StdAlgorithmsTeamSearch
 	StdAlgorithmsTeamFindEnd
 	StdAlgorithmsTeamFindFirstOf
-      )
-      list(APPEND STDALGO_TEAM_SOURCES_B Test${Name}.cpp)
-    endforeach()
+  )
+  list(APPEND STDALGO_TEAM_SOURCES_B Test${Name}.cpp)
+endforeach()
 
-    # ------------------------------------------
-    # std team A
-    # ------------------------------------------
-    set(STDALGO_TEAM_SOURCES_A)
-    foreach(Name
+# ------------------------------------------
+# std team A
+# ------------------------------------------
+set(STDALGO_TEAM_SOURCES_A)
+foreach(Name
 	StdAlgorithmsCommon
 	StdAlgorithmsTeamAdjacentFind
 	StdAlgorithmsTeamCount
@@ -341,11 +344,8 @@ foreach(Tag Threads;Serial;OpenMP;Cuda;HPX;HIP;SYCL;OpenMPTarget)
 	StdAlgorithmsTeamForEachN
 	StdAlgorithmsTeamLexicographicalCompare
 	StdAlgorithmsTeamMismatch
-      )
-      list(APPEND STDALGO_TEAM_SOURCES_A Test${Name}.cpp)
-    endforeach()
-
-  endif()
+  )
+  list(APPEND STDALGO_TEAM_SOURCES_A Test${Name}.cpp)
 endforeach()
 
 # FIXME_OPENMPTARGET - remove sort test as it leads to ICE with clang/16 and above at compile time.

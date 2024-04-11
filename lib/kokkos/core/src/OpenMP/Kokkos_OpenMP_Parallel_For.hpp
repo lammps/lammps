@@ -147,15 +147,7 @@ class ParallelFor<FunctorType, Kokkos::RangePolicy<Traits...>, Kokkos::OpenMP> {
 
   inline ParallelFor(const FunctorType& arg_functor, Policy arg_policy)
       : m_instance(nullptr), m_functor(arg_functor), m_policy(arg_policy) {
-#ifdef KOKKOS_ENABLE_DEPRECATED_CODE_3
-    if (t_openmp_instance) {
-      m_instance = t_openmp_instance;
-    } else {
-      m_instance = arg_policy.space().impl_internal_space_instance();
-    }
-#else
     m_instance = arg_policy.space().impl_internal_space_instance();
-#endif
   }
 };
 
@@ -251,16 +243,9 @@ class ParallelFor<FunctorType, Kokkos::MDRangePolicy<Traits...>,
 
   inline ParallelFor(const FunctorType& arg_functor, MDRangePolicy arg_policy)
       : m_instance(nullptr), m_iter(arg_policy, arg_functor) {
-#ifdef KOKKOS_ENABLE_DEPRECATED_CODE_3
-    if (t_openmp_instance) {
-      m_instance = t_openmp_instance;
-    } else {
-      m_instance = arg_policy.space().impl_internal_space_instance();
-    }
-#else
     m_instance = arg_policy.space().impl_internal_space_instance();
-#endif
   }
+
   template <typename Policy, typename Functor>
   static int max_tile_size_product(const Policy&, const Functor&) {
     /**
@@ -409,15 +394,7 @@ class ParallelFor<FunctorType, Kokkos::TeamPolicy<Properties...>,
         m_shmem_size(arg_policy.scratch_size(0) + arg_policy.scratch_size(1) +
                      FunctorTeamShmemSize<FunctorType>::value(
                          arg_functor, arg_policy.team_size())) {
-#ifdef KOKKOS_ENABLE_DEPRECATED_CODE_3
-    if (t_openmp_instance) {
-      m_instance = t_openmp_instance;
-    } else {
-      m_instance = arg_policy.space().impl_internal_space_instance();
-    }
-#else
     m_instance = arg_policy.space().impl_internal_space_instance();
-#endif
   }
 };
 

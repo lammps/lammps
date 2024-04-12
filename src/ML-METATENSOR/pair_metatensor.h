@@ -19,16 +19,14 @@ PairStyle(metatensor, PairMetatensor);
 #ifndef LMP_PAIR_METATENSOR_H
 #define LMP_PAIR_METATENSOR_H
 
-#include <vector>
-#include <array>
-#include <unordered_set>
+#include <memory>
 
 #include "pair.h"
 
-#include <metatensor/torch.hpp>
 #include <metatensor/torch/atomistic.hpp>
 
 namespace LAMMPS_NS {
+class MetatensorSystemAdaptor;
 
 class PairMetatensor : public Pair {
 public:
@@ -46,71 +44,25 @@ public:
 
 private:
     void load_torch_model(const char* path);
-    metatensor_torch::System system_from_lmp(bool do_virial);
 
-    // setup the metatensor neighbors list from the internal LAMMPS one
-    void setup_neighbors(metatensor_torch::System& system);
-
-    // == data for the model
-
-    // the model itself
+    // torch model in metatensor format
     std::unique_ptr<torch::jit::Module> torch_model;
-    // model capabilities
+    // model capabilities, declared by the model
     metatensor_torch::ModelCapabilities capabilities;
-    // interaction range of the model, in LAMMPS units
-    double interaction_range;
-    // run-time evaluation options, set by us
+    // run-time evaluation options, decided by this class
     metatensor_torch::ModelEvaluationOptions evaluation_options;
     // should metatensor check the data LAMMPS send to the model
     // and the data the model returns?
     bool check_consistency;
+    // how far away the model needs to know about neighbors
+    double interaction_range = -1;
 
-    // == data for neighbors lists
-    struct NeighborsData {
-        // single neighbors sample containing [i, j, S_a, S_b, S_c]
-        using sample_t = std::array<int32_t, 5>;
-
-        struct SampleHasher {
-            static void hash_combine(std::size_t& seed, const int32_t& v) {
-                seed ^= std::hash<int32_t>()(v) + 0x9e3779b9 + (seed<<6) + (seed>>2);
-            }
-
-            size_t operator()(const sample_t& s) const {
-                size_t hash = 0;
-                hash_combine(hash, s[0]);
-                hash_combine(hash, s[1]);
-                hash_combine(hash, s[2]);
-                hash_combine(hash, s[3]);
-                hash_combine(hash, s[4]);
-                return hash;
-            }
-        };
-
-        double cutoff;
-        metatensor_torch::NeighborsListOptions options;
-        // we keep the set of samples twice: once in `known_samples` to remove
-        // duplicated pairs, and once in `samples` in a format that can be
-        // used to create a torch::Tensor.
-        std::unordered_set<sample_t, SampleHasher> known_samples;
-        std::vector<sample_t> samples;
-        // pairs distances vectors
-        std::vector<std::array<double, 3>> distances_f64;
-        std::vector<std::array<float, 3>> distances_f32;
-    };
-
-    // cached allocations for the LAMMPS -> metatensor NL translation
-    // TODO: report memory usage for these?
-    std::vector<NeighborsData> neigh_cache;
-
-    // various allocation caches
+    // allocation cache for the selected atoms
     torch::Tensor selected_atoms_values;
-    torch::Tensor atomic_types;
-
-    // explicit strain for virial calculations
-    torch::Tensor strain;
-
+    // adaptor from LAMMPS system to metatensor's
+    std::unique_ptr<MetatensorSystemAdaptor> system_adaptor;
     // mapping from LAMMPS types to metatensor types
-    int32_t* lammps_to_metatensor_types = nullptr;
+    int32_t* type_mapping = nullptr;
 };
 
 }    // namespace LAMMPS_NS

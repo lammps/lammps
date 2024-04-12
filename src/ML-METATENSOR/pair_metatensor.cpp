@@ -61,9 +61,6 @@ PairMetatensor::PairMetatensor(LAMMPS *lmp) : Pair(lmp) {
     } else if (strcmp(update->unit_style, "si") == 0) {
         this->evaluation_options->set_length_unit("meter");
         energy_unit = "joule";
-    } else if (strcmp(update->unit_style, "cgs") == 0) {
-        this->evaluation_options->set_length_unit("centimeter");
-        energy_unit = "erg";
     } else if (strcmp(update->unit_style, "electron") == 0) {
         this->evaluation_options->set_length_unit("Bohr");
         energy_unit = "Hartree";
@@ -351,7 +348,7 @@ void PairMetatensor::load_torch_model(const char* path) {
         error->all(FLERR, "torch model is already loaded");
     }
 
-    // allow the user to request other devices
+    // TODO: allow the user to request other devices
     auto device = torch::kCPU;
 
     try {
@@ -388,7 +385,7 @@ void PairMetatensor::load_torch_model(const char* path) {
         error->all(FLERR,
             "failed to find a valid device for the model at '{}': "
             "only 'cpu' is currently supported by LAMMPS, and the model supports {}",
-            path, at::str(this->capabilities->supported_devices)
+            path, torch::str(this->capabilities->supported_devices)
         );
     }
 
@@ -441,7 +438,9 @@ static std::array<int32_t, 3> cell_shifts(
 }
 
 
-void PairMetatensor::pairs_with_mapping(metatensor_torch::System& system) {
+void PairMetatensor::setup_neighbors(metatensor_torch::System& system) {
+    auto dtype = system->positions().scalar_type();
+
     double** x = atom->x;
     auto total_n_atoms = atom->nlocal + atom->nghost;
 
@@ -502,7 +501,8 @@ void PairMetatensor::pairs_with_mapping(metatensor_torch::System& system) {
         // convert from LAMMPS neighbors list to metatensor format
         cache.known_samples.clear();
         cache.samples.clear();
-        cache.distances.clear();
+        cache.distances_f32.clear();
+        cache.distances_f64.clear();
         for (int ii=0; ii<(list->inum + list->gnum); ii++) {
             auto atom_i = list->ilist[ii];
             auto original_atom_i = original_atom_id[atom_i];
@@ -601,8 +601,20 @@ void PairMetatensor::pairs_with_mapping(metatensor_torch::System& system) {
                 // can occur multiple time between two periodic ghosts shifted
                 // around by the same amount, but we only want one of these pairs.
                 if (cache.known_samples.insert(sample).second) {
-                    cache.samples.emplace_back(std::move(sample));
-                    cache.distances.emplace_back(std::move(distance));
+                    cache.samples.push_back(sample);
+
+                    if (dtype == torch::kFloat64) {
+                        cache.distances_f64.push_back(distance);
+                    } else if (dtype == torch::kFloat32) {
+                        cache.distances_f32.push_back({
+                            static_cast<float>(distance[0]),
+                            static_cast<float>(distance[1]),
+                            static_cast<float>(distance[2])
+                        });
+                    } else {
+                        // should be unreachable
+                        error->all(FLERR, "invalid dtype, this is a bug");
+                    }
                 }
             }
         }
@@ -619,11 +631,23 @@ void PairMetatensor::pairs_with_mapping(metatensor_torch::System& system) {
             samples_values
         );
 
-        auto distances_vectors = torch::from_blob(
-            reinterpret_cast<double*>(cache.distances.data()),
-            {n_pairs, 3, 1},
-            torch::TensorOptions().dtype(torch::kFloat64).device(torch::kCPU)
-        );
+        auto distances_vectors = torch::Tensor();
+        if (dtype == torch::kFloat64) {
+            distances_vectors = torch::from_blob(
+                cache.distances_f64.data(),
+                {n_pairs, 3, 1},
+                torch::TensorOptions().dtype(torch::kFloat64).device(torch::kCPU)
+            );
+        } else if (dtype == torch::kFloat32) {
+            distances_vectors = torch::from_blob(
+                cache.distances_f32.data(),
+                {n_pairs, 3, 1},
+                torch::TensorOptions().dtype(torch::kFloat32).device(torch::kCPU)
+            );
+        } else {
+            // should be unreachable
+            error->all(FLERR, "invalid dtype, this is a bug");
+        }
 
         auto neighbors = torch::make_intrusive<metatensor_torch::TensorBlockHolder>(
             distances_vectors,
@@ -641,6 +665,15 @@ void PairMetatensor::pairs_with_mapping(metatensor_torch::System& system) {
 
 
 metatensor_torch::System PairMetatensor::system_from_lmp(bool do_virial) {
+    auto dtype = torch::kFloat64;
+    if (this->capabilities->dtype() == "float64") {
+        dtype = torch::kFloat64;
+    } else if (this->capabilities->dtype() == "float32") {
+        dtype = torch::kFloat64;
+    } else {
+        error->all(FLERR, "the model requested an unsupported dtype '{}'", this->capabilities->dtype());
+    }
+
     double** x = atom->x;
     auto total_n_atoms = atom->nlocal + atom->nghost;
 
@@ -679,8 +712,12 @@ metatensor_torch::System PairMetatensor::system_from_lmp(bool do_virial) {
         cell = cell.matmul(this->strain);
     }
 
-    auto system = torch::make_intrusive<metatensor_torch::SystemHolder>(atomic_types, positions, cell);
+    auto system = torch::make_intrusive<metatensor_torch::SystemHolder>(
+        atomic_types,
+        positions.to(dtype),
+        cell.to(dtype)
+    );
 
-    this->pairs_with_mapping(system);
+    this->setup_neighbors(system);
     return system;
 }

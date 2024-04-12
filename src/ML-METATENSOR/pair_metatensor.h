@@ -47,7 +47,9 @@ public:
 private:
     void load_torch_model(const char* path);
     metatensor_torch::System system_from_lmp(bool do_virial);
-    void pairs_with_mapping(metatensor_torch::System& system);
+
+    // setup the metatensor neighbors list from the internal LAMMPS one
+    void setup_neighbors(metatensor_torch::System& system);
 
     // == data for the model
 
@@ -92,7 +94,8 @@ private:
         std::unordered_set<sample_t, SampleHasher> known_samples;
         std::vector<sample_t> samples;
         // pairs distances vectors
-        std::vector<std::array<double, 3>> distances;
+        std::vector<std::array<double, 3>> distances_f64;
+        std::vector<std::array<float, 3>> distances_f32;
     };
 
     // cached allocations for the LAMMPS -> metatensor NL translation

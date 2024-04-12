@@ -43,7 +43,7 @@ public:
     void allocate();
 
 private:
-    void load_torch_model(const char* path);
+    void load_torch_model(const char* path, const char* extensions_directory);
 
     // torch model in metatensor format
     std::unique_ptr<torch::jit::Module> torch_model;

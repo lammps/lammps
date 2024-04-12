@@ -93,8 +93,8 @@ void PairMetatensor::settings(int argc, char ** argv) {
     if (argc == 0) {
         error->all(FLERR, "expected at least 1 argument to pair_style metatensor, got {}", argc);
     }
-    this->load_torch_model(argv[0]);
 
+    const char* extensions_directory = nullptr;
     for (int i=1; i<argc; i++) {
         if (strcmp(argv[i], "check_consistency") == 0) {
             if (i == argc - 1) {
@@ -108,10 +108,18 @@ void PairMetatensor::settings(int argc, char ** argv) {
             }
 
             i += 1;
+        } else if (strcmp(argv[i], "extensions") == 0) {
+            if (i == argc - 1) {
+                error->all(FLERR, "expected <path> after 'extensions' in pair_style metatensor, got nothing");
+            }
+            extensions_directory = argv[i + 1];
+            i += 1;
         } else {
             error->all(FLERR, "unexpected argument to pair_style metatensor: '{}'", argv[i]);
         }
     }
+
+    this->load_torch_model(argv[0], extensions_directory);
 
     if (!allocated) {
         allocate();
@@ -337,17 +345,23 @@ void PairMetatensor::compute(int eflag, int vflag) {
 }
 
 
-void PairMetatensor::load_torch_model(const char* path) {
+void PairMetatensor::load_torch_model(
+    const char* path,
+    const char* extensions_directory
+) {
     if (this->torch_model != nullptr) {
         error->all(FLERR, "torch model is already loaded");
     }
 
-    // TODO: allow the user to request other devices
-    auto device = torch::kCPU;
+    torch::optional<std::string> extensions = torch::nullopt;
+    if (extensions_directory != nullptr) {
+        extensions = std::string(extensions_directory);
+    }
 
     try {
-        metatensor_torch::check_atomistic_model(path);
-        this->torch_model = std::make_unique<torch::jit::script::Module>(torch::jit::load(path, device));
+        this->torch_model = std::make_unique<torch::jit::Module>(
+            metatensor_torch::load_atomistic_model(path, extensions)
+        );
     } catch (const c10::Error& e) {
         error->all(FLERR, "failed to load metatensor model at '{}': {}", path, e.what());
     }

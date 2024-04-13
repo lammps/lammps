@@ -32,10 +32,9 @@ static constexpr double SMALL = 0.001;
 
 /* ---------------------------------------------------------------------- */
 
-DihedralCosineSquaredRestricted::DihedralCosineSquaredRestricted(LAMMPS *_lmp) : Dihedral(_lmp)
+DihedralCosineSquaredRestricted::DihedralCosineSquaredRestricted(LAMMPS *_lmp) :
+    Dihedral(_lmp), k(nullptr), phi0(nullptr)
 {
-  k = nullptr;
-  phi0 = nullptr;
   writedata = 1;
   born_matrix_enable = 1;
 }
@@ -309,7 +308,7 @@ void DihedralCosineSquaredRestricted::write_data(FILE *fp)
 /* ---------------------------------------------------------------------- */
 
 void DihedralCosineSquaredRestricted::born_matrix(int nd, int i1, int i2, int i3, int i4,
-                             double &du, double &du2)
+                                                  double &du, double &du2)
 {
   double vb1x, vb1y, vb1z, vb2x, vb2y, vb2z, vb3x, vb3y, vb3z, vb2xm, vb2ym, vb2zm;
   double sb1, sb3, rb1, rb3, c0, b1mag2, b1mag, b2mag2;
@@ -391,7 +390,7 @@ void DihedralCosineSquaredRestricted::born_matrix(int nd, int i1, int i2, int i3
 
   du = 2 * k[type] * (c - p0) * (1.0 - c * p0) / (sq_sin * sq_sin);
 
-  double numerator = 2.0 * p0 * c * c * c - 3.0 * (p0 * p0 + 1) * c * c  + 6 * p0 * c - p0 * p0 - 1 ;
+  double numerator = 2.0 * p0 * c * c * c - 3.0 * (p0 * p0 + 1) * c * c + 6 * p0 * c - p0 * p0 - 1;
   double denominator = sq_sin * sq_sin * sq_sin;
 
   du2 = 2 * k[type] * numerator / denominator;

@@ -2043,6 +2043,7 @@ Makefiles
 makelist
 makepkg
 Makse
+Malavasi
 malloc
 Malolepsza
 Manby
@@ -2152,6 +2153,7 @@ membered
 memcheck
 Mendelev
 Menon
+Menziani
 mer
 Meremianin
 Mersenne
@@ -2775,6 +2777,8 @@ Peachey
 peachpuff
 Pearlman
 Pedersen
+pedone
+Pedone
 peID
 PEigenDense
 Peng

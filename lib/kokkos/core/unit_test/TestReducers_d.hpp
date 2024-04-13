@@ -80,6 +80,20 @@ TEST(TEST_CATEGORY, reducers_int8_t) {
   TestReducers<ThisTestType, TEST_EXECSPACE>::test_prod(4);
 }
 
+TEST(TEST_CATEGORY, reducers_int16_t) {
+  using ThisTestType = int16_t;
+
+  TestReducers<ThisTestType, TEST_EXECSPACE>::test_sum(1);
+  TestReducers<ThisTestType, TEST_EXECSPACE>::test_sum(2);
+  TestReducers<ThisTestType, TEST_EXECSPACE>::test_sum(3);
+  TestReducers<ThisTestType, TEST_EXECSPACE>::test_sum(4);
+
+  TestReducers<ThisTestType, TEST_EXECSPACE>::test_prod(1);
+  TestReducers<ThisTestType, TEST_EXECSPACE>::test_prod(2);
+  TestReducers<ThisTestType, TEST_EXECSPACE>::test_prod(3);
+  TestReducers<ThisTestType, TEST_EXECSPACE>::test_prod(4);
+}
+
 #if !defined(KOKKOS_ENABLE_HIP) && !defined(KOKKOS_ENABLE_OPENMPTARGET)
 // TODO - resolve: "Kokkos_HIP_Vectorization.hpp:80:15: error: call to
 //                 implicitly-deleted default constructor of 'conv_type'

@@ -1490,9 +1490,8 @@ void Thermo::compute_compute()
     if (normflag && compute->extscalar) dvalue /= natoms;
   } else if (compute_which[m] == VECTOR) {
     if (compute->size_vector_variable && argindex1[ifield] > compute->size_vector)
-      dvalue = 0.0;
-    else
-      dvalue = compute->vector[argindex1[ifield] - 1];
+      error->all(FLERR, "Thermo compute vector is accessed out-of-range");
+    dvalue = compute->vector[argindex1[ifield] - 1];
     if (normflag) {
       if (compute->extvector == 0)
         return;
@@ -1503,9 +1502,8 @@ void Thermo::compute_compute()
     }
   } else {
     if (compute->size_array_rows_variable && argindex1[ifield] > compute->size_array_rows)
-      dvalue = 0.0;
-    else
-      dvalue = compute->array[argindex1[ifield] - 1][argindex2[ifield] - 1];
+      error->all(FLERR, "Thermo compute array is accessed out-of-range");
+    dvalue = compute->array[argindex1[ifield] - 1][argindex2[ifield] - 1];
     if (normflag && compute->extarray) dvalue /= natoms;
   }
 }
@@ -1521,7 +1519,12 @@ void Thermo::compute_fix()
     dvalue = fix->compute_scalar();
     if (normflag && fix->extscalar) dvalue /= natoms;
   } else if (argindex2[ifield] == 0) {
-    dvalue = fix->compute_vector(argindex1[ifield] - 1);
+
+    // if index exceeds variable vector length, use a zero value
+    // this can be useful if vector length is not known a priori
+
+    if (fix->size_vector_variable && argindex1[ifield] > fix->size_vector) dvalue = 0.0;
+    else dvalue = fix->compute_vector(argindex1[ifield] - 1);
     if (normflag) {
       if (fix->extvector == 0)
         return;
@@ -1531,7 +1534,12 @@ void Thermo::compute_fix()
         dvalue /= natoms;
     }
   } else {
-    dvalue = fix->compute_array(argindex1[ifield] - 1, argindex2[ifield] - 1);
+
+    // if index exceeds variable array rows, use a zero value
+    // this can be useful if array size is not known a priori
+
+    if (fix->size_array_rows_variable && argindex1[ifield] > fix->size_array_rows) dvalue = 0.0;
+    else dvalue = fix->compute_array(argindex1[ifield] - 1, argindex2[ifield] - 1);
     if (normflag && fix->extarray) dvalue /= natoms;
   }
 }
@@ -1542,15 +1550,17 @@ void Thermo::compute_variable()
 {
   int iarg = argindex1[ifield];
 
+  // evaluate equal-style or vector-style variable
+  // if index exceeds vector length, use a zero value
+  //   this can be useful if vector length is not known a priori
+
   if (iarg == 0)
     dvalue = input->variable->compute_equal(variables[field2index[ifield]]);
   else {
     double *varvec;
     int nvec = input->variable->compute_vector(variables[field2index[ifield]], &varvec);
-    if (nvec < iarg)
-      dvalue = 0.0;
-    else
-      dvalue = varvec[iarg - 1];
+    if (iarg > nvec) dvalue = 0.0;
+    else dvalue = varvec[iarg - 1];
   }
 }
 

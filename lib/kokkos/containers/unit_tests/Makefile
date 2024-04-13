@@ -35,8 +35,8 @@ TESTS = Bitset DualView DynamicView DynViewAPI_generic DynViewAPI_rank12345 DynV
 tmp := $(foreach device, $(KOKKOS_DEVICELIST), \
   tmp2 := $(foreach test, $(TESTS), \
     $(if $(filter Test$(device)_$(test).cpp, $(shell ls Test$(device)_$(test).cpp 2>/dev/null)),,\
-      $(shell echo "\#include<Test"$(device)"_Category.hpp>" > Test$(device)_$(test).cpp); \
-      $(shell echo "\#include<Test"$(test)".hpp>" >> Test$(device)_$(test).cpp); \
+      $(shell echo "$(H)include<Test"$(device)"_Category.hpp>" > Test$(device)_$(test).cpp); \
+      $(shell echo "$(H)include<Test"$(test)".hpp>" >> Test$(device)_$(test).cpp); \
      )\
   ) \
 )

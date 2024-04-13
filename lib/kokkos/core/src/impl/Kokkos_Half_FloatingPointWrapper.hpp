@@ -196,12 +196,12 @@ KOKKOS_INLINE_FUNCTION
 
 template <class T>
 static KOKKOS_INLINE_FUNCTION Kokkos::Experimental::half_t cast_to_wrapper(
-    T x, const volatile Kokkos::Impl::half_impl_t::type&);
+    T x, const Kokkos::Impl::half_impl_t::type&);
 
 #ifdef KOKKOS_IMPL_BHALF_TYPE_DEFINED
 template <class T>
 static KOKKOS_INLINE_FUNCTION Kokkos::Experimental::bhalf_t cast_to_wrapper(
-    T x, const volatile Kokkos::Impl::bhalf_impl_t::type&);
+    T x, const Kokkos::Impl::bhalf_impl_t::type&);
 #endif  // KOKKOS_IMPL_BHALF_TYPE_DEFINED
 
 template <class T>
@@ -283,13 +283,6 @@ class alignas(FloatType) floating_point_wrapper {
 
  private:
   impl_type val;
-  using fixed_width_integer_type = std::conditional_t<
-      sizeof(impl_type) == 2, uint16_t,
-      std::conditional_t<
-          sizeof(impl_type) == 4, uint32_t,
-          std::conditional_t<sizeof(impl_type) == 8, uint64_t, void>>>;
-  static_assert(!std::is_void<fixed_width_integer_type>::value,
-                "Invalid impl_type");
 
  public:
   // In-class initialization and defaulted default constructors not used
@@ -317,18 +310,6 @@ class alignas(FloatType) floating_point_wrapper {
   floating_point_wrapper& operator=(const floating_point_wrapper&) noexcept =
       default;
 #endif
-
-  KOKKOS_INLINE_FUNCTION
-  floating_point_wrapper(const volatile floating_point_wrapper& rhs) {
-#if defined(KOKKOS_HALF_IS_FULL_TYPE_ON_ARCH) && !defined(KOKKOS_ENABLE_SYCL)
-    val = rhs.val;
-#else
-    const volatile fixed_width_integer_type* rv_ptr =
-        reinterpret_cast<const volatile fixed_width_integer_type*>(&rhs.val);
-    const fixed_width_integer_type rv_val = *rv_ptr;
-    val       = reinterpret_cast<const impl_type&>(rv_val);
-#endif  // KOKKOS_HALF_IS_FULL_TYPE_ON_ARCH
-  }
 
   KOKKOS_FUNCTION
   floating_point_wrapper(bit_comparison_type rhs) {
@@ -492,15 +473,6 @@ class alignas(FloatType) floating_point_wrapper {
     return *this;
   }
 
-  template <class T>
-  KOKKOS_FUNCTION void operator=(T rhs) volatile {
-    impl_type new_val = cast_to_wrapper(rhs, val).val;
-    volatile fixed_width_integer_type* val_ptr =
-        reinterpret_cast<volatile fixed_width_integer_type*>(
-            const_cast<impl_type*>(&val));
-    *val_ptr = reinterpret_cast<fixed_width_integer_type&>(new_val);
-  }
-
   // Compound operators
   KOKKOS_FUNCTION
   floating_point_wrapper& operator+=(floating_point_wrapper rhs) {
@@ -513,15 +485,6 @@ class alignas(FloatType) floating_point_wrapper {
               .val;
 #endif
     return *this;
-  }
-
-  KOKKOS_FUNCTION
-  void operator+=(const volatile floating_point_wrapper& rhs) volatile {
-    floating_point_wrapper tmp_rhs = rhs;
-    floating_point_wrapper tmp_lhs = *this;
-
-    tmp_lhs += tmp_rhs;
-    *this = tmp_lhs;
   }
 
   // Compound operators: upcast overloads for +=
@@ -560,15 +523,6 @@ class alignas(FloatType) floating_point_wrapper {
     return *this;
   }
 
-  KOKKOS_FUNCTION
-  void operator-=(const volatile floating_point_wrapper& rhs) volatile {
-    floating_point_wrapper tmp_rhs = rhs;
-    floating_point_wrapper tmp_lhs = *this;
-
-    tmp_lhs -= tmp_rhs;
-    *this = tmp_lhs;
-  }
-
   // Compund operators: upcast overloads for -=
   template <class T>
   KOKKOS_FUNCTION friend std::enable_if_t<
@@ -605,15 +559,6 @@ class alignas(FloatType) floating_point_wrapper {
     return *this;
   }
 
-  KOKKOS_FUNCTION
-  void operator*=(const volatile floating_point_wrapper& rhs) volatile {
-    floating_point_wrapper tmp_rhs = rhs;
-    floating_point_wrapper tmp_lhs = *this;
-
-    tmp_lhs *= tmp_rhs;
-    *this = tmp_lhs;
-  }
-
   // Compund operators: upcast overloads for *=
   template <class T>
   KOKKOS_FUNCTION friend std::enable_if_t<
@@ -648,15 +593,6 @@ class alignas(FloatType) floating_point_wrapper {
               .val;
 #endif
     return *this;
-  }
-
-  KOKKOS_FUNCTION
-  void operator/=(const volatile floating_point_wrapper& rhs) volatile {
-    floating_point_wrapper tmp_rhs = rhs;
-    floating_point_wrapper tmp_lhs = *this;
-
-    tmp_lhs /= tmp_rhs;
-    *this = tmp_lhs;
   }
 
   // Compund operators: upcast overloads for /=
@@ -884,27 +820,6 @@ class alignas(FloatType) floating_point_wrapper {
 #endif
   }
 
-  KOKKOS_FUNCTION
-  friend bool operator==(const volatile floating_point_wrapper& lhs,
-                         const volatile floating_point_wrapper& rhs) {
-    floating_point_wrapper tmp_lhs = lhs, tmp_rhs = rhs;
-    return tmp_lhs == tmp_rhs;
-  }
-
-  KOKKOS_FUNCTION
-  friend bool operator!=(const volatile floating_point_wrapper& lhs,
-                         const volatile floating_point_wrapper& rhs) {
-    floating_point_wrapper tmp_lhs = lhs, tmp_rhs = rhs;
-    return tmp_lhs != tmp_rhs;
-  }
-
-  KOKKOS_FUNCTION
-  friend bool operator<(const volatile floating_point_wrapper& lhs,
-                        const volatile floating_point_wrapper& rhs) {
-    floating_point_wrapper tmp_lhs = lhs, tmp_rhs = rhs;
-    return tmp_lhs < tmp_rhs;
-  }
-
   template <class T>
   KOKKOS_FUNCTION friend std::enable_if_t<std::is_convertible_v<T, float> &&
                                               (std::is_same_v<T, float> ||
@@ -921,13 +836,6 @@ class alignas(FloatType) floating_point_wrapper {
                                           bool>
   operator<(T lhs, floating_point_wrapper rhs) {
     return lhs < static_cast<float>(rhs);
-  }
-
-  KOKKOS_FUNCTION
-  friend bool operator>(const volatile floating_point_wrapper& lhs,
-                        const volatile floating_point_wrapper& rhs) {
-    floating_point_wrapper tmp_lhs = lhs, tmp_rhs = rhs;
-    return tmp_lhs > tmp_rhs;
   }
 
   template <class T>
@@ -948,13 +856,6 @@ class alignas(FloatType) floating_point_wrapper {
     return lhs > static_cast<float>(rhs);
   }
 
-  KOKKOS_FUNCTION
-  friend bool operator<=(const volatile floating_point_wrapper& lhs,
-                         const volatile floating_point_wrapper& rhs) {
-    floating_point_wrapper tmp_lhs = lhs, tmp_rhs = rhs;
-    return tmp_lhs <= tmp_rhs;
-  }
-
   template <class T>
   KOKKOS_FUNCTION friend std::enable_if_t<std::is_convertible_v<T, float> &&
                                               (std::is_same_v<T, float> ||
@@ -971,13 +872,6 @@ class alignas(FloatType) floating_point_wrapper {
                                           bool>
   operator<=(T lhs, floating_point_wrapper rhs) {
     return lhs <= static_cast<float>(rhs);
-  }
-
-  KOKKOS_FUNCTION
-  friend bool operator>=(const volatile floating_point_wrapper& lhs,
-                         const volatile floating_point_wrapper& rhs) {
-    floating_point_wrapper tmp_lhs = lhs, tmp_rhs = rhs;
-    return tmp_lhs >= tmp_rhs;
   }
 
   template <class T>
@@ -1018,14 +912,14 @@ class alignas(FloatType) floating_point_wrapper {
 // Declare wrapper overloads now that floating_point_wrapper is declared
 template <class T>
 static KOKKOS_INLINE_FUNCTION Kokkos::Experimental::half_t cast_to_wrapper(
-    T x, const volatile Kokkos::Impl::half_impl_t::type&) {
+    T x, const Kokkos::Impl::half_impl_t::type&) {
   return Kokkos::Experimental::cast_to_half(x);
 }
 
 #ifdef KOKKOS_IMPL_BHALF_TYPE_DEFINED
 template <class T>
 static KOKKOS_INLINE_FUNCTION Kokkos::Experimental::bhalf_t cast_to_wrapper(
-    T x, const volatile Kokkos::Impl::bhalf_impl_t::type&) {
+    T x, const Kokkos::Impl::bhalf_impl_t::type&) {
   return Kokkos::Experimental::cast_to_bhalf(x);
 }
 #endif  // KOKKOS_IMPL_BHALF_TYPE_DEFINED

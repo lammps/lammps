@@ -14,7 +14,7 @@
 
 /* ----------------------------------------------------------------------
    Contributing authors: Naveen Michaud-Agrawal (Johns Hopkins U)
-                         open-source XDR routines from
+                         Open Source XDR based I/O routines from
                            Frans van Hoesel (https://www.rug.nl/staff/f.h.j.van.hoesel/)
                            are included in this file
                          Axel Kohlmeyer (Temple U)
@@ -35,27 +35,29 @@
 #include "output.h"
 #include "update.h"
 
+#include "xdr_compat.h"
+
 #include <climits>
 #include <cmath>
 #include <cstring>
 
 using namespace LAMMPS_NS;
 
-#define EPS 1e-5
-#define XTC_MAGIC 1995
+static constexpr double EPS = 1.0e-5;
+static constexpr int XTC_MAGIC = 1995;
 
 #define MYMIN(a,b) ((a) < (b) ? (a) : (b))
 #define MYMAX(a,b) ((a) > (b) ? (a) : (b))
 
-int xdropen(XDR *, const char *, const char *);
-int xdrclose(XDR *);
-void xdrfreebuf();
-int xdr3dfcoord(XDR *, float *, int *, float *);
+static int xdropen(XDR *, const char *, const char *);
+static int xdrclose(XDR *);
+static void xdrfreebuf();
+static int xdr3dfcoord(XDR *, float *, int *, float *);
 
 /* ---------------------------------------------------------------------- */
 
-DumpXTC::DumpXTC(LAMMPS *lmp, int narg, char **arg) : Dump(lmp, narg, arg),
-  coords(nullptr)
+DumpXTC::DumpXTC(LAMMPS *lmp, int narg, char **arg)
+  : Dump(lmp, narg, arg), coords(nullptr), xd(nullptr)
 {
   if (narg != 5) error->all(FLERR,"Illegal dump xtc command");
   if (binary || compressed || multifile || multiproc)
@@ -68,6 +70,7 @@ DumpXTC::DumpXTC(LAMMPS *lmp, int narg, char **arg) : Dump(lmp, narg, arg),
   flush_flag = 0;
   unwrap_flag = 0;
   precision = 1000.0;
+  xd = new XDR;
 
   // allocate global array for atom coords
 
@@ -105,9 +108,10 @@ DumpXTC::~DumpXTC()
   memory->destroy(coords);
 
   if (me == 0) {
-    xdrclose(&xd);
+    xdrclose(xd);
     xdrfreebuf();
   }
+  delete xd;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -150,7 +154,8 @@ void DumpXTC::openfile()
 
   fp = nullptr;
   if (me == 0)
-    if (xdropen(&xd,filename,"w") == 0) error->one(FLERR,"Cannot open dump file");
+    if (xdropen(xd,filename,"w") == 0)
+      error->one(FLERR,"Cannot open XTC format dump file {}: {}", filename, utils::getsyserror());
 }
 
 /* ---------------------------------------------------------------------- */
@@ -176,11 +181,11 @@ void DumpXTC::write_header(bigint nbig)
   if (me != 0) return;
 
   int tmp = XTC_MAGIC;
-  xdr_int(&xd,&tmp);
-  xdr_int(&xd,&n);
-  xdr_int(&xd,&ntimestep);
+  xdr_int(xd,&tmp);
+  xdr_int(xd,&n);
+  xdr_int(xd,&ntimestep);
   float time_value = ntimestep * tfactor * update->dt;
-  xdr_float(&xd,&time_value);
+  xdr_float(xd,&time_value);
 
   // cell basis vectors
   if (domain->triclinic) {
@@ -192,18 +197,18 @@ void DumpXTC::write_header(bigint nbig)
     float xz = sfactor * domain->xz;
     float yz = sfactor * domain->yz;
 
-    xdr_float(&xd,&xdim); xdr_float(&xd,&zero); xdr_float(&xd,&zero);
-    xdr_float(&xd,&xy  ); xdr_float(&xd,&ydim); xdr_float(&xd,&zero);
-    xdr_float(&xd,&xz  ); xdr_float(&xd,&yz  ); xdr_float(&xd,&zdim);
+    xdr_float(xd,&xdim); xdr_float(xd,&zero); xdr_float(xd,&zero);
+    xdr_float(xd,&xy  ); xdr_float(xd,&ydim); xdr_float(xd,&zero);
+    xdr_float(xd,&xz  ); xdr_float(xd,&yz  ); xdr_float(xd,&zdim);
   } else {
     float zero = 0.0;
     float xdim = sfactor * (domain->boxhi[0] - domain->boxlo[0]);
     float ydim = sfactor * (domain->boxhi[1] - domain->boxlo[1]);
     float zdim = sfactor * (domain->boxhi[2] - domain->boxlo[2]);
 
-    xdr_float(&xd,&xdim); xdr_float(&xd,&zero); xdr_float(&xd,&zero);
-    xdr_float(&xd,&zero); xdr_float(&xd,&ydim); xdr_float(&xd,&zero);
-    xdr_float(&xd,&zero); xdr_float(&xd,&zero); xdr_float(&xd,&zdim);
+    xdr_float(xd,&xdim); xdr_float(xd,&zero); xdr_float(xd,&zero);
+    xdr_float(xd,&zero); xdr_float(xd,&ydim); xdr_float(xd,&zero);
+    xdr_float(xd,&zero); xdr_float(xd,&zero); xdr_float(xd,&zdim);
   }
 }
 
@@ -328,7 +333,7 @@ double DumpXTC::memory_usage()
 
 void DumpXTC::write_frame()
 {
-  xdr3dfcoord(&xd,coords,&natoms,&precision);
+  xdr3dfcoord(xd,coords,&natoms,&precision);
 }
 
 // ----------------------------------------------------------------------
@@ -406,7 +411,7 @@ static int magicints[] = {
  |
  | xdropen - open xdr file
  |
- | This versions differs from xdrstdio_create, because I need to know
+ | This version differs from xdrstdio_create, because I need to know
  | the state of the file (read or write) so I can use xdr3dfcoord
  | in eigther read or write mode, and the file descriptor
  | so I can close the file (something xdr_destroy doesn't do).
@@ -1048,7 +1053,7 @@ int xdr3dfcoord(XDR *xdrs, float *fp, int *size, float *precision)
     }
     if (buf[1] != 0) buf[0]++;
     xdr_int(xdrs, &(buf[0])); /* buf[0] holds the length in bytes */
-    return errval * (xdr_opaque(xdrs, (caddr_t)&(buf[3]), (u_int)buf[0]));
+    return errval * (xdr_opaque(xdrs, (char *)&(buf[3]), (unsigned int)buf[0]));
   } else {
 
     /* xdrs is open for reading */
@@ -1129,7 +1134,7 @@ int xdr3dfcoord(XDR *xdrs, float *fp, int *size, float *precision)
 
     if (xdr_int(xdrs, &(buf[0])) == 0)
       return 0;
-    if (xdr_opaque(xdrs, (caddr_t)&(buf[3]), (u_int)buf[0]) == 0)
+    if (xdr_opaque(xdrs, (char *)&(buf[3]), (unsigned int)buf[0]) == 0)
       return 0;
     buf[0] = buf[1] = buf[2] = 0;
 

@@ -47,8 +47,9 @@ struct ExclusiveScanDefaultFunctorForKnownNeutralElement {
   KOKKOS_FUNCTION
   void operator()(const IndexType i, ValueType& update,
                   const bool final_pass) const {
+    const auto tmp = m_first_from[i];
     if (final_pass) m_first_dest[i] = update + m_init_value;
-    update += m_first_from[i];
+    update += tmp;
   }
 };
 
@@ -73,6 +74,7 @@ struct ExclusiveScanDefaultFunctorWithValueWrapper {
   KOKKOS_FUNCTION
   void operator()(const IndexType i, value_type& update,
                   const bool final_pass) const {
+    const auto tmp = value_type{m_first_from[i], false};
     if (final_pass) {
       if (i == 0) {
         m_first_dest[i] = m_init_value;
@@ -81,7 +83,6 @@ struct ExclusiveScanDefaultFunctorWithValueWrapper {
       }
     }
 
-    const auto tmp = value_type{m_first_from[i], false};
     this->join(update, tmp);
   }
 
@@ -132,6 +133,7 @@ struct TransformExclusiveScanFunctorWithValueWrapper {
   KOKKOS_FUNCTION
   void operator()(const IndexType i, value_type& update,
                   const bool final_pass) const {
+    const auto tmp = value_type{m_unary_op(m_first_from[i]), false};
     if (final_pass) {
       if (i == 0) {
         // for both ExclusiveScan and TransformExclusiveScan,
@@ -142,7 +144,6 @@ struct TransformExclusiveScanFunctorWithValueWrapper {
       }
     }
 
-    const auto tmp = value_type{m_unary_op(m_first_from[i]), false};
     this->join(update, tmp);
   }
 
@@ -190,6 +191,7 @@ struct TransformExclusiveScanFunctorWithoutValueWrapper {
   KOKKOS_FUNCTION
   void operator()(const IndexType i, ValueType& update,
                   const bool final_pass) const {
+    const auto tmp = ValueType{m_unary_op(m_first_from[i])};
     if (final_pass) {
       if (i == 0) {
         // for both ExclusiveScan and TransformExclusiveScan,
@@ -200,7 +202,6 @@ struct TransformExclusiveScanFunctorWithoutValueWrapper {
       }
     }
 
-    const auto tmp = ValueType{m_unary_op(m_first_from[i])};
     this->join(update, tmp);
   }
 

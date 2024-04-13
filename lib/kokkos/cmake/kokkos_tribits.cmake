@@ -237,18 +237,10 @@ ENDMACRO()
 ##                        KOKKOS_DECLARE is the declaration set
 ##                        KOKKOS_POST_INCLUDE is included at the end of Kokkos_Core.hpp
 MACRO(KOKKOS_CONFIGURE_CORE)
-   SET(FWD_BACKEND_LIST)
-   FOREACH(MEMSPACE ${KOKKOS_MEMSPACE_LIST})
-      LIST(APPEND FWD_BACKEND_LIST ${MEMSPACE})
-   ENDFOREACH()
-   FOREACH(BACKEND_ ${KOKKOS_ENABLED_DEVICES})
-      LIST(APPEND FWD_BACKEND_LIST ${BACKEND_})
-   ENDFOREACH()
-   MESSAGE(STATUS "Kokkos Devices: ${KOKKOS_ENABLED_DEVICES}, Kokkos Backends: ${FWD_BACKEND_LIST}")
-   KOKKOS_CONFIG_HEADER( KokkosCore_Config_HeaderSet.in KokkosCore_Config_FwdBackend.hpp "KOKKOS_FWD" "fwd/Kokkos_Fwd" "${FWD_BACKEND_LIST}")
+   MESSAGE(STATUS "Kokkos Backends: ${KOKKOS_ENABLED_DEVICES}")
+   KOKKOS_CONFIG_HEADER( KokkosCore_Config_HeaderSet.in KokkosCore_Config_FwdBackend.hpp "KOKKOS_FWD" "fwd/Kokkos_Fwd" "${KOKKOS_ENABLED_DEVICES}")
    KOKKOS_CONFIG_HEADER( KokkosCore_Config_HeaderSet.in KokkosCore_Config_SetupBackend.hpp "KOKKOS_SETUP" "setup/Kokkos_Setup" "${DEVICE_SETUP_LIST}")
-   KOKKOS_CONFIG_HEADER( KokkosCore_Config_HeaderSet.in KokkosCore_Config_DeclareBackend.hpp "KOKKOS_DECLARE" "decl/Kokkos_Declare" "${FWD_BACKEND_LIST}")
-   KOKKOS_CONFIG_HEADER( KokkosCore_Config_HeaderSet.in KokkosCore_Config_PostInclude.hpp "KOKKOS_POST_INCLUDE" "Kokkos_Post_Include" "${KOKKOS_BACKEND_POST_INCLUDE_LIST}")
+   KOKKOS_CONFIG_HEADER( KokkosCore_Config_HeaderSet.in KokkosCore_Config_DeclareBackend.hpp "KOKKOS_DECLARE" "decl/Kokkos_Declare" "${KOKKOS_ENABLED_DEVICES}")
    SET(_DEFAULT_HOST_MEMSPACE "::Kokkos::HostSpace")
    KOKKOS_OPTION(DEFAULT_DEVICE_MEMORY_SPACE "" STRING "Override default device memory space")
    KOKKOS_OPTION(DEFAULT_HOST_MEMORY_SPACE "" STRING "Override default host memory space")
@@ -309,7 +301,6 @@ MACRO(KOKKOS_INSTALL_ADDITIONAL_FILES)
           "${CMAKE_CURRENT_BINARY_DIR}/KokkosCore_Config_FwdBackend.hpp"
           "${CMAKE_CURRENT_BINARY_DIR}/KokkosCore_Config_SetupBackend.hpp"
           "${CMAKE_CURRENT_BINARY_DIR}/KokkosCore_Config_DeclareBackend.hpp"
-          "${CMAKE_CURRENT_BINARY_DIR}/KokkosCore_Config_PostInclude.hpp"
           DESTINATION ${KOKKOS_HEADER_DIR})
 ENDMACRO()
 

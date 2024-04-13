@@ -24,6 +24,8 @@ Examples
 Description
 """""""""""
 
+.. versionadded:: TBD
+
 The *cosine/squared/restricted* angle style uses the potential
 
 .. math::

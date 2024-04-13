@@ -22,6 +22,8 @@ Examples
 Description
 """""""""""
 
+.. versionadded:: TBD
+
 The *cosine/squared/restricted* dihedral style uses the potential
 
 .. math::

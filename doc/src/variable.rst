@@ -279,9 +279,9 @@ This means the variable can then be evaluated as many times as desired
 and will return those values.  There are two ways to cause the next
 set of per-atom values from the file to be read: use the
 :doc:`next <next>` command or the next() function in an atom-style
-variable, as discussed below.  Unlike most variable styles
-atomfile-style variables are **deleted** during a :doc:`clear <clear>`
-command.
+variable, as discussed below.  Unlike most variable styles, which
+remain defined, atomfile-style variables are **deleted** during a
+:doc:`clear <clear>` command.
 
 The rules for formatting the file are as follows.  Each time a set of
 per-atom values is read, a non-blank line is searched for in the file.
@@ -289,23 +289,37 @@ The file is read line by line but only up to 254 characters are used.
 The rest are ignored.  A comment character "#" can be used anywhere
 on a line and all text following and the "#" character are ignored;
 text starting with the comment character is stripped.  Blank lines
-are skipped.  The first "word" of a non-blank line, delimited by
-white-space, is read as the count N of per-atom lines to immediately
-follow.  N can be the total number of atoms in the system, or only a
-subset.  The next N lines have the following format
-
-.. parsed-literal::
-
-   ID value
-
-where ID is an atom ID and value is the per-atom numeric value that
-will be assigned to that atom.  IDs can be listed in any order.
+are skipped.  The first non-blank line is expected to contain a single
+integer number as the count *N* of per-atom lines to follow.  *N* can
+be the total number of atoms in the system or less, indicating that data
+for a subset is read.  The next N lines must consist of two numbers,
+the atom-ID of the atom for which a value is set followed by a floating
+point number with the value.  The atom-IDs may be listed in any order.
 
 .. note::
 
-   Every time a set of per-atom lines is read, the value for all
-   atoms is first set to 0.0.  Thus values for atoms whose ID does not
-   appear in the set, will remain 0.0.
+   Every time a set of per-atom lines is read, the value of the atomfile
+   variable for **all** atoms is first initialized to 0.0.  Thus values
+   for atoms whose ID do not appear in the set in the file will remain
+   at 0.0.
+
+Below is a small example for the atomfile variable file format:
+
+ .. parsed-literal::
+
+   # first set
+   4
+   # atom-ID value
+   3 1
+   4 -4
+   1 0.5
+   2 -0.5
+
+   # second set
+   2
+
+   2  1.0
+   4 -1.0
 
 ----------
 
@@ -1174,12 +1188,17 @@ custom atom properties are the same; just replace the leading "i" with
 
 +--------+---------------+------------------------------------------+
 | equal  | i_name[I]     | element of per-atom vector (I = atom ID) |
++--------+---------------+------------------------------------------+
 | equal  | i2_name[I][J] | element of per-atom array (I = atom ID)  |
 +--------+---------------+------------------------------------------+
++--------+---------------+------------------------------------------+
 | vector | i_name[I]     | element of per-atom vector (I = atom ID) |
++--------+---------------+------------------------------------------+
 | vector | i2_name[I][J] | element of per-atom array (I = atom ID)  |
 +--------+---------------+------------------------------------------+
++--------+---------------+------------------------------------------+
 | atom   | i_name        | per-atom vector                          |
++--------+---------------+------------------------------------------+
 | atom   | i2_name[I]    | column of per-atom array                 |
 +--------+---------------+------------------------------------------+
 
@@ -1222,15 +1241,23 @@ table:
 
 +--------+------------+------------------------------------------+
 | equal  | c_ID       | global scalar                            |
++--------+------------+------------------------------------------+
 | equal  | c_ID[I]    | element of global vector                 |
++--------+------------+------------------------------------------+
 | equal  | c_ID[I][J] | element of global array                  |
++--------+------------+------------------------------------------+
 | equal  | C_ID[I]    | element of per-atom vector (I = atom ID) |
++--------+------------+------------------------------------------+
 | equal  | C_ID[I][J] | element of per-atom array (I = atom ID)  |
 +--------+------------+------------------------------------------+
++--------+------------+------------------------------------------+
 | vector | c_ID       | global vector                            |
++--------+------------+------------------------------------------+
 | vector | c_ID[I]    | column of global array                   |
 +--------+------------+------------------------------------------+
++--------+------------+------------------------------------------+
 | atom   | c_ID       | per-atom vector                          |
++--------+------------+------------------------------------------+
 | atom   | c_ID[I]    | column of per-atom array                 |
 +--------+------------+------------------------------------------+
 
@@ -1286,15 +1313,23 @@ and atom-style variables are listed in the following table:
 
 +--------+------------+------------------------------------------+
 | equal  | f_ID       | global scalar                            |
++--------+------------+------------------------------------------+
 | equal  | f_ID[I]    | element of global vector                 |
++--------+------------+------------------------------------------+
 | equal  | f_ID[I][J] | element of global array                  |
++--------+------------+------------------------------------------+
 | equal  | F_ID[I]    | element of per-atom vector (I = atom ID) |
++--------+------------+------------------------------------------+
 | equal  | F_ID[I][J] | element of per-atom array (I = atom ID)  |
 +--------+------------+------------------------------------------+
++--------+------------+------------------------------------------+
 | vector | f_ID       | global vector                            |
++--------+------------+------------------------------------------+
 | vector | f_ID[I]    | column of global array                   |
 +--------+------------+------------------------------------------+
++--------+------------+------------------------------------------+
 | atom   | f_ID       | per-atom vector                          |
++--------+------------+------------------------------------------+
 | atom   | f_ID[I]    | column of per-atom array                 |
 +--------+------------+------------------------------------------+
 
@@ -1365,17 +1400,27 @@ per-atom vector.
 
 +--------+-----------+-----------------------------------------------------------------------------------+
 | equal  | v_name    | global scalar from an equal-style variable                                        |
++--------+-----------+-----------------------------------------------------------------------------------+
 | equal  | v_name[I] | element of global vector from a vector-style variable                             |
++--------+-----------+-----------------------------------------------------------------------------------+
 | equal  | v_name[I] | element of per-atom vector (I = atom ID) from an atom- or atomfile-style variable |
 +--------+-----------+-----------------------------------------------------------------------------------+
++--------+-----------+-----------------------------------------------------------------------------------+
 | vector | v_name    | global scalar from an equal-style variable                                        |
++--------+-----------+-----------------------------------------------------------------------------------+
 | vector | v_name    | global vector from a vector-style variable                                        |
++--------+-----------+-----------------------------------------------------------------------------------+
 | vector | v_name[I] | element of global vector from a vector-style variable                             |
++--------+-----------+-----------------------------------------------------------------------------------+
 | vector | v_name[I] | element of per-atom vector (I = atom ID) from an atom- or atomfile-style variable |
 +--------+-----------+-----------------------------------------------------------------------------------+
++--------+-----------+-----------------------------------------------------------------------------------+
 | atom   | v_name    | global scalar from an equal-style variable                                        |
++--------+-----------+-----------------------------------------------------------------------------------+
 | atom   | v_name    | per-atom vector from an atom-style or atomfile-style variable                     |
++--------+-----------+-----------------------------------------------------------------------------------+
 | atom   | v_name[I] | element of global vector from a vector-style variable                             |
++--------+-----------+-----------------------------------------------------------------------------------+
 | atom   | v_name[I] | element of per-atom vector (I = atom ID) from an atom- or atomfile-style variable |
 +--------+-----------+-----------------------------------------------------------------------------------+
 

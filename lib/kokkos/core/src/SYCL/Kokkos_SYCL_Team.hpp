@@ -140,9 +140,14 @@ class SYCLTeamMember {
     }
     value = sg.shuffle(value, 0);
 
+    const auto n_subgroups = sg.get_group_range()[0];
+    if (n_subgroups == 1) {
+      reducer.reference() = value;
+      return;
+    }
+
     // We need to chunk up the whole reduction because we might not have
     // allocated enough memory.
-    const auto n_subgroups = sg.get_group_range()[0];
     const unsigned int maximum_work_range =
         std::min<int>(m_team_reduce_size / sizeof(value_type), n_subgroups);
 

@@ -1,7 +1,7 @@
 #ifndef LMP_XDR_COMPAT_H
 #define LMP_XDR_COMPAT_H
 
-#include <climits>
+#include <cstdint>
 #include <cstdio>
 
 #ifdef __cplusplus
@@ -9,46 +9,52 @@ extern "C" {
 #endif
 
 /*
- * This file is needed for systems, that do not provide XDR support
- * in their system libraries. It was written for windows, but will
- * most probably work on other platforms too. better make sure you
- * test that the xtc files produced are ok before using it.
+ * This file contains the definitions for Sun External Data Representation (XDR).
+ * They have been adapted specifically for the use with the LAMMPS xtc dump style
+ * to produce compressed trajectory files in the Gromacs XTC format.
  *
- * It is also needed on BG/L, BG/P and Cray XT3/XT4/XT5 as we don't
- * have XDR support in the lightweight kernel runtimes either.
+ * The XDR sources are avaiable under the BSD 3-clause license for example in
+ * the MIT Kerberos 5 distribution with the following copyright notice and license.
  *
- * This file contains the definitions for Sun External Data
- * Representation (XDR) headers and routines.
+ * @(#)xdr.h    2.2 88/07/29 4.0 RPCSRC
  *
- * Although the rest of LAMPPS is GPL, you can copy and use the XDR
- * routines in any way you want as long as you obey Sun's license:
- * Sun RPC is a product of Sun Microsystems, Inc. and is provided for
- * unrestricted use provided that this legend is included on all tape
- * media and as a part of the software program in whole or part.  Users
- * may copy or modify Sun RPC without charge, but are not authorized
- * to license or distribute it to anyone else except as part of a product or
- * program developed by the user.
+ * Copyright (c) 2010, Oracle America, Inc.
  *
- * SUN RPC IS PROVIDED AS IS WITH NO WARRANTIES OF ANY KIND INCLUDING THE
- * WARRANTIES OF DESIGN, MERCHANTIBILITY AND FITNESS FOR A PARTICULAR
- * PURPOSE, OR ARISING FROM A COURSE OF DEALING, USAGE OR TRADE PRACTICE.
+ * All rights reserved.
  *
- * Sun RPC is provided with no support and without any obligation on the
- * part of Sun Microsystems, Inc. to assist in its use, correction,
- * modification or enhancement.
+ * Redistribution and use in source and binary forms, with or without
+ * modification, are permitted provided that the following conditions are met:
  *
- * SUN MICROSYSTEMS, INC. SHALL HAVE NO LIABILITY WITH RESPECT TO THE
- * INFRINGEMENT OF COPYRIGHTS, TRADE SECRETS OR ANY PATENTS BY SUN RPC
- * OR ANY PART THEREOF.
+ *     * Redistributions of source code must retain the above copyright
+ *       notice, this list of conditions and the following disclaimer.
  *
- * In no event will Sun Microsystems, Inc. be liable for any lost revenue
- * or profits or other special, indirect and consequential damages, even if
- * Sun has been advised of the possibility of such damages.
+ *     * Redistributions in binary form must reproduce the above copyright
+ *       notice, this list of conditions and the following disclaimer in
+ *       the documentation and/or other materials provided with the
+ *       distribution.
  *
- * Sun Microsystems, Inc.
- * 2550 Garcia Avenue
- * Mountain View, California  94043
+ *     * Neither the name of the "Oracle America, Inc." nor the names of
+ *       its contributors may be used to endorse or promote products
+ *       derived from this software without specific prior written permission.
+ *
+ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS
+ * IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED
+ * TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A
+ * PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT
+ * HOLDER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,
+ * SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED
+ * TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR
+ * PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF
+ * LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING
+ * NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
+ * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+
+/* compatibility typedefs */
+typedef int bool_t;
+
+typedef int32_t xdr_int32_t;
+typedef uint32_t xdr_uint32_t;
 
 /*
  * Xdr operations.  XDR_ENCODE causes the type to be encoded into the
@@ -57,43 +63,7 @@ extern "C" {
  * XDR_DECODE request.
  */
 
-typedef int bool_t;
-
-#if defined(_WIN32) || defined(__APPLE__) || defined(__FreeBSD__) || defined(__DragonFly__) || \
-    defined(__OpenBSD__) || defined(__NetBSD__) || (defined(__linux__) && !defined(__GLIBC_MINOR__))
-typedef char *caddr_t;
-typedef unsigned int u_int;
-#endif
-
-/*
- * Aninteger type that is 32 bits wide. Check if int,
- * long or short is 32 bits and die if none of them is :-)
- */
-#if (INT_MAX == 2147483647)
-typedef int xdr_int32_t;
-typedef unsigned int xdr_uint32_t;
-#elif (LONG_MAX == 2147483647L)
-typedef long xdr_int32_t;
-typedef unsigned long xdr_uint32_t;
-#elif (SHRT_MAX == 2147483647)
-typedef short xdr_int32_t;
-typedef unsigned short xdr_uint32_t;
-#else
-#error ERROR: No 32 bit wide integer type found!
-#endif
-
 enum xdr_op { XDR_ENCODE = 0, XDR_DECODE = 1, XDR_FREE = 2 };
-
-#ifndef FALSE
-#define FALSE (0)
-#endif
-#ifndef TRUE
-#define TRUE (1)
-#endif
-
-#define BYTES_PER_XDR_UNIT (4)
-/* Macro to round up to units of 4. */
-#define XDR_RNDUP(x) (((x) + BYTES_PER_XDR_UNIT - 1) & ~(BYTES_PER_XDR_UNIT - 1))
 
 /*
  * The XDR handle.
@@ -113,26 +83,16 @@ struct XDR {
 };
 
 struct xdr_ops {
+  /* get some bytes from XDR stream */
   bool_t (*x_getbytes)(XDR *__xdrs, char *__addr, unsigned int __len);
-  /* get some bytes from " */
+  /* put some bytes to XDR stream */
   bool_t (*x_putbytes)(XDR *__xdrs, char *__addr, unsigned int __len);
-  /* put some bytes to " */
-  unsigned int (*x_getpostn)(XDR *__xdrs);
-  /* returns bytes off from beginning */
-  bool_t (*x_setpostn)(XDR *__xdrs, unsigned int __pos);
-  /* lets you reposition the stream */
-  xdr_int32_t *(*x_inline)(XDR *__xdrs, int __len);
-  /* buf quick ptr to buffered data */
-  void (*x_destroy)(XDR *__xdrs);
   /* free privates of this xdr_stream */
+  void (*x_destroy)(XDR *__xdrs);
+  /* get a int from XDR stream */
   bool_t (*x_getint32)(XDR *__xdrs, xdr_int32_t *__ip);
-  /* get a int from underlying stream */
+  /* put a int to XDR stream */
   bool_t (*x_putint32)(XDR *__xdrs, xdr_int32_t *__ip);
-  /* put a int to " */
-  bool_t (*x_getuint32)(XDR *__xdrs, xdr_uint32_t *__ip);
-  /* get a unsigned int from underlying stream */
-  bool_t (*x_putuint32)(XDR *__xdrs, xdr_uint32_t *__ip);
-  /* put a int to " */
 };
 
 /*
@@ -151,52 +111,24 @@ typedef bool_t (*xdrproc_t)(XDR *, void *, ...);
  *
  * XDR          *xdrs;
  * xdr_int32_t  *int32p;
- * long         *longp;
- * char         *addr;
  * unsigned int  len;
- * unsigned int  pos;
  */
 
 #define xdr_getint32(xdrs, int32p) (*(xdrs)->x_ops->x_getint32)(xdrs, int32p)
-
 #define xdr_putint32(xdrs, int32p) (*(xdrs)->x_ops->x_putint32)(xdrs, int32p)
-
-#define xdr_getuint32(xdrs, uint32p) (*(xdrs)->x_ops->x_getuint32)(xdrs, uint32p)
-
-#define xdr_putuint32(xdrs, uint32p) (*(xdrs)->x_ops->x_putuint32)(xdrs, uint32p)
-
 #define xdr_getbytes(xdrs, addr, len) (*(xdrs)->x_ops->x_getbytes)(xdrs, addr, len)
-
 #define xdr_putbytes(xdrs, addr, len) (*(xdrs)->x_ops->x_putbytes)(xdrs, addr, len)
-
-#define xdr_getpos(xdrs) (*(xdrs)->x_ops->x_getpostn)(xdrs)
-
-#define xdr_setpos(xdrs, pos) (*(xdrs)->x_ops->x_setpostn)(xdrs, pos)
-
-#define xdr_inline(xdrs, len) (*(xdrs)->x_ops->x_inline)(xdrs, len)
-
 #define xdr_destroy(xdrs)                                            \
   do {                                                               \
     if ((xdrs)->x_ops->x_destroy) (*(xdrs)->x_ops->x_destroy)(xdrs); \
   } while (0)
 
 extern bool_t xdr_int(XDR *__xdrs, int *__ip);
-extern bool_t xdr_u_int(XDR *__xdrs, unsigned int *__ip);
-extern bool_t xdr_short(XDR *__xdrs, short *__ip);
-extern bool_t xdr_u_short(XDR *__xdrs, unsigned short *__ip);
-extern bool_t xdr_bool(XDR *__xdrs, int *__bp);
 extern bool_t xdr_opaque(XDR *__xdrs, char *__cp, unsigned int __cnt);
-extern bool_t xdr_string(XDR *__xdrs, char **__cpp, unsigned int __maxsize);
-extern bool_t xdr_char(XDR *__xdrs, char *__cp);
-extern bool_t xdr_u_char(XDR *__xdrs, unsigned char *__cp);
 extern bool_t xdr_vector(XDR *__xdrs, char *__basep, unsigned int __nelem, unsigned int __elemsize,
                          xdrproc_t __xdr_elem);
 extern bool_t xdr_float(XDR *__xdrs, float *__fp);
-extern bool_t xdr_double(XDR *__xdrs, double *__dp);
 extern void xdrstdio_create(XDR *__xdrs, FILE *__file, enum xdr_op __xop);
-
-/* free memory buffers for xdr */
-extern void xdr_free(xdrproc_t __proc, char *__objp);
 
 #ifdef __cplusplus
 }

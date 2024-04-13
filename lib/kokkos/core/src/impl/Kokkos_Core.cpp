@@ -90,8 +90,6 @@ void combine(Kokkos::InitializationSettings& out,
   KOKKOS_IMPL_COMBINE_SETTING(num_threads);
   KOKKOS_IMPL_COMBINE_SETTING(map_device_id_by);
   KOKKOS_IMPL_COMBINE_SETTING(device_id);
-  KOKKOS_IMPL_COMBINE_SETTING(num_devices);
-  KOKKOS_IMPL_COMBINE_SETTING(skip_device);
   KOKKOS_IMPL_COMBINE_SETTING(disable_warnings);
   KOKKOS_IMPL_COMBINE_SETTING(tune_internals);
   KOKKOS_IMPL_COMBINE_SETTING(tools_help);
@@ -131,11 +129,15 @@ void combine(Kokkos::Tools::InitArguments& out,
 
 int get_device_count() {
 #if defined(KOKKOS_ENABLE_CUDA)
-  return Kokkos::Cuda::detect_device_count();
+  int count;
+  KOKKOS_IMPL_CUDA_SAFE_CALL(cudaGetDeviceCount(&count));
+  return count;
 #elif defined(KOKKOS_ENABLE_HIP)
-  return Kokkos::HIP::detect_device_count();
+  int count;
+  KOKKOS_IMPL_HIP_SAFE_CALL(hipGetDeviceCount(&count));
+  return count;
 #elif defined(KOKKOS_ENABLE_SYCL)
-  return sycl::device::get_devices(sycl::info::device_type::gpu).size();
+  return Kokkos::Experimental::Impl::get_sycl_devices().size();
 #elif defined(KOKKOS_ENABLE_OPENACC)
   return acc_get_num_devices(
       Kokkos::Experimental::Impl::OpenACC_Traits::dev_type);
@@ -165,20 +167,43 @@ bool is_valid_map_device_id_by(std::string const& x) {
 
 }  // namespace
 
+std::vector<int> const& Kokkos::Impl::get_visible_devices() {
+  static auto devices = get_visible_devices(get_device_count());
+  return devices;
+}
+
 [[nodiscard]] int Kokkos::device_id() noexcept {
 #if defined(KOKKOS_ENABLE_CUDA)
-  return Cuda().cuda_device();
+  int device = Cuda().cuda_device();
 #elif defined(KOKKOS_ENABLE_HIP)
-  return HIP().hip_device();
+  int device = HIP().hip_device();
 #elif defined(KOKKOS_ENABLE_OPENACC)
-  return Experimental::OpenACC().acc_device_number();
+  int device = Experimental::OpenACC().acc_device_number();
 #elif defined(KOKKOS_ENABLE_OPENMPTARGET)
-  return omp_get_default_device();  // FIXME_OPENMPTARGET
+  int device = omp_get_default_device();  // FIXME_OPENMPTARGET
 #elif defined(KOKKOS_ENABLE_SYCL)
-  return Experimental::Impl::SYCLInternal::m_syclDev;
+  int device = Experimental::Impl::SYCLInternal::m_syclDev;
 #else
-  return -1;
+  int device = -1;
+  return device;
 #endif
+  auto const& visible_devices = Impl::get_visible_devices();
+  for (std::size_t i = 0; i < visible_devices.size(); ++i) {
+    if (visible_devices[i] == device) {
+      return i;
+    }
+  }
+  Kokkos::abort("Unexpected error: cannot determine device id");
+  return -1;
+}
+
+[[nodiscard]] int Kokkos::num_devices() noexcept {
+  if constexpr (std::is_same_v<DefaultExecutionSpace,
+                               DefaultHostExecutionSpace>) {
+    return -1;  // no GPU backend enabled
+  } else {
+    return Impl::get_visible_devices().size();
+  }
 }
 
 [[nodiscard]] int Kokkos::num_threads() noexcept {
@@ -313,8 +338,7 @@ int Kokkos::Impl::get_ctest_gpu(int local_rank) {
   return std::stoi(id.c_str());
 }
 
-std::vector<int> Kokkos::Impl::get_visible_devices(
-    Kokkos::InitializationSettings const& settings, int device_count) {
+std::vector<int> Kokkos::Impl::get_visible_devices(int device_count) {
   std::vector<int> visible_devices;
   char* env_visible_devices = std::getenv("KOKKOS_VISIBLE_DEVICES");
   if (env_visible_devices) {
@@ -341,29 +365,8 @@ std::vector<int> Kokkos::Impl::get_visible_devices(
       }
     }
   } else {
-    int num_devices =
-        settings.has_num_devices() ? settings.get_num_devices() : device_count;
-    if (num_devices > device_count) {
-      std::stringstream ss;
-      ss << "Error: Specified number of devices '" << num_devices
-         << "' exceeds the actual number of GPUs available for execution '"
-         << device_count << "'."
-         << " Raised by Kokkos::initialize().\n";
-      Kokkos::abort(ss.str().c_str());
-    }
-    for (int i = 0; i < num_devices; ++i) {
+    for (int i = 0; i < device_count; ++i) {
       visible_devices.push_back(i);
-    }
-    if (settings.has_skip_device()) {
-      if (visible_devices.size() == 1 && settings.get_skip_device() == 0) {
-        Kokkos::abort(
-            "Error: skipping the only GPU available for execution.\n"
-            " Raised by Kokkos::initialize().\n");
-      }
-      visible_devices.erase(
-          std::remove(visible_devices.begin(), visible_devices.end(),
-                      settings.get_skip_device()),
-          visible_devices.end());
     }
   }
   if (visible_devices.empty()) {
@@ -374,10 +377,10 @@ std::vector<int> Kokkos::Impl::get_visible_devices(
   return visible_devices;
 }
 
-int Kokkos::Impl::get_gpu(const InitializationSettings& settings) {
-  std::vector<int> visible_devices =
-      get_visible_devices(settings, get_device_count());
-  int const num_devices = visible_devices.size();
+std::optional<int> Kokkos::Impl::get_gpu(
+    const InitializationSettings& settings) {
+  std::vector<int> visible_devices = get_visible_devices(get_device_count());
+  int const num_devices            = visible_devices.size();
   // device_id is provided
   if (settings.has_device_id()) {
     int const id = settings.get_device_id();
@@ -423,14 +426,15 @@ int Kokkos::Impl::get_gpu(const InitializationSettings& settings) {
 
   int const mpi_local_rank = mpi_local_rank_on_node();
 
-  // use first GPU available for execution if unable to detect local MPI rank
+  // if unable to detect local MPI rank return nullopt to delegate device
+  // selection to the backend
   if (mpi_local_rank < 0) {
     if (settings.has_map_device_id_by()) {
       std::cerr << "Warning: unable to detect local MPI rank."
                 << " Falling back to the first GPU available for execution."
                 << " Raised by Kokkos::initialize()." << std::endl;
     }
-    return visible_devices[0];
+    return std::nullopt;
   }
 
   // use device assigned by CTest when resource allocation is activated
@@ -445,13 +449,6 @@ int Kokkos::Impl::get_gpu(const InitializationSettings& settings) {
 namespace {
 
 void initialize_backends(const Kokkos::InitializationSettings& settings) {
-// This is an experimental setting
-// For KNL in Flat mode this variable should be set, so that
-// memkind allocates high bandwidth memory correctly.
-#ifdef KOKKOS_ENABLE_HBWSPACE
-  setenv("MEMKIND_HBW_NODES", "1", 0);
-#endif
-
   Kokkos::Impl::ExecSpaceManager::get_instance().initialize_spaces(settings);
 }
 
@@ -571,19 +568,6 @@ void pre_initialize_internal(const Kokkos::InitializationSettings& settings) {
                                  "no");
 #endif
 
-#ifdef KOKKOS_ENABLE_HBWSPACE
-  declare_configuration_metadata("memory", "KOKKOS_ENABLE_HBWSPACE", "yes");
-#else
-  declare_configuration_metadata("memory", "KOKKOS_ENABLE_HBWSPACE", "no");
-#endif
-#ifdef KOKKOS_ENABLE_INTEL_MM_ALLOC
-  declare_configuration_metadata("memory", "KOKKOS_ENABLE_INTEL_MM_ALLOC",
-                                 "yes");
-#else
-  declare_configuration_metadata("memory", "KOKKOS_ENABLE_INTEL_MM_ALLOC",
-                                 "no");
-#endif
-
 #ifdef KOKKOS_ENABLE_ASM
   declare_configuration_metadata("options", "KOKKOS_ENABLE_ASM", "yes");
 #else
@@ -604,6 +588,11 @@ void pre_initialize_internal(const Kokkos::InitializationSettings& settings) {
 #else
   declare_configuration_metadata("options", "KOKKOS_ENABLE_CXX23", "no");
 #endif
+#ifdef KOKKOS_ENABLE_CXX26
+  declare_configuration_metadata("options", "KOKKOS_ENABLE_CXX26", "yes");
+#else
+  declare_configuration_metadata("options", "KOKKOS_ENABLE_CXX26", "no");
+#endif
 #ifdef KOKKOS_ENABLE_DEBUG_BOUNDS_CHECK
   declare_configuration_metadata("options", "KOKKOS_ENABLE_DEBUG_BOUNDS_CHECK",
                                  "yes");
@@ -615,11 +604,6 @@ void pre_initialize_internal(const Kokkos::InitializationSettings& settings) {
   declare_configuration_metadata("options", "KOKKOS_ENABLE_HWLOC", "yes");
 #else
   declare_configuration_metadata("options", "KOKKOS_ENABLE_HWLOC", "no");
-#endif
-#ifdef KOKKOS_ENABLE_LIBRT
-  declare_configuration_metadata("options", "KOKKOS_ENABLE_LIBRT", "yes");
-#else
-  declare_configuration_metadata("options", "KOKKOS_ENABLE_LIBRT", "no");
 #endif
 #ifdef KOKKOS_ENABLE_LIBDL
   declare_configuration_metadata("options", "KOKKOS_ENABLE_LIBDL", "yes");
@@ -645,8 +629,6 @@ void pre_initialize_internal(const Kokkos::InitializationSettings& settings) {
                                  "ARMV8_THUNDERX2");
 #elif defined(KOKKOS_ARCH_BDW)
   declare_configuration_metadata("architecture", "CPU architecture", "BDW");
-#elif defined(KOKKOS_ARCH_BGQ)
-  declare_configuration_metadata("architecture", "CPU architecture", "BGQ");
 #elif defined(KOKKOS_ARCH_HSW)
   declare_configuration_metadata("architecture", "CPU architecture", "HSW");
 #elif defined(KOKKOS_ARCH_ICL)
@@ -659,8 +641,6 @@ void pre_initialize_internal(const Kokkos::InitializationSettings& settings) {
   declare_configuration_metadata("architecture", "CPU architecture", "KNL");
 #elif defined(KOKKOS_ARCH_NATIVE)
   declare_configuration_metadata("architecture", "CPU architecture", "NATIVE");
-#elif defined(KOKKOS_ARCH_POWER7)
-  declare_configuration_metadata("architecture", "CPU architecture", "POWER7");
 #elif defined(KOKKOS_ARCH_POWER8)
   declare_configuration_metadata("architecture", "CPU architecture", "POWER8");
 #elif defined(KOKKOS_ARCH_POWER9)
@@ -673,8 +653,6 @@ void pre_initialize_internal(const Kokkos::InitializationSettings& settings) {
   declare_configuration_metadata("architecture", "CPU architecture", "SNB");
 #elif defined(KOKKOS_ARCH_SPR)
   declare_configuration_metadata("architecture", "CPU architecture", "SPR");
-#elif defined(KOKKOS_ARCH_WSM)
-  declare_configuration_metadata("architecture", "CPU architecture", "WSM");
 #elif defined(KOKKOS_ARCH_AMD_ZEN)
   declare_configuration_metadata("architecture", "CPU architecture", "AMD_ZEN");
 #elif defined(KOKKOS_ARCH_AMD_ZEN2)
@@ -683,6 +661,9 @@ void pre_initialize_internal(const Kokkos::InitializationSettings& settings) {
 #elif defined(KOKKOS_ARCH_AMD_ZEN3)
   declare_configuration_metadata("architecture", "CPU architecture",
                                  "AMD_ZEN3");
+#elif defined(KOKKOS_ARCH_RISCV_SG2042)
+  declare_configuration_metadata("architecture", "CPU architecture",
+                                 "SG2042 (RISC-V)")
 #else
   declare_configuration_metadata("architecture", "CPU architecture", "none");
 #endif
@@ -752,8 +733,8 @@ void pre_initialize_internal(const Kokkos::InitializationSettings& settings) {
 #elif defined(KOKKOS_ARCH_ADA89)
   declare_configuration_metadata("architecture", "GPU architecture", "ADA89");
 #elif defined(KOKKOS_ARCH_HOPPER90)
-  declare_configuration_metadata("architecture", "GPU architecture",
-                                 "HOPPER90");
+      declare_configuration_metadata("architecture", "GPU architecture",
+                                     "HOPPER90");
 #elif defined(KOKKOS_ARCH_AMD_GFX906)
   declare_configuration_metadata("architecture", "GPU architecture",
                                  "AMD_GFX906");
@@ -911,16 +892,10 @@ void Kokkos::Impl::parse_command_line_arguments(
 
   int num_threads;
   int device_id;
-  int num_devices;  // deprecated
-  int skip_device;  // deprecated
   std::string map_device_id_by;
   bool disable_warnings;
   bool print_configuration;
   bool tune_internals;
-
-  auto get_flag = [](std::string s) -> std::string {
-    return s.erase(s.find('='));
-  };
 
   bool help_flag = false;
 
@@ -928,19 +903,7 @@ void Kokkos::Impl::parse_command_line_arguments(
   while (iarg < argc) {
     bool remove_flag = false;
 
-    if (check_arg(argv[iarg], "--kokkos-numa") ||
-        check_arg(argv[iarg], "--numa")) {
-      warn_deprecated_command_line_argument(get_flag(argv[iarg]));
-      // remove flag if prefixed with '--kokkos-'
-      remove_flag = std::string(argv[iarg]).find("--kokkos-") == 0;
-    } else if (check_arg_int(argv[iarg], "--kokkos-num-threads", num_threads) ||
-               check_arg_int(argv[iarg], "--num-threads", num_threads) ||
-               check_arg_int(argv[iarg], "--kokkos-threads", num_threads) ||
-               check_arg_int(argv[iarg], "--threads", num_threads)) {
-      if (get_flag(argv[iarg]) != "--kokkos-num-threads") {
-        warn_deprecated_command_line_argument(get_flag(argv[iarg]),
-                                              "--kokkos-num-threads");
-      }
+    if (check_arg_int(argv[iarg], "--kokkos-num-threads", num_threads)) {
       if (!is_valid_num_threads(num_threads)) {
         std::stringstream ss;
         ss << "Error: command line argument '" << argv[iarg] << "' is invalid."
@@ -949,15 +912,8 @@ void Kokkos::Impl::parse_command_line_arguments(
         Kokkos::abort(ss.str().c_str());
       }
       settings.set_num_threads(num_threads);
-      remove_flag = std::string(argv[iarg]).find("--kokkos-") == 0;
-    } else if (check_arg_int(argv[iarg], "--kokkos-device-id", device_id) ||
-               check_arg_int(argv[iarg], "--device-id", device_id) ||
-               check_arg_int(argv[iarg], "--kokkos-device", device_id) ||
-               check_arg_int(argv[iarg], "--device", device_id)) {
-      if (get_flag(argv[iarg]) != "--kokkos-device-id") {
-        warn_deprecated_command_line_argument(get_flag(argv[iarg]),
-                                              "--kokkos-device-id");
-      }
+      remove_flag = true;
+    } else if (check_arg_int(argv[iarg], "--kokkos-device-id", device_id)) {
       if (!is_valid_device_id(device_id)) {
         std::stringstream ss;
         ss << "Error: command line argument '" << argv[iarg] << "' is invalid."
@@ -966,70 +922,7 @@ void Kokkos::Impl::parse_command_line_arguments(
         Kokkos::abort(ss.str().c_str());
       }
       settings.set_device_id(device_id);
-      remove_flag = std::string(argv[iarg]).find("--kokkos-") == 0;
-    } else if (check_arg(argv[iarg], "--kokkos-num-devices") ||
-               check_arg(argv[iarg], "--num-devices") ||
-               check_arg(argv[iarg], "--kokkos-ndevices") ||
-               check_arg(argv[iarg], "--ndevices")) {
-      if (check_arg(argv[iarg], "--num-devices")) {
-        warn_deprecated_command_line_argument("--num-devices",
-                                              "--kokkos-num-devices");
-      }
-      if (check_arg(argv[iarg], "--ndevices")) {
-        warn_deprecated_command_line_argument("--ndevices",
-                                              "--kokkos-num-devices");
-      }
-      if (check_arg(argv[iarg], "--kokkos-ndevices")) {
-        warn_deprecated_command_line_argument("--kokkos-ndevices",
-                                              "--kokkos-num-devices");
-      }
-      warn_deprecated_command_line_argument(
-          "--kokkos-num-devices", "--kokkos-map-device-id-by=mpi_rank");
-      // Find the number of device (expecting --device=XX)
-      if (!((strncmp(argv[iarg], "--kokkos-num-devices=", 21) == 0) ||
-            (strncmp(argv[iarg], "--num-devices=", 14) == 0) ||
-            (strncmp(argv[iarg], "--kokkos-ndevices=", 18) == 0) ||
-            (strncmp(argv[iarg], "--ndevices=", 11) == 0)))
-        throw_runtime_exception(
-            "Error: expecting an '=INT[,INT]' after command line argument "
-            "'--kokkos-num-devices'."
-            " Raised by Kokkos::initialize().");
-
-      char* num1      = strchr(argv[iarg], '=') + 1;
-      char* num2      = strpbrk(num1, ",");
-      int num1_len    = num2 == nullptr ? strlen(num1) : num2 - num1;
-      char* num1_only = new char[num1_len + 1];
-      strncpy(num1_only, num1, num1_len);
-      num1_only[num1_len] = '\0';
-
-      if (!is_unsigned_int(num1_only) || (strlen(num1_only) == 0)) {
-        throw_runtime_exception(
-            "Error: expecting an integer number after command line argument "
-            "'--kokkos-num-devices'."
-            " Raised by Kokkos::initialize().");
-      }
-      if (check_arg(argv[iarg], "--kokkos-num-devices") ||
-          check_arg(argv[iarg], "--kokkos-ndevices")) {
-        num_devices = std::stoi(num1_only);
-        settings.set_num_devices(num_devices);
-        settings.set_map_device_id_by("mpi_rank");
-      }
-      delete[] num1_only;
-
-      if (num2 != nullptr) {
-        if ((!is_unsigned_int(num2 + 1)) || (strlen(num2) == 1))
-          throw_runtime_exception(
-              "Error: expecting an integer number after command line argument "
-              "'--kokkos-num-devices=XX,'."
-              " Raised by Kokkos::initialize().");
-
-        if (check_arg(argv[iarg], "--kokkos-num-devices") ||
-            check_arg(argv[iarg], "--kokkos-ndevices")) {
-          skip_device = std::stoi(num2 + 1);
-          settings.set_skip_device(skip_device);
-        }
-      }
-      remove_flag = std::string(argv[iarg]).find("--kokkos-") == 0;
+      remove_flag = true;
     } else if (check_arg_bool(argv[iarg], "--kokkos-disable-warnings",
                               disable_warnings)) {
       settings.set_disable_warnings(disable_warnings);
@@ -1098,9 +991,6 @@ void Kokkos::Impl::parse_environment_variables(
   }
   combine(settings, tools_init_arguments);
 
-  if (std::getenv("KOKKOS_NUMA")) {
-    warn_deprecated_environment_variable("KOKKOS_NUMA");
-  }
   int num_threads;
   if (check_env_int("KOKKOS_NUM_THREADS", num_threads)) {
     if (!is_valid_num_threads(num_threads)) {
@@ -1124,34 +1014,6 @@ void Kokkos::Impl::parse_environment_variables(
       Kokkos::abort(ss.str().c_str());
     }
     settings.set_device_id(device_id);
-  }
-  int num_devices;
-  int rand_devices;
-  bool has_num_devices  = check_env_int("KOKKOS_NUM_DEVICES", num_devices);
-  bool has_rand_devices = check_env_int("KOKKOS_RAND_DEVICES", rand_devices);
-  if (has_rand_devices && has_num_devices) {
-    Impl::throw_runtime_exception(
-        "Error: cannot specify both KOKKOS_NUM_DEVICES and "
-        "KOKKOS_RAND_DEVICES."
-        " Raised by Kokkos::initialize().");
-  }
-  if (has_num_devices) {
-    warn_deprecated_environment_variable("KOKKOS_NUM_DEVICES",
-                                         "KOKKOS_MAP_DEVICE_ID_BY=mpi_rank");
-    settings.set_map_device_id_by("mpi_rank");
-    settings.set_num_devices(num_devices);
-  }
-  if (has_rand_devices) {
-    warn_deprecated_environment_variable("KOKKOS_RAND_DEVICES",
-                                         "KOKKOS_MAP_DEVICE_ID_BY=random");
-    settings.set_map_device_id_by("random");
-    settings.set_num_devices(rand_devices);
-  }
-  if (has_num_devices || has_rand_devices) {
-    int skip_device;
-    if (check_env_int("KOKKOS_SKIP_DEVICE", skip_device)) {
-      settings.set_skip_device(skip_device);
-    }
   }
   bool disable_warnings;
   if (check_env_bool("KOKKOS_DISABLE_WARNINGS", disable_warnings)) {

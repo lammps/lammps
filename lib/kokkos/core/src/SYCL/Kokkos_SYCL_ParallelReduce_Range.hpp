@@ -51,7 +51,7 @@ class Kokkos::Impl::ParallelReduce<CombinedFunctorReducerType,
         m_result_ptr_device_accessible(
             MemorySpaceAccess<Kokkos::Experimental::SYCLDeviceUSMSpace,
                               typename View::memory_space>::accessible),
-        m_shared_memory_lock(
+        m_scratch_buffers_lock(
             p.space().impl_internal_space_instance()->m_mutexScratchSpace) {}
 
  private:
@@ -70,10 +70,19 @@ class Kokkos::Impl::ParallelReduce<CombinedFunctorReducerType,
     const unsigned int value_count =
         m_functor_reducer.get_reducer().value_count();
     sycl::device_ptr<value_type> results_ptr = nullptr;
-    sycl::global_ptr<value_type> device_accessible_result_ptr =
-        m_result_ptr_device_accessible ? m_result_ptr : nullptr;
+    auto host_result_ptr =
+        (m_result_ptr && !m_result_ptr_device_accessible)
+            ? static_cast<sycl::host_ptr<value_type>>(
+                  instance.scratch_host(sizeof(value_type) * value_count))
+            : nullptr;
+    auto device_accessible_result_ptr =
+        m_result_ptr_device_accessible
+            ? static_cast<sycl::global_ptr<value_type>>(m_result_ptr)
+            : static_cast<sycl::global_ptr<value_type>>(host_result_ptr);
 
     sycl::event last_reduction_event;
+
+    desul::ensure_sycl_lock_arrays_on_device(q);
 
     // If size<=1 we only call init(), the functor and possibly final once
     // working with the global scratch memory but don't copy back to
@@ -168,6 +177,7 @@ class Kokkos::Impl::ParallelReduce<CombinedFunctorReducerType,
                 }
                 item.barrier(sycl::access::fence_space::local_space);
                 if (num_teams_done[0] == n_wgroups) {
+                  if (local_id == 0) *scratch_flags = 0;
                   if (local_id >= n_wgroups)
                     reducer.init(&local_mem[local_id * value_count]);
                   else {
@@ -210,6 +220,7 @@ class Kokkos::Impl::ParallelReduce<CombinedFunctorReducerType,
                 }
                 item.barrier(sycl::access::fence_space::local_space);
                 if (num_teams_done[0] == n_wgroups) {
+                  if (local_id == 0) *scratch_flags = 0;
                   if (local_id >= n_wgroups)
                     reducer.init(&local_value);
                   else {
@@ -320,11 +331,13 @@ class Kokkos::Impl::ParallelReduce<CombinedFunctorReducerType,
     // At this point, the reduced value is written to the entry in results_ptr
     // and all that is left is to copy it back to the given result pointer if
     // necessary.
-    if (m_result_ptr && !m_result_ptr_device_accessible) {
-      Kokkos::Impl::DeepCopy<Kokkos::Experimental::SYCLDeviceUSMSpace,
-                             Kokkos::Experimental::SYCLDeviceUSMSpace>(
-          space, m_result_ptr, results_ptr,
-          sizeof(*m_result_ptr) * value_count);
+    // Using DeepCopy instead of fence+memcpy turned out to be up to 2x slower.
+    if (host_result_ptr) {
+      space.fence(
+          "Kokkos::Impl::ParallelReduce<SYCL, RangePolicy>::execute: result "
+          "not device-accessible");
+      std::memcpy(m_result_ptr, host_result_ptr,
+                  sizeof(*m_result_ptr) * value_count);
     }
 
     return last_reduction_event;
@@ -354,9 +367,9 @@ class Kokkos::Impl::ParallelReduce<CombinedFunctorReducerType,
   const pointer_type m_result_ptr;
   const bool m_result_ptr_device_accessible;
 
-  // Only let one Parallel/Scan modify the shared memory. The
-  // constructor acquires the mutex which is released in the destructor.
-  std::scoped_lock<std::mutex> m_shared_memory_lock;
+  // Only let one ParallelReduce instance at a time use the host scratch memory.
+  // The constructor acquires the mutex which is released in the destructor.
+  std::scoped_lock<std::mutex> m_scratch_buffers_lock;
 };
 
 #endif /* KOKKOS_SYCL_PARALLEL_REDUCE_RANGE_HPP */

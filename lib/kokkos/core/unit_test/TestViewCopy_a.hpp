@@ -147,6 +147,40 @@ TEST(TEST_CATEGORY, view_copy_tests) {
       Kokkos::deep_copy(s_a, hs_a);
       ASSERT_TRUE(run_check(s_a, 6));
     }
+  } else {
+    // These copies won't succeed, but they should each throw
+    // an exception whose message contains the view labels,
+    // and the names of the views' memory spaces.
+    //
+    // Note: original a,b both have the same device type,
+    // and their mirrors have the same device type.
+    using memory_space        = typename decltype(a)::memory_space;
+    using mirror_memory_space = typename decltype(h_a)::memory_space;
+    bool threw                = false;
+    std::string msg;
+    try {
+      Kokkos::deep_copy(hs_b, s_b);
+    } catch (std::exception& e) {
+      threw = true;
+      msg   = e.what();
+    }
+    ASSERT_TRUE(threw);
+    ASSERT_NE(msg.find(hs_b.label()), std::string::npos);
+    ASSERT_NE(msg.find(s_b.label()), std::string::npos);
+    ASSERT_NE(msg.find(memory_space().name()), std::string::npos);
+    ASSERT_NE(msg.find(mirror_memory_space().name()), std::string::npos);
+    threw = false;
+    try {
+      Kokkos::deep_copy(s_a, hs_a);
+    } catch (std::exception& e) {
+      threw = true;
+      msg   = e.what();
+    }
+    ASSERT_TRUE(threw);
+    ASSERT_NE(msg.find(s_a.label()), std::string::npos);
+    ASSERT_NE(msg.find(hs_a.label()), std::string::npos);
+    ASSERT_NE(msg.find(memory_space().name()), std::string::npos);
+    ASSERT_NE(msg.find(mirror_memory_space().name()), std::string::npos);
   }
 
   // Contiguous copies

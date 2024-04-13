@@ -46,9 +46,9 @@ class Kokkos::Impl::ParallelFor<FunctorType, Kokkos::TeamPolicy<Properties...>,
   int m_shmem_size;
   sycl::device_ptr<char> m_global_scratch_ptr;
   size_t m_scratch_size[2];
-  // Only let one ParallelFor/Reduce modify the team scratch memory. The
-  // constructor acquires the mutex which is released in the destructor.
-  std::scoped_lock<std::mutex> m_scratch_lock;
+  // Only let one ParallelFor instance at a time use the team scratch memory.
+  // The constructor acquires the mutex which is released in the destructor.
+  std::scoped_lock<std::mutex> m_scratch_buffers_lock;
   int m_scratch_pool_id = -1;
 
   template <typename FunctorWrapper>
@@ -58,6 +58,8 @@ class Kokkos::Impl::ParallelFor<FunctorType, Kokkos::TeamPolicy<Properties...>,
     // Convenience references
     const Kokkos::Experimental::SYCL& space = policy.space();
     sycl::queue& q                          = space.sycl_queue();
+
+    desul::ensure_sycl_lock_arrays_on_device(q);
 
     auto parallel_for_event = q.submit([&](sycl::handler& cgh) {
       // FIXME_SYCL accessors seem to need a size greater than zero at least for
@@ -74,7 +76,8 @@ class Kokkos::Impl::ParallelFor<FunctorType, Kokkos::TeamPolicy<Properties...>,
 
       auto lambda = [=](sycl::nd_item<2> item) {
         const member_type team_member(
-            team_scratch_memory_L0.get_pointer(), shmem_begin, scratch_size[0],
+            KOKKOS_IMPL_SYCL_GET_MULTI_PTR(team_scratch_memory_L0), shmem_begin,
+            scratch_size[0],
             global_scratch_ptr + item.get_group(1) * scratch_size[1],
             scratch_size[1], item, item.get_group_linear_id(),
             item.get_group_range(1));
@@ -141,9 +144,9 @@ class Kokkos::Impl::ParallelFor<FunctorType, Kokkos::TeamPolicy<Properties...>,
         m_league_size(arg_policy.league_size()),
         m_team_size(arg_policy.team_size()),
         m_vector_size(arg_policy.impl_vector_length()),
-        m_scratch_lock(arg_policy.space()
-                           .impl_internal_space_instance()
-                           ->m_team_scratch_mutex) {
+        m_scratch_buffers_lock(arg_policy.space()
+                                   .impl_internal_space_instance()
+                                   ->m_team_scratch_mutex) {
     // FIXME_SYCL optimize
     if (m_team_size < 0)
       m_team_size =

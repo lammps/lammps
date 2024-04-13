@@ -885,7 +885,7 @@ KOKKOS_INLINE_FUNCTION
     closure(i, accum, false);
   }
 
-  auto team_member = loop_boundaries.thread;
+  auto& team_member = loop_boundaries.thread;
 
   // 'accum' output is the exclusive prefix sum
   accum = team_member.team_scan(accum);

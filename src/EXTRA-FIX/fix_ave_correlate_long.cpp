@@ -454,6 +454,8 @@ void FixAveCorrelateLong::end_of_step()
         scalar = val.val.f->compute_vector(val.argindex-1);
 
     // evaluate equal-style or vector-style variable
+    // if index exceeds vector length, use a zero value
+    //   this can be useful if vector length is not known a priori
 
     } else if (val.which == ArgInfo::VARIABLE) {
       if (val.argindex == 0)
@@ -462,7 +464,7 @@ void FixAveCorrelateLong::end_of_step()
         double *varvec;
         int nvec = input->variable->compute_vector(val.val.v,&varvec);
         int index = val.argindex;
-        if (nvec < index) scalar = 0.0;
+        if (index > nvec) scalar = 0.0;
         else scalar = varvec[index-1];
       }
     }

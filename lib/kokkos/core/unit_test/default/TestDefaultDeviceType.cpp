@@ -32,16 +32,13 @@ TEST(TEST_CATEGORY, host_space_access) {
       Kokkos::Impl::HostMirror<Kokkos::DefaultExecutionSpace>::Space;
 
   static_assert(Kokkos::SpaceAccessibility<host_exec_space,
-                                           Kokkos::HostSpace>::accessible,
-                "");
+                                           Kokkos::HostSpace>::accessible);
 
   static_assert(
-      Kokkos::SpaceAccessibility<device_space, Kokkos::HostSpace>::accessible,
-      "");
+      Kokkos::SpaceAccessibility<device_space, Kokkos::HostSpace>::accessible);
 
   static_assert(
-      Kokkos::SpaceAccessibility<mirror_space, Kokkos::HostSpace>::accessible,
-      "");
+      Kokkos::SpaceAccessibility<mirror_space, Kokkos::HostSpace>::accessible);
 }
 
 }  // namespace Test

@@ -22,21 +22,15 @@
 #include <utility> // index_sequence
 
 namespace MDSPAN_IMPL_STANDARD_NAMESPACE {
-namespace MDSPAN_IMPL_PROPOSED_NAMESPACE {
 //******************************************
 // Return type of submdspan_mapping overloads
 //******************************************
-template <class Mapping> struct mapping_offset {
-  Mapping mapping;
+template <class LayoutMapping> struct submdspan_mapping_result {
+  _MDSPAN_NO_UNIQUE_ADDRESS LayoutMapping mapping{};
   size_t offset;
 };
-} // namespace MDSPAN_IMPL_PROPOSED_NAMESPACE
 
 namespace detail {
-using MDSPAN_IMPL_PROPOSED_NAMESPACE::detail::first_of;
-using MDSPAN_IMPL_PROPOSED_NAMESPACE::detail::stride_of;
-using MDSPAN_IMPL_PROPOSED_NAMESPACE::detail::inv_map_rank;
-
 // constructs sub strides
 template <class SrcMapping, class... slice_strides, size_t... InvMapIdxs>
 MDSPAN_INLINE_FUNCTION
@@ -98,17 +92,15 @@ struct preserve_layout_left_mapping<std::index_sequence<Idx...>, SubRank,
     #pragma    diag_suppress = implicit_return_from_non_void_function
 #endif
 // Actual submdspan mapping call
-template <class Extents, class... SliceSpecifiers>
+template <class Extents>
+template <class... SliceSpecifiers>
 MDSPAN_INLINE_FUNCTION
 constexpr auto
-submdspan_mapping(const layout_left::mapping<Extents> &src_mapping,
-                  SliceSpecifiers... slices) {
-  using MDSPAN_IMPL_PROPOSED_NAMESPACE::submdspan_extents;
-  using MDSPAN_IMPL_PROPOSED_NAMESPACE::mapping_offset;
+layout_left::mapping<Extents>::submdspan_mapping_impl(SliceSpecifiers... slices) const {
 
   // compute sub extents
   using src_ext_t = Extents;
-  auto dst_ext = submdspan_extents(src_mapping.extents(), slices...);
+  auto dst_ext = submdspan_extents(extents(), slices...);
   using dst_ext_t = decltype(dst_ext);
 
   // figure out sub layout type
@@ -121,18 +113,18 @@ submdspan_mapping(const layout_left::mapping<Extents> &src_mapping,
 
   if constexpr (std::is_same_v<dst_layout_t, layout_left>) {
     // layout_left case
-    return mapping_offset<dst_mapping_t>{
+    return submdspan_mapping_result<dst_mapping_t>{
         dst_mapping_t(dst_ext),
-        static_cast<size_t>(src_mapping(detail::first_of(slices)...))};
+        static_cast<size_t>(this->operator()(detail::first_of(slices)...))};
   } else {
     // layout_stride case
     auto inv_map = detail::inv_map_rank(
       std::integral_constant<size_t,0>(),
       std::index_sequence<>(),
       slices...);
-    return mapping_offset<dst_mapping_t>{
+    return submdspan_mapping_result<dst_mapping_t>{
         dst_mapping_t(dst_ext, detail::construct_sub_strides(
-                                   src_mapping, inv_map,
+                                   *this, inv_map,
     // HIP needs deduction guides to have markups so we need to be explicit
     // NVCC 11.0 has a bug with deduction guide here, tested that 11.2 does not have the issue
     #if defined(_MDSPAN_HAS_HIP) || (defined(__NVCC__) && (__CUDACC_VER_MAJOR__ * 100 + __CUDACC_VER_MINOR__ * 10) < 1120)
@@ -140,7 +132,7 @@ submdspan_mapping(const layout_left::mapping<Extents> &src_mapping,
     #else
                                    std::tuple{detail::stride_of(slices)...})),
     #endif
-        static_cast<size_t>(src_mapping(detail::first_of(slices)...))};
+        static_cast<size_t>(this->operator()(detail::first_of(slices)...))};
   }
 #if defined(__NVCC__) && !defined(__CUDA_ARCH__) && defined(__GNUC__)
   __builtin_unreachable();
@@ -207,17 +199,15 @@ struct preserve_layout_right_mapping<std::index_sequence<Idx...>, SubRank,
     #pragma    diagnostic push
     #pragma    diag_suppress = implicit_return_from_non_void_function
 #endif
-template <class Extents, class... SliceSpecifiers>
+template <class Extents>
+template <class... SliceSpecifiers>
 MDSPAN_INLINE_FUNCTION
 constexpr auto
-submdspan_mapping(const layout_right::mapping<Extents> &src_mapping,
-                  SliceSpecifiers... slices) {
-  using MDSPAN_IMPL_PROPOSED_NAMESPACE::submdspan_extents;
-  using MDSPAN_IMPL_PROPOSED_NAMESPACE::mapping_offset;
-
+layout_right::mapping<Extents>::submdspan_mapping_impl(
+                  SliceSpecifiers... slices) const {
   // get sub extents
   using src_ext_t = Extents;
-  auto dst_ext = submdspan_extents(src_mapping.extents(), slices...);
+  auto dst_ext = submdspan_extents(extents(), slices...);
   using dst_ext_t = decltype(dst_ext);
 
   // determine new layout type
@@ -230,18 +220,18 @@ submdspan_mapping(const layout_right::mapping<Extents> &src_mapping,
 
   if constexpr (std::is_same_v<dst_layout_t, layout_right>) {
     // layout_right case
-    return mapping_offset<dst_mapping_t>{
+    return submdspan_mapping_result<dst_mapping_t>{
         dst_mapping_t(dst_ext),
-        static_cast<size_t>(src_mapping(detail::first_of(slices)...))};
+        static_cast<size_t>(this->operator()(detail::first_of(slices)...))};
   } else {
     // layout_stride case
     auto inv_map = detail::inv_map_rank(
       std::integral_constant<size_t,0>(),
       std::index_sequence<>(),
       slices...);
-    return mapping_offset<dst_mapping_t>{
+    return submdspan_mapping_result<dst_mapping_t>{
         dst_mapping_t(dst_ext, detail::construct_sub_strides(
-                                   src_mapping, inv_map,
+                                   *this, inv_map,
     // HIP needs deduction guides to have markups so we need to be explicit
     // NVCC 11.0 has a bug with deduction guide here, tested that 11.2 does not have the issue
     #if defined(_MDSPAN_HAS_HIP) || (defined(__NVCC__) && (__CUDACC_VER_MAJOR__ * 100 + __CUDACC_VER_MINOR__ * 10) < 1120)
@@ -249,7 +239,7 @@ submdspan_mapping(const layout_right::mapping<Extents> &src_mapping,
     #else
                                    std::tuple{detail::stride_of(slices)...})),
     #endif
-        static_cast<size_t>(src_mapping(detail::first_of(slices)...))};
+        static_cast<size_t>(this->operator()(detail::first_of(slices)...))};
   }
 #if defined(__NVCC__) && !defined(__CUDA_ARCH__) && defined(__GNUC__)
   __builtin_unreachable();
@@ -270,23 +260,22 @@ submdspan_mapping(const layout_right::mapping<Extents> &src_mapping,
 //**********************************
 // layout_stride submdspan_mapping
 //*********************************
-template <class Extents, class... SliceSpecifiers>
+template <class Extents>
+template <class... SliceSpecifiers>
 MDSPAN_INLINE_FUNCTION
 constexpr auto
-submdspan_mapping(const layout_stride::mapping<Extents> &src_mapping,
-                  SliceSpecifiers... slices) {
-  using MDSPAN_IMPL_PROPOSED_NAMESPACE::submdspan_extents;
-  using MDSPAN_IMPL_PROPOSED_NAMESPACE::mapping_offset;
-  auto dst_ext = submdspan_extents(src_mapping.extents(), slices...);
+layout_stride::mapping<Extents>::submdspan_mapping_impl(
+                  SliceSpecifiers... slices) const {
+  auto dst_ext = submdspan_extents(extents(), slices...);
   using dst_ext_t = decltype(dst_ext);
   auto inv_map = detail::inv_map_rank(
       std::integral_constant<size_t,0>(),
       std::index_sequence<>(),
       slices...);
   using dst_mapping_t = typename layout_stride::template mapping<dst_ext_t>;
-  return mapping_offset<dst_mapping_t>{
+  return submdspan_mapping_result<dst_mapping_t>{
       dst_mapping_t(dst_ext, detail::construct_sub_strides(
-                                 src_mapping, inv_map,
+                                 *this, inv_map,
     // HIP needs deduction guides to have markups so we need to be explicit
     // NVCC 11.0 has a bug with deduction guide here, tested that 11.2 does not have the issue
     #if defined(_MDSPAN_HAS_HIP) || (defined(__NVCC__) && (__CUDACC_VER_MAJOR__ * 100 + __CUDACC_VER_MINOR__ * 10) < 1120)
@@ -294,6 +283,7 @@ submdspan_mapping(const layout_stride::mapping<Extents> &src_mapping,
 #else
                                  std::tuple(detail::stride_of(slices)...))),
 #endif
-      static_cast<size_t>(src_mapping(detail::first_of(slices)...))};
+      static_cast<size_t>(this->operator()(detail::first_of(slices)...))};
 }
+
 } // namespace MDSPAN_IMPL_STANDARD_NAMESPACE

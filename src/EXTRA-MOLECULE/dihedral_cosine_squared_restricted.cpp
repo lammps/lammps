@@ -59,7 +59,7 @@ void DihedralCosineSquaredRestricted::compute(int eflag, int vflag)
   double edihedral, f1[3], f2[3], f3[3], f4[3];
   double sb1, sb2, sb3, rb1, rb3, c0, b1mag2, b1mag, b2mag2;
   double b2mag, b3mag2, b3mag, ctmp, r12c1, c1mag, r12c2;
-  double c2mag, sc1, sc2, s1, s12, c, p, pd, a, a11, a22;
+  double c2mag, sc1, sc2, s1, s12, c, pd, a, a11, a22;
   double a33, a12, a13, a23, sx2, sy2, sz2;
   double s2, sin2;
 
@@ -155,8 +155,6 @@ void DihedralCosineSquaredRestricted::compute(int eflag, int vflag)
     if (c < -1.0) c = -1.0;
 
     // force & energy
-    // p = sum (i=1,5) a_i * c**(i-1)
-    // pd = dp/dc
 
     double p0 = cos(phi0[type]);
     double sq_sin = 1.0 - c * c;

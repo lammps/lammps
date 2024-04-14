@@ -196,7 +196,7 @@ class Atom(object):
 
     :type: float
     """
-    return self.get("mass", self.index)
+    return self.get("mass", self.type)
 
   @property
   def radius(self):

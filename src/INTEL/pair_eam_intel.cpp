@@ -234,7 +234,7 @@ void PairEAMIntel::eval(const int offload, const int vflag,
   const int istride = fc.rhor_istride();
   const int jstride = fc.rhor_jstride();
   const int fstride = fc.frho_stride();
-
+  int beyond_rhomax = 0;
   {
     #if defined(__MIC__) && defined(_LMP_INTEL_OFFLOAD)
     *timer_compute = MIC_Wtime();
@@ -453,7 +453,10 @@ void PairEAMIntel::eval(const int offload, const int vflag,
         if (EFLAG) {
           flt_t phi = ((frho_spline_e[ioff].a*p + frho_spline_e[ioff].b)*p +
                        frho_spline_e[ioff].c)*p + frho_spline_e[ioff].d;
-          if (rho[i] > frhomax) phi += fp_f[i] * (rho[i]-frhomax);
+          if (rho[i] > frhomax) {
+            phi += fp_f[i] * (rho[i]-frhomax);
+            beyond_rhomax = 1;
+          }
           if (!ONETYPE) {
             const int ptr_off=itype*ntypes + itype;
             oscale = scale_f[ptr_off];
@@ -653,6 +656,16 @@ void PairEAMIntel::eval(const int offload, const int vflag,
   else
     fix->stop_watch(TIME_HOST_PAIR);
 
+  if (EFLAG && (exceeded_rhomax >= 0)) {
+    MPI_Allreduce(&beyond_rhomax, &exceeded_rhomax, 1, MPI_INT, MPI_MAX, world);
+    if (exceeded_rhomax > 0) {
+      if (comm->me == 0)
+        error->warning(FLERR, "Local rho[i] exceeded rhomax of EAM potential table. "
+                       "Computed embedding term is unreliable.");
+      exceeded_rhomax = -1;
+    }
+  }
+
   if (EFLAG || vflag)
     fix->add_result_array(f_start, ev_global, offload, eatom, 0, vflag);
   else
@@ -849,4 +862,3 @@ void PairEAMIntel::unpack_forward_comm(int n, int first, double *buf,
   last = first + n;
   for (i = first; i < last; i++) fp_f[i] = buf[m++];
 }
-

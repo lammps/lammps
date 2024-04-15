@@ -47,6 +47,11 @@ class uf3_triplet_bspline {
   uf3_triplet_bspline(LAMMPS *ulmp, const std::vector<std::vector<double>> &uknot_matrix,
                       const std::vector<std::vector<std::vector<double>>> &ucoeff_matrix,
                       const int &uknot_spacing_type);
+  
+  uf3_triplet_bspline(LAMMPS *ulmp, double **uknot_array, const int *uknot_array_size,
+                      double ***ucoeff_array, const int *ucoeff_array_size,
+                      const int &uknot_spacing_type);
+
   ~uf3_triplet_bspline();
   int knot_spacing_type;
   double knot_spacing_ij=0,knot_spacing_ik=0,knot_spacing_jk=0;

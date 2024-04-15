@@ -47,6 +47,8 @@ private:
 
     // torch model in metatensor format
     std::unique_ptr<torch::jit::Module> torch_model;
+    // device to use for the calculations
+    torch::Device device;
     // model capabilities, declared by the model
     metatensor_torch::ModelCapabilities capabilities;
     // run-time evaluation options, decided by this class

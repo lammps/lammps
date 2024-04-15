@@ -87,7 +87,7 @@ public:
     void add_nl_request(double cutoff, metatensor_torch::NeighborsListOptions request);
 
     // Create a metatensor system matching the LAMMPS system data
-    metatensor_torch::System system_from_lmp(bool do_virial, torch::Dtype dtype);
+    metatensor_torch::System system_from_lmp(bool do_virial, torch::ScalarType dtype, torch::Device device);
 
     // explicit strain for virial calculations
     torch::Tensor strain;

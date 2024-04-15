@@ -27,7 +27,13 @@
 
 #include "neigh_list.h"
 
+#include <torch/version.h>
 #include <torch/script.h>
+#include <torch/cuda.h>
+
+#if TORCH_VERSION_MAJOR >= 2
+    #include <torch/mps.h>
+#endif
 
 #include <metatensor/torch.hpp>
 #include <metatensor/torch/atomistic.hpp>
@@ -40,7 +46,8 @@ using namespace LAMMPS_NS;
 
 PairMetatensor::PairMetatensor(LAMMPS *lmp):
     Pair(lmp),
-    system_adaptor(nullptr)
+    system_adaptor(nullptr),
+    device(torch::kCPU)
 {
     auto options = torch::TensorOptions().dtype(torch::kInt32);
     this->selected_atoms_values = torch::zeros({0, 2}, options);
@@ -94,17 +101,19 @@ void PairMetatensor::settings(int argc, char ** argv) {
         error->all(FLERR, "expected at least 1 argument to pair_style metatensor, got {}", argc);
     }
 
+    const char* model_path = argv[0];
     const char* extensions_directory = nullptr;
+    const char* requested_device = nullptr;
     for (int i=1; i<argc; i++) {
         if (strcmp(argv[i], "check_consistency") == 0) {
             if (i == argc - 1) {
-                error->all(FLERR, "expected on/off after check_consistency in pair_style metatensor, got nothing");
+                error->all(FLERR, "expected <on/off> after 'check_consistency' in pair_style metatensor, got nothing");
             } else if (strcmp(argv[i + 1], "on") == 0) {
                 this->check_consistency = true;
             } else if (strcmp(argv[i + 1], "off") == 0) {
                 this->check_consistency = false;
             } else {
-                error->all(FLERR, "expected on/off after check_consistency in pair_style metatensor, got '{}'", argv[i + 1]);
+                error->all(FLERR, "expected <on/off> after 'check_consistency' in pair_style metatensor, got '{}'", argv[i + 1]);
             }
 
             i += 1;
@@ -114,12 +123,87 @@ void PairMetatensor::settings(int argc, char ** argv) {
             }
             extensions_directory = argv[i + 1];
             i += 1;
+        } else if (strcmp(argv[i], "device") == 0) {
+            if (i == argc - 1) {
+                error->all(FLERR, "expected string after 'device' in pair_style metatensor, got nothing");
+            }
+            requested_device = argv[i + 1];
+            i += 1;
         } else {
             error->all(FLERR, "unexpected argument to pair_style metatensor: '{}'", argv[i]);
         }
     }
 
-    this->load_torch_model(argv[0], extensions_directory);
+    this->load_torch_model(model_path, extensions_directory);
+
+    // Select the device to use based on the model's preference, the user choice
+    // and what's available.
+    auto available_devices = std::vector<torch::Device>();
+    for (const auto& device: this->capabilities->supported_devices) {
+        if (device == "cpu") {
+            available_devices.push_back(torch::kCPU);
+        } else if (device == "cuda") {
+            if (torch::cuda::is_available()) {
+                available_devices.push_back(torch::Device("cuda"));
+            }
+        } else if (device == "mps") {
+            #if TORCH_VERSION_MAJOR >= 2
+            if (torch::mps::is_available()) {
+                available_devices.push_back(torch::Device("mps"));
+            }
+            #endif
+        } else {
+            error->warning(FLERR,
+                "the model declared support for unknown device '{}', it will be ignored", device
+            );
+        }
+    }
+
+    if (available_devices.empty()) {
+        error->all(FLERR,
+            "failed to find a valid device for the model at '{}': "
+            "the model supports {}, none of these where available",
+            model_path, torch::str(this->capabilities->supported_devices)
+        );
+    }
+
+    if (requested_device == nullptr) {
+        // no user request, pick the device the model prefers
+        this->device = available_devices[0];
+    } else {
+        bool found_requested_device = false;
+        for (const auto& device: available_devices) {
+            if (device.is_cpu() && strcmp(requested_device, "cpu") == 0) {
+                this->device = device;
+                found_requested_device = true;
+                break;
+            } else if (device.is_cuda() && strcmp(requested_device, "cuda") == 0) {
+                this->device = device;
+                found_requested_device = true;
+                break;
+            } else if (device.is_mps() && strcmp(requested_device, "mps") == 0) {
+                this->device = device;
+                found_requested_device = true;
+                break;
+            }
+        }
+
+        if (!found_requested_device) {
+            error->all(FLERR,
+                "failed to find requested device ({}): it is either "
+                "not supported by this model or not available on this machine",
+                requested_device
+            );
+        }
+    }
+
+    auto message = "Running simulation on " + this->device.str() + " device with " + this->capabilities->dtype() + " data";
+    if (screen) {
+        fprintf(screen, "%s\n", message.c_str());
+    }
+    if (logfile) {
+        fprintf(logfile,"%s\n", message.c_str());
+    }
 
     if (!allocated) {
         allocate();
@@ -260,13 +344,13 @@ void PairMetatensor::compute(int eflag, int vflag) {
     if (this->capabilities->dtype() == "float64") {
         dtype = torch::kFloat64;
     } else if (this->capabilities->dtype() == "float32") {
-        dtype = torch::kFloat64;
+        dtype = torch::kFloat32;
     } else {
         error->all(FLERR, "the model requested an unsupported dtype '{}'", this->capabilities->dtype());
     }
 
     // transform from LAMMPS to metatensor System
-    auto system = system_adaptor->system_from_lmp(static_cast<bool>(vflag_global), dtype);
+    auto system = system_adaptor->system_from_lmp(static_cast<bool>(vflag_global), dtype, this->device);
 
     // only run the calculation for atoms actually in the current domain
     selected_atoms_values.resize_({atom->nlocal, 2});
@@ -277,7 +361,7 @@ void PairMetatensor::compute(int eflag, int vflag) {
     auto selected_atoms = torch::make_intrusive<metatensor_torch::LabelsHolder>(
         std::vector<std::string>{"system", "atom"}, selected_atoms_values
     );
-    evaluation_options->set_selected_atoms(selected_atoms);
+    evaluation_options->set_selected_atoms(selected_atoms->to(this->device));
 
     torch::IValue result_ivalue;
     try {
@@ -293,30 +377,31 @@ void PairMetatensor::compute(int eflag, int vflag) {
     auto result = result_ivalue.toGenericDict();
     auto energy = result.at("energy").toCustomClass<metatensor_torch::TensorMapHolder>();
     auto energy_tensor = metatensor_torch::TensorMapHolder::block_by_id(energy, 0)->values();
-    energy_tensor = energy_tensor.to(torch::kCPU).to(torch::kFloat64);
+    auto energy_detached = energy_tensor.detach().to(torch::kCPU).to(torch::kFloat64);
 
     // store the energy returned by the model
     torch::Tensor global_energy;
     if (eflag_atom) {
-        auto energies = energy_tensor.accessor<double, 2>();
+        auto energies = energy_detached.accessor<double, 2>();
         for (int i=0; i<atom->nlocal + atom->nghost; i++) {
+            // TODO: handle out of order samples
             eatom[i] += energies[i][0];
         }
 
-        global_energy = energy_tensor.sum(0);
-        assert(energy_tensor.sizes() == std::vector<int64_t>({1}));
+        global_energy = energy_detached.sum(0);
+        assert(energy_detached.sizes() == std::vector<int64_t>({1}));
     } else {
-        assert(energy_tensor.sizes() == std::vector<int64_t>({1, 1}));
-        global_energy = energy_tensor.reshape({1});
+        assert(energy_detached.sizes() == std::vector<int64_t>({1, 1}));
+        global_energy = energy_detached.reshape({1});
     }
 
     if (eflag_global) {
-        eng_vdwl += energy_tensor.item<double>();
+        eng_vdwl += global_energy.item<double>();
     }
 
     // compute forces/virial with backward propagation
     energy_tensor.backward(-torch::ones_like(energy_tensor));
-    auto forces_tensor = system->positions().grad();
+    auto forces_tensor = system->positions().grad().to(torch::kCPU).to(torch::kFloat64);
     auto forces = forces_tensor.accessor<double, 2>();
     for (int i=0; i<atom->nlocal + atom->nghost; i++) {
         atom->f[i][0] += forces[i][0];
@@ -327,7 +412,7 @@ void PairMetatensor::compute(int eflag, int vflag) {
     assert(!vflag_fdotr);
 
     if (vflag_global) {
-        auto virial_tensor = system_adaptor->strain.grad();
+        auto virial_tensor = system_adaptor->strain.grad().to(torch::kCPU).to(torch::kFloat64);
         auto predicted_virial = virial_tensor.accessor<double, 2>();
 
         virial[0] += predicted_virial[0][0];
@@ -368,23 +453,6 @@ void PairMetatensor::load_torch_model(
 
     auto capabilities_ivalue = this->torch_model->run_method("capabilities");
     this->capabilities = capabilities_ivalue.toCustomClass<metatensor_torch::ModelCapabilitiesHolder>();
-
-    // get the model's preferred devices
-    bool found_valid_device = false;
-    for (const auto& device: this->capabilities->supported_devices) {
-        if (device == "cpu") {
-            found_valid_device = true;
-            break;
-        }
-    }
-
-    if (!found_valid_device) {
-        error->all(FLERR,
-            "failed to find a valid device for the model at '{}': "
-            "only 'cpu' is currently supported by LAMMPS, and the model supports {}",
-            path, torch::str(this->capabilities->supported_devices)
-        );
-    }
 
     if (lmp->comm->me == 0) {
         auto metadata_ivalue = this->torch_model->run_method("metadata");

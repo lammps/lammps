@@ -116,11 +116,12 @@ static std::array<int32_t, 3> cell_shifts(
 
 void MetatensorSystemAdaptor::setup_neighbors(metatensor_torch::System& system) {
     auto dtype = system->positions().scalar_type();
+    auto device = system->positions().device();
 
     double** x = atom->x;
     auto total_n_atoms = atom->nlocal + atom->nghost;
 
-    auto cell_inv_tensor = system->cell().inverse().t();
+    auto cell_inv_tensor = system->cell().inverse().t().to(torch::kCPU).to(torch::kFloat64);
     auto cell_inv_accessor = cell_inv_tensor.accessor<double, 2>();
     auto cell_inv = std::array<std::array<double, 3>, 3>{{
         {{cell_inv_accessor[0][0], cell_inv_accessor[0][1], cell_inv_accessor[0][2]}},
@@ -326,12 +327,12 @@ void MetatensorSystemAdaptor::setup_neighbors(metatensor_torch::System& system) 
         }
 
         auto neighbors = torch::make_intrusive<metatensor_torch::TensorBlockHolder>(
-            distances_vectors,
-            samples,
+            distances_vectors.to(dtype).to(device),
+            samples->to(device),
             std::vector<metatensor_torch::TorchLabels>{
-                metatensor_torch::LabelsHolder::create({"xyz"}, {{0}, {1}, {2}}),
+                metatensor_torch::LabelsHolder::create({"xyz"}, {{0}, {1}, {2}})->to(device),
             },
-            metatensor_torch::LabelsHolder::create({"distance"}, {{0}})
+            metatensor_torch::LabelsHolder::create({"distance"}, {{0}})->to(device)
         );
 
         metatensor_torch::register_autograd_neighbors(system, neighbors, options_.check_consistency);
@@ -340,7 +341,11 @@ void MetatensorSystemAdaptor::setup_neighbors(metatensor_torch::System& system) 
 }
 
 
-metatensor_torch::System MetatensorSystemAdaptor::system_from_lmp(bool do_virial, torch::Dtype dtype) {
+metatensor_torch::System MetatensorSystemAdaptor::system_from_lmp(
+    bool do_virial,
+    torch::ScalarType dtype,
+    torch::Device device
+) {
     double** x = atom->x;
     auto total_n_atoms = atom->nlocal + atom->nghost;
 
@@ -368,8 +373,11 @@ metatensor_torch::System MetatensorSystemAdaptor::system_from_lmp(bool do_virial
     cell[2][1] = domain->yz;
     cell[2][2] = domain->zprd;
 
+    positions = positions.to(dtype).to(device);
+    cell = cell.to(dtype).to(device);
+
     if (do_virial) {
-        this->strain = torch::eye(3, tensor_options.requires_grad(true));
+        this->strain = torch::eye(3, torch::TensorOptions().dtype(dtype).device(device).requires_grad(true));
 
         // pretend to scale positions/cell by the strain so that it enters the
         // computational graph.
@@ -380,9 +388,9 @@ metatensor_torch::System MetatensorSystemAdaptor::system_from_lmp(bool do_virial
     }
 
     auto system = torch::make_intrusive<metatensor_torch::SystemHolder>(
-        atomic_types_,
-        positions.to(dtype),
-        cell.to(dtype)
+        atomic_types_.to(device),
+        positions,
+        cell
     );
 
     this->setup_neighbors(system);

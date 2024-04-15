@@ -298,6 +298,11 @@ whether an extra library is needed to build and use the package:
      - :doc:`pair_style mliap <pair_mliap>`
      - mliap
      - no
+   * - :ref:`ML-METATENSOR <PKG-ML-METATENSOR>`
+     - interface to metatensor powered machine-learning potentials
+     - :doc:`pair_style metatensor <pair_metatensor>`
+     - metatensor
+     - ext
    * - :ref:`ML-PACE <PKG-ML-PACE>`
      - Atomic Cluster Expansion potential
      - :doc:`pair pace <pair_pace>`

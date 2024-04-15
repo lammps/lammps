@@ -434,6 +434,8 @@ void PairMetatensor::load_torch_model(
     const char* path,
     const char* extensions_directory
 ) {
+    // TODO: seach for the model & extensions inside `$LAMMPS_POTENTIALS`?
+
     if (this->torch_model != nullptr) {
         error->all(FLERR, "torch model is already loaded");
     }

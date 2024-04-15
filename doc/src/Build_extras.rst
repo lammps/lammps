@@ -48,6 +48,7 @@ This is the list of packages that may require additional steps.
    * :ref:`MDI <mdi>`
    * :ref:`ML-HDNNP <ml-hdnnp>`
    * :ref:`ML-IAP <mliap>`
+   * :ref:`ML-METATENSOR <metatensor>`
    * :ref:`ML-PACE <ml-pace>`
    * :ref:`ML-POD <ml-pod>`
    * :ref:`ML-QUIP <ml-quip>`
@@ -972,6 +973,63 @@ Python version 3.6 or later.
       folder, as that can lead to compilation errors if Python support
       is not enabled.  If you did this by accident, please remove the
       generated .cpp and .h files.
+
+----------
+
+.. _metatensor:
+
+ML-METATENSOR package
+---------------------
+
+Building the ML-METATENSOR package requires three external dependencies: the C++
+version of ``libtorch``, the core ``metatensor`` library, and the
+``metatensor-torch`` library. You'll need to install ``libtorch`` manually,
+either by installing PyTorch with a Python package manager (``pip`` or
+``conda``), or by downloading the right prebuilt version of the code from
+https://pytorch.org/get-started/locally/.
+
+.. TODO: We should allow users to build the code with a different
+.. installation of metatensor/metatensor-torch, in particular pre-built
+.. versions from pip or conda.
+
+
+.. tabs::
+
+   .. tab:: CMake build
+
+      If you use the CMake build system of LAMMPS, ``metatensor`` and
+      ``metatensor-torch`` will automatically be downloaded and built for you,
+      using a compatible version for the current code. Building the core
+      ``metatensor`` library this way requires a `Rust <https://rust-lang.org>`_
+      compiler (version 1.65 or higher), which you can get using `rustup
+      <https://rustup.rs/>`_.
+
+      First, you should run the following code in a bash (or bash-compatible)
+      shell to tell CMake where to find ``libtorch``:
+
+      .. code-block:: bash
+
+         # point this to the path where you extracted the C++ libtorch
+         TORCH_PREFIX=<path/to/torch/installation>
+         # if you used Python to install torch, you can do this:
+         TORCH_PREFIX=$(python -c "import torch; print(torch.utils.cmake_prefix_path)")
+
+         # patch a bug from torch's MKL detection
+         cd <path/to/LAMMPS/sources>
+         ./src/ML-METATENSOR/patch-torch.sh "$TORCH_PREFIX"
+
+
+      Once PyTorch has been installed and patched, you'll need to use the
+      following CMake options:
+
+      .. code-block:: bash
+
+         -DPKG_ML-METATENSOR=ON
+         -DCMAKE_PREFIX_PATH="$TORCH_PREFIX"
+
+   .. tab:: Traditional make
+
+      This is not yet implemented, use CMake for now.
 
 ----------
 

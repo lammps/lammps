@@ -211,6 +211,7 @@ OPT.
    * :doc:`meam/sw/spline <pair_meam_sw_spline>`
    * :doc:`mesocnt <pair_mesocnt>`
    * :doc:`mesocnt/viscous <pair_mesocnt>`
+   * :doc:`metatensor <pair_metatensor>`
    * :doc:`mgpt <pair_mgpt>`
    * :doc:`mie/cut (g) <pair_mie>`
    * :doc:`mliap (k) <pair_mliap>`

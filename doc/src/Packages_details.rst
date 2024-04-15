@@ -80,6 +80,7 @@ page gives those details.
    * :ref:`MISC <PKG-MISC>`
    * :ref:`ML-HDNNP <PKG-ML-HDNNP>`
    * :ref:`ML-IAP <PKG-ML-IAP>`
+   * :ref:`ML-METATENSOR <PKG-ML-METATENSOR>`
    * :ref:`ML-PACE <PKG-ML-PACE>`
    * :ref:`ML-POD <PKG-ML-POD>`
    * :ref:`ML-QUIP <PKG-ML-QUIP>`
@@ -1784,6 +1785,37 @@ coupling with Python models, including PyTorch. In this case, the Python
 interpreter linked to LAMMPS will need the ``cython`` and ``numpy`` modules
 installed.  The provided examples build models with PyTorch, which would
 therefore also needs to be installed to run those examples.
+
+----------
+
+.. _PKG-ML-METATENSOR:
+
+ML-METATENSOR package
+---------------------
+
+**Contents:**
+
+This package provides a pair style which allow using arbitrary machine learning
+models that follow the `metatensor interface`_. These models are based on
+`PyTorch`_ and can predict the energy of a system using a variety of machine
+learning technics. Users can defined and train their own models with fully
+custom Python code, use separate packages such as `metatensor-models`_ to train
+existing architectures with their own dataset; or use pre-trained models
+provided by others.
+
+.. _metatensor interface: https://lab-cosmo.github.io/metatensor/latest/atomistic/index.html
+.. _PyTorch: https://pytorch.org/
+.. _metatensor-models: https://github.com/lab-cosmo/metatensor-models/
+
+**Author:** Guillaume Fraux (EPFL)
+
+.. versionadded:: TODO
+
+**Supporting info:**
+
+* src/ML-METATENSOR: filenames -> commands
+* :doc:`pair_style metatensor <pair_metatensor>`
+* examples/metatensor
 
 ----------
 

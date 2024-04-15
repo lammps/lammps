@@ -43,7 +43,6 @@ PairEAM::PairEAM(LAMMPS *lmp) : Pair(lmp)
   unit_convert_flag = utils::get_supported_conversions(utils::ENERGY);
 
   nmax = 0;
-  exceeded_rhomax = 0;
   rho = nullptr;
   fp = nullptr;
   numforce = nullptr;
@@ -146,10 +145,11 @@ void PairEAM::compute(int eflag, int vflag)
   double *coeff;
   int *ilist,*jlist,*numneigh,**firstneigh;
 
-  int beyond_rhomax = 0;
   evdwl = 0.0;
   ev_init(eflag,vflag);
 
+  int beyond_rhomax = 0;
+  
   // grow energy and fp arrays if necessary
   // need to be atom->nmax in length
 
@@ -327,13 +327,13 @@ void PairEAM::compute(int eflag, int vflag)
     }
   }
 
-  if (eflag && (exceeded_rhomax >= 0)) {
+  if (eflag && (!exceeded_rhomax)) {
     MPI_Allreduce(&beyond_rhomax, &exceeded_rhomax, 1, MPI_INT, MPI_MAX, world);
-    if (exceeded_rhomax > 0) {
+    if (exceeded_rhomax) {
       if (comm->me == 0)
-        error->warning(FLERR, "Local rho[i] exceeded rhomax of EAM potential table. "
-                       "Computed embedding term is unreliable.");
-      exceeded_rhomax = -1;
+        error->warning(FLERR,
+                       "A per-atom density exceeded rhomax of EAM potential table - "
+                       "a linear extrapolation to the energy was made");
     }
   }
 

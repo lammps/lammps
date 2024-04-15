@@ -64,10 +64,12 @@ class PairEAM : public Pair {
 
  protected:
   int nmax;               // allocated size of per-atom arrays
-  int exceeded_rhomax;    // 0 or 1 when rho[i] exceeded rhomax, -1 when not to check
   double cutforcesq;
   double **scale;
-  bigint embedstep;    // timestep, the embedding term was computed
+  bigint embedstep;       // timestep, the embedding term was computed
+
+  int exceeded_rhomax;    // global flag for whether rho[i] has exceeded rhomax
+                          // on a step energy is computed - 0 = no, 1 = yes
 
   // per-atom arrays
 

@@ -463,6 +463,8 @@
 /angle_cosine_shift_exp.h
 /angle_cosine_squared.cpp
 /angle_cosine_squared.h
+/angle_cosine_squared_restricted.cpp
+/angle_cosine_squared_restricted.h
 /angle_cross.cpp
 /angle_cross.h
 /angle_dipole.cpp
@@ -681,6 +683,8 @@
 /dihedral_class2.h
 /dihedral_cosine_shift_exp.cpp
 /dihedral_cosine_shift_exp.h
+/dihedral_cosine_squared_restricted.cpp
+/dihedral_cosine_squared_restricted.h
 /dihedral_fourier.cpp
 /dihedral_fourier.h
 /dihedral_harmonic.cpp

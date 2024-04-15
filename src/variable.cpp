@@ -1809,12 +1809,16 @@ double Variable::evaluate(char *str, Tree **tree, int ivar)
 
             if (!fix->vector_flag)
               print_var_error(FLERR,"Mismatched fix in variable formula",ivar);
-            if (index1 > fix->size_vector)
+            if (index1 > fix->size_vector && fix->size_vector_variable == 0)
               print_var_error(FLERR,"Variable formula fix vector is accessed out-of-range",ivar,0);
             if (update->whichflag > 0 && update->ntimestep % fix->global_freq)
               print_var_error(FLERR,"Fix in variable not computed at a compatible time",ivar);
 
-            value1 = fix->compute_vector(index1-1);
+            // if index exceeds variable vector length, use a zero value
+            // this can be useful if vector length is not known a priori
+
+            if (fix->size_vector_variable && index1 > fix->size_vector) value1 = 0.0;
+            else value1 = fix->compute_vector(index1-1);
             argstack[nargstack++] = value1;
 
           // f_ID[i][j] = scalar from global array
@@ -1823,14 +1827,18 @@ double Variable::evaluate(char *str, Tree **tree, int ivar)
 
             if (!fix->array_flag)
               print_var_error(FLERR,"Mismatched fix in variable formula",ivar);
-            if (index1 > fix->size_array_rows)
+            if (index1 > fix->size_array_rows && fix->size_array_rows_variable == 0)
               print_var_error(FLERR,"Variable formula fix array is accessed out-of-range",ivar,0);
             if (index2 > fix->size_array_cols)
               print_var_error(FLERR,"Variable formula fix array is accessed out-of-range",ivar,0);
             if (update->whichflag > 0 && update->ntimestep % fix->global_freq)
               print_var_error(FLERR,"Fix in variable not computed at a compatible time",ivar);
 
-            value1 = fix->compute_array(index1-1,index2-1);
+            // if index exceeds variable array rows, use a zero value
+            // this can be useful if array size is not known a priori
+
+            if (fix->size_array_rows_variable && index1 > fix->size_array_rows) value1 = 0.0;
+            else value1 = fix->compute_array(index1-1,index2-1);
             argstack[nargstack++] = value1;
 
           // F_ID[i] = scalar element of per-atom vector, note uppercase "F"

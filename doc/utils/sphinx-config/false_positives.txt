@@ -380,6 +380,7 @@ btype
 buckPlusAttr
 buf
 builtin
+Bulacu
 Bulatov
 Bureekaew
 burlywood
@@ -1303,6 +1304,7 @@ gmres
 gname
 gneb
 GNEB
+Goga
 Goldfarb
 Gompper
 Gonzalez-Melchor
@@ -2262,6 +2264,7 @@ Montalenti
 Monterey
 Montero
 Monti
+Monticelli
 Mora
 Morefoo
 Morfill
@@ -2790,6 +2793,7 @@ peridynamic
 Peridynamic
 peridynamics
 Peridynamics
+Periole
 perl
 permittivity
 perp
@@ -3205,6 +3209,7 @@ Ronevich
 Rosati
 Rosato
 Rosenberger
+Rossi
 Rossky
 rosybrown
 rotationally
@@ -3648,6 +3653,7 @@ thrid
 ThunderX
 thylakoid
 THz
+Tieleman
 Tigran
 Tij
 Tildesley

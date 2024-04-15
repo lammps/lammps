@@ -39,9 +39,9 @@
 namespace LAMMPS_NS{
   struct UF3Impl {
 
-    std::vector<std::vector<std::vector<double>>> n2b_knot, n2b_coeff;
-    std::vector<std::vector<std::vector<std::vector<std::vector<double>>>>> n3b_knot_matrix;
-    std::unordered_map<std::string, std::vector<std::vector<std::vector<double>>>> n3b_coeff_matrix;
+    //std::vector<std::vector<std::vector<double>>> n2b_knot, n2b_coeff;
+    //std::vector<std::vector<std::vector<std::vector<std::vector<double>>>>> n3b_knot_matrix;
+    //std::unordered_map<std::string, std::vector<std::vector<std::vector<double>>>> n3b_coeff_matrix;
     std::vector<std::vector<uf3_pair_bspline>> UFBS2b;
     std::vector<std::vector<std::vector<uf3_triplet_bspline>>> UFBS3b;
 
@@ -289,12 +289,12 @@ void PairUF3::allocate()
                 "pair:n2b_coeff_array_size");
 
   // Contains knot_vect of 2-body potential for type i and j
-  uf3_impl->n2b_knot.resize(num_of_elements + 1);
-  uf3_impl->n2b_coeff.resize(num_of_elements + 1);
+  //uf3_impl->n2b_knot.resize(num_of_elements + 1);
+  //uf3_impl->n2b_coeff.resize(num_of_elements + 1);
   uf3_impl->UFBS2b.resize(num_of_elements + 1);
   for (int i = 1; i < num_of_elements + 1; i++) {
-    uf3_impl->n2b_knot[i].resize(num_of_elements + 1);
-    uf3_impl->n2b_coeff[i].resize(num_of_elements + 1);
+    //uf3_impl->n2b_knot[i].resize(num_of_elements + 1);
+    //uf3_impl->n2b_coeff[i].resize(num_of_elements + 1);
     uf3_impl->UFBS2b[i].resize(num_of_elements + 1);
   }
   if (pot_3b) {
@@ -345,13 +345,13 @@ void PairUF3::allocate()
     memory->create(n3b_coeff_array_size, tot_interaction_count_3b, 3,
                    "pair:n3b_coeff_array_size");
 
-    uf3_impl->n3b_knot_matrix.resize(num_of_elements + 1);
+    //uf3_impl->n3b_knot_matrix.resize(num_of_elements + 1);
     uf3_impl->UFBS3b.resize(num_of_elements + 1);
     for (int i = 1; i < num_of_elements + 1; i++) {
-      uf3_impl->n3b_knot_matrix[i].resize(num_of_elements + 1);
+      //uf3_impl->n3b_knot_matrix[i].resize(num_of_elements + 1);
       uf3_impl->UFBS3b[i].resize(num_of_elements + 1);
       for (int j = 1; j < num_of_elements + 1; j++) {
-        uf3_impl->n3b_knot_matrix[i][j].resize(num_of_elements + 1);
+        //uf3_impl->n3b_knot_matrix[i][j].resize(num_of_elements + 1);
         uf3_impl->UFBS3b[i][j].resize(num_of_elements + 1);
       }
     }
@@ -1085,7 +1085,7 @@ void PairUF3::uf3_read_unified_pot_file(char *potf_name)
   }
 }
 
-void PairUF3::uf3_read_pot_file(int itype, int jtype, char *potf_name)
+/*void PairUF3::uf3_read_pot_file(int itype, int jtype, char *potf_name)
 {
   FILE *fp = utils::open_potential(potf_name, lmp, nullptr);
   if (!fp)
@@ -1646,7 +1646,7 @@ void PairUF3::uf3_read_pot_file(char *potf_name)
         "UF3: {} file does not contain right words indicating whether it is 2 or 3 body potential",
         potf_name);
   fclose(fp);
-}
+}*/
 
 /* ----------------------------------------------------------------------
    init specific to this pair style
@@ -2118,25 +2118,27 @@ double PairUF3::memory_usage()
 
 //Accessor function called by pair_uf3_kokkos.cpp
 //Will probably be removed once std::vector are converted to arrays
-std::vector<std::vector<std::vector<double>>>& PairUF3::get_n2b_knot()
+/*std::vector<std::vector<std::vector<double>>>& PairUF3::get_n2b_knot()
 {
   return uf3_impl->n2b_knot;
-}
-
+}*/
+/*
 std::vector<std::vector<std::vector<double>>>& PairUF3::get_n2b_coeff()
 {
   return uf3_impl->n2b_coeff;
-}
+}*/
 //Accessor function called by pair_uf3_kokkos.cpp
 //Will probably be removed once std::vector are converted to arrays
+/*
 std::vector<std::vector<std::vector<std::vector<std::vector<double>>>>>&
     PairUF3::get_n3b_knot_matrix()
 {
   return uf3_impl->n3b_knot_matrix;
-}
+}*/
 
 //Accessor function called by pair_uf3_kokkos.cpp
 //Will probably be removed once std::vector are converted to arrays
+/*
 std::vector<std::vector<std::vector<double>>>&
     PairUF3::get_n3b_coeff_matrix_key(std::string key)
 {
@@ -2160,4 +2162,4 @@ double PairUF3::get_knot_spacing_3b_jk(int i, int j, int k)
 {
   return uf3_impl->UFBS3b[i][j][k].knot_spacing_jk;
 }
-
+*/

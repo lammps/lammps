@@ -83,14 +83,14 @@ class PairUF3 : public Pair {
 
   //Accessor function called by pair_uf3_kokkos.cpp
   //Will probably be removed once std::vector are converted to arrays
-  std::vector<std::vector<std::vector<double>>>& get_n2b_knot();
+  /*std::vector<std::vector<std::vector<double>>>& get_n2b_knot();
   std::vector<std::vector<std::vector<double>>>& get_n2b_coeff();
   std::vector<std::vector<std::vector<std::vector<std::vector<double>>>>>& get_n3b_knot_matrix();
   std::vector<std::vector<std::vector<double>>>& get_n3b_coeff_matrix_key(std::string key);
   double get_knot_spacing_2b(int i, int j);
   double get_knot_spacing_3b_ij(int i, int j, int k);
   double get_knot_spacing_3b_ik(int i, int j, int k);
-  double get_knot_spacing_3b_jk(int i, int j, int k);
+  double get_knot_spacing_3b_jk(int i, int j, int k);*/
   int *neighshort, maxshort;    // short neighbor list array for 3body interaction
 };
 

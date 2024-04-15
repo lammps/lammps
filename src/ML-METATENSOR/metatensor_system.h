@@ -106,6 +106,24 @@ private:
     std::vector<MetatensorNeighborsData> caches_;
     // allocation cache for the atomic types in the system
     torch::Tensor atomic_types_;
+    // allocation cache holding the "original atom" id for all atoms in the
+    // system. This is the same as the atom id for all local atoms. For ghost
+    // atoms, this is either the id of the corresponding local atom if the ghost
+    // is a periodic image of a local atom, the id of the first ghost we found
+    // with a given atom tag if the ghost is a periodic image of another ghost;
+    // or the id of the ghost in all other cases.
+    std::vector<int> original_atom_id_;
+    // allocation cache holding the map from atom tag to atom id for local
+    // atoms.
+    std::unordered_map<tagint, int> local_atoms_tags_;
+    // allocation cache holding the map from atom tag to atom id for ghost
+    // atoms. When there are multiple periodic images of the same atom, only one
+    // will be included here.
+    std::unordered_map<tagint, int> ghost_atoms_tags_;
+
+    // TODO: should we use LAMMPS allocations/deallocation facilities for the
+    // allocation caches? If we don't, should we report memory usage from the
+    // allocations caches to LAMMPS one way or another?
 };
 
 }    // namespace LAMMPS_NS

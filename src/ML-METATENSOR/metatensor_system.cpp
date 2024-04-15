@@ -135,38 +135,37 @@ void MetatensorSystemAdaptor::setup_neighbors(metatensor_torch::System& system) 
     // Metatensor expects pairs corresponding to periodic atoms to be between
     // the main atoms, but using the actual distance vector between the atom and
     // the ghost.
-    auto original_atom_id = std::vector<int>();
-    original_atom_id.reserve(total_n_atoms);
+    original_atom_id_.clear();
+    original_atom_id_.reserve(total_n_atoms);
 
     // identify all local atom by their LAMMPS atom tag.
-    // TODO: cache this allocation
-    auto local_atoms_tags = std::unordered_map<tagint, int>();
+    local_atoms_tags_.clear();
     for (int i=0; i<atom->nlocal; i++) {
-        original_atom_id.emplace_back(i);
-        local_atoms_tags.emplace(atom->tag[i], i);
+        original_atom_id_.emplace_back(i);
+        local_atoms_tags_.emplace(atom->tag[i], i);
     }
 
     // now loop over ghosts & map them back to the main cell if needed
-    auto ghost_atoms_tags = std::unordered_map<tagint, int>();
+    ghost_atoms_tags_.clear();
     for (int i=atom->nlocal; i<total_n_atoms; i++) {
         auto tag = atom->tag[i];
-        auto it = local_atoms_tags.find(tag);
-        if (it != local_atoms_tags.end()) {
+        auto it = local_atoms_tags_.find(tag);
+        if (it != local_atoms_tags_.end()) {
             // this is the periodic image of an atom already owned by this domain
-            original_atom_id.emplace_back(it->second);
+            original_atom_id_.emplace_back(it->second);
         } else {
             // this can either be a periodic image of an atom owned by another
             // domain, or directly an atom from another domain. Since we can not
             // really distinguish between these, we take the first atom as the
             // "main" one and remap all atoms with the same tag to the first one
-            auto it = ghost_atoms_tags.find(tag);
-            if (it != ghost_atoms_tags.end()) {
+            auto it = ghost_atoms_tags_.find(tag);
+            if (it != ghost_atoms_tags_.end()) {
                 // we already found this atom elsewhere in the system
-                original_atom_id.emplace_back(it->second);
+                original_atom_id_.emplace_back(it->second);
             } else {
                 // this is the first time we are seeing this atom
-                original_atom_id.emplace_back(i);
-                ghost_atoms_tags.emplace(tag, i);
+                original_atom_id_.emplace_back(i);
+                ghost_atoms_tags_.emplace(tag, i);
             }
         }
     }
@@ -182,12 +181,12 @@ void MetatensorSystemAdaptor::setup_neighbors(metatensor_torch::System& system) 
         cache.distances_f64.clear();
         for (int ii=0; ii<(list_->inum + list_->gnum); ii++) {
             auto atom_i = list_->ilist[ii];
-            auto original_atom_i = original_atom_id[atom_i];
+            auto original_atom_i = original_atom_id_[atom_i];
 
             auto neighbors = list_->firstneigh[ii];
             for (int jj=0; jj<list_->numneigh[ii]; jj++) {
                 auto atom_j = neighbors[jj];
-                auto original_atom_j = original_atom_id[atom_j];
+                auto original_atom_j = original_atom_id_[atom_j];
 
                 if (!full_list && original_atom_i > original_atom_j) {
                     // Remove extra pairs if the model requested half-lists

@@ -241,6 +241,7 @@ void PairEAM::compute(int eflag, int vflag)
       phi = ((coeff[3]*p + coeff[4])*p + coeff[5])*p + coeff[6];
       if (rho[i] > rhomax) {
         phi += fp[i] * (rho[i]-rhomax);
+        beyond_rhomax = 1;
       }
       phi *= scale[type[i]][type[i]];
       if (eflag_global) eng_vdwl += phi;

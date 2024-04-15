@@ -535,7 +535,7 @@ class PyLammps(object):
 
   def append_cmd_history(self, cmd):
     """
-    Commands will be recorded but not execute
+    Commands will be added to the command history but not executed.
     
     Add `run steps` only to the command history, but do not execute the run command.
     Convenient batch create Lammps script files, use

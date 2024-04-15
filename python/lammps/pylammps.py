@@ -536,7 +536,7 @@ class PyLammps(object):
   def append_cmd_history(self, cmd):
     """
     Commands will be added to the command history but not executed.
-    
+
     Add `commands` only to the command history, but do not execute them, so that you can
     conveniently create Lammps input files, using
     :py:meth:`PyLammps.write_script()`.

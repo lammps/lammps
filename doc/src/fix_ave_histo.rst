@@ -319,7 +319,7 @@ on.  The default is step 0.  Often input values can be 0.0 at time 0,
 so setting *start* to a larger value can avoid including a 0.0 in
 a running or windowed histogram.
 
-.. versionadded:: TBD
+.. versionadded:: 17Apr2024
    new keyword *append*
 
 The *file* or *append* keywords allow a filename to be specified.  If

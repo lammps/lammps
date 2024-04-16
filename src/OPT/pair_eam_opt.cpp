@@ -366,13 +366,13 @@ template <int EVFLAG, int EFLAG, int NEWTON_PAIR> void PairEAMOpt::eval()
   free(fast_gamma);
   fast_gamma = nullptr;
 
-  if (EFLAG && (exceeded_rhomax >= 0)) {
+  if (EFLAG && (!exceeded_rhomax)) {
     MPI_Allreduce(&beyond_rhomax, &exceeded_rhomax, 1, MPI_INT, MPI_MAX, world);
-    if (exceeded_rhomax > 0) {
+    if (exceeded_rhomax) {
       if (comm->me == 0)
-        error->warning(FLERR, "Local rho[i] exceeded rhomax of EAM potential table. "
-                       "Computed embedding term is unreliable.");
-      exceeded_rhomax = -1;
+        error->warning(FLERR,
+                       "A per-atom density exceeded rhomax of EAM potential table - "
+                       "a linear extrapolation to the energy was made");
     }
   }
 

@@ -190,6 +190,9 @@ Auvergne
 Avalos
 avalue
 avec
+avecx
+avecy
+avecz
 aveforce
 Avendano
 Averett
@@ -395,6 +398,9 @@ Bussi
 Buturigakkwaishi
 Buyl
 bvec
+bvecx
+bvecy
+bvecz
 Bybee
 bz
 Cadarache
@@ -658,6 +664,9 @@ Cv
 Cval
 cvar
 cvec
+cvecx
+cvecy
+cvecz
 cvff
 cwiggle
 cx

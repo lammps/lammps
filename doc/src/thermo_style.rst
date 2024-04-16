@@ -340,12 +340,11 @@ internally.
 
 The *lx*, *ly*, *lz* keywords are the extent of the simulation box in
 each dimension.  The *xlo*, *xhi*, *ylo*, *yhi*, *zlo*, *zhi* keywords
-are the lower and upper bounds of the simulation box in each
-dimension.  I.e. *lx* = *xhi* - *xlo).  These 9 values are the same
-for all 3 kinds of boxes.  I.e. for a restricted triclinic box, they
-are the values as if the box were not tilted.  For a general triclinic
-box, they are the values after it is internally rotated to be a
-restricted triclinic box.
+are the lower and upper bounds of the simulation box in each dimension.
+I.e. *lx* = *xhi* - *xlo*).  These 9 values are the same for all 3 kinds
+of boxes.  I.e. for a restricted triclinic box, they are the values as
+if the box were not tilted.  For a general triclinic box, they are the
+values after it is internally rotated to be a restricted triclinic box.
 
 The *xy*, *xz*, *yz* are the current tilt factors for a triclinic box.
 They are the same for restricted and general triclinic boxes.

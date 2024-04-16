@@ -75,21 +75,23 @@ The available models are *linear* and *nn*.
 
 .. versionadded:: TBD
 
-The descriptor style *ace* is a class of highly general atomic descriptors,
-atomic cluster expansion descriptors (ACE) from :ref:`(Drautz) <Drautz19>` ,
-that include a radial basis, an angular basis, and bases for other variables
-(such as chemical species) if relevant. In descriptor style *ace*, the *ace*
-descriptors may be defined up to an arbitrary body order. This descriptor
-style is the same as that used in :doc:`pair_style pace <pair_pace>` and
-:doc:`compute pace <compute_pace>`. The available models with *ace* in
-ML-IAP are *linear* and *mliappy*. The *ace* descriptors and models require
-building LAMMPS with the ML-PACE package (see below). The *mliappy* model
-style may be used with *ace* descriptors, but it requires that LAMMPS is
-also built with the PYTHON package. As with other, the *mliappy* model style
-can be used to couple arbitrary python models that use the *ace* descriptors
-such as Pytorch NNs. Note that *ALL* mliap model styles with *ace* descriptors
-require that descriptors and hyperparameters are supplied in a `.yace` or `.ace`
-file, similar to :doc:`compute pace <compute_pace>`.
+The descriptor style *ace* is a class of highly general atomic
+descriptors, atomic cluster expansion descriptors (ACE) from
+:ref:`(Drautz) <Drautz19>`, that include a radial basis, an angular
+basis, and bases for other variables (such as chemical species) if
+relevant. In descriptor style *ace*, the *ace* descriptors may be
+defined up to an arbitrary body order. This descriptor style is the same
+as that used in :doc:`pair_style pace <pair_pace>` and :doc:`compute
+pace <compute_pace>`.  The available models with *ace* in ML-IAP are
+*linear* and *mliappy*.  The *ace* descriptors and models require
+building LAMMPS with the ML-PACE package (see below).  The *mliappy*
+model style may be used with *ace* descriptors, but it requires that
+LAMMPS is also built with the PYTHON package.  As with other model
+styles, the *mliappy* model style can be used to couple arbitrary python
+models that use the *ace* descriptors such as Pytorch NNs.  Note that
+*ALL* mliap model styles with *ace* descriptors require that descriptors
+and hyperparameters are supplied in a `.yace` or `.ace` file, similar to
+:doc:`compute pace <compute_pace>`.
 
 The pair_style *mliap* command must be followed by two keywords *model*
 and *descriptor* in either order, or the one keyword *unified*.  A
@@ -201,20 +203,20 @@ of SO3 descriptor and model files can be done with the
 The ACE descriptor file differs from the SNAP and SO3 files. It more
 closely resembles the potential file format for linear or square-root
 embedding ACE potentials used in the :doc:`pair_style pace <pair_pace>`.
-As noted above, the key difference is that the Clebsch-Gordan coefficients
-in the descriptor file with *mliap descriptor ace* are *NOT* multiplied
-multiplied by linear or square root embedding terms. In other words,
-the model is separated from the descriptor definitions and
-hyperparameters. In :doc:`pair_style pace <pair_pace>`, they are combined.
-The ACE descriptor files required by *mliap* are generated automatically
-in `FitSNAP <https://github.com/FitSNAP/FitSNAP>`_ during linear,
-pytorch, etc. ACE model fitting. Additional tools are provided there to
-prepare *ace* descriptor files and hyperparameters before model fitting.
-The *ace* descriptor files can also be extracted from ACE model fits in
-`python-ace. <https://github.com/ICAMS/python-ace>`_ It is important to
-note that order of the types listed in :doc:`pair_coeff <pair_coeff>` must
-match the order of the elements/types listed in the ACE descriptor file
-for all *mliap* styles when using *ace* descriptors.
+As noted above, the key difference is that the Clebsch-Gordan
+coefficients in the descriptor file with *mliap descriptor ace* are
+*NOT* multiplied by linear or square root embedding terms.  In other
+words,the model is separated from the descriptor definitions and
+hyperparameters.  In :doc:`pair_style pace <pair_pace>`, they are
+combined.  The ACE descriptor files required by *mliap* are generated
+automatically in `FitSNAP <https://github.com/FitSNAP/FitSNAP>`_ during
+linear, pytorch, etc. ACE model fitting. Additional tools are provided
+there to prepare *ace* descriptor files and hyperparameters before model
+fitting.  The *ace* descriptor files can also be extracted from ACE
+model fits in `python-ace. <https://github.com/ICAMS/python-ace>`_.  It
+is important to note that order of the types listed in :doc:`pair_coeff
+<pair_coeff>` must match the order of the elements/types listed in the
+ACE descriptor file for all *mliap* styles when using *ace* descriptors.
 
 See the :doc:`pair_coeff <pair_coeff>` page for alternate ways
 to specify the path for these *model* and *descriptor* files.

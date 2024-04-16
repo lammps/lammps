@@ -63,10 +63,10 @@ class PairEAM : public Pair {
   void swap_eam(double *, double **) override;
 
  protected:
-  int nmax;               // allocated size of per-atom arrays
+  int nmax;    // allocated size of per-atom arrays
   double cutforcesq;
   double **scale;
-  bigint embedstep;       // timestep, the embedding term was computed
+  bigint embedstep;    // timestep, the embedding term was computed
 
   int exceeded_rhomax;    // global flag for whether rho[i] has exceeded rhomax
                           // on a step energy is computed - 0 = no, 1 = yes

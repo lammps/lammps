@@ -149,7 +149,7 @@ void PairEAM::compute(int eflag, int vflag)
   ev_init(eflag,vflag);
 
   int beyond_rhomax = 0;
-  
+
   // grow energy and fp arrays if necessary
   // need to be atom->nmax in length
 

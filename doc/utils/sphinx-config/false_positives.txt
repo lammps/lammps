@@ -633,6 +633,7 @@ cstdlib
 cstring
 cstyle
 csvr
+ctilde
 ctrl
 ctrn
 ctypes
@@ -1503,6 +1504,7 @@ hydroxyl
 Hynninen
 Hyoungki
 hyperdynamics
+hyperparameters
 hyperplane
 hyperradius
 hyperspherical

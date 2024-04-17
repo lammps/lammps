@@ -160,3 +160,44 @@ in.mliap.so3.nn.Si
 ------------------
 
 Example of NN model with SO3 descriptors for Si
+
+NOTE: The use of ACE within mliap requires the generalized Glebsch-Gordan
+coefficients (a.k.a. coupling coefficients, ccs, etc.) are defined within
+a ctilde file. These are used to construct the ACE descriptors for both
+linear models and non-linear models within mliap. These define the size
+of the ACE basis used as well as hyperparameters for the basis functions
+for descriptors in mliap. These files may be generated with various
+software for fitting ACE models must follow the format for ACE C-Tilde
+potential files in `../PACKAGES/pace/*.ace` or the convenient yaml-based
+`.yace` format. For the ACE mliap interface, the coupling coefficient file
+should NOT include linear model coefficients. If the linear model coefficients
+are included in the coupling coefficient file, mliap will evaluate ACE
+contributions to a linear model rather than ACE descriptors.
+
+One convenient feature of mliap/ace, is that it enables the user to
+decouple the linear model coefficients and the ace descriptors. Both are
+typically included in ACE potentials with C-Tilde format. This is
+demonstrated in the first example for ACE: linear model coefficients are
+provided separately (in `linear_ACE_coeff.acecoeff`) from coupling
+coefficients (in `linear_ACE_ccs.yace`). They are combined in a linear
+pytorch model using `convert_mliap_lin_ACE.py`.
+
+in.mliap.pytorch.ace
+------------------
+
+Example of linear model with ACE descriptors for minimal Ta dataset
+
+in.mliap.ace.compute
+------------------
+
+Example for calculating multi-element ACE descriptors through ML-IAP
+
+in.mliap.pytorch.ace.NN
+------------------
+
+Example of NN model with ACE descriptors for minimal Ta dataset
+
+mliap_pytorch_ACE.py
+------------------
+
+Example of NN model with ACE descriptors for minimal Ta dataset through mliappy

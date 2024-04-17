@@ -192,11 +192,23 @@ class Atom(object):
   @property
   def mass(self):
     """
-    Return the atom mass
+    Return the atom mass as a per-atom property.
+    This returns either the per-type mass or the per-atom
+    mass (AKA 'rmass') depending on what is available with
+    preference for the per-atom mass.
+
+    .. versionchanged:: TBD
+
+       Support both per-type and per-atom masses. With
+       per-type return "mass[type[i]]" else return "rmass[i]".
+       Per-atom mass is preferred if available.
 
     :type: float
     """
-    return self.get("mass", self.type)
+    if self._pylmp.lmp.extract_setting('rmass_flag'):
+      return self.get("rmass", self.index)
+    else:
+      return self.get("mass", self.type)
 
   @property
   def radius(self):

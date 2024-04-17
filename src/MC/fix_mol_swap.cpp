@@ -56,10 +56,14 @@ FixMolSwap::FixMolSwap(LAMMPS *lmp, int narg, char **arg) :
 
   // parse args
 
-  nevery = utils::inumeric(FLERR,arg[3],false,lmp);
-  ncycles = utils::inumeric(FLERR,arg[4],false,lmp);
-  itype = utils::inumeric(FLERR,arg[5],false,lmp);
-  jtype = utils::inumeric(FLERR,arg[6],false,lmp);
+  nevery = utils::inumeric(FLERR, arg[3], false, lmp);
+  ncycles = utils::inumeric(FLERR, arg[4], false, lmp);
+  char *typestr = utils::expand_type(FLERR, arg[5], Atom::ATOM, lmp);
+  itype = utils::inumeric(FLERR, typestr?typestr:arg[5], false, lmp);
+  delete[] typestr;
+  typestr = utils::expand_type(FLERR, arg[6], Atom::ATOM, lmp);
+  jtype = utils::inumeric(FLERR, typestr?typestr:arg[6], false, lmp);
+  delete[] typestr;
   seed = utils::inumeric(FLERR,arg[7],false,lmp);
   double temperature = utils::numeric(FLERR,arg[8],false,lmp);
 

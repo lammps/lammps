@@ -14,7 +14,7 @@ Syntax
 * atom/swap = style name of this fix command
 * N = invoke this fix every N steps
 * X = number of swaps to attempt every N steps
-* itype,jtype = two atom types to swap with each other
+* itype,jtype = two atom types (1-Ntypes or type label) to swap with each other
 * seed = random # seed (positive integer)
 * T = scaling temperature of the MC swaps (temperature units)
 * zero or more keyword/value pairs may be appended to args
@@ -32,7 +32,9 @@ Examples
 .. code-block:: LAMMPS
 
    fix 2 all mol/swap 100 1 2 3 29494 300.0 ke no
-   fix mySwap fluid mol/swap 500 10 1 2 482798 1.0
+
+   labelmap atom 1 A 2 B
+   fix mySwap fluid mol/swap 500 10 A B 482798 1.0
 
 Description
 """""""""""

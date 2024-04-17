@@ -145,14 +145,15 @@ provides EAM potentials that can be used directly in LAMMPS with the
    The EAM potential files tabulate the embedding energy as a function
    of the local electron density :math:`\rho`.  When atoms get too
    close, this electron density may exceed the range for which the
-   embedding energy was tabulated for.  For simplicity and to avoid
-   errors during equilibration of randomized geometries, LAMMPS will
+   embedding energy was tabulated for.  To avoid crashes, LAMMPS will
    assume a linearly increasing embedding energy for electron densities
-   beyond the maximum tabulated value.  This usually means that the EAM
-   model is not a good model for the kind of system under investigation.
-   LAMMPS will print a single warning when this happens.  It may be
-   harmless at the beginning of an equilibration but would be a big
-   concern for accuracy if it happens during production runs.
+   beyond the maximum tabulated value.  LAMMPS will print a warning when
+   this happens.  It may be acceptable at the beginning of an
+   equilibration (e.g. when using randomized coordinates) but would be a
+   big concern for accuracy if it happens during production runs.  The
+   EAM potential file triggering the warning during production is thus
+   not a good choice, and the EAM model in general not likely a good
+   model for the kind of system under investigation.
 
 ----------
 

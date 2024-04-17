@@ -915,6 +915,20 @@ char *utils::expand_type(const char *file, int line, const std::string &str, int
     return nullptr;
 }
 
+/* -------------------------------------------------------------------------
+   Expand type string to integer-valued numeric type from labelmap.
+   Not guaranteed to return a valid type.
+   For example, type <= 0 or type > Ntypes is checked in calling routine.
+------------------------------------------------------------------------- */
+
+int utils::expand_type_int(const char *file, int line, const std::string &str, int mode, LAMMPS *lmp)
+{
+  char *typestr = expand_type(file, line, str, mode, lmp);
+  int out = inumeric(FLERR, typestr?typestr:str, false, lmp);
+  delete[] typestr;
+  return out;
+}
+
 /* ----------------------------------------------------------------------
    Check grid reference for valid Compute or Fix which produces per-grid data
    errstr = name of calling command used if error is generated

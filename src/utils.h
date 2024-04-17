@@ -379,6 +379,12 @@ namespace utils {
 
   char *expand_type(const char *file, int line, const std::string &str, int mode, LAMMPS *lmp);
 
+  /*! Expand type label string into its equivalent integer-valued numeric type
+   *
+   *  This function has the same arguments as expand_type() but returns an integer value */
+
+  int expand_type_int(const char *file, int line, const std::string &str, int mode, LAMMPS *lmp);
+
   /*! Check grid reference for valid Compute or Fix which produces per-grid data
    *
    *  This function checks if a command argument in the input script

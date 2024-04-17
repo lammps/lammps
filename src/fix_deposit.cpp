@@ -60,9 +60,7 @@ FixDeposit::FixDeposit(LAMMPS *lmp, int narg, char **arg) :
   // required args
 
   ninsert = utils::inumeric(FLERR, arg[3], false, lmp);
-  char *typestr = utils::expand_type(FLERR, arg[4], Atom::ATOM, lmp);
-  ntype = utils::inumeric(FLERR, typestr?typestr:arg[4], false, lmp);
-  delete[] typestr;
+  ntype = utils::expand_type_int(FLERR, arg[4], Atom::ATOM, lmp);
   nfreq = utils::inumeric(FLERR, arg[5], false, lmp);
   seed = utils::inumeric(FLERR, arg[6], false, lmp);
 

@@ -401,9 +401,15 @@ void PairMetatensor::compute(int eflag, int vflag) {
         eng_vdwl += global_energy.item<double>();
     }
 
+    // reset gradients to zero before calling backward
+    system_adaptor->positions.mutable_grad() = torch::Tensor();
+    system_adaptor->strain.mutable_grad() = torch::Tensor();
+
     // compute forces/virial with backward propagation
     energy_tensor.backward(-torch::ones_like(energy_tensor));
-    auto forces_tensor = system->positions().grad().to(torch::kCPU).to(torch::kFloat64);
+    auto forces_tensor = system_adaptor->positions.grad();
+    assert(forces_tensor.is_cpu() && forces_tensor.scalar_type() == torch::kFloat64);
+
     auto forces = forces_tensor.accessor<double, 2>();
     for (int i=0; i<atom->nlocal + atom->nghost; i++) {
         atom->f[i][0] += forces[i][0];
@@ -414,7 +420,8 @@ void PairMetatensor::compute(int eflag, int vflag) {
     assert(!vflag_fdotr);
 
     if (vflag_global) {
-        auto virial_tensor = system_adaptor->strain.grad().to(torch::kCPU).to(torch::kFloat64);
+        auto virial_tensor = system_adaptor->strain.grad();
+        assert(virial_tensor.is_cpu() && forces_tensor.scalar_type() == torch::kFloat64);
         auto predicted_virial = virial_tensor.accessor<double, 2>();
 
         virial[0] += predicted_virial[0][0];

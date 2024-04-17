@@ -89,8 +89,12 @@ public:
     // Create a metatensor system matching the LAMMPS system data
     metatensor_torch::System system_from_lmp(bool do_virial, torch::ScalarType dtype, torch::Device device);
 
-    // explicit strain for virial calculations
+    // Explicit strain for virial calculations. This uses the same dtype/device
+    // as LAMMPS data (positions, …)
     torch::Tensor strain;
+    // keep the positions as coming from LAMMPS (before any dtype/device
+    // conversion) to access its gradient
+    torch::Tensor positions;
 
 private:
     // setup the metatensor neighbors list from the internal LAMMPS one

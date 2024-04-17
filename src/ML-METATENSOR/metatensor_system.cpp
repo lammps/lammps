@@ -41,6 +41,8 @@ MetatensorSystemAdaptor::MetatensorSystemAdaptor(LAMMPS *lmp, Pair* requestor, M
     auto request = neighbor->add_request(requestor, NeighConst::REQ_FULL | NeighConst::REQ_GHOST);
     request->set_id(0);
     request->set_cutoff(options_.interaction_range);
+
+    this->strain = torch::eye(3, torch::TensorOptions().dtype(torch::kFloat64).device(torch::kCPU).requires_grad(true));
 }
 
 MetatensorSystemAdaptor::MetatensorSystemAdaptor(LAMMPS *lmp, Compute* requestor, MetatensorSystemOptions options):
@@ -53,6 +55,8 @@ MetatensorSystemAdaptor::MetatensorSystemAdaptor(LAMMPS *lmp, Compute* requestor
     auto request = neighbor->add_request(requestor, NeighConst::REQ_FULL | NeighConst::REQ_GHOST);
     request->set_id(0);
     request->set_cutoff(options_.interaction_range);
+
+    this->strain = torch::eye(3, torch::TensorOptions().dtype(torch::kFloat64).device(torch::kCPU).requires_grad(true));
 }
 
 MetatensorSystemAdaptor::~MetatensorSystemAdaptor() {
@@ -356,7 +360,7 @@ metatensor_torch::System MetatensorSystemAdaptor::system_from_lmp(
     auto tensor_options = torch::TensorOptions().dtype(torch::kFloat64).device(torch::kCPU);
 
     // atom->x contains "real" and then ghost atoms, in that order
-    auto positions = torch::from_blob(
+    this->positions = torch::from_blob(
         *x, {total_n_atoms, 3},
         // requires_grad=true since we always need gradients w.r.t. positions
         tensor_options.requires_grad(true)
@@ -372,23 +376,21 @@ metatensor_torch::System MetatensorSystemAdaptor::system_from_lmp(
     cell[2][1] = domain->yz;
     cell[2][2] = domain->zprd;
 
-    positions = positions.to(dtype).to(device);
+    auto system_positions = this->positions.to(dtype).to(device);
     cell = cell.to(dtype).to(device);
 
     if (do_virial) {
-        this->strain = torch::eye(3, torch::TensorOptions().dtype(dtype).device(device).requires_grad(true));
+        auto model_strain = this->strain.to(dtype).to(device);
 
-        // pretend to scale positions/cell by the strain so that it enters the
-        // computational graph.
-        positions = positions.matmul(this->strain);
-        positions.retain_grad();
-
-        cell = cell.matmul(this->strain);
+        // pretend to scale positions/cell by the strain so that
+        // it enters the computational graph.
+        system_positions = system_positions.matmul(model_strain);
+        cell = cell.matmul(model_strain);
     }
 
     auto system = torch::make_intrusive<metatensor_torch::SystemHolder>(
         atomic_types_.to(device),
-        positions,
+        system_positions,
         cell
     );
 

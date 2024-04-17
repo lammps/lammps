@@ -115,6 +115,7 @@ tad:      temperature-accelerated dynamics of vacancy diffusion in bulk Si
 template: examples for using atom_style template and comparing to atom style molecular
 tersoff:  regression test input for Tersoff variants
 threebody: regression test input for a variety of threebody potentials
+triclinic: general triclinic simulation boxes versus orthogonal boxes
 ttm:      two-temeperature model examples
 vashishta: models using the Vashishta potential
 voronoi:  Voronoi tesselation via compute voronoi/atom command

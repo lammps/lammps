@@ -4,24 +4,24 @@ variable        len equal 4.0
 variable        lenz equal 10.0
 
 dimension       2
-units		metal
-boundary	f f p
+units           metal
+boundary        f f p
 
 lattice         hex 1.0 origin 0.25 0.25 0.0
 
-atom_style	atomic
+atom_style      atomic
 
-region          box block 0 ${len}  0 ${len} 0.0 ${lenz}
+region          box block 0 ${len}  0 ${len} -0.5 0.5
 region          atoms block 0 ${len}  0 ${len} 0.0 0.0
 create_box      1 box
 create_atoms    1 region atoms
 
-mass 		1 1.0
+mass            1 1.0
 
 pair_style      lj/cut 2.5
 pair_coeff      1 1 0.0 1.0 
 
-neighbor	1.0 nsq
+neighbor        1.0 nsq
 
 #
 # TEST 1: 
@@ -30,11 +30,11 @@ neighbor	1.0 nsq
 # This compute voronoi generates all three 
 # types of quantity: per-atom, local, and global
 
-compute 	v1 all voronoi/atom neighbors yes edge_histo 6
+compute         v1 all voronoi/atom neighbors yes edge_histo 6
 
 # write voronoi per-atom quantities to a file
 
-dump    	dperatom all custom 1 dump.voro id type x y z c_v1[1] c_v1[2]
+dump            dperatom all custom 1 dump.voro id type x y z c_v1[1] c_v1[2]
 
 # writing voronoi local quantities to a file
 
@@ -42,17 +42,17 @@ dump            dlocal all local  1 dump.neighbors index c_v1[1] c_v1[2] c_v1[3]
 
 # sum up a voronoi per-atom quantity
 
-compute 	volvor all reduce sum c_v1[1]
+compute         volvor all reduce sum c_v1[1]
 
-variable 	volsys equal lz*lx*ly
-variable 	err equal c_volvor-v_volsys
+variable        volsys equal lz*lx*ly
+variable        err equal c_volvor-v_volsys
 
 # output voronoi global quantities
 
-thermo_style 	custom c_volvor v_volsys vol v_err c_v1[3] c_v1[4] c_v1[5] c_v1[6] c_v1[7]
-thermo 		1
+thermo_style    custom c_volvor v_volsys vol v_err c_v1[3] c_v1[4] c_v1[5] c_v1[6] c_v1[7]
+thermo          1
 
-run  		0
+run             0
 
 uncompute       v1
 uncompute       volvor
@@ -65,7 +65,7 @@ undump          dlocal
 
 # This compute voronoi generates peratom and local and global quantities
 
-compute 	v2 all voronoi/atom neighbors yes edge_histo 6
+compute         v2 all voronoi/atom neighbors yes edge_histo 6
 
 # write voronoi local quantities to a file
 
@@ -73,11 +73,11 @@ dump            d2 all local  1 dump.neighbors2 index c_v2[1] c_v2[2] c_v2[3]
 
 # sum up a voronoi local quantity
 
-compute 	sumarea all reduce sum c_v2[3] inputs local
+compute         sumarea all reduce sum c_v2[3] inputs local
 
 # output voronoi global quantities
 
-thermo_style 	custom c_sumarea c_v2[3] c_v2[4] c_v2[5] c_v2[6] c_v2[7]
-thermo 		1
+thermo_style    custom c_sumarea c_v2[3] c_v2[4] c_v2[5] c_v2[6] c_v2[7]
+thermo          1
 
-run  		0
+run             0

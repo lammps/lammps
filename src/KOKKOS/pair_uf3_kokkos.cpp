@@ -419,22 +419,22 @@ template <class DeviceType> void PairUF3Kokkos<DeviceType>::create_3b_coefficien
     for (int j = 1; j < num_of_elements + 1; j++)//n3b_knot_matrix[i].size(); j++)
       for (int k = 1; k < num_of_elements + 1; k++){//n3b_knot_matrix[i][j].size(); k++) {
         for (int m = 0; m < n3b_knots_array_size[map_3b[i][j][k]][0]; m++)//n3b_knot_matrix[i][j][k][0].size(); m++)
-          d_n3b_knot_matrix_view(map3b_view(i, j, k), 0, m) = 
+          d_n3b_knot_matrix_view(map3b_view(i, j, k), 0, m) =
               n3b_knots_array[map_3b[i][j][k]][0][m];//n3b_knot_matrix[i][j][k][0][m];
         for (int m = 0; m < n3b_knots_array_size[map_3b[i][j][k]][1]; m++)//n3b_knot_matrix[i][j][k][1].size(); m++)
-          d_n3b_knot_matrix_view(map3b_view(i, j, k), 1, m) = 
+          d_n3b_knot_matrix_view(map3b_view(i, j, k), 1, m) =
               n3b_knots_array[map_3b[i][j][k]][1][m];//n3b_knot_matrix[i][j][k][1][m];
         for (int m = 0; m < n3b_knots_array_size[map_3b[i][j][k]][2]; m++)//n3b_knot_matrix[i][j][k][2].size(); m++)
-          d_n3b_knot_matrix_view(map3b_view(i, j, k), 2, m) = 
+          d_n3b_knot_matrix_view(map3b_view(i, j, k), 2, m) =
               n3b_knots_array[map_3b[i][j][k]][2][m];//n3b_knot_matrix[i][j][k][2][m];
 
-        d_n3b_knot_matrix_spacings_view(map3b_view(i, j, k),2) = 
+        d_n3b_knot_matrix_spacings_view(map3b_view(i, j, k),2) =
             n3b_knots_array[map_3b[i][j][k]][2][4] - n3b_knots_array[map_3b[i][j][k]][2][3];//get_knot_spacing_3b_ij(i,j,k);
                                             //uf3_impl->UFBS3b[i][j][k].knot_spacing_ij;
-        d_n3b_knot_matrix_spacings_view(map3b_view(i, j, k),1) = 
+        d_n3b_knot_matrix_spacings_view(map3b_view(i, j, k),1) =
             n3b_knots_array[map_3b[i][j][k]][1][4] - n3b_knots_array[map_3b[i][j][k]][1][3];//get_knot_spacing_3b_ik(i,j,k);
                                             //uf3_impl->UFBS3b[i][j][k].knot_spacing_ik;
-        d_n3b_knot_matrix_spacings_view(map3b_view(i, j, k),0) = 
+        d_n3b_knot_matrix_spacings_view(map3b_view(i, j, k),0) =
             n3b_knots_array[map_3b[i][j][k]][0][4] - n3b_knots_array[map_3b[i][j][k]][0][3];//get_knot_spacing_3b_jk(i,j,k);
                                             //uf3_impl->UFBS3b[i][j][k].knot_spacing_jk;
       }
@@ -456,7 +456,7 @@ template <class DeviceType> void PairUF3Kokkos<DeviceType>::create_3b_coefficien
             1 / (n3b_knots_array[map_3b[i][j][k]][1][5] - n3b_knots_array[map_3b[i][j][k]][1][4]);
             //(n3b_knot_matrix[i][j][k][1][5] - n3b_knot_matrix[i][j][k][1][4]);
         d_n3b_knot_spacings_view(map3b_view(i, j, k), 2) =
-            1 / (n3b_knots_array[map_3b[i][j][k]][2][5] - n3b_knots_array[map_3b[i][j][k]][2][4]); 
+            1 / (n3b_knots_array[map_3b[i][j][k]][2][5] - n3b_knots_array[map_3b[i][j][k]][2][4]);
             //(n3b_knot_matrix[i][j][k][2][5] - n3b_knot_matrix[i][j][k][2][4]);
       }
     }

@@ -75,7 +75,7 @@ class PairUF3 : public Pair {
   /*void uf3_read_2b_pot_block(int itype, int jtype, std::string iele,
                              std::string jele,
                              TextFileReader &txtfilereader);
-  
+
   void uf3_read_3b_pot_block(int itype, int jtype, int ktype,
                                       std::string iele, std::string jele,
                                       std::string kele,

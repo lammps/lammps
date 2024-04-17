@@ -87,7 +87,7 @@ uf3_pair_bspline::uf3_pair_bspline(LAMMPS *ulmp, const double* uknot_array,
                                    const int uknot_spacing_type)
 {
   lmp = ulmp;
-  
+
   knot_vect = std::vector<double> (uknot_array, uknot_array + uknot_array_size);
   coeff_vect = std::vector<double> (ucoeff_array, ucoeff_array + ucoeff_array_size);
 

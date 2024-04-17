@@ -74,7 +74,7 @@ As an example, if a LAMMPS simulation contains 2 atom types (elements
 
    pair_style uf3 3
    pair_coeff * * AB.uf3 A B
- 
+
 The AB.uf3 file should conatin all two-body (A-A, A-B, B-B) and three-body
 (A-A-A, A-A-B, A-B-B, B-A-A, B-A-B, B-B-B).
 
@@ -130,7 +130,7 @@ number on the same line. The current implementation is only tested for
 :code:`LEADING_TRIM=0` and :code:`TRAILING_TRIM=3`.
 If other values are used LAMMPS is terminated after issuing an error message.
 The :code:`Rij_CUTOFF` sets the 2-body cutoff for the interaction described
-by the potential block. :code:`NUM_OF_KNOTS` is the number of knots 
+by the potential block. :code:`NUM_OF_KNOTS` is the number of knots
 (or the length of the knot vector) present on the very next line. The
 :code:`BSPLINE_KNOTS` line should contain all the knots in ascending order.
 :code:`NUM_OF_COEFF` is the number of coefficients in the :code:`COEFF` line.

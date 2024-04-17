@@ -59,7 +59,7 @@ PairUF3::PairUF3(LAMMPS *lmp) :
 {
   uf3_impl = new UF3Impl;
   single_enable = 1;    // 1 if single() routine exists
-  one_coeff = 1;        // 1 if allows only one coeff * * call 
+  one_coeff = 1;        // 1 if allows only one coeff * * call
   restartinfo = 0;      // 1 if pair style writes restart info
   maxshort = 10;
   neighshort = nullptr;
@@ -190,7 +190,7 @@ void PairUF3::communicate()
             (num_of_elements + 1)*(num_of_elements + 1), MPI_INT, 0, world);
   MPI_Bcast(&n2b_coeff_array_size[0][0],
             (num_of_elements + 1)*(num_of_elements + 1), MPI_INT, 0, world);
-  
+
   MPI_Bcast(&max_num_knots_2b, 1, MPI_INT, 0, world);
   MPI_Bcast(&max_num_coeff_2b, 1, MPI_INT, 0, world);
 
@@ -214,7 +214,7 @@ void PairUF3::communicate()
   if (comm->me != 0) {
     memory->destroy(n2b_knots_array);
     memory->destroy(n2b_coeff_array);
-    
+
     memory->create(n2b_knots_array, num_of_elements + 1, num_of_elements + 1,
                    max_num_knots_2b, "pair:n2b_knots_array");
     memory->create(n2b_coeff_array, num_of_elements + 1, num_of_elements + 1,
@@ -225,12 +225,12 @@ void PairUF3::communicate()
 
         memory->create(n3b_knots_array, tot_interaction_count_3b, 3,
                        max_num_knots_3b, "pair:n3b_knots_array");
-    
+
         memory->create(n3b_coeff_array, tot_interaction_count_3b, max_num_coeff_3b,
                        max_num_coeff_3b, max_num_coeff_3b, "pair:n3b_coeff_array");
     }
   }
-  
+
   MPI_Bcast(&knot_spacing_type_2b[0][0],
             (num_of_elements + 1)*(num_of_elements + 1), MPI_INT, 0, world);
 
@@ -356,7 +356,7 @@ void PairUF3::allocate()
       }
     }
     memory->create(neighshort, maxshort, "pair:neighshort");
-    
+
   }
 }
 
@@ -372,7 +372,7 @@ void PairUF3::uf3_read_unified_pot_file(char *potf_name)
 
   const int num_of_elements = atom->ntypes;
 
-  //if (true) { 
+  //if (true) {
   FILE *fp = utils::open_potential(potf_name, lmp, nullptr);
   if (!fp)
     error->all(FLERR,
@@ -412,7 +412,7 @@ void PairUF3::uf3_read_unified_pot_file(char *potf_name)
           error->all(FLERR, "UF3: Expected 6 words on line {} of {} file "
                             "but found {} word/s",
                             line_counter, potf_name, fp2nd_line.count());
-      
+
         //get the elements
         std::string element1 = fp2nd_line.next_string();
         std::string element2 = fp2nd_line.next_string();
@@ -430,7 +430,7 @@ void PairUF3::uf3_read_unified_pot_file(char *potf_name)
             break;
           }
         }
-        
+
         if ((itype != 0) && (jtype != 0)) {
           //Trailing and leading trim check
           int leading_trim = fp2nd_line.next_int();
@@ -457,7 +457,7 @@ void PairUF3::uf3_read_unified_pot_file(char *potf_name)
           //cut is used in init_one which is called by pair.cpp at line 267
           //where the return of init_one is squared
           cut[itype][jtype] = fp3rd_line.next_double(); //MPI_Bcast
-          cut[jtype][itype] = cut[itype][jtype];        
+          cut[jtype][itype] = cut[itype][jtype];
 
           int num_knots_2b = fp3rd_line.next_int();
           n2b_knots_array_size[itype][jtype] = num_knots_2b; //MPI_Bcast
@@ -472,7 +472,7 @@ void PairUF3::uf3_read_unified_pot_file(char *potf_name)
           temp_line = txtfilereader.next_line(1);
           line_counter++;
           ValueTokenizer fp5th_line(temp_line);
-        
+
           int num_coeff_2b = fp5th_line.next_int();
           n2b_coeff_array_size[itype][jtype] = num_coeff_2b; //MPI_Bcast
           n2b_coeff_array_size[jtype][itype] = num_coeff_2b; //MPI_Bcast
@@ -485,7 +485,7 @@ void PairUF3::uf3_read_unified_pot_file(char *potf_name)
           error->all(FLERR, "UF3: Expected 7 words on line {} of {} file"
                             "but found {} word/s",
                             line_counter, potf_name, fp2nd_line.count());
-    
+
         if (nbody_on_file == "3B") {
           //get the elements
           std::string element1 = fp2nd_line.next_string();
@@ -512,7 +512,7 @@ void PairUF3::uf3_read_unified_pot_file(char *potf_name)
               break;
             }
           }
-        
+
           if ((itype != 0) && (jtype != 0) && (ktype!=0)) {
             //Trailing and leading trim check
             int leading_trim = fp2nd_line.next_int();
@@ -530,33 +530,33 @@ void PairUF3::uf3_read_unified_pot_file(char *potf_name)
             temp_line = txtfilereader.next_line(6);
             line_counter++;
             ValueTokenizer fp3rd_line(temp_line);
-        
+
             if (fp3rd_line.count() != 6)
               error->all(FLERR,
                          "UF3: Expected only 6 numbers on 3rd line => "
                          "Rjk_CUTOFF Rik_CUTOFF Rij_CUTOFF NUM_OF_KNOTS_JK "
                          "NUM_OF_KNOTS_IK NUM_OF_KNOTS_IJ Found {} number/s",
                          fp3rd_line.count());
-          
+
             double cut3b_rjk = fp3rd_line.next_double();
             double cut3b_rij = fp3rd_line.next_double();
             double cut3b_rik = fp3rd_line.next_double();
-          
+
             if (cut3b_rij != cut3b_rik)
               error->all(FLERR,
                          "UF3: rij!=rik for {}-{}-{}. "
                          "Current implementation only works for rij=rik",
                          element1, element2, element3);
-          
+
             if (2 * cut3b_rik != cut3b_rjk)
               error->all(FLERR,
                          "UF3: 2rij=2rik!=rik for {}-{}-{}. "
                          "Current implementation only works for 2rij=2rik!=rik",
                          element1, element2, element3);
 
-            cut_3b_list[itype][jtype] = 
+            cut_3b_list[itype][jtype] =
                 std::max(cut3b_rij, cut_3b_list[itype][jtype]); //MPI_Bcast
-            cut_3b_list[itype][ktype] = 
+            cut_3b_list[itype][ktype] =
                 std::max(cut_3b_list[itype][ktype], cut3b_rik); //MPI_Bcast
 
             cut_3b[itype][jtype][ktype] = cut3b_rij; //MPI_Bcast
@@ -569,7 +569,7 @@ void PairUF3::uf3_read_unified_pot_file(char *potf_name)
             n3b_knots_array_size[map_3b[itype][jtype][ktype]][0] = num_knots_3b_jk; //MPI_Bcast
             n3b_knots_array_size[map_3b[itype][jtype][ktype]][1] = num_knots_3b_ik;
             n3b_knots_array_size[map_3b[itype][jtype][ktype]][2] = num_knots_3b_ij;
-            
+
             n3b_knots_array_size[map_3b[itype][ktype][jtype]][0] = num_knots_3b_jk; //MPI_Bcast
             n3b_knots_array_size[map_3b[itype][ktype][jtype]][1] = num_knots_3b_ij;
             n3b_knots_array_size[map_3b[itype][ktype][jtype]][2] = num_knots_3b_ik;
@@ -577,7 +577,7 @@ void PairUF3::uf3_read_unified_pot_file(char *potf_name)
             max_num_knots_3b = std::max(max_num_knots_3b, num_knots_3b_jk);
             max_num_knots_3b = std::max(max_num_knots_3b, num_knots_3b_ik);
             max_num_knots_3b = std::max(max_num_knots_3b, num_knots_3b_ij); //MPI_Bcast
- 
+
             //skip next 3 line
             txtfilereader.skip_line();
             line_counter++;
@@ -597,7 +597,7 @@ void PairUF3::uf3_read_unified_pot_file(char *potf_name)
                          "SHAPE_OF_COEFF_MATRIX[I][J][K] "
                          "found {} numbers",
                          fp7th_line.count());
-        
+
             int coeff_matrix_dim1 = fp7th_line.next_int();
             int coeff_matrix_dim2 = fp7th_line.next_int();
             int coeff_matrix_dim3 = fp7th_line.next_int();
@@ -609,7 +609,7 @@ void PairUF3::uf3_read_unified_pot_file(char *potf_name)
             n3b_coeff_array_size[map_3b[itype][ktype][jtype]][0] = coeff_matrix_dim2;
             n3b_coeff_array_size[map_3b[itype][ktype][jtype]][1] = coeff_matrix_dim1;
             n3b_coeff_array_size[map_3b[itype][ktype][jtype]][2] = coeff_matrix_dim3;
-            
+
             max_num_coeff_3b = std::max(max_num_coeff_3b,coeff_matrix_dim1);
             max_num_coeff_3b = std::max(max_num_coeff_3b,coeff_matrix_dim2);
             max_num_coeff_3b = std::max(max_num_coeff_3b,coeff_matrix_dim3);
@@ -656,14 +656,14 @@ void PairUF3::uf3_read_unified_pot_file(char *potf_name)
     if (max_num_knots_3b > 0)
       memory->create(n3b_knots_array, tot_interaction_count_3b, 3,
                      max_num_knots_3b, "pair:n3b_knots_array");
-  
+
     else
       error->all(FLERR,
                  "UF3: Error reading the size of 3B knot vector\n"
                  "Possibly no 3B UF3 potential block detected in {} file",
                  potf_name);
-    
-    if (max_num_coeff_3b > 0) 
+
+    if (max_num_coeff_3b > 0)
       memory->create(n3b_coeff_array, tot_interaction_count_3b, max_num_coeff_3b,
                      max_num_coeff_3b, max_num_coeff_3b, "pair:n3b_coeff_array");
     else
@@ -673,7 +673,7 @@ void PairUF3::uf3_read_unified_pot_file(char *potf_name)
                  potf_name);
   }
 
-  //Go back to the begning of the file 
+  //Go back to the begning of the file
   txtfilereader.rewind();
 
   //Go through the file again and fill knot and coeff arrays
@@ -720,7 +720,7 @@ void PairUF3::uf3_read_unified_pot_file(char *potf_name)
 
         //skip the next two tokens
         fp2nd_line.skip(2);
-       
+
         //uk or nk?
         std::string knot_type = fp2nd_line.next_string();
         if (knot_type == "uk") {
@@ -738,7 +738,7 @@ void PairUF3::uf3_read_unified_pot_file(char *potf_name)
         if ((itype != 0) && (jtype != 0)) {
           //skip line containing info of cutoff and knot vect size
           txtfilereader.skip_line();
-          
+
           int num_knots_2b = n2b_knots_array_size[itype][jtype];
 
           temp_line = txtfilereader.next_line(num_knots_2b);
@@ -748,7 +748,7 @@ void PairUF3::uf3_read_unified_pot_file(char *potf_name)
             error->all(FLERR, "UF3: Error readig the 2B potential block for {}-{}\n"
                        "Expecter {} numbers on 4th line of the block but found {} "
                        "numbers", num_knots_2b,fp4th_line.count());
-       
+
           for (int k = 0; k < num_knots_2b; k++) {
             n2b_knots_array[itype][jtype][k] = fp4th_line.next_double(); //MPI_Bcast
             n2b_knots_array[jtype][itype][k] = n2b_knots_array[itype][jtype][k];
@@ -810,7 +810,7 @@ void PairUF3::uf3_read_unified_pot_file(char *potf_name)
             break;
           }
         }
-        
+
         //skip the next two tokens
         fp2nd_line.skip(2);
 
@@ -828,10 +828,10 @@ void PairUF3::uf3_read_unified_pot_file(char *potf_name)
                      "Found {} on the 2nd line of {}-{}-{} interaction block",
                      knot_type, element1, element2, element3);
 
-        if ((itype != 0) && (jtype != 0) && (ktype!=0)) { 
+        if ((itype != 0) && (jtype != 0) && (ktype!=0)) {
           //skip line containing info of cutoffs and knot vector sizes
           txtfilereader.skip_line();
-          
+
           int num_knots_3b_jk = n3b_knots_array_size[map_3b[itype][jtype][ktype]][0];
           int num_knots_3b_ik = n3b_knots_array_size[map_3b[itype][jtype][ktype]][1];
           int num_knots_3b_ij = n3b_knots_array_size[map_3b[itype][jtype][ktype]][2];
@@ -904,21 +904,21 @@ void PairUF3::uf3_read_unified_pot_file(char *potf_name)
           int coeff_matrix_dim2 = n3b_coeff_array_size[map_3b[itype][jtype][ktype]][1];
           int coeff_matrix_dim3 = n3b_coeff_array_size[map_3b[itype][jtype][ktype]][2];
 
-          if (num_knots_3b_jk != coeff_matrix_dim3 + 3 + 1) 
+          if (num_knots_3b_jk != coeff_matrix_dim3 + 3 + 1)
             error->all(FLERR,
                        "UF3: {}-{}-{} interaction block has incorrect knot "
                        "(NUM_OF_KNOTS_JK) and coeff (coeff_matrix_dim3) data "
                        "nknots!=ncoeffs + 3 + 1",
                         element1, element2, element3);
 
-          if (num_knots_3b_ik != coeff_matrix_dim2 + 3 + 1) 
+          if (num_knots_3b_ik != coeff_matrix_dim2 + 3 + 1)
             error->all(FLERR,
                        "UF3: {}-{}-{} interaction block has incorrect knot "
                        "(NUM_OF_KNOTS_IK) and coeff (coeff_matrix_dim2) data "
                        "nknots!=ncoeffs + 3 + 1",
                         element1, element2, element3);
-  
-          if (num_knots_3b_ij != coeff_matrix_dim1 + 3 + 1) 
+
+          if (num_knots_3b_ij != coeff_matrix_dim1 + 3 + 1)
             error->all(FLERR,
                        "UF3: {}-{}-{} interaction block has incorrect knot "
                        "(NUM_OF_KNOTS_IJ) and coeff (coeff_matrix_dim1) data "
@@ -994,11 +994,11 @@ void PairUF3::uf3_read_unified_pot_file(char *potf_name)
         knot_spacing_type_2b[i][j] = knot_spacing_type_2b[i_mapped_to][j_mapped_to];
 
         for (int knot_no = 0; knot_no < max_num_knots_2b; knot_no++)
-          n2b_knots_array[i][j][knot_no] = 
+          n2b_knots_array[i][j][knot_no] =
               n2b_knots_array[i_mapped_to][j_mapped_to][knot_no];
 
         for (int coeff_no = 0; coeff_no < max_num_coeff_2b; coeff_no++)
-          n2b_coeff_array[i][j][coeff_no] = 
+          n2b_coeff_array[i][j][coeff_no] =
               n2b_coeff_array[i_mapped_to][j_mapped_to][coeff_no];
 
         setflag[i][j] = 1;
@@ -1013,7 +1013,7 @@ void PairUF3::uf3_read_unified_pot_file(char *potf_name)
         for (int k = 1; k < num_of_elements + 1; k++) {
           if (setflag_3b[i][j][k] != 1) {
             //i-j-k interaction not set
-            
+
             //maybe i-j-k is mapped to some other atom type interaction?
             int i_mapped_to = map[i]+1; //+1 as map starts from 0
             int j_mapped_to = map[j]+1; //+1 as map starts from 0
@@ -1032,7 +1032,7 @@ void PairUF3::uf3_read_unified_pot_file(char *potf_name)
                          "{} file",
                          i, j, k, i_mapped_to, j_mapped_to, k_mapped_to,
                          i_mapped_to, j_mapped_to, k_mapped_to, potf_name);
-        
+
 
             cut_3b_list[i][j] = std::max(cut_3b_list[i_mapped_to][j_mapped_to],
                                          cut_3b_list[i][j]);
@@ -1054,15 +1054,15 @@ void PairUF3::uf3_read_unified_pot_file(char *potf_name)
             n3b_coeff_array_size[key][1] = n3b_coeff_array_size[mapped_to_key][1];
             n3b_coeff_array_size[key][2] = n3b_coeff_array_size[mapped_to_key][2];
 
-            min_cut_3b[i][j][k][0] = 
+            min_cut_3b[i][j][k][0] =
                 min_cut_3b[i_mapped_to][j_mapped_to][k_mapped_to][0];//n3b_knots_array[key][0][0];
-            
-            min_cut_3b[i][j][k][1] = 
+
+            min_cut_3b[i][j][k][1] =
                 min_cut_3b[i_mapped_to][j_mapped_to][k_mapped_to][1];//n3b_knots_array[key][1][0];
-            
-            min_cut_3b[i][j][k][2] = 
+
+            min_cut_3b[i][j][k][2] =
                 min_cut_3b[i_mapped_to][j_mapped_to][k_mapped_to][2];//n3b_knots_array[key][2][0];
-            
+
             for (int knot_no = 0; knot_no < n3b_knots_array_size[key][0]; knot_no++)
               n3b_knots_array[key][0][knot_no] = n3b_knots_array[mapped_to_key][0][knot_no];
 
@@ -1075,7 +1075,7 @@ void PairUF3::uf3_read_unified_pot_file(char *potf_name)
             for (int coeff1 = 0; coeff1 < n3b_coeff_array_size[key][0]; coeff1++)
               for (int coeff2 = 0; coeff2 < n3b_coeff_array_size[key][1]; coeff2++)
                 for (int coeff3 = 0; coeff3 < n3b_coeff_array_size[key][2]; coeff3++)
-                  n3b_coeff_array[key][coeff1][coeff2][coeff3] = 
+                  n3b_coeff_array[key][coeff1][coeff2][coeff3] =
                       n3b_coeff_array[mapped_to_key][coeff1][coeff2][coeff3];
             setflag_3b[i][j][k] = 1;
           }
@@ -2058,7 +2058,7 @@ double PairUF3::memory_usage()
 
   bytes += (double) (num_of_elements + 1) * (num_of_elements + 1) * sizeof(double);   //n2b_knots_array_size
   bytes += (double) (num_of_elements + 1) * (num_of_elements + 1) * sizeof(double);   //n2b_coeff_array_size
-  
+
   bytes += (double) (num_of_elements + 1) * (num_of_elements + 1) * max_num_knots_2b *
                     sizeof(double);         //n2b_knots_array
 

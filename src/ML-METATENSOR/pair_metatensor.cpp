@@ -197,6 +197,8 @@ void PairMetatensor::settings(int argc, char ** argv) {
         }
     }
 
+    this->torch_model->to(device);
+
     auto message = "Running simulation on " + this->device.str() + " device with " + this->capabilities->dtype() + " data";
     if (screen) {
         fprintf(screen, "%s\n", message.c_str());

@@ -78,6 +78,62 @@ uf3_pair_bspline::uf3_pair_bspline(LAMMPS *ulmp, const std::vector<double> &ukno
     dnbspline_bases.push_back(uf3_bspline_basis2(lmp, &dnknot_vect[i], dncoeff_vect[i]));
 }
 
+// Constructor
+// Passing arrays
+uf3_pair_bspline::uf3_pair_bspline(LAMMPS *ulmp, const double* uknot_array,
+                                   const int uknot_array_size,
+                                   const double* ucoeff_array,
+                                   const int ucoeff_array_size,
+                                   const int uknot_spacing_type)
+{
+  lmp = ulmp;
+  
+  knot_vect = std::vector<double> (uknot_array, uknot_array + uknot_array_size);
+  coeff_vect = std::vector<double> (ucoeff_array, ucoeff_array + ucoeff_array_size);
+
+  knot_spacing_type = uknot_spacing_type;
+  if (knot_spacing_type==0){
+    knot_spacing = knot_vect[4]-knot_vect[3];
+    get_starting_index=&uf3_pair_bspline::get_starting_index_uniform;
+  }
+  else if (knot_spacing_type==1){
+    knot_spacing = 0;
+    get_starting_index=&uf3_pair_bspline::get_starting_index_nonuniform;
+  }
+
+  else
+    lmp->error->all(FLERR, "UF3: Expected either '0'(uniform-knots) or \n\
+            '1'(non-uniform knots)");
+
+  knot_vect_size = uknot_array_size;
+  coeff_vect_size = ucoeff_array_size;
+
+  // Initialize B-Spline Basis Functions
+  for (int i = 0; i < knot_vect.size() - 4; i++)
+    bspline_bases.push_back(uf3_bspline_basis3(lmp, &knot_vect[i], coeff_vect[i]));
+
+  // Initialize Coefficients and Knots for Derivatives
+  // The last coefficient needs to be droped
+  for (int i = 0; i < coeff_vect_size - 1; i++) {
+    double dntemp4 = 3 / (knot_vect[i + 4] - knot_vect[i + 1]);
+    dncoeff_vect.push_back((coeff_vect[i + 1] - coeff_vect[i]) * dntemp4);
+  }
+  //What we have is a clamped bspline -->i.e value of the bspline curve at the
+  //knots with multiplicity equal to the degree of bspline is equal to the coefficient
+  //
+  //Therefore for the derivative bspline the very first and last knot needs to be droped
+  //to change their multiplicity from 4 (necessary condition for clamped cubic bspline)
+  //to 3 (necessary condition for clamped quadratic bspline)
+  //
+  //Also if the coeff vector size of decreases by 1 for the derivative bspline
+  //knots size needs to go down by 2 as ==> knots = coefficient + degree + 1
+  for (int i = 1; i < knot_vect_size - 1; i++) dnknot_vect.push_back(knot_vect[i]);
+
+  // Initialize B-Spline Derivative Basis Functions
+  for (int i = 0; i < dnknot_vect.size() - 3; i++)
+    dnbspline_bases.push_back(uf3_bspline_basis2(lmp, &dnknot_vect[i], dncoeff_vect[i]));
+}
+
 uf3_pair_bspline::~uf3_pair_bspline() {}
 
 int uf3_pair_bspline::get_starting_index_uniform(double r)

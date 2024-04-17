@@ -25,24 +25,13 @@ Examples
 .. code-block:: LAMMPS
 
     pair_style uf3 3
-    pair_coeff 1 1 Nb_Nb.uf3
-    pair_coeff 3b 1 1 1 Nb_Nb_Nb.uf3
+    pair_coeff * * Nb.uf3 Nb
 
     pair_style uf3 2
-    pair_coeff 1 1 Nb_Nb.uf3
-    pair_coeff 1 2 Nb_Sn.uf3
-    pair_coeff 2 2 Sn_Sn.uf3
+    pair_coeff * * NbSn.uf3 Nb Sn
 
     pair_style uf3 3
-    pair_coeff 1 1 Nb_Nb.uf3
-    pair_coeff 1 2 Nb_Sn.uf3
-    pair_coeff 2 2 Sn_Sn.uf3
-    pair_style 3b 1 1 1 Nb_Nb_Nb.uf3
-    pair_style 3b 1 1 2 Nb_Nb_Sn.uf3
-    pair_style 3b 1 2 2 Nb_Sn_Sn.uf3
-    pair_style 3b 2 1 1 Sn_Nb_Nb.uf3
-    pair_style 3b 2 1 2 Sn_Nb_Sn.uf3
-    pair_style 3b 2 2 2 Sn_Sn_Sn.uf3
+    pair_coeff * * NbSn.uf3 Nb Sn
 
 Description
 """""""""""
@@ -70,16 +59,13 @@ interaction parameters and :math:`N`, :math:`N_l`, :math:`N_m`, and
 :math:`N_n` denote the number of basis functions per spline or tensor
 spline dimension.
 
-The UF3 LAMMPS potential files are provided using multiple pair_coeff
-commands. A single UF3 LAMMPS potential file contains information about
-one particular interaction only.
+With *uf3* style only a single pair_coeff command is used to indicate the
+UF3 LAMMPS potential file containing all the two- and three-body interactions
+followed by N additional arguments specifying the mapping of UF3 elements to
+LAMMPS atom types, where N is the number of LAMMPS atom types:
 
-.. note::
-
-   Unlike other MANYBODY and ML potentials in LAMMPS, the atom type for
-   which the specified potential file should be used for is not
-   determined from the potential file, but is rather determined from the
-   user provided atom type numbers after pair_coeff.
+* UF3 LAMMPS potential file
+* N elements names = mapping of UF3 elements to atom types
 
 As an example, if a LAMMPS simulation contains 2 atom types (elements
 'A' and 'B'), the pair_coeff command will be:
@@ -87,64 +73,37 @@ As an example, if a LAMMPS simulation contains 2 atom types (elements
 .. code-block:: LAMMPS
 
    pair_style uf3 3
-   pair_coeff 1 1 A_A.uf3
-   pair_coeff 1 2 A_B.uf3
-   pair_coeff 2 2 B_B.uf3
-   pair_coeff 3b 1 1 1 A_A_A.uf3
-   pair_coeff 3b 1 1 2 A_A_B.uf3
-   pair_coeff 3b 1 2 2 A_B_B.uf3
-   pair_coeff 3b 2 1 1 B_A_A.uf3
-   pair_coeff 3b 2 1 2 B_A_B.uf3
-   pair_coeff 3b 2 2 2 B_B_B.uf3
+   pair_coeff * * AB.uf3 A B
+ 
+The AB.uf3 file should conatin all two-body (A-A, A-B, B-B) and three-body
+(A-A-A, A-A-B, A-B-B, B-A-A, B-A-B, B-B-B).
 
 If a value of "2" is specified in the :code:`pair_style uf3` command,
-only the two-body potential files are needed. For 3-body interaction the
+only the two-body potentials are needed. For 3-body interaction the
 first atom type is the central atom. We recommend using the
 :code:`generate_uf3_lammps_pots.py` script (found `here
-<https://github.com/uf3/uf3/tree/master/lammps_plugin/scripts>`_) for
-generating the UF3 LAMMPS potential files from the UF3 JSON potentials.
-
-LAMMPS wild-card character "*" can also be used to specify a single UF3
-LAMMPS potential file for multiple interaction. For example-
-
-.. code-block:: LAMMPS
-
-   pair_style uf3 3
-   pair_coeff * * A_A
-   pair_coeff 3b 1 * * A_A_A
-   pair_coeff 3b 2 * * B_B_B
-
-The file A_A will be used for 2-body interaction between atom types 1-1,
-1-2 and 2-2; file A_A_A will be used 3-body interaction for atom types
-1-1-1, 1-1-2, 1-2-2; and so on. Note, using a single interaction file
-for all types of interactions is **not** the recommended way of using
-:code:`pair_style uf3` and will often lead to **incorrect results**.
+<https://github.com/uf3/uf3/tree/develop/lammps_plugin/scripts>`_) for
+generating the UF3 LAMMPS potential file from the UF3 JSON potentials.
 
 ----------
 
-UF3 LAMMPS potential files in the *potentials* directory of the LAMMPS
-distribution have a ".uf3" suffix. All UF3 LAMMPS potential files should
-start with :code:`#UF3 POT` and end with :code:`#` characters. Following
-shows the format of a generic 2-body UF3 LAMMPS potential file-
+UF3 LAMMPS potential file in the *potentials* directory of the LAMMPS
+distribution have a ".uf3" suffix. The interaction block in UF3 LAMMPS potential
+file should start with :code:`#UF3 POT` and end with :code:`#` characters.
+Following shows the format of a generic 2-body and 3-body potential block in
+UF3 LAMMPS potential file-
 
 .. code-block:: LAMMPS
 
    #UF3 POT UNITS: units DATE: POT_GEN_DATE AUTHOR: AUTHOR_NAME CITATION: CITE
-   2B LEADING_TRIM TRAILING_TRIM
+   2B ELEMENT1 ELEMENT2 LEADING_TRIM TRAILING_TRIM
    Rij_CUTOFF NUM_OF_KNOTS
    BSPLINE_KNOTS
    NUM_OF_COEFF
    COEFF
    #
-
-The second line indicates whether the potential file contains data for 2-body (:code:`2B`) or 3-body (:code:`3B`) interaction. This is followed by :code:`LEADING_TRIM` and :code:`TRAILING_TRIM` number on the same line. The current implementation is only tested for :code:`LEADING_TRIM=0` and :code:`TRAILING_TRIM=3`. If other values are used LAMMPS is terminated after issuing an error message. The :code:`Rij_CUTOFF` sets the 2-body cutoff for the interaction described by the potential file. :code:`NUM_OF_KNOTS` is the number of knots (or the length of the knot vector) present on the very next line. The :code:`BSPLINE_KNOTS` line should contain all the knots in ascending order. :code:`NUM_OF_COEFF` is the number of coefficients in the :code:`COEFF` line. All the numbers in the BSPLINE_KNOTS and COEFF line should be space-separated.
-
-The format of a generic 3-body UF3 LAMMPS potential file is as follow-
-
-.. code-block:: LAMMPS
-
    #UF3 POT UNITS: units DATE: POT_GEN_DATE AUTHOR: AUTHOR_NAME CITATION: CITE
-   3B LEADING_TRIM TRAILING_TRIM
+   3B ELEMENT1 ELEMENT2 ELEMENT3 LEADING_TRIM TRAILING_TRIM
    Rjk_CUTOFF Rik_CUTOFF Rij_CUTOFF NUM_OF_KNOTS_JK NUM_OF_KNOTS_IK NUM_OF_KNOTS_IJ
    BSPLINE_KNOTS_FOR_JK
    BSPLINE_KNOTS_FOR_IK
@@ -164,10 +123,22 @@ The format of a generic 3-body UF3 LAMMPS potential file is as follow-
    .
    #
 
-Similar to the 2-body potential file, the third line sets the cutoffs
-and length of the knots. The cutoff distance between atom-type I and J
-is :code:`Rij_CUTOFF`, atom-type I and K is :code:`Rik_CUTOFF` and
-between J and K is :code:`Rjk_CUTOFF`.
+The second line indicates whether the block contains data for 2-body
+(:code:`2B`) or 3-body (:code:`3B`) interaction. This is followed by element
+combination interaction, :code:`LEADING_TRIM` and :code:`TRAILING_TRIM`
+number on the same line. The current implementation is only tested for
+:code:`LEADING_TRIM=0` and :code:`TRAILING_TRIM=3`.
+If other values are used LAMMPS is terminated after issuing an error message.
+The :code:`Rij_CUTOFF` sets the 2-body cutoff for the interaction described
+by the potential block. :code:`NUM_OF_KNOTS` is the number of knots 
+(or the length of the knot vector) present on the very next line. The
+:code:`BSPLINE_KNOTS` line should contain all the knots in ascending order.
+:code:`NUM_OF_COEFF` is the number of coefficients in the :code:`COEFF` line.
+All the numbers in the BSPLINE_KNOTS and COEFF line should be space-separated.
+Similar to the 2-body potential block, the third line sets the cutoffs and
+length of the knots. The cutoff distance between atom-type I and J is
+:code:`Rij_CUTOFF`, atom-type I and K is :code:`Rik_CUTOFF` and between
+J and K is :code:`Rjk_CUTOFF`.
 
 .. note::
 
@@ -204,7 +175,7 @@ This pair style does not support the :doc:`pair_modify <pair_modify>`
 shift, table, and tail options.
 
 This pair style does not write its information to :doc:`binary restart
-files <restart>`, since it is stored in potential files.
+files <restart>`, since it is stored in potential file.
 
 This pair style can only be used via the *pair* keyword of the
 :doc:`run_style respa <run_style>` command.  It does not support the
@@ -219,7 +190,7 @@ if LAMMPS was built with that package. See the :doc:`Build package
 
 This pair style requires the :doc:`newton <newton>` setting to be "on".
 
-The UF3 LAMMPS potential files provided with LAMMPS (see the potentials
+The UF3 LAMMPS potential file provided with LAMMPS (see the potentials
 directory) are parameterized for metal :doc:`units <units>`.
 
 The single() function of 'uf3' pair style only return the 2-body

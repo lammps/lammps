@@ -145,6 +145,153 @@ uf3_triplet_bspline::uf3_triplet_bspline(
   }
 }
 
+// Construct a new 3D B-Spline from arrays
+uf3_triplet_bspline::uf3_triplet_bspline(
+    LAMMPS *ulmp, double **uknot_array, const int *uknot_array_size,
+    double ***ucoeff_array, const int *ucoeff_array_size,
+    const int &uknot_spacing_type)
+{
+  lmp = ulmp;
+
+  knot_matrix.resize(3);
+  //utils::logmesg(lmp, "knot_matrix dim = {} {} {}\nknots = ",uknot_array_size[0],
+  //               uknot_array_size[1], uknot_array_size[2]);
+  for (int i = 0; i < 3; i++) {
+    knot_matrix[i].resize(uknot_array_size[i]);
+    //utils::logmesg(lmp, "{}= ",i);
+    for (int j = 0; j < uknot_array_size[i]; j++) {
+      //utils::logmesg(lmp, "{} ", uknot_array[i][j]);
+      knot_matrix[i][j] = uknot_array[i][j];
+    }
+    //utils::logmesg(lmp,"\n");
+  }
+
+  coeff_matrix.resize(ucoeff_array_size[0]);
+  for (int i = 0; i < ucoeff_array_size[0]; i++) {
+    coeff_matrix[i].resize(ucoeff_array_size[1]);
+    for (int j = 0; j < ucoeff_array_size[1]; j++) {
+      coeff_matrix[i][j].resize(ucoeff_array_size[2]);
+      for (int k = 0; k < ucoeff_array_size[2]; k++){
+        coeff_matrix[i][j][k] = ucoeff_array[i][j][k];
+      }
+    }
+  }
+
+  knot_spacing_type = uknot_spacing_type;
+  if (knot_spacing_type==0){
+    knot_spacing_ij = knot_matrix[2][4]-knot_matrix[2][3];
+    knot_spacing_ik = knot_matrix[1][4]-knot_matrix[1][3];
+    knot_spacing_jk = knot_matrix[0][4]-knot_matrix[0][3];
+    get_starting_index=&uf3_triplet_bspline::get_starting_index_uniform;
+  }
+  else if (knot_spacing_type==1){
+    knot_spacing_ij = 0;
+    knot_spacing_ik = 0;
+    knot_spacing_jk = 0;
+    get_starting_index=&uf3_triplet_bspline::get_starting_index_nonuniform;
+  }
+
+  else
+    lmp->error->all(FLERR, "UF3: Expected either '0'(uniform-knots) or \n\
+            '1'(non-uniform knots)");
+
+  knot_vect_size_ij = knot_matrix[2].size();
+  knot_vect_size_ik = knot_matrix[1].size();
+  knot_vect_size_jk = knot_matrix[0].size();
+
+  int resolution_ij = knot_vect_size_ij - 4;
+  int resolution_ik = knot_vect_size_ik - 4;
+  int resolution_jk = knot_vect_size_jk - 4;
+
+  // Cache Spline Basis Functions
+  for (int l = 0; l < resolution_ij; l++) {
+    bsplines_ij.push_back(uf3_bspline_basis3(lmp, &knot_matrix[2][l], 1));
+  }
+
+  for (int l = 0; l < resolution_ik; l++) {
+    // Reuse jk Basis if Knots match
+    if (knot_matrix[1][l] == knot_matrix[2][l] && knot_matrix[1][l + 1] == knot_matrix[2][l + 1] &&
+        knot_matrix[1][l + 2] == knot_matrix[2][l + 2] &&
+        knot_matrix[1][l + 3] == knot_matrix[2][l + 3])
+      bsplines_ik.push_back(bsplines_ij[l]);
+    else
+      bsplines_ik.push_back(uf3_bspline_basis3(lmp, &knot_matrix[1][l], 1));
+  }
+
+  for (int l = 0; l < resolution_jk; l++) {
+    bsplines_jk.push_back(uf3_bspline_basis3(lmp, &knot_matrix[0][l], 1));
+  }
+
+  // Initialize Coefficients for Derivatives
+  for (int i = 0; i < coeff_matrix.size(); i++) {
+    std::vector<std::vector<double>> dncoeff_vect2;
+    for (int j = 0; j < coeff_matrix[0].size(); j++) {
+      std::vector<double> dncoeff_vect;
+      for (int k = 0; k < coeff_matrix[0][0].size() - 1; k++) {
+        double dntemp4 = 3 / (knot_matrix[0][k + 4] - knot_matrix[0][k + 1]);
+        dncoeff_vect.push_back((coeff_matrix[i][j][k + 1] - coeff_matrix[i][j][k]) * dntemp4);
+      }
+      dncoeff_vect2.push_back(dncoeff_vect);
+    }
+    dncoeff_matrix_jk.push_back(dncoeff_vect2);
+  }
+
+  for (int i = 0; i < coeff_matrix.size(); i++) {
+    std::vector<std::vector<double>> dncoeff_vect2;
+    for (int j = 0; j < coeff_matrix[0].size() - 1; j++) {
+      double dntemp4 = 3 / (knot_matrix[1][j + 4] - knot_matrix[1][j + 1]);
+      std::vector<double> dncoeff_vect;
+      for (int k = 0; k < coeff_matrix[0][0].size(); k++) {
+        dncoeff_vect.push_back((coeff_matrix[i][j + 1][k] - coeff_matrix[i][j][k]) * dntemp4);
+      }
+      dncoeff_vect2.push_back(dncoeff_vect);
+    }
+    dncoeff_matrix_ik.push_back(dncoeff_vect2);
+  }
+
+  for (int i = 0; i < coeff_matrix.size() - 1; i++) {
+    std::vector<std::vector<double>> dncoeff_vect2;
+    double dntemp4 = 3 / (knot_matrix[2][i + 4] - knot_matrix[2][i + 1]);
+    for (int j = 0; j < coeff_matrix[0].size(); j++) {
+      std::vector<double> dncoeff_vect;
+      for (int k = 0; k < coeff_matrix[0][0].size(); k++) {
+        dncoeff_vect.push_back((coeff_matrix[i + 1][j][k] - coeff_matrix[i][j][k]) * dntemp4);
+      }
+      dncoeff_vect2.push_back(dncoeff_vect);
+    }
+    dncoeff_matrix_ij.push_back(dncoeff_vect2);
+  }
+
+  std::vector<std::vector<double>> dnknot_matrix;
+  for (int i = 0; i < knot_matrix.size(); i++) {
+    std::vector<double> dnknot_vect;
+    for (int j = 1; j < knot_matrix[0].size() - 1; j++) {
+      dnknot_vect.push_back(knot_matrix[i][j]);
+    }
+    dnknot_matrix.push_back(dnknot_vect);
+  }
+
+  // Cache Derivative Spline Basis Functions
+  for (int l = 0; l < resolution_ij - 1; l++) {
+    dnbsplines_ij.push_back(uf3_bspline_basis2(lmp, &dnknot_matrix[2][l], 1));
+  }
+
+  for (int l = 0; l < resolution_ik - 1; l++) {
+    // Reuse jk Basis if Knots match
+    if (dnknot_matrix[1][l] == dnknot_matrix[2][l] &&
+        dnknot_matrix[1][l + 1] == dnknot_matrix[2][l + 1] &&
+        dnknot_matrix[1][l + 2] == dnknot_matrix[2][l + 2])
+      dnbsplines_ik.push_back(dnbsplines_ij[l]);
+    else
+      dnbsplines_ik.push_back(uf3_bspline_basis2(lmp, &dnknot_matrix[1][l], 1));
+  }
+
+  for (int l = 0; l < resolution_jk - 1; l++) {
+    dnbsplines_jk.push_back(uf3_bspline_basis2(lmp, &dnknot_matrix[0][l], 1));
+  }
+}
+
+
 // Destructor
 uf3_triplet_bspline::~uf3_triplet_bspline() {}
 

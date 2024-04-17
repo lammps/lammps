@@ -187,7 +187,7 @@ int BodyRoundedPolyhedron::unpack_border_body(AtomVecBody::Bonus *bonus, double 
 }
 
 /* ----------------------------------------------------------------------
-   populate bonus data structure with data file values
+   populate bonus data structure with data file values for one body
 ------------------------------------------------------------------------- */
 
 void BodyRoundedPolyhedron::data_body(int ibonus, int ninteger, int ndouble,

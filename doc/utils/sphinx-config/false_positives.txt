@@ -492,6 +492,7 @@ ChiralIDs
 chirality
 Cho
 Chodera
+Choi
 ChooseOffset
 chris
 Christoph

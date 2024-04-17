@@ -17,6 +17,7 @@
 
 #include "atom.h"
 #include "comm.h"
+#include "error.h"
 #include "force.h"
 #include "memory.h"
 #include "neigh_list.h"
@@ -102,6 +103,7 @@ void PairEAMOMP::eval(int iifrom, int iito, ThrData * const thr)
   double *coeff;
   int *ilist,*jlist,*numneigh,**firstneigh;
 
+  int beyond_rhomax = 0;
   evdwl = 0.0;
 
   const auto * _noalias const x = (dbl3_t *) atom->x[0];
@@ -203,7 +205,10 @@ void PairEAMOMP::eval(int iifrom, int iito, ThrData * const thr)
     fp[i] = (coeff[0]*p + coeff[1])*p + coeff[2];
     if (EFLAG) {
       phi = ((coeff[3]*p + coeff[4])*p + coeff[5])*p + coeff[6];
-      if (rho[i] > rhomax) phi += fp[i] * (rho[i]-rhomax);
+      if (rho[i] > rhomax) {
+        phi += fp[i] * (rho[i]-rhomax);
+        beyond_rhomax = 1;
+      }
       e_tally_thr(this, i, i, nlocal, NEWTON_PAIR, scale[type[i]][type[i]]*phi, 0.0, thr);
     }
   }
@@ -297,6 +302,16 @@ void PairEAMOMP::eval(int iifrom, int iito, ThrData * const thr)
     f[i].x += fxtmp;
     f[i].y += fytmp;
     f[i].z += fztmp;
+  }
+
+  if (EFLAG && (!exceeded_rhomax)) {
+    MPI_Allreduce(&beyond_rhomax, &exceeded_rhomax, 1, MPI_INT, MPI_MAX, world);
+    if (exceeded_rhomax) {
+      if (comm->me == 0)
+        error->warning(FLERR,
+                       "A per-atom density exceeded rhomax of EAM potential table - "
+                       "a linear extrapolation to the energy was made");
+    }
   }
 }
 

@@ -22,7 +22,7 @@ Examples
 Description
 """""""""""
 
-.. versionadded:: TBD
+.. versionadded:: 17Apr2024
 
 The *cosine/squared/restricted* dihedral style uses the potential
 

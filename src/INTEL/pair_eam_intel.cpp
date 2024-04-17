@@ -657,7 +657,7 @@ void PairEAMIntel::eval(const int offload, const int vflag,
     fix->stop_watch(TIME_HOST_PAIR);
 
   if (EFLAG && (!exceeded_rhomax)) {
-    MPI_Allreduce(&beyond_rhomax, &exceeded_rhomax, 1, MPI_INT, MPI_MAX, world);
+    MPI_Allreduce(&beyond_rhomax, &exceeded_rhomax, 1, MPI_INT, MPI_SUM, world);
     if (exceeded_rhomax) {
       if (comm->me == 0)
         error->warning(FLERR,

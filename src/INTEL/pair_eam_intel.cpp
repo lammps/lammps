@@ -234,7 +234,6 @@ void PairEAMIntel::eval(const int offload, const int vflag,
   const int istride = fc.rhor_istride();
   const int jstride = fc.rhor_jstride();
   const int fstride = fc.frho_stride();
-  int beyond_rhomax = 0;
   {
     #if defined(__MIC__) && defined(_LMP_INTEL_OFFLOAD)
     *timer_compute = MIC_Wtime();
@@ -453,10 +452,7 @@ void PairEAMIntel::eval(const int offload, const int vflag,
         if (EFLAG) {
           flt_t phi = ((frho_spline_e[ioff].a*p + frho_spline_e[ioff].b)*p +
                        frho_spline_e[ioff].c)*p + frho_spline_e[ioff].d;
-          if (rho[i] > frhomax) {
-            phi += fp_f[i] * (rho[i]-frhomax);
-            beyond_rhomax = 1;
-          }
+          if (rho[i] > frhomax) phi += fp_f[i] * (rho[i]-frhomax);
           if (!ONETYPE) {
             const int ptr_off=itype*ntypes + itype;
             oscale = scale_f[ptr_off];
@@ -568,12 +564,10 @@ void PairEAMIntel::eval(const int offload, const int vflag,
           } else
             rhoip = rhojp;
           const flt_t z2p = (z2r_spline_t[joff].a*p +
-                             z2r_spline_t[joff].b)*p +
-            z2r_spline_t[joff].c;
+                             z2r_spline_t[joff].b)*p + z2r_spline_t[joff].c;
           const flt_t z2 = ((z2r_spline_t[joff].d*p +
                              z2r_spline_t[joff].e)*p +
-                            z2r_spline_t[joff].f)*p +
-            z2r_spline_t[joff].g;
+                            z2r_spline_t[joff].f)*p + z2r_spline_t[joff].g;
 
           const flt_t recip = (flt_t)1.0/r;
           const flt_t phi = z2*recip;
@@ -655,16 +649,6 @@ void PairEAMIntel::eval(const int offload, const int vflag,
     fix->stop_watch(TIME_OFFLOAD_LATENCY);
   else
     fix->stop_watch(TIME_HOST_PAIR);
-
-  if (EFLAG && (!exceeded_rhomax)) {
-    MPI_Allreduce(&beyond_rhomax, &exceeded_rhomax, 1, MPI_INT, MPI_SUM, world);
-    if (exceeded_rhomax) {
-      if (comm->me == 0)
-        error->warning(FLERR,
-                       "A per-atom density exceeded rhomax of EAM potential table - "
-                       "a linear extrapolation to the energy was made");
-    }
-  }
 
   if (EFLAG || vflag)
     fix->add_result_array(f_start, ev_global, offload, eatom, 0, vflag);

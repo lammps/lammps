@@ -73,7 +73,7 @@ the smooth SO(3) power spectrum with the explicit inclusion of a radial
 basis :ref:`(Bartok) <Bartok2013>` and :ref:`(Zagaceta) <Zagaceta2020>`.
 The available models are *linear* and *nn*.
 
-.. versionadded:: TBD
+.. versionadded:: 17Apr2024
 
 The descriptor style *ace* is a class of highly general atomic
 descriptors, atomic cluster expansion descriptors (ACE) from

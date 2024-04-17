@@ -54,8 +54,21 @@ like this:
    x[3] = x coord of atom with ID 2
    ...
    x[n3-1] = z coord of atom with ID natoms
-   lmp.scatter_atoms("x",1,3,x)
+   lmp.scatter_atoms("x", 1, 3, x)
+
+The coordinates can also be provided as arguments to the initializer of x:
+
+.. code-block:: python
+
+   from ctypes import c_double
+   natoms = 2
+   n3 = 3*natoms
+   # init in constructor
+   x = (n3*c_double)(0.0, 0.0, 0.0, 1.0, 1.0, 1.0)
+   lmp.scatter_atoms("x", 1, 3, x)
+   # or using a list
+   coords = [1.0, 2.0, 3.0, -3.0, -2.0, -1.0]
+   x = (c_double*len(coords))(*coords)
 
 Alternatively, you can just change values in the vector returned by
 the gather methods, since they are also ctypes vectors.
-

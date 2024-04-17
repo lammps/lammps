@@ -22,7 +22,7 @@ Syntax
          style = *linear* or *quadratic* or *nn* or *mliappy*
          filename = name of file containing model definitions
        *descriptor* values = style filename
-         style = *sna* or *so3*
+         style = *sna* or *so3* or *ace*
          filename = name of file containing descriptor definitions
        *unified* values = filename ghostneigh_flag
          filename = name of file containing serialized unified Python object
@@ -36,6 +36,7 @@ Examples
    pair_style mliap model linear InP.mliap.model descriptor sna InP.mliap.descriptor
    pair_style mliap model quadratic W.mliap.model descriptor sna W.mliap.descriptor
    pair_style mliap model nn Si.nn.mliap.model descriptor so3 Si.nn.mliap.descriptor
+   pair_style mliap model mliappy ACE_NN_Pytorch.pt descriptor ace ccs_single_element.yace
    pair_style mliap unified mliap_unified_lj_Ar.pkl 0
    pair_coeff * * In P
 
@@ -49,8 +50,8 @@ quantities that characterize the atomic positions (*descriptor*).
 
 By defining *model* and *descriptor* separately, it is possible to use
 many different models with a given descriptor, or many different
-descriptors with a given model.  The pair style currently supports only
-*sna* and *so3* descriptor styles, but it is straightforward to add new
+descriptors with a given model.  The pair style currently supports *sna*,
+*so3* and *ace* descriptor styles, but it is straightforward to add new
 descriptor styles.  By using the *unified* keyword, it is possible to
 define a Python model that combines functionalities of both *model* and
 *descriptor*.
@@ -71,6 +72,26 @@ The descriptor style *so3* is a descriptor that is derived from the
 the smooth SO(3) power spectrum with the explicit inclusion of a radial
 basis :ref:`(Bartok) <Bartok2013>` and :ref:`(Zagaceta) <Zagaceta2020>`.
 The available models are *linear* and *nn*.
+
+.. versionadded:: 17Apr2024
+
+The descriptor style *ace* is a class of highly general atomic
+descriptors, atomic cluster expansion descriptors (ACE) from
+:ref:`(Drautz) <Drautz19>`, that include a radial basis, an angular
+basis, and bases for other variables (such as chemical species) if
+relevant. In descriptor style *ace*, the *ace* descriptors may be
+defined up to an arbitrary body order. This descriptor style is the same
+as that used in :doc:`pair_style pace <pair_pace>` and :doc:`compute
+pace <compute_pace>`.  The available models with *ace* in ML-IAP are
+*linear* and *mliappy*.  The *ace* descriptors and models require
+building LAMMPS with the ML-PACE package (see below).  The *mliappy*
+model style may be used with *ace* descriptors, but it requires that
+LAMMPS is also built with the PYTHON package.  As with other model
+styles, the *mliappy* model style can be used to couple arbitrary python
+models that use the *ace* descriptors such as Pytorch NNs.  Note that
+*ALL* mliap model styles with *ace* descriptors require that descriptors
+and hyperparameters are supplied in a `.yace` or `.ace` file, similar to
+:doc:`compute pace <compute_pace>`.
 
 The pair_style *mliap* command must be followed by two keywords *model*
 and *descriptor* in either order, or the one keyword *unified*.  A
@@ -136,7 +157,7 @@ The detail of *nn* module implementation can be found at :ref:`(Yanxon) <Yanxon2
    the mliap-specific python module that is built into LAMMPS.
 
 The *descriptor* keyword is followed by a descriptor style, and additional arguments.
-Currently two descriptor styles are available: *sna* and *so3*.
+Currently three descriptor styles are available: *sna*, *so3*, and *ace*.
 
 - *sna* indicates the bispectrum component descriptors used by the Spectral
   Neighbor Analysis Potential (SNAP) potentials of :doc:`pair_style snap
@@ -147,6 +168,16 @@ Currently two descriptor styles are available: *sna* and *so3*.
 
 - *so3* indicated the power spectrum component descriptors. A single additional
   argument specifies the descriptor filename containing the parameters and setting.
+
+- *ace* indicates the atomic cluster expansion (ACE) descriptors. A single
+  additional argument specifies the filename containing parameters, settings, and
+  definitions of the ace descriptors (through tabulated basis function indices and
+  corresponding generalized Clebsch-Gordan coefficients) in the ctilde file format,
+  e.g. in the potential file format with `*.ace` or `*.yace` extensions from
+  :doc:`pair_style pace <pair_pace>`. Note that unlike the potential file, the
+  Clebsch-Gordan coefficients in the descriptor file supplied should *NOT* be
+  multiplied by linear or square root embedding terms.
+
 
 The SNAP descriptor file closely follows the format of the
 :doc:`pair_style snap <pair_snap>` parameter file.  The file can contain
@@ -168,6 +199,24 @@ The SO3 descriptor file is similar to the SNAP descriptor except that it
 contains a few more arguments (e.g., *nmax* and *alpha*). The preparation
 of SO3 descriptor and model files can be done with the
 `Pyxtal_FF <https://github.com/qzhu2017/PyXtal_FF>`_ package.
+
+The ACE descriptor file differs from the SNAP and SO3 files. It more
+closely resembles the potential file format for linear or square-root
+embedding ACE potentials used in the :doc:`pair_style pace <pair_pace>`.
+As noted above, the key difference is that the Clebsch-Gordan
+coefficients in the descriptor file with *mliap descriptor ace* are
+*NOT* multiplied by linear or square root embedding terms.  In other
+words,the model is separated from the descriptor definitions and
+hyperparameters.  In :doc:`pair_style pace <pair_pace>`, they are
+combined.  The ACE descriptor files required by *mliap* are generated
+automatically in `FitSNAP <https://github.com/FitSNAP/FitSNAP>`_ during
+linear, pytorch, etc. ACE model fitting. Additional tools are provided
+there to prepare *ace* descriptor files and hyperparameters before model
+fitting.  The *ace* descriptor files can also be extracted from ACE
+model fits in `python-ace. <https://github.com/ICAMS/python-ace>`_.  It
+is important to note that order of the types listed in :doc:`pair_coeff
+<pair_coeff>` must match the order of the elements/types listed in the
+ACE descriptor file for all *mliap* styles when using *ace* descriptors.
 
 See the :doc:`pair_coeff <pair_coeff>` page for alternate ways
 to specify the path for these *model* and *descriptor* files.
@@ -245,7 +294,10 @@ This pair style is part of the ML-IAP package.  It is only enabled if
 LAMMPS was built with that package. In addition, building LAMMPS with
 the ML-IAP package requires building LAMMPS with the ML-SNAP package.
 The *mliappy* model requires building LAMMPS with the PYTHON package.
-See the :doc:`Build package <Build_package>` page for more info.
+The *ace* descriptor requires building LAMMPS with the ML-PACE package.
+See the :doc:`Build package <Build_package>` page for more info. Note
+that `pair_mliap/kk` acceleration will *not* invoke the `kk`
+accelerated variants of SNAP or ACE descriptors.
 
 
 Related commands
@@ -271,5 +323,3 @@ none
 .. _Yanxon2020:
 
 **(Yanxon2020)** Yanxon, Zagaceta, Tang, Matteson, Zhu, Mach. Learn.: Sci. Technol. 2, 027001 (2020).
-
-

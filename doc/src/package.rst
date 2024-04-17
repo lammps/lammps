@@ -576,7 +576,7 @@ changed to *no* since the *sort* keyword does not support *host* mode. Not
 all fix styles with extra atom data support *device* mode and in that case
 a warning will be given and atom sorting will run in *no* mode instead.
 
-.. versionadded:: TBD
+.. versionadded:: 17Apr2024
 
 The *atom/map* keyword determines whether the host or device builds the
 atom_map, see the :doc:`atom_modify map <atom_modify>` command.  The

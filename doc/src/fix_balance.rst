@@ -70,7 +70,7 @@ re-balancing is performed periodically during the simulation.  To
 perform "static" balancing, before or between runs, see the
 :doc:`balance <balance>` command.
 
-.. versionadded:: TBD
+.. versionadded:: 17Apr2024
 
 The *report* balance style only computes the load imbalance but
 does not attempt any re-balancing.  This way the load imbalance

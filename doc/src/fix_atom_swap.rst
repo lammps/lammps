@@ -21,7 +21,7 @@ Syntax
 
   .. parsed-literal::
 
-       *types* values = two or more atom types
+       *types* values = two or more atom types (1-Ntypes or type label)
        *mu* values = chemical potential of swap types (energy units)
        *ke* value = *no* or *yes*
          *no* = no conservation of kinetic energy after atom swaps

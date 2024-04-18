@@ -28,7 +28,7 @@ import tempfile
 from collections import namedtuple
 
 from .core import lammps
-from .constants import *                # lgtm [py/polluting-import]
+from .constants import LMP_VAR_EQUAL, LMP_VAR_ATOM, LMP_VAR_VECTOR, LMP_VAR_STRING
 
 # -------------------------------------------------------------------------
 

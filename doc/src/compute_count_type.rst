@@ -112,7 +112,8 @@ These values can be used by any command that uses global scalar or
 vector values from a compute as input.  See the :doc:`Howto output
 <Howto_output>` page for an overview of LAMMPS output options.
 
-The scalar and vector values calculated by this compute are "extensive".
+The scalar and vector values returned by this compute are non-negative
+integers.
 
 Restrictions
 """"""""""""

@@ -924,7 +924,7 @@ char *utils::expand_type(const char *file, int line, const std::string &str, int
 int utils::expand_type_int(const char *file, int line, const std::string &str, int mode, LAMMPS *lmp)
 {
   char *typestr = expand_type(file, line, str, mode, lmp);
-  int out = inumeric(FLERR, typestr?typestr:str, false, lmp);
+  int out = inumeric(file, line, typestr?typestr:str, false, lmp);
   delete[] typestr;
   return out;
 }

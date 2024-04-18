@@ -23,16 +23,15 @@ from ctypes import CDLL, POINTER, RTLD_GLOBAL, CFUNCTYPE, py_object, byref, cast
 from os.path import dirname, abspath, join
 from inspect import getsourcefile
 
-from .constants import LAMMPS_AUTODETECT, LAMMPS_STRING, \
+from lammps.constants import LAMMPS_AUTODETECT, LAMMPS_STRING, \
   LAMMPS_INT, LAMMPS_INT_2D, LAMMPS_DOUBLE, LAMMPS_DOUBLE_2D, LAMMPS_INT64, LAMMPS_INT64_2D, \
   LMP_STYLE_GLOBAL, LMP_STYLE_ATOM, LMP_STYLE_LOCAL, \
   LMP_TYPE_SCALAR, LMP_TYPE_VECTOR, LMP_TYPE_ARRAY, \
   LMP_SIZE_VECTOR, LMP_SIZE_ROWS, LMP_SIZE_COLS, \
-  LMP_ERROR_WARNING, LMP_ERROR_ONE, LMP_ERROR_ALL, LMP_ERROR_WORLD, LMP_ERROR_UNIVERSE, \
   LMP_VAR_EQUAL, LMP_VAR_ATOM, LMP_VAR_VECTOR, LMP_VAR_STRING, \
   get_ctypes_int
 
-from .data import NeighList
+from lammps.data import NeighList
 
 # -------------------------------------------------------------------------
 
@@ -2081,7 +2080,6 @@ class lammps(object):
     :param caller: reference to some object passed to the callback function
     :type: object, optional
     """
-    import numpy as np
 
     def callback_wrapper(caller, ntimestep, nlocal, tag_ptr, x_ptr, fext_ptr):
       tag = self.numpy.iarray(self.c_tagint, tag_ptr, nlocal, 1)

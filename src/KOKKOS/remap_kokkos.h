@@ -52,9 +52,15 @@ struct remap_plan_3d_kokkos {
   int memory;                       // user provides scratch space or not
   MPI_Comm comm;                    // group of procs performing remap
   int usecollective;                // use collective or point-to-point MPI
+  int usegpu_aware;                 // use GPU-Aware MPI or not
+  // variables specific to collective MPI
   int commringlen;                  // length of commringlist
   int *commringlist;                // ranks on communication ring of this plan
-  int usegpu_aware;                 // use GPU-Aware MPI or not
+  int *sendcnts;                    // # of elements in send buffer for each rank
+  int *rcvcnts;                     // # of elements in recv buffer for each rank
+  int *sdispls;                     // extraction location in send buffer for each rank
+  int *rdispls;                     // extraction location in recv buffer for each rank
+  int *nrecvmap;                    // maps receive index to rank index
 };
 
 template<class DeviceType>

@@ -28,7 +28,7 @@ Example input scripts available: examples/threebody/
 Description
 """""""""""
 
-.. versionadded:: TBD
+.. versionadded:: 17Apr2024
 
 The *rebomos* pair style computes the interactions between molybdenum
 and sulfur atoms :ref:`(Stewart) <Stewart>` utilizing an adaptive

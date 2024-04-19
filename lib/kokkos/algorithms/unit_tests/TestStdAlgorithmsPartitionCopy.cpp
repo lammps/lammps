@@ -110,11 +110,9 @@ void verify_data(const std::string& name, ResultType my_result,
                  ViewTypeDestFalse view_dest_false, PredType pred) {
   using value_type = typename ViewTypeFrom::value_type;
   static_assert(
-      std::is_same<value_type, typename ViewTypeDestTrue::value_type>::value,
-      "");
+      std::is_same<value_type, typename ViewTypeDestTrue::value_type>::value);
   static_assert(
-      std::is_same<value_type, typename ViewTypeDestFalse::value_type>::value,
-      "");
+      std::is_same<value_type, typename ViewTypeDestFalse::value_type>::value);
 
   const std::size_t ext = view_from.extent(0);
 

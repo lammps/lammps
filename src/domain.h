@@ -39,7 +39,8 @@ class Domain : protected Pointers {
                          // 2 = shrink-wrap non-periodic
                          // 3 = shrink-wrap non-per w/ min
 
-  int triclinic;    // 0 = orthog box, 1 = triclinic
+  int triclinic;          // 0 = orthog box, 1 = triclinic (restricted or general)
+  int triclinic_general;  // 1 if general <-> restricted tri mapping is stored, 0 if not
 
   // orthogonal box
 
@@ -48,8 +49,8 @@ class Domain : protected Pointers {
   double prd[3];                             // array form of dimensions
   double prd_half[3];                        // array form of half dimensions
 
-  // triclinic box
-  // xyzprd,xyzprd_half and prd,prd_half = same as if untilted
+  // restricted triclinic box
+  // xyz prd,xyz prd_half and prd,prd_half = same as if not tilted
 
   double prd_lamda[3];         // lamda box = (1,1,1)
   double prd_half_lamda[3];    // lamda half box = (0.5,0.5,0.5)
@@ -58,14 +59,14 @@ class Domain : protected Pointers {
 
   double boxlo[3], boxhi[3];
 
-  // triclinic box
-  // boxlo/hi = same as if untilted
+  // restricted triclinic box
+  // boxlo/hi = same as if not tilted
 
   double boxlo_lamda[3], boxhi_lamda[3];    // lamda box = (0,1)
   double boxlo_bound[3], boxhi_bound[3];    // bounding box of tilted domain
   double corners[8][3];                     // 8 corner points
 
-  // orthogonal box & triclinic box
+  // orthogonal box & restricted triclinic box
 
   double minxlo, minxhi;    // minimum size of global box
   double minylo, minyhi;    // when shrink-wrapping
@@ -75,17 +76,26 @@ class Domain : protected Pointers {
 
   double sublo[3], subhi[3];    // sub-box bounds on this proc
 
-  // triclinic box
+  // restricted triclinic box
   // sublo/hi = undefined
 
   double sublo_lamda[3], subhi_lamda[3];    // bounds of subbox in lamda
 
-  // triclinic box
+  // restricted triclinic box
 
   double xy, xz, yz;                // 3 tilt factors
   double h[6], h_inv[6];            // shape matrix in Voigt ordering
                                     // Voigt = xx,yy,zz,yz,xz,xy
   double h_rate[6], h_ratelo[3];    // rate of box size/shape change
+
+  // general triclinic box
+  // boxlo = lower left corner
+
+  double avec[3], bvec[3], cvec[3];  // ABC edge vectors of general triclinic box
+  double rotate_g2r[3][3];           // rotation matrix from general --> restricted tri
+  double rotate_r2g[3][3];           // rotation matrix from restricted --> general tri
+
+  // box flags
 
   int box_change;           // 1 if any of next 3 flags are set, else 0
   int box_change_size;      // 1 if box size changes, 0 if not
@@ -119,6 +129,8 @@ class Domain : protected Pointers {
   void subbox_too_small_check(double);
   void minimum_image(double &, double &, double &) const;
   void minimum_image(double *delta) const { minimum_image(delta[0], delta[1], delta[2]); }
+  void minimum_image_big(double &, double &, double &) const;
+  void minimum_image_big(double *delta) const { minimum_image_big(delta[0], delta[1], delta[2]); }
   int closest_image(int, int);
   int closest_image(const double *const, int);
   void closest_image(const double *const, const double *const, double *const);
@@ -130,6 +142,17 @@ class Domain : protected Pointers {
   void unmap(const double *, imageint, double *);
   void image_flip(int, int, int);
   int ownatom(int, double *, imageint *, int);
+
+  void define_general_triclinic(double *, double *, double *, double *);
+  void general_to_restricted_rotation(double *, double *, double *,
+                                      double [3][3],
+                                      double *, double *, double *);
+  void general_to_restricted_coords(double *);
+  void restricted_to_general_coords(double *);
+  void restricted_to_general_coords(double *, double *);
+  void general_to_restricted_vector(double *);
+  void restricted_to_general_vector(double *);
+  void restricted_to_general_vector(double *, double *x);
 
   void set_lattice(int, char **);
   void add_region(int, char **);

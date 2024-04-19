@@ -39,10 +39,12 @@ IF("launch_compiler" IN_LIST Kokkos_FIND_COMPONENTS)
         GLOBAL
         CHECK_CUDA_COMPILES)
 
-ELSEIF(@Kokkos_ENABLE_CUDA@ AND NOT "separable_compilation" IN_LIST Kokkos_FIND_COMPONENTS)
+ELSEIF(@Kokkos_ENABLE_CUDA@
+    AND NOT @KOKKOS_COMPILE_LANGUAGE@ STREQUAL CUDA
+    AND NOT "separable_compilation" IN_LIST Kokkos_FIND_COMPONENTS)
     #
-    # if CUDA was enabled, separable compilation was not specified, and current compiler
-    # cannot compile CUDA, then set the RULE_LAUNCH_COMPILE and RULE_LAUNCH_LINK globally and
+    # if CUDA was enabled, the compilation language was not set to CUDA, and separable compilation was not
+    # specified, then set the RULE_LAUNCH_COMPILE and RULE_LAUNCH_LINK globally and
     # kokkos_launch_compiler will re-direct to the compiler used to compile CUDA code during installation.
     # kokkos_launch_compiler will re-direct if ${CMAKE_CXX_COMPILER} and -DKOKKOS_DEPENDENCE is present,
     # otherwise, the original command will be executed

@@ -31,9 +31,7 @@ using namespace LAMMPS_NS;
 
 /* ---------------------------------------------------------------------- */
 
-AtomKokkos::AtomKokkos(LAMMPS *lmp) : Atom(lmp),
-mapBinner(1, 0.0, 1.0), // no default constructor, these values are not used
-mapSorter(d_tag_sorted, 0, 1, mapBinner, true)
+AtomKokkos::AtomKokkos(LAMMPS *lmp) : Atom(lmp)
 {
   avecKK = nullptr;
 

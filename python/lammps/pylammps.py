@@ -192,11 +192,23 @@ class Atom(object):
   @property
   def mass(self):
     """
-    Return the atom mass
+    Return the atom mass as a per-atom property.
+    This returns either the per-type mass or the per-atom
+    mass (AKA 'rmass') depending on what is available with
+    preference for the per-atom mass.
+
+    .. versionchanged:: 17Apr2024
+
+       Support both per-type and per-atom masses. With
+       per-type return "mass[type[i]]" else return "rmass[i]".
+       Per-atom mass is preferred if available.
 
     :type: float
     """
-    return self.get("mass", self.index)
+    if self._pylmp.lmp.extract_setting('rmass_flag'):
+      return self.get("rmass", self.index)
+    else:
+      return self.get("mass", self.type)
 
   @property
   def radius(self):
@@ -531,6 +543,18 @@ class PyLammps(object):
     Clear LAMMPS command history up to this point
     """
     self._cmd_history = []
+
+
+  def append_cmd_history(self, cmd):
+    """
+    Commands will be added to the command history but not executed.
+
+    Add `commands` only to the command history, but do not execute them, so that you can
+    conveniently create Lammps input files, using
+    :py:meth:`PyLammps.write_script()`.
+    """
+    self._cmd_history.append(cmd)
+
 
   def command(self, cmd):
     """

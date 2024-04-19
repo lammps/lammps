@@ -81,6 +81,8 @@ class Kokkos::Impl::ParallelFor<FunctorType, Kokkos::RangePolicy<Traits...>,
     const Kokkos::Experimental::SYCL& space = policy.space();
     sycl::queue& q                          = space.sycl_queue();
 
+    desul::ensure_sycl_lock_arrays_on_device(q);
+
     auto parallel_for_event = q.submit([&](sycl::handler& cgh) {
 #ifndef KOKKOS_IMPL_SYCL_USE_IN_ORDER_QUEUES
       cgh.depends_on(memcpy_event);

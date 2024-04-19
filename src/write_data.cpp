@@ -72,8 +72,12 @@ void WriteData::command(int narg, char **arg)
   pairflag = II;
   coeffflag = 1;
   fixflag = 1;
+  triclinic_general = 0;
   lmapflag = 1;
-  // store current (default) setting since we may change it.
+
+  // store current (default) setting since we may change it
+
+  int domain_triclinic_general = domain->triclinic_general;
   int types_style = atom->types_style;
   int noinit = 0;
 
@@ -94,6 +98,9 @@ void WriteData::command(int narg, char **arg)
     } else if (strcmp(arg[iarg],"nofix") == 0) {
       fixflag = 0;
       iarg++;
+    } else if (strcmp(arg[iarg],"triclinic/general") == 0) {
+      triclinic_general = 1;
+      iarg++;
     } else if (strcmp(arg[iarg],"nolabelmap") == 0) {
       lmapflag = 0;
       iarg++;
@@ -105,6 +112,14 @@ void WriteData::command(int narg, char **arg)
       iarg += 2;
     } else error->all(FLERR,"Unknown write_data keyword: {}", arg[iarg]);
   }
+
+  // temporarily disable domain->triclinic_general if output not requested
+
+  if (triclinic_general && !domain->triclinic_general)
+    error->all(FLERR,"Write_data triclinic/general for system "
+               "that is not general triclinic");
+  if (!triclinic_general && domain->triclinic_general)
+    domain->triclinic_general = 0;
 
   // init entire system since comm->exchange is done
   // comm::init needs neighbor::init needs pair::init needs kspace::init, etc
@@ -135,7 +150,10 @@ void WriteData::command(int narg, char **arg)
   }
 
   write(file);
-  // restore saved setting
+
+  // restore saved settings
+
+  domain->triclinic_general = domain_triclinic_general;
   atom->types_style = types_style;
 }
 
@@ -204,6 +222,11 @@ void WriteData::write(const std::string &file)
     if (coeffflag) force_fields();
   }
 
+  // if general triclinic output:
+  // reset internal per-atom data that needs rotation
+
+  if (domain->triclinic_general) atom->avec->write_data_restricted_to_general();
+
   // per atom info in Atoms and Velocities sections
   // must not write velocities without tags since we cannot read them back
 
@@ -238,6 +261,11 @@ void WriteData::write(const std::string &file)
     for (auto &ifix : modify->get_fix_list())
       if (ifix->wd_section)
         for (int m = 0; m < ifix->wd_section; m++) fix(ifix,m);
+
+  // if general triclinic output:
+  // restore internal per-atom data that was rotated
+
+  if (domain->triclinic_general) atom->avec->write_data_restore_restricted();
 
   // close data file
 
@@ -294,15 +322,24 @@ void WriteData::header()
         for (int m = 0; m < ifix->wd_header; m++)
           ifix->write_data_header(fp,m);
 
-  // box info
+  // box info: orthogonal, restricted triclinic, or general triclinic (if requested)
 
-  auto box = fmt::format("\n{} {} xlo xhi\n{} {} ylo yhi\n{} {} zlo zhi\n",
-                         domain->boxlo[0],domain->boxhi[0],
-                         domain->boxlo[1],domain->boxhi[1],
-                         domain->boxlo[2],domain->boxhi[2]);
-  if (domain->triclinic)
-    box += fmt::format("{} {} {} xy xz yz\n",domain->xy,domain->xz,domain->yz);
-  fputs(box.c_str(),fp);
+  if (!domain->triclinic_general) {
+    fmt::print(fp,"\n{} {} xlo xhi\n{} {} ylo yhi\n{} {} zlo zhi\n",
+               domain->boxlo[0],domain->boxhi[0],
+               domain->boxlo[1],domain->boxhi[1],
+               domain->boxlo[2],domain->boxhi[2]);
+    if (domain->triclinic)
+      fmt::print(fp,"{} {} {} xy xz yz\n",domain->xy,domain->xz,domain->yz);
+
+  } else if (domain->triclinic_general) {
+    fmt::print(fp,"\n{} {} {} avec\n{} {} {} bvec\n{} {} {} cvec\n",
+               domain->avec[0],domain->avec[1],domain->avec[2],
+               domain->bvec[0],domain->bvec[1],domain->bvec[2],
+               domain->cvec[0],domain->cvec[1],domain->cvec[2]);
+    fmt::print(fp,"{} {} {} abc origin\n",
+               domain->boxlo[0],domain->boxlo[1],domain->boxlo[2]);
+  }
 }
 
 /* ----------------------------------------------------------------------

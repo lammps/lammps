@@ -54,67 +54,67 @@ class ParallelReduce<CombinedFunctorReducerType,
     }
   }
 
-  static void exec(ThreadsExec &exec, const void *arg) {
-    exec_schedule<typename Policy::schedule_type::type>(exec, arg);
+  static void exec(ThreadsInternal &instance, const void *arg) {
+    exec_schedule<typename Policy::schedule_type::type>(instance, arg);
   }
 
   template <class Schedule>
   static std::enable_if_t<std::is_same<Schedule, Kokkos::Static>::value>
-  exec_schedule(ThreadsExec &exec, const void *arg) {
+  exec_schedule(ThreadsInternal &instance, const void *arg) {
     const ParallelReduce &self = *((const ParallelReduce *)arg);
 
     const auto num_tiles = self.m_iter.m_rp.m_num_tiles;
     const WorkRange range(Policy(0, num_tiles).set_chunk_size(1),
-                          exec.pool_rank(), exec.pool_size());
+                          instance.pool_rank(), instance.pool_size());
 
     const ReducerType &reducer = self.m_iter.m_func.get_reducer();
     self.exec_range(
         range.begin(), range.end(),
-        reducer.init(static_cast<pointer_type>(exec.reduce_memory())));
+        reducer.init(static_cast<pointer_type>(instance.reduce_memory())));
 
-    exec.fan_in_reduce(reducer);
+    instance.fan_in_reduce(reducer);
   }
 
   template <class Schedule>
   static std::enable_if_t<std::is_same<Schedule, Kokkos::Dynamic>::value>
-  exec_schedule(ThreadsExec &exec, const void *arg) {
+  exec_schedule(ThreadsInternal &instance, const void *arg) {
     const ParallelReduce &self = *((const ParallelReduce *)arg);
 
     const auto num_tiles = self.m_iter.m_rp.m_num_tiles;
     const WorkRange range(Policy(0, num_tiles).set_chunk_size(1),
-                          exec.pool_rank(), exec.pool_size());
+                          instance.pool_rank(), instance.pool_size());
 
-    exec.set_work_range(range.begin(), range.end(), 1);
-    exec.reset_steal_target();
-    exec.barrier();
+    instance.set_work_range(range.begin(), range.end(), 1);
+    instance.reset_steal_target();
+    instance.barrier();
 
-    long work_index = exec.get_work_index();
+    long work_index = instance.get_work_index();
 
     const ReducerType &reducer = self.m_iter.m_func.get_reducer();
-    reference_type update =
-        self.m_reducer.init(static_cast<pointer_type>(exec.reduce_memory()));
+    reference_type update      = self.m_reducer.init(
+        static_cast<pointer_type>(instance.reduce_memory()));
     while (work_index != -1) {
       const Member begin = static_cast<Member>(work_index);
       const Member end   = begin + 1 < num_tiles ? begin + 1 : num_tiles;
       self.exec_range(begin, end, update);
-      work_index = exec.get_work_index();
+      work_index = instance.get_work_index();
     }
 
-    exec.fan_in_reduce(self.m_reducer);
+    instance.fan_in_reduce(self.m_reducer);
   }
 
  public:
   inline void execute() const {
     const ReducerType &reducer = m_iter.m_func.get_reducer();
-    ThreadsExec::resize_scratch(reducer.value_size(), 0);
+    ThreadsInternal::resize_scratch(reducer.value_size(), 0);
 
-    ThreadsExec::start(&ParallelReduce::exec, this);
+    ThreadsInternal::start(&ParallelReduce::exec, this);
 
-    ThreadsExec::fence();
+    ThreadsInternal::fence();
 
     if (m_result_ptr) {
       const pointer_type data =
-          (pointer_type)ThreadsExec::root_reduce_scratch();
+          (pointer_type)ThreadsInternal::root_reduce_scratch();
 
       const unsigned n = reducer.value_count();
       for (unsigned i = 0; i < n; ++i) {

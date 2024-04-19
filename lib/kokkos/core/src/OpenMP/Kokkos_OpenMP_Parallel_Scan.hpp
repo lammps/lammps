@@ -140,15 +140,7 @@ class ParallelScan<FunctorType, Kokkos::RangePolicy<Traits...>,
 
   inline ParallelScan(const FunctorType& arg_functor, const Policy& arg_policy)
       : m_instance(nullptr), m_functor(arg_functor), m_policy(arg_policy) {
-#ifdef KOKKOS_ENABLE_DEPRECATED_CODE_3
-    if (t_openmp_instance) {
-      m_instance = t_openmp_instance;
-    } else {
-      m_instance = arg_policy.space().impl_internal_space_instance();
-    }
-#else
     m_instance = arg_policy.space().impl_internal_space_instance();
-#endif
   }
 };
 
@@ -292,15 +284,7 @@ class ParallelScanWithTotal<FunctorType, Kokkos::RangePolicy<Traits...>,
         Kokkos::Impl::MemorySpaceAccess<typename ViewType::memory_space,
                                         Kokkos::HostSpace>::accessible,
         "Kokkos::OpenMP parallel_scan result must be host-accessible!");
-#ifdef KOKKOS_ENABLE_DEPRECATED_CODE_3
-    if (t_openmp_instance) {
-      m_instance = t_openmp_instance;
-    } else {
-      m_instance = arg_policy.space().impl_internal_space_instance();
-    }
-#else
     m_instance = arg_policy.space().impl_internal_space_instance();
-#endif
   }
 
   //----------------------------------------

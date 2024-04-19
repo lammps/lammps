@@ -36,6 +36,7 @@ DumpAtom::DumpAtom(LAMMPS *lmp, int narg, char **arg) :
 
   scale_flag = 1;
   image_flag = 0;
+  triclinic_general = 0;
   buffer_allow = 1;
   buffer_flag = 1;
   format_default = nullptr;
@@ -92,25 +93,46 @@ void DumpAtom::init_style()
 
   if (binary && domain->triclinic == 0)
     header_choice = &DumpAtom::header_binary;
+  else if (binary && triclinic_general == 1)
+    header_choice = &DumpAtom::header_binary_triclinic_general;
   else if (binary && domain->triclinic == 1)
     header_choice = &DumpAtom::header_binary_triclinic;
   else if (!binary && domain->triclinic == 0)
     header_choice = &DumpAtom::header_item;
+  else if (!binary && triclinic_general == 1)
+    header_choice = &DumpAtom::header_item_triclinic_general;
   else if (!binary && domain->triclinic == 1)
     header_choice = &DumpAtom::header_item_triclinic;
 
-  if (scale_flag == 1 && image_flag == 0 && domain->triclinic == 0)
-    pack_choice = &DumpAtom::pack_scale_noimage;
-  else if (scale_flag == 1 && image_flag == 1 && domain->triclinic == 0)
-    pack_choice = &DumpAtom::pack_scale_image;
-  else if (scale_flag == 1 && image_flag == 0 && domain->triclinic == 1)
-    pack_choice = &DumpAtom::pack_scale_noimage_triclinic;
-  else if (scale_flag == 1 && image_flag == 1 && domain->triclinic == 1)
-    pack_choice = &DumpAtom::pack_scale_image_triclinic;
-  else if (scale_flag == 0 && image_flag == 0)
-    pack_choice = &DumpAtom::pack_noscale_noimage;
-  else if (scale_flag == 0 && image_flag == 1)
-    pack_choice = &DumpAtom::pack_noscale_image;
+  if (scale_flag == 0) {
+    if (image_flag == 0) {
+      if (triclinic_general == 1) {
+        pack_choice = &DumpAtom::pack_noscale_noimage_triclinic_general;
+      } else {
+        pack_choice = &DumpAtom::pack_noscale_noimage;
+      }
+    } else if (image_flag == 1) {
+      if (triclinic_general == 1) {
+        pack_choice = &DumpAtom::pack_noscale_image_triclinic_general;
+      } else {
+        pack_choice = &DumpAtom::pack_noscale_image;
+      }
+    }
+  } else if (scale_flag == 1) {
+    if (image_flag == 0) {
+      if (domain->triclinic == 0) {
+        pack_choice = &DumpAtom::pack_scale_noimage;
+      } else {
+        pack_choice = &DumpAtom::pack_scale_noimage_triclinic;
+      }
+    } else if (image_flag == 1) {
+      if (domain->triclinic == 0) {
+        pack_choice = &DumpAtom::pack_scale_image;
+      } else {
+        pack_choice = &DumpAtom::pack_scale_image_triclinic;
+      }
+    }
+  }
 
   if (image_flag == 0) convert_choice = &DumpAtom::convert_noimage;
   else convert_choice = &DumpAtom::convert_image;
@@ -134,12 +156,23 @@ int DumpAtom::modify_param(int narg, char **arg)
     scale_flag = utils::logical(FLERR,arg[1],false,lmp);
     for (auto &item : keyword_user) item.clear();
     return 2;
-  } else if (strcmp(arg[0],"image") == 0) {
+  }
+
+  if (strcmp(arg[0],"image") == 0) {
     if (narg < 2) error->all(FLERR,"Illegal dump_modify command");
     image_flag = utils::logical(FLERR,arg[1],false,lmp);
     for (auto &item : keyword_user) item.clear();
     return 2;
   }
+
+  if (strcmp(arg[0],"triclinic/general") == 0) {
+    triclinic_general = 1;
+    if (triclinic_general && !domain->triclinic_general)
+      error->all(FLERR,"Dump_modify triclinic/general cannot be used "
+                 "if simulation box is not general triclinic");
+    return 1;
+  }
+
   return 0;
 }
 
@@ -306,6 +339,31 @@ void DumpAtom::header_binary_triclinic(bigint ndump)
 
 /* ---------------------------------------------------------------------- */
 
+void DumpAtom::header_binary_triclinic_general(bigint ndump)
+{
+  header_format_binary();
+
+  fwrite(&update->ntimestep,sizeof(bigint),1,fp);
+  fwrite(&ndump,sizeof(bigint),1,fp);
+  int triclinic_general_flag = 2;
+  fwrite(&triclinic_general_flag,sizeof(int),1,fp);
+  fwrite(&domain->boundary[0][0],6*sizeof(int),1,fp);
+  fwrite(domain->avec,3*sizeof(double),1,fp);
+  fwrite(domain->bvec,3*sizeof(double),1,fp);
+  fwrite(domain->cvec,3*sizeof(double),1,fp);
+  fwrite(domain->boxlo,3*sizeof(double),1,fp);
+  fwrite(&size_one,sizeof(int),1,fp);
+
+  header_unit_style_binary();
+  header_time_binary();
+  header_columns_binary();
+
+  if (multiproc) fwrite(&nclusterprocs,sizeof(int),1,fp);
+  else fwrite(&nprocs,sizeof(int),1,fp);
+}
+
+/* ---------------------------------------------------------------------- */
+
 void DumpAtom::header_item(bigint ndump)
 {
   if (unit_flag && !unit_count) {
@@ -342,6 +400,30 @@ void DumpAtom::header_item_triclinic(bigint ndump)
              "{:>1.16e} {:>1.16e} {:>1.16e}\n"
              "{:>1.16e} {:>1.16e} {:>1.16e}\n",
              boundstr,boxxlo,boxxhi,boxxy,boxylo,boxyhi,boxxz,boxzlo,boxzhi,boxyz);
+
+  fmt::print(fp,"ITEM: ATOMS {}\n",columns);
+}
+
+/* ---------------------------------------------------------------------- */
+
+void DumpAtom::header_item_triclinic_general(bigint ndump)
+{
+  if (unit_flag && !unit_count) {
+    ++unit_count;
+    fmt::print(fp,"ITEM: UNITS\n{}\n",update->unit_style);
+  }
+  if (time_flag) fmt::print(fp,"ITEM: TIME\n{:.16}\n",compute_time());
+
+  fmt::print(fp,"ITEM: TIMESTEP\n{}\nITEM: NUMBER OF ATOMS\n{}\n", update->ntimestep, ndump);
+
+  fmt::print(fp,"ITEM: BOX BOUNDS abc origin {}\n"
+             "{:>1.16e} {:>1.16e} {:>1.16e} {:>1.16e}\n"
+             "{:>1.16e} {:>1.16e} {:>1.16e} {:>1.16e}\n"
+             "{:>1.16e} {:>1.16e} {:>1.16e} {:>1.16e}\n",
+             boundstr,
+             domain->avec[0],domain->avec[1],domain->avec[2],domain->boxlo[0],
+             domain->bvec[0],domain->bvec[1],domain->bvec[2],domain->boxlo[1],
+             domain->cvec[0],domain->cvec[1],domain->cvec[2],domain->boxlo[2]);
 
   fmt::print(fp,"ITEM: ATOMS {}\n",columns);
 }
@@ -408,6 +490,59 @@ void DumpAtom::pack_scale_noimage(tagint *ids)
 
 /* ---------------------------------------------------------------------- */
 
+void DumpAtom::pack_noscale_image(tagint *ids)
+{
+  int m,n;
+
+  tagint *tag = atom->tag;
+  int *type = atom->type;
+  imageint *image = atom->image;
+  int *mask = atom->mask;
+  double **x = atom->x;
+  int nlocal = atom->nlocal;
+
+  m = n = 0;
+  for (int i = 0; i < nlocal; i++)
+    if (mask[i] & groupbit) {
+      buf[m++] = tag[i];
+      buf[m++] = type[i];
+      buf[m++] = x[i][0];
+      buf[m++] = x[i][1];
+      buf[m++] = x[i][2];
+      buf[m++] = (image[i] & IMGMASK) - IMGMAX;
+      buf[m++] = (image[i] >> IMGBITS & IMGMASK) - IMGMAX;
+      buf[m++] = (image[i] >> IMG2BITS) - IMGMAX;
+      if (ids) ids[n++] = tag[i];
+    }
+}
+
+/* ---------------------------------------------------------------------- */
+
+void DumpAtom::pack_noscale_noimage(tagint *ids)
+{
+  int m,n;
+
+  tagint *tag = atom->tag;
+  int *type = atom->type;
+  int *mask = atom->mask;
+  double **x = atom->x;
+  int nlocal = atom->nlocal;
+
+  m = n = 0;
+  for (int i = 0; i < nlocal; i++)
+    if (mask[i] & groupbit) {
+      buf[m++] = tag[i];
+      buf[m++] = type[i];
+      buf[m++] = x[i][0];
+      buf[m++] = x[i][1];
+      buf[m++] = x[i][2];
+      if (ids) ids[n++] = tag[i];
+    }
+}
+
+
+/* ---------------------------------------------------------------------- */
+
 void DumpAtom::pack_scale_image_triclinic(tagint *ids)
 {
   int m,n;
@@ -466,7 +601,7 @@ void DumpAtom::pack_scale_noimage_triclinic(tagint *ids)
 
 /* ---------------------------------------------------------------------- */
 
-void DumpAtom::pack_noscale_image(tagint *ids)
+void DumpAtom::pack_noscale_image_triclinic_general(tagint *ids)
 {
   int m,n;
 
@@ -477,14 +612,17 @@ void DumpAtom::pack_noscale_image(tagint *ids)
   double **x = atom->x;
   int nlocal = atom->nlocal;
 
+  double xtri[3];
+
   m = n = 0;
   for (int i = 0; i < nlocal; i++)
     if (mask[i] & groupbit) {
       buf[m++] = tag[i];
       buf[m++] = type[i];
-      buf[m++] = x[i][0];
-      buf[m++] = x[i][1];
-      buf[m++] = x[i][2];
+      domain->restricted_to_general_coords(x[i],xtri);
+      buf[m++] = xtri[0];
+      buf[m++] = xtri[1];
+      buf[m++] = xtri[2];
       buf[m++] = (image[i] & IMGMASK) - IMGMAX;
       buf[m++] = (image[i] >> IMGBITS & IMGMASK) - IMGMAX;
       buf[m++] = (image[i] >> IMG2BITS) - IMGMAX;
@@ -494,7 +632,7 @@ void DumpAtom::pack_noscale_image(tagint *ids)
 
 /* ---------------------------------------------------------------------- */
 
-void DumpAtom::pack_noscale_noimage(tagint *ids)
+void DumpAtom::pack_noscale_noimage_triclinic_general(tagint *ids)
 {
   int m,n;
 
@@ -504,14 +642,17 @@ void DumpAtom::pack_noscale_noimage(tagint *ids)
   double **x = atom->x;
   int nlocal = atom->nlocal;
 
+  double xtri[3];
+
   m = n = 0;
   for (int i = 0; i < nlocal; i++)
     if (mask[i] & groupbit) {
       buf[m++] = tag[i];
       buf[m++] = type[i];
-      buf[m++] = x[i][0];
-      buf[m++] = x[i][1];
-      buf[m++] = x[i][2];
+      domain->restricted_to_general_coords(x[i],xtri);
+      buf[m++] = xtri[0];
+      buf[m++] = xtri[1];
+      buf[m++] = xtri[2];
       if (ids) ids[n++] = tag[i];
     }
 }

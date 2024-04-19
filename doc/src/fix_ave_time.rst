@@ -272,7 +272,7 @@ are effectively constant or are simply current values (e.g., they are
 being written to a file with other time-averaged values for purposes
 of creating well-formatted output).
 
-.. versionadded:: TBD
+.. versionadded:: 17Apr2024
    new keyword *append*
 
 The *file* or *append* keywords allow a filename to be specified.  If

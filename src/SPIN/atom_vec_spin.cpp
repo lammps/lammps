@@ -1,5 +1,4 @@
 /* ----------------------------------------------------------------------
-
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    https://www.lammps.org/, Sandia National Laboratories
    LAMMPS development team: developers@lammps.org
@@ -10,7 +9,6 @@
    the GNU General Public License.
 
    See the README file in the top-level LAMMPS directory.
-
 ------------------------------------------------------------------------- */
 
 /* ------------------------------------------------------------------------
@@ -26,6 +24,8 @@
 #include "atom_vec_spin.h"
 
 #include "atom.h"
+#include "domain.h"
+#include "memory.h"
 
 #include <cmath>
 #include <cstring>
@@ -41,6 +41,8 @@ AtomVecSpin::AtomVecSpin(LAMMPS *lmp) : AtomVec(lmp)
   forceclearflag = 1;
 
   atom->sp_flag = 1;
+
+  sp_hold = nullptr;
 
   // strings with peratom variables to include in each AtomVec method
   // strings cannot contain fields in corresponding AtomVec default strings
@@ -99,4 +101,56 @@ void AtomVecSpin::data_atom_post(int ilocal)
   sp_one[0] *= norm;
   sp_one[1] *= norm;
   sp_one[2] *= norm;
+}
+
+/* ----------------------------------------------------------------------
+   convert read_data file info from general to restricted triclinic
+   parent class operates on data from Velocities section of data file
+   child class operates on spin vector sp
+------------------------------------------------------------------------- */
+
+void AtomVecSpin::read_data_general_to_restricted(int nlocal_previous, int nlocal)
+{
+  AtomVec::read_data_general_to_restricted(nlocal_previous, nlocal);
+
+  for (int i = nlocal_previous; i < nlocal; i++)
+    domain->general_to_restricted_vector(sp[i]);
+}
+
+/* ----------------------------------------------------------------------
+   convert info output by write_data from restricted to general triclinic
+   parent class operates on x and data from Velocities section of data file
+   child class operates on spin vector sp which has 4 values per atom
+------------------------------------------------------------------------- */
+
+void AtomVecSpin::write_data_restricted_to_general()
+{
+  AtomVec::write_data_restricted_to_general();
+
+  int nlocal = atom->nlocal;
+  memory->create(sp_hold,nlocal,3,"atomvec:sp_hold");
+  for (int i = 0; i < nlocal; i++) {
+    memcpy(&sp_hold[i],&sp[i],3*sizeof(double));
+    domain->restricted_to_general_vector(sp[i]);
+  }
+}
+
+/* ----------------------------------------------------------------------
+   restore info output by write_data to restricted triclinic
+   original data is in "hold" arrays
+   parent class operates on x and data from Velocities section of data file
+   child class operates on spin vector sp which has 4 values per atom
+------------------------------------------------------------------------- */
+
+void AtomVecSpin::write_data_restore_restricted()
+{
+  AtomVec::write_data_restore_restricted();
+
+  if (!sp_hold) return;
+
+  int nlocal = atom->nlocal;
+  for (int i = 0; i < nlocal; i++)
+    memcpy(&sp[i],&sp_hold[i],3*sizeof(double));
+  memory->destroy(sp_hold);
+  sp_hold = nullptr;
 }

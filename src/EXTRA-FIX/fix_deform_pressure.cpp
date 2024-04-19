@@ -526,7 +526,7 @@ void FixDeformPressure::end_of_step()
   for (int i = 3; i < 6; i++) {
     int idenom = 0;
     if (i == 3) idenom = 1;
-    if (set[i].style && (set_box.style || set[idenom].style)) {
+    if (set[i].style && (set_box.style || set[idenom].style) && domain->periodicity[idenom]) {
       // Add prior remappings. If the box remaps this timestep, don't
       // add it yet so update_domain() will first detect the remapping
       set[i].tilt_target += set_extra[i].cumulative_remap;

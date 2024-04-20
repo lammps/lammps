@@ -21,7 +21,8 @@
 #include "memory.h"
 #include "pair.h"
 #include "update.h"
-#include "fmt/format.h"
+
+#include <cstring>
 
 using namespace LAMMPS_NS;
 using namespace FixConst;

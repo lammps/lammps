@@ -67,8 +67,8 @@ TESTS = AtomicOperations_int AtomicOperations_unsignedint AtomicOperations_longi
 tmp := $(foreach device, $(KOKKOS_DEVICELIST), \
   tmp2 := $(foreach test, $(TESTS), \
     $(if $(filter Test$(device)_$(test).cpp, $(shell ls Test$(device)_$(test).cpp 2>/dev/null)),,\
-      $(shell echo "\#include <Test"$(device)"_Category.hpp>" > Test$(device)_$(test).cpp); \
-      $(shell echo "\#include <Test"$(test)".hpp>" >> Test$(device)_$(test).cpp); \
+      $(shell echo "$(H)include <Test"$(device)"_Category.hpp>" > Test$(device)_$(test).cpp); \
+      $(shell echo "$(H)include <Test"$(test)".hpp>" >> Test$(device)_$(test).cpp); \
      ) \
   ) \
 )
@@ -82,8 +82,8 @@ KOKKOS_SUBVIEW_DEVICELIST := $(filter-out Cuda, $(KOKKOS_DEVICELIST))
 tmp := $(foreach device, $(KOKKOS_SUBVIEW_DEVICELIST), \
   tmp2 := $(foreach test, $(SUBVIEW_TESTS), \
     $(if $(filter Test$(device)_$(test).cpp, $(shell ls Test$(device)_$(test).cpp 2>/dev/null)),, \
-      $(shell echo "\#include <Test"$(device)"_Category.hpp>" > Test$(device)_$(test).cpp); \
-      $(shell echo "\#include <Test"$(test)".hpp>" >> Test$(device)_$(test).cpp); \
+      $(shell echo "$(H)include <Test"$(device)"_Category.hpp>" > Test$(device)_$(test).cpp); \
+      $(shell echo "$(H)include <Test"$(test)".hpp>" >> Test$(device)_$(test).cpp); \
      ) \
   )\
 )
@@ -91,8 +91,8 @@ tmp := $(foreach device, $(KOKKOS_SUBVIEW_DEVICELIST), \
 ifeq ($(KOKKOS_INTERNAL_USE_CUDA), 1)
     tmp2 := $(foreach test, $(SUBVIEW_TESTS), \
       $(if $(filter TestCuda_$(test).cpp, $(shell ls TestCuda_$(test).cpp 2>/dev/null)),,\
-        $(shell echo "\#include <TestCudaUVM_Category.hpp>" > TestCuda_$(test).cpp); \
-        $(shell echo "\#include <Test"$(test)".hpp>" >> TestCuda_$(test).cpp); \
+        $(shell echo "$(H)include <TestCudaUVM_Category.hpp>" > TestCuda_$(test).cpp); \
+        $(shell echo "$(H)include <Test"$(test)".hpp>" >> TestCuda_$(test).cpp); \
       )\
     )
 
@@ -100,8 +100,8 @@ ifeq ($(KOKKOS_INTERNAL_USE_CUDA), 1)
     tmp := $(foreach space, $(GPU_SPACES), \
       tmp2 := $(foreach test, $(GPU_SPACE_TESTS), \
         $(if $(filter Test$(space)_$(test).cpp, $(shell ls Test$(space)_$(test).cpp 2>/dev/null)),,\
-          $(shell echo "\#include <Test$(space)_Category.hpp>" > Test$(space)_$(test).cpp); \
-          $(shell echo "\#include <Test"$(test)".hpp>" >> Test$(space)_$(test).cpp); \
+          $(shell echo "$(H)include <Test$(space)_Category.hpp>" > Test$(space)_$(test).cpp); \
+          $(shell echo "$(H)include <Test"$(test)".hpp>" >> Test$(space)_$(test).cpp); \
         )\
       )\
     )
@@ -277,8 +277,8 @@ ifeq ($(KOKKOS_INTERNAL_USE_HIP), 1)
 	tmp := $(foreach space, $(GPU_SPACES), \
 	  tmp2 := $(foreach test, $(GPU_SPACE_TESTS), \
 	    $(if $(filter Test$(space)_$(test).cpp, $(shell ls Test$(space)_$(test).cpp 2>/dev/null)),,\
-	      $(shell echo "\#include <Test$(space)_Category.hpp>" > Test$(space)_$(test).cpp); \
-	      $(shell echo "\#include <Test"$(test)".hpp>" >> Test$(space)_$(test).cpp); \
+	      $(shell echo "$(H)include <Test$(space)_Category.hpp>" > Test$(space)_$(test).cpp); \
+	      $(shell echo "$(H)include <Test"$(test)".hpp>" >> Test$(space)_$(test).cpp); \
 	    )\
 	  )\
 	)

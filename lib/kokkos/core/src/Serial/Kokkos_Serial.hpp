@@ -30,6 +30,7 @@ static_assert(false,
 
 #include <cstddef>
 #include <iosfwd>
+#include <iterator>
 #include <mutex>
 #include <thread>
 #include <Kokkos_Core_fwd.hpp>
@@ -120,7 +121,10 @@ class Serial {
   /// For the Serial device, this method <i>always</i> returns false,
   /// because parallel_for or parallel_reduce with the Serial device
   /// always execute sequentially.
-  inline static int in_parallel() { return false; }
+
+#ifdef KOKKOS_ENABLE_DEPRECATED_CODE_4
+  KOKKOS_DEPRECATED inline static int in_parallel() { return false; }
+#endif
 
   /// \brief Wait until all dispatched functors complete.
   ///

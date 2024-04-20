@@ -40,7 +40,7 @@ template <class Functor, class Reducer, class Policy,
 struct OpenACCParallelReduceTeamHelper {
   OpenACCParallelReduceTeamHelper(Functor const&, Reducer const&,
                                   Policy const&) {
-    static_assert(!Kokkos::Impl::always_true<Functor>::value,
+    static_assert(Kokkos::Impl::always_false<Functor>::value,
                   "not implemented");
   }
 };
@@ -129,7 +129,7 @@ KOKKOS_INLINE_FUNCTION void parallel_reduce(
     const Impl::TeamThreadRangeBoundariesStruct<iType, Impl::OpenACCTeamMember>&
         loop_boundaries,
     const Lambda& lambda, const JoinType& join, ValueType& init_result) {
-  static_assert(!Kokkos::Impl::always_true<Lambda>::value,
+  static_assert(Kokkos::Impl::always_false<Lambda>::value,
                 "custom reduction is not implemented");
 }
 
@@ -140,7 +140,7 @@ KOKKOS_INLINE_FUNCTION void parallel_reduce(
     const Impl::ThreadVectorRangeBoundariesStruct<
         iType, Impl::OpenACCTeamMember>& loop_boundaries,
     const Lambda& lambda, const JoinType& join, ValueType& init_result) {
-  static_assert(!Kokkos::Impl::always_true<Lambda>::value,
+  static_assert(Kokkos::Impl::always_false<Lambda>::value,
                 "custom reduction is not implemented");
 }
 
@@ -394,6 +394,7 @@ KOKKOS_INLINE_FUNCTION void parallel_reduce(
                                         vector_length);                    \
       functor(team, val);                                                  \
     }                                                                      \
+    acc_wait(async_arg);                                                   \
     aval = val;                                                            \
   }                                                                        \
   }  // namespace Kokkos::Experimental::Impl

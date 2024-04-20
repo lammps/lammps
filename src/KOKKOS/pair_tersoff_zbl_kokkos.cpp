@@ -339,7 +339,7 @@ template<int NEIGHFLAG, int EVFLAG>
 KOKKOS_INLINE_FUNCTION
 void PairTersoffZBLKokkos<DeviceType>::tersoff_zbl_compute(const int &ii, EV_FLOAT& ev) const {
 
-  // The f array is duplicated for OpenMP, atomic for CUDA, and neither for Serial
+  // The f array is duplicated for OpenMP, atomic for GPU, and neither for Serial
 
   const auto v_f = ScatterViewHelper<NeedDup_v<NEIGHFLAG,DeviceType>,decltype(dup_f),decltype(ndup_f)>::get(dup_f,ndup_f);
   const auto a_f = v_f.template access<AtomicDup_v<NEIGHFLAG,DeviceType>>();
@@ -963,7 +963,7 @@ void PairTersoffZBLKokkos<DeviceType>::ev_tally(EV_FLOAT &ev, const int &i, cons
       const F_FLOAT &epair, const F_FLOAT &fpair, const F_FLOAT &delx,
                 const F_FLOAT &dely, const F_FLOAT &delz) const
 {
-  // The eatom and vatom arrays are duplicated for OpenMP, atomic for CUDA, and neither for Serial
+  // The eatom and vatom arrays are duplicated for OpenMP, atomic for GPU, and neither for Serial
 
   auto v_eatom = ScatterViewHelper<NeedDup_v<NEIGHFLAG,DeviceType>,decltype(dup_eatom),decltype(ndup_eatom)>::get(dup_eatom,ndup_eatom);
   auto a_eatom = v_eatom.template access<AtomicDup_v<NEIGHFLAG,DeviceType>>();
@@ -1021,7 +1021,7 @@ void PairTersoffZBLKokkos<DeviceType>::v_tally3(EV_FLOAT &ev,
         const int &i, const int &j, const int &k,
         F_FLOAT *fj, F_FLOAT *fk, F_FLOAT *drij, F_FLOAT *drik) const
 {
-  // The vatom array is duplicated for OpenMP, atomic for CUDA, and neither for Serial
+  // The vatom array is duplicated for OpenMP, atomic for GPU, and neither for Serial
 
   auto v_vatom = ScatterViewHelper<NeedDup_v<NEIGHFLAG,DeviceType>,decltype(dup_vatom),decltype(ndup_vatom)>::get(dup_vatom,ndup_vatom);
   auto a_vatom = v_vatom.template access<AtomicDup_v<NEIGHFLAG,DeviceType>>();

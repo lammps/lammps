@@ -65,33 +65,33 @@ class ParallelScan<FunctorType, Kokkos::RangePolicy<Traits...>,
     }
   }
 
-  static void exec(ThreadsExec &exec, const void *arg) {
+  static void exec(ThreadsInternal &instance, const void *arg) {
     const ParallelScan &self = *((const ParallelScan *)arg);
 
-    const WorkRange range(self.m_policy, exec.pool_rank(), exec.pool_size());
+    const WorkRange range(self.m_policy, instance.pool_rank(),
+                          instance.pool_size());
 
     typename Analysis::Reducer final_reducer(self.m_functor);
 
     reference_type update =
-        final_reducer.init(static_cast<pointer_type>(exec.reduce_memory()));
+        final_reducer.init(static_cast<pointer_type>(instance.reduce_memory()));
 
     ParallelScan::template exec_range<WorkTag>(self.m_functor, range.begin(),
                                                range.end(), update, false);
 
-    //  exec.template scan_large( final_reducer );
-    exec.scan_small(final_reducer);
+    instance.scan_small(final_reducer);
 
     ParallelScan::template exec_range<WorkTag>(self.m_functor, range.begin(),
                                                range.end(), update, true);
 
-    exec.fan_in();
+    instance.fan_in();
   }
 
  public:
   inline void execute() const {
-    ThreadsExec::resize_scratch(2 * Analysis::value_size(m_functor), 0);
-    ThreadsExec::start(&ParallelScan::exec, this);
-    ThreadsExec::fence();
+    ThreadsInternal::resize_scratch(2 * Analysis::value_size(m_functor), 0);
+    ThreadsInternal::start(&ParallelScan::exec, this);
+    ThreadsInternal::fence();
   }
 
   ParallelScan(const FunctorType &arg_functor, const Policy &arg_policy)
@@ -145,37 +145,37 @@ class ParallelScanWithTotal<FunctorType, Kokkos::RangePolicy<Traits...>,
     }
   }
 
-  static void exec(ThreadsExec &exec, const void *arg) {
+  static void exec(ThreadsInternal &instance, const void *arg) {
     const ParallelScanWithTotal &self = *((const ParallelScanWithTotal *)arg);
 
-    const WorkRange range(self.m_policy, exec.pool_rank(), exec.pool_size());
+    const WorkRange range(self.m_policy, instance.pool_rank(),
+                          instance.pool_size());
 
     typename Analysis::Reducer final_reducer(self.m_functor);
 
     reference_type update =
-        final_reducer.init(static_cast<pointer_type>(exec.reduce_memory()));
+        final_reducer.init(static_cast<pointer_type>(instance.reduce_memory()));
 
     ParallelScanWithTotal::template exec_range<WorkTag>(
         self.m_functor, range.begin(), range.end(), update, false);
 
-    //  exec.template scan_large(final_reducer);
-    exec.scan_small(final_reducer);
+    instance.scan_small(final_reducer);
 
     ParallelScanWithTotal::template exec_range<WorkTag>(
         self.m_functor, range.begin(), range.end(), update, true);
 
-    exec.fan_in();
+    instance.fan_in();
 
-    if (exec.pool_rank() == exec.pool_size() - 1) {
+    if (instance.pool_rank() == instance.pool_size() - 1) {
       *self.m_result_ptr = update;
     }
   }
 
  public:
   inline void execute() const {
-    ThreadsExec::resize_scratch(2 * Analysis::value_size(m_functor), 0);
-    ThreadsExec::start(&ParallelScanWithTotal::exec, this);
-    ThreadsExec::fence();
+    ThreadsInternal::resize_scratch(2 * Analysis::value_size(m_functor), 0);
+    ThreadsInternal::start(&ParallelScanWithTotal::exec, this);
+    ThreadsInternal::fence();
   }
 
   template <class ViewType>

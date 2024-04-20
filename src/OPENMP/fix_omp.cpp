@@ -161,12 +161,15 @@ void FixOMP::init()
 {
   // OPENMP package cannot be used with atom_style template
   if (atom->molecular == Atom::TEMPLATE)
-    error->all(FLERR,"OPENMP package does not (yet) work with "
-               "atom_style template");
+    error->all(FLERR,"OPENMP package does not (yet) work with atom_style template");
 
   // adjust number of data objects when the number of OpenMP
   // threads has been changed somehow
   const int nthreads = comm->nthreads;
+#if defined(_OPENMP)
+  // make certain threads are initialized correctly. avoids segfaults with LAMMPS-GUI
+  if (nthreads != omp_get_max_threads()) omp_set_num_threads(nthreads);
+#endif
   if (_nthr != nthreads) {
     if (comm->me == 0)
       utils::logmesg(lmp,"Re-init OPENMP for {} OpenMP thread(s)\n", nthreads);
@@ -212,7 +215,7 @@ void FixOMP::init()
   // kspace_split < 0  : master partition, does not do kspace
   // kspace_split > 0  : slave partition, only does kspace
 
-  if (strstr(update->integrate_style,"verlet/split") != nullptr) {
+  if (utils::strmatch(update->integrate_style, "^verlet/split")) {
     if (universe->iworld == 0) kspace_split = -1;
     else kspace_split = 1;
   } else {

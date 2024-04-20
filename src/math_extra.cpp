@@ -363,6 +363,29 @@ void exyz_to_q(double *ex, double *ey, double *ez, double *q)
 }
 
 /* ----------------------------------------------------------------------
+   create unit quaternion from a rotation matrix
+   just a wrapper on exyz_to_q()
+   ex,ey,ez are columns of a rotation matrix
+------------------------------------------------------------------------- */
+
+void mat_to_quat(double mat[3][3], double *q)
+{
+  double ex[3],ey[3],ez[3];
+
+  ex[0] = mat[0][0];
+  ex[1] = mat[1][0];
+  ex[2] = mat[2][0];
+  ey[0] = mat[0][1];
+  ey[1] = mat[1][1];
+  ey[2] = mat[2][1];
+  ez[0] = mat[0][2];
+  ez[1] = mat[1][2];
+  ez[2] = mat[2][2];
+
+  MathExtra::exyz_to_q(ex,ey,ez,q);
+}
+
+/* ----------------------------------------------------------------------
    compute space-frame ex,ey,ez from current quaternion q
    ex,ey,ez = space-frame coords of 1st,2nd,3rd principal axis
    operation is ex = q' d q = Q d, where d is (1,0,0) = 1st axis in body frame
@@ -417,6 +440,7 @@ void quat_to_mat(const double *quat, double mat[3][3])
 /* ----------------------------------------------------------------------
    compute rotation matrix from quaternion conjugate
    quat = [w i j k]
+   similar logic to quat_to_mat()
 ------------------------------------------------------------------------- */
 
 void quat_to_mat_trans(const double *quat, double mat[3][3])
@@ -646,6 +670,5 @@ void tribbox(double *h, double radius, double *dist)
 }
 
 /* ---------------------------------------------------------------------- */
-
 
 }

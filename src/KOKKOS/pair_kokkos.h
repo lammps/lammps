@@ -627,7 +627,7 @@ struct PairComputeFunctor  {
       const int itype = c.type(i);
       const F_FLOAT qtmp = c.q(i);
 
-      if (ZEROFLAG) {
+      if (NEIGHFLAG == FULL && ZEROFLAG) {
         Kokkos::single(Kokkos::PerThread(team), [&] (){
           f(i,0) = 0.0;
           f(i,1) = 0.0;
@@ -674,7 +674,7 @@ struct PairComputeFunctor  {
           const int J_CONTRIB = ((NEIGHFLAG == HALF || NEIGHFLAG == HALFTHREAD) && j < c.nlocal);
           const E_FLOAT factor = J_CONTRIB?1.0:0.5;
 
-          if ((NEIGHFLAG == HALF || NEIGHFLAG == HALFTHREAD) && j < c.nlocal) {
+          if (J_CONTRIB) {
             a_f(j,0) -= fx;
             a_f(j,1) -= fy;
             a_f(j,2) -= fz;
@@ -746,8 +746,10 @@ struct PairComputeFunctor  {
         a_f(i,1) += fev.f[1];
         a_f(i,2) += fev.f[2];
 
-        if (c.eflag_global)
+        if (c.eflag_global) {
           ev.evdwl += fev.evdwl;
+          ev.ecoul += fev.ecoul;
+        }
 
         if (c.vflag_global) {
           ev.v[0] += fev.v[0];
@@ -761,7 +763,7 @@ struct PairComputeFunctor  {
         if (NEIGHFLAG == FULL) {
 
           if (c.eflag_atom)
-            a_eatom(i) += fev.evdwl;
+            a_eatom(i) += fev.evdwl + fev.ecoul;
 
           if (c.vflag_atom) {
             a_vatom(i,0) += fev.v[0];
@@ -948,9 +950,11 @@ EV_FLOAT pair_compute_neighlist (PairStyle* fpair, std::enable_if_t<(NEIGHFLAG&P
 
     static int vectorsize = 0;
     static int atoms_per_team = 0;
-    static int lastcall = -1;
 
 #if defined(LMP_KOKKOS_GPU)
+    static int teamsize_max_for = 0;
+    static int teamsize_max_reduce = 0;
+    static int lastcall = -1;
     if (!vectorsize || lastcall < fpair->lmp->neighbor->lastcall) {
       lastcall = fpair->lmp->update->ntimestep;
       vectorsize = GetMaxNeighs(list);
@@ -964,7 +968,6 @@ EV_FLOAT pair_compute_neighlist (PairStyle* fpair, std::enable_if_t<(NEIGHFLAG&P
 
       vectorsize = MIN(vectorsize,max_vectorsize);
 
-      int teamsize_max_for,teamsize_max_reduce;
       if (fpair->atom->ntypes > MAX_TYPES_STACKPARAMS) {
         PairComputeFunctor<PairStyle,NEIGHFLAG,false,ZEROFLAG,Specialisation > ff(fpair,list);
         GetMaxTeamSize<typename PairStyle::device_type>(ff, inum, teamsize_max_for, teamsize_max_reduce);
@@ -972,12 +975,12 @@ EV_FLOAT pair_compute_neighlist (PairStyle* fpair, std::enable_if_t<(NEIGHFLAG&P
         PairComputeFunctor<PairStyle,NEIGHFLAG,true,ZEROFLAG,Specialisation > ff(fpair,list);
         GetMaxTeamSize<typename PairStyle::device_type>(ff, inum, teamsize_max_for, teamsize_max_reduce);
       }
-
-      int teamsize_max = teamsize_max_for;
-      if (fpair->eflag || fpair->vflag)
-        teamsize_max = teamsize_max_reduce;
-      atoms_per_team = teamsize_max/vectorsize;
     }
+
+    int teamsize_max = teamsize_max_for;
+    if (fpair->eflag || fpair->vflag)
+      teamsize_max = teamsize_max_reduce;
+    atoms_per_team = teamsize_max/vectorsize;
 #else
     vectorsize = 1;
     atoms_per_team = 1;
@@ -1018,7 +1021,7 @@ template<class PairStyle, class Specialisation = void>
 EV_FLOAT pair_compute (PairStyle* fpair, NeighListKokkos<typename PairStyle::device_type>* list) {
   EV_FLOAT ev;
   if (fpair->neighflag == FULL) {
-    if (utils::strmatch(fpair->lmp->force->pair_style,"^hybrid/overlay")) {
+    if (utils::strmatch(fpair->lmp->force->pair_style,"^hybrid")) {
       fpair->fuse_force_clear_flag = 0;
       ev = pair_compute_neighlist<PairStyle,FULL,0,Specialisation> (fpair,list);
     } else {

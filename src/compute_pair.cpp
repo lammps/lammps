@@ -75,7 +75,7 @@ ComputePair::ComputePair(LAMMPS *lmp, int narg, char **arg) :
     pair = force->pair_match(pstyle, 1, nsub);
   }
 
-  if (!pair) error->all(FLERR, "Unrecognized pair style {} in compute pair command", pstyle);
+  if (!pair) error->all(FLERR, "Unused pair style {} in compute pair command", pstyle);
   npair = pair->nextra;
 
   if (npair) {

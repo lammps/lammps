@@ -52,9 +52,6 @@ using namespace LAMMPS_NS;
 #define FC_PACKED2_T typename ForceConst<flt_t>::fc_packed2
 #define FC_PACKED3_T typename ForceConst<flt_t>::fc_packed3
 
-#define MAXLINE 1024
-#define DELTA 4
-
 /* ---------------------------------------------------------------------- */
 
 PairSWIntel::PairSWIntel(LAMMPS *lmp) : PairSW(lmp)
@@ -478,7 +475,6 @@ void PairSWIntel::eval(const int offload, const int vflag,
             const flt_t r2 = (flt_t)1.0 / std::sqrt(rinvsq2);
             const flt_t rainv2 = (flt_t)1.0 / (r2 - cut);
             const flt_t gsrainv2 = sigma_gamma * rainv2;
-            const flt_t gsrainvsq2 = gsrainv2 * rainv2 / r2;
             const flt_t expgsrainv2 = std::exp(gsrainv2);
 
             const flt_t rinv12 = (flt_t)1.0 / (r1 * r2);
@@ -494,7 +490,6 @@ void PairSWIntel::eval(const int offload, const int vflag,
             const flt_t facexp = expgsrainv1*expgsrainv2*kfactor;
             const flt_t facrad = lambda_epsilon * facexp * delcssq;
             const flt_t frad1 = facrad*gsrainvsq1;
-            const flt_t frad2 = facrad*gsrainvsq2;
             const flt_t facang = lambda_epsilon2 * facexp * delcs;
             const flt_t facang12 = rinv12*facang;
             const flt_t csfacang = cs*facang;
@@ -1273,13 +1268,13 @@ void PairSWIntel::ForceConst<flt_t>::set_ntypes(const int ntypes,
   if (memory != nullptr) _memory = memory;
   if (ntypes != _ntypes) {
     if (_ntypes > 0) {
+
+      #ifdef _LMP_INTEL_OFFLOAD
       fc_packed0 *op2 = p2[0];
       fc_packed1 *op2f = p2f[0];
       fc_packed1p2 *op2f2 = p2f2[0];
       fc_packed2 *op2e = p2e[0];
       fc_packed3 *op3 = p3[0][0];
-
-      #ifdef _LMP_INTEL_OFFLOAD
       if (op2 != nullptr && op2f != nullptr && op2f2 != nullptr && op2e != nullptr &&
           op3 != nullptr && _cop >= 0) {
         #pragma offload_transfer target(mic:_cop) \

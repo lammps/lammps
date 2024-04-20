@@ -14,11 +14,11 @@
 #include "compute_count_type.h"
 
 #include "atom.h"
-#include "domain.h"
 #include "error.h"
 #include "force.h"
-#include "group.h"
 #include "update.h"
+
+#include <cstring>
 
 using namespace LAMMPS_NS;
 

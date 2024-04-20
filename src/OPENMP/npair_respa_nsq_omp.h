@@ -15,7 +15,7 @@
 // clang-format off
 typedef NPairRespaNsqOmp<0,0> NPairHalfRespaNsqNewtoffOmp;
 NPairStyle(half/respa/nsq/newtoff/omp,
-           NPairHalfRespaNsqNewtoff,
+           NPairHalfRespaNsqNewtoffOmp,
            NP_HALF | NP_RESPA | NP_NSQ | NP_OMP | NP_NEWTOFF | NP_ORTHO | NP_TRI);
 
 typedef NPairRespaNsqOmp<1,0> NPairHalfRespaNsqNewtonOmp;

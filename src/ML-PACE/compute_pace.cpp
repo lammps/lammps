@@ -11,24 +11,21 @@
 ------------------------------------------------------------------------- */
 
 #include "compute_pace.h"
-#include "ace-evaluator/ace_evaluator.h"
+
 #include "ace-evaluator/ace_c_basis.h"
-#include "ace-evaluator/ace_abstract_basis.h"
+#include "ace-evaluator/ace_evaluator.h"
 #include "ace-evaluator/ace_types.h"
-#include <cstring>
-#include <map>
 
 #include "atom.h"
-#include "update.h"
-#include "modify.h"
-#include "neighbor.h"
-#include "neigh_list.h"
-#include "neigh_request.h"
-#include "force.h"
-#include "pair.h"
 #include "comm.h"
-#include "memory.h"
 #include "error.h"
+#include "force.h"
+#include "memory.h"
+#include "modify.h"
+#include "neigh_list.h"
+#include "neighbor.h"
+#include "pair.h"
+#include "update.h"
 
 namespace LAMMPS_NS {
 struct ACECimpl {
@@ -41,14 +38,14 @@ struct ACECimpl {
   ACECTildeBasisSet *basis_set;
   ACECTildeEvaluator *ace;
 };
-}
+}    // namespace LAMMPS_NS
 
 using namespace LAMMPS_NS;
 
 enum { SCALAR, VECTOR, ARRAY };
 ComputePACE::ComputePACE(LAMMPS *lmp, int narg, char **arg) :
-  Compute(lmp, narg, arg), cutsq(nullptr), list(nullptr), pace(nullptr), paceall(nullptr),
-  pace_peratom(nullptr), map(nullptr), cg(nullptr), c_pe(nullptr), c_virial(nullptr)
+    Compute(lmp, narg, arg), cutsq(nullptr), list(nullptr), pace(nullptr), paceall(nullptr),
+    pace_peratom(nullptr), map(nullptr), c_pe(nullptr), c_virial(nullptr), acecimpl(nullptr)
 {
   array_flag = 1;
   extarray = 0;
@@ -111,6 +108,8 @@ ComputePACE::ComputePACE(LAMMPS *lmp, int narg, char **arg) :
 
 ComputePACE::~ComputePACE()
 {
+  modify->delete_compute(id_virial);
+
   delete acecimpl;
   memory->destroy(pace);
   memory->destroy(paceall);
@@ -132,10 +131,7 @@ void ComputePACE::init()
   // need an occasional full neighbor list
   neighbor->add_request(this, NeighConst::REQ_FULL | NeighConst::REQ_OCCASIONAL);
 
-  int count = 0;
-  for (int i = 0; i < modify->ncompute; i++)
-    if (strcmp(modify->compute[i]->style,"pace") == 0) count++;
-  if (count > 1 && comm->me == 0)
+  if (modify->get_compute_by_style("pace").size() > 1 && comm->me == 0)
     error->warning(FLERR,"More than one compute pace");
 
   // allocate memory for global array
@@ -145,22 +141,13 @@ void ComputePACE::init()
 
   // find compute for reference energy
 
-  std::string id_pe = std::string("thermo_pe");
-  int ipe = modify->find_compute(id_pe);
-  if (ipe == -1)
-    error->all(FLERR,"compute thermo_pe does not exist.");
-  c_pe = modify->compute[ipe];
+  c_pe = modify->get_compute_by_id("thermo_pe");
+  if (!c_pe) error->all(FLERR,"Compute thermo_pe does not exist.");
 
   // add compute for reference virial tensor
 
-  std::string id_virial = std::string("pace_press");
-  std::string pcmd = id_virial + " all pressure NULL virial";
-  modify->add_compute(pcmd);
-
-  int ivirial = modify->find_compute(id_virial);
-  if (ivirial == -1)
-    error->all(FLERR,"compute pace_press does not exist.");
-  c_virial = modify->compute[ivirial];
+  id_virial = id + std::string("_press");
+  c_virial = modify->add_compute(id_virial + " all pressure NULL virial");
 }
 
 /* ---------------------------------------------------------------------- */

@@ -83,9 +83,6 @@ auto run_min_or_max_test(ViewType view, StdReducersTestEnumOrder enValue) {
   static_assert(std::is_same<ExeSpace, Kokkos::HostSpace>::value,
                 "test is only enabled for HostSpace");
 
-  std::cout << "checking reduction with order: " << order_to_string(enValue)
-            << "\n";
-
   using view_value_type = typename ViewType::value_type;
   using reducer_type    = std::conditional_t<
       (flag == 0), Kokkos::MaxFirstLoc<view_value_type, IndexType, ExeSpace>,
@@ -132,18 +129,24 @@ TEST(std_algorithms_reducers, max_first_loc) {
 
   const auto pair1 = run_min_or_max_test<0, hostspace, index_type>(
       view_h, StdReducersTestEnumOrder::LeftToRight);
-  ASSERT_EQ(pair1.first, gold_value);
-  ASSERT_EQ(pair1.second, gold_location);
+  ASSERT_EQ(pair1.first, gold_value)
+      << order_to_string(StdReducersTestEnumOrder::LeftToRight);
+  ASSERT_EQ(pair1.second, gold_location)
+      << order_to_string(StdReducersTestEnumOrder::LeftToRight);
 
   const auto pair2 = run_min_or_max_test<0, hostspace, index_type>(
       view_h, StdReducersTestEnumOrder::RightToLeft);
-  ASSERT_EQ(pair2.first, gold_value);
-  ASSERT_EQ(pair2.second, gold_location);
+  ASSERT_EQ(pair2.first, gold_value)
+      << order_to_string(StdReducersTestEnumOrder::RightToLeft);
+  ASSERT_EQ(pair2.second, gold_location)
+      << order_to_string(StdReducersTestEnumOrder::RightToLeft);
 
   const auto pair3 = run_min_or_max_test<0, hostspace, index_type>(
       view_h, StdReducersTestEnumOrder::Random);
-  ASSERT_EQ(pair3.first, gold_value);
-  ASSERT_EQ(pair3.second, gold_location);
+  ASSERT_EQ(pair3.first, gold_value)
+      << order_to_string(StdReducersTestEnumOrder::Random);
+  ASSERT_EQ(pair3.second, gold_location)
+      << order_to_string(StdReducersTestEnumOrder::Random);
 }
 
 TEST(std_algorithms_reducers, min_first_loc) {
@@ -191,9 +194,6 @@ void run_min_max_test(ViewType view, StdReducersTestEnumOrder enValue,
   static_assert(std::is_same<ExeSpace, Kokkos::HostSpace>::value,
                 "test is only enabled for HostSpace");
 
-  std::cout << "checking reduction with order: " << order_to_string(enValue)
-            << "\n";
-
   using view_value_type = typename ViewType::value_type;
   using reducer_type =
       Kokkos::MinMaxFirstLastLoc<view_value_type, IndexType, ExeSpace>;
@@ -212,10 +212,10 @@ void run_min_max_test(ViewType view, StdReducersTestEnumOrder enValue,
                  reduction_value_type{view(index), view(index), index, index});
   }
 
-  ASSERT_EQ(red_result.min_val, gold_values.first);
-  ASSERT_EQ(red_result.max_val, gold_values.second);
-  ASSERT_EQ(red_result.min_loc, gold_locs.first);
-  ASSERT_EQ(red_result.max_loc, gold_locs.second);
+  ASSERT_EQ(red_result.min_val, gold_values.first) << order_to_string(enValue);
+  ASSERT_EQ(red_result.max_val, gold_values.second) << order_to_string(enValue);
+  ASSERT_EQ(red_result.min_loc, gold_locs.first) << order_to_string(enValue);
+  ASSERT_EQ(red_result.max_loc, gold_locs.second) << order_to_string(enValue);
 }
 
 TEST(std_algorithms_reducers, min_max_first_last_loc) {

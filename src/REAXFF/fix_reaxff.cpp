@@ -29,9 +29,8 @@
 using namespace LAMMPS_NS;
 using namespace FixConst;
 
-#define MAX_REAX_BONDS      30
-#define MIN_REAX_BONDS      15
-#define MIN_REAX_HBONDS     25
+static constexpr int MIN_REAX_BONDS  = 15;
+static constexpr int MIN_REAX_HBONDS = 25;
 
 /* ---------------------------------------------------------------------- */
 

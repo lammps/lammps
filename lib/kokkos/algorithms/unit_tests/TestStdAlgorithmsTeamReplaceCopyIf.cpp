@@ -145,7 +145,7 @@ void test_A(std::size_t numTeams, std::size_t numCols, int apiId) {
   auto intraTeamSentinelView_h = create_host_space_copy(intraTeamSentinelView);
   Kokkos::View<ValueType**, Kokkos::HostSpace> stdDestView("stdDestView",
                                                            numTeams, numCols);
-  GreaterThanValueFunctor predicate(threshold);
+  GreaterThanValueFunctor<ValueType> predicate(threshold);
   for (std::size_t i = 0; i < sourceView.extent(0); ++i) {
     auto rowFrom =
         Kokkos::subview(cloneOfSourceViewBeforeOp_h, i, Kokkos::ALL());

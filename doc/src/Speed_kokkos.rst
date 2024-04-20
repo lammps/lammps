@@ -20,11 +20,28 @@ including Sikandar Mashayak (UIUC), Ray Shan (Sandia), and Dan Ibanez
 (Sandia). For more information on developing using Kokkos abstractions
 see the `Kokkos Wiki <https://github.com/kokkos/kokkos/wiki>`_.
 
-Kokkos currently provides support for 4 modes of execution (per MPI
+.. note::
+
+   The Kokkos library is under active development and tracking the
+   availability of accelerator hardware, so is the KOKKOS package in
+   LAMMPS.  This means that only a certain range of versions of the
+   Kokkos library are compatible with the KOKKOS package of a certain
+   range of LAMMPS versions.  For that reason LAMMPS comes with a
+   bundled version of the Kokkos library that has been validated on
+   multiple platforms and may contain selected back-ported bug fixes
+   from upstream Kokkos versions.  While it is possible to build LAMMPS
+   with an external version of Kokkos, it is untested and may result in
+   incorrect execution or crashes.
+
+Kokkos currently provides full support for 4 modes of execution (per MPI
 task). These are Serial (MPI-only for CPUs and Intel Phi), OpenMP
-(threading for many-core CPUs and Intel Phi), CUDA (for NVIDIA
-GPUs) and HIP (for AMD GPUs). You choose the mode at build time to
-produce an executable compatible with a specific hardware.
+(threading for many-core CPUs and Intel Phi), CUDA (for NVIDIA GPUs) and
+HIP (for AMD GPUs).  Additional modes (e.g. OpenMP target, Intel data
+center GPUs) are under development.  You choose the mode at build time
+to produce an executable compatible with a specific hardware.
+
+The following compatibility notes have been last updated for LAMMPS
+version 23 November 2023 and Kokkos version 4.2.
 
 .. admonition:: C++17 support
    :class: note
@@ -54,22 +71,22 @@ produce an executable compatible with a specific hardware.
    :class: note
 
    Kokkos with CUDA currently implicitly assumes that the MPI library is
-   GPU-aware. This is not always the case, especially when using
+   GPU-aware.  This is not always the case, especially when using
    pre-compiled MPI libraries provided by a Linux distribution. This is
    not a problem when using only a single GPU with a single MPI
-   rank. When running with multiple MPI ranks, you may see segmentation
+   rank.  When running with multiple MPI ranks, you may see segmentation
    faults without GPU-aware MPI support. These can be avoided by adding
    the flags :doc:`-pk kokkos gpu/aware off <Run_options>` to the
    LAMMPS command line or by using the command :doc:`package kokkos
    gpu/aware off <package>` in the input file.
 
-.. admonition:: AMD GPU support
+.. admonition:: Intel Data Center GPU support
    :class: note
 
-   To build with Kokkos the HIPCC compiler from the AMD ROCm software
-   version 3.5 or later is required.  Supporting this Kokkos mode in
-   LAMMPS is still work in progress.  Please contact the LAMMPS developers
-   if you run into problems.
+   Support for Kokkos with Intel Data Center GPU accelerators (formerly
+   known under the code name "Ponte Vecchio") in LAMMPS is still a work
+   in progress.  Only a subset of the functionality works correctly.
+   Please contact the LAMMPS developers if you run into problems.
 
 Building LAMMPS with the KOKKOS package
 """""""""""""""""""""""""""""""""""""""
@@ -292,6 +309,10 @@ one or more nodes, each with two GPUs:
    settings. Experimenting with its options can provide a speed-up for
    specific calculations. For example:
 
+.. code-block:: bash
+
+   mpirun -np 2 lmp_kokkos_cuda_openmpi -k on g 2 -sf kk -pk kokkos newton on neigh half binsize 2.8 -in in.lj      # Newton on, half neighbor list, set binsize = neighbor ghost cutoff
+
 .. note::
 
    The default binsize for :doc:`atom sorting <atom_modify>` on GPUs
@@ -302,9 +323,15 @@ one or more nodes, each with two GPUs:
    frequent sorting than default (e.g. sorting every 100 time steps
    instead of 1000) may improve performance.
 
-.. code-block:: bash
+.. note::
 
-   mpirun -np 2 lmp_kokkos_cuda_openmpi -k on g 2 -sf kk -pk kokkos newton on neigh half binsize 2.8 -in in.lj      # Newton on, half neighbor list, set binsize = neighbor ghost cutoff
+   When running on GPUs with many MPI ranks (tens of thousands and
+   more), the creation of the atom map (required for molecular systems)
+   on the GPU can slow down significantly or run out of GPU memory and
+   thus slow down the whole calculation or cause a crash.  You can use
+   the "-pk kokkos atom/map no" :doc:`command-line switch <Run_options>`
+   of the :doc:`package kokkos atom/map no <package>` command to create
+   the atom map on the CPU instead.
 
 .. note::
 
@@ -416,15 +443,22 @@ Generally speaking, the following rules of thumb apply:
   performance of a KOKKOS style is a bit slower than the OPENMP
   package.
 * When running large number of atoms per GPU, KOKKOS is typically faster
-  than the GPU package when compiled for double precision. The benefit
+  than the GPU package when compiled for double precision.  The benefit
   of using single or mixed precision with the GPU package depends
   significantly on the hardware in use and the simulated system and pair
   style.
-* When running on Intel hardware, KOKKOS is not as fast as
+* When running on Intel Phi hardware, KOKKOS is not as fast as
   the INTEL package, which is optimized for x86 hardware (not just
   from Intel) and compilation with the Intel compilers.  The INTEL
   package also can increase the vector length of vector instructions
   by switching to single or mixed precision mode.
+* The KOKKOS package by default assumes that you are using exactly one
+  MPI rank per GPU. When trying to use multiple MPI ranks per GPU it is
+  mandatory to enable `CUDA Multi-Process Service (MPS)
+  <https://docs.nvidia.com/deploy/mps/index.html>`_ to get good
+  performance.  In this case it is better to not use all available
+  MPI ranks in order to avoid competing with the MPS daemon for
+  CPU resources.
 
 See the `Benchmark page <https://www.lammps.org/bench.html>`_ of the
 LAMMPS website for performance of the KOKKOS package on different

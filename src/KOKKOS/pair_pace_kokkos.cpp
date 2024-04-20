@@ -845,7 +845,6 @@ void PairPACEKokkos<DeviceType>::operator() (TagPairPACEComputeNeigh,const typen
                [&](const int offset, minloc_value_type &min_d_dist) {
                  int j = d_nearest(ii,offset);
                  j &= NEIGHMASK;
-                 const int jtype = type(j);
                  auto r = d_rnorms(ii,offset);
                  const int mu_j = d_map(type(j));
                  const F_FLOAT d = r - (d_cut_in(mu_i, mu_j) - d_dcut_in(mu_i, mu_j));
@@ -1562,7 +1561,7 @@ template<int NEIGHFLAG, int EVFLAG>
 KOKKOS_INLINE_FUNCTION
 void PairPACEKokkos<DeviceType>::operator() (TagPairPACEComputeForce<NEIGHFLAG,EVFLAG>, const int& ii, EV_FLOAT& ev) const
 {
-  // The f array is duplicated for OpenMP, atomic for CUDA, and neither for Serial
+  // The f array is duplicated for OpenMP, atomic for GPU, and neither for Serial
   const auto v_f = ScatterViewHelper<NeedDup_v<NEIGHFLAG,DeviceType>,decltype(dup_f),decltype(ndup_f)>::get(dup_f,ndup_f);
   const auto a_f = v_f.template access<AtomicDup_v<NEIGHFLAG,DeviceType>>();
 
@@ -1631,7 +1630,7 @@ void PairPACEKokkos<DeviceType>::v_tally_xyz(EV_FLOAT &ev, const int &i, const i
       const F_FLOAT &fx, const F_FLOAT &fy, const F_FLOAT &fz,
       const F_FLOAT &delx, const F_FLOAT &dely, const F_FLOAT &delz) const
 {
-  // The vatom array is duplicated for OpenMP, atomic for CUDA, and neither for Serial
+  // The vatom array is duplicated for OpenMP, atomic for GPU, and neither for Serial
 
   auto v_vatom = ScatterViewHelper<NeedDup_v<NEIGHFLAG,DeviceType>,decltype(dup_vatom),decltype(ndup_vatom)>::get(dup_vatom,ndup_vatom);
   auto a_vatom = v_vatom.template access<AtomicDup_v<NEIGHFLAG,DeviceType>>();

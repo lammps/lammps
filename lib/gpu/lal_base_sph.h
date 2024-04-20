@@ -15,7 +15,7 @@
  ***************************************************************************/
 
 #ifndef LAL_BASE_SPH_H
-#define LAL_BASE_DPD_H
+#define LAL_BASE_SPH_H
 
 #include "lal_device.h"
 #include "lal_balance.h"
@@ -132,7 +132,7 @@ class BaseSPH {
                int **firstneigh, const bool eflag, const bool vflag,
                const bool eatom, const bool vatom, int &host_start,
                const double cpu_time, bool &success, tagint *tag,
-               double **v, const int nlocal);
+               double **v);
 
   /// Pair loop with device neighboring
   int** compute(const int ago, const int inum_full, const int nall,

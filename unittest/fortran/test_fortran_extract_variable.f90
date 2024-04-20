@@ -361,15 +361,23 @@ FUNCTION f_lammps_extract_variable_vector(i) BIND(C)
   f_lammps_extract_variable_vector = vector(i)
 END FUNCTION f_lammps_extract_variable_vector
 
-SUBROUTINE f_lammps_set_variable_string() BIND(C)
-  USE, INTRINSIC :: ISO_C_BINDING, ONLY : c_double, c_int
+SUBROUTINE f_lammps_set_string_variable() BIND(C)
   USE LIBLAMMPS
   USE keepstuff, ONLY : lmp, f2c_string
   IMPLICIT NONE
   CHARACTER(LEN=40) :: string
 
   string = "this is the new string"
-  CALL lmp%set_variable('str', string)
-END SUBROUTINE f_lammps_set_variable_string
+  CALL lmp%set_string_variable('str', string)
+END SUBROUTINE f_lammps_set_string_variable
+
+SUBROUTINE f_lammps_set_internal_variable() BIND(C)
+  USE, INTRINSIC :: ISO_C_BINDING, ONLY : c_double
+  USE LIBLAMMPS
+  USE keepstuff, ONLY : lmp, f2c_string
+  IMPLICIT NONE
+
+  CALL lmp%set_internal_variable('int', -2.5_c_double)
+END SUBROUTINE f_lammps_set_internal_variable
 
 ! vim: sts=2 ts=2 sw=2 et

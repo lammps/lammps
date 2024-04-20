@@ -164,8 +164,6 @@ void NPairSkipIntel::build_t(NeighList *list, int *numhalf, int *cnumneigh,
       if (ipage.status())
         error->one(FLERR,"Neighbor list overflow, boost neigh_modify one");
     }
-
-    int last_inum = 0, loop_end;
     _inum_counts[tid] = my_inum;
   }
   int inum = _inum_counts[0];
@@ -406,7 +404,6 @@ void NPairSkipTrimIntel::build_t(NeighList *list, int *numhalf, int *cnumneigh,
         error->one(FLERR,"Neighbor list overflow, boost neigh_modify one");
     }
 
-    int last_inum = 0, loop_end;
     _inum_counts[tid] = my_inum;
   }
   int inum = _inum_counts[0];

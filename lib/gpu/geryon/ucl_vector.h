@@ -147,10 +147,10 @@ class UCL_Vector {
   /// Get element at index i
   inline const hosttype & operator[](const int i) const { return host[i]; }
   /// 2D access (row should always be 0)
-  inline hosttype & operator()(const int row, const int col)
+  inline hosttype & operator()(const int /*row*/, const int col)
     { return host[col]; }
   /// 2D access (row should always be 0)
-  inline const hosttype & operator()(const int row, const int col) const
+  inline const hosttype & operator()(const int /*row*/, const int col) const
     { return host[col]; }
 
   /// Returns pointer to memory pointer for allocation on host

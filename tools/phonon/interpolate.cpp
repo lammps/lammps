@@ -28,8 +28,6 @@ Interpolate::Interpolate(int nx, int ny, int nz, int ndm, doublecomplex **DM)
    Dfdx = Dfdy = Dfdz = D2fdxdy = D2fdxdz = D2fdydz = D3fdxdydz = NULL;
    flag_reset_gamma = flag_allocated_dfs = 0;
    input = NULL;
- 
-   return;
 }
 
 /* ----------------------------------------------------------------------------
@@ -106,8 +104,7 @@ void Interpolate::tricubic_init()
       }
       n++;
    }
-   return;
-}
+   }
 
 /* ----------------------------------------------------------------------------
  * Deconstructor used to free memory
@@ -123,8 +120,6 @@ Interpolate::~Interpolate()
    memory->destroy(D2fdydz);
    memory->destroy(D3fdxdydz);
    delete memory;
-
-   return;
 }
 
 /* ----------------------------------------------------------------------------
@@ -184,8 +179,7 @@ void Interpolate::tricubic(double *qin, doublecomplex *DMq)
       tricubic_get_coeff(&a[0],&f[0],&dfdx[0],&dfdy[0],&dfdz[0],&d2fdxdy[0],&d2fdxdz[0],&d2fdydz[0],&d3fdxdydz[0]); 
       DMq[idim].i = tricubic_eval(&a[0],x,y,z);
    }
-   return;
-}
+   }
 
 /* ----------------------------------------------------------------------------
  * method to interpolate the DM at an arbitrary q point;
@@ -250,8 +244,7 @@ void Interpolate::trilinear(double *qin, doublecomplex *DMq)
       }
    }
  
-   return;
-}
+   }
 
 /* ----------------------------------------------------------------------------
  * To invoke the interpolation
@@ -263,8 +256,6 @@ void Interpolate::execute(double *qin, doublecomplex *DMq)
       tricubic(qin, DMq);
    else       // otherwise: trilinear
       trilinear(qin, DMq);
-
-   return;
 }
 
 /* ----------------------------------------------------------------------------
@@ -274,7 +265,7 @@ void Interpolate::set_method()
 {
    char str[MAXLINE];
    int im = 1;
-   if (input == NULL) input = new UserInput(0);
+   if (input == nullptr) input = new UserInput(0);
 
    puts("\n================================================================================");
    printf("Which interpolation method would you like to use?\n");
@@ -289,8 +280,6 @@ void Interpolate::set_method()
    puts("================================================================================\n");
  
    if (which == 1) tricubic_init();
- 
-   return;
 }
 
 /* ----------------------------------------------------------------------------
@@ -316,6 +305,5 @@ void Interpolate::reset_gamma()
                       + (data[im1][idim].r + data[ip1][idim].r) * two3;
    }
  
-   return;
-}
+   }
 /* ---------------------------------------------------------------------------- */

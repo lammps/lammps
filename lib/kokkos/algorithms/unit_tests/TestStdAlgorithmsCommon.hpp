@@ -198,8 +198,9 @@ auto create_deep_copyable_compatible_view_with_same_extent(ViewType view) {
 
   // this is needed for intel to avoid
   // error #1011: missing return statement at end of non-void function
-#if defined KOKKOS_COMPILER_INTEL || \
-    (defined(KOKKOS_COMPILER_NVCC) && KOKKOS_COMPILER_NVCC >= 1130)
+#if defined KOKKOS_COMPILER_INTEL ||                                  \
+    (defined(KOKKOS_COMPILER_NVCC) && KOKKOS_COMPILER_NVCC >= 1130 && \
+     !defined(KOKKOS_COMPILER_MSVC))
   __builtin_unreachable();
 #endif
 }
@@ -238,16 +239,8 @@ KOKKOS_FUNCTION bool team_members_have_matching_result(
   // set accum to 1 if a mismach is found
   const bool mismatch = memberValue != target;
   int accum           = static_cast<int>(mismatch);
-  // FIXME_OPENMPTARGET: team API does not meet the TeamHandle concept and
-  // ignores the reducer passed
-#if defined KOKKOS_ENABLE_OPENMPTARGET
-  Kokkos::Sum<int> dummyReducer(accum);
-  const auto result = teamHandle.team_reduce(accum, dummyReducer);
-  return (result == 0);
-#else
   teamHandle.team_reduce(Kokkos::Sum<int>(accum));
   return (accum == 0);
-#endif
 }
 
 template <class ValueType1, class ValueType2>

@@ -38,8 +38,7 @@ class ComputeRattlersAtom : public Compute {
   void unpack_reverse_comm(int, int *, double *) override;
 
  private:
-  int pstyle, cutstyle;
-  int ncontacts_rattler, max_tries, nmax, invoked_peratom;
+  int cutstyle, ncontacts_rattler, max_tries, nmax, invoked_peratom;
   int *ncontacts;
   double *rattler;
   class NeighList *list;

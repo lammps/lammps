@@ -27,6 +27,7 @@
 #include "force.h"
 #include "memory_kokkos.h"
 #include "modify.h"
+#include "neighbor.h"
 #include "output.h"
 #include "thermo.h"
 #include "update.h"
@@ -35,8 +36,8 @@
 #include <cstring>
 using namespace LAMMPS_NS;
 
-#define BONDDELTA 10000
-#define LB_FACTOR 1.5
+static constexpr int BONDDELTA = 10000;
+static constexpr double LB_FACTOR = 1.5;
 
 /* ---------------------------------------------------------------------- */
 

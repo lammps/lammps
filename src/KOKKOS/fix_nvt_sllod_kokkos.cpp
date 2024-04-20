@@ -18,20 +18,18 @@
 
 #include "fix_nvt_sllod_kokkos.h"
 
-#include "atom.h"
-#include "atom.h"
 #include "atom_kokkos.h"
 #include "atom_masks.h"
 #include "compute.h"
 #include "domain.h"
 #include "error.h"
-#include "fix.h"
-#include "fix_deform_kokkos.h"
+#include "fix_deform.h"
 #include "group.h"
 #include "kokkos_few.h"
 #include "math_extra.h"
-#include "memory_kokkos.h"
 #include "modify.h"
+
+#include <cstring>
 
 using namespace LAMMPS_NS;
 using namespace FixConst;
@@ -128,7 +126,7 @@ void FixNVTSllodKokkos<DeviceType>::nh_v_temp()
 
   d_h_two = Few<double, 6>(h_two);
 
-  if (vdelu.extent(0) < atomKK->nmax)
+  if ((int)vdelu.extent(0) < atomKK->nmax)
     vdelu = typename AT::t_v_array(Kokkos::NoInit("nvt/sllod/kk:vdelu"), atomKK->nmax);
 
   if (!this->psllod_flag) {

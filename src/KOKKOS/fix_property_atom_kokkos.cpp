@@ -16,7 +16,6 @@
 
 #include "atom_kokkos.h"
 #include "atom_masks.h"
-#include "error.h"
 #include "memory_kokkos.h"
 
 #include <cstring>

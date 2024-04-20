@@ -17,6 +17,8 @@
 #include "granular_model.h"
 #include "math_special.h"
 
+#include <cmath>
+
 using namespace LAMMPS_NS;
 using namespace Granular_NS;
 
@@ -130,6 +132,12 @@ void GranSubModDampingTsuji::init()
 
 double GranSubModDampingTsuji::calculate_forces()
 {
-  damp_prefactor = damp * sqrt(gm->meff * gm->Fnormal / gm->delta);
+  // in case argument <= 0 due to precision issues
+  double sqrt1;
+  if (gm->delta > 0.0)
+    sqrt1 = MAX(0.0, gm->meff * gm->Fnormal / gm->delta);
+  else
+    sqrt1 = 0.0;
+  damp_prefactor = damp * sqrt(sqrt1);
   return -damp_prefactor * gm->vnnr;
 }

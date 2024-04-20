@@ -185,7 +185,7 @@ class PairReaxFFKokkos : public PairReaxFF {
   // Returns if we need to populate d_d* functions or not
   template<int NEIGHFLAG>
   KOKKOS_INLINE_FUNCTION
-  bool build_bo_list(int, int, int, int, int, int&, int&) const;
+  bool build_bo_list(int, int, int, int&, int&) const;
 
   KOKKOS_INLINE_FUNCTION
   void operator()(TagPairReaxBuildListsFull, const int&) const;
@@ -526,7 +526,7 @@ struct PairReaxKokkosFindBondFunctor  {
   typedef int value_type;
   int groupbit;
   PairReaxFFKokkos<DeviceType> c;
-  PairReaxKokkosFindBondFunctor(PairReaxFFKokkos<DeviceType>* c_ptr, int groupbit):c(*c_ptr),groupbit(groupbit) {};
+  PairReaxKokkosFindBondFunctor(PairReaxFFKokkos<DeviceType>* c_ptr, int groupbit):groupbit(groupbit),c(*c_ptr){};
 
   KOKKOS_INLINE_FUNCTION
   void join(int &dst,

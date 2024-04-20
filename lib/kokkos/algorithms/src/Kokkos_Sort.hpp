@@ -23,6 +23,7 @@
 
 #include "sorting/Kokkos_BinSortPublicAPI.hpp"
 #include "sorting/Kokkos_SortPublicAPI.hpp"
+#include "sorting/Kokkos_SortByKeyPublicAPI.hpp"
 #include "sorting/Kokkos_NestedSortPublicAPI.hpp"
 
 #ifdef KOKKOS_IMPL_PUBLIC_INCLUDE_NOTDEFINED_SORT

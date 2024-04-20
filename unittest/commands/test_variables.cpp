@@ -216,7 +216,7 @@ TEST_F(VariableTest, CreateDelete)
                  command("variable one internal 2"););
     TEST_FAILURE(".*ERROR: Cannot use atomfile-style variable unless an atom map exists.*",
                  command("variable eleven    atomfile  test_variable.atomfile"););
-    TEST_FAILURE(".*ERROR on proc 0: Cannot open file variable file test_variable.xxx.*",
+    TEST_FAILURE(".*ERROR on proc 0: Cannot open file variable nine1 file test_variable.xxx.*",
                  command("variable nine1  file      test_variable.xxx"););
     TEST_FAILURE(".*ERROR: World variable count doesn't match # of partitions.*",
                  command("variable ten10 world xxx xxx"););
@@ -293,7 +293,7 @@ TEST_F(VariableTest, AtomicSystem)
                  command("variable one atom x"););
     TEST_FAILURE(".*ERROR: Cannot redefine variable as a different style.*",
                  command("variable id vector f_press"););
-    TEST_FAILURE(".*ERROR on proc 0: Cannot open file variable file test_variable.xxx.*",
+    TEST_FAILURE(".*ERROR on proc 0: Cannot open atomfile variable ten1 file test_variable.xxx.*",
                  command("variable ten1   atomfile  test_variable.xxx"););
     TEST_FAILURE(".*ERROR: Variable loop: has a circular dependency.*",
                  variable->compute_equal("v_loop"););
@@ -779,6 +779,25 @@ TEST_F(VariableTest, Format)
                  command("variable xxx format one \"%g%%\""););
     //    TEST_FAILURE(".*ERROR: Incorrect conversion in format string.*",
     //                 command("print \"${f1idx}\""););
+}
+
+TEST_F(VariableTest, Set)
+{
+    BEGIN_HIDE_OUTPUT();
+    command("variable three  string    three");
+    command("variable ten    internal  10.0");
+    END_HIDE_OUTPUT();
+    ASSERT_EQ(variable->nvar, 3);
+    ASSERT_THAT(variable->retrieve("three"), StrEq("three"));
+    ASSERT_THAT(variable->retrieve("ten"), StrEq("10"));
+
+    ASSERT_EQ(variable->internalstyle(variable->find("three")), 0);
+    ASSERT_EQ(variable->internalstyle(variable->find("ten")), 1);
+
+    variable->set_string("three", "new");
+    ASSERT_THAT(variable->retrieve("three"), StrEq("new"));
+    variable->internal_set(variable->find("ten"), -2.5);
+    ASSERT_THAT(variable->retrieve("ten"), StrEq("-2.5"));
 }
 } // namespace LAMMPS_NS
 

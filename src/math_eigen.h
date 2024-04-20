@@ -22,13 +22,14 @@ namespace MathEigen {
  * \param  mat   the 3x3 matrix you wish to diagonalize
  * \param  eval  store the eigenvalues here
  * \param  evec  store the eigenvectors here...
+ * \param  sort  order eigenvalues and -vectors (-1 decreasing (default), 1 increasing, 0 unsorted)
  * \return       0 if eigenvalue calculation converged, 1 if it failed */
 
-int jacobi3(double const *const *mat, double *eval, double **evec);
+int jacobi3(double const *const *mat, double *eval, double **evec, int sort = -1);
 
 /** \overload */
 
-int jacobi3(double const mat[3][3], double *eval, double evec[3][3]);
+int jacobi3(double const mat[3][3], double *eval, double evec[3][3], int sort = -1);
 
 }    // namespace MathEigen
 

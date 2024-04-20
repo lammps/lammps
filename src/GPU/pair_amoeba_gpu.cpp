@@ -51,7 +51,7 @@ enum{GORDON1,GORDON2};
 // same as in pair_amoeba.cpp
 enum{MPOLE_GRID,POLAR_GRID,POLAR_GRIDC,DISP_GRID,INDUCE_GRID,INDUCE_GRIDC};
 
-#define DEBYE 4.80321    // conversion factor from q-Angs (real units) to Debye
+static constexpr double DEBYE = 4.80321;    // conversion factor from q-Angs (real units) to Debye
 
 // External functions from cuda library for atom decomposition
 

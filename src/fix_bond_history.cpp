@@ -27,8 +27,8 @@
 using namespace LAMMPS_NS;
 using namespace FixConst;
 
-#define LB_FACTOR 1.5
-#define DELTA 8192
+static constexpr double LB_FACTOR = 1.5;
+static constexpr int DELTA = 8192;
 
 /* ---------------------------------------------------------------------- */
 

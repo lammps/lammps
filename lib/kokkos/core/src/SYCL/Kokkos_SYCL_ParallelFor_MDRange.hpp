@@ -118,6 +118,8 @@ class Kokkos::Impl::ParallelFor<FunctorType, Kokkos::MDRangePolicy<Traits...>,
 
     const BarePolicy bare_policy(m_policy);
 
+    desul::ensure_sycl_lock_arrays_on_device(q);
+
     auto parallel_for_event = q.submit([&](sycl::handler& cgh) {
       const auto range                  = compute_ranges();
       const sycl::range<3> global_range = range.get_global_range();

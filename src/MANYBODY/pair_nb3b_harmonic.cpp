@@ -34,8 +34,8 @@
 using namespace LAMMPS_NS;
 using MathConst::MY_PI;
 
-#define DELTA 4
-#define SMALL 0.001
+static constexpr int DELTA = 4;
+static constexpr double SMALL = 0.001;
 
 static const char *substyle[] = {"nb3n/harmonic", "nb3b/screened"};
 

@@ -25,6 +25,7 @@
 #include "atom.h"
 #include "comm.h"
 #include "error.h"
+#include "ewald_const.h"
 #include "force.h"
 #include "kspace.h"
 #include "memory.h"
@@ -37,14 +38,7 @@
 #include <cstring>
 
 using namespace LAMMPS_NS;
-
-#define EWALD_F   1.12837917
-#define EWALD_P   0.3275911
-#define A1        0.254829592
-#define A2       -0.284496736
-#define A3        1.421413741
-#define A4       -1.453152027
-#define A5        1.061405429
+using namespace EwaldConst;
 
 /* ---------------------------------------------------------------------- */
 
@@ -76,6 +70,8 @@ PairLJCharmmfswCoulLong::PairLJCharmmfswCoulLong(LAMMPS *lmp) : Pair(lmp)
 
 PairLJCharmmfswCoulLong::~PairLJCharmmfswCoulLong()
 {
+  if (copymode) return;
+
   // switch qqr2e back from CHARMM value to LAMMPS value
 
   if (update && strcmp(update->unit_style,"real") == 0) {
@@ -84,8 +80,6 @@ PairLJCharmmfswCoulLong::~PairLJCharmmfswCoulLong()
                      " conversion constant");
     force->qqr2e = force->qqr2e_lammps_real;
   }
-
-  if (copymode) return;
 
   if (allocated) {
     memory->destroy(setflag);

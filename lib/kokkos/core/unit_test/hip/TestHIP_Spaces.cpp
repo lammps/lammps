@@ -29,198 +29,164 @@ __global__ void test_hip_spaces_int_value(int *ptr) {
 
 TEST(hip, space_access) {
   static_assert(Kokkos::Impl::MemorySpaceAccess<Kokkos::HostSpace,
-                                                Kokkos::HostSpace>::assignable,
-                "");
+                                                Kokkos::HostSpace>::assignable);
 
   static_assert(
       Kokkos::Impl::MemorySpaceAccess<Kokkos::HostSpace,
-                                      Kokkos::HIPHostPinnedSpace>::assignable,
-      "");
+                                      Kokkos::HIPHostPinnedSpace>::assignable);
 
   static_assert(!Kokkos::Impl::MemorySpaceAccess<Kokkos::HostSpace,
-                                                 Kokkos::HIPSpace>::assignable,
-                "");
+                                                 Kokkos::HIPSpace>::assignable);
 
   static_assert(!Kokkos::Impl::MemorySpaceAccess<Kokkos::HostSpace,
-                                                 Kokkos::HIPSpace>::accessible,
-                "");
+                                                 Kokkos::HIPSpace>::accessible);
 
   static_assert(
       !Kokkos::Impl::MemorySpaceAccess<Kokkos::HostSpace,
-                                       Kokkos::HIPManagedSpace>::assignable,
-      "");
+                                       Kokkos::HIPManagedSpace>::assignable);
 
   static_assert(
       Kokkos::Impl::MemorySpaceAccess<Kokkos::HostSpace,
-                                      Kokkos::HIPManagedSpace>::accessible,
-      "");
+                                      Kokkos::HIPManagedSpace>::accessible);
 
   //--------------------------------------
 
   static_assert(Kokkos::Impl::MemorySpaceAccess<Kokkos::HIPSpace,
-                                                Kokkos::HIPSpace>::assignable,
-                "");
+                                                Kokkos::HIPSpace>::assignable);
 
   static_assert(
       !Kokkos::Impl::MemorySpaceAccess<Kokkos::HIPSpace,
-                                       Kokkos::HIPHostPinnedSpace>::assignable,
-      "");
+                                       Kokkos::HIPHostPinnedSpace>::assignable);
 
   static_assert(
       Kokkos::Impl::MemorySpaceAccess<Kokkos::HIPSpace,
-                                      Kokkos::HIPHostPinnedSpace>::accessible,
-      "");
+                                      Kokkos::HIPHostPinnedSpace>::accessible);
 
-  static_assert(!Kokkos::Impl::MemorySpaceAccess<Kokkos::HIPSpace,
-                                                 Kokkos::HostSpace>::assignable,
-                "");
+  static_assert(
+      !Kokkos::Impl::MemorySpaceAccess<Kokkos::HIPSpace,
+                                       Kokkos::HostSpace>::assignable);
 
-  static_assert(!Kokkos::Impl::MemorySpaceAccess<Kokkos::HIPSpace,
-                                                 Kokkos::HostSpace>::accessible,
-                "");
+  static_assert(
+      !Kokkos::Impl::MemorySpaceAccess<Kokkos::HIPSpace,
+                                       Kokkos::HostSpace>::accessible);
 
   static_assert(
       Kokkos::Impl::MemorySpaceAccess<Kokkos::HIPSpace,
-                                      Kokkos::HIPManagedSpace>::assignable,
-      "");
+                                      Kokkos::HIPManagedSpace>::assignable);
 
   static_assert(
       Kokkos::Impl::MemorySpaceAccess<Kokkos::HIPSpace,
-                                      Kokkos::HIPManagedSpace>::accessible,
-      "");
+                                      Kokkos::HIPManagedSpace>::accessible);
 
   //--------------------------------------
 
   static_assert(
       Kokkos::Impl::MemorySpaceAccess<Kokkos::HIPHostPinnedSpace,
-                                      Kokkos::HIPHostPinnedSpace>::assignable,
-      "");
-
-  static_assert(!Kokkos::Impl::MemorySpaceAccess<Kokkos::HIPHostPinnedSpace,
-                                                 Kokkos::HostSpace>::assignable,
-                "");
-
-  static_assert(Kokkos::Impl::MemorySpaceAccess<Kokkos::HIPHostPinnedSpace,
-                                                Kokkos::HostSpace>::accessible,
-                "");
-
-  static_assert(!Kokkos::Impl::MemorySpaceAccess<Kokkos::HIPHostPinnedSpace,
-                                                 Kokkos::HIPSpace>::assignable,
-                "");
-
-  static_assert(!Kokkos::Impl::MemorySpaceAccess<Kokkos::HIPHostPinnedSpace,
-                                                 Kokkos::HIPSpace>::accessible,
-                "");
+                                      Kokkos::HIPHostPinnedSpace>::assignable);
 
   static_assert(
       !Kokkos::Impl::MemorySpaceAccess<Kokkos::HIPHostPinnedSpace,
-                                       Kokkos::HIPManagedSpace>::assignable,
-      "");
+                                       Kokkos::HostSpace>::assignable);
+
+  static_assert(Kokkos::Impl::MemorySpaceAccess<Kokkos::HIPHostPinnedSpace,
+                                                Kokkos::HostSpace>::accessible);
+
+  static_assert(!Kokkos::Impl::MemorySpaceAccess<Kokkos::HIPHostPinnedSpace,
+                                                 Kokkos::HIPSpace>::assignable);
+
+  static_assert(!Kokkos::Impl::MemorySpaceAccess<Kokkos::HIPHostPinnedSpace,
+                                                 Kokkos::HIPSpace>::accessible);
+
+  static_assert(
+      !Kokkos::Impl::MemorySpaceAccess<Kokkos::HIPHostPinnedSpace,
+                                       Kokkos::HIPManagedSpace>::assignable);
 
   static_assert(
       Kokkos::Impl::MemorySpaceAccess<Kokkos::HIPHostPinnedSpace,
-                                      Kokkos::HIPManagedSpace>::accessible,
-      "");
+                                      Kokkos::HIPManagedSpace>::accessible);
 
   //--------------------------------------
 
   static_assert(
       Kokkos::Impl::MemorySpaceAccess<Kokkos::HIPManagedSpace,
-                                      Kokkos::HIPManagedSpace>::assignable,
-      "");
-
-  static_assert(!Kokkos::Impl::MemorySpaceAccess<Kokkos::HIPManagedSpace,
-                                                 Kokkos::HostSpace>::assignable,
-                "");
-
-  static_assert(!Kokkos::Impl::MemorySpaceAccess<Kokkos::HIPManagedSpace,
-                                                 Kokkos::HostSpace>::accessible,
-                "");
-
-  static_assert(!Kokkos::Impl::MemorySpaceAccess<Kokkos::HIPManagedSpace,
-                                                 Kokkos::HIPSpace>::assignable,
-                "");
-
-  static_assert(Kokkos::Impl::MemorySpaceAccess<Kokkos::HIPManagedSpace,
-                                                Kokkos::HIPSpace>::accessible,
-                "");
+                                      Kokkos::HIPManagedSpace>::assignable);
 
   static_assert(
       !Kokkos::Impl::MemorySpaceAccess<Kokkos::HIPManagedSpace,
-                                       Kokkos::HIPHostPinnedSpace>::assignable,
-      "");
+                                       Kokkos::HostSpace>::assignable);
+
+  static_assert(
+      !Kokkos::Impl::MemorySpaceAccess<Kokkos::HIPManagedSpace,
+                                       Kokkos::HostSpace>::accessible);
+
+  static_assert(!Kokkos::Impl::MemorySpaceAccess<Kokkos::HIPManagedSpace,
+                                                 Kokkos::HIPSpace>::assignable);
+
+  static_assert(Kokkos::Impl::MemorySpaceAccess<Kokkos::HIPManagedSpace,
+                                                Kokkos::HIPSpace>::accessible);
+
+  static_assert(
+      !Kokkos::Impl::MemorySpaceAccess<Kokkos::HIPManagedSpace,
+                                       Kokkos::HIPHostPinnedSpace>::assignable);
 
   static_assert(
       Kokkos::Impl::MemorySpaceAccess<Kokkos::HIPManagedSpace,
-                                      Kokkos::HIPHostPinnedSpace>::accessible,
-      "");
+                                      Kokkos::HIPHostPinnedSpace>::accessible);
 
   //--------------------------------------
 
   static_assert(
-      !Kokkos::SpaceAccessibility<Kokkos::HIP, Kokkos::HostSpace>::accessible,
-      "");
+      !Kokkos::SpaceAccessibility<Kokkos::HIP, Kokkos::HostSpace>::accessible);
 
   static_assert(
-      Kokkos::SpaceAccessibility<Kokkos::HIP, Kokkos::HIPSpace>::accessible,
-      "");
+      Kokkos::SpaceAccessibility<Kokkos::HIP, Kokkos::HIPSpace>::accessible);
 
   static_assert(
       Kokkos::SpaceAccessibility<Kokkos::HIP,
-                                 Kokkos::HIPHostPinnedSpace>::accessible,
-      "");
+                                 Kokkos::HIPHostPinnedSpace>::accessible);
 
-  static_assert(Kokkos::SpaceAccessibility<Kokkos::HIP,
-                                           Kokkos::HIPManagedSpace>::accessible,
-                "");
+  static_assert(
+      Kokkos::SpaceAccessibility<Kokkos::HIP,
+                                 Kokkos::HIPManagedSpace>::accessible);
 
   static_assert(!Kokkos::SpaceAccessibility<Kokkos::HostSpace,
-                                            Kokkos::HIPSpace>::accessible,
-                "");
+                                            Kokkos::HIPSpace>::accessible);
 
   static_assert(
       Kokkos::SpaceAccessibility<Kokkos::HostSpace,
-                                 Kokkos::HIPHostPinnedSpace>::accessible,
-      "");
+                                 Kokkos::HIPHostPinnedSpace>::accessible);
 
-  static_assert(Kokkos::SpaceAccessibility<Kokkos::HostSpace,
-                                           Kokkos::HIPManagedSpace>::accessible,
-                "");
+  static_assert(
+      Kokkos::SpaceAccessibility<Kokkos::HostSpace,
+                                 Kokkos::HIPManagedSpace>::accessible);
 
   static_assert(std::is_same<Kokkos::Impl::HostMirror<Kokkos::HIPSpace>::Space,
-                             Kokkos::HostSpace>::value,
-                "");
+                             Kokkos::HostSpace>::value);
 
   static_assert(
       std::is_same<Kokkos::Impl::HostMirror<Kokkos::HIPHostPinnedSpace>::Space,
-                   Kokkos::HIPHostPinnedSpace>::value,
-      "");
+                   Kokkos::HIPHostPinnedSpace>::value);
 
   static_assert(
       std::is_same<Kokkos::Impl::HostMirror<Kokkos::HIPManagedSpace>::Space,
                    Kokkos::Device<Kokkos::HostSpace::execution_space,
-                                  Kokkos::HIPManagedSpace>>::value,
-      "");
+                                  Kokkos::HIPManagedSpace>>::value);
 
   static_assert(
       Kokkos::SpaceAccessibility<Kokkos::Impl::HostMirror<Kokkos::HIP>::Space,
-                                 Kokkos::HostSpace>::accessible,
-      "");
+                                 Kokkos::HostSpace>::accessible);
 
   static_assert(Kokkos::SpaceAccessibility<
-                    Kokkos::Impl::HostMirror<Kokkos::HIPSpace>::Space,
-                    Kokkos::HostSpace>::accessible,
-                "");
+                Kokkos::Impl::HostMirror<Kokkos::HIPSpace>::Space,
+                Kokkos::HostSpace>::accessible);
 
   static_assert(Kokkos::SpaceAccessibility<
-                    Kokkos::Impl::HostMirror<Kokkos::HIPHostPinnedSpace>::Space,
-                    Kokkos::HostSpace>::accessible,
-                "");
+                Kokkos::Impl::HostMirror<Kokkos::HIPHostPinnedSpace>::Space,
+                Kokkos::HostSpace>::accessible);
 
   static_assert(Kokkos::SpaceAccessibility<
-                    Kokkos::Impl::HostMirror<Kokkos::HIPManagedSpace>::Space,
-                    Kokkos::HostSpace>::accessible,
-                "");
+                Kokkos::Impl::HostMirror<Kokkos::HIPManagedSpace>::Space,
+                Kokkos::HostSpace>::accessible);
 }
 
 template <class MemSpace, class ExecSpace>

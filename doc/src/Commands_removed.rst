@@ -129,7 +129,7 @@ USER-REAXC.
 USER-REAXC package
 ------------------
 
-.. deprecated:: TBD
+.. deprecated:: 7Feb2024
 
 The USER-REAXC package has been renamed to :ref:`REAXFF <PKG-REAXFF>`.
 In the process also the pair style and related fixes were renamed to use

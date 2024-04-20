@@ -282,6 +282,8 @@ class lammps(object):
     self.lib.lammps_config_accelerator.argtypes = [c_char_p, c_char_p, c_char_p]
 
     self.lib.lammps_set_variable.argtypes = [c_void_p, c_char_p, c_char_p]
+    self.lib.lammps_set_string_variable.argtypes = [c_void_p, c_char_p, c_char_p]
+    self.lib.lammps_set_internal_variable.argtypes = [c_void_p, c_char_p, c_double]
 
     self.lib.lammps_has_style.argtypes = [c_void_p, c_char_p, c_char_p]
 
@@ -1076,15 +1078,23 @@ class lammps(object):
   def extract_fix(self,fid,fstyle,ftype,nrow=0,ncol=0):
     """Retrieve data from a LAMMPS fix
 
-    This is a wrapper around the :cpp:func:`lammps_extract_fix`
-    function of the C-library interface.
-    This function returns ``None`` if either the fix id is not
-    recognized, or an invalid combination of :ref:`fstyle <py_style_constants>`
-    and :ref:`ftype <py_type_constants>` constants is used. The
-    names and functionality of the constants are the same as for
-    the corresponding C-library function.  For requests to return
-    a scalar or a size, the value is returned, also when accessing
-    global vectors or arrays, otherwise a pointer.
+    This is a wrapper around the :cpp:func:`lammps_extract_fix` function
+    of the C-library interface.  This function returns ``None`` if
+    either the fix id is not recognized, or an invalid combination of
+    :ref:`fstyle <py_style_constants>` and :ref:`ftype
+    <py_type_constants>` constants is used. The names and functionality
+    of the constants are the same as for the corresponding C-library
+    function.  For requests to return a scalar or a size, the value is
+    returned, also when accessing global vectors or arrays, otherwise a
+    pointer.
+
+    .. note::
+
+       When requesting global data, the fix data can only be accessed
+       one item at a time without access to the whole vector or array.
+       Thus this function will always return a scalar.  To access vector
+       or array elements the "nrow" and "ncol" arguments need to be set
+       accordingly (they default to 0).
 
     :param fid: fix ID
     :type fid:  string
@@ -1252,6 +1262,8 @@ class lammps(object):
   def set_variable(self,name,value):
     """Set a new value for a LAMMPS string style variable
 
+    .. deprecated:: 7Feb2024
+
     This is a wrapper around the :cpp:func:`lammps_set_variable`
     function of the C-library interface.
 
@@ -1268,6 +1280,52 @@ class lammps(object):
     else: return -1
     with ExceptionCheck(self):
       return self.lib.lammps_set_variable(self.lmp,name,value)
+
+  # -------------------------------------------------------------------------
+
+  def set_string_variable(self,name,value):
+    """Set a new value for a LAMMPS string style variable
+
+    .. versionadded:: 7Feb2024
+
+    This is a wrapper around the :cpp:func:`lammps_set_string_variable`
+    function of the C-library interface.
+
+    :param name: name of the variable
+    :type name: string
+    :param value: new variable value
+    :type value: any. will be converted to a string
+    :return: either 0 on success or -1 on failure
+    :rtype: int
+    """
+    if name: name = name.encode()
+    else: return -1
+    if value: value = str(value).encode()
+    else: return -1
+    with ExceptionCheck(self):
+      return self.lib.lammps_set_string_variable(self.lmp,name,value)
+
+  # -------------------------------------------------------------------------
+
+  def set_internal_variable(self,name,value):
+    """Set a new value for a LAMMPS internal style variable
+
+    .. versionadded:: 7Feb2024
+
+    This is a wrapper around the :cpp:func:`lammps_set_internal_variable`
+    function of the C-library interface.
+
+    :param name: name of the variable
+    :type name: string
+    :param value: new variable value
+    :type value: float or compatible. will be converted to float
+    :return: either 0 on success or -1 on failure
+    :rtype: int
+    """
+    if name: name = name.encode()
+    else: return -1
+    with ExceptionCheck(self):
+      return self.lib.lammps_set_internal_variable(self.lmp,name,value)
 
   # -------------------------------------------------------------------------
 

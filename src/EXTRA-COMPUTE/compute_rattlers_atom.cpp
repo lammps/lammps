@@ -29,7 +29,6 @@
 #include "pair.h"
 #include "update.h"
 
-#include <cmath>
 #include <cstring>
 
 using namespace LAMMPS_NS;
@@ -144,7 +143,6 @@ void ComputeRattlersAtom::compute_peratom()
   numneigh = list->numneigh;
   firstneigh = list->firstneigh;
 
-  Pair *pair = force->pair;
   double **cutsq = force->pair->cutsq;
 
   int change_flag = 1;

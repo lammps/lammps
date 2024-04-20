@@ -20,7 +20,8 @@ improper_style class2
 special_bonds lj/coul 0 0 1
 pair_modify tail yes mix sixthpower
 
-read_data tiny_epoxy.data
+read_data tiny_epoxy.data &
+  extra/special/per/atom 25
 
 velocity all create 300.0 4928459 dist gaussian
 
@@ -44,7 +45,7 @@ fix rxns all bond/react stabilization yes statted_grp .03 &
 
 fix 1 statted_grp_REACT nvt temp 300 300 100
 
-thermo_style custom step temp f_rxns[1] f_rxns[2] f_rxns[3] f_rxns[4]
+thermo_style custom step temp f_rxns[*]
 
 run 2000
 

@@ -26,8 +26,7 @@
 
 using namespace LAMMPS_NS;
 
-#define DELTA 4
-#define BIG MAXTAGINT
+static constexpr int DELTA = 4;
 
 // allocate space for static class instance variable and initialize it
 
@@ -83,7 +82,7 @@ Compute::Compute(LAMMPS *lmp, int narg, char **arg) :
 
   extra_dof = domain->dimension;
   dynamic_user = 0;
-  fix_dof = 0;
+  fix_dof = 0.0;
 
   // setup list of timesteps
 

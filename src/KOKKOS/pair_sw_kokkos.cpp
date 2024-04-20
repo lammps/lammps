@@ -37,9 +37,6 @@
 using namespace LAMMPS_NS;
 using namespace MathConst;
 
-#define MAXLINE 1024
-#define DELTA 4
-
 /* ---------------------------------------------------------------------- */
 
 template<class DeviceType>
@@ -235,7 +232,7 @@ template<int NEIGHFLAG, int EVFLAG>
 KOKKOS_INLINE_FUNCTION
 void PairSWKokkos<DeviceType>::operator()(TagPairSWCompute<NEIGHFLAG,EVFLAG>, const int &ii, EV_FLOAT& ev) const {
 
-  // The f array is duplicated for OpenMP, atomic for CUDA, and neither for Serial
+  // The f array is duplicated for OpenMP, atomic for GPU, and neither for Serial
 
   auto v_f = ScatterViewHelper<NeedDup_v<NEIGHFLAG,DeviceType>,decltype(dup_f),decltype(ndup_f)>::get(dup_f,ndup_f);
   auto a_f = v_f.template access<AtomicDup_v<NEIGHFLAG,DeviceType>>();
@@ -532,7 +529,7 @@ void PairSWKokkos<DeviceType>::ev_tally(EV_FLOAT &ev, const int &i, const int &j
                 const F_FLOAT &dely, const F_FLOAT &delz) const
 {
 
-  // The eatom and vatom arrays are duplicated for OpenMP, atomic for CUDA, and neither for Serial
+  // The eatom and vatom arrays are duplicated for OpenMP, atomic for GPU, and neither for Serial
 
   auto v_eatom = ScatterViewHelper<NeedDup_v<NEIGHFLAG,DeviceType>,decltype(dup_eatom),decltype(ndup_eatom)>::get(dup_eatom,ndup_eatom);
   auto a_eatom = v_eatom.template access<AtomicDup_v<NEIGHFLAG,DeviceType>>();
@@ -596,7 +593,7 @@ void PairSWKokkos<DeviceType>::ev_tally3(EV_FLOAT &ev, const int &i, const int &
 {
   F_FLOAT epairthird,v[6];
 
-  // The eatom and vatom arrays are duplicated for OpenMP, atomic for CUDA, and neither for Serial
+  // The eatom and vatom arrays are duplicated for OpenMP, atomic for GPU, and neither for Serial
 
   auto v_eatom = ScatterViewHelper<NeedDup_v<NEIGHFLAG,DeviceType>,decltype(dup_eatom),decltype(ndup_eatom)>::get(dup_eatom,ndup_eatom);
   auto a_eatom = v_eatom.template access<AtomicDup_v<NEIGHFLAG,DeviceType>>();

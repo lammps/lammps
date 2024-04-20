@@ -146,7 +146,7 @@ OPT.
    * :doc:`lj/charmm/coul/long/soft (o) <pair_fep_soft>`
    * :doc:`lj/charmm/coul/msm (o) <pair_charmm>`
    * :doc:`lj/charmmfsw/coul/charmmfsh <pair_charmm>`
-   * :doc:`lj/charmmfsw/coul/long <pair_charmm>`
+   * :doc:`lj/charmmfsw/coul/long (k) <pair_charmm>`
    * :doc:`lj/class2 (gko) <pair_class2>`
    * :doc:`lj/class2/coul/cut (ko) <pair_class2>`
    * :doc:`lj/class2/coul/cut/soft <pair_fep_soft>`
@@ -245,6 +245,7 @@ OPT.
    * :doc:`oxrna2/coaxstk <pair_oxrna2>`
    * :doc:`pace (k) <pair_pace>`
    * :doc:`pace/extrapolation (k) <pair_pace>`
+   * :doc:`pedone (o) <pair_pedone>`
    * :doc:`pod <pair_pod>`
    * :doc:`peri/eps <pair_peri>`
    * :doc:`peri/lps (o) <pair_peri>`
@@ -256,6 +257,7 @@ OPT.
    * :doc:`rann <pair_rann>`
    * :doc:`reaxff (ko) <pair_reaxff>`
    * :doc:`rebo (io) <pair_airebo>`
+   * :doc:`rebomos (o) <pair_rebomos>`
    * :doc:`resquared (go) <pair_resquared>`
    * :doc:`saip/metal (t) <pair_saip_metal>`
    * :doc:`sdpd/taitwater/isothermal <pair_sdpd_taitwater_isothermal>`

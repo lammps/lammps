@@ -2033,13 +2033,13 @@ __kernel void k_amoeba_special15(__global int * dev_nbor,
                           const __global tagint *restrict special15,
                           const int inum, const int nall, const int nbor_pitch,
                           const int t_per_atom) {
-  int tid, ii, offset, n_stride, i;
+  int tid, ii, offset, n_stride, j;
   atom_info(t_per_atom,ii,tid,offset);
 
   if (ii<inum) {
 
     int numj, nbor, nbor_end;
-    nbor_info(dev_nbor,dev_packed,nbor_pitch,t_per_atom,ii,offset,i,numj,
+    nbor_info(dev_nbor,dev_packed,nbor_pitch,t_per_atom,ii,offset,j,numj,
               n_stride,nbor_end,nbor);
 
     int n15 = nspecial15[ii];
@@ -2048,7 +2048,7 @@ __kernel void k_amoeba_special15(__global int * dev_nbor,
 
       int sj=dev_packed[nbor];
       int which = sj >> SBBITS & 3;
-      int j = sj & NEIGHMASK;
+      j = sj & NEIGHMASK;
       tagint jtag = tag[j];
 
       if (!which) {

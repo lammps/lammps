@@ -31,7 +31,16 @@ class simd;
 template <class T, class Abi>
 class simd_mask;
 
-struct element_aligned_tag {};
+class simd_alignment_vector_aligned {};
+
+template <typename... Flags>
+struct simd_flags {};
+
+inline constexpr simd_flags<> simd_flag_default{};
+inline constexpr simd_flags<simd_alignment_vector_aligned> simd_flag_aligned{};
+
+using element_aligned_tag = simd_flags<>;
+using vector_aligned_tag  = simd_flags<simd_alignment_vector_aligned>;
 
 // class template declarations for const_where_expression and where_expression
 
@@ -115,48 +124,6 @@ template <class T>
 [[nodiscard]] KOKKOS_FORCEINLINE_FUNCTION const_where_expression<bool, T> where(
     bool mask, T const& value) {
   return const_where_expression(mask, value);
-}
-
-// fallback simd multiplication using generator constructor
-// At the time of this writing, this fallback is only used
-// to multiply vectors of 64-bit signed integers for the AVX2 backend
-
-template <class T, class Abi>
-[[nodiscard]] KOKKOS_IMPL_HOST_FORCEINLINE_FUNCTION simd<T, Abi> operator*(
-    simd<T, Abi> const& lhs, simd<T, Abi> const& rhs) {
-  return simd<T, Abi>([&](std::size_t i) { return lhs[i] * rhs[i]; });
-}
-
-// fallback simd shift using generator constructor
-// At the time of this edit, only the fallback for shift vectors of
-// 64-bit signed integers for the AVX2 backend is used
-
-template <typename T, typename Abi,
-          typename = std::enable_if_t<std::is_integral_v<T>>>
-[[nodiscard]] KOKKOS_IMPL_HOST_FORCEINLINE_FUNCTION simd<T, Abi> operator>>(
-    simd<T, Abi> const& lhs, int rhs) {
-  return simd<T, Abi>([&](std::size_t i) { return lhs[i] >> rhs; });
-}
-
-template <typename T, typename Abi,
-          typename = std::enable_if_t<std::is_integral_v<T>>>
-[[nodiscard]] KOKKOS_IMPL_HOST_FORCEINLINE_FUNCTION simd<T, Abi> operator<<(
-    simd<T, Abi> const& lhs, int rhs) {
-  return simd<T, Abi>([&](std::size_t i) { return lhs[i] << rhs; });
-}
-
-template <typename T, typename Abi,
-          typename = std::enable_if_t<std::is_integral_v<T>>>
-[[nodiscard]] KOKKOS_IMPL_HOST_FORCEINLINE_FUNCTION simd<T, Abi> operator>>(
-    simd<T, Abi> const& lhs, simd<T, Abi> const& rhs) {
-  return simd<T, Abi>([&](std::size_t i) { return lhs[i] >> rhs[i]; });
-}
-
-template <typename T, typename Abi,
-          typename = std::enable_if_t<std::is_integral_v<T>>>
-[[nodiscard]] KOKKOS_IMPL_HOST_FORCEINLINE_FUNCTION simd<T, Abi> operator<<(
-    simd<T, Abi> const& lhs, simd<T, Abi> const& rhs) {
-  return simd<T, Abi>([&](std::size_t i) { return lhs[i] << rhs[i]; });
 }
 
 // The code below provides:

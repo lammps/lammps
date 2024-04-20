@@ -176,6 +176,7 @@ class FixPIMDLangevin : public Fix {
   void compute_p_prim();
   void compute_p_cv();    // centroid-virial pressure estimator
   void compute_vir();
+  void compute_xf_vir();
   void compute_cvir();
   void compute_totenthalpy();
 

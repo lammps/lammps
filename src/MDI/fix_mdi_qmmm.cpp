@@ -12,6 +12,7 @@
 ------------------------------------------------------------------------- */
 
 #include "fix_mdi_qmmm.h"
+
 #include "atom.h"
 #include "comm.h"
 #include "domain.h"
@@ -25,13 +26,16 @@
 #include "pair.h"
 #include "update.h"
 
+#include <cmath>
+#include <cstring>
+
 using namespace LAMMPS_NS;
 using namespace FixConst;
 
 enum { NATIVE, REAL, METAL };    // LAMMPS units which MDI supports
 enum { DIRECT, POTENTIAL };      // mode of QMMM coupling
 
-#define MAXELEMENT 118
+static constexpr int MAXELEMENT = 118;
 
 // prototype for non-class compare function for sorting QM IDs
 

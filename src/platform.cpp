@@ -249,12 +249,7 @@ std::string platform::os_info()
   } else if (build == "22631") {
     buf = "Windows 11 23H2";
   } else {
-    const char *entry = "ProductName";
-    RegGetValue(HKEY_LOCAL_MACHINE, subkey, entry, RRF_RT_REG_SZ, nullptr, &value,
-                (LPDWORD) &value_length);
-    // enforce zero termination
-    value[1023] = '\0';
-    buf = value;
+    buf = "Windows Build " + build;
   }
   DWORD fullversion, majorv, minorv, buildv = 0;
   fullversion = GetVersion();

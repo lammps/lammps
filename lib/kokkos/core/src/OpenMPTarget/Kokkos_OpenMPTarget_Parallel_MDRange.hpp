@@ -438,6 +438,10 @@ class ParallelReduce<CombinedFunctorReducerType,
 
   bool m_result_ptr_on_device;
 
+  // Only let one ParallelReduce instance at a time use the scratch memory.
+  // The constructor acquires the mutex which is released in the destructor.
+  std::scoped_lock<std::mutex> m_scratch_memory_lock;
+
  public:
   inline void execute() const {
     execute_tile<Policy::rank, typename ReducerType::value_type>(
@@ -452,7 +456,8 @@ class ParallelReduce<CombinedFunctorReducerType,
         m_policy(arg_policy),
         m_result_ptr_on_device(
             MemorySpaceAccess<Kokkos::Experimental::OpenMPTargetSpace,
-                              typename ViewType::memory_space>::accessible) {}
+                              typename ViewType::memory_space>::accessible),
+        m_scratch_memory_lock(OpenMPTargetExec::m_mutex_scratch_ptr) {}
 
   template <int Rank, class ValueType>
   inline std::enable_if_t<Rank == 2> execute_tile(const FunctorType& functor,

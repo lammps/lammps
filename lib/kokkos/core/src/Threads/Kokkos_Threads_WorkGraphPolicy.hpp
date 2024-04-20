@@ -18,7 +18,7 @@
 #define KOKKOS_THREADS_WORKGRAPHPOLICY_HPP
 
 #include <Kokkos_Core_fwd.hpp>
-#include <Threads/Kokkos_ThreadsExec.hpp>
+#include <Threads/Kokkos_Threads_Instance.hpp>
 
 namespace Kokkos {
 namespace Impl {
@@ -61,16 +61,17 @@ class ParallelFor<FunctorType, Kokkos::WorkGraphPolicy<Traits...>,
     }
   }
 
-  static inline void thread_main(ThreadsExec& exec, const void* arg) noexcept {
+  static inline void thread_main(ThreadsInternal& instance,
+                                 const void* arg) noexcept {
     const Self& self = *(static_cast<const Self*>(arg));
     self.exec_one_thread();
-    exec.fan_in();
+    instance.fan_in();
   }
 
  public:
   inline void execute() {
-    ThreadsExec::start(&Self::thread_main, this);
-    ThreadsExec::fence();
+    ThreadsInternal::start(&Self::thread_main, this);
+    ThreadsInternal::fence();
   }
 
   inline ParallelFor(const FunctorType& arg_functor, const Policy& arg_policy)

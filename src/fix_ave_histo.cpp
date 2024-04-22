@@ -207,7 +207,8 @@ FixAveHisto::FixAveHisto(LAMMPS *lmp, int narg, char **arg) :
       if (val.val.v < 0)
         error->all(FLERR,"Variable name {} for {} does not exist", val.id, mycmd);
       // variables only produce one kind of output
-      if (input->variable->equalstyle(val.val.v)) kindglobal = 1;
+      if (input->variable->equalstyle(val.val.v) || input->variable->vectorstyle(val.val.v))
+          kindglobal = 1;
       else if (input->variable->atomstyle(val.val.v)) kindperatom = 1;
       else error->all(FLERR,"{} variable {} is incompatible style", mycmd, val.id);
     }

@@ -53,7 +53,6 @@ Examples
    group edge region regstrip
    group water type 3 4
    group water type OW HT
-   group sub type != C H O N
    group sub id 10 25 50
    group sub id 10 25 50 500:1000
    group sub id 100:10000:10

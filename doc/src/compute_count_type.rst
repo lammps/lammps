@@ -78,8 +78,8 @@ are counted.
 
 For *mode* = *bond*, broken bonds with a bond type of zero are also
 counted.  The :doc:`bond_style quartic <bond_quartic>` and :doc:`BPM
-bond styles <Howto_bpm>` break bonds by doing this.  See the :doc:`
-Howto broken bonds <Howto_broken_bonds>` doc page for more details.
+bond styles <Howto_bpm>` break bonds by doing this.  See the
+:doc:`Howto broken bonds <Howto_broken_bonds>` doc page for more details.
 Note that the group setting is ignored for broken bonds; all broken
 bonds in the system are counted.
 

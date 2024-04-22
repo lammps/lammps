@@ -12,7 +12,7 @@ Syntax
 
 * ID, group-ID are documented in :doc:`compute <compute>` command
 * count/type = style name of this compute command
-* mode = {atom} or {bond} or {angle} or {dihedral} or {improper}
+* mode = *atom* or *bond* or *angle* or *dihedral* or *improper*
 
 Examples
 """"""""
@@ -69,29 +69,29 @@ for each type:
 
 ----------
 
-If the {mode} setting is {atom} then the count of atoms for each atom
+If the *mode* setting is *atom* then the count of atoms for each atom
 type is tallied.  Only atoms in the specified group are counted.
 
-If the {mode} setting is {bond} then the count of bonds for each bond
+If the *mode* setting is *bond* then the count of bonds for each bond
 type is tallied.  Only bonds with both atoms in the specified group
 are counted.
 
-For {mode} = {bond}, broken bonds with a bond type of zero are also
+For *mode* = *bond*, broken bonds with a bond type of zero are also
 counted.  The :doc:`bond_style quartic <bond_quartic>` and :doc:`BPM
 bond styles <Howto_bpm>` break bonds by doing this.  See the :doc:`
 Howto broken bonds <Howto_broken_bonds>` doc page for more details.
 Note that the group setting is ignored for broken bonds; all broken
 bonds in the system are counted.
 
-If the {mode} setting is {angle} then the count of angles for each
+If the *mode* setting is *angle* then the count of angles for each
 angle type is tallied.  Only angles with all 3 atoms in the specified
 group are counted.
 
-If the {mode} setting is {dihedral} then the count of dihedrals for
+If the *mode* setting is *dihedral* then the count of dihedrals for
 each dihedral type is tallied.  Only dihedrals with all 4 atoms in the
 specified group are counted.
 
-If the {mode} setting is {improper} then the count of impropers for
+If the *mode* setting is *improper* then the count of impropers for
 each improper type is tallied.  Only impropers with all 4 atoms in the
 specified group are counted.
 
@@ -101,11 +101,11 @@ Output info
 """""""""""
 
 This compute calculates a global vector of counts.  If the mode is
-{atom} or {bond} or {angle} or {dihedral} or {improper}, then the
+*atom* or *bond* or *angle* or *dihedral* or *improper*, then the
 vector length is the number of atom types or bond types or angle types
 or dihedral types or improper types, respectively.
 
-If the mode is {bond} this compute also calculates a global scalar
+If the mode is *bond* this compute also calculates a global scalar
 which is the number of broken bonds with type = 0, as explained above.
 
 These values can be used by any command that uses global scalar or

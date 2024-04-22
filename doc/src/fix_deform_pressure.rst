@@ -69,7 +69,7 @@ Examples
 Description
 """""""""""
 
-.. versionadded:: TBD
+.. versionadded:: 17Apr2024
 
 This fix is an extension of the :doc:`fix deform <fix_deform>`
 command, which allows all of its options to be used as well as new

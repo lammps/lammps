@@ -102,8 +102,19 @@ particles of different styles
 | :doc:`dump image <dump_image>`                 | output body particle attributes as an image         |
 +------------------------------------------------+-----------------------------------------------------+
 
-The pair styles defined for use with specific body styles are listed
-in the sections below.
+The pair styles currently defined for use with specific body styles
+are listed in the sections below.
+
+Note that for all the body styles, if the data file defines a general
+triclinic box, then the orientation of the body particle and its
+corresponding 6 moments of inertia and other orientation-dependent
+values should reflect the fact the body is defined withing a general
+triclinic box with edge vectors **A**,**B**,**C**.  LAMMPS will rotate
+the box to convert it to a restricted triclinic box.  This operation
+will also rotate the orientation of the body particles.  See the
+:doc:`Howto triclinic <Howto_triclinic>` doc page for more details.
+The sections below highlight the orientation-dependent values specific
+to each body style.
 
 ----------
 
@@ -154,11 +165,17 @@ values consistent with the current orientation of the rigid body
 around its center of mass.  The values are with respect to the
 simulation box XYZ axes, not with respect to the principal axes of the
 rigid body itself.  LAMMPS performs the latter calculation internally.
+
 The coordinates of each sub-particle are specified as its x,y,z
 displacement from the center-of-mass of the body particle.  The
 center-of-mass position of the particle is specified by the x,y,z
 values in the *Atoms* section of the data file, as is the total mass
 of the body particle.
+
+Note that if the data file defines a general triclinic simulation box,
+these sub-particle displacements are orientation-dependent and, as
+mentioned above, should reflect the body particle's orientation within
+the general triclinic box.
 
 The :doc:`pair_style body/nparticle <pair_body_nparticle>` command can be used
 with this body style to compute body/body and body/non-body interactions.
@@ -226,6 +243,7 @@ values consistent with the current orientation of the rigid body
 around its center of mass.  The values are with respect to the
 simulation box XYZ axes, not with respect to the principal axes of the
 rigid body itself.  LAMMPS performs the latter calculation internally.
+
 The coordinates of each vertex are specified as its x,y,z displacement
 from the center-of-mass of the body particle.  The center-of-mass
 position of the particle is specified by the x,y,z values in the
@@ -269,6 +287,11 @@ A disk, whose diameter is 3.0, mass 1.0, is specified as follows:
    1 1 4.5 0 0 0
    0 0 0
    3.0
+
+Note that if the data file defines a general triclinic simulation box,
+these polygon vertex displacements are orientation-dependent and, as
+mentioned above, should reflect the body particle's orientation within
+the general triclinic box.
 
 The :doc:`pair_style body/rounded/polygon <pair_body_rounded_polygon>`
 command can be used with this body style to compute body/body
@@ -366,6 +389,7 @@ values consistent with the current orientation of the rigid body
 around its center of mass.  The values are with respect to the
 simulation box XYZ axes, not with respect to the principal axes of the
 rigid body itself.  LAMMPS performs the latter calculation internally.
+
 The coordinates of each vertex are specified as its x,y,z displacement
 from the center-of-mass of the body particle.  The center-of-mass
 position of the particle is specified by the x,y,z values in the
@@ -434,6 +458,11 @@ A sphere whose diameter is 3.0 and mass 1.0, is specified as follows:
 
 The number of edges and faces for a rod or sphere must be listed,
 but is ignored.
+
+Note that if the data file defines a general triclinic simulation box,
+these polyhedron vertex displacements are orientation-dependent and,
+as mentioned above, should reflect the body particle's orientation
+within the general triclinic box.
 
 The :doc:`pair_style body/rounded/polhedron
 <pair_body_rounded_polyhedron>` command can be used with this body

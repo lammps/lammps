@@ -1,42 +1,112 @@
-2d simulations
-==============
+================
+ 2d simulations
+================
 
-Use the :doc:`dimension <dimension>` command to specify a 2d simulation.
+You must use the :doc:`dimension <dimension>` command to specify a 2d
+simulation.  The default is 3d.
 
-Make the simulation box periodic in z via the :doc:`boundary <boundary>`
-command.  This is the default.
+A 2d simulation box must be periodic in z as set by the :doc:`boundary
+<boundary>` command.  This is the default.
 
-If using the :doc:`create_box <create_box>` command to define a
-simulation box, set the z dimensions narrow, but finite, so that the
-:doc:`create_atoms <create_atoms>` command will fill the 3d simulation
-box with a single z plane of atoms - e.g.
+Simulation boxes in LAMMPS can be either orthogonal or triclinic in
+shape.  Orthogonal boxes in 2d are a rectangle with 4 edges that are
+each perpendicular to either the x or y coordinate axes.  Triclinic
+boxes in 2d are a parallelogram with opposite pairs of faces parallel
+to each other.  LAMMPS supports two forms of triclinic boxes,
+restricted and general, which for 2d differ in how the box is oriented
+with respect to the xy coordinate axes.  See the :doc:`Howto triclinic
+<Howto_triclinic>` for a detailed description of all 3 kinds of
+simulation boxes.
+
+Here are examples of using the :doc:`create_box <create_box>` command
+to define the simulation box for a 2d system.
 
 .. code-block:: LAMMPS
 
-   create_box 1 -10 10 -10 10 -0.25 0.25
+   # 2d orthogonal box using a block-style region
+   region mybox block -10 10 0 10 -0.5 0.5
+   create_box 1 mybox
 
-If using the :doc:`read_data <read_data>` command to read in a file of
-atom coordinates, set the "zlo zhi" values to be finite but narrow,
-similar to the create_box command settings just described.  For each
-atom in the file, assign a z coordinate so it falls inside the
-z-boundaries of the box - e.g. 0.0.
+   # 2d restricted triclinic box using a prism-style region with only xy tilt
+   region mybox prism 0 10 0 10 -0.5 0.5 2.0 0.0 0.0
+   create_box 1 mybox
 
-Use the :doc:`fix enforce2d <fix_enforce2d>` command as the last
-defined fix to ensure that the z-components of velocities and forces
-are zeroed out every timestep.  The reason to make it the last fix is
-so that any forces induced by other fixes will be zeroed out.
+   # 2d general triclinic box using a primitive cell for a 2d hex lattice
+   lattice       custom 1.0 a1 1.0 0.0 0.0 a2 0.5 0.86602540378 0.0 &
+                 a3 0.0 0.0 1.0 basis 0.0 0.0 0.0 triclinic/general
+   create_box    1 NULL 0 5 0 5 -0.5 0.5
 
-Many of the example input scripts included in the LAMMPS distribution
+Note that for 2d orthogonal or restricted triclinic boxes, the box has
+a 3rd dimension which must straddle z = 0.0 in the z dimension.
+Typically the width of box in the z dimension should be narrow,
+e.g. -0.5 to 0.5, but that is not required.  For a 2d general
+triclinic box, the *a3* vector defined by the :doc:`lattice <lattice>`
+command must be (0.0,0.0,1.0), which is its default value.  Also the
+*clo* and *chi* arguments of the :doc:`create_box <create_box>`
+command must be -0.5 and 0.5.
+
+Here are examples of using the :doc:`read_data <read_data>` command
+to define the simulation box for a 2d system via keywords in the
+header section of the data file.  These are the same boxes as the examples
+for the :doc:`create_box <create_box>` command
+
+.. code-block:: LAMMPS
+
+   # 2d orthogonal box
+   -10 10   xlo xhi
+   0 10     ylo yhi
+   -0.5 0.5 zlo zhi       # this is the default, so no need to specify
+
+   # 2d restricted triclinic box with only xy tilt
+   -10 10   xlo xhi
+   0 10     ylo yhi
+   -0.5 0.5 zlo zhi       # this is the default, so no need to specify
+   2.0 0.0 0.0 xy xz yz
+
+   # 3d general triclinic box using a primitive cell for a 2d hex lattice
+   5 0 0              avec
+   2.5 4.3301270189 0 bvec
+   0 0 1              cvec           # this is the default, so no need to specify
+   0 0 -0.5           abc origin     # this is the default for 2d, so no need to specify
+
+Note that for 2d orthogonal or restricted triclinic boxes, the box has
+a 3rd dimension specified by the *zlo zhi* values, which must straddle
+z = 0.0.  Typically the width of box in the z dimension should be
+narrow, e.g. -0.5 to 0.5, but that is not required.  For a 2d general
+triclinic box, the z component of *avec* and *bvec* must be zero, and
+*cvec* must be (0,0,1), which is the default.  The z component of *abc
+origin* must also be -0.5, which is the default.
+
+If using the :doc:`create_atoms <create_atoms>` command to create
+atoms in the 2d simulation box, all the z coordinates of created atoms
+will be zero.
+
+If using the :doc:`read_data <read_data>` command to read in a data
+file of atom coordinates for a 2d system, the z coordinates of all
+atoms should be zero.  A value within epsilon of zero is also allowed
+in case the data file was generated by another program with finite
+numeric precision, in which case the z coord for the atom will be set
+to zero.
+
+Use the :doc:`fix enforce2d <fix_enforce2d>` command as the last fix
+defined in the input script.  It ensures that the z-components of
+velocities and forces are zeroed out every timestep.  The reason to
+make it the last fix is so that any forces added by other fixes will
+also be zeroed out.
+
+Many of the example input scripts included in the examples directory
 are for 2d models.
 
 .. note::
 
    Some models in LAMMPS treat particles as finite-size spheres, as
-   opposed to point particles.  See the :doc:`atom_style sphere <atom_style>` and :doc:`fix nve/sphere <fix_nve_sphere>`
-   commands for details.  By default, for 2d simulations, such particles
-   will still be modeled as 3d spheres, not 2d discs (circles), meaning
+   opposed to point particles.  See the :doc:`atom_style sphere
+   <atom_style>` and :doc:`fix nve/sphere <fix_nve_sphere>` commands
+   for details.  By default, for 2d simulations, such particles will
+   still be modeled as 3d spheres, not 2d discs (circles), meaning
    their moment of inertia will be that of a sphere.  If you wish to
-   model them as 2d discs, see the :doc:`set density/disc <set>` command
-   and the *disc* option for the :doc:`fix nve/sphere <fix_nve_sphere>`,
-   :doc:`fix nvt/sphere <fix_nvt_sphere>`, :doc:`fix nph/sphere <fix_nph_sphere>`, :doc:`fix npt/sphere <fix_npt_sphere>`
-   commands.
+   model them as 2d discs, see the :doc:`set density/disc <set>`
+   command and the *disc* option for the :doc:`fix nve/sphere
+   <fix_nve_sphere>`, :doc:`fix nvt/sphere <fix_nvt_sphere>`,
+   :doc:`fix nph/sphere <fix_nph_sphere>`, :doc:`fix npt/sphere
+   <fix_npt_sphere>` commands.

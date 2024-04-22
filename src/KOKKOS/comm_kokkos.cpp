@@ -880,15 +880,8 @@ void CommKokkos::exchange_device()
 
       // sort exchange_sendlist
 
-      auto d_exchange_sendlist = k_exchange_sendlist.view<DeviceType>();
-      using KeyViewType = decltype(d_exchange_sendlist);
-      using BinOp = Kokkos::BinOp1D<KeyViewType>;
-
-      BinOp binner(count, 0, nlocal);
-      Kokkos::BinSort<KeyViewType, BinOp> Sorter(d_exchange_sendlist, 0, count, binner, true);
-      Sorter.create_permute_vector(DeviceType());
-      Sorter.sort(DeviceType(), d_exchange_sendlist, 0, count);
-
+      auto d_exchange_sendlist = Kokkos::subview(k_exchange_sendlist.view<DeviceType>(),std::make_pair(0,count));
+      Kokkos::sort(DeviceType(), d_exchange_sendlist);
       k_exchange_sendlist.sync<LMPHostType>();
 
       // when atom is deleted, fill it in with last atom

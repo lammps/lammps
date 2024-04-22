@@ -68,6 +68,9 @@ class PairEAM : public Pair {
   double **scale;
   bigint embedstep;    // timestep, the embedding term was computed
 
+  int exceeded_rhomax;    // global flag for whether rho[i] has exceeded rhomax
+                          // on a step energy is computed - 0 = no, 1 = yes
+
   // per-atom arrays
 
   double *rho, *fp;

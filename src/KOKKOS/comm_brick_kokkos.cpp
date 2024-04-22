@@ -12,7 +12,7 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
-#include "comm_kokkos.h"
+#include "comm_brick_kokkos.h"
 
 #include "atom.h"
 #include "atom_kokkos.h"
@@ -44,7 +44,7 @@ static constexpr int BUFEXTRA = 1000;
    setup MPI and allocate buffer space
 ------------------------------------------------------------------------- */
 
-CommKokkos::CommKokkos(LAMMPS *lmp) : CommBrick(lmp)
+CommBrickKokkos::CommBrickKokkos(LAMMPS *lmp) : CommBrick(lmp)
 {
   if (sendlist) for (int i = 0; i < maxswap; i++) memory->destroy(sendlist[i]);
   memory->sfree(sendlist);
@@ -84,7 +84,7 @@ CommKokkos::CommKokkos(LAMMPS *lmp) : CommBrick(lmp)
 
 /* ---------------------------------------------------------------------- */
 
-CommKokkos::~CommKokkos()
+CommBrickKokkos::~CommBrickKokkos()
 {
   memoryKK->destroy_kokkos(k_sendlist,sendlist);
   sendlist = nullptr;
@@ -96,7 +96,7 @@ CommKokkos::~CommKokkos()
 
 /* ---------------------------------------------------------------------- */
 
-void CommKokkos::init()
+void CommBrickKokkos::init()
 {
   maxsend = BUFMIN;
   maxrecv = BUFMIN;
@@ -158,7 +158,7 @@ void CommKokkos::init()
    other per-atom attributes may also be sent via pack/unpack routines
 ------------------------------------------------------------------------- */
 
-void CommKokkos::forward_comm(int dummy)
+void CommBrickKokkos::forward_comm(int dummy)
 {
   if (!forward_comm_classic) {
     if (forward_comm_on_host) forward_comm_device<LMPHostType>();
@@ -185,7 +185,7 @@ void CommKokkos::forward_comm(int dummy)
 /* ---------------------------------------------------------------------- */
 
 template<class DeviceType>
-void CommKokkos::forward_comm_device()
+void CommBrickKokkos::forward_comm_device()
 {
   int n;
   MPI_Request request;
@@ -285,7 +285,7 @@ void CommKokkos::forward_comm_device()
    other per-atom attributes may also be sent via pack/unpack routines
 ------------------------------------------------------------------------- */
 
-void CommKokkos::reverse_comm()
+void CommBrickKokkos::reverse_comm()
 {
   if (!reverse_comm_classic) {
     if (reverse_comm_on_host) reverse_comm_device<LMPHostType>();
@@ -311,7 +311,7 @@ void CommKokkos::reverse_comm()
 /* ---------------------------------------------------------------------- */
 
 template<class DeviceType>
-void CommKokkos::reverse_comm_device()
+void CommBrickKokkos::reverse_comm_device()
 {
   int n;
   MPI_Request request;
@@ -374,7 +374,7 @@ void CommKokkos::reverse_comm_device()
      some are smaller than max stored in its comm_forward
 ------------------------------------------------------------------------- */
 
-void CommKokkos::forward_comm(Fix *fix, int size)
+void CommBrickKokkos::forward_comm(Fix *fix, int size)
 {
   if (fix->execution_space == Host || !fix->forward_comm_device || forward_fix_comm_classic) {
     k_sendlist.sync<LMPHostType>();
@@ -388,7 +388,7 @@ void CommKokkos::forward_comm(Fix *fix, int size)
 /* ---------------------------------------------------------------------- */
 
 template<class DeviceType>
-void CommKokkos::forward_comm_device(Fix *fix, int size)
+void CommBrickKokkos::forward_comm_device(Fix *fix, int size)
 {
   int iswap,n,nsize;
   MPI_Request request;
@@ -461,7 +461,7 @@ void CommKokkos::forward_comm_device(Fix *fix, int size)
      some are smaller than max stored in its comm_forward
 ------------------------------------------------------------------------- */
 
-void CommKokkos::reverse_comm(Fix *fix, int size)
+void CommBrickKokkos::reverse_comm(Fix *fix, int size)
 {
   k_sendlist.sync<LMPHostType>();
   CommBrick::reverse_comm(fix, size);
@@ -474,7 +474,7 @@ void CommKokkos::reverse_comm(Fix *fix, int size)
    handshake sizes before each Irecv/Send to ensure buf_recv is big enough
 ------------------------------------------------------------------------- */
 
-void CommKokkos::reverse_comm_variable(Fix *fix)
+void CommBrickKokkos::reverse_comm_variable(Fix *fix)
 {
   k_sendlist.sync<LMPHostType>();
   CommBrick::reverse_comm_variable(fix);
@@ -485,7 +485,7 @@ void CommKokkos::reverse_comm_variable(Fix *fix)
    nsize used only to set recv buffer limit
 ------------------------------------------------------------------------- */
 
-void CommKokkos::forward_comm(Compute *compute)
+void CommBrickKokkos::forward_comm(Compute *compute)
 {
   k_sendlist.sync<LMPHostType>();
   CommBrick::forward_comm(compute);
@@ -496,7 +496,7 @@ void CommKokkos::forward_comm(Compute *compute)
    nsize used only to set recv buffer limit
 ------------------------------------------------------------------------- */
 
-void CommKokkos::forward_comm(Bond *bond)
+void CommBrickKokkos::forward_comm(Bond *bond)
 {
   CommBrick::forward_comm(bond);
 }
@@ -506,7 +506,7 @@ void CommKokkos::forward_comm(Bond *bond)
    nsize used only to set recv buffer limit
 ------------------------------------------------------------------------- */
 
-void CommKokkos::reverse_comm(Bond *bond)
+void CommBrickKokkos::reverse_comm(Bond *bond)
 {
   CommBrick::reverse_comm(bond);
 }
@@ -516,7 +516,7 @@ void CommKokkos::reverse_comm(Bond *bond)
    nsize used only to set recv buffer limit
 ------------------------------------------------------------------------- */
 
-void CommKokkos::reverse_comm(Compute *compute)
+void CommBrickKokkos::reverse_comm(Compute *compute)
 {
   k_sendlist.sync<LMPHostType>();
   CommBrick::reverse_comm(compute);
@@ -527,7 +527,7 @@ void CommKokkos::reverse_comm(Compute *compute)
    nsize used only to set recv buffer limit
 ------------------------------------------------------------------------- */
 
-void CommKokkos::forward_comm(Pair *pair)
+void CommBrickKokkos::forward_comm(Pair *pair)
 {
   if (pair->execution_space == Host || forward_pair_comm_classic) {
     k_sendlist.sync<LMPHostType>();
@@ -541,7 +541,7 @@ void CommKokkos::forward_comm(Pair *pair)
 /* ---------------------------------------------------------------------- */
 
 template<class DeviceType>
-void CommKokkos::forward_comm_device(Pair *pair)
+void CommBrickKokkos::forward_comm_device(Pair *pair)
 {
   int iswap,n;
   MPI_Request request;
@@ -607,7 +607,7 @@ void CommKokkos::forward_comm_device(Pair *pair)
 
 /* ---------------------------------------------------------------------- */
 
-void CommKokkos::grow_buf_pair(int n) {
+void CommBrickKokkos::grow_buf_pair(int n) {
   max_buf_pair = n * BUFFACTOR;
   k_buf_send_pair.resize(max_buf_pair);
   k_buf_recv_pair.resize(max_buf_pair);
@@ -615,7 +615,7 @@ void CommKokkos::grow_buf_pair(int n) {
 
 /* ---------------------------------------------------------------------- */
 
-void CommKokkos::grow_buf_fix(int n) {
+void CommBrickKokkos::grow_buf_fix(int n) {
   max_buf_fix = n * BUFFACTOR;
   k_buf_send_fix.resize(max_buf_fix);
   k_buf_recv_fix.resize(max_buf_fix);
@@ -623,7 +623,7 @@ void CommKokkos::grow_buf_fix(int n) {
 
 /* ---------------------------------------------------------------------- */
 
-void CommKokkos::reverse_comm(Pair *pair)
+void CommBrickKokkos::reverse_comm(Pair *pair)
 {
   if (pair->execution_space == Host || !pair->reverse_comm_device || reverse_pair_comm_classic) {
     k_sendlist.sync<LMPHostType>();
@@ -637,7 +637,7 @@ void CommKokkos::reverse_comm(Pair *pair)
 /* ---------------------------------------------------------------------- */
 
 template<class DeviceType>
-void CommKokkos::reverse_comm_device(Pair *pair)
+void CommBrickKokkos::reverse_comm_device(Pair *pair)
 {
   int iswap,n;
   MPI_Request request;
@@ -702,7 +702,7 @@ void CommKokkos::reverse_comm_device(Pair *pair)
 
 /* ---------------------------------------------------------------------- */
 
-void CommKokkos::forward_comm(Dump *dump)
+void CommBrickKokkos::forward_comm(Dump *dump)
 {
   k_sendlist.sync<LMPHostType>();
   CommBrick::forward_comm(dump);
@@ -710,7 +710,7 @@ void CommKokkos::forward_comm(Dump *dump)
 
 /* ---------------------------------------------------------------------- */
 
-void CommKokkos::reverse_comm(Dump *dump)
+void CommBrickKokkos::reverse_comm(Dump *dump)
 {
   k_sendlist.sync<LMPHostType>();
   CommBrick::reverse_comm(dump);
@@ -727,7 +727,7 @@ void CommKokkos::reverse_comm(Dump *dump)
    for triclinic, atoms must be in lamda coords (0-1) before exchange is called
 ------------------------------------------------------------------------- */
 
-void CommKokkos::exchange()
+void CommBrickKokkos::exchange()
 {
   if (!exchange_comm_classic) {
     if (atom->nextra_grow) {
@@ -811,7 +811,7 @@ struct BuildExchangeListFunctor {
 /* ---------------------------------------------------------------------- */
 
 template<class DeviceType>
-void CommKokkos::exchange_device()
+void CommBrickKokkos::exchange_device()
 {
   int nsend,nrecv,nrecv1,nrecv2,nlocal;
   double *sublo,*subhi;
@@ -1050,7 +1050,7 @@ void CommKokkos::exchange_device()
    for triclinic, atoms must be in lamda coords (0-1) before borders is called
 ------------------------------------------------------------------------- */
 
-void CommKokkos::borders()
+void CommBrickKokkos::borders()
 {
   if (!exchange_comm_classic) {
 
@@ -1137,7 +1137,7 @@ struct BuildBorderListFunctor {
 /* ---------------------------------------------------------------------- */
 
 template<class DeviceType>
-void CommKokkos::borders_device() {
+void CommBrickKokkos::borders_device() {
   int i,n,itype,iswap,dim,ineed,twoneed,smax,rmax;
   int nsend,nrecv,sendflag,nfirst,nlast,ngroup;
   double lo,hi;
@@ -1374,7 +1374,7 @@ void CommKokkos::borders_device() {
    copy swap info
 ------------------------------------------------------------------------- */
 
-void CommKokkos::copy_swap_info()
+void CommBrickKokkos::copy_swap_info()
 {
   if (nswap > (int)k_swap.extent(1)) {
     k_swap = DAT::tdual_int_2d("comm:swap",2,nswap);
@@ -1438,7 +1438,7 @@ void CommKokkos::copy_swap_info()
    if flag = 0, don't need to realloc with copy, just free/malloc
 ------------------------------------------------------------------------- */
 
-void CommKokkos::grow_send(int n, int flag)
+void CommBrickKokkos::grow_send(int n, int flag)
 {
   grow_send_kokkos(n,flag,Host);
 }
@@ -1447,7 +1447,7 @@ void CommKokkos::grow_send(int n, int flag)
    free/malloc the size of the recv buffer as needed with BUFFACTOR
 ------------------------------------------------------------------------- */
 
-void CommKokkos::grow_recv(int n)
+void CommBrickKokkos::grow_recv(int n)
 {
   grow_recv_kokkos(n,Host);
 }
@@ -1458,7 +1458,7 @@ void CommKokkos::grow_recv(int n)
    if flag = 0, don't need to realloc with copy, just free/malloc
 ------------------------------------------------------------------------- */
 
-void CommKokkos::grow_send_kokkos(int n, int flag, ExecutionSpace space)
+void CommBrickKokkos::grow_send_kokkos(int n, int flag, ExecutionSpace space)
 {
 
   maxsend = static_cast<int> (BUFFACTOR * n);
@@ -1490,7 +1490,7 @@ void CommKokkos::grow_send_kokkos(int n, int flag, ExecutionSpace space)
    free/malloc the size of the recv buffer as needed with BUFFACTOR
 ------------------------------------------------------------------------- */
 
-void CommKokkos::grow_recv_kokkos(int n, ExecutionSpace /*space*/)
+void CommBrickKokkos::grow_recv_kokkos(int n, ExecutionSpace /*space*/)
 {
   maxrecv = static_cast<int> (BUFFACTOR * n);
   int maxrecv_border = (maxrecv+BUFEXTRA)/atomKK->avecKK->size_border;
@@ -1504,7 +1504,7 @@ void CommKokkos::grow_recv_kokkos(int n, ExecutionSpace /*space*/)
    realloc the size of the iswap sendlist as needed with BUFFACTOR
 ------------------------------------------------------------------------- */
 
-void CommKokkos::grow_list(int /*iswap*/, int n)
+void CommBrickKokkos::grow_list(int /*iswap*/, int n)
 {
   int size = static_cast<int> (BUFFACTOR * n);
 
@@ -1524,7 +1524,7 @@ void CommKokkos::grow_list(int /*iswap*/, int n)
    realloc the buffers needed for swaps
 ------------------------------------------------------------------------- */
 
-void CommKokkos::grow_swap(int n)
+void CommBrickKokkos::grow_swap(int n)
 {
   free_swap();
   allocate_swap(n);
@@ -1551,7 +1551,7 @@ void CommKokkos::grow_swap(int n)
    forward communication of N values in per-atom array
 ------------------------------------------------------------------------- */
 
-void CommKokkos::forward_comm_array(int nsize, double **array)
+void CommBrickKokkos::forward_comm_array(int nsize, double **array)
 {
   k_sendlist.sync<LMPHostType>();
   CommBrick::forward_comm_array(nsize,array);

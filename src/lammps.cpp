@@ -830,7 +830,7 @@ void LAMMPS::create()
   // Comm class must be created before Atom class
   // so that nthreads is defined when create_avec invokes grow()
 
-  if (kokkos) comm = new CommKokkos(this);
+  if (kokkos) comm = new CommBrickKokkos(this);
   else comm = new CommBrick(this);
 
   if (kokkos) neighbor = new NeighborKokkos(this);

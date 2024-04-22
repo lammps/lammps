@@ -20,7 +20,7 @@
 #ifdef LMP_KOKKOS
 
 #include "atom_kokkos.h"          // IWYU pragma: export
-#include "comm_kokkos.h"          // IWYU pragma: export
+#include "comm_brick_kokkos.h"    // IWYU pragma: export
 #include "comm_tiled_kokkos.h"    // IWYU pragma: export
 #include "domain_kokkos.h"        // IWYU pragma: export
 #include "kokkos.h"               // IWYU pragma: export
@@ -69,9 +69,9 @@ class AtomKokkos : public Atom {
   void modified(const ExecutionSpace /*space*/, unsigned int /*mask*/) {}
 };
 
-class CommKokkos : public CommBrick {
+class CommBrickKokkos : public CommBrick {
  public:
-  CommKokkos(class LAMMPS *lmp) : CommBrick(lmp) {}
+  CommBrickKokkos(class LAMMPS *lmp) : CommBrick(lmp) {}
 };
 
 class CommTiledKokkos : public CommTiled {

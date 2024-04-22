@@ -86,8 +86,8 @@ action bond_fene_kokkos.cpp bond_fene.cpp
 action bond_fene_kokkos.h bond_fene.h
 action bond_harmonic_kokkos.cpp bond_harmonic.cpp
 action bond_harmonic_kokkos.h bond_harmonic.h
-action comm_kokkos.cpp
-action comm_kokkos.h
+action comm_brick_kokkos.cpp
+action comm_brick_kokkos.h
 action comm_tiled_kokkos.cpp
 action comm_tiled_kokkos.h
 action compute_ave_sphere_atom_kokkos.cpp compute_ave_sphere_atom.cpp

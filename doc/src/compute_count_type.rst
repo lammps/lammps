@@ -72,6 +72,19 @@ for each type:
 If the *mode* setting is *atom* then the count of atoms for each atom
 type is tallied.  Only atoms in the specified group are counted.
 
+The atom count for each type can be normalized by the total number of
+atoms like so:
+
+.. code-block:: LAMMPS
+
+   compute typevec all count/type atom # number of atoms of each type
+   variable normtypes vector c_typevec/atoms # divide by total number of atoms
+   variable ntypes equal extract_setting(ntypes) # number of atom types
+   thermo_style custom step v_normtypes[*$(v_ntypes)] # vector variable needs upper limit
+
+Similarly, bond counts can be normalized by the total number of bonds.
+The same goes for angles, dihedrals, and impropers (see below).
+
 If the *mode* setting is *bond* then the count of bonds for each bond
 type is tallied.  Only bonds with both atoms in the specified group
 are counted.
@@ -112,8 +125,8 @@ These values can be used by any command that uses global scalar or
 vector values from a compute as input.  See the :doc:`Howto output
 <Howto_output>` page for an overview of LAMMPS output options.
 
-The scalar and vector values returned by this compute are non-negative
-integers.
+The scalar and vector values calculated by this compute are both
+"intensive".
 
 Restrictions
 """"""""""""

@@ -557,7 +557,7 @@ void FixDeformPressure::apply_pressure()
 {
   // If variable pressure, calculate current target
   for (int i = 0; i < 6; i++)
-    if (set[i].style == PRESSURE)
+    if (set[i].style == PRESSURE || set[i].style == PMEAN)
       if (set_extra[i].pvar_flag)
         set_extra[i].ptarget = input->variable->compute_equal(set_extra[i].pvar);
 
@@ -824,6 +824,13 @@ void FixDeformPressure::apply_box()
     for (i = 0; i < 3; i++) {
       shift = (set[i].hi_target - set[i].lo_target) * update->dt * v_rate;
       set_extra[6].cumulative_vshift[i] += shift;
+
+      if (set[i].style == NONE) {
+        // Overwrite default targets of current length
+        set[i].lo_target = set[i].lo_start;
+        set[i].hi_target = set[i].hi_start;
+      }
+
       set[i].lo_target -= 0.5 * set_extra[6].cumulative_vshift[i];
       set[i].hi_target += 0.5 * set_extra[6].cumulative_vshift[i];
 

@@ -1236,47 +1236,11 @@ void CommBrickKokkos::borders_device() {
           } else {
             error->all(FLERR,"Required border comm not yet "
                        "implemented with Kokkos");
-            for (i = nfirst; i < nlast; i++) {
-              itype = type[i];
-              if (x[i][dim] >= mlo[itype] && x[i][dim] <= mhi[itype]) {
-                if (nsend == maxsendlist[iswap]) grow_list(iswap,nsend);
-                sendlist[iswap][nsend++] = i;
-              }
-            }
           }
 
         } else {
           error->all(FLERR,"Required border comm not yet "
                      "implemented with Kokkos");
-          if (mode == Comm::SINGLE) {
-            ngroup = atom->nfirst;
-            for (i = 0; i < ngroup; i++)
-              if (x[i][dim] >= lo && x[i][dim] <= hi) {
-                if (nsend == maxsendlist[iswap]) grow_list(iswap,nsend);
-                sendlist[iswap][nsend++] = i;
-              }
-            for (i = atom->nlocal; i < nlast; i++)
-              if (x[i][dim] >= lo && x[i][dim] <= hi) {
-                if (nsend == maxsendlist[iswap]) grow_list(iswap,nsend);
-                sendlist[iswap][nsend++] = i;
-              }
-          } else {
-            ngroup = atom->nfirst;
-            for (i = 0; i < ngroup; i++) {
-              itype = type[i];
-              if (x[i][dim] >= mlo[itype] && x[i][dim] <= mhi[itype]) {
-                if (nsend == maxsendlist[iswap]) grow_list(iswap,nsend);
-                sendlist[iswap][nsend++] = i;
-              }
-            }
-            for (i = atom->nlocal; i < nlast; i++) {
-              itype = type[i];
-              if (x[i][dim] >= mlo[itype] && x[i][dim] <= mhi[itype]) {
-                if (nsend == maxsendlist[iswap]) grow_list(iswap,nsend);
-                sendlist[iswap][nsend++] = i;
-              }
-            }
-          }
         }
       }
 

@@ -308,28 +308,29 @@ struct remap_plan_3d_kokkos<DeviceType>* RemapKokkos<DeviceType>::remap_3d_creat
   out.khi = out_khi;
   out.ksize = out.khi - out.klo + 1;
 
-  // combine output extents across all procs
-
   inarray = (struct extent_3d *) malloc(nprocs*sizeof(struct extent_3d));
   if (inarray == nullptr) return nullptr;
 
   outarray = (struct extent_3d *) malloc(nprocs*sizeof(struct extent_3d));
   if (outarray == nullptr) return nullptr;
 
+  // combine input & output extents across all procs
+
+  MPI_Allgather(&in,sizeof(struct extent_3d),MPI_BYTE,
+                inarray,sizeof(struct extent_3d),MPI_BYTE,comm);
   MPI_Allgather(&out,sizeof(struct extent_3d),MPI_BYTE,
                 outarray,sizeof(struct extent_3d),MPI_BYTE,comm);
 
-  // count send collides, including self
+  // count send & recv collides, including self
 
   nsend = 0;
-  iproc = me;
+  nrecv = 0;
   for (i = 0; i < nprocs; i++) {
-    iproc++;
-    if (iproc == nprocs) iproc = 0;
-    nsend += remap_3d_collide(&in,&outarray[iproc],&overlap);
+    nsend += remap_3d_collide(&in,&outarray[i],&overlap);
+    nrecv += remap_3d_collide(&out,&inarray[i],&overlap);
   }
 
-  // malloc space for send info
+  // malloc space for send & recv info
 
   if (nsend) {
     plan->pack = PackKokkos<DeviceType>::pack_3d;
@@ -342,6 +343,39 @@ struct remap_plan_3d_kokkos<DeviceType>* RemapKokkos<DeviceType>::remap_3d_creat
 
     if (plan->send_offset == nullptr || plan->send_size == nullptr ||
         plan->send_proc == nullptr || plan->packplan == nullptr) return nullptr;
+  }
+
+  if (nrecv) {
+    if (permute == 0)
+      plan->unpack = PackKokkos<DeviceType>::unpack_3d;
+    else if (permute == 1) {
+      if (nqty == 1)
+        plan->unpack = PackKokkos<DeviceType>::unpack_3d_permute1_1;
+      else if (nqty == 2)
+        plan->unpack = PackKokkos<DeviceType>::unpack_3d_permute1_2;
+      else
+        plan->unpack = PackKokkos<DeviceType>::unpack_3d_permute1_n;
+    }
+    else if (permute == 2) {
+      if (nqty == 1)
+        plan->unpack = PackKokkos<DeviceType>::unpack_3d_permute2_1;
+      else if (nqty == 2)
+        plan->unpack = PackKokkos<DeviceType>::unpack_3d_permute2_2;
+      else
+        plan->unpack = PackKokkos<DeviceType>::unpack_3d_permute2_n;
+    }
+
+    plan->recv_offset = (int *) malloc(nrecv*sizeof(int));
+    plan->recv_size = (int *) malloc(nrecv*sizeof(int));
+    plan->recv_proc = (int *) malloc(nrecv*sizeof(int));
+    plan->recv_bufloc = (int *) malloc(nrecv*sizeof(int));
+    plan->request = (MPI_Request *) malloc(nrecv*sizeof(MPI_Request));
+    plan->unpackplan = (struct pack_plan_3d *)
+      malloc(nrecv*sizeof(struct pack_plan_3d));
+
+    if (plan->recv_offset == nullptr || plan->recv_size == nullptr ||
+        plan->recv_proc == nullptr || plan->recv_bufloc == nullptr ||
+        plan->request == nullptr || plan->unpackplan == nullptr) return nullptr;
   }
 
   // store send info, with self as last entry
@@ -377,55 +411,8 @@ struct remap_plan_3d_kokkos<DeviceType>* RemapKokkos<DeviceType>::remap_3d_creat
   } else
     plan->nsend = nsend;
 
-  // combine input extents across all procs
-
-  MPI_Allgather(&in,sizeof(struct extent_3d),MPI_BYTE,
-                inarray,sizeof(struct extent_3d),MPI_BYTE,comm);
-
-  // count recv collides, including self
-
-  nrecv = 0;
-  iproc = me;
-  for (i = 0; i < nprocs; i++) {
-    iproc++;
-    if (iproc == nprocs) iproc = 0;
-    nrecv += remap_3d_collide(&out,&inarray[iproc],&overlap);
-  }
-
   // malloc space for recv info
 
-  if (nrecv) {
-    if (permute == 0)
-      plan->unpack = PackKokkos<DeviceType>::unpack_3d;
-    else if (permute == 1) {
-      if (nqty == 1)
-        plan->unpack = PackKokkos<DeviceType>::unpack_3d_permute1_1;
-      else if (nqty == 2)
-        plan->unpack = PackKokkos<DeviceType>::unpack_3d_permute1_2;
-      else
-        plan->unpack = PackKokkos<DeviceType>::unpack_3d_permute1_n;
-    }
-    else if (permute == 2) {
-      if (nqty == 1)
-        plan->unpack = PackKokkos<DeviceType>::unpack_3d_permute2_1;
-      else if (nqty == 2)
-        plan->unpack = PackKokkos<DeviceType>::unpack_3d_permute2_2;
-      else
-        plan->unpack = PackKokkos<DeviceType>::unpack_3d_permute2_n;
-    }
-
-    plan->recv_offset = (int *) malloc(nrecv*sizeof(int));
-    plan->recv_size = (int *) malloc(nrecv*sizeof(int));
-    plan->recv_proc = (int *) malloc(nrecv*sizeof(int));
-    plan->recv_bufloc = (int *) malloc(nrecv*sizeof(int));
-    plan->request = (MPI_Request *) malloc(nrecv*sizeof(MPI_Request));
-    plan->unpackplan = (struct pack_plan_3d *)
-      malloc(nrecv*sizeof(struct pack_plan_3d));
-
-    if (plan->recv_offset == nullptr || plan->recv_size == nullptr ||
-        plan->recv_proc == nullptr || plan->recv_bufloc == nullptr ||
-        plan->request == nullptr || plan->unpackplan == nullptr) return nullptr;
-  }
 
   // store recv info, with self as last entry
 

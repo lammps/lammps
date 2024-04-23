@@ -121,6 +121,7 @@ TEST_F(Advanced_utils, expand_args)
     command("fix 2 all nve");
     command("run 1 post no");
     auto output = END_CAPTURE_OUTPUT();
+    if (verbose) std::cout << output << std::endl;
 
     char **args, **earg;
     constexpr int oarg = 9;

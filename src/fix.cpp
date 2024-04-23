@@ -134,8 +134,8 @@ void Fix::init_flags()
    if (scalar_flag && (extscalar < 0))
     error->all(FLERR, "Must set 'extscalar' when setting 'scalar_flag' for fix {}.  "
                "Contact the developer.", style);
-  if (vector_flag && (extvector < 0))
-    error->all(FLERR, "Must set 'extvector' when setting 'vector_flag' for fix {}.  "
+  if (vector_flag && (extvector < 0) && !extlist)
+    error->all(FLERR, "Must set 'extvector' or 'extlist' when setting 'vector_flag' for fix {}.  "
                "Contact the developer.", style);
   if (array_flag && (extarray < 0))
     error->all(FLERR, "Must set 'extarray' when setting 'array_flag' for fix {}.  "

@@ -21,6 +21,7 @@
 #include "bond.h"
 #include "comm.h"
 #include "comm_brick.h"
+#include "comm_brick_direct.h"
 #include "comm_tiled.h"
 #include "command.h"
 #include "compute.h"
@@ -1448,6 +1449,11 @@ void Input::comm_style()
     if (comm->style == Comm::BRICK) return;
     Comm *oldcomm = comm;
     comm = new CommBrick(lmp,oldcomm);
+    delete oldcomm;
+  } else if (strcmp(arg[0],"brick/direct") == 0) {
+    if (comm->style == Comm::BRICK_DIRECT) return;
+    Comm *oldcomm = comm;
+    comm = new CommBrickDirect(lmp,oldcomm);
     delete oldcomm;
   } else if (strcmp(arg[0],"tiled") == 0) {
     if (comm->style == Comm::TILED) return;

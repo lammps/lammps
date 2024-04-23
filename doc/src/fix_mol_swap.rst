@@ -32,6 +32,7 @@ Examples
 .. code-block:: LAMMPS
 
    fix 2 all mol/swap 100 1 2 3 29494 300.0 ke no
+   fix mySwap fluid mol/swap 500 10 1 2 482798 1.0
 
    labelmap atom 1 A 2 B
    fix mySwap fluid mol/swap 500 10 A B 482798 1.0

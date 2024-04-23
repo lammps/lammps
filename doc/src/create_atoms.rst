@@ -81,6 +81,7 @@ Examples
    labelmap atom 1 C 2 Si
    create_atoms C region regsphere basis Si C
 
+   create_atoms 3 region regsphere basis 2 3
    create_atoms 3 region regsphere basis 2 3 ratio 0.5 74637
    create_atoms 3 single 0 0 5
    create_atoms 1 box var v set x xpos set y ypos

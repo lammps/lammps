@@ -73,6 +73,7 @@ Examples
 
    fix 3 all deposit 1000 2 100 29494 region myblock local 1.0 1.0 1.0 units box
    fix 2 newatoms deposit 10000 1 500 12345 region disk near 2.0 vz -1.0 -0.8
+   fix 4 sputter deposit 1000 2 500 12235 region sphere vz -1.0 -1.0 target 5.0 5.0 0.0 units lattice
    fix 5 insert deposit 200 2 100 777 region disk gaussian 5.0 5.0 9.0 1.0 units box
 
    labelmap atom 1 Au

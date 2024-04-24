@@ -15,7 +15,7 @@ jobs:
   build:
     name: MacOS Unit Test
     if: ${{ github.repository == 'lammps/lammps' }}
-    runs-on: macos-latest
+    runs-on: macos-13
     env:
       CCACHE_DIR: ${{ github.workspace }}/.ccache
 

@@ -55,7 +55,6 @@ CommBrickDirect::CommBrickDirect(LAMMPS *lmp, Comm *oldcomm) : CommBrick(lmp, ol
 void CommBrickDirect::setup()
 {
   CommBrick::setup();
-
 }
 
 /* ----------------------------------------------------------------------
@@ -65,7 +64,7 @@ void CommBrickDirect::setup()
 
 void CommBrickDirect::forward_comm(int /*dummy*/)
 {
-  int n,iswap;
+  int n,iswap,irecv;
   AtomVec *avec = atom->avec;
   double **x = atom->x;
   double *buf;
@@ -77,9 +76,9 @@ void CommBrickDirect::forward_comm(int /*dummy*/)
   // post all receives for ghost atoms
   // except for self copies
 
-  int irecv = 0;
+  irecv = 0;
   for (iswap = 0; iswap < ndirect; iswap++) {
-    if (sendproc_direct[iswap] == me) continue;
+    if (sendproc[iswap] == me) continue;
     if (comm_x_only) {
       if (size_forward_recv_direct[iswap]) {
         buf = x[firstrecv_direct[iswap]];
@@ -87,26 +86,23 @@ void CommBrickDirect::forward_comm(int /*dummy*/)
                   recvproc_direct[iswap],0,world,&requests[irecv++]);
       }
     } else {
-      if (size_forward_recv_direct[iswap])
+      if (size_forward_recv_direct[iswap]) {
         MPI_Irecv(buf_recv_direct[iswap],size_forward_recv_direct[iswap],MPI_DOUBLE,
                   recvproc_direct[iswap],0,world,&requests[irecv++]);
+      }
     }
   }
                     
   // send all owned atoms to receiving procs
   // except for self copies
 
-  for (iswap = 0; iswap < ndirect; iswap++) {
-    if (sendproc_direct[iswap] == me) continue;
-    if (comm_x_only) {
-      n = avec->pack_comm(sendnum_direct[iswap],sendlist_direct[iswap],buf_send_direct,
-                          pbc_flag_direct[iswap],pbc_direct[iswap]);
-      if (n) MPI_Send(buf_send_direct,n,MPI_DOUBLE,sendproc_direct[iswap],0,world);
-    } else if (ghost_velocity) {
+  for (int iswap = 0; iswap < ndirect; iswap++) {
+    if (sendproc[iswap] == me) continue;
+    if (ghost_velocity) {
       n = avec->pack_comm_vel(sendnum_direct[iswap],sendlist_direct[iswap],buf_send_direct,
                               pbc_flag_direct[iswap],pbc_direct[iswap]);
       if (n) MPI_Send(buf_send_direct,n,MPI_DOUBLE,sendproc_direct[iswap],0,world);
-    } else{
+    } else {
       n = avec->pack_comm(sendnum_direct[iswap],sendlist_direct[iswap],buf_send_direct,
                           pbc_flag_direct[iswap],pbc_direct[iswap]);
       if (n) MPI_Send(buf_send_direct,n,MPI_DOUBLE,sendproc_direct[iswap],0,world);
@@ -116,11 +112,11 @@ void CommBrickDirect::forward_comm(int /*dummy*/)
   // copy atoms to self via pack and unpack
 
   for (int iself = 0; iself < nself_direct; iself++) {
-    iswap = self_direct[iself];
+    iswap = self_indices_direct[iself];
+    if (sendnum_direct[iswap] == 0) continue;
     if (comm_x_only) {
-      if (sendnum_direct[iswap])
-        avec->pack_comm(sendnum_direct[iswap],sendlist_direct[iswap],
-                        x[firstrecv_direct[iswap]],pbc_flag_direct[iswap],pbc_direct[iswap]);
+      avec->pack_comm(sendnum_direct[iswap],sendlist_direct[iswap],
+                      x[firstrecv_direct[iswap]],pbc_flag_direct[iswap],pbc_direct[iswap]);
     } else if (ghost_velocity) {
       avec->pack_comm_vel(sendnum_direct[iswap],sendlist_direct[iswap],buf_send_direct,
                           pbc_flag_direct[iswap],pbc_direct[iswap]);
@@ -135,23 +131,25 @@ void CommBrickDirect::forward_comm(int /*dummy*/)
   // wait on incoming messages with ghost atoms
   // unpack each message as it arrives
 
-  if (nrecv_direct) {
-    if (comm_x_only) {
-      MPI_Waitall(nrecv_direct,requests,MPI_STATUS_IGNORE);
-    } else if (ghost_velocity) {
-      for (int irecv; irecv < nrecv_direct; irecv++) {
-        MPI_Waitany(nrecv_direct,requests,&iswap,MPI_STATUS_IGNORE);
-        avec->unpack_comm_vel(recvnum_direct[iswap],firstrecv_direct[iswap],buf_recv_direct[iswap]);
-      }
-    } else {
-      for (int irecv; irecv < nrecv_direct; irecv++) {
-        MPI_Waitany(nrecv_direct,requests,&iswap,MPI_STATUS_IGNORE);
-        avec->unpack_comm(recvnum_direct[iswap],firstrecv_direct[iswap],buf_recv_direct[iswap]);
-      }
+  if (nrecv_direct == 0) return;
+  
+  if (comm_x_only) {
+    MPI_Waitall(nrecv_direct,requests,MPI_STATUS_IGNORE);
+  } else if (ghost_velocity) {
+    for (int i = 0; i < nrecv_direct; i++) {
+      MPI_Waitany(nrecv_direct,requests,&irecv,MPI_STATUS_IGNORE);
+      iswap = recv_indices_direct[irecv];
+      avec->unpack_comm_vel(recvnum_direct[iswap],firstrecv_direct[iswap],buf_recv_direct[iswap]);
+    }
+  } else {
+    for (int i = 0; i < nrecv_direct; i++) {
+      MPI_Waitany(nrecv_direct,requests,&irecv,MPI_STATUS_IGNORE);
+      iswap = recv_indices_direct[irecv];
+      avec->unpack_comm(recvnum_direct[iswap],firstrecv_direct[iswap],buf_recv_direct[iswap]);
     }
   }
 }
-
+  
 /* ----------------------------------------------------------------------
    reverse communication of forces on atoms every timestep
    other per-atom attributes may also be sent via pack/unpack routines
@@ -159,7 +157,7 @@ void CommBrickDirect::forward_comm(int /*dummy*/)
 
 void CommBrickDirect::reverse_comm()
 {
-  int n,iswap;
+  int n,iswap,irecv;
   MPI_Request request;
   AtomVec *avec = atom->avec;
   double **f = atom->f;
@@ -170,22 +168,21 @@ void CommBrickDirect::reverse_comm()
   // if comm_f_only set, exchange or copy directly from f, don't pack
 
   // post all receives for owned atoms
-  // except for self copies + sums
+  // except for self copy/sums
 
-  int irecv = 0;
-  for (iswap = 0; iswap < ndirect; iswap++) {
-    if (sendproc_direct[iswap] == me) continue;
-    if (size_reverse_recv_direct[iswap]) {
+  irecv = 0;
+  for (int iswap = 0; iswap < ndirect; iswap++) {
+    if (recvproc[iswap] == me) continue;
+    if (size_reverse_recv_direct[iswap])
       MPI_Irecv(buf_recv_direct[iswap],size_reverse_recv_direct[iswap],MPI_DOUBLE,
                 sendproc_direct[iswap],0,world,&requests[irecv++]);
-    }
   }
 
   // send all ghost atoms to receiving procs
-  // except for self copies + sums
+  // except for self copy/sums
 
-  for (iswap = 0; iswap < ndirect; iswap++) {
-    if (sendproc_direct[iswap] == me) continue;
+  for (int iswap = 0; iswap < ndirect; iswap++) {
+    if (recvproc[iswap] == me) continue;
     if (comm_f_only) {
       if (size_reverse_send_direct[iswap]) {
         buf = f[firstrecv_direct[iswap]];
@@ -197,14 +194,14 @@ void CommBrickDirect::reverse_comm()
     }
   }
 
-  // copy + sum atoms to self via pack and unpack
+  // copy/sum atoms to self via pack and unpack
 
   for (int iself = 0; iself < nself_direct; iself++) {
-    iswap = self_direct[iself];
+    iswap = self_indices_direct[iself];
+    if (sendnum_direct[iswap] == 0) continue;
     if (comm_f_only) {
-      if (sendnum_direct[iswap])
-        avec->unpack_reverse(sendnum_direct[iswap],sendlist_direct[iswap],
-                             f[firstrecv_direct[iswap]]);
+      avec->unpack_reverse(sendnum_direct[iswap],sendlist_direct[iswap],
+                           f[firstrecv_direct[iswap]]);
     } else {
       avec->pack_reverse(recvnum_direct[iswap],firstrecv_direct[iswap],buf_send_direct);
       avec->unpack_reverse(sendnum_direct[iswap],sendlist_direct[iswap],buf_send_direct);
@@ -214,11 +211,12 @@ void CommBrickDirect::reverse_comm()
   // wait on incoming messages with owned atoms
   // unpack each message as it arrives
 
-  if (nrecv_direct) {
-    for (int irecv; irecv < nrecv_direct; irecv++) {
-      MPI_Waitany(nrecv_direct,requests,&iswap,MPI_STATUS_IGNORE);
-      avec->unpack_reverse(sendnum_direct[iswap],sendlist_direct[iswap],buf_recv_direct[iswap]);
-    }
+  if (nsend_direct == 0) return;
+  
+  for (int i; i < nsend_direct; i++) {
+    MPI_Waitany(nsend_direct,requests,&irecv,MPI_STATUS_IGNORE);
+    iswap = send_indices_direct[irecv];
+    avec->unpack_reverse(sendnum_direct[iswap],sendlist_direct[iswap],buf_recv_direct[iswap]);
   }
 }
 
@@ -244,6 +242,8 @@ void CommBrickDirect::borders()
   double *buf,*mlo,*mhi;
   MPI_Request request;
   AtomVec *avec = atom->avec;
+
+  // NOTE: do not allow MULTI with brick/direct
 
   // After exchanging/sorting, need to reconstruct collection array for border communication
   if (mode == Comm::MULTI) neighbor->build_collection(0);

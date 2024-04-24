@@ -31,27 +31,30 @@ class CommBrickDirect : public CommBrick {
   void borders() override;                      // setup list of atoms to comm
 
  protected:
-  int ndirect;                            // # of swaps to perform with direct neighbors
-  int nrecv_direct;
-  int nself_direct;
+  int ndirect;                            // # of swaps with direct neighbors, including self
+  int nsend_direct;                       // # of non-empty owned-atom sends to other procs
+  int nrecv_direct;                       // # of non-empty ghost-atom recvs from other procs
+  int nself_direct;                       // # of non-empty swaps with self
   int maxdirect;                          // max # of swaps memory is allocated for
+  int *send_indices_direct;               // indices of non-empty swap sends to other procs
+  int *recv_indices_direct;               // indices of non-empty swap recvs with other procs
+  int *self_indices_direct;               // indices of non-empty swaps with self
+
   int *sendnum_direct, *recvnum_direct;   // # of atoms to send/recv in each swap
   int *sendproc_direct, *recvproc_direct; // proc to send/recv to/from at each swap
   int *size_forward_recv_direct;          // # of values to recv in each forward comm
-  int *size_reverse_send_direct;          // # to send in each reverse comm
-  int *size_reverse_recv_direct;          // # to recv in each reverse comm
+  int *size_reverse_send_direct;          // # of values to send in each reverse comm
+  int *size_reverse_recv_direct;          // # of values to recv in each reverse comm
   int *pbc_flag_direct;                   // general flag for sending atoms thru PBC
   int **pbc_direct;                       // dimension flags for PBC adjustments
 
-  int *self_direct;
-  int *firstrecv_direct;    // where to put 1st recv atom in each swap
-  int **sendlist_direct;    // list of atoms to send in each swap
+  int *firstrecv_direct;    // index of where to put 1st ghost atom in each swap
+  int **sendlist_direct;    // list of owned atoms to send in each swap
 
-  double *buf_send_direct;  // send buffer for all comm
-  double **buf_recv_direct; // recv buffer for all comm
+  double *buf_send_direct;  // send buffer used for every swap (large enough for any)
+  double **buf_recv_direct; // lsit of recv buffers for all swaps (large enough for each)
 
-  MPI_Request *requests;
-
+  MPI_Request *requests;    // list of requests, length = max of nsend/nrecv direct
 };
 
 }    // namespace LAMMPS_NS

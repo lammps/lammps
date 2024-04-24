@@ -31,9 +31,9 @@ properties like positions and forces, particles store a local density,
 viscosity, pressure, and status. If thermal evolution is modeled, one must
 use atom style rheo/thermal which also include a local temperature and
 conductivity. The status variable uses bitmasking to track various
-properties of a particle such as its current phase (fluid or solid) and its
-location relative to a surface. Many of these properties (and others) can
-be easily accessed using
+properties of a particle such as its current state of matter (fluid or solid)
+and its location relative to a surface. Many of these properties (and others)
+can be easily accessed using
 :doc:`compute rheo/property/atom <fix_rheo_property_atom>`.
 
 Fluid interactions, including pressure forces, viscous forces, and heat exchange,
@@ -84,7 +84,7 @@ breaking if stretched too far. Unlike the above method, this option does not rem
 the underlying fluid interactions (although particle shifting is turned off) and does
 not modify special bond settings of particles.
 
-While these two options are not expected to be appropriate for every multiphase system,
+While these two options are not expected to be appropriate for every system,
 either framework can be modified to create more suitable models (e.g. by changing the
 criteria for creating/deleting a bond or altering force calculations).
 

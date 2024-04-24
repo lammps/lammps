@@ -71,7 +71,7 @@ BondBPM::~BondBPM()
   if (id_fix_dummy) modify->delete_fix(id_fix_dummy);
   if (id_fix_dummy2) modify->delete_fix(id_fix_dummy2);
   if (id_fix_update) modify->delete_fix(id_fix_update);
-  if (id_fix_bond_history) modify->delete_fix(id_fix_bond_history);
+  if (fix_bond_history) modify->delete_fix(id_fix_bond_history);
   if (id_fix_store_local) modify->delete_fix(id_fix_store_local);
   if (id_fix_prop_atom) modify->delete_fix(id_fix_prop_atom);
 

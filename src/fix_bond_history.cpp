@@ -324,12 +324,13 @@ void FixBondHistory::compress_history()
   if (update_flag || (neighbor->ago == 0)) {
     for (int n = 0; n < nbondlist_orig; n++) {
       type = bondtype_orig[n];
+
       if (type <= 0) continue;
-      if (setflag[type]) {
-        for (int m = 0; m < ndata; m++)
-          bondstore_comp[ncomp][m] = bondstore[n][m];
-        ncomp += 1;
-      }
+      if (!setflag[type]) continue;
+
+      for (int m = 0; m < ndata; m++)
+        bondstore_comp[ncomp][m] = bondstore[n][m];
+      ncomp += 1;
     }
   }
 
@@ -352,7 +353,7 @@ void FixBondHistory::uncompress_history()
       if (!setflag[type]) continue;
 
       for (int m = 0; m < ndata; m++)
-        bondstore[n][m] = bondstore_comp[ncomp][m];
+        bondstore_orig[n][m] = bondstore[ncomp][m];
       ncomp += 1;
     }
   }

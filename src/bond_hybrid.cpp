@@ -34,6 +34,7 @@ BondHybrid::BondHybrid(LAMMPS *lmp) : Bond(lmp)
   nstyles = 0;
   has_quartic = -1;
   nbondlist = nullptr;
+  orig_map = nullptr;
   maxbond = nullptr;
   bondlist = nullptr;
 }
@@ -55,6 +56,7 @@ BondHybrid::~BondHybrid()
     memory->destroy(setflag);
     memory->destroy(map);
     delete[] nbondlist;
+    delete[] orig_map;
     delete[] maxbond;
     for (int i = 0; i < nstyles; i++) memory->destroy(bondlist[i]);
     delete[] bondlist;
@@ -88,6 +90,10 @@ void BondHybrid::compute(int eflag, int vflag)
         memory->destroy(bondlist[m]);
         maxbond[m] = nbondlist[m] + EXTRA;
         memory->create(bondlist[m], maxbond[m], 3, "bond_hybrid:bondlist");
+        if (partial_flag) {
+          memory->destroy(orig_map[m]);
+          memory->create(orig_map[m], maxbond[m], "bond_hybrid:orig_map");
+        }
       }
       nbondlist[m] = 0;
     }
@@ -98,6 +104,8 @@ void BondHybrid::compute(int eflag, int vflag)
       bondlist[m][n][0] = bondlist_orig[i][0];
       bondlist[m][n][1] = bondlist_orig[i][1];
       bondlist[m][n][2] = bondlist_orig[i][2];
+      if (partial_flag)
+        orig_map[m][n] = i;
       nbondlist[m]++;
     }
   }
@@ -142,6 +150,19 @@ void BondHybrid::compute(int eflag, int vflag)
     }
   }
 
+  // if bond type can be set to zero and deleted, update bondlist_orig
+  tagint *tag = atom->tag;
+  if (partial_flag) {
+    for (m = 0; m < nstyles; m++) {
+      for (i = 0; i < nbondlist[m]; i++) {
+        if (bondlist[m][i][2] <= 0) {
+          n = orig_map[m][i];
+          bondlist_orig[n][2] = bondlist[m][i][2];
+        }
+      }
+    }
+  }
+
   // restore ptrs to original bondlist
 
   neighbor->nbondlist = nbondlist_orig;
@@ -161,9 +182,11 @@ void BondHybrid::allocate()
 
   nbondlist = new int[nstyles];
   maxbond = new int[nstyles];
+  orig_map = new int *[nstyles];
   bondlist = new int **[nstyles];
   for (int m = 0; m < nstyles; m++) maxbond[m] = 0;
   for (int m = 0; m < nstyles; m++) bondlist[m] = nullptr;
+  for (int m = 0; m < nstyles; m++) orig_map[m] = nullptr;
 }
 
 /* ----------------------------------------------------------------------
@@ -191,6 +214,8 @@ void BondHybrid::settings(int narg, char **arg)
     memory->destroy(map);
     delete[] nbondlist;
     delete[] maxbond;
+    for (i = 0; i < nstyles; i++) memory->destroy(orig_map[i]);
+    delete[] orig_map;
     for (i = 0; i < nstyles; i++) memory->destroy(bondlist[i]);
     delete[] bondlist;
   }
@@ -355,6 +380,7 @@ void BondHybrid::init_style()
   // to create an entry for it in the bond type to sub-style map
 
   if (has_quartic >= 0) map[0] = has_quartic;
+  else map[0] = -1;
 }
 
 /* ----------------------------------------------------------------------

@@ -543,8 +543,8 @@ void FixRHEOThermal::break_bonds()
   // Update bond list and break solid-melted bonds
   for (n = 0; n < nbondlist; n++) {
 
-    // skip bond if already broken
-    if (bondlist[n][2] <= 0) continue;
+    // skip bond if not correct type
+    if (bondlist[n][2] != btype) continue;
     i = bondlist[n][0];
     j = bondlist[n][1];
 
@@ -561,7 +561,7 @@ void FixRHEOThermal::break_bonds()
           bond_atom[i][m] = bond_atom[i][nmax];
           if (n_histories > 0)
             for (auto &ihistory: histories) {
-              auto fix_bond_history = dynamic_cast<FixBondHistory *>  (ihistory);
+              auto fix_bond_history = dynamic_cast<FixBondHistory *> (ihistory);
               fix_bond_history->shift_history(i, m, nmax);
               fix_bond_history->delete_history(i, nmax);
             }

@@ -199,7 +199,6 @@ void BondRHEOShell::compute(int eflag, int vflag)
   memset(&dbond[0], 0, nbytes);
 
   for (n = 0; n < nbondlist; n++) {
-
     // skip bond if already broken
     if (bondlist[n][2] <= 0) continue;
 
@@ -218,8 +217,16 @@ void BondRHEOShell::compute(int eflag, int vflag)
       i2 = itmp;
     }
 
-    // If bond hasn't been set - set timer to zero
-    if (t < EPSILON || std::isnan(t)) r0 = store_bond(n, i1, i2);
+    delx = x[i1][0] - x[i2][0];
+    dely = x[i1][1] - x[i2][1];
+    delz = x[i1][2] - x[i2][2];
+    rsq = delx * delx + dely * dely + delz * delz;
+    r = sqrt(rsq);
+
+    // If bond hasn't been set - zero data
+    if (t < EPSILON || std::isnan(t))
+      t = store_bond(n, i1, i2);
+
 
     delx = x[i1][0] - x[i2][0];
     dely = x[i1][1] - x[i2][1];
@@ -239,8 +246,9 @@ void BondRHEOShell::compute(int eflag, int vflag)
       }
 
       // Check ellapsed time
-      bondstore[n][1] += dt;
-      if (bondstore[n][1] >= tform) {
+      t += dt;
+      bondstore[n][1] = t;
+      if (t >= tform) {
         bondstore[n][0] = r;
         r0 = r;
         if (newton_bond || i1 < nlocal) dbond[i1] ++;
@@ -284,7 +292,6 @@ void BondRHEOShell::compute(int eflag, int vflag)
 
     if (evflag) ev_tally(i1, i2, nlocal, newton_bond, 0.0, fbond, delx, dely, delz);
   }
-
 
   // Communicate changes in nbond
   if (newton_bond) comm->reverse_comm(this);
@@ -555,7 +562,7 @@ void BondRHEOShell::process_ineligibility(int i, int j)
         bond_type[i][m] = bond_type[i][n - 1];
         bond_atom[i][m] = bond_atom[i][n - 1];
         for (auto &ihistory: histories) {
-          auto fix_bond_history2 = dynamic_cast<FixBondHistory *>  (ihistory);
+          auto fix_bond_history2 = dynamic_cast<FixBondHistory *> (ihistory);
           fix_bond_history2->shift_history(i, m, n - 1);
           fix_bond_history2->delete_history(i, n - 1);
         }
@@ -573,7 +580,7 @@ void BondRHEOShell::process_ineligibility(int i, int j)
         bond_type[j][m] = bond_type[j][n - 1];
         bond_atom[j][m] = bond_atom[j][n - 1];
         for (auto &ihistory: histories) {
-          auto fix_bond_history2 = dynamic_cast<FixBondHistory *>  (ihistory);
+          auto fix_bond_history2 = dynamic_cast<FixBondHistory *> (ihistory);
           fix_bond_history2->shift_history(j, m, n - 1);
           fix_bond_history2->delete_history(j, n - 1);
         }

@@ -108,7 +108,7 @@ void FixRHEOOxidation::init()
   nbond = atom->ivector[index_nb];
 
   // need a half neighbor list
-  auto req = neighbor->add_request(this, NeighConst::REQ_DEFAULT);
+  auto req = neighbor->add_request(this, NeighConst::REQ_FULL);
   req->set_cutoff(cut);
 }
 
@@ -200,30 +200,15 @@ void FixRHEOOxidation::post_integrate()
       }
       if (bflag) continue;
 
-      for (n = 0; n < num_bond[j]; n++) {
-        if (bond_type[j][n] == btype && bond_atom[j][n] == tagi) {
-          bflag = 1;
-          break;
-        }
-      }
-      if (bflag) continue;
-
       // Add bonds to owned atoms
       // If newton bond, add to both, otherwise add to whichever has a smaller tag
-      if (i < nlocal && (!newton_bond || tagi < tagj)) {
+
+      if (!newton_bond || tagi < tagj) {
         if (num_bond[i] == atom->bond_per_atom)
           error->one(FLERR,"New bond exceeded bonds per atom in fix rheo/oxidation for atom {}", tagi);
         bond_type[i][num_bond[i]] = btype;
         bond_atom[i][num_bond[i]] = tagj;
         num_bond[i]++;
-      }
-
-      if (j < nlocal && (!newton_bond || tagj < tagi)) {
-        if (num_bond[j] == atom->bond_per_atom)
-          error->one(FLERR,"New bond exceeded bonds per atom in fix rheo/oxidation for atom {}", tagj);
-        bond_type[j][num_bond[j]] = btype;
-        bond_atom[j][num_bond[j]] = tagi;
-        num_bond[j]++;
       }
     }
   }

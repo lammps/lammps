@@ -189,7 +189,7 @@ void PairRHEO::compute(int eflag, int vflag)
         pair_avisc_flag = 0;
         if (fluidi || fluidj) {
           pair_force_flag = 1;
-          if (interface_flag) pair_avisc_flag = 1;
+          if (!interface_flag) pair_avisc_flag = 1;
         }
         if (fluidi && fluidj) {
           pair_rho_flag = 1;

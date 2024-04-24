@@ -765,6 +765,8 @@
 /fix_acks2_reaxff.h
 /fix_adapt_fep.cpp
 /fix_adapt_fep.h
+/fix_add_heat.cpp
+/fix_add_heat.h
 /fix_addtorque.cpp
 /fix_addtorque.h
 /fix_append_atoms.cpp

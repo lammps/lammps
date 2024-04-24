@@ -64,6 +64,7 @@ class FixBondHistory : public Fix {
   int *setflag;       // Set by BondBPM, which bond types are used
   double **bondstore;
   int stored_flag;
+  int ndata;
 
  protected:
   void allocate();
@@ -76,7 +77,7 @@ class FixBondHistory : public Fix {
 
   int update_flag;    // Flag whether history values can evolve
   int updated_bond_flag;
-  int nbond, maxbond, ndata;
+  int nbond, maxbond;
   int index;
   char *id_fix;
   char *id_array;

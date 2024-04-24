@@ -80,14 +80,18 @@ surfaces.
 
 A modified form of Fickian particle shifting can be enabled with the
 *shift* keyword. This effectively shifts particle positions to generate a
-more uniform spatial distribution. In systems with free surfaces, the
-*surface/detection* keyword can be used to classify the location of
-particles as being within the bulk fluid, on a free surface, or isolated
-from other particles in a splash or droplet. Shifting is then disabled in
-the direction away from the free surface to prevent it from diffusing
-particles away from the bulk fluid. Surface detection can also be used
-to control surface-nucleated effects like oxidation when used in combination
-with :doc:`fix rheo/oxidation <fix_rheo_oxidation>`.
+more uniform spatial distribution. Shifting currently does consider the
+type of a particle and therefore may be inappropriate in systems consisting
+of multiple materials.
+
+In systems with free surfaces, the *surface/detection* keyword can be used
+to classify the location of particles as being within the bulk fluid, on a
+free surface, or isolated from other particles in a splash or droplet.
+Shifting is then disabled in the direction away from the free surface to
+prevent it from diffusing particles away from the bulk fluid. Surface
+detection can also be used to control surface-nucleated effects like
+oxidation when used in combination with
+:doc:`fix rheo/oxidation <fix_rheo_oxidation>`.
 
 The *surface/detection* keyword takes three arguments: *sdstyle*, *limit*,
 and *limi/splash*. The first, *sdstyle*, specifies whether surface particles

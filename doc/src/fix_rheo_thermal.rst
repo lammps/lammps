@@ -109,7 +109,8 @@ Related commands
 
 :doc:`fix rheo <fix_rheo>`,
 :doc:`pair rheo <pair_rheo>`,
-:doc:`compute rheo/property/atom <compute_rheo_property_atom>`
+:doc:`compute rheo/property/atom <compute_rheo_property_atom>`,
+:doc:`fix add/heat <fix_add_heat>`
 
 Default
 """""""

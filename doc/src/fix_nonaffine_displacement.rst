@@ -84,10 +84,10 @@ are a multiple of *nevery* (including timestep zero). Data accessed before
 this occurs will simply be zeroed.
 
 For particles with low coordination numbers, calculations of :math:`D^2_\mathrm{min}`
-may have poor accuracy. An optional minimum coordination number can be defined using
-the *z/min* keyword. If any particles have fewer than the specified number of particles
+may not be accurate. An optional minimum coordination number can be defined using
+the *z/min* keyword. If any particle has fewer than the specified number of particles
 in the cutoff distance or in contact, the above calculations will be skipped and the
-peratom array entries will be zero.
+corresponding peratom array entries will be zero.
 
 The *integrated* style simply integrates the velocity of particles
 every timestep to calculate a displacement. This style only works if

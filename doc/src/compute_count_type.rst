@@ -80,7 +80,7 @@ atoms like so:
    compute typevec all count/type atom # number of atoms of each type
    variable normtypes vector c_typevec/atoms # divide by total number of atoms
    variable ntypes equal extract_setting(ntypes) # number of atom types
-   thermo_style custom step v_normtypes[*$(v_ntypes)] # vector variable needs upper limit
+   thermo_style custom step v_normtypes[*${ntypes}] # vector variable needs upper limit
 
 Similarly, bond counts can be normalized by the total number of bonds.
 The same goes for angles, dihedrals, and impropers (see below).

@@ -591,6 +591,8 @@ void FixNonaffineDisplacement::calculate_D2Min()
     if (!(mask[i] & groupbit)) continue;
 
     if (norm[i] < z_min || singular[i] == 1) {
+      if (norm[i] >= z_min)
+        error->warning(FLERR, "Singular matrix detected for atom {}, defaulting output to zero", atom->tag[i]);
       array_atom[i][0] = 0.0;
       array_atom[i][1] = 0.0;
       array_atom[i][2] = 0.0;

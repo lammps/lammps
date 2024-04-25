@@ -958,8 +958,9 @@ void CommBrick::borders()
     }
   }
 
-  // For molecular systems we lose some bits for local atom indices due
-  // to encoding of special pairs in neighbor lists. Check for overflows.
+  // for molecular systems some bits are lost for local atom indices
+  //   due to encoding of special pairs in neighbor lists
+  // check for overflow
 
   if ((atom->molecular != Atom::ATOMIC)
       && ((atom->nlocal + atom->nghost) > NEIGHMASK))

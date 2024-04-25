@@ -289,7 +289,8 @@ void CommBrick::setup()
   //   do not cross non-periodic boundaries, need[2] = 0 for 2d
   // sendneed[idim][0/1] = # of procs away I send atoms to
   //   0 = to left, 1 = to right
-  //   set equal to recvneed[idim][1/0] of neighbor proc
+  //   # of messages I send to left is # of messages proc to my left receives from right
+  //   so set sendneed[idim][0/1] to recvneed[idim][1/0] of my 2 neighbor procs
   // maxneed[idim] = max procs away any proc recvs atoms in either direction
   // layout = UNIFORM = uniform sized sub-domains:
   //   maxneed is directly computable from sub-domain size

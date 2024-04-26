@@ -968,7 +968,7 @@ void CommBrick::borders()
     error->one(FLERR,"Per-processor number of atoms is too large for "
                "molecular neighbor lists");
 
-  // ensure send/recv buffers are long enough for all forward & reverse comm
+  // ensure send/recv buffers are large enough for all forward & reverse comm
 
   int max = MAX(maxforward*smax,maxreverse*rmax);
   if (max > maxsend) grow_send(max,0);
@@ -1508,6 +1508,7 @@ void CommBrick::grow_swap(int n)
 {
   free_swap();
   allocate_swap(n);
+
   if (mode == Comm::MULTI) {
     free_multi();
     allocate_multi(n);
@@ -1518,9 +1519,7 @@ void CommBrick::grow_swap(int n)
     allocate_multiold(n);
   }
 
-
-  sendlist = (int **)
-    memory->srealloc(sendlist,n*sizeof(int *),"comm:sendlist");
+  sendlist = (int **) memory->srealloc(sendlist,n*sizeof(int *),"comm:sendlist");
   memory->grow(maxsendlist,n,"comm:maxsendlist");
   for (int i = maxswap; i < n; i++) {
     maxsendlist[i] = BUFMIN;

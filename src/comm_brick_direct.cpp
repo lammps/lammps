@@ -22,21 +22,17 @@
 #include "neighbor.h"
 
 // NOTES:
-// make sure all data structs are set by end of borders()
-// allocate requests to length of nrecv_direct
-// what do lengths of send/recv bufs need to be
 // do not allow MULTI with brick/direct or bordergroup
 // how to order dswap by shells within full stencil
 // test msg tags with individual procs as muliple neighbors
-// doc msg tags
+// doc msg tag logic in code
 // test for cutoffs >> box length
-// change 512, 1025 to defines, error check 512 not exceeded
+// error check 512 not exceeded for tags and stencil
 // reorg atom lists to just have 8 unique for 2d and 26 for 3d plus "all" list
-// add an init() to check for some disallowed optons ?
+// add an init() to check for some disallowed options ?
 // for outer shell of stencil procs, need to compute send proc cutoff
 //    can do this for each of 6 directions, use xyzsplit for nonuniform bricks
 //    for orthongonal or triclinic
-// decide on PBC and tags being in struct or separate vecs
 
 using namespace LAMMPS_NS;
 
@@ -53,22 +49,39 @@ CommBrickDirect::CommBrickDirect(LAMMPS *lmp) : CommBrick(lmp)
 
   dswap = nullptr;
   requests = nullptr;
-  maxdirect = 0;
-
   proc_direct = nullptr;
   pbc_flag_direct = nullptr;
   pbc_direct = nullptr;
-  
+  sendtag = nullptr;
+  recvtag = nullptr;
+  send_indices_direct = nullptr;
+  recv_indices_direct = nullptr;
   self_indices_direct = nullptr;
+  sendnum_direct = nullptr;
+  recvnum_direct = nullptr;
+  size_forward_recv_direct = nullptr;
+  size_reverse_send_direct = nullptr;
+  size_reverse_recv_direct = nullptr;
+  firstrecv_direct = nullptr;
+  maxsendlist_direct = nullptr;
+  sendlist_direct = nullptr;
+  recv_offset_forward = nullptr;
+  recv_offset_reverse = nullptr;
+  recv_offset_border = nullptr;
+
+  ndirect = maxdirect = 0;
+  
+  init_buffers_direct();
 }
 
 /* ---------------------------------------------------------------------- */
 
 CommBrickDirect::~CommBrickDirect()
 {
-  delete [] dswap;
-  delete [] requests;
-  delete [] self_indices_direct;
+  deallocate_direct();
+
+  memory->destroy(buf_send_direct);
+  memory->destroy(buf_recv_direct);
 }
 
 /* ---------------------------------------------------------------------- */
@@ -79,6 +92,25 @@ CommBrickDirect::CommBrickDirect(LAMMPS *lmp, Comm *oldcomm) : CommBrick(lmp, ol
     error->all(FLERR,"Cannot change to comm_style brick/direct from tiled layout");
 
   style = Comm::BRICK_DIRECT;
+  layout = oldcomm->layout;
+  Comm::copy_arrays(oldcomm);
+  init_buffers_direct();
+}
+
+/* ----------------------------------------------------------------------
+   initialize comm buffers and other data structs local to CommBrickDirect
+------------------------------------------------------------------------- */
+
+void CommBrickDirect::init_buffers_direct()
+{
+  buf_send_direct = buf_recv_direct = nullptr;
+  maxsend_direct = maxrecv_direct = BUFMIN;
+  grow_send_direct(maxsend_direct,2);
+  memory->create(buf_recv_direct,maxrecv_direct,"comm:buf_recv_direct");
+
+  ndirect = 0;
+  maxdirect = 26;
+  allocate_direct();
 }
 
 /* ----------------------------------------------------------------------
@@ -122,16 +154,9 @@ void CommBrickDirect::setup()
   ndirect = (ihi-ilo+1) * (jhi-jlo+1) * (khi-klo+1) - 1;
 
   if (ndirect > maxdirect) {
-    delete [] dswap;
-    dswap = new DirectSwap[ndirect];
-    delete [] requests;
-    requests = new MPI_Request[ndirect];
-    delete [] proc_direct;
-    proc_direct = new int[ndirect];
-    delete [] pbc_flag_direct;
-    pbc_flag_direct = new int[ndirect];
-    memory->destroy(pbc_direct);
-    memory->create(pbc_direct,ndirect,3,"comm:pbc_direct");
+    deallocate_direct();
+    maxdirect = ndirect;
+    allocate_direct();
   }
 
   // loop over stencil and define each direct swap
@@ -226,16 +251,18 @@ void CommBrickDirect::setup()
         if (!ds->xcheck and !ds->ycheck && !ds->zcheck) ds->allflag = 1;
         else ds->allflag = 0;
 
-        pbc_flag[iswap] = 0;
-        pbc[iswap][0] = pbc[iswap][1] = pbc[iswap][2] =
-          pbc[iswap][3] = pbc[iswap][4] = pbc[iswap][5] = 0;
-        if (xpbc || !ypbc || zpbc) {
-          pbc[iswap][0] = xpbc;
-          pbc[iswap][1] = ypbc;
-          pbc[iswap][2] = zpbc;
+        pbc_flag_direct[iswap] = 0;
+        pbc_direct[iswap][0] = pbc_direct[iswap][1] = pbc_direct[iswap][2] =
+          pbc_direct[iswap][3] = pbc_direct[iswap][4] = pbc_direct[iswap][5] = 0;
+        
+        if (xpbc || ypbc || zpbc) {
+          pbc_flag_direct[iswap] = 1;
+          pbc_direct[iswap][0] = xpbc;
+          pbc_direct[iswap][1] = ypbc;
+          pbc_direct[iswap][2] = zpbc;
           if (triclinic) {
-            pbc[iswap][5] = pbc[iswap][1];
-            pbc[iswap][4] = pbc[iswap][3] = pbc[iswap][2];
+            pbc_direct[iswap][5] = pbc_direct[iswap][1];
+            pbc_direct[iswap][4] = pbc_direct[iswap][3] = pbc_direct[iswap][2];
           }
         }
 
@@ -253,19 +280,11 @@ void CommBrickDirect::setup()
 
   ndirect = iswap;
 
-  // set nself, self_indices_direct
+  // set nself_direct and self_indices_direst
 
   nself_direct = 0;
   for (iswap = 0; iswap < ndirect; iswap++)
-    if (dswap[iswap].proc == me) nself_direct++;
-
-  delete [] self_indices_direct;
-  self_indices_direct = new int[nself_direct];
-
-  nself_direct = 0;
-  for (iswap = 0; iswap < ndirect; iswap++)
-    if (dswap[iswap].proc == me) self_indices_direct[nself_direct++] = iswap;
-  
+    if (proc_direct[iswap] == me) self_indices_direct[nself_direct++] = iswap;
 }
 
 /* ----------------------------------------------------------------------
@@ -285,6 +304,8 @@ void CommBrickDirect::forward_comm(int /*dummy*/)
   // post all receives for ghost atoms
   // except for self copies
 
+  int offset;
+  
   nrecv = 0;
   for (iswap = 0; iswap < ndirect; iswap++) {
     if (proc_direct[iswap] == me) continue;
@@ -296,7 +317,8 @@ void CommBrickDirect::forward_comm(int /*dummy*/)
       }
     } else {
       if (size_forward_recv_direct[iswap]) {
-        MPI_Irecv(buf_recv_direct[iswap],size_forward_recv_direct[iswap],MPI_DOUBLE,
+        offset = recv_offset_forward[iswap];
+        MPI_Irecv(&buf_recv_direct[offset],size_forward_recv_direct[iswap],MPI_DOUBLE,
                   proc_direct[iswap],recvtag[iswap],world,&requests[nrecv++]);
       }
     }
@@ -348,13 +370,15 @@ void CommBrickDirect::forward_comm(int /*dummy*/)
     for (int i = 0; i < nrecv; i++) {
       MPI_Waitany(nrecv,requests,&irecv,MPI_STATUS_IGNORE);
       iswap = recv_indices_direct[irecv];
-      avec->unpack_comm_vel(recvnum_direct[iswap],firstrecv_direct[iswap],buf_recv_direct[iswap]);
+      offset = recv_offset_forward[iswap];
+      avec->unpack_comm_vel(recvnum_direct[iswap],firstrecv_direct[iswap],&buf_recv_direct[offset]);
     }
   } else {
     for (int i = 0; i < nrecv; i++) {
       MPI_Waitany(nrecv,requests,&irecv,MPI_STATUS_IGNORE);
       iswap = recv_indices_direct[irecv];
-      avec->unpack_comm(recvnum_direct[iswap],firstrecv_direct[iswap],buf_recv_direct[iswap]);
+      offset = recv_offset_forward[iswap];
+      avec->unpack_comm(recvnum_direct[iswap],firstrecv_direct[iswap],&buf_recv_direct[offset]);
     }
   }
 }
@@ -377,12 +401,16 @@ void CommBrickDirect::reverse_comm()
   // post all receives for owned atoms
   // except for self copy/sums
 
+  int offset;
+  
   nrecv = 0;
   for (int iswap = 0; iswap < ndirect; iswap++) {
     if (recvproc[iswap] == me) continue;
-    if (size_reverse_recv_direct[iswap])
-      MPI_Irecv(buf_recv_direct[iswap],size_reverse_recv_direct[iswap],MPI_DOUBLE,
+    if (size_reverse_recv_direct[iswap]) {
+      offset = recv_offset_forward[iswap];
+      MPI_Irecv(&buf_recv_direct[offset],size_reverse_recv_direct[iswap],MPI_DOUBLE,
                 proc_direct[iswap],sendtag[iswap],world,&requests[nrecv++]);
+    }
   }
 
   // send all ghost atoms to receiving procs
@@ -424,7 +452,8 @@ void CommBrickDirect::reverse_comm()
   for (int i; i < nrecv; i++) {
     MPI_Waitany(nrecv,requests,&irecv,MPI_STATUS_IGNORE);
     iswap = send_indices_direct[irecv];
-    avec->unpack_reverse(sendnum_direct[iswap],sendlist_direct[iswap],buf_recv_direct[iswap]);
+    offset = recv_offset_reverse[iswap];
+    avec->unpack_reverse(sendnum_direct[iswap],sendlist_direct[iswap],&buf_recv_direct[offset]);
   }
 }
 
@@ -445,7 +474,7 @@ void CommBrickDirect::reverse_comm()
 
 void CommBrickDirect::borders()
 {
-  int i,n,iswap,irecv,nrecv;
+  int i,n,iswap,isend,irecv,nsend,nrecv;
   
   AtomVec *avec = atom->avec;
   double **x = atom->x;
@@ -454,7 +483,7 @@ void CommBrickDirect::borders()
   // setup lists of atoms to send in each direct swap
 
   DirectSwap *ds;
-  int nsend,allflag,xcheck,ycheck,zcheck;
+  int allflag,xcheck,ycheck,zcheck;
   double xlo,xhi,ylo,yhi,zlo,zhi;
   
   for (iswap = 0; iswap < ndirect; iswap++) {
@@ -466,7 +495,10 @@ void CommBrickDirect::borders()
 
     if (allflag) {
       for (i = 0; i < nlocal; i++) {
-        if (nsend == maxsend) grow_list_direct(iswap,nsend);
+        if (nsend == maxsend) {
+          grow_list_direct(iswap,nsend);
+          maxsend = maxsendlist_direct[iswap];
+        }
         sendlist_direct[iswap][nsend++] = i;
       }
       
@@ -486,28 +518,31 @@ void CommBrickDirect::borders()
         if (xcheck && (x[i][0] < xlo || x[i][0] > xhi)) continue;
         if (ycheck && (x[i][1] < ylo || x[i][1] > yhi)) continue;
         if (zcheck && (x[i][2] < zlo || x[i][2] > zhi)) continue;
-        if (nsend == maxsend) grow_list(iswap,nsend);
+        if (nsend == maxsend) {
+          grow_list_direct(iswap,nsend);
+          maxsend = maxsendlist_direct[iswap];
+        }
         sendlist_direct[iswap][nsend++] = i;
       }
     }
 
     sendnum_direct[iswap] = nsend;
-    proc_direct[iswap] = ds->proc;
   }
 
-  // send value of nsend for each swap to each receiving proc
+  // recvnum_direct = number of ghost atoms recieved in each swap
+  // acquire by sending value of nsend for each swap to each receiving proc
   // post receives, perform sends, copy to self, wait for all incoming messages
 
   nrecv = 0;
   for (iswap = 0; iswap < ndirect; iswap++) {
     if (proc_direct[iswap] == me) continue;
     MPI_Irecv(&recvnum_direct[iswap],1,MPI_INT,
-              proc_direct[iswap],ds->recvtag,world,&requests[nrecv++]);
+              proc_direct[iswap],recvtag[iswap],world,&requests[nrecv++]);
   }
 
   for (iswap = 0; iswap < ndirect; iswap++) {
     if (proc_direct[iswap] == me) continue;
-    MPI_Send(&sendnum_direct[iswap],1,MPI_INT,proc_direct[iswap],ds->sendtag,world);
+    MPI_Send(&sendnum_direct[iswap],1,MPI_INT,proc_direct[iswap],sendtag[iswap],world);
   }
 
   for (int iself = 0; iself < nself_direct; iself++) {
@@ -517,15 +552,75 @@ void CommBrickDirect::borders()
   
   MPI_Waitall(nrecv,requests,MPI_STATUS_IGNORE);
 
-  // perform border comm via direct swaps
-  // post receives, perform pack+sends, copy to self, wait for and unpack all incoming messages
+  // set nghost = sum of recnum_direct over swaps
+  // set firstrecv_direct = index to 1st ghost atom in each swap receive
+  // set size_forward_recv_direct and size_reverse_send/recv_direct
+  // set send_indices_direct and recv_indices_direct for non-empty swaps with other procs
 
+  int nghost = 0;
+  isend = irecv = 0;
+  int offset_forward = 0;
+  int offset_reverse = 0;
+  int offset_border = 0;
+  int smax = 0;
+  int rmax = 0;
+  int ssum = 0;
+  int rsum = 0;
+  
+  for (iswap = 0; iswap < ndirect; iswap++) {
+    nsend = sendnum_direct[iswap];
+    nrecv = sendnum_direct[iswap];
+    firstrecv_direct[iswap] = nlocal + nghost;
+    nghost += nrecv;
+    
+    size_forward_recv_direct[iswap] = size_forward * nrecv;
+    size_reverse_send_direct[iswap] = size_reverse * nrecv;
+    size_reverse_recv_direct[iswap] = size_reverse * nsend;
+
+    recv_offset_forward[iswap] = offset_forward;
+    recv_offset_reverse[iswap] = offset_reverse;
+    recv_offset_border[iswap] = offset_border;
+    offset_forward += size_forward_recv_direct[iswap];
+    offset_reverse += size_reverse_recv_direct[iswap];
+    offset_border += size_border * nrecv;
+    
+    if (nsend) send_indices_direct[isend++] = iswap;
+    if (nrecv) recv_indices_direct[irecv++] = iswap;
+    smax = MAX(smax,nsend);
+    rmax = MAX(rmax,nrecv);
+    ssum += nsend;
+    rsum += nrecv;
+  }
+
+  atom->nghost = nghost;
+
+  // ensure send/recv buffers are large enough for all border & forward & reverse comm
+  // size of send buf is for a single swap
+  // size of recv buf is for all swaps
+  
+  int max = size_border * smax;
+  max = MAX(max,maxforward*smax);
+  max = MAX(max,maxreverse*rmax);
+  if (max > maxsend_direct) grow_send_direct(max,0);
+
+  max = size_border * rsum;
+  max = MAX(max,maxforward*rsum);
+  max = MAX(max,maxreverse*ssum);
+  if (max > maxrecv_direct) grow_recv_direct(max);
+  
+  // perform border comm via direct swaps
+  // use pack/unpack border and pack/unpack border_vel
+  // post receives, perform sends, copy to self, wait for all incoming messages
+
+  int offset;
+  
   nrecv = 0;
   for (iswap = 0; iswap < ndirect; iswap++) {
     if (proc_direct[iswap] == me) continue;
     if (size_forward_recv_direct[iswap]) {
-      MPI_Irecv(buf_recv_direct[iswap],size_forward_recv_direct[iswap],MPI_DOUBLE,
-                proc_direct[iswap],ds->recvtag,world,&requests[nrecv++]);
+      offset = recv_offset_border[iswap];
+      MPI_Irecv(&buf_recv_direct[offset],size_forward_recv_direct[iswap],MPI_DOUBLE,
+                proc_direct[iswap],recvtag[iswap],world,&requests[nrecv++]);
     }
   }
                     
@@ -534,11 +629,11 @@ void CommBrickDirect::borders()
     if (ghost_velocity) {
       n = avec->pack_border_vel(sendnum_direct[iswap],sendlist_direct[iswap],buf_send_direct,
                               pbc_flag_direct[iswap],pbc_direct[iswap]);
-      if (n) MPI_Send(buf_send_direct,n,MPI_DOUBLE,proc_direct[iswap],ds->sendtag,world);
+      if (n) MPI_Send(buf_send_direct,n,MPI_DOUBLE,proc_direct[iswap],sendtag[iswap],world);
     } else {
       n = avec->pack_border(sendnum_direct[iswap],sendlist_direct[iswap],buf_send_direct,
                           pbc_flag_direct[iswap],pbc_direct[iswap]);
-      if (n) MPI_Send(buf_send_direct,n,MPI_DOUBLE,proc_direct[iswap],ds->sendtag,world);
+      if (n) MPI_Send(buf_send_direct,n,MPI_DOUBLE,proc_direct[iswap],sendtag[iswap],world);
     }
   }
 
@@ -561,30 +656,20 @@ void CommBrickDirect::borders()
       for (int i = 0; i < nrecv; i++) {
         MPI_Waitany(nrecv,requests,&irecv,MPI_STATUS_IGNORE);
         iswap = recv_indices_direct[irecv];
-        avec->unpack_border_vel(recvnum_direct[iswap],firstrecv_direct[iswap],buf_recv_direct[iswap]);
+        offset = recv_offset_border[iswap];
+        avec->unpack_border_vel(recvnum_direct[iswap],firstrecv_direct[iswap],
+                                &buf_recv_direct[offset]);
       }
     } else {
       for (int i = 0; i < nrecv; i++) {
         MPI_Waitany(nrecv,requests,&irecv,MPI_STATUS_IGNORE);
         iswap = recv_indices_direct[irecv];
-        avec->unpack_border(recvnum_direct[iswap],firstrecv_direct[iswap],buf_recv_direct[iswap]);
+        offset = recv_offset_border[iswap];
+        avec->unpack_border(recvnum_direct[iswap],firstrecv_direct[iswap],
+                            &buf_recv_direct[offset]);
       }
     }
   }
-
-  // set all pointers & counters
-
-  /*
-  smax = MAX(smax,nsend);
-  rmax = MAX(rmax,nrecv);
-  sendnum[iswap] = nsend;
-  recvnum[iswap] = nrecv;
-  size_forward_recv[iswap] = nrecv*size_forward;
-  size_reverse_send[iswap] = nrecv*size_reverse;
-  size_reverse_recv[iswap] = nsend*size_reverse;
-  firstrecv[iswap] = atom->nlocal + atom->nghost;
-  atom->nghost += nrecv;
-  */
   
   // for molecular systems some bits are lost for local atom indices
   //   due to encoding of special pairs in neighbor lists
@@ -595,16 +680,109 @@ void CommBrickDirect::borders()
     error->one(FLERR,"Per-processor number of atoms is too large for "
                "molecular neighbor lists");
 
-  // ensure send/recv buffers are long enough for all forward & reverse comm
-
-  int max = MAX(maxforward*smax,maxreverse*rmax);
-  if (max > maxsend) grow_send(max,0);
-  max = MAX(maxforward*rmax,maxreverse*smax);
-  if (max > maxrecv) grow_recv(max);
-
   // reset global->local map
 
   if (map_style != Atom::MAP_NONE) atom->map_set();
+}
+
+/* ----------------------------------------------------------------------
+   allocate all vectors that depend on maxdirect = size of direct swap stencil
+------------------------------------------------------------------------- */
+
+void CommBrickDirect::allocate_direct()
+{
+  dswap = (DirectSwap *) memory->smalloc(maxdirect*sizeof(DirectSwap),"comm:dswap");
+  requests = (MPI_Request *) memory->smalloc(maxdirect*sizeof(MPI_Request),"comm:requests");
+  memory->create(proc_direct,maxdirect,"comm:proc_direct");
+  memory->create(pbc_flag_direct,maxdirect,"comm:pbc_flag_direct");
+  memory->create(pbc_direct,maxdirect,6,"comm:pbc_direct");
+  memory->create(sendtag,maxdirect,"comm:sendtag");
+  memory->create(recvtag,maxdirect,"comm:recvtag");
+  memory->create(send_indices_direct,maxdirect,"comm:self_indices_direct");
+  memory->create(recv_indices_direct,maxdirect,"comm:self_indices_direct");
+  memory->create(self_indices_direct,maxdirect,"comm:self_indices_direct");
+  memory->create(sendnum_direct,maxdirect,"comm:sendnum_direct");
+  memory->create(recvnum_direct,maxdirect,"comm:recvnum_direct");
+  memory->create(size_forward_recv_direct,maxdirect,"comm:size_forward_recv_direct");
+  memory->create(size_reverse_send_direct,maxdirect,"comm:size_reverse_send_direct");
+  memory->create(size_reverse_recv_direct,maxdirect,"comm:size_reverse_recv_direct");
+  memory->create(firstrecv_direct,maxdirect,"comm:recvnum_direct");
+  memory->create(recv_offset_forward,maxdirect,"comm:recv_offset_forward");
+  memory->create(recv_offset_reverse,maxdirect,"comm:recv_offset_reverse");
+  memory->create(recv_offset_border,maxdirect,"comm:recv_offset_border");
+
+  memory->create(maxsendlist_direct,maxdirect,"comm:maxsendlist_direct");
+  sendlist_direct = (int **) memory->smalloc(maxdirect*sizeof(int *),"comm:sendlist_direct");
+  for (int iswap = 0; iswap < maxdirect; iswap++) {
+    maxsendlist_direct[iswap] = BUFMIN;
+    memory->create(sendlist_direct[iswap],BUFMIN,"comm:sendlist_direct[iswap]");
+  }
+}
+
+/* ----------------------------------------------------------------------
+   deallocate all vectors that depend on maxdirect = size of direct swap stencil
+------------------------------------------------------------------------- */
+
+void CommBrickDirect::deallocate_direct()
+{
+  memory->sfree(dswap);
+  memory->sfree(requests);
+  memory->destroy(proc_direct);
+  memory->destroy(pbc_flag_direct);
+  memory->destroy(pbc_direct);
+  memory->destroy(sendtag);
+  memory->destroy(recvtag);
+  memory->destroy(send_indices_direct);
+  memory->destroy(recv_indices_direct);
+  memory->destroy(self_indices_direct);
+  memory->destroy(sendnum_direct);
+  memory->destroy(recvnum_direct);
+  memory->destroy(size_forward_recv_direct);
+  memory->destroy(size_reverse_send_direct);
+  memory->destroy(size_reverse_recv_direct);
+  memory->destroy(firstrecv_direct);
+  memory->destroy(recv_offset_forward);
+  memory->destroy(recv_offset_reverse);
+  memory->destroy(recv_offset_border);
+
+  memory->destroy(maxsendlist_direct);
+  for (int iswap = 0; iswap < maxdirect; iswap++)
+    memory->destroy(sendlist_direct[iswap]);
+  memory->sfree(sendlist_direct);
+}
+
+/* ----------------------------------------------------------------------
+   realloc the size of the send_direct buffer as needed with BUFFACTOR
+   do not use bufextra as in CommBrick, b/c not using buf_send_direct for exchange()
+   flag = 0, don't need to realloc with copy, just free/malloc w/ BUFFACTOR
+   flag = 1, realloc with BUFFACTOR
+   flag = 2, free/malloc w/out BUFFACTOR
+------------------------------------------------------------------------- */
+
+void CommBrickDirect::grow_send_direct(int n, int flag)
+{
+  if (flag == 0) {
+    maxsend = static_cast<int> (BUFFACTOR * n);
+    memory->destroy(buf_send_direct);
+    memory->create(buf_send_direct,maxsend,"comm:buf_send_direct");
+  } else if (flag == 1) {
+    maxsend = static_cast<int> (BUFFACTOR * n);
+    memory->grow(buf_send_direct,maxsend,"comm:buf_send_direct");
+  } else {
+    memory->destroy(buf_send_direct);
+    memory->grow(buf_send_direct,maxsend,"comm:buf_send_direct");
+  }
+}
+
+/* ----------------------------------------------------------------------
+   free/malloc the size of the recv_direct buffer as needed with BUFFACTOR
+------------------------------------------------------------------------- */
+
+void CommBrickDirect::grow_recv_direct(int n)
+{
+  maxrecv = static_cast<int> (BUFFACTOR * n);
+  memory->destroy(buf_recv_direct);
+  memory->create(buf_recv_direct,maxrecv,"comm:buf_recv_direct");
 }
 
 /* ----------------------------------------------------------------------

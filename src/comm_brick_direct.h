@@ -33,12 +33,8 @@ class CommBrickDirect : public CommBrick {
  protected:
   
   struct DirectSwap {
-    int proc;                   // proc ID to perform direct swap with, can be self
     int allflag;                // 1 if sending all my owned atoms
     int xcheck,ycheck,zcheck;   // which coord dims to check to send subset
-    int pbc_flag;               // 1 if any PBC coord shifts are needed when sender packs
-    int pbc[6];                 // coord shift for each dim plus triclinic shifts
-    int sendtag,recvtag;        // MPI send/recv tags for matching swap on sender/receiver
     double xlo,xhi;             // lo/hi bounds in each coord dim when sending subset
     double ylo,yhi;
     double zlo,zhi;
@@ -48,7 +44,7 @@ class CommBrickDirect : public CommBrick {
   int ndirect;                            // # of DirectSwaps with nearby procs, including self
   int maxdirect;                          // max # of DirectSwaps dswap is allocated for
   
-  int nself_direct;                       // # of non-empty swaps with self
+  int nself_direct;                       // # of swaps with self, non-empty or empty
   
   int *send_indices_direct;               // indices of non-empty swap sends to other procs
   int *recv_indices_direct;               // indices of non-empty swap recvs with other procs
@@ -61,19 +57,33 @@ class CommBrickDirect : public CommBrick {
   
   int *sendnum_direct;                    // # of atoms to send in each swap
   int *recvnum_direct;                    // # of atoms to recv in each swap
+  
   int *size_forward_recv_direct;          // # of values to recv in each forward comm
   int *size_reverse_send_direct;          // # of values to send in each reverse comm
   int *size_reverse_recv_direct;          // # of values to recv in each reverse comm
 
   int *firstrecv_direct;    // index of where to put 1st ghost atom in each swap
-  int **sendlist_direct;    // list of owned atoms to send in each swap
+
   int *maxsendlist_direct;  // max size of each sendlist_direct list
+  int **sendlist_direct;    // list of indices of owned atoms to send in each swap
+
+  int *recv_offset_forward;  // offsets into buf_recv_direct for forward comm receives
+  int *recv_offset_reverse;  // offsets into buf_recv_direct for reverse comm receives
+  int *recv_offset_border;   // offsets into buf_recv_direct for border comm receives
 
   double *buf_send_direct;  // send buffer used for every swap (large enough for any)
-  double **buf_recv_direct; // list of recv buffers for all swaps (large enough for each)
+  double *buf_recv_direct;  // recv buffer used for all swaps (large enough for all)
 
+  int maxsend_direct;       // size of buf_send_direct
+  int maxrecv_direct;       // size of buf_recv_direct
+  
   MPI_Request *requests;    // list of requests, length = ndirect
 
+  void init_buffers_direct();
+  void allocate_direct();
+  void deallocate_direct();
+  void grow_send_direct(int, int);
+  void grow_recv_direct(int);
   void grow_list_direct(int, int);
 };
 

@@ -22,10 +22,10 @@ class CommBrickDirect : public CommBrick {
  public:
   CommBrickDirect(class LAMMPS *);
   CommBrickDirect(class LAMMPS *, class Comm *);
-
   ~CommBrickDirect() override;
 
-  void setup() override;                        // setup 3d comm pattern
+  void init() override;                         // init error checks
+  void setup() override;                        // setup direct comm data structs
   void forward_comm(int dummy = 0) override;    // forward comm of atom coords
   void reverse_comm() override;                 // reverse comm of forces
   void borders() override;                      // setup list of atoms to comm
@@ -40,20 +40,21 @@ class CommBrickDirect : public CommBrick {
     double zlo,zhi;
   };
 
-  DirectSwap *dswap;
-  int ndirect;                            // # of DirectSwaps with nearby procs, including self
-  int maxdirect;                          // max # of DirectSwaps dswap is allocated for
-  
+  DirectSwap *dswap;                      // list of direct swaps in 3d stencil
+  int ndirect;                            // # of direct swaps with nearby procs, including self
+  int maxdirect;                          // max size that dswap is allocated for
   int nself_direct;                       // # of swaps with self, non-empty or empty
+
+  int **swaporder;                        // ordering (ijk indices) of swaps within 3d stencil
   
   int *send_indices_direct;               // indices of non-empty swap sends to other procs
-  int *recv_indices_direct;               // indices of non-empty swap recvs with other procs
+  int *recv_indices_direct;               // indices of non-empty swap recvs from other procs
   int *self_indices_direct;               // indices of non-empty swaps with self
 
-  int *proc_direct;                       // proc to send/recv to/from for each swap
-  int *pbc_flag_direct;                   // general flag for sending atoms thru PBC
-  int **pbc_direct;                       // dimension flags for PBC adjustments
-  int *sendtag, *recvtag;                 // MPI tags for send and recv in each swap
+  int *proc_direct;                       // proc to send/recv to/from for each swap, can be me
+  int *pbc_flag_direct;                   // overall flag for sending atoms thru PBC
+  int **pbc_direct;                       // 6 dimension flags for PBC adjusts, including triclinc
+  int *sendtag, *recvtag;                 // MPI tags for send/recv in each swap
   
   int *sendnum_direct;                    // # of atoms to send in each swap
   int *recvnum_direct;                    // # of atoms to recv in each swap
@@ -63,10 +64,10 @@ class CommBrickDirect : public CommBrick {
   int *size_reverse_recv_direct;          // max # of values to recv in each reverse comm
   int *size_border_recv_direct;           // max # of values to recv in each border comm
 
-  int *firstrecv_direct;    // index of where to put 1st ghost atom in each swap
+  int *firstrecv_direct;                  // index of first received ghost atom in each swap
 
-  int *maxsendlist_direct;  // max size of each sendlist_direct list
-  int **sendlist_direct;    // list of indices of owned atoms to send in each swap
+  int *maxsendlist_direct;                // max size of each sendlist_direct list
+  int **sendlist_direct;                  // list of indices of owned atoms to send in each swap
 
   int *recv_offset_forward_direct;  // offsets into buf_recv_direct for forward comm receives
   int *recv_offset_reverse_direct;  // offsets into buf_recv_direct for reverse comm receives
@@ -80,11 +81,12 @@ class CommBrickDirect : public CommBrick {
   
   MPI_Request *requests;    // list of requests, length = ndirect
 
-  // cutoffs for MPI sends of owned atoms to procs on 6 faces of stencil
-  
-  double cutxlo, cutxhi, cutylo, cutyhi, cutzlo, cutzhi;
+  double cutxlo, cutxhi;    // cutoffs for sending owned atoms to procs on 6 faces of stencil
+  double cutylo, cutyhi;
+  double cutzlo, cutzhi;
 
   void init_buffers_direct();
+  void order_swaps(int, int, int, int, int, int);
   void allocate_direct();
   void deallocate_direct();
   void grow_send_direct(int, int);

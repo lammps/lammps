@@ -22,32 +22,29 @@
 #include "neighbor.h"
 
 // NOTES:
-// do not allow MULTI with brick/direct or bordergroup
-// add an init() to check for some disallowed options ?
 // (1) how to order dswap by shells within full stencil
-//   order by faces first, edges 2nd, corners 3rd and do shell by shell
-//   have a 2d and 3d version
-//   this is so that ghost atoms are ordered by distance from owned atoms
-//   similar to how CommBrick works now
-//   or could mimic exactly how CommBrick works now?
+//     order by faces first, edges 2nd, corners 3rd and do shell by shell
+//     have a 2d and 3d version
+//     this is so that ghost atoms are ordered by distance from owned atoms
+//     similar to how CommBrick works now
+//     or could mimic exactly how CommBrick works now?
 // (2) for outer shell of stencil procs, need to compute send proc cutoff
-//    can do this for each of 6 directions, use xyzsplit for nonuniform bricks
-//    for orthongonal or triclinic
-// (3) reorg atom lists to just have 8 unique for 2d and 26 for 3d plus "all" list
-// error check 512 not exceeded for tags and stencil
-// should init of maxdirect be 8 for 2d ?
+//     can do this for each of 6 directions, use xyzsplit for nonuniform bricks
+//     for orthongonal or triclinic
+// (3) reorg atom lists to just 8/26 unique for 2d/3d plus "all" list
+//     do I still need DirectSwap once this is done
 // test msg tags with individual procs as multiple neighbors via big stencil
 // test when cutoffs >> box length
+// test with triclinic
 // doc msg tag logic in code
+// doc stencil data structs and logic in code
 
 using namespace LAMMPS_NS;
 
 static constexpr double BUFFACTOR = 1.5;
 static constexpr int BUFMIN = 1024;
-//static constexpr int STENCIL_HALF = 512;
-//static constexpr int STENCIL_FULL = 1025;
-static constexpr int STENCIL_HALF = 8;
-static constexpr int STENCIL_FULL = 32;
+static constexpr int STENCIL_HALF = 512;
+static constexpr int STENCIL_FULL = 1025;
 
 /* ---------------------------------------------------------------------- */
 
@@ -56,7 +53,7 @@ CommBrickDirect::CommBrickDirect(LAMMPS *lmp) : CommBrick(lmp)
   style = Comm::BRICK_DIRECT;
 
   dswap = nullptr;
-  requests = nullptr;
+  swaporder = nullptr;
   proc_direct = nullptr;
   pbc_flag_direct = nullptr;
   pbc_direct = nullptr;
@@ -77,6 +74,7 @@ CommBrickDirect::CommBrickDirect(LAMMPS *lmp) : CommBrick(lmp)
   recv_offset_forward_direct = nullptr;
   recv_offset_reverse_direct = nullptr;
   recv_offset_border_direct = nullptr;
+  requests = nullptr;
 
   ndirect = maxdirect = 0;
   
@@ -118,8 +116,27 @@ void CommBrickDirect::init_buffers_direct()
   memory->create(buf_recv_direct,maxrecv_direct,"comm:buf_recv_direct");
 
   ndirect = 0;
-  maxdirect = 26;
+  if (domain->dimension == 2) maxdirect = 8;
+  else maxdirect = 26;
   allocate_direct();
+}
+
+/* ----------------------------------------------------------------------
+   first perform CommBrick::init()
+   disallow options not supported by CommBrickDirect
+------------------------------------------------------------------------- */
+
+void CommBrickDirect::init()
+{
+  CommBrick::init();
+                  
+  if (mode == Comm::MULTI || mode == Comm::MULTIOLD)
+    error->all(FLERR,
+               "Comm brick/direct does not yet support multi or multi/old");
+
+  if (bordergroup)
+    error->all(FLERR,
+               "Comm brick/direct does not yet support comm_modify group");
 }
 
 /* ----------------------------------------------------------------------
@@ -160,6 +177,14 @@ void CommBrickDirect::setup()
   int klo = -recvneed[2][0];
   int khi = recvneed[2][1];
 
+  int errflag = 0;
+  if (-ilo > STENCIL_HALF || ihi > STENCIL_HALF ||
+      -jlo > STENCIL_HALF || jhi > STENCIL_HALF ||
+      -klo > STENCIL_HALF || khi > STENCIL_HALF) errflag = 1;
+  int errany;
+  MPI_Allreduce(&errflag,&errany,1,MPI_INT,MPI_MAX,world);
+  if (errany) error->all(FLERR,"Comm brick/direct stencil is too large");
+
   ndirect = (ihi-ilo+1) * (jhi-jlo+1) * (khi-klo+1) - 1;
 
   printf("NDIRECT %d ijk lo/hi %d %d: %d %d: %d %d proc %d\n",
@@ -170,6 +195,11 @@ void CommBrickDirect::setup()
     maxdirect = ndirect;
     allocate_direct();
   }
+
+  // create swaporder = ordering of swaps within 3d stencil brick
+  // each entry in swaporder is ijk indices of the swap within the brick
+
+  order_swaps(ilo,ihi,jlo,jhi,klo,khi);
 
   // calculate 6 cutoffs within my subdomain
   // for sending owned atoms to procs on 6 faces of my stencil
@@ -208,132 +238,178 @@ void CommBrickDirect::setup()
   int igrid,jgrid,kgrid;
   int xpbc,ypbc,zpbc;
   DirectSwap *ds;
-  
-  int iswap = 0;
 
-  for (iz = klo; iz <= khi; iz++) {
-    for (iy = jlo; iy <= jhi; iy++) {
-      for (ix = ilo; ix <= ihi; ix++) {
-
-        // skip center of stencil = my subdomain
+  for (int iswap = 0; iswap < ndirect; iswap++) {
+    ix = swaporder[iswap][0];
+    iy = swaporder[iswap][1];
+    iz = swaporder[iswap][2];
+    
+    ds = &dswap[iswap];
+    xpbc = ypbc = zpbc = 0;
         
-        if (ix == 0 && iy == 0 && iz == 0) continue;
-  
-        ds = &dswap[iswap];
-        xpbc = ypbc = zpbc = 0;
-        
-        igrid = myloc[0] + ix;
-        while (igrid < 0) {
-          igrid += procgrid[0];
-          xpbc++;
-        }
-        while (igrid >= procgrid[0]) {
-          igrid -= procgrid[0];
-          xpbc--;
-        }
+    igrid = myloc[0] + ix;
+    while (igrid < 0) {
+      igrid += procgrid[0];
+      xpbc++;
+    }
+    while (igrid >= procgrid[0]) {
+      igrid -= procgrid[0];
+      xpbc--;
+    }
+    
+    jgrid = myloc[1] + iy;
+    while (jgrid < 0) {
+      jgrid += procgrid[1];
+      ypbc++;
+    }
+    while (jgrid >= procgrid[1]) {
+      jgrid -= procgrid[1];
+      ypbc--;
+    }
 
-        jgrid = myloc[1] + iy;
-        while (jgrid < 0) {
-          jgrid += procgrid[1];
-          ypbc++;
-        }
-        while (jgrid >= procgrid[1]) {
-          jgrid -= procgrid[1];
-          ypbc--;
-        }
+    kgrid = myloc[2] + iz;
+    while (kgrid < 0) {
+      kgrid += procgrid[2];
+      zpbc++;
+    }
+    while (kgrid >= procgrid[2]) {
+      kgrid -= procgrid[2];
+      zpbc--;
+    }
 
-        kgrid = myloc[2] + iz;
-        while (kgrid < 0) {
-          kgrid += procgrid[2];
-          zpbc++;
-        }
-        while (kgrid >= procgrid[2]) {
-          kgrid -= procgrid[2];
-          zpbc--;
-        }
+    proc_direct[iswap] = grid2proc[igrid][jgrid][kgrid];
 
-        proc_direct[iswap] = grid2proc[igrid][jgrid][kgrid];
-
-        if (ix > ilo && ix < ihi) {
-          ds->xcheck = 0;
-          ds->xlo = ds->xhi = 0.0;
-        } else {
-          ds->xcheck = 1;
-          if (ix == ilo) {
-            ds->xlo = sublo[0];
-            ds->xhi = sublo[0] + cutxlo;
-          } else if (ix == ihi) {
-            ds->xlo = subhi[0] - cutxhi;
-            ds->xhi = subhi[0];
-          }
-        }
-
-        if (iy > jlo && iy < jhi) {
-          ds->ycheck = 0;
-          ds->ylo = ds->yhi = 0.0;
-        } else {
-          ds->ycheck = 1;
-          if (iy == jlo) {
-            ds->ylo = sublo[1];
-            ds->yhi = sublo[1] + cutylo;
-          } else if (iy == jhi) {
-            ds->ylo = subhi[1] - cutyhi;
-            ds->yhi = subhi[1];
-          }
-        }
-
-        if (dim == 2) {
-          ds->zcheck = 0;
-          ds->zlo = ds->zhi = 0.0;
-        } else if (iz > klo && iz < khi) {
-          ds->zcheck = 0;
-          ds->zlo = ds->zhi = 0.0;
-        } else {
-          ds->zcheck = 1;
-          if (iz == klo) {
-            ds->zlo = sublo[2];
-            ds->zhi = sublo[2] + cutzlo;
-          } else if (iz == khi) {
-            ds->zlo = subhi[2] - cutzhi;
-            ds->zhi = subhi[2];
-          }
-        }
-        
-        if (!ds->xcheck and !ds->ycheck && !ds->zcheck) ds->allflag = 1;
-        else ds->allflag = 0;
-
-        pbc_flag_direct[iswap] = 0;
-        pbc_direct[iswap][0] = pbc_direct[iswap][1] = pbc_direct[iswap][2] =
-          pbc_direct[iswap][3] = pbc_direct[iswap][4] = pbc_direct[iswap][5] = 0;
-        
-        if (xpbc || ypbc || zpbc) {
-          pbc_flag_direct[iswap] = 1;
-          pbc_direct[iswap][0] = xpbc;
-          pbc_direct[iswap][1] = ypbc;
-          pbc_direct[iswap][2] = zpbc;
-          if (triclinic) {
-            pbc_direct[iswap][5] = pbc_direct[iswap][1];
-            pbc_direct[iswap][4] = pbc_direct[iswap][3] = pbc_direct[iswap][2];
-          }
-        }
-
-        // MPI tag is based on 3d offset between 2 procs from receiver's perspective
-        
-        sendtag[iswap] = STENCIL_FULL*STENCIL_FULL*(-iz+STENCIL_HALF) +
-          STENCIL_FULL*(-iy+STENCIL_HALF) + (-ix+STENCIL_HALF);
-        recvtag[iswap] = STENCIL_FULL*STENCIL_FULL*(iz+STENCIL_HALF) +
-          STENCIL_FULL*(iy+STENCIL_HALF) + (ix+STENCIL_HALF);
-
-        iswap++;
+    if (ix > ilo && ix < ihi) {
+      ds->xcheck = 0;
+      ds->xlo = ds->xhi = 0.0;
+    } else {
+      ds->xcheck = 1;
+      if (ix == ilo) {
+        ds->xlo = sublo[0];
+        ds->xhi = sublo[0] + cutxlo;
+      } else if (ix == ihi) {
+        ds->xlo = subhi[0] - cutxhi;
+        ds->xhi = subhi[0];
       }
     }
+
+    if (iy > jlo && iy < jhi) {
+      ds->ycheck = 0;
+      ds->ylo = ds->yhi = 0.0;
+    } else {
+      ds->ycheck = 1;
+      if (iy == jlo) {
+        ds->ylo = sublo[1];
+        ds->yhi = sublo[1] + cutylo;
+      } else if (iy == jhi) {
+        ds->ylo = subhi[1] - cutyhi;
+        ds->yhi = subhi[1];
+      }
+    }
+
+    if (dim == 2) {
+      ds->zcheck = 0;
+      ds->zlo = ds->zhi = 0.0;
+    } else if (iz > klo && iz < khi) {
+      ds->zcheck = 0;
+      ds->zlo = ds->zhi = 0.0;
+    } else {
+      ds->zcheck = 1;
+      if (iz == klo) {
+        ds->zlo = sublo[2];
+        ds->zhi = sublo[2] + cutzlo;
+      } else if (iz == khi) {
+        ds->zlo = subhi[2] - cutzhi;
+        ds->zhi = subhi[2];
+      }
+    }
+        
+    if (!ds->xcheck and !ds->ycheck && !ds->zcheck) ds->allflag = 1;
+    else ds->allflag = 0;
+
+    pbc_flag_direct[iswap] = 0;
+    pbc_direct[iswap][0] = pbc_direct[iswap][1] = pbc_direct[iswap][2] =
+      pbc_direct[iswap][3] = pbc_direct[iswap][4] = pbc_direct[iswap][5] = 0;
+        
+    if (xpbc || ypbc || zpbc) {
+      pbc_flag_direct[iswap] = 1;
+      pbc_direct[iswap][0] = xpbc;
+      pbc_direct[iswap][1] = ypbc;
+      pbc_direct[iswap][2] = zpbc;
+      if (triclinic) {
+        pbc_direct[iswap][5] = pbc_direct[iswap][1];
+        pbc_direct[iswap][4] = pbc_direct[iswap][3] = pbc_direct[iswap][2];
+      }
+    }
+
+    // MPI tag is based on 3d offset between 2 procs from receiver's perspective
+        
+    sendtag[iswap] = STENCIL_FULL*STENCIL_FULL*(-iz+STENCIL_HALF) +
+      STENCIL_FULL*(-iy+STENCIL_HALF) + (-ix+STENCIL_HALF);
+    recvtag[iswap] = STENCIL_FULL*STENCIL_FULL*(iz+STENCIL_HALF) +
+      STENCIL_FULL*(iy+STENCIL_HALF) + (ix+STENCIL_HALF);
   }
 
   // set nself_direct and self_indices_direct
 
   nself_direct = 0;
-  for (iswap = 0; iswap < ndirect; iswap++)
+  for (int iswap = 0; iswap < ndirect; iswap++)
     if (proc_direct[iswap] == me) self_indices_direct[nself_direct++] = iswap;
+}
+
+/* ----------------------------------------------------------------------
+   order the swaps within the 3d stencil of swaps
+   swaporder[I][012] = 3 ijk indices within stencil of the Ith swap
+   order the swaps by their stencil distance from the center (my proc)
+   for ties, the swaps are stored in loop order (x first, y next, z last)
+------------------------------------------------------------------------- */
+
+void CommBrickDirect::order_swaps(int ilo, int ihi, int jlo, int jhi, int klo, int khi)
+{
+  /* OLD ordering
+
+  int iswap = 0;
+  for (int iz = klo; iz <= khi; iz++)
+    for (int iy = jlo; iy <= jhi; iy++)
+      for (int ix = ilo; ix <= ihi; ix++) {
+        if (ix == 0 && iy == 0 && iz == 0) continue;
+        swaporder[iswap][0] = ix;
+        swaporder[iswap][1] = iy;
+        swaporder[iswap][2] = iz;
+        iswap++;
+      }
+  */
+  
+  // center of stencil: ix = iy = iz = 0
+  // sdist = distance bewteen center of stencil (me) and another stencil proc
+  //   sdist = abs(ix) + abs(iy) + abs(iz)
+  // maxdistance = max distance of any corner point in stencil from center point
+  // ixyz loop can include ceneter pt, b/c distance = 0, so not added to swaporder
+
+  int imax = MAX(-ilo,ihi);
+  int jmax = MAX(-jlo,jhi);
+  int kmax = MAX(-klo,khi);
+  int maxdistance = imax + jmax + kmax;
+  
+  int ix,iy,iz;
+  int sdist;
+  int idirect = 0;
+
+  for (int distance = 1; distance <= maxdistance; distance++) {
+    for (iz = klo; iz <= khi; iz++)
+      for (iy = jlo; iy <= jhi; iy++)
+        for (ix = ilo; ix <= ihi; ix++) {
+          sdist = abs(ix) + abs(iy) + abs(iz);
+          if (sdist == distance) {
+            swaporder[idirect][0] = ix;
+            swaporder[idirect][1] = iy;
+            swaporder[idirect][2] = iz;
+            idirect++;
+          }
+        }
+  }
+
+  if (idirect != ndirect) error->all(FLERR,"Mistake in stencil ordering");
 }
 
 /* ----------------------------------------------------------------------
@@ -746,7 +822,7 @@ void CommBrickDirect::borders()
 void CommBrickDirect::allocate_direct()
 {
   dswap = (DirectSwap *) memory->smalloc(maxdirect*sizeof(DirectSwap),"comm:dswap");
-  requests = (MPI_Request *) memory->smalloc(maxdirect*sizeof(MPI_Request),"comm:requests");
+  memory->create(swaporder,maxdirect,3,"comm:swaporder");
   memory->create(proc_direct,maxdirect,"comm:proc_direct");
   memory->create(pbc_flag_direct,maxdirect,"comm:pbc_flag_direct");
   memory->create(pbc_direct,maxdirect,6,"comm:pbc_direct");
@@ -765,6 +841,7 @@ void CommBrickDirect::allocate_direct()
   memory->create(recv_offset_forward_direct,maxdirect,"comm:recv_offset_forward_direct");
   memory->create(recv_offset_reverse_direct,maxdirect,"comm:recv_offset_reverse_direct");
   memory->create(recv_offset_border_direct,maxdirect,"comm:recv_offset_border_direct");
+  requests = (MPI_Request *) memory->smalloc(maxdirect*sizeof(MPI_Request),"comm:requests");
 
   memory->create(maxsendlist_direct,maxdirect,"comm:maxsendlist_direct");
   sendlist_direct = (int **) memory->smalloc(maxdirect*sizeof(int *),"comm:sendlist_direct");
@@ -781,7 +858,7 @@ void CommBrickDirect::allocate_direct()
 void CommBrickDirect::deallocate_direct()
 {
   memory->sfree(dswap);
-  memory->sfree(requests);
+  memory->destroy(swaporder);
   memory->destroy(proc_direct);
   memory->destroy(pbc_flag_direct);
   memory->destroy(pbc_direct);
@@ -800,6 +877,7 @@ void CommBrickDirect::deallocate_direct()
   memory->destroy(recv_offset_forward_direct);
   memory->destroy(recv_offset_reverse_direct);
   memory->destroy(recv_offset_border_direct);
+  memory->sfree(requests);
 
   memory->destroy(maxsendlist_direct);
   for (int iswap = 0; iswap < maxdirect; iswap++)

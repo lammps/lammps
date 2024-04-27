@@ -80,6 +80,10 @@ class CommBrickDirect : public CommBrick {
   
   MPI_Request *requests;    // list of requests, length = ndirect
 
+  // cutoffs for MPI sends of owned atoms to procs on 6 faces of stencil
+  
+  double cutxlo, cutxhi, cutylo, cutyhi, cutzlo, cutzhi;
+
   void init_buffers_direct();
   void allocate_direct();
   void deallocate_direct();

@@ -24,20 +24,20 @@
 // NOTES:
 // do not allow MULTI with brick/direct or bordergroup
 // add an init() to check for some disallowed options ?
-// how to order dswap by shells within full stencil
+// (1) how to order dswap by shells within full stencil
 //   order by faces first, edges 2nd, corners 3rd and do shell by shell
 //   have a 2d and 3d version
 //   this is so that ghost atoms are ordered by distance from owned atoms
 //   similar to how CommBrick works now
 //   or could mimic exactly how CommBrick works now?
-// for outer shell of stencil procs, need to compute send proc cutoff
+// (2) for outer shell of stencil procs, need to compute send proc cutoff
 //    can do this for each of 6 directions, use xyzsplit for nonuniform bricks
 //    for orthongonal or triclinic
-// reorg atom lists to just have 8 unique for 2d and 26 for 3d plus "all" list
+// (3) reorg atom lists to just have 8 unique for 2d and 26 for 3d plus "all" list
+// error check 512 not exceeded for tags and stencil
 // should init of maxdirect be 8 for 2d ?
 // test msg tags with individual procs as multiple neighbors via big stencil
 // test when cutoffs >> box length
-// error check 512 not exceeded for tags and stencil
 // doc msg tag logic in code
 
 using namespace LAMMPS_NS;
@@ -46,8 +46,8 @@ static constexpr double BUFFACTOR = 1.5;
 static constexpr int BUFMIN = 1024;
 //static constexpr int STENCIL_HALF = 512;
 //static constexpr int STENCIL_FULL = 1025;
-static constexpr int STENCIL_HALF = 1;
-static constexpr int STENCIL_FULL = 3;
+static constexpr int STENCIL_HALF = 8;
+static constexpr int STENCIL_FULL = 32;
 
 /* ---------------------------------------------------------------------- */
 
@@ -162,10 +162,44 @@ void CommBrickDirect::setup()
 
   ndirect = (ihi-ilo+1) * (jhi-jlo+1) * (khi-klo+1) - 1;
 
+  printf("NDIRECT %d ijk lo/hi %d %d: %d %d: %d %d proc %d\n",
+         ndirect,ilo,ihi,jlo,jhi,klo,khi,me);
+  
   if (ndirect > maxdirect) {
     deallocate_direct();
     maxdirect = ndirect;
     allocate_direct();
+  }
+
+  // calculate 6 cutoffs within my subdomain
+  // for sending owned atoms to procs on 6 faces of my stencil
+
+  if (layout == Comm::LAYOUT_UNIFORM) {
+    int nbetween;
+    
+    double xwidth = prd[0] / procgrid[0];
+    nbetween = -ilo - 1;
+    cutxlo = cutghost[0] - nbetween*xwidth;
+    nbetween = ihi - 1;
+    cutxhi = cutghost[0] - nbetween*xwidth;
+
+    double ywidth = prd[1] / procgrid[1];
+    nbetween = -jlo - 1;
+    cutylo = cutghost[1] - nbetween*ywidth;
+    nbetween = jhi - 1;
+    cutyhi = cutghost[1] - nbetween*ywidth;
+
+    if (dim == 3) {
+      double zwidth = prd[2] / procgrid[2];
+      nbetween = -klo - 1;
+      cutzlo = cutghost[2] - nbetween*zwidth;
+      nbetween = khi - 1;
+      cutzhi = cutghost[2] - nbetween*zwidth;
+    } else {
+      cutzlo = cutzhi = 0.0;
+    }
+    
+  } else if (layout == Comm::LAYOUT_NONUNIFORM) {
   }
 
   // loop over stencil and define each direct swap
@@ -227,9 +261,9 @@ void CommBrickDirect::setup()
           ds->xcheck = 1;
           if (ix == ilo) {
             ds->xlo = sublo[0];
-            ds->xhi = sublo[0] + cutghost[0];
+            ds->xhi = sublo[0] + cutxlo;
           } else if (ix == ihi) {
-            ds->xlo = subhi[0] - cutghost[0];
+            ds->xlo = subhi[0] - cutxhi;
             ds->xhi = subhi[0];
           }
         }
@@ -241,9 +275,9 @@ void CommBrickDirect::setup()
           ds->ycheck = 1;
           if (iy == jlo) {
             ds->ylo = sublo[1];
-            ds->yhi = sublo[1] + cutghost[1];
+            ds->yhi = sublo[1] + cutylo;
           } else if (iy == jhi) {
-            ds->ylo = subhi[1] - cutghost[1];
+            ds->ylo = subhi[1] - cutyhi;
             ds->yhi = subhi[1];
           }
         }
@@ -258,9 +292,9 @@ void CommBrickDirect::setup()
           ds->zcheck = 1;
           if (iz == klo) {
             ds->zlo = sublo[2];
-            ds->zhi = sublo[2] + cutghost[2];
+            ds->zhi = sublo[2] + cutzlo;
           } else if (iz == khi) {
-            ds->zlo = subhi[2] - cutghost[2];
+            ds->zlo = subhi[2] - cutzhi;
             ds->zhi = subhi[2];
           }
         }
@@ -295,7 +329,7 @@ void CommBrickDirect::setup()
     }
   }
 
-  // set nself_direct and self_indices_direst
+  // set nself_direct and self_indices_direct
 
   nself_direct = 0;
   for (iswap = 0; iswap < ndirect; iswap++)
@@ -554,7 +588,6 @@ void CommBrickDirect::borders()
     MPI_Irecv(&recvnum_direct[iswap],1,MPI_INT,
               proc_direct[iswap],recvtag[iswap],world,&requests[npost++]);
   }
-
 
   for (iswap = 0; iswap < ndirect; iswap++) {
     if (proc_direct[iswap] == me) continue;

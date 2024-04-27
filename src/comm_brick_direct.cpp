@@ -23,22 +23,22 @@
 
 // NOTES:
 // do not allow MULTI with brick/direct or bordergroup
+// add an init() to check for some disallowed options ?
 // how to order dswap by shells within full stencil
 //   order by faces first, edges 2nd, corners 3rd and do shell by shell
 //   have a 2d and 3d version
 //   this is so that ghost atoms are ordered by distance from owned atoms
 //   similar to how CommBrick works now
 //   or could mimic exactly how CommBrick works now?
-// test msg tags with individual procs as multiple neighbors
-// doc msg tag logic in code
-// test for cutoffs >> box length
-// error check 512 not exceeded for tags and stencil
-// reorg atom lists to just have 8 unique for 2d and 26 for 3d plus "all" list
-// add an init() to check for some disallowed options ?
 // for outer shell of stencil procs, need to compute send proc cutoff
 //    can do this for each of 6 directions, use xyzsplit for nonuniform bricks
 //    for orthongonal or triclinic
+// reorg atom lists to just have 8 unique for 2d and 26 for 3d plus "all" list
 // should init of maxdirect be 8 for 2d ?
+// test msg tags with individual procs as multiple neighbors via big stencil
+// test when cutoffs >> box length
+// error check 512 not exceeded for tags and stencil
+// doc msg tag logic in code
 
 using namespace LAMMPS_NS;
 
@@ -785,15 +785,15 @@ void CommBrickDirect::deallocate_direct()
 void CommBrickDirect::grow_send_direct(int n, int flag)
 {
   if (flag == 0) {
-    maxsend = static_cast<int> (BUFFACTOR * n);
+    maxsend_direct = static_cast<int> (BUFFACTOR * n);
     memory->destroy(buf_send_direct);
-    memory->create(buf_send_direct,maxsend,"comm:buf_send_direct");
+    memory->create(buf_send_direct,maxsend_direct,"comm:buf_send_direct");
   } else if (flag == 1) {
-    maxsend = static_cast<int> (BUFFACTOR * n);
-    memory->grow(buf_send_direct,maxsend,"comm:buf_send_direct");
+    maxsend_direct = static_cast<int> (BUFFACTOR * n);
+    memory->grow(buf_send_direct,maxsend_direct,"comm:buf_send_direct");
   } else {
     memory->destroy(buf_send_direct);
-    memory->grow(buf_send_direct,maxsend,"comm:buf_send_direct");
+    memory->grow(buf_send_direct,maxsend_direct,"comm:buf_send_direct");
   }
 }
 
@@ -803,9 +803,9 @@ void CommBrickDirect::grow_send_direct(int n, int flag)
 
 void CommBrickDirect::grow_recv_direct(int n)
 {
-  maxrecv = static_cast<int> (BUFFACTOR * n);
+  maxrecv_direct = static_cast<int> (BUFFACTOR * n);
   memory->destroy(buf_recv_direct);
-  memory->create(buf_recv_direct,maxrecv,"comm:buf_recv_direct");
+  memory->create(buf_recv_direct,maxrecv_direct,"comm:buf_recv_direct");
 }
 
 /* ----------------------------------------------------------------------

@@ -58,18 +58,19 @@ class CommBrickDirect : public CommBrick {
   int *sendnum_direct;                    // # of atoms to send in each swap
   int *recvnum_direct;                    // # of atoms to recv in each swap
   
-  int *size_forward_recv_direct;          // # of values to recv in each forward comm
-  int *size_reverse_send_direct;          // # of values to send in each reverse comm
-  int *size_reverse_recv_direct;          // # of values to recv in each reverse comm
+  int *size_forward_recv_direct;          // max # of values to recv in each forward comm
+  int *size_reverse_send_direct;          // max # of values to send in each reverse comm
+  int *size_reverse_recv_direct;          // max # of values to recv in each reverse comm
+  int *size_border_recv_direct;           // max # of values to recv in each border comm
 
   int *firstrecv_direct;    // index of where to put 1st ghost atom in each swap
 
   int *maxsendlist_direct;  // max size of each sendlist_direct list
   int **sendlist_direct;    // list of indices of owned atoms to send in each swap
 
-  int *recv_offset_forward;  // offsets into buf_recv_direct for forward comm receives
-  int *recv_offset_reverse;  // offsets into buf_recv_direct for reverse comm receives
-  int *recv_offset_border;   // offsets into buf_recv_direct for border comm receives
+  int *recv_offset_forward_direct;  // offsets into buf_recv_direct for forward comm receives
+  int *recv_offset_reverse_direct;  // offsets into buf_recv_direct for reverse comm receives
+  int *recv_offset_border_direct;   // offsets into buf_recv_direct for border comm receives
 
   double *buf_send_direct;  // send buffer used for every swap (large enough for any)
   double *buf_recv_direct;  // recv buffer used for all swaps (large enough for all)

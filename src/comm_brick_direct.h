@@ -31,7 +31,8 @@ class CommBrickDirect : public CommBrick {
   void borders() override;                      // setup list of atoms to comm
 
  protected:
-  
+
+  /*
   struct DirectSwap {
     int allflag;                // 1 if sending all my owned atoms
     int xcheck,ycheck,zcheck;   // which coord dims to check to send subset
@@ -39,10 +40,15 @@ class CommBrickDirect : public CommBrick {
     double ylo,yhi;
     double zlo,zhi;
   };
+  */
 
-  DirectSwap *dswap;                      // list of direct swaps in 3d stencil
+  //DirectSwap *dswap;                      // list of direct swaps in 3d stencil
+
+  // per-swap data
+  // swap = exchange of data between me and another proc in stencil, including self
+  
   int ndirect;                            // # of direct swaps with nearby procs, including self
-  int maxdirect;                          // max size that dswap is allocated for
+  int maxdirect;                          // max size which all swap-length data is allocated for
   int nself_direct;                       // # of swaps with self, non-empty or empty
 
   int **swaporder;                        // ordering (ijk indices) of swaps within 3d stencil
@@ -64,15 +70,34 @@ class CommBrickDirect : public CommBrick {
   int *size_reverse_recv_direct;          // max # of values to recv in each reverse comm
   int *size_border_recv_direct;           // max # of values to recv in each border comm
 
+  int *swap2list;                         // index to list of atoms each swap uses
+  int **sendlist_direct;                  // ptrs to sendatoms_list for each swap
   int *firstrecv_direct;                  // index of first received ghost atom in each swap
-
-  int *maxsendlist_direct;                // max size of each sendlist_direct list
-  int **sendlist_direct;                  // list of indices of owned atoms to send in each swap
 
   int *recv_offset_forward_direct;  // offsets into buf_recv_direct for forward comm receives
   int *recv_offset_reverse_direct;  // offsets into buf_recv_direct for reverse comm receives
   int *recv_offset_border_direct;   // offsets into buf_recv_direct for border comm receives
 
+  // per-list data
+  // list = indices of atom to send in a swap
+  // only 27 (3d) or 9 (2d) possible lists
+  // each may be used in multiple swaps or not used (or defined)
+
+  int **check_list;            // NOTE: doc these 2, also alloc/dealloc
+  double ***bounds_list;
+    
+  int maxlist;                  // max possible lists
+  int *active_list;             // 1 if each list is generated and used in a swap
+  int *sendnum_list;            // # of atom indices in each list
+  int **sendatoms_list;         // list of owned atom indices
+  int *maxsendatoms_list;       // max size of each allocated list
+
+  double cutxlo, cutxhi;    // cutoffs for sending owned atoms to procs on 6 faces of stencil
+  double cutylo, cutyhi;
+  double cutzlo, cutzhi;
+
+  // communication buffers for MPI sends and receives as well as self data copies
+  
   double *buf_send_direct;  // send buffer used for every swap (large enough for any)
   double *buf_recv_direct;  // recv buffer used for all swaps (large enough for all)
 
@@ -81,14 +106,14 @@ class CommBrickDirect : public CommBrick {
   
   MPI_Request *requests;    // list of requests, length = ndirect
 
-  double cutxlo, cutxhi;    // cutoffs for sending owned atoms to procs on 6 faces of stencil
-  double cutylo, cutyhi;
-  double cutzlo, cutzhi;
-
+  // private methods
+  
   void init_buffers_direct();
   void order_swaps(int, int, int, int, int, int);
   void allocate_direct();
+  void allocate_lists();
   void deallocate_direct();
+  void deallocate_lists(int);
   void grow_send_direct(int, int);
   void grow_recv_direct(int);
   void grow_list_direct(int, int);

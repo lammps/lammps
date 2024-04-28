@@ -33,11 +33,15 @@
 //     for orthongonal or triclinic
 // (3) reorg atom lists to just 8/26 unique for 2d/3d plus "all" list
 //     do I still need DirectSwap once this is done
+// valgrind error (and leaked memory) in destuctor
+//   copy constructor logic in init_buffer in CommBrick ?
 // test msg tags with individual procs as multiple neighbors via big stencil
 // test when cutoffs >> box length
 // test with triclinic
 // doc msg tag logic in code
 // doc stencil data structs and logic in code
+// CommBrick could use local maxsend in its borders() check for sendlist realloc
+//   instead of indexing the swap for each atom
 
 using namespace LAMMPS_NS;
 
@@ -52,7 +56,6 @@ CommBrickDirect::CommBrickDirect(LAMMPS *lmp) : CommBrick(lmp)
 {
   style = Comm::BRICK_DIRECT;
 
-  dswap = nullptr;
   swaporder = nullptr;
   proc_direct = nullptr;
   pbc_flag_direct = nullptr;
@@ -68,17 +71,21 @@ CommBrickDirect::CommBrickDirect(LAMMPS *lmp) : CommBrick(lmp)
   size_reverse_send_direct = nullptr;
   size_reverse_recv_direct = nullptr;
   size_border_recv_direct = nullptr;
-  firstrecv_direct = nullptr;
-  maxsendlist_direct = nullptr;
+  swap2list = nullptr;
   sendlist_direct = nullptr;
+  firstrecv_direct = nullptr;
   recv_offset_forward_direct = nullptr;
   recv_offset_reverse_direct = nullptr;
   recv_offset_border_direct = nullptr;
   requests = nullptr;
 
-  ndirect = maxdirect = 0;
-  
   init_buffers_direct();
+
+  maxlist = 0;
+  active_list = nullptr;
+  sendnum_list = nullptr;
+  sendatoms_list = nullptr;
+  maxsendatoms_list = nullptr;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -86,6 +93,7 @@ CommBrickDirect::CommBrickDirect(LAMMPS *lmp) : CommBrick(lmp)
 CommBrickDirect::~CommBrickDirect()
 {
   deallocate_direct();
+  deallocate_lists(maxlist);
 
   memory->destroy(buf_send_direct);
   memory->destroy(buf_recv_direct);
@@ -121,15 +129,14 @@ void CommBrickDirect::init_buffers_direct()
   allocate_direct();
 }
 
-/* ----------------------------------------------------------------------
-   first perform CommBrick::init()
-   disallow options not supported by CommBrickDirect
-------------------------------------------------------------------------- */
+/* ---------------------------------------------------------------------- */
 
 void CommBrickDirect::init()
 {
   CommBrick::init();
-                  
+
+  // disallow options not supported by CommBrickDirect
+
   if (mode == Comm::MULTI || mode == Comm::MULTIOLD)
     error->all(FLERR,
                "Comm brick/direct does not yet support multi or multi/old");
@@ -137,22 +144,37 @@ void CommBrickDirect::init()
   if (bordergroup)
     error->all(FLERR,
                "Comm brick/direct does not yet support comm_modify group");
+
+  // allocate lists of atoms to send for first time if necessary
+  // do now b/c domain->dimension may have changed since construction of this class
+  //   if comm_style command specified before dimension command
+  
+  int oldlist = maxlist;
+  if (domain->dimension == 2) maxlist = 9;
+  else maxlist = 27;
+  
+  if (maxlist > oldlist) {
+    deallocate_lists(oldlist);
+    allocate_lists();
+  }
 }
 
 /* ----------------------------------------------------------------------
-   first perform CommBrick::setup() for 6-way stencil
-   use its recvneed to create logical 3d grid of procs with me in center
-   this is the stencil of direct swaps I make with each proc in stencil
-   this proc will perform direct swaps (send and recv) with each proc in stencil
+   create stencil of direct swaps this procs make with each proc in stencil
+   direct swap = send and recv
      same proc can appear multiple times in stencil, self proc can also appear
-   create dswap = list of DirectSwap data structs
-     same stencil and dswap info is used for both forward and reverse comm
+   stencil is used for border and forward and reverse comm
 ------------------------------------------------------------------------- */
 
 void CommBrickDirect::setup()
 {
+  // first perform CommBrick::setup() for 6-way stencil
+  // will use its recvneed to create logical 3d stencil of procs around me
+
   CommBrick::setup();
 
+  // pointers for orthogonal or triclinic domains
+  
   int dim = domain->dimension;
   double *prd,*sublo,*subhi;
 
@@ -230,21 +252,29 @@ void CommBrickDirect::setup()
     }
     
   } else if (layout == Comm::LAYOUT_NONUNIFORM) {
+    // NOTE: still needs to be coded
   }
 
+  // active_list = which lists of atoms are used by swaps
+  // zero it before looping over swaps to set it
+
+  for (int ilist = 0; ilist < maxlist; ilist++)
+    active_list[ilist] = 0;
+  
   // loop over stencil and define each direct swap
   
   int ix,iy,iz;
   int igrid,jgrid,kgrid;
   int xpbc,ypbc,zpbc;
-  DirectSwap *ds;
+  int ilistx,ilisty,ilistz,ilist;
 
   for (int iswap = 0; iswap < ndirect; iswap++) {
     ix = swaporder[iswap][0];
     iy = swaporder[iswap][1];
     iz = swaporder[iswap][2];
     
-    ds = &dswap[iswap];
+    // identify proc to swap with and atom coord PBC shifts required
+    
     xpbc = ypbc = zpbc = 0;
         
     igrid = myloc[0] + ix;
@@ -279,6 +309,62 @@ void CommBrickDirect::setup()
 
     proc_direct[iswap] = grid2proc[igrid][jgrid][kgrid];
 
+    pbc_flag_direct[iswap] = 0;
+    pbc_direct[iswap][0] = pbc_direct[iswap][1] = pbc_direct[iswap][2] =
+      pbc_direct[iswap][3] = pbc_direct[iswap][4] = pbc_direct[iswap][5] = 0;
+        
+    if (xpbc || ypbc || zpbc) {
+      pbc_flag_direct[iswap] = 1;
+      pbc_direct[iswap][0] = xpbc;
+      pbc_direct[iswap][1] = ypbc;
+      pbc_direct[iswap][2] = zpbc;
+      if (triclinic) {
+        pbc_direct[iswap][5] = pbc_direct[iswap][1];
+        pbc_direct[iswap][4] = pbc_direct[iswap][3] = pbc_direct[iswap][2];
+      }
+    }
+
+    // identify which atom list this swap maps to, based in ix,iy,iz
+    // increment active_list for that list
+
+    if (ix == ilo) ilistx = 0;
+    else if (ix < ihi) ilistx = 1;
+    else ilistx = 2;
+    if (iy == jlo) ilisty = 0;
+    else if (iy < jhi) ilisty = 1;
+    else ilisty = 2;
+    if (iz == klo) ilistz = 0;
+    else if (iz < khi) ilistz = 1;
+    else ilistz = 2;
+
+    if (dim == 2) ilist = 3*ilisty + ilistx;
+    if (dim == 3) ilist = 9*ilistz + 3*ilisty + ilistx;
+    active_list[ilist++];
+    
+    // set MPI tags based on 3d offset between 2 procs from receiver's perspective
+    // this ensures MPI Send and Recv for each swap will use same tag
+    // necessary if multiple swaps are performed between same 2 procs
+    //   so that receiver can identify which swap the received data is for
+    
+    sendtag[iswap] = STENCIL_FULL*STENCIL_FULL*(-iz+STENCIL_HALF) +
+      STENCIL_FULL*(-iy+STENCIL_HALF) + (-ix+STENCIL_HALF);
+    recvtag[iswap] = STENCIL_FULL*STENCIL_FULL*(iz+STENCIL_HALF) +
+      STENCIL_FULL*(iy+STENCIL_HALF) + (ix+STENCIL_HALF);
+  }
+
+  // set nself_direct and self_indices_direct
+
+  nself_direct = 0;
+  for (int iswap = 0; iswap < ndirect; iswap++)
+    if (proc_direct[iswap] == me) self_indices_direct[nself_direct++] = iswap;
+
+  // setup maxlist params for each atom list
+  // set check_list, set bounds_list
+  // NOTE: what about sends on stencil face which do not require cutoff test due to non-PBC
+
+  // NOTE: need code here
+
+  /*
     if (ix > ilo && ix < ihi) {
       ds->xcheck = 0;
       ds->xlo = ds->xhi = 0.0;
@@ -323,38 +409,7 @@ void CommBrickDirect::setup()
         ds->zhi = subhi[2];
       }
     }
-        
-    if (!ds->xcheck and !ds->ycheck && !ds->zcheck) ds->allflag = 1;
-    else ds->allflag = 0;
-
-    pbc_flag_direct[iswap] = 0;
-    pbc_direct[iswap][0] = pbc_direct[iswap][1] = pbc_direct[iswap][2] =
-      pbc_direct[iswap][3] = pbc_direct[iswap][4] = pbc_direct[iswap][5] = 0;
-        
-    if (xpbc || ypbc || zpbc) {
-      pbc_flag_direct[iswap] = 1;
-      pbc_direct[iswap][0] = xpbc;
-      pbc_direct[iswap][1] = ypbc;
-      pbc_direct[iswap][2] = zpbc;
-      if (triclinic) {
-        pbc_direct[iswap][5] = pbc_direct[iswap][1];
-        pbc_direct[iswap][4] = pbc_direct[iswap][3] = pbc_direct[iswap][2];
-      }
-    }
-
-    // MPI tag is based on 3d offset between 2 procs from receiver's perspective
-        
-    sendtag[iswap] = STENCIL_FULL*STENCIL_FULL*(-iz+STENCIL_HALF) +
-      STENCIL_FULL*(-iy+STENCIL_HALF) + (-ix+STENCIL_HALF);
-    recvtag[iswap] = STENCIL_FULL*STENCIL_FULL*(iz+STENCIL_HALF) +
-      STENCIL_FULL*(iy+STENCIL_HALF) + (ix+STENCIL_HALF);
-  }
-
-  // set nself_direct and self_indices_direct
-
-  nself_direct = 0;
-  for (int iswap = 0; iswap < ndirect; iswap++)
-    if (proc_direct[iswap] == me) self_indices_direct[nself_direct++] = iswap;
+    */
 }
 
 /* ----------------------------------------------------------------------
@@ -367,7 +422,6 @@ void CommBrickDirect::setup()
 void CommBrickDirect::order_swaps(int ilo, int ihi, int jlo, int jhi, int klo, int khi)
 {
   /* OLD ordering
-
   int iswap = 0;
   for (int iz = klo; iz <= khi; iz++)
     for (int iy = jlo; iy <= jhi; iy++)
@@ -599,61 +653,69 @@ void CommBrickDirect::reverse_comm()
 
 void CommBrickDirect::borders()
 {
-  int i,n,iswap,nsend,nrecv;
+  int i,n,iswap,ilist,nsend,nrecv;
+  
+  // setup lists of atoms to send in each direct swap
+  // only maxlist possible lists (27 in 3d, 9 in 2d) regardless of stencil size
+  // skip non-active lists as flagged in setup()
   
   AtomVec *avec = atom->avec;
   double **x = atom->x;
   int nlocal = atom->nlocal;
+  int dim = domain->dimension;
 
-  // setup lists of atoms to send in each direct swap
-
-  DirectSwap *ds;
-  int allflag,xcheck,ycheck,zcheck;
+  int allflag;
+  int xcheck,ycheck,zcheck;
   double xlo,xhi,ylo,yhi,zlo,zhi;
   
-  for (iswap = 0; iswap < ndirect; iswap++) {
-    ds = &dswap[iswap];
-    nsend = 0;
-    maxsend = maxsendlist_direct[iswap];
-      
-    allflag = ds->allflag;
+  for (ilist = 0; ilist < maxlist; ilist++) {
+    if (!active_list[ilist]) continue;
+       
+    xcheck = check_list[ilist][0];
+    ycheck = check_list[ilist][1];
+    zcheck = check_list[ilist][2];
+    xlo = bounds_list[ilist][0][0];
+    xhi = bounds_list[ilist][0][1];
+    ylo = bounds_list[ilist][1][0];
+    yhi = bounds_list[ilist][1][1];
+    zlo = bounds_list[ilist][2][0];
+    zhi = bounds_list[ilist][2][1];
 
-    if (allflag) {
+    nsend = 0;
+    maxsend = maxsendatoms_list[ilist];
+
+    if (!xcheck && !ycheck && !zcheck) {
       for (i = 0; i < nlocal; i++) {
         if (nsend == maxsend) {
           grow_list_direct(iswap,nsend);
-          maxsend = maxsendlist_direct[iswap];
+          maxsend = maxsendatoms_list[iswap];
         }
-        sendlist_direct[iswap][nsend++] = i;
+        sendatoms_list[ilist][nsend++] = i;
       }
-      
     } else {
-      xcheck = ds->xcheck;
-      ycheck = ds->ycheck;
-      zcheck = ds->zcheck;
-
-      xlo = ds->xlo;
-      xhi = ds->xhi;
-      ylo = ds->ylo;
-      yhi = ds->yhi;
-      zlo = ds->zlo;
-      zhi = ds->zhi;
-
       for (i = 0; i < nlocal; i++) {
         if (xcheck && (x[i][0] < xlo || x[i][0] > xhi)) continue;
         if (ycheck && (x[i][1] < ylo || x[i][1] > yhi)) continue;
         if (zcheck && (x[i][2] < zlo || x[i][2] > zhi)) continue;
         if (nsend == maxsend) {
           grow_list_direct(iswap,nsend);
-          maxsend = maxsendlist_direct[iswap];
+          maxsend = maxsendatoms_list[iswap];
         }
-        sendlist_direct[iswap][nsend++] = i;
+        sendatoms_list[ilist][nsend++] = i;
       }
     }
 
-    sendnum_direct[iswap] = nsend;
+    sendnum_list[ilist] = nsend;
   }
 
+  // set sendnum_direct and sendlist_direct for all swaps from per-list data
+
+  for (iswap = 0; iswap < ndirect; iswap++) {
+    ilist = swap2list[iswap];
+    sendnum_direct[iswap] = sendnum_list[ilist];
+    sendlist_direct[iswap] = sendatoms_list[ilist];
+  }
+  
   // recvnum_direct = number of ghost atoms recieved in each swap
   // acquire by sending value of nsend for each swap to each receiving proc
   // post receives, perform sends, copy to self, wait for all incoming messages
@@ -821,7 +883,6 @@ void CommBrickDirect::borders()
 
 void CommBrickDirect::allocate_direct()
 {
-  dswap = (DirectSwap *) memory->smalloc(maxdirect*sizeof(DirectSwap),"comm:dswap");
   memory->create(swaporder,maxdirect,3,"comm:swaporder");
   memory->create(proc_direct,maxdirect,"comm:proc_direct");
   memory->create(pbc_flag_direct,maxdirect,"comm:pbc_flag_direct");
@@ -837,17 +898,28 @@ void CommBrickDirect::allocate_direct()
   memory->create(size_reverse_send_direct,maxdirect,"comm:size_reverse_send_direct");
   memory->create(size_reverse_recv_direct,maxdirect,"comm:size_reverse_recv_direct");
   memory->create(size_border_recv_direct,maxdirect,"comm:size_border_recv_direct");
+  memory->create(swap2list,maxdirect,"comm:swap2list");
+  sendlist_direct = (int **) memory->smalloc(maxdirect*sizeof(int *),"comm:sendlist_direct");
   memory->create(firstrecv_direct,maxdirect,"comm:recvnum_direct");
   memory->create(recv_offset_forward_direct,maxdirect,"comm:recv_offset_forward_direct");
   memory->create(recv_offset_reverse_direct,maxdirect,"comm:recv_offset_reverse_direct");
   memory->create(recv_offset_border_direct,maxdirect,"comm:recv_offset_border_direct");
   requests = (MPI_Request *) memory->smalloc(maxdirect*sizeof(MPI_Request),"comm:requests");
+}
 
-  memory->create(maxsendlist_direct,maxdirect,"comm:maxsendlist_direct");
-  sendlist_direct = (int **) memory->smalloc(maxdirect*sizeof(int *),"comm:sendlist_direct");
-  for (int iswap = 0; iswap < maxdirect; iswap++) {
-    maxsendlist_direct[iswap] = BUFMIN;
-    memory->create(sendlist_direct[iswap],BUFMIN,"comm:sendlist_direct[iswap]");
+/* ----------------------------------------------------------------------
+   allocate all send lists of atom indices
+------------------------------------------------------------------------- */
+
+void CommBrickDirect::allocate_lists()
+{
+  memory->create(active_list,maxlist,"comm:active_list");
+  memory->create(sendnum_list,maxlist,"comm:sendnum_list");
+  memory->create(maxsendatoms_list,maxlist,"comm:maxsendatoms_list");
+  sendatoms_list = (int **) memory->smalloc(maxlist*sizeof(int *),"comm:sendatoms_list");
+  for (int ilist = 0; ilist < maxlist; ilist++) {
+    maxsendatoms_list[ilist] = BUFMIN;
+    memory->create(sendatoms_list[ilist],BUFMIN,"comm:sendatoms_list[ilist]");
   }
 }
 
@@ -857,7 +929,6 @@ void CommBrickDirect::allocate_direct()
 
 void CommBrickDirect::deallocate_direct()
 {
-  memory->sfree(dswap);
   memory->destroy(swaporder);
   memory->destroy(proc_direct);
   memory->destroy(pbc_flag_direct);
@@ -873,16 +944,27 @@ void CommBrickDirect::deallocate_direct()
   memory->destroy(size_reverse_send_direct);
   memory->destroy(size_reverse_recv_direct);
   memory->destroy(size_border_recv_direct);
+  memory->destroy(swap2list);
+  memory->sfree(sendlist_direct);
   memory->destroy(firstrecv_direct);
   memory->destroy(recv_offset_forward_direct);
   memory->destroy(recv_offset_reverse_direct);
   memory->destroy(recv_offset_border_direct);
   memory->sfree(requests);
+}
 
-  memory->destroy(maxsendlist_direct);
-  for (int iswap = 0; iswap < maxdirect; iswap++)
-    memory->destroy(sendlist_direct[iswap]);
-  memory->sfree(sendlist_direct);
+/* ----------------------------------------------------------------------
+   deallocate all send lists of atom indices
+------------------------------------------------------------------------- */
+
+void CommBrickDirect::deallocate_lists(int nlist)
+{
+  memory->destroy(active_list);
+  memory->destroy(sendnum_list);
+  for (int ilist = 0; ilist < nlist; ilist++)
+    memory->destroy(sendatoms_list[ilist]);
+  memory->sfree(sendatoms_list);
+  memory->destroy(maxsendatoms_list);
 }
 
 /* ----------------------------------------------------------------------
@@ -920,11 +1002,11 @@ void CommBrickDirect::grow_recv_direct(int n)
 }
 
 /* ----------------------------------------------------------------------
-   realloc the size of the iswap sendlist_direct as needed with BUFFACTOR
+   realloc the size of the ilist entry in sendatoms_list as needed with BUFFACTOR
 ------------------------------------------------------------------------- */
 
-void CommBrickDirect::grow_list_direct(int iswap, int n)
+void CommBrickDirect::grow_list_direct(int ilist, int n)
 {
-  maxsendlist_direct[iswap] = static_cast<int> (BUFFACTOR * n);
-  memory->grow(sendlist_direct[iswap],maxsendlist_direct[iswap],"comm:sendlist_direct[iswap]");
+  maxsendatoms_list[ilist] = static_cast<int> (BUFFACTOR * n);
+  memory->grow(sendatoms_list[ilist],maxsendatoms_list[ilist],"comm:sendatoms_list[ilist]");
 }

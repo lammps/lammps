@@ -83,6 +83,8 @@ CommBrickDirect::CommBrickDirect(LAMMPS *lmp) : CommBrick(lmp)
 
   maxlist = 0;
   active_list = nullptr;
+  check_list = nullptr;
+  bounds_list = nullptr;
   sendnum_list = nullptr;
   sendatoms_list = nullptr;
   maxsendatoms_list = nullptr;
@@ -225,10 +227,12 @@ void CommBrickDirect::setup()
 
   // calculate 6 cutoffs within my subdomain
   // for sending owned atoms to procs on 6 faces of my stencil
+  // cutxlo = upper x-cutoff within my subdomain to send owned atoms
+  //          to proc on lower x-face of stencil
 
   if (layout == Comm::LAYOUT_UNIFORM) {
     int nbetween;
-    
+
     double xwidth = prd[0] / procgrid[0];
     nbetween = -ilo - 1;
     cutxlo = cutghost[0] - nbetween*xwidth;
@@ -247,25 +251,81 @@ void CommBrickDirect::setup()
       cutzlo = cutghost[2] - nbetween*zwidth;
       nbetween = khi - 1;
       cutzhi = cutghost[2] - nbetween*zwidth;
-    } else {
-      cutzlo = cutzhi = 0.0;
     }
     
   } else if (layout == Comm::LAYOUT_NONUNIFORM) {
     // NOTE: still needs to be coded
   }
 
+  // calculate check_list and bounds_list for each list
+  // used when building atom lists in borders()
+  // unsetting of check_list is when a send list to a proc on a stencil face does not
+  //   require a cutoff due to stencil being truncated by a non-PBC boundary
+
+  int ix,iy,iz;
+  
+  for (int ilist = 0; ilist < maxlist; ilist++) {
+    ix = ilist % 3;
+    iy = (ilist/3) % 3;
+    iz = ilist / 9;
+    if (dim == 2) iz = 1;
+
+    check_list[ilist][0] = 0;
+    bounds_list[ilist][0][0] = bounds_list[ilist][0][1] = 0.0;
+    if (ix == 0) {
+      check_list[ilist][0] = 1;
+      bounds_list[ilist][0][0] = sublo[0];
+      bounds_list[ilist][0][1] = sublo[0] + cutxlo;
+      if (bounds_list[ilist][0][1] >= subhi[0]) check_list[ilist][0] = 0;
+    }
+    if (ix == 2) {
+      check_list[ilist][0] = 1;
+      bounds_list[ilist][0][0] = subhi[0] - cutxhi;
+      bounds_list[ilist][0][1] = subhi[0];
+      if (bounds_list[ilist][0][0] <= sublo[0]) check_list[ilist][0] = 0;
+    }
+
+    check_list[ilist][1] = 0;
+    bounds_list[ilist][1][0] = bounds_list[ilist][1][1] = 0.0;
+    if (iy == 0) {
+      check_list[ilist][1] = 1;
+      bounds_list[ilist][1][0] = sublo[1];
+      bounds_list[ilist][1][1] = sublo[1] + cutylo;
+      if (bounds_list[ilist][1][1] >= subhi[1]) check_list[ilist][1] = 0;
+    }
+    if (iy == 2) {
+      check_list[ilist][1] = 1;
+      bounds_list[ilist][1][0] = subhi[1] - cutyhi;
+      bounds_list[ilist][1][1] = subhi[1];
+      if (bounds_list[ilist][1][0] <= sublo[1]) check_list[ilist][1] = 0;
+    }
+
+    check_list[ilist][2] = 0;
+    bounds_list[ilist][2][0] = bounds_list[ilist][2][1] = 0.0;
+    if (iz == 0) {
+      check_list[ilist][2] = 1;
+      bounds_list[ilist][2][0] = sublo[2];
+      bounds_list[ilist][2][1] = sublo[2] + cutzlo;
+      if (bounds_list[ilist][2][1] >= subhi[2]) check_list[ilist][2] = 0;
+    }
+    if (iz == 2) {
+      check_list[ilist][2] = 1;
+      bounds_list[ilist][2][0] = subhi[2] - cutzhi;
+      bounds_list[ilist][2][1] = subhi[2];
+      if (bounds_list[ilist][2][0] <= sublo[2]) check_list[ilist][2] = 0;
+    }
+  }
+  
   // active_list = which lists of atoms are used by swaps
   // zero it before looping over swaps to set it
 
   for (int ilist = 0; ilist < maxlist; ilist++)
     active_list[ilist] = 0;
   
-  // loop over stencil and define each direct swap
+  // loop over stencil and define params for each direct swap
   
-  int ix,iy,iz;
-  int igrid,jgrid,kgrid;
   int xpbc,ypbc,zpbc;
+  int igrid,jgrid,kgrid;
   int ilistx,ilisty,ilistz,ilist;
 
   for (int iswap = 0; iswap < ndirect; iswap++) {
@@ -324,21 +384,30 @@ void CommBrickDirect::setup()
       }
     }
 
-    // identify which atom list this swap maps to, based in ix,iy,iz
-    // increment active_list for that list
+    // identify which atom list this swap uses, based on ix,iy,iz
+    // set swap2list and increment active_list for that list
+    // put check for ixyz = 0 before lo or hi so that if lo or hi = 0
+    //    then there will be no additional atom lists created for lo or hi
+    
+    if (ix == 0) ilistx = 1;
+    else if (ix == ilo) ilistx = 0;
+    else if (ix == ihi) ilistx = 2;
+    else ilistx = 1;
 
-    if (ix == ilo) ilistx = 0;
-    else if (ix < ihi) ilistx = 1;
-    else ilistx = 2;
-    if (iy == jlo) ilisty = 0;
-    else if (iy < jhi) ilisty = 1;
-    else ilisty = 2;
-    if (iz == klo) ilistz = 0;
-    else if (iz < khi) ilistz = 1;
-    else ilistz = 2;
+    if (iy == 0) ilisty = 1;
+    else if (iy == jlo) ilisty = 0;
+    else if (iy == jhi) ilisty = 2;
+    else ilisty = 1;
+    
+    if (iz == 0) ilistz = 1;
+    else if (iz == klo) ilistz = 0;
+    else if (iz == khi) ilistz = 2;
+    else ilistz = 1;
 
     if (dim == 2) ilist = 3*ilisty + ilistx;
     if (dim == 3) ilist = 9*ilistz + 3*ilisty + ilistx;
+
+    swap2list[iswap] = ilist;
     active_list[ilist++];
     
     // set MPI tags based on 3d offset between 2 procs from receiver's perspective
@@ -357,59 +426,6 @@ void CommBrickDirect::setup()
   nself_direct = 0;
   for (int iswap = 0; iswap < ndirect; iswap++)
     if (proc_direct[iswap] == me) self_indices_direct[nself_direct++] = iswap;
-
-  // setup maxlist params for each atom list
-  // set check_list, set bounds_list
-  // NOTE: what about sends on stencil face which do not require cutoff test due to non-PBC
-
-  // NOTE: need code here
-
-  /*
-    if (ix > ilo && ix < ihi) {
-      ds->xcheck = 0;
-      ds->xlo = ds->xhi = 0.0;
-    } else {
-      ds->xcheck = 1;
-      if (ix == ilo) {
-        ds->xlo = sublo[0];
-        ds->xhi = sublo[0] + cutxlo;
-      } else if (ix == ihi) {
-        ds->xlo = subhi[0] - cutxhi;
-        ds->xhi = subhi[0];
-      }
-    }
-
-    if (iy > jlo && iy < jhi) {
-      ds->ycheck = 0;
-      ds->ylo = ds->yhi = 0.0;
-    } else {
-      ds->ycheck = 1;
-      if (iy == jlo) {
-        ds->ylo = sublo[1];
-        ds->yhi = sublo[1] + cutylo;
-      } else if (iy == jhi) {
-        ds->ylo = subhi[1] - cutyhi;
-        ds->yhi = subhi[1];
-      }
-    }
-
-    if (dim == 2) {
-      ds->zcheck = 0;
-      ds->zlo = ds->zhi = 0.0;
-    } else if (iz > klo && iz < khi) {
-      ds->zcheck = 0;
-      ds->zlo = ds->zhi = 0.0;
-    } else {
-      ds->zcheck = 1;
-      if (iz == klo) {
-        ds->zlo = sublo[2];
-        ds->zhi = sublo[2] + cutzlo;
-      } else if (iz == khi) {
-        ds->zlo = subhi[2] - cutzhi;
-        ds->zhi = subhi[2];
-      }
-    }
-    */
 }
 
 /* ----------------------------------------------------------------------
@@ -421,19 +437,6 @@ void CommBrickDirect::setup()
 
 void CommBrickDirect::order_swaps(int ilo, int ihi, int jlo, int jhi, int klo, int khi)
 {
-  /* OLD ordering
-  int iswap = 0;
-  for (int iz = klo; iz <= khi; iz++)
-    for (int iy = jlo; iy <= jhi; iy++)
-      for (int ix = ilo; ix <= ihi; ix++) {
-        if (ix == 0 && iy == 0 && iz == 0) continue;
-        swaporder[iswap][0] = ix;
-        swaporder[iswap][1] = iy;
-        swaporder[iswap][2] = iz;
-        iswap++;
-      }
-  */
-  
   // center of stencil: ix = iy = iz = 0
   // sdist = distance bewteen center of stencil (me) and another stencil proc
   //   sdist = abs(ix) + abs(iy) + abs(iz)
@@ -914,6 +917,8 @@ void CommBrickDirect::allocate_direct()
 void CommBrickDirect::allocate_lists()
 {
   memory->create(active_list,maxlist,"comm:active_list");
+  memory->create(check_list,maxlist,3,"comm:check_list");
+  memory->create(bounds_list,maxlist,3,2,"comm:bounds_list");
   memory->create(sendnum_list,maxlist,"comm:sendnum_list");
   memory->create(maxsendatoms_list,maxlist,"comm:maxsendatoms_list");
   sendatoms_list = (int **) memory->smalloc(maxlist*sizeof(int *),"comm:sendatoms_list");
@@ -960,6 +965,8 @@ void CommBrickDirect::deallocate_direct()
 void CommBrickDirect::deallocate_lists(int nlist)
 {
   memory->destroy(active_list);
+  memory->destroy(check_list);
+  memory->destroy(bounds_list);
   memory->destroy(sendnum_list);
   for (int ilist = 0; ilist < nlist; ilist++)
     memory->destroy(sendatoms_list[ilist]);

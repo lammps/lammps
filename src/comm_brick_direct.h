@@ -83,11 +83,10 @@ class CommBrickDirect : public CommBrick {
   // only 27 (3d) or 9 (2d) possible lists
   // each may be used in multiple swaps or not used (or defined)
 
-  int **check_list;            // NOTE: doc these 2, also alloc/dealloc
-  double ***bounds_list;
-    
   int maxlist;                  // max possible lists
   int *active_list;             // 1 if each list is generated and used in a swap
+  int **check_list;             // clist[I][J} = 1 if list I requires bounds check in dim J
+  double ***bounds_list;        // blist[I][J][K] = lo/hi bounds K=0/1 in dim J for list I
   int *sendnum_list;            // # of atom indices in each list
   int **sendatoms_list;         // list of owned atom indices
   int *maxsendatoms_list;       // max size of each allocated list

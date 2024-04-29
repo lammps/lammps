@@ -31,19 +31,6 @@ class CommBrickDirect : public CommBrick {
   void borders() override;                      // setup list of atoms to comm
 
  protected:
-
-  /*
-  struct DirectSwap {
-    int allflag;                // 1 if sending all my owned atoms
-    int xcheck,ycheck,zcheck;   // which coord dims to check to send subset
-    double xlo,xhi;             // lo/hi bounds in each coord dim when sending subset
-    double ylo,yhi;
-    double zlo,zhi;
-  };
-  */
-
-  //DirectSwap *dswap;                      // list of direct swaps in 3d stencil
-
   // per-swap data
   // swap = exchange of data between me and another proc in stencil, including self
   

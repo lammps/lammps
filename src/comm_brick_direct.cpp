@@ -22,19 +22,10 @@
 #include "neighbor.h"
 
 // NOTES:
-// (1) how to order dswap by shells within full stencil
-//     order by faces first, edges 2nd, corners 3rd and do shell by shell
-//     have a 2d and 3d version
-//     this is so that ghost atoms are ordered by distance from owned atoms
-//     similar to how CommBrick works now
-//     or could mimic exactly how CommBrick works now?
-// (2) for outer shell of stencil procs, need to compute send proc cutoff
-//     can do this for each of 6 directions, use xyzsplit for nonuniform bricks
-//     for orthongonal or triclinic
-// (3) reorg atom lists to just 8/26 unique for 2d/3d plus "all" list
-//     do I still need DirectSwap once this is done
 // valgrind error (and leaked memory) in destuctor
 //   copy constructor logic in init_buffer in CommBrick ?
+// still need cutoff calculation for nonuniform layout
+// need forward_comm_array to test molecular systems
 // test msg tags with individual procs as multiple neighbors via big stencil
 // test when cutoffs >> box length
 // test with triclinic
@@ -125,8 +116,13 @@ void CommBrickDirect::init_buffers_direct()
   memory->create(buf_recv_direct,maxrecv_direct,"comm:buf_recv_direct");
 
   ndirect = 0;
-  if (domain->dimension == 2) maxdirect = maxlist = 8;
-  else maxdirect = maxlist = 26;
+  if (domain->dimension == 2) {
+    maxdirect = 8;
+    maxlist = 9;
+  } else {
+    maxdirect = 26;
+    maxlist = 27;
+  }
 
   allocate_direct();
   allocate_lists();
@@ -691,8 +687,8 @@ void CommBrickDirect::borders()
     if (!xcheck && !ycheck && !zcheck) {
       for (i = 0; i < nlocal; i++) {
         if (nsend == maxsend) {
-          grow_list_direct(iswap,nsend);
-          maxsend = maxsendatoms_list[iswap];
+          grow_list_direct(ilist,nsend);
+          maxsend = maxsendatoms_list[ilist];
         }
         sendatoms_list[ilist][nsend++] = i;
       }
@@ -702,8 +698,8 @@ void CommBrickDirect::borders()
         if (ycheck && (x[i][1] < ylo || x[i][1] > yhi)) continue;
         if (zcheck && (x[i][2] < zlo || x[i][2] > zhi)) continue;
         if (nsend == maxsend) {
-          grow_list_direct(iswap,nsend);
-          maxsend = maxsendatoms_list[iswap];
+          grow_list_direct(ilist,nsend);
+          maxsend = maxsendatoms_list[ilist];
         }
         sendatoms_list[ilist][nsend++] = i;
       }

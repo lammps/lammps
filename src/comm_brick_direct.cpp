@@ -221,8 +221,11 @@ void CommBrickDirect::setup()
   MPI_Allreduce(&stencil_half_local,&stencil_half,1,MPI_INT,MPI_MAX,world);
   int stencil_full = 2*stencil_half + 1;
 
-  int maxtag = stencil_full*stencil_full*(khi+stencil_half) +
+  int maxtag_lo = stencil_full*stencil_full*(-klo+stencil_half) +
+      stencil_full*(-jlo+stencil_half) + (-ilo+stencil_half);
+  int maxtag_hi = stencil_full*stencil_full*(khi+stencil_half) +
       stencil_full*(jhi+stencil_half) + (ihi+stencil_half);
+  int maxtag = MAX(maxtag_lo,maxtag_hi);
 
   void *maxtag_mpi_ptr;
   int tmp;

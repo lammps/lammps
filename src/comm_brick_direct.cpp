@@ -38,8 +38,6 @@ using namespace LAMMPS_NS;
 
 static constexpr double BUFFACTOR = 1.5;
 static constexpr int BUFMIN = 1024;
-static constexpr int STENCIL_HALF = 512;
-static constexpr int STENCIL_FULL = 1025;
 
 /* ---------------------------------------------------------------------- */
 
@@ -211,13 +209,28 @@ void CommBrickDirect::setup()
   int klo = -recvneed[2][0];
   int khi = recvneed[2][1];
 
-  int errflag = 0;
-  if (-ilo > STENCIL_HALF || ihi > STENCIL_HALF ||
-      -jlo > STENCIL_HALF || jhi > STENCIL_HALF ||
-      -klo > STENCIL_HALF || khi > STENCIL_HALF) errflag = 1;
-  int errany;
-  MPI_Allreduce(&errflag,&errany,1,MPI_INT,MPI_MAX,world);
-  if (errany) error->all(FLERR,"Comm brick/direct stencil is too large");
+  int stencil_half_local = 0;
+  stencil_half_local = MAX(-ilo,stencil_half_local);
+  stencil_half_local = MAX( ihi,stencil_half_local);
+  stencil_half_local = MAX(-jlo,stencil_half_local);
+  stencil_half_local = MAX( jhi,stencil_half_local);
+  stencil_half_local = MAX(-klo,stencil_half_local);
+  stencil_half_local = MAX( khi,stencil_half_local);
+
+  int stencil_half;
+  MPI_Allreduce(&stencil_half_local,&stencil_half,1,MPI_INT,MPI_MAX,world);
+  int stencil_full = 2*stencil_half + 1;
+
+  int maxtag = stencil_full*stencil_full*(khi+stencil_half) +
+      stencil_full*(jhi+stencil_half) + (ihi+stencil_half);
+
+  void *maxtag_mpi_ptr;
+  int tmp;
+  MPI_Comm_get_attr(world,MPI_TAG_UB,&maxtag_mpi_ptr,&tmp);
+  int maxtag_mpi = *(int*)maxtag_mpi_ptr;
+
+  if (maxtag > maxtag_mpi)
+    error->all(FLERR,"Comm brick/direct stencil is too large");
 
   ndirect = (ihi-ilo+1) * (jhi-jlo+1) * (khi-klo+1) - 1;
 
@@ -425,10 +438,10 @@ void CommBrickDirect::setup()
     // necessary if multiple swaps are performed between same 2 procs
     //   so that receiver can identify which swap the received data is for
 
-    sendtag[iswap] = STENCIL_FULL*STENCIL_FULL*(-iz+STENCIL_HALF) +
-      STENCIL_FULL*(-iy+STENCIL_HALF) + (-ix+STENCIL_HALF);
-    recvtag[iswap] = STENCIL_FULL*STENCIL_FULL*(iz+STENCIL_HALF) +
-      STENCIL_FULL*(iy+STENCIL_HALF) + (ix+STENCIL_HALF);
+    sendtag[iswap] = stencil_full*stencil_full*(-iz+stencil_half) +
+      stencil_full*(-iy+stencil_half) + (-ix+stencil_half);
+    recvtag[iswap] = stencil_full*stencil_full*(iz+stencil_half) +
+      stencil_full*(iy+stencil_half) + (ix+stencil_half);
   }
 
   // set nself_direct and self_indices_direct

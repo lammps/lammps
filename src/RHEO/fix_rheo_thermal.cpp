@@ -281,6 +281,10 @@ void FixRHEOThermal::init()
       fix_update_special_bonds = dynamic_cast<FixUpdateSpecialBonds *>(fixes[0]);
     }
 
+    // must have newton off so both processors will search nlist to build bonds
+    if (force->newton_pair)
+      error->all(FLERR, "Need Newton off for reactive bond generation");
+
     // need a half neighbor list, built only when particles freeze
     auto req = neighbor->add_request(this, NeighConst::REQ_OCCASIONAL);
     req->set_cutoff(cut_kernel);
@@ -494,7 +498,7 @@ void FixRHEOThermal::reset_dt()
 
 void FixRHEOThermal::break_bonds()
 {
-  int m, n, nmax, i, j;
+  int m, n, nmax, i, j, melti, meltj;
 
   tagint *tag = atom->tag;
   int *status = atom->status;
@@ -510,11 +514,13 @@ void FixRHEOThermal::break_bonds()
 
   // Delete all bonds for local atoms that melt of a given type
   for (int i = 0; i < nlocal; i++) {
-    if (!(status[i] & STATUS_MELTING)) continue;
+    melti = status[i] & STATUS_MELTING;
+    if (!melti) continue;
     for (m = (num_bond[i] - 1); m >= 0; m--) {
       if (bond_type[i][m] != btype) continue;
 
       j = atom->map(bond_atom[i][m]);
+      meltj = status[j] & STATUS_MELTING;
 
       nmax = num_bond[i] - 1;
       if (m == nmax) {
@@ -535,8 +541,17 @@ void FixRHEOThermal::break_bonds()
       bond_type[i][nmax] = 0;
       num_bond[i]--;
 
-      if (fix_update_special_bonds)
-        fix_update_special_bonds->add_broken_bond(i, j);
+      // Update special unless two owned atoms melt simultaneously then
+      //  only update for atom with lower tag
+      if (fix_update_special_bonds) {
+        if (i < nlocal && j < nlocal && melti && meltj) {
+          if (tag[i] < tag[j]) {
+            fix_update_special_bonds->add_broken_bond(i, j);
+          }
+        } else {
+          fix_update_special_bonds->add_broken_bond(i, j);
+        }
+      }
     }
   }
 
@@ -548,12 +563,15 @@ void FixRHEOThermal::break_bonds()
     i = bondlist[n][0];
     j = bondlist[n][1];
 
-    if (!(status[i] & STATUS_MELTING) && !(status[j] & STATUS_MELTING)) continue;
+    melti = status[i] & STATUS_MELTING;
+    meltj = status[j] & STATUS_MELTING;
+
+    if (!melti && !meltj) continue;
 
     bondlist[n][2] = 0;
 
     // Delete bonds for non-melted local atoms (shifting)
-    if (i < nlocal && !(status[i] & STATUS_MELTING)) {
+    if (i < nlocal && !melti) {
       for (m = 0; m < num_bond[i]; m++) {
         if (bond_atom[i][m] == tag[j] && bond_type[i][m] == btype) {
           nmax = num_bond[i] - 1;
@@ -572,7 +590,7 @@ void FixRHEOThermal::break_bonds()
       }
     }
 
-    if (j < nlocal && !(status[j] & STATUS_MELTING)) {
+    if (j < nlocal && !meltj) {
       for (m = 0; m < num_bond[j]; m++) {
         if (bond_atom[j][m] == tag[i] && bond_type[j][m] == btype) {
           nmax = num_bond[j] - 1;
@@ -590,6 +608,12 @@ void FixRHEOThermal::break_bonds()
         }
       }
     }
+
+    // Unless both atoms melt simultaneously, need to remove special bond if the melted atom is a ghost
+    if (melti && meltj) continue;
+    if (fix_update_special_bonds)
+      if (((i >= nlocal) && melti) || ((j >= nlocal) && meltj))
+        fix_update_special_bonds->add_broken_bond(i, j);
   }
 }
 
@@ -649,7 +673,6 @@ void FixRHEOThermal::create_bonds()
       if (i < nlocal && (!newton_bond || tag[i] < tag[j])) {
         if (num_bond[i] == atom->bond_per_atom)
           error->one(FLERR,"New bond exceeded bonds per atom in fix rheo/thermal");
-        if (fix_update_special_bonds) fix_update_special_bonds->add_created_bond(i, j);
         bond_type[i][num_bond[i]] = btype;
         bond_atom[i][num_bond[i]] = tag[j];
         num_bond[i]++;
@@ -658,11 +681,12 @@ void FixRHEOThermal::create_bonds()
       if (j < nlocal && (!newton_bond || tag[j] < tag[i])) {
         if (num_bond[j] == atom->bond_per_atom)
           error->one(FLERR,"New bond exceeded bonds per atom in fix rheo/thermal");
-        if (fix_update_special_bonds) fix_update_special_bonds->add_created_bond(i, j);
         bond_type[j][num_bond[j]] = btype;
         bond_atom[j][num_bond[j]] = tag[i];
         num_bond[j]++;
       }
+
+      if (fix_update_special_bonds) fix_update_special_bonds->add_created_bond(i, j);
     }
   }
 }

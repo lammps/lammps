@@ -94,7 +94,12 @@ class CommBrickDirect : public CommBrick {
 
   // private methods
 
+  // NOTE: init_pointers and init_buffers_direct are called from a constructor
+  //  and must not be made virtual
+  
+  void init_pointers();
   void init_buffers_direct();
+
   void order_swaps(int, int, int, int, int, int);
   void allocate_direct();
   void allocate_lists();

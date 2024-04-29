@@ -77,7 +77,11 @@ class CommBrick : public Comm {
   int maxsend, maxrecv;    // current size of send/recv buffer
   int smax, rmax;          // max size in atoms of single borders send/recv
 
-  // NOTE: init_buffers is called from a constructor and must not be made virtual
+
+  // NOTE: init_pointers and init_buffers are called from a constructor
+  //  and must not be made virtual
+
+  void init_pointers();
   void init_buffers();
 
   int updown(int, int, int, double, int, double *);

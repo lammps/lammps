@@ -41,18 +41,12 @@ static constexpr double BIG = 1.0e20;
 
 /* ---------------------------------------------------------------------- */
 
-CommBrick::CommBrick(LAMMPS *lmp) :
-  Comm(lmp),
-  sendnum(nullptr), recvnum(nullptr), sendproc(nullptr), recvproc(nullptr),
-  size_forward_recv(nullptr), size_reverse_send(nullptr), size_reverse_recv(nullptr),
-  slablo(nullptr), slabhi(nullptr), multilo(nullptr), multihi(nullptr),
-  multioldlo(nullptr), multioldhi(nullptr), cutghostmulti(nullptr), cutghostmultiold(nullptr),
-  pbc_flag(nullptr), pbc(nullptr), firstrecv(nullptr), sendlist(nullptr),
-  localsendlist(nullptr), maxsendlist(nullptr), buf_send(nullptr), buf_recv(nullptr)
+CommBrick::CommBrick(LAMMPS *lmp) :Comm(lmp)
 {
   style = Comm::BRICK;
   layout = Comm::LAYOUT_UNIFORM;
   pbc_flag = nullptr;
+  init_pointers();
   init_buffers();
 }
 
@@ -80,6 +74,37 @@ CommBrick::~CommBrick()
   memory->destroy(buf_recv);
 }
 
+/* ----------------------------------------------------------------------
+   initialize comm pointers to nullptr
+------------------------------------------------------------------------- */
+
+void CommBrick::init_pointers()
+{
+  sendnum = nullptr;
+  recvnum = nullptr;
+  sendproc = nullptr;
+  recvproc = nullptr;
+  size_forward_recv = nullptr;
+  size_reverse_send = nullptr;
+  size_reverse_recv = nullptr;
+  slablo = nullptr;
+  slabhi = nullptr;
+  multilo = nullptr;
+  multihi = nullptr;
+  multioldlo = nullptr;
+  multioldhi = nullptr;
+  cutghostmulti = nullptr;
+  cutghostmultiold = nullptr;
+  pbc_flag = nullptr;
+  pbc = nullptr;
+  firstrecv = nullptr;
+  sendlist = nullptr;
+  localsendlist = nullptr;
+  maxsendlist = nullptr;
+  buf_send = nullptr;
+  buf_recv = nullptr;
+}
+
 /* ---------------------------------------------------------------------- */
 //IMPORTANT: we *MUST* pass "*oldcomm" to the Comm initializer here, as
 //           the code below *requires* that the (implicit) copy constructor
@@ -95,6 +120,7 @@ CommBrick::CommBrick(LAMMPS * /*lmp*/, Comm *oldcomm) : Comm(*oldcomm)
   style = Comm::BRICK;
   layout = oldcomm->layout;
   Comm::copy_arrays(oldcomm);
+  init_pointers();
   init_buffers();
 }
 

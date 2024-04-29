@@ -46,7 +46,27 @@ static constexpr int STENCIL_FULL = 1025;
 CommBrickDirect::CommBrickDirect(LAMMPS *lmp) : CommBrick(lmp)
 {
   style = Comm::BRICK_DIRECT;
+  init_pointers();
+  init_buffers_direct();
+}
 
+/* ---------------------------------------------------------------------- */
+
+CommBrickDirect::~CommBrickDirect()
+{
+  deallocate_direct();
+  deallocate_lists(maxlist);
+
+  memory->destroy(buf_send_direct);
+  memory->destroy(buf_recv_direct);
+}
+
+/* ----------------------------------------------------------------------
+   initialize comm pointers to nullptr
+------------------------------------------------------------------------- */
+
+void CommBrickDirect::init_pointers()
+{
   swaporder = nullptr;
   proc_direct = nullptr;
   pbc_flag_direct = nullptr;
@@ -76,22 +96,14 @@ CommBrickDirect::CommBrickDirect(LAMMPS *lmp) : CommBrick(lmp)
   sendnum_list = nullptr;
   sendatoms_list = nullptr;
   maxsendatoms_list = nullptr;
-
-  init_buffers_direct();
 }
 
 /* ---------------------------------------------------------------------- */
-
-CommBrickDirect::~CommBrickDirect()
-{
-  deallocate_direct();
-  deallocate_lists(maxlist);
-
-  memory->destroy(buf_send_direct);
-  memory->destroy(buf_recv_direct);
-}
-
-/* ---------------------------------------------------------------------- */
+//IMPORTANT: we *MUST* pass "*oldcomm" to the Comm initializer here, as
+//           the code below *requires* that the (implicit) copy constructor
+//           for Comm is run and thus creating a shallow copy of "oldcomm".
+//           The call to Comm::copy_arrays() then converts the shallow copy
+//           into a deep copy of the class with the new layout.
 
 CommBrickDirect::CommBrickDirect(LAMMPS *lmp, Comm *oldcomm) : CommBrick(lmp, oldcomm)
 {
@@ -101,6 +113,7 @@ CommBrickDirect::CommBrickDirect(LAMMPS *lmp, Comm *oldcomm) : CommBrick(lmp, ol
   style = Comm::BRICK_DIRECT;
   layout = oldcomm->layout;
   Comm::copy_arrays(oldcomm);
+  init_pointers();
   init_buffers_direct();
 }
 

@@ -658,7 +658,7 @@ void CommBrick::exchange()
   double *sublo,*subhi;
   MPI_Request request;
   AtomVec *avec = atom->avec;
-  
+
   // clear global->local map for owned and ghost atoms
   // b/c atoms migrate to new procs in exchange() and
   //   new ghosts are created in borders()

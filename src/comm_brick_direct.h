@@ -33,13 +33,13 @@ class CommBrickDirect : public CommBrick {
  protected:
   // per-swap data
   // swap = exchange of data between me and another proc in stencil, including self
-  
+
   int ndirect;                            // # of direct swaps with nearby procs, including self
   int maxdirect;                          // max size which all swap-length data is allocated for
   int nself_direct;                       // # of swaps with self, non-empty or empty
 
   int **swaporder;                        // ordering (ijk indices) of swaps within 3d stencil
-  
+
   int *send_indices_direct;               // indices of non-empty swap sends to other procs
   int *recv_indices_direct;               // indices of non-empty swap recvs from other procs
   int *self_indices_direct;               // indices of non-empty swaps with self
@@ -48,10 +48,10 @@ class CommBrickDirect : public CommBrick {
   int *pbc_flag_direct;                   // overall flag for sending atoms thru PBC
   int **pbc_direct;                       // 6 dimension flags for PBC adjusts, including triclinc
   int *sendtag, *recvtag;                 // MPI tags for send/recv in each swap
-  
+
   int *sendnum_direct;                    // # of atoms to send in each swap
   int *recvnum_direct;                    // # of atoms to recv in each swap
-  
+
   int *size_forward_recv_direct;          // max # of values to recv in each forward comm
   int *size_reverse_send_direct;          // max # of values to send in each reverse comm
   int *size_reverse_recv_direct;          // max # of values to recv in each reverse comm
@@ -83,17 +83,17 @@ class CommBrickDirect : public CommBrick {
   double cutzlo, cutzhi;
 
   // communication buffers for MPI sends and receives as well as self data copies
-  
+
   double *buf_send_direct;  // send buffer used for every swap (large enough for any)
   double *buf_recv_direct;  // recv buffer used for all swaps (large enough for all)
 
   int maxsend_direct;       // size of buf_send_direct
   int maxrecv_direct;       // size of buf_recv_direct
-  
+
   MPI_Request *requests;    // list of requests, length = ndirect
 
   // private methods
-  
+
   void init_buffers_direct();
   void order_swaps(int, int, int, int, int, int);
   void allocate_direct();

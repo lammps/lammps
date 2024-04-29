@@ -96,7 +96,7 @@ class CommBrickDirect : public CommBrick {
 
   // NOTE: init_pointers and init_buffers_direct are called from a constructor
   //  and must not be made virtual
-  
+
   void init_pointers();
   void init_buffers_direct();
 

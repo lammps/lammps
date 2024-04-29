@@ -79,15 +79,14 @@ CommBrickDirect::CommBrickDirect(LAMMPS *lmp) : CommBrick(lmp)
   recv_offset_border_direct = nullptr;
   requests = nullptr;
 
-  init_buffers_direct();
-
-  maxlist = 0;
   active_list = nullptr;
   check_list = nullptr;
   bounds_list = nullptr;
   sendnum_list = nullptr;
   sendatoms_list = nullptr;
   maxsendatoms_list = nullptr;
+
+  init_buffers_direct();
 }
 
 /* ---------------------------------------------------------------------- */
@@ -126,9 +125,11 @@ void CommBrickDirect::init_buffers_direct()
   memory->create(buf_recv_direct,maxrecv_direct,"comm:buf_recv_direct");
 
   ndirect = 0;
-  if (domain->dimension == 2) maxdirect = 8;
-  else maxdirect = 26;
+  if (domain->dimension == 2) maxdirect = maxlist = 8;
+  else maxdirect = maxlist = 26;
+
   allocate_direct();
+  allocate_lists();
 }
 
 /* ---------------------------------------------------------------------- */
@@ -408,7 +409,7 @@ void CommBrickDirect::setup()
     if (dim == 3) ilist = 9*ilistz + 3*ilisty + ilistx;
 
     swap2list[iswap] = ilist;
-    active_list[ilist++];
+    active_list[ilist]++;
     
     // set MPI tags based on 3d offset between 2 procs from receiver's perspective
     // this ensures MPI Send and Recv for each swap will use same tag

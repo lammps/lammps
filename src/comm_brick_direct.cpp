@@ -22,8 +22,6 @@
 #include "neighbor.h"
 
 // NOTES:
-// valgrind error (and leaked memory) in destuctor
-//   copy constructor logic in init_buffer in CommBrick ?
 // still need cutoff calculation for nonuniform layout
 // need forward_comm_array to test molecular systems
 // test msg tags with individual procs as multiple neighbors via big stencil
@@ -198,9 +196,7 @@ void CommBrickDirect::setup()
     subhi = domain->subhi_lamda;
   }
 
-  // ijk lo/hi = bounds of stencil around my proc at center
-  // ndirect = # of direct swaps with other procs, including self copies
-  // subtract 1 for myself in center of 3d grid of surrounding procs
+  // ijk lo/hi = bounds of stencil around this proc at center
 
   int ilo = -recvneed[0][0];
   int ihi = recvneed[0][1];
@@ -209,31 +205,36 @@ void CommBrickDirect::setup()
   int klo = -recvneed[2][0];
   int khi = recvneed[2][1];
 
-  int stencil_half_local = 0;
-  stencil_half_local = MAX(-ilo,stencil_half_local);
-  stencil_half_local = MAX( ihi,stencil_half_local);
-  stencil_half_local = MAX(-jlo,stencil_half_local);
-  stencil_half_local = MAX( jhi,stencil_half_local);
-  stencil_half_local = MAX(-klo,stencil_half_local);
-  stencil_half_local = MAX( khi,stencil_half_local);
+  // calculate max stencil extent in each dim for any proc
+  // max stencil extents are used for MPI tag calculations
 
-  int stencil_half;
-  MPI_Allreduce(&stencil_half_local,&stencil_half,1,MPI_INT,MPI_MAX,world);
-  int stencil_full = 2*stencil_half + 1;
+  int stencil_half_local[3];
+  stencil_half_local[0] = MAX(-ilo,ihi);
+  stencil_half_local[1] = MAX(-jlo,jhi);
+  stencil_half_local[2] = MAX(-klo,khi);
 
-  int maxtag_lo = stencil_full*stencil_full*(-klo+stencil_half) +
-      stencil_full*(-jlo+stencil_half) + (-ilo+stencil_half);
-  int maxtag_hi = stencil_full*stencil_full*(khi+stencil_half) +
-      stencil_full*(jhi+stencil_half) + (ihi+stencil_half);
-  int maxtag = MAX(maxtag_lo,maxtag_hi);
+  int stencil_half[3];
+  MPI_Allreduce(&stencil_half_local,&stencil_half,3,MPI_INT,MPI_MAX,world);
 
+  int stencil_full[3];
+  stencil_full[0] = 2*stencil_half[0] + 1;
+  stencil_full[1] = 2*stencil_half[1] + 1;
+  stencil_full[2] = 2*stencil_half[2] + 1;
+
+  // ensure max possible tag does not exceed MPI limit
+
+  bigint maxtag = (bigint) stencil_full[0] * stencil_full[1] * stencil_full[2];
+  
   void *maxtag_mpi_ptr;
   int tmp;
   MPI_Comm_get_attr(world,MPI_TAG_UB,&maxtag_mpi_ptr,&tmp);
-  int maxtag_mpi = *(int*)maxtag_mpi_ptr;
-
+  int maxtag_mpi = *((int *) maxtag_mpi_ptr);
+    
   if (maxtag > maxtag_mpi)
     error->all(FLERR,"Comm brick/direct stencil is too large");
+  
+  // ndirect = # of direct swaps this proc makes with other procs, including self copies
+  // subtract 1 for self in center of 3d stencil of surrounding procs
 
   ndirect = (ihi-ilo+1) * (jhi-jlo+1) * (khi-klo+1) - 1;
 
@@ -437,14 +438,14 @@ void CommBrickDirect::setup()
     active_list[ilist]++;
 
     // set MPI tags based on 3d offset between 2 procs from receiver's perspective
-    // this ensures MPI Send and Recv for each swap will use same tag
+    // this ensures for each swap, MPI Send/Recv on different procs will use same tag
     // necessary if multiple swaps are performed between same 2 procs
     //   so that receiver can identify which swap the received data is for
 
-    sendtag[iswap] = stencil_full*stencil_full*(-iz+stencil_half) +
-      stencil_full*(-iy+stencil_half) + (-ix+stencil_half);
-    recvtag[iswap] = stencil_full*stencil_full*(iz+stencil_half) +
-      stencil_full*(iy+stencil_half) + (ix+stencil_half);
+    sendtag[iswap] = stencil_full[1]*stencil_full[0]*(-iz+stencil_half[2]) +
+      stencil_full[0] *(-iy+stencil_half[1]) + (-ix+stencil_half[0]) + 1;
+    recvtag[iswap] = stencil_full[1]*stencil_full[0]*(iz+stencil_half[2]) +
+      stencil_full[0]*(iy+stencil_half[1]) + (ix+stencil_half[0]) + 1;
   }
 
   // set nself_direct and self_indices_direct

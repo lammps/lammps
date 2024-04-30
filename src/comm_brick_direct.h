@@ -93,9 +93,8 @@ class CommBrickDirect : public CommBrick {
   MPI_Request *requests;    // list of requests, length = ndirect
 
   // private methods
-
-  // NOTE: init_pointers and init_buffers_direct are called from a constructor
-  //  and must not be made virtual
+  // init_pointers and init_buffers_direct are called from a constructor
+  //   so must not be made virtual
 
   void init_pointers();
   void init_buffers_direct();

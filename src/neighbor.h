@@ -58,7 +58,8 @@ class Neighbor : protected Pointers {
 
   double *bboxlo, *bboxhi;    // ptrs to full domain bounding box
                               // different for orthog vs triclinic
-
+  double **xhold;    // atom coords at last neighbor build
+  int maxhold;       // size of xhold array
   // exclusion info, used by NeighPair
 
   int exclude;    // 0 if no type/group exclusions, 1 if yes
@@ -190,8 +191,8 @@ class Neighbor : protected Pointers {
 
   double triggersq;    // trigger = build when atom moves this dist
 
-  double **xhold;    // atom coords at last neighbor build
-  int maxhold;       // size of xhold array
+  //double **xhold;    // atom coords at last neighbor build
+  //int maxhold;       // size of xhold array
 
   int boxcheck;                           // 1 if need to store box size
   double boxlo_hold[3], boxhi_hold[3];    // box size at last neighbor build

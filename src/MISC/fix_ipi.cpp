@@ -30,6 +30,7 @@
 #include "update.h"
 
 #include <cstring>
+#include <iostream>
 
 using namespace LAMMPS_NS;
 using namespace FixConst;
@@ -363,10 +364,36 @@ void FixIPI::initial_integrate(int /*vflag*/)
   // has to be be done before invoking Irregular::migrate_atoms()
   //   since it requires atoms be inside simulation box
 
+
+  if (neighbor->ncalls == 0) {
+    
   if (domain->triclinic) domain->x2lamda(atom->nlocal);
-  domain->pbc();
-  domain->reset_box();
-  if (domain->triclinic) domain->lamda2x(atom->nlocal);
+    domain->pbc();
+    domain->reset_box();
+    if (domain->triclinic) domain->lamda2x(atom->nlocal);
+  } else { // for some reason this fails if it's called on the first step.
+    // "unwraps" the trajectory because we have no guarantee of what has happened 
+    // server-side to the atoms folding
+    for (int i = 0; i < nlocal; i++) {
+      if (mask[i] & groupbit) {
+        x[i][0] -= neighbor->xhold[i][0];
+        x[i][1] -= neighbor->xhold[i][1];
+        x[i][2] -= neighbor->xhold[i][2];
+      }
+    }
+    if (domain->triclinic) domain->x2lamda(atom->nlocal);
+    domain->pbc();
+    domain->reset_box();
+    if (domain->triclinic) domain->lamda2x(atom->nlocal);
+    for (int i = 0; i < nlocal; i++) {
+      if (mask[i] & groupbit) {
+        x[i][0] += neighbor->xhold[i][0];
+        x[i][1] += neighbor->xhold[i][1];
+        x[i][2] += neighbor->xhold[i][2];
+      }
+    }
+  }
+  /**/
 
   // move atoms to new processors via irregular()
   // only needed if migrate_check() says an atom moves to far

@@ -53,6 +53,7 @@
 
 #include <cmath>
 #include <cstring>
+#include <iostream>
 
 using namespace LAMMPS_NS;
 using namespace NeighConst;
@@ -2384,12 +2385,16 @@ int Neighbor::check_distance()
     dely = x[i][1] - xhold[i][1];
     delz = x[i][2] - xhold[i][2];
     rsq = delx*delx + dely*dely + delz*delz;
-    if (rsq > deltasq) flag = 1;
+    if (rsq > deltasq) {
+      std::cout<<"jump: "<< rsq<<std::endl;
+      flag = 1;
+    }
   }
 
   int flagall;
   MPI_Allreduce(&flag,&flagall,1,MPI_INT,MPI_MAX,world);
   if (flagall && ago == MAX(every,delay)) ndanger++;
+  std::cout<<" neigh update flags "<< flagall<< "  "<< ago << "  "<<ndanger<<std::endl;
   return flagall;
 }
 

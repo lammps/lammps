@@ -714,7 +714,8 @@ int MPI_Comm_get_attr(MPI_Comm comm, int comm_keyval, void **attribute_val_ptr,
                       int *flag)
 {
   if (comm_keyval != MPI_TAG_UB) {
-    attribute_val_ptr = nullptr;
+    printf("MPI Stub WARNING: Unsupported keyword in MPI_Comm_get_attr\n");
+    *attribute_val_ptr = NULL;
     *flag = 0;
     return MPI_ERR_ARG;
   }

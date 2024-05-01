@@ -18,16 +18,12 @@
 
 #include "compute_reaxff_atom_kokkos.h"
 #include "atom.h"
-#include "molecule.h"
 #include "update.h"
-#include "force.h"
-#include "memory.h"
 #include "error.h"
 #include "neigh_list.h"
 
 #include "memory_kokkos.h"
 #include "pair_reaxff_kokkos.h"
-#include "reaxff_api.h"
 
 using namespace LAMMPS_NS;
 using namespace ReaxFF;
@@ -67,10 +63,10 @@ void ComputeReaxFFAtomKokkos<DeviceType>::init()
 template<class DeviceType>
 void ComputeReaxFFAtomKokkos<DeviceType>::compute_bonds()
 {
-  if (atom->nlocal > nlocal) {
+  if (atom->nmax > nmax) {
     memory->destroy(array_atom);
-    nlocal = atom->nlocal;
-    memory->create(array_atom, nlocal, 3, "reaxff/atom:array_atom");
+    nmax = atom->nmax;
+    memory->create(array_atom, nmax, 3, "reaxff/atom:array_atom");
   }
 
   // retrieve bond information from kokkos pair style. the data potentially
@@ -85,6 +81,7 @@ void ComputeReaxFFAtomKokkos<DeviceType>::compute_bonds()
   else
     host_pair()->FindBond(maxnumbonds, groupbit);
 
+  const int nlocal = atom->nlocal;
   nbuf = ((store_bonds ? maxnumbonds*2 : 0) + 3)*nlocal;
 
   if (!buf || ((int)k_buf.extent(0) < nbuf)) {
@@ -135,6 +132,7 @@ void ComputeReaxFFAtomKokkos<DeviceType>::compute_local()
   int b = 0;
   int j = 0;
   auto tag = atom->tag;
+  const int nlocal = atom->nlocal;
 
   for (int i = 0; i < nlocal; ++i) {
     const int numbonds = static_cast<int>(buf[j+2]);
@@ -161,6 +159,7 @@ void ComputeReaxFFAtomKokkos<DeviceType>::compute_peratom()
     compute_bonds();
 
   // extract peratom bond information from buffer
+  const int nlocal = atom->nlocal;
 
   int j = 0;
   for (int i = 0; i < nlocal; ++i) {
@@ -180,7 +179,7 @@ void ComputeReaxFFAtomKokkos<DeviceType>::compute_peratom()
 template<class DeviceType>
 double ComputeReaxFFAtomKokkos<DeviceType>::memory_usage()
 {
-  double bytes = (double)(nlocal*3) * sizeof(double);
+  double bytes = (double)(nmax*3) * sizeof(double);
   if (store_bonds)
     bytes += (double)(nbonds*3) * sizeof(double);
   bytes += (double)(nbuf > 0 ? nbuf * sizeof(double) : 0);

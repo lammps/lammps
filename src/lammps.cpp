@@ -149,7 +149,7 @@ LAMMPS::LAMMPS(int narg, char **arg, MPI_Comm communicator) :
   if (has_git_info() && ((update_string == " - Development") || (update_string == " - Maintenance")))
     update_string += fmt::format(" - {}", git_descriptor());
 
-  external_comm = 0;
+  external_comm = MPI_COMM_NULL;
   mdicomm = nullptr;
 
   skiprunflag = 0;
@@ -806,7 +806,7 @@ LAMMPS::~LAMMPS() noexcept(false)
   // free a copy of uorig here, so check in universe destructor will still work
 
   MPI_Comm copy = universe->uorig;
-  if (external_comm) MPI_Comm_free(&copy);
+  if (external_comm != MPI_COMM_NULL) MPI_Comm_free(&copy);
 
   delete input;
   delete universe;
@@ -1266,7 +1266,7 @@ void _noopt LAMMPS::help()
           "-reorder topology-specs     : processor reordering (-r)\n"
           "-screen none/filename       : where to send screen output (-sc)\n"
           "-skiprun                    : skip loops in run and minimize (-sr)\n"
-          "-suffix gpu/intel/opt/omp   : style suffix to apply (-sf)\n"
+          "-suffix gpu/intel/kk/opt/omp: style suffix to apply (-sf)\n"
           "-var varname value          : set index style variable (-v)\n\n",
           exename);
 
@@ -1446,7 +1446,10 @@ void LAMMPS::print_config(FILE *fp)
   fmt::print(fp,"Compatible GPU present: {}\n\n",Info::has_gpu_device() ? "yes" : "no");
 #endif
 
-  fputs("Active compile time flags:\n\n",fp);
+  fputs("FFT information:\n\n",fp);
+  fputs(Info::get_fft_info().c_str(),fp);
+
+  fputs("\nActive compile time flags:\n\n",fp);
   if (Info::has_gzip_support()) fputs("-DLAMMPS_GZIP\n",fp);
   if (Info::has_png_support()) fputs("-DLAMMPS_PNG\n",fp);
   if (Info::has_jpeg_support()) fputs("-DLAMMPS_JPEG\n",fp);

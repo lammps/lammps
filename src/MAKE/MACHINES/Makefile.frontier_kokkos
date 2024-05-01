@@ -55,7 +55,7 @@ MPI_LIB = -L${MPICH_DIR}/lib -lmpi -L${CRAY_MPICH_ROOTDIR}/gtl/lib -lmpi_gtl_hsa
 MY_HIP_EXE = $(shell which hipcc)
 MY_HIP_PATH = $(dir ${MY_HIP_EXE})
 
-FFT_INC = -DFFT_HIPFFT
+FFT_INC = -DFFT_KOKKOS_HIPFFT
 FFT_PATH =
 FFT_LIB = -L${MY_HIP_PATH}../lib -lhipfft
 

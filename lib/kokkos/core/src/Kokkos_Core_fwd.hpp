@@ -30,10 +30,6 @@
 #include <impl/Kokkos_Error.hpp>
 #include <impl/Kokkos_Utilities.hpp>
 
-#ifdef KOKKOS_ENABLE_DEPRECATED_CODE_3
-#include <Kokkos_MasterLock.hpp>
-#endif
-
 //----------------------------------------------------------------------------
 // Have assumed a 64-bit build (8-byte pointers) throughout the code base.
 // 32-bit build allowed but unsupported.
@@ -75,9 +71,6 @@ template <class ExecutionSpace, class MemorySpace>
 struct Device;
 
 // forward declare here so that backend initializer calls can use it.
-#ifdef KOKKOS_ENABLE_DEPRECATED_CODE_3
-struct InitArguments;
-#endif
 class InitializationSettings;
 
 }  // namespace Kokkos
@@ -262,12 +255,6 @@ KOKKOS_FUNCTION void runtime_check_memory_access_violation(
 }
 
 }  // namespace Impl
-
-namespace Experimental {
-template <class, class, class, class>
-class LogicalMemorySpace;
-}
-
 }  // namespace Kokkos
 
 //----------------------------------------------------------------------------

@@ -31,6 +31,8 @@
 #include "style_gran_sub_mod.h"    // IWYU pragma: keep
 
 #include <cmath>
+#include <cstring>
+#include <utility>
 
 using namespace LAMMPS_NS;
 using namespace Granular_NS;
@@ -332,11 +334,11 @@ void GranularModel::read_restart(FILE *fp)
       utils::sfread(FLERR, &num_char, sizeof(int), 1, fp, nullptr, error);
     MPI_Bcast(&num_char, 1, MPI_INT, 0, world);
 
-    std::string model_name (num_char, ' ');
+    std::string model_name(num_char, ' ');
     if (comm->me == 0)
       utils::sfread(FLERR, const_cast<char*>(model_name.data()), sizeof(char),num_char, fp, nullptr, error);
     MPI_Bcast(const_cast<char*>(model_name.data()), num_char, MPI_CHAR, 0, world);
-    construct_sub_model(model_name, (SubModelType) i);
+    construct_sub_model(std::move(model_name), (SubModelType) i);
 
     if (comm->me == 0)
       utils::sfread(FLERR, &num_coeff, sizeof(int), 1, fp, nullptr, error);

@@ -43,8 +43,6 @@
 
 using namespace LAMMPS_NS;
 
-#define SQRT2 1.414213562e0
-
 /* ---------------------------------------------------------------------- */
 
 PairHertz::PairHertz(LAMMPS *lmp) :

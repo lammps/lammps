@@ -27,13 +27,13 @@ TARGETS =
 
 tmp := $(foreach device, $(KOKKOS_DEVICELIST), \
   $(if $(filter Test$(device).cpp, $(shell ls Test$(device).cpp 2>/dev/null)),,\
-     $(shell echo "\#include <Test"${device}"_Category.hpp>" > Test$(device).cpp); \
-     $(shell echo "\#include <TestRandom.hpp>" >> Test$(device).cpp); \
-     $(shell echo "\#include <TestSort.hpp>" >> Test$(device).cpp); \
-     $(shell echo "\#include <TestBinSortA.hpp>" >> Test$(device).cpp); \
-     $(shell echo "\#include <TestBinSortB.hpp>" >> Test$(device).cpp); \
-     $(shell echo "\#include <TestNestedSort.hpp>" >> Test$(device).cpp); \
-     $(shell echo "\#include <TestSortCustomComp.hpp>" >> Test$(device).cpp); \
+     $(shell echo "$(H)include <Test"${device}"_Category.hpp>" > Test$(device).cpp); \
+     $(shell echo "$(H)include <TestRandom.hpp>" >> Test$(device).cpp); \
+     $(shell echo "$(H)include <TestSort.hpp>" >> Test$(device).cpp); \
+     $(shell echo "$(H)include <TestBinSortA.hpp>" >> Test$(device).cpp); \
+     $(shell echo "$(H)include <TestBinSortB.hpp>" >> Test$(device).cpp); \
+     $(shell echo "$(H)include <TestNestedSort.hpp>" >> Test$(device).cpp); \
+     $(shell echo "$(H)include <TestSortCustomComp.hpp>" >> Test$(device).cpp); \
    ) \
 )
 

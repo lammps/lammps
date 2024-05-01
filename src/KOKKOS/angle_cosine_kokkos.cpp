@@ -31,8 +31,6 @@
 using namespace LAMMPS_NS;
 using namespace MathConst;
 
-static constexpr double SMALL = 0.001;
-
 /* ---------------------------------------------------------------------- */
 
 template<class DeviceType>

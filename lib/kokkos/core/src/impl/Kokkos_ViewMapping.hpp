@@ -33,255 +33,7 @@
 #include <impl/Kokkos_Tools.hpp>
 #include <impl/Kokkos_StringManipulation.hpp>
 #include <impl/Kokkos_ZeroMemset_fwd.hpp>
-
-//----------------------------------------------------------------------------
-//----------------------------------------------------------------------------
-
-namespace Kokkos {
-namespace Impl {
-
-template <unsigned I, size_t... Args>
-struct variadic_size_t {
-  enum : size_t { value = KOKKOS_INVALID_INDEX };
-};
-
-template <size_t Val, size_t... Args>
-struct variadic_size_t<0, Val, Args...> {
-  enum : size_t { value = Val };
-};
-
-template <unsigned I, size_t Val, size_t... Args>
-struct variadic_size_t<I, Val, Args...> {
-  enum : size_t { value = variadic_size_t<I - 1, Args...>::value };
-};
-
-template <size_t... Args>
-struct rank_dynamic;
-
-template <>
-struct rank_dynamic<> {
-  enum : unsigned { value = 0 };
-};
-
-template <size_t Val, size_t... Args>
-struct rank_dynamic<Val, Args...> {
-  enum : unsigned { value = (Val == 0 ? 1 : 0) + rank_dynamic<Args...>::value };
-};
-
-#define KOKKOS_IMPL_VIEW_DIMENSION(R)                                       \
-  template <size_t V, unsigned>                                             \
-  struct ViewDimension##R {                                                 \
-    static constexpr size_t ArgN##R = (V != KOKKOS_INVALID_INDEX ? V : 1);  \
-    static constexpr size_t N##R    = (V != KOKKOS_INVALID_INDEX ? V : 1);  \
-    KOKKOS_INLINE_FUNCTION explicit ViewDimension##R(size_t) {}             \
-    ViewDimension##R()                        = default;                    \
-    ViewDimension##R(const ViewDimension##R&) = default;                    \
-    ViewDimension##R& operator=(const ViewDimension##R&) = default;         \
-  };                                                                        \
-  template <size_t V, unsigned RD>                                          \
-  constexpr size_t ViewDimension##R<V, RD>::ArgN##R;                        \
-  template <size_t V, unsigned RD>                                          \
-  constexpr size_t ViewDimension##R<V, RD>::N##R;                           \
-  template <unsigned RD>                                                    \
-  struct ViewDimension##R<0u, RD> {                                         \
-    static constexpr size_t ArgN##R = 0;                                    \
-    std::conditional_t<(RD < 3), size_t, unsigned> N##R;                    \
-    ViewDimension##R()                        = default;                    \
-    ViewDimension##R(const ViewDimension##R&) = default;                    \
-    ViewDimension##R& operator=(const ViewDimension##R&) = default;         \
-    KOKKOS_INLINE_FUNCTION explicit ViewDimension##R(size_t V) : N##R(V) {} \
-  };                                                                        \
-  template <unsigned RD>                                                    \
-  constexpr size_t ViewDimension##R<0u, RD>::ArgN##R;
-
-KOKKOS_IMPL_VIEW_DIMENSION(0)
-KOKKOS_IMPL_VIEW_DIMENSION(1)
-KOKKOS_IMPL_VIEW_DIMENSION(2)
-KOKKOS_IMPL_VIEW_DIMENSION(3)
-KOKKOS_IMPL_VIEW_DIMENSION(4)
-KOKKOS_IMPL_VIEW_DIMENSION(5)
-KOKKOS_IMPL_VIEW_DIMENSION(6)
-KOKKOS_IMPL_VIEW_DIMENSION(7)
-
-#undef KOKKOS_IMPL_VIEW_DIMENSION
-
-// MSVC does not do empty base class optimization by default.
-// Per standard it is required for standard layout types
-template <size_t... Vals>
-struct KOKKOS_IMPL_ENFORCE_EMPTY_BASE_OPTIMIZATION ViewDimension
-    : public ViewDimension0<variadic_size_t<0u, Vals...>::value,
-                            rank_dynamic<Vals...>::value>,
-      public ViewDimension1<variadic_size_t<1u, Vals...>::value,
-                            rank_dynamic<Vals...>::value>,
-      public ViewDimension2<variadic_size_t<2u, Vals...>::value,
-                            rank_dynamic<Vals...>::value>,
-      public ViewDimension3<variadic_size_t<3u, Vals...>::value,
-                            rank_dynamic<Vals...>::value>,
-      public ViewDimension4<variadic_size_t<4u, Vals...>::value,
-                            rank_dynamic<Vals...>::value>,
-      public ViewDimension5<variadic_size_t<5u, Vals...>::value,
-                            rank_dynamic<Vals...>::value>,
-      public ViewDimension6<variadic_size_t<6u, Vals...>::value,
-                            rank_dynamic<Vals...>::value>,
-      public ViewDimension7<variadic_size_t<7u, Vals...>::value,
-                            rank_dynamic<Vals...>::value> {
-  using D0 = ViewDimension0<variadic_size_t<0U, Vals...>::value,
-                            rank_dynamic<Vals...>::value>;
-  using D1 = ViewDimension1<variadic_size_t<1U, Vals...>::value,
-                            rank_dynamic<Vals...>::value>;
-  using D2 = ViewDimension2<variadic_size_t<2U, Vals...>::value,
-                            rank_dynamic<Vals...>::value>;
-  using D3 = ViewDimension3<variadic_size_t<3U, Vals...>::value,
-                            rank_dynamic<Vals...>::value>;
-  using D4 = ViewDimension4<variadic_size_t<4U, Vals...>::value,
-                            rank_dynamic<Vals...>::value>;
-  using D5 = ViewDimension5<variadic_size_t<5U, Vals...>::value,
-                            rank_dynamic<Vals...>::value>;
-  using D6 = ViewDimension6<variadic_size_t<6U, Vals...>::value,
-                            rank_dynamic<Vals...>::value>;
-  using D7 = ViewDimension7<variadic_size_t<7U, Vals...>::value,
-                            rank_dynamic<Vals...>::value>;
-
-  using D0::ArgN0;
-  using D1::ArgN1;
-  using D2::ArgN2;
-  using D3::ArgN3;
-  using D4::ArgN4;
-  using D5::ArgN5;
-  using D6::ArgN6;
-  using D7::ArgN7;
-
-  using D0::N0;
-  using D1::N1;
-  using D2::N2;
-  using D3::N3;
-  using D4::N4;
-  using D5::N5;
-  using D6::N6;
-  using D7::N7;
-
-  static constexpr unsigned rank         = sizeof...(Vals);
-  static constexpr unsigned rank_dynamic = Impl::rank_dynamic<Vals...>::value;
-
-  ViewDimension()                     = default;
-  ViewDimension(const ViewDimension&) = default;
-  ViewDimension& operator=(const ViewDimension&) = default;
-
-  KOKKOS_INLINE_FUNCTION
-  constexpr ViewDimension(size_t n0, size_t n1, size_t n2, size_t n3, size_t n4,
-                          size_t n5, size_t n6, size_t n7)
-      : D0(n0 == KOKKOS_INVALID_INDEX ? 1 : n0),
-        D1(n1 == KOKKOS_INVALID_INDEX ? 1 : n1),
-        D2(n2 == KOKKOS_INVALID_INDEX ? 1 : n2),
-        D3(n3 == KOKKOS_INVALID_INDEX ? 1 : n3),
-        D4(n4 == KOKKOS_INVALID_INDEX ? 1 : n4),
-        D5(n5 == KOKKOS_INVALID_INDEX ? 1 : n5),
-        D6(n6 == KOKKOS_INVALID_INDEX ? 1 : n6),
-        D7(n7 == KOKKOS_INVALID_INDEX ? 1 : n7) {}
-
-  KOKKOS_INLINE_FUNCTION
-  constexpr size_t extent(const unsigned r) const noexcept {
-    return r == 0
-               ? N0
-               : (r == 1
-                      ? N1
-                      : (r == 2
-                             ? N2
-                             : (r == 3
-                                    ? N3
-                                    : (r == 4
-                                           ? N4
-                                           : (r == 5
-                                                  ? N5
-                                                  : (r == 6
-                                                         ? N6
-                                                         : (r == 7 ? N7
-                                                                   : 0)))))));
-  }
-
-  static KOKKOS_INLINE_FUNCTION constexpr size_t static_extent(
-      const unsigned r) noexcept {
-    return r == 0
-               ? ArgN0
-               : (r == 1
-                      ? ArgN1
-                      : (r == 2
-                             ? ArgN2
-                             : (r == 3
-                                    ? ArgN3
-                                    : (r == 4
-                                           ? ArgN4
-                                           : (r == 5
-                                                  ? ArgN5
-                                                  : (r == 6
-                                                         ? ArgN6
-                                                         : (r == 7 ? ArgN7
-                                                                   : 0)))))));
-  }
-
-  template <size_t N>
-  struct prepend {
-    using type = ViewDimension<N, Vals...>;
-  };
-
-  template <size_t N>
-  struct append {
-    using type = ViewDimension<Vals..., N>;
-  };
-};
-
-template <class A, class B>
-struct ViewDimensionJoin;
-
-template <size_t... A, size_t... B>
-struct ViewDimensionJoin<ViewDimension<A...>, ViewDimension<B...>> {
-  using type = ViewDimension<A..., B...>;
-};
-
-//----------------------------------------------------------------------------
-
-template <class DstDim, class SrcDim>
-struct ViewDimensionAssignable;
-
-template <size_t... DstArgs, size_t... SrcArgs>
-struct ViewDimensionAssignable<ViewDimension<DstArgs...>,
-                               ViewDimension<SrcArgs...>> {
-  using dst = ViewDimension<DstArgs...>;
-  using src = ViewDimension<SrcArgs...>;
-
-  enum {
-    value = unsigned(dst::rank) == unsigned(src::rank) &&
-            (
-                // Compile time check that potential static dimensions match
-                ((1 > dst::rank_dynamic && 1 > src::rank_dynamic)
-                     ? (size_t(dst::ArgN0) == size_t(src::ArgN0))
-                     : true) &&
-                ((2 > dst::rank_dynamic && 2 > src::rank_dynamic)
-                     ? (size_t(dst::ArgN1) == size_t(src::ArgN1))
-                     : true) &&
-                ((3 > dst::rank_dynamic && 3 > src::rank_dynamic)
-                     ? (size_t(dst::ArgN2) == size_t(src::ArgN2))
-                     : true) &&
-                ((4 > dst::rank_dynamic && 4 > src::rank_dynamic)
-                     ? (size_t(dst::ArgN3) == size_t(src::ArgN3))
-                     : true) &&
-                ((5 > dst::rank_dynamic && 5 > src::rank_dynamic)
-                     ? (size_t(dst::ArgN4) == size_t(src::ArgN4))
-                     : true) &&
-                ((6 > dst::rank_dynamic && 6 > src::rank_dynamic)
-                     ? (size_t(dst::ArgN5) == size_t(src::ArgN5))
-                     : true) &&
-                ((7 > dst::rank_dynamic && 7 > src::rank_dynamic)
-                     ? (size_t(dst::ArgN6) == size_t(src::ArgN6))
-                     : true) &&
-                ((8 > dst::rank_dynamic && 8 > src::rank_dynamic)
-                     ? (size_t(dst::ArgN7) == size_t(src::ArgN7))
-                     : true))
-  };
-};
-
-}  // namespace Impl
-}  // namespace Kokkos
+#include <impl/Kokkos_ViewDataAnalysis.hpp>
 
 //----------------------------------------------------------------------------
 //----------------------------------------------------------------------------
@@ -657,21 +409,20 @@ struct SubviewExtents {
   template <size_t... DimArgs, class... Args>
   KOKKOS_INLINE_FUNCTION SubviewExtents(const ViewDimension<DimArgs...>& dim,
                                         Args... args) {
-    static_assert(DomainRank == sizeof...(DimArgs), "");
-    static_assert(DomainRank == sizeof...(Args), "");
+    static_assert(DomainRank == sizeof...(DimArgs));
+    static_assert(DomainRank == sizeof...(Args));
 
     // Verifies that all arguments, up to 8, are integral types,
     // integral extents, or don't exist.
-    static_assert(
-        RangeRank == unsigned(is_integral_extent<0, Args...>::value) +
-                         unsigned(is_integral_extent<1, Args...>::value) +
-                         unsigned(is_integral_extent<2, Args...>::value) +
-                         unsigned(is_integral_extent<3, Args...>::value) +
-                         unsigned(is_integral_extent<4, Args...>::value) +
-                         unsigned(is_integral_extent<5, Args...>::value) +
-                         unsigned(is_integral_extent<6, Args...>::value) +
-                         unsigned(is_integral_extent<7, Args...>::value),
-        "");
+    static_assert(RangeRank ==
+                  unsigned(is_integral_extent<0, Args...>::value) +
+                      unsigned(is_integral_extent<1, Args...>::value) +
+                      unsigned(is_integral_extent<2, Args...>::value) +
+                      unsigned(is_integral_extent<3, Args...>::value) +
+                      unsigned(is_integral_extent<4, Args...>::value) +
+                      unsigned(is_integral_extent<5, Args...>::value) +
+                      unsigned(is_integral_extent<6, Args...>::value) +
+                      unsigned(is_integral_extent<7, Args...>::value));
 
     if (RangeRank == 0) {
       m_length[0] = 0;
@@ -708,149 +459,6 @@ struct SubviewExtents {
 
 namespace Kokkos {
 namespace Impl {
-
-/** \brief  Given a value type and dimension generate the View data type */
-template <class T, class Dim>
-struct ViewDataType;
-
-template <class T>
-struct ViewDataType<T, ViewDimension<>> {
-  using type = T;
-};
-
-template <class T, size_t... Args>
-struct ViewDataType<T, ViewDimension<0, Args...>> {
-  using type = typename ViewDataType<T*, ViewDimension<Args...>>::type;
-};
-
-template <class T, size_t N, size_t... Args>
-struct ViewDataType<T, ViewDimension<N, Args...>> {
-  using type = typename ViewDataType<T, ViewDimension<Args...>>::type[N];
-};
-
-/**\brief  Analysis of View data type.
- *
- *  Data type conforms to one of the following patterns :
- *    {const} value_type [][#][#][#]
- *    {const} value_type ***[#][#][#]
- *  Where the sum of counts of '*' and '[#]' is at most ten.
- *
- *  Provide alias for ViewDimension<...> and value_type.
- */
-template <class T>
-struct ViewArrayAnalysis {
-  using value_type           = T;
-  using const_value_type     = std::add_const_t<T>;
-  using non_const_value_type = std::remove_const_t<T>;
-  using static_dimension     = ViewDimension<>;
-  using dynamic_dimension    = ViewDimension<>;
-  using dimension            = ViewDimension<>;
-};
-
-template <class T, size_t N>
-struct ViewArrayAnalysis<T[N]> {
- private:
-  using nested = ViewArrayAnalysis<T>;
-
- public:
-  using value_type           = typename nested::value_type;
-  using const_value_type     = typename nested::const_value_type;
-  using non_const_value_type = typename nested::non_const_value_type;
-
-  using static_dimension =
-      typename nested::static_dimension::template prepend<N>::type;
-
-  using dynamic_dimension = typename nested::dynamic_dimension;
-
-  using dimension =
-      typename ViewDimensionJoin<dynamic_dimension, static_dimension>::type;
-};
-
-template <class T>
-struct ViewArrayAnalysis<T[]> {
- private:
-  using nested           = ViewArrayAnalysis<T>;
-  using nested_dimension = typename nested::dimension;
-
- public:
-  using value_type           = typename nested::value_type;
-  using const_value_type     = typename nested::const_value_type;
-  using non_const_value_type = typename nested::non_const_value_type;
-
-  using dynamic_dimension =
-      typename nested::dynamic_dimension::template prepend<0>::type;
-
-  using static_dimension = typename nested::static_dimension;
-
-  using dimension =
-      typename ViewDimensionJoin<dynamic_dimension, static_dimension>::type;
-};
-
-template <class T>
-struct ViewArrayAnalysis<T*> {
- private:
-  using nested = ViewArrayAnalysis<T>;
-
- public:
-  using value_type           = typename nested::value_type;
-  using const_value_type     = typename nested::const_value_type;
-  using non_const_value_type = typename nested::non_const_value_type;
-
-  using dynamic_dimension =
-      typename nested::dynamic_dimension::template prepend<0>::type;
-
-  using static_dimension = typename nested::static_dimension;
-
-  using dimension =
-      typename ViewDimensionJoin<dynamic_dimension, static_dimension>::type;
-};
-
-template <class DataType, class ArrayLayout, class ValueType>
-struct ViewDataAnalysis {
- private:
-  using array_analysis = ViewArrayAnalysis<DataType>;
-
-  // ValueType is opportunity for partial specialization.
-  // Must match array analysis when this default template is used.
-  static_assert(
-      std::is_same<ValueType,
-                   typename array_analysis::non_const_value_type>::value,
-      "");
-
- public:
-  using specialize = void;  // No specialization
-
-  using dimension            = typename array_analysis::dimension;
-  using value_type           = typename array_analysis::value_type;
-  using const_value_type     = typename array_analysis::const_value_type;
-  using non_const_value_type = typename array_analysis::non_const_value_type;
-
-  // Generate analogous multidimensional array specification type.
-  using type       = typename ViewDataType<value_type, dimension>::type;
-  using const_type = typename ViewDataType<const_value_type, dimension>::type;
-  using non_const_type =
-      typename ViewDataType<non_const_value_type, dimension>::type;
-
-  // Generate "flattened" multidimensional array specification type.
-  using scalar_array_type           = type;
-  using const_scalar_array_type     = const_type;
-  using non_const_scalar_array_type = non_const_type;
-};
-
-}  // namespace Impl
-}  // namespace Kokkos
-
-//----------------------------------------------------------------------------
-//----------------------------------------------------------------------------
-
-namespace Kokkos {
-namespace Impl {
-
-template <class Dimension, class Layout, class Enable = void>
-struct ViewOffset {
-  using is_mapping_plugin = std::false_type;
-};
-
 //----------------------------------------------------------------------------
 // LayoutLeft AND ( 1 >= rank OR 0 == rank_dynamic ) : no padding / striding
 template <class Dimension>
@@ -2919,13 +2527,9 @@ struct ViewValueFunctor<DeviceType, ValueType, false /* is_scalar */> {
             "Kokkos::View::initialization [" + name + "] via memset",
             Kokkos::Profiling::Experimental::device_id(space), &kpID);
       }
-      (void)ZeroMemset<
-          ExecSpace, Kokkos::View<ValueType*, typename DeviceType::memory_space,
-                                  Kokkos::MemoryTraits<Kokkos::Unmanaged>>>(
-          space,
-          Kokkos::View<ValueType*, typename DeviceType::memory_space,
-                       Kokkos::MemoryTraits<Kokkos::Unmanaged>>(ptr, n),
-          value);
+      (void)ZeroMemset(
+          space, Kokkos::View<ValueType*, typename DeviceType::memory_space,
+                              Kokkos::MemoryTraits<Kokkos::Unmanaged>>(ptr, n));
 
       if (Kokkos::Profiling::profileLibraryLoaded()) {
         Kokkos::Profiling::endParallelFor(kpID);
@@ -2949,37 +2553,33 @@ struct ViewValueFunctor<DeviceType, ValueType, false /* is_scalar */> {
 
   template <typename Tag>
   void parallel_for_implementation() {
-    if (!space.in_parallel()) {
-      using PolicyType =
-          Kokkos::RangePolicy<ExecSpace, Kokkos::IndexType<int64_t>, Tag>;
-      PolicyType policy(space, 0, n);
-      uint64_t kpID = 0;
-      if (Kokkos::Profiling::profileLibraryLoaded()) {
-        const std::string functor_name =
-            (std::is_same_v<Tag, DestroyTag>
-                 ? "Kokkos::View::destruction [" + name + "]"
-                 : "Kokkos::View::initialization [" + name + "]");
-        Kokkos::Profiling::beginParallelFor(
-            functor_name, Kokkos::Profiling::Experimental::device_id(space),
-            &kpID);
-      }
+    using PolicyType =
+        Kokkos::RangePolicy<ExecSpace, Kokkos::IndexType<int64_t>, Tag>;
+    PolicyType policy(space, 0, n);
+    uint64_t kpID = 0;
+    if (Kokkos::Profiling::profileLibraryLoaded()) {
+      const std::string functor_name =
+          (std::is_same_v<Tag, DestroyTag>
+               ? "Kokkos::View::destruction [" + name + "]"
+               : "Kokkos::View::initialization [" + name + "]");
+      Kokkos::Profiling::beginParallelFor(
+          functor_name, Kokkos::Profiling::Experimental::device_id(space),
+          &kpID);
+    }
 
 #ifdef KOKKOS_ENABLE_CUDA
-      if (std::is_same<ExecSpace, Kokkos::Cuda>::value) {
-        Kokkos::Impl::cuda_prefetch_pointer(space, ptr, sizeof(ValueType) * n,
-                                            true);
-      }
+    if (std::is_same<ExecSpace, Kokkos::Cuda>::value) {
+      Kokkos::Impl::cuda_prefetch_pointer(space, ptr, sizeof(ValueType) * n,
+                                          true);
+    }
 #endif
-      const Kokkos::Impl::ParallelFor<ViewValueFunctor, PolicyType> closure(
-          *this, policy);
-      closure.execute();
-      if (default_exec_space || std::is_same_v<Tag, DestroyTag>)
-        space.fence("Kokkos::Impl::ViewValueFunctor: View init/destroy fence");
-      if (Kokkos::Profiling::profileLibraryLoaded()) {
-        Kokkos::Profiling::endParallelFor(kpID);
-      }
-    } else {
-      for (size_t i = 0; i < n; ++i) operator()(Tag{}, i);
+    const Kokkos::Impl::ParallelFor<ViewValueFunctor, PolicyType> closure(
+        *this, policy);
+    closure.execute();
+    if (default_exec_space || std::is_same_v<Tag, DestroyTag>)
+      space.fence("Kokkos::Impl::ViewValueFunctor: View init/destroy fence");
+    if (Kokkos::Profiling::profileLibraryLoaded()) {
+      Kokkos::Profiling::endParallelFor(kpID);
     }
   }
 
@@ -3057,13 +2657,9 @@ struct ViewValueFunctor<DeviceType, ValueType, true /* is_scalar */> {
             Kokkos::Profiling::Experimental::device_id(space), &kpID);
       }
 
-      (void)ZeroMemset<
-          ExecSpace, Kokkos::View<ValueType*, typename DeviceType::memory_space,
-                                  Kokkos::MemoryTraits<Kokkos::Unmanaged>>>(
-          space,
-          Kokkos::View<ValueType*, typename DeviceType::memory_space,
-                       Kokkos::MemoryTraits<Kokkos::Unmanaged>>(ptr, n),
-          value);
+      (void)ZeroMemset(
+          space, Kokkos::View<ValueType*, typename DeviceType::memory_space,
+                              Kokkos::MemoryTraits<Kokkos::Unmanaged>>(ptr, n));
 
       if (Kokkos::Profiling::profileLibraryLoaded()) {
         Kokkos::Profiling::endParallelFor(kpID);
@@ -3086,32 +2682,28 @@ struct ViewValueFunctor<DeviceType, ValueType, true /* is_scalar */> {
   }
 
   void parallel_for_implementation() {
-    if (!space.in_parallel()) {
-      PolicyType policy(0, n);
-      uint64_t kpID = 0;
-      if (Kokkos::Profiling::profileLibraryLoaded()) {
-        Kokkos::Profiling::beginParallelFor(
-            "Kokkos::View::initialization [" + name + "]",
-            Kokkos::Profiling::Experimental::device_id(space), &kpID);
-      }
+    PolicyType policy(0, n);
+    uint64_t kpID = 0;
+    if (Kokkos::Profiling::profileLibraryLoaded()) {
+      Kokkos::Profiling::beginParallelFor(
+          "Kokkos::View::initialization [" + name + "]",
+          Kokkos::Profiling::Experimental::device_id(space), &kpID);
+    }
 #ifdef KOKKOS_ENABLE_CUDA
-      if (std::is_same<ExecSpace, Kokkos::Cuda>::value) {
-        Kokkos::Impl::cuda_prefetch_pointer(space, ptr, sizeof(ValueType) * n,
-                                            true);
-      }
+    if (std::is_same<ExecSpace, Kokkos::Cuda>::value) {
+      Kokkos::Impl::cuda_prefetch_pointer(space, ptr, sizeof(ValueType) * n,
+                                          true);
+    }
 #endif
-      const Kokkos::Impl::ParallelFor<ViewValueFunctor, PolicyType> closure(
-          *this, PolicyType(0, n));
-      closure.execute();
-      if (default_exec_space)
-        space.fence(
-            "Kokkos::Impl::ViewValueFunctor: Fence after setting values in "
-            "view");
-      if (Kokkos::Profiling::profileLibraryLoaded()) {
-        Kokkos::Profiling::endParallelFor(kpID);
-      }
-    } else {
-      for (size_t i = 0; i < n; ++i) operator()(i);
+    const Kokkos::Impl::ParallelFor<ViewValueFunctor, PolicyType> closure(
+        *this, PolicyType(0, n));
+    closure.execute();
+    if (default_exec_space)
+      space.fence(
+          "Kokkos::Impl::ViewValueFunctor: Fence after setting values in "
+          "view");
+    if (Kokkos::Profiling::profileLibraryLoaded()) {
+      Kokkos::Profiling::endParallelFor(kpID);
     }
   }
 
@@ -3896,7 +3488,7 @@ class ViewMapping<
 
   template <class MemoryTraits>
   struct apply {
-    static_assert(Kokkos::is_memory_traits<MemoryTraits>::value, "");
+    static_assert(Kokkos::is_memory_traits<MemoryTraits>::value);
 
     using traits_type =
         Kokkos::ViewTraits<data_type, array_layout,
@@ -3945,110 +3537,86 @@ class ViewMapping<
 namespace Kokkos {
 namespace Impl {
 
-template <unsigned, class MapType>
-KOKKOS_INLINE_FUNCTION bool view_verify_operator_bounds(const MapType&) {
-  return true;
+template <class Map, class... Indices, std::size_t... Enumerate>
+KOKKOS_FUNCTION bool within_range(Map const& map,
+                                  std::index_sequence<Enumerate...>,
+                                  Indices... indices) {
+  return (((std::size_t)indices < map.extent(Enumerate)) && ...);
 }
 
-template <unsigned R, class MapType, class iType, class... Args>
-KOKKOS_INLINE_FUNCTION bool view_verify_operator_bounds(const MapType& map,
-                                                        const iType& i,
-                                                        Args... args) {
-  return (size_t(i) < map.extent(R)) &&
-         view_verify_operator_bounds<R + 1>(map, args...);
+template <class... Indices>
+KOKKOS_FUNCTION constexpr char* append_formatted_multidimensional_index(
+    char* dest, Indices... indices) {
+  char* d = dest;
+  strcat(d, "[");
+  (
+      [&] {
+        d += strlen(d);
+        to_chars_i(d,
+                   d + 20,  // 20 digits ought to be enough
+                   indices);
+        strcat(d, ",");
+      }(),
+      ...);
+  d[strlen(d) - 1] = ']';  // overwrite trailing comma
+  return dest;
 }
 
-template <unsigned, class MapType>
-inline void view_error_operator_bounds(char*, int, const MapType&) {}
-
-template <unsigned R, class MapType, class iType, class... Args>
-inline void view_error_operator_bounds(char* buf, int len, const MapType& map,
-                                       const iType& i, Args... args) {
-  const int n = snprintf(
-      buf, len, " %ld < %ld %c", static_cast<unsigned long>(i),
-      static_cast<unsigned long>(map.extent(R)), (sizeof...(Args) ? ',' : ')'));
-  view_error_operator_bounds<R + 1>(buf + n, len - n, map, args...);
+template <class Map, class... Indices, std::size_t... Enumerate>
+KOKKOS_FUNCTION void print_extents(char* dest, Map const& map,
+                                   std::index_sequence<Enumerate...>) {
+  append_formatted_multidimensional_index(dest, map.extent(Enumerate)...);
 }
 
-/* Check #3: is the View managed as determined by the MemoryTraits? */
-template <class MapType, bool is_managed = (MapType::is_managed != 0)>
-struct OperatorBoundsErrorOnDevice;
-
-template <class MapType>
-struct OperatorBoundsErrorOnDevice<MapType, false> {
-  KOKKOS_INLINE_FUNCTION
-  static void run(MapType const&) { Kokkos::abort("View bounds error"); }
-};
-
-template <class MapType>
-struct OperatorBoundsErrorOnDevice<MapType, true> {
-  KOKKOS_INLINE_FUNCTION
-  static void run(MapType const& map) {
-    SharedAllocationHeader const* const header =
-        SharedAllocationHeader::get_header(
-            static_cast<void const*>(map.data()));
-    char const* const label = header->label();
-    enum { LEN = 128 };
-    char msg[LEN];
-    char const* const first_part = "View bounds error of view ";
-    char* p                      = msg;
-    char* const end              = msg + LEN - 1;
-    for (char const* p2 = first_part; (*p2 != '\0') && (p < end); ++p, ++p2) {
-      *p = *p2;
-    }
-    for (char const* p2 = label; (*p2 != '\0') && (p < end); ++p, ++p2) {
-      *p = *p2;
-    }
-    *p = '\0';
-    Kokkos::abort(msg);
-  }
-};
-
-/* Check #2: does the ViewMapping have the printable_label_typedef defined?
-   See above that only the non-specialized standard-layout ViewMapping has
-   this defined by default.
-   The existence of this alias indicates the existence of MapType::is_managed
- */
 template <class T>
 using printable_label_typedef_t = typename T::printable_label_typedef;
-
-template <class Map>
-KOKKOS_FUNCTION
-    std::enable_if_t<!is_detected<printable_label_typedef_t, Map>::value>
-    operator_bounds_error_on_device(Map const&) {
-  Kokkos::abort("View bounds error");
-}
-
-template <class Map>
-KOKKOS_FUNCTION
-    std::enable_if_t<is_detected<printable_label_typedef_t, Map>::value>
-    operator_bounds_error_on_device(Map const& map) {
-  OperatorBoundsErrorOnDevice<Map>::run(map);
-}
 
 template <class MemorySpace, class ViewType, class MapType, class... Args>
 KOKKOS_INLINE_FUNCTION void view_verify_operator_bounds(
     Kokkos::Impl::ViewTracker<ViewType> const& tracker, const MapType& map,
     Args... args) {
-  if (!view_verify_operator_bounds<0>(map, args...)) {
+  if (!within_range(map, std::make_index_sequence<sizeof...(Args)>(),
+                    args...)) {
+    char err[256] = "";
+    strcat(err, "Kokkos::View ERROR: out of bounds access");
+    strcat(err, " label=(\"");
     KOKKOS_IF_ON_HOST(
-        (enum {LEN = 1024}; char buffer[LEN];
-         const std::string label =
-             tracker.m_tracker.template get_label<MemorySpace>();
-         int n = snprintf(buffer, LEN, "View bounds error of view %s (",
-                          label.c_str());
-         view_error_operator_bounds<0>(buffer + n, LEN - n, map, args...);
-         Kokkos::Impl::throw_runtime_exception(std::string(buffer));))
-
-    KOKKOS_IF_ON_DEVICE((
-        /* Check #1: is there a SharedAllocationRecord?
-           (we won't use it, but if its not there then there isn't
-            a corresponding SharedAllocationHeader containing a label).
-           This check should cover the case of Views that don't
-           have the Unmanaged trait but were initialized by pointer. */
         if (tracker.m_tracker.has_record()) {
-          operator_bounds_error_on_device(map);
-        } else { Kokkos::abort("View bounds error"); }))
+          strncat(err, tracker.m_tracker.template get_label<void>().c_str(),
+                  128);
+        } else { strcat(err, "**UNMANAGED**"); })
+    KOKKOS_IF_ON_DEVICE([&] {
+      // Check #1: is there a SharedAllocationRecord?  (we won't use it, but
+      // if its not there then there isn't a corresponding
+      // SharedAllocationHeader containing a label).  This check should cover
+      // the case of Views that don't have the Unmanaged trait but were
+      // initialized by pointer.
+      if (!tracker.m_tracker.has_record()) {
+        strcat(err, "**UNMANAGED**");
+        return;
+      }
+      // Check #2: does the ViewMapping have the printable_label_typedef
+      // defined? See above that only the non-specialized standard-layout
+      // ViewMapping has this defined by default. The existence of this
+      // alias indicates the existence of MapType::is_managed
+      if constexpr (is_detected_v<printable_label_typedef_t, MapType>) {
+        // Check #3: is the View managed as determined by the MemoryTraits?
+        if constexpr (MapType::is_managed != 0) {
+          SharedAllocationHeader const* const header =
+              SharedAllocationHeader::get_header(
+                  static_cast<void const*>(map.data()));
+          char const* const label = header->label();
+          strcat(err, label);
+          return;
+        }
+        strcat(err, "**UNAVAILABLE**");
+      }
+    }();)
+    strcat(err, "\") with indices ");
+    append_formatted_multidimensional_index(err, args...);
+    strcat(err, " but extents ");
+    print_extents(err, map, std::make_index_sequence<sizeof...(Args)>());
+    Kokkos::abort(err);
   }
 }
 

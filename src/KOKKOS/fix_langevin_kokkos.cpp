@@ -32,10 +32,8 @@
 using namespace LAMMPS_NS;
 using namespace FixConst;
 
-enum{NOBIAS,BIAS};
-enum{CONSTANT,EQUAL,ATOM};
-static constexpr double SINERTIA = 0.4;          // moment of inertia prefactor for sphere
-static constexpr double EINERTIA = 0.2;          // moment of inertia prefactor for ellipsoid
+enum { NOBIAS, BIAS };
+enum { CONSTANT, EQUAL, ATOM };
 
 /* ---------------------------------------------------------------------- */
 

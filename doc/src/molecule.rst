@@ -376,7 +376,7 @@ not listed, the default diameter of each atom in the molecule is 1.0.
 
 ----------
 
-.. versionadded:: TBD
+.. versionadded:: 7Feb2024
 
 *Dipoles* section:
 

@@ -516,7 +516,7 @@ FixTGNHDrude::FixTGNHDrude(LAMMPS *lmp, int narg, char **arg) :
 
   // find fix drude
 
-  auto fdrude = modify->get_fix_by_style("^drude");
+  auto fdrude = modify->get_fix_by_style("^drude$");
   if (fdrude.size() < 1) error->all(FLERR, "Fix {} requires fix drude", style);
   fix_drude = dynamic_cast<FixDrude *>(fdrude[0]);
   if (!fix_drude) error->all(FLERR, "Fix {} requires fix drude", style);

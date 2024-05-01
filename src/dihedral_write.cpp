@@ -25,7 +25,6 @@
 #include "error.h"
 #include "force.h"
 #include "input.h"
-#include "lammps.h"
 #include "math_const.h"
 #include "update.h"
 

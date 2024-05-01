@@ -37,7 +37,7 @@ template <class SmartPtr>
 struct CheckAccessStoredPointerAndDereferenceOnDevice {
   SmartPtr m_device_ptr;
   using ElementType = typename SmartPtr::element_type;
-  static_assert(std::is_same<ElementType, Data>::value, "");
+  static_assert(std::is_same<ElementType, Data>::value);
 
   CheckAccessStoredPointerAndDereferenceOnDevice(SmartPtr device_ptr)
       : m_device_ptr(device_ptr) {

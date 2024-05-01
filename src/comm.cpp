@@ -420,6 +420,7 @@ void Comm::set_processors(int narg, char **arg)
     error->all(FLERR,"Specified processors != physical processors");
 
   int iarg = 3;
+  numa_nodes = 2;
   while (iarg < narg) {
     if (strcmp(arg[iarg],"grid") == 0) {
       if (iarg+2 > narg) error->all(FLERR,"Illegal processors command");
@@ -514,6 +515,12 @@ void Comm::set_processors(int narg, char **arg)
       outfile = utils::strdup(arg[iarg+1]);
       iarg += 2;
 
+    } else if (strcmp(arg[iarg],"numa_nodes") == 0) {
+      if (iarg+2 > narg) error->all(FLERR,"Illegal processors command");
+      numa_nodes = utils::inumeric(FLERR,arg[iarg+1],false,lmp);
+      if (numa_nodes < 1) numa_nodes = 2;
+      iarg += 2;
+
     } else error->all(FLERR,"Illegal processors command");
   }
 
@@ -565,7 +572,7 @@ void Comm::set_proc_grid(int outflag)
                         otherflag,other_style,other_procgrid,other_coregrid);
 
   } else if (gridflag == NUMA) {
-    pmap->numa_grid(nprocs,user_procgrid,procgrid,coregrid);
+    pmap->numa_grid(numa_nodes,nprocs,user_procgrid,procgrid,coregrid);
 
   } else if (gridflag == CUSTOM) {
     pmap->custom_grid(customfile,nprocs,user_procgrid,procgrid);

@@ -843,7 +843,7 @@ void PairAmoeba::init_style()
     } else {
       index[i] = atom->find_custom(names[i], flag, cols);
     }
-    std::string err = "";
+    std::string err;
     if (index[i] < 0) err = "was not defined";
     else if (flag_check[i] != flag) err = "has the wrong type";
     else if (cols_check[i] != cols) err = "has the wrong number of columns";

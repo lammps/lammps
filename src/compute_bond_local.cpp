@@ -32,7 +32,6 @@
 using namespace LAMMPS_NS;
 
 static constexpr int DELTA = 10000;
-static constexpr double EPSILON = 1.0e-12;
 
 enum{DIST,DX,DY,DZ,VELVIB,OMEGA,ENGTRANS,ENGVIB,ENGROT,ENGPOT,FORCE,FX,FY,FZ,VARIABLE,BN};
 
@@ -374,13 +373,6 @@ int ComputeBondLocal::compute_bonds(int flag)
           omegasq = vrotsq / MathExtra::lensq3(delr1);
 
           engrot = 0.5 * inertia * omegasq;
-
-          // sanity check: engtotal = engtrans + engvib + engrot
-
-          //engtot = 0.5 * (mass1*MathExtra::lensq3(v[atom1]) +
-          //                mass2*MathExtra::lensq3(v[atom2]));
-          //if (fabs(engtot-engtrans-engvib-engrot) > EPSILON)
-          //  error->one(FLERR,"Sanity check on 3 energy components failed");
 
           // scale energies by units
 

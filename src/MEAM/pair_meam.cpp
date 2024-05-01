@@ -206,7 +206,12 @@ void PairMEAM::coeff(int narg, char **arg)
   // check for presence of first meam file
 
   std::string lib_file = utils::get_potential_file_path(arg[2]);
-  if (lib_file.empty()) error->all(FLERR, "Cannot open MEAM library file {}", lib_file);
+  if (lib_file.empty()) {
+    if (msmeamflag)
+      error->all(FLERR, "Cannot open MS-MEAM library file {}", lib_file);
+    else
+      error->all(FLERR, "Cannot open MEAM library file {}", lib_file);
+  }
 
   // find meam parameter file in arguments:
   // first word that is a file or "NULL" after the MEAM library file
@@ -226,7 +231,12 @@ void PairMEAM::coeff(int narg, char **arg)
       break;
     }
   }
-  if (paridx < 0) error->all(FLERR, "No MEAM parameter file in pair coefficients");
+  if (paridx < 0) {
+    if (msmeamflag)
+      error->all(FLERR, "No MS-MEAM parameter file in pair coefficients");
+    else
+      error->all(FLERR, "No MEAM parameter file in pair coefficients");
+  }
   if ((narg - paridx - 1) != atom->ntypes)
     error->all(FLERR, "Incorrect args for pair style {} coefficients", myname);
 
@@ -241,11 +251,10 @@ void PairMEAM::coeff(int narg, char **arg)
 
   nlibelements = paridx - 3;
   if (nlibelements < 1) error->all(FLERR, "Incorrect args for pair coefficients");
-  if (nlibelements > maxelt)
+  if (nlibelements > MAXELT)
     error->all(FLERR,
                "Too many elements extracted from MEAM library (current limit: {}). "
-               "Increase 'maxelt' in meam.h and recompile.",
-               maxelt);
+               "Increase 'MAXELT' in meam.h and recompile.", MAXELT);
 
   for (int i = 0; i < nlibelements; i++) {
     if (std::any_of(libelements.begin(), libelements.end(), [&](const std::string &elem) {

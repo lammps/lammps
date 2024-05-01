@@ -270,7 +270,7 @@ void AngleHybrid::coeff(int narg, char **arg)
     else if (strcmp(arg[1], "bb") == 0)
       error->all(FLERR, "BondBond coeff for hybrid angle has invalid format");
     else
-      error->all(FLERR, "Angle coeff for hybrid has invalid style");
+      error->all(FLERR, "Expected hybrid sub-style instead of {} in angle_coeff command", arg[1]);
   }
 
   // move 1st arg to 2nd arg

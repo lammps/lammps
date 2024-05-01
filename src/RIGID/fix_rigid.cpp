@@ -1234,11 +1234,6 @@ void FixRigid::enforce2d()
     angmom[ibody][1] = 0.0;
     omega[ibody][0] = 0.0;
     omega[ibody][1] = 0.0;
-    if (langflag && langextra) {
-      langextra[ibody][2] = 0.0;
-      langextra[ibody][3] = 0.0;
-      langextra[ibody][4] = 0.0;
-    }
   }
 }
 
@@ -1958,6 +1953,8 @@ void FixRigid::setup_bodies_static()
 
   // diagonalize inertia tensor for each body via Jacobi rotations
   // inertia = 3 eigenvalues = principal moments of inertia
+  //   request that jacobi3() return them in ascending order,
+  ///  so that in 2d last evector is z-axis
   // evectors and exzy_space = 3 evectors = principal axes of rigid body
 
   int ierror;
@@ -1972,7 +1969,7 @@ void FixRigid::setup_bodies_static()
     tensor[0][2] = tensor[2][0] = all[ibody][4];
     tensor[0][1] = tensor[1][0] = all[ibody][5];
 
-    ierror = MathEigen::jacobi3(tensor,inertia[ibody],evectors);
+    ierror = MathEigen::jacobi3(tensor,inertia[ibody],evectors,1);
     if (ierror) error->all(FLERR,
                            "Insufficient Jacobi rotations for rigid body");
 
@@ -1985,6 +1982,22 @@ void FixRigid::setup_bodies_static()
     ez_space[ibody][0] = evectors[0][2];
     ez_space[ibody][1] = evectors[1][2];
     ez_space[ibody][2] = evectors[2][2];
+
+    // for 2d, ensure that evector along z axis is last
+    // necessary so that quaternion is a simple rotation around +z axis
+    //   or a 180 degree rotation for a -z axis
+    // otherwise richardson() method for a body with a tiny evalue (near-linear)
+    //  may not preserve the correct z-aligned quat and associated evectors
+    //  over time due to round-off accumulation
+
+    if (domain->dimension == 2) {
+      if (fabs(ez_space[ibody][0]) > EPSILON || fabs(ez_space[ibody][1]) > EPSILON) {
+        std::swap(inertia[ibody][1],inertia[ibody][2]);
+        std::swap(ey_space[ibody][0],ez_space[ibody][0]);
+        std::swap(ey_space[ibody][1],ez_space[ibody][1]);
+        std::swap(ey_space[ibody][2],ez_space[ibody][2]);
+      }
+    }
 
     // if any principal moment < scaled EPSILON, set to 0.0
 

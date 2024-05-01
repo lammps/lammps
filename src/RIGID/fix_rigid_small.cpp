@@ -1110,11 +1110,6 @@ void FixRigidSmall::enforce2d()
     b->angmom[1] = 0.0;
     b->omega[0] = 0.0;
     b->omega[1] = 0.0;
-    if (langflag && langextra) {
-      langextra[ibody][2] = 0.0;
-      langextra[ibody][3] = 0.0;
-      langextra[ibody][4] = 0.0;
-    }
   }
 }
 
@@ -2102,6 +2097,8 @@ void FixRigidSmall::setup_bodies_static()
 
   // diagonalize inertia tensor for each body via Jacobi rotations
   // inertia = 3 eigenvalues = principal moments of inertia
+  //   request that jacobi3() returns them in ascending order,
+  //   so that in 2d last evector is z-axis
   // evectors and exzy_space = 3 evectors = principal axes of rigid body
 
   int ierror;
@@ -2118,7 +2115,7 @@ void FixRigidSmall::setup_bodies_static()
     tensor[0][1] = tensor[1][0] = itensor[ibody][5];
 
     inertia = body[ibody].inertia;
-    ierror = MathEigen::jacobi3(tensor,inertia,evectors);
+    ierror = MathEigen::jacobi3(tensor,inertia,evectors,1);
     if (ierror) error->all(FLERR, "Insufficient Jacobi rotations for rigid body");
 
     ex = body[ibody].ex_space;
@@ -2133,6 +2130,22 @@ void FixRigidSmall::setup_bodies_static()
     ez[0] = evectors[0][2];
     ez[1] = evectors[1][2];
     ez[2] = evectors[2][2];
+
+    // for 2d, ensure that evector along z axis is last
+    // necessary so that quaternion is a simple rotation around +z axis
+    //   or a 180 degree rotation for a -z axis
+    // otherwise richardson() method for a body with a tiny evalue (near-linear)
+    //  may not preserve the correct z-aligned quat and associated evectors
+    //  over time due to round-off accumulation
+
+    if (domain->dimension == 2) {
+      if (fabs(ez[0]) > EPSILON || fabs(ez[1]) > EPSILON) {
+        std::swap(inertia[1],inertia[2]);
+        std::swap(ey[0],ez[0]);
+        std::swap(ey[1],ez[1]);
+        std::swap(ey[2],ez[2]);
+      }
+    }
 
     // if any principal moment < scaled EPSILON, set to 0.0
 
@@ -2156,11 +2169,12 @@ void FixRigidSmall::setup_bodies_static()
 
     // convert geometric center position to principal axis coordinates
     // xcm is wrapped, but xgc is not initially
+
     xcm = body[ibody].xcm;
     xgc = body[ibody].xgc;
     double delta[3];
     MathExtra::sub3(xgc,xcm,delta);
-    domain->minimum_image(delta);
+    domain->minimum_image_big(delta);
     MathExtra::transpose_matvec(ex,ey,ez,delta,body[ibody].xgc_body);
     MathExtra::add3(xcm,delta,xgc);
   }

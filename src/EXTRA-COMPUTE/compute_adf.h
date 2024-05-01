@@ -59,7 +59,6 @@ class ComputeADF : public Compute {
   int **bothjkatom;        // 1 if atom is in both jatom and katom lists
   double ***delrjkatom;    // list of 4-vectors: delx, dely, delx, and 1/r
 
-  double rad2deg;        // conversion factor from radians to degrees
   int ordinate_style;    // DEGREE, RADIAN, or COSINE
   int cutflag;           // 1 if at least one outer cutoff specified
 };

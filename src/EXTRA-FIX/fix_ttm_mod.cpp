@@ -486,12 +486,12 @@ void FixTTMMod::read_parameters(const std::string &filename)
       reader.next_line();
       intensity = reader.next_values(1).next_double();
 
-      // coordinate of 1st surface in x-direction (in box units) - constant
+      // coordinate of 1st surface in x-direction (electron grid units) - constant
 
       reader.next_line();
       surface_l = reader.next_values(1).next_int();
 
-      // coordinate of 2nd surface in x-direction (in box units) - constant
+      // coordinate of 2nd surface in x-direction (electron grid units) - constant
 
       reader.next_line();
       surface_r = reader.next_values(1).next_int();

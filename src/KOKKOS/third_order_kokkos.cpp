@@ -23,26 +23,17 @@
 #include "atom_masks.h"
 #include "bond.h"
 #include "comm.h"
-#include "compute.h"
 #include "dihedral.h"
 #include "domain.h"
-#include "error.h"
-#include "finish.h"
 #include "force.h"
-#include "group.h"
 #include "improper.h"
 #include "kokkos.h"
 #include "kspace.h"
-#include "memory.h"
 #include "modify.h"
 #include "neighbor.h"
 #include "pair.h"
 #include "timer.h"
 #include "update.h"
-
-#include <cmath>
-#include <cstring>
-#include <algorithm>
 
 using namespace LAMMPS_NS;
 enum{REGULAR,ESKM};

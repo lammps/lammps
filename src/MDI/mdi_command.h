@@ -21,7 +21,7 @@ CommandStyle(mdi,MDICommand);
 #define LMP_MDI_COMMAND_H
 
 #include "command.h"
-#include "mdi.h"
+#include <mdi.h>
 
 namespace LAMMPS_NS {
 

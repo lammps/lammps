@@ -369,8 +369,6 @@ void FixIPI::initial_integrate(int /*vflag*/)
   // ensure atoms are in current box & update box via shrink-wrap
   // has to be be done before invoking Irregular::migrate_atoms()
   //   since it requires atoms be inside simulation box
-
-
   if (neighbor->ncalls == 0) { 
     // just fold coordinates at the first step
     if (domain->triclinic) domain->x2lamda(atom->nlocal);
@@ -380,7 +378,7 @@ void FixIPI::initial_integrate(int /*vflag*/)
   } else { 
     // "unwraps" the trajectory because we have no guarantee of what has 
     // happened server-side to the atoms folding, and we want to have continuous
-    // trajectories to build NL in a meaningful way
+    // trajectories to build NL in a meaningful way and as rarely as possible
 
     auto xhold = neighbor->get_xhold();
     for (int i = 0; i < nlocal; i++) {
@@ -395,7 +393,7 @@ void FixIPI::initial_integrate(int /*vflag*/)
     domain->pbc();
     domain->reset_box();
     if (domain->triclinic) domain->lamda2x(atom->nlocal);
-    // "unwrapped" positions
+    // recovers "unwrapped" positions
     for (int i = 0; i < nlocal; i++) {
       if (mask[i] & groupbit) {
         x[i][0] += xhold[i][0];
@@ -405,7 +403,6 @@ void FixIPI::initial_integrate(int /*vflag*/)
     }
   }
 
-  std::cout<<"NL stats: "<<neighbor->ago<<" since last update\n";
   // move atoms to new processors via irregular()
   // only needed if migrate_check() says an atom moves to far
   if (domain->triclinic) domain->x2lamda(atom->nlocal);
@@ -490,6 +487,7 @@ void FixIPI::final_integrate()
   retstr[0]=0;
 
   if (master) {
+    // check for new messages
     while (true) {
       readbuffer(ipisock, header, MSGLEN, error); header[MSGLEN]=0;
 
@@ -502,6 +500,7 @@ void FixIPI::final_integrate()
       error->one(FLERR, "Got EXIT message from i-PI. Now leaving!");
 
     if (strcmp(header,"GETFORCE    ") == 0)  {
+      // return force and energy data
       writebuffer(ipisock,"FORCEREADY  ",MSGLEN, error);
       writebuffer(ipisock,(char*) &pot,8, error);
       writebuffer(ipisock,(char*) &nat,4, error);
@@ -516,5 +515,3 @@ void FixIPI::final_integrate()
 
   hasdata=0;
 }
-
-

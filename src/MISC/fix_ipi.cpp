@@ -365,36 +365,41 @@ void FixIPI::initial_integrate(int /*vflag*/)
   //   since it requires atoms be inside simulation box
 
 
-  if (neighbor->ncalls == 0) {
-    
-  if (domain->triclinic) domain->x2lamda(atom->nlocal);
-    domain->pbc();
-    domain->reset_box();
-    if (domain->triclinic) domain->lamda2x(atom->nlocal);
-  } else { // for some reason this fails if it's called on the first step.
-    // "unwraps" the trajectory because we have no guarantee of what has happened 
-    // server-side to the atoms folding
-    for (int i = 0; i < nlocal; i++) {
-      if (mask[i] & groupbit) {
-        x[i][0] -= neighbor->xhold[i][0];
-        x[i][1] -= neighbor->xhold[i][1];
-        x[i][2] -= neighbor->xhold[i][2];
-      }
-    }
+  if (neighbor->ncalls == 0) { 
+    // just fold coordinates at the first step
     if (domain->triclinic) domain->x2lamda(atom->nlocal);
     domain->pbc();
     domain->reset_box();
     if (domain->triclinic) domain->lamda2x(atom->nlocal);
+  } else { 
+    // "unwraps" the trajectory because we have no guarantee of what has 
+    // happened server-side to the atoms folding, and we want to have continuous
+    // trajectories to build NL in a meaningful way
+
+    auto xhold = neighbor->get_xhold();
     for (int i = 0; i < nlocal; i++) {
       if (mask[i] & groupbit) {
-        x[i][0] += neighbor->xhold[i][0];
-        x[i][1] += neighbor->xhold[i][1];
-        x[i][2] += neighbor->xhold[i][2];
+        x[i][0] -= xhold[i][0];
+        x[i][1] -= xhold[i][1];
+        x[i][2] -= xhold[i][2];
+      }
+    }
+    // applies PBC to the displacements
+    if (domain->triclinic) domain->x2lamda(atom->nlocal);
+    domain->pbc();
+    domain->reset_box();
+    if (domain->triclinic) domain->lamda2x(atom->nlocal);
+    // "unwrapped" positions
+    for (int i = 0; i < nlocal; i++) {
+      if (mask[i] & groupbit) {
+        x[i][0] += xhold[i][0];
+        x[i][1] += xhold[i][1];
+        x[i][2] += xhold[i][2];
       }
     }
   }
-  /**/
 
+  std::cout<<"NL stats: "<<neighbor->ago<<" since last update\n";
   // move atoms to new processors via irregular()
   // only needed if migrate_check() says an atom moves to far
   if (domain->triclinic) domain->x2lamda(atom->nlocal);

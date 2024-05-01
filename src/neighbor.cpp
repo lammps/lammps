@@ -53,7 +53,6 @@
 
 #include <cmath>
 #include <cstring>
-#include <iostream>
 
 using namespace LAMMPS_NS;
 using namespace NeighConst;
@@ -2385,16 +2384,12 @@ int Neighbor::check_distance()
     dely = x[i][1] - xhold[i][1];
     delz = x[i][2] - xhold[i][2];
     rsq = delx*delx + dely*dely + delz*delz;
-    if (rsq > deltasq) {
-      std::cout<<"jump: "<< rsq<<std::endl;
-      flag = 1;
-    }
+    if (rsq > deltasq) flag = 1;
   }
 
   int flagall;
   MPI_Allreduce(&flag,&flagall,1,MPI_INT,MPI_MAX,world);
   if (flagall && ago == MAX(every,delay)) ndanger++;
-  std::cout<<" neigh update flags "<< flagall<< "  "<< ago << "  "<<ndanger<<std::endl;
   return flagall;
 }
 
@@ -2979,6 +2974,16 @@ bigint Neighbor::get_nneigh_half()
     } else if (lmp->kokkos) nneighhalf = lmp->kokkos->neigh_count(m);
   }
   return nneighhalf;
+}
+
+double **Neighbor::get_xhold()
+{
+  // Returns the pointer containing the last positions stored by the NL builder,
+  // checking it has actually been initialized
+  if (maxhold == 0) {
+    error->all(FLERR, "trying to access uninitialized xhold list");
+  }
+  return xhold;
 }
 
 /* ----------------------------------------------------------------------

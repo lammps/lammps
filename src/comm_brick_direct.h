@@ -30,6 +30,20 @@ class CommBrickDirect : public CommBrick {
   void reverse_comm() override;                 // reverse comm of forces
   void borders() override;                      // setup list of atoms to comm
 
+  void forward_comm(class Pair *) override;                 // forward comm from a Pair
+  void reverse_comm(class Pair *) override;                 // reverse comm from a Pair
+  void forward_comm(class Bond *) override;                 // forward comm from a Bond
+  void reverse_comm(class Bond *) override;                 // reverse comm from a Bond
+  void forward_comm(class Fix *, int size = 0) override;    // forward comm from a Fix
+  void reverse_comm(class Fix *, int size = 0) override;    // reverse comm from a Fix
+  void reverse_comm_variable(class Fix *) override;         // variable size reverse comm from a Fix
+  void forward_comm(class Compute *) override;              // forward from a Compute
+  void reverse_comm(class Compute *) override;              // reverse from a Compute
+  void forward_comm(class Dump *) override;                 // forward comm from a Dump
+  void reverse_comm(class Dump *) override;                 // reverse comm from a Dump
+  
+  void forward_comm_array(int, double **) override;         // forward comm of array
+
  protected:
   // per-swap data
   // swap = exchange of data between me and another proc in stencil, including self
@@ -64,6 +78,8 @@ class CommBrickDirect : public CommBrick {
   int *recv_offset_forward_direct;  // offsets into buf_recv_direct for forward comm receives
   int *recv_offset_reverse_direct;  // offsets into buf_recv_direct for reverse comm receives
   int *recv_offset_border_direct;   // offsets into buf_recv_direct for border comm receives
+  int *recv_offset_forward_atoms;   // offsets in atom counts for forward comm receives
+  int *recv_offset_reverse_atoms;   // offsets in atom counts for reverse comm receives
 
   // per-list data
   // list = indices of atom to send in a swap
@@ -84,6 +100,9 @@ class CommBrickDirect : public CommBrick {
 
   // communication buffers for MPI sends and receives as well as self data copies
 
+  int smax_direct,rmax_direct;    // send/recv buf sizes in atom counts
+  int ssum_direct,rsum_direct;    // max = max for one swap, sum = sum over all swaps
+  
   double *buf_send_direct;  // send buffer used for every swap (large enough for any)
   double *buf_recv_direct;  // recv buffer used for all swaps (large enough for all)
 
@@ -104,6 +123,8 @@ class CommBrickDirect : public CommBrick {
   void allocate_lists();
   void deallocate_direct();
   void deallocate_lists(int);
+
+  void check_buffer_sizes();
   void grow_send_direct(int, int);
   void grow_recv_direct(int);
   void grow_list_direct(int, int);

@@ -185,7 +185,7 @@ double GayBerneT::host_memory_usage() const {
 // ---------------------------------------------------------------------------
 template <class numtyp, class acctyp>
 int GayBerneT::loop(const int eflag, const int vflag) {
-  int BX=this->block_size();
+  const int BX=this->block_size();
   int GX=0, NGX;
   int stride=this->nbor->nbor_pitch();
   int ainum=this->ans->inum();

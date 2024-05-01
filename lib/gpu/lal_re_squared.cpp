@@ -173,7 +173,7 @@ double RESquaredT::host_memory_usage() const {
 // ---------------------------------------------------------------------------
 template <class numtyp, class acctyp>
 int RESquaredT::loop(const int eflag, const int vflag) {
-  int BX=this->block_size();
+  const int BX=this->block_size();
 
   int GX=0, NGX;
   int stride=this->nbor->nbor_pitch();

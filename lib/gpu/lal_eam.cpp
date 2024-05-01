@@ -554,7 +554,6 @@ void EAMT::loop2(const bool _eflag, const bool _vflag) {
   int GX=static_cast<int>(ceil(static_cast<double>(this->ans->inum())/(BX/this->_threads_per_atom)));
   // Increase block size to reduce the block count
   if (GX > 65535) {
-    // Increase block size to reduce the block count
     int newBX = static_cast<int>(ceil(static_cast<double>(this->ans->inum()) / 65535.0));
     newBX = ((newBX + this->_threads_per_atom - 1) / this->_threads_per_atom) * this->_threads_per_atom;
     if (newBX <= 1024) {

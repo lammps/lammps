@@ -49,6 +49,7 @@ using namespace FixConst;
 #ifndef _WIN32
 #include <netdb.h>
 #include <netinet/in.h>
+#include <netinet/tcp.h>
 #include <sys/socket.h>
 #include <sys/types.h>
 #include <sys/un.h>
@@ -79,7 +80,7 @@ static void open_socket(int &sockfd, int inet, int port, char *host, Error *erro
    error: pointer to a LAMMPS Error object
 */
 {
-  int ai_err;
+  int ai_err,flagNagle;
 
 #ifdef _WIN32
   error->one(FLERR, "i-PI socket implementation requires UNIX environment");
@@ -100,6 +101,11 @@ static void open_socket(int &sockfd, int inet, int port, char *host, Error *erro
     // creates socket
     sockfd = socket(res->ai_family, res->ai_socktype, res->ai_protocol);
     if (sockfd < 0) error->one(FLERR, "Error creating socket for fix ipi");
+
+    // set TCP_NODELAY=1 to disable Nagle's algorithm as it slows down the small transactions for i-PI
+    flagNagle = 1;
+    int result_TCP = setsockopt(sockfd, IPPROTO_TCP, TCP_NODELAY, (char *)&flagNagle, sizeof(int));
+    if (result_TCP < 0) { perror("Error setting TCP_NODELAY"); }
 
     // makes connection
     if (connect(sockfd, res->ai_addr, res->ai_addrlen) < 0)

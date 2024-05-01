@@ -2384,7 +2384,7 @@ int Neighbor::check_distance()
     dely = x[i][1] - xhold[i][1];
     delz = x[i][2] - xhold[i][2];
     rsq = delx*delx + dely*dely + delz*delz;
-    if (rsq > deltasq) flag = 1;
+    if (rsq > deltasq) { flag = 1; break; }
   }
 
   int flagall;

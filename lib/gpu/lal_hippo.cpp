@@ -566,6 +566,15 @@ int HippoT::umutual2b(const int /*eflag*/, const int /*vflag*/) {
   int BX=this->block_size();
   int GX=static_cast<int>(ceil(static_cast<double>(this->ans->inum())/
                                (BX/this->_threads_per_atom)));
+  // Increase block size to reduce the block count
+  if (GX > 65535) {
+    int newBX = static_cast<int>(ceil(static_cast<double>(this->ans->inum()) / 65535.0));
+    newBX = ((newBX + this->_threads_per_atom - 1) / this->_threads_per_atom) * this->_threads_per_atom;
+    if (newBX <= 1024) {
+        BX = newBX;
+        GX = static_cast<int>(ceil(static_cast<double>(this->ans->inum()) / (BX / this->_threads_per_atom)));
+    }
+  };
   this->time_pair.start();
 
   // Build the short neighbor list if not done yet

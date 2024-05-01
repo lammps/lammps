@@ -230,15 +230,15 @@ void CommBrickDirect::setup()
   // ensure max possible tag does not exceed MPI limit
 
   bigint maxtag = (bigint) stencil_full[0] * stencil_full[1] * stencil_full[2];
-  
+
   void *maxtag_mpi_ptr;
   int tmp;
   MPI_Comm_get_attr(world,MPI_TAG_UB,&maxtag_mpi_ptr,&tmp);
   int maxtag_mpi = *((int *) maxtag_mpi_ptr);
-    
+
   if (maxtag > maxtag_mpi)
     error->all(FLERR,"Comm brick/direct stencil is too large");
-  
+
   // ndirect = # of direct swaps this proc makes with other procs, including self copies
   // subtract 1 for self in center of 3d stencil of surrounding procs
 
@@ -787,7 +787,7 @@ void CommBrickDirect::borders()
   int offset_border = 0;
   int offset_forward_atoms = 0;
   int offset_reverse_atoms = 0;
-  
+
   smax_direct = 0;
   rmax_direct = 0;
   ssum_direct = 0;
@@ -809,7 +809,7 @@ void CommBrickDirect::borders()
     recv_offset_border_direct[iswap] = offset_border;
     recv_offset_forward_atoms[iswap] = offset_forward_atoms;
     recv_offset_reverse_atoms[iswap] = offset_reverse_atoms;
-    
+
     offset_forward += size_forward_recv_direct[iswap];
     offset_reverse += size_reverse_recv_direct[iswap];
     offset_border += size_border * nrecv;
@@ -832,7 +832,7 @@ void CommBrickDirect::borders()
   // ensure send/recv buffers are large enough for all border & forward & reverse comm
 
   check_buffer_sizes();
-  
+
   // perform border comm via direct swaps
   // use pack/unpack border and pack/unpack border_vel
   // post receives, perform sends, copy to self, wait for all incoming messages
@@ -1499,7 +1499,7 @@ void CommBrickDirect::forward_comm_array(int nsize, double **array)
     iswap = recv_indices_direct[irecv];
     offset = nsize * recv_offset_forward_atoms[iswap];
     buf = &buf_recv_direct[offset];
-      
+
     m = 0;
     last = firstrecv_direct[iswap] + recvnum_direct[iswap];
     for (i = firstrecv_direct[iswap]; i < last; i++) {

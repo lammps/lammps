@@ -41,7 +41,7 @@ class CommBrickDirect : public CommBrick {
   void reverse_comm(class Compute *) override;              // reverse from a Compute
   void forward_comm(class Dump *) override;                 // forward comm from a Dump
   void reverse_comm(class Dump *) override;                 // reverse comm from a Dump
-  
+
   void forward_comm_array(int, double **) override;         // forward comm of array
 
  protected:
@@ -102,7 +102,7 @@ class CommBrickDirect : public CommBrick {
 
   int smax_direct,rmax_direct;    // send/recv buf sizes in atom counts
   int ssum_direct,rsum_direct;    // max = max for one swap, sum = sum over all swaps
-  
+
   double *buf_send_direct;  // send buffer used for every swap (large enough for any)
   double *buf_recv_direct;  // recv buffer used for all swaps (large enough for all)
 

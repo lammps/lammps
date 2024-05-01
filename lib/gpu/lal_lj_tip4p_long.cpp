@@ -175,7 +175,7 @@ double LJTIP4PLongT::host_memory_usage() const {
 template <class numtyp, class acctyp>
 int LJTIP4PLongT::loop(const int eflag, const int vflag) {
   // Compute the block size and grid size to keep all cores busy
-  const int BX=this->block_size();
+  int BX=this->block_size();
 
   int ainum=this->ans->inum();
   const int nall = this->atom->nall();

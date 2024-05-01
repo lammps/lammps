@@ -264,7 +264,7 @@ double TableT::host_memory_usage() const {
 template <class numtyp, class acctyp>
 int TableT::loop(const int eflag, const int vflag) {
   // Compute the block size and grid size to keep all cores busy
-  const int BX=this->block_size();
+  int BX=this->block_size();
 
   #if defined(LAL_OCL_EV_JIT)
   if (eflag || vflag) {
@@ -279,8 +279,16 @@ int TableT::loop(const int eflag, const int vflag) {
   #endif
 
 
-  int GX=static_cast<int>(ceil(static_cast<double>(this->ans->inum())/
-                               (BX/this->_threads_per_atom)));
+  int GX=static_cast<int>(ceil(static_cast<double>(this->ans->inum())/(BX/this->_threads_per_atom)));
+  // Increase block size to reduce the block count
+  if (GX > 65535) {
+    int newBX = static_cast<int>(ceil(static_cast<double>(this->ans->inum()) / 65535.0));
+    newBX = ((newBX + this->_threads_per_atom - 1) / this->_threads_per_atom) * this->_threads_per_atom;
+    if (newBX <= 1024) {
+        BX = newBX;
+        GX = static_cast<int>(ceil(static_cast<double>(this->ans->inum()) / (BX / this->_threads_per_atom)));
+    }
+  };
 
   int ainum=this->ans->inum();
   int nbor_pitch=this->nbor->nbor_pitch();

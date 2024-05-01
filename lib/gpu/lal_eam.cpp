@@ -490,9 +490,17 @@ void EAMT::compute2(int *ilist, const bool eflag, const bool vflag,
 template <class numtyp, class acctyp>
 int EAMT::loop(const int eflag, const int vflag) {
   // Compute the block size and grid size to keep all cores busy
-  const int BX=this->block_size();
-  int GX=static_cast<int>(ceil(static_cast<double>(this->ans->inum())/
-                               (BX/this->_threads_per_atom)));
+  int BX=this->block_size();
+  int GX=static_cast<int>(ceil(static_cast<double>(this->ans->inum())/(BX/this->_threads_per_atom)));
+  // Increase block size to reduce the block count
+  if (GX > 65535) {
+    int newBX = static_cast<int>(ceil(static_cast<double>(this->ans->inum()) / 65535.0));
+    newBX = ((newBX + this->_threads_per_atom - 1) / this->_threads_per_atom) * this->_threads_per_atom;
+    if (newBX <= 1024) {
+        BX = newBX;
+        GX = static_cast<int>(ceil(static_cast<double>(this->ans->inum()) / (BX / this->_threads_per_atom)));
+    }
+  };
 
   int ainum=this->ans->inum();
   int nbor_pitch=this->nbor->nbor_pitch();
@@ -531,7 +539,7 @@ int EAMT::loop(const int eflag, const int vflag) {
 template <class numtyp, class acctyp>
 void EAMT::loop2(const bool _eflag, const bool _vflag) {
   // Compute the block size and grid size to keep all cores busy
-  const int BX=this->block_size();
+  int BX=this->block_size();
   int eflag, vflag;
   if (_eflag)
     eflag=1;
@@ -543,8 +551,17 @@ void EAMT::loop2(const bool _eflag, const bool _vflag) {
   else
     vflag=0;
 
-  int GX=static_cast<int>(ceil(static_cast<double>(this->ans->inum())/
-                               (BX/this->_threads_per_atom)));
+  int GX=static_cast<int>(ceil(static_cast<double>(this->ans->inum())/(BX/this->_threads_per_atom)));
+  // Increase block size to reduce the block count
+  if (GX > 65535) {
+    // Increase block size to reduce the block count
+    int newBX = static_cast<int>(ceil(static_cast<double>(this->ans->inum()) / 65535.0));
+    newBX = ((newBX + this->_threads_per_atom - 1) / this->_threads_per_atom) * this->_threads_per_atom;
+    if (newBX <= 1024) {
+        BX = newBX;
+        GX = static_cast<int>(ceil(static_cast<double>(this->ans->inum()) / (BX / this->_threads_per_atom)));
+    }
+  };
 
   int ainum=this->ans->inum();
   int nbor_pitch=this->nbor->nbor_pitch();

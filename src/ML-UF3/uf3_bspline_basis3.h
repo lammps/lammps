@@ -29,7 +29,7 @@ class uf3_bspline_basis3 {
  public:
   uf3_bspline_basis3(LAMMPS *ulmp, const double *knots, double coefficient);
   ~uf3_bspline_basis3();
-  std::vector<double> constants;
+  double constants[16] = {};
   double eval0(double, double, double);
   double eval1(double, double, double);
   double eval2(double, double, double);

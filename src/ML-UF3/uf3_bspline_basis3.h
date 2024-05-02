@@ -24,11 +24,12 @@ namespace LAMMPS_NS {
 class uf3_bspline_basis3 {
  private:
   LAMMPS *lmp;
-  std::vector<double> constants;
+  //std::vector<double> constants;
 
  public:
   uf3_bspline_basis3(LAMMPS *ulmp, const double *knots, double coefficient);
   ~uf3_bspline_basis3();
+  std::vector<double> constants;
   double eval0(double, double, double);
   double eval1(double, double, double);
   double eval2(double, double, double);

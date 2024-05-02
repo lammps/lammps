@@ -56,10 +56,19 @@ class PairUF3 : public Pair {
   bool pot_3b;
   int ***setflag_3b, **knot_spacing_type_2b, ***knot_spacing_type_3b;
   double **cut, ***cut_3b, **cut_3b_list, ****min_cut_3b;
+  double **knot_spacing_2b, ****knot_spacing_3b;
   virtual void allocate();
   void create_bsplines();
-  struct UF3Impl *uf3_impl; //PIMPLE (pointer-to-implementation)
-  UF3Impl *get_UF3Impl();
+  void create_cached_constants_2b();
+  void create_cached_constants_3b();
+  //struct UF3Impl *uf3_impl; //PIMPLE (pointer-to-implementation)
+  //UF3Impl *get_UF3Impl();
+  int get_starting_index_uniform_2b(int i, int j, double r);
+  int get_starting_index_uniform_3b(int i, int j, int k, double r, int knot_dim);
+  int get_starting_index_nonuniform_2b(int i, int j, double r);
+  int get_starting_index_nonuniform_3b(int i, int j, int k, double r, int knot_dim);
+  int (PairUF3::*get_starting_index_2b)(int i, int j, double r);
+  int (PairUF3::*get_starting_index_3b)(int i, int j, int k, double r, int knot_dim);
 
   int max_num_knots_2b = 0;
   int max_num_coeff_2b = 0;
@@ -67,10 +76,14 @@ class PairUF3 : public Pair {
   int max_num_coeff_3b = 0;
   double ***n2b_knots_array, ***n2b_coeff_array;
   int **n2b_knots_array_size, **n2b_coeff_array_size;
+  double ****cached_constants_2b, ****cached_constants_2b_deri;
 
   int ***map_3b, tot_interaction_count_3b;
   double ***n3b_knots_array, ****n3b_coeff_array;
   int **n3b_knots_array_size, **n3b_coeff_array_size;
+  double ****coeff_for_der_jk, ****coeff_for_der_ik,****coeff_for_der_ij;
+  double ****cached_constants_3b, ****cached_constants_3b_deri;
+
 
   /*void uf3_read_2b_pot_block(int itype, int jtype, std::string iele,
                              std::string jele,

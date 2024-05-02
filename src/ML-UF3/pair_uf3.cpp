@@ -1278,7 +1278,7 @@ void PairUF3::create_cached_constants_3b()
       for(int k = 1; k < num_of_elements + 1; k++) {
         int map_to = map_3b[i][j][k];
         double **knots_for_der = nullptr;//new double*[3];
-        
+
         //n3b_knots_array_size[map_to][0] for jk knot vector --> always largest
         memory->create(knots_for_der, 3, n3b_knots_array_size[map_to][0]-1,
                        "pair:knots_for_der");
@@ -1553,7 +1553,7 @@ void PairUF3::compute(int eflag, int vflag)
             double rij_th = rij*rij_sq;
             double rik_th = rik*rik_sq;
             double rjk_th = rjk*rjk_sq;
-            
+
             int map_to = map_3b[itype][jtype][ktype];
             int knot_start_index_ij = (this->*get_starting_index_3b)(itype,jtype,ktype,rij,2);
             int knot_start_index_ik = (this->*get_starting_index_3b)(itype,jtype,ktype,rik,1);
@@ -1909,7 +1909,7 @@ double PairUF3::memory_usage()
 
   bytes += (double) (num_of_elements + 1) * (num_of_elements + 1) * (num_of_elements + 1) * 3 *
       sizeof(double);    //min_cut_3b
-  
+
   bytes += (double) (num_of_elements + 1) * (num_of_elements + 1) * sizeof(double);     //knot_spacing_2b
   bytes += (double) (num_of_elements + 1) * (num_of_elements + 1) * (num_of_elements + 1) *
       sizeof(double);     //knot_spacing_3b
@@ -1919,13 +1919,13 @@ double PairUF3::memory_usage()
 
   bytes += (double) (num_of_elements + 1) * (num_of_elements + 1) * max_num_coeff_2b *
                     sizeof(double);         //n2b_coeff_array
-  
+
   bytes += (double) (num_of_elements + 1) * (num_of_elements + 1) * sizeof(int);   //n2b_knots_array_size
   bytes += (double) (num_of_elements + 1) * (num_of_elements + 1) * sizeof(int);   //n2b_coeff_array_size
-  
+
   bytes += (double) (num_of_elements + 1) * (num_of_elements + 1) * max_num_coeff_2b *
       16 * sizeof(double);   //cached_constants_2b,
-  bytes += (double) (num_of_elements + 1) * (num_of_elements + 1) * (max_num_coeff_2b-1) * 
+  bytes += (double) (num_of_elements + 1) * (num_of_elements + 1) * (max_num_coeff_2b-1) *
       9 * sizeof(double);   //cached_constants_2b_deri
 
 
@@ -1936,13 +1936,13 @@ double PairUF3::memory_usage()
     bytes += (double) tot_interaction_count_3b * 3 * max_num_knots_3b * sizeof(double); //n3b_knots_array
     bytes += (double) tot_interaction_count_3b * max_num_coeff_3b * max_num_coeff_3b *
                       max_num_coeff_3b * sizeof(double); //n3b_coeff_array
-    
+
     bytes += (double) tot_interaction_count_3b * 3 * sizeof(int);       //n3b_knots_array_size
     bytes += (double) tot_interaction_count_3b * 3 * sizeof(int);       //n3b_coeff_array_size
 
     bytes += (double) tot_interaction_count_3b * max_num_coeff_3b * max_num_coeff_3b
         * max_num_coeff_3b * 3 * sizeof(double);  //coeff_for_der_jk coeff_for_der_ik coeff_for_der_ij
-    
+
     bytes += (double) tot_interaction_count_3b * 3 * max_num_coeff_3b * 16
         * sizeof(double);    //cached_constants_3b
     bytes += (double) tot_interaction_count_3b * 3 * (max_num_coeff_3b - 1) * 16
@@ -1956,6 +1956,6 @@ double PairUF3::memory_usage()
                                         //max_num_knots_2b, max_num_coeff_2b,
                                         //max_num_knots_3b, max_num_coeff_3b
   bytes += (double) 1 * sizeof(bool);   //pot_3b
-  
+
   return bytes;
 }

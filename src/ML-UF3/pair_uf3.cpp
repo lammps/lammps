@@ -250,7 +250,7 @@ void PairUF3::communicate()
 
   MPI_Bcast(&knot_spacing_type_2b[0][0],
             (num_of_elements + 1)*(num_of_elements + 1), MPI_INT, 0, world);
-  
+
   MPI_Bcast(&knot_spacing_2b[0][0],
             (num_of_elements + 1)*(num_of_elements + 1), MPI_INT, 0, world);
 
@@ -779,7 +779,7 @@ void PairUF3::uf3_read_unified_pot_file(char *potf_name)
             n2b_knots_array[jtype][itype][k] = n2b_knots_array[itype][jtype][k];
           }
 
-          knot_spacing_2b[itype][jtype] = n2b_knots_array[itype][jtype][4] - 
+          knot_spacing_2b[itype][jtype] = n2b_knots_array[itype][jtype][4] -
               n2b_knots_array[itype][jtype][3];
           knot_spacing_2b[jtype][itype] = knot_spacing_2b[itype][jtype];
 
@@ -886,8 +886,8 @@ void PairUF3::uf3_read_unified_pot_file(char *potf_name)
           min_cut_3b[itype][ktype][jtype][0] =
               n3b_knots_array[map_3b[itype][ktype][jtype]][0][0];
 
-          knot_spacing_3b[itype][jtype][ktype][0] = 
-              n3b_knots_array[map_3b[itype][jtype][ktype]][0][4] - 
+          knot_spacing_3b[itype][jtype][ktype][0] =
+              n3b_knots_array[map_3b[itype][jtype][ktype]][0][4] -
               n3b_knots_array[map_3b[itype][jtype][ktype]][0][3];
           knot_spacing_3b[itype][ktype][jtype][0] =
               knot_spacing_3b[itype][jtype][ktype][0];
@@ -913,12 +913,12 @@ void PairUF3::uf3_read_unified_pot_file(char *potf_name)
           min_cut_3b[itype][ktype][jtype][2] =
               n3b_knots_array[map_3b[itype][ktype][jtype]][2][0];
 
-          knot_spacing_3b[itype][jtype][ktype][1] =  
+          knot_spacing_3b[itype][jtype][ktype][1] =
               n3b_knots_array[map_3b[itype][jtype][ktype]][1][4] -
               n3b_knots_array[map_3b[itype][jtype][ktype]][1][3];
            knot_spacing_3b[itype][ktype][jtype][2] =
                 knot_spacing_3b[itype][jtype][ktype][1];
-          
+
           temp_line = txtfilereader.next_line(num_knots_3b_ij);
           ValueTokenizer fp6th_line(temp_line);
           if (fp6th_line.count() != num_knots_3b_ij)
@@ -943,7 +943,7 @@ void PairUF3::uf3_read_unified_pot_file(char *potf_name)
           knot_spacing_3b[itype][jtype][ktype][2] =
               n3b_knots_array[map_3b[itype][jtype][ktype]][2][4] -
               n3b_knots_array[map_3b[itype][jtype][ktype]][2][3];
-          knot_spacing_3b[itype][ktype][jtype][1] = 
+          knot_spacing_3b[itype][ktype][jtype][1] =
               knot_spacing_3b[itype][jtype][ktype][2];
 
           //skip next line
@@ -1089,11 +1089,11 @@ void PairUF3::uf3_read_unified_pot_file(char *potf_name)
 
             knot_spacing_type_3b[i][j][k] =
                 knot_spacing_type_3b[i_mapped_to][j_mapped_to][k_mapped_to];
-            knot_spacing_3b[i][j][k][0] = 
+            knot_spacing_3b[i][j][k][0] =
                 knot_spacing_3b[i_mapped_to][j_mapped_to][k_mapped_to][0];
-            knot_spacing_3b[i][j][k][1] = 
+            knot_spacing_3b[i][j][k][1] =
                 knot_spacing_3b[i_mapped_to][j_mapped_to][k_mapped_to][1];
-            knot_spacing_3b[i][j][k][2] = 
+            knot_spacing_3b[i][j][k][2] =
                 knot_spacing_3b[i_mapped_to][j_mapped_to][k_mapped_to][2];
 
             int key = map_3b[i][j][k];
@@ -1812,7 +1812,7 @@ void PairUF3::create_bsplines()
               lmp, uf3_impl->n3b_knot_matrix[i][j][k], uf3_impl->n3b_coeff_matrix[key], knot_spacing_type_3b[i][j][k]);
           int key = map_3b[i][j][k];
           int key2 = map_3b[i][k][j];
-          
+
           uf3_impl->UFBS3b[i][j][k] = uf3_triplet_bspline(
               lmp, n3b_knots_array[key], n3b_knots_array_size[key],
               n3b_coeff_array[key], n3b_coeff_array_size[key],
@@ -1841,7 +1841,7 @@ int PairUF3::get_starting_index_uniform_2b(int i, int j, double r)
 int PairUF3::get_starting_index_uniform_3b(int i, int j, int k, double r, int knot_dim)
 {
   /*return 3+(int)((r-n3b_knots_array[map_3b[i][j][k]][knot_dim][0])/
-          (n3b_knots_array[map_3b[i][j][k]][knot_dim][4] - 
+          (n3b_knots_array[map_3b[i][j][k]][knot_dim][4] -
            n3b_knots_array[map_3b[i][j][k]][knot_dim][3]));*/
   return 3+(int)(((r-n3b_knots_array[map_3b[i][j][k]][knot_dim][0])/
           knot_spacing_3b[i][j][k][knot_dim]));
@@ -1859,7 +1859,7 @@ int PairUF3::get_starting_index_nonuniform_2b(int i, int j, double r)
 int PairUF3::get_starting_index_nonuniform_3b(int i, int j, int k, double r, int knot_dim)
 {
   for (int l = 3; l < n3b_knots_array_size[map_3b[i][j][k]][knot_dim]-1; ++l) {
-    if ((n3b_knots_array[map_3b[i][j][k]][knot_dim][l] <= r) && 
+    if ((n3b_knots_array[map_3b[i][j][k]][knot_dim][l] <= r) &&
         (r < n3b_knots_array[map_3b[i][j][k]][knot_dim][l+1]))
       return l;
   }
@@ -1905,9 +1905,9 @@ void PairUF3::create_cached_constants_2b()
 
       double* coeff_for_deri = new double[n2b_coeff_array_size[i][j]-1];
       for (int l = 0; l < n2b_coeff_array_size[i][j] - 1; l++) {
-        double dntemp = 3 / (n2b_knots_array[i][j][l + 4] - 
+        double dntemp = 3 / (n2b_knots_array[i][j][l + 4] -
                 n2b_knots_array[i][j][l + 1]);
-        coeff_for_deri[l] = 
+        coeff_for_deri[l] =
             (n2b_coeff_array[i][j][l+1] - n2b_coeff_array[i][j][l]) * dntemp;
       }
 
@@ -1921,7 +1921,7 @@ void PairUF3::create_cached_constants_2b()
                        "UF3: Bspline coefficients for"
                        " derivative of {}-{} interaction, {}th basis set,"
                        " {} constant\n",i,j,l,cc);*/
-          cached_constants_2b_deri[i][j][l][cc] = bspline_basis_deri.constants[cc]; 
+          cached_constants_2b_deri[i][j][l][cc] = bspline_basis_deri.constants[cc];
         }
       }
       delete[] knots_for_deri;
@@ -1938,13 +1938,13 @@ void PairUF3::create_cached_constants_3b()
 
   memory->create(coeff_for_der_ik, tot_interaction_count_3b, max_num_coeff_3b,
           max_num_coeff_3b, max_num_coeff_3b, "pair:coeff_for_der_ik");
-  
+
   memory->create(coeff_for_der_ij, tot_interaction_count_3b, max_num_coeff_3b,
           max_num_coeff_3b, max_num_coeff_3b, "pair:coeff_for_der_ij");
-  
+
   memory->create(cached_constants_3b, tot_interaction_count_3b, 3,
           max_num_coeff_3b, 16, "pair:cached_constants_3b");
-  
+
   memory->create(cached_constants_3b_deri, tot_interaction_count_3b, 3,
           max_num_coeff_3b - 1, 9, "pair:cached_constants_3b_deri");
 
@@ -1999,7 +1999,7 @@ void PairUF3::create_cached_constants_3b()
               coeff_for_der_jk[map_to][l][m][n] =
                   ((n3b_coeff_array[map_to][l][m][n + 1] -
                     n3b_coeff_array[map_to][l][m][n])*dntemp);
-            } 
+            }
           }
         }
 
@@ -2009,10 +2009,10 @@ void PairUF3::create_cached_constants_3b()
 
         for (int l = 0; l < n3b_coeff_array_size[map_to][0]; l++) {
           for (int m = 0; m < n3b_coeff_array_size[map_to][1] - 1; m++) {
-            double dntemp = 3/(n3b_knots_array[map_to][1][m + 4] - 
+            double dntemp = 3/(n3b_knots_array[map_to][1][m + 4] -
                     n3b_knots_array[map_to][1][m + 1]);
             for (int n = 0; n < n3b_coeff_array_size[map_to][2]; n++) {
-              coeff_for_der_ik[map_to][l][m][n] = 
+              coeff_for_der_ik[map_to][l][m][n] =
                   ((n3b_coeff_array[map_to][l][m + 1][n] -
                    n3b_coeff_array[map_to][l][m][n])*dntemp);
             }
@@ -2046,7 +2046,7 @@ void PairUF3::create_cached_constants_3b()
           }
           //utils::logmesg(lmp,"\n");
         }
-        
+
         //utils::logmesg(lmp, "UF3: bspline_basis_deri_ik");
         for (int l = 0; l < n3b_coeff_array_size[map_to][1] - 1; l++) {
           uf3_bspline_basis2 bspline_basis_deri_ik(lmp, &knots_for_der[1][l], 1);
@@ -2142,14 +2142,14 @@ void PairUF3::compute(int eflag, int vflag)
 
         //double *pair_eval = uf3_impl->UFBS2b[itype][jtype].eval(rij);
         double force_2b = cached_constants_2b_deri[itype][jtype][knot_start_index - 1][0];
-        force_2b += rij*cached_constants_2b_deri[itype][jtype][knot_start_index - 1][1]; 
+        force_2b += rij*cached_constants_2b_deri[itype][jtype][knot_start_index - 1][1];
         force_2b += rsq*cached_constants_2b_deri[itype][jtype][knot_start_index - 1][2];
-        force_2b += cached_constants_2b_deri[itype][jtype][knot_start_index - 2][3]; 
-        force_2b += rij*cached_constants_2b_deri[itype][jtype][knot_start_index - 2][4]; 
-        force_2b += rsq*cached_constants_2b_deri[itype][jtype][knot_start_index - 2][5]; 
-        force_2b += cached_constants_2b_deri[itype][jtype][knot_start_index - 3][6]; 
-        force_2b += rij*cached_constants_2b_deri[itype][jtype][knot_start_index - 3][7]; 
-        force_2b += rsq*cached_constants_2b_deri[itype][jtype][knot_start_index - 3][8]; 
+        force_2b += cached_constants_2b_deri[itype][jtype][knot_start_index - 2][3];
+        force_2b += rij*cached_constants_2b_deri[itype][jtype][knot_start_index - 2][4];
+        force_2b += rsq*cached_constants_2b_deri[itype][jtype][knot_start_index - 2][5];
+        force_2b += cached_constants_2b_deri[itype][jtype][knot_start_index - 3][6];
+        force_2b += rij*cached_constants_2b_deri[itype][jtype][knot_start_index - 3][7];
+        force_2b += rsq*cached_constants_2b_deri[itype][jtype][knot_start_index - 3][8];
 
         fpair = -1 * force_2b / rij;
 
@@ -2278,7 +2278,7 @@ void PairUF3::compute(int eflag, int vflag)
             double rik_th = rik*rik_sq;
             double rjk_th = rjk*rjk_sq;
             //double *triangle_eval = uf3_impl->UFBS3b[itype][jtype][ktype].eval(rij, rik, rjk);
-            int map_to = map_3b[itype][jtype][ktype]; 
+            int map_to = map_3b[itype][jtype][ktype];
             int knot_start_index_ij = (this->*get_starting_index_3b)(itype,jtype,ktype,rij,2);
             int knot_start_index_ik = (this->*get_starting_index_3b)(itype,jtype,ktype,rik,1);
             int knot_start_index_jk = (this->*get_starting_index_3b)(itype,jtype,ktype,rjk,0);
@@ -2295,7 +2295,7 @@ void PairUF3::compute(int eflag, int vflag)
             basis_ij[0] += rij*cached_constants_3b[map_to][0][knot_start_index_ij - 3][13];
             basis_ij[0] += rij_sq*cached_constants_3b[map_to][0][knot_start_index_ij - 3][14];
             basis_ij[0] += rij_th*cached_constants_3b[map_to][0][knot_start_index_ij - 3][15];
-            
+
             basis_ij[1] = cached_constants_3b[map_to][0][knot_start_index_ij - 2][8];
             basis_ij[1] += rij*cached_constants_3b[map_to][0][knot_start_index_ij - 2][9];
             basis_ij[1] += rij_sq*cached_constants_3b[map_to][0][knot_start_index_ij - 2][10];
@@ -2305,12 +2305,12 @@ void PairUF3::compute(int eflag, int vflag)
             basis_ij[2] += rij*cached_constants_3b[map_to][0][knot_start_index_ij - 1][5];
             basis_ij[2] += rij_sq*cached_constants_3b[map_to][0][knot_start_index_ij - 1][6];
             basis_ij[2] += rij_th*cached_constants_3b[map_to][0][knot_start_index_ij - 1][7];
-            
+
             basis_ij[3] = cached_constants_3b[map_to][0][knot_start_index_ij][0];
             basis_ij[3] += rij*cached_constants_3b[map_to][0][knot_start_index_ij][1];
             basis_ij[3] += rij_sq*cached_constants_3b[map_to][0][knot_start_index_ij][2];
             basis_ij[3] += rij_th*cached_constants_3b[map_to][0][knot_start_index_ij][3];
-            
+
             //utils::logmesg(lmp,"UF3: basis_ij = {} {} {} {}\n",basis_ij[0],basis_ij[1],
             //        basis_ij[2],basis_ij[3]);
 
@@ -2329,31 +2329,31 @@ void PairUF3::compute(int eflag, int vflag)
             basis_ik[2] += rik*cached_constants_3b[map_to][1][knot_start_index_ik - 1][5];
             basis_ik[2] += rik_sq*cached_constants_3b[map_to][1][knot_start_index_ik - 1][6];
             basis_ik[2] += rik_th*cached_constants_3b[map_to][1][knot_start_index_ik - 1][7];
-                                                                                    
+
             basis_ik[3] = cached_constants_3b[map_to][1][knot_start_index_ik][0];
             basis_ik[3] += rik*cached_constants_3b[map_to][1][knot_start_index_ik][1];
             basis_ik[3] += rik_sq*cached_constants_3b[map_to][1][knot_start_index_ik][2];
             basis_ik[3] += rik_th*cached_constants_3b[map_to][1][knot_start_index_ik][3];
-                                                                                
+
             //utils::logmesg(lmp,"UF3: basis_ik = {} {} {} {}\n",basis_ik[0],basis_ik[1],
             //        basis_ik[2],basis_ik[3]);
-            
+
             //--------------basis_jk
             basis_jk[0] = cached_constants_3b[map_to][2][knot_start_index_jk - 3][12];
             basis_jk[0] += rjk*cached_constants_3b[map_to][2][knot_start_index_jk - 3][13];
             basis_jk[0] += rjk_sq*cached_constants_3b[map_to][2][knot_start_index_jk - 3][14];
             basis_jk[0] += rjk_th*cached_constants_3b[map_to][2][knot_start_index_jk - 3][15];
-            
+
             basis_jk[1] = cached_constants_3b[map_to][2][knot_start_index_jk - 2][8];
             basis_jk[1] += rjk*cached_constants_3b[map_to][2][knot_start_index_jk - 2][9];
             basis_jk[1] += rjk_sq*cached_constants_3b[map_to][2][knot_start_index_jk - 2][10];
             basis_jk[1] += rjk_th*cached_constants_3b[map_to][2][knot_start_index_jk - 2][11];
-            
+
             basis_jk[2] = cached_constants_3b[map_to][2][knot_start_index_jk - 1][4];
             basis_jk[2] += rjk*cached_constants_3b[map_to][2][knot_start_index_jk - 1][5];
             basis_jk[2] += rjk_sq*cached_constants_3b[map_to][2][knot_start_index_jk - 1][6];
             basis_jk[2] += rjk_th*cached_constants_3b[map_to][2][knot_start_index_jk - 1][7];
-                                                                                
+
             basis_jk[3] = cached_constants_3b[map_to][2][knot_start_index_jk][0];
             basis_jk[3] += rjk*cached_constants_3b[map_to][2][knot_start_index_jk][1];
             basis_jk[3] += rjk_sq*cached_constants_3b[map_to][2][knot_start_index_jk][2];
@@ -2369,7 +2369,7 @@ void PairUF3::compute(int eflag, int vflag)
                     cached_constants_3b_deri[map_to][0][knot_start_index_ij - 3][6],
                     cached_constants_3b_deri[map_to][0][knot_start_index_ij - 3][7],
                     cached_constants_3b_deri[map_to][0][knot_start_index_ij - 3][8]);*/
-            
+
             basis_ij_der[1] = cached_constants_3b_deri[map_to][0][knot_start_index_ij - 2][3];
             basis_ij_der[1] += rij*cached_constants_3b_deri[map_to][0][knot_start_index_ij - 2][4];
             basis_ij_der[1] += rij_sq*cached_constants_3b_deri[map_to][0][knot_start_index_ij - 2][5];
@@ -2377,7 +2377,7 @@ void PairUF3::compute(int eflag, int vflag)
                     cached_constants_3b_deri[map_to][0][knot_start_index_ij - 2][3],
                     cached_constants_3b_deri[map_to][0][knot_start_index_ij - 2][4],
                     cached_constants_3b_deri[map_to][0][knot_start_index_ij - 2][5]);*/
-            
+
             basis_ij_der[2] = cached_constants_3b_deri[map_to][0][knot_start_index_ij - 1][0];
             basis_ij_der[2] += rij*cached_constants_3b_deri[map_to][0][knot_start_index_ij - 1][1];
             basis_ij_der[2] += rij_sq*cached_constants_3b_deri[map_to][0][knot_start_index_ij - 1][2];
@@ -2385,7 +2385,7 @@ void PairUF3::compute(int eflag, int vflag)
                     cached_constants_3b_deri[map_to][0][knot_start_index_ij - 1][0],
                     cached_constants_3b_deri[map_to][0][knot_start_index_ij - 1][1],
                     cached_constants_3b_deri[map_to][0][knot_start_index_ij - 1][2]);*/
-            
+
             //utils::logmesg(lmp,"UF3: basis_ij_der = {} {} {}\n",basis_ij_der[0],basis_ij_der[1],
             //        basis_ij_der[2]);
 
@@ -2397,11 +2397,11 @@ void PairUF3::compute(int eflag, int vflag)
             basis_ik_der[1] = cached_constants_3b_deri[map_to][1][knot_start_index_ik - 2][3];
             basis_ik_der[1] += rik*cached_constants_3b_deri[map_to][1][knot_start_index_ik - 2][4];
             basis_ik_der[1] += rik_sq*cached_constants_3b_deri[map_to][1][knot_start_index_ik - 2][5];
-                                                                                
+
             basis_ik_der[2] = cached_constants_3b_deri[map_to][1][knot_start_index_ik - 1][0];
             basis_ik_der[2] += rik*cached_constants_3b_deri[map_to][1][knot_start_index_ik - 1][1];
             basis_ik_der[2] += rik_sq*cached_constants_3b_deri[map_to][1][knot_start_index_ik - 1][2];
-            
+
             //utils::logmesg(lmp,"UF3: basis_ik_der = {} {} {}\n",basis_ik_der[0],basis_ik_der[1],
             //        basis_ik_der[2]);
 
@@ -2409,7 +2409,7 @@ void PairUF3::compute(int eflag, int vflag)
             basis_jk_der[0] = cached_constants_3b_deri[map_to][2][knot_start_index_jk - 3][6];
             basis_jk_der[0] += rjk*cached_constants_3b_deri[map_to][2][knot_start_index_jk - 3][7];
             basis_jk_der[0] += rjk_sq*cached_constants_3b_deri[map_to][2][knot_start_index_jk - 3][8];
-            
+
             basis_jk_der[1] = cached_constants_3b_deri[map_to][2][knot_start_index_jk - 2][3];
             basis_jk_der[1] += rjk*cached_constants_3b_deri[map_to][2][knot_start_index_jk - 2][4];
             basis_jk_der[1] += rjk_sq*cached_constants_3b_deri[map_to][2][knot_start_index_jk - 2][5];
@@ -2417,10 +2417,10 @@ void PairUF3::compute(int eflag, int vflag)
             basis_jk_der[2] = cached_constants_3b_deri[map_to][2][knot_start_index_jk - 1][0];
             basis_jk_der[2] += rjk*cached_constants_3b_deri[map_to][2][knot_start_index_jk - 1][1];
             basis_jk_der[2] += rjk_sq*cached_constants_3b_deri[map_to][2][knot_start_index_jk - 1][2];
-            
+
             //utils::logmesg(lmp,"UF3: basis_jk_der = {} {} {}\n",basis_jk_der[0],basis_jk_der[1],
             //        basis_jk_der[2]);
-            
+
             double triangle_eval[4] = {0,0,0,0};
 
             int iknot_ij = knot_start_index_ij - 3;
@@ -2446,12 +2446,12 @@ void PairUF3::compute(int eflag, int vflag)
             }*/
             //else
             //  triangle_eval[0] = 0;
-            
+
             for (int l = 0; l < 3; l++) {
               const double basis_ij_der_i = basis_ij_der[l];
               for (int m = 0; m < 4; m++) {
                 const double factor = basis_ij_der_i * basis_ik[m];
-                const double* slice = 
+                const double* slice =
                     &coeff_for_der_ij[map_to][iknot_ij + l][iknot_ik + m][iknot_jk];
                 double tmp[4];
                 tmp[0] = slice[0] * basis_jk[0];
@@ -2492,10 +2492,10 @@ void PairUF3::compute(int eflag, int vflag)
                 tmp[1] = slice[1] * basis_jk_der[1];
                 tmp[2] = slice[2] * basis_jk_der[2];
                 double sum = tmp[0] + tmp[1] + tmp[2];
-                triangle_eval[3] += factor * sum; 
+                triangle_eval[3] += factor * sum;
               }
             }
-            
+
             /*utils::logmesg(lmp,"UF3: {} {} {} {} {} {} {}\n",itype,jtype,ktype,
                     *triangle_eval,*(triangle_eval + 1),*(triangle_eval + 2),
                     *(triangle_eval + 3));*/
@@ -2629,14 +2629,14 @@ double PairUF3::single(int /*i*/, int /*j*/, int itype, int jtype, double rsq,
     int knot_start_index = (this->*get_starting_index_2b)(itype,jtype,r);
 
     double force_2b = cached_constants_2b_deri[itype][jtype][knot_start_index - 1][0];
-    force_2b += r*cached_constants_2b_deri[itype][jtype][knot_start_index - 1][1]; 
+    force_2b += r*cached_constants_2b_deri[itype][jtype][knot_start_index - 1][1];
     force_2b += rsq*cached_constants_2b_deri[itype][jtype][knot_start_index - 1][2];
-    force_2b += cached_constants_2b_deri[itype][jtype][knot_start_index - 2][3]; 
-    force_2b += r*cached_constants_2b_deri[itype][jtype][knot_start_index - 2][4]; 
-    force_2b += rsq*cached_constants_2b_deri[itype][jtype][knot_start_index - 2][5]; 
-    force_2b += cached_constants_2b_deri[itype][jtype][knot_start_index - 3][6]; 
-    force_2b += r*cached_constants_2b_deri[itype][jtype][knot_start_index - 3][7]; 
-    force_2b += rsq*cached_constants_2b_deri[itype][jtype][knot_start_index - 3][8]; 
+    force_2b += cached_constants_2b_deri[itype][jtype][knot_start_index - 2][3];
+    force_2b += r*cached_constants_2b_deri[itype][jtype][knot_start_index - 2][4];
+    force_2b += rsq*cached_constants_2b_deri[itype][jtype][knot_start_index - 2][5];
+    force_2b += cached_constants_2b_deri[itype][jtype][knot_start_index - 3][6];
+    force_2b += r*cached_constants_2b_deri[itype][jtype][knot_start_index - 3][7];
+    force_2b += rsq*cached_constants_2b_deri[itype][jtype][knot_start_index - 3][8];
     fforce = factor_lj * force_2b;
 
     double rth = rsq*r;

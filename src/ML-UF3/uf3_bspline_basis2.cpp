@@ -36,9 +36,12 @@ uf3_bspline_basis2::uf3_bspline_basis2(LAMMPS *ulmp, const double *knots, double
        (square(knots[0]) - knots[0] * knots[1] - knots[0] * knots[2] + knots[1] * knots[2]));
   c2 = coefficient *
       (1.0 / (square(knots[0]) - knots[0] * knots[1] - knots[0] * knots[2] + knots[1] * knots[2]));
-  constants.push_back(c0);
-  constants.push_back(c1);
-  constants.push_back(c2);
+  //constants.push_back(c0);
+  //constants.push_back(c1);
+  //constants.push_back(c2);
+  constants[0] = c0;
+  constants[1] = c1;
+  constants[2] = c2;
   c0 = coefficient *
       (-knots[1] * knots[3] /
            (square(knots[1]) - knots[1] * knots[2] - knots[1] * knots[3] + knots[2] * knots[3]) -
@@ -56,9 +59,12 @@ uf3_bspline_basis2::uf3_bspline_basis2(LAMMPS *ulmp, const double *knots, double
   c2 = coefficient *
       (-1.0 / (square(knots[1]) - knots[1] * knots[2] - knots[1] * knots[3] + knots[2] * knots[3]) -
        1.0 / (knots[0] * knots[1] - knots[0] * knots[2] - knots[1] * knots[2] + square(knots[2])));
-  constants.push_back(c0);
-  constants.push_back(c1);
-  constants.push_back(c2);
+  //constants.push_back(c0);
+  //constants.push_back(c1);
+  //constants.push_back(c2);
+  constants[3] = c0;
+  constants[4] = c1;
+  constants[5] = c2;
   c0 = coefficient *
       (square(knots[3]) /
        (knots[1] * knots[2] - knots[1] * knots[3] - knots[2] * knots[3] + square(knots[3])));
@@ -67,9 +73,12 @@ uf3_bspline_basis2::uf3_bspline_basis2(LAMMPS *ulmp, const double *knots, double
        (knots[1] * knots[2] - knots[1] * knots[3] - knots[2] * knots[3] + square(knots[3])));
   c2 = coefficient *
       (1.0 / (knots[1] * knots[2] - knots[1] * knots[3] - knots[2] * knots[3] + square(knots[3])));
-  constants.push_back(c0);
-  constants.push_back(c1);
-  constants.push_back(c2);
+  //constants.push_back(c0);
+  //constants.push_back(c1);
+  //constants.push_back(c2);
+  constants[6] = c0;
+  constants[7] = c1;
+  constants[8] = c2;
 }
 
 uf3_bspline_basis2::~uf3_bspline_basis2() {}
@@ -96,7 +105,7 @@ double uf3_bspline_basis2::memory_usage()
 {
   double bytes = 0;
 
-  bytes += (double)constants.size()*sizeof(double);
+  bytes += (double)9*sizeof(double);
 
   return bytes;
 }

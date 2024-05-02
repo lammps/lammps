@@ -53,10 +53,14 @@ uf3_bspline_basis3::uf3_bspline_basis3(LAMMPS *ulmp, const double *knots, double
         square(knots[0]) * knots[3] - knots[0] * knots[1] * knots[2] -
         knots[0] * knots[1] * knots[3] - knots[0] * knots[2] * knots[3] +
         knots[1] * knots[2] * knots[3]));
-  constants.push_back(c0);
-  constants.push_back(c1);
-  constants.push_back(c2);
-  constants.push_back(c3);
+  //constants.push_back(c0);
+  //constants.push_back(c1);
+  //constants.push_back(c2);
+  //constants.push_back(c3);
+  constants[0] = c0;
+  constants[1] = c1;
+  constants[2] = c2;
+  constants[3] = c3;
   c0 = coefficient *
       (square(knots[1]) * knots[4] /
            (-cube(knots[1]) + square(knots[1]) * knots[2] + square(knots[1]) * knots[3] +
@@ -161,10 +165,14 @@ uf3_bspline_basis3::uf3_bspline_basis3(LAMMPS *ulmp, const double *knots, double
             knots[0] * knots[1] * knots[3] - knots[0] * knots[2] * knots[3] +
             square(knots[1]) * knots[3] - knots[1] * knots[2] * knots[3] -
             knots[1] * square(knots[3]) + knots[2] * square(knots[3])));
-  constants.push_back(c0);
-  constants.push_back(c1);
-  constants.push_back(c2);
-  constants.push_back(c3);
+  //constants.push_back(c0);
+  //constants.push_back(c1);
+  //constants.push_back(c2);
+  //constants.push_back(c3);
+  constants[4] = c0;
+  constants[5] = c1;
+  constants[6] = c2;
+  constants[7] = c3;
   c0 = coefficient *
       (-knots[0] * square(knots[3]) /
            (-knots[0] * knots[1] * knots[2] + knots[0] * knots[1] * knots[3] +
@@ -269,10 +277,14 @@ uf3_bspline_basis3::uf3_bspline_basis3(LAMMPS *ulmp, const double *knots, double
             knots[1] * knots[2] * knots[4] - knots[1] * knots[3] * knots[4] +
             square(knots[2]) * knots[4] - knots[2] * knots[3] * knots[4] -
             knots[2] * square(knots[4]) + knots[3] * square(knots[4])));
-  constants.push_back(c0);
-  constants.push_back(c1);
-  constants.push_back(c2);
-  constants.push_back(c3);
+  //constants.push_back(c0);
+  //constants.push_back(c1);
+  //constants.push_back(c2);
+  //constants.push_back(c3);
+  constants[8] = c0;
+  constants[9] = c1;
+  constants[10] = c2;
+  constants[11] = c3;
   c0 = coefficient *
       (cube(knots[4]) /
        (-knots[1] * knots[2] * knots[3] + knots[1] * knots[2] * knots[4] +
@@ -297,10 +309,14 @@ uf3_bspline_basis3::uf3_bspline_basis3(LAMMPS *ulmp, const double *knots, double
         knots[1] * knots[3] * knots[4] - knots[1] * square(knots[4]) +
         knots[2] * knots[3] * knots[4] - knots[2] * square(knots[4]) - knots[3] * square(knots[4]) +
         cube(knots[4])));
-  constants.push_back(c0);
-  constants.push_back(c1);
-  constants.push_back(c2);
-  constants.push_back(c3);
+  //constants.push_back(c0);
+  //constants.push_back(c1);
+  //constants.push_back(c2);
+  //constants.push_back(c3);
+  constants[12] = c0;
+  constants[13] = c1;
+  constants[14] = c2;
+  constants[15] = c3;
 }
 
 uf3_bspline_basis3::~uf3_bspline_basis3() {}
@@ -333,7 +349,7 @@ double uf3_bspline_basis3::memory_usage()
 {
   double bytes = 0;
 
-  bytes += (double)constants.size()*sizeof(double);
+  bytes += (double)16*sizeof(double);
 
   return bytes;
 }

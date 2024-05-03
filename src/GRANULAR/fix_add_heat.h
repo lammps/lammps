@@ -33,10 +33,10 @@ class FixAddHeat : public Fix {
   void post_force(int) override;
 
  protected:
-  double value;
-  int var, style, maxatom, overwrite_flag;
+  double value, prefactor;
+  int var, vstyle, maxatom, style, overwrite_flag;
   char *varstr;
-  double *qatom;
+  double *vatom;
 };
 
 }    // namespace LAMMPS_NS

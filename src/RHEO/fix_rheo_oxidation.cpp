@@ -21,6 +21,7 @@
 #include "atom.h"
 #include "atom_vec.h"
 #include "citeme.h"
+#include "comm.h"
 #include "compute_rheo_surface.h"
 #include "error.h"
 #include "fix_rheo.h"
@@ -53,6 +54,8 @@ FixRHEOOxidation::FixRHEOOxidation(LAMMPS *lmp, int narg, char **arg) :
   Fix(lmp, narg, arg), compute_surface(nullptr), fix_rheo(nullptr)
 {
   if (narg != 6) error->all(FLERR,"Illegal fix command");
+
+  comm_forward = 3;
 
   cut = utils::numeric(FLERR, arg[3], false, lmp);
   if (cut <= 0.0) error->all(FLERR, "Illegal bond cutoff {} in fix rheo/oxidation", cut);
@@ -146,7 +149,7 @@ void FixRHEOOxidation::post_integrate()
 {
   int i, j, n, ii, jj, inum, jnum, bflag;
   int *ilist, *jlist, *numneigh, **firstneigh;
-  double xtmp, ytmp, ztmp, delx, dely, delz, rsq;
+  double delx, dely, delz, rsq;
   tagint tagi, tagj;
 
   int nlocal = atom->nlocal;
@@ -164,15 +167,16 @@ void FixRHEOOxidation::post_integrate()
   numneigh = list->numneigh;
   firstneigh = list->firstneigh;
 
+  // Forward positions (after inititial integrate, before comm)
+  // Note: surface designation lags one timestep, acceptable error
+  comm->forward_comm(this);
+
   // loop over neighbors of my atoms
   for (ii = 0; ii < inum; ii++) {
     i = ilist[ii];
     if (rsurface[i] > rsurf) continue;
 
     tagi = tag[i];
-    xtmp = x[i][0];
-    ytmp = x[i][1];
-    ztmp = x[i][2];
 
     jlist = firstneigh[i];
     jnum = numneigh[i];
@@ -184,9 +188,19 @@ void FixRHEOOxidation::post_integrate()
       if (rsurface[j] > rsurf) continue;
 
       tagj = tag[j];
-      delx = xtmp - x[j][0];
-      dely = ytmp - x[j][1];
-      delz = ztmp - x[j][2];
+
+      // Ensure pair is always ordered to ensure numerical operations
+      // are identical to minimize the possibility that a bond straddling
+      // an mpi grid (newton off) isn't created on one proc but not the other
+      if (tagi < tagj) {
+        delx = x[i][0] - x[j][0];
+        dely = x[i][1] - x[j][1];
+        delz = x[i][2] - x[j][2];
+      } else {
+        delx = x[j][0] - x[i][0];
+        dely = x[j][1] - x[i][1];
+        delz = x[j][2] - x[i][2];
+      }
       rsq = delx * delx + dely * dely + delz * delz;
       if (rsq > cutsq) continue;
 
@@ -211,5 +225,38 @@ void FixRHEOOxidation::post_integrate()
         num_bond[i]++;
       }
     }
+  }
+}
+
+/* ---------------------------------------------------------------------- */
+
+int FixRHEOOxidation::pack_forward_comm(int n, int *list, double *buf,
+                                        int /*pbc_flag*/, int * /*pbc*/)
+{
+  int i, j, k, m;
+  double **x = atom->x;
+  m = 0;
+
+  for (i = 0; i < n; i++) {
+    j = list[i];
+    buf[m++] = x[j][0];
+    buf[m++] = x[j][1];
+    buf[m++] = x[j][2];
+  }
+  return m;
+}
+
+/* ---------------------------------------------------------------------- */
+
+void FixRHEOOxidation::unpack_forward_comm(int n, int first, double *buf)
+{
+  int i, k, m, last;
+  double **x = atom->x;
+  m = 0;
+  last = first + n;
+  for (i = first; i < last; i++) {
+    x[i][0] = buf[m++];
+    x[i][1] = buf[m++];
+    x[i][2] = buf[m++];
   }
 }

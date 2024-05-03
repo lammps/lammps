@@ -186,7 +186,7 @@ FixRHEOThermal::FixRHEOThermal(LAMMPS *lmp, int narg, char **arg) :
       if (iarg + 2 >= narg) utils::missing_cmd_args(FLERR, "fix rheo/thermal react", error);
       cut_bond = utils::numeric(FLERR, arg[iarg + 1], false, lmp);
       btype = utils::numeric(FLERR, arg[iarg + 2], false, lmp);
-      comm_forward = 1;
+      comm_forward = 4;
       if (cut_bond <= 0.0) error->all(FLERR, "Illegal max bond length must be greater than zero");\
       if (btype < 1 || btype > atom->nbondtypes) error->all(FLERR, "Illegal value for bond type");
 
@@ -400,7 +400,7 @@ void FixRHEOThermal::post_integrate()
   MPI_Allreduce(&n_freeze, &n_freeze_all, 1, MPI_INT, MPI_SUM, world);
 
   if (cut_bond > 0 && (n_melt_all || n_freeze_all)) {
-    // Forward status then delete/create bonds
+    // Forward status + positions (after inititial integrate, before comm)
     comm->forward_comm(this);
 
     if (n_freeze_all) create_bonds();
@@ -623,7 +623,7 @@ void FixRHEOThermal::create_bonds()
 {
   int i, j, ii, jj, inum, jnum;
   int *ilist, *jlist, *numneigh, **firstneigh;
-  double xtmp, ytmp, ztmp, delx, dely, delz, rsq;
+  double delx, dely, delz, rsq;
 
   int nlocal = atom->nlocal;
   int newton_bond = force->newton_bond;
@@ -648,10 +648,6 @@ void FixRHEOThermal::create_bonds()
     i = ilist[ii];
     if (!(status[i] & STATUS_SOLID)) continue;
 
-    xtmp = x[i][0];
-    ytmp = x[i][1];
-    ztmp = x[i][2];
-
     jlist = firstneigh[i];
     jnum = numneigh[i];
 
@@ -662,9 +658,18 @@ void FixRHEOThermal::create_bonds()
       if (!(status[j] & STATUS_SOLID)) continue;
       if (!(status[i] & STATUS_FREEZING) && !(status[j] & STATUS_FREEZING)) continue;
 
-      delx = xtmp - x[j][0];
-      dely = ytmp - x[j][1];
-      delz = ztmp - x[j][2];
+      // Ensure pair is always ordered to ensure numerical operations
+      // are identical to minimize the possibility that a bond straddling
+      // an mpi grid (newton off) isn't created on one proc but not the other
+      if (tag[i] < tag[j]) {
+        delx = x[i][0] - x[j][0];
+        dely = x[i][1] - x[j][1];
+        delz = x[i][2] - x[j][2];
+      } else {
+        delx = x[j][0] - x[i][0];
+        dely = x[j][1] - x[i][1];
+        delz = x[j][2] - x[i][2];
+      }
       rsq = delx * delx + dely * dely + delz * delz;
       if (rsq > cutsq_bond) continue;
 
@@ -731,11 +736,15 @@ int FixRHEOThermal::pack_forward_comm(int n, int *list, double *buf,
 {
   int i, j, k, m;
   int *status = atom->status;
+  double **x = atom->x;
   m = 0;
 
   for (i = 0; i < n; i++) {
     j = list[i];
     buf[m++] = ubuf(status[j]).d;
+    buf[m++] = x[j][0];
+    buf[m++] = x[j][1];
+    buf[m++] = x[j][2];
   }
   return m;
 }
@@ -746,10 +755,13 @@ void FixRHEOThermal::unpack_forward_comm(int n, int first, double *buf)
 {
   int i, k, m, last;
   int *status = atom->status;
-
+  double **x = atom->x;
   m = 0;
   last = first + n;
   for (i = first; i < last; i++) {
     status[i] = (int) ubuf(buf[m++]).i;
+    x[i][0] = buf[m++];
+    x[i][1] = buf[m++];
+    x[i][2] = buf[m++];
   }
 }

@@ -1024,7 +1024,7 @@ void PairUF3::communicate()
             (num_of_elements + 1)*(num_of_elements + 1), MPI_INT, 0, world);
 
   MPI_Bcast(&knot_spacing_2b[0][0],
-            (num_of_elements + 1)*(num_of_elements + 1), MPI_INT, 0, world);
+            (num_of_elements + 1)*(num_of_elements + 1), MPI_DOUBLE, 0, world);
 
   MPI_Bcast(&n2b_knots_array[0][0][0],
             (num_of_elements + 1)*(num_of_elements + 1)*max_num_knots_2b, MPI_DOUBLE, 0, world);
@@ -1041,7 +1041,7 @@ void PairUF3::communicate()
 
     MPI_Bcast(&knot_spacing_3b[0][0][0][0],
               (num_of_elements + 1)*(num_of_elements + 1)*(num_of_elements + 1)*3,
-              MPI_INT, 0, world);
+              MPI_DOUBLE, 0, world);
     MPI_Bcast(&n3b_knots_array[0][0][0],
               tot_interaction_count_3b*3*max_num_knots_3b, MPI_DOUBLE, 0, world);
     MPI_Bcast(&n3b_coeff_array[0][0][0][0],
@@ -1131,16 +1131,16 @@ void PairUF3::create_bsplines()
   }
 
 
-  //if (spacing_type) {
-  get_starting_index_2b = &PairUF3::get_starting_index_nonuniform_2b;
-  if (pot_3b)
-    get_starting_index_3b = &PairUF3::get_starting_index_nonuniform_3b;
-  //}
-  /*else {
+  if (spacing_type) {
+    get_starting_index_2b = &PairUF3::get_starting_index_nonuniform_2b;
+    if (pot_3b)
+      get_starting_index_3b = &PairUF3::get_starting_index_nonuniform_3b;
+  }
+  else {
     get_starting_index_2b = &PairUF3::get_starting_index_uniform_2b;
     if (pot_3b)
       get_starting_index_3b = &PairUF3::get_starting_index_uniform_3b;
-  }*/
+  }
 
   create_cached_constants_2b();
   if (pot_3b)

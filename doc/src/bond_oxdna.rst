@@ -27,6 +27,7 @@ Examples
 
 .. code-block:: LAMMPS
 
+   # LJ units
    bond_style oxdna/fene
    bond_coeff * 2.0 0.25 0.7525
 
@@ -35,6 +36,30 @@ Examples
 
    bond_style oxrna2/fene
    bond_coeff * 2.0 0.25 0.76107
+
+   bond_style oxdna/fene
+   bond_coeff * oxdna.lj
+
+   # Real units
+   bond_style oxdna/fene
+   bond_coeff * 11.92337812042065 2.1295 6.409795
+
+   bond_style oxdna2/fene
+   bond_coeff * 11.92337812042065 2.1295 6.4430152
+
+   bond_style oxrna2/fene
+   bond_coeff * 11.92337812042065 2.1295 6.482800913
+
+   bond_style oxrna2/fene
+   bond_coeff * oxrna2.real
+
+.. note::
+   The coefficients in the above examples have to be kept fixed and cannot
+   be changed without reparameterizing the entire model. They are provided in forms
+   compatible with both *units lj* and *units real* (see documentation of :doc:`units <units>`).
+   These can also be read from a potential file with correct unit style by specifying the name
+   of the file. Several potential files for each unit style are included in the 
+   /potentials/ directory of the LAMMPS distribution.
 
 Description
 """""""""""
@@ -73,8 +98,6 @@ commands:
    *oxdna2/hbond* and an additional Debye-Hueckel pair style
    *oxdna2/dh* have to be defined. The same applies to the oxRNA2
    :ref:`(Sulc1) <Sulc01>` styles.
-   The coefficients in the above example have to be kept fixed and cannot
-   be changed without reparameterizing the entire model.
 
 .. note::
 
@@ -110,6 +133,29 @@ Please cite also the relevant oxDNA/oxRNA publications. These are
 :ref:`(Sulc1) <Sulc01>` for oxRNA2
 and for sequence-specific hydrogen-bonding and stacking interactions
 :ref:`(Sulc2) <Sulc02>`.
+
+----------
+
+Potential file reading
+""""""""""""""""""""""
+
+For each style oxdna, oxdna2 and oxrna2, the first parameter argument can be a filename, and if it is, no further arguments should be supplied. Therefore the following command:
+
+.. code-block:: LAMMPS
+
+   bond_style oxdna/fene
+   bond_coeff * oxdna.lj
+
+will be interpreted as a request to read the (FENE) potential :ref:`(Ouldridge) <Ouldridge0>` parameters from the file with the given name. 
+The file can define multiple potential parameters for both bonded and pair interactions, but for the above bonded interactions there must exist in the file a line of the form:
+
+.. code-block:: LAMMPS
+
+   *   fene    epsilon delta r0
+
+There are sample potential files for each unit style in the /potentials/ directory of the LAMMPS distribution. The potential file unit system must align with
+the units defined via the :doc:`units <units>` command. For conversion between different *LJ* and *real* unit systems for oxDNA, the python tool *lj2real.py* located in the examples/PACKAGES/cgdna/util/ 
+directory can be used. This tool assumes similar file structure to the examples found in examples/PACKAGES/cgdna/examples/.
 
 ----------
 

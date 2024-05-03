@@ -1,4 +1,3 @@
-#!/usr/bin/env python
 """
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
@@ -17,15 +16,22 @@
    Contributing author: Oliver Henrich (University of Strathclyde, Glasgow)
 ------------------------------------------------------------------------- */
 
-Program:
+Program: nbps.py
+
+Calculates the number of base pairs based on proximity of hydrogen bonding
+interaction sites in oxDNA2.
 
 Usage: 
-$$ python 
+$$ python nbps.py input_filename output_filename 
 
 Requirements:
 The LAMMPS trajectory input file needs to contain the following data columns:
 id mol type x y z c_quat[1] c_quat[2] c_quat[3] c_quat[4]
 """
+
+# for python2/3 compatibility
+from __future__ import print_function
+#!/usr/bin/env python
 
 import sys, math, subprocess
 

@@ -1,4 +1,3 @@
-#!/usr/bin/env python
 """
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
@@ -32,6 +31,13 @@ The LAMMPS trajectory input file needs to contain the following data columns:
 id mol type x y z vx vy vz c_quat[1] c_quat[2] c_quat[3] c_quat[4]
 """
 
+# for python2/3 compatibility
+from __future__ import print_function
+#!/usr/bin/env python
+
+"""
+Import basic modules
+"""
 import sys, math, subprocess
 
 # converts quaternion DOF into local body reference frame

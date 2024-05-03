@@ -232,7 +232,7 @@ void PairUF3::allocate()
       n3b_coeff_array_size[i][0] = 0;
       n3b_coeff_array_size[i][1] = 0;
       n3b_coeff_array_size[i][2] = 0;
-      
+
       n3b_knots_array_size[i][0] = 0;
       n3b_knots_array_size[i][1] = 0;
       n3b_knots_array_size[i][2] = 0;

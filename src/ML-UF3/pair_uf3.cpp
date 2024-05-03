@@ -205,6 +205,10 @@ void PairUF3::allocate()
     for (int i = 1; i < num_of_elements + 1; i++) {
       for (int j = 1; j < num_of_elements + 1; j++) {
         cut_3b_list[i][j] = 0;
+        setflag[i][j] = 0;
+        n2b_coeff_array_size[i][j] = 0;
+        n2b_knots_array_size[i][j] = 0;
+
         for (int k = 1; k < num_of_elements + 1; k++) {
           cut_3b[i][j][k] = 0;
           min_cut_3b[i][j][k][0] = 0;
@@ -224,6 +228,15 @@ void PairUF3::allocate()
                    "pair:n3b_knots_array_size");
     memory->create(n3b_coeff_array_size, tot_interaction_count_3b, 3,
                    "pair:n3b_coeff_array_size");
+    for (int i = 0; i < tot_interaction_count_3b; i++) {
+      n3b_coeff_array_size[i][0] = 0;
+      n3b_coeff_array_size[i][1] = 0;
+      n3b_coeff_array_size[i][2] = 0;
+      
+      n3b_knots_array_size[i][0] = 0;
+      n3b_knots_array_size[i][1] = 0;
+      n3b_knots_array_size[i][2] = 0;
+    }
 
     memory->create(neighshort, maxshort, "pair:neighshort");
 
@@ -344,6 +357,10 @@ void PairUF3::uf3_read_unified_pot_file(char *potf_name)
           ValueTokenizer fp5th_line(temp_line);
 
           int num_coeff_2b = fp5th_line.next_int();
+          if (num_coeff_2b <= 0)
+            error->all(FLERR,
+                       "UF3: 0 or negative number found for num_coeff_2b"
+                       " on line {} of the potential file",line_counter);
           n2b_coeff_array_size[itype][jtype] = num_coeff_2b;
           n2b_coeff_array_size[jtype][itype] = num_coeff_2b;
           max_num_coeff_2b = std::max(max_num_coeff_2b, num_coeff_2b);
@@ -497,45 +514,44 @@ void PairUF3::uf3_read_unified_pot_file(char *potf_name)
   } // while
 
   //Create knot and coeff arrays
-  if (max_num_knots_2b > 0) {
-    memory->create(n2b_knots_array, num_of_elements + 1, num_of_elements + 1,
-                   max_num_knots_2b, "pair:n2b_knots_array");
-  }
-  else
+  if (max_num_knots_2b <= 0)
     error->all(FLERR,
                "UF3: Error reading the size of 2B knot vector\n"
                "Possibly no 2B UF3 potential block detected in {} file",
                potf_name);
+  memory->destroy(n2b_knots_array);
+  memory->create(n2b_knots_array, num_of_elements + 1, num_of_elements + 1,
+                 max_num_knots_2b, "pair:n2b_knots_array");
 
-  if (max_num_coeff_2b > 0) {
-    memory->create(n2b_coeff_array, num_of_elements + 1, num_of_elements + 1,
-                   max_num_coeff_2b, "pair:n2b_coeff_array");
-  }
-  else
+  if (max_num_coeff_2b <= 0)
     error->all(FLERR,
                "UF3: Error reading the size of 2B coeff vector\n"
                "Possibly no 2B UF3 potential block detected in {} file",
                potf_name);
 
-  if (pot_3b) {
-    if (max_num_knots_3b > 0)
-      memory->create(n3b_knots_array, tot_interaction_count_3b, 3,
-                     max_num_knots_3b, "pair:n3b_knots_array");
+  memory->destroy(n2b_coeff_array);
+  memory->create(n2b_coeff_array, num_of_elements + 1, num_of_elements + 1,
+                 max_num_coeff_2b, "pair:n2b_coeff_array");
 
-    else
+
+  if (pot_3b) {
+    if (max_num_knots_3b <= 0)
       error->all(FLERR,
                  "UF3: Error reading the size of 3B knot vector\n"
                  "Possibly no 3B UF3 potential block detected in {} file",
                  potf_name);
+    memory->destroy(n3b_knots_array);
+    memory->create(n3b_knots_array, tot_interaction_count_3b, 3,
+                   max_num_knots_3b, "pair:n3b_knots_array");
 
-    if (max_num_coeff_3b > 0)
-      memory->create(n3b_coeff_array, tot_interaction_count_3b, max_num_coeff_3b,
-                     max_num_coeff_3b, max_num_coeff_3b, "pair:n3b_coeff_array");
-    else
+    if (max_num_coeff_3b <= 0)
       error->all(FLERR,
                  "UF3: Error reading the size of 3B coeff matrices\n"
                  "Possibly no 3B UF3 potential block detected in {} file",
                  potf_name);
+    memory->destroy(n3b_coeff_array);
+    memory->create(n3b_coeff_array, tot_interaction_count_3b, max_num_coeff_3b,
+                   max_num_coeff_3b, max_num_coeff_3b, "pair:n3b_coeff_array");
   }
 
   //Go back to the begning of the file
@@ -1180,6 +1196,8 @@ int PairUF3::get_starting_index_nonuniform_3b(int i, int j, int k, double r, int
 void PairUF3::create_cached_constants_2b()
 {
   const int num_of_elements = atom->ntypes;
+  memory->destroy(cached_constants_2b);
+  memory->destroy(cached_constants_2b_deri);
   memory->create(cached_constants_2b, num_of_elements + 1, num_of_elements + 1,
                  max_num_coeff_2b, 16, "pair:cached_constants_2b");
 
@@ -1202,13 +1220,17 @@ void PairUF3::create_cached_constants_2b()
   for (int i = 1; i < num_of_elements + 1; i++) {
     for (int j = 1; j < num_of_elements + 1; j++) {
       //initialize coeff and knots for derivative
-      double* knots_for_deri = new double[n2b_knots_array_size[i][j]-2];
+      //double* knots_for_deri = new double[n2b_knots_array_size[i][j]-2];
+      double *knots_for_deri = nullptr;
+      memory->create(knots_for_deri, n2b_knots_array_size[i][j]-2, "pair:knots_for_deri");
 
       for (int l = 1; l < n2b_knots_array_size[i][j] - 1; l++)
         knots_for_deri[l-1] = n2b_knots_array[i][j][l];
 
 
-      double* coeff_for_deri = new double[n2b_coeff_array_size[i][j]-1];
+      //double* coeff_for_deri = new double[n2b_coeff_array_size[i][j]-1];
+      double *coeff_for_deri = nullptr;
+      memory->create(coeff_for_deri, n2b_coeff_array_size[i][j]-1, "pair:coeff_for_deri");
       for (int l = 0; l < n2b_coeff_array_size[i][j] - 1; l++) {
         double dntemp = 3 / (n2b_knots_array[i][j][l + 4] -
                 n2b_knots_array[i][j][l + 1]);
@@ -1223,8 +1245,10 @@ void PairUF3::create_cached_constants_2b()
           cached_constants_2b_deri[i][j][l][cc] = bspline_basis_deri.constants[cc];
         }
       }
-      delete[] knots_for_deri;
-      delete[] coeff_for_deri;
+      memory->destroy(knots_for_deri);
+      memory->destroy(coeff_for_deri);
+      //delete[] knots_for_deri;
+      //delete[] coeff_for_deri;
     }
   }
 }
@@ -1232,6 +1256,12 @@ void PairUF3::create_cached_constants_2b()
 void PairUF3::create_cached_constants_3b()
 {
   const int num_of_elements = atom->ntypes;
+  memory->destroy(coeff_for_der_jk);
+  memory->destroy(coeff_for_der_ik);
+  memory->destroy(coeff_for_der_ij);
+  memory->destroy(cached_constants_3b);
+  memory->destroy(cached_constants_3b_deri);
+
   memory->create(coeff_for_der_jk, tot_interaction_count_3b, max_num_coeff_3b,
           max_num_coeff_3b, max_num_coeff_3b, "pair:coeff_for_der_jk");
 
@@ -1607,9 +1637,6 @@ void PairUF3::compute(int eflag, int vflag)
             basis_ik[3] += rik_sq*cached_constants_3b[map_to][1][knot_start_index_ik][2];
             basis_ik[3] += rik_th*cached_constants_3b[map_to][1][knot_start_index_ik][3];
 
-            //utils::logmesg(lmp,"UF3: basis_ik = {} {} {} {}\n",basis_ik[0],basis_ik[1],
-            //        basis_ik[2],basis_ik[3]);
-
             //--------------basis_jk
             basis_jk[0] = cached_constants_3b[map_to][2][knot_start_index_jk - 3][12];
             basis_jk[0] += rjk*cached_constants_3b[map_to][2][knot_start_index_jk - 3][13];
@@ -1635,10 +1662,6 @@ void PairUF3::compute(int eflag, int vflag)
             basis_ij_der[0] = cached_constants_3b_deri[map_to][0][knot_start_index_ij - 3][6];
             basis_ij_der[0] += rij*cached_constants_3b_deri[map_to][0][knot_start_index_ij - 3][7];
             basis_ij_der[0] += rij_sq*cached_constants_3b_deri[map_to][0][knot_start_index_ij - 3][8];
-            /*utils::logmesg(lmp,"UF3 cached_constants 2 = {} {} {}\n",
-                    cached_constants_3b_deri[map_to][0][knot_start_index_ij - 3][6],
-                    cached_constants_3b_deri[map_to][0][knot_start_index_ij - 3][7],
-                    cached_constants_3b_deri[map_to][0][knot_start_index_ij - 3][8]);*/
 
             basis_ij_der[1] = cached_constants_3b_deri[map_to][0][knot_start_index_ij - 2][3];
             basis_ij_der[1] += rij*cached_constants_3b_deri[map_to][0][knot_start_index_ij - 2][4];

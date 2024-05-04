@@ -148,7 +148,8 @@ ComputeStressMop::ComputeStressMop(LAMMPS *lmp, int narg, char **arg) : Compute(
 
   // 3D only
 
-  if (domain->dimension != 3) error->all(FLERR, "Compute stress/mop requires a 3d system");
+  if (domain->dimension == 2 && dir == Z)
+    error->all(FLERR, "Compute stress/mop is incompatible with Z in 2d system");
 
   // orthogonal simulation box
   if (domain->triclinic != 0)
@@ -210,10 +211,14 @@ void ComputeStressMop::init()
 
   // Plane area
 
-  area = 1;
-  int i;
-  for (i = 0; i < 3; i++) {
-    if (i != dir) area = area * domain->prd[i];
+  if (domain->dimension == 3) {
+    area = 1;
+    int i;
+    for (i = 0; i < 3; i++) {
+      if (i != dir) area = area * domain->prd[i];
+    }
+  } else {
+    area = (dir == X) ? domain->prd[1] : domain->prd[0];
   }
 
   // Timestep Value

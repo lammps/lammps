@@ -16,19 +16,20 @@
 #include "gran_sub_mod_normal.h"
 #include "granular_model.h"
 #include "math_special.h"
+#include "math_const.h"
 
 #include <cmath>
 
 using namespace LAMMPS_NS;
 using namespace Granular_NS;
+using namespace MathConst;
 
 using MathSpecial::cube;
 using MathSpecial::powint;
 using MathSpecial::square;
 
-static constexpr double PISQ = 9.86960440108935799230;
-static constexpr double TWOROOTFIVEBYSIX = 1.82574185835055380345;
-static constexpr double ROOTTHREEBYTWO = 1.22474487139158894067;
+static constexpr double TWOROOTFIVEBYSIX = 1.82574185835055380345;      // 2/sqrt(5/6)
+static constexpr double ROOTTHREEBYTWO = 1.22474487139158894067;        // sqrt(3/2)
 
 /* ----------------------------------------------------------------------
    Default damping model
@@ -141,44 +142,28 @@ double GranSubModDampingTsuji::calculate_forces()
 }
 
 /* ----------------------------------------------------------------------
-   hookeen damping
+   Coefficient of restitution damping
 ------------------------------------------------------------------------- */
 
-GranSubModDampingHookeEn::GranSubModDampingHookeEn(GranularModel *gm, LAMMPS *lmp) :
+GranSubModDampingCoeffRestitution::GranSubModDampingCoeffRestitution(GranularModel *gm, LAMMPS *lmp) :
     GranSubModDamping(gm, lmp)
 {
 }
 
-void GranSubModDampingHookeEn::init()
+void GranSubModDampingCoeffRestitution::init()
 {
+  // Calculate prefactor, assume Hertzian as default
   double cor = gm->normal_model->get_damp();
   double logcor = log(cor);
-  damp = -2*logcor/sqrt(PISQ + logcor*logcor);
+  if (gm->normal_model->name == "hooke") {
+    damp = -2 * logcor / sqrt(MY_PI * MY_PI + logcor * logcor);
+  } else {
+    damp = -ROOTTHREEBYTWO * TWOROOTFIVEBYSIX * logcor;
+    damp /= sqrt(MY_PI * MY_PI + logcor * logcor);
+  }
 }
 
-double GranSubModDampingHookeEn::calculate_forces()
-{
-  damp_prefactor = damp * sqrt(gm->meff * gm->Fnormal / gm->delta);
-  return -damp_prefactor * gm->vnnr;
-}
-
-/* ----------------------------------------------------------------------
-   hertzen damping
-------------------------------------------------------------------------- */
-
-GranSubModDampingHertzEn::GranSubModDampingHertzEn(GranularModel *gm, LAMMPS *lmp) :
-    GranSubModDamping(gm, lmp)
-{
-}
-
-void GranSubModDampingHertzEn::init()
-{
-  double cor = gm->normal_model->get_damp();
-  double logcor = log(cor);
-  damp = -ROOTTHREEBYTWO*TWOROOTFIVEBYSIX*logcor/sqrt(PISQ + logcor*logcor);
-}
-
-double GranSubModDampingHertzEn::calculate_forces()
+double GranSubModDampingCoeffRestitution::calculate_forces()
 {
   damp_prefactor = damp * sqrt(gm->meff * gm->Fnormal / gm->delta);
   return -damp_prefactor * gm->vnnr;

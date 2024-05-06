@@ -238,10 +238,6 @@ void GranularModel::init()
   if (damping_model->name == "none") error->all(FLERR, "Must specify damping granular model");
   if (tangential_model->name == "none") error->all(FLERR, "Must specify tangential granular model");
 
-  //Check if correct damping model is being used with the normal model
-  if(normal_model->name =="hooke" && damping_model->name == "hertz/en") error->all(FLERR, "hooke should not be used with hertz/en damping model, please use hooke/en");
-  if((normal_model->name =="hertz" || normal_model->name =="hertz/material") && damping_model->name == "hooke/en") error->all(FLERR, "hertz/material or hertz should not be used with hooke/en damping model, please use hertz/en");
-
   // Twisting, rolling, and heat are optional
   twisting_defined = rolling_defined = heat_defined = 1;
   if (twisting_model->name == "none") twisting_defined = 0;

@@ -920,6 +920,8 @@ void Replicate::command(int narg, char **arg)
 
 /* ----------------------------------------------------------------------
    simple replication algorithm, suitable for small proc count
+   loop over procs, then over replication factors
+   check each atom to see if in my subdomain
 ------------------------------------------------------------------------- */
 
 void Replicate::replicate_by_proc(int nx, int ny, int nz,

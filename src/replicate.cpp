@@ -12,6 +12,12 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
+/* ----------------------------------------------------------------------
+   Contributing authors: 
+     Chris Knight (ANL) for bbox option
+     Jake Gissinger (Stevens Institute of Technology) for bond/periodic option
+------------------------------------------------------------------------- */
+
 #include "replicate.h"
 
 #include "accelerator_kokkos.h"
@@ -70,12 +76,23 @@ void Replicate::command(int narg, char **arg)
     utils::logmesg(lmp, "Replication is creating a {}x{}x{} = {} times larger system...\n",
                    nx, ny, nz, nrep);
 
-  int bbox_flag = 0;
-  int bondlist_flag = 0;
-  if (narg == 4) {
-    if (strcmp(arg[3],"bbox") == 0) bbox_flag = 1;
-    if (strcmp(arg[3],"bondlist") == 0) bondlist_flag = 1;
+  // optional keywords
+  
+  bbox_flag = 0;
+  bond_flag = 0;
+
+  int iarg = 3;
+  while (iarg < narg) {
+    if (strcmp(arg[iarg],"bbox") == 0) {
+      bbox_flag = 1;
+      iarg++;
+    } else if (strcmp(arg[iarg],"bond/periodic") == 0) {
+      bond_flag = 1;
+      iarg++;
+    } else error->all(FLERR,"Illegal replicate command");
   }
+
+  if (bond_flag) bbox_flag = 1;
 
   // error and warning checks
 
@@ -91,7 +108,7 @@ void Replicate::command(int narg, char **arg)
   }
 
   if (atom->nextra_grow || atom->nextra_restart || atom->nextra_store)
-    error->all(FLERR,"Cannot replicate with fixes that store atom quantities");
+    error->all(FLERR,"Cannot replicate with fixes that store per-atom quantities");
 
   // record wall time for atom replication
 
@@ -110,24 +127,24 @@ void Replicate::command(int narg, char **arg)
 
   // maxmol = largest molecule tag across all existing atoms
 
-  tagint maxmol = 0;
+  maxmol = 0;
   if (atom->molecule_flag) {
     for (i = 0; i < atom->nlocal; i++) maxmol = MAX(atom->molecule[i],maxmol);
     tagint maxmol_all;
     MPI_Allreduce(&maxmol,&maxmol_all,1,MPI_LMP_TAGINT,MPI_MAX,world);
     maxmol = maxmol_all;
   }
-
-  // reset image flags for bondlist option
-  if (bondlist_flag)
+  
+  // reset image flags to zero for bond/periodic option
+  
+  if (bond_flag)
     for (i=0; i<atom->nlocal; ++i)
       atom->image[i] = ((imageint) IMGMAX << IMG2BITS) |
         ((imageint) IMGMAX << IMGBITS) | IMGMAX;
 
-  // check image flags maximum extent
+  // _imagelo/hi = maximum extent of image flags in each dimension
   // only efficient small image flags compared to new system
 
-  int _imagelo[3], _imagehi[3];
   _imagelo[0] = 0;
   _imagelo[1] = 0;
   _imagelo[2] = 0;
@@ -135,7 +152,7 @@ void Replicate::command(int narg, char **arg)
   _imagehi[1] = 0;
   _imagehi[2] = 0;
 
-  if (bbox_flag || bondlist_flag) {
+  if (bbox_flag || bond_flag) {
 
     for (i=0; i<atom->nlocal; ++i) {
       imageint image = atom->image[i];
@@ -157,14 +174,14 @@ void Replicate::command(int narg, char **arg)
   }
 
   // unmap existing atoms via image flags
+  // no-op for bond/periodic option
 
   for (i = 0; i < atom->nlocal; i++)
     domain->unmap(atom->x[i],atom->image[i]);
-
+  
   // communication buffer for all my atom's info
   // max_size = largest buffer needed by any proc
-  // must do before new Atom class created,
-  //   since size_restart() uses atom->nlocal
+  // must do before new Atom class created, since size_restart() uses atom->nlocal
 
   int max_size;
   int send_size = atom->avec->size_restart();
@@ -177,7 +194,7 @@ void Replicate::command(int narg, char **arg)
   // atom = new replicated atom class
   // also set atomKK for Kokkos version of Atom class
 
-  Atom *old = atom;
+  old = atom;
   atomKK = nullptr;
   if (lmp->kokkos) atom = atomKK = new AtomKokkos(lmp);
   else atom = new Atom(lmp);
@@ -216,7 +233,7 @@ void Replicate::command(int narg, char **arg)
       nrep*old->nimpropers < 0 || nrep*old->nimpropers >= MAXBIGINT)
     error->all(FLERR,"Replicated system is too big");
 
-  // assign atom and topology counts in new class from old one
+  // assign atom and topology counts in new Atom class from old Atom class
 
   atom->natoms = old->natoms * nrep;
   atom->nbonds = old->nbonds * nrep;
@@ -258,18 +275,18 @@ void Replicate::command(int narg, char **arg)
   // store old simulation box
 
   int triclinic = domain->triclinic;
-  double old_xprd = domain->xprd;
-  double old_yprd = domain->yprd;
-  double old_zprd = domain->zprd;
+  old_xprd = domain->xprd;
+  old_yprd = domain->yprd;
+  old_zprd = domain->zprd;
   for (i = 0; i < 3; i++) {
     old_prd_half[i] = domain->prd_half[i];
     old_center[i] = 0.5*(domain->boxlo[i]+domain->boxhi[i]);
   }
-  double old_xy = domain->xy;
-  double old_xz = domain->xz;
-  double old_yz = domain->yz;
+  old_xy = domain->xy;
+  old_xz = domain->xz;
+  old_yz = domain->yz;
 
-  // setup new simulation box
+  // define new simulation box
 
   domain->boxhi[0] = domain->boxlo[0] + nx*old_xprd;
   domain->boxhi[1] = domain->boxlo[1] + ny*old_yprd;
@@ -280,14 +297,13 @@ void Replicate::command(int narg, char **arg)
     domain->yz *= nz;
   }
 
-  // new problem setup using new box boundaries
+  // setup of new system using new atom counts and new box boundaries
+  // allocate atom arrays to size N, rounded up by AtomVec->DELTA
 
   if (nprocs == 1) n = static_cast<int> (atom->natoms);
   else n = static_cast<int> (LB_FACTOR * atom->natoms / nprocs);
 
   atom->allocate_type_arrays();
-
-  // allocate atom arrays to size N, rounded up by AtomVec->DELTA
 
   bigint nbig = n;
   nbig = atom->avec->roundup(nbig);
@@ -362,15 +378,23 @@ void Replicate::command(int narg, char **arg)
     }
   }
 
-  // loop over all procs
-  // if this iteration of loop is me:
-  //   pack my unmapped atom data into buf
-  //   bcast it to all other procs
-  // performs 3d replicate loop with while loop over atoms in buf
-  //   x = new replicated position, remapped into simulation box
-  //   unpack atom into new atom class from buf if I own it
-  //   adjust tag, mol #, coord, topology info as needed
+  // use
 
+  if (!bbox_flag) {
+    replicate_by_proc(nx,ny,nz,sublo,subhi,buf);
+  } else {
+    replicate_by_bbox(nx,ny,nz,sublo,subhi,buf);
+  }
+  
+
+
+
+
+
+
+
+  
+  /*
   AtomVec *old_avec = old->avec;
   AtomVec *avec = atom->avec;
 
@@ -381,7 +405,7 @@ void Replicate::command(int narg, char **arg)
   double *coord;
   int tag_enable = atom->tag_enable;
 
-  if (bbox_flag || bondlist_flag) {
+  if (bbox_flag || bond_flag) {
 
     // allgather size of buf on each proc
 
@@ -456,7 +480,7 @@ void Replicate::command(int narg, char **arg)
 
     // store x and tag for the whole system (before replication)
 
-    if (bondlist_flag) {
+    if (bond_flag) {
       memory->create(old_x,old->natoms,3,"replicate:old_x");
       memory->create(old_tag,old->natoms,"replicate:old_tag");
 
@@ -668,13 +692,13 @@ void Replicate::command(int narg, char **arg)
                   if (atom->molecular == Atom::MOLECULAR) {
                     if (atom->avec->bonds_allow)
                       for (j = 0; j < atom->num_bond[i]; j++) {
-                        if (bondlist_flag)
+                        if (bond_flag)
                           newtag(atom0tag,atom->bond_atom[i][j]);
                         else atom->bond_atom[i][j] += atom_offset;
                       }
                     if (atom->avec->angles_allow)
                       for (j = 0; j < atom->num_angle[i]; j++) {
-                        if (bondlist_flag) {
+                        if (bond_flag) {
                           newtag(atom0tag,atom->angle_atom1[i][j]);
                           newtag(atom0tag,atom->angle_atom2[i][j]);
                           newtag(atom0tag,atom->angle_atom3[i][j]);
@@ -686,7 +710,7 @@ void Replicate::command(int narg, char **arg)
                       }
                     if (atom->avec->dihedrals_allow)
                       for (j = 0; j < atom->num_dihedral[i]; j++) {
-                        if (bondlist_flag) {
+                        if (bond_flag) {
                           newtag(atom0tag,atom->dihedral_atom1[i][j]);
                           newtag(atom0tag,atom->dihedral_atom2[i][j]);
                           newtag(atom0tag,atom->dihedral_atom3[i][j]);
@@ -700,7 +724,7 @@ void Replicate::command(int narg, char **arg)
                       }
                     if (atom->avec->impropers_allow)
                       for (j = 0; j < atom->num_improper[i]; j++) {
-                        if (bondlist_flag) {
+                        if (bond_flag) {
                           newtag(atom0tag,atom->improper_atom1[i][j]);
                           newtag(atom0tag,atom->improper_atom2[i][j]);
                           newtag(atom0tag,atom->improper_atom3[i][j]);
@@ -725,7 +749,7 @@ void Replicate::command(int narg, char **arg)
     memory->destroy(size_buf_rnk);
     memory->destroy(disp_buf_rnk);
     memory->destroy(buf_all);
-    if (bondlist_flag) {
+    if (bond_flag) {
       memory->destroy(old_x);
       memory->destroy(old_tag);
     }
@@ -825,8 +849,14 @@ void Replicate::command(int narg, char **arg)
         }
       }
     }
-  } // if (bbox_flag || bondlist_flag)
+  } // if (bbox_flag || bond_flag)
 
+  */
+
+
+
+
+  
   // free communication buffer and old atom class
 
   memory->destroy(buf);
@@ -889,8 +919,511 @@ void Replicate::command(int narg, char **arg)
 }
 
 /* ----------------------------------------------------------------------
-   find new tag for the atom 'atom2bond' bonded to atom 'atom0'
-   for bondlist option, useful for periodic loops or inconsistent image flags
+   simple replication algorithm, suitable for small proc count
+------------------------------------------------------------------------- */
+
+void Replicate::replicate_by_proc(int nx, int ny, int nz,
+                                  double *sublo, double *subhi, double *buf)
+{
+  int i,j,m,n;
+  int ix,iy,iz;
+
+  int me = comm->me;
+  int nprocs = comm->nprocs;
+  int triclinic = domain->triclinic;
+  int tag_enable = atom->tag_enable;
+
+  AtomVec *old_avec = old->avec;
+  AtomVec *avec = atom->avec;
+
+  tagint atom_offset,mol_offset;
+  imageint image;
+  double x[3],lamda[3];
+  double *coord;
+
+  // loop over all procs
+  // if this iteration of loop is me:
+  //   pack my unmapped atom data into buf
+  //   bcast it to all other procs
+
+  for (int iproc = 0; iproc < nprocs; iproc++) {
+    if (me == iproc) {
+      n = 0;
+      for (i = 0; i < old->nlocal; i++) n += old_avec->pack_restart(i,&buf[n]);
+    }
+    MPI_Bcast(&n,1,MPI_INT,iproc,world);
+    MPI_Bcast(buf,n,MPI_DOUBLE,iproc,world);
+    
+    for (ix = 0; ix < nx; ix++) {
+      for (iy = 0; iy < ny; iy++) {
+        for (iz = 0; iz < nz; iz++) {
+          
+          // while loop over one proc's atom list
+          // x = new replicated position, remapped into new simulation box
+          // if atom is within my new subdomain, unpack it into new atom class
+          // adjust tag, mol #, coord, topology info as needed
+          
+          m = 0;
+          while (m < n) {
+            image = ((imageint) IMGMAX << IMG2BITS) |
+              ((imageint) IMGMAX << IMGBITS) | IMGMAX;
+            if (triclinic == 0) {
+              x[0] = buf[m+1] + ix*old_xprd;
+              x[1] = buf[m+2] + iy*old_yprd;
+              x[2] = buf[m+3] + iz*old_zprd;
+            } else {
+              x[0] = buf[m+1] + ix*old_xprd + iy*old_xy + iz*old_xz;
+              x[1] = buf[m+2] + iy*old_yprd + iz*old_yz;
+              x[2] = buf[m+3] + iz*old_zprd;
+            }
+            domain->remap(x,image);
+            if (triclinic) {
+              domain->x2lamda(x,lamda);
+              coord = lamda;
+            } else coord = x;
+            
+            if (coord[0] >= sublo[0] && coord[0] < subhi[0] &&
+                coord[1] >= sublo[1] && coord[1] < subhi[1] &&
+                coord[2] >= sublo[2] && coord[2] < subhi[2]) {
+              
+              m += avec->unpack_restart(&buf[m]);
+              
+              i = atom->nlocal - 1;
+              if (tag_enable) atom_offset = iz*ny*nx*maxtag + iy*nx*maxtag + ix*maxtag;
+              else atom_offset = 0;
+              mol_offset = iz*ny*nx*maxmol + iy*nx*maxmol + ix*maxmol;
+              
+              atom->x[i][0] = x[0];
+              atom->x[i][1] = x[1];
+              atom->x[i][2] = x[2];
+              
+              atom->tag[i] += atom_offset;
+              atom->image[i] = image;
+              
+              if (atom->molecular != Atom::ATOMIC) {
+                if (atom->molecule[i] > 0)
+                  atom->molecule[i] += mol_offset;
+                if (atom->molecular == Atom::MOLECULAR) {
+                  if (atom->avec->bonds_allow)
+                    for (j = 0; j < atom->num_bond[i]; j++)
+                      atom->bond_atom[i][j] += atom_offset;
+                  if (atom->avec->angles_allow)
+                    for (j = 0; j < atom->num_angle[i]; j++) {
+                      atom->angle_atom1[i][j] += atom_offset;
+                      atom->angle_atom2[i][j] += atom_offset;
+                      atom->angle_atom3[i][j] += atom_offset;
+                    }
+                  if (atom->avec->dihedrals_allow)
+                    for (j = 0; j < atom->num_dihedral[i]; j++) {
+                      atom->dihedral_atom1[i][j] += atom_offset;
+                      atom->dihedral_atom2[i][j] += atom_offset;
+                      atom->dihedral_atom3[i][j] += atom_offset;
+                      atom->dihedral_atom4[i][j] += atom_offset;
+                    }
+                  if (atom->avec->impropers_allow)
+                    for (j = 0; j < atom->num_improper[i]; j++) {
+                      atom->improper_atom1[i][j] += atom_offset;
+                      atom->improper_atom2[i][j] += atom_offset;
+                      atom->improper_atom3[i][j] += atom_offset;
+                      atom->improper_atom4[i][j] += atom_offset;
+                    }
+                }
+              }
+            } else m += static_cast<int> (buf[m]);
+          }
+        }
+      }
+    }
+  }
+}
+
+/* ----------------------------------------------------------------------
+   more complex replication algorithm
+   uses bounding box of each proc's subdomain to avoid checking individual atoms
+   faster for large processor counts
+   required for bond/periodic option
+------------------------------------------------------------------------- */
+
+void Replicate::replicate_by_bbox(int nx, int ny, int nz,
+                                  double *sublo, double *subhi, double *buf)
+{
+  int i,j,m,n;
+  int ix,iy,iz;
+
+  int me = comm->me;
+  int nprocs = comm->nprocs;
+  int triclinic = domain->triclinic;
+  int tag_enable = atom->tag_enable;
+
+  AtomVec *old_avec = old->avec;
+  AtomVec *avec = atom->avec;
+
+  tagint atom_offset,mol_offset,atom0tag;
+  imageint image;
+  double x[3],lamda[3];
+  double *coord;
+
+  // allgather size of buf on each proc
+
+  n = 0;
+  for (i = 0; i < old->nlocal; i++) n += old_avec->pack_restart(i,&buf[n]);
+
+  int * size_buf_rnk;
+  memory->create(size_buf_rnk, nprocs, "replicate:size_buf_rnk");
+  
+  MPI_Allgather(&n, 1, MPI_INT, size_buf_rnk, 1, MPI_INT, world);
+
+  // size of buf_all
+  
+  int size_buf_all = 0;
+  MPI_Allreduce(&n, &size_buf_all, 1, MPI_INT, MPI_SUM, world);
+  
+  if (me == 0) {
+    auto mesg = fmt::format("  bounding box image = ({} {} {}) "
+                            "to ({} {} {})\n",
+                            _imagelo[0],_imagelo[1],_imagelo[2],
+                            _imagehi[0],_imagehi[1],_imagehi[2]);
+    mesg += fmt::format("  bounding box extra memory = {:.2f} MB\n",
+                        (double)size_buf_all*sizeof(double)/1024/1024);
+    utils::logmesg(lmp,mesg);
+  }
+  
+  // rnk offsets
+  
+  int *disp_buf_rnk;
+  memory->create(disp_buf_rnk, nprocs, "replicate:disp_buf_rnk");
+  disp_buf_rnk[0] = 0;
+  for (i = 1; i < nprocs; i++)
+    disp_buf_rnk[i] = disp_buf_rnk[i-1] + size_buf_rnk[i-1];
+  
+  // allgather buf_all
+  
+  double *buf_all;
+  memory->create(buf_all, size_buf_all, "replicate:buf_all");
+  
+  MPI_Allgatherv(buf,n,MPI_DOUBLE,buf_all,size_buf_rnk,disp_buf_rnk,
+                 MPI_DOUBLE,world);
+  
+  // bounding box of original unwrapped system
+  
+  double _orig_lo[3], _orig_hi[3];
+  if (triclinic) {
+    _orig_lo[0] = domain->boxlo[0] +
+      _imagelo[0] * old_xprd + _imagelo[1] * old_xy + _imagelo[2] * old_xz;
+    _orig_lo[1] = domain->boxlo[1] +
+      _imagelo[1] * old_yprd + _imagelo[2] * old_yz;
+    _orig_lo[2] = domain->boxlo[2] + _imagelo[2] * old_zprd;
+    
+    _orig_hi[0] = domain->boxlo[0] +
+      (_imagehi[0]+1) * old_xprd +
+      (_imagehi[1]+1) * old_xy + (_imagehi[2]+1) * old_xz;
+    _orig_hi[1] = domain->boxlo[1] +
+      (_imagehi[1]+1) * old_yprd + (_imagehi[2]+1) * old_yz;
+    _orig_hi[2] = domain->boxlo[2] + (_imagehi[2]+1) * old_zprd;
+  } else {
+    _orig_lo[0] = domain->boxlo[0] + _imagelo[0] * old_xprd;
+    _orig_lo[1] = domain->boxlo[1] + _imagelo[1] * old_yprd;
+    _orig_lo[2] = domain->boxlo[2] + _imagelo[2] * old_zprd;
+    
+    _orig_hi[0] = domain->boxlo[0] + (_imagehi[0]+1) * old_xprd;
+    _orig_hi[1] = domain->boxlo[1] + (_imagehi[1]+1) * old_yprd;
+    _orig_hi[2] = domain->boxlo[2] + (_imagehi[2]+1) * old_zprd;
+  }
+  
+  double _lo[3], _hi[3];
+  
+  int num_replicas_added = 0;
+  
+  // if bond/periodic option
+  // store old_x and old_tag for the entire original system
+  
+  if (bond_flag) {
+    memory->create(old_x,old->natoms,3,"replicate:old_x");
+    memory->create(old_tag,old->natoms,"replicate:old_tag");
+    
+    i = m = 0;
+    while (m < size_buf_all) {
+      old_x[i][0] = buf_all[m+1];
+      old_x[i][1] = buf_all[m+2];
+      old_x[i][2] = buf_all[m+3];
+      old_tag[i] = (tagint) ubuf(buf_all[m+4]).i;
+      old_map.insert({old_tag[i],i});
+      m += static_cast<int> (buf_all[m]);
+      i++;
+    }
+  }
+
+  // replication loop
+  
+  for (ix = 0; ix < nx; ix++) {
+    for (iy = 0; iy < ny; iy++) {
+      for (iz = 0; iz < nz; iz++) {
+        
+        thisrep[0] = ix;
+        thisrep[1] = iy;
+        thisrep[2] = iz;
+        
+        // domain->remap() overwrites coordinates, so always recompute here
+        
+        if (triclinic) {
+          _lo[0] = _orig_lo[0] + ix * old_xprd + iy * old_xy + iz * old_xz;
+          _hi[0] = _orig_hi[0] + ix * old_xprd + iy * old_xy + iz * old_xz;
+          
+          _lo[1] = _orig_lo[1] + iy * old_yprd + iz * old_yz;
+          _hi[1] = _orig_hi[1] + iy * old_yprd + iz * old_yz;
+          
+          _lo[2] = _orig_lo[2] + iz * old_zprd;
+          _hi[2] = _orig_hi[2] + iz * old_zprd;
+        } else {
+          _lo[0] = _orig_lo[0] + ix * old_xprd;
+          _hi[0] = _orig_hi[0] + ix * old_xprd;
+          
+          _lo[1] = _orig_lo[1] + iy * old_yprd;
+          _hi[1] = _orig_hi[1] + iy * old_yprd;
+          
+          _lo[2] = _orig_lo[2] + iz * old_zprd;
+          _hi[2] = _orig_hi[2] + iz * old_zprd;
+        }
+        
+        // test if bounding box of shifted replica overlaps sub-domain of proc
+        // if not, then can skip testing of any individual atoms
+        
+        int xoverlap = 1;
+        int yoverlap = 1;
+        int zoverlap = 1;
+        if (triclinic) {
+          double _llo[3];
+          domain->x2lamda(_lo,_llo);
+          double _lhi[3];
+          domain->x2lamda(_hi,_lhi);
+          
+          if (_llo[0] > (subhi[0] - EPSILON)
+              || _lhi[0] < (sublo[0] + EPSILON) ) xoverlap = 0;
+          if (_llo[1] > (subhi[1] - EPSILON)
+              || _lhi[1] < (sublo[1] + EPSILON) ) yoverlap = 0;
+          if (_llo[2] > (subhi[2] - EPSILON)
+              || _lhi[2] < (sublo[2] + EPSILON) ) zoverlap = 0;
+        } else {
+          if (_lo[0] > (subhi[0] - EPSILON)
+              || _hi[0] < (sublo[0] + EPSILON) ) xoverlap = 0;
+          if (_lo[1] > (subhi[1] - EPSILON)
+              || _hi[1] < (sublo[1] + EPSILON) ) yoverlap = 0;
+          if (_lo[2] > (subhi[2] - EPSILON)
+              || _hi[2] < (sublo[2] + EPSILON) ) zoverlap = 0;
+        }
+        
+        int overlap = 0;
+        if (xoverlap && yoverlap && zoverlap) overlap = 1;
+        
+        // if no overlap, test if bounding box wrapped back into new system
+        
+        if (!overlap) {
+          
+          // wrap back into cell
+          
+          imageint imagelo = ((imageint) IMGMAX << IMG2BITS) |
+            ((imageint) IMGMAX << IMGBITS) | IMGMAX;
+          domain->remap(&(_lo[0]), imagelo);
+          int xboxlo = (imagelo & IMGMASK) - IMGMAX;
+          int yboxlo = (imagelo >> IMGBITS & IMGMASK) - IMGMAX;
+          int zboxlo = (imagelo >> IMG2BITS) - IMGMAX;
+          
+          imageint imagehi = ((imageint) IMGMAX << IMG2BITS) |
+            ((imageint) IMGMAX << IMGBITS) | IMGMAX;
+          domain->remap(&(_hi[0]), imagehi);
+          int xboxhi = (imagehi & IMGMASK) - IMGMAX;
+          int yboxhi = (imagehi >> IMGBITS & IMGMASK) - IMGMAX;
+          int zboxhi = (imagehi >> IMG2BITS) - IMGMAX;
+          
+          if (triclinic) {
+            double _llo[3];
+            _llo[0] = _lo[0]; _llo[1] = _lo[1];  _llo[2] = _lo[2];
+            domain->x2lamda(_llo,_lo);
+            
+            double _lhi[3];
+            _lhi[0] = _hi[0]; _lhi[1] = _hi[1];  _lhi[2] = _hi[2];
+            domain->x2lamda(_lhi,_hi);
+          }
+          
+          // test all fragments for any overlap; ok to include false positives
+          
+          int _xoverlap1 = 0;
+          int _xoverlap2 = 0;
+          if (!xoverlap) {
+            if (xboxlo < 0) {
+              _xoverlap1 = 1;
+              if (_lo[0] > (subhi[0] - EPSILON)) _xoverlap1 = 0;
+            }
+            
+            if (xboxhi > 0) {
+              _xoverlap2 = 1;
+              if (_hi[0] < (sublo[0] + EPSILON)) _xoverlap2 = 0;
+            }
+            
+            if (_xoverlap1 || _xoverlap2) xoverlap = 1;
+          }
+          
+          int _yoverlap1 = 0;
+          int _yoverlap2 = 0;
+          if (!yoverlap) {
+            if (yboxlo < 0) {
+              _yoverlap1 = 1;
+              if (_lo[1] > (subhi[1] - EPSILON)) _yoverlap1 = 0;
+            }
+            
+            if (yboxhi > 0) {
+              _yoverlap2 = 1;
+              if (_hi[1] < (sublo[1] + EPSILON)) _yoverlap2 = 0;
+            }
+            
+            if (_yoverlap1 || _yoverlap2) yoverlap = 1;
+          }
+          
+          
+          int _zoverlap1 = 0;
+          int _zoverlap2 = 0;
+          if (!zoverlap) {
+            if (zboxlo < 0) {
+              _zoverlap1 = 1;
+              if (_lo[2] > (subhi[2] - EPSILON)) _zoverlap1 = 0;
+            }
+            
+            if (zboxhi > 0) {
+              _zoverlap2 = 1;
+              if (_hi[2] < (sublo[2] + EPSILON)) _zoverlap2 = 0;
+            }
+            
+            if (_zoverlap1 || _zoverlap2) zoverlap = 1;
+          }
+          
+          // does either fragment overlap w/ sub-domain
+          
+          if (xoverlap && yoverlap && zoverlap) overlap = 1;
+        }
+        
+        // while loop over one proc's atom list
+        
+        if (overlap) {
+          num_replicas_added++;
+          
+          m = 0;
+          while (m < size_buf_all) {
+            image = ((imageint) IMGMAX << IMG2BITS) |
+              ((imageint) IMGMAX << IMGBITS) | IMGMAX;
+            if (triclinic == 0) {
+              x[0] = buf_all[m+1] + ix*old_xprd;
+              x[1] = buf_all[m+2] + iy*old_yprd;
+              x[2] = buf_all[m+3] + iz*old_zprd;
+            } else {
+              x[0] = buf_all[m+1] + ix*old_xprd + iy*old_xy + iz*old_xz;
+              x[1] = buf_all[m+2] + iy*old_yprd + iz*old_yz;
+              x[2] = buf_all[m+3] + iz*old_zprd;
+            }
+            domain->remap(x,image);
+            if (triclinic) {
+              domain->x2lamda(x,lamda);
+              coord = lamda;
+            } else coord = x;
+            
+            if (coord[0] >= sublo[0] && coord[0] < subhi[0] &&
+                coord[1] >= sublo[1] && coord[1] < subhi[1] &&
+                coord[2] >= sublo[2] && coord[2] < subhi[2]) {
+              
+              m += avec->unpack_restart(&buf_all[m]);
+              
+              i = atom->nlocal - 1;
+              if (tag_enable)
+                atom_offset = iz*ny*nx*maxtag + iy*nx*maxtag + ix*maxtag;
+              else atom_offset = 0;
+              mol_offset = iz*ny*nx*maxmol + iy*nx*maxmol + ix*maxmol;
+              
+              atom->x[i][0] = x[0];
+              atom->x[i][1] = x[1];
+              atom->x[i][2] = x[2];
+              
+              atom0tag = atom->tag[i];
+              atom->tag[i] += atom_offset;
+              atom->image[i] = image;
+              
+              if (atom->molecular != Atom::ATOMIC) {
+                if (atom->molecule[i] > 0)
+                  atom->molecule[i] += mol_offset;
+                if (atom->molecular == Atom::MOLECULAR) {
+                  if (atom->avec->bonds_allow)
+                    for (j = 0; j < atom->num_bond[i]; j++) {
+                      if (bond_flag)
+                        newtag(atom0tag,atom->bond_atom[i][j]);
+                      else atom->bond_atom[i][j] += atom_offset;
+                    }
+                  if (atom->avec->angles_allow)
+                    for (j = 0; j < atom->num_angle[i]; j++) {
+                      if (bond_flag) {
+                        newtag(atom0tag,atom->angle_atom1[i][j]);
+                        newtag(atom0tag,atom->angle_atom2[i][j]);
+                        newtag(atom0tag,atom->angle_atom3[i][j]);
+                      } else {
+                        atom->angle_atom1[i][j] += atom_offset;
+                        atom->angle_atom2[i][j] += atom_offset;
+                        atom->angle_atom3[i][j] += atom_offset;
+                      }
+                    }
+                  if (atom->avec->dihedrals_allow)
+                    for (j = 0; j < atom->num_dihedral[i]; j++) {
+                      if (bond_flag) {
+                        newtag(atom0tag,atom->dihedral_atom1[i][j]);
+                        newtag(atom0tag,atom->dihedral_atom2[i][j]);
+                        newtag(atom0tag,atom->dihedral_atom3[i][j]);
+                        newtag(atom0tag,atom->dihedral_atom4[i][j]);
+                      } else {
+                        atom->dihedral_atom1[i][j] += atom_offset;
+                        atom->dihedral_atom2[i][j] += atom_offset;
+                        atom->dihedral_atom3[i][j] += atom_offset;
+                        atom->dihedral_atom4[i][j] += atom_offset;
+                      }
+                    }
+                  if (atom->avec->impropers_allow)
+                    for (j = 0; j < atom->num_improper[i]; j++) {
+                      if (bond_flag) {
+                        newtag(atom0tag,atom->improper_atom1[i][j]);
+                        newtag(atom0tag,atom->improper_atom2[i][j]);
+                        newtag(atom0tag,atom->improper_atom3[i][j]);
+                        newtag(atom0tag,atom->improper_atom4[i][j]);
+                      } else {
+                        atom->improper_atom1[i][j] += atom_offset;
+                        atom->improper_atom2[i][j] += atom_offset;
+                        atom->improper_atom3[i][j] += atom_offset;
+                        atom->improper_atom4[i][j] += atom_offset;
+                      }
+                    }
+                }
+              }
+            } else m += static_cast<int> (buf_all[m]);
+          }
+        }
+      }
+    }
+  }
+  
+  memory->destroy(size_buf_rnk);
+  memory->destroy(disp_buf_rnk);
+  memory->destroy(buf_all);
+  if (bond_flag) {
+    memory->destroy(old_x);
+    memory->destroy(old_tag);
+  }
+  
+  int sum = 0;
+  MPI_Reduce(&num_replicas_added, &sum, 1, MPI_INT, MPI_SUM, 0, world);
+  double avg = (double) sum / nprocs;
+  if (me == 0)
+    utils::logmesg(lmp,"  average # of replicas added to proc = {:.2f} out "
+                   "of {} ({:.2f}%)\n",avg,nx*ny*nz,avg/(nx*ny*nz)*100.0);
+}
+
+/* ----------------------------------------------------------------------
+   find new tag for atom 'atom2bond' bonded to atom 'atom0'
+   for bond/periodic option
+   useful for periodic loops or inconsistent image flags
    reassign bond if > old boxlength / 2
 ------------------------------------------------------------------------- */
 

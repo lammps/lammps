@@ -8,113 +8,149 @@ Syntax
 
 .. code-block:: LAMMPS
 
-   replicate nx ny nz *keyword*
+   replicate nx ny nz *keyword* ...
 
 nx,ny,nz = replication factors in each dimension
 
-* optional *keyword* = *bbox* or *bondlist*
+* zero or more keywords may be appended
+* keyword = *bbox* or *bond/periodic*
 
   .. parsed-literal::
 
        *bbox* = only check atoms in replicas that overlap with a processor's subdomain
-       *bondlist* = use a generalized algorithm that correctly replicates periodic loops
+       *bond/periodic* = use a different algorithm that correctly replicates periodic bond loops
 
 Examples
 """"""""
 
-For an example of replicating periodically looped carbon nanotubes, see examples/replicate.
+For examples of replicating simple linear polymer chains (periodic or
+non-periodic) or periodic carbon nanotubes, see examples/replicate.
 
 .. code-block:: LAMMPS
 
    replicate 2 3 2
+   replicate 2 3 2 bbox
+   replicate 2 3 2 bond/periodic
 
 Description
 """""""""""
 
-Replicate the current simulation one or more times in each dimension.
-For example, replication factors of 2,2,2 will create a simulation
-with 8x as many atoms by doubling the simulation domain in each
-dimension.  A replication factor of 1 in a dimension leaves the
-simulation domain unchanged.  When the new simulation box is created
-it is also partitioned into a regular 3d grid of rectangular bricks,
-one per processor, based on the number of processors being used and
-the settings of the :doc:`processors <processors>` command.  The
-partitioning can later be changed by the :doc:`balance <balance>` or
-:doc:`fix balance <fix_balance>` commands.
+Replicate the current system one or more times in each dimension.  For
+example, replication factors of 2,2,2 will create a simulation with 8x
+as many atoms by doubling the size of the simulation box in each
+dimension.  A replication factor of 1 leaves the simulation domain
+unchanged in that dimension.
 
-All properties of the atoms are replicated, including their
-velocities, which may or may not be desirable.  New atom IDs are
-assigned to new atoms, as are molecule IDs.  Bonds and other topology
-interactions are created between pairs of new atoms as well as between
-old and new atoms.  This is done by using the image flag for each atom
-to "unwrap" it out of the periodic box before replicating it.
+When the new simulation box is created it is partitioned into a
+regular 3d grid of rectangular bricks, one per processor, based on the
+number of processors being used and the settings of the
+:doc:`processors <processors>` command.  The partitioning can be
+changed by subsequent :doc:`balance <balance>` or :doc:`fix balance
+<fix_balance>` commands.
 
-This means that any molecular bond you specify in the original data
-file that crosses a periodic boundary should be between two atoms with
-image flags that differ by 1.  This will allow the bond to be
-unwrapped appropriately.
-
-The optional keyword *bbox* uses a bounding box to only check atoms in
-replicas that overlap with a processor's subdomain when assigning
-atoms to processors.  It typically results in a substantial speedup
-when using the replicate command on a large number of processors.  It
-does require temporary use of more memory, specifically that each
-processor can store all atoms in the entire system before it is
-replicated.
-
-The optional keyword *bondlist* correctly treats molecules that span
-the box and are bonded to themselves across a periodic boundary, by
-relying on self-consistent nearest-image assumptions (rather than
-using image flags).  The *bondlist* option resets all image flags to
-zero.  Therefore, the *bondlist* keyword can also be used in general
-for systems that may not have consistent image flags.  The *bondlist*
-algorithm builds off the *bbox* algorithm, so it is fast when using a
-large number of processors, but does require temporary use of more
-memory.  Specifically, each processor must be able to store arrays for
-all atoms in the entire system before it is replicated.
+All properties of each atom are replicated (except per-atom fix data,
+see the Restrictions section below).  This includes their velocities,
+which may or may not be desirable.  New atom IDs are assigned to new
+atoms, as are new molecule IDs.  Bonds and other topology interactions
+are created between pairs of new atoms as well as between old and new
+atoms.
 
 .. note::
+   
+   The bond discussion which follows only refers to models with
+   permanent covalent bonds typically defined in LAMMPS via a data
+   file.  It is not relevant to sytems modeled with many-body
+   potentials which can define bonds on-the-fly, based on the current
+   positions of nearby atoms, e.g. models using the :doc:`AIREBO
+   <pair_airebo>` or :doc:`ReaxFF <pair_reaxff>` potentials.
 
-   For systems that contain a molecule that spans the box and is
-   bonded to itself across a periodic boundary (so that the molecule
-   is effectively a loop), the *bondlist* keyword must be used.  A
-   simple example would be a linear polymer chain that spans the
-   simulation box and bonds back to itself across the periodic
-   boundary.  More realistic examples would be a CNT (meant to be an
-   infinitely long CNT) or a graphene sheet or a bulk periodic crystal
-   where there are explicit bonds specified between near neighbors.
-   (Note that this restriction only applies to systems that have
-   permanent bonds as specified in the data file.  A CNT that is just
-   atoms modeled with the :doc:`AIREBO potential <pair_airebo>` has no
-   such permanent bonds, so it can be replicated without the
-   *bondlist* keyword.)
+If the *bond/periodic* keyword is not specified, bond replication is
+done by using the image flag for each atom to "unwrap" it out of the
+periodic box before replicating it.  After replication is performed,
+atoms outside the new periodic box are wrapped back into it.  This
+assigns correct images flags to all atoms in the system.  For this to
+work, all original atoms in the original simulation box must have
+consistent image flags.  This means that if two atoms have a bond
+between them which crosses a periodic boundary, their respective image
+flags will differ by 1 in that dimension.
 
-Restrictions
+Image flag consistency is not possible if a system has a periodic bond
+loop, meaning there is a chain of bonds which crosses an entire
+dimension and re-connects to itself across a periodic boundary.  In
+this case you MUST use the *bond/periodic* keyword to correctly
+replicate the system.  This option zeroes the image flags for all
+atoms and uses a different algorithm to find new (nearby) bond
+neighbors in the replicated system.  In the final replicated system
+all image flags are zero (in each dimension).
+
+-- note:
+
+   LAMMPS does not check for image flag consistency before performing
+   the replication (it does issue a warning about this before a
+   simulation is run).  If the original image flags are inconsistent,
+   the replicated system will also have inconsistent image flags, but
+   will otherwise be correctly replicated.  This is NOT the case if
+   there is a periodic bond loop.  See the next note.
+
+-- note:
+
+   LAMMPS does not check for periodic bond loops.  If you use the
+   *bond/periodic* option for a system without periodic bond loops,
+   the system will be correctly replicated, but image flag information
+   will be lost (which may or may not be important to your model).  If
+   you do not use the *bond/periodic* option for a system with
+   periodic bond loops, the replicated system will have invalid bonds
+   (typically very long), resulting in bad dynamics.
+
+If possible, the *bbox* keyword should be used when running on a large
+number of processors, as it can result in a substantial speed-up for
+the replication operation.  It uses a bounding box to only check atoms
+in replicas that overlap with each processor's new subdomain when
+assigning atoms to processors.  It also preserves image flag
+information.  The only drawback to the *bbox* option is that it
+requires a temporary use of more memory.  Each processor must be able
+to store all atoms (and their per-atom data) in the original system,
+before it is replicated.
+
+-- note:
+
+  The algorithm used by the *bond/periodic* keyword builds on the
+  algorithm used by the *bbox* keyword and thus has the same memory
+  requirements.  If you specify only the *bond/peridoic* keyword it
+  will internally set the *bbox* keyword as well.
+
+----------
+
+  Restrictions
 """"""""""""
 
 A 2d simulation cannot be replicated in the z dimension.
 
 If a simulation is non-periodic in a dimension, care should be used
-when replicating it in that dimension, as it may put atoms nearly on
-top of each other.
+when replicating it in that dimension, as it may generate atoms nearly
+on top of each other.
 
 If the current simulation was read in from a restart file (before a
-run is performed), there must not be any fix information stored in
-the file for individual atoms.  Similarly, no fixes can be defined at
-the time the replicate command is used that require vectors of atom
+run is performed), there must not be any fix information stored in the
+file for individual atoms.  Similarly, no fixes can be defined at the
+time the replicate command is used that require vectors of atom
 information to be stored.  This is because the replicate command does
 not know how to replicate that information for new atoms it creates.
-To work around this restriction, restart files may be converted into
-data files and fixes may be undefined via the :doc:`unfix <unfix>`
-command before and redefined after the replicate command.
+
+To work around this restriction two options are possible.  (1) Fixes
+which use the stored data in the restart file can be defined before
+replication and then deleted via the :doc:`unfix <unfix>` command and
+re-defined after it.  Or (2) the restart file can be converted to a
+data file (which deletes the stored fix infomation) and fixes defined
+after the replicate command.  In both these scenarios, the per-atom
+fix information in the restart file is lost.
 
 Related commands
 """"""""""""""""
 
 none
 
-
 Default
 """""""
 
-none
+No settings for using the *bbox* or *bond/periodic* algorithms.

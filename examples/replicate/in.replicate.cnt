@@ -22,7 +22,7 @@ improper_style class2
 
 read_data three_periodic_CNTs.data.gz
 
-replicate 2 2 2 bondlist
+replicate 2 2 2 bond/periodic
 
 fix 1 all nve
 

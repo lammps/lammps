@@ -33,7 +33,7 @@ class Replicate : public Command {
 
 private:
   int bbox_flag, bond_flag;
-  
+
   class Atom *old;
 
   double old_xprd, old_yprd, old_zprd;
@@ -51,7 +51,7 @@ private:
 
   void replicate_by_proc(int, int, int, double *, double *, double *);
   void replicate_by_bbox(int, int, int, double *, double *, double *);
-  
+
   void newtag(tagint, tagint &);
 };
 

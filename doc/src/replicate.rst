@@ -8,7 +8,7 @@ Syntax
 
 .. code-block:: LAMMPS
 
-   replicate nx ny nz *keyword* ...
+   replicate nx ny nz keyword ...
 
 nx,ny,nz = replication factors in each dimension
 
@@ -17,8 +17,8 @@ nx,ny,nz = replication factors in each dimension
 
   .. parsed-literal::
 
-       *bbox* = only check atoms in replicas that overlap with a processor's subdomain
-       *bond/periodic* = use a different algorithm that correctly replicates periodic bond loops
+       *bbox* = use a bounding-box algorithm which is faster for large proc counts
+       *bond/periodic* = use an algorithm that correctly replicates periodic bond loops
 
 Examples
 """"""""
@@ -56,7 +56,7 @@ are created between pairs of new atoms as well as between old and new
 atoms.
 
 .. note::
-   
+
    The bond discussion which follows only refers to models with
    permanent covalent bonds typically defined in LAMMPS via a data
    file.  It is not relevant to sytems modeled with many-body
@@ -83,7 +83,7 @@ atoms and uses a different algorithm to find new (nearby) bond
 neighbors in the replicated system.  In the final replicated system
 all image flags are zero (in each dimension).
 
--- note:
+.. note::
 
    LAMMPS does not check for image flag consistency before performing
    the replication (it does issue a warning about this before a
@@ -92,13 +92,13 @@ all image flags are zero (in each dimension).
    will otherwise be correctly replicated.  This is NOT the case if
    there is a periodic bond loop.  See the next note.
 
--- note:
+.. note::
 
    LAMMPS does not check for periodic bond loops.  If you use the
-   *bond/periodic* option for a system without periodic bond loops,
+   *bond/periodic* keyword for a system without periodic bond loops,
    the system will be correctly replicated, but image flag information
    will be lost (which may or may not be important to your model).  If
-   you do not use the *bond/periodic* option for a system with
+   you do not use the *bond/periodic* keyword for a system with
    periodic bond loops, the replicated system will have invalid bonds
    (typically very long), resulting in bad dynamics.
 
@@ -112,7 +112,7 @@ requires a temporary use of more memory.  Each processor must be able
 to store all atoms (and their per-atom data) in the original system,
 before it is replicated.
 
--- note:
+.. note::
 
   The algorithm used by the *bond/periodic* keyword builds on the
   algorithm used by the *bbox* keyword and thus has the same memory
@@ -121,7 +121,7 @@ before it is replicated.
 
 ----------
 
-  Restrictions
+Restrictions
 """"""""""""
 
 A 2d simulation cannot be replicated in the z dimension.

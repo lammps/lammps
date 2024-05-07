@@ -7,6 +7,8 @@ cross the periodic boundary to close the loop.
 To run these scripts, LAMMPS should be built with the MOLECULE and
 CLASS2 packages.  The latter is only needed for the CNT example.
 
+--------
+
 These scripts are tiny examples which illustrate both kinds of
 systems.  Each produces a series of images which can be visualized.
 If the 3 lines for a dump movie command are uncommented, a MPG movie
@@ -16,6 +18,13 @@ in.replicate.bond.x    # linear chains in x direction, bond loop in x
 in.replcate.bond.x.y   # 2d grid of bonded atoms, bond loops in x and y
 in.replicate.bond.xy   # linear chains in diagonal direction, bond loop in x and y
 in.replicate.bond.noloop  # linear chains in x direction, no bond loop
+
+If you do not use the bond/periodic keyword with the replicate command
+in the first 3 of these scripts (which have periodic bond loops), and
+visualize the dynamics of hee simulation, you will see how the
+replication creates a bogus system.
+
+--------
 
 This script is for a complex system of 3 orthogonal CNTs which has
 periodic bond loops in all 3 dimensions xyz.

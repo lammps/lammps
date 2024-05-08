@@ -19,12 +19,11 @@
 
 #include "compute_heat_flux.h"
 
-#include <cstring>
 #include "atom.h"
-#include "update.h"
-#include "modify.h"
-#include "force.h"
 #include "error.h"
+#include "force.h"
+#include "modify.h"
+#include "update.h"
 
 using namespace LAMMPS_NS;
 

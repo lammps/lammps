@@ -56,8 +56,9 @@ Examples
    compute 1 all reduce sum c_force
    compute 1 all reduce/region subbox sum c_force
    compute 2 all reduce min c_press[2] f_ave v_myKE
-   compute 2 all reduce min c_press[*] f_ave v_myKE
+   compute 2 all reduce min c_press[*] f_ave v_myKE inputs peratom
    compute 3 fluid reduce max c_index[1] c_index[2] c_dist replace 1 3 replace 2 3
+   compute 4 all reduce max c_bond inputs local
 
 Description
 """""""""""

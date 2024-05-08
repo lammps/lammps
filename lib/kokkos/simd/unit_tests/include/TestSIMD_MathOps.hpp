@@ -61,13 +61,18 @@ void host_check_math_op_one_loader(UnaryOp unary_op, std::size_t n,
     simd_type arg;
     bool const loaded_arg = loader.host_load(args + i, nlanes, arg);
     if (!loaded_arg) continue;
-    auto computed_result = unary_op.on_host(arg);
 
-    decltype(computed_result) expected_result;
+    decltype(unary_op.on_host(arg)) expected_result;
     for (std::size_t lane = 0; lane < simd_type::size(); ++lane) {
-      if (lane < nlanes)
+      if (lane < nlanes) {
+        if constexpr (std::is_same_v<UnaryOp, cbrt_op> ||
+                      std::is_same_v<UnaryOp, exp_op> ||
+                      std::is_same_v<UnaryOp, log_op>)
+          arg[lane] = Kokkos::abs(arg[lane]);
         expected_result[lane] = unary_op.on_host_serial(T(arg[lane]));
+      }
     }
+    auto computed_result = unary_op.on_host(arg);
     host_check_equality(expected_result, computed_result, nlanes);
   }
 }
@@ -78,6 +83,7 @@ inline void host_check_math_op_all_loaders(Op op, std::size_t n,
   host_check_math_op_one_loader<Abi, load_element_aligned>(op, n, args...);
   host_check_math_op_one_loader<Abi, load_masked>(op, n, args...);
   host_check_math_op_one_loader<Abi, load_as_scalars>(op, n, args...);
+  host_check_math_op_one_loader<Abi, load_vector_aligned>(op, n, args...);
 }
 
 template <typename Abi, typename DataType, size_t n>
@@ -96,6 +102,13 @@ inline void host_check_all_math_ops(const DataType (&first_args)[n],
   // TODO: Place fallback implementations for all simd integer types
   if constexpr (std::is_floating_point_v<DataType>) {
     host_check_math_op_all_loaders<Abi>(divides(), n, first_args, second_args);
+
+#if defined(__INTEL_COMPILER) && \
+    (defined(KOKKOS_ARCH_AVX2) || defined(KOKKOS_ARCH_AVX512XEON))
+    host_check_math_op_all_loaders<Abi>(cbrt_op(), n, first_args);
+    host_check_math_op_all_loaders<Abi>(exp_op(), n, first_args);
+    host_check_math_op_all_loaders<Abi>(log_op(), n, first_args);
+#endif
   }
 }
 
@@ -109,23 +122,29 @@ inline void host_check_abi_size() {
 template <typename Abi, typename DataType>
 inline void host_check_math_ops() {
   constexpr size_t n = 11;
+  constexpr size_t alignment =
+      Kokkos::Experimental::simd<DataType, Abi>::size() * sizeof(DataType);
 
   host_check_abi_size<Abi, DataType>();
 
   if constexpr (!std::is_integral_v<DataType>) {
-    DataType const first_args[n]  = {0.1,  0.4,  0.5, 0.7, 1.0, 1.5,
-                                    -2.0, 10.0, 0.0, 1.2, -2.8};
-    DataType const second_args[n] = {1.0,  0.2, 1.1,  1.8,  -0.1, -3.0,
-                                     -2.4, 1.0, 13.0, -3.2, -2.1};
+    alignas(alignment) DataType const first_args[n] = {
+        0.1, 0.4, 0.5, 0.7, 1.0, 1.5, -2.0, 10.0, 0.0, 1.2, -2.8};
+    alignas(alignment) DataType const second_args[n] = {
+        1.0, 0.2, 1.1, 1.8, -0.1, -3.0, -2.4, 1.0, 13.0, -3.2, -2.1};
     host_check_all_math_ops<Abi>(first_args, second_args);
   } else {
     if constexpr (std::is_signed_v<DataType>) {
-      DataType const first_args[n]  = {1, 2, -1, 10, 0, 1, -2, 10, 0, 1, -2};
-      DataType const second_args[n] = {1, 2, 1, 1, 1, -3, -2, 1, 13, -3, -2};
+      alignas(alignment)
+          DataType const first_args[n] = {1, 2, -1, 10, 0, 1, -2, 10, 0, 1, -2};
+      alignas(alignment) DataType const second_args[n] = {1,  2, 1,  1,  1, -3,
+                                                          -2, 1, 13, -3, -2};
       host_check_all_math_ops<Abi>(first_args, second_args);
     } else {
-      DataType const first_args[n]  = {1, 2, 1, 10, 0, 1, 2, 10, 0, 1, 2};
-      DataType const second_args[n] = {1, 2, 1, 1, 1, 3, 2, 1, 13, 3, 2};
+      alignas(alignment)
+          DataType const first_args[n] = {1, 2, 1, 10, 0, 1, 2, 10, 0, 1, 2};
+      alignas(alignment)
+          DataType const second_args[n] = {1, 2, 1, 1, 1, 3, 2, 1, 13, 3, 2};
       host_check_all_math_ops<Abi>(first_args, second_args);
     }
   }
@@ -202,6 +221,7 @@ KOKKOS_INLINE_FUNCTION void device_check_math_op_all_loaders(Op op,
   device_check_math_op_one_loader<Abi, load_element_aligned>(op, n, args...);
   device_check_math_op_one_loader<Abi, load_masked>(op, n, args...);
   device_check_math_op_one_loader<Abi, load_as_scalars>(op, n, args...);
+  device_check_math_op_one_loader<Abi, load_vector_aligned>(op, n, args...);
 }
 
 template <typename Abi, typename DataType, size_t n>
@@ -282,8 +302,13 @@ TEST(simd, host_math_ops) {
 }
 
 TEST(simd, device_math_ops) {
-  Kokkos::parallel_for(Kokkos::RangePolicy<Kokkos::IndexType<int>>(0, 1),
-                       simd_device_math_ops_functor());
+#ifdef KOKKOS_ENABLE_OPENMPTARGET  // FIXME_OPENMPTARGET
+  GTEST_SKIP()
+      << "skipping because of a non-deterministic failure reporting: "
+         "Failure to synchronize stream (nil): Error in "
+         "cuStreamSynchronize: an illegal memory access was encountered";
+#endif
+  Kokkos::parallel_for(1, simd_device_math_ops_functor());
 }
 
 #endif

@@ -86,8 +86,8 @@ Both of these methods require defining a reference state. With the *fixed* refer
 style, the user picks a specific timestep *nstep* at which particle positions are saved.
 If peratom data is accessed from this compute prior to this timestep, it will simply be
 zeroed. The *update* reference style implies the reference state will be updated every
-*nstep* timesteps. The *offset* reference only applies to the *d2min* metric and will
-update the reference state *nstep* timesteps before a multiple of *nevery* timesteps.
+*nstep* timesteps. The *offset* reference will update the reference state *nstep*
+timesteps before a multiple of *nevery* timesteps.
 
 
 ----------

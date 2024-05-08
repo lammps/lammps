@@ -47,7 +47,8 @@ FixElectrodeThermo::FixElectrodeThermo(LAMMPS *lmp, int narg, char **arg) :
   if (thermo_time < SMALL) error->all(FLERR, "Keyword temp not set or zero in electrode/thermo");
 
   thermo_random = new RanMars(lmp, thermo_init);
-  if (group_psi_var_styles[0] == VarStyle::CONST) delta_psi_0 = group_psi[1] - group_psi[0];
+  if (group_psi_var_styles[0] == VarStyle::CONST)
+    delta_psi_0 = group_psi_const[1] - group_psi_const[0];
 }
 
 /* ----------------------------------------------------------------------- */
@@ -102,7 +103,7 @@ void FixElectrodeThermo::update_psi()
   double const delta_psi = group_psi_old[1] - group_psi_old[0];
 
   // target potential difference from input parameters
-  if (group_psi_var_styles[0] != VarStyle::CONST) {
+  if (group_psi_var_styles[0] == VarStyle::EQUAL) {
     delta_psi_0 = input->variable->compute_equal(group_psi_var_ids[1]) -
         input->variable->compute_equal(group_psi_var_ids[0]);
   }

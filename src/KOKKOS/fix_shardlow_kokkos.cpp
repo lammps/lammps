@@ -43,7 +43,6 @@
 #include "domain.h"
 #include "error.h"
 #include "force.h"
-#include "memory_kokkos.h"
 #include "neigh_list_kokkos.h"
 #include "neigh_request.h"
 #include "neighbor.h"

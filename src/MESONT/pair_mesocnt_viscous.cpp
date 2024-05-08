@@ -25,7 +25,6 @@
 #include "math_const.h"
 #include "math_extra.h"
 #include "memory.h"
-#include "neigh_list.h"
 #include "neighbor.h"
 #include "update.h"
 

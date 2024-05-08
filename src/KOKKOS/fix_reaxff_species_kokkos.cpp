@@ -23,13 +23,11 @@
 #include "comm.h"
 #include "error.h"
 #include "force.h"
-#include "input.h"
-#include "memory_kokkos.h"
-#include "neigh_list.h"
-#include "neigh_request.h"
+#include "kokkos_type.h"
+#include "neigh_list_kokkos.h"
 
 #include "fix_ave_atom.h"
-#include "pair_reaxff_kokkos.h"
+#include "pair_reaxff.h"
 #include "reaxff_defs.h"
 
 using namespace LAMMPS_NS;

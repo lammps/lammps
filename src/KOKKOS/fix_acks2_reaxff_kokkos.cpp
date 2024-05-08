@@ -24,13 +24,11 @@
 #include "comm.h"
 #include "error.h"
 #include "force.h"
-#include "integrate.h"
 #include "kokkos.h"
 #include "memory_kokkos.h"
 #include "neigh_list_kokkos.h"
 #include "neigh_request.h"
 #include "neighbor.h"
-#include "pair_reaxff_kokkos.h"
 #include "update.h"
 
 #include <cmath>
@@ -536,7 +534,7 @@ void FixACKS2ReaxFFKokkos<DeviceType>::deallocate_array()
 {
   memoryKK->destroy_kokkos(k_s,s);
   memoryKK->destroy_kokkos(k_chi_field,chi_field);
-  memoryKK->destroy_kokkos(X_diag);
+  memoryKK->destroy_kokkos(k_X_diag,X_diag);
   memoryKK->destroy_kokkos(k_d,d);
   memoryKK->destroy_kokkos(k_q_hat,q_hat);
   memoryKK->destroy_kokkos(k_y,y);

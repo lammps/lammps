@@ -44,6 +44,8 @@ using namespace MathSpecial;
 static constexpr double TOL = 1.0e-9;
 static constexpr int PGDELTA = 1;
 
+static const char *style[3] = {"airebo", "rebo", "airebo/morse"};
+
 /* ---------------------------------------------------------------------- */
 
 PairAIREBO::PairAIREBO(LAMMPS *lmp)
@@ -150,7 +152,7 @@ void PairAIREBO::allocate()
 void PairAIREBO::settings(int narg, char **arg)
 {
   if (narg != 1 && narg != 3 && narg != 4)
-    error->all(FLERR,"Illegal pair_style command");
+    error->all(FLERR,"Illegal pair_style {} command", style[variant]);
 
   cutlj = utils::numeric(FLERR,arg[0],false,lmp);
 
@@ -175,12 +177,7 @@ void PairAIREBO::coeff(int narg, char **arg)
   if (!allocated) allocate();
 
   if (narg != 3 + atom->ntypes)
-    error->all(FLERR,"Incorrect args for pair coefficients");
-
-  // ensure I,J args are * *
-
-  if (strcmp(arg[0],"*") != 0 || strcmp(arg[1],"*") != 0)
-    error->all(FLERR,"Incorrect args for pair coefficients");
+    error->all(FLERR,"Incorrect number of args for pair coefficient.");
 
   // read args that map atom types to C and H
   // map[i] = which element (0,1) the Ith atom type is, -1 if "NULL"
@@ -193,7 +190,7 @@ void PairAIREBO::coeff(int narg, char **arg)
       map[i-2] = 0;
     } else if (strcmp(arg[i],"H") == 0) {
       map[i-2] = 1;
-    } else error->all(FLERR,"Incorrect args for pair coefficients");
+    } else error->all(FLERR,"Element {} not supported by pair style {}", arg[i], style[variant]);
   }
 
   // read potential file and initialize fitting splines
@@ -228,13 +225,13 @@ void PairAIREBO::coeff(int narg, char **arg)
 void PairAIREBO::init_style()
 {
   if (atom->tag_enable == 0)
-    error->all(FLERR,"Pair style AIREBO requires atom IDs");
+    error->all(FLERR,"Pair style {} requires atom IDs", style[variant]);
   if (force->newton_pair == 0)
-    error->all(FLERR,"Pair style AIREBO requires newton pair on");
+    error->all(FLERR,"Pair style {} requires newton pair on", style[variant]);
 
   // need a full neighbor list, including neighbors of ghosts
 
-  neighbor->add_request(this,NeighConst::REQ_FULL|NeighConst::REQ_GHOST);
+  neighbor->add_request(this, NeighConst::REQ_FULL | NeighConst::REQ_GHOST);
 
   // local REBO neighbor list
   // create pages if first time or if neighbor pgsize/oneatom has changed

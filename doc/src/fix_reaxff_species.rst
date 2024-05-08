@@ -20,7 +20,7 @@ Syntax
 * Nfreq = calculate average bond-order every this many timesteps
 * filename = name of output file
 * zero or more keyword/value pairs may be appended
-* keyword = *cutoff* or *element* or *position* or *delete*
+* keyword = *cutoff* or *element* or *position* or *delete* or *delete_rate_limit*
 
   .. parsed-literal::
 
@@ -233,5 +233,5 @@ Default
 """""""
 
 The default values for bond-order cutoffs are 0.3 for all I-J pairs.
-The default element symbols are taken from the pair_coeff command.
+The default element symbols are taken from the ReaxFF pair_coeff command.
 Position files are not written by default.

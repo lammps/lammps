@@ -63,9 +63,9 @@ class FixReaxFFSpecies : public Fix {
   double massmin, massmax;
   int singlepos_opened, multipos_opened, del_opened;
   char *filepos, *filedel;
-  std::vector<int> ele2uele;
-  std::vector<std::string> eletype;
-  std::vector<std::string> ueletype;
+  std::vector<int> ele2uele;            // for element eletype[i], ele2uele[i] stores index of unique element
+  std::vector<std::string> eletype;     // list of ReaxFF elements of length ntypes
+  std::vector<std::string> ueletype;    // list of unique elements, of quantity nutypes
 
   void Output_ReaxFF_Bonds(bigint, FILE *);
   AtomCoord chAnchor(AtomCoord, AtomCoord);

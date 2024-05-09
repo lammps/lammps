@@ -112,7 +112,7 @@ symbol printed for each LAMMPS atom type. The number of symbols must
 match the number of LAMMPS atom types and each symbol must consist of
 1 or 2 alphanumeric characters. By default, these symbols are the same
 as the chemical identity of each LAMMPS atom type, as specified by the
-:doc:`reaxff pair_coeff <pair_reaxff>` command and the ReaxFF force
+:doc:`ReaxFF pair_coeff <pair_reaxff>` command and the ReaxFF force
 field file.
 
 The optional keyword *position* writes center-of-mass positions of

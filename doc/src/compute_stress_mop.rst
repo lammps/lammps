@@ -127,7 +127,7 @@ enabled if LAMMPS is built with that package. See the :doc:`Build
 package <Build_package>` doc page on for more info.
 
 The method is implemented for simulation boxes whose
-size does not change in time, and axis-aligned planes. Additionally, for 
+size does not change in time, and axis-aligned planes. Additionally, for
 compute *stress/mop/profile*, the simulation box must be orthogonal.
 
 The method only works with two-body pair interactions, because it

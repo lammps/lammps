@@ -731,13 +731,11 @@ void CreateAtoms::add_random()
   double xlo, ylo, zlo, xhi, yhi, zhi;
   double delx, dely, delz, distsq, odistsq;
   double lamda[3], *coord;
-  double *boxlo, *boxhi, *xmolbuf;
+  double *boxlo, *boxhi;
 
   if (overlapflag) {
     double odist = overlap;
     odistsq = odist * odist;
-    if (mode == MOLECULE)
-      memory->create(xmolbuf, onemol->natoms*3, "create_atoms:xmolbuf");
   }
 
   // random number generator, same for all procs
@@ -836,19 +834,8 @@ void CreateAtoms::add_random()
             }
           }
         } else {
-          int incr;
-          if (comm->me == 0) {
-            get_xmol(xone);
-            incr = 0;
-            for (int i = 0; i < onemol->natoms; i++)
-              for (int j = 0; j < 3; j++)
-                xmolbuf[incr++] = xmol[i][j];
-          }
-          MPI_Bcast(xmolbuf, onemol->natoms*3, MPI_DOUBLE, 0, world);
-          incr = 0;
-          for (int i = 0; i < onemol->natoms; i++)
-            for (int j = 0; j < 3; j++)
-              xmol[i][j] = xmolbuf[incr++];
+          if (comm->me == 0) get_xmol(xone);
+          MPI_Bcast(&xmol[0][0], onemol->natoms*3, MPI_DOUBLE, 0, world);
 
           for (int i = 0; i < nlocal; i++) {
             for (int j = 0; j < onemol->natoms; j++) {
@@ -908,7 +895,6 @@ void CreateAtoms::add_random()
   // clean-up
 
   delete random;
-  if (overlapflag && mode == MOLECULE) memory->destroy(xmolbuf);
 }
 
 /* ----------------------------------------------------------------------

@@ -24,6 +24,7 @@ Examples
 
 .. code-block:: LAMMPS
 
+   labelmap atom 1 c1 2 hc 3 cp 4 nt
    labelmap atom 3 carbon 4 'c3"' 5 "c1'" 6 "c#"
    labelmap atom $(label2type(atom,carbon)) C  # change type label from 'carbon' to 'C'
    labelmap clear

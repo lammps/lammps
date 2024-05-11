@@ -91,10 +91,32 @@ FixAdaptFEP::FixAdaptFEP(LAMMPS *lmp, int narg, char **arg) :
       adapt[nadapt].which = PAIR;
       adapt[nadapt].pstyle = utils::strdup(arg[iarg+1]);
       adapt[nadapt].pparam = utils::strdup(arg[iarg+2]);
-      utils::bounds(FLERR,arg[iarg+3],1,atom->ntypes,
-                    adapt[nadapt].ilo,adapt[nadapt].ihi,error);
-      utils::bounds(FLERR,arg[iarg+4],1,atom->ntypes,
-                    adapt[nadapt].jlo,adapt[nadapt].jhi,error);
+      char *typestr = nullptr;
+      typestr = utils::expand_type(FLERR, arg[iarg+3], Atom::ATOM, lmp);
+      if (typestr)
+        adapt[nadapt].ilo = adapt[nadapt].ihi = utils::inumeric(FLERR, typestr, false, lmp);
+      else utils::bounds(FLERR, arg[iarg+3], 1, atom->ntypes,
+                    adapt[nadapt].ilo, adapt[nadapt].ihi, error);
+      delete[] typestr;
+      typestr = nullptr;
+      typestr = utils::expand_type(FLERR, arg[iarg+4], Atom::ATOM, lmp);
+      if (typestr)
+        adapt[nadapt].jlo = adapt[nadapt].jhi = utils::inumeric(FLERR, typestr, false, lmp);
+      utils::bounds(FLERR, arg[iarg+4], 1, atom->ntypes,
+                    adapt[nadapt].jlo, adapt[nadapt].jhi, error);
+      delete[] typestr;
+
+      // switch i,j if i > j, if wildcards were not used
+
+      if ( (adapt[nadapt].ilo == adapt[nadapt].ihi) &&
+           (adapt[nadapt].jlo == adapt[nadapt].jhi) &&
+           (adapt[nadapt].ilo > adapt[nadapt].jlo) ) {
+        adapt[nadapt].jlo = adapt[nadapt].ihi;
+        adapt[nadapt].ilo = adapt[nadapt].jhi;
+        adapt[nadapt].ihi = adapt[nadapt].ilo;
+        adapt[nadapt].jhi = adapt[nadapt].jlo;
+      }
+
       if (utils::strmatch(arg[iarg+5],"^v_")) {
         adapt[nadapt].var = utils::strdup(arg[iarg+5]+2);
       } else error->all(FLERR,"Illegal fix adapt/fep command");
@@ -118,8 +140,13 @@ FixAdaptFEP::FixAdaptFEP(LAMMPS *lmp, int narg, char **arg) :
         adapt[nadapt].aparam = CHARGE;
         chgflag = 1;
       } else error->all(FLERR,"Illegal fix adapt/fep command");
-      utils::bounds(FLERR,arg[iarg+2],1,atom->ntypes,
-                    adapt[nadapt].ilo,adapt[nadapt].ihi,error);
+      char *typestr = nullptr;
+      typestr = utils::expand_type(FLERR, arg[iarg+2], Atom::ATOM, lmp);
+      if (typestr)
+        adapt[nadapt].ilo = adapt[nadapt].ihi = utils::inumeric(FLERR, typestr, false, lmp);
+      else utils::bounds(FLERR, arg[iarg+2], 1, atom->ntypes,
+                         adapt[nadapt].ilo, adapt[nadapt].ihi, error);
+      delete[] typestr;
       if (utils::strmatch(arg[iarg+3],"^v_")) {
         adapt[nadapt].var = utils::strdup(arg[iarg+3]+2);
       } else error->all(FLERR,"Illegal fix adapt/fep command");

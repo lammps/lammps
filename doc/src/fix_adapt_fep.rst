@@ -21,13 +21,13 @@ Syntax
        *pair* args = pstyle pparam I J v_name
          pstyle = pair style name (e.g., lj/cut)
          pparam = parameter to adapt over time
-         I,J = type pair(s) to set parameter for
+         I,J = type pair(s) to set parameter for (integer or type label)
          v_name = variable with name that calculates value of pparam
        *kspace* arg = v_name
          v_name = variable with name that calculates scale factor on K-space terms
        *atom* args = aparam v_name
          aparam = parameter to adapt over time
-         I = type(s) to set parameter for
+         I = type(s) to set parameter for (integer or type label)
          v_name = variable with name that calculates value of aparam
 
 * zero or more keyword/value pairs may be appended
@@ -55,6 +55,9 @@ Examples
    fix 1 all adapt/fep 1 pair soft a 2* 3 v_prefactor
    fix 1 all adapt/fep 1 pair lj/cut epsilon * * v_scale1 coul/cut scale 3 3 v_scale2 scale yes reset yes
    fix 1 all adapt/fep 10 atom diameter 1 v_size
+
+   labelmap atom 1 c1
+   fix 1 all adapt/fep 1 pair soft a c1 c1 v_prefactor
 
 
 Example input scripts available: examples/PACKAGES/fep

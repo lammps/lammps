@@ -67,6 +67,9 @@ Examples
    variable ramp_up equal "ramp(0.01,0.5)"
    fix stretch all adapt 1 bond harmonic r0 1 v_ramp_up
 
+   labelmap atom 1 c1
+   fix 1 all adapt 1 pair soft a c1 c1 v_prefactor
+
 Description
 """""""""""
 

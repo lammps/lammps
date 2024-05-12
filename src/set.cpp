@@ -740,11 +740,7 @@ void Set::selection(int n)
       else select[i] = 0;
 
   } else if (style == TYPE_SELECT) {
-    if (char *typestr = utils::expand_type(FLERR, id, Atom::ATOM, lmp)) {
-      delete[] id;
-      id = typestr;
-    }
-    utils::bounds(FLERR,id,1,atom->ntypes,nlo,nhi,error);
+    utils::bounds_typelabel(FLERR,id,1,atom->ntypes,nlo,nhi,error,lmp,Atom::ATOM);
 
     int *type = atom->type;
     for (int i = 0; i < n; i++)

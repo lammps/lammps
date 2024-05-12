@@ -99,10 +99,20 @@ FixAdapt::FixAdapt(LAMMPS *lmp, int narg, char **arg) :
       adapt[nadapt].pair = nullptr;
       adapt[nadapt].pstyle = utils::strdup(arg[iarg+1]);
       adapt[nadapt].pparam = utils::strdup(arg[iarg+2]);
-      utils::bounds(FLERR, arg[iarg+3], 1, atom->ntypes,
-                    adapt[nadapt].ilo, adapt[nadapt].ihi, error, Atom::ATOM);
-      utils::bounds(FLERR, arg[iarg+4], 1, atom->ntypes,
-                    adapt[nadapt].jlo, adapt[nadapt].jhi, error, Atom::ATOM);
+      char *typestr = nullptr;
+      typestr = utils::expand_type(FLERR, arg[iarg+3], Atom::ATOM, lmp);
+      if (typestr)
+        adapt[nadapt].ilo = adapt[nadapt].ihi = utils::inumeric(FLERR, typestr, false, lmp);
+      else utils::bounds(FLERR, arg[iarg+3], 1, atom->ntypes,
+                         adapt[nadapt].ilo, adapt[nadapt].ihi, error);
+      delete[] typestr;
+      typestr = nullptr;
+      typestr = utils::expand_type(FLERR, arg[iarg+4], Atom::ATOM, lmp);
+      if (typestr)
+        adapt[nadapt].jlo = adapt[nadapt].jhi = utils::inumeric(FLERR, typestr, false, lmp);
+      else utils::bounds(FLERR, arg[iarg+4], 1, atom->ntypes,
+                         adapt[nadapt].jlo, adapt[nadapt].jhi, error);
+      delete[] typestr;
 
       // switch i,j if i > j, if wildcards were not used
 
@@ -126,8 +136,13 @@ FixAdapt::FixAdapt(LAMMPS *lmp, int narg, char **arg) :
       adapt[nadapt].bond = nullptr;
       adapt[nadapt].bstyle = utils::strdup(arg[iarg+1]);
       adapt[nadapt].bparam = utils::strdup(arg[iarg+2]);
-      utils::bounds(FLERR, arg[iarg+3], 1, atom->nbondtypes,
-                    adapt[nadapt].ilo, adapt[nadapt].ihi, error, Atom::BOND);
+      char *typestr = nullptr;
+      typestr = utils::expand_type(FLERR, arg[iarg+3], Atom::BOND, lmp);
+      if (typestr)
+        adapt[nadapt].ilo = adapt[nadapt].ihi = utils::inumeric(FLERR, typestr, false, lmp);
+      else utils::bounds(FLERR, arg[iarg+3], 1, atom->nbondtypes,
+                         adapt[nadapt].ilo, adapt[nadapt].ihi, error);
+      delete[] typestr;
       if (utils::strmatch(arg[iarg+4],"^v_")) {
         adapt[nadapt].var = utils::strdup(arg[iarg+4]+2);
       } else error->all(FLERR,"Argument #{} must be variable not {}", iarg+5, arg[iarg+4]);
@@ -139,8 +154,13 @@ FixAdapt::FixAdapt(LAMMPS *lmp, int narg, char **arg) :
       adapt[nadapt].angle = nullptr;
       adapt[nadapt].astyle = utils::strdup(arg[iarg+1]);
       adapt[nadapt].aparam = utils::strdup(arg[iarg+2]);
-      utils::bounds(FLERR, arg[iarg+3], 1, atom->nangletypes,
-                    adapt[nadapt].ilo, adapt[nadapt].ihi, error, Atom::ANGLE);
+      char *typestr = nullptr;
+      typestr = utils::expand_type(FLERR, arg[iarg+3], Atom::ANGLE, lmp);
+      if (typestr)
+        adapt[nadapt].ilo = adapt[nadapt].ihi = utils::inumeric(FLERR, typestr, false, lmp);
+      else utils::bounds(FLERR, arg[iarg+3], 1, atom->nangletypes,
+                         adapt[nadapt].ilo, adapt[nadapt].ihi, error);
+      delete[] typestr;
       if (utils::strmatch(arg[iarg+4],"^v_")) {
         adapt[nadapt].var = utils::strdup(arg[iarg+4]+2);
       } else error->all(FLERR,"Argument #{} must be variable not {}", iarg+5, arg[iarg+4]);

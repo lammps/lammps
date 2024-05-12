@@ -33,7 +33,7 @@ class Atom : protected Pointers {
   enum { DOUBLE, INT, BIGINT };
   enum { GROW = 0, RESTART = 1, BORDER = 2 };
   enum { ATOMIC = 0, MOLECULAR = 1, TEMPLATE = 2 };
-  enum { ATOM = 0, BOND = 1, ANGLE = 2, DIHEDRAL = 3, IMPROPER = 4, NONTYPE = 5 };
+  enum { ATOM = 0, BOND = 1, ANGLE = 2, DIHEDRAL = 3, IMPROPER = 4 };
   enum { NUMERIC = 0, LABELS = 1 };
   enum { MAP_NONE = 0, MAP_ARRAY = 1, MAP_HASH = 2, MAP_YES = 3 };
 

@@ -331,6 +331,19 @@ namespace utils {
   void bounds(const char *file, int line, const std::string &str, bigint nmin, bigint nmax,
               TYPE &nlo, TYPE &nhi, Error *error);
 
+  /*! Same as bounds(), but supports type labels
+   *
+   * This functions adds the following case:
+   *
+   * - a single type label, typestr: nlo = nhi = label2type(typestr)
+   *
+   * \param lmp      pointer to top-level LAMMPS class instance
+   * \param mode     select labelmap using constants from Atom class */
+
+  template <typename TYPE>
+  void bounds_typelabel(const char *file, int line, const std::string &str, bigint nmin, bigint nmax,
+                        TYPE &nlo, TYPE &nhi, Error *error, LAMMPS *lmp, int mode);
+
   /*! Expand list of arguments when containing fix/compute wildcards
    *
    *  This function searches the list of arguments in *arg* for strings

@@ -596,15 +596,24 @@ tagint utils::tnumeric(const char *file, int line, const char *str, bool do_abor
 
 /* ----------------------------------------------------------------------
    compute bounds implied by numeric str with a possible wildcard asterisk
+   if str is a single number or type label, return nlo = nhi = label2type(str)
 ------------------------------------------------------------------------- */
 // clang-format off
 template <typename TYPE>
-void utils::bounds(const char *file, int line, const std::string &str,
-                   bigint nmin, bigint nmax, TYPE &nlo, TYPE &nhi, Error *error)
+void utils::bounds(const char *file, int line, const std::string &str, bigint nmin,
+                   bigint nmax, TYPE &nlo, TYPE &nhi, Error *error, int mode = Atom::NONTYPE)
 {
   nlo = nhi = -1;
 
-  // check for illegal charcters
+  if (mode != Atom::NONTYPE) {
+    char *typestr;
+    if ( typestr = utils::expand_type(FLERR, str, mode, lmp) )
+      nlo = nhi = utils::inumeric(FLERR, typestr, false, lmp);
+    delete[] typestr;
+    if (nlo > -1) return;
+  }
+
+  // check for illegal characters
   size_t found = str.find_first_not_of("*-0123456789");
   if (found != std::string::npos) {
     if (error) error->all(file, line, "Invalid range string: {}", str);
@@ -642,11 +651,11 @@ void utils::bounds(const char *file, int line, const std::string &str,
 }
 
 template void utils::bounds<>(const char *, int, const std::string &,
-                              bigint, bigint, int &, int &, Error *);
+                              bigint, bigint, int &, int &, Error *, int);
 template void utils::bounds<>(const char *, int, const std::string &,
-                              bigint, bigint, long &, long &, Error *);
+                              bigint, bigint, long &, long &, Error *, int);
 template void utils::bounds<>(const char *, int, const std::string &,
-                              bigint, bigint, long long &, long long &, Error *);
+                              bigint, bigint, long long &, long long &, Error *, int);
 // clang-format on
 
 /* -------------------------------------------------------------------------

@@ -310,9 +310,10 @@ namespace utils {
   /*! Compute index bounds derived from a string with a possible wildcard
    *
    * This functions processes the string in *str* and set the values of *nlo*
-   * and *nhi* according to the following five cases:
+   * and *nhi* according to the following six cases:
    *
    * - a single number, i: nlo = i; nhi = i;
+   * - a single type label, typestr: nlo = nhi = label2type(typestr)
    * - a single asterisk, \*: nlo = nmin; nhi = nmax;
    * - a single number followed by an asterisk, i\*: nlo = i; nhi = nmax;
    * - a single asterisk followed by a number, \*i: nlo = nmin; nhi = i;
@@ -325,11 +326,12 @@ namespace utils {
    * \param nmax     largest allowed upper bound
    * \param nlo      lower bound
    * \param nhi      upper bound
+   * \param mode     select labelmap using constants from Atom class
    * \param error    pointer to Error class for out-of-bounds messages */
 
   template <typename TYPE>
   void bounds(const char *file, int line, const std::string &str, bigint nmin, bigint nmax,
-              TYPE &nlo, TYPE &nhi, Error *error);
+              TYPE &nlo, TYPE &nhi, Error *error, int mode);
 
   /*! Expand list of arguments when containing fix/compute wildcards
    *

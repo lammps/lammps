@@ -104,14 +104,14 @@ FixAdapt::FixAdapt(LAMMPS *lmp, int narg, char **arg) :
       if (typestr)
         adapt[nadapt].ilo = adapt[nadapt].ihi = utils::inumeric(FLERR, typestr, false, lmp);
       else utils::bounds(FLERR, arg[iarg+3], 1, atom->ntypes,
-                    adapt[nadapt].ilo, adapt[nadapt].ihi, error);
+                         adapt[nadapt].ilo, adapt[nadapt].ihi, error);
       delete[] typestr;
       typestr = nullptr;
       typestr = utils::expand_type(FLERR, arg[iarg+4], Atom::ATOM, lmp);
       if (typestr)
         adapt[nadapt].jlo = adapt[nadapt].jhi = utils::inumeric(FLERR, typestr, false, lmp);
-      utils::bounds(FLERR, arg[iarg+4], 1, atom->ntypes,
-                    adapt[nadapt].jlo, adapt[nadapt].jhi, error);
+      else utils::bounds(FLERR, arg[iarg+4], 1, atom->ntypes,
+                         adapt[nadapt].jlo, adapt[nadapt].jhi, error);
       delete[] typestr;
 
       // switch i,j if i > j, if wildcards were not used

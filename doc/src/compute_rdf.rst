@@ -13,8 +13,8 @@ Syntax
 * ID, group-ID are documented in :doc:`compute <compute>` command
 * rdf = style name of this compute command
 * Nbin = number of RDF bins
-* itypeN = central atom type for Nth RDF histogram (see asterisk form below)
-* jtypeN = distribution atom type for Nth RDF histogram (see asterisk form below)
+* itypeN = central atom type for Nth RDF histogram (integer, type label, or asterisk form)
+* jtypeN = distribution atom type for Nth RDF histogram (integer, type label, or asterisk form)
 * zero or more keyword/value pairs may be appended
 * keyword = *cutoff*
 
@@ -96,14 +96,16 @@ is computed for :math:`g(r)` between all atom types.  If one or more pairs are
 listed, then a separate histogram is generated for each
 *itype*,\ *jtype* pair.
 
-The *itypeN* and *jtypeN* settings can be specified in one of two
-ways.  An explicit numeric value can be used, as in the fourth example
-above.  Or a wild-card asterisk can be used to specify a range of atom
-types.  This takes the form "\*" or "\*n" or "m\*" or "m\*n".  If
-:math:`N` is the number of atom types, then an asterisk with no numeric values
-means all types from 1 to :math:`N`. A leading asterisk means all types from 1
-to n (inclusive).  A trailing asterisk means all types from m to :math:`N`
-(inclusive).  A middle asterisk means all types from m to n (inclusive).
+The *itypeN* and *jtypeN* settings can be specified in one of three
+ways.  One or both of the types in the I,J pair can be a
+:doc:`type label <Howto_type_labels>`.  Or an explicit numeric value can be
+used, as in the fourth example above. Or a wild-card asterisk can be used
+to specify a range of atom types.  This takes the form "\*" or "\*n" or
+"m\*" or "m\*n". If :math:`N` is the number of atom types, then an asterisk
+with no numeric values means all types from 1 to :math:`N`. A leading
+asterisk means all types from 1 to n (inclusive).  A trailing asterisk
+means all types from m to :math:`N` (inclusive).  A middle asterisk means
+all types from m to n (inclusive).
 
 If both *itypeN* and *jtypeN* are single values, as in the fourth example
 above, this means that a :math:`g(r)` is computed where atoms of type *itypeN*

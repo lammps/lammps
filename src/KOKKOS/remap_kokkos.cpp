@@ -105,6 +105,8 @@ void RemapKokkos<DeviceType>::remap_3d_kokkos(typename FFT_AT::t_FFT_SCALAR_1d d
 {
 
   typename FFT_AT::t_FFT_SCALAR_1d d_scratch;
+  int me;
+  MPI_Comm_rank(plan->comm,&me);
 
   if (plan->memory == 0)
     d_scratch = d_buf;
@@ -191,13 +193,17 @@ void RemapKokkos<DeviceType>::remap_3d_kokkos(typename FFT_AT::t_FFT_SCALAR_1d d
 
       int numpacked = 0;
       for (isend = 0; isend < plan->commringlen; isend++) {
-        if (plan->sendcnts[isend] > 0) {
+        if (plan->sendcnts[isend]) {
           plan->pack(d_in,plan->send_offset[numpacked],
                       plan->d_sendbuf,plan->sdispls[isend],
                       &plan->packplan[numpacked]);
           numpacked++;
         }
+        else if (plan->commringlist[isend] == me && plan->self) {
+          numpacked++;
+        }
       }
+
       if (!plan->usegpu_aware)
         Kokkos::deep_copy(plan->h_sendbuf,plan->d_sendbuf);
 
@@ -210,12 +216,26 @@ void RemapKokkos<DeviceType>::remap_3d_kokkos(typename FFT_AT::t_FFT_SCALAR_1d d
       if (!plan->usegpu_aware)
         Kokkos::deep_copy(d_scratch,plan->h_scratch);
 
+      // copy in -> scratch -> out for self data
+
+      if (plan->self) {
+        plan->pack(d_in,plan->send_offset[plan->selfnsendloc],
+                  plan->d_sendbuf,plan->sdispls[plan->selfcommringloc],
+                  &plan->packplan[plan->selfnsendloc]);
+        plan->unpack(plan->d_sendbuf,plan->sdispls[plan->selfcommringloc],
+                    d_out,plan->recv_offset[plan->selfnrecvloc],
+                    &plan->unpackplan[plan->selfnrecvloc]);
+      }
+
       numpacked = 0;
       for (irecv = 0; irecv < plan->commringlen; irecv++) {
-        if (plan->rcvcnts[irecv] > 0) {
+        if (plan->rcvcnts[irecv]) {
           plan->unpack(d_scratch,plan->rdispls[irecv],
                        d_out,plan->recv_offset[numpacked],
                        &plan->unpackplan[numpacked]);
+          numpacked++;
+        }
+        else if (plan->commringlist[irecv] == me && plan->self) {
           numpacked++;
         }
       }
@@ -575,6 +595,10 @@ struct remap_plan_3d_kokkos<DeviceType>* RemapKokkos<DeviceType>::remap_3d_creat
 
       // send space
 
+      plan->selfcommringloc = -1;
+      plan->selfnsendloc = -1;
+      plan->selfnrecvloc = -1;
+
       plan->nsend = nsend;
       plan->pack = PackKokkos<DeviceType>::pack_3d;
 
@@ -646,6 +670,10 @@ struct remap_plan_3d_kokkos<DeviceType>* RemapKokkos<DeviceType>::remap_3d_creat
     int total_send_size = 0;
     for (i = 0; i < plan->commringlen; i++) {
       iproc = plan->commringlist[i];
+      if (iproc == me) {
+        plan->selfcommringloc = i;
+        plan->selfnsendloc = nsend;
+      }
       if (remap_3d_collide(&in,&outarray[iproc],&overlap)) {
         //plan->send_proc[nsend] = i;
         // number of entries required for this pack's 3-d coords
@@ -684,6 +712,9 @@ struct remap_plan_3d_kokkos<DeviceType>* RemapKokkos<DeviceType>::remap_3d_creat
   
     for (i = 0; i < plan->commringlen; i++) {
       iproc = plan->commringlist[i];
+      if (iproc == me) {
+        plan->selfnrecvloc = nrecv;
+      }
       if (remap_3d_collide(&out,&inarray[iproc],&overlap)) {
         //plan->recv_proc[nrecv] = iproc;
         plan->recv_bufloc[nrecv] = ibuf;
@@ -737,7 +768,16 @@ struct remap_plan_3d_kokkos<DeviceType>* RemapKokkos<DeviceType>::remap_3d_creat
     // init remaining fields in remap plan
 
     plan->memory = memory;
-    plan->self = 0;
+    //plan->self = 0;
+    if (plan->sendcnts[plan->selfcommringloc]) {
+      plan->self = 1;
+      plan->sendcnts[plan->selfcommringloc] = 0;
+      plan->rcvcnts[plan->selfcommringloc] = 0;
+    }
+    else {
+      plan->self = 0;
+    }
+
 
     // if requested, allocate internal scratch space for recvs,
     // only need it if I will receive any data (including self)

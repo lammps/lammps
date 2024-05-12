@@ -61,6 +61,9 @@ struct remap_plan_3d_kokkos {
   int *sdispls;                     // extraction location in send buffer for each rank
   int *rdispls;                     // extraction location in recv buffer for each rank
   int *nrecvmap;                    // maps receive index to rank index
+  int selfcommringloc;
+  int selfnsendloc;
+  int selfnrecvloc;
 };
 
 template<class DeviceType>

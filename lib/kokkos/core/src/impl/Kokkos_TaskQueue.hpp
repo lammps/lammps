@@ -1,46 +1,18 @@
-/*
 //@HEADER
 // ************************************************************************
 //
-//                        Kokkos v. 3.0
-//       Copyright (2020) National Technology & Engineering
+//                        Kokkos v. 4.0
+//       Copyright (2022) National Technology & Engineering
 //               Solutions of Sandia, LLC (NTESS).
 //
 // Under the terms of Contract DE-NA0003525 with NTESS,
 // the U.S. Government retains certain rights in this software.
 //
-// Redistribution and use in source and binary forms, with or without
-// modification, are permitted provided that the following conditions are
-// met:
+// Part of Kokkos, under the Apache License v2.0 with LLVM Exceptions.
+// See https://kokkos.org/LICENSE for license information.
+// SPDX-License-Identifier: Apache-2.0 WITH LLVM-exception
 //
-// 1. Redistributions of source code must retain the above copyright
-// notice, this list of conditions and the following disclaimer.
-//
-// 2. Redistributions in binary form must reproduce the above copyright
-// notice, this list of conditions and the following disclaimer in the
-// documentation and/or other materials provided with the distribution.
-//
-// 3. Neither the name of the Corporation nor the names of the
-// contributors may be used to endorse or promote products derived from
-// this software without specific prior written permission.
-//
-// THIS SOFTWARE IS PROVIDED BY NTESS "AS IS" AND ANY
-// EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
-// IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR
-// PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL NTESS OR THE
-// CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
-// EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
-// PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR
-// PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF
-// LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING
-// NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
-// SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-//
-// Questions? Contact Christian R. Trott (crtrott@sandia.gov)
-//
-// ************************************************************************
 //@HEADER
-*/
 
 // Experimental unified task-data parallel manycore LDRD
 
@@ -58,14 +30,12 @@
 #include <impl/Kokkos_TaskBase.hpp>
 #include <impl/Kokkos_TaskResult.hpp>
 
-#include <impl/Kokkos_Memory_Fence.hpp>
-#include <impl/Kokkos_Atomic_Increment.hpp>
+#include <Kokkos_Atomic.hpp>
 #include <impl/Kokkos_OptionalRef.hpp>
 #include <impl/Kokkos_LIFO.hpp>
 
 #include <string>
 #include <typeinfo>
-#include <stdexcept>
 
 //----------------------------------------------------------------------------
 //----------------------------------------------------------------------------
@@ -188,25 +158,10 @@ class TaskQueue : public TaskQueueBase {
   // Assign task pointer with reference counting of assigned tasks
   KOKKOS_FUNCTION static void assign(task_root_type** const lhs,
                                      task_root_type* const rhs) {
-#if 0
-  {
-    printf( "assign( 0x%lx { 0x%lx %d %d } , 0x%lx { 0x%lx %d %d } )\n"
-          , uintptr_t( lhs ? *lhs : 0 )
-          , uintptr_t( lhs && *lhs ? (*lhs)->m_next : 0 )
-          , int( lhs && *lhs ? (*lhs)->m_task_type : 0 )
-          , int( lhs && *lhs ? (*lhs)->m_ref_count : 0 )
-          , uintptr_t(rhs)
-          , uintptr_t( rhs ? rhs->m_next : 0 )
-          , int( rhs ? rhs->m_task_type : 0 )
-          , int( rhs ? rhs->m_ref_count : 0 )
-          );
-    fflush( stdout );
-  }
-#endif
-
     if (*lhs) decrement(*lhs);
     if (rhs) {
-      Kokkos::atomic_increment(&(rhs->m_ref_count));
+      desul::atomic_inc(&rhs->m_ref_count, desul::MemoryOrderSeqCst(),
+                        desul::MemoryScopeDevice());
     }
 
     // Force write of *lhs
@@ -234,13 +189,7 @@ class TaskQueue : public TaskQueueBase {
 
     using task_type = Impl::Task<execution_space, value_type, FunctorType>;
 
-    enum : size_t { align = (1 << 4), align_mask = align - 1 };
-    enum : size_t { task_size = sizeof(task_type) };
-    enum : size_t { result_size = Impl::TaskResult<value_type>::size };
-    enum : size_t {
-      alloc_size = ((task_size + align_mask) & ~align_mask) +
-                   ((result_size + align_mask) & ~align_mask)
-    };
+    constexpr size_t task_size = sizeof(task_type);
 
     return m_memory.allocate_block_size(task_size);
   }

@@ -2,7 +2,7 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    https://www.lammps.org/, Sandia National Laboratories
-   Steve Plimpton, sjplimp@sandia.gov
+   LAMMPS development team: developers@lammps.org
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
@@ -125,10 +125,8 @@ void remap_3d(FFT_SCALAR *in, FFT_SCALAR *out, FFT_SCALAR *buf,
       for (int i=0;i<plan->nrecv;i++)
         recvBufferSize += plan->recv_size[i];
 
-      FFT_SCALAR *packedSendBuffer
-        = (FFT_SCALAR *) malloc(sizeof(FFT_SCALAR) * sendBufferSize);
-      FFT_SCALAR *packedRecvBuffer
-        = (FFT_SCALAR *) malloc(sizeof(FFT_SCALAR) * recvBufferSize);
+      auto packedSendBuffer = (FFT_SCALAR *) malloc(sizeof(FFT_SCALAR) * sendBufferSize);
+      auto packedRecvBuffer = (FFT_SCALAR *) malloc(sizeof(FFT_SCALAR) * recvBufferSize);
 
       int *sendcnts = (int *) malloc(sizeof(int) * plan->commringlen);
       int *rcvcnts = (int *) malloc(sizeof(int) * plan->commringlen);
@@ -639,7 +637,7 @@ void remap_3d_destroy_plan(struct remap_plan_3d *plan)
 {
   // free MPI communicator
 
-  if (!((plan->usecollective) && (plan->commringlen == 0)))
+  if (!(plan->usecollective) || (plan->commringlen != 0))
     MPI_Comm_free(&plan->comm);
 
   if (plan->usecollective) {

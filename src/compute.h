@@ -1,7 +1,7 @@
 /* -*- c++ -*- ----------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    https://www.lammps.org/, Sandia National Laboratories
-   Steve Plimpton, sjplimp@sandia.gov
+   LAMMPS development team: developers@lammps.org
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
@@ -19,6 +19,8 @@
 namespace LAMMPS_NS {
 
 class Compute : protected Pointers {
+  friend class Neighbor;
+
  public:
   // clang-format off
   enum {
@@ -28,6 +30,7 @@ class Compute : protected Pointers {
     INVOKED_ARRAY   = 1<<2,
     INVOKED_PERATOM = 1<<3,
     INVOKED_LOCAL   = 1<<4,
+    INVOKED_PERGRID = 1<<5,
   };
   // clang-format on
   static int instance_total;    // # of Compute classes ever instantiated
@@ -59,6 +62,8 @@ class Compute : protected Pointers {
   int size_local_rows;    // rows in local vector or array
   int size_local_cols;    // 0 = vector, N = columns in local array
 
+  int pergrid_flag;    // 0/1 if compute_pergrid() function exists
+
   int extscalar;    // 0/1 if global scalar is intensive/extensive
   int extvector;    // 0/1/-1 if global vector is all int/ext/extlist
   int *extlist;     // list of 0/1 int/ext for each vec component
@@ -83,12 +88,14 @@ class Compute : protected Pointers {
   int maxtime;      // max # of entries time list can hold
   bigint *tlist;    // list of timesteps the Compute is called on
 
+  int initialized_flag;      // 1 if compute is initialized, 0 if not
   int invoked_flag;          // non-zero if invoked or accessed this step, 0 if not
   bigint invoked_scalar;     // last timestep on which compute_scalar() was invoked
   bigint invoked_vector;     // ditto for compute_vector()
   bigint invoked_array;      // ditto for compute_array()
   bigint invoked_peratom;    // ditto for compute_peratom()
   bigint invoked_local;      // ditto for compute_local()
+  bigint invoked_pergrid;    // ditto for compute_grid()
 
   double dof;    // degrees-of-freedom for temperature
 
@@ -104,10 +111,11 @@ class Compute : protected Pointers {
   int copymode, kokkosable;
 
   Compute(class LAMMPS *, int, char **);
-  virtual ~Compute();
+  ~Compute() override;
   void modify_params(int, char **);
-  void reset_extra_dof();
+  virtual void reset_extra_dof();
 
+  void init_flags();
   virtual void init() = 0;
   virtual void init_list(int, class NeighList *) {}
   virtual void setup() {}
@@ -116,12 +124,20 @@ class Compute : protected Pointers {
   virtual void compute_array() {}
   virtual void compute_peratom() {}
   virtual void compute_local() {}
+  virtual void compute_pergrid() {}
   virtual void set_arrays(int) {}
 
   virtual int pack_forward_comm(int, int *, double *, int, int *) { return 0; }
   virtual void unpack_forward_comm(int, int, double *) {}
   virtual int pack_reverse_comm(int, int, double *) { return 0; }
   virtual void unpack_reverse_comm(int, int *, double *) {}
+
+  virtual void reset_grid(){};
+
+  virtual int get_grid_by_name(const std::string &, int &) { return -1; };
+  virtual void *get_grid_by_index(int) { return nullptr; };
+  virtual int get_griddata_by_name(int, const std::string &, int &) { return -1; };
+  virtual void *get_griddata_by_index(int) { return nullptr; };
 
   virtual void dof_remove_pre() {}
   virtual int dof_remove(int) { return 0; }
@@ -147,6 +163,8 @@ class Compute : protected Pointers {
   int matchstep(bigint);
   void clearstep();
 
+  bool is_initialized() const { return initialized_flag == 1; }
+
   virtual double memory_usage() { return 0.0; }
 
   virtual void pair_setup_callback(int, int) {}
@@ -160,7 +178,7 @@ class Compute : protected Pointers {
 
   double natoms_temp;    // # of atoms used for temperature calculation
   double extra_dof;      // extra DOF for temperature computes
-  int fix_dof;           // DOF due to fixes
+  double fix_dof;        // DOF due to fixes
   int dynamic;           // recount atoms for temperature computes
   int dynamic_user;      // user request for temp compute to be dynamic
 
@@ -178,26 +196,3 @@ class Compute : protected Pointers {
 }    // namespace LAMMPS_NS
 
 #endif
-
-/* ERROR/WARNING messages:
-
-E: Illegal ... command
-
-Self-explanatory.  Check the input script syntax and compare to the
-documentation for the command.  You can use -echo screen as a
-command-line option when running LAMMPS to see the offending line.
-
-E: Compute ID must be alphanumeric or underscore characters
-
-Self-explanatory.
-
-E: Could not find compute group ID
-
-Self-explanatory.
-
-E: Compute does not allow an extra compute or fix to be reset
-
-This is an internal LAMMPS error.  Please report it to the
-developers.
-
-*/

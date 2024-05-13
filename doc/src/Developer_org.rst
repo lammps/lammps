@@ -7,7 +7,7 @@ but there are small a number of files in several other languages like C,
 Fortran, Shell script, or Python.
 
 The core of the code is located in the ``src`` folder and its
-sub-directories.  A sizable number of these files are in the ``src``
+subdirectories.  A sizable number of these files are in the ``src``
 directory itself, but there are plenty of :doc:`packages <Packages>`,
 which can be included or excluded when LAMMPS is built.  See the
 :doc:`Include packages in build <Build_package>` section of the manual
@@ -15,42 +15,42 @@ for more information about that part of the build process.  LAMMPS
 currently supports building with :doc:`conventional makefiles
 <Build_make>` and through :doc:`CMake <Build_cmake>`.  Those procedures
 differ in how packages are enabled or disabled for inclusion into a
-LAMMPS binary so they cannot be mixed.  The source files for each
-package are in all-uppercase sub-directories of the ``src`` folder, for
-example ``src/MOLECULE`` or ``src/USER-MISC``.  The ``src/STUBS``
-sub-directory is not a package but contains a dummy MPI library, that is
+LAMMPS binary, so they cannot be mixed.  The source files for each
+package are in all-uppercase subdirectories of the ``src`` folder, for
+example ``src/MOLECULE`` or ``src/EXTRA-MOLECULE``.  The ``src/STUBS``
+subdirectory is not a package but contains a dummy MPI library, that is
 used when building a serial version of the code. The ``src/MAKE``
-directory and its sub-directories contain makefiles with settings and
+directory and its subdirectories contain makefiles with settings and
 flags for a variety of configuration and machines for the build process
 with traditional makefiles.
 
 The ``lib`` directory contains the source code for several supporting
 libraries or files with configuration settings to use globally installed
-libraries, that are required by some of the optional packages.  They may
+libraries, that are required by some optional packages.  They may
 include python scripts that can transparently download additional source
-code on request.  Each sub-directory, like ``lib/poems`` or ``lib/gpu``,
+code on request.  Each subdirectory, like ``lib/poems`` or ``lib/gpu``,
 contains the source files, some of which are in different languages such
-as Fortran or CUDA. These libraries included in the LAMMPS build,
-if the corresponding package is installed.
+as Fortran or CUDA. These libraries included in the LAMMPS build, if the
+corresponding package is installed.
 
 LAMMPS C++ source files almost always come in pairs, such as
 ``src/run.cpp`` (implementation file) and ``src/run.h`` (header file).
 Each pair of files defines a C++ class, for example the
-:cpp:class:`LAMMPS_NS::Run` class which contains the code invoked by the
-:doc:`run <run>` command in a LAMMPS input script.  As this example
+:cpp:class:`LAMMPS_NS::Run` class, which contains the code invoked by
+the :doc:`run <run>` command in a LAMMPS input script.  As this example
 illustrates, source file and class names often have a one-to-one
 correspondence with a command used in a LAMMPS input script.  Some
 source files and classes do not have a corresponding input script
-command, e.g. ``src/force.cpp`` and the :cpp:class:`LAMMPS_NS::Force`
+command, for example ``src/force.cpp`` and the :cpp:class:`LAMMPS_NS::Force`
 class.  They are discussed in the next section.
 
 The names of all source files are in lower case and may use the
-underscore character '_' to separate words. Outside of bundled libraries
-which may have different conventions, all C and C++ header files have a
-``.h`` extension, all C++ files have a ``.cpp`` extension, and C files a
-``.c`` extension. A small number of C++ classes and utility functions
-are implemented with only a ``.h`` file. Examples are the Pointers and
-Commands classes or the MathVec functions.
+underscore character '_' to separate words. Apart from bundled,
+externally maintained libraries, which may have different conventions,
+all C and C++ header files have a ``.h`` extension, all C++ files have a
+``.cpp`` extension, and C files a ``.c`` extension.  A few C++ classes
+and utility functions are implemented with only a ``.h`` file. Examples
+are the Pointers and Commands classes or the MathVec functions.
 
 Class topology
 --------------
@@ -62,35 +62,36 @@ associated source files in the ``src`` folder, for example the class
 :cpp:class:`LAMMPS_NS::Memory` corresponds to the files ``memory.cpp``
 and ``memory.h``, or the class :cpp:class:`LAMMPS_NS::AtomVec`
 corresponds to the files ``atom_vec.cpp`` and ``atom_vec.h``.  Full
-lines in the figure represent compositing: that is the class at the base
-of the arrow holds a pointer to an instance of the class at the tip.
-Dashed lines instead represent inheritance: the class to the tip of the
-arrow is derived from the class at the base.  Classes with a red boundary
-are not instantiated directly, but they represent the base classes for
-"styles".  Those "styles" make up the bulk of the LAMMPS code and only
-a few representative examples are included in the figure so it remains
-readable.
+lines in the figure represent compositing: that is, the class at the
+base of the arrow holds a pointer to an instance of the class at the
+tip.  Dashed lines instead represent inheritance: the class at the tip
+of the arrow is derived from the class at the base.  Classes with a red
+boundary are not instantiated directly, but they represent the base
+classes for "styles".  Those "styles" make up the bulk of the LAMMPS
+code and only a few representative examples are included in the figure,
+so it remains readable.
 
 .. _class-topology:
 .. figure:: JPG/lammps-classes.png
 
    LAMMPS class topology
 
-   This figure shows some of the relations of the base classes of the
-   LAMMPS simulation package.  Full lines indicate that a class holds an
-   instance of the class it is pointing to; dashed lines point to
-   derived classes that are given as examples of what classes may be
-   instantiated during a LAMMPS run based on the input commands and
-   accessed through the API define by their respective base classes.  At
-   the core is the :cpp:class:`LAMMPS <LAMMPS_NS::LAMMPS>` class, which
-   holds pointers to class instances with specific purposes.  Those may
-   hold instances of other classes, sometimes directly, or only
-   temporarily, sometimes as derived classes or derived classes of
-   derived classes, which may also hold instances of other classes.
+      This figure shows relations of base classes of the LAMMPS
+      simulation package.  Full lines indicate that a class holds an
+      instance of the class it is pointing to; dashed lines point to
+      derived classes that are given as examples of what classes may be
+      instantiated during a LAMMPS run based on the input commands and
+      accessed through the API define by their respective base classes.
+      At the core is the :cpp:class:`LAMMPS <LAMMPS_NS::LAMMPS>` class,
+      which holds pointers to class instances with specific purposes.
+      Those may hold instances of other classes, sometimes directly, or
+      only temporarily, sometimes as derived classes or derived classes
+      of derived classes, which may also hold instances of other
+      classes.
 
 The :cpp:class:`LAMMPS_NS::LAMMPS` class is the topmost class and
-represents what is generally referred to an "instance" of LAMMPS.  It is
-a composite holding pointers to instances of other core classes
+represents what is generally referred to as an "instance of LAMMPS".  It
+is a composite holding pointers to instances of other core classes
 providing the core functionality of the MD engine in LAMMPS and through
 them abstractions of the required operations.  The constructor of the
 LAMMPS class will instantiate those instances, process the command line
@@ -102,42 +103,44 @@ LAMMPS while passing it the command line flags and input script. It
 deletes the LAMMPS instance after the method reading the input returns
 and shuts down the MPI environment before it exits the executable.
 
-The :cpp:class:`LAMMPS_NS::Pointers` is not shown in the
+The :cpp:class:`LAMMPS_NS::Pointers` class is not shown in the
 :ref:`class-topology` figure for clarity.  It holds references to many
 of the members of the `LAMMPS_NS::LAMMPS`, so that all classes derived
 from :cpp:class:`LAMMPS_NS::Pointers` have direct access to those
-reference.  From the class topology all classes with blue boundary are
+references.  From the class topology all classes with blue boundary are
 referenced in the Pointers class and all classes in the second and third
-columns, that are not listed as derived classes are instead derived from
-:cpp:class:`LAMMPS_NS::Pointers`.  To initialize the pointer references
-in Pointers, a pointer to the LAMMPS class instance needs to be passed
-to the constructor and thus all constructors for classes derived from it
-must do so and pass this pointer to the constructor for Pointers.
+columns, that are not listed as derived classes, are instead derived
+from :cpp:class:`LAMMPS_NS::Pointers`.  To initialize the pointer
+references in Pointers, a pointer to the LAMMPS class instance needs to
+be passed to the constructor. All constructors for classes derived from
+it, must do so and thus pass that pointer to the constructor for
+:cpp:class:`LAMMPS_NS::Pointers`.  The default constructor for
+:cpp:class:`LAMMPS_NS::Pointers` is disabled to enforce this.
 
 Since all storage is supposed to be encapsulated (there are a few
 exceptions), the LAMMPS class can also be instantiated multiple times by
-a calling code.  Outside of the aforementioned exceptions, those LAMMPS
+a calling code.  Outside the aforementioned exceptions, those LAMMPS
 instances can be used alternately.  As of the time of this writing
-(early 2021) LAMMPS is not yet sufficiently thread-safe for concurrent
+(early 2023) LAMMPS is not yet sufficiently thread-safe for concurrent
 execution.  When running in parallel with MPI, care has to be taken,
 that suitable copies of communicators are used to not create conflicts
 between different instances.
 
-The LAMMPS class currently (early 2021) holds instances of 19 classes
-representing the core functionality.  There are a handful of virtual
-parent classes in LAMMPS that define what LAMMPS calls ``styles``.  They
-are shaded red in the :ref:`class-topology` figure.  Each of these are
-parents of a number of child classes that implement the interface
-defined by the parent class.  There are two main categories of these
-``styles``: some may only have one instance active at a time (e.g. atom,
-pair, bond, angle, dihedral, improper, kspace, comm) and there is a
-dedicated pointer variable for each of them in the composite class.
+The LAMMPS class currently holds instances of 19 classes representing
+the core functionality.  There are a handful of virtual parent classes
+in LAMMPS that define what LAMMPS calls ``styles``.  These are shaded
+red in the :ref:`class-topology` figure.  Each of these are parents of a
+number of child classes that implement the interface defined by the
+parent class.  There are two main categories of these ``styles``: some
+may only have one instance active at a time (e.g. atom, pair, bond,
+angle, dihedral, improper, kspace, comm) and there is a dedicated
+pointer variable for each of them in the corresponding composite class.
 Setups that require a mix of different such styles have to use a
-*hybrid* class that takes the place of the one allowed instance and then
-manages and forwards calls to the corresponding sub-styles for the
-designated subset of atoms or data.  The composite class may also have
-lists of class instances, e.g. Modify handles lists of compute and fix
-styles, while Output handles a list of dump class instances.
+*hybrid* class instance that acts as a proxy, and manages and forwards
+calls to the corresponding sub-style class instances for the designated
+subset of atoms or data.  The composite class may also have lists of
+class instances, e.g. ``Modify`` handles lists of compute and fix
+styles, while ``Output`` handles a list of dump class instances.
 
 The exception to this scheme are the ``command`` style classes.  These
 implement specific commands that can be invoked before, after, or in
@@ -146,19 +149,19 @@ command() method called and then, after completion, the class instance
 deleted.  Examples for this are the create_box, create_atoms, minimize,
 run, set, or velocity command styles.
 
-For all those ``styles`` certain naming conventions are employed: for
+For all those ``styles``, certain naming conventions are employed: for
 the fix nve command the class is called FixNVE and the source files are
-``fix_nve.h`` and ``fix_nve.cpp``. Similarly for fix ave/time we have
+``fix_nve.h`` and ``fix_nve.cpp``. Similarly, for fix ave/time we have
 FixAveTime and ``fix_ave_time.h`` and ``fix_ave_time.cpp``.  Style names
 are lower case and without spaces or special characters. A suffix or
 words are appended with a forward slash '/' which denotes a variant of
 the corresponding class without the suffix.  To connect the style name
 and the class name, LAMMPS uses macros like: ``AtomStyle()``,
 ``PairStyle()``, ``BondStyle()``, ``RegionStyle()``, and so on in the
-corresponding header file.  During configuration or compilation files
+corresponding header file.  During configuration or compilation, files
 with the pattern ``style_<name>.h`` are created that consist of a list
 of include statements including all headers of all styles of a given
-type that are currently active (or "installed).
+type that are currently enabled (or "installed").
 
 
 More details on individual classes in the :ref:`class-topology` are as
@@ -172,8 +175,8 @@ follows:
   that one or multiple simulations can be run, on the processors
   allocated for a run, e.g. by the mpirun command.
 
-- The Input class reads and processes input input strings and files,
-  stores variables, and invokes :doc:`commands <Commands_all>`.
+- The Input class reads and processes input (strings and files), stores
+  variables, and invokes :doc:`commands <Commands_all>`.
 
 - Command style classes are derived from the Command class. They provide
   input script commands that perform one-time operations
@@ -192,7 +195,7 @@ follows:
 - The Atom class stores per-atom properties associated with atom styles.
   More precisely, they are allocated and managed by a class derived from
   the AtomVec class, and the Atom class simply stores pointers to them.
-  The classes derived from AtomVec represent the different atom styles
+  The classes derived from AtomVec represent the different atom styles,
   and they are instantiated through the :doc:`atom_style <atom_style>`
   command.
 
@@ -206,18 +209,22 @@ follows:
   class stores a single list (for all atoms).  A NeighRequest class
   instance is created by pair, fix, or compute styles when they need a
   particular kind of neighbor list and use the NeighRequest properties
-  to select the neighbor list settings for the given request. There can
-  be multiple instances of the NeighRequest class and the Neighbor class
-  will try to optimize how they are computed by creating copies or
-  sub-lists where possible.
+  to select the neighbor list settings for the given request.  There can
+  be multiple instances of the NeighRequest class. The Neighbor class
+  will try to optimize how the requests are processed.  Depending on the
+  NeighRequest properties, neighbor lists are constructed from scratch,
+  aliased, or constructed by post-processing an existing list into
+  sub-lists.
 
 - The Comm class performs inter-processor communication, typically of
   ghost atom information.  This usually involves MPI message exchanges
   with 6 neighboring processors in the 3d logical grid of processors
   mapped to the simulation box. There are two :doc:`communication styles
-  <comm_style>` enabling different ways to do the domain decomposition.
-  Sometimes the Irregular class is used, when atoms may migrate to
-  arbitrary processors.
+  <comm_style>`, enabling different ways to perform the domain
+  decomposition.
+
+- The Irregular class is used, when atoms may migrate to arbitrary
+  processors.
 
 - The Domain class stores the simulation box geometry, as well as
   geometric Regions and any user definition of a Lattice.  The latter
@@ -225,7 +232,7 @@ follows:
   commands in an input script.
 
 - The Force class computes various forces between atoms.  The Pair
-  parent class is for non-bonded or pair-wise forces, which in LAMMPS
+  parent class is for non-bonded or pairwise forces, which in LAMMPS
   also includes many-body forces such as the Tersoff 3-body potential if
   those are computed by walking pairwise neighbor lists.  The Bond,
   Angle, Dihedral, Improper parent classes are styles for bonded
@@ -246,17 +253,11 @@ follows:
   file, dump file snapshots, and restart files.  These correspond to the
   :doc:`Thermo <thermo_style>`, :doc:`Dump <dump>`, and
   :doc:`WriteRestart <write_restart>` classes respectively.  The Dump
-  class is a base class with several derived classes implementing
+  class is a base class, with several derived classes implementing
   various dump style variants.
 
 - The Timer class logs timing information, output at the end
   of a run.
-
-.. TODO section on "Spatial decomposition and parallel operations"
-..       diagram of 3d processor grid, brick vs. tiled. local vs. ghost
-..       atoms, 6-way communication with pack/unpack functions,
-..       PBC as part of the communication, forward and reverse communication
-..       rendezvous communication, ring communication.
 
 .. TODO section on "Fixes, Computes, and Variables"
 ..      how and when data is computed and provided and how it is

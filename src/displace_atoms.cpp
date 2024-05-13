@@ -2,7 +2,7 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    https://www.lammps.org/, Sandia National Laboratories
-   Steve Plimpton, sjplimp@sandia.gov
+   LAMMPS development team: developers@lammps.org
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
@@ -37,13 +37,14 @@
 #include <cstring>
 
 using namespace LAMMPS_NS;
-using namespace MathConst;
+using MathConst::DEG2RAD;
+using MathConst::MY_2PI;
 
 enum{MOVE,RAMP,RANDOM,ROTATE};
 
 /* ---------------------------------------------------------------------- */
 
-DisplaceAtoms::DisplaceAtoms(LAMMPS *lmp) : Command(lmp)
+DisplaceAtoms::DisplaceAtoms(LAMMPS *_lmp) : Command(_lmp)
 {
   mvec = nullptr;
 }
@@ -159,7 +160,7 @@ void DisplaceAtoms::command(int narg, char **arg)
     int *mask = atom->mask;
     int nlocal = atom->nlocal;
 
-    double fraction,dramp;
+    double fraction, dramp;
 
     for (i = 0; i < nlocal; i++) {
       if (mask[i] & groupbit) {
@@ -176,7 +177,7 @@ void DisplaceAtoms::command(int narg, char **arg)
   // makes atom result independent of what proc owns it via random->reset()
 
   if (style == RANDOM) {
-    RanPark *random = new RanPark(lmp,1);
+    auto random = new RanPark(lmp,1);
 
     double dx = xscale*utils::numeric(FLERR,arg[2],false,lmp);
     double dy = yscale*utils::numeric(FLERR,arg[3],false,lmp);
@@ -235,7 +236,7 @@ void DisplaceAtoms::command(int narg, char **arg)
     runit[1] = axis[1]/len;
     runit[2] = axis[2]/len;
 
-    double angle = MY_PI*theta/180.0;
+    double angle = DEG2RAD*theta;
     double cosine = cos(angle);
     double sine = sin(angle);
 
@@ -254,21 +255,22 @@ void DisplaceAtoms::command(int narg, char **arg)
     int line_flag = atom->line_flag;
     int tri_flag = atom->tri_flag;
     int body_flag = atom->body_flag;
+    int quat_atom_flag = atom->quat_flag;
 
     int theta_flag = 0;
     int quat_flag = 0;
     if (line_flag) theta_flag = 1;
-    if (ellipsoid_flag || tri_flag || body_flag) quat_flag = 1;
+    if (ellipsoid_flag || tri_flag || body_flag || quat_atom_flag) quat_flag = 1;
 
     // AtomVec pointers to retrieve per-atom storage of extra quantities
 
-    AtomVecEllipsoid *avec_ellipsoid =
-      (AtomVecEllipsoid *) atom->style_match("ellipsoid");
-    AtomVecLine *avec_line = (AtomVecLine *) atom->style_match("line");
-    AtomVecTri *avec_tri = (AtomVecTri *) atom->style_match("tri");
-    AtomVecBody *avec_body = (AtomVecBody *) atom->style_match("body");
+    auto avec_ellipsoid = dynamic_cast<AtomVecEllipsoid *>(atom->style_match("ellipsoid"));
+    auto avec_line = dynamic_cast<AtomVecLine *>(atom->style_match("line"));
+    auto avec_tri = dynamic_cast<AtomVecTri *>(atom->style_match("tri"));
+    auto avec_body = dynamic_cast<AtomVecBody *>(atom->style_match("body"));
 
     double **x = atom->x;
+    double **quat_atom = atom->quat;
     int *ellipsoid = atom->ellipsoid;
     int *line = atom->line;
     int *tri = atom->tri;
@@ -313,7 +315,7 @@ void DisplaceAtoms::command(int narg, char **arg)
 
         // quats for ellipsoids, tris, and bodies
 
-        if (quat_flag) {
+        if (quat_flag && !quat_atom_flag) {
           quat = nullptr;
           if (ellipsoid_flag && ellipsoid[i] >= 0)
             quat = avec_ellipsoid->bonus[ellipsoid[i]].quat;
@@ -322,12 +324,18 @@ void DisplaceAtoms::command(int narg, char **arg)
           else if (body_flag && body[i] >= 0)
             quat = avec_body->bonus[body[i]].quat;
           if (quat) {
-            MathExtra::quatquat(qrotate,quat,qnew);
+            MathExtra::quatquat(qrotate, quat, qnew);
             quat[0] = qnew[0];
             quat[1] = qnew[1];
             quat[2] = qnew[2];
             quat[3] = qnew[3];
           }
+        } else if (quat_atom_flag) {
+          MathExtra::quatquat(qrotate, quat_atom[i], qnew);
+          quat_atom[i][0] = qnew[0];
+          quat_atom[i][1] = qnew[1];
+          quat_atom[i][2] = qnew[2];
+          quat_atom[i][3] = qnew[3];
         }
       }
     }
@@ -344,7 +352,7 @@ void DisplaceAtoms::command(int narg, char **arg)
 
   if (domain->triclinic) domain->x2lamda(atom->nlocal);
   domain->reset_box();
-  Irregular *irregular = new Irregular(lmp);
+  auto irregular = new Irregular(lmp);
   irregular->migrate_atoms(1);
   delete irregular;
   if (domain->triclinic) domain->lamda2x(atom->nlocal);

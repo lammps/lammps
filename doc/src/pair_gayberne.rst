@@ -44,14 +44,15 @@ ellipsoidal and spherical particle via the formulas
    U_r = & 4 \epsilon ( \varrho^{12} - \varrho^6) \\
    \varrho = & \frac{\sigma}{ h_{12} + \gamma \sigma}
 
-where A1 and A2 are the transformation matrices from the simulation box
-frame to the body frame and :math:`r_{12}` is the center to center
-vector between the particles.  :math:`U_r` controls the shifted distance
-dependent interaction based on the distance of closest approach of the
-two particles (:math:`h_{12}`) and the user-specified shift parameter
-gamma.  When both particles are spherical, the formula reduces to the
-usual Lennard-Jones interaction (see details below for when Gay-Berne
-treats a particle as "spherical").
+where :math:`\mathbf{A}_1` and :math:`\mathbf{A}_2` are the
+transformation matrices from the simulation box frame to the body frame
+and :math:`r_{12}` is the center to center vector between the particles.
+:math:`U_r` controls the shifted distance dependent interaction based on
+the distance of closest approach of the two particles (:math:`h_{12}`)
+and the user-specified shift parameter :math:`\gamma`.  When both
+particles are spherical, the formula reduces to the usual Lennard-Jones
+interaction (see details below for when Gay-Berne treats a particle as
+"spherical").
 
 For large uniform molecules it has been shown that the energy
 parameters are approximately representable in terms of local contact
@@ -74,8 +75,9 @@ listed below and in `this supplementary document <PDF/pair_gayberne_extra.pdf>`_
 
 Use of this pair style requires the NVE, NVT, or NPT fixes with the
 *asphere* extension (e.g. :doc:`fix nve/asphere <fix_nve_asphere>`) in
-order to integrate particle rotation.  Additionally, :doc:`atom_style ellipsoid <atom_style>` should be used since it defines the
-rotational state and the size and shape of each ellipsoidal particle.
+order to integrate particle rotation.  Additionally, :doc:`atom_style
+ellipsoid <atom_style>` should be used since it defines the rotational
+state and the size and shape of each ellipsoidal particle.
 
 The following coefficients must be defined for each pair of atoms
 types via the :doc:`pair_coeff <pair_coeff>` command as in the examples
@@ -116,7 +118,7 @@ atom type J.  If all three epsilon_j values are zero, they are ignored.
 Thus the typical way to define the :math:`\epsilon_i` and
 :math:`\epsilon_j` coefficients is to list their values in "pair_coeff
 I J" commands when I = J, but set them to 0.0 when I != J.  If you do
-list them when I != J, you should insure they are consistent with their
+list them when I != J, you should ensure they are consistent with their
 values in other pair_coeff commands, since only the last setting will
 be in effect.
 
@@ -124,12 +126,12 @@ Note that if this potential is being used as a sub-style of
 :doc:`pair_style hybrid <pair_hybrid>`, and there is no "pair_coeff I I"
 setting made for Gay-Berne for a particular type I (because I-I
 interactions are computed by another hybrid pair potential), then you
-still need to insure the :math:`\epsilon` a,b,c coefficients are assigned to
+still need to ensure the :math:`\epsilon` a,b,c coefficients are assigned to
 that type. e.g. in a "pair_coeff I J" command.
 
 .. note::
 
-   If the :math:`\epsilon` a = b = c for an atom type, and if the shape
+   If the :math:`\epsilon_{a}` = :math:`\epsilon_{b}` = :math:`\epsilon_{c}` for an atom type, and if the shape
    of the particle itself is spherical, meaning its 3 shape parameters
    are all the same, then the particle is treated as an LJ sphere by the
    Gay-Berne potential.  This is significant because if two LJ spheres
@@ -137,7 +139,7 @@ that type. e.g. in a "pair_coeff I J" command.
    their interaction energy/force using the specified epsilon and sigma
    as the standard LJ parameters.  This is much cheaper to compute than
    the full Gay-Berne formula.  To treat the particle as a LJ sphere
-   with sigma = D, you should normally set :math:`\epsilon` a = b = c =
+   with sigma = D, you should normally set :math:`\epsilon_{a}` = :math:`\epsilon_{b}` = :math:`\epsilon_{c}` =
    1.0, set the pair_coeff :math:`\sigma = D`, and also set the 3 shape
    parameters for the particle to D.  The one exception is that if the 3
    shape parameters are set to 0.0, which is a valid way in LAMMPS to
@@ -178,7 +180,7 @@ to be specified in an input script that reads a restart file.
 
 This pair style can only be used via the *pair* keyword of the
 :doc:`run_style respa <run_style>` command.  It does not support the
-*inner*\ , *middle*\ , *outer* keywords.
+*inner*, *middle*, *outer* keywords.
 
 ----------
 
@@ -186,7 +188,7 @@ Restrictions
 """"""""""""
 
 The *gayberne* style is part of the ASPHERE package.  It is only
-enabled if LAMMPS was built with that package.  See the :doc:`Build package <Build_package>` doc page for more info.
+enabled if LAMMPS was built with that package.  See the :doc:`Build package <Build_package>` page for more info.
 
 These pair styles require that atoms store torque and a quaternion to
 represent their orientation, as defined by the

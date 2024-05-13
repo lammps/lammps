@@ -1,2 +1,4 @@
 let mysyntaxfile = "~/.vim/mysyntax.vim"
 syntax on
+" do not create <TAB> characters
+set expandtab

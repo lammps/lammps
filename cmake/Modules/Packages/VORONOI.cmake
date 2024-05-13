@@ -26,6 +26,11 @@ if(DOWNLOAD_VORO)
     set(VORO_BUILD_OPTIONS CXX=${CMAKE_CXX_COMPILER} CFLAGS=${VORO_BUILD_CFLAGS})
   endif()
 
+  find_program(HAVE_PATCH patch)
+  if(NOT HAVE_PATCH)
+    message(FATAL_ERROR "The 'patch' program is required to build the voro++ library")
+  endif()
+
   ExternalProject_Add(voro_build
     URL     ${VORO_URL}
     URL_MD5 ${VORO_MD5}

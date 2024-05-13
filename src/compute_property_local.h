@@ -1,7 +1,7 @@
 /* -*- c++ -*- ----------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    https://www.lammps.org/, Sandia National Laboratories
-   Steve Plimpton, sjplimp@sandia.gov
+   LAMMPS development team: developers@lammps.org
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
@@ -27,11 +27,11 @@ namespace LAMMPS_NS {
 class ComputePropertyLocal : public Compute {
  public:
   ComputePropertyLocal(class LAMMPS *, int, char **);
-  ~ComputePropertyLocal();
-  void init();
-  void init_list(int, class NeighList *);
-  void compute_local();
-  double memory_usage();
+  ~ComputePropertyLocal() override;
+  void init() override;
+  void init_list(int, class NeighList *) override;
+  void compute_local() override;
+  double memory_usage() override;
 
  private:
   int nvalues, kindflag, cutstyle;
@@ -87,43 +87,3 @@ class ComputePropertyLocal : public Compute {
 
 #endif
 #endif
-
-/* ERROR/WARNING messages:
-
-E: Illegal ... command
-
-Self-explanatory.  Check the input script syntax and compare to the
-documentation for the command.  You can use -echo screen as a
-command-line option when running LAMMPS to see the offending line.
-
-E: Compute property/local cannot use these inputs together
-
-Only inputs that generate the same number of datums can be used
-together.  E.g. bond and angle quantities cannot be mixed.
-
-E: Compute property/local does not (yet) work with atom_style template
-
-Self-explanatory.
-
-E: Compute property/local for property that isn't allocated
-
-Self-explanatory.
-
-E: Compute property/local requires atom attribute radius
-
-UNDOCUMENTED
-
-E: No pair style is defined for compute property/local
-
-Self-explanatory.
-
-E: Pair style does not support compute property/local
-
-The pair style does not have a single() function, so it can
-not be invoked by fix bond/swap.
-
-U: Invalid keyword in compute property/local command
-
-Self-explanatory.
-
-*/

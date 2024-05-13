@@ -35,39 +35,32 @@ The reference article is:
 The Colvars library can be built for the most part with all major versions of
 the C++ language.
 
-A few of the most recent features require C++11 support.  In particular, the
-library is optionally built together with the
-"Lepton"_https://simtk.org/projects/lepton library, a copy of which is also
-included in the LAMMPS distribution.  Lepton implements the
-"customFunction"_http://colvars.github.io/colvars-refman-lammps/colvars-refman-lammps.html#colvar|customFunction
-feature, and requires C++11 support.
-
-See "here"_https://colvars.github.io/README-c++11.html for a detailed list of
-C++11-only features.
-
+A few of the most recent features require C++11 support, which is also required
+by LAMMPS, so no additional notes are needed.
 
 ## How to build (CMake)
 
 This is the recommended build recipe: no additional settings are normally
-needed besides "-D PKG_USER-COLVARS=yes".
+needed besides "-D PKG_COLVARS=yes".
 
-Building and linking of Lepton (or other C++11-only features) is enabled
-automatically when compilation is carried out with C++11 support, and disabled
-otherwise.  Optionally, Lepton build may be manually controlled with the flag
-"-D COLVARS_LEPTON=yes|no".
-
+Linking to the Lepton library, which is also used by the LEPTON LAMMPS package,
+is enabled automatically.  Optionally, support for Lepton within Colvars may
+be manually controlled with the￼CMake setting "-D COLVARS_LEPTON=yes|no".
 
 ## How to build (traditional make)
 
-Before building LAMMPS, one must build the Colvars library in lib/colvars.
+Before building LAMMPS, one must build the Colvars library in lib/colvars
+and the Lepton library in lib/lepton.  For building Lepton please see the
+README.md file in the lib/lepton folder.
 
-This can be done manually in the same folder by using or adapting one of the
-provided Makefiles: for example, Makefile.g++ for the GNU compiler.
+Building the Colvars library can be done manually in the respective
+folders by using or adapting one of the provided Makefiles: for example,
+Makefile.g++ for the GNU compiler.
 
 In general, it is safer to use build setting consistent with the rest of
 LAMMPS.  This is best carried out from the LAMMPS src directory using a
-command like these, which simply invoke the lib/colvars/Install.py script with
-the specified args:
+command like these, which simply invoke the lib/colvars/Install.py script
+with the specified args:
 
 make lib-colvars                      # print help message
 make lib-colvars args="-m serial"     # build with GNU g++ compiler (settings as with "make serial")

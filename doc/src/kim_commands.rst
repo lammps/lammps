@@ -29,15 +29,16 @@ Examples
 Description
 """""""""""
 
-The *kim command* includes a set of sub-commands that allow LAMMPS users to use
-interatomic models (IM) (potentials and force fields) and their predictions for
-various physical properties archived in the
-`Open Knowledgebase of Interatomic Models (OpenKIM) <https://openkim.org>`_
-repository.
+The *kim command* includes a set of sub-commands that allow LAMMPS
+users to use interatomic models (IM) (potentials and force fields) and
+their predictions for various physical properties archived in the
+`Open Knowledgebase of Interatomic Models (OpenKIM)
+<https://openkim.org>`_ repository.
 
-Using OpenKIM provides LAMMPS users with immediate access to a large number of
-verified IMs and their predictions. OpenKIM IMs have multiple benefits including
-`reliability, reproducibility and convenience <https://openkim.org/doc/overview/kim-features/>`_.
+Using OpenKIM provides LAMMPS users with immediate access to a large
+number of verified IMs and their predictions. OpenKIM IMs have
+multiple benefits including `reliability, reproducibility and
+convenience <https://openkim.org/doc/overview/kim-features/>`_.
 
 .. _IM_types:
 
@@ -372,9 +373,9 @@ the *kim interactions* command executes the following LAMMPS input commands:
 
 .. code-block:: LAMMPS
 
-   pair_style reax/c lmp_control safezone 2.0 mincap 100
+   pair_style reaxff lmp_control safezone 2.0 mincap 100
    pair_coeff * * ffield.reax.rdx C H N O
-   fix reaxqeq all qeq/reax 1 0.0 10.0 1.0e-6 param.qeq
+   fix reaxqeq all qeq/reaxff 1 0.0 10.0 1.0e-6 param.qeq
 
 .. note::
 
@@ -476,7 +477,7 @@ performed.
 The second required argument *query_function* is the name of the query function
 to be called (e.g.  *get_lattice_constant_cubic*\ ).  All following
 :doc:`arguments <Commands_parse>` are parameters handed over to the web query in
-the format *keyword=value*\ , where *value* is always an array of one or more
+the format *keyword=value*, where *value* is always an array of one or more
 comma-separated items in brackets.  The list of supported keywords and the type
 and format of their values depend on the query function used.  The current list
 of query functions is available on the OpenKIM webpage at
@@ -980,7 +981,7 @@ In the last example, "new-property.edn" and
 "/home/mary/marys-kim-properties/dissociation-energy.edn" are the names of files
 that contain user-defined (local) property definitions.
 
-A KIM property instance takes the form of a "map," i.e. a set of key-value
+A KIM property instance takes the form of a "map", i.e. a set of key-value
 pairs akin to Perl's hash, Python's dictionary, or Java's Hashtable.  It
 consists of a set of property key names, each of which is referred to here by
 the *key_name* argument, that are defined as part of the relevant KIM Property
@@ -1332,13 +1333,13 @@ For example,
 Citation of OpenKIM IMs
 """""""""""""""""""""""
 
-When publishing results obtained using OpenKIM IMs researchers are requested
-to cite the OpenKIM project :ref:`(Tadmor) <kim-mainpaper>`, KIM API
-:ref:`(Elliott) <kim-api>`, and the specific IM codes used in the simulations,
-in addition to the relevant scientific references for the IM. The citation
-format for an IM is displayed on its page on
-`OpenKIM <https://openkim.org>`_ along with the corresponding BibTex file, and
-is automatically added to the LAMMPS citation reminder.
+When publishing results obtained using OpenKIM IMs researchers are
+requested to cite the OpenKIM project :ref:`(Tadmor) <kim-mainpaper>`,
+KIM API :ref:`(Elliott) <kim-api>`, and the specific IM codes used in
+the simulations, in addition to the relevant scientific references for
+the IM. The citation format for an IM is displayed on its page on
+`OpenKIM <https://openkim.org>`_ along with the corresponding BibTex
+file, and is automatically added to the LAMMPS citation reminder.
 
 Citing the IM software (KIM infrastructure and specific PM or SM codes) used in
 the simulation gives credit to the researchers who developed them and enables
@@ -1347,15 +1348,15 @@ open source efforts like OpenKIM to function.
 Restrictions
 """"""""""""
 
-The *kim* command is part of the KIM package.  It is only enabled if LAMMPS is
-built with that package.  A requirement for the KIM package, is the KIM API
-library that must be downloaded from the
-`OpenKIM website <https://openkim.org/kim-api/>`_ and installed before LAMMPS is
+The *kim* command is part of the KIM package.  It is only enabled if
+LAMMPS is built with that package.  A requirement for the KIM package,
+is the KIM API library that must be downloaded from the `OpenKIM website
+<https://openkim.org/kim-api/>`_ and installed before LAMMPS is
 compiled.  When installing LAMMPS from binary, the kim-api package is a
-dependency that is automatically downloaded and installed.  The *kim query*
-command requires the *libcurl* library to be installed.  The *kim property*
-command requires *Python* 3.6 or later and the *kim-property* python package to
-be installed.  See the KIM section of the
+dependency that is automatically downloaded and installed.  The *kim
+query* command requires the *libcurl* library to be installed.  The *kim
+property* command requires *Python* 3.6 or later and the *kim-property*
+python package to be installed.  See the KIM section of the
 :doc:`Packages details <Packages_details>` for details.
 
 Furthermore, when using *kim* command to run KIM SMs, any packages required by

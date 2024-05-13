@@ -60,7 +60,7 @@ lmp.command("thermo_style custom step v_emin v_elast pe")
 lmp.command("run 0")
 x = lmp.extract_atom("x")
 lmp.command("variable elast equal $e")
-  
+
 estart = lmp.extract_compute("thermo_pe", LMP_STYLE_GLOBAL, LAMMPS_INT) / natoms
 
 # loop over Monte Carlo moves
@@ -92,7 +92,7 @@ for i in range(nloop):
   else:
     x[iatom][0] = x0
     x[iatom][1] = y0
-    
+
 # final energy and stats
 
 lmp.command("variable nbuild equal nbuild")

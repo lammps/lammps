@@ -6,7 +6,7 @@ compute cna/atom command
 Syntax
 """"""
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    compute ID group-ID cna/atom cutoff
 
@@ -43,21 +43,23 @@ compute group.  Note that normally a CNA calculation should only be
 performed on mono-component systems.
 
 The CNA calculation can be sensitive to the specified cutoff value.
-You should insure the appropriate nearest neighbors of an atom are
-found within the cutoff distance for the presumed crystal structure.
-E.g. 12 nearest neighbor for perfect FCC and HCP crystals, 14 nearest
-neighbors for perfect BCC crystals.  These formulas can be used to
+You should ensure the appropriate nearest neighbors of an atom are
+found within the cutoff distance for the presumed crystal structure
+(e.g., 12 nearest neighbor for perfect FCC and HCP crystals, 14 nearest
+neighbors for perfect BCC crystals).  These formulas can be used to
 obtain a good cutoff distance:
 
 .. math::
 
-  r_{c}^{fcc} = & \frac{1}{2} \left(\frac{\sqrt{2}}{2} + 1\right) \mathrm{a} \simeq 0.8536 \:\mathrm{a} \\
-  r_{c}^{bcc} = & \frac{1}{2}(\sqrt{2} + 1) \mathrm{a} \simeq 1.207 \:\mathrm{a} \\
-  r_{c}^{hcp} = & \frac{1}{2}\left(1+\sqrt{\frac{4+2x^{2}}{3}}\right) \mathrm{a}
+  r_{c}^{\mathrm{fcc}} = & \frac{1}{2} \left(\frac{\sqrt{2}}{2} + 1\right) a
+    \approx 0.8536 a \\
+  r_{c}^{\mathrm{bcc}} = & \frac{1}{2}(\sqrt{2} + 1) a
+    \approx 1.207 a \\
+  r_{c}^{\mathrm{hcp}} = & \frac{1}{2}\left(1+\sqrt{\frac{4+2x^{2}}{3}}\right) a
 
-where a is the lattice constant for the crystal structure concerned
-and in the HCP case, x = (c/a) / 1.633, where 1.633 is the ideal c/a
-for HCP crystals.
+where :math:`a` is the lattice constant for the crystal structure concerned
+and in the HCP case, :math:`x = (c/a) / 1.633`, where 1.633 is the ideal
+:math:`c/a` for HCP crystals.
 
 Also note that since the CNA calculation in LAMMPS uses the neighbors
 of an owned atom to find the nearest neighbors of a ghost atom, the
@@ -84,7 +86,7 @@ Output info
 
 This compute calculates a per-atom vector, which can be accessed by
 any command that uses per-atom values from a compute as input.  See
-the :doc:`Howto output <Howto_output>` doc page for an overview of
+the :doc:`Howto output <Howto_output>` page for an overview of
 LAMMPS output options.
 
 The per-atom vector values will be a number from 0 to 5, as explained

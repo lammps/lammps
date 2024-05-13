@@ -1,0 +1,46 @@
+This folder contains some example data and input scripts for the DIELECTRIC package. Please refer to the following reference for more details:
+
+Nguyen TD, Li H, Bagchi D, Solis FJ, Olvera de la Cruz, Incorporating surface polarization effects into large-scale coarse-grained molecular dynamics simulation, Computer Physics Communications 2019, 241, 80--91.
+
+- data.confined  :  two point opposite charges confined between two interfaces (epsilon2=2/epsilon1=10/epsilon2=2)
+- data.sphere    :  two point opposite charges outside a spherical interface (epsilon_in=1/epsilon2=10)
+
+- in.confined    :  read in data.confined
+- in.nopbc       :  read in data.* files, using non-periodic boundary conditions, with a large cutoff
+
+For "atom_style  dielectric" the Atoms section in the data file contains 15 following columns:
+
+id mol type q x y z normx normy normz area/patch ed em epsilon curvature
+
+where 
+
+* id, mol, type, q, x, y and z are similar to those in atom_style full
+
+* normx, normy and normz are the three components of the normal unit vector
+  of the interface at the boundary element (also called vertex, or patch).
+  For real charges (ions), these 3 values are irrelevant,
+  and can be anything (e.g. 0,0,1). normx, normy, and normz can be
+  accessed through mux, muy and muz as if they were dipole components.
+
+* ed = dielectric difference at the vertex along the normal vector direction.
+  For example, if (normx,normy,normz) points from medium with epsilon_in
+  to medium with epsilon_out, then ed = epsilon_out - epsilon_in
+
+* em = (epsilon_out + epsilon_in)/2: the mean dielectric value
+
+* epsilon = the local epsilon value at the vertex or at the ion.
+  For real charges, epsilon is the medium dielectric constant, 
+  and q is the real (unscaled) charges.
+  For interface particles, epsilon is set to be em
+    (the mean dielectric value above).
+
+* area/patch: the surface area of the patch (element).
+  For real charges, this value is irrelevant, can be 1.0.
+
+* curvature: surface mean curvature at the patch.
+  For example, for spherical interfaces, curvature = 1/spherical radius.
+  For planar interfaces, curvature = 0.
+
+Note that the properties normx, normy, normz, area/patch, ed, em, and curvature are not 
+used for the non-interface beads. epsilon is used to scale the charge of any non-interface
+ion, see the documentation for pair styles with the dielectric suffix and fix polarize.

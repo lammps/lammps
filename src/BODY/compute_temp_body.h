@@ -1,7 +1,7 @@
 /* -*- c++ -*- ----------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    https://www.lammps.org/, Sandia National Laboratories
-   Steve Plimpton, sjplimp@sandia.gov
+   LAMMPS development team: developers@lammps.org
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
@@ -27,14 +27,14 @@ namespace LAMMPS_NS {
 class ComputeTempBody : public Compute {
  public:
   ComputeTempBody(class LAMMPS *, int, char **);
-  ~ComputeTempBody();
-  void init();
-  void setup();
-  double compute_scalar();
-  void compute_vector();
+  ~ComputeTempBody() override;
+  void init() override;
+  void setup() override;
+  double compute_scalar() override;
+  void compute_vector() override;
 
-  void remove_bias(int, double *);
-  void restore_bias(int, double *);
+  void remove_bias(int, double *) override;
+  void restore_bias(int, double *) override;
 
  private:
   int mode;
@@ -50,43 +50,3 @@ class ComputeTempBody : public Compute {
 
 #endif
 #endif
-
-/* ERROR/WARNING messages:
-
-E: Illegal ... command
-
-Self-explanatory.  Check the input script syntax and compare to the
-documentation for the command.  You can use -echo screen as a
-command-line option when running LAMMPS to see the offending line.
-
-E: Compute temp/body requires atom style body
-
-Self-explanatory.
-
-E: Compute temp/body requires bodies
-
-This compute can only be applied to body particles.
-
-E: Could not find compute ID for temperature bias
-
-Self-explanatory.
-
-E: Bias compute does not calculate temperature
-
-The specified compute must compute temperature.
-
-E: Bias compute does not calculate a velocity bias
-
-The specified compute must compute a bias for temperature.
-
-E: Bias compute group does not match compute group
-
-The specified compute must operate on the same group as the parent
-compute.
-
-E: Temperature compute degrees of freedom < 0
-
-This should not happen if you are calculating the temperature
-on a valid set of atoms.
-
-*/

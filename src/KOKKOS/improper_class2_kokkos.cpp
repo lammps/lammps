@@ -2,7 +2,7 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    https://www.lammps.org/, Sandia National Laboratories
-   Steve Plimpton, sjplimp@sandia.gov
+   LAMMPS development team: developers@lammps.org
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
@@ -27,8 +27,7 @@
 
 using namespace LAMMPS_NS;
 
-#define TOLERANCE 0.05
-#define SMALL     0.001
+static constexpr double SMALL =     0.001;
 
 /* ---------------------------------------------------------------------- */
 
@@ -280,10 +279,10 @@ void ImproperClass2Kokkos<DeviceType>::operator()(TagImproperClass2Compute<NEWTO
 
     /*
     if ((c > 1.0 + TOLERANCE || c < (-1.0 - TOLERANCE)) && !d_warning_flag())
-      Kokkos::atomic_fetch_add(&d_warning_flag(),1);
+      d_warning_flag() = 1;
     */
     if ((costheta[0] == -1.0 || costheta[1] == -1.0 || costheta[2] == -1.0) && !d_warning_flag())
-      Kokkos::atomic_fetch_add(&d_warning_flag(),1);
+      d_warning_flag() = 1;
 
     if (c > 1.0) c = 1.0;
     if (c < -1.0) c = -1.0;

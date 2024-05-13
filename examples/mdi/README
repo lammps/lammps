@@ -1,0 +1,194 @@
+These are examples that work the MDI package in LAMMPS which uses the
+MolSSI MDI library for coupling codes together and communicating
+between them with MDI messages.
+
+There are more examples of using LAMMPS with quantum codes via MDI in
+the examples/QUANTUM directory.
+
+Within the MDI context, one code is the driver and another code is the
+engine.  The 2 codes can be written in any language; C++ (LAMMPS) and
+Python are illustrated here.  The 2 codes can each be stand-alone
+codes, in which case they can be run on different numbers of
+processors.  The 2 codes can communicate either via TCP (sockets) or
+via MPI.  For the TCP case, the driver and engine need to be launched
+separately, e.g. in 2 windows on your desktop machine.  For the MPI
+case, a single mpirun command launches both codes.
+
+Alternatively the engine code can be a plugin library which the driver
+code loads, in which case the driver and engine run on the same
+processors.
+
+LAMMPS supports operating in all these MDI modes.  It can be an engine
+operating either as a stand-alone code or as a plugin.  It can also be
+a driver and couple to an engine that is either a stand-alone code or
+a plugin.
+
+Examples for all these use cases, using LAMMPS as a driver and as an
+engine are in this directory.  The Run.sh file shows how run in all
+the modes.  Type "sh Run.sh" to try them all out.
+
+Examples for using LAMMPS as a driver with the tight-binding code LATTE
+are in the examples/QUANTUM/LATTE sub-directory.  See its README file
+for more info.
+
+-------------------------------------------------
+
+Here is how to build LAMMPS with MDI support.  Both as an executable
+and a shared library.  The former is needed to use LAMMPS as an MDI
+driver or as an MDI engine in stand-alone mode.  The latter is needed
+to use LAMMPS as an MDI engine in plugin mode.
+
+Build via regular make:
+
+% cd lammps/src
+% make lib-mdi args="-m mpi"    # download, install MDI in lib/mdi w/ MPI support
+% make yes-mdi                  # include MDI package in LAMMPS build
+% make mode=shlib mpi           # creates lmp_mpi and liblammps.so
+
+Build via CMake:
+
+cd lammps
+mkdir build; cd build
+cmake -D PKG_MDI=yes -D BUILD_SHARED_LIBS=yes ../cmake
+make                            # creates lmp and liblammps.so
+
+Both of these build procedures build LAMMPS both as an executable
+(lmp_mpi) and as a shared library (liblammps.so).
+
+-------------------------------------------------
+
+Examples 4 and 5 use Python scripts as MDI drivers.  For this you will
+need Python 3 with Numpy and mpi4py installed.  Make sure LAMMPS and
+Python/mpi4py are using same the same version of MPI.
+
+You will also need MDI installed in your Python. You cannot use the
+LAMMPS build of the MDI library for this, b/c LAMMPS builds MDI as a
+static library, while Python requires a shared library.
+
+Instead you can install MDI in your Python via conda:
+
+% conda install -c conda-forge pymdi=1.4.16
+
+or via pip:
+
+% pip install 'pymdi>=1.4.14'
+
+It is likely fine to leave off the version number, to get the latest
+MDI version.  1.4.16 is the version LAMMPS is currently using.
+
+-------------------------------------------------
+
+5 example use-cases are explained below.
+
+In the first 3 examples, results running with MDI should be identical
+to running without MDI (alone log files).  Example #4 has no non-MDI
+run.  Example #5 results should match the non-MDI run of example #1.
+
+-------------------------------------------------
+
+* Example #1 = run ab initio MD (AIMD)
+
+Two instances of LAMMPS operate as a driver and engine.  As an engine,
+LAMMPS is a surrogate for a quantum code.
+
+You can compare the thermo output in log.aimd.alone.1 to the thermo output in
+any of the log.aimd.driver* files.  It should be identical.
+
+Note that the "alone" and "driver" input scripts have options for
+running in NVE vs NPT Comment in/out the appropriate line to make
+change.  Nothing needs to be changed in the "engine" scripts.
+
+-------------------------------------------------
+-------------------------------------------------
+
+* Example #2 = run LAMMPS, compute QM forces on snapshots from a long run
+
+Two instances of LAMMPS operate as a driver and engine. As an engine,
+LAMMPS is a surrogate for a quantum code
+
+You can compare the thermo output in log.snapshot.alone.1 to the
+thermo output in any of the log.snapshot.driver* files.  It should be
+identical.
+
+You can compare the dumped forces in dump.snapshot.alone.1 to the
+forces in any of the dump.snapshot.* files.  They should be identical,
+although at step 0 the forces are "zero" and may be epsilon different.
+
+-------------------------------------------------
+-------------------------------------------------
+
+* Example #3 = run LAMMPS, compute QM forces on series of independent systems
+
+Two instances of LAMMPS operate as a driver and engine.  As an engine,
+LAMMPS is a surrogate for a quantum code
+
+You can compare the thermo output in log.series.alone.1 to the thermo
+output in any of the log.series.driver* files.  It should be
+identical.
+
+You can compare the dumped forces in dump.series.alone.1 to the forces
+in any of the dump.series.* files.  They should be identical,
+
+-------------------------------------------------
+-------------------------------------------------
+
+* Example #4 = Python driver runs a sequence of unrelated LAMMPS calculations
+
+Each calculation can be a single-point evaluation, MD run, or
+minimization
+
+The sequence_driver.py code allows for optional switches in addition
+to -mdi (required) and the -plugin and -plugin_args switches which are
+used to link to an engine as a plugin library.  The example run
+commands below just use the default values of the optional switches.
+The switches are also explained at the top of the file; the info is
+copied here:
+
+#   -n 3
+#     number of calculations to perform, default = 3
+#   -mode eval/run/min
+#     style of calculations: single snapshot evals, dynamics, minimization
+#     default = run
+#   -size Nx Ny Nz
+#     cubic lattice, default = 2 2 2
+#   -rho 0.75 0.1
+#     reduced density and random variation thereof, default = 0.75 0.1
+#   -delta 0.1
+#     randomly perturb atoms initially by this distance, default 0.1
+#   -nsteps 100
+#     number of timesteps in dynamics runs, default = 100
+#   -temp 1.0
+#     initial temperature in dynamics runs, default = 1.0
+#   -tol 0.001
+#     tolerance for minimizations, default = 0.001
+#   -seed 12345
+#     random number seed > 0, default = 12345
+
+You can compare the thermo output in any of the log.sequence.engine.*
+files.  It should be identical.
+
+-------------------------------------------------
+-------------------------------------------------
+
+* Example #5 = run AIMD with Python driver code and 2 LAMMPS instances as engines
+
+First LAMMPS instance performs the MD timestepping.  Second LAMMPS
+instance is surrogate QM to compute forces.
+
+The aimd_driver.py code allows for an optional switch in addition to
+-mdi (required) and the -plugin and -plugin_args swiches which are
+used to link to the 2 engines as a plugin libraries.  The example run
+commands below use the default values of the optional switch.  The
+switch is also explained the top of the file; the info is copied here:
+
+#   -nsteps 10
+#     number of timesteps in dynamics runs, default = 10
+
+This calculation is the same as Example #1 with a LAMMPS driver and a
+LAMMPS engine.  Now there is a Python driver and two LAMMPS engines.
+
+You can compare the thermo output in log.aimd.alone.1 output to the
+thermo output is any of the log.sequence.engine.* files.  It should be
+identical for the Total Energy printed out by the Python driver script.
+
+E.g. Step 10: MM energy 1.69875, QM energy -6.31535, Total energy -4.6166

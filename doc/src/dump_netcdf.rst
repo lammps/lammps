@@ -1,4 +1,5 @@
 .. index:: dump netcdf
+.. index:: dump netcdf/mpiio
 
 dump netcdf command
 ===================
@@ -9,7 +10,7 @@ dump netcdf/mpiio command
 Syntax
 """"""
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    dump ID group-ID netcdf N file args
    dump ID group-ID netcdf/mpiio N file args
@@ -47,21 +48,17 @@ rank.
 
 NetCDF files can be directly visualized via the following tools:
 
-Ovito (http://www.ovito.org/). Ovito supports the AMBER convention and
-all extensions of this dump style.
-
-* VMD (http://www.ks.uiuc.edu/Research/vmd/).
-* AtomEye (http://www.libatoms.org/). The libAtoms version of AtomEye
-  contains a NetCDF reader that is not present in the standard
-  distribution of AtomEye.
+* Ovito (https://www.ovito.org/). Ovito supports the AMBER convention and
+  all extensions of this dump style.
+* VMD (https://www.ks.uiuc.edu/Research/vmd/).
 
 In addition to per-atom data, :doc:`thermo <thermo>` data can be included in the
 dump file. The data included in the dump file is identical to the data specified
 by :doc:`thermo_style <thermo_style>`.
 
-.. _netcdf-home: http://www.unidata.ucar.edu/software/netcdf/
+.. _netcdf-home: https://www.unidata.ucar.edu/software/netcdf/
 
-.. _pnetcdf-home: http://trac.mcs.anl.gov/projects/parallel-netcdf/
+.. _pnetcdf-home: https://trac.mcs.anl.gov/projects/parallel-netcdf/
 
 ----------
 
@@ -69,9 +66,12 @@ Restrictions
 """"""""""""
 
 The *netcdf* and *netcdf/mpiio* dump styles are part of the
-USER-NETCDF package.  They are only enabled if LAMMPS was built with
-that package. See the :doc:`Build package <Build_package>` doc page for
+NETCDF package.  They are only enabled if LAMMPS was built with
+that package. See the :doc:`Build package <Build_package>` page for
 more info.
+
+The *netcdf* and *netcdf/mpiio* dump styles currently cannot dump
+string properties or properties from variables.
 
 ----------
 

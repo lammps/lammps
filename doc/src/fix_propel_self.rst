@@ -6,7 +6,7 @@ fix propel/self command
 Syntax
 """"""
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    fix ID group-ID propel/self mode magnitude keyword values
 
@@ -146,9 +146,9 @@ Restrictions
 """"""""""""
 
 With keyword *dipole*, this fix only works when the DIPOLE package is enabled.
-See the :doc:`Build package <Build_package>` doc page for more info.
+See the :doc:`Build package <Build_package>` page for more info.
 
-This fix is part of the USER-BROWNIAN package.  It is only enabled if
+This fix is part of the BROWNIAN package.  It is only enabled if
 LAMMPS was built with that package.  See the :doc:`Build package <Build_package>`
 doc page for more info.
 

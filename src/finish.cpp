@@ -2,7 +2,7 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    https://www.lammps.org/, Sandia National Laboratories
-   Steve Plimpton, sjplimp@sandia.gov
+   LAMMPS development team: developers@lammps.org
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
@@ -24,9 +24,10 @@
 #include "memory.h"             // IWYU pragma: keep
 #include "min.h"
 #include "molecule.h"
-#include "neigh_list.h"
-#include "neigh_request.h"
 #include "neighbor.h"           // IWYU pragma: keep
+#include "output.h"
+#include "pair.h"
+#include "thermo.h"
 #include "timer.h"              // IWYU pragma: keep
 #include "universe.h"
 #include "update.h"
@@ -34,7 +35,7 @@
 #include <cmath>
 #include <cstring>
 
-#ifdef LMP_USER_OMP
+#ifdef LMP_OPENMP
 #include "modify.h"
 #include "fix_omp.h"
 #include "thr_data.h"
@@ -48,7 +49,7 @@ static void mpi_timings(const char *label, Timer *t, enum Timer::ttype tt,
                         MPI_Comm world, const int nprocs, const int nthreads,
                         const int me, double time_loop, FILE *scr, FILE *log);
 
-#ifdef LMP_USER_OMP
+#ifdef LMP_OPENMP
 static void omp_times(FixOMP *fix, const char *label, enum Timer::ttype which,
                       const int nthreads,FILE *scr, FILE *log);
 #endif
@@ -61,7 +62,7 @@ Finish::Finish(LAMMPS *lmp) : Pointers(lmp) {}
 
 void Finish::end(int flag)
 {
-  int i,m,nneigh,nneighfull;
+  int i,nneigh,nneighfull;
   int histo[10];
   int minflag,prdflag,tadflag,hyperflag;
   int timeflag,fftflag,histoflag,neighflag;
@@ -121,10 +122,10 @@ void Finish::end(int flag)
     if (time_loop > 0.0) cpu_loop = cpu_loop/time_loop*100.0;
 
     if (me == 0) {
+      output->thermo->footer();
       int ntasks = nprocs * nthreads;
-      utils::logmesg(lmp,"Loop time of {:.6g} on {} procs for "
-                     "{} steps with {} atoms\n\n",time_loop,
-                     ntasks,update->nsteps,atom->natoms);
+      utils::logmesg(lmp,"Loop time of {:.6g} on {} procs for {} steps with {} atoms\n\n",
+                     time_loop,ntasks,update->nsteps,atom->natoms);
 
       // Gromacs/NAMD-style performance metric for suitable unit settings
 
@@ -138,22 +139,34 @@ void Finish::end(int flag)
             (strcmp(update->unit_style,"real") == 0))) {
         double one_fs = force->femtosecond;
         double t_step = ((double) time_loop) / ((double) update->nsteps);
-        double step_t = 1.0/t_step;
+        double step_t = 1.0 / t_step;
+        double atomstep_s = (double)atom->natoms * step_t;
+        std::string atomstep_u = "atom-step/s";
+        if (atomstep_s > 1000000000.0) {
+          atomstep_u = "Gatom-step/s";
+          atomstep_s /= 1000000000.0;
+        } else if (atomstep_s > 1000000.0) {
+          atomstep_u = "Matom-step/s";
+          atomstep_s /= 1000000.0;
+        } else if (atomstep_s > 1000.0) {
+          atomstep_u = "katom-step/s";
+          atomstep_s /= 1000.0;
+        }
 
         if (strcmp(update->unit_style,"lj") == 0) {
           double tau_day = 24.0*3600.0 / t_step * update->dt / one_fs;
-          utils::logmesg(lmp,"Performance: {:.3f} tau/day, {:.3f} "
-                         "timesteps/s\n",tau_day,step_t);
+          utils::logmesg(lmp, "Performance: {:.3f} tau/day, {:.3f} timesteps/s, {:.3f} {}\n",
+                         tau_day, step_t, atomstep_s, atomstep_u);
         } else if (strcmp(update->unit_style,"electron") == 0) {
           double hrs_fs = t_step / update->dt * one_fs / 3600.0;
           double fs_day = 24.0*3600.0 / t_step * update->dt / one_fs;
-          utils::logmesg(lmp,"Performance: {:.3f} fs/day, {:.3f} hours/fs, "
-                         "{:.3f} timesteps/s\n",fs_day,hrs_fs,step_t);
+          utils::logmesg(lmp,"Performance: {:.3f} fs/day, {:.3f} hours/fs, {:.3f} timesteps/s, "
+                         "{:.3f} {}\n", fs_day, hrs_fs, step_t, atomstep_s, atomstep_u);
         } else {
           double hrs_ns = t_step / update->dt * 1000000.0 * one_fs / 3600.0;
           double ns_day = 24.0*3600.0 / t_step * update->dt / one_fs/1000000.0;
-          utils::logmesg(lmp,"Performance: {:.3f} ns/day, {:.3f} hours/ns, "
-                         "{:.3f} timesteps/s\n",ns_day,hrs_ns,step_t);
+          utils::logmesg(lmp,"Performance: {:.3f} ns/day, {:.3f} hours/ns, {:.3f} timesteps/s, "
+                         "{:.3f} {}\n", ns_day, hrs_ns, step_t, atomstep_s, atomstep_u);
         }
       }
 
@@ -161,15 +174,15 @@ void Finish::end(int flag)
 
       if (timeflag) {
         if (lmp->kokkos) {
-          utils::logmesg(lmp,"{:.1f}% CPU use with {} MPI tasks x {} OpenMP "
-                         "threads\n",cpu_loop,nprocs,lmp->kokkos->nthreads);
+          utils::logmesg(lmp,"{:.1f}% CPU use with {} MPI tasks x {} OpenMP threads\n",
+                         cpu_loop,nprocs,lmp->kokkos->nthreads);
         } else {
 #if defined(_OPENMP)
-          utils::logmesg(lmp,"{:.1f}% CPU use with {} MPI tasks x {} OpenMP "
-                         "threads\n",cpu_loop,nprocs,nthreads);
+          utils::logmesg(lmp,"{:.1f}% CPU use with {} MPI tasks x {} OpenMP threads\n",
+                         cpu_loop,nprocs,nthreads);
 #else
-          utils::logmesg(lmp,"{:.1f}% CPU use with {} MPI tasks "
-                         "x no OpenMP threads\n",cpu_loop,nprocs);
+          utils::logmesg(lmp,"{:.1f}% CPU use with {} MPI tasks x no OpenMP threads\n",
+                         cpu_loop,nprocs);
 #endif
         }
       }
@@ -192,8 +205,7 @@ void Finish::end(int flag)
     if (me == 0) {
       std::string mesg = "\nMinimization stats:\n";
 
-      mesg += fmt::format("  Stopping criterion = {}\n",
-                          update->minimize->stopstr);
+      mesg += fmt::format("  Stopping criterion = {}\n",update->minimize->stopstr);
       mesg += fmt::format("  Energy initial, next-to-last, final = \n"
                           "    {:18.15g} {:18.15g} {:18.15g}\n",
                           update->minimize->einitial,
@@ -214,6 +226,10 @@ void Finish::end(int flag)
     }
   }
 
+  // pair_style timing stats if provided
+
+  if (force->pair) force->pair->finish();
+
   // PRD stats
 
   if (prdflag) {
@@ -222,33 +238,27 @@ void Finish::end(int flag)
     time = timer->get_wall(Timer::DEPHASE);
     MPI_Allreduce(&time,&tmp,1,MPI_DOUBLE,MPI_SUM,world);
     time = tmp/nprocs;
-    if (me == 0) utils::logmesg(lmp,"  Dephase  time (%) = {} ({})\n",
-                                time,time/time_loop*100.0);
+    if (me == 0) utils::logmesg(lmp,"  Dephase  time (%) = {} ({})\n",time,time/time_loop*100.0);
     time = timer->get_wall(Timer::DYNAMICS);
     MPI_Allreduce(&time,&tmp,1,MPI_DOUBLE,MPI_SUM,world);
     time = tmp/nprocs;
-    if (me == 0) utils::logmesg(lmp,"  Dynamics time (%) = {} ({})\n",
-                                time,time/time_loop*100.0);
+    if (me == 0) utils::logmesg(lmp,"  Dynamics time (%) = {} ({})\n",time,time/time_loop*100.0);
     time = timer->get_wall(Timer::QUENCH);
     MPI_Allreduce(&time,&tmp,1,MPI_DOUBLE,MPI_SUM,world);
     time = tmp/nprocs;
-    if (me == 0) utils::logmesg(lmp,"  Quench   time (%) = {} ({})\n",
-                                time,time/time_loop*100.0);
+    if (me == 0) utils::logmesg(lmp,"  Quench   time (%) = {} ({})\n",time,time/time_loop*100.0);
     time = timer->get_wall(Timer::REPCOMM);
     MPI_Allreduce(&time,&tmp,1,MPI_DOUBLE,MPI_SUM,world);
     time = tmp/nprocs;
-    if (me == 0) utils::logmesg(lmp,"  Comm     time (%) = {} ({})\n",
-                                time,time/time_loop*100.0);
+    if (me == 0) utils::logmesg(lmp,"  Comm     time (%) = {} ({})\n",time,time/time_loop*100.0);
     time = timer->get_wall(Timer::REPOUT);
     MPI_Allreduce(&time,&tmp,1,MPI_DOUBLE,MPI_SUM,world);
     time = tmp/nprocs;
-    if (me == 0) utils::logmesg(lmp,"  Output   time (%) = {} ({})\n",
-                                time,time/time_loop*100.0);
+    if (me == 0) utils::logmesg(lmp,"  Output   time (%) = {} ({})\n",time,time/time_loop*100.0);
     time = time_other;
     MPI_Allreduce(&time,&tmp,1,MPI_DOUBLE,MPI_SUM,world);
     time = tmp/nprocs;
-    if (me == 0) utils::logmesg(lmp,"  Other    time (%) = {} ({})\n",
-                                time,time/time_loop*100.0);
+    if (me == 0) utils::logmesg(lmp,"  Other    time (%) = {} ({})\n",time,time/time_loop*100.0);
   }
 
   // TAD stats
@@ -259,33 +269,27 @@ void Finish::end(int flag)
     time = timer->get_wall(Timer::NEB);
     MPI_Allreduce(&time,&tmp,1,MPI_DOUBLE,MPI_SUM,world);
     time = tmp/nprocs;
-    if (me == 0) utils::logmesg(lmp,"  NEB      time (%) = {} ({})\n",
-                                time,time/time_loop*100.0);
+    if (me == 0) utils::logmesg(lmp,"  NEB      time (%) = {} ({})\n",time,time/time_loop*100.0);
     time = timer->get_wall(Timer::DYNAMICS);
     MPI_Allreduce(&time,&tmp,1,MPI_DOUBLE,MPI_SUM,world);
     time = tmp/nprocs;
-    if (me == 0) utils::logmesg(lmp,"  Dynamics time (%) = {} ({})\n",
-                                time,time/time_loop*100.0);
+    if (me == 0) utils::logmesg(lmp,"  Dynamics time (%) = {} ({})\n",time,time/time_loop*100.0);
     time = timer->get_wall(Timer::QUENCH);
     MPI_Allreduce(&time,&tmp,1,MPI_DOUBLE,MPI_SUM,world);
     time = tmp/nprocs;
-    if (me == 0) utils::logmesg(lmp,"  Quench   time (%) = {} ({})\n",
-                                time,time/time_loop*100.0);
+    if (me == 0) utils::logmesg(lmp,"  Quench   time (%) = {} ({})\n",time,time/time_loop*100.0);
     time = timer->get_wall(Timer::REPCOMM);
     MPI_Allreduce(&time,&tmp,1,MPI_DOUBLE,MPI_SUM,world);
     time = tmp/nprocs;
-    if (me == 0) utils::logmesg(lmp,"  Comm     time (%) = {} ({})\n",
-                                time,time/time_loop*100.0);
+    if (me == 0) utils::logmesg(lmp,"  Comm     time (%) = {} ({})\n",time,time/time_loop*100.0);
     time = timer->get_wall(Timer::REPOUT);
     MPI_Allreduce(&time,&tmp,1,MPI_DOUBLE,MPI_SUM,world);
     time = tmp/nprocs;
-    if (me == 0) utils::logmesg(lmp,"  Output   time (%) = {} ({})\n",
-                                time,time/time_loop*100.0);
+    if (me == 0) utils::logmesg(lmp,"  Output   time (%) = {} ({})\n",time,time/time_loop*100.0);
     time = time_other;
     MPI_Allreduce(&time,&tmp,1,MPI_DOUBLE,MPI_SUM,world);
     time = tmp/nprocs;
-    if (me == 0) utils::logmesg(lmp,"  Other    time (%) = {} ({})\n",
-                                time,time/time_loop*100.0);
+    if (me == 0) utils::logmesg(lmp,"  Other    time (%) = {} ({})\n",time,time/time_loop*100.0);
   }
 
   // HYPER stats
@@ -296,18 +300,15 @@ void Finish::end(int flag)
     time = timer->get_wall(Timer::DYNAMICS);
     MPI_Allreduce(&time,&tmp,1,MPI_DOUBLE,MPI_SUM,world);
     time = tmp/nprocs;
-    if (me == 0) utils::logmesg(lmp,"  Dynamics time (%) = {} ({})\n",
-                                time,time/time_loop*100.0);
+    if (me == 0) utils::logmesg(lmp,"  Dynamics time (%) = {} ({})\n",time,time/time_loop*100.0);
     time = timer->get_wall(Timer::QUENCH);
     MPI_Allreduce(&time,&tmp,1,MPI_DOUBLE,MPI_SUM,world);
     time = tmp/nprocs;
-    if (me == 0) utils::logmesg(lmp,"  Quench   time (%) = {} ({})\n",
-                                time,time/time_loop*100.0);
+    if (me == 0) utils::logmesg(lmp,"  Quench   time (%) = {} ({})\n",time,time/time_loop*100.0);
     time = time_other;
     MPI_Allreduce(&time,&tmp,1,MPI_DOUBLE,MPI_SUM,world);
     time = tmp/nprocs;
-    if (me == 0) utils::logmesg(lmp,"  Other    time (%) = {} ({})\n",
-                                time,time/time_loop*100.0);
+    if (me == 0) utils::logmesg(lmp,"  Other    time (%) = {} ({})\n",time,time/time_loop*100.0);
   }
 
   // further timing breakdowns
@@ -326,28 +327,20 @@ void Finish::end(int flag)
                        "------------------------------------------------------\n");
     }
 
-    mpi_timings("Pair",timer,Timer::PAIR, world,nprocs,
-                nthreads,me,time_loop,screen,logfile);
+    mpi_timings("Pair",timer,Timer::PAIR, world,nprocs,nthreads,me,time_loop,screen,logfile);
 
     if (atom->molecular != Atom::ATOMIC)
-      mpi_timings("Bond",timer,Timer::BOND,world,nprocs,
-                  nthreads,me,time_loop,screen,logfile);
+      mpi_timings("Bond",timer,Timer::BOND,world,nprocs,nthreads,me,time_loop,screen,logfile);
 
     if (force->kspace)
-      mpi_timings("Kspace",timer,Timer::KSPACE,world,nprocs,
-                  nthreads,me,time_loop,screen,logfile);
+      mpi_timings("Kspace",timer,Timer::KSPACE,world,nprocs,nthreads,me,time_loop,screen,logfile);
 
-    mpi_timings("Neigh",timer,Timer::NEIGH,world,nprocs,
-                nthreads,me,time_loop,screen,logfile);
-    mpi_timings("Comm",timer,Timer::COMM,world,nprocs,
-                nthreads,me,time_loop,screen,logfile);
-    mpi_timings("Output",timer,Timer::OUTPUT,world,nprocs,
-                nthreads,me,time_loop,screen,logfile);
-    mpi_timings("Modify",timer,Timer::MODIFY,world,nprocs,
-                nthreads,me,time_loop,screen,logfile);
+    mpi_timings("Neigh",timer,Timer::NEIGH,world,nprocs,nthreads,me,time_loop,screen,logfile);
+    mpi_timings("Comm",timer,Timer::COMM,world,nprocs,nthreads,me,time_loop,screen,logfile);
+    mpi_timings("Output",timer,Timer::OUTPUT,world,nprocs,nthreads,me,time_loop,screen,logfile);
+    mpi_timings("Modify",timer,Timer::MODIFY,world,nprocs,nthreads,me,time_loop,screen,logfile);
     if (timer->has_sync())
-      mpi_timings("Sync",timer,Timer::SYNC,world,nprocs,
-                  nthreads,me,time_loop,screen,logfile);
+      mpi_timings("Sync",timer,Timer::SYNC,world,nprocs,nthreads,me,time_loop,screen,logfile);
 
     time = time_other;
     MPI_Allreduce(&time,&tmp,1,MPI_DOUBLE,MPI_SUM,world);
@@ -363,15 +356,14 @@ void Finish::end(int flag)
     }
   }
 
-#ifdef LMP_USER_OMP
-  int ifix = modify->find_fix("package_omp");
+#ifdef LMP_OPENMP
+  FixOMP *fixomp = dynamic_cast<FixOMP *>(modify->get_fix_by_id("package_omp"));
 
   // print thread breakdown only with full timer detail
 
-  if ((ifix >= 0) && timer->has_full() && me == 0) {
+  if (fixomp && timer->has_full() && me == 0) {
     double thr_total = 0.0;
     ThrData *td;
-    FixOMP *fixomp = static_cast<FixOMP *>(lmp->modify->fix[ifix]);
     for (i=0; i < nthreads; ++i) {
       td = fixomp->get_thr(i);
       thr_total += td->get_time(Timer::ALL);
@@ -460,6 +452,7 @@ void Finish::end(int flag)
                      time3d,fraction,flop3,flop1);
   }
 
+  nneigh = nneighfull = 0;
   if (histoflag) {
     std::string mesg = "\n";
     tmp = atom->nlocal;
@@ -480,27 +473,8 @@ void Finish::end(int flag)
       mesg += "\n";
     }
 
-    // find a non-skip neighbor list containing half pairwise interactions
-    // count neighbors in that list for stats purposes
-    // allow it to be Kokkos neigh list as well
-
-    for (m = 0; m < neighbor->old_nrequest; m++)
-      if (neighbor->old_requests[m]->half &&
-          neighbor->old_requests[m]->skip == 0 &&
-          neighbor->lists[m] && neighbor->lists[m]->numneigh) break;
-
-    nneigh = 0;
-    if (m < neighbor->old_nrequest) {
-      if (!neighbor->lists[m]->kokkos) {
-        int inum = neighbor->lists[m]->inum;
-        int *ilist = neighbor->lists[m]->ilist;
-        int *numneigh = neighbor->lists[m]->numneigh;
-        for (i = 0; i < inum; i++)
-          nneigh += numneigh[ilist[i]];
-      } else if (lmp->kokkos) nneigh = lmp->kokkos->neigh_count(m);
-    }
-
-    tmp = nneigh;
+    tmp = nneigh = neighbor->get_nneigh_half();
+    if (tmp < 0.0) tmp = 0.0;
     stats(1,&tmp,&ave,&max,&min,10,histo);
     if (me == 0) {
       mesg += fmt::format("Neighs:    {:11.6} ave {:11.6g} max {:11.6g} min\n",ave,max,min);
@@ -509,33 +483,14 @@ void Finish::end(int flag)
       mesg += "\n";
     }
 
-    // find a non-skip neighbor list containing full pairwise interactions
-    // count neighbors in that list for stats purposes
-    // allow it to be Kokkos neigh list as well
-
-    for (m = 0; m < neighbor->old_nrequest; m++)
-      if (neighbor->old_requests[m]->full &&
-          neighbor->old_requests[m]->skip == 0) break;
-
-    nneighfull = 0;
-    if (m < neighbor->old_nrequest) {
-      if (!neighbor->lists[m]->kokkos && neighbor->lists[m]->numneigh) {
-        int inum = neighbor->lists[m]->inum;
-        int *ilist = neighbor->lists[m]->ilist;
-        int *numneigh = neighbor->lists[m]->numneigh;
-        for (i = 0; i < inum; i++)
-          nneighfull += numneigh[ilist[i]];
-      } else if (lmp->kokkos)
-        nneighfull = lmp->kokkos->neigh_count(m);
-
-      tmp = nneighfull;
+    tmp = nneighfull = neighbor->get_nneigh_full();
+    if (tmp >= 0.0) {
       stats(1,&tmp,&ave,&max,&min,10,histo);
       if (me == 0) {
         mesg += fmt::format("FullNghs:  {:11.6} ave {:11.6g} max {:11.6g} min\n",ave,max,min);
         mesg += "Histogram:";
         for (i = 0; i < 10; i++) mesg += fmt::format(" {}",histo[i]);
         mesg += "\n";
-
       }
     }
     if (me == 0) utils::logmesg(lmp,mesg);
@@ -544,7 +499,7 @@ void Finish::end(int flag)
   if (neighflag) {
     if (me == 0) utils::logmesg(lmp,"\n");
 
-    tmp = MAX(nneigh,nneighfull);
+    tmp = MAX(MAX(nneigh,nneighfull),0.0);
     double nall;
     MPI_Allreduce(&tmp,&nall,1,MPI_DOUBLE,MPI_SUM,world);
 
@@ -581,8 +536,7 @@ void Finish::end(int flag)
       if (atom->natoms > 0)
         mesg += fmt::format("Ave neighs/atom = {:.8}\n",nall/atom->natoms);
       if ((atom->molecular != Atom::ATOMIC) && (atom->natoms > 0))
-        mesg += fmt::format("Ave special neighs/atom = {:.8}\n",
-                            nspec_all/atom->natoms);
+        mesg += fmt::format("Ave special neighs/atom = {:.8}\n",nspec_all/atom->natoms);
       mesg += fmt::format("Neighbor list builds = {}\n",neighbor->ncalls);
       if (neighbor->dist_check)
         mesg += fmt::format("Dangerous builds = {}\n",neighbor->ndanger);
@@ -596,9 +550,7 @@ void Finish::end(int flag)
 
 /* ---------------------------------------------------------------------- */
 
-void Finish::stats(int n, double *data,
-                   double *pave, double *pmax, double *pmin,
-                   int nhisto, int *histo)
+void Finish::stats(int n, double *data, double *pave, double *pmax, double *pmin, int nhisto, int *histo)
 {
   int i,m;
   int *histotmp;
@@ -691,7 +643,7 @@ void mpi_timings(const char *label, Timer *t, enum Timer::ttype tt,
 
 /* ---------------------------------------------------------------------- */
 
-#ifdef LMP_USER_OMP
+#ifdef LMP_OPENMP
 void omp_times(FixOMP *fix, const char *label, enum Timer::ttype which,
                       const int nthreads,FILE *scr, FILE *log)
 {

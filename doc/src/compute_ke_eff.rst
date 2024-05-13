@@ -6,7 +6,7 @@ compute ke/eff command
 Syntax
 """"""
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    compute ID group-ID ke/eff
 
@@ -29,9 +29,9 @@ group of eFF particles (nuclei and electrons), as modeled with the
 
 The kinetic energy for each nucleus is computed as :math:`\frac{1}{2} m
 v^2` and the kinetic energy for each electron is computed as
-:math:`\frac{1}{2}(m_e v^2 + \frac{3}{4} m_e s^2)`, where *m*
-corresponds to the nuclear mass, :math:`m_e` to the electron mass, *v*
-to the translational velocity of each particle, and *s* to the radial
+:math:`\frac{1}{2}(m_e v^2 + \frac{3}{4} m_e s^2)`, where :math:`m`
+corresponds to the nuclear mass, :math:`m_e` to the electron mass, :math:`v`
+to the translational velocity of each particle, and :math:`s` to the radial
 velocity of the electron, respectively.
 
 There is a subtle difference between the quantity calculated by this
@@ -69,7 +69,7 @@ Output info
 
 This compute calculates a global scalar (the KE).  This value can be
 used by any command that uses a global scalar value from a compute as
-input.  See the :doc:`Howto output <Howto_output>` doc page for an
+input.  See the :doc:`Howto output <Howto_output>` page for an
 overview of LAMMPS output options.
 
 The scalar value calculated by this compute is "extensive".  The
@@ -78,8 +78,8 @@ scalar value will be in energy :doc:`units <units>`.
 Restrictions
 """"""""""""
 
-This compute is part of the USER-EFF package.  It is only enabled if
-LAMMPS was built with that package.  See the :doc:`Build package <Build_package>` doc page for more info.
+This compute is part of the EFF package.  It is only enabled if
+LAMMPS was built with that package.  See the :doc:`Build package <Build_package>` page for more info.
 
 Related commands
 """"""""""""""""

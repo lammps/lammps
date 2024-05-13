@@ -1,6 +1,14 @@
+
 #include "interpolate.h"
-#include "math.h"
+
 #include "global.h"
+#include "input.h"
+#include "memory.h"
+#include "tricubic.h"
+
+#include <cstdio>
+#include <cstdlib>
+#include <cstring>
 
 /* ----------------------------------------------------------------------------
  * Constructor used to get info from caller, and prepare other necessary data
@@ -19,8 +27,7 @@ Interpolate::Interpolate(int nx, int ny, int nz, int ndm, doublecomplex **DM)
    data = DM;
    Dfdx = Dfdy = Dfdz = D2fdxdy = D2fdxdz = D2fdydz = D3fdxdydz = NULL;
    flag_reset_gamma = flag_allocated_dfs = 0;
- 
-   return;
+   input = NULL;
 }
 
 /* ----------------------------------------------------------------------------
@@ -97,8 +104,7 @@ void Interpolate::tricubic_init()
       }
       n++;
    }
-   return;
-}
+   }
 
 /* ----------------------------------------------------------------------------
  * Deconstructor used to free memory
@@ -114,8 +120,6 @@ Interpolate::~Interpolate()
    memory->destroy(D2fdydz);
    memory->destroy(D3fdxdydz);
    delete memory;
-
-   return;
 }
 
 /* ----------------------------------------------------------------------------
@@ -175,8 +179,7 @@ void Interpolate::tricubic(double *qin, doublecomplex *DMq)
       tricubic_get_coeff(&a[0],&f[0],&dfdx[0],&dfdy[0],&dfdz[0],&d2fdxdy[0],&d2fdxdz[0],&d2fdydz[0],&d3fdxdydz[0]); 
       DMq[idim].i = tricubic_eval(&a[0],x,y,z);
    }
-   return;
-}
+   }
 
 /* ----------------------------------------------------------------------------
  * method to interpolate the DM at an arbitrary q point;
@@ -241,8 +244,7 @@ void Interpolate::trilinear(double *qin, doublecomplex *DMq)
       }
    }
  
-   return;
-}
+   }
 
 /* ----------------------------------------------------------------------------
  * To invoke the interpolation
@@ -254,8 +256,6 @@ void Interpolate::execute(double *qin, doublecomplex *DMq)
       tricubic(qin, DMq);
    else       // otherwise: trilinear
       trilinear(qin, DMq);
-
-   return;
 }
 
 /* ----------------------------------------------------------------------------
@@ -265,21 +265,21 @@ void Interpolate::set_method()
 {
    char str[MAXLINE];
    int im = 1;
-   printf("\n");for(int i=0; i<80; i++) printf("=");
-   printf("\nWhich interpolation method would you like to use?\n");
+   if (input == nullptr) input = new UserInput(0);
+
+   puts("\n================================================================================");
+   printf("Which interpolation method would you like to use?\n");
    printf("  1. Tricubic;\n  2. Trilinear;\n");
    printf("Your choice [1]: ");
-   fgets(str,MAXLINE,stdin);
+   input->read_stdin(str);
    char *ptr = strtok(str," \t\n\r\f");
    if (ptr) im = atoi(ptr);
  
    which =2-im%2;
    printf("Your  selection: %d\n", which);
-   for(int i=0; i<80; i++) printf("="); printf("\n\n");
+   puts("================================================================================\n");
  
    if (which == 1) tricubic_init();
- 
-   return;
 }
 
 /* ----------------------------------------------------------------------------
@@ -305,6 +305,5 @@ void Interpolate::reset_gamma()
                       + (data[im1][idim].r + data[ip1][idim].r) * two3;
    }
  
-   return;
-}
+   }
 /* ---------------------------------------------------------------------------- */

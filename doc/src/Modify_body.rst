@@ -6,7 +6,7 @@ Body particles can represent complex entities, such as surface meshes
 of discrete points, collections of sub-particles, deformable objects,
 etc.
 
-See the :doc:`Howto body <Howto_body>` doc page for an overview of using
+See the :doc:`Howto body <Howto_body>` page for an overview of using
 body particles and the various body styles LAMMPS supports.  New
 styles can be created to add new kinds of body particles to LAMMPS.
 

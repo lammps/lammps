@@ -139,8 +139,8 @@ Since lubrication forces are dissipative, it is usually desirable to
 thermostat the system at a constant temperature. If Brownian motion
 (at a constant temperature) is desired, it can be set using the
 :doc:`pair_style brownian <pair_brownian>` command. These pair styles
-and the brownian style should use consistent parameters for *mu*\ ,
-*flaglog*\ , *flagfld*\ , *cutinner*\ , *cutoff*\ , *flagHI* and *flagVF*\ .
+and the brownian style should use consistent parameters for *mu*,
+*flaglog*, *flagfld*, *cutinner*, *cutoff*, *flagHI* and *flagVF*\ .
 
 ----------
 
@@ -185,7 +185,7 @@ to be specified in an input script that reads a restart file.
 
 This pair style can only be used via the *pair* keyword of the
 :doc:`run_style respa <run_style>` command.  It does not support the
-*inner*\ , *middle*\ , *outer* keywords.
+*inner*, *middle*, *outer* keywords.
 
 ----------
 
@@ -193,7 +193,7 @@ Restrictions
 """"""""""""
 
 These styles are part of the COLLOID package.  They are only enabled
-if LAMMPS was built with that package.  See the :doc:`Build package <Build_package>` doc page for more info.
+if LAMMPS was built with that package.  See the :doc:`Build package <Build_package>` page for more info.
 
 Only spherical monodisperse particles are allowed for pair_style
 lubricate.

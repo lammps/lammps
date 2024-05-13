@@ -1,7 +1,7 @@
 /* -*- c++ -*- ----------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    https://www.lammps.org/, Sandia National Laboratories
-   Steve Plimpton, sjplimp@sandia.gov
+   LAMMPS development team: developers@lammps.org
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
@@ -15,14 +15,6 @@
 #define LMP_KSPACE_H
 
 #include "pointers.h"    // IWYU pragma: export
-
-#ifdef FFT_SINGLE
-typedef float FFT_SCALAR;
-#define MPI_FFT_SCALAR MPI_FLOAT
-#else
-typedef double FFT_SCALAR;
-#define MPI_FFT_SCALAR MPI_DOUBLE
-#endif
 
 namespace LAMMPS_NS {
 
@@ -51,9 +43,10 @@ class KSpace : protected Pointers {
                             // of neighbor lists
   int mixflag;              // 1 if geometric mixing rules are enforced
                             // for LJ coefficients
-  int slabflag;
+  bool conp_one_step;       // calculate A matrix in one step with pppm
+  int slabflag, wireflag;
   int scalar_pressure_flag;    // 1 if using MSM fast scalar pressure
-  double slab_volfactor;
+  double slab_volfactor, wire_volfactor;
 
   int warn_nonneutral;    // 0 = error if non-neutral system
                           // 1 = warn once if non-neutral system
@@ -100,7 +93,7 @@ class KSpace : protected Pointers {
   double splittol;    // tolerance for when to truncate splitting
 
   KSpace(class LAMMPS *);
-  virtual ~KSpace();
+  ~KSpace() override;
   void two_charge();
   void triclinic_check();
   void modify_params(int, char **);
@@ -112,18 +105,17 @@ class KSpace : protected Pointers {
   void x2lamdaT(double *, double *);
   void lamda2xT(double *, double *);
   void lamda2xvector(double *, double *);
-  void kspacebbox(double, double *);
 
   // public so can be called by commands that change charge
 
-  void qsum_qsq(int warning_flag = 1);
+  virtual void qsum_qsq(int warning_flag = 1);
 
   // general child-class methods
 
   virtual void settings(int, char **){};
   virtual void init() = 0;
   virtual void setup() = 0;
-  virtual void setup_grid(){};
+  virtual void reset_grid(){};
   virtual void compute(int, int) = 0;
   virtual void compute_group_group(int, int, int){};
 
@@ -219,75 +211,3 @@ class KSpace : protected Pointers {
 }    // namespace LAMMPS_NS
 
 #endif
-
-/* ERROR/WARNING messages:
-
-E: KSpace style does not yet support triclinic geometries
-
-The specified kspace style does not allow for non-orthogonal
-simulation boxes.
-
-E: KSpace solver requires a pair style
-
-No pair style is defined.
-
-E: KSpace style is incompatible with Pair style
-
-Setting a kspace style requires that a pair style with matching
-long-range Coulombic or dispersion components be used.
-
-W: Using kspace solver on system with no charge
-
-Self-explanatory.
-
-E: System is not charge neutral, net charge = %g
-
-The total charge on all atoms on the system is not 0.0.
-For some KSpace solvers this is an error.
-
-W: System is not charge neutral, net charge = %g
-
-The total charge on all atoms on the system is not 0.0.
-For some KSpace solvers this is only a warning.
-
-W: For better accuracy use 'pair_modify table 0'
-
-The user-specified force accuracy cannot be achieved unless the table
-feature is disabled by using 'pair_modify table 0'.
-
-E: Illegal ... command
-
-Self-explanatory.  Check the input script syntax and compare to the
-documentation for the command.  You can use -echo screen as a
-command-line option when running LAMMPS to see the offending line.
-
-E: Bad kspace_modify slab parameter
-
-Kspace_modify value for the slab/volume keyword must be >= 2.0.
-
-E: Kspace_modify mesh parameter must be all zero or all positive
-
-Valid kspace mesh parameters are >0. The code will try to auto-detect
-suitable values when all three mesh sizes are set to zero (the default).
-
-E: Kspace_modify mesh/disp parameter must be all zero or all positive
-
-Valid kspace mesh/disp parameters are >0. The code will try to auto-detect
-suitable values when all three mesh sizes are set to zero [and]
-the required accuracy via {force/disp/real} as well as
-{force/disp/kspace} is set.
-
-W: Kspace_modify slab param < 2.0 may cause unphysical behavior
-
-The kspace_modify slab parameter should be larger to insure periodic
-grids padded with empty space do not overlap.
-
-E: Bad kspace_modify kmax/ewald parameter
-
-Kspace_modify values for the kmax/ewald keyword must be integers > 0
-
-E: Kspace_modify eigtol must be smaller than one
-
-Self-explanatory.
-
-*/

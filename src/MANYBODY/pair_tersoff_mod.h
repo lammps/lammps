@@ -1,7 +1,7 @@
 /* -*- c++ -*- ----------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    https://www.lammps.org/, Sandia National Laboratories
-   Steve Plimpton, sjplimp@sandia.gov
+   LAMMPS development team: developers@lammps.org
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
@@ -28,21 +28,20 @@ namespace LAMMPS_NS {
 class PairTersoffMOD : public PairTersoff {
  public:
   PairTersoffMOD(class LAMMPS *);
-  ~PairTersoffMOD() {}
 
   static constexpr int NPARAMS_PER_LINE = 20;
 
  protected:
-  virtual void read_file(char *);
-  virtual void setup_params();
-  double zeta(Param *, double, double, double *, double *);
+  void read_file(char *) override;
+  void setup_params() override;
+  double zeta(Param *, double, double, double *, double *) override;
 
-  double ters_fc(double, Param *);
-  double ters_fc_d(double, Param *);
-  double ters_bij(double, Param *);
-  double ters_bij_d(double, Param *);
+  double ters_fc(double, Param *) override;
+  double ters_fc_d(double, Param *) override;
+  double ters_bij(double, Param *) override;
+  double ters_bij_d(double, Param *) override;
   void ters_zetaterm_d(double, double *, double, double, double *, double, double, double *,
-                       double *, double *, Param *);
+                       double *, double *, Param *) override;
 
   // inlined functions for efficiency
   // these replace but do not override versions in PairTersoff
@@ -80,29 +79,3 @@ class PairTersoffMOD : public PairTersoff {
 
 #endif
 #endif
-
-/* ERROR/WARNING messages:
-
-E: Cannot open Tersoff potential file %s
-
-The specified potential file cannot be opened.  Check that the path
-and name are correct.
-
-E: Incorrect format in Tersoff potential file
-
-Incorrect number of words per line in the potential file.
-
-E: Illegal Tersoff parameter
-
-One or more of the coefficients defined in the potential file is
-invalid.
-
-E: Potential file has duplicate entry
-
-The potential file has more than one entry for the same element.
-
-E: Potential file is missing an entry
-
-The potential file does not have a needed entry.
-
-*/

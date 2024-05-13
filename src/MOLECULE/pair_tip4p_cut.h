@@ -1,7 +1,7 @@
 /* -*- c++ -*- ----------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    https://www.lammps.org/, Sandia National Laboratories
-   Steve Plimpton, sjplimp@sandia.gov
+   LAMMPS development team: developers@lammps.org
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
@@ -27,17 +27,18 @@ namespace LAMMPS_NS {
 class PairTIP4PCut : public Pair {
  public:
   PairTIP4PCut(class LAMMPS *);
-  virtual ~PairTIP4PCut();
-  virtual void compute(int, int);
-  void settings(int, char **);
-  void coeff(int, char **);
-  void init_style();
-  double init_one(int, int);
-  virtual void write_restart_settings(FILE *);
-  virtual void read_restart_settings(FILE *);
-  void write_restart(FILE *);
-  void read_restart(FILE *);
-  double memory_usage();
+  ~PairTIP4PCut() override;
+  void compute(int, int) override;
+  void settings(int, char **) override;
+  void coeff(int, char **) override;
+  void init_style() override;
+  double init_one(int, int) override;
+  void write_restart_settings(FILE *) override;
+  void read_restart_settings(FILE *) override;
+  void write_restart(FILE *) override;
+  void read_restart(FILE *) override;
+  double memory_usage() override;
+  void *extract(const char *, int &) override;
 
  protected:
   double cut_coul_global;
@@ -61,49 +62,3 @@ class PairTIP4PCut : public Pair {
 
 #endif
 #endif
-
-/* ERROR/WARNING messages:
-
-E: TIP4P hydrogen is missing
-
-The TIP4P pairwise computation failed to find the correct H atom
-within a water molecule.
-
-E: TIP4P hydrogen has incorrect atom type
-
-The TIP4P pairwise computation found an H atom whose type does not
-agree with the specified H type.
-
-E: Illegal ... command
-
-Self-explanatory.  Check the input script syntax and compare to the
-documentation for the command.  You can use -echo screen as a
-command-line option when running LAMMPS to see the offending line.
-
-E: Incorrect args for pair coefficients
-
-Self-explanatory.  Check the input script or data file.
-
-E: Pair style tip4p/cut requires atom IDs
-
-This is a requirement to use this potential.
-
-E: Pair style tip4p/cut requires newton pair on
-
-See the newton command.  This is a restriction to use this potential.
-
-E: Pair style tip4p/cut requires atom attribute q
-
-The atom style defined does not have this attribute.
-
-E: Must use a bond style with TIP4P potential
-
-TIP4P potentials assume bond lengths in water are constrained
-by a fix shake command.
-
-E: Must use an angle style with TIP4P potential
-
-TIP4P potentials assume angles in water are constrained by a fix shake
-command.
-
-*/

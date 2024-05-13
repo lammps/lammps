@@ -2,6 +2,7 @@
 
 #include "lammps.h"
 #include "library.h"
+#include "platform.h"
 #include <string>
 
 #include "gmock/gmock.h"
@@ -19,19 +20,20 @@ const char *cont_input[] = {"create_atoms 1 single &", "0.2 0.1 0.1"};
 class LibraryCommands : public ::testing::Test {
 protected:
     void *lmp;
-    LibraryCommands(){};
-    ~LibraryCommands() override{};
+    LibraryCommands()           = default;
+    ~LibraryCommands() override = default;
 
     void SetUp() override
     {
         const char *args[] = {"LAMMPS_test", "-log", "none", "-echo", "screen", "-nocite",
-                              "-var",        "x",    "2",    "-var",  "zpos",   "1.5"};
+                              "-var",        "x",    "2",    "-var",  "zpos",   "1.5",
+                              nullptr};
 
         char **argv = (char **)args;
-        int argc    = sizeof(args) / sizeof(char *);
+        int argc    = (sizeof(args) / sizeof(char *)) - 1;
 
         ::testing::internal::CaptureStdout();
-        lmp                = lammps_open_no_mpi(argc, argv, NULL);
+        lmp                = lammps_open_no_mpi(argc, argv, nullptr);
         std::string output = ::testing::internal::GetCapturedStdout();
         if (verbose) std::cout << output;
         EXPECT_THAT(output, StartsWith("LAMMPS ("));
@@ -54,14 +56,14 @@ TEST_F(LibraryCommands, from_file)
     const char cont_file[] = "in.cont";
 
     fp = fopen(demo_file, "w");
-    for (unsigned int i = 0; i < sizeof(demo_input) / sizeof(char *); ++i) {
-        fputs(demo_input[i], fp);
+    for (auto &inp : demo_input) {
+        fputs(inp, fp);
         fputc('\n', fp);
     }
     fclose(fp);
     fp = fopen(cont_file, "w");
-    for (unsigned int i = 0; i < sizeof(cont_input) / sizeof(char *); ++i) {
-        fputs(cont_input[i], fp);
+    for (auto &inp : cont_input) {
+        fputs(inp, fp);
         fputc('\n', fp);
     }
     fclose(fp);
@@ -76,16 +78,16 @@ TEST_F(LibraryCommands, from_file)
     if (!verbose) ::testing::internal::GetCapturedStdout();
     EXPECT_EQ(lammps_get_natoms(lmp), 2);
 
-    unlink(demo_file);
-    unlink(cont_file);
+    LAMMPS_NS::platform::unlink(demo_file);
+    LAMMPS_NS::platform::unlink(cont_file);
 };
 
 TEST_F(LibraryCommands, from_line)
 {
     EXPECT_EQ(lammps_get_natoms(lmp), 0);
     if (!verbose) ::testing::internal::CaptureStdout();
-    for (unsigned int i = 0; i < sizeof(demo_input) / sizeof(char *); ++i) {
-        lammps_command(lmp, demo_input[i]);
+    for (auto &inp : demo_input) {
+        lammps_command(lmp, inp);
     }
     if (!verbose) ::testing::internal::GetCapturedStdout();
     EXPECT_EQ(lammps_get_natoms(lmp), 1);
@@ -103,14 +105,14 @@ TEST_F(LibraryCommands, from_list)
 
 TEST_F(LibraryCommands, from_string)
 {
-    std::string cmds("");
+    std::string cmds;
 
-    for (unsigned int i = 0; i < sizeof(demo_input) / sizeof(char *); ++i) {
-        cmds += demo_input[i];
+    for (auto &inp : demo_input) {
+        cmds += inp;
         cmds += "\n";
     }
-    for (unsigned int i = 0; i < sizeof(cont_input) / sizeof(char *); ++i) {
-        cmds += cont_input[i];
+    for (auto &inp : cont_input) {
+        cmds += inp;
         cmds += "\n";
     }
     EXPECT_EQ(lammps_get_natoms(lmp), 0);
@@ -125,12 +127,12 @@ TEST_F(LibraryCommands, from_string)
     if (!verbose) ::testing::internal::GetCapturedStdout();
 
     cmds.clear();
-    for (unsigned int i = 0; i < sizeof(demo_input) / sizeof(char *); ++i) {
-        cmds += demo_input[i];
+    for (auto &inp : demo_input) {
+        cmds += inp;
         cmds += "\r\n";
     }
-    for (unsigned int i = 0; i < sizeof(cont_input) / sizeof(char *); ++i) {
-        cmds += cont_input[i];
+    for (auto &inp : cont_input) {
+        cmds += inp;
         cmds += "\r\n";
     }
     EXPECT_EQ(lammps_get_natoms(lmp), 0);

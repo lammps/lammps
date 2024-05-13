@@ -50,7 +50,7 @@ if (test $1 = 1) then
   fi
 
   if (test -e ../Makefile.package.settings) then
-    sed -i -e '/^include.*python.*$/d' ../Makefile.package.settings
+    sed -i -e '/^[ \t]*include.*python.*$/d' ../Makefile.package.settings
     # multiline form needed for BSD sed on Macs
     sed -i -e '4 i \
 include ..\/..\/lib\/python\/Makefile.lammps
@@ -65,7 +65,7 @@ elif (test $1 = 0) then
   fi
 
   if (test -e ../Makefile.package.settings) then
-    sed -i -e '/^include.*python.*$/d' ../Makefile.package.settings
+    sed -i -e '/^[ \t]*include.*python.*$/d' ../Makefile.package.settings
   fi
 
 fi

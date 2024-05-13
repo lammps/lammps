@@ -1,7 +1,7 @@
 /* -*- c++ -*- ----------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    https://www.lammps.org/, Sandia National Laboratories
-   Steve Plimpton, sjplimp@sandia.gov
+   LAMMPS development team: developers@lammps.org
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
@@ -27,14 +27,14 @@ namespace LAMMPS_NS {
 class FixDtReset : public Fix {
  public:
   FixDtReset(class LAMMPS *, int, char **);
-  ~FixDtReset() {}
-  int setmask();
-  void init();
-  void setup(int);
-  void end_of_step();
-  double compute_scalar();
 
- private:
+  int setmask() override;
+  void init() override;
+  void setup(int) override;
+  void end_of_step() override;
+  double compute_scalar() override;
+
+ protected:
   bigint laststep;
   int minbound, maxbound;
   double tmin, tmax, xmax, emax;
@@ -47,18 +47,3 @@ class FixDtReset : public Fix {
 
 #endif
 #endif
-
-/* ERROR/WARNING messages:
-
-E: Illegal ... command
-
-Self-explanatory.  Check the input script syntax and compare to the
-documentation for the command.  You can use -echo screen as a
-command-line option when running LAMMPS to see the offending line.
-
-W: Dump dcd/xtc timestamp may be wrong with fix dt/reset
-
-If the fix changes the timestep, the dump dcd file will not
-reflect the change.
-
-*/

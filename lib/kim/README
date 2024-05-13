@@ -1,6 +1,6 @@
 This directory contains build settings for the KIM API library which is
-required to use the KIM package and its kim_init, kim_interactions, kim_query,
-and pair_kim commands in a LAMMPS input script.
+required to use the KIM package and its kim init, kim interactions and kim query 
+commands in a LAMMPS input script.
 
 Information about the KIM project can be found at https://openkim.org.
 The KIM project is lead by Ellad Tadmor and Ryan Elliott (U Minn).
@@ -13,7 +13,7 @@ do the same thing by typing "python Install.py" from within this
 directory, or you can do it manually by following the instructions
 below.
 
-Use of the kim_query command requires that the CURL library (libcurl)
+Use of the kim query command requires that the CURL library (libcurl)
 development package and its configuration query tool, curl-config, are
 installed. The provided Makefile.lammps is set up to automatically detect this.
 
@@ -29,7 +29,7 @@ $ printf "${PWD}/installed-kim-api-X-X.Y.Z" > ./kim-prefix.txt
 2. Download and unpack the kim-api
 
 $ wget http://s3.openkim.org/kim-api/kim-api-X.Y.Z.txz
-$ tar zxvf kim-api-X.Y.Z.txz
+$ tar xvf kim-api-X.Y.Z.txz
 
 # configure the kim-api
 $ cd kim-api-X.Y.Z
@@ -50,7 +50,7 @@ $ rm -rf kim-api-X.Y.Z.txz
 5. To add items do the following (replace the kim item name with your
    desired value)
 
-$ source ${PWD}/kim-api-X.Y.Z/bin/kim-api-activate
+$ source ${PWD}/installed-kim-api-X.Y.Z/bin/kim-api-activate
 $ kim-api-collections-management install system EAM_ErcolessiAdams_1994_Al__MO_324507536345_002
 
 
@@ -59,7 +59,7 @@ $ kim-api-collections-management install system EAM_ErcolessiAdams_1994_Al__MO_3
 When these steps are complete you can build LAMMPS with the KIM
 package installed:
 
-$ cd lammpos/src
+$ cd lammps/src
 $ make yes-kim
 $ make g++ (or whatever target you wish)
 

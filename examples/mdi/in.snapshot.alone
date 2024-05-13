@@ -1,0 +1,28 @@
+# 3d Lennard-Jones melt - MDI driver script
+
+units           lj
+atom_style      atomic
+
+read_data       data.snapshot
+
+velocity        all create 1.44 87287 loop geom
+
+pair_style      lj/cut 2.5
+pair_coeff      1 1 1.0 1.0 2.5
+
+neighbor        0.3 bin
+neigh_modify    delay 0 every 1 check yes
+
+fix             1 all nve
+
+compute         1 all pressure NULL virial
+
+thermo_style    custom step temp pe c_1 c_1[1] c_1[2] c_1[3]
+
+thermo          100
+
+dump            1 all custom 100 dump.snapshot.alone &
+                id type x y z fx fy fz
+dump_modify     1 sort id
+
+run             300

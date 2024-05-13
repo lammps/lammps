@@ -2,7 +2,7 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    https://www.lammps.org/, Sandia National Laboratories
-   Steve Plimpton, sjplimp@sandia.gov
+   LAMMPS development team: developers@lammps.org
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
@@ -42,7 +42,7 @@ void PairHybridOverlay::coeff(int narg, char **arg)
   // 4th arg = pair sub-style index if name used multiple times
   // allow for "none" as valid sub-style name
 
-  int multflag;
+  int multflag = 0;
   int m;
 
   for (m = 0; m < nstyles; m++) {
@@ -59,8 +59,10 @@ void PairHybridOverlay::coeff(int narg, char **arg)
 
   int none = 0;
   if (m == nstyles) {
-    if (strcmp(arg[2],"none") == 0) none = 1;
-    else error->all(FLERR,"Pair coeff for hybrid has invalid style");
+    if (strcmp(arg[2],"none") == 0)
+      none = 1;
+    else
+      error->all(FLERR,"Expected hybrid sub-style instead of {} in pair_coeff command", arg[2]);
   }
 
   // move 1st/2nd args to 2nd/3rd args
@@ -69,6 +71,12 @@ void PairHybridOverlay::coeff(int narg, char **arg)
 
   arg[2+multflag] = arg[1];
   arg[1+multflag] = arg[0];
+
+  // ensure that one_coeff flag is honored
+
+  if (!none && styles[m]->one_coeff)
+    if ((strcmp(arg[0],"*") != 0) || (strcmp(arg[1],"*") != 0))
+      error->all(FLERR,"Incorrect args for pair coefficients");
 
   // invoke sub-style coeff() starting with 1st remaining arg
 
@@ -128,7 +136,7 @@ void PairHybridOverlay::init_svector()
 void PairHybridOverlay::copy_svector(int itype, int jtype)
 {
   int n=0;
-  Pair *this_style;
+  Pair *this_style = nullptr;
 
   // fill svector array.
   // copy data from active styles and use 0.0 for inactive ones

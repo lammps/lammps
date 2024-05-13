@@ -121,6 +121,8 @@ private:
     } else {
       system_force[i] = colvars[i]->total_force().real_value
         - colvar_forces[i].real_value;
+        // If hideJacobian is active then total_force has an extra term of -fj
+        // which is the Jacobian-compensating force at the colvar level
     }
     if (cvm::debug())
       cvm::log("ABF System force calc: cv " + cvm::to_str(i) +
@@ -153,7 +155,7 @@ private:
   void write_gradients_samples(const std::string &prefix, bool close = true);
 
   /// Read human-readable FE gradients and sample count (if not using restart)
-  void read_gradients_samples();
+  int read_gradients_samples();
 
   /// Template used in write_gradient_samples()
   template <class T> int write_grid_to_file(T const *grid,

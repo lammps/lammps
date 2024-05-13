@@ -14,7 +14,7 @@ class Node {
       // Zero argument constructor just for default initialization.
     }
 
-    Node(int node, double x, double y, double z) 
+    Node(int node, double x, double y, double z)
       : index_(node)
     {
       coords_[0] = x;
@@ -26,8 +26,8 @@ class Node {
     double coords_[3];
 
     double distanceSquared(Node query) {
-      return pow(coords_[0] - query.coords_[0], 2) 
-              + pow(coords_[1] - query.coords_[1], 2) 
+      return pow(coords_[0] - query.coords_[0], 2)
+              + pow(coords_[1] - query.coords_[1], 2)
               + pow(coords_[2] - query.coords_[2], 2);
     }
 
@@ -58,8 +58,8 @@ typedef std::pair<int,std::vector<Node> > Elem;
 
 class KD_Tree {
   public:
-    static KD_Tree* create_KD_tree(const int nNodesPerElement, const int nNodes, 
-                                   const DENS_MAT *points, const int nElems, 
+    static KD_Tree* create_KD_tree(const int nNodesPerElement, const int nNodes,
+                                   const DENS_MAT *points, const int nElems,
                                    const Array2D<int> &conn);
 
     KD_Tree(std::vector<Node> *points, std::vector<Elem> *elems,
@@ -67,13 +67,13 @@ class KD_Tree {
 
     ~KD_Tree();
 
-    std::vector<int> find_nearest(DENS_VEC query) { 
+    std::vector<int> find_nearest(DENS_VEC query) {
       // Create a fake Node and find the nearest Node in the tree to it.
       return find_nearest_elements(Node(-1, query(0), query(1), query(2)));
     }
-    
+
     std::vector<int> find_nearest_elements(Node query, int dimension=0);
-    
+
     std::vector<std::vector<int> > getElemIDs(int depth);
 
   private:

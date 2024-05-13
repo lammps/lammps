@@ -6,7 +6,7 @@ compute plasticity/atom command
 Syntax
 """"""
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    compute ID group-ID plasticity/atom
 
@@ -24,16 +24,19 @@ Description
 """""""""""
 
 Define a computation that calculates the per-atom plasticity for each
-atom in a group.  This is a quantity relevant for :doc:`Peridynamics models <pair_peri>`.  See `this document <PDF/PDLammps_overview.pdf>`_
+atom in a group.  This is a quantity relevant for
+:doc:`Peridynamics models <pair_peri>`.
+See `this document <PDF/PDLammps_overview.pdf>`_
 for an overview of LAMMPS commands for Peridynamics modeling.
 
 The plasticity for a Peridynamic particle is the so-called consistency
-parameter (lambda).  For elastic deformation lambda = 0, otherwise
-lambda > 0 for plastic deformation.  For details, see
+parameter (:math:`\lambda`).  For elastic deformation, :math:`\lambda = 0`,
+otherwise :math:`\lambda > 0` for plastic deformation.  For details, see
 :ref:`(Mitchell) <Mitchell>` and the PDF doc included in the LAMMPS
 distribution in `doc/PDF/PDLammps_EPS.pdf <PDF/PDLammps_EPS.pdf>`_.
 
-This command can be invoked for one of the Peridynamic :doc:`pair styles <pair_peri>`: peri/eps.
+This command can be invoked for one of the Peridynamic
+:doc:`pair styles <pair_peri>`: peri/eps.
 
 The plasticity value will be 0.0 for atoms not in the specified
 compute group.
@@ -43,16 +46,16 @@ Output info
 
 This compute calculates a per-atom vector, which can be accessed by
 any command that uses per-atom values from a compute as input.  See
-the :doc:`Howto output <Howto_output>` doc page for an overview of
+the :doc:`Howto output <Howto_output>` page for an overview of
 LAMMPS output options.
 
-The per-atom vector values are unitless numbers (lambda) >= 0.0.
+The per-atom vector values are unitless numbers :math:`\lambda \ge 0.0`.
 
 Restrictions
 """"""""""""
 
 This compute is part of the PERI package.  It is only enabled if
-LAMMPS was built with that package.  See the :doc:`Build package <Build_package>` doc page for more info.
+LAMMPS was built with that package.  See the :doc:`Build package <Build_package>` page for more info.
 
 Related commands
 """"""""""""""""

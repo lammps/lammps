@@ -1,60 +1,43 @@
-/*
 //@HEADER
 // ************************************************************************
 //
-//                        Kokkos v. 3.0
-//       Copyright (2020) National Technology & Engineering
+//                        Kokkos v. 4.0
+//       Copyright (2022) National Technology & Engineering
 //               Solutions of Sandia, LLC (NTESS).
 //
 // Under the terms of Contract DE-NA0003525 with NTESS,
 // the U.S. Government retains certain rights in this software.
 //
-// Redistribution and use in source and binary forms, with or without
-// modification, are permitted provided that the following conditions are
-// met:
+// Part of Kokkos, under the Apache License v2.0 with LLVM Exceptions.
+// See https://kokkos.org/LICENSE for license information.
+// SPDX-License-Identifier: Apache-2.0 WITH LLVM-exception
 //
-// 1. Redistributions of source code must retain the above copyright
-// notice, this list of conditions and the following disclaimer.
-//
-// 2. Redistributions in binary form must reproduce the above copyright
-// notice, this list of conditions and the following disclaimer in the
-// documentation and/or other materials provided with the distribution.
-//
-// 3. Neither the name of the Corporation nor the names of the
-// contributors may be used to endorse or promote products derived from
-// this software without specific prior written permission.
-//
-// THIS SOFTWARE IS PROVIDED BY NTESS "AS IS" AND ANY
-// EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
-// IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR
-// PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL NTESS OR THE
-// CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
-// EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
-// PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR
-// PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF
-// LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING
-// NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
-// SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-//
-// Questions? Contact Christian R. Trott (crtrott@sandia.gov)
-//
-// ************************************************************************
 //@HEADER
-*/
 
 #ifndef KOKKOS_UNORDERED_MAP_IMPL_HPP
 #define KOKKOS_UNORDERED_MAP_IMPL_HPP
 
-#include <Kokkos_Core_fwd.hpp>
+#include <Kokkos_Core.hpp>
 #include <cstdint>
 
 #include <cstdio>
 #include <climits>
-#include <iostream>
 #include <iomanip>
 
 namespace Kokkos {
 namespace Impl {
+
+//! Append to the label contained in view_ctor_prop.
+template <typename... P>
+auto append_to_label(const ViewCtorProp<P...>& view_ctor_prop,
+                     const std::string& label) {
+  using vcp_t = ViewCtorProp<P...>;
+  static_assert(vcp_t::has_label);
+  vcp_t new_ctor_props(view_ctor_prop);
+  static_cast<ViewCtorProp<void, std::string>&>(new_ctor_props)
+      .value.append(label);
+  return new_ctor_props;
+}
 
 uint32_t find_hash_size(uint32_t size);
 
@@ -78,7 +61,11 @@ struct UnorderedMapRehash {
 
   KOKKOS_INLINE_FUNCTION
   void operator()(size_type i) const {
-    if (m_src.valid_at(i)) m_dst.insert(m_src.key_at(i), m_src.value_at(i));
+    if constexpr (std::is_void_v<typename map_type::value_type>) {
+      if (m_src.valid_at(i)) m_dst.insert(m_src.key_at(i));
+    } else {
+      if (m_src.valid_at(i)) m_dst.insert(m_src.key_at(i), m_src.value_at(i));
+    }
   }
 };
 
@@ -144,7 +131,7 @@ struct UnorderedMapHistogram {
   using execution_space = typename map_type::execution_space;
   using size_type       = typename map_type::size_type;
 
-  using histogram_view      = View<int[100], execution_space>;
+  using histogram_view      = View<int[100], typename map_type::device_type>;
   using host_histogram_view = typename histogram_view::HostMirror;
 
   map_type m_map;
@@ -170,8 +157,8 @@ struct UnorderedMapHistogram {
   }
 
   void print_length(std::ostream& out) {
-    host_histogram_view host_copy = create_mirror_view(m_length);
-    Kokkos::deep_copy(host_copy, m_length);
+    host_histogram_view host_copy =
+        create_mirror_view_and_copy(Kokkos::HostSpace{}, m_length);
 
     for (int i = 0, size = host_copy.extent(0); i < size; ++i) {
       out << host_copy[i] << " , ";
@@ -180,8 +167,8 @@ struct UnorderedMapHistogram {
   }
 
   void print_distance(std::ostream& out) {
-    host_histogram_view host_copy = create_mirror_view(m_distance);
-    Kokkos::deep_copy(host_copy, m_distance);
+    host_histogram_view host_copy =
+        create_mirror_view_and_copy(Kokkos::HostSpace{}, m_distance);
 
     for (int i = 0, size = host_copy.extent(0); i < size; ++i) {
       out << host_copy[i] << " , ";
@@ -190,8 +177,8 @@ struct UnorderedMapHistogram {
   }
 
   void print_block_distance(std::ostream& out) {
-    host_histogram_view host_copy = create_mirror_view(m_block_distance);
-    Kokkos::deep_copy(host_copy, m_block_distance);
+    host_histogram_view host_copy =
+        create_mirror_view_and_copy(Kokkos::HostSpace{}, m_block_distance);
 
     for (int i = 0, size = host_copy.extent(0); i < size; ++i) {
       out << host_copy[i] << " , ";
@@ -250,8 +237,8 @@ struct UnorderedMapPrint {
     uint32_t list = m_map.m_hash_lists(i);
     for (size_type curr = list, ii = 0; curr != invalid_index;
          curr = m_map.m_next_index[curr], ++ii) {
-      KOKKOS_IMPL_DO_NOT_USE_PRINTF("%d[%d]: %d->%d\n", list, ii,
-                                    m_map.key_at(curr), m_map.value_at(curr));
+      Kokkos::printf("%d[%d]: %d->%d\n", list, ii, m_map.key_at(curr),
+                     m_map.value_at(curr));
     }
   }
 };

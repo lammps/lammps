@@ -1,7 +1,7 @@
 /* -*- c++ -*- ----------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    https://www.lammps.org/, Sandia National Laboratories
-   Steve Plimpton, sjplimp@sandia.gov
+   LAMMPS development team: developers@lammps.org
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
@@ -27,54 +27,10 @@ namespace LAMMPS_NS {
 class CreateBox : public Command {
  public:
   CreateBox(class LAMMPS *);
-  void command(int, char **);
+  void command(int, char **) override;
 };
 
 }    // namespace LAMMPS_NS
 
 #endif
 #endif
-
-/* ERROR/WARNING messages:
-
-E: Illegal ... command
-
-Self-explanatory.  Check the input script syntax and compare to the
-documentation for the command.  You can use -echo screen as a
-command-line option when running LAMMPS to see the offending line.
-
-E: Cannot create_box after simulation box is defined
-
-A simulation box can only be defined once.
-
-E: Cannot run 2d simulation with non-periodic Z dimension
-
-Use the boundary command to make the z dimension periodic in order to
-run a 2d simulation.
-
-E: Create_box region ID does not exist
-
-Self-explanatory.
-
-E: Create_box region does not support a bounding box
-
-Not all regions represent bounded volumes.  You cannot use
-such a region with the create_box command.
-
-E: No bonds allowed with this atom style
-
-Self-explanatory.
-
-E: No angles allowed with this atom style
-
-Self-explanatory.
-
-E: No dihedrals allowed with this atom style
-
-Self-explanatory.
-
-E: No impropers allowed with this atom style
-
-Self-explanatory.
-
-*/

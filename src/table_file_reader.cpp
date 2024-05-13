@@ -1,8 +1,7 @@
-// clang-format off
 /* -*- c++ -*- ----------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    https://www.lammps.org/, Sandia National Laboratories
-   Steve Plimpton, sjplimp@sandia.gov
+   LAMMPS development team: developers@lammps.org
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
@@ -19,22 +18,17 @@
 #include "table_file_reader.h"
 
 #include "text_file_reader.h"
-#include "tokenizer.h"
 
 using namespace LAMMPS_NS;
 
-TableFileReader::TableFileReader(LAMMPS *lmp,
-                                 const std::string &filename,
-                                 const std::string &type,
+TableFileReader::TableFileReader(LAMMPS *lmp, const std::string &filename, const std::string &type,
                                  const int auto_convert) :
-  PotentialFileReader(lmp, filename, type + " table", auto_convert)
+    PotentialFileReader(lmp, filename, type + " table", auto_convert)
 {
 }
 
-TableFileReader::~TableFileReader() {
-}
-
-char *TableFileReader::find_section_start(const std::string &keyword) {
+char *TableFileReader::find_section_start(const std::string &keyword)
+{
   char *line = nullptr;
   while ((line = reader->next_line())) {
     ValueTokenizer values(line);

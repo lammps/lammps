@@ -1,33 +1,32 @@
 Link LAMMPS as a library to another code
 ========================================
 
-LAMMPS is designed as a library of C++ objects that can be
-integrated into other applications including Python scripts.
-The files ``src/library.cpp`` and ``src/library.h`` define a
-C-style API for using LAMMPS as a library.  See the
-:doc:`Howto_library` page
-for a description of the interface and how to use it for your needs.
+LAMMPS is designed as a library of C++ objects that can be integrated
+into other applications, including Python scripts.  The files
+``src/library.cpp`` and ``src/library.h`` define a C-style API for using
+LAMMPS as a library.  See the :doc:`Howto_library` page for a
+description of the interface and how to use it for your needs.
 
-The :doc:`Build_basics` page explains how to build
-LAMMPS as either a shared or static library.  This results in a file
-in the compilation folder called ``liblammps.a`` or ``liblammps_<name>.a``
-in case of building a static library.  In case of a shared library
-the name is the same only that the suffix is going to be either ``.so``
-or ``.dylib`` or ``.dll`` instead of ``.a`` depending on the OS.
-In some cases the ``.so`` file may be a symbolic link to a file with
-the suffix ``.so.0`` (or some other number).
+The :doc:`Build_basics` page explains how to build LAMMPS as either a
+shared or static library.  This results in a file in the compilation
+folder called ``liblammps.a`` or ``liblammps_<name>.a`` in case of
+building a static library.  In case of a shared library, the name is the
+same only that the suffix is going to be either ``.so`` or ``.dylib`` or
+``.dll`` instead of ``.a`` depending on the OS.  In some cases, the
+``.so`` file may be a symbolic link to a file with the suffix ``.so.0``
+(or some other number).
 
 .. note::
 
    Care should be taken to use the same MPI library for the calling code
-   and the LAMMPS library unless LAMMPS is to be compiled without (real)
-   MPI support using the include STUBS MPI library.
+   and the LAMMPS library, unless LAMMPS is to be compiled without (real)
+   MPI support using the included STUBS MPI library.
 
 Link with LAMMPS as a static library
 ------------------------------------
 
 The calling application can link to LAMMPS as a static library with
-compilation and link commands as in the examples shown below.  These
+compilation and link commands, as in the examples shown below.  These
 are examples for a code written in C in the file ``caller.c``.
 The benefit of linking to a static library is, that the resulting
 executable is independent of that library since all required
@@ -142,10 +141,10 @@ Link with LAMMPS as a shared library
 When linking to LAMMPS built as a shared library, the situation becomes
 much simpler, as all dependent libraries and objects are either included
 in the shared library or registered as a dependent library in the shared
-library file.  Thus those libraries need not to be specified when
-linking the calling executable.  Only the *-I* flags are needed.  So the
-example case from above of the serial version static LAMMPS library with
-the POEMS package installed becomes:
+library file.  Thus, those libraries need not be specified when linking
+the calling executable.  Only the *-I* flags are needed.  So the example
+case from above of the serial version static LAMMPS library with the
+POEMS package installed becomes:
 
 .. tabs::
 
@@ -209,7 +208,7 @@ You can verify whether all required shared libraries are found with the
 
 .. code-block:: bash
 
-   $ LD_LIBRARY_PATH=/home/user/lammps/src ldd caller
+   LD_LIBRARY_PATH=/home/user/lammps/src ldd caller
         linux-vdso.so.1 (0x00007ffe729e0000)
         liblammps.so => /home/user/lammps/src/liblammps.so (0x00007fc91bb9e000)
         libstdc++.so.6 => /lib64/libstdc++.so.6 (0x00007fc91b984000)
@@ -222,7 +221,7 @@ If a required library is missing, you would get a 'not found' entry:
 
 .. code-block:: bash
 
-   $  ldd caller
+   ldd caller
         linux-vdso.so.1 (0x00007ffd672fe000)
         liblammps.so => not found
         libstdc++.so.6 => /usr/lib64/libstdc++.so.6 (0x00007fb7c7e86000)

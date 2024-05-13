@@ -34,7 +34,7 @@ __kernel void k_colloid(const __global numtyp4 *restrict x_,
                         const __global int *form,
                         const __global int *dev_nbor,
                         const __global int *dev_packed,
-                        __global acctyp4 *restrict ans,
+                        __global acctyp3 *restrict ans,
                         __global acctyp *restrict engv,
                         const int eflag, const int vflag, const int inum,
                         const int nbor_pitch, const int t_per_atom) {
@@ -50,7 +50,7 @@ __kernel void k_colloid(const __global numtyp4 *restrict x_,
   sp_lj[2]=sp_lj_in[2];
   sp_lj[3]=sp_lj_in[3];
 
-  acctyp4 f;
+  acctyp3 f;
   f.x=(acctyp)0; f.y=(acctyp)0; f.z=(acctyp)0;
   acctyp energy, virial[6];
   if (EVFLAG) {
@@ -69,6 +69,7 @@ __kernel void k_colloid(const __global numtyp4 *restrict x_,
 
     numtyp factor_lj;
     for ( ; nbor<nbor_end; nbor+=n_stride) {
+      ucl_prefetch(dev_packed+nbor+n_stride);
 
       int j=dev_packed[nbor];
       factor_lj = sp_lj[sbmask(j)];
@@ -123,10 +124,10 @@ __kernel void k_colloid(const __global numtyp4 *restrict x_,
           K[6] = K[2]-r;
           K[7] = ucl_recip(K[3]*K[4]);
           K[8] = ucl_recip(K[5]*K[6]);
-          g[0] = ucl_powr(K[3],(numtyp)-7.0);
-          g[1] = -ucl_powr(-K[4],(numtyp)-7.0);
-          g[2] = ucl_powr(K[5],(numtyp)-7.0);
-          g[3] = -ucl_powr(-K[6],(numtyp)-7.0);
+          g[0] = (numtyp)1.0/(K[3]*K[3]*K[3]*K[3]*K[3]*K[3]*K[3]);  // ucl_powr(K[3],(numtyp)-7.0);
+          g[1] = (numtyp)1.0/(K[4]*K[4]*K[4]*K[4]*K[4]*K[4]*K[4]);  //-ucl_powr(-K[4],(numtyp)-7.0);
+          g[2] = (numtyp)1.0/(K[5]*K[5]*K[5]*K[5]*K[5]*K[5]*K[5]);  // ucl_powr(K[5],(numtyp)-7.0);
+          g[3] = (numtyp)1.0/(K[6]*K[6]*K[6]*K[6]*K[6]*K[6]*K[6]);  //-ucl_powr(-K[6],(numtyp)-7.0);
           h[0] = ((K[3]+(numtyp)5.0*K[1])*K[3]+(numtyp)30.0*K[0])*g[0];
           h[1] = ((K[4]+(numtyp)5.0*K[1])*K[4]+(numtyp)30.0*K[0])*g[1];
           h[2] = ((K[5]+(numtyp)5.0*K[2])*K[5]-(numtyp)30.0*K[0])*g[2];
@@ -188,7 +189,7 @@ __kernel void k_colloid_fast(const __global numtyp4 *restrict x_,
                              const __global int *form_in,
                              const __global int *dev_nbor,
                              const __global int *dev_packed,
-                             __global acctyp4 *restrict ans,
+                             __global acctyp3 *restrict ans,
                              __global acctyp *restrict engv,
                              const int eflag, const int vflag, const int inum,
                              const int nbor_pitch, const int t_per_atom) {
@@ -215,7 +216,7 @@ __kernel void k_colloid_fast(const __global numtyp4 *restrict x_,
       lj3[tid]=lj3_in[tid];
   }
 
-  acctyp4 f;
+  acctyp3 f;
   f.x=(acctyp)0; f.y=(acctyp)0; f.z=(acctyp)0;
   acctyp energy, virial[6];
   if (EVFLAG) {
@@ -237,6 +238,7 @@ __kernel void k_colloid_fast(const __global numtyp4 *restrict x_,
 
     numtyp factor_lj;
     for ( ; nbor<nbor_end; nbor+=n_stride) {
+      ucl_prefetch(dev_packed+nbor+n_stride);
 
       int j=dev_packed[nbor];
       factor_lj = sp_lj[sbmask(j)];
@@ -290,10 +292,10 @@ __kernel void k_colloid_fast(const __global numtyp4 *restrict x_,
           K[6] = K[2]-r;
           K[7] = ucl_recip(K[3]*K[4]);
           K[8] = ucl_recip(K[5]*K[6]);
-          g[0] = ucl_powr(K[3],(numtyp)-7.0);
-          g[1] = -ucl_powr(-K[4],(numtyp)-7.0);
-          g[2] = ucl_powr(K[5],(numtyp)-7.0);
-          g[3] = -ucl_powr(-K[6],(numtyp)-7.0);
+          g[0] = (numtyp)1.0/(K[3]*K[3]*K[3]*K[3]*K[3]*K[3]*K[3]);  // ucl_powr(K[3],(numtyp)-7.0);
+          g[1] = (numtyp)1.0/(K[4]*K[4]*K[4]*K[4]*K[4]*K[4]*K[4]);  //-ucl_powr(-K[4],(numtyp)-7.0);
+          g[2] = (numtyp)1.0/(K[5]*K[5]*K[5]*K[5]*K[5]*K[5]*K[5]);  // ucl_powr(K[5],(numtyp)-7.0);
+          g[3] = (numtyp)1.0/(K[6]*K[6]*K[6]*K[6]*K[6]*K[6]*K[6]);  //-ucl_powr(-K[6],(numtyp)-7.0);
           h[0] = ((K[3]+(numtyp)5.0*K[1])*K[3]+(numtyp)30.0*K[0])*g[0];
           h[1] = ((K[4]+(numtyp)5.0*K[1])*K[4]+(numtyp)30.0*K[0])*g[1];
           h[2] = ((K[5]+(numtyp)5.0*K[2])*K[5]-(numtyp)30.0*K[0])*g[2];

@@ -2,7 +2,7 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    https://www.lammps.org/, Sandia National Laboratories
-   Steve Plimpton, sjplimp@sandia.gov
+   LAMMPS development team: developers@lammps.org
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
@@ -13,25 +13,23 @@
 ------------------------------------------------------------------------- */
 
 #include "fix_gpu.h"
-#include <cstring>
 
 #include "atom.h"
+#include "citeme.h"
 #include "comm.h"
+#include "error.h"
 #include "force.h"
+#include "gpu_extra.h"
+#include "modify.h"
+#include "neighbor.h"
 #include "pair.h"
 #include "pair_hybrid.h"
-#include "pair_hybrid_overlay.h"
 #include "respa.h"
-#include "input.h"
 #include "timer.h"
-#include "modify.h"
-#include "update.h"
-#include "domain.h"
 #include "universe.h"
-#include "gpu_extra.h"
-#include "neighbor.h"
-#include "citeme.h"
-#include "error.h"
+#include "update.h"
+
+#include <cstring>
 
 #if (LAL_USE_OMP == 1)
 #include <omp.h>
@@ -49,59 +47,65 @@ extern int lmp_init_device(MPI_Comm world, MPI_Comm replica, const int ngpu,
                            const int ocl_platform, char *device_type_flags,
                            const int block_pair);
 extern void lmp_clear_device();
-extern double lmp_gpu_forces(double **f, double **tor, double *eatom,
-                             double **vatom, double *virial, double &ecoul,
-                             int &err_flag);
-extern double lmp_gpu_update_bin_size(const double subx, const double suby,
-                                      const double subz, const int nlocal,
-                                      const double cut);
+extern double lmp_gpu_forces(double **f, double **tor, double *eatom, double **vatom,
+                             double *virial, double &ecoul, int &err_flag);
+extern double lmp_gpu_update_bin_size(const double subx, const double suby, const double subz,
+                                      const int nlocal, const double cut);
 
 static const char cite_gpu_package[] =
-  "GPU package (short-range, long-range and three-body potentials):\n\n"
+  "GPU package (short-range, long-range and three-body potentials): doi:10.1016/j.cpc.2010.12.021, doi:10.1016/j.cpc.2011.10.012, doi:10.1016/j.cpc.2013.08.002, doi:10.1016/j.commatsci.2014.10.068, doi:10.1016/j.cpc.2016.10.020, doi:10.3233/APC200086\n\n"
   "@Article{Brown11,\n"
-  " author = {W. M. Brown, P. Wang, S. J. Plimpton, A. N. Tharrington},\n"
-  " title = {Implementing Molecular Dynamics on Hybrid High Performance Computers - Short Range Forces},\n"
-  " journal = {Comp.~Phys.~Comm.},\n"
+  " author = {W. M. Brown and P. Wang and S. J. Plimpton and A. N. Tharrington},\n"
+  " title = {Implementing Molecular Dynamics on Hybrid High Performance Computers---Short Range Forces},\n"
+  " journal = {Comput.\\ Phys.\\ Commun.},\n"
   " year =    2011,\n"
   " volume =  182,\n"
-  " pages =   {898--911}\n"
+  " pages =   {898--911},\n"
+  " doi =     {10.1016/j.cpc.2010.12.021}\n"
   "}\n\n"
   "@Article{Brown12,\n"
-  " author = {W. M. Brown, A. Kohlmeyer, S. J. Plimpton, A. N. Tharrington},\n"
+  " author = {W. M. Brown and A. Kohlmeyer and S. J. Plimpton and A. N. Tharrington},\n"
   " title = {Implementing Molecular Dynamics on Hybrid High Performance Computers - Particle-Particle Particle-Mesh},\n"
-  " journal = {Comp.~Phys.~Comm.},\n"
+  " journal = {Comput.\\ Phys.\\ Commun.},\n"
   " year =    2012,\n"
   " volume =  183,\n"
+  " doi =     {10.1016/j.cpc.2011.10.012},\n"
   " pages =   {449--459}\n"
   "}\n\n"
   "@Article{Brown13,\n"
-  " author = {W. M. Brown, Y. Masako},\n"
-  " title = {Implementing Molecular Dynamics on Hybrid High Performance Computers – Three-Body Potentials},\n"
-  " journal = {Comp.~Phys.~Comm.},\n"
+  " author = {W. M. Brown and Y. Masako},\n"
+  " title = {Implementing Molecular Dynamics on Hybrid High Performance Computers---Three-Body Potentials},\n"
+  " journal = {Comput.\\ Phys.\\ Commun.},\n"
   " year =    2013,\n"
   " volume =  184,\n"
-  " pages =   {2785--2793}\n"
+  " pages =   {2785--2793},\n"
+  " doi =     {10.1016/j.cpc.2013.08.002},\n"
   "}\n\n"
   "@Article{Trung15,\n"
-  " author = {T. D. Nguyen, S. J. Plimpton},\n"
-  " title = {Accelerating dissipative particle dynamics simulations for soft matter systems},\n"
-  " journal = {Comput.~Mater.~Sci.},\n"
+  " author = {T. D. Nguyen and S. J. Plimpton},\n"
+  " title = {Accelerating Dissipative Particle Dynamics Simulations for Soft Matter Systems},\n"
+  " journal = {Comput.\\ Mater.\\ Sci.},\n"
   " year =    2015,\n"
+  " doi =     {10.1016/j.commatsci.2014.10.068},\n"
   " volume =  100,\n"
   " pages =   {173--180}\n"
   "}\n\n"
   "@Article{Trung17,\n"
   " author = {T. D. Nguyen},\n"
-  " title = {GPU-accelerated Tersoff potentials for massively parallel Molecular Dynamics simulations},\n"
-  " journal = {Comp.~Phys.~Comm.},\n"
+  " title = {{GPU}-Accelerated {T}ersoff Potentials for Massively Parallel\n"
+  "    Molecular Dynamics Simulations},\n"
+  " journal = {Comput.\\ Phys.\\ Commun.},\n"
   " year =    2017,\n"
+  " doi =     {10.1016/j.cpc.2016.10.020},\n"
   " volume =  212,\n"
   " pages =   {113--122}\n"
   "}\n\n"
-  "@Article{Nikolskiy19,\n"
-  " author = {V. Nikolskiy, V. Stegailov},\n"
-  " title = {GPU acceleration of four-site water models in LAMMPS},\n"
-  " journal = {Proceeding of the International Conference on Parallel Computing (ParCo 2019), Prague, Czech Republic},\n"
+  "@inproceedings{Nikolskiy19,\n"
+  " author = {V. Nikolskiy and V. Stegailov},\n"
+  " title = {{GPU} Acceleration of Four-Site Water Models in {LAMMPS}},\n"
+  " booktitle = {Proceedings of the International Conference on Parallel\n"
+  "    Computing (ParCo 2019), Prague, Czech Republic},\n"
+  " doi =     {10.3233/APC200086},\n"
   " year =    2019\n"
   "}\n\n";
 
@@ -116,8 +120,8 @@ FixGPU::FixGPU(LAMMPS *lmp, int narg, char **arg) :
 
   // If ngpu is 0, autoset ngpu to the number of devices per node matching
   // best device
-  int ngpu = atoi(arg[3]);
-  if (ngpu < 0) error->all(FLERR,"Illegal package gpu command");
+  int ngpu = utils::inumeric(FLERR, arg[3], false, lmp);
+  if (ngpu < 0) error->all(FLERR,"Illegal number of GPUs ({}) in package gpu command", ngpu);
 
   // Negative value indicate GPU package should find the best device ID
   int first_gpu_id = -1;
@@ -127,12 +131,11 @@ FixGPU::FixGPU(LAMMPS *lmp, int narg, char **arg) :
   _gpu_mode = GPU_NEIGH;
   _particle_split = 1.0;
   int nthreads = 0;
-  int newtonflag = 0;
+  int newtonflag = force->newton_pair;
   int threads_per_atom = -1;
   double binsize = 0.0;
   char *opencl_args = nullptr;
   int block_pair = -1;
-  int pair_only_flag = 0;
   int ocl_platform = -1;
   char *device_type_flags = nullptr;
 
@@ -140,16 +143,17 @@ FixGPU::FixGPU(LAMMPS *lmp, int narg, char **arg) :
   while (iarg < narg) {
     if (strcmp(arg[iarg],"neigh") == 0) {
       if (iarg+2 > narg) error->all(FLERR,"Illegal package gpu command");
-      if (strcmp(arg[iarg+1],"yes") == 0) _gpu_mode = GPU_NEIGH;
-      else if (strcmp(arg[iarg+1],"no") == 0) _gpu_mode = GPU_FORCE;
-      else if (strcmp(arg[iarg+1],"hybrid") == 0) _gpu_mode = GPU_HYB_NEIGH;
+      const std::string modearg = arg[iarg+1];
+      if ((modearg == "yes") || (modearg == "on") || (modearg == "true"))
+        _gpu_mode = GPU_NEIGH;
+      else if ((modearg == "no") || (modearg == "off") || (modearg == "false"))
+        _gpu_mode = GPU_FORCE;
+      else if (modearg == "hybrid") _gpu_mode = GPU_HYB_NEIGH;
       else error->all(FLERR,"Illegal package gpu command");
       iarg += 2;
     } else if (strcmp(arg[iarg],"newton") == 0) {
       if (iarg+2 > narg) error->all(FLERR,"Illegal package gpu command");
-      if (strcmp(arg[iarg+1],"off") == 0) newtonflag = 0;
-      else if (strcmp(arg[iarg+1],"on") == 0) newtonflag = 1;
-      else error->all(FLERR,"Illegal package gpu command");
+      newtonflag = utils::logical(FLERR,arg[iarg+1],false,lmp);
       iarg += 2;
     } else if (strcmp(arg[iarg],"binsize") == 0) {
       if (iarg+2 > narg) error->all(FLERR,"Illegal package gpu command");
@@ -189,9 +193,7 @@ FixGPU::FixGPU(LAMMPS *lmp, int narg, char **arg) :
       iarg += 2;
     } else if (strcmp(arg[iarg],"pair/only") == 0) {
       if (iarg+2 > narg) error->all(FLERR,"Illegal package gpu command");
-      if (strcmp(arg[iarg+1],"off") == 0) pair_only_flag = 0;
-      else if (strcmp(arg[iarg+1],"on") == 0) pair_only_flag = 1;
-      else error->all(FLERR,"Illegal package gpu command");
+      lmp->pair_only_flag = utils::logical(FLERR,arg[iarg+1],false,lmp);
       iarg += 2;
     } else if (strcmp(arg[iarg],"ocl_args") == 0) {
       if (iarg+2 > narg) error->all(FLERR,"Illegal package gpu command");
@@ -202,7 +204,7 @@ FixGPU::FixGPU(LAMMPS *lmp, int narg, char **arg) :
 
   #if (LAL_USE_OMP == 0)
   if (nthreads > 1)
-    error->all(FLERR,"No OpenMP support compiled in");
+    error->all(FLERR,"No OpenMP support compiled into the GPU package");
   #else
   if (nthreads > 0) {
     omp_set_num_threads(nthreads);
@@ -211,23 +213,15 @@ FixGPU::FixGPU(LAMMPS *lmp, int narg, char **arg) :
   #endif
 
   // set newton pair flag
-  // require newtonflag = 0 since currently required by all GPU pair styles
-
-  if (newtonflag == 1) error->all(FLERR,"Illegal package gpu command");
 
   force->newton_pair = newtonflag;
   if (force->newton_pair || force->newton_bond) force->newton = 1;
   else force->newton = 0;
 
-  if (pair_only_flag) {
-    lmp->suffixp = lmp->suffix;
-    lmp->suffix = nullptr;
-  } else {
-    if (lmp->suffixp) {
-      lmp->suffix = lmp->suffixp;
-      lmp->suffixp = nullptr;
-    }
-  }
+  // require newton pair off if _particle_split < 1
+
+  if (force->newton_pair == 1 && _particle_split < 1)
+    error->all(FLERR,"Cannot use newton pair on for split less than 1 for now");
 
   // pass params to GPU library
   // change binsize default (0.0) to -1.0 used by GPU lib
@@ -275,35 +269,51 @@ void FixGPU::init()
     error->warning(FLERR,"Using package gpu without any pair style defined");
 
   // make sure fdotr virial is not accumulated multiple times
+  // also disallow GPU neighbor lists for hybrid styles
 
   if (force->pair_match("^hybrid",0) != nullptr) {
-    PairHybrid *hybrid = (PairHybrid *) force->pair;
+    auto hybrid = dynamic_cast<PairHybrid *>(force->pair);
     for (int i = 0; i < hybrid->nstyles; i++)
       if (!utils::strmatch(hybrid->keywords[i],"/gpu$"))
         force->pair->no_virial_fdotr_compute = 1;
+    if (_gpu_mode != GPU_FORCE)
+      error->all(FLERR, "Must not use GPU neighbor lists with hybrid pair style");
   }
 
   // rRESPA support
 
   if (utils::strmatch(update->integrate_style,"^respa"))
-    _nlevels_respa = ((Respa *) update->integrate)->nlevels;
+    _nlevels_respa = (dynamic_cast<Respa *>(update->integrate))->nlevels;
 }
 
 /* ---------------------------------------------------------------------- */
 
 void FixGPU::setup(int vflag)
 {
+  // See if we should overlap topology list builds on CPU with work on GPU
+  int overlap_topo = 0;
+  if ((atom->molecular != Atom::ATOMIC)) {
+    PairHybrid *ph = reinterpret_cast<PairHybrid *>(force->pair_match("^hybrid",0));
+    if (ph) {
+      for (int isub=0; isub < ph->nstyles; ++isub) {
+        if (force->pair_match("gpu",0,isub)) overlap_topo = 1;
+      }
+    } else {
+      if (force->pair_match("gpu",0)) overlap_topo = 1;
+    }
+  }
+  if (overlap_topo) neighbor->set_overlap_topo(1);
+
   if (_gpu_mode == GPU_NEIGH || _gpu_mode == GPU_HYB_NEIGH)
     if (neighbor->exclude_setting() != 0)
-      error->all(FLERR,
-                 "Cannot use neigh_modify exclude with GPU neighbor builds");
+      error->all(FLERR, "Cannot use neigh_modify exclude with GPU neighbor builds");
 
   if (utils::strmatch(update->integrate_style,"^verlet")) post_force(vflag);
   else {
     // In setup only, all forces calculated on GPU are put in the outer level
-    ((Respa *) update->integrate)->copy_flevel_f(_nlevels_respa-1);
+    (dynamic_cast<Respa *>(update->integrate))->copy_flevel_f(_nlevels_respa-1);
     post_force(vflag);
-    ((Respa *) update->integrate)->copy_f_flevel(_nlevels_respa-1);
+    (dynamic_cast<Respa *>(update->integrate))->copy_f_flevel(_nlevels_respa-1);
   }
 }
 
@@ -323,15 +333,12 @@ void FixGPU::post_force(int /* vflag */)
   timer->stamp();
   double lvirial[6];
   for (int i = 0; i < 6; i++) lvirial[i] = 0.0;
-  int err_flag;
-  double my_eng = lmp_gpu_forces(atom->f, atom->torque, force->pair->eatom,
-                                 force->pair->vatom, lvirial,
-                                 force->pair->eng_coul, err_flag);
-  if (err_flag) {
-    if (err_flag==1)
-      error->one(FLERR,
-        "Too many neighbors on GPU. Use neigh_modify one to increase limit.");
-  }
+  int err_flag = 0;
+  double my_eng = lmp_gpu_forces(atom->f, atom->torque, force->pair->eatom, force->pair->vatom,
+                                 lvirial, force->pair->eng_coul, err_flag);
+  if (err_flag==1)
+    error->one(FLERR,"Neighbor list problem on the GPU. Try increasing the value of 'neigh_modify one' "
+               "or the GPU neighbor list 'binsize'.");
 
   force->pair->eng_vdwl += my_eng;
   force->pair->virial[0] += lvirial[0];
@@ -341,7 +348,6 @@ void FixGPU::post_force(int /* vflag */)
   force->pair->virial[4] += lvirial[4];
   force->pair->virial[5] += lvirial[5];
 
-  if (force->pair->vflag_fdotr) force->pair->virial_fdotr_compute();
   timer->stamp(Timer::PAIR);
 }
 
@@ -367,6 +373,8 @@ double FixGPU::memory_usage()
   // memory usage currently returned by pair routine
   return bytes;
 }
+
+/* ---------------------------------------------------------------------- */
 
 double FixGPU::binsize(const double subx, const double suby,
                        const double subz, const int nlocal,

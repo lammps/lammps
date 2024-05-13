@@ -1,7 +1,7 @@
 /* -*- c++ -*- ----------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    https://www.lammps.org/, Sandia National Laboratories
-   Steve Plimpton, sjplimp@sandia.gov
+   LAMMPS development team: developers@lammps.org
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
@@ -27,24 +27,33 @@ namespace LAMMPS_NS {
 class FixAveChunk : public Fix {
  public:
   FixAveChunk(class LAMMPS *, int, char **);
-  ~FixAveChunk();
-  int setmask();
-  void init();
-  void setup(int);
-  void end_of_step();
-  double compute_array(int, int);
-  double memory_usage();
+  ~FixAveChunk() override;
+  int setmask() override;
+  void init() override;
+  void setup(int) override;
+  void end_of_step() override;
+  double compute_array(int, int) override;
+  double memory_usage() override;
 
  private:
-  int nvalues;
-  int nrepeat, nfreq, irepeat;
+  struct value_t {
+    int which;         // type of data: COMPUTE, FIX, VARIABLE
+    int argindex;      // 1-based index if data is vector, else 0
+    std::string id;    // compute/fix/variable ID
+    union {
+      class Compute *c;
+      class Fix *f;
+      int v;
+    } val;
+  };
+  std::vector<value_t> values;
+
+  int nvalues, nrepeat, nfreq, irepeat;
   int normflag, scaleflag, overwrite, biasflag, colextra;
   bigint nvalid, nvalid_last;
   double adof, cdof;
   char *format, *format_user;
   char *tstring, *sstring, *id_bias;
-  int *which, *argindex, *value2index;
-  char **ids;
   class Compute *tbias;    // ptr to additional bias compute
   FILE *fp;
 
@@ -61,7 +70,7 @@ class FixAveChunk : public Fix {
   class ComputeChunkAtom *cchunk;
   int lockforever;
 
-  long filepos;
+  bigint filepos;
 
   int maxvar;
   double *varatom;
@@ -82,108 +91,3 @@ class FixAveChunk : public Fix {
 
 #endif
 #endif
-
-/* ERROR/WARNING messages:
-
-E: Illegal ... command
-
-Self-explanatory.  Check the input script syntax and compare to the
-documentation for the command.  You can use -echo screen as a
-command-line option when running LAMMPS to see the offending line.
-
-E: No values in fix ave/chunk command
-
-Self-explanatory.
-
-E: Cannot open fix ave/chunk file %s
-
-The specified file cannot be opened.  Check that the path and name are
-correct.
-
-E: Could not find compute ID for temperature bias
-
-Self-explanatory.
-
-E: Bias compute does not calculate temperature
-
-The specified compute must compute temperature.
-
-E: Bias compute does not calculate a velocity bias
-
-The specified compute must compute a bias for temperature.
-
-E: Compute ID for fix ave/chunk does not exist
-
-Self-explanatory.
-
-E: Fix ave/chunk compute does not calculate per-atom values
-
-Self-explanatory.
-
-E: Fix ave/chunk compute does not calculate a per-atom vector
-
-Self-explanatory.
-
-E: Fix ave/chunk compute does not calculate a per-atom array
-
-Self-explanatory.
-
-E: Fix ave/chunk compute vector is accessed out-of-range
-
-Self-explanatory.
-
-E: Fix ID for fix ave/chunk does not exist
-
-Self-explanatory.
-
-E: Fix ave/chunk fix does not calculate per-atom values
-
-Self-explanatory.
-
-E: Fix ave/chunk fix does not calculate a per-atom vector
-
-Self-explanatory.
-
-E: Fix ave/chunk fix does not calculate a per-atom array
-
-Self-explanatory.
-
-E: Fix ave/chunk fix vector is accessed out-of-range
-
-Self-explanatory.
-
-E: Variable name for fix ave/chunk does not exist
-
-Self-explanatory.
-
-E: Fix ave/chunk variable is not atom-style variable
-
-Self-explanatory.
-
-E: Chunk/atom compute does not exist for fix ave/chunk
-
-Self-explanatory.
-
-E: Fix ave/chunk does not use chunk/atom compute
-
-The specified compute is not for a compute chunk/atom command.
-
-E: Error writing file header
-
-Something in the output to the file triggered an error.
-
-E: Fix for fix ave/chunk not computed at compatible time
-
-Fixes generate their values on specific timesteps.  Fix ave/chunk is
-requesting a value on a non-allowed timestep.
-
-E: Invalid timestep reset for fix ave/chunk
-
-Resetting the timestep has invalidated the sequence of timesteps this
-fix needs to process.
-
-E: Error writing averaged chunk data
-
-Something in the output to the file triggered an error.
-
-*/

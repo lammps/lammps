@@ -1,7 +1,7 @@
 /* -*- c++ -*- ----------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    https://www.lammps.org/, Sandia National Laboratories
-   Steve Plimpton, sjplimp@sandia.gov
+   LAMMPS development team: developers@lammps.org
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
@@ -27,11 +27,11 @@ namespace LAMMPS_NS {
 class ComputeCentroAtom : public Compute {
  public:
   ComputeCentroAtom(class LAMMPS *, int, char **);
-  ~ComputeCentroAtom();
-  void init();
-  void init_list(int, class NeighList *);
-  void compute_peratom();
-  double memory_usage();
+  ~ComputeCentroAtom() override;
+  void init() override;
+  void init_list(int, class NeighList *) override;
+  void compute_peratom() override;
+  double memory_usage() override;
 
  private:
   int nmax, maxneigh, nnn;
@@ -49,34 +49,3 @@ class ComputeCentroAtom : public Compute {
 
 #endif
 #endif
-
-/* ERROR/WARNING messages:
-
-E: Illegal ... command
-
-Self-explanatory.  Check the input script syntax and compare to the
-documentation for the command.  You can use -echo screen as a
-command-line option when running LAMMPS to see the offending line.
-
-E: Illegal compute centro/atom command3
-
-UNDOCUMENTED
-
-E: Illegal compute centro/atom command2
-
-UNDOCUMENTED
-
-E: Illegal compute centro/atom command1
-
-UNDOCUMENTED
-
-E: Compute centro/atom requires a pair style be defined
-
-This is because the computation of the centro-symmetry values
-uses a pairwise neighbor list.
-
-W: More than one compute centro/atom
-
-It is not efficient to use compute centro/atom more than once.
-
-*/

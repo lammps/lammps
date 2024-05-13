@@ -1,8 +1,7 @@
-// clang-format off
 /* -*- c++ -*- ----------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    https://www.lammps.org/, Sandia National Laboratories
-   Steve Plimpton, sjplimp@sandia.gov
+   LAMMPS development team: developers@lammps.org
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
@@ -20,6 +19,7 @@ FixStyle(gravity/kk/host,FixGravityKokkos<LMPHostType>);
 // clang-format on
 #else
 
+// clang-format off
 #ifndef LMP_FIX_GRAVITY_KOKKOS_H
 #define LMP_FIX_GRAVITY_KOKKOS_H
 
@@ -35,8 +35,8 @@ template<class DeviceType>
 class FixGravityKokkos : public FixGravity {
   public:
     FixGravityKokkos(class LAMMPS *, int, char **);
-    virtual ~FixGravityKokkos() {}
-    void post_force(int);
+
+    void post_force(int) override;
 
     KOKKOS_INLINE_FUNCTION
     void operator()(TagFixGravityRMass, const int, double &) const;

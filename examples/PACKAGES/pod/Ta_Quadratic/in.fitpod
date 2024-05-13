@@ -1,0 +1,5 @@
+# Demonstrate fitpod for POD potential
+
+units metal
+fitpod Ta_param.pod Ta_data.pod
+

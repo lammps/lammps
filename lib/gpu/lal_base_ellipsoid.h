@@ -108,7 +108,7 @@ class BaseEllipsoid {
   void output_times();
 
   /// Returns memory usage on device per atom
-  int bytes_per_atom(const int max_nbors) const;
+  int bytes_per_atom_ellipsoid(const int max_nbors) const;
 
   /// Total host memory used by library for pair style
   double host_memory_usage_base() const;
@@ -170,21 +170,17 @@ class BaseEllipsoid {
                double **host_x, int *host_type, int *ilist, int *numj,
                int **firstneigh, const bool eflag, const bool vflag,
                const bool eatom, const bool vatom, int &host_start,
-               const double cpu_time, bool &success, double **quat);
+               const double cpu_time, bool &success,
+               const int *ellipsoid, const EllipsoidBonus *bonus);
 
   /// Pair loop with device neighboring
-  int** compute(const int ago, const int inum_full, const int nall,
-                double **host_x, int *host_type, double *sublo,
-                double *subhi, tagint *tag, int **nspecial,
-                tagint **special, const bool eflag, const bool vflag,
-                const bool eatom, const bool vatom, int &host_start,
-                int **ilist, int **numj, const double cpu_time, bool &success,
-                double **host_quat);
-
-  /// Build neighbor list on accelerator
-  void build_nbor_list(const int inum, const int host_inum, const int nall,
-                       double **host_x, int *host_type, double *sublo,
-                       double *subhi, bool &success);
+  int**compute(const int ago, const int inum_full, const int nall,
+               double **host_x, int *host_type, double *sublo,
+               double *subhi, tagint *tag, int **nspecial,
+               tagint **special, const bool eflag, const bool vflag,
+               const bool eatom, const bool vatom, int &host_start,
+               int **ilist, int **numj, const double cpu_time, bool &success,
+               const int *ellipsoid, const EllipsoidBonus *bonus);
 
   // -------------------------- DEVICE DATA -------------------------
 

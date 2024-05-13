@@ -1,7 +1,7 @@
 /* -*- c++ -*- ----------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    https://www.lammps.org/, Sandia National Laboratories
-   Steve Plimpton, sjplimp@sandia.gov
+   LAMMPS development team: developers@lammps.org
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
@@ -15,8 +15,9 @@
 #define LMP_LAMMPSPLUGIN_H
 
 // C style API and data structure required for dynamic loading
-
+#ifdef __cplusplus
 extern "C" {
+#endif
 
 typedef void *(lammpsplugin_factory1) (void *);
 typedef void *(lammpsplugin_factory2) (void *, int, char **);
@@ -41,6 +42,9 @@ typedef void (*lammpsplugin_initfunc)(void *, void *, void *);
 // to load a plugin; uses C bindings
 
 void lammpsplugin_init(void *, void *, void *);
+
+#ifdef __cplusplus
 }
+#endif
 
 #endif

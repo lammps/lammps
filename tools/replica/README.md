@@ -24,14 +24,14 @@ email: tanmoy dot 7989 at gmail.com
 
 #### Dependencies
 
-[`mpi4py`](https://mpi4py.readthedocs.io/en/stable/)  
-[`pymbar`](https://pymbar.readthedocs.io/en/master/) (for getting configurational weights)  
-[`tqdm`](https://github.com/tqdm/tqdm) (for printing pretty progress bars)  
+[`mpi4py`](https://mpi4py.readthedocs.io/en/stable/)
+[`pymbar`](https://pymbar.readthedocs.io/en/master/) (for getting configurational weights)
+[`tqdm`](https://github.com/tqdm/tqdm) (for printing pretty progress bars)
 [`StringIO`](https://docs.python.org/2/library/stringio.html) (or [`io`](https://docs.python.org/3/library/io.html) if in Python 3.x)
 
 #### Example
 
-###### REMD Simulation specs 
+###### REMD Simulation specs
 Suppose you ran a REMD simulation for the peptide example using the CHARMM forcefield (see lammps/examples/peptide) in Lammps with the following settings:
 
 - number of replicas = 16
@@ -45,7 +45,7 @@ Suppose you ran a REMD simulation for the peptide example using the CHARMM force
 So, when the dust settles,
 
 - You'll have 16 replica trajectories. For this tool to work, each replica traj must be named: `<prefix>.<n>.lammpstrj[.gz or .bz2]`, where,
-  - `prefix` = some common prefix for all your trajectories and (say it is called "peptide")` 
+  - `prefix` = some common prefix for all your trajectories and (say it is called "peptide")`
   - `n` = replica number (0-15 in this case). Note: trajectories **must be in default LAMMPS format **(so stuff like dcd won't work)
 
 - You will also have a master LAMMPS log file (`logfn`) that contains the swap history of all the replicas
@@ -60,7 +60,7 @@ So, when the dust settles,
 
 - Configurational log-weight calculation (using [`pymbar`](https://github.com/choderalab/pymbar)). Here, this is limited to the canonical (NVT) ensemble **and without biasing restraints** in your simulation. To do this you'd need to have a file (say called `ene.dat`) that stores a 2D  (K X N) array of total potential energies, where,
 
-  - K = total number of replicas = 16, and N = total number of frames in each replica trajectory (= 1000 / 20 = 50 in this case) 
+  - K = total number of replicas = 16, and N = total number of frames in each replica trajectory (= 1000 / 20 = 50 in this case)
 
   - `ene[k,n]` = energy from n-th frame of k-th replica.
 

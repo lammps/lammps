@@ -53,11 +53,11 @@ namespace ATC {
      rhsMaskIntrinsic_.reset(NUM_FIELDS,NUM_FLUX);
      rhsMaskIntrinsic_ = false;
      if (atc_->track_charge()) {
-        
+
        if (! chargeRegulator_) chargeRegulator_ = new ChargeRegulator(atc_);
      }
   }
-  
+
   //--------------------------------------------------------
   //  Destructor
   //--------------------------------------------------------
@@ -68,7 +68,7 @@ namespace ATC {
   }
 
   //--------------------------------------------------------
-  // modify 
+  // modify
   //--------------------------------------------------------
   bool ExtrinsicModelElectrostatic::modify(int narg, char **arg)
   {
@@ -82,7 +82,7 @@ namespace ATC {
       if (strcmp(arg[argIndx],"max_solves")==0) {
         argIndx++;
          maxSolves_ = atoi(arg[argIndx]) ; }
-      
+
       else if (strcmp(arg[argIndx],"tolerance")==0) {
         argIndx++;
         poissonSolverTol_ = atof(arg[argIndx]);
@@ -97,7 +97,7 @@ namespace ATC {
         poissonSolverType_ = DIRECT; }
       match = true;
     } // end "poisson_solver"
-    
+
 
 
     /** creates fixed charge on faceset
@@ -177,9 +177,9 @@ namespace ATC {
                                                    "InterpolantGradient");
       }
 
-      FundamentalAtomQuantity * atomicCharge = 
+      FundamentalAtomQuantity * atomicCharge =
         interscaleManager.fundamental_atom_quantity(LammpsInterface::ATOM_CHARGE);
-      AtfShapeFunctionRestriction * nodalAtomicCharge = 
+      AtfShapeFunctionRestriction * nodalAtomicCharge =
         new AtfShapeFunctionRestriction(atc_,atomicCharge,atc_->accumulant());
       interscaleManager.add_dense_matrix(nodalAtomicCharge,"NodalAtomicCharge");
       AtfShapeFunctionMdProjection * nodalAtomicChargeDensity =
@@ -198,10 +198,10 @@ namespace ATC {
         const string moleculeName = molecule->first;
         SmallMoleculeSet * smallMoleculeSet = interscaleManager.small_molecule_set(moleculeName);
         // calculate nodal charge from the molecules
-        AtomToSmallMoleculeTransfer<double> * moleculeCharge = 
+        AtomToSmallMoleculeTransfer<double> * moleculeCharge =
           new AtomToSmallMoleculeTransfer<double>(atc_,charge,smallMoleculeSet);
         interscaleManager.add_dense_matrix(moleculeCharge,"MoleculeCharge"+moleculeName);
-        MotfShapeFunctionRestriction * nodalAtomicMoleculeCharge = 
+        MotfShapeFunctionRestriction * nodalAtomicMoleculeCharge =
           new MotfShapeFunctionRestriction(moleculeCharge,
                                            interscaleManager.sparse_matrix("ShapeFunction"+moleculeName));
         interscaleManager.add_dense_matrix(nodalAtomicMoleculeCharge,"NodalMoleculeCharge"+moleculeName);
@@ -212,10 +212,10 @@ namespace ATC {
         // dipole moment density
         // calculate the dipole moment of the molecules
         SmallMoleculeCentroid * moleculeCentroid = static_cast<SmallMoleculeCentroid*>(interscaleManager.dense_matrix("MoleculeCentroid"+moleculeName));
-        SmallMoleculeDipoleMoment * dipoleMoment = 
+        SmallMoleculeDipoleMoment * dipoleMoment =
           new SmallMoleculeDipoleMoment(atc_,charge,smallMoleculeSet,atomProcGhostCoarseGrainingPositions,moleculeCentroid);
         interscaleManager.add_dense_matrix(dipoleMoment,"DipoleMoment"+moleculeName);
-        MotfShapeFunctionRestriction * nodalAtomicMoleculeDipole = 
+        MotfShapeFunctionRestriction * nodalAtomicMoleculeDipole =
           new MotfShapeFunctionRestriction(dipoleMoment,
                                            interscaleManager.sparse_matrix("ShapeFunction"+moleculeName));
         interscaleManager.add_dense_matrix(nodalAtomicMoleculeDipole,"NodalMoleculeDipole"+moleculeName);
@@ -224,7 +224,7 @@ namespace ATC {
         interscaleManager.add_dense_matrix(nodalAtomicMoleculeDipoleDensity,"NodalMoleculeDipoleDensity"+moleculeName);
       }
     }
-    
+
   }
 
   //--------------------------------------------------------
@@ -255,7 +255,7 @@ namespace ATC {
     }
     rhsMask_(ELECTRIC_POTENTIAL,FLUX) = false;// for poisson solve & rhs compute
     // need to create the bcs for the solver to configure properly
-    atc_->set_fixed_nodes(); 
+    atc_->set_fixed_nodes();
     if (poissonSolver_) delete poissonSolver_;
 
 
@@ -278,14 +278,14 @@ namespace ATC {
       // set up Green's function per node
       for (int i = 0; i < nNodes; i++) {
         set<int> localNodes;
-        
+
         for (int j = 0; j < nNodes; j++)
           localNodes.insert(j);
 
         // call Poisson solver to get Green's function for node i
         DENS_VEC globalGreensFunction;
         poissonSolver_->greens_function(i,globalGreensFunction);
-      
+
         // store green's functions as sparse vectors only on local nodes
         set<int>::const_iterator thisNode;
         SparseVector<double> sparseGreensFunction(nNodes);
@@ -311,7 +311,7 @@ namespace ATC {
         nodalAtomicGhostCharge_ = interscaleManager.dense_matrix("NodalAtomicGhostCharge");
         if (! nodalAtomicGhostCharge_) {
           FundamentalAtomQuantity * ghostCharge = interscaleManager.fundamental_atom_quantity(LammpsInterface::ATOM_CHARGE, GHOST);
-          
+
           PerAtomSparseMatrix<double> * ghostShapeFunctions = interscaleManager.per_atom_sparse_matrix("InterpolantGhost");
           if (!ghostShapeFunctions) {
             ghostShapeFunctions = new PerAtomShapeFunction(atc_,
@@ -353,10 +353,10 @@ namespace ATC {
   {
 
     if (chargeRegulator_) chargeRegulator_->apply_post_force(atc_->dt());
-    // add in correction accounting for lumped mass matrix in charge density 
+    // add in correction accounting for lumped mass matrix in charge density
     // in atomistic part of domain & account for physics model fluxes,resets rhs
-    
-    
+
+
     // set Dirchlet data
     atc_->set_fixed_nodes();
 
@@ -365,7 +365,7 @@ namespace ATC {
 
     // compute Poisson equation RHS sources
     atc_->compute_rhs_vector(rhsMask_, atc_->fields_, rhs_, atc_->source_integration(), physicsModel_);
-    
+
     // add atomic charges to rhs
     DENS_MAT & rhs = rhs_[ELECTRIC_POTENTIAL].set_quantity();
     if (atc_->track_charge()) {
@@ -376,9 +376,9 @@ namespace ATC {
       }
     }
 
-    
 
-    
+
+
 
     // solve poisson eqn for electric potential
     // electron charge density added to Poisson RHS in solver
@@ -391,7 +391,7 @@ namespace ATC {
     }
 
     // do this for intrinsic charges or effective electron charges at atoms
-    if (atc_->track_charge() 
+    if (atc_->track_charge()
       || ( LammpsInterface::instance()->atom_charge() && atc_->source_atomic_quadrature(ELECTRIC_POTENTIAL) ) ) {
       _atomElectricalForce_.resize(atc_->nlocal(),atc_->nsd());
       add_electrostatic_forces(potential);
@@ -400,8 +400,8 @@ namespace ATC {
         apply_charged_surfaces(potential);
 #endif
 
-      InterscaleManager & interscaleManager_ = atc_->interscale_manager(); 
-      atomForces_ = interscaleManager_.fundamental_atom_quantity(LammpsInterface::ATOM_FORCE); 
+      InterscaleManager & interscaleManager_ = atc_->interscale_manager();
+      atomForces_ = interscaleManager_.fundamental_atom_quantity(LammpsInterface::ATOM_FORCE);
       (*atomForces_) += _atomElectricalForce_; // f_E in ours, f in lammps ultimately
     }
   }
@@ -421,7 +421,7 @@ namespace ATC {
     else {
       localF[0] = 0.;localF[1] = 0.; localF[2] = 0.;
     }
-    LammpsInterface::instance()->allsum(localF,totalElectricalForce_,3);  
+    LammpsInterface::instance()->allsum(localF,totalElectricalForce_,3);
     if (LammpsInterface::instance()->rank_zero()) {
       atc_->feEngine_->add_global("electrostatic_force_x",  totalElectricalForce_[0]);
       atc_->feEngine_->add_global("electrostatic_force_y",  totalElectricalForce_[1]);
@@ -435,9 +435,9 @@ namespace ATC {
       InterscaleManager & interscaleManager(atc_->interscale_manager());
       const DENS_MAN * atomicChargeDensity(interscaleManager.dense_matrix("NodalAtomicChargeDensity"));
       atc_->nodal_atomic_field(CHARGE_DENSITY) = atomicChargeDensity->quantity();
-      
+
       fields[CHARGE_DENSITY] = atomicChargeDensity->quantity();
-      
+
       DENS_MAT & chargeDensity(fields[CHARGE_DENSITY].set_quantity());
       DENS_MAT & nodalAtomicChargeDensity((atc_->nodal_atomic_field(CHARGE_DENSITY)).set_quantity());
       if ((atc_->lammps_interface())->rank_zero()) {
@@ -446,7 +446,7 @@ namespace ATC {
       }
     }
 
-    
+
     if (fields.find(ELECTRON_DENSITY)==fields.end()) {
       fields[ELECTRON_DENSITY].reset(fields[CHARGE_DENSITY].nRows(),1);
       DENS_MAT & electronDensity(fields[ELECTRON_DENSITY].set_quantity());
@@ -454,7 +454,7 @@ namespace ATC {
         outputData["electron_density"] = &electronDensity;
       }
     }
-    
+
     const map<string,pair<MolSize,int> > & moleculeIds(atc_->molecule_ids());
     map<string,pair<MolSize,int> >::const_iterator molecule;
     for (molecule = moleculeIds.begin(); molecule != moleculeIds.end(); molecule++) {
@@ -483,12 +483,12 @@ namespace ATC {
   //--------------------------------------------------------
   //  compute_scalar : added energy = - f.x
   //--------------------------------------------------------
-  double ExtrinsicModelElectrostatic::compute_scalar(void)
+  double ExtrinsicModelElectrostatic::compute_scalar()
   {
     //((atc_->interscale_manager()).fundamental_atom_quantity(LammpsInterface::ATOM_POSITION))->force_reset();
     const DENS_MAT & atomPosition = ((atc_->interscale_manager()).fundamental_atom_quantity(LammpsInterface::ATOM_POSITION))->quantity();
     double local_fdotx = 0, fdotx;
-    
+
     for (int i = 0; i < _atomElectricalForce_.nRows() ; i++) {
       for (int j = 0; j < _atomElectricalForce_.nCols() ; j++) {
         local_fdotx -= _atomElectricalForce_(i,j)*atomPosition(i,j);
@@ -505,7 +505,7 @@ namespace ATC {
   bool ExtrinsicModelElectrostatic::compute_vector(int n, double & value)
   {
     if (n == baseSize_) {
-      
+
       double nSum = ((atc_->field(ELECTRON_DENSITY)).quantity()).col_sum();
       value = nSum;
       return true;
@@ -532,7 +532,7 @@ namespace ATC {
   void ExtrinsicModelElectrostatic::add_electrostatic_forces
     (MATRIX & potential)
   {
-    
+
     //double qE2f = LammpsInterface::instance()->qe2f();
     double qV2e = LammpsInterface::instance()->qv2e(); // charge volts to our energy units
     //double ** f = LammpsInterface::instance()->fatom();
@@ -548,7 +548,7 @@ namespace ATC {
         Ei = -1.*(*(shapeFucntionDerivatives[i])*potential);
       }
     }
-   
+
     int dimOffset = 0;
     if (useSlab_) dimOffset = nsd - 1;
     for (int i = 0; i < nLocal; i++) {
@@ -559,7 +559,7 @@ namespace ATC {
       for (int j = dimOffset; j < nsd; j ++)
         _atomElectricalForce_(i,j) = c*E(i,j);
     }
-    
+
     // correct field for short range interactions
     if (includeShortRange_)
       correct_electrostatic_forces();
@@ -577,7 +577,7 @@ namespace ATC {
     double *  q = LammpsInterface::instance()->atom_charge();
     vector<SparseVector<double> > atomicFePotential;
     int nLocal = atc_->nlocal();
-    
+
     int nGhostLammps = LammpsInterface::instance()->nghost();
     int nLocalLammps = LammpsInterface::instance()->nlocal();
     int nLocalTotal = nLocalLammps + nGhostLammps; // total number of atoms on this processor
@@ -593,18 +593,18 @@ namespace ATC {
       DenseVector<INDEX> nodeIndices;
       DENS_VEC nodeValues;
       myShpFcn.row(i,nodeValues,nodeIndices);
-      
+
       int atomIdx = atc_->internalToAtom_(i);
       //double c = qE2f*q[atomIdx];
       //double c = qV2e*q[atomIdx];
       //nodeValues *= c;
       nodeValues *= q[atomIdx];
-      
+
       for (int j = 0; j < nodeIndices.size(); j++)
         atomicFePotential[atomIdx].add_scaled(greensFunctions_[nodeIndices(j)],nodeValues(j));
     }
 
-    // compute local potential contribtutions for lammps ghost atoms 
+    // compute local potential contribtutions for lammps ghost atoms
     // which are known to ATC,
     // this will grab both processor and periodic neighbors,
     // so we need to add in neighbor contributions using lammps indices
@@ -621,7 +621,7 @@ namespace ATC {
         Array<int> nodeIndices(nodesPerElement);
         DENS_VEC nodeValues(nodesPerElement);
         (atc_->feEngine_)->shape_functions(coords,nodeValues,nodeIndices);
-        
+
         //double c = qV2e*q[i];
         //nodeValues *= c;
         nodeValues *= q[i];
@@ -633,7 +633,7 @@ namespace ATC {
     }
 
     // Get sparse vectors of derivatives at each atom
-    
+
     //      to compute this only when the shape functions change
     vector<vector<SparseVector<double> > > atomicDerivatives;
     atomicDerivatives.reserve(nLocal);
@@ -657,9 +657,9 @@ namespace ATC {
       }
     }
 
-    // loop over all atoms and correct their efield based on all their 
+    // loop over all atoms and correct their efield based on all their
     // neighbor's local efield response
-    
+
     //      need to use specific coulombic cutoff from different pairs
     //      see pair_coul_cut for an example of the data structures
     //      unfortunately don't know how to get at this data in general
@@ -670,12 +670,12 @@ namespace ATC {
 
     double cutoffRadius = LammpsInterface::instance()->pair_cutoff();
     double cutoffSq = cutoffRadius*cutoffRadius;
-    
+
     int inum = LammpsInterface::instance()->neighbor_list_inum();
     int * ilist = LammpsInterface::instance()->neighbor_list_ilist();
     int * numneigh = LammpsInterface::instance()->neighbor_list_numneigh();
     int ** firstneigh = LammpsInterface::instance()->neighbor_list_firstneigh();
-    
+
       // loop over neighbors of my atoms
     for (int ii = 0; ii < inum; ii++) {
       int i = ilist[ii];
@@ -683,10 +683,10 @@ namespace ATC {
         double xtmp = xatom[i][0];
         double ytmp = xatom[i][1];
         double ztmp = xatom[i][2];
-        
+
         int * jlist = firstneigh[i];
         int jnum = numneigh[i];
-        
+
         for (int jj = 0; jj < jnum; jj++) {
           int j = jlist[jj];
           if (mask[j] & atc_->groupbit_) {
@@ -696,7 +696,7 @@ namespace ATC {
             double delx = xtmp - xatom[j][0];
             double dely = ytmp - xatom[j][1];
             double delz = ztmp - xatom[j][2];
-            double rsq = delx*delx + dely*dely + delz*delz;      
+            double rsq = delx*delx + dely*dely + delz*delz;
             if (rsq < cutoffSq) {
               DENS_VEC efield(nsd);
               efield = 0.;
@@ -732,7 +732,7 @@ namespace ATC {
     // get faceset information
     int nNodes = atc_->num_nodes();
     const FE_Mesh * feMesh = (atc_->feEngine_)->fe_mesh();
-    const set< pair <int,int> > * faceset 
+    const set< pair <int,int> > * faceset
       = & ( feMesh->faceset(facesetName));
 
     // set face sources to all point at one function for use in integration
@@ -765,7 +765,7 @@ namespace ATC {
     nodalFaceWeights[ELECTRIC_POTENTIAL].reset(nNodes,1);
     Array<bool> fieldMask(NUM_FIELDS);
     fieldMask(ELECTRIC_POTENTIAL) = true;
-    
+
     (atc_->feEngine_)->add_fluxes(fieldMask,0.,faceSources,nodalFaceWeights);
     // set up data structure holding charged faceset information
     FIELDS sources;
@@ -774,7 +774,7 @@ namespace ATC {
     for (myNodeData = myFaceset.begin(); myNodeData != myFaceset.end(); myNodeData++) {
       // evaluate voltage at each node I
       // set up X_T function for integration: k*chargeDensity/||x_I - x_s||
-      
+
       // integral is approximated in two parts:
       // 1) near part with all faces within r < rcrit evaluated as 2 * pi * rcrit * k sigma A/A0, A is area of this region and A0 = pi * rcrit^2, so 2 k sigma A / rcrit
       // 2) far part evaluated using Gaussian quadrature on faceset
@@ -787,10 +787,9 @@ namespace ATC {
       xtArgs[3] = 1.; xtArgs[4] = 1.; xtArgs[5] = 1.;
       xtArgs[6] = coulombConstant*chargeDensity;
       xtArgs[7] = -1.;
-      string radialPower = "radial_power";
-      f = XT_Function_Mgr::instance()->function(radialPower,8,xtArgs);
+      f = XT_Function_Mgr::instance()->function("radial_power",8,xtArgs);
 
-      
+
       for (iset = faceset->begin(); iset != faceset->end(); iset++) {
         pair<int,int>  face = *iset;
         // allocate
@@ -850,7 +849,7 @@ namespace ATC {
       string facesetName = isurface->first;
       map<int,pair<DENS_VEC,double> >::const_iterator inode;
       for (inode = (isurface->second).begin(); inode != (isurface->second).end(); inode++) {
-        
+
         int nodeId = inode->first;
         DENS_VEC nodalCoords = (inode->second).first;
         double nodalCharge = (inode->second).second;
@@ -858,26 +857,26 @@ namespace ATC {
         PerAtomQuantity<double> * atomicCoords = (atc_->interscale_manager()).per_atom_quantity("AtomicCoarseGrainingPositions");
         const DENS_MAT & myAtomicCoords(atomicCoords->quantity());
         for (int i = 0; i < nLocal; i++) {
-          if (abs(qatom(i,0)) > 0) { 
+          if (abs(qatom(i,0)) > 0) {
             double distanceSq = 0.;
             double deltaX[3];
             for (int j = 0; j < nsd; j++) {
               deltaX[j] = myAtomicCoords(i,j) - nodalCoords(j);
               distanceSq += deltaX[j]*deltaX[j];
             }
-            if (distanceSq < cutoffSq) { 
+            if (distanceSq < cutoffSq) {
               // first apply pairwise coulombic interaction
-              if (!useSlab_) { 
+              if (!useSlab_) {
                 double coulForce = qqrd2e*nodalCharge*qatom(i,0)/(distanceSq*sqrtf(distanceSq));
                 for (int j = 0; j < nsd; j++)
                   //fatom[atomIdx][j] += deltaX[j]*coulForce;
                   _atomElectricalForce_(i,j) += deltaX[j]*coulForce;
               }
-              
+
               // second correct for FE potential induced by BCs
               // determine shape function derivatives at atomic location
               // and construct sparse vectors to store derivative data
-              
+
               vector<SparseVector<double> > derivativeVectors;
               derivativeVectors.reserve(nsd);
               const SPAR_MAT_VEC & shapeFunctionDerivatives((interscaleManager.vector_sparse_matrix("InterpolantGradient"))->quantity());
@@ -889,23 +888,23 @@ namespace ATC {
                 for (int k = 0; k < nodeIndices.size(); k++)
                   derivativeVectors[j](nodeIndices(k)) = nodeValues(k);
               }
-              
+
               // compute greens function from charge quadrature
-              
+
               SparseVector<double> shortFePotential(nNodes);
               shortFePotential.add_scaled(greensFunctions_[nodeId],penalty*nodalPotential);
-              
+
               // compute electric field induced by charge
               DENS_VEC efield(nsd);
               efield = 0.;
               for (int j = 0; j < nsd; j++)
                 efield(j) = -.1*dot(derivativeVectors[j],shortFePotential);
-              
+
               // apply correction in atomic forces
               //double c = qE2f*qatom[atomIdx];
               double c = qV2e*qatom(i,0);
               for (int j = 0; j < nsd; j++)
-                if ((!useSlab_) || (j==nsd)) { 
+                if ((!useSlab_) || (j==nsd)) {
                   //fatom[atomIdx][j] -= c*efield(j);
                   _atomElectricalForce_(i,j) -= c*efield(j);
                 }
@@ -932,7 +931,7 @@ namespace ATC {
                                       string matFileName) :
     ExtrinsicModelElectrostatic(modelManager,modelType,matFileName)
   {
-     if (physicsModel_) delete physicsModel_; 
+     if (physicsModel_) delete physicsModel_;
      if (modelType == ELECTROSTATIC) {
        physicsModel_ = new PhysicsModelElectrostatic(matFileName);
      }
@@ -943,7 +942,7 @@ namespace ATC {
      rhsMaskIntrinsic_(VELOCITY,SOURCE) = true;
      atc_->fieldMask_(VELOCITY,EXTRINSIC_SOURCE) = true;
   }
-  
+
   //--------------------------------------------------------
   //  Destructor
   //--------------------------------------------------------
@@ -953,7 +952,7 @@ namespace ATC {
   }
 
   //--------------------------------------------------------
-  // modify 
+  // modify
   //--------------------------------------------------------
   bool ExtrinsicModelElectrostaticMomentum::modify(int narg, char **arg)
   {
@@ -983,7 +982,7 @@ namespace ATC {
   void ExtrinsicModelElectrostaticMomentum::set_sources(FIELDS & fields, FIELDS & sources)
   {
     // compute charge density
-    if (modelType_ == ELECTROSTATIC_EQUILIBRIUM) { 
+    if (modelType_ == ELECTROSTATIC_EQUILIBRIUM) {
       DENS_MAN & n = atc_->field(ELECTRON_DENSITY);
       atc_->nodal_projection(ELECTRON_DENSITY,physicsModel_,n);
     }
@@ -997,7 +996,7 @@ namespace ATC {
 
     // compute source term with appropriate masking and physics model
     atc_->evaluate_rhs_integral(rhsMaskIntrinsic_, fields, sources,
-                                atc_->source_integration(), physicsModel_); 
+                                atc_->source_integration(), physicsModel_);
 //(sources[VELOCITY].quantity()).print("V SRC");
   }
 

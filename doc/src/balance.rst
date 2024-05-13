@@ -6,12 +6,12 @@ balance command
 Syntax
 """"""
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    balance thresh style args ... keyword args ...
 
 * thresh = imbalance threshold that must be exceeded to perform a re-balance
-* one style/arg pair can be used (or multiple for *x*\ ,\ *y*\ ,\ *z*\ )
+* one style/arg pair can be used (or multiple for *x*,\ *y*,\ *z*\ )
 * style = *x* or *y* or *z* or *shift* or *rcb*
 
   .. parsed-literal::
@@ -53,8 +53,9 @@ Syntax
              name = name of the atom-style variable
            *store* name = store weight in custom atom property defined by :doc:`fix property/atom <fix_property_atom>` command
              name = atom property name (without d\_ prefix)
+       *sort* arg = *no* or *yes*
        *out* arg = filename
-         filename = write each processor's sub-domain to a file
+         filename = write each processor's subdomain to a file
 
 Examples
 """"""""
@@ -72,14 +73,14 @@ Examples
 Description
 """""""""""
 
-This command adjusts the size and shape of processor sub-domains
+This command adjusts the size and shape of processor subdomains
 within the simulation box, to attempt to balance the number of atoms
 or particles and thus indirectly the computational cost (load) more
 evenly across processors.  The load balancing is "static" in the sense
 that this command performs the balancing once, before or between
-simulations.  The processor sub-domains will then remain static during
+simulations.  The processor subdomains will then remain static during
 the subsequent run.  To perform "dynamic" balancing, see the :doc:`fix
-balance <fix_balance>` command, which can adjust processor sub-domain
+balance <fix_balance>` command, which can adjust processor subdomain
 sizes and shapes on-the-fly during a :doc:`run <run>`.
 
 Load-balancing is typically most useful if the particles in the
@@ -90,7 +91,7 @@ an irregular-shaped geometry containing void regions, or :doc:`hybrid
 pair style simulations <pair_hybrid>` which combine pair styles with
 different computational cost.  In these cases, the LAMMPS default of
 dividing the simulation box volume into a regular-spaced grid of 3d
-bricks, with one equal-volume sub-domain per processor, may assign
+bricks, with one equal-volume subdomain per processor, may assign
 numbers of particles per processor in a way that the computational
 effort varies significantly.  This can lead to poor performance when
 the simulation is run in parallel.
@@ -109,7 +110,7 @@ Specifically, for a Px by Py by Pz grid of processors, it allows
 choice of Px, Py, and Pz, subject to the constraint that Px \* Py \*
 Pz = P, the total number of processors.  This is sufficient to achieve
 good load-balance for some problems on some processor counts.
-However, all the processor sub-domains will still have the same shape
+However, all the processor subdomains will still have the same shape
 and same volume.
 
 The requested load-balancing operation is only performed if the
@@ -162,7 +163,7 @@ fractions of the box length) are also printed.
    simulation could run up to 20% faster if it were perfectly balanced,
    versus when imbalanced.  However, computational cost is not strictly
    proportional to particle count, and changing the relative size and
-   shape of processor sub-domains may lead to additional computational
+   shape of processor subdomains may lead to additional computational
    and communication overheads, e.g. in the PPPM solver used via the
    :doc:`kspace_style <kspace_style>` command.  Thus you should benchmark
    the run times of a simulation before and after balancing.
@@ -170,14 +171,14 @@ fractions of the box length) are also printed.
 ----------
 
 The method used to perform a load balance is specified by one of the
-listed styles (or more in the case of *x*\ ,\ *y*\ ,\ *z*\ ), which are
+listed styles (or more in the case of *x*,\ *y*,\ *z*\ ), which are
 described in detail below.  There are 2 kinds of styles.
 
-The *x*\ , *y*\ , *z*\ , and *shift* styles are "grid" methods which
+The *x*, *y*, *z*, and *shift* styles are "grid" methods which
 produce a logical 3d grid of processors.  They operate by changing the
 cutting planes (or lines) between processors in 3d (or 2d), to adjust
 the volume (area in 2d) assigned to each processor, as in the
-following 2d diagram where processor sub-domains are shown and
+following 2d diagram where processor subdomains are shown and
 particles are colored by the processor that owns them.
 
 .. |balance1| image:: img/balance_uniform.jpg
@@ -222,11 +223,11 @@ from scratch.
 
 ----------
 
-The *x*\ , *y*\ , and *z* styles invoke a "grid" method for balancing, as
+The *x*, *y*, and *z* styles invoke a "grid" method for balancing, as
 described above.  Note that any or all of these 3 styles can be
 specified together, one after the other, but they cannot be used with
 any other style.  This style adjusts the position of cutting planes
-between processor sub-domains in specific dimensions.  Only the
+between processor subdomains in specific dimensions.  Only the
 specified dimensions are altered.
 
 The *uniform* argument spaces the planes evenly, as in the left
@@ -245,8 +246,8 @@ the cutting place.  The left (or lower) edge of the box is 0.0, and
 the right (or upper) edge is 1.0.  Neither of these values is
 specified.  Only the interior Ps-1 positions are specified.  Thus is
 there are 2 processors in the x dimension, you specify a single value
-such as 0.75, which would make the left processor's sub-domain 3x
-larger than the right processor's sub-domain.
+such as 0.75, which would make the left processor's subdomain 3x
+larger than the right processor's subdomain.
 
 ----------
 
@@ -263,7 +264,7 @@ once.  You should normally only list dimensions where you expect there
 to be a density variation in the particles.
 
 Balancing proceeds by adjusting the cutting planes in each of the
-dimensions listed in *dimstr*\ , one dimension at a time.  For a single
+dimensions listed in *dimstr*, one dimension at a time.  For a single
 dimension, the balancing operation (described below) is iterated on up
 to *Niter* times.  After each dimension finishes, the imbalance factor
 is re-computed, and the balancing operation halts if the *stopthresh*
@@ -288,10 +289,10 @@ adjacent planes are closer together than the neighbor skin distance
 (as specified by the :doc:`neigh_modify <neigh_modify>` command), then
 the plane positions are shifted to separate them by at least this
 amount.  This is to prevent particles being lost when dynamics are run
-with processor sub-domains that are too narrow in one or more
+with processor subdomains that are too narrow in one or more
 dimensions.
 
-Once the re-balancing is complete and final processor sub-domains
+Once the re-balancing is complete and final processor subdomains
 assigned, particles are migrated to their new owning processor, and
 the balance procedure ends.
 
@@ -299,7 +300,7 @@ the balance procedure ends.
 
    At each re-balance operation, the bisectioning for each cutting
    plane (line in 2d) typically starts with low and high bounds separated
-   by the extent of a processor's sub-domain in one dimension.  The size
+   by the extent of a processor's subdomain in one dimension.  The size
    of this bracketing region shrinks by 1/2 every iteration.  Thus if
    *Niter* is specified as 10, the cutting plane will typically be
    positioned to 1 part in 1000 accuracy (relative to the perfect target
@@ -350,7 +351,7 @@ particles in that sub-box.
 
 .. _weighted_balance:
 
-This sub-section describes how to perform weighted load balancing
+This subsection describes how to perform weighted load balancing
 using the *weight* keyword.
 
 By default, all particles have a weight of 1.0, which means each
@@ -383,7 +384,7 @@ multiple groups, its weight is the product of the weight factors.
 
 This weight style is useful in combination with pair style
 :doc:`hybrid <pair_hybrid>`, e.g. when combining a more costly many-body
-potential with a fast pair-wise potential.  It is also useful when
+potential with a fast pairwise potential.  It is also useful when
 using :doc:`run_style respa <run_style>` where some portions of the
 system have many bonded interactions and others none.  It assumes that
 the computational cost for each group remains constant over time.
@@ -428,8 +429,8 @@ weights.  It assigns the same weight to each particle owned by a
 processor based on the total computational time spent by that
 processor.  See details below on what time window is used.  It uses
 the same timing information as is used for the :doc:`MPI task timing
-breakdown <Run_output>`, namely, for sections *Pair*\ , *Bond*\ ,
-*Kspace*\ , and *Neigh*\ .  The time spent in those portions of the
+breakdown <Run_output>`, namely, for sections *Pair*, *Bond*,
+*Kspace*, and *Neigh*\ .  The time spent in those portions of the
 timestep are measured for each MPI rank, summed, then divided by the
 number of particles owned by that processor.  I.e. the weight is an
 effective CPU time/particle averaged over the particles on that
@@ -455,7 +456,7 @@ are for the entire previous run.  For the *fix balance* command the
 timing data is for only the timesteps since the last balancing
 operation was performed.  If timing information for the required
 sections is not available, e.g. at the beginning of a run, or when the
-:doc:`timer <timer>` command is set to either *loop* or *off*\ , a warning
+:doc:`timer <timer>` command is set to either *loop* or *off*, a warning
 is issued.  In this case no weights are computed.
 
 .. note::
@@ -477,18 +478,32 @@ atom-style variables can reference the position of a particle, its
 velocity, the volume of its Voronoi cell, etc.
 
 The *store* weight style does not compute a weight factor.  Instead it
-stores the current accumulated weights in a custom per-atom property
-specified by *name*\ .  This must be a property defined as *d_name* via
-the :doc:`fix property/atom <fix_property_atom>` command.  Note that
-these custom per-atom properties can be output in a :doc:`dump <dump>`
-file, so this is a way to examine, debug, or visualize the
-per-particle weights computed during the load-balancing operation.
+stores the current accumulated weights in a custom per-atom vector
+specified by *name*\ .  This must be a vector defined as *d_name* via
+the :doc:`fix property/atom <fix_property_atom>` command.  This means
+the values in the vector can be read as part of a data file with the
+:doc:`read_data <read_data>` command or specified with the :doc:`set
+<set>` command.  These weights can also be output in a :doc:`dump
+<dump>` file, so this is a way to examine, debug, or visualize the
+per-particle weights used during the load-balancing operation.
+
+Note that the name of the custom per-atom vector is specified just
+as *name*, not as *d_name* as it is for other commands that use
+different kinds of custom atom vectors or arrays as arguments.
 
 ----------
 
+The *sort* keyword determines whether the communication of per-atom
+data to other processors during load-balancing will be random or
+deterministic.  Random is generally faster; deterministic will ensure
+the new ordering of atoms on each processor is the same each time the
+same simulation is run.  This can be useful for debugging purposes.
+Since the balance command is a one-time operation, the default is
+*yes* to perform sorting.
+
 The *out* keyword writes a text file to the specified *filename* with
 the results of the balancing operation.  The file contains the bounds
-of the sub-domain for each processor after the balancing operation
+of the subdomain for each processor after the balancing operation
 completes.  The format of the file is compatible with the
 `Pizza.py <pizza_>`_ *mdump* tool which has support for manipulating and
 visualizing mesh files.  An example is shown here for a balancing by 4
@@ -532,7 +547,7 @@ processors for a 2d problem:
    4 1 13 14 15 16
 
 The coordinates of all the vertices are listed in the NODES section, 5
-per processor.  Note that the 4 sub-domains share vertices, so there
+per processor.  Note that the 4 subdomains share vertices, so there
 will be duplicate nodes in the list.
 
 The "SQUARES" section lists the node IDs of the 4 vertices in a
@@ -558,9 +573,10 @@ Related commands
 :doc:`group <group>`, :doc:`processors <processors>`,
 :doc:`fix balance <fix_balance>`, :doc:`comm_style <comm_style>`
 
-.. _pizza: https://pizza.sandia.gov
+.. _pizza: https://lammps.github.io/pizza
 
 Default
 """""""
 
-none
+The default setting is sort = yes.
+

@@ -1,22 +1,16 @@
 #ifndef PHONON_H
 #define PHONON_H
 
-#include "stdio.h"
-#include "stdlib.h"
-#include <complex>
-#include "dynmat.h"
-#include "memory.h"
-
-using namespace std;
-
 class Phonon{
 public:
-   Phonon(DynMat *);
+   Phonon(class DynMat *);
    ~Phonon();
  
-   DynMat *dynmat;
+   class DynMat *dynmat;
  
 private:
+   class UserInput *input;
+
    int nq, ndim, sysdim;
    double **qpts, *wt;
    double **eigs;
@@ -25,7 +19,7 @@ private:
    double *dos, fmin, fmax, df, rdf;
    double ***ldos;
  
-   Memory *memory;
+   class Memory *memory;
  
    void QMesh();
    void ComputeAll();

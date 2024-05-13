@@ -6,7 +6,7 @@ fix wall/piston command
 Syntax
 """"""
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    fix ID group-ID wall/piston face ... keyword value ...
 
@@ -14,7 +14,7 @@ Syntax
 * wall/piston = style name of this fix command
 * face = *zlo*
 * zero or more keyword/value pairs may be appended
-* keyword = *pos* or *vel* or *ramp* or *units*
+* keyword = *pos* or *vel* or *ramp* or *temp* or *units*
 
   .. parsed-literal::
 
@@ -31,6 +31,10 @@ Syntax
        *units* value = *lattice* or *box*
          *lattice* = the wall position is defined in lattice units
          *box* = the wall position is defined in simulation box units
+
+..
+    FIXME: There are several "undocumented" key words for this fix: *rough*,
+    *rampNL1*, *rampNL2*, *rampNL3*, *rampNL4*, and *rampNL5*.
 
 Examples
 """"""""
@@ -103,7 +107,7 @@ Restrictions
 """"""""""""
 
 This fix style is part of the SHOCK package.  It is only enabled if
-LAMMPS was built with that package. See the :doc:`Build package <Build_package>` doc page for more info.
+LAMMPS was built with that package. See the :doc:`Build package <Build_package>` page for more info.
 
 The face that has the wall/piston must be boundary type 's'
 (shrink-wrapped). The opposing face can be

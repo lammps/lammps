@@ -1,7 +1,7 @@
 /* -*- c++ -*- ----------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    https://www.lammps.org/, Sandia National Laboratories
-   Steve Plimpton, sjplimp@sandia.gov
+   LAMMPS development team: developers@lammps.org
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
@@ -23,14 +23,14 @@ class PairSpin : public Pair {
 
  public:
   PairSpin(class LAMMPS *);
-  virtual ~PairSpin();
-  virtual void settings(int, char **);
-  virtual void coeff(int, char **) {}
-  virtual void init_style();
-  virtual double init_one(int, int) { return 0.0; }
-  virtual void *extract(const char *, int &) { return nullptr; }
 
-  virtual void compute(int, int) {}
+  void settings(int, char **) override;
+  void coeff(int, char **) override {}
+  void init_style() override;
+  double init_one(int, int) override { return 0.0; }
+  void *extract(const char *, int &) override { return nullptr; }
+
+  void compute(int, int) override {}
   virtual void compute_single_pair(int, double *) {}
 
   // storing magnetic energies
@@ -48,23 +48,3 @@ class PairSpin : public Pair {
 }    // namespace LAMMPS_NS
 
 #endif
-
-/* ERROR/WARNING messages:
-
-E: Incorrect args in pair_spin command
-
-Self-explanatory.
-
-E: Spin simulations require metal unit style
-
-Self-explanatory.
-
-E: Incorrect args for pair coefficients
-
-Self-explanatory.  Check the input script or data file.
-
-E: Pair spin requires atom attribute spin
-
-The atom style defined does not have these attributes.
-
-*/

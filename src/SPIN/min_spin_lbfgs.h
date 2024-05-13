@@ -1,7 +1,7 @@
 /* -*- c++ -*- ----------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    https://www.lammps.org/, Sandia National Laboratories
-   Steve Plimpton, sjplimp@sandia.gov
+   LAMMPS development team: developers@lammps.org
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
@@ -27,12 +27,12 @@ namespace LAMMPS_NS {
 class MinSpinLBFGS : public Min {
  public:
   MinSpinLBFGS(class LAMMPS *);
-  virtual ~MinSpinLBFGS();
-  void init();
-  void setup_style();
-  int modify_param(int, char **);
-  void reset_vectors();
-  int iterate(int);
+  ~MinSpinLBFGS() override;
+  void init() override;
+  void setup_style() override;
+  int modify_param(int, char **) override;
+  void reset_vectors() override;
+  int iterate(int) override;
 
  private:
   int local_iter;            // for neb

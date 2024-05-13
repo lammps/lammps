@@ -77,7 +77,7 @@ int cdsf_gpu_init(const int ntypes, const int inum, const int nall,
                         gpu_split, screen, host_cut_coulsq, host_special_coul,
                         qqrd2e, e_shift, f_shift, alpha);
 
-    CDMF.device->gpu_barrier();
+    CDMF.device->serialize_init();
     if (message)
       fprintf(screen,"Done.\n");
   }

@@ -1,0 +1,66 @@
+
+  read_data       data.${datafile}
+  read_data       data.w.bcc
+Reading data file ...
+  orthogonal box = (0 0 0) to (3.1654062 3.1654062 3.1654062)
+  1 by 1 by 1 MPI processor grid
+  reading atoms ...
+  2 atoms
+  read_data CPU = 0.001 seconds
+
+  mass		  1 183.84
+
+  neighbor	  1.0 bin
+  neigh_modify	  delay 0 every 1 check yes
+
+  fix             1 all mdi/qm elements W connect no
+  fix_modify      1 energy yes
+
+  #dump            1 all custom 1 dump.series.${datafile}.$p id x y z fx fy fz
+
+  run		  0
+WARNING: No fixes with time integration, atoms won't move (../verlet.cpp:60)
+WARNING: No pairwise cutoff or binsize set. Atom sorting therefore disabled. (../atom.cpp:2348)
+Per MPI rank memory allocation (min/avg/max) = 2.301 | 2.301 | 2.301 Mbytes
+   Step          Temp          E_pair         E_mol          TotEng         Press     
+         0   0              0              0             -548.43494      0            
+Loop time of 5.15e-07 on 1 procs for 0 steps with 2 atoms
+
+194.2% CPU use with 1 MPI tasks x no OpenMP threads
+
+MPI task timing breakdown:
+Section |  min time  |  avg time  |  max time  |%varavg| %total
+---------------------------------------------------------------
+Pair    | 0          | 0          | 0          |   0.0 |  0.00
+Neigh   | 0          | 0          | 0          |   0.0 |  0.00
+Comm    | 0          | 0          | 0          |   0.0 |  0.00
+Output  | 0          | 0          | 0          |   0.0 |  0.00
+Modify  | 0          | 0          | 0          |   0.0 |  0.00
+Other   |            | 5.15e-07   |            |       |100.00
+
+Nlocal:              2 ave           2 max           2 min
+Histogram: 1 0 0 0 0 0 0 0 0 0
+Nghost:             33 ave          33 max          33 min
+Histogram: 1 0 0 0 0 0 0 0 0 0
+Neighs:              0 ave           0 max           0 min
+Histogram: 1 0 0 0 0 0 0 0 0 0
+
+Total # of neighbors = 0
+Ave neighs/atom = 0
+Neighbor list builds = 0
+Dangerous builds = 0
+
+  clear
+
+next            datafile
+
+jump            SELF loop
+
+  units		  metal
+  atom_style	  atomic
+  atom_modify     map yes
+  comm_modify     cutoff 2.0
+
+  log             log.series.${datafile}.$p
+  log             log.series.w.diamond.$p
+  log             log.series.w.diamond.1

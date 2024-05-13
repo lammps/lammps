@@ -1,0 +1,2397 @@
+          *****************************************************
+          *                                                   *
+          *               PWDFT PSPW Calculation              *
+          *                                                   *
+          *  [ (Grassmann/Stiefel manifold implementation) ]  *
+          *  [              C++ implementation             ]  *
+          *                                                   *
+          *              version #7.00   02/27/21             *
+          *                                                   *
+          *    This code was developed by Eric J. Bylaska,    *
+          *    Abhishek Bagusetty, David H. Bross, ...        *
+          *                                                   *
+          *****************************************************
+          >>> job started at       Wed Mar 22 12:38:46 2023 <<<
+
+ psp_library: /home/sjplimp/nwchem/PWDFT/Nwpw/libraryps
+
+
+ generating 1d pseudopotential file: ./W.psp
+
+ writing formatted psp filename: ./W.vpp
+ generating random psi from scratch
+ Warning - Gram-Schmidt being performed on psi2
+         - exact norm = 12 norm=12.2903 corrected norm=12 (error=0.290271)
+
+          ==============  summary of input  ==================
+
+ input psi filename: ./nwchemex.movecs
+
+ number of processors used: 1
+ processor grid           : 1 x1
+ parallel mapping         : 2d-hcurve
+ parallel mapping         : balanced
+
+ options:
+   boundary conditions  = periodic
+   electron spin        = restricted
+   exchange-correlation = PBE96 (White and Bird) parameterization
+
+ elements involved in the cluster:
+      1: W   valence charge =  6.0  lmax =2
+             comment = Troullier-Martins pseudopotential
+             pseudopotential type            =  0
+             highest angular component       =  2
+             local potential used            =  0
+             number of non-local projections =  8
+             semicore corrections inlcuded   =  1.800 (radius) 4.532 (charge)
+             cutoff =    2.389   3.185   2.244
+
+ total charge =   0.000
+
+ atom composition:
+   W : 2
+
+ initial ion positions (au):
+   1 W	(    0.00000    0.00000    0.00000 ) - atomic mass = 183.951
+   2 W	(    2.99088    2.99088    2.99088 ) - atomic mass = 183.951
+   G.C.	(    1.49544    1.49544    1.49544 )
+ C.O.M.	(    1.49544    1.49544    1.49544 )
+
+ real space Electric field:
+     Electric Field (au) = (   0.00000    0.00000    0.00000 )
+             Center (au) = (   0.00000    0.00000    0.00000 )
+
+
+ number of electrons: spin up =     6 (   6 per task) down =     6 (   6 per task)
+
+ supercell:
+      volume =     214.04
+      lattice:    a1 = <    5.982    0.000    0.000 >
+                  a2 = <    0.000    5.982    0.000 >
+                  a3 = <    0.000    0.000    5.982 >
+      reciprocal: b1 = <    1.050    0.000    0.000 >
+                  b2 = <    0.000    1.050    0.000 >
+                  b3 = <    0.000    0.000    1.050 >
+      lattice:    a =       5.982 b =      5.982 c =       5.982
+                  alpha =  90.000 beta =  90.000 gamma =  90.000
+      density cutoff = 10.000 fft =  10 x   10 x   10  (     171 waves      171 per task)
+      wavefnc cutoff =  5.000 fft =  10 x   10 x   10  (      62 waves       62 per task)
+
+ Ewald parameters:
+      energy cutoff =  10.000 fft =  10 x   10 x   10  (     171 waves      171 per task)
+      Ewald summation: cut radius =   3.000 and   8
+                       Mandelung Wigner-Seitz =  1.76011888 (alpha =  2.83729748 rs =  3.71078182)
+
+ technical parameters:
+      fixed step: time step =        0.10  ficticious mass =   400000.00
+      tolerance =   1.000e-07 (energy)    1.000e-07 (density)    1.000e-04 (ion)
+      max iterations =       1000 (   10 inner   100 outer)
+      minimizer = Grassmann conjugate gradient
+
+
+
+     ============ Grassmann conjugate gradient iteration ============
+          >>> iteration started at Wed Mar 22 12:38:47 2023  <<<
+     iter.                 Energy          DeltaE        DeltaRho
+     ----------------------------------------------------------------
+        - 15 steepest descent iterations performed
+        10      -1.674215046115e+01   -8.251196e-02    9.196301e-04
+        20      -1.749771236403e+01   -1.002147e-01    1.472766e-03
+        30      -1.823150320727e+01   -3.534576e-02    3.524284e-04
+        40      -1.846047982908e+01   -2.204551e-02    2.446432e-04
+        50      -1.868365376681e+01   -1.854154e-02    2.029002e-04
+        60      -1.881117950998e+01   -4.287319e-04    1.464725e-05
+        70      -1.881133499557e+01   -6.036766e-08    1.955112e-09
+     *** tolerance ok. iteration terminated
+          >>> iteration ended at   Wed Mar 22 12:38:47 2023  <<<
+
+     ==============  energy results (Molecule object)  ==============
+
+
+ number of electrons: spin up=     6.00000  down=     6.00000 (real space)
+
+
+ total     energy    :   -1.8811334996e+01 (   -9.40567e+00 /ion)
+ total orbital energy:    6.3205159164e+00 (    1.05342e+00 /electron)
+ hartree energy      :    1.5018043194e-01 (    2.50301e-02 /electron)
+ exc-corr energy     :   -9.2446725740e+00 (   -1.54078e+00 /electron)
+ ion-ion energy      :   -2.1902017722e+01 (   -1.09510e+01 /ion)
+
+ kinetic (planewave) :    1.2028654702e+01 (    2.00478e+00 /electron)
+ V_local (planewave) :    9.8433605672e+00 (    1.64056e+00 /electron)
+ V_nl    (planewave) :   -9.6868404003e+00 (   -1.61447e+00 /electron)
+ V_Coul  (planewave) :    3.0036086388e-01 (    5.00601e-02 /electron)
+ V_xc    (planewave) :   -6.1650198159e+00 (   -1.02750e+00 /electron)
+ Viral Coefficient   :   -4.7454506982e-01
+
+ orbital energy:
+     6.7570236e-01 (  18.387eV)
+     6.7570093e-01 (  18.387eV)
+     6.7569918e-01 (  18.387eV)
+     4.5449701e-01 (  12.368eV)
+     4.5449681e-01 (  12.368eV)
+     2.2416167e-01 (   6.100eV)
+
+== Center of Charge ==
+
+spin up    = (    0.0000    -0.0000     0.0000 )
+spin down  = (    0.0000    -0.0000     0.0000 )
+     total = (    0.0000    -0.0000     0.0000 )
+ionic      = (    1.4954     1.4954     1.4954 )
+
+== Molecular Dipole wrt Center of Mass ==
+
+mu   = (   17.9450    17.9453    17.9452 ) au
+|mu| =     31.0820 au (    78.9979 Debye )
+
+ output psi to filename: ./nwchemex.movecs
+
+ -----------------
+ cputime in seconds
+ prologue    : 4.220e-01
+ main loop   : 1.088e-01
+ epilogue    : 1.590e-04
+ total       : 5.309e-01
+ cputime/step: 3.871e-04 ( 281 evaluations, 69 linesearches)
+
+ Time spent doing      total        step             percent
+ total time            5.326872e-01 1.895684e-03     100.00%
+ total FFT time        4.430269e-02 1.576608e-04       8.32%
+ lagrange multipliers  2.533000e-04 9.014235e-07       0.05%
+ local potentials      3.347000e-06 1.191103e-08       0.00%
+ non-local potentials  1.635984e-03 5.822007e-06       0.31%
+ ffm_dgemm             5.309390e-04 1.889463e-06       0.10%
+ fmf_dgemm             7.341450e-04 2.612616e-06       0.14%
+ m_diagonalize         2.439160e-04 8.680285e-07       0.05%
+ mmm_multiply          4.611300e-05 1.641032e-07       0.01%
+ SCVtrans              5.179300e-05 1.843167e-07       0.01%
+
+ >>> job completed at     Wed Mar 22 12:38:47 2023 <<<
+          *****************************************************
+          *                                                   *
+          *               PWDFT PSPW Calculation              *
+          *                                                   *
+          *  [ (Grassmann/Stiefel manifold implementation) ]  *
+          *  [              C++ implementation             ]  *
+          *                                                   *
+          *              version #7.00   02/27/21             *
+          *                                                   *
+          *    This code was developed by Eric J. Bylaska,    *
+          *    Abhishek Bagusetty, David H. Bross, ...        *
+          *                                                   *
+          *****************************************************
+          >>> job started at       Wed Mar 22 12:38:47 2023 <<<
+
+ psp_library: /home/sjplimp/nwchem/PWDFT/Nwpw/libraryps
+
+
+
+ writing formatted psp filename: ./W.vpp
+ psi grids are being converted: 
+ -----------------------------: 
+ converting .... psi:1 spin:1
+ converting .... psi:2 spin:1
+ converting .... psi:3 spin:1
+ converting .... psi:4 spin:1
+ converting .... psi:5 spin:1
+ converting .... psi:6 spin:1
+
+ input psi exists, reading from file: ./nwchemex.movecs
+
+          ==============  summary of input  ==================
+
+ input psi filename: ./nwchemex.movecs
+
+ number of processors used: 1
+ processor grid           : 1 x1
+ parallel mapping         : 2d-hcurve
+ parallel mapping         : balanced
+
+ options:
+   boundary conditions  = periodic
+   electron spin        = restricted
+   exchange-correlation = PBE96 (White and Bird) parameterization
+
+ elements involved in the cluster:
+      1: W   valence charge =  6.0  lmax =2
+             comment = Troullier-Martins pseudopotential
+             pseudopotential type            =  0
+             highest angular component       =  2
+             local potential used            =  0
+             number of non-local projections =  8
+             semicore corrections inlcuded   =  1.800 (radius) 4.536 (charge)
+             cutoff =    2.389   3.185   2.244
+
+ total charge =   0.000
+
+ atom composition:
+   W : 2
+
+ initial ion positions (au):
+   1 W	(    0.00000    0.00000    0.00000 ) - atomic mass = 183.951
+   2 W	(    2.99088    2.99088    2.99088 ) - atomic mass = 183.951
+   G.C.	(    1.49544    1.49544    1.49544 )
+ C.O.M.	(    1.49544    1.49544    1.49544 )
+
+ real space Electric field:
+     Electric Field (au) = (   0.00000    0.00000    0.00000 )
+             Center (au) = (   0.00000    0.00000    0.00000 )
+
+
+ number of electrons: spin up =     6 (   6 per task) down =     6 (   6 per task)
+
+ supercell:
+      volume =     214.04
+      lattice:    a1 = <    5.982    0.000    0.000 >
+                  a2 = <    0.000    5.982    0.000 >
+                  a3 = <    0.000    0.000    5.982 >
+      reciprocal: b1 = <    1.050    0.000    0.000 >
+                  b2 = <    0.000    1.050    0.000 >
+                  b3 = <    0.000    0.000    1.050 >
+      lattice:    a =       5.982 b =      5.982 c =       5.982
+                  alpha =  90.000 beta =  90.000 gamma =  90.000
+      density cutoff = 20.000 fft =  14 x   14 x   14  (     463 waves      463 per task)
+      wavefnc cutoff = 10.000 fft =  14 x   14 x   14  (     171 waves      171 per task)
+
+ Ewald parameters:
+      energy cutoff =  20.000 fft =  14 x   14 x   14  (     463 waves      463 per task)
+      Ewald summation: cut radius =   3.000 and   8
+                       Mandelung Wigner-Seitz =  1.76011888 (alpha =  2.83729748 rs =  3.71078182)
+
+ technical parameters:
+      fixed step: time step =        0.10  ficticious mass =   400000.00
+      tolerance =   1.000e-07 (energy)    1.000e-07 (density)    1.000e-04 (ion)
+      max iterations =       1000 (   10 inner   100 outer)
+      minimizer = Grassmann conjugate gradient
+
+
+
+     ============ Grassmann conjugate gradient iteration ============
+          >>> iteration started at Wed Mar 22 12:38:47 2023  <<<
+     iter.                 Energy          DeltaE        DeltaRho
+     ----------------------------------------------------------------
+        - 15 steepest descent iterations performed
+        10      -2.015461227870e+01   -1.152391e-06    1.541098e-08
+        20      -2.015461250697e+01   -6.884596e-08    1.359336e-09
+     *** tolerance ok. iteration terminated
+          >>> iteration ended at   Wed Mar 22 12:38:47 2023  <<<
+
+     ==============  energy results (Molecule object)  ==============
+
+
+ number of electrons: spin up=     6.00000  down=     6.00000 (real space)
+
+
+ total     energy    :   -2.0154612507e+01 (   -1.00773e+01 /ion)
+ total orbital energy:    5.1934744194e+00 (    8.65579e-01 /electron)
+ hartree energy      :    2.9548501467e-01 (    4.92475e-02 /electron)
+ exc-corr energy     :   -9.4995084169e+00 (   -1.58325e+00 /electron)
+ ion-ion energy      :   -2.1902017722e+01 (   -1.09510e+01 /ion)
+
+ kinetic (planewave) :    1.4375731298e+01 (    2.39596e+00 /electron)
+ V_local (planewave) :    1.1537789121e+01 (    1.92296e+00 /electron)
+ V_nl    (planewave) :   -1.4962091802e+01 (   -2.49368e+00 /electron)
+ V_Coul  (planewave) :    5.9097002933e-01 (    9.84950e-02 /electron)
+ V_xc    (planewave) :   -6.3489242272e+00 (   -1.05815e+00 /electron)
+ Viral Coefficient   :   -6.3873320169e-01
+
+ orbital energy:
+     5.4868319e-01 (  14.931eV)
+     5.4868125e-01 (  14.930eV)
+     5.4867927e-01 (  14.930eV)
+     3.7006985e-01 (  10.070eV)
+     3.7006983e-01 (  10.070eV)
+     2.1055382e-01 (   5.730eV)
+
+== Center of Charge ==
+
+spin up    = (    0.0000    -0.0000     0.0000 )
+spin down  = (    0.0000    -0.0000     0.0000 )
+     total = (    0.0000    -0.0000     0.0000 )
+ionic      = (    1.4954     1.4954     1.4954 )
+
+== Molecular Dipole wrt Center of Mass ==
+
+mu   = (   17.9452    17.9453    17.9453 ) au
+|mu| =     31.0821 au (    78.9982 Debye )
+
+
+ Ion Forces (au):
+   1 W	(    0.00000   -0.00000    0.00000 )
+   2 W	(    0.00000   -0.00000    0.00000 )
+
+
+ output psi to filename: ./nwchemex.movecs
+
+ -----------------
+ cputime in seconds
+ prologue    : 3.545e-02
+ main loop   : 6.420e-02
+ epilogue    : 7.310e-04
+ total       : 1.004e-01
+ cputime/step: 1.211e-03 ( 53 evaluations, 12 linesearches)
+
+ Time spent doing      total        step             percent
+ total time            6.333207e-01 1.194945e-02     100.00%
+ total FFT time        8.407158e-02 1.586256e-03      13.27%
+ lagrange multipliers  3.533010e-04 6.666057e-06       0.06%
+ local potentials      1.259700e-05 2.376792e-07       0.00%
+ non-local potentials  2.644675e-03 4.989953e-05       0.42%
+ ffm_dgemm             7.637930e-04 1.441119e-05       0.12%
+ fmf_dgemm             1.099083e-03 2.073742e-05       0.17%
+ m_diagonalize         3.051740e-04 5.758000e-06       0.05%
+ mmm_multiply          5.490900e-05 1.036019e-06       0.01%
+ SCVtrans              6.234800e-05 1.176377e-06       0.01%
+
+ >>> job completed at     Wed Mar 22 12:38:47 2023 <<<
+          *****************************************************
+          *                                                   *
+          *               PWDFT PSPW Calculation              *
+          *                                                   *
+          *  [ (Grassmann/Stiefel manifold implementation) ]  *
+          *  [              C++ implementation             ]  *
+          *                                                   *
+          *              version #7.00   02/27/21             *
+          *                                                   *
+          *    This code was developed by Eric J. Bylaska,    *
+          *    Abhishek Bagusetty, David H. Bross, ...        *
+          *                                                   *
+          *****************************************************
+          >>> job started at       Wed Mar 22 12:38:47 2023 <<<
+
+ psp_library: /home/sjplimp/nwchem/PWDFT/Nwpw/libraryps
+
+
+
+ writing formatted psp filename: ./W.vpp
+ generating random psi from scratch
+ Warning - Gram-Schmidt being performed on psi2
+         - exact norm = 24 norm=24.6349 corrected norm=24 (error=0.634911)
+
+          ==============  summary of input  ==================
+
+ input psi filename: ./nwchemex.movecs
+
+ number of processors used: 1
+ processor grid           : 1 x1
+ parallel mapping         : 2d-hcurve
+ parallel mapping         : balanced
+
+ options:
+   boundary conditions  = periodic
+   electron spin        = restricted
+   exchange-correlation = PBE96 (White and Bird) parameterization
+
+ elements involved in the cluster:
+      1: W   valence charge =  6.0  lmax =2
+             comment = Troullier-Martins pseudopotential
+             pseudopotential type            =  0
+             highest angular component       =  2
+             local potential used            =  0
+             number of non-local projections =  8
+             semicore corrections inlcuded   =  1.800 (radius) 4.591 (charge)
+             cutoff =    2.389   3.185   2.244
+
+ total charge =   0.000
+
+ atom composition:
+   W : 4
+
+ initial ion positions (au):
+   1 W	(    0.00000    0.00000    0.00000 ) - atomic mass = 183.951
+   2 W	(    2.66457    0.00000    1.88413 ) - atomic mass = 183.951
+   3 W	(    2.66457    2.66457    3.76827 ) - atomic mass = 183.951
+   4 W	(    0.00000    2.66457    5.65240 ) - atomic mass = 183.951
+   G.C.	(    1.33228    1.33228    2.82620 )
+ C.O.M.	(    1.33228    1.33228    2.82620 )
+
+ real space Electric field:
+     Electric Field (au) = (   0.00000    0.00000    0.00000 )
+             Center (au) = (   0.00000    0.00000    0.00000 )
+
+
+ number of electrons: spin up =    12 (  12 per task) down =    12 (  12 per task)
+
+ supercell:
+      volume =     214.04
+      lattice:    a1 = <    5.329    0.000    0.000 >
+                  a2 = <    0.000    5.329    0.000 >
+                  a3 = <    0.000    0.000    7.537 >
+      reciprocal: b1 = <    1.179    0.000    0.000 >
+                  b2 = <    0.000    1.179    0.000 >
+                  b3 = <    0.000    0.000    0.834 >
+      lattice:    a =       5.329 b =      5.329 c =       7.537
+                  alpha =  90.000 beta =  90.000 gamma =  90.000
+      density cutoff = 10.000 fft =  10 x   10 x   12  (     160 waves      160 per task)
+      wavefnc cutoff =  5.000 fft =  10 x   10 x   12  (      62 waves       62 per task)
+
+ Ewald parameters:
+      energy cutoff =  10.000 fft =  10 x   10 x   12  (     160 waves      160 per task)
+      Ewald summation: cut radius =   3.000 and   8
+                       Mandelung Wigner-Seitz =  1.68382487 (alpha =  2.71431215 rs =  3.71078182)
+
+ technical parameters:
+      fixed step: time step =        0.10  ficticious mass =   400000.00
+      tolerance =   1.000e-07 (energy)    1.000e-07 (density)    1.000e-04 (ion)
+      max iterations =       1000 (   10 inner   100 outer)
+      minimizer = Grassmann conjugate gradient
+
+
+
+     ============ Grassmann conjugate gradient iteration ============
+          >>> iteration started at Wed Mar 22 12:38:47 2023  <<<
+     iter.                 Energy          DeltaE        DeltaRho
+     ----------------------------------------------------------------
+        - 15 steepest descent iterations performed
+        10      -6.055830132329e+00   -3.950403e-02    1.828100e-06
+        20      -6.385809714715e+00   -3.894785e-02    1.758309e-06
+        30      -6.711168070530e+00   -3.840461e-02    1.691928e-06
+        40      -7.032007984384e+00   -3.787299e-02    1.628803e-06
+        50      -7.348421375629e+00   -3.735174e-02    1.568781e-06
+        60      -7.660489824954e+00   -3.683964e-02    1.511713e-06
+        70      -7.968285124894e+00   -3.633557e-02    1.457453e-06
+        80      -8.271869852255e+00   -3.583846e-02    1.405859e-06
+        90      -8.571297960274e+00   -3.534732e-02    1.356792e-06
+       100      -8.866615388055e+00   -3.486124e-02    1.310118e-06
+       110      -9.157860684583e+00   -3.437936e-02    1.265708e-06
+       120      -9.445065644289e+00   -3.390092e-02    1.223435e-06
+       130      -9.728255950944e+00   -3.342523e-02    1.183180e-06
+       140      -1.000745182635e+01   -3.295167e-02    1.144828e-06
+       150      -1.028266868013e+01   -3.247971e-02    1.108268e-06
+       160      -1.055391775670e+01   -3.200889e-02    1.073396e-06
+       170      -1.082120677550e+01   -3.153881e-02    1.040111e-06
+       180      -1.108454056030e+01   -3.106918e-02    1.008319e-06
+       190      -1.134392165365e+01   -3.059975e-02    9.779312e-07
+       200      -1.159935091250e+01   -3.013035e-02    9.488616e-07
+       210      -1.185082808097e+01   -2.966088e-02    9.210311e-07
+       220      -2.307658315652e+01   -2.660051e+00    3.534559e-02
+       230      -3.129825644760e+01   -8.384921e-02    8.831546e-04
+       240      -3.157478329913e+01   -8.501628e-03    7.365980e-05
+       250      -3.162757137408e+01   -3.007578e-03    8.118567e-04
+       260      -3.166852145652e+01   -6.760182e-03    2.472568e-03
+       270      -3.176521423332e+01   -6.489845e-03    3.635301e-04
+       280      -3.179220352327e+01   -2.631131e-05    6.062148e-07
+       290      -3.179228652997e+01   -8.831259e-07    3.208422e-08
+       300      -3.179228729957e+01   -5.132388e-08    1.166168e-09
+     *** tolerance ok. iteration terminated
+          >>> iteration ended at   Wed Mar 22 12:38:49 2023  <<<
+
+     ==============  energy results (Molecule object)  ==============
+
+
+ number of electrons: spin up=    12.00000  down=    12.00000 (real space)
+
+
+ total     energy    :   -3.1792287300e+01 (   -7.94807e+00 /ion)
+ total orbital energy:    2.6841552423e+01 (    2.23680e+00 /electron)
+ hartree energy      :    8.0875740830e-01 (    6.73965e-02 /electron)
+ exc-corr energy     :   -2.2041168198e+01 (   -1.83676e+00 /electron)
+ ion-ion energy      :   -5.1462581522e+01 (   -1.28656e+01 /ion)
+
+ kinetic (planewave) :    3.6677604642e+01 (    3.05647e+00 /electron)
+ V_local (planewave) :    3.8319838624e+01 (    3.19332e+00 /electron)
+ V_nl    (planewave) :   -3.4094738254e+01 (   -2.84123e+00 /electron)
+ V_Coul  (planewave) :    1.6175148166e+00 (    1.34793e-01 /electron)
+ V_xc    (planewave) :   -1.5678667407e+01 (   -1.30656e+00 /electron)
+ Viral Coefficient   :   -2.6817597046e-01
+
+ orbital energy:
+     1.4446153e+00 (  39.310eV)
+     1.4446141e+00 (  39.310eV)
+     1.2075227e+00 (  32.859eV)
+     1.2075208e+00 (  32.859eV)
+     1.2040031e+00 (  32.763eV)
+     1.1965068e+00 (  32.559eV)
+     1.1964933e+00 (  32.558eV)
+     1.0077700e+00 (  27.423eV)
+     9.8716725e-01 (  26.862eV)
+     8.7232872e-01 (  23.737eV)
+     8.7232366e-01 (  23.737eV)
+     7.7991047e-01 (  21.223eV)
+
+== Center of Charge ==
+
+spin up    = (   -0.0000     0.0000     0.0000 )
+spin down  = (   -0.0000     0.0000     0.0000 )
+     total = (   -0.0000     0.0000     0.0000 )
+ionic      = (    1.3323     1.3323     2.8262 )
+
+== Molecular Dipole wrt Center of Mass ==
+
+mu   = (   31.9749    31.9747    67.8288 ) au
+|mu| =     81.5200 au (   207.1913 Debye )
+
+ output psi to filename: ./nwchemex.movecs
+
+ -----------------
+ cputime in seconds
+ prologue    : 3.290e-02
+ main loop   : 2.339e+00
+ epilogue    : 2.700e-04
+ total       : 2.372e+00
+ cputime/step: 1.454e-03 ( 1609 evaluations, 294 linesearches)
+
+ Time spent doing      total        step             percent
+ total time            3.007315e+00 1.869059e-03     100.00%
+ total FFT time        7.064330e-01 4.390509e-04      23.49%
+ lagrange multipliers  6.188984e-03 3.846479e-06       0.21%
+ local potentials      1.690400e-05 1.050590e-08       0.00%
+ non-local potentials  4.272599e-02 2.655438e-05       1.42%
+ ffm_dgemm             1.453702e-02 9.034820e-06       0.48%
+ fmf_dgemm             2.303273e-02 1.431493e-05       0.77%
+ m_diagonalize         5.477974e-03 3.404583e-06       0.18%
+ mmm_multiply          1.458873e-03 9.066955e-07       0.05%
+ SCVtrans              8.520560e-04 5.295562e-07       0.03%
+
+ >>> job completed at     Wed Mar 22 12:38:49 2023 <<<
+          *****************************************************
+          *                                                   *
+          *               PWDFT PSPW Calculation              *
+          *                                                   *
+          *  [ (Grassmann/Stiefel manifold implementation) ]  *
+          *  [              C++ implementation             ]  *
+          *                                                   *
+          *              version #7.00   02/27/21             *
+          *                                                   *
+          *    This code was developed by Eric J. Bylaska,    *
+          *    Abhishek Bagusetty, David H. Bross, ...        *
+          *                                                   *
+          *****************************************************
+          >>> job started at       Wed Mar 22 12:38:49 2023 <<<
+
+ psp_library: /home/sjplimp/nwchem/PWDFT/Nwpw/libraryps
+
+
+
+ writing formatted psp filename: ./W.vpp
+ psi grids are being converted: 
+ -----------------------------: 
+ converting .... psi:1 spin:1
+ converting .... psi:2 spin:1
+ converting .... psi:3 spin:1
+ converting .... psi:4 spin:1
+ converting .... psi:5 spin:1
+ converting .... psi:6 spin:1
+ converting .... psi:7 spin:1
+ converting .... psi:8 spin:1
+ converting .... psi:9 spin:1
+ converting .... psi:10 spin:1
+ converting .... psi:11 spin:1
+ converting .... psi:12 spin:1
+
+ input psi exists, reading from file: ./nwchemex.movecs
+
+          ==============  summary of input  ==================
+
+ input psi filename: ./nwchemex.movecs
+
+ number of processors used: 1
+ processor grid           : 1 x1
+ parallel mapping         : 2d-hcurve
+ parallel mapping         : balanced
+
+ options:
+   boundary conditions  = periodic
+   electron spin        = restricted
+   exchange-correlation = PBE96 (White and Bird) parameterization
+
+ elements involved in the cluster:
+      1: W   valence charge =  6.0  lmax =2
+             comment = Troullier-Martins pseudopotential
+             pseudopotential type            =  0
+             highest angular component       =  2
+             local potential used            =  0
+             number of non-local projections =  8
+             semicore corrections inlcuded   =  1.800 (radius) 4.595 (charge)
+             cutoff =    2.389   3.185   2.244
+
+ total charge =   0.000
+
+ atom composition:
+   W : 4
+
+ initial ion positions (au):
+   1 W	(    0.00000    0.00000    0.00000 ) - atomic mass = 183.951
+   2 W	(    2.66457    0.00000    1.88413 ) - atomic mass = 183.951
+   3 W	(    2.66457    2.66457    3.76827 ) - atomic mass = 183.951
+   4 W	(    0.00000    2.66457    5.65240 ) - atomic mass = 183.951
+   G.C.	(    1.33228    1.33228    2.82620 )
+ C.O.M.	(    1.33228    1.33228    2.82620 )
+
+ real space Electric field:
+     Electric Field (au) = (   0.00000    0.00000    0.00000 )
+             Center (au) = (   0.00000    0.00000    0.00000 )
+
+
+ number of electrons: spin up =    12 (  12 per task) down =    12 (  12 per task)
+
+ supercell:
+      volume =     214.04
+      lattice:    a1 = <    5.329    0.000    0.000 >
+                  a2 = <    0.000    5.329    0.000 >
+                  a3 = <    0.000    0.000    7.537 >
+      reciprocal: b1 = <    1.179    0.000    0.000 >
+                  b2 = <    0.000    1.179    0.000 >
+                  b3 = <    0.000    0.000    0.834 >
+      lattice:    a =       5.329 b =      5.329 c =       7.537
+                  alpha =  90.000 beta =  90.000 gamma =  90.000
+      density cutoff = 20.000 fft =  12 x   12 x   16  (     460 waves      460 per task)
+      wavefnc cutoff = 10.000 fft =  12 x   12 x   16  (     160 waves      160 per task)
+
+ Ewald parameters:
+      energy cutoff =  20.000 fft =  12 x   12 x   16  (     460 waves      460 per task)
+      Ewald summation: cut radius =   3.000 and   8
+                       Mandelung Wigner-Seitz =  1.68382487 (alpha =  2.71431215 rs =  3.71078182)
+
+ technical parameters:
+      fixed step: time step =        0.10  ficticious mass =   400000.00
+      tolerance =   1.000e-07 (energy)    1.000e-07 (density)    1.000e-04 (ion)
+      max iterations =       1000 (   10 inner   100 outer)
+      minimizer = Grassmann conjugate gradient
+
+
+
+     ============ Grassmann conjugate gradient iteration ============
+          >>> iteration started at Wed Mar 22 12:38:49 2023  <<<
+     iter.                 Energy          DeltaE        DeltaRho
+     ----------------------------------------------------------------
+        - 15 steepest descent iterations performed
+        10      -3.617033061710e+01   -3.447767e-05    2.051315e-07
+        20      -3.617035193509e+01   -9.144932e-08    2.233123e-09
+     *** tolerance ok. iteration terminated
+          >>> iteration ended at   Wed Mar 22 12:38:49 2023  <<<
+
+     ==============  energy results (Molecule object)  ==============
+
+
+ number of electrons: spin up=    12.00000  down=    12.00000 (real space)
+
+
+ total     energy    :   -3.6170351935e+01 (   -9.04259e+00 /ion)
+ total orbital energy:    2.3048851372e+01 (    1.92074e+00 /electron)
+ hartree energy      :    1.2466960309e+00 (    1.03891e-01 /electron)
+ exc-corr energy     :   -2.2474177760e+01 (   -1.87285e+00 /electron)
+ ion-ion energy      :   -5.1462581522e+01 (   -1.28656e+01 /ion)
+
+ kinetic (planewave) :    4.2172537419e+01 (    3.51438e+00 /electron)
+ V_local (planewave) :    4.2389901334e+01 (    3.53249e+00 /electron)
+ V_nl    (planewave) :   -4.8042727436e+01 (   -4.00356e+00 /electron)
+ V_Coul  (planewave) :    2.4933920618e+00 (    2.07783e-01 /electron)
+ V_xc    (planewave) :   -1.5964252007e+01 (   -1.33035e+00 /electron)
+ Viral Coefficient   :   -4.5346301687e-01
+
+ orbital energy:
+     1.2694201e+00 (  34.543eV)
+     1.2694200e+00 (  34.543eV)
+     1.0542936e+00 (  28.689eV)
+     1.0542930e+00 (  28.689eV)
+     1.0521347e+00 (  28.630eV)
+     1.0163764e+00 (  27.657eV)
+     1.0163729e+00 (  27.657eV)
+     8.0982926e-01 (  22.037eV)
+     7.9408393e-01 (  21.608eV)
+     7.3283710e-01 (  19.942eV)
+     7.2768246e-01 (  19.801eV)
+     7.2768240e-01 (  19.801eV)
+
+== Center of Charge ==
+
+spin up    = (   -0.0000     0.0000    -0.0000 )
+spin down  = (   -0.0000     0.0000    -0.0000 )
+     total = (   -0.0000     0.0000    -0.0000 )
+ionic      = (    1.3323     1.3323     2.8262 )
+
+== Molecular Dipole wrt Center of Mass ==
+
+mu   = (   31.9748    31.9748    67.8288 ) au
+|mu| =     81.5201 au (   207.1914 Debye )
+
+
+ Ion Forces (au):
+   1 W	(   -0.00006    0.00001    0.00000 )
+   2 W	(   -0.00006    0.00001   -0.00000 )
+   3 W	(    0.00005   -0.00001    0.00000 )
+   4 W	(    0.00006   -0.00001   -0.00000 )
+
+
+ output psi to filename: ./nwchemex.movecs
+
+ -----------------
+ cputime in seconds
+ prologue    : 4.698e-02
+ main loop   : 1.063e-01
+ epilogue    : 1.782e-03
+ total       : 1.551e-01
+ cputime/step: 1.611e-03 ( 66 evaluations, 16 linesearches)
+
+ Time spent doing      total        step             percent
+ total time            3.162662e+00 4.791912e-02     100.00%
+ total FFT time        7.429673e-01 1.125708e-02      23.49%
+ lagrange multipliers  6.602280e-03 1.000345e-04       0.21%
+ local potentials      3.458900e-05 5.240758e-07       0.00%
+ non-local potentials  4.642936e-02 7.034751e-04       1.47%
+ ffm_dgemm             1.572267e-02 2.382223e-04       0.50%
+ fmf_dgemm             2.503290e-02 3.792864e-04       0.79%
+ m_diagonalize         5.753158e-03 8.716906e-05       0.18%
+ mmm_multiply          1.507230e-03 2.283682e-05       0.05%
+ SCVtrans              8.849210e-04 1.340789e-05       0.03%
+
+ >>> job completed at     Wed Mar 22 12:38:49 2023 <<<
+          *****************************************************
+          *                                                   *
+          *               PWDFT PSPW Calculation              *
+          *                                                   *
+          *  [ (Grassmann/Stiefel manifold implementation) ]  *
+          *  [              C++ implementation             ]  *
+          *                                                   *
+          *              version #7.00   02/27/21             *
+          *                                                   *
+          *    This code was developed by Eric J. Bylaska,    *
+          *    Abhishek Bagusetty, David H. Bross, ...        *
+          *                                                   *
+          *****************************************************
+          >>> job started at       Wed Mar 22 12:38:49 2023 <<<
+
+ psp_library: /home/sjplimp/nwchem/PWDFT/Nwpw/libraryps
+
+
+
+ writing formatted psp filename: ./W.vpp
+ generating random psi from scratch
+ Warning - Gram-Schmidt being performed on psi2
+         - exact norm = 54 norm=55.9896 corrected norm=54 (error=1.98964)
+
+          ==============  summary of input  ==================
+
+ input psi filename: ./nwchemex.movecs
+
+ number of processors used: 1
+ processor grid           : 1 x1
+ parallel mapping         : 2d-hcurve
+ parallel mapping         : balanced
+
+ options:
+   boundary conditions  = periodic
+   electron spin        = restricted
+   exchange-correlation = PBE96 (White and Bird) parameterization
+
+ elements involved in the cluster:
+      1: W   valence charge =  6.0  lmax =2
+             comment = Troullier-Martins pseudopotential
+             pseudopotential type            =  0
+             highest angular component       =  2
+             local potential used            =  0
+             number of non-local projections =  8
+             semicore corrections inlcuded   =  1.800 (radius) 4.774 (charge)
+             cutoff =    2.389   3.185   2.244
+
+ total charge =   0.000
+
+ atom composition:
+   W : 9
+
+ initial ion positions (au):
+   1 W	(    0.00000    0.00000   28.34589 ) - atomic mass = 183.951
+   2 W	(    0.00000    0.00000   33.09361 ) - atomic mass = 183.951
+   3 W	(    0.00000    0.00000   37.84133 ) - atomic mass = 183.951
+   4 W	(    0.00000    0.00000   42.58905 ) - atomic mass = 183.951
+   5 W	(    0.00000    0.00000   47.33676 ) - atomic mass = 183.951
+   6 W	(    0.00000    0.00000   52.08448 ) - atomic mass = 183.951
+   7 W	(    0.00000    0.00000   56.83220 ) - atomic mass = 183.951
+   8 W	(    0.00000    0.00000   61.57992 ) - atomic mass = 183.951
+   9 W	(    0.00000    0.00000   66.32764 ) - atomic mass = 183.951
+   G.C.	(    0.00000    0.00000   47.33676 )
+ C.O.M.	(    0.00000    0.00000   47.33676 )
+
+ real space Electric field:
+     Electric Field (au) = (   0.00000    0.00000    0.00000 )
+             Center (au) = (   0.00000    0.00000    0.00000 )
+
+
+ number of electrons: spin up =    27 (  27 per task) down =    27 (  27 per task)
+
+ supercell:
+      volume =    2134.02
+      lattice:    a1 = <    4.748    0.000    0.000 >
+                  a2 = <    0.000    4.748    0.000 >
+                  a3 = <    0.000    0.000   94.674 >
+      reciprocal: b1 = <    1.323    0.000    0.000 >
+                  b2 = <    0.000    1.323    0.000 >
+                  b3 = <    0.000    0.000    0.066 >
+      lattice:    a =       4.748 b =      4.748 c =      94.674
+                  alpha =  90.000 beta =  90.000 gamma =  90.000
+      density cutoff = 10.000 fft =   8 x    8 x  140  (    1654 waves     1654 per task)
+      wavefnc cutoff =  5.000 fft =   8 x    8 x  140  (     614 waves      614 per task)
+
+ Ewald parameters:
+      energy cutoff =  10.000 fft =   8 x    8 x  140  (    1654 waves     1654 per task)
+      Ewald summation: cut radius =   3.000 and   8
+                       Mandelung Wigner-Seitz =-28.56716969 (alpha =-46.05004769 rs =  7.98674752)
+
+ technical parameters:
+      fixed step: time step =        0.10  ficticious mass =   400000.00
+      tolerance =   1.000e-07 (energy)    1.000e-07 (density)    1.000e-04 (ion)
+      max iterations =       1000 (   10 inner   100 outer)
+      minimizer = Grassmann conjugate gradient
+
+
+
+     ============ Grassmann conjugate gradient iteration ============
+          >>> iteration started at Wed Mar 22 12:38:50 2023  <<<
+     iter.                 Energy          DeltaE        DeltaRho
+     ----------------------------------------------------------------
+        - 15 steepest descent iterations performed
+        10      -1.537543929874e+01   -2.016560e+00    3.077105e-03
+        20      -3.254785807349e+01   -1.663493e+00    2.853796e-03
+        30      -4.810772454500e+01   -1.411329e+00    2.524724e-03
+        40      -5.924331815603e+01   -8.722325e-01    1.601473e-03
+        50      -6.598737094914e+01   -5.386274e-01    1.018644e-03
+        60      -7.047458695974e+01   -3.842901e-01    7.275415e-04
+        70      -7.391410353045e+01   -3.094978e-01    5.927380e-04
+        80      -7.675659679950e+01   -2.575519e-01    5.074834e-04
+        90      -7.908051946463e+01   -2.066346e-01    4.202545e-04
+       100      -8.091371386799e+01   -1.620794e-01    3.417256e-04
+       110      -8.236293503847e+01   -1.299053e-01    2.852820e-04
+       120      -8.354092927149e+01   -1.068684e-01    2.434477e-04
+       130      -8.451154165098e+01   -8.805956e-02    2.067634e-04
+       140      -8.530664269190e+01   -7.198981e-02    1.738582e-04
+       150      -8.596030731896e+01   -5.983311e-02    1.488597e-04
+       160      -8.651711846167e+01   -5.225598e-02    1.343065e-04
+       170      -8.701856676886e+01   -4.832242e-02    1.282183e-04
+       180      -8.748424331332e+01   -4.442332e-02    1.222405e-04
+       190      -8.787610642248e+01   -3.338040e-02    9.947921e-05
+       200      -8.811847068979e+01   -1.693656e-02    5.903923e-05
+       210      -8.830054273921e+01   -3.581922e-03    6.916884e-05
+       220      -8.831280544154e+01   -5.396840e-05    7.863732e-07
+       230      -8.831301827046e+01   -3.445163e-06    4.311563e-08
+       240      -8.831302766242e+01   -1.599960e-07    7.829532e-10
+       250      -8.831302775935e+01   -9.692576e-08    4.617615e-10
+     *** tolerance ok. iteration terminated
+          >>> iteration ended at   Wed Mar 22 12:38:59 2023  <<<
+
+     ==============  energy results (Molecule object)  ==============
+
+
+ number of electrons: spin up=    27.00000  down=    27.00000 (real space)
+
+
+ total     energy    :   -8.8313027759e+01 (   -9.81256e+00 /ion)
+ total orbital energy:   -5.1543739929e+00 (   -1.90903e-01 /electron)
+ hartree energy      :    1.9217358728e+03 (    7.11754e+01 /electron)
+ exc-corr energy     :   -4.2845603491e+01 (   -1.58687e+00 /electron)
+ ion-ion energy      :    1.8531858410e+03 (    2.05910e+02 /ion)
+
+ kinetic (planewave) :    4.3121050224e+01 (    1.59708e+00 /electron)
+ V_local (planewave) :   -3.8291999293e+03 (   -1.41822e+02 /electron)
+ V_nl    (planewave) :   -3.4310258960e+01 (   -1.27075e+00 /electron)
+ V_Coul  (planewave) :    3.8434717456e+03 (    1.42351e+02 /electron)
+ V_xc    (planewave) :   -2.8236981532e+01 (   -1.04581e+00 /electron)
+ Viral Coefficient   :   -1.1195326637e+00
+
+ orbital energy:
+     1.2651002e-01 (   3.443eV)
+     1.8839147e-02 (   0.513eV)
+     1.5118032e-02 (   0.411eV)
+    -2.7745187e-03 (  -0.075eV)
+    -4.3030191e-03 (  -0.117eV)
+    -4.6545708e-03 (  -0.127eV)
+    -1.4954346e-02 (  -0.407eV)
+    -1.6336988e-02 (  -0.445eV)
+    -2.5371336e-02 (  -0.690eV)
+    -3.3327415e-02 (  -0.907eV)
+    -3.4658629e-02 (  -0.943eV)
+    -4.4732074e-02 (  -1.217eV)
+    -5.0668501e-02 (  -1.379eV)
+    -5.6656231e-02 (  -1.542eV)
+    -5.6949941e-02 (  -1.550eV)
+    -6.8047676e-02 (  -1.852eV)
+    -9.2316879e-02 (  -2.512eV)
+    -9.7184443e-02 (  -2.645eV)
+    -1.2662593e-01 (  -3.446eV)
+    -1.4011181e-01 (  -3.813eV)
+    -1.7225396e-01 (  -4.687eV)
+    -2.0713982e-01 (  -5.637eV)
+    -2.4175322e-01 (  -6.578eV)
+    -2.7471999e-01 (  -7.476eV)
+    -3.0358991e-01 (  -8.261eV)
+    -3.2631421e-01 (  -8.880eV)
+    -3.4220877e-01 (  -9.312eV)
+
+== Center of Charge ==
+
+spin up    = (    0.0000    -0.0000    -0.0000 )
+spin down  = (    0.0000    -0.0000    -0.0000 )
+     total = (    0.0000    -0.0000    -0.0000 )
+ionic      = (    0.0000     0.0000    47.3368 )
+
+== Molecular Dipole wrt Center of Mass ==
+
+mu   = (   -0.0001     0.0000  2556.1878 ) au
+|mu| =   2556.1878 au (  6496.8070 Debye )
+
+ output psi to filename: ./nwchemex.movecs
+
+ -----------------
+ cputime in seconds
+ prologue    : 3.712e-01
+ main loop   : 9.266e+00
+ epilogue    : 2.242e-03
+ total       : 9.639e+00
+ cputime/step: 9.542e-03 ( 971 evaluations, 241 linesearches)
+
+ Time spent doing      total        step             percent
+ total time            1.280374e+01 1.318614e-02     100.00%
+ total FFT time        5.641512e+00 5.810003e-03      44.06%
+ lagrange multipliers  1.029000e-01 1.059732e-04       0.80%
+ local potentials      1.287240e-04 1.325685e-07       0.00%
+ non-local potentials  9.192912e-01 9.467468e-04       7.18%
+ ffm_dgemm             3.260871e-01 3.358261e-04       2.55%
+ fmf_dgemm             6.958791e-01 7.166623e-04       5.43%
+ m_diagonalize         2.143142e-02 2.207150e-05       0.17%
+ mmm_multiply          6.996908e-03 7.205878e-06       0.05%
+ SCVtrans              2.344807e-03 2.414837e-06       0.02%
+
+ >>> job completed at     Wed Mar 22 12:38:59 2023 <<<
+          *****************************************************
+          *                                                   *
+          *               PWDFT PSPW Calculation              *
+          *                                                   *
+          *  [ (Grassmann/Stiefel manifold implementation) ]  *
+          *  [              C++ implementation             ]  *
+          *                                                   *
+          *              version #7.00   02/27/21             *
+          *                                                   *
+          *    This code was developed by Eric J. Bylaska,    *
+          *    Abhishek Bagusetty, David H. Bross, ...        *
+          *                                                   *
+          *****************************************************
+          >>> job started at       Wed Mar 22 12:38:59 2023 <<<
+
+ psp_library: /home/sjplimp/nwchem/PWDFT/Nwpw/libraryps
+
+
+
+ writing formatted psp filename: ./W.vpp
+ psi grids are being converted: 
+ -----------------------------: 
+ converting .... psi:1 spin:1
+ converting .... psi:2 spin:1
+ converting .... psi:3 spin:1
+ converting .... psi:4 spin:1
+ converting .... psi:5 spin:1
+ converting .... psi:6 spin:1
+ converting .... psi:7 spin:1
+ converting .... psi:8 spin:1
+ converting .... psi:9 spin:1
+ converting .... psi:10 spin:1
+ converting .... psi:11 spin:1
+ converting .... psi:12 spin:1
+ converting .... psi:13 spin:1
+ converting .... psi:14 spin:1
+ converting .... psi:15 spin:1
+ converting .... psi:16 spin:1
+ converting .... psi:17 spin:1
+ converting .... psi:18 spin:1
+ converting .... psi:19 spin:1
+ converting .... psi:20 spin:1
+ converting .... psi:21 spin:1
+ converting .... psi:22 spin:1
+ converting .... psi:23 spin:1
+ converting .... psi:24 spin:1
+ converting .... psi:25 spin:1
+ converting .... psi:26 spin:1
+ converting .... psi:27 spin:1
+
+ input psi exists, reading from file: ./nwchemex.movecs
+
+          ==============  summary of input  ==================
+
+ input psi filename: ./nwchemex.movecs
+
+ number of processors used: 1
+ processor grid           : 1 x1
+ parallel mapping         : 2d-hcurve
+ parallel mapping         : balanced
+
+ options:
+   boundary conditions  = periodic
+   electron spin        = restricted
+   exchange-correlation = PBE96 (White and Bird) parameterization
+
+ elements involved in the cluster:
+      1: W   valence charge =  6.0  lmax =2
+             comment = Troullier-Martins pseudopotential
+             pseudopotential type            =  0
+             highest angular component       =  2
+             local potential used            =  0
+             number of non-local projections =  8
+             semicore corrections inlcuded   =  1.800 (radius) 4.778 (charge)
+             cutoff =    2.389   3.185   2.244
+
+ total charge =   0.000
+
+ atom composition:
+   W : 9
+
+ initial ion positions (au):
+   1 W	(    0.00000    0.00000   28.34589 ) - atomic mass = 183.951
+   2 W	(    0.00000    0.00000   33.09361 ) - atomic mass = 183.951
+   3 W	(    0.00000    0.00000   37.84133 ) - atomic mass = 183.951
+   4 W	(    0.00000    0.00000   42.58905 ) - atomic mass = 183.951
+   5 W	(    0.00000    0.00000   47.33677 ) - atomic mass = 183.951
+   6 W	(    0.00000    0.00000   52.08449 ) - atomic mass = 183.951
+   7 W	(    0.00000    0.00000   56.83220 ) - atomic mass = 183.951
+   8 W	(    0.00000    0.00000   61.57992 ) - atomic mass = 183.951
+   9 W	(    0.00000    0.00000   66.32764 ) - atomic mass = 183.951
+   G.C.	(    0.00000    0.00000   47.33677 )
+ C.O.M.	(    0.00000    0.00000   47.33677 )
+
+ real space Electric field:
+     Electric Field (au) = (   0.00000    0.00000    0.00000 )
+             Center (au) = (   0.00000    0.00000    0.00000 )
+
+
+ number of electrons: spin up =    27 (  27 per task) down =    27 (  27 per task)
+
+ supercell:
+      volume =    2134.02
+      lattice:    a1 = <    4.748    0.000    0.000 >
+                  a2 = <    0.000    4.748    0.000 >
+                  a3 = <    0.000    0.000   94.674 >
+      reciprocal: b1 = <    1.323    0.000    0.000 >
+                  b2 = <    0.000    1.323    0.000 >
+                  b3 = <    0.000    0.000    0.066 >
+      lattice:    a =       4.748 b =      4.748 c =      94.674
+                  alpha =  90.000 beta =  90.000 gamma =  90.000
+      density cutoff = 20.000 fft =  12 x   12 x  192  (    4574 waves     4574 per task)
+      wavefnc cutoff = 10.000 fft =  12 x   12 x  192  (    1654 waves     1654 per task)
+
+ Ewald parameters:
+      energy cutoff =  20.000 fft =  12 x   12 x  192  (    4574 waves     4574 per task)
+      Ewald summation: cut radius =   3.000 and   8
+                       Mandelung Wigner-Seitz =-28.56716969 (alpha =-46.05004769 rs =  7.98674752)
+
+ technical parameters:
+      fixed step: time step =        0.10  ficticious mass =   400000.00
+      tolerance =   1.000e-07 (energy)    1.000e-07 (density)    1.000e-04 (ion)
+      max iterations =       1000 (   10 inner   100 outer)
+      minimizer = Grassmann conjugate gradient
+
+
+
+     ============ Grassmann conjugate gradient iteration ============
+          >>> iteration started at Wed Mar 22 12:39:00 2023  <<<
+     iter.                 Energy          DeltaE        DeltaRho
+     ----------------------------------------------------------------
+        - 15 steepest descent iterations performed
+        10      -9.275052119381e+01   -2.122242e-03    2.935377e-05
+        20      -9.275868040192e+01   -9.515326e-05    2.529918e-06
+        30      -9.275878712055e+01   -1.142202e-06    1.213725e-08
+        40      -9.275883858492e+01   -3.931136e-05    2.900787e-06
+        50      -9.275989368099e+01   -1.676866e-04    3.620223e-06
+        60      -9.276172965263e+01   -1.366180e-04    1.437493e-06
+        70      -9.276242641237e+01   -4.950588e-05    9.514774e-07
+        80      -9.276275885983e+01   -2.351096e-05    4.450692e-07
+        90      -9.276288269800e+01   -6.609562e-06    1.250224e-07
+       100      -9.276292451479e+01   -2.485196e-06    4.417831e-08
+       110      -9.276293769116e+01   -6.446969e-07    1.169540e-08
+       120      -9.276294176248e+01   -2.348768e-07    4.151375e-09
+       130      -9.276294233017e+01   -9.807081e-08    1.296479e-09
+     *** tolerance ok. iteration terminated
+          >>> iteration ended at   Wed Mar 22 12:39:11 2023  <<<
+
+     ==============  energy results (Molecule object)  ==============
+
+
+ number of electrons: spin up=    27.00000  down=    27.00000 (real space)
+
+
+ total     energy    :   -9.2762942330e+01 (   -1.03070e+01 /ion)
+ total orbital energy:   -5.0623378840e+00 (   -1.87494e-01 /electron)
+ hartree energy      :    1.9260817620e+03 (    7.13364e+01 /electron)
+ exc-corr energy     :   -4.3777835977e+01 (   -1.62140e+00 /electron)
+ ion-ion energy      :    1.8531856136e+03 (    2.05910e+02 /ion)
+
+ kinetic (planewave) :    5.2807679120e+01 (    1.95584e+00 /electron)
+ V_local (planewave) :   -3.8274779701e+03 (   -1.41758e+02 /electron)
+ V_nl    (planewave) :   -5.3582190935e+01 (   -1.98453e+00 /electron)
+ V_Coul  (planewave) :    3.8521635239e+03 (    1.42673e+02 /electron)
+ V_xc    (planewave) :   -2.8973379949e+01 (   -1.07309e+00 /electron)
+ Viral Coefficient   :   -1.0958636692e+00
+
+ orbital energy:
+     1.0091573e-01 (   2.746eV)
+     4.2336667e-02 (   1.152eV)
+     2.1250054e-02 (   0.578eV)
+    -4.9936494e-03 (  -0.136eV)
+    -3.0518213e-02 (  -0.830eV)
+    -3.4502515e-02 (  -0.939eV)
+    -4.1369266e-02 (  -1.126eV)
+    -5.3099040e-02 (  -1.445eV)
+    -5.7197969e-02 (  -1.556eV)
+    -5.8820459e-02 (  -1.601eV)
+    -6.6577151e-02 (  -1.812eV)
+    -6.8252501e-02 (  -1.857eV)
+    -7.4315282e-02 (  -2.022eV)
+    -9.2483451e-02 (  -2.517eV)
+    -9.7091101e-02 (  -2.642eV)
+    -9.8701112e-02 (  -2.686eV)
+    -9.9172297e-02 (  -2.699eV)
+    -1.1503130e-01 (  -3.130eV)
+    -1.2350704e-01 (  -3.361eV)
+    -1.2461151e-01 (  -3.391eV)
+    -1.3767779e-01 (  -3.746eV)
+    -1.5539558e-01 (  -4.229eV)
+    -1.8177422e-01 (  -4.946eV)
+    -2.1054366e-01 (  -5.729eV)
+    -2.3653121e-01 (  -6.436eV)
+    -2.6484631e-01 (  -7.207eV)
+    -2.6865877e-01 (  -7.311eV)
+
+== Center of Charge ==
+
+spin up    = (    0.0037     0.0007     0.0001 )
+spin down  = (    0.0037     0.0007     0.0001 )
+     total = (    0.0037     0.0007     0.0001 )
+ionic      = (    0.0000     0.0000    47.3368 )
+
+== Molecular Dipole wrt Center of Mass ==
+
+mu   = (   -0.2017    -0.0359  2556.1810 ) au
+|mu| =   2556.1810 au (  6496.7896 Debye )
+
+
+ Ion Forces (au):
+   1 W	(   -0.00665   -0.00100   -0.21569 )
+   2 W	(    0.00352    0.00053   -0.00769 )
+   3 W	(    0.00252    0.00038   -0.00345 )
+   4 W	(    0.00056    0.00009    0.00018 )
+   5 W	(    0.00014    0.00003   -0.00010 )
+   6 W	(    0.00056    0.00011   -0.00037 )
+   7 W	(    0.00249    0.00051    0.00324 )
+   8 W	(    0.00347    0.00072    0.00752 )
+   9 W	(   -0.00655   -0.00135    0.21561 )
+
+
+ output psi to filename: ./nwchemex.movecs
+
+ -----------------
+ cputime in seconds
+ prologue    : 5.431e-01
+ main loop   : 1.167e+01
+ epilogue    : 2.666e-02
+ total       : 1.224e+01
+ cputime/step: 2.658e-02 ( 439 evaluations, 124 linesearches)
+
+ Time spent doing      total        step             percent
+ total time            2.511120e+01 5.720091e-02     100.00%
+ total FFT time        1.195307e+01 2.722795e-02      47.60%
+ lagrange multipliers  1.578137e-01 3.594845e-04       0.63%
+ local potentials      5.548580e-04 1.263913e-06       0.00%
+ non-local potentials  2.142632e+00 4.880710e-03       8.53%
+ ffm_dgemm             7.997696e-01 1.821799e-03       3.18%
+ fmf_dgemm             1.656305e+00 3.772905e-03       6.60%
+ m_diagonalize         3.045132e-02 6.936519e-05       0.12%
+ mmm_multiply          9.809945e-03 2.234612e-05       0.04%
+ SCVtrans              3.383629e-03 7.707583e-06       0.01%
+
+ >>> job completed at     Wed Mar 22 12:39:11 2023 <<<
+          *****************************************************
+          *                                                   *
+          *               PWDFT PSPW Calculation              *
+          *                                                   *
+          *  [ (Grassmann/Stiefel manifold implementation) ]  *
+          *  [              C++ implementation             ]  *
+          *                                                   *
+          *              version #7.00   02/27/21             *
+          *                                                   *
+          *    This code was developed by Eric J. Bylaska,    *
+          *    Abhishek Bagusetty, David H. Bross, ...        *
+          *                                                   *
+          *****************************************************
+          >>> job started at       Wed Mar 22 13:17:04 2023 <<<
+
+ psp_library: /home/sjplimp/nwchem/PWDFT/Nwpw/libraryps
+
+
+
+ writing formatted psp filename: ./W.vpp
+ generating random psi from scratch
+ Warning - Gram-Schmidt being performed on psi2
+         - exact norm = 12 norm=12.2903 corrected norm=12 (error=0.290271)
+
+          ==============  summary of input  ==================
+
+ input psi filename: ./nwchemex.movecs
+
+ number of processors used: 1
+ processor grid           : 1 x1
+ parallel mapping         : 2d-hcurve
+ parallel mapping         : balanced
+
+ options:
+   boundary conditions  = periodic
+   electron spin        = restricted
+   exchange-correlation = PBE96 (White and Bird) parameterization
+
+ elements involved in the cluster:
+      1: W   valence charge =  6.0  lmax =2
+             comment = Troullier-Martins pseudopotential
+             pseudopotential type            =  0
+             highest angular component       =  2
+             local potential used            =  0
+             number of non-local projections =  8
+             semicore corrections inlcuded   =  1.800 (radius) 4.532 (charge)
+             cutoff =    2.389   3.185   2.244
+
+ total charge =   0.000
+
+ atom composition:
+   W : 2
+
+ initial ion positions (au):
+   1 W	(    0.00000    0.00000    0.00000 ) - atomic mass = 183.951
+   2 W	(    2.99088    2.99088    2.99088 ) - atomic mass = 183.951
+   G.C.	(    1.49544    1.49544    1.49544 )
+ C.O.M.	(    1.49544    1.49544    1.49544 )
+
+ real space Electric field:
+     Electric Field (au) = (   0.00000    0.00000    0.00000 )
+             Center (au) = (   0.00000    0.00000    0.00000 )
+
+
+ number of electrons: spin up =     6 (   6 per task) down =     6 (   6 per task)
+
+ supercell:
+      volume =     214.04
+      lattice:    a1 = <    5.982    0.000    0.000 >
+                  a2 = <    0.000    5.982    0.000 >
+                  a3 = <    0.000    0.000    5.982 >
+      reciprocal: b1 = <    1.050    0.000    0.000 >
+                  b2 = <    0.000    1.050    0.000 >
+                  b3 = <    0.000    0.000    1.050 >
+      lattice:    a =       5.982 b =      5.982 c =       5.982
+                  alpha =  90.000 beta =  90.000 gamma =  90.000
+      density cutoff = 10.000 fft =  10 x   10 x   10  (     171 waves      171 per task)
+      wavefnc cutoff =  5.000 fft =  10 x   10 x   10  (      62 waves       62 per task)
+
+ Ewald parameters:
+      energy cutoff =  10.000 fft =  10 x   10 x   10  (     171 waves      171 per task)
+      Ewald summation: cut radius =   3.000 and   8
+                       Mandelung Wigner-Seitz =  1.76011888 (alpha =  2.83729748 rs =  3.71078182)
+
+ technical parameters:
+      fixed step: time step =        0.10  ficticious mass =   400000.00
+      tolerance =   1.000e-07 (energy)    1.000e-07 (density)    1.000e-04 (ion)
+      max iterations =       1000 (   10 inner   100 outer)
+      minimizer = Grassmann conjugate gradient
+
+
+
+     ============ Grassmann conjugate gradient iteration ============
+          >>> iteration started at Wed Mar 22 13:17:04 2023  <<<
+     iter.                 Energy          DeltaE        DeltaRho
+     ----------------------------------------------------------------
+        - 15 steepest descent iterations performed
+        10      -1.674215046115e+01   -8.251196e-02    9.196301e-04
+        20      -1.749771236403e+01   -1.002147e-01    1.472766e-03
+        30      -1.823150320727e+01   -3.534576e-02    3.524284e-04
+        40      -1.846047982908e+01   -2.204551e-02    2.446432e-04
+        50      -1.868365376681e+01   -1.854154e-02    2.029002e-04
+        60      -1.881117950998e+01   -4.287319e-04    1.464725e-05
+        70      -1.881133499557e+01   -6.036766e-08    1.955112e-09
+     *** tolerance ok. iteration terminated
+          >>> iteration ended at   Wed Mar 22 13:17:04 2023  <<<
+
+     ==============  energy results (Molecule object)  ==============
+
+
+ number of electrons: spin up=     6.00000  down=     6.00000 (real space)
+
+
+ total     energy    :   -1.8811334996e+01 (   -9.40567e+00 /ion)
+ total orbital energy:    6.3205159164e+00 (    1.05342e+00 /electron)
+ hartree energy      :    1.5018043194e-01 (    2.50301e-02 /electron)
+ exc-corr energy     :   -9.2446725740e+00 (   -1.54078e+00 /electron)
+ ion-ion energy      :   -2.1902017722e+01 (   -1.09510e+01 /ion)
+
+ kinetic (planewave) :    1.2028654702e+01 (    2.00478e+00 /electron)
+ V_local (planewave) :    9.8433605672e+00 (    1.64056e+00 /electron)
+ V_nl    (planewave) :   -9.6868404003e+00 (   -1.61447e+00 /electron)
+ V_Coul  (planewave) :    3.0036086388e-01 (    5.00601e-02 /electron)
+ V_xc    (planewave) :   -6.1650198159e+00 (   -1.02750e+00 /electron)
+ Viral Coefficient   :   -4.7454506982e-01
+
+ orbital energy:
+     6.7570236e-01 (  18.387eV)
+     6.7570093e-01 (  18.387eV)
+     6.7569918e-01 (  18.387eV)
+     4.5449701e-01 (  12.368eV)
+     4.5449681e-01 (  12.368eV)
+     2.2416167e-01 (   6.100eV)
+
+== Center of Charge ==
+
+spin up    = (    0.0000    -0.0000     0.0000 )
+spin down  = (    0.0000    -0.0000     0.0000 )
+     total = (    0.0000    -0.0000     0.0000 )
+ionic      = (    1.4954     1.4954     1.4954 )
+
+== Molecular Dipole wrt Center of Mass ==
+
+mu   = (   17.9450    17.9453    17.9452 ) au
+|mu| =     31.0820 au (    78.9979 Debye )
+
+ output psi to filename: ./nwchemex.movecs
+
+ -----------------
+ cputime in seconds
+ prologue    : 2.496e-02
+ main loop   : 1.043e-01
+ epilogue    : 2.530e-04
+ total       : 1.295e-01
+ cputime/step: 3.712e-04 ( 281 evaluations, 69 linesearches)
+
+ Time spent doing      total        step             percent
+ total time            1.312236e-01 4.669878e-04     100.00%
+ total FFT time        4.236834e-02 1.507770e-04      32.29%
+ lagrange multipliers  2.336690e-04 8.315623e-07       0.18%
+ local potentials      3.448000e-06 1.227046e-08       0.00%
+ non-local potentials  1.560344e-03 5.552826e-06       1.19%
+ ffm_dgemm             5.100320e-04 1.815060e-06       0.39%
+ fmf_dgemm             7.351090e-04 2.616046e-06       0.56%
+ m_diagonalize         2.286610e-04 8.137402e-07       0.17%
+ mmm_multiply          4.442300e-05 1.580890e-07       0.03%
+ SCVtrans              4.797800e-05 1.707402e-07       0.04%
+
+ >>> job completed at     Wed Mar 22 13:17:04 2023 <<<
+          *****************************************************
+          *                                                   *
+          *               PWDFT PSPW Calculation              *
+          *                                                   *
+          *  [ (Grassmann/Stiefel manifold implementation) ]  *
+          *  [              C++ implementation             ]  *
+          *                                                   *
+          *              version #7.00   02/27/21             *
+          *                                                   *
+          *    This code was developed by Eric J. Bylaska,    *
+          *    Abhishek Bagusetty, David H. Bross, ...        *
+          *                                                   *
+          *****************************************************
+          >>> job started at       Wed Mar 22 13:17:04 2023 <<<
+
+ psp_library: /home/sjplimp/nwchem/PWDFT/Nwpw/libraryps
+
+
+
+ writing formatted psp filename: ./W.vpp
+ psi grids are being converted: 
+ -----------------------------: 
+ converting .... psi:1 spin:1
+ converting .... psi:2 spin:1
+ converting .... psi:3 spin:1
+ converting .... psi:4 spin:1
+ converting .... psi:5 spin:1
+ converting .... psi:6 spin:1
+
+ input psi exists, reading from file: ./nwchemex.movecs
+
+          ==============  summary of input  ==================
+
+ input psi filename: ./nwchemex.movecs
+
+ number of processors used: 1
+ processor grid           : 1 x1
+ parallel mapping         : 2d-hcurve
+ parallel mapping         : balanced
+
+ options:
+   boundary conditions  = periodic
+   electron spin        = restricted
+   exchange-correlation = PBE96 (White and Bird) parameterization
+
+ elements involved in the cluster:
+      1: W   valence charge =  6.0  lmax =2
+             comment = Troullier-Martins pseudopotential
+             pseudopotential type            =  0
+             highest angular component       =  2
+             local potential used            =  0
+             number of non-local projections =  8
+             semicore corrections inlcuded   =  1.800 (radius) 4.536 (charge)
+             cutoff =    2.389   3.185   2.244
+
+ total charge =   0.000
+
+ atom composition:
+   W : 2
+
+ initial ion positions (au):
+   1 W	(    0.00000    0.00000    0.00000 ) - atomic mass = 183.951
+   2 W	(    2.99088    2.99088    2.99088 ) - atomic mass = 183.951
+   G.C.	(    1.49544    1.49544    1.49544 )
+ C.O.M.	(    1.49544    1.49544    1.49544 )
+
+ real space Electric field:
+     Electric Field (au) = (   0.00000    0.00000    0.00000 )
+             Center (au) = (   0.00000    0.00000    0.00000 )
+
+
+ number of electrons: spin up =     6 (   6 per task) down =     6 (   6 per task)
+
+ supercell:
+      volume =     214.04
+      lattice:    a1 = <    5.982    0.000    0.000 >
+                  a2 = <    0.000    5.982    0.000 >
+                  a3 = <    0.000    0.000    5.982 >
+      reciprocal: b1 = <    1.050    0.000    0.000 >
+                  b2 = <    0.000    1.050    0.000 >
+                  b3 = <    0.000    0.000    1.050 >
+      lattice:    a =       5.982 b =      5.982 c =       5.982
+                  alpha =  90.000 beta =  90.000 gamma =  90.000
+      density cutoff = 20.000 fft =  14 x   14 x   14  (     463 waves      463 per task)
+      wavefnc cutoff = 10.000 fft =  14 x   14 x   14  (     171 waves      171 per task)
+
+ Ewald parameters:
+      energy cutoff =  20.000 fft =  14 x   14 x   14  (     463 waves      463 per task)
+      Ewald summation: cut radius =   3.000 and   8
+                       Mandelung Wigner-Seitz =  1.76011888 (alpha =  2.83729748 rs =  3.71078182)
+
+ technical parameters:
+      fixed step: time step =        0.10  ficticious mass =   400000.00
+      tolerance =   1.000e-07 (energy)    1.000e-07 (density)    1.000e-04 (ion)
+      max iterations =       1000 (   10 inner   100 outer)
+      minimizer = Grassmann conjugate gradient
+
+
+
+     ============ Grassmann conjugate gradient iteration ============
+          >>> iteration started at Wed Mar 22 13:17:04 2023  <<<
+     iter.                 Energy          DeltaE        DeltaRho
+     ----------------------------------------------------------------
+        - 15 steepest descent iterations performed
+        10      -2.015461227870e+01   -1.152391e-06    1.541098e-08
+        20      -2.015461250697e+01   -6.884596e-08    1.359336e-09
+     *** tolerance ok. iteration terminated
+          >>> iteration ended at   Wed Mar 22 13:17:04 2023  <<<
+
+     ==============  energy results (Molecule object)  ==============
+
+
+ number of electrons: spin up=     6.00000  down=     6.00000 (real space)
+
+
+ total     energy    :   -2.0154612507e+01 (   -1.00773e+01 /ion)
+ total orbital energy:    5.1934744194e+00 (    8.65579e-01 /electron)
+ hartree energy      :    2.9548501467e-01 (    4.92475e-02 /electron)
+ exc-corr energy     :   -9.4995084169e+00 (   -1.58325e+00 /electron)
+ ion-ion energy      :   -2.1902017722e+01 (   -1.09510e+01 /ion)
+
+ kinetic (planewave) :    1.4375731298e+01 (    2.39596e+00 /electron)
+ V_local (planewave) :    1.1537789121e+01 (    1.92296e+00 /electron)
+ V_nl    (planewave) :   -1.4962091802e+01 (   -2.49368e+00 /electron)
+ V_Coul  (planewave) :    5.9097002933e-01 (    9.84950e-02 /electron)
+ V_xc    (planewave) :   -6.3489242272e+00 (   -1.05815e+00 /electron)
+ Viral Coefficient   :   -6.3873320169e-01
+
+ orbital energy:
+     5.4868319e-01 (  14.931eV)
+     5.4868125e-01 (  14.930eV)
+     5.4867927e-01 (  14.930eV)
+     3.7006985e-01 (  10.070eV)
+     3.7006983e-01 (  10.070eV)
+     2.1055382e-01 (   5.730eV)
+
+== Center of Charge ==
+
+spin up    = (    0.0000    -0.0000     0.0000 )
+spin down  = (    0.0000    -0.0000     0.0000 )
+     total = (    0.0000    -0.0000     0.0000 )
+ionic      = (    1.4954     1.4954     1.4954 )
+
+== Molecular Dipole wrt Center of Mass ==
+
+mu   = (   17.9452    17.9453    17.9453 ) au
+|mu| =     31.0821 au (    78.9982 Debye )
+
+
+ Ion Forces (au):
+   1 W	(    0.00000   -0.00000    0.00000 )
+   2 W	(    0.00000   -0.00000    0.00000 )
+
+
+ output psi to filename: ./nwchemex.movecs
+
+ -----------------
+ cputime in seconds
+ prologue    : 3.565e-02
+ main loop   : 6.227e-02
+ epilogue    : 7.220e-04
+ total       : 9.864e-02
+ cputime/step: 1.175e-03 ( 53 evaluations, 12 linesearches)
+
+ Time spent doing      total        step             percent
+ total time            2.301125e-01 4.341745e-03     100.00%
+ total FFT time        8.104117e-02 1.529079e-03      35.22%
+ lagrange multipliers  3.374650e-04 6.367264e-06       0.15%
+ local potentials      1.217900e-05 2.297925e-07       0.01%
+ non-local potentials  2.504244e-03 4.724989e-05       1.09%
+ ffm_dgemm             7.371550e-04 1.390858e-05       0.32%
+ fmf_dgemm             1.086779e-03 2.050526e-05       0.47%
+ m_diagonalize         2.868510e-04 5.412283e-06       0.12%
+ mmm_multiply          5.258000e-05 9.920755e-07       0.02%
+ SCVtrans              5.828700e-05 1.099755e-06       0.03%
+
+ >>> job completed at     Wed Mar 22 13:17:04 2023 <<<
+          *****************************************************
+          *                                                   *
+          *               PWDFT PSPW Calculation              *
+          *                                                   *
+          *  [ (Grassmann/Stiefel manifold implementation) ]  *
+          *  [              C++ implementation             ]  *
+          *                                                   *
+          *              version #7.00   02/27/21             *
+          *                                                   *
+          *    This code was developed by Eric J. Bylaska,    *
+          *    Abhishek Bagusetty, David H. Bross, ...        *
+          *                                                   *
+          *****************************************************
+          >>> job started at       Wed Mar 22 13:17:04 2023 <<<
+
+ psp_library: /home/sjplimp/nwchem/PWDFT/Nwpw/libraryps
+
+
+
+ writing formatted psp filename: ./W.vpp
+ generating random psi from scratch
+ Warning - Gram-Schmidt being performed on psi2
+         - exact norm = 24 norm=24.6349 corrected norm=24 (error=0.634911)
+
+          ==============  summary of input  ==================
+
+ input psi filename: ./nwchemex.movecs
+
+ number of processors used: 1
+ processor grid           : 1 x1
+ parallel mapping         : 2d-hcurve
+ parallel mapping         : balanced
+
+ options:
+   boundary conditions  = periodic
+   electron spin        = restricted
+   exchange-correlation = PBE96 (White and Bird) parameterization
+
+ elements involved in the cluster:
+      1: W   valence charge =  6.0  lmax =2
+             comment = Troullier-Martins pseudopotential
+             pseudopotential type            =  0
+             highest angular component       =  2
+             local potential used            =  0
+             number of non-local projections =  8
+             semicore corrections inlcuded   =  1.800 (radius) 4.591 (charge)
+             cutoff =    2.389   3.185   2.244
+
+ total charge =   0.000
+
+ atom composition:
+   W : 4
+
+ initial ion positions (au):
+   1 W	(    0.00000    0.00000    0.00000 ) - atomic mass = 183.951
+   2 W	(    2.66457    0.00000    1.88413 ) - atomic mass = 183.951
+   3 W	(    2.66457    2.66457    3.76827 ) - atomic mass = 183.951
+   4 W	(    0.00000    2.66457    5.65240 ) - atomic mass = 183.951
+   G.C.	(    1.33228    1.33228    2.82620 )
+ C.O.M.	(    1.33228    1.33228    2.82620 )
+
+ real space Electric field:
+     Electric Field (au) = (   0.00000    0.00000    0.00000 )
+             Center (au) = (   0.00000    0.00000    0.00000 )
+
+
+ number of electrons: spin up =    12 (  12 per task) down =    12 (  12 per task)
+
+ supercell:
+      volume =     214.04
+      lattice:    a1 = <    5.329    0.000    0.000 >
+                  a2 = <    0.000    5.329    0.000 >
+                  a3 = <    0.000    0.000    7.537 >
+      reciprocal: b1 = <    1.179    0.000    0.000 >
+                  b2 = <    0.000    1.179    0.000 >
+                  b3 = <    0.000    0.000    0.834 >
+      lattice:    a =       5.329 b =      5.329 c =       7.537
+                  alpha =  90.000 beta =  90.000 gamma =  90.000
+      density cutoff = 10.000 fft =  10 x   10 x   12  (     160 waves      160 per task)
+      wavefnc cutoff =  5.000 fft =  10 x   10 x   12  (      62 waves       62 per task)
+
+ Ewald parameters:
+      energy cutoff =  10.000 fft =  10 x   10 x   12  (     160 waves      160 per task)
+      Ewald summation: cut radius =   3.000 and   8
+                       Mandelung Wigner-Seitz =  1.68382487 (alpha =  2.71431215 rs =  3.71078182)
+
+ technical parameters:
+      fixed step: time step =        0.10  ficticious mass =   400000.00
+      tolerance =   1.000e-07 (energy)    1.000e-07 (density)    1.000e-04 (ion)
+      max iterations =       1000 (   10 inner   100 outer)
+      minimizer = Grassmann conjugate gradient
+
+
+
+     ============ Grassmann conjugate gradient iteration ============
+          >>> iteration started at Wed Mar 22 13:17:04 2023  <<<
+     iter.                 Energy          DeltaE        DeltaRho
+     ----------------------------------------------------------------
+        - 15 steepest descent iterations performed
+        10      -6.055830132329e+00   -3.950403e-02    1.828100e-06
+        20      -6.385809714715e+00   -3.894785e-02    1.758309e-06
+        30      -6.711168070530e+00   -3.840461e-02    1.691928e-06
+        40      -7.032007984384e+00   -3.787299e-02    1.628803e-06
+        50      -7.348421375629e+00   -3.735174e-02    1.568781e-06
+        60      -7.660489824954e+00   -3.683964e-02    1.511713e-06
+        70      -7.968285124894e+00   -3.633557e-02    1.457453e-06
+        80      -8.271869852255e+00   -3.583846e-02    1.405859e-06
+        90      -8.571297960274e+00   -3.534732e-02    1.356792e-06
+       100      -8.866615388055e+00   -3.486124e-02    1.310118e-06
+       110      -9.157860684583e+00   -3.437936e-02    1.265708e-06
+       120      -9.445065644289e+00   -3.390092e-02    1.223435e-06
+       130      -9.728255950944e+00   -3.342523e-02    1.183180e-06
+       140      -1.000745182635e+01   -3.295167e-02    1.144828e-06
+       150      -1.028266868013e+01   -3.247971e-02    1.108268e-06
+       160      -1.055391775670e+01   -3.200889e-02    1.073396e-06
+       170      -1.082120677550e+01   -3.153881e-02    1.040111e-06
+       180      -1.108454056030e+01   -3.106918e-02    1.008319e-06
+       190      -1.134392165365e+01   -3.059975e-02    9.779312e-07
+       200      -1.159935091250e+01   -3.013035e-02    9.488616e-07
+       210      -1.185082808097e+01   -2.966088e-02    9.210311e-07
+       220      -2.307658315652e+01   -2.660051e+00    3.534559e-02
+       230      -3.129825644760e+01   -8.384921e-02    8.831546e-04
+       240      -3.157478329913e+01   -8.501628e-03    7.365980e-05
+       250      -3.162757137408e+01   -3.007578e-03    8.118567e-04
+       260      -3.166852145652e+01   -6.760182e-03    2.472568e-03
+       270      -3.176521423332e+01   -6.489845e-03    3.635301e-04
+       280      -3.179220352327e+01   -2.631131e-05    6.062148e-07
+       290      -3.179228652997e+01   -8.831259e-07    3.208422e-08
+       300      -3.179228729957e+01   -5.132388e-08    1.166168e-09
+     *** tolerance ok. iteration terminated
+          >>> iteration ended at   Wed Mar 22 13:17:06 2023  <<<
+
+     ==============  energy results (Molecule object)  ==============
+
+
+ number of electrons: spin up=    12.00000  down=    12.00000 (real space)
+
+
+ total     energy    :   -3.1792287300e+01 (   -7.94807e+00 /ion)
+ total orbital energy:    2.6841552423e+01 (    2.23680e+00 /electron)
+ hartree energy      :    8.0875740830e-01 (    6.73965e-02 /electron)
+ exc-corr energy     :   -2.2041168198e+01 (   -1.83676e+00 /electron)
+ ion-ion energy      :   -5.1462581522e+01 (   -1.28656e+01 /ion)
+
+ kinetic (planewave) :    3.6677604642e+01 (    3.05647e+00 /electron)
+ V_local (planewave) :    3.8319838624e+01 (    3.19332e+00 /electron)
+ V_nl    (planewave) :   -3.4094738254e+01 (   -2.84123e+00 /electron)
+ V_Coul  (planewave) :    1.6175148166e+00 (    1.34793e-01 /electron)
+ V_xc    (planewave) :   -1.5678667407e+01 (   -1.30656e+00 /electron)
+ Viral Coefficient   :   -2.6817597046e-01
+
+ orbital energy:
+     1.4446153e+00 (  39.310eV)
+     1.4446141e+00 (  39.310eV)
+     1.2075227e+00 (  32.859eV)
+     1.2075208e+00 (  32.859eV)
+     1.2040031e+00 (  32.763eV)
+     1.1965068e+00 (  32.559eV)
+     1.1964933e+00 (  32.558eV)
+     1.0077700e+00 (  27.423eV)
+     9.8716725e-01 (  26.862eV)
+     8.7232872e-01 (  23.737eV)
+     8.7232366e-01 (  23.737eV)
+     7.7991047e-01 (  21.223eV)
+
+== Center of Charge ==
+
+spin up    = (   -0.0000     0.0000     0.0000 )
+spin down  = (   -0.0000     0.0000     0.0000 )
+     total = (   -0.0000     0.0000     0.0000 )
+ionic      = (    1.3323     1.3323     2.8262 )
+
+== Molecular Dipole wrt Center of Mass ==
+
+mu   = (   31.9749    31.9747    67.8288 ) au
+|mu| =     81.5200 au (   207.1913 Debye )
+
+ output psi to filename: ./nwchemex.movecs
+
+ -----------------
+ cputime in seconds
+ prologue    : 3.306e-02
+ main loop   : 2.031e+00
+ epilogue    : 5.200e-04
+ total       : 2.065e+00
+ cputime/step: 1.262e-03 ( 1609 evaluations, 294 linesearches)
+
+ Time spent doing      total        step             percent
+ total time            2.296604e+00 1.427349e-03     100.00%
+ total FFT time        6.041492e-01 3.754811e-04      26.31%
+ lagrange multipliers  3.886039e-03 2.415189e-06       0.17%
+ local potentials      1.617600e-05 1.005345e-08       0.00%
+ non-local potentials  3.648634e-02 2.267641e-05       1.59%
+ ffm_dgemm             1.295028e-02 8.048649e-06       0.56%
+ fmf_dgemm             2.113136e-02 1.313323e-05       0.92%
+ m_diagonalize         5.531595e-03 3.437909e-06       0.24%
+ mmm_multiply          1.293869e-03 8.041448e-07       0.06%
+ SCVtrans              7.841560e-04 4.873561e-07       0.03%
+
+ >>> job completed at     Wed Mar 22 13:17:06 2023 <<<
+          *****************************************************
+          *                                                   *
+          *               PWDFT PSPW Calculation              *
+          *                                                   *
+          *  [ (Grassmann/Stiefel manifold implementation) ]  *
+          *  [              C++ implementation             ]  *
+          *                                                   *
+          *              version #7.00   02/27/21             *
+          *                                                   *
+          *    This code was developed by Eric J. Bylaska,    *
+          *    Abhishek Bagusetty, David H. Bross, ...        *
+          *                                                   *
+          *****************************************************
+          >>> job started at       Wed Mar 22 13:17:06 2023 <<<
+
+ psp_library: /home/sjplimp/nwchem/PWDFT/Nwpw/libraryps
+
+
+
+ writing formatted psp filename: ./W.vpp
+ psi grids are being converted: 
+ -----------------------------: 
+ converting .... psi:1 spin:1
+ converting .... psi:2 spin:1
+ converting .... psi:3 spin:1
+ converting .... psi:4 spin:1
+ converting .... psi:5 spin:1
+ converting .... psi:6 spin:1
+ converting .... psi:7 spin:1
+ converting .... psi:8 spin:1
+ converting .... psi:9 spin:1
+ converting .... psi:10 spin:1
+ converting .... psi:11 spin:1
+ converting .... psi:12 spin:1
+
+ input psi exists, reading from file: ./nwchemex.movecs
+
+          ==============  summary of input  ==================
+
+ input psi filename: ./nwchemex.movecs
+
+ number of processors used: 1
+ processor grid           : 1 x1
+ parallel mapping         : 2d-hcurve
+ parallel mapping         : balanced
+
+ options:
+   boundary conditions  = periodic
+   electron spin        = restricted
+   exchange-correlation = PBE96 (White and Bird) parameterization
+
+ elements involved in the cluster:
+      1: W   valence charge =  6.0  lmax =2
+             comment = Troullier-Martins pseudopotential
+             pseudopotential type            =  0
+             highest angular component       =  2
+             local potential used            =  0
+             number of non-local projections =  8
+             semicore corrections inlcuded   =  1.800 (radius) 4.595 (charge)
+             cutoff =    2.389   3.185   2.244
+
+ total charge =   0.000
+
+ atom composition:
+   W : 4
+
+ initial ion positions (au):
+   1 W	(    0.00000    0.00000    0.00000 ) - atomic mass = 183.951
+   2 W	(    2.66457    0.00000    1.88413 ) - atomic mass = 183.951
+   3 W	(    2.66457    2.66457    3.76827 ) - atomic mass = 183.951
+   4 W	(    0.00000    2.66457    5.65240 ) - atomic mass = 183.951
+   G.C.	(    1.33228    1.33228    2.82620 )
+ C.O.M.	(    1.33228    1.33228    2.82620 )
+
+ real space Electric field:
+     Electric Field (au) = (   0.00000    0.00000    0.00000 )
+             Center (au) = (   0.00000    0.00000    0.00000 )
+
+
+ number of electrons: spin up =    12 (  12 per task) down =    12 (  12 per task)
+
+ supercell:
+      volume =     214.04
+      lattice:    a1 = <    5.329    0.000    0.000 >
+                  a2 = <    0.000    5.329    0.000 >
+                  a3 = <    0.000    0.000    7.537 >
+      reciprocal: b1 = <    1.179    0.000    0.000 >
+                  b2 = <    0.000    1.179    0.000 >
+                  b3 = <    0.000    0.000    0.834 >
+      lattice:    a =       5.329 b =      5.329 c =       7.537
+                  alpha =  90.000 beta =  90.000 gamma =  90.000
+      density cutoff = 20.000 fft =  12 x   12 x   16  (     460 waves      460 per task)
+      wavefnc cutoff = 10.000 fft =  12 x   12 x   16  (     160 waves      160 per task)
+
+ Ewald parameters:
+      energy cutoff =  20.000 fft =  12 x   12 x   16  (     460 waves      460 per task)
+      Ewald summation: cut radius =   3.000 and   8
+                       Mandelung Wigner-Seitz =  1.68382487 (alpha =  2.71431215 rs =  3.71078182)
+
+ technical parameters:
+      fixed step: time step =        0.10  ficticious mass =   400000.00
+      tolerance =   1.000e-07 (energy)    1.000e-07 (density)    1.000e-04 (ion)
+      max iterations =       1000 (   10 inner   100 outer)
+      minimizer = Grassmann conjugate gradient
+
+
+
+     ============ Grassmann conjugate gradient iteration ============
+          >>> iteration started at Wed Mar 22 13:17:06 2023  <<<
+     iter.                 Energy          DeltaE        DeltaRho
+     ----------------------------------------------------------------
+        - 15 steepest descent iterations performed
+        10      -3.617033061710e+01   -3.447767e-05    2.051315e-07
+        20      -3.617035193509e+01   -9.144932e-08    2.233123e-09
+     *** tolerance ok. iteration terminated
+          >>> iteration ended at   Wed Mar 22 13:17:06 2023  <<<
+
+     ==============  energy results (Molecule object)  ==============
+
+
+ number of electrons: spin up=    12.00000  down=    12.00000 (real space)
+
+
+ total     energy    :   -3.6170351935e+01 (   -9.04259e+00 /ion)
+ total orbital energy:    2.3048851372e+01 (    1.92074e+00 /electron)
+ hartree energy      :    1.2466960309e+00 (    1.03891e-01 /electron)
+ exc-corr energy     :   -2.2474177760e+01 (   -1.87285e+00 /electron)
+ ion-ion energy      :   -5.1462581522e+01 (   -1.28656e+01 /ion)
+
+ kinetic (planewave) :    4.2172537419e+01 (    3.51438e+00 /electron)
+ V_local (planewave) :    4.2389901334e+01 (    3.53249e+00 /electron)
+ V_nl    (planewave) :   -4.8042727436e+01 (   -4.00356e+00 /electron)
+ V_Coul  (planewave) :    2.4933920618e+00 (    2.07783e-01 /electron)
+ V_xc    (planewave) :   -1.5964252007e+01 (   -1.33035e+00 /electron)
+ Viral Coefficient   :   -4.5346301687e-01
+
+ orbital energy:
+     1.2694201e+00 (  34.543eV)
+     1.2694200e+00 (  34.543eV)
+     1.0542936e+00 (  28.689eV)
+     1.0542930e+00 (  28.689eV)
+     1.0521347e+00 (  28.630eV)
+     1.0163764e+00 (  27.657eV)
+     1.0163729e+00 (  27.657eV)
+     8.0982926e-01 (  22.037eV)
+     7.9408393e-01 (  21.608eV)
+     7.3283710e-01 (  19.942eV)
+     7.2768246e-01 (  19.801eV)
+     7.2768240e-01 (  19.801eV)
+
+== Center of Charge ==
+
+spin up    = (   -0.0000     0.0000    -0.0000 )
+spin down  = (   -0.0000     0.0000    -0.0000 )
+     total = (   -0.0000     0.0000    -0.0000 )
+ionic      = (    1.3323     1.3323     2.8262 )
+
+== Molecular Dipole wrt Center of Mass ==
+
+mu   = (   31.9748    31.9748    67.8288 ) au
+|mu| =     81.5201 au (   207.1914 Debye )
+
+
+ Ion Forces (au):
+   1 W	(   -0.00006    0.00001    0.00000 )
+   2 W	(   -0.00006    0.00001   -0.00000 )
+   3 W	(    0.00005   -0.00001    0.00000 )
+   4 W	(    0.00006   -0.00001   -0.00000 )
+
+
+ output psi to filename: ./nwchemex.movecs
+
+ -----------------
+ cputime in seconds
+ prologue    : 8.283e-02
+ main loop   : 1.384e-01
+ epilogue    : 2.053e-03
+ total       : 2.233e-01
+ cputime/step: 2.097e-03 ( 66 evaluations, 16 linesearches)
+
+ Time spent doing      total        step             percent
+ total time            2.520381e+00 3.818759e-02     100.00%
+ total FFT time        6.526095e-01 9.888023e-03      25.89%
+ lagrange multipliers  4.507901e-03 6.830153e-05       0.18%
+ local potentials      4.089200e-05 6.195758e-07       0.00%
+ non-local potentials  4.131665e-02 6.260099e-04       1.64%
+ ffm_dgemm             1.451011e-02 2.198502e-04       0.58%
+ fmf_dgemm             2.372824e-02 3.595188e-04       0.94%
+ m_diagonalize         5.878501e-03 8.906820e-05       0.23%
+ mmm_multiply          1.361049e-03 2.062195e-05       0.05%
+ SCVtrans              8.221450e-04 1.245674e-05       0.03%
+
+ >>> job completed at     Wed Mar 22 13:17:06 2023 <<<
+          *****************************************************
+          *                                                   *
+          *               PWDFT PSPW Calculation              *
+          *                                                   *
+          *  [ (Grassmann/Stiefel manifold implementation) ]  *
+          *  [              C++ implementation             ]  *
+          *                                                   *
+          *              version #7.00   02/27/21             *
+          *                                                   *
+          *    This code was developed by Eric J. Bylaska,    *
+          *    Abhishek Bagusetty, David H. Bross, ...        *
+          *                                                   *
+          *****************************************************
+          >>> job started at       Wed Mar 22 13:17:06 2023 <<<
+
+ psp_library: /home/sjplimp/nwchem/PWDFT/Nwpw/libraryps
+
+
+
+ writing formatted psp filename: ./W.vpp
+ generating random psi from scratch
+ Warning - Gram-Schmidt being performed on psi2
+         - exact norm = 54 norm=55.9896 corrected norm=54 (error=1.98964)
+
+          ==============  summary of input  ==================
+
+ input psi filename: ./nwchemex.movecs
+
+ number of processors used: 1
+ processor grid           : 1 x1
+ parallel mapping         : 2d-hcurve
+ parallel mapping         : balanced
+
+ options:
+   boundary conditions  = periodic
+   electron spin        = restricted
+   exchange-correlation = PBE96 (White and Bird) parameterization
+
+ elements involved in the cluster:
+      1: W   valence charge =  6.0  lmax =2
+             comment = Troullier-Martins pseudopotential
+             pseudopotential type            =  0
+             highest angular component       =  2
+             local potential used            =  0
+             number of non-local projections =  8
+             semicore corrections inlcuded   =  1.800 (radius) 4.774 (charge)
+             cutoff =    2.389   3.185   2.244
+
+ total charge =   0.000
+
+ atom composition:
+   W : 9
+
+ initial ion positions (au):
+   1 W	(    0.00000    0.00000   28.34589 ) - atomic mass = 183.951
+   2 W	(    0.00000    0.00000   33.09361 ) - atomic mass = 183.951
+   3 W	(    0.00000    0.00000   37.84133 ) - atomic mass = 183.951
+   4 W	(    0.00000    0.00000   42.58905 ) - atomic mass = 183.951
+   5 W	(    0.00000    0.00000   47.33676 ) - atomic mass = 183.951
+   6 W	(    0.00000    0.00000   52.08448 ) - atomic mass = 183.951
+   7 W	(    0.00000    0.00000   56.83220 ) - atomic mass = 183.951
+   8 W	(    0.00000    0.00000   61.57992 ) - atomic mass = 183.951
+   9 W	(    0.00000    0.00000   66.32764 ) - atomic mass = 183.951
+   G.C.	(    0.00000    0.00000   47.33676 )
+ C.O.M.	(    0.00000    0.00000   47.33676 )
+
+ real space Electric field:
+     Electric Field (au) = (   0.00000    0.00000    0.00000 )
+             Center (au) = (   0.00000    0.00000    0.00000 )
+
+
+ number of electrons: spin up =    27 (  27 per task) down =    27 (  27 per task)
+
+ supercell:
+      volume =    2134.02
+      lattice:    a1 = <    4.748    0.000    0.000 >
+                  a2 = <    0.000    4.748    0.000 >
+                  a3 = <    0.000    0.000   94.674 >
+      reciprocal: b1 = <    1.323    0.000    0.000 >
+                  b2 = <    0.000    1.323    0.000 >
+                  b3 = <    0.000    0.000    0.066 >
+      lattice:    a =       4.748 b =      4.748 c =      94.674
+                  alpha =  90.000 beta =  90.000 gamma =  90.000
+      density cutoff = 10.000 fft =   8 x    8 x  140  (    1654 waves     1654 per task)
+      wavefnc cutoff =  5.000 fft =   8 x    8 x  140  (     614 waves      614 per task)
+
+ Ewald parameters:
+      energy cutoff =  10.000 fft =   8 x    8 x  140  (    1654 waves     1654 per task)
+      Ewald summation: cut radius =   3.000 and   8
+                       Mandelung Wigner-Seitz =-28.56716969 (alpha =-46.05004769 rs =  7.98674752)
+
+ technical parameters:
+      fixed step: time step =        0.10  ficticious mass =   400000.00
+      tolerance =   1.000e-07 (energy)    1.000e-07 (density)    1.000e-04 (ion)
+      max iterations =       1000 (   10 inner   100 outer)
+      minimizer = Grassmann conjugate gradient
+
+
+
+     ============ Grassmann conjugate gradient iteration ============
+          >>> iteration started at Wed Mar 22 13:17:07 2023  <<<
+     iter.                 Energy          DeltaE        DeltaRho
+     ----------------------------------------------------------------
+        - 15 steepest descent iterations performed
+        10      -1.537543929874e+01   -2.016560e+00    3.077105e-03
+        20      -3.254785807349e+01   -1.663493e+00    2.853796e-03
+        30      -4.810772454500e+01   -1.411329e+00    2.524724e-03
+        40      -5.924331815603e+01   -8.722325e-01    1.601473e-03
+        50      -6.598737094914e+01   -5.386274e-01    1.018644e-03
+        60      -7.047458695974e+01   -3.842901e-01    7.275415e-04
+        70      -7.391410353045e+01   -3.094978e-01    5.927380e-04
+        80      -7.675659679950e+01   -2.575519e-01    5.074834e-04
+        90      -7.908051946463e+01   -2.066346e-01    4.202545e-04
+       100      -8.091371386799e+01   -1.620794e-01    3.417256e-04
+       110      -8.236293503847e+01   -1.299053e-01    2.852820e-04
+       120      -8.354092927149e+01   -1.068684e-01    2.434477e-04
+       130      -8.451154165098e+01   -8.805956e-02    2.067634e-04
+       140      -8.530664269190e+01   -7.198981e-02    1.738582e-04
+       150      -8.596030731896e+01   -5.983311e-02    1.488597e-04
+       160      -8.651711846167e+01   -5.225598e-02    1.343065e-04
+       170      -8.701856676886e+01   -4.832242e-02    1.282183e-04
+       180      -8.748424331332e+01   -4.442332e-02    1.222405e-04
+       190      -8.787610642248e+01   -3.338040e-02    9.947921e-05
+       200      -8.811847068979e+01   -1.693656e-02    5.903923e-05
+       210      -8.830054273921e+01   -3.581922e-03    6.916884e-05
+       220      -8.831280544154e+01   -5.396840e-05    7.863732e-07
+       230      -8.831301827046e+01   -3.445163e-06    4.311563e-08
+       240      -8.831302766242e+01   -1.599960e-07    7.829532e-10
+       250      -8.831302775935e+01   -9.692576e-08    4.617615e-10
+     *** tolerance ok. iteration terminated
+          >>> iteration ended at   Wed Mar 22 13:17:16 2023  <<<
+
+     ==============  energy results (Molecule object)  ==============
+
+
+ number of electrons: spin up=    27.00000  down=    27.00000 (real space)
+
+
+ total     energy    :   -8.8313027759e+01 (   -9.81256e+00 /ion)
+ total orbital energy:   -5.1543739929e+00 (   -1.90903e-01 /electron)
+ hartree energy      :    1.9217358728e+03 (    7.11754e+01 /electron)
+ exc-corr energy     :   -4.2845603491e+01 (   -1.58687e+00 /electron)
+ ion-ion energy      :    1.8531858410e+03 (    2.05910e+02 /ion)
+
+ kinetic (planewave) :    4.3121050224e+01 (    1.59708e+00 /electron)
+ V_local (planewave) :   -3.8291999293e+03 (   -1.41822e+02 /electron)
+ V_nl    (planewave) :   -3.4310258960e+01 (   -1.27075e+00 /electron)
+ V_Coul  (planewave) :    3.8434717456e+03 (    1.42351e+02 /electron)
+ V_xc    (planewave) :   -2.8236981532e+01 (   -1.04581e+00 /electron)
+ Viral Coefficient   :   -1.1195326637e+00
+
+ orbital energy:
+     1.2651002e-01 (   3.443eV)
+     1.8839147e-02 (   0.513eV)
+     1.5118032e-02 (   0.411eV)
+    -2.7745187e-03 (  -0.075eV)
+    -4.3030191e-03 (  -0.117eV)
+    -4.6545708e-03 (  -0.127eV)
+    -1.4954346e-02 (  -0.407eV)
+    -1.6336988e-02 (  -0.445eV)
+    -2.5371336e-02 (  -0.690eV)
+    -3.3327415e-02 (  -0.907eV)
+    -3.4658629e-02 (  -0.943eV)
+    -4.4732074e-02 (  -1.217eV)
+    -5.0668501e-02 (  -1.379eV)
+    -5.6656231e-02 (  -1.542eV)
+    -5.6949941e-02 (  -1.550eV)
+    -6.8047676e-02 (  -1.852eV)
+    -9.2316879e-02 (  -2.512eV)
+    -9.7184443e-02 (  -2.645eV)
+    -1.2662593e-01 (  -3.446eV)
+    -1.4011181e-01 (  -3.813eV)
+    -1.7225396e-01 (  -4.687eV)
+    -2.0713982e-01 (  -5.637eV)
+    -2.4175322e-01 (  -6.578eV)
+    -2.7471999e-01 (  -7.476eV)
+    -3.0358991e-01 (  -8.261eV)
+    -3.2631421e-01 (  -8.880eV)
+    -3.4220877e-01 (  -9.312eV)
+
+== Center of Charge ==
+
+spin up    = (    0.0000    -0.0000    -0.0000 )
+spin down  = (    0.0000    -0.0000    -0.0000 )
+     total = (    0.0000    -0.0000    -0.0000 )
+ionic      = (    0.0000     0.0000    47.3368 )
+
+== Molecular Dipole wrt Center of Mass ==
+
+mu   = (   -0.0001     0.0000  2556.1878 ) au
+|mu| =   2556.1878 au (  6496.8070 Debye )
+
+ output psi to filename: ./nwchemex.movecs
+
+ -----------------
+ cputime in seconds
+ prologue    : 3.906e-01
+ main loop   : 9.311e+00
+ epilogue    : 2.276e-03
+ total       : 9.703e+00
+ cputime/step: 9.589e-03 ( 971 evaluations, 241 linesearches)
+
+ Time spent doing      total        step             percent
+ total time            1.222606e+01 1.259120e-02     100.00%
+ total FFT time        5.571228e+00 5.737619e-03      45.57%
+ lagrange multipliers  1.010620e-01 1.040803e-04       0.83%
+ local potentials      1.368780e-04 1.409660e-07       0.00%
+ non-local potentials  9.251906e-01 9.528224e-04       7.57%
+ ffm_dgemm             3.260552e-01 3.357932e-04       2.67%
+ fmf_dgemm             6.966647e-01 7.174714e-04       5.70%
+ m_diagonalize         2.152491e-02 2.216777e-05       0.18%
+ mmm_multiply          6.881618e-03 7.087145e-06       0.06%
+ SCVtrans              2.273848e-03 2.341759e-06       0.02%
+
+ >>> job completed at     Wed Mar 22 13:17:16 2023 <<<
+          *****************************************************
+          *                                                   *
+          *               PWDFT PSPW Calculation              *
+          *                                                   *
+          *  [ (Grassmann/Stiefel manifold implementation) ]  *
+          *  [              C++ implementation             ]  *
+          *                                                   *
+          *              version #7.00   02/27/21             *
+          *                                                   *
+          *    This code was developed by Eric J. Bylaska,    *
+          *    Abhishek Bagusetty, David H. Bross, ...        *
+          *                                                   *
+          *****************************************************
+          >>> job started at       Wed Mar 22 13:17:16 2023 <<<
+
+ psp_library: /home/sjplimp/nwchem/PWDFT/Nwpw/libraryps
+
+
+
+ writing formatted psp filename: ./W.vpp
+ psi grids are being converted: 
+ -----------------------------: 
+ converting .... psi:1 spin:1
+ converting .... psi:2 spin:1
+ converting .... psi:3 spin:1
+ converting .... psi:4 spin:1
+ converting .... psi:5 spin:1
+ converting .... psi:6 spin:1
+ converting .... psi:7 spin:1
+ converting .... psi:8 spin:1
+ converting .... psi:9 spin:1
+ converting .... psi:10 spin:1
+ converting .... psi:11 spin:1
+ converting .... psi:12 spin:1
+ converting .... psi:13 spin:1
+ converting .... psi:14 spin:1
+ converting .... psi:15 spin:1
+ converting .... psi:16 spin:1
+ converting .... psi:17 spin:1
+ converting .... psi:18 spin:1
+ converting .... psi:19 spin:1
+ converting .... psi:20 spin:1
+ converting .... psi:21 spin:1
+ converting .... psi:22 spin:1
+ converting .... psi:23 spin:1
+ converting .... psi:24 spin:1
+ converting .... psi:25 spin:1
+ converting .... psi:26 spin:1
+ converting .... psi:27 spin:1
+
+ input psi exists, reading from file: ./nwchemex.movecs
+
+          ==============  summary of input  ==================
+
+ input psi filename: ./nwchemex.movecs
+
+ number of processors used: 1
+ processor grid           : 1 x1
+ parallel mapping         : 2d-hcurve
+ parallel mapping         : balanced
+
+ options:
+   boundary conditions  = periodic
+   electron spin        = restricted
+   exchange-correlation = PBE96 (White and Bird) parameterization
+
+ elements involved in the cluster:
+      1: W   valence charge =  6.0  lmax =2
+             comment = Troullier-Martins pseudopotential
+             pseudopotential type            =  0
+             highest angular component       =  2
+             local potential used            =  0
+             number of non-local projections =  8
+             semicore corrections inlcuded   =  1.800 (radius) 4.778 (charge)
+             cutoff =    2.389   3.185   2.244
+
+ total charge =   0.000
+
+ atom composition:
+   W : 9
+
+ initial ion positions (au):
+   1 W	(    0.00000    0.00000   28.34589 ) - atomic mass = 183.951
+   2 W	(    0.00000    0.00000   33.09361 ) - atomic mass = 183.951
+   3 W	(    0.00000    0.00000   37.84133 ) - atomic mass = 183.951
+   4 W	(    0.00000    0.00000   42.58905 ) - atomic mass = 183.951
+   5 W	(    0.00000    0.00000   47.33677 ) - atomic mass = 183.951
+   6 W	(    0.00000    0.00000   52.08449 ) - atomic mass = 183.951
+   7 W	(    0.00000    0.00000   56.83220 ) - atomic mass = 183.951
+   8 W	(    0.00000    0.00000   61.57992 ) - atomic mass = 183.951
+   9 W	(    0.00000    0.00000   66.32764 ) - atomic mass = 183.951
+   G.C.	(    0.00000    0.00000   47.33677 )
+ C.O.M.	(    0.00000    0.00000   47.33677 )
+
+ real space Electric field:
+     Electric Field (au) = (   0.00000    0.00000    0.00000 )
+             Center (au) = (   0.00000    0.00000    0.00000 )
+
+
+ number of electrons: spin up =    27 (  27 per task) down =    27 (  27 per task)
+
+ supercell:
+      volume =    2134.02
+      lattice:    a1 = <    4.748    0.000    0.000 >
+                  a2 = <    0.000    4.748    0.000 >
+                  a3 = <    0.000    0.000   94.674 >
+      reciprocal: b1 = <    1.323    0.000    0.000 >
+                  b2 = <    0.000    1.323    0.000 >
+                  b3 = <    0.000    0.000    0.066 >
+      lattice:    a =       4.748 b =      4.748 c =      94.674
+                  alpha =  90.000 beta =  90.000 gamma =  90.000
+      density cutoff = 20.000 fft =  12 x   12 x  192  (    4574 waves     4574 per task)
+      wavefnc cutoff = 10.000 fft =  12 x   12 x  192  (    1654 waves     1654 per task)
+
+ Ewald parameters:
+      energy cutoff =  20.000 fft =  12 x   12 x  192  (    4574 waves     4574 per task)
+      Ewald summation: cut radius =   3.000 and   8
+                       Mandelung Wigner-Seitz =-28.56716969 (alpha =-46.05004769 rs =  7.98674752)
+
+ technical parameters:
+      fixed step: time step =        0.10  ficticious mass =   400000.00
+      tolerance =   1.000e-07 (energy)    1.000e-07 (density)    1.000e-04 (ion)
+      max iterations =       1000 (   10 inner   100 outer)
+      minimizer = Grassmann conjugate gradient
+
+
+
+     ============ Grassmann conjugate gradient iteration ============
+          >>> iteration started at Wed Mar 22 13:17:17 2023  <<<
+     iter.                 Energy          DeltaE        DeltaRho
+     ----------------------------------------------------------------
+        - 15 steepest descent iterations performed
+        10      -9.275052119381e+01   -2.122242e-03    2.935377e-05
+        20      -9.275868040192e+01   -9.515326e-05    2.529918e-06
+        30      -9.275878712055e+01   -1.142202e-06    1.213725e-08
+        40      -9.275883858492e+01   -3.931136e-05    2.900787e-06
+        50      -9.275989368099e+01   -1.676866e-04    3.620223e-06
+        60      -9.276172965263e+01   -1.366180e-04    1.437493e-06
+        70      -9.276242641237e+01   -4.950588e-05    9.514774e-07
+        80      -9.276275885983e+01   -2.351096e-05    4.450692e-07
+        90      -9.276288269800e+01   -6.609562e-06    1.250224e-07
+       100      -9.276292451479e+01   -2.485196e-06    4.417831e-08
+       110      -9.276293769116e+01   -6.446969e-07    1.169540e-08
+       120      -9.276294176248e+01   -2.348768e-07    4.151375e-09
+       130      -9.276294233017e+01   -9.807081e-08    1.296479e-09
+     *** tolerance ok. iteration terminated
+          >>> iteration ended at   Wed Mar 22 13:17:29 2023  <<<
+
+     ==============  energy results (Molecule object)  ==============
+
+
+ number of electrons: spin up=    27.00000  down=    27.00000 (real space)
+
+
+ total     energy    :   -9.2762942330e+01 (   -1.03070e+01 /ion)
+ total orbital energy:   -5.0623378840e+00 (   -1.87494e-01 /electron)
+ hartree energy      :    1.9260817620e+03 (    7.13364e+01 /electron)
+ exc-corr energy     :   -4.3777835977e+01 (   -1.62140e+00 /electron)
+ ion-ion energy      :    1.8531856136e+03 (    2.05910e+02 /ion)
+
+ kinetic (planewave) :    5.2807679120e+01 (    1.95584e+00 /electron)
+ V_local (planewave) :   -3.8274779701e+03 (   -1.41758e+02 /electron)
+ V_nl    (planewave) :   -5.3582190935e+01 (   -1.98453e+00 /electron)
+ V_Coul  (planewave) :    3.8521635239e+03 (    1.42673e+02 /electron)
+ V_xc    (planewave) :   -2.8973379949e+01 (   -1.07309e+00 /electron)
+ Viral Coefficient   :   -1.0958636692e+00
+
+ orbital energy:
+     1.0091573e-01 (   2.746eV)
+     4.2336667e-02 (   1.152eV)
+     2.1250054e-02 (   0.578eV)
+    -4.9936494e-03 (  -0.136eV)
+    -3.0518213e-02 (  -0.830eV)
+    -3.4502515e-02 (  -0.939eV)
+    -4.1369266e-02 (  -1.126eV)
+    -5.3099040e-02 (  -1.445eV)
+    -5.7197969e-02 (  -1.556eV)
+    -5.8820459e-02 (  -1.601eV)
+    -6.6577151e-02 (  -1.812eV)
+    -6.8252501e-02 (  -1.857eV)
+    -7.4315282e-02 (  -2.022eV)
+    -9.2483451e-02 (  -2.517eV)
+    -9.7091101e-02 (  -2.642eV)
+    -9.8701112e-02 (  -2.686eV)
+    -9.9172297e-02 (  -2.699eV)
+    -1.1503130e-01 (  -3.130eV)
+    -1.2350704e-01 (  -3.361eV)
+    -1.2461151e-01 (  -3.391eV)
+    -1.3767779e-01 (  -3.746eV)
+    -1.5539558e-01 (  -4.229eV)
+    -1.8177422e-01 (  -4.946eV)
+    -2.1054366e-01 (  -5.729eV)
+    -2.3653121e-01 (  -6.436eV)
+    -2.6484631e-01 (  -7.207eV)
+    -2.6865877e-01 (  -7.311eV)
+
+== Center of Charge ==
+
+spin up    = (    0.0037     0.0007     0.0001 )
+spin down  = (    0.0037     0.0007     0.0001 )
+     total = (    0.0037     0.0007     0.0001 )
+ionic      = (    0.0000     0.0000    47.3368 )
+
+== Molecular Dipole wrt Center of Mass ==
+
+mu   = (   -0.2017    -0.0359  2556.1810 ) au
+|mu| =   2556.1810 au (  6496.7896 Debye )
+
+
+ Ion Forces (au):
+   1 W	(   -0.00665   -0.00100   -0.21569 )
+   2 W	(    0.00352    0.00053   -0.00769 )
+   3 W	(    0.00252    0.00038   -0.00345 )
+   4 W	(    0.00056    0.00009    0.00018 )
+   5 W	(    0.00014    0.00003   -0.00010 )
+   6 W	(    0.00056    0.00011   -0.00037 )
+   7 W	(    0.00249    0.00051    0.00324 )
+   8 W	(    0.00347    0.00072    0.00752 )
+   9 W	(   -0.00655   -0.00135    0.21561 )
+
+
+ output psi to filename: ./nwchemex.movecs
+
+ -----------------
+ cputime in seconds
+ prologue    : 5.438e-01
+ main loop   : 1.198e+01
+ epilogue    : 2.676e-02
+ total       : 1.255e+01
+ cputime/step: 2.730e-02 ( 439 evaluations, 124 linesearches)
+
+ Time spent doing      total        step             percent
+ total time            2.479577e+01 5.648239e-02     100.00%
+ total FFT time        1.202874e+01 2.740032e-02      48.51%
+ lagrange multipliers  1.581909e-01 3.603437e-04       0.64%
+ local potentials      5.581040e-04 1.271308e-06       0.00%
+ non-local potentials  2.192835e+00 4.995068e-03       8.84%
+ ffm_dgemm             8.123112e-01 1.850367e-03       3.28%
+ fmf_dgemm             1.667525e+00 3.798463e-03       6.73%
+ m_diagonalize         3.069774e-02 6.992651e-05       0.12%
+ mmm_multiply          9.825792e-03 2.238221e-05       0.04%
+ SCVtrans              3.424110e-03 7.799795e-06       0.01%
+
+ >>> job completed at     Wed Mar 22 13:17:29 2023 <<<

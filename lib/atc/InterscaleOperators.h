@@ -35,12 +35,12 @@ namespace ATC {
   //--------------------------------------------------------
 
   class InterscaleManager {
-  
+
   public:
-  
+
     // constructor
     InterscaleManager(ATC_Method * atc);
-    
+
     // destructor
     ~InterscaleManager();
 
@@ -52,7 +52,7 @@ namespace ATC {
 
     /** set lammps data prefix */
     void set_lammps_data_prefix();
-        
+
     /** parser/modifier */
     bool modify(int narg, char **arg);
 
@@ -183,7 +183,7 @@ namespace ATC {
     int unpack_exchange(int i, double *buffer);
 
     /** packs up data for parallel transfer to ghost atoms on other processors */
-    int pack_comm(int index, double *buf, 
+    int pack_comm(int index, double *buf,
                   int pbc_flag, int *pbc);
 
     /** unpacks data after parallel transfer to ghost atoms on other processors */
@@ -196,7 +196,7 @@ namespace ATC {
     void copy_arrays(int i, int j);
 
   protected:
-  
+
     /** pointer to access ATC methods */
     ATC_Method * atc_;
 
@@ -422,7 +422,7 @@ namespace ATC {
 
     /** helper function to pack arrays of all data in a list, only valid with comm lists */
     template <typename data>
-    void pack_comm_loop(std::vector<data * > & list, int & size, int index, double *buf, 
+    void pack_comm_loop(std::vector<data * > & list, int & size, int index, double *buf,
                         int pbc_flag, int *pbc)
     {
       for (typename std::vector<data* >::iterator it = list.begin(); it != list.end(); ++it)
@@ -455,9 +455,9 @@ namespace ATC {
 
   private:
 
-    
+
     InterscaleManager();
-  
+
   };
 
 }

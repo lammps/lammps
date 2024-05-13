@@ -63,7 +63,7 @@ if me == 0:
   p.single(ntimestep)
   pm.load("tmp.pdb")
   pm.show("spheres","tmp")
-  
+
 # run nfreq steps at a time w/out pre/post, read dump snapshot, display it
 
 while ntimestep < nsteps:
@@ -75,7 +75,7 @@ while ntimestep < nsteps:
     p.single(ntimestep)
     pm.load("tmp.pdb")
     pm.forward()
-    
+
 lmp.command("run 0 pre no post yes")
 
 # uncomment if running in parallel via mpi4py

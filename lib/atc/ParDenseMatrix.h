@@ -15,7 +15,7 @@ using ATC::ATC_Error;
 namespace ATC_matrix {
 
   /**
-   *  @class  ParDenseMatrix 
+   *  @class  ParDenseMatrix
    *  @brief  Parallelized version of DenseMatrix class.
    */
 

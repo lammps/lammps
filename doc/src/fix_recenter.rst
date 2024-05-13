@@ -6,7 +6,7 @@ fix recenter command
 Syntax
 """"""
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    fix ID group-ID recenter x y z keyword value ...
 
@@ -38,7 +38,7 @@ Constrain the center-of-mass position of a group of atoms by adjusting
 the coordinates of the atoms every timestep.  This is simply a small
 shift that does not alter the dynamics of the system or change the
 relative coordinates of any pair of atoms in the group.  This can be
-used to insure the entire collection of atoms (or a portion of them)
+used to ensure the entire collection of atoms (or a portion of them)
 do not drift during the simulation due to random perturbations
 (e.g. :doc:`fix langevin <fix_langevin>` thermostatting).
 
@@ -58,7 +58,7 @@ example, the COM could be computed on a protein to keep it in the
 center of the simulation box.  But the entire system (protein + water)
 could be shifted.
 
-If the *units* keyword is set to *box*\ , then the distance units of
+If the *units* keyword is set to *box*, then the distance units of
 x,y,z are defined by the :doc:`units <units>` command - e.g. Angstroms
 for *real* units.  A *lattice* value means the distance units are in
 lattice spacings.  The :doc:`lattice <lattice>` command must have been

@@ -6,7 +6,7 @@ compute basal/atom command
 Syntax
 """"""
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    compute ID group-ID basal/atom
 
@@ -42,24 +42,24 @@ too frequently or to have multiple compute/dump commands, each of
 which computes this quantity.
 
 An example input script that uses this compute is provided
-in examples/USER/misc/basal.
+in examples/PACKAGES/basal.
 
 Output info
 """""""""""
 
-This compute calculates a per-atom array with 3 columns, which can be
-accessed by indices 1-3 by any command that uses per-atom values from
+This compute calculates a per-atom array with three columns, which can be
+accessed by indices 1--3 by any command that uses per-atom values from
 a compute as input.  See the :doc:`Howto output <Howto_output>` doc page
 for an overview of LAMMPS output options.
 
-The per-atom vector values are unitless since the 3 columns represent
+The per-atom vector values are unitless since the three columns represent
 components of a unit vector.
 
 Restrictions
 """"""""""""
 
-This compute is part of the USER-MISC package.  It is only enabled if
-LAMMPS was built with that package.  See the :doc:`Build package <Build_package>` doc page for more info.
+This compute is part of the EXTRA-COMPUTE package.  It is only enabled if
+LAMMPS was built with that package.  See the :doc:`Build package <Build_package>` page for more info.
 
 The output of this compute will be meaningless unless the atoms are on
 (or near) hcp lattice sites, since the calculation assumes a

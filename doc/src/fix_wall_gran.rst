@@ -1,12 +1,15 @@
 .. index:: fix wall/gran
+.. index:: fix wall/gran/kk
 
 fix wall/gran command
 =====================
 
+Accelerator Variants: *wall/gran/kk*
+
 Syntax
 """"""
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    fix ID group-ID wall/gran fstyle fstyle_params wallstyle args keyword values ...
 
@@ -22,7 +25,7 @@ Syntax
 
   .. parsed-literal::
 
-       For *hooke*\ , *hooke/history*\ , and *hertz/history*\ , *fstyle_params* are:
+       For *hooke*, *hooke/history*, and *hertz/history*, *fstyle_params* are:
              Kn = elastic constant for normal particle repulsion (force/distance units or pressure units - see discussion below)
              Kt = elastic constant for tangential contact (force/distance units or pressure units - see discussion below)
              gamma_n = damping coefficient for collisions in normal direction (1/time units or 1/time-distance units - see discussion below)
@@ -33,7 +36,7 @@ Syntax
 
   .. parsed-literal::
 
-       For *granular*\ , *fstyle_params* are set using the same syntax as for the *pair_coeff* command of :doc:`pair_style granular <pair_granular>`
+       For *granular*, *fstyle_params* are set using the same syntax as for the *pair_coeff* command of :doc:`pair_style granular <pair_granular>`
 
 * wallstyle = *xplane* or *yplane* or *zplane* or *zcylinder*
 * args = list of arguments for a particular style
@@ -46,7 +49,7 @@ Syntax
          radius = cylinder radius (distance units)
 
 * zero or more keyword/value pairs may be appended to args
-* keyword = *wiggle* or *shear* or *contacts*
+* keyword = *wiggle* or *shear* or *contacts* or *temperature*
 
   .. parsed-literal::
 
@@ -59,6 +62,8 @@ Syntax
          vshear = magnitude of shear velocity (velocity units)
       *contacts* value = none
          generate contact information for each particle
+      *temperature* value = temperature
+         specify temperature of wall
 
 
 Examples
@@ -69,9 +74,9 @@ Examples
    fix 1 all wall/gran hooke  200000.0 NULL 50.0 NULL 0.5 0 xplane -10.0 10.0
    fix 1 all wall/gran hooke/history 200000.0 NULL 50.0 NULL 0.5 0 zplane 0.0 NULL
    fix 2 all wall/gran hooke 100000.0 20000.0 50.0 30.0 0.5 1 zcylinder 15.0 wiggle z 3.0 2.0
-   fix 3 all wall/gran/region granular hooke 1000.0 50.0 tangential linear_nohistory 1.0 0.4 damping velocity region myBox
-   fix 4 all wall/gran/region granular jkr 1e5 1500.0 0.3 10.0 tangential mindlin NULL 1.0 0.5 rolling sds 500.0 200.0 0.5 twisting marshall region myCone
-   fix 5 all wall/gran/region granular dmt 1e5 0.2 0.3 10.0 tangential mindlin NULL 1.0 0.5 rolling sds 500.0 200.0 0.5 twisting marshall damping tsuji region myCone
+   fix 3 all wall/gran granular hooke 1000.0 50.0 tangential linear_nohistory 1.0 0.4 damping velocity region myBox
+   fix 4 all wall/gran granular jkr 1e5 1500.0 0.3 10.0 tangential mindlin NULL 1.0 0.5 rolling sds 500.0 200.0 0.5 twisting marshall region myCone
+   fix 5 all wall/gran granular dmt 1e5 0.2 0.3 10.0 tangential mindlin NULL 1.0 0.5 rolling sds 500.0 200.0 0.5 twisting marshall damping tsuji heat 10 region myCone temperature 1.0
    fix 6 all wall/gran hooke  200000.0 NULL 50.0 NULL 0.5 0 xplane -10.0 10.0 contacts
 
 Description
@@ -85,7 +90,7 @@ The nature of the wall/particle interactions are determined by the
 *fstyle* setting.  It can be any of the styles defined by the
 :doc:`pair_style gran/\* <pair_gran>` or the more general
 :doc:`pair_style granular <pair_granular>` commands.  Currently the
-options are *hooke*\ , *hooke/history*\ , or *hertz/history* for the
+options are *hooke*, *hooke/history*, or *hertz/history* for the
 former, and *granular* with all the possible options of the associated
 *pair_coeff* command for the latter.  The equation for the force
 between the wall and particles touching it is the same as the
@@ -96,12 +101,12 @@ Specifically, delta = radius - r = overlap of particle with wall, m_eff
 = mass of particle, and the effective radius of contact = RiRj/Ri+Rj is
 set to the radius of the particle.
 
-The parameters *Kn*\ , *Kt*\ , *gamma_n*, *gamma_t*, *xmu*, *dampflag*,
+The parameters *Kn*, *Kt*, *gamma_n*, *gamma_t*, *xmu*, *dampflag*,
 and the optional keyword *limit_damping*
 have the same meaning and units as those specified with the
 :doc:`pair_style gran/\* <pair_gran>` commands.  This means a NULL can be
 used for either *Kt* or *gamma_t* as described on that page.  If a
-NULL is used for *Kt*\ , then a default value is used where *Kt* = 2/7
+NULL is used for *Kt*, then a default value is used where *Kt* = 2/7
 *Kn*\ .  If a NULL is used for *gamma_t*, then a default value is used
 where *gamma_t* = 1/2 *gamma_n*.
 
@@ -117,21 +122,20 @@ material.
 
 .. note::
 
-   As discussed on the doc page for :doc:`pair_style gran/\* <pair_gran>`,
-   versions of LAMMPS before 9Jan09 used a
-   different equation for Hertzian interactions.  This means Hertizian
-   wall/particle interactions have also changed.  They now include a
-   sqrt(radius) term which was not present before.  Also the previous
-   versions used Kn and Kt from the pairwise interaction and hardwired
-   dampflag to 1, rather than letting them be specified directly.  This
-   means you can set the values of the wall/particle coefficients
-   appropriately in the current code to reproduce the results of a
-   previous Hertzian monodisperse calculation.  For example, for the
-   common case of a monodisperse system with particles of diameter 1, Kn,
-   Kt, gamma_n, and gamma_s should be set sqrt(2.0) larger than they were
-   previously.
+   As discussed on the page for :doc:`pair_style gran/\* <pair_gran>`,
+   versions of LAMMPS before 9Jan09 used a different equation for
+   Hertzian interactions.  This means Hertizian wall/particle
+   interactions have also changed.  They now include a sqrt(radius) term
+   which was not present before.  Also the previous versions used Kn and
+   Kt from the pairwise interaction and hardwired dampflag to 1, rather
+   than letting them be specified directly.  This means you can set the
+   values of the wall/particle coefficients appropriately in the current
+   code to reproduce the results of a previous Hertzian monodisperse
+   calculation.  For example, for the common case of a monodisperse
+   system with particles of diameter 1, Kn, Kt, gamma_n, and gamma_s
+   should be set sqrt(2.0) larger than they were previously.
 
-The effective mass *m_eff* in the formulas listed on the :doc:`pair_style granular <pair_gran>` doc page is the mass of the particle for
+The effective mass *m_eff* in the formulas listed on the :doc:`pair_style granular <pair_gran>` page is the mass of the particle for
 particle/wall interactions (mass of wall is infinite).  If the
 particle is part of a rigid body, its mass is replaced by the mass of
 the rigid body in those formulas.  This is determined by searching for
@@ -163,13 +167,13 @@ is set according to this equation:
    position = coord + A - A cos (omega \* delta)
 
 where *coord* is the specified initial position of the wall, *A* is
-the *amplitude*\ , *omega* is 2 PI / *period*\ , and *delta* is the time
+the *amplitude*, *omega* is 2 PI / *period*, and *delta* is the time
 elapsed since the fix was specified.  The velocity of the wall is set
 to the derivative of this expression.
 
 For the *shear* keyword, the wall moves continuously in the specified
 dimension with velocity *vshear*\ .  The dimension must be tangential to
-walls with a planar *wallstyle*\ , e.g. in the *y* or *z* directions for
+walls with a planar *wallstyle*, e.g. in the *y* or *z* directions for
 an *xplane* wall.  For *zcylinder* walls, a dimension of *z* means the
 cylinder is moving in the z-direction along it's axis.  A dimension of
 *x* or *y* means the cylinder is spinning around the z-axis, either in
@@ -177,6 +181,22 @@ the clockwise direction for *vshear* > 0 or counter-clockwise for
 *vshear* < 0.  In this case, *vshear* is the tangential velocity of
 the wall at whatever *radius* has been defined.
 
+The *temperature* keyword is used to assign a temperature to the wall.
+The following value can either be a numeric value or an equal-style
+:doc:`variable <variable>`.  If the value is a variable, it should be
+specified as v_name, where name is the variable name.  In this case, the
+variable will be evaluated each timestep, and its value used to determine
+the temperature. This option must be used in conjunction with a heat
+conduction model defined in :doc:`pair_style granular <pair_granular>`,
+:doc:`fix property/atom <fix_property_atom>` to store temperature and a
+heat flow, and :doc:`fix heat/flow <fix_heat_flow>` to integrate heat
+flow.
+
+----------
+
+.. include:: accel_styles.rst
+
+----------
 
 Restart, fix_modify, output, run start/stop, minimize info
 """""""""""""""""""""""""""""""""""""""""""""""""""""""""""
@@ -225,7 +245,7 @@ Restrictions
 """"""""""""
 
 This fix is part of the GRANULAR package.  It is only enabled if
-LAMMPS was built with that package.  See the :doc:`Build package <Build_package>` doc page for more info.
+LAMMPS was built with that package.  See the :doc:`Build package <Build_package>` page for more info.
 
 Any dimension (xyz) that has a granular wall must be non-periodic.
 

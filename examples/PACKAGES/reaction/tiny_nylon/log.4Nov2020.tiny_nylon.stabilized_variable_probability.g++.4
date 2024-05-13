@@ -1,0 +1,237 @@
+LAMMPS (4 Nov 2022)
+# two monomer nylon example
+# reaction produces a condensed water molecule
+
+units real
+
+boundary p p p
+
+atom_style full
+
+kspace_style pppm 1.0e-4
+
+pair_style lj/class2/coul/long 8.5
+
+angle_style class2
+
+bond_style class2
+
+dihedral_style class2
+
+improper_style class2
+
+read_data tiny_nylon.data   extra/bond/per/atom 5    extra/angle/per/atom 15   extra/dihedral/per/atom 15   extra/improper/per/atom 25   extra/special/per/atom 25
+Reading data file ...
+  orthogonal box = (-25 -25 -25) to (25 25 25)
+  1 by 2 by 2 MPI processor grid
+  reading atom labelmap ...
+  reading bond labelmap ...
+  reading angle labelmap ...
+  reading dihedral labelmap ...
+  reading improper labelmap ...
+  reading atoms ...
+  44 atoms
+  reading velocities ...
+  44 velocities
+  scanning bonds ...
+  9 = max bonds/atom
+  scanning angles ...
+  21 = max angles/atom
+  scanning dihedrals ...
+  29 = max dihedrals/atom
+  scanning impropers ...
+  29 = max impropers/atom
+  reading bonds ...
+  42 bonds
+  reading angles ...
+  74 angles
+  reading dihedrals ...
+  100 dihedrals
+  reading impropers ...
+  44 impropers
+Finding 1-2 1-3 1-4 neighbors ...
+  special bond factors lj:    0        0        0       
+  special bond factors coul:  0        0        0       
+     4 = max # of 1-2 neighbors
+     6 = max # of 1-3 neighbors
+    12 = max # of 1-4 neighbors
+    41 = max # of special neighbors
+  special bonds CPU = 0.000 seconds
+  read_data CPU = 0.008 seconds
+
+variable runsteps equal 1000
+variable prob1 equal step/v_runsteps*2+0.1
+variable prob2 equal (step/v_runsteps)>0.5
+
+velocity all create 300.0 4928459 dist gaussian
+
+molecule mol1 rxn1_stp1_unreacted.molecule_template
+Read molecule template mol1:
+  1 molecules
+  0 fragments
+  18 atoms with max type 8
+  16 bonds with max type 10
+  25 angles with max type 28
+  23 dihedrals with max type 36
+  2 impropers with max type 3
+molecule mol2 rxn1_stp1_reacted.molecule_template
+Read molecule template mol2:
+  1 molecules
+  0 fragments
+  18 atoms with max type 9
+  17 bonds with max type 13
+  31 angles with max type 27
+  39 dihedrals with max type 33
+  0 impropers with max type 0
+molecule mol3 rxn1_stp2_unreacted.molecule_template
+Read molecule template mol3:
+  1 molecules
+  0 fragments
+  15 atoms with max type 9
+  14 bonds with max type 13
+  25 angles with max type 27
+  30 dihedrals with max type 33
+  0 impropers with max type 0
+molecule mol4 rxn1_stp2_reacted.molecule_template
+Read molecule template mol4:
+  1 molecules
+  0 fragments
+  15 atoms with max type 11
+  13 bonds with max type 15
+  19 angles with max type 29
+  16 dihedrals with max type 32
+  2 impropers with max type 13
+
+thermo 50
+
+# dump 1 all xyz 1 test_vis.xyz
+
+fix myrxns all bond/react stabilization yes statted_grp .03   react rxn1 all 1 0.0 5.0 mol1 mol2 rxn1_stp1_map prob v_prob1 1234   react rxn2 all 1 0.0 5.0 mol3 mol4 rxn1_stp2_map prob v_prob2 1234
+WARNING: Fix bond/react: Atom affected by reaction rxn2 is too close to template edge (../fix_bond_react.cpp:2624)
+dynamic group bond_react_MASTER_group defined
+dynamic group statted_grp_REACT defined
+
+fix 1 statted_grp_REACT nvt temp 300 300 100
+
+# optionally, you can customize behavior of reacting atoms,
+# by using the internally-created 'bond_react_MASTER_group', like so:
+fix 4 bond_react_MASTER_group temp/rescale 1 300 300 10 1
+
+thermo_style custom step temp press density v_prob1 v_prob2 f_myrxns[1] f_myrxns[2]
+
+# restart 100 restart1 restart2
+
+run ${runsteps}
+run 1000
+
+CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE
+
+Your simulation uses code contributions which should be cited:
+
+- fix bond/react: reacter.org doi:10.1016/j.polymer.2017.09.038, doi:10.1021/acs.macromol.0c02012
+
+@Article{Gissinger17,
+ author = {J. R. Gissinger and B. D. Jensen and K. E. Wise},
+ title = {Modeling Chemical Reactions in Classical Molecular Dynamics Simulations},
+ journal = {Polymer},
+ year =    2017,
+ volume =  128,
+ pages =   {211--217}
+}
+
+@Article{Gissinger20,
+ author = {J. R. Gissinger, B. D. Jensen, K. E. Wise},
+ title = {{REACTER}: A Heuristic Method for Reactive Molecular Dynamics},
+ journal = {Macromolecules},
+ year =    2020,
+ volume =  53,
+ number =  22,
+ pages =   {9953--9961}
+}
+
+CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE
+
+PPPM initialization ...
+  using 12-bit tables for long-range coulomb (../kspace.cpp:342)
+  G vector (1/distance) = 0.05345967
+  grid = 2 2 2
+  stencil order = 5
+  estimated absolute RMS force accuracy = 0.040225597
+  estimated relative force accuracy = 0.00012113819
+  using double precision KISS FFT
+  3d grid and FFT values/proc = 252 2
+Generated 55 of 55 mixed pair_coeff terms from sixthpower/geometric mixing rule
+Neighbor list info ...
+  update: every = 1 steps, delay = 0 steps, check = yes
+  max neighbors/atom: 2000, page size: 100000
+  master list distance cutoff = 10.5
+  ghost atom cutoff = 10.5
+  binsize = 5.25, bins = 10 10 10
+  2 neighbor lists, perpetual/occasional/extra = 1 1 0
+  (1) pair lj/class2/coul/long, perpetual
+      attributes: half, newton on
+      pair build: half/bin/newton
+      stencil: half/bin/3d
+      bin: standard
+  (2) fix bond/react, occasional, copy from (1)
+      attributes: half, newton on
+      pair build: copy
+      stencil: none
+      bin: none
+WARNING: Inconsistent image flags (../domain.cpp:819)
+Per MPI rank memory allocation (min/avg/max) = 33.66 | 33.88 | 34.43 Mbytes
+   Step          Temp          Press         Density        v_prob1        v_prob2      f_myrxns[1]    f_myrxns[2]  
+         0   300            346.78165      0.0034851739   0.1            0              0              0            
+        50   275.80938     -29.158908      0.0034851739   0.2            0              1              0            
+       100   751.80013      8.8967942      0.0034851739   0.3            0              1              0            
+       150   412.82804      61.44542       0.0034851739   0.4            0              1              0            
+       200   432.95275      81.052275      0.0034851739   0.5            0              1              0            
+       250   338.65702     -39.770422      0.0034851739   0.6            0              1              0            
+       300   326.15993     -46.690912      0.0034851739   0.7            0              1              0            
+       350   286.66126      51.986782      0.0034851739   0.8            0              1              0            
+       400   244.24575      25.460254      0.0034851739   0.9            0              1              0            
+       450   294.06274      5.0448726      0.0034851739   1              0              1              0            
+       500   280.71089      0.86710712     0.0034851739   1.1            0              1              0            
+       550   241.94123     -5.7812057      0.0034851739   1.2            1              1              1            
+       600   235.1535       61.669814      0.0034851739   1.3            1              1              1            
+       650   359.33618     -22.053171      0.0034851739   1.4            1              1              1            
+       700   329.37555     -4.7839581      0.0034851739   1.5            1              1              1            
+       750   285.76974      11.553815      0.0034851739   1.6            1              1              1            
+       800   303.29561      16.017529      0.0034851739   1.7            1              1              1            
+       850   256.86479      8.7487305      0.0034851739   1.8            1              1              1            
+       900   292.29316     -11.376211      0.0034851739   1.9            1              1              1            
+       950   293.47531     -2.7153276      0.0034851739   2              1              1              1            
+      1000   303.66454     -4.8603249      0.0034851739   2.1            1              1              1            
+Loop time of 0.195512 on 4 procs for 1000 steps with 44 atoms
+
+Performance: 441.916 ns/day, 0.054 hours/ns, 5114.771 timesteps/s, 225.050 katom-step/s
+99.9% CPU use with 4 MPI tasks x no OpenMP threads
+
+MPI task timing breakdown:
+Section |  min time  |  avg time  |  max time  |%varavg| %total
+---------------------------------------------------------------
+Pair    | 0.000163   | 0.0068784  | 0.016583   |   8.5 |  3.52
+Bond    | 0.00040383 | 0.028615   | 0.083462   |  20.0 | 14.64
+Kspace  | 0.043566   | 0.10199    | 0.13314    |  11.4 | 52.16
+Neigh   | 0.00096634 | 0.00097064 | 0.00097509 |   0.0 |  0.50
+Comm    | 0.0052532  | 0.0093802  | 0.014076   |   3.2 |  4.80
+Output  | 0.00039802 | 0.00043637 | 0.00050031 |   0.0 |  0.22
+Modify  | 0.043549   | 0.045538   | 0.049781   |   1.2 | 23.29
+Other   |            | 0.001708   |            |       |  0.87
+
+Nlocal:             11 ave          29 max           0 min
+Histogram: 2 0 0 0 0 1 0 0 0 1
+Nghost:           32.5 ave          45 max          16 min
+Histogram: 1 0 0 1 0 0 0 0 1 1
+Neighs:         196.25 ave         448 max           0 min
+Histogram: 2 0 0 0 0 0 0 1 0 1
+
+Total # of neighbors = 785
+Ave neighs/atom = 17.840909
+Ave special neighs/atom = 9.9090909
+Neighbor list builds = 27
+Dangerous builds = 0
+
+# write_restart restart_longrun
+# write_data restart_longrun.data
+Total wall time: 0:00:00

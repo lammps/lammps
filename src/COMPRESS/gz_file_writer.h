@@ -1,7 +1,7 @@
 /* -*- c++ -*- ----------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    https://www.lammps.org/, Sandia National Laboratories
-   Steve Plimpton, sjplimp@sandia.gov
+   LAMMPS development team: developers@lammps.org
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
@@ -20,7 +20,6 @@
 
 #include "file_writer.h"
 
-#include <exception>
 #include <string>
 #include <zlib.h>
 
@@ -32,12 +31,12 @@ class GzFileWriter : public FileWriter {
   gzFile gzFp;    // file pointer for the compressed output stream
  public:
   GzFileWriter();
-  virtual ~GzFileWriter();
-  virtual void open(const std::string &path, bool append = false) override;
-  virtual void close() override;
-  virtual void flush() override;
-  virtual size_t write(const void *buffer, size_t length) override;
-  virtual bool isopen() const override;
+  ~GzFileWriter() override;
+  void open(const std::string &path, bool append = false) override;
+  void close() override;
+  void flush() override;
+  size_t write(const void *buffer, size_t length) override;
+  bool isopen() const override;
 
   void setCompressionLevel(int level);
 };

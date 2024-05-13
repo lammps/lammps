@@ -1,7 +1,9 @@
 ---
-lammps_version: 10 Feb 2021
-date_generated: Fri Feb 26 23:08:57 2021
-epsilon: 7.5e-13
+lammps_version: 17 Feb 2022
+tags: unstable
+date_generated: Fri Mar 18 22:17:36 2022
+epsilon: 5.0e-10
+skip_tests:
 prerequisites: ! |
   atom full
   pair tip4p/cut
@@ -14,10 +16,16 @@ input_file: in.fourmol
 pair_style: tip4p/cut 5 2 5 1 0.15 10.0
 pair_coeff: ! |
   * *
-extract: ! ""
+extract: ! |
+  qdist 0
+  typeO 0
+  typeH 0
+  typeA 0
+  typeB 0
+  cut_coul 0
 natoms: 29
 init_vdwl: 0
-init_coul: -128.977932168035
+init_coul: -128.97793216803515
 init_stress: ! |-
   -2.6195455442550621e+01 -4.7354822618385086e+01 -5.5427654107099478e+01 -7.8408966987311342e+00  3.7890121732174942e+00  2.3361498468841489e+01
 init_forces: ! |2
@@ -51,7 +59,7 @@ init_forces: ! |2
    28  8.5365856050054738e+00 -2.4636423220451302e+00  4.2276358718634395e+00
    29 -3.8831706532739356e+00 -5.2900046950811053e+00 -1.5026494435836046e+00
 run_vdwl: 0
-run_coul: -129.022909187485
+run_coul: -129.0229091874854
 run_stress: ! |-
   -2.6283108873476834e+01 -4.7364418931021810e+01 -5.5375381382986646e+01 -7.8830194106596636e+00  3.7088788510613115e+00  2.3292677092809960e+01
 run_forces: ! |2

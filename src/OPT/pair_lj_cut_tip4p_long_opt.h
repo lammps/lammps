@@ -1,7 +1,7 @@
 /* -*- c++ -*- ----------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    https://www.lammps.org/, Sandia National Laboratories
-   Steve Plimpton, sjplimp@sandia.gov
+   LAMMPS development team: developers@lammps.org
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
@@ -27,10 +27,9 @@ namespace LAMMPS_NS {
 class PairLJCutTIP4PLongOpt : public PairLJCutTIP4PLong {
  public:
   PairLJCutTIP4PLongOpt(class LAMMPS *);
-  virtual ~PairLJCutTIP4PLongOpt(){};
 
-  virtual void compute(int, int);
-  virtual double memory_usage();
+  void compute(int, int) override;
+  double memory_usage() override;
 
  protected:
   template <const int, const int, const int, const int> void eval();
@@ -41,17 +40,3 @@ class PairLJCutTIP4PLongOpt : public PairLJCutTIP4PLong {
 
 #endif
 #endif
-
-/* ERROR/WARNING messages:
-
-E: TIP4P hydrogen is missing
-
-The TIP4P pairwise computation failed to find the correct H atom
-within a water molecule.
-
-E: TIP4P hydrogen has incorrect atom type
-
-The TIP4P pairwise computation found an H atom whose type does not
-agree with the specified H type.
-
-*/

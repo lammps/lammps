@@ -22,7 +22,7 @@ namespace ATC {
     FE_Interpolate(FE_Element *feElement);
 
     virtual ~FE_Interpolate();
-    
+
     /** compute the quadrature for a given element type */
     void set_quadrature(FeEltGeometry geo, FeIntQuadrature quad);
 
@@ -30,14 +30,14 @@ namespace ATC {
      *  quadrature */
     virtual void precalculate_shape_functions();
 
-    /** compute the shape functions at the given point; 
+    /** compute the shape functions at the given point;
      *  we use CLON_VECs */
     virtual void compute_N(const VECTOR &point,
                            VECTOR &N) = 0;
- 
+
     // middle args get no names because they won't be used by some
     // child classes.
-    /** compute the shape function derivatives at the given point; 
+    /** compute the shape function derivatives at the given point;
      *  generic, so can work for 2D or 3D case */
     virtual void compute_dNdr(const VECTOR &point,
                               const int,
@@ -51,7 +51,7 @@ namespace ATC {
                                 VECTOR &N,
                                 DENS_MAT &dNdr) const = 0;
 
-    /** compute shape functions at a single point, given the local 
+    /** compute shape functions at a single point, given the local
      *    coordinates; eltCoords needed for derivatives:
      *  indexed: N(node)
      *           dN[nsd](node) */
@@ -72,7 +72,7 @@ namespace ATC {
      *           weights(ip) */
     virtual void shape_function(const DENS_MAT &eltCoords,
                                 DENS_MAT &N,
-                                std::vector<DENS_MAT> &dN, 
+                                std::vector<DENS_MAT> &dN,
                                 DIAG_MAT &weights);
 
     /** compute shape functions at all face ip's:
@@ -132,7 +132,7 @@ namespace ATC {
     // matrix of shape functions at ip's: N_(ip, node)
     DENS_MAT N_;
 
-    
+
     std::vector<DENS_MAT> dNdr_;
 
     // matrix of shape functions at ip's: N_(ip, node)
@@ -160,7 +160,7 @@ namespace ATC {
 
     virtual void compute_N(const VECTOR &point,
                            VECTOR &N);
-  
+
     virtual void compute_dNdr(const VECTOR &point,
                               const int numNodes,
                               const int nD,
@@ -187,7 +187,7 @@ namespace ATC {
 
     virtual void compute_N(const VECTOR &point,
                            VECTOR &N);
-  
+
     virtual void compute_dNdr(const VECTOR &point,
                               const int numNodes,
                               const int nD,
@@ -214,7 +214,7 @@ namespace ATC {
 
     virtual void compute_N(const VECTOR &point,
                            VECTOR &N);
-  
+
     virtual void compute_dNdr(const VECTOR &point,
                               const int numNodes,
                               const int nD,
@@ -242,7 +242,7 @@ namespace ATC {
 
     virtual void compute_N(const VECTOR &point,
                            VECTOR &N);
-  
+
     // middle args get no names because they won't be used by some
     // child classes.
     virtual void compute_dNdr(const VECTOR &,

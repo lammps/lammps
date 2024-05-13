@@ -9,7 +9,7 @@
 namespace ATC {
 
   /**
-   *  @class  BodyForce 
+   *  @class  BodyForce
    *  @brief  Base class for models of body forces in the momentum eqn
    */
 
@@ -32,7 +32,7 @@ namespace ATC {
       BodyForceViscous(std::fstream &matfile,std::map<std::string,double> & parameters);
       virtual ~BodyForceViscous() {};
       virtual bool body_force(const FIELD_MATS &fields,
-                                    DENS_MAT &flux) const 
+                                    DENS_MAT &flux) const
       {
         FIELD_MATS::const_iterator v_field = fields.find(VELOCITY);
         const DENS_MAT & v = v_field->second;
@@ -49,20 +49,20 @@ namespace ATC {
   class BodyForceElectricField : public BodyForce
   {
     public:
-    BodyForceElectricField(std::fstream & /* matfile */,std::map<std::string,double> & /* parameters */) 
+    BodyForceElectricField(std::fstream & /* matfile */,std::map<std::string,double> & /* parameters */)
         { throw ATC_Error("unimplemented due to issues with accessing electric field"); }
       virtual ~BodyForceElectricField() {};
       virtual bool body_force(const FIELD_MATS &fields,
-                                    DENS_MAT &flux) const  
+                                    DENS_MAT &flux) const
       {
         FIELD_MATS::const_iterator v_field = fields.find(VELOCITY);
         const DENS_MAT & v = v_field->second;
         int nNodes  = v.nRows();
-        flux.reset(nNodes,1); 
+        flux.reset(nNodes,1);
         return true;
        }
   };
 }
-#endif 
+#endif
 
 

@@ -1,7 +1,7 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    https://www.lammps.org/, Sandia National Laboratories
-   Steve Plimpton, sjplimp@sandia.gov
+   LAMMPS Development team: developers@lammps.org
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
@@ -20,18 +20,16 @@
 
 #include <string>
 
-
 using ::testing::Eq;
 
 class DumpXYZCompressTest : public CompressedDumpTest {
 public:
-    DumpXYZCompressTest() : CompressedDumpTest("xyz") {
-    }
+    DumpXYZCompressTest() : CompressedDumpTest("xyz") {}
 };
 
 TEST_F(DumpXYZCompressTest, compressed_run0)
 {
-    if (!COMPRESS_BINARY) GTEST_SKIP();
+    if (!COMPRESS_EXECUTABLE) GTEST_SKIP();
 
     auto base_name         = "run*.melt.xyz";
     auto base_name_0       = "run0.melt.xyz";
@@ -40,8 +38,9 @@ TEST_F(DumpXYZCompressTest, compressed_run0)
     auto text_file_0       = text_dump_filename(base_name_0);
     auto compressed_file_0 = compressed_dump_filename(base_name_0);
 
-    if(compression_style == "xyz/zstd") {
-        generate_text_and_compressed_dump(text_files, compressed_files, "", "", "", "checksum yes", 0);
+    if (compression_style == "xyz/zstd") {
+        generate_text_and_compressed_dump(text_files, compressed_files, "", "", "", "checksum yes",
+                                          0);
     } else {
         generate_text_and_compressed_dump(text_files, compressed_files, "", "", 0);
     }
@@ -62,7 +61,7 @@ TEST_F(DumpXYZCompressTest, compressed_run0)
 
 TEST_F(DumpXYZCompressTest, compressed_no_buffer_run0)
 {
-    if (!COMPRESS_BINARY) GTEST_SKIP();
+    if (!COMPRESS_EXECUTABLE) GTEST_SKIP();
 
     auto base_name         = "no_buffer_run*.melt.xyz";
     auto base_name_0       = "no_buffer_run0.melt.xyz";
@@ -71,8 +70,9 @@ TEST_F(DumpXYZCompressTest, compressed_no_buffer_run0)
     auto text_file_0       = text_dump_filename(base_name_0);
     auto compressed_file_0 = compressed_dump_filename(base_name_0);
 
-    if(compression_style == "xyz/zstd") {
-        generate_text_and_compressed_dump(text_files, compressed_files, "", "", "buffer no", "buffer no", 0);
+    if (compression_style == "xyz/zstd") {
+        generate_text_and_compressed_dump(text_files, compressed_files, "", "", "buffer no",
+                                          "buffer no", 0);
     } else {
         generate_text_and_compressed_dump(text_files, compressed_files, "", "buffer no", 0);
     }
@@ -93,7 +93,7 @@ TEST_F(DumpXYZCompressTest, compressed_no_buffer_run0)
 
 TEST_F(DumpXYZCompressTest, compressed_multi_file_run1)
 {
-    if (!COMPRESS_BINARY) GTEST_SKIP();
+    if (!COMPRESS_EXECUTABLE) GTEST_SKIP();
 
     auto base_name         = "multi_file_run1_*.melt.xyz";
     auto base_name_0       = "multi_file_run1_0.melt.xyz";
@@ -105,7 +105,7 @@ TEST_F(DumpXYZCompressTest, compressed_multi_file_run1)
     auto compressed_file_0 = compressed_dump_filename(base_name_0);
     auto compressed_file_1 = compressed_dump_filename(base_name_1);
 
-    if(compression_style == "xyz/zstd") {
+    if (compression_style == "xyz/zstd") {
         generate_text_and_compressed_dump(text_file, compressed_file, "", "", "", "checksum no", 1);
     } else {
         generate_text_and_compressed_dump(text_file, compressed_file, "", "", 1);
@@ -133,7 +133,7 @@ TEST_F(DumpXYZCompressTest, compressed_multi_file_run1)
 
 TEST_F(DumpXYZCompressTest, compressed_multi_file_with_pad_run1)
 {
-    if (!COMPRESS_BINARY) GTEST_SKIP();
+    if (!COMPRESS_EXECUTABLE) GTEST_SKIP();
 
     auto base_name         = "multi_file_pad_run1_*.melt.xyz";
     auto base_name_0       = "multi_file_pad_run1_000.melt.xyz";
@@ -174,7 +174,7 @@ TEST_F(DumpXYZCompressTest, compressed_multi_file_with_pad_run1)
 
 TEST_F(DumpXYZCompressTest, compressed_multi_file_with_maxfiles_run1)
 {
-    if (!COMPRESS_BINARY) GTEST_SKIP();
+    if (!COMPRESS_EXECUTABLE) GTEST_SKIP();
 
     auto base_name         = "multi_file_maxfiles_run1_*.melt.xyz";
     auto base_name_0       = "multi_file_maxfiles_run1_0.melt.xyz";
@@ -223,12 +223,13 @@ TEST_F(DumpXYZCompressTest, compressed_modify_bad_param)
     if (compression_style != "xyz/gz") GTEST_SKIP();
 
     BEGIN_HIDE_OUTPUT();
-    command(fmt::format("dump id1 all {} 1 {}", compression_style, compressed_dump_filename("modify_bad_param_run0_*.melt.xyz")));
+    command(fmt::format("dump id1 all {} 1 {}", compression_style,
+                        compressed_dump_filename("modify_bad_param_run0_*.melt.xyz")));
     END_HIDE_OUTPUT();
 
-    TEST_FAILURE(".*ERROR on proc 0: Illegal dump_modify command: Compression level must in the range of.*",
-        command("dump_modify id1 compression_level 12");
-    );
+    TEST_FAILURE(
+        ".*ERROR on proc 0: Illegal dump_modify command: Compression level must in the range of.*",
+        command("dump_modify id1 compression_level 12"););
 }
 
 TEST_F(DumpXYZCompressTest, compressed_modify_multi_bad_param)
@@ -236,23 +237,25 @@ TEST_F(DumpXYZCompressTest, compressed_modify_multi_bad_param)
     if (compression_style != "xyz/gz") GTEST_SKIP();
 
     BEGIN_HIDE_OUTPUT();
-    command(fmt::format("dump id1 all {} 1 {}", compression_style, compressed_dump_filename("modify_multi_bad_param_run0_*.melt.xyz")));
+    command(fmt::format("dump id1 all {} 1 {}", compression_style,
+                        compressed_dump_filename("modify_multi_bad_param_run0_*.melt.xyz")));
     END_HIDE_OUTPUT();
 
-    TEST_FAILURE(".*ERROR on proc 0: Illegal dump_modify command: Compression level must in the range of.*",
-        command("dump_modify id1 pad 3 compression_level 12");
-    );
+    TEST_FAILURE(
+        ".*ERROR on proc 0: Illegal dump_modify command: Compression level must in the range of.*",
+        command("dump_modify id1 pad 3 compression_level 12"););
 }
 
 TEST_F(DumpXYZCompressTest, compressed_modify_clevel_run0)
 {
-    if (!COMPRESS_BINARY) GTEST_SKIP();
+    if (!COMPRESS_EXECUTABLE) GTEST_SKIP();
 
     auto base_name       = "modify_clevel_run0.melt.xyz";
     auto text_file       = text_dump_filename(base_name);
     auto compressed_file = compressed_dump_filename(base_name);
 
-    generate_text_and_compressed_dump(text_file, compressed_file, "", "", "", "compression_level 3", 0);
+    generate_text_and_compressed_dump(text_file, compressed_file, "", "", "", "compression_level 3",
+                                      0);
 
     TearDown();
 

@@ -2,7 +2,7 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    https://www.lammps.org/, Sandia National Laboratories
-   Steve Plimpton, sjplimp@sandia.gov
+   LAMMPS development team: developers@lammps.org
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
@@ -24,7 +24,7 @@
 
 using namespace LAMMPS_NS;
 
-#define DELTA 10000
+static constexpr int DELTA = 10000;
 
 enum{ID,MOL,MASS,X,Y,Z,XU,YU,ZU,VX,VY,VZ,FX,FY,FZ,IX,IY,IZ,
      TQX,TQY,TQZ,OMEGAX,OMEGAY,OMEGAZ,ANGMOMX,ANGMOMY,ANGMOMZ,
@@ -111,7 +111,7 @@ void ComputeRigidLocal::init()
   int ifix = modify->find_fix(idrigid);
   if (ifix < 0)
     error->all(FLERR,"FixRigidSmall ID for compute rigid/local does not exist");
-  fixrigid = (FixRigidSmall *) modify->fix[ifix];
+  fixrigid = dynamic_cast<FixRigidSmall *>(modify->fix[ifix]);
 
   int flag = 0;
   if (strstr(fixrigid->style,"rigid/") == nullptr) flag = 1;

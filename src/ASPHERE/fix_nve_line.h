@@ -1,7 +1,7 @@
 /* -*- c++ -*- ----------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    https://www.lammps.org/, Sandia National Laboratories
-   Steve Plimpton, sjplimp@sandia.gov
+   LAMMPS development team: developers@lammps.org
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
@@ -27,11 +27,10 @@ namespace LAMMPS_NS {
 class FixNVELine : public FixNVE {
  public:
   FixNVELine(class LAMMPS *, int, char **);
-  ~FixNVELine() {}
-  int setmask();
-  void init();
-  void initial_integrate(int);
-  void final_integrate();
+  int setmask() override;
+  void init() override;
+  void initial_integrate(int) override;
+  void final_integrate() override;
 
  private:
   double MINUSPI, TWOPI;
@@ -42,25 +41,3 @@ class FixNVELine : public FixNVE {
 
 #endif
 #endif
-
-/* ERROR/WARNING messages:
-
-E: Illegal ... command
-
-Self-explanatory.  Check the input script syntax and compare to the
-documentation for the command.  You can use -echo screen as a
-command-line option when running LAMMPS to see the offending line.
-
-E: Fix nve/line requires atom style line
-
-Self-explanatory.
-
-E: Fix nve/line can only be used for 2d simulations
-
-Self-explanatory.
-
-E: Fix nve/line requires line particles
-
-Self-explanatory.
-
-*/

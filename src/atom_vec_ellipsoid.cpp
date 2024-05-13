@@ -1,8 +1,7 @@
-// clang-format off
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    https://www.lammps.org/, Sandia National Laboratories
-   Steve Plimpton, sjplimp@sandia.gov
+   LAMMPS development team: developers@lammps.org
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
@@ -19,6 +18,7 @@
 #include "atom_vec_ellipsoid.h"
 
 #include "atom.h"
+#include "domain.h"
 #include "error.h"
 #include "fix.h"
 #include "math_const.h"
@@ -29,7 +29,7 @@
 #include <cstring>
 
 using namespace LAMMPS_NS;
-using namespace MathConst;
+using MathConst::MY_PI;
 
 /* ---------------------------------------------------------------------- */
 
@@ -54,18 +54,17 @@ AtomVecEllipsoid::AtomVecEllipsoid(LAMMPS *lmp) : AtomVec(lmp)
   // order of fields in a string does not matter
   // except: fields_data_atom & fields_data_vel must match data file
 
-  fields_grow = (char *) "rmass angmom torque ellipsoid";
-  fields_copy = (char *) "rmass angmom";
-  fields_comm = (char *) "";
-  fields_comm_vel = (char *) "angmom";
-  fields_reverse = (char *) "torque";
-  fields_border = (char *) "rmass";
-  fields_border_vel = (char *) "rmass angmom";
-  fields_exchange = (char *) "rmass angmom";
-  fields_restart = (char *) "rmass angmom";
-  fields_create = (char *) "rmass angmom ellipsoid";
-  fields_data_atom = (char *) "id type ellipsoid rmass x";
-  fields_data_vel = (char *) "id v angmom";
+  fields_grow = {"rmass", "angmom", "torque", "ellipsoid"};
+  fields_copy = {"rmass", "angmom"};
+  fields_comm_vel = {"angmom"};
+  fields_reverse = {"torque"};
+  fields_border = {"rmass"};
+  fields_border_vel = {"rmass", "angmom"};
+  fields_exchange = {"rmass", "angmom"};
+  fields_restart = {"rmass", "angmom"};
+  fields_create = {"rmass", "angmom", "ellipsoid"};
+  fields_data_atom = {"id", "type", "ellipsoid", "rmass", "x"};
+  fields_data_vel = {"id", "v", "angmom"};
 
   setup_fields();
 }
@@ -96,11 +95,9 @@ void AtomVecEllipsoid::grow_pointers()
 void AtomVecEllipsoid::grow_bonus()
 {
   nmax_bonus = grow_nmax_bonus(nmax_bonus);
-  if (nmax_bonus < 0)
-    error->one(FLERR,"Per-processor system is too big");
+  if (nmax_bonus < 0) error->one(FLERR, "Per-processor system is too big");
 
-  bonus = (Bonus *) memory->srealloc(bonus,nmax_bonus*sizeof(Bonus),
-                                     "atom:bonus");
+  bonus = (Bonus *) memory->srealloc(bonus, nmax_bonus * sizeof(Bonus), "atom:bonus");
 }
 
 /* ----------------------------------------------------------------------
@@ -112,7 +109,7 @@ void AtomVecEllipsoid::copy_bonus(int i, int j, int delflag)
   // if deleting atom J via delflag and J has bonus data, then delete it
 
   if (delflag && ellipsoid[j] >= 0) {
-    copy_bonus_all(nlocal_bonus-1,ellipsoid[j]);
+    copy_bonus_all(nlocal_bonus - 1, ellipsoid[j]);
     nlocal_bonus--;
   }
 
@@ -131,7 +128,7 @@ void AtomVecEllipsoid::copy_bonus(int i, int j, int delflag)
 void AtomVecEllipsoid::copy_bonus_all(int i, int j)
 {
   ellipsoid[bonus[i].ilocal] = j;
-  memcpy(&bonus[j],&bonus[i],sizeof(Bonus));
+  memcpy(&bonus[j], &bonus[i], sizeof(Bonus));
 }
 
 /* ----------------------------------------------------------------------
@@ -152,7 +149,7 @@ void AtomVecEllipsoid::clear_bonus()
 
 int AtomVecEllipsoid::pack_comm_bonus(int n, int *list, double *buf)
 {
-  int i,j,m;
+  int i, j, m;
   double *quat;
 
   m = 0;
@@ -174,7 +171,7 @@ int AtomVecEllipsoid::pack_comm_bonus(int n, int *list, double *buf)
 
 void AtomVecEllipsoid::unpack_comm_bonus(int n, int first, double *buf)
 {
-  int i,m,last;
+  int i, m, last;
   double *quat;
 
   m = 0;
@@ -194,13 +191,14 @@ void AtomVecEllipsoid::unpack_comm_bonus(int n, int first, double *buf)
 
 int AtomVecEllipsoid::pack_border_bonus(int n, int *list, double *buf)
 {
-  int i,j,m;
-  double *shape,*quat;
+  int i, j, m;
+  double *shape, *quat;
 
   m = 0;
   for (i = 0; i < n; i++) {
     j = list[i];
-    if (ellipsoid[j] < 0) buf[m++] = ubuf(0).d;
+    if (ellipsoid[j] < 0)
+      buf[m++] = ubuf(0).d;
     else {
       buf[m++] = ubuf(1).d;
       shape = bonus[ellipsoid[j]].shape;
@@ -222,14 +220,14 @@ int AtomVecEllipsoid::pack_border_bonus(int n, int *list, double *buf)
 
 int AtomVecEllipsoid::unpack_border_bonus(int n, int first, double *buf)
 {
-  int i,j,m,last;
-  double *shape,*quat;
+  int i, j, m, last;
+  double *shape, *quat;
 
   m = 0;
   last = first + n;
   for (i = first; i < last; i++) {
-    ellipsoid[i] = (int) ubuf(buf[m++]).i;
-    if (ellipsoid[i] == 0) ellipsoid[i] = -1;
+    if (ubuf(buf[m++]).i == 0)
+      ellipsoid[i] = -1;
     else {
       j = nlocal_bonus + nghost_bonus;
       if (j == nmax_bonus) grow_bonus();
@@ -260,7 +258,8 @@ int AtomVecEllipsoid::pack_exchange_bonus(int i, double *buf)
 {
   int m = 0;
 
-  if (ellipsoid[i] < 0) buf[m++] = ubuf(0).d;
+  if (ellipsoid[i] < 0)
+    buf[m++] = ubuf(0).d;
   else {
     buf[m++] = ubuf(1).d;
     int j = ellipsoid[i];
@@ -284,8 +283,8 @@ int AtomVecEllipsoid::unpack_exchange_bonus(int ilocal, double *buf)
 {
   int m = 0;
 
-  ellipsoid[ilocal] = (int) ubuf(buf[m++]).i;
-  if (ellipsoid[ilocal] == 0) ellipsoid[ilocal] = -1;
+  if (ubuf(buf[m++]).i == 0)
+    ellipsoid[ilocal] = -1;
   else {
     if (nlocal_bonus == nmax_bonus) grow_bonus();
     double *shape = bonus[nlocal_bonus].shape;
@@ -316,8 +315,10 @@ int AtomVecEllipsoid::size_restart_bonus()
   int n = 0;
   int nlocal = atom->nlocal;
   for (i = 0; i < nlocal; i++) {
-    if (ellipsoid[i] >= 0) n += size_restart_bonus_one;
-    else n++;
+    if (ellipsoid[i] >= 0)
+      n += size_restart_bonus_one;
+    else
+      n++;
   }
 
   return n;
@@ -333,7 +334,8 @@ int AtomVecEllipsoid::pack_restart_bonus(int i, double *buf)
 {
   int m = 0;
 
-  if (ellipsoid[i] < 0) buf[m++] = ubuf(0).d;
+  if (ellipsoid[i] < 0)
+    buf[m++] = ubuf(0).d;
   else {
     buf[m++] = ubuf(1).d;
     int j = ellipsoid[i];
@@ -358,7 +360,8 @@ int AtomVecEllipsoid::unpack_restart_bonus(int ilocal, double *buf)
   int m = 0;
 
   ellipsoid[ilocal] = (int) ubuf(buf[m++]).i;
-  if (ellipsoid[ilocal] == 0) ellipsoid[ilocal] = -1;
+  if (ellipsoid[ilocal] == 0)
+    ellipsoid[ilocal] = -1;
   else {
     if (nlocal_bonus == nmax_bonus) grow_bonus();
     double *shape = bonus[nlocal_bonus].shape;
@@ -381,31 +384,31 @@ int AtomVecEllipsoid::unpack_restart_bonus(int ilocal, double *buf)
    unpack one line from Ellipsoids section of data file
 ------------------------------------------------------------------------- */
 
-void AtomVecEllipsoid::data_atom_bonus(int m, char **values)
+void AtomVecEllipsoid::data_atom_bonus(int m, const std::vector<std::string> &values)
 {
-  if (ellipsoid[m])
-    error->one(FLERR,"Assigning ellipsoid parameters to non-ellipsoid atom");
+  if (ellipsoid[m]) error->one(FLERR, "Assigning ellipsoid parameters to non-ellipsoid atom");
 
   if (nlocal_bonus == nmax_bonus) grow_bonus();
 
   double *shape = bonus[nlocal_bonus].shape;
-  shape[0] = 0.5 * utils::numeric(FLERR,values[0],true,lmp);
-  shape[1] = 0.5 * utils::numeric(FLERR,values[1],true,lmp);
-  shape[2] = 0.5 * utils::numeric(FLERR,values[2],true,lmp);
+  int ivalue = 1;
+  shape[0] = 0.5 * utils::numeric(FLERR, values[ivalue++], true, lmp);
+  shape[1] = 0.5 * utils::numeric(FLERR, values[ivalue++], true, lmp);
+  shape[2] = 0.5 * utils::numeric(FLERR, values[ivalue++], true, lmp);
   if (shape[0] <= 0.0 || shape[1] <= 0.0 || shape[2] <= 0.0)
-    error->one(FLERR,"Invalid shape in Ellipsoids section of data file");
+    error->one(FLERR, "Invalid shape in Ellipsoids section of data file");
 
   double *quat = bonus[nlocal_bonus].quat;
-  quat[0] = utils::numeric(FLERR,values[3],true,lmp);
-  quat[1] = utils::numeric(FLERR,values[4],true,lmp);
-  quat[2] = utils::numeric(FLERR,values[5],true,lmp);
-  quat[3] = utils::numeric(FLERR,values[6],true,lmp);
+  quat[0] = utils::numeric(FLERR, values[ivalue++], true, lmp);
+  quat[1] = utils::numeric(FLERR, values[ivalue++], true, lmp);
+  quat[2] = utils::numeric(FLERR, values[ivalue++], true, lmp);
+  quat[3] = utils::numeric(FLERR, values[ivalue++], true, lmp);
   MathExtra::qnormalize(quat);
 
   // reset ellipsoid mass
   // previously stored density in rmass
 
-  rmass[m] *= 4.0*MY_PI/3.0 * shape[0]*shape[1]*shape[2];
+  rmass[m] *= 4.0 * MY_PI / 3.0 * shape[0] * shape[1] * shape[2];
 
   bonus[nlocal_bonus].ilocal = m;
   ellipsoid[m] = nlocal_bonus++;
@@ -418,7 +421,7 @@ void AtomVecEllipsoid::data_atom_bonus(int m, char **values)
 double AtomVecEllipsoid::memory_usage_bonus()
 {
   double bytes = 0;
-  bytes += nmax_bonus*sizeof(Bonus);
+  bytes += nmax_bonus * sizeof(Bonus);
   return bytes;
 }
 
@@ -440,13 +443,15 @@ void AtomVecEllipsoid::create_atom_post(int ilocal)
 void AtomVecEllipsoid::data_atom_post(int ilocal)
 {
   ellipsoid_flag = ellipsoid[ilocal];
-  if (ellipsoid_flag == 0) ellipsoid_flag = -1;
-  else if (ellipsoid_flag == 1) ellipsoid_flag = 0;
-  else error->one(FLERR,"Invalid ellipsoid flag in Atoms section of data file");
+  if (ellipsoid_flag == 0)
+    ellipsoid_flag = -1;
+  else if (ellipsoid_flag == 1)
+    ellipsoid_flag = 0;
+  else
+    error->one(FLERR, "Invalid ellipsoid flag in Atoms section of data file");
   ellipsoid[ilocal] = ellipsoid_flag;
 
-  if (rmass[ilocal] <= 0.0)
-    error->one(FLERR,"Invalid density in Atoms section of data file");
+  if (rmass[ilocal] <= 0.0) error->one(FLERR, "Invalid density in Atoms section of data file");
 
   angmom[ilocal][0] = 0.0;
   angmom[ilocal][1] = 0.0;
@@ -464,12 +469,14 @@ void AtomVecEllipsoid::pack_data_pre(int ilocal)
   ellipsoid_flag = atom->ellipsoid[ilocal];
   rmass_one = atom->rmass[ilocal];
 
-  if (ellipsoid_flag < 0) ellipsoid[ilocal] = 0;
-  else ellipsoid[ilocal] = 1;
+  if (ellipsoid_flag < 0)
+    ellipsoid[ilocal] = 0;
+  else
+    ellipsoid[ilocal] = 1;
 
   if (ellipsoid_flag >= 0) {
     shape = bonus[ellipsoid_flag].shape;
-    rmass[ilocal] /= 4.0*MY_PI/3.0 * shape[0]*shape[1]*shape[2];
+    rmass[ilocal] /= 4.0 * MY_PI / 3.0 * shape[0] * shape[1] * shape[2];
   }
 }
 
@@ -490,7 +497,7 @@ void AtomVecEllipsoid::pack_data_post(int ilocal)
 
 int AtomVecEllipsoid::pack_data_bonus(double *buf, int /*flag*/)
 {
-  int i,j;
+  int i, j;
 
   tagint *tag = atom->tag;
   int nlocal = atom->nlocal;
@@ -501,14 +508,15 @@ int AtomVecEllipsoid::pack_data_bonus(double *buf, int /*flag*/)
     if (buf) {
       buf[m++] = ubuf(tag[i]).d;
       j = ellipsoid[i];
-      buf[m++] = 2.0*bonus[j].shape[0];
-      buf[m++] = 2.0*bonus[j].shape[1];
-      buf[m++] = 2.0*bonus[j].shape[2];
+      buf[m++] = 2.0 * bonus[j].shape[0];
+      buf[m++] = 2.0 * bonus[j].shape[1];
+      buf[m++] = 2.0 * bonus[j].shape[2];
       buf[m++] = bonus[j].quat[0];
       buf[m++] = bonus[j].quat[1];
       buf[m++] = bonus[j].quat[2];
       buf[m++] = bonus[j].quat[3];
-    } else m += size_data_bonus;
+    } else
+      m += size_data_bonus;
   }
 
   return m;
@@ -522,10 +530,87 @@ void AtomVecEllipsoid::write_data_bonus(FILE *fp, int n, double *buf, int /*flag
 {
   int i = 0;
   while (i < n) {
-    fmt::print(fp,"{} {} {} {} {} {} {} {}\n",ubuf(buf[i]).i,
-               buf[i+1],buf[i+2],buf[i+3],buf[i+4],buf[i+5],buf[i+6],buf[i+7]);
+    fmt::print(fp, "{} {} {} {} {} {} {} {}\n", ubuf(buf[i]).i, buf[i + 1], buf[i + 2], buf[i + 3],
+               buf[i + 4], buf[i + 5], buf[i + 6], buf[i + 7]);
     i += size_data_bonus;
   }
+}
+
+/* ----------------------------------------------------------------------
+   convert read_data file info from general to restricted triclinic
+   parent class operates on data from Velocities section of data file
+   child class operates on ellipsoid quaternion
+------------------------------------------------------------------------- */
+
+void AtomVecEllipsoid::read_data_general_to_restricted(int nlocal_previous, int nlocal)
+{
+  int j;
+
+  AtomVec::read_data_general_to_restricted(nlocal_previous, nlocal);
+
+  // quat_g2r = quat that rotates from general to restricted triclinic
+  // quat_new = ellipsoid quat converted to restricted triclinic
+
+  double quat_g2r[4],quat_new[4];
+  MathExtra::mat_to_quat(domain->rotate_g2r,quat_g2r);
+
+  for (int i = nlocal_previous; i < nlocal; i++) {
+    if (ellipsoid[i] < 0) continue;
+    j = ellipsoid[i];
+    MathExtra::quatquat(quat_g2r,bonus[j].quat,quat_new);
+    bonus[j].quat[0] = quat_new[0];
+    bonus[j].quat[1] = quat_new[1];
+    bonus[j].quat[2] = quat_new[2];
+    bonus[j].quat[3] = quat_new[3];
+  }
+}
+
+/* ----------------------------------------------------------------------
+   convert info output by write_data from restricted to general triclinic
+   parent class operates on x and data from Velocities section of data file
+   child class operates on ellipsoid quaternion
+------------------------------------------------------------------------- */
+
+void AtomVecEllipsoid::write_data_restricted_to_general()
+{
+  AtomVec::write_data_restricted_to_general();
+
+  memory->create(quat_hold,nlocal_bonus,4,"atomvec:quat_hold");
+
+  for (int i = 0; i < nlocal_bonus; i++)
+    memcpy(quat_hold[i],bonus[i].quat,4*sizeof(double));
+
+  // quat_r2g = quat that rotates from restricted to general triclinic
+  // quat_new = ellipsoid quat converted to general triclinic
+
+  double quat_r2g[4],quat_new[4];
+  MathExtra::mat_to_quat(domain->rotate_r2g,quat_r2g);
+
+  for (int i = 0; i < nlocal_bonus; i++) {
+    MathExtra::quatquat(quat_r2g,bonus[i].quat,quat_new);
+    bonus[i].quat[0] = quat_new[0];
+    bonus[i].quat[1] = quat_new[1];
+    bonus[i].quat[2] = quat_new[2];
+    bonus[i].quat[3] = quat_new[3];
+  }
+}
+
+/* ----------------------------------------------------------------------
+   restore info output by write_data to restricted triclinic
+   original data is in "hold" arrays
+   parent class operates on x and data from Velocities section of data file
+   child class operates on ellipsoid quaternion
+------------------------------------------------------------------------- */
+
+void AtomVecEllipsoid::write_data_restore_restricted()
+{
+  AtomVec::write_data_restore_restricted();
+
+  for (int i = 0; i < nlocal_bonus; i++)
+    memcpy(bonus[i].quat,quat_hold[i],4*sizeof(double));
+
+  memory->destroy(quat_hold);
+  quat_hold = nullptr;
 }
 
 /* ----------------------------------------------------------------------
@@ -551,7 +636,7 @@ void AtomVecEllipsoid::set_shape(int i, double shapex, double shapey, double sha
     bonus[nlocal_bonus].ilocal = i;
     ellipsoid[i] = nlocal_bonus++;
   } else if (shapex == 0.0 && shapey == 0.0 && shapez == 0.0) {
-    copy_bonus_all(nlocal_bonus-1,ellipsoid[i]);
+    copy_bonus_all(nlocal_bonus - 1, ellipsoid[i]);
     nlocal_bonus--;
     ellipsoid[i] = -1;
   } else {

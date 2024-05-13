@@ -10,7 +10,7 @@ Syntax
 
    angle_style style
 
-* style = *none* or *hybrid* or *charmm* or *class2* or *cosine* or         *cosine/squared* or *harmonic*
+* style = *none* or *zero* or *hybrid* or *amoeba* or *charmm* or *class2* or *class2/p6* or *cosine* or *cosine/buck6d* or *cosine/delta* or *cosine/periodic* or *cosine/shift* or *cosine/shift/exp* or *cosine/squared* or *cosine/squared/restricted* or *cross* or *dipole* or *fourier* or *fourier/simple* or *gaussian* or *harmonic* or *lepton* or *mm3* or *quartic* or *spica* or *table*
 
 Examples
 """"""""
@@ -66,13 +66,14 @@ specified by the associated :doc:`angle_coeff <angle_coeff>` command.
 
 There are also additional accelerated pair styles included in the
 LAMMPS distribution for faster performance on CPUs, GPUs, and KNLs.
-The individual style names on the :ref:`Commands angle <angle>` doc page are followed by one or more
+The individual style names on the :ref:`Commands angle <angle>` page are followed by one or more
 of (g,i,k,o,t) to indicate which accelerated styles exist.
 
 * :doc:`none <angle_none>` - turn off angle interactions
 * :doc:`zero <angle_zero>` - topology but no interactions
 * :doc:`hybrid <angle_hybrid>` - define multiple styles of angle interactions
 
+* :doc:`amoeba <angle_amoeba>` - AMOEBA angle
 * :doc:`charmm <angle_charmm>` - CHARMM angle
 * :doc:`class2 <angle_class2>` - COMPASS (class 2) angle
 * :doc:`class2/p6 <angle_class2>` - COMPASS (class 2) angle expanded to 6th order
@@ -83,15 +84,18 @@ of (g,i,k,o,t) to indicate which accelerated styles exist.
 * :doc:`cosine/shift <angle_cosine_shift>` - angle cosine with a shift
 * :doc:`cosine/shift/exp <angle_cosine_shift_exp>` - cosine with shift and exponential term in spring constant
 * :doc:`cosine/squared <angle_cosine_squared>` - angle with cosine squared term
+* :doc:`cosine/squared/restricted <angle_cosine_squared_restricted>` - angle with restricted cosine squared term
 * :doc:`cross <angle_cross>` - cross term coupling angle and bond lengths
 * :doc:`dipole <angle_dipole>` - angle that controls orientation of a point dipole
 * :doc:`fourier <angle_fourier>` - angle with multiple cosine terms
 * :doc:`fourier/simple <angle_fourier_simple>` - angle with a single cosine term
-* :doc:`gaussian <angle_gaussian>` - multicentered Gaussian-based angle potential
+* :doc:`gaussian <angle_gaussian>` - multi-centered Gaussian-based angle potential
 * :doc:`harmonic <angle_harmonic>` - harmonic angle
+* :doc:`lepton <angle_lepton>` - angle potential from evaluating a string
+* :doc:`mesocnt <angle_mesocnt>` - piecewise harmonic and linear angle for bending-buckling of nanotubes
 * :doc:`mm3 <angle_mm3>` - anharmonic angle
 * :doc:`quartic <angle_quartic>` - angle with cubic and quartic terms
-* :doc:`sdk <angle_sdk>` - harmonic angle with repulsive SDK pair style between 1-3 atoms
+* :doc:`spica <angle_spica>` - harmonic angle with repulsive SPICA pair style between 1-3 atoms
 * :doc:`table <angle_table>` - tabulated by angle
 
 ----------
@@ -103,7 +107,7 @@ Angle styles can only be set for atom_styles that allow angles to be
 defined.
 
 Most angle styles are part of the MOLECULE package.  They are only
-enabled if LAMMPS was built with that package.  See the :doc:`Build package <Build_package>` doc page for more info.  The doc pages for
+enabled if LAMMPS was built with that package.  See the :doc:`Build package <Build_package>` page for more info.  The doc pages for
 individual bond potentials tell if it is part of a package.
 
 Related commands

@@ -43,7 +43,7 @@ class PoissonSolver {
   ~PoissonSolver();
 
   /** parser */
-  bool modify(int narg, char **arg); 
+  bool modify(int narg, char **arg);
 
   /** initialize */
   void initialize(void);
@@ -62,19 +62,19 @@ class PoissonSolver {
   }
 
   /** access to penalty coefficient */
-  double penalty_coefficient() const 
+  double penalty_coefficient() const
   {
     return solver_->penalty_coefficient();
   }
 
   /** set tolerance for underlying solver */
-  void set_tolerance(double tol) 
+  void set_tolerance(double tol)
   {
     solverTol_ = tol;
   }
 
   /** set max iterations for underlying solver */
-  void set_max_iterations(int maxIter) 
+  void set_max_iterations(int maxIter)
   {
     solverMaxIter_ = maxIter;
   }
@@ -83,7 +83,7 @@ class PoissonSolver {
 
   /** set atomic charges from electron model */
   void set_charges(FIELDS & fields);
-  
+
   /** Pointer to ATC_Tranfer */
   ATC_Coupling * atc_;
 
@@ -113,7 +113,7 @@ class PoissonSolver {
 
   /** solver */
   LinearSolver * solver_;
-  NonLinearSolver *solverNL_; 
+  NonLinearSolver *solverNL_;
   PhysicsModelTangentOperator * tangent_;
   int solverType_;
   double solverTol_;

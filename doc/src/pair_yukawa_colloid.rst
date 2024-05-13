@@ -1,11 +1,12 @@
 .. index:: pair_style yukawa/colloid
 .. index:: pair_style yukawa/colloid/gpu
+.. index:: pair_style yukawa/colloid/kk
 .. index:: pair_style yukawa/colloid/omp
 
 pair_style yukawa/colloid command
 =================================
 
-Accelerator Variants: *yukawa/colloid/gpu*, *yukawa/colloid/omp*
+Accelerator Variants: *yukawa/colloid/gpu*, *yukawa/colloid/kk*, *yukawa/colloid/omp*
 
 Syntax
 """"""
@@ -112,7 +113,7 @@ to be specified in an input script that reads a restart file.
 
 This pair style can only be used via the *pair* keyword of the
 :doc:`run_style respa <run_style>` command.  It does not support the
-*inner*\ , *middle*\ , *outer* keywords.
+*inner*, *middle*, *outer* keywords.
 
 ----------
 
@@ -120,7 +121,7 @@ Restrictions
 """"""""""""
 
 This style is part of the COLLOID package.  It is only enabled if
-LAMMPS was built with that package.  See the :doc:`Build package <Build_package>` doc page for more info.
+LAMMPS was built with that package.  See the :doc:`Build package <Build_package>` page for more info.
 
 This pair style requires that atoms be finite-size spheres with a
 diameter, as defined by the :doc:`atom_style sphere <atom_style>`
@@ -130,6 +131,12 @@ Per-particle polydispersity is not yet supported by this pair style;
 per-type polydispersity is allowed.  This means all particles of the
 same type must have the same diameter.  Each type can have a different
 diameter.
+
+----------
+
+.. include:: accel_styles.rst
+
+----------
 
 Related commands
 """"""""""""""""

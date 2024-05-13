@@ -1,7 +1,7 @@
 /* -*- c++ -*- ----------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    https://www.lammps.org/, Sandia National Laboratories
-   Steve Plimpton, sjplimp@sandia.gov
+   LAMMPS development team: developers@lammps.org
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
@@ -29,16 +29,16 @@ class DumpCFG : public DumpCustom {
   int multifile_override;    // used by write_dump command
 
   DumpCFG(class LAMMPS *, int, char **);
-  virtual ~DumpCFG();
+  ~DumpCFG() override;
 
  protected:
   char **auxname;    // name strings of auxiliary properties
   int unwrapflag;    // 1 if unwrapped coordinates are requested
 
-  void init_style();
-  virtual void write_header(bigint);
-  int convert_string(int, double *);
-  virtual void write_data(int, double *);
+  void init_style() override;
+  void write_header(bigint) override;
+  int convert_string(int, double *) override;
+  void write_data(int, double *) override;
 
   typedef void (DumpCFG::*FnPtrWrite)(int, double *);
   FnPtrWrite write_choice;    // ptr to write data functions
@@ -50,24 +50,3 @@ class DumpCFG : public DumpCustom {
 
 #endif
 #endif
-
-/* ERROR/WARNING messages:
-
-E: Dump cfg arguments must start with 'mass type xs ys zs' or 'mass type xsu ysu zsu'
-
-This is a requirement of the CFG output format.  See the dump cfg doc
-page for more details.
-
-E: Dump cfg arguments can not mix xs|ys|zs with xsu|ysu|zsu
-
-Self-explanatory.
-
-E: Dump cfg requires one snapshot per file
-
-Use the wildcard "*" character in the filename.
-
-U: Invalid keyword in dump cfg command
-
-Self-explanatory.
-
-*/

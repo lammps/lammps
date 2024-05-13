@@ -1,7 +1,7 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    https://www.lammps.org/, Sandia National Laboratories
-   Steve Plimpton, sjplimp@sandia.gov
+   LAMMPS development team: developers@lammps.org
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
@@ -52,25 +52,26 @@ enum { BIG_MOVE, SRD_MOVE, SRD_ROTATE };
 enum { CUBIC_ERROR, CUBIC_WARN };
 enum { SHIFT_NO, SHIFT_YES, SHIFT_POSSIBLE };
 
-#define EINERTIA 0.2    // moment of inertia prefactor for ellipsoid
+static constexpr double EINERTIA = 0.2;    // moment of inertia prefactor for ellipsoid
 
-#define ATOMPERBIN 30
-#define BIG 1.0e20
-#define VBINSIZE 5
-#define TOLERANCE 0.00001
-#define MAXITER 20
+static constexpr int ATOMPERBIN = 30;
+static constexpr double BIG = 1.0e20;
+static constexpr int VBINSIZE = 5;
+static constexpr double TOLERANCE = 0.00001;
+static constexpr int MAXITER = 20;
 
-static const char cite_fix_srd[] = "fix srd command:\n\n"
-                                   "@Article{Petersen10,\n"
-                                   " author = {M. K. Petersen, J. B. Lechman, S. J. Plimpton, G. "
-                                   "S. Grest, P. J. in 't Veld, P. R. Schunk},\n"
-                                   " title =   {Mesoscale Hydrodynamics via Stochastic Rotation "
-                                   "Dynamics: Comparison with Lennard-Jones Fluid},"
-                                   " journal = {J.~Chem.~Phys.},\n"
-                                   " year =    2010,\n"
-                                   " volume =  132,\n"
-                                   " pages =   {174106}\n"
-                                   "}\n\n";
+static const char cite_fix_srd[] =
+    "fix srd command: doi:10.1063/1.3419070\n\n"
+    "@Article{Petersen10,\n"
+    " author = {M. K. Petersen and J. B. Lechman and S. J. Plimpton and\n"
+    " G. S. Grest and in 't Veld, P. J. and P. R. Schunk},\n"
+    " title =   {Mesoscale Hydrodynamics via Stochastic Rotation\n"
+    "    Dynamics: Comparison with {L}ennard-{J}ones Fluid},\n"
+    " journal = {J.~Chem.\\ Phys.},\n"
+    " year =    2010,\n"
+    " volume =  132,\n"
+    " pages =   174106\n"
+    "}\n\n";
 
 //#define SRD_DEBUG 1
 //#define SRD_DEBUG_ATOMID 58
@@ -142,12 +143,7 @@ FixSRD::FixSRD(LAMMPS *lmp, int narg, char **arg) :
       iarg += 2;
     } else if (strcmp(arg[iarg], "overlap") == 0) {
       if (iarg + 2 > narg) error->all(FLERR, "Illegal fix srd command");
-      if (strcmp(arg[iarg + 1], "yes") == 0)
-        overlap = 1;
-      else if (strcmp(arg[iarg + 1], "no") == 0)
-        overlap = 0;
-      else
-        error->all(FLERR, "Illegal fix srd command");
+      overlap = utils::logical(FLERR, arg[iarg + 1], false, lmp);
       iarg += 2;
     } else if (strcmp(arg[iarg], "inside") == 0) {
       if (iarg + 2 > narg) error->all(FLERR, "Illegal fix srd command");
@@ -162,12 +158,7 @@ FixSRD::FixSRD(LAMMPS *lmp, int narg, char **arg) :
       iarg += 2;
     } else if (strcmp(arg[iarg], "exact") == 0) {
       if (iarg + 2 > narg) error->all(FLERR, "Illegal fix srd command");
-      if (strcmp(arg[iarg + 1], "yes") == 0)
-        exactflag = 1;
-      else if (strcmp(arg[iarg + 1], "no") == 0)
-        exactflag = 0;
-      else
-        error->all(FLERR, "Illegal fix srd command");
+      exactflag = utils::logical(FLERR, arg[iarg + 1], false, lmp);
       iarg += 2;
     } else if (strcmp(arg[iarg], "radius") == 0) {
       if (iarg + 2 > narg) error->all(FLERR, "Illegal fix srd command");
@@ -206,12 +197,7 @@ FixSRD::FixSRD(LAMMPS *lmp, int narg, char **arg) :
       iarg += 3;
     } else if (strcmp(arg[iarg], "tstat") == 0) {
       if (iarg + 2 > narg) error->all(FLERR, "Illegal fix srd command");
-      if (strcmp(arg[iarg + 1], "no") == 0)
-        tstat = 0;
-      else if (strcmp(arg[iarg + 1], "yes") == 0)
-        tstat = 1;
-      else
-        error->all(FLERR, "Illegal fix srd command");
+      tstat = utils::logical(FLERR, arg[iarg + 1], false, lmp);
       iarg += 2;
     } else if (strcmp(arg[iarg], "rescale") == 0) {
       if (iarg + 2 > narg) error->all(FLERR, "Illegal fix srd command");
@@ -304,9 +290,9 @@ FixSRD::FixSRD(LAMMPS *lmp, int narg, char **arg) :
 
   // atom style pointers to particles that store bonus info
 
-  avec_ellipsoid = (AtomVecEllipsoid *) atom->style_match("ellipsoid");
-  avec_line = (AtomVecLine *) atom->style_match("line");
-  avec_tri = (AtomVecTri *) atom->style_match("tri");
+  avec_ellipsoid = dynamic_cast<AtomVecEllipsoid *>(atom->style_match("ellipsoid"));
+  avec_line = dynamic_cast<AtomVecLine *>(atom->style_match("line"));
+  avec_tri = dynamic_cast<AtomVecTri *>(atom->style_match("tri"));
 
   // fix parameters
 
@@ -369,7 +355,7 @@ void FixSRD::init()
     error->all(FLERR, "Fix srd no-slip requires atom attribute torque");
   if (initflag && update->dt != dt_big)
     error->all(FLERR, "Cannot change timestep once fix srd is setup");
-  if (comm->style != 0)
+  if (comm->style != Comm::BRICK)
     error->universe_all(FLERR, "Fix srd can only currently be used with comm_style brick");
 
   // orthogonal vs triclinic simulation box
@@ -384,7 +370,7 @@ void FixSRD::init()
     if (strcmp(modify->fix[m]->style, "wall/srd") == 0) {
       if (wallexist) error->all(FLERR, "Cannot use fix wall/srd more than once");
       wallexist = 1;
-      wallfix = (FixWallSRD *) modify->fix[m];
+      wallfix = dynamic_cast<FixWallSRD *>(modify->fix[m]);
       nwall = wallfix->nwall;
       wallvarflag = wallfix->varflag;
       wallwhich = wallfix->wallwhich;
@@ -409,7 +395,7 @@ void FixSRD::init()
     if (fixes[i]->box_change & BOX_CHANGE_SHAPE) change_shape = 1;
     if (strcmp(fixes[i]->style, "deform") == 0) {
       deformflag = 1;
-      FixDeform *deform = (FixDeform *) modify->fix[i];
+      auto deform = dynamic_cast<FixDeform *>(modify->fix[i]);
       if ((deform->box_change & BOX_CHANGE_SHAPE) && deform->remapflag != Domain::V_REMAP)
         error->all(FLERR, "Using fix srd with inconsistent fix deform remap option");
     }
@@ -622,7 +608,7 @@ void FixSRD::pre_neighbor()
 
   // map each wall to search bins it covers, up to non-periodic boundary
   // if wall moves, add walltrigger to its position
-  // this insures it is added to all search bins it may move into
+  // this ensures it is added to all search bins it may move into
   // may not overlap any of my search bins
 
   if (wallexist) {
@@ -688,7 +674,7 @@ void FixSRD::pre_neighbor()
           hi = nbin2z - 1;
         }
 
-        for (iz = lo; iz < hi; iz++)
+        for (iz = lo; iz <= hi; iz++)
           for (ix = 0; ix < nbin2x; ix++)
             for (iy = 0; iy < nbin2y; iy++) {
               ibin = iz * nbin2y * nbin2x + iy * nbin2x + ix;
@@ -790,7 +776,7 @@ void FixSRD::post_force(int /*vflag*/)
   if (bigexist) {
     flocal = f;
     tlocal = torque;
-    comm->reverse_comm_fix(this);
+    comm->reverse_comm(this);
   }
 
   // if any SRD particle has moved too far, trigger reneigh on next step
@@ -1277,6 +1263,7 @@ void FixSRD::collisions_single()
   double **v = atom->v;
   double **f = atom->f;
   double **torque = atom->torque;
+  tagint *tag = atom->tag;
   int *mask = atom->mask;
   int nlocal = atom->nlocal;
 
@@ -1329,29 +1316,27 @@ void FixSRD::collisions_single()
           }
 
 #ifdef SRD_DEBUG
-          if (update->ntimestep == SRD_DEBUG_TIMESTEP && atom->tag[i] == SRD_DEBUG_ATOMID)
+          if (update->ntimestep == SRD_DEBUG_TIMESTEP && tag[i] == SRD_DEBUG_ATOMID)
             print_collision(i, j, ibounce, t_remain, dt, xscoll, xbcoll, norm, type);
 #endif
 
           if (t_remain > dt) {
             ninside++;
             if (insideflag == INSIDE_ERROR || insideflag == INSIDE_WARN) {
-              char str[128];
-              if (type != WALL) {
-                sprintf(str,
-                        "SRD particle " TAGINT_FORMAT " started "
-                        "inside big particle " TAGINT_FORMAT " on step " BIGINT_FORMAT " bounce %d",
-                        atom->tag[i], atom->tag[j], update->ntimestep, ibounce + 1);
-                if (insideflag == INSIDE_ERROR) error->one(FLERR, str);
-                error->warning(FLERR, str);
-              } else {
-                sprintf(str,
-                        "SRD particle " TAGINT_FORMAT " started "
-                        "inside wall %d on step " BIGINT_FORMAT " bounce %d",
-                        atom->tag[i], j, update->ntimestep, ibounce + 1);
-                if (insideflag == INSIDE_ERROR) error->one(FLERR, str);
-                error->warning(FLERR, str);
-              }
+              std::string mesg;
+              if (type != WALL)
+                mesg = fmt::format("SRD particle {} started inside big particle {} on step {} "
+                                   " bounce {}",
+                                   tag[i], tag[j], update->ntimestep, ibounce + 1);
+              else
+                mesg = fmt::format("SRD particle {} started inside wall {} on step {} "
+                                   "bounce {}",
+                                   tag[i], j, update->ntimestep, ibounce + 1);
+
+              if (insideflag == INSIDE_ERROR)
+                error->one(FLERR, mesg);
+              else
+                error->warning(FLERR, mesg);
             }
             break;
           }
@@ -1435,8 +1420,10 @@ void FixSRD::collisions_multi()
   double **v = atom->v;
   double **f = atom->f;
   double **torque = atom->torque;
+  tagint *tag = atom->tag;
   int *mask = atom->mask;
   int nlocal = atom->nlocal;
+  Big* bigfirst;
 
   for (i = 0; i < nlocal; i++) {
     if (!(mask[i] & groupbit)) continue;
@@ -1446,9 +1433,10 @@ void FixSRD::collisions_multi()
 
     ibounce = 0;
     jlast = -1;
+    typefirst = -1;
     dt = dt_big;
 
-    while (1) {
+    while (true) {
       nbig = nbinbig[ibin];
       if (ibounce == 0) ncheck += nbig;
 
@@ -1457,8 +1445,8 @@ void FixSRD::collisions_multi()
         k = binbig[ibin][m];
         big = &biglist[k];
         j = big->index;
-        if (j == jlast) continue;
         type = big->type;
+        if ((j == jlast) && (type == typefirst)) continue;
 
         if (type == SPHERE)
           inside = inside_sphere(x[i], x[j], big);
@@ -1484,29 +1472,25 @@ void FixSRD::collisions_multi()
             t_remain = collision_wall_exact(x[i], j, v[i], xscoll, xbcoll, norm);
 
 #ifdef SRD_DEBUG
-          if (update->ntimestep == SRD_DEBUG_TIMESTEP && atom->tag[i] == SRD_DEBUG_ATOMID)
+          if (update->ntimestep == SRD_DEBUG_TIMESTEP && tag[i] == SRD_DEBUG_ATOMID)
             print_collision(i, j, ibounce, t_remain, dt, xscoll, xbcoll, norm, type);
 #endif
 
           if (t_remain > dt || t_remain < 0.0) {
             ninside++;
             if (insideflag == INSIDE_ERROR || insideflag == INSIDE_WARN) {
-              char str[128];
-              if (type != WALL) {
-                sprintf(str,
-                        "SRD particle " TAGINT_FORMAT " started "
-                        "inside big particle " TAGINT_FORMAT " on step " BIGINT_FORMAT " bounce %d",
-                        atom->tag[i], atom->tag[j], update->ntimestep, ibounce + 1);
-                if (insideflag == INSIDE_ERROR) error->one(FLERR, str);
-                error->warning(FLERR, str);
-              } else {
-                sprintf(str,
-                        "SRD particle " TAGINT_FORMAT " started "
-                        "inside wall %d on step " BIGINT_FORMAT " bounce %d",
-                        atom->tag[i], j, update->ntimestep, ibounce + 1);
-                if (insideflag == INSIDE_ERROR) error->one(FLERR, str);
-                error->warning(FLERR, str);
-              }
+              std::string mesg;
+              if (type != WALL)
+                mesg = fmt::format("SRD particle {} started inside big particle {} on step {} "
+                                   "bounce {}",
+                                   tag[i], tag[j], update->ntimestep, ibounce + 1);
+              else
+                mesg = fmt::format("SRD particle {} started inside wall {} on step {} "
+                                   "bounce {}",
+                                   tag[i], j, update->ntimestep, ibounce + 1);
+
+              if (insideflag == INSIDE_ERROR) error->one(FLERR, mesg);
+              error->warning(FLERR, mesg);
             }
             t_first = 0.0;
             break;
@@ -1516,6 +1500,7 @@ void FixSRD::collisions_multi()
             t_first = t_remain;
             jfirst = j;
             typefirst = type;
+            bigfirst = big;
             xscollfirst[0] = xscoll[0];
             xscollfirst[1] = xscoll[1];
             xscollfirst[2] = xscoll[2];
@@ -1532,6 +1517,7 @@ void FixSRD::collisions_multi()
       if (t_first == 0.0) break;
       j = jlast = jfirst;
       type = typefirst;
+      big = bigfirst;
       xscoll[0] = xscollfirst[0];
       xscoll[1] = xscollfirst[1];
       xscoll[2] = xscollfirst[2];
@@ -2282,7 +2268,7 @@ void FixSRD::slip(double *vs, double *vb, double *xb, Big *big, double *xsurf, d
   double tangent[3], vsurf[3];
   double *omega = big->omega;
 
-  while (1) {
+  while (true) {
     r1 = sigma * random->gaussian();
     r2 = sigma * random->gaussian();
     vnmag = sqrt(r1 * r1 + r2 * r2);
@@ -2338,7 +2324,7 @@ void FixSRD::slip_wall(double *vs, int iwall, double *norm, double *vsnew)
   tangent2[1] = norm[2] * tangent1[0] - norm[0] * tangent1[2];
   tangent2[2] = norm[0] * tangent1[1] - norm[1] * tangent1[0];
 
-  while (1) {
+  while (true) {
     r1 = sigma * random->gaussian();
     r2 = sigma * random->gaussian();
     vnmag = sqrt(r1 * r1 + r2 * r2);
@@ -2389,7 +2375,7 @@ void FixSRD::noslip(double *vs, double *vb, double *xb, Big *big, int iwall, dou
   tangent2[1] = norm[2] * tangent1[0] - norm[0] * tangent1[2];
   tangent2[2] = norm[0] * tangent1[1] - norm[1] * tangent1[0];
 
-  while (1) {
+  while (true) {
     r1 = sigma * random->gaussian();
     r2 = sigma * random->gaussian();
     vnmag = sqrt(r1 * r1 + r2 * r2);
@@ -2663,7 +2649,6 @@ void FixSRD::parameterize()
         if (radius && radius[i] > 0.0) {
           double r = radfactor * radius[i];
           volbig += 4.0 / 3.0 * MY_PI * r * r * r;
-          ;
         } else if (ellipsoid && ellipsoid[i] >= 0) {
           double *shape = ebonus[ellipsoid[i]].shape;
           volbig += 4.0 / 3.0 * MY_PI * shape[0] * shape[1] * shape[2] * radfactor * radfactor *
@@ -2676,7 +2661,7 @@ void FixSRD::parameterize()
           MathExtra::sub3(c2, c1, c2mc1);
           MathExtra::sub3(c3, c1, c3mc1);
           MathExtra::cross3(c2mc1, c3mc1, cross);
-          volbig += 0.5 * MathExtra::len3(cross);
+          volbig += 0.5 * MathExtra::len3(cross) * WIDTH;
         }
       }
   } else {
@@ -3961,6 +3946,7 @@ double FixSRD::distance(int i, int j)
 }
 
 /* ---------------------------------------------------------------------- */
+#ifdef SRD_DEBUG
 
 void FixSRD::print_collision(int i, int j, int ibounce, double t_remain, double dt, double *xscoll,
                              double *xbcoll, double *norm, int type)
@@ -3970,8 +3956,7 @@ void FixSRD::print_collision(int i, int j, int ibounce, double t_remain, double 
   double **v = atom->v;
 
   if (type != WALL) {
-    printf("COLLISION between SRD " TAGINT_FORMAT " and BIG " TAGINT_FORMAT "\n", atom->tag[i],
-           atom->tag[j]);
+    fmt::print("COLLISION between SRD {} and BIG {}\n", atom->tag[i], atom->tag[j]);
     printf("  bounce # = %d\n", ibounce + 1);
     printf("  local indices: %d %d\n", i, j);
     printf("  timestep = %g\n", dt);
@@ -4012,7 +3997,7 @@ void FixSRD::print_collision(int i, int j, int ibounce, double t_remain, double 
   } else {
     int dim = wallwhich[j] / 2;
 
-    printf("COLLISION between SRD " TAGINT_FORMAT " and WALL %d\n", atom->tag[i], j);
+    fmt::print("COLLISION between SRD {} and WALL {}\n", atom->tag[i], j);
     printf("  bounce # = %d\n", ibounce + 1);
     printf("  local indices: %d %d\n", i, j);
     printf("  timestep = %g\n", dt);
@@ -4044,3 +4029,6 @@ void FixSRD::print_collision(int i, int j, int ibounce, double t_remain, double 
     printf("  separation at end   = %g\n", rend);
   }
 }
+#else
+void FixSRD::print_collision(int, int, int, double, double, double *, double *, double *, int) {}
+#endif

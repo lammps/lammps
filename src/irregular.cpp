@@ -2,7 +2,7 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    https://www.lammps.org/, Sandia National Laboratories
-   Steve Plimpton, sjplimp@sandia.gov
+   LAMMPS development team: developers@lammps.org
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
@@ -36,9 +36,9 @@ static int compare_standalone(const void *, const void *);
 static int compare_standalone(const int, const int, void *);
 #endif
 
-#define BUFFACTOR 1.5
-#define BUFMIN 1024
-#define BUFEXTRA 1024
+static constexpr double BUFFACTOR = 1.5;
+static constexpr int BUFMIN = 1024;
+static constexpr int BUFEXTRA = 1024;
 
 /* ---------------------------------------------------------------------- */
 
@@ -427,7 +427,7 @@ int Irregular::create_atom(int n, int *sizes, int *proclist, int sortflag)
   }
 
   // sort proc_recv and length_recv by proc ID if requested
-  // useful for debugging to insure reproducible ordering of received atoms
+  // useful for debugging to ensure reproducible ordering of received atoms
   // invoke by adding final arg = 1 to create_atom() call in migrate_atoms()
 
   if (sortflag) {
@@ -458,7 +458,7 @@ int Irregular::create_atom(int n, int *sizes, int *proclist, int sortflag)
     delete [] length_recv_ordered;
   }
 
-  // barrier to insure all MPI_ANY_SOURCE messages are received
+  // barrier to ensure all MPI_ANY_SOURCE messages are received
   // else another proc could proceed to exchange_atom() and send to me
 
   MPI_Barrier(world);
@@ -702,7 +702,7 @@ int Irregular::create_data(int n, int *proclist, int sortflag)
   nrecvdatum += num_self;
 
   // sort proc_recv and num_recv by proc ID if requested
-  // useful for debugging to insure reproducible ordering of received datums
+  // useful for debugging to ensure reproducible ordering of received datums
 
   if (sortflag) {
     int *order = new int[nrecv_proc];
@@ -732,7 +732,7 @@ int Irregular::create_data(int n, int *proclist, int sortflag)
     delete [] num_recv_ordered;
   }
 
-  // barrier to insure all MPI_ANY_SOURCE messages are received
+  // barrier to ensure all MPI_ANY_SOURCE messages are received
   // else another proc could proceed to exchange_data() and send to me
 
   MPI_Barrier(world);
@@ -876,7 +876,7 @@ int Irregular::create_data_grouped(int n, int *procs, int sortflag)
   nrecvdatum += num_self;
 
   // sort proc_recv and num_recv by proc ID if requested
-  // useful for debugging to insure reproducible ordering of received datums
+  // useful for debugging to ensure reproducible ordering of received datums
 
   if (sortflag) {
     int *order = new int[nrecv_proc];
@@ -905,7 +905,7 @@ int Irregular::create_data_grouped(int n, int *procs, int sortflag)
     delete [] num_recv_ordered;
   }
 
-  // barrier to insure all MPI_ANY_SOURCE messages are received
+  // barrier to ensure all MPI_ANY_SOURCE messages are received
   // else another proc could proceed to exchange_data() and send to me
 
   MPI_Barrier(world);
@@ -998,18 +998,11 @@ void Irregular::destroy_data()
 
 void Irregular::init_exchange()
 {
-  int nfix = modify->nfix;
-  Fix **fix = modify->fix;
-
-  int onefix;
   int maxexchange_fix = 0;
-  for (int i = 0; i < nfix; i++) {
-    onefix = fix[i]->maxexchange;
-    maxexchange_fix = MAX(maxexchange_fix,onefix);
-  }
+  for (auto &ifix : modify->get_fix_list())
+    maxexchange_fix = MAX(maxexchange_fix, ifix->maxexchange);
 
-  int maxexchange = atom->avec->maxexchange + maxexchange_fix;
-  bufextra = maxexchange + BUFEXTRA;
+  bufextra = atom->avec->maxexchange + maxexchange_fix + BUFEXTRA;
 }
 
 /* ----------------------------------------------------------------------

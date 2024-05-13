@@ -18,7 +18,7 @@ using std::vector;
 namespace ATC {
 
 ElectronPhononExchangeLinear::ElectronPhononExchangeLinear(
-  fstream &fileId, map<string,double> & parameters) 
+  fstream &fileId, map<string,double> & parameters)
   : ElectronPhononExchange(),
   exchangeCoef_(0)
 {
@@ -39,7 +39,7 @@ ElectronPhononExchangeLinear::ElectronPhononExchangeLinear(
 }
 
 ElectronPhononExchangePowerLaw::ElectronPhononExchangePowerLaw(
-  fstream &fileId, map<string,double> & parameters) 
+  fstream &fileId, map<string,double> & parameters)
   : ElectronPhononExchange(),
   exchangeCoef_(0),
   exponent_(1)
@@ -65,7 +65,7 @@ ElectronPhononExchangePowerLaw::ElectronPhononExchangePowerLaw(
 
 ElectronPhononExchangeHertel::ElectronPhononExchangeHertel(fstream &fileId,
                                                            map<string,double> & parameters,
-                                                           Material * material) 
+                                                           Material * material)
   : ElectronPhononExchange(),
     exchangeCoef_(0),
     debeyeTemperature_(1),
@@ -93,7 +93,7 @@ ElectronPhononExchangeHertel::ElectronPhononExchangeHertel(fstream &fileId,
   // coupling coefficient, eqn. 15 of Hertel 2002
   double kb = LammpsInterface::instance()->kBoltzmann();
   double hbar = LammpsInterface::instance()->hbar();
-  double PI = 3.141592653589793238; 
+  double PI = 3.141592653589793238;
   exchangeCoef_ = 144.*1.0369*kb/(PI*hbar);
   exchangeCoef_ *= massEnhancement_/pow(debeyeTemperature_,2);
 }

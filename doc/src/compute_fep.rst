@@ -6,7 +6,7 @@ compute fep command
 Syntax
 """"""
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    compute ID group-ID fep temp attribute args ... keyword value ...
 
@@ -19,12 +19,12 @@ Syntax
   .. parsed-literal::
 
        *pair* args = pstyle pparam I J v_delta
-         pstyle = pair style name, e.g. lj/cut
+         pstyle = pair style name (e.g., *lj/cut*)
          pparam = parameter to perturb
          I,J = type pair(s) to set parameter for
          v_delta = variable with perturbation to apply (in the units of the parameter)
        *atom* args = aparam I v_delta
-         aparam = parameter to perturb
+         aparam = *charge* = parameter to perturb
          I = type to set parameter for
          v_delta = variable with perturbation to apply (in the units of the parameter)
 
@@ -37,8 +37,8 @@ Syntax
          *no* = ignore tail correction to pair energies (usually small in fep)
          *yes* = include tail correction to pair energies
        *volume* value = *no* or *yes*
-         *no* = ignore volume changes (e.g. in *NVE* or *NVT* trajectories)
-         *yes* = include volume changes (e.g. in *NpT* trajectories)
+         *no* = ignore volume changes (e.g., in *NVE* or *NVT* trajectories)
+         *yes* = include volume changes (e.g., in *NPT* trajectories)
 
 Examples
 """"""""
@@ -48,7 +48,7 @@ Examples
    compute 1 all fep 298 pair lj/cut epsilon 1 * v_delta pair lj/cut sigma 1 * v_delta volume yes
    compute 1 all fep 300 atom charge 2 v_delta
 
-Example input scripts available: examples/USER/fep
+Example input scripts available: examples/PACKAGES/fep
 
 Description
 """""""""""
@@ -84,7 +84,7 @@ It is possible but not necessary that the coupling parameter (or a
 function thereof) appears as a multiplication factor of the potential
 energy. Therefore, this compute can apply perturbations to interaction
 parameters that are not directly proportional to the potential energy
-(e.g. :math:`\sigma` in Lennard-Jones potentials).
+(e.g., :math:`\sigma` in Lennard-Jones potentials).
 
 This command can be combined with :doc:`fix adapt <fix_adapt>` to
 perform multistage free-energy perturbation calculations along
@@ -92,9 +92,9 @@ stepwise alchemical transformations during a simulation run:
 
 .. math::
 
-   \Delta_0^1 A = \sum_{i=0}^{n-1} \Delta_{\lambda_i}^{\lambda_{i+1}} A = - kT
+   \Delta_0^1 A = \sum_{i=0}^{n-1} \Delta_{\lambda_i}^{\lambda_{i+1}} A = - k_B T
    \sum_{i=0}^{n-1} \ln \left< \exp \left( - \frac{U(\lambda_{i+1}) -
-   U(\lambda_i)}{kT} \right) \right>_{\lambda_i}
+   U(\lambda_i)}{k_B T} \right) \right>_{\lambda_i}
 
 This compute is suitable for the finite-difference thermodynamic
 integration (FDTI) method :ref:`(Mezei) <Mezei>`, which is based on an
@@ -107,7 +107,8 @@ perturbation method using a very small :math:`\delta`:
    A(\lambda)}{\partial\lambda} \right)_\lambda \mathrm{d}\lambda \approx
    \sum_{i=0}^{n-1} w_i \frac{A(\lambda_{i} + \delta) - A(\lambda_i)}{\delta}
 
-where :math:`w_i` are weights of a numerical quadrature. The :doc:`fix adapt <fix_adapt>` command can be used to define the stages of
+where :math:`w_i` are weights of a numerical quadrature. The
+:doc:`fix adapt <fix_adapt>` command can be used to define the stages of
 :math:`\lambda` at which the derivative is calculated and averaged.
 
 The compute fep calculates the exponential Boltzmann term and also the
@@ -125,14 +126,14 @@ the derivative of the potential energy with respect to :math:`\lambda`:
 
 Another technique to calculate free energy differences is the
 acceptance ratio method :ref:`(Bennet) <Bennet>`, which can be implemented
-by calculating the potential energy differences with :math:`\delta` = 1.0 on
+by calculating the potential energy differences with :math:`\delta = 1.0` on
 both the forward and reverse routes:
 
 .. math::
 
-   \left< \frac{1}{1 + \exp\left[\left(U_1 - U_0 - \Delta_0^1A \right) /kT
+   \left< \frac{1}{1 + \exp\left[\left(U_1 - U_0 - \Delta_0^1A \right) /k_B T
    \right]} \right>_0 = \left< \frac{1}{1 + \exp\left[\left(U_0 - U_1 +
-   \Delta_0^1A \right) /kT \right]} \right>_1
+   \Delta_0^1A \right) /k_B T \right]} \right>_1
 
 The value of the free energy difference is determined by numerical
 root finding to establish the equality.
@@ -226,17 +227,17 @@ the pair\_\*.cpp file associated with the potential.
 
 Similar to the :doc:`pair_coeff <pair_coeff>` command, I and J can be
 specified in one of two ways.  Explicit numeric values can be used for
-each, as in the first example above.  I <= J is required.  LAMMPS sets
+each, as in the first example above.  I :math:`\le` J is required.  LAMMPS sets
 the coefficients for the symmetric J,I interaction to the same
 values. A wild-card asterisk can be used in place of or in conjunction
 with the I,J arguments to set the coefficients for multiple pairs of
-atom types.  This takes the form "\*" or "\*n" or "n\*" or "m\*n".  If N =
-the number of atom types, then an asterisk with no numeric values
-means all types from 1 to N.  A leading asterisk means all types from
-1 to n (inclusive).  A trailing asterisk means all types from n to N
+atom types.  This takes the form "\*" or "\*n" or "m\*" or "m\*n".  If
+:math:`N` is the number of atom types, then an asterisk with no numeric values
+means all types from 1 to :math:`N`.   A leading asterisk means all types from
+1 to n (inclusive).  A trailing asterisk means all types from m to N
 (inclusive).  A middle asterisk means all types from m to n
-(inclusive).  Note that only type pairs with I <= J are considered; if
-asterisks imply type pairs where J < I, they are ignored.
+(inclusive).  Note that only type pairs with I :math:`\le` J are considered; if
+asterisks imply type pairs where J :math:`<` I, they are ignored.
 
 If :doc:`pair_style hybrid or hybrid/overlay <pair_hybrid>` is being
 used, then the *pstyle* will be a sub-style name.  You must specify
@@ -269,14 +270,14 @@ activated via the :doc:`pair_modify <pair_modify>` command. If the
 perturbation is small, the tail contribution to the energy difference
 between the reference and perturbed systems should be negligible.
 
-If the keyword *volume* = *yes*\ , then the Boltzmann term is multiplied
+If the keyword *volume* = *yes*, then the Boltzmann term is multiplied
 by the volume so that correct ensemble averaging can be performed over
 trajectories during which the volume fluctuates or changes :ref:`(Allen and Tildesley) <AllenTildesley>`:
 
 .. math::
 
-   \Delta_0^1 A = - kT \sum_{i=0}^{n-1} \ln \frac{\left< V \exp \left( -
-   \frac{U(\lambda_{i+1}) - U(\lambda_i)}{kT} \right)
+   \Delta_0^1 A = - k_B T \sum_{i=0}^{n-1} \ln \frac{\left< V \exp \left( -
+   \frac{U(\lambda_{i+1}) - U(\lambda_i)}{k_B T} \right)
    \right>_{\lambda_i}}{\left< V \right>_{\lambda_i}}
 
 ----------
@@ -286,8 +287,8 @@ Output info
 
 This compute calculates a global vector of length 3 which contains the
 energy difference ( :math:`U_1-U_0` ) as c_ID[1], the
-Boltzmann factor :math:`\exp(-(U_1-U_0)/kT)`, or
-:math:`V \exp(-(U_1-U_0)/kT)`, as c_ID[2] and the
+Boltzmann factor :math:`\exp(-(U_1-U_0)/k_B T)`, or
+:math:`V \exp(-(U_1-U_0)/k_B T)`, as c_ID[2] and the
 volume of the simulation box :math:`V` as c_ID[3]. :math:`U_1` is the
 pair potential energy obtained with the perturbed parameters and
 :math:`U_0` is the pair potential energy obtained with the
@@ -295,7 +296,7 @@ unperturbed parameters. The energies include kspace terms if these
 are used in the simulation.
 
 These output results can be used by any command that uses a global
-scalar or vector from a compute as input.  See the :doc:`Howto output <Howto_output>` doc page for an overview of LAMMPS output
+scalar or vector from a compute as input.  See the :doc:`Howto output <Howto_output>` page for an overview of LAMMPS output
 options. For example, the computed values can be averaged using :doc:`fix ave/time <fix_ave_time>`.
 
 The values calculated by this compute are "extensive".
@@ -303,8 +304,8 @@ The values calculated by this compute are "extensive".
 Restrictions
 """"""""""""
 
-This compute is distributed as the USER-FEP package.  It is only
-enabled if LAMMPS was built with that package.  See the :doc:`Build package <Build_package>` doc page for more info.
+This compute is distributed as the FEP package.  It is only
+enabled if LAMMPS was built with that package.  See the :doc:`Build package <Build_package>` page for more info.
 
 Related commands
 """"""""""""""""
@@ -315,7 +316,7 @@ Related commands
 Default
 """""""
 
-The option defaults are *tail* = *no*\ , *volume* = *no*\ .
+The option defaults are *tail* = *no*, *volume* = *no*\ .
 
 ----------
 

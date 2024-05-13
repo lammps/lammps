@@ -17,19 +17,20 @@ Syntax
   .. parsed-literal::
 
      field = *x* or *y* or *z* or *vx* or *vy* or *vz* or *q* or *ix* or *iy* or *iz* or *fx* or *fy* or *fz*
-       *x*\ ,\ *y*\ ,\ *z* = atom coordinates
-       *vx*\ ,\ *vy*\ ,\ *vz* = velocity components
+       *x*,\ *y*,\ *z* = atom coordinates
+       *vx*,\ *vy*,\ *vz* = velocity components
        *q* = charge
-       *ix*\ ,\ *iy*\ ,\ *iz* = image flags in each dimension
-       *fx*\ ,\ *fy*\ ,\ *fz* = force components
+       *ix*,\ *iy*,\ *iz* = image flags in each dimension
+       *fx*,\ *fy*,\ *fz* = force components
 
 * zero or more keyword/value pairs may be appended
-* keyword = *nfile* or *box* or *replace* or *purge* or *trim* or *add* or *label* or *scaled* or *wrapped* or *format*
+* keyword = *nfile* or *box* or *timestep* or *replace* or *purge* or *trim* or *add* or *label* or *scaled* or *wrapped* or *format*
 
   .. parsed-literal::
 
        *nfile* value = Nfiles = how many parallel dump files exist
        *box* value = *yes* or *no* = replace simulation box with dump box
+       *timestep* value = *yes* or *no* = reset simulation timestep with dump timestep
        *replace* value = *yes* or *no* = overwrite atoms with dump atoms
        *purge* value = *yes* or *no* = delete all atoms before adding dump atoms
        *trim* value = *yes* or *no* = trim atoms not in dump snapshot
@@ -60,6 +61,7 @@ Examples
    read_dump dump.dcd 0 x y z box yes format molfile dcd
    read_dump dump.file 1000 x y z vx vy vz box yes format molfile lammpstrj /usr/local/lib/vmd/plugins/LINUXAMD64/plugins/molfile
    read_dump dump.file 5000 x y vx vy trim yes
+   read_dump dump.file 5000 x y vx vy add yes box no timestep no
    read_dump ../run7/dump.file.gz 10000 x y z box yes
    read_dump dump.xyz 10 x y z box no format molfile xyz ../plugins
    read_dump dump.dcd 0 x y z format molfile dcd
@@ -71,9 +73,9 @@ Description
 """""""""""
 
 Read atom information from a dump file to overwrite the current atom
-coordinates, and optionally the atom velocities and image flags and
-the simulation box dimensions.  This is useful for restarting a run
-from a particular snapshot in a dump file.  See the
+coordinates, and optionally the atom velocities and image flags, the
+simulation timestep, and the simulation box dimensions.  This is useful
+for restarting a run from a particular snapshot in a dump file.  See the
 :doc:`read_restart <read_restart>` and :doc:`read_data <read_data>`
 commands for alternative methods to do this.  Also see the
 :doc:`rerun <rerun>` command for a means of reading multiple snapshots
@@ -89,17 +91,16 @@ Also note that reading per-atom information from a dump snapshot is
 limited to the atom coordinates, velocities and image flags, as
 explained below.  Other atom properties, which may be necessary to run
 a valid simulation, such as atom charge, or bond topology information
-for a molecular system, are not read from (or even contained in) dump
-files.  Thus this auxiliary information should be defined in the usual
-way, e.g. in a data file read in by a :doc:`read_data <read_data>`
+for a molecular system, are not read from (or may not even be contained
+in) dump files.  Thus this auxiliary information should be defined in
+the usual way, e.g. in a data file read in by a :doc:`read_data <read_data>`
 command, before using the read_dump command, or by the :doc:`set <set>`
 command, after the dump snapshot is read.
 
 ----------
 
 If the dump filename specified as *file* ends with ".gz", the dump
-file is read in gzipped format.  You cannot (yet) read a dump file
-that was written in binary format with a ".bin" suffix.
+file is read in gzipped format.
 
 You can read dump files that were written (in parallel) to multiple
 files via the "%" wild-card character in the dump file name.  If any
@@ -115,13 +116,13 @@ to tell LAMMPS how many parallel files exist, via its specified
 The format of the dump file is selected through the *format* keyword.
 If specified, it must be the last keyword used, since all remaining
 arguments are passed on to the dump reader.  The *native* format is
-for native LAMMPS dump files, written with a :doc:`dump atom <dump>` or
-:doc:`dump custom <dump>` command.  The *xyz* format is for generic XYZ
+for native LAMMPS dump files, written with a :doc:`dump atom <dump>`
+or :doc:`dump custom <dump>` command.  The *xyz* format is for generic XYZ
 formatted dump files.  These formats take no additional values.
 
 The *molfile* format supports reading data through using the `VMD <vmd_>`_
 molfile plugin interface. This dump reader format is only available,
-if the USER-MOLFILE package has been installed when compiling
+if the MOLFILE package has been installed when compiling
 LAMMPS.
 
 The *molfile* format takes one or two additional values.  The *style*
@@ -131,7 +132,7 @@ files can be written by LAMMPS via the :doc:`dump dcd <dump>` command.
 The *path* value specifies a list of directories which LAMMPS will
 search for the molfile plugins appropriate to the specified *style*\ .
 The syntax of the *path* value is like other search paths: it can
-contain multiple directories separated by a colon (or semi-colon on
+contain multiple directories separated by a colon (or semicolon on
 windows).  The *path* keyword is optional and defaults to ".",
 i.e. the current directory.
 
@@ -160,17 +161,16 @@ snapshot was written on for the *native* or *adios* formats.
 The list of timestamps available in an adios .bp file is stored in the
 variable *ntimestep*:
 
-.. parsed-literal::
+.. parsed-literal:: console
 
   $ bpls dump.bp -d ntimestep
     uint64_t  ntimestep  5*scalar
       (0)    0 50 100 150 200
 
-Note that the *xyz*
-and *molfile* formats do not store the timestep.  For these formats,
-timesteps are numbered logically, in a sequential manner, starting
-from 0.  Thus to access the 10th snapshot in an *xyz* or *mofile*
-formatted dump file, use *Nstep* = 9.
+Note that the *xyz* and *molfile* formats do not store the timestep.
+For these formats, timesteps are numbered logically, in a sequential
+manner, starting from 0.  Thus to access the 10th snapshot in an *xyz*
+or *mofile* formatted dump file, use *Nstep* = 9.
 
 The dimensions of the simulation box for the selected snapshot are
 also read; see the *box* keyword discussion below.  For the *native*
@@ -188,7 +188,7 @@ you must set the *box* flag to *no*\ .  See details below.
 For the *molfile* format, reading simulation box information is
 typically supported, but the location of the simulation box origin is
 lost and no explicit information about periodicity or
-orthogonal/triclinic box shape is available.  The USER-MOLFILE package
+orthogonal/triclinic box shape is available.  The MOLFILE package
 makes a best effort to guess based on heuristics, but this may not
 always work perfectly.
 
@@ -197,11 +197,11 @@ always work perfectly.
 Per-atom information from the dump file snapshot is then read from the
 dump file snapshot.  This corresponds to the specified *fields* listed
 in the read_dump command.  It is an error to specify a z-dimension
-field, namely *z*\ , *vz*\ , or *iz*\ , for a 2d simulation.
+field, namely *z*, *vz*, or *iz*, for a 2d simulation.
 
 For dump files in *native* format, each column of per-atom data has a
 text label listed in the file.  A matching label for each field must
-appear, e.g. the label "vy" for the field *vy*\ .  For the *x*\ , *y*\ , *z*
+appear, e.g. the label "vy" for the field *vy*\ .  For the *x*, *y*, *z*
 fields any of the following labels are considered a match:
 
 .. parsed-literal::
@@ -217,7 +217,7 @@ file, in order, until a match is found.
 
 The dump file must also contain atom IDs, with a column label of "id".
 
-If the *add* keyword is specified with a value of *yes* or *keep*\ , as
+If the *add* keyword is specified with a value of *yes* or *keep*, as
 discussed below, the dump file must contain atom types, with a column
 label of "type".
 
@@ -230,20 +230,20 @@ will then have a label corresponding to the fix-ID rather than "x" or
 "xs".  The *label* keyword can also be used to specify new column
 labels for fields *id* and *type*\ .
 
-For dump files in *xyz* format, only the *x*\ , *y*\ , and *z* fields are
+For dump files in *xyz* format, only the *x*, *y*, and *z* fields are
 supported.  The dump file does not store atom IDs, so these are
 assigned consecutively to the atoms as they appear in the dump file,
-starting from 1.  Thus you should insure that order of atoms is
+starting from 1.  Thus you should ensure that order of atoms is
 consistent from snapshot to snapshot in the XYZ dump file.  See
 the :doc:`dump_modify sort <dump_modify>` command if the XYZ dump file
 was written by LAMMPS.
 
-For dump files in *molfile* format, the *x*\ , *y*\ , *z*\ , *vx*\ , *vy*\ , and
+For dump files in *molfile* format, the *x*, *y*, *z*, *vx*, *vy*, and
 *vz* fields can be specified.  However, not all molfile formats store
 velocities, or their respective plugins may not support reading of
 velocities.  The molfile dump files do not store atom IDs, so these
 are assigned consecutively to the atoms as they appear in the dump
-file, starting from 1.  Thus you should insure that order of atoms are
+file, starting from 1.  Thus you should ensure that order of atoms are
 consistent from snapshot to snapshot in the molfile dump file.
 See the :doc:`dump_modify sort <dump_modify>` command if the dump file
 was written by LAMMPS.
@@ -253,7 +253,7 @@ except for the *q* charge field.
 The list of fields stored in an adios .bp file is recorded in the attributes
 *columns* (array of short strings) and *columnstr* (space-separated single string).
 
-.. parsed-literal::
+.. parsed-literal:: console
 
   $ bpls -la dump.bp column*
     string    columns            attr   = {"id", "type", "x", "y", "z", "vx", "vy", "vz"}
@@ -266,9 +266,13 @@ replace properties of the current system.  There are various options
 for how this is done, determined by the specified fields and optional
 keywords.
 
+.. versionchanged:: 3Aug2022
+
 The timestep of the snapshot becomes the current timestep for the
-simulation.  See the :doc:`reset_timestep <reset_timestep>` command if
-you wish to change this after the dump snapshot is read.
+simulation unless the *timestep* keyword is specified with a *no* value
+(default setting is *yes*).  See the :doc:`reset_timestep <reset_timestep>`
+command if you wish to change this to a different value after the dump
+snapshot is read.
 
 If the *box* keyword is specified with a *yes* value, then the current
 simulation box dimensions are replaced by the dump snapshot box
@@ -277,7 +281,7 @@ current simulation box is unchanged.
 
 If the *purge* keyword is specified with a *yes* value, then all
 current atoms in the system are deleted before any of the operations
-invoked by the *replace*\ , *trim*\ , or *add* keywords take place.
+invoked by the *replace*, *trim*, or *add* keywords take place.
 
 If the *replace* keyword is specified with a *yes* value, then atoms
 with IDs that are in both the current system and the dump snapshot
@@ -330,7 +334,7 @@ atom will be lost if it is outside the simulation box.
 
 For *native* format dump files, the 3 xyz image flags for an atom in
 the dump file are set to the corresponding values appearing in the
-dump file if the *ix*\ , *iy*\ , *iz* fields are specified.  If not
+dump file if the *ix*, *iy*, *iz* fields are specified.  If not
 specified, the image flags for replaced atoms are not changed and
 image flags for new atoms are set to default values.  If coordinates
 read from the dump file are in unwrapped format (e.g. *xu*\ ) then the
@@ -343,13 +347,13 @@ conditions are applied to remap an atom back into the simulation box.
 
    If you get a warning about inconsistent image flags after
    reading in a dump snapshot, it means one or more pairs of bonded atoms
-   now have inconsistent image flags.  As discussed on the :doc:`Errors common <Errors_common>` doc page this may or may not cause problems
+   now have inconsistent image flags.  As discussed on the :doc:`Errors common <Errors_common>` page this may or may not cause problems
    for subsequent simulations.  One way this can happen is if you read
    image flag fields from the dump file but do not also use the dump file
    box parameters.
 
 LAMMPS knows how to compute unscaled and remapped coordinates for the
-snapshot column labels discussed above, e.g. *x*\ , *xs*\ , *xu*\ , *xsu*\ .
+snapshot column labels discussed above, e.g. *x*, *xs*, *xu*, *xsu*\ .
 If another column label is assigned to the *x* or *y* or *z* field via
 the *label* keyword, e.g. for coordinates output by the :doc:`fix ave/atom <fix_ave_atom>` command, then LAMMPS needs to know whether
 the coordinate information in the dump file is scaled and/or wrapped.
@@ -359,10 +363,10 @@ the value of the *scaled* and *wrapped* keywords is ignored for fields
 column label to that field.
 
 The scaled/unscaled and wrapped/unwrapped setting must be identical
-for any of the *x*\ , *y*\ , *z* fields that are specified.  Thus you
+for any of the *x*, *y*, *z* fields that are specified.  Thus you
 cannot read *xs* and *yu* from the dump file.  Also, if the dump file
 coordinates are scaled and the simulation box is triclinic, then all 3
-of the *x*\ , *y*\ , *z* fields must be specified, since they are all
+of the *x*, *y*, *z* fields must be specified, since they are all
 needed to generate absolute, unscaled coordinates.
 
 ----------
@@ -370,18 +374,16 @@ needed to generate absolute, unscaled coordinates.
 Restrictions
 """"""""""""
 
-The *native* dump file reader does not support binary .bin dump files.
-
 To read gzipped dump files, you must compile LAMMPS with the
 -DLAMMPS_GZIP option.  See the :doc:`Build settings <Build_settings>`
 doc page for details.
 
-The *molfile* dump file formats are part of the USER-MOLFILE package.
+The *molfile* dump file formats are part of the MOLFILE package.
 They are only enabled if LAMMPS was built with that packages.  See the
-:doc:`Build package <Build_package>` doc page for more info.
+:doc:`Build package <Build_package>` page for more info.
 
 To write and read adios .bp files, you must compile LAMMPS with the
-:ref:`USER-ADIOS <PKG-USER-ADIOS>` package.
+:ref:`ADIOS <PKG-ADIOS>` package.
 
 Related commands
 """"""""""""""""
@@ -394,7 +396,7 @@ Related commands
 Default
 """""""
 
-The option defaults are box = yes, replace = yes, purge = no, trim =
-no, add = no, scaled = no, wrapped = yes, and format = native.
+The option defaults are box = yes, timestep = yes, replace = yes, purge = no,
+trim = no, add = no, scaled = no, wrapped = yes, and format = native.
 
-.. _vmd: http://www.ks.uiuc.edu/Research/vmd
+.. _vmd: https://www.ks.uiuc.edu/Research/vmd

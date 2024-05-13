@@ -1,9 +1,5 @@
-#include "stdio.h"
-#include "stdlib.h"
 #include "dynmat.h"
 #include "phonon.h"
-
-using namespace std;
 
 int main(int argc, char** argv)
 {

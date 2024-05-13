@@ -1,7 +1,7 @@
 /* -*- c++ -*- ----------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    https://www.lammps.org/, Sandia National Laboratories
-   Steve Plimpton, sjplimp@sandia.gov
+   LAMMPS development team: developers@lammps.org
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
@@ -17,15 +17,16 @@
 #include "pointers.h"
 
 namespace LAMMPS_NS {
+class Compute;
 
 class Integrate : protected Pointers {
  public:
   Integrate(class LAMMPS *, int, char **);
-  virtual ~Integrate();
   virtual void init();
   virtual void setup(int flag) = 0;
   virtual void setup_minimal(int) = 0;
   virtual void run(int) = 0;
+  virtual void force_clear() = 0;
   virtual void cleanup() {}
   virtual void reset_dt() {}
   virtual double memory_usage() { return 0; }
@@ -35,13 +36,8 @@ class Integrate : protected Pointers {
   int virial_style;            // compute virial explicitly or implicitly
   int external_force_clear;    // clear forces locally or externally
 
-  int nelist_global, nelist_atom;    // # of PE,virial computes to check
-  int nvlist_global, nvlist_atom, ncvlist_atom;
-  class Compute **elist_global;    // lists of PE,virial Computes
-  class Compute **elist_atom;
-  class Compute **vlist_global;
-  class Compute **vlist_atom;
-  class Compute **cvlist_atom;
+  // lists of PE,virial Computes
+  std::vector<Compute *> elist_global, elist_atom, vlist_global, vlist_atom, cvlist_atom;
 
   int pair_compute_flag;      // 0 if pair->compute is skipped
   int kspace_compute_flag;    // 0 if kspace->compute is skipped
@@ -53,7 +49,3 @@ class Integrate : protected Pointers {
 }    // namespace LAMMPS_NS
 
 #endif
-
-/* ERROR/WARNING messages:
-
-*/

@@ -3,7 +3,7 @@
  *      POEMS: PARALLELIZABLE OPEN SOURCE EFFICIENT MULTIBODY SOFTWARE     *
  *      DESCRIPTION: SEE READ-ME                                           *
  *      FILE NAME: solver.cpp                                              *
- *      AUTHORS: See Author List                                           * 
+ *      AUTHORS: See Author List                                           *
  *      GRANTS: See Grants List                                            *
  *      COPYRIGHT: (C) 2005 by Authors as listed in Author's List          *
  *      LICENSE: Please see License Agreement                              *
@@ -11,7 +11,7 @@
  *      ADMINISTRATOR: Prof. Kurt Anderson                                 *
  *                     Computational Dynamics Lab                          *
  *                     Rensselaer Polytechnic Institute                    *
- *                     110 8th St. Troy NY 12180                           * 
+ *                     110 8th St. Troy NY 12180                           *
  *      CONTACT:        anderk5@rpi.edu                                    *
  *_________________________________________________________________________*/
 
@@ -19,12 +19,9 @@
 #include "system.h"
 #include "matrices.h"
 
-Solver::Solver(){
+Solver::Solver() = default;
 
-}
-
-Solver::~Solver(){
-}
+Solver::~Solver() = default;
 
 void Solver::SetSystem(System* s){
   system = s;
@@ -37,16 +34,16 @@ system->ComputeForces();
 
 SolverType Solver::GetSolverType()
 {
-	return type;
+  return type;
 }
 
 Solver * Solver::GetSolver(SolverType solverToMake) //returning a pointer to a new Solver object of the appropriate type
 {
-	switch((int)solverToMake)
-	{
-		case ONSOLVER: return new OnSolver();
-		default: return nullptr;
-	}
+  switch((int)solverToMake)
+  {
+    case ONSOLVER: return new OnSolver();
+    default: return nullptr;
+  }
 }
 
 ColMatMap* Solver::GetState(){

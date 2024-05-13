@@ -6,7 +6,7 @@ include command
 Syntax
 """"""
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    include file
 

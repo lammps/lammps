@@ -32,7 +32,7 @@ spherical particles, are calculated as the pairwise sum of N1\*N2
 Lennard-Jones interactions.  Interactions between a line segment with N
 spherical particles and a point particle are treated as the pairwise sum
 of N Lennard-Jones interactions.  See the :doc:`pair_style lj/cut
-<pair_lj>` doc page for the definition of Lennard-Jones interactions.
+<pair_lj>` page for the definition of Lennard-Jones interactions.
 
 The set of non-overlapping spherical sub-particles that represent a
 line segment are generated in the following manner.  Their size is a
@@ -76,7 +76,7 @@ the pair of particles to be included in the neighbor list.
    setting that is consistent with the length of the line segments you
    are using and the sub-particle cutoff settings.
 
-For style *line/lj*\ , the following coefficients must be defined for
+For style *line/lj*, the following coefficients must be defined for
 each pair of atom types via the :doc:`pair_coeff <pair_coeff>` command
 as in the examples above, or in the data file or restart files read by
 the :doc:`read_data <read_data>` or :doc:`read_restart <read_restart>`
@@ -126,7 +126,7 @@ This pair style does not write its information to :doc:`binary restart files <re
 
 This pair style can only be used via the *pair* keyword of the
 :doc:`run_style respa <run_style>` command.  It does not support the
-*inner*\ , *middle*\ , *outer* keywords.
+*inner*, *middle*, *outer* keywords.
 
 ----------
 
@@ -134,7 +134,7 @@ Restrictions
 """"""""""""
 
 This style is part of the ASPHERE package.  It is only enabled if
-LAMMPS was built with that package.  See the :doc:`Build package <Build_package>` doc page for more info.
+LAMMPS was built with that package.  See the :doc:`Build package <Build_package>` page for more info.
 
 Defining particles to be line segments so they participate in
 line/line or line/particle interactions requires the use the

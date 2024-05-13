@@ -42,7 +42,7 @@ command, which determines grad(Vstream) in the equation above.
 E.g. the derivative in the y-direction of the Vx component of fluid
 motion or grad(Vstream) = dVx/dy.  The Pxy off-diagonal component of
 the pressure or stress tensor, as calculated by the :doc:`compute pressure <compute_pressure>` command, can also be monitored, which
-is the J term in the equation above.  See the :doc:`Howto nemd <Howto_nemd>` doc page for details on NEMD simulations.
+is the J term in the equation above.  See the :doc:`Howto nemd <Howto_nemd>` page for details on NEMD simulations.
 
 The third method is to perform a reverse non-equilibrium MD simulation
 using the :doc:`fix viscosity <fix_viscosity>` command which implements
@@ -68,7 +68,8 @@ liquid Ar via the GK formalism:
    # Sample LAMMPS input script for viscosity of liquid Ar
 
    units       real
-   variable    T equal 86.4956
+   variable    T equal 200.0       # run temperature
+   variable    Tinit equal 250.0   # equilibration temperature
    variable    V equal vol
    variable    dt equal 4.0
    variable    p equal 400     # correlation length
@@ -99,12 +100,14 @@ liquid Ar via the GK formalism:
 
    # equilibration and thermalization
 
-   velocity     all create $T 102486 mom yes rot yes dist gaussian
-   fix          NVT all nvt temp $T $T 10 drag 0.2
+   velocity     all create ${Tinit} 102486 mom yes rot yes dist gaussian
+   fix          NVT all nvt temp ${Tinit} ${Tinit} 10 drag 0.2
    run          8000
 
    # viscosity calculation, switch to NVE if desired
 
+   velocity     all create $T 102486 mom yes rot yes dist gaussian
+   fix          NVT all nvt temp $T $T 10 drag 0.2
    #unfix       NVT
    #fix         NVE all nve
 
@@ -122,7 +125,7 @@ liquid Ar via the GK formalism:
    run          100000
    variable     v equal (v_v11+v_v22+v_v33)/3.0
    variable     ndens equal count(all)/vol
-   print        "average viscosity: $v [Pa.s] @ $T K, ${ndens} /A^3"
+   print        "average viscosity: $v [Pa.s] @ $T K, ${ndens} atoms/A^3"
 
 The fifth method is related to the above Green-Kubo method,
 but uses the Einstein formulation, analogous to the Einstein
@@ -131,9 +134,9 @@ time-integrated momentum fluxes play the role of Cartesian
 coordinates, whose mean-square displacement increases linearly
 with time at sufficiently long times.
 
-The sixth is periodic perturbation method. It is also a non-equilibrium MD method.
-However, instead of measure the momentum flux in response of applied velocity gradient,
-it measures the velocity profile in response of applied stress.
+The sixth is the periodic perturbation method, which is also a non-equilibrium MD method.
+However, instead of measuring the momentum flux in response to an applied velocity gradient,
+it measures the velocity profile in response to applied stress.
 A cosine-shaped periodic acceleration is added to the system via the
 :doc:`fix accelerate/cos <fix_accelerate_cos>` command,
 and the :doc:`compute viscosity/cos<compute_viscosity_cos>` command is used to monitor the

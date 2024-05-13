@@ -22,8 +22,8 @@ namespace ATC_Utility
   /** constants */
   static const double Pi_ = 4.0*atan(1.0);
   static const double Big_ = 1.e20;
-  const static double parsetol_ = 1.0e-8; 
-  //const static double parsetol_ = 1.0e-10; 
+  const static double parsetol_ = 1.0e-8;
+  //const static double parsetol_ = 1.0e-10;
   const static double parsebig_ = 1.0e10;
 
   /** scalar triple product */
@@ -59,36 +59,36 @@ namespace ATC_Utility
     return ( (dblL >   dblR) ||
             ((dblL <= (dblR + \
                        std::numeric_limits<double>::epsilon() * \
-                       tolMult * std::max(fabs(dblL), fabs(dblR)))) && 
+                       tolMult * std::max(fabs(dblL), fabs(dblR)))) &&
              (dblR <= (dblL + \
                        std::numeric_limits<double>::epsilon() * \
                        tolMult * std::max(fabs(dblL), fabs(dblR))))));
   }
 
   inline double tolerance(double x, double tol = parsetol_) {
-    return std::max(tol,tol*fabs(x));    
+    return std::max(tol,tol*fabs(x));
   }
   inline double nudge_up(double x)   { return x+tolerance(x); }
   inline double nudge_down(double x) { return x-tolerance(x); }
   inline double parse_min(const char * arg) {
     if      (std::strcmp(arg,"INF") == 0)  return -parsebig_;
     else if (std::strcmp(arg,"-INF") == 0) return -parsebig_;
-    else                                   return (atof(arg)); 
-  } 
-  inline double parse_max(const char * arg) {    
-     if (std::strcmp(arg,"INF") == 0)  return parsebig_;    
+    else                                   return (atof(arg));
+  }
+  inline double parse_max(const char * arg) {
+     if (std::strcmp(arg,"INF") == 0)  return parsebig_;
      else                              return (atof(arg));
-  }   
+  }
   inline double parse_minmax(const char * arg) {
     if      (std::strcmp(arg,"-INF") == 0)  return -parsebig_;
     else if (std::strcmp(arg,"INF") == 0)   return  parsebig_;
-    else                         return atof(arg);  
-  }   
+    else                         return atof(arg);
+  }
   inline void split_values(double & min, double & max) {
     min = nudge_down(min);
     max = nudge_up(max);
-  }   
-    
+  }
+
 
   /** Returns true if the value v is between min &  max */
   template<typename T>
@@ -121,7 +121,7 @@ namespace ATC_Utility
     static double t = t_new;
     double dt = t_new - t;
     t = t_new;
-    return dt; 
+    return dt;
   }
   /** A simple timer */
   inline double timer()
@@ -129,10 +129,10 @@ namespace ATC_Utility
     double t_new = clock() / (double) CLOCKS_PER_SEC;
     static double t = t_new; // done once at first time the function is evoked
     double dt = t_new - t;
-    return dt; 
+    return dt;
   }
   /** Binary search between low & high for value (assumes array is sorted) */
-  
+
   template<typename T>
   inline int search_sorted(const T* A, T value, int low, int high)
   {
@@ -187,7 +187,7 @@ namespace ATC_Utility
   inline std::string to_string(int precision, const double v)
   {
     char b[50];
-    sprintf(b, "%*.*f",4+precision,precision, v); 
+    sprintf(b, "%*.*f",4+precision,precision, v);
     std::string s(b);
     return s;
   }
@@ -222,7 +222,7 @@ namespace ATC_Utility
   inline double str2dbl(const std::string &s) { return str2T(s, double(0.0)); }
 
   /** tests if conversion to double is possible */
-  inline bool is_dbl(const std::string &s) 
+  inline bool is_dbl(const std::string &s)
   {
     char *endptr;
     strtod(s.c_str(), &endptr);
@@ -236,7 +236,7 @@ namespace ATC_Utility
     while (it != s.end() && std::isdigit(*it)) ++it;
     return !s.empty() && it == s.end();
   }
-  
+
   /** convert a string to an int */
   inline int str2int(const std::string &s)    { return str2T(s, int(4)); }
 
@@ -268,7 +268,7 @@ namespace ATC_Utility
     std::transform(s.begin(),s.end(),s.begin(),static_cast<int(*)(int)>(toupper));
     return s;
   }
-  
+
   /** removes any whitespace from the beginning or end of string */
   static std::string& trim(std::string &s)
   {
@@ -289,10 +289,10 @@ namespace ATC_Utility
     {
       begin = s.find_first_not_of(del, end);     // find beginning of fragment
       end = s.find_first_of(del,begin);
-      if (begin != std::string::npos)                 // safe if end is npos-1 
-        ss.push_back(s.substr(begin,end-begin)); 
+      if (begin != std::string::npos)                 // safe if end is npos-1
+        ss.push_back(s.substr(begin,end-begin));
     }
-  } 
+  }
 
   static std::string cap(std::string & s) {
     s[0] = toupper(s[0]);
@@ -310,7 +310,7 @@ namespace ATC_Utility
     }
     return name;
   }
-  
+
   //* scans a string for a list of commands delimited by ', \t' with # comments
   //* @param line The input line to be parsed
   //* @cs A vector of strings parsed from the input line
@@ -321,7 +321,7 @@ namespace ATC_Utility
     to_lower(trim(line));
     split(line, cs);
   }
- 
+
   //* reads a single line from a file and splits it into a vector of strings
   //* returns the number of strings in the vector
   inline int command_line(std::fstream &fid, std::vector<std::string> &cs)

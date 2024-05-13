@@ -44,7 +44,7 @@ change_box      all boundary p p f
 
 pair_style      granular
 pair_coeff      1 * hertz/material 1e5 0.2 0.3 tangential mindlin NULL 1.0 0.5 damping tsuji
-pair_coeff      2 2 jkr 1e5 0.1 0.3 50 tangential mindlin NULL 1.0 0.5 rolling sds 1e3 1e3 0.1 twisting marshall damping tsuji
+pair_coeff      2 2 jkr 1e5 0.1 0.3 50 tangential mindlin NULL 1.0 0.5 rolling sds 1e3 1e3 0.1 twisting marshall 
 
 variable        theta equal 0
 

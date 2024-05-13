@@ -41,7 +41,7 @@ new bonds to the data file.
 It will also generate some commands to be included in the LAMMPS input script,
 which are related to the topology and force field, namely fix drude,
 pair_style and pair_coeff commands. For information on thermostating please
-read the documentation of the USER-DRUDE package.
+read the documentation of the DRUDE package.
 
 This tool can also be used to revert a Drude-polarized data file to a
 non-polarizable one.

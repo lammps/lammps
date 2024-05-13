@@ -1,0 +1,43 @@
+units           metal
+atom_style      atomic
+boundary        p p p
+
+variable        latc  equal 2.87
+lattice         bcc ${latc}
+variable 	xmax equal   10.0
+variable 	xmin equal  -10.0
+variable 	ymax equal   10.0
+variable 	ymin equal  -10.0
+variable 	zmax equal   10.0
+variable 	zmin equal  -10.0
+
+region 		sim_box block ${xmin} ${xmax} ${ymin} ${ymax} ${zmin} ${zmax} &
+                units lattice
+create_box 	1 sim_box
+region 		atom_box block ${xmin} ${xmax} ${ymin} ${ymax} ${zmin} ${zmax} &
+                units lattice
+create_atoms 	1 region atom_box
+
+mass            1 55.845
+
+pair_style      eam/fs
+pair_coeff      * * FeVoter-ChenRecheck.fs Fe
+
+neighbor        2.0 bin
+neigh_modify    every 5 delay 0 check yes
+
+fix             1 all nve
+
+fix             twotemp all ttm 342785 1.2470e-5 0.087614 &
+                0.005365 29.5917 47.5679 58.4613 10 10 10 set 1800.0
+
+compute         pe all pe/atom
+compute         ke all ke/atom
+
+timestep        0.0001
+thermo          100
+
+thermo_style    custom step temp etotal f_twotemp[1] f_twotemp[2]
+                thermo_modify format float "%20.16g"
+
+run             1000

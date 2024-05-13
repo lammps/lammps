@@ -1,0 +1,40 @@
+# -*- makefile -*-
+# *_________________________________________________________________________*
+# *      Minimal BLAS/LAPACK Library for use by other LAMMPS packages
+
+SHELL = /bin/sh
+
+# ------ FILES ------
+
+SRC =	$(wildcard *.cpp)
+
+# ------ DEFINITIONS ------
+
+LIB = liblinalg.a
+OBJ =   $(SRC:.cpp=.o)
+
+# ------ SETTINGS ------
+
+CXX =           g++ -std=c++11
+CCFLAGS =       -O3 -fPIC -ffast-math -fstrict-aliasing
+ARCHIVE =	ar
+AR =	ar
+ARCHFLAG =	-rcs
+USRLIB =
+SYSLIB =
+
+# ------ MAKE PROCEDURE ------
+
+lib: 	$(OBJ)
+	$(ARCHIVE) $(ARFLAGS) $(LIB) $(OBJ)
+
+# ------ COMPILE RULES ------
+
+%.o:%.cpp
+	$(CC) $(CCFLAGS) -c $<
+
+# ------ CLEAN ------
+
+clean:
+	-rm -f *.o *~ $(LIB)
+

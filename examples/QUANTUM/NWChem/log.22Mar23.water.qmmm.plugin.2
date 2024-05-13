@@ -1,0 +1,162 @@
+LAMMPS (8 Feb 2023)
+# QMMM with NWChem
+
+units		real
+atom_style	full
+
+bond_style      harmonic
+angle_style     harmonic
+
+read_data       data.water.qmmm
+Reading data file ...
+  orthogonal box = (-6.879301 -6.879301 -6.879301) to (6.879301 6.879301 6.879301)
+  1 by 1 by 2 MPI processor grid
+  reading atoms ...
+  6 atoms
+  scanning bonds ...
+  2 = max bonds/atom
+  scanning angles ...
+  1 = max angles/atom
+  reading bonds ...
+  4 bonds
+  reading angles ...
+  2 angles
+Finding 1-2 1-3 1-4 neighbors ...
+  special bond factors lj:    0        0        0       
+  special bond factors coul:  0        0        0       
+     2 = max # of 1-2 neighbors
+     1 = max # of 1-3 neighbors
+     1 = max # of 1-4 neighbors
+     2 = max # of special neighbors
+  special bonds CPU = 0.000 seconds
+  read_data CPU = 0.004 seconds
+
+# QM atoms are 1st water
+# MM atoms are 2nd water
+
+group           qm molecule 1
+3 atoms in group qm
+group           mm molecule 2
+3 atoms in group mm
+
+# remove bonds/angles between QM atoms
+
+delete_bonds    qm multi remove special
+System init for delete_bonds ...
+Deleting bonds ...
+  2 total bonds, 2 turned on, 0 turned off
+  1 total angles, 1 turned on, 0 turned off
+  0 total dihedrals, 0 turned on, 0 turned off
+  0 total impropers, 0 turned on, 0 turned off
+Finding 1-2 1-3 1-4 neighbors ...
+  special bond factors lj:    0        0        0       
+  special bond factors coul:  0        0        0       
+     2 = max # of 1-2 neighbors
+     1 = max # of 1-3 neighbors
+     1 = max # of 1-4 neighbors
+     2 = max # of special neighbors
+  special bonds CPU = 0.000 seconds
+
+# pair style must define stand-alone short-range Coulombics
+# must specify mixing explicitly b/c hybrid/overlay
+# QM O,H = types 1,2
+# MM O,H = types 3,4
+# QM O,H atoms do not LJ interact with each other
+# only MM O atoms LJ interact with other b/c MM H is zero
+# MM/QM O do LJ interact with each other, same as pair of MM O atoms
+# MM O and QM H do LJ interact with each other with non-zero H epsilon = 0.044
+#   geometric mixing for epsilon, arithmetic for sigma
+#   this is to provide stability for QM H atoms
+
+# mixing only for MM-O/QM-O and MM-O/QM-H
+
+pair_style      hybrid/overlay lj/cut 6.0 coul/cut 6.0
+pair_coeff      1 1 lj/cut 0.0 3.165558
+pair_coeff      2 2 lj/cut 0.0 0.7
+pair_coeff      3 3 lj/cut 0.155394 3.165558
+pair_coeff      4 4 lj/cut 0.0 0.7
+pair_coeff      1 3 lj/cut 0.155394 3.165558
+pair_coeff      2 3 lj/cut 0.08268818537130924 1.932779
+pair_coeff      * * coul/cut
+
+neighbor	1.0 bin
+neigh_modify	delay 0 every 1 check yes
+
+velocity        all create 300.0 87287 loop geom
+
+# QMMM dynamics
+
+timestep        0.1
+
+fix		1 all nve
+
+fix             2 qm mdi/qmmm potential elements O H O H
+fix_modify      2 energy yes
+
+thermo_style    custom step cpu temp ke evdwl ecoul epair emol elong                 f_2 pe etotal press
+thermo          1
+
+variable        p equal extract_setting(world_size)
+
+mdi             plugin nwchem_mdi mdi "-role ENGINE -name NWChem -method LINK"                 extra "template.water.nw water.nw log.water.pwdft.qmmm.plugin.$p"                 command "run 10"
+run 10
+Generated 0 of 6 mixed pair_coeff terms from geometric mixing rule
+Neighbor list info ...
+  update: every = 1 steps, delay = 0 steps, check = yes
+  max neighbors/atom: 2000, page size: 100000
+  master list distance cutoff = 7
+  ghost atom cutoff = 7
+  binsize = 3.5, bins = 4 4 4
+  2 neighbor lists, perpetual/occasional/extra = 2 0 0
+  (1) pair lj/cut, perpetual, skip from (2)
+      attributes: half, newton on
+      pair build: skip
+      stencil: none
+      bin: none
+  (2) pair coul/cut, perpetual
+      attributes: half, newton on
+      pair build: half/bin/newton
+      stencil: half/bin/3d
+      bin: standard
+Per MPI rank memory allocation (min/avg/max) = 7.453 | 7.453 | 7.453 Mbytes
+   Step          CPU            Temp          KinEng         E_vdwl         E_coul         E_pair         E_mol          E_long          f_2           PotEng         TotEng         Press     
+         0   0              300            4.4712151      0.95937448    -170.68507     -169.7257       3.3962859      0             -10627.88      -10794.209     -10789.738     -296.31485    
+         1   15.528918      304.678        4.5409362      0.95696149    -170.42798     -169.47102      3.3391714      0             -10628.16      -10794.292     -10789.751     -305.47106    
+         2   30.82596       311.2103       4.638294       0.9544861     -170.14543     -169.19094      3.25367        0             -10628.467     -10794.404     -10789.766     -318.76733    
+         3   46.12067       319.44288      4.7609928      0.9519482     -169.8732      -168.92125      3.1420353      0             -10628.766     -10794.545     -10789.784     -336.50512    
+         4   61.426937      329.18604      4.9062053      0.94934821    -169.61533     -168.66598      3.0070837      0             -10629.053     -10794.712     -10789.806     -358.70105    
+         5   76.974028      340.21992      5.0706548      0.94668697    -169.3735      -168.42681      2.8521374      0             -10629.326     -10794.901     -10789.83      -385.34313    
+         6   92.514159      352.2987       5.2506775      0.94396585    -169.1486      -168.20464      2.6809583      0             -10629.584     -10795.108     -10789.857     -416.4029     
+         7   108.02602      365.15519      5.4422913      0.94118664    -168.94156     -168.00037      2.497673       0             -10629.827     -10795.33      -10789.888     -451.84068    
+         8   123.53064      378.50604      5.641273       0.93835162    -168.75364     -167.81529      2.3066899      0             -10630.053     -10795.562     -10789.921     -491.60674    
+         9   139.03936      392.05738      5.8432429      0.93546349    -168.58499     -167.64953      2.1126114      0             -10630.263     -10795.8       -10789.956     -535.62626    
+        10   154.58942      405.51036      6.0437468      0.9325254     -168.43613     -167.50361      1.9201417      0             -10630.455     -10796.038     -10789.994     -583.81041    
+Loop time of 154.589 on 2 procs for 10 steps with 6 atoms
+
+Performance: 0.001 ns/day, 42941.510 hours/ns, 0.065 timesteps/s, 0.388 atom-step/s
+94.9% CPU use with 2 MPI tasks x no OpenMP threads
+
+MPI task timing breakdown:
+Section |  min time  |  avg time  |  max time  |%varavg| %total
+---------------------------------------------------------------
+Pair    | 5.1041e-05 | 5.223e-05  | 5.342e-05  |   0.0 |  0.00
+Bond    | 1.5014e-05 | 2.1316e-05 | 2.7617e-05 |   0.0 |  0.00
+Neigh   | 0          | 0          | 0          |   0.0 |  0.00
+Comm    | 8.387e-05  | 8.7597e-05 | 9.1324e-05 |   0.0 |  0.00
+Output  | 0.00018411 | 0.00020226 | 0.0002204  |   0.0 |  0.00
+Modify  | 154.59     | 154.59     | 154.59     |   0.0 |100.00
+Other   |            | 4.372e-05  |            |       |  0.00
+
+Nlocal:              3 ave           4 max           2 min
+Histogram: 1 0 0 0 0 0 0 0 0 1
+Nghost:             42 ave          46 max          38 min
+Histogram: 1 0 0 0 0 0 0 0 0 1
+Neighs:              6 ave           9 max           3 min
+Histogram: 1 0 0 0 0 0 0 0 0 1
+
+Total # of neighbors = 12
+Ave neighs/atom = 2
+Ave special neighs/atom = 1
+Neighbor list builds = 0
+Dangerous builds = 0
+Total wall time: 0:03:34

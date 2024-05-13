@@ -2,7 +2,7 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    https://www.lammps.org/, Sandia National Laboratories
-   Steve Plimpton, sjplimp@sandia.gov
+   LAMMPS development team: developers@lammps.org
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
@@ -198,7 +198,7 @@ void PairVashishtaTable::twobody_table(const Param &param, double rsq,
   // use analytic form if rsq is inside inner cutoff
 
   if (rsq < tabinnersq) {
-    Param *pparam = const_cast<Param *> (&param);
+    auto pparam = const_cast<Param *> (&param);
     PairVashishta::twobody(pparam,rsq,fforce,eflag,eng);
     return;
   }

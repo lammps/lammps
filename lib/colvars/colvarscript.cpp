@@ -11,11 +11,6 @@
 #include <cstring>
 #include <sstream>
 
-#if defined(NAMD_TCL) || defined(VMDTCL)
-#define COLVARS_TCL
-#include <tcl.h>
-#endif
-
 #include "colvarproxy.h"
 #include "colvardeps.h"
 #include "colvarscript.h"
@@ -23,20 +18,38 @@
 
 
 
-colvarscript::colvarscript(colvarproxy *p)
+#ifdef COLVARS_TCL
+/// Run the script API via Tcl command-line interface
+/// \param clientData Not used
+/// \param my_interp Pointer to Tcl_Interp object (read from Colvars if NULL)
+/// \param objc Number of Tcl command parameters
+/// \param objv Array of command parameters
+/// \return Result of the script command
+extern "C" int tcl_run_colvarscript_command(ClientData clientData,
+                                            Tcl_Interp *interp_in,
+                                            int objc, Tcl_Obj *const objv[]);
+#endif
+
+
+colvarscript::colvarscript(colvarproxy *p, colvarmodule *m)
  : proxy_(p),
-   colvars(p->colvars),
-   proxy_error(0)
+   colvars(m)
 {
   cmd_names = NULL;
   init_commands();
 #ifdef COLVARS_TCL
+  // must be called after constructing derived proxy class to allow for overloading
+  proxy()->init_tcl_pointers();
   // TODO put this in backend functions so we don't have to delete
-  Tcl_Interp *interp = reinterpret_cast<Tcl_Interp *>(proxy_->get_tcl_interp());
+  Tcl_Interp *const interp = proxy()->get_tcl_interp();
+  if (interp == NULL) {
+    cvm::error("Error: trying to construct colvarscript without a Tcl interpreter.\n");
+    return;
+  }
   Tcl_DeleteCommand(interp, "cv");
   Tcl_CreateObjCommand(interp, "cv", tcl_run_colvarscript_command,
                        (ClientData) this, (Tcl_CmdDeleteProc *) NULL);
-  cvm::log("Redefining the Tcl \"cv\" command to the new script interface.");
+  cvm::log("Redefining the Tcl \"cv\" command to the new script interface.\n");
 #endif
 }
 
@@ -57,9 +70,11 @@ int colvarscript::init_commands()
   }
 
   cmd_help.resize(colvarscript::cv_n_commands);
+  cmd_rethelp.resize(colvarscript::cv_n_commands);
   cmd_n_args_min.resize(colvarscript::cv_n_commands);
   cmd_n_args_max.resize(colvarscript::cv_n_commands);
   cmd_arghelp.resize(colvarscript::cv_n_commands);
+  cmd_full_help.resize(colvarscript::cv_n_commands);
   cmd_fns.resize(colvarscript::cv_n_commands);
 
   if (cmd_names) {
@@ -95,24 +110,60 @@ int colvarscript::init_command(colvarscript::command const &comm,
 {
   cmd_str_map[std::string(name)] = comm;
   cmd_names[comm] = name;
-  cmd_help[comm] = help;
+
+  // Initialize short help string and return-value help string (if present)
+  {
+    std::string const help_str(help);
+    std::istringstream is(help_str);
+    std::string line;
+    std::getline(is, line);
+    cmd_help[comm] = line;
+    cmd_rethelp[comm] = "";
+    while (std::getline(is, line)) {
+      cmd_rethelp[comm] += line + "\n";
+    }
+  }
+
+  // Initialize arguments' help strings
   cmd_n_args_min[comm] = n_args_min;
   cmd_n_args_max[comm] = n_args_max;
-  std::string const arghelp_str(arghelp);
-  std::istringstream is(arghelp_str);
-  std::string line;
-  for (int iarg = 0; iarg < n_args_max; iarg++) {
-    if (! std::getline(is, line)) {
-      return cvm::error("Error: could not initialize help string for scripting "
-                        "command \""+std::string(name)+"\".\n", BUG_ERROR);
+  {
+    std::string const arghelp_str(arghelp);
+    std::istringstream is(arghelp_str);
+    std::string line;
+    for (int iarg = 0; iarg < n_args_max; iarg++) {
+      if (! std::getline(is, line)) {
+        return cvm::error("Error: could not initialize help string for scripting "
+                          "command \""+std::string(name)+"\".\n", COLVARS_BUG_ERROR);
+      }
+      cmd_arghelp[comm].push_back(line);
     }
-    cmd_arghelp[comm].push_back(line);
   }
+
+  cmd_full_help[comm] = cmd_help[comm]+"\n";
+  if (cmd_n_args_min[comm] > 0) {
+    cmd_full_help[comm] += "\nParameters\n";
+    cmd_full_help[comm] += "----------\n\n";
+    size_t i;
+    for (i = 0; i < cmd_n_args_min[comm]; i++) {
+      cmd_full_help[comm] += cmd_arghelp[comm][i]+"\n";
+    }
+    for (i = cmd_n_args_min[comm]; i < cmd_n_args_max[comm]; i++) {
+      cmd_full_help[comm] += cmd_arghelp[comm][i]+" (optional)\n";
+    }
+  }
+  if (cmd_rethelp[comm].size() > 0) {
+    cmd_full_help[comm] += "\nReturns\n";
+    cmd_full_help[comm] += "-------\n\n";
+    cmd_full_help[comm] += cmd_rethelp[comm]+"\n";
+  }
+
   cmd_fns[comm] = fn;
   if (cvm::debug()) {
     cvm::log("Defined command \""+std::string(name)+"\", with help string:\n");
-    cvm::log(get_command_help(name));
+    cvm::log(get_command_full_help(name));
   }
+
   return COLVARS_OK;
 }
 
@@ -127,33 +178,82 @@ std::string colvarscript::get_cmd_prefix(colvarscript::Object_type t)
   case use_bias:
     return std::string("bias_"); break;
   default:
-    cvm::error("Error: undefined colvarscript object type.", BUG_ERROR);
+    cvm::error("Error: undefined colvarscript object type.", COLVARS_BUG_ERROR);
     return std::string("");
   }
 }
 
 
-std::string colvarscript::get_command_help(char const *cmd)
+
+char const *colvarscript::get_command_help(char const *cmd)
 {
   if (cmd_str_map.count(cmd) > 0) {
     colvarscript::command const c = cmd_str_map[std::string(cmd)];
-    std::string new_result(cmd_help[c]+"\n");
-    if (cmd_n_args_max[c] == 0) return new_result;
-    new_result += "\nParameters\n";
-    new_result += "----------\n\n";
-    size_t i;
-    for (i = 0; i < cmd_n_args_min[c]; i++) {
-      new_result += cmd_arghelp[c][i]+"\n";
-    }
-    for (i = cmd_n_args_min[c]; i < cmd_n_args_max[c]; i++) {
-      new_result += cmd_arghelp[c][i]+" (optional)\n";
-    }
-    return new_result;
+    return cmd_help[c].c_str();
   }
-
   cvm::error("Error: command "+std::string(cmd)+
-             " is not implemented.\n", INPUT_ERROR);
-  return std::string("");
+             " is not implemented.\n", COLVARS_INPUT_ERROR);
+  return NULL;
+}
+
+
+char const *colvarscript::get_command_rethelp(char const *cmd)
+{
+  if (cmd_str_map.count(cmd) > 0) {
+    colvarscript::command const c = cmd_str_map[std::string(cmd)];
+    return cmd_rethelp[c].c_str();
+  }
+  cvm::error("Error: command "+std::string(cmd)+
+             " is not implemented.\n", COLVARS_INPUT_ERROR);
+  return NULL;
+}
+
+
+char const *colvarscript::get_command_arghelp(char const *cmd, int i)
+{
+  if (cmd_str_map.count(cmd) > 0) {
+    colvarscript::command const c = cmd_str_map[std::string(cmd)];
+    return cmd_arghelp[c][i].c_str();
+  }
+  cvm::error("Error: command "+std::string(cmd)+
+             " is not implemented.\n", COLVARS_INPUT_ERROR);
+  return NULL;
+}
+
+
+int colvarscript::get_command_n_args_min(char const *cmd)
+{
+  if (cmd_str_map.count(cmd) > 0) {
+    colvarscript::command const c = cmd_str_map[std::string(cmd)];
+    return cmd_n_args_min[c];
+  }
+  cvm::error("Error: command "+std::string(cmd)+
+             " is not implemented.\n", COLVARS_INPUT_ERROR);
+  return -1;
+}
+
+
+int colvarscript::get_command_n_args_max(char const *cmd)
+{
+  if (cmd_str_map.count(cmd) > 0) {
+    colvarscript::command const c = cmd_str_map[std::string(cmd)];
+    return cmd_n_args_max[c];
+  }
+  cvm::error("Error: command "+std::string(cmd)+
+             " is not implemented.\n", COLVARS_INPUT_ERROR);
+  return -1;
+}
+
+
+char const *colvarscript::get_command_full_help(char const *cmd)
+{
+  if (cmd_str_map.count(cmd) > 0) {
+    colvarscript::command const c = cmd_str_map[std::string(cmd)];
+    return cmd_full_help[c].c_str();
+  }
+  cvm::error("Error: command "+std::string(cmd)+
+             " is not implemented.\n", COLVARS_INPUT_ERROR);
+  return NULL;
 }
 
 
@@ -234,17 +334,16 @@ std::string colvarscript::get_command_cmdline_help(colvarscript::Object_type t,
   if (cmd_str_map.count(cmdkey) > 0) {
     command const c = cmd_str_map[cmdkey];
     return get_command_cmdline_syntax(t, c)+"\n\n"+
-      get_command_help(cmd_names[c]);
+      get_command_full_help(cmd_names[c]);
   }
-  cvm::error("Error: could not find scripting command \""+cmd+"\".",
-             INPUT_ERROR);
-  return std::string("");
+  cvm::set_error_bits(COLVARS_INPUT_ERROR);
+  return std::string("Could not find scripting command \""+cmd+"\".");
 }
 
 
 int colvarscript::run(int objc, unsigned char *const objv[])
 {
-  result.clear();
+  clear_str_result();
 
   if (cvm::debug()) {
     cvm::log("Called script run with " + cvm::to_str(objc) + " args:");
@@ -346,6 +445,60 @@ int colvarscript::run(int objc, unsigned char *const objv[])
 }
 
 
+char *colvarscript::obj_to_str(unsigned char *obj)
+{
+  char *strobj = reinterpret_cast<char *>(obj);
+  if (cvm::debug()) {
+    cvm::log("Using simple-cast script::obj_to_str(): result = \"" +
+             (strobj ? std::string(strobj) : std::string("(null)")) + "\"");
+  }
+  return strobj;
+}
+
+
+std::vector<std::string> colvarscript::obj_to_str_vector(unsigned char *obj)
+{
+  if (cvm::debug()) {
+    cvm::log("Using simple-cast colvarscript::obj_to_str_vector().\n");
+  }
+
+  std::vector<std::string> new_result;
+  std::string const str(reinterpret_cast<char *>(obj));
+
+  // TODO get rid of this once colvarscript can handle both fix_modify and Tcl?
+  // LAMMPS has a nicer function in the utils class
+
+  for (size_t i = 0; i < str.length(); i++) {
+    char const c = str[i];
+    if (c == '\"') {
+      i++;
+      if (i >= str.length()) {
+        cvm::error("Error: could not split the following string:\n"+
+                   str+"\n", COLVARS_INPUT_ERROR);
+        break;
+      }
+      new_result.push_back(std::string(""));
+      while (str[i] != '\"') {
+        new_result.back().append(1, str[i]);
+        if (i >= str.length()) {
+          cvm::error("Error: could not split the following string:\n"+
+                     str+"\n", COLVARS_INPUT_ERROR);
+          break;
+        } else {
+          i++;
+        }
+      }
+    }
+  }
+
+  if (cvm::debug()) {
+    cvm::log("result = "+cvm::to_str(new_result)+".\n");
+  }
+
+  return new_result;
+}
+
+
 int colvarscript::proc_features(colvardeps *obj,
                                 int objc, unsigned char *const objv[]) {
 
@@ -428,9 +581,9 @@ int colvarscript::set_result_str(std::string const &s)
 {
   if (cvm::get_error() != COLVARS_OK) {
     // Avoid overwriting the error message
-    result += s;
+    modify_str_result() += s;
   } else {
-    result = s;
+    modify_str_result() = s;
   }
   return COLVARS_OK;
 }
@@ -438,17 +591,17 @@ int colvarscript::set_result_str(std::string const &s)
 
 void colvarscript::add_error_msg(std::string const &s)
 {
-  result += s;
+  modify_str_result() += s;
   // Ensure terminating newlines
   if (s[s.size()-1] != '\n') {
-    result += "\n";
+    modify_str_result() += "\n";
   }
 }
 
 
 int colvarscript::clear_str_result()
 {
-  result.clear();
+  modify_str_result().clear();
   return COLVARS_OK;
 }
 
@@ -460,7 +613,7 @@ int run_colvarscript_command(int objc, unsigned char *const objv[])
   colvarscript *script = cv ? cv->proxy->script : NULL;
   if (!script) {
     cvm::error("Called run_colvarscript_command without a script object.\n",
-               BUG_ERROR);
+               COLVARS_BUG_ERROR);
     return -1;
   }
   int retval = script->run(objc, objv);
@@ -487,32 +640,69 @@ const char * get_colvarscript_result()
 int tcl_colvars_vmd_init(Tcl_Interp *interp, int molid);
 #endif
 
-extern "C"
-int tcl_run_colvarscript_command(ClientData /* clientData */,
-                                 Tcl_Interp *my_interp,
-                                 int objc, Tcl_Obj *const objv[])
+#if !defined(VMDTCL) && !defined(NAMD_TCL)
+// Initialize Colvars when loaded as a shared library into Tcl interpreter
+extern "C" {
+  int Colvars_Init(Tcl_Interp *interp) {
+    colvarproxy *proxy = new colvarproxy();
+    colvarmodule *colvars = new colvarmodule(proxy);
+    proxy->set_tcl_interp(interp);
+    proxy->colvars = colvars;
+    Tcl_CreateObjCommand(interp, "cv", tcl_run_colvarscript_command,
+                         (ClientData *) NULL, (Tcl_CmdDeleteProc *) NULL);
+    Tcl_EvalEx(interp, "package provide colvars", -1, 0);
+    return TCL_OK;
+  }
+}
+#endif
+
+
+extern "C" int tcl_run_colvarscript_command(ClientData /* clientData */,
+                                            Tcl_Interp *my_interp,
+                                            int objc, Tcl_Obj *const objv[])
 {
   colvarmodule *colvars = cvm::main();
 
   if (!colvars) {
 #if defined(VMDTCL)
+
+    if (objc == 2) {
+      if (!strcmp(Tcl_GetString(objv[1]), "molid")) {
+        // return invalid molid
+        Tcl_SetResult(my_interp, (char *) "-1", TCL_STATIC);
+      }
+      if (!strcmp(Tcl_GetString(objv[1]), "delete") ||
+          !strcmp(Tcl_GetString(objv[1]), "reset")) {
+        // nothing to delete or reset
+        Tcl_SetResult(my_interp, NULL, TCL_STATIC);
+      }
+      if (!strcmp(Tcl_GetString(objv[1]), "help")) {
+        // print message
+        Tcl_SetResult(my_interp,
+                      (char *) "First, setup the Colvars module with: "
+                      "cv molid <id>|top", TCL_STATIC);
+      }
+      return TCL_OK;
+    }
+
     if (objc >= 3) {
       // require a molid to create the module
       if (!strcmp(Tcl_GetString(objv[1]), "molid")) {
-        int molid = -1;
+        int molid = -(1<<16); // This value is used to indicate "top"
         if (strcmp(Tcl_GetString(objv[2]), "top")) {
           // If this is not "top", get the integer value
           Tcl_GetIntFromObj(my_interp, objv[2], &molid);
         }
         return tcl_colvars_vmd_init(my_interp, molid);
       } else {
-        // TODO allow calling cv help after this
-        Tcl_SetResult(my_interp, (char *) "Syntax error.", TCL_STATIC);
+        Tcl_SetResult(my_interp, (char *) "Syntax error.  First, setup the Colvars module with cv molid <id>|top", TCL_STATIC);
         return TCL_ERROR;
       }
     }
+
     Tcl_SetResult(my_interp, (char *) "First, setup the Colvars module with: "
-                  "cv molid <molecule id>", TCL_STATIC);
+                  "cv molid <id>|top", TCL_STATIC);
+
 #else
     Tcl_SetResult(my_interp,
                   const_cast<char *>("Error: Colvars module not yet initialized"),
@@ -522,8 +712,7 @@ int tcl_run_colvarscript_command(ClientData /* clientData */,
   }
 
   colvarproxy *proxy = colvars->proxy;
-  Tcl_Interp *interp = my_interp ? my_interp :
-    reinterpret_cast<Tcl_Interp *>(proxy->get_tcl_interp());
+  Tcl_Interp *interp = my_interp ? my_interp : proxy->get_tcl_interp();
   colvarscript *script = colvarscript_obj();
   if (!script) {
     char const *errstr = "Called tcl_run_colvarscript_command "
@@ -534,16 +723,25 @@ int tcl_run_colvarscript_command(ClientData /* clientData */,
 
   cvm::clear_error();
 
-  int retval = script->run(objc,
-                           reinterpret_cast<unsigned char * const *>(objv));
+  unsigned char * arg_pointers_[100];
+  if (objc > 100) {
+    std::string const errstr = "Too many positional arguments ("+
+      cvm::to_str(objc)+") passed to the \"cv\" command.\n";
+    Tcl_SetResult(interp, const_cast<char *>(errstr.c_str()), TCL_VOLATILE);
+    return TCL_ERROR;
+  }
+  for (int i = 0; i < objc; i++) {
+    arg_pointers_[i] = reinterpret_cast<unsigned char *>(const_cast<char *>(proxy->tcl_get_str(objv[i])));
+  }
+  int retval = script->run(objc, arg_pointers_);
 
-  std::string result = proxy->get_error_msgs() + script->result;
+  std::string result = proxy->get_error_msgs() + script->str_result();
 
   Tcl_SetResult(interp, const_cast<char *>(result.c_str()),
                 TCL_VOLATILE);
 
-  if (proxy->delete_requested() || cvm::get_error_bit(FATAL_ERROR)) {
-    if (proxy->delete_requested() && !proxy->simulation_running()) {
+  if (proxy->delete_requested()) {
+    if (!proxy->simulation_running()) {
       // Running in VMD
       Tcl_SetResult(interp,
                     const_cast<char *>("Deleting Colvars module"
@@ -558,3 +756,162 @@ int tcl_run_colvarscript_command(ClientData /* clientData */,
 }
 
 #endif // #if defined(COLVARS_TCL)
+
+
+
+
+int colvarscript::set_result_text_from_str(std::string const &x_str,
+                                           unsigned char *obj) {
+  if (obj) {
+    strcpy(reinterpret_cast<char *>(obj), x_str.c_str());
+  } else {
+    set_result_str(x_str);
+  }
+  return COLVARS_OK;
+}
+
+// Template to convert everything to string and use the above
+
+template <typename T>
+int colvarscript::set_result_text(T const &x, unsigned char *obj) {
+  std::string const x_str = x.to_simple_string();
+  return set_result_text_from_str(x_str, obj);
+}
+
+
+template <typename T>
+int colvarscript::pack_vector_elements_text(std::vector<T> const &x,
+                                            std::string &x_str) {
+  x_str.clear();
+  for (size_t i = 0; i < x.size(); ++i) {
+    if (i > 0) x_str.append(1, ' ');
+    x_str += cvm::to_str(x[i]);
+  }
+  return COLVARS_OK;
+}
+
+
+// Specializations for plain old data types that don't have a stringifier member
+
+template <>
+int colvarscript::set_result_text(int const &x, unsigned char *obj) {
+  std::string const x_str = cvm::to_str(x);
+  return set_result_text_from_str(x_str, obj);
+}
+
+template <>
+int colvarscript::set_result_text(std::vector<int> const &x,
+                                  unsigned char *obj) {
+  std::string x_str("");
+  pack_vector_elements_text<int>(x, x_str);
+  return set_result_text_from_str(x_str, obj);
+}
+
+
+template <>
+int colvarscript::set_result_text(long int const &x, unsigned char *obj) {
+  std::string const x_str = cvm::to_str(x);
+  return set_result_text_from_str(x_str, obj);
+}
+
+template <>
+int colvarscript::set_result_text(std::vector<long int> const &x,
+                                  unsigned char *obj) {
+  std::string x_str("");
+  pack_vector_elements_text<long int>(x, x_str);
+  return set_result_text_from_str(x_str, obj);
+}
+
+
+template <>
+int colvarscript::set_result_text(cvm::real const &x, unsigned char *obj) {
+  std::string const x_str = cvm::to_str(x);
+  return set_result_text_from_str(x_str, obj);
+}
+
+template <>
+int colvarscript::set_result_text(std::vector<cvm::real> const &x,
+                                  unsigned char *obj) {
+  std::string x_str("");
+  pack_vector_elements_text<cvm::real>(x, x_str);
+  return set_result_text_from_str(x_str, obj);
+}
+
+
+// TODO these can be removed after the Tcl backend is ready (otherwise, the
+// default template syntax may break scripts or the Dashboard)
+
+template <>
+int colvarscript::set_result_text(std::vector<cvm::rvector> const &x,
+                                  unsigned char *obj) {
+  std::string x_str("");
+  for (size_t i = 0; i < x.size(); i++) {
+    if (i > 0) x_str.append(1, ' ');
+    x_str += "{ "+x[i].to_simple_string()+" }";
+  }
+  return set_result_text_from_str(x_str, obj);
+}
+
+template <>
+int colvarscript::set_result_text(std::vector<colvarvalue> const &x,
+                                  unsigned char *obj) {
+  std::string x_str("");
+  for (size_t i = 0; i < x.size(); i++) {
+    if (i > 0) x_str.append(1, ' ');
+    x_str += "{ "+x[i].to_simple_string()+" }";
+  }
+  return set_result_text_from_str(x_str, obj);
+}
+
+
+// Member functions to set script results for each typexc
+
+int colvarscript::set_result_int(int const &x, unsigned char *obj) {
+  return set_result_text<int>(x, obj);
+}
+
+int colvarscript::set_result_int_vec(std::vector<int> const &x,
+                                     unsigned char *obj) {
+  return set_result_text< std::vector<int> >(x, obj);
+}
+
+
+int colvarscript::set_result_long_int(long int const &x, unsigned char *obj) {
+  return set_result_text<long int>(x, obj);
+}
+
+int colvarscript::set_result_long_int_vec(std::vector<long int> const &x,
+                                          unsigned char *obj) {
+  return set_result_text< std::vector<long int> >(x, obj);
+}
+
+
+int colvarscript::set_result_real(cvm::real const &x, unsigned char *obj) {
+  return set_result_text<cvm::real>(x, obj);
+}
+
+int colvarscript::set_result_real_vec(std::vector<cvm::real> const &x,
+                                      unsigned char *obj) {
+  return set_result_text< std::vector<cvm::real> >(x, obj);
+}
+
+
+int colvarscript::set_result_rvector(cvm::rvector const &x, unsigned char *obj) {
+  return set_result_text<cvm::rvector>(x, obj);
+}
+
+int colvarscript::set_result_rvector_vec(std::vector<cvm::rvector> const &x,
+                                         unsigned char *obj) {
+  return set_result_text< std::vector<cvm::rvector> >(x, obj);
+}
+
+
+int colvarscript::set_result_colvarvalue(colvarvalue const &x,
+                                         unsigned char *obj) {
+  return set_result_text<colvarvalue>(x, obj);
+}
+
+int colvarscript::set_result_colvarvalue_vec(std::vector<colvarvalue> const &x,
+                                             unsigned char *obj) {
+  return set_result_text< std::vector<colvarvalue> >(x, obj);
+}

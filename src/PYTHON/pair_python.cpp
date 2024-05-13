@@ -2,7 +2,7 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    https://www.lammps.org/, Sandia National Laboratories
-   Steve Plimpton, sjplimp@sandia.gov
+   LAMMPS development team: developers@lammps.org
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
@@ -28,7 +28,7 @@
 #include "python_utils.h"
 #include "update.h"
 
-#include <string>
+#include <cstring>
 #include <Python.h>  // IWYU pragma: export
 
 using namespace LAMMPS_NS;
@@ -106,7 +106,7 @@ void PairPython::compute(int eflag, int vflag)
   // prepare access to compute_force and compute_energy functions
 
   PyUtils::GIL lock;
-  PyObject *py_pair_instance = (PyObject *) py_potential;
+  auto py_pair_instance = (PyObject *) py_potential;
   PyObject *py_compute_force = PyObject_GetAttrString(py_pair_instance,"compute_force");
   if (!py_compute_force) {
     PyUtils::Print_Errors();
@@ -253,20 +253,24 @@ void PairPython::coeff(int narg, char **arg)
   if (strcmp(arg[0],"*") != 0 || strcmp(arg[1],"*") != 0)
     error->all(FLERR,"Incorrect args for pair coefficients");
 
-  // check if python potential file exists and source it
+
+  // check if python potential class type exists
+  // load module if necessary
   std::string full_cls_name = arg[2];
+  std::string module_name = "__main__";
+  std::string cls_name = full_cls_name;
+
   size_t lastpos = full_cls_name.rfind(".");
 
-  if (lastpos == std::string::npos) {
-    error->all(FLERR,"Python pair style requires fully qualified class name");
+  if (lastpos != std::string::npos) {
+    module_name = full_cls_name.substr(0, lastpos);
+    cls_name = full_cls_name.substr(lastpos+1);
   }
-
-  std::string module_name = full_cls_name.substr(0, lastpos);
-  std::string cls_name = full_cls_name.substr(lastpos+1);
 
   PyUtils::GIL lock;
 
   PyObject * pModule = PyImport_ImportModule(module_name.c_str());
+
   if (!pModule) {
     PyUtils::Print_Errors();
     error->all(FLERR,"Loading python pair style module failure");
@@ -278,7 +282,7 @@ void PairPython::coeff(int narg, char **arg)
   PyObject *py_pair_type = PyObject_GetAttrString(pModule, cls_name.c_str());
   if (!py_pair_type) {
     PyUtils::Print_Errors();
-    error->all(FLERR,"Could not find pair style class in module'");
+    error->all(FLERR, "Could not find pair style class {} in module {}", cls_name, module_name);
   }
 
   PyObject * py_pair_instance = PyObject_CallObject(py_pair_type, nullptr);
@@ -343,8 +347,8 @@ double PairPython::single(int /* i */, int /* j */, int itype, int jtype,
   // prepare access to compute_force and compute_energy functions
 
   PyUtils::GIL lock;
-  PyObject *py_compute_force = (PyObject *) get_member_function("compute_force");
-  PyObject *py_compute_energy = (PyObject *) get_member_function("compute_energy");
+  auto py_compute_force = (PyObject *) get_member_function("compute_force");
+  auto py_compute_energy = (PyObject *) get_member_function("compute_energy");
   PyObject *py_compute_args = Py_BuildValue("(dii)", rsq, itype, jtype);
 
   if (!py_compute_args) {
@@ -379,7 +383,7 @@ double PairPython::single(int /* i */, int /* j */, int itype, int jtype,
 void * PairPython::get_member_function(const char * name)
 {
   PyUtils::GIL lock;
-  PyObject *py_pair_instance = (PyObject *) py_potential;
+  auto py_pair_instance = (PyObject *) py_potential;
   PyObject * py_mfunc = PyObject_GetAttrString(py_pair_instance, name);
   if (!py_mfunc) {
     PyUtils::Print_Errors();

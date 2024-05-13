@@ -3,6 +3,7 @@
 #ifndef ATC_ERROR
 #define ATC_ERROR
 
+#include <exception>
 #include <string>
 
 // the following two convert __LINE__ to a string
@@ -23,7 +24,7 @@ namespace ATC {
    *  @brief  Base class for throwing run-time errors with descriptions
    */
 
-class ATC_Error {
+class ATC_Error : public std::exception {
 
  public:
   // constructor
@@ -31,17 +32,21 @@ class ATC_Error {
   {
     errorDescription_ = "ERROR: " + errorDescription;
     ERROR_FOR_BACKTRACE
-  };
+  }
 
   ATC_Error(std::string location, std::string errorDescription)
   {
     errorDescription_ = "ERROR: " + location + ": "+ errorDescription;
     ERROR_FOR_BACKTRACE
-  };
+  }
 
   std::string error_description() {
     return errorDescription_;
-  };
+  }
+
+  const char *what() const noexcept override {
+    return errorDescription_.c_str();
+  }
 
  private:
   // string describing the type of error

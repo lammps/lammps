@@ -2,7 +2,7 @@
 /* -*- c++ -*- ----------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    https://www.lammps.org/, Sandia National Laboratories
-   Steve Plimpton, sjplimp@sandia.gov
+   LAMMPS development team: developers@lammps.org
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
@@ -23,19 +23,19 @@ namespace LAMMPS_NS {
 class MinKokkos : public Min {
  public:
   MinKokkos(class LAMMPS *);
-  virtual ~MinKokkos();
-  void init();
-  void setup(int flag=1);
-  void setup_minimal(int);
-  void run(int);
-  double fnorm_sqr();
-  double fnorm_inf();
-  double fnorm_max();
 
-  virtual void init_style() {}
-  virtual void setup_style() = 0;
-  virtual void reset_vectors() = 0;
-  virtual int iterate(int) = 0;
+  void init() override;
+  void setup(int flag=1) override;
+  void setup_minimal(int) override;
+  void run(int) override;
+  double fnorm_sqr() override;
+  double fnorm_inf() override;
+  double fnorm_max() override;
+
+  void init_style() override {}
+  void setup_style() override = 0;
+  void reset_vectors() override = 0;
+  int iterate(int) override = 0;
 
   // possible return values of iterate() method
   enum{MAXITER,MAXEVAL,ETOL,FTOL,DOWNHILL,ZEROALPHA,ZEROFORCE,
@@ -47,14 +47,11 @@ class MinKokkos : public Min {
   DAT::t_ffloat_1d xvec;            // variables for atomic dof, as 1d vector
   DAT::t_ffloat_1d fvec;            // force vector for atomic dof, as 1d vector
 
-  double energy_force(int);
-  void force_clear();
+  double energy_force(int) override;
+  void force_clear() override;
 };
 
 }
 
 #endif
 
-/* ERROR/WARNING messages:
-
-*/

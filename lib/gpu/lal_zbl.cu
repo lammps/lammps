@@ -82,13 +82,13 @@ __kernel void k_zbl(const __global numtyp4 *restrict x_,
                     const __global numtyp4 *restrict coeff1,
                     const __global numtyp4 *restrict coeff2,
                     const __global numtyp4 *restrict coeff3,
-                    const double cut_globalsq,
-                    const double cut_innersq,
-                    const double cut_inner,
+                    const numtyp cut_globalsq,
+                    const numtyp cut_innersq,
+                    const numtyp cut_inner,
                     const int lj_types,
                     const __global int *dev_nbor,
                     const __global int *dev_packed,
-                    __global acctyp4 *restrict ans,
+                    __global acctyp3 *restrict ans,
                     __global acctyp *restrict engv,
                     const int eflag, const int vflag, const int inum,
                     const int nbor_pitch, const int t_per_atom) {
@@ -98,7 +98,7 @@ __kernel void k_zbl(const __global numtyp4 *restrict x_,
   int n_stride;
   local_allocate_store_pair();
 
-  acctyp4 f;
+  acctyp3 f;
   f.x=(acctyp)0; f.y=(acctyp)0; f.z=(acctyp)0;
   acctyp energy, virial[6];
   if (EVFLAG) {
@@ -116,6 +116,7 @@ __kernel void k_zbl(const __global numtyp4 *restrict x_,
     int itype=ix.w;
 
     for ( ; nbor<nbor_end; nbor+=n_stride) {
+      ucl_prefetch(dev_packed+nbor+n_stride);
 
       int j=dev_packed[nbor];
       j &= NEIGHMASK;
@@ -174,12 +175,12 @@ __kernel void k_zbl_fast(const __global numtyp4 *restrict x_,
                          const __global numtyp4 *restrict coeff1_in,
                          const __global numtyp4 *restrict coeff2_in,
                          const __global numtyp4 *restrict coeff3_in,
-                         const double cut_globalsq,
-                         const double cut_innersq,
-                         const double cut_inner,
+                         const numtyp cut_globalsq,
+                         const numtyp cut_innersq,
+                         const numtyp cut_inner,
                          const __global int *dev_nbor,
                          const __global int *dev_packed,
-                         __global acctyp4 *restrict ans,
+                         __global acctyp3 *restrict ans,
                          __global acctyp *restrict engv,
                          const int eflag, const int vflag, const int inum,
                          const int nbor_pitch, const int t_per_atom) {
@@ -198,7 +199,7 @@ __kernel void k_zbl_fast(const __global numtyp4 *restrict x_,
     coeff3[tid]=coeff3_in[tid];
   }
 
-  acctyp4 f;
+  acctyp3 f;
   f.x=(acctyp)0; f.y=(acctyp)0; f.z=(acctyp)0;
   acctyp energy, virial[6];
   if (EVFLAG) {
@@ -219,6 +220,7 @@ __kernel void k_zbl_fast(const __global numtyp4 *restrict x_,
     int itype=fast_mul((int)MAX_SHARED_TYPES,iw);
 
     for ( ; nbor<nbor_end; nbor+=n_stride) {
+      ucl_prefetch(dev_packed+nbor+n_stride);
 
       int j=dev_packed[nbor];
       j &= NEIGHMASK;

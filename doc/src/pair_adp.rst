@@ -1,10 +1,11 @@
 .. index:: pair_style adp
+.. index:: pair_style adp/kk
 .. index:: pair_style adp/omp
 
 pair_style adp command
 ======================
 
-Accelerator Variants: *adp/omp*
+Accelerator Variants: *adp/kk*, *adp/omp*
 
 Syntax
 """"""
@@ -53,7 +54,7 @@ command to specify them.
 
 **ADP potentials are available from:**
 
-* The NIST WWW site at http://www.ctcms.nist.gov/potentials.
+* The NIST WWW site at https://www.ctcms.nist.gov/potentials.
   Note that ADP potentials obtained from NIST must be converted
   into the extended DYNAMO *setfl* format discussed below.
 * The OpenKIM Project at
@@ -72,7 +73,7 @@ where :math:`N` is the number of LAMMPS atom types:
 * filename
 * :math:`N` element names = mapping of extended *setfl* elements to atom types
 
-See the :doc:`pair_coeff <pair_coeff>` doc page for alternate ways to
+See the :doc:`pair_coeff <pair_coeff>` page for alternate ways to
 specify the path for the potential file.
 
 As an example, the potentials/AlCu.adp file, included in the
@@ -156,7 +157,7 @@ an input script that reads a restart file.
 
 This pair style can only be used via the *pair* keyword of the
 :doc:`run_style respa <run_style>` command.  It does not support the
-*inner*\ , *middle*\ , *outer* keywords.
+*inner*, *middle*, *outer* keywords.
 
 ----------
 

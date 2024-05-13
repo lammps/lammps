@@ -1,0 +1,10 @@
+boundary p p p
+kspace_style ewald/electrode 1.0e-8
+
+include "settings.mod" # styles, computes, groups and fixes
+
+thermo_style custom step pe c_qbot c_qtop
+fix conp bot electrode/conp 0 2 couple top 1 symm on ffield yes write_inv inv.csv write_vec vec.csv
+
+run 0
+

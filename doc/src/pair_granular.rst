@@ -37,6 +37,9 @@ Examples
    pair_coeff 1 1 dmt 1000.0 50.0 0.3 0.0 tangential mindlin NULL 0.5 0.5 rolling sds 500.0 200.0 0.5 twisting marshall
    pair_coeff 2 2 dmt 1000.0 50.0 0.3 10.0 tangential mindlin NULL 0.5 0.1 rolling sds 500.0 200.0 0.1 twisting marshall
 
+   pair_style granular
+   pair_coeff * * hertz 1000.0 50.0 tangential mindlin 1000.0 1.0 0.4 heat area 0.1
+
 Description
 """""""""""
 
@@ -97,10 +100,10 @@ on particle *i* due to contact with particle *j* is given by:
 
 Where :math:`\delta_{ij} = R_i + R_j - \|\mathbf{r}_{ij}\|` is the particle
 overlap, :math:`R_i, R_j` are the particle radii, :math:`\mathbf{r}_{ij} = \mathbf{r}_i - \mathbf{r}_j` is the vector separating the two
-particle centers (note the i-j ordering so that :math:`F_{ne}` is
+particle centers (note the i-j ordering so that :math:`\mathbf{F}_{ne}` is
 positive for repulsion), and :math:`\mathbf{n} = \frac{\mathbf{r}_{ij}}{\|\mathbf{r}_{ij}\|}`.  Therefore,
-for *hooke*\ , the units of the spring constant :math:`k_n` are
-*force*\ /\ *distance*\ , or equivalently *mass*\ /*time\^2*.
+for *hooke*, the units of the spring constant :math:`k_n` are
+*force*\ /\ *distance*, or equivalently *mass*\ /*time\^2*.
 
 For the *hertz* model, the normal component of force is given by:
 
@@ -109,7 +112,7 @@ For the *hertz* model, the normal component of force is given by:
    \mathbf{F}_{ne, Hertz} = k_n R_{eff}^{1/2}\delta_{ij}^{3/2} \mathbf{n}
 
 Here, :math:`R_{eff} = \frac{R_i R_j}{R_i + R_j}` is the effective
-radius, denoted for simplicity as *R* from here on.  For *hertz*\ , the
+radius, denoted for simplicity as *R* from here on.  For *hertz*, the
 units of the spring constant :math:`k_n` are *force*\ /\ *length*\ \^2, or
 equivalently *pressure*\ .
 
@@ -188,7 +191,7 @@ for the damping model currently supported are:
 If the *damping* keyword is not specified, the *viscoelastic* model is
 used by default.
 
-For *damping velocity*\ , the normal damping is simply equal to the
+For *damping velocity*, the normal damping is simply equal to the
 user-specified damping coefficient in the *normal* model:
 
 .. math::
@@ -205,7 +208,7 @@ For *damping mass_velocity*, the normal damping is given by:
    \eta_n = \eta_{n0} m_{eff}
 
 Here, :math:`\eta_{n0}` is the damping coefficient specified for the normal
-contact model, in units of *mass*\ /\ *time* and
+contact model, in units of 1/\ *time* and
 :math:`m_{eff} = m_i m_j/(m_i + m_j)` is the effective mass.
 Use *damping mass_velocity* to reproduce the damping behavior of
 *pair gran/hooke/\**.
@@ -219,20 +222,23 @@ damping is given by:
    \eta_n = \eta_{n0}\ a m_{eff}
 
 Here, *a* is the contact radius, given by :math:`a =\sqrt{R\delta}`
-for all models except *jkr*\ , for which it is given implicitly according
-to :math:`\delta = a^2/R - 2\sqrt{\pi \gamma a/E}`.  For *damping viscoelastic*\ ,
+for all models except *jkr*, for which it is given implicitly according
+to :math:`\delta = a^2/R - 2\sqrt{\pi \gamma a/E}`.  For *damping viscoelastic*,
 :math:`\eta_{n0}` is in units of 1/(\ *time*\ \*\ *distance*\ ).
 
-The *tsuji* model is based on the work of :ref:`(Tsuji et al) <Tsuji1992>`. Here, the damping coefficient specified as part of
-the normal model is interpreted as a restitution coefficient
-:math:`e`. The damping constant :math:`\eta_n` is given by:
+The *tsuji* model is based on the work of :ref:`(Tsuji et al) <Tsuji1992>`.
+Here, the damping coefficient specified as part of the normal model is interpreted
+as a restitution coefficient :math:`e`. The damping constant :math:`\eta_n` is
+given by:
 
 .. math::
 
    \eta_n = \alpha (m_{eff}k_n)^{1/2}
 
-For normal contact models based on material parameters, :math:`k_n = 4/3Ea`.  The parameter :math:`\alpha` is related to the restitution
-coefficient *e* according to:
+For normal contact models based on material parameters, :math:`k_n = 4/3Ea`. This
+damping model is not compatible with cohesive normal models such as *JKR* or *DMT*.
+The parameter :math:`\alpha` is related to the restitution coefficient *e*
+according to:
 
 .. math::
 
@@ -302,14 +308,14 @@ The direction of the applied force is :math:`\mathbf{t} = \mathbf{v_{t,rel}}/\|\
 
 The normal force value :math:`F_{n0}` used to compute the critical force
 depends on the form of the contact model. For non-cohesive models
-(\ *hertz*\ , *hertz/material*\ , *hooke*\ ), it is given by the magnitude of
+(\ *hertz*, *hertz/material*, *hooke*\ ), it is given by the magnitude of
 the normal force:
 
 .. math::
 
    F_{n0} = \|\mathbf{F}_n\|
 
-For cohesive models such as *jkr* and *dmt*\ , the critical force is
+For cohesive models such as *jkr* and *dmt*, the critical force is
 adjusted so that the critical tangential force approaches :math:`\mu_t F_{pulloff}`, see :ref:`Marshall <Marshall2009>`, equation 43, and
 :ref:`Thornton <Thornton1991>`.  For both models, :math:`F_{n0}` takes the
 form:
@@ -318,7 +324,7 @@ form:
 
    F_{n0} = \|\mathbf{F}_{ne} + 2 F_{pulloff}\|
 
-Where :math:`F_{pulloff} = 3\pi \gamma R` for *jkr*\ , and
+Where :math:`F_{pulloff} = 3\pi \gamma R` for *jkr*, and
 :math:`F_{pulloff} = 4\pi \gamma R` for *dmt*\ .
 
 The remaining tangential options all use accumulated tangential
@@ -392,7 +398,7 @@ overlap region) to induce a torque on each particle according to:
 
    \mathbf{\tau}_j = -(R_j - 0.5 \delta) \mathbf{n} \times \mathbf{F}_t
 
-For *tangential mindlin*\ , the :ref:`Mindlin <Mindlin1949>` no-slip solution
+For *tangential mindlin*, the :ref:`Mindlin <Mindlin1949>` no-slip solution
 is used which differs from the *linear_history* option by an additional factor
 of :math:`a`, the radius of the contact region. The tangential force is given by:
 
@@ -402,7 +408,7 @@ of :math:`a`, the radius of the contact region. The tangential force is given by
 
 
 Here, :math:`a` is the radius of the contact region, given by :math:`a =\sqrt{R\delta}`
-for all normal contact models, except for *jkr*\ , where it is given
+for all normal contact models, except for *jkr*, where it is given
 implicitly by :math:`\delta = a^2/R - 2\sqrt{\pi \gamma a/E}`, see
 discussion above. To match the Mindlin solution, one should set
 :math:`k_t = 8G_{eff}`, where :math:`G_{eff}` is the effective shear modulus given by:
@@ -415,7 +421,7 @@ where :math:`G` is the shear modulus, related to Young's modulus :math:`E`
 and Poisson's ratio :math:`\nu` by :math:`G = E/(2(1+\nu))`. This can also be
 achieved by specifying *NULL* for :math:`k_t`, in which case a
 normal contact model that specifies material parameters :math:`E` and
-:math:`\nu` is required (e.g. *hertz/material*\ , *dmt* or *jkr*\ ). In this
+:math:`\nu` is required (e.g. *hertz/material*, *dmt* or *jkr*\ ). In this
 case, mixing of the shear modulus for different particle types *i* and
 *j* is done according to the formula above.
 
@@ -455,7 +461,7 @@ the critical force:
 The same rules as those described for *mindlin* apply regarding the tangential
 stiffness and mixing of the shear modulus for different particle types.
 
-The *mindlin_rescale* option uses the same form as *mindlin*\ , but the
+The *mindlin_rescale* option uses the same form as *mindlin*, but the
 magnitude of the tangential displacement is re-scaled as the contact
 unloads, i.e. if :math:`a < a_{t_{n-1}}`:
 
@@ -504,7 +510,7 @@ pure rolling motion of particles. The options currently supported are:
 
 If the *rolling* keyword is not specified, the model defaults to *none*\ .
 
-For *rolling sds*\ , rolling friction is computed via a
+For *rolling sds*, rolling friction is computed via a
 spring-dashpot-slider, using a 'pseudo-force' formulation, as detailed
 by :ref:`Luding <Luding2008>`. Unlike the formulation in
 :ref:`Marshall <Marshall2009>`, this allows for the required adjustment of
@@ -564,7 +570,7 @@ supported are:
 
 If the *twisting* keyword is not specified, the model defaults to *none*\ .
 
-For both *twisting sds* and *twisting marshall*\ , a history-dependent
+For both *twisting sds* and *twisting marshall*, a history-dependent
 spring-dashpot-slider is used to compute the twisting torque. Because
 twisting displacement is a scalar, there is no need to adjust for
 changes in the frame of reference due to rotations of the particle
@@ -591,7 +597,7 @@ if the twisting torque exceeds this critical value:
 
    \xi_{twist} = \frac{1}{k_{twist}} (\mu_{twist} F_{n,0}sgn(\Omega_{twist}) - \gamma_{twist}\Omega_{twist})
 
-For *twisting sds*\ , the coefficients :math:`k_{twist}, \gamma_{twist}`
+For *twisting sds*, the coefficients :math:`k_{twist}, \gamma_{twist}`
 and :math:`\mu_{twist}` are simply the user input parameters that follow
 the *twisting sds* keywords in the *pair_coeff* command.
 
@@ -631,6 +637,48 @@ attractive force. This keyword cannot be used with the JKR or DMT models.
 
 ----------
 
+The optional *heat* keyword enables heat conduction. The options currently
+supported are:
+
+1. *none*
+2. *radius* : :math:`k_{s}`
+3. *area* : :math:`h_{s}`
+
+If the *heat* keyword is not specified, the model defaults to *none*.
+
+For *heat* *radius*, the heat
+:math:`Q` conducted between two particles is given by
+
+.. math::
+
+   Q = 2 k_{s} a \Delta T
+
+where :math:`\Delta T` is the difference in the two particles' temperature,
+:math:`k_{s}` is a non-negative numeric value for the conductivity (in units
+of power/(length*temperature)), and :math:`a` is the radius of the contact and
+depends on the normal force model. This is the model proposed by
+:ref:`Vargas and McCarthy <VargasMcCarthy2001>`.
+
+For *heat* *area*, the heat
+:math:`Q` conducted between two particles is given by
+
+.. math::
+
+   Q = h_{s} A \Delta T
+
+
+where :math:`\Delta T` is the difference in the two particles' temperature,
+:math:`h_{s}` is a non-negative numeric value for the heat transfer
+coefficient (in units of power/(area*temperature)), and :math:`A=\pi a^2` is
+the area of the contact and depends on the normal force model.
+
+Note that the option *none* must either be used in all or none of of the
+*pair_coeff* calls. See :doc:`fix heat/flow <fix_heat_flow>` and
+:doc:`fix property/atom <fix_property_atom>` for more information on this
+option.
+
+----------
+
 The *granular* pair style can reproduce the behavior of the
 *pair gran/\** styles with the appropriate settings (some very
 minor differences can be expected due to corrections in
@@ -641,7 +689,7 @@ is equivalent to *pair gran/hooke 1000.0 NULL 50.0 50.0 0.4 1*\ .
 The second example is equivalent to
 *pair gran/hooke/history 1000.0 500.0 50.0 50.0 0.4 1*\ .
 The third example is equivalent to
-*pair gran/hertz/history 1000.0 500.0 50.0 50.0 0.4 1*\ .
+*pair gran/hertz/history 1000.0 500.0 50.0 50.0 0.4 1 limit_damping*\ .
 
 ----------
 
@@ -665,12 +713,6 @@ then LAMMPS will use that cutoff for the specified atom type
 combination, and automatically set pairwise cutoffs for the remaining
 atom types.
 
-If two particles are moving away from each other while in contact, there
-is a possibility that the particles could experience an effective attractive
-force due to damping. If the *limit_damping* keyword is used, this option
-will zero out the normal component of the force if there is an effective
-attractive force. This keyword cannot be used with the JKR or DMT models.
-
 ----------
 
 .. include:: accel_styles.rst
@@ -690,7 +732,7 @@ interactions is set to :math:`\mu_1`, and friction coefficient for type
 for type1-type2 interactions is computed as :math:`\sqrt{\mu_1\mu_2}`
 (unless explicitly specified to a different value by a *pair_coeff 1 2
 ...* command). The exception to this is elastic modulus, only
-applicable to *hertz/material*\ , *dmt* and *jkr* normal contact
+applicable to *hertz/material*, *dmt* and *jkr* normal contact
 models. In that case, the effective elastic modulus is computed as:
 
 .. math::
@@ -708,30 +750,32 @@ or
 
 .. math::
 
-   E_{eff,ij} = \frac{E_{ij}}{2(1-\nu_{ij})}
+   E_{eff,ij} = \frac{E_{ij}}{2(1-\nu_{ij}^2)}
 
 These pair styles write their information to :doc:`binary restart files <restart>`, so a pair_style command does not need to be
 specified in an input script that reads a restart file.
 
 These pair styles can only be used via the *pair* keyword of the
 :doc:`run_style respa <run_style>` command.  They do not support the
-*inner*\ , *middle*\ , *outer* keywords.
+*inner*, *middle*, *outer* keywords.
 
 The single() function of these pair styles returns 0.0 for the energy
 of a pairwise interaction, since energy is not conserved in these
 dissipative potentials.  It also returns only the normal component of
 the pairwise interaction force.  However, the single() function also
-calculates 12 extra pairwise quantities.  The first 3 are the
+calculates 13 extra pairwise quantities.  The first 3 are the
 components of the tangential force between particles I and J, acting
 on particle I.  The fourth is the magnitude of this tangential force.
 The next 3 (5-7) are the components of the rolling torque acting on
 particle I. The next entry (8) is the magnitude of the rolling torque.
 The next entry (9) is the magnitude of the twisting torque acting
 about the vector connecting the two particle centers.
-The last 3 (10-12) are the components of the vector connecting
-the centers of the two particles (x_I - x_J).
+The next 3 (10-12) are the components of the vector connecting
+the centers of the two particles (x_I - x_J). The last quantity (13)
+is the heat flow between the two particles, set to 0 if no heat model
+is active.
 
-These extra quantities can be accessed by the :doc:`compute pair/local <compute_pair_local>` command, as *p1*\ , *p2*\ , ...,
+These extra quantities can be accessed by the :doc:`compute pair/local <compute_pair_local>` command, as *p1*, *p2*, ...,
 *p12*\ .
 
 ----------
@@ -739,22 +783,30 @@ These extra quantities can be accessed by the :doc:`compute pair/local <compute_
 Restrictions
 """"""""""""
 
-All the granular pair styles are part of the GRANULAR package.  It is
-only enabled if LAMMPS was built with that package.  See the :doc:`Build package <Build_package>` doc page for more info.
+This pair style is part of the GRANULAR package.  It is
+only enabled if LAMMPS was built with that package.
+See the :doc:`Build package <Build_package>` page for more info.
 
-These pair styles require that atoms store torque and angular velocity
-(omega) as defined by the :doc:`atom_style <atom_style>`.  They also
-require a per-particle radius is stored.  The *sphere* atom style does
-all of this.
+This pair style requires that atoms store per-particle radius,
+torque, and angular velocity (omega) as defined by the
+:doc:`atom_style sphere <atom_style>`.
 
-This pair style requires you to use the :doc:`comm_modify vel yes <comm_modify>` command so that velocities are stored by ghost
-atoms.
+This pair style requires you to use the :doc:`comm_modify vel yes <comm_modify>`
+command so that velocities are stored by ghost atoms.
 
-These pair styles will not restart exactly when using the
-:doc:`read_restart <read_restart>` command, though they should provide
-statistically similar results.  This is because the forces they
-compute depend on atom velocities.  See the
-:doc:`read_restart <read_restart>` command for more details.
+This pair style will not restart exactly when using the
+:doc:`read_restart <read_restart>` command, though it should provide
+statistically similar results.  This is because the forces it
+computes depend on atom velocities and the atom velocities have
+been propagated half a timestep between the force computation and
+when the restart is written, due to using Velocity Verlet time
+integration. See the :doc:`read_restart <read_restart>` command
+for more details.
+
+Accumulated values for individual contacts are saved to restart
+files but are not saved to data files. Therefore, forces may
+differ significantly when a system is reloaded using the
+:doc:`read_data <read_data>` command.
 
 Related commands
 """"""""""""""""
@@ -765,7 +817,7 @@ Related commands
 Default
 """""""
 
-For the *pair_coeff* settings: *damping viscoelastic*\ , *rolling none*\ ,
+For the *pair_coeff* settings: *damping viscoelastic*, *rolling none*,
 *twisting none*\ .
 
 References
@@ -858,3 +910,10 @@ J. Appl. Mech., ASME 20, 327-344.
 **(Agnolin and Roux 2007)** Agnolin, I. & Roux, J-N. (2007).
 Internal states of model isotropic granular packings.
 I. Assembling process, geometry, and contact networks. Phys. Rev. E, 76, 061302.
+
+.. _VargasMcCarthy2001:
+
+**(Vargas and McCarthy 2001)** Vargas, W.L. and McCarthy, J.J. (2001).
+Heat conduction in granular materials.
+AIChE Journal, 47(5), 1052-1059.
+

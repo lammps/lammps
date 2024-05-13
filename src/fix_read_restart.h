@@ -1,7 +1,7 @@
 /* -*- c++ -*- ----------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    https://www.lammps.org/, Sandia National Laboratories
-   Steve Plimpton, sjplimp@sandia.gov
+   LAMMPS development team: developers@lammps.org
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
@@ -30,14 +30,14 @@ class FixReadRestart : public Fix {
   double **extra;
 
   FixReadRestart(class LAMMPS *, int, char **);
-  ~FixReadRestart();
-  int setmask();
+  ~FixReadRestart() override;
+  int setmask() override;
 
-  double memory_usage();
-  void grow_arrays(int);
-  void copy_arrays(int, int, int);
-  int pack_exchange(int, double *);
-  int unpack_exchange(int, double *);
+  double memory_usage() override;
+  void grow_arrays(int) override;
+  void copy_arrays(int, int, int) override;
+  int pack_exchange(int, double *) override;
+  int unpack_exchange(int, double *) override;
 
  private:
   int nextra;    // max number of extra values for any atom
@@ -47,6 +47,3 @@ class FixReadRestart : public Fix {
 
 #endif
 #endif
-/* ERROR/WARNING messages:
-
-*/

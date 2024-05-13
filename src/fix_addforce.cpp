@@ -1,8 +1,7 @@
-// clang-format off
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    https://www.lammps.org/, Sandia National Laboratories
-   Steve Plimpton, sjplimp@sandia.gov
+   LAMMPS development team: developers@lammps.org
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
@@ -31,16 +30,15 @@
 using namespace LAMMPS_NS;
 using namespace FixConst;
 
-enum{NONE,CONSTANT,EQUAL,ATOM};
+enum { NONE, CONSTANT, EQUAL, ATOM };
 
 /* ---------------------------------------------------------------------- */
 
 FixAddForce::FixAddForce(LAMMPS *lmp, int narg, char **arg) :
-  Fix(lmp, narg, arg),
-  xstr(nullptr), ystr(nullptr), zstr(nullptr), estr(nullptr),
-  idregion(nullptr), sforce(nullptr)
+    Fix(lmp, narg, arg), xstr(nullptr), ystr(nullptr), zstr(nullptr), estr(nullptr),
+    idregion(nullptr), region(nullptr), sforce(nullptr)
 {
-  if (narg < 6) error->all(FLERR,"Illegal fix addforce command");
+  if (narg < 6) utils::missing_cmd_args(FLERR, "fix addforce", error);
 
   dynamic_group_allow = 1;
   scalar_flag = 1;
@@ -54,71 +52,73 @@ FixAddForce::FixAddForce(LAMMPS *lmp, int narg, char **arg) :
   respa_level_support = 1;
   ilevel_respa = 0;
 
-  xstr = ystr = zstr = nullptr;
-
-  if (utils::strmatch(arg[3],"^v_")) {
-    xstr = utils::strdup(arg[3]+2);
+  if (utils::strmatch(arg[3], "^v_")) {
+    xstr = utils::strdup(arg[3] + 2);
   } else {
-    xvalue = utils::numeric(FLERR,arg[3],false,lmp);
+    xvalue = utils::numeric(FLERR, arg[3], false, lmp);
     xstyle = CONSTANT;
   }
-  if (utils::strmatch(arg[4],"^v_")) {
-    ystr = utils::strdup(arg[4]+2);
+  if (utils::strmatch(arg[4], "^v_")) {
+    ystr = utils::strdup(arg[4] + 2);
   } else {
-    yvalue = utils::numeric(FLERR,arg[4],false,lmp);
+    yvalue = utils::numeric(FLERR, arg[4], false, lmp);
     ystyle = CONSTANT;
   }
-  if (utils::strmatch(arg[5],"^v_")) {
-    zstr = utils::strdup(arg[5]+2);
+  if (utils::strmatch(arg[5], "^v_")) {
+    zstr = utils::strdup(arg[5] + 2);
   } else {
-    zvalue = utils::numeric(FLERR,arg[5],false,lmp);
+    zvalue = utils::numeric(FLERR, arg[5], false, lmp);
     zstyle = CONSTANT;
   }
 
   // optional args
 
   nevery = 1;
-  iregion = -1;
-
   int iarg = 6;
   while (iarg < narg) {
-    if (strcmp(arg[iarg],"every") == 0) {
-      if (iarg+2 > narg) error->all(FLERR,"Illegal fix addforce command");
-      nevery = utils::inumeric(FLERR,arg[iarg+1],false,lmp);
-      if (nevery <= 0) error->all(FLERR,"Illegal fix addforce command");
+    if (strcmp(arg[iarg], "every") == 0) {
+      if (iarg + 2 > narg) utils::missing_cmd_args(FLERR, "fix addforce every", error);
+      nevery = utils::inumeric(FLERR, arg[iarg + 1], false, lmp);
+      if (nevery <= 0) error->all(FLERR, "Invalid fix addforce every argument: {}", nevery);
       iarg += 2;
-    } else if (strcmp(arg[iarg],"region") == 0) {
-      if (iarg+2 > narg) error->all(FLERR,"Illegal fix addforce command");
-      iregion = domain->find_region(arg[iarg+1]);
-      if (iregion == -1)
-        error->all(FLERR,"Region ID for fix addforce does not exist");
-      idregion = utils::strdup(arg[iarg+1]);
+    } else if (strcmp(arg[iarg], "region") == 0) {
+      if (iarg + 2 > narg) utils::missing_cmd_args(FLERR, "fix addforce region", error);
+      region = domain->get_region_by_id(arg[iarg + 1]);
+      if (!region) error->all(FLERR, "Region {} for fix addforce does not exist", arg[iarg + 1]);
+      idregion = utils::strdup(arg[iarg + 1]);
       iarg += 2;
-    } else if (strcmp(arg[iarg],"energy") == 0) {
-      if (iarg+2 > narg) error->all(FLERR,"Illegal fix addforce command");
-      if (utils::strmatch(arg[iarg+1],"^v_")) {
-        estr = utils::strdup(arg[iarg+1]+2);
-      } else error->all(FLERR,"Illegal fix addforce command");
+    } else if (strcmp(arg[iarg], "energy") == 0) {
+      if (iarg + 2 > narg) utils::missing_cmd_args(FLERR, "fix addforce energy", error);
+      if (utils::strmatch(arg[iarg + 1], "^v_")) {
+        estr = utils::strdup(arg[iarg + 1] + 2);
+      } else
+        error->all(FLERR, "Invalid fix addforce energy argument: {}", arg[iarg + 1]);
       iarg += 2;
-    } else error->all(FLERR,"Illegal fix addforce command");
+    } else
+      error->all(FLERR, "Unknown fix addforce keyword: {}", arg[iarg]);
   }
 
   force_flag = 0;
   foriginal[0] = foriginal[1] = foriginal[2] = foriginal[3] = 0.0;
 
   maxatom = 1;
-  memory->create(sforce,maxatom,4,"addforce:sforce");
+  memory->create(sforce, maxatom, 4, "addforce:sforce");
+
+  // KOKKOS package
+
+  datamask_read = X_MASK | F_MASK | MASK_MASK | IMAGE_MASK;
+  datamask_modify = F_MASK;
 }
 
 /* ---------------------------------------------------------------------- */
 
 FixAddForce::~FixAddForce()
 {
-  delete [] xstr;
-  delete [] ystr;
-  delete [] zstr;
-  delete [] estr;
-  delete [] idregion;
+  delete[] xstr;
+  delete[] ystr;
+  delete[] zstr;
+  delete[] estr;
+  delete[] idregion;
   memory->destroy(sforce);
 }
 
@@ -126,8 +126,6 @@ FixAddForce::~FixAddForce()
 
 int FixAddForce::setmask()
 {
-  datamask_read = datamask_modify = 0;
-
   int mask = 0;
   mask |= POST_FORCE;
   mask |= POST_FORCE_RESPA;
@@ -143,60 +141,66 @@ void FixAddForce::init()
 
   if (xstr) {
     xvar = input->variable->find(xstr);
-    if (xvar < 0)
-      error->all(FLERR,"Variable name for fix addforce does not exist");
-    if (input->variable->equalstyle(xvar)) xstyle = EQUAL;
-    else if (input->variable->atomstyle(xvar)) xstyle = ATOM;
-    else error->all(FLERR,"Variable for fix addforce is invalid style");
+    if (xvar < 0) error->all(FLERR, "Variable {} for fix addforce does not exist", xstr);
+    if (input->variable->equalstyle(xvar))
+      xstyle = EQUAL;
+    else if (input->variable->atomstyle(xvar))
+      xstyle = ATOM;
+    else
+      error->all(FLERR, "Variable {} for fix addforce is invalid style", xstr);
   }
   if (ystr) {
     yvar = input->variable->find(ystr);
-    if (yvar < 0)
-      error->all(FLERR,"Variable name for fix addforce does not exist");
-    if (input->variable->equalstyle(yvar)) ystyle = EQUAL;
-    else if (input->variable->atomstyle(yvar)) ystyle = ATOM;
-    else error->all(FLERR,"Variable for fix addforce is invalid style");
+    if (yvar < 0) error->all(FLERR, "Variable {} for fix addforce does not exist", ystr);
+    if (input->variable->equalstyle(yvar))
+      ystyle = EQUAL;
+    else if (input->variable->atomstyle(yvar))
+      ystyle = ATOM;
+    else
+      error->all(FLERR, "Variable {} for fix addforce is invalid style", ystr);
   }
   if (zstr) {
     zvar = input->variable->find(zstr);
-    if (zvar < 0)
-      error->all(FLERR,"Variable name for fix addforce does not exist");
-    if (input->variable->equalstyle(zvar)) zstyle = EQUAL;
-    else if (input->variable->atomstyle(zvar)) zstyle = ATOM;
-    else error->all(FLERR,"Variable for fix addforce is invalid style");
+    if (zvar < 0) error->all(FLERR, "Variable {} for fix addforce does not exist", zstr);
+    if (input->variable->equalstyle(zvar))
+      zstyle = EQUAL;
+    else if (input->variable->atomstyle(zvar))
+      zstyle = ATOM;
+    else
+      error->all(FLERR, "Variable {} for fix addforce is invalid style", zstr);
   }
   if (estr) {
     evar = input->variable->find(estr);
-    if (evar < 0)
-      error->all(FLERR,"Variable name for fix addforce does not exist");
-    if (input->variable->atomstyle(evar)) estyle = ATOM;
-    else error->all(FLERR,"Variable for fix addforce is invalid style");
-  } else estyle = NONE;
+    if (evar < 0) error->all(FLERR, "Variable {} for fix addforce does not exist", estr);
+    if (input->variable->atomstyle(evar))
+      estyle = ATOM;
+    else
+      error->all(FLERR, "Variable {} for fix addforce is invalid style", estr);
+  } else
+    estyle = NONE;
 
   // set index and check validity of region
 
-  if (iregion >= 0) {
-    iregion = domain->find_region(idregion);
-    if (iregion == -1)
-      error->all(FLERR,"Region ID for fix addforce does not exist");
+  if (idregion) {
+    region = domain->get_region_by_id(idregion);
+    if (!region) error->all(FLERR, "Region {} for fix addforce does not exist", idregion);
   }
 
   if (xstyle == ATOM || ystyle == ATOM || zstyle == ATOM)
     varflag = ATOM;
   else if (xstyle == EQUAL || ystyle == EQUAL || zstyle == EQUAL)
     varflag = EQUAL;
-  else varflag = CONSTANT;
+  else
+    varflag = CONSTANT;
 
   if (varflag == CONSTANT && estyle != NONE)
-    error->all(FLERR,"Cannot use variable energy with "
-               "constant force in fix addforce");
-  if ((varflag == EQUAL || varflag == ATOM) &&
-      update->whichflag == 2 && estyle == NONE)
-    error->all(FLERR,"Must use variable energy with fix addforce");
+    error->all(FLERR, "Cannot use variable energy with constant force in fix addforce");
+  if ((varflag == EQUAL || varflag == ATOM) && update->whichflag == 2 && estyle == NONE)
+    error->all(FLERR, "Must use variable energy with fix addforce");
 
-  if (utils::strmatch(update->integrate_style,"^respa")) {
-    ilevel_respa = ((Respa *) update->integrate)->nlevels-1;
-    if (respa_level >= 0) ilevel_respa = MIN(respa_level,ilevel_respa);
+  if (utils::strmatch(update->integrate_style, "^respa")) {
+    ilevel_respa = (dynamic_cast<Respa *>(update->integrate))->nlevels - 1;
+    if (respa_level >= 0) ilevel_respa = MIN(respa_level, ilevel_respa);
   }
 }
 
@@ -204,12 +208,12 @@ void FixAddForce::init()
 
 void FixAddForce::setup(int vflag)
 {
-  if (utils::strmatch(update->integrate_style,"^verlet"))
+  if (utils::strmatch(update->integrate_style, "^verlet"))
     post_force(vflag);
   else {
-    ((Respa *) update->integrate)->copy_flevel_f(ilevel_respa);
-    post_force_respa(vflag,ilevel_respa,0);
-    ((Respa *) update->integrate)->copy_f_flevel(ilevel_respa);
+    (dynamic_cast<Respa *>(update->integrate))->copy_flevel_f(ilevel_respa);
+    post_force_respa(vflag, ilevel_respa, 0);
+    (dynamic_cast<Respa *>(update->integrate))->copy_f_flevel(ilevel_respa);
   }
 }
 
@@ -237,24 +241,16 @@ void FixAddForce::post_force(int vflag)
 
   v_init(vflag);
 
-  if (lmp->kokkos)
-    atom->sync_modify(Host, (unsigned int) (F_MASK | MASK_MASK),
-                      (unsigned int) F_MASK);
-
   // update region if necessary
 
-  Region *region = nullptr;
-  if (iregion >= 0) {
-    region = domain->regions[iregion];
-    region->prematch();
-  }
+  if (region) region->prematch();
 
   // reallocate sforce array if necessary
 
   if ((varflag == ATOM || estyle == ATOM) && atom->nmax > maxatom) {
     maxatom = atom->nmax;
     memory->destroy(sforce);
-    memory->create(sforce,maxatom,4,"addforce:sforce");
+    memory->create(sforce, maxatom, 4, "addforce:sforce");
   }
 
   // foriginal[0] = "potential energy" for added force
@@ -270,9 +266,9 @@ void FixAddForce::post_force(int vflag)
     double unwrap[3];
     for (int i = 0; i < nlocal; i++)
       if (mask[i] & groupbit) {
-        if (region && !region->match(x[i][0],x[i][1],x[i][2])) continue;
-        domain->unmap(x[i],image[i],unwrap);
-        foriginal[0] -= xvalue*unwrap[0] + yvalue*unwrap[1] + zvalue*unwrap[2];
+        if (region && !region->match(x[i][0], x[i][1], x[i][2])) continue;
+        domain->unmap(x[i], image[i], unwrap);
+        foriginal[0] -= xvalue * unwrap[0] + yvalue * unwrap[1] + zvalue * unwrap[2];
         foriginal[1] += f[i][0];
         foriginal[2] += f[i][1];
         foriginal[3] += f[i][2];
@@ -286,37 +282,39 @@ void FixAddForce::post_force(int vflag)
           v[3] = xvalue * unwrap[1];
           v[4] = xvalue * unwrap[2];
           v[5] = yvalue * unwrap[2];
-          v_tally(i,v);
+          v_tally(i, v);
         }
       }
 
-  // variable force, wrap with clear/add
-  // potential energy = evar if defined, else 0.0
-  // wrap with clear/add
+    // variable force, wrap with clear/add
+    // potential energy = evar if defined, else 0.0
+    // wrap with clear/add
 
   } else {
     double unwrap[3];
 
     modify->clearstep_compute();
 
-    if (xstyle == EQUAL) xvalue = input->variable->compute_equal(xvar);
+    if (xstyle == EQUAL)
+      xvalue = input->variable->compute_equal(xvar);
     else if (xstyle == ATOM)
-      input->variable->compute_atom(xvar,igroup,&sforce[0][0],4,0);
-    if (ystyle == EQUAL) yvalue = input->variable->compute_equal(yvar);
+      input->variable->compute_atom(xvar, igroup, &sforce[0][0], 4, 0);
+    if (ystyle == EQUAL)
+      yvalue = input->variable->compute_equal(yvar);
     else if (ystyle == ATOM)
-      input->variable->compute_atom(yvar,igroup,&sforce[0][1],4,0);
-    if (zstyle == EQUAL) zvalue = input->variable->compute_equal(zvar);
+      input->variable->compute_atom(yvar, igroup, &sforce[0][1], 4, 0);
+    if (zstyle == EQUAL)
+      zvalue = input->variable->compute_equal(zvar);
     else if (zstyle == ATOM)
-      input->variable->compute_atom(zvar,igroup,&sforce[0][2],4,0);
-    if (estyle == ATOM)
-      input->variable->compute_atom(evar,igroup,&sforce[0][3],4,0);
+      input->variable->compute_atom(zvar, igroup, &sforce[0][2], 4, 0);
+    if (estyle == ATOM) input->variable->compute_atom(evar, igroup, &sforce[0][3], 4, 0);
 
     modify->addstep_compute(update->ntimestep + 1);
 
     for (int i = 0; i < nlocal; i++) {
       if (mask[i] & groupbit) {
-        if (region && !region->match(x[i][0],x[i][1],x[i][2])) continue;
-        domain->unmap(x[i],image[i],unwrap);
+        if (region && !region->match(x[i][0], x[i][1], x[i][2])) continue;
+        domain->unmap(x[i], image[i], unwrap);
         if (xstyle == ATOM) xvalue = sforce[i][0];
         if (ystyle == ATOM) yvalue = sforce[i][1];
         if (zstyle == ATOM) zvalue = sforce[i][2];
@@ -324,9 +322,9 @@ void FixAddForce::post_force(int vflag)
         if (estyle == ATOM) {
           foriginal[0] += sforce[i][3];
         } else {
-          if (xstyle) foriginal[0] -= xvalue*unwrap[0];
-          if (ystyle) foriginal[0] -= yvalue*unwrap[1];
-          if (zstyle) foriginal[0] -= zvalue*unwrap[2];
+          if (xstyle) foriginal[0] -= xvalue * unwrap[0];
+          if (ystyle) foriginal[0] -= yvalue * unwrap[1];
+          if (zstyle) foriginal[0] -= zvalue * unwrap[2];
         }
         foriginal[1] += f[i][0];
         foriginal[2] += f[i][1];
@@ -336,13 +334,13 @@ void FixAddForce::post_force(int vflag)
         if (ystyle) f[i][1] += yvalue;
         if (zstyle) f[i][2] += zvalue;
         if (evflag) {
-          v[0] = xstyle ? xvalue*unwrap[0] : 0.0;
-          v[1] = ystyle ? yvalue*unwrap[1] : 0.0;
-          v[2] = zstyle ? zvalue*unwrap[2] : 0.0;
-          v[3] = xstyle ? xvalue*unwrap[1] : 0.0;
-          v[4] = xstyle ? xvalue*unwrap[2] : 0.0;
-          v[5] = ystyle ? yvalue*unwrap[2] : 0.0;
-          v_tally(i,v);
+          v[0] = xstyle ? xvalue * unwrap[0] : 0.0;
+          v[1] = ystyle ? yvalue * unwrap[1] : 0.0;
+          v[2] = zstyle ? zvalue * unwrap[2] : 0.0;
+          v[3] = xstyle ? xvalue * unwrap[1] : 0.0;
+          v[4] = xstyle ? xvalue * unwrap[2] : 0.0;
+          v[5] = ystyle ? yvalue * unwrap[2] : 0.0;
+          v_tally(i, v);
         }
       }
     }
@@ -372,7 +370,7 @@ double FixAddForce::compute_scalar()
   // only sum across procs one time
 
   if (force_flag == 0) {
-    MPI_Allreduce(foriginal,foriginal_all,4,MPI_DOUBLE,MPI_SUM,world);
+    MPI_Allreduce(foriginal, foriginal_all, 4, MPI_DOUBLE, MPI_SUM, world);
     force_flag = 1;
   }
   return foriginal_all[0];
@@ -387,10 +385,10 @@ double FixAddForce::compute_vector(int n)
   // only sum across procs one time
 
   if (force_flag == 0) {
-    MPI_Allreduce(foriginal,foriginal_all,4,MPI_DOUBLE,MPI_SUM,world);
+    MPI_Allreduce(foriginal, foriginal_all, 4, MPI_DOUBLE, MPI_SUM, world);
     force_flag = 1;
   }
-  return foriginal_all[n+1];
+  return foriginal_all[n + 1];
 }
 
 /* ----------------------------------------------------------------------
@@ -400,6 +398,6 @@ double FixAddForce::compute_vector(int n)
 double FixAddForce::memory_usage()
 {
   double bytes = 0.0;
-  if (varflag == ATOM) bytes = maxatom*4 * sizeof(double);
+  if (varflag == ATOM) bytes = maxatom * 4 * sizeof(double);
   return bytes;
 }

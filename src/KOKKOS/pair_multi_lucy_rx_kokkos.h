@@ -1,8 +1,7 @@
-// clang-format off
 /* -*- c++ -*- ----------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    https://www.lammps.org/, Sandia National Laboratories
-   Steve Plimpton, sjplimp@sandia.gov
+   LAMMPS development team: developers@lammps.org
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
@@ -20,6 +19,7 @@ PairStyle(multi/lucy/rx/kk/host,PairMultiLucyRXKokkos<LMPHostType>);
 // clang-format on
 #else
 
+// clang-format off
 #ifndef LMP_PAIR_MULTI_LUCY_RX_KOKKOS_H
 #define LMP_PAIR_MULTI_LUCY_RX_KOKKOS_H
 
@@ -52,22 +52,22 @@ class PairMultiLucyRXKokkos : public PairMultiLucyRX, public KokkosBase {
   typedef EV_FLOAT value_type;
 
   PairMultiLucyRXKokkos(class LAMMPS *);
-  virtual ~PairMultiLucyRXKokkos();
+  ~PairMultiLucyRXKokkos() override;
 
-  void compute(int, int);
-  void settings(int, char **);
+  void compute(int, int) override;
+  void settings(int, char **) override;
 
   template<int TABSTYLE>
   void compute_style(int, int);
 
-  void init_style();
-  int pack_forward_comm_kokkos(int, DAT::tdual_int_2d, int, DAT::tdual_xfloat_1d&,
-                               int, int *);
-  void unpack_forward_comm_kokkos(int, int, DAT::tdual_xfloat_1d&);
-  int pack_forward_comm(int, int *, double *, int, int *);
-  void unpack_forward_comm(int, int, double *);
-  int pack_reverse_comm(int, int, double *);
-  void unpack_reverse_comm(int, int *, double *);
+  void init_style() override;
+  int pack_forward_comm_kokkos(int, DAT::tdual_int_1d, DAT::tdual_xfloat_1d&,
+                               int, int *) override;
+  void unpack_forward_comm_kokkos(int, int, DAT::tdual_xfloat_1d&) override;
+  int pack_forward_comm(int, int *, double *, int, int *) override;
+  void unpack_forward_comm(int, int, double *) override;
+  int pack_reverse_comm(int, int, double *) override;
+  void unpack_reverse_comm(int, int *, double *) override;
   void computeLocalDensity();
 
   KOKKOS_INLINE_FUNCTION
@@ -150,7 +150,7 @@ class PairMultiLucyRXKokkos : public PairMultiLucyRX, public KokkosBase {
 
   F_FLOAT m_cutsq[MAX_TYPES_STACKPARAMS+1][MAX_TYPES_STACKPARAMS+1];
 
-  void allocate();
+  void allocate() override;
   int update_table;
   void create_kokkos_tables();
 
@@ -181,9 +181,8 @@ class PairMultiLucyRXKokkos : public PairMultiLucyRX, public KokkosBase {
   typename AT::tdual_ffloat_2d k_cutsq;
   typename AT::t_ffloat_2d d_cutsq;
 
-  int iswap;
   int first;
-  typename AT::t_int_2d d_sendlist;
+  typename AT::t_int_1d d_sendlist;
   typename AT::t_xfloat_1d_um v_buf;
 
   friend void pair_virial_fdotr_compute<PairMultiLucyRXKokkos>(PairMultiLucyRXKokkos*);
@@ -194,75 +193,3 @@ class PairMultiLucyRXKokkos : public PairMultiLucyRX, public KokkosBase {
 #endif
 #endif
 
-/* ERROR/WARNING messages:
-
-E: Pair multi/lucy/rx command requires atom_style with density (e.g. dpd, meso)
-
-Self-explanatory
-
-E: Density < table inner cutoff
-
-The local density inner is smaller than the inner cutoff
-
-E: Density > table inner cutoff
-
-The local density inner is greater than the inner cutoff
-
-E: Only LOOKUP and LINEAR table styles have been implemented for pair multi/lucy/rx
-
-Self-explanatory
-
-E: Illegal ... command
-
-Self-explanatory.  Check the input script syntax and compare to the
-documentation for the command.  You can use -echo screen as a
-command-line option when running LAMMPS to see the offending line.
-
-E:  Unknown table style in pair_style command
-
-Self-explanatory
-
-E: Illegal number of pair table entries
-
-There must be at least 2 table entries.
-
-E: Illegal pair_coeff command
-
-All pair coefficients must be set in the data file or by the
-pair_coeff command before running a simulation.
-
-E: PairMultiLucyRXKokkos requires a fix rx command
-
-The fix rx command must come before the pair style command in the input file
-
-E:  There are no rx species specified
-
-There must be at least one species specified through the fix rx command
-
-E: Invalid pair table length
-
-Length of read-in pair table is invalid
-
-E: All pair coeffs are not set
-
-All pair coefficients must be set in the data file or by the
-pair_coeff command before running a simulation.
-
-E: Cannot open file %s
-
-The specified file cannot be opened.  Check that the path and name are
-correct.
-
-E: Did not find keyword in table file
-
-Keyword used in pair_coeff command was not found in table file.
-
-E: Invalid keyword in pair table parameters
-
-Keyword used in list of table parameters is not recognized.
-
-E: Pair table parameters did not set N
-
-List of pair table parameters must include N setting.
-
-*/

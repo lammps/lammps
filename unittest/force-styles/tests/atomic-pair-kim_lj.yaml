@@ -1,7 +1,7 @@
 ---
 lammps_version: 10 Feb 2021
 date_generated: Fri Feb 26 23:09:03 2021
-epsilon: 5e-13
+epsilon: 1e-12
 prerequisites: ! |
   pair kim
 pre_commands: ! |
@@ -14,7 +14,8 @@ input_file: in.metal
 pair_style: kim ex_model_Ar_P_LJ
 pair_coeff: ! |
   * * Ar Ar
-extract: ! ""
+extract: ! |
+ scale 0
 natoms: 32
 init_vdwl: 9544.77366960673
 init_coul: 0

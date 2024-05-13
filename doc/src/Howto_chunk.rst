@@ -51,7 +51,7 @@ scales the floating point value to spread it across multiple integers.
 Spatial bins can be of various kinds, e.g. 1d bins = slabs, 2d bins =
 pencils, 3d bins = boxes, spherical bins, cylindrical bins.
 
-This compute also calculates the number of chunks *Nchunk*\ , which is
+This compute also calculates the number of chunks *Nchunk*, which is
 used by other commands to tally per-chunk data.  *Nchunk* can be a
 static value or change over time (e.g. the number of clusters).  The
 chunk ID for an individual atom can also be static (e.g. a molecule

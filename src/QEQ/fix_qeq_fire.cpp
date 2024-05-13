@@ -1,8 +1,7 @@
-// clang-format off
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    https://www.lammps.org/, Sandia National Laboratories
-   Steve Plimpton, sjplimp@sandia.gov
+   LAMMPS development team: developers@lammps.org
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
@@ -22,14 +21,11 @@
 #include "comm.h"
 #include "error.h"
 #include "force.h"
-#include "group.h"
 #include "kspace.h"
 #include "neigh_list.h"
-#include "neigh_request.h"
 #include "neighbor.h"
 #include "pair_comb.h"
 #include "pair_comb3.h"
-#include "respa.h"
 #include "update.h"
 
 #include <cmath>
@@ -38,17 +34,17 @@
 using namespace LAMMPS_NS;
 using namespace FixConst;
 
-#define DELAYSTEP 0
-#define DT_GROW 1.1
-#define DT_SHRINK 0.5
-#define ALPHA0 0.8
-#define ALPHA_SHRINK 0.10
-#define TMAX 10.0
+static constexpr int DELAYSTEP = 0;
+static constexpr double DT_GROW = 1.1;
+static constexpr double DT_SHRINK = 0.5;
+static constexpr double ALPHA0 = 0.8;
+static constexpr double ALPHA_SHRINK = 0.10;
+static constexpr double TMAX = 10.0;
 
 /* ---------------------------------------------------------------------- */
 
 FixQEqFire::FixQEqFire(LAMMPS *lmp, int narg, char **arg) :
-  FixQEq(lmp, narg, arg), comb(nullptr), comb3(nullptr)
+    FixQEq(lmp, narg, arg), comb(nullptr), comb3(nullptr)
 {
   qdamp = 0.20;
   qstep = 0.20;
@@ -56,15 +52,20 @@ FixQEqFire::FixQEqFire(LAMMPS *lmp, int narg, char **arg) :
   int iarg = 8;
   while (iarg < narg) {
 
-    if (strcmp(arg[iarg],"qdamp") == 0) {
-      if (iarg+2 > narg) error->all(FLERR,"Illegal fix qeq/fire command");
-      qdamp = atof(arg[iarg+1]);
+    if (strcmp(arg[iarg], "qdamp") == 0) {
+      if (iarg + 2 > narg) utils::missing_cmd_args(FLERR, "fix qeq/fire qdamp", error);
+      qdamp = utils::numeric(FLERR, arg[iarg + 1], false, lmp);
       iarg += 2;
-    } else if (strcmp(arg[iarg],"qstep") == 0) {
-      if (iarg+2 > narg) error->all(FLERR,"Illegal fix qeq/fire command");
-      qstep = atof(arg[iarg+1]);
+    } else if (strcmp(arg[iarg], "qstep") == 0) {
+      if (iarg + 2 > narg) utils::missing_cmd_args(FLERR, "fix qeq/fire qstep", error);
+      qstep = utils::numeric(FLERR, arg[iarg + 1], false, lmp);
       iarg += 2;
-    } else error->all(FLERR,"Illegal fix qeq/fire command");
+    } else if (strcmp(arg[iarg], "warn") == 0) {
+      if (iarg + 2 > narg) utils::missing_cmd_args(FLERR, "fix qeq/fire warn", error);
+      maxwarn = utils::logical(FLERR, arg[iarg + 1], false, lmp);
+      iarg += 2;
+    } else
+      error->all(FLERR, "Unknown fix qeq/fire keyword: {}", arg[iarg]);
   }
 }
 
@@ -72,28 +73,17 @@ FixQEqFire::FixQEqFire(LAMMPS *lmp, int narg, char **arg) :
 
 void FixQEqFire::init()
 {
-  if (!atom->q_flag)
-    error->all(FLERR,"Fix qeq/fire requires atom attribute q");
+  FixQEq::init();
 
-  ngroup = group->count(igroup);
-  if (ngroup == 0) error->all(FLERR,"Fix qeq/fire group has no atoms");
-
-  int irequest = neighbor->request(this,instance_me);
-  neighbor->requests[irequest]->pair = 0;
-  neighbor->requests[irequest]->fix  = 1;
-  neighbor->requests[irequest]->half = 1;
-  neighbor->requests[irequest]->full = 0;
+  neighbor->add_request(this);
 
   if (tolerance < 1e-4)
     if (comm->me == 0)
-      error->warning(FLERR,"Fix qeq/fire tolerance may be too small"
-                    " for damped fires");
+      error->warning(FLERR, "Fix qeq/fire tolerance {} may be too small for damped fires",
+                     tolerance);
 
-  if (utils::strmatch(update->integrate_style,"^respa"))
-    nlevels_respa = ((Respa *) update->integrate)->nlevels;
-
-  comb3 = (PairComb3 *) force->pair_match("^comb3",0);
-  if (!comb3) comb = (PairComb *) force->pair_match("^comb",0);
+  comb3 = dynamic_cast<PairComb3 *>(force->pair_match("^comb3", 0));
+  if (!comb3) comb = dynamic_cast<PairComb *>(force->pair_match("^comb", 0));
 }
 
 /* ---------------------------------------------------------------------- */
@@ -101,13 +91,13 @@ void FixQEqFire::init()
 void FixQEqFire::pre_force(int /*vflag*/)
 {
   int inum, *ilist;
-  int i,ii,iloop;
+  int i, ii, iloop;
 
   double *q = atom->q;
-  double vmax,vdotf,vdotfall,vdotv,vdotvall,fdotf,fdotfall;
-  double scale1,scale2;
-  double dtvone,dtv;
-  double enegtot,enegchk;
+  double vmax, vdotf, vdotfall, vdotv, vdotvall, fdotf, fdotfall;
+  double scale1, scale2;
+  double dtvone, dtv;
+  double enegtot, enegchk;
   double alpha = qdamp;
   double dt, dtmax;
   double enegchkall;
@@ -129,15 +119,15 @@ void FixQEqFire::pre_force(int /*vflag*/)
   dt = qstep;
   dtmax = TMAX * dt;
 
-  for (iloop = 0; iloop < maxiter; iloop ++) {
+  for (iloop = 0; iloop < maxiter; iloop++) {
     pack_flag = 1;
-    comm->forward_comm_fix(this);
+    comm->forward_comm(this);
 
     if (comb) {
-      comb->yasu_char(qf,igroup);
+      comb->yasu_char(qf, igroup);
       enegtot = comb->enegtot / ngroup;
     } else if (comb3) {
-      comb3->combqeq(qf,igroup);
+      comb3->combqeq(qf, igroup);
       enegtot = comb3->enegtot / ngroup;
     } else {
       enegtot = compute_eneg();
@@ -146,7 +136,7 @@ void FixQEqFire::pre_force(int /*vflag*/)
 
     for (ii = 0; ii < inum; ii++) {
       i = ilist[ii];
-      qf[i] -= enegtot;         // Enforce adiabatic
+      qf[i] -= enegtot;    // Enforce adiabatic
     }
 
     // FIRE minimization algorithm
@@ -154,30 +144,32 @@ void FixQEqFire::pre_force(int /*vflag*/)
     vdotf = 0.0;
     for (ii = 0; ii < inum; ii++) {
       i = ilist[ii];
-      vdotf += (qv[i]*qf[i]);
+      vdotf += (qv[i] * qf[i]);
     }
-    MPI_Allreduce(&vdotf,&vdotfall,1,MPI_DOUBLE,MPI_SUM,world);
+    MPI_Allreduce(&vdotf, &vdotfall, 1, MPI_DOUBLE, MPI_SUM, world);
 
     if (vdotfall > 0.0) {
       vdotv = fdotf = 0.0;
       for (ii = 0; ii < inum; ii++) {
         i = ilist[ii];
-        vdotv += qv[i]*qv[i];
-        fdotf += qf[i]*qf[i];
+        vdotv += qv[i] * qv[i];
+        fdotf += qf[i] * qf[i];
       }
-      MPI_Allreduce(&vdotv,&vdotvall,1,MPI_DOUBLE,MPI_SUM,world);
-      MPI_Allreduce(&fdotf,&fdotfall,1,MPI_DOUBLE,MPI_SUM,world);
+      MPI_Allreduce(&vdotv, &vdotvall, 1, MPI_DOUBLE, MPI_SUM, world);
+      MPI_Allreduce(&fdotf, &fdotfall, 1, MPI_DOUBLE, MPI_SUM, world);
 
       scale1 = 1.0 - alpha;
-      if (fdotfall == 0.0) scale2 = 0.0;
-      else scale2 = alpha * sqrt(vdotvall/fdotfall);
+      if (fdotfall == 0.0)
+        scale2 = 0.0;
+      else
+        scale2 = alpha * sqrt(vdotvall / fdotfall);
 
       for (ii = 0; ii < inum; ii++) {
         i = ilist[ii];
-        qv[i] = scale1*qv[i] + scale2*qf[i];
+        qv[i] = scale1 * qv[i] + scale2 * qf[i];
       }
       if (ntimestep - last_negative > DELAYSTEP) {
-        dt = MIN(dt*DT_GROW,dtmax);
+        dt = MIN(dt * DT_GROW, dtmax);
         alpha *= ALPHA_SHRINK;
       }
     } else {
@@ -195,10 +187,10 @@ void FixQEqFire::pre_force(int /*vflag*/)
     double dmax = 0.1;
     for (ii = 0; ii < inum; ii++) {
       i = ilist[ii];
-      vmax = MAX(fabs(qv[i]),0);
-      if (dtvone*vmax > dmax) dtvone = dmax/vmax;
+      vmax = MAX(fabs(qv[i]), 0);
+      if (dtvone * vmax > dmax) dtvone = dmax / vmax;
     }
-    MPI_Allreduce(&dtvone,&dtv,1,MPI_DOUBLE,MPI_MIN,world);
+    MPI_Allreduce(&dtvone, &dtv, 1, MPI_DOUBLE, MPI_MIN, world);
     //dtv = dt;
 
     // Euler integration step
@@ -209,15 +201,15 @@ void FixQEqFire::pre_force(int /*vflag*/)
       qv[i] += dtv * qf[i];
       enegchk += fabs(qf[i]);
     }
-    MPI_Allreduce(&enegchk,&enegchkall,1,MPI_DOUBLE,MPI_SUM,world);
+    MPI_Allreduce(&enegchk, &enegchkall, 1, MPI_DOUBLE, MPI_SUM, world);
     enegchk = enegchkall / ngroup;
 
     if (enegchk < tolerance) break;
   }
+  matvecs = iloop;
 
-  if ((comm->me == 0) && (iloop >= maxiter))
-    error->warning(FLERR,"Charges did not converge at step {}: {}",
-                   update->ntimestep,enegchk);
+  if ((comm->me == 0) && maxwarn && (iloop >= maxiter))
+    error->warning(FLERR, "Charges did not converge at step {}: {}", update->ntimestep, enegchk);
 
   if (force->kspace) force->kspace->qsum_qsq();
 }
@@ -243,13 +235,12 @@ double FixQEqFire::compute_eneg()
 
   for (ii = 0; ii < inum; ii++) {
     i = ilist[ii];
-    if (mask[i] & groupbit)
-      qf[i] = 0.0;
+    if (mask[i] & groupbit) qf[i] = 0.0;
   }
 
   // communicating charge force to all nodes, first forward then reverse
   pack_flag = 2;
-  comm->forward_comm_fix(this);
+  comm->forward_comm(this);
 
   for (ii = 0; ii < inum; ii++) {
     i = ilist[ii];
@@ -269,12 +260,12 @@ double FixQEqFire::compute_eneg()
         delr[0] = x[i][0] - x[j][0];
         delr[1] = x[i][1] - x[j][1];
         delr[2] = x[i][2] - x[j][2];
-        rsq = delr[0]*delr[0] + delr[1]*delr[1] + delr[2]*delr[2];
+        rsq = delr[0] * delr[0] + delr[1] * delr[1] + delr[2] * delr[2];
 
         if (rsq > cutoff_sq) continue;
 
         r = sqrt(rsq);
-        rinv = 1.0/r;
+        rinv = 1.0 / r;
         qf[i] += q[j] * rinv;
         qf[j] += q[i] * rinv;
       }
@@ -282,25 +273,22 @@ double FixQEqFire::compute_eneg()
   }
 
   pack_flag = 2;
-  comm->reverse_comm_fix(this);
+  comm->reverse_comm(this);
 
   // sum charge force on each node and return it
 
   eneg = enegtot = 0.0;
   for (ii = 0; ii < inum; ii++) {
     i = ilist[ii];
-    if (mask[i] & groupbit)
-      eneg += qf[i];
+    if (mask[i] & groupbit) eneg += qf[i];
   }
-  MPI_Allreduce(&eneg,&enegtot,1,MPI_DOUBLE,MPI_SUM,world);
+  MPI_Allreduce(&eneg, &enegtot, 1, MPI_DOUBLE, MPI_SUM, world);
   return enegtot;
-
 }
 
 /* ---------------------------------------------------------------------- */
 
-int FixQEqFire::pack_forward_comm(int n, int *list, double *buf,
-                          int /*pbc_flag*/, int * /*pbc*/)
+int FixQEqFire::pack_forward_comm(int n, int *list, double *buf, int /*pbc_flag*/, int * /*pbc*/)
 {
   int m = 0;
 
@@ -320,7 +308,7 @@ void FixQEqFire::unpack_forward_comm(int n, int first, double *buf)
 
   if (pack_flag == 1)
     for (m = 0, i = first; m < n; m++, i++) atom->q[i] = buf[m];
-  else if ( pack_flag == 2)
+  else if (pack_flag == 2)
     for (m = 0, i = first; m < n; m++, i++) qf[i] = buf[m];
 }
 

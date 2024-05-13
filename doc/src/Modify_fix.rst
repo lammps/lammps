@@ -23,6 +23,8 @@ derived class.  See fix.h for details.
 +---------------------------+--------------------------------------------------------------------------------------------+
 | init                      | initialization before a run (optional)                                                     |
 +---------------------------+--------------------------------------------------------------------------------------------+
+| init_list                 | store pointer to neighbor list; called by neighbor list code (optional)                    |
++---------------------------+--------------------------------------------------------------------------------------------+
 | setup_pre_exchange        | called before atom exchange in setup (optional)                                            |
 +---------------------------+--------------------------------------------------------------------------------------------+
 | setup_pre_force           | called before force computation in setup (optional)                                        |
@@ -129,7 +131,7 @@ derived class.  See fix.h for details.
 Typically, only a small fraction of these methods are defined for a
 particular fix.  Setmask is mandatory, as it determines when the fix
 will be invoked during the timestep.  Fixes that perform time
-integration (\ *nve*\ , *nvt*\ , *npt*\ ) implement initial_integrate() and
+integration (\ *nve*, *nvt*, *npt*\ ) implement initial_integrate() and
 final_integrate() to perform velocity Verlet updates.  Fixes that
 constrain forces implement post_force().
 

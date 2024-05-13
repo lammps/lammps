@@ -2,7 +2,7 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    https://www.lammps.org/, Sandia National Laboratories
-   Steve Plimpton, sjplimp@sandia.gov
+   LAMMPS development team: developers@lammps.org
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
@@ -85,14 +85,13 @@ void KimProperty::command(int narg, char **arg)
 {
 #if LMP_PYTHON
 #if PY_MAJOR_VERSION >= 3
-  if (narg < 2) error->all(FLERR, "Invalid 'kim property' command");
+  if (narg < 2) utils::missing_cmd_args(FLERR, "kim property", error);
 
   const std::string subcmd(arg[0]);
   if ((subcmd != "create") && (subcmd != "destroy") && (subcmd != "modify") &&
       (subcmd != "remove") && (subcmd != "dump")) {
-    std::string msg("Incorrect arguments in 'kim property' command.\n");
-    msg += "'kim property create/destroy/modify/remove/dump' is mandatory";
-    error->all(FLERR, msg);
+    error->all(FLERR, "Incorrect first argument {} to 'kim property' command.\n"
+               "One of create, destroy, modify, remove, or dump is mandatory", subcmd);
   }
 
   input->write_echo("#=== kim property ====================================="
@@ -117,12 +116,11 @@ void KimProperty::command(int narg, char **arg)
     kim_property = PyImport_Import(obj);
     if (!kim_property) {
       PyGILState_Release(gstate);
-      std::string msg("Unable to import Python kim_property module!");
-      msg += "\nkim-property Python package can be installed with pip:\n";
-      msg += "'pip install kim-property'\nSee the installation instructions ";
-      msg += "at\nhttps://github.com/openkim/kim-property#installing-kim-";
-      msg += "property\nfor detailed information";
-      error->all(FLERR, msg);
+      error->all(FLERR, "Unable to import Python kim_property module!\n"
+                 "kim-property Python package can be installed with pip:\n"
+                 "'pip install kim-property'\nSee the installation instructions at\n"
+                 "https://github.com/openkim/kim-property#installing-kim-property\n"
+                 "for detailed information");
     }
 
     // Decrementing of the reference count
@@ -147,9 +145,8 @@ void KimProperty::command(int narg, char **arg)
       PyObject_GetAttrString(kim_property, "kim_property_create");
     if (!pFunc) {
       PyGILState_Release(gstate);
-      std::string msg("Unable to get an attribute named ");
-      msg += "'kim_property_create' from a kim_property object";
-      error->all(FLERR, msg);
+      error->all(FLERR, "Unable to get an attribute named 'kim_property_create' from "
+                 "a kim_property object");
     }
 
     // Decrementing of the reference count
@@ -182,16 +179,13 @@ void KimProperty::command(int narg, char **arg)
     if (!pValue) {
       PyErr_Print();
       PyGILState_Release(gstate);
-      std::string msg("Python 'kim_property_create' function ");
-      msg += "evaluation failed";
-      error->one(FLERR, msg);
+      error->all(FLERR, "Python 'kim_property_create' function evaluation failed");
     }
 
     // Python function returned a string value
     const char *pystr = PyUnicode_AsUTF8(pValue);
     if (kim_str) input->variable->set_string("kim_property_str", pystr);
-    else
-      input->variable->set(fmt::format("kim_property_str string '{}'", pystr));
+    else input->variable->set(fmt::format("kim_property_str string '{}'", pystr));
 
     Py_XDECREF(pArgs);
     Py_XDECREF(pFunc);
@@ -216,9 +210,8 @@ void KimProperty::command(int narg, char **arg)
       PyObject_GetAttrString(kim_property, "kim_property_destroy");
     if (!pFunc) {
       PyGILState_Release(gstate);
-      std::string msg("Unable to get an attribute named ");
-      msg += "'kim_property_destroy' from a kim_property object";
-      error->all(FLERR, msg);
+      error->all(FLERR, "Unable to get an attribute named 'kim_property_destroy' "
+                 "from a kim_property object");
     }
 
     // Decrementing of the reference count
@@ -244,9 +237,7 @@ void KimProperty::command(int narg, char **arg)
     if (!pValue) {
       PyErr_Print();
       PyGILState_Release(gstate);
-      std::string msg("Python 'kim_property_destroy' function ");
-      msg += "evaluation failed";
-      error->one(FLERR, msg);
+      error->all(FLERR, "Python 'kim_property_destroy' function evaluation failed");
     }
 
     // Python function returned a string value
@@ -276,9 +267,8 @@ void KimProperty::command(int narg, char **arg)
       PyObject_GetAttrString(kim_property, "kim_property_modify");
     if (!pFunc) {
       PyGILState_Release(gstate);
-      std::string msg("Unable to get an attribute named ");
-      msg += "'kim_property_modify' from a kim_property object";
-      error->all(FLERR, msg);
+      error->all(FLERR, "Unable to get an attribute named 'kim_property_modify' "
+                 "from a kim_property object");
     }
 
     // Decrementing of the reference count
@@ -309,9 +299,7 @@ void KimProperty::command(int narg, char **arg)
     if (!pValue) {
       PyErr_Print();
       PyGILState_Release(gstate);
-      std::string msg("Python 'kim_property_modify' function ");
-      msg += "evaluation failed";
-      error->one(FLERR, msg);
+      error->all(FLERR, "Python 'kim_property_modify' function evaluation failed");
     }
 
     // Python function returned a string value
@@ -341,9 +329,8 @@ void KimProperty::command(int narg, char **arg)
       PyObject_GetAttrString(kim_property, "kim_property_remove");
     if (!pFunc) {
       PyGILState_Release(gstate);
-      std::string msg("Unable to get an attribute named ");
-      msg += "'kim_property_remove' from a kim_property object";
-      error->all(FLERR, msg);
+      error->all(FLERR, "Unable to get an attribute named "
+                 "'kim_property_remove' from a kim_property object");
     }
 
     // Decrementing of the reference count
@@ -374,9 +361,7 @@ void KimProperty::command(int narg, char **arg)
     if (!pValue) {
       PyErr_Print();
       PyGILState_Release(gstate);
-      std::string msg("Python 'kim_property_remove' function ");
-      msg += "evaluation failed";
-      error->one(FLERR, msg);
+      error->all(FLERR, "Python 'kim_property_remove' function evaluation failed");
     }
 
     // Python function returned a string value
@@ -404,9 +389,8 @@ void KimProperty::command(int narg, char **arg)
       PyObject_GetAttrString(kim_property, "kim_property_dump");
     if (!pFunc) {
       PyGILState_Release(gstate);
-      std::string msg("Unable to get an attribute named ");
-      msg += "'kim_property_dump' from a kim_property object";
-      error->all(FLERR, msg);
+      error->all(FLERR, "Unable to get an attribute named "
+                 "'kim_property_dump' from a kim_property object");
     }
 
     // Decrementing of the reference count
@@ -428,14 +412,12 @@ void KimProperty::command(int narg, char **arg)
 
     if (comm->me == 0) {
       // call the Python kim_property_dump function
-      // error check with one() since only some procs may fail
+      // error check with one() since only root process calls.
       pValue = PyObject_CallObject(pFunc, pArgs);
       if (!pValue) {
         PyErr_Print();
         PyGILState_Release(gstate);
-        std::string msg("Python 'kim_property_dump' function ");
-        msg += "evaluation failed";
-        error->one(FLERR, msg);
+        error->one(FLERR, "Python 'kim_property_dump' function evaluation failed");
       }
     } else
       pValue = nullptr;

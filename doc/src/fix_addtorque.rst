@@ -6,7 +6,7 @@ fix addtorque command
 Syntax
 """"""
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    fix ID group-ID addtorque Tx Ty Tz
 
@@ -30,15 +30,15 @@ Add a set of forces to each atom in
 the group such that:
 
 * the components of the total torque applied on the group (around its
-  center of mass) are Tx,Ty,Tz
+  center of mass) are :math:`T_x`, :math:`T_y`, and :math:`T_z`
 * the group would move as a rigid body in the absence of other
   forces.
 
 This command can be used to drive a group of atoms into rotation.
 
-Any of the 3 quantities defining the torque components can be specified
-as an equal-style :doc:`variable <variable>`, namely *Tx*\ ,
-*Ty*\ , *Tz*\ .  If the value is a variable, it should be specified as
+Any of the three quantities defining the torque components can be specified
+as an equal-style :doc:`variable <variable>`, namely *Tx*,
+*Ty*, *Tz*\ .  If the value is a variable, it should be specified as
 v_name, where name is the variable name.  In this case, the variable
 will be evaluated each timestep, and its value used to determine the
 torque component.
@@ -53,7 +53,8 @@ time.  Thus it is easy to specify a time-dependent torque.
 Restart, fix_modify, output, run start/stop, minimize info
 """""""""""""""""""""""""""""""""""""""""""""""""""""""""""
 
-No information about this fix is written to :doc:`binary restart files <restart>`.
+No information about this fix is written to
+:doc:`binary restart files <restart>`.
 
 The :doc:`fix_modify <fix_modify>` *energy* option is supported by
 this fix to add the potential "energy" inferred by the added torques
@@ -62,8 +63,8 @@ to the global potential energy of the system as part of
 this fix is :doc:`fix_modify energy no <fix_modify>`.  Note that this
 is a fictitious quantity but is needed so that the :doc:`minimize
 <minimize>` command can include the forces added by this fix in a
-consistent manner.  I.e. there is a decrease in potential energy when
-atoms move in the direction of the added forces.
+consistent manner (i.e., there is a decrease in potential energy when
+atoms move in the direction of the added forces).
 
 The :doc:`fix_modify <fix_modify>` *respa* option is supported by
 this fix. This allows to set at which level of the :doc:`r-RESPA <run_style>`
@@ -99,9 +100,9 @@ invoked by the :doc:`minimize <minimize>` command.
 Restrictions
 """"""""""""
 
-This fix is part of the USER-MISC package.  It is only enabled if
-LAMMPS was built with that package.  See the :doc:`Build package
-<Build_package>` doc page for more info.
+This fix is part of the EXTRA-FIX package.  It is only enabled if LAMMPS was
+built with that package.  See the :doc:`Build package <Build_package>` page for
+more info.
 
 Related commands
 """"""""""""""""

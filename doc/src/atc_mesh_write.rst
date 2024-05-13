@@ -6,7 +6,7 @@ fix_modify AtC mesh write command
 Syntax
 """"""
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    fix_modify <AtC fixID> mesh write <f|p> <f|p> <f|p>
 

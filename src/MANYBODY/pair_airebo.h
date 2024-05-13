@@ -1,7 +1,7 @@
 /* -*- c++ -*- ----------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    https://www.lammps.org/, Sandia National Laboratories
-   Steve Plimpton, sjplimp@sandia.gov
+   LAMMPS development team: developers@lammps.org
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
@@ -29,19 +29,17 @@ namespace LAMMPS_NS {
 class PairAIREBO : public Pair {
  public:
   PairAIREBO(class LAMMPS *);
-  virtual ~PairAIREBO();
-  virtual void compute(int, int);
-  virtual void settings(int, char **);
-  void coeff(int, char **);
-  void init_style();
-  double init_one(int, int);
-  double memory_usage();
+  ~PairAIREBO() override;
+  void compute(int, int) override;
+  void settings(int, char **) override;
+  void coeff(int, char **) override;
+  void init_style() override;
+  double init_one(int, int) override;
+  double memory_usage() override;
 
   enum { AIREBO, REBO_2, AIREBO_M };    // for telling class variants apart in shared code
 
  protected:
-  int *map;    // 0 (C), 1 (H), or -1 ("NULL") for each type
-
   int variant;
   int ljflag, torflag;    // 0/1 if LJ/Morse,torsion terms included
   int morseflag;          // 1 if Morse instead of LJ for non-bonded
@@ -96,12 +94,12 @@ class PairAIREBO : public Pair {
   double Tf[5][5][10], Tdfdx[5][5][10], Tdfdy[5][5][10], Tdfdz[5][5][10];
 
   void REBO_neigh();
-  void FREBO(int, int);
-  void FLJ(int, int);
-  void TORSION(int, int);
+  void FREBO(int);
+  void FLJ(int);
+  void TORSION(int);
 
-  double bondorder(int, int, double *, double, double, double **, int);
-  double bondorderLJ(int, int, double *, double, double, double *, double, double **, int);
+  double bondorder(int, int, double *, double, double, double **);
+  double bondorderLJ(int, int, double *, double, double, double *, double, double **);
 
   double gSpline(double, double, int, double *, double *);
   double PijSpline(double, double, int, int, double *);
@@ -110,7 +108,6 @@ class PairAIREBO : public Pair {
 
   void read_file(char *);
 
-  double Sp5th(double, double *, double *);
   double Spbicubic(double, double, double *, double *);
   double Sptricubic(double, double, double, double *, double *);
   void Sptricubic_patch_adjust(double *, double, double, char);
@@ -129,6 +126,33 @@ class PairAIREBO : public Pair {
   // ----------------------------------------------------------------------
 
   /* ----------------------------------------------------------------------
+   fifth order spline evaluation using Horner's rule
+   ------------------------------------------------------------------------- */
+  double Sp5th(const double &x, const double coeffs[6], double *df) const
+  {
+    double f = coeffs[5] * x;
+    double d = 5.0 * coeffs[5] * x;
+    f += coeffs[4];
+    d += 4.0 * coeffs[4];
+    f *= x;
+    d *= x;
+    f += coeffs[3];
+    d += 3.0 * coeffs[3];
+    f *= x;
+    d *= x;
+    f += coeffs[2];
+    d += 2.0 * coeffs[2];
+    f *= x;
+    d *= x;
+    f += coeffs[1];
+    d += coeffs[1];
+    f *= x;
+    f += coeffs[0];
+    *df = d;
+    return f;
+  }
+
+  /* ----------------------------------------------------------------------
      cutoff function Sprime
      return cutoff and dX = derivative
      no side effects
@@ -138,7 +162,7 @@ class PairAIREBO : public Pair {
   {
     double cutoff;
 
-    double t = (Xij - Xmin) / (Xmax - Xmin);
+    const double t = (Xij - Xmin) / (Xmax - Xmin);
     if (t <= 0.0) {
       cutoff = 1.0;
       dX = 0.0;
@@ -162,7 +186,7 @@ class PairAIREBO : public Pair {
   {
     double cutoff;
 
-    double t = (Xij - Xmin) / (Xmax - Xmin);
+    const double t = (Xij - Xmin) / (Xmax - Xmin);
     if (t <= 0.0) {
       cutoff = 1.0;
       dX = 0.0;
@@ -180,47 +204,7 @@ class PairAIREBO : public Pair {
 
   inline double kronecker(const int a, const int b) const { return (a == b) ? 1.0 : 0.0; };
 };
-
 }    // namespace LAMMPS_NS
 
 #endif
 #endif
-
-/* ERROR/WARNING messages:
-
-E: Illegal ... command
-
-Self-explanatory.  Check the input script syntax and compare to the
-documentation for the command.  You can use -echo screen as a
-command-line option when running LAMMPS to see the offending line.
-
-E: Incorrect args for pair coefficients
-
-Self-explanatory.  Check the input script or data file.
-
-E: Pair style AIREBO requires atom IDs
-
-This is a requirement to use the AIREBO potential.
-
-E: Pair style AIREBO requires newton pair on
-
-See the newton command.  This is a restriction to use the AIREBO
-potential.
-
-E: All pair coeffs are not set
-
-All pair coefficients must be set in the data file or by the
-pair_coeff command before running a simulation.
-
-E: Neighbor list overflow, boost neigh_modify one
-
-There are too many neighbors of a single atom.  Use the neigh_modify
-command to increase the max number of neighbors allowed for one atom.
-You may also want to boost the page size.
-
-E: Cannot open AIREBO potential file %s
-
-The specified AIREBO potential file cannot be opened.  Check that the
-path and name are correct.
-
-*/

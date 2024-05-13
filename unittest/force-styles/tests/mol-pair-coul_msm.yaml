@@ -1,7 +1,8 @@
 ---
-lammps_version: 10 Feb 2021
-date_generated: Fri Feb 26 23:08:43 2021
+lammps_version: 17 Feb 2022
+date_generated: Fri Mar 18 22:17:29 2022
 epsilon: 5e-14
+skip_tests:
 prerequisites: ! |
   atom full
   pair coul/msm
@@ -13,7 +14,7 @@ post_commands: ! |
   kspace_style msm 1.0e-4
   kspace_modify compute no
   kspace_modify cutoff/adjust no
-  kspace_modify pressure/scalar no # required for USER-OMP with msm
+  kspace_modify pressure/scalar no # required for OPENMP with msm
 input_file: in.fourmol
 pair_style: coul/msm 12.0
 pair_coeff: ! |
@@ -22,7 +23,7 @@ extract: ! |
   cut_coul 0
 natoms: 29
 init_vdwl: 0
-init_coul: 114.131380823567
+init_coul: 114.13138082356693
 init_stress: ! |-
   -2.4267793355147003e+01 -4.5756717314405336e+01 -4.2967565251969454e+01  5.5703434526209152e+00 -6.0923265664647381e+00  1.1018048876055445e+01
 init_forces: ! |2
@@ -56,7 +57,7 @@ init_forces: ! |2
    28  4.6868038343367324e+00 -5.1092484627949588e+00  3.9981377814736256e+00
    29 -1.6656557300256520e+00 -6.6361744834632246e+00  5.1318676181502421e-01
 run_vdwl: 0
-run_coul: 114.073732191852
+run_coul: 114.0737321918523
 run_stress: ! |-
   -2.4369860466323860e+01 -4.5768876443818435e+01 -4.2913169324790253e+01  5.5285317121469078e+00 -6.1771738134590590e+00  1.0942889304741621e+01
 run_forces: ! |2

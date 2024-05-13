@@ -2,7 +2,7 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    https://www.lammps.org/, Sandia National Laboratories
-   Steve Plimpton, sjplimp@sandia.gov
+   LAMMPS development team: developers@lammps.org
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
@@ -17,8 +17,6 @@
 #include "error.h"
 #include "group.h"
 #include "modify.h"
-
-#include <cstring>
 
 using namespace LAMMPS_NS;
 using namespace FixConst;
@@ -39,7 +37,7 @@ FixNVTKokkos<DeviceType>::FixNVTKokkos(LAMMPS *lmp, int narg, char **arg) :
   // id = fix-ID + temp
 
   this->id_temp = utils::strdup(std::string(this->id)+"_temp");
-  this->modify->add_compute(fmt::format("{} all temp/kk",this->id_temp));
+  this->modify->add_compute(fmt::format("{} {} temp/kk",this->id_temp,this->group->names[this->igroup]));
   this->tcomputeflag = 1;
 }
 

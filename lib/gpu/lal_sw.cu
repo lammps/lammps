@@ -57,7 +57,7 @@ _texture( sw3_tex,int4);
     }                                                                       \
   }                                                                         \
   if (offset==0 && ii<inum) {                                               \
-    acctyp4 old=ans[ii];                                                    \
+    acctyp3 old=ans[ii];                                                    \
     old.x+=f.x;                                                             \
     old.y+=f.y;                                                             \
     old.z+=f.z;                                                             \
@@ -116,7 +116,7 @@ _texture( sw3_tex,int4);
     }                                                                       \
   }                                                                         \
   if (offset==0 && ii<inum) {                                               \
-    acctyp4 old=ans[ii];                                                    \
+    acctyp3 old=ans[ii];                                                    \
     old.x+=f.x;                                                             \
     old.y+=f.y;                                                             \
     old.z+=f.z;                                                             \
@@ -194,7 +194,7 @@ _texture( sw3_tex,int4);
   if (t_per_atom>1)                                                         \
     simd_reduce_add3(t_per_atom, f.x, f.y, f.z);                            \
   if (offset==0 && ii<inum) {                                               \
-    acctyp4 old=ans[ii];                                                    \
+    acctyp3 old=ans[ii];                                                    \
     old.x+=f.x;                                                             \
     old.y+=f.y;                                                             \
     old.z+=f.z;                                                             \
@@ -265,7 +265,7 @@ __kernel void k_sw(const __global numtyp4 *restrict x_,
                    const __global numtyp4 * restrict c_14,
                    const __global numtyp2 * restrict c_56,
                    const int ntypes, const __global int * dev_nbor,
-                   __global acctyp4 *restrict ans,
+                   __global acctyp3 *restrict ans,
                    __global acctyp *restrict engv,
                    const int eflag, const int vflag, const int inum,
                    const int nbor_pitch, const int t_per_atom,
@@ -282,7 +282,7 @@ __kernel void k_sw(const __global numtyp4 *restrict x_,
   if (EVFLAG && eflag) pre_sw_c56=c_56[ONETYPE];
   #endif
 
-  acctyp4 f;
+  acctyp3 f;
   f.x=(acctyp)0; f.y=(acctyp)0; f.z=(acctyp)0;
   acctyp energy, virial[6];
   if (EVFLAG) {
@@ -461,7 +461,7 @@ __kernel void k_sw_three_center(const __global numtyp4 *restrict x_,
                                 const __global numtyp2 *restrict sw_pre3,
                                 const int ntypes,
                                 const __global int * dev_nbor,
-                                __global acctyp4 *restrict ans,
+                                __global acctyp3 *restrict ans,
                                 __global acctyp *restrict engv,
                                 const int eflag, const int vflag,
                                 const int inum,  const int nbor_pitch,
@@ -480,7 +480,7 @@ __kernel void k_sw_three_center(const __global numtyp4 *restrict x_,
   const numtyp sw_costheta_ijk=sw_pre3[ONETYPE3].y;
   #endif
 
-  acctyp4 f;
+  acctyp3 f;
   f.x=(acctyp)0; f.y=(acctyp)0; f.z=(acctyp)0;
   acctyp energy, virial[6];
   if (EVFLAG) {
@@ -579,7 +579,7 @@ __kernel void k_sw_three_end(const __global numtyp4 *restrict x_,
                              const __global numtyp2 *restrict sw_pre3,
                              const int ntypes, const __global int * dev_nbor,
                              const __global int * dev_ilist,
-                             __global acctyp4 *restrict ans,
+                             __global acctyp3 *restrict ans,
                              __global acctyp *restrict engv,
                              const int eflag, const int vflag,
                              const int inum,  const int nbor_pitch,
@@ -598,7 +598,7 @@ __kernel void k_sw_three_end(const __global numtyp4 *restrict x_,
   const numtyp sw_costheta_ijk=sw_pre3[ONETYPE3].y;
   #endif
 
-  acctyp4 f;
+  acctyp3 f;
   f.x=(acctyp)0; f.y=(acctyp)0; f.z=(acctyp)0;
   acctyp energy, virial[6];
   if (EVFLAG) {
@@ -658,6 +658,7 @@ __kernel void k_sw_three_end(const __global numtyp4 *restrict x_,
         #ifndef ONETYPE
         const int ktype=kx.w;
         const int mtypek=jtype*ntypes+ktype;
+        const numtyp sw_cut_ik=cut_sig_gamma[mtypek].x;
         #endif
 
         numtyp delr2x = kx.x - jx.x;
@@ -665,8 +666,12 @@ __kernel void k_sw_three_end(const __global numtyp4 *restrict x_,
         numtyp delr2z = kx.z - jx.z;
         numtyp rsq2 = delr2x*delr2x + delr2y*delr2y + delr2z*delr2z;
 
+        // for neigh no within pair hybrid: still need the check below
+        //   this loop apparently iterates over neighbors of j that are not intended
+        const numtyp cutsq_jk=sw_cut_ik*sw_cut_ik;
+        if (!(rsq2>(numtyp)0 && rsq2<cutsq_jk)) continue;
+
         #ifndef ONETYPE
-        const numtyp sw_cut_ik=cut_sig_gamma[mtypek].x;
         const numtyp sw_sigma_gamma_ik=cut_sig_gamma[mtypek].y;
         const int mtypejik=jtype*ntypes*ntypes+itype+ktype;
         const numtyp sw_lambda_epsilon_ijk=sw_pre3[mtypejik].x;
@@ -696,7 +701,7 @@ __kernel void k_sw_three_end_vatom(const __global numtyp4 *restrict x_,
                              const __global numtyp2 *restrict sw_pre3,
                              const int ntypes, const __global int * dev_nbor,
                              const __global int * dev_ilist,
-                             __global acctyp4 *restrict ans,
+                             __global acctyp3 *restrict ans,
                              __global acctyp *restrict engv,
                              const int eflag, const int vflag,
                              const int inum,  const int nbor_pitch,
@@ -715,7 +720,7 @@ __kernel void k_sw_three_end_vatom(const __global numtyp4 *restrict x_,
   const numtyp sw_costheta_ijk=sw_pre3[ONETYPE3].y;
   #endif
 
-  acctyp4 f;
+  acctyp3 f;
   f.x=(acctyp)0; f.y=(acctyp)0; f.z=(acctyp)0;
   acctyp energy, virial[6];
   if (EVFLAG) {
@@ -775,6 +780,7 @@ __kernel void k_sw_three_end_vatom(const __global numtyp4 *restrict x_,
         #ifndef ONETYPE
         const int ktype=kx.w;
         const int mtypek=jtype*ntypes+ktype;
+        const numtyp sw_cut_ik=cut_sig_gamma[mtypek].x;
         #endif
 
         numtyp delr2x = kx.x - jx.x;
@@ -782,8 +788,12 @@ __kernel void k_sw_three_end_vatom(const __global numtyp4 *restrict x_,
         numtyp delr2z = kx.z - jx.z;
         numtyp rsq2 = delr2x*delr2x + delr2y*delr2y + delr2z*delr2z;
 
+        // for neigh no within pair hybrid: still need the check below
+        //   this loop apparently iterates over neighbors of j that are not intended
+        const numtyp cutsq_jk=sw_cut_ik*sw_cut_ik;
+        if (!(rsq2>(numtyp)0 && rsq2<cutsq_jk)) continue;
+
         #ifndef ONETYPE
-        const numtyp sw_cut_ik=cut_sig_gamma[mtypek].x;
         const numtyp sw_sigma_gamma_ik=cut_sig_gamma[mtypek].y;
         const int mtypejik=jtype*ntypes*ntypes+itype+ktype;
         const numtyp sw_lambda_epsilon_ijk=sw_pre3[mtypejik].x;

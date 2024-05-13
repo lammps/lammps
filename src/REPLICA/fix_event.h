@@ -1,7 +1,7 @@
 /* -*- c++ -*- ----------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    https://www.lammps.org/, Sandia National Laboratories
-   Steve Plimpton, sjplimp@sandia.gov
+   LAMMPS development team: developers@lammps.org
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
@@ -21,16 +21,16 @@ namespace LAMMPS_NS {
 class FixEvent : public Fix {
  public:
   FixEvent(class LAMMPS *, int, char **);
-  virtual ~FixEvent() = 0;    // use destructor to make base class virtual
-  int setmask();
+  ~FixEvent() override = 0;    // use destructor to make base class virtual
+  int setmask() override;
 
-  double memory_usage();
-  void grow_arrays(int);
-  void copy_arrays(int, int, int);
-  int pack_exchange(int, double *);
-  int unpack_exchange(int, double *);
-  virtual void write_restart(FILE *) {}
-  virtual void restart(char *) {}
+  double memory_usage() override;
+  void grow_arrays(int) override;
+  void copy_arrays(int, int, int) override;
+  int pack_exchange(int, double *) override;
+  int unpack_exchange(int, double *) override;
+  void write_restart(FILE *) override {}
+  void restart(char *) override {}
 
   // methods specific to FixEvent
 
@@ -54,13 +54,3 @@ class FixEvent : public Fix {
 }    // namespace LAMMPS_NS
 
 #endif
-
-/* ERROR/WARNING messages:
-
-E: Illegal ... command
-
-Self-explanatory.  Check the input script syntax and compare to the
-documentation for the command.  You can use -echo screen as a
-command-line option when running LAMMPS to see the offending line.
-
-*/

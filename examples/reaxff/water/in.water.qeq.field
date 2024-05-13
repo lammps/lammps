@@ -1,0 +1,31 @@
+# QEq Water, CITE: Achtyl et al., Nat. Comm., 6 6539 (2015)
+
+boundary        p p s
+units           real
+atom_style      charge
+
+read_data       data.water
+
+variable        x index 1
+variable        y index 1
+variable        z index 1
+
+replicate       $x $y $z
+
+pair_style      reaxff NULL safezone 3.0 mincap 150
+pair_coeff      * * qeq_ff.water O H
+neighbor        0.5 bin
+neigh_modify    every 1 delay 0 check yes
+
+velocity all create 300.0 4928459 rot yes dist gaussian
+
+fix             1 all qeq/reaxff 1 0.0 10.0 1.0e-6 reaxff maxiter 400
+fix             2 all nvt temp 300 300 50.0
+fix             3 all efield 0.0 0.0 1.0
+fix             4 all wall/reflect zlo EDGE zhi EDGE
+
+timestep        0.5
+thermo          10
+thermo_style    custom step temp press density vol
+
+run 20

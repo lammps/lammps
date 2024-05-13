@@ -1,0 +1,95 @@
+## srp_react example script
+## Author: Vaibhav Palkar
+##
+## Simulates controlled degradation of a nanogel particle 
+## in a simulation box and prints statistics regarding
+## the fraction of bonds broken over time.
+
+variable       rseeddpd  equal  26817
+variable       rseedvel  equal  5991
+variable       breakstep equal  10
+variable       probbreak  equal 0.0009
+variable       rseedbreak equal 6777
+
+# simulation time 
+#***********************************************
+variable       mainsteps     equal  10000
+
+# simulation setup
+#***********************************************
+units          lj
+atom_style     molecular
+boundary       p  p  p
+bond_style     harmonic
+#lattice        fcc   3.0
+comm_modify    cutoff 4.0 vel yes
+
+# initial nanogel
+#***********************************************
+read_data   gel_equil.dat
+
+# define groups, create solvent atoms 
+#**************************************************
+group          Npoly         type   1 2 3 4
+group          water         type   5
+group          N_all         type   1 2 3 4 5
+
+# density check
+#***********************************************
+variable       N_atoms  equal  count(all)
+variable       tdens equal count(all)/vol
+print          "The system density is now ${tdens}"
+
+# bond break settings
+# #***********************************************
+fix            break  N_all     bond/break  ${breakstep}   2   0  prob   ${probbreak}    ${rseedbreak}
+
+# interaction parameter setting
+#***********************************************
+mass             *   1.0
+bond_coeff       *   500.0   0.70
+special_bonds  lj   1  1  1
+newton         on
+
+pair_style     hybrid dpd  1.0  1.0  ${rseeddpd} srp/react 0.8 * mid break
+#***********************************************
+pair_coeff     *5     *5   dpd   78.000    4.5   1.0
+pair_coeff     *4      5   dpd   79.500    4.5   1.0
+pair_coeff     *5      6   none
+pair_coeff      6      6   srp/react   80.00 0.800
+
+# initial velocity
+#***********************************************
+velocity       all create 1.0 ${rseedvel} dist gaussian mom yes
+
+# integrator control
+#***********************************************
+neighbor       0.3 bin
+neigh_modify   every 1 delay 5 check  no
+timestep       0.02
+
+# Access variables of fix bond/break
+#**********************************************
+variable      Nbreak    equal  f_break[2]   # Number of bonds broken
+variable      TIME      equal  time
+
+# ensemble setting
+#***********************************************
+fix            1  all  nve
+
+# print bonds breaking stats
+# ***********************************************
+variable TotBreak equal 100 # total breakable bonds in current system
+fix print_bonds_broken all print 100 "${TIME} ${Nbreak} $((v_TotBreak-v_Nbreak)/v_TotBreak)" file bonds_broken.txt screen no title "time bonds_broken fraction_bonds_intact"
+
+# thermo output
+#***********************************************
+thermo         100
+thermo_style   custom step temp pe ke etotal epair
+thermo_modify  flush  yes  norm  no
+
+reset_timestep 0
+#dump          1 Npoly   custom 5000 traj.lammpstrj id type x y z
+#*********************************************
+run           ${mainsteps}
+#***********************************************

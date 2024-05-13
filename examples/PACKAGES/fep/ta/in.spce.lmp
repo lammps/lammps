@@ -1,0 +1,49 @@
+
+units        real
+boundary p p p
+
+atom_style   full
+bond_style   harmonic
+angle_style  harmonic
+
+special_bonds lj/coul 0.0 0.0 0.5
+
+pair_style   lj/cut/coul/long 12.0 12.0
+pair_modify tail no
+kspace_style pppm 1.0e-5
+
+read_data data.spce # 8x8x16 SPCE molecules in a 30x30x100 box
+
+bond_coeff   1    517.630258   1.0
+angle_coeff  1    37.950526    109.47
+pair_coeff   1 1  0.1553  3.166 # O O
+pair_coeff   1 2  0.0     1.0   # O H
+pair_coeff   2 2  0.0     1.0   # H H
+
+# don't use fix shake with compute fep/ta
+# fix SHAKE all shake 0.0001 20 0 b 1
+
+neighbor 2.0 bin
+# neigh_modify delay 0 every 1 check yes
+
+timestep 1.0
+
+variable TK equal 300.0
+compute TA all fep/ta ${TK} xy 1.0005
+
+velocity all create ${TK} 12345
+
+thermo_style custom step temp press etotal pe c_TA[*]
+thermo 5000
+
+fix NVT all nvt temp ${TK} ${TK} 100
+run 300000
+
+reset_timestep 0
+
+variable gamma_v equal 100*(pzz-0.5*(pxx+pyy))/2/100 # surface tension via the mechanical route
+
+fix FEP all ave/time 100 1000 100000 c_TA[*] v_gamma_v ave running file spce.fep.ta
+
+run 2000000
+

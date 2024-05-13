@@ -1,8 +1,7 @@
-// clang-format off
 /* -*- c++ -*- ----------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    https://www.lammps.org/, Sandia National Laboratories
-   Steve Plimpton, sjplimp@sandia.gov
+   LAMMPS development team: developers@lammps.org
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
@@ -20,6 +19,7 @@ IntegrateStyle(verlet/kk/host,VerletKokkos);
 // clang-format on
 #else
 
+// clang-format off
 #ifndef LMP_VERLET_KOKKOS_H
 #define LMP_VERLET_KOKKOS_H
 
@@ -31,10 +31,11 @@ namespace LAMMPS_NS {
 class VerletKokkos : public Verlet {
  public:
   VerletKokkos(class LAMMPS *, int, char **);
-  ~VerletKokkos() {}
-  void setup(int);
-  void setup_minimal(int);
-  void run(int);
+
+  void setup(int) override;
+  void setup_minimal(int) override;
+  void run(int) override;
+  void force_clear() override;
 
   KOKKOS_INLINE_FUNCTION
   void operator() (const int& i) const {
@@ -43,18 +44,14 @@ class VerletKokkos : public Verlet {
     f(i,2) += f_merge_copy(i,2);
   }
 
-
  protected:
   DAT::t_f_array f_merge_copy,f;
+  int fuse_force_clear,fuse_integrate;
 
-  void force_clear();
+  void fuse_check(int, int);
 };
-
 }
 
 #endif
 #endif
 
-/* ERROR/WARNING messages:
-
-*/

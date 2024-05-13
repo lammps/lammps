@@ -2,7 +2,7 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    https://www.lammps.org/, Sandia National Laboratories
-   Steve Plimpton, sjplimp@sandia.gov
+   LAMMPS development team: developers@lammps.org
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
@@ -40,7 +40,8 @@ FixTempBerendsen::FixTempBerendsen(LAMMPS *lmp, int narg, char **arg) :
   Fix(lmp, narg, arg),
   tstr(nullptr), id_temp(nullptr), tflag(0)
 {
-  if (narg != 6) error->all(FLERR,"Illegal fix temp/berendsen command");
+  if (narg != 6)
+    error->all(FLERR,"Illegal fix {} command: expected 6 arguments but found {}", style, narg);
 
   // Berendsen thermostat should be applied every step
 
@@ -68,7 +69,7 @@ FixTempBerendsen::FixTempBerendsen(LAMMPS *lmp, int narg, char **arg) :
   // error checks
 
   if (t_period <= 0.0)
-    error->all(FLERR,"Fix temp/berendsen period must be > 0.0");
+    error->all(FLERR,"Fix temp/berendsen Tdamp period must be > 0.0");
 
   // create a new compute temp style
   // id = fix-ID + temp, compute group = fix group
@@ -84,12 +85,12 @@ FixTempBerendsen::FixTempBerendsen(LAMMPS *lmp, int narg, char **arg) :
 
 FixTempBerendsen::~FixTempBerendsen()
 {
-  delete [] tstr;
+  delete[] tstr;
 
   // delete temperature if fix created it
 
   if (tflag) modify->delete_compute(id_temp);
-  delete [] id_temp;
+  delete[] id_temp;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -110,18 +111,17 @@ void FixTempBerendsen::init()
   if (tstr) {
     tvar = input->variable->find(tstr);
     if (tvar < 0)
-      error->all(FLERR,"Variable name for fix temp/berendsen does not exist");
+      error->all(FLERR,"Variable name {} for fix temp/berendsen does not exist", tstr);
     if (input->variable->equalstyle(tvar)) tstyle = EQUAL;
-    else error->all(FLERR,"Variable for fix temp/berendsen is invalid style");
+    else error->all(FLERR,"Variable {} for fix temp/berendsen is invalid style", tstr);
   }
 
-  int icompute = modify->find_compute(id_temp);
-  if (icompute < 0)
-    error->all(FLERR,"Temperature ID for fix temp/berendsen does not exist");
-  temperature = modify->compute[icompute];
+  temperature = modify->get_compute_by_id(id_temp);
+  if (!temperature)
+    error->all(FLERR,"Temperature compute ID {} for fix {} does not exist", id_temp, style);
 
   if (modify->check_rigid_group_overlap(groupbit))
-    error->warning(FLERR,"Cannot thermostat atoms in rigid bodies");
+    error->warning(FLERR,"Cannot thermostat atoms in rigid bodies with fix {}", style);
 
   if (temperature->tempbias) which = BIAS;
   else which = NOBIAS;
@@ -139,8 +139,7 @@ void FixTempBerendsen::end_of_step()
   if (tdof < 1) return;
 
   if (t_current == 0.0)
-    error->all(FLERR,
-               "Computed temperature for fix temp/berendsen cannot be 0.0");
+    error->all(FLERR, "Computed current temperature for fix temp/berendsen must not be 0.0");
 
   double delta = update->ntimestep - update->beginstep;
   if (delta != 0.0) delta /= update->endstep - update->beginstep;
@@ -154,8 +153,8 @@ void FixTempBerendsen::end_of_step()
     modify->clearstep_compute();
     t_target = input->variable->compute_equal(tvar);
     if (t_target < 0.0)
-      error->one(FLERR,
-                 "Fix temp/berendsen variable returned negative temperature");
+      error->one(FLERR, "Fix temp/berendsen variable {} returned negative temperature",
+                 input->variable->names[tvar]);
     modify->addstep_compute(update->ntimestep + nevery);
   }
 
@@ -198,24 +197,23 @@ void FixTempBerendsen::end_of_step()
 int FixTempBerendsen::modify_param(int narg, char **arg)
 {
   if (strcmp(arg[0],"temp") == 0) {
-    if (narg < 2) error->all(FLERR,"Illegal fix_modify command");
+    if (narg < 2) utils::missing_cmd_args(FLERR, "fix_modify", error);
     if (tflag) {
       modify->delete_compute(id_temp);
       tflag = 0;
     }
-    delete [] id_temp;
+    delete[] id_temp;
     id_temp = utils::strdup(arg[1]);
 
-    int icompute = modify->find_compute(id_temp);
-    if (icompute < 0)
-      error->all(FLERR,"Could not find fix_modify temperature ID");
-    temperature = modify->compute[icompute];
+    temperature = modify->get_compute_by_id(id_temp);
+    if (!temperature)
+      error->all(FLERR,"Could not find fix_modify temperature compute {}", id_temp);
 
     if (temperature->tempflag == 0)
-      error->all(FLERR,
-                 "Fix_modify temperature ID does not compute temperature");
+      error->all(FLERR, "Fix_modify temperature compute {} does not compute temperature", id_temp);
     if (temperature->igroup != igroup && comm->me == 0)
-      error->warning(FLERR,"Group for fix_modify temp != fix group");
+      error->warning(FLERR, "Group for fix_modify temp != fix group: {} vs {}",
+                     group->names[igroup], group->names[temperature->igroup]);
     return 2;
   }
   return 0;
@@ -258,7 +256,7 @@ void FixTempBerendsen::write_restart(FILE *fp)
 
 void FixTempBerendsen::restart(char *buf)
 {
-  double *list = (double *) buf;
+  auto list = (double *) buf;
 
   energy = list[0];
 }

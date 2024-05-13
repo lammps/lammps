@@ -16,6 +16,7 @@
 .. index:: pair_style lj/charmm/coul/msm/omp
 .. index:: pair_style lj/charmmfsw/coul/charmmfsh
 .. index:: pair_style lj/charmmfsw/coul/long
+.. index:: pair_style lj/charmmfsw/coul/long/kk
 
 pair_style lj/charmm/coul/charmm command
 ========================================
@@ -42,6 +43,8 @@ pair_style lj/charmmfsw/coul/charmmfsh command
 
 pair_style lj/charmmfsw/coul/long command
 =========================================
+
+Accelerator Variants: *lj/charmmfsw/coul/long/kk*
 
 Syntax
 """"""
@@ -110,7 +113,7 @@ These pair styles compute Lennard Jones (LJ) and Coulombic
 interactions with additional switching or shifting functions that ramp
 the energy and/or force smoothly to zero between an inner and outer
 cutoff.  They are implementations of the widely used CHARMM force
-field used in the `CHARMM <http://www.scripps.edu/brooks>`_ MD code (and
+field used in the `CHARMM <https://www.charmm.org>`_ MD code (and
 others).  See :ref:`(MacKerell) <pair-MacKerell>` for a description of the
 CHARMM force field.
 
@@ -119,7 +122,7 @@ name are the older, original LAMMPS implementations.  They compute the
 LJ and Coulombic interactions with an energy switching function (esw,
 shown in the formula below as S(r)), which ramps the energy smoothly
 to zero between the inner and outer cutoff.  This can cause
-irregularities in pair-wise forces (due to the discontinuous second
+irregularities in pairwise forces (due to the discontinuous second
 derivative of energy at the boundaries of the switching region), which
 in some cases can result in detectable artifacts in an MD simulation.
 
@@ -144,7 +147,7 @@ artifacts.
    conversion factor used internally in the code, from the LAMMPS value
    to the CHARMM value, as if it were effectively a parameter of the
    force field.  This is because the CHARMM code uses a slightly
-   different value for the this conversion factor in :doc:`real units <units>` (Kcal/mole), namely CHARMM = 332.0716, LAMMPS =
+   different value for the this conversion factor in :doc:`real units <units>` (kcal/mol), namely CHARMM = 332.0716, LAMMPS =
    332.06371.  This is to enable more precise agreement by LAMMPS with
    the CHARMM force field energies and forces, when using one of these
    two CHARMM pair styles.
@@ -169,7 +172,7 @@ where S(r) is the energy switching function mentioned above for the
 functional forms of the force switching and force shifting functions
 used in the *charmmfsw* and *charmmfsh* styles.
 
-When using the *lj/charmm/coul/charmm styles*\ , both the LJ and
+When using the *lj/charmm/coul/charmm styles*, both the LJ and
 Coulombic terms require an inner and outer cutoff. They can be the
 same for both formulas or different depending on whether 2 or 4
 arguments are used in the pair_style command.  For the
@@ -193,7 +196,7 @@ biomolecule (no explicit water molecules).
 Styles *lj/charmm/coul/long* and *lj/charmm/coul/msm* compute the same
 formulas as style *lj/charmm/coul/charmm* and style
 *lj/charmmfsw/coul/long* computes the same formulas as style
-*lj/charmmfsw/coul/charmmfsh*\ , except that an additional damping
+*lj/charmmfsw/coul/charmmfsh*, except that an additional damping
 factor is applied to the Coulombic term, so it can be used in
 conjunction with the :doc:`kspace_style <kspace_style>` command and its
 *ewald* or *pppm* or *msm* option.  Only one Coulombic cutoff is
@@ -260,7 +263,7 @@ pair_coeff commands do not need to be specified in an input script
 that reads a restart file.
 
 The *lj/charmm/coul/long* and *lj/charmmfsw/coul/long* pair styles
-support the use of the *inner*\ , *middle*\ , and *outer* keywords of the
+support the use of the *inner*, *middle*, and *outer* keywords of the
 :doc:`run_style respa <run_style>` command, meaning the pairwise forces
 can be partitioned by distance at different levels of the rRESPA
 hierarchy.  The other styles only support the *pair* keyword of
@@ -281,7 +284,9 @@ page for more info.
 Related commands
 """"""""""""""""
 
-:doc:`pair_coeff <pair_coeff>`
+:doc:`pair_coeff <pair_coeff>`, :doc:`angle_style charmm <angle_charmm>`,
+:doc:`dihedral_style charmm <dihedral_charmm>`,
+:doc:`dihedral_style charmmfsw <dihedral_charmm>`, :doc:`fix cmap <fix_cmap>`
 
 Default
 """""""

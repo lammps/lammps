@@ -1,8 +1,7 @@
-// clang-format off
 /* -*- c++ -*- ----------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    https://www.lammps.org/, Sandia National Laboratories
-   Steve Plimpton, sjplimp@sandia.gov
+   LAMMPS development team: developers@lammps.org
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
@@ -20,6 +19,7 @@ PairStyle(zbl/kk/host,PairZBLKokkos<LMPHostType>);
 // clang-format on
 #else
 
+// clang-format off
 #ifndef LMP_PAIR_ZBL_KOKKOS_H
 #define LMP_PAIR_ZBL_KOKKOS_H
 
@@ -38,10 +38,10 @@ class PairZBLKokkos : public PairZBL {
   typedef ArrayTypes<DeviceType> AT;
 
   PairZBLKokkos(class LAMMPS *);
-  virtual ~PairZBLKokkos();
-  void compute(int, int);
-  void init_style();
-  F_FLOAT init_one(int, int);
+  ~PairZBLKokkos() override;
+  void compute(int, int) override;
+  void init_style() override;
+  F_FLOAT init_one(int, int) override;
 
  private:
   DAT::tdual_ffloat_1d k_z;
@@ -87,18 +87,21 @@ class PairZBLKokkos : public PairZBL {
   F_FLOAT compute_ecoul(const F_FLOAT& /*rsq*/, const int& /*i*/, const int& /*j*/,
                         const int& /*itype*/, const int& /*jtype*/) const { return 0; }
 
-  void allocate();
+  void allocate() override;
 
-  friend struct PairComputeFunctor<PairZBLKokkos,FULL,true>;
+  friend struct PairComputeFunctor<PairZBLKokkos,FULL,true,0>;
+  friend struct PairComputeFunctor<PairZBLKokkos,FULL,true,1>;
   friend struct PairComputeFunctor<PairZBLKokkos,HALF,true>;
   friend struct PairComputeFunctor<PairZBLKokkos,HALFTHREAD,true>;
-  friend struct PairComputeFunctor<PairZBLKokkos,FULL,false>;
+  friend struct PairComputeFunctor<PairZBLKokkos,FULL,false,0>;
+  friend struct PairComputeFunctor<PairZBLKokkos,FULL,false,1>;
   friend struct PairComputeFunctor<PairZBLKokkos,HALF,false>;
   friend struct PairComputeFunctor<PairZBLKokkos,HALFTHREAD,false>;
-  friend EV_FLOAT pair_compute_neighlist<PairZBLKokkos,FULL,void>(PairZBLKokkos*,NeighListKokkos<DeviceType>*);
-  friend EV_FLOAT pair_compute_neighlist<PairZBLKokkos,HALF,void>(PairZBLKokkos*,NeighListKokkos<DeviceType>*);
-  friend EV_FLOAT pair_compute_neighlist<PairZBLKokkos,HALFTHREAD,void>(PairZBLKokkos*,NeighListKokkos<DeviceType>*);
-  friend EV_FLOAT pair_compute<PairZBLKokkos,void>(PairZBLKokkos*,NeighListKokkos<DeviceType>*);
+  friend EV_FLOAT pair_compute_neighlist<PairZBLKokkos,FULL,0>(PairZBLKokkos*,NeighListKokkos<DeviceType>*);
+  friend EV_FLOAT pair_compute_neighlist<PairZBLKokkos,FULL,1>(PairZBLKokkos*,NeighListKokkos<DeviceType>*);
+  friend EV_FLOAT pair_compute_neighlist<PairZBLKokkos,HALF>(PairZBLKokkos*,NeighListKokkos<DeviceType>*);
+  friend EV_FLOAT pair_compute_neighlist<PairZBLKokkos,HALFTHREAD>(PairZBLKokkos*,NeighListKokkos<DeviceType>*);
+  friend EV_FLOAT pair_compute<PairZBLKokkos>(PairZBLKokkos*,NeighListKokkos<DeviceType>*);
   friend void pair_virial_fdotr_compute<PairZBLKokkos>(PairZBLKokkos*);
 };
 
@@ -107,14 +110,3 @@ class PairZBLKokkos : public PairZBL {
 #endif
 #endif
 
-/* ERROR/WARNING messages:
-
-E: Cannot use Kokkos pair style with rRESPA inner/middle
-
-UNDOCUMENTED
-
-E: Cannot use chosen neighbor list style with lj/cut/kk
-
-UNDOCUMENTED
-
-*/

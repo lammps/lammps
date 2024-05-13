@@ -10,6 +10,7 @@
 .. index:: pair_style coul/dsf/gpu
 .. index:: pair_style coul/dsf/kk
 .. index:: pair_style coul/dsf/omp
+.. index:: pair_style coul/exclude
 .. index:: pair_style coul/cut/global
 .. index:: pair_style coul/cut/global/omp
 .. index:: pair_style coul/long
@@ -41,6 +42,9 @@ pair_style coul/dsf command
 ===========================
 
 Accelerator Variants: *coul/dsf/gpu*, *coul/dsf/kk*, *coul/dsf/omp*
+
+pair_style coul/exclude command
+===============================
 
 pair_style coul/cut/global command
 ==================================
@@ -83,6 +87,7 @@ Syntax
    pair_style coul/cut cutoff
    pair_style coul/debye kappa cutoff
    pair_style coul/dsf alpha cutoff
+   pair_style coul/exclude cutoff
    pair_style coul/cut/global cutoff
    pair_style coul/long cutoff
    pair_style coul/wolf alpha cutoff
@@ -109,6 +114,9 @@ Examples
 
    pair_style coul/dsf 0.05 10.0
    pair_coeff * *
+
+   pair_style hybrid/overlay coul/exclude 10.0 ...
+   pair_coeff * * coul/exclude
 
    pair_style coul/long 10.0
    pair_coeff * *
@@ -166,11 +174,11 @@ shifted force model described in :ref:`Fennell <Fennell1>`, given by:
    E = q_iq_j \left[ \frac{\mbox{erfc} (\alpha r)}{r} -  \frac{\mbox{erfc} (\alpha r_c)}{r_c} +
    \left( \frac{\mbox{erfc} (\alpha r_c)}{r_c^2} +  \frac{2\alpha}{\sqrt{\pi}}\frac{\exp (-\alpha^2    r^2_c)}{r_c} \right)(r-r_c) \right] \qquad r < r_c
 
-where :math:`\alpha` is the damping parameter and erfc() is the
-complementary error-function. The potential corrects issues in the
-Wolf model (described below) to provide consistent forces and energies
-(the Wolf potential is not differentiable at the cutoff) and smooth
-decay to zero.
+where :math:`\alpha` is the damping parameter and *erfc()* is the
+complementary error-function. The potential corrects issues in the Wolf
+model (described below) to provide consistent forces and energies (the
+Wolf potential is not differentiable at the cutoff) and smooth decay to
+zero.
 
 ----------
 
@@ -184,30 +192,32 @@ summation method, described in :ref:`Wolf <Wolf1>`, given by:
    \frac{1}{2} \sum_{j \neq i}
    \frac{q_i q_j {\rm erf}(\alpha r_{ij})}{r_{ij}} \qquad r < r_c
 
-where :math:`\alpha` is the damping parameter, and erc() and erfc() are
-error-function and complementary error-function terms.  This potential
-is essentially a short-range, spherically-truncated,
+where :math:`\alpha` is the damping parameter, and *erf()* and *erfc()*
+are error-function and complementary error-function terms.  This
+potential is essentially a short-range, spherically-truncated,
 charge-neutralized, shifted, pairwise *1/r* summation.  With a
 manipulation of adding and subtracting a self term (for i = j) to the
-first and second term on the right-hand-side, respectively, and a
-small enough :math:`\alpha` damping parameter, the second term shrinks and
-the potential becomes a rapidly-converging real-space summation.  With
-a long enough cutoff and small enough :math:`\alpha` parameter, the energy and
-forces calculated by the Wolf summation method approach those of the
+first and second term on the right-hand-side, respectively, and a small
+enough :math:`\alpha` damping parameter, the second term shrinks and the
+potential becomes a rapidly-converging real-space summation.  With a
+long enough cutoff and small enough :math:`\alpha` parameter, the energy
+and forces calculated by the Wolf summation method approach those of the
 Ewald sum.  So it is a means of getting effective long-range
 interactions with a short-range potential.
 
 ----------
 
-Style *coul/streitz* is the Coulomb pair interaction defined as part
-of the Streitz-Mintmire potential, as described in :ref:`this paper <Streitz2>`, in which charge distribution about an atom is modeled
-as a Slater 1\ *s* orbital.  More details can be found in the referenced
+Style *coul/streitz* is the Coulomb pair interaction defined as part of
+the Streitz-Mintmire potential, as described in :ref:`this paper
+<Streitz2>`, in which charge distribution about an atom is modeled as a
+Slater 1\ *s* orbital.  More details can be found in the referenced
 paper.  To fully reproduce the published Streitz-Mintmire potential,
-which is a variable charge potential, style *coul/streitz* must be
-used with :doc:`pair_style eam/alloy <pair_eam>` (or some other
-short-range potential that has been parameterized appropriately) via
-the :doc:`pair_style hybrid/overlay <pair_hybrid>` command.  Likewise,
-charge equilibration must be performed via the :doc:`fix qeq/slater <fix_qeq>` command. For example:
+which is a variable charge potential, style *coul/streitz* must be used
+with :doc:`pair_style eam/alloy <pair_eam>` (or some other short-range
+potential that has been parameterized appropriately) via the
+:doc:`pair_style hybrid/overlay <pair_hybrid>` command.  Likewise,
+charge equilibration must be performed via the :doc:`fix qeq/slater
+<fix_qeq>` command. For example:
 
 .. code-block:: LAMMPS
 
@@ -257,6 +267,19 @@ as style *coul/cut* except that it allows only a single global cutoff
 and thus makes it compatible for use in combination with long-range
 coulomb styles in :doc:`hybrid pair styles <pair_hybrid>`.
 
+Pair style *coul/exclude* computes Coulombic interactions like *coul/cut*
+but **only** applies them to excluded pairs using a scaling factor
+of :math:`\gamma - 1.0` with :math:`\gamma` being the factor assigned
+to that excluded pair via the :doc:`special_bonds coul <special_bonds>`
+setting. With this it is possible to treat Coulomb interactions for
+molecular systems with :doc:`kspace style scafacos <kspace_style>`,
+which always computes the *full* Coulomb interactions without exclusions.
+Pair style *coul/exclude* will then *subtract* the excluded interactions
+accordingly. So to achieve the same forces as with ``pair_style lj/cut/coul/long 12.0``
+with ``kspace_style pppm 1.0e-6``, one would use
+``pair_style hybrid/overlay lj/cut 12.0 coul/exclude 12.0`` with
+``kspace_style scafacos p3m 1.0e-6``.
+
 Styles *coul/long* and *coul/msm* compute the same Coulombic
 interactions as style *coul/cut* except that an additional damping
 factor is applied so it can be used in conjunction with the
@@ -283,7 +306,7 @@ Coulombic solver (Ewald or PPPM).
    atom.  For example, if the atom ID of an O atom in a TIP4P water
    molecule is 500, then its 2 H atoms must have IDs 501 and 502.
 
-See the :doc:`Howto tip4p <Howto_tip4p>` doc page for more information
+See the :doc:`Howto tip4p <Howto_tip4p>` page for more information
 on how to use the TIP4P pair styles and lists of parameters to set.
 Note that the neighbor list cutoff for Coulomb interactions is
 effectively extended by a distance 2\*qdist when using the TIP4P pair
@@ -311,14 +334,14 @@ commands, or by mixing as described below:
 
 * cutoff (distance units)
 
-For *coul/cut* and *coul/debye*\ , the cutoff coefficient is optional.
+For *coul/cut* and *coul/debye* the cutoff coefficient is optional.
 If it is not used (as in some of the examples above), the default
 global value specified in the pair_style command is used.
 
-For *coul/long* and *coul/msm* no cutoff can be specified for an
-individual I,J type pair via the pair_coeff command.  All type pairs
-use the same global Coulomb cutoff specified in the pair_style
-command.
+For *coul/cut/global*, *coul/long* and *coul/msm* no cutoff can be
+specified for an individual I,J type pair via the pair_coeff command.
+All type pairs use the same global Coulomb cutoff specified in the
+pair_style command.
 
 ----------
 
@@ -349,17 +372,17 @@ to be specified in an input script that reads a restart file.
 
 These pair styles can only be used via the *pair* keyword of the
 :doc:`run_style respa <run_style>` command.  They do not support the
-*inner*\ , *middle*\ , *outer* keywords.
+*inner*, *middle*, *outer* keywords.
 
 ----------
 
 Restrictions
 """"""""""""
 
-The *coul/long*\ , *coul/msm* and *tip4p/long* styles are part of the
-KSPACE package.  They are only enabled if LAMMPS was built with that
-package.  See the :doc:`Build package <Build_package>` doc page for more
-info.
+The *coul/cut/global*, *coul/long*, *coul/msm*, *coul/streitz*, and *tip4p/long* styles
+are part of the KSPACE package.  They are only enabled if LAMMPS was built
+with that package.  See the :doc:`Build package <Build_package>` doc page
+for more info.
 
 Related commands
 """"""""""""""""

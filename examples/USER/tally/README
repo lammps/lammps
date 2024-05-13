@@ -1,6 +1,0 @@
-Examples and tests for USER-TALLY compute styles.
-
-The examples in this directory show where and how compute tally styles
-are equivalent to other facilities in LAMMPS and thus they can also be
-used to validate their correct function. Various columns should have 
-equivalent or identical output as indicated in the input.

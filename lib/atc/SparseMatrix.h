@@ -10,7 +10,7 @@ namespace ATC_matrix {
  * @struct TRI_COORD
  * @brief Triplet SparseMatrix entry
  */
-template <typename T> 
+template <typename T>
 struct TRI_COORD
 {
   TRI_COORD<T>(INDEX row=0, INDEX col=0);
@@ -25,7 +25,7 @@ void ParMultAB(MPI_Comm comm, const SparseMatrix<T>& A, const Matrix<T>& B, Dens
 
 /**
  * @class SparseMatrix
- * @brief Stores data in triplet format or CRS format 
+ * @brief Stores data in triplet format or CRS format
  */
 template<typename T>
 class SparseMatrix : public Matrix<T>
@@ -50,10 +50,10 @@ public:
   SparseMatrix(INDEX rows=0, INDEX cols=0);
   SparseMatrix(const SparseMatrix<T>& c);
   SparseMatrix(const DenseMatrix<T>& c);
-  SparseMatrix(INDEX* rows, INDEX* cols, T* vals, INDEX size, 
+  SparseMatrix(INDEX* rows, INDEX* cols, T* vals, INDEX size,
                INDEX nRows, INDEX nCols, INDEX nRowsCRS);
   virtual ~SparseMatrix() { _delete(); }
-    
+
   //*  General index by value (requires a binary search on the row)
   T  operator()(INDEX i, INDEX j)  const;
   //*  General index by reference (requires a binary search on the row)
@@ -74,10 +74,10 @@ public:
   //* only changes the bounds of the matrix, no deletion
   void resize(INDEX rows=0, INDEX cols=0, bool zero=true);
   //* reset - from DenseMatrix - this will be SLOW
-  void reset(const DenseMatrix<T>& D, double TOL=-1.0); 
+  void reset(const DenseMatrix<T>& D, double TOL=-1.0);
   //* copy data
   void copy(const T * ptr, INDEX rows=0, INDEX cols=0);
-  
+
   void dense_copy(DenseMatrix<T>& D) const;
   DenseMatrix<T>  dense_copy(void) const;
 
@@ -87,7 +87,7 @@ public:
   INDEX nRows()          const;
   INDEX nRowsCRS()          const;
   //* returns the user-specified number of cols
-  INDEX nCols()          const; 
+  INDEX nCols()          const;
   //* returns the number of non-zero elements
   INDEX size()           const;
   //* returns the number of non-zeros in a row
@@ -248,23 +248,23 @@ public:
   //! Reads a SparseMatrix from a binary file.  (wipes out any original data)
   void binary_read(std::fstream& f);
   //* Dump templated type to disk; operation not safe for all types
-  void write_restart(FILE *f) const; 
+  void write_restart(FILE *f) const;
 
 /*
  *  \section Utility functions
  */
   //* converts all triplets and merges with CRS
-  void compress();          
+  void compress();
   //* converts T to CRS
-  static void compress(const SparseMatrix<T> &C); 
+  static void compress(const SparseMatrix<T> &C);
   //* sorts and returns the # of unique triplets
-  INDEX CountUniqueTriplets();       
+  INDEX CountUniqueTriplets();
 
 private:
   //* creates a CRS structure
   void _create(INDEX size, INDEX nrows);
   //* clears all memory and nulls references
-  void _delete();   
+  void _delete();
   //* copies all data from another SparseMatrix
   void _copy(const SparseMatrix<T> &C);
   //* general sparse matrix assignment
@@ -279,7 +279,7 @@ protected:
   T * _val;                    // matrix non-zeros
   INDEX *_ia, *_ja;            // ptrs to rows, column indexes
   INDEX _size, _nRowsCRS;      // # of non-zeros, rows
-  bool hasTemplate_;  
+  bool hasTemplate_;
 
   void copy(const SparseMatrix<T> &C);
 
@@ -287,7 +287,7 @@ protected:
   mutable std::vector<TRI_COORD<T> > _tri;
 /*
  *  \section User specified variables
- */  
+ */
   INDEX _nRows, _nCols;
   static T _zero;
 };

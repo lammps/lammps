@@ -1,7 +1,7 @@
 /* -*- c++ -*- ----------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    https://www.lammps.org/, Sandia National Laboratories
-   Steve Plimpton, sjplimp@sandia.gov
+   LAMMPS development team: developers@lammps.org
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
@@ -25,7 +25,8 @@ class Dihedral : protected Pointers {
  public:
   int allocated;
   int *setflag;
-  int writedata;             // 1 if writes coeffs to data file
+  int writedata;    // 1 if writes coeffs to data file
+  int born_matrix_enable;
   double energy;             // accumulated energy
   double virial[6];          // accumulated virial: xx,yy,zz,xy,xz,yz
   double *eatom, **vatom;    // accumulated per-atom energy/virial
@@ -43,11 +44,11 @@ class Dihedral : protected Pointers {
   int copymode;
 
   Dihedral(class LAMMPS *);
-  virtual ~Dihedral();
+  ~Dihedral() override;
   virtual void init();
   virtual void init_style() {}
   virtual void compute(int, int) = 0;
-  virtual void settings(int, char **) {}
+  virtual void settings(int, char **);
   virtual void coeff(int, char **) = 0;
   virtual void write_restart(FILE *) = 0;
   virtual void read_restart(FILE *) = 0;
@@ -55,6 +56,12 @@ class Dihedral : protected Pointers {
   virtual void read_restart_settings(FILE *){};
   virtual void write_data(FILE *) {}
   virtual double memory_usage();
+  virtual void born_matrix(int /*dtype*/, int /*at1*/, int /*at2*/, int /*at3*/, int /*at4*/,
+                           double &du, double &du2)
+  {
+    du = 0.0;
+    du2 = 0.0;
+  }
 
  protected:
   int suffix_flag;    // suffix compatibility flag
@@ -81,17 +88,3 @@ class Dihedral : protected Pointers {
 }    // namespace LAMMPS_NS
 
 #endif
-
-/* ERROR/WARNING messages:
-
-E: Dihedral coeffs are not set
-
-No dihedral coefficients have been assigned in the data file or via
-the dihedral_coeff command.
-
-E: All dihedral coeffs are not set
-
-All dihedral coefficients must be set in the data file or by the
-dihedral_coeff command before running a simulation.
-
-*/

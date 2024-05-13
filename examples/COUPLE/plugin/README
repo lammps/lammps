@@ -11,32 +11,39 @@ liblammpsplugin.c  is the LAMMPS library plugin loader
 You can then build the driver executable codes with a compile line
 like below.
 
-mpicc -c -O -Wall -g -I$HOME/lammps/src liblammpsplugin.c
-mpicc -c -O -Wall -g simple.c
-mpicc simple.o liblammsplugin.o -ldl -o simpleC
+mpicc -c -O -DLAMMPS_LIB_MPI -Wall -g liblammpsplugin.c
+mpicc -c -O -DLAMMPS_LIB_MPI -Wall -g simple.c
+mpicc simple.o liblammpsplugin.o -ldl -o simple-plugin
+
+or using the provided CMake file with:
+
+mkdir build
+cd build
+cmake ../
+cmake --build .
 
 You also need to build LAMMPS as a shared library
-(see examples/COUPLE/README), e.g. 
+(see examples/COUPLE/README), e.g.
 
 cd $HOME/lammps/src
 make mode=shlib mpi
 
-or 
+or
 
 cd $HOME/lammps
 mkdir build-shared
 cd build-shared
-cmake -D BUILD_LIB=on -D BUILD_SHARED_LIBS=on ../cmake
+cmake -D BUILD_MPI=on -D BUILD_SHARED_LIBS=on ../cmake
 make
 
-You then run simpleC on a parallel machine
+You then run simple-plugin on a parallel machine
 on some number of processors Q with 3 arguments:
 
-% mpirun -np Q simpleC P in.lj $HOME/lammps/src/liblammps.so
+% mpirun -np Q simple-plugin P in.lj $HOME/lammps/src/liblammps.so
 
 or
 
-% mpirun -np Q simpleC P in.lj $HOME/lammps/build-shared/liblammps.so
+% mpirun -np Q simple-plugin P in.lj $HOME/lammps/build-shared/liblammps.so
 
 P is the number of procs you want LAMMPS to run on (must be <= Q) and
 in.lj is a LAMMPS input script and the last argument is the path to

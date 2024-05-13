@@ -1,13 +1,19 @@
 .. index:: pair_style edpd
+.. index:: pair_style edpd/gpu
 .. index:: pair_style mdpd
+.. index:: pair_style mdpd/gpu
 .. index:: pair_style mdpd/rhosum
 .. index:: pair_style tdpd
 
 pair_style edpd command
 =======================
 
+Accelerator Variants: *edpd/gpu*
+
 pair_style mdpd command
 =======================
+
+Accelerator Variants: *mdpd/gpu*
 
 pair_style mdpd/rhosum command
 ==============================
@@ -238,7 +244,7 @@ Example scripts
 """""""""""""""
 
 There are example scripts for using all these pair styles in
-examples/USER/mesodpd.  The example for an eDPD simulation models heat
+examples/PACKAGES/mesodpd.  The example for an eDPD simulation models heat
 conduction with source terms analog of periodic Poiseuille flow
 problem. The setup follows Fig.12 in :ref:`(Li2014_JCP) <Li2014_JCP>`. The
 output of the short eDPD simulation (about 2 minutes on a single core)
@@ -284,13 +290,13 @@ concentration profiles of the two chemical species as
 Mixing, shift, table, tail correction, restart, rRESPA info
 """""""""""""""""""""""""""""""""""""""""""""""""""""""""""
 
-The styles *edpd*\ , *mdpd*\ , *mdpd/rhosum* and *tdpd* do not support
+The styles *edpd*, *mdpd*, *mdpd/rhosum* and *tdpd* do not support
 mixing. Thus, coefficients for all I,J pairs must be specified explicitly.
 
-The styles *edpd*\ , *mdpd*\ , *mdpd/rhosum* and *tdpd* do not support
+The styles *edpd*, *mdpd*, *mdpd/rhosum* and *tdpd* do not support
 the :doc:`pair_modify <pair_modify>` shift, table, and tail options.
 
-The styles *edpd*\ , *mdpd*\ , *mdpd/rhosum* and *tdpd* do not write
+The styles *edpd*, *mdpd*, *mdpd/rhosum* and *tdpd* do not write
 information to :doc:`binary restart files <restart>`. Thus, you need
 to re-specify the pair_style and pair_coeff commands in an input script
 that reads a restart file.
@@ -298,9 +304,9 @@ that reads a restart file.
 Restrictions
 """"""""""""
 
-The pair styles *edpd*\ , *mdpd*\ , *mdpd/rhosum* and *tdpd* are part of
-the USER-MESODPD package. It is only enabled if LAMMPS was built with
-that package.  See the :doc:`Build package <Build_package>` doc page for
+The pair styles *edpd*, *mdpd*, *mdpd/rhosum* and *tdpd* are part of
+the DPD-MESO package. They are only enabled if LAMMPS was built with
+that package.  See the :doc:`Build package <Build_package>` page for
 more info.
 
 Related commands

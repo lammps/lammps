@@ -2,7 +2,7 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    https://www.lammps.org/, Sandia National Laboratories
-   Steve Plimpton, sjplimp@sandia.gov
+   LAMMPS development team: developers@lammps.org
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
@@ -29,7 +29,7 @@
 
 using namespace LAMMPS_NS;
 
-#define SMALL 0.00001
+static constexpr double SMALL = 0.00001;
 
 /* ---------------------------------------------------------------------- */
 
@@ -68,9 +68,11 @@ KSpace::KSpace(LAMMPS *lmp) : Pointers(lmp)
   gewaldflag_6 = 0;
   auto_disp_flag = 0;
 
-  slabflag = 0;
+  conp_one_step = true;
+  slabflag = wireflag = 0;
   differentiation_flag = 0;
   slab_volfactor = 1;
+  wire_volfactor = 1;
   suffix_flag = Suffix::NONE;
   adjust_cutoff_flag = 1;
   scalar_pressure_flag = 0;
@@ -428,31 +430,6 @@ void KSpace::lamda2xvector(double *lamda, double *v)
 }
 
 /* ----------------------------------------------------------------------
-   convert a sphere in box coords to an ellipsoid in lamda (0-1)
-   coords and return the tight (axis-aligned) bounding box, does not
-   preserve vector magnitude see:
-   http://www.loria.fr/~shornus/ellipsoid-bbox.html (no longer online) and
-   https://yiningkarlli.blogspot.com/2013/02/bounding-boxes-for-ellipsoidsfigure.html
-------------------------------------------------------------------------- */
-
-void KSpace::kspacebbox(double r, double *b)
-{
-  double *h = domain->h;
-  double lx,ly,lz,xy,xz,yz;
-  lx = h[0];
-  ly = h[1];
-  lz = h[2];
-  yz = h[3];
-  xz = h[4];
-  xy = h[5];
-
-  b[0] = r*sqrt(ly*ly*lz*lz + ly*ly*xz*xz - 2.0*ly*xy*xz*yz + lz*lz*xy*xy +
-         xy*xy*yz*yz)/(lx*ly*lz);
-  b[1] = r*sqrt(lz*lz + yz*yz)/(ly*lz);
-  b[2] = r/lz;
-}
-
-/* ----------------------------------------------------------------------
    modify parameters of the KSpace style
 ------------------------------------------------------------------------- */
 
@@ -480,8 +457,7 @@ void KSpace::modify_params(int narg, char **arg)
       if (nx_pppm_6 == 0 && ny_pppm_6 == 0 && nz_pppm_6 == 0)
         gridflag_6 = 0;
       else if (nx_pppm_6 <= 0 || ny_pppm_6 <= 0 || nz_pppm_6 == 0)
-        error->all(FLERR,"Kspace_modify mesh/disp parameters must be all "
-                   "zero or all positive");
+        error->all(FLERR,"Kspace_modify mesh/disp parameters must be all zero or all positive");
       else gridflag_6 = 1;
       iarg += 4;
     } else if (strcmp(arg[iarg],"order") == 0) {
@@ -499,9 +475,7 @@ void KSpace::modify_params(int narg, char **arg)
       iarg += 2;
     } else if (strcmp(arg[iarg],"overlap") == 0) {
       if (iarg+2 > narg) error->all(FLERR,"Illegal kspace_modify command");
-      if (strcmp(arg[iarg+1],"yes") == 0) overlap_allowed = 1;
-      else if (strcmp(arg[iarg+1],"no") == 0) overlap_allowed = 0;
-      else error->all(FLERR,"Illegal kspace_modify command");
+      overlap_allowed = utils::logical(FLERR,arg[iarg+1],false,lmp);
       iarg += 2;
     } else if (strcmp(arg[iarg],"force") == 0) {
       if (iarg+2 > narg) error->all(FLERR,"Illegal kspace_modify command");
@@ -523,6 +497,8 @@ void KSpace::modify_params(int narg, char **arg)
       if (iarg+2 > narg) error->all(FLERR,"Illegal kspace_modify command");
       if (strcmp(arg[iarg+1],"nozforce") == 0) {
         slabflag = 2;
+      } else if (strcmp(arg[iarg+1],"ew2d") == 0) {
+        slabflag = 3;
       } else {
         slabflag = 1;
         slab_volfactor = utils::numeric(FLERR,arg[iarg+1],false,lmp);
@@ -533,23 +509,45 @@ void KSpace::modify_params(int narg, char **arg)
                          "cause unphysical behavior");
       }
       iarg += 2;
+    } else if (strcmp(arg[iarg],"wire") == 0) {
+      if (iarg+2 > narg) error->all(FLERR,"Illegal kspace_modify command");
+      if (strcmp(arg[iarg+1],"noxyforce") == 0) {
+        wireflag = 2;
+      } else {
+        wireflag = 1;
+        wire_volfactor = utils::numeric(FLERR,arg[iarg+1],false,lmp);
+        if (wire_volfactor <= 1.0)
+          error->all(FLERR,"Bad kspace_modify slab parameter");
+        if (wire_volfactor < 2.0 && comm->me == 0)
+          error->warning(FLERR,"Kspace_modify slab param < 2.0 may "
+                         "cause unphysical behavior");
+      }
+      warn_nonneutral = 0; // can't use wire correction with non-neutral system
+      iarg += 2;
+    }
+    else if (strcmp(arg[iarg], "amat") == 0) {
+      if (iarg + 2 > narg) error->all(FLERR, "Illegal kspace_modify command");
+      if (!pppmflag) error->all(FLERR, "Illegal kspace_modify command 'amat'"
+                                      "available for pppm/conp, only");
+      if (strcmp(arg[iarg + 1], "twostep") == 0) {
+        conp_one_step = false;
+      } else if (strcmp(arg[iarg + 1], "onestep") == 0) {
+        conp_one_step = true;
+      } else {
+        error->all(FLERR, "Illegal kspace_modify command");
+      }
+      iarg += 2;
     } else if (strcmp(arg[iarg],"compute") == 0) {
       if (iarg+2 > narg) error->all(FLERR,"Illegal kspace_modify command");
-      if (strcmp(arg[iarg+1],"yes") == 0) compute_flag = 1;
-      else if (strcmp(arg[iarg+1],"no") == 0) compute_flag = 0;
-      else error->all(FLERR,"Illegal kspace_modify command");
+      compute_flag = utils::logical(FLERR,arg[iarg+1],false,lmp);
       iarg += 2;
     } else if (strcmp(arg[iarg],"fftbench") == 0) {
       if (iarg+2 > narg) error->all(FLERR,"Illegal kspace_modify command");
-      if (strcmp(arg[iarg+1],"yes") == 0) fftbench = 1;
-      else if (strcmp(arg[iarg+1],"no") == 0) fftbench = 0;
-      else error->all(FLERR,"Illegal kspace_modify command");
+      fftbench = utils::logical(FLERR,arg[iarg+1],false,lmp);
       iarg += 2;
     } else if (strcmp(arg[iarg],"collective") == 0) {
       if (iarg+2 > narg) error->all(FLERR,"Illegal kspace_modify command");
-      if (strcmp(arg[iarg+1],"yes") == 0) collective_flag = 1;
-      else if (strcmp(arg[iarg+1],"no") == 0) collective_flag = 0;
-      else error->all(FLERR,"Illegal kspace_modify command");
+      collective_flag = utils::logical(FLERR,arg[iarg+1],false,lmp);
       iarg += 2;
     } else if (strcmp(arg[iarg],"diff") == 0) {
       if (iarg+2 > narg) error->all(FLERR,"Illegal kspace_modify command");
@@ -559,9 +557,7 @@ void KSpace::modify_params(int narg, char **arg)
       iarg += 2;
     } else if (strcmp(arg[iarg],"cutoff/adjust") == 0) {
       if (iarg+2 > narg) error->all(FLERR,"Illegal kspace_modify command");
-      if (strcmp(arg[iarg+1],"yes") == 0) adjust_cutoff_flag = 1;
-      else if (strcmp(arg[iarg+1],"no") == 0) adjust_cutoff_flag = 0;
-      else error->all(FLERR,"Illegal kspace_modify command");
+      adjust_cutoff_flag = utils::logical(FLERR,arg[iarg+1],false,lmp);
       iarg += 2;
     } else if (strcmp(arg[iarg],"kmax/ewald") == 0) {
       if (iarg+4 > narg) error->all(FLERR,"Illegal kspace_modify command");
@@ -598,15 +594,11 @@ void KSpace::modify_params(int narg, char **arg)
       iarg += 2;
     } else if (strcmp(arg[iarg],"pressure/scalar") == 0) {
       if (iarg+2 > narg) error->all(FLERR,"Illegal kspace_modify command");
-      if (strcmp(arg[iarg+1],"yes") == 0) scalar_pressure_flag = 1;
-      else if (strcmp(arg[iarg+1],"no") == 0) scalar_pressure_flag = 0;
-      else error->all(FLERR,"Illegal kspace_modify command");
+      scalar_pressure_flag = utils::logical(FLERR,arg[iarg+1],false,lmp);
       iarg += 2;
     } else if (strcmp(arg[iarg],"disp/auto") == 0) {
       if (iarg+2 > narg) error->all(FLERR,"Illegal kspace_modify command");
-      if (strcmp(arg[iarg+1],"yes") == 0) auto_disp_flag = 1;
-      else if (strcmp(arg[iarg+1],"no") == 0) auto_disp_flag = 0;
-      else error->all(FLERR,"Illegal kspace_modify command");
+      auto_disp_flag = utils::logical(FLERR,arg[iarg+1],false,lmp);
       iarg += 2;
     } else {
       int n = modify_param(narg-iarg,&arg[iarg]);

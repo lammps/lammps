@@ -2,7 +2,7 @@
  /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    https://www.lammps.org/, Sandia National Laboratories
-   Steve Plimpton, sjplimp@sandia.gov
+   LAMMPS development team: developers@lammps.org
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
@@ -13,9 +13,6 @@
 ------------------------------------------------------------------------- */
 
 #include "fix_hyper_local.h"
-
-#include <cmath>
-#include <cstring>
 
 #include "atom.h"
 #include "update.h"
@@ -32,14 +29,17 @@
 #include "memory.h"
 #include "error.h"
 
+#include <cmath>
+#include <cstring>
+
 using namespace LAMMPS_NS;
 using namespace FixConst;
 
-#define DELTABOND 16384
-#define DELTABIAS 16
-#define COEFFINIT 1.0
-#define FCCBONDS 12
-#define BIG 1.0e20
+static constexpr int DELTABOND = 16384;
+static constexpr int DELTABIAS = 16;
+static constexpr double COEFFINIT = 1.0;
+static constexpr int FCCBONDS = 12;
+static constexpr double BIG = 1.0e20;
 
 enum{STRAIN,STRAINDOMAIN,BIASFLAG,BIASCOEFF};
 enum{IGNORE,WARN,ERROR};
@@ -310,15 +310,9 @@ void FixHyperLocal::init()
   // NOTE: what if pair style list cutoff > Dcut
   //   or what if neigh skin is huge?
 
-  int irequest_full = neighbor->request(this,instance_me);
-  neighbor->requests[irequest_full]->id = 1;
-  neighbor->requests[irequest_full]->pair = 0;
-  neighbor->requests[irequest_full]->fix = 1;
-  neighbor->requests[irequest_full]->half = 0;
-  neighbor->requests[irequest_full]->full = 1;
-  neighbor->requests[irequest_full]->cut = 1;
-  neighbor->requests[irequest_full]->cutoff = dcut;
-  neighbor->requests[irequest_full]->occasional = 1;
+  auto req = neighbor->add_request(this, NeighConst::REQ_FULL | NeighConst::REQ_OCCASIONAL);
+  req->set_id(1);
+  req->set_cutoff(dcut);
 
   // also need occasional half neighbor list derived from pair style
   // used for building local bond list
@@ -326,11 +320,8 @@ void FixHyperLocal::init()
   // this list will also be built (or derived/copied)
   //   every time build_bond() is called
 
-  int irequest_half = neighbor->request(this,instance_me);
-  neighbor->requests[irequest_half]->id = 2;
-  neighbor->requests[irequest_half]->pair = 0;
-  neighbor->requests[irequest_half]->fix = 1;
-  neighbor->requests[irequest_half]->occasional = 1;
+  req = neighbor->add_request(this, NeighConst::REQ_OCCASIONAL);
+  req->set_id(2);
 
   // extra timing output
 
@@ -447,7 +438,7 @@ void FixHyperLocal::pre_reverse(int /* eflag */, int /* vflag */)
   int *ilist,*jlist,*numneigh,**firstneigh;
 
   //double time1,time2,time3,time4,time5,time6,time7,time8;
-  //time1 = MPI_Wtime();
+  //time1 = platform::walltime();
 
   nostrainyet = 0;
 
@@ -520,7 +511,7 @@ void FixHyperLocal::pre_reverse(int /* eflag */, int /* vflag */)
     maxhalfstrain[iold] = halfstrain;
   }
 
-  //time2 = MPI_Wtime();
+  //time2 = platform::walltime();
 
   // reverse comm acquires maxstrain of all current owned atoms
   //   needed b/c only saw half the bonds of each atom
@@ -528,10 +519,10 @@ void FixHyperLocal::pre_reverse(int /* eflag */, int /* vflag */)
   // forward comm acquires maxstrain of all current ghost atoms
 
   commflag = STRAIN;
-  comm->reverse_comm_fix(this);
-  comm->forward_comm_fix(this);
+  comm->reverse_comm(this);
+  comm->forward_comm(this);
 
-  //time3 = MPI_Wtime();
+  //time3 = platform::walltime();
 
   // -------------------------------------------------------------
   // stage 2:
@@ -636,17 +627,17 @@ void FixHyperLocal::pre_reverse(int /* eflag */, int /* vflag */)
     maxstrain_domain[i] = emax;
   }
 
-  //time4 = MPI_Wtime();
+  //time4 = platform::walltime();
 
   // reverse comm to acquire maxstrain_domain from ghost atoms
   //   needed b/c neigh list may refer to old owned atoms that are now ghost
   // forward comm acquires maxstrain_domain of all current ghost atoms
 
   commflag = STRAINDOMAIN;
-  comm->reverse_comm_fix(this);
-  comm->forward_comm_fix(this);
+  comm->reverse_comm(this);
+  comm->forward_comm(this);
 
-  //time5 = MPI_Wtime();
+  //time5 = platform::walltime();
 
   // -------------------------------------------------------------
   // stage 3:
@@ -672,7 +663,7 @@ void FixHyperLocal::pre_reverse(int /* eflag */, int /* vflag */)
     bias[nbias++] = maxhalf[iold];
   }
 
-  //time6 = MPI_Wtime();
+  //time6 = platform::walltime();
 
   // -------------------------------------------------------------
   // stage 4:
@@ -724,7 +715,7 @@ void FixHyperLocal::pre_reverse(int /* eflag */, int /* vflag */)
     // myboost += exp(beta * biascoeff[m]*vbias);
   }
 
-  //time7 = MPI_Wtime();
+  //time7 = platform::walltime();
 
   // -------------------------------------------------------------
   // stage 5:
@@ -831,8 +822,8 @@ void FixHyperLocal::pre_reverse(int /* eflag */, int /* vflag */)
     // forward comm to set biasflag for all ghost atoms
 
     commflag = BIASFLAG;
-    comm->reverse_comm_fix(this);
-    comm->forward_comm_fix(this);
+    comm->reverse_comm(this);
+    comm->forward_comm(this);
 
     // loop over Dcut full neighbor list
     // I and J may be ghost atoms
@@ -887,7 +878,7 @@ void FixHyperLocal::build_bond_list(int natom)
   int *ilist,*jlist,*numneigh,**firstneigh;
 
   double time1,time2;
-  time1 = MPI_Wtime();
+  time1 = platform::walltime();
 
   if (natom) {
     nevent++;
@@ -980,7 +971,7 @@ void FixHyperLocal::build_bond_list(int natom)
                                          "hyper/local:clist");
   }
 
-  while (1) {
+  while (true) {
     if (firstflag) break;
     for (i = 0; i < nall; i++) numcoeff[i] = 0;
     for (i = 0; i < nall; i++) clist[i] = nullptr;
@@ -1018,7 +1009,7 @@ void FixHyperLocal::build_bond_list(int natom)
     }
 
     commflag = BIASCOEFF;
-    comm->reverse_comm_fix_variable(this);
+    comm->reverse_comm_variable(this);
 
     mymax = 0;
     for (i = 0; i < nall; i++) mymax = MAX(mymax,numcoeff[i]);
@@ -1067,7 +1058,7 @@ void FixHyperLocal::build_bond_list(int natom)
   for (i = 0; i < nlocal; i++) numbond[i] = 0;
 
   // trigger neighbor list builds for both lists
-  // insure the I loops in both are from 1 to nlocal
+  // ensure the I loops in both are from 1 to nlocal
 
   neighbor->build_one(listfull);
   neighbor->build_one(listhalf);
@@ -1185,7 +1176,7 @@ void FixHyperLocal::build_bond_list(int natom)
   // DEBUG
   //if (me == 0) printf("TOTAL BOND COUNT = %ld\n",allbonds);
 
-  time2 = MPI_Wtime();
+  time2 = platform::walltime();
 
   if (firstflag) nnewbond = 0;
   else {
@@ -1349,7 +1340,7 @@ int FixHyperLocal::pack_reverse_comm(int n, int first, double *buf)
 }
 
 /* ----------------------------------------------------------------------
-   callback by comm->reverse_comm_fix_variable() in build_bond()
+   callback by comm->reverse_comm_variable() in build_bond()
    same logic as BIASCOEFF option in pack_reverse_comm()
    m = returned size of message
 ------------------------------------------------------------------------- */
@@ -1372,7 +1363,7 @@ void FixHyperLocal::unpack_reverse_comm(int n, int *list, double *buf)
 
   // return if n = 0
   // b/c if there are no atoms (n = 0), the message will not have
-  //   been sent by Comm::reverse_comm_fix() or reverse_comm_fix_variable()
+  //   been sent by Comm::reverse_comm() or reverse_comm_variable()
   // so must not read nonzero from first buf location (would be zero anyway)
 
   if (n == 0) return;

@@ -3,7 +3,7 @@
  *      POEMS: PARALLELIZABLE OPEN SOURCE EFFICIENT MULTIBODY SOFTWARE     *
  *      DESCRIPTION: SEE READ-ME                                           *
  *      FILE NAME: joint.cpp                                              *
- *      AUTHORS: See Author List                                           * 
+ *      AUTHORS: See Author List                                           *
  *      GRANTS: See Grants List                                            *
  *      COPYRIGHT: (C) 2005 by Authors as listed in Author's List          *
  *      LICENSE: Please see License Agreement                              *
@@ -11,7 +11,7 @@
  *      ADMINISTRATOR: Prof. Kurt Anderson                                 *
  *                     Computational Dynamics Lab                          *
  *                     Rensselaer Polytechnic Institute                    *
- *                     110 8th St. Troy NY 12180                           * 
+ *                     110 8th St. Troy NY 12180                           *
  *      CONTACT:        anderk5@rpi.edu                                    *
  *_________________________________________________________________________*/
 
@@ -27,14 +27,13 @@
 using namespace std;
 
 Joint::Joint(){
-  body1 = body2 = 0;
-  point1 = point2 = 0;
+  body1 = body2 = nullptr;
+  point1 = point2 = nullptr;
   pk_C_ko.Identity();
   pk_C_k.Identity();
 }
 
-Joint::~Joint(){
-}
+Joint::~Joint() = default;
 
 void Joint::SetBodies(Body* b1, Body* b2){
   body1 = b1;
@@ -63,26 +62,26 @@ int Joint::GetPointID2(){
 }
 
 bool Joint::ReadIn(std::istream& in){
-  in >>setprecision(20)>> qo >> setprecision(20)>>qdoto >> setprecision(20)>>pk_C_ko; 
+  in >>setprecision(20)>> qo >> setprecision(20)>>qdoto >> setprecision(20)>>pk_C_ko;
   q = qo;
   qdot = qdoto;
   EP_Normalize(q);
-  
+
   return ReadInJointData(in);
 }
 
 void Joint::ResetQdot(){
-  //EP_Derivatives(q,u,qdot);  
+  //EP_Derivatives(q,u,qdot);
   qdot_to_u(q,u,qdot);
 }
 
 void Joint::ResetQ(){
-  EP_Normalize(q); 
+  EP_Normalize(q);
 }
 
 void Joint::SetInitialState(ColMatrix& a, ColMatrix& adot){
   if( (qo.GetNumRows() != a.GetNumRows()) || (qdoto.GetNumRows() != adot.GetNumRows()) ){
-	  cout<<qo.GetNumRows()<<"	"<<a.GetNumRows()<<" "<<qdoto.GetNumRows()<<" "<<adot.GetNumRows()<<endl;	  
+    cout<<qo.GetNumRows()<<"  "<<a.GetNumRows()<<" "<<qdoto.GetNumRows()<<" "<<adot.GetNumRows()<<endl;
     cerr << "ERROR::Illegal matrix size for initial condition" << endl;
     exit(1);
   }
@@ -90,15 +89,15 @@ void Joint::SetInitialState(ColMatrix& a, ColMatrix& adot){
   qdoto = adot;
   EP_Normalize(qo);
   q=qo;           //////////////////////////Check this ...added May 14 2005
-  qdot=qdoto;     //////////////////////////Check this ...added May 14 2005  
+  qdot=qdoto;     //////////////////////////Check this ...added May 14 2005
 }
 
 void Joint::SetZeroOrientation(VirtualMatrix& C){
-  pk_C_ko = C;  
+  pk_C_ko = C;
 }
 
 
-void Joint::WriteOut(std::ostream& out){  
+void Joint::WriteOut(std::ostream& out){
   out << GetType() << ' ' << GetName() << ' ';
   out << GetBodyID1() << ' ' << GetBodyID2() << ' ';
   out << GetPointID1() << ' ' << GetPointID2() << endl;
@@ -111,25 +110,25 @@ ColMatrix* Joint::GetQ(){
   return &q;
 }
 
-ColMatrix* Joint::GetU(){  
+ColMatrix* Joint::GetU(){
   return &u;
 }
 
-ColMatrix* Joint::GetQdot(){  
+ColMatrix* Joint::GetQdot(){
   return &qdot;
 }
 
-ColMatrix* Joint::GetUdot(){    
+ColMatrix* Joint::GetUdot(){
   return &udot;
 }
 
-ColMatrix* Joint::GetQdotdot(){  
+ColMatrix* Joint::GetQdotdot(){
   return &qdotdot;
 }
 
 
 void Joint::DimQandU(int i){
-  DimQandU(i,i);  
+  DimQandU(i,i);
 }
 
 void Joint::DimQandU(int i, int j){
@@ -140,18 +139,18 @@ void Joint::DimQandU(int i, int j){
   uo.Dim(j);
   u.Dim(j);
   udot.Dim(j);
-  qdotdot.Dim(i);  
-  
+  qdotdot.Dim(i);
+
   // zero them
   qo.Zeros();
   qdoto.Zeros();
   q.Zeros();
   qdot.Zeros();
   uo.Zeros();
-  u.Zeros();  
-  udot.Zeros(); 
+  u.Zeros();
+  udot.Zeros();
   qdotdot.Zeros();
-  
+
 }
 
 Body* Joint::GetBody1(){
@@ -165,11 +164,11 @@ Body* Joint::GetBody2(){
 Body* Joint::OtherBody(Body* body){
   if(body1 == body) return body2;
   if(body2 == body) return body1;
-  return 0;
+  return nullptr;
 }
 
 Vect3* Joint::GetR12(){
-  return &r12; 
+  return &r12;
 }
 
 Vect3* Joint::GetR21(){
@@ -209,7 +208,7 @@ void Joint::ComputeForwardTransforms(){
   ComputeLocalTransform();
 //  k_C_pk = T(pk_C_k);
   FastAssignT(pk_C_k, k_C_pk);
-  ComputeForwardGlobalTransform();  
+  ComputeForwardGlobalTransform();
 }
 
 void Joint::ComputeBackwardTransforms(){
@@ -221,7 +220,7 @@ void Joint::ComputeBackwardTransforms(){
 
 void Joint::ComputeForwardGlobalTransform(){
   // body2->n_C_k = body1->n_C_k * pk_C_k;
-  FastMult(body1->n_C_k,pk_C_k,body2->n_C_k);   
+  FastMult(body1->n_C_k,pk_C_k,body2->n_C_k);
   }
 
 void Joint::ComputeBackwardGlobalTransform(){
@@ -241,8 +240,8 @@ Joint* NewJoint(int type){
     case REVOLUTEJOINT : return new RevoluteJoint;
     case PRISMATICJOINT : return new PrismaticJoint;
     case SPHERICALJOINT : return new SphericalJoint;
-	 case BODY23JOINT : return new Body23Joint;
-	 case MIXEDJOINT : return new MixedJoint;
-    default : return 0; // error
+   case BODY23JOINT : return new Body23Joint;
+   case MIXEDJOINT : return new MixedJoint;
+    default : return nullptr; // error
   }
 }

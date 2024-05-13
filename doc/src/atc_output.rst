@@ -6,7 +6,7 @@ fix_modify AtC output command
 Syntax
 """"""
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    fix_modify <AtC fixID> output <filename_prefix> <frequency> [text|full_text|binary|vector_components|tensor_components]
    fix_modify <AtC fixID> output index [step|time]

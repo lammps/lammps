@@ -2,7 +2,7 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    https://www.lammps.org/, Sandia National Laboratories
-   Steve Plimpton, sjplimp@sandia.gov
+   LAMMPS development team: developers@lammps.org
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
@@ -121,12 +121,8 @@ void PairSpinExchangeBiquadratic::coeff(int narg, char **arg)
   // read energy offset flag if specified
 
   while (iarg < narg) {
-    if (strcmp(arg[10],"offset") == 0) {
-      if (strcmp(arg[11],"yes") == 0) {
-        e_offset = 1;
-      } else if  (strcmp(arg[11],"no") == 0) {
-        e_offset = 0;
-      } else error->all(FLERR,"Incorrect args for pair coefficients");
+    if (strcmp(arg[iarg],"offset") == 0) {
+      e_offset = utils::logical(FLERR,arg[iarg+1],false,lmp);
       iarg += 2;
     } else error->all(FLERR,"Incorrect args for pair coefficients");
   }

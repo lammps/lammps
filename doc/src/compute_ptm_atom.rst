@@ -6,13 +6,13 @@ compute ptm/atom command
 Syntax
 """"""
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    compute ID group-ID ptm/atom structures threshold group2-ID
 
 * ID, group-ID are documented in :doc:`compute <compute>` command
 * ptm/atom = style name of this compute command
-* structures = structure types to search for
+* structures = *default* or *all* or any hyphen-separated combination of *fcc*, *hcp*, *bcc*, *ico*, *sc*, *dcub*, *dhex*, or *graphene* = structure types to search for
 * threshold = lattice distortion threshold (RMSD)
 * group2-ID determines which group is used for neighbor selection (optional, default "all")
 
@@ -43,9 +43,10 @@ Currently, there are seven lattice structures PTM recognizes:
 * dhex (diamond hexagonal) = 7
 * graphene = 8
 
-The value of the PTM structure will be 0 for unknown types and -1 for atoms not in the specified
-compute group.  The choice of structures to search for can be specified using the "structures"
-argument, which is a hyphen-separated list of structure keywords.
+The value of the PTM structure will be 0 for unknown types and :math:`-1` for
+atoms not in the specified compute group.  The choice of structures to search
+for can be specified using the "structures" argument, which is a
+hyphen-separated list of structure keywords.
 Two convenient pre-set options are provided:
 
 * default: fcc-hcp-bcc-ico
@@ -63,21 +64,25 @@ The deviation is calculated as:
 
 .. math::
 
-   \text{RMSD}(\mathbf{u}, \mathbf{v}) = \min_{s, \mathbf{Q}} \sqrt{\frac{1}{N} \sum\limits_{i=1}^{N}
-   {\left|\left| s[\vec{u_i} - \overline{\mathbf{u}}] - \mathbf{Q} \vec{v_i} \right|\right|}^2}
+   \text{RMSD}(\mathbf{u}, \mathbf{v})
+    = \min_{s, \mathbf{Q}} \sqrt{\frac{1}{N} \sum\limits_{i=1}^{N}
+   {\left\lVert s[\vec{u}_i - \mathbf{\bar{u}}]
+                 - \mathbf{Q} \cdot \vec{v}_i \right\rVert}^2}
 
-Here, u and v contain the coordinates of the local and ideal structures respectively,
-s is a scale factor, and Q is a rotation.  The best match is identified by the
-lowest RMSD value, using the optimal scaling, rotation, and correspondence between the
+Here, :math:`\vec u` and :math:`\vec v` contain the coordinates of the local
+and ideal structures respectively, :math:`s` is a scale factor, and
+:math:`\mathbf Q` is a rotation.  The best match is identified by the lowest
+RMSD value, using the optimal scaling, rotation, and correspondence between the
 points.
 
-The 'threshold' keyword sets an upper limit on the maximum permitted deviation before
-a local structure is identified as disordered.  Typical values are in the range 0.1-0.15,
-but larger values may be desirable at higher temperatures.
-A value of 0 is equivalent to infinity and can be used if no threshold is desired.
+The *threshold* keyword sets an upper limit on the maximum permitted deviation
+before a local structure is identified as disordered.  Typical values are in
+the range 0.1--0.15, but larger values may be desirable at higher temperatures.
+A value of 0 is equivalent to infinity and can be used if no threshold is
+desired.
 
 The neighbor list needed to compute this quantity is constructed each
-time the calculation is performed (e.g. each time a snapshot of atoms
+time the calculation is performed (e.g., each time a snapshot of atoms
 is dumped).  Thus it can be inefficient to compute/dump this quantity
 too frequently or to have multiple compute/dump commands, each with a
 *ptm/atom* style. By default the compute processes **all** neighbors
@@ -89,7 +94,7 @@ Output info
 
 This compute calculates a per-atom array, which can be accessed by
 any command that uses per-atom values from a compute as input.  See
-the :doc:`Howto output <Howto_output>` doc page for an overview of
+the :doc:`Howto output <Howto_output>` page for an overview of
 LAMMPS output options.
 
 Results are stored in the per-atom array in the following order:
@@ -102,18 +107,19 @@ Results are stored in the per-atom array in the following order:
 * qy
 * qz
 
-The type is a number from -1 to 8.  The rmsd is a positive real number.
+The type is a number from :math:`-1` to 8. The rmsd is a positive real number.
 The interatomic distance is computed from the scale factor in the RMSD equation.
-The (qw,qx,qy,qz) parameters represent the orientation of the local structure
-in quaternion form.  The reference coordinates for each template (from which the
-orientation is determined) can be found in the *ptm_constants.h* file in the PTM source directory.
+The :math:`(qw,qx,qy,qz)` parameters represent the orientation of the local
+structure in quaternion form.  The reference coordinates for each template
+(from which the orientation is determined) can be found in the
+*ptm_constants.h* file in the PTM source directory.
 For atoms that are not within the compute group-ID, all values are set to zero.
 
 Restrictions
 """"""""""""
 
-This fix is part of the USER-PTM package.  It is only enabled if
-LAMMPS was built with that package.  See the :doc:`Build package <Build_package>` doc page for more info.
+This fix is part of the PTM package.  It is only enabled if
+LAMMPS was built with that package.  See the :doc:`Build package <Build_package>` page for more info.
 
 Related commands
 """"""""""""""""

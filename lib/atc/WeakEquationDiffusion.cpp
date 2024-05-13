@@ -14,12 +14,12 @@ namespace ATC {
 //  Constructor
 //--------------------------------------------------------------
 WeakEquationDiffusion::WeakEquationDiffusion()
-  : WeakEquation(DYNAMIC_PDE,SPECIES_CONCENTRATION,1) 
+  : WeakEquation(DYNAMIC_PDE,SPECIES_CONCENTRATION,1)
 {}
 //--------------------------------------------------------------
 //  Destructor
 //--------------------------------------------------------------
-WeakEquationDiffusion::~WeakEquationDiffusion(void)
+WeakEquationDiffusion::~WeakEquationDiffusion()
 {}
 //---------------------------------------------------------------------
 //   compute capacity
@@ -47,4 +47,4 @@ void WeakEquationDiffusion::B_integrand(
 }
 }; // end namespace
 
-  
+

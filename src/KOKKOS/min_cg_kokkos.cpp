@@ -2,7 +2,7 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    https://www.lammps.org/, Sandia National Laboratories
-   Steve Plimpton, sjplimp@sandia.gov
+   LAMMPS development team: developers@lammps.org
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
@@ -13,21 +13,22 @@
 ------------------------------------------------------------------------- */
 
 #include "min_cg_kokkos.h"
-#include <mpi.h>
-#include <cmath>
-#include "update.h"
-#include "output.h"
-#include "timer.h"
+
 #include "atom_kokkos.h"
 #include "atom_masks.h"
 #include "error.h"
 #include "fix_minimize_kokkos.h"
+#include "output.h"
+#include "timer.h"
+#include "update.h"
+
+#include <cmath>
 
 using namespace LAMMPS_NS;
 
 // EPS_ENERGY = minimum normalization for energy tolerance
 
-#define EPS_ENERGY 1.0e-8
+static constexpr double EPS_ENERGY = 1.0e-8;
 
 /* ---------------------------------------------------------------------- */
 
@@ -48,6 +49,8 @@ int MinCGKokkos::iterate(int maxiter)
 
   fix_minimize_kk->k_vectors.sync<LMPDeviceType>();
   fix_minimize_kk->k_vectors.modify<LMPDeviceType>();
+
+  atomKK->sync(Device,F_MASK);
 
   // nlimit = max # of CG iterations before restarting
   // set to ndoftotal unless too big

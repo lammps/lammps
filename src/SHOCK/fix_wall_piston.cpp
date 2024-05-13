@@ -2,7 +2,7 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    https://www.lammps.org/, Sandia National Laboratories
-   Steve Plimpton, sjplimp@sandia.gov
+   LAMMPS development team: developers@lammps.org
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
@@ -13,17 +13,19 @@
 ------------------------------------------------------------------------- */
 
 #include "fix_wall_piston.h"
+
+#include "atom.h"
+#include "comm.h"
+#include "domain.h"
+#include "error.h"
+#include "force.h"
+#include "lattice.h"
+#include "math_const.h"
+#include "random_mars.h"
+#include "update.h"
+
 #include <cmath>
 #include <cstring>
-#include "atom.h"
-#include "domain.h"
-#include "lattice.h"
-#include "update.h"
-#include "error.h"
-#include "random_mars.h"
-#include "force.h"
-#include "comm.h"
-#include "math_const.h"
 
 using namespace LAMMPS_NS;
 using namespace FixConst;
@@ -202,8 +204,7 @@ void FixWallPiston::post_integrate()
     if (zloflag) {
       zlo = z0 + 0.5 * paccelz * tt; vz =  paccelz * t;
     }
-  }
-  else if (rampNL1flag) {
+  } else if (rampNL1flag) {
     paccelz = maxvz / tott;
     angfreq = MY_2PI / (0.5 * tott);
 
@@ -211,11 +212,8 @@ void FixWallPiston::post_integrate()
       zlo = z0 + paccelz * (0.5*tt + 1.0/(angfreq*angfreq) -
                             1.0/(angfreq*angfreq)*cos(angfreq*t));
       vz =  paccelz * (t + 1.0/angfreq*sin(angfreq*t));
-    }
-    else error->all(FLERR,
-                    "NL ramp in wall/piston only implemented in zlo for now");
-  }
-  else if (rampNL2flag) {
+    } else error->all(FLERR, "NL ramp in wall/piston only implemented in zlo for now");
+  } else if (rampNL2flag) {
     paccelz = maxvz / tott;
     angfreq = 3.0*MY_2PI / tott;
 
@@ -225,55 +223,35 @@ void FixWallPiston::post_integrate()
                             1.0/(6.0*angfreq*angfreq)*(1.0-cos(2.0*angfreq*t)));
       vz =  paccelz * (t + 4.0/(3.0*angfreq)*sin(angfreq*t) +
                        1.0/(3.0*angfreq)*sin(2.0*angfreq*t));
-    }
-    else error->all(FLERR,
-                    "NL ramp in wall/piston only implemented in zlo for now");
-  }
-  else if (rampNL3flag) {
+    } else error->all(FLERR, "NL ramp in wall/piston only implemented in zlo for now");
+  } else if (rampNL3flag) {
     paccelz = maxvz / tott;
 
     if (zloflag) {
       zlo = z0 + paccelz*tott*tott/2.5 * (t2p5 );
       vz =  paccelz * tott * (t1p5 );
-    }
-    else error->all(FLERR,
-                    "NL ramp in wall/piston only implemented in zlo for now");
-  }
-  else if (rampNL4flag) {
+    } else error->all(FLERR, "NL ramp in wall/piston only implemented in zlo for now");
+  } else if (rampNL4flag) {
     paccelz = maxvz / tott;
 
     if (zloflag) {
       zlo = z0 + paccelz/tott/3.0 * (ttt);
       vz =  paccelz / tott * (tt);
-    }
-    else error->all(FLERR,
-                    "NL ramp in wall/piston only implemented in zlo for now");
-  }
-  else if (rampNL5flag) {
+    } else error->all(FLERR, "NL ramp in wall/piston only implemented in zlo for now");
+  } else if (rampNL5flag) {
     paccelz = maxvz / tott;
 
     if (zloflag) {
       zlo = z0 + paccelz/tott/tott/4.0 * (tttt);
       vz =  paccelz / tott / tott * (ttt);
-    }
-    else error->all(FLERR,
-                    "NL ramp in wall/piston only implemented in zlo for now");
-  }
-  else {
+    } else error->all(FLERR, "NL ramp in wall/piston only implemented in zlo for now");
+  } else {
     if (zloflag) { zlo = z0 + vz * t; }
   }
 
-  if (update->ntimestep % 1000 == 0)
-    if (comm->me == 0) {
-      if (screen)
-        fprintf(screen,"SHOCK: step " BIGINT_FORMAT
-                " t %g zpos %g vz %g az %g zlo %g\n",
-                update->ntimestep, t, zlo, vz, paccelz, domain->boxlo[2]);
-      if (logfile)
-        fprintf(logfile,"SHOCK: step " BIGINT_FORMAT
-                " t %g zpos %g vz %g az %g zlo %g\n",
-                update->ntimestep, t, zlo, vz, paccelz, domain->boxlo[2]);
-    }
+  if ((update->ntimestep % 1000 == 0) && (comm->me == 0))
+    utils::logmesg(lmp,"SHOCK: step {} t {} zpos {} vz {} az {} zlo {}\n",
+                   update->ntimestep, t, zlo, vz, paccelz, domain->boxlo[2]);
 
   // VIRIAL PRESSURE CONTRIBUTION?
 

@@ -113,7 +113,7 @@ LAMMPS output, something is wrong with your simulation.  If you
 suspect this is happening, it is a good idea to print out
 thermodynamic info frequently (e.g. every timestep) via the
 :doc:`thermo <thermo>` so you can monitor what is happening.
-Visualizing the atom movement is also a good idea to insure your model
+Visualizing the atom movement is also a good idea to ensure your model
 is behaving as you expect.
 
 In parallel, one way LAMMPS can hang is due to how different MPI

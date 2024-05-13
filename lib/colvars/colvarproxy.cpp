@@ -7,141 +7,22 @@
 // If you wish to distribute your changes, please submit them to the
 // Colvars repository at GitHub.
 
-#if !defined(WIN32) || defined(__CYGWIN__)
-#include <unistd.h>
-#endif
-#include <cerrno>
-
-#include <sstream>
-#include <cstring>
-#include <cstdio>
-
-#if defined(_OPENMP)
-#include <omp.h>
-#endif
+#include <fstream>
+#include <list>
+#include <utility>
 
 #include "colvarmodule.h"
 #include "colvarproxy.h"
 #include "colvarscript.h"
 #include "colvaratoms.h"
-
-
-
-colvarproxy_system::colvarproxy_system()
-{
-  angstrom_value = 0.0;
-  total_force_requested = false;
-  reset_pbc_lattice();
-}
-
-
-colvarproxy_system::~colvarproxy_system() {}
-
-
-void colvarproxy_system::add_energy(cvm::real /* energy */) {}
-
-
-void colvarproxy_system::request_total_force(bool yesno)
-{
-  if (yesno == true)
-    cvm::error("Error: total forces are currently not implemented.\n",
-               COLVARS_NOT_IMPLEMENTED);
-}
-
-
-bool colvarproxy_system::total_forces_enabled() const
-{
-  return false;
-}
-
-
-bool colvarproxy_system::total_forces_same_step() const
-{
-  return false;
-}
-
-
-inline int round_to_integer(cvm::real x)
-{
-  return int(cvm::floor(x+0.5));
-}
-
-
-void colvarproxy_system::update_pbc_lattice()
-{
-  // Periodicity is assumed in all directions
-
-  if (boundaries_type == boundaries_unsupported ||
-      boundaries_type == boundaries_non_periodic) {
-    cvm::error("Error: setting PBC lattice with unsupported boundaries.\n",
-               BUG_ERROR);
-    return;
-  }
-
-  {
-    cvm::rvector const v = cvm::rvector::outer(unit_cell_y, unit_cell_z);
-    reciprocal_cell_x = v/(v*unit_cell_x);
-  }
-  {
-    cvm::rvector const v = cvm::rvector::outer(unit_cell_z, unit_cell_x);
-    reciprocal_cell_y = v/(v*unit_cell_y);
-  }
-  {
-    cvm::rvector const v = cvm::rvector::outer(unit_cell_x, unit_cell_y);
-    reciprocal_cell_z = v/(v*unit_cell_z);
-  }
-}
-
-
-void colvarproxy_system::reset_pbc_lattice()
-{
-  unit_cell_x.reset();
-  unit_cell_y.reset();
-  unit_cell_z.reset();
-  reciprocal_cell_x.reset();
-  reciprocal_cell_y.reset();
-  reciprocal_cell_z.reset();
-}
-
-
-cvm::rvector colvarproxy_system::position_distance(cvm::atom_pos const &pos1,
-                                                   cvm::atom_pos const &pos2)
-  const
-{
-  if (boundaries_type == boundaries_unsupported) {
-    cvm::error("Error: unsupported boundary conditions.\n", INPUT_ERROR);
-  }
-
-  cvm::rvector diff = (pos2 - pos1);
-
-  if (boundaries_type == boundaries_non_periodic) return diff;
-
-  cvm::real const x_shift = round_to_integer(reciprocal_cell_x*diff);
-  cvm::real const y_shift = round_to_integer(reciprocal_cell_y*diff);
-  cvm::real const z_shift = round_to_integer(reciprocal_cell_z*diff);
-
-  diff.x -= x_shift*unit_cell_x.x + y_shift*unit_cell_y.x +
-    z_shift*unit_cell_z.x;
-  diff.y -= x_shift*unit_cell_x.y + y_shift*unit_cell_y.y +
-    z_shift*unit_cell_z.y;
-  diff.z -= x_shift*unit_cell_x.z + y_shift*unit_cell_y.z +
-    z_shift*unit_cell_z.z;
-
-  return diff;
-}
-
-
-int colvarproxy_system::get_molid(int &)
-{
-  cvm::error("Error: only VMD allows the use of multiple \"molecules\", "
-             "i.e. multiple molecular systems.", COLVARS_NOT_IMPLEMENTED);
-  return -1;
-}
+#include "colvarmodule_utils.h"
 
 
 
 colvarproxy_atoms::colvarproxy_atoms()
 {
+  atoms_rms_applied_force_ = atoms_max_applied_force_ = 0.0;
+  atoms_max_applied_force_id_ = -1;
   updated_masses_ = updated_charges_ = false;
 }
 
@@ -155,7 +36,7 @@ colvarproxy_atoms::~colvarproxy_atoms()
 int colvarproxy_atoms::reset()
 {
   atoms_ids.clear();
-  atoms_ncopies.clear();
+  atoms_refcount.clear();
   atoms_masses.clear();
   atoms_charges.clear();
   atoms_positions.clear();
@@ -168,13 +49,25 @@ int colvarproxy_atoms::reset()
 int colvarproxy_atoms::add_atom_slot(int atom_id)
 {
   atoms_ids.push_back(atom_id);
-  atoms_ncopies.push_back(1);
+  atoms_refcount.push_back(1);
   atoms_masses.push_back(1.0);
   atoms_charges.push_back(0.0);
   atoms_positions.push_back(cvm::rvector(0.0, 0.0, 0.0));
   atoms_total_forces.push_back(cvm::rvector(0.0, 0.0, 0.0));
   atoms_new_colvar_forces.push_back(cvm::rvector(0.0, 0.0, 0.0));
   return (atoms_ids.size() - 1);
+}
+
+
+int colvarproxy_atoms::init_atom(int /* atom_number */)
+{
+  return COLVARS_NOT_IMPLEMENTED;
+}
+
+
+int colvarproxy_atoms::check_atom_id(int /* atom_number */)
+{
+  return COLVARS_NOT_IMPLEMENTED;
 }
 
 
@@ -201,11 +94,21 @@ void colvarproxy_atoms::clear_atom(int index)
 {
   if (((size_t) index) >= atoms_ids.size()) {
     cvm::error("Error: trying to disable an atom that was not previously requested.\n",
-               INPUT_ERROR);
+               COLVARS_INPUT_ERROR);
   }
-  if (atoms_ncopies[index] > 0) {
-    atoms_ncopies[index] -= 1;
+  if (atoms_refcount[index] > 0) {
+    atoms_refcount[index] -= 1;
   }
+}
+
+
+size_t colvarproxy_atoms::get_num_active_atoms() const
+{
+  size_t result = 0;
+  for (size_t i = 0; i < atoms_refcount.size(); i++) {
+    if (atoms_refcount[i] > 0) result++;
+  }
+  return result;
 }
 
 
@@ -232,8 +135,39 @@ int colvarproxy_atoms::load_coords(char const * /* filename */,
 }
 
 
+void colvarproxy_atoms::compute_rms_atoms_applied_force()
+{
+  atoms_rms_applied_force_ =
+    compute_norm2_stats<cvm::rvector, 0, false>(atoms_new_colvar_forces);
+}
 
-colvarproxy_atom_groups::colvarproxy_atom_groups() {}
+
+void colvarproxy_atoms::compute_max_atoms_applied_force()
+{
+  int minmax_index = -1;
+  size_t const n_atoms_ids = atoms_ids.size();
+  if ((n_atoms_ids > 0) && (n_atoms_ids == atoms_new_colvar_forces.size())) {
+    atoms_max_applied_force_ =
+      compute_norm2_stats<cvm::rvector, 1, true>(atoms_new_colvar_forces,
+                                                 &minmax_index);
+    if (minmax_index >= 0) {
+      atoms_max_applied_force_id_ = atoms_ids[minmax_index];
+    } else {
+      atoms_max_applied_force_id_ = -1;
+    }
+  } else {
+    atoms_max_applied_force_ =
+      compute_norm2_stats<cvm::rvector, 1, false>(atoms_new_colvar_forces);
+    atoms_max_applied_force_id_ = -1;
+  }
+}
+
+
+
+colvarproxy_atom_groups::colvarproxy_atom_groups()
+{
+  atom_groups_rms_applied_force_ = atom_groups_max_applied_force_ = 0.0;
+}
 
 
 colvarproxy_atom_groups::~colvarproxy_atom_groups()
@@ -245,7 +179,7 @@ colvarproxy_atom_groups::~colvarproxy_atom_groups()
 int colvarproxy_atom_groups::reset()
 {
   atom_groups_ids.clear();
-  atom_groups_ncopies.clear();
+  atom_groups_refcount.clear();
   atom_groups_masses.clear();
   atom_groups_charges.clear();
   atom_groups_coms.clear();
@@ -258,7 +192,7 @@ int colvarproxy_atom_groups::reset()
 int colvarproxy_atom_groups::add_atom_group_slot(int atom_group_id)
 {
   atom_groups_ids.push_back(atom_group_id);
-  atom_groups_ncopies.push_back(1);
+  atom_groups_refcount.push_back(1);
   atom_groups_masses.push_back(1.0);
   atom_groups_charges.push_back(0.0);
   atom_groups_coms.push_back(cvm::rvector(0.0, 0.0, 0.0));
@@ -288,11 +222,35 @@ void colvarproxy_atom_groups::clear_atom_group(int index)
   if (((size_t) index) >= atom_groups_ids.size()) {
     cvm::error("Error: trying to disable an atom group "
                "that was not previously requested.\n",
-               INPUT_ERROR);
+               COLVARS_INPUT_ERROR);
   }
-  if (atom_groups_ncopies[index] > 0) {
-    atom_groups_ncopies[index] -= 1;
+  if (atom_groups_refcount[index] > 0) {
+    atom_groups_refcount[index] -= 1;
   }
+}
+
+
+size_t colvarproxy_atom_groups::get_num_active_atom_groups() const
+{
+  size_t result = 0;
+  for (size_t i = 0; i < atom_groups_refcount.size(); i++) {
+    if (atom_groups_refcount[i] > 0) result++;
+  }
+  return result;
+}
+
+
+void colvarproxy_atom_groups::compute_rms_atom_groups_applied_force()
+{
+  atom_groups_rms_applied_force_ =
+    compute_norm2_stats<cvm::rvector, 0, false>(atom_groups_new_colvar_forces);
+}
+
+
+void colvarproxy_atom_groups::compute_max_atom_groups_applied_force()
+{
+  atom_groups_max_applied_force_ =
+    compute_norm2_stats<cvm::rvector, 1, false>(atom_groups_new_colvar_forces);
 }
 
 
@@ -302,9 +260,9 @@ colvarproxy_smp::colvarproxy_smp()
   b_smp_active = true; // May be disabled by user option
   omp_lock_state = NULL;
 #if defined(_OPENMP)
-  if (smp_thread_id() == 0) {
-    omp_lock_state = reinterpret_cast<void *>(new omp_lock_t);
-    omp_init_lock(reinterpret_cast<omp_lock_t *>(omp_lock_state));
+  if (omp_get_thread_num() == 0) {
+    omp_lock_state = new omp_lock_t;
+    omp_init_lock(omp_lock_state);
   }
 #endif
 }
@@ -313,9 +271,9 @@ colvarproxy_smp::colvarproxy_smp()
 colvarproxy_smp::~colvarproxy_smp()
 {
 #if defined(_OPENMP)
-  if (smp_thread_id() == 0) {
+  if (omp_get_thread_num() == 0) {
     if (omp_lock_state) {
-      delete reinterpret_cast<omp_lock_t *>(omp_lock_state);
+      delete omp_lock_state;
     }
   }
 #endif
@@ -416,7 +374,7 @@ int colvarproxy_smp::smp_thread_id()
 #if defined(_OPENMP)
   return omp_get_thread_num();
 #else
-  return COLVARS_NOT_IMPLEMENTED;
+  return -1;
 #endif
 }
 
@@ -426,7 +384,7 @@ int colvarproxy_smp::smp_num_threads()
 #if defined(_OPENMP)
   return omp_get_max_threads();
 #else
-  return COLVARS_NOT_IMPLEMENTED;
+  return -1;
 #endif
 }
 
@@ -434,7 +392,7 @@ int colvarproxy_smp::smp_num_threads()
 int colvarproxy_smp::smp_lock()
 {
 #if defined(_OPENMP)
-  omp_set_lock(reinterpret_cast<omp_lock_t *>(omp_lock_state));
+  omp_set_lock(omp_lock_state);
 #endif
   return COLVARS_OK;
 }
@@ -443,8 +401,7 @@ int colvarproxy_smp::smp_lock()
 int colvarproxy_smp::smp_trylock()
 {
 #if defined(_OPENMP)
-  return omp_test_lock(reinterpret_cast<omp_lock_t *>(omp_lock_state)) ?
-    COLVARS_OK : COLVARS_ERROR;
+  return omp_test_lock(omp_lock_state) ? COLVARS_OK : COLVARS_ERROR;
 #else
   return COLVARS_OK;
 #endif
@@ -454,7 +411,7 @@ int colvarproxy_smp::smp_trylock()
 int colvarproxy_smp::smp_unlock()
 {
 #if defined(_OPENMP)
-  omp_unset_lock(reinterpret_cast<omp_lock_t *>(omp_lock_state));
+  omp_unset_lock(omp_lock_state);
 #endif
   return COLVARS_OK;
 }
@@ -464,25 +421,16 @@ int colvarproxy_smp::smp_unlock()
 colvarproxy_script::colvarproxy_script()
 {
   script = NULL;
+  have_scripts = false;
 }
 
 
-colvarproxy_script::~colvarproxy_script() {}
-
-
-char const *colvarproxy_script::script_obj_to_str(unsigned char *obj)
+colvarproxy_script::~colvarproxy_script()
 {
-  cvm::error("Error: trying to print a script object without a scripting "
-             "language interface.\n", BUG_ERROR);
-  return reinterpret_cast<char *>(obj);
-}
-
-
-std::vector<std::string> colvarproxy_script::script_obj_to_str_vector(unsigned char * /* obj */)
-{
-  cvm::error("Error: trying to print a script object without a scripting "
-             "language interface.\n", BUG_ERROR);
-  return std::vector<std::string>();
+  if (script != NULL) {
+    delete script;
+    script = NULL;
+  }
 }
 
 
@@ -493,101 +441,18 @@ int colvarproxy_script::run_force_callback()
 
 
 int colvarproxy_script::run_colvar_callback(std::string const & /* name */,
-					    std::vector<const colvarvalue *> const & /* cvcs */,
-					    colvarvalue & /* value */)
+                                            std::vector<const colvarvalue *> const & /* cvcs */,
+                                            colvarvalue & /* value */)
 {
   return COLVARS_NOT_IMPLEMENTED;
 }
 
 
 int colvarproxy_script::run_colvar_gradient_callback(std::string const & /* name */,
-						     std::vector<const colvarvalue *> const & /* cvcs */,
-						     std::vector<cvm::matrix2d<cvm::real> > & /* gradient */)
+                                                     std::vector<const colvarvalue *> const & /* cvcs */,
+                                                     std::vector<cvm::matrix2d<cvm::real> > & /* gradient */)
 {
   return COLVARS_NOT_IMPLEMENTED;
-}
-
-
-
-colvarproxy_io::colvarproxy_io()
-{
-  input_buffer_ = NULL;
-}
-
-
-colvarproxy_io::~colvarproxy_io() {}
-
-
-int colvarproxy_io::get_frame(long int&)
-{
-  return COLVARS_NOT_IMPLEMENTED;
-}
-
-
-int colvarproxy_io::set_frame(long int)
-{
-  return COLVARS_NOT_IMPLEMENTED;
-}
-
-
-int colvarproxy_io::backup_file(char const * /* filename */)
-{
-  // TODO implement this using rename_file()
-  return COLVARS_NOT_IMPLEMENTED;
-}
-
-
-int colvarproxy_io::remove_file(char const *filename)
-{
-  int error_code = COLVARS_OK;
-#if defined(WIN32) && !defined(__CYGWIN__)
-  // Because the file may be open by other processes, rename it to filename.old
-  std::string const renamed_file(std::string(filename)+".old");
-  // It may still be there from an interrupted run, so remove it to be safe
-  std::remove(renamed_file.c_str());
-  int rename_exit_code = 0;
-  while ((rename_exit_code = std::rename(filename,
-                                         renamed_file.c_str())) != 0) {
-    if (errno == EINTR) continue;
-    error_code |= FILE_ERROR;
-    break;
-  }
-  // Ask to remove filename.old, but ignore any errors raised
-  std::remove(renamed_file.c_str());
-#else
-  if (std::remove(filename)) {
-    if (errno != ENOENT) {
-      error_code |= FILE_ERROR;
-    }
-  }
-#endif
-  if (error_code != COLVARS_OK) {
-    return cvm::error("Error: in removing file \""+std::string(filename)+
-                      "\".\n.",
-                      error_code);
-  }
-  return COLVARS_OK;
-}
-
-
-int colvarproxy_io::rename_file(char const *filename, char const *newfilename)
-{
-  int error_code = COLVARS_OK;
-#if defined(WIN32) && !defined(__CYGWIN__)
-  // On straight Windows, must remove the destination before renaming it
-  error_code |= remove_file(newfilename);
-#endif
-  int rename_exit_code = 0;
-  while ((rename_exit_code = std::rename(filename, newfilename)) != 0) {
-    if (errno == EINTR) continue;
-    // Call log() instead of error to allow the next try
-    cvm::log("Error: in renaming file \""+std::string(filename)+"\" to \""+
-             std::string(newfilename)+"\".\n.");
-    error_code |= FILE_ERROR;
-    if (errno == EXDEV) continue;
-    break;
-  }
-  return rename_exit_code ? error_code : COLVARS_OK;
 }
 
 
@@ -595,33 +460,32 @@ int colvarproxy_io::rename_file(char const *filename, char const *newfilename)
 colvarproxy::colvarproxy()
 {
   colvars = NULL;
+  // By default, simulation engines allow to immediately request atoms
+  engine_ready_ = true;
   b_simulation_running = true;
   b_simulation_continuing = false;
   b_delete_requested = false;
+  version_int = -1;
+  features_hash = 0;
+  config_queue_ = reinterpret_cast<void *>(new std::list<std::pair<std::string, std::string> >);
 }
 
 
 colvarproxy::~colvarproxy()
 {
-  close_files();
+  close_output_streams();
+  if (colvars != NULL) {
+    delete colvars;
+    colvars = NULL;
+  }
+  delete reinterpret_cast<std::list<std::pair<std::string, std::string> > *>(config_queue_);
 }
 
 
-int colvarproxy::close_files()
+bool colvarproxy::io_available()
 {
-  if (smp_enabled() == COLVARS_OK && smp_thread_id() > 0) {
-    // Nothing to do on non-master threads
-    return COLVARS_OK;
-  }
-  std::list<std::string>::iterator    osni = output_stream_names.begin();
-  std::list<std::ostream *>::iterator osi  = output_files.begin();
-  for ( ; osi != output_files.end(); osi++, osni++) {
-    ((std::ofstream *) (*osi))->close();
-    delete *osi;
-  }
-  output_files.clear();
-  output_stream_names.clear();
-  return COLVARS_OK;
+  return (smp_enabled() == COLVARS_OK && smp_thread_id() == 0) ||
+    (smp_enabled() != COLVARS_OK);
 }
 
 
@@ -642,9 +506,38 @@ int colvarproxy::request_deletion()
 }
 
 
+void colvarproxy::add_config(std::string const &cmd, std::string const &conf)
+{
+  reinterpret_cast<std::list<std::pair<std::string, std::string> > *>(config_queue_)->push_back(std::make_pair(cmd, conf));
+}
+
+
 int colvarproxy::setup()
 {
   return COLVARS_OK;
+}
+
+
+int colvarproxy::parse_module_config()
+{
+  int error_code = COLVARS_OK;
+  // Read any configuration queued up for Colvars
+  std::list<std::pair<std::string, std::string> > *config_queue = reinterpret_cast<std::list<std::pair<std::string, std::string> > *>(config_queue_);
+  while (config_queue->size() > 0) {
+    std::pair<std::string, std::string> const &p = config_queue->front();
+    if (p.first == "config") {
+      error_code |= colvars->read_config_string(p.second);
+    } else if (p.first == "configfile") {
+      error_code |= colvars->read_config_file(p.second.c_str());
+    } else {
+      error_code |= cvm::error(std::string("Error: invalid keyword \"") +
+                               p.first +
+                               std::string("\" in colvarproxy::setup()\n"),
+                               COLVARS_BUG_ERROR);
+    }
+    config_queue->pop_front();
+  }
+  return error_code;
 }
 
 
@@ -660,6 +553,27 @@ int colvarproxy::update_output()
 }
 
 
+int colvarproxy::end_of_step()
+{
+  // Disable flags that Colvars doesn't need any more
+  updated_masses_ = updated_charges_ = false;
+
+  // Compute force statistics
+  compute_rms_atoms_applied_force();
+  compute_max_atoms_applied_force();
+  compute_rms_atom_groups_applied_force();
+  compute_max_atom_groups_applied_force();
+  compute_rms_volmaps_applied_force();
+  compute_max_volmaps_applied_force();
+
+  if (cached_alch_lambda_changed) {
+    send_alch_lambda();
+    cached_alch_lambda_changed = false;
+  }
+  return COLVARS_OK;
+}
+
+
 int colvarproxy::post_run()
 {
   int error_code = COLVARS_OK;
@@ -669,6 +583,95 @@ int colvarproxy::post_run()
   }
   error_code |= flush_output_streams();
   return error_code;
+}
+
+
+void colvarproxy::print_input_atomic_data()
+{
+  cvm::log(cvm::line_marker);
+
+  cvm::log("Step "+cvm::to_str(cvm::step_absolute())+", "+
+           "atoms_ids = "+cvm::to_str(atoms_ids)+"\n");
+  cvm::log("Step "+cvm::to_str(cvm::step_absolute())+", "+
+           "atoms_refcount = "+cvm::to_str(atoms_refcount)+"\n");
+  cvm::log("Step "+cvm::to_str(cvm::step_absolute())+", "+
+           "atoms_masses = "+cvm::to_str(atoms_masses)+"\n");
+  cvm::log("Step "+cvm::to_str(cvm::step_absolute())+", "+
+           "atoms_charges = "+cvm::to_str(atoms_charges)+"\n");
+  cvm::log("Step "+cvm::to_str(cvm::step_absolute())+", "+
+           "atoms_positions = "+cvm::to_str(atoms_positions,
+                                            cvm::cv_width,
+                                            cvm::cv_prec)+"\n");
+  cvm::log("Step "+cvm::to_str(cvm::step_absolute())+", "+
+           "atoms_total_forces = "+cvm::to_str(atoms_total_forces,
+                                               cvm::cv_width,
+                                               cvm::cv_prec)+"\n");
+
+  cvm::log(cvm::line_marker);
+
+  cvm::log("Step "+cvm::to_str(cvm::step_absolute())+", "+
+           "atom_groups_ids = "+cvm::to_str(atom_groups_ids)+"\n");
+  cvm::log("Step "+cvm::to_str(cvm::step_absolute())+", "+
+           "atom_groups_refcount = "+cvm::to_str(atom_groups_refcount)+"\n");
+  cvm::log("Step "+cvm::to_str(cvm::step_absolute())+", "+
+           "atom_groups_masses = "+cvm::to_str(atom_groups_masses)+"\n");
+  cvm::log("Step "+cvm::to_str(cvm::step_absolute())+", "+
+           "atom_groups_charges = "+cvm::to_str(atom_groups_charges)+"\n");
+  cvm::log("Step "+cvm::to_str(cvm::step_absolute())+", "+
+           "atom_groups_coms = "+cvm::to_str(atom_groups_coms,
+                                             cvm::cv_width,
+                                             cvm::cv_prec)+"\n");
+  cvm::log("Step "+cvm::to_str(cvm::step_absolute())+", "+
+           "atom_groups_total_forces = "+cvm::to_str(atom_groups_total_forces,
+                                                     cvm::cv_width,
+                                                     cvm::cv_prec)+"\n");
+
+  cvm::log(cvm::line_marker);
+
+  cvm::log("Step "+cvm::to_str(cvm::step_absolute())+", "+
+           "volmaps_ids = "+cvm::to_str(volmaps_ids)+"\n");
+  cvm::log("Step "+cvm::to_str(cvm::step_absolute())+", "+
+           "volmaps_values = "+cvm::to_str(volmaps_values)+"\n");
+
+  cvm::log(cvm::line_marker);
+}
+
+
+void colvarproxy::print_output_atomic_data()
+{
+  cvm::log(cvm::line_marker);
+  cvm::log("Step "+cvm::to_str(cvm::step_absolute())+", "+
+           "atoms_new_colvar_forces = "+cvm::to_str(atoms_new_colvar_forces,
+                                                    colvarmodule::cv_width,
+                                                    colvarmodule::cv_prec)+"\n");
+  cvm::log(cvm::line_marker);
+
+  cvm::log("Step "+cvm::to_str(cvm::step_absolute())+", "+
+           "atom_groups_new_colvar_forces = "+
+           cvm::to_str(atom_groups_new_colvar_forces,
+                       colvarmodule::cv_width,
+                       colvarmodule::cv_prec)+"\n");
+
+  cvm::log(cvm::line_marker);
+
+  cvm::log("Step "+cvm::to_str(cvm::step_absolute())+", "+
+           "volmaps_new_colvar_forces = "+
+           cvm::to_str(volmaps_new_colvar_forces)+"\n");
+
+  cvm::log(cvm::line_marker);
+}
+
+
+void colvarproxy::log(std::string const &message)
+{
+  fprintf(stdout, "colvars: %s", message.c_str());
+}
+
+
+void colvarproxy::error(std::string const &message)
+{
+  // TODO handle errors?
+  colvarproxy::log(message);
 }
 
 
@@ -704,103 +707,3 @@ int colvarproxy::get_version_from_string(char const *version_string)
 }
 
 
-void colvarproxy::smp_stream_error()
-{
-  cvm::error("Error: trying to access an output stream from a "
-             "multi-threaded region (bug).  For a quick workaround, use "
-             "\"smp off\" in the Colvars config.\n", BUG_ERROR);
-}
-
-
-std::ostream * colvarproxy::output_stream(std::string const &output_name,
-                                          std::ios_base::openmode mode)
-{
-  if (cvm::debug()) {
-    cvm::log("Using colvarproxy::output_stream()\n");
-  }
-
-  std::ostream *os = get_output_stream(output_name);
-  if (os != NULL) return os;
-
-  if (!(mode & (std::ios_base::app | std::ios_base::ate))) {
-    backup_file(output_name);
-  }
-  std::ofstream *osf = new std::ofstream(output_name.c_str(), mode);
-  if (!osf->is_open()) {
-    cvm::error("Error: cannot write to file/channel \""+output_name+"\".\n",
-               FILE_ERROR);
-    return NULL;
-  }
-  output_stream_names.push_back(output_name);
-  output_files.push_back(osf);
-  return osf;
-}
-
-
-std::ostream *colvarproxy::get_output_stream(std::string const &output_name)
-{
-  if (smp_enabled() == COLVARS_OK) {
-    if (smp_thread_id() > 0) smp_stream_error();
-  }
-  std::list<std::ostream *>::iterator osi  = output_files.begin();
-  std::list<std::string>::iterator    osni = output_stream_names.begin();
-  for ( ; osi != output_files.end(); osi++, osni++) {
-    if (*osni == output_name) {
-      return *osi;
-    }
-  }
-  return NULL;
-}
-
-
-
-int colvarproxy::flush_output_stream(std::ostream *os)
-{
-  if (smp_enabled() == COLVARS_OK) {
-    if (smp_thread_id() > 0) smp_stream_error();
-  }
-  std::list<std::ostream *>::iterator osi  = output_files.begin();
-  std::list<std::string>::iterator    osni = output_stream_names.begin();
-  for ( ; osi != output_files.end(); osi++, osni++) {
-    if (*osi == os) {
-      ((std::ofstream *) (*osi))->flush();
-      return COLVARS_OK;
-    }
-  }
-  return cvm::error("Error: trying to flush an output file/channel "
-                    "that wasn't open.\n", BUG_ERROR);
-}
-
-
-int colvarproxy::flush_output_streams()
-{
-  if (smp_enabled() == COLVARS_OK && smp_thread_id() > 0)
-    return COLVARS_OK;
-
-  std::list<std::ostream *>::iterator osi  = output_files.begin();
-  for ( ; osi != output_files.end(); osi++) {
-    ((std::ofstream *) (*osi))->flush();
-  }
-  return COLVARS_OK;
-}
-
-
-int colvarproxy::close_output_stream(std::string const &output_name)
-{
-  if (smp_enabled() == COLVARS_OK) {
-    if (smp_thread_id() > 0) smp_stream_error();
-  }
-  std::list<std::ostream *>::iterator osi  = output_files.begin();
-  std::list<std::string>::iterator    osni = output_stream_names.begin();
-  for ( ; osi != output_files.end(); osi++, osni++) {
-    if (*osni == output_name) {
-      ((std::ofstream *) (*osi))->close();
-      delete *osi;
-      output_files.erase(osi);
-      output_stream_names.erase(osni);
-      return COLVARS_OK;
-    }
-  }
-  return cvm::error("Error: trying to close an output file/channel "
-                    "that wasn't open.\n", BUG_ERROR);
-}

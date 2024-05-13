@@ -9,7 +9,7 @@
 #include "ATC_Error.h"
 #include "LammpsInterface.h"
 
-namespace ATC 
+namespace ATC
 {
   class BodyForce;
   class Stress;
@@ -22,7 +22,7 @@ namespace ATC
   class ElectronDragPower;
 
 /**
- *  @class Material 
+ *  @class Material
  *  @brief Base class for computing and storing properties and fields for a material
  */
 
@@ -42,14 +42,14 @@ namespace ATC
 
     /** check material has required interfaces */
     bool check_registry(const std::set<std::string> functionList) const
-    { 
+    {
       std::set<std::string>::const_iterator itr;
       for (itr=functionList.begin(); itr!=functionList.end(); itr++) {
         if (registry_.find(*itr) == registry_.end()) {
           std::stringstream ss;
           ss << "WARNING: material: [" << tag_ << "] cannot find " << *itr ;
           ATC::LammpsInterface::instance()->print_msg_once(ss.str());
-        } 
+        }
         if (registry_.find(*itr) == registry_.end()) return false;
       }
       return true;
@@ -57,7 +57,7 @@ namespace ATC
 
     /** access to material parameters */
     bool parameter(const std::string name, double & value) const
-    { 
+    {
       std::map<std::string,double>::const_iterator iter = parameters_.find(name);
       if ( iter == parameters_.end()) {
         value = 0.0;
@@ -65,37 +65,37 @@ namespace ATC
       }
       value = iter->second;
       return true;
-    } 
+    }
     /** true if rhs flux is linear (per field) */
-    bool linear_flux(FieldName name) const { 
+    bool linear_flux(FieldName name) const {
      return linearFlux_(name);
     };
 
     /** true if rhs source is linear (per field) */
-    bool linear_source(FieldName name) const { 
+    bool linear_source(FieldName name) const {
      return linearSource_(name);
     };
 
     /** true if lhs density is constant (per field) */
-    bool constant_density(FieldName name) const { 
+    bool constant_density(FieldName name) const {
       return constantDensity_(name);
     };
 
     /** each of these is a field function computed at a set of points */
-    /** if there is only one function it is in the base class 
+    /** if there is only one function it is in the base class
      ** otherwise, a subsidiary class is setup */
     /* -----------------------------------------------------------------*/
     /** densities */
     /* -----------------------------------------------------------------*/
     /** thermal energy */
     void thermal_energy(const FIELD_MATS & fields,
-                        DENS_MAT & energy) const; 
+                        DENS_MAT & energy) const;
     /** heat capacity */
-    void heat_capacity(const FIELD_MATS & fields, 
+    void heat_capacity(const FIELD_MATS & fields,
                        DENS_MAT & capacity) const;
     /** thermal energy */
-    void electron_thermal_energy(const FIELD_MATS & fields, 
-                                 DENS_MAT & energy) const; 
+    void electron_thermal_energy(const FIELD_MATS & fields,
+                                 DENS_MAT & energy) const;
     /** electron capacities */
     void electron_mass_density(const FIELD_MATS &fields,
                                DENS_MAT &density) const;
@@ -106,27 +106,27 @@ namespace ATC
                                   const GRAD_FIELD_MATS &gradFields,
                                   DENS_MAT_VEC &Dcapacity) const;
     /** kinetic energy */
-    void kinetic_energy(const FIELD_MATS & fields, 
-                        DENS_MAT & energy) const; 
+    void kinetic_energy(const FIELD_MATS & fields,
+                        DENS_MAT & energy) const;
     /** mass density */
     void mass_density(const FIELD_MATS &fields,
                       DENS_MAT &density) const;
     /** elastic energy */
-    void elastic_energy(const FIELD_MATS & fields, 
+    void elastic_energy(const FIELD_MATS & fields,
                         const GRAD_FIELD_MATS & gradFields,
-                        DENS_MAT & energy) const; 
+                        DENS_MAT & energy) const;
     /** permitivity */
-    void permittivity(const FIELD_MATS & fields, 
-                      DENS_MAT & energy) const; 
+    void permittivity(const FIELD_MATS & fields,
+                      DENS_MAT & energy) const;
     /** inverse effective mass */
-    void inv_effective_mass(const FIELD_MATS & fields, 
-                            DENS_MAT & energy) const; 
+    void inv_effective_mass(const FIELD_MATS & fields,
+                            DENS_MAT & energy) const;
     /** band-edge potential */
-    void band_edge_potential(const FIELD_MATS & fields, 
-                             DENS_MAT & energy) const; 
+    void band_edge_potential(const FIELD_MATS & fields,
+                             DENS_MAT & energy) const;
     /** viscosity */
-    void viscosity(const FIELD_MATS & fields, 
-                   DENS_MAT & energy) const; 
+    void viscosity(const FIELD_MATS & fields,
+                   DENS_MAT & energy) const;
     /* -----------------------------------------------------------------*/
     /** fluxes */
     /* -----------------------------------------------------------------*/
@@ -184,13 +184,13 @@ namespace ATC
     virtual bool electron_recombination(const FIELD_MATS &fields,
                                         const GRAD_FIELD_MATS &gradFields,
                                         DENS_MAT &recombination) const;
-    /** computes drift diffusion charge density */ 
+    /** computes drift diffusion charge density */
     virtual bool electron_charge_density(const FIELD_MATS &fields,
                                          DENS_MAT &density) const;
-    virtual void D_electron_charge_density(const FieldName fieldName, 
+    virtual void D_electron_charge_density(const FieldName fieldName,
                                            const FIELD_MATS &fields,
                                            DENS_MAT &D_density) const;
-    /** computes momentum source */ 
+    /** computes momentum source */
     virtual bool body_force(const FIELD_MATS &fields,
                                   DENS_MAT &density) const;
 

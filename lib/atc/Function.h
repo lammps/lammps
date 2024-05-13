@@ -60,7 +60,7 @@ namespace ATC {
   };
 
 
-  /** 
+  /**
    *  @class LinearFieldFunction
    *  @brief Class for functions returning values linear a given field
    */
@@ -69,7 +69,7 @@ namespace ATC {
   public:
     LinearFieldFunction(int nargs, char** args);
     virtual ~LinearFieldFunction(void) {};
-  
+
     inline double f(double* u, double* /* x */, double /* t */) {return c1_*u[0]-c0_;}
     inline double dfd(FieldName /* field */, ARGS& /* args */) {return c1_;}
 
@@ -110,7 +110,7 @@ namespace ATC {
     /** Static instance of this class */
     static UXT_Function_Mgr * instance();
 
-    UXT_Function* function(std::string & type, int nargs, double * arg);
+    UXT_Function* function(const std::string & type, int nargs, double * arg);
     UXT_Function* function(char ** arg, int nargs);
     UXT_Function* linear_function(double c0, double c1);
     UXT_Function* copy_UXT_function(UXT_Function* other);
@@ -124,16 +124,16 @@ namespace ATC {
   };
 
 
-  /** 
+  /**
    *  @class ScalarLinearFunction
-   *  @brief Class for functions returning values linear in space 
+   *  @brief Class for functions returning values linear in space
    */
 
   class ScalarLinearFunction : public UXT_Function {
   public:
     ScalarLinearFunction(int nargs, double* args);
     virtual ~ScalarLinearFunction(void) {};
-  
+
     //inline double f(double* u, double* x, double t) {return c1_*(u[0]-c0_);}
 
     inline double f(double* u, double* /* x */, double /* t */) {return c1_*u[0]+c0_;}
@@ -145,7 +145,7 @@ namespace ATC {
 
   /**
    *  @class XT_Function
-   *  @brief Base class for functions based on space and time variables 
+   *  @brief Base class for functions based on space and time variables
    */
 
   class XT_Function {
@@ -181,7 +181,7 @@ namespace ATC {
     /** Static instance of this class */
     static XT_Function_Mgr * instance();
 
-    XT_Function* function(std::string & type, int nargs, double * arg);
+    XT_Function* function(const std::string & type, int nargs, double * arg);
     XT_Function* function(char ** arg, int nargs);
     XT_Function* constant_function(double c);
     XT_Function* copy_XT_function(XT_Function* other);
@@ -201,7 +201,7 @@ namespace ATC {
 
   /**
    *  @class ConstantFunction
-   *  @brief Class for functions returning constant values 
+   *  @brief Class for functions returning constant values
    */
 
   class ConstantFunction : public XT_Function {
@@ -209,33 +209,33 @@ namespace ATC {
     ConstantFunction(int nargs, double* args);
     ConstantFunction(double arg);
     virtual ~ConstantFunction(void) {};
-  
-    inline double f(double* /* x */, double /* t */) 
+
+    inline double f(double* /* x */, double /* t */)
     {return C0;};
 
     private :
       double C0;
   };
 
-  /** 
+  /**
    *  @class LinearFunction
-   *  @brief Class for functions returning values linear in space 
+   *  @brief Class for functions returning values linear in space
    */
 
   class LinearFunction : public XT_Function {
   public:
     LinearFunction(int nargs, double* args);
     virtual ~LinearFunction(void) {};
-  
-    double f(double* x, double /* t */) 
+
+    double f(double* x, double /* t */)
       {return mask[0]*(x[0]-x0[0])+mask[1]*(x[1]-x0[1])+mask[2]*(x[2]-x0[2]) + C0;};
 
     private :
       double C0;
   };
-  /** 
+  /**
    *  @class PiecewiseLinearFunction
-   *  @brief Class for functions returning values piecewise linear in space 
+   *  @brief Class for functions returning values piecewise linear in space
    *  along given direction
    */
 
@@ -243,31 +243,31 @@ namespace ATC {
   public:
     PiecewiseLinearFunction(int nargs, double* args);
     virtual ~PiecewiseLinearFunction(void) {};
-  
+
     double f(double* x, double t) ;
 
     private :
-      Array<double> xi; 
-      Array<double> fi; 
+      Array<double> xi;
+      Array<double> fi;
   };
 
-  /** 
+  /**
    *  @class LinearTemporalRamp
-   *  @brief Class for functions returning values linear in space and time 
+   *  @brief Class for functions returning values linear in space and time
    */
 
   class LinearTemporalRamp : public XT_Function {
   public:
     LinearTemporalRamp(int nargs, double* args);
     ~LinearTemporalRamp(void) {};
-  
+
     double f(double* x, double t);
     double dfdt(double* x, double t);
-    
+
     protected :
       double mask_slope[3];
       double C0_initial, C0_slope;
-    
+
   };
 
   /**
@@ -279,9 +279,9 @@ namespace ATC {
   public:
     QuadraticFunction(int nargs, double* args);
     virtual ~QuadraticFunction(void) {};
-  
-    inline double f(double* x, double /* t */) 
-      {return 
+
+    inline double f(double* x, double /* t */)
+      {return
        C2[0]*(x[0]-x0[0])*(x[0]-x0[0])+
        C2[1]*(x[1]-x0[1])*(x[1]-x0[1])+
        C2[2]*(x[2]-x0[2])*(x[2]-x0[2])+
@@ -295,7 +295,7 @@ namespace ATC {
   };
 
   /**
-   *  @class SineFunction 
+   *  @class SineFunction
    *  @brief Class for functions returning values sinusoidally varying in space and time
    */
 
@@ -304,7 +304,7 @@ namespace ATC {
     SineFunction(int nargs, double* args);
     virtual ~SineFunction(void){};
 
-    inline double f(double* x, double t) 
+    inline double f(double* x, double t)
       {return  C*sin( mask[0]*(x[0]-x0[0])
                      +mask[1]*(x[1]-x0[1])
                      +mask[2]*(x[2]-x0[2]) - w*t) + C0;};
@@ -324,7 +324,7 @@ namespace ATC {
     virtual ~GaussianFunction(void){};
 
     // 1/(2 pi \sigma)^(n/2) exp(-1/2 x.x/\sigma^2 ) for n = dimension
-    inline double f(double* x, double /* t */) 
+    inline double f(double* x, double /* t */)
       {return  C*exp(-(mask[0]*(x[0]-x0[0])*(x[0]-x0[0])
                       +mask[1]*(x[1]-x0[1])*(x[1]-x0[1])
                       +mask[2]*(x[2]-x0[2])*(x[2]-x0[2]))/tau/tau) + C0;};
@@ -334,7 +334,7 @@ namespace ATC {
   };
 
   /**
-   *  @class GaussianTemporalRamp 
+   *  @class GaussianTemporalRamp
    *  @brief Class for functions returning values according to a Gaussian distribution in space and linearly in time
    */
 
@@ -351,9 +351,9 @@ namespace ATC {
     double C_initial, C_slope;
     double C0_initial, C0_slope;
   };
-  
+
   /**
-   *  @class TemporalRamp 
+   *  @class TemporalRamp
    *  @brief Class for functions returning values constant in space and varying linearly in time
    */
 
@@ -361,11 +361,11 @@ namespace ATC {
   public:
     TemporalRamp(int nargs, double* args);
     virtual ~TemporalRamp(void) {};
-  
-    inline double f(double* /* x */, double t) 
+
+    inline double f(double* /* x */, double t)
     {return f_initial + slope*t;};
 
-    inline double dfdt(double* /* x */, double /* t */) 
+    inline double dfdt(double* /* x */, double /* t */)
     {return slope;};
 
     private :
@@ -373,29 +373,29 @@ namespace ATC {
   };
 
   /**
-   *  @class RadialPower 
-   *  @brief Class for functions returning values based on distance from a fix point raised to a specified power 
+   *  @class RadialPower
+   *  @brief Class for functions returning values based on distance from a fix point raised to a specified power
    */
 
   class RadialPower : public XT_Function {
   public:
     RadialPower(int nargs, double* args);
     virtual ~RadialPower(void) {};
-    
-    inline double f(double* x, double /* t */) 
+
+    inline double f(double* x, double /* t */)
     {
       double dx = x[0]-x0[0]; double dy = x[1]-x0[1]; double dz = x[2]-x0[2];
       double r = mask[0]*dx*dx+mask[1]*dy*dy+mask[2]*dz*dz; r = sqrt(r);
       return C0*pow(r,n);
     };
-    
+
   private :
     double C0, n;
   };
 
   /**
    *  @class InterpolationFunction
-   *  @brief Base class for interpolation functions 
+   *  @brief Base class for interpolation functions
    */
 
   class InterpolationFunction {
@@ -412,7 +412,7 @@ namespace ATC {
     double dfdt(const double t) const;
 
   protected:
-    double coordinate(double x, 
+    double coordinate(double x,
       double & f0, double & fp0, double & f1, double & fp1, double & inv_dx) const;
     int npts_;
     Array<double> xs_;

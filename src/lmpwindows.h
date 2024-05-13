@@ -1,7 +1,7 @@
 /* -*- c++ -*- ----------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    https://www.lammps.org/, Sandia National Laboratories
-   Steve Plimpton, sjplimp@sandia.gov
+   LAMMPS development team: developers@lammps.org
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
@@ -11,17 +11,8 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
-#include <ciso646>
-#if !defined(__MINGW32__)
-#include "erf.h"
-#endif
 #include <cmath>
-#include <cstring>
 #include <direct.h>
-// LAMMPS uses usleep with 100 ms arguments, no microsecond precision needed
-#if !defined(__MINGW32__)
-#include "sleep.h"
-#endif
 
 // some symbols have different names in Windows
 

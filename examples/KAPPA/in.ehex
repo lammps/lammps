@@ -3,36 +3,36 @@
 
 # settings
 
-variable	x equal 10
-variable	y equal 10
-variable	z equal 20
+variable        x equal 10
+variable        y equal 10
+variable        z equal 20
 
-variable	rho equal 0.6
+variable        rho equal 0.6
 variable        t equal 1.35
-variable	rc equal 2.5
+variable        rc equal 2.5
 
-#variable	rho equal 0.85
+#variable       rho equal 0.85
 #variable        t equal 0.7
-#variable	rc equal 3.0
+#variable       rc equal 3.0
 
 # setup problem
 
-units		lj
-atom_style	atomic
+units           lj
+atom_style      atomic
 
-lattice		fcc ${rho}
-region		box block 0 $x 0 $y 0 $z
-create_box	1 box
-create_atoms	1 box
-mass		1 1.0
+lattice         fcc ${rho}
+region          box block 0 $x 0 $y 0 $z
+create_box      1 box
+create_atoms    1 box
+mass            1 1.0
 
-velocity	all create $t 87287
+velocity        all create $t 87287
 
-pair_style	lj/cut ${rc}
-pair_coeff	1 1 1.0 1.0
+pair_style      lj/cut ${rc}
+pair_coeff      1 1 1.0 1.0
 
-neighbor	0.3 bin
-neigh_modify	delay 0 every 1
+neighbor        0.3 bin
+neigh_modify    delay 0 every 1
 
 # heat layers
 
@@ -44,33 +44,40 @@ compute         Tcold all temp/region cold
 # 1st equilibration run
 
 fix             1 all nvt temp $t $t 0.5
-thermo	        100
+thermo          100
 run             1000
 
-velocity	all scale $t
+velocity        all scale $t
 
-unfix		1
+unfix           1
 
 # 2nd equilibration run
 
-fix		1 all nve
+fix             1 all nve
 fix             hot all ehex 1 100.0 region hot
 fix             cold all ehex 1 -100.0 region cold
 
 thermo_style    custom step temp c_Thot c_Tcold
-thermo	        1000
-run             10000 
+thermo_modify   colname c_Thot Temp_hot colname c_Tcold Temp_cold
+thermo          1000
+run             10000
 
 # thermal conductivity calculation
 
-compute		ke all ke/atom
-variable	temp atom c_ke/1.5
+compute         ke all ke/atom
+variable        temp atom c_ke/1.5
 
 compute         layers all chunk/atom bin/1d z lower 0.05 units reduced
-fix		2 all ave/chunk 10 100 1000 layers v_temp file profile.ehex
+fix             2 all ave/chunk 10 100 1000 layers v_temp file profile.ehex
 
-variable        tdiff equal f_2[11][3]-f_2[1][3]
+variable        tdiff equal f_2[1][3]-f_2[11][3]
 fix             ave all ave/time 1 1 1000 v_tdiff ave running start 13000
+
+variable kappa equal (100/(lx*ly)/2.0)*(lz/2.0)/f_ave
+
 thermo_style    custom step temp c_Thot c_Tcold v_tdiff f_ave
+thermo_modify   colname c_Thot Temp_hot colname c_Tcold Temp_cold &
+                colname v_tdiff dTemp_step colname f_ave dTemp
 
 run             20000
+print           "Running average thermal conductivity: $(v_kappa:%.2f)"

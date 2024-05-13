@@ -1,7 +1,7 @@
 /* -*- c++ -*- ----------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    https://www.lammps.org/, Sandia National Laboratories
-   Steve Plimpton, sjplimp@sandia.gov
+   LAMMPS development team: developers@lammps.org
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
@@ -29,12 +29,12 @@ class TabularFunction;
 class PairPolymorphic : public Pair {
  public:
   PairPolymorphic(class LAMMPS *);
-  virtual ~PairPolymorphic();
-  virtual void compute(int, int);
-  void settings(int, char **);
-  void coeff(int, char **);
-  void init_style();
-  double init_one(int, int);
+  ~PairPolymorphic() override;
+  void compute(int, int) override;
+  void settings(int, char **) override;
+  void coeff(int, char **) override;
+  void init_style() override;
+  double init_one(int, int) override;
 
  protected:
   struct PairParameters {
@@ -93,52 +93,3 @@ class PairPolymorphic : public Pair {
 
 #endif
 #endif
-
-/* ERROR/WARNING messages:
-
-E: Illegal ... command
-
-Self-explanatory.  Check the input script syntax and compare to the
-documentation for the command.  You can use -echo screen as a
-command-line option when running LAMMPS to see the offending line.
-
-E: Incorrect args for pair coefficients
-
-Self-explanatory.  Check the input script or data file.
-
-E: Pair style polymorphic requires atom IDs
-
-This is a requirement to use the polymorphic potential.
-
-E: Pair style polymorphic requires newton pair on
-
-See the newton command.  This is a restriction to use the polymorphic
-potential.
-
-E: All pair coeffs are not set
-
-All pair coefficients must be set in the data file or by the
-pair_coeff command before running a simulation.
-
-E: Cannot open polymorphic potential file %s
-
-The specified polymorphic potential file cannot be opened.  Check that
-the path and name are correct.
-
-E: Incorrect number of elements in potential file
-
-Self-explanatory.
-
-E: Element not defined in potential file
-
-The specified element is not in the potential file.
-
-E: Potential file incompatible with this pair style version
-
-UNDOCUMENTED
-
-E: Error reading potential file header
-
-UNDOCUMENTED
-
-*/

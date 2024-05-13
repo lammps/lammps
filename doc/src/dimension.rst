@@ -6,7 +6,7 @@ dimension command
 Syntax
 """"""
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    dimension N
 
@@ -28,7 +28,7 @@ prior to setting up a simulation box via the
 :doc:`create_box <create_box>` or :doc:`read_data <read_data>` commands.
 Restart files also store this setting.
 
-See the discussion on the :doc:`Howto 2d <Howto_2d>` doc page for
+See the discussion on the :doc:`Howto 2d <Howto_2d>` page for
 additional instructions on how to run 2d simulations.
 
 .. note::

@@ -1,6 +1,6 @@
+# DATE: 2020-01-16 UNITS: metal CONTRIBUTOR: Wengen Ouyang w.g.ouyang@gmail.com CITATION: W. Ouyang et al., J. Chem. Theory Comput. 16(1), 666-676 (2020)
 # Interlayer Potential (ILP) for graphite, bulk-hBN and their heterojunctions
 # The parameters below are fitted against the HSE + MBD DFT reference data from 2 A to 10 A.
-# Cite as W. Ouyang et al., J. Chem. Theory Comput. 16(1), 666-676 (2020).
 #
 # ------------------------------ Repulsion Potential --------------------++++++++++++++ Vdw Potential ++++++++++++++++************  
 #   MBD-HSE         beta(A)    alpha    delta(A)  epsilon(meV)  C(meV)        d         sR      reff(A)   C6(meV*A^6)    S    rcut

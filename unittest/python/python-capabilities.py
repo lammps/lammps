@@ -38,6 +38,7 @@ class PythonCapabilities(unittest.TestCase):
 
         system = platform.system()
         osinfo = self.lmp.get_os_info()
+        print("System: %s   LAMMPS OS Info: %s" % (system, osinfo))
         self.assertEqual(osinfo.find(system),0)
 
     def test_has_gzip_support(self):
@@ -58,6 +59,13 @@ class PythonCapabilities(unittest.TestCase):
 
         for pkg in selected_packages:
             self.assertIn(pkg, installed_packages)
+
+    def test_has_package(self):
+        selected_packages = [key[4:] for key in self.cmake_cache.keys() if not key.startswith('PKG_CONFIG') and key.startswith('PKG_') and self.cmake_cache[key]]
+        self.assertFalse(self.lmp.has_package('XXXXXX'))
+
+        for pkg in selected_packages:
+            self.assertTrue(self.lmp.has_package(pkg))
 
     def test_has_style(self):
         self.assertTrue(self.lmp.has_style('pair', 'lj/cut'))
@@ -133,23 +141,23 @@ class PythonCapabilities(unittest.TestCase):
     def test_accelerator_config(self):
 
         settings = self.lmp.accelerator_config
-        if self.cmake_cache['PKG_USER-OMP']:
+        if self.cmake_cache['PKG_OPENMP']:
             if self.cmake_cache['BUILD_OMP']:
-                self.assertIn('openmp',settings['USER-OMP']['api'])
+                self.assertIn('openmp',settings['OPENMP']['api'])
             else:
-                self.assertIn('serial',settings['USER-OMP']['api'])
-            self.assertIn('double',settings['USER-OMP']['precision'])
+                self.assertIn('serial',settings['OPENMP']['api'])
+            self.assertIn('double',settings['OPENMP']['precision'])
 
-        if self.cmake_cache['PKG_USER-INTEL']:
+        if self.cmake_cache['PKG_INTEL']:
             if 'LMP_INTEL_OFFLOAD' in self.cmake_cache.keys():
-                self.assertIn('phi',settings['USER-INTEL']['api'])
+                self.assertIn('phi',settings['INTEL']['api'])
             elif self.cmake_cache['BUILD_OMP']:
-                self.assertIn('openmp',settings['USER-INTEL']['api'])
+                self.assertIn('openmp',settings['INTEL']['api'])
             else:
-                self.assertIn('serial',settings['USER-INTEL']['api'])
-            self.assertIn('double',settings['USER-INTEL']['precision'])
-            self.assertIn('mixed',settings['USER-INTEL']['precision'])
-            self.assertIn('single',settings['USER-INTEL']['precision'])
+                self.assertIn('serial',settings['INTEL']['api'])
+            self.assertIn('double',settings['INTEL']['precision'])
+            self.assertIn('mixed',settings['INTEL']['precision'])
+            self.assertIn('single',settings['INTEL']['precision'])
 
         if self.cmake_cache['PKG_GPU']:
             if self.cmake_cache['GPU_API'].lower() == 'opencl':
@@ -164,6 +172,13 @@ class PythonCapabilities(unittest.TestCase):
                  self.assertIn('mixed',settings['GPU']['precision'])
             if self.cmake_cache['GPU_PREC'].lower() == 'single':
                  self.assertIn('single',settings['GPU']['precision'])
+
+        if self.cmake_cache['PKG_KOKKOS']:
+            if 'Kokkos_ENABLE_OPENMP' in self.cmake_cache and self.cmake_cache['Kokkos_ENABLE_OPENMP']:
+                self.assertIn('openmp',settings['KOKKOS']['api'])
+            if 'Kokkos_ENABLE_SERIAL' in self.cmake_cache and self.cmake_cache['Kokkos_ENABLE_SERIAL']:
+                self.assertIn('serial',settings['KOKKOS']['api'])
+            self.assertIn('double',settings['KOKKOS']['precision'])
 
     def test_gpu_device(self):
 

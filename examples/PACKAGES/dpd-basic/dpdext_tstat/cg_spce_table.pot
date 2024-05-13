@@ -1,0 +1,1 @@
+../dpd_tstat/cg_spce_table.pot

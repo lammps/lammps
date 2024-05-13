@@ -81,7 +81,7 @@ _texture( ts6_tex,int4);
     }                                                                       \
   }                                                                         \
   if (offset==0 && ii<inum) {                                               \
-    acctyp4 old=ans[ii];                                                    \
+    acctyp3 old=ans[ii];                                                    \
     old.x+=f.x;                                                             \
     old.y+=f.y;                                                             \
     old.z+=f.z;                                                             \
@@ -149,7 +149,7 @@ _texture( ts6_tex,int4);
     }                                                                       \
   }                                                                         \
   if (offset==0 && ii<inum) {                                               \
-    acctyp4 old=ans[ii];                                                    \
+    acctyp3 old=ans[ii];                                                    \
     old.x+=f.x;                                                             \
     old.y+=f.y;                                                             \
     old.z+=f.z;                                                             \
@@ -227,7 +227,7 @@ _texture( ts6_tex,int4);
   if (t_per_atom>1)                                                         \
     simd_reduce_add3(t_per_atom, f.x, f.y, f.z);                            \
   if (offset==0 && ii<inum) {                                               \
-    acctyp4 old=ans[ii];                                                    \
+    acctyp3 old=ans[ii];                                                    \
     old.x+=f.x;                                                             \
     old.y+=f.y;                                                             \
     old.z+=f.z;                                                             \
@@ -443,7 +443,7 @@ __kernel void k_tersoff_zbl_repulsive(const __global numtyp4 *restrict x_,
                                   const __global int *restrict elem2param,
                                   const int nelements, const int nparams,
                                   const __global int * dev_nbor,
-                                  __global acctyp4 *restrict ans,
+                                  __global acctyp3 *restrict ans,
                                   __global acctyp *restrict engv,
                                   const int eflag, const int vflag,
                                   const int inum, const int nbor_pitch,
@@ -462,7 +462,7 @@ __kernel void k_tersoff_zbl_repulsive(const __global numtyp4 *restrict x_,
     ts6[tid]=ts6_in[tid];
   }
 
-  acctyp4 f;
+  acctyp3 f;
   f.x=(acctyp)0; f.y=(acctyp)0; f.z=(acctyp)0;
   acctyp energy, virial[6];
   if (EVFLAG) {
@@ -544,7 +544,7 @@ __kernel void k_tersoff_zbl_three_center(const __global numtyp4 *restrict x_,
                                      const int nelements, const int nparams,
                                      const __global acctyp4 *restrict zetaij,
                                      const __global int * dev_nbor,
-                                     __global acctyp4 *restrict ans,
+                                     __global acctyp3 *restrict ans,
                                      __global acctyp *restrict engv,
                                      const int eflag, const int vflag,
                                      const int inum,  const int nbor_pitch,
@@ -566,7 +566,7 @@ __kernel void k_tersoff_zbl_three_center(const __global numtyp4 *restrict x_,
     ts4[tid]=ts4_in[tid];
   }
 
-  acctyp4 f;
+  acctyp3 f;
   f.x=(acctyp)0; f.y=(acctyp)0; f.z=(acctyp)0;
   acctyp energy, virial[6];
   if (EVFLAG) {
@@ -703,7 +703,7 @@ __kernel void k_tersoff_zbl_three_end(const __global numtyp4 *restrict x_,
                                   const __global acctyp4 *restrict zetaij,
                                   const __global int * dev_nbor,
                                   const __global int * dev_ilist,
-                                  __global acctyp4 *restrict ans,
+                                  __global acctyp3 *restrict ans,
                                   __global acctyp *restrict engv,
                                   const int eflag, const int vflag,
                                   const int inum,  const int nbor_pitch,
@@ -725,7 +725,7 @@ __kernel void k_tersoff_zbl_three_end(const __global numtyp4 *restrict x_,
     ts4[tid]=ts4_in[tid];
   }
 
-  acctyp4 f;
+  acctyp3 f;
   f.x=(acctyp)0; f.y=(acctyp)0; f.z=(acctyp)0;
   acctyp energy, virial[6];
   if (EVFLAG) {
@@ -908,7 +908,7 @@ __kernel void k_tersoff_zbl_three_end_vatom(const __global numtyp4 *restrict x_,
                                         const __global acctyp4 *restrict zetaij,
                                         const __global int * dev_nbor,
                                         const __global int * dev_ilist,
-                                        __global acctyp4 *restrict ans,
+                                        __global acctyp3 *restrict ans,
                                         __global acctyp *restrict engv,
                                         const int eflag, const int vflag,
                                         const int inum,  const int nbor_pitch,
@@ -930,7 +930,7 @@ __kernel void k_tersoff_zbl_three_end_vatom(const __global numtyp4 *restrict x_,
     ts4[tid]=ts4_in[tid];
   }
 
-  acctyp4 f;
+  acctyp3 f;
   f.x=(acctyp)0; f.y=(acctyp)0; f.z=(acctyp)0;
   acctyp energy, virial[6];
   if (EVFLAG) {

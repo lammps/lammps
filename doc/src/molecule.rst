@@ -6,7 +6,7 @@ molecule command
 Syntax
 """"""
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    molecule ID file1 keyword values ... file2 keyword values ... fileN ...
 
@@ -70,8 +70,9 @@ and underscores.
 A single template can contain multiple molecules, listed one per file.
 Some of the commands listed above currently use only the first
 molecule in the template, and will issue a warning if the template
-contains multiple molecules.  The :doc:`atom_style template <atom_style>` command allows multiple-molecule templates
-to define a system with more than one templated molecule.
+contains multiple molecules.  The :doc:`atom_style template
+<atom_style>` command allows multiple-molecule templates to define a
+system with more than one templated molecule.
 
 Each filename can be followed by optional keywords which are applied
 only to the molecule in the file as used in this template.  This is to
@@ -79,7 +80,7 @@ make it easy to use the same molecule file in different molecule
 templates or in different simulations.  You can specify the same file
 multiple times with different optional keywords.
 
-The *offset*\ , *toff*\ , *boff*\ , *aoff*\ , *doff*\ , *ioff* keywords
+The *offset*, *toff*, *boff*, *aoff*, *doff*, *ioff* keywords
 add the specified offset values to the atom types, bond types, angle
 types, dihedral types, and/or improper types as they are read from the
 molecule file.  E.g. if *toff* = 2, and the file uses atom types
@@ -87,6 +88,12 @@ molecule file.  E.g. if *toff* = 2, and the file uses atom types
 *offset* keyword, all five offset values must be specified, but
 individual values will be ignored if the molecule template does not
 use that attribute (e.g. no bonds).
+
+.. note::
+
+   Offsets are **ignored** on lines using type labels, as the type
+   labels will determine the actual types directly depending on the
+   current :doc:`labelmap <labelmap>` settings.
 
 The *scale* keyword scales the size of the molecule.  This can be
 useful for modeling polydisperse granular rigid bodies.  The scale
@@ -111,21 +118,66 @@ molecule (header keyword = inertia).
    so you do not overflow those pre-allocated data structures when adding
    molecules later.  Both the :doc:`create_box <create_box>` command and
    the :doc:`read_data <read_data>` command have "extra" options which
-   insure space is allocated for storing topology info for molecules that
+   ensure space is allocated for storing topology info for molecules that
    are added later.
 
-The format of an individual molecule file is similar but
-(not identical) to the data file read by the :doc:`read_data <read_data>`
-commands, and is as follows.
+----------
 
-A molecule file has a header and a body.  The header appears first.
-The first line of the header is always skipped; it typically contains
-a description of the file.  Then lines are read one at a time.  Lines
-can have a trailing comment starting with '#' that is ignored.  If the
-line is blank (only white-space after comment is deleted), it is
+Format of a molecule file
+"""""""""""""""""""""""""
+
+The format of an individual molecule file looks similar but is
+different than that of a data file read by the :doc:`read_data <read_data>`
+commands.  Here is a simple example for a TIP3P water molecule:
+
+.. code-block::
+
+   # Water molecule. TIP3P geometry
+   # header section:
+   3 atoms
+   2 bonds
+   1 angles
+
+   # body section:
+   Coords
+
+   1    0.00000  -0.06556   0.00000
+   2    0.75695   0.52032   0.00000
+   3   -0.75695   0.52032   0.00000
+
+   Types
+
+   1        1   # O
+   2        2   # H
+   3        2   # H
+
+   Charges
+
+   1       -0.834
+   2        0.417
+   3        0.417
+
+   Bonds
+
+   1   1      1      2
+   2   1      1      3
+
+   Angles
+
+   1   1      2      1      3
+
+A molecule file has a header and a body.  The header appears first.  The
+first line of the header and thus of the molecule file is *always*
+skipped; it typically contains a description of the file or a comment
+from the software that created the file.
+
+Then lines are read one line at a time.  Lines can have a trailing
+comment starting with '#' that is ignored.  There *must* be at least one
+blank between any valid content and the comment.  If the line is blank
+(i.e. contains only white-space after comments are deleted), it is
 skipped.  If the line contains a header keyword, the corresponding
-value(s) is read from the line.  If it does not contain a header
-keyword, the line begins the body of the file.
+value(s) is/are read from the line.  A line that is *not* blank and does
+*not* contains a header keyword begins the body of the file.
 
 The body of the file contains zero or more sections.  The first line
 of a section has only a keyword.  The next line is skipped.  The
@@ -138,25 +190,66 @@ These are the recognized header keywords.  Header lines can come in
 any order.  The numeric value(s) are read from the beginning of the
 line.  The keyword should appear at the end of the line.  All these
 settings have default values, as explained below.  A line need only
-appear if the value(s) are different than the default.
+appear if the value(s) are different than the default, except when
+defining a *body* particle, which requires setting the number of
+*atoms* to 1, and setting the *inertia* in a specific section (see below).
 
-* N *atoms* = # of atoms N in molecule, default = 0
-* Nb *bonds* = # of bonds Nb in molecule, default = 0
-* Na *angles* = # of angles Na in molecule, default = 0
-* Nd *dihedrals* = # of dihedrals Nd in molecule, default = 0
-* Ni *impropers* = # of impropers Ni in molecule, default = 0
-* Nf *fragments* = # of fragments in molecule, default = 0
-* Mtotal *mass* = total mass of molecule
-* Xc Yc Zc *com* = coordinates of center-of-mass of molecule
-* Ixx Iyy Izz Ixy Ixz Iyz *inertia* = 6 components of inertia tensor of molecule
+   .. list-table::
+      :header-rows: 1
+      :widths: auto
 
-For *mass*\ , *com*\ , and *inertia*\ , the default is for LAMMPS to
-calculate this quantity itself if needed, assuming the molecules
-consists of a set of point particles or finite-size particles (with a
-non-zero diameter) that do not overlap.  If finite-size particles in
-the molecule do overlap, LAMMPS will not account for the overlap
-effects when calculating any of these 3 quantities, so you should
-pre-compute them yourself and list the values in the file.
+      * - Number(s)
+        - Keyword
+        - Meaning
+        - Default Value
+      * - N
+        - atoms
+        - # of atoms N in molecule
+        - 0
+      * - Nb
+        - bonds
+        - # of bonds Nb in molecule
+        - 0
+      * - Na
+        - angles
+        - # of angles Na in molecule
+        - 0
+      * - Nd
+        - dihedrals
+        - # of dihedrals Nd in molecule
+        - 0
+      * - Ni
+        - impropers
+        - # of impropers Ni in molecule
+        - 0
+      * - Nf
+        - fragments
+        - # of fragments Nf in molecule
+        - 0
+      * - Ninteger Ndouble
+        - body
+        - # of integer and floating-point values in body particle
+        - 0
+      * - Mtotal
+        - mass
+        - total mass of molecule
+        - computed
+      * - Xc Yc Zc
+        - com
+        - coordinates of center-of-mass of molecule
+        - computed
+      * - Ixx Iyy Izz Ixy Ixz Iyz
+        - inertia
+        - 6 components of inertia tensor of molecule
+        - computed
+
+For *mass*, *com*, and *inertia*, the default is for LAMMPS to calculate
+this quantity itself if needed, assuming the molecules consist of a set
+of point particles or finite-size particles (with a non-zero diameter)
+that do **not** overlap.  If finite-size particles in the molecule
+**do** overlap, LAMMPS will not account for the overlap effects when
+calculating any of these 3 quantities, so you should pre-compute them
+yourself and list the values in the file.
 
 The mass and center-of-mass coordinates (Xc,Yc,Zc) are
 self-explanatory.  The 6 moments of inertia (ixx,iyy,izz,ixy,ixz,iyz)
@@ -168,10 +261,22 @@ internally.
 
 These are the allowed section keywords for the body of the file.
 
-* *Coords, Types, Molecules, Fragments, Charges, Diameters, Masses* = atom-property sections
+* *Coords, Types, Molecules, Fragments, Charges, Diameters, Dipoles, Masses* = atom-property sections
 * *Bonds, Angles, Dihedrals, Impropers* = molecular topology sections
 * *Special Bond Counts, Special Bonds* = special neighbor info
 * *Shake Flags, Shake Atoms, Shake Bond Types* = SHAKE info
+* *Body Integers, Body Doubles* = body-property sections
+
+For the Types, Bonds, Angles, Dihedrals, and Impropers sections, each
+atom/bond/angle/etc type can be specified either as a number (numeric
+type) or as an alphanumeric type label.  The latter is only allowed if
+type labels have been defined, either by the :doc:`labelmap
+<labelmap>` command or in data files read by the :doc:`read_data
+<read_data>` command which have sections for Atom Type Labels, Bond
+Type Labels, Angle Type Labels, etc.  See the :doc:`Howto type labels
+<Howto_type_labels>` doc page for the allowed syntax of type labels
+and a general discussion of how type labels can be used.
+When using type labels, any values specified as *offset* are ignored.
 
 If a Bonds section is specified then the Special Bond Counts and
 Special Bonds sections can also be used, if desired, to explicitly
@@ -179,25 +284,26 @@ list the 1-2, 1-3, 1-4 neighbors within the molecule topology (see
 details below).  This is optional since if these sections are not
 included, LAMMPS will auto-generate this information.  Note that
 LAMMPS uses this info to properly exclude or weight bonded pairwise
-interactions between bonded atoms.  See the
-:doc:`special_bonds <special_bonds>` command for more details.  One
-reason to list the special bond info explicitly is for the
-:doc:`thermalized Drude oscillator model <Howto_drude>` which treats the
-bonds between nuclear cores and Drude electrons in a different manner.
+interactions between bonded atoms.  See the :doc:`special_bonds
+<special_bonds>` command for more details.  One reason to list the
+special bond info explicitly is for the :doc:`thermalized Drude
+oscillator model <Howto_drude>` which treats the bonds between nuclear
+cores and Drude electrons in a different manner.
 
 .. note::
 
-   Whether a section is required depends on how the molecule
-   template is used by other LAMMPS commands.  For example, to add a
-   molecule via the :doc:`fix deposit <fix_deposit>` command, the Coords
-   and Types sections are required.  To add a rigid body via the :doc:`fix pour <fix_pour>` command, the Bonds (Angles, etc) sections are not
+   Whether a section is required depends on how the molecule template
+   is used by other LAMMPS commands.  For example, to add a molecule
+   via the :doc:`fix deposit <fix_deposit>` command, the Coords and
+   Types sections are required.  To add a rigid body via the :doc:`fix
+   pour <fix_pour>` command, the Bonds (Angles, etc) sections are not
    required, since the molecule will be treated as a rigid body.  Some
    sections are optional.  For example, the :doc:`fix pour <fix_pour>`
    command can be used to add "molecules" which are clusters of
    finite-size granular particles.  If the Diameters section is not
-   specified, each particle in the molecule will have a default diameter
-   of 1.0.  See the doc pages for LAMMPS commands that use molecule
-   templates for more details.
+   specified, each particle in the molecule will have a default
+   diameter of 1.0.  See the doc pages for LAMMPS commands that use
+   molecule templates for more details.
 
 Each section is listed below in alphabetic order.  The format of each
 section is described including the number of lines it must contain and
@@ -222,7 +328,7 @@ order.
 
 * one line per atom
 * line syntax: ID type
-* type = atom type of atom
+* type = atom type of atom (1-Natomtype, or type label)
 
 ----------
 
@@ -270,6 +376,21 @@ not listed, the default diameter of each atom in the molecule is 1.0.
 
 ----------
 
+.. versionadded:: 7Feb2024
+
+*Dipoles* section:
+
+* one line per atom
+* line syntax: ID mux muy muz
+* mux,muy,muz = x-, y-, and z-component of point dipole vector of atom
+
+This section is only allowed for :doc:`atom styles <atom_style>` that
+support particles with point dipoles, e.g. atom_style dipole.  If not
+listed, the default dipole component of each atom in the molecule is set
+to 0.0.
+
+----------
+
 *Masses* section:
 
 * one line per atom
@@ -289,7 +410,7 @@ included, the default mass for each atom is derived from its volume
 
 * one line per bond
 * line syntax: ID type atom1 atom2
-* type = bond type (1-Nbondtype)
+* type = bond type (1-Nbondtype, or type label)
 * atom1,atom2 = IDs of atoms in bond
 
 The IDs for the two atoms in each bond should be values
@@ -301,7 +422,7 @@ from 1 to Natoms, where Natoms = # of atoms in the molecule.
 
 * one line per angle
 * line syntax: ID type atom1 atom2 atom3
-* type = angle type (1-Nangletype)
+* type = angle type (1-Nangletype, or type label)
 * atom1,atom2,atom3 = IDs of atoms in angle
 
 The IDs for the three atoms in each angle should be values from 1 to
@@ -315,7 +436,7 @@ which the angle is computed) is the atom2 in the list.
 
 * one line per dihedral
 * line syntax: ID type atom1 atom2 atom3 atom4
-* type = dihedral type (1-Ndihedraltype)
+* type = dihedral type (1-Ndihedraltype, or type label)
 * atom1,atom2,atom3,atom4 = IDs of atoms in dihedral
 
 The IDs for the four atoms in each dihedral should be values from 1 to
@@ -328,7 +449,7 @@ ordered linearly within the dihedral.
 
 * one line per improper
 * line syntax: ID type atom1 atom2 atom3 atom4
-* type = improper type (1-Nimpropertype)
+* type = improper type (1-Nimpropertype, or type label)
 * atom1,atom2,atom3,atom4 = IDs of atoms in improper
 
 The IDs for the four atoms in each improper should be values from 1 to
@@ -349,7 +470,7 @@ the doc pages for individual styles for details.
 
 N1, N2, N3 are the number of 1-2, 1-3, 1-4 neighbors respectively of
 this atom within the topology of the molecule.  See the
-:doc:`special_bonds <special_bonds>` doc page for more discussion of
+:doc:`special_bonds <special_bonds>` page for more discussion of
 1-2, 1-3, 1-4 neighbors.  If this section appears, the Special Bonds
 section must also appear.
 
@@ -390,7 +511,7 @@ This section is only needed when molecules created using the template
 will be constrained by SHAKE via the "fix shake" command.  The other
 two Shake sections must also appear in the file, following this one.
 
-The meaning of the flag for each atom is as follows.  See the :doc:`fix shake <fix_shake>` doc page for a further description of SHAKE
+The meaning of the flag for each atom is as follows.  See the :doc:`fix shake <fix_shake>` page for a further description of SHAKE
 clusters.
 
 * 0 = not part of a SHAKE cluster
@@ -432,7 +553,7 @@ and b,c = IDs of other two atoms bonded to the central atom.
 If flag = 4, a,b,c,d are listed, where a = ID of central atom,
 and b,c,d = IDs of other three atoms bonded to the central atom.
 
-See the :doc:`fix shake <fix_shake>` doc page for a further description
+See the :doc:`fix shake <fix_shake>` page for a further description
 of SHAKE clusters.
 
 ----------
@@ -447,11 +568,15 @@ This section is only needed when molecules created using the template
 will be constrained by SHAKE via the "fix shake" command.  The other
 two Shake sections must also appear in the file.
 
-The a,b,c values are bond types (from 1 to Nbondtypes) for all bonds
-in the SHAKE cluster that this atom belongs to.  The number of values
-that must appear is determined by the shake flag for the atom (see the
-Shake Flags section above).  All atoms in a particular cluster should
-list their a,b,c values identically.
+The a,b,c values are bond types for all bonds in the SHAKE cluster that
+this atom belongs to.  Bond types may be either numbers (from 1 to Nbondtypes)
+or bond type labels as defined by the :doc:`labelmap <labelmap>` command
+or a "Bond Type Labels" section of a data file.
+
+
+The number of values that must appear is determined by the shake flag
+for the atom (see the Shake Flags section above).  All atoms in a
+particular cluster should list their a,b,c values identically.
 
 If flag = 0, no a,b,c values are listed on the line, just the
 (ignored) ID.
@@ -459,8 +584,9 @@ If flag = 0, no a,b,c values are listed on the line, just the
 If flag = 1, a,b,c are listed, where a = bondtype of the bond between
 the central atom and the first non-central atom (value b in the Shake
 Atoms section), b = bondtype of the bond between the central atom and
-the second non-central atom (value c in the Shake Atoms section), and c =
-the angle type (1 to Nangletypes) of the angle between the 3 atoms.
+the second non-central atom (value c in the Shake Atoms section), and c
+= the angle type (1 to Nangletypes, or angle type label) of the angle
+between the 3 atoms.
 
 If flag = 2, only a is listed, where a = bondtype of the bond between
 the 2 atoms in the cluster.
@@ -473,12 +599,73 @@ and the second non-central atom (value c in the Shake Atoms section).
 If flag = 4, a,b,c are listed, where a = bondtype of the bond between
 the central atom and the first non-central atom (value b in the Shake
 Atoms section), b = bondtype of the bond between the central atom and
-the second non-central atom (value c in the Shake Atoms section), and c =
-bondtype of the bond between the central atom and the third non-central
-atom (value d in the Shake Atoms section).
+the second non-central atom (value c in the Shake Atoms section), and c
+= bondtype of the bond between the central atom and the third
+non-central atom (value d in the Shake Atoms section).
 
-See the :doc:`fix shake <fix_shake>` doc page for a further description
+See the :doc:`fix shake <fix_shake>` page for a further description
 of SHAKE clusters.
+
+----------
+
+*Body Integers* section:
+
+* one line
+* line syntax: N E F
+* N = number of sub-particles or number or vertices
+* E,F = number of edges and faces
+
+This section is only needed when the molecule is a body particle. the other
+Body section must also appear in the file.
+
+The total number of values that must appear is determined by the body style, and
+must be equal to the Ninteger value given in the *body* header.
+
+For *nparticle* and *rounded/polygon*, only the number of sub-particles or
+vertices N is required, and Ninteger should have a value of 1.
+
+For *rounded/polyhedron*, the number of edges E and faces F is required, and
+Ninteger should have a value of 3.
+
+See the :doc:`Howto body <Howto_body>` page for a further description of
+the file format.
+
+----------
+
+*Body Doubles* section:
+
+* first line
+* line syntax: Ixx Iyy Izz Ixy Ixz Iyz
+* Ixx Iyy Izz Ixy Ixz Iyz = 6 components of inertia tensor of body particle
+* one line per sub-particle or vertex
+* line syntax: x y z
+* x, y, z = coordinates of sub-particle or vertex
+* one line per edge
+* line syntax: N1 N2
+* N1, N2 = vertex indices
+* one line per face
+* line syntax: N1 N2 N3 N4
+* N1, N2, N3, N4 = vertex indices
+* last line
+* line syntax: diam
+* diam = rounded diameter that surrounds each vertex
+
+This section is only needed when the molecule is a body particle. the other
+Body section must also appear in the file.
+
+The total number of values that must appear is determined by the body style, and
+must be equal to the Ndouble value given in the *body* header. The 6 moments of
+inertia and the 3N coordinates of the sub-particles or vertices are required
+for all body styles.
+
+For *rounded/polygon*, the E = 6 + 3*N + 1 edges are automatically determined
+from the vertices.
+
+For *rounded/polyhedron*, the 2E vertex indices for the end points of the edges
+and 4F vertex indices defining the faces are required.
+
+See the :doc:`Howto body <Howto_body>` page for a further description of
+the file format.
 
 ----------
 

@@ -74,21 +74,25 @@ atoms interact with each other via an *eam* potential, the surface atoms
 interact with each other via a *lj/cut* potential, and the metal/surface
 interaction is also computed via a *lj/cut* potential.  The
 *hybrid/overlay* style could be used as in the second example above,
-where multiple potentials are superposed in an additive fashion to
+where multiple potentials are superimposed in an additive fashion to
 compute the interaction between atoms.  In this example, using *lj/cut*
 and *coul/long* together gives the same result as if the
 *lj/cut/coul/long* potential were used by itself.  In this case, it
 would be more efficient to use the single combined potential, but in
 general any combination of pair potentials can be used together in to
 produce an interaction that is not encoded in any single pair_style
-file, e.g. adding Coulombic forces between granular particles.
+file, e.g. adding Coulombic forces between granular particles.  Another
+limitation of using the *hybrid/overlay* variant, that it does not generate
+*lj/cut* parameters for mixed atom types from a mixing rule due to
+restrictions discussed below.
 
-If the *hybrid/scaled* style is used instead of *hybrid/overlay*\ ,
+If the *hybrid/scaled* style is used instead of *hybrid/overlay*,
 contributions from sub-styles are weighted by their scale factors, which
 may be fractional or even negative.  Furthermore the scale factors may
 be variables that may change during a simulation.  This enables
 switching smoothly between two different pair styles or two different
-parameter sets during a run.
+parameter sets during a run in a similar fashion as could be done
+with :doc:`fix adapt <fix_adapt>` or :doc:`fix alchemy <fix_alchemy>`.
 
 All pair styles that will be used are listed as "sub-styles" following
 the *hybrid* or *hybrid/overlay* keyword, in any order.  In case of the
@@ -150,16 +154,25 @@ with Tersoff, and the cross-interactions with Lennard-Jones:
    pair_coeff * * tersoff 2 C.tersoff NULL C
    pair_coeff 1 2 lj/cut 1.0 1.5
 
-If pair coefficients are specified in the data file read via the
-:doc:`read_data <read_data>` command, then the same rule applies.
-E.g. "eam/alloy" or "lj/cut" must be added after the atom type, for
-each line in the "Pair Coeffs" section, e.g.
+
+It is not recommended to read pair coefficients for a hybrid style from a "Pair Coeffs"
+or "PairIJ Coeffs" section of a data file via the :doc:`read_data <read_data>` command,
+since those sections expect a fixed number of lines, either one line per atom type or
+one line pair pair of atom types, respectively.  When reading from a data file, the
+lines of the "Pair Coeffs" and "PairIJ Coeffs" are changed in the same way as the *pair_coeff*
+command, i.e. the name of the pair style to which the parameters apply must follow the
+atom type (or atom types), e.g.
 
 .. parsed-literal::
 
    Pair Coeffs
 
    1 lj/cut/coul/cut 1.0 1.0
+   ...
+
+   PairIJ Coeffs
+
+   1 1 lj/cut/coul/cut 1.0 1.0
    ...
 
 Note that the pair_coeff command for some potentials such as
@@ -198,8 +211,8 @@ same:
 
 Coefficients must be defined for each pair of atoms types via the
 :doc:`pair_coeff <pair_coeff>` command as described above, or in the
-data file read by the :doc:`read_data <read_data>` commands, or by
-mixing as described below.
+"Pair Coeffs" or "PairIJ Coeffs" section of the data file read by the
+:doc:`read_data <read_data>` command, or by mixing as described below.
 
 For all of the *hybrid*, *hybrid/overlay*, and *hybrid/scaled* styles,
 every atom type pair I,J (where I <= J) must be assigned to at least one
@@ -208,14 +221,31 @@ examples above, or in the data file read by the :doc:`read_data
 <read_data>`, or by mixing as described below.  Also all sub-styles
 must be used at least once in a :doc:`pair_coeff <pair_coeff>` command.
 
+.. warning::
+
+   With hybrid pair styles the use of mixing to generate pair
+   coefficients is significantly limited compared to the individual pair
+   styles.  LAMMPS **never** performs mixing of parameters from
+   different sub-styles, **even** if they use the same type of
+   coefficients, e.g. contain a Lennard-Jones potential variant.  Those
+   parameters must be provided explicitly.  Also for *hybrid/overlay*
+   and *hybrid/scaled* mixing is **only** performed for pairs of atom
+   types for which only a single pair style is assigned.
+
+   Thus it is strongly recommended to provide all mixed terms
+   explicitly.  For non-hybrid styles those could be generated and
+   written out using the :doc:`write_coeff command <write_coeff>` and
+   then edited as needed to comply with the requirements for hybrid
+   styles as explained above.
+
 If you want there to be no interactions between a particular pair of
-atom types, you have 3 choices.  You can assign the type pair to some
-sub-style and use the :doc:`neigh_modify exclude type <neigh_modify>`
+atom types, you have 3 choices.  You can assign the pair of atom types
+to some sub-style and use the :doc:`neigh_modify exclude type <neigh_modify>`
 command.  You can assign it to some sub-style and set the coefficients
 so that there is effectively no interaction (e.g. epsilon = 0.0 in a LJ
 potential).  Or, for *hybrid*, *hybrid/overlay*, or *hybrid/scaled*
 simulations, you can use this form of the pair_coeff command in your
-input script:
+input script or the "PairIJ Coeffs" section of your data file:
 
 .. code-block:: LAMMPS
 
@@ -238,19 +268,20 @@ styles with different requirements.
 
 ----------
 
-Different force fields (e.g. CHARMM vs AMBER) may have different rules
-for applying weightings that change the strength of pairwise
-interactions between pairs of atoms that are also 1-2, 1-3, and 1-4
-neighbors in the molecular bond topology, as normally set by the
-:doc:`special_bonds <special_bonds>` command.  Different weights can be
-assigned to different pair hybrid sub-styles via the :doc:`pair_modify
-special <pair_modify>` command. This allows multiple force fields to be
-used in a model of a hybrid system, however, there is no consistent
-approach to determine parameters automatically for the interactions
-between the two force fields, this is only recommended when particles
+Different force fields (e.g. CHARMM vs. AMBER) may have different rules
+for applying exclusions or weights that change the strength of pairwise
+non-bonded interactions between pairs of atoms that are also 1-2, 1-3,
+and 1-4 neighbors in the molecular bond topology. This is normally a
+global setting defined the :doc:`special_bonds <special_bonds>` command.
+However, different weights can be assigned to different hybrid
+sub-styles via the :doc:`pair_modify special <pair_modify>` command.
+This allows multiple force fields to be used in a model of a hybrid
+system, however, there is no consistent approach to determine parameters
+automatically for the interactions **between** atoms of the two force
+fields, thus this approach this is only recommended when particles
 described by the different force fields do not mix.
 
-Here is an example for mixing CHARMM and AMBER: The global *amber*
+Here is an example for combining CHARMM and AMBER: The global *amber*
 setting sets the 1-4 interactions to non-zero scaling factors and
 then overrides them with 0.0 only for CHARMM:
 
@@ -260,7 +291,7 @@ then overrides them with 0.0 only for CHARMM:
    pair_style hybrid lj/charmm/coul/long 8.0 10.0 lj/cut/coul/long 10.0
    pair_modify pair lj/charmm/coul/long special lj/coul 0.0 0.0 0.0
 
-The this input achieves the same effect:
+This input achieves the same effect:
 
 .. code-block:: LAMMPS
 
@@ -270,9 +301,9 @@ The this input achieves the same effect:
    pair_modify pair lj/cut/coul/long special coul 0.0 0.0 0.83333333
    pair_modify pair lj/charmm/coul/long special lj/coul 0.0 0.0 0.0
 
-Here is an example for mixing Tersoff with OPLS/AA based on
-a data file that defines bonds for all atoms where for the
-Tersoff part of the system the force constants for the bonded
+Here is an example for combining Tersoff with OPLS/AA based on
+a data file that defines bonds for all atoms where - for the
+Tersoff part of the system - the force constants for the bonded
 interactions have been set to 0. Note the global settings are
 effectively *lj/coul 0.0 0.0 0.5* as required for OPLS/AA:
 
@@ -288,7 +319,7 @@ command can be used to selectively turn off processing of
 the compute tally styles, for example, if those pair styles
 (e.g. many-body styles) do not support this feature.
 
-See the :doc:`pair_modify <pair_modify>` doc page for details on
+See the :doc:`pair_modify <pair_modify>` page for details on
 the specific syntax, requirements and restrictions.
 
 ----------
@@ -375,30 +406,19 @@ coefficients to 0.0.
 
 ----------
 
-Styles with a *gpu*\ , *intel*\ , *kk*\ , *omp*\ , or *opt* suffix are
-functionally the same as the corresponding style without the suffix.
-They have been optimized to run faster, depending on your available
-hardware, as discussed on the :doc:`Speed packages <Speed_packages>` doc
-page.  Pair style *hybrid/scaled* does (currently) not support the
-*gpu*, *omp*, *kk*, or *intel* suffix.
+.. include:: accel_styles.rst
 
-Since the *hybrid*, *hybrid/overlay*, *hybrid/scaled* styles delegate
-computation to the individual sub-styles, the suffix versions of the
-*hybrid* and *hybrid/overlay* styles are used to propagate the
-corresponding suffix to all sub-styles, if those versions
-exist. Otherwise the non-accelerated version will be used.
+.. note::
 
-The individual accelerated sub-styles are part of the GPU, KOKKOS,
-USER-INTEL, USER-OMP, and OPT packages, respectively.  They are only
-enabled if LAMMPS was built with those packages.  See the :doc:`Build
-package <Build_package>` doc page for more info.
-
-You can specify the accelerated styles explicitly in your input script
-by including their suffix, or you can use the :doc:`-suffix command-line switch <Run_options>` when you invoke LAMMPS, or you can use the
-:doc:`suffix <suffix>` command in your input script.
-
-See the :doc:`Speed packages <Speed_packages>` doc page for more
-instructions on how to use the accelerated styles effectively.
+  Since the *hybrid*, *hybrid/overlay*, *hybrid/scaled* styles
+  delegate computation to the individual sub-styles, the suffix
+  versions of the *hybrid* and *hybrid/overlay* styles are used to
+  propagate the corresponding suffix to all sub-styles, if those
+  versions exist. Otherwise the non-accelerated version will be used.
+  The individual accelerated sub-styles are part of the GPU, KOKKOS,
+  INTEL, OPENMP, and OPT packages, respectively.  They are only
+  enabled if LAMMPS was built with those packages.  See the
+  :doc:`Build package <Build_package>` page for more info.
 
 ----------
 
@@ -422,7 +442,7 @@ generated, even if the sub-styles support mixing, and I,J pair
 coefficients must be explicitly defined.
 
 See the :doc:`pair_modify <pair_modify>` command for
-details of mixing rules.  See the See the doc page for the sub-style to
+details of mixing rules.  See the See the page for the sub-style to
 see if allows for mixing.
 
 The hybrid pair styles supports the :doc:`pair_modify <pair_modify>`
@@ -439,7 +459,7 @@ style *hybrid/scaled* also the names of any variables used as scale
 factors are restored, but not the variables themselves, so those may
 need to be redefined when continuing from a restart.
 
-These pair styles support the use of the *inner*\ , *middle*\ , and
+These pair styles support the use of the *inner*, *middle*, and
 *outer* keywords of the :doc:`run_style respa <run_style>` command, if
 their sub-styles do.
 
@@ -449,7 +469,7 @@ Restrictions
 When using a long-range Coulombic solver (via the
 :doc:`kspace_style <kspace_style>` command) with a hybrid pair_style,
 one or more sub-styles will be of the "long" variety,
-e.g. *lj/cut/coul/long* or *buck/coul/long*\ .  You must insure that the
+e.g. *lj/cut/coul/long* or *buck/coul/long*\ .  You must ensure that the
 short-range Coulombic cutoff used by each of these long pair styles is
 the same or else LAMMPS will generate an error.
 

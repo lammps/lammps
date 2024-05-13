@@ -16,7 +16,6 @@ amber2lmp              python scripts for using AMBER to setup LAMMPS input
 binary2txt             convert a LAMMPS dump file from binary to ASCII text
 ch2lmp                 convert CHARMM files to LAMMPS input
 chain                  create a data file of bead-spring chains
-cmake                  tools and scripts for use with CMake
 coding_standard        python scripts to detect and fix some LAMMPS conventions
 colvars                post-process output of the fix colvars command
 createatoms            generate lattices of atoms within a geometry
@@ -25,7 +24,7 @@ eam_database           one tool to generate EAM alloy potential files
 eam_generate           2nd tool to generate EAM alloy potential files
 eff                    scripts for working with the eFF (electron force field)
 emacs                  add-ons to EMACS editor for editing LAMMPS input scripts
-fep                    scripts for free-energy perturbation with USER-FEP pkg
+fep                    scripts for free-energy perturbation with FEP pkg
 i-pi                   Python wrapper for performing path-integral MD (PIMD)
 ipp                    input pre-processor Perl tool for creating input scripts
 kate                   add-ons to Kate editor for editing LAMMPS input scripts
@@ -34,7 +33,6 @@ lmp2arc                convert LAMMPS output to Accelrys Insight format
 lmp2cfg                convert LAMMPS output to CFG files for AtomEye viz
 magic                  patterns to detect LAMMPS files with the file(1) command
 matlab                 MatLab scripts for post-processing LAMMPS output
-mesont                 Tools for use with the USER-MESONT package
 micelle2d              create a data file of small lipid chains in solvent
 moltemplate            Instructions for installing the Moltemplate builder program
 msi2lmp                use Accelrys Insight code to setup LAMMPS input
@@ -43,12 +41,14 @@ phonon                 post-process output of the fix phonon command
 polybond               Python tool for programmable polymer bonding
 pymol_asphere          convert LAMMPS output of ellipsoids to PyMol format
 python                 Python scripts for post-processing LAMMPS output
-reax                   Tools for analyzing output of ReaxFF simulations
 replica                tool to reorder LAMMPS replica trajectories according to temperature
 singularity            Singularity container descriptions suitable for LAMMPS development
 smd                    convert Smooth Mach Dynamics triangles to VTK
 spin                   perform a cubic polynomial interpolation of a GNEB MEP
+stl_bin2txt            convert binary STL files to ASCII
 swig                   Interface file and demo scripts for SWIG wrappers for the LAMMPS C library interface
+tabulate               Python scripts to generate tabulated potential files for LAMMPS
+tinker2lmp.py          convert Tinker input files to LAMMPS input files
 valgrind               suppression files for use with valgrind's memcheck tool
 vim                    add-ons to VIM editor for editing LAMMPS input scripts
 xmgrace                a collection of scripts to generate xmgrace plots

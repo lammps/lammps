@@ -1,0 +1,41 @@
+# compute stress/cartesian for a flat liquid-vapor interface
+
+units           lj
+atom_style      atomic
+processors      * * 1
+
+lattice         fcc 0.8442
+region          box block 0 10 0 10 0 30
+region    liquid block 0 10 0 10 10 20
+create_box      1 box
+create_atoms    1 region liquid
+mass            1 1.0
+
+velocity        all create 0.65 87287 loop geom
+
+pair_style      lj/cut 2.5
+pair_coeff      1 1 1.0 1.0 2.5
+
+neighbor        0.3 bin
+neigh_modify    every 20 delay 0 check no
+
+fix             1 all nvt temp 0.7 0.7 0.2
+
+#dump           id all atom 50 dump.flat
+
+#dump           2 all image 25 image.*.jpg type type &
+#               axes yes 0.8 0.02 view 60 -30
+#dump_modify    2 pad 3
+
+#dump           3 all movie 25 movie.mpg type type &
+#               axes yes 0.8 0.02 view 60 -30
+#dump_modify    3 pad 3
+
+fix 2 all recenter NULL NULL 15 units lattice
+compute p1 all stress/cartesian z 0.5
+fix 3 all ave/time 100 1 100 c_p1[*] file flat.out mode vector
+
+thermo          50
+thermo_style custom step temp epair emol etotal press c_p1[50][3] c_p1[50][4] c_p1[50][5] c_p1[50][6] c_p1[50][7] c_p1[50][8]
+
+run             1000

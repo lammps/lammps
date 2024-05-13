@@ -1,8 +1,7 @@
-// clang-format off
 /* -*- c++ -*- ----------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    https://www.lammps.org/, Sandia National Laboratories
-   Steve Plimpton, sjplimp@sandia.gov
+   LAMMPS development team: developers@lammps.org
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
@@ -14,9 +13,7 @@
 
 #include "my_page.h"
 
-#include <cstdlib>
-
-#if defined(LMP_USER_INTEL) && !defined(LAMMPS_MEMALIGN) && !defined(_WIN32)
+#if defined(LMP_INTEL) && !defined(LAMMPS_MEMALIGN) && !defined(_WIN32)
 #define LAMMPS_MEMALIGN 64
 #endif
 
@@ -60,12 +57,12 @@ using namespace LAMMPS_NS;
  *  Need to call init() before use to define allocation settings */
 
 template <class T>
-MyPage<T>::MyPage() : ndatum(0), nchunk(0), pages(nullptr), page(nullptr),
-                      npage(0), ipage(-1), index(-1), maxchunk(-1),
-                      pagesize(-1), pagedelta(1), errorflag(0) {};
+MyPage<T>::MyPage() :
+    ndatum(0), nchunk(0), pages(nullptr), page(nullptr), npage(0), ipage(-1), index(-1),
+    maxchunk(-1), pagesize(-1), pagedelta(1), errorflag(0){};
 
-template <class T>
-MyPage<T>::~MyPage() {
+template <class T> MyPage<T>::~MyPage()
+{
   deallocate();
 }
 
@@ -79,27 +76,26 @@ MyPage<T>::~MyPage() {
  * \param  user_pagedelta  Number of pages to allocate with one malloc
  * \return                 1 if there were invalid parameters, 2 if there was an allocation error or 0 if successful */
 
-template<class T>
-int MyPage<T>::init(int user_maxchunk, int user_pagesize,
-           int user_pagedelta) {
-    maxchunk = user_maxchunk;
-    pagesize = user_pagesize;
-    pagedelta = user_pagedelta;
+template <class T> int MyPage<T>::init(int user_maxchunk, int user_pagesize, int user_pagedelta)
+{
+  maxchunk = user_maxchunk;
+  pagesize = user_pagesize;
+  pagedelta = user_pagedelta;
 
-    if (maxchunk <= 0 || pagesize <= 0 || pagedelta <= 0) return 1;
-    if (maxchunk > pagesize) return 1;
+  if (maxchunk <= 0 || pagesize <= 0 || pagedelta <= 0) return 1;
+  if (maxchunk > pagesize) return 1;
 
-    // free storage if re-initialized
+  // free storage if re-initialized
 
-    deallocate();
+  deallocate();
 
-    // initial page allocation
+  // initial page allocation
 
-    allocate();
-    if (errorflag) return 2;
-    reset();
-    return 0;
-  }
+  allocate();
+  if (errorflag) return 2;
+  reset();
+  return 0;
+}
 
 /** Pointer to location that can store N items.
  *
@@ -110,8 +106,8 @@ int MyPage<T>::init(int user_maxchunk, int user_pagesize,
  * \param  n  number of items for which storage is requested
  * \return    memory location or null pointer, if error or allocation failed */
 
-template <class T>
-T *MyPage<T>::get(int n) {
+template <class T> T *MyPage<T>::get(int n)
+{
   if (n > maxchunk) {
     errorflag = 1;
     return nullptr;
@@ -120,7 +116,7 @@ T *MyPage<T>::get(int n) {
   nchunk++;
 
   // return pointer from current page
-  if (index+n <= pagesize) {
+  if (index + n <= pagesize) {
     int start = index;
     index += n;
     return &page[start];
@@ -137,11 +133,10 @@ T *MyPage<T>::get(int n) {
   return &page[0];
 }
 
-
 /** Reset state of memory pool without freeing any memory */
 
-template <class T>
-void MyPage<T>::reset() {
+template <class T> void MyPage<T>::reset()
+{
   ndatum = nchunk = 0;
   index = ipage = 0;
   page = (pages != nullptr) ? pages[ipage] : nullptr;
@@ -150,23 +145,22 @@ void MyPage<T>::reset() {
 
 /* ---------------------------------------------------------------------- */
 
-template <class T>
-void MyPage<T>::allocate() {
+template <class T> void MyPage<T>::allocate()
+{
   npage += pagedelta;
-  pages = (T **) realloc(pages,npage*sizeof(T *));
+  pages = (T **) realloc(pages, npage * sizeof(T *));
   if (!pages) {
     errorflag = 2;
     return;
   }
 
-  for (int i = npage-pagedelta; i < npage; i++) {
+  for (int i = npage - pagedelta; i < npage; i++) {
 #if defined(LAMMPS_MEMALIGN)
     void *ptr;
-    if (posix_memalign(&ptr, LAMMPS_MEMALIGN, pagesize*sizeof(T)))
-      errorflag = 2;
+    if (posix_memalign(&ptr, LAMMPS_MEMALIGN, pagesize * sizeof(T))) errorflag = 2;
     pages[i] = (T *) ptr;
 #else
-    pages[i] = (T *) malloc(pagesize*sizeof(T));
+    pages[i] = (T *) malloc(pagesize * sizeof(T));
     if (!pages[i]) errorflag = 2;
 #endif
   }
@@ -174,8 +168,8 @@ void MyPage<T>::allocate() {
 
 /** Free all allocated pages of this class instance */
 
-template <class T>
-void MyPage<T>::deallocate() {
+template <class T> void MyPage<T>::deallocate()
+{
   reset();
   for (int i = 0; i < npage; i++) free(pages[i]);
   free(pages);
@@ -186,9 +180,9 @@ void MyPage<T>::deallocate() {
 // explicit instantiations
 
 namespace LAMMPS_NS {
-  template class MyPage<int>;
-  template class MyPage<long>;
-  template class MyPage<long long>;
-  template class MyPage<double>;
-  template class MyPage<HyperOneCoeff>;
-}
+template class MyPage<int>;
+template class MyPage<long>;
+template class MyPage<long long>;
+template class MyPage<double>;
+template class MyPage<HyperOneCoeff>;
+}    // namespace LAMMPS_NS

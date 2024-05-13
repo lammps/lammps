@@ -18,17 +18,17 @@ namespace ATC {
   template <typename TT> class ClonedAtomQuantity;
 
   /**
-   *  @class  PerAtomQuantity 
+   *  @class  PerAtomQuantity
    *  @brief  Base class for objects that manage atomic quantities and their AtC interface
    */
   template <typename T>
   class PerAtomQuantity : public MatrixDependencyManager<DenseMatrix, T> {
 
   public:
-    
+
     // constructor
     PerAtomQuantity(ATC_Method * atc, int nCols = 1, AtomType atomType = INTERNAL);
-    
+
     // destructor
     virtual ~PerAtomQuantity();
 
@@ -75,7 +75,7 @@ namespace ATC {
 
     /** resets AtC local quantity after exchange */
     virtual void post_exchange() {(this->quantity_).resize(atc_.nlocal(),nCols_); this->set_quantity_to_lammps();};
-    
+
     /** returns how much lammps memory is used in this function */
     virtual int memory_usage() const {return nCols_;};
 
@@ -112,7 +112,7 @@ namespace ATC {
     virtual void reset_nlocal() { this->force_reset();}
 
   protected:
-    
+
     /** utility object to access ATC methods */
     PaqAtcUtility atc_;
 
@@ -137,7 +137,7 @@ namespace ATC {
     /** sets the quantity based on a lammps pointer */
     virtual void set_quantity_to_lammps() const;
 
-    
+
     /** gets appropriate data for lammps pointer */
     virtual T * lammps_scalar() const = 0;
 
@@ -151,17 +151,17 @@ namespace ATC {
     T ** lammpsVector_;
 
   private:
-    
+
     // do not define
     PerAtomQuantity();
-    
+
   };
 
   //--------------------------------------------------------
   //--------------------------------------------------------
   //  Class LammpsAtomQuantity
   //    A base class for defining objects that manage
-  //    quantities but the lammps data forms the 
+  //    quantities but the lammps data forms the
   //    absolute definition for the contained data.
   //--------------------------------------------------------
   //--------------------------------------------------------
@@ -235,7 +235,7 @@ namespace ATC {
 
     virtual void reset() const;
 
-    
+
     /** gets appropriate data for lammps pointer */
     virtual T * lammps_scalar() const = 0;
 
@@ -280,7 +280,7 @@ namespace ATC {
     virtual int unpack_exchange(int /* i */, double * /* buffer */) {return 0;};
 
     /** packs up data for parallel transfer to ghost atoms on other processors */
-    virtual int pack_comm(int /* index */, double * /* buf */, 
+    virtual int pack_comm(int /* index */, double * /* buf */,
                           int /* pbc_flag */, int * /* pbc */) {return 0;};
 
     /** unpacks data after parallel transfer to ghost atoms on other processors */
@@ -309,11 +309,11 @@ namespace ATC {
   //--------------------------------------------------------
   //  Class ClonedLammpsAtomQuantity
   //    A base class for defining objects that manage
-  //    quantities defined at atoms based on data in 
+  //    quantities defined at atoms based on data in
   //    a LammpsAtomQuantity
   //--------------------------------------------------------
   //--------------------------------------------------------
-  
+
   template <typename T>
   class ClonedAtomQuantity : public ShallowAtomQuantity<T> {
 
@@ -372,11 +372,11 @@ namespace ATC {
   //--------------------------------------------------------
   //  Class ProtectedClonedAtomQuantity
   //    A base class for defining objects that manage
-  //    quantities defined at atoms based on data in 
+  //    quantities defined at atoms based on data in
   //    a pointer managed in the standard lammps way.
   //--------------------------------------------------------
   //--------------------------------------------------------
-  
+
   template <typename T>
   class ProtectedClonedAtomQuantity : public ShallowAtomQuantity<T> {
 
@@ -456,8 +456,8 @@ namespace ATC {
   //--------------------------------------------------------
   //--------------------------------------------------------
   //  Class AtcAtomQuantity
-  //    A funcational base class for defining objects that 
-  //    manage quantities defined at atoms and their AtC 
+  //    A funcational base class for defining objects that
+  //    manage quantities defined at atoms and their AtC
   //    interface that are defined by AtC classes
   //--------------------------------------------------------
   //--------------------------------------------------------
@@ -843,7 +843,7 @@ namespace ATC {
         quantity1_->register_dependence(this);
         quantity2_->register_dependence(this);
       };
-    
+
     // destructor
     virtual ~SummedAtomicQuantity()
       {
@@ -880,17 +880,17 @@ namespace ATC {
   };
 
   /**
-   *  @class  PerAtomDiagonalMatrix 
+   *  @class  PerAtomDiagonalMatrix
    *  @brief  Base class for objects that manage atomic diagonal matrices and their AtC interface
    */
   template <typename T>
   class PerAtomDiagonalMatrix : public MatrixDependencyManager<DiagonalMatrix, T> {
 
   public:
-    
+
     // constructor
     PerAtomDiagonalMatrix(ATC_Method * atc, AtomType atomType = INTERNAL);
-    
+
     // destructor
     virtual ~PerAtomDiagonalMatrix();
 
@@ -934,7 +934,7 @@ namespace ATC {
 
     /** resets AtC local quantity after exchange */
     virtual void post_exchange() {(this->quantity_).resize(atc_.nlocal()); this->set_quantity_to_lammps();};
-    
+
     /** returns how much lammps memory is used in this function */
     virtual int memory_usage() const {return 1;};
 
@@ -971,7 +971,7 @@ namespace ATC {
     virtual void reset_nlocal() { this->force_reset();}
 
   protected:
-    
+
     /** utility object to access ATC methods */
     PaqAtcUtility atc_;
 
@@ -993,7 +993,7 @@ namespace ATC {
     /** sets the quantity based on a lammps pointer */
     virtual void set_quantity_to_lammps() const;
 
-    
+
     /** gets appropriate data for lammps pointer */
     virtual T * lammps_scalar() const = 0;
 
@@ -1001,17 +1001,17 @@ namespace ATC {
     T * lammpsScalar_;
 
   private:
-    
+
     // do not define
     PerAtomDiagonalMatrix();
-    
+
   };
 
   //--------------------------------------------------------
   //--------------------------------------------------------
   //  Class AtcAtomDiagonalMatrix
-  //    A funcational base class for defining objects that 
-  //    manage diagonal matrices defined at atoms and their  
+  //    A funcational base class for defining objects that
+  //    manage diagonal matrices defined at atoms and their
   //    AtC interface that are defined by AtC classes
   //--------------------------------------------------------
   //--------------------------------------------------------
@@ -1044,7 +1044,7 @@ namespace ATC {
   //--------------------------------------------------------
   //  Class ProtectedAtomDiagonalMatrix
   //    A base class for defining objects that manage
-  //    diagonal matrixes defined at atoms internally and 
+  //    diagonal matrixes defined at atoms internally and
   //    do not allow for reset externally
   //--------------------------------------------------------
   //--------------------------------------------------------
@@ -1128,10 +1128,10 @@ namespace ATC {
   class PerAtomSparseMatrix : public MatrixDependencyManager<SparseMatrix, T> {
 
   public:
-    
+
     // constructor
     PerAtomSparseMatrix(ATC_Method * atc, int nCols = 1, int maxEntriesPerRow = 1, AtomType atomType = INTERNAL);
-    
+
     // destructor
     virtual ~PerAtomSparseMatrix();
 
@@ -1178,7 +1178,7 @@ namespace ATC {
 
     /** resets AtC local quantity after exchange */
     virtual void post_exchange() {(this->quantity_).reset(atc_.nlocal(),nCols_); this->set_quantity_to_lammps();};
-    
+
     /** returns how much lammps memory is used in this function */
     virtual int memory_usage() const {return 2*maxEntriesPerRow_;};
 
@@ -1215,7 +1215,7 @@ namespace ATC {
     virtual void reset_nlocal() { this->set_reset();};
 
   protected:
-    
+
     /** utility object to access ATC methods */
     PaqAtcUtility atc_;
 
@@ -1243,7 +1243,7 @@ namespace ATC {
     /** sets the quantity based on a lammps pointer */
     virtual void set_quantity_to_lammps() const;
 
-    
+
     /** gets appropriate data for lammps pointer */
     virtual T ** lammps_vector() const = 0;
 
@@ -1261,17 +1261,17 @@ namespace ATC {
     mutable DenseVector<INDEX> _colIndices_;
 
   private:
-    
+
     // do not define
     PerAtomSparseMatrix();
-    
+
   };
 
   //--------------------------------------------------------
   //--------------------------------------------------------
   //  Class AtcAtomSparseMatrix
-  //    A funcational base class for defining objects that 
-  //    manage sparse matrices defined at atoms and their  
+  //    A funcational base class for defining objects that
+  //    manage sparse matrices defined at atoms and their
   //    AtC interface that are defined by AtC classes
   //--------------------------------------------------------
   //--------------------------------------------------------
@@ -1283,7 +1283,7 @@ namespace ATC {
     // constructor
     AtcAtomSparseMatrix(ATC_Method * atc,
                         int nCols = 1, int maxEntriesPerRow = 1,
-                        AtomType atomType = INTERNAL) : 
+                        AtomType atomType = INTERNAL) :
                   PerAtomSparseMatrix<T>(atc,nCols,maxEntriesPerRow,atomType) {};
 
     // destructor
@@ -1308,7 +1308,7 @@ namespace ATC {
   //--------------------------------------------------------
   //  Class ProtectedAtomSparseMatrix
   //    A base class for defining objects that manage
-  //    sparse matrixes defined at atoms internally and 
+  //    sparse matrixes defined at atoms internally and
   //    do not allow for reset externally
   //--------------------------------------------------------
   //--------------------------------------------------------
@@ -1389,7 +1389,7 @@ namespace ATC {
   //--------------------------------------------------------
   //  Class ProtectedMappedSparseMatrix
   //    A base class for defining objects that manage
-  //    sparse matrices defined at atoms internally and do 
+  //    sparse matrices defined at atoms internally and do
   //    not allow for reset externally, but are mapped in
   //    at least one of their dimensions
   //--------------------------------------------------------
@@ -1415,7 +1415,7 @@ namespace ATC {
 
     /** resets AtC local quantity after exchange */
     virtual void post_exchange() {this->set_reset();};
-    
+
     /** returns how much lammps memory is used in this function */
     virtual int memory_usage() const {return 0;};
 

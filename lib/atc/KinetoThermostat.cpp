@@ -62,9 +62,9 @@ namespace ATC {
   //--------------------------------------------------------
   //  construct_methods:
   //    instantiations desired regulator method(s)
-  
+
   //    dependence, but in general there is also a
-  //    time integrator dependence.  In general the 
+  //    time integrator dependence.  In general the
   //    precedence order is:
   //    time filter -> time integrator -> thermostat
   //    In the future this may need to be added if
@@ -92,7 +92,7 @@ namespace ATC {
       if (timeFilterManager->need_reset() ) {
         timeFilter_ = timeFilterManager->construct(TimeFilterManager::EXPLICIT_IMPLICIT);
       }
-      
+
       if (timeFilterManager->filter_dynamics()) {
         switch (regulatorTarget_) {
         case NONE: {
@@ -130,7 +130,7 @@ namespace ATC {
           throw ATC_Error("Unknown thermostat target in Thermostat::initialize");
         }
       }
-      
+
       AtomicRegulator::reset_method();
     }
     else {
@@ -143,7 +143,7 @@ namespace ATC {
   //  Class VelocityRescaleCombined
   //--------------------------------------------------------
   //--------------------------------------------------------
- 
+
   //--------------------------------------------------------
   //  Constructor
   //         Grab references to ATC and kinetostat data
@@ -182,7 +182,7 @@ namespace ATC {
   //  Class ThermostatRescaleCombined
   //--------------------------------------------------------
   //--------------------------------------------------------
- 
+
   //--------------------------------------------------------
   //  Constructor
   //--------------------------------------------------------
@@ -219,7 +219,7 @@ namespace ATC {
   //  Class KinetoThermostatRescale
   //--------------------------------------------------------
   //--------------------------------------------------------
- 
+
   //--------------------------------------------------------
   //  Constructor
   //--------------------------------------------------------
@@ -239,7 +239,7 @@ namespace ATC {
     kinetostat_ = new VelocityRescaleCombined(kinetoThermostat);
     // data associated with stage 3 in ATC_Method::initialize
     lambdaMomentum_ = atomicRegulator_->regulator_data(regulatorPrefix_+"LambdaMomentum",atc_->nsd());
-    lambdaEnergy_ = atomicRegulator_->regulator_data(regulatorPrefix_+"LambdaEnergy",1); 
+    lambdaEnergy_ = atomicRegulator_->regulator_data(regulatorPrefix_+"LambdaEnergy",1);
   }
 
   //--------------------------------------------------------
@@ -334,7 +334,7 @@ namespace ATC {
 
       // update thermostat
       thermostat_->compute_thermostat(dt);
-      
+
       // update kinetostat
       kinetostat_->compute_kinetostat(dt);
 
@@ -383,7 +383,7 @@ namespace ATC {
   //  Class ThermostatRescaleMixedKePeCombined
   //--------------------------------------------------------
   //--------------------------------------------------------
- 
+
   //--------------------------------------------------------
   //  Constructor
   //--------------------------------------------------------
@@ -447,7 +447,7 @@ namespace ATC {
   //  Class KinetoThermostatGlcFs
   //--------------------------------------------------------
   //--------------------------------------------------------
- 
+
   //--------------------------------------------------------
   //  Constructor
   //--------------------------------------------------------
@@ -598,7 +598,7 @@ namespace ATC {
     // do full prediction if we just redid the shape functions
     if (full_prediction()) {
       this->compute_lambda(dt);
-      
+
       atomThermostatForces_->unfix_quantity();  // allow update of atomic force applied by lambda
     }
 
@@ -612,7 +612,7 @@ namespace ATC {
 
     if (full_prediction())
       atomThermostatForces_->fix_quantity();
-    
+
     // SPLIT OUT FUNCTION TO CREATE DELTA VARIABLES IN BASES, ONLY NEED THESE
     // update predicted nodal variables for second half of time step
     // velocity
@@ -672,8 +672,8 @@ namespace ATC {
     this->add_to_energy(myNodalAtomicLambdaPower,deltaEnergy2_,0.5*dt);
     atc_->apply_inverse_mass_matrix(deltaEnergy2_,TEMPERATURE);
     myTemperature += deltaEnergy2_;
-    
-    
+
+
     isFirstTimestep_ = false;
   }
 
@@ -695,7 +695,7 @@ namespace ATC {
   void KinetoThermostatGlcFs::output(OUTPUT_LIST & /* outputData */)
   {
     // DO NOT CALL INDIVIDUAL REGULATORS
-    // OUTPUT TOTAL FORCE AND TOTAL POWER 
+    // OUTPUT TOTAL FORCE AND TOTAL POWER
     // OUTPUT EACH LAMBDA
   }
 

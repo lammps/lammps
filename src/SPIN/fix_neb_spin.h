@@ -1,7 +1,7 @@
 /* -*- c++ -*- ----------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    https://www.lammps.org/, Sandia National Laboratories
-   Steve Plimpton, sjplimp@sandia.gov
+   LAMMPS development team: developers@lammps.org
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
@@ -30,11 +30,11 @@ class FixNEBSpin : public Fix {
   int rclimber;
 
   FixNEBSpin(class LAMMPS *, int, char **);
-  ~FixNEBSpin();
-  int setmask();
-  void init();
-  void min_setup(int);
-  void min_post_force(int);
+  ~FixNEBSpin() override;
+  int setmask() override;
+  void init() override;
+  void min_setup(int) override;
+  void min_post_force(int) override;
 
  private:
   int me, nprocs, nprocs_universe;
@@ -83,29 +83,3 @@ class FixNEBSpin : public Fix {
 
 #endif
 #endif
-
-/* ERROR/WARNING messages:
-
-E: Illegal ... command
-
-Self-explanatory.  Check the input script syntax and compare to the
-documentation for the command.  You can use -echo screen as a
-command-line option when running LAMMPS to see the offending line.
-
-E: Potential energy ID for fix neb does not exist
-
-Self-explanatory.
-
-E: Too many active GNEB atoms
-
-UNDOCUMENTED
-
-E: Too many atoms for GNEB
-
-UNDOCUMENTED
-
-U: Atom count changed in fix neb
-
-This is not allowed in a GNEB calculation.
-
-*/

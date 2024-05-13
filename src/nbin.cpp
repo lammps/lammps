@@ -2,7 +2,7 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    https://www.lammps.org/, Sandia National Laboratories
-   Steve Plimpton, sjplimp@sandia.gov
+   LAMMPS development team: developers@lammps.org
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
@@ -127,7 +127,7 @@ void NBin::copy_neighbor_info()
 /* ----------------------------------------------------------------------
    convert atom coords into local bin #
    for orthogonal, only ghost atoms will have coord >= bboxhi or coord < bboxlo
-     take special care to insure ghosts are in correct bins even w/ roundoff
+     take special care to ensure ghosts are in correct bins even w/ roundoff
      hi ghost atoms = nbin,nbin+1,etc
      owned atoms = 0 to nbin-1
      lo ghost atoms = -1,-2,etc

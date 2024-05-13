@@ -1,0 +1,159 @@
+LAMMPS (15 Sep 2022)
+  using 1 OpenMP thread(s) per MPI task
+# flat membrane demo
+variable     r0 equal  0.97
+variable     d1 equal  ${r0}
+variable     d1 equal  0.97
+variable     d2 equal  sqrt(3.0)*${r0}
+variable     d2 equal  sqrt(3.0)*0.97
+variable     d3 equal  3.0*${r0}
+variable     d3 equal  3.0*0.97
+variable     ro equal  2./${d1}/${d2}/${d3}
+variable     ro equal  2./0.97/${d2}/${d3}
+variable     ro equal  2./0.97/1.68008928334181/${d3}
+variable     ro equal  2./0.97/1.68008928334181/2.91
+
+variable     T  equal  0.23
+variable     LD equal  1.0
+
+units        lj
+atom_style   ellipsoid
+
+boundary     p p p
+
+lattice      custom ${ro} a1 ${d1}  0.0 0.0 a2 0.0 ${d2}  0.0              a3 0.0 0.0 ${d3}  basis 0.0 0.0 0.0 basis 0.5  0.5  0.0
+lattice      custom 0.421728460751825 a1 ${d1}  0.0 0.0 a2 0.0 ${d2}  0.0              a3 0.0 0.0 ${d3}  basis 0.0 0.0 0.0 basis 0.5  0.5  0.0
+lattice      custom 0.421728460751825 a1 0.97  0.0 0.0 a2 0.0 ${d2}  0.0              a3 0.0 0.0 ${d3}  basis 0.0 0.0 0.0 basis 0.5  0.5  0.0
+lattice      custom 0.421728460751825 a1 0.97  0.0 0.0 a2 0.0 1.68008928334181  0.0              a3 0.0 0.0 ${d3}  basis 0.0 0.0 0.0 basis 0.5  0.5  0.0
+lattice      custom 0.421728460751825 a1 0.97  0.0 0.0 a2 0.0 1.68008928334181  0.0              a3 0.0 0.0 2.91  basis 0.0 0.0 0.0 basis 0.5  0.5  0.0
+Lattice spacing in x,y,z = 0.97 1.6800893 2.91
+
+
+region       box block   0 40  0 24  -20  20
+create_box   1 box
+Created orthogonal box = (0 0 -58.2) to (38.8 40.322143 58.2)
+  1 by 1 by 4 MPI processor grid
+region       membrane block  0 40  0 24 -0.5 0.5
+create_atoms 1 region membrane
+Created 1920 atoms
+  using lattice units in orthogonal box = (0 0 -58.2) to (38.8 40.322143 58.2)
+  create_atoms CPU = 0.001 seconds
+
+group        membrane  region membrane
+1920 atoms in group membrane
+
+set type 1 mass  1.0
+Setting atom values ...
+  1920 settings made for mass
+
+set type 1 shape  1 1 1
+Setting atom values ...
+  1920 settings made for shape
+
+set          group all quat 0 -1 0  90
+Setting atom values ...
+  1920 settings made for quat
+
+#compute      memb  all temp/com
+#compute      rot all temp/asphere bias memb
+velocity     all create ${T} 87287 loop geom
+velocity     all create 0.23 87287 loop geom
+
+pair_style   ylz  2.6
+pair_coeff   *  *   1.0  1.0  4  3  0.0  2.6
+neighbor     1.0 bin
+
+
+thermo_style custom step temp press pxx pyy
+thermo       200
+
+timestep     0.01
+
+#dump         1 all atom 10 dump_onlymembrane.lammpstrj
+
+fix          1 all langevin ${T} ${T}  ${LD}  48279
+fix          1 all langevin 0.23 ${T}  ${LD}  48279
+fix          1 all langevin 0.23 0.23  ${LD}  48279
+fix          1 all langevin 0.23 0.23  1  48279
+
+
+fix          2 all nve/asphere
+run          3000
+
+CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE
+
+Your simulation uses code contributions which should be cited:
+
+- pair ylz command:
+
+@Article{Yuan10,
+ author =  {H. Yuan, C. Huang, J. Li, G. Lykotrafitis, and S. Zhang},
+ title =   {One-particle-thick, solvent-free, coarse-grained model for biological and biomimetic fluid membranes},
+ journal = {Phys. Rev. E},
+ year =    2010,
+ volume =  82,
+ pages =   {011905}
+}
+
+CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE
+
+Generated 0 of 0 mixed pair_coeff terms from geometric mixing rule
+Neighbor list info ...
+  update: every = 1 steps, delay = 10 steps, check = yes
+  max neighbors/atom: 2000, page size: 100000
+  master list distance cutoff = 3.6
+  ghost atom cutoff = 3.6
+  binsize = 1.8, bins = 22 23 65
+  1 neighbor lists, perpetual/occasional/extra = 1 0 0
+  (1) pair ylz, perpetual
+      attributes: half, newton on
+      pair build: half/bin/atomonly/newton
+      stencil: half/bin/3d
+      bin: standard
+Per MPI rank memory allocation (min/avg/max) = 4.182 | 4.794 | 5.472 Mbytes
+   Step          Temp          Press           Pxx            Pyy      
+         0   0.23          -0.0073508785  -0.012283389   -0.012234574  
+       200   0.20647718    -0.0012368074  -0.0021167303  -0.0015343502 
+       400   0.21648371    -0.00085695085 -0.0015627331  -0.0011177093 
+       600   0.22929515    -0.00050218657 -0.0008332     -0.00062622609
+       800   0.22062664    -0.00049172378 -0.000611884   -0.00075089294
+      1000   0.22422425    -0.00039405068 -0.00037600355 -0.00070786572
+      1200   0.2298767     -0.00025939082 -0.00021616578 -0.00053125505
+      1400   0.2335927      5.8028332e-05  0.00017530192 -3.1675138e-05
+      1600   0.22884878    -0.0001733902  -0.0008056431   0.00014276754
+      1800   0.22813498     0.00019873459  0.00051040124  5.8860949e-05
+      2000   0.2273166     -3.3595127e-05  0.0001705632  -0.00026498213
+      2200   0.2251643     -2.4517311e-05 -4.0618888e-05  1.066658e-05 
+      2400   0.22460629    -4.5661259e-05 -0.00019144039 -1.6649099e-05
+      2600   0.23085675     0.00014029405  0.00017983536  0.00017895001
+      2800   0.22364591     4.2999164e-05 -0.00011000466  0.00024363243
+      3000   0.23421357     0.00023505702  0.00020752013  0.00053567111
+Loop time of 4.68577 on 4 procs for 3000 steps with 1920 atoms
+
+Performance: 553164.568 tau/day, 640.237 timesteps/s
+95.6% CPU use with 4 MPI tasks x 1 OpenMP threads
+
+MPI task timing breakdown:
+Section |  min time  |  avg time  |  max time  |%varavg| %total
+---------------------------------------------------------------
+Pair    | 0.00015072 | 1.6029     | 3.8573     | 131.7 | 34.21
+Neigh   | 0.00055747 | 0.025423   | 0.065858   |  17.0 |  0.54
+Comm    | 0.0052259  | 0.48173    | 1.624      |  96.5 | 10.28
+Output  | 0.0003894  | 0.023428   | 0.047223   |  15.0 |  0.50
+Modify  | 0.00037337 | 0.2141     | 0.44595    |  46.3 |  4.57
+Other   |            | 2.338      |            |       | 49.90
+
+Nlocal:            480 ave        1011 max           0 min
+Histogram: 2 0 0 0 0 0 0 0 1 1
+Nghost:            860 ave        1771 max           0 min
+Histogram: 2 0 0 0 0 0 0 0 0 2
+Neighs:        11697.8 ave       30095 max           0 min
+Histogram: 2 0 0 0 0 1 0 0 0 1
+
+Total # of neighbors = 46791
+Ave neighs/atom = 24.370313
+Neighbor list builds = 99
+Dangerous builds = 0
+
+
+Total wall time: 0:00:04

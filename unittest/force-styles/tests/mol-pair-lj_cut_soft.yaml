@@ -1,7 +1,8 @@
 ---
-lammps_version: 10 Feb 2021
-date_generated: Fri Feb 26 23:08:49 2021
-epsilon: 5e-14
+lammps_version: 17 Feb 2022
+date_generated: Fri Mar 18 22:17:32 2022
+epsilon: 7.5e-14
+skip_tests:
 prerequisites: ! |
   atom full
   pair lj/cut/soft
@@ -21,7 +22,7 @@ extract: ! |
   epsilon 2
   sigma 2
 natoms: 29
-init_vdwl: -0.0428396313094945
+init_vdwl: -0.04283963130949453
 init_coul: 0
 init_stress: ! |-
   -3.7150294178485088e-02 -4.4269784260765020e-02 -3.3385877908707000e-02  3.9789543272128278e-03  1.2200860941829079e-02  5.0820551468292834e-03

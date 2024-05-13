@@ -17,7 +17,7 @@ namespace ATC
     return (phi_r(r+dr)-phi_r(r)) / dr;
   }
   // Approximates the third derivative of phi
-  double CbPotential::phi_rrr(const double &r) const 
+  double CbPotential::phi_rrr(const double &r) const
   {
     const double dr = r*EPS;
     return (phi_rr(r+dr)-phi_rr(r)) / dr;
@@ -34,8 +34,8 @@ namespace ATC
     const double dr = r*EPS;
     return (rho_r(r+dr)-rho_r(r)) / dr;
   }
-  // Approximates the third derivative of rho 
-  double CbPotential::rho_rrr(const double &r) const 
+  // Approximates the third derivative of rho
+  double CbPotential::rho_rrr(const double &r) const
   {
     const double dr = r*EPS;
     return (rho_rr(r+dr)-rho_rr(r)) / dr;
@@ -44,7 +44,7 @@ namespace ATC
   double CbPotential::F_p(const double &p) const
   {
     const double dp = p*EPS;
-    return (F(p+dp)-F(p)) / dp; 
+    return (F(p+dp)-F(p)) / dp;
   }
   // Approximates the second derivative of the embedding function
   double CbPotential::F_pp(const double &p) const
@@ -79,7 +79,7 @@ namespace ATC
   Interactions::Interactions(int a, int b, int c)
   {
     // bitwise OR combines the terms that are listed
-    const int abc = a|b|c;  
+    const int abc = a|b|c;
     pairwise      = (abc&PAIRWISE)>0;
     embedding     = (abc&EAM)>0;
     three_body    = (abc&THREE_BDY)>0;

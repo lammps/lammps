@@ -1,7 +1,7 @@
 /* -*- c++ -*- ----------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    https://www.lammps.org/, Sandia National Laboratories
-   Steve Plimpton, sjplimp@sandia.gov
+   LAMMPS development team: developers@lammps.org
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
@@ -27,12 +27,12 @@ namespace LAMMPS_NS {
 class FixPressBerendsen : public Fix {
  public:
   FixPressBerendsen(class LAMMPS *, int, char **);
-  ~FixPressBerendsen();
-  int setmask();
-  void init();
-  void setup(int);
-  void end_of_step();
-  int modify_param(int, char **);
+  ~FixPressBerendsen() override;
+  int setmask() override;
+  void init() override;
+  void setup(int) override;
+  void end_of_step() override;
+  int modify_param(int, char **) override;
 
  protected:
   int dimension, which;
@@ -44,9 +44,8 @@ class FixPressBerendsen : public Fix {
   double p_period[3], p_target[3];
   double p_current[3], dilation[3];
   double factor[3];
-  int kspace_flag;    // 1 if KSpace invoked, 0 if not
-  int nrigid;         // number of rigid fixes
-  int *rfix;          // indices of rigid fixes
+  int kspace_flag;            // 1 if KSpace invoked, 0 if not
+  std::vector<Fix *> rfix;    // indices of rigid fixes
 
   char *id_temp, *id_press;
   class Compute *temperature, *pressure;
@@ -60,70 +59,3 @@ class FixPressBerendsen : public Fix {
 
 #endif
 #endif
-
-/* ERROR/WARNING messages:
-
-E: Illegal ... command
-
-Self-explanatory.  Check the input script syntax and compare to the
-documentation for the command.  You can use -echo screen as a
-command-line option when running LAMMPS to see the offending line.
-
-E: Invalid fix press/berendsen for a 2d simulation
-
-The z component of pressure cannot be controlled for a 2d model.
-
-E: Invalid fix press/berendsen pressure settings
-
-Settings for coupled dimensions must be the same.
-
-E: Cannot use fix press/berendsen on a non-periodic dimension
-
-Self-explanatory.
-
-E: Fix press/berendsen damping parameters must be > 0.0
-
-Self-explanatory.
-
-E: Cannot use fix press/berendsen with triclinic box
-
-Self-explanatory.
-
-E: Cannot use fix press/berendsen and fix deform on same component of stress tensor
-
-These commands both change the box size/shape, so you cannot use both
-together.
-
-E: Temperature ID for fix press/berendsen does not exist
-
-Self-explanatory.
-
-E: Pressure ID for fix press/berendsen does not exist
-
-The compute ID needed to compute pressure for the fix does not
-exist.
-
-E: Could not find fix_modify temperature ID
-
-The compute ID for computing temperature does not exist.
-
-E: Fix_modify temperature ID does not compute temperature
-
-The compute ID assigned to the fix must compute temperature.
-
-W: Temperature for NPT is not for group all
-
-User-assigned temperature to NPT fix does not compute temperature for
-all atoms.  Since NPT computes a global pressure, the kinetic energy
-contribution from the temperature is assumed to also be for all atoms.
-Thus the pressure used by NPT could be inaccurate.
-
-E: Could not find fix_modify pressure ID
-
-The compute ID for computing pressure does not exist.
-
-E: Fix_modify pressure ID does not compute pressure
-
-The compute ID assigned to the fix must compute pressure.
-
-*/

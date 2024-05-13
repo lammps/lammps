@@ -1,8 +1,7 @@
-// clang-format off
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    https://www.lammps.org/, Sandia National Laboratories
-   Steve Plimpton, sjplimp@sandia.gov
+   LAMMPS development team: developers@lammps.org
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
@@ -32,47 +31,31 @@ AtomVecFull::AtomVecFull(LAMMPS *lmp) : AtomVec(lmp)
   // order of fields in a string does not matter
   // except: fields_data_atom & fields_data_vel must match data file
 
-  fields_grow = (char *)
-    "q molecule num_bond bond_type bond_atom "
-    "num_angle angle_type angle_atom1 angle_atom2 angle_atom3 "
-    "num_dihedral dihedral_type dihedral_atom1 dihedral_atom2 "
-    "dihedral_atom3 dihedral_atom4 "
-    "num_improper improper_type improper_atom1 improper_atom2 "
-    "improper_atom3 improper_atom4 "
-    "nspecial special";
-  fields_copy = (char *)
-    "q molecule num_bond bond_type bond_atom "
-    "num_angle angle_type angle_atom1 angle_atom2 angle_atom3 "
-    "num_dihedral dihedral_type dihedral_atom1 dihedral_atom2 "
-    "dihedral_atom3 dihedral_atom4 "
-    "num_improper improper_type improper_atom1 improper_atom2 "
-    "improper_atom3 improper_atom4 "
-    "nspecial special";
-  fields_comm = (char *) "";
-  fields_comm_vel = (char *) "";
-  fields_reverse = (char *) "";
-  fields_border = (char *) "q molecule";
-  fields_border_vel = (char *) "q molecule";
-  fields_exchange = (char *)
-    "q molecule num_bond bond_type bond_atom "
-    "num_angle angle_type angle_atom1 angle_atom2 angle_atom3 "
-    "num_dihedral dihedral_type dihedral_atom1 dihedral_atom2 "
-    "dihedral_atom3 dihedral_atom4 "
-    "num_improper improper_type improper_atom1 improper_atom2 "
-    "improper_atom3 improper_atom4 "
-    "nspecial special";
-  fields_restart = (char *)
-    "q molecule num_bond bond_type bond_atom "
-    "num_angle angle_type angle_atom1 angle_atom2 angle_atom3 "
-    "num_dihedral dihedral_type dihedral_atom1 dihedral_atom2 "
-    "dihedral_atom3 dihedral_atom4 "
-    "num_improper improper_type improper_atom1 improper_atom2 "
-    "improper_atom3 improper_atom4";
-  fields_create = (char *)
-    "q molecule num_bond num_angle num_dihedral num_improper nspecial";
-  fields_data_atom = (char *) "id molecule type q x";
-  fields_data_vel = (char *) "id v";
-
+  // clang-format off
+  fields_grow = {"q", "molecule", "num_bond", "bond_type", "bond_atom", "num_angle", "angle_type",
+    "angle_atom1", "angle_atom2", "angle_atom3", "num_dihedral", "dihedral_type", "dihedral_atom1",
+    "dihedral_atom2", "dihedral_atom3", "dihedral_atom4", "num_improper", "improper_type",
+    "improper_atom1", "improper_atom2", "improper_atom3", "improper_atom4", "nspecial", "special"};
+  fields_copy = {"q", "molecule", "num_bond", "bond_type", "bond_atom", "num_angle", "angle_type",
+    "angle_atom1", "angle_atom2", "angle_atom3", "num_dihedral", "dihedral_type", "dihedral_atom1",
+    "dihedral_atom2", "dihedral_atom3", "dihedral_atom4", "num_improper", "improper_type",
+    "improper_atom1", "improper_atom2", "improper_atom3", "improper_atom4", "nspecial", "special"};
+  fields_border = {"q", "molecule"};
+  fields_border_vel = {"q", "molecule"};
+  fields_exchange = {"q", "molecule", "num_bond", "bond_type", "bond_atom",
+    "num_angle", "angle_type", "angle_atom1", "angle_atom2", "angle_atom3",
+    "num_dihedral", "dihedral_type", "dihedral_atom1", "dihedral_atom2",
+    "dihedral_atom3", "dihedral_atom4", "num_improper", "improper_type", "improper_atom1",
+    "improper_atom2", "improper_atom3", "improper_atom4", "nspecial", "special"};
+ fields_restart = {"q", "molecule", "num_bond", "bond_type", "bond_atom", "num_angle",
+   "angle_type", "angle_atom1", "angle_atom2", "angle_atom3", "num_dihedral", "dihedral_type",
+   "dihedral_atom1", "dihedral_atom2", "dihedral_atom3", "dihedral_atom4", "num_improper",
+   "improper_type", "improper_atom1", "improper_atom2", "improper_atom3", "improper_atom4"};
+  fields_create = {"q", "molecule", "num_bond", "num_angle",
+    "num_dihedral", "num_improper", "nspecial"};
+  fields_data_atom = {"id", "molecule", "type", "q", "x"};
+  fields_data_vel = {"id", "v"};
+  // clang-format on
   setup_fields();
 
   bond_per_atom = angle_per_atom = dihedral_per_atom = improper_per_atom = 0;
@@ -83,10 +66,10 @@ AtomVecFull::AtomVecFull(LAMMPS *lmp) : AtomVec(lmp)
 
 AtomVecFull::~AtomVecFull()
 {
-  delete [] bond_negative;
-  delete [] angle_negative;
-  delete [] dihedral_negative;
-  delete [] improper_negative;
+  delete[] bond_negative;
+  delete[] angle_negative;
+  delete[] dihedral_negative;
+  delete[] improper_negative;
 }
 
 /* ----------------------------------------------------------------------
@@ -113,25 +96,25 @@ void AtomVecFull::grow_pointers()
 
 void AtomVecFull::pack_restart_pre(int ilocal)
 {
-  // insure negative vectors are needed length
+  // ensure negative vectors are needed length
 
   if (bond_per_atom < atom->bond_per_atom) {
-    delete [] bond_negative;
+    delete[] bond_negative;
     bond_per_atom = atom->bond_per_atom;
     bond_negative = new int[bond_per_atom];
   }
   if (angle_per_atom < atom->angle_per_atom) {
-    delete [] angle_negative;
+    delete[] angle_negative;
     angle_per_atom = atom->angle_per_atom;
     angle_negative = new int[angle_per_atom];
   }
   if (dihedral_per_atom < atom->dihedral_per_atom) {
-    delete [] dihedral_negative;
+    delete[] dihedral_negative;
     dihedral_per_atom = atom->dihedral_per_atom;
     dihedral_negative = new int[dihedral_per_atom];
   }
   if (improper_per_atom < atom->improper_per_atom) {
-    delete [] improper_negative;
+    delete[] improper_negative;
     improper_per_atom = atom->improper_per_atom;
     improper_negative = new int[improper_per_atom];
   }
@@ -144,7 +127,8 @@ void AtomVecFull::pack_restart_pre(int ilocal)
       bond_negative[m] = 1;
       bond_type[ilocal][m] = -bond_type[ilocal][m];
       any_bond_negative = 1;
-    } else bond_negative[m] = 0;
+    } else
+      bond_negative[m] = 0;
   }
 
   any_angle_negative = 0;
@@ -153,7 +137,8 @@ void AtomVecFull::pack_restart_pre(int ilocal)
       angle_negative[m] = 1;
       angle_type[ilocal][m] = -angle_type[ilocal][m];
       any_angle_negative = 1;
-    } else angle_negative[m] = 0;
+    } else
+      angle_negative[m] = 0;
   }
 
   any_dihedral_negative = 0;
@@ -162,7 +147,8 @@ void AtomVecFull::pack_restart_pre(int ilocal)
       dihedral_negative[m] = 1;
       dihedral_type[ilocal][m] = -dihedral_type[ilocal][m];
       any_dihedral_negative = 1;
-    } else dihedral_negative[m] = 0;
+    } else
+      dihedral_negative[m] = 0;
   }
 
   any_improper_negative = 0;
@@ -171,7 +157,8 @@ void AtomVecFull::pack_restart_pre(int ilocal)
       improper_negative[m] = 1;
       improper_type[ilocal][m] = -improper_type[ilocal][m];
       any_improper_negative = 1;
-    } else improper_negative[m] = 0;
+    } else
+      improper_negative[m] = 0;
   }
 }
 
@@ -195,14 +182,12 @@ void AtomVecFull::pack_restart_post(int ilocal)
 
   if (any_dihedral_negative) {
     for (int m = 0; m < num_dihedral[ilocal]; m++)
-      if (dihedral_negative[m])
-        dihedral_type[ilocal][m] = -dihedral_type[ilocal][m];
+      if (dihedral_negative[m]) dihedral_type[ilocal][m] = -dihedral_type[ilocal][m];
   }
 
   if (any_improper_negative) {
     for (int m = 0; m < num_improper[ilocal]; m++)
-      if (improper_negative[m])
-        improper_type[ilocal][m] = -improper_type[ilocal][m];
+      if (improper_negative[m]) improper_type[ilocal][m] = -improper_type[ilocal][m];
   }
 }
 

@@ -1,4 +1,4 @@
-// ATC headers 
+// ATC headers
 #include "NonLinearSolver.h"
 #include "LinearSolver.h"
 #include "ATC_Error.h"
@@ -32,7 +32,7 @@ namespace ATC {
   //--------------------------------------------------------------------
   double NonLinearSolver::residual_norm(VECTOR & r)
   {
-    
+
     if (bcs_) {
       DENS_VEC R = r;
       BC_SET::const_iterator itr;
@@ -54,10 +54,10 @@ namespace ATC {
     }
     if (rNorm0_ == 0.0) rNorm0_ = 1.0;
     if (rNorm0_ < tol0_ ) rNorm0_ = rNorm0P_;
-    if (rNorm0P_ == 1.0) rNorm0P_ = rNorm0_; 
+    if (rNorm0P_ == 1.0) rNorm0P_ = rNorm0_;
     rNormP_ = rNorm0_;
     dx_.reset(r_.nRows()); // needs to be sized for linear solver
-    // newton's method  
+    // newton's method
     for (int iter = 0; iter < maxIterations_ ; iter++ ) {
       // compute tangent
       f_->tangent(x, r_, A_);
@@ -66,7 +66,7 @@ namespace ATC {
       if (rNorm_ < tol_) {
         return true;
       }
-      SPAR_MAT Asparse(A_); 
+      SPAR_MAT Asparse(A_);
       LinearSolver linearSolver(Asparse, LinearSolver::AUTO_SOLVE, parallel_);
       if (bcs_) {
         linearSolver.allow_reinitialization();
@@ -74,7 +74,7 @@ namespace ATC {
         if (iter > 0) linearSolver.set_homogeneous_bcs();
         else { x.zero(); } // linear solve w/ bcs will replace guess
       }
-      r_ *= -1; 
+      r_ *= -1;
       linearSolver.solve(dx_,r_);
 
       if (iter > 0 && rNorm_ > rNormP_) {
@@ -97,9 +97,9 @@ namespace ATC {
 
 
 
-  bool NonLinearSolver::line_search(VECTOR & x) 
+  bool NonLinearSolver::line_search(VECTOR & x)
   {
-    double rNormP = rNormP_; 
+    double rNormP = rNormP_;
     double dxnorm = dx_.norm();
     while ( dxnorm > tolx_) {
       dx_ *= 0.5; // bisection

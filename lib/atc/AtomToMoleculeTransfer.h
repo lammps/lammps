@@ -1,4 +1,4 @@
-// A class for defining transfer operations molecular centers of mass (centroid), dipole moments, quadrupole moments 
+// A class for defining transfer operations molecular centers of mass (centroid), dipole moments, quadrupole moments
 
 #ifndef ATOM_TO_MOLECULE_TRANSFER_H
 #define ATOM_TO_MOLECULE_TRANSFER_H
@@ -15,18 +15,18 @@ namespace ATC {
   // forward declarations
   class ATC_Method;
 
-  /** 
+  /**
   * @class PerMoleculeQuantity
   *
   */
-  
+
   template <typename T>
   class PerMoleculeQuantity : public DenseMatrixTransfer<T> {
-    
+
   public:
 
   PerMoleculeQuantity(ATC_Method * atc):DenseMatrixTransfer<T>(), atc_(atc) {};
-    
+
   virtual ~PerMoleculeQuantity() {};
 
   protected:
@@ -34,8 +34,8 @@ namespace ATC {
   /** utility object for atc information */
   ATC_Method * atc_;
 
-  private: 
-  
+  private:
+
   //do not define
   PerMoleculeQuantity();
 
@@ -48,7 +48,7 @@ namespace ATC {
   */
   template <typename T>
   class AtomToSmallMoleculeTransfer : public PerMoleculeQuantity<T> {
-  
+
   public:
 
     //constructor
@@ -61,20 +61,20 @@ namespace ATC {
       source_->register_dependence(this);
       smallMoleculeSet_->register_dependence(this);
     };
-  
-  //destructor 
+
+  //destructor
   virtual ~AtomToSmallMoleculeTransfer()
     {
       source_->remove_dependence(this);
       smallMoleculeSet_->remove_dependence(this);
     };
 
-  //  apply transfer operator 
+  //  apply transfer operator
   void reset_quantity() const
   {
     const DenseMatrix<T> & sourceMatrix(source_->quantity());
     int nLocalMol = smallMoleculeSet_->local_molecule_count();
-    (this->quantity_).reset(nLocalMol,sourceMatrix.nCols()); 
+    (this->quantity_).reset(nLocalMol,sourceMatrix.nCols());
     for (int i = 0;  i < nLocalMol ; i++) {
       const std::set<int> & atomsLocalMolArray =  smallMoleculeSet_->atoms_by_local_molecule(i);
       std::set<int>::const_iterator atomsLocalMolID;
@@ -86,29 +86,29 @@ namespace ATC {
     }
   };
 
-  protected: 
+  protected:
 
-  // pointer to source atomic quantity data 
+  // pointer to source atomic quantity data
   PerAtomQuantity<T> * source_;
-  // pointer to molecule data 
+  // pointer to molecule data
   SmallMoleculeSet  * smallMoleculeSet_;
 
   private:
 
   // do not define
   AtomToSmallMoleculeTransfer();
-  
+
   };
 
   /**
-   *  @class SmallMoleculeCentroid 
+   *  @class SmallMoleculeCentroid
    *  @brief  Class for defining objects to transfer molecular centroid (center of mass)
    */
 
 
   class SmallMoleculeCentroid : public AtomToSmallMoleculeTransfer<double> {
 
-  public: 
+  public:
 
   //constructor
   SmallMoleculeCentroid(ATC_Method * atc, PerAtomQuantity<double> * source, SmallMoleculeSet * smallMoleculeSet, PerAtomQuantity<double> * atomPositions);
@@ -116,15 +116,15 @@ namespace ATC {
   //destructor
   virtual ~SmallMoleculeCentroid();
 
-  // apply transfer operator  
+  // apply transfer operator
   virtual void reset_quantity() const;
-  
-  protected: 
-  
+
+  protected:
+
   // pointer to source atomic quantity date : positions of atoms in a molecule
   PerAtomQuantity<double> * atomPositions_;
 
-  private: 
+  private:
 
   //do not define
   SmallMoleculeCentroid();
@@ -133,28 +133,28 @@ namespace ATC {
 
   /**
    *  @class SmallMoleculeDipoleMoment
-   *  @brief  Class for defining objects to transfer molecular dipole moments 
+   *  @brief  Class for defining objects to transfer molecular dipole moments
    */
 
   class SmallMoleculeDipoleMoment : public SmallMoleculeCentroid {
 
-  public: 
-  
+  public:
+
   //constructor
   SmallMoleculeDipoleMoment(ATC_Method * atc, PerAtomQuantity<double> * source, SmallMoleculeSet * smallMoleculeSet, PerAtomQuantity<double> * atomPositions, SmallMoleculeCentroid * centroid);
-  
+
   //destructor
   virtual ~SmallMoleculeDipoleMoment();
 
-  // apply transfer operator  
+  // apply transfer operator
   virtual void reset_quantity() const;
 
-  protected: 
+  protected:
 
-  //pointer to the centroid data 
+  //pointer to the centroid data
   SmallMoleculeCentroid * centroid_;
 
-  private: 
+  private:
 
   //do not define
   SmallMoleculeDipoleMoment();
@@ -162,14 +162,14 @@ namespace ATC {
 };
 
   /**
-   *  @class  AtomToFeTransfer 
+   *  @class  AtomToFeTransfer
    *  @brief  Class for defining objects to transfer molecular quadrupole moments
    */
 
 
   class SmallMoleculeQuadrupoleMoment : public SmallMoleculeCentroid {
 
-  public: 
+  public:
 
   //constructor
   SmallMoleculeQuadrupoleMoment(ATC_Method * atc, PerAtomQuantity<double> * source, SmallMoleculeSet * smallMoleculeSet, PerAtomQuantity<double> * atomPositions, SmallMoleculeCentroid * centroid);
@@ -179,10 +179,10 @@ namespace ATC {
 
   //apply transfer operator
   virtual void reset_quantity() const;
-  
+
   protected:
 
-  //pointer to the centroid data 
+  //pointer to the centroid data
   SmallMoleculeCentroid * centroid_;
 
   private:
@@ -190,7 +190,7 @@ namespace ATC {
   //do not define
   SmallMoleculeQuadrupoleMoment();
 
-  }; 
+  };
 
     /**
    *  @class  MotfShapeFunctionRestriction
@@ -201,11 +201,11 @@ namespace ATC {
   class MotfShapeFunctionRestriction : public MatToMatTransfer<double> {
 
   public:
-    
+
     // constructor
     MotfShapeFunctionRestriction(PerMoleculeQuantity<double> * source,
                                  SPAR_MAN * shapeFunction);
-    
+
     // destructor
     virtual ~MotfShapeFunctionRestriction();
 
@@ -218,8 +218,8 @@ namespace ATC {
     SPAR_MAN * shapeFunction_;
 
     /** persistent workspace */
-    
-    
+
+
     mutable DENS_MAT _workspace_;
 
     /** applies restriction operation on this processor */
@@ -236,4 +236,4 @@ namespace ATC {
 }
 #endif
 
-  
+

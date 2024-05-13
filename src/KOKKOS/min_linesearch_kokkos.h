@@ -2,7 +2,7 @@
 /* -*- c++ -*- ----------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    https://www.lammps.org/, Sandia National Laboratories
-   Steve Plimpton, sjplimp@sandia.gov
+   LAMMPS development team: developers@lammps.org
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
@@ -31,22 +31,16 @@ namespace LAMMPS_NS {
       d1 += rhs.d1;
       return *this;
     }
-
-    KOKKOS_INLINE_FUNCTION
-    void operator+=(const volatile s_double2 &rhs) volatile {
-      d0 += rhs.d0;
-      d1 += rhs.d1;
-    }
   };
   //typedef s_double2 double2;
 
 class MinLineSearchKokkos : public MinKokkos {
  public:
   MinLineSearchKokkos(class LAMMPS *);
-  ~MinLineSearchKokkos();
-  void init();
-  void setup_style();
-  void reset_vectors();
+  ~MinLineSearchKokkos() override;
+  void init() override;
+  void setup_style() override;
+  void reset_vectors() override;
 
  //protected: // won't compile with CUDA
   // vectors needed by linesearch minimizers

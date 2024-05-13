@@ -2,7 +2,7 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    https://www.lammps.org/, Sandia National Laboratories
-   Steve Plimpton, sjplimp@sandia.gov
+   LAMMPS development team: developers@lammps.org
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
@@ -36,7 +36,6 @@
 #include "update.h"
 
 #include <cmath>
-#include <cstring>
 
 using namespace LAMMPS_NS;
 using namespace MathConst;
@@ -44,7 +43,7 @@ using namespace MathConst;
 /* ---------------------------------------------------------------------- */
 
 ComputeSpin::ComputeSpin(LAMMPS *lmp, int narg, char **arg) :
-  Compute(lmp, narg, arg), pair(nullptr), spin_pairs(nullptr)
+  Compute(lmp, narg, arg), lockprecessionspin(nullptr), pair(nullptr), spin_pairs(nullptr)
 {
   if ((narg != 3) && (narg != 4)) error->all(FLERR,"Illegal compute compute/spin command");
 
@@ -69,7 +68,8 @@ ComputeSpin::ComputeSpin(LAMMPS *lmp, int narg, char **arg) :
 ComputeSpin::~ComputeSpin()
 {
   memory->destroy(vector);
-  delete [] spin_pairs;
+  delete[] spin_pairs;
+  delete[] lockprecessionspin;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -85,7 +85,7 @@ void ComputeSpin::init()
 
   // loop 1: obtain # of Pairs, and # of Pair/Spin styles
 
-  PairHybrid *hybrid = (PairHybrid *)force->pair_match("^hybrid",0);
+  PairHybrid *hybrid = dynamic_cast<PairHybrid *>(force->pair_match("^hybrid",0));
   if (force->pair_match("^spin",0,0)) {        // only one Pair/Spin style
     pair = force->pair_match("^spin",0,0);
     if (hybrid == nullptr) npairs = 1;
@@ -97,7 +97,7 @@ void ComputeSpin::init()
     else npairs = hybrid->nstyles;
     for (int i = 0; i<npairs; i++) {
       if (force->pair_match("^spin",0,i)) {
-        npairspin ++;
+        npairspin++;
       }
     }
   }
@@ -113,11 +113,11 @@ void ComputeSpin::init()
   int count = 0;
   if (npairspin == 1) {
     count = 1;
-    spin_pairs[0] = (PairSpin *) force->pair_match("^spin",0,0);
+    spin_pairs[0] = dynamic_cast<PairSpin *>(force->pair_match("^spin",0,0));
   } else if (npairspin > 1) {
     for (int i = 0; i<npairs; i++) {
       if (force->pair_match("^spin",0,i)) {
-        spin_pairs[count] = (PairSpin *) force->pair_match("^spin",0,i);
+        spin_pairs[count] = dynamic_cast<PairSpin *>(force->pair_match("^spin",0,i));
         count++;
       }
     }
@@ -136,14 +136,18 @@ void ComputeSpin::init()
     }
   }
 
-  // ptrs FixPrecessionSpin classes
+  // set ptrs for fix precession/spin styles
 
-  int iforce;
-  for (iforce = 0; iforce < modify->nfix; iforce++) {
-    if (utils::strmatch(modify->fix[iforce]->style,"^precession/spin")) {
-      precession_spin_flag = 1;
-      lockprecessionspin = (FixPrecessionSpin *) modify->fix[iforce];
-    }
+  auto precfixes = modify->get_fix_by_style("^precession/spin");
+  nprecspin = precfixes.size();
+
+  if (nprecspin > 0) {
+    lockprecessionspin = new FixPrecessionSpin *[nprecspin];
+    precession_spin_flag = 1;
+
+    int i = 0;
+    for (auto &ifix : precfixes)
+      lockprecessionspin[i++] = dynamic_cast<FixPrecessionSpin *>(ifix);
   }
 }
 
@@ -192,7 +196,9 @@ void ComputeSpin::compute_vector()
         // update magnetic precession energies
 
         if (precession_spin_flag) {
-          magenergy += lockprecessionspin->emag[i];
+          for (int k = 0; k < nprecspin; k++) {
+            magenergy += lockprecessionspin[k]->emag[i];
+          }
         }
 
         // update magnetic pair interactions
@@ -209,9 +215,8 @@ void ComputeSpin::compute_vector()
         tempnum += tx*tx+ty*ty+tz*tz;
         tempdenom += sp[i][0]*fm[i][0]+fm[i][1]*sp[i][1]+sp[i][2]*fm[i][2];
         countsp++;
-      }
+      } else error->all(FLERR,"Compute compute/spin requires atom/spin style");
     }
-    else error->all(FLERR,"Compute compute/spin requires atom/spin style");
   }
 
   MPI_Allreduce(mag,magtot,4,MPI_DOUBLE,MPI_SUM,world);

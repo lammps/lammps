@@ -1,7 +1,7 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    https://www.lammps.org/, Sandia National Laboratories
-   Steve Plimpton, sjplimp@sandia.gov
+   LAMMPS Development team: developers@lammps.org
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
@@ -20,9 +20,9 @@
 #include "MANYBODY/pair_tersoff.h"
 #include "MANYBODY/pair_tersoff_mod.h"
 #include "MANYBODY/pair_tersoff_mod_c.h"
+#include "MANYBODY/pair_tersoff_table.h"
 #include "MANYBODY/pair_tersoff_zbl.h"
 #include "MANYBODY/pair_vashishta.h"
-#include "USER-MISC/pair_tersoff_table.h"
 #include "info.h"
 #include "input.h"
 #include "potential_file_reader.h"
@@ -37,7 +37,6 @@
 #include <vector>
 
 using namespace LAMMPS_NS;
-using ::testing::MatchesRegex;
 using utils::split_words;
 
 // whether to print verbose output (i.e. not capturing LAMMPS screen output).
@@ -58,8 +57,7 @@ constexpr int LAMMPS_NS::PairVashishta::NPARAMS_PER_LINE;
 constexpr int LAMMPS_NS::PairTersoffTable::NPARAMS_PER_LINE;
 #endif
 
-class PotentialFileReaderTest : public LAMMPSTest {
-};
+class PotentialFileReaderTest : public LAMMPSTest {};
 
 // open for native units
 TEST_F(PotentialFileReaderTest, Sw_native)
@@ -260,8 +258,7 @@ TEST_F(PotentialFileReaderTest, UnitConvert)
     delete reader;
 }
 
-class OpenPotentialTest : public LAMMPSTest {
-};
+class OpenPotentialTest : public LAMMPSTest {};
 
 // open for native units
 TEST_F(OpenPotentialTest, Sw_native)
@@ -283,7 +280,7 @@ TEST_F(OpenPotentialTest, Sw_conv)
 {
     int convert_flag = utils::get_supported_conversions(utils::ENERGY);
     ASSERT_EQ(convert_flag, utils::METAL2REAL | utils::REAL2METAL);
-    BEGIN_HIDE_OUTPUT();
+    BEGIN_CAPTURE_OUTPUT();
     command("units real");
     FILE *fp    = utils::open_potential("Si.sw", lmp, &convert_flag);
     auto text   = END_CAPTURE_OUTPUT();
@@ -301,7 +298,7 @@ TEST_F(OpenPotentialTest, Sw_noconv)
     BEGIN_HIDE_OUTPUT();
     command("units real");
     END_HIDE_OUTPUT();
-    TEST_FAILURE(".*potential.*requires metal units but real.*",
+    TEST_FAILURE(".*Potential.*requires metal units but real.*",
                  utils::open_potential("Si.sw", lmp, nullptr););
     BEGIN_HIDE_OUTPUT();
     command("units lj");
@@ -318,17 +315,13 @@ TEST_F(OpenPotentialTest, No_file)
     command("units metal");
     FILE *fp = utils::open_potential("Unknown.sw", lmp, &convert_flag);
     END_HIDE_OUTPUT();
-    ASSERT_EQ(fp,nullptr);
+    ASSERT_EQ(fp, nullptr);
 }
 
 int main(int argc, char **argv)
 {
     MPI_Init(&argc, &argv);
     ::testing::InitGoogleMock(&argc, argv);
-
-    if (Info::get_mpi_vendor() == "Open MPI" && !LAMMPS_NS::Info::has_exceptions())
-        std::cout << "Warning: using OpenMPI without exceptions. "
-                     "Death tests will be skipped\n";
 
     // handle arguments passed via environment variable
     if (const char *var = getenv("TEST_ARGS")) {

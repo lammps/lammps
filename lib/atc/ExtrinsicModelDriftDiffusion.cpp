@@ -39,7 +39,7 @@ namespace ATC {
                                  string matFileName) :
     ExtrinsicModelTwoTemperature(modelManager,modelType,matFileName),
     continuityIntegrator_(nullptr),
-    
+
     poissonSolverType_(DIRECT), // ITERATIVE | DIRECT
     poissonSolver_(nullptr),
     baseSize_(0),
@@ -49,34 +49,34 @@ namespace ATC {
     schrodingerSolver_(nullptr),
     schrodingerPoissonMgr_(),
     schrodingerPoissonSolver_(nullptr),
-    maxConsistencyIter_(0), maxConstraintIter_(1), 
+    maxConsistencyIter_(0), maxConstraintIter_(1),
     safe_dEf_(0.1), Ef_shift_(0.0),
     oneD_(false), oneDcoor_(0), oneDconserve_(0)
   {
      // delete base class's version of the physics model
-     if (physicsModel_) delete physicsModel_; 
+     if (physicsModel_) delete physicsModel_;
      if (modelType == DRIFT_DIFFUSION_EQUILIBRIUM) {
-       physicsModel_ = new PhysicsModelDriftDiffusionEquilibrium(matFileName); 
+       physicsModel_ = new PhysicsModelDriftDiffusionEquilibrium(matFileName);
        electronDensityEqn_ = ELECTRON_EQUILIBRIUM;
      }
      else if (modelType == DRIFT_DIFFUSION_SCHRODINGER) {
-       physicsModel_ = new PhysicsModelDriftDiffusionSchrodinger(matFileName); 
+       physicsModel_ = new PhysicsModelDriftDiffusionSchrodinger(matFileName);
        electronDensityEqn_ = ELECTRON_SCHRODINGER;
        maxConsistencyIter_ = 1;
      }
      else if (modelType == DRIFT_DIFFUSION_SCHRODINGER_SLICE) {
-       physicsModel_ = new PhysicsModelDriftDiffusionSchrodingerSlice(matFileName); 
+       physicsModel_ = new PhysicsModelDriftDiffusionSchrodingerSlice(matFileName);
        electronDensityEqn_ = ELECTRON_SCHRODINGER;
        maxConsistencyIter_ = 1;
      }
      else {
-       physicsModel_ = new PhysicsModelDriftDiffusion(matFileName); 
+       physicsModel_ = new PhysicsModelDriftDiffusion(matFileName);
      }
      atc_->useConsistentMassMatrix_(ELECTRON_DENSITY) = true;
      rhsMaskIntrinsic_(ELECTRON_TEMPERATURE,SOURCE) = true;
      //atc_->fieldMask_(ELECTRON_TEMPERATURE,EXTRINSIC_SOURCE) = true;
   }
-  
+
   //--------------------------------------------------------
   //  Destructor
   //--------------------------------------------------------
@@ -89,7 +89,7 @@ namespace ATC {
   }
 
   //--------------------------------------------------------
-  // modify 
+  // modify
   //--------------------------------------------------------
   bool ExtrinsicModelDriftDiffusion::modify(int narg, char **arg)
   {
@@ -110,9 +110,9 @@ namespace ATC {
     nNodes_ = atc_->num_nodes();
     rhs_[ELECTRON_DENSITY].reset(nNodes_,1);
     rhs_[ELECTRIC_POTENTIAL].reset(nNodes_,1);
-      
+
     // set up electron continuity integrator
-    Array2D <bool> rhsMask(NUM_TOTAL_FIELDS,NUM_FLUX); 
+    Array2D <bool> rhsMask(NUM_TOTAL_FIELDS,NUM_FLUX);
     rhsMask = false;
     for (int i = 0; i < NUM_FLUX; i++) {
       rhsMask(ELECTRON_DENSITY,i) = atc_->fieldMask_(ELECTRON_DENSITY,i);
@@ -121,7 +121,7 @@ namespace ATC {
     atc_->set_fixed_nodes();
 
     if (continuityIntegrator_) delete continuityIntegrator_;
-    if (electronTimeIntegration_ == TimeIntegrator::IMPLICIT) { 
+    if (electronTimeIntegration_ == TimeIntegrator::IMPLICIT) {
       continuityIntegrator_ = new FieldImplicitEulerIntegrator(ELECTRON_DENSITY,
         physicsModel_, atc_->feEngine_, atc_, rhsMask);
     }
@@ -142,7 +142,7 @@ namespace ATC {
       rhsMask(ELECTRIC_POTENTIAL,i) = atc_->fieldMask_(ELECTRIC_POTENTIAL,i);
     }
     int type = ATC::LinearSolver::ITERATIVE_SOLVE_SYMMETRIC;
-    if (poissonSolverType_ == DIRECT) {  
+    if (poissonSolverType_ == DIRECT) {
       type = ATC::LinearSolver::DIRECT_SOLVE;
     }
     if (poissonSolver_) delete poissonSolver_;
@@ -154,12 +154,12 @@ namespace ATC {
     // set up schrodinger solver
     if ( electronDensityEqn_ == ELECTRON_SCHRODINGER ) {
       if ( schrodingerSolver_ )  delete schrodingerSolver_;
-      if ( oneD_ ) { 
+      if ( oneD_ ) {
         EfHistory_.reset(oneDslices_.size(),2);
         schrodingerSolver_ = new SliceSchrodingerSolver(ELECTRON_DENSITY,
           physicsModel_, atc_->feEngine_, atc_->prescribedDataMgr_, atc_,
           oneDslices_,oneDdxs_);
-      } 
+      }
       else {
         schrodingerSolver_ = new SchrodingerSolver(ELECTRON_DENSITY,
           physicsModel_, atc_->feEngine_, atc_->prescribedDataMgr_, atc_);
@@ -192,7 +192,7 @@ namespace ATC {
     double dt = atc_->lammpsInterface_->dt();
     double time = atc_->time();
     int step = atc_->step();
-    if (step % fluxUpdateFreq_ != 0) return; 
+    if (step % fluxUpdateFreq_ != 0) return;
 
     // set Dirchlet data
     atc_->set_fixed_nodes();
@@ -201,25 +201,25 @@ namespace ATC {
     atc_->set_sources();
 
     // subcyle integration of fast electron variable/s
-    
+
     double idt = dt/nsubcycle_;
     for (int i = 0; i < nsubcycle_ ; ++i) {
       if (electronDensityEqn_ == ELECTRON_CONTINUITY) {
         // update continuity eqn
-        if (! atc_->prescribedDataMgr_->all_fixed(ELECTRON_DENSITY) ) 
+        if (! atc_->prescribedDataMgr_->all_fixed(ELECTRON_DENSITY) )
           continuityIntegrator_->update(idt,time,atc_->fields_,rhs_);
-        atc_->set_fixed_nodes(); 
+        atc_->set_fixed_nodes();
         // solve poisson eqn for electric potential
         if (! atc_->prescribedDataMgr_->all_fixed(ELECTRIC_POTENTIAL) )
           poissonSolver_->solve(atc_->fields(),rhs_);
-      } 
+      }
       else if (electronDensityEqn_ == ELECTRON_SCHRODINGER) {
-        if ( (! atc_->prescribedDataMgr_->all_fixed(ELECTRON_DENSITY) ) 
+        if ( (! atc_->prescribedDataMgr_->all_fixed(ELECTRON_DENSITY) )
           || (! atc_->prescribedDataMgr_->all_fixed(ELECTRIC_POTENTIAL) )  )
           schrodingerPoissonSolver_->solve(rhs_,fluxes_);
       }
       // update electron temperature
-      if (! atc_->prescribedDataMgr_->all_fixed(ELECTRON_TEMPERATURE) 
+      if (! atc_->prescribedDataMgr_->all_fixed(ELECTRON_TEMPERATURE)
         && temperatureIntegrator_ )  {
 #ifdef ATC_VERBOSE
         ATC::LammpsInterface::instance()->stream_msg_once("start temperature integration...",true,false);
@@ -229,10 +229,10 @@ namespace ATC {
         ATC::LammpsInterface::instance()->stream_msg_once(" done",false,true);
 #endif
       }
-      atc_->set_fixed_nodes(); 
+      atc_->set_fixed_nodes();
     }
 
-    
+
   }
   //--------------------------------------------------------
   //  set coupling source terms
@@ -249,7 +249,7 @@ namespace ATC {
   //  output
   //--------------------------------------------------------
   void ExtrinsicModelDriftDiffusion::output(OUTPUT_LIST & outputData)
-  { 
+  {
 #ifdef ATC_VERBOSE
 //  ATC::LammpsInterface::instance()->print_msg_once("start output",true,false);
 #endif
@@ -355,13 +355,13 @@ namespace ATC {
     baseSize_(0)
   {
      // delete base class's version of the physics model
-     if (physicsModel_) delete physicsModel_; 
+     if (physicsModel_) delete physicsModel_;
      if (modelType == CONVECTIVE_DRIFT_DIFFUSION_SCHRODINGER) {
-       physicsModel_ = new PhysicsModelDriftDiffusionConvectionSchrodinger(matFileName); 
+       physicsModel_ = new PhysicsModelDriftDiffusionConvectionSchrodinger(matFileName);
        electronDensityEqn_ = ELECTRON_SCHRODINGER;
      }
      else {
-       physicsModel_ = new PhysicsModelDriftDiffusionConvection(matFileName); 
+       physicsModel_ = new PhysicsModelDriftDiffusionConvection(matFileName);
      }
      atc_->useConsistentMassMatrix_(ELECTRON_VELOCITY) = false;
      atc_->useConsistentMassMatrix_(ELECTRON_TEMPERATURE) = false;
@@ -388,7 +388,7 @@ namespace ATC {
     nsd_ = atc_->nsd();
     rhs_[ELECTRON_VELOCITY].reset(nNodes_,nsd_);
 
-    
+
     atc_->set_fixed_nodes(); // needed to correctly set BC data
     // initialize Poisson solver
     if (cddmPoissonSolver_) delete cddmPoissonSolver_;
@@ -397,9 +397,9 @@ namespace ATC {
     rhsMask(ELECTRIC_POTENTIAL,FLUX) = true;
     pair<FieldName,FieldName> row_col(ELECTRIC_POTENTIAL,ELECTRIC_POTENTIAL);
     SPAR_MAT stiffness;
-    (atc_->feEngine_)->compute_tangent_matrix(rhsMask,row_col, atc_->fields(), physicsModel_, 
+    (atc_->feEngine_)->compute_tangent_matrix(rhsMask,row_col, atc_->fields(), physicsModel_,
                                                 atc_->element_to_material_map(), stiffness);
-    
+
     const BC_SET & bcs = (atc_->prescribedDataMgr_->bcs(ELECTRIC_POTENTIAL))[0];
 
     cddmPoissonSolver_ = new LinearSolver(stiffness, bcs, poissonSolverType_,
@@ -427,7 +427,7 @@ namespace ATC {
     double dt = atc_->lammpsInterface_->dt();
     double time = atc_->time();
     int step = atc_->step();
-    if (step % fluxUpdateFreq_ != 0) return; 
+    if (step % fluxUpdateFreq_ != 0) return;
 
     // set Dirchlet data
     atc_->set_fixed_nodes();
@@ -436,16 +436,16 @@ namespace ATC {
     atc_->set_sources();
 
     // subcyle integration of fast electron variable/s
-    
+
     double idt = dt/nsubcycle_;
     for (int i = 0; i < nsubcycle_ ; ++i) {
       // update electron temperature mass matrix
       atc_->compute_mass_matrix(ELECTRON_VELOCITY,physicsModel_);
       // update electron velocity
       if (!(atc_->prescribedDataMgr_)->all_fixed(ELECTRON_VELOCITY))  {
-        //const BCS & bcs 
+        //const BCS & bcs
         //  = atc_->prescribedDataMgr_->bcs(ELECTRON_VELOCITY);
-        Array2D <bool> rhsMask(NUM_FIELDS,NUM_FLUX); 
+        Array2D <bool> rhsMask(NUM_FIELDS,NUM_FLUX);
         rhsMask = false;
         rhsMask(ELECTRON_VELOCITY,SOURCE) = atc_->fieldMask_(ELECTRON_VELOCITY,SOURCE);
         rhsMask(ELECTRON_VELOCITY,FLUX) = atc_->fieldMask_(ELECTRON_VELOCITY,FLUX);
@@ -455,7 +455,7 @@ namespace ATC {
         atc_->compute_rhs_vector(rhsMask, atc_->fields_, rhs, atc_->source_integration(), physicsModel_);
         const DENS_MAT & velocityRhs =  rhs[ELECTRON_VELOCITY].quantity();
 
-        // add a solver for electron momentum  
+        // add a solver for electron momentum
         DENS_MAT & velocity = (atc_->field(ELECTRON_VELOCITY)).set_quantity();
         for (int j = 0; j < nsd_; ++j) {
           if (! atc_->prescribedDataMgr_->all_fixed(ELECTRON_VELOCITY,j) ) {
@@ -477,12 +477,12 @@ namespace ATC {
           }
         }
       }
-      
+
       //atc_->set_fixed_nodes();
-      
+
       if (electronDensityEqn_ == ELECTRON_CONTINUITY) {
         // update continuity eqn
-        Array2D <bool> rhsMask(NUM_FIELDS,NUM_FLUX); 
+        Array2D <bool> rhsMask(NUM_FIELDS,NUM_FLUX);
         rhsMask = false;
         rhsMask(ELECTRON_DENSITY,FLUX) = atc_->fieldMask_(ELECTRON_DENSITY,FLUX);
         rhsMask(ELECTRON_DENSITY,SOURCE) = atc_->fieldMask_(ELECTRON_DENSITY,SOURCE);
@@ -490,11 +490,11 @@ namespace ATC {
         FIELDS rhs;
         rhs[ELECTRON_DENSITY].reset(nNodes_,1);
         atc_->compute_rhs_vector(rhsMask, atc_->fields_, rhs, atc_->source_integration(), physicsModel_);
-        if (! atc_->prescribedDataMgr_->all_fixed(ELECTRON_DENSITY) ) 
+        if (! atc_->prescribedDataMgr_->all_fixed(ELECTRON_DENSITY) )
           continuityIntegrator_->update(idt,time,atc_->fields_,rhs);
-        atc_->set_fixed_nodes(); 
+        atc_->set_fixed_nodes();
         // solve poisson eqn for electric potential
-        
+
         if (! atc_->prescribedDataMgr_->all_fixed(ELECTRIC_POTENTIAL) ) {
         //poissonSolver_->solve(atc_->fields_,rhs_);
           rhsMask = false;
@@ -507,12 +507,12 @@ namespace ATC {
           const CLON_VEC r =column(rhs[ELECTRIC_POTENTIAL].quantity(),0);
           cddmPoissonSolver_->solve(x,r);
         }
-      } 
+      }
       else if (electronDensityEqn_ == ELECTRON_SCHRODINGER) {
         schrodingerPoissonSolver_->solve(rhs_,fluxes_);
       }
-      
-      atc_->set_fixed_nodes(); 
+
+      atc_->set_fixed_nodes();
       // update electron temperature mass matrix
       atc_->compute_mass_matrix(ELECTRON_TEMPERATURE,physicsModel_);
       // update electron temperature
@@ -521,11 +521,11 @@ namespace ATC {
           temperatureIntegrator_->update(idt,time,atc_->fields_,rhs_);
           //}
           //else { // lumped mass matrix
-          
+
         //}
       }
-      atc_->set_fixed_nodes(); 
-      
+      atc_->set_fixed_nodes();
+
     }
 
   }
@@ -536,8 +536,8 @@ namespace ATC {
   void ExtrinsicModelDriftDiffusionConvection::output(OUTPUT_LIST & outputData)
   {
     ExtrinsicModelDriftDiffusion::output(outputData);
-    
-    
+
+
     //FIELD jouleHeating(atc_->num_nodes(),1);
     //set_kinetic_energy_source(atc_->fields(),jouleHeating);
     outputData["joule_heating"] = & (atc_->extrinsic_source(TEMPERATURE)).set_quantity();
@@ -587,7 +587,7 @@ namespace ATC {
     DENS_MAT & velocity((atc_->field(ELECTRON_VELOCITY)).set_quantity());
     SPAR_MAT & velocityMassMat = (atc_->consistentMassMats_[ELECTRON_VELOCITY]).set_quantity();
     kineticEnergy.reset(nNodes_,1);
-    
+
     for (int j = 0; j < nsd_; j++) {
       CLON_VEC myVelocity(velocity,CLONE_COL,j);
       DENS_MAT velocityMat(nNodes_,1);

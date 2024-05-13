@@ -43,7 +43,7 @@ Style *ufm* computes pairwise interactions using the Uhlenbeck-Ford model (UFM) 
 
 where :math:`r_c` is the cutoff, :math:`\sigma` is a distance-scale and
 :math:`\epsilon` is an energy-scale, i.e., a product of Boltzmann constant
-:math:`k_B`, temperature *T* and the Uhlenbeck-Ford p-parameter which
+:math:`k_B`, temperature :math:`T` and the Uhlenbeck-Ford p-parameter which
 is responsible
 to control the softness of the interactions :ref:`(Paula Leite2017) <PL1>`.
 This model is useful as a reference system for fluid-phase free-energy calculations :ref:`(Paula Leite2016) <PL2>`.
@@ -107,13 +107,16 @@ to be specified in an input script that reads a restart file.
 
 This pair style can only be used via the *pair* keyword of the
 :doc:`run_style respa <run_style>` command.  It does not support the
-*inner*\ , *middle*\ , *outer* keywords.
+*inner*, *middle*, *outer* keywords.
 
 ----------
 
 Restrictions
 """"""""""""
-none
+
+This pair style is part of the EXTRA-PAIR package.  It is only enabled if
+LAMMPS was built with that package.  See the
+:doc:`Build package <Build_package>` page for more info.
 
 Related commands
 """"""""""""""""

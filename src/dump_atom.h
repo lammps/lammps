@@ -1,7 +1,7 @@
 /* -*- c++ -*- ----------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    https://www.lammps.org/, Sandia National Laboratories
-   Steve Plimpton, sjplimp@sandia.gov
+   LAMMPS development team: developers@lammps.org
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
@@ -33,17 +33,18 @@ class DumpAtom : public Dump {
   const int ENDIAN = 0x0001;
 
  protected:
-  int scale_flag;    // 1 if atom coords are scaled, 0 if no
-  int image_flag;    // 1 if append box count to atom coords, 0 if no
+  int scale_flag;        // 1 if atom coords are scaled, 0 if no
+  int image_flag;        // 1 if append box count to atom coords, 0 if no
+  int triclinic_general; // 1 if output box & coords for general triclinic, 0 if no
 
-  char *columns;    // column labels
+  std::string columns;    // column labels
 
-  void init_style();
-  int modify_param(int, char **);
-  void write_header(bigint);
-  void pack(tagint *);
-  int convert_string(int, double *);
-  void write_data(int, double *);
+  void init_style() override;
+  int modify_param(int, char **) override;
+  void write_header(bigint) override;
+  void pack(tagint *) override;
+  int convert_string(int, double *) override;
+  void write_data(int, double *) override;
 
   void header_format_binary();
   void header_unit_style_binary();
@@ -57,8 +58,10 @@ class DumpAtom : public Dump {
   FnPtrHeader header_choice;    // ptr to write header functions
   void header_binary(bigint);
   void header_binary_triclinic(bigint);
+  void header_binary_triclinic_general(bigint);
   void header_item(bigint);
   void header_item_triclinic(bigint);
+  void header_item_triclinic_general(bigint);
 
   typedef void (DumpAtom::*FnPtrPack)(tagint *);
   FnPtrPack pack_choice;    // ptr to pack functions
@@ -68,6 +71,8 @@ class DumpAtom : public Dump {
   void pack_noscale_noimage(tagint *);
   void pack_scale_image_triclinic(tagint *);
   void pack_scale_noimage_triclinic(tagint *);
+  void pack_noscale_image_triclinic_general(tagint *);
+  void pack_noscale_noimage_triclinic_general(tagint *);
 
   typedef int (DumpAtom::*FnPtrConvert)(int, double *);
   FnPtrConvert convert_choice;    // ptr to convert data functions
@@ -86,13 +91,3 @@ class DumpAtom : public Dump {
 
 #endif
 #endif
-
-/* ERROR/WARNING messages:
-
-E: Illegal ... command
-
-Self-explanatory.  Check the input script syntax and compare to the
-documentation for the command.  You can use -echo screen as a
-command-line option when running LAMMPS to see the offending line.
-
-*/

@@ -1,0 +1,197 @@
+LAMMPS (17 Feb 2022)
+# Numerical difference calculation
+# of error in forces, virial stress, and Born matrix
+
+# adjustable parameters
+
+variable    nsteps index 500    # length of run
+variable    nthermo index 10    # thermo output interval
+variable    ndump index 500     # dump output interval
+variable    nlat index 3        # size of box
+variable    fdelta index 1.0e-4 # displacement size
+variable    vdelta index 1.0e-6 # strain size for numdiff/virial
+variable    bdelta index 1.0e-8 # strain size for numdiff Born matrix
+variable    temp index 10.0     # temperature
+variable    nugget equal 1.0e-6 # regularization for relerr
+
+units  	    metal
+atom_style  atomic
+
+atom_modify	map yes
+lattice 	fcc 5.358000
+Lattice spacing in x,y,z = 5.358 5.358 5.358
+region 		box block 0 ${nlat} 0 ${nlat} 0 ${nlat}
+region 		box block 0 3 0 ${nlat} 0 ${nlat}
+region 		box block 0 3 0 3 0 ${nlat}
+region 		box block 0 3 0 3 0 3
+create_box  	1 box
+Created orthogonal box = (0 0 0) to (16.074 16.074 16.074)
+  1 by 2 by 2 MPI processor grid
+create_atoms 	1 box
+Created 108 atoms
+  using lattice units in orthogonal box = (0 0 0) to (16.074 16.074 16.074)
+  create_atoms CPU = 0.000 seconds
+mass 		1 39.903
+
+velocity     all create ${temp} 2357 mom yes dist gaussian
+velocity     all create 10.0 2357 mom yes dist gaussian
+
+pair_style      lj/cut 5.0
+pair_coeff      1 1 0.0102701 3.42
+
+neighbor     0.0 bin
+neigh_modify every 1 delay 0 check no
+
+timestep     0.001
+fix	     nve all nve
+
+# define numerical force calculation
+
+fix	     numforce all numdiff ${nthermo} ${fdelta}
+fix	     numforce all numdiff 10 ${fdelta}
+fix	     numforce all numdiff 10 1.0e-4
+variable     ferrx atom f_numforce[1]-fx
+variable     ferry atom f_numforce[2]-fy
+variable     ferrz atom f_numforce[3]-fz
+variable     ferrsq atom v_ferrx^2+v_ferry^2+v_ferrz^2
+compute	     faverrsq all reduce ave v_ferrsq
+variable     fsq atom fx^2+fy^2+fz^2
+compute      favsq all reduce ave v_fsq
+variable     frelerr equal sqrt(c_faverrsq/(c_favsq+${nugget}))
+variable     frelerr equal sqrt(c_faverrsq/(c_favsq+1e-06))
+dump errors  all custom ${ndump} force_error.dump v_ferrx v_ferry v_ferrz
+dump errors  all custom 500 force_error.dump v_ferrx v_ferry v_ferrz
+
+# define numerical virial stress tensor calculation
+
+compute 	myvirial all pressure NULL virial
+fix 		numvirial all numdiff/virial ${nthermo} ${vdelta}
+fix 		numvirial all numdiff/virial 10 ${vdelta}
+fix 		numvirial all numdiff/virial 10 1.0e-6
+variable 	errxx equal f_numvirial[1]-c_myvirial[1]
+variable 	erryy equal f_numvirial[2]-c_myvirial[2]
+variable 	errzz equal f_numvirial[3]-c_myvirial[3]
+variable 	erryz equal f_numvirial[4]-c_myvirial[6]
+variable 	errxz equal f_numvirial[5]-c_myvirial[5]
+variable 	errxy equal f_numvirial[6]-c_myvirial[4]
+variable 	verrsq equal "v_errxx^2 +                               v_erryy^2 +                               v_errzz^2 +                               v_erryz^2 +                               v_errxz^2 +                               v_errxy^2"
+variable 	vsq equal "c_myvirial[1]^2 +                            c_myvirial[3]^2 +                            c_myvirial[3]^2 + 		           c_myvirial[4]^2 +                            c_myvirial[5]^2 +                            c_myvirial[6]^2"
+variable     	vrelerr equal sqrt(v_verrsq/(v_vsq+${nugget}))
+variable     	vrelerr equal sqrt(v_verrsq/(v_vsq+1e-06))
+
+# define numerical Born matrix calculation
+
+compute         bornnum all born/matrix numdiff ${bdelta} myvirial
+compute         bornnum all born/matrix numdiff 1.0e-8 myvirial
+compute         born all born/matrix
+variable        berr vector c_bornnum-c_born
+variable 	berrsq equal "v_berr[1]^2 +  		    	  v_berr[2]^2 +  		    	  v_berr[3]^2 +  		    	  v_berr[4]^2 +  		    	  v_berr[5]^2 +  		    	  v_berr[6]^2 +  		    	  v_berr[7]^2 +  		    	  v_berr[8]^2 +  		    	  v_berr[9]^2 +  		    	  v_berr[10]^2 +  		    	  v_berr[11]^2 +  		    	  v_berr[12]^2 +  		    	  v_berr[13]^2 +  		    	  v_berr[14]^2 +  		    	  v_berr[15]^2 +  		    	  v_berr[16]^2 +  		    	  v_berr[17]^2 +  		    	  v_berr[18]^2 +  		    	  v_berr[19]^2 +  		    	  v_berr[20]^2 +  		    	  v_berr[21]^2"
+
+variable 	bsq equal "c_born[1]^2 +  		    	  c_born[2]^2 +  		    	  c_born[3]^2 +  		    	  c_born[4]^2 +  		    	  c_born[5]^2 +  		    	  c_born[6]^2 +  		    	  c_born[7]^2 +  		    	  c_born[8]^2 +  		    	  c_born[9]^2 +  		    	  c_born[10]^2 +  		    	  c_born[11]^2 +  		    	  c_born[12]^2 +  		    	  c_born[13]^2 +  		    	  c_born[14]^2 +  		    	  c_born[15]^2 +  		    	  c_born[16]^2 +  		    	  c_born[17]^2 +  		    	  c_born[18]^2 +  		    	  c_born[19]^2 +  		    	  c_born[20]^2 +  		    	  c_born[21]^2"
+
+variable     	brelerr equal sqrt(v_berrsq/(v_bsq+${nugget}))
+variable     	brelerr equal sqrt(v_berrsq/(v_bsq+1e-06))
+
+thermo_style 	custom step temp pe etotal press v_frelerr v_vrelerr v_brelerr
+thermo 		${nthermo}
+thermo 		10
+run 		${nsteps}
+run 		500
+  generated 0 of 0 mixed pair_coeff terms from geometric mixing rule
+Neighbor list info ...
+  update every 1 steps, delay 0 steps, check no
+  max neighbors/atom: 2000, page size: 100000
+  master list distance cutoff = 5
+  ghost atom cutoff = 5
+  binsize = 2.5, bins = 7 7 7
+  2 neighbor lists, perpetual/occasional/extra = 1 1 0
+  (1) pair lj/cut, perpetual
+      attributes: half, newton on
+      pair build: half/bin/atomonly/newton
+      stencil: half/bin/3d
+      bin: standard
+  (2) compute born/matrix, occasional, copy from (1)
+      attributes: half, newton on
+      pair build: copy
+      stencil: none
+      bin: none
+Per MPI rank memory allocation (min/avg/max) = 6.816 | 6.816 | 6.816 Mbytes
+Step Temp PotEng TotEng Press v_frelerr v_vrelerr v_brelerr 
+       0           10   -6.6101864    -6.471878    947.70558 1.9110624e-09 9.4407596e-10 3.1867416e-09 
+      10    9.9369961   -6.6093149    -6.471878    949.31222 1.3055176e-08 4.996456e-10 2.7421655e-09 
+      20    9.7500224   -6.6067289   -6.4718779    954.07898 1.3721178e-08 5.6039795e-10 2.3689718e-09 
+      30    9.4448115   -6.6025075   -6.4718779    961.85502 1.3813156e-08 6.8451692e-10 1.9844663e-09 
+      40    9.0305392   -6.5967776   -6.4718777    972.39819 1.3961749e-08 3.1134064e-10 1.7915052e-09 
+      50    8.5196068   -6.5897109   -6.4718776    985.38158 1.3996941e-08 7.0149406e-10 2.002272e-09 
+      60    7.9273388   -6.5815192   -6.4718775    1000.4024 1.4000005e-08 3.5766629e-10 2.4944703e-09 
+      70    7.2715879   -6.5724494   -6.4718773    1016.9932 1.3996503e-08 6.2731503e-10 1.7010533e-09 
+      80    6.5722375   -6.5627766   -6.4718771    1034.6361 1.3973603e-08 3.1142917e-10 2.808524e-09 
+      90    5.8505991   -6.5527956   -6.4718769    1052.7794 1.3983301e-08 3.9931135e-10 2.6118214e-09 
+     100     5.128708    -6.542811   -6.4718767    1070.8561 1.395586e-08 2.3152413e-10 2.8742755e-09 
+     110    4.4285344   -6.5331269   -6.4718766     1088.305 1.3938374e-08 4.2173005e-10 2.3059886e-09 
+     120    3.7711361   -6.5240343   -6.4718764    1104.5919 1.3915264e-08 2.5458038e-10 1.4864012e-09 
+     130    3.1757964   -6.5158002   -6.4718762    1119.2319 1.3858843e-08 5.7490448e-10 2.6191823e-09 
+     140    2.6591997   -6.5086551   -6.4718761    1131.8095 1.3814891e-08 3.5434633e-10 2.2009364e-09 
+     150    2.2347034   -6.5027839    -6.471876    1141.9961 1.3781115e-08 5.0639594e-10 2.9032558e-09 
+     160    1.9117661   -6.4983173    -6.471876     1149.564 1.3734288e-08 3.1954962e-10 2.6097446e-09 
+     170    1.6955808   -6.4953273    -6.471876    1154.3946 1.3682252e-08 3.5426781e-10 2.9605676e-09 
+     180     1.586949   -6.4938249    -6.471876    1156.4812    1.363e-08 4.0804881e-10 2.1707904e-09 
+     190    1.5824056   -6.4937621   -6.4718761     1155.925 1.3532637e-08 4.0767685e-10 3.0091462e-09 
+     200    1.6745831   -6.4950371   -6.4718762     1152.926 1.3455927e-08 2.953369e-10 2.5029298e-09 
+     210    1.8527803   -6.4975018   -6.4718763    1147.7684 1.335224e-08 3.5042319e-10 3.0550064e-09 
+     220    2.1036825   -6.5009721   -6.4718764    1140.8026 1.3239176e-08 3.5988448e-10 2.6852683e-09 
+     230    2.4121721   -6.5052389   -6.4718766    1132.4243 1.3090019e-08 3.5004036e-10 2.8838602e-09 
+     240    2.7621668   -6.5100798   -6.4718767    1123.0538 1.2946525e-08 4.1216361e-10 2.1105916e-09 
+     250    3.1374274   -6.5152701   -6.4718768    1113.1152 1.277789e-08 5.9848318e-10 2.3087106e-09 
+     260    3.5222906   -6.5205932    -6.471877    1103.0171 1.2591089e-08 2.0080182e-10 1.6969069e-09 
+     270    3.9022942   -6.5258491   -6.4718771    1093.1369 1.2432232e-08 4.2494727e-10 1.7375594e-09 
+     280    4.2646753   -6.5308612   -6.4718772    1083.8072 1.2268238e-08 6.1239266e-10 1.7005135e-09 
+     290     4.598736   -6.5354816   -6.4718772     1075.306 1.2181179e-08 4.9338341e-10 2.1326848e-09 
+     300     4.896078   -6.5395941   -6.4718773      1067.85 1.2098274e-08 3.4564838e-10 2.4199891e-09 
+     310     5.150715    -6.543116   -6.4718773    1061.5918 1.2184958e-08 4.2383299e-10 2.2243759e-09 
+     320    5.3590742   -6.5459978   -6.4718773    1056.6189 1.2312948e-08 3.5194185e-10 1.3856935e-09 
+     330    5.5199009   -6.5482222   -6.4718773    1052.9565 1.2573918e-08 4.2401322e-10   2.9882e-09 
+     340    5.6340787   -6.5498013   -6.4718773    1050.5719 1.2821551e-08 5.8802825e-10 2.7333289e-09 
+     350    5.7043792   -6.5507736   -6.4718772    1049.3813 1.3067314e-08 4.0014945e-10 2.3564728e-09 
+     360    5.7351548   -6.5511992   -6.4718772    1049.2581 1.331283e-08 4.1684815e-10 1.735621e-09 
+     370    5.7319891   -6.5511553   -6.4718771     1050.042 1.354018e-08 3.8495426e-10 2.4460056e-09 
+     380    5.7013193   -6.5507311   -6.4718771    1051.5496 1.3734888e-08 3.5333605e-10 2.5174342e-09 
+     390    5.6500487   -6.5500219    -6.471877    1053.5847 1.3892287e-08 3.8154957e-10  1.77358e-09 
+     400    5.5851679   -6.5491245    -6.471877    1055.9489 1.3988171e-08 5.8769536e-10 1.9262201e-09 
+     410    5.5134009   -6.5481319   -6.4718769    1058.4508 1.4088779e-08 3.6754739e-10 2.7586362e-09 
+     420    5.4408957    -6.547129   -6.4718769    1060.9152 1.4139924e-08 4.9030281e-10 3.2871245e-09 
+     430    5.3729707   -6.5461895   -6.4718768    1063.1898 1.4173041e-08 5.2345074e-10 3.5995984e-09 
+     440    5.3139284   -6.5453729   -6.4718768    1065.1506 1.4191516e-08 5.9481094e-10 2.5005297e-09 
+     450    5.2669383   -6.5447229   -6.4718768    1066.7054 1.4168424e-08 3.0799668e-10 2.0864191e-09 
+     460    5.2339881   -6.5442672   -6.4718768    1067.7958 1.4163444e-08 6.3927736e-10 2.2872669e-09 
+     470    5.2158979    -6.544017   -6.4718768    1068.3968 1.413819e-08 5.5108262e-10 4.4334972e-09 
+     480    5.2123873   -6.5439685   -6.4718768    1068.5155 1.4083227e-08 3.9249548e-10 2.5568235e-09 
+     490    5.2221849    -6.544104   -6.4718768     1068.188 1.4035287e-08 2.1988631e-10 2.1264034e-09 
+     500    5.2431716   -6.5443943   -6.4718768    1067.4759 1.3968666e-08 3.9100701e-10 3.290368e-09 
+Loop time of 0.170182 on 4 procs for 500 steps with 108 atoms
+
+Performance: 253.846 ns/day, 0.095 hours/ns, 2938.035 timesteps/s
+99.7% CPU use with 4 MPI tasks x no OpenMP threads
+
+MPI task timing breakdown:
+Section |  min time  |  avg time  |  max time  |%varavg| %total
+---------------------------------------------------------------
+Pair    | 0.0012069  | 0.0012994  | 0.0013512  |   0.2 |  0.76
+Neigh   | 0.0048233  | 0.0050244  | 0.0053881  |   0.3 |  2.95
+Comm    | 0.0072462  | 0.0078013  | 0.008175   |   0.4 |  4.58
+Output  | 0.0080632  | 0.0081244  | 0.0082899  |   0.1 |  4.77
+Modify  | 0.1476     | 0.14764    | 0.14768    |   0.0 | 86.75
+Other   |            | 0.0002961  |            |       |  0.17
+
+Nlocal:             27 ave          31 max          24 min
+Histogram: 1 0 1 0 1 0 0 0 0 1
+Nghost:            135 ave         138 max         131 min
+Histogram: 1 0 0 0 0 1 0 1 0 1
+Neighs:            162 ave         191 max         148 min
+Histogram: 1 2 0 0 0 0 0 0 0 1
+
+Total # of neighbors = 648
+Ave neighs/atom = 6
+Neighbor list builds = 500
+Dangerous builds not checked
+Total wall time: 0:00:00

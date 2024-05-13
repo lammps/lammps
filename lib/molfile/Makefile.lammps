@@ -3,7 +3,7 @@
 # 
 # http://www.ks.uiuc.edu/Research/vmd/plugins/molfile
 # 
-# When you build LAMMPS with the USER-MOLFILE package installed, it will
+# When you build LAMMPS with the MOLFILE package installed, it will
 # use the 3 settings in this file.  They should be set as follows.
 # 
 # The molfile_SYSINC setting is to point to the folder with the VMD

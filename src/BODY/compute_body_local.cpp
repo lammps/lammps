@@ -2,7 +2,7 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    https://www.lammps.org/, Sandia National Laboratories
-   Steve Plimpton, sjplimp@sandia.gov
+   LAMMPS development team: developers@lammps.org
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
@@ -25,7 +25,7 @@
 
 using namespace LAMMPS_NS;
 
-#define DELTA 10000
+static constexpr int DELTA = 10000;
 
 enum{ID,TYPE,INDEX};
 
@@ -53,7 +53,7 @@ ComputeBodyLocal::ComputeBodyLocal(LAMMPS *lmp, int narg, char **arg) :
     }
   }
 
-  avec = (AtomVecBody *) atom->style_match("body");
+  avec = dynamic_cast<AtomVecBody *>(atom->style_match("body"));
   if (!avec) error->all(FLERR,"Compute body/local requires atom style body");
   bptr = avec->bptr;
 
@@ -85,7 +85,7 @@ ComputeBodyLocal::~ComputeBodyLocal()
 
 void ComputeBodyLocal::init()
 {
-  // if non-body particles in group insure only indices 1,2,3 are used
+  // if non-body particles in group ensure only indices 1,2,3 are used
 
   int nonbody = 0;
   int *mask = atom->mask;
@@ -153,7 +153,7 @@ int ComputeBodyLocal::compute_body(int flag)
   // perform computation and fill output vector/array
 
   int m,n,ibonus;
-  double *values = new double[bptr->noutcol()];
+  auto values = new double[bptr->noutcol()];
 
   double **x = atom->x;
   tagint *tag = atom->tag;

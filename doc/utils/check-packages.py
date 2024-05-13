@@ -41,60 +41,42 @@ if not os.path.isdir(doc_dir):
 
 pkgdirs = glob(os.path.join(src_dir, '[A-Z][A-Z]*'))
 dirs = re.compile(".*/([0-9A-Z-]+)$")
-user = re.compile("USER-.*")
 
-stdpkg = []
-usrpkg = []
+pkgs = []
 
-# find package names and add to standard and user package lists.
+# find package names and add package list.
 # anything starting with at least two upper case characters, is a
 # folder, and is not called 'MAKE' is a package 
 
 for d in pkgdirs:
-    pkg = dirs.match(d).group(1)
+    match = dirs.match(d)
+    if not match: continue
+    pkg = match.group(1)
     if not os.path.isdir(os.path.join(src_dir, pkg)): continue
     if pkg in ['DEPEND','MAKE','STUBS']: continue
-    if user.match(pkg):
-        usrpkg.append(pkg)
-    else:
-        stdpkg.append(pkg)
+    pkgs.append(pkg)
 
-print(f"Found {len(stdpkg)} standard and {len(usrpkg)} user packages")
+print(f"Found {len(pkgs)} packages")
 
 counter = 0
 
-with open(os.path.join(doc_dir, 'Packages_standard.rst')) as fp:
+with open(os.path.join(doc_dir, 'Packages_list.rst')) as fp:
     text = fp.read()
 
 matches = set(re.findall(':ref:`([A-Z0-9-]+) <[A-Z0-9-]+>`', text, re.MULTILINE))
-for p in stdpkg:
+for p in pkgs:
   if not p in matches:
     counter += 1
-    print(f"Standard package {p} missing in Packages_standard.rst")
-
-with open(os.path.join(doc_dir, 'Packages_user.rst')) as fp:
-    text = fp.read()
-
-matches = set(re.findall(':ref:`([A-Z0-9-]+) <[A-Z0-9-]+>`', text, re.MULTILINE))
-for p in usrpkg:
-  if not p in matches:
-    counter += 1
-    print(f"User package {p} missing in Packages_user.rst")
+    print(f"Package {p} missing in Packages_list.rst")
 
 with open(os.path.join(doc_dir, 'Packages_details.rst')) as fp:
     text = fp.read()
 
-matches = set(re.findall(':ref:`([A-Z0-9]+) <PKG-\\1>`', text, re.MULTILINE))
-for p in stdpkg:
+matches = set(re.findall(':ref:`([A-Z0-9-]+) <PKG-\\1>`', text, re.MULTILINE))
+for p in pkgs:
     if not p in matches:
         counter += 1
-        print(f"Standard package {p} missing in Packages_details.rst")
-
-matches = set(re.findall(':ref:`(USER-[A-Z0-9]+) <PKG-\\1>`', text, re.MULTILINE))
-for p in usrpkg:
-    if not p in matches:
-        counter +=1 
-        print(f"User package {p} missing in Packages_details.rst")
+        print(f"Package {p} missing in Packages_details.rst")
 
 if counter:
     print(f"Found {counter} issue(s) with package lists")

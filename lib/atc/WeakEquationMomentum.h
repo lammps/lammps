@@ -12,9 +12,9 @@ class Material;
 
  /**
    *  @class  WeakEquationMomentum
-   *  @brief  Momentum 
+   *  @brief  Momentum
    *   rho v,t = div P  -->
-   *   int M rho v,t = int B P 
+   *   int M rho v,t = int B P
    */
 
 class WeakEquationMomentum : public WeakEquation {
@@ -33,7 +33,7 @@ class WeakEquationMomentum : public WeakEquation {
                            const GRAD_FIELD_MATS &grad_fields,
                            const Material * material,
                            DENS_MAT &energy ) const;
-  
+
   /** density that used to form the mass matrix */
   virtual bool has_M_integrand(void) const {return true;}
   virtual void M_integrand(const FIELD_MATS &fields,
@@ -80,7 +80,7 @@ class WeakEquationMomentumElectrostatic : public WeakEquationMomentum {
 
   // destructor
   virtual ~WeakEquationMomentumElectrostatic(){};
-  
+
   /** density that used to form the mass matrix */
   virtual bool has_M_integrand(void) const {return true;}
   virtual void M_integrand(const FIELD_MATS &fields,
@@ -93,7 +93,7 @@ class WeakEquationMomentumElectrostatic : public WeakEquationMomentum {
   virtual void B_integrand(const FIELD_MATS &fields,
                            const GRAD_FIELD_MATS &grad_fields,
                            const Material * material,
-                           DENS_MAT_VEC &flux) const 
+                           DENS_MAT_VEC &flux) const
   { WeakEquationMomentum::B_integrand(fields, grad_fields, material, flux); }
 
   /** flux that is integrated with N as its weight */
@@ -101,7 +101,7 @@ class WeakEquationMomentumElectrostatic : public WeakEquationMomentum {
   virtual bool N_integrand(const FIELD_MATS &fields,
                            const GRAD_FIELD_MATS &grad_fields,
                            const Material * material,
-                           DENS_MAT &flux) const ; 
+                           DENS_MAT &flux) const ;
 
   /** necessary interfaces */
   virtual std::set<std::string> needs_material_functions(void) const
@@ -133,7 +133,7 @@ class WeakEquationMomentumDiffusion : public WeakEquation {
 
   /** integrand  that used to form the energy */
   virtual bool has_E_integrand(void) const {return false;}
-  
+
   /** density that used to form the mass matrix */
   virtual bool has_M_integrand(void) const {return true;}
   virtual void M_integrand(const FIELD_MATS &fields,

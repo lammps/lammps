@@ -1,0 +1,48 @@
+# QMMM with PySCF - two water example
+
+units           real
+atom_style      full
+
+pair_style      lj/cut/coul/long 12
+pair_modify     mix arithmetic
+
+bond_style      harmonic
+angle_style     harmonic
+dihedral_style  none
+improper_style  none
+
+kspace_style    pppm 1e-5
+
+read_data       data.water
+
+# QM atoms are 1st water
+# MM atoms are 2nd water
+
+group           qm molecule 1
+group           mm molecule 2
+
+# remove bonds/angles between QM atoms
+# set charges to zero on QM atoms
+
+delete_bonds    qm multi remove special
+set             group qm charge 0.0
+
+neighbor        2.0 bin
+neigh_modify    delay 0 every 1 check yes
+
+velocity        all create 300.0 87287 loop geom
+
+# QMMM dynamics
+
+timestep        2.0
+
+fix             1 all nve
+
+fix             2 qm mdi/qmmm direct elements O H
+fix_modify      2 energy yes
+
+thermo_style    custom step cpu temp ke evdwl ecoul epair emol elong &
+                f_2 pe etotal press
+
+thermo          1
+run             10

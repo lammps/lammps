@@ -3,7 +3,7 @@
  *      POEMS: PARALLELIZABLE OPEN SOURCE EFFICIENT MULTIBODY SOFTWARE     *
  *      DESCRIPTION: SEE READ-ME                                           *
  *      FILE NAME: vect3.h                                              *
- *      AUTHORS: See Author List                                           * 
+ *      AUTHORS: See Author List                                           *
  *      GRANTS: See Grants List                                            *
  *      COPYRIGHT: (C) 2005 by Authors as listed in Author's List          *
  *      LICENSE: Please see License Agreement                              *
@@ -11,7 +11,7 @@
  *      ADMINISTRATOR: Prof. Kurt Anderson                                 *
  *                     Computational Dynamics Lab                          *
  *                     Rensselaer Polytechnic Institute                    *
- *                     110 8th St. Troy NY 12180                           * 
+ *                     110 8th St. Troy NY 12180                           *
  *      CONTACT:        anderk5@rpi.edu                                    *
  *_________________________________________________________________________*/
 
@@ -30,7 +30,7 @@ class Vect3 : public VirtualColMatrix  {
   double elements[3];
 public:
   Vect3();
-  ~Vect3();
+  ~Vect3() = default;
   Vect3(const Vect3& A);  // copy constructor
   Vect3(const VirtualMatrix& A);  // copy constructor
 
@@ -78,7 +78,7 @@ public:
   friend void FastMult(Mat3x3& A, ColMatrix& B, Vect3& C);
   friend void FastAssign(ColMatrix&A, Vect3& C);
   friend void FastMult(Mat3x3& A, Vect3& B, ColMatrix& C);
-  
+
 };
 
 #endif

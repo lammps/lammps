@@ -1,8 +1,7 @@
-// clang-format off
 /* -*- c++ -*- ----------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    https://www.lammps.org/, Sandia National Laboratories
-   Steve Plimpton, sjplimp@sandia.gov
+   LAMMPS development team: developers@lammps.org
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
@@ -20,6 +19,7 @@ FixStyle(wall/reflect/kk/host,FixWallReflectKokkos<LMPHostType>);
 // clang-format on
 #else
 
+// clang-format off
 #ifndef LMP_FIX_WALL_REFLECT_KOKKOS_H
 #define LMP_FIX_WALL_REFLECT_KOKKOS_H
 
@@ -36,7 +36,7 @@ class FixWallReflectKokkos : public FixWallReflect {
   typedef DeviceType device_type;
   typedef ArrayTypes<DeviceType> AT;
   FixWallReflectKokkos(class LAMMPS *, int, char **);
-  void post_integrate();
+  void post_integrate() override;
 
   KOKKOS_INLINE_FUNCTION
   void operator()(TagFixWallReflectPostIntegrate, const int&) const;
@@ -56,6 +56,3 @@ class FixWallReflectKokkos : public FixWallReflect {
 #endif
 #endif
 
-/* ERROR/WARNING messages:
-
-*/

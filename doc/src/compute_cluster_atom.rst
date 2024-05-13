@@ -14,7 +14,7 @@ compute aggregate/atom command
 Syntax
 """"""
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    compute ID group-ID cluster/atom cutoff
    compute ID group-ID fragment/atom keyword value ...
@@ -69,9 +69,9 @@ fragments or not, based on the *yes* or *no* setting.  If the setting
 is *no* (the default), their fragment IDs are set to 0.
 
 An aggregate is defined by combining the rules for clusters and
-fragments, i.e. a set of atoms, where each of it is within the cutoff
+fragments (i.e., a set of atoms, where each of them is within the cutoff
 distance from one or more atoms within a fragment that is part of
-the same cluster. This measure can be used to track molecular assemblies
+the same cluster). This measure can be used to track molecular assemblies
 like micelles.
 
 For computes *cluster/atom* and *aggregate/atom* a neighbor list
@@ -89,12 +89,12 @@ style computes.
    command, and means those pairwise interactions do not appear in the
    neighbor list.  Because this fix uses the neighbor list, it also means
    those pairs will not be included when computing the clusters. This
-   does not apply when using long-range coulomb (\ *coul/long*\ , *coul/msm*\ ,
+   does not apply when using long-range coulomb (\ *coul/long*, *coul/msm*,
    *coul/wolf* or similar.  One way to get around this would be to set
    special_bond scaling factors to very tiny numbers that are not exactly
-   zero (e.g. 1.0e-50). Another workaround is to write a dump file, and
-   use the :doc:`rerun <rerun>` command to compute the clusters for
-   snapshots in the dump file.  The rerun script can use a
+   zero (e.g., :math:`1.0 \times 10^{-50}`). Another workaround is to write a
+   dump file and use the :doc:`rerun <rerun>` command to compute the clusters
+   for snapshots in the dump file.  The rerun script can use a
    :doc:`special_bonds <special_bonds>` command that includes all pairs in
    the neighbor list.
 
@@ -111,14 +111,15 @@ Output info
 
 This compute calculates a per-atom vector, which can be accessed by
 any command that uses per-atom values from a compute as input.  See
-the :doc:`Howto output <Howto_output>` doc page for an overview of
+the :doc:`Howto output <Howto_output>` page for an overview of
 LAMMPS output options.
 
-The per-atom vector values will be an ID > 0, as explained above.
+The per-atom vector values will be an ID :math:`> 0`, as explained above.
 
 Restrictions
 """"""""""""
- none
+
+none
 
 Related commands
 """"""""""""""""
@@ -128,6 +129,5 @@ Related commands
 Default
 """""""
 
-
-The default for fragment/atom is single no.
+The default for fragment/atom is single=no.
 

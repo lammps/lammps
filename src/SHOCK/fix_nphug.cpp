@@ -2,7 +2,7 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    https://www.lammps.org/, Sandia National Laboratories
-   Steve Plimpton, sjplimp@sandia.gov
+   LAMMPS development team: developers@lammps.org
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
@@ -148,7 +148,7 @@ FixNPHug::~FixNPHug()
   // delete pe compute
 
   if (peflag) modify->delete_compute(id_pe);
-  delete [] id_pe;
+  delete[] id_pe;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -161,10 +161,9 @@ void FixNPHug::init()
 
   // set pe ptr
 
-  int icompute = modify->find_compute(id_pe);
-  if (icompute < 0)
-    error->all(FLERR,"Potential energy ID for fix nvt/nph/npt does not exist");
-  pe = modify->compute[icompute];
+  pe = modify->get_compute_by_id(id_pe);
+  if (!pe)
+    error->all(FLERR, "Potential energy compute ID {} for fix {} does not exist", id_pe, style);
 }
 
 
@@ -395,7 +394,7 @@ int FixNPHug::size_restart_global()
 void FixNPHug::restart(char *buf)
 {
   int n = 0;
-  double *list = (double *) buf;
+  auto list = (double *) buf;
   e0 = list[n++];
   v0 = list[n++];
   p0 = list[n++];

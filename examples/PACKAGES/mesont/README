@@ -1,0 +1,10 @@
+=== MESONT examples ===
+===============================
+
+The files in this folder provide examples of using the CNT
+mesoscopic force field (MESONT).
+
+Contributing author: Philipp Kloza (U Cambridge), pak37@cam.ac.uk
+
+"film_mesocnt" is an example showing CNT aerogel formation
+using the mesocnt pair style

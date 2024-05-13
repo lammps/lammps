@@ -19,7 +19,7 @@ WeakEquationMassDiffusion::WeakEquationMassDiffusion()
 //--------------------------------------------------------------
 //  Destructor
 //--------------------------------------------------------------
-WeakEquationMassDiffusion::~WeakEquationMassDiffusion(void)
+WeakEquationMassDiffusion::~WeakEquationMassDiffusion()
 {}
 //---------------------------------------------------------------------
 //   compute capacity
@@ -47,4 +47,4 @@ void WeakEquationMassDiffusion::B_integrand(
 }
 }; // end namespace
 
-  
+

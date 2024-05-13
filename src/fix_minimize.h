@@ -1,7 +1,7 @@
 /* -*- c++ -*- ----------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    https://www.lammps.org/, Sandia National Laboratories
-   Steve Plimpton, sjplimp@sandia.gov
+   LAMMPS development team: developers@lammps.org
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
@@ -29,15 +29,15 @@ class FixMinimize : public Fix {
 
  public:
   FixMinimize(class LAMMPS *, int, char **);
-  virtual ~FixMinimize();
-  int setmask();
-  virtual void init() {}
+  ~FixMinimize() override;
+  int setmask() override;
+  void init() override {}
 
-  double memory_usage();
-  virtual void grow_arrays(int);
-  virtual void copy_arrays(int, int, int);
-  virtual int pack_exchange(int, double *);
-  virtual int unpack_exchange(int, double *);
+  double memory_usage() override;
+  void grow_arrays(int) override;
+  void copy_arrays(int, int, int) override;
+  int pack_exchange(int, double *) override;
+  int unpack_exchange(int, double *) override;
 
   virtual void add_vector(int);
   double *request_vector(int);
@@ -57,6 +57,3 @@ class FixMinimize : public Fix {
 
 #endif
 #endif
-/* ERROR/WARNING messages:
-
-*/

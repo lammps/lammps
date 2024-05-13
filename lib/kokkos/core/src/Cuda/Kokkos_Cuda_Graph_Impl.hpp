@@ -1,53 +1,25 @@
-/*
 //@HEADER
 // ************************************************************************
 //
-//                        Kokkos v. 3.0
-//       Copyright (2020) National Technology & Engineering
+//                        Kokkos v. 4.0
+//       Copyright (2022) National Technology & Engineering
 //               Solutions of Sandia, LLC (NTESS).
 //
 // Under the terms of Contract DE-NA0003525 with NTESS,
 // the U.S. Government retains certain rights in this software.
 //
-// Redistribution and use in source and binary forms, with or without
-// modification, are permitted provided that the following conditions are
-// met:
+// Part of Kokkos, under the Apache License v2.0 with LLVM Exceptions.
+// See https://kokkos.org/LICENSE for license information.
+// SPDX-License-Identifier: Apache-2.0 WITH LLVM-exception
 //
-// 1. Redistributions of source code must retain the above copyright
-// notice, this list of conditions and the following disclaimer.
-//
-// 2. Redistributions in binary form must reproduce the above copyright
-// notice, this list of conditions and the following disclaimer in the
-// documentation and/or other materials provided with the distribution.
-//
-// 3. Neither the name of the Corporation nor the names of the
-// contributors may be used to endorse or promote products derived from
-// this software without specific prior written permission.
-//
-// THIS SOFTWARE IS PROVIDED BY NTESS "AS IS" AND ANY
-// EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
-// IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR
-// PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL NTESS OR THE
-// CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
-// EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
-// PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR
-// PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF
-// LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING
-// NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
-// SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-//
-// Questions? Contact Christian R. Trott (crtrott@sandia.gov)
-//
-// ************************************************************************
 //@HEADER
-*/
 
 #ifndef KOKKOS_KOKKOS_CUDA_GRAPH_IMPL_HPP
 #define KOKKOS_KOKKOS_CUDA_GRAPH_IMPL_HPP
 
 #include <Kokkos_Macros.hpp>
 
-#if defined(KOKKOS_ENABLE_CUDA) && defined(KOKKOS_CUDA_ENABLE_GRAPHS)
+#if defined(KOKKOS_ENABLE_CUDA)
 
 #include <Kokkos_Graph_fwd.hpp>
 
@@ -58,8 +30,9 @@
 #include <impl/Kokkos_GraphNodeImpl.hpp>
 #include <Cuda/Kokkos_Cuda_GraphNode_Impl.hpp>
 
-#include <Kokkos_Cuda.hpp>
-#include <cuda_runtime_api.h>
+#include <Cuda/Kokkos_Cuda.hpp>
+#include <Cuda/Kokkos_Cuda_Error.hpp>
+#include <Cuda/Kokkos_Cuda_Instance.hpp>
 
 namespace Kokkos {
 namespace Impl {
@@ -82,8 +55,11 @@ struct GraphImpl<Kokkos::Cuda> {
     constexpr size_t error_log_size = 256;
     cudaGraphNode_t error_node      = nullptr;
     char error_log[error_log_size];
-    CUDA_SAFE_CALL(cudaGraphInstantiate(&m_graph_exec, m_graph, &error_node,
-                                        error_log, error_log_size));
+    KOKKOS_IMPL_CUDA_SAFE_CALL(
+        (m_execution_space.impl_internal_space_instance()
+             ->cuda_graph_instantiate_wrapper(&m_graph_exec, m_graph,
+                                              &error_node, error_log,
+                                              error_log_size)));
     // TODO @graphs print out errors
   }
 
@@ -107,26 +83,34 @@ struct GraphImpl<Kokkos::Cuda> {
     // TODO @graphs we need to somehow indicate the need for a fence in the
     //              destructor of the GraphImpl object (so that we don't have to
     //              just always do it)
-    m_execution_space.fence();
+    m_execution_space.fence("Kokkos::GraphImpl::~GraphImpl: Graph Destruction");
     KOKKOS_EXPECTS(bool(m_graph))
     if (bool(m_graph_exec)) {
-      CUDA_SAFE_CALL(cudaGraphExecDestroy(m_graph_exec));
+      KOKKOS_IMPL_CUDA_SAFE_CALL(
+          (m_execution_space.impl_internal_space_instance()
+               ->cuda_graph_exec_destroy_wrapper(m_graph_exec)));
     }
-    CUDA_SAFE_CALL(cudaGraphDestroy(m_graph));
+    KOKKOS_IMPL_CUDA_SAFE_CALL(
+        (m_execution_space.impl_internal_space_instance()
+             ->cuda_graph_destroy_wrapper(m_graph)));
   };
 
   explicit GraphImpl(Kokkos::Cuda arg_instance)
       : m_execution_space(std::move(arg_instance)) {
-    CUDA_SAFE_CALL(cudaGraphCreate(&m_graph, cuda_graph_flags_t{0}));
+    KOKKOS_IMPL_CUDA_SAFE_CALL(
+        (m_execution_space.impl_internal_space_instance()
+             ->cuda_graph_create_wrapper(&m_graph, cuda_graph_flags_t{0})));
   }
 
   void add_node(std::shared_ptr<aggregate_node_impl_t> const& arg_node_ptr) {
     // All of the predecessors are just added as normal, so all we need to
     // do here is add an empty node
-    CUDA_SAFE_CALL(cudaGraphAddEmptyNode(&(arg_node_ptr->node_details_t::node),
-                                         m_graph,
-                                         /* dependencies = */ nullptr,
-                                         /* numDependencies = */ 0));
+    KOKKOS_IMPL_CUDA_SAFE_CALL(
+        (m_execution_space.impl_internal_space_instance()
+             ->cuda_graph_add_empty_node_wrapper(
+                 &(arg_node_ptr->node_details_t::node), m_graph,
+                 /* dependencies = */ nullptr,
+                 /* numDependencies = */ 0)));
   }
 
   template <class NodeImpl>
@@ -171,16 +155,19 @@ struct GraphImpl<Kokkos::Cuda> {
     auto /*const*/& cuda_node = arg_node_ptr->node_details_t::node;
     KOKKOS_EXPECTS(bool(cuda_node))
 
-    CUDA_SAFE_CALL(
-        cudaGraphAddDependencies(m_graph, &pred_cuda_node, &cuda_node, 1));
+    KOKKOS_IMPL_CUDA_SAFE_CALL(
+        (m_execution_space.impl_internal_space_instance()
+             ->cuda_graph_add_dependencies_wrapper(m_graph, &pred_cuda_node,
+                                                   &cuda_node, 1)));
   }
 
   void submit() {
     if (!bool(m_graph_exec)) {
       _instantiate_graph();
     }
-    CUDA_SAFE_CALL(
-        cudaGraphLaunch(m_graph_exec, m_execution_space.cuda_stream()));
+    KOKKOS_IMPL_CUDA_SAFE_CALL(
+        (m_execution_space.impl_internal_space_instance()
+             ->cuda_graph_launch_wrapper(m_graph_exec)));
   }
 
   execution_space const& get_execution_space() const noexcept {
@@ -192,9 +179,12 @@ struct GraphImpl<Kokkos::Cuda> {
     KOKKOS_EXPECTS(!bool(m_graph_exec))
     auto rv = std::make_shared<root_node_impl_t>(
         get_execution_space(), _graph_node_is_root_ctor_tag{});
-    CUDA_SAFE_CALL(cudaGraphAddEmptyNode(&(rv->node_details_t::node), m_graph,
-                                         /* dependencies = */ nullptr,
-                                         /* numDependencies = */ 0));
+    KOKKOS_IMPL_CUDA_SAFE_CALL(
+        (m_execution_space.impl_internal_space_instance()
+             ->cuda_graph_add_empty_node_wrapper(&(rv->node_details_t::node),
+                                                 m_graph,
+                                                 /* dependencies = */ nullptr,
+                                                 /* numDependencies = */ 0)));
     KOKKOS_ENSURES(bool(rv->node_details_t::node))
     return rv;
   }

@@ -83,7 +83,7 @@ int buckc_gpu_init(const int ntypes, double **cutsq, double **host_rhoinv,
                        host_cut_ljsq, host_cut_coulsq,
                        host_special_coul, qqrd2e);
 
-    BUCKCMF.device->gpu_barrier();
+    BUCKCMF.device->serialize_init();
     if (message)
       fprintf(screen,"Done.\n");
   }

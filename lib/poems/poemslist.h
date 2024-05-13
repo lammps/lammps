@@ -65,7 +65,7 @@ template<class T> ListElement<T>::ListElement(){
 }
 
 template<class T> ListElement<T>::ListElement(T* v){
-  next = prev = 0;
+  next = prev = nullptr;
   value = v;
 }
 
@@ -77,7 +77,7 @@ template<class T> ListElement<T>::~ListElement(){
 //
 
 template<class S> List<S>::List(){
-  head = tail = 0;
+  head = tail = nullptr;
   numelements = 0;
 }
 
@@ -181,7 +181,7 @@ template<class S> S** List<S>::CreateArray(){
   S** array = new S* [numelements];
 
   ListElement<S>* ele = head;
-  for(int i=0;ele != 0;i++){
+  for(int i=0;ele != nullptr;i++){
     array[i] = ele->value;
     ele = ele->next;
   }

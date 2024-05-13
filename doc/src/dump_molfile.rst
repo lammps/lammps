@@ -6,7 +6,7 @@ dump molfile command
 Syntax
 """"""
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    dump ID group-ID molfile N file format path
 
@@ -34,7 +34,7 @@ Dump a snapshot of atom coordinates and selected additional quantities
 to one or more files every N timesteps in one of several formats.
 Only information for atoms in the specified group is dumped.  This
 specific dump style uses molfile plugins that are bundled with the
-`VMD <http://www.ks.uiuc.edu/Research/vmd>`_ molecular visualization and
+`VMD <https://www.ks.uiuc.edu/Research/vmd>`_ molecular visualization and
 analysis program.
 
 Unless the filename contains a \* character, the output will be written
@@ -63,7 +63,7 @@ like element names.
 
 The *path* keyword determines which in directories. This is a "path"
 like other search paths, i.e. it can contain multiple directories
-separated by a colon (or semi-colon on windows). This keyword is
+separated by a colon (or semicolon on Windows). This keyword is
 optional and default to ".", the current directory.
 
 The *unwrap* option of the :doc:`dump_modify <dump_modify>` command allows
@@ -92,12 +92,12 @@ determine the sequence of timesteps on which dump files are written.
 Restrictions
 """"""""""""
 
-The *molfile* dump style is part of the USER-MOLFILE package.  It is
-only enabled if LAMMPS was built with that package.  See the :doc:`Build package <Build_package>` doc page for more info.
+The *molfile* dump style is part of the MOLFILE package.  It is
+only enabled if LAMMPS was built with that package.  See the :doc:`Build package <Build_package>` page for more info.
 
 Molfile plugins provide a consistent programming interface to read and
 write file formats commonly used in molecular simulations. The
-USER-MOLFILE package only provides the interface code, not the plugins.
+MOLFILE package only provides the interface code, not the plugins.
 These can be obtained from a VMD installation which has to match the
 platform that you are using to compile LAMMPS for. By adding plugins
 to VMD, support for new file formats can be added to LAMMPS (or VMD

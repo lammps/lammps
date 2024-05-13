@@ -6,45 +6,56 @@ set command
 Syntax
 """"""
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    set style ID keyword values ...
 
 * style = *atom* or *type* or *mol* or *group* or *region*
-* ID = atom ID range or type range or mol ID range or group ID or region ID
+* ID = depends on style
+
+.. parsed-literal::
+
+       for style = *atom*, ID = a range of atom IDs
+       for style = *type*, ID = a range of numeric types or a single type label
+       for style = *mol*, ID = a range of molecule IDs
+       for style = *group*, ID = a group ID
+       for style = *region*, ID = a region ID
+
 * one or more keyword/value pairs may be appended
-* keyword = *type* or *type/fraction* or *type/ratio* or *type/subset* or *mol*
-  or *x* or *y* or *z* or *vx* or *vy* or *vz*
-  or *charge* or *dipole* or *dipole/random* or *spin* or *spin/random*
-  or *quat* *quat/random* or *diameter* or *shape* or *length* or *tri*
-  or *theta* or *theta/random* or *angmom* or *omega* or *mass*
-  or *density* or *density/disc* or *volume* or *image*
-  or *bond* or *angle* or *dihedral* or *improper*
-  or *sph/e* or *sph/cv* or *sph/rho* or *smd/contact/radius* or *smd/mass/density*
-  or *dpd/theta* or *edpd/temp* or *edpd/cv* or *cc*
-  or *i_name* or *d_name*
+* keyword = *type* or *type/fraction* or *type/ratio* or *type/subset*
+  or *mol* or *x* or *y* or *z* or *vx* or *vy* or *vz* or *charge* or
+  *dipole* or *dipole/random* or *quat* or *spin/atom* or *spin/atom/random* or
+  *spin/electron* or *radius/electron* or
+  *quat* or *quat/random* or *diameter* or *shape* or *length* or *tri* or
+  *theta* or *theta/random* or *angmom* or *omega* or
+  *mass* or *density* or *density/disc* or *temperature* or
+  *volume* or *image* or *bond* or *angle* or *dihedral* or
+  *improper* or *sph/e* or *sph/cv* or *sph/rho* or
+  *smd/contact/radius* or *smd/mass/density* or *dpd/theta* or
+  *edpd/temp* or *edpd/cv* or *cc* or *epsilon* or
+  *i_name* or *d_name* or *i2_name* or *d2_name*
 
   .. parsed-literal::
 
-       *type* value = atom type
+       *type* value = numeric atom type or type label
          value can be an atom-style variable (see below)
        *type/fraction* values = type fraction seed
-         type = new atom type
+         type = numeric atom type or type label
          fraction = approximate fraction of selected atoms to set to new atom type
          seed = random # seed (positive integer)
        *type/ratio* values = type fraction seed
-         type = new atom type
+         type = numeric atom type or type label
          fraction = exact fraction of selected atoms to set to new atom type
          seed = random # seed (positive integer)
        *type/subset* values = type Nsubset seed
-         type = new atom type
+         type = numeric atom type or type label
          Nsubset = exact number of selected atoms to set to new atom type
          seed = random # seed (positive integer)
        *mol* value = molecule ID
+       value can be an atom-style variable (see below)
+       *x*,\ *y*,\ *z* value = atom coordinate (distance units)
          value can be an atom-style variable (see below)
-       *x*\ ,\ *y*\ ,\ *z* value = atom coordinate (distance units)
-         value can be an atom-style variable (see below)
-       *vx*\ ,\ *vy*\ ,\ *vz* value = atom velocity (velocity units)
+       *vx*,\ *vy*,\ *vz* value = atom velocity (velocity units)
          value can be an atom-style variable (see below)
        *charge* value = atomic charge (charge units)
          value can be an atom-style variable (see below)
@@ -54,13 +65,17 @@ Syntax
        *dipole/random* value = seed Dlen
          seed = random # seed (positive integer) for dipole moment orientations
          Dlen = magnitude of dipole moment (dipole units)
-       *spin* values = g x y z
+       *spin/atom* values = g x y z
          g = magnitude of magnetic spin vector (in Bohr magneton's unit)
          x,y,z = orientation of magnetic spin vector
          any of x,y,z can be an atom-style variable (see below)
-       *spin/random* value = seed Dlen
+       *spin/atom/random* value = seed Dlen
          seed = random # seed (positive integer) for magnetic spin orientations
          Dlen = magnitude of magnetic spin vector (in Bohr magneton's unit)
+       *radius/electron* values = eradius
+         eradius = electron radius (or fixed-core radius) (distance units)
+       *spin/electron* value = espin
+         espin = electron spin (+1/-1), 0 = nuclei, 2 = fixed-core, 3 = pseudo-cores (i.e. ECP)
        *quat* values = a b c theta
          a,b,c = unit vector to rotate particle around via right-hand rule
          theta = rotation angle (degrees)
@@ -94,15 +109,17 @@ Syntax
          value can be an atom-style variable (see below)
        *density/disc* value = particle density for a 2d disc or ellipse (mass/distance\^2 units)
          value can be an atom-style variable (see below)
+       *temperature* value = temperature for finite-size particles (temperature units)
+         value can be an atom-style variable (see below)
        *volume* value = particle volume for Peridynamic particle (distance\^3 units)
          value can be an atom-style variable (see below)
        *image* nx ny nz
          nx,ny,nz = which periodic image of the simulation box the atom is in
          any of nx,ny,nz can be an atom-style variable (see below)
-       *bond* value = bond type for all bonds between selected atoms
-       *angle* value = angle type for all angles between selected atoms
-       *dihedral* value = dihedral type for all dihedrals between selected atoms
-       *improper* value = improper type for all impropers between selected atoms
+       *bond* value = numeric bond type or bond type label, for all bonds between selected atoms
+       *angle* value = numeric angle type or angle type label, for all angles between selected atoms
+       *dihedral* value = numeric dihedral type or dihedral type label, for all dihedrals between selected atoms
+       *improper* value = numeric improper type or improper type label, for all impropers between selected atoms
        *sph/e* value = energy of SPH particles (need units)
          value can be an atom-style variable (see below)
        *sph/cv* value = heat capacity of SPH particles (need units)
@@ -123,8 +140,13 @@ Syntax
        *cc* values = index cc
          index = index of a chemical species (1 to Nspecies)
          cc = chemical concentration of tDPD particles for a species (mole/volume units)
-       *i_name* value = value for custom integer vector with name
-       *d_name* value = value for custom floating-point vector with name
+       *epsilon* value = dielectric constant of the medium where the atoms reside
+       *i_name* value = custom integer vector with name
+       *d_name* value = custom floating-point vector with name
+       *i2_name* value = column of a custom integer array with name
+                         column specified as i2_name[N] where N is 1 to Ncol
+       *d2_name* value = column of a custom floating-point array with name
+                         column specified as d2_name[N] where N is 1 to Ncol
 
 Examples
 """"""""
@@ -132,15 +154,21 @@ Examples
 .. code-block:: LAMMPS
 
    set group solvent type 2
+   set group solvent type C
    set group solvent type/fraction 2 0.5 12393
+   set group solvent type/fraction C 0.5 12393
    set group edge bond 4
    set region half charge 0.5
    set type 3 charge 0.5
+   set type H charge 0.5
    set type 1*3 charge 0.5
    set atom * charge v_atomfile
    set atom 100*200 x 0.5 y 1.0
    set atom 100 vx 0.0 vy 0.0 vz -1.0
    set atom 1492 type 3
+   set atom 1492 type H
+   set atom * i_myVal 5
+   set atom * d2_Sxyz[1] 6.4
 
 Description
 """""""""""
@@ -168,19 +196,27 @@ properties to reset and what the new values are.  Some strings like
 This section describes how to select which atoms to change
 the properties of, via the *style* and *ID* arguments.
 
-The style *atom* selects all the atoms in a range of atom IDs.  The
-style *type* selects all the atoms in a range of types.  The style
-*mol* selects all the atoms in a range of molecule IDs.
+.. versionchanged:: 28Mar2023
+
+   Support for type labels was added for selecting atoms by type
+
+The style *atom* selects all the atoms in a range of atom IDs.
+
+The style *type* selects all the atoms in a range of types or type
+labels.  The style *type* selects atoms in one of two ways.  A range
+of numeric atom types can be specified.  Or a single atom type label
+can be specified, e.g. "C".  The style *mol* selects all the atoms in
+a range of molecule IDs.
 
 In each of the range cases, the range can be specified as a single
 numeric value, or a wildcard asterisk can be used to specify a range
 of values.  This takes the form "\*" or "\*n" or "n\*" or "m\*n".  For
-example, for the style *type*\ , if N = the number of atom types, then
+example, for the style *type*, if N = the number of atom types, then
 an asterisk with no numeric values means all types from 1 to N.  A
 leading asterisk means all types from 1 to n (inclusive).  A trailing
 asterisk means all types from n to N (inclusive).  A middle asterisk
 means all types from m to n (inclusive).  For all the styles except
-*mol*\ , the lowest value for the wildcard is 1; for *mol* it is 0.
+*mol*, the lowest value for the wildcard is 1; for *mol* it is 0.
 
 The style *group* selects all the atoms in the specified group.  The
 style *region* selects all the atoms in the specified geometric
@@ -222,14 +258,23 @@ from a file.
    such as the molecule ID, then the floating point value is truncated to
    its integer portion, e.g. a value of 2.6 would become 2.
 
-Keyword *type* sets the atom type for all selected atoms.  The
-specified value must be from 1 to ntypes, where ntypes was set by the
-:doc:`create_box <create_box>` command or the *atom types* field in the
-header of the data file read by the :doc:`read_data <read_data>`
-command.
+.. versionchanged:: 28Mar2023
 
-Keyword *type/fraction* sets the atom type for a fraction of the
-selected atoms.  The actual number of atoms changed is not guaranteed
+   Support for type labels was added for setting atom, bond, angle,
+   dihedral, and improper types
+
+Keyword *type* sets the atom type for all selected atoms.  A specified
+value can be either a numeric atom type or an atom type label. When
+using a numeric type, the specified value must be from 1 to ntypes,
+where ntypes was set by the :doc:`create_box <create_box>` command or
+the *atom types* field in the header of the data file read by the
+:doc:`read_data <read_data>` command.  When using a type label it must
+have been defined previously.  See the :doc:`Howto type labels
+<Howto_type_labels>` doc page for the allowed syntax of type labels
+and a general discussion of how type labels can be used.
+
+Keyword *type/fraction* sets the atom type for a fraction of the selected
+atoms.  The actual number of atoms changed is not guaranteed
 to be exactly the specified fraction (0 <= *fraction* <= 1), but
 should be statistically close.  Random numbers are used in such a way
 that a particular atom is changed or not changed, regardless of how
@@ -241,7 +286,7 @@ fraction of the selected atoms.  The actual number of atoms changed
 will be exactly the requested number.  For *type/ratio* the specified
 fraction (0 <= *fraction* <= 1) determines the number.  For
 *type/subset*, the specified *Nsubset* is the number.  An iterative
-algorithm is used which insures the correct number of atoms are
+algorithm is used which ensures the correct number of atoms are
 selected, in a perfectly random fashion.  Which atoms are selected
 will change with the number of processors used.  These keywords do not
 allow use of an atom-style variable.
@@ -250,10 +295,10 @@ Keyword *mol* sets the molecule ID for all selected atoms.  The
 :doc:`atom style <atom_style>` being used must support the use of
 molecule IDs.
 
-Keywords *x*\ , *y*\ , *z*\ , and *charge* set the coordinates or
-charge of all selected atoms.  For *charge*\ , the :doc:`atom style
+Keywords *x*, *y*, *z*, and *charge* set the coordinates or
+charge of all selected atoms.  For *charge*, the :doc:`atom style
 <atom_style>` being used must support the use of atomic
-charge. Keywords *vx*\ , *vy*\ , and *vz* set the velocities of all
+charge. Keywords *vx*, *vy*, and *vz* set the velocities of all
 selected atoms.
 
 Keyword *dipole* uses the specified x,y,z values as components of a
@@ -269,14 +314,28 @@ the orientation of a particular atom is the same, regardless of how
 many processors are being used.  This keyword does not allow use of an
 atom-style variable.
 
-Keyword *spin* uses the specified g value to set the magnitude of the
+.. versionchanged:: 15Sep2022
+
+Keyword *spin/atom* uses the specified g value to set the magnitude of the
 magnetic spin vectors, and the x,y,z values as components of a vector
 to set as the orientation of the magnetic spin vectors of the selected
-atoms.
+atoms.  This keyword was previously called *spin*.
 
-Keyword *spin/random* randomizes the orientation of the magnetic spin
+.. versionchanged:: 15Sep2022
+
+Keyword *spin/atom/random* randomizes the orientation of the magnetic spin
 vectors for the selected atoms and sets the magnitude of each to the
-specified *Dlen* value.
+specified *Dlen* value.  This keyword was previously called *spin/random*.
+
+.. versionadded:: 15Sep2022
+
+Keyword *radius/electron* uses the specified value to set the radius of
+electrons or fixed cores.
+
+.. versionadded:: 15Sep2022
+
+Keyword *spin/electron* sets the spin of an electron (+/- 1) or indicates
+nuclei (=0), fixed-cores (=2), or pseudo-cores (= 3).
 
 Keyword *quat* uses the specified values to create a quaternion
 (4-vector) that represents the orientation of the selected atoms.  The
@@ -303,7 +362,7 @@ the :doc:`atom_style <atom_style>` command.  Random numbers are used in
 such a way that the orientation of a particular atom is the same,
 regardless of how many processors are being used.  For 2d systems,
 only orientations in the xy plane are generated.  As with keyword
-*quat*\ , for ellipsoidal particles, the 3 shape values must be non-zero
+*quat*, for ellipsoidal particles, the 3 shape values must be non-zero
 for each particle set by this command.  This keyword does not allow
 use of an atom-style variable.
 
@@ -316,7 +375,7 @@ a density, e.g. via the :doc:`read_data <read_data>` command.
 
 Keyword *shape* sets the size and shape of the selected atoms.  The
 particles must be ellipsoids as defined by the :doc:`atom_style
-ellipsoid <atom_style>` command.  The *Sx*\ , *Sy*\ , *Sz* settings
+ellipsoid <atom_style>` command.  The *Sx*, *Sy*, *Sz* settings
 are the 3 diameters of the ellipsoid in each direction.  All 3 can be
 set to the same value, which means the ellipsoid is effectively a
 sphere.  They can also all be set to 0.0 which means the particle will
@@ -365,13 +424,13 @@ vector of the particles is set to the 3 specified components.
 
 Keyword *omega* sets the angular velocity of selected atoms.  The
 particles must be spheres as defined by the :doc:`atom_style sphere
-<atom_style>` command.  The angular velocity vector of the particles
-is set to the 3 specified components.
+<atom_style>` command.  The angular velocity vector of the particles is
+set to the 3 specified components.
 
 Keyword *mass* sets the mass of all selected particles.  The particles
-must have a per-atom mass attribute, as defined by the
-:doc:`atom_style <atom_style>` command.  See the "mass" command for
-how to set mass values on a per-type basis.
+must have a per-atom mass attribute, as defined by the :doc:`atom_style
+<atom_style>` command.  See the "mass" command for how to set mass
+values on a per-type basis.
 
 Keyword *density* or *density/disc* also sets the mass of all selected
 particles, but in a different way.  The particles must have a per-atom
@@ -380,22 +439,21 @@ command.  If the atom has a radius attribute (see :doc:`atom_style
 sphere <atom_style>`) and its radius is non-zero, its mass is set from
 the density and particle volume for 3d systems (the input density is
 assumed to be in mass/distance\^3 units).  For 2d, the default is for
-LAMMPS to model particles with a radius attribute as spheres.
-However, if the *density/disc* keyword is used, then they can be
-modeled as 2d discs (circles).  Their mass is set from the density and
-particle area (the input density is assumed to be in mass/distance\^2
-units).
+LAMMPS to model particles with a radius attribute as spheres.  However,
+if the *density/disc* keyword is used, then they can be modeled as 2d
+discs (circles).  Their mass is set from the density and particle area
+(the input density is assumed to be in mass/distance\^2 units).
 
 If the atom has a shape attribute (see :doc:`atom_style ellipsoid
-<atom_style>`) and its 3 shape parameters are non-zero, then its mass
-is set from the density and particle volume (the input density is
-assumed to be in mass/distance\^3 units).  The *density/disc* keyword
-has no effect; it does not (yet) treat 3d ellipsoids as 2d ellipses.
+<atom_style>`) and its 3 shape parameters are non-zero, then its mass is
+set from the density and particle volume (the input density is assumed
+to be in mass/distance\^3 units).  The *density/disc* keyword has no
+effect; it does not (yet) treat 3d ellipsoids as 2d ellipses.
 
 If the atom has a length attribute (see :doc:`atom_style line
-<atom_style>`) and its length is non-zero, then its mass is set from
-the density and line segment length (the input density is assumed to
-be in mass/distance units).  If the atom has an area attribute (see
+<atom_style>`) and its length is non-zero, then its mass is set from the
+density and line segment length (the input density is assumed to be in
+mass/distance units).  If the atom has an area attribute (see
 :doc:`atom_style tri <atom_style>`) and its area is non-zero, then its
 mass is set from the density and triangle area (the input density is
 assumed to be in mass/distance\^2 units).
@@ -403,90 +461,109 @@ assumed to be in mass/distance\^2 units).
 If none of these cases are valid, then the mass is set to the density
 value directly (the input density is assumed to be in mass units).
 
-Keyword *volume* sets the volume of all selected particles.
-Currently, only the :doc:`atom_style peri <atom_style>` command defines
-particles with a volume attribute.  Note that this command does not
-adjust the particle mass.
+Keyword *temperature* sets the temperature of a finite-size particle.
+Currently, only the GRANULAR package supports this attribute. The
+temperature must be added using an instance of
+:doc:`fix property/atom <fix_property_atom>` The values for the
+temperature must be positive.
+
+Keyword *volume* sets the volume of all selected particles.  Currently,
+only the :doc:`atom_style peri <atom_style>` command defines particles
+with a volume attribute.  Note that this command does not adjust the
+particle mass.
 
 Keyword *image* sets which image of the simulation box the atom is
 considered to be in.  An image of 0 means it is inside the box as
-defined.  A value of 2 means add 2 box lengths to get the true value.
-A value of -1 means subtract 1 box length to get the true value.
-LAMMPS updates these flags as atoms cross periodic boundaries during
-the simulation.  The flags can be output with atom snapshots via the
-:doc:`dump <dump>` command.  If a value of NULL is specified for any
-of nx,ny,nz, then the current image value for that dimension is
-unchanged.  For non-periodic dimensions only a value of 0 can be
-specified.  This command can be useful after a system has been
-equilibrated and atoms have diffused one or more box lengths in
-various directions.  This command can then reset the image values for
-atoms so that they are effectively inside the simulation box, e.g if a
-diffusion coefficient is about to be measured via the :doc:`compute
-msd <compute_msd>` command.  Care should be taken not to reset the
-image flags of two atoms in a bond to the same value if the bond
-straddles a periodic boundary (rather they should be different by +/-
-1).  This will not affect the dynamics of a simulation, but may mess
-up analysis of the trajectories if a LAMMPS diagnostic or your own
-analysis relies on the image flags to unwrap a molecule which
-straddles the periodic box.
+defined.  A value of 2 means add 2 box lengths to get the true value.  A
+value of -1 means subtract 1 box length to get the true value.  LAMMPS
+updates these flags as atoms cross periodic boundaries during the
+simulation.  The flags can be output with atom snapshots via the
+:doc:`dump <dump>` command.  If a value of NULL is specified for any of
+nx,ny,nz, then the current image value for that dimension is unchanged.
+For non-periodic dimensions only a value of 0 can be specified.  This
+command can be useful after a system has been equilibrated and atoms
+have diffused one or more box lengths in various directions.  This
+command can then reset the image values for atoms so that they are
+effectively inside the simulation box, e.g if a diffusion coefficient is
+about to be measured via the :doc:`compute msd <compute_msd>` command.
+Care should be taken not to reset the image flags of two atoms in a bond
+to the same value if the bond straddles a periodic boundary (rather they
+should be different by +/- 1).  This will not affect the dynamics of a
+simulation, but may mess up analysis of the trajectories if a LAMMPS
+diagnostic or your own analysis relies on the image flags to unwrap a
+molecule which straddles the periodic box.
 
-Keywords *bond*\ , *angle*\ , *dihedral*\ , and *improper*\ , set the bond
+Keywords *bond*, *angle*, *dihedral*, and *improper*, set the bond
 type (angle type, etc) of all bonds (angles, etc) of selected atoms to
-the specified value from 1 to nbondtypes (nangletypes, etc).  All
-atoms in a particular bond (angle, etc) must be selected atoms in
-order for the change to be made.  The value of nbondtype (nangletypes,
-etc) was set by the *bond types* (\ *angle types*\ , etc) field in the
-header of the data file read by the :doc:`read_data <read_data>`
-command.  These keywords do not allow use of an atom-style variable.
+the specified value.  The value can be a numeric type from 1 to
+nbondtypes (nangletypes, etc).  Or it can be a type label (bond type
+label, angle type label, etc).  See the :doc:`Howto type labels
+<Howto_type_labels>` doc page for the allowed syntax of type labels
+and a general discussion of how type labels can be used.  All atoms in
+a particular bond (angle, etc) must be selected atoms in order for the
+change to be made.  The value of nbondtypes (nangletypes, etc) was set
+by the *bond types* (\ *angle types*, etc) field in the header of the
+data file read by the :doc:`read_data <read_data>` command.  These
+keywords do not allow use of an atom-style variable.
 
-Keywords *sph/e*\ , *sph/cv*\ , and *sph/rho* set the energy, heat
-capacity, and density of smoothed particle hydrodynamics (SPH)
-particles.  See `this PDF guide <USER/sph/SPH_LAMMPS_userguide.pdf>`_
-to using SPH in LAMMPS.
+Keywords *sph/e*, *sph/cv*, and *sph/rho* set the energy, heat capacity,
+and density of smoothed particle hydrodynamics (SPH) particles.  See
+`this PDF guide <PDF/SPH_LAMMPS_userguide.pdf>`_ to using SPH in LAMMPS.
 
-Keyword *smd/mass/density* sets the mass of all selected particles,
-but it is only applicable to the Smooth Mach Dynamics package
-USER-SMD.  It assumes that the particle volume has already been
-correctly set and calculates particle mass from the provided mass
-density value.
+Keyword *smd/mass/density* sets the mass of all selected particles, but
+it is only applicable to the Smooth Mach Dynamics package MACHDYN.  It
+assumes that the particle volume has already been correctly set and
+calculates particle mass from the provided mass density value.
 
-Keyword *smd/contact/radius* only applies to simulations with the
-Smooth Mach Dynamics package USER-SMD.  Itsets an interaction radius
-for computing short-range interactions, e.g. repulsive forces to
-prevent different individual physical bodies from penetrating each
-other. Note that the SPH smoothing kernel diameter used for computing
-long range, nonlocal interactions, is set using the *diameter*
-keyword.
+Keyword *smd/contact/radius* only applies to simulations with the Smooth
+Mach Dynamics package MACHDYN.  Itsets an interaction radius for
+computing short-range interactions, e.g. repulsive forces to prevent
+different individual physical bodies from penetrating each other. Note
+that the SPH smoothing kernel diameter used for computing long range,
+nonlocal interactions, is set using the *diameter* keyword.
 
 Keyword *dpd/theta* sets the internal temperature of a DPD particle as
-defined by the USER-DPD package.  If the specified value is a number
-it must be >= 0.0.  If the specified value is NULL, then the kinetic
-temperature Tkin of each particle is computed as 3/2 k Tkin = KE = 1/2
-m v\^2 = 1/2 m (vx\*vx+vy\*vy+vz\*vz).  Each particle's internal
+defined by the DPD-REACT package.  If the specified value is a number it
+must be >= 0.0.  If the specified value is NULL, then the kinetic
+temperature Tkin of each particle is computed as 3/2 k Tkin = KE = 1/2 m
+v\^2 = 1/2 m (vx\*vx+vy\*vy+vz\*vz).  Each particle's internal
 temperature is set to Tkin.  If the specified value is an atom-style
-variable, then the variable is evaluated for each particle.  If a
-value >= 0.0, the internal temperature is set to that value.  If it is
-< 0.0, the computation of Tkin is performed and the internal
-temperature is set to that value.
+variable, then the variable is evaluated for each particle.  If a value
+>= 0.0, the internal temperature is set to that value.  If it is < 0.0,
+the computation of Tkin is performed and the internal temperature is set
+to that value.
 
 Keywords *edpd/temp* and *edpd/cv* set the temperature and volumetric
-heat capacity of an eDPD particle as defined by the USER-MESODPD package.
+heat capacity of an eDPD particle as defined by the DPD-MESO package.
 Currently, only :doc:`atom_style edpd <atom_style>` defines particles
-with these attributes. The values for the temperature and heat
-capacity must be positive.
+with these attributes. The values for the temperature and heat capacity
+must be positive.
 
 Keyword *cc* sets the chemical concentration of a tDPD particle for a
-specified species as defined by the USER-MESODPD package. Currently, only
+specified species as defined by the DPD-MESO package. Currently, only
 :doc:`atom_style tdpd <atom_style>` defines particles with this
 attribute. An integer for "index" selects a chemical species (1 to
-Nspecies) where Nspecies is set by the atom_style command. The value
-for the chemical concentration must be >= 0.0.
+Nspecies) where Nspecies is set by the atom_style command. The value for
+the chemical concentration must be >= 0.0.
 
-Keywords *i_name* and *d_name* refer to custom integer and
-floating-point properties that have been added to each atom via the
-:doc:`fix property/atom <fix_property_atom>` command.  When that command
-is used specific names are given to each attribute which are what is
-specified as the "name" portion of *i_name* or *d_name*.
+Keyword *epsilon* sets the dielectric constant of a particle, precisely
+of the medium where the particle resides as defined by the DIELECTRIC
+package. Currently, only :doc:`atom_style dielectric <atom_style>`
+defines particles with this attribute. The value for the dielectric
+constant must be >= 0.0.  Note that the set command with this keyword
+will rescale the particle charge accordingly so that the real charge
+(e.g., as read from a data file) stays intact. To change the real
+charges, one needs to use the set command with the *charge*
+keyword. Care must be taken to ensure that the real and scaled charges,
+and dielectric constants are consistent.
+
+Keywords *i_name*, *d_name*, *i2_name*, *d2_name* refer to custom
+per-atom integer and floating-point vectors or arrays that have been
+added via the :doc:`fix property/atom <fix_property_atom>` command.
+When that command is used specific names are given to each attribute
+which are the "name" portion of these keywords.  For arrays *i2_name*
+and *d2_name*, the column of the array must also be included following
+the name in brackets: e.g. d2_xyz[2], i2_mySpin[3].
 
 Restrictions
 """"""""""""

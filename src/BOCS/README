@@ -1,0 +1,19 @@
+This user package implements the pressure correction to the barostat as
+outlined in:
+
+N. J. H. Dunn and W. G. Noid, "Bottom-up coarse-grained models that
+accurately describe the structure, pressure, and compressibility of
+molecular liquids," J. Chem. Phys. 143, 243148 (2015).
+
+doi: 10.1063/1.4937383
+
+The BOCS user package for LAMMPS is part of the BOCS software package:
+https://github.com/noid-group/BOCS
+
+See the following reference for information about the entire package:
+
+Dunn, NJH; Lebold, KM; DeLyser, MR; Rudzinski, JF; Noid, WG.
+"BOCS: Bottom-Up Open-Source Coarse-Graining Software."
+J. Phys. Chem. B. 122, 13, 3363-3377 (2018).
+
+Example inputs are in the examples/PACKAGES/bocs folder.

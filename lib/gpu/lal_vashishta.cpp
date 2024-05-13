@@ -56,7 +56,7 @@ int VashishtaT::init(const int ntypes, const int nlocal, const int nall, const i
            const double* costheta, const double* bigb,
            const double* big2b, const double* bigc)
 {
-  int success;
+  int success=0;
   success=this->init_three(nlocal,nall,max_nbors,0,cell_size,gpu_split,
                            _screen,vashishta,"k_vashishta","k_vashishta_three_center",
                            "k_vashishta_three_end","k_vashishta_short_nbor");
@@ -211,7 +211,7 @@ double VashishtaT::host_memory_usage() const {
 // ---------------------------------------------------------------------------
 template <class numtyp, class acctyp>
 int VashishtaT::loop(const int eflag, const int vflag, const int evatom,
-                     bool &success) {
+                     bool & /*success*/) {
   const int nbor_pitch=this->nbor->nbor_pitch();
 
   // build the short neighbor list

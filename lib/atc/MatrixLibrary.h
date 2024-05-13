@@ -14,9 +14,9 @@
 
 namespace ATC_matrix {
 template<typename T>
-const SparseMatrix<T> *sparse_cast(const Matrix<T> *m) 
+const SparseMatrix<T> *sparse_cast(const Matrix<T> *m)
 {
-  return dynamic_cast<const SparseMatrix<T>*>(m); 
+  return dynamic_cast<const SparseMatrix<T>*>(m);
 }
 
 template<typename T>
@@ -27,7 +27,7 @@ void copy_sparse_to_matrix(const SparseMatrix<T> *s, Matrix<T> &m)
   for (INDEX i=0; i<s->size(); i++)
   {
     triplet = s->triplet(i);
-    m(triplet.i, triplet.j) = triplet.v; 
+    m(triplet.i, triplet.j) = triplet.v;
   }
 }
 

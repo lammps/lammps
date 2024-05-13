@@ -1,0 +1,125 @@
+LAMMPS (8 Feb 2023)
+OMP_NUM_THREADS environment is not set. Defaulting to 1 thread. (src/comm.cpp:98)
+  using 1 OpenMP thread(s) per MPI task
+# Pour 2d granular particles into container
+
+dimension	2
+atom_style	sphere
+boundary	f fm p
+newton		off
+comm_modify	vel yes
+
+region		reg block 0 100 0 50 -0.5 0.5 units box
+create_box	1 reg
+Created orthogonal box = (0 0 -0.5) to (100 50 0.5)
+  4 by 1 by 1 MPI processor grid
+
+neighbor	0.2 bin
+neigh_modify	delay 0
+
+# IMPORTANT NOTE: these values of stiffness (4000) and timestep (0.001)
+# are used in this example file to produce a quick simulation and movie.
+# More appropriate values for realistic simulations would be
+# k = 4.0e5 and dt = 0.0001, as in bench/in.chute (if it were Hertzian).
+
+pair_style      gran/hertz/history 4000.0 NULL 100.0 NULL 0.5 0
+pair_coeff	* *
+
+timestep	0.001
+
+fix             1 all nve/sphere
+fix		2 all gravity 1.0 spherical 0.0 -180.0
+fix		xwalls all wall/gran hertz/history 4000.0 NULL 100.0 NULL 0 1 		xplane 0 100
+fix		ywalls all wall/gran hertz/history 4000.0 NULL 100.0 NULL 0 1 		yplane 0 NULL
+
+region          slab block 1.0 99.0 30 34.5 -0.5 0.5 units box
+fix             ins all pour 1000 1 4767548 vol 0.4 10 	        diam range 0.5 1.0 region slab
+Particle insertion: 224 every 3000 steps, 1000 by step 12001
+
+fix             3 all enforce2d
+
+compute		1 all erotate/sphere
+thermo_style	custom step atoms ke c_1 vol
+thermo		1000
+thermo_modify	lost ignore norm no
+compute_modify	thermo_temp dynamic/dof yes
+
+#dump		id all atom 250 dump.pour
+
+#dump		2 all image 500 image.*.jpg type type #		zoom 1.6 adiam 1.5
+#dump_modify	2 pad 5
+
+#dump		3 all movie 500 movie.mpg type type #		zoom 1.6 adiam 1.5
+#dump_modify	3 pad 5
+
+run		25000
+Generated 0 of 0 mixed pair_coeff terms from geometric mixing rule
+Neighbor list info ...
+  update: every = 1 steps, delay = 0 steps, check = yes
+  max neighbors/atom: 2000, page size: 100000
+  master list distance cutoff = 1.2
+  ghost atom cutoff = 1.2
+  binsize = 0.6, bins = 167 84 2
+  1 neighbor lists, perpetual/occasional/extra = 1 0 0
+  (1) pair gran/hertz/history, perpetual
+      attributes: half, newton off, size, history
+      pair build: half/size/bin/newtoff
+      stencil: full/bin/2d
+      bin: standard
+Per MPI rank memory allocation (min/avg/max) = 5.77 | 5.77 | 5.77 Mbytes
+   Step        Atoms        KinEng          c_1           Volume    
+         0           0  -0              0              5000         
+      1000         224   202.80417      0              5000         
+      2000         224   373.00249      0              5000         
+      3000         224   599.26757      0              5000         
+      4000         448   1078.4787      0              5000         
+      5000         448   1589.4845      0              5000         
+      6000         448   1743.8281      26.918824      5000         
+WARNING: Fewer insertions than requested (src/GRANULAR/fix_pour.cpp:681)
+      7000         669   1818.5075      88.370238      5000         
+      8000         669   1850.1368      105.77613      5000         
+      9000         669   1757.9791      107.52328      5000         
+WARNING: Fewer insertions than requested (src/GRANULAR/fix_pour.cpp:681)
+     10000         886   1792.8816      79.515458      5000         
+     11000         886   1639.0751      64.104716      5000         
+     12000         886   1541.1046      55.902437      5000         
+     13000        1000   1461.0291      68.011357      5000         
+     14000        1000   1286.1144      48.551003      5000         
+     15000        1000   1155.6137      55.503871      5000         
+     16000        1000   833.49034      46.163926      5000         
+     17000        1000   581.69308      43.140124      5000         
+     18000        1000   369.375        37.675729      5000         
+     19000        1000   188.74424      31.66369       5000         
+     20000        1000   48.73107       23.067611      5000         
+     21000        1000   27.652985      14.176945      5000         
+     22000        1000   22.545416      9.6960211      5000         
+     23000        1000   17.575825      6.6345699      5000         
+     24000        1000   12.464163      4.9073459      5000         
+     25000        1000   9.9507487      3.1967219      5000         
+Loop time of 0.793403 on 4 procs for 25000 steps with 1000 atoms
+
+Performance: 2722450.224 tau/day, 31509.841 timesteps/s, 31.510 Matom-step/s
+99.2% CPU use with 4 MPI tasks x 1 OpenMP threads
+
+MPI task timing breakdown:
+Section |  min time  |  avg time  |  max time  |%varavg| %total
+---------------------------------------------------------------
+Pair    | 0.2392     | 0.24458    | 0.25441    |   1.2 | 30.83
+Neigh   | 0.075663   | 0.07738    | 0.078869   |   0.4 |  9.75
+Comm    | 0.037752   | 0.045698   | 0.049012   |   2.2 |  5.76
+Output  | 0.00063359 | 0.0006788  | 0.00078796 |   0.0 |  0.09
+Modify  | 0.30883    | 0.3111     | 0.31377    |   0.3 | 39.21
+Other   |            | 0.114      |            |       | 14.36
+
+Nlocal:            250 ave         254 max         244 min
+Histogram: 1 0 0 0 0 0 0 2 0 1
+Nghost:          19.75 ave          28 max          11 min
+Histogram: 1 0 1 0 0 0 0 0 1 1
+Neighs:            600 ave         624 max         569 min
+Histogram: 1 0 0 1 0 0 0 0 1 1
+
+Total # of neighbors = 2400
+Ave neighs/atom = 2.4
+Neighbor list builds = 2138
+Dangerous builds = 0
+Total wall time: 0:00:00

@@ -1,13 +1,15 @@
 ---
-lammps_version: 10 Feb 2021
-date_generated: Fri Feb 26 23:08:48 2021
+lammps_version: 22 Dec 2022
+date_generated: Thu Dec 22 09:53:54 2022
 epsilon: 5e-14
+skip_tests:
 prerequisites: ! |
   atom full
   pair lj/cut
 pre_commands: ! ""
 post_commands: ! |
   pair_modify mix arithmetic
+  pair_modify shift yes
 input_file: in.fourmol
 pair_style: lj/cut 8.0
 pair_coeff: ! |
@@ -21,7 +23,7 @@ extract: ! |
   epsilon 2
   sigma 2
 natoms: 29
-init_vdwl: 749.23722617441
+init_vdwl: 749.2470096189502
 init_coul: 0
 init_stress: ! |2-
    2.1793857186503233e+03  2.1988957679770601e+03  4.6653994738862330e+03 -7.5956544622684294e+02  2.4751393539192360e+01  6.6652061873806701e+02
@@ -55,7 +57,7 @@ init_forces: ! |2
    27  5.1810412832327984e+01 -2.2705468907750401e+02  9.0849153441059272e+01
    28 -1.8041315533250560e+02  7.7534079082878250e+01 -1.2206962452216491e+02
    29  1.2861063251415729e+02  1.4952718246094855e+02  3.1216040111076961e+01
-run_vdwl: 719.443455554292
+run_vdwl: 719.4532389988314
 run_coul: 0
 run_stress: ! |2-
    2.1330157554553721e+03  2.1547730555430498e+03  4.3976512412988704e+03 -7.3873325485023690e+02  4.1743707190786367e+01  6.2788040986774604e+02

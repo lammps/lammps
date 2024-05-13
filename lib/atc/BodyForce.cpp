@@ -16,14 +16,14 @@ using std::vector;
 namespace ATC {
 
 BodyForceViscous::BodyForceViscous(
-  fstream &fileId, std::map<std::string,double> & parameters) 
+  fstream &fileId, std::map<std::string,double> & parameters)
   : BodyForce(), gamma_(0)
 {
   if (!fileId.is_open()) throw ATC_Error("cannot open material file");
   std::vector<std::string> line;
   while(fileId.good()) {
     command_line(fileId, line);
-    if (line.size() == 0) continue; 
+    if (line.size() == 0) continue;
     if (line[0] == "end") return;
     double value = str2dbl(line[1]);
     if (line[0] == "gamma") {

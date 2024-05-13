@@ -1,7 +1,7 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    https://www.lammps.org/, Sandia National Laboratories
-   Steve Plimpton, sjplimp@sandia.gov
+   LAMMPS Development team: developers@lammps.org
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
@@ -23,12 +23,13 @@ using ::testing::Eq;
 
 bool verbose = false;
 
+namespace LAMMPS_NS {
 class DumpCfgTest : public MeltTest {
     std::string dump_style = "cfg";
 
 public:
-    void generate_dump(std::string dump_file, std::string fields, std::string dump_modify_options,
-                       int ntimesteps)
+    void generate_dump(const std::string &dump_file, const std::string &fields,
+                       const std::string &dump_modify_options, int ntimesteps)
     {
         BEGIN_HIDE_OUTPUT();
         command(fmt::format("dump id all {} 1 {} {}", dump_style, dump_file, fields));
@@ -81,6 +82,7 @@ TEST_F(DumpCfgTest, write_dump)
     auto fields    = "mass type xs ys zs id proc procp1 x y z ix iy iz vx vy vz fx fy fz";
 
     BEGIN_HIDE_OUTPUT();
+    command("run 0 post no");
     command(std::string("write_dump all cfg dump_cfg.melt.cfg ") + fields);
     command(std::string("write_dump all cfg dump_cfg*.melt.cfg ") + fields);
     END_HIDE_OUTPUT();
@@ -97,7 +99,8 @@ TEST_F(DumpCfgTest, write_dump)
     ASSERT_THAT(lines[0], Eq("Number of particles = 32"));
     delete_file("dump_cfg0.melt.cfg");
 
-    TEST_FAILURE(".*ERROR: Unrecognized dump style 'xxx'.*", command("write_dump all xxx test.xxx"););
+    TEST_FAILURE(".*ERROR: Unrecognized dump style 'xxx'.*",
+                 command("write_dump all xxx test.xxx"););
 }
 
 TEST_F(DumpCfgTest, unwrap_run0)
@@ -141,6 +144,7 @@ TEST_F(DumpCfgTest, no_unwrap_no_buffer_run0)
     ASSERT_THAT(lines[0], Eq("Number of particles = 32"));
     delete_file("dump_cfg_no_unwrap_no_buffer_run0.melt.cfg");
 }
+} // namespace LAMMPS_NS
 
 int main(int argc, char **argv)
 {
@@ -149,7 +153,7 @@ int main(int argc, char **argv)
 
     // handle arguments passed via environment variable
     if (const char *var = getenv("TEST_ARGS")) {
-        std::vector<std::string> env = utils::split_words(var);
+        std::vector<std::string> env = LAMMPS_NS::utils::split_words(var);
         for (auto arg : env) {
             if (arg == "-v") {
                 verbose = true;

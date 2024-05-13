@@ -14,7 +14,7 @@ Syntax
 
   .. parsed-literal::
 
-     keyword = *dmax* or *line* or *norm* or *alpha_damp* or *discrete_factor* or *integrator* or *tmax*
+     keyword = *dmax* or *line* or *norm* or *alpha_damp* or *discrete_factor* or *integrator* or *abcfire* or *tmax*
        *dmax* value = max
          max = maximum distance for line search to move (distance units)
        *line* value = *backtrack* or *quadratic* or *forcezero* or *spin_cubic* or *spin_none*
@@ -24,11 +24,14 @@ Syntax
          inf = max force component across all 3-vectors
          max = max force norm across all 3-vectors
        *alpha_damp* value = damping
-         damping = fictitious Gilbert damping for spin minimization (adim)
+         damping = fictitious magnetic damping for spin minimization (adim)
        *discrete_factor* value = factor
          factor = discretization factor for adaptive spin timestep (adim)
-       *integrator* value = *eulerimplicit* or *verlet*
+       *integrator* value = *eulerimplicit* or *verlet* or *leapfrog* or *eulerexplicit*
          time integration scheme for fire minimization
+       *abcfire* value = yes or no (default no)
+         yes = use ABC-FIRE variant of fire minimization style
+         no  = use default FIRE variant of fire minimization style
        *tmax* value = factor
          factor = maximum adaptive timestep for fire minimization (adim)
 
@@ -81,8 +84,8 @@ energy after) and that difference may be smaller than machine epsilon
 even if atoms could move in the gradient direction to reduce forces
 further.
 
-The choice of a norm can be modified for the min styles *cg*\ , *sd*\
-, *quickmin*\ , *fire*\ , *fire/old*\ , *spin*\ , *spin/cg* and
+The choice of a norm can be modified for the min styles *cg*, *sd*\
+, *quickmin*, *fire*, *fire/old*, *spin*, *spin/cg* and
 *spin/lbfgs* using the *norm* keyword.  The default *two* norm computes
 the 2-norm (Euclidean length) of the global force vector:
 
@@ -104,14 +107,14 @@ all atoms in the system:
 
    || \vec{F} ||_{inf} = {\rm max}\left(|F_1^1|, |F_1^2|, |F_1^3| \cdots, |F_N^1|, |F_N^2|, |F_N^3|\right)
 
-For the min styles *spin*\ , *spin/cg* and *spin/lbfgs*\ , the force
+For the min styles *spin*, *spin/cg* and *spin/lbfgs*, the force
 norm is replaced by the spin-torque norm.
 
 Keywords *alpha_damp* and *discrete_factor* only make sense when
 a :doc:`min_spin <min_spin>` command is declared.
-Keyword *alpha_damp* defines an analog of a magnetic Gilbert
-damping. It defines a relaxation rate toward an equilibrium for
-a given magnetic system.
+Keyword *alpha_damp* defines an analog of a magnetic damping.
+It defines a relaxation rate toward an equilibrium for a given
+magnetic system.
 Keyword *discrete_factor* defines a discretization factor for the
 adaptive timestep used in the *spin* minimization.
 See :doc:`min_spin <min_spin>` for more information about those
@@ -127,27 +130,35 @@ procedure.  The *spin_none* is a default value for *line* keyword for
 both *spin/lbfgs* and *spin/cg*\ . Convergence of *spin/lbfgs* can be
 more robust if *spin_cubic* line search is used.
 
-The Newton *integrator* used for *fire* minimization can be selected
-to be either the symplectic Euler (\ *eulerimplicit*\ ) or velocity
-Verlet (\ *verlet*\ ).  *tmax* defines the maximum value for the
-adaptive timestep during a *fire* minimization. It is a multiplication
-factor applied to the current :doc:`timestep <timestep>` (not in time
-unit). For example, *tmax* = 4.0 with a :doc:`timestep <timestep>` of
-2fs, means that the maximum value the timestep can reach during a *fire*
-minimization is 4fs.
-Note that parameter defaults has been chosen to be reliable in most cases,
-but one should consider adjusting :doc:`timestep <timestep>` and *tmax* to
-optimize the minimization for large or complex systems.  Other
-parameters of the *fire* minimization can be tuned (\ *tmin*\ ,
-*delaystep*\ , *dtgrow*\ , *dtshrink*\ , *alpha0*\ , and
-*alphashrink*\ ). Please refer to the references describing the
-:doc:`min_style <min_style>` *fire*.
-An additional stopping criteria *vdfmax* is used by *fire* in order to avoid
-unnecessary looping when it is reasonable to think the system will not
-be relaxed further.  Note that in this case the system will NOT have
+The Newton *integrator* used for *fire* minimization can be selected to
+be either the symplectic Euler (\ *eulerimplicit*\ ), velocity Verlet (\
+*verlet*\ ), Leapfrog (\ *leapfrog*\ ) or non-symplectic forward Euler
+(\ *eulerexplicit* \). The keyword *tmax* defines the maximum value for
+the adaptive timestep during a *fire* minimization. It is a
+multiplication factor applied to the current :doc:`timestep <timestep>`
+(not in time unit). For example, *tmax* = 4.0 with a :doc:`timestep
+<timestep>` of 2fs, means that the maximum value the timestep can reach
+during a *fire* minimization is 4fs.  Note that parameter defaults has
+been chosen to be reliable in most cases, but one should consider
+adjusting :doc:`timestep <timestep>` and *tmax* to optimize the
+minimization for large or complex systems.  Other parameters of the
+*fire* minimization can be tuned (\ *tmin*, *delaystep*, *dtgrow*,
+*dtshrink*, *alpha0*, and *alphashrink*\ ). Please refer to the
+references describing the :doc:`min_style <min_style>` *fire*.  An
+additional stopping criteria *vdfmax* is used by *fire* in order to
+avoid unnecessary looping when it is reasonable to think the system will
+not be relaxed further.  Note that in this case the system will NOT have
 reached your minimization criteria. This could happen when the system
-comes to be stuck in a local basin of the phase space.  *vdfmax* is
-the maximum number of consecutive iterations with P(t) < 0.
+comes to be stuck in a local basin of the phase space.  *vdfmax* is the
+maximum number of consecutive iterations with P(t) < 0.
+
+.. versionadded:: 8Feb2023
+
+The *abcfire* keyword allows to activate the ABC-FIRE variant of the
+*fire* minimization algorithm. ABC-FIRE introduces an additional factor
+that modifies the bias and scaling of the velocities of the atoms during
+the mixing step :ref:`(Echeverri Restrepo) <EcheverriRestrepo>`.  This
+can lead to faster convergence of the minimizer.
 
 The :doc:`min_style <min_style>` *fire* is an optimized implementation of
 :doc:`min_style <min_style>` *fire/old*. It can however behave similarly
@@ -176,7 +187,7 @@ Default
 
 The option defaults are dmax = 0.1, line = quadratic and norm = two.
 
-For the *spin*\ , *spin/cg* and *spin/lbfgs* styles, the option
+For the *spin*, *spin/cg* and *spin/lbfgs* styles, the option
 defaults are alpha_damp = 1.0, discrete_factor = 10.0, line =
 spin_none, and norm = euclidean.
 
@@ -184,3 +195,7 @@ For the *fire* style, the option defaults are integrator =
 eulerimplicit, tmax = 10.0, tmin = 0.02, delaystep = 20, dtgrow = 1.1,
 dtshrink = 0.5, alpha0 = 0.25, alphashrink = 0.99, vdfmax = 2000,
 halfstepback = yes and initialdelay = yes.
+
+.. _EcheverriRestrepo:
+
+**(EcheverriRestrepo)** Echeverri Restrepo, Andric, Comput Mater Sci, 218, 111978 (2023).

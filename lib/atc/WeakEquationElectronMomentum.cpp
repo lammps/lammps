@@ -28,7 +28,7 @@ void WeakEquationElectronMomentum::convection(const FIELD_MATS &fields,
   // set up mass density
   FIELD_MATS::const_iterator nField = fields.find(ELECTRON_DENSITY);
   const DENS_MAT & n = nField->second;
-  DENS_MAT nMe(n.nRows(),n.nCols()); 
+  DENS_MAT nMe(n.nRows(),n.nCols());
   material->inv_effective_mass(fields,nMe);
   nMe = n.div_by_element(nMe);
 
@@ -38,7 +38,7 @@ void WeakEquationElectronMomentum::convection(const FIELD_MATS &fields,
   const CLON_VEC u(velocity,CLONE_COL,0);
   const CLON_VEC v(velocity,CLONE_COL,1);
   const CLON_VEC w(velocity,CLONE_COL,2);
-  flux[0] = velocity; 
+  flux[0] = velocity;
   flux[1] = velocity;
   flux[2] = velocity;
   CLON_VEC nuu(flux[0],CLONE_COL,0);
@@ -50,7 +50,7 @@ void WeakEquationElectronMomentum::convection(const FIELD_MATS &fields,
   CLON_VEC nwu(flux[0],CLONE_COL,2);
   CLON_VEC nwv(flux[1],CLONE_COL,2);
   CLON_VEC nww(flux[2],CLONE_COL,2);
-  
+
   for (int i = 0; i < n.nRows(); i++) {
     // tensor product of velocities
     nuu(i) *= nMe(i,0)*u(i);
@@ -126,17 +126,17 @@ void WeakEquationElectronMomentumDDM::thermal_stress(const FIELD_MATS &fields,
 
   // ith velocity component has thermal stress of
   // d_i n * Cp * Te
-  DENS_MAT nCp(DTe[0].nRows(),DTe[0].nCols());  
+  DENS_MAT nCp(DTe[0].nRows(),DTe[0].nCols());
   material->electron_heat_capacity(fields,nCp);
   nCp *= 2./3.;  // correction to capacity account for convection
-  
+
   tsx += nCp.mult_by_element(DTe[0]);
   tsy += nCp.mult_by_element(DTe[1]);
   tsz += nCp.mult_by_element(DTe[2]);
-  
+
   FIELD_MATS::const_iterator tField = fields.find(ELECTRON_TEMPERATURE);
   const DENS_MAT & Te = tField->second;
-  
+
   material->D_electron_heat_capacity(fields,gradFields,_dnCp_);
   for (int i = 0; i < nsd_; i++)
     _dnCp_[i] *= 2./3.; // correction to capacity account for convection
@@ -173,7 +173,7 @@ bool WeakEquationElectronMomentumDDM::N_integrand(
   FIELD_MATS::const_iterator nField = fields.find(ELECTRON_DENSITY);
   const DENS_MAT & n = nField->second;
 
-  
+
   CLON_VEC tsx(flux,CLONE_COL,0);
   CLON_VEC tsy(flux,CLONE_COL,1);
   CLON_VEC tsz(flux,CLONE_COL,2);

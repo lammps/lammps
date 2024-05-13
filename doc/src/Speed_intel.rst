@@ -1,7 +1,7 @@
-USER-INTEL package
+INTEL package
 ==================
 
-The USER-INTEL package is maintained by Mike Brown at Intel
+The INTEL package is maintained by Mike Brown at Intel
 Corporation.  It provides two methods for accelerating simulations,
 depending on the hardware you have.  The first is acceleration on
 Intel CPUs by running in single, mixed, or double precision with
@@ -12,7 +12,7 @@ When offloading to a co-processor from a CPU, the same routine is run
 twice, once on the CPU and once with an offload flag. This allows
 LAMMPS to run on the CPU cores and co-processor cores simultaneously.
 
-Currently Available USER-INTEL Styles
+Currently Available INTEL Styles
 """""""""""""""""""""""""""""""""""""
 
 * Angle Styles: charmm, harmonic
@@ -28,7 +28,7 @@ Currently Available USER-INTEL Styles
 
 .. warning::
 
-   None of the styles in the USER-INTEL package currently
+   None of the styles in the INTEL package currently
    support computing per-atom stress.  If any compute or fix in your
    input requires it, LAMMPS will abort with an error message.
 
@@ -41,7 +41,7 @@ precision mode. Performance improvements are shown compared to
 LAMMPS *without using other acceleration packages* as these are
 under active development (and subject to performance changes). The
 measurements were performed using the input files available in
-the src/USER-INTEL/TEST directory with the provided run script.
+the src/INTEL/TEST directory with the provided run script.
 These are scalable in size; the results given are with 512K
 particles (524K for Liquid Crystal). Most of the simulations are
 standard LAMMPS benchmarks (indicated by the filename extension in
@@ -56,7 +56,7 @@ Results are speedups obtained on Intel Xeon E5-2697v4 processors
 Knights Landing), and Intel Xeon Gold 6148 processors (code-named
 Skylake) with "June 2017" LAMMPS built with Intel Parallel Studio
 2017 update 2. Results are with 1 MPI task per physical core. See
-*src/USER-INTEL/TEST/README* for the raw simulation rates and
+*src/INTEL/TEST/README* for the raw simulation rates and
 instructions to reproduce.
 
 ----------
@@ -67,11 +67,11 @@ Accuracy and order of operations
 In most molecular dynamics software, parallelization parameters
 (# of MPI, OpenMP, and vectorization) can change the results due
 to changing the order of operations with finite-precision
-calculations. The USER-INTEL package is deterministic. This means
+calculations. The INTEL package is deterministic. This means
 that the results should be reproducible from run to run with the
 *same* parallel configurations and when using deterministic
 libraries or library settings (MPI, OpenMP, FFT). However, there
-are differences in the USER-INTEL package that can change the
+are differences in the INTEL package that can change the
 order of operations compared to LAMMPS without acceleration:
 
 * Neighbor lists can be created in a different order
@@ -88,7 +88,7 @@ order of operations compared to LAMMPS without acceleration:
   Twister generator included in the Intel MKL library (that should be
   more robust than the default Masaglia random number generator)
 
-The precision mode (described below) used with the USER-INTEL
+The precision mode (described below) used with the INTEL
 package can change the *accuracy* of the calculations. For the
 default *mixed* precision option, calculations between pairs or
 triplets of atoms are performed in single precision, intended to
@@ -102,8 +102,8 @@ mode should not be used without appropriate validation.
 Quick Start for Experienced Users
 """""""""""""""""""""""""""""""""
 
-LAMMPS should be built with the USER-INTEL package installed.
-Simulations should be run with 1 MPI task per physical *core*\ ,
+LAMMPS should be built with the INTEL package installed.
+Simulations should be run with 1 MPI task per physical *core*,
 not *hardware thread*\ .
 
 * Edit src/MAKE/OPTIONS/Makefile.intel_cpu_intelmpi as necessary.
@@ -148,7 +148,7 @@ When using Intel compilers version 16.0 or later is required.
 In order to use offload to co-processors, an Intel Xeon Phi
 co-processor and an Intel compiler are required.
 
-Although any compiler can be used with the USER-INTEL package,
+Although any compiler can be used with the INTEL package,
 currently, vectorization directives are disabled by default when
 not using Intel compilers due to lack of standard support and
 observations of decreased performance. The OpenMP standard now
@@ -185,7 +185,7 @@ can start running so that the CPU pipeline is still being used
 efficiently. Although benefits can be seen by launching a MPI task
 for every hardware thread, for multinode simulations, we recommend
 that OpenMP threads are used for SMT instead, either with the
-USER-INTEL package, :doc:`USER-OMP package <Speed_omp>`, or
+INTEL package, :doc:`OPENMP package <Speed_omp>`, or
 :doc:`KOKKOS package <Speed_kokkos>`. In the example above, up
 to 36X speedups can be observed by using all 36 physical cores with
 LAMMPS. By using all 72 hardware threads, an additional 10-30%
@@ -202,10 +202,10 @@ this information can normally be obtained with:
 
    cat /proc/cpuinfo
 
-Building LAMMPS with the USER-INTEL package
+Building LAMMPS with the INTEL package
 """""""""""""""""""""""""""""""""""""""""""
 
-See the :ref:`Build extras <user-intel>` doc page for
+See the :ref:`Build extras <intel>` page for
 instructions.  Some additional details are covered here.
 
 For building with make, several example Makefiles for building with
@@ -228,7 +228,7 @@ simple as:
 
 .. code-block:: bash
 
-   make yes-user-intel
+   make yes-intel
    source /opt/intel/parallel_studio_xe_2016.3.067/psxevars.sh
    # or psxevars.csh for C-shell
    make intel_cpu_intelmpi
@@ -238,7 +238,7 @@ binary can be used on nodes with or without co-processors installed.
 However, if you do not have co-processors on your system, building
 without offload support will produce a smaller binary.
 
-The general requirements for Makefiles with the USER-INTEL package
+The general requirements for Makefiles with the INTEL package
 are as follows. When using Intel compilers, "-restrict" is required
 and "-qopenmp" is highly recommended for CCFLAGS and LINKFLAGS.
 CCFLAGS should include "-DLMP_INTEL_USELRT" (unless POSIX Threads
@@ -253,7 +253,7 @@ recommended CCFLAG options for best performance are "-O2 -fno-alias
 
 .. note::
 
-   See the src/USER-INTEL/README file for additional flags that
+   See the src/INTEL/README file for additional flags that
    might be needed for best performance on Intel server processors
    code-named "Skylake".
 
@@ -270,14 +270,14 @@ recommended CCFLAG options for best performance are "-O2 -fno-alias
    in most of the example Makefiles is to use "-xHost", however this
    should not be used when cross-compiling.
 
-Running LAMMPS with the USER-INTEL package
+Running LAMMPS with the INTEL package
 """"""""""""""""""""""""""""""""""""""""""
 
-Running LAMMPS with the USER-INTEL package is similar to normal use
+Running LAMMPS with the INTEL package is similar to normal use
 with the exceptions that one should 1) specify that LAMMPS should use
-the USER-INTEL package, 2) specify the number of OpenMP threads, and
+the INTEL package, 2) specify the number of OpenMP threads, and
 3) optionally specify the specific LAMMPS styles that should use the
-USER-INTEL package. 1) and 2) can be performed from the command-line
+INTEL package. 1) and 2) can be performed from the command-line
 or by editing the input script. 3) requires editing the input script.
 Advanced performance tuning options are also described below to get
 the best performance.
@@ -312,27 +312,27 @@ almost all cases.
    recommended, especially when running on a machine with Intel
    Hyper-Threading technology disabled.
 
-Run with the USER-INTEL package from the command line
+Run with the INTEL package from the command line
 """""""""""""""""""""""""""""""""""""""""""""""""""""
 
-To enable USER-INTEL optimizations for all available styles used in
+To enable INTEL optimizations for all available styles used in
 the input script, the "-sf intel" :doc:`command-line switch <Run_options>` can be used without any requirement for
 editing the input script. This switch will automatically append
 "intel" to styles that support it. It also invokes a default command:
 :doc:`package intel 1 <package>`. This package command is used to set
-options for the USER-INTEL package.  The default package command will
-specify that USER-INTEL calculations are performed in mixed precision,
+options for the INTEL package.  The default package command will
+specify that INTEL calculations are performed in mixed precision,
 that the number of OpenMP threads is specified by the OMP_NUM_THREADS
 environment variable, and that if co-processors are present and the
 binary was built with offload support, that 1 co-processor per node
 will be used with automatic balancing of work between the CPU and the
 co-processor.
 
-You can specify different options for the USER-INTEL package by using
+You can specify different options for the INTEL package by using
 the "-pk intel Nphi" :doc:`command-line switch <Run_options>` with
 keyword/value pairs as specified in the documentation. Here, Nphi = #
 of Xeon Phi co-processors/node (ignored without offload
-support). Common options to the USER-INTEL package include *omp* to
+support). Common options to the INTEL package include *omp* to
 override any OMP_NUM_THREADS setting and specify the number of OpenMP
 threads, *mode* to set the floating-point precision mode, and *lrt* to
 enable Long-Range Thread mode as described below. See the :doc:`package intel <package>` command for details, including the default values
@@ -348,11 +348,11 @@ launching MPI applications):
    mpirun -np 72 -ppn 36 lmp_machine -sf intel -in in.script                                 # 2 nodes, 36 MPI tasks/node, $OMP_NUM_THREADS OpenMP Threads
    mpirun -np 72 -ppn 36 lmp_machine -sf intel -in in.script -pk intel 0 omp 2 mode double   # Don't use any co-processors that might be available, use 2 OpenMP threads for each task, use double precision
 
-Or run with the USER-INTEL package by editing an input script
+Or run with the INTEL package by editing an input script
 """""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
 
 As an alternative to adding command-line arguments, the input script
-can be edited to enable the USER-INTEL package. This requires adding
+can be edited to enable the INTEL package. This requires adding
 the :doc:`package intel <package>` command to the top of the input
 script. For the second example above, this would be:
 
@@ -360,7 +360,7 @@ script. For the second example above, this would be:
 
    package intel 0 omp 2 mode double
 
-To enable the USER-INTEL package only for individual styles, you can
+To enable the INTEL package only for individual styles, you can
 add an "intel" suffix to the individual style, e.g.:
 
 .. code-block:: LAMMPS
@@ -368,7 +368,7 @@ add an "intel" suffix to the individual style, e.g.:
    pair_style lj/cut/intel 2.5
 
 Alternatively, the :doc:`suffix intel <suffix>` command can be added to
-the input script to enable USER-INTEL styles for the commands that
+the input script to enable INTEL styles for the commands that
 follow in the input script.
 
 Tuning for Performance
@@ -376,7 +376,7 @@ Tuning for Performance
 
 .. note::
 
-   The USER-INTEL package will perform better with modifications
+   The INTEL package will perform better with modifications
    to the input script when :doc:`PPPM <kspace_style>` is used:
    :doc:`kspace_modify diff ad <kspace_modify>` should be added to the
    input script.
@@ -388,7 +388,7 @@ is dedicated to performing some of the PPPM calculations and MPI
 communications. This feature requires setting the pre-processor flag
 -DLMP_INTEL_USELRT in the makefile when compiling LAMMPS. It is unset
 in the default makefiles (\ *Makefile.mpi* and *Makefile.serial*\ ) but
-it is set in all makefiles tuned for the USER-INTEL package.  On Intel
+it is set in all makefiles tuned for the INTEL package.  On Intel
 Xeon Phi x200 series CPUs, the LRT feature will likely improve
 performance, even on a single node. On Intel Xeon processors, using
 this mode might result in better performance when using multiple nodes,
@@ -407,9 +407,9 @@ when using offload.
    performance and/or scalability for simple 2-body potentials such as
    lj/cut or when using LRT mode on processors supporting AVX-512.
 
-Not all styles are supported in the USER-INTEL package. You can mix
-the USER-INTEL package with styles from the :doc:`OPT <Speed_opt>`
-package or the :doc:`USER-OMP package <Speed_omp>`. Of course, this
+Not all styles are supported in the INTEL package. You can mix
+the INTEL package with styles from the :doc:`OPT <Speed_opt>`
+package or the :doc:`OPENMP package <Speed_omp>`. Of course, this
 requires that these packages were installed at build time. This can
 performed automatically by using "-sf hybrid intel opt" or "-sf hybrid
 intel omp" command-line options. Alternatively, the "opt" and "omp"
@@ -420,7 +420,7 @@ where Nt is the number of OpenMP threads. The number of OpenMP threads
 should not be set differently for the different packages. Note that
 the :doc:`suffix hybrid intel omp <suffix>` command can also be used
 within the input script to automatically append the "omp" suffix to
-styles when USER-INTEL styles are not available.
+styles when INTEL styles are not available.
 
 .. note::
 
@@ -492,7 +492,7 @@ tuning of the number of threads to use per MPI task or the number of
 threads to use per core can be accomplished with keyword settings of
 the :doc:`package intel <package>` command.
 
-The USER-INTEL package has two modes for deciding which atoms will be
+The INTEL package has two modes for deciding which atoms will be
 handled by the co-processor.  This choice is controlled with the *ghost*
 keyword of the :doc:`package intel <package>` command.  When set to 0,
 ghost atoms (atoms at the borders between MPI tasks) are not offloaded
@@ -528,7 +528,7 @@ accelerated style may be used with hybrid styles when offloading.
 :doc:`Special_bonds <special_bonds>` exclusion lists are not currently
 supported with offload, however, the same effect can often be
 accomplished by setting cutoffs for excluded atom types to 0.  None of
-the pair styles in the USER-INTEL package currently support the
+the pair styles in the INTEL package currently support the
 "inner", "middle", "outer" options for rRESPA integration via the
 :doc:`run_style respa <run_style>` command; only the "pair" option is
 supported.
@@ -536,6 +536,6 @@ supported.
 References
 """"""""""
 
-* Brown, W.M., Carrillo, J.-M.Y., Mishra, B., Gavhane, N., Thakkar, F.M., De Kraker, A.R., Yamada, M., Ang, J.A., Plimpton, S.J., "Optimizing Classical Molecular Dynamics in LAMMPS," in Intel Xeon Phi Processor High Performance Programming: Knights Landing Edition, J. Jeffers, J. Reinders, A. Sodani, Eds. Morgan Kaufmann.
-* Brown, W. M., Semin, A., Hebenstreit, M., Khvostov, S., Raman, K., Plimpton, S.J. `Increasing Molecular Dynamics Simulation Rates with an 8-Fold Increase in Electrical Power Efficiency. <http://dl.acm.org/citation.cfm?id=3014915>`_ 2016 High Performance Computing, Networking, Storage and Analysis, SC16: International Conference (pp. 82-95).
+* Brown, W.M., Carrillo, J.-M.Y., Mishra, B., Gavhane, N., Thakkar, F.M., De Kraker, A.R., Yamada, M., Ang, J.A., Plimpton, S.J., "Optimizing Classical Molecular Dynamics in LAMMPS", in Intel Xeon Phi Processor High Performance Programming: Knights Landing Edition, J. Jeffers, J. Reinders, A. Sodani, Eds. Morgan Kaufmann.
+* Brown, W. M., Semin, A., Hebenstreit, M., Khvostov, S., Raman, K., Plimpton, S.J. `Increasing Molecular Dynamics Simulation Rates with an 8-Fold Increase in Electrical Power Efficiency. <https://dl.acm.org/citation.cfm?id=3014915>`_ 2016 High Performance Computing, Networking, Storage and Analysis, SC16: International Conference (pp. 82-95).
 * Brown, W.M., Carrillo, J.-M.Y., Gavhane, N., Thakkar, F.M., Plimpton, S.J. Optimizing Legacy Molecular Dynamics Software with Directive-Based Offload. Computer Physics Communications. 2015. 195: p. 95-101.

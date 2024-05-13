@@ -16,30 +16,30 @@ Syntax
 
      keyword = *delay* or *every* or *check* or *once* or *cluster* or *include* or *exclude* or *page* or *one* or *binsize* or *collection/type* or *collection/interval*
        *delay* value = N
-         N = delay building until this many steps since last build
+         N = delay building neighbor lists until this many steps since last build
        *every* value = M
-         M = build neighbor list every this many steps
+         M = consider building neighbor lists every this many steps
        *check* value = *yes* or *no*
-         *yes* = only build if some atom has moved half the skin distance or more
-         *no* = always build on 1st step that *every* and *delay* are satisfied
-       *once*
+         *yes* = only build if at least one atom has moved half the skin distance or more
+         *no* = always build on 1st step where *every* and *delay* are conditions are satisfied
+       *once* value = *yes* or *no*
          *yes* = only build neighbor list once at start of run and never rebuild
          *no* = rebuild neighbor list according to other settings
-       *cluster*
+       *cluster* value = *yes* or *no*
          *yes* = check bond,angle,etc neighbor list for nearby clusters
          *no* = do not check bond,angle,etc neighbor list for nearby clusters
        *include* value = group-ID
          group-ID = only build pair neighbor lists for atoms in this group
        *exclude* values:
-         type M N
+         *type* M N
            M,N = exclude if one atom in pair is type M, other is type N
-         group group1-ID group2-ID
+         *group* group1-ID group2-ID
            group1-ID,group2-ID = exclude if one atom is in 1st group, other in 2nd
-         molecule/intra group-ID
+         *molecule/intra* group-ID
            group-ID = exclude if both atoms are in the same molecule and in group
-         molecule/inter group-ID
+         *molecule/inter* group-ID
            group-ID = exclude if both atoms are in different molecules and in group
-         none
+         *none*
            delete all exclude settings
        *page* value = N
          N = number of pairs stored in a single neighbor page
@@ -71,30 +71,53 @@ Description
 """""""""""
 
 This command sets parameters that affect the building and use of
-pairwise neighbor lists.  Depending on what pair interactions and
-other commands are defined, a simulation may require one or more
-neighbor lists.
+pairwise neighbor lists.  Depending on what pair interactions and other
+commands are defined, a simulation may require one or more neighbor
+lists.
 
-The *every*\ , *delay*\ , *check*\ , and *once* options affect how often
-lists are built as a simulation runs.  The *delay* setting means never
-build new lists until at least N steps after the previous build.  The
-*every* setting means build lists every M steps (after the delay has
-passed).  If the *check* setting is *no*\ , the lists are built on the
+The *every*, *delay*, *check*, and *once* options affect how often lists
+are built as a simulation runs.  The *delay* setting means never build
+new lists until at least N steps after the previous build.  The *every*
+setting means attempt to build lists every M steps (after the delay has
+passed).  If the *check* setting is *no*, the lists are built on the
 first step that satisfies the *delay* and *every* settings.  If the
-*check* setting is *yes*\ , then the *every* and *delay* settings
+*check* setting is *yes*, then the *every* and *delay* settings
 determine when a build may possibly be performed, but an actual build
-only occurs if some atom has moved more than half the skin distance
-(specified in the :doc:`neighbor <neighbor>` command) since the last
-build.
+only occurs if at least one atom has moved more than half the neighbor
+skin distance (specified in the :doc:`neighbor <neighbor>` command)
+since the last neighbor list build.
 
-If the *once* setting is yes, then the neighbor list is only built
-once at the beginning of each run, and never rebuilt, except on steps
-when a restart file is written, or steps when a fix forces a rebuild
-to occur (e.g. fixes that create or delete atoms, such as :doc:`fix deposit <fix_deposit>` or :doc:`fix evaporate <fix_evaporate>`).
-This setting should only be made if you are certain atoms will not
-move far enough that the neighbor list should be rebuilt, e.g. running
-a simulation of a cold crystal.  Note that it is not that expensive to
-check if neighbor lists should be rebuilt.
+.. admonition:: Impact of neighbor list settings
+   :class: note
+
+   The choice of neighbor list settings can have a significant impact on
+   the (parallel) performance of LAMMPS and the correctness of the
+   simulation results.  Since building the neighbor lists is time
+   consuming, doing it less frequently can speed up a calculation.  If
+   the lists are rebuilt too infrequently, however, interacting pairs
+   may be missing and thus the resulting pairwise interactions
+   incorrect.  The optimal settings depend on many factors like the
+   properties of the simulated system (density, geometry, topology,
+   temperature, pressure), the force field parameters and settings, the
+   size of the timestep, neighbor list skin distance and more.  The
+   default settings are chosen to be very conservative to guarantee
+   correctness of the simulation.  They depend on the *check* flag
+   heuristics to reduce the number of neighbor list rebuilds at a minor
+   expense for executing the check.  Determining the correctness of a
+   specific choice of neighbor list settings is complicated by the fact
+   that a neighbor list rebuild changes the order in which pairwise
+   interactions are computed and thus
+   - due to the limitations of floating-point math - the trajectory.
+
+If the *once* setting is yes, then the neighbor list is only built once
+at the beginning of each run, and never rebuilt, except on steps when a
+restart file is written, or steps when a fix forces a rebuild to occur
+(e.g. fixes that create or delete atoms, such as :doc:`fix deposit
+<fix_deposit>` or :doc:`fix evaporate <fix_evaporate>`).  This setting
+should only be made if you are certain atoms will not move far enough
+that the neighbor list should be rebuilt, e.g. running a simulation of a
+cold crystal.  Note that it is not that expensive to check if neighbor
+lists should be rebuilt.
 
 When the rRESPA integrator is used (see the :doc:`run_style <run_style>`
 command), the *every* and *delay* parameters refer to the longest
@@ -104,7 +127,7 @@ The *cluster* option does a sanity test every time neighbor lists are
 built for bond, angle, dihedral, and improper interactions, to check
 that each set of 2, 3, or 4 atoms is a cluster of nearby atoms.  It
 does this by computing the distance between pairs of atoms in the
-interaction and insuring they are not further apart than half the
+interaction and ensuring they are not further apart than half the
 periodic box length.  If they are, an error is generated, since the
 interaction would be computed between far-away atoms instead of their
 nearby periodic images.  The only way this should happen is if the
@@ -112,7 +135,7 @@ pairwise cutoff is so short that atoms that are part of the same
 interaction are not communicated as ghost atoms.  This is an unusual
 model (e.g. no pair interactions at all) and the problem can be fixed
 by use of the :doc:`comm_modify cutoff <comm_modify>` command.  Note
-that to save time, the default *cluster* setting is *no*\ , so that this
+that to save time, the default *cluster* setting is *no*, so that this
 check is not performed.
 
 The *include* option limits the building of pairwise neighbor lists to
@@ -234,14 +257,14 @@ depend on their atom type.
 Restrictions
 """"""""""""
 
-If the "delay" setting is non-zero, then it must be a multiple of the
-"every" setting.
+If the *delay* setting is non-zero, then it must be a multiple of the
+*every* setting.
 
-The molecule/intra and molecule/inter exclude options can only be used
-with atom styles that define molecule IDs.
+The *molecule/intra* and *molecule/inter* exclusion options can only
+be used with atom styles that define molecule IDs.
 
 The value of the *page* setting must be at least 10x larger than the
-*one* setting.  This insures neighbor pages are not mostly empty
+*one* setting.  This ensures neighbor pages are not mostly empty
 space.
 
 Related commands
@@ -252,6 +275,6 @@ Related commands
 Default
 """""""
 
-The option defaults are delay = 10, every = 1, check = yes, once = no,
+The option defaults are delay = 0, every = 1, check = yes, once = no,
 cluster = no, include = all (same as no include option defined),
 exclude = none, page = 100000, one = 2000, and binsize = 0.0.

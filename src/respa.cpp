@@ -1,8 +1,7 @@
-// clang-format off
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    https://www.lammps.org/, Sandia National Laboratories
-   Steve Plimpton, sjplimp@sandia.gov
+   LAMMPS development team: developers@lammps.org
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
@@ -46,23 +45,22 @@ using namespace LAMMPS_NS;
 /* ---------------------------------------------------------------------- */
 
 Respa::Respa(LAMMPS *lmp, int narg, char **arg) :
-  Integrate(lmp, narg, arg),
-  step(nullptr), loop(nullptr), hybrid_level(nullptr), hybrid_compute(nullptr),
-  newton(nullptr), fix_respa(nullptr)
+    Integrate(lmp, narg, arg), step(nullptr), loop(nullptr), hybrid_level(nullptr),
+    hybrid_compute(nullptr), newton(nullptr), fix_respa(nullptr)
 {
   nhybrid_styles = 0;
-  if (narg < 1) error->all(FLERR,"Illegal run_style respa command");
+  if (narg < 1) error->all(FLERR, "Illegal run_style respa command");
 
-  nlevels = utils::inumeric(FLERR,arg[0],false,lmp);
-  if (nlevels < 1) error->all(FLERR,"Respa levels must be >= 1");
+  nlevels = utils::inumeric(FLERR, arg[0], false, lmp);
+  if (nlevels < 1) error->all(FLERR, "Respa levels must be >= 1");
 
-  if (narg < nlevels) error->all(FLERR,"Illegal run_style respa command");
+  if (narg < nlevels) error->all(FLERR, "Illegal run_style respa command");
   loop = new int[nlevels];
   for (int iarg = 1; iarg < nlevels; iarg++) {
-    loop[iarg-1] = utils::inumeric(FLERR,arg[iarg],false,lmp);
-    if (loop[iarg-1] <= 0) error->all(FLERR,"Illegal run_style respa command");
+    loop[iarg - 1] = utils::inumeric(FLERR, arg[iarg], false, lmp);
+    if (loop[iarg - 1] <= 0) error->all(FLERR, "Illegal run_style respa command");
   }
-  loop[nlevels-1] = 1;
+  loop[nlevels - 1] = 1;
 
   // set level at which each force is computed
   // argument settings override defaults
@@ -79,87 +77,86 @@ Respa::Respa(LAMMPS *lmp, int narg, char **arg) :
 
   int iarg = nlevels;
   while (iarg < narg) {
-    if (strcmp(arg[iarg],"bond") == 0) {
-      if (iarg+2 > narg) error->all(FLERR,"Illegal run_style respa command");
-      level_bond = utils::inumeric(FLERR,arg[iarg+1],false,lmp) - 1;
+    if (strcmp(arg[iarg], "bond") == 0) {
+      if (iarg + 2 > narg) error->all(FLERR, "Illegal run_style respa command");
+      level_bond = utils::inumeric(FLERR, arg[iarg + 1], false, lmp) - 1;
       iarg += 2;
-    } else if (strcmp(arg[iarg],"angle") == 0) {
-      if (iarg+2 > narg) error->all(FLERR,"Illegal run_style respa command");
-      level_angle = utils::inumeric(FLERR,arg[iarg+1],false,lmp) - 1;
+    } else if (strcmp(arg[iarg], "angle") == 0) {
+      if (iarg + 2 > narg) error->all(FLERR, "Illegal run_style respa command");
+      level_angle = utils::inumeric(FLERR, arg[iarg + 1], false, lmp) - 1;
       iarg += 2;
-    } else if (strcmp(arg[iarg],"dihedral") == 0) {
-      if (iarg+2 > narg) error->all(FLERR,"Illegal run_style respa command");
-      level_dihedral = utils::inumeric(FLERR,arg[iarg+1],false,lmp) - 1;
+    } else if (strcmp(arg[iarg], "dihedral") == 0) {
+      if (iarg + 2 > narg) error->all(FLERR, "Illegal run_style respa command");
+      level_dihedral = utils::inumeric(FLERR, arg[iarg + 1], false, lmp) - 1;
       iarg += 2;
-    } else if (strcmp(arg[iarg],"improper") == 0) {
-      if (iarg+2 > narg) error->all(FLERR,"Illegal run_style respa command");
-      level_improper = utils::inumeric(FLERR,arg[iarg+1],false,lmp) - 1;
+    } else if (strcmp(arg[iarg], "improper") == 0) {
+      if (iarg + 2 > narg) error->all(FLERR, "Illegal run_style respa command");
+      level_improper = utils::inumeric(FLERR, arg[iarg + 1], false, lmp) - 1;
       iarg += 2;
-    } else if (strcmp(arg[iarg],"pair") == 0) {
-      if (iarg+2 > narg) error->all(FLERR,"Illegal run_style respa command");
-      level_pair = utils::inumeric(FLERR,arg[iarg+1],false,lmp) - 1;
+    } else if (strcmp(arg[iarg], "pair") == 0) {
+      if (iarg + 2 > narg) error->all(FLERR, "Illegal run_style respa command");
+      level_pair = utils::inumeric(FLERR, arg[iarg + 1], false, lmp) - 1;
       iarg += 2;
-    } else if (strcmp(arg[iarg],"inner") == 0) {
-      if (iarg+4 > narg) error->all(FLERR,"Illegal run_style respa command");
-      level_inner = utils::inumeric(FLERR,arg[iarg+1],false,lmp) - 1;
-      cutoff[0] = utils::numeric(FLERR,arg[iarg+2],false,lmp);
-      cutoff[1] = utils::numeric(FLERR,arg[iarg+3],false,lmp);
+    } else if (strcmp(arg[iarg], "inner") == 0) {
+      if (iarg + 4 > narg) error->all(FLERR, "Illegal run_style respa command");
+      level_inner = utils::inumeric(FLERR, arg[iarg + 1], false, lmp) - 1;
+      cutoff[0] = utils::numeric(FLERR, arg[iarg + 2], false, lmp);
+      cutoff[1] = utils::numeric(FLERR, arg[iarg + 3], false, lmp);
       iarg += 4;
-    } else if (strcmp(arg[iarg],"middle") == 0) {
-      if (iarg+4 > narg) error->all(FLERR,"Illegal run_style respa command");
-      level_middle = utils::inumeric(FLERR,arg[iarg+1],false,lmp) - 1;
-      cutoff[2] = utils::numeric(FLERR,arg[iarg+2],false,lmp);
-      cutoff[3] = utils::numeric(FLERR,arg[iarg+3],false,lmp);
+    } else if (strcmp(arg[iarg], "middle") == 0) {
+      if (iarg + 4 > narg) error->all(FLERR, "Illegal run_style respa command");
+      level_middle = utils::inumeric(FLERR, arg[iarg + 1], false, lmp) - 1;
+      cutoff[2] = utils::numeric(FLERR, arg[iarg + 2], false, lmp);
+      cutoff[3] = utils::numeric(FLERR, arg[iarg + 3], false, lmp);
       iarg += 4;
-    } else if (strcmp(arg[iarg],"outer") == 0) {
-      if (iarg+2 > narg) error->all(FLERR,"Illegal run_style respa command");
-      level_outer = utils::inumeric(FLERR,arg[iarg+1],false,lmp) - 1;
+    } else if (strcmp(arg[iarg], "outer") == 0) {
+      if (iarg + 2 > narg) error->all(FLERR, "Illegal run_style respa command");
+      level_outer = utils::inumeric(FLERR, arg[iarg + 1], false, lmp) - 1;
       iarg += 2;
-    } else if (strcmp(arg[iarg],"kspace") == 0) {
-      if (iarg+2 > narg) error->all(FLERR,"Illegal run_style respa command");
-      level_kspace = utils::inumeric(FLERR,arg[iarg+1],false,lmp) - 1;
+    } else if (strcmp(arg[iarg], "kspace") == 0) {
+      if (iarg + 2 > narg) error->all(FLERR, "Illegal run_style respa command");
+      level_kspace = utils::inumeric(FLERR, arg[iarg + 1], false, lmp) - 1;
       iarg += 2;
-    } else if (strcmp(arg[iarg],"hybrid") == 0) {
+    } else if (strcmp(arg[iarg], "hybrid") == 0) {
       // the hybrid keyword requires a hybrid pair style
-      if (!utils::strmatch(force->pair_style,"^hybrid"))
-        error->all(FLERR,"Illegal run_style respa command");
-      PairHybrid *hybrid = (PairHybrid *) force->pair;
+      if (!utils::strmatch(force->pair_style, "^hybrid"))
+        error->all(FLERR, "Illegal run_style respa command");
+      auto hybrid = dynamic_cast<PairHybrid *>(force->pair);
       nhybrid_styles = hybrid->nstyles;
       // each hybrid sub-style needs to be assigned to a respa level
-      if (iarg+nhybrid_styles > narg)
-        error->all(FLERR,"Illegal run_style respa command");
+      if (iarg + nhybrid_styles > narg) error->all(FLERR, "Illegal run_style respa command");
       hybrid_level = new int[nhybrid_styles];
       hybrid_compute = new int[nhybrid_styles];
-      for (int i=0; i < nhybrid_styles; ++i) {
+      for (int i = 0; i < nhybrid_styles; ++i) {
         ++iarg;
-        hybrid_level[i] = utils::inumeric(FLERR,arg[iarg],false,lmp)-1;
+        hybrid_level[i] = utils::inumeric(FLERR, arg[iarg], false, lmp) - 1;
       }
       ++iarg;
-    } else error->all(FLERR,"Illegal run_style respa command");
+    } else
+      error->all(FLERR, "Illegal run_style respa command");
   }
 
   // cannot specify both pair and inner/middle/outer
 
-  if (level_pair >= 0 &&
-      (level_inner >= 0 || level_middle >= 0 || level_outer >= 0))
-    error->all(FLERR,"Cannot set both respa pair and inner/middle/outer");
+  if (level_pair >= 0 && (level_inner >= 0 || level_middle >= 0 || level_outer >= 0))
+    error->all(FLERR, "Cannot set both respa pair and inner/middle/outer");
 
   // if either inner and outer is specified, then both must be
 
-  if ((level_inner >= 0 && level_outer == -1) ||
-      (level_outer >= 0 && level_inner == -1))
-    error->all(FLERR,"Must set both respa inner and outer");
+  if ((level_inner >= 0 && level_outer == -1) || (level_outer >= 0 && level_inner == -1))
+    error->all(FLERR, "Must set both respa inner and outer");
 
   // middle cannot be set without inner/outer
 
   if (level_middle >= 0 && level_inner == -1)
-    error->all(FLERR,"Cannot set respa middle without inner/outer");
+    error->all(FLERR, "Cannot set respa middle without inner/outer");
 
   // cannot combine hybrid with any of pair/inner/middle/outer
 
-  if ((nhybrid_styles > 0) && (level_pair >= 0 || level_inner >= 0
-                               || level_middle >= 0 || level_outer >= 0))
-    error->all(FLERR,"Cannot set respa hybrid and "
+  if ((nhybrid_styles > 0) &&
+      (level_pair >= 0 || level_inner >= 0 || level_middle >= 0 || level_outer >= 0))
+    error->all(FLERR,
+               "Cannot set respa hybrid and "
                "any of pair/inner/middle/outer");
 
   // set defaults if user did not specify level
@@ -174,8 +171,7 @@ Respa::Respa(LAMMPS *lmp, int narg, char **arg) :
   if (level_dihedral == -1) level_dihedral = level_angle;
   if (level_improper == -1) level_improper = level_dihedral;
 
-  if (level_pair == -1 && level_inner == -1 && nhybrid_styles < 1)
-    level_pair = nlevels-1;
+  if (level_pair == -1 && level_inner == -1 && nhybrid_styles < 1) level_pair = nlevels - 1;
 
   if (level_kspace == -1 && level_pair >= 0) level_kspace = level_pair;
   if (level_kspace == -1 && level_pair == -1) {
@@ -183,9 +179,8 @@ Respa::Respa(LAMMPS *lmp, int narg, char **arg) :
       level_kspace = level_outer;
     } else {
       int max_hybrid_level = -1;
-      for (int i=0; i < nhybrid_styles; ++i) {
-        if (max_hybrid_level < hybrid_level[i])
-          max_hybrid_level = hybrid_level[i];
+      for (int i = 0; i < nhybrid_styles; ++i) {
+        if (max_hybrid_level < hybrid_level[i]) max_hybrid_level = hybrid_level[i];
       }
       level_kspace = max_hybrid_level;
     }
@@ -196,59 +191,57 @@ Respa::Respa(LAMMPS *lmp, int narg, char **arg) :
   if (comm->me == 0) {
     std::string mesg = "Respa levels:\n";
     for (int i = 0; i < nlevels; i++) {
-      mesg += fmt::format("  {} =",i+1);
-      if (level_bond == i)      mesg += " bond";
-      if (level_angle == i)     mesg += " angle";
-      if (level_dihedral == i)  mesg += " dihedral";
-      if (level_improper == i)  mesg += " improper";
-      if (level_pair == i)      mesg += " pair";
-      if (level_inner == i)     mesg += " pair-inner";
-      if (level_middle == i)    mesg += " pair-middle";
-      if (level_outer == i)     mesg += " pair-outer";
-      for (int j=0; j < nhybrid_styles; j++)
-        if (hybrid_level[j] == i) mesg += fmt::format(" hybrid-{}",j+1);
-      if (level_kspace == i)    mesg += " kspace";
+      mesg += fmt::format("  {} =", i + 1);
+      if (level_bond == i) mesg += " bond";
+      if (level_angle == i) mesg += " angle";
+      if (level_dihedral == i) mesg += " dihedral";
+      if (level_improper == i) mesg += " improper";
+      if (level_pair == i) mesg += " pair";
+      if (level_inner == i) mesg += " pair-inner";
+      if (level_middle == i) mesg += " pair-middle";
+      if (level_outer == i) mesg += " pair-outer";
+      for (int j = 0; j < nhybrid_styles; j++)
+        if (hybrid_level[j] == i) mesg += fmt::format(" hybrid-{}", j + 1);
+      if (level_kspace == i) mesg += " kspace";
       mesg += "\n";
     }
-    utils::logmesg(lmp,mesg);
+    utils::logmesg(lmp, mesg);
   }
 
   // check that levels are in correct order
 
-  if (level_angle < level_bond || level_dihedral < level_angle ||
-      level_improper < level_dihedral)
-    error->all(FLERR,"Invalid order of forces within respa levels");
+  if (level_angle < level_bond || level_dihedral < level_angle || level_improper < level_dihedral)
+    error->all(FLERR, "Invalid order of forces within respa levels");
   if (level_pair >= 0) {
     if (level_pair < level_improper || level_kspace < level_pair)
-      error->all(FLERR,"Invalid order of forces within respa levels");
+      error->all(FLERR, "Invalid order of forces within respa levels");
   }
   if (level_pair == -1 && level_middle == -1 && nhybrid_styles < 1) {
-    if (level_inner < level_improper || level_outer < level_inner ||
-        level_kspace < level_outer)
-      error->all(FLERR,"Invalid order of forces within respa levels");
+    if (level_inner < level_improper || level_outer < level_inner || level_kspace < level_outer)
+      error->all(FLERR, "Invalid order of forces within respa levels");
   }
   if (level_pair == -1 && level_middle >= 0) {
-    if (level_inner < level_improper || level_middle < level_inner ||
-        level_outer < level_inner || level_kspace < level_outer)
-      error->all(FLERR,"Invalid order of forces within respa levels");
+    if (level_inner < level_improper || level_middle < level_inner || level_outer < level_inner ||
+        level_kspace < level_outer)
+      error->all(FLERR, "Invalid order of forces within respa levels");
   }
 
   // warn if any levels are devoid of forces
 
   int flag = 0;
   for (int i = 0; i < nlevels; i++)
-    if (level_bond != i && level_angle != i && level_dihedral != i &&
-        level_improper != i && level_pair != i && level_inner != i &&
-        level_middle != i && level_outer != i && level_kspace != i) flag = 1;
-  if (flag && comm->me == 0)
-    error->warning(FLERR,"One or more respa levels compute no forces");
+    if (level_bond != i && level_angle != i && level_dihedral != i && level_improper != i &&
+        level_pair != i && level_inner != i && level_middle != i && level_outer != i &&
+        level_kspace != i)
+      flag = 1;
+  if (flag && comm->me == 0) error->warning(FLERR, "One or more respa levels compute no forces");
 
   // check cutoff consistency if inner/middle/outer are enabled
 
   if (level_inner >= 0 && cutoff[1] < cutoff[0])
-    error->all(FLERR,"Respa inner cutoffs are invalid");
+    error->all(FLERR, "Respa inner cutoffs are invalid");
   if (level_middle >= 0 && (cutoff[3] < cutoff[2] || cutoff[2] < cutoff[1]))
-    error->all(FLERR,"Respa middle cutoffs are invalid");
+    error->all(FLERR, "Respa middle cutoffs are invalid");
 
   // set outer pair of cutoffs to inner pair if middle is not enabled
 
@@ -275,12 +268,12 @@ Respa::Respa(LAMMPS *lmp, int narg, char **arg) :
 
 Respa::~Respa()
 {
-  delete [] loop;
-  delete [] newton;
-  delete [] step;
+  delete[] loop;
+  delete[] newton;
+  delete[] step;
   if (nhybrid_styles > 0) {
-    delete [] hybrid_level;
-    delete [] hybrid_compute;
+    delete[] hybrid_level;
+    delete[] hybrid_compute;
   }
 }
 
@@ -295,22 +288,21 @@ void Respa::init()
   // warn if no fixes
 
   if (modify->nfix == 0 && comm->me == 0)
-    error->warning(FLERR,"No fixes defined, atoms won't move");
+    error->warning(FLERR, "No fixes defined, atoms won't move");
 
   // create fix needed for storing atom-based respa level forces
   // will delete it at end of run
   // if supported, we also store torques on a per-level basis
 
-  std::string cmd = fmt::format("RESPA all RESPA {}",nlevels);
-  if (atom->torque_flag) modify->add_fix(cmd + " torque");
-  else modify->add_fix(cmd);
-  fix_respa = (FixRespa *) modify->fix[modify->nfix-1];
+  std::string cmd = fmt::format("RESPA all RESPA {}", nlevels);
+  if (atom->torque_flag) cmd += " torque";
+  fix_respa = dynamic_cast<FixRespa *>(modify->add_fix(cmd));
 
-  // insure respa inner/middle/outer is using Pair class that supports it
+  // ensure respa inner/middle/outer is using Pair class that supports it
 
   if (level_inner >= 0)
     if (force->pair && force->pair->respa_enable == 0)
-      error->all(FLERR,"Pair style does not support rRESPA inner/middle/outer");
+      error->all(FLERR, "Pair style does not support rRESPA inner/middle/outer");
 
   // virial_style = VIRIAL_PAIR (explicit)
   //   since never computed implicitly with virial_fdotr_compute() like Verlet
@@ -323,8 +315,7 @@ void Respa::init()
 
   // detect if fix omp is present and will clear force arrays
 
-  int ifix = modify->find_fix("package_omp");
-  if (ifix >= 0) external_force_clear = 1;
+  if (modify->get_fix_by_id("package_omp")) external_force_clear = 1;
 
   // set flags for arrays to clear in force_clear()
 
@@ -334,22 +325,22 @@ void Respa::init()
 
   // step[] = timestep for each level
 
-  step[nlevels-1] = update->dt;
-  for (int ilevel = nlevels-2; ilevel >= 0; ilevel--)
-    step[ilevel] = step[ilevel+1]/loop[ilevel];
+  step[nlevels - 1] = update->dt;
+  for (int ilevel = nlevels - 2; ilevel >= 0; ilevel--)
+    step[ilevel] = step[ilevel + 1] / loop[ilevel];
 
   // set newton flag for each level
 
   for (int ilevel = 0; ilevel < nlevels; ilevel++) {
     newton[ilevel] = 0;
     if (force->newton_bond) {
-      if (level_bond == ilevel || level_angle == ilevel ||
-          level_dihedral == ilevel || level_improper == ilevel)
+      if (level_bond == ilevel || level_angle == ilevel || level_dihedral == ilevel ||
+          level_improper == ilevel)
         newton[ilevel] = 1;
     }
     if (force->newton_pair) {
-      if (level_pair == ilevel || level_inner == ilevel ||
-          level_middle == ilevel || level_outer == ilevel)
+      if (level_pair == ilevel || level_inner == ilevel || level_middle == ilevel ||
+          level_outer == ilevel)
         newton[ilevel] = 1;
 
       if (nhybrid_styles > 0) {
@@ -373,23 +364,21 @@ void Respa::setup(int flag)
   if (comm->me == 0 && screen) {
     std::string mesg = "Setting up r-RESPA run ...\n";
     if (flag) {
-      mesg += fmt::format("  Unit style    : {}\n",update->unit_style);
+      mesg += fmt::format("  Unit style    : {}\n", update->unit_style);
       mesg += fmt::format("  Current step  : {}\n", update->ntimestep);
 
       mesg += "  Time steps    :";
-      for (int ilevel=0; ilevel < nlevels; ++ilevel)
-        mesg += fmt::format(" {}:{}",ilevel+1, step[ilevel]);
+      for (int ilevel = 0; ilevel < nlevels; ++ilevel)
+        mesg += fmt::format(" {}:{}", ilevel + 1, step[ilevel]);
 
       mesg += "\n  r-RESPA fixes :";
-      for (int l=0; l < modify->n_post_force_respa; ++l) {
-        Fix *f = modify->fix[modify->list_post_force_respa[l]];
+      for (int l = 0; l < modify->n_post_force_respa; ++l) {
+        Fix *f = modify->get_fix_by_index(modify->list_post_force_respa[l]);
         if (f->respa_level >= 0)
-          mesg += fmt::format(" {}:{}[{}]",
-                              MIN(f->respa_level+1,nlevels),
-                              f->style,f->id);
+          mesg += fmt::format(" {}:{}[{}]", MIN(f->respa_level + 1, nlevels), f->style, f->id);
       }
       mesg += "\n";
-      fputs(mesg.c_str(),screen);
+      fputs(mesg.c_str(), screen);
       timer->print_timeout(screen);
     }
   }
@@ -410,7 +399,7 @@ void Respa::setup(int flag)
   comm->exchange();
   if (atom->sortfreq > 0) atom->sort();
   comm->borders();
-  if (triclinic) domain->lamda2x(atom->nlocal+atom->nghost);
+  if (triclinic) domain->lamda2x(atom->nlocal + atom->nghost);
   domain->image_check();
   domain->box_too_small_check();
   modify->setup_pre_neighbor();
@@ -424,35 +413,27 @@ void Respa::setup(int flag)
   ev_set(update->ntimestep);
 
   for (int ilevel = 0; ilevel < nlevels; ilevel++) {
-    force_clear(newton[ilevel]);
-    modify->setup_pre_force_respa(vflag,ilevel);
+    force_clear();
+    modify->setup_pre_force_respa(vflag, ilevel);
 
     if (nhybrid_styles > 0) {
       set_compute_flags(ilevel);
-      force->pair->compute(eflag,vflag);
+      force->pair->compute(eflag, vflag);
     }
-    if (level_pair == ilevel && pair_compute_flag)
-      force->pair->compute(eflag,vflag);
-    if (level_inner == ilevel && pair_compute_flag)
-      force->pair->compute_inner();
-    if (level_middle == ilevel && pair_compute_flag)
-      force->pair->compute_middle();
-    if (level_outer == ilevel && pair_compute_flag)
-      force->pair->compute_outer(eflag,vflag);
-    if (level_bond == ilevel && force->bond)
-      force->bond->compute(eflag,vflag);
-    if (level_angle == ilevel && force->angle)
-      force->angle->compute(eflag,vflag);
-    if (level_dihedral == ilevel && force->dihedral)
-      force->dihedral->compute(eflag,vflag);
-    if (level_improper == ilevel && force->improper)
-      force->improper->compute(eflag,vflag);
+    if (level_pair == ilevel && pair_compute_flag) force->pair->compute(eflag, vflag);
+    if (level_inner == ilevel && pair_compute_flag) force->pair->compute_inner();
+    if (level_middle == ilevel && pair_compute_flag) force->pair->compute_middle();
+    if (level_outer == ilevel && pair_compute_flag) force->pair->compute_outer(eflag, vflag);
+    if (level_bond == ilevel && force->bond) force->bond->compute(eflag, vflag);
+    if (level_angle == ilevel && force->angle) force->angle->compute(eflag, vflag);
+    if (level_dihedral == ilevel && force->dihedral) force->dihedral->compute(eflag, vflag);
+    if (level_improper == ilevel && force->improper) force->improper->compute(eflag, vflag);
     if (level_kspace == ilevel && force->kspace) {
       force->kspace->setup();
-      if (kspace_compute_flag) force->kspace->compute(eflag,vflag);
+      if (kspace_compute_flag) force->kspace->compute(eflag, vflag);
     }
 
-    modify->setup_pre_reverse(eflag,vflag);
+    modify->setup_pre_reverse(eflag, vflag);
     if (newton[ilevel]) comm->reverse_comm();
     copy_f_flevel(ilevel);
   }
@@ -486,7 +467,7 @@ void Respa::setup_minimal(int flag)
     if (neighbor->style) neighbor->setup_bins();
     comm->exchange();
     comm->borders();
-    if (triclinic) domain->lamda2x(atom->nlocal+atom->nghost);
+    if (triclinic) domain->lamda2x(atom->nlocal + atom->nghost);
     domain->image_check();
     domain->box_too_small_check();
     modify->setup_pre_neighbor();
@@ -500,36 +481,28 @@ void Respa::setup_minimal(int flag)
   ev_set(update->ntimestep);
 
   for (int ilevel = 0; ilevel < nlevels; ilevel++) {
-    force_clear(newton[ilevel]);
-    modify->setup_pre_force_respa(vflag,ilevel);
+    force_clear();
+    modify->setup_pre_force_respa(vflag, ilevel);
 
     if (nhybrid_styles > 0) {
       set_compute_flags(ilevel);
-      force->pair->compute(eflag,vflag);
+      force->pair->compute(eflag, vflag);
     }
 
-    if (level_pair == ilevel && pair_compute_flag)
-      force->pair->compute(eflag,vflag);
-    if (level_inner == ilevel && pair_compute_flag)
-      force->pair->compute_inner();
-    if (level_middle == ilevel && pair_compute_flag)
-      force->pair->compute_middle();
-    if (level_outer == ilevel && pair_compute_flag)
-      force->pair->compute_outer(eflag,vflag);
-    if (level_bond == ilevel && force->bond)
-      force->bond->compute(eflag,vflag);
-    if (level_angle == ilevel && force->angle)
-      force->angle->compute(eflag,vflag);
-    if (level_dihedral == ilevel && force->dihedral)
-      force->dihedral->compute(eflag,vflag);
-    if (level_improper == ilevel && force->improper)
-      force->improper->compute(eflag,vflag);
+    if (level_pair == ilevel && pair_compute_flag) force->pair->compute(eflag, vflag);
+    if (level_inner == ilevel && pair_compute_flag) force->pair->compute_inner();
+    if (level_middle == ilevel && pair_compute_flag) force->pair->compute_middle();
+    if (level_outer == ilevel && pair_compute_flag) force->pair->compute_outer(eflag, vflag);
+    if (level_bond == ilevel && force->bond) force->bond->compute(eflag, vflag);
+    if (level_angle == ilevel && force->angle) force->angle->compute(eflag, vflag);
+    if (level_dihedral == ilevel && force->dihedral) force->dihedral->compute(eflag, vflag);
+    if (level_improper == ilevel && force->improper) force->improper->compute(eflag, vflag);
     if (level_kspace == ilevel && force->kspace) {
       force->kspace->setup();
-      if (kspace_compute_flag) force->kspace->compute(eflag,vflag);
+      if (kspace_compute_flag) force->kspace->compute(eflag, vflag);
     }
 
-    modify->setup_pre_reverse(eflag,vflag);
+    modify->setup_pre_reverse(eflag, vflag);
     if (newton[ilevel]) comm->reverse_comm();
     copy_f_flevel(ilevel);
   }
@@ -556,7 +529,7 @@ void Respa::run(int n)
     ntimestep = ++update->ntimestep;
     ev_set(ntimestep);
 
-    recurse(nlevels-1);
+    recurse(nlevels - 1);
 
     // needed in case end_of_step() or output() use total force
 
@@ -592,9 +565,9 @@ void Respa::cleanup()
 
 void Respa::reset_dt()
 {
-  step[nlevels-1] = update->dt;
-  for (int ilevel = nlevels-2; ilevel >= 0; ilevel--)
-    step[ilevel] = step[ilevel+1]/loop[ilevel];
+  step[nlevels - 1] = update->dt;
+  for (int ilevel = nlevels - 2; ilevel >= 0; ilevel--)
+    step[ilevel] = step[ilevel + 1] / loop[ilevel];
 }
 
 /* ---------------------------------------------------------------------- */
@@ -606,16 +579,15 @@ void Respa::recurse(int ilevel)
   for (int iloop = 0; iloop < loop[ilevel]; iloop++) {
 
     timer->stamp();
-    modify->initial_integrate_respa(vflag,ilevel,iloop);
-    if (modify->n_post_integrate_respa)
-      modify->post_integrate_respa(ilevel,iloop);
+    modify->initial_integrate_respa(vflag, ilevel, iloop);
+    if (modify->n_post_integrate_respa) modify->post_integrate_respa(ilevel, iloop);
     timer->stamp(Timer::MODIFY);
 
     // at outermost level, check on rebuilding neighbor list
     // at innermost level, communicate
     // at middle levels, do nothing
 
-    if (ilevel == nlevels-1) {
+    if (ilevel == nlevels - 1) {
       int nflag = neighbor->decide();
       if (nflag) {
         if (modify->n_pre_exchange) {
@@ -632,10 +604,9 @@ void Respa::recurse(int ilevel)
         }
         timer->stamp();
         comm->exchange();
-        if (atom->sortfreq > 0 &&
-            update->ntimestep >= atom->nextsort) atom->sort();
+        if (atom->sortfreq > 0 && update->ntimestep >= atom->nextsort) atom->sort();
         comm->borders();
-        if (triclinic) domain->lamda2x(atom->nlocal+atom->nghost);
+        if (triclinic) domain->lamda2x(atom->nlocal + atom->nghost);
         timer->stamp(Timer::COMM);
         if (modify->n_pre_neighbor) {
           modify->pre_neighbor();
@@ -666,28 +637,28 @@ void Respa::recurse(int ilevel)
     // b/c atoms migrated to new procs between short/long force calls
     // now they migrate at very start of rRESPA timestep, before all forces
 
-    if (ilevel) recurse(ilevel-1);
+    if (ilevel) recurse(ilevel - 1);
 
     // force computations
     // important that ordering is same as Verlet
     // so that any order dependencies are the same
     // when potentials are invoked at same level
 
-    force_clear(newton[ilevel]);
+    force_clear();
     if (modify->n_pre_force_respa) {
       timer->stamp();
-      modify->pre_force_respa(vflag,ilevel,iloop);
+      modify->pre_force_respa(vflag, ilevel, iloop);
       timer->stamp(Timer::MODIFY);
     }
 
     timer->stamp();
     if (nhybrid_styles > 0) {
       set_compute_flags(ilevel);
-      force->pair->compute(eflag,vflag);
+      force->pair->compute(eflag, vflag);
       timer->stamp(Timer::PAIR);
     }
     if (level_pair == ilevel && pair_compute_flag) {
-      force->pair->compute(eflag,vflag);
+      force->pair->compute(eflag, vflag);
       timer->stamp(Timer::PAIR);
     }
     if (level_inner == ilevel && pair_compute_flag) {
@@ -699,32 +670,32 @@ void Respa::recurse(int ilevel)
       timer->stamp(Timer::PAIR);
     }
     if (level_outer == ilevel && pair_compute_flag) {
-      force->pair->compute_outer(eflag,vflag);
+      force->pair->compute_outer(eflag, vflag);
       timer->stamp(Timer::PAIR);
     }
     if (level_bond == ilevel && force->bond) {
-      force->bond->compute(eflag,vflag);
+      force->bond->compute(eflag, vflag);
       timer->stamp(Timer::BOND);
     }
     if (level_angle == ilevel && force->angle) {
-      force->angle->compute(eflag,vflag);
+      force->angle->compute(eflag, vflag);
       timer->stamp(Timer::BOND);
     }
     if (level_dihedral == ilevel && force->dihedral) {
-      force->dihedral->compute(eflag,vflag);
+      force->dihedral->compute(eflag, vflag);
       timer->stamp(Timer::BOND);
     }
     if (level_improper == ilevel && force->improper) {
-      force->improper->compute(eflag,vflag);
+      force->improper->compute(eflag, vflag);
       timer->stamp(Timer::BOND);
     }
     if (level_kspace == ilevel && kspace_compute_flag) {
-      force->kspace->compute(eflag,vflag);
+      force->kspace->compute(eflag, vflag);
       timer->stamp(Timer::KSPACE);
     }
 
     if (modify->n_pre_reverse) {
-      modify->pre_reverse(eflag,vflag);
+      modify->pre_reverse(eflag, vflag);
       timer->stamp(Timer::MODIFY);
     }
 
@@ -733,9 +704,8 @@ void Respa::recurse(int ilevel)
       timer->stamp(Timer::COMM);
     }
     timer->stamp();
-    if (modify->n_post_force_respa)
-      modify->post_force_respa(vflag,ilevel,iloop);
-    modify->final_integrate_respa(ilevel,iloop);
+    if (modify->n_post_force_respa_any) modify->post_force_respa(vflag, ilevel, iloop);
+    modify->final_integrate_respa(ilevel, iloop);
     timer->stamp(Timer::MODIFY);
   }
 
@@ -747,7 +717,7 @@ void Respa::recurse(int ilevel)
    clear other arrays as needed
 ------------------------------------------------------------------------- */
 
-void Respa::force_clear(int /*newtonflag*/)
+void Respa::force_clear()
 {
   if (external_force_clear) return;
 
@@ -758,9 +728,9 @@ void Respa::force_clear(int /*newtonflag*/)
   if (force->newton) nbytes += sizeof(double) * atom->nghost;
 
   if (nbytes) {
-    memset(&atom->f[0][0],0,3*nbytes);
-    if (torqueflag) memset(&atom->torque[0][0],0,3*nbytes);
-    if (extraflag) atom->avec->force_clear(0,nbytes);
+    memset(&atom->f[0][0], 0, 3 * nbytes);
+    if (torqueflag) memset(&atom->torque[0][0], 0, 3 * nbytes);
+    if (extraflag) atom->avec->force_clear(0, nbytes);
   }
 }
 
@@ -850,9 +820,9 @@ void Respa::set_compute_flags(int ilevel)
   if (nhybrid_styles < 1) return;
 
   pair_compute = 0;
-  for (int i=0; i<nhybrid_styles; ++i) {
+  for (int i = 0; i < nhybrid_styles; ++i) {
     hybrid_compute[i] = (hybrid_level[i] == ilevel) ? 1 : 0;
     if (hybrid_compute[i]) pair_compute = 1;
   }
-  tally_global = (ilevel == nlevels-1) ? 1 : 0;
+  tally_global = (ilevel == nlevels - 1) ? 1 : 0;
 }

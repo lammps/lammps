@@ -1,7 +1,7 @@
 /* -*- c++ -*- ----------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    https://www.lammps.org/, Sandia National Laboratories
-   Steve Plimpton, sjplimp@sandia.gov
+   LAMMPS development team: developers@lammps.org
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
@@ -29,41 +29,14 @@ namespace LAMMPS_NS {
 class PairEAMAlloy : virtual public PairEAM {
  public:
   PairEAMAlloy(class LAMMPS *);
-  virtual ~PairEAMAlloy() {}
-  void coeff(int, char **);
+  void coeff(int, char **) override;
 
  protected:
-  void read_file(char *);
-  void file2array();
+  void read_file(char *) override;
+  void file2array() override;
 };
 
 }    // namespace LAMMPS_NS
 
 #endif
 #endif
-
-/* ERROR/WARNING messages:
-
-E: Incorrect args for pair coefficients
-
-Self-explanatory.  Check the input script or data file.
-
-E: No matching element in EAM potential file
-
-The EAM potential file does not contain elements that match the
-requested elements.
-
-E: Cannot open EAM potential file %s
-
-The specified EAM potential file cannot be opened.  Check that the
-path and name are correct.
-
-E: Incorrect element names in EAM potential file
-
-The element names in the EAM file do not match those requested.
-
-E: Invalid EAM potential file
-
-UNDOCUMENTED
-
-*/

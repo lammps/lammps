@@ -1,49 +1,25 @@
-/*
 //@HEADER
 // ************************************************************************
 //
-//                        Kokkos v. 3.0
-//       Copyright (2020) National Technology & Engineering
+//                        Kokkos v. 4.0
+//       Copyright (2022) National Technology & Engineering
 //               Solutions of Sandia, LLC (NTESS).
 //
 // Under the terms of Contract DE-NA0003525 with NTESS,
 // the U.S. Government retains certain rights in this software.
 //
-// Redistribution and use in source and binary forms, with or without
-// modification, are permitted provided that the following conditions are
-// met:
+// Part of Kokkos, under the Apache License v2.0 with LLVM Exceptions.
+// See https://kokkos.org/LICENSE for license information.
+// SPDX-License-Identifier: Apache-2.0 WITH LLVM-exception
 //
-// 1. Redistributions of source code must retain the above copyright
-// notice, this list of conditions and the following disclaimer.
-//
-// 2. Redistributions in binary form must reproduce the above copyright
-// notice, this list of conditions and the following disclaimer in the
-// documentation and/or other materials provided with the distribution.
-//
-// 3. Neither the name of the Corporation nor the names of the
-// contributors may be used to endorse or promote products derived from
-// this software without specific prior written permission.
-//
-// THIS SOFTWARE IS PROVIDED BY NTESS "AS IS" AND ANY
-// EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
-// IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR
-// PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL NTESS OR THE
-// CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
-// EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
-// PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR
-// PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF
-// LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING
-// NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
-// SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-//
-// Questions? Contact Christian R. Trott (crtrott@sandia.gov)
-//
-// ************************************************************************
 //@HEADER
-*/
 
 #ifndef KOKKOS_EXPERIMENTAL_ERROR_REPORTER_HPP
 #define KOKKOS_EXPERIMENTAL_ERROR_REPORTER_HPP
+#ifndef KOKKOS_IMPL_PUBLIC_INCLUDE
+#define KOKKOS_IMPL_PUBLIC_INCLUDE
+#define KOKKOS_IMPL_PUBLIC_INCLUDE_NOTDEFINED_ERRORREPORTER
+#endif
 
 #include <vector>
 #include <Kokkos_Core.hpp>
@@ -103,13 +79,13 @@ class ErrorReporter {
   }
 
  private:
-  using reports_view_t     = Kokkos::View<report_type *, execution_space>;
-  using reports_dualview_t = Kokkos::DualView<report_type *, execution_space>;
+  using reports_view_t     = Kokkos::View<report_type *, device_type>;
+  using reports_dualview_t = Kokkos::DualView<report_type *, device_type>;
 
   using host_mirror_space = typename reports_dualview_t::host_mirror_space;
-  Kokkos::View<int, execution_space> m_numReportsAttempted;
+  Kokkos::View<int, device_type> m_numReportsAttempted;
   reports_dualview_t m_reports;
-  Kokkos::DualView<int *, execution_space> m_reporters;
+  Kokkos::DualView<int *, device_type> m_reporters;
 };
 
 template <typename ReportType, typename DeviceType>
@@ -157,12 +133,10 @@ void ErrorReporter<ReportType, DeviceType>::getReports(
                           typename DeviceType::execution_space>::HostMirror
         &reports_out) {
   int num_reports = getNumReports();
-  reporters_out =
-      typename Kokkos::View<int *, typename DeviceType::execution_space>::
-          HostMirror("ErrorReport::reporters_out", num_reports);
-  reports_out = typename Kokkos::
-      View<report_type *, typename DeviceType::execution_space>::HostMirror(
-          "ErrorReport::reports_out", num_reports);
+  reporters_out   = typename Kokkos::View<int *, DeviceType>::HostMirror(
+      "ErrorReport::reporters_out", num_reports);
+  reports_out = typename Kokkos::View<report_type *, DeviceType>::HostMirror(
+      "ErrorReport::reports_out", num_reports);
 
   if (num_reports > 0) {
     m_reports.template sync<host_mirror_space>();
@@ -187,10 +161,15 @@ template <typename ReportType, typename DeviceType>
 void ErrorReporter<ReportType, DeviceType>::resize(const size_t new_size) {
   m_reports.resize(new_size);
   m_reporters.resize(new_size);
-  typename DeviceType::execution_space().fence();
+  typename DeviceType::execution_space().fence(
+      "Kokkos::Experimental::ErrorReporter::resize: fence after resizing");
 }
 
 }  // namespace Experimental
 }  // namespace Kokkos
 
+#ifdef KOKKOS_IMPL_PUBLIC_INCLUDE_NOTDEFINED_ERRORREPORTER
+#undef KOKKOS_IMPL_PUBLIC_INCLUDE
+#undef KOKKOS_IMPL_PUBLIC_INCLUDE_NOTDEFINED_ERRORREPORTER
+#endif
 #endif

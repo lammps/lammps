@@ -1,0 +1,123 @@
+LAMMPS (29 Sep 2021)
+# QEq Water, CITE: Achtyl et al., Nat. Comm., 6 6539 (2015)
+
+boundary        p p p
+units           real
+atom_style      charge
+
+read_data       data.water
+Reading data file ...
+  orthogonal box = (0.0000000 0.0000000 0.0000000) to (31.043046 31.043046 31.043046)
+  1 by 1 by 1 MPI processor grid
+  reading atoms ...
+  3000 atoms
+  read_data CPU = 0.010 seconds
+
+variable        x index 1
+variable        y index 1
+variable        z index 1
+
+replicate       $x $y $z
+replicate       1 $y $z
+replicate       1 1 $z
+replicate       1 1 1
+Replicating atoms ...
+  orthogonal box = (0.0000000 0.0000000 0.0000000) to (31.043046 31.043046 31.043046)
+  1 by 1 by 1 MPI processor grid
+  3000 atoms
+  replicate CPU = 0.001 seconds
+
+pair_style      reaxff NULL safezone 3.0 mincap 150
+pair_coeff      * * qeq_ff.water O H
+WARNING: Changed valency_val to valency_boc for X (../reaxff_ffield.cpp:296)
+neighbor        0.5 bin
+neigh_modify    every 1 delay 0 check yes
+
+velocity all create 300.0 4928459 rot yes dist gaussian
+
+fix             1 all qeq/reaxff 1 0.0 10.0 1.0e-6 reaxff maxiter 400
+fix             2 all nvt temp 300 300 50.0
+
+timestep        0.5
+thermo          10
+thermo_style    custom step temp press density vol
+
+run 20
+
+CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE
+
+Your simulation uses code contributions which should be cited:
+
+- pair reaxff command:
+
+@Article{Aktulga12,
+ author = {H. M. Aktulga, J. C. Fogarty, S. A. Pandit, A. Y. Grama},
+ title = {Parallel reactive molecular dynamics: Numerical methods and algorithmic techniques},
+ journal = {Parallel Computing},
+ year =    2012,
+ volume =  38,
+ pages =   {245--259}
+}
+
+- fix qeq/reaxff command:
+
+@Article{Aktulga12,
+ author = {H. M. Aktulga, J. C. Fogarty, S. A. Pandit, A. Y. Grama},
+ title = {Parallel reactive molecular dynamics: Numerical methods and algorithmic techniques},
+ journal = {Parallel Computing},
+ year =    2012,
+ volume =  38,
+ pages =   {245--259}
+}
+
+CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE
+
+Neighbor list info ...
+  update every 1 steps, delay 0 steps, check yes
+  max neighbors/atom: 2000, page size: 100000
+  master list distance cutoff = 10.5
+  ghost atom cutoff = 10.5
+  binsize = 5.25, bins = 6 6 6
+  2 neighbor lists, perpetual/occasional/extra = 2 0 0
+  (1) pair reaxff, perpetual
+      attributes: half, newton off, ghost
+      pair build: half/bin/newtoff/ghost
+      stencil: full/ghost/bin/3d
+      bin: standard
+  (2) fix qeq/reaxff, perpetual, copy from (1)
+      attributes: half, newton off, ghost
+      pair build: copy
+      stencil: none
+      bin: none
+Per MPI rank memory allocation (min/avg/max) = 539.2 | 539.2 | 539.2 Mbytes
+Step Temp Press Density Volume 
+       0          300    780.33989            1    29915.273 
+      10    301.29205    5433.7415            1    29915.273 
+      20    297.90652    1572.6111            1    29915.273 
+Loop time of 17.5765 on 1 procs for 20 steps with 3000 atoms
+
+Performance: 0.049 ns/day, 488.237 hours/ns, 1.138 timesteps/s
+100.0% CPU use with 1 MPI tasks x no OpenMP threads
+
+MPI task timing breakdown:
+Section |  min time  |  avg time  |  max time  |%varavg| %total
+---------------------------------------------------------------
+Pair    | 13.806     | 13.806     | 13.806     |   0.0 | 78.55
+Neigh   | 0.34211    | 0.34211    | 0.34211    |   0.0 |  1.95
+Comm    | 0.0028155  | 0.0028155  | 0.0028155  |   0.0 |  0.02
+Output  | 0.00012279 | 0.00012279 | 0.00012279 |   0.0 |  0.00
+Modify  | 3.4248     | 3.4248     | 3.4248     |   0.0 | 19.49
+Other   |            | 0.001008   |            |       |  0.01
+
+Nlocal:        3000.00 ave        3000 max        3000 min
+Histogram: 1 0 0 0 0 0 0 0 0 0
+Nghost:        11077.0 ave       11077 max       11077 min
+Histogram: 1 0 0 0 0 0 0 0 0 0
+Neighs:        971826.0 ave      971826 max      971826 min
+Histogram: 1 0 0 0 0 0 0 0 0 0
+
+Total # of neighbors = 971826
+Ave neighs/atom = 323.94200
+Neighbor list builds = 2
+Dangerous builds = 0
+Total wall time: 0:00:18

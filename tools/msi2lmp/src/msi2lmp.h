@@ -36,7 +36,7 @@
 
 #include <stdio.h>              /* IWYU pragma: export */
 
-#define MSI2LMP_VERSION "v3.9.9 / 05 Nov 2018"
+#define MSI2LMP_VERSION "v3.9.10 / 10 Mar 2023"
 
 #define PI_180  0.01745329251994329576
 
@@ -226,3 +226,6 @@ extern void lamda2x(double *lamda, double *x, double *h, double *boxlo);
 extern void x2lamda(double *x, double *lamda, double *h_inv, double *boxlo);
 
 extern void condexit(int);
+
+extern int has_utf8(const char *line);
+extern void utf8_subst(char *line);

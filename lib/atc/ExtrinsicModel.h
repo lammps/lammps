@@ -42,7 +42,7 @@ namespace ATC {
   //--------------------------------------------------------
 
   class ExtrinsicModelManager {
-  
+
   public:
 
     // constructor
@@ -98,7 +98,7 @@ namespace ATC {
 
 
     /** model name enum to string */
-    static bool model_to_string(const ExtrinsicModelType index, std::string & name) 
+    static bool model_to_string(const ExtrinsicModelType index, std::string & name)
     {
       switch (index) {
         case NO_MODEL:
@@ -141,11 +141,11 @@ namespace ATC {
           return false;
           break;
       }
-      return true; 
+      return true;
     };
 
     /** string to model enum */
-    static bool string_to_model(const std::string & name, ExtrinsicModelType & index) 
+    static bool string_to_model(const std::string & name, ExtrinsicModelType & index)
     {
       if      (name=="no_model")
         index = NO_MODEL;
@@ -174,7 +174,7 @@ namespace ATC {
 
       else
         return false;
-      
+
       return true;
     };
 
@@ -209,7 +209,7 @@ namespace ATC {
   //--------------------------------------------------------
 
   class ExtrinsicModel {
-  
+
   public:
 
     // constructor
@@ -295,8 +295,8 @@ namespace ATC {
     /** rhs mask for coupling with MD */
     Array2D<bool> rhsMaskIntrinsic_;
 
-    
-    
+
+
     GRAD_FIELD_MATS fluxes_;
 
     /** number of nodes */

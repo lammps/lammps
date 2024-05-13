@@ -4,7 +4,7 @@ Configuration information
 The following methods can be used to query the LAMMPS library
 about compile time settings and included packages and styles.
 
-.. code-block:: Python
+.. code-block:: python
    :caption: Example for using configuration settings functions
 
    from lammps import lammps

@@ -48,7 +48,7 @@ inline static bool SimilarVec(Vector a, Vector b, int n, Scalar eps = 1.0e-06,
                               Scalar ratio = 1.0e-06, Scalar ratio_denom = 1.0)
 {
     for (int i = 0; i < n; i++)
-        if (not Similar(a[i], b[i], eps, ratio, ratio_denom)) return false;
+        if (!Similar(a[i], b[i], eps, ratio, ratio_denom)) return false;
     return true;
 }
 
@@ -61,7 +61,7 @@ inline static bool SimilarVecUnsigned(Vector a, Vector b, int n, Scalar eps = 1.
         return true;
     else {
         for (int i = 0; i < n; i++)
-            if (not Similar(a[i], -b[i], eps, ratio, ratio_denom)) return false;
+            if (!Similar(a[i], -b[i], eps, ratio, ratio_denom)) return false;
         return true;
     }
 }
@@ -464,7 +464,7 @@ void TestJacobi(int n,                         //<! matrix size
                                          Scalar const(*)[NF]>::SORT_INCREASING_ABS_EVALS);
 #else
                 ecalc.Diagonalize(M, evals, evecs,
-                                  Jacobi<Scalar, Scalar *, Scalar **,
+                                    Jacobi<Scalar, Scalar *, Scalar **,
                                          Scalar const *const *>::SORT_INCREASING_ABS_EVALS);
 #endif
 
@@ -488,7 +488,7 @@ void TestJacobi(int n,                         //<! matrix size
                                          Scalar const(*)[NF]>::SORT_DECREASING_ABS_EVALS);
 #else
                 ecalc.Diagonalize(M, evals, evecs,
-                                  Jacobi<Scalar, Scalar *, Scalar **,
+                                    Jacobi<Scalar, Scalar *, Scalar **,
                                          Scalar const *const *>::SORT_DECREASING_ABS_EVALS);
 #endif
 
@@ -511,7 +511,7 @@ void TestJacobi(int n,                         //<! matrix size
                                          Scalar const(*)[NF]>::SORT_INCREASING_EVALS);
 #else
                 ecalc.Diagonalize(M, evals, evecs,
-                                  Jacobi<Scalar, Scalar *, Scalar **,
+                                    Jacobi<Scalar, Scalar *, Scalar **,
                                          Scalar const *const *>::SORT_INCREASING_EVALS);
 #endif
                 for (int i = 1; i < n; i++)
@@ -533,8 +533,8 @@ void TestJacobi(int n,                         //<! matrix size
                     Jacobi<Scalar, Scalar *, Scalar(*)[NF], Scalar const(*)[NF]>::DO_NOT_SORT);
 #else
                 ecalc.Diagonalize(
-                    M, evals, evecs,
-                    Jacobi<Scalar, Scalar *, Scalar **, Scalar const *const *>::DO_NOT_SORT);
+                      M, evals, evecs,
+                      Jacobi<Scalar, Scalar *, Scalar **, Scalar const *const *>::DO_NOT_SORT);
 #endif
 
             } // if (test_code_coverage)

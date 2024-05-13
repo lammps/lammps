@@ -1,0 +1,48 @@
+# general variables
+variable        temperature equal 700
+variable        size equal 20
+
+# variables for 'fix sgcmc'
+variable        nsteps_mc     equal 100
+variable        swap_fraction equal 0.2
+variable        temperature_mc equal ${temperature}
+variable        deltamu equal -0.70
+variable        target_concentration equal 0.02
+variable        kappa equal 1e3
+
+# general settings
+units           metal
+atom_style      atomic
+
+# set up structure
+boundary        p p p
+lattice         bcc 2.88
+region          box block 0 ${size}  0 ${size}  0 ${size}
+create_box      2 box
+create_atoms    1 box
+reset_timestep  0
+timestep        0.0025
+
+# set up interaction
+pair_style      eam/fs
+pair_coeff      * * FeCu.pasianot.eamfs Fe Cu
+
+# initialize velocities
+variable        double_temp equal ${temperature}*2
+velocity        all create ${double_temp} 428459 dist gaussian
+
+# what and how to run
+fix             integrate all npt &
+                temp ${temperature} ${temperature} 1.7 &
+                aniso 0.0 0.0 1.5
+fix             mc all sgcmc ${nsteps_mc} ${swap_fraction} ${temperature_mc} ${deltamu} &
+                randseed 324234 &
+                variance ${kappa} ${target_concentration}
+
+# set up output
+thermo          100
+thermo_style    custom step temp atoms pe press &
+                lx ly lz f_mc[1] f_mc[2] f_mc[3] f_mc[4]
+#dump            1 all custom 200 mc.*.dump id type x y z
+
+run             2000

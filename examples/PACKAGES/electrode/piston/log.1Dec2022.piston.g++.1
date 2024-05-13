@@ -1,0 +1,223 @@
+LAMMPS (3 Nov 2022)
+# The intention is to find the average position of one wall at atmospheric
+# pressure.  The output is the wall position over time which can be used to
+# find the average position for a run with fixed wall position.
+#
+# ----------------- Init Section -----------------
+
+atom_style    full
+units         real
+boundary      p p f
+kspace_style  pppm/electrode 1e-4
+kspace_modify slab 3.0
+pair_style    lj/cut/coul/long 8 8
+bond_style    harmonic
+angle_style   harmonic
+if "$(extract_setting(world_size) % 2) == 0" then "processors * * 2"
+
+# ----------------- Atom Definition Section -----------------
+
+read_data "data.piston"
+Reading data file ...
+  orthogonal box = (0 0 0) to (17.6494 20.3798 26)
+  1 by 1 by 1 MPI processor grid
+  reading atoms ...
+  726 atoms
+  reading velocities ...
+  726 velocities
+  scanning bonds ...
+  2 = max bonds/atom
+  scanning angles ...
+  1 = max angles/atom
+  reading bonds ...
+  420 bonds
+  reading angles ...
+  210 angles
+Finding 1-2 1-3 1-4 neighbors ...
+  special bond factors lj:    0        0        0       
+  special bond factors coul:  0        0        0       
+     2 = max # of 1-2 neighbors
+     1 = max # of 1-3 neighbors
+     1 = max # of 1-4 neighbors
+     2 = max # of special neighbors
+  special bonds CPU = 0.001 seconds
+  read_data CPU = 0.011 seconds
+
+# ----------------- Settings Section -----------------
+
+pair_coeff 1 1 0.069 2.78
+pair_coeff 2 2 5.29 2.951
+pair_coeff 3 3 0.1553 3.166
+pair_coeff 4 4 0.0 0.0
+bond_coeff 1 600.0 1.0
+angle_coeff 1 75.0 109.47
+group wall type 1
+48 atoms in group wall
+group gold type 2
+48 atoms in group gold
+group spce type 3:4
+630 atoms in group spce
+group ele union wall gold
+96 atoms in group ele
+fix fRattleSPCE spce shake 0.0001 10 0 b 1 a 1
+Finding SHAKE clusters ...
+       0 = # of size 2 clusters
+       0 = # of size 3 clusters
+       0 = # of size 4 clusters
+     210 = # of frozen angles
+  find clusters CPU = 0.000 seconds
+pair_modify mix arithmetic
+
+# ----------------- Run Section -----------------
+
+neigh_modify every 1 delay 0
+timestep 2
+fix fxnvt      spce nvt temp 300 300 500
+fix fxforce_au gold setforce 0.0 0.0 0.0
+
+# equilibrate z-coordinate of upper electrode while keeping the electrode rigid
+fix fxforce_wa wall setforce 0.0 0.0 NULL
+fix fxpressure wall aveforce 0 0 -0.005246 # atomspheric pressure: area/force->nktv2p
+fix fxdrag     wall viscous 100
+fix fxrigid    wall rigid/nve single
+  1 rigid bodies with 48 atoms
+
+# maintain constant potential during equilibration
+# 'algo cg' allows for moving electrodes
+fix fxele      ele electrode/conp 0.0 1.805 symm on algo cg 1e-4
+96 atoms in group conp_group
+
+# setup output and run
+variable q atom q
+compute qwa wall reduce sum v_q
+compute qau gold reduce sum v_q
+variable top_wall equal (bound(wall,zmin))
+compute temp_mobile spce temp
+variable s equal step
+fix fxprint    all print 1000 "${s} ${top_wall}" file top_wall.csv screen no
+thermo_style custom step c_temp_mobile c_qwa c_qau v_top_wall
+thermo 5000
+run 100000
+
+CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE
+
+Your simulation uses code contributions which should be cited:
+
+- kspace_style pppm/electrode command:
+
+@article{Ahrens2021,
+author = {Ahrens-Iwers, Ludwig J.V. and Mei{\ss}ner, Robert H.},
+doi = {10.1063/5.0063381},
+title = {{Constant potential simulations on a mesh}},
+journal = {Journal of Chemical Physics},
+year = {2021}
+volume = {155},
+pages = {104104},
+}
+- fix electrode command:
+
+@article{Ahrens2022
+author = {Ahrens-Iwers, Ludwig J.V. and Janssen, Mahijs and Tee, Shern R. and Mei{\ss}ner, Robert H.},
+doi = {10.1063/5.0099239},
+title = {{ELECTRODE: An electrochemistry package for LAMMPS}},
+journal = {The Journal of Chemical Physics},
+year = {2022}
+volume = {157},
+pages = {084801},
+}
+CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE
+
+PPPM/electrode initialization ...
+  using 12-bit tables for long-range coulomb (src/kspace.cpp:342)
+  G vector (1/distance) = 0.32814871
+  grid = 12 15 36
+  stencil order = 5
+  estimated absolute RMS force accuracy = 0.02930901
+  estimated relative force accuracy = 8.8263214e-05
+  using double precision MKL FFT
+  3d grid and FFT values/proc = 15884 6480
+Generated 6 of 6 mixed pair_coeff terms from arithmetic mixing rule
+Neighbor list info ...
+  update: every = 1 steps, delay = 0 steps, check = yes
+  max neighbors/atom: 2000, page size: 100000
+  master list distance cutoff = 10
+  ghost atom cutoff = 10
+  binsize = 5, bins = 4 5 6
+  2 neighbor lists, perpetual/occasional/extra = 2 0 0
+  (1) pair lj/cut/coul/long, perpetual
+      attributes: half, newton on
+      pair build: half/bin/newton
+      stencil: half/bin/3d
+      bin: standard
+  (2) fix electrode/conp, perpetual, copy from (1)
+      attributes: half, newton on
+      pair build: copy
+      stencil: none
+      bin: none
+Per MPI rank memory allocation (min/avg/max) = 11.7 | 11.7 | 11.7 Mbytes
+   Step     c_temp_mobile      c_qwa          c_qau        v_top_wall  
+         0   303.38967     -0.042963484    0.042963484    21.4018      
+      5000   285.08828     -0.26105255     0.26105255     25.155629    
+     10000   323.19176     -0.26264003     0.26264003     24.541676    
+     15000   310.479       -0.27318148     0.27318148     23.141522    
+     20000   295.18544     -0.11313444     0.11313444     23.828735    
+     25000   295.38607     -0.25433086     0.25433086     23.673314    
+     30000   288.0613      -0.30099901     0.30099901     23.438086    
+     35000   278.5591      -0.15823576     0.15823576     24.311915    
+     40000   303.95751     -0.19941381     0.19941381     23.69594     
+     45000   279.026       -0.1659962      0.1659962      23.588604    
+     50000   298.79278     -0.28866703     0.28866703     23.372508    
+     55000   301.03353     -0.078370381    0.078370381    23.192985    
+     60000   306.77965     -0.12807205     0.12807205     23.968574    
+     65000   309.86008     -0.27162663     0.27162663     23.616704    
+     70000   287.31116     -0.029751882    0.029751882    23.667495    
+     75000   312.48654     -0.10759866     0.10759866     23.504105    
+     80000   309.94267     -0.2558548      0.2558548      23.810576    
+     85000   328.04389     -0.1575471      0.1575471      24.013437    
+     90000   302.9806      -0.032002164    0.032002164    24.264432    
+     95000   294.20804     -0.27797238     0.27797238     23.291758    
+    100000   307.63019     -0.19047448     0.19047448     23.632147    
+Loop time of 530.844 on 1 procs for 100000 steps with 726 atoms
+
+Performance: 32.552 ns/day, 0.737 hours/ns, 188.379 timesteps/s, 136.763 katom-step/s
+100.0% CPU use with 1 MPI tasks x no OpenMP threads
+
+MPI task timing breakdown:
+Section |  min time  |  avg time  |  max time  |%varavg| %total
+---------------------------------------------------------------
+Pair    | 190.47     | 190.47     | 190.47     |   0.0 | 35.88
+Bond    | 0.10754    | 0.10754    | 0.10754    |   0.0 |  0.02
+Kspace  | 73.179     | 73.179     | 73.179     |   0.0 | 13.79
+Neigh   | 24.209     | 24.209     | 24.209     |   0.0 |  4.56
+Comm    | 1.6857     | 1.6857     | 1.6857     |   0.0 |  0.32
+Output  | 0.0016861  | 0.0016861  | 0.0016861  |   0.0 |  0.00
+Modify  | 240.23     | 240.23     | 240.23     |   0.0 | 45.26
+Other   |            | 0.9595     |            |       |  0.18
+
+Nlocal:            726 ave         726 max         726 min
+Histogram: 1 0 0 0 0 0 0 0 0 0
+Nghost:           2335 ave        2335 max        2335 min
+Histogram: 1 0 0 0 0 0 0 0 0 0
+Neighs:         120271 ave      120271 max      120271 min
+Histogram: 1 0 0 0 0 0 0 0 0 0
+
+Total # of neighbors = 120271
+Ave neighs/atom = 165.66253
+Ave special neighs/atom = 1.7355372
+Neighbor list builds = 7722
+Dangerous builds = 0
+write_data "data.piston.final"
+System init for write_data ...
+PPPM/electrode initialization ...
+  using 12-bit tables for long-range coulomb (src/kspace.cpp:342)
+  G vector (1/distance) = 0.32814871
+  grid = 12 15 36
+  stencil order = 5
+  estimated absolute RMS force accuracy = 0.029311365
+  estimated relative force accuracy = 8.8270304e-05
+  using double precision MKL FFT
+  3d grid and FFT values/proc = 15884 6480
+Generated 6 of 6 mixed pair_coeff terms from arithmetic mixing rule
+
+Average conjugate gradient steps: 1.981
+Total wall time: 0:08:50

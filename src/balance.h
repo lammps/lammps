@@ -1,7 +1,7 @@
 /* -*- c++ -*- ----------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    https://www.lammps.org/, Sandia National Laboratories
-   Steve Plimpton, sjplimp@sandia.gov
+   LAMMPS development team: developers@lammps.org
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
@@ -27,27 +27,28 @@ namespace LAMMPS_NS {
 class Balance : public Command {
  public:
   class RCB *rcb;
-  class FixStore *fixstore;    // per-atom weights stored in FixStore
-  int wtflag;                  // 1 if particle weighting is used
-  int varflag;                 // 1 if weight style var(iable) is used
-  int outflag;                 // 1 for output of balance results to file
+  class FixStoreAtom *fixstore;    // per-atom weights stored in FixStorePeratom
+  int wtflag;                      // 1 if particle weighting is used
+  int varflag;                     // 1 if weight style var(iable) is used
+  int sortflag;                    // 1 if sorting of comm messages is done
+  int outflag;                     // 1 for output of balance results to file
 
   Balance(class LAMMPS *);
-  ~Balance();
-  void command(int, char **);
-  void options(int, int, char **);
+  ~Balance() override;
+  void command(int, char **) override;
+  void options(int, int, char **, int);
   void weight_storage(char *);
   void init_imbalance(int);
   void set_weights();
   double imbalance_factor(double &);
-  void shift_setup(char *, int, double);
+  void shift_setup(const char *, int, double);
   int shift();
-  int *bisection(int sortflag = 0);
+  int *bisection();
   void dumpout(bigint);
 
- private:
-  int me, nprocs;
+  static constexpr int BSTR_SIZE = 3;
 
+ private:
   double thresh;                                      // threshold to perform LB
   int style;                                          // style of LB
   int xflag, yflag, zflag;                            // xyz LB flags
@@ -56,7 +57,7 @@ class Balance : public Command {
 
   int nitermax;    // params for shift LB
   double stopthresh;
-  char bstr[4];
+  std::string bstr;
 
   int shift_allocate;       // 1 if SHIFT vectors have been allocated
   int ndim;                 // length of balance string bstr
@@ -81,65 +82,13 @@ class Balance : public Command {
   int firststep;
 
   double imbalance_splits();
-  void shift_setup_static(char *);
+  void shift_setup_static(const char *);
   void tally(int, int, double *);
   int adjust(int, double *);
-  int binary(double, int, double *);
 #ifdef BALANCE_DEBUG
   void debug_shift_output(int, int, int, double *);
 #endif
 };
-
 }    // namespace LAMMPS_NS
-
 #endif
 #endif
-
-/* ERROR/WARNING messages:
-
-E: Balance command before simulation box is defined
-
-The balance command cannot be used before a read_data, read_restart,
-or create_box command.
-
-E: Illegal ... command
-
-Self-explanatory.  Check the input script syntax and compare to the
-documentation for the command.  You can use -echo screen as a
-command-line option when running LAMMPS to see the offending line.
-
-E: Cannot balance in z dimension for 2d simulation
-
-Self-explanatory.
-
-E: Balance shift string is invalid
-
-The string can only contain the characters "x", "y", or "z".
-
-E: Balance rcb cannot be used with comm_style brick
-
-Comm_style tiled must be used instead.
-
-E: Lost atoms via balance: original %ld current %ld
-
-This should not occur.  Report the problem to the developers.
-
-E: Unknown (fix) balance weight method
-
-UNDOCUMENTED
-
-E: Cannot open (fix) balance output file
-
-UNDOCUMENTED
-
-E: Balance produced bad splits
-
-This should not occur.  It means two or more cutting plane locations
-are on top of each other or out of order.  Report the problem to the
-developers.
-
-U: Cannot open balance output file
-
-Self-explanatory.
-
-*/

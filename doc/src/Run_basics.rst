@@ -2,17 +2,25 @@ Basics of running LAMMPS
 ========================
 
 LAMMPS is run from the command line, reading commands from a file via
-the -in command line flag, or from standard input.
-Using the "-in in.file" variant is recommended:
+the -in command line flag, or from standard input.  Using the "-in
+in.file" variant is recommended (see note below).  The name of the
+LAMMPS executable is either ``lmp`` or ``lmp_<machine>`` with
+`<machine>` being the machine string used when compiling LAMMPS.  This
+is required when compiling LAMMPS with the traditional build system
+(e.g. with ``make mpi``), but optional when using CMake to configure and
+build LAMMPS:
 
 .. code-block:: bash
 
-   $ lmp_serial -in in.file
-   $ lmp_serial < in.file
-   $ /path/to/lammps/src/lmp_serial -i in.file
-   $ mpirun -np 4 lmp_mpi -in in.file
-   $ mpirun -np 8 /path/to/lammps/src/lmp_mpi -in in.file
-   $ mpirun -np 6 /usr/local/bin/lmp -in in.file
+   lmp_serial -in in.file
+   lmp_serial < in.file
+   lmp -in in.file
+   lmp < in.file
+   /path/to/lammps/src/lmp_serial -i in.file
+   mpirun -np 4 lmp_mpi -in in.file
+   mpiexec -np 4 lmp -in in.file
+   mpirun -np 8 /path/to/lammps/src/lmp_mpi -in in.file
+   mpiexec -n 6 /usr/local/bin/lmp -in in.file
 
 You normally run the LAMMPS command in the directory where your input
 script is located.  That is also where output files are produced by
@@ -22,12 +30,13 @@ executable itself can be placed elsewhere.
 
 .. note::
 
-   The redirection operator "<" will not always work when running
-   in parallel with mpirun; for those systems the -in form is required.
+   The redirection operator "<" will not always work when running in
+   parallel with ``mpirun`` or ``mpiexec``; for those systems the -in
+   form is required.
 
 As LAMMPS runs it prints info to the screen and a logfile named
-*log.lammps*\ .  More info about output is given on the
-:doc:`screen and logfile output <Run_output>` page.
+*log.lammps*\ .  More info about output is given on the :doc:`screen and
+logfile output <Run_output>` page.
 
 If LAMMPS encounters errors in the input script or while running a
 simulation it will print an ERROR message and stop or a WARNING
@@ -42,7 +51,7 @@ single processor.  In theory you should get identical answers on any
 number of processors and on any machine.  In practice, numerical
 round-off due to using floating-point math can cause slight differences
 and an eventual divergence of molecular dynamics trajectories.  See the
-:doc:`Errors common <Errors_common>` doc page for discussion of this.
+:doc:`Errors common <Errors_common>` page for discussion of this.
 
 LAMMPS can run as large a problem as will fit in the physical memory of
 one or more processors.  If you run out of memory, you must run on more
@@ -69,8 +78,8 @@ variable OMP_NUM_THREADS, before you launch LAMMPS:
 
 .. code-block:: bash
 
-   $ export OMP_NUM_THREADS=2     # bash
-   $ setenv OMP_NUM_THREADS 2     # csh or tcsh
+   export OMP_NUM_THREADS=2     # bash
+   setenv OMP_NUM_THREADS 2     # csh or tcsh
 
 This can also be done via the :doc:`package <package>` command or via
 the :doc:`-pk command-line switch <Run_options>` which invokes the

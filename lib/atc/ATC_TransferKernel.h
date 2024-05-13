@@ -12,9 +12,9 @@ class KernelFunction;
 class ATC_TransferKernel : public ATC_Transfer {
 
  public:
-  
+
   // constructor
-  ATC_TransferKernel(std::string groupName, 
+  ATC_TransferKernel(std::string groupName,
                      double **& perAtomArray,
                      LAMMPS_NS::Fix * thisFix,
                      std::string matParamFile = "none");
@@ -27,7 +27,7 @@ class ATC_TransferKernel : public ATC_Transfer {
 
  protected:
   /** routine to calculate matrix of kernel functions */
-  
+
   virtual void compute_kernel_matrix_molecule();
 
   /** calculate projection on the fly*/

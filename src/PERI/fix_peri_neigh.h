@@ -1,7 +1,7 @@
 /* -*- c++ -*- ----------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    https://www.lammps.org/, Sandia National Laboratories
-   Steve Plimpton, sjplimp@sandia.gov
+   LAMMPS development team: developers@lammps.org
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
@@ -25,6 +25,7 @@ FixStyle(PERI_NEIGH,FixPeriNeigh);
 namespace LAMMPS_NS {
 
 class FixPeriNeigh : public Fix {
+  friend class PairPeri;
   friend class PairPeriPMB;
   friend class PairPeriPMBOMP;
   friend class PairPeriLPS;
@@ -36,26 +37,26 @@ class FixPeriNeigh : public Fix {
 
  public:
   FixPeriNeigh(class LAMMPS *, int, char **);
-  virtual ~FixPeriNeigh();
-  int setmask();
-  void init();
-  void init_list(int, class NeighList *);
-  void setup(int);
-  void min_setup(int);
+  ~FixPeriNeigh() override;
+  int setmask() override;
+  void init() override;
+  void init_list(int, class NeighList *) override;
+  void setup(int) override;
+  void min_setup(int) override;
 
-  double memory_usage();
-  void grow_arrays(int);
-  void copy_arrays(int, int, int);
-  int pack_exchange(int, double *);
-  int unpack_exchange(int, double *);
-  void write_restart(FILE *);
-  void restart(char *);
-  int pack_restart(int, double *);
-  void unpack_restart(int, int);
-  int size_restart(int);
-  int maxsize_restart();
-  int pack_forward_comm(int, int *, double *, int, int *);
-  void unpack_forward_comm(int, int, double *);
+  double memory_usage() override;
+  void grow_arrays(int) override;
+  void copy_arrays(int, int, int) override;
+  int pack_exchange(int, double *) override;
+  int unpack_exchange(int, double *) override;
+  void write_restart(FILE *) override;
+  void restart(char *) override;
+  int pack_restart(int, double *) override;
+  void unpack_restart(int, int) override;
+  int size_restart(int) override;
+  int maxsize_restart() override;
+  int pack_forward_comm(int, int *, double *, int, int *) override;
+  void unpack_forward_comm(int, int, double *) override;
 
  protected:
   int first;                            // flag for first time initialization
@@ -80,12 +81,3 @@ class FixPeriNeigh : public Fix {
 
 #endif
 #endif
-
-/* ERROR/WARNING messages:
-
-E: Duplicate particle in PeriDynamic bond - simulation box is too small
-
-This is likely because your box length is shorter than 2 times
-the bond length.
-
-*/

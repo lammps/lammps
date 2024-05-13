@@ -1,8 +1,7 @@
-// clang-format off
 /* -*- c++ -*- ----------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    https://www.lammps.org/, Sandia National Laboratories
-   Steve Plimpton, sjplimp@sandia.gov
+   LAMMPS development team: developers@lammps.org
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
@@ -20,6 +19,7 @@ DihedralStyle(harmonic/kk/host,DihedralHarmonicKokkos<LMPHostType>);
 // clang-format on
 #else
 
+// clang-format off
 #ifndef LMP_DIHEDRAL_HARMONIC_KOKKOS_H
 #define LMP_DIHEDRAL_HARMONIC_KOKKOS_H
 
@@ -39,10 +39,10 @@ class DihedralHarmonicKokkos : public DihedralHarmonic {
   typedef ArrayTypes<DeviceType> AT;
 
   DihedralHarmonicKokkos(class LAMMPS *);
-  virtual ~DihedralHarmonicKokkos();
-  void compute(int, int);
-  void coeff(int, char **);
-  void read_restart(FILE *);
+  ~DihedralHarmonicKokkos() override;
+  void compute(int, int) override;
+  void coeff(int, char **) override;
+  void read_restart(FILE *) override;
 
   template<int NEWTON_BOND, int EVFLAG>
   KOKKOS_INLINE_FUNCTION
@@ -92,7 +92,7 @@ class DihedralHarmonicKokkos : public DihedralHarmonic {
   typename AT::t_int_1d d_sign;
   typename AT::t_int_1d d_multiplicity;
 
-  void allocate();
+  void allocate() override;
 };
 
 }
@@ -100,6 +100,3 @@ class DihedralHarmonicKokkos : public DihedralHarmonic {
 #endif
 #endif
 
-/* ERROR/WARNING messages:
-
-*/

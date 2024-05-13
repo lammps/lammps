@@ -39,7 +39,7 @@ crashes within LAMMPS may be recovered from by enabling
 :ref:`exceptions <exceptions>`, avoiding them proactively is a safer
 approach.
 
-.. code-block:: C
+.. code-block:: c
    :caption: Example for using configuration settings functions
 
    #include "library.h"

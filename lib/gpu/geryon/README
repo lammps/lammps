@@ -6,7 +6,7 @@ Geryon
 
    Copyright (2010) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
-   certain rights in this software.  This software is distributed under 
+   certain rights in this software.  This software is distributed under
    the Simplified BSD License.
 
 Geryon is intended to be a simple library for managing the CUDA Runtime,
@@ -21,11 +21,11 @@ CUDA Driver, and OpenCL APIs with a consistent interface:
     * Simple routines for data I/O
     * Simple classes for managing device timing
     * Simple classes for managing kernel compilation and execution
-    
-Geryon does not require building (although a Makefile is provided for testing 
-purposes). The library is a set of header files that can be included with 
+
+Geryon does not require building (although a Makefile is provided for testing
+purposes). The library is a set of header files that can be included with
 your code.
 
-Documentation and examples are provided at 
+Documentation and examples are provided at
 
 http://users.nccs.gov/~wb8/geryon/index.htm

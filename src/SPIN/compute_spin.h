@@ -1,7 +1,7 @@
 /* -*- c++ -*- ----------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    https://www.lammps.org/, Sandia National Laboratories
-   Steve Plimpton, sjplimp@sandia.gov
+   LAMMPS development team: developers@lammps.org
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
@@ -27,9 +27,9 @@ namespace LAMMPS_NS {
 class ComputeSpin : public Compute {
  public:
   ComputeSpin(class LAMMPS *, int, char **);
-  ~ComputeSpin();
-  void init();
-  void compute_vector();
+  ~ComputeSpin() override;
+  void init() override;
+  void compute_vector() override;
 
  private:
   int pair_spin_flag;          // magnetic pair flags
@@ -40,7 +40,8 @@ class ComputeSpin : public Compute {
 
   // pointers to magnetic fixes
 
-  class FixPrecessionSpin *lockprecessionspin;
+  int nprecspin;
+  class FixPrecessionSpin **lockprecessionspin;
 
   // pointers to magnetic pair styles
 
@@ -55,21 +56,3 @@ class ComputeSpin : public Compute {
 
 #endif
 #endif
-
-/* ERROR/WARNING messages:
-
-E: Illegal ... command
-
-Self-explanatory.  Check the input script syntax and compare to the
-documentation for the command.  You can use -echo screen as a
-command-line option when running LAMMPS to see the offending line.
-
-E: Chunk/atom compute does not exist for compute compute/spin
-
-Self-explanatory.
-
-E: Compute compute/spin does not use chunk/atom compute
-
-The style of the specified compute is not chunk/atom.
-
-*/

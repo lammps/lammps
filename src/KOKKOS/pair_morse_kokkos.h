@@ -1,8 +1,7 @@
-// clang-format off
 /* -*- c++ -*- ----------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    https://www.lammps.org/, Sandia National Laboratories
-   Steve Plimpton, sjplimp@sandia.gov
+   LAMMPS development team: developers@lammps.org
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
@@ -20,6 +19,7 @@ PairStyle(morse/kk/host,PairMorseKokkos<LMPHostType>);
 // clang-format on
 #else
 
+// clang-format off
 #ifndef LMP_PAIR_MORSE_KOKKOS_H
 #define LMP_PAIR_MORSE_KOKKOS_H
 
@@ -36,13 +36,13 @@ class PairMorseKokkos : public PairMorse {
   enum {COUL_FLAG=0};
   typedef DeviceType device_type;
   PairMorseKokkos(class LAMMPS *);
-  virtual ~PairMorseKokkos();
+  ~PairMorseKokkos() override;
 
-  void compute(int, int);
+  void compute(int, int) override;
 
-  void settings(int, char **);
-  void init_style();
-  double init_one(int, int);
+  void settings(int, char **) override;
+  void init_style() override;
+  double init_one(int, int) override;
 
   struct params_morse{
     KOKKOS_INLINE_FUNCTION
@@ -80,7 +80,6 @@ class PairMorseKokkos : public PairMorse {
   DAT::tdual_virial_array k_vatom;
   typename ArrayTypes<DeviceType>::t_efloat_1d d_eatom;
   typename ArrayTypes<DeviceType>::t_virial_array d_vatom;
-  typename ArrayTypes<DeviceType>::t_tagint_1d tag;
 
   int newton_pair;
   double special_lj[4];
@@ -92,17 +91,20 @@ class PairMorseKokkos : public PairMorse {
   int neighflag;
   int nlocal,nall,eflag,vflag;
 
-  void allocate();
-  friend struct PairComputeFunctor<PairMorseKokkos,FULL,true>;
+  void allocate() override;
+  friend struct PairComputeFunctor<PairMorseKokkos,FULL,true,0>;
+  friend struct PairComputeFunctor<PairMorseKokkos,FULL,true,1>;
   friend struct PairComputeFunctor<PairMorseKokkos,HALF,true>;
   friend struct PairComputeFunctor<PairMorseKokkos,HALFTHREAD,true>;
-  friend struct PairComputeFunctor<PairMorseKokkos,FULL,false>;
+  friend struct PairComputeFunctor<PairMorseKokkos,FULL,false,0>;
+  friend struct PairComputeFunctor<PairMorseKokkos,FULL,false,1>;
   friend struct PairComputeFunctor<PairMorseKokkos,HALF,false>;
   friend struct PairComputeFunctor<PairMorseKokkos,HALFTHREAD,false>;
-  friend EV_FLOAT pair_compute_neighlist<PairMorseKokkos,FULL,void>(PairMorseKokkos*,NeighListKokkos<DeviceType>*);
-  friend EV_FLOAT pair_compute_neighlist<PairMorseKokkos,HALF,void>(PairMorseKokkos*,NeighListKokkos<DeviceType>*);
-  friend EV_FLOAT pair_compute_neighlist<PairMorseKokkos,HALFTHREAD,void>(PairMorseKokkos*,NeighListKokkos<DeviceType>*);
-  friend EV_FLOAT pair_compute<PairMorseKokkos,void>(PairMorseKokkos*,NeighListKokkos<DeviceType>*);
+  friend EV_FLOAT pair_compute_neighlist<PairMorseKokkos,FULL,0>(PairMorseKokkos*,NeighListKokkos<DeviceType>*);
+  friend EV_FLOAT pair_compute_neighlist<PairMorseKokkos,FULL,1>(PairMorseKokkos*,NeighListKokkos<DeviceType>*);
+  friend EV_FLOAT pair_compute_neighlist<PairMorseKokkos,HALF>(PairMorseKokkos*,NeighListKokkos<DeviceType>*);
+  friend EV_FLOAT pair_compute_neighlist<PairMorseKokkos,HALFTHREAD>(PairMorseKokkos*,NeighListKokkos<DeviceType>*);
+  friend EV_FLOAT pair_compute<PairMorseKokkos>(PairMorseKokkos*,NeighListKokkos<DeviceType>*);
   friend void pair_virial_fdotr_compute<PairMorseKokkos>(PairMorseKokkos*);
 };
 
@@ -111,20 +113,3 @@ class PairMorseKokkos : public PairMorse {
 #endif
 #endif
 
-/* ERROR/WARNING messages:
-
-E: Illegal ... command
-
-Self-explanatory.  Check the input script syntax and compare to the
-documentation for the command.  You can use -echo screen as a
-command-line option when running LAMMPS to see the offending line.
-
-E: Cannot use Kokkos pair style with rRESPA inner/middle
-
-Self-explanatory.
-
-E: Cannot use chosen neighbor list style with morse/kk
-
-That style is not supported by Kokkos.
-
-*/

@@ -1,0 +1,5 @@
+# Settings that the LAMMPS build will import when this package library is used
+
+machdyn_SYSINC =
+machdyn_SYSLIB =
+machdyn_SYSPATH =

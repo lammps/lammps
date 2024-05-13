@@ -1,0 +1,33 @@
+This package contains a fast implementation for LAMMPS of quantum-based
+MGPT multi-ion potentials.  The MGPT or model GPT method derives from
+first-principles DFT-based generalized pseudopotential theory (GPT)
+through a series of systematic approximations valid for mid-period
+transition metals with nearly half-filled d bands.  The MGPT method
+was originally developed by John Moriarty at Lawrence Livermore
+National Lab (LLNL).
+
+In the general matrix representation of MGPT, which can also be applied
+to f-band actinide metals, the multi-ion potentials are evaluated on the
+fly during a simulation through d- or f-state matrix multiplication, and
+the forces that move the ions are determined analytically.  The mgpt
+pair style in this package calculates forces and energies using an
+optimized matrix-MGPT algorithm due to Tomas Oppelstrup at LLNL.
+
+See the doc page for the pair_style mgpt command for full details on
+using this package in LAMMPS. In particular, the user should note that
+the MGPT potentials are explicitly volume dependent, requiring special
+attention in their application.  Useful example scripts are given in
+the "examples/PACKAGES/mgpt" directory.  These scripts show the necessary
+steps to perform constant-volume calculations and simulations.  It is
+strongly recommended that the user work through and understand these
+examples before proceeding to more complex simulations.
+
+Specific MGPT potential data for the transition metals tantalum
+(Ta4 and Ta6.8x potentials), molybdenum (Mo5.2 potentials), and
+vanadium (V6.1 potentials) are contained in the LAMMPS "potentials"
+directory.  It is expected that MGPT potentials for additional
+materials will be added over time.
+
+The persons who created the MGPT package are Tomas Oppelstrup
+(oppelstrup2@llnl.gov) and John Moriarty (moriarty2@llnl.gov)
+Contact them directly if you have any questions.

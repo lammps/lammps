@@ -42,20 +42,21 @@ number of LAMMPS atom types:
 * QUIP initialization string
 * N atomic numbers = mapping of QUIP elements to atom types
 
-See the :doc:`pair_coeff <pair_coeff>` doc page for alternate ways
+See the :doc:`pair_coeff <pair_coeff>` page for alternate ways
 to specify the path for the potential file.
 
 A QUIP potential is fully specified by the filename which contains the
 parameters of the potential in XML format, the initialization string,
 and the map of atomic numbers.
 
-GAP potentials can be obtained from the Data repository section of
-`http://www.libatoms.org <http://www.libatoms.org>`_, where the
-appropriate initialization strings are also advised. The list of
-atomic numbers must be matched to the LAMMPS atom types specified in
-the LAMMPS data file or elsewhere.
+GAP potentials can be obtained from the `GAP models and databases page
+on the libAtoms homepage `https://libatoms.github.io
+<https://libatoms.github.io/GAP/data.html>`_, where the appropriate
+initialization strings are also advised. The list of atomic numbers must
+be matched to the LAMMPS atom types specified in the LAMMPS data file or
+elsewhere.
 
-Two examples input scripts are provided in the examples/USER/quip
+Two examples input scripts are provided in the examples/PACKAGES/quip
 directory.
 
 Mixing, shift, table, tail correction, restart, rRESPA info
@@ -70,13 +71,13 @@ script that reads a restart file.
 
 This pair style can only be used via the *pair* keyword of the
 :doc:`run_style respa <run_style>` command.  It does not support the
-*inner*\ , *middle*\ , *outer* keywords.
+*inner*, *middle*, *outer* keywords.
 
 Restrictions
 """"""""""""
 
-This pair style is part of the USER-QUIP package.  It is only enabled
-if LAMMPS was built with that package.  See the :doc:`Build package <Build_package>` doc page for more info.
+This pair style is part of the ML-QUIP package.  It is only enabled
+if LAMMPS was built with that package.  See the :doc:`Build package <Build_package>` page for more info.
 
 QUIP potentials are parameterized in electron-volts and Angstroms and
 therefore should be used with LAMMPS metal :doc:`units <units>`.

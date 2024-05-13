@@ -84,7 +84,7 @@ int ljd_gpu_init(const int ntypes, double **cutsq, double **host_lj1,
                          host_cut_coulsq, host_special_coul, qqrd2e, e_shift,
                          f_shift, alpha);
 
-    LJDMF.device->gpu_barrier();
+    LJDMF.device->serialize_init();
     if (message)
       fprintf(screen,"Done.\n");
   }

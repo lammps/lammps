@@ -1,7 +1,7 @@
 /* -*- c++ -*- ----------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    https://www.lammps.org/, Sandia National Laboratories
-   Steve Plimpton, sjplimp@sandia.gov
+   LAMMPS development team: developers@lammps.org
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
@@ -27,7 +27,6 @@ namespace LAMMPS_NS {
 class PairTersoffZBL : public PairTersoff {
  public:
   PairTersoffZBL(class LAMMPS *);
-  ~PairTersoffZBL() {}
 
   static constexpr int NPARAMS_PER_LINE = 21;
 
@@ -36,11 +35,11 @@ class PairTersoffZBL : public PairTersoff {
   double global_epsilon_0;    // permittivity of vacuum for Coulomb repulsion
   double global_e;            // proton charge (negative of electron charge)
 
-  void read_file(char *);
-  void repulsive(Param *, double, double &, int, double &);
+  void read_file(char *) override;
+  void repulsive(Param *, double, double &, int, double &) override;
 
-  double ters_fa(double, Param *);
-  double ters_fa_d(double, Param *);
+  double ters_fa(double, Param *) override;
+  double ters_fa_d(double, Param *) override;
 
   double F_fermi(double, Param *);
   double F_fermi_d(double, Param *);
@@ -50,25 +49,3 @@ class PairTersoffZBL : public PairTersoff {
 
 #endif
 #endif
-
-/* ERROR/WARNING messages:
-
-E: Pair tersoff/zbl requires metal or real units
-
-This is a current restriction of this pair potential.
-
-E: Cannot open Tersoff potential file %s
-
-The specified potential file cannot be opened.  Check that the path
-and name are correct.
-
-E: Incorrect format in Tersoff potential file
-
-Incorrect number of words per line in the potential file.
-
-E: Illegal Tersoff parameter
-
-One or more of the coefficients defined in the potential file is
-invalid.
-
-*/

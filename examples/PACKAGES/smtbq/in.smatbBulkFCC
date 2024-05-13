@@ -1,0 +1,27 @@
+# -*- lammps -*-
+
+units           metal
+atom_style      atomic
+boundary	p p p
+
+lattice fcc 4.0782
+
+region myreg block 0 8 0 8 0 8
+
+create_box      1 myreg
+
+create_atoms    1 box
+
+mass 1 196.96655  # Au
+
+pair_style	smatb/single
+pair_coeff	1 1 2.88 10.35	4.178	0.210	1.818	4.07293506	4.9883063257983666
+
+neighbor	8.0 bin
+neigh_modify	every 1 delay 0 check yes
+
+thermo          1
+fix            boxmin all box/relax iso 1.0
+minimize       1.0e-8 1.0e-10 10000 100000
+unfix boxmin
+minimize       1.0e-8 1.0e-10 10000 100000

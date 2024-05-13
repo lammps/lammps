@@ -1,5 +1,6 @@
 ---
 lammps_version: 10 Feb 2021
+tags: slow
 date_generated: Fri Feb 26 23:09:26 2021
 epsilon: 5e-11
 prerequisites: ! |
@@ -11,7 +12,7 @@ post_commands: ! |
   pair_modify compute no
   kspace_style msm 1.0e-4
   kspace_modify cutoff/adjust no
-  kspace_modify pressure/scalar no # required for USER-OMP with msm
+  kspace_modify pressure/scalar no # required for OPENMP with msm
 input_file: in.fourmol
 pair_style: coul/msm 12.0
 pair_coeff: ! |

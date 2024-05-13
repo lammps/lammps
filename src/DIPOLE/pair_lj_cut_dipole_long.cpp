@@ -2,7 +2,7 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    https://www.lammps.org/
-   Steve Plimpton, sjplimp@sandia.gov, Sandia National Laboratories
+   LAMMPS development team: developers@lammps.org, Sandia National Laboratories
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
@@ -14,30 +14,24 @@
 
 #include "pair_lj_cut_dipole_long.h"
 
-#include <cmath>
-#include <cstring>
 #include "atom.h"
 #include "comm.h"
-#include "neighbor.h"
-#include "neigh_list.h"
+#include "error.h"
+#include "ewald_const.h"
 #include "force.h"
 #include "kspace.h"
 #include "math_const.h"
 #include "memory.h"
-#include "error.h"
+#include "neigh_list.h"
+#include "neighbor.h"
 #include "update.h"
 
+#include <cmath>
+#include <cstring>
 
 using namespace LAMMPS_NS;
 using namespace MathConst;
-
-#define EWALD_F   1.12837917
-#define EWALD_P   0.3275911
-#define A1        0.254829592
-#define A2       -0.284496736
-#define A3        1.421413741
-#define A4       -1.453152027
-#define A5        1.061405429
+using namespace EwaldConst;
 
 /* ---------------------------------------------------------------------- */
 
@@ -445,7 +439,7 @@ void PairLJCutDipoleLong::init_style()
   if (strcmp(update->unit_style,"electron") == 0)
     error->all(FLERR,"Cannot (yet) use 'electron' units with dipoles");
 
-  // insure use of KSpace long-range solver, set g_ewald
+  // ensure use of KSpace long-range solver, set g_ewald
 
   if (force->kspace == nullptr)
     error->all(FLERR,"Pair style requires a KSpace style");
@@ -454,7 +448,7 @@ void PairLJCutDipoleLong::init_style()
 
   cut_coulsq = cut_coul * cut_coul;
 
-  neighbor->request(this,instance_me);
+  neighbor->add_request(this);
 }
 
 /* ----------------------------------------------------------------------
@@ -540,18 +534,18 @@ void PairLJCutDipoleLong::read_restart_settings(FILE *fp)
 
 void *PairLJCutDipoleLong::extract(const char *str, int &dim)
 {
-  if (strcmp(str,"cut_coul") == 0) {
-    dim = 0;
-    return (void *) &cut_coul;
-  } else if (strcmp(str,"ewald_order") == 0) {
+  dim = 0;
+  if (strcmp(str,"cut_coul") == 0) return (void *) &cut_coul;
+  else if (strcmp(str,"ewald_order") == 0) {
     ewald_order = 0;
     ewald_order |= 1<<1;
     ewald_order |= 1<<3;
-    dim = 0;
     return (void *) &ewald_order;
-  } else if (strcmp(str,"ewald_mix") == 0) {
-    dim = 0;
-    return (void *) &mix_flag;
-  }
+  } else if (strcmp(str,"ewald_mix") == 0) return (void *) &mix_flag;
+
+  dim = 2;
+  if (strcmp(str,"epsilon") == 0) return (void *) epsilon;
+  else if (strcmp(str,"sigma") == 0) return (void *) sigma;
+
   return nullptr;
 }

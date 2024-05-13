@@ -35,19 +35,19 @@ class UCL_Texture {
   UCL_Texture() {}
   ~UCL_Texture() {}
   /// Construct with a specified texture reference
-  inline UCL_Texture(UCL_Program &prog, const char *texture_name) { }
+  inline UCL_Texture(UCL_Program & /*prog*/, const char * /*texture_name*/) { }
   /// Set the texture reference for this object
-  inline void get_texture(UCL_Program &prog, const char *texture_name) { }
+  inline void get_texture(UCL_Program & /*prog*/, const char * /*texture_name*/) { }
 
   /// Bind a float array where each fetch grabs a vector of length numel
   template<class mat_typ>
-  inline void bind_float(mat_typ &vec, const unsigned numel) { }
+    inline void bind_float(mat_typ & /*vec*/, const unsigned /*numel*/) { }
 
   /// Unbind the texture reference from the memory allocation
   inline void unbind() { }
 
   /// Make a texture reference available to kernel
-  inline void allow(UCL_Kernel &kernel) { }
+  inline void allow(UCL_Kernel & /*kernel*/) { }
 
  private:
   friend class UCL_Kernel;
@@ -62,7 +62,7 @@ class UCL_Const {
   inline UCL_Const(UCL_Program &prog, const char *global_name)
     { get_global(prog,global_name); }
   /// Set the global reference for this object
-  inline void get_global(UCL_Program &prog, const char *global_name) {
+  inline void get_global(UCL_Program &prog, const char * /*global_name*/) {
     if (_active) {
       CL_DESTRUCT_CALL(clReleaseContext(_context));
       CL_DESTRUCT_CALL(clReleaseCommandQueue(_cq));
@@ -76,7 +76,7 @@ class UCL_Const {
   /// Copy from array on host to const memory
   template <class numtyp>
   inline void update_device(UCL_H_Vec<numtyp> &src, const int numel) {
-    const int bytes=numel*sizeof(numtyp);
+    const size_t bytes=numel*sizeof(numtyp);
     if (_global_bytes < bytes) {
       if (_global_bytes) CL_SAFE_CALL(clReleaseMemObject(_global));
       cl_int e;
@@ -84,7 +84,7 @@ class UCL_Const {
       CL_SAFE_CALL(e);
     }
     CL_SAFE_CALL(clEnqueueWriteBuffer(_cq, _global, CL_FALSE, 0, bytes,
-				      (void *)src.begin(), 0, NULL, NULL));
+                                      (void *)src.begin(), 0, NULL, NULL));
   }
   /// Get device ptr associated with object
   inline const cl_mem * begin() const { return &_global; }

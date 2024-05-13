@@ -1,7 +1,8 @@
 ---
-lammps_version: 10 Feb 2021
-date_generated: Fri Feb 26 23:09:25 2021
+lammps_version: 17 Feb 2022
+date_generated: Fri Mar 18 22:17:52 2022
 epsilon: 1e-14
+skip_tests:
 prerequisites: ! |
   atom full
   angle zero
@@ -14,7 +15,7 @@ angle_coeff: ! |
   2 111
   3 120
   4 108.5
-equilibrium: 4 1.9216075064457565 1.9373154697137058 2.0943951023931953 1.8936822384138474
+equilibrium: 4 1.9216075064457567 1.9373154697137058 2.0943951023931953 1.8936822384138476
 extract: ! ""
 natoms: 29
 init_energy: 0

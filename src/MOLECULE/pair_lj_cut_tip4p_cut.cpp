@@ -2,7 +2,7 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    https://www.lammps.org/, Sandia National Laboratories
-   Steve Plimpton, sjplimp@sandia.gov
+   LAMMPS development team: developers@lammps.org
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
@@ -18,20 +18,20 @@
 
 #include "pair_lj_cut_tip4p_cut.h"
 
-#include <cmath>
-#include <cstring>
-#include "atom.h"
-#include "force.h"
-#include "neighbor.h"
-#include "neigh_list.h"
-#include "domain.h"
 #include "angle.h"
+#include "atom.h"
 #include "bond.h"
 #include "comm.h"
+#include "domain.h"
+#include "error.h"
+#include "force.h"
 #include "math_const.h"
 #include "memory.h"
-#include "error.h"
+#include "neigh_list.h"
+#include "neighbor.h"
 
+#include <cmath>
+#include <cstring>
 
 using namespace LAMMPS_NS;
 using namespace MathConst;
@@ -490,23 +490,29 @@ void PairLJCutTIP4PCut::init_style()
   if (atom->tag_enable == 0)
     error->all(FLERR,"Pair style lj/cut/tip4p/cut requires atom IDs");
   if (!force->newton_pair)
-    error->all(FLERR,
-               "Pair style lj/cut/tip4p/cut requires newton pair on");
+    error->all(FLERR,"Pair style lj/cut/tip4p/cut requires newton pair on");
   if (!atom->q_flag)
-    error->all(FLERR,
-               "Pair style lj/cut/tip4p/cut requires atom attribute q");
+    error->all(FLERR,"Pair style lj/cut/tip4p/cut requires atom attribute q");
   if (force->bond == nullptr)
     error->all(FLERR,"Must use a bond style with TIP4P potential");
   if (force->angle == nullptr)
     error->all(FLERR,"Must use an angle style with TIP4P potential");
 
-  neighbor->request(this,instance_me);
+  neighbor->add_request(this);
 
   // set alpha parameter
 
-  double theta = force->angle->equilibrium_angle(typeA);
-  double blen = force->bond->equilibrium_distance(typeB);
+  const double theta = force->angle->equilibrium_angle(typeA);
+  const double blen = force->bond->equilibrium_distance(typeB);
   alpha = qdist / (cos(0.5*theta) * blen);
+
+  const double mincut = cut_coul + qdist + blen + neighbor->skin;
+  if (comm->get_comm_cutoff() < mincut) {
+    if (comm->me == 0)
+      error->warning(FLERR, "Increasing communication cutoff to {:.8} for TIP4P pair style",
+                     mincut);
+    comm->cutghostuser = mincut;
+  }
 }
 
 /* ----------------------------------------------------------------------
@@ -737,12 +743,18 @@ void PairLJCutTIP4PCut::compute_newsite(double *xO,  double *xH1,
 void *PairLJCutTIP4PCut::extract(const char *str, int &dim)
 {
   dim = 0;
+  if (strcmp(str,"qdist") == 0) return (void *) &qdist;
+  if (strcmp(str,"typeO") == 0) return (void *) &typeO;
+  if (strcmp(str,"typeH") == 0) return (void *) &typeH;
+  if (strcmp(str,"typeA") == 0) return (void *) &typeA;
+  if (strcmp(str,"typeB") == 0) return (void *) &typeB;
   if (strcmp(str,"cut_coul") == 0) return (void *) &cut_coul;
   dim = 2;
   if (strcmp(str,"epsilon") == 0) return (void *) epsilon;
   if (strcmp(str,"sigma") == 0) return (void *) sigma;
   return nullptr;
 }
+
 /* ----------------------------------------------------------------------
    memory usage of hneigh
 ------------------------------------------------------------------------- */

@@ -93,22 +93,22 @@ Mixing, shift, table, tail correction, restart, rRESPA info
 
 Mixing is not supported for this style.
 
-The *shift*\ , *table* and *tail* options are not relevant for this style.
+The *shift*, *table* and *tail* options are not relevant for this style.
 
 This pair style writes its information to :doc:`binary restart files <restart>`, so pair_style and pair_coeff commands do not need
 to be specified in an input script that reads a restart file.
 
 These pair styles can only be used via the *pair* keyword of the
 :doc:`run_style respa <run_style>` command.  They do not support the
-*inner*\ , *middle*\ , *outer* keywords.
+*inner*, *middle*, *outer* keywords.
 
 ----------
 
 Restrictions
 """"""""""""
 
-The *cosine/squared* style is part of the USER-MISC package. It is only
-enabled if LAMMPS is build with that package.  See the :doc:`Build package <Build_package>` doc page for more info.
+The *cosine/squared* style is part of the EXTRA-PAIR package. It is only
+enabled if LAMMPS is build with that package.  See the :doc:`Build package <Build_package>` page for more info.
 
 Related commands
 """"""""""""""""

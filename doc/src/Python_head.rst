@@ -18,17 +18,17 @@ together.
    Python_error
    Python_trouble
 
-If you are not familiar with `Python <http://www.python.org>`_, it is a
+If you are not familiar with `Python <https://www.python.org>`_, it is a
 powerful scripting and programming language which can do almost
 everything that compiled languages like C, C++, or Fortran can do in
 fewer lines of code. It also comes with a large collection of add-on
 modules for many purposes (either bundled or easily installed from
 Python code repositories).  The major drawback is slower execution speed
 of the script code compared to compiled programming languages.  But when
-the script code is interfaced to optimized compiled code, performance can
-be on par with a standalone executable, for as long as the scripting is
-restricted to high-level operations.  Thus Python is also convenient to
-use as a "glue" language to "drive" a program through its library
+the script code is interfaced to optimized compiled code, performance
+can be on par with a standalone executable, for as long as the scripting
+is restricted to high-level operations.  Thus Python is also convenient
+to use as a "glue" language to "drive" a program through its library
 interface, or to hook multiple pieces of software together, such as a
 simulation code and a visualization tool, or to run a coupled
 multi-scale or multi-physics model.

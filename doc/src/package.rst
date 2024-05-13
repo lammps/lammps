@@ -6,7 +6,7 @@ package command
 Syntax
 """"""
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    package style args
 
@@ -18,16 +18,16 @@ Syntax
        *gpu* args = Ngpu keyword value ...
          Ngpu = # of GPUs per node
          zero or more keyword/value pairs may be appended
-         keywords = *neigh* or *newton* or *pair/only* or *binsize* or *split* or *gpuID* or *tpa* or *blocksize* or *platform* or *device_type* or *ocl_args*
+         keywords = *neigh* or *newton* or *pair/only* or *binsize* or *split* or *gpuID* or *tpa* or *blocksize* or *omp* or *platform* or *device_type* or *ocl_args*
            *neigh* value = *yes* or *no*
-             yes = neighbor list build on GPU (default)
-             no = neighbor list build on CPU
+             *yes* = neighbor list build on GPU (default)
+             *no* = neighbor list build on CPU
            *newton* = *off* or *on*
-             off = set Newton pairwise flag off (default and required)
-             on = set Newton pairwise flag on (currently not allowed)
+             *off* = set Newton pairwise flag off (default and required)
+             *on* = set Newton pairwise flag on (currently not allowed)
            *pair/only* = *off* or *on*
-             off = apply "gpu" suffix to all available styles in the GPU package (default)
-             on  - apply "gpu" suffix only pair styles
+             *off* = apply "gpu" suffix to all available styles in the GPU package (default)
+             *on* = apply "gpu" suffix only pair styles
            *binsize* value = size
              size = bin size for neighbor list construction (distance units)
            *split* = fraction
@@ -42,14 +42,14 @@ Syntax
              id = For OpenCL, platform ID for the GPU or accelerator
            *gpuID* values = id
              id = ID of first GPU to be used on each node
-           *device_type* value = *intelgpu* or *nvidiagpu* or *amdgpu* or *applegpu* or *generic* or *custom,val1,val2,...*
+           *device_type* value = *intelgpu* or *nvidiagpu* or *amdgpu* or *applegpu* or *generic* or *custom*,val1,val2,...
              val1,val2,... = custom OpenCL accelerator configuration parameters (see below for details)
            *ocl_args* value = args
              args = List of additional OpenCL compiler arguments delimited by colons
        *intel* args = NPhi keyword value ...
          Nphi = # of co-processors per node
          zero or more keyword/value pairs may be appended
-         keywords = *mode* or *omp* or *lrt* or *balance* or *ghost* or *tpc* or *tptask* or *no_affinity*
+         keywords = *mode* or *omp* or *lrt* or *balance* or *ghost* or *tpc* or *tptask* or *pppm_table* or *no_affinity*
            *mode* value = *single* or *mixed* or *double*
              single = perform force calculations in single precision
              mixed = perform force calculations in mixed precision
@@ -57,21 +57,24 @@ Syntax
            *omp* value = Nthreads
              Nthreads = number of OpenMP threads to use on CPU (default = 0)
            *lrt* value = *yes* or *no*
-             yes = use additional thread dedicated for some PPPM calculations
-             no = do not dedicate an extra thread for some PPPM calculations
+             *yes* = use additional thread dedicated for some PPPM calculations
+             *no* = do not dedicate an extra thread for some PPPM calculations
            *balance* value = split
              split = fraction of work to offload to co-processor, -1 for dynamic
            *ghost* value = *yes* or *no*
-             yes = include ghost atoms for offload
-             no = do not include ghost atoms for offload
+             *yes* = include ghost atoms for offload
+             *no* = do not include ghost atoms for offload
            *tpc* value = Ntpc
              Ntpc = max number of co-processor threads per co-processor core (default = 4)
            *tptask* value = Ntptask
              Ntptask = max number of co-processor threads per MPI task (default = 240)
+           *pppm_table* value = *yes* or *no*
+             *yes* = Precompute pppm values in table (doesn't change accuracy)
+             *no* = Compute pppm values on the fly
            *no_affinity* values = none
        *kokkos* args = keyword value ...
          zero or more keyword/value pairs may be appended
-         keywords = *neigh* or *neigh/qeq* or *neigh/thread* or *newton* or *binsize* or *comm* or *comm/exchange* or *comm/forward* *pair/comm/forward* *fix/comm/forward* or *comm/reverse* or *gpu/aware* or *pair/only*
+         keywords = *neigh* or *neigh/qeq* or *neigh/thread* or *neigh/transpose* or *newton* or *binsize* or *comm* or *comm/exchange* or *comm/forward* or *comm/pair/forward* or *comm/fix/forward* or *comm/reverse* or *comm/pair/reverse* or *sort* or *atom/map* or *gpu/aware* or *pair/only*
            *neigh* value = *full* or *half*
              full = full neighbor list
              half = half neighbor list built in thread-safe manner
@@ -79,36 +82,48 @@ Syntax
              full = full neighbor list
              half = half neighbor list built in thread-safe manner
            *neigh/thread* value = *off* or *on*
-             off = thread only over atoms
-             on = thread over both atoms and neighbors
+             *off* = thread only over atoms
+             *on* = thread over both atoms and neighbors
+           *neigh/transpose* value = *off* or *on*
+             *off* = use same memory layout for GPU neigh list build as pair style
+             *on* = use transposed memory layout for GPU neigh list build
            *newton* = *off* or *on*
-             off = set Newton pairwise and bonded flags off
-             on = set Newton pairwise and bonded flags on
+             *off* = set Newton pairwise and bonded flags off
+             *on* = set Newton pairwise and bonded flags on
            *binsize* value = size
              size = bin size for neighbor list construction (distance units)
            *comm* value = *no* or *host* or *device*
-             use value for comm/exchange and comm/forward and pair/comm/forward and fix/comm/forward and comm/reverse
+             use value for comm/exchange and comm/forward and comm/pair/forward and comm/fix/forward and comm/reverse
            *comm/exchange* value = *no* or *host* or *device*
            *comm/forward* value = *no* or *host* or *device*
-           *pair/comm/forward* value = *no* or *device*
-           *fix/comm/forward* value = *no* or *device*
+           *comm/pair/forward* value = *no* or *device*
+           *comm/fix/forward* value = *no* or *device*
            *comm/reverse* value = *no* or *host* or *device*
-             no = perform communication pack/unpack in non-KOKKOS mode
-             host = perform pack/unpack on host (e.g. with OpenMP threading)
-             device = perform pack/unpack on device (e.g. on GPU)
+             *no* = perform communication pack/unpack in non-KOKKOS mode
+             *host* = perform pack/unpack on host (e.g. with OpenMP threading)
+             *device* = perform pack/unpack on device (e.g. on GPU)
+           *comm/pair/reverse* value = *no* or *device*
+             *no* = perform communication pack/unpack in non-KOKKOS mode
+             *device* = perform pack/unpack on device (e.g. on GPU)
+           *sort* value = *no* or *device*
+             *no* = perform atom sorting in non-KOKKOS mode
+             *device* = perform atom sorting on device (e.g. on GPU)
+           *atom/map* value = *no* or *device*
+             *no* = build atom map in non-KOKKOS mode
+             *device* = build atom map on device (e.g. on GPU)
            *gpu/aware* = *off* or *on*
-             off = do not use GPU-aware MPI
-             on = use GPU-aware MPI (default)
+             *off* = do not use GPU-aware MPI
+             *on* = use GPU-aware MPI (default)
            *pair/only* = *off* or *on*
-             off = use device acceleration (e.g. GPU) for all available styles in the KOKKOS package (default)
-             on  = use device acceleration only for pair styles (and host acceleration for others)
+             *off* = use device acceleration (e.g. GPU) for all available styles in the KOKKOS package (default)
+             *on*  = use device acceleration only for pair styles (and host acceleration for others)
        *omp* args = Nthreads keyword value ...
          Nthreads = # of OpenMP threads to associate with each MPI process
          zero or more keyword/value pairs may be appended
          keywords = *neigh*
            *neigh* value = *yes* or *no*
-             yes = threaded neighbor list build (default)
-             no = non-threaded neighbor list build
+             *yes* = threaded neighbor list build (default)
+             *no* = non-threaded neighbor list build
 
 Examples
 """"""""
@@ -130,8 +145,8 @@ Description
 
 This command invokes package-specific settings for the various
 accelerator packages available in LAMMPS.  Currently the following
-packages use settings from this command: GPU, USER-INTEL, KOKKOS, and
-USER-OMP.
+packages use settings from this command: GPU, INTEL, KOKKOS, and
+OPENMP.
 
 If this command is specified in an input script, it must be near the
 top of the script, before the simulation box has been defined.  This
@@ -152,7 +167,7 @@ accelerator settings.
 The KOKKOS package requires a "-k on" :doc:`command-line switch <Run_options>` respectively, which invokes a "package
 kokkos" command with default settings.
 
-For the GPU, USER-INTEL, and USER-OMP packages, if a "-sf gpu" or "-sf
+For the GPU, INTEL, and OPENMP packages, if a "-sf gpu" or "-sf
 intel" or "-sf omp" :doc:`command-line switch <Run_options>` is used to
 auto-append accelerator suffixes to various styles in the input
 script, then those switches also invoke a "package gpu", "package
@@ -166,7 +181,7 @@ intel", or "package omp" command with default settings.
    set, either to default values or to specified settings.  I.e. settings
    from previous invocations do not persist across multiple invocations.
 
-See the :doc:`Speed packages <Speed_packages>` doc page for more details
+See the :doc:`Accelerator packages <Speed_packages>` page for more details
 about using the various accelerator packages for speeding up LAMMPS
 simulations.
 
@@ -192,8 +207,8 @@ Optional keyword/value pairs can also be specified.  Each has a
 default value as listed below.
 
 The *neigh* keyword specifies where neighbor lists for pair style
-computation will be built.  If *neigh* is *yes*\ , which is the default,
-neighbor list building is performed on the GPU.  If *neigh* is *no*\ ,
+computation will be built.  If *neigh* is *yes*, which is the default,
+neighbor list building is performed on the GPU.  If *neigh* is *no*,
 neighbor list building is performed on the CPU.  GPU neighbor list
 building currently cannot be used with a triclinic box.  GPU neighbor
 lists are not compatible with commands that are not GPU-enabled.  When
@@ -202,7 +217,7 @@ built on the CPU.  In these cases, it will typically be more efficient
 to only use CPU neighbor list builds.
 
 The *newton* keyword sets the Newton flags for pairwise (not bonded)
-interactions to *off* or *on*\ , the same as the :doc:`newton <newton>`
+interactions to *off* or *on*, the same as the :doc:`newton <newton>`
 command allows.  Currently, only an *off* value is allowed, since all
 the GPU package pair styles require this setting.  This means more
 computation is done, but less communication.  In the future a value of
@@ -288,8 +303,8 @@ The *Nthreads* value for the *omp* keyword sets the number of OpenMP
 threads allocated for each MPI task. This setting controls OpenMP
 parallelism only for routines run on the CPUs. For more details on
 setting the number of OpenMP threads, see the discussion of the
-*Nthreads* setting on this doc page for the "package omp" command.
-The meaning of *Nthreads* is exactly the same for the GPU, USER-INTEL,
+*Nthreads* setting on this page for the "package omp" command.
+The meaning of *Nthreads* is exactly the same for the GPU, INTEL,
 and GPU packages.
 
 The *platform* keyword is only used with OpenCL to specify the ID for
@@ -313,7 +328,7 @@ CONFIG_ID, SIMD_SIZE, MEM_THREADS, SHUFFLE_AVAIL, FAST_MATH,
 THREADS_PER_ATOM, THREADS_PER_CHARGE, THREADS_PER_THREE, BLOCK_PAIR,
 BLOCK_BIO_PAIR, BLOCK_ELLIPSE, PPPM_BLOCK_1D, BLOCK_NBOR_BUILD,
 BLOCK_CELL_2D, BLOCK_CELL_ID, MAX_SHARED_TYPES, MAX_BIO_SHARED_TYPES,
-PPPM_MAX_SPLINE.
+PPPM_MAX_SPLINE, NBOR_PREFETCH.
 
 CONFIG_ID can be 0. SHUFFLE_AVAIL in {0,1} indicates that inline-PTX
 (NVIDIA) or OpenCL extensions (Intel) should be used for horizontal
@@ -332,12 +347,10 @@ specify additional flags for the runtime build.
 
 ----------
 
-The *intel* style invokes settings associated with the use of the
-USER-INTEL package.  All of its settings, except the *omp* and *mode*
-keywords, are ignored if LAMMPS was not built with Xeon Phi
-co-processor support.  All of its settings, including the *omp* and
-*mode* keyword are applicable if LAMMPS was built with co-processor
-support.
+The *intel* style invokes settings associated with the use of the INTEL
+package.  The keywords *balance*, *ghost*, *tpc*, and *tptask* are
+**only** applicable if LAMMPS was built with Xeon Phi co-processor
+support and are otherwise ignored.
 
 The *Nphi* argument sets the number of co-processors per node.
 This can be set to any value, including 0, if LAMMPS was not
@@ -350,14 +363,14 @@ The *Nthreads* value for the *omp* keyword sets the number of OpenMP
 threads allocated for each MPI task. This setting controls OpenMP
 parallelism only for routines run on the CPUs. For more details on
 setting the number of OpenMP threads, see the discussion of the
-*Nthreads* setting on this doc page for the "package omp" command.
-The meaning of *Nthreads* is exactly the same for the GPU, USER-INTEL,
+*Nthreads* setting on this page for the "package omp" command.
+The meaning of *Nthreads* is exactly the same for the GPU, INTEL,
 and GPU packages.
 
 The *mode* keyword determines the precision mode to use for
 computing pair style forces, either on the CPU or on the co-processor,
-when using a USER-INTEL supported :doc:`pair style <pair_style>`.  It
-can take a value of *single*\ , *mixed* which is the default, or
+when using a INTEL supported :doc:`pair style <pair_style>`.  It
+can take a value of *single*, *mixed* which is the default, or
 *double*\ .  *Single* means single precision is used for the entire
 force calculation.  *Mixed* means forces between a pair of atoms are
 computed in single precision, but accumulated and stored in double
@@ -376,24 +389,24 @@ Simultaneous Multithreading (SMT) such as Hyper-Threading (HT) on Intel
 processors. In this mode, one additional thread is generated per MPI
 process. LAMMPS will generate a warning in the case that more threads
 are used than available in SMT hardware on a node. If the PPPM solver
-from the USER-INTEL package is not used, then the LRT setting is
+from the INTEL package is not used, then the LRT setting is
 ignored and no extra threads are generated. Enabling LRT will replace
 the :doc:`run_style <run_style>` with the *verlet/lrt/intel* style that
 is identical to the default *verlet* style aside from supporting the
 LRT feature. This feature requires setting the pre-processor flag
 -DLMP_INTEL_USELRT in the makefile when compiling LAMMPS.
 
-The *balance* keyword sets the fraction of :doc:`pair style <pair_style>` work offloaded to the co-processor for split
-values between 0.0 and 1.0 inclusive.  While this fraction of work is
-running on the co-processor, other calculations will run on the host,
-including neighbor and pair calculations that are not offloaded, as
-well as angle, bond, dihedral, kspace, and some MPI communications.
-If *split* is set to -1, the fraction of work is dynamically adjusted
-automatically throughout the run.  This typically give performance
+The *balance* keyword sets the fraction of :doc:`pair style <pair_style>` work
+offloaded to the co-processor for split values between 0.0 and 1.0 inclusive.
+While this fraction of work is running on the co-processor, other calculations
+will run on the host, including neighbor and pair calculations that are not
+offloaded, as well as angle, bond, dihedral, kspace, and some MPI
+communications.  If *split* is set to -1, the fraction of work is dynamically
+adjusted automatically throughout the run.  This typically give performance
 within 5 to 10 percent of the optimal fixed fraction.
 
 The *ghost* keyword determines whether or not ghost atoms, i.e. atoms
-at the boundaries of processor sub-domains, are offloaded for neighbor
+at the boundaries of processor subdomains, are offloaded for neighbor
 and force calculations.  When the value = "no", ghost atoms are not
 offloaded.  This option can reduce the amount of data transfer with
 the co-processor and can also overlap MPI communication of forces with
@@ -420,6 +433,13 @@ with 16 threads, for a total of 128.
 
 Note that the default settings for *tpc* and *tptask* are fine for
 most problems, regardless of how many MPI tasks you assign to a Phi.
+
+.. versionadded:: 15Jun2023
+
+The *pppm_table* keyword with the argument yes allows to use a
+pre-computed table to efficiently spread the charge to the PPPM grid.
+This feature is enabled by default but can be turned off using the
+keyword with the argument *no*.
 
 The *no_affinity* keyword will turn off automatic setting of core
 affinity for MPI tasks and OpenMP threads on the host when using
@@ -448,33 +468,45 @@ does not require atomic operations in the calculation of pair forces. For
 that reason, *full* is the default setting for GPUs. However, when
 running on CPUs, a *half* neighbor list is the default because it are
 often faster, just as it is for non-accelerated pair styles. Similarly,
-the *neigh/qeq* keyword determines how neighbor lists are built for :doc:`fix qeq/reax/kk <fix_qeq_reax>`.
+the *neigh/qeq* keyword determines how neighbor lists are built for
+:doc:`fix qeq/reaxff/kk <fix_qeq_reaxff>`.
 
-If the *neigh/thread* keyword is set to *off*\ , then the KOKKOS package
+If the *neigh/thread* keyword is set to *off*, then the KOKKOS package
 threads only over atoms. However, for small systems, this may not expose
-enough parallelism to keep a GPU busy. When this keyword is set to *on*\ ,
+enough parallelism to keep a GPU busy. When this keyword is set to *on*,
 the KOKKOS package threads over both atoms and neighbors of atoms. When
-using *neigh/thread* *on*\ , a full neighbor list must also be used. Using
-*neigh/thread* *on* may be slower for large systems, so this this option
-is turned on by default only when there are 16K atoms or less owned by
-an MPI rank and when using a full neighbor list. Not all KOKKOS-enabled
-potentials support this keyword yet, and only thread over atoms. Many
-simple pair-wise potentials such as Lennard-Jones do support threading
-over both atoms and neighbors.
+using *neigh/thread* *on*, the :doc:`newton pair <newton>` setting must
+be "off". Using *neigh/thread* *on* may be slower for large systems, so
+this this option is turned on by default only when running on one or
+more GPUs and there are 16k atoms or less owned by an MPI rank. Not all
+KOKKOS-enabled potentials support this keyword yet, and only thread over
+atoms. Many simple pairwise potentials such as Lennard-Jones do support
+threading over both atoms and neighbors.
+
+If the *neigh/transpose* keyword is set to *off*, then the KOKKOS
+package will use the same memory layout for building the neighbor list on
+GPUs as used for the pair style. When this keyword is set to *on* it
+will use a different (transposed) memory layout to build the neighbor
+list on GPUs. This can be faster in some cases (e.g. ReaxFF HNS
+benchmark) but slower in others (e.g. Lennard Jones benchmark). The
+copy between different memory layouts is done out of place and
+therefore doubles the memory overhead of the neighbor list, which can
+be significant.
 
 The *newton* keyword sets the Newton flags for pairwise and bonded
-interactions to *off* or *on*\ , the same as the :doc:`newton <newton>`
+interactions to *off* or *on*, the same as the :doc:`newton <newton>`
 command allows. The default for GPUs is *off* because this will almost
 always give better performance for the KOKKOS package. This means more
 computation is done, but less communication. However, when running on
 CPUs a value of *on* is the default since it can often be faster, just
 as it is for non-accelerated pair styles
 
-The *binsize* keyword sets the size of bins used to bin atoms in
-neighbor list builds. The same value can be set by the :doc:`neigh_modify binsize <neigh_modify>` command. Making it an option in the package
-kokkos command allows it to be set from the command line. The default
-value for CPUs is 0.0, which means the LAMMPS default will be used,
-which is bins = 1/2 the size of the pairwise cutoff + neighbor skin
+The *binsize* keyword sets the size of bins used to bin atoms during
+neighbor list builds. The same value can be set by the
+:doc:`neigh_modify binsize <neigh_modify>` command. Making it an option
+in the package kokkos command allows it to be set from the command line.
+The default value for CPUs is 0.0, which means the LAMMPS default will be
+used, which is bins = 1/2 the size of the pairwise cutoff + neighbor skin
 distance. This is fine when neighbor lists are built on the CPU. For GPU
 builds, a 2x larger binsize equal to the pairwise cutoff + neighbor skin
 is often faster, which is the default. Note that if you use a
@@ -484,8 +516,8 @@ because the GPU is faster at performing pairwise interactions, then this
 rule of thumb may give too large a binsize and the default should be
 overridden with a smaller value.
 
-The *comm* and *comm/exchange* and *comm/forward* and *pair/comm/forward*
-and *fix/comm/forward* and comm/reverse*
+The *comm* and *comm/exchange* and *comm/forward* and *comm/pair/forward*
+and *comm/fix/forward* and *comm/reverse* and *comm/pair/reverse*
 keywords determine whether the host or device performs the packing and
 unpacking of data when communicating per-atom data between processors.
 "Exchange" communication happens only on timesteps that neighbor lists
@@ -503,12 +535,19 @@ the comm keywords.
 The value options for the keywords are *no* or *host* or *device*\ . A
 value of *no* means to use the standard non-KOKKOS method of
 packing/unpacking data for the communication. A value of *host* means to
-use the host, typically a multi-core CPU, and perform the
+use the host, typically a multicore CPU, and perform the
 packing/unpacking in parallel with threads. A value of *device* means to
 use the device, typically a GPU, to perform the packing/unpacking
-operation. If a value of *host* is used for the *pair/comm/forward* or
-*fix/comm/forward* keyword, it will be automatically be changed to *no*
-since these keywords don't support *host* mode.
+operation.
+
+For the *comm/pair/forward* or *comm/fix/forward* or *comm/pair/reverse*
+keywords, if a value of *host* is used it will be automatically
+be changed to *no* since these keywords don't support *host* mode. The
+value of *no* will also always be used when running on the CPU, i.e. setting
+the value to *device* will have no effect if the pair/fix style is
+running on the CPU. For the *comm/fix/forward* or *comm/pair/reverse*
+keywords, not all styles support *device* mode and in that case will run
+in *no* mode instead.
 
 The optimal choice for these keywords depends on the input script and
 the hardware used. The *no* value is useful for verifying that the
@@ -529,8 +568,23 @@ pack/unpack communicated data. When running small systems on a GPU,
 performing the exchange pack/unpack on the host CPU can give speedup
 since it reduces the number of CUDA kernel launches.
 
+The *sort* keyword determines whether the host or device performs atom
+sorting, see the :doc:`atom_modify sort <atom_modify>` command.  The value
+options for the *sort* keyword are *no* or *device* similar to the *comm*
+keywords above. If a value of *host* is used it will be automatically be
+changed to *no* since the *sort* keyword does not support *host* mode. Not
+all fix styles with extra atom data support *device* mode and in that case
+a warning will be given and atom sorting will run in *no* mode instead.
+
+.. versionadded:: 17Apr2024
+
+The *atom/map* keyword determines whether the host or device builds the
+atom_map, see the :doc:`atom_modify map <atom_modify>` command.  The
+value options for the *atom/map* keyword are identical to the *sort*
+keyword above.
+
 The *gpu/aware* keyword chooses whether GPU-aware MPI will be used. When
-this keyword is set to *on*\ , buffers in GPU memory are passed directly
+this keyword is set to *on*, buffers in GPU memory are passed directly
 through MPI send/receive calls. This reduces overhead of first copying
 the data to the host CPU. However GPU-aware MPI is not supported on all
 systems, which can lead to segmentation faults and would require using a
@@ -538,7 +592,7 @@ value of *off*\ . If LAMMPS can safely detect that GPU-aware MPI is not
 available (currently only possible with OpenMPI v2.0.0 or later), then
 the *gpu/aware* keyword is automatically set to *off* by default. When
 the *gpu/aware* keyword is set to *off* while any of the *comm*
-keywords are set to *device*\ , the value for these *comm* keywords will
+keywords are set to *device*, the value for these *comm* keywords will
 be automatically changed to *no*\ . This setting has no effect if not
 running on GPUs or if using only one MPI rank. GPU-aware MPI is available
 for OpenMPI 1.8 (or later versions), Mvapich2 1.9 (or later) when the
@@ -546,17 +600,18 @@ for OpenMPI 1.8 (or later versions), Mvapich2 1.9 (or later) when the
 Spectrum MPI when the "-gpu" flag is used.
 
 The *pair/only* keyword can change how the KOKKOS suffix "kk" is applied
-when using an accelerator device.  By default device acceleration is
-always used for all available styles.  With *pair/only* set to *on* the
-suffix setting will choose device acceleration only for pair styles and
-run all other force computations on the host CPU.
-The *comm* flags will also automatically be changed to *no*\ . This can
-result in better performance for certain configurations and system sizes.
+when using an accelerator device.  By default device acceleration is always
+used for all available styles.  With *pair/only* set to *on* the suffix
+setting will choose device acceleration only for pair styles and run all
+other force computations on the host CPU.  The *comm* flags, along with the
+*sort* and *atom/map* keywords will also automatically be changed to *no*\ .
+This can result in better performance for certain configurations and
+system sizes.
 
 ----------
 
 The *omp* style invokes settings associated with the use of the
-USER-OMP package.
+OPENMP package.
 
 The *Nthreads* argument sets the number of OpenMP threads allocated for
 each MPI task.  For example, if your system has nodes with dual
@@ -595,16 +650,16 @@ for OpenMPI.  Check your MPI documentation for additional details.
 What combination of threads and MPI tasks gives the best performance
 is difficult to predict and can depend on many components of your
 input.  Not all features of LAMMPS support OpenMP threading via the
-USER-OMP package and the parallel efficiency can be very different,
+OPENMP package and the parallel efficiency can be very different,
 too.
 
 .. note::
 
-   If you build LAMMPS with the GPU, USER-INTEL, and / or USER-OMP
+   If you build LAMMPS with the GPU, INTEL, and / or OPENMP
    packages, be aware these packages all allow setting of the *Nthreads*
    value via their package commands, but there is only a single global
    *Nthreads* value used by OpenMP.  Thus if multiple package commands are
-   invoked, you should insure the values are consistent.  If they are
+   invoked, you should ensure the values are consistent.  If they are
    not, the last one invoked will take precedence, for all packages.
    Also note that if the :doc:`-sf hybrid intel omp command-line switch <Run_options>` is used, it invokes a "package intel" command, followed by a
    "package omp" command, both with a setting of *Nthreads* = 0. Likewise
@@ -637,19 +692,19 @@ Restrictions
 This command cannot be used after the simulation box is defined by a
 :doc:`read_data <read_data>` or :doc:`create_box <create_box>` command.
 
-The gpu style of this command can only be invoked if LAMMPS was built
+The *gpu* style of this command can only be invoked if LAMMPS was built
 with the GPU package.  See the :doc:`Build package <Build_package>` doc
 page for more info.
 
-The intel style of this command can only be invoked if LAMMPS was
-built with the USER-INTEL package.  See the :doc:`Build package <Build_package>` doc page for more info.
+The *intel* style of this command can only be invoked if LAMMPS was
+built with the INTEL package.  See the :doc:`Build package <Build_package>` page for more info.
 
-The kk style of this command can only be invoked if LAMMPS was built
+The *kokkos* style of this command can only be invoked if LAMMPS was built
 with the KOKKOS package.  See the :doc:`Build package <Build_package>`
 doc page for more info.
 
-The omp style of this command can only be invoked if LAMMPS was built
-with the USER-OMP package.  See the :doc:`Build package <Build_package>`
+The *omp* style of this command can only be invoked if LAMMPS was built
+with the OPENMP package.  See the :doc:`Build package <Build_package>`
 doc page for more info.
 
 Related commands
@@ -657,41 +712,63 @@ Related commands
 
 :doc:`suffix <suffix>`, :doc:`-pk command-line switch <Run_options>`
 
-Default
-"""""""
+Defaults
+""""""""
 
-For the GPU package, the default is Ngpu = 0 and the option defaults
-are neigh = yes, newton = off, binsize = 0.0, split = 1.0, gpuID = 0
-to Ngpu-1, tpa = 1, omp = 0, and platform=-1.  These settings are made
-automatically if the "-sf gpu" :doc:`command-line switch <Run_options>`
-is used.  If it is not used, you must invoke the package gpu command
-in your input script or via the "-pk gpu" :doc:`command-line switch <Run_options>`.
+For the GPU package, the default parameters and settings are:
 
-For the USER-INTEL package, the default is Nphi = 1 and the option
-defaults are omp = 0, mode = mixed, lrt = no, balance = -1, tpc = 4,
-tptask = 240.  The default ghost option is determined by the pair
-style being used.  This value is output to the screen in the offload
-report at the end of each run.  Note that all of these settings,
-except "omp" and "mode", are ignored if LAMMPS was not built with Xeon
-Phi co-processor support.  These settings are made automatically if the
-"-sf intel" :doc:`command-line switch <Run_options>` is used.  If it is
-not used, you must invoke the package intel command in your input
-script or via the "-pk intel" :doc:`command-line switch <Run_options>`.
+.. parsed-literal::
 
-For the KOKKOS package, the option defaults for GPUs are neigh = full,
-neigh/qeq = full, newton = off, binsize for GPUs = 2x LAMMPS default
-value, comm = device, gpu/aware = on. When LAMMPS can safely detect
-that GPU-aware MPI is not available, the default value of gpu/aware
-becomes "off". For CPUs or Xeon Phis, the option defaults are neigh =
-half, neigh/qeq = half, newton = on, binsize = 0.0, and comm = no. The
-option neigh/thread = on when there are 16K atoms or less on an MPI
-rank, otherwise it is "off". These settings are made automatically by
-the required "-k on" :doc:`command-line switch <Run_options>`. You can
+   Ngpu = 0, neigh = yes, newton = off, binsize = 0.0, split = 1.0, gpuID = 0 to Ngpu-1, tpa = 1, omp = 0, platform=-1.
+
+These settings are made automatically if the "-sf gpu"
+:doc:`command-line switch <Run_options>` is used.  If it is not used,
+you must invoke the package gpu command in your input script or via the
+"-pk gpu" :doc:`command-line switch <Run_options>`.
+
+For the INTEL package, the default parameters and settings are:
+
+.. parsed-literal::
+
+   Nphi = 1, omp = 0, mode = mixed, lrt = no, balance = -1, tpc = 4, tptask = 240, pppm_table = yes
+
+The default ghost option is determined by the pair style being used.
+This value is output to the screen in the offload report at the end of each
+run.  Note that all of these settings, except "omp" and "mode", are ignored if
+LAMMPS was not built with Xeon Phi co-processor support.  These settings are
+made automatically if the "-sf intel" :doc:`command-line switch <Run_options>`
+is used.  If it is not used, you must invoke the package intel command in your
+input script or via the "-pk intel" :doc:`command-line switch <Run_options>`.
+
+For the KOKKOS package when using GPUs, the option defaults are:
+
+.. parsed-literal::
+
+   neigh = full, neigh/qeq = full, newton = off, binsize = 2x LAMMPS default value, comm = device, sort = device, atom/map = device, neigh/transpose = off, gpu/aware = on
+
+For GPUs, option neigh/thread = on when there are 16k atoms or less on
+an MPI rank, otherwise it is "off". When LAMMPS can safely detect that
+GPU-aware MPI is not available, the default value of gpu/aware becomes
+"off".
+
+For the KOKKOS package when using CPUs or Xeon Phis, the option defaults are:
+
+.. parsed-literal::
+
+   neigh = half, neigh/qeq = half, newton = on, binsize = 0.0, comm = no, sort = no, atom/map = no
+
+These settings are made automatically by
+the required "-k on" :doc:`command-line switch <Run_options>`.  You can
 change them by using the package kokkos command in your input script or
 via the :doc:`-pk kokkos command-line switch <Run_options>`.
 
-For the OMP package, the default is Nthreads = 0 and the option
-defaults are neigh = yes.  These settings are made automatically if
-the "-sf omp" :doc:`command-line switch <Run_options>` is used.  If it
-is not used, you must invoke the package omp command in your input
-script or via the "-pk omp" :doc:`command-line switch <Run_options>`.
+For the OMP package, the defaults are
+
+.. parsed-literal::
+
+   Nthreads = 0, neigh = yes
+
+These settings are made automatically if the "-sf omp"
+:doc:`command-line switch <Run_options>` is used.  If it is not used,
+you must invoke the package omp command in your input script or via the
+"-pk omp" :doc:`command-line switch <Run_options>`.

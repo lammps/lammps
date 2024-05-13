@@ -13,7 +13,7 @@ using std::pair;
 
 namespace ATC {
 
-  
+
   // only one regulator method at time, i.e. fixed & flux, thermo & elastic
   // regulator manages lambda variables, creates new ones when requested with dimensions and zero ics (map of tag to lambda)
   // regulator keeps track of which lambda are being used, unused lambdas deleted (map of tag to bool), all tags set to unused on start of initialization
@@ -168,7 +168,7 @@ namespace ATC {
       fix_modify AtC control <physics_type> <solution_parameter> <value>\n
         - physics_type (string) = thermal | momentum\n
         - solution_parameter (string) = max_iterations | tolerance\n
-      
+
       fix_modify AtC transfer <physics_type> control max_iterations <max_iterations>\n
         - max_iterations (int) = maximum number of iterations that will be used by iterative matrix solvers\n
 
@@ -209,14 +209,14 @@ namespace ATC {
       foundMatch = true;
     }
 
-    /*! \page man_localized_lambda fix_modify AtC control localized_lambda 
+    /*! \page man_localized_lambda fix_modify AtC control localized_lambda
       \section syntax
-      fix_modify AtC control localized_lambda <on|off> 
+      fix_modify AtC control localized_lambda <on|off>
       \section examples
        <TT> fix_modify atc control localized_lambda on </TT> \n
       \section description
       Turns on localization algorithms for control algorithms to restrict the influence of FE coupling or boundary conditions to a region near the boundary of the MD region.  Control algorithms will not affect atoms in elements not possessing faces on the boundary of the region.  Flux-based control is localized via row-sum lumping while quantity control is done by solving a truncated matrix equation.
-      \section restrictions 
+      \section restrictions
       \section related
       \section default
       Default is off.
@@ -233,16 +233,16 @@ namespace ATC {
       }
     }
 
-    
-    
-    /*! \page man_lumped_lambda_solve fix_modify AtC control lumped_lambda_solve 
+
+
+    /*! \page man_lumped_lambda_solve fix_modify AtC control lumped_lambda_solve
       \section syntax
-      fix_modify AtC control lumped_lambda_solve <on|off> 
+      fix_modify AtC control lumped_lambda_solve <on|off>
       \section examples
        <TT> fix_modify atc control lumped_lambda_solve on </TT> \n
       \section description
       Command to use or not use lumped matrix for lambda solve
-      \section restrictions 
+      \section restrictions
       \section related
       \section default
     */
@@ -260,12 +260,12 @@ namespace ATC {
 
     /*! \page man_mask_direction fix_modify AtC control mask_direction
       \section syntax
-      fix_modify AtC control mask_direction <direction> <on|off> 
+      fix_modify AtC control mask_direction <direction> <on|off>
       \section examples
        <TT> fix_modify atc control mask_direction 0 on </TT> \n
       \section description
       Command to mask out certain dimensions from the atomic regulator
-      \section restrictions 
+      \section restrictions
       \section related
       \section default
     */
@@ -404,7 +404,7 @@ namespace ATC {
   //--------------------------------------------------------
   //  apply_pre_predictor:
   //    applies the controller in the pre-predictor
-  //    phase of the time integrator  
+  //    phase of the time integrator
   //--------------------------------------------------------
   void AtomicRegulator::apply_pre_predictor(double dt, int timeStep)
   {
@@ -415,7 +415,7 @@ namespace ATC {
   //--------------------------------------------------------
   //  apply_mid_predictor:
   //    applies the controller in the mid-predictor
-  //    phase of the time integrator  
+  //    phase of the time integrator
   //--------------------------------------------------------
   void AtomicRegulator::apply_mid_predictor(double dt, int timeStep)
   {
@@ -426,14 +426,14 @@ namespace ATC {
   //--------------------------------------------------------
   //  apply_post_predictor:
   //    applies the controller in the post-predictor
-  //    phase of the time integrator  
+  //    phase of the time integrator
   //--------------------------------------------------------
   void AtomicRegulator::apply_post_predictor(double dt, int timeStep)
   {
     if (timeStep % howOften_==0) // apply full integration scheme, including filter
       regulatorMethod_->apply_post_predictor(dt);
   }
- 
+
   //--------------------------------------------------------
   //  apply_pre_corrector:
   //    applies the controller in the pre-corrector phase
@@ -441,7 +441,7 @@ namespace ATC {
   //--------------------------------------------------------
   void AtomicRegulator::apply_pre_corrector(double dt, int timeStep)
   {
-    if (timeStep % howOften_==0) // apply full integration scheme, including filter   
+    if (timeStep % howOften_==0) // apply full integration scheme, including filter
       regulatorMethod_->apply_pre_corrector(dt);
   }
 
@@ -497,7 +497,7 @@ namespace ATC {
 
   //--------------------------------------------------------
   //  add_to_rhs:
-  //    adds any controller contributions to the FE rhs 
+  //    adds any controller contributions to the FE rhs
   //--------------------------------------------------------
   void AtomicRegulator::add_to_rhs(FIELDS & rhs)
   {
@@ -509,7 +509,7 @@ namespace ATC {
   //  Class RegulatorMethod
   //--------------------------------------------------------
   //--------------------------------------------------------
- 
+
   //--------------------------------------------------------
   //  Constructor
   //--------------------------------------------------------
@@ -545,7 +545,7 @@ namespace ATC {
   //  Class RegulatorShapeFunction
   //--------------------------------------------------------
   //--------------------------------------------------------
- 
+
   //--------------------------------------------------------
   //  Constructor
   //--------------------------------------------------------
@@ -604,7 +604,7 @@ namespace ATC {
       interscaleManager.add_dense_matrix_int(overlapToNodeMap_,
                                              regulatorPrefix_+"OverlapToNodeMap");
     }
-    
+
   }
 
   //--------------------------------------------------------
@@ -688,9 +688,9 @@ namespace ATC {
   //  compute_sparsity
   //  - creates sparsity template
   //--------------------------------------------------------
-  void RegulatorShapeFunction::compute_sparsity(void)
+  void RegulatorShapeFunction::compute_sparsity()
   {
-    
+
     // first get local pattern from N N^T
     int nNodeOverlap = nodeToOverlapMap_->size();
     DENS_MAT tmpLocal(nNodeOverlap,nNodeOverlap);
@@ -699,7 +699,7 @@ namespace ATC {
     if (myShapeFunctionMatrix.nRows() > 0) {
       tmpLocal = myShapeFunctionMatrix.transMat(myShapeFunctionMatrix);
     }
-    
+
     // second accumulate total pattern across processors
     LammpsInterface::instance()->allsum(tmpLocal.ptr(), tmp.ptr(), tmp.size());
     // third extract non-zero entries & construct sparse template
@@ -724,13 +724,13 @@ namespace ATC {
   {
 
     // assemble N^T W N with appropriate weighting matrix
-    
+
     DIAG_MAT weights;
     if (shapeFunctionMatrix_->nRows() > 0) {
       weights.reset(weights_->quantity());
     }
     matrixSolver_->assemble_matrix(weights);
-    
+
     // solve on overlap nodes
     int nNodeOverlap = nodeToOverlapMap_->size();
     DENS_MAT rhsOverlap(nNodeOverlap,rhs.nCols());
@@ -747,7 +747,7 @@ namespace ATC {
         tempLambda = 0.;
       }
     }
-    
+
     // map solution back to all nodes
     map_overlap_to_unique(lambdaOverlap,lambda);
   }
@@ -761,8 +761,8 @@ namespace ATC {
     RegulatorMethod::reset_nlocal();
     nLocal_ = atomicRegulator_->nlocal();
 
-    
-    
+
+
     //compute_sparsity();
   }
 
@@ -903,7 +903,7 @@ namespace ATC {
   void LambdaMatrixSolver::assemble_matrix(DIAG_MAT & weights)
   {
     // form matrix : sum_a N_Ia * W_a * N_Ja
-    
+
     SPAR_MAT lambdaMatrixLocal(matrixTemplate_.quantity());
     if (weights.nRows()>0)
       lambdaMatrixLocal.weighted_least_squares(shapeFunctionMatrix_->quantity(),weights);
@@ -941,13 +941,13 @@ namespace ATC {
   void LambdaMatrixSolverLumped::assemble_matrix(DIAG_MAT & weights)
   {
     LambdaMatrixSolver::assemble_matrix(weights);
-    
+
     lumpedMatrix_ = lambdaMatrix_.row_sum_lump();
   }
 
-  void LambdaMatrixSolverLumped::execute(VECTOR & rhs, VECTOR & lambda) 
+  void LambdaMatrixSolverLumped::execute(VECTOR & rhs, VECTOR & lambda)
   {
-    
+
     // solve lumped equation
     const set<int> & applicationNodes(applicationNodes_->quantity());
     const INT_ARRAY & nodeToOverlapMap(nodeToOverlapMap_->quantity());

@@ -40,7 +40,7 @@ class LJSMOOTH : public BaseAtomic<numtyp, acctyp> {
            const int nlocal, const int nall, const int max_nbors,
            const int maxspecial, const double cell_size,
            const double gpu_split, FILE *screen,
-           double **host_ljsw0, double **host_ljsw1, double **host_ljsw2, 
+           double **host_ljsw0, double **host_ljsw1, double **host_ljsw2,
            double **host_ljsw3, double **host_ljsw4,
            double **cut_inner, double **cut_inner_sq);
 
@@ -48,7 +48,7 @@ class LJSMOOTH : public BaseAtomic<numtyp, acctyp> {
   void reinit(const int ntypes, double **host_cutsq,
               double **host_lj1, double **host_lj2, double **host_lj3,
               double **host_lj4, double **host_offset,
-              double **host_ljsw0, double **host_ljsw1, double **host_ljsw2, 
+              double **host_ljsw0, double **host_ljsw1, double **host_ljsw2,
               double **host_ljsw3, double **host_ljsw4,
               double **cut_inner, double **cut_inner_sq);
 

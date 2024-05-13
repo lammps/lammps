@@ -1,7 +1,7 @@
 /* -*- c++ -*- ----------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    https://www.lammps.org/, Sandia National Laboratories
-   Steve Plimpton, sjplimp@sandia.gov
+   LAMMPS development team: developers@lammps.org
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
@@ -27,12 +27,12 @@ namespace LAMMPS_NS {
 class FixWallBodyPolygon : public Fix {
  public:
   FixWallBodyPolygon(class LAMMPS *, int, char **);
-  virtual ~FixWallBodyPolygon();
-  int setmask();
-  void init();
-  void setup(int);
-  virtual void post_force(int);
-  void reset_dt();
+  ~FixWallBodyPolygon() override;
+  int setmask() override;
+  void init() override;
+  void setup(int) override;
+  void post_force(int) override;
+  void reset_dt() override;
 
   struct Contact {
     int ibody, jbody;     // body (i.e. atom) indices (not tags)
@@ -93,34 +93,3 @@ class FixWallBodyPolygon : public Fix {
 
 #endif
 #endif
-
-/* ERROR/WARNING messages:
-
-E: Illegal ... command
-
-Self-explanatory.  Check the input script syntax and compare to the
-documentation for the command.  You can use -echo screen as a
-command-line option when running LAMMPS to see the offending line.
-
-E: Fix wall/body/polygon requires atom style body rounded/polygon
-
-Self-explanatory.
-
-E: Cannot use wall in periodic dimension
-
-Self-explanatory.
-
-E: Cannot wiggle and shear fix wall/body/polygon
-
-Cannot specify both options at the same time.
-
-E: Invalid wiggle direction for fix wall/body/polygon
-
-Self-explanatory.
-
-E: Fix wall/body/polygon is incompatible with Pair style
-
-Must use a body pair style to define the parameters needed for
-this fix.
-
-*/

@@ -1,7 +1,7 @@
 /* -*- c++ -*- ----------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    https://www.lammps.org/, Sandia National Laboratories
-   Steve Plimpton, sjplimp@sandia.gov
+   LAMMPS development team: developers@lammps.org
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
@@ -27,9 +27,9 @@ namespace LAMMPS_NS {
 class WriteRestart : public Command {
  public:
   WriteRestart(class LAMMPS *);
-  void command(int, char **);
-  void multiproc_options(int, int, int, char **);
-  void write(std::string);
+  void command(int, char **) override;
+  void multiproc_options(int, int, char **);
+  void write(const std::string &);
 
  private:
   int me, nprocs;
@@ -44,12 +44,6 @@ class WriteRestart : public Command {
   int fileproc;         // ID of proc in my cluster who writes to file
   int icluster;         // which cluster I am in
 
-  // MPI-IO values
-
-  int mpiioflag;                // 1 for MPIIO output, else 0
-  class RestartMPIIO *mpiio;    // MPIIO for restart file output
-  MPI_Offset headerOffset;
-
   void header();
   void type_arrays();
   void force_fields();
@@ -62,53 +56,10 @@ class WriteRestart : public Command {
   void write_int(int, int);
   void write_bigint(int, bigint);
   void write_double(int, double);
-  void write_string(int, const char *);
+  void write_string(int, const std::string &);
   void write_int_vec(int, int, int *);
   void write_double_vec(int, int, double *);
 };
-
 }    // namespace LAMMPS_NS
-
 #endif
 #endif
-
-/* ERROR/WARNING messages:
-
-E: Write_restart command before simulation box is defined
-
-The write_restart command cannot be used before a read_data,
-read_restart, or create_box command.
-
-E: Illegal ... command
-
-Self-explanatory.  Check the input script syntax and compare to the
-documentation for the command.  You can use -echo screen as a
-command-line option when running LAMMPS to see the offending line.
-
-E: Restart file MPI-IO output not allowed with % in filename
-
-This is because a % signifies one file per processor and MPI-IO
-creates one large file for all processors.
-
-E: Writing to MPI-IO filename when MPIIO package is not installed
-
-Self-explanatory.
-
-E: Cannot use write_restart fileper without % in restart file name
-
-Self-explanatory.
-
-E: Cannot use write_restart nfile without % in restart file name
-
-Self-explanatory.
-
-E: Atom count is inconsistent, cannot write restart file
-
-Sum of atoms across processors does not equal initial total count.
-This is probably because you have lost some atoms.
-
-E: Cannot open restart file %s
-
-Self-explanatory.
-
-*/

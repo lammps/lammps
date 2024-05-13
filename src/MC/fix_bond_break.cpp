@@ -2,7 +2,7 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    https://www.lammps.org/, Sandia National Laboratories
-   Steve Plimpton, sjplimp@sandia.gov
+   LAMMPS development team: developers@lammps.org
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
@@ -14,21 +14,25 @@
 
 #include "fix_bond_break.h"
 
-#include <cstring>
-#include "update.h"
-#include "respa.h"
 #include "atom.h"
-#include "force.h"
 #include "comm.h"
+#include "error.h"
+#include "force.h"
+#include "memory.h"
+#include "modify.h"
 #include "neighbor.h"
 #include "random_mars.h"
-#include "memory.h"
-#include "error.h"
+#include "respa.h"
+#include "update.h"
+
+#include "fix_bond_history.h"
+
+#include <cstring>
 
 using namespace LAMMPS_NS;
 using namespace FixConst;
 
-#define DELTA 16
+static constexpr int DELTA = 16;
 
 /* ---------------------------------------------------------------------- */
 
@@ -145,7 +149,7 @@ int FixBondBreak::setmask()
 void FixBondBreak::init()
 {
   if (utils::strmatch(update->integrate_style,"^respa"))
-    nlevels_respa = ((Respa *) update->integrate)->nlevels;
+    nlevels_respa = (dynamic_cast<Respa *>(update->integrate))->nlevels;
 
   // enable angle/dihedral/improper breaking if any defined
 
@@ -157,15 +161,11 @@ void FixBondBreak::init()
   else improperflag = 0;
 
   if (force->improper) {
-    if (force->improper_match("class2") || force->improper_match("ring"))
-      error->all(FLERR,"Cannot yet use fix bond/break with this "
-                 "improper style");
+    if (force->improper_match("^class2") || force->improper_match("^ring"))
+      error->all(FLERR,"Cannot yet use fix bond/break with this improper style");
   }
 
   lastcheck = -1;
-
-  // DEBUG
-  //print_bb();
 }
 
 /* ---------------------------------------------------------------------- */
@@ -247,7 +247,7 @@ void FixBondBreak::post_integrate()
 
   // reverse comm of partner info
 
-  if (force->newton_bond) comm->reverse_comm_fix(this);
+  if (force->newton_bond) comm->reverse_comm(this);
 
   // each atom now knows its winning partner
   // for prob check, generate random value for each atom with a bond partner
@@ -259,7 +259,11 @@ void FixBondBreak::post_integrate()
   }
 
   commflag = 1;
-  comm->forward_comm_fix(this,2);
+  comm->forward_comm(this,2);
+
+  // find instances of bond history to delete data
+  auto histories = modify->get_fix_by_style("BOND_HISTORY");
+  int n_histories = histories.size();
 
   // break bonds
   // if both atoms list each other as winning bond partner
@@ -295,7 +299,13 @@ void FixBondBreak::post_integrate()
         for (k = m; k < num_bond[i]-1; k++) {
           bond_atom[i][k] = bond_atom[i][k+1];
           bond_type[i][k] = bond_type[i][k+1];
+          if (n_histories > 0)
+            for (auto &ihistory: histories)
+              dynamic_cast<FixBondHistory *>(ihistory)->shift_history(i,k,k+1);
         }
+        if (n_histories > 0)
+          for (auto &ihistory: histories)
+            dynamic_cast<FixBondHistory *>(ihistory)->delete_history(i,num_bond[i]-1);
         num_bond[i]--;
         break;
       }
@@ -328,7 +338,7 @@ void FixBondBreak::post_integrate()
   atom->nbonds -= breakcount;
 
   // trigger reneighboring if any bonds were broken
-  // this insures neigh lists will immediately reflect the topology changes
+  // this ensures neigh lists will immediately reflect the topology changes
   // done if no bonds broken
 
   if (breakcount) next_reneighbor = update->ntimestep;
@@ -338,13 +348,13 @@ void FixBondBreak::post_integrate()
   // 1-2 neighs already reflect broken bonds
 
   commflag = 2;
-  comm->forward_comm_fix(this);
+  comm->forward_comm(this);
 
   // create list of broken bonds that influence my owned atoms
   //   even if between owned-ghost or ghost-ghost atoms
   // finalpartner is now set for owned and ghost atoms so loop over nall
   // OK if duplicates in broken list due to ghosts duplicating owned atoms
-  // check J < 0 to insure a broken bond to unknown atom is included
+  // check J < 0 to ensure a broken bond to unknown atom is included
   //   i.e. bond partner outside of cutoff length
 
   nbreak = 0;
@@ -372,7 +382,7 @@ void FixBondBreak::post_integrate()
 }
 
 /* ----------------------------------------------------------------------
-   insure all atoms 2 hops away from owned atoms are in ghost list
+   ensure all atoms 2 hops away from owned atoms are in ghost list
    this allows dihedral 1-2-3-4 to be properly deleted
      and special list of 1 to be properly updated
    if I own atom 1, but not 2,3,4, and bond 3-4 is deleted
@@ -788,50 +798,6 @@ void FixBondBreak::unpack_reverse_comm(int n, int *list, double *buf)
       distsq[j] = buf[m++];
     } else m += 2;
   }
-}
-
-
-/* ---------------------------------------------------------------------- */
-
-void FixBondBreak::print_bb()
-{
-  for (int i = 0; i < atom->nlocal; i++) {
-    printf("TAG " TAGINT_FORMAT ": %d nbonds: ",atom->tag[i],atom->num_bond[i]);
-    for (int j = 0; j < atom->num_bond[i]; j++) {
-      printf(" " TAGINT_FORMAT, atom->bond_atom[i][j]);
-    }
-    printf("\n");
-    printf("TAG " TAGINT_FORMAT ": %d nangles: ",atom->tag[i],atom->num_angle[i]);
-    for (int j = 0; j < atom->num_angle[i]; j++) {
-      printf(" " TAGINT_FORMAT " " TAGINT_FORMAT " " TAGINT_FORMAT ",",
-             atom->angle_atom1[i][j],atom->angle_atom2[i][j],
-             atom->angle_atom3[i][j]);
-    }
-    printf("\n");
-    printf("TAG " TAGINT_FORMAT ": %d ndihedrals: ",atom->tag[i],atom->num_dihedral[i]);
-    for (int j = 0; j < atom->num_dihedral[i]; j++) {
-      printf(" " TAGINT_FORMAT " " TAGINT_FORMAT " " TAGINT_FORMAT " " TAGINT_FORMAT ",",
-             atom->dihedral_atom1[i][j],atom->dihedral_atom2[i][j],
-             atom->dihedral_atom3[i][j],atom->dihedral_atom4[i][j]);
-    }
-    printf("\n");
-    printf("TAG " TAGINT_FORMAT ": %d %d %d nspecial: ",atom->tag[i],
-           atom->nspecial[i][0],atom->nspecial[i][1],atom->nspecial[i][2]);
-    for (int j = 0; j < atom->nspecial[i][2]; j++) {
-      printf(" " TAGINT_FORMAT, atom->special[i][j]);
-    }
-    printf("\n");
-  }
-}
-
-/* ---------------------------------------------------------------------- */
-
-void FixBondBreak::print_copy(const char *str, tagint m,
-                              int n1, int n2, int n3, int *v)
-{
-  printf("%s " TAGINT_FORMAT ": %d %d %d nspecial: ",str,m,n1,n2,n3);
-  for (int j = 0; j < n3; j++) printf(" %d",v[j]);
-  printf("\n");
 }
 
 /* ---------------------------------------------------------------------- */

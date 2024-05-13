@@ -487,7 +487,7 @@ vec_type dist_av(Vector_3 *va1,Vector_3 *va2,int n);
 /*e optionally gives the indexes for maximal and minimal difference
  va2 can be nullptr, then the norm of va1 is used */
 
-vec_type diff_av(Vector_3 *va1,Vector_3 *va2,int n, int *minind=0, int *maxind=0);
+vec_type diff_av(Vector_3 *va1,Vector_3 *va2,int n, int *minind=nullptr, int *maxind=nullptr);
 
 //e finds suitable perpendicular to a vector
 Vector_3 FindPerp(const Vector_3 &vAB);
@@ -507,7 +507,7 @@ Vector_3 GetIScopei(const Vector_3 *varr,int *indarr,int n,Vector_3* box_min,Vec
 // neue Funktionen
 
 //e clears vector array with optional integer index
-void clear_vecarri(int n,Vector_3 *vec, int *ind=0);
+void clear_vecarri(int n,Vector_3 *vec, int *ind=nullptr);
 
 //e reflects the vector ini+dir*t+0.5*force*t^2 to be inside a box limited by 0 and box sizes
 //e changes dir according to the final state

@@ -1,0 +1,45 @@
+atom_style         sph
+dimension          2
+boundary           s p p
+
+region             box block -100 150 -4 4 -0.1 0.1 units box
+create_box         2 box
+lattice            sq 1.0
+create_atoms       1 box
+
+region             left block EDGE 0.0 EDGE EDGE EDGE EDGE units box
+region             right block 1 EDGE EDGE EDGE EDGE EDGE units box
+set                region right type 2
+
+mass               1 1
+mass               2 0.25
+set                type 1 sph/e 2.5 # internal energy corresponding to p=1, rho=1
+set                type 2 sph/e 0.625 # internal energy corresponding to p=0.25, rho=0.25
+set                type 1 sph/rho 1.0
+set                type 2 sph/rho 0.25
+
+pair_style         hybrid/overlay sph/rhosum 1 sph/idealgas
+pair_coeff         * * sph/rhosum 4.0
+pair_coeff         * * sph/idealgas 0.75 4.0
+
+compute            rhoatom all sph/rho/atom
+compute            ieatom all sph/e/atom
+compute            esph all reduce sum c_ieatom # total internal energy
+compute            ke all ke
+variable           etot equal c_ke+c_esph # total energy
+
+# dump positions and local density
+dump               dump_id all custom 100 dump.2d id type x z y c_rhoatom
+dump_modify        dump_id first yes
+
+neighbor           0.5 bin
+neigh_modify       every 5 delay 0 check yes
+thermo             10
+thermo_style       custom step c_ke c_esph v_etot
+thermo_modify      norm no
+
+fix                integration_fix all sph
+fix                1 all setforce NULL 0.0 0.0 # treat as a quasi 1d problem
+timestep           0.05
+log                log.2d
+run                400 # run for t=20

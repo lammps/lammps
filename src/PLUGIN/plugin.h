@@ -1,7 +1,7 @@
 /* -*- c++ -*- ----------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    https://www.lammps.org/, Sandia National Laboratories
-   Steve Plimpton, sjplimp@sandia.gov
+   LAMMPS development team: developers@lammps.org
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
@@ -21,17 +21,18 @@ CommandStyle(plugin,Plugin);
 #define LMP_PLUGIN_H
 
 #include "command.h"
-#include "lammpsplugin.h"
+#include "lammpsplugin.h"    // IWYU pragma: export
 
 namespace LAMMPS_NS {
 
 class Plugin : public Command {
  public:
   Plugin(class LAMMPS *);
-  void command(int, char **);
+  void command(int, char **) override;
 };
 
-void plugin_load(const char *, LAMMPS *);
+void plugin_auto_load(LAMMPS *);
+int plugin_load(const char *, LAMMPS *);
 void plugin_register(lammpsplugin_t *, void *);
 
 void plugin_unload(const char *, const char *, LAMMPS *);

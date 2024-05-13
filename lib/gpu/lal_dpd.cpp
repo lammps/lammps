@@ -99,16 +99,25 @@ int DPDT::init(const int ntypes,
   cutsq.alloc(lj_types*lj_types,*(this->ucl_device),UCL_READ_ONLY);
   this->atom->type_pack1(ntypes,lj_types,cutsq,host_rsq,host_cutsq);
 
+  double special_sqrt[4];
+  special_sqrt[0] = sqrt(host_special_lj[0]);
+  special_sqrt[1] = sqrt(host_special_lj[1]);
+  special_sqrt[2] = sqrt(host_special_lj[2]);
+  special_sqrt[3] = sqrt(host_special_lj[3]);
+
   UCL_H_Vec<double> dview;
   sp_lj.alloc(4,*(this->ucl_device),UCL_READ_ONLY);
   dview.view(host_special_lj,4,*(this->ucl_device));
   ucl_copy(sp_lj,dview,false);
+  sp_sqrt.alloc(4,*(this->ucl_device),UCL_READ_ONLY);
+  dview.view(special_sqrt,4,*(this->ucl_device));
+  ucl_copy(sp_sqrt,dview,false);
 
   _tstat_only = 0;
   if (tstat_only) _tstat_only=1;
 
   _allocated=true;
-  this->_max_bytes=coeff.row_bytes()+cutsq.row_bytes()+sp_lj.row_bytes();
+  this->_max_bytes=coeff.row_bytes()+cutsq.row_bytes()+sp_lj.row_bytes()+sp_sqrt.row_bytes();
   return 0;
 }
 
@@ -121,6 +130,7 @@ void DPDT::clear() {
   coeff.clear();
   cutsq.clear();
   sp_lj.clear();
+  sp_sqrt.clear();
   this->clear_atomic();
 }
 
@@ -144,7 +154,7 @@ int DPDT::loop(const int eflag, const int vflag) {
   this->time_pair.start();
   if (shared_types) {
     this->k_pair_sel->set_size(GX,BX);
-    this->k_pair_sel->run(&this->atom->x, &coeff, &sp_lj,
+    this->k_pair_sel->run(&this->atom->x, &coeff, &sp_lj, &sp_sqrt,
                           &this->nbor->dev_nbor, &this->_nbor_data->begin(),
                           &this->ans->force, &this->ans->engv, &eflag,
                           &vflag, &ainum, &nbor_pitch, &this->atom->v, &cutsq,
@@ -152,7 +162,7 @@ int DPDT::loop(const int eflag, const int vflag) {
                           &this->_tstat_only, &this->_threads_per_atom);
   } else {
     this->k_pair.set_size(GX,BX);
-    this->k_pair.run(&this->atom->x, &coeff, &_lj_types, &sp_lj,
+    this->k_pair.run(&this->atom->x, &coeff, &_lj_types, &sp_lj, &sp_sqrt,
                      &this->nbor->dev_nbor, &this->_nbor_data->begin(),
                      &this->ans->force, &this->ans->engv, &eflag, &vflag,
                      &ainum, &nbor_pitch, &this->atom->v, &cutsq, &this->_dtinvsqrt,

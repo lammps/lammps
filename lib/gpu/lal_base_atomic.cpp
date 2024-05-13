@@ -21,7 +21,7 @@ namespace LAMMPS_AL {
 extern Device<PRECISION,ACC_PRECISION> global_device;
 
 template <class numtyp, class acctyp>
-BaseAtomicT::BaseAtomic() : _compiled(false), _max_bytes(0), _onetype(0) {
+BaseAtomicT::BaseAtomic() : _compiled(false), _onetype(0), _max_bytes(0) {
   device=&global_device;
   ans=new Answer<numtyp,acctyp>();
   nbor=new Neighbor();
@@ -72,7 +72,9 @@ int BaseAtomicT::init_atomic(const int nlocal, const int nall,
 
   _threads_per_atom=device->threads_per_atom();
 
-  int success=device->init(*ans,false,false,nlocal,nall,maxspecial);
+  bool charge = false;
+  bool rot = false;
+  int success=device->init(*ans,charge,rot,nlocal,nall,maxspecial);
   if (success!=0)
     return success;
 
@@ -239,14 +241,14 @@ void BaseAtomicT::compute(const int f_ago, const int inum_full,
 // Reneighbor on GPU if necessary and then compute forces, virials, energies
 // ---------------------------------------------------------------------------
 template <class numtyp, class acctyp>
-int ** BaseAtomicT::compute(const int ago, const int inum_full,
-                            const int nall, double **host_x, int *host_type,
-                            double *sublo, double *subhi, tagint *tag,
-                            int **nspecial, tagint **special,
-                            const bool eflag_in, const bool vflag_in,
-                            const bool eatom, const bool vatom,
-                            int &host_start, int **ilist, int **jnum,
-                            const double cpu_time, bool &success) {
+int **BaseAtomicT::compute(const int ago, const int inum_full,
+                           const int nall, double **host_x, int *host_type,
+                           double *sublo, double *subhi, tagint *tag,
+                           int **nspecial, tagint **special,
+                           const bool eflag_in, const bool vflag_in,
+                           const bool eatom, const bool vatom,
+                           int &host_start, int **ilist, int **jnum,
+                           const double cpu_time, bool &success) {
   acc_timers();
   int eflag, vflag;
   if (eatom) eflag=2;
@@ -340,8 +342,7 @@ void BaseAtomicT::compile_kernels(UCL_Device &dev, const void *pair_str,
     #if defined(LAL_OCL_EV_JIT)
     mx_subgroup_sz = std::min(mx_subgroup_sz, k_pair_noev.max_subgroup_size(_block_size));
     #endif
-    if (_threads_per_atom > mx_subgroup_sz)
-      _threads_per_atom = mx_subgroup_sz;
+    if (_threads_per_atom > (int)mx_subgroup_sz) _threads_per_atom = mx_subgroup_sz;
     device->set_simd_size(mx_subgroup_sz);
   }
   #endif

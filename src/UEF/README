@@ -1,0 +1,47 @@
+UEF is a LAMMPS package for non-equilibrium molecular dynamics
+(NEMD) under diagonal flow fields, including uniaxial and biaxial
+flow. With this package, simulations under extensional flow may be
+carried out for an indefinite amount of time. It is an implementation
+of the boundary conditions developed by Matthew Dobson, and also uses
+numerical lattice reduction as was proposed by Thomas Hunt. The
+lattice reduction algorithm is from Igor Semaev. The package is
+intended for simulations of homogeneous flows, and integrates the
+SLLOD equations of motion.
+
+--
+
+This package was created by  David Nicholson (davidanich@gmail.com)
+at the Massachusetts Institute of Technology.
+
+--
+
+The following commands are contained in this package:
+
+fix npt/uef and fix nvt/uef:
+  These commands perform time-integration of the SLLOD equations of
+  motion under constant temperature/pressure with the proper
+  boundary conditions for extensional flow fields.
+
+compute pressure/uef and compute temp/uef:
+  These commands allow for the evaluation of pressure/ke tensors in
+  the reference frame corresponding to the applied flow field.
+
+dump cfg/uef:
+  This command dumps coordinates in the reference frame corresponding
+  to the applied flow field.
+
+For more information, visit the documentation page for fix nvt/uef
+and examine the example scripts in doc/USER/uef/.
+
+--
+
+References:
+
+I. Semaev, Cryptography and Lattices, 181 (2001).
+
+M. Dobson, J. Chem. Phys.,  141, 184103 (2014)
+
+T.A. Hunt, Mol. Simul., 42, 347 (2016).
+
+D.A. Nicholson, G.C. Rutledge, J. Chem. Phys.,145, 244903 (2016)
+

@@ -2,7 +2,7 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    https://www.lammps.org/, Sandia National Laboratories
-   Steve Plimpton, sjplimp@sandia.gov
+   LAMMPS development team: developers@lammps.org
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
@@ -124,6 +124,58 @@ void richardson(double *q, double *m, double *w, double *moments, double dtq)
   // recompute wq
 
   MathExtra::mq_to_omega(m,qhalf,moments,w);
+  MathExtra::vecquat(w,qhalf,wq);
+
+  // 2nd half update from dq/dt = 1/2 w q
+
+  qhalf[0] += 0.5*dtq * wq[0];
+  qhalf[1] += 0.5*dtq * wq[1];
+  qhalf[2] += 0.5*dtq * wq[2];
+  qhalf[3] += 0.5*dtq * wq[3];
+  MathExtra::qnormalize(qhalf);
+
+  // corrected Richardson update
+
+  q[0] = 2.0*qhalf[0] - qfull[0];
+  q[1] = 2.0*qhalf[1] - qfull[1];
+  q[2] = 2.0*qhalf[2] - qfull[2];
+  q[3] = 2.0*qhalf[3] - qfull[3];
+  MathExtra::qnormalize(q);
+}
+
+/* ----------------------------------------------------------------------
+   Richardson iteration to update quaternion from angular velocity
+   return new normalized quaternion q
+   also returns updated omega at 1/2 step
+   Assumes spherical particles - no need to rotate to match moments
+------------------------------------------------------------------------- */
+
+void richardson_sphere(double *q, double *w, double dtq)
+{
+  // full update from dq/dt = 1/2 w q
+
+  double wq[4];
+  MathExtra::vecquat(w,q,wq);
+
+  double qfull[4];
+  qfull[0] = q[0] + dtq * wq[0];
+  qfull[1] = q[1] + dtq * wq[1];
+  qfull[2] = q[2] + dtq * wq[2];
+  qfull[3] = q[3] + dtq * wq[3];
+  MathExtra::qnormalize(qfull);
+
+  // 1st half update from dq/dt = 1/2 w q
+
+  double qhalf[4];
+  qhalf[0] = q[0] + 0.5*dtq * wq[0];
+  qhalf[1] = q[1] + 0.5*dtq * wq[1];
+  qhalf[2] = q[2] + 0.5*dtq * wq[2];
+  qhalf[3] = q[3] + 0.5*dtq * wq[3];
+  MathExtra::qnormalize(qhalf);
+
+  // re-compute q at 1/2 step
+  // recompute wq
+
   MathExtra::vecquat(w,qhalf,wq);
 
   // 2nd half update from dq/dt = 1/2 w q
@@ -311,6 +363,29 @@ void exyz_to_q(double *ex, double *ey, double *ez, double *q)
 }
 
 /* ----------------------------------------------------------------------
+   create unit quaternion from a rotation matrix
+   just a wrapper on exyz_to_q()
+   ex,ey,ez are columns of a rotation matrix
+------------------------------------------------------------------------- */
+
+void mat_to_quat(double mat[3][3], double *q)
+{
+  double ex[3],ey[3],ez[3];
+
+  ex[0] = mat[0][0];
+  ex[1] = mat[1][0];
+  ex[2] = mat[2][0];
+  ey[0] = mat[0][1];
+  ey[1] = mat[1][1];
+  ey[2] = mat[2][1];
+  ez[0] = mat[0][2];
+  ez[1] = mat[1][2];
+  ez[2] = mat[2][2];
+
+  MathExtra::exyz_to_q(ex,ey,ez,q);
+}
+
+/* ----------------------------------------------------------------------
    compute space-frame ex,ey,ez from current quaternion q
    ex,ey,ez = space-frame coords of 1st,2nd,3rd principal axis
    operation is ex = q' d q = Q d, where d is (1,0,0) = 1st axis in body frame
@@ -365,6 +440,7 @@ void quat_to_mat(const double *quat, double mat[3][3])
 /* ----------------------------------------------------------------------
    compute rotation matrix from quaternion conjugate
    quat = [w i j k]
+   similar logic to quat_to_mat()
 ------------------------------------------------------------------------- */
 
 void quat_to_mat_trans(const double *quat, double mat[3][3])
@@ -525,8 +601,8 @@ void inertia_triangle(double *idiag, double *quat, double /*mass*/,
 }
 
 /* ----------------------------------------------------------------------
- Build rotation matrix for a small angle rotation around the X axis
- ------------------------------------------------------------------------- */
+   build rotation matrix for a small angle rotation around the X axis
+------------------------------------------------------------------------- */
 
 void BuildRxMatrix(double R[3][3], const double angle)
 {
@@ -540,8 +616,8 @@ void BuildRxMatrix(double R[3][3], const double angle)
 }
 
 /* ----------------------------------------------------------------------
- Build rotation matrix for a small angle rotation around the Y axis
- ------------------------------------------------------------------------- */
+   build rotation matrix for a small angle rotation around the Y axis
+------------------------------------------------------------------------- */
 
 void BuildRyMatrix(double R[3][3], const double angle)
 {
@@ -555,8 +631,8 @@ void BuildRyMatrix(double R[3][3], const double angle)
 }
 
 /* ----------------------------------------------------------------------
- Build rotation matrix for a small angle rotation around the Z axis
- ------------------------------------------------------------------------- */
+   build rotation matrix for a small angle rotation around the Z axis
+------------------------------------------------------------------------- */
 
 void BuildRzMatrix(double R[3][3], const double angle)
 {
@@ -567,6 +643,30 @@ void BuildRzMatrix(double R[3][3], const double angle)
   R[0][0] = cosAngle;  R[0][1] = -sinAngle;  R[0][2] = 0.0;
   R[1][0] = sinAngle;  R[1][1] = cosAngle;   R[1][2] = 0.0;
   R[2][0] = 0.0;       R[2][1] = 0.0;        R[2][2] = 1.0;
+}
+
+/* ----------------------------------------------------------------------
+   convert a sphere in box coords to an ellipsoid in triclinic lamda (0-1) coords
+   h[6] = domain->h for size and shape of triclinic box
+   radius = radius of sphere in box coords
+   return dist[3] = tight (axis-aligned) bounding box in triclinic lamda coords
+   see: http://www.loria.fr/~shornus/ellipsoid-bbox.html (no longer online)
+        https://yiningkarlli.blogspot.com/2013/02/bounding-boxes-for-ellipsoidsfigure.html
+------------------------------------------------------------------------- */
+
+void tribbox(double *h, double radius, double *dist)
+{
+  double lx = h[0];
+  double ly = h[1];
+  double lz = h[2];
+  double yz = h[3];
+  double xz = h[4];
+  double xy = h[5];
+
+  dist[0] = radius * sqrt(ly*ly*lz*lz + ly*ly*xz*xz - 2.0*ly*xy*xz*yz +
+                          lz*lz*xy*xy + xy*xy*yz*yz) / (lx*ly*lz);
+  dist[1] = radius * sqrt(lz*lz + yz*yz) / (ly*lz);
+  dist[2] = radius / lz;
 }
 
 /* ---------------------------------------------------------------------- */

@@ -1,8 +1,7 @@
-// clang-format off
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    https://www.lammps.org/, Sandia National Laboratories
-   Steve Plimpton, sjplimp@sandia.gov
+   LAMMPS development team: developers@lammps.org
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
@@ -18,11 +17,10 @@
 
 #include "improper_deprecated.h"
 
-#include "improper_hybrid.h"
 #include "comm.h"
-#include "force.h"
 #include "error.h"
-
+#include "force.h"
+#include "improper_hybrid.h"
 
 using namespace LAMMPS_NS;
 
@@ -36,17 +34,15 @@ void ImproperDeprecated::settings(int, char **)
   // so when this is called, our style was just added at the end
   // of the list of substyles
 
-  if (utils::strmatch(my_style,"^hybrid")) {
-    ImproperHybrid *hybrid = (ImproperHybrid *)force->improper;
+  if (utils::strmatch(my_style, "^hybrid")) {
+    auto hybrid = dynamic_cast<ImproperHybrid *>(force->improper);
     my_style = hybrid->keywords[hybrid->nstyles];
   }
 
   if (my_style == "DEPRECATED") {
     if (lmp->comm->me == 0)
-      utils::logmesg(lmp,"\nImproper style 'DEPRECATED' is a dummy style\n\n");
+      utils::logmesg(lmp, "\nImproper style 'DEPRECATED' is a dummy style\n\n");
     return;
   }
-  error->all(FLERR,"This improper style is no longer available");
+  error->all(FLERR, "This improper style is no longer available");
 }
-
-

@@ -1,0 +1,12 @@
+# DATE: 2021-12-02 UNITS: metal CONTRIBUTOR: Wengen Ouyang w.g.ouyang@gmail.com 
+# CITATION: W. Ouyang, et al., J. Chem. Theory Comput. 17, 7237 (2021).
+# Interlayer Potential (ILP) for bilayer and bulk Molybdenum Disulfide.
+# The parameters below are fitted against the HSE + MBD-NL DFT reference data.
+#
+# --------------- Repulsion Potential ----------------++++++++++++++ Vdw Potential ++++++++++++++++***** 
+#    beta(A)    alpha    delta(A)  epsilon(meV)  C(meV)        d         sR      reff(A)   C6(meV*A^6)    S    rcut
+ Mo  Mo         5.5794503728    9.3776624643  2.0272224617  144.1517754265  97.9785701736  89.4375967588   2.0590305447  5.1220549022    491850.3161946840     1.0000  4.0
+  S   S         3.1614021873    8.0932627454  1.9531402037    4.5867641760 118.0654664611  58.8094158385   0.2153665787  4.2996001250    148811.2434089213     1.0000  4.0
+ Mo   S         3.6271521213   19.9713750996  7.5850312329   76.1019310047   3.3174955929  45.7203284638   0.9474703731  4.4104250318    150597.8577162951     1.0000  4.0
+# symmetric part
+  S  Mo         3.6271521213   19.9713750996  7.5850312329   76.1019310047   3.3174955929  45.7203284638   0.9474703731  4.4104250318    150597.8577162951     1.0000  4.0

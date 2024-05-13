@@ -2,7 +2,7 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    https://www.lammps.org/, Sandia National Laboratories
-   Steve Plimpton, sjplimp@sandia.gov
+   LAMMPS development team: developers@lammps.org
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
@@ -21,10 +21,7 @@
 #include "update.h"
 #include "variable.h"
 
-#include <cstring>
-
 using namespace LAMMPS_NS;
-using namespace FixConst;
 
 enum{XLO=0,XHI=1,YLO=2,YHI=3,ZLO=4,ZHI=5};
 enum{NONE=0,EDGE,CONSTANT,VARIABLE};

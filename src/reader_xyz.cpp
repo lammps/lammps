@@ -2,7 +2,7 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    https://www.lammps.org/, Sandia National Laboratories
-   Steve Plimpton, sjplimp@sandia.gov
+   LAMMPS development team: developers@lammps.org
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
@@ -23,9 +23,7 @@
 
 using namespace LAMMPS_NS;
 
-#define MAXLINE 1024        // max line length in dump file
-
-enum{ID,TYPE,X,Y,Z};
+static constexpr int MAXLINE = 1024;        // max line length in dump file
 
 /* ---------------------------------------------------------------------- */
 
@@ -40,7 +38,7 @@ ReaderXYZ::ReaderXYZ(LAMMPS *lmp) : Reader(lmp)
 
 ReaderXYZ::~ReaderXYZ()
 {
-  delete [] line;
+  delete[] line;
   memory->destroy(fieldindex);
 }
 
@@ -179,8 +177,7 @@ void ReaderXYZ::read_atoms(int n, int nfield, double **fields)
 
     ++nid;
     rv = sscanf(line,"%*s%lg%lg%lg", &myx, &myy, &myz);
-    if (rv != 3)
-      error->one(FLERR,"Dump file is incorrectly formatted");
+    if (rv != 3) error->one(FLERR,"Dump file is incorrectly formatted");
 
     // XXX: we could insert an element2type translation here
     // XXX: for now we flag unrecognized types as type 0,

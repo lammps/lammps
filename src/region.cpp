@@ -1,8 +1,7 @@
-// clang-format off
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    https://www.lammps.org/, Sandia National Laboratories
-   Steve Plimpton, sjplimp@sandia.gov
+   LAMMPS development team: developers@lammps.org
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
@@ -30,9 +29,8 @@ using namespace LAMMPS_NS;
 /* ---------------------------------------------------------------------- */
 
 Region::Region(LAMMPS *lmp, int /*narg*/, char **arg) :
-  Pointers(lmp),
-  id(nullptr), style(nullptr), contact(nullptr), list(nullptr),
-  xstr(nullptr), ystr(nullptr), zstr(nullptr), tstr(nullptr)
+    Pointers(lmp), id(nullptr), style(nullptr), reglist(nullptr), contact(nullptr), xstr(nullptr),
+    ystr(nullptr), zstr(nullptr), tstr(nullptr)
 {
   id = utils::strdup(arg[0]);
   style = utils::strdup(arg[1]);
@@ -42,9 +40,8 @@ Region::Region(LAMMPS *lmp, int /*narg*/, char **arg) :
   dx = dy = dz = 0.0;
 
   size_restart = 5;
-  reset_vel();
+  Region::reset_vel();
   copymode = 0;
-  list = nullptr;
   nregion = 1;
 }
 
@@ -54,13 +51,13 @@ Region::~Region()
 {
   if (copymode) return;
 
-  delete [] id;
-  delete [] style;
+  delete[] id;
+  delete[] style;
 
-  delete [] xstr;
-  delete [] ystr;
-  delete [] zstr;
-  delete [] tstr;
+  delete[] xstr;
+  delete[] ystr;
+  delete[] zstr;
+  delete[] tstr;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -69,27 +66,27 @@ void Region::init()
 {
   if (xstr) {
     xvar = input->variable->find(xstr);
-    if (xvar < 0) error->all(FLERR,"Variable name for region does not exist");
+    if (xvar < 0) error->all(FLERR, "Variable {} for region does not exist", xstr);
     if (!input->variable->equalstyle(xvar))
-      error->all(FLERR,"Variable for region is invalid style");
+      error->all(FLERR, "Variable {} for region is invalid style", xstr);
   }
   if (ystr) {
     yvar = input->variable->find(ystr);
-    if (yvar < 0) error->all(FLERR,"Variable name for region does not exist");
+    if (yvar < 0) error->all(FLERR, "Variable {} for region does not exist", ystr);
     if (!input->variable->equalstyle(yvar))
-      error->all(FLERR,"Variable for region is not equal style");
+      error->all(FLERR, "Variable {} for region is not equal style", ystr);
   }
   if (zstr) {
     zvar = input->variable->find(zstr);
-    if (zvar < 0) error->all(FLERR,"Variable name for region does not exist");
+    if (zvar < 0) error->all(FLERR, "Variable {} for region does not exist", zstr);
     if (!input->variable->equalstyle(zvar))
-      error->all(FLERR,"Variable for region is not equal style");
+      error->all(FLERR, "Variable {} for region is not equal style", zstr);
   }
   if (tstr) {
     tvar = input->variable->find(tstr);
-    if (tvar < 0) error->all(FLERR,"Variable name for region does not exist");
+    if (tvar < 0) error->all(FLERR, "Variable {} for region does not exist", tstr);
     if (!input->variable->equalstyle(tvar))
-      error->all(FLERR,"Variable for region is not equal style");
+      error->all(FLERR, "Variable {} for region is not equal style", tstr);
   }
   vel_timestep = -1;
 }
@@ -107,8 +104,8 @@ int Region::dynamic_check()
 
 /* ----------------------------------------------------------------------
    called before looping over atoms with match() or surface()
-   this insures any variables used by region are invoked once per timestep
-     also insures variables are invoked by all procs even those w/out atoms
+   this ensures any variables used by region are invoked once per timestep
+     also ensures variables are invoked by all procs even those w/out atoms
      necessary if equal-style variable invokes global operation
    with MPI_Allreduce, e.g. xcm() or count()
 ------------------------------------------------------------------------- */
@@ -133,9 +130,9 @@ void Region::prematch()
 
 int Region::match(double x, double y, double z)
 {
-  if (dynamic) inverse_transform(x,y,z);
+  if (dynamic) inverse_transform(x, y, z);
   if (openflag) return 1;
-  return !(inside(x,y,z) ^ interior);
+  return !(inside(x, y, z) ^ interior);
 }
 
 /* ----------------------------------------------------------------------
@@ -153,14 +150,14 @@ int Region::match(double x, double y, double z)
 int Region::surface(double x, double y, double z, double cutoff)
 {
   int ncontact;
-  double xs,ys,zs;
-  double xnear[3],xorig[3];
+  double xs, ys, zs;
+  double xnear[3], xorig[3];
 
   if (dynamic) {
     xorig[0] = x;
     xorig[1] = y;
     xorig[2] = z;
-    inverse_transform(x,y,z);
+    inverse_transform(x, y, z);
   }
 
   xnear[0] = x;
@@ -168,12 +165,14 @@ int Region::surface(double x, double y, double z, double cutoff)
   xnear[2] = z;
 
   if (!openflag) {
-    if (interior) ncontact = surface_interior(xnear,cutoff);
-    else ncontact = surface_exterior(xnear,cutoff);
+    if (interior)
+      ncontact = surface_interior(xnear, cutoff);
+    else
+      ncontact = surface_exterior(xnear, cutoff);
   } else {
     // one of surface_int/ext() will return 0
     // so no need to worry about offset of contact indices
-    ncontact = surface_exterior(xnear,cutoff) + surface_interior(xnear,cutoff);
+    ncontact = surface_exterior(xnear, cutoff) + surface_interior(xnear, cutoff);
   }
 
   if (rotateflag && ncontact) {
@@ -181,7 +180,7 @@ int Region::surface(double x, double y, double z, double cutoff)
       xs = xnear[0] - contact[i].delx;
       ys = xnear[1] - contact[i].dely;
       zs = xnear[2] - contact[i].delz;
-      forward_transform(xs,ys,zs);
+      forward_transform(xs, ys, zs);
       contact[i].delx = xorig[0] - xs;
       contact[i].dely = xorig[1] - ys;
       contact[i].delz = xorig[2] - zs;
@@ -202,7 +201,7 @@ void Region::add_contact(int n, double *x, double xp, double yp, double zp)
   double delx = x[0] - xp;
   double dely = x[1] - yp;
   double delz = x[2] - zp;
-  contact[n].r = sqrt(delx*delx + dely*dely + delz*delz);
+  contact[n].r = sqrt(delx * delx + dely * dely + delz * delz);
   contact[n].radius = 0;
   contact[n].delx = delx;
   contact[n].dely = dely;
@@ -231,7 +230,7 @@ void Region::pretransform()
 
 void Region::forward_transform(double &x, double &y, double &z)
 {
-  if (rotateflag) rotate(x,y,z,theta);
+  if (rotateflag) rotate(x, y, z, theta);
   if (moveflag) {
     x += dx;
     y += dy;
@@ -251,7 +250,7 @@ void Region::inverse_transform(double &x, double &y, double &z)
     y -= dy;
     z -= dz;
   }
-  if (rotateflag) rotate(x,y,z,-theta);
+  if (rotateflag) rotate(x, y, z, -theta);
 }
 
 /* ----------------------------------------------------------------------
@@ -272,26 +271,26 @@ void Region::inverse_transform(double &x, double &y, double &z)
 
 void Region::rotate(double &x, double &y, double &z, double angle)
 {
-  double a[3],b[3],c[3],d[3],disp[3];
+  double a[3], b[3], c[3], d[3], disp[3];
 
   double sine = sin(angle);
   double cosine = cos(angle);
   d[0] = x - point[0];
   d[1] = y - point[1];
   d[2] = z - point[2];
-  double x0dotr = d[0]*runit[0] + d[1]*runit[1] + d[2]*runit[2];
+  double x0dotr = d[0] * runit[0] + d[1] * runit[1] + d[2] * runit[2];
   c[0] = x0dotr * runit[0];
   c[1] = x0dotr * runit[1];
   c[2] = x0dotr * runit[2];
   a[0] = d[0] - c[0];
   a[1] = d[1] - c[1];
   a[2] = d[2] - c[2];
-  b[0] = runit[1]*a[2] - runit[2]*a[1];
-  b[1] = runit[2]*a[0] - runit[0]*a[2];
-  b[2] = runit[0]*a[1] - runit[1]*a[0];
-  disp[0] = a[0]*cosine  + b[0]*sine;
-  disp[1] = a[1]*cosine  + b[1]*sine;
-  disp[2] = a[2]*cosine  + b[2]*sine;
+  b[0] = runit[1] * a[2] - runit[2] * a[1];
+  b[1] = runit[2] * a[0] - runit[0] * a[2];
+  b[2] = runit[0] * a[1] - runit[1] * a[0];
+  disp[0] = a[0] * cosine + b[0] * sine;
+  disp[1] = a[1] * cosine + b[1] * sine;
+  disp[2] = a[2] * cosine + b[2] * sine;
   x = point[0] + c[0] + disp[0];
   y = point[1] + c[1] + disp[1];
   z = point[2] + c[2] + disp[2];
@@ -303,7 +302,7 @@ void Region::rotate(double &x, double &y, double &z, double angle)
 
 void Region::options(int narg, char **arg)
 {
-  if (narg < 0) error->all(FLERR,"Illegal region command");
+  if (narg < 0) utils::missing_cmd_args(FLERR, "region", error);
 
   // option defaults
 
@@ -312,74 +311,78 @@ void Region::options(int narg, char **arg)
   moveflag = rotateflag = 0;
 
   openflag = 0;
-  for (int i  = 0; i < 6; i++) open_faces[i] = 0;
+  for (int i = 0; i < 6; i++) open_faces[i] = 0;
 
   int iarg = 0;
   while (iarg < narg) {
-    if (strcmp(arg[iarg],"units") == 0) {
-      if (iarg+2 > narg) error->all(FLERR,"Illegal region command");
-      if (strcmp(arg[iarg+1],"box") == 0) scaleflag = 0;
-      else if (strcmp(arg[iarg+1],"lattice") == 0) scaleflag = 1;
-      else error->all(FLERR,"Illegal region command");
+    if (strcmp(arg[iarg], "units") == 0) {
+      if (iarg + 2 > narg) utils::missing_cmd_args(FLERR, "region units", error);
+      if (strcmp(arg[iarg + 1], "box") == 0)
+        scaleflag = 0;
+      else if (strcmp(arg[iarg + 1], "lattice") == 0)
+        scaleflag = 1;
+      else
+        error->all(FLERR, "Illegal region units: {}", arg[iarg + 1]);
       iarg += 2;
-    } else if (strcmp(arg[iarg],"side") == 0) {
-      if (iarg+2 > narg) error->all(FLERR,"Illegal region command");
-      if (strcmp(arg[iarg+1],"in") == 0) interior = 1;
-      else if (strcmp(arg[iarg+1],"out") == 0) interior = 0;
-      else error->all(FLERR,"Illegal region command");
+    } else if (strcmp(arg[iarg], "side") == 0) {
+      if (iarg + 2 > narg) utils::missing_cmd_args(FLERR, "region side", error);
+      if (strcmp(arg[iarg + 1], "in") == 0)
+        interior = 1;
+      else if (strcmp(arg[iarg + 1], "out") == 0)
+        interior = 0;
+      else
+        error->all(FLERR, "Illegal region side: {}", arg[iarg + 1]);
       iarg += 2;
 
-    } else if (strcmp(arg[iarg],"move") == 0) {
-      if (iarg+4 > narg) error->all(FLERR,"Illegal region command");
-      if (strcmp(arg[iarg+1],"NULL") != 0) {
-        if (strstr(arg[iarg+1],"v_") != arg[iarg+1])
-          error->all(FLERR,"Illegal region command");
-        xstr = utils::strdup(&arg[iarg+1][2]);
+    } else if (strcmp(arg[iarg], "move") == 0) {
+      if (iarg + 4 > narg) utils::missing_cmd_args(FLERR, "region move", error);
+      if (strcmp(arg[iarg + 1], "NULL") != 0) {
+        if (strstr(arg[iarg + 1], "v_") != arg[iarg + 1])
+          error->all(FLERR, "Illegal region move x displacement variable: {}", arg[iarg + 1]);
+        xstr = utils::strdup(&arg[iarg + 1][2]);
       }
-      if (strcmp(arg[iarg+2],"NULL") != 0) {
-        if (strstr(arg[iarg+2],"v_") != arg[iarg+2])
-          error->all(FLERR,"Illegal region command");
-        ystr = utils::strdup(&arg[iarg+2][2]);
+      if (strcmp(arg[iarg + 2], "NULL") != 0) {
+        if (strstr(arg[iarg + 2], "v_") != arg[iarg + 2])
+          error->all(FLERR, "Illegal region move y displacement variable: {}", arg[iarg + 2]);
+        ystr = utils::strdup(&arg[iarg + 2][2]);
       }
-      if (strcmp(arg[iarg+3],"NULL") != 0) {
-        if (strstr(arg[iarg+3],"v_") != arg[iarg+3])
-          error->all(FLERR,"Illegal region command");
-        zstr = utils::strdup(&arg[iarg+3][2]);
+      if (strcmp(arg[iarg + 3], "NULL") != 0) {
+        if (strstr(arg[iarg + 3], "v_") != arg[iarg + 3])
+          error->all(FLERR, "Illegal region move z displacement variable: {}", arg[iarg + 3]);
+        zstr = utils::strdup(&arg[iarg + 3][2]);
       }
       moveflag = 1;
       iarg += 4;
 
-    } else if (strcmp(arg[iarg],"rotate") == 0) {
-      if (iarg+8 > narg) error->all(FLERR,"Illegal region command");
-      if (strstr(arg[iarg+1],"v_") != arg[iarg+1])
-        error->all(FLERR,"Illegal region command");
-      tstr = utils::strdup(&arg[iarg+1][2]);
-      point[0] = utils::numeric(FLERR,arg[iarg+2],false,lmp);
-      point[1] = utils::numeric(FLERR,arg[iarg+3],false,lmp);
-      point[2] = utils::numeric(FLERR,arg[iarg+4],false,lmp);
-      axis[0] = utils::numeric(FLERR,arg[iarg+5],false,lmp);
-      axis[1] = utils::numeric(FLERR,arg[iarg+6],false,lmp);
-      axis[2] = utils::numeric(FLERR,arg[iarg+7],false,lmp);
+    } else if (strcmp(arg[iarg], "rotate") == 0) {
+      if (iarg + 8 > narg) utils::missing_cmd_args(FLERR, "region rotate", error);
+      if (strstr(arg[iarg + 1], "v_") != arg[iarg + 1]) error->all(FLERR, "Illegal region command");
+      tstr = utils::strdup(&arg[iarg + 1][2]);
+      point[0] = utils::numeric(FLERR, arg[iarg + 2], false, lmp);
+      point[1] = utils::numeric(FLERR, arg[iarg + 3], false, lmp);
+      point[2] = utils::numeric(FLERR, arg[iarg + 4], false, lmp);
+      axis[0] = utils::numeric(FLERR, arg[iarg + 5], false, lmp);
+      axis[1] = utils::numeric(FLERR, arg[iarg + 6], false, lmp);
+      axis[2] = utils::numeric(FLERR, arg[iarg + 7], false, lmp);
       rotateflag = 1;
       iarg += 8;
 
-    } else if (strcmp(arg[iarg],"open") == 0) {
-      if (iarg+2 > narg) error->all(FLERR,"Illegal region command");
-      int iface = utils::inumeric(FLERR,arg[iarg+1],false,lmp);
-      if (iface < 1 || iface > 6) error->all(FLERR,"Illegal region command");
+    } else if (strcmp(arg[iarg], "open") == 0) {
+      if (iarg + 2 > narg) utils::missing_cmd_args(FLERR, "region open", error);
+      int iface = utils::inumeric(FLERR, arg[iarg + 1], false, lmp);
+      if (iface < 1 || iface > 6) error->all(FLERR, "Illegal region open face index: {}", iface);
       // additional checks on valid face index are done by region classes
-      open_faces[iface-1] = 1;
+      open_faces[iface - 1] = 1;
       openflag = 1;
       iarg += 2;
-    }
-    else error->all(FLERR,"Illegal region command");
+    } else
+      error->all(FLERR, "Illegal region command argument: {}", arg[iarg]);
   }
 
   // error check
 
-  if ((moveflag || rotateflag) &&
-      (strcmp(style,"union") == 0 || strcmp(style,"intersect") == 0))
-    error->all(FLERR,"Region union or intersect cannot be dynamic");
+  if ((moveflag || rotateflag) && (strcmp(style, "union") == 0 || strcmp(style, "intersect") == 0))
+    error->all(FLERR, "Region union or intersect cannot be dynamic");
 
   // setup scaling
 
@@ -387,8 +390,8 @@ void Region::options(int narg, char **arg)
     xscale = domain->lattice->xlattice;
     yscale = domain->lattice->ylattice;
     zscale = domain->lattice->zlattice;
-  }
-  else xscale = yscale = zscale = 1.0;
+  } else
+    xscale = yscale = zscale = 1.0;
 
   if (rotateflag) {
     point[0] *= xscale;
@@ -399,16 +402,17 @@ void Region::options(int narg, char **arg)
   // runit = unit vector along rotation axis
 
   if (rotateflag) {
-    double len = sqrt(axis[0]*axis[0] + axis[1]*axis[1] + axis[2]*axis[2]);
-    if (len == 0.0)
-      error->all(FLERR,"Region cannot have 0 length rotation vector");
-    runit[0] = axis[0]/len;
-    runit[1] = axis[1]/len;
-    runit[2] = axis[2]/len;
+    double len = sqrt(axis[0] * axis[0] + axis[1] * axis[1] + axis[2] * axis[2]);
+    if (len == 0.0) error->all(FLERR, "Region cannot have 0 length rotation vector");
+    runit[0] = axis[0] / len;
+    runit[1] = axis[1] / len;
+    runit[2] = axis[2] / len;
   }
 
-  if (moveflag || rotateflag) dynamic = 1;
-  else dynamic = 0;
+  if (moveflag || rotateflag)
+    dynamic = 1;
+  else
+    dynamic = 0;
 }
 
 /* ----------------------------------------------------------------------
@@ -420,14 +424,13 @@ void Region::options(int narg, char **arg)
    else closest point is between A and B
 ------------------------------------------------------------------------- */
 
-void Region::point_on_line_segment(double *a, double *b,
-                                   double *c, double *d)
+void Region::point_on_line_segment(double *a, double *b, double *c, double *d)
 {
-  double ba[3],ca[3];
+  double ba[3], ca[3];
 
-  MathExtra::sub3(b,a,ba);
-  MathExtra::sub3(c,a,ca);
-  double t = MathExtra::dot3(ca,ba) / MathExtra::dot3(ba,ba);
+  MathExtra::sub3(b, a, ba);
+  MathExtra::sub3(c, a, ca);
+  double t = MathExtra::dot3(ca, ba) / MathExtra::dot3(ba, ba);
   if (t <= 0.0) {
     d[0] = a[0];
     d[1] = a[1];
@@ -437,9 +440,9 @@ void Region::point_on_line_segment(double *a, double *b,
     d[1] = b[1];
     d[2] = b[2];
   } else {
-    d[0] = a[0] + t*ba[0];
-    d[1] = a[1] + t*ba[1];
-    d[2] = a[2] + t*ba[2];
+    d[0] = a[0] + t * ba[0];
+    d[1] = a[1] + t * ba[1];
+    d[2] = a[2] + t * ba[2];
   }
 }
 
@@ -460,11 +463,11 @@ void Region::set_velocity()
   vel_timestep = update->ntimestep;
   if (moveflag) {
     if (update->ntimestep > 0) {
-      v[0] = (dx - prev[0])/update->dt;
-      v[1] = (dy - prev[1])/update->dt;
-      v[2] = (dz - prev[2])/update->dt;
-    }
-    else v[0] = v[1] = v[2] = 0.0;
+      v[0] = (dx - prev[0]) / update->dt;
+      v[1] = (dy - prev[1]) / update->dt;
+      v[2] = (dz - prev[2]) / update->dt;
+    } else
+      v[0] = v[1] = v[2] = 0.0;
     prev[0] = dx;
     prev[1] = dy;
     prev[2] = dz;
@@ -475,18 +478,16 @@ void Region::set_velocity()
     rpoint[1] = point[1] + dy;
     rpoint[2] = point[2] + dz;
     if (update->ntimestep > 0) {
-      double angvel = (theta-prev[3]) / update->dt;
-      omega[0] = angvel*axis[0];
-      omega[1] = angvel*axis[1];
-      omega[2] = angvel*axis[2];
-    }
-    else omega[0] = omega[1] = omega[2] = 0.0;
+      double angvel = (theta - prev[3]) / update->dt;
+      omega[0] = angvel * axis[0];
+      omega[1] = angvel * axis[1];
+      omega[2] = angvel * axis[2];
+    } else
+      omega[0] = omega[1] = omega[2] = 0.0;
     prev[3] = theta;
   }
 
-  if (varshape) {
-    set_velocity_shape();
-  }
+  if (varshape) { set_velocity_shape(); }
 }
 
 /* ----------------------------------------------------------------------
@@ -511,14 +512,13 @@ void Region::velocity_contact(double *vwall, double *x, int ic)
     xc[0] = x[0] - contact[ic].delx;
     xc[1] = x[1] - contact[ic].dely;
     xc[2] = x[2] - contact[ic].delz;
-    vwall[0] += omega[1]*(xc[2] - rpoint[2]) - omega[2]*(xc[1] - rpoint[1]);
-    vwall[1] += omega[2]*(xc[0] - rpoint[0]) - omega[0]*(xc[2] - rpoint[2]);
-    vwall[2] += omega[0]*(xc[1] - rpoint[1]) - omega[1]*(xc[0] - rpoint[0]);
+    vwall[0] += omega[1] * (xc[2] - rpoint[2]) - omega[2] * (xc[1] - rpoint[1]);
+    vwall[1] += omega[2] * (xc[0] - rpoint[0]) - omega[0] * (xc[2] - rpoint[2]);
+    vwall[2] += omega[0] * (xc[1] - rpoint[1]) - omega[1] * (xc[0] - rpoint[0]);
   }
 
   if (varshape && contact[ic].varflag) velocity_contact_shape(vwall, xc);
 }
-
 
 /* ----------------------------------------------------------------------
    increment length of restart buffer based on region info
@@ -527,9 +527,8 @@ void Region::velocity_contact(double *vwall, double *x, int ic)
 
 void Region::length_restart_string(int &n)
 {
-  n += sizeof(int) + strlen(id)+1 +
-    sizeof(int) + strlen(style)+1 + sizeof(int) +
-    size_restart*sizeof(double);
+  n += sizeof(int) + strlen(id) + 1 + sizeof(int) + strlen(style) + 1 + sizeof(int) +
+      size_restart * sizeof(double);
 }
 
 /* ----------------------------------------------------------------------
@@ -539,14 +538,14 @@ void Region::length_restart_string(int &n)
 
 void Region::write_restart(FILE *fp)
 {
-  int sizeid = (strlen(id)+1);
-  int sizestyle = (strlen(style)+1);
+  int sizeid = (strlen(id) + 1);
+  int sizestyle = (strlen(style) + 1);
   fwrite(&sizeid, sizeof(int), 1, fp);
-  fwrite(id,1,sizeid,fp);
-  fwrite(&sizestyle,sizeof(int),1,fp);
-  fwrite(style,1,sizestyle,fp);
-  fwrite(&nregion,sizeof(int),1,fp);
-  fwrite(prev,sizeof(double),size_restart,fp);
+  fwrite(id, 1, sizeid, fp);
+  fwrite(&sizestyle, sizeof(int), 1, fp);
+  fwrite(style, 1, sizestyle, fp);
+  fwrite(&nregion, sizeof(int), 1, fp);
+  fwrite(prev, sizeof(double), size_restart, fp);
 }
 
 /* ----------------------------------------------------------------------
@@ -559,19 +558,19 @@ int Region::restart(char *buf, int &n)
 {
   int size = *((int *) (&buf[n]));
   n += sizeof(int);
-  if ((size <= 0) || (strcmp(&buf[n],id) != 0)) return 0;
+  if ((size <= 0) || (strcmp(&buf[n], id) != 0)) return 0;
   n += size;
 
   size = *((int *) (&buf[n]));
   n += sizeof(int);
-  if ((size <= 0) || (strcmp(&buf[n],style) != 0)) return 0;
+  if ((size <= 0) || (strcmp(&buf[n], style) != 0)) return 0;
   n += size;
 
   int restart_nreg = *((int *) (&buf[n]));
   n += sizeof(int);
   if (restart_nreg != nregion) return 0;
 
-  memcpy(prev,&buf[n],size_restart*sizeof(double));
+  memcpy(prev, &buf[n], size_restart * sizeof(double));
   return 1;
 }
 

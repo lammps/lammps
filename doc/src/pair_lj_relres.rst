@@ -235,7 +235,7 @@ For atom type pairs :math:`I,\:J` with :math:`I\;!=J`, the
 :math:`\sigma^{CG}`, :math:`r_{si}`, :math:`r_{so}`, :math:`r_{ci}`,
 and :math:`r_{co}` parameters for this pair style can be mixed, if
 not defined explicitly. All parameters are mixed according to the
-pair_modify mix option.  The default mix value is *geometric*\ ,
+pair_modify mix option.  The default mix value is *geometric*,
 and it is recommended to use with this *lj/relres* style.  See the
 "pair_modify" command for details.
 
@@ -259,13 +259,16 @@ specified in an input script that reads a restart file.
 
 This pair style can only be used via the *pair* keyword of the
 :doc:`run_style respa <run_style>` command.  It does not support the
-*inner*\ , *middle*\ , *outer* keywords.
+*inner*, *middle*, *outer* keywords.
 
 ----------
 
 Restrictions
 """"""""""""
-none
+
+This pair style is part of the EXTRA-PAIR package.  It is only enabled if
+LAMMPS was built with that package.  See the
+:doc:`Build package <Build_package>` page for more info.
 
 Related commands
 """"""""""""""""

@@ -1,8 +1,7 @@
-// clang-format off
 /* -*- c++ -*- ----------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    https://www.lammps.org/, Sandia National Laboratories
-   Steve Plimpton, sjplimp@sandia.gov
+   LAMMPS development team: developers@lammps.org
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
@@ -20,71 +19,44 @@ AtomStyle(bond/kk/host,AtomVecBondKokkos);
 // clang-format on
 #else
 
+// clang-format off
 #ifndef LMP_ATOM_VEC_BOND_KOKKOS_H
 #define LMP_ATOM_VEC_BOND_KOKKOS_H
 
 #include "atom_vec_kokkos.h"
+#include "atom_vec_bond.h"
 
 namespace LAMMPS_NS {
 
-class AtomVecBondKokkos : public AtomVecKokkos {
+class AtomVecBondKokkos : public AtomVecKokkos, public AtomVecBond {
  public:
   AtomVecBondKokkos(class LAMMPS *);
-  virtual ~AtomVecBondKokkos() {}
-  void grow(int);
-  void copy(int, int, int);
-  int pack_border(int, int *, double *, int, int *);
-  int pack_border_vel(int, int *, double *, int, int *);
-  int pack_border_hybrid(int, int *, double *);
-  void unpack_border(int, int, double *);
-  void unpack_border_vel(int, int, double *);
-  int unpack_border_hybrid(int, int, double *);
-  int pack_exchange(int, double *);
-  int unpack_exchange(double *);
-  int size_restart();
-  int pack_restart(int, double *);
-  int unpack_restart(double *);
-  void create_atom(int, double *);
-  void data_atom(double *, tagint, char **);
-  int data_atom_hybrid(int, char **);
-  void pack_data(double **);
-  int pack_data_hybrid(int, double *);
-  void write_data(FILE *, int, double **);
-  int write_data_hybrid(FILE *, double *);
-  double memory_usage();
 
-  void grow_pointers();
-  int pack_border_kokkos(int n, DAT::tdual_int_2d k_sendlist,
-                         DAT::tdual_xfloat_2d buf,int iswap,
-                         int pbc_flag, int *pbc, ExecutionSpace space);
+  void grow(int) override;
+  void grow_pointers() override;
+  void sort_kokkos(Kokkos::BinSort<KeyViewType, BinOp> &Sorter) override;
+  int pack_border_kokkos(int n, DAT::tdual_int_1d k_sendlist,
+                         DAT::tdual_xfloat_2d buf,
+                         int pbc_flag, int *pbc, ExecutionSpace space) override;
   void unpack_border_kokkos(const int &n, const int &nfirst,
                             const DAT::tdual_xfloat_2d &buf,
-                            ExecutionSpace space);
+                            ExecutionSpace space) override;
   int pack_exchange_kokkos(const int &nsend,DAT::tdual_xfloat_2d &buf,
                            DAT::tdual_int_1d k_sendlist,
                            DAT::tdual_int_1d k_copylist,
-                           ExecutionSpace space, int dim,
-                           X_FLOAT lo, X_FLOAT hi);
+                           ExecutionSpace space) override;
   int unpack_exchange_kokkos(DAT::tdual_xfloat_2d &k_buf, int nrecv,
                              int nlocal, int dim, X_FLOAT lo, X_FLOAT hi,
-                             ExecutionSpace space);
+                             ExecutionSpace space,
+                             DAT::tdual_int_1d &k_indices) override;
 
-  void sync(ExecutionSpace space, unsigned int mask);
-  void modified(ExecutionSpace space, unsigned int mask);
-  void sync_overlapping_device(ExecutionSpace space, unsigned int mask);
+  void sync(ExecutionSpace space, unsigned int mask) override;
+  void modified(ExecutionSpace space, unsigned int mask) override;
+  void sync_overlapping_device(ExecutionSpace space, unsigned int mask) override;
 
- protected:
-
-  tagint *tag;
-  int *type,*mask;
-  imageint *image;
-  double **x,**v,**f;
-
+ private:
   tagint *molecule;
-  int **nspecial;
   tagint **special;
-  int *num_bond;
-  int **bond_type;
   tagint **bond_atom;
 
   DAT::t_tagint_1d d_tag;
@@ -112,9 +84,6 @@ class AtomVecBondKokkos : public AtomVecKokkos {
   HAT::t_int_1d h_num_bond;
   HAT::t_int_2d h_bond_type;
   HAT::t_tagint_2d h_bond_atom;
-
-  DAT::tdual_int_1d k_count;
-
 };
 
 }
@@ -122,15 +91,3 @@ class AtomVecBondKokkos : public AtomVecKokkos {
 #endif
 #endif
 
-/* ERROR/WARNING messages:
-
-E: Per-processor system is too big
-
-The number of owned atoms plus ghost atoms on a single
-processor must fit in 32-bit integer.
-
-E: Invalid atom type in Atoms section of data file
-
-Atom types must range from 1 to specified # of types.
-
-*/

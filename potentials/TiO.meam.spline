@@ -1,4 +1,4 @@
-# Ti-O cubic spline potential where O is in the dilute limit. DATE: 2016-06-05 UNITS: metal CONTRIBUTOR: Pinchao Zhang, Dallas R. Trinkle
+# Ti-O cubic spline potential where O is in the dilute limit. UNITS: metal DATE: 2016-06-05 CONTRIBUTOR: Pinchao Zhang, Dallas R. Trinkle
 meam/spline 2 Ti O
 spline3eq
 13

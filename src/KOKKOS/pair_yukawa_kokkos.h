@@ -1,8 +1,7 @@
-// clang-format off
 /* -*- c++ -*- ----------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    https://www.lammps.org/, Sandia National Laboratories
-   Steve Plimpton, sjplimp@sandia.gov
+   LAMMPS development team: developers@lammps.org
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
@@ -20,6 +19,7 @@ PairStyle(yukawa/kk/host,PairYukawaKokkos<LMPHostType>);
 // clang-format on
 #else
 
+// clang-format off
 #ifndef LMP_PAIR_YUKAWA_KOKKOS_H
 #define LMP_PAIR_YUKAWA_KOKKOS_H
 
@@ -38,11 +38,11 @@ class PairYukawaKokkos : public PairYukawa {
   typedef ArrayTypes<DeviceType> AT;
 
   PairYukawaKokkos(class LAMMPS *);
-  virtual ~PairYukawaKokkos();
+  ~PairYukawaKokkos() override;
 
-  void compute(int, int);
-  void init_style();
-  double init_one(int,int);
+  void compute(int, int) override;
+  void init_style() override;
+  double init_one(int,int) override;
 
   struct params_yukawa {
     KOKKOS_INLINE_FUNCTION
@@ -83,7 +83,6 @@ class PairYukawaKokkos : public PairYukawa {
   DAT::tdual_virial_array k_vatom;
   typename AT::t_efloat_1d d_eatom;
   typename AT::t_virial_array d_vatom;
-  typename AT::t_tagint_1d tag;
 
   int newton_pair;
   double special_lj[4];
@@ -95,21 +94,20 @@ class PairYukawaKokkos : public PairYukawa {
   int neighflag;
   int nlocal,nall,eflag,vflag;
 
-  void allocate();
-  friend struct PairComputeFunctor<PairYukawaKokkos,FULL,true>;
+  void allocate() override;
+  friend struct PairComputeFunctor<PairYukawaKokkos,FULL,true,0>;
+  friend struct PairComputeFunctor<PairYukawaKokkos,FULL,true,1>;
   friend struct PairComputeFunctor<PairYukawaKokkos,HALF,true>;
   friend struct PairComputeFunctor<PairYukawaKokkos,HALFTHREAD,true>;
-  friend struct PairComputeFunctor<PairYukawaKokkos,FULL,false>;
+  friend struct PairComputeFunctor<PairYukawaKokkos,FULL,false,0>;
+  friend struct PairComputeFunctor<PairYukawaKokkos,FULL,false,1>;
   friend struct PairComputeFunctor<PairYukawaKokkos,HALF,false>;
   friend struct PairComputeFunctor<PairYukawaKokkos,HALFTHREAD,false>;
-  friend EV_FLOAT pair_compute_neighlist<PairYukawaKokkos,FULL,void>(
-    PairYukawaKokkos*,NeighListKokkos<DeviceType>*);
-  friend EV_FLOAT pair_compute_neighlist<PairYukawaKokkos,HALF,void>(
-    PairYukawaKokkos*,NeighListKokkos<DeviceType>*);
-  friend EV_FLOAT pair_compute_neighlist<PairYukawaKokkos,HALFTHREAD,void>(
-    PairYukawaKokkos*,NeighListKokkos<DeviceType>*);
-  friend EV_FLOAT pair_compute<PairYukawaKokkos,void>(
-    PairYukawaKokkos*,NeighListKokkos<DeviceType>*);
+  friend EV_FLOAT pair_compute_neighlist<PairYukawaKokkos,FULL,0>(PairYukawaKokkos*,NeighListKokkos<DeviceType>*);
+  friend EV_FLOAT pair_compute_neighlist<PairYukawaKokkos,FULL,1>(PairYukawaKokkos*,NeighListKokkos<DeviceType>*);
+  friend EV_FLOAT pair_compute_neighlist<PairYukawaKokkos,HALF>(PairYukawaKokkos*,NeighListKokkos<DeviceType>*);
+  friend EV_FLOAT pair_compute_neighlist<PairYukawaKokkos,HALFTHREAD>(PairYukawaKokkos*,NeighListKokkos<DeviceType>*);
+  friend EV_FLOAT pair_compute<PairYukawaKokkos,void>(PairYukawaKokkos*,NeighListKokkos<DeviceType>*);
   friend void pair_virial_fdotr_compute<PairYukawaKokkos>(PairYukawaKokkos*);
 
 };
@@ -119,24 +117,3 @@ class PairYukawaKokkos : public PairYukawa {
 #endif
 #endif
 
-/* ERROR/WARNING messages:
-
-E: Cannot use Kokkos pair style with rRESPA inner/middle
-
-UNDOCUMENTED
-
-E: Cannot use chosen neighbor list style with yukawa/kk
-
-That style is not supported by Kokkos.
-
-U: Illegal ... command
-
-Self-explanatory.  Check the input script syntax and compare to the
-documentation for the command.  You can use -echo screen as a
-command-line option when running LAMMPS to see the offending line.
-
-U: Incorrect args for pair coefficients
-
-Self-explanatory.  Check the input script or data file.
-
-*/

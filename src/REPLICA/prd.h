@@ -1,7 +1,7 @@
 /* -*- c++ -*- ----------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    https://www.lammps.org/, Sandia National Laboratories
-   Steve Plimpton, sjplimp@sandia.gov
+   LAMMPS development team: developers@lammps.org
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
@@ -27,8 +27,8 @@ namespace LAMMPS_NS {
 class PRD : public Command {
  public:
   PRD(class LAMMPS *);
-  ~PRD() {}
-  void command(int, char **);
+
+  void command(int, char **) override;
 
  private:
   int me, nprocs;
@@ -75,75 +75,3 @@ class PRD : public Command {
 
 #endif
 #endif
-
-/* ERROR/WARNING messages:
-
-E: PRD command before simulation box is defined
-
-The prd command cannot be used before a read_data,
-read_restart, or create_box command.
-
-E: Cannot use PRD with multi-processor replicas unless atom map exists
-
-Use the atom_modify command to create an atom map.
-
-W: Running PRD with only one replica
-
-This is allowed, but you will get no parallel speed-up.
-
-E: Illegal ... command
-
-Self-explanatory.  Check the input script syntax and compare to the
-documentation for the command.  You can use -echo screen as a
-command-line option when running LAMMPS to see the offending line.
-
-E: Invalid t_event in prd command
-
-Self-explanatory.
-
-E: PRD nsteps must be multiple of t_event
-
-Self-explanatory.
-
-E: PRD t_corr must be multiple of t_event
-
-Self-explanatory.
-
-E: Could not find compute ID for PRD
-
-Self-explanatory.
-
-W: Resetting reneighboring criteria during PRD
-
-A PRD simulation requires that neigh_modify settings be delay = 0,
-every = 1, check = yes.  Since these settings were not in place,
-LAMMPS changed them and will restore them to their original values
-after the PRD simulation.
-
-E: Too many timesteps
-
-The cumulative timesteps must fit in a 64-bit integer.
-
-E: Cannot use PRD with a changing box
-
-The current box dimensions are not copied between replicas
-
-E: Cannot use PRD with a time-dependent fix defined
-
-PRD alters the timestep in ways that will mess up these fixes.
-
-E: Cannot use PRD with a time-dependent region defined
-
-PRD alters the timestep in ways that will mess up these regions.
-
-E: Too many iterations
-
-You must use a number of iterations that fit in a 32-bit integer
-for minimization.
-
-U: Cannot use PRD with atom_modify sort enabled
-
-This is a current restriction of PRD.  You must turn off sorting,
-which is enabled by default, via the atom_modify command.
-
-*/

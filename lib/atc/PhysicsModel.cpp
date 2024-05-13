@@ -79,19 +79,19 @@ void PhysicsModel::parse_material_file(string fileName)
         stringstream ss;
         ss << "WARNING: material units " << units << " do not match lammps";
         if      (units == "SI") {
-          if (lammpsUnits != LammpsInterface::SI) 
+          if (lammpsUnits != LammpsInterface::SI)
             ATC::LammpsInterface::instance()->print_msg_once(ss.str());
         }
         else if (units == "real") {
-          if (lammpsUnits != LammpsInterface::REAL ) 
+          if (lammpsUnits != LammpsInterface::REAL )
             ATC::LammpsInterface::instance()->print_msg_once(ss.str());
         }
         else if (units == "metal") {
-          if (lammpsUnits != LammpsInterface::METAL ) 
+          if (lammpsUnits != LammpsInterface::METAL )
             ATC::LammpsInterface::instance()->print_msg_once(ss.str());
-        } 
+        }
         else {
-          throw ATC_Error("unknown units in material file"); 
+          throw ATC_Error("unknown units in material file");
         }
       }
       else {
@@ -108,7 +108,7 @@ void PhysicsModel::parse_material_file(string fileName)
   fileId.close();
 }
 
-void PhysicsModel::initialize(void)
+void PhysicsModel::initialize()
 {
   // initialize materials
   vector< Material* >::const_iterator iter;
@@ -126,7 +126,7 @@ void PhysicsModel::initialize(void)
   for (weak = weakEqns_.begin(); weak!=weakEqns_.end(); weak++) {
     FieldName fieldName = weak->first;
     WeakEquation * weakEq = weak->second;
-    set<string> needs= weakEq->needs_material_functions();    
+    set<string> needs= weakEq->needs_material_functions();
     vector< Material* >::iterator iter;
     for (iter = materials_.begin(); iter != materials_.end(); iter++) {
       Material * mat = *iter;
@@ -136,11 +136,11 @@ void PhysicsModel::initialize(void)
         null_(fieldName,matId) = true;
         stringstream ss;
         ss << "WARNING: physics model: [" << type_ << "], material: [" << tag
-           << "] does not provide all interfaces for <" 
-           << field_to_string(fieldName) 
+           << "] does not provide all interfaces for <"
+           << field_to_string(fieldName)
            << "> physics and will be treated as null ";
         ATC::LammpsInterface::instance()->print_msg_once(ss.str());
-        // if (noNull_) 
+        // if (noNull_)
         //throw ATC_Error("material does not provide all interfaces for physics");
       }
     }
@@ -186,7 +186,7 @@ void PhysicsModel::num_fields(map<FieldName,int> & fieldSizes,
     fieldSizes[field] = size;
     rhsMask(field,FLUX)   = weakEq->has_B_integrand();
     rhsMask(field,SOURCE) = weakEq->has_N_integrand();
-  } 
+  }
 }
 
 //---------------------------------------------------------------------
@@ -362,7 +362,7 @@ PhysicsModelDriftDiffusionConvectionSchrodinger::PhysicsModelDriftDiffusionConve
 // PhysicsModelElectrostatic
 //---------------------------------------------------------------------
 PhysicsModelElectrostatic::PhysicsModelElectrostatic(string filename):
-  PhysicsModel(filename) 
+  PhysicsModel(filename)
 {
   PhysicsModel::type_ = "electrostatic";
   weakEqns_[VELOCITY]           = new WeakEquationMomentumElectrostatic();
@@ -373,7 +373,7 @@ PhysicsModelElectrostatic::PhysicsModelElectrostatic(string filename):
 // PhysicsModelElectrostaticEquilibrium
 //---------------------------------------------------------------------
 PhysicsModelElectrostaticEquilibrium::PhysicsModelElectrostaticEquilibrium(string filename):
-  PhysicsModel(filename) 
+  PhysicsModel(filename)
 {
   PhysicsModel::type_ = "equilibrium electrostatic";
   weakEqns_[VELOCITY]           = new WeakEquationMomentumElectrostatic();
@@ -424,20 +424,20 @@ PhysicsModelTangentOperator::PhysicsModelTangentOperator(ATC_Coupling * atc,
 
 void PhysicsModelTangentOperator::function(const VECTOR & x, DENS_VEC & r)
 {
-  CLON_VEC f = column(fields_[fieldName_].set_quantity(),dof_); 
+  CLON_VEC f = column(fields_[fieldName_].set_quantity(),dof_);
   f = x;
   atc_->compute_rhs_vector(rhsMask_, fields_, rhs_, integrationType_, physicsModel_);
   CLON_VEC rhsv = column(rhs_[fieldName_].quantity(),dof_);
   r = rhsv;
 }
-void PhysicsModelTangentOperator::tangent(const VECTOR & x, DENS_VEC & r, 
+void PhysicsModelTangentOperator::tangent(const VECTOR & x, DENS_VEC & r,
                                           MATRIX & K)
 {
   function(x,r);
   pair<FieldName,FieldName> row_col(fieldName_,fieldName_);
   const FIELDS & fields = fields_;
   atc_->compute_rhs_tangent(row_col, rhsMask_, fields , stiffness_, integrationType_, physicsModel_);
-  K = stiffness_.dense_copy(); 
+  K = stiffness_.dense_copy();
 }
 
 }; // end namespace

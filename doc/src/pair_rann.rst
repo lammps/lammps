@@ -17,8 +17,8 @@ Examples
 .. code-block:: LAMMPS
 
     pair_style rann
-    pair_coeff ** Mg.rann Mg
-    pair_coeff ** MgAlalloy.rann Mg Mg Al Mg
+    pair_coeff * * Mg.rann Mg
+    pair_coeff * * MgAlalloy.rann Mg Mg Al Mg
 
 Description
 """""""""""
@@ -378,9 +378,11 @@ The activation functions are computed as follows:
 Restrictions
 """"""""""""
 
-Pair style *rann* is part of the USER-RANN package.  It is only enabled if LAMMPS was built with that
+Pair style *rann* is part of the ML-RANN package.  It is only enabled if LAMMPS was built with that
 package.  Additionally, if any spin fingerprint styles are used LAMMPS must be built with the SPIN
 package as well.
+
+Pair style *rann* does not support computing per-atom stress or using :doc:`pair_modify nofdotr <pair_modify>`.
 
 Defaults
 """"""""""""

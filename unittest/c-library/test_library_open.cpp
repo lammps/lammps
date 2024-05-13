@@ -18,7 +18,7 @@ using ::testing::StartsWith;
 TEST(lammps_open, null_args)
 {
     ::testing::internal::CaptureStdout();
-    void *handle       = lammps_open(0, NULL, MPI_COMM_WORLD, NULL);
+    void *handle       = lammps_open(0, nullptr, MPI_COMM_WORLD, nullptr);
     std::string output = ::testing::internal::GetCapturedStdout();
     EXPECT_THAT(output, StartsWith("LAMMPS ("));
     if (verbose) std::cout << output;
@@ -39,9 +39,9 @@ TEST(lammps_open, null_args)
 
 TEST(lammps_open, with_args)
 {
-    const char *args[] = {"liblammps", "-log", "none", "-nocite"};
+    const char *args[] = {"liblammps", "-log", "none", "-nocite", nullptr};
     char **argv        = (char **)args;
-    int argc           = sizeof(args) / sizeof(char *);
+    int argc           = (sizeof(args) / sizeof(char *)) - 1;
 
     // MPI is already initialized
     MPI_Comm mycomm;
@@ -78,9 +78,9 @@ TEST(lammps_open, with_args)
 TEST(lammps_open, with_kokkos)
 {
     if (!LAMMPS_NS::LAMMPS::is_installed_pkg("KOKKOS")) GTEST_SKIP();
-    const char *args[] = {"liblammps", "-k", "on", "t", "2", "-sf", "kk", "-log", "none"};
+    const char *args[] = {"liblammps", "-k", "on", "t", "2", "-sf", "kk", "-log", "none", nullptr};
     char **argv        = (char **)args;
-    int argc           = sizeof(args) / sizeof(char *);
+    int argc           = (sizeof(args) / sizeof(char *)) - 1;
 
     ::testing::internal::CaptureStdout();
     void *alt_ptr;
@@ -108,9 +108,9 @@ TEST(lammps_open, with_kokkos)
 
 TEST(lammps_open_no_mpi, no_screen)
 {
-    const char *args[] = {"liblammps", "-log", "none", "-screen", "none", "-nocite"};
+    const char *args[] = {"liblammps", "-log", "none", "-screen", "none", "-nocite", nullptr};
     char **argv        = (char **)args;
-    int argc           = sizeof(args) / sizeof(char *);
+    int argc           = (sizeof(args) / sizeof(char *)) - 1;
 
     ::testing::internal::CaptureStdout();
     void *alt_ptr;
@@ -137,11 +137,11 @@ TEST(lammps_open_no_mpi, no_screen)
 
 TEST(lammps_open_no_mpi, with_omp)
 {
-    if (!LAMMPS_NS::LAMMPS::is_installed_pkg("USER-OMP")) GTEST_SKIP();
+    if (!LAMMPS_NS::LAMMPS::is_installed_pkg("OPENMP")) GTEST_SKIP();
     const char *args[] = {"liblammps", "-pk", "omp",  "2",    "neigh",  "no",
-                          "-sf",       "omp", "-log", "none", "-nocite"};
+                          "-sf",       "omp", "-log", "none", "-nocite", nullptr};
     char **argv        = (char **)args;
-    int argc           = sizeof(args) / sizeof(char *);
+    int argc           = (sizeof(args) / sizeof(char *)) - 1;
 
     ::testing::internal::CaptureStdout();
     void *alt_ptr;
@@ -175,7 +175,7 @@ TEST(lammps_open_fortran, no_args)
     MPI_Comm_split(MPI_COMM_WORLD, 0, 1, &mycomm);
     int fcomm = MPI_Comm_c2f(mycomm);
     ::testing::internal::CaptureStdout();
-    void *handle       = lammps_open_fortran(0, NULL, fcomm);
+    void *handle       = lammps_open_fortran(0, nullptr, fcomm);
     std::string output = ::testing::internal::GetCapturedStdout();
     EXPECT_THAT(output, StartsWith("LAMMPS ("));
     if (verbose) std::cout << output;
@@ -198,3 +198,32 @@ TEST(lammps_open_fortran, no_args)
     if (verbose) std::cout << output;
     MPI_Comm_free(&mycomm);
 }
+
+TEST(lammps_open_no_mpi, lammps_error)
+{
+    const char *args[] = {"liblammps", "-log", "none", "-nocite", nullptr};
+    char **argv        = (char **)args;
+    int argc           = (sizeof(args) / sizeof(char *)) - 1;
+
+    ::testing::internal::CaptureStdout();
+    void *alt_ptr;
+    void *handle       = lammps_open_no_mpi(argc, argv, &alt_ptr);
+    std::string output = ::testing::internal::GetCapturedStdout();
+    EXPECT_EQ(handle, alt_ptr);
+    LAMMPS_NS::LAMMPS *lmp = (LAMMPS_NS::LAMMPS *)handle;
+
+    EXPECT_EQ(lmp->world, MPI_COMM_WORLD);
+    EXPECT_EQ(lmp->infile, stdin);
+    EXPECT_NE(lmp->screen, nullptr);
+    EXPECT_EQ(lmp->logfile, nullptr);
+    EXPECT_EQ(lmp->citeme, nullptr);
+    EXPECT_EQ(lmp->suffix_enable, 0);
+
+    EXPECT_STREQ(lmp->exename, "liblammps");
+    EXPECT_EQ(lmp->num_package, 0);
+    ::testing::internal::CaptureStdout();
+    lammps_error(handle, 0, "test_warning");
+    output = ::testing::internal::GetCapturedStdout();
+    EXPECT_THAT(output, HasSubstr("WARNING: test_warning"));
+}
+

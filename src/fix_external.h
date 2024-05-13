@@ -1,7 +1,7 @@
 /* -*- c++ -*- ----------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    https://www.lammps.org/, Sandia National Laboratories
-   Steve Plimpton, sjplimp@sandia.gov
+   LAMMPS development team: developers@lammps.org
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
@@ -29,17 +29,17 @@ class FixExternal : public Fix {
   double **fexternal;
 
   FixExternal(class LAMMPS *, int, char **);
-  ~FixExternal();
-  int setmask();
-  void init();
-  void setup(int);
-  void setup_pre_reverse(int, int);
-  void min_setup(int);
-  void pre_reverse(int, int);
-  void post_force(int);
-  void min_post_force(int);
-  double compute_scalar();
-  double compute_vector(int);
+  ~FixExternal() override;
+  int setmask() override;
+  void init() override;
+  void setup(int) override;
+  void setup_pre_reverse(int, int) override;
+  void min_setup(int) override;
+  void pre_reverse(int, int) override;
+  void post_force(int) override;
+  void min_post_force(int) override;
+  double compute_scalar() override;
+  double compute_vector(int) override;
 
   void set_energy_global(double);
   void set_virial_global(double *);
@@ -48,20 +48,23 @@ class FixExternal : public Fix {
   void set_vector_length(int);
   void set_vector(int, double);
 
-  double memory_usage();
-  void grow_arrays(int);
-  void copy_arrays(int, int, int);
-  int pack_exchange(int, double *);
-  int unpack_exchange(int, double *);
+  double memory_usage() override;
+  void grow_arrays(int) override;
+  void copy_arrays(int, int, int) override;
+  int pack_exchange(int, double *) override;
+  int unpack_exchange(int, double *) override;
 
   typedef void (*FnPtr)(void *, bigint, int, tagint *, double **, double **);
   void set_callback(FnPtr, void *);
+
+  void *extract(const char *, int &) override;
 
  private:
   int mode, ncall, napply, eflag_caller;
   FnPtr callback;
   void *ptr_caller;
   double user_energy;
+  double user_virial[6];
   double *caller_vector;
 };
 
@@ -69,21 +72,3 @@ class FixExternal : public Fix {
 
 #endif
 #endif
-
-/* ERROR/WARNING messages:
-
-E: Illegal ... command
-
-Self-explanatory.  Check the input script syntax and compare to the
-documentation for the command.  You can use -echo screen as a
-command-line option when running LAMMPS to see the offending line.
-
-E: Fix external callback function not set
-
-This must be done by an external program in order to use this fix.
-
-E: Invalid set_vector index in fix external
-
-UNDOCUMENTED
-
-*/

@@ -2,7 +2,7 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    https://www.lammps.org/, Sandia National Laboratories
-   Steve Plimpton, sjplimp@sandia.gov
+   LAMMPS development team: developers@lammps.org
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
@@ -17,21 +17,21 @@
 ------------------------------------------------------------------------- */
 
 #include "compute_damage_atom.h"
-#include <cstring>
+
 #include "atom.h"
-#include "update.h"
-#include "modify.h"
 #include "comm.h"
+#include "error.h"
 #include "fix_peri_neigh.h"
 #include "memory.h"
-#include "error.h"
+#include "modify.h"
+#include "update.h"
 
 using namespace LAMMPS_NS;
 
 /* ---------------------------------------------------------------------- */
 
 ComputeDamageAtom::ComputeDamageAtom(LAMMPS *lmp, int narg, char **arg) :
-  Compute(lmp, narg, arg), damage(nullptr)
+  Compute(lmp, narg, arg), damage(nullptr), fix_peri_neigh(nullptr)
 {
   if (narg != 3) error->all(FLERR,"Illegal compute damage/atom command");
 
@@ -52,17 +52,15 @@ ComputeDamageAtom::~ComputeDamageAtom()
 
 void ComputeDamageAtom::init()
 {
-  int count = 0;
-  for (int i = 0; i < modify->ncompute; i++)
-    if (strcmp(modify->compute[i]->style,"damage/peri") == 0) count++;
-  if (count > 1 && comm->me == 0)
-    error->warning(FLERR,"More than one compute damage/atom");
+  if ((comm->me == 0) && (modify->get_compute_by_style("damage/atom").size() > 1))
+    error->warning(FLERR,"More than one compute dilatation/atom");
 
   // find associated PERI_NEIGH fix that must exist
 
-  ifix_peri = modify->find_fix_by_style("PERI_NEIGH");
-  if (ifix_peri == -1)
+  auto fixes = modify->get_fix_by_style("PERI_NEIGH");
+  if (fixes.size() == 0)
     error->all(FLERR,"Compute damage/atom requires a peridynamic potential");
+  else fix_peri_neigh = dynamic_cast<FixPeriNeigh *>(fixes.front());
 }
 
 /* ---------------------------------------------------------------------- */
@@ -85,9 +83,9 @@ void ComputeDamageAtom::compute_peratom()
   int nlocal = atom->nlocal;
   int *mask = atom->mask;
   double *vfrac = atom->vfrac;
-  double *vinter = ((FixPeriNeigh *) modify->fix[ifix_peri])->vinter;
-  tagint **partner = ((FixPeriNeigh *) modify->fix[ifix_peri])->partner;
-  int *npartner = ((FixPeriNeigh *) modify->fix[ifix_peri])->npartner;
+  double *vinter = fix_peri_neigh->vinter;
+  tagint **partner = fix_peri_neigh->partner;
+  int *npartner = fix_peri_neigh->npartner;
   int i,j,jj,jnum;
 
   double damage_temp;

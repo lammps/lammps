@@ -10,7 +10,7 @@ fix wall/region/ees command
 Syntax
 """"""
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    fix ID group-ID style args
 
@@ -73,7 +73,7 @@ energy of wall-particle interactions E is given by:
 
 Introduced by Babadi and Ejtehadi in :ref:`(Babadi)
 <BabadiEjtehadi>`. Here, *r* is the distance from the particle to the
-wall at position *coord*\ , and Rc is the *cutoff* distance at which
+wall at position *coord*, and Rc is the *cutoff* distance at which
 the particle and wall no longer interact. Also, :math:`\sigma_n` is
 the distance between center of ellipsoid and the nearest point of its
 surface to the wall as shown below.
@@ -88,7 +88,7 @@ examples/ directory.
 The prefactor :math:`\epsilon` can be thought of as an
 effective Hamaker constant with energy units for the strength of the
 ellipsoid-wall interaction.  More specifically, the :math:`\epsilon`
-pre-factor is
+prefactor is
 
 .. math::
 
@@ -104,7 +104,7 @@ respectively, in units of 1/volume.
 
 .. note::
 
-   You must insure that r is always bigger than :math:`\sigma_n` for
+   You must ensure that r is always bigger than :math:`\sigma_n` for
    all particles in the group, or LAMMPS will generate an error.  This
    means you cannot start your simulation with particles touching the wall
    position *coord* (:math:`r = \sigma_n`) or with particles penetrating
@@ -117,7 +117,7 @@ ellipsoidal particles according to the EES potential introduced above.
 
 Other details of this command are the same as for the :doc:`fix
 wall/region <fix_wall_region>` command.  One may also find an example
-of using this fix in the examples/USER/misc/ees/ directory.
+of using this fix in the examples/PACKAGES/ees/ directory.
 
 ----------
 
@@ -160,9 +160,9 @@ minimization, invoked by the :doc:`minimize <minimize>` command.
 Restrictions
 """"""""""""
 
-These fixes are part of the USER-MISC package.  They are only enabled
+These fixes are part of the EXTRA-FIX package.  They are only enabled
 if LAMMPS was built with that package.  See the :doc:`Build package
-<Build_package>` doc page for more info.
+<Build_package>` page for more info.
 
 These fixes requires that atoms be ellipsoids as defined by the
 :doc:`atom_style ellipsoid <atom_style>` command.

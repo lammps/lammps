@@ -8,7 +8,7 @@ EXTRAMAKE = Makefile.lammps.empty
 
 lib: 	$(OBJ)
 	mkdir -p build
-	cd build; cmake -Dlibtype=SHARED -Dlanguage=C -D CMAKE_C_COMPILER=gcc ../MDI_Library; make
+	cd build && cmake -D libtype=STATIC -D language=C -D CMAKE_POSITION_INDEPENDENT_CODE=yes -D mpi=ON -D plugins=ON -D python_plugins=ON -D CMAKE_C_COMPILER=gcc ../MDI_Library && make
 	@cp $(EXTRAMAKE) Makefile.lammps
 
 # ------ CLEAN ------

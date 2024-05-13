@@ -1,0 +1,256 @@
+LAMMPS (4 Nov 2022)
+# use bond/react 'create atoms' feature to add 30 new styrene monomers to chain
+
+units real
+
+boundary p p p
+
+atom_style full
+
+pair_style lj/class2/coul/cut 8.5
+
+angle_style class2
+
+bond_style class2
+
+dihedral_style class2
+
+improper_style class2
+
+variable T equal 530
+
+read_data trimer.data   extra/bond/per/atom 5   extra/angle/per/atom 15   extra/dihedral/per/atom 15   extra/improper/per/atom 25   extra/special/per/atom 25
+Reading data file ...
+  orthogonal box = (-200 -200 -200) to (200 200 200)
+  1 by 1 by 1 MPI processor grid
+  reading atom labelmap ...
+  reading bond labelmap ...
+  reading angle labelmap ...
+  reading dihedral labelmap ...
+  reading improper labelmap ...
+  reading atoms ...
+  48 atoms
+  scanning bonds ...
+  8 = max bonds/atom
+  scanning angles ...
+  21 = max angles/atom
+  scanning dihedrals ...
+  33 = max dihedrals/atom
+  scanning impropers ...
+  26 = max impropers/atom
+  reading bonds ...
+  50 bonds
+  reading angles ...
+  84 angles
+  reading dihedrals ...
+  127 dihedrals
+  reading impropers ...
+  20 impropers
+Finding 1-2 1-3 1-4 neighbors ...
+  special bond factors lj:    0        0        0       
+  special bond factors coul:  0        0        0       
+     4 = max # of 1-2 neighbors
+     8 = max # of 1-3 neighbors
+    17 = max # of 1-4 neighbors
+    46 = max # of special neighbors
+  special bonds CPU = 0.000 seconds
+  read_data CPU = 0.011 seconds
+
+molecule mol1 grow_styrene_pre.molecule_template
+Read molecule template mol1:
+  1 molecules
+  0 fragments
+  30 atoms with max type 4
+  31 bonds with max type 6
+  51 angles with max type 10
+  73 dihedrals with max type 13
+  13 impropers with max type 3
+molecule mol2 grow_styrene_post.molecule_template
+Read molecule template mol2:
+  1 molecules
+  1 fragments
+  46 atoms with max type 4
+  48 bonds with max type 6
+  81 angles with max type 10
+  121 dihedrals with max type 13
+  19 impropers with max type 3
+
+fix myrxns all bond/react stabilization yes statted_grp .03     react rxn1 all 1 0 3.0 mol1 mol2 grow_styrene.map         modify_create fit create_fit overlap 2.0         stabilize_steps 200 max_rxn 30
+dynamic group bond_react_MASTER_group defined
+dynamic group statted_grp_REACT defined
+
+fix 1 statted_grp_REACT nvt temp $T $T 100
+fix 1 statted_grp_REACT nvt temp 530 $T 100
+fix 1 statted_grp_REACT nvt temp 530 530 100
+
+fix 4 bond_react_MASTER_group temp/rescale 1 $T $T 1 1
+fix 4 bond_react_MASTER_group temp/rescale 1 530 $T 1 1
+fix 4 bond_react_MASTER_group temp/rescale 1 530 530 1 1
+
+thermo_style custom step temp press density f_myrxns[1]
+
+thermo 100
+
+dump 1 all xyz 1 test_vis.xyz
+
+run 8000
+
+CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE
+
+Your simulation uses code contributions which should be cited:
+
+- fix bond/react: reacter.org doi:10.1016/j.polymer.2017.09.038, doi:10.1021/acs.macromol.0c02012
+
+@Article{Gissinger17,
+ author = {J. R. Gissinger and B. D. Jensen and K. E. Wise},
+ title = {Modeling Chemical Reactions in Classical Molecular Dynamics Simulations},
+ journal = {Polymer},
+ year =    2017,
+ volume =  128,
+ pages =   {211--217}
+}
+
+@Article{Gissinger20,
+ author = {J. R. Gissinger, B. D. Jensen, K. E. Wise},
+ title = {{REACTER}: A Heuristic Method for Reactive Molecular Dynamics},
+ journal = {Macromolecules},
+ year =    2020,
+ volume =  53,
+ number =  22,
+ pages =   {9953--9961}
+}
+
+CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE
+
+Generated 6 of 6 mixed pair_coeff terms from sixthpower/geometric mixing rule
+Neighbor list info ...
+  update: every = 1 steps, delay = 0 steps, check = yes
+  max neighbors/atom: 2000, page size: 100000
+  master list distance cutoff = 10.5
+  ghost atom cutoff = 10.5
+  binsize = 5.25, bins = 77 77 77
+  2 neighbor lists, perpetual/occasional/extra = 1 1 0
+  (1) pair lj/class2/coul/cut, perpetual
+      attributes: half, newton on
+      pair build: half/bin/newton
+      stencil: half/bin/3d
+      bin: standard
+  (2) fix bond/react, occasional, copy from (1)
+      attributes: half, newton on
+      pair build: copy
+      stencil: none
+      bin: none
+Per MPI rank memory allocation (min/avg/max) = 36.99 | 36.99 | 36.99 Mbytes
+   Step          Temp          Press         Density      f_myrxns[1]  
+         0   0              0.076588866    8.1070333e-06  0            
+       100   598.41967     -0.1670029      1.0809378e-05  1            
+       200   696.77845      0.11857422     1.0809378e-05  1            
+       300   932.97222     -0.058615676    1.3511722e-05  2            
+       400   1016.3732      0.062233715    1.3511722e-05  2            
+       500   1006.451      -0.17987841     1.6214067e-05  3            
+       600   1143.8859      0.33297898     1.6214067e-05  3            
+       700   1209.6144     -0.22743773     1.8916411e-05  4            
+       800   1429.1639      0.14048255     1.8916411e-05  4            
+       900   1375.0968     -0.04016551     2.1618755e-05  5            
+      1000   1583.6696     -0.23364852     2.1618755e-05  5            
+      1100   1811.0697     -0.054436797    2.43211e-05    6            
+      1200   1928.4658      0.012242837    2.43211e-05    6            
+      1300   1666.6176      0.057157656    2.43211e-05    6            
+      1400   1686.18       -28.442814      2.7023444e-05  7            
+      1500   1704.6248     -0.16861218     2.7023444e-05  7            
+      1600   2171.7628     -33.6156        2.9725789e-05  8            
+      1700   1991.2922     -0.11813381     2.9725789e-05  8            
+      1800   2037.4991     -40.015612      3.2428133e-05  9            
+      1900   2143.9447     -0.090964375    3.2428133e-05  9            
+      2000   1927.9564      0.29856007     3.2428133e-05  9            
+      2100   2255.5877     -4.9166327      3.5130478e-05  10           
+      2200   2512.5193      0.00044804842  3.5130478e-05  10           
+      2300   2336.1503     -45.094726      3.7832822e-05  11           
+      2400   2508.9655     -0.1024684      3.7832822e-05  11           
+      2500   2747.7344     -53.939212      4.0535167e-05  12           
+      2600   2790.5736      0.07042181     4.0535167e-05  12           
+      2700   3014.7092     -0.0025387793   4.0535167e-05  12           
+      2800   2745.0295     -0.099361314    4.3237511e-05  13           
+      2900   2952.1281     -0.13667582     4.3237511e-05  13           
+      3000   3032.5298      0.28882784     4.5939855e-05  14           
+      3100   3149.992       0.55269076     4.5939855e-05  14           
+      3200   3422.5233     -0.11794908     4.86422e-05    15           
+      3300   3040.2691     -0.067532834    4.86422e-05    15           
+      3400   3323.3263      0.049969149    5.1344544e-05  16           
+      3500   3539.0877     -0.065546641    5.1344544e-05  16           
+      3600   3894.6897     -0.24222461     5.4046889e-05  17           
+      3700   3689.3513      0.21366533     5.4046889e-05  17           
+      3800   3924.799      -0.60817646     5.6749233e-05  18           
+      3900   3713.1947     -0.024834682    5.6749233e-05  18           
+      4000   3887.6151      0.052787631    5.9451578e-05  19           
+      4100   3868.2877      0.42532898     5.9451578e-05  19           
+      4200   3784.9874     -0.12018512     5.9451578e-05  19           
+      4300   4169.9997      0.19652089     6.2153922e-05  20           
+      4400   4112.291      -0.084839982    6.2153922e-05  20           
+      4500   3974.2226     -0.13641761     6.2153922e-05  20           
+      4600   4064.3852      0.16435039     6.2153922e-05  20           
+      4700   3880.0044     -0.42874552     6.2153922e-05  20           
+      4800   4508.2324      0.20208091     6.2153922e-05  20           
+      4900   4364.033      -0.56300441     6.2153922e-05  20           
+      5000   4030.4642     -0.29006515     6.2153922e-05  20           
+      5100   4010.9518      0.32060145     6.2153922e-05  20           
+      5200   4058.5072      0.088924924    6.2153922e-05  20           
+      5300   4529.9866     -0.38882748     6.4856266e-05  21           
+      5400   4305.9161      0.24046553     6.4856266e-05  21           
+      5500   4556.8628     -0.014044879    6.4856266e-05  21           
+      5600   4730.2206      0.1526293      6.4856266e-05  21           
+      5700   4810.9968     -17.600253      6.7558611e-05  22           
+      5800   4655.651      -0.25941928     6.7558611e-05  22           
+      5900   4507.1045     -0.084691005    6.7558611e-05  22           
+      6000   4516.0965      0.092662842    7.0260955e-05  23           
+      6100   4592.4068      0.10403004     7.0260955e-05  23           
+      6200   4583.9491      0.1692786      7.29633e-05    24           
+      6300   4512.226       0.32590723     7.29633e-05    24           
+      6400   4885.9205     -0.24208842     7.5665644e-05  25           
+      6500   5250.5008      0.4135064      7.5665644e-05  25           
+      6600   5216.9452      0.00059199905  7.8367989e-05  26           
+      6700   5302.2925      0.50452368     7.8367989e-05  26           
+      6800   4931.7328     -0.064719953    8.1070333e-05  27           
+      6900   5549.8746      0.55101191     8.1070333e-05  27           
+      7000   5472.9107      0.31358281     8.3772677e-05  28           
+      7100   5559.9339      0.14034743     8.3772677e-05  28           
+      7200   5726.4492     -0.39732059     8.6475022e-05  29           
+      7300   5869.324       0.18989804     8.6475022e-05  29           
+      7400   6109.5519      0.11206572     8.9177366e-05  30           
+      7500   5966.7085      0.2059557      8.9177366e-05  30           
+      7600   6051.2064      0.025316679    8.9177366e-05  30           
+      7700   5719.6669      0.16548544     8.9177366e-05  30           
+      7800   6118.8183     -0.20036999     8.9177366e-05  30           
+      7900   6477.1901      0.10308473     8.9177366e-05  30           
+      8000   6241.9498      0.090165102    8.9177366e-05  30           
+Loop time of 17.4848 on 1 procs for 8000 steps with 528 atoms
+
+Performance: 39.531 ns/day, 0.607 hours/ns, 457.540 timesteps/s, 241.581 katom-step/s
+97.6% CPU use with 1 MPI tasks x no OpenMP threads
+
+MPI task timing breakdown:
+Section |  min time  |  avg time  |  max time  |%varavg| %total
+---------------------------------------------------------------
+Pair    | 3.0991     | 3.0991     | 3.0991     |   0.0 | 17.72
+Bond    | 7.6807     | 7.6807     | 7.6807     |   0.0 | 43.93
+Neigh   | 1.6906     | 1.6906     | 1.6906     |   0.0 |  9.67
+Comm    | 0.019091   | 0.019091   | 0.019091   |   0.0 |  0.11
+Output  | 4.5095     | 4.5095     | 4.5095     |   0.0 | 25.79
+Modify  | 0.46277    | 0.46277    | 0.46277    |   0.0 |  2.65
+Other   |            | 0.02296    |            |       |  0.13
+
+Nlocal:            528 ave         528 max         528 min
+Histogram: 1 0 0 0 0 0 0 0 0 0
+Nghost:              0 ave           0 max           0 min
+Histogram: 1 0 0 0 0 0 0 0 0 0
+Neighs:          35904 ave       35904 max       35904 min
+Histogram: 1 0 0 0 0 0 0 0 0 0
+
+Total # of neighbors = 35904
+Ave neighs/atom = 68
+Ave special neighs/atom = 11.409091
+Neighbor list builds = 1836
+Dangerous builds = 0
+
+# write_data final.data nofix
+Total wall time: 0:00:17

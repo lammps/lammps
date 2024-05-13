@@ -1,9 +1,9 @@
-# Pizza.py toolkit, www.cs.sandia.gov/~sjplimp/pizza.html
-# Steve Plimpton, sjplimp@sandia.gov, Sandia National Laboratories
+# Pizza.py toolkit, https://lammps.github.io/pizza
+# LAMMPS Development team: developers@lammps.org, Sandia National Laboratories
 #
 # Copyright (2005) Sandia Corporation.  Under the terms of Contract
 # DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
-# certain rights in this software.  This software is distributed under 
+# certain rights in this software.  This software is distributed under
 # the GNU General Public License.
 
 # vizinfo class, not a top-level Pizza.py tool
@@ -25,7 +25,7 @@ import types
 class vizinfo:
   """
   Information holder for Pizza.py visualization tools
-  
+
   acolor,bcolor,tcolor,lcolor = RGB values for each atom/bond/tri/line type
   arad = radius of each atom type
   brad,lrad = thickness of each bond/line type
@@ -41,7 +41,7 @@ class vizinfo:
   setfill() = set triangle fill factor
   extend() = grow an array
   """
-  
+
   # --------------------------------------------------------------------
 
   def __init__(self):
@@ -57,15 +57,15 @@ class vizinfo:
      self.nbcolor = self.nbrad = 0
      self.ntcolor = self.ntfill = 0
      self.nlcolor = self.nlrad = 0
-     
+
   # --------------------------------------------------------------------
   # set color RGB for which = atoms, bonds, triangles
-  
+
   def setcolors(self,which,ids,rgbs):
 
     # convert args into lists if single values
     # if arg = 0, convert to full-range list
-    
+
     if type(ids) is types.IntType and ids == 0:
       if which == "atom": ids = range(self.nacolor)
       if which == "bond": ids = range(self.nbcolor)
@@ -101,11 +101,11 @@ class vizinfo:
       if max(ids) > self.nlcolor:
         self.nlcolor = self.extend(self.lcolor,max(ids))
         self.nlcolor = self.extend(self.lrad,max(ids))
-    
+
     # set color for each type
     # if list lengths match, set directly, else interpolate
     # convert final color from 0-255 to 0.0-1.0
-    
+
     ntypes = len(ids)
     nrgbs = len(rgbs)
 
@@ -135,7 +135,7 @@ class vizinfo:
       if which == "bond": self.bcolor[id] = color
       if which == "tri":  self.tcolor[id] = color
       if which == "line": self.lcolor[id] = color
-  
+
   # --------------------------------------------------------------------
   # set radii for which = atoms, bonds, lines
 
@@ -143,7 +143,7 @@ class vizinfo:
 
     # convert args into lists if single values
     # if arg = 0, convert to full-range list
-    
+
     if type(ids) is types.IntType and ids == 0:
       if which == "atom": ids = range(self.narad)
       if which == "bond": ids = range(self.nbrad)
@@ -199,16 +199,16 @@ class vizinfo:
       if which == "atom": self.arad[id] = rad
       if which == "bond": self.brad[id] = rad
       if which == "line": self.lrad[id] = rad
-    
+
   # --------------------------------------------------------------------
   # set triangle fill style
   # 0 = fill only, 1 = line only, 2 = fill and line
-  
+
   def setfills(self,which,ids,fills):
 
     # convert args into lists if single values
     # if arg = 0, convert to full-range list
-    
+
     if type(ids) is types.IntType and ids == 0:
       ids = range(self.ntfill)
     if type(ids) is not types.ListType and type(ids) is not types.TupleType:
@@ -237,7 +237,7 @@ class vizinfo:
       for i in range(len(ids)): self.tfill[ids[i]] = int(fills[i])
     else:
       for id in ids: self.tfill[id] = int(fills[0])
-    
+
   # --------------------------------------------------------------------
 
   def extend(self,array,n):

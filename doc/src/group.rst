@@ -6,12 +6,12 @@ group command
 Syntax
 """"""
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    group ID style args
 
 * ID = user-defined name of the group
-* style = *delete* or *clear* or *empty* or *region* or         *type* or *id* or *molecule* or *variable* or         *include* or *subtract* or *union* or *intersect* or         *dynamic* or *static*
+* style = *delete* or *clear* or *empty* or *region* or *type* or *id* or *molecule* or *variable* or *include* or *subtract* or *union* or *intersect* or *dynamic* or *static*
 
   .. parsed-literal::
 
@@ -38,10 +38,10 @@ Syntax
        *intersect* args = two or more group IDs
        *dynamic* args = parent-ID keyword value ...
          one or more keyword/value pairs may be appended
-         keyword = *region* or *var* or *every*
+         keyword = *region* or *var* or *property* or *every*
            *region* value = region-ID
            *var* value = name of variable
-           *property* value = name of per-atom property
+           *property* value = name of custom integer or floating point vector
            *every* value = N = update group every this many timesteps
        *static* = no args
 
@@ -87,8 +87,8 @@ atoms to the group.
    LAMMPS commands operate on groups of atoms, you should think carefully
    about whether making a group dynamic makes sense for your model.
 
-A group with the ID *all* is predefined.  All atoms belong to this
-group.  This group cannot be deleted, or made dynamic.
+A group with the ID *all* is predefined.  All atoms belong to this group.
+This group cannot be deleted, or made dynamic.
 
 The *delete* style removes the named group and un-assigns all atoms
 that were assigned to that group.  Since there is a restriction (see
@@ -99,9 +99,9 @@ been used to define a current :doc:`fix <fix>` or :doc:`compute <compute>`
 or :doc:`dump <dump>`.
 
 The *clear* style un-assigns all atoms that were assigned to that
-group.  This may be dangerous to do during a simulation run,
-e.g. using the :doc:`run every <run>` command if a fix or compute or
-other operation expects the atoms in the group to remain constant, but
+group.  This may be dangerous to do during a simulation run
+(e.g., using the :doc:`run every <run>` command if a fix or compute or
+other operation expects the atoms in the group to remain constant), but
 LAMMPS does not check for this.
 
 The *empty* style creates an empty group, which is useful for commands
@@ -113,9 +113,9 @@ Note that this is a static one-time assignment.  The atoms remain
 assigned (or not assigned) to the group even in they later move out of
 the region volume.
 
-The *type*\ , *id*\ , and *molecule* styles put all atoms with the
+The *type*, *id*, and *molecule* styles put all atoms with the
 specified atom types, atom IDs, or molecule IDs into the group.  These
-3 styles can use arguments specified in one of two formats.
+three styles can use arguments specified in one of two formats.
 
 The first format is a list of values (types or IDs).  For example, the
 second command in the examples above puts all atoms of type 3 or 4 into
@@ -124,15 +124,15 @@ colon-separated sequence ``A:B`` or ``A:B:C``, as in two of the examples
 above.  A "sequence" generates a sequence of values (types or IDs),
 with an optional increment.  The first example with ``500:1000`` has the
 default increment of 1 and would add all atom IDs from 500 to 1000
-(inclusive) to the group sub, along with 10,25,50 since they also
+(inclusive) to the group sub, along with 10, 25, and 50 since they also
 appear in the list of values.  The second example with ``100:10000:10``
 uses an increment of 10 and would thus would add atoms IDs
-100,110,120, ... 9990,10000 to the group sub.
+:math:`100, 110, 120, \dots, 9990, 10000` to the group sub.
 
 The second format is a *logical* followed by one or two values (type
 or ID).  The 7 valid logicals are listed above.  All the logicals
-except <> take a single argument.  The third example above adds all
-atoms with IDs from 1 to 150 to the group named *sub*\ .  The logical <>
+except ``<>`` take a single argument.  The third example above adds all
+atoms with IDs from 1 to 150 to the group named *sub*\ .  The logical ``<>``
 means "between" and takes 2 arguments.  The fourth example above adds all
 atoms belonging to molecules with IDs from 50 to 250 (inclusive) to
 the group named polyA.
@@ -146,14 +146,14 @@ to the specified group.
 Atom-style variables can specify formulas that include thermodynamic
 quantities, per-atom values such as atom coordinates, or per-atom
 quantities calculated by computes, fixes, or other variables.  They
-can also include Boolean logic where 2 numeric values are compared to
-yield a 1 or 0 (effectively a true or false).  Thus using the
-*variable* style, is a general way to flag specific atoms to include
+can also include Boolean logic where two numeric values are compared to
+yield a 1 or 0 (effectively a true or false).  Thus, using the
+*variable* style is a general way to flag specific atoms to include
 or exclude from a group.
 
 For example, these lines define a variable "eatom" that calculates the
 potential energy of each atom and includes it in the group if its
-potential energy is above the threshold value -3.0.
+potential energy is above the threshold value :math:`-3.0`.
 
 .. code-block:: LAMMPS
 
@@ -173,15 +173,15 @@ Note that these lines
    thermo_style    custom step temp pe c_2
    run             0
 
-are necessary to insure that the "eatom" variable is current when the
+are necessary to ensure that the "eatom" variable is current when the
 group command invokes it.  Because the eatom variable computes the
 per-atom energy via the pe/atom compute, it will only be current if a
 run has been performed which evaluated pairwise energies, and the
 pe/atom compute was actually invoked during the run.  Printing the
-thermodynamic info for compute 2 insures that this is the case, since
+thermodynamic info for compute 2 ensures that this is the case, since
 it sums the pe/atom compute values (in the reduce compute) to output
 them to the screen.  See the "Variable Accuracy" section of the
-:doc:`variable <variable>` doc page for more details on insuring that
+:doc:`variable <variable>` page for more details on ensuring that
 variables are current when they are evaluated between runs.
 
 The *include* style with its arg *molecule* adds atoms to a group that
@@ -226,28 +226,49 @@ simulation runs.  This is in contrast to static groups where atoms are
 permanently assigned to the group.  The way the assignment occurs is
 as follows.  Only atoms in the group specified as the parent group via
 the parent-ID are assigned to the dynamic group before the following
-conditions are applied.  If the *region* keyword is used, atoms not in
-the specified region are removed from the dynamic group.  If the *var*
-keyword is used, the variable name must be an atom-style or
-atomfile-style variable.  The variable is evaluated and atoms whose
-per-atom values are 0.0, are removed from the dynamic group. If the *property*
-keyword is used, the per-atom property name must be a previously defined
-per-atom property.  The per-atom property is evaluated and atoms whose
-values are 0.0 are removed from the dynamic group.
+conditions are applied.
+
+If the *region* keyword is used, atoms not in the specified region are
+removed from the dynamic group.
+
+If the *var* keyword is used, the variable name must be an atom-style
+or atomfile-style variable.  The variable is evaluated and atoms whose
+per-atom values are 0.0, are removed from the dynamic group.
+
+If the *property* keyword is used, the name refers to a custom integer
+or floating point per-atom vector defined via the :doc:`fix
+property/atom <fix_property_atom>` command.  This means the values in
+the vector can be read as part of a data file with the :doc:`read_data
+<read_data>` command or specified with the :doc:`set <set>` command.
+Or accessed and changed via the :doc:`library interface to LAMMPS
+<Howto_library>`, or by styles you add to LAMMPS (pair, fix, compute,
+etc) which access the custom vector and modify its values.  Which
+means the values can be modified between or during simulations.  Atoms
+whose values in the custom vector are zero are removed from the
+dynamic group.  Note that the name of the custom per-atom vector is
+specified just as *name*, not as *i_name* or *d_name* as it is for
+other commands that use different kinds of custom atom vectors or
+arrays as arguments.
 
 The assignment of atoms to a dynamic group is done at the beginning of
-each run and on every timestep that is a multiple of *N*\ , which is the
-argument for the *every* keyword (N = 1 is the default).  For an
+each run and on every timestep that is a multiple of *N*\ , which is
+the argument for the *every* keyword (:math:`N = 1` is the default).  For an
 energy minimization, via the :doc:`minimize <minimize>` command, an
 assignment is made at the beginning of the minimization, but not
 during the iterations of the minimizer.
 
 The point in the timestep at which atoms are assigned to a dynamic
-group is after the initial stage of velocity Verlet time integration
-has been performed, and before neighbor lists or forces are computed.
-This is the point in the timestep where atom positions have just
-changed due to the time integration, so the region criterion should be
-accurate, if applied.
+group is after interatomic forces have been computed, but before any
+fixes which alter forces or otherwise update the system have been
+invoked.  This means that atom positions have been updated, neighbor
+lists and ghost atoms are current, and both intermolecular and
+intramolecular forces have been calculated based on the new
+coordinates.  Thus the region criterion, if applied, should be
+accurate.  Also, any computes invoked by an atom-style variable should
+use updated information for that timestep (e.g., potential energy/atom
+or coordination number/atom).  Similarly, fixes or computes which are
+invoked after that point in the timestep, should operate on the new
+group of atoms.
 
 .. note::
 
@@ -256,7 +277,7 @@ accurate, if applied.
    between reneighboring events.  Thus if you want to include all atoms
    on the left side of the simulation box, you probably want to set the
    left boundary of the region to be outside the simulation box by some
-   reasonable amount (e.g. up to the cutoff of the potential), else they
+   reasonable amount (e.g., up to the cutoff of the potential), else they
    may be excluded from the dynamic region.
 
 Here is an example of using a dynamic group to shrink the set of atoms
@@ -279,11 +300,13 @@ group and running further.
 
 .. note::
 
-   All fixes and computes take a group ID as an argument, but they
-   do not all allow for use of a dynamic group.  If you get an error
+   All fixes and computes take a group ID as an argument, but they do
+   not all allow for use of a dynamic group.  If you get an error
    message that this is not allowed, but feel that it should be for the
    fix or compute in question, then please post your reasoning to the
-   LAMMPS mail list and we can change it.
+   `LAMMPS forum at MatSci <https://matsci.org/c/lammps-development/42>`_
+   and we can look into changing it.  The same applies if you come
+   across inconsistent behavior when dynamic groups are allowed.
 
 The *static* style removes the setting for a dynamic group, converting
 it to a static group (the default).  The atoms in the static group are

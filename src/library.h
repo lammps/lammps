@@ -1,7 +1,7 @@
 /* -*- c -*- ------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    https://www.lammps.org/, Sandia National Laboratories
-   Steve Plimpton, sjplimp@sandia.gov
+   LAMMPS development team: developers@lammps.org
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
@@ -35,14 +35,17 @@
 #endif
 
 #if defined(LAMMPS_BIGBIG) || defined(LAMMPS_SMALLBIG)
-#include <inttypes.h> /* for int64_t */
+#include <stdint.h> /* for int64_t */
 #endif
 
 /** Data type constants for extracting data from atoms, computes and fixes
  *
- * Must be kept in sync with the equivalent constants in lammps/constants.py */
+ * Must be kept in sync with the equivalent constants in ``python/lammps/constants.py``,
+ * ``fortran/lammps.f90``, ``tools/swig/lammps.i``, ``src/lmptype.h``, and
+ *``examples/COUPLE/plugin/liblammpsplugin.h`` */
 
 enum _LMP_DATATYPE_CONST {
+  LAMMPS_NONE = -1,     /*!< no data type assigned (yet) */
   LAMMPS_INT = 0,       /*!< 32-bit integer (array) */
   LAMMPS_INT_2D = 1,    /*!< two-dimensional 32-bit integer array */
   LAMMPS_DOUBLE = 2,    /*!< 64-bit double (array) */
@@ -54,7 +57,9 @@ enum _LMP_DATATYPE_CONST {
 
 /** Style constants for extracting data from computes and fixes.
  *
- * Must be kept in sync with the equivalent constants in lammps/constants.py */
+ * Must be kept in sync with the equivalent constants in ``python/lammps/constants.py``,
+ * ``fortran/lammps.f90``, ``tools/swig/lammps.i``, and
+ * ``examples/COUPLE/plugin/liblammpsplugin.h`` */
 
 enum _LMP_STYLE_CONST {
   LMP_STYLE_GLOBAL = 0, /*!< return global data */
@@ -64,7 +69,9 @@ enum _LMP_STYLE_CONST {
 
 /** Type and size constants for extracting data from computes and fixes.
  *
- * Must be kept in sync with the equivalent constants in lammps/constants.py */
+ * Must be kept in sync with the equivalent constants in ``python/lammps/constants.py``,
+ * ``fortran/lammps.f90``, ``tools/swig/lammps.i``, and
+ * ``examples/COUPLE/plugin/liblammpsplugin.h`` */
 
 enum _LMP_TYPE_CONST {
   LMP_TYPE_SCALAR = 0, /*!< return scalar */
@@ -73,6 +80,33 @@ enum _LMP_TYPE_CONST {
   LMP_SIZE_VECTOR = 3, /*!< return length of vector */
   LMP_SIZE_ROWS = 4,   /*!< return number of rows */
   LMP_SIZE_COLS = 5    /*!< return number of columns */
+};
+
+/** Error codes to select the suitable function in the Error class
+ *
+ * Must be kept in sync with the equivalent constants in ``python/lammps/constants.py``,
+ * ``fortran/lammps.f90``, ``tools/swig/lammps.i``, and
+ * ``examples/COUPLE/plugin/liblammpsplugin.h`` */
+
+enum _LMP_ERROR_CONST {
+  LMP_ERROR_WARNING = 0, /*!< call Error::warning() */
+  LMP_ERROR_ONE = 1,     /*!< called from one MPI rank */
+  LMP_ERROR_ALL = 2,     /*!< called from all MPI ranks */
+  LMP_ERROR_WORLD = 4,   /*!< error on Comm::world */
+  LMP_ERROR_UNIVERSE = 8 /*!< error on Comm::universe */
+};
+
+/** Variable style constants for extracting data from variables.
+ *
+ * Must be kept in sync with the equivalent constants in ``python/lammps/constants.py``,
+ * ``fortran/lammps.f90``, ``tools/swig/lammps.i``, and
+ * ``examples/COUPLE/plugin/liblammpsplugin.h`` */
+
+enum _LMP_VAR_CONST {
+  LMP_VAR_EQUAL = 0,  /*!< compatible with equal-style variables */
+  LMP_VAR_ATOM = 1,   /*!< compatible with atom-style variables */
+  LMP_VAR_VECTOR = 2, /*!< compatible with vector-style variables */
+  LMP_VAR_STRING = 3  /*!< return value will be a string (catch-all) */
 };
 
 /* Ifdefs to allow this file to be included in C and C++ programs */
@@ -94,6 +128,10 @@ void lammps_close(void *handle);
 
 void lammps_mpi_init();
 void lammps_mpi_finalize();
+void lammps_kokkos_finalize();
+void lammps_python_finalize();
+
+void lammps_error(void *handle, int error_type, const char *error_text);
 
 /* ----------------------------------------------------------------------
  * Library functions to process commands
@@ -111,6 +149,7 @@ void lammps_commands_string(void *handle, const char *str);
 
 double lammps_get_natoms(void *handle);
 double lammps_get_thermo(void *handle, const char *keyword);
+void *lammps_last_thermo(void *handle, const char *what, int index);
 
 void lammps_extract_box(void *handle, double *boxlo, double *boxhi, double *xy, double *yz,
                         double *xz, int *pflags, int *boxflag);
@@ -137,26 +176,35 @@ void *lammps_extract_atom(void *handle, const char *name);
 void *lammps_extract_compute(void *handle, const char *, int, int);
 void *lammps_extract_fix(void *handle, const char *, int, int, int, int);
 void *lammps_extract_variable(void *handle, const char *, const char *);
-int lammps_set_variable(void *, char *, char *);
+int lammps_extract_variable_datatype(void *handle, const char *name);
+int lammps_set_variable(void *handle, const char *name, const char *str);
+int lammps_set_string_variable(void *handle, const char *name, const char *str);
+int lammps_set_internal_variable(void *handle, const char *name, double value);
+int lammps_variable_info(void *handle, int idx, char *buf, int bufsize);
 
 /* ----------------------------------------------------------------------
  * Library functions for scatter/gather operations of data
  * ---------------------------------------------------------------------- */
 
-void lammps_gather_atoms(void *handle, char *name, int type, int count, void *data);
-void lammps_gather_atoms_concat(void *handle, char *name, int type, int count, void *data);
-void lammps_gather_atoms_subset(void *handle, char *name, int type, int count, int ndata, int *ids,
-                                void *data);
-void lammps_scatter_atoms(void *handle, char *name, int type, int count, void *data);
-void lammps_scatter_atoms_subset(void *handle, char *name, int type, int count, int ndata, int *ids,
-                                 void *data);
+void lammps_gather_atoms(void *handle, const char *name, int type, int count, void *data);
+void lammps_gather_atoms_concat(void *handle, const char *name, int type, int count, void *data);
+void lammps_gather_atoms_subset(void *handle, const char *name, int type, int count, int ndata,
+                                int *ids, void *data);
+void lammps_scatter_atoms(void *handle, const char *name, int type, int count, void *data);
+void lammps_scatter_atoms_subset(void *handle, const char *name, int type, int count, int ndata,
+                                 int *ids, void *data);
 
-void lammps_gather(void *handle, char *name, int type, int count, void *data);
-void lammps_gather_concat(void *handle, char *name, int type, int count, void *data);
-void lammps_gather_subset(void *handle, char *name, int type, int count, int ndata, int *ids,
+void lammps_gather_bonds(void *handle, void *data);
+void lammps_gather_angles(void *handle, void *data);
+void lammps_gather_dihedrals(void *handle, void *data);
+void lammps_gather_impropers(void *handle, void *data);
+
+void lammps_gather(void *handle, const char *name, int type, int count, void *data);
+void lammps_gather_concat(void *handle, const char *name, int type, int count, void *data);
+void lammps_gather_subset(void *handle, const char *name, int type, int count, int ndata, int *ids,
                           void *data);
-void lammps_scatter(void *handle, char *name, int type, int count, void *data);
-void lammps_scatter_subset(void *handle, char *name, int type, int count, int ndata, int *ids,
+void lammps_scatter(void *handle, const char *name, int type, int count, void *data);
+void lammps_scatter_subset(void *handle, const char *name, int type, int count, int ndata, int *ids,
                            void *data);
 
 #if !defined(LAMMPS_BIGBIG)
@@ -225,16 +273,23 @@ void lammps_decode_image_flags(int64_t image, int *flags);
 
 #if defined(LAMMPS_BIGBIG)
 typedef void (*FixExternalFnPtr)(void *, int64_t, int, int64_t *, double **, double **);
-void lammps_set_fix_external_callback(void *, char *, FixExternalFnPtr, void *);
 #elif defined(LAMMPS_SMALLBIG)
 typedef void (*FixExternalFnPtr)(void *, int64_t, int, int *, double **, double **);
-void lammps_set_fix_external_callback(void *, char *, FixExternalFnPtr, void *);
 #else
 typedef void (*FixExternalFnPtr)(void *, int, int, int *, double **, double **);
-void lammps_set_fix_external_callback(void *, char *, FixExternalFnPtr, void *);
 #endif
-void lammps_fix_external_set_energy_global(void *, char *, double);
-void lammps_fix_external_set_virial_global(void *, char *, double *);
+
+void lammps_set_fix_external_callback(void *handle, const char *id, FixExternalFnPtr funcptr,
+                                      void *ptr);
+double **lammps_fix_external_get_force(void *handle, const char *id);
+void lammps_fix_external_set_energy_global(void *handle, const char *id, double eng);
+void lammps_fix_external_set_energy_peratom(void *handle, const char *id, double *eng);
+void lammps_fix_external_set_virial_global(void *handle, const char *id, double *virial);
+void lammps_fix_external_set_virial_peratom(void *handle, const char *id, double **virial);
+void lammps_fix_external_set_vector_length(void *handle, const char *id, int len);
+void lammps_fix_external_set_vector(void *handle, const char *id, int idx, double val);
+
+void lammps_flush_buffers(void *ptr);
 
 void lammps_free(void *ptr);
 
@@ -244,62 +299,13 @@ void lammps_force_timeout(void *handle);
 int lammps_has_error(void *handle);
 int lammps_get_last_error_message(void *handle, char *buffer, int buf_size);
 
+int lammps_python_api_version();
+
 #ifdef __cplusplus
 }
 #endif
 
 #endif /* LAMMPS_LIBRARY_H */
-
-/* ERROR/WARNING messages:
-
-E: Library error: issuing LAMMPS command during run
-
-UNDOCUMENTED
-
-W: Library error in lammps_gather_atoms
-
-This library function cannot be used if atom IDs are not defined
-or are not consecutively numbered.
-
-W: lammps_gather_atoms: unknown property name
-
-UNDOCUMENTED
-
-W: Library error in lammps_gather_atoms_subset
-
-UNDOCUMENTED
-
-W: lammps_gather_atoms_subset: unknown property name
-
-UNDOCUMENTED
-
-W: Library error in lammps_scatter_atoms
-
-This library function cannot be used if atom IDs are not defined or
-are not consecutively numbered, or if no atom map is defined.  See the
-atom_modify command for details about atom maps.
-
-W: lammps_scatter_atoms: unknown property name
-
-UNDOCUMENTED
-
-W: Library error in lammps_scatter_atoms_subset
-
-UNDOCUMENTED
-
-W: lammps_scatter_atoms_subset: unknown property name
-
-UNDOCUMENTED
-
-W: Library error in lammps_create_atoms
-
-UNDOCUMENTED
-
-W: Library warning in lammps_create_atoms, invalid total atoms %ld %ld
-
-UNDOCUMENTED
-
-*/
 
 /* Local Variables:
  * fill-column: 72

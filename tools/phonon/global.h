@@ -1,7 +1,7 @@
 #ifndef GLOBAL_H
 #define GLOBAL_H
 
-#define ZERO 1.e-8
+#define ZERO 1.0e-8
 #define MAXLINE 512
 
 #define MIN(a,b) ((a)>(b)?(b):(a))

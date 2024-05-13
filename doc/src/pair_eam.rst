@@ -116,21 +116,18 @@ are parameterized in terms of LAMMPS :doc:`metal units <units>`.
 
 .. note::
 
-   Note that unlike for other potentials, cutoffs for EAM
-   potentials are not set in the pair_style or pair_coeff command; they
-   are specified in the EAM potential files themselves.  Likewise, the
-   EAM potential files list atomic masses; thus you do not need to use
-   the :doc:`mass <mass>` command to specify them.
+   Note that unlike for other potentials, cutoffs for EAM potentials are not
+   set in the pair_style or pair_coeff command; they are specified in the EAM
+   potential files themselves.  Likewise, valid EAM potential files usually
+   contain atomic masses; thus you may not need to use the :doc:`mass <mass>`
+   command to specify them, unless the potential file uses a dummy value (e.g.
+   0.0). LAMMPS will print a warning, if this is the case.
 
-There are several WWW sites that distribute and document EAM
-potentials stored in DYNAMO or other formats:
+There are web sites that distribute and document EAM potentials stored
+in DYNAMO or other formats:
 
-.. parsed-literal::
-
-   http://www.ctcms.nist.gov/potentials
-   http://cst-www.nrl.navy.mil/ccm6/ap
-   http://enpub.fulton.asu.edu/cms/potentials/main/main.htm
-   https://openkim.org
+* https://www.ctcms.nist.gov/potentials
+* https://openkim.org
 
 These potentials should be usable with LAMMPS, though the alternate
 formats would need to be converted to the DYNAMO format used by LAMMPS
@@ -143,9 +140,24 @@ The OpenKIM Project at
 provides EAM potentials that can be used directly in LAMMPS with the
 :doc:`kim command <kim_commands>` interface.
 
+.. warning::
+
+   The EAM potential files tabulate the embedding energy as a function
+   of the local electron density :math:`\rho`.  When atoms get too
+   close, this electron density may exceed the range for which the
+   embedding energy was tabulated for.  To avoid crashes, LAMMPS will
+   assume a linearly increasing embedding energy for electron densities
+   beyond the maximum tabulated value.  LAMMPS will print a warning when
+   this happens.  It may be acceptable at the beginning of an
+   equilibration (e.g. when using randomized coordinates) but would be a
+   big concern for accuracy if it happens during production runs.  The
+   EAM potential file triggering the warning during production is thus
+   not a good choice, and the EAM model in general not likely a good
+   model for the kind of system under investigation.
+
 ----------
 
-For style *eam*\ , potential values are read from a file that is in the
+For style *eam*, potential values are read from a file that is in the
 DYNAMO single-element *funcfl* format.  If the DYNAMO file was created
 by a Fortran program, it cannot have "D" values in it for exponents.
 C only recognizes "e" or "E" for scientific notation.
@@ -225,7 +237,7 @@ above, *setfl* files contain explicit tabulated values for alloy
 interactions.  Thus they allow more generality than *funcfl* files for
 modeling alloys.
 
-For style *eam/alloy*\ , potential values are read from a file that is
+For style *eam/alloy*, potential values are read from a file that is
 in the DYNAMO multi-element *setfl* format, except that element names
 (Ni, Cu, etc) are added to one of the lines in the file.  If the
 DYNAMO file was created by a Fortran program, it cannot have "D"
@@ -372,7 +384,7 @@ require that; the user can tabulate any functional form desired in the
 FS potential files.
 
 For style *eam/fs* and *eam/he* the form of the pair_coeff command is exactly
-the same as for style *eam/alloy*\ , e.g.
+the same as for style *eam/alloy*, e.g.
 
 .. code-block:: LAMMPS
 
@@ -383,13 +395,13 @@ the number of LAMMPS atom types.  See the :doc:`pair_coeff <pair_coeff>`
 doc page for alternate ways to specify the path for the potential
 file.  The N values determine the mapping of LAMMPS atom types to EAM
 elements in the file, as described above for style *eam/alloy*\ .  As
-with *eam/alloy*\ , if a mapping value is NULL, the mapping is not
+with *eam/alloy*, if a mapping value is NULL, the mapping is not
 performed.  This can be used when an *eam/fs* or *eam/he* potential is
 used as part of a *hybrid* pair style.  The NULL values are used as
 placeholders for atom types that will be used with other potentials.
 
 FS EAM and HE EAM files include more information than the DYNAMO *setfl*
-format files read by *eam/alloy*\ , in that i,j density functionals for
+format files read by *eam/alloy*, in that i,j density functionals for
 all pairs of elements are included as needed by the Finnis/Sinclair
 formulation of the EAM.
 
@@ -444,6 +456,20 @@ identical to the FS EAM files (see above).
 
 ----------
 
+.. versionadded:: 3Nov2022
+
+The *eam*, *eam/alloy*, *eam/fs*, and *eam/he* pair styles support
+extraction of two per-atom quantities by the :doc:`fix pair <fix_pair>`
+command.  This allows the quantities to be output to files by the
+:doc:`dump <dump>` or otherwise processed by other LAMMPS commands.
+
+The names of the two quantities are "rho" and "fp" for the density and
+derivative of the embedding energy for each atom.  Neither quantity
+needs to be triggered by the :doc:`fix pair <fix_pair>` command in order
+for these pair styles to calculate it.
+
+----------
+
 .. include:: accel_styles.rst
 
 ----------
@@ -459,13 +485,17 @@ a pair_coeff command with I != J arguments for the eam styles.
 This pair style does not support the :doc:`pair_modify <pair_modify>`
 shift, table, and tail options.
 
-The eam pair styles do not write their information to :doc:`binary restart files <restart>`, since it is stored in tabulated potential files.
-Thus, you need to re-specify the pair_style and pair_coeff commands in
-an input script that reads a restart file.
+The eam pair styles do not write their information to :doc:`binary
+restart files <restart>`, since it is stored in tabulated potential
+files.  Thus, you need to re-specify the pair_style and pair_coeff
+commands in an input script that reads a restart file.
 
 The eam pair styles can only be used via the *pair* keyword of the
 :doc:`run_style respa <run_style>` command.  They do not support the
-*inner*\ , *middle*\ , *outer* keywords.
+*inner*, *middle*, *outer* keywords.
+
+
+
 
 ----------
 
@@ -473,7 +503,8 @@ Restrictions
 """"""""""""
 
 All of these styles are part of the MANYBODY package.  They are only
-enabled if LAMMPS was built with that package.  See the :doc:`Build package <Build_package>` doc page for more info.
+enabled if LAMMPS was built with that package.  See the :doc:`Build
+package <Build_package>` page for more info.
 
 Related commands
 """"""""""""""""

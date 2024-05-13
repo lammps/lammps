@@ -1,7 +1,7 @@
 /* -*- c++ -*- ----------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    https://www.lammps.org/, Sandia National Laboratories
-   Steve Plimpton, sjplimp@sandia.gov
+   LAMMPS development team: developers@lammps.org
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
@@ -27,15 +27,15 @@ namespace LAMMPS_NS {
 class PairTIP4PLong : public PairCoulLong {
  public:
   PairTIP4PLong(class LAMMPS *);
-  ~PairTIP4PLong();
-  virtual void compute(int, int);
-  void settings(int, char **);
-  void init_style();
-  double init_one(int, int);
-  void write_restart_settings(FILE *fp);
-  void read_restart_settings(FILE *fp);
-  void *extract(const char *, int &);
-  double memory_usage();
+  ~PairTIP4PLong() override;
+  void compute(int, int) override;
+  void settings(int, char **) override;
+  void init_style() override;
+  double init_one(int, int) override;
+  void write_restart_settings(FILE *fp) override;
+  void read_restart_settings(FILE *fp) override;
+  void *extract(const char *, int &) override;
+  double memory_usage() override;
 
  protected:
   int typeH, typeO;    // atom types of TIP4P water H and O atoms
@@ -54,47 +54,3 @@ class PairTIP4PLong : public PairCoulLong {
 
 #endif
 #endif
-
-/* ERROR/WARNING messages:
-
-E: TIP4P hydrogen is missing
-
-The TIP4P pairwise computation failed to find the correct H atom
-within a water molecule.
-
-E: TIP4P hydrogen has incorrect atom type
-
-The TIP4P pairwise computation found an H atom whose type does not
-agree with the specified H type.
-
-E: Illegal ... command
-
-Self-explanatory.  Check the input script syntax and compare to the
-documentation for the command.  You can use -echo screen as a
-command-line option when running LAMMPS to see the offending line.
-
-E: Pair style tip4p/long requires atom IDs
-
-There are no atom IDs defined in the system and the TIP4P potential
-requires them to find O,H atoms with a water molecule.
-
-E: Pair style tip4p/long requires newton pair on
-
-This is because the computation of constraint forces within a water
-molecule adds forces to atoms owned by other processors.
-
-E: Pair style tip4p/long requires atom attribute q
-
-The atom style defined does not have these attributes.
-
-E: Must use a bond style with TIP4P potential
-
-TIP4P potentials assume bond lengths in water are constrained
-by a fix shake command.
-
-E: Must use an angle style with TIP4P potential
-
-TIP4P potentials assume angles in water are constrained by a fix shake
-command.
-
-*/

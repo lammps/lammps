@@ -23,7 +23,7 @@ namespace ATC
   static const double kBeV_ = 8.617343e-5;// [eV/K]
 
   /** unsigned ints, when needed */
-  typedef int INDEX; 
+  typedef int INDEX;
 
   /** elementset integral */
   enum ElementsetOperationType {
@@ -53,13 +53,13 @@ namespace ATC
     FULL_DOMAIN=0,
     ATOM_DOMAIN,
     FE_DOMAIN,
-    FULL_DOMAIN_ATOMIC_QUADRATURE_SOURCE, 
+    FULL_DOMAIN_ATOMIC_QUADRATURE_SOURCE,
     FULL_DOMAIN_FREE_ONLY
   };
   /** domain decomposition */
   enum DomainDecompositionType {
     REPLICATED_MEMORY=0,
-    DISTRIBUTED_MEMORY 
+    DISTRIBUTED_MEMORY
   };
   /** atomic weight specification */
   enum AtomicWeightType {
@@ -100,7 +100,7 @@ namespace ATC
     NUM_ATOM_TYPES
   };
   /** field types */
-  enum FieldName { 
+  enum FieldName {
       TIME=-2,
       POSITION=-1,
       TEMPERATURE=0, // Intrinsic Fields
@@ -114,9 +114,9 @@ namespace ATC
       ELECTRON_TEMPERATURE,
       ELECTRIC_POTENTIAL,
       ELECTRON_WAVEFUNCTION,
-      ELECTRON_WAVEFUNCTIONS, 
-      ELECTRON_WAVEFUNCTION_ENERGIES, 
-      FERMI_ENERGY, 
+      ELECTRON_WAVEFUNCTIONS,
+      ELECTRON_WAVEFUNCTION_ENERGIES,
+      FERMI_ENERGY,
       MOMENTUM,
       PROJECTED_VELOCITY,
       KINETIC_TEMPERATURE,
@@ -144,9 +144,9 @@ namespace ATC
       QUADRUPOLE_MOMENT,
       CAUCHY_BORN_ELASTIC_DEFORMATION_GRADIENT,
       DISLOCATION_DENSITY,
-      NUM_TOTAL_FIELDS 
+      NUM_TOTAL_FIELDS
   };
-  const int NUM_FIELDS = ELECTRON_WAVEFUNCTION+1; 
+  const int NUM_FIELDS = ELECTRON_WAVEFUNCTION+1;
 
 #define NDIM 3
   static const int FieldSizes[NUM_TOTAL_FIELDS] = {
@@ -193,7 +193,7 @@ namespace ATC
     NDIM*NDIM //  DISLOCATION_DENSITY
   };
 
-  enum NodalAtomicFieldNormalization { 
+  enum NodalAtomicFieldNormalization {
     NO_NORMALIZATION=0,
     VOLUME_NORMALIZATION, NUMBER_NORMALIZATION, MASS_NORMALIZATION,
     MASS_MATRIX
@@ -209,7 +209,7 @@ namespace ATC
   enum FeIntQuadrature {NODAL, GAUSS1, GAUSS2, GAUSS3, FACE};
 
   /** field name enum to string */
-  inline FeIntQuadrature string_to_FIQ(const std::string &str) 
+  inline FeIntQuadrature string_to_FIQ(const std::string &str)
   {
     if (str == "nodal")
       return NODAL;
@@ -226,7 +226,7 @@ namespace ATC
   }
 
   /** field name enum to string */
-  inline std::string field_to_string(const FieldName index) 
+  inline std::string field_to_string(const FieldName index)
   {
     switch (index) {
     case TEMPERATURE:
@@ -313,7 +313,7 @@ namespace ATC
   }
 
   /** string to field enum */
-  inline FieldName string_to_field(const std::string & name) 
+  inline FieldName string_to_field(const std::string & name)
   {
     if      (name=="temperature")
       return TEMPERATURE;
@@ -397,7 +397,7 @@ namespace ATC
       throw ATC_Error(name + " is not a valid field");
   }
 
-  inline bool is_intrinsic(const FieldName & field_enum) 
+  inline bool is_intrinsic(const FieldName & field_enum)
   {
     if  (field_enum==TEMPERATURE
       || field_enum==DISPLACEMENT
@@ -412,7 +412,7 @@ namespace ATC
     else return false;
   }
 
-  inline std::string field_to_intrinsic_name(const FieldName index) 
+  inline std::string field_to_intrinsic_name(const FieldName index)
   {
     if (is_intrinsic(index)) {
       return "NodalAtomic"+ATC_Utility::to_cap(field_to_string(index));
@@ -421,7 +421,7 @@ namespace ATC
       throw ATC_Error("field "+field_to_string(index)+" is not an intrinsic field");
     }
   }
-  inline std::string field_to_restriction_name(const FieldName index) 
+  inline std::string field_to_restriction_name(const FieldName index)
   {
     if (is_intrinsic(index)) {
       return "Restricted"+ATC_Utility::to_cap(field_to_string(index));
@@ -430,7 +430,7 @@ namespace ATC
       throw ATC_Error("field "+field_to_string(index)+" is not an intrinsic field");
     }
   }
-  inline std::string field_to_prolongation_name(const FieldName index) 
+  inline std::string field_to_prolongation_name(const FieldName index)
   {
     return "Prolonged"+ATC_Utility::to_cap(field_to_string(index));
   }
@@ -473,9 +473,9 @@ namespace ATC
     THERMO_ELASTIC,
     SPECIES // aka Mass
   };
- 
+
   /** rhs types */
-  enum FluxType 
+  enum FluxType
   {
     FLUX = 0,           // has a source weighted by gradient of shape function
     SOURCE,             // has a source term weighted by the shape function
@@ -487,12 +487,12 @@ namespace ATC
   };
 
   /** stiffness/ derivative of rhs types */
-  enum StiffnessType 
+  enum StiffnessType
   {
-    BB_STIFFNESS = 0,    
-    NN_STIFFNESS,    
-    BN_STIFFNESS,    
-    NB_STIFFNESS,    
+    BB_STIFFNESS = 0,
+    NN_STIFFNESS,
+    BN_STIFFNESS,
+    NB_STIFFNESS,
     NUM_STIFFNESS
   };
 
@@ -519,8 +519,8 @@ namespace ATC
   typedef std::set<int> ESET;  // elementset
 
   /** typedefs for N and B integrand functions */
-  typedef std::set<FieldName> ARG_NAMES; 
-  typedef std::map<FieldName, ATC_matrix::DenseMatrix<double> > ARGS; 
+  typedef std::set<FieldName> ARG_NAMES;
+  typedef std::map<FieldName, ATC_matrix::DenseMatrix<double> > ARGS;
   typedef ATC::MatrixDependencyManager<ATC_matrix::DenseMatrix, double>  FIELD;
   typedef std::vector<ATC::MatrixDependencyManager<ATC_matrix::DenseMatrix, double> >  GRAD_FIELD;
   typedef std::map<FieldName, ATC::MatrixDependencyManager<ATC_matrix::DenseMatrix, double> > FIELDS;
@@ -555,7 +555,7 @@ namespace ATC
   typedef std::map<FieldName, std::set<PAIR> > OPEN_SURFACE;
   typedef std::map<FieldName, Array2D<XT_Function *> > VOLUME_SOURCE;
   typedef std::map<std::string, ATC::MatrixDependencyManager<ATC_matrix::DenseMatrix, double> > ATOMIC_DATA;
-  
+
   /** typedefs for FE_Mesh */
   typedef std::map<std::string, std::set<int > > NODE_SET_MAP;
   typedef std::map<std::string, std::set<int > > ELEMENT_SET_MAP;
@@ -603,14 +603,14 @@ namespace ATC
     return true;
   }
 
-  inline std::string print_mask(const Array2D<bool> & rhsMask) 
+  inline std::string print_mask(const Array2D<bool> & rhsMask)
   {
     std::string msg;
-    for (int i = 0; i < NUM_FIELDS; i++) {       
+    for (int i = 0; i < NUM_FIELDS; i++) {
       FieldName field = (FieldName) i;
       std::string name = field_to_string(field);
       if (rhsMask(field,FLUX)
-          || rhsMask(field,SOURCE)           
+          || rhsMask(field,SOURCE)
           || rhsMask(field,PRESCRIBED_SOURCE)
           || rhsMask(field,ROBIN_SOURCE)
           || rhsMask(field,OPEN_SOURCE)

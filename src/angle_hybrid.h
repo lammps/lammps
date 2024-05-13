@@ -1,7 +1,7 @@
 /* -*- c++ -*- ----------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    https://www.lammps.org/, Sandia National Laboratories
-   Steve Plimpton, sjplimp@sandia.gov
+   LAMMPS development team: developers@lammps.org
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
@@ -31,16 +31,16 @@ class AngleHybrid : public Angle {
   char **keywords;    // keyword for each Angle style
 
   AngleHybrid(class LAMMPS *);
-  ~AngleHybrid();
-  void compute(int, int);
-  void settings(int, char **);
-  void coeff(int, char **);
-  void init_style();
-  double equilibrium_angle(int);
-  void write_restart(FILE *);
-  void read_restart(FILE *);
-  double single(int, int, int, int);
-  double memory_usage();
+  ~AngleHybrid() override;
+  void compute(int, int) override;
+  void settings(int, char **) override;
+  void coeff(int, char **) override;
+  void init_style() override;
+  double equilibrium_angle(int) override;
+  void write_restart(FILE *) override;
+  void read_restart(FILE *) override;
+  double single(int, int, int, int) override;
+  double memory_usage() override;
 
  private:
   int *map;    // which style each angle type points to
@@ -56,47 +56,3 @@ class AngleHybrid : public Angle {
 
 #endif
 #endif
-
-/* ERROR/WARNING messages:
-
-E: Illegal ... command
-
-Self-explanatory.  Check the input script syntax and compare to the
-documentation for the command.  You can use -echo screen as a
-command-line option when running LAMMPS to see the offending line.
-
-E: Angle style hybrid cannot use same angle style twice
-
-Self-explanatory.
-
-E: Angle style hybrid cannot have hybrid as an argument
-
-Self-explanatory.
-
-E: Angle style hybrid cannot have none as an argument
-
-Self-explanatory.
-
-E: BondAngle coeff for hybrid angle has invalid format
-
-No "ba" field should appear in data file entry.
-
-E: BondBond coeff for hybrid angle has invalid format
-
-No "bb" field should appear in data file entry.
-
-E: Angle coeff for hybrid has invalid style
-
-Angle style hybrid uses another angle style as one of its
-coefficients.  The angle style used in the angle_coeff command or read
-from a restart file is not recognized.
-
-E: Invoked angle equil angle on angle style none
-
-Self-explanatory.
-
-E: Invoked angle single on angle style none
-
-Self-explanatory.
-
-*/

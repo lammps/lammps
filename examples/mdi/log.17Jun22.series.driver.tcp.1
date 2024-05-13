@@ -1,0 +1,213 @@
+LAMMPS (2 Jun 2022)
+# 3d Lennard-Jones melt - MDI driver script
+
+variable	x index 5
+variable	y index 5
+variable	z index 5
+
+variable        rho index 0.7 0.8 0.9
+
+mdi             connect
+
+label LOOP
+
+  units		lj
+  atom_style	atomic
+
+  read_data     data.series.${rho}
+  read_data     data.series.0.7
+Reading data file ...
+  orthogonal box = (0 0 0) to (8.9390354 8.9390354 8.9390354)
+  1 by 1 by 1 MPI processor grid
+  reading atoms ...
+  500 atoms
+  reading velocities ...
+  500 velocities
+  read_data CPU = 0.005 seconds
+
+  displace_atoms all random 0.1 0.1 0.1 48294
+Displacing atoms ...
+
+  neighbor	0.3 bin
+  neigh_modify	delay 0 every 1 check yes
+
+  fix           1 all mdi/qm add no virial yes connect no
+  variable      evirial equal (f_1[1]+f_1[2]+f_1[3])/3
+
+  thermo_style  custom step temp f_1 v_evirial f_1[1] f_1[2] f_1[3]
+
+  run           0
+WARNING: No fixes with time integration, atoms won't move (../verlet.cpp:60)
+WARNING: No pairwise cutoff or binsize set. Atom sorting therefore disabled. (../atom.cpp:2127)
+WARNING: Communication cutoff is 0.0. No ghost atoms will be generated. Atoms may get lost. (../comm_brick.cpp:210)
+Per MPI rank memory allocation (min/avg/max) = 2.297 | 2.297 | 2.297 Mbytes
+   Step          Temp           f_1         v_evirial        f_1[1]         f_1[2]         f_1[3]    
+         0   0             -5.200819      -4.5647906     -4.5444385     -4.5699966     -4.5799366    
+Loop time of 3.017e-06 on 1 procs for 0 steps with 500 atoms
+
+99.4% CPU use with 1 MPI tasks x no OpenMP threads
+
+MPI task timing breakdown:
+Section |  min time  |  avg time  |  max time  |%varavg| %total
+---------------------------------------------------------------
+Pair    | 0          | 0          | 0          |   0.0 |  0.00
+Neigh   | 0          | 0          | 0          |   0.0 |  0.00
+Comm    | 0          | 0          | 0          |   0.0 |  0.00
+Output  | 0          | 0          | 0          |   0.0 |  0.00
+Modify  | 0          | 0          | 0          |   0.0 |  0.00
+Other   |            | 3.017e-06  |            |       |100.00
+
+Nlocal:            500 ave         500 max         500 min
+Histogram: 1 0 0 0 0 0 0 0 0 0
+Nghost:              0 ave           0 max           0 min
+Histogram: 1 0 0 0 0 0 0 0 0 0
+Neighs:              0 ave           0 max           0 min
+Histogram: 1 0 0 0 0 0 0 0 0 0
+
+Total # of neighbors = 0
+Ave neighs/atom = 0
+Neighbor list builds = 0
+Dangerous builds = 0
+
+  write_dump    all custom dump.series.driver                 id type x y z f_1[1] f_1[2] f_1[3] modify sort id append yes
+
+  clear
+
+next rho
+
+jump SELF LOOP
+
+  units		lj
+  atom_style	atomic
+
+  read_data     data.series.${rho}
+  read_data     data.series.0.8
+Reading data file ...
+  orthogonal box = (0 0 0) to (8.5498797 8.5498797 8.5498797)
+  1 by 1 by 1 MPI processor grid
+  reading atoms ...
+  500 atoms
+  reading velocities ...
+  500 velocities
+  read_data CPU = 0.005 seconds
+
+  displace_atoms all random 0.1 0.1 0.1 48294
+Displacing atoms ...
+
+  neighbor	0.3 bin
+  neigh_modify	delay 0 every 1 check yes
+
+  fix           1 all mdi/qm add no virial yes connect no
+  variable      evirial equal (f_1[1]+f_1[2]+f_1[3])/3
+
+  thermo_style  custom step temp f_1 v_evirial f_1[1] f_1[2] f_1[3]
+
+  run           0
+WARNING: No fixes with time integration, atoms won't move (../verlet.cpp:60)
+WARNING: No pairwise cutoff or binsize set. Atom sorting therefore disabled. (../atom.cpp:2127)
+WARNING: Communication cutoff is 0.0. No ghost atoms will be generated. Atoms may get lost. (../comm_brick.cpp:210)
+Per MPI rank memory allocation (min/avg/max) = 2.297 | 2.297 | 2.297 Mbytes
+   Step          Temp           f_1         v_evirial        f_1[1]         f_1[2]         f_1[3]    
+         0   0             -6.0419499     -4.2737827     -4.2865535     -4.2176976     -4.3170971    
+Loop time of 1.977e-06 on 1 procs for 0 steps with 500 atoms
+
+101.2% CPU use with 1 MPI tasks x no OpenMP threads
+
+MPI task timing breakdown:
+Section |  min time  |  avg time  |  max time  |%varavg| %total
+---------------------------------------------------------------
+Pair    | 0          | 0          | 0          |   0.0 |  0.00
+Neigh   | 0          | 0          | 0          |   0.0 |  0.00
+Comm    | 0          | 0          | 0          |   0.0 |  0.00
+Output  | 0          | 0          | 0          |   0.0 |  0.00
+Modify  | 0          | 0          | 0          |   0.0 |  0.00
+Other   |            | 1.977e-06  |            |       |100.00
+
+Nlocal:            500 ave         500 max         500 min
+Histogram: 1 0 0 0 0 0 0 0 0 0
+Nghost:              0 ave           0 max           0 min
+Histogram: 1 0 0 0 0 0 0 0 0 0
+Neighs:              0 ave           0 max           0 min
+Histogram: 1 0 0 0 0 0 0 0 0 0
+
+Total # of neighbors = 0
+Ave neighs/atom = 0
+Neighbor list builds = 0
+Dangerous builds = 0
+
+  write_dump    all custom dump.series.driver                 id type x y z f_1[1] f_1[2] f_1[3] modify sort id append yes
+
+  clear
+
+next rho
+
+jump SELF LOOP
+
+  units		lj
+  atom_style	atomic
+
+  read_data     data.series.${rho}
+  read_data     data.series.0.9
+Reading data file ...
+  orthogonal box = (0 0 0) to (8.2207069 8.2207069 8.2207069)
+  1 by 1 by 1 MPI processor grid
+  reading atoms ...
+  500 atoms
+  reading velocities ...
+  500 velocities
+  read_data CPU = 0.004 seconds
+
+  displace_atoms all random 0.1 0.1 0.1 48294
+Displacing atoms ...
+
+  neighbor	0.3 bin
+  neigh_modify	delay 0 every 1 check yes
+
+  fix           1 all mdi/qm add no virial yes connect no
+  variable      evirial equal (f_1[1]+f_1[2]+f_1[3])/3
+
+  thermo_style  custom step temp f_1 v_evirial f_1[1] f_1[2] f_1[3]
+
+  run           0
+WARNING: No fixes with time integration, atoms won't move (../verlet.cpp:60)
+WARNING: No pairwise cutoff or binsize set. Atom sorting therefore disabled. (../atom.cpp:2127)
+WARNING: Communication cutoff is 0.0. No ghost atoms will be generated. Atoms may get lost. (../comm_brick.cpp:210)
+Per MPI rank memory allocation (min/avg/max) = 2.297 | 2.297 | 2.297 Mbytes
+   Step          Temp           f_1         v_evirial        f_1[1]         f_1[2]         f_1[3]    
+         0   0             -6.4477578     -1.5268553     -1.5717034     -1.568693      -1.4401696    
+Loop time of 2.042e-06 on 1 procs for 0 steps with 500 atoms
+
+97.9% CPU use with 1 MPI tasks x no OpenMP threads
+
+MPI task timing breakdown:
+Section |  min time  |  avg time  |  max time  |%varavg| %total
+---------------------------------------------------------------
+Pair    | 0          | 0          | 0          |   0.0 |  0.00
+Neigh   | 0          | 0          | 0          |   0.0 |  0.00
+Comm    | 0          | 0          | 0          |   0.0 |  0.00
+Output  | 0          | 0          | 0          |   0.0 |  0.00
+Modify  | 0          | 0          | 0          |   0.0 |  0.00
+Other   |            | 2.042e-06  |            |       |100.00
+
+Nlocal:            500 ave         500 max         500 min
+Histogram: 1 0 0 0 0 0 0 0 0 0
+Nghost:              0 ave           0 max           0 min
+Histogram: 1 0 0 0 0 0 0 0 0 0
+Neighs:              0 ave           0 max           0 min
+Histogram: 1 0 0 0 0 0 0 0 0 0
+
+Total # of neighbors = 0
+Ave neighs/atom = 0
+Neighbor list builds = 0
+Dangerous builds = 0
+
+  write_dump    all custom dump.series.driver                 id type x y z f_1[1] f_1[2] f_1[3] modify sort id append yes
+
+  clear
+
+next rho
+
+jump SELF LOOP
+
+mdi             exit
+Total wall time: 0:00:00

@@ -18,12 +18,12 @@ using std::min;
 using ATC_Utility::to_string;
 using ATC_Utility::sgn;
 
-const double zero_tol = 1.e-12; 
-const double f_tol = 1.e-8; 
+const double zero_tol = 1.e-12;
+const double f_tol = 1.e-8;
 
 namespace ATC {
 
-enum oneDconservationEnum {ONED_DENSITY=0, ONED_FLUX, ONED_GLOBAL_FLUX}; 
+enum oneDconservationEnum {ONED_DENSITY=0, ONED_FLUX, ONED_GLOBAL_FLUX};
 
 
 
@@ -61,7 +61,7 @@ double fermi_dirac(const double E, const double T)
   //-----------------------------------------------------
   void SchrodingerSolver::initialize()
   {
-    SPAR_MAT sparseM; 
+    SPAR_MAT sparseM;
     atc_->fe_engine()->compute_mass_matrix(sparseM);
     M_ = sparseM.dense_copy();
   }
@@ -83,7 +83,7 @@ double fermi_dirac(const double E, const double T)
       atc_->element_to_material_map(), stiffness_);
     DENS_MAT K(stiffness_.dense_copy());
     set<int> fixedNodes = prescribedDataMgr_->fixed_nodes(ELECTRON_WAVEFUNCTION);
-    const BC_SET & bcs 
+    const BC_SET & bcs
       = (prescribedDataMgr_->bcs(ELECTRON_WAVEFUNCTION))[0];
     DENS_MAT & psi   = (atc_->field(ELECTRON_WAVEFUNCTION)).set_quantity();
     DENS_MAT & eVecs = (atc_->field(ELECTRON_WAVEFUNCTIONS)).set_quantity();
@@ -97,13 +97,13 @@ double fermi_dirac(const double E, const double T)
       return true;
     }
     // (1) Helmholtz solve for inhomongeneous bcs
-    
+
     LinearSolver helmholtzSolver_(K,bcs,LinearSolver::AUTO_SOLVE,-1,parallel_);
-    
+
     psi.reset(nNodes_,1);
-    // (2) Eigenvalue solve 
+    // (2) Eigenvalue solve
     helmholtzSolver_.eigen_system(eVals,eVecs,&M_);
-    return true; 
+    return true;
   }
 
   //========================================================
@@ -119,7 +119,7 @@ double fermi_dirac(const double E, const double T)
     const Array< double > & oneDdxs,
     bool parallel
 )
-    : SchrodingerSolver(fieldName, physicsModel, feEngine, prescribedDataMgr, 
+    : SchrodingerSolver(fieldName, physicsModel, feEngine, prescribedDataMgr,
         atc, parallel),
     oneDslices_(oneDslices),
     oneDdxs_(oneDdxs)
@@ -144,7 +144,7 @@ double fermi_dirac(const double E, const double T)
     DENS_MAT & Ef = (atc_->field(FERMI_ENERGY)).set_quantity();
     DENS_MAT & n  = (atc_->field(ELECTRON_DENSITY)).set_quantity();
     DENS_MAT & T  = (atc_->field(ELECTRON_TEMPERATURE)).set_quantity();
-    
+
     // stiffness = K + V M
     SPAR_MAT stiffness_;
     Array2D <bool> rhsMask(NUM_FIELDS,NUM_FLUX);
@@ -158,7 +158,7 @@ double fermi_dirac(const double E, const double T)
       atc_->element_to_material_map(), stiffness_);
     DENS_MAT K(stiffness_.dense_copy());
 
-    // Eigenvalue solve 
+    // Eigenvalue solve
     DENS_MAT K1,M1;
     int nslices = oneDslices_.size();
     DENS_MAT b ;
@@ -186,24 +186,24 @@ double fermi_dirac(const double E, const double T)
         eigensolver.eigen_system(evals1,evecs1,&M1);
         eindex.clear();
         for (int j = 0; j < snodes; j++) eindex.insert(iEVal++);
-        eVals.insert(eindex,one,  evals1); 
+        eVals.insert(eindex,one,  evals1);
         eindex.clear();
         for (int j = 0; j < snodes; j++) eindex.insert(j);
         eVecs.insert(slice,eindex,evecs1);
         // slice charge density
         n1.reset(snodes,1);
-        
+
         set<int>::const_iterator iset;
         double aveE_f = 0;
-        for (iset = slice.begin(); iset != slice.end(); iset++) { 
-          int gnode = *iset; 
+        for (iset = slice.begin(); iset != slice.end(); iset++) {
+          int gnode = *iset;
           aveE_f += Ef(gnode,0);
         }
         aveE_f /= snodes;
-//#define VERBOSE 
+//#define VERBOSE
 #ifdef VERBOSE
         stringstream ss;
-        ss << "   slice "+to_string(islice+1)+" E_f "+to_string(aveE_f) << "\n" 
+        ss << "   slice "+to_string(islice+1)+" E_f "+to_string(aveE_f) << "\n"
            << "#-----------------------------------------------\n"
            << "#          E-Ef          f        psi          n\n"
            << "#-----------------------------------------------\n";
@@ -211,17 +211,17 @@ double fermi_dirac(const double E, const double T)
         // B: compute charge density on slice
         int node = 0;
         for (iset = slice.begin(); iset != slice.end(); iset++) { // node
-          int gnode = *iset; 
+          int gnode = *iset;
           double temp =  T(gnode,0);
           for (int mode = 0; mode < snodes-nfixed; mode++) {
             double Ei = evals1(mode,0);
             double E = Ei-aveE_f;
-            double f = fermi_dirac(E,temp); 
+            double f = fermi_dirac(E,temp);
             double psi1 = evecs1(node,mode); // 2nd index corresp to evals order
 #ifdef VERBOSE
             ss << node<<":"<<mode << "  " << to_string(6,E) << " " << to_string(6,f) << " " << to_string(6,psi1) << " " << to_string(6,n1(node,0)+psi1*psi1*f) <<  "\n";
 #endif
-            if (f  <  f_tol) break; // take advantage of E ordering 
+            if (f  <  f_tol) break; // take advantage of E ordering
             n1(node,0) += psi1*psi1*f;
           }
           node++;
@@ -232,7 +232,7 @@ double fermi_dirac(const double E, const double T)
         n.insert(slice,one,  n1); // note not "assemble"
       }
     }
-    return true; 
+    return true;
   }
 
   //========================================================
@@ -333,7 +333,7 @@ double fermi_dirac(const double E, const double T)
   //===================================================================
   // SchrodingerPoissonSolver
   //===================================================================
-  SchrodingerPoissonSolver::SchrodingerPoissonSolver( 
+  SchrodingerPoissonSolver::SchrodingerPoissonSolver(
     /*const*/ ATC_Coupling * atc,
     SchrodingerSolver * schrodingerSolver,
     PoissonSolver * poissonSolver,
@@ -369,47 +369,47 @@ double fermi_dirac(const double E, const double T)
     const double tol  = 1.e-4;
 
     int k = 0;
-    double logRatio = 3; 
-    int maxIter = (int) logRatio; 
+    double logRatio = 3;
+    int maxIter = (int) logRatio;
     double base = 2.0;
 
     // temperature relaxation loop
-    for (int i = 0; i < maxIter ; ++i) { 
+    for (int i = 0; i < maxIter ; ++i) {
       //double alpha = ((double) i) /( (double) maxIter-1);
       //double beta = 0.1;
       //alpha = (exp(beta*i)-1.0)/(exp(beta*(maxIter-1))-1.0);
       double alpha = pow(base,logRatio-i-1);
       // self consistency loop
       int j = 0; // for storage of last iterate
-      
-      for (j = 0; j < maxConsistencyIter_ ; ++j) { 
+
+      for (j = 0; j < maxConsistencyIter_ ; ++j) {
         // compute eigen-values and vectors
         atc_->set_fixed_nodes();
         Te = alpha*Te0;
-        
+
         schrodingerSolver_->solve(atc_->fields());
 
-        
+
         for (int l = 0; l < nNodes_; l++) {
           int count = 0;
           double T_e = Te(l,0);
           for (int m = 0; m < nNodes_; m++) {
             double f = fermi_dirac(E_I(m,0), T_e);
-            if (f > tol) count++; 
+            if (f > tol) count++;
           }
         }
         // compute charge density
         DENS_MAN & n = atc_->field(ELECTRON_DENSITY);
         //(n.quantity()).print("DENSITY");
         atc_->nodal_projection(ELECTRON_DENSITY,physicsModel_,n);
-        atc_->set_fixed_nodes(); 
-        
-        
+        atc_->set_fixed_nodes();
+
+
         // solve poisson eqn for electric potential
         atc_->set_fixed_nodes();
         Te = alpha*Te0;
         poissonSolver_->solve(atc_->fields(),rhs);
-        
+
         //DENS_MAT dn = n;
         //DENS_MAT dpsi = psi;
         //DENS_MAT dphi = phi;
@@ -421,7 +421,7 @@ double fermi_dirac(const double E, const double T)
         //dn -= nPrev;
         //dpsi -= psiPrev;
         //dphi -= phiPrev;
-        
+
         norm = (n.quantity()-nPrev).norm();
         if (i == 0 && j==0) norm0 = (n.quantity()).norm();
         //normPrev = norm;
@@ -436,11 +436,11 @@ double fermi_dirac(const double E, const double T)
       //      Tmax_ *= 0.5;
     }
   }
-  
+
   //===================================================================
   // SliceSchrodingerPoissonSolver
   //===================================================================
-  SliceSchrodingerPoissonSolver::SliceSchrodingerPoissonSolver( 
+  SliceSchrodingerPoissonSolver::SliceSchrodingerPoissonSolver(
     /*const*/ ATC_Coupling * atc,
     SchrodingerSolver * schrodingerSolver,
     PoissonSolver * poissonSolver,
@@ -479,37 +479,37 @@ double fermi_dirac(const double E, const double T)
     Array2D<double> nHistory(nslices,2);
 
     // target for constraint
-    double target = 0.0; 
+    double target = 0.0;
 
     set<int> & slice = oneDslices_(0); // note assume first slice is fixed
-    if (oneDconserve_ == ONED_FLUX) atc_->set_sources(); 
+    if (oneDconserve_ == ONED_FLUX) atc_->set_sources();
     DENS_MAT & nSource = (atc_->source(ELECTRON_DENSITY)).set_quantity();
-    for (set<int>::const_iterator iset = slice.begin(); iset != slice.end(); iset++) { 
+    for (set<int>::const_iterator iset = slice.begin(); iset != slice.end(); iset++) {
       if (oneDconserve_ == ONED_FLUX) target  += nSource(*iset,0);
       else                            target  += n(*iset,0);
     }
-    target /= slice.size(); 
+    target /= slice.size();
 #ifdef VERBOSE
     if (oneDconserve_ == ONED_FLUX) {
       if (target > 0) ATC::LammpsInterface::instance()->print_msg_once(" influx target "+ to_string(target));
       else            ATC::LammpsInterface::instance()->print_msg_once(" efflux target "+ to_string(target));
     }
 #endif
- 
+
     // A: self consistency loop between Phi and n(psi_i)
     double error = 1.0;
-    for (int i = 0; i < maxConsistencyIter_ ; ++i) { 
+    for (int i = 0; i < maxConsistencyIter_ ; ++i) {
       atc_->set_fixed_nodes();
-      if (! atc_->prescribedDataMgr_->all_fixed(ELECTRIC_POTENTIAL) ) 
-        poissonSolver_->solve(atc_->fields(),rhs); 
+      if (! atc_->prescribedDataMgr_->all_fixed(ELECTRIC_POTENTIAL) )
+        poissonSolver_->solve(atc_->fields(),rhs);
       if (! atc_->prescribedDataMgr_->all_fixed(ELECTRON_DENSITY) )  {
         // iterate on Ef
-        //if (i==0) Ef = -1.0*phi;// E ~ -|e| \Phi,  charge of electron e = 1 
-        Ef = -1.0*phi; 
-        
+        //if (i==0) Ef = -1.0*phi;// E ~ -|e| \Phi,  charge of electron e = 1
+        Ef = -1.0*phi;
+
         Ef +=Ef_shift_;
         // B: conservation constraint
-        for (int j = 0; j < maxConstraintIter_ ; ++j) {  
+        for (int j = 0; j < maxConstraintIter_ ; ++j) {
           schrodingerSolver_->solve(atc_->fields()); // n(E_f)
           atc_->set_fixed_nodes();
           error = update_fermi_energy(target,(j==0),fluxes);// root finder
@@ -517,7 +517,7 @@ double fermi_dirac(const double E, const double T)
           ATC::LammpsInterface::instance()->print_msg_once(to_string(i)+":"+to_string(j)+" constraint_error "+to_string(error)+" / "+to_string(tol*target)+"\n");
 #endif
           // exit condition based on constraint satisfaction
-          if (error < tol*fabs(target)) break; 
+          if (error < tol*fabs(target)) break;
         } // loop j : flux constraint
         // error based on change in field (Cauchy convergence)
         if (i == 0) {
@@ -556,7 +556,7 @@ double fermi_dirac(const double E, const double T)
       rhsMask(ELECTRON_DENSITY,FLUX) = true;
 //#define WIP_REJ
       atc_->compute_flux(rhsMask,atc_->fields_,fluxes,physicsModel_);
-      y = & ( fluxes[ELECTRON_DENSITY][oneDcoor_] ); 
+      y = & ( fluxes[ELECTRON_DENSITY][oneDcoor_] );
     }
     BCS bcs;
     double error = 0;
@@ -571,10 +571,10 @@ double fermi_dirac(const double E, const double T)
       atc_->prescribedDataMgr_->bcs(ELECTRON_WAVEFUNCTION,slice,bcs,true);
       const BC_SET & bc = bcs[0];
       int nFixed = bc.size();
-      if (nFixed == nSlice) continue; // skip if all fixed 
+      if (nFixed == nSlice) continue; // skip if all fixed
       double Y = 0.0, X = 0.0;
       double nAve = 0., phiAve = 0.;
-      for (set<int>::const_iterator iset = slice.begin(); iset != slice.end(); iset++) { 
+      for (set<int>::const_iterator iset = slice.begin(); iset != slice.end(); iset++) {
         int gnode = *iset;
         X +=   Ef(gnode,0);
         Y += (*y)(gnode,0);
@@ -585,14 +585,14 @@ double fermi_dirac(const double E, const double T)
       Y /= nSlice;
       nAve /= nSlice;
       phiAve /= nSlice;
-      // now adjust Ef for each slice 
-      double dY = Y - EfHistory_(islice,0); 
+      // now adjust Ef for each slice
+      double dY = Y - EfHistory_(islice,0);
       double dX = X - EfHistory_(islice,1);
-      double err = target - Y; 
+      double err = target - Y;
       if (target*Y < -zero_tol*target) {
 #ifdef VERBOSE
         cStr = " opp. SIGNS";
-#else    
+#else
         ATC::LammpsInterface::instance()->print_msg_once("WARNING: slice "+to_string(islice)+" target and quantity opposite signs "+to_string(Y));
 #endif
       }
@@ -601,21 +601,21 @@ double fermi_dirac(const double E, const double T)
       if (first) {
         dEf = (err < 0) ? -safe_dEf_ : safe_dEf_;
       }
-      else { 
+      else {
         if (fabs(dY) < zero_tol*dX) throw ATC_Error("zero increment in conserved field on slice:"+to_string(islice));
         dEf = err / dY * dX;
         if (fabs(dEf) > safe_dEf_) {
           dEf = safe_dEf_* dEf / fabs(dEf);
 #ifdef VERBOSE
           Estr = " !!";
-#else 
+#else
           ATC::LammpsInterface::instance()->print_msg_once("WARNING: slice "+to_string(islice)+ " large Delta E_f "+to_string(dEf));
 #endif
         }
       }
-      for (set<int>::const_iterator iset = slice.begin(); iset != slice.end(); iset++) { 
+      for (set<int>::const_iterator iset = slice.begin(); iset != slice.end(); iset++) {
         int gnode = *iset;
-        Ef(gnode,0) += dEf;  
+        Ef(gnode,0) += dEf;
       }
       EfHistory_(islice,0) = Y;
       EfHistory_(islice,1) = X;
@@ -624,14 +624,14 @@ double fermi_dirac(const double E, const double T)
       ATC::LammpsInterface::instance()->print_msg_once("   slice"+to_string(islice,2) +cStr+to_string(4,Y/target) +Estr+to_string(4,X)+" n"+to_string(5,nAve)+" phi"+to_string(4,phiAve));
       //ATC::LammpsInterface::instance()->print_msg_once("   slice "+to_string(islice) +cStr+to_string(4,Y/target) +" E_f"+to_string(4,X)+dEstr+to_string(4,X-EfHistory_(std::max(0,islice-1),1))+" n"+to_string(4,nAve)+" phi"+to_string(4,phiAve)+"  "+to_string(nFixed)+" dn "+to_string(4,dnAve)+" dphi "+to_string(4,dphiAve));
 #endif
-    } // loop slice 
+    } // loop slice
     return error;
   }
 
   //===================================================================
   // GlobalSliceSchrodingerPoissonSolver
   //===================================================================
-  GlobalSliceSchrodingerPoissonSolver::GlobalSliceSchrodingerPoissonSolver( 
+  GlobalSliceSchrodingerPoissonSolver::GlobalSliceSchrodingerPoissonSolver(
     /*const*/ ATC_Coupling * atc,
     SchrodingerSolver * schrodingerSolver,
     PoissonSolver * poissonSolver,
@@ -642,11 +642,11 @@ double fermi_dirac(const double E, const double T)
     double Ef0,
     double alpha,
     double safe_dEf,
-    double tol, 
+    double tol,
     double mu, double D
   ) :
   SliceSchrodingerPoissonSolver(atc,schrodingerSolver,poissonSolver,physicsModel,maxConsistencyIter,maxConstraintIter,oneDconserve,0,0),
-  solver_(nullptr), 
+  solver_(nullptr),
   mobility_(mu),diffusivity_(D)
   {
     Ef0_ = Ef0;
@@ -680,10 +680,10 @@ double fermi_dirac(const double E, const double T)
     }
     A(0,0) = -2;
     A(0,1) =  1;
-    A(m-1,m-1) = -2; 
-    A(m-1,m-2) =  1; 
+    A(m-1,m-1) = -2;
+    A(m-1,m-2) =  1;
     //if (nfixed_ == 1) { A(m-1,m-1) = -1;  }
-    double dx = oneDdxs_(0); 
+    double dx = oneDdxs_(0);
     A *=  1./dx;
     A.print("stiffness",4);
     SPAR_MAT K(A);
@@ -703,14 +703,14 @@ double fermi_dirac(const double E, const double T)
     B.print("gradient",4);
     SPAR_MAT G(B);
     G_ = G;
-    
+
     DENS_MAT C(nNodes_,nNodes_);
     // local to ATC nodemap: k --> gnode = *iset
     int k = 0;
     set<int>::const_iterator iset;
     for (int islice = 0; islice < nslices_; islice++) {
       set<int> & slice = oneDslices_(islice);
-      for (iset = slice.begin(); iset != slice.end(); iset++) { 
+      for (iset = slice.begin(); iset != slice.end(); iset++) {
         double v = 0.5/dx;
         if ( k < sliceSize_ || k+1 > (nslices_-1)*sliceSize_ ) v *=2.0;
         if (islice > 0) {          C(k,k-sliceSize_) += v; }
@@ -732,10 +732,10 @@ double fermi_dirac(const double E, const double T)
       ATC::LammpsInterface::instance()->print_msg_once("schrodinger-poisson solver: Dirichlet INLET, Dirichlet; OUTLET");
     else if (nfixed_ ==1)
       ATC::LammpsInterface::instance()->print_msg_once("schrodinger-poisson solver: Dirichlet INLET, Neumann; OUTLET");
-    else 
+    else
       ATC_Error("schrodinger-poisson solver:too many fixed");
   }
-  GlobalSliceSchrodingerPoissonSolver::~GlobalSliceSchrodingerPoissonSolver(void)  {
+  GlobalSliceSchrodingerPoissonSolver::~GlobalSliceSchrodingerPoissonSolver()  {
     if (solver_) delete solver_;
   }
   //--------------------------------------------------------------------------
@@ -746,10 +746,10 @@ double fermi_dirac(const double E, const double T)
     DENS_MAT       & Ef  = (atc_->field(FERMI_ENERGY)).set_quantity();
     Ef.reset(phi.nRows(),1);
     norm_ = norm0_ = 1.0;
-    for (int i = 0; i < maxConstraintIter_ ; ++i) { 
+    for (int i = 0; i < maxConstraintIter_ ; ++i) {
       atc_->set_fixed_nodes();
       if (! atc_->prescribedDataMgr_->all_fixed(ELECTRIC_POTENTIAL) ) {
-        poissonSolver_->solve(atc_->fields(),rhs); 
+        poissonSolver_->solve(atc_->fields(),rhs);
       }
       else {
         ATC::LammpsInterface::instance()->print_msg_once("WARNING: phi is fixed");
@@ -771,10 +771,10 @@ double fermi_dirac(const double E, const double T)
       report(i+1);
       if (i == 0 && norm_ > tol_) norm0_ = norm_;
       else { if (norm_ < tol_*norm0_) break; }
-    } 
+    }
   }
   //--------------------------------------------------------------------------
-  void GlobalSliceSchrodingerPoissonSolver::exponential_electron_density() 
+  void GlobalSliceSchrodingerPoissonSolver::exponential_electron_density()
   {
     std::cout << "******************HACK******************\n";
 
@@ -786,12 +786,12 @@ double fermi_dirac(const double E, const double T)
     for (int islice = 0; islice < nslices_; islice++) {
       set<int> & slice = oneDslices_(islice);
       double aveE_f = 0.0;
-      for (iset = slice.begin(); iset != slice.end(); iset++) { 
+      for (iset = slice.begin(); iset != slice.end(); iset++) {
         int gnode = *iset;
         aveE_f += Ef(gnode,0);
       }
       aveE_f /= slice.size();
-      for (iset = slice.begin(); iset != slice.end(); iset++) { 
+      for (iset = slice.begin(); iset != slice.end(); iset++) {
         int gnode = *iset;
         //std::cout << phi(gnode,0)+aveE_f << "\n";
         //n(gnode,0) = -n0*exp(-(phi(gnode,0)+aveE_f)/(kBeV_*T));
@@ -806,7 +806,7 @@ double fermi_dirac(const double E, const double T)
     }
   }
   //--------------------------------------------------------------------------
-  void GlobalSliceSchrodingerPoissonSolver::report(int i) 
+  void GlobalSliceSchrodingerPoissonSolver::report(int i)
   {
     const DENS_MAT & phi = (atc_->fields_[ELECTRIC_POTENTIAL]).quantity();
     const DENS_MAT & n   = (atc_->fields_[ELECTRON_DENSITY]  ).quantity();
@@ -852,8 +852,8 @@ double fermi_dirac(const double E, const double T)
     int j = nslices_-1;
     double lambdaN = 0.;
     std::string space = "*";
-    if (nfixed_ == 1) { 
-      lambdaN = lambda_(nslices_-2); 
+    if (nfixed_ == 1) {
+      lambdaN = lambda_(nslices_-2);
       space = " ";
     }
     ss << to_string(nslices_,2) << space << to_string(6,dJn) << " " << to_string(6,lambdaN) << " " << to_string(6,F_(j)) << " " << to_string(6,Phi_(j)) << " " << to_string(6,n_(j)) << " " << to_string(6,J_(j)) <<  "\n";
@@ -874,7 +874,7 @@ double fermi_dirac(const double E, const double T)
     // grad phi
     for (int islice = 0; islice < nslices_; islice++) {
       set<int> & slice = oneDslices_(islice);
-      for (iset = slice.begin(); iset != slice.end(); iset++) { 
+      for (iset = slice.begin(); iset != slice.end(); iset++) {
         int gnode = *iset;
         f(k) = phi(gnode,0);
         k++;
@@ -887,7 +887,7 @@ double fermi_dirac(const double E, const double T)
     // grad n
     for (int islice = 0; islice < nslices_; islice++) {
       set<int> & slice = oneDslices_(islice);
-      for (iset = slice.begin(); iset != slice.end(); iset++) { 
+      for (iset = slice.begin(); iset != slice.end(); iset++) {
         int gnode = *iset;
         f(k) = n(gnode,0);
         k++;
@@ -906,7 +906,7 @@ double fermi_dirac(const double E, const double T)
     for (int islice = 0; islice < nslices_; islice++) {
       set<int> & slice = oneDslices_(islice);
       J_(islice) = 0;
-      for (iset = slice.begin(); iset != slice.end(); iset++) { 
+      for (iset = slice.begin(); iset != slice.end(); iset++) {
         J_(islice) += flux_(k);
         k++;
       }
@@ -914,10 +914,10 @@ double fermi_dirac(const double E, const double T)
       //std::cout << islice << "  J " << J_(islice) << "\n";
     }
     //J_.print("J");
-    dJ_ = G_*J_; 
+    dJ_ = G_*J_;
   }
   //--------------------------------------------------------------------------
-  void GlobalSliceSchrodingerPoissonSolver::update_fermi_level() 
+  void GlobalSliceSchrodingerPoissonSolver::update_fermi_level()
   {
 
     DENS_MAT & Ef  = (atc_->field(FERMI_ENERGY)      ).set_quantity();
@@ -941,7 +941,7 @@ double fermi_dirac(const double E, const double T)
       Phi_(islice) = Phi; // average potential
       N /= slice.size();
       n_(islice) = N; // average electron density
-      
+
       //F_(j) +=  min(fabs(alpha_*lambda),safe_dEf_)*sgn(lambda);
       for (iset = slice.begin(); iset != slice.end(); iset++) {
         int gnode = *iset;

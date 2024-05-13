@@ -3,7 +3,7 @@ From: centos:8
 
 %post
         dnf -y install epel-release dnf-utils
-        dnf config-manager --set-enabled PowerTools
+        dnf config-manager --set-enabled powertools
         dnf -y update
         dnf -y install vim-enhanced git file make cmake patch which file ninja-build \
                ccache gcc-c++ gcc-gfortran clang libomp-devel gdb valgrind libubsan libasan libtsan \
@@ -17,7 +17,7 @@ From: centos:8
                texlive-framed texlive-wrapfig texlive-upquote texlive-capt-of \
                texlive-needspace texlive-titlesec texlive-anysize texlive-dvipng \
                blas-devel lapack-devel libyaml-devel openkim-models kim-api-devel \
-               zstd libzstd-devel
+               zstd libzstd-devel yaml-cpp-devel
         dnf clean all
 
         # we need to reset any module variables
@@ -42,7 +42,7 @@ From: centos:8
         # manually install Plumed
         mkdir plumed
         cd plumed
-        version=2.6.1
+        version=2.8.2
         curl -L -o plumed.tar.gz https://github.com/plumed/plumed2/releases/download/v${version}/plumed-src-${version}.tgz
         tar -xzf plumed.tar.gz
         cd plumed-${version}

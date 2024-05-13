@@ -1,4 +1,4 @@
-// ATC headers 
+// ATC headers
 #include "AtomToMoleculeTransfer.h"
 #include "ATC_Method.h"
 
@@ -19,15 +19,15 @@ namespace ATC {
   {
     atomPositions_->register_dependence(this);
   }
- 
+
   //--------------------------------------------------------
-  //  Destructor 
+  //  Destructor
   //--------------------------------------------------------
   SmallMoleculeCentroid::~SmallMoleculeCentroid()
   {
     atomPositions_->remove_dependence(this);
   }
-  
+
   //--------------------------------------------------------
   //  Quantity
   //--------------------------------------------------------
@@ -42,7 +42,7 @@ namespace ATC {
     for (int i = 0; i < nLocalMol; i++) {
       const set<int> & atomsLocalMolArray =  smallMoleculeSet_->atoms_by_local_molecule(i);
       set<int>::const_iterator atomsLocalMolID;
-      double totalSourceMol = 0.0; // for total source 
+      double totalSourceMol = 0.0; // for total source
       for (atomsLocalMolID = atomsLocalMolArray.begin(); atomsLocalMolID != atomsLocalMolArray.end(); atomsLocalMolID++) {
         totalSourceMol += sourceMatrix(*atomsLocalMolID,0);
       } // compute total source
@@ -62,11 +62,11 @@ namespace ATC {
       }
     }
   }
-      
+
   //--------------------------------------------------------
   //--------------------------------------------------------
   //  Class SmallMoleculeDipoleMoment
-  //--------------------------------------------------------  
+  //--------------------------------------------------------
   //--------------------------------------------------------
 
   //--------------------------------------------------------
@@ -100,8 +100,8 @@ namespace ATC {
     quantity_.reset(nLocalMol,nsd);
     double dx[3];
 
-    //call the SmallMoleculeCentroid here to find Centroid .... 
-    const DENS_MAT & centroidMolMatrix(centroid_->quantity()); 
+    //call the SmallMoleculeCentroid here to find Centroid ....
+    const DENS_MAT & centroidMolMatrix(centroid_->quantity());
     for (int i = 0; i < nLocalMol; i++) {
       const set<int> & atomsLocalMolArray =  smallMoleculeSet_->atoms_by_local_molecule(i);
       set<int>::const_iterator atomsLocalMolID;;
@@ -111,15 +111,15 @@ namespace ATC {
         }
         lammps->minimum_image(dx[0], dx[1], dx[2]);
         for(int j = 0; j < nsd; j++) {
-          quantity_(i,j) += sourceMatrix(*atomsLocalMolID,0) * dx[j]; 
-        } 
+          quantity_(i,j) += sourceMatrix(*atomsLocalMolID,0) * dx[j];
+        }
       }
     }
   }
 
   //--------------------------------------------------------
   //  Class SmallMoleculeQuadrupoleMoment
-  //--------------------------------------------------------  
+  //--------------------------------------------------------
   //--------------------------------------------------------
 
   //--------------------------------------------------------
@@ -202,9 +202,9 @@ namespace ATC {
     // reallocate memory only if sizing has changed
     const SPAR_MAT & shapeFunctionMatrix(shapeFunction_->quantity());
     quantity_.resize(shapeFunctionMatrix.nCols(),sourceMatrix.nCols());
-    
+
     local_restriction(sourceMatrix,shapeFunctionMatrix);
-    
+
     // communicate for total restriction
     int count = quantity_.nRows()*quantity_.nCols();
     lammpsInterface_->allsum(_workspace_.ptr(),quantity_.ptr(),count);
@@ -222,4 +222,4 @@ namespace ATC {
       _workspace_.reset(quantity_.nRows(),quantity_.nCols());
   }
 
-} // end namespace 
+} // end namespace

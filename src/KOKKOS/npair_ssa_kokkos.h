@@ -1,8 +1,7 @@
-// clang-format off
 /* -*- c++ -*- ----------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    https://www.lammps.org/, Sandia National Laboratories
-   Steve Plimpton, sjplimp@sandia.gov
+   LAMMPS development team: developers@lammps.org
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
@@ -26,6 +25,7 @@ NPairStyle(half/bin/newton/ssa/kk/device,
 // clang-format on
 #else
 
+// clang-format off
 #ifndef LMP_NPAIR_SSA_KOKKOS_H
 #define LMP_NPAIR_SSA_KOKKOS_H
 
@@ -59,11 +59,10 @@ class NPairSSAKokkos : public NPair {
   typename AT::t_int_2d ssa_gitemLen;
 
   NPairSSAKokkos(class LAMMPS *);
-  ~NPairSSAKokkos() {}
-  void copy_neighbor_info();
-  void copy_bin_info();
-  void copy_stencil_info();
-  void build(class NeighList *);
+  void copy_neighbor_info() override;
+  void copy_bin_info() override;
+  void copy_stencil_info() override;
+  void build(class NeighList *) override;
  private:
   // data from Neighbor class
 
@@ -73,7 +72,6 @@ class NPairSSAKokkos : public NPair {
 
   DAT::tdual_int_1d k_ex1_type,k_ex2_type;
   DAT::tdual_int_2d k_ex_type;
-  DAT::tdual_int_1d k_ex1_group,k_ex2_group;
   DAT::tdual_int_1d k_ex1_bit,k_ex2_bit;
   DAT::tdual_int_1d k_ex_mol_group;
   DAT::tdual_int_1d k_ex_mol_bit;
@@ -119,7 +117,6 @@ class NPairSSAKokkosExecute
   const typename AT::t_int_2d_const ex_type;
 
   const int nex_group;
-  const typename AT::t_int_1d_const ex1_group,ex2_group;
   const typename AT::t_int_1d_const ex1_bit,ex2_bit;
 
   const int nex_mol;
@@ -229,8 +226,6 @@ class NPairSSAKokkosExecute
         const typename AT::t_int_1d_const & _ex2_type,
         const typename AT::t_int_2d_const & _ex_type,
         const int & _nex_group,
-        const typename AT::t_int_1d_const & _ex1_group,
-        const typename AT::t_int_1d_const & _ex2_group,
         const typename AT::t_int_1d_const & _ex1_bit,
         const typename AT::t_int_1d_const & _ex2_bit,
         const int & _nex_mol,
@@ -244,7 +239,6 @@ class NPairSSAKokkosExecute
     exclude(_exclude),nex_type(_nex_type),
     ex1_type(_ex1_type),ex2_type(_ex2_type),ex_type(_ex_type),
     nex_group(_nex_group),
-    ex1_group(_ex1_group),ex2_group(_ex2_group),
     ex1_bit(_ex1_bit),ex2_bit(_ex2_bit),nex_mol(_nex_mol),
     ex_mol_group(_ex_mol_group),ex_mol_bit(_ex_mol_bit),
     ex_mol_intra(_ex_mol_intra),
@@ -293,7 +287,7 @@ class NPairSSAKokkosExecute
   ~NPairSSAKokkosExecute() {neigh_list.copymode = 1;};
 
   KOKKOS_FUNCTION
-  void build_locals_onePhase(const bool firstTry, int me, int workPhase) const;
+  void build_locals_onePhase(const bool firstTry, int workPhase) const;
 
   KOKKOS_FUNCTION
   void build_ghosts_onePhase(int workPhase) const;
@@ -355,6 +349,3 @@ class NPairSSAKokkosExecute
 #endif
 #endif
 
-/* ERROR/WARNING messages:
-
-*/

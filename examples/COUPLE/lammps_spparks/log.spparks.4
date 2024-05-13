@@ -1,4 +1,4 @@
-SPPARKS (26 Aug 2010)
+SPPARKS (19 Sept 2022)
 # SPPARKS input for coupling MD/MC
 
 seed		 56789
@@ -28,244 +28,246 @@ diag_style       energy
 temperature	 1.0
 
 stats            10.0
-dump             1 10.0 dump.mc
+dump             1 text 10.0 dump.mc id site x y
 run 10Setting up run ...
+Running with 32-bit site IDs
+Memory usage per processor = 2.375 Mbytes
       Time    Naccept    Nreject    Nsweeps        CPU     Energy
          0          0          0          0          0      19766
-        10      18695          0          0      0.024       5696
-Loop time of 0.0240365 on 4 procs
+        10      18709          0         14    0.00995       5410
+Loop time of 0.00996147 on 4 procs
 
-Solve time (%) = 0.0017997 (7.48737)
+Solve time (%) = 0.000401817 (4.03371)
 Update time (%) = 0 (0)
-Comm  time (%) = 0.00263286 (10.9536)
-Outpt time (%) = 0.00416493 (17.3275)
-App   time (%) = 0.0137114 (57.044)
-Other time (%) = 0.00172764 (7.18756)
+Comm  time (%) = 0.00184758 (18.5473)
+Outpt time (%) = 0.000835493 (8.38724)
+App   time (%) = 0.00643178 (64.5665)
+Other time (%) = 0.000444804 (4.46524)
 run 10Setting up run ...
       Time    Naccept    Nreject    Nsweeps        CPU     Energy
-        10      18695          0          0          0       5696
-        20      25730          0          0     0.0114       4806
-Loop time of 0.0113776 on 4 procs
+        10      18709          0         14          0       5410
+        20      25405          0         20    0.00348       4414
+Loop time of 0.00348928 on 4 procs
 
-Solve time (%) = 0.000647247 (5.68877)
+Solve time (%) = 0.000145149 (4.15985)
 Update time (%) = 0 (0)
-Comm  time (%) = 0.0013088 (11.5033)
-Outpt time (%) = 0.00417346 (36.6812)
-App   time (%) = 0.0045594 (40.0733)
-Other time (%) = 0.000688732 (6.05338)
+Comm  time (%) = 0.000562263 (16.114)
+Outpt time (%) = 0.0007944 (22.7669)
+App   time (%) = 0.00176801 (50.6697)
+Other time (%) = 0.000219463 (6.28963)
 run 10Setting up run ...
       Time    Naccept    Nreject    Nsweeps        CPU     Energy
-        20      25730          0          0          0       4806
-        30      31377          0          0    0.00985       4308
-Loop time of 0.00987101 on 4 procs
+        20      25405          0         20          0       4414
+        30      30724          0         25    0.00314       4092
+Loop time of 0.00314216 on 4 procs
 
-Solve time (%) = 0.000525832 (5.32704)
+Solve time (%) = 0.000123228 (3.92176)
 Update time (%) = 0 (0)
-Comm  time (%) = 0.0012235 (12.3949)
-Outpt time (%) = 0.00415748 (42.1181)
-App   time (%) = 0.00343758 (34.825)
-Other time (%) = 0.000526607 (5.33489)
+Comm  time (%) = 0.000561445 (17.8681)
+Outpt time (%) = 0.00079681 (25.3586)
+App   time (%) = 0.00146373 (46.5835)
+Other time (%) = 0.000196952 (6.26804)
 run 10Setting up run ...
       Time    Naccept    Nreject    Nsweeps        CPU     Energy
-        30      31377          0          0          0       4308
-        40      36311          0          0     0.0092       3840
-Loop time of 0.00922179 on 4 procs
+        30      30724          0         25          0       4092
+        40      35289          0         30    0.00256       3496
+Loop time of 0.0025659 on 4 procs
 
-Solve time (%) = 0.000474155 (5.14168)
+Solve time (%) = 9.47535e-05 (3.6928)
 Update time (%) = 0 (0)
-Comm  time (%) = 0.00114667 (12.4344)
-Outpt time (%) = 0.00414455 (44.943)
-App   time (%) = 0.00293165 (31.7905)
-Other time (%) = 0.000524759 (5.69043)
+Comm  time (%) = 0.000508415 (19.8143)
+Outpt time (%) = 0.000788757 (30.74)
+App   time (%) = 0.00106383 (41.4604)
+Other time (%) = 0.000110143 (4.29259)
 run 10Setting up run ...
       Time    Naccept    Nreject    Nsweeps        CPU     Energy
-        40      36311          0          0          0       3840
-        50      40886          0          0    0.00891       3534
-Loop time of 0.0089252 on 4 procs
+        40      35289          0         30          0       3496
+        50      39511          0         35    0.00252       3294
+Loop time of 0.00252512 on 4 procs
 
-Solve time (%) = 0.000433862 (4.86109)
+Solve time (%) = 8.7092e-05 (3.44903)
 Update time (%) = 0 (0)
-Comm  time (%) = 0.00113171 (12.68)
-Outpt time (%) = 0.00413698 (46.3517)
-App   time (%) = 0.00268257 (30.0561)
-Other time (%) = 0.000540078 (6.05116)
+Comm  time (%) = 0.000631729 (25.0178)
+Outpt time (%) = 0.000780138 (30.8952)
+App   time (%) = 0.000963016 (38.1375)
+Other time (%) = 6.31405e-05 (2.5005)
 run 10Setting up run ...
       Time    Naccept    Nreject    Nsweeps        CPU     Energy
-        50      40886          0          0          0       3534
-        60      44888          0          0    0.00831       3306
-Loop time of 0.00833625 on 4 procs
+        50      39511          0         35          0       3294
+        60      43241          0         40    0.00254       3158
+Loop time of 0.00254794 on 4 procs
 
-Solve time (%) = 0.000383437 (4.59963)
+Solve time (%) = 8.5528e-05 (3.35675)
 Update time (%) = 0 (0)
-Comm  time (%) = 0.00106108 (12.7285)
-Outpt time (%) = 0.00413227 (49.5699)
-App   time (%) = 0.00232393 (27.8774)
-Other time (%) = 0.000435531 (5.22455)
+Comm  time (%) = 0.000598337 (23.4831)
+Outpt time (%) = 0.000777931 (30.5317)
+App   time (%) = 0.000940118 (36.8971)
+Other time (%) = 0.00014603 (5.73128)
 run 10Setting up run ...
       Time    Naccept    Nreject    Nsweeps        CPU     Energy
-        60      44888          0          0          0       3306
-        70      48583          0          0    0.00806       3078
-Loop time of 0.0080772 on 4 procs
+        60      43241          0         40          0       3158
+        70      46797          0         44    0.00248       3060
+Loop time of 0.00248266 on 4 procs
 
-Solve time (%) = 0.000353277 (4.37375)
+Solve time (%) = 8.14515e-05 (3.28081)
 Update time (%) = 0 (0)
-Comm  time (%) = 0.00102895 (12.739)
-Outpt time (%) = 0.0041061 (50.8357)
-App   time (%) = 0.00213838 (26.4742)
-Other time (%) = 0.000450492 (5.57732)
+Comm  time (%) = 0.000482648 (19.4407)
+Outpt time (%) = 0.000991271 (39.9277)
+App   time (%) = 0.00085854 (34.5814)
+Other time (%) = 6.87532e-05 (2.76933)
 run 10Setting up run ...
       Time    Naccept    Nreject    Nsweeps        CPU     Energy
-        70      48583          0          0          0       3078
-        80      52044          0          0    0.00786       2998
-Loop time of 0.00788343 on 4 procs
+        70      46797          0         44          0       3060
+        80      50183          0         48     0.0024       3102
+Loop time of 0.00240397 on 4 procs
 
-Solve time (%) = 0.000333607 (4.23175)
+Solve time (%) = 8.22802e-05 (3.42268)
 Update time (%) = 0 (0)
-Comm  time (%) = 0.00101435 (12.8669)
-Outpt time (%) = 0.00420028 (53.2799)
-App   time (%) = 0.00198931 (25.234)
-Other time (%) = 0.000345886 (4.3875)
+Comm  time (%) = 0.000494873 (20.5856)
+Outpt time (%) = 0.00085299 (35.4825)
+App   time (%) = 0.000883469 (36.7504)
+Other time (%) = 9.03613e-05 (3.75883)
 run 10Setting up run ...
       Time    Naccept    Nreject    Nsweeps        CPU     Energy
-        80      52044          0          0          0       2998
-        90      55352          0          0     0.0083       3026
-Loop time of 0.00831437 on 4 procs
+        80      50183          0         48          0       3102
+        90      53732          0         52    0.00272       3028
+Loop time of 0.00272017 on 4 procs
 
-Solve time (%) = 0.00031358 (3.77154)
+Solve time (%) = 9.94713e-05 (3.6568)
 Update time (%) = 0 (0)
-Comm  time (%) = 0.00111783 (13.4445)
-Outpt time (%) = 0.00467652 (56.2462)
-App   time (%) = 0.00188529 (22.6751)
-Other time (%) = 0.00032115 (3.86259)
+Comm  time (%) = 0.000613542 (22.5553)
+Outpt time (%) = 0.000800183 (29.4166)
+App   time (%) = 0.00108281 (39.8067)
+Other time (%) = 0.000124164 (4.56456)
 run 10Setting up run ...
       Time    Naccept    Nreject    Nsweeps        CPU     Energy
-        90      55352          0          0          0       3026
-       100      58494          0          0    0.00733       2742
-Loop time of 0.00735307 on 4 procs
+        90      53732          0         52          0       3028
+       100      57112          0         56     0.0023       2942
+Loop time of 0.00230787 on 4 procs
 
-Solve time (%) = 0.000297189 (4.0417)
+Solve time (%) = 7.58975e-05 (3.28864)
 Update time (%) = 0 (0)
-Comm  time (%) = 0.000801027 (10.8938)
-Outpt time (%) = 0.00418043 (56.8529)
-App   time (%) = 0.00179577 (24.422)
-Other time (%) = 0.000278652 (3.7896)
+Comm  time (%) = 0.000502726 (21.7831)
+Outpt time (%) = 0.000796114 (34.4956)
+App   time (%) = 0.000828819 (35.9127)
+Other time (%) = 0.000104316 (4.51999)
 run 10Setting up run ...
       Time    Naccept    Nreject    Nsweeps        CPU     Energy
-       100      58494          0          0          0       2742
-       110      61498          0          0    0.00732       2636
-Loop time of 0.00733691 on 4 procs
+       100      57112          0         56          0       2942
+       110      60445          0         60    0.00192       2850
+Loop time of 0.00192261 on 4 procs
 
-Solve time (%) = 0.000282168 (3.84587)
+Solve time (%) = 6.89883e-05 (3.58826)
 Update time (%) = 0 (0)
-Comm  time (%) = 0.000877678 (11.9625)
-Outpt time (%) = 0.00414526 (56.4987)
-App   time (%) = 0.00174332 (23.7609)
-Other time (%) = 0.000288486 (3.93199)
+Comm  time (%) = 0.000257782 (13.4079)
+Outpt time (%) = 0.000791242 (41.1545)
+App   time (%) = 0.000735212 (38.2403)
+Other time (%) = 6.9388e-05 (3.60905)
 run 10Setting up run ...
       Time    Naccept    Nreject    Nsweeps        CPU     Energy
-       110      61498          0          0          0       2636
-       120      64343          0          0    0.00719       2518
-Loop time of 0.00721735 on 4 procs
+       110      60445          0         60          0       2850
+       120      63603          0         64    0.00193       2866
+Loop time of 0.00193198 on 4 procs
 
-Solve time (%) = 0.000270605 (3.74937)
+Solve time (%) = 6.44032e-05 (3.33354)
 Update time (%) = 0 (0)
-Comm  time (%) = 0.00078702 (10.9046)
-Outpt time (%) = 0.00416625 (57.7254)
-App   time (%) = 0.00162369 (22.497)
-Other time (%) = 0.000369787 (5.12359)
+Comm  time (%) = 0.00027428 (14.1969)
+Outpt time (%) = 0.000812462 (42.0534)
+App   time (%) = 0.000682923 (35.3484)
+Other time (%) = 9.79088e-05 (5.0678)
 run 10Setting up run ...
       Time    Naccept    Nreject    Nsweeps        CPU     Energy
-       120      64343          0          0          0       2518
-       130      66901          0          0    0.00709       2480
-Loop time of 0.00710845 on 4 procs
+       120      63603          0         64          0       2866
+       130      66749          0         68     0.0022       2710
+Loop time of 0.00220226 on 4 procs
 
-Solve time (%) = 0.000247002 (3.47476)
+Solve time (%) = 8.013e-05 (3.63854)
 Update time (%) = 0 (0)
-Comm  time (%) = 0.00100386 (14.1221)
-Outpt time (%) = 0.00416774 (58.6307)
-App   time (%) = 0.00143349 (20.166)
-Other time (%) = 0.00025636 (3.60641)
+Comm  time (%) = 0.000362387 (16.4552)
+Outpt time (%) = 0.000819649 (37.2186)
+App   time (%) = 0.000844146 (38.3309)
+Other time (%) = 9.59462e-05 (4.35672)
 run 10Setting up run ...
       Time    Naccept    Nreject    Nsweeps        CPU     Energy
-       130      66901          0          0          0       2480
-       140      69617          0          0    0.00723       2462
-Loop time of 0.00725645 on 4 procs
+       130      66749          0         68          0       2710
+       140      69868          0         72    0.00276       2822
+Loop time of 0.00276561 on 4 procs
 
-Solve time (%) = 0.000262678 (3.61992)
+Solve time (%) = 8.8444e-05 (3.19799)
 Update time (%) = 0 (0)
-Comm  time (%) = 0.000848353 (11.691)
-Outpt time (%) = 0.00418752 (57.7076)
-App   time (%) = 0.00152171 (20.9704)
-Other time (%) = 0.000436187 (6.01102)
+Comm  time (%) = 0.000566006 (20.4659)
+Outpt time (%) = 0.00100224 (36.2395)
+App   time (%) = 0.000938724 (33.9427)
+Other time (%) = 0.000170192 (6.15388)
 run 10Setting up run ...
       Time    Naccept    Nreject    Nsweeps        CPU     Energy
-       140      69617          0          0          0       2462
-       150      72516          0          0     0.0077       2368
-Loop time of 0.00771403 on 4 procs
+       140      69868          0         72          0       2822
+       150      72809          0         77    0.00203       2530
+Loop time of 0.00203296 on 4 procs
 
-Solve time (%) = 0.000279188 (3.61922)
+Solve time (%) = 6.10922e-05 (3.00508)
 Update time (%) = 0 (0)
-Comm  time (%) = 0.00115103 (14.9212)
-Outpt time (%) = 0.00420797 (54.5495)
-App   time (%) = 0.00164241 (21.2911)
-Other time (%) = 0.000433445 (5.61892)
+Comm  time (%) = 0.000430907 (21.196)
+Outpt time (%) = 0.000773949 (38.07)
+App   time (%) = 0.000649508 (31.9488)
+Other time (%) = 0.000117508 (5.78011)
 run 10Setting up run ...
       Time    Naccept    Nreject    Nsweeps        CPU     Energy
-       150      72516          0          0          0       2368
-       160      75201          0          0    0.00745       2384
-Loop time of 0.00747746 on 4 procs
+       150      72809          0         77          0       2530
+       160      75490          0         82    0.00243       2560
+Loop time of 0.00243939 on 4 procs
 
-Solve time (%) = 0.00026089 (3.48901)
+Solve time (%) = 7.29237e-05 (2.98943)
 Update time (%) = 0 (0)
-Comm  time (%) = 0.00115579 (15.457)
-Outpt time (%) = 0.00416714 (55.7293)
-App   time (%) = 0.0015164 (20.2796)
-Other time (%) = 0.000377238 (5.045)
+Comm  time (%) = 0.000533877 (21.8857)
+Outpt time (%) = 0.000900521 (36.9159)
+App   time (%) = 0.000753532 (30.8902)
+Other time (%) = 0.000178534 (7.31879)
 run 10Setting up run ...
       Time    Naccept    Nreject    Nsweeps        CPU     Energy
-       160      75201          0          0          0       2384
-       170      77794          0          0    0.00709       2286
-Loop time of 0.00710869 on 4 procs
+       160      75490          0         82          0       2560
+       170      78382          0         86    0.00203       2424
+Loop time of 0.00203432 on 4 procs
 
-Solve time (%) = 0.000261724 (3.68175)
+Solve time (%) = 6.05745e-05 (2.97762)
 Update time (%) = 0 (0)
-Comm  time (%) = 0.000879705 (12.3751)
-Outpt time (%) = 0.00419676 (59.0371)
-App   time (%) = 0.00145274 (20.4362)
-Other time (%) = 0.000317752 (4.46992)
+Comm  time (%) = 0.000357404 (17.5687)
+Outpt time (%) = 0.000830967 (40.8473)
+App   time (%) = 0.000642883 (31.6018)
+Other time (%) = 0.000142495 (7.00454)
 run 10Setting up run ...
       Time    Naccept    Nreject    Nsweeps        CPU     Energy
-       170      77794          0          0          0       2286
-       180      80320          0          0    0.00723       2186
-Loop time of 0.00725418 on 4 procs
+       170      78382          0         86          0       2424
+       180      81046          0         90    0.00266       2450
+Loop time of 0.00266286 on 4 procs
 
-Solve time (%) = 0.000241041 (3.32279)
+Solve time (%) = 7.05732e-05 (2.65028)
 Update time (%) = 0 (0)
-Comm  time (%) = 0.00100464 (13.8491)
-Outpt time (%) = 0.00413877 (57.0535)
-App   time (%) = 0.00144053 (19.8579)
-Other time (%) = 0.000429213 (5.91677)
+Comm  time (%) = 0.000638214 (23.9672)
+Outpt time (%) = 0.00102986 (38.6749)
+App   time (%) = 0.000760398 (28.5557)
+Other time (%) = 0.000163817 (6.15191)
 run 10Setting up run ...
       Time    Naccept    Nreject    Nsweeps        CPU     Energy
-       180      80320          0          0          0       2186
-       190      82621          0          0    0.00686       2204
-Loop time of 0.00687295 on 4 procs
+       180      81046          0         90          0       2450
+       190      83562          0         94    0.00216       2402
+Loop time of 0.0021675 on 4 procs
 
-Solve time (%) = 0.000222385 (3.23565)
+Solve time (%) = 6.2358e-05 (2.87696)
 Update time (%) = 0 (0)
-Comm  time (%) = 0.000860512 (12.5203)
-Outpt time (%) = 0.00418121 (60.8357)
-App   time (%) = 0.00126499 (18.4053)
-Other time (%) = 0.000343859 (5.00308)
+Comm  time (%) = 0.000536287 (24.7422)
+Outpt time (%) = 0.000802317 (37.0158)
+App   time (%) = 0.000649124 (29.9481)
+Other time (%) = 0.000117412 (5.41694)
 run 10Setting up run ...
       Time    Naccept    Nreject    Nsweeps        CPU     Energy
-       190      82621          0          0          0       2204
-       200      84907          0          0    0.00681       2276
-Loop time of 0.0068413 on 4 procs
+       190      83562          0         94          0       2402
+       200      86036          0         98     0.0021       2306
+Loop time of 0.00210625 on 4 procs
 
-Solve time (%) = 0.000233412 (3.4118)
+Solve time (%) = 5.94018e-05 (2.82026)
 Update time (%) = 0 (0)
-Comm  time (%) = 0.000758171 (11.0823)
-Outpt time (%) = 0.00421125 (61.5562)
-App   time (%) = 0.00125164 (18.2953)
-Other time (%) = 0.000386834 (5.65439)
+Comm  time (%) = 0.000492842 (23.399)
+Outpt time (%) = 0.000817012 (38.7899)
+App   time (%) = 0.000597335 (28.3601)
+Other time (%) = 0.00013966 (6.63072)

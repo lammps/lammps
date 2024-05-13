@@ -15,28 +15,28 @@ namespace ATC {
   class FE_Mesh;
 
   /**
-   *  @class  DenseMatrixTransfer 
+   *  @class  DenseMatrixTransfer
    *  @brief  Class for defining objects that generate dense matrix quantities from other matrix quantities
    */
   template <typename T>
   class DenseMatrixTransfer : public MatrixDependencyManager<DenseMatrix, T> {
 
   public:
-    
+
     // constructor
     DenseMatrixTransfer() :
     MatrixDependencyManager<DenseMatrix, T>(),
       lammpsInterface_(LammpsInterface::instance()) {};
-    
+
     // destructor
     virtual ~DenseMatrixTransfer() {};
 
     /** apply transfer operator */
     virtual const DenseMatrix<T> & quantity() const {
       if (this->need_reset()) {
-        this->reset_quantity(); 
+        this->reset_quantity();
         MatrixDependencyManager<DenseMatrix, T>::needReset_ = false;
-      } 
+      }
       return MatrixDependencyManager<DenseMatrix, T>::quantity_;
     };
 
@@ -92,19 +92,19 @@ namespace ATC {
   };
 
   /**
-   *  @class  SparseMatrixTransfer 
+   *  @class  SparseMatrixTransfer
    *  @brief  Class for defining objects that generate dense matrix quantities from other matrix quantities
    */
   template <typename T>
   class SparseMatrixTransfer : public MatrixDependencyManager<SparseMatrix, T> {
 
   public:
-    
+
     // constructor
     SparseMatrixTransfer() :
     MatrixDependencyManager<SparseMatrix, T>(),
       lammpsInterface_(LammpsInterface::instance()) {};
-    
+
     // destructor
     virtual ~SparseMatrixTransfer() {};
 
@@ -163,19 +163,19 @@ namespace ATC {
   };
 
   /**
-   *  @class  DiagonalMatrixTransfer 
+   *  @class  DiagonalMatrixTransfer
    *  @brief  Class for defining objects that generate diagonal matrix quantities from other matrix quantities
    */
   template <typename T>
   class DiagonalMatrixTransfer : public MatrixDependencyManager<DiagonalMatrix, T> {
 
   public:
-    
+
     // constructor
     DiagonalMatrixTransfer() :
     MatrixDependencyManager<DiagonalMatrix, T>(),
       lammpsInterface_(LammpsInterface::instance()) {};
-    
+
     // destructor
     virtual ~DiagonalMatrixTransfer() {};
 
@@ -234,18 +234,18 @@ namespace ATC {
   };
 
   /**
-   *  @class  SetTransfer 
+   *  @class  SetTransfer
    *  @brief  Class for defining objects that generate sets using prescribed algorithms
    */
   template <typename T>
   class SetTransfer : public SetDependencyManager<T> {
 
   public:
-    
+
     // constructor
     SetTransfer() :
       SetDependencyManager<T>() {};
-    
+
     // destructor
     virtual ~SetTransfer() {};
 
@@ -264,18 +264,18 @@ namespace ATC {
   };
 
   /**
-   *  @class  VectorTransfer 
+   *  @class  VectorTransfer
    *  @brief  Class for defining objects that generate sets using prescribed algorithms
    */
   template <typename T>
   class VectorTransfer : public VectorDependencyManager<T> {
 
   public:
-    
+
     // constructor
     VectorTransfer() :
       VectorDependencyManager<T>() {};
-    
+
     // destructor
     virtual ~VectorTransfer() {};
 
@@ -294,18 +294,18 @@ namespace ATC {
   };
 
   /**
-   *  @class  AtomToFeTransfer 
-   *  @brief  Class for defining objects to transfer atomistic quantities to FE quantities 
+   *  @class  AtomToFeTransfer
+   *  @brief  Class for defining objects to transfer atomistic quantities to FE quantities
    */
 
   class AtomToFeTransfer : public DenseMatrixTransfer<double> {
 
   public:
-    
+
     // constructor
     AtomToFeTransfer(ATC_Method * atc,
                      PerAtomQuantity<double> * source);
-    
+
     // destructor
     virtual ~AtomToFeTransfer();
 
@@ -325,18 +325,18 @@ namespace ATC {
   };
 
   /**
-   *  @class  AtomDiagonalMatrixToFeTransfer 
-   *  @brief  Class for defining objects to transfer atomistic quantities to FE quantities 
+   *  @class  AtomDiagonalMatrixToFeTransfer
+   *  @brief  Class for defining objects to transfer atomistic quantities to FE quantities
    */
 
   class AtomDiagonalMatrixToFeTransfer : public DenseMatrixTransfer<double> {
 
   public:
-    
+
     // constructor
     AtomDiagonalMatrixToFeTransfer(ATC_Method * atc,
                                    PerAtomDiagonalMatrix<double> * source);
-    
+
     // destructor
     virtual ~AtomDiagonalMatrixToFeTransfer();
 
@@ -363,12 +363,12 @@ namespace ATC {
   class FeToAtomTransfer : public ProtectedAtomQuantity<double> {
 
   public:
-    
+
     // constructor
     FeToAtomTransfer(ATC_Method * atc,
                      DENS_MAN * source,
                      AtomType atomType = INTERNAL);
-    
+
     // destructor
     virtual ~FeToAtomTransfer();
 
@@ -392,11 +392,11 @@ namespace ATC {
   class FeToAtomDiagonalMatrix : public ProtectedAtomDiagonalMatrix<double> {
 
   public:
-    
+
     // constructor
     FeToAtomDiagonalMatrix(ATC_Method * atc,
                            DENS_MAN * source);
-    
+
     // destructor
     virtual ~FeToAtomDiagonalMatrix();
 
@@ -420,11 +420,11 @@ namespace ATC {
   class MatToMatTransfer : public DenseMatrixTransfer<T> {
 
   public:
-    
+
     // constructor
     MatToMatTransfer(MatrixDependencyManager<DenseMatrix, T> * source) :
       source_(source) {source_->register_dependence(this);};
-    
+
     // destructor
     virtual ~MatToMatTransfer() {source_->remove_dependence(this);};
 
@@ -445,16 +445,16 @@ namespace ATC {
    *  @brief  Class for defining objects that transfer atomistic quantities to FE using shape functions
    *          (implements restrict_volumetric_quantity)
    */
-  
+
   class AtfShapeFunctionRestriction : public AtomToFeTransfer {
 
   public:
-    
+
     // constructor
     AtfShapeFunctionRestriction(ATC_Method * atc,
                                 PerAtomQuantity<double> * source,
                                 SPAR_MAN * shapeFunction);
-    
+
     // destructor
     virtual ~AtfShapeFunctionRestriction();
 
@@ -467,8 +467,8 @@ namespace ATC {
     SPAR_MAN * shapeFunction_;
 
     /** persistent workspace */
-    
-    
+
+
     mutable DENS_MAT _workspace_;
 
     /** applies restriction operation across all processors */
@@ -493,12 +493,12 @@ namespace ATC {
   class AdmtfShapeFunctionRestriction : public AtomDiagonalMatrixToFeTransfer {
 
   public:
-    
+
     // constructor
     AdmtfShapeFunctionRestriction(ATC_Method * atc,
                                 PerAtomDiagonalMatrix<double> * source,
                                 SPAR_MAN * shapeFunction);
-    
+
     // destructor
     virtual ~AdmtfShapeFunctionRestriction();
 
@@ -511,8 +511,8 @@ namespace ATC {
     SPAR_MAN * shapeFunction_;
 
     /** persistent workspace */
-    
-    
+
+
     mutable DENS_MAT _workspace_;
 
     /** applies restriction operation across all processors */
@@ -531,19 +531,19 @@ namespace ATC {
 
   /**
    *  @class  AtfProjection
-   *  @brief  
+   *  @brief
    */
 
   class AtfProjection : public AtomToFeTransfer {
 
   public:
-    
+
     // constructor
     AtfProjection(ATC_Method * atc,
                   PerAtomQuantity<double> * source,
                   SPAR_MAN * accumulant,
                   DIAG_MAN * weights = nullptr);
-    
+
     // destructor
     virtual ~AtfProjection();
 
@@ -561,8 +561,8 @@ namespace ATC {
     DENS_MAT * reference_;
 
     /** persistent workspace */
-    
-    
+
+
     mutable DENS_MAT _workspace_;
 
     /** applies restriction operation across all processors */
@@ -581,14 +581,14 @@ namespace ATC {
   class AtfProjectionScaled : public AtfProjection {
 
   public:
-    
+
     // constructor
     AtfProjectionScaled(ATC_Method * atc,
                   PerAtomQuantity<double> * source,
                   SPAR_MAN * accumulant,
                   const double scale,
                   DIAG_MAN * weights = nullptr);
-    
+
     // destructor
     virtual ~AtfProjectionScaled();
 
@@ -608,20 +608,20 @@ namespace ATC {
 
   /**
    *  @class  AtfProjectionReferenced
-   *  @brief  
+   *  @brief
    */
 
   class AtfProjectionReferenced : public AtfProjection {
 
   public:
-    
+
     // constructor
     AtfProjectionReferenced(ATC_Method * atc,
                   PerAtomQuantity<double> * source,
                   SPAR_MAN * accumulant,
                   DENS_MAN * reference,
                   DIAG_MAN * weights = nullptr);
-    
+
     // destructor
     virtual ~AtfProjectionReferenced();
 
@@ -651,13 +651,13 @@ namespace ATC {
   class AtfWeightedShapeFunctionRestriction : public AtfShapeFunctionRestriction {
 
   public:
-    
+
     // constructor
     AtfWeightedShapeFunctionRestriction(ATC_Method * atc,
                                         PerAtomQuantity<double> * source,
                                         SPAR_MAN * shapeFunction,
                                         DIAG_MAN * weights);
-    
+
     // destructor
     virtual ~AtfWeightedShapeFunctionRestriction() {weights_->remove_dependence(this);};
 
@@ -686,13 +686,13 @@ namespace ATC {
   class AtfNodeWeightedShapeFunctionRestriction : public AtfShapeFunctionRestriction {
 
   public:
-    
+
     // constructor
     AtfNodeWeightedShapeFunctionRestriction(ATC_Method * atc,
                                             PerAtomQuantity<double> * source,
                                             SPAR_MAN * shapeFunction,
                                             DIAG_MAN * weights);
-    
+
     // destructor
     virtual ~AtfNodeWeightedShapeFunctionRestriction() {weights_->remove_dependence(this);};
 
@@ -721,12 +721,12 @@ namespace ATC {
   class AtfShapeFunctionProjection : public MatToMatTransfer<double> {
 
   public:
-    
+
     // constructor
-    AtfShapeFunctionProjection(ATC_Method * atc, 
+    AtfShapeFunctionProjection(ATC_Method * atc,
                                DENS_MAN * source,
                                FieldName thisField);
-    
+
     // destructor
     virtual ~AtfShapeFunctionProjection();
 
@@ -751,19 +751,19 @@ namespace ATC {
   /**
    *  @class  AtfShapeFunctionMdProjection
    *  @brief  Class for defining objects that transfer restricted atomistic quantities to FE using shape functions for the MD region
-   *          (implements project_md/project_md_volumetric_quantity assuming 
+   *          (implements project_md/project_md_volumetric_quantity assuming
    *           restrict_unscaled/restrict_volumetric_quantity has been applied)
    */
 
   class AtfShapeFunctionMdProjection : public MatToMatTransfer<double> {
 
   public:
-    
+
     // constructor
-    AtfShapeFunctionMdProjection(ATC_Method * atc, 
+    AtfShapeFunctionMdProjection(ATC_Method * atc,
                                  DENS_MAN * source,
                                  FieldName thisField);
-    
+
     // destructor
     virtual ~AtfShapeFunctionMdProjection();
 
@@ -788,20 +788,20 @@ namespace ATC {
   /**
    *  @class  AtfShapeFunctionMdProjectionScaled
    *  @brief  Class for defining objects that transfer restricted atomistic quantities to FE using shape functions for the MD region with a scaling factor
-   *          (implements project_md/project_md_volumetric_quantity assuming 
+   *          (implements project_md/project_md_volumetric_quantity assuming
    *           restrict_unscaled/restrict_volumetric_quantity has been applied)
    */
 
   class AtfShapeFunctionMdProjectionScaled : public AtfShapeFunctionMdProjection {
 
   public:
-    
+
     // constructor
     AtfShapeFunctionMdProjectionScaled(ATC_Method * atc,
                                            DENS_MAN * source,
                                            double scale,
                                            FieldName thisField);
-    
+
     // destructor
     virtual ~AtfShapeFunctionMdProjectionScaled();
 
@@ -823,20 +823,20 @@ namespace ATC {
   /**
    *  @class  AtfShapeFunctionMdProjectionReferenced
    *  @brief  Class for defining objects that transfer restricted atomistic quantities to FE using shape functions for the MD region with respect to a reference
-   *          (implements project_md/project_md_volumetric_quantity assuming 
+   *          (implements project_md/project_md_volumetric_quantity assuming
    *           restrict_unscaled/restrict_volumetric_quantity has been applied)
    */
 
   class AtfShapeFunctionMdProjectionReferenced : public AtfShapeFunctionMdProjection {
 
   public:
-    
+
     // constructor
     AtfShapeFunctionMdProjectionReferenced(ATC_Method * atc,
                                            DENS_MAN * source,
                                            DENS_MAN * reference,
                                            FieldName thisField);
-    
+
     // destructor
     virtual ~AtfShapeFunctionMdProjectionReferenced();
 
@@ -863,13 +863,13 @@ namespace ATC {
   class AtfKernelFunctionRestriction : public AtomToFeTransfer {
 
   public:
-    
+
     // constructor
     AtfKernelFunctionRestriction(ATC_Method * atc,
                                  PerAtomQuantity<double> * source,
                                  PerAtomQuantity<double> * coarseGrainingPositions,
                                  KernelFunction * kernelFunction);
-    
+
     // destructor
     virtual ~AtfKernelFunctionRestriction();
 
@@ -888,8 +888,8 @@ namespace ATC {
     const FE_Mesh * feMesh_;
 
     /** persistent workspace */
-    
-    
+
+
     mutable DENS_MAT _workspace_;
     mutable DENS_VEC _xI_, _xa_, _xaI_;
 
@@ -917,14 +917,14 @@ namespace ATC {
   class AtfWeightedKernelFunctionRestriction : public AtfKernelFunctionRestriction {
 
   public:
-    
+
     // constructor
     AtfWeightedKernelFunctionRestriction(ATC_Method * atc,
                                          PerAtomQuantity<double> * source,
                                          PerAtomQuantity<double> * coarseGrainingPositions,
                                          KernelFunction * kernelFunction,
                                          DIAG_MAN * weights);
-    
+
     // destructor
     virtual ~AtfWeightedKernelFunctionRestriction() {weights_->remove_dependence(this);};
 
@@ -954,14 +954,14 @@ namespace ATC {
   class AtfNodeWeightedKernelFunctionRestriction : public AtfKernelFunctionRestriction {
 
   public:
-    
+
     // constructor
     AtfNodeWeightedKernelFunctionRestriction(ATC_Method * atc,
                                              PerAtomQuantity<double> * source,
                                              PerAtomQuantity<double> * coarseGrainingPositions,
                                              KernelFunction * kernelFunction,
                                              DIAG_MAN * weights);
-    
+
     // destructor
     virtual ~AtfNodeWeightedKernelFunctionRestriction() {weights_->remove_dependence(this);};
 
@@ -989,13 +989,13 @@ namespace ATC {
   class FtaShapeFunctionProlongation : public FeToAtomTransfer {
 
   public:
-    
+
     // constructor
     FtaShapeFunctionProlongation(ATC_Method * atc,
                                  DENS_MAN * source,
                                  SPAR_MAN * shapeFunction,
                                  AtomType atomType = INTERNAL);
-    
+
     // destructor
     virtual ~FtaShapeFunctionProlongation();
 
@@ -1023,12 +1023,12 @@ namespace ATC {
   class FtaShapeFunctionProlongationDiagonalMatrix : public FeToAtomDiagonalMatrix {
 
   public:
-    
+
     // constructor
     FtaShapeFunctionProlongationDiagonalMatrix(ATC_Method * atc,
                                                DENS_MAN * source,
                                                SPAR_MAN * shapeFunction);
-    
+
     // destructor
     virtual ~FtaShapeFunctionProlongationDiagonalMatrix();
 
@@ -1056,68 +1056,68 @@ namespace ATC {
    */
   class MatToGradBySparse : public MatToMatTransfer<double> {
 
-  public: 
+  public:
 
-    //constructor 
+    //constructor
     MatToGradBySparse(ATC_Method * atc,
                       DENS_MAN * source,
                       VectorDependencyManager<SPAR_MAT * > * gradientMatrices);
     //destructor
     virtual ~MatToGradBySparse();
 
-    // apply transfer operator  
+    // apply transfer operator
     virtual void reset_quantity() const;
 
   protected:
-    
+
     // pointer to sparseMatrix
     VectorDependencyManager<SPAR_MAT * > * gradientMatrices_;
 
-  private: 
+  private:
 
     // do not define
     MatToGradBySparse();
-  
+
   };
 
   /**
    * transfer from dense to dense by diagonal matrix multiplier for anything
-  **/ 
+  **/
   class DiagonalMatrixMultiply : public MatToMatTransfer<double> {
 
-  public: 
+  public:
 
-    //constructor 
+    //constructor
     DiagonalMatrixMultiply(DENS_MAN * source,
                            DIAG_MAN * diagonalMatrix);
     //destructor
     virtual ~DiagonalMatrixMultiply();
 
-    // apply transfer operator  
+    // apply transfer operator
     virtual void reset_quantity() const;
 
   protected:
-    
+
     // pointer to sparseMatrix
     DIAG_MAN * diagonalMatrix_;
 
-  private: 
+  private:
 
     // do not define
     DiagonalMatrixMultiply();
-  
+
   };
 
 #ifdef ATC_WHO
 /**
   // class sparse matrix multiplier for anything
   //delete later
-**/ 
+**/
   class SparseMatrixMultiply : public MatToMatTransfer<double> {
 
-  public: 
+  public:
 
-    //constructor 
+    //constructor
     SparseMatrixMultiply(ATC_Method * atc,
                          DENS_MAN * source,
                          SPAR_MAN * sparseMatrix);
@@ -1125,18 +1125,18 @@ namespace ATC {
     virtual ~SparseMatrixMultiply();
 
   protected:
-    
+
     // pointer to sparseMatrix
     SPAR_MAN * sparseMatrix_;
-    
-    // apply transfer operator  
+
+    // apply transfer operator
     virtual const DENS_MAT & quantity() const;
 
-  private: 
+  private:
 
     // do not define
     SparseMatrixMultiply();
-  
+
   };
 
 #endif

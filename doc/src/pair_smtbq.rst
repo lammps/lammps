@@ -23,8 +23,9 @@ Description
 
 This pair style computes a variable charge SMTB-Q (Second-Moment
 tight-Binding QEq) potential as described in :ref:`SMTB-Q_1 <SMTB-Q_1>` and
-:ref:`SMTB-Q_2 <SMTB-Q_2>`. Briefly, the energy of metallic-oxygen systems
-is given by three contributions:
+:ref:`SMTB-Q_2 <SMTB-Q_2>`.
+This potential was first proposed in :ref:`SMTB-Q_0 <SMTB-Q_0>`.
+Briefly, the energy of metallic-oxygen systems is given by three contributions:
 
 .. math::
 
@@ -94,8 +95,8 @@ ffield.SMTBQ.Syst. The energy band term is given by:
    \delta Q_i \bigl( 2\frac{n_0}{\eta_i} - \delta Q_i \bigr) \biggr\}^{1/2} \\
    \delta Q_i & =  | Q_i^{F} | - | Q_i |
 
-where :math:`\eta_i` is the stoichiometry of atom *i*\ ,
-:math:`\delta Q_i` is the charge delocalization of atom *i*\ ,
+where :math:`\eta_i` is the stoichiometry of atom *i*,
+:math:`\delta Q_i` is the charge delocalization of atom *i*,
 compared to its formal charge
 :math:`Q^F_i`. :math:`n_0`, the number of hybridized
 orbitals, is calculated with to the atomic orbitals shared
@@ -161,7 +162,7 @@ For the anion (oxygen)
 * Name of element (char) and stoichiometry in oxide
 * Formal charge and mass of element
 * Principal quantum number of outer orbital n), electronegativity (:math:`\chi^0_i`) and hardness (:math:`J^0_i`)
-* Ionic radius parameters  : max coordination number (\ *coordBB* = 6 by default), bulk coordination number *(coordB)*\ , surface coordination number  *(coordS)* and *rBB, rB and rS*  the slater radius for each coordination number. (**note : If you don't want to change the slater radius, use three identical radius values**)
+* Ionic radius parameters  : max coordination number (\ *coordBB* = 6 by default), bulk coordination number *(coordB)*, surface coordination number  *(coordS)* and *rBB, rB and rS*  the slater radius for each coordination number. (**note : If you don't want to change the slater radius, use three identical radius values**)
 * Number of orbital shared by the element in the oxide (:math:`d_i`)
 * Divider line
 
@@ -169,7 +170,7 @@ For each cations (metal):
 
 * Name of element (char) and stoichiometry in oxide
 * Formal charge and mass of element
-* Number of electron in outer orbital *(ne)*\ , electronegativity (:math:`\chi^0_i`), hardness (:math:`J^0_i`) and :math:`r_{Slater}` the slater radius for the cation.
+* Number of electron in outer orbital *(ne)*, electronegativity (:math:`\chi^0_i`), hardness (:math:`J^0_i`) and :math:`r_{Slater}` the slater radius for the cation.
 * Number of orbitals shared by the elements in the oxide (:math:`d_i`)
 * Divider line
 
@@ -182,19 +183,19 @@ For each cations (metal):
 * Potential parameter:
 
   - If type of potential is 'second_moment' : A (eV), *p*,
-    :math:`\zeta^0` (eV) and *q*, :math:`r_{c1} (\mathrm{\mathring{A}})`, :math:`r_{c2}
-    (\mathrm{\mathring{A}})` and :math:`r_0 (\mathrm{\mathring{A}})`
-  - If type of potential is 'buck' : *C* (eV) and :math:`\rho (\mathrm{\mathring{A}})`
+    :math:`\zeta^0` (eV) and *q*, :math:`r_{c1} (\AA)`, :math:`r_{c2}
+    (\AA)` and :math:`r_0 (\AA)`
+  - If type of potential is 'buck' : *C* (eV) and :math:`\rho (\AA)`
   - If type of potential is 'buckPlusAttr' : *C* (eV) and :math:`\rho
-    (\mathrm{\mathring{A}})` *D* (eV), *B* :math:`(\mathrm{\mathring{A}}^{-1})`, :math:`r^{OO}_1 (\mathrm{\mathring{A}})` and
-    :math:`r^{OO}_2 (\mathrm{\mathring{A}})`
+    (\AA)` *D* (eV), *B* :math:`(\AA^{-1})`, :math:`r^{OO}_1 (\AA)` and
+    :math:`r^{OO}_2 (\AA)`
 * Divider line
 
 4) Tables parameters:
 
 * Cutoff radius for the Coulomb interaction (:math:`R_{coul}`)
-* Starting radius (:math:`r_{min} = 1,18845 \mathrm{\mathring{A}}`) and increments
-  (:math:`dr = 0.001 \mathrm{\mathring{A}}`) for creating the potential table.
+* Starting radius (:math:`r_{min} = 1,18845 \AA`) and increments
+  (:math:`dr = 0.001 \AA`) for creating the potential table.
 * Divider line
 
 5) Rick model parameter:
@@ -208,7 +209,7 @@ For each cations (metal):
 6) Coordination parameter:
 
 * First (:math:`r_{1n}`) and second (:math:`r_{2n}`) neighbor distances
-  in angstrom
+  in angstroms
 * Divider line
 
 7) Charge initialization mode:
@@ -244,7 +245,7 @@ For each cations (metal):
   :math:`N_{Energy}` time steps. If the value is 'false' then
   :math:`N_{Energy} = 0`. The file takes into account the possibility to
   have several QEq groups *g* then it writes: time step, number of atoms
-  in group *g*\ , electrostatic part of energy, :math:`E_{ES}`, the
+  in group *g*, electrostatic part of energy, :math:`E_{ES}`, the
   interaction between oxygen, :math:`E_{OO}`, and short range
   metal-oxygen interaction, :math:`E_{MO}`.
 * If you want to print to the file 'Electroneg_component.txt' the
@@ -252,9 +253,9 @@ For each cations (metal):
   Q_i}`) or not: 'true' or 'false' and :math:`N_{Electroneg}`. This
   option writes to the file every :math:`N_{Electroneg}` time steps. If
   the value is 'false' then :math:`N_{Electroneg} = 0`.  The file
-  consist of atom number *i*\ , atom type (1 for oxygen and # higher
-  than 1 for metal), atom position: *x*\ , *y* and *z*\ , atomic charge
-  of atom *i*\ , electrostatic part of atom *i* electronegativity,
+  consist of atom number *i*, atom type (1 for oxygen and # higher
+  than 1 for metal), atom position: *x*, *y* and *z*, atomic charge
+  of atom *i*, electrostatic part of atom *i* electronegativity,
   covalent part of atom *i* electronegativity, the hopping integral of
   atom *i* :math:`(Z\beta^2)_i` and box electronegativity.
 
@@ -277,15 +278,15 @@ script that reads a restart file.
 
 This pair style can only be used via the *pair* keyword of the
 :doc:`run_style respa <run_style>` command.  It does not support the
-*inner*\ , *middle*\ , *outer* keywords.
+*inner*, *middle*, *outer* keywords.
 
 ----------
 
 Restrictions
 """"""""""""
 
-This pair style is part of the USER-SMTBQ package and is only enabled
-if LAMMPS is built with that package.  See the :doc:`Build package <Build_package>` doc page for more info.
+This pair style is part of the SMTBQ package and is only enabled
+if LAMMPS is built with that package.  See the :doc:`Build package <Build_package>` page for more info.
 
 This potential requires using atom type 1 for oxygen and atom type
 higher than 1 for metal atoms.
@@ -305,6 +306,12 @@ Please cite related publication: N. Salles, O. Politano, E. Amzallag
 and R. Tetot, Comput. Mater. Sci. 111 (2016) 181-189
 
 ----------
+
+.. _SMTB-Q_0:
+
+**(SMTB-Q_0)** A. Hallil, E. Amzallag, S. Landron, R. Tetot,
+Surface Science 605 738-745 (2011);
+R. Tetot, A. Hallil, J. Creuze and I. Braems, EPL, 83 40001 (2008)
 
 .. _SMTB-Q_1:
 

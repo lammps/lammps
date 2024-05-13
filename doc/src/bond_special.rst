@@ -86,7 +86,7 @@ Restrictions
 """"""""""""
 
 This bond style can only be used if LAMMPS was built with the
-USER-MISC package.  See the :doc:`Build package <Build_package>` doc
+MISC package.  See the :doc:`Build package <Build_package>` doc
 page for more info.
 
 This bond style requires the use of a :doc:`pair_style <pair_style>` which

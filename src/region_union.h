@@ -1,7 +1,7 @@
 /* -*- c++ -*- ----------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    https://www.lammps.org/, Sandia National Laboratories
-   Steve Plimpton, sjplimp@sandia.gov
+   LAMMPS development team: developers@lammps.org
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
@@ -27,18 +27,18 @@ namespace LAMMPS_NS {
 class RegUnion : public Region {
  public:
   RegUnion(class LAMMPS *, int, char **);
-  ~RegUnion();
-  void init();
-  int inside(double, double, double);
-  int surface_interior(double *, double);
-  int surface_exterior(double *, double);
-  void shape_update();
-  void pretransform();
-  void set_velocity();
-  void length_restart_string(int &);
-  void write_restart(FILE *);
-  int restart(char *, int &);
-  void reset_vel();
+  ~RegUnion() override;
+  void init() override;
+  int inside(double, double, double) override;
+  int surface_interior(double *, double) override;
+  int surface_exterior(double *, double) override;
+  void shape_update() override;
+  void pretransform() override;
+  void set_velocity() override;
+  void length_restart_string(int &) override;
+  void write_restart(FILE *) override;
+  int restart(char *, int &) override;
+  void reset_vel() override;
 
  private:
   char **idsub;
@@ -48,18 +48,3 @@ class RegUnion : public Region {
 
 #endif
 #endif
-
-/* ERROR/WARNING messages:
-
-E: Illegal ... command
-
-Self-explanatory.  Check the input script syntax and compare to the
-documentation for the command.  You can use -echo screen as a
-command-line option when running LAMMPS to see the offending line.
-
-E: Region union region ID does not exist
-
-One or more of the region IDs specified by the region union command
-does not exist.
-
-*/

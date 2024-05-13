@@ -102,7 +102,7 @@ int tersoff_zbl_gpu_init(const int ntypes, const int inum, const int nall,
                         ts_ZBLcut, ts_ZBLexpscale, global_e, global_a_0,
                         global_epsilon_0, ts_cutsq);
 
-    TSZMF.device->gpu_barrier();
+    TSZMF.device->serialize_init();
     if (message)
       fprintf(screen,"Done.\n");
   }

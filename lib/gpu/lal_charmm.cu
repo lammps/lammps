@@ -34,7 +34,7 @@ __kernel void k_charmm(const __global numtyp4 *restrict x_,
                        const __global numtyp *restrict sp_lj,
                        const __global int *dev_nbor,
                        const __global int *dev_packed,
-                       __global acctyp4 *restrict ans,
+                       __global acctyp3 *restrict ans,
                        __global acctyp *restrict engv,
                        const int eflag, const int vflag,
                        const int inum, const int nbor_pitch,
@@ -53,7 +53,7 @@ __kernel void k_charmm(const __global numtyp4 *restrict x_,
   int n_stride;
   local_allocate_store_bio();
 
-  acctyp4 f;
+  acctyp3 f;
   f.x=(acctyp)0; f.y=(acctyp)0; f.z=(acctyp)0;
   acctyp energy, e_coul, virial[6];
   if (EVFLAG) {
@@ -73,6 +73,7 @@ __kernel void k_charmm(const __global numtyp4 *restrict x_,
     int itype=ix.w;
 
     for ( ; nbor<nbor_end; nbor+=n_stride) {
+      ucl_prefetch(dev_packed+nbor+n_stride);
       int j=dev_packed[nbor];
 
       numtyp factor_lj, factor_coul;
@@ -159,7 +160,7 @@ __kernel void k_charmm_fast(const __global numtyp4 *restrict x_,
                             const __global numtyp *restrict sp_lj_in,
                             const __global int *dev_nbor,
                             const __global int *dev_packed,
-                            __global acctyp4 *restrict ans,
+                            __global acctyp3 *restrict ans,
                             __global acctyp *restrict engv,
                             const int eflag, const int vflag,
                             const int inum, const int nbor_pitch,
@@ -187,7 +188,7 @@ __kernel void k_charmm_fast(const __global numtyp4 *restrict x_,
   if (tid+BLOCK_BIO_PAIR<MAX_BIO_SHARED_TYPES)
     ljd[tid+BLOCK_BIO_PAIR]=ljd_in[tid+BLOCK_BIO_PAIR];
 
-  acctyp4 f;
+  acctyp3 f;
   f.x=(acctyp)0; f.y=(acctyp)0; f.z=(acctyp)0;
   acctyp energy, e_coul, virial[6];
   if (EVFLAG) {
@@ -209,6 +210,7 @@ __kernel void k_charmm_fast(const __global numtyp4 *restrict x_,
     int itype=ix.w;
 
     for ( ; nbor<nbor_end; nbor+=n_stride) {
+      ucl_prefetch(dev_packed+nbor+n_stride);
       int j=dev_packed[nbor];
 
       numtyp factor_lj, factor_coul;

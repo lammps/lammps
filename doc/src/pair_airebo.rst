@@ -102,7 +102,7 @@ a few fitted spline values are slightly different.  For most cases the
 statistical averages as the original REBO potential from which it was
 derived.  The :math:`E^{\text{REBO}}` term in the AIREBO potential gives the model its
 reactive capabilities and only describes short-ranged C-C, C-H and H-H
-interactions (:math:`r < 2` Angstroms). These interactions have strong
+interactions (:math:`r < 2 \AA`). These interactions have strong
 coordination-dependence through a bond order parameter, which adjusts
 the attraction between the I,J atoms based on the position of other
 nearby atoms and thus has 3- and 4-body dependence.
@@ -116,13 +116,13 @@ interactions is determined by the *cutoff* argument to the pair_style
 command which is a scale factor.  For each type pair (C-C, C-H, H-H)
 the cutoff is obtained by multiplying the scale factor by the sigma
 value defined in the potential file for that type pair.  In the
-standard AIREBO potential, :math:`\sigma_{CC} = 3.4` Angstroms, so with a scale
+standard AIREBO potential, :math:`\sigma_{CC} = 3.4 \AA`, so with a scale
 factor of 3.0 (the argument in pair_style), the resulting :math:`E^{\text{LJ}}` cutoff
-would be 10.2 Angstroms.
+would be :math:`10.2 \AA`.
 
 By default, the longer-ranged interaction is smoothly switched off
 between 2.16 and 3.0 :math:`\sigma`. By specifying *cutoff_min* in addition
-to *cutoff*\ , the switching can be configured to take place between
+to *cutoff*, the switching can be configured to take place between
 *cutoff_min* and *cutoff*\ . *cutoff_min* can only be specified if all
 optional arguments are given.
 
@@ -131,7 +131,7 @@ various dihedral angle preferences in hydrocarbon configurations.
 
 ----------
 
-Only a single pair_coeff command is used with the *airebo*\ , *airebo*
+Only a single pair_coeff command is used with the *airebo*, *airebo*
 or *rebo* style which specifies an AIREBO, REBO, or AIREBO-M potential
 file with parameters for C and H.  Note that as of LAMMPS version
 15 May 2019 the *rebo* style in LAMMPS uses its own potential
@@ -142,7 +142,7 @@ where N is the number of LAMMPS atom types:
 * filename
 * :math:`N` element names = mapping of AIREBO elements to atom types
 
-See the :doc:`pair_coeff <pair_coeff>` doc page for alternate ways
+See the :doc:`pair_coeff <pair_coeff>` page for alternate ways
 to specify the path for the potential file.
 
 As an example, if your LAMMPS simulation has 4 atom types and you want
@@ -156,7 +156,7 @@ pair_coeff command:
 The first 2 arguments must be \* \* so as to span all LAMMPS atom types.
 The first three C arguments map LAMMPS atom types 1,2,3 to the C
 element in the AIREBO file.  The final H argument maps LAMMPS atom
-type 4 to the H element in the SW file.  If a mapping value is
+type 4 to the H element in the AIREBO file.  If a mapping value is
 specified as NULL, the mapping is not performed.  This can be used
 when a *airebo* potential is used as part of the *hybrid* pair style.
 The NULL values are placeholders for atom types that will be used with
@@ -211,23 +211,28 @@ script that reads a restart file.
 
 These pair styles can only be used via the *pair* keyword of the
 :doc:`run_style respa <run_style>` command.  They do not support the
-*inner* , *middle*, *outer* keywords.
+*inner*, *middle*, *outer* keywords.
 
 Restrictions
 """"""""""""
 
 These pair styles are part of the MANYBODY package.  They are only
-enabled if LAMMPS was built with that package.  See the :doc:`Build package <Build_package>` doc page for more info.
+enabled if LAMMPS was built with that package.  See the :doc:`Build package <Build_package>` page for more info.
 
 These pair potentials require the :doc:`newton <newton>` setting to be
 "on" for pair interactions.
 
-The CH.airebo and CH.airebo-m potential files provided with LAMMPS
-(see the potentials directory) are parameterized for metal :doc:`units <units>`.
-You can use the AIREBO, AIREBO-M or REBO potential with any LAMMPS units,
-but you would need to create your own AIREBO or AIREBO-M potential file
-with coefficients listed in the appropriate units, if your simulation
-does not use "metal" units.
+The CH.airebo and CH.airebo-m potential files provided with LAMMPS (see
+the potentials directory) are parameterized for metal :doc:`units
+<units>`.  You can use the pair styles with *any* LAMMPS units, but you
+would need to create your own AIREBO or AIREBO-M potential file with
+coefficients listed in the appropriate units, if your simulation does
+not use "metal" units.
+
+The pair styles provided here **only** support potential files parameterized
+for the elements carbon and hydrogen (designated with "C" and "H" in the
+*pair_coeff* command.  Using potential files for other elements will trigger
+an error.
 
 Related commands
 """"""""""""""""

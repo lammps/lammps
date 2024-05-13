@@ -1,8 +1,7 @@
-// clang-format off
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    https://www.lammps.org/, Sandia National Laboratories
-   Steve Plimpton, sjplimp@sandia.gov
+   LAMMPS development team: developers@lammps.org
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
@@ -25,7 +24,6 @@
 #include "gpu_extra.h"
 #include "memory.h"
 #include "neigh_list.h"
-#include "neigh_request.h"
 #include "neighbor.h"
 #include "suffix.h"
 
@@ -35,31 +33,25 @@ using namespace LAMMPS_NS;
 
 // External functions from cuda library for atom decomposition
 
-int table_gpu_init(const int ntypes, double **cutsq,
-                   double ***host_table_coeffs, double **host_table_data,
-                   double *special_lj, const int nlocal, const int nall,
-                   const int max_nbors, const int maxspecial,
-                   const double cell_size, int &gpu_mode, FILE *screen,
-                   int tabstyle, int ntables, int tablength);
+int table_gpu_init(const int ntypes, double **cutsq, double ***host_table_coeffs,
+                   double **host_table_data, double *special_lj, const int nlocal, const int nall,
+                   const int max_nbors, const int maxspecial, const double cell_size, int &gpu_mode,
+                   FILE *screen, int tabstyle, int ntables, int tablength);
 void table_gpu_clear();
-int ** table_gpu_compute_n(const int ago, const int inum, const int nall,
-                           double **host_x, int *host_type, double *sublo,
-                           double *subhi, tagint *tag, int **nspecial,
-                           tagint **special, const bool eflag, const bool vflag,
-                           const bool eatom, const bool vatom, int &host_start,
-                           int **ilist, int **jnum, const double cpu_time,
-                           bool &success);
-void table_gpu_compute(const int ago, const int inum, const int nall,
-                       double **host_x, int *host_type, int *ilist, int *numj,
-                       int **firstneigh, const bool eflag, const bool vflag,
-                       const bool eatom, const bool vatom, int &host_start,
+int **table_gpu_compute_n(const int ago, const int inum, const int nall, double **host_x,
+                          int *host_type, double *sublo, double *subhi, tagint *tag, int **nspecial,
+                          tagint **special, const bool eflag, const bool vflag, const bool eatom,
+                          const bool vatom, int &host_start, int **ilist, int **jnum,
+                          const double cpu_time, bool &success);
+void table_gpu_compute(const int ago, const int inum, const int nall, double **host_x,
+                       int *host_type, int *ilist, int *numj, int **firstneigh, const bool eflag,
+                       const bool vflag, const bool eatom, const bool vatom, int &host_start,
                        const double cpu_time, bool &success);
 double table_gpu_bytes();
 
 /* ---------------------------------------------------------------------- */
 
-PairTableGPU::PairTableGPU(LAMMPS *lmp) : PairTable(lmp),
-                                          gpu_mode(GPU_FORCE)
+PairTableGPU::PairTableGPU(LAMMPS *lmp) : PairTable(lmp), gpu_mode(GPU_FORCE)
 {
   respa_enable = 0;
   reinitflag = 0;
@@ -81,7 +73,7 @@ PairTableGPU::~PairTableGPU()
 
 void PairTableGPU::compute(int eflag, int vflag)
 {
-  ev_init(eflag,vflag);
+  ev_init(eflag, vflag);
 
   int nall = atom->nlocal + atom->nghost;
   int inum, host_start;
@@ -89,7 +81,7 @@ void PairTableGPU::compute(int eflag, int vflag)
   bool success = true;
   int *ilist, *numneigh, **firstneigh;
   if (gpu_mode != GPU_FORCE) {
-    double sublo[3],subhi[3];
+    double sublo[3], subhi[3];
     if (domain->triclinic == 0) {
       sublo[0] = domain->sublo[0];
       sublo[1] = domain->sublo[1];
@@ -98,31 +90,29 @@ void PairTableGPU::compute(int eflag, int vflag)
       subhi[1] = domain->subhi[1];
       subhi[2] = domain->subhi[2];
     } else {
-      domain->bbox(domain->sublo_lamda,domain->subhi_lamda,sublo,subhi);
+      domain->bbox(domain->sublo_lamda, domain->subhi_lamda, sublo, subhi);
     }
     inum = atom->nlocal;
-    firstneigh = table_gpu_compute_n(neighbor->ago, inum, nall, atom->x,
-                                     atom->type, sublo, subhi,
-                                     atom->tag, atom->nspecial, atom->special,
-                                     eflag, vflag, eflag_atom, vflag_atom,
-                                     host_start, &ilist, &numneigh, cpu_time,
-                                     success);
+    firstneigh =
+        table_gpu_compute_n(neighbor->ago, inum, nall, atom->x, atom->type, sublo, subhi, atom->tag,
+                            atom->nspecial, atom->special, eflag, vflag, eflag_atom, vflag_atom,
+                            host_start, &ilist, &numneigh, cpu_time, success);
   } else {
     inum = list->inum;
     ilist = list->ilist;
     numneigh = list->numneigh;
     firstneigh = list->firstneigh;
-    table_gpu_compute(neighbor->ago, inum, nall, atom->x, atom->type,
-                      ilist, numneigh, firstneigh, eflag, vflag, eflag_atom,
-                      vflag_atom, host_start, cpu_time, success);
+    table_gpu_compute(neighbor->ago, inum, nall, atom->x, atom->type, ilist, numneigh, firstneigh,
+                      eflag, vflag, eflag_atom, vflag_atom, host_start, cpu_time, success);
   }
-  if (!success)
-    error->one(FLERR,"Insufficient memory on accelerator");
+  if (!success) error->one(FLERR, "Insufficient memory on accelerator");
 
-  if (host_start<inum) {
-    cpu_time = MPI_Wtime();
+  if (atom->molecular != Atom::ATOMIC && neighbor->ago == 0)
+    neighbor->build_topology();
+  if (host_start < inum) {
+    cpu_time = platform::walltime();
     cpu_compute(host_start, inum, eflag, vflag, ilist, numneigh, firstneigh);
-    cpu_time = MPI_Wtime() - cpu_time;
+    cpu_time = platform::walltime() - cpu_time;
   }
 }
 
@@ -132,8 +122,6 @@ void PairTableGPU::compute(int eflag, int vflag)
 
 void PairTableGPU::init_style()
 {
-  if (force->newton_pair)
-    error->all(FLERR,"Pair style table/gpu requires newton pair off");
 
   int ntypes = atom->ntypes;
 
@@ -143,10 +131,9 @@ void PairTableGPU::init_style()
   for (int i = 1; i <= atom->ntypes; i++) {
     for (int j = i; j <= atom->ntypes; j++) {
       if (setflag[i][j] != 0 || (setflag[i][i] != 0 && setflag[j][j] != 0)) {
-        cut = init_one(i,j);
+        cut = init_one(i, j);
         cut *= cut;
-        if (cut > maxcut)
-          maxcut = cut;
+        if (cut > maxcut) maxcut = cut;
         cutsq[i][j] = cutsq[j][i] = cut;
       } else
         cutsq[i][j] = cutsq[j][i] = 0.0;
@@ -157,7 +144,7 @@ void PairTableGPU::init_style()
   // pack tables and send them to device
   double ***table_coeffs = nullptr;
   double **table_data = nullptr;
-  memory->create(table_coeffs, ntypes+1, ntypes+1, 6, "table:coeffs");
+  memory->create(table_coeffs, ntypes + 1, ntypes + 1, 6, "table:coeffs");
 
   Table *tb;
   for (int i = 1; i <= atom->ntypes; i++)
@@ -173,67 +160,60 @@ void PairTableGPU::init_style()
     }
 
   if (tabstyle != BITMAP) {
-    memory->create(table_data, ntables, 6*tablength, "table:data");
+    memory->create(table_data, ntables, 6 * tablength, "table:data");
     for (int n = 0; n < ntables; n++) {
       tb = &tables[n];
       if (tabstyle == LOOKUP) {
-        for (int k = 0; k<tablength-1; k++) {
-          table_data[n][6*k+1] = tb->e[k];
-          table_data[n][6*k+2] = tb->f[k];
+        for (int k = 0; k < tablength - 1; k++) {
+          table_data[n][6 * k + 1] = tb->e[k];
+          table_data[n][6 * k + 2] = tb->f[k];
         }
       } else if (tabstyle == LINEAR) {
-        for (int k = 0; k<tablength; k++) {
-          table_data[n][6*k+0] = tb->rsq[k];
-          table_data[n][6*k+1] = tb->e[k];
-          table_data[n][6*k+2] = tb->f[k];
-          if (k<tablength-1) {
-            table_data[n][6*k+3] = tb->de[k];
-            table_data[n][6*k+4] = tb->df[k];
+        for (int k = 0; k < tablength; k++) {
+          table_data[n][6 * k + 0] = tb->rsq[k];
+          table_data[n][6 * k + 1] = tb->e[k];
+          table_data[n][6 * k + 2] = tb->f[k];
+          if (k < tablength - 1) {
+            table_data[n][6 * k + 3] = tb->de[k];
+            table_data[n][6 * k + 4] = tb->df[k];
           }
-       }
+        }
       } else if (tabstyle == SPLINE) {
-        for (int k = 0; k<tablength; k++) {
-          table_data[n][6*k+0] = tb->rsq[k];
-          table_data[n][6*k+1] = tb->e[k];
-          table_data[n][6*k+2] = tb->f[k];
-          table_data[n][6*k+3] = tb->e2[k];
-          table_data[n][6*k+4] = tb->f2[k];
+        for (int k = 0; k < tablength; k++) {
+          table_data[n][6 * k + 0] = tb->rsq[k];
+          table_data[n][6 * k + 1] = tb->e[k];
+          table_data[n][6 * k + 2] = tb->f[k];
+          table_data[n][6 * k + 3] = tb->e2[k];
+          table_data[n][6 * k + 4] = tb->f2[k];
         }
       }
     }
   } else {
     int ntable = 1 << tablength;
-    memory->create(table_data, ntables, 6*ntable, "table:data");
+    memory->create(table_data, ntables, 6 * ntable, "table:data");
 
     for (int n = 0; n < ntables; n++) {
       tb = &tables[n];
-      for (int k = 0; k<ntable; k++) {
-        table_data[n][6*k+0] = tb->rsq[k];
-        table_data[n][6*k+1] = tb->e[k];
-        table_data[n][6*k+2] = tb->f[k];
-        table_data[n][6*k+3] = tb->de[k];
-        table_data[n][6*k+4] = tb->df[k];
-        table_data[n][6*k+5] = tb->drsq[k];
+      for (int k = 0; k < ntable; k++) {
+        table_data[n][6 * k + 0] = tb->rsq[k];
+        table_data[n][6 * k + 1] = tb->e[k];
+        table_data[n][6 * k + 2] = tb->f[k];
+        table_data[n][6 * k + 3] = tb->de[k];
+        table_data[n][6 * k + 4] = tb->df[k];
+        table_data[n][6 * k + 5] = tb->drsq[k];
       }
     }
   }
 
-  int maxspecial=0;
-  if (atom->molecular != Atom::ATOMIC)
-    maxspecial=atom->maxspecial;
+  int maxspecial = 0;
+  if (atom->molecular != Atom::ATOMIC) maxspecial = atom->maxspecial;
   int mnf = 5e-2 * neighbor->oneatom;
-  int success = table_gpu_init(atom->ntypes+1, cutsq, table_coeffs, table_data,
-                               force->special_lj, atom->nlocal,
-                               atom->nlocal+atom->nghost, mnf, maxspecial,
-                               cell_size, gpu_mode, screen, tabstyle, ntables,
-                               tablength);
-  GPU_EXTRA::check_flag(success,error,world);
+  int success = table_gpu_init(atom->ntypes + 1, cutsq, table_coeffs, table_data, force->special_lj,
+                               atom->nlocal, atom->nlocal + atom->nghost, mnf, maxspecial,
+                               cell_size, gpu_mode, screen, tabstyle, ntables, tablength);
+  GPU_EXTRA::check_flag(success, error, world);
 
-  if (gpu_mode == GPU_FORCE) {
-    int irequest = neighbor->request(this,instance_me);
-    neighbor->requests[irequest]->half = 0;
-    neighbor->requests[irequest]->full = 1;
-  }
+  if (gpu_mode == GPU_FORCE) neighbor->add_request(this, NeighConst::REQ_FULL);
   memory->destroy(table_coeffs);
   memory->destroy(table_data);
 }
@@ -248,11 +228,12 @@ double PairTableGPU::memory_usage()
 
 /* ---------------------------------------------------------------------- */
 
-void PairTableGPU::cpu_compute(int start, int inum, int eflag, int /* vflag */,
-                               int *ilist, int *numneigh, int **firstneigh) {
-  int i,j,ii,jj,jnum,itype,jtype,itable;
-  double xtmp,ytmp,ztmp,delx,dely,delz,evdwl,fpair;
-  double rsq,factor_lj,fraction,value,a,b;
+void PairTableGPU::cpu_compute(int start, int inum, int eflag, int /* vflag */, int *ilist,
+                               int *numneigh, int **firstneigh)
+{
+  int i, j, ii, jj, jnum, itype, jtype, itable;
+  double xtmp, ytmp, ztmp, delx, dely, delz, evdwl, fpair;
+  double rsq, factor_lj, fraction, value, a, b;
   int *jlist;
   Table *tb;
 
@@ -283,62 +264,58 @@ void PairTableGPU::cpu_compute(int start, int inum, int eflag, int /* vflag */,
       delx = xtmp - x[j][0];
       dely = ytmp - x[j][1];
       delz = ztmp - x[j][2];
-      rsq = delx*delx + dely*dely + delz*delz;
+      rsq = delx * delx + dely * dely + delz * delz;
       jtype = type[j];
 
       if (rsq < cutsq[itype][jtype]) {
         tb = &tables[tabindex[itype][jtype]];
-        if (rsq < tb->innersq)
-          error->one(FLERR,"Pair distance < table inner cutoff");
+        if (rsq < tb->innersq) error->one(FLERR, "Pair distance < table inner cutoff");
 
         if (tabstyle == LOOKUP) {
-          itable = static_cast<int> ((rsq - tb->innersq) * tb->invdelta);
-          if (itable >= tlm1)
-            error->one(FLERR,"Pair distance > table outer cutoff");
+          itable = static_cast<int>((rsq - tb->innersq) * tb->invdelta);
+          if (itable >= tlm1) error->one(FLERR, "Pair distance > table outer cutoff");
           fpair = factor_lj * tb->f[itable];
         } else if (tabstyle == LINEAR) {
-          itable = static_cast<int> ((rsq - tb->innersq) * tb->invdelta);
-          if (itable >= tlm1)
-            error->one(FLERR,"Pair distance > table outer cutoff");
+          itable = static_cast<int>((rsq - tb->innersq) * tb->invdelta);
+          if (itable >= tlm1) error->one(FLERR, "Pair distance > table outer cutoff");
           fraction = (rsq - tb->rsq[itable]) * tb->invdelta;
-          value = tb->f[itable] + fraction*tb->df[itable];
+          value = tb->f[itable] + fraction * tb->df[itable];
           fpair = factor_lj * value;
         } else if (tabstyle == SPLINE) {
-          itable = static_cast<int> ((rsq - tb->innersq) * tb->invdelta);
-          if (itable >= tlm1)
-            error->one(FLERR,"Pair distance > table outer cutoff");
+          itable = static_cast<int>((rsq - tb->innersq) * tb->invdelta);
+          if (itable >= tlm1) error->one(FLERR, "Pair distance > table outer cutoff");
           b = (rsq - tb->rsq[itable]) * tb->invdelta;
           a = 1.0 - b;
-          value = a * tb->f[itable] + b * tb->f[itable+1] +
-            ((a*a*a-a)*tb->f2[itable] + (b*b*b-b)*tb->f2[itable+1]) *
-            tb->deltasq6;
+          value = a * tb->f[itable] + b * tb->f[itable + 1] +
+              ((a * a * a - a) * tb->f2[itable] + (b * b * b - b) * tb->f2[itable + 1]) *
+                  tb->deltasq6;
           fpair = factor_lj * value;
         } else {
           rsq_lookup.f = rsq;
           itable = rsq_lookup.i & tb->nmask;
           itable >>= tb->nshiftbits;
           fraction = (rsq_lookup.f - tb->rsq[itable]) * tb->drsq[itable];
-          value = tb->f[itable] + fraction*tb->df[itable];
+          value = tb->f[itable] + fraction * tb->df[itable];
           fpair = factor_lj * value;
         }
 
-        f[i][0] += delx*fpair;
-        f[i][1] += dely*fpair;
-        f[i][2] += delz*fpair;
+        f[i][0] += delx * fpair;
+        f[i][1] += dely * fpair;
+        f[i][2] += delz * fpair;
 
         if (eflag) {
           if (tabstyle == LOOKUP)
             evdwl = tb->e[itable];
           else if (tabstyle == LINEAR || tabstyle == BITMAP)
-            evdwl = tb->e[itable] + fraction*tb->de[itable];
+            evdwl = tb->e[itable] + fraction * tb->de[itable];
           else
-            evdwl = a * tb->e[itable] + b * tb->e[itable+1] +
-              ((a*a*a-a)*tb->e2[itable] + (b*b*b-b)*tb->e2[itable+1]) *
-              tb->deltasq6;
+            evdwl = a * tb->e[itable] + b * tb->e[itable + 1] +
+                ((a * a * a - a) * tb->e2[itable] + (b * b * b - b) * tb->e2[itable + 1]) *
+                    tb->deltasq6;
           evdwl *= factor_lj;
         }
 
-        if (evflag) ev_tally_full(i,evdwl,0.0,fpair,delx,dely,delz);
+        if (evflag) ev_tally_full(i, evdwl, 0.0, fpair, delx, dely, delz);
       }
     }
   }

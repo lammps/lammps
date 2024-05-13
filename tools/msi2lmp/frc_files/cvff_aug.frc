@@ -78,7 +78,7 @@
 !                                                                   !
 !  This is a modified version of cvff forcefield which includes     !
 !  Many new atom types for simulations of zeolites and              !
-!  related compounds. While every effort has been made to insure    !
+!  related compounds. While every effort has been made to ensure    !
 !  reliability of this forcefield, many of the parameters for this  !
 !  forcefield are still going under extensive testing. Please       !
 !  report both successful applications and problems with this       !

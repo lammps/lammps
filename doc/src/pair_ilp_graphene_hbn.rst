@@ -1,7 +1,10 @@
 .. index:: pair_style ilp/graphene/hbn
+.. index:: pair_style ilp/graphene/hbn/opt
 
 pair_style ilp/graphene/hbn command
 ===================================
+
+Accelerator Variant: *ilp/graphene/hbn/opt*
 
 Syntax
 """"""
@@ -77,7 +80,7 @@ calculating the normals.
 
 The parameter file (e.g. BNCH.ILP), is intended for use with *metal*
 :doc:`units <units>`, with energies in meV. Two additional parameters,
-*S*\ , and *rcut* are included in the parameter file. *S* is designed to
+*S*, and *rcut* are included in the parameter file. *S* is designed to
 facilitate scaling of energies. *rcut* is designed to build the neighbor
 list for calculating the normals for each atom pair.
 
@@ -125,6 +128,10 @@ headings) the following commands could be included in an input script:
 
 ----------
 
+.. include:: accel_styles.rst
+
+----------
+
 Mixing, shift, table, tail correction, restart, rRESPA info
 """""""""""""""""""""""""""""""""""""""""""""""""""""""""""
 
@@ -139,16 +146,17 @@ that reads a restart file.
 Restrictions
 """"""""""""
 
-This fix is part of the USER-MISC package.  It is only enabled if
-LAMMPS was built with that package.  See the :doc:`Build package <Build_package>` doc page for more info.
+This pair style is part of the INTERLAYER package.  It is only enabled
+if LAMMPS was built with that package.  See the :doc:`Build package
+<Build_package>` page for more info.
 
-This pair potential requires the newton setting to be *on* for pair
+This pair style requires the newton setting to be *on* for pair
 interactions.
 
 The BNCH.ILP potential file provided with LAMMPS (see the potentials
 directory) are parameterized for *metal* units.  You can use this
-potential with any LAMMPS units, but you would need to create your
-BNCH.ILP potential file with coefficients listed in the appropriate
+potential with any LAMMPS units, but you would need to create your own
+custom BNCH.ILP potential file with coefficients listed in the appropriate
 units, if your simulation does not use *metal* units.
 
 Related commands
@@ -158,6 +166,8 @@ Related commands
 :doc:`pair_none <pair_none>`,
 :doc:`pair_style hybrid/overlay <pair_hybrid>`,
 :doc:`pair_style drip <pair_drip>`,
+:doc:`pair_style ilp_tmd <pair_ilp_tmd>`,
+:doc:`pair_style saip_metal <pair_saip_metal>`,
 :doc:`pair_style pair_kolmogorov_crespi_z <pair_kolmogorov_crespi_z>`,
 :doc:`pair_style pair_kolmogorov_crespi_full <pair_kolmogorov_crespi_full>`,
 :doc:`pair_style pair_lebedeva_z <pair_lebedeva_z>`,
@@ -170,6 +180,14 @@ tap_flag = 1
 
 
 ----------
+
+.. _Ouyang1:
+
+**(Ouyang1)** W. Ouyang, D. Mandelli, M. Urbakh and O. Hod, Nano Lett. 18, 6009-6016 (2018).
+
+.. _Ouyang2:
+
+**(Ouyang2)** W. Ouyang et al., J. Chem. Theory Comput. 16(1), 666-676 (2020).
 
 .. _Leven1:
 
@@ -186,11 +204,3 @@ tap_flag = 1
 .. _Kolmogorov2:
 
 **(Kolmogorov)** A. N. Kolmogorov, V. H. Crespi, Phys. Rev. B 71, 235415 (2005).
-
-.. _Ouyang1:
-
-**(Ouyang1)** W. Ouyang, D. Mandelli, M. Urbakh and O. Hod, Nano Lett. 18, 6009-6016 (2018).
-
-.. _Ouyang2:
-
-**(Ouyang2)** W. Ouyang et al., J. Chem. Theory Comput. 16(1), 666-676 (2020).

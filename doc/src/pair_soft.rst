@@ -41,11 +41,12 @@ Style *soft* computes pairwise interactions with the formula
    \qquad r < r_c
 
 It is useful for pushing apart overlapping atoms, since it does not
-blow up as r goes to 0.  A is a pre-factor that can be made to vary in
+blow up as r goes to 0.  A is a prefactor that can be made to vary in
 time from the start to the end of the run (see discussion below),
 e.g. to start with a very soft potential and slowly harden the
-interactions over time.  Rc is the cutoff.  See the :doc:`fix nve/limit <fix_nve_limit>` command for another way to push apart
-overlapping atoms.
+interactions over time.  :math:`r_c` is the cutoff.
+See the :doc:`fix nve/limit <fix_nve_limit>` command for another way
+to push apart overlapping atoms.
 
 The following coefficients must be defined for each pair of atom types
 via the :doc:`pair_coeff <pair_coeff>` command as in the examples above,
@@ -113,7 +114,7 @@ to be specified in an input script that reads a restart file.
 
 This pair style can only be used via the *pair* keyword of the
 :doc:`run_style respa <run_style>` command.  It does not support the
-*inner*\ , *middle*\ , *outer* keywords.
+*inner*, *middle*, *outer* keywords.
 
 ----------
 

@@ -1,7 +1,7 @@
 /* -*- c++ -*- ----------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    https://www.lammps.org/, Sandia National Laboratories
-   Steve Plimpton, sjplimp@sandia.gov
+   LAMMPS development team: developers@lammps.org
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
@@ -27,7 +27,7 @@ namespace LAMMPS_NS {
 class DumpLocal : public Dump {
  public:
   DumpLocal(LAMMPS *, int, char **);
-  virtual ~DumpLocal();
+  ~DumpLocal() override;
 
  protected:
   int nevery;     // dump frequency to check Fix against
@@ -38,6 +38,7 @@ class DumpLocal : public Dump {
   char **vformat;    // format string for each vector element
 
   char *columns;    // column labels
+  char *columns_default;
 
   int nfield;    // # of keywords listed by user
 
@@ -53,13 +54,13 @@ class DumpLocal : public Dump {
   char **id_fix;      // their IDs
   class Fix **fix;    // list of ptrs to the Fix objects
 
-  void init_style();
-  int modify_param(int, char **);
-  virtual void write_header(bigint);
-  int count();
-  void pack(tagint *);
-  int convert_string(int, double *);
-  virtual void write_data(int, double *);
+  void init_style() override;
+  int modify_param(int, char **) override;
+  void write_header(bigint) override;
+  int count() override;
+  void pack(tagint *) override;
+  int convert_string(int, double *) override;
+  void write_data(int, double *) override;
 
   void parse_fields(int, char **);
   int add_compute(const char *);
@@ -84,91 +85,3 @@ class DumpLocal : public Dump {
 
 #endif
 #endif
-
-/* ERROR/WARNING messages:
-
-E: No dump local arguments specified
-
-Self-explanatory.
-
-E: Illegal ... command
-
-Self-explanatory.  Check the input script syntax and compare to the
-documentation for the command.  You can use -echo screen as a
-command-line option when running LAMMPS to see the offending line.
-
-E: Binary files are not supported with dump local
-
-UNDOCUMENTED
-
-E: Dump local cannot sort by atom ID
-
-This is because dump local does not really dump per-atom info.
-
-E: Dump_modify format line is too short
-
-UNDOCUMENTED
-
-E: Could not find dump local compute ID
-
-Self-explanatory.
-
-E: Could not find dump local fix ID
-
-Self-explanatory.
-
-E: Dump local and fix not computed at compatible times
-
-The fix must produce per-atom quantities on timesteps that dump local
-needs them.
-
-E: Compute used in dump between runs is not current
-
-The compute was not invoked on the current timestep, therefore it
-cannot be used in a dump between runs.
-
-E: Dump local count is not consistent across input fields
-
-Every column of output must be the same length.
-
-E: Invalid attribute in dump local command
-
-Self-explanatory.
-
-E: Dump local compute does not compute local info
-
-Self-explanatory.
-
-E: Dump local compute does not calculate local vector
-
-Self-explanatory.
-
-E: Dump local compute does not calculate local array
-
-Self-explanatory.
-
-E: Dump local compute vector is accessed out-of-range
-
-Self-explanatory.
-
-E: Dump local fix does not compute local info
-
-Self-explanatory.
-
-E: Dump local fix does not compute local vector
-
-Self-explanatory.
-
-E: Dump local fix does not compute local array
-
-Self-explanatory.
-
-E: Dump local fix vector is accessed out-of-range
-
-Self-explanatory.
-
-E: Dump local attributes contain no compute or fix
-
-Self-explanatory.
-
-*/

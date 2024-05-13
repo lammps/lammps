@@ -1,11 +1,11 @@
-.TH MSI2LMP "v3.9.9" "2018-11-05"
+.TH MSI2LMP "1" "v3.9.10" "2023-03-10"
 .SH NAME
 .B MSI2LMP
 \- Converter for Materials Studio files to LAMMPS
 
 .SH SYNOPSIS
 .B msi2lmp
-<ROOTNAME> [-class <I|1|II|2|O|0>] [-frc <path to frc file>] [-print #] [-ignore] [-nocenter] [-oldstyle] [-shift <x> <y> <z>]
+[-help] <ROOTNAME> [-class <I|1|II|2|O|0>] [-frc <path to frc file>] [-print #] [-ignore] [-nocenter] [-oldstyle] [-shift <x> <y> <z>]
 
 .SH DESCRIPTION
 .PP
@@ -21,6 +21,9 @@ needed between .frc and .car/.mdf files are the atom types.
 .PP
 
 .SH OPTIONS
+.TP
+\fB\-h\fR, \fB\-help\fR,
+Print detailed help message to the screen and stop.
 .TP
 \fB\<ROOTNAME>\fR
 This has to be the first argument and is a
@@ -98,7 +101,7 @@ msi2lmp decane -c 0 -f oplsaa
 
 
 .SH COPYRIGHT
-© 2003--2019 Sandia Corporation
+© 2003--2022 Sandia Corporation
 
 This package is free software; you can redistribute it and/or modify
 it under the terms of the GNU General Public License version 2 as

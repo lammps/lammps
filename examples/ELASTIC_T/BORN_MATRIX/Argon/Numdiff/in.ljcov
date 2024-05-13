@@ -1,0 +1,154 @@
+# Numerical difference calculation
+# of Born matrix
+
+# Note that because of cubic symmetry and central forces, we have:
+# C11, pure axial == positive mean value: 1,2,3
+# C44==C23, pure shear == positive mean value, exactly match in pairs: (4,12),(5,8),(6,7)
+# C14==C56, shear/axial(normal) == zero mean, exactly match in pairs: (9,21),(14,20),(18,19)
+# C15, shear/axial(in-plane) == zero mean: 10,11,13,15,16,17
+
+# adjustable parameters
+
+units           real
+variable        nsteps index 100000    # length of run
+variable        nthermo index  1000    # thermo output interval 
+variable        nlat equal 5           # size of box
+variable        T    equal 60.         # Temperature in K
+variable        rho  equal 5.405       # Lattice spacing in A
+
+atom_style      atomic
+
+lattice         fcc ${rho}
+region          box block 0 ${nlat} 0 ${nlat} 0 ${nlat}
+create_box      1 box
+create_atoms    1 box
+
+mass            * 39.948
+
+velocity        all create ${T} 87287 loop geom
+velocity        all zero linear
+
+pair_style      lj/cut 12.0
+pair_coeff      1 1 0.238067 3.405
+
+neighbor        0.0 bin
+neigh_modify    every 1 delay 0 check no
+
+variable vol equal vol
+thermo 100
+fix aL all ave/time 1 1 1 v_vol ave running
+fix NPT all npt temp $T $T 100 aniso 1. 1. 1000 fixedpoint 0. 0. 0.
+
+run 20000
+
+unfix NPT
+
+variable newL equal "f_aL^(1./3.)"
+change_box all x final 0 ${newL} y final 0. ${newL} z final 0. ${newL} remap units box
+
+unfix aL
+
+reset_timestep 0
+
+# Conversion variables
+variable kb        equal 1.38065e-23    # J/K
+variable Myvol     equal "vol*10^-30" # Volume in m^3
+variable kbt       equal "v_kb*v_T"
+variable Nat       equal atoms
+variable Rhokbt    equal "v_kbt*v_Nat/v_Myvol"
+variable at2Pa     equal 101325
+variable kcalmol2J equal "4183.9954/(6.022e23)"
+variable C1        equal "v_kcalmol2J/v_Myvol" # Convert Cb from energy to pressure units
+variable C2        equal "v_Myvol/v_kbt"       # Factor for Cfl terms
+variable Pa2GPa    equal 1e-9
+
+# Born compute giving <C^b> terms
+# The six virial stress component to compute <C^fl>
+compute     VIR all pressure NULL virial
+compute     born all born/matrix numdiff 1e-6 VIR
+variable s1 equal "-c_VIR[1]*v_at2Pa"
+variable s2 equal "-c_VIR[2]*v_at2Pa"
+variable s3 equal "-c_VIR[3]*v_at2Pa"
+variable s6 equal "-c_VIR[4]*v_at2Pa"
+variable s5 equal "-c_VIR[5]*v_at2Pa"
+variable s4 equal "-c_VIR[6]*v_at2Pa"
+variable press equal press
+
+
+# Average of Born term and vector to store stress
+# for post processing
+fix CB all ave/time 1 ${nthermo} ${nthermo} c_born[*] ave running file born.out overwrite
+fix CPR all ave/time 1 1 1 c_VIR[*] file vir.out
+fix APR all ave/time 1 1 1 v_press ave running
+fix VEC all vector 1 v_s1 v_s2 v_s3 v_s4 v_s5 v_s6
+
+thermo      ${nthermo}
+thermo_style    custom step temp press f_APR c_born[1] f_CB[1] c_born[12] f_CB[12] c_born[4] f_CB[4]
+thermo_modify line multi
+
+fix     1 all nvt temp $T $T 100
+
+run         ${nsteps}
+
+# Compute vector averages
+# Note the indice switch.
+# LAMMPS convention is NOT the Voigt notation.
+variable aves1 equal "ave(f_VEC[1])"
+variable aves2 equal "ave(f_VEC[2])"
+variable aves3 equal "ave(f_VEC[3])"
+variable aves4 equal "ave(f_VEC[6])"
+variable aves5 equal "ave(f_VEC[5])"
+variable aves6 equal "ave(f_VEC[4])"
+
+# Computing the covariance through the <s_{i}s_{j}>-<s_i><s_j>
+# is numerically instable. Here we go through the <(s-<s>)^2>
+# definition.
+
+# Computing difference relative to average values
+variable ds1 vector "f_VEC[1]-v_aves1"
+variable ds2 vector "f_VEC[2]-v_aves2"
+variable ds3 vector "f_VEC[3]-v_aves3"
+variable ds4 vector "f_VEC[4]-v_aves4"
+variable ds5 vector "f_VEC[5]-v_aves5"
+variable ds6 vector "f_VEC[6]-v_aves6"
+
+# Squaring and averaging
+variable dds1 vector "v_ds1*v_ds1"
+variable dds2 vector "v_ds2*v_ds2"
+variable dds3 vector "v_ds3*v_ds3"
+variable vars1 equal "ave(v_dds1)"
+variable vars2 equal "ave(v_dds2)"
+variable vars3 equal "ave(v_dds3)"
+variable C11 equal "v_Pa2GPa*(v_C1*f_CB[1] - v_C2*v_vars1 + 2*v_Rhokbt)"
+variable C22 equal "v_Pa2GPa*(v_C1*f_CB[2] - v_C2*v_vars2 + 2*v_Rhokbt)"
+variable C33 equal "v_Pa2GPa*(v_C1*f_CB[3] - v_C2*v_vars3 + 2*v_Rhokbt)"
+
+variable dds12 vector "v_ds1*v_ds2"
+variable dds13 vector "v_ds1*v_ds3"
+variable dds23 vector "v_ds2*v_ds3"
+variable vars12 equal "ave(v_dds12)"
+variable vars13 equal "ave(v_dds13)"
+variable vars23 equal "ave(v_dds23)"
+variable C12 equal "v_Pa2GPa*(v_C1*f_CB[7] - v_C2*v_vars12)"
+variable C13 equal "v_Pa2GPa*(v_C1*f_CB[8] - v_C2*v_vars13)"
+variable C23 equal "v_Pa2GPa*(v_C1*f_CB[12] - v_C2*v_vars23)"
+
+variable dds4 vector "v_ds4*v_ds4"
+variable dds5 vector "v_ds5*v_ds5"
+variable dds6 vector "v_ds6*v_ds6"
+variable vars4 equal "ave(v_dds4)"
+variable vars5 equal "ave(v_dds5)"
+variable vars6 equal "ave(v_dds6)"
+variable C44 equal "v_Pa2GPa*(v_C1*f_CB[4] - v_C2*v_vars4 + v_Rhokbt)"
+variable C55 equal "v_Pa2GPa*(v_C1*f_CB[5] - v_C2*v_vars5 + v_Rhokbt)"
+variable C66 equal "v_Pa2GPa*(v_C1*f_CB[6] - v_C2*v_vars6 + v_Rhokbt)"
+
+variable aC11 equal "(v_C11 + v_C22 + v_C33)/3."
+variable aC12 equal "(v_C12 + v_C13 + v_C23)/3."
+variable aC44 equal "(v_C44 + v_C55 + v_C66)/3."
+
+print """
+C11 = ${aC11}
+C12 = ${aC12}
+C44 = ${aC44}
+"""

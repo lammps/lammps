@@ -1,7 +1,7 @@
 /* -*- c++ -*- ----------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    https://www.lammps.org/, Sandia National Laboratories
-   Steve Plimpton, sjplimp@sandia.gov
+   LAMMPS development team: developers@lammps.org
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
@@ -27,10 +27,10 @@ namespace LAMMPS_NS {
 class FixTFMC : public Fix {
  public:
   FixTFMC(class LAMMPS *, int, char **);
-  ~FixTFMC();
-  int setmask();
-  void init();
-  void initial_integrate(int);
+  ~FixTFMC() override;
+  int setmask() override;
+  void init() override;
+  void initial_integrate(int) override;
 
  private:
   double d_max;
@@ -48,29 +48,3 @@ class FixTFMC : public Fix {
 
 #endif
 #endif
-
-/* ERROR/WARNING messages:
-
-E: Illegal ... command
-
-Self-explanatory.  Check the input script syntax and compare to the
-documentation for the command.  You can use -echo screen as a
-command-line option when running LAMMPS to see the offending line.
-
-E: Fix tfmc displacement length must be > 0
-
-Self-explanatory.
-
-E: Fix tfmc temperature must be > 0
-
-Self-explanatory.
-
-E: Illegal fix tfmc random seed
-
-Seeds can only be nonzero positive integers.
-
-E: Fix tfmc is not compatible with fix shake
-
-These two commands cannot currently be used together.
-
-*/

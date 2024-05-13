@@ -4,13 +4,13 @@
 
 // Calculates  derivative overlap matrix IDD
 void OverlapDeriv::calc_der_overlap(bool self, cdouble cc1, cdouble c2){
-  cVector_3 I3 = I1 * ((bb_4a + 2.5) / w12.a); 
+  cVector_3 I3 = I1 * ((bb_4a + 2.5) / w12.a);
   cdouble   I4 = I0 * ( bb_4a *(bb_4a + 5.) + 3.75 ) / w12.a / w12.a;
 
   // calculate derivatives <(phi_k)'_q_k | (phi_l)'_q_l>:
   IDD.set(0, 0, I4 - (d1.l + d2.l)*I2 + d1.l*d2.l*I0 );                // over a_k_re and a_l_re
   IDD.set(0, 1, i_unit*( I4 - (d1.l + d2.m)*I2 + d1.l*d2.m*I0 ) );   // over a_k_re and a_l_im
-  if(!self) 
+  if(!self)
     IDD.set(1, 0, i_unit1*( I4 + (d1.m - d2.l)*I2 - d1.m*d2.l*I0 ) );  // over a_k_im and a_l_re
   else
     IDD.set(1,0, conj(IDD(0,1)));
@@ -33,7 +33,7 @@ void OverlapDeriv::calc_der_overlap(bool self, cdouble cc1, cdouble c2){
       IDD.set((i+1)*2, 1, conj(IDD(1,(i+1)*2)) ); // over b_k_re and a_l_im
       IDD.set((i+1)*2+1, 1, conj(IDD(1,(i+1)*2+1)) );            // over b_k_im and a_l_im
     }
-    
+
     for(int j=0;j<3;j++){
       if(!self || j>=i){
         cdouble I2ij = I0 / w12.a *
@@ -62,10 +62,10 @@ void OverlapDeriv::calc_der_overlap(bool self, cdouble cc1, cdouble c2){
         IDD.set((j+1)*2+1,(i+1)*2+1, conj(IDD((i+1)*2+1,(j+1)*2+1 )) );
       }
     } // j
-  } // i   
+  } // i
 
   if(real(cc1)){ // adding terms for split-packet
-    
+
     IDD.set(8, 0, c2*da2_re() );   // over c_1_re and a_2_re
     IDD.set(8, 1, c2*da2_im() );   // over c_1_re and a_2_im
     IDD.set(9, 0, -i_unit*c2*da2_re() );   // over c_1_im and a_2_re
@@ -105,7 +105,7 @@ WavePacket AWPMD::create_wp(Vector_3 &x, Vector_3 &v, double &w, double &pw, dou
       w=w0;
     pw=0.;
   }
-  
+
   double rw;
   if(Lextra>0){ // width PBC, keeping the width are within [0,Lextra]
     w=fmod(w,Lextra);
@@ -139,11 +139,11 @@ void AWPMD::resize(int flag){
       M[s].init(ne[s],nvar[s]);
       L[s].init(ne[s],nvar[s]);
     }
-  }  
+  }
   Eiep.assign((size_t)ni,0);
   Eiip.assign((size_t)ni,0);
 
-  
+
 }
 
 
@@ -153,7 +153,7 @@ void AWPMD::resize(int flag){
 //e                  0x4 -- PBC along Z
 //e cell specifies the lengths of the simulation box in all directions
 //e if PBCs are used, the corresponding coordinates of electrons and ions
-//e in periodic directions must be within a range  [0, cell[per_dir]) 
+//e in periodic directions must be within a range  [0, cell[per_dir])
 //e @returns 1 if OK
 int AWPMD::set_pbc(const Vector_3P pcell, int pbc_){
   if(!pcell)
@@ -212,9 +212,9 @@ int AWPMD::set_ions(int n, double* q, Vector_3P x)
 }
 
 //e same as interaction, but using Hartee factorization (no antisymmetrization)
-int  AWPMD::interaction_hartree(int flag, Vector_3P fi, Vector_3P fe_x, 
+int  AWPMD::interaction_hartree(int flag, Vector_3P fi, Vector_3P fe_x,
                                       Vector_3P fe_p, double *fe_w, double *fe_pw, Vector_2P fe_c){
-   
+
   // 0. resizing the arrays if needed
   enum APPROX tmp=HARTREE;
   swap(tmp,approx); // do not need large matrices
@@ -222,7 +222,7 @@ int  AWPMD::interaction_hartree(int flag, Vector_3P fi, Vector_3P fe_x,
   swap(tmp,approx);
   //1. clearing forces
   clear_forces(flag,fi,fe_x,fe_p,fe_w,fe_pw,fe_c);
-  
+
   Eee = Ew = 0.;
   for(int s1=0;s1<2;s1++){
     Ee[s1]=0.;
@@ -246,9 +246,9 @@ int  AWPMD::interaction_hartree(int flag, Vector_3P fi, Vector_3P fe_x,
       if(constraint == HARM) Ew += harm_w0_4 * w1*w1;
       // width force contribution
       //double dE=2*Epot/w;
-      //if(d->fw1)d->fw1[c1]+=dE;  
+      //if(d->fw1)d->fw1[c1]+=dE;
       //if(fw2 && fw2!=fw1)fw2[c1]+=dE;
-      
+
       // e-e interaction
       for(int s2=s1;s2<2;s2++){
         for(int c2=(s1==s2 ? c1+1 : 0) ;c2<ne[s2];c2++){
@@ -271,7 +271,7 @@ int  AWPMD::interaction_hartree(int flag, Vector_3P fi, Vector_3P fe_x,
           //double erfa=erf(arg);
           double Epot=coul_pref*erf_div(r12,1./argw);   //erfa/r12;
           Eee+=Epot;
-          
+
           // force contribution
           /*double dEw=coul_pref*two_over_sqr_pi*exp(-arg*arg)/argw;
           double dEpot=(Epot-dEw)/r12;
@@ -283,7 +283,7 @@ int  AWPMD::interaction_hartree(int flag, Vector_3P fi, Vector_3P fe_x,
             if(d->fw2){
               d->fw2[c2]+=sgn2*dEw*w2;
             }
-          }*/   
+          }*/
         }
       }
       // e-i interaction
@@ -328,14 +328,14 @@ int  AWPMD::interaction_hartree(int flag, Vector_3P fi, Vector_3P fe_x,
 //e initializes internal buffers for calculations (set_electrons must be called first)
 //int init(){}
 
-//e calculates interaction in the system of ni ions + electrons 
+//e calculates interaction in the system of ni ions + electrons
 //e the electonic subsystem must be previously setup by set_electrons, ionic by set_ions
 //e the iterators are describing ionic system only
 // 0x1 -- give back ion forces
 // 0x2 -- add ion forces to the existing set
 // 0x4 -- calculate derivatives for electronic time step (NOT IMPLEMENTED)
 //e if PBCs are used the coords must be within a range [0, cell)
-int AWPMD::interaction(int flag, Vector_3P fi, Vector_3P fe_x, 
+int AWPMD::interaction(int flag, Vector_3P fi, Vector_3P fe_x,
                                  Vector_3P fe_p, double *fe_w, double *fe_pw, Vector_2P fe_c){
   if(approx==HARTREE)
     return interaction_hartree(flag,fi,fe_x,fe_p,fe_w,fe_pw,fe_c);
@@ -343,7 +343,7 @@ int AWPMD::interaction(int flag, Vector_3P fi, Vector_3P fe_x,
   resize(flag);
   // 1. clearing forces
   clear_forces(flag,fi,fe_x,fe_p,fe_w,fe_pw,fe_c);
-  
+
   //2. calculating overlap matrix
   for(int s=0;s<2;s++){
     int nes = ne[s];
@@ -370,10 +370,10 @@ int AWPMD::interaction(int flag, Vector_3P fi, Vector_3P fe_x,
       ZPPTRF("L",&nes,Y[s].arr,&info);
       // analyze return code here
       if(info<0)
-        return LOGERR(info,logfmt("AWPMD.interacton: call to ZPTRF failed (exitcode %d)!",info),LINFO); 
+        return LOGERR(info,logfmt("AWPMD.interacton: call to ZPTRF failed (exitcode %d)!",info),LINFO);
       ZPPTRI("L",&nes,Y[s].arr,&info);
       if(info<0)
-        return LOGERR(info,logfmt("AWPMD.interacton: call to ZPTRI failed (exitcode %d)!",info),LINFO); 
+        return LOGERR(info,logfmt("AWPMD.interacton: call to ZPTRI failed (exitcode %d)!",info),LINFO);
 
 
       /*f1=fopen(logfmt("matrY_%d.d",s),"wt");
@@ -402,7 +402,7 @@ int AWPMD::interaction(int flag, Vector_3P fi, Vector_3P fe_x,
         WavePacket& wl=wp[s][l];
         if(pbc)
           ndr=move_to_image(wl,wk);
-        
+
         WavePacket wkl=wl*conj(wk);
         //Vector_3 rrkl=wkl.get_r();
         cVector_3 v1=wl.b*conj(wk.a)-conj(wk.b)*wl.a;
@@ -421,13 +421,13 @@ int AWPMD::interaction(int flag, Vector_3P fi, Vector_3P fe_x,
 
         // e-i energy
         cdouble sum(0.,0.);
-        for(int i=0;i<ni;i++){  // ions loop 
+        for(int i=0;i<ni;i++){  // ions loop
           cVector_3 gkli=dkl - cVector_3(xi[i]);
-          
+
           if(pbc) // correcting the real part (distance) according to PBC
             gkli=rcell1(gkli,cell,pbc);
             //-Igor- gkli=cVector_3(real(gkli).rcell1(cell,pbc),imag(gkli));
-          
+
           cdouble ngkli=gkli.norm();
           cdouble c=sqrt(wkl.a);
           //cdouble ttt = cerf_div(ngkli,c);
@@ -442,7 +442,7 @@ int AWPMD::interaction(int flag, Vector_3P fi, Vector_3P fe_x,
               dE*=Y[s](l,k);
               Vector_3 dir=-real(gkli);
               dir.normalize();
-              fi[i]+=(l==k ? 1. : 2.)*real(dE)*dir;          
+              fi[i]+=(l==k ? 1. : 2.)*real(dE)*dir;
             }
           }
         }
@@ -459,11 +459,11 @@ int AWPMD::interaction(int flag, Vector_3P fi, Vector_3P fe_x,
   // calculating e-e interaction
   Eee = Ew = 0.;
   // same spin
-  for(int s=0;s<2;s++){ // spin 
+  for(int s=0;s<2;s++){ // spin
     for(int k=0;k<ne[s];k++){  //c1
       for(int l=k+1;l<ne[s];l++){ //c3
         for(int m=k;m<ne[s];m++){ //c2
-          
+
           if( Oflg[s](k,m) ) {
             WavePacket wkm=pbc_mul(wp[s][m],wp[s][k]);
             cVector_3 dkm=wkm.b/(2*wkm.a);
@@ -475,7 +475,7 @@ int AWPMD::interaction(int flag, Vector_3P fi, Vector_3P fe_x,
 
               WavePacket wln=pbc_mul(wp[s][n],wp[s][l]);
               if(pbc) // reducing the pair to elementary cell
-                ndr=move_to_image(wkm,wln); // mind the derivative: wln.b+=wln.a*ndr, wln.lz+=-wln.a*ndr^2-i*wln.old_p*ndr; 
+                ndr=move_to_image(wkm,wln); // mind the derivative: wln.b+=wln.a*ndr, wln.lz+=-wln.a*ndr^2-i*wln.old_p*ndr;
               //Vector_3 rln=wln.get_r();
 
               cVector_3 dln=wln.b/(2*wln.a);
@@ -492,7 +492,7 @@ int AWPMD::interaction(int flag, Vector_3P fi, Vector_3P fe_x,
               Eee+=rdE;
             }//n
           }
-          
+
           if( Oflg[s](l,m) ) {
             WavePacket wlm=pbc_mul(wp[s][m],wp[s][l]);
             cVector_3 dlm=wlm.b/(2*wlm.a);
@@ -504,8 +504,8 @@ int AWPMD::interaction(int flag, Vector_3P fi, Vector_3P fe_x,
 
               WavePacket wkn=pbc_mul(wp[s][n],wp[s][k]);
               if(pbc) // reducing the pair to elementary cell
-                ndr=move_to_image(wlm,wkn); // mind the derivative: wln.b+=wln.a*ndr, wln.lz+=-wln.a*ndr^2-i*wln.old_p*ndr; 
-              
+                ndr=move_to_image(wlm,wkn); // mind the derivative: wln.b+=wln.a*ndr, wln.lz+=-wln.a*ndr^2-i*wln.old_p*ndr;
+
               cVector_3 dkn=wkn.b/(2*wkn.a);
               cdouble dd=(dkn-dlm).norm();
               cdouble c=1./sqrt(1./wkn.a+1./wlm.a);
@@ -522,7 +522,7 @@ int AWPMD::interaction(int flag, Vector_3P fi, Vector_3P fe_x,
       }// l
     }// k
   }// s
-  
+
   // different spin
   for(int k=0;k<ne[0];k++){ // skm=0  //c1
     for(int l=0;l<ne[1];l++){  // sln=1  //c3
@@ -531,12 +531,12 @@ int AWPMD::interaction(int flag, Vector_3P fi, Vector_3P fe_x,
           WavePacket wkm=pbc_mul(wp[0][m],wp[0][k]);
           cVector_3 dkm=wkm.b/(2*wkm.a);
           cdouble I0km=O[0](k,m);
-          
+
           for(int n=l;n<ne[1];n++){ // km-ln   //c4
             if( Oflg[1](n,l) ) {
               WavePacket wln=pbc_mul(wp[1][l],wp[1][n]);
               if(pbc) // reducing the pair to elementary cell
-                ndr=move_to_image(wkm,wln); // mind the derivative: wln.b+=wln.a*ndr, wln.lz+=-wln.a*ndr^2-i*wln.old_p*ndr; 
+                ndr=move_to_image(wkm,wln); // mind the derivative: wln.b+=wln.a*ndr, wln.lz+=-wln.a*ndr^2-i*wln.old_p*ndr;
               //Vector_3 rln=wln.get_r();
 
               cVector_3 dln=wln.b/(2*wln.a);
@@ -553,7 +553,7 @@ int AWPMD::interaction(int flag, Vector_3P fi, Vector_3P fe_x,
           } // n
         } //if
       } // m
-    }// l 
+    }// l
   }// k
   if(calc_ii)
     interaction_ii(flag,fi);
@@ -566,7 +566,7 @@ void AWPMD::norm_matrix(int s){
   // Internal variables
   int k, l, i, j, qi, qj;
   int nes = ne[s], nes8 = nes*8, nnes8 = nes*nes8;
-  
+
   if(!nes) return;
 
   // References for frequently used arrays
@@ -620,7 +620,7 @@ void AWPMD::norm_matrix(int s){
       }
 
       if(k <= l) {
-        cVector_3 I3 = I1 * ((bb_4a + 2.5) / wkl.a); 
+        cVector_3 I3 = I1 * ((bb_4a + 2.5) / wkl.a);
         cdouble   I4 = I0 * ( bb_4a *(bb_4a + 5.) + 3.75 ) / wkl.a / wkl.a;
 
         // calculate derivatives <(phi_k)'_q_k | (phi_l)'_q_l>:
@@ -640,7 +640,7 @@ void AWPMD::norm_matrix(int s){
             IDD.set(k8+(i+1)*2, l8+1, i_unit1*( I3[i] - dl.m*I1[i] + dk.u[i]*(I2 - dl.m*I0) ) ); // over b_k_re and a_l_im
             IDD.set(k8+(i+1)*2+1, l8+1, -I3[i] + dl.m*I1[i] - dk.v[i]*(dl.m*I0 - I2) );            // over b_k_im and a_l_im
           }
-          
+
           for(j=0;j<3;j++){
             cdouble I2ij = I0 / wkl.a *
               (i==j ? wkl.b[i]*wkl.b[i] / wkl.a / 4 + 0.5
@@ -675,7 +675,7 @@ void AWPMD::norm_matrix(int s){
   for(qi=0; qi<nes8; qi++){
     i = qi / 8;
     int idxqi = qi*nes;
-      
+
     Norms(qi,qi) = 0.;  // zero diagonal elements
 
     for(qj=qi+1; qj<nes8; qj++){
@@ -758,7 +758,7 @@ void AWPMD::norm_factorize(int s) {
   int nes8 = ne[s]*8, info;
   DGETRF(&nes8, &nes8, Norm[s].arr, &nes8, &ipiv[0], &info);
   if(info < 0)
-    LOGERR(info,logfmt("AWPMD.norm_factorize: call to DGETRF failed (exitcode %d)!",info),LINFO); 
+    LOGERR(info,logfmt("AWPMD.norm_factorize: call to DGETRF failed (exitcode %d)!",info),LINFO);
 
   norm_matrix_state[s] = NORM_FACTORIZED;
 }
@@ -773,7 +773,7 @@ void AWPMD::norm_invert(int s) {
 
   DGETRI(&nes8, Norm[s].arr, &nes8, &ipiv[0], (double*)IDD.arr, &IDD_size, &info); // use IDD for work storage
   if(info < 0)
-    LOGERR(info,logfmt("AWPMD.norm_invert: call to DGETRI failed (exitcode %d)!",info),LINFO); 
+    LOGERR(info,logfmt("AWPMD.norm_invert: call to DGETRI failed (exitcode %d)!",info),LINFO);
 
   norm_matrix_state[s] = NORM_INVERTED;
 }
@@ -843,7 +843,7 @@ int AWPMD::get_electrons(int spin, Vector_3P x, Vector_3P v, double* w, double* 
 
 
 
-void AWPMD::clear_forces(int flag,Vector_3P fi, Vector_3P fe_x, 
+void AWPMD::clear_forces(int flag,Vector_3P fi, Vector_3P fe_x,
                                Vector_3P fe_p, double *fe_w, double *fe_pw, Vector_2P fe_c){
   if(flag&0x1){
     for(int i=0;i<ni;i++)
@@ -874,7 +874,7 @@ int AWPMD::interaction_ii(int flag,Vector_3P fi){
         double r=rij.norm();
         double dE=coul_pref*qi[i]*qi[j]/r;
         Eii+=M12e*dE;
-         
+
         Eiip[i]+=0.5*M12e*dE;
         Eiip[j]+=0.5*M12e*dE;
 
@@ -882,7 +882,7 @@ int AWPMD::interaction_ii(int flag,Vector_3P fi){
           Vector_3 df=-M12f*dE*rij/(r*r);
           fi[i]+=df;
           fi[j]-=df;
-        } 
+        }
       }
     }
   }

@@ -1,8 +1,7 @@
-// clang-format off
 /* -*- c++ -*- ----------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    https://www.lammps.org/, Sandia National Laboratories
-   Steve Plimpton, sjplimp@sandia.gov
+   LAMMPS development team: developers@lammps.org
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
@@ -20,97 +19,47 @@ AtomStyle(molecular/kk/host,AtomVecMolecularKokkos);
 // clang-format on
 #else
 
+// clang-format off
 #ifndef LMP_ATOM_VEC_MOLECULAR_KOKKOS_H
 #define LMP_ATOM_VEC_MOLECULAR_KOKKOS_H
 
 #include "atom_vec_kokkos.h"
+#include "atom_vec_molecular.h"
 
 namespace LAMMPS_NS {
 
-class AtomVecMolecularKokkos : public AtomVecKokkos {
+class AtomVecMolecularKokkos : public AtomVecKokkos, public AtomVecMolecular {
  public:
   AtomVecMolecularKokkos(class LAMMPS *);
-  virtual ~AtomVecMolecularKokkos() {}
-  void grow(int);
-  void copy(int, int, int);
-  int pack_comm(int, int *, double *, int, int *);
-  int pack_comm_vel(int, int *, double *, int, int *);
-  void unpack_comm(int, int, double *);
-  void unpack_comm_vel(int, int, double *);
-  int pack_reverse(int, int, double *);
-  void unpack_reverse(int, int *, double *);
-  int pack_border(int, int *, double *, int, int *);
-  int pack_border_vel(int, int *, double *, int, int *);
-  int pack_border_hybrid(int, int *, double *);
-  void unpack_border(int, int, double *);
-  void unpack_border_vel(int, int, double *);
-  int unpack_border_hybrid(int, int, double *);
-  int pack_exchange(int, double *);
-  int unpack_exchange(double *);
-  int size_restart();
-  int pack_restart(int, double *);
-  int unpack_restart(double *);
-  void create_atom(int, double *);
-  void data_atom(double *, tagint, char **);
-  int data_atom_hybrid(int, char **);
-  void pack_data(double **);
-  int pack_data_hybrid(int, double *);
-  void write_data(FILE *, int, double **);
-  int write_data_hybrid(FILE *, double *);
-  double memory_usage();
 
-  void grow_pointers();
-  int pack_comm_kokkos(const int &n, const DAT::tdual_int_2d &k_sendlist,
-                       const int & iswap,
-                       const DAT::tdual_xfloat_2d &buf,
-                       const int &pbc_flag, const int pbc[]);
-  void unpack_comm_kokkos(const int &n, const int &nfirst,
-                          const DAT::tdual_xfloat_2d &buf);
-  int pack_comm_self(const int &n, const DAT::tdual_int_2d &list,
-                     const int & iswap, const int nfirst,
-                     const int &pbc_flag, const int pbc[]);
-  int pack_border_kokkos(int n, DAT::tdual_int_2d k_sendlist,
-                         DAT::tdual_xfloat_2d buf,int iswap,
-                         int pbc_flag, int *pbc, ExecutionSpace space);
+  void grow(int) override;
+  void grow_pointers() override;
+  void sort_kokkos(Kokkos::BinSort<KeyViewType, BinOp> &Sorter) override;
+  int pack_border_kokkos(int n, DAT::tdual_int_1d k_sendlist,
+                         DAT::tdual_xfloat_2d buf,
+                         int pbc_flag, int *pbc, ExecutionSpace space) override;
   void unpack_border_kokkos(const int &n, const int &nfirst,
                             const DAT::tdual_xfloat_2d &buf,
-                            ExecutionSpace space);
+                            ExecutionSpace space) override;
   int pack_exchange_kokkos(const int &nsend,DAT::tdual_xfloat_2d &buf,
                            DAT::tdual_int_1d k_sendlist,
                            DAT::tdual_int_1d k_copylist,
-                           ExecutionSpace space, int dim,
-                           X_FLOAT lo, X_FLOAT hi);
+                           ExecutionSpace space) override;
   int unpack_exchange_kokkos(DAT::tdual_xfloat_2d &k_buf, int nrecv,
                              int nlocal, int dim, X_FLOAT lo, X_FLOAT hi,
-                             ExecutionSpace space);
+                             ExecutionSpace space,
+                             DAT::tdual_int_1d &k_indices) override;
 
-  void sync(ExecutionSpace space, unsigned int mask);
-  void modified(ExecutionSpace space, unsigned int mask);
-  void sync_overlapping_device(ExecutionSpace space, unsigned int mask);
+  void sync(ExecutionSpace space, unsigned int mask) override;
+  void modified(ExecutionSpace space, unsigned int mask) override;
+  void sync_overlapping_device(ExecutionSpace space, unsigned int mask) override;
 
  protected:
-
-  tagint *tag;
-  int *type,*mask;
-  imageint *image;
-  double **x,**v,**f;
-
   tagint *molecule;
-  int **nspecial;
   tagint **special;
-  int *num_bond;
-  int **bond_type;
   tagint **bond_atom;
-
-  int *num_angle;
-  int **angle_type;
   tagint **angle_atom1,**angle_atom2,**angle_atom3;
-
-  int *num_dihedral;
-  int **dihedral_type;
   tagint **dihedral_atom1,**dihedral_atom2,**dihedral_atom3,**dihedral_atom4;
-  int *num_improper;
-  int **improper_type;
   tagint **improper_atom1,**improper_atom2,**improper_atom3,**improper_atom4;
 
   DAT::t_tagint_1d d_tag;
@@ -167,25 +116,9 @@ class AtomVecMolecularKokkos : public AtomVecKokkos {
   HAT::t_int_2d h_improper_type;
   HAT::t_tagint_2d h_improper_atom1,h_improper_atom2,
     h_improper_atom3,h_improper_atom4;
-
-  HAT::tdual_int_1d k_count;
-
 };
 
-}
+}    // namespace LAMMPS_NS
 
 #endif
 #endif
-
-/* ERROR/WARNING messages:
-
-E: Per-processor system is too big
-
-The number of owned atoms plus ghost atoms on a single
-processor must fit in 32-bit integer.
-
-E: Invalid atom type in Atoms section of data file
-
-Atom types must range from 1 to specified # of types.
-
-*/

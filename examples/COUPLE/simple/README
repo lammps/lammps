@@ -8,9 +8,8 @@ code to perform a coupled calculation.
 simple.cpp     is the C++ driver
 simple.c       is the C driver
 simple.f90     is the Fortran driver using the new Fortran module
-simple_f77.f90 is the Fortran driver using the legacy Fortran wrapper
 
-The 4 codes do the same thing, so you can compare them to see how to
+The 3 codes do the same thing, so you can compare them to see how to
 drive LAMMPS from each language.  See python/example/simple.py
 to do something similar from Python.  The new Fortran driver requires
 a Fortran module that uses the Fortran 03 ISO_C_BINDING module to
@@ -45,12 +44,7 @@ the fortran directory:
 
 mpifort -L${HOME}/lammps/src ../../../fortran/lammps.f90 simple.f90 -llammps -o simpleF
 
-This builds the legacy Fortran wrapper and driver with the LAMMPS library
-using the mpifort (Fortran) MPI compiler wrapper (assuming GNU gfortran).
-
-mpifort -std=legacy -L${HOME}/lammps/src ../fortran/libfwrapper.c simple.f90 -llammps -o simpleF77
-
-You then run simpleCC, simpleC, simpleF, or simpleF77 on a parallel machine
+You then run simpleCC, simpleC, or simpleF on a parallel machine
 on some number of processors Q with 2 arguments:
 
 % mpirun -np Q simpleCC P in.lj
@@ -72,8 +66,7 @@ of LAMMPS.  You could add any functions you wish to this file to
 manipulate LAMMPS data however you wish.
 
 The Fortran driver is using the Fortran 03 module which uses a derived
-type with type bound subroutines. Only a small subset of the C library
-functions are currently accessible through the Fortran module.
+type with type bound subroutines.
 
 The C++ driver does the same thing, except that it instantiates LAMMPS
 as an object first.  Some of the functions in src/library.cpp can be

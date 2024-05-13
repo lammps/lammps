@@ -1,0 +1,118 @@
+/* -*- c++ -*- ----------------------------------------------------------
+   LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
+   https://www.lammps.org/, Sandia National Laboratories
+   LAMMPS development team: developers@lammps.org
+
+   Copyright (2003) Sandia Corporation.  Under the terms of Contract
+   DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
+   certain rights in this software.  This software is distributed under
+   the GNU General Public License.
+
+   See the README file in the top-level LAMMPS directory.
+------------------------------------------------------------------------- */
+/* ----------------------------------------------------------------------
+   Contributing authors:
+     Ling-Ti Kong
+
+   Contact:
+     School of Materials Science and Engineering,
+     Shanghai Jiao Tong University,
+     800 Dongchuan Road, Minhang,
+     Shanghai 200240, CHINA
+
+     konglt@sjtu.edu.cn; konglt@gmail.com
+------------------------------------------------------------------------- */
+
+#ifdef FIX_CLASS
+// clang-format off
+FixStyle(phonon,FixPhonon);
+// clang-format on
+#else
+
+#ifndef FIX_PHONON_H
+#define FIX_PHONON_H
+
+#include "fix.h"
+#include "lmpfftsettings.h"
+
+#include <complex>
+#include <map>
+
+namespace LAMMPS_NS {
+
+class FixPhonon : public Fix {
+ public:
+  FixPhonon(class LAMMPS *, int, char **);
+  ~FixPhonon() override;
+
+  int setmask() override;
+  void init() override;
+  void setup(int) override;
+  void end_of_step() override;
+  void post_run() override;
+  double memory_usage() override;
+  int modify_param(int, char **) override;
+
+ private:
+  int me, nprocs;
+  bigint waitsteps;     // wait these number of timesteps before recording atom positions
+  bigint prev_nstep;    // number of steps from previous run(s); to judge if waitsteps is reached.
+  int nfreq, ifreq;     // after this number of measurement (nfreq), the result will be output once
+  int nx, ny, nz, nucell,
+      ntotal;    // surface dimensions in x- and y-direction, number of atom per unit surface cell
+  int neval;     // # of evaluations
+  int sysdim;    // system dimension
+  int ngroup, nfind;         // total number of atoms in group; total number of atoms on this proc
+  char *prefix, *logfile;    // prefix of output file names
+  FILE *flog;
+
+  double *M_inv_sqrt;
+
+  class FFT3d *fft;          // to do fft via the fft3d wrapper
+  int nxlo, nxhi, mysize;    // size info for local MPI_FFTW
+  int mynpt, mynq, fft_nsend;
+  int *fft_cnts, *fft_disp;
+  int fft_dim, fft_dim2;
+  FFT_SCALAR *fft_data;
+
+  tagint itag;                       // index variables
+  int idx, idq;                      // more index variables
+  std::map<tagint, int> tag2surf;    // Mapping info
+  std::map<int, tagint> surf2tag;    // more Mapping info
+
+  double **RIloc;    // R(r) and index on local proc
+  double **RIall;    // gathered R(r) and index
+  double **Rsort;    // sorted R(r)
+  double **Rnow;     // Current R(r) on local proc
+  double **Rsum;     // Accumulated R(r) on local proc
+
+  int *recvcnts, *displs;    // MPI related variables
+
+  std::complex<double> **Rqnow;      // Current R(q) on local proc
+  std::complex<double> **Rqsum;      // Accumulator for conj(R(q)_alpha)*R(q)_beta
+  std::complex<double> **Phi_q;      // Phi's on local proc
+  std::complex<double> **Phi_all;    // Phi for all
+
+  void readmap();    // to read the mapping of gf atoms
+  char *mapfile;     // file name of the map file
+
+  void getmass();    // to get the mass of each atom in a unit cell
+
+  int nasr;
+  void postprocess();    // to post process the data
+  void EnforceASR();     // to apply acoustic sum rule to gamma point force constant matrix
+
+  char *id_temp;                 // compute id for temperature
+  double *TempSum;               // to get the average temperature vector
+  double inv_nTemp;              // inverse of number of atoms in temperature group
+  class Compute *temperature;    // compute that computes the temperature
+
+  double hsum[6], **basis;
+  int *basetype;
+
+  // private methods to do matrix inversion
+  void GaussJordan(int, std::complex<double> *);
+};
+}    // namespace LAMMPS_NS
+#endif
+#endif

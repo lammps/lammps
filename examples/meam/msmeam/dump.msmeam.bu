@@ -1,0 +1,24 @@
+ITEM: TIMESTEP
+0
+ITEM: NUMBER OF ATOMS
+3
+ITEM: BOX BOUNDS pp pp pp
+-4 4
+-4 4
+-4 4
+ITEM: ATOMS id x y z fx fy fz c_pot_energy c_stress[1] c_stress[2] c_stress[3] c_stress[4] c_stress[5] c_stress[6] 
+1 0 0 0 -131.925 -88.3005 0 22.9153 -2.147e+08 -1.62661e+08 -0 -2.05301e+07 -0 -0 
+2 2.2 0 0 120.809 -0.482171 0 14.7692 -2.12028e+08 -0 -0 403352 -0 -0 
+3 0.3 2.3 0 11.1159 88.7827 0 8.61478 -2.67145e+06 -1.62661e+08 -0 -2.09335e+07 -0 -0 
+ITEM: TIMESTEP
+1
+ITEM: NUMBER OF ATOMS
+3
+ITEM: BOX BOUNDS pp pp pp
+-4 4
+-4 4
+-4 4
+ITEM: ATOMS id x y z fx fy fz c_pot_energy c_stress[1] c_stress[2] c_stress[3] c_stress[4] c_stress[5] c_stress[6] 
+1 0 0 0 -131.925 -88.3005 0 22.9153 -2.147e+08 -1.62661e+08 -0 -2.05301e+07 -0 -0 
+2 2.2 0 0 120.809 -0.482171 0 14.7692 -2.12028e+08 -0 -0 403352 -0 -0 
+3 0.3 2.3 0 11.1159 88.7827 0 8.61478 -2.67145e+06 -1.62661e+08 -0 -2.09335e+07 -0 -0 

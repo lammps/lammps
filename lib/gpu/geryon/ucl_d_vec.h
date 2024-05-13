@@ -39,7 +39,7 @@ class UCL_D_Vec : public UCL_BaseMat {
   };
   typedef numtyp data_type;
 
- UCL_D_Vec() : _cols(0), _row_bytes(0) {}
+ UCL_D_Vec() : _row_bytes(0), _cols(0) {}
   ~UCL_D_Vec() { _device_free(*this); }
 
   /// Construct with n columns
@@ -125,7 +125,7 @@ class UCL_D_Vec : public UCL_BaseMat {
     * - The view does not prevent the memory from being freed by the
     *   allocating container when using CUDA APIs **/
   template <class ucl_type>
-  inline void view(ucl_type &input, const size_t rows, const size_t cols) {
+  inline void view(ucl_type &input, const size_t UCL_DEBUG_ARG(rows), const size_t cols) {
     #ifdef UCL_DEBUG
     assert(rows==1);
     #endif
@@ -156,7 +156,7 @@ class UCL_D_Vec : public UCL_BaseMat {
     * \param stride Number of _elements_ between the start of each row **/
   template <class ucl_type>
   inline void view(ucl_type &input, const size_t rows, const size_t cols,
-                   const size_t stride) { view(input,rows,cols); }
+                   const size_t /*stride*/) { view(input,rows,cols); }
 
   /// Do not allocate memory, instead use an existing allocation from Geryon
   /** This function must be passed a Geryon vector or matrix container.
@@ -185,7 +185,7 @@ class UCL_D_Vec : public UCL_BaseMat {
     * - The view does not prevent the memory from being freed by the
     *   allocating container when using CUDA APIs **/
   template <class ptr_type>
-  inline void view(ptr_type input, const size_t rows, const size_t cols,
+  inline void view(ptr_type input, const size_t /*rows*/, const size_t cols,
                    UCL_Device &dev) {
     #ifdef UCL_DEBUG
     assert(rows==1);
@@ -213,7 +213,7 @@ class UCL_D_Vec : public UCL_BaseMat {
     * \param stride Number of _elements_ between the start of each row **/
   template <class ptr_type>
   inline void view(ptr_type input, const size_t rows, const size_t cols,
-                   const size_t stride, UCL_Device &dev)
+                   const size_t stride, UCL_Device &/*dev*/)
     { view(input,rows,cols,stride); }
 
   /// Do not allocate memory, instead use an existing allocation
@@ -230,8 +230,8 @@ class UCL_D_Vec : public UCL_BaseMat {
     * - The view does not prevent the memory from being freed by the
     *   allocating container when using CUDA APIs **/
   template <class ucl_type>
-  inline void view_offset(const size_t offset,ucl_type &input,const size_t rows,
-                          const size_t cols) {
+  inline void view_offset(const size_t offset,ucl_type &input,
+                          const size_t UCL_DEBUG_ARG(rows), const size_t cols) {
     #ifdef UCL_DEBUG
     assert(rows==1);
     #endif
@@ -262,7 +262,7 @@ class UCL_D_Vec : public UCL_BaseMat {
     * \param stride Number of _elements_ between the start of each row **/
   template <class ucl_type>
   inline void view_offset(const size_t offset,ucl_type &input,const size_t rows,
-                          const size_t cols, const size_t stride)
+                          const size_t cols, const size_t /*stride*/)
     { view_offset(offset,input,rows,cols); }
 
   /// Do not allocate memory, instead use an existing allocation from Geryon
@@ -292,7 +292,7 @@ class UCL_D_Vec : public UCL_BaseMat {
     * - The view does not prevent the memory from being freed by the
     *   allocating container when using CUDA APIs **/
   template <class ptr_type>
-  inline void view_offset(const size_t offset,ptr_type input,const size_t rows,
+  inline void view_offset(const size_t offset,ptr_type input,const size_t /*rows*/,
                           const size_t cols, UCL_Device &dev) {
     #ifdef UCL_DEBUG
     assert(rows==1);
@@ -328,7 +328,7 @@ class UCL_D_Vec : public UCL_BaseMat {
     * \param stride Number of _elements_ between the start of each row **/
   template <class ptr_type>
   inline void view_offset(const size_t offset,ptr_type input,const size_t rows,
-                          const size_t cols,const size_t stride,UCL_Device &dev)
+                          const size_t cols,const size_t stride,UCL_Device &/*dev*/)
     { view_offset(offset,input,rows,cols,stride); }
 
   /// Do not allocate memory, instead use an existing allocation
@@ -375,7 +375,7 @@ class UCL_D_Vec : public UCL_BaseMat {
   /// Resize (only if bigger) the allocation to contain cols elements
   /** \note Cannot be used on views **/
   inline int resize_ib(const int cols)
-    { if (cols>_cols) return resize(cols); else return UCL_SUCCESS; }
+    { if (cols > (int)_cols) return resize(cols); else return UCL_SUCCESS; }
 
   /// Set each element to zero asynchronously in the default command_queue
   inline void zero() { zero(_cq); }

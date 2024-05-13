@@ -52,7 +52,7 @@ total energy :math:`E_T` of a system of atoms is given by
 where :math:`E_i^{self}` is the self-energy of atom *i* (including
 atomic ionization energies and electron affinities),
 :math:`E_{ij}^{short}` is the bond-order potential between atoms *i* and
-*j*\ , :math:`E_{ij}^{Coul}` is the Coulomb interactions,
+*j*, :math:`E_{ij}^{Coul}` is the Coulomb interactions,
 :math:`E^{polar}` is the polarization term for organic systems (style
 *comb3* only), :math:`E^{vdW}` is the van der Waals energy (style
 *comb3* only), :math:`E^{barr}` is a charge barrier function, and
@@ -93,10 +93,10 @@ This can be used when a *comb* potential is used as part of the
 *hybrid* pair style.  The NULL values are placeholders for atom types
 that will be used with other potentials.
 
-For style *comb*\ , the provided potential file *ffield.comb* contains
+For style *comb*, the provided potential file *ffield.comb* contains
 all currently-available second generation COMB parameterizations: for Si,
 Cu, Hf, Ti, O, their oxides and Zr, Zn and U metals.  For style
-*comb3*\ , the potential file *ffield.comb3* contains all
+*comb3*, the potential file *ffield.comb3* contains all
 currently-available third generation COMB parameterizations: O, Cu, N, C,
 H, Ti, Zn and Zr.  The status of the optimization of the compounds, for
 example Cu2O, TiN and hydrocarbons, are given in the
@@ -126,8 +126,8 @@ following table:
 * M = Only optimized for dimer molecule
 * P = in progress, but have it from mixing rule
 
-For style *comb3*\ , in addition to ffield.comb3, a special parameter
-file, *lib.comb3*\ , that is exclusively used for C/O/H systems, will be
+For style *comb3*, in addition to ffield.comb3, a special parameter
+file, *lib.comb3*, that is exclusively used for C/O/H systems, will be
 automatically loaded if carbon atom is detected in LAMMPS input
 structure.  This file must be in your working directory or in the
 directories listed in the environment variable ``LAMMPS_POTENTIALS``, as
@@ -139,7 +139,7 @@ has not yet been implemented, it can only set polar_off at present.
 
 .. note::
 
-   You can not use potential file *ffield.comb* with style *comb3*\ ,
+   You can not use potential file *ffield.comb* with style *comb3*,
    nor file *ffield.comb3* with style *comb*\ .
 
 ----------
@@ -164,7 +164,7 @@ restart file.
 
 These pair styles can only be used via the *pair* keyword of the
 :doc:`run_style respa <run_style>` command.  It does not support the
-*inner*\ , *middle*\ , *outer* keywords.
+*inner*, *middle*, *outer* keywords.
 
 ----------
 
@@ -172,7 +172,7 @@ Restrictions
 """"""""""""
 
 These pair styles are part of the MANYBODY package.  It is only
-enabled if LAMMPS was built with that package.  See the :doc:`Build package <Build_package>` doc page for more info.
+enabled if LAMMPS was built with that package.  See the :doc:`Build package <Build_package>` page for more info.
 
 These pair styles requires the :doc:`newton <newton>` setting to be "on"
 for pair interactions.

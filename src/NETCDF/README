@@ -1,0 +1,39 @@
+NETCDF
+============
+
+This package provides the netcdf and netcdf/mpiio dump styles.
+See the doc page for dump netcdf or dump netcdf/mpiio command for how to use
+them. Compiling these dump styles requires having the netCDF library installed
+on your system. See lib/netcdf/README for additional details.
+
+PACKAGE DESCRIPTION
+-------------------
+
+This is a LAMMPS (https://www.lammps.org/) dump style for output into a NetCDF
+database. The database format follows the AMBER NetCDF trajectory convention
+(http://ambermd.org/netcdf/nctraj.xhtml), but includes extensions to this
+convention. These extension are:
+* A variable "cell_origin" (of dimension "frame", "cell_spatial") that contains
+  the bottom left corner of the simulation cell.
+* Any number of additional variables corresponding to per atom scalar, vector
+  or tensor quantities available within LAMMPS. Tensor quantities are written in
+  Voigt notation. An additional dimension "Voigt" of length 6 is created for
+  this purpose.
+* Possibility to output to an HDF5 database.
+
+NetCDF files can be directly visualized with the following tools:
+* Ovito (http://www.ovito.org/). Ovito supports the AMBER convention and all of
+  the above extensions.
+* VMD (http://www.ks.uiuc.edu/Research/vmd/).
+* AtomEye (http://www.libatoms.org/). The libAtoms version of AtomEye contains
+  a NetCDF reader that is not present in the standard distribution of AtomEye.
+
+The person who created these files is Lars Pastewka at
+the University of Freiburg (lars.pastewka@imtek.uni-freiburg.de).
+Contact him directly if you have questions.
+
+Lars Pastewka
+University of Freiburg
+Department of Microsystems Engineering
+Georges-Köhler-Allee 103, 79110 Freiburg, Germany
+e-mail: lars.pastewka@imtek.uni-freiburg.de

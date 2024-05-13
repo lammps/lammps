@@ -76,18 +76,19 @@ This program uses the .car and .mdf files from MSI/Biosyms's INSIGHT
     The program is started by supplying information at the command prompt
     according to the usage described below.  
 
-    USAGE: msi2lmp.exe <ROOTNAME> {-print #} {-class #} {-frc FRC_FILE}
-                {-ignore} {-nocenter} {-shift # # #}
+    USAGE: msi2lmp.exe [-help] <ROOTNAME> [-print #] [-class #] [-frc FRC_FILE]
+                [-ignore] [-nocenter] [-shift # # #]
 
    -- msi2lmp.exe is the name of the executable
+
+   -- -help (or -h)
+        Print detailed this help message and exit.
+
    -- <ROOTNAME> is the base name of the .car and .mdf files
-   -- -2001
-         Output lammps files for LAMMPS version 2001 (F90 version)
-         Default is to write output for the C++ version of LAMMPS
 
    -- -print (or -p)
-	 # is the print level  0 - silent except for error messages
-	                       1 - minimal (default)
+         # is the print level  0 - silent except for error messages
+                               1 - minimal (default)
                                2 - verbose (usual for developing and
                                    checking new data files for consistency)
                                3 - even more verbose (additional debug info)
@@ -150,6 +151,15 @@ msi2lmp has the following known limitations:
 ------------------------------------------------------------------------
 
 CHANGELOG
+
+10 Mar 2023 Axel Kohlmeyer <akohlmey@gmail.com>
+
+Substitute UTF-8 characters in .frc files with known ASCII equivalents
+and add help message output
+
+05 Nov 2018 Axel Kohlmeyer <akohlmey@gmail.com>
+
+Teach msi2lmp to not generate dihedrals with identical 1-4 atoms
 
 06 Oct 2016 Axel Kohlmeyer <akohlmey@gmail.com>
 
@@ -242,5 +252,5 @@ for number_of_dihedrals, etc. could be unpredictable in these systems.
 
 -----------------------------
 
- msi2lmp v3.9.8 6/10/2016
+ msi2lmp v3.9.10 3/10/2023
 

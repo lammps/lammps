@@ -2,7 +2,7 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    https://www.lammps.org/, Sandia National Laboratories
-   Steve Plimpton, sjplimp@sandia.gov
+   LAMMPS development team: developers@lammps.org
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
@@ -13,13 +13,12 @@
 ------------------------------------------------------------------------- */
 
 #include "fix_wall_lj93_kokkos.h"
-#include <cmath>
+
 #include "atom_kokkos.h"
 #include "error.h"
 #include "atom_masks.h"
 
 using namespace LAMMPS_NS;
-using namespace FixConst;
 
 /* ---------------------------------------------------------------------- */
 
@@ -52,8 +51,6 @@ void FixWallLJ93Kokkos<DeviceType>::wall_particle(int m_in, int which, double co
   x = atomKK->k_x.view<DeviceType>();
   f = atomKK->k_f.view<DeviceType>();
   mask = atomKK->k_mask.view<DeviceType>();
-  DAT::tdual_int_scalar k_oneflag = DAT::tdual_int_scalar("fix:oneflag");
-  d_oneflag = k_oneflag.view<DeviceType>();
 
   int nlocal = atom->nlocal;
 
@@ -67,10 +64,6 @@ void FixWallLJ93Kokkos<DeviceType>::wall_particle(int m_in, int which, double co
   copymode = 0;
 
   atomKK->modified(execution_space, F_MASK);
-
-  k_oneflag.template modify<DeviceType>();
-  k_oneflag.template sync<LMPHostType>();
-  if (k_oneflag.h_view()) error->one(FLERR,"Particle on or inside fix wall surface");
 }
 
 template <class DeviceType>
@@ -81,10 +74,8 @@ void FixWallLJ93Kokkos<DeviceType>::wall_particle_item(int i, value_type ewall) 
     if (side < 0) delta = x(i,dim) - coord;
     else delta = coord - x(i,dim);
     if (delta >= cutoff[m]) return;
-    if (delta <= 0.0) {
-      d_oneflag() = 1;
-      return;
-    }
+    if (delta <= 0.0)
+      Kokkos::abort("Particle on or inside fix wall surface");
     double rinv = 1.0/delta;
     double r2inv = rinv*rinv;
     double r4inv = r2inv*r2inv;

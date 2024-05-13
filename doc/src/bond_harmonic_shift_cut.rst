@@ -54,7 +54,7 @@ Restrictions
 """"""""""""
 
 This bond style can only be used if LAMMPS was built with the
-USER-MISC package.  See the :doc:`Build package <Build_package>` doc
+EXTRA-MOLECULE package.  See the :doc:`Build package <Build_package>` doc
 page for more info.
 
 Related commands

@@ -1,3 +1,19 @@
+//@HEADER
+// ************************************************************************
+//
+//                        Kokkos v. 4.0
+//       Copyright (2022) National Technology & Engineering
+//               Solutions of Sandia, LLC (NTESS).
+//
+// Under the terms of Contract DE-NA0003525 with NTESS,
+// the U.S. Government retains certain rights in this software.
+//
+// Part of Kokkos, under the Apache License v2.0 with LLVM Exceptions.
+// See https://kokkos.org/LICENSE for license information.
+// SPDX-License-Identifier: Apache-2.0 WITH LLVM-exception
+//
+//@HEADER
+
 #include <Kokkos_Core.hpp>
 
 namespace Test {
@@ -32,11 +48,17 @@ void test_reduce_device_view(int64_t N, PolicyType policy,
   typename ExecSpace::execution_space().fence();
   double time_fence0 = timer.seconds();
   Kokkos::deep_copy(result, 0);
+
+  // We need a warm-up to get reasonable results
+  Kokkos::parallel_reduce("Test::ReduceDeviceView::TestReducer", policy,
+                          functor,
+                          Kokkos::Sum<int64_t, TEST_EXECSPACE>(result));
+  Kokkos::fence();
+
   timer.reset();
   bool is_async = time0 < time_fence0;
 
   // Test Reducer
-
   Kokkos::parallel_reduce("Test::ReduceDeviceView::TestReducer", policy,
                           functor,
                           Kokkos::Sum<int64_t, TEST_EXECSPACE>(result));
@@ -48,6 +70,11 @@ void test_reduce_device_view(int64_t N, PolicyType policy,
   Kokkos::deep_copy(reducer_result, result);
   Kokkos::deep_copy(result, 0);
   ASSERT_EQ(N, reducer_result);
+
+  // We need a warm-up to get reasonable results
+  Kokkos::parallel_reduce("Test::ReduceDeviceView::TestView", policy, functor,
+                          result);
+  Kokkos::fence();
   timer.reset();
 
   // Test View
@@ -75,11 +102,11 @@ void test_reduce_device_view(int64_t N, PolicyType policy,
 
   ASSERT_EQ(N, scalar_result);
   if (is_async) {
-    ASSERT_TRUE(time1 < time_fence1);
+    ASSERT_LT(time1, time_fence1);
   }
   if (is_async) {
-    ASSERT_TRUE(time2 < time_fence2);
-    ASSERT_TRUE(time3 > time_fence3);
+    ASSERT_LT(time2, time_fence2);
+    ASSERT_GT(time3, time_fence3);
   }
 }
 
@@ -128,8 +155,6 @@ TEST(TEST_CATEGORY, reduce_device_view_mdrange_policy) {
       MDRangePolicyFunctor());
 }
 
-// FIXME_HIP
-#ifndef KOKKOS_ENABLE_HIP
 TEST(TEST_CATEGORY, reduce_device_view_team_policy) {
 // FIXME_SYCL The number of workgroups on CUDA devices can not be larger than
 // 65535
@@ -145,5 +170,4 @@ TEST(TEST_CATEGORY, reduce_device_view_team_policy) {
       TeamPolicyFunctor(1024));
 #endif
 }
-#endif
 }  // namespace Test

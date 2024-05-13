@@ -1,7 +1,7 @@
 /* -*- c++ -*- ----------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    https://www.lammps.org/, Sandia National Laboratories
-   Steve Plimpton, sjplimp@sandia.gov
+   LAMMPS development team: developers@lammps.org
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
@@ -24,27 +24,30 @@ PairStyle(granular,PairGranular);
 
 namespace LAMMPS_NS {
 
+namespace Granular_NS {
+  class GranularModel;
+}
+
 class PairGranular : public Pair {
  public:
   PairGranular(class LAMMPS *);
-  ~PairGranular();
-  void compute(int, int);
-  void settings(int, char **);
-  void coeff(int, char **);
-  void init_style();
-  double init_one(int, int);
-  void write_restart(FILE *);
-  void read_restart(FILE *);
-  void reset_dt();
-  double single(int, int, int, int, double, double, double, double &);
-  int pack_forward_comm(int, int *, double *, int, int *);
-  void unpack_forward_comm(int, int, double *);
-  double memory_usage();
-  double atom2cut(int);
-  double radii2cut(double, double);
+  ~PairGranular() override;
+  void compute(int, int) override;
+  void settings(int, char **) override;
+  void coeff(int, char **) override;
+  void init_style() override;
+  double init_one(int, int) override;
+  void write_restart(FILE *) override;
+  void read_restart(FILE *) override;
+  void reset_dt() override;
+  double single(int, int, int, int, double, double, double, double &) override;
+  int pack_forward_comm(int, int *, double *, int, int *) override;
+  void unpack_forward_comm(int, int, double *) override;
+  double memory_usage() override;
+  double atom2cut(int) override;
+  double radii2cut(double, double) override;
 
  protected:
-  double dt;
   int freeze_group_bit;
   int use_history;
 
@@ -63,56 +66,24 @@ class PairGranular : public Pair {
   int nmax;                // allocated size of mass_rigid
 
   void allocate();
-  void transfer_history(double *, double *);
+  void transfer_history(double *, double *, int, int) override;
+  void prune_models();
 
  private:
   int size_history;
-  int *history_transfer_factors;
+  int heat_flag;
 
-  // model choices
-  int **normal_model, **damping_model;
-  int **tangential_model, **roll_model, **twist_model;
-  int **limit_damping;
-
-  // history flags
-  int normal_history, tangential_history, roll_history, twist_history;
-
-  // indices of history entries
-  int normal_history_index;
-  int tangential_history_index;
-  int roll_history_index;
-  int twist_history_index;
-
-  // per-type material coefficients
-  double **Emod, **poiss, **Gmod;
-
-  // per-type coefficients, set in pair coeff command
-  double ***normal_coeffs;
-  double ***tangential_coeffs;
-  double ***roll_coeffs;
-  double ***twist_coeffs;
+  // granular models
+  int nmodels, maxmodels;
+  class Granular_NS::GranularModel** models_list;
+  int **types_indices;
 
   // optional user-specified global cutoff, per-type user-specified cutoffs
   double **cutoff_type;
   double cutoff_global;
-
-  double mix_stiffnessE(double, double, double, double);
-  double mix_stiffnessG(double, double, double, double);
-  double mix_geom(double, double);
-  double pulloff_distance(double, double, int, int);
 };
 
 }    // namespace LAMMPS_NS
 
 #endif
 #endif
-
-/* ERROR/WARNING messages:
-
-E: Illegal ... command
-
-Self-explanatory.  Check the input script syntax and compare to the
-documentation for the command.  You can use -echo screen as a
-command-line option when running LAMMPS to see the offending line.
-
-*/

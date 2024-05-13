@@ -244,8 +244,8 @@ the pair_style command.
 ----------
 
 A version of these styles with a soft core, *lj/cut/coul/soft*\ and
-*lj/cut/coul/long/soft*\ , suitable for use in free energy calculations, is
-part of the USER-FEP package and is documented with the :doc:`pair_style */soft <pair_fep_soft>` styles.
+*lj/cut/coul/long/soft*, suitable for use in free energy calculations, is
+part of the FEP package and is documented with the :doc:`pair_style */soft <pair_fep_soft>` styles.
 
 ----------
 
@@ -278,7 +278,7 @@ All of the *lj/cut* pair styles write their information to :doc:`binary restart 
 not need to be specified in an input script that reads a restart file.
 
 The *lj/cut/coul/long* pair styles support the use of the
-*inner*\ , *middle*\ , and *outer* keywords of the :doc:`run_style respa <run_style>` command, meaning the pairwise forces can be
+*inner*, *middle*, and *outer* keywords of the :doc:`run_style respa <run_style>` command, meaning the pairwise forces can be
 partitioned by distance at different levels of the rRESPA hierarchy.
 The other styles only support the *pair* keyword of run_style respa.
 See the :doc:`run_style <run_style>` command for details.
@@ -288,9 +288,13 @@ See the :doc:`run_style <run_style>` command for details.
 Restrictions
 """"""""""""
 
-The *lj/cut/coul/long* styles are part of the KSPACE package.
-These styles are only enabled if LAMMPS was built with those
-packages.  See the :doc:`Build package <Build_package>` doc page for
+The *lj/cut/coul/long* and *lj/cut/coul/msm* styles are part of the KSPACE package.
+
+The *lj/cut/coul/debye*, *lj/cut/coul/dsf*, and *lj/cut/coul/wolf* styles are part
+of the EXTRA-PAIR package.
+
+These styles are only enabled if LAMMPS was built with those respective
+packages.  See the :doc:`Build package <Build_package>` page for
 more info.
 
 Related commands

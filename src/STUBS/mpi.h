@@ -1,7 +1,7 @@
 /* -*- c++ -*- -----------------------------------------------------------
-   LAMMPS 2003 (July 31) - Molecular Dynamics Simulator
-   Sandia National Laboratories, www.cs.sandia.gov/~sjplimp/lammps.html
-   Steve Plimpton, sjplimp@sandia.gov
+   LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
+   https://www.lammps.org/, Sandia National Laboratories
+   LAMMPS development team: developers@lammps.org
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
@@ -52,6 +52,7 @@
 #define MPI_UNDEFINED -1
 #define MPI_COMM_NULL -1
 #define MPI_GROUP_EMPTY -1
+#define MPI_GROUP_NULL -1
 
 #define MPI_ANY_SOURCE -1
 #define MPI_STATUS_IGNORE NULL
@@ -120,6 +121,7 @@ MPI_Comm MPI_Comm_f2c(MPI_Fint comm);
 int MPI_Comm_group(MPI_Comm comm, MPI_Group *group);
 int MPI_Comm_create(MPI_Comm comm, MPI_Group group, MPI_Comm *newcomm);
 int MPI_Group_incl(MPI_Group group, int n, int *ranks, MPI_Group *newgroup);
+int MPI_Group_free(MPI_Group *group);
 
 int MPI_Cart_create(MPI_Comm comm_old, int ndims, int *dims, int *periods, int reorder,
                     MPI_Comm *comm_cart);

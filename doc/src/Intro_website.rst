@@ -7,25 +7,20 @@ available online are listed below.
 
 .. _lws: https://www.lammps.org
 
-* `Brief intro and recently added significant features <lws_>`_
-* `List of features <https://docs.lammps.org/Intro_features.html>`_
-* `List of non-features <https://docs.lammps.org/Intro_nonfeatures.html>`_
-* `Recent bug fixes and new features <https://www.lammps.org/bug.html>`_
+* `LAMMPS source code repository on GitHub <https://github.com/lammps/lammps>`_
+* `LAMMPS forum on matsci.org <https://matsci.org/lammps/>`_
 
+* `Recent bug fixes and new features <https://www.lammps.org/bug.html>`_
 * `Download info <https://www.lammps.org/download.html>`_
-* `GitHub site <https://github.com/lammps/lammps>`_
-* `SourceForge site <https://sourceforge.net/projects/lammps>`_
-* `LAMMPS open-source license <https://docs.lammps.org/Intro_opensource.html>`_
 
 * `Glossary of terms relevant to LAMMPS <https://www.lammps.org/glossary.html>`_
 * `LAMMPS highlights with images <https://www.lammps.org/pictures.html>`_
 * `LAMMPS highlights with movies <https://www.lammps.org/movies.html>`_
-* `Mail list <https://www.lammps.org/mail.html>`_
 * `Workshops <https://www.lammps.org/workshops.html>`_
 * `Tutorials <https://www.lammps.org/tutorials.html>`_
 
 * `Pre- and post-processing tools for LAMMPS <https://www.lammps.org/prepost.html>`_
-* `Other software usable with LAMMPS <https://www.lammps.org/offsite.html>`_
+* `Other software usable with LAMMPS <https://www.lammps.org/external.html>`_
 * `Viz tools usable with LAMMPS <https://www.lammps.org/viz.html>`_
 
 * `Benchmark performance <https://www.lammps.org/bench.html>`_

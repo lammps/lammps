@@ -1,0 +1,36 @@
+# Solvated 5-mer peptide
+
+units		real
+dimension	3
+atom_style	angle
+
+# enforce that in z-direction there is only one 
+# processor (could be two) for optimal performance
+processors * * 1
+
+# read topology and force field
+pair_style	lj/sdk 15.0 # compatible with "lj/spica"
+bond_style	harmonic
+angle_style	harmonic
+special_bonds	lj/coul 0.0 0.0 1.0
+
+read_data	data.pegc12e8.gz
+
+neighbor	3.0 bin
+neigh_modify	delay 5
+
+timestep	5.0
+#dump            1 all xtc 200 pegc12e8-1.xtc
+#dump_modify  1 unwrap yes
+#dump            2 all dcd 200 pegc12e8-1.dcd unwrap
+#dump_modify  2 unwrap yes
+
+velocity all create 303.0 46659 mom yes rot yes dist gaussian
+
+fix		1 all nvt temp 303.0 303.0 100.0
+
+thermo_style	multi
+thermo		200
+run		1000
+#write_restart	pegc12e8-1.restart
+

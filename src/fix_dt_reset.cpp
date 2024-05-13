@@ -1,7 +1,7 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    https://www.lammps.org/, Sandia National Laboratories
-   Steve Plimpton, sjplimp@sandia.gov
+   LAMMPS development team: developers@lammps.org
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
@@ -14,9 +14,7 @@
 #include "fix_dt_reset.h"
 
 #include "atom.h"
-#include "comm.h"
 #include "domain.h"
-#include "dump.h"
 #include "error.h"
 #include "fix.h"
 #include "force.h"
@@ -33,7 +31,7 @@
 using namespace LAMMPS_NS;
 using namespace FixConst;
 
-#define BIG 1.0e20
+static constexpr double BIG = 1.0e20;
 
 /* ---------------------------------------------------------------------- */
 
@@ -121,14 +119,6 @@ void FixDtReset::init()
   respaflag = 0;
   if (utils::strmatch(update->integrate_style, "^respa")) respaflag = 1;
 
-  // check for DCD or XTC dumps
-
-  for (int i = 0; i < output->ndump; i++)
-    if ((strcmp(output->dump[i]->style, "dcd") == 0 ||
-         strcmp(output->dump[i]->style, "xtc") == 0) &&
-        comm->me == 0)
-      error->warning(FLERR, "Dump dcd/xtc timestamp may be wrong with fix dt/reset");
-
   ftm2v = force->ftm2v;
   mvv2e = force->mvv2e;
   dt = update->dt;
@@ -171,7 +161,7 @@ void FixDtReset::end_of_step()
       if (vsq > 0.0) dtv = xmax / sqrt(vsq);
       if (fsq > 0.0) dtf = sqrt(2.0 * xmax / (ftm2v * sqrt(fsq) * massinv));
       dt = MIN(dtv, dtf);
-      if (emax > 0.0 && vsq > 0.0 && fsq > 0.0) {
+      if ((emax > 0.0) && (fsq * vsq > 0.0)) {
         dte = emax / sqrt(fsq * vsq) / sqrt(ftm2v * mvv2e);
         dt = MIN(dt, dte);
       }
@@ -197,12 +187,16 @@ void FixDtReset::end_of_step()
 
   laststep = update->ntimestep;
 
+  // calls to other classes that need to know timestep size changed
+  // similar logic is in Input::timestep()
+
   update->update_time();
   update->dt = dt;
   update->dt_default = 0;
   if (respaflag) update->integrate->reset_dt();
   if (force->pair) force->pair->reset_dt();
-  for (int i = 0; i < modify->nfix; i++) modify->fix[i]->reset_dt();
+  for (auto &ifix : modify->get_fix_list()) ifix->reset_dt();
+  output->reset_dt();
 }
 
 /* ---------------------------------------------------------------------- */

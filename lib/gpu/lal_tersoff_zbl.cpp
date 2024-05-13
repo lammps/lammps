@@ -62,7 +62,6 @@ int TersoffZT::init(const int ntypes, const int nlocal, const int nall,
   int oldparam=-1;
   int onetype=-1;
   int onetype3=0;
-  int spq=1;
   int mtypes=0;
   #ifdef USE_OPENCL
   for (int ii=1; ii<ntypes; ii++) {
@@ -277,7 +276,7 @@ int TersoffZT::loop(const int eflag, const int vflag, const int evatom,
 
   // re-allocate zetaij if necessary
   int nall = this->_nall;
-  if (nall*this->nbor->max_nbors() > _zetaij.cols()) {
+  if (nall*this->nbor->max_nbors() > (int)_zetaij.cols()) {
     int _nmax=static_cast<int>(static_cast<double>(nall)*1.10);
     _zetaij.clear();
     success = success && (_zetaij.alloc(this->nbor->max_nbors()*_nmax,

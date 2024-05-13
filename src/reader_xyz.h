@@ -1,7 +1,7 @@
 /* -*- c++ -*- ----------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    https://www.lammps.org/, Sandia National Laboratories
-   Steve Plimpton, sjplimp@sandia.gov
+   LAMMPS development team: developers@lammps.org
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
@@ -29,13 +29,13 @@ namespace LAMMPS_NS {
 class ReaderXYZ : public Reader {
  public:
   ReaderXYZ(class LAMMPS *);
-  ~ReaderXYZ();
+  ~ReaderXYZ() override;
 
-  int read_time(bigint &);
-  void skip();
+  int read_time(bigint &) override;
+  void skip() override;
   bigint read_header(double[3][3], int &, int &, int, int, int *, char **, int, int, int &, int &,
-                     int &, int &);
-  void read_atoms(int, int, double **);
+                     int &, int &) override;
+  void read_atoms(int, int, double **) override;
 
  private:
   char *line;       // line read from dump file
@@ -52,15 +52,3 @@ class ReaderXYZ : public Reader {
 
 #endif
 #endif
-
-/* ERROR/WARNING messages:
-
-E: Dump file is incorrectly formatted
-
-Self-explanatory.
-
-E: Unexpected end of dump file
-
-A read operation from the file failed.
-
-*/

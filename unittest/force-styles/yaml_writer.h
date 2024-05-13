@@ -1,7 +1,7 @@
 /* -*- c++ -*- ----------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    https://www.lammps.org/ Sandia National Laboratories
-   Steve Plimpton, sjplimp@sandia.gov
+   LAMMPS Development team: developers@lammps.org
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
@@ -22,6 +22,9 @@ class YamlWriter {
 public:
     YamlWriter(const char *outfile);
     virtual ~YamlWriter();
+    YamlWriter() = delete;
+    YamlWriter(const YamlWriter &) = delete;
+    const YamlWriter & operator=(const YamlWriter &) = delete;
 
     // emitters
     void emit(const std::string &key, const double value);
@@ -34,10 +37,6 @@ private:
     FILE *fp;
     yaml_emitter_t emitter;
     yaml_event_t event;
-
-private:
-    YamlWriter(){};
-    YamlWriter(const YamlWriter &){};
 };
 
 #endif

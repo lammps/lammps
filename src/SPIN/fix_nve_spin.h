@@ -1,7 +1,7 @@
 /* -*- c++ -*- ----------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    https://www.lammps.org/, Sandia National Laboratories
-   Steve Plimpton, sjplimp@sandia.gov
+   LAMMPS development team: developers@lammps.org
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
@@ -29,11 +29,11 @@ class FixNVESpin : public Fix {
 
  public:
   FixNVESpin(class LAMMPS *, int, char **);
-  virtual ~FixNVESpin();
-  int setmask();
-  void init();
-  virtual void initial_integrate(int);
-  virtual void final_integrate();
+  ~FixNVESpin() override;
+  int setmask() override;
+  void init() override;
+  void initial_integrate(int) override;
+  void final_integrate() override;
 
   void ComputeInteractionsSpin(int);    // compute and advance single spin functions
   void AdvanceSingleSpin(int);
@@ -41,8 +41,8 @@ class FixNVESpin : public Fix {
   void sectoring();    // sectoring operation functions
   int coords2sector(double *);
 
-  void setup_pre_neighbor();
-  void pre_neighbor();
+  void setup_pre_neighbor() override;
+  void pre_neighbor() override;
 
   int lattice_flag;    // lattice_flag = 0 if spins only
                        // lattice_flag = 1 if spin-lattice calc.
@@ -100,22 +100,3 @@ class FixNVESpin : public Fix {
 
 #endif
 #endif
-
-/* ERROR/WARNING messages:
-
-E: Illegal fix NVE/spin command
-
-Self-explanatory.  Check the input script syntax and compare to the
-documentation for the command.  You can use -echo screen as a
-command-line option when running LAMMPS to see the offending line.
-
-E: Pair spin requires atom attribute spin
-
-An atom/spin style with this attribute is needed.
-
-E: Illegal sectoring operation
-
-The number of processes does not match the size of the system.
-See the documentation of the sectoring method.
-
-*/

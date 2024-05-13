@@ -1,33 +1,33 @@
 # LAMMPS benchmark of granular flow
 # chute flow of 32000 atoms with frozen base at 26 degrees
 
-units		lj
-atom_style	sphere
-boundary	p p fs
-newton		off
-comm_modify	vel yes
+units           lj
+atom_style      sphere
+boundary        p p fs
+newton          off
+comm_modify     vel yes
 
-read_data	data.chute
+read_data       data.chute
 
-pair_style	gran/hooke/history 200000.0 NULL 50.0 NULL 0.5 0
-pair_coeff	* *
+pair_style      gran/hooke/history 200000.0 NULL 50.0 NULL 0.5 0
+pair_coeff      * *
 
-neighbor	0.1 bin
-neigh_modify	every 1 delay 0
+neighbor        0.1 bin
+neigh_modify    every 1 delay 0
 
-timestep	0.0001
+timestep        0.0001
 
-group		bottom type 2
-group		active subtract all bottom
-neigh_modify	exclude group bottom bottom
+group           bottom type 2
+group           active subtract all bottom
+neigh_modify    exclude group bottom bottom
 
-fix		1 all gravity 1.0 chute 26.0
-fix		2 bottom freeze
-fix		3 active nve/sphere
+fix             1 all gravity 1.0 chute 26.0
+fix             2 bottom freeze
+fix             3 active nve/sphere
 
-compute		1 all erotate/sphere
-thermo_style	custom step atoms ke c_1 vol
-thermo_modify	norm no
-thermo		100
+compute         1 all erotate/sphere
+thermo_style    custom step atoms ke c_1 vol
+thermo_modify   norm no
+thermo          100
 
-run		100
+run             100

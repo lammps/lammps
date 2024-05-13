@@ -1,7 +1,7 @@
 /* -*- c++ -*- ----------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    https://www.lammps.org/, Sandia National Laboratories
-   Steve Plimpton, sjplimp@sandia.gov
+   LAMMPS development team: developers@lammps.org
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
@@ -27,21 +27,21 @@ namespace LAMMPS_NS {
 class PairLubricate : public Pair {
  public:
   PairLubricate(class LAMMPS *);
-  virtual ~PairLubricate();
-  virtual void compute(int, int);
-  void settings(int, char **);
-  void coeff(int, char **);
-  double init_one(int, int);
-  virtual void init_style();
-  void write_restart(FILE *);
-  void read_restart(FILE *);
-  void write_restart_settings(FILE *);
-  void read_restart_settings(FILE *);
+  ~PairLubricate() override;
+  void compute(int, int) override;
+  void settings(int, char **) override;
+  void coeff(int, char **) override;
+  double init_one(int, int) override;
+  void init_style() override;
+  void write_restart(FILE *) override;
+  void read_restart(FILE *) override;
+  void write_restart_settings(FILE *) override;
+  void read_restart_settings(FILE *) override;
   int pre_adapt(char *, int, int, int, int);
   void adapt(int, int, int, int, int, double);
 
-  int pack_forward_comm(int, int *, double *, int, int *);
-  void unpack_forward_comm(int, int, double *);
+  int pack_forward_comm(int, int *, double *, int, int *) override;
+  void unpack_forward_comm(int, int, double *) override;
 
  protected:
   double mu, cut_inner_global, cut_global;
@@ -63,41 +63,3 @@ class PairLubricate : public Pair {
 
 #endif
 #endif
-
-/* ERROR/WARNING messages:
-
-E: Illegal ... command
-
-Self-explanatory.  Check the input script syntax and compare to the
-documentation for the command.  You can use -echo screen as a
-command-line option when running LAMMPS to see the offending line.
-
-W: Cannot include log terms without 1/r terms; setting flagHI to 1
-
-Self-explanatory.
-
-E: Incorrect args for pair coefficients
-
-Self-explanatory.  Check the input script or data file.
-
-E: Pair lubricate requires atom style sphere
-
-Self-explanatory.
-
-E: Pair lubricate requires ghost atoms store velocity
-
-Use the comm_modify vel yes command to enable this.
-
-E: Pair lubricate requires monodisperse particles
-
-All particles must be the same finite size.
-
-E: Using pair lubricate with inconsistent fix deform remap option
-
-Must use remap v option with fix deform with this pair style.
-
-E: Cannot use multiple fix wall commands with pair lubricate
-
-Self-explanatory.
-
-*/

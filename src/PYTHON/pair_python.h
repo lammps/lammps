@@ -1,7 +1,7 @@
 /* -*- c++ -*- ----------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    https://www.lammps.org/, Sandia National Laboratories
-   Steve Plimpton, sjplimp@sandia.gov
+   LAMMPS development team: developers@lammps.org
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
@@ -37,12 +37,12 @@ namespace LAMMPS_NS {
 class PairPython : public Pair {
  public:
   PairPython(class LAMMPS *);
-  virtual ~PairPython();
-  virtual void compute(int, int);
-  void settings(int, char **);
-  void coeff(int, char **);
-  double init_one(int, int);
-  double single(int, int, int, int, double, double, double, double &);
+  ~PairPython() override;
+  void compute(int, int) override;
+  void settings(int, char **) override;
+  void coeff(int, char **) override;
+  double init_one(int, int) override;
+  double single(int, int, int, int, double, double, double, double &) override;
 
  protected:
   double cut_global;
@@ -57,98 +57,3 @@ class PairPython : public Pair {
 
 #endif
 #endif
-
-/* ERROR/WARNING messages:
-
-E: Could not find 'compute_force' method'
-
-UNDOCUMENTED
-
-E: Python 'compute_force' is not callable
-
-UNDOCUMENTED
-
-E: Could not find 'compute_energy' method'
-
-UNDOCUMENTED
-
-E: Python 'compute_energy' is not callable
-
-UNDOCUMENTED
-
-E: Could not create tuple for 'compute' function arguments
-
-UNDOCUMENTED
-
-E: Calling 'compute_force' function failed
-
-UNDOCUMENTED
-
-E: Illegal ... command
-
-Self-explanatory.  Check the input script syntax and compare to the
-documentation for the command.  You can use -echo screen as a
-command-line option when running LAMMPS to see the offending line.
-
-E: Incorrect args for pair coefficients
-
-Self-explanatory.  Check the input script or data file.
-
-E: Python pair style requires fully qualified class name
-
-UNDOCUMENTED
-
-E: Loading python pair style module failure
-
-UNDOCUMENTED
-
-E: Could not find pair style class in module'
-
-UNDOCUMENTED
-
-E: Could not instantiate instance of pair style class'
-
-UNDOCUMENTED
-
-E: Could not find 'check_units' method'
-
-UNDOCUMENTED
-
-E: Python 'check_units' is not callable
-
-UNDOCUMENTED
-
-E: Could not create tuple for 'check_units' function arguments
-
-UNDOCUMENTED
-
-E: Calling 'check_units' function failed
-
-UNDOCUMENTED
-
-E: Could not find 'map_coeff' method'
-
-UNDOCUMENTED
-
-E: Python 'map_coeff' is not callable
-
-UNDOCUMENTED
-
-E: Could not create tuple for 'map_coeff' function arguments
-
-UNDOCUMENTED
-
-E: Calling 'map_coeff' function failed
-
-UNDOCUMENTED
-
-E: Calling 'compute_energy' function failed
-
-UNDOCUMENTED
-
-U: Pair cutoff < Respa interior cutoff
-
-One or more pairwise cutoffs are too short to use with the specified
-rRESPA cutoffs.
-
-*/

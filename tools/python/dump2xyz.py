@@ -7,16 +7,16 @@
 #          Nid,Ntype,Nx,Ny,Nz = columns #s for ID,type,x,y,z
 #                               (usually 1,2,3,4,5)
 #          xyzfile = new XYZ file
-# Author:  Steve Plimpton (Sandia), sjplimp at sandia.gov
+# Author:  Steve Plimpton (Sandia), sjplimp at gmail.com
 
 import sys,os
 path = os.environ["LAMMPS_PYTHON_TOOLS"]
-sys.path.append(path)
+sys.path.insert(1,path)
 from dump import dump
 from xyz import xyz
 
 if len(sys.argv) != 8:
-  raise StandardError, "Syntax: dump2xyz.py dumpfile Nid Ntype Nx Ny Nz xyzfile"
+  sys.exit("Syntax: dump2xyz.py dumpfile Nid Ntype Nx Ny Nz xyzfile")
 
 dumpfile = sys.argv[1]
 nid = int(sys.argv[2])

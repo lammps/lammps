@@ -3,7 +3,7 @@
  *      POEMS: PARALLELIZABLE OPEN SOURCE EFFICIENT MULTIBODY SOFTWARE     *
  *      DESCRIPTION: SEE READ-ME                                           *
  *      FILE NAME: fastmatrixops.cpp                                       *
- *      AUTHORS: See Author List                                           * 
+ *      AUTHORS: See Author List                                           *
  *      GRANTS: See Grants List                                            *
  *      COPYRIGHT: (C) 2005 by Authors as listed in Author's List          *
  *      LICENSE: Please see License Agreement                              *
@@ -11,7 +11,7 @@
  *      ADMINISTRATOR: Prof. Kurt Anderson                                 *
  *                     Computational Dynamics Lab                          *
  *                     Rensselaer Polytechnic Institute                    *
- *                     110 8th St. Troy NY 12180                           * 
+ *                     110 8th St. Troy NY 12180                           *
  *      CONTACT:        anderk5@rpi.edu                                    *
  *_________________________________________________________________________*/
 
@@ -444,50 +444,50 @@ void FastLU(Mat6x6& A, Mat6x6& LU, int *indx){ // LU is the LU decomposition of 
 }
 
 // friend of Matrix
-void FastLUSubs(Matrix& LU, Matrix& B, Matrix& C, int *indx){ // Appropriate Forward and Back Substitution	
+void FastLUSubs(Matrix& LU, Matrix& B, Matrix& C, int *indx){ // Appropriate Forward and Back Substitution
   int i,ip,j,k;
   int n = B.numrows;
   int c = B.numcols;
   double temp;
-  
+
   C = B;
   for (k=0;k<c;k++){
-	for (i=0;i<n;i++){
-		ip=indx[i];
-		temp=C.rows[ip][k];
-		C.rows[ip][k]=C.rows[i][k];
-		for (j=0;j<i;j++) temp -= LU.rows[i][j]*C.rows[j][k];
-		C.rows[i][k]=temp;
-	}
-	for (i=n-1;i>=0;i--){
-		temp=C.rows[i][k];
-		for (j=i+1;j<n;j++) temp -= LU.rows[i][j]*C.rows[j][k];
-		C.rows[i][k]=temp/LU.rows[i][i];
-	}
+  for (i=0;i<n;i++){
+    ip=indx[i];
+    temp=C.rows[ip][k];
+    C.rows[ip][k]=C.rows[i][k];
+    for (j=0;j<i;j++) temp -= LU.rows[i][j]*C.rows[j][k];
+    C.rows[i][k]=temp;
+  }
+  for (i=n-1;i>=0;i--){
+    temp=C.rows[i][k];
+    for (j=i+1;j<n;j++) temp -= LU.rows[i][j]*C.rows[j][k];
+    C.rows[i][k]=temp/LU.rows[i][i];
+  }
   }
 }
 
 // friend of Matrix and Mat3x3
-void FastLUSubs(Mat3x3& LU, Matrix& B, Matrix& C, int *indx){ // Appropriate Forward and Back Substitution	
+void FastLUSubs(Mat3x3& LU, Matrix& B, Matrix& C, int *indx){ // Appropriate Forward and Back Substitution
   int i,ip,j,k;
   int n = B.numrows;
   int c = B.numcols;
   double temp;
-  
+
   C = B;
   for (k=0;k<c;k++){
-	for (i=0;i<n;i++){
-		ip=indx[i];
-		temp=C.rows[ip][k];
-		C.rows[ip][k]=C.rows[i][k];
-		for (j=0;j<i;j++) temp -= LU.BasicGet(i,j)*C.rows[j][k];
-		C.rows[i][k]=temp;
-	}
-	for (i=n-1;i>=0;i--){
-		temp=C.rows[i][k];
-		for (j=i+1;j<n;j++) temp -= LU.BasicGet(i,j)*C.rows[j][k];
-		C.rows[i][k]=temp/LU.BasicGet(i,i);
-	}
+  for (i=0;i<n;i++){
+    ip=indx[i];
+    temp=C.rows[ip][k];
+    C.rows[ip][k]=C.rows[i][k];
+    for (j=0;j<i;j++) temp -= LU.BasicGet(i,j)*C.rows[j][k];
+    C.rows[i][k]=temp;
+  }
+  for (i=n-1;i>=0;i--){
+    temp=C.rows[i][k];
+    for (j=i+1;j<n;j++) temp -= LU.BasicGet(i,j)*C.rows[j][k];
+    C.rows[i][k]=temp/LU.BasicGet(i,i);
+  }
   }
 }
 
@@ -497,72 +497,72 @@ void FastLUSubs(Mat4x4& LU, Matrix& B, Matrix& C, int *indx){ // Appropriate For
   int n = B.numrows;
   int c = B.numcols;
   double temp;
-  
+
   C = B;
   for (k=0;k<c;k++){
-	for (i=0;i<n;i++){
-		ip=indx[i];
-		temp=C.rows[ip][k];
-		C.rows[ip][k]=C.rows[i][k];
-		for (j=0;j<i;j++) temp -= LU.BasicGet(i,j)*C.rows[j][k];
-		C.rows[i][k]=temp;
-	}
-	for (i=n-1;i>=0;i--){
-		temp=C.rows[i][k];
-		for (j=i+1;j<n;j++) temp -= LU.BasicGet(i,j)*C.rows[j][k];
-		C.rows[i][k]=temp/LU.BasicGet(i,i);
-	}
+  for (i=0;i<n;i++){
+    ip=indx[i];
+    temp=C.rows[ip][k];
+    C.rows[ip][k]=C.rows[i][k];
+    for (j=0;j<i;j++) temp -= LU.BasicGet(i,j)*C.rows[j][k];
+    C.rows[i][k]=temp;
+  }
+  for (i=n-1;i>=0;i--){
+    temp=C.rows[i][k];
+    for (j=i+1;j<n;j++) temp -= LU.BasicGet(i,j)*C.rows[j][k];
+    C.rows[i][k]=temp/LU.BasicGet(i,i);
+  }
   }
 }
 
 // friend of Matrix and Mat6x6
-void FastLUSubs(Mat6x6& LU, Matrix& B, Matrix& C, int *indx){ // Appropriate Forward and Back Substitution	
+void FastLUSubs(Mat6x6& LU, Matrix& B, Matrix& C, int *indx){ // Appropriate Forward and Back Substitution
   int i,ip,j,k;
   int n = B.numrows;
   int c = B.numcols;
   double temp;
-  
+
   C = B;
   for (k=0;k<c;k++){
-	for (i=0;i<n;i++){
-		ip=indx[i];
-		temp=C.rows[ip][k];
-		C.rows[ip][k]=C.rows[i][k];
-		for (j=0;j<i;j++) temp -= LU.BasicGet(i,j)*C.rows[j][k];
-		C.rows[i][k]=temp;
-	}
-	for (i=n-1;i>=0;i--){
-		temp=C.rows[i][k];
-		for (j=i+1;j<n;j++) temp -= LU.BasicGet(i,j)*C.rows[j][k];
-		C.rows[i][k]=temp/LU.BasicGet(i,i);
-	}
+  for (i=0;i<n;i++){
+    ip=indx[i];
+    temp=C.rows[ip][k];
+    C.rows[ip][k]=C.rows[i][k];
+    for (j=0;j<i;j++) temp -= LU.BasicGet(i,j)*C.rows[j][k];
+    C.rows[i][k]=temp;
+  }
+  for (i=n-1;i>=0;i--){
+    temp=C.rows[i][k];
+    for (j=i+1;j<n;j++) temp -= LU.BasicGet(i,j)*C.rows[j][k];
+    C.rows[i][k]=temp/LU.BasicGet(i,i);
+  }
   }
 }
 
 
 // The following LUSubsLH routine is incomplete at the moment.
 // friend of Matrix
-void FastLUSubsLH(Matrix& LU, Matrix& B, Matrix& C, int *indx){ // Appropriate Forward and Back Substitution	
+void FastLUSubsLH(Matrix& LU, Matrix& B, Matrix& C, int *indx){ // Appropriate Forward and Back Substitution
   int i,ip,j,k;
   int n = B.numcols;
   int c = B.numrows;
   double temp;
   Matrix C_temp;
-  
+
   C_temp = B;
   for (k=0;k<c;k++){
-	for (i=0;i<n;i++){
-		ip=indx[k];
-	    temp=C_temp.rows[ip][i];
-		C_temp.rows[ip][i]=C_temp.rows[k][i];
-		for (j=0;j<i;j++) temp -= LU.rows[i][j]*C_temp.rows[k][j];
-		C_temp.rows[k][i]=temp;
-	}
-	for (i=n-1;i>=0;i--){
-		temp=C_temp.rows[k][i];
-		for (j=i+1;j<n;j++) temp -= LU.rows[i][j]*C_temp.rows[k][j];
-		C_temp.rows[k][i]=temp/LU.rows[i][i];
-	}
+  for (i=0;i<n;i++){
+    ip=indx[k];
+      temp=C_temp.rows[ip][i];
+    C_temp.rows[ip][i]=C_temp.rows[k][i];
+    for (j=0;j<i;j++) temp -= LU.rows[i][j]*C_temp.rows[k][j];
+    C_temp.rows[k][i]=temp;
+  }
+  for (i=n-1;i>=0;i--){
+    temp=C_temp.rows[k][i];
+    for (j=i+1;j<n;j++) temp -= LU.rows[i][j]*C_temp.rows[k][j];
+    C_temp.rows[k][i]=temp/LU.rows[i][i];
+  }
   }
   C = C_temp;
 }

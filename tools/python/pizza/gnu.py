@@ -1,5 +1,5 @@
-# Pizza.py toolkit, www.cs.sandia.gov/~sjplimp/pizza.html
-# Steve Plimpton, sjplimp@sandia.gov, Sandia National Laboratories
+# Pizza.py toolkit, https://lammps.github.io/pizza
+# LAMMPS development team: developers@lammps.org
 #
 # Copyright (2005) Sandia Corporation.  Under the terms of Contract
 # DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
@@ -14,12 +14,12 @@ from __future__ import print_function
 oneline = "Create plots via GnuPlot plotting program"
 
 docstr = """
-g = gnu()		       start up GnuPlot
-g.stop()		       shut down GnuPlot process
+g = gnu()              start up GnuPlot
+g.stop()               shut down GnuPlot process
 
 g.plot(a)                      plot vector A against linear index
-g.plot(a,b)	 	       plot B against A
-g.plot(a,b,c,d,...)	       plot B against A, D against C, etc
+g.plot(a,b)            plot B against A
+g.plot(a,b,c,d,...)        plot B against A, D against C, etc
 g.mplot(M,N,S,"file",a,b,...)  multiple plots saved to file0000.eps, etc
 
   each plot argument can be a tuple, list, or Numeric/NumPy vector
@@ -32,21 +32,21 @@ g.mplot(M,N,S,"file",a,b,...)  multiple plots saved to file0000.eps, etc
 
 g("plot 'file.dat' using 2:3 with lines")      execute string in GnuPlot
 
-g.enter()	   	                enter GnuPlot shell
+g.enter()                       enter GnuPlot shell
 gnuplot> plot sin(x) with lines         type commands directly to GnuPlot
-gnuplot> exit, quit	      	        exit GnuPlot shell
+gnuplot> exit, quit                 exit GnuPlot shell
 
 g.export("data",range(100),a,...)       create file with columns of numbers
 
   all vectors must be of equal length
   could plot from file with GnuPlot command: plot 'data' using 1:2 with lines
 
-g.select(N)  	               figure N becomes the current plot
+g.select(N)                    figure N becomes the current plot
 
   subsequent commands apply to this plot
 
-g.hide(N)  	               delete window for figure N
-g.save("file")	               save current plot as file.eps
+g.hide(N)                  delete window for figure N
+g.save("file")                 save current plot as file.eps
 
 Set attributes for current plot:
 

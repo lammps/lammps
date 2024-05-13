@@ -39,7 +39,7 @@ timestep, according to:
 
    \frac{d \vec{s}_{i}}{dt} = \lambda\, \vec{s}_{i} \times\left( \vec{\omega}_{i} \times\vec{s}_{i} \right)
 
-with :math:`\lambda` a damping coefficient (similar to a Gilbert
+with :math:`\lambda` a damping coefficient (similar to a magnetic
 damping). :math:`\lambda` can be defined by setting the
 *alpha_damp* keyword with the :doc:`min_modify <min_modify>` command.
 
@@ -81,7 +81,7 @@ The :doc:`min_modify <min_modify>` command can be used to
 activate the line search procedure, and to modify the
 discretization factor *discrete_factor*.
 
-For more information about styles *spin/cg* and *spin/lbfgs*\ ,
+For more information about styles *spin/cg* and *spin/lbfgs*,
 see their implementation reported in :ref:`(Ivanov) <Ivanov1>`.
 
 .. note::
@@ -97,6 +97,10 @@ see their implementation reported in :ref:`(Ivanov) <Ivanov1>`.
 
 Restrictions
 """"""""""""
+
+The *spin*, *spin/cg*, and *spin/lbfgps* styles are part of the SPIN
+package.  They are only enabled if LAMMPS was built with that package.
+See the :doc:`Build package <Build_package>` page for more info.
 
 This minimization procedure is only applied to spin degrees of
 freedom for a frozen lattice configuration.

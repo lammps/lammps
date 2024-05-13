@@ -1,0 +1,142 @@
+LAMMPS (22 Dec 2022)
+  using 1 OpenMP thread(s) per MPI task
+# Demonstrate POD Ta potential
+
+# Initialize simulation
+
+variable nsteps index 100
+variable nrep equal 4
+variable a equal 3.316
+units           metal
+
+# generate the box and atom positions using a BCC lattice
+
+variable nx equal ${nrep}
+variable nx equal 4
+variable ny equal ${nrep}
+variable ny equal 4
+variable nz equal ${nrep}
+variable nz equal 4
+
+boundary        p p p
+
+lattice         bcc $a
+lattice         bcc 3.316
+Lattice spacing in x,y,z = 3.316 3.316 3.316
+region          box block 0 ${nx} 0 ${ny} 0 ${nz}
+region          box block 0 4 0 ${ny} 0 ${nz}
+region          box block 0 4 0 4 0 ${nz}
+region          box block 0 4 0 4 0 4
+create_box      1 box
+Created orthogonal box = (0 0 0) to (13.264 13.264 13.264)
+  1 by 2 by 2 MPI processor grid
+create_atoms    1 box
+Created 128 atoms
+  using lattice units in orthogonal box = (0 0 0) to (13.264 13.264 13.264)
+  create_atoms CPU = 0.000 seconds
+
+mass 1 180.88
+
+
+# POD potential
+pair_style pod
+pair_coeff * * Ta_param.pod Ta_coefficients.pod Ta
+Reading potential file Ta_param.pod with DATE: 2022-11-30
+**************** Begin of POD Potentials ****************
+species: Ta 
+periodic boundary conditions: 1 1 1
+inner cut-off radius: 1
+outer cut-off radius: 5
+bessel polynomial degree: 3
+inverse polynomial degree: 6
+one-body potential: 1
+two-body potential: 3 6 6
+three-body potential: 3 6 5 5
+four-body SNAP potential: 0 0
+quadratic POD potential: 1
+number of basis functions for one-body potential: 1
+number of basis functions for two-body potential: 6
+number of basis functions for three-body potential: 25
+number of basis functions for four-body potential: 0
+number of descriptors for one-body potential: 1
+number of descriptors for two-body potential: 6
+number of descriptors for three-body potential: 25
+number of descriptors for four-body potential: 0
+number of descriptors for quadratic POD potential: 150
+total number of descriptors for all potentials: 182
+**************** End of POD Potentials ****************
+
+
+# Setup output
+
+thermo          10
+thermo_modify norm yes
+
+# Set up NVE run
+
+timestep 0.5e-3
+neighbor 1.0 bin
+neigh_modify once no every 1 delay 0 check yes
+
+# Run MD
+
+velocity all create 300.0 4928459 loop geom
+fix 1 all nve
+run             ${nsteps}
+run             100
+Neighbor list info ...
+  update: every = 1 steps, delay = 0 steps, check = yes
+  max neighbors/atom: 2000, page size: 100000
+  master list distance cutoff = 6
+  ghost atom cutoff = 6
+  binsize = 3, bins = 5 5 5
+  1 neighbor lists, perpetual/occasional/extra = 1 0 0
+  (1) pair pod, perpetual
+      attributes: full, newton on
+      pair build: full/bin/atomonly
+      stencil: full/bin/3d
+      bin: standard
+Per MPI rank memory allocation (min/avg/max) = 3.062 | 3.062 | 3.062 Mbytes
+   Step          Temp          E_pair         E_mol          TotEng         Press     
+         0   300           -11.847697      0             -11.809222      13502.169    
+        10   296.47494     -11.847245      0             -11.809222      13529.584    
+        20   286.0918      -11.845913      0             -11.809222      13613.884    
+        30   269.42275     -11.843776      0             -11.809222      13759.746    
+        40   247.39423     -11.84095       0             -11.809222      13972.073    
+        50   221.23976     -11.837596      0             -11.809222      14253.202    
+        60   192.43252     -11.833901      0             -11.809222      14600.367    
+        70   162.59874     -11.830075      0             -11.809221      15004.156    
+        80   133.41531     -11.826332      0             -11.809221      15448.418    
+        90   106.49785     -11.82288       0             -11.809221      15911.638    
+       100   83.288219     -11.819903      0             -11.809221      16369.373    
+Loop time of 0.427448 on 4 procs for 100 steps with 128 atoms
+
+Performance: 10.106 ns/day, 2.375 hours/ns, 233.947 timesteps/s, 29.945 katom-step/s
+97.9% CPU use with 4 MPI tasks x 1 OpenMP threads
+
+MPI task timing breakdown:
+Section |  min time  |  avg time  |  max time  |%varavg| %total
+---------------------------------------------------------------
+Pair    | 0.40622    | 0.40946    | 0.419      |   0.9 | 95.79
+Neigh   | 0          | 0          | 0          |   0.0 |  0.00
+Comm    | 0.0071192  | 0.016995   | 0.020439   |   4.4 |  3.98
+Output  | 0.00012904 | 0.0002071  | 0.00043132 |   0.0 |  0.05
+Modify  | 3.905e-05  | 4.8089e-05 | 5.5714e-05 |   0.0 |  0.01
+Other   |            | 0.0007341  |            |       |  0.17
+
+Nlocal:             32 ave          32 max          32 min
+Histogram: 4 0 0 0 0 0 0 0 0 0
+Nghost:            431 ave         431 max         431 min
+Histogram: 4 0 0 0 0 0 0 0 0 0
+Neighs:              0 ave           0 max           0 min
+Histogram: 4 0 0 0 0 0 0 0 0 0
+FullNghs:         1856 ave        1856 max        1856 min
+Histogram: 4 0 0 0 0 0 0 0 0 0
+
+Total # of neighbors = 7424
+Ave neighs/atom = 58
+Neighbor list builds = 0
+Dangerous builds = 0
+
+
+Total wall time: 0:00:00

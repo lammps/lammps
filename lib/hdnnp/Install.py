@@ -10,14 +10,14 @@ import sys, os, platform, subprocess, shutil
 from argparse import ArgumentParser
 
 sys.path.append('..')
-from install_helpers import get_cpus, fullpath, geturl, checkmd5sum
+from install_helpers import get_cpus, fullpath, geturl, checkmd5sum, getfallback
 
 parser = ArgumentParser(prog='Install.py',
                         description="LAMMPS library build wrapper script")
 
 # settings
 
-version = "2.1.4"
+version = "2.2.0"
 
 # help message
 
@@ -38,6 +38,7 @@ make lib-hdnnp args="-p $HOME/n2p2" # use existing n2p2 installation in $HOME/n2
 
 # known checksums for different n2p2 versions. used to validate the download.
 checksums = { \
+        '2.2.0' : 'a2d9ab7f676b3a74a324fc1eda0a911d', \
         '2.1.4' : '9595b066636cd6b90b0fef93398297a5', \
         }
 
@@ -76,14 +77,21 @@ if pathflag:
 
 if buildflag:
   url = "https://github.com/CompPhysVienna/n2p2/archive/v%s.tar.gz" % (version)
-  filename = "n2p2-%s.tar.gz" %version
-  print("Downloading n2p2 ...")
-  geturl(url, filename)
+  filename = "n2p2-%s.tar.gz" % version
+  fallback = getfallback('n2p2', url)
+  print("Downloading n2p2 from", url)
+  try:
+    geturl(url, filename)
+  except:
+    geturl(fallback, filename)
 
   # verify downloaded archive integrity via md5 checksum, if known.
   if version in checksums:
     if not checkmd5sum(checksums[version], filename):
-      sys.exit("Checksum for n2p2 library does not match")
+      print("Checksum did not match. Trying fallback URL", fallback)
+      geturl(fallback, filename)
+      if not checkmd5sum(checksums[version], filename):
+        sys.exit("Checksum for n2p2 library does not match for fallback, too.")
 
   print("Unpacking n2p2 source tarball ...")
   if os.path.exists("%s/n2p2-%s" % (homepath, version)):

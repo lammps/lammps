@@ -6,14 +6,14 @@ compute bond/local command
 Syntax
 """"""
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    compute ID group-ID bond/local value1 value2 ... keyword args ...
 
 * ID, group-ID are documented in :doc:`compute <compute>` command
 * bond/local = style name of this compute command
 * one or more values may be appended
-* value = *dist* or *engpot* or *force* or *fx* or *fy* or *fz* or *engvib* or *engrot* or *engtrans* or *omega* or *velvib* or *v_name*
+* value = *dist* or *dx* or *dy* or *dz* or *engpot* or *force* or *fx* or *fy* or *fz* or *engvib* or *engrot* or *engtrans* or *omega* or *velvib* or *v_name* or *bN*
 
 .. parsed-literal::
 
@@ -21,21 +21,23 @@ Syntax
      *engpot* = bond potential energy
      *force* = bond force
 
-     *fx*\ ,\ *fy*\ ,\ *fz* = components of bond force
+     *dx*,\ *dy*,\ *dz* = components of pairwise distance
+     *fx*,\ *fy*,\ *fz* = components of bond force
      *engvib* = bond kinetic energy of vibration
      *engrot* = bond kinetic energy of rotation
      *engtrans* = bond kinetic energy of translation
      *omega* = magnitude of bond angular velocity
      *velvib* = vibrational velocity along the bond length
      *v_name* = equal-style variable with name (see below)
+     *bN* = bond style specific quantities for allowed N values
 
 * zero or more keyword/args pairs may be appended
 * keyword = *set*
 
 .. parsed-literal::
 
-     *set* args = dist name
-       dist = only currently allowed arg
+     *set* args = *dist* name
+       *dist* = only currently allowed arg
        name = name of variable to set with distance (dist)
 
 Examples
@@ -46,9 +48,9 @@ Examples
    compute 1 all bond/local engpot
    compute 1 all bond/local dist engpot force
 
-   compute 1 all bond/local dist fx fy fz
+   compute 1 all bond/local dist fx fy fz b1 b2
 
-   compute 1 all angle/local dist v_distsq set dist d
+   compute 1 all bond/local dist v_distsq set dist d
 
 Description
 """""""""""
@@ -63,6 +65,9 @@ whether the 2 atoms represent a simple diatomic molecule, or are part
 of some larger molecule.
 
 The value *dist* is the current length of the bond.
+The values *dx*, *dy*, and *dz* are the xyz components of the
+*distance* between the pair of atoms. This value is always the
+distance from the atom of lower to the one with the higher id.
 
 The value *engpot* is the potential energy for the bond,
 based on the current separation of the pair of atoms in the bond.
@@ -70,40 +75,45 @@ based on the current separation of the pair of atoms in the bond.
 The value *force* is the magnitude of the force acting between the
 pair of atoms in the bond.
 
-The values *fx*\ , *fy*\ , and *fz* are the xyz components of
-*force* between the pair of atoms in the bond.
+The values *fx*, *fy*, and *fz* are the xyz components of
+*force* between the pair of atoms in the bond. For bond styles that apply
+non-central forces, such as :doc:`bond_style bpm/rotational
+<bond_bpm_rotational>`, these values only include the :math:`(x,y,z)`
+components of the normal force component.
 
 The remaining properties are all computed for motion of the two atoms
 relative to the center of mass (COM) velocity of the 2 atoms in the
 bond.
 
 The value *engvib* is the vibrational kinetic energy of the two atoms
-in the bond, which is simply 1/2 m1 v1\^2 + 1/2 m2 v2\^2, where v1 and
-v2 are the magnitude of the velocity of the 2 atoms along the bond
-direction, after the COM velocity has been subtracted from each.
-
-The value *engrot* is the rotational kinetic energy of the two atoms
-in the bond, which is simply 1/2 m1 v1\^2 + 1/2 m2 v2\^2, where v1 and
-v2 are the magnitude of the velocity of the 2 atoms perpendicular to
-the bond direction, after the COM velocity has been subtracted from
+in the bond, which is simply :math:`\frac12 m_1 v_1^2 + \frac12 m_2 v_2^2,`
+where :math:`v_1` and :math:`v_2` are the magnitude of the velocity of the two
+atoms along the bond direction, after the COM velocity has been subtracted from
 each.
 
-The value *engtrans* is the translational kinetic energy associated
-with the motion of the COM of the system itself, namely 1/2 (m1+m2)
-Vcm\^2 where Vcm = magnitude of the velocity of the COM.
+The value *engrot* is the rotational kinetic energy of the two atoms
+in the bond, which is simply :math:`\frac12 m_1 v_1^2 + \frac12 m_2 v_2^2,`
+where :math:`v_1` and :math:`v_2` are the magnitude of the velocity of the two
+atoms perpendicular to the bond direction, after the COM velocity has been
+subtracted from each.
 
-Note that these 3 kinetic energy terms are simply a partitioning of
-the summed kinetic energy of the 2 atoms themselves.  I.e. total KE =
-1/2 m1 v1\^2 + 1/2 m2 v2\^2 = engvib + engrot + engtrans, where v1,v2
-are the magnitude of the velocities of the 2 atoms, without any
-adjustment for the COM velocity.
+The value *engtrans* is the translational kinetic energy associated
+with the motion of the COM of the system itself, namely :math:`\frac12(m_1+m_2)
+V_{\mathrm{cm}}^2`, where `Vcm` = magnitude of the velocity of the COM.
+
+Note that these three kinetic energy terms are simply a partitioning of
+the summed kinetic energy of the two atoms themselves.  That is, the total
+kinetic energy is
+:math:`\frac12 m_1 v_1^2 + \frac12 m_2 v_2^2` = engvib + engrot + engtrans,
+where :math:`v_1` and :math:`v_2` are the magnitude of the velocities of the
+two atoms, without any adjustment for the COM velocity.
 
 The value *omega* is the magnitude of the angular velocity of the
 two atoms around their COM position.
 
 The value *velvib* is the magnitude of the relative velocity of the
 two atoms in the bond towards each other.  A negative value means the
-2 atoms are moving toward each other; a positive value means they are
+two atoms are moving toward each other; a positive value means they are
 moving apart.
 
 The value *v_name* can be used together with the *set* keyword to
@@ -117,7 +127,7 @@ directly.  The *set* keyword is used to identify the name of this
 other variable associated with theta.
 
 As an example, these commands can be added to the bench/in.rhodo
-script to compute the distance\^2 of every bond in the system and
+script to compute the length\ :math:`^2` of every bond in the system and
 output the statistics in various ways:
 
 .. code-block:: LAMMPS
@@ -134,12 +144,25 @@ output the statistics in various ways:
 
    fix 10 all ave/histo 10 10 100 0 6 20 c_2[3] mode vector file tmp.histo
 
-The :doc:`dump local <dump>` command will output the energy, distance,
-distance\^2 for every bond in the system.  The
+The :doc:`dump local <dump>` command will output the energy, length,
+and length\ :math:`^2` for every bond in the system.  The
 :doc:`thermo_style <thermo_style>` command will print the average of
 those quantities via the :doc:`compute reduce <compute_reduce>` command
-with thermo output.  And the :doc:`fix ave/histo <fix_ave_histo>`
-command will histogram the distance\^2 values and write them to a file.
+with thermo output, and the :doc:`fix ave/histo <fix_ave_histo>`
+command will histogram the length\ :math:`^2` values and write them to a file.
+
+A bond style may define additional bond quantities which can be
+accessed as *b1* to *bN*, where N is defined by the bond style.  Most
+bond styles do not define any additional quantities, so N = 0.  An
+example of ones that do are the :doc:`BPM bond styles <Howto_bpm>`
+which store the reference state between two particles. See
+individual bond styles for details.
+
+When using *bN* with bond style *hybrid*, the output will be the Nth
+quantity from the sub-style that computes the bonded interaction
+(based on bond type).  If that sub-style does not define a *bN*,
+the output will be 0.0.  The maximum allowed N is the maximum number
+of quantities provided by any sub-style.
 
 ----------
 
@@ -178,13 +201,13 @@ array is the number of bonds.  If a single value is specified, a local
 vector is produced.  If two or more values are specified, a local
 array is produced where the number of columns = the number of values.
 The vector or array can be accessed by any command that uses local
-values from a compute as input.  See the :doc:`Howto output <Howto_output>` doc page for an overview of LAMMPS output
+values from a compute as input.  See the :doc:`Howto output <Howto_output>` page for an overview of LAMMPS output
 options.
 
 The output for *dist* will be in distance :doc:`units <units>`. The
 output for *velvib* will be in velocity :doc:`units <units>`. The output
 for *omega* will be in velocity/distance :doc:`units <units>`. The
-output for *engtrans*\ , *engvib*\ , *engrot*\ , and *engpot* will be in
+output for *engtrans*, *engvib*, *engrot*, and *engpot* will be in
 energy :doc:`units <units>`. The output for *force* will be in force
 :doc:`units <units>`.
 

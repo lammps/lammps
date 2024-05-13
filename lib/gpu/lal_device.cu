@@ -52,4 +52,5 @@ __kernel void kernel_info(__global int *info) {
   info[16]=MAX_SHARED_TYPES;
   info[17]=MAX_BIO_SHARED_TYPES;
   info[18]=PPPM_MAX_SPLINE;
+  info[19]=NBOR_PREFETCH;
 }

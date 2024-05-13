@@ -6,7 +6,7 @@ fix nvt/manifold/rattle command
 Syntax
 """"""
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    fix ID group-ID nvt/manifold/rattle tol maxit manifold manifold-args keyword value ...
 
@@ -63,8 +63,8 @@ the :doc:`run <run>` command.  This fix is not invoked during :doc:`energy minim
 Restrictions
 """"""""""""
 
-This fix is part of the USER-MANIFOLD package. It is only enabled if
-LAMMPS was built with that package.  See the :doc:`Build package <Build_package>` doc page for more info.
+This fix is part of the MANIFOLD package. It is only enabled if
+LAMMPS was built with that package.  See the :doc:`Build package <Build_package>` page for more info.
 
 ----------
 
@@ -82,4 +82,4 @@ Related commands
 .. _Paquay3:
 
 **(Paquay)** Paquay and Kusters, Biophys. J., 110, 6, (2016).
-preprint available at `arXiv:1411.3019 <http://arxiv.org/abs/1411.3019/>`_.
+preprint available at `arXiv:1411.3019 <https://arxiv.org/abs/1411.3019/>`_.

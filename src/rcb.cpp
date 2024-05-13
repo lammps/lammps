@@ -2,7 +2,7 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    https://www.lammps.org/, Sandia National Laboratories
-   Steve Plimpton, sjplimp@sandia.gov
+   LAMMPS development team: developers@lammps.org
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
@@ -21,9 +21,9 @@
 
 using namespace LAMMPS_NS;
 
-#define MYHUGE 1.0e30
-#define TINY 1.0e-6
-#define DELTA 16384
+static constexpr double MYHUGE = 1.0e30;
+static constexpr double TINY = 1.0e-6;
+static constexpr int DELTA = 16384;
 
 // prototypes for non-class functions
 
@@ -242,7 +242,7 @@ void RCB::compute(int dimension, int n, double **x, double *wt,
     // dim_select = selected cut dimension
     // valuehalf_select = valuehalf in that dimension
     // dotmark_select = dot markings in that dimension
-    // initialize largest = -1.0 to insure a cut in some dim is accepted
+    // initialize largest = -1.0 to ensure a cut in some dim is accepted
     //   e.g. if current recursed box is size 0 in all dims
 
     int dim_select = -1;
@@ -285,7 +285,7 @@ void RCB::compute(int dimension, int n, double **x, double *wt,
       first_iteration = 1;
       indexlo = indexhi = 0;
 
-      while (1) {
+      while (true) {
 
         // choose bisector value
         // use old value on 1st iteration if old cut dimension is the same
@@ -571,7 +571,7 @@ void RCB::compute(int dimension, int n, double **x, double *wt,
       }
     }
 
-    // handshake before sending dots to insure recvs have been posted
+    // handshake before sending dots to ensure recvs have been posted
 
     if (readnumber > 0) {
       MPI_Send(nullptr,0,MPI_INT,procpartner,0,world);
@@ -814,7 +814,7 @@ void RCB::compute_old(int dimension, int n, double **x, double *wt,
     first_iteration = 1;
     indexlo = indexhi = 0;
 
-    while (1) {
+    while (true) {
 
       // choose bisector value
       // use old value on 1st iteration if old cut dimension is the same
@@ -1063,7 +1063,7 @@ void RCB::compute_old(int dimension, int n, double **x, double *wt,
       }
     }
 
-    // handshake before sending dots to insure recvs have been posted
+    // handshake before sending dots to ensure recvs have been posted
 
     if (readnumber > 0) {
       MPI_Send(nullptr,0,MPI_INT,procpartner,0,world);
@@ -1130,8 +1130,8 @@ void RCB::compute_old(int dimension, int n, double **x, double *wt,
 void box_merge(void *in, void *inout, int * /*len*/, MPI_Datatype * /*dptr*/)
 
 {
-  RCB::BBox *box1 = (RCB::BBox *) in;
-  RCB::BBox *box2 = (RCB::BBox *) inout;
+  auto box1 = (RCB::BBox *) in;
+  auto box2 = (RCB::BBox *) inout;
 
   for (int i = 0; i < 3; i++) {
     if (box1->lo[i] < box2->lo[i]) box2->lo[i] = box1->lo[i];
@@ -1160,8 +1160,8 @@ void box_merge(void *in, void *inout, int * /*len*/, MPI_Datatype * /*dptr*/)
 void median_merge(void *in, void *inout, int * /*len*/, MPI_Datatype * /*dptr*/)
 
 {
-  RCB::Median *med1 = (RCB::Median *) in;
-  RCB::Median *med2 = (RCB::Median *) inout;
+  auto med1 = (RCB::Median *) in;
+  auto med2 = (RCB::Median *) inout;
 
   med2->totallo += med1->totallo;
   if (med1->valuelo > med2->valuelo) {
@@ -1209,8 +1209,7 @@ void RCB::invert(int sortflag)
   int *proclist;
   memory->create(proclist,nsend,"RCB:proclist");
 
-  Invert *sinvert =
-    (Invert *) memory->smalloc(nsend*sizeof(Invert),"RCB:sinvert");
+  auto sinvert = (Invert *) memory->smalloc(nsend*sizeof(Invert),"RCB:sinvert");
 
   int m = 0;
   for (int i = nkeep; i < nfinal; i++) {
@@ -1225,8 +1224,7 @@ void RCB::invert(int sortflag)
   // nrecv = # of my dots to send to other procs
 
   int nrecv = irregular->create_data(nsend,proclist,sortflag);
-  Invert *rinvert =
-    (Invert *) memory->smalloc(nrecv*sizeof(Invert),"RCB:rinvert");
+  auto rinvert = (Invert *) memory->smalloc(nrecv*sizeof(Invert),"RCB:rinvert");
   irregular->exchange_data((char *) sinvert,sizeof(Invert),(char *) rinvert);
   irregular->destroy_data();
 

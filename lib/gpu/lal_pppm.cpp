@@ -54,7 +54,7 @@ int PPPMT::bytes_per_atom() const {
 }
 
 template <class numtyp, class acctyp, class grdtyp, class grdtyp4>
-grdtyp * PPPMT::init(const int nlocal, const int nall, FILE *_screen,
+grdtyp *PPPMT::init(const int nlocal, const int nall, FILE *_screen,
                               const int order, const int nxlo_out,
                               const int nylo_out, const int nzlo_out,
                               const int nxhi_out, const int nyhi_out,
@@ -69,15 +69,17 @@ grdtyp * PPPMT::init(const int nlocal, const int nall, FILE *_screen,
 
   flag=device->init(*ans,nlocal,nall);
   if (flag!=0)
-    return 0;
-  if (sizeof(grdtyp)==sizeof(double) && device->double_precision()==false) {
+    return nullptr;
+  if (sizeof(grdtyp)==sizeof(double) && !device->double_precision()) {
     flag=-15;
-    return 0;
+    return nullptr;
   }
   if (device->ptx_arch()>0.0 && device->ptx_arch()<1.1) {
     flag=-4;
-    return 0;
+    return nullptr;
   }
+
+  if (ucl_device!=device->gpu) _compiled=false;
 
   ucl_device=device->gpu;
   atom=&device->atom;
@@ -168,7 +170,7 @@ grdtyp * PPPMT::init(const int nlocal, const int nall, FILE *_screen,
                                        UCL_READ_WRITE)==UCL_SUCCESS);
   if (!success) {
     flag=-3;
-    return 0;
+    return nullptr;
   }
 
   error_flag.device.zero();
@@ -303,8 +305,9 @@ int PPPMT::spread(const int ago, const int nlocal, const int nall,
                            double *host_q, double *boxlo,
                            const double delxinv, const double delyinv,
                            const double delzinv) {
-  if (_precompute_done==false) {
-    atom->acc_timers();
+  if (!_precompute_done) {
+    if (device->time_device())
+      atom->acc_timers();
     _precompute(ago,nlocal,nall,host_x,host_type,success,host_q,boxlo,delxinv,
                 delyinv,delzinv);
   }
@@ -342,12 +345,14 @@ void PPPMT::interp(const grdtyp qqrd2e_scale) {
   vd_brick.update_device(true);
   time_in.stop();
 
+  int ainum=this->ans->inum();
+  if (ainum==0)
+    return;
+
   time_interp.start();
   // Compute the block size and grid size to keep all cores busy
   int BX=this->block_size();
   int GX=static_cast<int>(ceil(static_cast<double>(this->ans->inum())/BX));
-
-  int ainum=this->ans->inum();
 
   k_interp.set_size(GX,BX);
   k_interp.run(&atom->x, &atom->q, &ainum, &vd_brick, &d_rho_coeff,
@@ -357,7 +362,7 @@ void PPPMT::interp(const grdtyp qqrd2e_scale) {
   time_interp.stop();
 
   ans->copy_answers(false,false,false,false,0);
-  if (_kspace_split==false)
+  if (!_kspace_split)
     device->add_ans_object(ans);
 }
 
@@ -372,7 +377,7 @@ void PPPMT::compile_kernels(UCL_Device &dev) {
   if (_compiled)
     return;
 
-  if (sizeof(grdtyp)==sizeof(double) && ucl_device->double_precision()==false)
+  if (sizeof(grdtyp)==sizeof(double) && !ucl_device->double_precision())
     return;
 
   std::string flags=device->compile_string();

@@ -2,7 +2,7 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    https://www.lammps.org/, Sandia National Laboratories
-   Steve Plimpton, sjplimp@sandia.gov
+   LAMMPS development team: developers@lammps.org
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
@@ -31,10 +31,9 @@
 
 using namespace LAMMPS_NS;
 
-#define DELTA 10000
-#define EPSILON 1.0e-12
+static constexpr int DELTA = 10000;
 
-enum{DIST,VELVIB,OMEGA,ENGTRANS,ENGVIB,ENGROT,ENGPOT,FORCE,FX,FY,FZ,VARIABLE};
+enum{DIST,DX,DY,DZ,VELVIB,OMEGA,ENGTRANS,ENGVIB,ENGROT,ENGPOT,FORCE,FX,FY,FZ,VARIABLE,BN};
 
 /* ---------------------------------------------------------------------- */
 
@@ -54,6 +53,7 @@ ComputeBondLocal::ComputeBondLocal(LAMMPS *lmp, int narg, char **arg) :
 
   nvalues = narg - 3;
   bstyle = new int[nvalues];
+  bindex = new int[nvalues];
   vstr = new char*[nvalues];
   vvar = new int[nvalues];
 
@@ -63,6 +63,9 @@ ComputeBondLocal::ComputeBondLocal(LAMMPS *lmp, int narg, char **arg) :
   int iarg;
   for (iarg = 3; iarg < narg; iarg++) {
     if (strcmp(arg[iarg],"dist") == 0) bstyle[nvalues++] = DIST;
+    else if (strcmp(arg[iarg],"dx") == 0) bstyle[nvalues++] = DX;
+    else if (strcmp(arg[iarg],"dy") == 0) bstyle[nvalues++] = DY;
+    else if (strcmp(arg[iarg],"dz") == 0) bstyle[nvalues++] = DZ;
     else if (strcmp(arg[iarg],"engpot") == 0) bstyle[nvalues++] = ENGPOT;
     else if (strcmp(arg[iarg],"force") == 0) bstyle[nvalues++] = FORCE;
     else if (strcmp(arg[iarg],"fx") == 0) bstyle[nvalues++] = FX;
@@ -77,6 +80,11 @@ ComputeBondLocal::ComputeBondLocal(LAMMPS *lmp, int narg, char **arg) :
       bstyle[nvalues++] = VARIABLE;
       vstr[nvar] = utils::strdup(&arg[iarg][2]);
       nvar++;
+    } else if (arg[iarg][0] == 'b') {
+      int n = atoi(&arg[iarg][1]);
+      if (n <= 0) error->all(FLERR, "Invalid keyword {} in compute bond/local command", arg[iarg]);
+      bstyle[nvalues] = BN;
+      bindex[nvalues++] = n - 1;
     } else break;
   }
 
@@ -128,7 +136,7 @@ ComputeBondLocal::ComputeBondLocal(LAMMPS *lmp, int narg, char **arg) :
   velflag = 0;
   for (int i = 0; i < nvalues; i++) {
     if (bstyle[i] == ENGPOT || bstyle[i] == FORCE || bstyle[i] == FX       ||
-        bstyle[i] == FY     || bstyle[i] == FZ) singleflag = 1;
+        bstyle[i] == FY     || bstyle[i] == FZ || bstyle[i] == BN) singleflag = 1;
     if (bstyle[i] == VELVIB || bstyle[i] == OMEGA || bstyle[i] == ENGTRANS ||
         bstyle[i] == ENGVIB || bstyle[i] == ENGROT) velflag = 1;
   }
@@ -148,6 +156,7 @@ ComputeBondLocal::ComputeBondLocal(LAMMPS *lmp, int narg, char **arg) :
 ComputeBondLocal::~ComputeBondLocal()
 {
   delete [] bstyle;
+  delete [] bindex;
   for (int i = 0; i < nvar; i++) delete [] vstr[i];
   delete [] vstr;
   delete [] vvar;
@@ -164,6 +173,10 @@ void ComputeBondLocal::init()
 {
   if (force->bond == nullptr)
     error->all(FLERR,"No bond style is defined for compute bond/local");
+
+  for (int i = 0; i < nvalues; i++)
+    if (bstyle[i] == BN && bindex[i] >= force->bond->single_extra)
+      error->all(FLERR, "Bond style does not have extra field requested by compute bond/local");
 
   if (nvar) {
     for (int i = 0; i < nvar; i++) {
@@ -221,7 +234,7 @@ void ComputeBondLocal::compute_local()
 
 int ComputeBondLocal::compute_bonds(int flag)
 {
-  int i,m,n,nb,atom1,atom2,imol,iatom,btype,ivar;
+  int i,m,nb,atom1,atom2,imol,iatom,btype,ivar;
   tagint tagprev;
   double dx,dy,dz,rsq;
   double mass1,mass2,masstotal,invmasstotal;
@@ -257,11 +270,11 @@ int ComputeBondLocal::compute_bonds(int flag)
 
   // communicate ghost velocities if needed
 
-  if (ghostvelflag && !initflag) comm->forward_comm_compute(this);
+  if (ghostvelflag && !initflag) comm->forward_comm(this);
 
   // loop over all atoms and their bonds
 
-  m = n = 0;
+  m = 0;
   for (atom1 = 0; atom1 < nlocal; atom1++) {
     if (!(mask[atom1] & groupbit)) continue;
 
@@ -299,11 +312,12 @@ int ComputeBondLocal::compute_bonds(int flag)
       rsq = dx*dx + dy*dy + dz*dz;
 
       if (btype == 0) {
-        engpot = fbond = 0.0;
-        engvib = engrot = engtrans = omegasq = vvib = 0.0;
+        fbond = 0.0;
       } else {
 
         if (singleflag) engpot = bond->single(btype,rsq,atom1,atom2,fbond);
+        else fbond = engpot = 0.0;
+        engvib = engrot = engtrans = omegasq = vvib = 0.0;
 
         if (velflag) {
           if (rmass) {
@@ -360,13 +374,6 @@ int ComputeBondLocal::compute_bonds(int flag)
 
           engrot = 0.5 * inertia * omegasq;
 
-          // sanity check: engtotal = engtrans + engvib + engrot
-
-          //engtot = 0.5 * (mass1*MathExtra::lensq3(v[atom1]) +
-          //                mass2*MathExtra::lensq3(v[atom2]));
-          //if (fabs(engtot-engtrans-engvib-engrot) > EPSILON)
-          //  error->one(FLERR,"Sanity check on 3 energy components failed");
-
           // scale energies by units
 
           mvv2e = force->mvv2e;
@@ -383,10 +390,22 @@ int ComputeBondLocal::compute_bonds(int flag)
           if (dstr) input->variable->internal_set(dvar,sqrt(rsq));
         }
 
-        for (n = 0; n < nvalues; n++) {
+        // to make sure dx, dy and dz are always from the lower to the higher id
+        double directionCorrection = tag[atom1] > tag[atom2] ? -1.0 : 1.0;
+
+        for (int n = 0; n < nvalues; n++) {
           switch (bstyle[n]) {
           case DIST:
             ptr[n] = sqrt(rsq);
+            break;
+          case DX:
+            ptr[n] = dx*directionCorrection;
+            break;
+          case DY:
+            ptr[n] = dy*directionCorrection;
+            break;
+          case DZ:
+            ptr[n] = dz*directionCorrection;
             break;
           case ENGPOT:
             ptr[n] = engpot;
@@ -421,6 +440,9 @@ int ComputeBondLocal::compute_bonds(int flag)
           case VARIABLE:
             ptr[n] = input->variable->compute_equal(vvar[ivar]);
             ivar++;
+            break;
+          case BN:
+            ptr[n] = bond->svector[bindex[n]];
             break;
           }
         }

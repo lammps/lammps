@@ -1,8 +1,7 @@
-// clang-format off
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    https://www.lammps.org/, Sandia National Laboratories
-   Steve Plimpton, sjplimp@sandia.gov
+   LAMMPS development team: developers@lammps.org
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
@@ -36,18 +35,15 @@ AtomVecTemplate::AtomVecTemplate(LAMMPS *lmp) : AtomVec(lmp)
   // order of fields in the string does not matter
   //   except fields_data_atom and fields_data_vel which must match data file
 
-  fields_grow = (char *) "molecule molindex molatom";
-  fields_copy = (char *) "molecule molindex molatom";
-  fields_comm = (char *) "";
-  fields_comm_vel = (char *) "";
-  fields_reverse = (char *) "";
-  fields_border = (char *) "molecule molindex molatom";
-  fields_border_vel = (char *) "molecule molindex molatom";
-  fields_exchange = (char *) "molecule molindex molatom";
-  fields_restart = (char *) "molecule molindex molatom";
-  fields_create = (char *) "molecule molindex molatom";
-  fields_data_atom = (char *) "id molecule molindex molatom type x";
-  fields_data_vel = (char *) "id v";
+  fields_grow = {"molecule", "molindex", "molatom"};
+  fields_copy = {"molecule", "molindex", "molatom"};
+  fields_border = {"molecule", "molindex", "molatom"};
+  fields_border_vel = {"molecule", "molindex", "molatom"};
+  fields_exchange = {"molecule", "molindex", "molatom"};
+  fields_restart = {"molecule", "molindex", "molatom"};
+  fields_create = {"molecule", "molindex", "molatom"};
+  fields_data_atom = {"id", "molecule", "molindex", "molatom", "type", "x"};
+  fields_data_vel = {"id", "v"};
 
   setup_fields();
 }
@@ -58,11 +54,10 @@ AtomVecTemplate::AtomVecTemplate(LAMMPS *lmp) : AtomVec(lmp)
 
 void AtomVecTemplate::process_args(int narg, char **arg)
 {
-  if (narg != 1) error->all(FLERR,"Illegal atom_style template command");
+  if (narg != 1) error->all(FLERR, "Illegal atom_style template command");
 
   int imol = atom->find_molecule(arg[0]);
-  if (imol == -1) error->all(FLERR,"Molecule template ID for "
-                             "atom_style template does not exist");
+  if (imol == -1) error->all(FLERR, "Molecule template ID for atom_style template does not exist");
 
   onemols = &atom->molecules[imol];
   nset = atom->molecules[imol]->nset;
@@ -81,10 +76,10 @@ void AtomVecTemplate::process_args(int narg, char **arg)
   // do this here b/c data file will typically not contain these settings
 
   for (int i = 0; i < nset; i++) {
-    atom->nbondtypes = MAX(atom->nbondtypes,onemols[i]->nbondtypes);
-    atom->nangletypes = MAX(atom->nangletypes,onemols[i]->nangletypes);
-    atom->ndihedraltypes = MAX(atom->ndihedraltypes,onemols[i]->ndihedraltypes);
-    atom->nimpropertypes = MAX(atom->nimpropertypes,onemols[i]->nimpropertypes);
+    atom->nbondtypes = MAX(atom->nbondtypes, onemols[i]->nbondtypes);
+    atom->nangletypes = MAX(atom->nangletypes, onemols[i]->nangletypes);
+    atom->ndihedraltypes = MAX(atom->ndihedraltypes, onemols[i]->ndihedraltypes);
+    atom->nimpropertypes = MAX(atom->nimpropertypes, onemols[i]->nimpropertypes);
   }
 }
 
@@ -129,7 +124,6 @@ void AtomVecTemplate::pack_data_post(int ilocal)
   molatom[ilocal]--;
 }
 
-
 /* ----------------------------------------------------------------------
    modify what AtomVec::data_atom() just unpacked
    or initialize other atom quantities
@@ -141,7 +135,7 @@ void AtomVecTemplate::data_atom_post(int ilocal)
   int molatom_one = --molatom[ilocal];
 
   if ((molindex_one < -1) || (molindex_one >= nset))
-    error->one(FLERR,"Invalid template index in Atoms section of data file");
+    error->one(FLERR, "Invalid template index in Atoms section of data file");
   if ((molatom_one < -1) || ((molindex_one >= 0) && (molatom_one >= onemols[molindex_one]->natoms)))
-    error->one(FLERR,"Invalid template atom in Atoms section of data file");
+    error->one(FLERR, "Invalid template atom in Atoms section of data file");
 }

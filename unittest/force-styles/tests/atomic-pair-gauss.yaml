@@ -1,7 +1,8 @@
 ---
-lammps_version: 10 Feb 2021
-date_generated: Fri Feb 26 23:09:02 2021
+lammps_version: 17 Feb 2022
+date_generated: Fri Mar 18 22:17:38 2022
 epsilon: 5e-12
+skip_tests:
 prerequisites: ! |
   pair gauss
 pre_commands: ! ""
@@ -13,7 +14,7 @@ pair_coeff: ! |
   2 2 0.005 1.1
 extract: ! ""
 natoms: 32
-init_vdwl: -0.563282655796335
+init_vdwl: -0.5632826557963347
 init_coul: 0
 init_stress: ! |-
   -7.1147683670454420e-01 -6.1895022673299749e-01 -7.1191426374517874e-01 -1.3771409096140666e-03  8.9168242763744339e-05 -4.5069108788046326e-03

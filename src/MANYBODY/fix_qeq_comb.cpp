@@ -2,7 +2,7 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    https://www.lammps.org/, Sandia National Laboratories
-   Steve Plimpton, sjplimp@sandia.gov
+   LAMMPS development team: developers@lammps.org
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
@@ -36,6 +36,8 @@
 
 using namespace LAMMPS_NS;
 using namespace FixConst;
+
+static constexpr double QSUMSMALL = 0.00001;
 
 /* ---------------------------------------------------------------------- */
 
@@ -117,19 +119,31 @@ void FixQEQComb::init()
   if (!atom->q_flag)
     error->all(FLERR,"Fix qeq/comb requires atom attribute q");
 
-  comb3 = (PairComb3 *) force->pair_match("^comb3",0);
-  if (!comb3) comb = (PairComb *) force->pair_match("^comb",0);
+  comb3 = dynamic_cast<PairComb3 *>(force->pair_match("^comb3",0));
+  if (!comb3) comb = dynamic_cast<PairComb *>(force->pair_match("^comb",0));
 
   if (comb == nullptr && comb3 == nullptr)
     error->all(FLERR,"Must use pair_style comb or comb3 with fix qeq/comb");
 
   if (utils::strmatch(update->integrate_style,"^respa")) {
-    ilevel_respa = ((Respa *) update->integrate)->nlevels-1;
+    ilevel_respa = (dynamic_cast<Respa *>(update->integrate))->nlevels-1;
     if (respa_level >= 0) ilevel_respa = MIN(respa_level,ilevel_respa);
   }
 
   ngroup = group->count(igroup);
   if (ngroup == 0) error->all(FLERR,"Fix qeq/comb group has no atoms");
+
+  // compute net charge and print warning if too large
+
+  double qsum_local = 0.0, qsum = 0.0;
+  for (int i = 0; i < atom->nlocal; i++) {
+    if (atom->mask[i] & groupbit)
+      qsum_local += atom->q[i];
+  }
+  MPI_Allreduce(&qsum_local,&qsum,1,MPI_DOUBLE,MPI_SUM,world);
+
+  if ((comm->me == 0) && (fabs(qsum) > QSUMSMALL))
+    error->warning(FLERR,"Fix {} group is not charge neutral, net charge = {:.8}", style, qsum);
 }
 
 /* ---------------------------------------------------------------------- */
@@ -140,9 +154,9 @@ void FixQEQComb::setup(int vflag)
   if (utils::strmatch(update->integrate_style,"^verlet"))
     post_force(vflag);
   else {
-    ((Respa *) update->integrate)->copy_flevel_f(ilevel_respa);
+    (dynamic_cast<Respa *>(update->integrate))->copy_flevel_f(ilevel_respa);
     post_force_respa(vflag,ilevel_respa,0);
-    ((Respa *) update->integrate)->copy_f_flevel(ilevel_respa);
+    (dynamic_cast<Respa *>(update->integrate))->copy_f_flevel(ilevel_respa);
   }
   firstflag = 0;
 }
@@ -228,7 +242,7 @@ void FixQEQComb::post_force(int /*vflag*/)
       }
     }
 
-    comm->forward_comm_fix(this);
+    comm->forward_comm(this);
     enegtot = 0.0;
     if (comb) enegtot = comb->yasu_char(qf,igroup);
     else if (comb3) enegtot = comb3->combqeq(qf,igroup);

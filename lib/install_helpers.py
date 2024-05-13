@@ -1,4 +1,7 @@
-import hashlib,os,subprocess,sys
+import hashlib
+import os
+import re
+import subprocess
 
 # try to auto-detect the maximum number of available CPUs
 def get_cpus():
@@ -32,31 +35,31 @@ def which(program):
 
   return None
 
-def geturl(url,fname):
+def geturl(url, fname):
   success = False
 
   if which('curl') != None:
-    cmd = 'curl -L -o "%s" %s' % (fname,url)
+    cmd = 'curl -L -o "%s" %s' % (fname, url)
     try:
-      subprocess.check_output(cmd,stderr=subprocess.STDOUT,shell=True)
+      subprocess.check_output(cmd, stderr=subprocess.STDOUT, shell=True)
       success = True
     except subprocess.CalledProcessError as e:
       print("Calling curl failed with: %s" % e.output.decode('UTF-8'))
 
   if not success and which('wget') != None:
-    cmd = 'wget -O "%s" %s' % (fname,url)
+    cmd = 'wget -O "%s" %s' % (fname, url)
     try:
-      subprocess.check_output(cmd,stderr=subprocess.STDOUT,shell=True)
+      subprocess.check_output(cmd, stderr=subprocess.STDOUT, shell=True)
       success = True
     except subprocess.CalledProcessError as e:
       print("Calling wget failed with: %s" % e.output.decode('UTF-8'))
 
   if not success:
-    error("Failed to download source code with 'curl' or 'wget'")
+    raise Exception("Failed to download source code with 'curl' or 'wget' from " + url)
   return
 
-def checkmd5sum(md5sum,fname):
-    with open(fname,'rb') as fh:
+def checkmd5sum(md5sum, fname):
+    with open(fname, 'rb') as fh:
         m = hashlib.md5()
         while True:
             data = fh.read(81920)
@@ -66,3 +69,6 @@ def checkmd5sum(md5sum,fname):
     fh.close()
     return m.hexdigest() == md5sum
 
+def getfallback(lib, url):
+  archive = re.sub(r'^https://.*/([^/]+gz)', r'-\1', url)
+  return 'https://download.lammps.org/thirdparty/' + lib + archive

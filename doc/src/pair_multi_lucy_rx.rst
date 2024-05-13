@@ -14,7 +14,7 @@ Syntax
    pair_style multi/lucy/rx style N keyword ...
 
 * style = *lookup* or *linear* = method of interpolation
-* N = use N values in *lookup*\ , *linear* tables
+* N = use N values in *lookup*, *linear* tables
 * weighting = fractional or molecular (optional)
 
 Examples
@@ -67,7 +67,7 @@ form.
 
 An interpolation table is used to evaluate the density-dependent energy
 (:math:`\int A(\rho') d \rho'`) and force (:math:`A(\rho')`).  Note that
-the pre-factor to the energy is computed after the interpolation, thus
+the prefactor to the energy is computed after the interpolation, thus
 the :math:`\int A(\rho') d\rho'` will have units of energy / length\^4.
 
 The interpolation table is created as a pre-computation by fitting
@@ -214,7 +214,7 @@ commands do need to be specified in the restart input script.
 
 This pair style can only be used via the *pair* keyword of the
 :doc:`run_style respa <run_style>` command.  It does not support the
-*inner*\ , *middle*\ , *outer* keywords.
+*inner*, *middle*, *outer* keywords.
 
 ----------
 
@@ -225,8 +225,8 @@ This pair style can only be used via the *pair* keyword of the
 Restrictions
 """"""""""""
 
-This command is part of the USER-DPD package.  It is only enabled if
-LAMMPS was built with that package.  See the :doc:`Build package <Build_package>` doc page for more info.
+This command is part of the DPD-REACT package.  It is only enabled if
+LAMMPS was built with that package.  See the :doc:`Build package <Build_package>` page for more info.
 
 Related commands
 """"""""""""""""

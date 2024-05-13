@@ -9,7 +9,7 @@ Accelerator Variants: *npt/sphere/omp*
 Syntax
 """"""
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    fix ID group-ID npt/sphere keyword value ...
 
@@ -22,7 +22,7 @@ Syntax
 
      *disc* value = none = treat particles as 2d discs, not spheres
 
-* additional thermostat and barostat related keyword/value pairs from the :doc:`fix npt <fix_nh>` command can be appended
+* NOTE: additional thermostat and barostat and dipole related keyword/value pairs from the :doc:`fix npt <fix_nh>` command can be appended
 
 Examples
 """"""""
@@ -33,6 +33,7 @@ Examples
    fix 2 all npt/sphere temp 300.0 300.0 100.0 x 5.0 5.0 1000.0
    fix 2 all npt/sphere temp 300.0 300.0 100.0 x 5.0 5.0 1000.0 disc
    fix 2 all npt/sphere temp 300.0 300.0 100.0 x 5.0 5.0 1000.0 drag 0.2
+   fix 2 all npt/sphere temp 300.0 300.0 100.0 x 5.0 5.0 1000.0 update dipole
    fix 2 water npt/sphere temp 300.0 300.0 100.0 aniso 0.0 0.0 1000.0 dilate partial
 
 Description
@@ -61,8 +62,9 @@ The only difference between discs and spheres in this context is their
 moment of inertia, as used in the time integration.
 
 Additional parameters affecting the thermostat and barostat are
-specified by keywords and values documented with the :doc:`fix npt <fix_nh>` command.  See, for example, discussion of the *temp*\ ,
-*iso*\ , *aniso*\ , and *dilate* keywords.
+specified by keywords and values documented with the :doc:`fix npt
+<fix_nh>` command.  See, for example, discussion of the *temp*, *iso*,
+*aniso*, and *dilate* keywords.
 
 The particles in the fix group are the only ones whose velocities and
 positions are updated by the velocity/position update portion of the
@@ -71,7 +73,7 @@ NPT integration.
 Regardless of what particles are in the fix group, a global pressure is
 computed for all particles.  Similarly, when the size of the simulation
 box is changed, all particles are re-scaled to new positions, unless the
-keyword *dilate* is specified with a value of *partial*\ , in which case
+keyword *dilate* is specified with a value of *partial*, in which case
 only the particles in the fix group are re-scaled.  The latter can be
 useful for leaving the coordinates of particles in a solid substrate
 unchanged and controlling the pressure of a surrounding fluid.
@@ -87,8 +89,10 @@ this, the fix creates its own computes of style "temp/sphere" and
    compute fix-ID_temp all temp/sphere
    compute fix-ID_press all pressure fix-ID_temp
 
-See the :doc:`compute temp/sphere <compute_temp_sphere>` and :doc:`compute pressure <compute_pressure>` commands for details.  Note that the
-IDs of the new computes are the fix-ID + underscore + "temp" or fix_ID
+See the :doc:`compute temp/sphere <compute_temp_sphere>` and
+:doc:`compute pressure <compute_pressure>` commands for details.  Note
+that the IDs of the new computes are the fix-ID + underscore + "temp"
+or fix_ID
 + underscore + "press", and the group for the new computes is "all"
 since pressure is computed for the entire system.
 
@@ -103,18 +107,19 @@ appropriate compute-ID.  It also means that changing attributes of
 *thermo_temp* or *thermo_press* will have no effect on this fix.
 
 Like other fixes that perform thermostatting, this fix can be used
-with :doc:`compute commands <compute>` that calculate a temperature
-after removing a "bias" from the atom velocities.  E.g. removing the
-center-of-mass velocity from a group of atoms or only calculating
-temperature on the x-component of velocity or only calculating
-temperature for atoms in a geometric region.  This is not done by
-default, but only if the :doc:`fix_modify <fix_modify>` command is used
-to assign a temperature compute to this fix that includes such a bias
-term.  See the doc pages for individual :doc:`compute commands <compute>` to determine which ones include a bias.  In
-this case, the thermostat works in the following manner: the current
-temperature is calculated taking the bias into account, bias is
-removed from each atom, thermostatting is performed on the remaining
-thermal degrees of freedom, and the bias is added back in.
+with :doc:`compute commands <compute>` that remove a "bias" from the
+atom velocities.  E.g. to apply the thermostat only to atoms within a
+spatial :doc:`region <region>`, or to remove the center-of-mass
+velocity from a group of atoms, or to remove the x-component of
+velocity from the calculation.
+
+This is not done by default, but only if the :doc:`fix_modify
+<fix_modify>` command is used to assign a temperature compute to this
+fix that includes such a bias term.  See the doc pages for individual
+:doc:`compute temp commands <compute>` to determine which ones include
+a bias.  In this case, the thermostat works in the following manner:
+bias is removed from each atom, thermostatting is performed on the
+remaining thermal degrees of freedom, and the bias is added back in.
 
 ----------
 
@@ -169,7 +174,9 @@ defined by the :doc:`dimension <dimension>` keyword.
 Related commands
 """"""""""""""""
 
-:doc:`fix npt <fix_nh>`, :doc:`fix nve_sphere <fix_nve_sphere>`, :doc:`fix nvt_sphere <fix_nvt_sphere>`, :doc:`fix npt_asphere <fix_npt_asphere>`, :doc:`fix_modify <fix_modify>`
+:doc:`fix npt <fix_nh>`, :doc:`fix nve_sphere <fix_nve_sphere>`,
+     :doc:`fix nvt_sphere <fix_nvt_sphere>`, :doc:`fix npt_asphere
+     <fix_npt_asphere>`, :doc:`fix_modify <fix_modify>`
 
 Default
 """""""

@@ -61,6 +61,7 @@ class Device {
     * \param nall Total number of local+ghost particles
     * \param maxspecial Maximum mumber of special bonded atoms per atom
     * \param vel True if velocities need to be stored
+    * \param extra_fields Nonzero if extra fields need to be stored
     *
     * Returns:
     * -  0 if successful
@@ -70,7 +71,7 @@ class Device {
     * - -5 Double precision is not supported on card **/
   int init(Answer<numtyp,acctyp> &ans, const bool charge, const bool rot,
            const int nlocal, const int nall, const int maxspecial,
-           const bool vel=false);
+           const bool vel=false, const int extra_fields=0);
 
   /// Initialize the device for Atom storage only
   /** \param nlocal Total number of local particles to allocate memory for
@@ -163,17 +164,15 @@ class Device {
     { ans_queue.push(ans); }
 
   /// Add "answers" (force,energies,etc.) into LAMMPS structures
-  inline double fix_gpu(double **f, double **tor, double *eatom,
-                        double **vatom, double *virial, double &ecoul,
-                        int &error_flag) {
+  inline double fix_gpu(double **f, double **tor, double *eatom, double **vatom,
+                        double *virial, double &ecoul, int &error_flag) {
     error_flag=0;
     atom.data_unavail();
     if (ans_queue.empty()==false) {
       stop_host_timer();
       double evdw=0.0;
       while (ans_queue.empty()==false) {
-        evdw+=ans_queue.front()->get_answers(f,tor,eatom,vatom,virial,ecoul,
-                                             error_flag);
+        evdw += ans_queue.front()->get_answers(f,tor,eatom,vatom,virial,ecoul,error_flag);
         ans_queue.pop();
       }
       return evdw;
@@ -219,6 +218,12 @@ class Device {
   inline int gpu_rank() const { return _gpu_rank; }
   /// MPI Barrier for gpu
   inline void gpu_barrier() { MPI_Barrier(_comm_gpu); }
+  /// Serialize GPU initialization and JIT for unsafe platforms
+  inline void serialize_init() {
+    #ifdef LAL_SERIALIZE_INIT
+    gpu_barrier();
+    #endif
+  }
   /// Return the 'mode' for acceleration: GPU_FORCE, GPU_NEIGH or GPU_HYB_NEIGH
   inline int gpu_mode() const { return _gpu_mode; }
   /// Index of first device used by a node
@@ -312,6 +317,7 @@ class Device {
   }
 
   inline std::string compile_string() { return _ocl_compile_string; }
+  std::string compile_string_nofast();
   inline std::string ocl_config_name() { return _ocl_config_name; }
 
   template <class t>
@@ -340,6 +346,8 @@ class Device {
   int _block_pair, _block_bio_pair, _block_ellipse;
   int _pppm_block, _block_nbor_build, _block_cell_2d, _block_cell_id;
   int _max_shared_types, _max_bio_shared_types, _pppm_max_spline;
+  int _nbor_prefetch;
+  int _use_old_nbor_build;
 
   UCL_Program *dev_program;
   UCL_Kernel k_zero, k_info;
@@ -349,7 +357,7 @@ class Device {
   int _data_in_estimate, _data_out_estimate;
 
   std::string _ocl_config_name, _ocl_config_string, _ocl_compile_string;
-  int set_ocl_params(std::string, std::string);
+  int set_ocl_params(std::string, const std::string &);
 };
 
 }

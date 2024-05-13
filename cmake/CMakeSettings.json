@@ -1,0 +1,361 @@
+﻿{
+  "configurations": [
+    {
+      "name": "x64-Debug-MSVC",
+      "generator": "Ninja",
+      "configurationType": "Debug",
+      "buildRoot": "${workspaceRoot}\\build\\${name}",
+      "installRoot": "${workspaceRoot}\\install\\${name}",
+      "cmakeCommandArgs": "-C ${workspaceRoot}\\cmake\\presets\\windows.cmake",
+      "buildCommandArgs": "",
+      "ctestCommandArgs": "-V",
+      "inheritEnvironments": [ "msvc_x64_x64" ],
+      "variables": [
+        {
+          "name": "BUILD_SHARED_LIBS",
+          "value": "True",
+          "type": "BOOL"
+        },
+        {
+          "name": "BUILD_TOOLS",
+          "value": "True",
+          "type": "BOOL"
+        },
+        {
+          "name": "LAMMPS_EXCEPTIONS",
+          "value": "True",
+          "type": "BOOL"
+        },
+        {
+          "name": "ENABLE_TESTING",
+          "value": "True",
+          "type": "BOOL"
+        }
+      ]
+    },
+    {
+      "name": "x64-Release-MSVC",
+      "generator": "Ninja",
+      "configurationType": "Release",
+      "buildRoot": "${workspaceRoot}\\build\\${name}",
+      "installRoot": "${workspaceRoot}\\install\\${name}",
+      "cmakeCommandArgs": "-C ${workspaceRoot}\\cmake\\presets\\windows.cmake",
+      "buildCommandArgs": "",
+      "ctestCommandArgs": "-V",
+      "inheritEnvironments": [ "msvc_x64_x64" ],
+      "variables": [
+        {
+          "name": "BUILD_SHARED_LIBS",
+          "value": "True",
+          "type": "BOOL"
+        },
+        {
+          "name": "BUILD_TOOLS",
+          "value": "True",
+          "type": "BOOL"
+        },
+        {
+          "name": "LAMMPS_EXCEPTIONS",
+          "value": "True",
+          "type": "BOOL"
+        },
+        {
+          "name": "ENABLE_TESTING",
+          "value": "True",
+          "type": "BOOL"
+        },
+        {
+          "name": "BUILD_LAMMPS_GUI",
+          "value": "False",
+          "type": "BOOL"
+        }
+      ]
+    },
+    {
+      "name": "x64-Debug-Clang",
+      "generator": "Ninja",
+      "configurationType": "Debug",
+      "buildRoot": "${workspaceRoot}\\build\\${name}",
+      "installRoot": "${workspaceRoot}\\install\\${name}",
+      "cmakeCommandArgs": "-C ${workspaceRoot}\\cmake\\presets\\windows.cmake -DCMAKE_C_COMPILER=clang-cl.exe -DCMAKE_CXX_COMPILER=clang-cl.exe -DBUILD_MPI=off",
+      "buildCommandArgs": "",
+      "ctestCommandArgs": "",
+      "inheritEnvironments": [ "clang_cl_x64" ],
+      "variables": [
+        {
+          "name": "BUILD_SHARED_LIBS",
+          "value": "True",
+          "type": "BOOL"
+        },
+        {
+          "name": "BUILD_TOOLS",
+          "value": "True",
+          "type": "BOOL"
+        },
+        {
+          "name": "LAMMPS_EXCEPTIONS",
+          "value": "True",
+          "type": "BOOL"
+        },
+        {
+          "name": "ENABLE_TESTING",
+          "value": "True",
+          "type": "BOOL"
+        }
+      ]
+    },
+    {
+      "name": "x64-Release-Clang",
+      "generator": "Ninja",
+      "configurationType": "Release",
+      "buildRoot": "${workspaceRoot}\\build\\${name}",
+      "installRoot": "${workspaceRoot}\\install\\${name}",
+      "cmakeCommandArgs": "-C ${workspaceRoot}\\cmake\\presets\\windows.cmake -DCMAKE_C_COMPILER=clang-cl.exe -DCMAKE_CXX_COMPILER=clang-cl.exe -DBUILD_MPI=off",
+      "buildCommandArgs": "",
+      "ctestCommandArgs": "-V",
+      "inheritEnvironments": [ "clang_cl_x64" ],
+      "variables": [
+        {
+          "name": "BUILD_SHARED_LIBS",
+          "value": "True",
+          "type": "BOOL"
+        },
+        {
+          "name": "BUILD_TOOLS",
+          "value": "True",
+          "type": "BOOL"
+        },
+        {
+          "name": "LAMMPS_EXCEPTIONS",
+          "value": "True",
+          "type": "BOOL"
+        },
+        {
+          "name": "ENABLE_TESTING",
+          "value": "True",
+          "type": "BOOL"
+        }
+      ]
+    },
+    {
+      "name": "x64-Debug-IntelLLVM",
+      "generator": "Ninja",
+      "configurationType": "Debug",
+      "buildRoot": "${workspaceRoot}\\build\\${name}",
+      "installRoot": "${workspaceRoot}\\install\\${name}",
+      "buildCommandArgs": "",
+      "ctestCommandArgs": "-V",
+      "inheritEnvironments": [],
+      "cmakeCommandArgs": "-C ${workspaceRoot}\\cmake\\presets\\windows-intel-llvm.cmake -C ${workspaceRoot}\\cmake\\presets\\windows.cmake",
+      "variables": [
+        {
+          "name": "PKG_ELECTRODE",
+          "value": "True",
+          "type": "BOOL"
+        },
+        {
+          "name": "BUILD_SHARED_LIBS",
+          "value": "True",
+          "type": "BOOL"
+        },
+        {
+          "name": "BUILD_TOOLS",
+          "value": "True",
+          "type": "BOOL"
+        },
+        {
+          "name": "LAMMPS_EXCEPTIONS",
+          "value": "True",
+          "type": "BOOL"
+        },
+        {
+          "name": "ENABLE_TESTING",
+          "value": "True",
+          "type": "BOOL"
+        },
+        {
+          "name": "FFT",
+          "value": "MKL",
+          "type": "STRING"
+        }
+      ]
+    },
+    {
+      "name": "x64-Release-IntelLLVM",
+      "generator": "Ninja",
+      "configurationType": "Release",
+      "buildRoot": "${workspaceRoot}\\build\\${name}",
+      "installRoot": "${workspaceRoot}\\install\\${name}",
+      "cmakeCommandArgs": "-C ${workspaceRoot}\\cmake\\presets\\windows-intel-llvm.cmake -C ${workspaceRoot}\\cmake\\presets\\windows.cmake",
+      "buildCommandArgs": "",
+      "ctestCommandArgs": "-V",
+      "inheritEnvironments": [],
+      "variables": [
+        {
+          "name": "PKG_ELECTRODE",
+          "value": "True",
+          "type": "BOOL"
+        },
+        {
+          "name": "BUILD_SHARED_LIBS",
+          "value": "True",
+          "type": "BOOL"
+        },
+        {
+          "name": "BUILD_TOOLS",
+          "value": "True",
+          "type": "BOOL"
+        },
+        {
+          "name": "LAMMPS_EXCEPTIONS",
+          "value": "True",
+          "type": "BOOL"
+        },
+        {
+          "name": "ENABLE_TESTING",
+          "value": "True",
+          "type": "BOOL"
+        },
+        {
+          "name": "FFT",
+          "value": "MKL",
+          "type": "STRING"
+        }
+      ]
+    },
+    {
+      "name": "x64-Debug-Intel-Classic",
+      "generator": "Ninja",
+      "configurationType": "Debug",
+      "buildRoot": "${workspaceRoot}\\build\\${name}",
+      "installRoot": "${workspaceRoot}\\install\\${name}",
+      "cmakeCommandArgs": "-C ${workspaceRoot}\\cmake\\presets\\windows-intel-classic.cmake -C ${workspaceRoot}\\cmake\\presets\\windows.cmake",
+      "buildCommandArgs": "",
+      "ctestCommandArgs": "-V",
+      "inheritEnvironments": [],
+      "variables": [
+        {
+          "name": "PKG_ELECTRODE",
+          "value": "True",
+          "type": "BOOL"
+        },
+        {
+          "name": "BUILD_SHARED_LIBS",
+          "value": "True",
+          "type": "BOOL"
+        },
+        {
+          "name": "BUILD_TOOLS",
+          "value": "True",
+          "type": "BOOL"
+        },
+        {
+          "name": "LAMMPS_EXCEPTIONS",
+          "value": "True",
+          "type": "BOOL"
+        },
+        {
+          "name": "ENABLE_TESTING",
+          "value": "False",
+          "type": "BOOL"
+        },
+        {
+          "name": "FFT",
+          "value": "MKL",
+          "type": "STRING"
+        }
+      ]
+    },
+    {
+      "name": "x64-Release-Intel-Classic",
+      "generator": "Ninja",
+      "configurationType": "Release",
+      "buildRoot": "${workspaceRoot}\\build\\${name}",
+      "installRoot": "${workspaceRoot}\\install\\${name}",
+      "cmakeCommandArgs": "-C ${workspaceRoot}\\cmake\\presets\\windows-intel-classic.cmake -C ${workspaceRoot}\\cmake\\presets\\windows.cmake",
+      "buildCommandArgs": "",
+      "ctestCommandArgs": "-V",
+      "inheritEnvironments": [],
+      "variables": [
+        {
+          "name": "PKG_ELECTRODE",
+          "value": "True",
+          "type": "BOOL"
+        },
+        {
+          "name": "BUILD_SHARED_LIBS",
+          "value": "True",
+          "type": "BOOL"
+        },
+        {
+          "name": "BUILD_TOOLS",
+          "value": "True",
+          "type": "BOOL"
+        },
+        {
+          "name": "LAMMPS_EXCEPTIONS",
+          "value": "True",
+          "type": "BOOL"
+        },
+        {
+          "name": "ENABLE_TESTING",
+          "value": "False",
+          "type": "BOOL"
+        },
+        {
+          "name": "FFT",
+          "value": "MKL",
+          "type": "STRING"
+        }
+      ]
+    },
+    {
+      "name": "x64-GUI-MSVC",
+      "generator": "Ninja",
+      "configurationType": "Release",
+      "buildRoot": "${workspaceRoot}\\build\\${name}",
+      "installRoot": "${workspaceRoot}\\install\\${name}",
+      "cmakeCommandArgs": "-C ${workspaceRoot}\\cmake\\presets\\windows.cmake -D QT_DIR=C:\\Qt\\5.15.2\\msvc2019_64\\lib\\cmake\\Qt5  -D Qt5_DIR=C:\\Qt\\5.15.2\\msvc2019_64\\lib\\cmake\\Qt5",
+      "buildCommandArgs": "",
+      "ctestCommandArgs": "-V",
+      "inheritEnvironments": [ "msvc_x64_x64" ],
+      "variables": [
+        {
+          "name": "BUILD_SHARED_LIBS",
+          "value": "True",
+          "type": "BOOL"
+        },
+        {
+          "name": "BUILD_TOOLS",
+          "value": "True",
+          "type": "BOOL"
+        },
+        {
+          "name": "LAMMPS_EXCEPTIONS",
+          "value": "True",
+          "type": "BOOL"
+        },
+        {
+          "name": "ENABLE_TESTING",
+          "value": "False",
+          "type": "BOOL"
+        },
+        {
+          "name": "BUILD_MPI",
+          "value": "False",
+          "type": "BOOL"
+        },
+        {
+          "name": "WITH_PNG",
+          "value": "False",
+          "type": "BOOL"
+        },
+        {
+          "name": "BUILD_LAMMPS_GUI",
+          "value": "True",
+          "type": "BOOL"
+        }
+      ]
+    }
+  ]
+}

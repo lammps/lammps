@@ -1,5 +1,5 @@
-BootStrap: library
-From: centos:7
+BootStrap: docker
+From: library/centos:7
 
 %post
         yum -y install epel-release
@@ -11,7 +11,8 @@ From: centos:7
             hdf5-devel python36-virtualenv python36-pip python-pip readline-devel \
             netcdf-devel netcdf-cxx-devel netcdf-mpich-devel netcdf-openmpi-devel \
             python-virtualenv fftw-devel voro++-devel eigen3-devel gsl-devel openblas-devel enchant \
-            blas-devel lapack-devel libyaml-devel openkim-models kim-api-devel zstd libzstd-devel
+            blas-devel lapack-devel libyaml-devel openkim-models kim-api-devel zstd libzstd-devel \
+            yaml-cpp-devel
         yum clean all
 
         # we need to reset any module variables
@@ -36,7 +37,7 @@ From: centos:7
         # manually install Plumed
         mkdir plumed
         cd plumed
-        version=2.6.1
+        version=2.8.2
         curl -L -o plumed.tar.gz https://github.com/plumed/plumed2/releases/download/v${version}/plumed-src-${version}.tgz
         tar -xzf plumed.tar.gz
         cd plumed-${version}

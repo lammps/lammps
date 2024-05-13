@@ -1,7 +1,7 @@
-/* -*- c++ -*- ----------------------------------------------------------
+/* -*- c++ -*- ---------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    https://www.lammps.org/, Sandia National Laboratories
-   Steve Plimpton, sjplimp@sandia.gov
+   LAMMPS development team: developers@lammps.org
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
@@ -27,28 +27,30 @@ namespace LAMMPS_NS {
 class FixQEq : public Fix {
  public:
   FixQEq(class LAMMPS *, int, char **);
-  ~FixQEq();
-  int setmask();
-  void init_list(int, class NeighList *);
-  void setup_pre_force(int);
-  void setup_pre_force_respa(int, int);
-  void pre_force_respa(int, int, int);
-  void min_pre_force(int);
+  ~FixQEq() override;
+  int setmask() override;
+  void init_list(int, class NeighList *) override;
+  void setup_pre_force(int) override;
+  void setup_pre_force_respa(int, int) override;
+  void pre_force_respa(int, int, int) override;
+  void min_pre_force(int) override;
+
+  double compute_scalar() override;
 
   // derived child classes must provide these functions
 
-  virtual void init() = 0;
-  virtual void pre_force(int) = 0;
+  void init() override;
+  void pre_force(int) override = 0;
 
-  virtual int pack_forward_comm(int, int *, double *, int, int *);
-  virtual void unpack_forward_comm(int, int, double *);
-  virtual int pack_reverse_comm(int, int, double *);
-  virtual void unpack_reverse_comm(int, int *, double *);
-  void grow_arrays(int);
-  void copy_arrays(int, int, int);
-  int pack_exchange(int, double *);
-  int unpack_exchange(int, double *);
-  double memory_usage();
+  int pack_forward_comm(int, int *, double *, int, int *) override;
+  void unpack_forward_comm(int, int, double *) override;
+  int pack_reverse_comm(int, int, double *) override;
+  void unpack_reverse_comm(int, int *, double *) override;
+  void grow_arrays(int) override;
+  void copy_arrays(int, int, int) override;
+  int pack_exchange(int, double *) override;
+  int unpack_exchange(int, double *) override;
+  double memory_usage() override;
 
  protected:
   int nevery;
@@ -65,6 +67,7 @@ class FixQEq : public Fix {
   double Tap[8];               // Taper function
   double tolerance;            // tolerance for the norm of the rel residual in CG
   int maxiter;                 // maximum number of QEq iterations
+  int maxwarn;                 // print warning when max iterations was reached
   double cutoff, cutoff_sq;    // neighbor cutoff
 
   double *chi, *eta, *gamma, *zeta, *zcore;    // qeq parameters
@@ -129,30 +132,3 @@ class FixQEq : public Fix {
 }    // namespace LAMMPS_NS
 
 #endif
-
-/* ERROR/WARNING messages:
-
-E: Illegal ... command
-
-Self-explanatory.  Check the input script syntax and compare to the
-documentation for the command.  You can use -echo screen as a
-command-line option when running LAMMPS to see the offending line.
-
-E: QEQ with 'newton pair off' not supported
-
-See the newton command.  This is a restriction to use the QEQ fixes.
-
-W: Fix qeq CG convergence failed (%g) after %d iterations at %ld step
-
-Self-explanatory.
-
-E: Cannot open fix qeq parameter file %s
-
-The specified file cannot be opened.  Check that the path and name are
-correct.
-
-E: Invalid fix qeq parameter file
-
-Element index > number of atom types.
-
-*/

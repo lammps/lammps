@@ -1,8 +1,7 @@
-// clang-format off
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    https://www.lammps.org/, Sandia National Laboratories
-   Steve Plimpton, sjplimp@sandia.gov
+   LAMMPS development team: developers@lammps.org
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
@@ -39,23 +38,18 @@ Python::~Python()
 
 /* ---------------------------------------------------------------------- */
 
-PythonInterface::~PythonInterface()
-{
-}
-
-/* ---------------------------------------------------------------------- */
-
 void Python::init()
 {
 #if defined(LMP_PYTHON)
   if (!impl) impl = new PythonImpl(lmp);
 #else
-  error->all(FLERR,"Python support missing! Compile with PYTHON package installed!");
+  error->all(FLERR, "Python support missing! Compile with PYTHON package installed!");
 #endif
 }
 
 /* ---------------------------------------------------------------------- */
-bool Python::is_enabled() const {
+bool Python::is_enabled() const
+{
 #if defined(LMP_PYTHON)
   return true;
 #else
@@ -97,7 +91,7 @@ int Python::variable_match(const char *name, const char *varname, int numeric)
 
 /* ------------------------------------------------------------------ */
 
-char * Python::long_string(int ifunc)
+char *Python::long_string(int ifunc)
 {
   init();
   return impl->long_string(ifunc);
@@ -125,4 +119,13 @@ bool Python::has_minimum_version(int major, int minor)
 {
   init();
   return impl->has_minimum_version(major, minor);
+}
+
+/* ------------------------------------------------------------------ */
+
+void Python::finalize()
+{
+#if defined(LMP_PYTHON)
+  PythonImpl::finalize();
+#endif
 }

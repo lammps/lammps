@@ -1,7 +1,7 @@
 /* -*- c++ -*- ----------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    https://www.lammps.org/, Sandia National Laboratories
-   Steve Plimpton, sjplimp@sandia.gov
+   LAMMPS development team: developers@lammps.org
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
@@ -14,12 +14,17 @@
 #ifdef COMMAND_CLASS
 // clang-format off
 CommandStyle(DEPRECATED,Deprecated);
-CommandStyle(reset_ids,Deprecated);
+CommandStyle(box,Deprecated);
 CommandStyle(kim_init,Deprecated);
 CommandStyle(kim_interactions,Deprecated);
 CommandStyle(kim_param,Deprecated);
 CommandStyle(kim_property,Deprecated);
 CommandStyle(kim_query,Deprecated);
+CommandStyle(reset_ids,Deprecated);
+CommandStyle(reset_atom_ids,Deprecated);
+CommandStyle(reset_mol_ids,Deprecated);
+CommandStyle(message,Deprecated);
+CommandStyle(server,Deprecated);
 // clang-format on
 #else
 
@@ -33,43 +38,10 @@ namespace LAMMPS_NS {
 class Deprecated : public Command {
  public:
   Deprecated(class LAMMPS *lmp) : Command(lmp){};
-  void command(int, char **);
+  void command(int, char **) override;
 };
 
 }    // namespace LAMMPS_NS
 
 #endif
 #endif
-
-/* ERROR/WARNING messages:
-
-W: Ignoring unknown or incorrect info command flag
-
-Self-explanatory.  An unknown argument was given to the info command.
-Compare your input with the documentation.
-
-E: Unknown name for info package category
-
-Self-explanatory.
-
-E: Unknown name for info newton category
-
-Self-explanatory.
-
-E: Unknown name for info pair category
-
-Self-explanatory.
-
-E: Unknown category for info is_active()
-
-Self-explanatory.
-
-E: Unknown category for info is_available()
-
-Self-explanatory.
-
-E: Unknown category for info is_defined()
-
-Self-explanatory.
-
-*/

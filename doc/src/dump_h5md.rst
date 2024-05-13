@@ -6,40 +6,40 @@ dump h5md command
 Syntax
 """"""
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    dump ID group-ID h5md N file.h5 args
 
 * ID = user-assigned name for the dump
 * group-ID = ID of the group of atoms to be imaged
-* h5md = style of dump command (other styles *atom* or *cfg* or *dcd* or *xtc* or *xyz* or *local* or *custom* are discussed on the :doc:`dump <dump>` doc page)
+* *h5md* = style of dump command (other styles *atom* or *cfg* or *dcd* or *xtc* or *xyz* or *local* or *custom* are discussed on the :doc:`dump <dump>` doc page)
 * N = dump every this many timesteps
 * file.h5 = name of file to write to
+* args = *position* options or *image* or *velocity* options or *force* options or *species* options or *file_from* ID or *box* value or *create_group* value or *author* value = list of data elements to dump, with their dump "sub-intervals"
 
-.. parsed-literal::
+  .. parsed-literal::
 
-   args = list of data elements to dump, with their dump "sub-intervals"
-     position options
-     image
-     velocity options
-     force options
-     species options
-     file_from ID: do not open a new file, re-use the already opened file from dump ID
-     box value = *yes* or *no*
-     create_group value = *yes* or *no*
-     author value = quoted string
+     *position* options
+     *image*
+     *velocity* options
+     *force* options
+     *species* options
+     *file_from* ID = do not open a new file, re-use the already opened file from dump ID
+     *box* value = *yes* or *no*
+     *create_group* value = *yes* or *no*
+     *author* value = quoted string
 
-Note that at least one element must be specified and image may only be
-present if position is specified first.
+Note that at least one element must be specified and that *image* may only be
+present if *position* is specified first.
 
-For the elements *position*\ , *velocity*\ , *force* and *species*\ , a
+For the elements *position*, *velocity*, *force* and *species*, a
 sub-interval may be specified to write the data only every N_element
 iterations of the dump (i.e. every N\*N_element time steps). This is
 specified by this option directly following the element declaration:
 
 .. parsed-literal::
 
-   every N_element
+         options = *every* N_element
 
 Examples
 """"""""
@@ -64,9 +64,9 @@ stored within the same file by defining several dumps.  A dump that
 refers (via *file_from*) to an already open dump ID and that concerns
 another particle group must specify *create_group yes*.
 
-.. _h5md: http://nongnu.org/h5md/
+.. _h5md: https://nongnu.org/h5md/
 
-Each data element is written every N\*N_element steps. For *image*\ , no
+Each data element is written every N\*N_element steps. For *image*, no
 sub-interval is needed as it must be present at the same interval as
 *position*\ .  *image* must be given after *position* in any case.  The
 box information (edges in each dimension) is stored at the same
@@ -106,14 +106,14 @@ The position data is stored wrapped (box boundaries not enforced, see
 note above).  Only orthogonal domains are currently supported. This is
 a limitation of the present dump h5md command and not of H5MD itself.
 
-The *h5md* dump style is part of the USER-H5MD package. It is only
-enabled if LAMMPS was built with that package. See the :doc:`Build package <Build_package>` doc page for more info. It also requires
-(i) building the ch5md library provided with LAMMPS (See the :doc:`Build package <Build_package>` doc page for more info.) and (ii) having
+The *h5md* dump style is part of the H5MD package. It is only
+enabled if LAMMPS was built with that package. See the :doc:`Build package <Build_package>` page for more info. It also requires
+(i) building the ch5md library provided with LAMMPS (See the :doc:`Build package <Build_package>` page for more info.) and (ii) having
 the `HDF5 <HDF5-ws_>`_ library installed (C bindings are sufficient) on
 your system.  The library ch5md is compiled with the h5cc wrapper
 provided by the HDF5 library.
 
-.. _HDF5-ws: http://www.hdfgroup.org/HDF5/
+.. _HDF5-ws: https://www.hdfgroup.org/solutions/hdf5/
 
 ----------
 
@@ -129,4 +129,4 @@ Related commands
 **(de Buyl)** de Buyl, Colberg and Hofling, H5MD: A structured,
 efficient, and portable file format for molecular data,
 Comp. Phys. Comm. 185(6), 1546-1553 (2014) -
-`[arXiv:1308.6382] <http://arxiv.org/abs/1308.6382/>`_.
+`[arXiv:1308.6382] <https://arxiv.org/abs/1308.6382/>`_.

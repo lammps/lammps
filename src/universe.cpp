@@ -2,7 +2,7 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    https://www.lammps.org/, Sandia National Laboratories
-   Steve Plimpton, sjplimp@sandia.gov
+   LAMMPS development team: developers@lammps.org
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
@@ -21,7 +21,7 @@
 
 using namespace LAMMPS_NS;
 
-#define MAXLINE 256
+static constexpr int MAXLINE = 256;
 
 /* ----------------------------------------------------------------------
    create & initialize the universe of processors in communicator
@@ -69,7 +69,7 @@ Universe::~Universe()
 
 void Universe::reorder(char *style, char *arg)
 {
-  char line[MAXLINE];
+  char line[MAXLINE] = {'\0'};
 
   if (uworld != uorig) MPI_Comm_free(&uworld);
 
@@ -98,7 +98,7 @@ void Universe::reorder(char *style, char *arg)
       char *ptr;
       if (!fgets(line,MAXLINE,fp))
         error->one(FLERR,"Unexpected end of -reorder file");
-      while (1) {
+      while (true) {
         if ((ptr = strchr(line,'#'))) *ptr = '\0';
         if (strspn(line," \t\n\r") != strlen(line)) break;
         if (!fgets(line,MAXLINE,fp))
@@ -174,7 +174,7 @@ void Universe::add_world(char *str)
     if (part.find_first_not_of("0123456789x") != std::string::npos) valid = false;
 
     if (valid) {
-      std::size_t found = part.find_first_of("x");
+      std::size_t found = part.find_first_of('x');
 
       // 'x' may not be the first or last character
 

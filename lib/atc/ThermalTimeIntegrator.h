@@ -17,13 +17,13 @@ namespace ATC {
    */
 
   class ThermalTimeIntegrator : public TimeIntegrator {
-  
+
   public:
-  
+
     // constructor
     ThermalTimeIntegrator(ATC_Coupling * atc,
                           TimeIntegrationType timeIntegrationType);
-        
+
     // destructor
     virtual ~ThermalTimeIntegrator(){};
 
@@ -39,15 +39,15 @@ namespace ATC {
     // Member data access
     /** access for filtered atomic power */
     DENS_MAN & nodal_atomic_power_filtered(){return nodalAtomicPowerFiltered_;};
-    
+
     /** access for filtered atomic energy */
     // note:  nodalAtomicEnergy_ should always be reset as it tracks the original energy + MD evolution
     DENS_MAN & nodal_atomic_energy_filtered(){return nodalAtomicEnergyFiltered_;};
-        
+
   protected:
 
     /** filtered atomic power */
-    
+
     DENS_MAN nodalAtomicPowerFiltered_;
 
     /** filtered atomic energy due initial conditions and MD updates */
@@ -57,7 +57,7 @@ namespace ATC {
 
     // DO NOT define this
     ThermalTimeIntegrator();
-  
+
   };
 
   /**
@@ -66,12 +66,12 @@ namespace ATC {
    */
 
   class ThermalIntegrationMethod : public TimeIntegrationMethod {
-  
+
   public:
-  
+
     // constructor
     ThermalIntegrationMethod(ThermalTimeIntegrator * thermalTimeIntegrator);
-        
+
     // destructor
     virtual ~ThermalIntegrationMethod() {};
 
@@ -112,21 +112,21 @@ namespace ATC {
 
     // DO NOT define this
     ThermalIntegrationMethod();
-  
+
   };
 
   /**
    *  @class  ThermalTimeIntegratorGear
-   *  @brief  Class uses 3rd order Gear integration for time integration of FE temperature field 
+   *  @brief  Class uses 3rd order Gear integration for time integration of FE temperature field
    */
 
   class ThermalTimeIntegratorGear : public ThermalIntegrationMethod {
-  
+
   public:
-  
+
     // constructor
     ThermalTimeIntegratorGear(ThermalTimeIntegrator * ThermalTimeIntegrator);
-        
+
     // destructor
     virtual ~ThermalTimeIntegratorGear() {};
 
@@ -135,7 +135,7 @@ namespace ATC {
 
     /** pre time integration initialization of data */
     virtual void initialize();
-        
+
     // time step methods, corresponding to ATC_Transfer
     /** second part of pre_initial_integrate */
     virtual void pre_initial_integrate2(double dt);
@@ -157,10 +157,10 @@ namespace ATC {
     AtfShapeFunctionRestriction * nodalAtomicPower_;
 
   private:
-  
+
     // DO NOT define this
     ThermalTimeIntegratorGear();
-  
+
   };
 
   /**
@@ -169,15 +169,15 @@ namespace ATC {
    */
 
   class ThermalTimeIntegratorGearFiltered : public ThermalTimeIntegratorGear {
-  
+
   public:
-  
+
     // constructor
     ThermalTimeIntegratorGearFiltered(ThermalTimeIntegrator * thermalTimeIntegrator);
-        
+
     // destructor
     virtual ~ThermalTimeIntegratorGearFiltered(){};
-        
+
     // time step methods, corresponding to ATC_Transfer
     /** second part of pre_initial_integrate */
     virtual void pre_initial_integrate2(double dt);
@@ -188,7 +188,7 @@ namespace ATC {
 
     /** parallel post-processing operations pre-output */
     virtual void post_process();
-        
+
   protected:
 
     /** finite element temperature 3rd time derivative */
@@ -198,16 +198,16 @@ namespace ATC {
 
     // DO NOT define this
     ThermalTimeIntegratorGearFiltered();
-  
+
   };
 
   /**
-   *  @class  ThermalTimeIntegratorFractionalStep 
+   *  @class  ThermalTimeIntegratorFractionalStep
    *  @brief  Class for using 3rd order Gear integration to update FE contributions to temperature field
-   *          (Uses same update for the atomic contributions to the finite 
-   *           elements as are used by the LAMMPS integration scheme 
+   *          (Uses same update for the atomic contributions to the finite
+   *           elements as are used by the LAMMPS integration scheme
    *           for the atomic velocities and positions, i.e. Verlet.)
-   */ 
+   */
 
   class ThermalTimeIntegratorFractionalStep : public ThermalIntegrationMethod {
 
@@ -215,16 +215,16 @@ namespace ATC {
 
     // constructor
     ThermalTimeIntegratorFractionalStep(ThermalTimeIntegrator * ThermalTimeIntegrator);
-        
+
     // destructor
     virtual ~ThermalTimeIntegratorFractionalStep() {};
-    
+
     /** create and get necessary transfer operators */
     virtual void construct_transfers();
 
     /** pre time integration initialization of data */
     virtual void initialize();
-        
+
     // time step methods, corresponding to ATC_Transfer
     /** first part of pre_initial_integrate */
     virtual void pre_initial_integrate1(double dt);
@@ -303,10 +303,10 @@ namespace ATC {
 
     // constructor
     ThermalTimeIntegratorFractionalStepFiltered(ThermalTimeIntegrator * ThermalTimeIntegrator);
-        
+
     // destructor
     virtual ~ThermalTimeIntegratorFractionalStepFiltered();
-        
+
     // time step methods, corresponding to ATC_Transfer
     /** first part of pre_initial_integrate */
     virtual void pre_initial_integrate1(double dt);

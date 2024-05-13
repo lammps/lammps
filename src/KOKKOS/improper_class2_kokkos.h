@@ -1,8 +1,7 @@
-// clang-format off
 /* -*- c++ -*- ----------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    https://www.lammps.org/, Sandia National Laboratories
-   Steve Plimpton, sjplimp@sandia.gov
+   LAMMPS development team: developers@lammps.org
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
@@ -20,6 +19,7 @@ ImproperStyle(class2/kk/host,ImproperClass2Kokkos<LMPHostType>);
 // clang-format on
 #else
 
+// clang-format off
 #ifndef LMP_IMPROPER_CLASS2_KOKKOS_H
 #define LMP_IMPROPER_CLASS2_KOKKOS_H
 
@@ -42,10 +42,10 @@ class ImproperClass2Kokkos : public ImproperClass2 {
   typedef ArrayTypes<DeviceType> AT;
 
   ImproperClass2Kokkos(class LAMMPS *);
-  virtual ~ImproperClass2Kokkos();
-  void compute(int, int);
-  void coeff(int, char **);
-  void read_restart(FILE *);
+  ~ImproperClass2Kokkos() override;
+  void compute(int, int) override;
+  void coeff(int, char **) override;
+  void read_restart(FILE *) override;
 
   template<int NEWTON_BOND, int EVFLAG>
   KOKKOS_INLINE_FUNCTION
@@ -107,15 +107,3 @@ class ImproperClass2Kokkos : public ImproperClass2 {
 #endif
 #endif
 
-/* ERROR/WARNING messages:
-
-W: Improper problem
-
-UNDOCUMENTED
-
-U: Dihedral problem
-
-Conformation of the 4 listed dihedral atoms is extreme; you may want
-to check your simulation geometry.
-
-*/

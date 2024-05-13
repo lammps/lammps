@@ -6,7 +6,7 @@ fix_modify AtC control thermal command
 Syntax
 """"""
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    fix_modify <AtC fixID> control <physics_type> <solution_parameter> <value>
    fix_modify <AtC fixID> control thermal <control_type> <optional_args>
@@ -66,7 +66,7 @@ Restrictions
 Only for be used with the specific controllers *thermal* or *momentum*.
 They are ignored if a lumped solution is requested.
 
-*control thermal* is only for be used with specific transfers: thermal (*rescale*\ , *hoover*\ , *flux*\ ), *two_temperature* (*flux*\ ).
+*control thermal* is only for be used with specific transfers: thermal (*rescale*, *hoover*, *flux*\ ), *two_temperature* (*flux*\ ).
 *rescale* not valid with time filtering activated
 
 *correction_max_iterations* is only for use with *thermal* physics using

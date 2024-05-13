@@ -6,24 +6,23 @@ compute entropy/atom command
 Syntax
 """"""
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    compute ID group-ID entropy/atom sigma cutoff keyword value ...
 
 * ID, group-ID are documented in :doc:`compute <compute>` command
 * entropy/atom = style name of this compute command
-* sigma = width of gaussians used in the g(r) smoothing
-* cutoff = cutoff for the g(r) calculation
+* sigma = width of Gaussians used in the :math:`g(r)` smoothing
+* cutoff = cutoff for the :math:`g(r)` calculation
 * one or more keyword/value pairs may be appended
 
 .. parsed-literal::
 
    keyword = *avg* or *local*
-     *avg* values = *yes* or *no* cutoff2
-       *yes* = average the pair entropy over neighbors
-       *no* = do not average the pair entropy over neighbors
+     *avg* args = neigh cutoff2
+       neigh value = *yes* or *no* = whether to average the pair entropy over neighbors
        cutoff2 = cutoff for the averaging over neighbors
-     *local* values = *yes* or *no* = use the local density around each atom to normalize the g(r)
+     *local* arg = *yes* or *no* = use the local density around each atom to normalize the g(r)
 
 Examples
 """"""""
@@ -53,31 +52,32 @@ This parameter for atom i is computed using the following formula from
 
    s_S^i=-2\pi\rho k_B \int\limits_0^{r_m} \left [ g(r) \ln g(r) - g(r) + 1 \right ] r^2 dr
 
-where r is a distance, g(r) is the radial distribution function of atom
-i and rho is the density of the system. The g(r) computed for each
-atom i can be noisy and therefore it is smoothed using:
+where :math:`r` is a distance, :math:`g(r)` is the radial distribution function
+of atom :math:`i`, and :math:`\rho` is the density of the system.
+The :math:`g(r)` computed for each atom :math:`i` can be noisy and therefore it
+is smoothed using
 
 .. math::
 
    g_m^i(r) = \frac{1}{4 \pi \rho r^2} \sum\limits_{j} \frac{1}{\sqrt{2 \pi \sigma^2}} e^{-(r-r_{ij})^2/(2\sigma^2)}
 
-where the sum in j goes through the neighbors of atom i, and :math:`\sigma`
-is a parameter to control the smoothing.
+where the sum over :math:`j` goes through the neighbors of atom :math:`i` and
+:math:`\sigma` is a parameter to control the smoothing.
 
 The input parameters are *sigma* the smoothing parameter :math:`\sigma`,
-and the *cutoff* for the calculation of g(r).
+and the *cutoff* for the calculation of :math:`g(r)`.
 
-If the keyword *avg* has the setting *yes*\ , then this compute also
-averages the parameter over the neighbors  of atom i according to:
+If the keyword *avg* has the setting *yes*, then this compute also
+averages the parameter over the neighbors  of atom :math:`i` according to
 
 .. math::
 
-  \left< s_S^i \right>  = \frac{\sum_j s_S^j + s_S^i}{N + 1}
+  \left< s_S^i \right>  = \frac{\sum_j s_S^j + s_S^i}{N + 1},
 
-where the sum j goes over the neighbors of atom i and N is the number
-of neighbors. This procedure provides a sharper distinction between
-order and disorder environments. In this case the input parameter
-*cutoff2* is the cutoff for the averaging over the neighbors and
+where the sum over :math:`j` goes over the neighbors of atom :math:`i` and
+:math:`N` is the number of neighbors. This procedure provides a sharper
+distinction between order and disorder environments. In this case the input
+parameter *cutoff2* is the cutoff for the averaging over the neighbors and
 must also be specified.
 
 If the *avg yes* option is used, the effective cutoff of the neighbor
@@ -90,20 +90,20 @@ to increase the skin of the neighbor list with:
 
 See :doc:`neighbor <neighbor>` for details.
 
-If the *local yes* option is used, the g(r) is normalized by the
+If the *local yes* option is used, the :math:`g(r)` is normalized by the
 local density around each atom, that is to say the density around each
 atom  is the number of neighbors within the neighbor list cutoff divided
 by the corresponding volume. This option can be useful when dealing with
 inhomogeneous systems such as those that have surfaces.
 
 Here are typical input parameters for fcc aluminum (lattice
-constant 4.05 Angstroms),
+constant :math:`4.05~\AA`),
 
 .. parsed-literal::
 
    compute 1 all entropy/atom 0.25 5.7 avg yes 3.7
 
-and for bcc sodium (lattice constant 4.23 Angstroms),
+and for bcc sodium (lattice constant :math:`4.23~\AA`),
 
 .. parsed-literal::
 
@@ -114,7 +114,8 @@ Output info
 
 By default, this compute calculates the pair entropy value for each
 atom as a per-atom vector, which can be accessed by any command that
-uses per-atom values from a compute as input.  See the :doc:`Howto output <Howto_output>` doc page for an overview of LAMMPS output
+uses per-atom values from a compute as input.  See the
+:doc:`Howto output <Howto_output>` page for an overview of LAMMPS output
 options.
 
 The pair entropy values have units of the Boltzmann constant. They are
@@ -124,8 +125,8 @@ ordered environments.
 Restrictions
 """"""""""""
 
-This compute is part of the USER-MISC package.  It is only enabled if
-LAMMPS was built with that package.  See the :doc:`Build package <Build_package>` doc page for more info.
+This compute is part of the EXTRA-COMPUTE package.  It is only enabled if
+LAMMPS was built with that package.  See the :doc:`Build package <Build_package>` page for more info.
 
 Related commands
 """"""""""""""""

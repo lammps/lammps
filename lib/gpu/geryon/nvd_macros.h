@@ -5,10 +5,13 @@
 #include <cassert>
 #include <cuda.h>
 
-#if CUDA_VERSION >= 3020
 #define CUDA_INT_TYPE size_t
-#else
-#define CUDA_INT_TYPE unsigned
+
+// Use the primary context for GPU access to enable compatibility with tools
+// like OpenMPI accessing the GPU through the runtime interface.
+// Set to 0 to revert to old behavior
+#ifndef GERYON_NVD_PRIMARY_CONTEXT
+#define GERYON_NVD_PRIMARY_CONTEXT 1
 #endif
 
 #ifdef MPI_GERYON
@@ -30,6 +33,9 @@
 #ifdef UCL_DEBUG
 #define UCL_SYNC_DEBUG
 #define UCL_DESTRUCT_CHECK
+#define UCL_DEBUG_ARG(arg) arg
+#else
+#define UCL_DEBUG_ARG(arg)
 #endif
 
 #ifndef UCL_NO_API_CHECK

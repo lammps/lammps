@@ -1,8 +1,7 @@
-// clang-format off
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    https://www.lammps.org/, Sandia National Laboratories
-   Steve Plimpton, sjplimp@sandia.gov
+   LAMMPS development team: developers@lammps.org
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government ret
@@ -14,25 +13,21 @@
 
 #include "compute_vacf.h"
 
-#include <cstring>
-
 #include "atom.h"
-#include "update.h"
+#include "error.h"
+#include "fix_store_atom.h"
 #include "group.h"
 #include "modify.h"
-#include "fix_store.h"
-#include "error.h"
-
+#include "update.h"
 
 using namespace LAMMPS_NS;
 
 /* ---------------------------------------------------------------------- */
 
 ComputeVACF::ComputeVACF(LAMMPS *lmp, int narg, char **arg) :
-  Compute(lmp, narg, arg),
-  id_fix(nullptr)
+    Compute(lmp, narg, arg), id_fix(nullptr)
 {
-  if (narg < 3) error->all(FLERR,"Illegal compute vacf command");
+  if (narg < 3) error->all(FLERR, "Illegal compute vacf command");
 
   vector_flag = 1;
   size_vector = 4;
@@ -42,17 +37,15 @@ ComputeVACF::ComputeVACF(LAMMPS *lmp, int narg, char **arg) :
   // create a new fix STORE style
   // id = compute-ID + COMPUTE_STORE, fix group = compute group
 
-  std::string fixcmd = id + std::string("_COMPUTE_STORE");
-  id_fix = new char[fixcmd.size()+1];
-  strcpy(id_fix,fixcmd.c_str());
-  fixcmd += fmt::format(" {} STORE peratom 1 3", group->names[igroup]);
-  modify->add_fix(fixcmd);
-  fix = (FixStore *) modify->fix[modify->nfix-1];
+  id_fix = utils::strdup(id + std::string("_COMPUTE_STORE"));
+  fix = dynamic_cast<FixStoreAtom *>(
+      modify->add_fix(fmt::format("{} {} STORE/ATOM 3 0 0 1", id_fix, group->names[igroup])));
 
   // store current velocities in fix store array
   // skip if reset from restart file
 
-  if (fix->restart_reset) fix->restart_reset = 0;
+  if (fix->restart_reset)
+    fix->restart_reset = 0;
   else {
     double **voriginal = fix->astore;
 
@@ -65,7 +58,8 @@ ComputeVACF::ComputeVACF(LAMMPS *lmp, int narg, char **arg) :
         voriginal[i][0] = v[i][0];
         voriginal[i][1] = v[i][1];
         voriginal[i][2] = v[i][2];
-      } else voriginal[i][0] = voriginal[i][1] = voriginal[i][2] = 0.0;
+      } else
+        voriginal[i][0] = voriginal[i][1] = voriginal[i][2] = 0.0;
   }
 
   // displacement vector
@@ -81,8 +75,8 @@ ComputeVACF::~ComputeVACF()
 
   if (modify->nfix) modify->delete_fix(id_fix);
 
-  delete [] id_fix;
-  delete [] vector;
+  delete[] id_fix;
+  delete[] vector;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -91,9 +85,8 @@ void ComputeVACF::init()
 {
   // set fix which stores original atom velocities
 
-  int ifix = modify->find_fix(id_fix);
-  if (ifix < 0) error->all(FLERR,"Could not find compute vacf fix ID");
-  fix = (FixStore *) modify->fix[ifix];
+  fix = dynamic_cast<FixStoreAtom *>(modify->get_fix_by_id(id_fix));
+  if (!fix) error->all(FLERR, "Could not find compute vacf fix ID {}", id_fix);
 
   // nvacf = # of atoms in group
 
@@ -112,7 +105,7 @@ void ComputeVACF::compute_vector()
   int *mask = atom->mask;
   int nlocal = atom->nlocal;
 
-  double vxsq,vysq,vzsq;
+  double vxsq, vysq, vzsq;
   double vacf[4];
   vacf[0] = vacf[1] = vacf[2] = vacf[3] = 0.0;
 
@@ -127,7 +120,7 @@ void ComputeVACF::compute_vector()
       vacf[3] += vxsq + vysq + vzsq;
     }
 
-  MPI_Allreduce(vacf,vector,4,MPI_DOUBLE,MPI_SUM,world);
+  MPI_Allreduce(vacf, vector, 4, MPI_DOUBLE, MPI_SUM, world);
   if (nvacf) {
     vector[0] /= nvacf;
     vector[1] /= nvacf;
@@ -148,4 +141,3 @@ void ComputeVACF::set_arrays(int i)
   voriginal[i][1] = v[i][1];
   voriginal[i][2] = v[i][2];
 }
-

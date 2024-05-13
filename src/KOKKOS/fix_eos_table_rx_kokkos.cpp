@@ -2,7 +2,7 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    https://www.lammps.org/, Sandia National Laboratories
-   Steve Plimpton, sjplimp@sandia.gov
+   LAMMPS development team: developers@lammps.org
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
@@ -24,8 +24,6 @@
 #include "comm.h"
 #include <cmath>
 #include "atom_masks.h"
-
-#define MAXLINE 1024
 
 #ifdef DBL_EPSILON
   #define MY_EPSILON (10.0*DBL_EPSILON)
@@ -125,7 +123,7 @@ void FixEOStableRXKokkos<DeviceType>::setup(int /*vflag*/)
 
   // Communicate the updated momenta and velocities to all nodes
   atomKK->sync(Host,UCHEM_MASK | UCG_MASK | UCGNEW_MASK);
-  comm->forward_comm_fix(this);
+  comm->forward_comm(this);
   atomKK->modified(Host,UCHEM_MASK | UCG_MASK | UCGNEW_MASK);
 
   atomKK->sync(execution_space,MASK_MASK | UCOND_MASK | UMECH_MASK | UCHEM_MASK | DPDTHETA_MASK | DVECTOR_MASK);
@@ -265,7 +263,7 @@ void FixEOStableRXKokkos<DeviceType>::end_of_step()
 
   // Communicate the ghost uCGnew
   atomKK->sync(Host,UCG_MASK | UCGNEW_MASK);
-  comm->reverse_comm_fix(this);
+  comm->reverse_comm(this);
   atomKK->modified(Host,UCG_MASK | UCGNEW_MASK);
 
   atomKK->sync(execution_space,MASK_MASK | UCHEM_MASK | UCG_MASK | UCGNEW_MASK);
@@ -274,7 +272,7 @@ void FixEOStableRXKokkos<DeviceType>::end_of_step()
 
   // Communicate the updated momenta and velocities to all nodes
   atomKK->sync(Host,UCHEM_MASK | UCG_MASK | UCGNEW_MASK);
-  comm->forward_comm_fix(this);
+  comm->forward_comm(this);
   atomKK->modified(Host,UCHEM_MASK | UCG_MASK | UCGNEW_MASK);
 
   atomKK->sync(execution_space,MASK_MASK | UCOND_MASK | UMECH_MASK | UCHEM_MASK | DPDTHETA_MASK | DVECTOR_MASK);

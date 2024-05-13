@@ -1,0 +1,163 @@
+LAMMPS (23 Jun 2022)
+# solvated ubiquitin molecule with AMOEBA force field
+
+units           real
+boundary        p p p
+atom_modify     sort 0 0.0
+
+atom_style      amoeba
+
+bond_style      class2
+angle_style     amoeba
+dihedral_style  fourier
+improper_style  amoeba
+
+# per-atom properties required by AMOEBA or HIPPO
+
+fix             amtype all property/atom i_amtype ghost yes
+fix             extra all property/atom i_amgroup d_redID d_pval ghost yes
+fix             extra2 all property/atom i_polaxe d2_xyzaxis 3
+
+fix             pit all amoeba/pitorsion
+fix_modify      pit energy yes
+fix             bit all amoeba/bitorsion bitorsion.ubiquitin.data
+fix_modify      bit energy yes
+
+# read data file
+
+read_data       data.ubiquitin fix amtype NULL "Tinker Types"                 fix pit "pitorsion types" "PiTorsion Coeffs"                 fix pit pitorsions PiTorsions                 fix bit bitorsions BiTorsions
+Reading data file ...
+  orthogonal box = (0 0 0) to (54.99 41.91 41.91)
+  1 by 1 by 1 MPI processor grid
+  reading atoms ...
+  9737 atoms
+  scanning bonds ...
+  4 = max bonds/atom
+  scanning angles ...
+  6 = max angles/atom
+  scanning dihedrals ...
+  18 = max dihedrals/atom
+  scanning impropers ...
+  3 = max impropers/atom
+  reading bonds ...
+  6908 bonds
+  reading angles ...
+  5094 angles
+  reading dihedrals ...
+  3297 dihedrals
+  reading impropers ...
+  651 impropers
+Finding 1-2 1-3 1-4 neighbors ...
+  special bond factors lj:    0        0        0       
+  special bond factors coul:  0        0        0       
+     4 = max # of 1-2 neighbors
+     9 = max # of 1-3 neighbors
+    19 = max # of 1-4 neighbors
+    21 = max # of special neighbors
+  special bonds CPU = 0.004 seconds
+  read_data CPU = 0.091 seconds
+
+pair_style      amoeba
+pair_coeff      * * amoeba_ubiquitin.prm amoeba_ubiquitin.key
+Reading potential file amoeba_ubiquitin.prm with DATE: 2022-07-05
+Skipping section:   AMOEBA Protein Force Field Atom Classes  
+Skipping section:   Torsion-Torsion Parameters  
+Skipping section:   Biopolymer Atom Type Conversions  
+Reading potential file amoeba_ubiquitin.key with DATE: 2022-07-05
+
+special_bonds   lj/coul 0.5 0.5 0.5 one/five yes
+Finding 1-2 1-3 1-4 neighbors ...
+  special bond factors lj:    0.5      0.5      0.5     
+  special bond factors coul:  0.5      0.5      0.5     
+     4 = max # of 1-2 neighbors
+     9 = max # of 1-3 neighbors
+    19 = max # of 1-4 neighbors
+    58 = max # of 1-5 neighbors
+    21 = max # of special neighbors
+  special bonds CPU = 0.007 seconds
+
+# thermo output
+
+compute         virial all pressure NULL virial
+
+thermo_style    custom step temp epair ebond eangle edihed eimp                 emol etotal press c_virial[*]
+
+#dump            1 all custom 10 dump.ubiquitin id type x y z fx fy fz
+#dump_modify     1 sort id
+
+# dynamics
+
+fix            1 all nve
+
+thermo         1
+run            10
+AMOEBA force field settings
+  hal: cut 12 taper 10.8 vscale 0 0 1 1
+  multipole: cut 7 aewald 0.4 bsorder 5 FFT 60 48 48 mscale 0 0 0.4 1
+  polar: cut 7 aewald 0.5 bsorder 5 FFT 60 48 48
+         pscale 0 0 1 1 piscale 0 0 0.5 1 wscale 1 1 1 1 d/u scale 0 1
+  precondition: cut 4.5
+Generated 0 of 15 mixed pair_coeff terms from geometric mixing rule
+Neighbor list info ...
+  update every 1 steps, delay 10 steps, check yes
+  max neighbors/atom: 2000, page size: 100000
+  master list distance cutoff = 14
+  ghost atom cutoff = 14
+  binsize = 7, bins = 8 6 6
+  1 neighbor lists, perpetual/occasional/extra = 1 0 0
+  (1) pair amoeba, perpetual
+      attributes: half, newton on
+      pair build: half/bin/newton
+      stencil: half/bin/3d
+      bin: standard
+  AMOEBA group count: 3196
+Per MPI rank memory allocation (min/avg/max) = 258.3 | 258.3 | 258.3 Mbytes
+   Step          Temp          E_pair         E_bond        E_angle        E_dihed        E_impro         E_mol          TotEng         Press       c_virial[1]    c_virial[2]    c_virial[3]    c_virial[4]    c_virial[5]    c_virial[6]  
+         0   0             -35338.057      2856.5938      1955.5431      224.37609      65.00809       5101.5211     -30247.585     -6336.5196     -5795.4272     -6329.8149     -6884.3167      349.52657      77.164877      652.41925    
+         1   29.61379      -35356.153      2037.3541      1840.7883      223.90217      64.293945      4166.3385     -30341.522     -6486.773      -6452.8463     -6841.5982     -7386.1106      311.38025      120.72605      545.35513    
+         2   78.518242     -35383.65       825.39919      1538.3909      222.55095      62.191009      2648.5321     -30467.814     -5502.9841     -6410.2998     -6396.1829     -6937.8137      217.3515       210.76948      294.28051    
+         3   88.8921       -35402.11       938.99299      1162.2914      220.5271       58.832521      2380.644      -30453.516     -1929.5417     -3331.1291     -2769.7218     -3350.5733      117.32302      279.72705      31.237776    
+         4   68.740402     -35477.589      2048.0659      858.03795      218.14277      54.460022      3178.7066     -30316.325      2041.1138      594.25938      1665.7799      1030.8539      66.230421      304.28296     -155.80224    
+         5   76.267862     -35707.869      2206.6534      736.37385      215.75693      49.401674      3208.1859     -30299.377      2276.9276      536.21124      1893.4621      1258.492       92.097191      299.65604     -228.58369    
+         6   118.24373     -36092.77       1166.179       815.59206      213.67399      44.022297      2239.4673     -30435.629     -1677.8051     -3988.2428     -2669.6848     -3247.7207      197.42472      285.87129     -162.35459    
+         7   137.7204      -36521.444      782.87113      1026.745       212.04289      38.686259      2060.3452     -30479.082     -5987.83       -8386.8104     -7363.188      -7888.261       357.00835      253.66346      32.827786    
+         8   112.66452     -36897.181      1750.0569      1269.152       210.83571      33.742799      3263.7874     -30379.432     -7886.4081     -9703.2601     -9043.015      -9555.2908      490.76046      182.31259      278.727      
+         9   88.237359     -37209.906      2695.1766      1454.55        209.91331      29.503458      4389.1434     -30276.565     -8202.16       -9492.368      -9110.7037     -9639.2288      502.55699      107.82333      443.6705     
+        10   108.86756     -37474.988      2240.4603      1523.7936      209.10313      26.208515      3999.5656     -30333.279     -8468.4347     -9956.923      -9709.5874     -10224.682      365.98214      95.262991      425.12746    
+Loop time of 24.2102 on 1 procs for 10 steps with 9737 atoms
+
+Performance: 0.036 ns/day, 672.507 hours/ns, 0.413 timesteps/s
+97.8% CPU use with 1 MPI tasks x no OpenMP threads
+
+AMOEBA timing breakdown:
+  Init    time: 0.0401664      0.17%
+  Hal     time: 7.62094       31.51%
+  Mpole   time: 2.44622       10.12%
+  Induce  time: 9.28925       38.41%
+  Polar   time: 4.78631       19.79%
+  Total   time: 24.1829     
+
+MPI task timing breakdown:
+Section |  min time  |  avg time  |  max time  |%varavg| %total
+---------------------------------------------------------------
+Pair    | 24.183     | 24.183     | 24.183     |   0.0 | 99.89
+Bond    | 0.016031   | 0.016031   | 0.016031   |   0.0 |  0.07
+Neigh   | 0          | 0          | 0          |   0.0 |  0.00
+Comm    | 0.004396   | 0.004396   | 0.004396   |   0.0 |  0.02
+Output  | 0.0011692  | 0.0011692  | 0.0011692  |   0.0 |  0.00
+Modify  | 0.0044765  | 0.0044765  | 0.0044765  |   0.0 |  0.02
+Other   |            | 0.001194   |            |       |  0.00
+
+Nlocal:           9737 ave        9737 max        9737 min
+Histogram: 1 0 0 0 0 0 0 0 0 0
+Nghost:          31511 ave       31511 max       31511 min
+Histogram: 1 0 0 0 0 0 0 0 0 0
+Neighs:     5.6393e+06 ave  5.6393e+06 max  5.6393e+06 min
+Histogram: 1 0 0 0 0 0 0 0 0 0
+
+Total # of neighbors = 5639296
+Ave neighs/atom = 579.16155
+Ave special neighs/atom = 3.1364897
+Neighbor list builds = 0
+Dangerous builds = 0
+Total wall time: 0:00:27

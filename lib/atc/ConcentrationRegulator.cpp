@@ -41,7 +41,7 @@ const double kMinScale_ = 10000.;
     }
     if (parameters_.size()) parameters_.clear();
   }
-  
+
   //--------------------------------------------------------
   //  modify:
   //    parses and adjusts charge regulator state based on
@@ -66,7 +66,7 @@ const double kMinScale_ = 10000.;
       // consruct new ones
       map<string, ConcentrationRegulatorParameters>::iterator itr;
       for (itr = parameters_.begin();
-           itr != parameters_.end(); itr++) { 
+           itr != parameters_.end(); itr++) {
         string tag = itr->first;
         if (regulators_.find(tag) != regulators_.end()) delete regulators_[tag];
         ConcentrationRegulatorParameters & p = itr->second;
@@ -82,7 +82,7 @@ const double kMinScale_ = 10000.;
           regulators_[tag] = new ConcentrationRegulatorMethodTransition(this,p);
           break;
         }
-        default: 
+        default:
           throw ATC_Error("ConcentrationRegulator::initialize unknown concentration regulator type");
         }
       }
@@ -93,12 +93,12 @@ const double kMinScale_ = 10000.;
   //--------------------------------------------------------
   void ConcentrationRegulator::initialize()
   {
-    
+
     map<string, ConcentrationRegulatorMethod *>::iterator itr;
     for (itr = regulators_.begin();
          itr != regulators_.end(); itr++) { itr->second->initialize(); }
 
-    atc_->set_boundary_integration_type(boundaryIntegrationType_); 
+    atc_->set_boundary_integration_type(boundaryIntegrationType_);
     AtomicRegulator::reset_nlocal();
     AtomicRegulator::delete_unused_data();
     needReset_ = false;
@@ -157,7 +157,7 @@ const double kMinScale_ = 10000.;
 
     map<string, ConcentrationRegulatorMethod *>::const_iterator itr;
     for (itr = regulators_.begin();
-         itr != regulators_.end(); itr++) { 
+         itr != regulators_.end(); itr++) {
       if (c++ == n) { return itr->second->compute_vector(m); }
     }
     return 0.;
@@ -168,34 +168,34 @@ const double kMinScale_ = 10000.;
   //--------------------------------------------------------
   int ConcentrationRegulator::size_vector(int /* i */) const
   {
-    int n = (regulators_.size())*5; 
-    if (n==0) n = 20; 
-    return n; 
+    int n = (regulators_.size())*5;
+    if (n==0) n = 20;
+    return n;
   }
 
   //========================================================
   //  Class ConcentrationRegulatorMethodTransition
   //========================================================
- 
+
   //--------------------------------------------------------
   //  Constructor
-  //         Grab references to ATC and ConcentrationRegulator 
+  //         Grab references to ATC and ConcentrationRegulator
   //--------------------------------------------------------
   ConcentrationRegulatorMethodTransition::ConcentrationRegulatorMethodTransition
-    (ConcentrationRegulator *concReg, 
+    (ConcentrationRegulator *concReg,
      ConcentrationRegulator::ConcentrationRegulatorParameters & p)
-      : ConcentrationRegulatorMethod(concReg), 
+      : ConcentrationRegulatorMethod(concReg),
         concentrationRegulator_(concReg),
         interscaleManager_(nullptr),
         lammpsInterface_(LammpsInterface::instance()),
         list_(nullptr),
-        targetConcentration_(p.value), 
-        targetCount_(0), 
+        targetConcentration_(p.value),
+        targetCount_(0),
         elemset_(p.elemset),
         p_(nullptr),
-        randomNumberGenerator_(nullptr), 
+        randomNumberGenerator_(nullptr),
         q0_(0),
-        controlType_(p.type), 
+        controlType_(p.type),
         controlIndex_(0),
         transitionType_(p.transitionType),
         transitionInterval_(p.transitionInterval),
@@ -224,7 +224,7 @@ const double kMinScale_ = 10000.;
   //--------------------------------------------------------
   //  Initialize
   //--------------------------------------------------------
-  void ConcentrationRegulatorMethodTransition::initialize(void)
+  void ConcentrationRegulatorMethodTransition::initialize()
   {
 #ifdef ATC_VERBOSE
     lammpsInterface_->print_msg_once(
@@ -241,7 +241,7 @@ const double kMinScale_ = 10000.;
 
     PerAtomQuantity<int> * a2el = atc_->atom_to_element_map();
     list_ = new AtomInElementSet(atc_,a2el,elemset_,controlType_);
-    
+
     nNodes_ = atc_->num_nodes();
     DENS_MAT conc(nNodes_,1); conc = targetConcentration_;
     DENS_VEC integral = atc_->fe_engine()->integrate(conc,elemset_);
@@ -250,7 +250,7 @@ const double kMinScale_ = 10000.;
     volumes_.resize(elemset_.size());
     ESET::const_iterator itr;
     int i = 0;
-    DENS_MAT c(nNodes_,1); c = 1; 
+    DENS_MAT c(nNodes_,1); c = 1;
     V_ = 0.;
     for (itr = elemset_.begin(); itr != elemset_.end(); itr++, i++) {
       ESET e; e.insert(*itr);
@@ -261,14 +261,14 @@ const double kMinScale_ = 10000.;
     volumes_ *= 1./V_;
     for (int i = 1; i < volumes_.size(); i++) {
       volumes_(i) += volumes_(i-1);
-    } 
+    }
 
     // record original energetic properties
     int ntypes = lammpsInterface_->ntypes();
     epsilon0_.reset(ntypes);
     p_ = lammpsInterface_->potential();
     lammpsInterface_->epsilons(controlType_,p_,epsilon0_.ptr());
-    
+
 #ifdef ATC_VERBOSE
     string msg = "type "+to_string(controlType_)+" target count " + to_string(targetCount_);
     msg += " volume " + to_string(V_);
@@ -280,21 +280,21 @@ const double kMinScale_ = 10000.;
   }
   double ConcentrationRegulatorMethodTransition::uniform() const {
     _rngUniformCounter_++;
-    return lammpsInterface_->random_uniform(randomNumberGenerator_); 
+    return lammpsInterface_->random_uniform(randomNumberGenerator_);
   }
   double ConcentrationRegulatorMethodTransition::normal() const {
     _rngNormalCounter_++;
-    return lammpsInterface_->random_normal(randomNumberGenerator_); 
+    return lammpsInterface_->random_normal(randomNumberGenerator_);
   }
   //--------------------------------------------------------
   //  pre exchange
   //--------------------------------------------------------
-  void ConcentrationRegulatorMethodTransition::pre_exchange(void)
+  void ConcentrationRegulatorMethodTransition::pre_exchange()
   {
     // return if should not be called on this timestep
     if ( ! lammpsInterface_->now(frequency_)) return;
     nexchanges_ = excess();
-    int  n = abs(nexchanges_); 
+    int  n = abs(nexchanges_);
     bool success = false;
     if      (nexchanges_ > 0) { success = delete_atoms(n); }
     else if (nexchanges_ < 0) { success = insert_atoms(n); }
@@ -308,39 +308,39 @@ const double kMinScale_ = 10000.;
     }
     transitionCounter_=0;
     transition();
-  } 
+  }
   //--------------------------------------------------------
   //  pre force
   //--------------------------------------------------------
-  void ConcentrationRegulatorMethodTransition::pre_force(void)
+  void ConcentrationRegulatorMethodTransition::pre_force()
   {
     transition();
   }
   //--------------------------------------------------------
   //  accept
   //--------------------------------------------------------
-  bool ConcentrationRegulatorMethodTransition::accept(double energy, double /* T */) const 
-  { 
+  bool ConcentrationRegulatorMethodTransition::accept(double energy, double /* T */) const
+  {
 #ifdef ATC_VERBOSE2
     if (energy < maxEnergy_) lammpsInterface_->print_msg(" energy "+to_string(energy)+" "+to_string(rngCounter_));
 #endif
     return (energy < maxEnergy_);
-  } 
+  }
   //--------------------------------------------------------
   //  energy
   //--------------------------------------------------------
-  double ConcentrationRegulatorMethodTransition::energy(int id) const 
+  double ConcentrationRegulatorMethodTransition::energy(int id) const
   {
     double e = lammpsInterface_->shortrange_energy(id,maxEnergy_);
 #ifdef ATC_VERBOSE
-{    
+{
     int * tag = lammpsInterface_->atom_tag();
     lammpsInterface_->print_msg(to_string(controlType_)+" deletion energy "+to_string(e)+" id "+to_string(tag[id])+" "+to_string(_rngUniformCounter_)+":"+to_string(_rngNormalCounter_));
 }
 #endif
     return e;
   }
-  double ConcentrationRegulatorMethodTransition::energy(double * x) const 
+  double ConcentrationRegulatorMethodTransition::energy(double * x) const
   {
     double e = lammpsInterface_->shortrange_energy(x,controlType_,maxEnergy_);
 #ifdef ATC_VERBOSE
@@ -353,7 +353,7 @@ const double kMinScale_ = 10000.;
   //--------------------------------------------------------
   //  excess
   //--------------------------------------------------------
-  int ConcentrationRegulatorMethodTransition::excess(void) const
+  int ConcentrationRegulatorMethodTransition::excess() const
   {
      int nexcess = count()-targetCount_;
      nexcess = max(min(nexcess,maxExchanges_),-maxExchanges_);
@@ -362,7 +362,7 @@ const double kMinScale_ = 10000.;
   //--------------------------------------------------------
   //  count
   //--------------------------------------------------------
-  int ConcentrationRegulatorMethodTransition::count(void) const
+  int ConcentrationRegulatorMethodTransition::count() const
   {
     // integrate concentration over region
     const DENS_MAT & c = (atc_->field(SPECIES_CONCENTRATION)).quantity();
@@ -375,8 +375,8 @@ const double kMinScale_ = 10000.;
   bool ConcentrationRegulatorMethodTransition::delete_atoms(int n)
   {
     ID_PAIR idPair;
-    
-    deletionIds_.clear(); 
+
+    deletionIds_.clear();
     int deletions = 0;
     int attempts = 0;
     while(deletions < n && attempts < maxAttempts_){
@@ -406,7 +406,7 @@ const double kMinScale_ = 10000.;
   //--------------------------------------------------------
   double ConcentrationRegulatorMethodTransition::deletion_id(ID_PAIR & id) const
   {
-    if (atc_->parallel_consistency()) return deletion_id_consistent(id); 
+    if (atc_->parallel_consistency()) return deletion_id_consistent(id);
     else                              return deletion_id_free(id);
   }
   double ConcentrationRegulatorMethodTransition::deletion_id_consistent(ID_PAIR & id) const
@@ -422,12 +422,12 @@ const double kMinScale_ = 10000.;
     double min = ntotal;
     int * tag = lammpsInterface_->atom_tag();
     for (itr = list.begin(); itr != list.end(); itr++) {
-      int atag = tag[itr->second]; 
+      int atag = tag[itr->second];
       double d = fabs(atag-r);
       if (d < min) {
         min = d;
         idx = i;
-      } 
+      }
       i++;
     }
     int imin = kMinScale_*min;
@@ -455,7 +455,7 @@ const double kMinScale_ = 10000.;
     r *= ntotal;
     if ( (r >= nrank-n) && (r < nrank)) { // pick processor
 
-      r = uniform(); 
+      r = uniform();
       int idx = rnd(r*(n-1));
       id = list_->item(idx);
       // avoid repeats
@@ -463,7 +463,7 @@ const double kMinScale_ = 10000.;
       l.erase(l.begin()+idx);
       return energy(id.second);
     }
-    else { 
+    else {
       return maxEnergy_;
     }
   }
@@ -474,7 +474,7 @@ const double kMinScale_ = 10000.;
   {
 
     insertionIds_.clear();
-    DENS_VEC x(3); x = 0; 
+    DENS_VEC x(3); x = 0;
     DENS_VEC v(3); v = 0;
     const DENS_MAN & T = atc_->field(TEMPERATURE);
     int additions = 0;
@@ -482,7 +482,7 @@ const double kMinScale_ = 10000.;
     while(additions < n && attempts < maxAttempts_){
       if(accept(insertion_location(x))) {
         DENS_VEC Tv = atc_->fe_engine()->interpolate_field(x,T);
-Tv(0) = 300.; 
+Tv(0) = 300.;
         pick_velocity(v,Tv(0)); // 3 normal
         int nlocal = lammpsInterface_->insert_atom(transitionType_,controlMask_,x.ptr(),v.ptr()); // no charge
         insertionIds_.push_back(pair<int,int>(-1,nlocal)); // atc id unknown
@@ -540,7 +540,7 @@ Tv(0) = 300.;
   //--------------------------------------------------------
   double ConcentrationRegulatorMethodTransition::insertion_location(DENS_VEC & x) const
   {
-     // pick random element  
+     // pick random element
      int elem = pick_element(); // 1 uniform
      // pick random local coordinate
      DENS_VEC xi(3);
@@ -552,8 +552,8 @@ Tv(0) = 300.;
 #endif
        return energy(x.ptr());
      }
-     else { 
-       return maxEnergy_; 
+     else {
+       return maxEnergy_;
      }
   }
   //--------------------------------------------------------
@@ -573,7 +573,7 @@ Tv(0) = 300.;
   //  pick coordinates
   //--------------------------------------------------------
   void ConcentrationRegulatorMethodTransition::pick_coordinates(const int elem,
-                                                     DENS_VEC & xi, 
+                                                     DENS_VEC & xi,
                                                      DENS_VEC & x) const
   {
     xi.reset(3);
@@ -600,9 +600,9 @@ Tv(0) = 300.;
   void ConcentrationRegulatorMethodTransition::transition()
   {
     transitionCounter_++;
-    //if (insertionIds_.size() == 0) return; // 
-    if      (transitionCounter_> transitionInterval_) { 
-      nInTransition_ = 0; 
+    //if (insertionIds_.size() == 0) return; //
+    if      (transitionCounter_> transitionInterval_) {
+      nInTransition_ = 0;
       return;
     }
     else if (transitionCounter_==transitionInterval_) {
@@ -611,10 +611,10 @@ Tv(0) = 300.;
     else {
       transitionFactor_ = insertion_factor(transitionCounter_);
       if (nInTransition_ < 0) transitionFactor_ = 1-transitionFactor_;
-      double q = 0; 
+      double q = 0;
       lammpsInterface_->set_charge(transitionType_,q);
       DENS_VEC eps = epsilon0_;
-      
+
       lammpsInterface_->set_epsilons(transitionType_,p_,eps.ptr());
       lammpsInterface_->pair_reinit(); // epsilon
     }
@@ -624,7 +624,7 @@ Tv(0) = 300.;
   //--------------------------------------------------------
   double ConcentrationRegulatorMethodTransition::compute_vector(int n) const
   {
-    if      (n==0) return count() - targetCount_; 
+    if      (n==0) return count() - targetCount_;
     else if (n==1) return count()/V_;
     else if (n==2) return (1.-transitionFactor_)*nInTransition_;
     else if (n==3) return _rngUniformCounter_;

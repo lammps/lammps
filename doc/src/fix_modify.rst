@@ -12,19 +12,23 @@ Syntax
 
 * fix-ID = ID of the fix to modify
 * one or more keyword/value pairs may be appended
-* keyword = *temp* or *press* or *energy* or *virial* or *respa* or *dynamic/dof* or *bodyforces*
+* keyword = *bodyforces* or *colname* or *dynamic/dof* or *energy* or *press* or *respa* or *temp* or *virial*
 
   .. parsed-literal::
 
-       *temp* value = compute ID that calculates a temperature
-       *press* value = compute ID that calculates a pressure
-       *energy* value = *yes* or *no*
-       *virial* value = *yes* or *no*
-       *respa* value = *1* to *max respa level* or *0* (for outermost level)
-       *dynamic/dof* value = *yes* or *no*
-         yes/no = do or do not re-compute the number of degrees of freedom (DOF) contributing to the temperature
        *bodyforces* value = *early* or *late*
          early/late = compute rigid-body forces/torques early or late in the timestep
+       *colname* values =  ID string
+         string = new column header name
+         ID = integer from 1 to N, or integer from -1 to -N, where N = # of quantities being output
+              *or* a fix output property keyword or reference to compute, fix, property or variable.
+       *dynamic/dof* value = *yes* or *no*
+         yes/no = do or do not re-compute the number of degrees of freedom (DOF) contributing to the temperature
+       *energy* value = *yes* or *no*
+       *press* value = compute ID that calculates a pressure
+       *respa* value = *1* to *max respa level* or *0* (for outermost level)
+       *temp* value = compute ID that calculates a temperature
+       *virial* value = *yes* or *no*
 
 Examples
 """"""""
@@ -34,6 +38,7 @@ Examples
    fix_modify 3 temp myTemp press myPress
    fix_modify 1 energy yes
    fix_modify tether respa 2
+   fix_modify ave colname c_thermo_press Pressure colname 1 Temperature
 
 Description
 """""""""""
@@ -85,7 +90,7 @@ appropriate fix.
 
    For most fixes that support the *energy* keyword, the default
    setting is *no*.  For a few it is *yes*, when a user would expect
-   that to be the case.  The doc page of each fix gives the default.
+   that to be the case.  The page of each fix gives the default.
 
 The *virial* keyword can be used with fixes that support it, which is
 explained at the bottom of their doc page.  *Virial yes* will add a
@@ -110,7 +115,7 @@ option to include or exclude the contribution from fixes.
 
    For most fixes that support the *virial* keyword, the default
    setting is *no*.  For a few it is *yes*, when a user would expect
-   that to be the case.  The doc page of each fix gives the default.
+   that to be the case.  The page of each fix gives the default.
 
 For fixes that set or modify forces, it may be possible to select at
 which :doc:`r-RESPA <run_style>` level the fix operates via the *respa*
@@ -126,24 +131,24 @@ with their specified level at the beginning of a r-RESPA run.
 The *dynamic/dof* keyword determines whether the number of atoms N in
 the fix group and their associated degrees of freedom are re-computed
 each time a temperature is computed.  Only fix styles that calculate
-their own internal temperature use this option.  Currently this is
-only the :doc:`fix rigid/nvt/small <fix_rigid>` and :doc:`fix
-rigid/npt/small <fix_rigid>` commands for the purpose of
-thermostatting rigid body translation and rotation.  By default, N and
-their DOF are assumed to be constant.  If you are adding atoms or
-molecules to the system (see the :doc:`fix pour <fix_pour>`, :doc:`fix
-deposit <fix_deposit>`, and :doc:`fix gcmc <fix_gcmc>` commands) or
-expect atoms or molecules to be lost (e.g. due to exiting the
-simulation box or via :doc:`fix evaporate <fix_evaporate>`), then this
-option should be used to insure the temperature is correctly
-normalized.
+their own internal temperature use this option.  Currently this is only
+the :doc:`fix rigid/nvt/small <fix_rigid>` and :doc:`fix rigid/npt/small
+<fix_rigid>` commands for the purpose of thermostatting rigid body
+translation and rotation.  By default, N and their DOF are assumed to be
+constant.  If you are adding atoms or molecules to the system (see the
+:doc:`fix pour <fix_pour>`, :doc:`fix deposit <fix_deposit>`, and
+:doc:`fix gcmc <fix_gcmc>` commands) or expect atoms or molecules to be
+lost (e.g. due to exiting the simulation box or via :doc:`fix evaporate
+<fix_evaporate>`), then this option should be used to ensure the
+temperature is correctly normalized.
 
 .. note::
 
-   Other thermostatting fixes, such as :doc:`fix nvt <fix_nh>`, do
-   not use the *dynamic/dof* keyword because they use a temperature
-   compute to calculate temperature.  See the :doc:`compute_modify dynamic/dof <compute_modify>` command for a similar way to insure
-   correct temperature normalization for those thermostats.
+   Other thermostatting fixes, such as :doc:`fix nvt <fix_nh>`, do not
+   use the *dynamic/dof* keyword because they use a temperature compute
+   to calculate temperature.  See the :doc:`compute_modify dynamic/dof
+   <compute_modify>` command for a similar way to ensure correct
+   temperature normalization for those thermostats.
 
 The *bodyforces* keyword determines whether the forces and torques
 acting on rigid bodies are computed *early* at the post-force stage of
@@ -151,7 +156,8 @@ each timestep (right after per-atom forces have been computed and
 communicated among processors), or *late* at the final-integrate stage
 of each timestep (after any other fixes have finished their post-force
 tasks).  Only the rigid-body integration fixes use this option, which
-includes :doc:`fix rigid <fix_rigid>` and :doc:`fix rigid/small <fix_rigid>`, and their variants, and also :doc:`fix poems <fix_poems>`.
+includes :doc:`fix rigid <fix_rigid>` and :doc:`fix rigid/small
+<fix_rigid>`, and their variants, and also :doc:`fix poems <fix_poems>`.
 
 The default is *late*\ .  If there are other fixes that add forces to
 individual atoms, then the rigid-body constraints will include these
@@ -165,6 +171,20 @@ will have no effect on the motion of the rigid bodies if they are
 specified in the input script after the fix rigid command.  LAMMPS
 will give a warning if that is the case.
 
+
+The *colname* keyword can be used to change the default header keywords
+in output files of fix styles that support it: currently only :doc:`fix
+ave/time <fix_ave_time>` is supported.  The setting for *ID string*
+replaces the default text with the provided string.  *ID* can be a
+positive integer when it represents the column number counting from the
+left, a negative integer when it represents the column number from the
+right (i.e. -1 is the last column/keyword), or a custom fix output
+keyword (or compute, fix, property, or variable reference) and then it
+replaces the string for that specific keyword. The *colname* keyword can
+be used multiple times. If multiple *colname* settings refer to the same
+keyword, the last setting has precedence.
+
+
 Restrictions
 """"""""""""
 none
@@ -172,7 +192,8 @@ none
 Related commands
 """"""""""""""""
 
-:doc:`fix <fix>`, :doc:`compute temp <compute_temp>`, :doc:`compute pressure <compute_pressure>`, :doc:`thermo_style <thermo_style>`
+:doc:`fix <fix>`, :doc:`compute temp <compute_temp>`,
+:doc:`compute pressure <compute_pressure>`, :doc:`thermo_style <thermo_style>`
 
 Default
 """""""

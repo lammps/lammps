@@ -1,0 +1,27 @@
+# Ti beta phase (bcc)
+
+units           metal
+boundary        p p p
+
+atom_style      atomic
+lattice         bcc 3.27169
+region          box block 0 1 0 1 0 1
+create_box              1 box
+create_atoms    1 box
+
+pair_style      meam/sw/spline
+pair_coeff      * * Ti.meam.sw.spline Ti
+mass            * 47.90
+
+variable        cohesive_energy equal pe/atoms
+run                     0
+
+print           "===================================================="
+print           "Calculated cohesive energy: ${cohesive_energy} eV/atom"
+print           "Reference cohesive energy:  -4.720 eV/atom"
+print           "===================================================="
+
+#dump           1 all custom 1 beta.dump id type x y z fx fy fz
+#run            0
+
+

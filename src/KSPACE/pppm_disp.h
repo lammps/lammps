@@ -1,7 +1,7 @@
 /* -*- c++ -*- ----------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    https://www.lammps.org/, Sandia National Laboratories
-   Steve Plimpton, sjplimp@sandia.gov
+   LAMMPS development team: developers@lammps.org
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
@@ -21,42 +21,25 @@ KSpaceStyle(pppm/disp,PPPMDisp);
 #define LMP_PPPM_DISP_H
 
 #include "kspace.h"
-
-#if defined(FFT_FFTW3)
-#define LMP_FFT_LIB "FFTW3"
-#elif defined(FFT_MKL)
-#define LMP_FFT_LIB "MKL FFT"
-#else
-#define LMP_FFT_LIB "KISS FFT"
-#endif
-
-#ifdef FFT_SINGLE
-typedef float FFT_SCALAR;
-#define LMP_FFT_PREC "single"
-#define MPI_FFT_SCALAR MPI_FLOAT
-#else
-typedef double FFT_SCALAR;
-#define LMP_FFT_PREC "double"
-#define MPI_FFT_SCALAR MPI_DOUBLE
-#endif
+#include "lmpfftsettings.h"
 
 namespace LAMMPS_NS {
 
-#define EWALD_MAXORDER 6
-#define EWALD_FUNCS 4
+static constexpr int EWALD_MAXORDER = 6;
+static constexpr int EWALD_FUNCS = 4;
 
 class PPPMDisp : public KSpace {
  public:
   PPPMDisp(class LAMMPS *);
-  virtual ~PPPMDisp();
-  virtual void init();
-  virtual void setup();
-  void setup_grid();
-  virtual void settings(int, char **);
-  virtual void compute(int, int);
-  virtual int timing_1d(int, double &);
-  virtual int timing_3d(int, double &);
-  virtual double memory_usage();
+  ~PPPMDisp() override;
+  void init() override;
+  void setup() override;
+  void reset_grid() override;
+  void settings(int, char **) override;
+  void compute(int, int) override;
+  int timing_1d(int, double &) override;
+  int timing_3d(int, double &) override;
+  double memory_usage() override;
 
  protected:
   int me, nprocs;
@@ -81,19 +64,19 @@ class PPPMDisp : public KSpace {
   double delxinv, delyinv, delzinv, delvolinv;
   double delxinv_6, delyinv_6, delzinv_6, delvolinv_6;
 
-  double shift, shiftone;
+  double shift, shiftone, shiftatom_lo, shiftatom_hi;
   int nxlo_in, nylo_in, nzlo_in, nxhi_in, nyhi_in, nzhi_in;
   int nxlo_out, nylo_out, nzlo_out, nxhi_out, nyhi_out, nzhi_out;
   int nxlo_fft, nylo_fft, nzlo_fft, nxhi_fft, nyhi_fft, nzhi_fft;
   int nlower, nupper;
-  int ngrid, nfft, nfft_both;
+  int ngrid, nfft_brick, nfft, nfft_both;
 
-  double shift_6, shiftone_6;
+  double shift_6, shiftone_6, shiftatom_lo_6, shiftatom_hi_6;
   int nxlo_in_6, nylo_in_6, nzlo_in_6, nxhi_in_6, nyhi_in_6, nzhi_in_6;
   int nxlo_out_6, nylo_out_6, nzlo_out_6, nxhi_out_6, nyhi_out_6, nzhi_out_6;
   int nxlo_fft_6, nylo_fft_6, nzlo_fft_6, nxhi_fft_6, nyhi_fft_6, nzhi_fft_6;
   int nlower_6, nupper_6;
-  int ngrid_6, nfft_6, nfft_both_6;
+  int ngrid_6, nfft_brick_6, nfft_6, nfft_both_6;
 
   // the following variables are needed for every structure factor
 
@@ -166,7 +149,8 @@ class PPPMDisp : public KSpace {
   FFT_SCALAR ****v0_brick_none, ****v1_brick_none, ****v2_brick_none, ****v3_brick_none,
       ****v4_brick_none, ****v5_brick_none;
 
-  //// needed for each interaction type
+  // needed for each interaction type
+
   double *greensfn;
   double **vg;
   double **vg2;
@@ -195,7 +179,7 @@ class PPPMDisp : public KSpace {
   class FFT3d *fft1, *fft2;
   class FFT3d *fft1_6, *fft2_6;
   class Remap *remap, *remap_6;
-  class GridComm *gc, *gc6;
+  class Grid3d *gc, *gc6;
 
   FFT_SCALAR *gc_buf1, *gc_buf2, *gc6_buf1, *gc6_buf2;
   int ngc_buf1, ngc_buf2, npergrid;
@@ -207,7 +191,9 @@ class PPPMDisp : public KSpace {
 
   int triclinic;    // domain settings, orthog or triclinic
   double *boxlo;
+
   // TIP4P settings
+
   int typeH, typeO;    // atom types of TIP4P water H and O atoms
   double qdist;        // distance from O site to negative charge
   double alpha;        // geometric factor
@@ -219,15 +205,16 @@ class PPPMDisp : public KSpace {
   void mmult(double **, double **, double **, int);
   int check_convergence(double **, double **, double **, double **, double **, double **, int);
 
-  void set_grid();
-  void set_grid_6();
+  void set_grid_global();
+  void set_grid_global_6();
+  void set_grid_local(int, int, int, int, double &, double &, double &, double &,
+                      int &, int &, int &, int &, int &, int &, int &, int &);
   void set_init_g6();
-  void set_fft_parameters(int &, int &, int &, int &, int &, int &, int &, int &, int &, int &,
-                          int &, int &, int &, int &, int &, int &, int &, int &, int &, int &,
-                          int &, int &, int &, int &, int &, int &, double &, double &, int &);
   void set_n_pppm_6();
+
   void adjust_gewald();
   void adjust_gewald_6();
+
   double f();
   double derivf();
   double f_6();
@@ -235,6 +222,7 @@ class PPPMDisp : public KSpace {
   double final_accuracy();
   void final_accuracy_6(double &, double &, double &);
   double lj_rspace_error();
+
   double compute_qopt();
   double compute_qopt_6();
   double compute_qopt_ik();
@@ -248,6 +236,7 @@ class PPPMDisp : public KSpace {
   virtual void allocate_peratom();
   virtual void deallocate();
   virtual void deallocate_peratom();
+
   int factorable(int);
   double rms(double, double, bigint, double, double **);
   double diffpr(double, double, double, double, double **);
@@ -337,188 +326,17 @@ class PPPMDisp : public KSpace {
   void compute_drho1d(const FFT_SCALAR &, const FFT_SCALAR &, const FFT_SCALAR &, int,
                       FFT_SCALAR **, FFT_SCALAR **);
   void compute_rho_coeff(FFT_SCALAR **, FFT_SCALAR **, int);
-  void slabcorr(int);
+  virtual void slabcorr(int);
 
   // grid communication
 
-  void pack_forward_grid(int, void *, int, int *);
-  void unpack_forward_grid(int, void *, int, int *);
-  void pack_reverse_grid(int, void *, int, int *);
-  void unpack_reverse_grid(int, void *, int, int *);
+  void pack_forward_grid(int, void *, int, int *) override;
+  void unpack_forward_grid(int, void *, int, int *) override;
+  void pack_reverse_grid(int, void *, int, int *) override;
+  void unpack_reverse_grid(int, void *, int, int *) override;
 };
 
 }    // namespace LAMMPS_NS
 
 #endif
 #endif
-
-/* ERROR/WARNING messages:
-
-E: Illegal ... command
-
-Self-explanatory.  Check the input script syntax and compare to the
-documentation for the command.  You can use -echo screen as a
-command-line option when running LAMMPS to see the offending line.
-
-E: Cannot use PPPMDisp with 2d simulation
-
-The kspace style pppm/disp cannot be used in 2d simulations.  You can
-use 2d pppm/disp in a 3d simulation; see the kspace_modify command.
-
-E: PPPMDisp can only currently be used with comm_style brick
-
-This is a current restriction in LAMMPS.
-
-E: Cannot use non-periodic boundaries with PPPMDisp
-
-For kspace style pppm/disp, all 3 dimensions must have periodic
-boundaries unless you use the kspace_modify command to define a 2d
-slab with a non-periodic z dimension.
-
-E: Incorrect boundaries with slab PPPMDisp
-
-Must have periodic x,y dimensions and non-periodic z dimension to use
-2d slab option with pppm/disp.
-
-E: PPPMDisp coulomb order cannot be greater than %d
-
-This is a limitation of the PPPM implementation in LAMMPS.
-
-E: KSpace style is incompatible with Pair style
-
-Setting a kspace style requires that a pair style with matching
-long-range Coulombic or dispersion components be used.
-
-E: Unsupported order in kspace_style pppm/disp, pair_style %s
-
-Only pair styles with 1/r and 1/r^6 dependence are currently supported.
-
-W: Charges are set, but coulombic solver is not used
-
-Self-explanatory.
-
-E: PPPMDisp used but no parameters set, for further information please see the pppm/disp documentation
-
-An efficient and accurate usage of the pppm/disp requires settings via the kspace_modify command. Please see the pppm/disp documentation for further instructions.
-
-E: Bond and angle potentials must be defined for TIP4P
-
-Cannot use TIP4P pair potential unless bond and angle potentials
-are defined.
-
-E: Bad TIP4P angle type for PPPMDisp/TIP4P
-
-Specified angle type is not valid.
-
-E: Bad TIP4P bond type for PPPMDisp/TIP4P
-
-Specified bond type is not valid.
-
-W: Reducing PPPMDisp Coulomb order b/c stencil extends beyond neighbor processor
-
-This may lead to a larger grid than desired.  See the kspace_modify overlap
-command to prevent changing of the PPPM order.
-
-E: PPPMDisp Coulomb grid is too large
-
-The global PPPM grid is larger than OFFSET in one or more dimensions.
-OFFSET is currently set to 4096.  You likely need to decrease the
-requested accuracy.
-
-E: Coulomb PPPMDisp order has been reduced below minorder
-
-The default minimum order is 2.  This can be reset by the
-kspace_modify minorder command.
-
-W: Reducing PPPMDisp dispersion order b/c stencil extends beyond neighbor processor
-
-This may lead to a larger grid than desired.  See the kspace_modify overlap
-command to prevent changing of the PPPM order.
-
-E: PPPMDisp Dispersion grid is too large
-
-The global PPPM grid is larger than OFFSET in one or more dimensions.
-OFFSET is currently set to 4096.  You likely need to decrease the
-requested accuracy.
-
-E: Dispersion PPPMDisp order has been reduced below minorder
-
-The default minimum order is 2.  This can be reset by the
-kspace_modify minorder command.
-
-E: PPPM grid stencil extends beyond nearest neighbor processor
-
-This is not allowed if the kspace_modify overlap setting is no.
-
-E: Matrix factorization to split dispersion coefficients failed
-
-This should not normally happen.  Contact the developers.
-
-W: Estimated error in splitting of dispersion coeffs is %g
-
-Error is greater than 0.0001 percent.
-
-W: Simulations might be very slow because of large number of structure factors
-
-Self-explanatory.
-
-E: Epsilon or sigma reference not set by pair style in PPPMDisp
-
-Self-explanatory.
-
-E: KSpace accuracy too large to estimate G vector
-
-Reduce the accuracy request or specify gewald explicitly
-via the kspace_modify command.
-
-E: Could not compute grid size for Coulomb interaction
-
-The code is unable to compute a grid size consistent with the desired
-accuracy.  This error should not occur for typical problems.  Please
-send an email to the developers.
-
-E: Could not compute g_ewald
-
-The Newton-Raphson solver failed to converge to a good value for
-g_ewald.  This error should not occur for typical problems.  Please
-send an email to the developers.
-
-E: Could not adjust g_ewald_6
-
-The Newton-Raphson solver failed to converge to a good value for
-g_ewald.  This error should not occur for typical problems.  Please
-send an email to the developers.
-
-E: Cannot compute initial g_ewald_disp
-
-LAMMPS failed to compute an initial guess for the PPPM_disp g_ewald_6
-factor that partitions the computation between real space and k-space
-for Dispersion interactions.
-
-E: Could not compute grid size for Dispersion
-
-The code is unable to compute a grid size consistent with the desired
-accuracy.  This error should not occur for typical problems.  Please
-send an email to the developers.
-
-E: Non-numeric box dimensions - simulation unstable
-
-The box size has apparently blown up.
-
-E: Out of range atoms - cannot compute PPPMDisp
-
-One or more atoms are attempting to map their charge to a PPPM grid
-point that is not owned by a processor.  This is likely for one of two
-reasons, both of them bad.  First, it may mean that an atom near the
-boundary of a processor's sub-domain has moved more than 1/2 the
-"neighbor skin distance"_neighbor.html without neighbor lists being
-rebuilt and atoms being migrated to new processors.  This also means
-you may be missing pairwise interactions that need to be computed.
-The solution is to change the re-neighboring criteria via the
-"neigh_modify"_neigh_modify command.  The safest settings are "delay 0
-every 1 check yes".  Second, it may mean that an atom has moved far
-outside a processor's sub-domain or even the entire simulation box.
-This indicates bad physics, e.g. due to highly overlapping atoms, too
-large a timestep, etc.
-
-*/

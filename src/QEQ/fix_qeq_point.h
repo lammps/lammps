@@ -1,7 +1,7 @@
 /* -*- c++ -*- ----------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    https://www.lammps.org/, Sandia National Laboratories
-   Steve Plimpton, sjplimp@sandia.gov
+   LAMMPS development team: developers@lammps.org
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
@@ -27,9 +27,9 @@ namespace LAMMPS_NS {
 class FixQEqPoint : public FixQEq {
  public:
   FixQEqPoint(class LAMMPS *, int, char **);
-  ~FixQEqPoint() {}
-  void init();
-  void pre_force(int);
+
+  void init() override;
+  void pre_force(int) override;
 
  private:
   void init_matvec();
@@ -38,25 +38,3 @@ class FixQEqPoint : public FixQEq {
 }    // namespace LAMMPS_NS
 #endif
 #endif
-
-/* ERROR/WARNING messages:
-
-E: Fix qeq/point requires atom attribute q
-
-Self-explanatory.
-
-E: Fix qeq/point group has no atoms
-
-Self-explanatory.
-
-W: H matrix size has been exceeded: m_fill=%d H.m=%d\n
-
-This is the size of the matrix.
-
-E: Fix qeq/point has insufficient QEq matrix size
-
-Occurs when number of neighbor atoms for an atom increased too much
-during a run.  Increase SAFE_ZONE and MIN_CAP in fix_qeq.h and
-recompile.
-
-*/

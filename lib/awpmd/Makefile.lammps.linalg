@@ -1,5 +1,5 @@
 # Settings that the LAMMPS build will import when this package library is used
 
-user-awpmd_SYSINC =
-user-awpmd_SYSLIB = -llinalg -lgfortran
-user-awpmd_SYSPATH = -L../../lib/linalg$(LIBOBJDIR)
+awpmd_SYSINC =
+awpmd_SYSLIB = -llinalg
+awpmd_SYSPATH = -L../../lib/linalg$(LIBOBJDIR)

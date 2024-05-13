@@ -1,8 +1,7 @@
-// clang-format off
 /* -*- c++ -*- ----------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    https://www.lammps.org/, Sandia National Laboratories
-   Steve Plimpton, sjplimp@sandia.gov
+   LAMMPS development team: developers@lammps.org
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
@@ -20,86 +19,99 @@ FixStyle(NEIGH_HISTORY/KK/HOST,FixNeighHistoryKokkos<LMPHostType>);
 // clang-format on
 #else
 
+// clang-format off
 #ifndef LMP_FIX_NEIGH_HISTORY_KOKKOS_H
 #define LMP_FIX_NEIGH_HISTORY_KOKKOS_H
 
 #include "fix_neigh_history.h"
 #include "kokkos_type.h"
+#include "kokkos_base.h"
 
 namespace LAMMPS_NS {
+
+struct TagFixNeighHistoryPreExchange{};
+struct TagFixNeighHistoryPostNeighbor{};
+struct TagFixNeighHistoryPackExchange{};
+struct TagFixNeighHistoryUnpackExchange{};
+
 template <class DeviceType>
-class FixNeighHistoryKokkos : public FixNeighHistory {
+class FixNeighHistoryKokkos : public FixNeighHistory, public KokkosBase {
  public:
+  typedef DeviceType device_type;
+  typedef int value_type;
+  typedef ArrayTypes<DeviceType> AT;
+
   FixNeighHistoryKokkos(class LAMMPS *, int, char **);
-  ~FixNeighHistoryKokkos();
+  ~FixNeighHistoryKokkos() override;
 
-  void init();
-  void pre_exchange();
-  void setup_post_neighbor();
-  virtual void post_neighbor();
-  double memory_usage();
-  void grow_arrays(int);
-  void copy_arrays(int, int, int);
-  int pack_exchange(int, double *);
-  int unpack_exchange(int, double *);
+  void pre_exchange() override;
+  void post_neighbor() override;
+  void grow_arrays(int) override;
+  void copy_arrays(int, int, int) override;
+  void sort_kokkos(Kokkos::BinSort<KeyViewType, BinOp> &Sorter) override;
+  int pack_exchange(int, double *) override;
+  int unpack_exchange(int, double *) override;
+  double memory_usage() override;
 
   KOKKOS_INLINE_FUNCTION
-  void zero_partner_count_item(const int &i) const;
-  KOKKOS_INLINE_FUNCTION
-  void pre_exchange_item(const int &ii) const;
-  KOKKOS_INLINE_FUNCTION
-  void post_neighbor_item(const int &ii) const;
+  void operator()(TagFixNeighHistoryPreExchange, const int&) const;
 
-  typename Kokkos::View<int**> d_firstflag;
-  typename Kokkos::View<LMP_FLOAT**> d_firstvalue;
+  KOKKOS_INLINE_FUNCTION
+  void operator()(TagFixNeighHistoryPostNeighbor, const int&) const;
+
+  KOKKOS_INLINE_FUNCTION
+  void operator()(TagFixNeighHistoryPackExchange, const int&, int &, const bool &) const;
+
+  KOKKOS_INLINE_FUNCTION
+  void operator()(TagFixNeighHistoryUnpackExchange, const int&) const;
+
+  int pack_exchange_kokkos(const int &nsend,DAT::tdual_xfloat_2d &buf,
+			   DAT::tdual_int_1d k_sendlist,
+			   DAT::tdual_int_1d k_copylist,
+			   ExecutionSpace space) override;
+
+  void unpack_exchange_kokkos(DAT::tdual_xfloat_2d &k_buf,
+                              DAT::tdual_int_1d &indices,int nrecv,
+                              int nrecv1,int nrecv1extra,
+                              ExecutionSpace space) override;
+
+  typename DAT::tdual_int_2d k_firstflag;
+  typename DAT::tdual_float_2d k_firstvalue;
 
  private:
-  typename ArrayTypes<DeviceType>::tdual_int_1d k_npartner;
-  typename ArrayTypes<DeviceType>::tdual_tagint_2d k_partner;
-  typename ArrayTypes<DeviceType>::tdual_float_2d k_valuepartner;
+  int nrecv1,nextrarecv1;
+  int nlocal,nsend,beyond_contact;
 
-  // for neighbor list lookup
-  typename ArrayTypes<DeviceType>::t_neighbors_2d d_neighbors;
-  typename ArrayTypes<DeviceType>::t_int_1d_randomread d_ilist;
-  typename ArrayTypes<DeviceType>::t_int_1d_randomread d_numneigh;
+  typename AT::t_tagint_1d tag;
 
-  typename ArrayTypes<DeviceType>::t_tagint_1d tag;
-  typename ArrayTypes<DeviceType>::t_int_1d d_npartner;
-  typename ArrayTypes<DeviceType>::t_tagint_2d d_partner;
-  typename ArrayTypes<DeviceType>::t_float_2d d_valuepartner;
+  typename AT::t_int_2d d_firstflag;
+  typename AT::t_float_2d d_firstvalue;
 
-  typename ArrayTypes<DeviceType>::t_int_scalar d_resize;
-  typename ArrayTypes<LMPHostType>::t_int_scalar h_resize;
-};
+  DAT::tdual_int_1d k_npartner;
+  DAT::tdual_tagint_2d k_partner;
+  DAT::tdual_float_2d k_valuepartner;
 
-template <class DeviceType>
-struct FixNeighHistoryKokkosZeroPartnerCountFunctor {
-  FixNeighHistoryKokkos<DeviceType> c;
-  FixNeighHistoryKokkosZeroPartnerCountFunctor(FixNeighHistoryKokkos<DeviceType> *c_ptr): c(*c_ptr) {}
+  typename AT::t_int_1d d_npartner;
+  typename AT::t_tagint_2d d_partner;
+  typename AT::t_float_2d d_valuepartner;
+
+  typename AT::t_int_1d d_sendlist;
+  typename AT::t_xfloat_1d d_buf;
+  typename AT::t_int_1d d_copylist;
+  typename AT::t_int_1d d_indices;
+
+  typename AT::t_neighbors_2d d_neighbors;
+  typename AT::t_int_1d_randomread d_ilist;
+  typename AT::t_int_1d_randomread d_numneigh;
+
+  typename AT::t_int_scalar d_resize,d_count;
+  HAT::t_int_scalar h_resize,h_count;
+
+  void pre_exchange_no_newton() override;
+
+  // Shift by HISTBITS and check the first bit
   KOKKOS_INLINE_FUNCTION
-  void operator()(const int &i) const {
-    c.zero_partner_count_item(i);
-  }
-};
-
-template <class DeviceType>
-struct FixNeighHistoryKokkosPreExchangeFunctor {
-  FixNeighHistoryKokkos<DeviceType> c;
-  FixNeighHistoryKokkosPreExchangeFunctor(FixNeighHistoryKokkos<DeviceType> *c_ptr): c(*c_ptr) {}
-  KOKKOS_INLINE_FUNCTION
-  void operator() (const int &i) const {
-    c.pre_exchange_item(i);
-  }
-};
-
-template <class DeviceType>
-struct FixNeighHistoryKokkosPostNeighborFunctor {
-  FixNeighHistoryKokkos<DeviceType> c;
-  FixNeighHistoryKokkosPostNeighborFunctor(FixNeighHistoryKokkos<DeviceType> *c_ptr): c(*c_ptr) {}
-  KOKKOS_INLINE_FUNCTION
-  void operator() (const int &i) const {
-    c.post_neighbor_item(i);
-  }
+  int histmask(int j) const { return j >> HISTBITS & 1; }
 };
 
 } // namespace LAMMPS_NS

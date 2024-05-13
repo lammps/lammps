@@ -39,7 +39,7 @@ __kernel void k_lj_cubic(const __global numtyp4 *restrict x_,
                          const __global numtyp *restrict sp_lj,
                          const __global int * dev_nbor,
                          const __global int * dev_packed,
-                         __global acctyp4 *restrict ans,
+                         __global acctyp3 *restrict ans,
                          __global acctyp *restrict engv,
                          const int eflag, const int vflag, const int inum,
                          const int nbor_pitch, const int t_per_atom) {
@@ -49,7 +49,7 @@ __kernel void k_lj_cubic(const __global numtyp4 *restrict x_,
   int n_stride;
   local_allocate_store_pair();
 
-  acctyp4 f;
+  acctyp3 f;
   f.x=(acctyp)0; f.y=(acctyp)0; f.z=(acctyp)0;
   acctyp energy, virial[6];
   if (EVFLAG) {
@@ -67,6 +67,7 @@ __kernel void k_lj_cubic(const __global numtyp4 *restrict x_,
 
     numtyp factor_lj;
     for ( ; nbor<nbor_end; nbor+=n_stride) {
+      ucl_prefetch(dev_packed+nbor+n_stride);
 
       int j=dev_packed[nbor];
       factor_lj = sp_lj[sbmask(j)];
@@ -132,7 +133,7 @@ __kernel void k_lj_cubic_fast(const __global numtyp4 *restrict x_,
                               const __global numtyp *restrict sp_lj_in,
                               const __global int * dev_nbor,
                               const __global int * dev_packed,
-                              __global acctyp4 *restrict ans,
+                              __global acctyp3 *restrict ans,
                               __global acctyp *restrict engv,
                               const int eflag, const int vflag, const int inum,
                               const int nbor_pitch, const int t_per_atom) {
@@ -155,7 +156,7 @@ __kernel void k_lj_cubic_fast(const __global numtyp4 *restrict x_,
       lj3[tid]=lj3_in[tid];
   }
 
-  acctyp4 f;
+  acctyp3 f;
   f.x=(acctyp)0; f.y=(acctyp)0; f.z=(acctyp)0;
   acctyp energy, virial[6];
   if (EVFLAG) {
@@ -176,6 +177,7 @@ __kernel void k_lj_cubic_fast(const __global numtyp4 *restrict x_,
 
     numtyp factor_lj;
     for ( ; nbor<nbor_end; nbor+=n_stride) {
+      ucl_prefetch(dev_packed+nbor+n_stride);
 
       int j=dev_packed[nbor];
       factor_lj = sp_lj[sbmask(j)];

@@ -1,7 +1,8 @@
 ---
-lammps_version: 10 Feb 2021
-date_generated: Fri Feb 26 23:08:50 2021
+lammps_version: 17 Feb 2022
+date_generated: Fri Mar 18 22:17:32 2022
 epsilon: 5e-14
+skip_tests:
 prerequisites: ! |
   atom full
   pair lj/gromacs
@@ -19,7 +20,7 @@ pair_coeff: ! |
   5 5  0.015  3.1
 extract: ! ""
 natoms: 29
-init_vdwl: 749.251137926933
+init_vdwl: 749.2511379269325
 init_coul: 0
 init_stress: ! |2-
    2.1793860702765442e+03  2.1988973006739548e+03  4.6653997757046463e+03 -7.5956547840977657e+02  2.4751222555462579e+01  6.6652036392888783e+02

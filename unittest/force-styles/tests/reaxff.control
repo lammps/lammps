@@ -1,0 +1,7 @@
+tabulate_long_range     10000 ! denotes the granularity of long range tabulation, 0 means no tabulation
+
+nbrhood_cutoff          4.5  ! near neighbors cutoff for bond calculations in A
+hbond_cutoff            6.0  ! cutoff distance for hydrogen bond interactions
+bond_graph_cutoff       0.3  ! bond strength cutoff for bond graphs
+thb_cutoff              0.001 ! cutoff value for three body interactions
+

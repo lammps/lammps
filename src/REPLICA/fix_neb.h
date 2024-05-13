@@ -1,7 +1,7 @@
 /* -*- c++ -*- ----------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    https://www.lammps.org/, Sandia National Laboratories
-   Steve Plimpton, sjplimp@sandia.gov
+   LAMMPS development team: developers@lammps.org
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
@@ -30,16 +30,16 @@ class FixNEB : public Fix {
   int rclimber;
 
   FixNEB(class LAMMPS *, int, char **);
-  ~FixNEB();
-  int setmask();
-  void init();
-  void min_setup(int);
-  void min_post_force(int);
+  ~FixNEB() override;
+  int setmask() override;
+  void init() override;
+  void min_setup(int) override;
+  void min_post_force(int) override;
 
  private:
-  int me, nprocs, nprocs_universe;
-  double kspring, kspringIni, kspringFinal, kspringPerp, EIniIni, EFinalIni;
-  bool StandardNEB, NEBLongRange, PerpSpring, FreeEndIni, FreeEndFinal;
+  int me, nprocs, nprocs_universe, neb_mode;
+  double kspring, kspringIni, kspringFinal, kspringPerp, EIniIni, EFinalIni, idealPos, actualPos;
+  bool PerpSpring, FreeEndIni, FreeEndFinal;
   bool FreeEndFinalWithRespToEIni, FinalAndInterWithRespToEIni;
   int ireplica, nreplica;
   int procnext, procprev;
@@ -53,7 +53,7 @@ class FixNEB : public Fix {
   int nebatoms;
   int ntotal;      // total # of atoms, NEB or not
   int maxlocal;    // size of xprev,xnext,tangent arrays
-  double *nlenall;
+  double *nlenall, *vengall;
   double **xprev, **xnext, **fnext, **springF;
   double **tangent;
   double **xsend, **xrecv;      // coords to send/recv to/from other replica
@@ -68,6 +68,7 @@ class FixNEB : public Fix {
   int *counts, *displacements;    // used for MPI_Gather
 
   void inter_replica_comm();
+  void calculate_ideal_positions();
   void reallocate();
 };
 
@@ -75,29 +76,3 @@ class FixNEB : public Fix {
 
 #endif
 #endif
-
-/* ERROR/WARNING messages:
-
-E: Illegal ... command
-
-Self-explanatory.  Check the input script syntax and compare to the
-documentation for the command.  You can use -echo screen as a
-command-line option when running LAMMPS to see the offending line.
-
-E: Potential energy ID for fix neb does not exist
-
-Self-explanatory.
-
-E: Too many active NEB atoms
-
-UNDOCUMENTED
-
-E: Too many atoms for NEB
-
-UNDOCUMENTED
-
-U: Atom count changed in fix neb
-
-This is not allowed in a NEB calculation.
-
-*/

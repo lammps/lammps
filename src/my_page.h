@@ -1,7 +1,7 @@
 /* -*- c++ -*- ----------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    https://www.lammps.org/, Sandia National Laboratories
-   Steve Plimpton, sjplimp@sandia.gov
+   LAMMPS development team: developers@lammps.org
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
@@ -104,6 +104,9 @@ template <class T> class MyPage {
   int errorflag;    // flag > 0 if error has occurred
                     // 1 = chunk size exceeded maxchunk
                     // 2 = memory allocation error
+#if defined(_OPENMP)
+  char pad[64];     // to avoid false sharing with multi-threading
+#endif
   void allocate();
   void deallocate();
 };

@@ -1,7 +1,7 @@
 /* -*- c++ -*- ----------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   www.cs.sandia.gov/~sjplimp/lammps.html
-   Steve Plimpton, sjplimp@sandia.gov, Sandia National Laboratories
+   https://www.lammps.org/, Sandia National Laboratories
+   LAMMPS development team: developers@lammps.org
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
@@ -30,23 +30,23 @@ class PairSpinDipoleLong : public PairSpin {
   double **sigma;
 
   PairSpinDipoleLong(LAMMPS *);
-  virtual ~PairSpinDipoleLong();
-  void settings(int, char **);
-  void coeff(int, char **);
-  void init_style();
-  double init_one(int, int);
-  void *extract(const char *, int &);
+  ~PairSpinDipoleLong() override;
+  void settings(int, char **) override;
+  void coeff(int, char **) override;
+  void init_style() override;
+  double init_one(int, int) override;
+  void *extract(const char *, int &) override;
 
-  void compute(int, int);
-  void compute_single_pair(int, double *);
+  void compute(int, int) override;
+  void compute_single_pair(int, double *) override;
 
   void compute_long(int, int, double *, double *, double *, double *, double *);
   void compute_long_mech(int, int, double *, double *, double *, double *, double *);
 
-  void write_restart(FILE *);
-  void read_restart(FILE *);
-  void write_restart_settings(FILE *);
-  void read_restart_settings(FILE *);
+  void write_restart(FILE *) override;
+  void read_restart(FILE *) override;
+  void write_restart_settings(FILE *) override;
+  void read_restart_settings(FILE *) override;
 
   double cut_spin_long_global;    // global long cutoff distance
 
@@ -62,34 +62,10 @@ class PairSpinDipoleLong : public PairSpin {
   double g_ewald;
   int ewald_order;
 
-  void allocate();
+  void allocate() override;
 };
 
 }    // namespace LAMMPS_NS
 
 #endif
 #endif
-
-/* ERROR/WARNING messages:
-
-E: Incorrect args in pair_style command
-
-Self-explanatory.
-
-E: Incorrect args for pair coefficients
-
-Self-explanatory.  Check the input script or data file.
-
-E: Pair dipole/long requires atom attributes q, mu, torque
-
-The atom style defined does not have these attributes.
-
-E: Can only use 'metal' units with spins
-
-This feature is not yet supported.
-
-E: Pair style requires a KSpace style
-
-No kspace style is defined.
-
-*/

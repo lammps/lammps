@@ -1,0 +1,10 @@
+[run]
+source = @LAMMPS_PYTHON_DIR@
+parallel=True
+branch=True
+omit=*/install.py
+     */setup.py
+
+[paths]
+sources = python
+          @LAMMPS_PYTHON_DIR@

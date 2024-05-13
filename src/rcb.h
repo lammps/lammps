@@ -1,7 +1,7 @@
 /* -*- c++ -*- ----------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    https://www.lammps.org/, Sandia National Laboratories
-   Steve Plimpton, sjplimp@sandia.gov
+   LAMMPS development team: developers@lammps.org
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
@@ -39,7 +39,7 @@ class RCB : protected Pointers {
   int *sendindex;    // index of dot in receiver's nfinal list
 
   RCB(class LAMMPS *);
-  ~RCB();
+  ~RCB() override;
   void compute(int, int, double **, double *, double *, double *);
   void compute_old(int, int, double **, double *, double *, double *);
   void invert(int sortflag = 0);

@@ -59,6 +59,13 @@ format of this file is described below.
 
 ----------
 
+Suitable tables for use with this angle style can be created by LAMMPS
+itself from existing angle styles using the :doc:`angle_write
+<angle_write>` command.  This can be useful to have a template file for
+testing the angle style settings and to build a compatible custom file.
+Another option to generate tables is the Python code in the
+``tools/tabulate`` folder of the LAMMPS source code distribution.
+
 The format of a tabulated file is as follows (without the
 parenthesized comments):
 
@@ -150,7 +157,7 @@ for more info.
 Related commands
 """"""""""""""""
 
-:doc:`angle_coeff <angle_coeff>`
+:doc:`angle_coeff <angle_coeff>`, :doc:`angle_write <angle_write>`
 
 Default
 """""""

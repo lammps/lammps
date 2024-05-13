@@ -6,7 +6,7 @@ compute ackland/atom command
 Syntax
 """"""
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    compute ID group-ID ackland/atom keyword/value
 
@@ -17,7 +17,7 @@ Syntax
 
   .. parsed-literal::
 
-       *legacy* yes/no = use (\ *yes*\ ) or do not use (\ *no*\ ) legacy ackland algorithm implementation
+       *legacy* args = *yes* or *no* = use (\ *yes*\ ) or do not use (\ *no*\ ) legacy Ackland algorithm implementation
 
 Examples
 """"""""
@@ -63,14 +63,14 @@ Output info
 
 This compute calculates a per-atom vector, which can be accessed by
 any command that uses per-atom values from a compute as input.  See
-the :doc:`Howto output <Howto_output>` doc page for an overview of
+the :doc:`Howto output <Howto_output>` page for an overview of
 LAMMPS output options.
 
 Restrictions
 """"""""""""
 
-This compute is part of the USER-MISC package.  It is only enabled if
-LAMMPS was built with that package.  See the :doc:`Build package <Build_package>` doc page for more info.
+This compute is part of the EXTRA-COMPUTE package.  It is only enabled if
+LAMMPS was built with that package.  See the :doc:`Build package <Build_package>` page for more info.
 
 The per-atom vector values will be unitless since they are the
 integers defined above.

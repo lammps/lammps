@@ -1,7 +1,7 @@
 /* -*- c++ -*- ----------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    https://www.lammps.org/, Sandia National Laboratories
-   Steve Plimpton, sjplimp@sandia.gov
+   LAMMPS development team: developers@lammps.org
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
@@ -27,7 +27,7 @@ namespace LAMMPS_NS {
 class WriteData : public Command {
  public:
   WriteData(class LAMMPS *);
-  void command(int, char **);
+  void command(int, char **) override;
   void write(const std::string &);
 
  private:
@@ -35,6 +35,8 @@ class WriteData : public Command {
   int pairflag;
   int coeffflag;
   int fixflag;
+  int triclinic_general;
+  int lmapflag;
   FILE *fp;
   bigint nbonds_local, nbonds;
   bigint nangles_local, nangles;
@@ -51,34 +53,10 @@ class WriteData : public Command {
   void dihedrals();
   void impropers();
   void bonus(int);
-  void fix(int, int);
+  void fix(class Fix *, int);
 };
 
 }    // namespace LAMMPS_NS
 
 #endif
 #endif
-
-/* ERROR/WARNING messages:
-
-E: Write_data command before simulation box is defined
-
-Self-explanatory.
-
-E: Illegal ... command
-
-Self-explanatory.  Check the input script syntax and compare to the
-documentation for the command.  You can use -echo screen as a
-command-line option when running LAMMPS to see the offending line.
-
-E: Atom count is inconsistent, cannot write data file
-
-The sum of atoms across processors does not equal the global number
-of atoms.  Probably some atoms have been lost.
-
-E: Cannot open data file %s
-
-The specified file cannot be opened.  Check that the path and name are
-correct.
-
-*/

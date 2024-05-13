@@ -22,20 +22,21 @@ protected:
     void *lmp;
     std::string INPUT_DIR = STRINGIFY(TEST_INPUT_FOLDER);
 
-    LibraryConfig(){};
-    ~LibraryConfig() override{};
+    LibraryConfig()           = default;
+    ~LibraryConfig() override = default;
 
     void SetUp() override
     {
         const char *args[] = {"LAMMPS_test", "-log",      "none",
                               "-echo",       "screen",    "-nocite",
-                              "-var",        "input_dir", STRINGIFY(TEST_INPUT_FOLDER)};
+                              "-var",        "input_dir", STRINGIFY(TEST_INPUT_FOLDER),
+                              nullptr};
 
         char **argv = (char **)args;
-        int argc    = sizeof(args) / sizeof(char *);
+        int argc    = (sizeof(args) / sizeof(char *)) - 1;
 
         ::testing::internal::CaptureStdout();
-        lmp = lammps_open_no_mpi(argc, argv, NULL);
+        lmp = lammps_open_no_mpi(argc, argv, nullptr);
         lammps_command(lmp, "fix charge all property/atom q ghost yes");
         lammps_command(lmp, "region box block 0 1 0 1 0 1");
         lammps_command(lmp, "create_box 1 box");
@@ -195,7 +196,7 @@ TEST_F(LibraryConfig, force_timeout)
 
 TEST(LAMMPSConfig, exceptions)
 {
-    EXPECT_EQ(lammps_config_has_exceptions(), LAMMPS_HAS_EXCEPTIONS);
+    EXPECT_EQ(lammps_config_has_exceptions(), 1);
 };
 
 TEST(LAMMPSConfig, mpi_support)

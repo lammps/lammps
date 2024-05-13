@@ -1,0 +1,99 @@
+LAMMPS (3 Nov 2022)
+OMP_NUM_THREADS environment is not set. Defaulting to 1 thread. (src/comm.cpp:98)
+  using 1 OpenMP thread(s) per MPI task
+# Si bcc
+
+units           metal
+boundary        p p p
+
+atom_style      atomic
+lattice         bcc 3.245
+Lattice spacing in x,y,z = 3.245 3.245 3.245
+region          box block 0 1 0 1 0 1
+create_box              1 box
+Created orthogonal box = (0 0 0) to (3.245 3.245 3.245)
+  1 by 1 by 1 MPI processor grid
+create_atoms    1 box
+Created 2 atoms
+  using lattice units in orthogonal box = (0 0 0) to (3.245 3.245 3.245)
+  create_atoms CPU = 0.000 seconds
+
+pair_style      meam/sw/spline
+pair_coeff      * * Si.b.meam.sw.spline Si
+Reading meam/sw/spline potential file Si.b.meam.sw.spline with DATE: 2012-10-26
+mass            * 28.085
+
+variable        cohesive_energy equal pe/atoms
+variable        atmVol equal vol/atoms
+variable        aLatt equal (2*vol/atoms)^0.333333333333
+
+run                     0
+WARNING: No fixes with time integration, atoms won't move (src/verlet.cpp:60)
+Neighbor list info ...
+  update: every = 1 steps, delay = 0 steps, check = yes
+  max neighbors/atom: 2000, page size: 100000
+  master list distance cutoff = 6.4
+  ghost atom cutoff = 6.4
+  binsize = 3.2, bins = 2 2 2
+  2 neighbor lists, perpetual/occasional/extra = 2 0 0
+  (1) pair meam/sw/spline, perpetual
+      attributes: full, newton on
+      pair build: full/bin/atomonly
+      stencil: full/bin/3d
+      bin: standard
+  (2) pair meam/sw/spline, perpetual, half/full from (1)
+      attributes: half, newton on
+      pair build: halffull/newton
+      stencil: none
+      bin: none
+Per MPI rank memory allocation (min/avg/max) = 3.714 | 3.714 | 3.714 Mbytes
+   Step          Temp          E_pair         E_mol          TotEng         Press     
+         0   0             -8.7453652      0             -8.7453652     -50884.003    
+Loop time of 1.393e-06 on 1 procs for 0 steps with 2 atoms
+
+71.8% CPU use with 1 MPI tasks x 1 OpenMP threads
+
+MPI task timing breakdown:
+Section |  min time  |  avg time  |  max time  |%varavg| %total
+---------------------------------------------------------------
+Pair    | 0          | 0          | 0          |   0.0 |  0.00
+Neigh   | 0          | 0          | 0          |   0.0 |  0.00
+Comm    | 0          | 0          | 0          |   0.0 |  0.00
+Output  | 0          | 0          | 0          |   0.0 |  0.00
+Modify  | 0          | 0          | 0          |   0.0 |  0.00
+Other   |            | 1.393e-06  |            |       |100.00
+
+Nlocal:              2 ave           2 max           2 min
+Histogram: 1 0 0 0 0 0 0 0 0 0
+Nghost:            187 ave         187 max         187 min
+Histogram: 1 0 0 0 0 0 0 0 0 0
+Neighs:             58 ave          58 max          58 min
+Histogram: 1 0 0 0 0 0 0 0 0 0
+FullNghs:          116 ave         116 max         116 min
+Histogram: 1 0 0 0 0 0 0 0 0 0
+
+Total # of neighbors = 116
+Ave neighs/atom = 58
+Neighbor list builds = 0
+Dangerous builds = 0
+
+print           "===================================================="
+====================================================
+print           "Calculated cohesive energy: ${cohesive_energy} eV/atom"
+Calculated cohesive energy: -4.37268261764397 eV/atom
+print           "Reference cohesive energy:  -4.37 eV/atom"
+Reference cohesive energy:  -4.37 eV/atom
+print           "Atomic volume               ${atmVol} A^3"
+Atomic volume               17.0849655625 A^3
+print           "Lattice constant            ${aLatt} A"
+Lattice constant            3.24499999999618 A
+print           "Reference lattice constant  3.245 A"
+Reference lattice constant  3.245 A
+print           "===================================================="
+====================================================
+
+#dump           1 all custom 1 bcc.dump id type x y z fx fy fz
+#run            0
+
+
+Total wall time: 0:00:00

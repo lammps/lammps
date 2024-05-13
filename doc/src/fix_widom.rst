@@ -6,7 +6,7 @@ fix widom command
 Syntax
 """"""
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    fix ID group-ID widom N M type seed T keyword values ...
 
@@ -21,7 +21,7 @@ Syntax
 
   .. parsed-literal::
 
-     keyword = *mol*\ , *region*\ , *full_energy*, *charge*\ , *intra_energy*
+     keyword = *mol*, *region*, *full_energy*, *charge*, *intra_energy*
        *mol* value = template-ID
          template-ID = ID of molecule template specified in a separate :doc:`molecule <molecule>` command
        *region* value = region-ID
@@ -100,11 +100,11 @@ The excess chemical potential mu_ex is defined as:
 
 .. math::
 
-   \mu_{ex} = -kT \ln(<\exp(-(U_{N+1}-U_{N})/{kT})>)
+   \mu_{ex} = -kT \ln(<\exp(-(U_{N+1}-U_{N})/{k_B T})>)
 
-where *k* is Boltzman's constant, *T* is the user-specified temperature,
-U_N and U_{N+1} is the potential energy of the system with N and N+1
-particles.
+where :math:`k_B` is the Boltzmann constant, :math:`T` is the
+user-specified temperature, :math:`U_N` and :math:`U_{N+1}` is the
+potential energy of the system with :math:`N` and :math:`N+1` particles.
 
 The *full_energy* option means that the fix calculates the total
 potential energy of the entire simulated system, instead of just the
@@ -179,7 +179,7 @@ the following global cumulative quantities:
 * 2 = average difference in potential energy on each timestep
 * 3 = volume of the insertion region
 
-The vector values calculated by this fix are "extensive".
+The vector values calculated by this fix are "intensive".
 
 No parameter of this fix can be used with the *start/stop* keywords of
 the :doc:`run <run>` command.  This fix is not invoked during
@@ -195,8 +195,11 @@ doc page for more info.
 Do not set "neigh_modify once yes" or else this fix will never be
 called.  Reneighboring is **required**.
 
-Can be run in parallel, but aspects of the GCMC part will not scale well
-in parallel. Only usable for 3D simulations.
+This fix style requires an :doc:`atom style <atom_style>` with per atom
+type masses.
+
+Can be run in parallel, but some aspects of the insertion procedure
+will not scale well in parallel. Only usable for 3D simulations.
 
 
 Related commands

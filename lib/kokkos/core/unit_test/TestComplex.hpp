@@ -1,46 +1,18 @@
-/*
 //@HEADER
 // ************************************************************************
 //
-//                        Kokkos v. 3.0
-//       Copyright (2020) National Technology & Engineering
+//                        Kokkos v. 4.0
+//       Copyright (2022) National Technology & Engineering
 //               Solutions of Sandia, LLC (NTESS).
 //
 // Under the terms of Contract DE-NA0003525 with NTESS,
 // the U.S. Government retains certain rights in this software.
 //
-// Redistribution and use in source and binary forms, with or without
-// modification, are permitted provided that the following conditions are
-// met:
+// Part of Kokkos, under the Apache License v2.0 with LLVM Exceptions.
+// See https://kokkos.org/LICENSE for license information.
+// SPDX-License-Identifier: Apache-2.0 WITH LLVM-exception
 //
-// 1. Redistributions of source code must retain the above copyright
-// notice, this list of conditions and the following disclaimer.
-//
-// 2. Redistributions in binary form must reproduce the above copyright
-// notice, this list of conditions and the following disclaimer in the
-// documentation and/or other materials provided with the distribution.
-//
-// 3. Neither the name of the Corporation nor the names of the
-// contributors may be used to endorse or promote products derived from
-// this software without specific prior written permission.
-//
-// THIS SOFTWARE IS PROVIDED BY NTESS "AS IS" AND ANY
-// EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
-// IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR
-// PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL NTESS OR THE
-// CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
-// EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
-// PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR
-// PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF
-// LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING
-// NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
-// SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-//
-// Questions? Contact Christian R. Trott (crtrott@sandia.gov)
-//
-// ************************************************************************
 //@HEADER
-*/
 
 #include <Kokkos_Core.hpp>
 #include <cstdio>
@@ -112,9 +84,9 @@ struct TestComplexConstruction {
     d_results(2)              = c;
     Kokkos::complex<double> d(3.5);
     d_results(3) = d;
-    volatile Kokkos::complex<double> a_v(4.5, 5.5);
+    Kokkos::complex<double> a_v(4.5, 5.5);
     d_results(4) = a_v;
-    volatile Kokkos::complex<double> b_v(a);
+    Kokkos::complex<double> b_v(a);
     d_results(5) = b_v;
     Kokkos::complex<double> e(a_v);
     d_results(6) = e;
@@ -348,7 +320,9 @@ struct TestComplexSpecialFunctions {
     r = std::acosh(a);
     ASSERT_FLOAT_EQ(h_results(13).real(), r.real());
     ASSERT_FLOAT_EQ(h_results(13).imag(), r.imag());
-    r = std::atanh(a);
+    // atanh
+    // Work around a bug in gcc 5.3.1 where the compiler cannot compute atanh
+    r = {0.163481616851666003, 1.27679502502111284};
     ASSERT_FLOAT_EQ(h_results(14).real(), r.real());
     ASSERT_FLOAT_EQ(h_results(14).imag(), r.imag());
     r = std::asin(a);
@@ -357,9 +331,15 @@ struct TestComplexSpecialFunctions {
     r = std::acos(a);
     ASSERT_FLOAT_EQ(h_results(16).real(), r.real());
     ASSERT_FLOAT_EQ(h_results(16).imag(), r.imag());
-    r = std::atan(a);
+    // atan
+    // Work around a bug in gcc 5.3.1 where the compiler cannot compute atan
+    r = {1.380543138238714, 0.2925178131625636};
     ASSERT_FLOAT_EQ(h_results(17).real(), r.real());
     ASSERT_FLOAT_EQ(h_results(17).imag(), r.imag());
+    // log10
+    r = std::log10(a);
+    ASSERT_FLOAT_EQ(h_results(18).real(), r.real());
+    ASSERT_FLOAT_EQ(h_results(18).imag(), r.imag());
 #endif
   }
 
@@ -387,6 +367,7 @@ struct TestComplexSpecialFunctions {
     d_results(15) = Kokkos::asin(a);
     d_results(16) = Kokkos::acos(a);
     d_results(17) = Kokkos::atan(a);
+    d_results(18) = Kokkos::log10(a);
   }
 };
 
@@ -416,15 +397,11 @@ TEST(TEST_CATEGORY, complex_io) { testComplexIO(); }
 TEST(TEST_CATEGORY, complex_trivially_copyable) {
   // Kokkos::complex<RealType> is trivially copyable when RealType is
   // trivially copyable
-  // Simply disable the check for IBM's XL compiler since we can't reliably
-  // check for a version that defines relevant functions.
-#if !defined(__ibmxl__)
   using RealType = double;
   // clang claims compatibility with gcc 4.2.1 but all versions tested know
   // about std::is_trivially_copyable.
   ASSERT_TRUE(std::is_trivially_copyable<Kokkos::complex<RealType>>::value ||
               !std::is_trivially_copyable<RealType>::value);
-#endif
 }
 
 template <class ExecSpace>
@@ -459,6 +436,7 @@ TEST(TEST_CATEGORY, complex_issue_3865) {
   TestBugPowAndLogComplex<TEST_EXECSPACE>();
 }
 
+#ifdef KOKKOS_ENABLE_OPENMPTARGET  // FIXME_OPENMPTARGET
 TEST(TEST_CATEGORY, complex_issue_3867) {
   ASSERT_EQ(Kokkos::pow(Kokkos::complex<double>(2., 1.), 3.),
             Kokkos::pow(Kokkos::complex<double>(2., 1.), 3));
@@ -473,17 +451,15 @@ TEST(TEST_CATEGORY, complex_issue_3867) {
   ASSERT_FLOAT_EQ(x.real(), y.real());
   ASSERT_FLOAT_EQ(x.imag(), y.imag());
 
-#define CHECK_POW_COMPLEX_PROMOTION(ARGTYPE1, ARGTYPE2, RETURNTYPE)         \
-  static_assert(                                                            \
-      std::is_same<RETURNTYPE,                                              \
-                   decltype(Kokkos::pow(std::declval<ARGTYPE1>(),           \
-                                        std::declval<ARGTYPE2>()))>::value, \
-      "");                                                                  \
-  static_assert(                                                            \
-      std::is_same<RETURNTYPE,                                              \
-                   decltype(Kokkos::pow(std::declval<ARGTYPE2>(),           \
-                                        std::declval<ARGTYPE1>()))>::value, \
-      "");
+#define CHECK_POW_COMPLEX_PROMOTION(ARGTYPE1, ARGTYPE2, RETURNTYPE)          \
+  static_assert(                                                             \
+      std::is_same<RETURNTYPE,                                               \
+                   decltype(Kokkos::pow(std::declval<ARGTYPE1>(),            \
+                                        std::declval<ARGTYPE2>()))>::value); \
+  static_assert(                                                             \
+      std::is_same<RETURNTYPE,                                               \
+                   decltype(Kokkos::pow(std::declval<ARGTYPE2>(),            \
+                                        std::declval<ARGTYPE1>()))>::value);
 
   CHECK_POW_COMPLEX_PROMOTION(Kokkos::complex<long double>, long double,
                               Kokkos::complex<long double>);
@@ -513,6 +489,47 @@ TEST(TEST_CATEGORY, complex_issue_3867) {
                               Kokkos::complex<double>);
 
 #undef CHECK_POW_COMPLEX_PROMOTION
+}
+#endif
+
+TEST(TEST_CATEGORY, complex_operations_arithmetic_types_overloads) {
+  static_assert(Kokkos::real(1) == 1.);
+  static_assert(Kokkos::real(2.f) == 2.f);
+  static_assert(Kokkos::real(3.) == 3.);
+  static_assert(Kokkos::real(4.l) == 4.l);
+  static_assert((std::is_same<decltype(Kokkos::real(1)), double>::value));
+  static_assert((std::is_same<decltype(Kokkos::real(2.f)), float>::value));
+  static_assert((std::is_same<decltype(Kokkos::real(3.)), double>::value));
+  static_assert(
+      (std::is_same<decltype(Kokkos::real(4.l)), long double>::value));
+
+  static_assert(Kokkos::imag(1) == 0.);
+  static_assert(Kokkos::imag(2.f) == 0.f);
+  static_assert(Kokkos::imag(3.) == 0.);
+  static_assert(Kokkos::imag(4.l) == 0.l);
+  static_assert((std::is_same<decltype(Kokkos::imag(1)), double>::value));
+  static_assert((std::is_same<decltype(Kokkos::imag(2.f)), float>::value));
+  static_assert((std::is_same<decltype(Kokkos::imag(3.)), double>::value));
+  static_assert(
+      (std::is_same<decltype(Kokkos::real(4.l)), long double>::value));
+
+  // FIXME in principle could be checked at compile time too
+  ASSERT_EQ(Kokkos::conj(1), Kokkos::complex<double>(1));
+  ASSERT_EQ(Kokkos::conj(2.f), Kokkos::complex<float>(2.f));
+  ASSERT_EQ(Kokkos::conj(3.), Kokkos::complex<double>(3.));
+// long double has size 12 but Kokkos::complex requires 2*sizeof(T) to be a
+// power of two.
+#ifndef KOKKOS_IMPL_32BIT
+  ASSERT_EQ(Kokkos::conj(4.l), Kokkos::complex<long double>(4.l));
+  static_assert((
+      std::is_same<decltype(Kokkos::conj(1)), Kokkos::complex<double>>::value));
+#endif
+  static_assert((std::is_same<decltype(Kokkos::conj(2.f)),
+                              Kokkos::complex<float>>::value));
+  static_assert((std::is_same<decltype(Kokkos::conj(3.)),
+                              Kokkos::complex<double>>::value));
+  static_assert((std::is_same<decltype(Kokkos::conj(4.l)),
+                              Kokkos::complex<long double>>::value));
 }
 
 }  // namespace Test

@@ -1,7 +1,7 @@
 /* -*- c++ -*- ----------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    https://www.lammps.org/, Sandia National Laboratories
-   Steve Plimpton, sjplimp@sandia.gov
+   LAMMPS development team: developers@lammps.org
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
@@ -27,8 +27,8 @@ namespace LAMMPS_NS {
 class Temper : public Command {
  public:
   Temper(class LAMMPS *);
-  ~Temper();
-  void command(int, char **);
+  ~Temper() override;
+  void command(int, char **) override;
 
  private:
   int me, me_universe;                  // my proc ID in world and universe
@@ -40,8 +40,7 @@ class Temper : public Command {
   int nswaps;                           // # of tempering swaps to perform
   int seed_swap;                        // 0 = toggle swaps, n = RNG for swap direction
   int seed_boltz;                       // seed for Boltz factor comparison
-  int whichfix;                         // index of temperature fix to use
-  int fixstyle;                         // what kind of temperature fix is used
+  class Fix *whichfix;                  // temperature fix to use
 
   int my_set_temp;     // which set temp I am simulating
   double *set_temp;    // static list of replica set temperatures
@@ -57,58 +56,3 @@ class Temper : public Command {
 
 #endif
 #endif
-
-/* ERROR/WARNING messages:
-
-E: Must have more than one processor partition to temper
-
-Cannot use the temper command with only one processor partition.  Use
-the -partition command-line option.
-
-E: Temper command before simulation box is defined
-
-The temper command cannot be used before a read_data, read_restart, or
-create_box command.
-
-E: Illegal ... command
-
-Self-explanatory.  Check the input script syntax and compare to the
-documentation for the command.  You can use -echo screen as a
-command-line option when running LAMMPS to see the offending line.
-
-E: Tempering fix ID is not defined
-
-The fix ID specified by the temper command does not exist.
-
-E: Illegal temperature index
-
-UNDOCUMENTED
-
-E: Invalid frequency in temper command
-
-Nevery must be > 0.
-
-E: Non integer # of swaps in temper command
-
-Swap frequency in temper command must evenly divide the total # of
-timesteps.
-
-E: Tempering temperature fix is not supported
-
-UNDOCUMENTED
-
-E: Too many timesteps
-
-The cumulative timesteps must fit in a 64-bit integer.
-
-E: Tempering could not find thermo_pe compute
-
-This compute is created by the thermo command.  It must have been
-explicitly deleted by a uncompute command.
-
-U: Tempering temperature fix is not valid
-
-The fix specified by the temper command is not one that controls
-temperature (nvt or langevin).
-
-*/

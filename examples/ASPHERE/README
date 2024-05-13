@@ -29,8 +29,10 @@ stochastic rotation dynamics solvent, using the fix srd command.
 box = 2d rigid box particles in SRDs, self-diffusion and viscosity
 dimer = 2d rigid dimers in SRDs, self-diffusion and viscosity
 ellipsoid = 2d ellipsoids in SRDs, self-diffusion and viscosity
+flat_membrane = 2d flat membrane in NVE, self-diffusion and viscosity
 line = 2d line-faceted rigid particles, NEMD shearing for viscosity,
        implicit and in SRDs
 poly = 2d poly-disperse spheroids in SRDs, self-diffusion and viscosity
 star = 2d rigid star particles in SRDs, self-diffusion and viscosity
 tri = 3d triangle-faceted rigid particles in SRDs, NEMD shearing for viscosity
+vesicle = 3d vesicle in NVE, self-diffusionand viscosity

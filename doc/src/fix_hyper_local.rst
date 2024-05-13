@@ -6,7 +6,7 @@ fix hyper/local command
 Syntax
 """"""
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    fix ID group-ID hyper/local cutbond qfactor Vmax Tequil Dcut alpha Btarget
 
@@ -61,7 +61,7 @@ This can lead to a dramatic speed-up in the rate at which events
 occurs, without altering their relative frequencies, thus leading to
 an overall increase in the elapsed real time of the simulation as
 compared to running for the same number of timesteps with normal MD.
-See the :doc:`hyper <hyper>` doc page for a more general discussion of
+See the :doc:`hyper <hyper>` page for a more general discussion of
 hyperdynamics and citations that explain both GHD and LHD.
 
 The equations and logic used by this fix and described here to perform
@@ -75,7 +75,7 @@ doc page.  This description of LHD builds on the GHD description.
 
 The definition of bonds and :math:`E_{ij}` are the same for GHD and LHD.
 The formulas for :math:`V^{max}_{ij}` and :math:`F^{max}_{ij}` are also
-the same except for a pre-factor :math:`C_{ij}`, explained below.
+the same except for a prefactor :math:`C_{ij}`, explained below.
 
 The bias energy :math:`V_{ij}` applied to a bond *ij* with maximum strain is
 
@@ -139,7 +139,7 @@ to this fix.
    running constant-temperature (NVT) dynamics.  LAMMPS does not check
    that this is done.
 
-Note that if *ij*\ == *kl*\ , then bond *ij* is a biased bond on that
+Note that if *ij*\ == *kl*, then bond *ij* is a biased bond on that
 timestep, otherwise it is not.  But regardless, the boost factor
 :math:`B_{ij}` can be thought of an estimate of time boost currently
 being applied within a local region centered on bond *ij*.  For LHD,
@@ -162,15 +162,15 @@ Note that in LHD, the boost factor :math:`B_{target}` is specified by the user.
 This is in contrast to global hyperdynamics (GHD) where the boost
 factor varies each timestep and is computed as a function of :math:`V_{max}`,
 :math:`E_{max}`, and :math:`T_{equil}`; see the
-:doc:`fix hyper/global <fix_hyper_global>` doc page for details.
+:doc:`fix hyper/global <fix_hyper_global>` page for details.
 
 ----------
 
 Here is additional information on the input parameters for LHD.
 
-Note that the *cutbond*\ , *qfactor*\ , and *Tequil* arguments have the
+Note that the *cutbond*, *qfactor*, and *Tequil* arguments have the
 same meaning as for GHD.  The *Vmax* argument is slightly different.
-The *Dcut*\ , *alpha*\ , and *Btarget* parameters are unique to LHD.
+The *Dcut*, *alpha*, and *Btarget* parameters are unique to LHD.
 
 The *cutbond* argument is the cutoff distance for defining bonds
 between pairs of nearby atoms.  A pair of I,J atoms in their
@@ -240,7 +240,7 @@ well for many solid-state systems.
 
 .. note::
 
-   You should insure that ghost atom communication is performed for
+   You should ensure that ghost atom communication is performed for
    a distance of at least *Dcut* + *cutevent* = the distance one or more
    atoms move (between quenched states) to be considered an "event".  It
    is an argument to the "compute event/displace" command used to detect
@@ -256,7 +256,7 @@ Note that this fix does not know the *cutevent* parameter, but uses
 half the *cutbond* parameter as an estimate to warn if the ghost
 cutoff is not long enough.
 
-As described above the *alpha* argument is a pre-factor in the
+As described above the *alpha* argument is a prefactor in the
 boostostat update equation for each bond's :math:`C_{ij}` prefactor.
 *Alpha* is specified in time units, similar to other thermostat or barostat
 damping parameters.  It is roughly the physical time it will take the
@@ -310,7 +310,7 @@ Here is additional information on the optional keywords for this fix.
 The *bound* keyword turns on min/max bounds for bias coefficients
 :math:`C_{ij}` for all bonds.  :math:`C_{ij}` is a prefactor for each bond on
 the bias potential of maximum strength :math:`V^{max}`.  Depending on the
-choice of *alpha* and *Btarget* and *Vmax*\ , the boostostatting can cause
+choice of *alpha* and *Btarget* and *Vmax*, the boostostatting can cause
 individual :math:`C_{ij}` values to fluctuate.  If the fluctuations are too
 large :math:`C_{ij} \cdot V^{max}` can exceed low barrier heights and induce
 bad event dynamics.  Bounding the :math:`C_{ij}` values is a way to prevent
@@ -326,7 +326,7 @@ The *reset* keyword allow *Vmax* to be adjusted dynamically depending on the
 average value of all :math:`C_{ij}` prefactors.  This can be useful if you
 are unsure what value of *Vmax* will match the *Btarget* boost for the
 system.  The :math:`C_{ij}` values will then adjust in aggregate (up or down)
-so that :math:`C_{ij} \cdot V^{max}` produces a boost of *Btarget*\ , but this
+so that :math:`C_{ij} \cdot V^{max}` produces a boost of *Btarget*, but this
 may conflict with the *bound* keyword settings.  By using *bound* and *reset*
 together, :math:`V^{max}` itself can be reset, and desired bounds still applied
 to the :math:`C_{ij}` values.
@@ -354,7 +354,7 @@ The *check/bias* keyword turns on extra computation and communication
 to check if any biased bonds are closer than *Dcut* to each other,
 which should not be the case if LHD is operating correctly.  Thus it
 is a debugging check.  The *Nevery* setting determines how often the
-check is made.  The *error*\ , *warn*\ , or *ignore* setting determines
+check is made.  The *error*, *warn*, or *ignore* setting determines
 what is done if the count of too-close bonds is not zero.  Either the
 code will exit, or issue a warning, or silently tally the count.  The
 count can be output as vector value 17, as described below.  If this
@@ -447,13 +447,13 @@ next event occurs they may move further than *Dcut* away from the
 sub-box boundary.  Value 19 is the furthest (from the sub-box) any
 ghost atom in the neighbor list with maxstrain < *qfactor* was
 accessed during the run.  Value 20 is the same except that the ghost
-atom's maxstrain may be >= *qfactor*\ , which may mean it is about to
+atom's maxstrain may be >= *qfactor*, which may mean it is about to
 participate in an event.  Value 21 is a count of how many ghost atoms
 could not be found on reneighbor steps, presumably because they moved
 too far away due to their participation in an event (which will likely
 be detected at the next quench).
 
-Typical values for 19 and 20 should be slightly larger than *Dcut*\ ,
+Typical values for 19 and 20 should be slightly larger than *Dcut*,
 which accounts for ghost atoms initially at a *Dcut* distance moving
 thermally before the next event takes place.
 
@@ -512,8 +512,7 @@ Value 27 computes the average boost for biased bonds only on this step.
 Value 28 is the count of bonds with an absolute value of strain >= q
 on this step.
 
-The scalar value is an "extensive" quantity since it grows with the
-system size; the vector values are all "intensive".
+The scalar value and vector values are all "intensive".
 
 This fix also computes a local vector of length the number of bonds
 currently in the system.  The value for each bond is its :math:`C_{ij}`

@@ -6,7 +6,7 @@ compute gyration/chunk command
 Syntax
 """"""
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    compute ID group-ID gyration/chunk chunkID keyword value ...
 
@@ -31,28 +31,31 @@ Examples
 Description
 """""""""""
 
-Define a computation that calculates the radius of gyration Rg for
+Define a computation that calculates the radius of gyration :math:`R_g` for
 multiple chunks of atoms.
 
-In LAMMPS, chunks are collections of atoms defined by a :doc:`compute chunk/atom <compute_chunk_atom>` command, which assigns each atom
+In LAMMPS, chunks are collections of atoms defined by a
+:doc:`compute chunk/atom <compute_chunk_atom>` command, which assigns each atom
 to a single chunk (or no chunk).  The ID for this command is specified
 as chunkID.  For example, a single chunk could be the atoms in a
-molecule or atoms in a spatial bin.  See the :doc:`compute chunk/atom <compute_chunk_atom>` and :doc:`Howto chunk <Howto_chunk>`
+molecule or atoms in a spatial bin.
+See the :doc:`compute chunk/atom <compute_chunk_atom>` and
+:doc:`Howto chunk <Howto_chunk>`
 doc pages for details of how chunks can be defined and examples of how
 they can be used to measure properties of a system.
 
-This compute calculates the radius of gyration Rg for each chunk,
+This compute calculates the radius of gyration :math:`R_g` for each chunk,
 which includes all effects due to atoms passing through periodic
 boundaries.
 
-Rg is a measure of the size of a chunk, and is computed by this
+:math:`R_g` is a measure of the size of a chunk, and is computed by the
 formula
 
 .. math::
 
- {R_g}^2 = \frac{1}{M} \sum_i m_i (r_i - r_{cm})^2
+   R_g^2 = \frac{1}{M} \sum_i m_i (r_i - r_{\text{cm}})^2
 
-where :math:`M` is the total mass of the chunk, :math:`r_{cm}` is
+where :math:`M` is the total mass of the chunk, :math:`r_{\text{cm}}` is
 the center-of-mass position of the chunk, and the sum is over all atoms in the
 chunk.
 
@@ -64,13 +67,13 @@ thus also not contribute to this calculation.  You can specify the
 "all" group for this command if you simply want to include atoms with
 non-zero chunk IDs.
 
-If the *tensor* keyword is specified, then the scalar Rg value is not
-calculated, but an Rg tensor is instead calculated for each chunk.
+If the *tensor* keyword is specified, then the scalar :math:`R_g` value is not
+calculated, but an :math:`R_g` tensor is instead calculated for each chunk.
 The formula for the components of the tensor is the same as the above
-formula, except that :math:`(r_i - r_{cm})^2` is replaced by
-:math:`(r_{i,x} - r_{cm,x}) \cdot (r_{i,y} - r_{cm,y})` for the xy
-component, and so on.  The 6 components of the tensor are
-ordered xx, yy, zz, xy, xz, yz.
+formula, except that :math:`(r_i - r_{\text{cm}})^2` is replaced by
+:math:`(r_{i,x} - r_{\text{cm},x}) \cdot (r_{i,y} - r_{\text{cm},y})` for the
+:math:`xy` component, and so on.  The six components of the tensor are
+ordered :math:`xx`, :math:`yy`, :math:`zz`, :math:`xy`, :math:`xz`, :math:`yz`.
 
 .. note::
 
@@ -79,7 +82,7 @@ ordered xx, yy, zz, xy, xz, yz.
    command for a discussion of "unwrapped" coordinates.
    See the Atoms section of the :doc:`read_data <read_data>` command for a
    discussion of image flags and how they are set for each atom.  You can
-   reset the image flags (e.g. to 0) before invoking this compute by
+   reset the image flags (e.g., to 0) before invoking this compute by
    using the :doc:`set image <set>` command.
 
 The simplest way to output the results of the compute gyration/chunk
@@ -98,10 +101,11 @@ Output info
 This compute calculates a global vector if the *tensor* keyword is not
 specified and a global array if it is.  The length of the vector or
 number of rows in the array = the number of chunks *Nchunk* as
-calculated by the specified :doc:`compute chunk/atom <compute_chunk_atom>` command.  If the *tensor* keyword
-is specified, the global array has 6 columns.  The vector or array can
+calculated by the specified :doc:`compute chunk/atom <compute_chunk_atom>`
+command.  If the *tensor* keyword is specified, the global array has six
+columns.  The vector or array can
 be accessed by any command that uses global values from a compute as
-input.  See the :doc:`Howto output <Howto_output>` doc page for an
+input.  See the :doc:`Howto output <Howto_output>` page for an
 overview of LAMMPS output options.
 
 All the vector or array values calculated by this compute are

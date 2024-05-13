@@ -1,8 +1,7 @@
-// clang-format off
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    https://www.lammps.org/, Sandia National Laboratories
-   Steve Plimpton, sjplimp@sandia.gov
+   LAMMPS development team: developers@lammps.org
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
@@ -25,20 +24,20 @@ using namespace LAMMPS_NS;
 
 /* -------------------------------------------------------------------- */
 
-ImbalanceVar::ImbalanceVar(LAMMPS *lmp) : Imbalance(lmp), name(0) {}
+ImbalanceVar::ImbalanceVar(LAMMPS *lmp) : Imbalance(lmp), name(nullptr) {}
 
 /* -------------------------------------------------------------------- */
 
 ImbalanceVar::~ImbalanceVar()
 {
-  delete [] name;
+  delete[] name;
 }
 
 /* -------------------------------------------------------------------- */
 
 int ImbalanceVar::options(int narg, char **arg)
 {
-  if (narg < 1) error->all(FLERR,"Illegal balance weight command");
+  if (narg < 1) error->all(FLERR, "Illegal balance weight command");
   name = utils::strdup(arg[0]);
   init(0);
 
@@ -51,10 +50,10 @@ void ImbalanceVar::init(int /*flag*/)
 {
   id = input->variable->find(name);
   if (id < 0) {
-    error->all(FLERR,"Variable name for balance weight does not exist");
+    error->all(FLERR, "Variable name for balance weight does not exist");
   } else {
     if (input->variable->atomstyle(id) == 0)
-      error->all(FLERR,"Variable for balance weight has invalid style");
+      error->all(FLERR, "Variable for balance weight has invalid style");
   }
 }
 
@@ -67,16 +66,16 @@ void ImbalanceVar::compute(double *weight)
 
   double *values;
   const int nlocal = atom->nlocal;
-  memory->create(values,nlocal,"imbalance:values");
+  memory->create(values, nlocal, "imbalance:values");
 
-  input->variable->compute_atom(id,all,values,1,0);
+  input->variable->compute_atom(id, all, values, 1, 0);
 
   int flag = 0;
   for (int i = 0; i < nlocal; i++)
     if (values[i] <= 0.0) flag = 1;
   int flagall;
-  MPI_Allreduce(&flag,&flagall,1,MPI_INT,MPI_SUM,world);
-  if (flagall) error->one(FLERR,"Balance weight <= 0.0");
+  MPI_Allreduce(&flag, &flagall, 1, MPI_INT, MPI_SUM, world);
+  if (flagall) error->one(FLERR, "Balance weight <= 0.0");
 
   for (int i = 0; i < nlocal; i++) weight[i] *= values[i];
 
@@ -87,5 +86,5 @@ void ImbalanceVar::compute(double *weight)
 
 std::string ImbalanceVar::info()
 {
-  return fmt::format("  weight variable: {}\n",name);
+  return fmt::format("  weight variable: {}\n", name);
 }

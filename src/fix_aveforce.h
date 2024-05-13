@@ -1,7 +1,7 @@
 /* -*- c++ -*- ----------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    https://www.lammps.org/, Sandia National Laboratories
-   Steve Plimpton, sjplimp@sandia.gov
+   LAMMPS development team: developers@lammps.org
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
@@ -27,23 +27,23 @@ namespace LAMMPS_NS {
 class FixAveForce : public Fix {
  public:
   FixAveForce(class LAMMPS *, int, char **);
-  ~FixAveForce();
-  int setmask();
-  void init();
-  void setup(int);
-  void min_setup(int);
-  void post_force(int);
-  void post_force_respa(int, int, int);
-  void min_post_force(int);
-  double compute_vector(int);
+  ~FixAveForce() override;
+  int setmask() override;
+  void init() override;
+  void setup(int) override;
+  void min_setup(int) override;
+  void post_force(int) override;
+  void post_force_respa(int, int, int) override;
+  void min_post_force(int) override;
+  double compute_vector(int) override;
 
  private:
   double xvalue, yvalue, zvalue;
   int varflag;
   char *xstr, *ystr, *zstr;
   char *idregion;
+  class Region *region;
   int xvar, yvar, zvar, xstyle, ystyle, zstyle;
-  int iregion;
   double foriginal_all[4];
   int nlevels_respa, ilevel_respa;
 };
@@ -52,25 +52,3 @@ class FixAveForce : public Fix {
 
 #endif
 #endif
-
-/* ERROR/WARNING messages:
-
-E: Illegal ... command
-
-Self-explanatory.  Check the input script syntax and compare to the
-documentation for the command.  You can use -echo screen as a
-command-line option when running LAMMPS to see the offending line.
-
-E: Region ID for fix aveforce does not exist
-
-Self-explanatory.
-
-E: Variable name for fix aveforce does not exist
-
-Self-explanatory.
-
-E: Variable for fix aveforce is invalid style
-
-Only equal-style variables can be used.
-
-*/

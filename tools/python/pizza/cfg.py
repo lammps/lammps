@@ -1,10 +1,12 @@
-# Pizza.py toolkit, www.cs.sandia.gov/~sjplimp/pizza.html
-# Steve Plimpton, sjplimp@sandia.gov, Sandia National Laboratories
+# Pizza.py toolkit, https://lammps.github.io/pizza
+# LAMMPS development team: developers@lammps.org
 #
 # Copyright (2005) Sandia Corporation.  Under the terms of Contract
 # DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
 # certain rights in this software.  This software is distributed under
 # the GNU General Public License.
+
+from __future__ import print_function
 
 # cfg tool
 
@@ -65,33 +67,33 @@ class cfg:
       ylen = box[4]-box[1]
       zlen = box[5]-box[2]
 
-      print >>f,"Number of particles = %d " % len(atoms)
-      print >>f,"# Timestep %d \n#\nA = 1.0 Angstrom" % time
-      print >>f,"H0(1,1) = %20.10f A " % xlen
-      print >>f,"H0(1,2) = 0.0 A "
-      print >>f,"H0(1,3) = 0.0 A "
-      print >>f,"H0(2,1) = 0.0 A "
-      print >>f,"H0(2,2) = %20.10f A " % ylen
-      print >>f,"H0(2,3) = 0.0 A "
-      print >>f,"H0(3,1) = 0.0 A "
-      print >>f,"H0(3,2) = 0.0 A "
-      print >>f,"H0(3,3) = %20.10f A " % zlen
-      print >>f,"#"
+      print("Number of particles = %d " % len(atoms), file=f)
+      print("# Timestep %d \n#\nA = 1.0 Angstrom" % time, file=f)
+      print("H0(1,1) = %20.10f A " % xlen, file=f)
+      print("H0(1,2) = 0.0 A ", file=f)
+      print("H0(1,3) = 0.0 A ", file=f)
+      print("H0(2,1) = 0.0 A ", file=f)
+      print("H0(2,2) = %20.10f A " % ylen, file=f)
+      print("H0(2,3) = 0.0 A ", file=f)
+      print("H0(3,1) = 0.0 A ", file=f)
+      print("H0(3,2) = 0.0 A ", file=f)
+      print("H0(3,3) = %20.10f A " % zlen, file=f)
+      print("#", file=f)
 
       for atom in atoms:
         itype = int(atom[1])
         xfrac = (atom[2]-box[0])/xlen
         yfrac = (atom[3]-box[1])/ylen
         zfrac = (atom[4]-box[2])/zlen
-#        print >>f,"1.0  %d   %15.10f  %15.10f  %15.10f  %15.10f  %15.10f  %15.10f " % (itype,xfrac,yfrac,zfrac,atom[5],atom[6],atom[7])
-        print >>f,"1.0  %d   %15.10f  %15.10f  %15.10f  0.0 0.0 0.0 " % (itype,xfrac,yfrac,zfrac)
+#        print("1.0  %d   %15.10f  %15.10f  %15.10f  %15.10f  %15.10f  %15.10f " % (itype,xfrac,yfrac,zfrac,atom[5],atom[6],atom[7]), file=f)
+        print("1.0  %d   %15.10f  %15.10f  %15.10f  0.0 0.0 0.0 " % (itype,xfrac,yfrac,zfrac), file=f)
 
-      print time,
+      print(time)
       sys.stdout.flush()
       n += 1
 
     f.close()
-    print "\nwrote %d snapshots to %s in CFG format" % (n,file)
+    print("\nwrote %d snapshots to %s in CFG format" % (n,file))
 
   # --------------------------------------------------------------------
 
@@ -120,33 +122,33 @@ class cfg:
       ylen = box[4]-box[1]
       zlen = box[5]-box[2]
 
-      print >>f,"Number of particles = %d " % len(atoms)
-      print >>f,"# Timestep %d \n#\nA = 1.0 Angstrom" % time
-      print >>f,"H0(1,1) = %20.10f A " % xlen
-      print >>f,"H0(1,2) = 0.0 A "
-      print >>f,"H0(1,3) = 0.0 A "
-      print >>f,"H0(2,1) = 0.0 A "
-      print >>f,"H0(2,2) = %20.10f A " % ylen
-      print >>f,"H0(2,3) = 0.0 A "
-      print >>f,"H0(3,1) = 0.0 A "
-      print >>f,"H0(3,2) = 0.0 A "
-      print >>f,"H0(3,3) = %20.10f A " % zlen
-      print >>f,"#"
+      print("Number of particles = %d " % len(atoms), file=f)
+      print("# Timestep %d \n#\nA = 1.0 Angstrom" % time, file=f)
+      print("H0(1,1) = %20.10f A " % xlen, file=f)
+      print("H0(1,2) = 0.0 A ", file=f)
+      print("H0(1,3) = 0.0 A ", file=f)
+      print("H0(2,1) = 0.0 A ", file=f)
+      print("H0(2,2) = %20.10f A " % ylen, file=f)
+      print("H0(2,3) = 0.0 A ", file=f)
+      print("H0(3,1) = 0.0 A ", file=f)
+      print("H0(3,2) = 0.0 A ", file=f)
+      print("H0(3,3) = %20.10f A " % zlen, file=f)
+      print("#", file=f)
 
       for atom in atoms:
         itype = int(atom[1])
         xfrac = (atom[2]-box[0])/xlen
         yfrac = (atom[3]-box[1])/ylen
         zfrac = (atom[4]-box[2])/zlen
-#        print >>f,"1.0  %d   %15.10f  %15.10f  %15.10f  %15.10f  %15.10f  %15.10f " % (itype,xfrac,yfrac,zfrac,atom[5],atom[6],atom[7])
-        print >>f,"1.0  %d   %15.10f  %15.10f  %15.10f  0.0 0.0 0.0 " % (itype,xfrac,yfrac,zfrac)
+#        print("1.0  %d   %15.10f  %15.10f  %15.10f  %15.10f  %15.10f  %15.10f " % (itype,xfrac,yfrac,zfrac,atom[5],atom[6],atom[7]), file=f)
+        print("1.0  %d   %15.10f  %15.10f  %15.10f  0.0 0.0 0.0 " % (itype,xfrac,yfrac,zfrac), file=f)
 
-      print time,
+      print(time)
       sys.stdout.flush()
       f.close()
       n += 1
 
-    print "\nwrote %s snapshots in CFG format" % n
+    print("\nwrote %s snapshots in CFG format" % n)
 
   # --------------------------------------------------------------------
 
@@ -163,25 +165,25 @@ class cfg:
     ylen = box[4]-box[1]
     zlen = box[5]-box[2]
 
-    print >>f,"Number of particles = %d " % len(atoms)
-    print >>f,"# Timestep %d \n#\nA = 1.0 Angstrom" % time
-    print >>f,"H0(1,1) = %20.10f A " % xlen
-    print >>f,"H0(1,2) = 0.0 A "
-    print >>f,"H0(1,3) = 0.0 A "
-    print >>f,"H0(2,1) = 0.0 A "
-    print >>f,"H0(2,2) = %20.10f A " % ylen
-    print >>f,"H0(2,3) = 0.0 A "
-    print >>f,"H0(3,1) = 0.0 A "
-    print >>f,"H0(3,2) = 0.0 A "
-    print >>f,"H0(3,3) = %20.10f A " % zlen
-    print >>f,"#"
+    print("Number of particles = %d " % len(atoms), file=f)
+    print("# Timestep %d \n#\nA = 1.0 Angstrom" % time, file=f)
+    print("H0(1,1) = %20.10f A " % xlen, file=f)
+    print("H0(1,2) = 0.0 A ", file=f)
+    print("H0(1,3) = 0.0 A ", file=f)
+    print("H0(2,1) = 0.0 A ", file=f)
+    print("H0(2,2) = %20.10f A " % ylen, file=f)
+    print("H0(2,3) = 0.0 A ", file=f)
+    print("H0(3,1) = 0.0 A ", file=f)
+    print("H0(3,2) = 0.0 A ", file=f)
+    print("H0(3,3) = %20.10f A " % zlen, file=f)
+    print("#", file=f)
 
     for atom in atoms:
       itype = int(atom[1])
       xfrac = (atom[2]-box[0])/xlen
       yfrac = (atom[3]-box[1])/ylen
       zfrac = (atom[4]-box[2])/zlen
-#        print >>f,"1.0  %d   %15.10f  %15.10f  %15.10f  %15.10f  %15.10f  %15.10f " % (itype,xfrac,yfrac,zfrac,atom[5],atom[6],atom[7])
-      print >>f,"1.0  %d   %15.10f  %15.10f  %15.10f  0.0 0.0 0.0 " % (itype,xfrac,yfrac,zfrac)
+#        print("1.0  %d   %15.10f  %15.10f  %15.10f  %15.10f  %15.10f  %15.10f " % (itype,xfrac,yfrac,zfrac,atom[5],atom[6],atom[7]), file=f)
+      print("1.0  %d   %15.10f  %15.10f  %15.10f  0.0 0.0 0.0 " % (itype,xfrac,yfrac,zfrac), file=f)
 
     f.close()

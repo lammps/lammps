@@ -1,0 +1,156 @@
+LAMMPS (28 Jul 2021)
+  using 1 OpenMP thread(s) per MPI task
+units           lj
+atom_style      full
+boundary p p p
+
+special_bonds lj/coul 1 1 1
+newton on on
+
+# save an extra atom type for bond particles
+read_data data.chain
+Reading data file ...
+  orthogonal box = (0.0000000 0.0000000 0.0000000) to (10.000000 10.000000 10.000000)
+  1 by 1 by 1 MPI processor grid
+  reading atoms ...
+  3000 atoms
+  reading velocities ...
+  3000 velocities
+  scanning bonds ...
+  1 = max bonds/atom
+  reading bonds ...
+  2700 bonds
+Finding 1-2 1-3 1-4 neighbors ...
+  special bond factors lj:    1        1        1       
+  special bond factors coul:  1        1        1       
+     2 = max # of 1-2 neighbors
+     2 = max # of special neighbors
+  special bonds CPU = 0.000 seconds
+  read_data CPU = 0.013 seconds
+
+neighbor        2.0 bin
+neigh_modify    every 10 check yes
+
+bond_style      harmonic
+bond_coeff      * 225.0 0.85
+
+comm_modify vel yes
+comm_modify cutoff 3.6
+
+# must use pair hybrid, since srp bond particles
+# do not interact with other atoms types
+pair_style      hybrid dpd 1.0 1.0 373692 srp 0.8 1 mid
+pair_coeff      1 1 dpd 60.0 4.5 1.0
+pair_coeff      1 2 none
+pair_coeff      2 2 srp 100.0
+
+# auto normalization of thermo quantities is turned off by pair srp
+# just divide by natoms
+variable        natoms equal count(all)
+variable        nPotEng equal c_thermo_pe/v_natoms
+
+thermo 50
+thermo_style custom step temp pe v_nPotEng press atoms v_natoms lx ly lz
+
+fix  1 all nve
+timestep        0.01
+
+#restart 500	mid-run-*.restart
+
+run          1000
+
+CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE
+
+Your simulation uses code contributions which should be cited:
+
+- @Article{Sirk2012
+ author = {T. Sirk and Y. Sliozberg and J. Brennan and M. Lisal and J. Andzelm},
+ title = {An enhanced entangled polymer model for dissipative particle dynamics},
+ journal = {J.~Chem.~Phys.},
+ year =    2012,
+ volume =  136,
+ pages =   {134903}
+}
+
+CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE
+
+Using type 2 for bond particles
+Thermo normalization turned off by pair srp (src/MISC/pair_srp.cpp:486)
+Neighbor list info ...
+  update every 10 steps, delay 10 steps, check yes
+  max neighbors/atom: 2000, page size: 100000
+  master list distance cutoff = 3
+  ghost atom cutoff = 3.6
+  binsize = 1.5, bins = 7 7 7
+  3 neighbor lists, perpetual/occasional/extra = 3 0 0
+  (1) pair dpd, perpetual, skip from (3)
+      attributes: half, newton on
+      pair build: skip
+      stencil: none
+      bin: none
+  (2) pair srp, perpetual, skip from (3)
+      attributes: half, newton on
+      pair build: skip
+      stencil: none
+      bin: none
+  (3) neighbor class addition, perpetual
+      attributes: half, newton on
+      pair build: half/bin/newton
+      stencil: half/bin/3d
+      bin: standard
+Removed/inserted 0/2700 bond particles. (src/MISC/fix_srp.cpp:250)
+Per MPI rank memory allocation (min/avg/max) = 21.70 | 21.70 | 21.70 Mbytes
+Step Temp PotEng v_nPotEng Press Atoms v_natoms Lx Ly Lz 
+       0   0.98262092    31772.336    10.590779    60.690437     5700         3000           10           10           10 
+      50   0.99678169     31789.37    10.596457    61.967133     5700         3000           10           10           10 
+     100     1.016953    31770.946    10.590315    61.808425     5700         3000           10           10           10 
+     150    1.0151677    31737.965    10.579322    61.034423     5700         3000           10           10           10 
+     200   0.99241972    31766.458    10.588819     60.99902     5700         3000           10           10           10 
+     250    1.0101747    31816.098    10.605366    61.484391     5700         3000           10           10           10 
+     300    1.0058287     31824.98    10.608327    60.656545     5700         3000           10           10           10 
+     350    1.0093409    31839.963    10.613321    61.485931     5700         3000           10           10           10 
+     400     1.029692     31713.44    10.571147    61.442428     5700         3000           10           10           10 
+     450    1.0292264    31739.234    10.579745    61.026996     5700         3000           10           10           10 
+     500    1.0141131    31796.032    10.598677    61.099407     5700         3000           10           10           10 
+     550   0.99860738    31887.879    10.629293    61.412249     5700         3000           10           10           10 
+     600    1.0104436    31830.675    10.610225    60.725018     5700         3000           10           10           10 
+     650    1.0060939    31871.441    10.623814     61.12217     5700         3000           10           10           10 
+     700    1.0394405     31724.09    10.574697    60.652294     5700         3000           10           10           10 
+     750    1.0094386    31827.328    10.609109    61.274573     5700         3000           10           10           10 
+     800   0.99986353    31777.205    10.592402    60.652922     5700         3000           10           10           10 
+     850    0.9762615    31752.585    10.584195    61.448972     5700         3000           10           10           10 
+     900   0.99324534    31794.723    10.598241    61.191199     5700         3000           10           10           10 
+     950    1.0139717    31719.123    10.573041    61.876053     5700         3000           10           10           10 
+    1000   0.99850758    31774.801      10.5916    60.960607     5700         3000           10           10           10 
+Deleted 2700 atoms, new total = 3000
+Loop time of 6.54135 on 1 procs for 1000 steps with 3000 atoms
+
+Performance: 132082.911 tau/day, 152.874 timesteps/s
+99.9% CPU use with 1 MPI tasks x 1 OpenMP threads
+
+MPI task timing breakdown:
+Section |  min time  |  avg time  |  max time  |%varavg| %total
+---------------------------------------------------------------
+Pair    | 4.5403     | 4.5403     | 4.5403     |   0.0 | 69.41
+Bond    | 0.030682   | 0.030682   | 0.030682   |   0.0 |  0.47
+Neigh   | 1.7065     | 1.7065     | 1.7065     |   0.0 | 26.09
+Comm    | 0.20647    | 0.20647    | 0.20647    |   0.0 |  3.16
+Output  | 0.00084543 | 0.00084543 | 0.00084543 |   0.0 |  0.01
+Modify  | 0.034479   | 0.034479   | 0.034479   |   0.0 |  0.53
+Other   |            | 0.022      |            |       |  0.34
+
+Nlocal:        3000.00 ave        3000 max        3000 min
+Histogram: 1 0 0 0 0 0 0 0 0 0
+Nghost:        12269.0 ave       12269 max       12269 min
+Histogram: 1 0 0 0 0 0 0 0 0 0
+Neighs:         0.00000 ave           0 max           0 min
+Histogram: 1 0 0 0 0 0 0 0 0 0
+
+Total # of neighbors = 0
+Ave neighs/atom = 0.0000000
+Ave special neighs/atom = 1.8000000
+Neighbor list builds = 21
+Dangerous builds = 0
+
+#write_restart   end-run.restart
+Total wall time: 0:00:06

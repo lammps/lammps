@@ -1,0 +1,1116 @@
+LAMMPS (8 Feb 2023)
+  using 1 OpenMP thread(s) per MPI task
+units real
+atom_style bond
+boundary f p p
+region box block -5.000000000000001 5.000000000000001 -5 5 -5 5
+create_box 1 box bond/types 1 extra/bond/per/atom 1 extra/special/per/atom 1
+Created orthogonal box = (-5 -5 -5) to (5 5 5)
+  1 by 2 by 2 MPI processor grid
+
+pair_style zero 5.0
+pair_coeff * *
+mass * 1.0
+bond_style zero
+bond_coeff * 1.0
+
+create_atoms 1 single -4.0 0.0 0.0
+Created 1 atoms
+  using lattice units in orthogonal box = (-5 -5 -5) to (5 5 5)
+  create_atoms CPU = 0.000 seconds
+create_atoms 1 single  4.0 0.0 0.0
+Created 1 atoms
+  using lattice units in orthogonal box = (-5 -5 -5) to (5 5 5)
+  create_atoms CPU = 0.000 seconds
+create_atoms 1 single -5.0 0.0 0.0
+Created 1 atoms
+  using lattice units in orthogonal box = (-5 -5 -5) to (5 5 5)
+  create_atoms CPU = 0.000 seconds
+create_atoms 1 single  5.0 0.0 0.0
+Created 1 atoms
+  using lattice units in orthogonal box = (-5 -5 -5) to (5 5 5)
+  create_atoms CPU = 0.000 seconds
+create_bonds single/bond 1 3 1
+Finding 1-2 1-3 1-4 neighbors ...
+  special bond factors lj:    0        0        0       
+  special bond factors coul:  0        0        0       
+     1 = max # of 1-2 neighbors
+     0 = max # of 1-3 neighbors
+     0 = max # of 1-4 neighbors
+     3 = max # of special neighbors
+  special bonds CPU = 0.000 seconds
+create_bonds single/bond 1 4 2
+Finding 1-2 1-3 1-4 neighbors ...
+  special bond factors lj:    0        0        0       
+  special bond factors coul:  0        0        0       
+     1 = max # of 1-2 neighbors
+     0 = max # of 1-3 neighbors
+     0 = max # of 1-4 neighbors
+     3 = max # of special neighbors
+  special bonds CPU = 0.001 seconds
+
+group move id 1:2
+2 atoms in group move
+write_restart walltest.restart
+System init for write_restart ...
+Generated 0 of 0 mixed pair_coeff terms from geometric mixing rule
+Neighbor list info ...
+  update: every = 1 steps, delay = 0 steps, check = yes
+  max neighbors/atom: 2000, page size: 100000
+  master list distance cutoff = 7
+  ghost atom cutoff = 7
+  binsize = 3.5, bins = 3 3 3
+  1 neighbor lists, perpetual/occasional/extra = 1 0 0
+  (1) pair zero, perpetual
+      attributes: half, newton on
+      pair build: half/bin/newton
+      stencil: half/bin/3d
+      bin: standard
+
+variable name string wall-harmonic
+include wall.inc
+
+clear
+  using 1 OpenMP thread(s) per MPI task
+read_restart walltest.restart
+Reading restart file ...
+  restart file = 8 Feb 2023, LAMMPS = 8 Feb 2023
+  restoring atom style bond from restart
+  orthogonal box = (-5 -5 -5) to (5 5 5)
+  1 by 2 by 2 MPI processor grid
+  restoring pair style zero from restart
+  restoring bond style zero from restart
+  4 atoms
+  2 bonds
+Finding 1-2 1-3 1-4 neighbors ...
+  special bond factors lj:    0        0        0       
+  special bond factors coul:  0        0        0       
+     1 = max # of 1-2 neighbors
+     0 = max # of 1-3 neighbors
+     0 = max # of 1-4 neighbors
+     3 = max # of special neighbors
+  special bonds CPU = 0.000 seconds
+  read_restart CPU = 0.001 seconds
+# log ${name}.log
+
+compute ea move pe/atom
+compute pe move reduce sum c_ea
+special_bonds lj/coul 1.0 1.0 1.0
+Finding 1-2 1-3 1-4 neighbors ...
+  special bond factors lj:    1        1        1       
+  special bond factors coul:  1        1        1       
+     1 = max # of 1-2 neighbors
+     3 = max # of special neighbors
+  special bonds CPU = 0.001 seconds
+
+thermo_style custom step temp press ke pe etotal c_pe
+thermo 1
+thermo_modify format float %14.10g
+
+fix 0 move nve
+# dump 1 all custom 1 ${name}.dump id x fx
+# dump_modify 1 format float %20.15g
+
+fix 1 move wall/harmonic xlo -5.0 100 0.0 4.0 xhi 5.0 100 1.0 4.0
+fix_modify 1 energy yes
+run 5 post no
+Generated 0 of 0 mixed pair_coeff terms from geometric mixing rule
+Neighbor list info ...
+  update: every = 1 steps, delay = 0 steps, check = yes
+  max neighbors/atom: 2000, page size: 100000
+  master list distance cutoff = 7
+  ghost atom cutoff = 7
+  binsize = 3.5, bins = 3 3 3
+  1 neighbor lists, perpetual/occasional/extra = 1 0 0
+  (1) pair zero, perpetual
+      attributes: half, newton on
+      pair build: half/bin/newton
+      stencil: half/bin/3d
+      bin: standard
+Per MPI rank memory allocation (min/avg/max) = 4.32 | 4.379 | 4.559 Mbytes
+   Step          Temp          Press          KinEng         PotEng         TotEng          c_pe     
+         0               0              0              0           1800           1800              0
+         1     16146.37291    6600.295604    144.3878119    1652.527054    1796.914866              0
+         2     59294.04011      24238.149     530.232812    1258.437705    1788.670517              0
+         3     115302.7492    47133.32419    1031.086781    746.8819904    1777.968771              0
+         4     165817.4572    67782.66799    1482.811029    285.5057515     1768.31678              0
+         5     194283.6024    79419.02582    1737.367544    25.51012833    1762.877672              0
+Loop time of 0.000766029 on 4 procs for 5 steps with 4 atoms
+
+
+variable name string table-harmonic
+include wall.inc
+
+clear
+  using 1 OpenMP thread(s) per MPI task
+read_restart walltest.restart
+Reading restart file ...
+  restart file = 8 Feb 2023, LAMMPS = 8 Feb 2023
+  restoring atom style bond from restart
+  orthogonal box = (-5 -5 -5) to (5 5 5)
+  1 by 2 by 2 MPI processor grid
+  restoring pair style zero from restart
+  restoring bond style zero from restart
+  4 atoms
+  2 bonds
+Finding 1-2 1-3 1-4 neighbors ...
+  special bond factors lj:    0        0        0       
+  special bond factors coul:  0        0        0       
+     1 = max # of 1-2 neighbors
+     0 = max # of 1-3 neighbors
+     0 = max # of 1-4 neighbors
+     3 = max # of special neighbors
+  special bonds CPU = 0.000 seconds
+  read_restart CPU = 0.001 seconds
+# log ${name}.log
+
+compute ea move pe/atom
+compute pe move reduce sum c_ea
+special_bonds lj/coul 1.0 1.0 1.0
+Finding 1-2 1-3 1-4 neighbors ...
+  special bond factors lj:    1        1        1       
+  special bond factors coul:  1        1        1       
+     1 = max # of 1-2 neighbors
+     3 = max # of special neighbors
+  special bonds CPU = 0.000 seconds
+
+thermo_style custom step temp press ke pe etotal c_pe
+thermo 1
+thermo_modify format float %14.10g
+
+fix 0 move nve
+# dump 1 all custom 1 ${name}.dump id x fx
+# dump_modify 1 format float %20.15g
+
+fix 1 move wall/table linear 1000 xlo -5.0 walltab.dat HARMONIC 4.0 xhi 5.0 walltab.dat HARMONIC 4.0
+Reading fix wall/table table potential file walltab.dat with DATE: 2023-02-23
+Reading fix wall/table table potential file walltab.dat with DATE: 2023-02-23
+fix_modify 1 energy yes
+run 5 post no
+Generated 0 of 0 mixed pair_coeff terms from geometric mixing rule
+Neighbor list info ...
+  update: every = 1 steps, delay = 0 steps, check = yes
+  max neighbors/atom: 2000, page size: 100000
+  master list distance cutoff = 7
+  ghost atom cutoff = 7
+  binsize = 3.5, bins = 3 3 3
+  1 neighbor lists, perpetual/occasional/extra = 1 0 0
+  (1) pair zero, perpetual
+      attributes: half, newton on
+      pair build: half/bin/newton
+      stencil: half/bin/3d
+      bin: standard
+Per MPI rank memory allocation (min/avg/max) = 4.32 | 4.379 | 4.559 Mbytes
+   Step          Temp          Press          KinEng         PotEng         TotEng          c_pe     
+         0               0              0              0    1800.000356    1800.000356              0
+         1     16146.37291    6600.295604    144.3878119    1652.527723    1796.915535              0
+         2     59294.04011      24238.149     530.232812    1258.437853    1788.670665              0
+         3     115302.7492    47133.32419    1031.086781    746.8824148    1777.969196              0
+         4     165817.4572    67782.66799    1482.811029    285.5061521    1768.317181              0
+         5     194283.6024    79419.02582    1737.367544    25.51090543    1762.878449              0
+Loop time of 0.000395044 on 4 procs for 5 steps with 4 atoms
+
+
+variable name string spline-harmonic
+include wall.inc
+
+clear
+  using 1 OpenMP thread(s) per MPI task
+read_restart walltest.restart
+Reading restart file ...
+  restart file = 8 Feb 2023, LAMMPS = 8 Feb 2023
+  restoring atom style bond from restart
+  orthogonal box = (-5 -5 -5) to (5 5 5)
+  1 by 2 by 2 MPI processor grid
+  restoring pair style zero from restart
+  restoring bond style zero from restart
+  4 atoms
+  2 bonds
+Finding 1-2 1-3 1-4 neighbors ...
+  special bond factors lj:    0        0        0       
+  special bond factors coul:  0        0        0       
+     1 = max # of 1-2 neighbors
+     0 = max # of 1-3 neighbors
+     0 = max # of 1-4 neighbors
+     3 = max # of special neighbors
+  special bonds CPU = 0.000 seconds
+  read_restart CPU = 0.001 seconds
+# log ${name}.log
+
+compute ea move pe/atom
+compute pe move reduce sum c_ea
+special_bonds lj/coul 1.0 1.0 1.0
+Finding 1-2 1-3 1-4 neighbors ...
+  special bond factors lj:    1        1        1       
+  special bond factors coul:  1        1        1       
+     1 = max # of 1-2 neighbors
+     3 = max # of special neighbors
+  special bonds CPU = 0.000 seconds
+
+thermo_style custom step temp press ke pe etotal c_pe
+thermo 1
+thermo_modify format float %14.10g
+
+fix 0 move nve
+# dump 1 all custom 1 ${name}.dump id x fx
+# dump_modify 1 format float %20.15g
+
+fix 1 move wall/table spline 200 xlo -5.0 walltab.dat HARMONIC 4.0 xhi 5.0 walltab.dat HARMONIC 4.0
+Reading fix wall/table table potential file walltab.dat with DATE: 2023-02-23
+Reading fix wall/table table potential file walltab.dat with DATE: 2023-02-23
+fix_modify 1 energy yes
+run 5 post no
+Generated 0 of 0 mixed pair_coeff terms from geometric mixing rule
+Neighbor list info ...
+  update: every = 1 steps, delay = 0 steps, check = yes
+  max neighbors/atom: 2000, page size: 100000
+  master list distance cutoff = 7
+  ghost atom cutoff = 7
+  binsize = 3.5, bins = 3 3 3
+  1 neighbor lists, perpetual/occasional/extra = 1 0 0
+  (1) pair zero, perpetual
+      attributes: half, newton on
+      pair build: half/bin/newton
+      stencil: half/bin/3d
+      bin: standard
+Per MPI rank memory allocation (min/avg/max) = 4.32 | 4.379 | 4.559 Mbytes
+   Step          Temp          Press          KinEng         PotEng         TotEng          c_pe     
+         0               0              0              0           1800           1800              0
+         1     16146.37291    6600.295604    144.3878119    1652.527054    1796.914866              0
+         2     59294.04011      24238.149     530.232812    1258.437705    1788.670517              0
+         3     115302.7492    47133.32419    1031.086781    746.8819904    1777.968771              0
+         4     165817.4572    67782.66799    1482.811029    285.5057515     1768.31678              0
+         5     194283.6024    79419.02582    1737.367544    25.51012833    1762.877672              0
+Loop time of 0.00033613 on 4 procs for 5 steps with 4 atoms
+
+
+variable name string bond-harmonic
+include wall.inc
+
+clear
+  using 1 OpenMP thread(s) per MPI task
+read_restart walltest.restart
+Reading restart file ...
+  restart file = 8 Feb 2023, LAMMPS = 8 Feb 2023
+  restoring atom style bond from restart
+  orthogonal box = (-5 -5 -5) to (5 5 5)
+  1 by 2 by 2 MPI processor grid
+  restoring pair style zero from restart
+  restoring bond style zero from restart
+  4 atoms
+  2 bonds
+Finding 1-2 1-3 1-4 neighbors ...
+  special bond factors lj:    0        0        0       
+  special bond factors coul:  0        0        0       
+     1 = max # of 1-2 neighbors
+     0 = max # of 1-3 neighbors
+     0 = max # of 1-4 neighbors
+     3 = max # of special neighbors
+  special bonds CPU = 0.000 seconds
+  read_restart CPU = 0.001 seconds
+# log ${name}.log
+
+compute ea move pe/atom
+compute pe move reduce sum c_ea
+special_bonds lj/coul 1.0 1.0 1.0
+Finding 1-2 1-3 1-4 neighbors ...
+  special bond factors lj:    1        1        1       
+  special bond factors coul:  1        1        1       
+     1 = max # of 1-2 neighbors
+     3 = max # of special neighbors
+  special bonds CPU = 0.000 seconds
+
+thermo_style custom step temp press ke pe etotal c_pe
+thermo 1
+thermo_modify format float %14.10g
+
+fix 0 move nve
+# dump 1 all custom 1 ${name}.dump id x fx
+# dump_modify 1 format float %20.15g
+
+bond_style harmonic
+bond_coeff 1 100 4.0
+run 5 post no
+Generated 0 of 0 mixed pair_coeff terms from geometric mixing rule
+Neighbor list info ...
+  update: every = 1 steps, delay = 0 steps, check = yes
+  max neighbors/atom: 2000, page size: 100000
+  master list distance cutoff = 7
+  ghost atom cutoff = 7
+  binsize = 3.5, bins = 3 3 3
+  1 neighbor lists, perpetual/occasional/extra = 1 0 0
+  (1) pair zero, perpetual
+      attributes: half, newton on
+      pair build: half/bin/newton
+      stencil: half/bin/3d
+      bin: standard
+WARNING: Communication cutoff 7 is shorter than a bond length based estimate of 8. This may lead to errors. (src/comm.cpp:723)
+Per MPI rank memory allocation (min/avg/max) = 4.32 | 4.379 | 4.559 Mbytes
+   Step          Temp          Press          KinEng         PotEng         TotEng          c_pe     
+         0               0      27427.366              0           1800           1800            900
+         1     16146.37291    36178.74173    144.3878119    1652.527054    1796.914866     826.263527
+         2     59294.04011     58444.6962     530.232812    1258.437705    1788.670517    629.2188524
+         3     115302.7492    83661.44348    1031.086781    746.8819904    1777.968771    373.4409952
+         4     165817.4572    98424.89283    1482.811029    285.5057515     1768.31678    142.7528758
+         5     194283.6024    91313.53086    1737.367544    25.51012833    1762.877672    12.75506417
+Loop time of 0.000380067 on 4 procs for 5 steps with 4 atoms
+
+
+variable name string pair-harmonic
+include wall.inc
+
+clear
+  using 1 OpenMP thread(s) per MPI task
+read_restart walltest.restart
+Reading restart file ...
+  restart file = 8 Feb 2023, LAMMPS = 8 Feb 2023
+  restoring atom style bond from restart
+  orthogonal box = (-5 -5 -5) to (5 5 5)
+  1 by 2 by 2 MPI processor grid
+  restoring pair style zero from restart
+  restoring bond style zero from restart
+  4 atoms
+  2 bonds
+Finding 1-2 1-3 1-4 neighbors ...
+  special bond factors lj:    0        0        0       
+  special bond factors coul:  0        0        0       
+     1 = max # of 1-2 neighbors
+     0 = max # of 1-3 neighbors
+     0 = max # of 1-4 neighbors
+     3 = max # of special neighbors
+  special bonds CPU = 0.000 seconds
+  read_restart CPU = 0.001 seconds
+# log ${name}.log
+
+compute ea move pe/atom
+compute pe move reduce sum c_ea
+special_bonds lj/coul 1.0 1.0 1.0
+Finding 1-2 1-3 1-4 neighbors ...
+  special bond factors lj:    1        1        1       
+  special bond factors coul:  1        1        1       
+     1 = max # of 1-2 neighbors
+     3 = max # of special neighbors
+  special bonds CPU = 0.000 seconds
+
+thermo_style custom step temp press ke pe etotal c_pe
+thermo 1
+thermo_modify format float %14.10g
+
+fix 0 move nve
+# dump 1 all custom 1 ${name}.dump id x fx
+# dump_modify 1 format float %20.15g
+
+pair_style harmonic/cut
+pair_coeff 1 1 100 4.0
+run 5 post no
+Generated 0 of 0 mixed pair_coeff terms from geometric mixing rule
+Neighbor list info ...
+  update: every = 1 steps, delay = 0 steps, check = yes
+  max neighbors/atom: 2000, page size: 100000
+  master list distance cutoff = 6
+  ghost atom cutoff = 6
+  binsize = 3, bins = 4 4 4
+  1 neighbor lists, perpetual/occasional/extra = 1 0 0
+  (1) pair harmonic/cut, perpetual
+      attributes: half, newton on
+      pair build: half/bin/newton
+      stencil: half/bin/3d
+      bin: standard
+Per MPI rank memory allocation (min/avg/max) = 4.32 | 4.38 | 4.56 Mbytes
+   Step          Temp          Press          KinEng         PotEng         TotEng          c_pe     
+         0               0      27427.366              0           1800           1800            900
+         1     16146.37291    36178.74173    144.3878119    1652.527054    1796.914866     826.263527
+         2     59294.04011     58444.6962     530.232812    1258.437705    1788.670517    629.2188524
+         3     115302.7492    83661.44348    1031.086781    746.8819904    1777.968771    373.4409952
+         4     165817.4572    98424.89283    1482.811029    285.5057515     1768.31678    142.7528758
+         5     170540.4005    97560.47089    1525.045619    190.8165235    1715.862142    178.0614593
+Loop time of 0.000337009 on 4 procs for 5 steps with 4 atoms
+
+
+variable eps index 0.02
+variable sig index 2.0
+variable name string wall-lj126
+include wall.inc
+
+clear
+  using 1 OpenMP thread(s) per MPI task
+read_restart walltest.restart
+Reading restart file ...
+  restart file = 8 Feb 2023, LAMMPS = 8 Feb 2023
+  restoring atom style bond from restart
+  orthogonal box = (-5 -5 -5) to (5 5 5)
+  1 by 2 by 2 MPI processor grid
+  restoring pair style zero from restart
+  restoring bond style zero from restart
+  4 atoms
+  2 bonds
+Finding 1-2 1-3 1-4 neighbors ...
+  special bond factors lj:    0        0        0       
+  special bond factors coul:  0        0        0       
+     1 = max # of 1-2 neighbors
+     0 = max # of 1-3 neighbors
+     0 = max # of 1-4 neighbors
+     3 = max # of special neighbors
+  special bonds CPU = 0.000 seconds
+  read_restart CPU = 0.001 seconds
+# log ${name}.log
+
+compute ea move pe/atom
+compute pe move reduce sum c_ea
+special_bonds lj/coul 1.0 1.0 1.0
+Finding 1-2 1-3 1-4 neighbors ...
+  special bond factors lj:    1        1        1       
+  special bond factors coul:  1        1        1       
+     1 = max # of 1-2 neighbors
+     3 = max # of special neighbors
+  special bonds CPU = 0.000 seconds
+
+thermo_style custom step temp press ke pe etotal c_pe
+thermo 1
+thermo_modify format float %14.10g
+
+fix 0 move nve
+# dump 1 all custom 1 ${name}.dump id x fx
+# dump_modify 1 format float %20.15g
+
+fix 1 move wall/lj126 xlo -5.0 ${eps} ${sig} 4.0 xhi 5.0 ${eps} ${sig} 4.0
+fix 1 move wall/lj126 xlo -5.0 0.02 ${sig} 4.0 xhi 5.0 ${eps} ${sig} 4.0
+fix 1 move wall/lj126 xlo -5.0 0.02 2.0 4.0 xhi 5.0 ${eps} ${sig} 4.0
+fix 1 move wall/lj126 xlo -5.0 0.02 2.0 4.0 xhi 5.0 0.02 ${sig} 4.0
+fix 1 move wall/lj126 xlo -5.0 0.02 2.0 4.0 xhi 5.0 0.02 2.0 4.0
+fix_modify 1 energy yes
+run 5 post no
+Generated 0 of 0 mixed pair_coeff terms from geometric mixing rule
+Neighbor list info ...
+  update: every = 1 steps, delay = 0 steps, check = yes
+  max neighbors/atom: 2000, page size: 100000
+  master list distance cutoff = 7
+  ghost atom cutoff = 7
+  binsize = 3.5, bins = 3 3 3
+  1 neighbor lists, perpetual/occasional/extra = 1 0 0
+  (1) pair zero, perpetual
+      attributes: half, newton on
+      pair build: half/bin/newton
+      stencil: half/bin/3d
+      bin: standard
+Per MPI rank memory allocation (min/avg/max) = 4.32 | 4.379 | 4.559 Mbytes
+   Step          Temp          Press          KinEng         PotEng         TotEng          c_pe     
+         0               0              0              0    645.1224609    645.1224609              0
+         1     178153.8707    72825.53278    1593.128544   0.2259591031    1593.354503              0
+         2     178262.3593    72869.88065    1594.098696 -0.02237405364    1594.076322              0
+         3     178259.9436    72868.89314    1594.077094 -0.003385746252    1594.073708              0
+         4     178259.4975    72868.71081    1594.073105              0    1594.073105              0
+         5     178259.4975    72868.71081    1594.073105              0    1594.073105              0
+WARNING: Bond/angle/dihedral extent > half of periodic box length (src/domain.cpp:936)
+Loop time of 0.000404521 on 4 procs for 5 steps with 4 atoms
+
+
+variable name string table-lj126
+include wall.inc
+
+clear
+  using 1 OpenMP thread(s) per MPI task
+read_restart walltest.restart
+Reading restart file ...
+  restart file = 8 Feb 2023, LAMMPS = 8 Feb 2023
+  restoring atom style bond from restart
+  orthogonal box = (-5 -5 -5) to (5 5 5)
+  1 by 2 by 2 MPI processor grid
+  restoring pair style zero from restart
+  restoring bond style zero from restart
+  4 atoms
+  2 bonds
+Finding 1-2 1-3 1-4 neighbors ...
+  special bond factors lj:    0        0        0       
+  special bond factors coul:  0        0        0       
+     1 = max # of 1-2 neighbors
+     0 = max # of 1-3 neighbors
+     0 = max # of 1-4 neighbors
+     3 = max # of special neighbors
+  special bonds CPU = 0.000 seconds
+  read_restart CPU = 0.001 seconds
+# log ${name}.log
+
+compute ea move pe/atom
+compute pe move reduce sum c_ea
+special_bonds lj/coul 1.0 1.0 1.0
+Finding 1-2 1-3 1-4 neighbors ...
+  special bond factors lj:    1        1        1       
+  special bond factors coul:  1        1        1       
+     1 = max # of 1-2 neighbors
+     3 = max # of special neighbors
+  special bonds CPU = 0.000 seconds
+
+thermo_style custom step temp press ke pe etotal c_pe
+thermo 1
+thermo_modify format float %14.10g
+
+fix 0 move nve
+# dump 1 all custom 1 ${name}.dump id x fx
+# dump_modify 1 format float %20.15g
+
+fix 1 move wall/table linear 1000 xlo -5.0 walltab.dat LJ126 4.0 xhi 5.0 walltab.dat LJ126 4.0
+Reading fix wall/table table potential file walltab.dat with DATE: 2023-02-23
+WARNING: 1 of 400 force values in table are inconsistent with -dE/dr.
+WARNING:  Should only be flagged at inflection points (src/fix_wall_table.cpp:244)
+Reading fix wall/table table potential file walltab.dat with DATE: 2023-02-23
+WARNING: 1 of 400 force values in table are inconsistent with -dE/dr.
+WARNING:  Should only be flagged at inflection points (src/fix_wall_table.cpp:244)
+fix_modify 1 energy yes
+run 5 post no
+Generated 0 of 0 mixed pair_coeff terms from geometric mixing rule
+Neighbor list info ...
+  update: every = 1 steps, delay = 0 steps, check = yes
+  max neighbors/atom: 2000, page size: 100000
+  master list distance cutoff = 7
+  ghost atom cutoff = 7
+  binsize = 3.5, bins = 3 3 3
+  1 neighbor lists, perpetual/occasional/extra = 1 0 0
+  (1) pair zero, perpetual
+      attributes: half, newton on
+      pair build: half/bin/newton
+      stencil: half/bin/3d
+      bin: standard
+Per MPI rank memory allocation (min/avg/max) = 4.32 | 4.379 | 4.559 Mbytes
+   Step          Temp          Press          KinEng         PotEng         TotEng          c_pe     
+         0               0              0              0    645.2141852    645.2141852              0
+         1     178212.5398    72849.51549    1593.653189   0.2256644171    1593.878854              0
+         2     178320.9331    72893.82438    1594.622489 -0.02236253394    1594.600126              0
+         3      178318.518    72892.83712    1594.600891  -0.0033818408    1594.597509              0
+         4     178318.0722     72892.6549    1594.596905              0    1594.596905              0
+         5     178318.0722     72892.6549    1594.596905              0    1594.596905              0
+WARNING: Bond/angle/dihedral extent > half of periodic box length (src/domain.cpp:936)
+Loop time of 0.000334746 on 4 procs for 5 steps with 4 atoms
+
+
+variable name string spline-lj126
+include wall.inc
+
+clear
+  using 1 OpenMP thread(s) per MPI task
+read_restart walltest.restart
+Reading restart file ...
+  restart file = 8 Feb 2023, LAMMPS = 8 Feb 2023
+  restoring atom style bond from restart
+  orthogonal box = (-5 -5 -5) to (5 5 5)
+  1 by 2 by 2 MPI processor grid
+  restoring pair style zero from restart
+  restoring bond style zero from restart
+  4 atoms
+  2 bonds
+Finding 1-2 1-3 1-4 neighbors ...
+  special bond factors lj:    0        0        0       
+  special bond factors coul:  0        0        0       
+     1 = max # of 1-2 neighbors
+     0 = max # of 1-3 neighbors
+     0 = max # of 1-4 neighbors
+     3 = max # of special neighbors
+  special bonds CPU = 0.000 seconds
+  read_restart CPU = 0.001 seconds
+# log ${name}.log
+
+compute ea move pe/atom
+compute pe move reduce sum c_ea
+special_bonds lj/coul 1.0 1.0 1.0
+Finding 1-2 1-3 1-4 neighbors ...
+  special bond factors lj:    1        1        1       
+  special bond factors coul:  1        1        1       
+     1 = max # of 1-2 neighbors
+     3 = max # of special neighbors
+  special bonds CPU = 0.000 seconds
+
+thermo_style custom step temp press ke pe etotal c_pe
+thermo 1
+thermo_modify format float %14.10g
+
+fix 0 move nve
+# dump 1 all custom 1 ${name}.dump id x fx
+# dump_modify 1 format float %20.15g
+
+fix 1 move wall/table spline 200 xlo -5.0 walltab.dat LJ126 4.0 xhi 5.0 walltab.dat LJ126 4.0
+Reading fix wall/table table potential file walltab.dat with DATE: 2023-02-23
+WARNING: 1 of 400 force values in table are inconsistent with -dE/dr.
+WARNING:  Should only be flagged at inflection points (src/fix_wall_table.cpp:244)
+Reading fix wall/table table potential file walltab.dat with DATE: 2023-02-23
+WARNING: 1 of 400 force values in table are inconsistent with -dE/dr.
+WARNING:  Should only be flagged at inflection points (src/fix_wall_table.cpp:244)
+fix_modify 1 energy yes
+run 5 post no
+Generated 0 of 0 mixed pair_coeff terms from geometric mixing rule
+Neighbor list info ...
+  update: every = 1 steps, delay = 0 steps, check = yes
+  max neighbors/atom: 2000, page size: 100000
+  master list distance cutoff = 7
+  ghost atom cutoff = 7
+  binsize = 3.5, bins = 3 3 3
+  1 neighbor lists, perpetual/occasional/extra = 1 0 0
+  (1) pair zero, perpetual
+      attributes: half, newton on
+      pair build: half/bin/newton
+      stencil: half/bin/3d
+      bin: standard
+Per MPI rank memory allocation (min/avg/max) = 4.32 | 4.379 | 4.559 Mbytes
+   Step          Temp          Press          KinEng         PotEng         TotEng          c_pe     
+         0               0              0              0    645.3361317    645.3361317              0
+         1     161871.9611    66169.83266    1447.528705   0.3353251002     1447.86403              0
+         2      162015.342    66228.44376    1448.810879 -0.02581160308    1448.785068              0
+         3      162012.784    66227.39811    1448.788005 -0.004635008226     1448.78337              0
+         4     162012.2554    66227.18201    1448.783278              0    1448.783278              0
+         5     162012.2554    66227.18201    1448.783278              0    1448.783278              0
+WARNING: Bond/angle/dihedral extent > half of periodic box length (src/domain.cpp:936)
+Loop time of 0.000345529 on 4 procs for 5 steps with 4 atoms
+
+
+variable name string pair-lj126
+include wall.inc
+
+clear
+  using 1 OpenMP thread(s) per MPI task
+read_restart walltest.restart
+Reading restart file ...
+  restart file = 8 Feb 2023, LAMMPS = 8 Feb 2023
+  restoring atom style bond from restart
+  orthogonal box = (-5 -5 -5) to (5 5 5)
+  1 by 2 by 2 MPI processor grid
+  restoring pair style zero from restart
+  restoring bond style zero from restart
+  4 atoms
+  2 bonds
+Finding 1-2 1-3 1-4 neighbors ...
+  special bond factors lj:    0        0        0       
+  special bond factors coul:  0        0        0       
+     1 = max # of 1-2 neighbors
+     0 = max # of 1-3 neighbors
+     0 = max # of 1-4 neighbors
+     3 = max # of special neighbors
+  special bonds CPU = 0.000 seconds
+  read_restart CPU = 0.001 seconds
+# log ${name}.log
+
+compute ea move pe/atom
+compute pe move reduce sum c_ea
+special_bonds lj/coul 1.0 1.0 1.0
+Finding 1-2 1-3 1-4 neighbors ...
+  special bond factors lj:    1        1        1       
+  special bond factors coul:  1        1        1       
+     1 = max # of 1-2 neighbors
+     3 = max # of special neighbors
+  special bonds CPU = 0.000 seconds
+
+thermo_style custom step temp press ke pe etotal c_pe
+thermo 1
+thermo_modify format float %14.10g
+
+fix 0 move nve
+# dump 1 all custom 1 ${name}.dump id x fx
+# dump_modify 1 format float %20.15g
+
+pair_style lj/cut 4.0
+pair_coeff 1 1 ${eps} ${sig}
+pair_coeff 1 1 0.02 ${sig}
+pair_coeff 1 1 0.02 2.0
+pair_modify shift yes
+run 5 post no
+Generated 0 of 0 mixed pair_coeff terms from geometric mixing rule
+Neighbor list info ...
+  update: every = 1 steps, delay = 0 steps, check = yes
+  max neighbors/atom: 2000, page size: 100000
+  master list distance cutoff = 6
+  ghost atom cutoff = 6
+  binsize = 3, bins = 4 4 4
+  1 neighbor lists, perpetual/occasional/extra = 1 0 0
+  (1) pair lj/cut, perpetual
+      attributes: half, newton on
+      pair build: half/bin/newton
+      stencil: half/bin/3d
+      bin: standard
+Per MPI rank memory allocation (min/avg/max) = 4.32 | 4.38 | 4.56 Mbytes
+   Step          Temp          Press          KinEng         PotEng         TotEng          c_pe     
+         0               0    178343.7047              0    645.1224609    645.1224609    322.5612305
+         1     178153.8707    72925.96146    1593.128544   0.2259591031    1593.354503   0.1129795516
+         2     178262.3593    72867.28485    1594.098696 -0.02237405364    1594.076322 -0.01118702682
+         3     178260.8147    72867.80305    1594.084884 -0.007499601847    1594.077384 -0.005806728722
+         4     176007.6835    72778.53677    1573.936415    2.772305717    1576.708721    2.772305717
+         5  1.132219912e+27 4.628275436e+26 1.012479748e+25 3.761972158e+12 1.012479748e+25 3.761972158e+12
+WARNING: Bond/angle/dihedral extent > half of periodic box length (src/domain.cpp:936)
+Loop time of 0.000315196 on 4 procs for 5 steps with 4 atoms
+
+
+variable d0 index 20.0
+variable al index 2.0
+variable r0 index 1.2
+
+variable name string wall-morse
+include wall.inc
+
+clear
+  using 1 OpenMP thread(s) per MPI task
+read_restart walltest.restart
+Reading restart file ...
+  restart file = 8 Feb 2023, LAMMPS = 8 Feb 2023
+  restoring atom style bond from restart
+  orthogonal box = (-5 -5 -5) to (5 5 5)
+  1 by 2 by 2 MPI processor grid
+  restoring pair style zero from restart
+  restoring bond style zero from restart
+  4 atoms
+  2 bonds
+Finding 1-2 1-3 1-4 neighbors ...
+  special bond factors lj:    0        0        0       
+  special bond factors coul:  0        0        0       
+     1 = max # of 1-2 neighbors
+     0 = max # of 1-3 neighbors
+     0 = max # of 1-4 neighbors
+     3 = max # of special neighbors
+  special bonds CPU = 0.000 seconds
+  read_restart CPU = 0.001 seconds
+# log ${name}.log
+
+compute ea move pe/atom
+compute pe move reduce sum c_ea
+special_bonds lj/coul 1.0 1.0 1.0
+Finding 1-2 1-3 1-4 neighbors ...
+  special bond factors lj:    1        1        1       
+  special bond factors coul:  1        1        1       
+     1 = max # of 1-2 neighbors
+     3 = max # of special neighbors
+  special bonds CPU = 0.000 seconds
+
+thermo_style custom step temp press ke pe etotal c_pe
+thermo 1
+thermo_modify format float %14.10g
+
+fix 0 move nve
+# dump 1 all custom 1 ${name}.dump id x fx
+# dump_modify 1 format float %20.15g
+
+fix 1 move wall/morse xlo -5.0 ${d0} ${al} ${r0} 4.0 xhi 5.0 ${d0} ${al} ${r0} 4.0
+fix 1 move wall/morse xlo -5.0 20.0 ${al} ${r0} 4.0 xhi 5.0 ${d0} ${al} ${r0} 4.0
+fix 1 move wall/morse xlo -5.0 20.0 2.0 ${r0} 4.0 xhi 5.0 ${d0} ${al} ${r0} 4.0
+fix 1 move wall/morse xlo -5.0 20.0 2.0 1.2 4.0 xhi 5.0 ${d0} ${al} ${r0} 4.0
+fix 1 move wall/morse xlo -5.0 20.0 2.0 1.2 4.0 xhi 5.0 20.0 ${al} ${r0} 4.0
+fix 1 move wall/morse xlo -5.0 20.0 2.0 1.2 4.0 xhi 5.0 20.0 2.0 ${r0} 4.0
+fix 1 move wall/morse xlo -5.0 20.0 2.0 1.2 4.0 xhi 5.0 20.0 2.0 1.2 4.0
+fix_modify 1 energy yes
+run 5 post no
+Generated 0 of 0 mixed pair_coeff terms from geometric mixing rule
+Neighbor list info ...
+  update: every = 1 steps, delay = 0 steps, check = yes
+  max neighbors/atom: 2000, page size: 100000
+  master list distance cutoff = 7
+  ghost atom cutoff = 7
+  binsize = 3.5, bins = 3 3 3
+  1 neighbor lists, perpetual/occasional/extra = 1 0 0
+  (1) pair zero, perpetual
+      attributes: half, newton on
+      pair build: half/bin/newton
+      stencil: half/bin/3d
+      bin: standard
+Per MPI rank memory allocation (min/avg/max) = 4.32 | 4.379 | 4.559 Mbytes
+   Step          Temp          Press          KinEng         PotEng         TotEng          c_pe     
+         0               0              0              0   -30.02905654   -30.02905654              0
+         1     146.0893547    59.71823711     1.30639385   -31.40065042   -30.09425657              0
+         2     485.8091411    198.5884977     4.34431431   -34.55987817   -30.21556386              0
+         3     822.0828974    336.0500941    7.351418888   -37.63613582   -30.28471693              0
+         4     1018.806679    416.4666136    9.110607565   -39.39265114   -30.28204357              0
+         5     1050.331347    429.3532307    9.392514704   -39.63687095   -30.24435625              0
+Loop time of 0.000711295 on 4 procs for 5 steps with 4 atoms
+
+
+variable name string table-morse
+include wall.inc
+
+clear
+  using 1 OpenMP thread(s) per MPI task
+read_restart walltest.restart
+Reading restart file ...
+  restart file = 8 Feb 2023, LAMMPS = 8 Feb 2023
+  restoring atom style bond from restart
+  orthogonal box = (-5 -5 -5) to (5 5 5)
+  1 by 2 by 2 MPI processor grid
+  restoring pair style zero from restart
+  restoring bond style zero from restart
+  4 atoms
+  2 bonds
+Finding 1-2 1-3 1-4 neighbors ...
+  special bond factors lj:    0        0        0       
+  special bond factors coul:  0        0        0       
+     1 = max # of 1-2 neighbors
+     0 = max # of 1-3 neighbors
+     0 = max # of 1-4 neighbors
+     3 = max # of special neighbors
+  special bonds CPU = 0.000 seconds
+  read_restart CPU = 0.001 seconds
+# log ${name}.log
+
+compute ea move pe/atom
+compute pe move reduce sum c_ea
+special_bonds lj/coul 1.0 1.0 1.0
+Finding 1-2 1-3 1-4 neighbors ...
+  special bond factors lj:    1        1        1       
+  special bond factors coul:  1        1        1       
+     1 = max # of 1-2 neighbors
+     3 = max # of special neighbors
+  special bonds CPU = 0.000 seconds
+
+thermo_style custom step temp press ke pe etotal c_pe
+thermo 1
+thermo_modify format float %14.10g
+
+fix 0 move nve
+# dump 1 all custom 1 ${name}.dump id x fx
+# dump_modify 1 format float %20.15g
+
+fix 1 move wall/table linear 1000 xlo -5.0 walltab.dat MORSE 4.0 xhi 5.0 walltab.dat MORSE 4.0
+Reading fix wall/table table potential file walltab.dat with DATE: 2023-02-23
+Reading fix wall/table table potential file walltab.dat with DATE: 2023-02-23
+fix_modify 1 energy yes
+run 5 post no
+Generated 0 of 0 mixed pair_coeff terms from geometric mixing rule
+Neighbor list info ...
+  update: every = 1 steps, delay = 0 steps, check = yes
+  max neighbors/atom: 2000, page size: 100000
+  master list distance cutoff = 7
+  ghost atom cutoff = 7
+  binsize = 3.5, bins = 3 3 3
+  1 neighbor lists, perpetual/occasional/extra = 1 0 0
+  (1) pair zero, perpetual
+      attributes: half, newton on
+      pair build: half/bin/newton
+      stencil: half/bin/3d
+      bin: standard
+Per MPI rank memory allocation (min/avg/max) = 4.32 | 4.379 | 4.559 Mbytes
+   Step          Temp          Press          KinEng         PotEng         TotEng          c_pe     
+         0               0              0              0    -30.0282104    -30.0282104              0
+         1     146.0967469    59.72125889    1.306459954   -31.40033773   -30.09387777              0
+         2     485.8417772    198.6018386    4.344606156   -34.55851819   -30.21391203              0
+         3     822.1558136    336.0799007    7.352070936   -37.63533573   -30.28326479              0
+         4     1018.904947    416.5067832    9.111486314   -39.39200056   -30.28051425              0
+         5     1050.436268    429.3961205    9.393452958   -39.63643565   -30.24298269              0
+Loop time of 0.000302153 on 4 procs for 5 steps with 4 atoms
+
+
+variable name string spline-morse
+include wall.inc
+
+clear
+  using 1 OpenMP thread(s) per MPI task
+read_restart walltest.restart
+Reading restart file ...
+  restart file = 8 Feb 2023, LAMMPS = 8 Feb 2023
+  restoring atom style bond from restart
+  orthogonal box = (-5 -5 -5) to (5 5 5)
+  1 by 2 by 2 MPI processor grid
+  restoring pair style zero from restart
+  restoring bond style zero from restart
+  4 atoms
+  2 bonds
+Finding 1-2 1-3 1-4 neighbors ...
+  special bond factors lj:    0        0        0       
+  special bond factors coul:  0        0        0       
+     1 = max # of 1-2 neighbors
+     0 = max # of 1-3 neighbors
+     0 = max # of 1-4 neighbors
+     3 = max # of special neighbors
+  special bonds CPU = 0.000 seconds
+  read_restart CPU = 0.001 seconds
+# log ${name}.log
+
+compute ea move pe/atom
+compute pe move reduce sum c_ea
+special_bonds lj/coul 1.0 1.0 1.0
+Finding 1-2 1-3 1-4 neighbors ...
+  special bond factors lj:    1        1        1       
+  special bond factors coul:  1        1        1       
+     1 = max # of 1-2 neighbors
+     3 = max # of special neighbors
+  special bonds CPU = 0.000 seconds
+
+thermo_style custom step temp press ke pe etotal c_pe
+thermo 1
+thermo_modify format float %14.10g
+
+fix 0 move nve
+# dump 1 all custom 1 ${name}.dump id x fx
+# dump_modify 1 format float %20.15g
+
+fix 1 move wall/table spline 1000 xlo -5.0 walltab.dat MORSE 4.0 xhi 5.0 walltab.dat MORSE 4.0
+Reading fix wall/table table potential file walltab.dat with DATE: 2023-02-23
+Reading fix wall/table table potential file walltab.dat with DATE: 2023-02-23
+fix_modify 1 energy yes
+run 5 post no
+Generated 0 of 0 mixed pair_coeff terms from geometric mixing rule
+Neighbor list info ...
+  update: every = 1 steps, delay = 0 steps, check = yes
+  max neighbors/atom: 2000, page size: 100000
+  master list distance cutoff = 7
+  ghost atom cutoff = 7
+  binsize = 3.5, bins = 3 3 3
+  1 neighbor lists, perpetual/occasional/extra = 1 0 0
+  (1) pair zero, perpetual
+      attributes: half, newton on
+      pair build: half/bin/newton
+      stencil: half/bin/3d
+      bin: standard
+Per MPI rank memory allocation (min/avg/max) = 4.32 | 4.379 | 4.559 Mbytes
+   Step          Temp          Press          KinEng         PotEng         TotEng          c_pe     
+         0               0              0              0   -30.02905657   -30.02905657              0
+         1     146.0893531    59.71823647    1.306393836   -31.40065068   -30.09425684              0
+         2      485.809133    198.5884944    4.344314238   -34.55987846   -30.21556422              0
+         3     822.0828818    336.0500877    7.351418748   -37.63613601   -30.28471726              0
+         4      1018.80666    416.4666056    9.110607389   -39.39265128   -30.28204389              0
+         5     1050.331328     429.353223    9.392514534   -39.63687099   -30.24435645              0
+Loop time of 0.000295181 on 4 procs for 5 steps with 4 atoms
+
+
+variable name string bond-morse
+include wall.inc
+
+clear
+  using 1 OpenMP thread(s) per MPI task
+read_restart walltest.restart
+Reading restart file ...
+  restart file = 8 Feb 2023, LAMMPS = 8 Feb 2023
+  restoring atom style bond from restart
+  orthogonal box = (-5 -5 -5) to (5 5 5)
+  1 by 2 by 2 MPI processor grid
+  restoring pair style zero from restart
+  restoring bond style zero from restart
+  4 atoms
+  2 bonds
+Finding 1-2 1-3 1-4 neighbors ...
+  special bond factors lj:    0        0        0       
+  special bond factors coul:  0        0        0       
+     1 = max # of 1-2 neighbors
+     0 = max # of 1-3 neighbors
+     0 = max # of 1-4 neighbors
+     3 = max # of special neighbors
+  special bonds CPU = 0.000 seconds
+  read_restart CPU = 0.001 seconds
+# log ${name}.log
+
+compute ea move pe/atom
+compute pe move reduce sum c_ea
+special_bonds lj/coul 1.0 1.0 1.0
+Finding 1-2 1-3 1-4 neighbors ...
+  special bond factors lj:    1        1        1       
+  special bond factors coul:  1        1        1       
+     1 = max # of 1-2 neighbors
+     3 = max # of special neighbors
+  special bonds CPU = 0.000 seconds
+
+thermo_style custom step temp press ke pe etotal c_pe
+thermo 1
+thermo_modify format float %14.10g
+
+fix 0 move nve
+# dump 1 all custom 1 ${name}.dump id x fx
+# dump_modify 1 format float %20.15g
+
+bond_style morse
+bond_coeff 1 ${d0} ${al} ${r0}
+bond_coeff 1 20.0 ${al} ${r0}
+bond_coeff 1 20.0 2.0 ${r0}
+bond_coeff 1 20.0 2.0 1.2
+run 5 post no
+Generated 0 of 0 mixed pair_coeff terms from geometric mixing rule
+Neighbor list info ...
+  update: every = 1 steps, delay = 0 steps, check = yes
+  max neighbors/atom: 2000, page size: 100000
+  master list distance cutoff = 7
+  ghost atom cutoff = 7
+  binsize = 3.5, bins = 3 3 3
+  1 neighbor lists, perpetual/occasional/extra = 1 0 0
+  (1) pair zero, perpetual
+      attributes: half, newton on
+      pair build: half/bin/newton
+      stencil: half/bin/3d
+      bin: standard
+Per MPI rank memory allocation (min/avg/max) = 4.32 | 4.379 | 4.559 Mbytes
+   Step          Temp          Press          KinEng         PotEng         TotEng          c_pe     
+         0               0    2683.187147              0    9.675661328    9.675661328    4.837830664
+         1     146.0893547    2514.939772     1.30639385    8.304067455    9.610461305    4.152033728
+         2     485.8091411    2063.804037     4.34431431    5.144839701    9.489154012    2.572419851
+         3     822.0828974    1456.368913    7.351418888     2.06858205    9.420000938    1.034291025
+         4     1018.806679    823.4383177    9.110607565   0.3120667313    9.422674297   0.1560333657
+         5     1050.331347    253.0262957    9.392514704  0.06784692056    9.460361624  0.03392346028
+Loop time of 0.000710295 on 4 procs for 5 steps with 4 atoms
+
+
+variable name string pair-morse
+include wall.inc
+
+clear
+  using 1 OpenMP thread(s) per MPI task
+read_restart walltest.restart
+Reading restart file ...
+  restart file = 8 Feb 2023, LAMMPS = 8 Feb 2023
+  restoring atom style bond from restart
+  orthogonal box = (-5 -5 -5) to (5 5 5)
+  1 by 2 by 2 MPI processor grid
+  restoring pair style zero from restart
+  restoring bond style zero from restart
+  4 atoms
+  2 bonds
+Finding 1-2 1-3 1-4 neighbors ...
+  special bond factors lj:    0        0        0       
+  special bond factors coul:  0        0        0       
+     1 = max # of 1-2 neighbors
+     0 = max # of 1-3 neighbors
+     0 = max # of 1-4 neighbors
+     3 = max # of special neighbors
+  special bonds CPU = 0.000 seconds
+  read_restart CPU = 0.001 seconds
+# log ${name}.log
+
+compute ea move pe/atom
+compute pe move reduce sum c_ea
+special_bonds lj/coul 1.0 1.0 1.0
+Finding 1-2 1-3 1-4 neighbors ...
+  special bond factors lj:    1        1        1       
+  special bond factors coul:  1        1        1       
+     1 = max # of 1-2 neighbors
+     3 = max # of special neighbors
+  special bonds CPU = 0.000 seconds
+
+thermo_style custom step temp press ke pe etotal c_pe
+thermo 1
+thermo_modify format float %14.10g
+
+fix 0 move nve
+# dump 1 all custom 1 ${name}.dump id x fx
+# dump_modify 1 format float %20.15g
+
+pair_style morse 4.0
+pair_coeff 1 1 ${d0} ${al} ${r0}
+pair_coeff 1 1 20.0 ${al} ${r0}
+pair_coeff 1 1 20.0 2.0 ${r0}
+pair_coeff 1 1 20.0 2.0 1.2
+pair_modify shift yes
+run 5 post no
+Generated 0 of 0 mixed pair_coeff terms from geometric mixing rule
+Neighbor list info ...
+  update: every = 1 steps, delay = 0 steps, check = yes
+  max neighbors/atom: 2000, page size: 100000
+  master list distance cutoff = 6
+  ghost atom cutoff = 6
+  binsize = 3, bins = 4 4 4
+  1 neighbor lists, perpetual/occasional/extra = 1 0 0
+  (1) pair morse, perpetual
+      attributes: half, newton on
+      pair build: half/bin/newton
+      stencil: half/bin/3d
+      bin: standard
+Per MPI rank memory allocation (min/avg/max) = 4.32 | 4.38 | 4.56 Mbytes
+   Step          Temp          Press          KinEng         PotEng         TotEng          c_pe     
+         0               0    2683.187147              0   -30.02905654   -30.02905654   -15.01452827
+         1     146.0893547    2514.939772     1.30639385   -31.40065042   -30.09425657   -15.70032521
+         2     485.8091411    2063.804037     4.34431431   -34.55987817   -30.21556386   -17.27993908
+         3     822.0828974    1456.368913    7.351418888   -37.63613582   -30.28471693   -18.81806791
+         4     1018.806679    823.4383177    9.110607565   -39.39265114   -30.28204357   -19.69632557
+         5     1050.331347    253.0262957    9.392514704   -39.63687095   -30.24435625   -19.81843547
+Loop time of 0.000297435 on 4 procs for 5 steps with 4 atoms
+
+
+shell rm -f walltest.restart
+Total wall time: 0:00:00

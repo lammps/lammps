@@ -1,7 +1,8 @@
 ---
-lammps_version: 10 Feb 2021
-date_generated: Fri Feb 26 23:08:43 2021
-epsilon: 1e-13
+lammps_version: 17 Feb 2022
+date_generated: Fri Mar 18 22:17:29 2022
+epsilon: 2e-13
+skip_tests:
 prerequisites: ! |
   atom full
   pair coul/slater/cut
@@ -15,7 +16,7 @@ pair_coeff: ! |
 extract: ! ""
 natoms: 29
 init_vdwl: 0
-init_coul: -98.7571172175919
+init_coul: -98.75711721759194
 init_stress: ! |-
   -3.9313572784781172e+00 -2.1945725976031827e+01 -3.0990906040599736e+01  6.4439048479767926e+00 -2.3281728573203475e+00  4.0566157434427641e-01
 init_forces: ! |2

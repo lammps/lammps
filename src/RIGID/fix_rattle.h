@@ -1,7 +1,7 @@
 /* -*- c++ -*- ----------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    https://www.lammps.org/, Sandia National Laboratories
-   Steve Plimpton, sjplimp@sandia.gov
+   LAMMPS development team: developers@lammps.org
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
@@ -32,23 +32,23 @@ class FixRattle : public FixShake {
   double verr_max;    // velocity error
 
   FixRattle(class LAMMPS *, int, char **);
-  ~FixRattle();
-  int setmask();
-  virtual void init();
-  virtual void post_force(int);
-  virtual void post_force_respa(int, int, int);
-  virtual void final_integrate();
-  virtual void final_integrate_respa(int, int);
+  ~FixRattle() override;
+  int setmask() override;
+  void init() override;
+  void post_force(int) override;
+  void post_force_respa(int, int, int) override;
+  void final_integrate() override;
+  void final_integrate_respa(int, int) override;
 
-  virtual void correct_coordinates(int vflag);
-  virtual void correct_velocities();
-  virtual void shake_end_of_step(int vflag);
+  void correct_coordinates(int vflag) override;
+  void correct_velocities() override;
+  void shake_end_of_step(int vflag) override;
 
-  virtual double memory_usage();
-  virtual void grow_arrays(int);
-  virtual int pack_forward_comm(int, int *, double *, int, int *);
-  virtual void unpack_forward_comm(int, int, double *);
-  virtual void reset_dt();
+  double memory_usage() override;
+  void grow_arrays(int) override;
+  int pack_forward_comm(int, int *, double *, int, int *) override;
+  void unpack_forward_comm(int, int, double *) override;
+  void reset_dt() override;
 
  private:
   void update_v_half_nocons();
@@ -68,58 +68,10 @@ class FixRattle : public FixShake {
   bool check3(double **v, int m, bool checkr, bool checkv);
   bool check4(double **v, int m, bool checkr, bool checkv);
   bool check_constraints(double **v, bool checkr, bool checkv);
-  void end_of_step();
+  void end_of_step() override;
 };
 
 }    // namespace LAMMPS_NS
 
 #endif
 #endif
-
-/* ERROR/WARNING messages:
-
-W: Fix rattle should come after all other integration fixes
-
-UNDOCUMENTED
-
-E: Rattle determinant = 0.0
-
-The determinant of the matrix being solved for a single cluster
-specified by the fix rattle command is numerically invalid.
-
-E: Rattle failed
-
-UNDOCUMENTED
-
-E: Coordinate constraints are not satisfied up to desired tolerance
-
-UNDOCUMENTED
-
-E: Velocity constraints are not satisfied up to desired tolerance
-
-UNDOCUMENTED
-
-E: Velocity constraints are not satisfied up to desired tolerance!
-
-UNDOCUMENTED
-
-U: Fix rattle should come after all other integration fixes
-
-This fix is designed to work after all other integration fixes change
-atom positions.  Thus it should be the last integration fix specified.
-If not, it will not satisfy the desired constraints as well as it
-otherwise would.
-
-U: Rattle failed
-
-Certain constraints were not satisfied.
-
-U: Coordinate constraints are not satisfied up to desired tolerance
-
-Self-explanatory.
-
-U: Rattle velocity constraints are not satisfied up to desired tolerance
-
-Self-explanatory.
-
-*/

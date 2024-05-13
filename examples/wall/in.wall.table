@@ -1,0 +1,129 @@
+units real
+atom_style bond
+boundary f p p
+region box block -5.000000000000001 5.000000000000001 -5 5 -5 5
+create_box 1 box bond/types 1 extra/bond/per/atom 1 extra/special/per/atom 1
+
+pair_style zero 5.0
+pair_coeff * *
+mass * 1.0
+bond_style zero
+bond_coeff * 1.0
+
+create_atoms 1 single -4.0 0.0 0.0
+create_atoms 1 single  4.0 0.0 0.0
+create_atoms 1 single -5.0 0.0 0.0
+create_atoms 1 single  5.0 0.0 0.0
+create_bonds single/bond 1 3 1
+create_bonds single/bond 1 4 2
+
+group move id 1:2
+write_restart walltest.restart
+
+variable name string wall-harmonic
+include wall.inc
+
+fix 1 move wall/harmonic xlo -5.0 100 0.0 4.0 xhi 5.0 100 1.0 4.0
+fix_modify 1 energy yes
+run 5 post no
+
+variable name string table-harmonic
+include wall.inc
+
+fix 1 move wall/table linear 1000 xlo -5.0 walltab.dat HARMONIC 4.0 xhi 5.0 walltab.dat HARMONIC 4.0
+fix_modify 1 energy yes
+run 5 post no
+
+variable name string spline-harmonic
+include wall.inc
+
+fix 1 move wall/table spline 200 xlo -5.0 walltab.dat HARMONIC 4.0 xhi 5.0 walltab.dat HARMONIC 4.0
+fix_modify 1 energy yes
+run 5 post no
+
+variable name string bond-harmonic
+include wall.inc
+
+bond_style harmonic
+bond_coeff 1 100 4.0
+run 5 post no
+
+variable name string pair-harmonic
+include wall.inc
+
+pair_style harmonic/cut
+pair_coeff 1 1 100 4.0
+run 5 post no
+
+variable eps index 0.02
+variable sig index 2.0
+variable name string wall-lj126
+include wall.inc
+
+fix 1 move wall/lj126 xlo -5.0 ${eps} ${sig} 4.0 xhi 5.0 ${eps} ${sig} 4.0
+fix_modify 1 energy yes
+run 5 post no
+
+variable name string table-lj126
+include wall.inc
+
+fix 1 move wall/table linear 1000 xlo -5.0 walltab.dat LJ126 4.0 xhi 5.0 walltab.dat LJ126 4.0
+fix_modify 1 energy yes
+run 5 post no
+
+variable name string spline-lj126
+include wall.inc
+
+fix 1 move wall/table spline 200 xlo -5.0 walltab.dat LJ126 4.0 xhi 5.0 walltab.dat LJ126 4.0
+fix_modify 1 energy yes
+run 5 post no
+
+variable name string pair-lj126
+include wall.inc
+
+pair_style lj/cut 4.0
+pair_coeff 1 1 ${eps} ${sig}
+pair_modify shift yes
+run 5 post no
+
+variable d0 index 20.0
+variable al index 2.0
+variable r0 index 1.2
+
+variable name string wall-morse
+include wall.inc
+
+fix 1 move wall/morse xlo -5.0 ${d0} ${al} ${r0} 4.0 xhi 5.0 ${d0} ${al} ${r0} 4.0
+fix_modify 1 energy yes
+run 5 post no
+
+variable name string table-morse
+include wall.inc
+
+fix 1 move wall/table linear 1000 xlo -5.0 walltab.dat MORSE 4.0 xhi 5.0 walltab.dat MORSE 4.0
+fix_modify 1 energy yes
+run 5 post no
+
+variable name string spline-morse
+include wall.inc
+
+fix 1 move wall/table spline 1000 xlo -5.0 walltab.dat MORSE 4.0 xhi 5.0 walltab.dat MORSE 4.0
+fix_modify 1 energy yes
+run 5 post no
+
+variable name string bond-morse
+include wall.inc
+
+bond_style morse
+bond_coeff 1 ${d0} ${al} ${r0}
+run 5 post no
+
+variable name string pair-morse
+include wall.inc
+
+pair_style morse 4.0
+pair_coeff 1 1 ${d0} ${al} ${r0}
+pair_modify shift yes
+run 5 post no
+
+shell rm -f walltest.restart

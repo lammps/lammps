@@ -1,7 +1,7 @@
 /* -*- c++ -*- ----------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    https://www.lammps.org/, Sandia National Laboratories
-   Steve Plimpton, sjplimp@sandia.gov
+   LAMMPS development team: developers@lammps.org
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
@@ -25,6 +25,10 @@
 #include <string>
 #include <zstd.h>
 
+#if ZSTD_VERSION_NUMBER < 10400
+#error must have at least zstd version 1.4 to compile with -DLAMMPS_ZSTD
+#endif
+
 namespace LAMMPS_NS {
 
 class ZstdFileWriter : public FileWriter {
@@ -38,12 +42,12 @@ class ZstdFileWriter : public FileWriter {
 
  public:
   ZstdFileWriter();
-  virtual ~ZstdFileWriter();
-  virtual void open(const std::string &path, bool append = false) override;
-  virtual void close() override;
-  virtual void flush() override;
-  virtual size_t write(const void *buffer, size_t length) override;
-  virtual bool isopen() const override;
+  ~ZstdFileWriter() override;
+  void open(const std::string &path, bool append = false) override;
+  void close() override;
+  void flush() override;
+  size_t write(const void *buffer, size_t length) override;
+  bool isopen() const override;
 
   void setCompressionLevel(int level);
   void setChecksum(bool enabled);

@@ -1,7 +1,7 @@
 /* -*- c++ -*- ----------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    https://www.lammps.org/, Sandia National Laboratories
-   Steve Plimpton, sjplimp@sandia.gov
+   LAMMPS development team: developers@lammps.org
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
@@ -19,8 +19,17 @@
 namespace LAMMPS_NS {
 
 class NeighRequest : protected Pointers {
- public:
-  int index;                 // index of which neigh request this is
+  friend class Neighbor;
+  friend class NBin;
+  friend class NeighList;
+  friend class NPair;
+  friend class NStencil;
+  friend class NeighborKokkos;
+  friend class NPairSkipIntel;
+  friend class NPairSkipTrimIntel;
+  friend class FixIntel;
+
+ protected:
   void *requestor;           // class that made request
   int requestor_instance;    // instance of that class (only Fix, Compute, Pair)
   int id;                    // ID of request as stored by requestor
@@ -66,11 +75,11 @@ class NeighRequest : protected Pointers {
   int respamiddle;     // 1 if need a rRESPA middle list
   int respaouter;      // 1 if need a rRESPA outer list
   int bond;            // 1 if store bond neighbors instead of atom neighs
-  int omp;             // set by USER-OMP package
-  int intel;           // set by USER-INTEL package
+  int omp;             // set by OPENMP package
+  int intel;           // set by INTEL package
   int kokkos_host;     // set by KOKKOS package
   int kokkos_device;
-  int ssa;          // set by USER-DPD package, for Shardlow lists
+  int ssa;          // set by DPD-REACT package, for Shardlow lists
   int cut;          // 1 if use a non-standard cutoff length
   double cutoff;    // special cutoff distance for this list
 
@@ -93,6 +102,7 @@ class NeighRequest : protected Pointers {
   int off2on;      // 1 if this is newton on list, but skips from off list
 
   int copy;        // 1 if this list copied from another list
+  int trim;        // 1 if this list trimmed from another list
   int copylist;    // index of list to copy from
 
   int halffull;        // 1 if half list computed from another full list
@@ -110,13 +120,29 @@ class NeighRequest : protected Pointers {
   int index_pair;       // index of NPair class assigned to this request
 
   // methods
-
+ public:
   NeighRequest(class LAMMPS *);
-  ~NeighRequest();
+  NeighRequest(class LAMMPS *, void *, int);
+  NeighRequest(NeighRequest *);
+  ~NeighRequest() override;
+
   void archive();
   int identical(NeighRequest *);
   int same_skip(NeighRequest *);
   void copy_request(NeighRequest *, int);
+
+  void apply_flags(int);
+  void set_cutoff(double);
+  void set_id(int);
+  void set_kokkos_device(int);
+  void set_kokkos_host(int);
+  void set_skip(int *, int **);
+  void enable_full();
+  void enable_ghost();
+  void enable_intel();
+
+  int get_size() const { return size; }
+  void *get_requestor() const { return requestor; }
 };
 
 }    // namespace LAMMPS_NS

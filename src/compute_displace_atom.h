@@ -1,7 +1,7 @@
 /* -*- c++ -*- ----------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    https://www.lammps.org/, Sandia National Laboratories
-   Steve Plimpton, sjplimp@sandia.gov
+   LAMMPS development team: developers@lammps.org
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
@@ -27,18 +27,18 @@ namespace LAMMPS_NS {
 class ComputeDisplaceAtom : public Compute {
  public:
   ComputeDisplaceAtom(class LAMMPS *, int, char **);
-  ~ComputeDisplaceAtom();
-  void init();
-  void compute_peratom();
-  void set_arrays(int);
-  void refresh();
-  double memory_usage();
+  ~ComputeDisplaceAtom() override;
+  void init() override;
+  void compute_peratom() override;
+  void set_arrays(int) override;
+  void refresh() override;
+  double memory_usage() override;
 
  private:
   int nmax;
   double **displace;
   char *id_fix;
-  class FixStore *fix;
+  class FixStoreAtom *fix;
 
   int refreshflag, ivar, nvmax;    // refresh option is enabled
   char *rvar;                      // for incremental dumps
@@ -49,25 +49,3 @@ class ComputeDisplaceAtom : public Compute {
 
 #endif
 #endif
-
-/* ERROR/WARNING messages:
-
-E: Illegal ... command
-
-Self-explanatory.  Check the input script syntax and compare to the
-documentation for the command.  You can use -echo screen as a
-command-line option when running LAMMPS to see the offending line.
-
-E: Variable name for compute displace/atom does not exist
-
-UNDOCUMENTED
-
-E: Compute displace/atom variable is not atom-style variable
-
-UNDOCUMENTED
-
-E: Could not find compute displace/atom fix ID
-
-Self-explanatory.
-
-*/

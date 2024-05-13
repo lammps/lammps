@@ -1,7 +1,7 @@
 # ----------------------------------------------------------------------
 #   LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
 #   https://www.lammps.org/ Sandia National Laboratories
-#   Steve Plimpton, sjplimp@sandia.gov
+#   LAMMPS Development team: developers@lammps.org
 #
 #   Copyright (2003) Sandia Corporation.  Under the terms of Contract
 #   DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
@@ -17,7 +17,7 @@
 ################################################################################
 
 import warnings
-from ctypes import POINTER, c_double, c_int, c_int32, c_int64, cast
+from ctypes import POINTER, c_void_p, c_char_p, c_double, c_int, c_int32, c_int64, cast
 
 
 from .constants import *                # lgtm [py/polluting-import]
@@ -63,12 +63,16 @@ class numpy_wrapper:
 
     .. note::
 
-       While the returned arrays of per-atom data are dimensioned
-       for the range [0:nmax] - as is the underlying storage -
-       the data is usually only valid for the range of [0:nlocal],
-       unless the property of interest is also updated for ghost
-       atoms.  In some cases, this depends on a LAMMPS setting, see
-       for example :doc:`comm_modify vel yes <comm_modify>`.
+       The returned arrays of per-atom data are by default dimensioned
+       for the range [0:nlocal] since that data is *always* valid.  The
+       underlying storage for the data, however, is typically allocated
+       for the range of [0:nmax]. Whether there is valid data in the range
+       [nlocal:nlocal+nghost] depends on whether the property of interest
+       is also updated for ghost atoms.  This is not often the case.  In
+       some cases, it depends on a LAMMPS setting, see for example
+       :doc:`comm_modify vel yes <comm_modify>`.  By using the optional
+       *nelem* parameter the size of the returned NumPy can be overridden.
+       There is no check whether the number of elements chosen is valid.
 
     :param name: name of the property
     :type name:  string
@@ -92,8 +96,12 @@ class numpy_wrapper:
     if dim == LAMMPS_AUTODETECT:
       if dtype in (LAMMPS_INT_2D, LAMMPS_DOUBLE_2D, LAMMPS_INT64_2D):
         # TODO add other fields
-        if name in ("x", "v", "f", "angmom", "torque", "csforce", "vforce"):
+        if name in ("x", "v", "f", "x0","omega", "angmom", "torque", "csforce", "vforce", "vest"):
           dim = 3
+        elif name == "smd_data_9":
+          dim = 9
+        elif name == "smd_stress":
+          dim = 6
         else:
           dim = 2
       else:
@@ -161,13 +169,20 @@ class numpy_wrapper:
     """
     value = self.lmp.extract_compute(cid, cstyle, ctype)
 
-    if cstyle in (LMP_STYLE_GLOBAL, LMP_STYLE_LOCAL):
+    if cstyle == LMP_STYLE_GLOBAL:
       if ctype == LMP_TYPE_VECTOR:
         nrows = self.lmp.extract_compute(cid, cstyle, LMP_SIZE_VECTOR)
         return self.darray(value, nrows)
       elif ctype == LMP_TYPE_ARRAY:
         nrows = self.lmp.extract_compute(cid, cstyle, LMP_SIZE_ROWS)
         ncols = self.lmp.extract_compute(cid, cstyle, LMP_SIZE_COLS)
+        return self.darray(value, nrows, ncols)
+    elif cstyle == LMP_STYLE_LOCAL:
+      nrows = self.lmp.extract_compute(cid, cstyle, LMP_SIZE_ROWS)
+      ncols = self.lmp.extract_compute(cid, cstyle, LMP_SIZE_COLS)
+      if ncols == 0:
+        return self.darray(value, nrows)
+      else:
         return self.darray(value, nrows, ncols)
     elif cstyle == LMP_STYLE_ATOM:
       if ctype == LMP_TYPE_VECTOR:
@@ -187,6 +202,13 @@ class numpy_wrapper:
     This is a wrapper around the :py:meth:`lammps.extract_fix() <lammps.lammps.extract_fix()>` method.
     It behaves the same as the original method, but returns NumPy arrays
     instead of ``ctypes`` pointers.
+
+    .. note::
+
+       When requesting global data, the fix data can only be accessed one
+       item at a time without access to the whole vector or array.  Thus this
+       function will always return a scalar.  To access vector or array elements
+       the "nrow" and "ncol" arguments need to be set accordingly (they default to 0).
 
     :param fid: fix ID
     :type fid:  string
@@ -246,7 +268,163 @@ class numpy_wrapper:
       return np.ctypeslib.as_array(value)
     return value
 
-  # -------------------------------------------------------------------------
+    # -------------------------------------------------------------------------
+
+  def gather_bonds(self):
+    """Retrieve global list of bonds as NumPy array
+
+    .. versionadded:: 28Jul2021
+
+    This is a wrapper around :py:meth:`lammps.gather_bonds() <lammps.lammps.gather_bonds()>`
+    It behaves the same as the original method, but returns a NumPy array instead
+    of a ``ctypes`` list.
+
+    :return: the requested data as a 2d-integer numpy array
+    :rtype: numpy.array(nbonds,3)
+    """
+    import numpy as np
+    nbonds, value = self.lmp.gather_bonds()
+    return np.ctypeslib.as_array(value).reshape(nbonds,3)
+
+    # -------------------------------------------------------------------------
+
+  def gather_angles(self):
+    """ Retrieve global list of angles as NumPy array
+
+    .. versionadded:: 8Feb2023
+
+    This is a wrapper around :py:meth:`lammps.gather_angles() <lammps.lammps.gather_angles()>`
+    It behaves the same as the original method, but returns a NumPy array instead
+    of a ``ctypes`` list.
+
+    :return: the requested data as a 2d-integer numpy array
+    :rtype: numpy.array(nangles,4)
+    """
+    import numpy as np
+    nangles, value = self.lmp.gather_angles()
+    return np.ctypeslib.as_array(value).reshape(nangles,4)
+
+    # -------------------------------------------------------------------------
+
+  def gather_dihedrals(self):
+    """ Retrieve global list of dihedrals as NumPy array
+
+    .. versionadded:: 8Feb2023
+
+    This is a wrapper around :py:meth:`lammps.gather_dihedrals() <lammps.lammps.gather_dihedrals()>`
+    It behaves the same as the original method, but returns a NumPy array instead
+    of a ``ctypes`` list.
+
+    :return: the requested data as a 2d-integer numpy array
+    :rtype: numpy.array(ndihedrals,5)
+    """
+    import numpy as np
+    ndihedrals, value = self.lmp.gather_dihedrals()
+    return np.ctypeslib.as_array(value).reshape(ndihedrals,5)
+
+    # -------------------------------------------------------------------------
+
+  def gather_impropers(self):
+    """ Retrieve global list of impropers as NumPy array
+
+    .. versionadded:: 8Feb2023
+
+    This is a wrapper around :py:meth:`lammps.gather_impropers() <lammps.lammps.gather_impropers()>`
+    It behaves the same as the original method, but returns a NumPy array instead
+    of a ``ctypes`` list.
+
+    :return: the requested data as a 2d-integer numpy array
+    :rtype: numpy.array(nimpropers,5)
+    """
+    import numpy as np
+    nimpropers, value = self.lmp.gather_impropers()
+    return np.ctypeslib.as_array(value).reshape(nimpropers,5)
+
+    # -------------------------------------------------------------------------
+
+  def fix_external_get_force(self, fix_id):
+    """Get access to the array with per-atom forces of a fix external instance with a given fix ID.
+
+    .. versionchanged:: 28Jul2021
+
+    This function is a wrapper around the
+    :py:meth:`lammps.fix_external_get_force() <lammps.lammps.fix_external_get_force()>`
+    method.  It behaves the same as the original method, but returns a NumPy array instead
+    of a ``ctypes`` pointer.
+
+    :param fix_id:  Fix-ID of a fix external instance
+    :type: string
+    :return: requested data
+    :rtype: numpy.array
+    """
+    import numpy as np
+    nlocal = self.lmp.extract_setting('nlocal')
+    value = self.lmp.fix_external_get_force(fix_id)
+    return self.darray(value,nlocal,3)
+
+    # -------------------------------------------------------------------------
+
+  def fix_external_set_energy_peratom(self, fix_id, eatom):
+    """Set the per-atom energy contribution for a fix external instance with the given ID.
+
+    .. versionadded:: 28Jul2021
+
+    This function is an alternative to
+    :py:meth:`lammps.fix_external_set_energy_peratom() <lammps.lammps.fix_external_set_energy_peratom()>`
+    method.  It behaves the same as the original method, but accepts a NumPy array
+    instead of a list as argument.
+
+    :param fix_id:  Fix-ID of a fix external instance
+    :type: string
+    :param eatom:   per-atom potential energy
+    :type: numpy.array
+    """
+    import numpy as np
+    nlocal = self.lmp.extract_setting('nlocal')
+    if len(eatom) < nlocal:
+      raise Exception('per-atom energy dimension must be at least nlocal')
+
+    c_double_p = POINTER(c_double)
+    value = eatom.astype(np.double)
+    return self.lmp.lib.lammps_fix_external_set_energy_peratom(self.lmp.lmp, fix_id.encode(),
+                                                               value.ctypes.data_as(c_double_p))
+
+    # -------------------------------------------------------------------------
+
+  def fix_external_set_virial_peratom(self, fix_id, vatom):
+    """Set the per-atom virial contribution for a fix external instance with the given ID.
+
+    .. versionadded:: 28Jul2021
+
+    This function is an alternative to
+    :py:meth:`lammps.fix_external_set_virial_peratom() <lammps.lammps.fix_external_set_virial_peratom()>`
+    method.  It behaves the same as the original method, but accepts a NumPy array
+    instead of a list as argument.
+
+    :param fix_id:  Fix-ID of a fix external instance
+    :type: string
+    :param eatom:   per-atom potential energy
+    :type: numpy.array
+    """
+    import numpy as np
+    nlocal = self.lmp.extract_setting('nlocal')
+    if len(vatom) < nlocal:
+      raise Exception('per-atom virial first dimension must be at least nlocal')
+    if len(vatom[0]) != 6:
+      raise Exception('per-atom virial second dimension must be 6')
+
+    c_double_pp = np.ctypeslib.ndpointer(dtype=np.uintp, ndim=1, flags='C')
+
+    # recast numpy array to be compatible with library interface
+    value = (vatom.__array_interface__['data'][0]
+                   + np.arange(vatom.shape[0])*vatom.strides[0]).astype(np.uintp)
+
+    # change prototype to our custom type
+    self.lmp.lib.lammps_fix_external_set_virial_peratom.argtypes = [ c_void_p, c_char_p, c_double_pp ]
+
+    self.lmp.lib.lammps_fix_external_set_virial_peratom(self.lmp.lmp, fix_id.encode(), value)
+
+    # -------------------------------------------------------------------------
 
   def get_neighlist(self, idx):
     """Returns an instance of :class:`NumPyNeighList` which wraps access to the neighbor list with the given index
@@ -284,6 +462,9 @@ class numpy_wrapper:
   # -------------------------------------------------------------------------
 
   def iarray(self, c_int_type, raw_ptr, nelem, dim=1):
+    if raw_ptr is None:
+      return None
+
     import numpy as np
     np_int_type = self._ctype_to_numpy_int(c_int_type)
 
@@ -303,7 +484,11 @@ class numpy_wrapper:
   # -------------------------------------------------------------------------
 
   def darray(self, raw_ptr, nelem, dim=1):
+    if raw_ptr is None:
+      return None
+
     import numpy as np
+
     if dim == 1:
       ptr = cast(raw_ptr, POINTER(c_double * nelem))
     else:

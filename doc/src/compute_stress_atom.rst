@@ -10,7 +10,7 @@ compute centroid/stress/atom command
 Syntax
 """"""
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    compute ID group-ID style temp-ID keyword ...
 
@@ -87,6 +87,10 @@ Tersoff 3-body interaction) is assigned in equal portions to each atom
 in the set.  E.g. 1/4 of the dihedral virial to each of the 4 atoms,
 or 1/3 of the fix virial due to SHAKE constraints applied to atoms in
 a water molecule via the :doc:`fix shake <fix_shake>` command.
+As an exception, the virial contribution from
+constraint forces in :doc:`fix rigid <fix_rigid>` on each atom
+is computed from the constraint force acting on the corresponding atom
+and its position, i.e. the total virial is not equally distributed.
 
 In case of compute *centroid/stress/atom*, the virial contribution is:
 
@@ -103,19 +107,31 @@ atom :math:`I` due to the interaction and the relative position
 :math:`\mathbf{r}_{I0}` of the atom :math:`I` to the geometric center
 of the interacting atoms, i.e. centroid, is used.  As the geometric
 center is different for each interaction, the :math:`\mathbf{r}_{I0}`
-also differs.  The sixth and seventh terms, Kspace and :doc:`fix
-<fix>` contribution respectively, are computed identical to compute
-*stress/atom*.  Although the total system virial is the same as
+also differs. The sixth term, Kspace contribution,
+is computed identically to compute *stress/atom*.
+The seventh term is handed differently depending on
+if the constraint forces are due to :doc:`fix shake <fix_shake>`
+or :doc:`fix rigid <fix_rigid>`.
+In case of SHAKE constraints, each distance constraint is
+handed as a pairwise interaction.
+E.g. in case of a water molecule, two OH and one HH distance
+constraints are treated as three pairwise interactions.
+In case of :doc:`fix rigid <fix_rigid>`,
+all constraint forces in the molecule are treated
+as a single many-body interaction with a single centroid position.
+In case of water molecule, the formula expression would become
+identical to that of the three-body angle interaction.
+Although the total system virial is the same as
 compute *stress/atom*, compute *centroid/stress/atom* is know to
-result in more consistent heat flux values for angle, dihedrals and
-improper contributions when computed via :doc:`compute heat/flux
-<compute_heat_flux>`.
+result in more consistent heat flux values for angle, dihedrals,
+improper and constraint force contributions
+when computed via :doc:`compute heat/flux <compute_heat_flux>`.
 
-If no extra keywords are listed, the kinetic contribution all of the
-virial contribution terms are included in the per-atom stress tensor.
-If any extra keywords are listed, only those terms are summed to
-compute the tensor.  The *virial* keyword means include all terms
-except the kinetic energy *ke*\ .
+If no extra keywords are listed, the kinetic contribution *and* all
+of the virial contribution terms are included in the per-atom stress
+tensor.  If any extra keywords are listed, only those terms are
+summed to compute the tensor.  The *virial* keyword means include all
+terms except the kinetic energy *ke*\ .
 
 Note that the stress for each atom is due to its interaction with all
 other atoms in the simulation, not just with other atoms in the group.
@@ -134,7 +150,8 @@ contribution for the cluster interaction is divided evenly among those
 atoms.
 
 Details of how compute *centroid/stress/atom* obtains the virial for
-individual atoms is given in :ref:`(Surblys) <Surblys1>`, where the
+individual atoms are given in :ref:`(Surblys2019) <Surblys1>` and
+:ref:`(Surblys2021) <Surblys2>`, where the
 idea is that the virial of the atom :math:`I` is the result of only
 the force :math:`\mathbf{F}_I` on the atom due to the interaction and
 its positional vector :math:`\mathbf{r}_{I0}`, relative to the
@@ -205,6 +222,26 @@ result. I.e. the last 2 columns of thermo output will be the same:
    <pair_modify>` command, since those are contributions to the global
    system pressure.
 
+The compute stress/atom can be used in a number of ways.  Here is an
+example to compute a 1-d pressure profile in x-direction across the
+complete simulation box. You will need to adjust the number of bins and the
+selections for time averaging to your specific simulation.  This assumes
+that the dimensions of the simulation cell does not change.
+
+.. code-block:: LAMMPS
+
+   # set number of bins
+   variable nbins index 20
+   variable fraction equal 1.0/v_nbins
+   # define bins as chunks
+   compute cchunk all chunk/atom bin/1d x lower ${fraction} units reduced
+   compute stress all stress/atom NULL
+   # apply conversion to pressure early since we have no variable style for processing chunks
+   variable press atom -(c_stress[1]+c_stress[2]+c_stress[3])/(3.0*vol*${fraction})
+   compute binpress all reduce/chunk cchunk sum v_press
+   fix avg all ave/time 10 40 400 c_binpress mode vector file ave_stress.txt
+
+
 Output info
 """""""""""
 
@@ -213,7 +250,7 @@ which can be accessed by indices 1-6 by any command that uses per-atom
 values from a compute as input.  Compute *centroid/stress/atom*
 produces a per-atom array with 9 columns, but otherwise can be used in
 an identical manner to compute *stress/atom*.  See the :doc:`Howto
-output <Howto_output>` doc page for an overview of LAMMPS output
+output <Howto_output>` page for an overview of LAMMPS output
 options.
 
 The ordering of the 6 columns for *stress/atom* is as follows: xx, yy,
@@ -233,12 +270,12 @@ since its computations are performed pairwise), nor granular pair
 styles with pairwise forces which are not aligned with the vector
 between the pair of particles.  All bond styles are supported.  All
 angle, dihedral, improper styles are supported with the exception of
-USER-INTEL and KOKKOS variants of specific styles.  It also does not
+INTEL and KOKKOS variants of specific styles.  It also does not
 support models with long-range Coulombic or dispersion forces,
-i.e. the kspace_style command in LAMMPS.  It also does not support the
-following fixes which add rigid-body constraints: :doc:`fix shake
-<fix_shake>`, :doc:`fix rattle <fix_shake>`, :doc:`fix rigid
-<fix_rigid>`, :doc:`fix rigid/small <fix_rigid>`.
+i.e. the kspace_style command in LAMMPS.  It also does not implement the
+following fixes which add rigid-body constraints:
+:doc:`fix rigid/* <fix_rigid>` and the OpenMP accelerated version of :doc:`fix rigid/small <fix_rigid>`,
+while all other :doc:`fix rigid/*/small <fix_rigid>` are implemented.
 
 LAMMPS will generate an error if one of these options is included in
 your model.  Extension of centroid stress calculations to these force
@@ -252,7 +289,8 @@ Related commands
 Default
 """""""
 
-none
+By default the compute includes contributions from the keywords:
+``ke pair bond angle dihedral improper kspace fix``
 
 ----------
 
@@ -270,4 +308,8 @@ none
 
 .. _Surblys1:
 
-**(Surblys)** Surblys, Matsubara, Kikugawa, Ohara, Phys Rev E, 99, 051301(R) (2019).
+**(Surblys2019)** Surblys, Matsubara, Kikugawa, Ohara, Phys Rev E, 99, 051301(R) (2019).
+
+.. _Surblys2:
+
+**(Surblys2021)** Surblys, Matsubara, Kikugawa, Ohara, J Appl Phys 130, 215104 (2021).

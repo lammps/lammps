@@ -6,7 +6,7 @@ fix flow/gauss command
 Syntax
 """"""
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    fix ID group-ID flow/gauss xflag yflag zflag keyword
 
@@ -24,9 +24,9 @@ Syntax
 
   .. parsed-literal::
 
-       *energy* value = no or yes
-         no = do not compute work done by this fix
-         yes = compute work done by this fix
+       *energy* value = *no* or *yes*
+         *no* = do not compute work done by this fix
+         *yes* = compute work done by this fix
 
 Examples
 """"""""
@@ -73,7 +73,7 @@ pressure correction is discussed and described in :ref:`(Strong)
 <Strong>`.
 
 For a complete example including the considerations discussed
-above, see the examples/USER/flow_gauss directory.
+above, see the examples/PACKAGES/flow_gauss directory.
 
 .. note::
 
@@ -81,7 +81,7 @@ above, see the examples/USER/flow_gauss directory.
    velocities of the group-ID atoms are coupled to the velocities of
    other atoms in the simulation, the flux will not be conserved. For
    example, in a simulation with fluid atoms and harmonically constrained
-   wall atoms, if a single thermostat is applied to group *all*\ , the
+   wall atoms, if a single thermostat is applied to group *all*, the
    fluid atom velocities will be coupled to the wall atom velocities, and
    the flux will not be conserved. This issue can be avoided by
    thermostatting the fluid and wall groups separately.
@@ -158,9 +158,9 @@ This fix is not invoked during :doc:`energy minimization <minimize>`.
 Restrictions
 """"""""""""
 
-This fix is part of the USER-MISC package.  It is only enabled if
+This fix is part of the EXTRA-FIX package.  It is only enabled if
 LAMMPS was built with that package.  See the :doc:`Build package
-<Build_package>` doc page for more info.
+<Build_package>` page for more info.
 
 Related commands
 """"""""""""""""

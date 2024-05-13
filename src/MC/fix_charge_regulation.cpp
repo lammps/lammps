@@ -2,7 +2,7 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    https://www.lammps.org/, Sandia National Laboratories
-   Steve Plimpton, sjplimp@sandia.gov
+   LAMMPS development team: developers@lammps.org
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
@@ -22,6 +22,7 @@
 #include "atom.h"
 #include "atom_vec.h"
 #include "bond.h"
+#include "citeme.h"
 #include "comm.h"
 #include "compute.h"
 #include "dihedral.h"
@@ -45,6 +46,7 @@
 
 #include <cmath>
 #include <cstring>
+#include <exception>
 #include <memory>
 
 using namespace LAMMPS_NS;
@@ -52,12 +54,22 @@ using namespace FixConst;
 using namespace MathConst;
 using namespace MathSpecial;
 
+static const char cite_fix_charge_regulation[] =
+  "fix charge/regulation: doi:10.1063/5.0066432\n\n"
+  "@Article{Curk22,\n"
+  " author = {T. Curk and J. Yuan and E. Luijten},\n"
+  " title = {Accelerated Simulation Method for Charge Regulation Effects},\n"
+  " journal = {Journal of Chemical Physics},\n"
+  " year = 2022,\n"
+  " volume = 156\n"
+  "}\n\n";
+
 enum{CONSTANT,EQUAL}; // parsing input variables
 
 // large energy value used to signal overlap
-#define MAXENERGYSIGNAL 1.0e100
-#define MAXENERGYTEST 1.0e50
-#define SMALL 0.0000001
+static constexpr double MAXENERGYSIGNAL = 1.0e100;
+static constexpr double MAXENERGYTEST = 1.0e50;
+static constexpr double SMALL = 0.0000001;
 #define NA_RHO0 0.602214 // Avogadro's constant times reference concentration  (N_A * mol / liter)  [nm^-3]
 
 /* ---------------------------------------------------------------------- */
@@ -68,6 +80,9 @@ FixChargeRegulation::FixChargeRegulation(LAMMPS *lmp, int narg, char **arg) :
   c_pe(nullptr), random_equal(nullptr), random_unequal(nullptr),
   idftemp(nullptr)
 {
+  if (narg < 5) utils::missing_cmd_args(FLERR, "fix charge/regulation", error);
+
+  if (lmp->citeme) lmp->citeme->add(cite_fix_charge_regulation);
 
   // Region restrictions not yet implemented ..
 
@@ -128,6 +143,8 @@ FixChargeRegulation::FixChargeRegulation(LAMMPS *lmp, int narg, char **arg) :
   nsalt_successes = 0;
 }
 
+/* ---------------------------------------------------------------------- */
+
 FixChargeRegulation::~FixChargeRegulation() {
 
   memory->destroy(ptype_ID);
@@ -137,11 +154,33 @@ FixChargeRegulation::~FixChargeRegulation() {
   delete[] pHstr;
   delete[] idftemp;
 
+  // delete exclusion group created in init()
+  // unset neighbor exclusion settings made in init()
+  // not necessary if group and neighbor classes already destroyed
+  //   when LAMMPS exits
+
+  if (exclusion_group_bit && group) {
+    auto group_id = std::string("FixChargeRegulation:gcmc_exclusion_group:") + id;
+    try {
+      group->assign(group_id + " delete");
+    } catch (std::exception &e) {
+      if (comm->me == 0)
+        fprintf(stderr, "Error deleting group %s: %s\n", group_id.c_str(), e.what());
+    }
+  }
+
   if (group) {
     int igroupall = group->find("all");
     neighbor->exclusion_group_group_delete(exclusion_group, igroupall);
   }
+
+  if (groupstrings) {
+    for (int i = 0; i < ngroups; ++i) delete[] groupstrings[i];
+    memory->destroy(groupstrings);
+  }
 }
+
+/* ---------------------------------------------------------------------- */
 
 int FixChargeRegulation::setmask() {
   int mask = 0;
@@ -149,7 +188,14 @@ int FixChargeRegulation::setmask() {
   return mask;
 }
 
+/* ---------------------------------------------------------------------- */
+
 void FixChargeRegulation::init() {
+
+  if (!atom->mass) error->all(FLERR, "Fix charge/regulation requires per atom type masses");
+  if (atom->rmass_flag && (comm->me == 0))
+    error->warning(FLERR, "Fix charge/regulation will use per atom type masses for "
+                   "velocity initialization");
 
   triclinic = domain->triclinic;
   int ipe = modify->find_compute("thermo_pe");
@@ -188,12 +234,11 @@ void FixChargeRegulation::init() {
 
     // create unique group name for atoms to be excluded
 
-    auto group_id = fmt::format("FixChargeRegulation:exclusion_group:{}",id);
+    auto group_id = std::string("FixChargeRegulation:exclusion_group:") + id;
     group->assign(group_id + " subtract all all");
     exclusion_group = group->find(group_id);
     if (exclusion_group == -1)
-      error->all(FLERR,"Could not find fix charge/regulation exclusion "
-                 "group ID");
+      error->all(FLERR,"Could not find fix charge/regulation exclusion group ID");
     exclusion_group_bit = group->bitmask[exclusion_group];
 
     // neighbor list exclusion setup
@@ -217,8 +262,7 @@ void FixChargeRegulation::init() {
     MPI_Allreduce(&flag, &flagall, 1, MPI_INT, MPI_SUM, world);
 
     if (flagall)
-      error->all(FLERR, "Cannot use fix charge/regulation on atoms "
-                 "in atom_modify first group");
+      error->all(FLERR, "Cannot use fix charge/regulation on atoms in atom_modify first group");
   }
 
   // construct group bitmask for all new atoms
@@ -233,6 +277,8 @@ void FixChargeRegulation::init() {
     groupbitall |= group->bitmask[jgroup];
   }
 }
+
+/* ---------------------------------------------------------------------- */
 
 void FixChargeRegulation::pre_exchange() {
 
@@ -360,16 +406,15 @@ void FixChargeRegulation::pre_exchange() {
   next_reneighbor = update->ntimestep + nevery;
 }
 
+/* ---------------------------------------------------------------------- */
+
 void FixChargeRegulation::forward_acid() {
 
   double energy_before = energy_stored;
   double factor;
-  double dummyp[3];
-  double pos[3];
-  pos[0] = 0;
-  pos[1] = 0;
-  pos[2] = 0; // acid/base particle position
-  double pos_all[3];
+  double dummyp[3] = {0.0, 0.0, 0.0};
+  double pos[3] = {0.0, 0.0, 0.0}; // acid/base particle position
+  double pos_all[3] = {0.0, 0.0, 0.0};
   int m1 = -1, m2 = -1;
 
   m1 = get_random_particle(acid_type, 0, 0, dummyp);
@@ -420,17 +465,16 @@ void FixChargeRegulation::forward_acid() {
   }
 }
 
+/* ---------------------------------------------------------------------- */
+
 void FixChargeRegulation::backward_acid() {
 
   double energy_before = energy_stored;
   double factor;
   int mask_tmp;
-  double dummyp[3];
-  double pos[3];
-  pos[0] = 0;
-  pos[1] = 0;
-  pos[2] = 0; // acid/base particle position
-  double pos_all[3];
+  double dummyp[3] = {0.0, 0.0, 0.0};
+  double pos[3] = {0.0, 0.0, 0.0}; // acid/base particle position
+  double pos_all[3] = {0.0, 0.0, 0.0};
   int m1 = -1, m2 = -1;
 
   m1 = get_random_particle(acid_type, -1, 0, dummyp);
@@ -498,16 +542,15 @@ void FixChargeRegulation::backward_acid() {
   }
 }
 
+/* ---------------------------------------------------------------------- */
+
 void FixChargeRegulation::forward_base() {
 
   double energy_before = energy_stored;
   double factor;
-  double dummyp[3];
-  double pos[3];
-  pos[0] = 0;
-  pos[1] = 0;
-  pos[2] = 0; // acid/base particle position
-  double pos_all[3];
+  double dummyp[3] = {0.0, 0.0, 0.0};
+  double pos[3] = {0.0, 0.0, 0.0}; // acid/base particle position
+  double pos_all[3] = {0.0, 0.0, 0.0};
   int m1 = -1, m2 = -1;
 
   m1 = get_random_particle(base_type, 0, 0, dummyp);
@@ -558,17 +601,16 @@ void FixChargeRegulation::forward_base() {
   }
 }
 
+/* ---------------------------------------------------------------------- */
+
 void FixChargeRegulation::backward_base() {
 
   double energy_before = energy_stored;
   double factor;
-  double dummyp[3];
+  double dummyp[3] = {0.0, 0.0, 0.0};
+  double pos[3] = {0.0, 0.0, 0.0}; // acid/base particle position
+  double pos_all[3] = {0.0, 0.0, 0.0};
   int mask_tmp;
-  double pos[3];
-  pos[0] = 0;
-  pos[1] = 0;
-  pos[2] = 0; // acid/base particle position
-  double pos_all[3];
   int m1 = -1, m2 = -1;
 
   m1 = get_random_particle(base_type, 1, 0, dummyp);
@@ -635,17 +677,21 @@ void FixChargeRegulation::backward_base() {
   }
 }
 
+/* ---------------------------------------------------------------------- */
+
 void FixChargeRegulation::forward_ions() {
 
   double energy_before = energy_stored;
   double factor;
-  double dummyp[3];
+  double dummyp[3] = {0.0, 0.0, 0.0};
   int m1 = -1, m2 = -1;
   factor = volume_rx * volume_rx * c10pI_plus * c10pI_minus /
            ((1 + ncation) * (1 + nanion));
 
   m1 = insert_particle(cation_type, +1, 0, dummyp);
   m2 = insert_particle(anion_type, -1, 0, dummyp);
+  if (force->kspace) force->kspace->qsum_qsq();
+  if (force->pair->tail_flag) force->pair->reinit();
   double energy_after = energy_full();
   if (energy_after < MAXENERGYTEST &&
       random_equal->uniform() < factor * exp(beta * (energy_before - energy_after))) {
@@ -668,13 +714,14 @@ void FixChargeRegulation::forward_ions() {
   }
 }
 
+/* ---------------------------------------------------------------------- */
 
 void FixChargeRegulation::backward_ions() {
 
   double energy_before = energy_stored;
   double factor;
   int mask1_tmp = 0, mask2_tmp = 0;
-  double dummyp[3];
+  double dummyp[3] = {0.0, 0.0, 0.0};
   int m1 = -1, m2 = -1;
 
   m1 = get_random_particle(cation_type, +1, 0, dummyp);
@@ -750,11 +797,13 @@ void FixChargeRegulation::backward_ions() {
   }
 }
 
+/* ---------------------------------------------------------------------- */
+
 void FixChargeRegulation::forward_ions_multival() {
 
   double energy_before = energy_stored;
   double factor = 1;
-  double dummyp[3];
+  double dummyp[3] = {0.0, 0.0, 0.0};
 
   // particle ID array for all ions to be inserted
   auto mm = std::unique_ptr<int[]>(new int[salt_charge_ratio + 1]);
@@ -808,11 +857,13 @@ void FixChargeRegulation::forward_ions_multival() {
   }
 }
 
+/* ---------------------------------------------------------------------- */
+
 void FixChargeRegulation::backward_ions_multival() {
 
   double energy_before = energy_stored;
   double factor = 1;
-  double dummyp[3];  // dummy particle
+  double dummyp[3] = {0.0, 0.0, 0.0}; // dummy particle
   // particle ID array for all deleted ions
   auto mm = std::unique_ptr<int[]>(new int[salt_charge_ratio + 1]);
   // charge array for all deleted ions
@@ -929,6 +980,8 @@ void FixChargeRegulation::backward_ions_multival() {
   }
 }
 
+/* ---------------------------------------------------------------------- */
+
 int FixChargeRegulation::insert_particle(int ptype, double charge, double rd, double *target) {
 
   // insert a particle of type (ptype) with charge (charge) within distance (rd) of (target)
@@ -985,11 +1038,21 @@ int FixChargeRegulation::insert_particle(int ptype, double charge, double rd, do
     modify->create_attribute(m);
 
   }
-  atom->nghost = 0;
-  comm->borders();
   atom->natoms++;
+  atom->nghost = 0;
+  if (atom->tag_enable) {
+    if (atom->tag_enable) {
+      atom->tag_extend();
+      if (atom->map_style != Atom::MAP_NONE) atom->map_init();
+    }
+  }
+  if (triclinic) domain->x2lamda(atom->nlocal);
+  comm->borders();
+  if (triclinic) domain->lamda2x(atom->nlocal+atom->nghost);
   return m;
 }
+
+/* ---------------------------------------------------------------------- */
 
 int FixChargeRegulation::get_random_particle(int ptype, double charge, double rd, double *target) {
 
@@ -1055,6 +1118,8 @@ int FixChargeRegulation::get_random_particle(int ptype, double charge, double rd
   return -1;
 }
 
+/* ---------------------------------------------------------------------- */
+
 double FixChargeRegulation::energy_full() {
   if (triclinic) domain->x2lamda(atom->nlocal);
   domain->pbc();
@@ -1107,12 +1172,14 @@ double FixChargeRegulation::energy_full() {
   if (force->kspace) force->kspace->compute(eflag, vflag);
 
   if (modify->n_pre_reverse) modify->pre_reverse(eflag,vflag);
-  if (modify->n_post_force) modify->post_force(vflag);
-  if (modify->n_end_of_step) modify->end_of_step();
+  if (modify->n_post_force_any) modify->post_force(vflag);
+
   update->eflag_global = update->ntimestep;
   double total_energy = c_pe->compute_scalar();
   return total_energy;
 }
+
+/* ---------------------------------------------------------------------- */
 
 int FixChargeRegulation::particle_number_xrd(int ptype, double charge, double rd, double *target) {
 
@@ -1143,6 +1210,8 @@ int FixChargeRegulation::particle_number_xrd(int ptype, double charge, double rd
   return count_sum;
 }
 
+/* ---------------------------------------------------------------------- */
+
 int FixChargeRegulation::particle_number(int ptype, double charge) {
 
   int count = 0;
@@ -1154,6 +1223,8 @@ int FixChargeRegulation::particle_number(int ptype, double charge) {
   MPI_Allreduce(&count, &count_sum, 1, MPI_INT, MPI_SUM, world);
   return count_sum;
 }
+
+/* ---------------------------------------------------------------------- */
 
 double FixChargeRegulation::compute_vector(int n) {
   if (n == 0) {
@@ -1176,18 +1247,74 @@ double FixChargeRegulation::compute_vector(int n) {
   return 0.0;
 }
 
-void FixChargeRegulation::setThermoTemperaturePointer() {
-  int ifix = -1;
-  ifix = modify->find_fix(idftemp);
-  if (ifix == -1) {
-    error->all(FLERR,
-               "fix charge/regulation regulation could not find a temperature fix id provided by tempfixid\n");
-  }
-  Fix *temperature_fix = modify->fix[ifix];
-  int dim;
-  target_temperature_tcp = (double *) temperature_fix->extract("t_target", dim);
 
+/* ----------------------------------------------------------------------
+   pack entire state of Fix into one write
+------------------------------------------------------------------------- */
+
+void FixChargeRegulation::write_restart(FILE *fp)
+{
+  int n = 0;
+  double list[10];
+  list[n++] = random_equal->state();
+  list[n++] = random_unequal->state();
+  list[n++] = nacid_attempts;
+  list[n++] = nacid_successes;
+  list[n++] = nbase_attempts;
+  list[n++] = nbase_successes;
+  list[n++] = nsalt_attempts;
+  list[n++] = nsalt_successes;
+  list[n++] = ubuf(next_reneighbor).d;
+  list[n++] = ubuf(update->ntimestep).d;
+
+  if (comm->me == 0) {
+    int size = (int) sizeof(list);
+    fwrite(&size,sizeof(int),1,fp);
+    fwrite(list,sizeof(list),1,fp);
+  }
 }
+
+/* ----------------------------------------------------------------------
+   use state info from restart file to restart the Fix
+------------------------------------------------------------------------- */
+
+void FixChargeRegulation::restart(char *buf)
+{
+  int n = 0;
+  auto list = (double *) buf;
+
+  seed = static_cast<int> (list[n++]);
+  random_equal->reset(seed);
+
+  seed = static_cast<int> (list[n++]);
+  random_unequal->reset(seed);
+
+  nacid_attempts  = list[n++];
+  nacid_successes = list[n++];
+  nbase_attempts  = list[n++];
+  nbase_successes = list[n++];
+  nsalt_attempts  = list[n++];
+  nsalt_successes = list[n++];
+
+  next_reneighbor = (bigint) ubuf(list[n++]).i;
+  bigint ntimestep_restart = (bigint) ubuf(list[n++]).i;
+  if (ntimestep_restart != update->ntimestep)
+    error->all(FLERR,"Must not reset timestep when restarting fix gcmc");
+}
+
+/* ---------------------------------------------------------------------- */
+
+void FixChargeRegulation::setThermoTemperaturePointer() {
+  Fix *ifix = modify->get_fix_by_id(idftemp);
+  if (!ifix)
+    error->all(FLERR, "fix charge/regulation could not find thermostat fix id {}", idftemp);
+
+  int dim;
+  target_temperature_tcp = (double *) ifix->extract("t_target", dim);
+  if (!target_temperature_tcp) error->all(FLERR, "Fix id {} does not control temperature", idftemp);
+}
+
+/* ---------------------------------------------------------------------- */
 
 void FixChargeRegulation::assign_tags() {
   // Assign tags to ions with zero tags
@@ -1198,8 +1325,7 @@ void FixChargeRegulation::assign_tags() {
     for (int i = 0; i < atom->nlocal; i++) maxtag = MAX(maxtag, tag[i]);
     maxtag_all = maxtag;
     MPI_Allreduce(&maxtag, &maxtag_all, 1, MPI_LMP_TAGINT, MPI_MAX, world);
-    if (maxtag_all >= MAXTAGINT)
-      error->all(FLERR, "New atom IDs exceed maximum allowed ID");
+    if (maxtag_all >= MAXTAGINT) error->all(FLERR, "New atom IDs exceed maximum allowed ID");
 
     tagint notag = 0;
     tagint notag_all;
@@ -1267,23 +1393,19 @@ void FixChargeRegulation::options(int narg, char **arg) {
   while (iarg < narg) {
 
     if (strcmp(arg[iarg], "lunit_nm") == 0) {
-      if (iarg + 2 > narg)
-        error->all(FLERR, "Illegal fix charge/regulation command");
+      if (iarg + 2 > narg) error->all(FLERR, "Illegal fix charge/regulation command");
       llength_unit_in_nm = utils::numeric(FLERR, arg[iarg + 1], false, lmp);
       iarg += 2;
     } else if (strcmp(arg[iarg], "acid_type") == 0) {
-      if (iarg + 2 > narg)
-        error->all(FLERR, "Illegal fix charge/regulation command");
+      if (iarg + 2 > narg) error->all(FLERR, "Illegal fix charge/regulation command");
       acid_type = utils::inumeric(FLERR, arg[iarg + 1], false, lmp);
       iarg += 2;
     } else if (strcmp(arg[iarg], "base_type") == 0) {
-      if (iarg + 2 > narg)
-        error->all(FLERR, "Illegal fix charge/regulation command");
+      if (iarg + 2 > narg) error->all(FLERR, "Illegal fix charge/regulation command");
       base_type = utils::inumeric(FLERR, arg[iarg + 1], false, lmp);
       iarg += 2;
     } else if (strcmp(arg[iarg], "pH") == 0) {
-      if (iarg + 2 > narg)
-        error->all(FLERR, "Illegal fix charge/regulation command");
+      if (iarg + 2 > narg) error->all(FLERR, "Illegal fix charge/regulation command");
       if (strstr(arg[iarg + 1],"v_") == arg[iarg + 1]) {
         pHstr = utils::strdup(&arg[iarg + 1][2]);
       } else {
@@ -1292,45 +1414,37 @@ void FixChargeRegulation::options(int narg, char **arg) {
       }
       iarg += 2;
     } else if (strcmp(arg[iarg], "pIp") == 0) {
-      if (iarg + 2 > narg)
-        error->all(FLERR, "Illegal fix charge/regulation command");
+      if (iarg + 2 > narg) error->all(FLERR, "Illegal fix charge/regulation command");
       pI_plus = utils::numeric(FLERR, arg[iarg + 1], false, lmp);
       iarg += 2;
     } else if (strcmp(arg[iarg], "pIm") == 0) {
-      if (iarg + 2 > narg)
-        error->all(FLERR, "Illegal fix charge/regulation command");
+      if (iarg + 2 > narg) error->all(FLERR, "Illegal fix charge/regulation command");
       pI_minus = utils::numeric(FLERR, arg[iarg + 1], false, lmp);
       iarg += 2;
     } else if (strcmp(arg[iarg], "pKa") == 0) {
-      if (iarg + 2 > narg)
-        error->all(FLERR, "Illegal fix charge/regulation command");
+      if (iarg + 2 > narg) error->all(FLERR, "Illegal fix charge/regulation command");
       pKa = utils::numeric(FLERR, arg[iarg + 1], false, lmp);
       iarg += 2;
     } else if (strcmp(arg[iarg], "pKb") == 0) {
-      if (iarg + 2 > narg)
-        error->all(FLERR, "Illegal fix charge/regulation command");
+      if (iarg + 2 > narg) error->all(FLERR, "Illegal fix charge/regulation command");
       pKb = utils::numeric(FLERR, arg[iarg + 1], false, lmp);
       iarg += 2;
 
     } else if (strcmp(arg[iarg], "temp") == 0) {
-      if (iarg + 2 > narg)
-        error->all(FLERR, "Illegal fix charge/regulation command");
+      if (iarg + 2 > narg) error->all(FLERR, "Illegal fix charge/regulation command");
       reservoir_temperature = utils::numeric(FLERR, arg[iarg + 1], false, lmp);
       iarg += 2;
     } else if (strcmp(arg[iarg], "pKs") == 0) {
-      if (iarg + 2 > narg)
-        error->all(FLERR, "Illegal fix charge/regulation command");
+      if (iarg + 2 > narg) error->all(FLERR, "Illegal fix charge/regulation command");
       pKs = utils::numeric(FLERR, arg[iarg + 1], false, lmp);
       iarg += 2;
     } else if (strcmp(arg[iarg], "tempfixid") == 0) {
-      if (iarg + 2 > narg)
-        error->all(FLERR, "Illegal fix charge/regulation command");
+      if (iarg + 2 > narg) error->all(FLERR, "Illegal fix charge/regulation command");
       idftemp = utils::strdup(arg[iarg+1]);
       setThermoTemperaturePointer();
       iarg += 2;
     } else if (strcmp(arg[iarg], "rxd") == 0) {
-      if (iarg + 2 > narg)
-        error->all(FLERR, "Illegal fix charge/regulation command");
+      if (iarg + 2 > narg) error->all(FLERR, "Illegal fix charge/regulation command");
       reaction_distance = utils::numeric(FLERR, arg[iarg + 1], false, lmp);
       if ((reaction_distance > domain->prd_half[0]) ||
           (reaction_distance > domain->prd_half[1]) ||
@@ -1342,61 +1456,44 @@ void FixChargeRegulation::options(int narg, char **arg) {
       }
       iarg += 2;
     } else if (strcmp(arg[iarg], "nevery") == 0) {
-      if (iarg + 2 > narg)
-        error->all(FLERR, "Illegal fix charge/regulation command");
+      if (iarg + 2 > narg) error->all(FLERR, "Illegal fix charge/regulation command");
       nevery = utils::inumeric(FLERR, arg[iarg + 1], false, lmp);
       iarg += 2;
     } else if (strcmp(arg[iarg], "nmc") == 0) {
-      if (iarg + 2 > narg)
-        error->all(FLERR, "Illegal fix charge/regulation command");
+      if (iarg + 2 > narg) error->all(FLERR, "Illegal fix charge/regulation command");
       nmc = utils::inumeric(FLERR, arg[iarg + 1], false, lmp);
       iarg += 2;
     } else if (strcmp(arg[iarg], "pmcmoves") == 0) {
-      if (iarg + 4 > narg)
-        error->all(FLERR, "Illegal fix charge/regulation command");
+      if (iarg + 4 > narg) error->all(FLERR, "Illegal fix charge/regulation command");
       pmcmoves[0] = utils::numeric(FLERR, arg[iarg + 1], false, lmp);
       pmcmoves[1] = utils::numeric(FLERR, arg[iarg + 2], false, lmp);
       pmcmoves[2] = utils::numeric(FLERR, arg[iarg + 3], false, lmp);
       iarg += 4;
     } else if (strcmp(arg[iarg], "seed") == 0) {
-      if (iarg + 2 > narg)
-        error->all(FLERR, "Illegal fix charge/regulation command");
+      if (iarg + 2 > narg) error->all(FLERR, "Illegal fix charge/regulation command");
       seed = utils::inumeric(FLERR, arg[iarg + 1], false, lmp);
       iarg += 2;
     } else if (strcmp(arg[iarg], "tag") == 0) {
-      if (iarg + 2 > narg)
-        error->all(FLERR, "Illegal fix charge/regulation command");
-      if (strcmp(arg[iarg + 1], "yes") == 0) {
-        add_tags_flag = true;
-      } else if (strcmp(arg[iarg + 1], "no") == 0) {
-        add_tags_flag = false;
-      } else error->all(FLERR, "Illegal fix charge/regulation command");
+      if (iarg + 2 > narg) error->all(FLERR, "Illegal fix charge/regulation command");
+      add_tags_flag = utils::logical(FLERR,arg[iarg+1],false,lmp) == 1;
       iarg += 2;
     } else if (strcmp(arg[iarg], "onlysalt") == 0) {
-      if (iarg + 2 > narg)
-        error->all(FLERR, "Illegal fix charge/regulation command");
-      if (strcmp(arg[iarg + 1], "yes") == 0) {
-        only_salt_flag = true;
+      if (iarg + 2 > narg) error->all(FLERR, "Illegal fix charge/regulation command");
+      only_salt_flag = utils::logical(FLERR,arg[iarg+1],false,lmp) == 1;
+      iarg += 2;
+      if (only_salt_flag) {
         // need to specify salt charge
-        if (iarg + 4 > narg)
-          error->all(FLERR, "Illegal fix charge/regulation command");
-        salt_charge[0] = utils::inumeric(FLERR, arg[iarg + 2], false, lmp);
-        salt_charge[1] = utils::inumeric(FLERR, arg[iarg + 3], false, lmp);
-        iarg += 4;
-      } else if (strcmp(arg[iarg + 1], "no") == 0) {
-        only_salt_flag = false;
+        if (iarg + 2 > narg) error->all(FLERR, "Illegal fix charge/regulation command");
+        salt_charge[0] = utils::inumeric(FLERR, arg[iarg], false, lmp);
+        salt_charge[1] = utils::inumeric(FLERR, arg[iarg + 1], false, lmp);
         iarg += 2;
-      } else error->all(FLERR, "Illegal fix charge/regulation command");
-
+      }
     } else if (strcmp(arg[iarg], "group") == 0) {
-      if (iarg + 2 > narg)
-        error->all(FLERR, "Illegal fix fix charge/regulation command");
+      if (iarg + 2 > narg) error->all(FLERR, "Illegal fix fix charge/regulation command");
       if (ngroups >= ngroupsmax) {
         ngroupsmax = ngroups + 1;
         groupstrings = (char **)
-          memory->srealloc(groupstrings,
-                           ngroupsmax * sizeof(char *),
-                           "fix_charge_regulation:groupstrings");
+          memory->srealloc(groupstrings, ngroupsmax * sizeof(char *), "fix_charge_regulation:groupstrings");
       }
       groupstrings[ngroups] = utils::strdup(arg[iarg+1]);
       ngroups++;

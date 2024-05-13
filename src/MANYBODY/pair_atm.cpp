@@ -2,7 +2,7 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    https://www.lammps.org/, Sandia National Laboratories
-   Steve Plimpton, sjplimp@sandia.gov
+   LAMMPS development team: developers@lammps.org
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
@@ -18,7 +18,6 @@
 
 #include "pair_atm.h"
 
-#include <cmath>
 #include "atom.h"
 #include "citeme.h"
 #include "comm.h"
@@ -26,20 +25,21 @@
 #include "force.h"
 #include "memory.h"
 #include "neigh_list.h"
-#include "neigh_request.h"
 #include "neighbor.h"
 
+#include <cmath>
 
 using namespace LAMMPS_NS;
 
 static const char cite_atm_package[] =
-  "ATM package:\n\n"
+  "ATM package: doi:10.1063/1.4704930\n\n"
   "@Article{Lishchuk:2012:164501,\n"
   " author = {S. V. Lishchuk},\n"
-  " title = {Role of three-body interactions in formation of bulk viscosity in liquid argon},\n"
-  " journal = {J.~Chem.~Phys.},\n"
+  " title = {Role of Three-Body Interactions in Formation of Bulk Viscosity in Liquid Argon},\n"
+  " journal = {J.~Chem.\\ Phys.},\n"
   " year =    2012,\n"
   " volume =  136,\n"
+  " number =  16,\n"
   " pages =   {164501}\n"
   "}\n\n";
 
@@ -105,7 +105,7 @@ void PairATM::compute(int eflag, int vflag)
   // must compute each IJK triplet interaction exactly once
   // by proc that owns the triplet atom with smallest x coord
   //   special logic to break ties if multiple atoms have same x or y coords
-  // inner two loops for jj=1,Jnum and kk=jj+1,Jnum insure
+  // inner two loops for jj=1,Jnum and kk=jj+1,Jnum ensure
   //   the pair of other 2 non-minimum-x atoms is only considered once
   // triplet geometry criteria for calculation:
   //   each pair distance <= cutoff
@@ -128,9 +128,9 @@ void PairATM::compute(int eflag, int vflag)
       rij[0] = x[j][0] - xi;
       if (rij[0] < 0.0) continue;
       rij[1] = x[j][1] - yi;
-      if (rij[0] == 0.0 and rij[1] < 0.0) continue;
+      if (rij[0] == 0.0 && rij[1] < 0.0) continue;
       rij[2] = x[j][2] - zi;
-      if (rij[0] == 0.0 and rij[1] == 0.0 and rij[2] < 0.0) continue;
+      if (rij[0] == 0.0 && rij[1] == 0.0 && rij[2] < 0.0) continue;
       rij2 = rij[0]*rij[0] + rij[1]*rij[1] + rij[2]*rij[2];
       if (rij2 > cutoff_squared) continue;
 
@@ -141,9 +141,9 @@ void PairATM::compute(int eflag, int vflag)
         rik[0] = x[k][0] - xi;
         if (rik[0] < 0.0) continue;
         rik[1] = x[k][1] - yi;
-        if (rik[0] == 0.0 and rik[1] < 0.0) continue;
+        if (rik[0] == 0.0 && rik[1] < 0.0) continue;
         rik[2] = x[k][2] - zi;
-        if (rik[0] == 0.0 and rik[1] == 0.0 and rik[2] < 0.0) continue;
+        if (rik[0] == 0.0 && rik[1] == 0.0 && rik[2] < 0.0) continue;
         rik2 = rik[0]*rik[0] + rik[1]*rik[1] + rik[2]*rik[2];
         if (rik2 > cutoff_squared) continue;
 
@@ -257,9 +257,7 @@ void PairATM::init_style()
 
   // need a full neighbor list
 
-  int irequest = neighbor->request(this,instance_me);
-  neighbor->requests[irequest]->half = 0;
-  neighbor->requests[irequest]->full = 1;
+  neighbor->add_request(this, NeighConst::REQ_FULL);
 }
 
 /* ----------------------------------------------------------------------

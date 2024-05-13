@@ -1,8 +1,7 @@
-// clang-format off
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    https://www.lammps.org/, Sandia National Laboratories
-   Steve Plimpton, sjplimp@sandia.gov
+   LAMMPS development team: developers@lammps.org
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
@@ -26,25 +25,23 @@ using namespace FixConst;
 /* ---------------------------------------------------------------------- */
 
 FixStoreForce::FixStoreForce(LAMMPS *lmp, int narg, char **arg) :
-  Fix(lmp, narg, arg),
-  foriginal(nullptr)
+    Fix(lmp, narg, arg), foriginal(nullptr)
 {
-  if (narg < 3) error->all(FLERR,"Illegal fix store/coord command");
+  if (narg < 3) error->all(FLERR, "Illegal fix store/force command");
 
   peratom_flag = 1;
   size_peratom_cols = 3;
   peratom_freq = 1;
 
   nmax = atom->nmax;
-  memory->create(foriginal,nmax,3,"store/force:foriginal");
+  memory->create(foriginal, nmax, 3, "store/force:foriginal");
   array_atom = foriginal;
 
   // zero the array since dump may access it on timestep 0
   // zero the array since a variable may access it before first run
 
   int nlocal = atom->nlocal;
-  for (int i = 0; i < nlocal; i++)
-    foriginal[i][0] = foriginal[i][1] = foriginal[i][2] = 0.0;
+  for (int i = 0; i < nlocal; i++) foriginal[i][0] = foriginal[i][1] = foriginal[i][2] = 0.0;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -69,20 +66,20 @@ int FixStoreForce::setmask()
 
 void FixStoreForce::init()
 {
-  if (utils::strmatch(update->integrate_style,"^respa"))
-    nlevels_respa = ((Respa *) update->integrate)->nlevels;
+  if (utils::strmatch(update->integrate_style, "^respa"))
+    nlevels_respa = (dynamic_cast<Respa *>(update->integrate))->nlevels;
 }
 
 /* ---------------------------------------------------------------------- */
 
 void FixStoreForce::setup(int vflag)
 {
-  if (utils::strmatch(update->integrate_style,"^verlet"))
+  if (utils::strmatch(update->integrate_style, "^verlet"))
     post_force(vflag);
   else {
-    ((Respa *) update->integrate)->copy_flevel_f(nlevels_respa-1);
-    post_force_respa(vflag,nlevels_respa-1,0);
-    ((Respa *) update->integrate)->copy_f_flevel(nlevels_respa-1);
+    (dynamic_cast<Respa *>(update->integrate))->copy_flevel_f(nlevels_respa - 1);
+    post_force_respa(vflag, nlevels_respa - 1, 0);
+    (dynamic_cast<Respa *>(update->integrate))->copy_f_flevel(nlevels_respa - 1);
   }
 }
 
@@ -100,7 +97,7 @@ void FixStoreForce::post_force(int /*vflag*/)
   if (atom->nmax > nmax) {
     nmax = atom->nmax;
     memory->destroy(foriginal);
-    memory->create(foriginal,nmax,3,"store/force:foriginal");
+    memory->create(foriginal, nmax, 3, "store/force:foriginal");
     array_atom = foriginal;
   }
 
@@ -113,14 +110,15 @@ void FixStoreForce::post_force(int /*vflag*/)
       foriginal[i][0] = f[i][0];
       foriginal[i][1] = f[i][1];
       foriginal[i][2] = f[i][2];
-    } else foriginal[i][0] = foriginal[i][1] = foriginal[i][2] = 0.0;
+    } else
+      foriginal[i][0] = foriginal[i][1] = foriginal[i][2] = 0.0;
 }
 
 /* ---------------------------------------------------------------------- */
 
 void FixStoreForce::post_force_respa(int vflag, int ilevel, int /*iloop*/)
 {
-  if (ilevel == nlevels_respa-1) post_force(vflag);
+  if (ilevel == nlevels_respa - 1) post_force(vflag);
 }
 
 /* ---------------------------------------------------------------------- */
@@ -136,6 +134,6 @@ void FixStoreForce::min_post_force(int vflag)
 
 double FixStoreForce::memory_usage()
 {
-  double bytes = (double)atom->nmax*3 * sizeof(double);
+  double bytes = (double) atom->nmax * 3 * sizeof(double);
   return bytes;
 }

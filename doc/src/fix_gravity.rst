@@ -10,7 +10,7 @@ Accelerator Variants: *gravity/omp*, *gravity/kk*
 Syntax
 """"""
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    fix ID group gravity magnitude style args
 
@@ -77,13 +77,13 @@ Style *vector* imposes an acceleration in the vector direction given
 by (x,y,z).  Only the direction of the vector is important; it's
 length is ignored.  For 2d systems, the *z* component is ignored.
 
-Any of the quantities *magnitude*\ , *angle*\ , *phi*\ , *theta*\ , *x*\ , *y*\ ,
+Any of the quantities *magnitude*, *angle*, *phi*, *theta*, *x*, *y*,
 *z* which define the gravitational magnitude and direction, can be
 specified as an equal-style :doc:`variable <variable>`.  If the value is
 a variable, it should be specified as v_name, where name is the
 variable name.  In this case, the variable will be evaluated each
 timestep, and its value used to determine the quantity.  You should
-insure that the variable calculates a result in the appropriate units,
+ensure that the variable calculates a result in the appropriate units,
 e.g. force/mass or degrees.
 
 Equal-style variables can specify formulas with various mathematical

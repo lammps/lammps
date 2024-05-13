@@ -44,24 +44,24 @@ PoissonSolver::PoissonSolver(
 {
   if (physicsModel_->has_linear_rhs(fieldName)) {
     linear_ = true;
-    rhsMask_(fieldName,FLUX) = false; 
+    rhsMask_(fieldName,FLUX) = false;
   }
 
   else {
-    rhsMask_(fieldName,FLUX)   = true; 
-    rhsMask_(fieldName,SOURCE) = true; 
+    rhsMask_(fieldName,FLUX)   = true;
+    rhsMask_(fieldName,SOURCE) = true;
   }
-  
+
   if (prescribedDataMgr_->has_robin_source(fieldName)) {
-    
-    
-    
+
+
+
     rhsMask_(fieldName,ROBIN_SOURCE) = true;
   }
 }
 // --------------------------------------------------------------------
-PoissonSolver::~PoissonSolver() 
-{ 
+PoissonSolver::~PoissonSolver()
+{
   if (tangent_) delete tangent_;
   if (solverNL_) delete solverNL_;
   if (solver_) delete solver_;
@@ -74,9 +74,9 @@ PoissonSolver::~PoissonSolver()
   bool PoissonSolver::modify(int /* narg */, char **arg)
 {
   bool match = false;
-  /*! \page man_poisson_solver fix_modify AtC poisson_solver 
+  /*! \page man_poisson_solver fix_modify AtC poisson_solver
       \section syntax
-      fix_modify AtC poisson_solver mesh create <nx> <ny> <nz> <region-id> 
+      fix_modify AtC poisson_solver mesh create <nx> <ny> <nz> <region-id>
       <f|p> <f|p> <f|p>
       - nx ny nz = number of elements in x, y, z
       - region-id = id of region that is to be meshed
@@ -105,26 +105,26 @@ PoissonSolver::~PoissonSolver()
       // feEngine_->modify(narg,arg);
 
     }
-  } 
+  }
   return match;
 }
 // --------------------------------------------------------------------
 //  Initialize
 // --------------------------------------------------------------------
-void PoissonSolver::initialize(void)
+void PoissonSolver::initialize()
 {
   nNodes_ = feEngine_->num_nodes();
 
-  if (atc_->source_atomic_quadrature(fieldName_))  
+  if (atc_->source_atomic_quadrature(fieldName_))
     integrationType_ = FULL_DOMAIN_ATOMIC_QUADRATURE_SOURCE;
 
   // compute penalty for Dirichlet boundaries
-  if (prescribedDataMgr_->none_fixed(fieldName_))  
+  if (prescribedDataMgr_->none_fixed(fieldName_))
     throw ATC_Error("Poisson solver needs Dirichlet data");
 
   const BC_SET & bcs = (prescribedDataMgr_->bcs(fieldName_))[0];
 
-  if (linear_) { // constant rhs 
+  if (linear_) { // constant rhs
     if (! solver_ ) {
       pair<FieldName,FieldName> row_col(fieldName_,fieldName_);
       Array2D <bool> rhsMask(NUM_FIELDS,NUM_FLUX);
@@ -151,10 +151,10 @@ void PoissonSolver::initialize(void)
   else {
 //  print_mask(rhsMask_);
     if ( solverNL_ )  delete solverNL_;
-    tangent_ = new PhysicsModelTangentOperator(atc_,physicsModel_, rhsMask_, integrationType_, fieldName_); 
+    tangent_ = new PhysicsModelTangentOperator(atc_,physicsModel_, rhsMask_, integrationType_, fieldName_);
 
     solverNL_ = new NonLinearSolver(tangent_,&bcs,0,parallel_);
-    
+
     if (solverTol_) solverNL_->set_residual_tolerance(solverTol_);
     if (solverMaxIter_) solverNL_->set_max_iterations(solverMaxIter_);
   }
@@ -173,11 +173,11 @@ bool PoissonSolver::solve(FIELDS & fields, FIELDS & rhs)
   if (linear_) {converged = solver_->solve(f,r);}
   else         {converged = solverNL_->solve(f);}
 
-  if (atc_->source_atomic_quadrature(fieldName_) 
+  if (atc_->source_atomic_quadrature(fieldName_)
     && LammpsInterface::instance()->atom_charge() ) set_charges(fields);
   return converged;
 }
-bool PoissonSolver::solve(DENS_MAT & field, const DENS_MAT & rhs) 
+bool PoissonSolver::solve(DENS_MAT & field, const DENS_MAT & rhs)
 {
 
   CLON_VEC f = column(field,0);
@@ -186,7 +186,7 @@ bool PoissonSolver::solve(DENS_MAT & field, const DENS_MAT & rhs)
   if (linear_) {converged = solver_->solve(f,r);}
   else         {converged = solverNL_->solve(f);}
 
-  if (atc_->source_atomic_quadrature(fieldName_) 
+  if (atc_->source_atomic_quadrature(fieldName_)
     && LammpsInterface::instance()->atom_charge() ) set_charges(atc_->fields());
   return converged;
 }
@@ -197,7 +197,7 @@ bool PoissonSolver::solve(DENS_MAT & field, const DENS_MAT & rhs)
 void PoissonSolver::set_charges(FIELDS & fields)
 {
   FIELD_MATS sources;
-  
+
   atc_->compute_sources_at_atoms(rhsMask_, fields, physicsModel_,sources);
   FIELD_MATS::const_iterator nField = sources.find(fieldName_);
   if (nField != sources.end()) {

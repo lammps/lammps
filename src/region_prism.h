@@ -1,7 +1,7 @@
 /* -*- c++ -*- ----------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    https://www.lammps.org/, Sandia National Laboratories
-   Steve Plimpton, sjplimp@sandia.gov
+   LAMMPS development team: developers@lammps.org
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
@@ -29,10 +29,10 @@ class RegPrism : public Region {
 
  public:
   RegPrism(class LAMMPS *, int, char **);
-  ~RegPrism();
-  int inside(double, double, double);
-  int surface_interior(double *, double);
-  int surface_exterior(double *, double);
+  ~RegPrism() override;
+  int inside(double, double, double) override;
+  int surface_interior(double *, double) override;
+  int surface_exterior(double *, double) override;
 
  private:
   double xlo, xhi, ylo, yhi, zlo, zhi;
@@ -54,18 +54,3 @@ class RegPrism : public Region {
 
 #endif
 #endif
-
-/* ERROR/WARNING messages:
-
-E: Cannot use region INF or EDGE when box does not exist
-
-Regions that extend to the box boundaries can only be used after the
-create_box command has been used.
-
-E: Illegal ... command
-
-Self-explanatory.  Check the input script syntax and compare to the
-documentation for the command.  You can use -echo screen as a
-command-line option when running LAMMPS to see the offending line.
-
-*/

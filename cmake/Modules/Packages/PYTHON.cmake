@@ -1,9 +1,11 @@
-if(CMAKE_VERSION VERSION_LESS 3.12)
-  find_package(PythonLibs REQUIRED) # Deprecated since version 3.12
-  target_include_directories(lammps PRIVATE ${PYTHON_INCLUDE_DIRS})
-  target_link_libraries(lammps PRIVATE ${PYTHON_LIBRARIES})
-else()
-  find_package(Python REQUIRED COMPONENTS Development)
-  target_link_libraries(lammps PRIVATE Python::Python)
+
+if(NOT Python_INTERPRETER)
+  # backward compatibility with CMake before 3.12 and older LAMMPS documentation
+  if(PYTHON_EXECUTABLE)
+    set(Python_EXECUTABLE ${PYTHON_EXECUTABLE})
+  endif()
+  find_package(Python COMPONENTS Interpreter)
 endif()
+find_package(Python REQUIRED COMPONENTS Interpreter Development)
+target_link_libraries(lammps PRIVATE Python::Python)
 target_compile_definitions(lammps PRIVATE -DLMP_PYTHON)

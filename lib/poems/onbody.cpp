@@ -3,7 +3,7 @@
  *      POEMS: PARALLELIZABLE OPEN SOURCE EFFICIENT MULTIBODY SOFTWARE     *
  *      DESCRIPTION: SEE READ-ME                                           *
  *      FILE NAME: onbody.cpp                                              *
- *      AUTHORS: See Author List                                           * 
+ *      AUTHORS: See Author List                                           *
  *      GRANTS: See Grants List                                            *
  *      COPYRIGHT: (C) 2005 by Authors as listed in Author's List          *
  *      LICENSE: Please see License Agreement                              *
@@ -11,7 +11,7 @@
  *      ADMINISTRATOR: Prof. Kurt Anderson                                 *
  *                     Computational Dynamics Lab                          *
  *                     Rensselaer Polytechnic Institute                    *
- *                     110 8th St. Troy NY 12180                           * 
+ *                     110 8th St. Troy NY 12180                           *
  *      CONTACT:        anderk5@rpi.edu                                    *
  *_________________________________________________________________________*/
 
@@ -30,9 +30,9 @@ using namespace std;
 
 
 OnBody::OnBody(){
-  system_body = 0;
-  system_joint = 0;
-  parent = 0;
+  system_body = nullptr;
+  system_joint = nullptr;
+  parent = nullptr;
 
   // these terms have zeros which are NEVER overwritten
   sI.Zeros();
@@ -50,7 +50,7 @@ int OnBody::RecursiveSetup (InertialFrame* basebody){
   // record that the traversal algorithm has been here
   if( system_body->GetID() ) return 0;
   ID++;
-  system_body->SetID(ID);  
+  system_body->SetID(ID);
 
   // setup inertial frame
   SetupInertialFrame();
@@ -68,7 +68,7 @@ int OnBody::RecursiveSetup (InertialFrame* basebody){
     tempID = child->RecursiveSetup(ID,this,joint);
     if( tempID ){
       children.Append(child);
-      ID = tempID;      
+      ID = tempID;
     }
     else delete child;
 
@@ -80,14 +80,14 @@ int OnBody::RecursiveSetup (InertialFrame* basebody){
 
 int OnBody::RecursiveSetup(int ID, OnBody* parentbody, Joint* sys_joint){
   // initialize the topology and system analogs
-  parent = parentbody;  
+  parent = parentbody;
   system_joint = sys_joint;
   system_body = system_joint->OtherBody(parentbody->system_body);
-  
-    
+
+
   // record that the traversal algorithm has been here
   if( system_body->GetID() ) return 0;
-  ID++;  
+  ID++;
 
   // perform the local setup operations
   Setup();
@@ -114,7 +114,7 @@ int OnBody::RecursiveSetup(int ID, OnBody* parentbody, Joint* sys_joint){
     ele = ele->next;
   }
 
-  return ID;  
+  return ID;
 }
 
 void OnBody::SetupInertialFrame(){
@@ -123,26 +123,26 @@ void OnBody::SetupInertialFrame(){
     cerr << "ERROR: attempting to setup inertial frame for non-inertial body" << endl;
     exit(1);
   }
-  
+
   // setup gravity
-  Vect3 neg_gravity = -((InertialFrame*) system_body)->GetGravity();  
+  Vect3 neg_gravity = -((InertialFrame*) system_body)->GetGravity();
   sAhat.Zeros();
   Set6DLinearVector(sAhat,neg_gravity);
-  
+
 }
 
 
-void OnBody::Setup(){  
-  
+void OnBody::Setup(){
+
   // get the direction of the joint
   if( system_joint->GetBody2() == system_body ) joint_dir = FORWARD;
   else joint_dir = BACKWARD;
 
   // set the function pointers for the joint direction
-  if( joint_dir == FORWARD ){    
+  if( joint_dir == FORWARD ){
     kinfun = &Joint::ForwardKinematics;
     updatesP = &Joint::UpdateForward_sP;
-    gamma = system_joint->GetR12(); 
+    gamma = system_joint->GetR12();
     pk_C_k = system_joint->Get_pkCk();
   } else {
     kinfun = &Joint::BackwardKinematics;
@@ -155,7 +155,7 @@ void OnBody::Setup(){
 
   // sI
   OnPopulateSI(system_body->inertia, system_body->mass, sI);
-	
+
   // sP
   if( joint_dir == FORWARD )
     sP = system_joint->GetForward_sP();
@@ -167,12 +167,12 @@ void OnBody::Setup(){
   sMinv = sM;
   sPsMinv = sP;
   sIhatsP = sP;
-  
+
 
   // get the state and state derivative column matrix pointers
   q = system_joint->GetQ();
   u = system_joint->GetU();
-  qdot = system_joint->GetQdot();  
+  qdot = system_joint->GetQdot();
   udot = system_joint->GetUdot();
   qdotdot = system_joint->GetQdotdot();
   }
@@ -182,13 +182,13 @@ void OnBody::RecursiveKinematics(){
   // Perform local kinematics recursively outward
   ListElement<OnBody>* ele = children.GetHeadElement();
   while(ele){
-    child = ele->value;    
+    child = ele->value;
     child->LocalKinematics();
     child->RecursiveKinematics();
-    Mat3x3 result=*child->pk_C_k;           
+    Mat3x3 result=*child->pk_C_k;
     ele = ele->next;
   }
-  
+
 }
 
 void OnBody::RecursiveTriangularization(){
@@ -221,7 +221,7 @@ void OnBody::LocalKinematics(){
   // do the directional kinematics
   (system_joint->*kinfun)();
   (system_joint->*updatesP)( sP );
-  OnPopulateSC( *gamma, *pk_C_k, sSC );      
+  OnPopulateSC( *gamma, *pk_C_k, sSC );
 }
 
 Mat3x3 OnBody::GetN_C_K(){
@@ -229,171 +229,171 @@ Mat3x3 nck=system_body->n_C_k;
 return nck;
 }
 
- 
+
 int OnBody::GetBodyID(){
 int ID=system_body->GetID();
 return ID;
 }
 
-Vect3 OnBody::LocalCart(){  
-  (system_joint->*kinfun)();  
-  Vect3 RR=system_body->r;  
+Vect3 OnBody::LocalCart(){
+  (system_joint->*kinfun)();
+  Vect3 RR=system_body->r;
   return RR;
 }
 
-  
-  
-void OnBody::LocalTriangularization(Vect3& Torque, Vect3& Force){	  
 
-	Vect3 Iw,wIw,Ialpha,wIwIalpha,ma,Bforce,Bforce_ma,Btorque,Btorque_wIwIalpha;
+
+void OnBody::LocalTriangularization(Vect3& Torque, Vect3& Force){
+
+  Vect3 Iw,wIw,Ialpha,wIwIalpha,ma,Bforce,Bforce_ma,Btorque,Btorque_wIwIalpha;
   Iw.Zeros();wIw.Zeros();wIwIalpha.Zeros();ma.Zeros();
-	Bforce.Zeros();Bforce_ma.Zeros();Btorque.Zeros();Btorque_wIwIalpha.Zeros();
-     
-	FastMult(system_body->inertia,system_body->omega_k,Iw);  
-	FastCross(Iw,system_body->omega_k,wIw);  
-  
-	FastMult(system_body->inertia, system_body->alpha_t, Ialpha);    
-	FastSubt(wIw,Ialpha,wIwIalpha); 
-	FastMult(-system_body->mass,system_body->a_t,ma);    
-	
-	
-	Mat3x3 k_C_n=T(system_body->n_C_k);      
-	Bforce=k_C_n*Force;
-	Btorque=k_C_n*Torque;  
-	
-	FastAdd(Bforce,ma,Bforce_ma);       
-	FastAdd(Btorque,wIwIalpha,Btorque_wIwIalpha);	  
-	OnPopulateSVect(Btorque_wIwIalpha,Bforce_ma,sF);
-  
-  
-	sIhat = sI;    
-	sFhat = sF;     
-	Mat6x6 sPsMinvsPT;
-	Mat6x6 sIhatsPsMsPT;
-	Mat6x6 sUsIhatsPsMsPT;
-	Mat6x6 sTsIhat;
-	Mat6x6 sTsIhatsSCT;
-	Vect6 sTsFhat;
-	Mat6x6 sU;
-	sU.Identity();  
-  
-	OnBody* child;
-	ListElement<OnBody>* ele = children.GetHeadElement();
-  
-	while(ele){
-		child = ele->value;
-    
-		FastMultT(child->sIhatsP,child->sPsMinv,sIhatsPsMsPT); 
-		FastSubt(sU,sIhatsPsMsPT,sUsIhatsPsMsPT);              
-		FastMult(child->sSC,sUsIhatsPsMsPT,child->sT);         
-        
-		FastMult(child->sT,child->sIhat,sTsIhat);
-		FastMultT(sTsIhat,child->sSC,sTsIhatsSCT); 
-		FastAdd(sIhat,sTsIhatsSCT,sIhat);
-    
-		FastMult(child->sT,child->sFhat,sTsFhat);
-		FastAdd(sFhat,sTsFhat,sFhat);            
-		ele = ele->next;
-	}  
-  
-	FastMult(sIhat,sP,sIhatsP);   
-	FastTMult(sP,sIhatsP,sM);       
-	sMinv=SymInverse(sM);    
-	FastMult(sP,sMinv,sPsMinv);	
+  Bforce.Zeros();Bforce_ma.Zeros();Btorque.Zeros();Btorque_wIwIalpha.Zeros();
+
+  FastMult(system_body->inertia,system_body->omega_k,Iw);
+  FastCross(Iw,system_body->omega_k,wIw);
+
+  FastMult(system_body->inertia, system_body->alpha_t, Ialpha);
+  FastSubt(wIw,Ialpha,wIwIalpha);
+  FastMult(-system_body->mass,system_body->a_t,ma);
+
+
+  Mat3x3 k_C_n=T(system_body->n_C_k);
+  Bforce=k_C_n*Force;
+  Btorque=k_C_n*Torque;
+
+  FastAdd(Bforce,ma,Bforce_ma);
+  FastAdd(Btorque,wIwIalpha,Btorque_wIwIalpha);
+  OnPopulateSVect(Btorque_wIwIalpha,Bforce_ma,sF);
+
+
+  sIhat = sI;
+  sFhat = sF;
+  Mat6x6 sPsMinvsPT;
+  Mat6x6 sIhatsPsMsPT;
+  Mat6x6 sUsIhatsPsMsPT;
+  Mat6x6 sTsIhat;
+  Mat6x6 sTsIhatsSCT;
+  Vect6 sTsFhat;
+  Mat6x6 sU;
+  sU.Identity();
+
+  OnBody* child;
+  ListElement<OnBody>* ele = children.GetHeadElement();
+
+  while(ele){
+    child = ele->value;
+
+    FastMultT(child->sIhatsP,child->sPsMinv,sIhatsPsMsPT);
+    FastSubt(sU,sIhatsPsMsPT,sUsIhatsPsMsPT);
+    FastMult(child->sSC,sUsIhatsPsMsPT,child->sT);
+
+    FastMult(child->sT,child->sIhat,sTsIhat);
+    FastMultT(sTsIhat,child->sSC,sTsIhatsSCT);
+    FastAdd(sIhat,sTsIhatsSCT,sIhat);
+
+    FastMult(child->sT,child->sFhat,sTsFhat);
+    FastAdd(sFhat,sTsFhat,sFhat);
+    ele = ele->next;
+  }
+
+  FastMult(sIhat,sP,sIhatsP);
+  FastTMult(sP,sIhatsP,sM);
+  sMinv=SymInverse(sM);
+  FastMult(sP,sMinv,sPsMinv);
 }
 
-void OnBody::LocalForwardSubstitution(){  
-	Vect6 sSCTsAhat;
-	Vect6 sIhatsSCTsAhat;
-	Vect6 sFsIhatsSCTsAhat;
-	Vect6 sPudot;
-	int type = system_joint->GetType();
-	if(type == 1){
-		FastTMult(sSC,parent->sAhat,sSCTsAhat);
-		FastMult(sIhat,sSCTsAhat,sIhatsSCTsAhat);       
-		FastSubt(sFhat,sIhatsSCTsAhat,sFsIhatsSCTsAhat);
-		FastTMult(sPsMinv,sFsIhatsSCTsAhat,*udot);		
-  
-		ColMatrix result1=*udot;      
-		ColMatrix result2=*qdot;
-		ColMatrix result3=*q;
-		int num=result1.GetNumRows();
-		ColMatrix result4(num+1);
-		result4.Zeros();		
-		EPdotdot_udot(result1, result2, result3, result4);
-		FastAssign(result4, *qdotdot);    
-		FastMult(sP,*udot,sPudot);      
-		FastAdd(sSCTsAhat,sPudot,sAhat);		
-	}
-	else if (type == 4){		
-		FastTMult(sSC,parent->sAhat,sSCTsAhat);
-		FastMult(sIhat,sSCTsAhat,sIhatsSCTsAhat);       
-		FastSubt(sFhat,sIhatsSCTsAhat,sFsIhatsSCTsAhat);
-		FastTMult(sPsMinv,sFsIhatsSCTsAhat,*udot);
-		
-		ColMatrix result1=*udot;      		
-		ColMatrix result2=*qdot;
-		ColMatrix result3=*q;
-		int num=result1.GetNumRows();
-		ColMatrix result4(num+1);
-		result4.Zeros();
-		
-		EPdotdot_udot(result1, result2, result3, result4);
-		FastAssign(result4, *qdotdot);    
-		FastMult(sP,*udot,sPudot);      
-		FastAdd(sSCTsAhat,sPudot,sAhat);
-	}	
-	else if (type == 5){		
-		FastTMult(sSC,parent->sAhat,sSCTsAhat);
-		FastMult(sIhat,sSCTsAhat,sIhatsSCTsAhat);       
-		FastSubt(sFhat,sIhatsSCTsAhat,sFsIhatsSCTsAhat);
-		FastTMult(sPsMinv,sFsIhatsSCTsAhat,*udot);				
-		ColMatrix temp_u = *udot;
-		
-		ColMatrix result1(3);		
-		result1(1)=0.0;
-		result1(2)=temp_u(1);      		
-		result1(3)=temp_u(2); 		
-		ColMatrix result2=*qdot;
-		ColMatrix result3=*q;
-		int num=result1.GetNumRows();
-		ColMatrix result4(num+1);
-		result4.Zeros();
-		
-		EPdotdot_udot(result1, result2, result3, result4);		
-		FastAssign(result4, *qdotdot);    
-		FastMult(sP,*udot,sPudot);      
-		FastAdd(sSCTsAhat,sPudot,sAhat);
-	}
-	else if (type == 6){		
-		FastTMult(sSC,parent->sAhat,sSCTsAhat);
-		FastMult(sIhat,sSCTsAhat,sIhatsSCTsAhat);       
-		FastSubt(sFhat,sIhatsSCTsAhat,sFsIhatsSCTsAhat);
-		FastTMult(sPsMinv,sFsIhatsSCTsAhat,*udot);				
-		ColMatrix temp_u = *udot;
-		int tt = temp_u.GetNumRows() + 1;
-		ColMatrix result1(tt);				
-		result1(1)=0.0;
-		for (int k =2; k<=tt; k++){
-			result1(k)=temp_u(k-1);      				
-		}			
-		ColMatrix result2=*qdot;
-		ColMatrix result3=*q;
-		int num=result1.GetNumRows();
-		ColMatrix result4(num+1);
-		result4.Zeros();
-		
-		EPdotdot_udot(result1, result2, result3, result4);		
-		FastAssign(result4, *qdotdot);    
-		FastMult(sP,*udot,sPudot);      
-		FastAdd(sSCTsAhat,sPudot,sAhat);
-	}		
-	else{
-		cout<<"Joint type not recognized in onbody.cpp LocalForwardSubsitution() "<<type<<endl;
-		exit(-1);
-	}
-	CalculateAcceleration();
-	
+void OnBody::LocalForwardSubstitution(){
+  Vect6 sSCTsAhat;
+  Vect6 sIhatsSCTsAhat;
+  Vect6 sFsIhatsSCTsAhat;
+  Vect6 sPudot;
+  int type = system_joint->GetType();
+  if(type == 1){
+    FastTMult(sSC,parent->sAhat,sSCTsAhat);
+    FastMult(sIhat,sSCTsAhat,sIhatsSCTsAhat);
+    FastSubt(sFhat,sIhatsSCTsAhat,sFsIhatsSCTsAhat);
+    FastTMult(sPsMinv,sFsIhatsSCTsAhat,*udot);
+
+    ColMatrix result1=*udot;
+    ColMatrix result2=*qdot;
+    ColMatrix result3=*q;
+    int num=result1.GetNumRows();
+    ColMatrix result4(num+1);
+    result4.Zeros();
+    EPdotdot_udot(result1, result2, result3, result4);
+    FastAssign(result4, *qdotdot);
+    FastMult(sP,*udot,sPudot);
+    FastAdd(sSCTsAhat,sPudot,sAhat);
+  }
+  else if (type == 4){
+    FastTMult(sSC,parent->sAhat,sSCTsAhat);
+    FastMult(sIhat,sSCTsAhat,sIhatsSCTsAhat);
+    FastSubt(sFhat,sIhatsSCTsAhat,sFsIhatsSCTsAhat);
+    FastTMult(sPsMinv,sFsIhatsSCTsAhat,*udot);
+
+    ColMatrix result1=*udot;
+    ColMatrix result2=*qdot;
+    ColMatrix result3=*q;
+    int num=result1.GetNumRows();
+    ColMatrix result4(num+1);
+    result4.Zeros();
+
+    EPdotdot_udot(result1, result2, result3, result4);
+    FastAssign(result4, *qdotdot);
+    FastMult(sP,*udot,sPudot);
+    FastAdd(sSCTsAhat,sPudot,sAhat);
+  }
+  else if (type == 5){
+    FastTMult(sSC,parent->sAhat,sSCTsAhat);
+    FastMult(sIhat,sSCTsAhat,sIhatsSCTsAhat);
+    FastSubt(sFhat,sIhatsSCTsAhat,sFsIhatsSCTsAhat);
+    FastTMult(sPsMinv,sFsIhatsSCTsAhat,*udot);
+    ColMatrix temp_u = *udot;
+
+    ColMatrix result1(3);
+    result1(1)=0.0;
+    result1(2)=temp_u(1);
+    result1(3)=temp_u(2);
+    ColMatrix result2=*qdot;
+    ColMatrix result3=*q;
+    int num=result1.GetNumRows();
+    ColMatrix result4(num+1);
+    result4.Zeros();
+
+    EPdotdot_udot(result1, result2, result3, result4);
+    FastAssign(result4, *qdotdot);
+    FastMult(sP,*udot,sPudot);
+    FastAdd(sSCTsAhat,sPudot,sAhat);
+  }
+  else if (type == 6){
+    FastTMult(sSC,parent->sAhat,sSCTsAhat);
+    FastMult(sIhat,sSCTsAhat,sIhatsSCTsAhat);
+    FastSubt(sFhat,sIhatsSCTsAhat,sFsIhatsSCTsAhat);
+    FastTMult(sPsMinv,sFsIhatsSCTsAhat,*udot);
+    ColMatrix temp_u = *udot;
+    int tt = temp_u.GetNumRows() + 1;
+    ColMatrix result1(tt);
+    result1(1)=0.0;
+    for (int k =2; k<=tt; k++){
+      result1(k)=temp_u(k-1);
+    }
+    ColMatrix result2=*qdot;
+    ColMatrix result3=*q;
+    int num=result1.GetNumRows();
+    ColMatrix result4(num+1);
+    result4.Zeros();
+
+    EPdotdot_udot(result1, result2, result3, result4);
+    FastAssign(result4, *qdotdot);
+    FastMult(sP,*udot,sPudot);
+    FastAdd(sSCTsAhat,sPudot,sAhat);
+  }
+  else{
+    cout<<"Joint type not recognized in onbody.cpp LocalForwardSubsitution() "<<type<<endl;
+    exit(-1);
+  }
+  CalculateAcceleration();
+
 }
 
 

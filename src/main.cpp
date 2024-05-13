@@ -1,7 +1,7 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    https://www.lammps.org/, Sandia National Laboratories
-   Steve Plimpton, sjplimp@sandia.gov
+   LAMMPS development team: developers@lammps.org
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
@@ -13,10 +13,9 @@
 
 #include "lammps.h"
 
-#include "input.h"
-#if defined(LAMMPS_EXCEPTIONS)
 #include "exceptions.h"
-#endif
+#include "input.h"
+#include "library.h"
 
 #include <cstdlib>
 #include <mpi.h>
@@ -25,16 +24,19 @@
 #include <fenv.h>
 #endif
 
-#if defined(LAMMPS_EXCEPTIONS)
-#include "exceptions.h"
-#endif
-
 // import MolSSI Driver Interface library
-#if defined(LMP_USER_MDI)
+#if defined(LMP_MDI)
 #include <mdi.h>
 #endif
 
 using namespace LAMMPS_NS;
+
+// for convenience
+static void finalize()
+{
+  lammps_kokkos_finalize();
+  lammps_python_finalize();
+}
 
 /* ----------------------------------------------------------------------
    main program to drive LAMMPS
@@ -43,10 +45,9 @@ using namespace LAMMPS_NS;
 int main(int argc, char **argv)
 {
   MPI_Init(&argc, &argv);
-
   MPI_Comm lammps_comm = MPI_COMM_WORLD;
 
-#if defined(LMP_USER_MDI)
+#if defined(LMP_MDI)
   // initialize MDI interface, if compiled in
 
   int mdi_flag;
@@ -71,33 +72,30 @@ int main(int argc, char **argv)
   feenableexcept(FE_OVERFLOW);
 #endif
 
-#ifdef LAMMPS_EXCEPTIONS
   try {
-    LAMMPS *lammps = new LAMMPS(argc, argv, lammps_comm);
+    auto lammps = new LAMMPS(argc, argv, lammps_comm);
     lammps->input->file();
     delete lammps;
   } catch (LAMMPSAbortException &ae) {
-    MPI_Abort(ae.universe, 1);
-  } catch (LAMMPSException &e) {
+    finalize();
+    MPI_Abort(ae.get_universe(), 1);
+  } catch (LAMMPSException &) {
+    finalize();
     MPI_Barrier(lammps_comm);
     MPI_Finalize();
     exit(1);
   } catch (fmt::format_error &fe) {
     fprintf(stderr, "fmt::format_error: %s\n", fe.what());
+    finalize();
+    MPI_Abort(MPI_COMM_WORLD, 1);
+    exit(1);
+  } catch (std::exception &e) {
+    fprintf(stderr, "Exception: %s\n", e.what());
+    finalize();
     MPI_Abort(MPI_COMM_WORLD, 1);
     exit(1);
   }
-#else
-  try {
-    LAMMPS *lammps = new LAMMPS(argc, argv, lammps_comm);
-    lammps->input->file();
-    delete lammps;
-  } catch (fmt::format_error &fe) {
-    fprintf(stderr, "fmt::format_error: %s\n", fe.what());
-    MPI_Abort(MPI_COMM_WORLD, 1);
-    exit(1);
-  }
-#endif
+  finalize();
   MPI_Barrier(lammps_comm);
   MPI_Finalize();
 }

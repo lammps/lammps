@@ -1,7 +1,7 @@
 /* -*- c++ -*- ----------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    https://www.lammps.org/, Sandia National Laboratories
-   Steve Plimpton, sjplimp@sandia.gov
+   LAMMPS development team: developers@lammps.org
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
@@ -27,7 +27,7 @@ class Irregular : protected Pointers {
 #endif
 
   Irregular(class LAMMPS *);
-  ~Irregular();
+  ~Irregular() override;
   void migrate_atoms(int sortflag = 0, int preassign = 0, int *procassign = nullptr);
   int migrate_check();
   int create_data(int, int *, int sortflag = 0);
@@ -98,7 +98,3 @@ class Irregular : protected Pointers {
 }    // namespace LAMMPS_NS
 
 #endif
-
-/* ERROR/WARNING messages:
-
-*/

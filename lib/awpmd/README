@@ -5,7 +5,7 @@ valuev at physik.hu-berlin.de
 June 2011
 
 This is version 0.9 of the AWPMD library taken from JIHT GridMD project.
-It contains interface to calculate electronic and electron-ion Hamiltonian, 
+It contains interface to calculate electronic and electron-ion Hamiltonian,
 norm matrix and forces for AWPMD method.
 
 AWPMD is an open source program distributed under the terms
@@ -14,7 +14,7 @@ of wxWidgets Library License (see license directory for details).
 -------------------------------------------------
 
 This directory has source files to build a library that LAMMPS
-links against when using the USER-AWPMD package.
+links against when using the AWPMD package.
 
 This library must be built with a C++ compiler, before LAMMPS is
 built, so LAMMPS can link against it.
@@ -43,7 +43,7 @@ Makefile.lammps is created by the make command, by copying one of the
 Makefile.lammps.* files.  See the EXTRAMAKE setting at the top of the
 Makefile.* files.
 
-IMPORTANT: You must examine the final Makefile.lammps to insure it is
+IMPORTANT: You must examine the final Makefile.lammps to ensure it is
 correct for your system, else the LAMMPS build will likely fail.
 
 Makefile.lammps has settings for 3 variables:

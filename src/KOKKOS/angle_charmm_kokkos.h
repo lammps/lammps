@@ -1,8 +1,7 @@
-// clang-format off
 /* -*- c++ -*- ----------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    https://www.lammps.org/, Sandia National Laboratories
-   Steve Plimpton, sjplimp@sandia.gov
+   LAMMPS development team: developers@lammps.org
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
@@ -20,6 +19,7 @@ AngleStyle(charmm/kk/host,AngleCharmmKokkos<LMPHostType>);
 // clang-format on
 #else
 
+// clang-format off
 #ifndef LMP_ANGLE_CHARMM_KOKKOS_H
 #define LMP_ANGLE_CHARMM_KOKKOS_H
 
@@ -38,10 +38,10 @@ class AngleCharmmKokkos : public AngleCharmm {
   typedef EV_FLOAT value_type;
 
   AngleCharmmKokkos(class LAMMPS *);
-  virtual ~AngleCharmmKokkos();
-  void compute(int, int);
-  void coeff(int, char **);
-  void read_restart(FILE *);
+  ~AngleCharmmKokkos() override;
+  void compute(int, int) override;
+  void coeff(int, char **) override;
+  void read_restart(FILE *) override;
 
   template<int NEWTON_BOND, int EVFLAG>
   KOKKOS_INLINE_FUNCTION
@@ -65,14 +65,14 @@ class AngleCharmmKokkos : public AngleCharmm {
   typedef ArrayTypes<DeviceType> AT;
   typename AT::t_x_array_randomread x;
 
-  typedef typename KKDevice<DeviceType>::value KKDeviceType;
+  using KKDeviceType = typename KKDevice<DeviceType>::value;
   typename Kokkos::View<double*[3],typename AT::t_f_array::array_layout,KKDeviceType,Kokkos::MemoryTraits<Kokkos::Atomic> > f;
   typename AT::t_int_2d anglelist;
 
   Kokkos::DualView<E_FLOAT*,Kokkos::LayoutRight,KKDeviceType> k_eatom;
   Kokkos::DualView<F_FLOAT*[6],Kokkos::LayoutRight,KKDeviceType> k_vatom;
-  Kokkos::View<E_FLOAT*,Kokkos::LayoutRight,typename KKDevice<DeviceType>::value,Kokkos::MemoryTraits<Kokkos::Atomic> > d_eatom;
-  Kokkos::View<F_FLOAT*[6],Kokkos::LayoutRight,typename KKDevice<DeviceType>::value,Kokkos::MemoryTraits<Kokkos::Atomic> > d_vatom;
+  Kokkos::View<E_FLOAT*,Kokkos::LayoutRight,KKDeviceType,Kokkos::MemoryTraits<Kokkos::Atomic>> d_eatom;
+  Kokkos::View<F_FLOAT*[6],Kokkos::LayoutRight,KKDeviceType,Kokkos::MemoryTraits<Kokkos::Atomic>> d_vatom;
 
   int nlocal,newton_bond;
   int eflag,vflag;
@@ -82,7 +82,7 @@ class AngleCharmmKokkos : public AngleCharmm {
   typename AT::t_ffloat_1d d_k_ub;
   typename AT::t_ffloat_1d d_r_ub;
 
-  void allocate();
+  void allocate() override;
 };
 
 }
@@ -90,6 +90,3 @@ class AngleCharmmKokkos : public AngleCharmm {
 #endif
 #endif
 
-/* ERROR/WARNING messages:
-
-*/

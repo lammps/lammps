@@ -1,8 +1,7 @@
-// clang-format off
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    https://www.lammps.org/, Sandia National Laboratories
-   Steve Plimpton, sjplimp@sandia.gov
+   LAMMPS development team: developers@lammps.org
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
@@ -18,28 +17,33 @@
 
 #include "improper_umbrella.h"
 
-#include <cmath>
 #include "atom.h"
 #include "comm.h"
-#include "neighbor.h"
+#include "error.h"
 #include "force.h"
-#include "update.h"
 #include "math_const.h"
 #include "memory.h"
-#include "error.h"
+#include "neighbor.h"
 
+#include <cmath>
 
 using namespace LAMMPS_NS;
-using namespace MathConst;
+using MathConst::DEG2RAD;
+using MathConst::RAD2DEG;
 
-#define TOLERANCE 0.05
-#define SMALL     0.001
+static constexpr double TOLERANCE = 0.05;
+static constexpr double SMALL = 0.001;
 
 /* ---------------------------------------------------------------------- */
 
-ImproperUmbrella::ImproperUmbrella(LAMMPS *lmp) : Improper(lmp)
+ImproperUmbrella::ImproperUmbrella(LAMMPS *_lmp) : Improper(_lmp)
 {
   writedata = 1;
+
+  // the first and fourth atoms in the quadruplet are the atoms of symmetry
+
+  symmatoms[0] = 1;
+  symmatoms[3] = 2;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -58,14 +62,14 @@ ImproperUmbrella::~ImproperUmbrella()
 
 void ImproperUmbrella::compute(int eflag, int vflag)
 {
-  int i1,i2,i3,i4,n,type;
-  double eimproper,f1[3],f2[3],f3[3],f4[3];
-  double vb1x,vb1y,vb1z,vb2x,vb2y,vb2z,vb3x,vb3y,vb3z;
-  double domega,c,a,s,projhfg,dhax,dhay,dhaz,dahx,dahy,dahz,cotphi;
-  double ax,ay,az,ra2,rh2,ra,rh,rar,rhr,arx,ary,arz,hrx,hry,hrz;
+  int i1, i2, i3, i4, n, type;
+  double eimproper, f1[3], f2[3], f3[3], f4[3];
+  double vb1x, vb1y, vb1z, vb2x, vb2y, vb2z, vb3x, vb3y, vb3z;
+  double domega, c, a, s, projhfg, dhax, dhay, dhaz, dahx, dahy, dahz, cotphi;
+  double ax, ay, az, ra2, rh2, ra, rh, rar, rhr, arx, ary, arz, hrx, hry, hrz;
 
   eimproper = 0.0;
-  ev_init(eflag,vflag);
+  ev_init(eflag, vflag);
 
   double **x = atom->x;
   double **f = atom->f;
@@ -102,43 +106,42 @@ void ImproperUmbrella::compute(int eflag, int vflag)
     // c0 calculation
     // A = vb1 X vb2 is perpendicular to IJK plane
 
-    ax = vb1y*vb2z-vb1z*vb2y;
-    ay = vb1z*vb2x-vb1x*vb2z;
-    az = vb1x*vb2y-vb1y*vb2x;
-    ra2 = ax*ax+ay*ay+az*az;
-    rh2 = vb3x*vb3x+vb3y*vb3y+vb3z*vb3z;
+    ax = vb1y * vb2z - vb1z * vb2y;
+    ay = vb1z * vb2x - vb1x * vb2z;
+    az = vb1x * vb2y - vb1y * vb2x;
+    ra2 = ax * ax + ay * ay + az * az;
+    rh2 = vb3x * vb3x + vb3y * vb3y + vb3z * vb3z;
     ra = sqrt(ra2);
     rh = sqrt(rh2);
     if (ra < SMALL) ra = SMALL;
     if (rh < SMALL) rh = SMALL;
 
-    rar = 1/ra;
-    rhr = 1/rh;
-    arx = ax*rar;
-    ary = ay*rar;
-    arz = az*rar;
-    hrx = vb3x*rhr;
-    hry = vb3y*rhr;
-    hrz = vb3z*rhr;
+    rar = 1 / ra;
+    rhr = 1 / rh;
+    arx = ax * rar;
+    ary = ay * rar;
+    arz = az * rar;
+    hrx = vb3x * rhr;
+    hry = vb3y * rhr;
+    hrz = vb3z * rhr;
 
-    c = arx*hrx+ary*hry+arz*hrz;
+    c = arx * hrx + ary * hry + arz * hrz;
 
     // error check
 
-    if (c > 1.0 + TOLERANCE || c < (-1.0 - TOLERANCE))
-      problem(FLERR, i1, i2, i3, i4);
+    if (c > 1.0 + TOLERANCE || c < (-1.0 - TOLERANCE)) problem(FLERR, i1, i2, i3, i4);
 
     if (c > 1.0) c = 1.0;
     if (c < -1.0) c = -1.0;
 
-    s = sqrt(1.0 - c*c);
+    s = sqrt(1.0 - c * c);
     if (s < SMALL) s = SMALL;
-    cotphi = c/s;
+    cotphi = c / s;
 
-    projhfg = (vb3x*vb1x+vb3y*vb1y+vb3z*vb1z) /
-      sqrt(vb1x*vb1x+vb1y*vb1y+vb1z*vb1z);
-    projhfg += (vb3x*vb2x+vb3y*vb2y+vb3z*vb2z) /
-      sqrt(vb2x*vb2x+vb2y*vb2y+vb2z*vb2z);
+    projhfg =
+        (vb3x * vb1x + vb3y * vb1y + vb3z * vb1z) / sqrt(vb1x * vb1x + vb1y * vb1y + vb1z * vb1z);
+    projhfg +=
+        (vb3x * vb2x + vb3y * vb2y + vb3z * vb2z) / sqrt(vb2x * vb2x + vb2y * vb2y + vb2z * vb2z);
     if (projhfg > 0.0) {
       s *= -1.0;
       cotphi *= -1.0;
@@ -149,7 +152,7 @@ void ImproperUmbrella::compute(int eflag, int vflag)
     // if w0 != 0: E = 0.5 * C (cos w - cos w0)^2, C = k/(sin(w0)^2
 
     if (w0[type] == 0.0) {
-      if (eflag) eimproper = kw[type] * (1.0-s);
+      if (eflag) eimproper = kw[type] * (1.0 - s);
       a = -kw[type];
     } else {
       domega = s - cos(w0[type]);
@@ -160,26 +163,26 @@ void ImproperUmbrella::compute(int eflag, int vflag)
 
     // dhax = diffrence between H and A in X direction, etc
 
-    a = a*cotphi;
-    dhax = hrx-c*arx;
-    dhay = hry-c*ary;
-    dhaz = hrz-c*arz;
+    a = a * cotphi;
+    dhax = hrx - c * arx;
+    dhay = hry - c * ary;
+    dhaz = hrz - c * arz;
 
-    dahx = arx-c*hrx;
-    dahy = ary-c*hry;
-    dahz = arz-c*hrz;
+    dahx = arx - c * hrx;
+    dahy = ary - c * hry;
+    dahz = arz - c * hrz;
 
-    f2[0] = (dhay*vb1z - dhaz*vb1y)*rar*a;
-    f2[1] = (dhaz*vb1x - dhax*vb1z)*rar*a;
-    f2[2] = (dhax*vb1y - dhay*vb1x)*rar*a;
+    f2[0] = (dhay * vb1z - dhaz * vb1y) * rar * a;
+    f2[1] = (dhaz * vb1x - dhax * vb1z) * rar * a;
+    f2[2] = (dhax * vb1y - dhay * vb1x) * rar * a;
 
-    f3[0] = (-dhay*vb2z + dhaz*vb2y)*rar*a;
-    f3[1] = (-dhaz*vb2x + dhax*vb2z)*rar*a;
-    f3[2] = (-dhax*vb2y + dhay*vb2x)*rar*a;
+    f3[0] = (-dhay * vb2z + dhaz * vb2y) * rar * a;
+    f3[1] = (-dhaz * vb2x + dhax * vb2z) * rar * a;
+    f3[2] = (-dhax * vb2y + dhay * vb2x) * rar * a;
 
-    f4[0] = dahx*rhr*a;
-    f4[1] = dahy*rhr*a;
-    f4[2] = dahz*rhr*a;
+    f4[0] = dahx * rhr * a;
+    f4[1] = dahy * rhr * a;
+    f4[2] = dahz * rhr * a;
 
     f1[0] = -(f2[0] + f3[0] + f4[0]);
     f1[1] = -(f2[1] + f3[1] + f4[1]);
@@ -227,8 +230,8 @@ void ImproperUmbrella::compute(int eflag, int vflag)
       vb3y = x[i4][1] - x[i3][1];
       vb3z = x[i4][2] - x[i3][2];
 
-      ev_tally(i1,i2,i3,i4,nlocal,newton_bond,eimproper,f1,f2,f4,
-               vb1x,vb1y,vb1z,vb2x,vb2y,vb2z,vb3x,vb3y,vb3z);
+      ev_tally(i1, i2, i3, i4, nlocal, newton_bond, eimproper, f1, f2, f4, vb1x, vb1y, vb1z, vb2x,
+               vb2y, vb2z, vb3x, vb3y, vb3z);
     }
   }
 }
@@ -238,14 +241,13 @@ void ImproperUmbrella::compute(int eflag, int vflag)
 void ImproperUmbrella::allocate()
 {
   allocated = 1;
-  int n = atom->nimpropertypes;
+  const int np1 = atom->nimpropertypes + 1;
 
-  memory->create(kw,n+1,"improper:kw");
-  memory->create(w0,n+1,"improper:w0");
-  memory->create(C,n+1,"improper:C");
-
-  memory->create(setflag,n+1,"improper:setflag");
-  for (int i = 1; i <= n; i++) setflag[i] = 0;
+  memory->create(kw, np1, "improper:kw");
+  memory->create(w0, np1, "improper:w0");
+  memory->create(C, np1, "improper:C");
+  memory->create(setflag, np1, "improper:setflag");
+  for (int i = 1; i < np1; i++) setflag[i] = 0;
 }
 
 /* ----------------------------------------------------------------------
@@ -254,28 +256,30 @@ void ImproperUmbrella::allocate()
 
 void ImproperUmbrella::coeff(int narg, char **arg)
 {
-  if (narg != 3) error->all(FLERR,"Incorrect args for improper coefficients");
+  if (narg != 3) error->all(FLERR, "Incorrect args for improper coefficients");
   if (!allocated) allocate();
 
-  int ilo,ihi;
-  utils::bounds(FLERR,arg[0],1,atom->nimpropertypes,ilo,ihi,error);
+  int ilo, ihi;
+  utils::bounds(FLERR, arg[0], 1, atom->nimpropertypes, ilo, ihi, error);
 
-  double k_one = utils::numeric(FLERR,arg[1],false,lmp);
-  double w_one = utils::numeric(FLERR,arg[2],false,lmp);
+  double k_one = utils::numeric(FLERR, arg[1], false, lmp);
+  double w_one = utils::numeric(FLERR, arg[2], false, lmp);
 
   // convert w0 from degrees to radians
 
   int count = 0;
   for (int i = ilo; i <= ihi; i++) {
     kw[i] = k_one;
-    w0[i] = w_one/180.0 * MY_PI;
-    if (w_one == 0) C[i] = 1.0;
-    else C[i] = kw[i]/(pow(sin(w0[i]),2.0));
+    w0[i] = DEG2RAD * w_one;
+    if (w_one == 0)
+      C[i] = 1.0;
+    else
+      C[i] = kw[i] / (pow(sin(w0[i]), 2.0));
     setflag[i] = 1;
     count++;
   }
 
-  if (count == 0) error->all(FLERR,"Incorrect args for improper coefficients");
+  if (count == 0) error->all(FLERR, "Incorrect args for improper coefficients");
 }
 
 /* ----------------------------------------------------------------------
@@ -284,9 +288,9 @@ void ImproperUmbrella::coeff(int narg, char **arg)
 
 void ImproperUmbrella::write_restart(FILE *fp)
 {
-  fwrite(&kw[1],sizeof(double),atom->nimpropertypes,fp);
-  fwrite(&w0[1],sizeof(double),atom->nimpropertypes,fp);
-  fwrite(&C[1],sizeof(double),atom->nimpropertypes,fp);
+  fwrite(&kw[1], sizeof(double), atom->nimpropertypes, fp);
+  fwrite(&w0[1], sizeof(double), atom->nimpropertypes, fp);
+  fwrite(&C[1], sizeof(double), atom->nimpropertypes, fp);
 }
 
 /* ----------------------------------------------------------------------
@@ -298,13 +302,13 @@ void ImproperUmbrella::read_restart(FILE *fp)
   allocate();
 
   if (comm->me == 0) {
-    utils::sfread(FLERR,&kw[1],sizeof(double),atom->nimpropertypes,fp,nullptr,error);
-    utils::sfread(FLERR,&w0[1],sizeof(double),atom->nimpropertypes,fp,nullptr,error);
-    utils::sfread(FLERR,&C[1],sizeof(double),atom->nimpropertypes,fp,nullptr,error);
+    utils::sfread(FLERR, &kw[1], sizeof(double), atom->nimpropertypes, fp, nullptr, error);
+    utils::sfread(FLERR, &w0[1], sizeof(double), atom->nimpropertypes, fp, nullptr, error);
+    utils::sfread(FLERR, &C[1], sizeof(double), atom->nimpropertypes, fp, nullptr, error);
   }
-  MPI_Bcast(&kw[1],atom->nimpropertypes,MPI_DOUBLE,0,world);
-  MPI_Bcast(&w0[1],atom->nimpropertypes,MPI_DOUBLE,0,world);
-  MPI_Bcast(&C[1],atom->nimpropertypes,MPI_DOUBLE,0,world);
+  MPI_Bcast(&kw[1], atom->nimpropertypes, MPI_DOUBLE, 0, world);
+  MPI_Bcast(&w0[1], atom->nimpropertypes, MPI_DOUBLE, 0, world);
+  MPI_Bcast(&C[1], atom->nimpropertypes, MPI_DOUBLE, 0, world);
 
   for (int i = 1; i <= atom->nimpropertypes; i++) setflag[i] = 1;
 }
@@ -316,5 +320,5 @@ void ImproperUmbrella::read_restart(FILE *fp)
 void ImproperUmbrella::write_data(FILE *fp)
 {
   for (int i = 1; i <= atom->nimpropertypes; i++)
-    fprintf(fp,"%d %g %g\n",i,kw[i],w0[i]/MY_PI*180.0);
+    fprintf(fp, "%d %g %g\n", i, kw[i], RAD2DEG * w0[i]);
 }

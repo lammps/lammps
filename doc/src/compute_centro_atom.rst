@@ -6,17 +6,17 @@ compute centro/atom command
 Syntax
 """"""
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    compute ID group-ID centro/atom lattice keyword value ...
 
 * ID, group-ID are documented in :doc:`compute <compute>` command
-  centro/atom = style name of this compute command
-  lattice = *fcc* or *bcc* or N = # of neighbors per atom to include
+* centro/atom = style name of this compute command
+* lattice = *fcc* or *bcc* or N = # of neighbors per atom to include
 * zero or more keyword/value pairs may be appended
 * keyword = *axes*
 
-.. parsed-literal::
+  .. parsed-literal::
 
      *axes* value = *no* or *yes*
        *no* = do not calculate 3 symmetry axes
@@ -76,19 +76,20 @@ positive parameter.  If the atom does not have :math:`N` neighbors
 (within the potential cutoff), then its centro-symmetry parameter is
 set to 0.0.
 
-If the keyword *axes* has the setting *yes*\ , then this compute also
+If the keyword *axes* has the setting *yes*, then this compute also
 estimates three symmetry axes for each atom's local neighborhood.  The
 first two of these are the vectors joining the two pairs of neighbor
 atoms with smallest contributions to the centrosymmetry parameter,
 i.e. the two most symmetric pairs of atoms.  The third vector is
 normal to the first two by the right-hand rule.  All three vectors are
 normalized to unit length.  For FCC crystals, the first two vectors
-will lie along a <110> direction, while the third vector will lie
-along either a <100> or <111> direction.  For HCP crystals, the first
-two vectors will lie along <1000> directions, while the third vector
-will lie along <0001>.  This provides a simple way to measure local
-orientation in HCP structures.  In general, the *axes* keyword can be
-used to estimate the orientation of symmetry axes in the neighborhood
+will lie along a :math:`\langle110\rangle` direction, while the third vector
+will lie along either a :math:`\langle100\rangle` or :math:`\langle111\rangle`
+direction.  For HCP crystals, the first two vectors will lie along
+:math:`\langle1000\rangle` directions, while the third vector
+will lie along :math:`\langle0001\rangle`.  This provides a simple way to
+measure local orientation in HCP structures.  In general, the *axes* keyword
+can be used to estimate the orientation of symmetry axes in the neighborhood
 of any atom.
 
 Only atoms within the cutoff of the pairwise neighbor list are
@@ -96,7 +97,7 @@ considered as possible neighbors.  Atoms not in the compute group are
 included in the :math:`N` neighbors used in this calculation.
 
 The neighbor list needed to compute this quantity is constructed each
-time the calculation is performed (e.g. each time a snapshot of atoms
+time the calculation is performed (e.g., each time a snapshot of atoms
 is dumped).  Thus it can be inefficient to compute/dump this quantity
 too frequently or to have multiple compute/dump commands, each with a
 *centro/atom* style.
@@ -106,16 +107,16 @@ Output info
 
 By default, this compute calculates the centrosymmetry value for each
 atom as a per-atom vector, which can be accessed by any command that
-uses per-atom values from a compute as input.  See the :doc:`Howto output <Howto_output>` doc page for an overview of LAMMPS output
+uses per-atom values from a compute as input.  See the :doc:`Howto output <Howto_output>` page for an overview of LAMMPS output
 options.
 
-If the *axes* keyword setting is *yes*\ , then a per-atom array is
+If the *axes* keyword setting is *yes*, then a per-atom array is
 calculated. The first column is the centrosymmetry parameter.  The
-next three columns are the x, y, and z components of the first
+next three columns are the *x*, *y*, and *z* components of the first
 symmetry axis, followed by the second, and third symmetry axes in
-columns 5-7 and 8-10.
+columns 5--7 and 8--10.
 
-The centrosymmetry values are unitless values >= 0.0.  Their magnitude
+The centrosymmetry values are unitless values :math:`\ge 0.0`. Their magnitude
 depends on the lattice style due to the number of contributing neighbor
 pairs in the summation in the formula above.  And it depends on the
 local defects surrounding the central atom, as described above.  For

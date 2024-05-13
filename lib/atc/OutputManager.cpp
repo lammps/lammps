@@ -22,11 +22,11 @@ static const int kFieldWidth = kFieldPrecison + 6;
 
 static const int kFileNameSize = 26; // HERE <<<<
 static string tensor_component_names[9] = {"11","12","13",
-                                           "21","22","23", 
-                                           "31","32","33"}; 
-static string sym_tensor_component_names[6] = {"11","22","33","12","13","23"}; 
-static string vector_component_names[3] = {"_X","_Y","_Z"}; 
-static string list_component_names[26] = {"_a","_b","_c","_d","_e","_f","_g","_h","_i","_j","_k","_l","_m","_n","_o","_p","_q","_r","_s","_t","_u","_v","_w","_x","_y","_z"}; 
+                                           "21","22","23",
+                                           "31","32","33"};
+static string sym_tensor_component_names[6] = {"11","22","33","12","13","23"};
+static string vector_component_names[3] = {"_X","_Y","_Z"};
+static string list_component_names[26] = {"_a","_b","_c","_d","_e","_f","_g","_h","_i","_j","_k","_l","_m","_n","_o","_p","_q","_r","_s","_t","_u","_v","_w","_x","_y","_z"};
 
 string* get_component_names(int type) { // HERE <<<<
  string* componentNames = list_component_names;
@@ -39,7 +39,7 @@ string* get_component_names(int type) { // HERE <<<<
  return componentNames;
 }
 
-             
+
 //-----------------------------------------------------------------------------
 //*
 //-----------------------------------------------------------------------------
@@ -95,8 +95,8 @@ void OutputManager::set_option(OutputOption option, bool value) {
 //-----------------------------------------------------------------------------
 //*
 //-----------------------------------------------------------------------------
-void OutputManager::initialize(string outputPrefix, set<int> & otypes) 
-{ 
+void OutputManager::initialize(string outputPrefix, set<int> & otypes)
+{
   if (outputPrefix_ !=  outputPrefix ) { // new stream with existing object
     outputPrefix_ =  outputPrefix;
     initialized_ = false;
@@ -162,8 +162,8 @@ void OutputManager::read_restart_file(string fileName, RESTART_LIST *data)
       for (int j = 0; j < field_data->nCols(); ++j) {
         double myVal;
         if (fread(&myVal,sizeof(double),1,fp) == 1)
-          (*field_data)(i,j) = myVal;  
-    
+          (*field_data)(i,j) = myVal;
+
       }
     }
   }
@@ -172,7 +172,7 @@ void OutputManager::read_restart_file(string fileName, RESTART_LIST *data)
 //-----------------------------------------------------------------------------
 //*
 //-----------------------------------------------------------------------------
-void OutputManager::write_globals(void) 
+void OutputManager::write_globals()
 {
   if ( outputPrefix_ == "NULL") return;
   string file = outputPrefix_ + ".GLOBALS";
@@ -186,10 +186,10 @@ void OutputManager::write_globals(void)
   if ( firstStep_ || writeGlobalsHeader_) {
     text << "# time:1 ";
     int index = 2;
-    for (iter = globalData_.begin(); iter != globalData_.end(); iter++) 
+    for (iter = globalData_.begin(); iter != globalData_.end(); iter++)
     {
       string name  = iter->first;
-      string str; stringstream out; out << ":" << index++; 
+      string str; stringstream out; out << ":" << index++;
       str = out.str();
       name.append(str);
       text.width(kFieldWidth); text << name << " ";
@@ -199,7 +199,7 @@ void OutputManager::write_globals(void)
   writeGlobalsHeader_ = false;
   // data
   text.width(kFieldWidth); text << outputTimes_[outputTimes_.size()-1] << " ";
-  for (iter = globalData_.begin(); 
+  for (iter = globalData_.begin();
        iter != globalData_.end(); iter++) {
     double value = iter->second;
     text << setw(kFieldWidth) << std::scientific << std::setprecision(kFieldPrecison) << value << " ";
@@ -207,13 +207,13 @@ void OutputManager::write_globals(void)
   text << "\n";
 }
 //-----------------------------------------------------------------------------
-//* 
+//*
 //-----------------------------------------------------------------------------
-void OutputManager::write_geometry(const MATRIX *coordinates, 
+void OutputManager::write_geometry(const MATRIX *coordinates,
                                    const Array2D<int> *connectivities)
 {
-  if ( outputPrefix_ == "NULL") throw ATC_Error( "No outputPrefix given."); 
- 
+  if ( outputPrefix_ == "NULL") throw ATC_Error( "No outputPrefix given.");
+
   number_of_nodes_ = coordinates->nCols();
   coordinates_ = coordinates;
   connectivities_ = connectivities;
@@ -222,9 +222,9 @@ void OutputManager::write_geometry(const MATRIX *coordinates,
   initialized_ = true;
 }
 //-----------------------------------------------------------------------------
-//* 
+//*
 //-----------------------------------------------------------------------------
-void OutputManager::write_geometry_ensight(void)
+void OutputManager::write_geometry_ensight()
 {
   // geometry based on a reference configuration
   string geom_file_name = outputPrefix_ + ".geo";
@@ -268,14 +268,14 @@ void OutputManager::write_geometry_ensight(void)
   strcpy(buffer,"coordinates");
   fwrite(buffer,sizeof(char),80,fp);
   fwrite(&number_of_nodes_,sizeof(int),1,fp);
-   
+
   int number_of_spatial_dimensions = coordinates.nRows();
-  if (number_of_spatial_dimensions != 3) 
+  if (number_of_spatial_dimensions != 3)
     throw ATC_Error("Ensight writer needs a 3D geometry");
 
-  for (int i = 0; i < number_of_spatial_dimensions; ++i) 
+  for (int i = 0; i < number_of_spatial_dimensions; ++i)
   {
-    for (int j = 0; j < number_of_nodes_; ++j) 
+    for (int j = 0; j < number_of_nodes_; ++j)
     {
       float x = (float) coordinates(i,j);
       fwrite(&x,sizeof(float),1,fp);
@@ -283,36 +283,36 @@ void OutputManager::write_geometry_ensight(void)
   }
 
   // write mesh connectivities or point "connectivities"
-  if (connectivities_) 
-  { 
+  if (connectivities_)
+  {
     dataType_ = MESH;
     int nodes_per_element = connectivities_->nRows();
     if      (nodes_per_element == 4) { strcpy(buffer,"tetra4"); }
     else if (nodes_per_element == 8) { strcpy(buffer,"hexa8"); }
     else if (nodes_per_element == 20) { strcpy(buffer,"hexa20"); }
     else if (nodes_per_element == 27) { strcpy(buffer,"hexa27"); }
-    else 
+    else
       throw ATC_Error("Ensight writer does not recoginize element type");
     fwrite(buffer,sizeof(char),80,fp);
     int number_of_elements = connectivities_->nCols();
     fwrite(&number_of_elements,sizeof(int),1,fp);
     int number_of_nodes_per_element = connectivities_->nRows();
-    for (int j = 0; j < number_of_elements; ++j) 
+    for (int j = 0; j < number_of_elements; ++j)
     {
-      for (int i = 0; i < number_of_nodes_per_element; ++i) 
+      for (int i = 0; i < number_of_nodes_per_element; ++i)
       {
         int inode = (*connectivities_)(i,j) +1; // 1 based numbering
         fwrite(&inode,sizeof(int),1,fp);
       }
     }
-  } 
-  else 
+  }
+  else
   {
     strcpy(buffer,"point");
     fwrite(buffer,sizeof(char),80,fp);
     int number_of_elements = number_of_nodes_;
     fwrite(&number_of_elements,sizeof(int),1,fp);
-    for (int j = 0; j < number_of_elements; ++j)  
+    for (int j = 0; j < number_of_elements; ++j)
     {
       int inode = j +1; // 1 based numbering
       fwrite(&inode,sizeof(int),1,fp);
@@ -325,9 +325,9 @@ void OutputManager::write_geometry_ensight(void)
   fclose(fp);
 }
 //-----------------------------------------------------------------------------
-//* 
+//*
 //-----------------------------------------------------------------------------
-void OutputManager::write_geometry_text(void)
+void OutputManager::write_geometry_text()
 {
   if ( outputPrefix_ == "NULL") return;
   // geometry based on a reference configuration
@@ -336,14 +336,14 @@ void OutputManager::write_geometry_text(void)
   // open file
   ofstream text;
   text.open(geom_file_text.c_str(),ios_base::out);
-  if (connectivities_) 
-  { 
+  if (connectivities_)
+  {
     int number_of_elements = connectivities_->nCols();
     int number_of_nodes_per_element = connectivities_->nRows();
-    for (int j = 0; j < number_of_elements; ++j) 
+    for (int j = 0; j < number_of_elements; ++j)
     {
       text << "#";
-      for (int i = 0; i < number_of_nodes_per_element; ++i) 
+      for (int i = 0; i < number_of_nodes_per_element; ++i)
       {
         int inode = (*connectivities_)(i,j) +1; // 1 based numbering
           text << setw(6) << inode;
@@ -354,10 +354,10 @@ void OutputManager::write_geometry_text(void)
 
   const MATRIX & coordinates = *coordinates_;
   int number_of_spatial_dimensions = coordinates.nRows();
-  for (int j = 0; j < number_of_nodes_; ++j) 
+  for (int j = 0; j < number_of_nodes_; ++j)
   {
     text << setw(6) << j+1 << " ";
-    for (int i = 0; i < number_of_spatial_dimensions; ++i) 
+    for (int i = 0; i < number_of_spatial_dimensions; ++i)
     {
       text << setw(kFieldWidth) << std::scientific << std::setprecision(kFieldPrecison) << coordinates(i,j) << " ";
     }
@@ -368,25 +368,25 @@ void OutputManager::write_geometry_text(void)
 //-----------------------------------------------------------------------------
 /** pack "soln" into data */
 //-----------------------------------------------------------------------------
-void OutputManager::write_data(double time, FIELDS *soln, OUTPUT_LIST *data, const int *node_map) 
+void OutputManager::write_data(double time, FIELDS *soln, OUTPUT_LIST *data, const int *node_map)
 {
   // pack
-  OUTPUT_LIST combined_data;  
-  if (soln) 
+  OUTPUT_LIST combined_data;
+  if (soln)
   {
     FIELDS::iterator iter;
-    for (iter = soln->begin(); iter != soln->end(); iter++) 
+    for (iter = soln->begin(); iter != soln->end(); iter++)
     {
       FieldName field_index = iter->first;
-      MATRIX* field_data = &((iter->second).set_quantity());  
+      MATRIX* field_data = &((iter->second).set_quantity());
       string field_name = field_to_string(field_index);
       combined_data[field_name] = field_data;
     }
   }
-  if (data) 
+  if (data)
   {
     OUTPUT_LIST::iterator iter;
-    for (iter = data->begin(); iter != data->end(); iter++) 
+    for (iter = data->begin(); iter != data->end(); iter++)
     {
       string field_name = iter->first;
       const MATRIX* field_data = iter->second;
@@ -410,7 +410,7 @@ void OutputManager::write_data(double time, OUTPUT_LIST *data, const int *node_m
   if (ensightOutput_) {
     // write data
     OUTPUT_LIST::iterator iter;
-    for (iter = data->begin(); iter != data->end(); iter++) 
+    for (iter = data->begin(); iter != data->end(); iter++)
     {
       string field_name = iter->first;
       const MATRIX* field_data = iter->second;
@@ -422,7 +422,7 @@ void OutputManager::write_data(double time, OUTPUT_LIST *data, const int *node_m
 
   // write text dump
   if (textOutput_) {
-    write_data_text(data); 
+    write_data_text(data);
     if (firstStep_ && node_map) {
       string map_file_text = outputPrefix_ + ".MAP";
       ofstream text;
@@ -434,10 +434,10 @@ void OutputManager::write_data(double time, OUTPUT_LIST *data, const int *node_m
     }
   }
   else if (fullTextOutput_) {
-    write_data_text(data,node_map); 
+    write_data_text(data,node_map);
   }
   if (vtkOutput_) {
-    write_data_vtk(data); 
+    write_data_vtk(data);
   }
 
   // global variables
@@ -471,7 +471,7 @@ void OutputManager::write_data_ensight(string field_name, const MATRIX *field_da
       nfiles =  kFileNameSize;
     }
     string* component_names = get_component_names(type);
-    for (int ifile = 0; ifile < nfiles; ++ifile) 
+    for (int ifile = 0; ifile < nfiles; ++ifile)
     {
       string comp_name;
       if (! custom_name(field_name,ifile,comp_name))
@@ -480,15 +480,15 @@ void OutputManager::write_data_ensight(string field_name, const MATRIX *field_da
     }
   }
 
-  for (int ifile = 0; ifile < nfiles; ++ifile) 
+  for (int ifile = 0; ifile < nfiles; ++ifile)
   {
     // for vector/tensor to components
-    if ( nfiles > 1 ) 
-    { 
-      col_start = ifile;   
-      col_end   = ifile+1;   
+    if ( nfiles > 1 )
+    {
+      col_start = ifile;
+      col_end   = ifile+1;
     }
- 
+
     // open or append data file
     string data_file_name = filenames[ifile];
     FILE * fp=nullptr;
@@ -501,12 +501,12 @@ void OutputManager::write_data_ensight(string field_name, const MATRIX *field_da
     if (fp == nullptr) {
       throw ATC_Error("can not create Ensight data file: "+data_file_name);
     }
-  
+
     // write data
     char buffer[80];
     strcpy(buffer,"BEGIN TIME STEP");
     fwrite(buffer,sizeof(char),80,fp);
-    strcpy(buffer,"field name"); 
+    strcpy(buffer,"field name");
     fwrite(buffer,sizeof(char),80,fp);
 
     // per part
@@ -516,23 +516,23 @@ void OutputManager::write_data_ensight(string field_name, const MATRIX *field_da
     fwrite(&part_number,sizeof(int),1,fp);
     strcpy(buffer,"coordinates");
     fwrite(buffer,sizeof(char),80,fp);
-    if (node_map) 
+    if (node_map)
     {
-      for (int j = col_start; j < col_end; ++j) 
+      for (int j = col_start; j < col_end; ++j)
       {
-        for (int i = 0; i < number_of_nodes_; ++i) 
+        for (int i = 0; i < number_of_nodes_; ++i)
         {
           int inode = node_map[i];
           float x = (float) (*field_data)(inode,j);
           fwrite(&x,sizeof(float),1,fp);
         }
       }
-    } 
-    else 
+    }
+    else
     {
-      for (int j = col_start; j < col_end; ++j)  
+      for (int j = col_start; j < col_end; ++j)
       {
-        for (int i = 0; i < field_data->nRows(); ++i) 
+        for (int i = 0; i < field_data->nRows(); ++i)
         {
           float x = (float) (*field_data)(i,j);
           fwrite(&x,sizeof(float),1,fp);
@@ -552,10 +552,10 @@ void OutputManager::write_data_ensight(string field_name, const MATRIX *field_da
 //-----------------------------------------------------------------------------
 void OutputManager::write_text_data_header(OUTPUT_LIST *data, ofstream & text, int k)
 {
-    if (data) 
+    if (data)
     {
       OUTPUT_LIST::iterator iter;
-      for (iter = data->begin(); iter != data->end(); iter++) 
+      for (iter = data->begin(); iter != data->end(); iter++)
       {
         string field_name = iter->first;
         int nrows = iter->second->nRows();
@@ -584,7 +584,7 @@ void OutputManager::write_text_data_header(OUTPUT_LIST *data, ofstream & text, i
         else {
           for (int i = 1; i <= ncols; i++) {
             string name = field_name;
-            string str; stringstream out; 
+            string str; stringstream out;
             if (! custom_name(field_name,i-1,name)) { out <<"_"<<i; }
             out <<":"<<k; str = out.str();
             name.append(str);
@@ -608,15 +608,15 @@ void OutputManager::write_data_text(OUTPUT_LIST *data)
   else text.open(data_file_text.c_str(),ios_base::app);
 
   // write data label header
-  if (firstStep_) 
+  if (firstStep_)
   {
     text.width(6); text << "# index:1" << " "; // give an ordinate for gnuplot
-    text.width(10); text << " step:2" << " "; 
+    text.width(10); text << " step:2" << " ";
     write_text_data_header(data,text,3);
   }
   text << "# timestep " << outputTimes_.size() << " : "
        << outputTimes_[outputTimes_.size()-1]  << "\n";
-  
+
   int nrows = 0;
   OUTPUT_LIST::iterator iter;
   iter = data->begin();
@@ -624,19 +624,19 @@ void OutputManager::write_data_text(OUTPUT_LIST *data)
   const MATRIX* field_data = iter->second;
   nrows = field_data->nRows();
 
-  for (int i = 0; i < nrows; ++i) 
+  for (int i = 0; i < nrows; ++i)
   {
     text.width(6); text << i << " "; // give an ordinate for gnuplot
-    text.width(10); text << outputTimes_.size() << " "; 
+    text.width(10); text << outputTimes_.size() << " ";
     OUTPUT_LIST::iterator iter;
-    for (iter = data->begin(); iter != data->end(); iter++) 
+    for (iter = data->begin(); iter != data->end(); iter++)
     {
       const MATRIX* field_data = iter->second;
       int ncols = field_data->nCols();
       if (ncols > kFileNameSize) { ncols = kFileNameSize;}
-      for (int j = 0; j < ncols; ++j) 
+      for (int j = 0; j < ncols; ++j)
       {
-        text.width(kFieldWidth); 
+        text.width(kFieldWidth);
         text << setw(kFieldWidth) << std::scientific << std::setprecision(kFieldPrecison) << (*field_data)(i,j) << " ";
       }
     }
@@ -656,26 +656,26 @@ void OutputManager::write_data_text(OUTPUT_LIST *data, const int *node_map)
   else text.open(data_file_text.c_str(),ios_base::app);
 
   // write data label header
-  if (firstStep_) 
+  if (firstStep_)
   {
-    text.width(6); text << "# index:1" << " "; 
-    text.width(6); text << " id:2" << " "; 
-    text.width(10); text << " step:3" << " "; 
-    text.width(4); text << " x:4" << " "; 
-    text.width(4); text << " y:5" << " "; 
-    text.width(4); text << " z:6" << " "; 
+    text.width(6); text << "# index:1" << " ";
+    text.width(6); text << " id:2" << " ";
+    text.width(10); text << " step:3" << " ";
+    text.width(4); text << " x:4" << " ";
+    text.width(4); text << " y:5" << " ";
+    text.width(4); text << " z:6" << " ";
     write_text_data_header(data,text,7);
 
-    if (connectivities_) 
-    { 
+    if (connectivities_)
+    {
       int number_of_elements = connectivities_->nCols();
       int number_of_nodes_per_element = connectivities_->nRows();
-      text << "# connectivities  number_of_elements: " << number_of_elements 
-           << " nodes_per_element: " << number_of_nodes_per_element << "\n"; 
-      for (int j = 0; j < number_of_elements; ++j) 
+      text << "# connectivities  number_of_elements: " << number_of_elements
+           << " nodes_per_element: " << number_of_nodes_per_element << "\n";
+      for (int j = 0; j < number_of_elements; ++j)
       {
         text << "#";
-        for (int i = 0; i < number_of_nodes_per_element; ++i) 
+        for (int i = 0; i < number_of_nodes_per_element; ++i)
         {
           int inode = (*connectivities_)(i,j) +1; // 1 based numbering
               text << setw(6) << inode;
@@ -686,34 +686,34 @@ void OutputManager::write_data_text(OUTPUT_LIST *data, const int *node_map)
   }
   text << "# timestep " << outputTimes_.size() << " : "
        << outputTimes_[outputTimes_.size()-1]  << "\n";
-  
+
   OUTPUT_LIST::iterator iter;
   iter = data->begin();
   if (iter == data->end()) { throw ATC_Error(" no data in output");}
   int nnodes = coordinates_->nCols();
 
-  for (int i = 0; i < nnodes; ++i) 
+  for (int i = 0; i < nnodes; ++i)
   {
     int unode = i;
     if (node_map) unode = node_map[i];
-    text.width(6); text << i << " "; 
-    text.width(6); text << unode << " "; 
-    text.width(10); text << outputTimes_.size() << " "; 
+    text.width(6); text << i << " ";
+    text.width(6); text << unode << " ";
+    text.width(10); text << outputTimes_.size() << " ";
     // coordinates
     for (int j = 0; j < coordinates_->nRows(); ++j) {
-      text.width(kFieldWidth); 
+      text.width(kFieldWidth);
       text << setw(kFieldWidth) << std::scientific << std::setprecision(kFieldPrecison) << (*coordinates_)(j,i) << " ";
     }
     // data
     OUTPUT_LIST::iterator iter;
-    for (iter = data->begin(); iter != data->end(); iter++) 
+    for (iter = data->begin(); iter != data->end(); iter++)
     {
       const MATRIX* field_data = iter->second;
       int ncols = field_data->nCols();
       if (ncols > kFileNameSize) { ncols = kFileNameSize; }
-      for (int j = 0; j < ncols; ++j) 
+      for (int j = 0; j < ncols; ++j)
       {
-        text.width(kFieldWidth); 
+        text.width(kFieldWidth);
         text << setw(kFieldWidth) << std::scientific << std::setprecision(kFieldPrecison) << (*field_data)(unode,j) << " ";
       }
     }
@@ -740,7 +740,7 @@ void OutputManager::write_data_vtk(OUTPUT_LIST *data)
   text << "POINTS " << nnodes << " float\n";
   for (int i = 0; i < nnodes; ++i) {
     for (int j = 0; j < coordinates_->nRows(); ++j) {
-      text.width(kFieldWidth); 
+      text.width(kFieldWidth);
       text << setw(kFieldWidth) << std::scientific << std::setprecision(kFieldPrecison) << (*coordinates_)(j,i) << " ";
     }
     text << "\n";
@@ -758,7 +758,7 @@ void OutputManager::write_data_vtk(OUTPUT_LIST *data)
     text << "\n";
   }
   text << "\n";
-  int cell_type = 4 ; 
+  int cell_type = 4 ;
   text << "CELL_TYPES " << nelems << "\n";
   for (int j = 0; j < nelems; ++j) {
     text << cell_type << "\n";
@@ -768,12 +768,12 @@ void OutputManager::write_data_vtk(OUTPUT_LIST *data)
   text << "POINT_DATA " << nnodes << "\n";
   text << "\n";
   OUTPUT_LIST::iterator iter;
-  for (iter = data->begin(); iter != data->end(); iter++) 
+  for (iter = data->begin(); iter != data->end(); iter++)
   {
     string field_name = iter->first;
     const MATRIX* field_data = iter->second;
     int ncols = field_data->nCols();
-    if (ncols == 1) { 
+    if (ncols == 1) {
       text << "SCALARS " << field_name << " float\n";
       text << "LOOKUP_TABLE default\n";
     }
@@ -782,7 +782,7 @@ void OutputManager::write_data_vtk(OUTPUT_LIST *data)
     }
     for (int i = 0; i < nnodes; ++i) {
       for (int j = 0; j < ncols; ++j) {
-        text.width(kFieldWidth); 
+        text.width(kFieldWidth);
         text << setw(kFieldWidth) << std::scientific << std::setprecision(kFieldPrecison) << (*field_data)(i,j) << " ";
       }
       text <<"\n";
@@ -797,10 +797,10 @@ void OutputManager::write_dictionary(double /* time */, OUTPUT_LIST *data)
   // file names
   string dict_file_name = outputPrefix_ + ".case";
   string geom_file_name = outputPrefix_ + ".geo";
-  
+
   // open file
   FILE * fp=nullptr;
-  if ((fp=fopen(dict_file_name.c_str(),"w")) == nullptr) 
+  if ((fp=fopen(dict_file_name.c_str(),"w")) == nullptr)
   {
     throw ATC_Error("can not create Ensight case file");
   }
@@ -831,7 +831,7 @@ void OutputManager::write_dictionary(double /* time */, OUTPUT_LIST *data)
       string* component_names = get_component_names(type);
       int ndof = fieldCols;
       if (ndof > kFileNameSize) ndof = kFileNameSize;
-      for (int j = 0; j < ndof; ++j) 
+      for (int j = 0; j < ndof; ++j)
       {
         string comp_name;
         if (! custom_name(field_name,j,comp_name))
@@ -844,15 +844,15 @@ void OutputManager::write_dictionary(double /* time */, OUTPUT_LIST *data)
     else if (type == VECTOR_OUTPUT) {
       fprintf(fp,"vector per node: 1 1 %s %s\n",
         field_name.c_str(),field_file.c_str());
-    } 
+    }
     else if (type == SYM_TENSOR_OUTPUT) {
       fprintf(fp,"tensor symm per node: 1 1 %s %s\n",
         field_name.c_str(),field_file.c_str());
-    } 
+    }
     else if (type == TENSOR_OUTPUT) {
       fprintf(fp,"tensor asymm per node: 1 1 %s %s\n",
         field_name.c_str(),field_file.c_str());
-    } 
+    }
     else {
       fprintf(fp,"scalar per node: 1 1 %s %s\n",
         field_name.c_str(),field_file.c_str());

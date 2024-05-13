@@ -1,4 +1,5 @@
 from __future__ import print_function
+import math
 
 class LAMMPSPairPotential(object):
     def __init__(self):
@@ -9,6 +10,34 @@ class LAMMPSPairPotential(object):
     def check_units(self,units):
         if (units != self.units):
            raise Exception("Conflicting units: %s vs. %s" % (self.units,units))
+
+class Harmonic(LAMMPSPairPotential):
+    def __init__(self):
+        super(Harmonic,self).__init__()
+        self.units = 'real'
+        # set coeffs: K, r0
+        self.coeff = {'A'  : {'A'  : (0.2,9.0),
+                              'B'  : (math.sqrt(0.2*0.4),9.0)},
+                      'B'  : {'A'  : (math.sqrt(0.2*0.4),9.0),
+                              'B'  : (0.4,9.0)}}
+
+    def compute_force(self,rsq,itype,jtype):
+        coeff = self.coeff[self.pmap[itype]][self.pmap[jtype]]
+        r = math.sqrt(rsq)
+        delta = coeff[1]-r
+        if (r <= coeff[1]):
+          return 2.0*delta*coeff[0]/r
+        else:
+          return 0.0
+
+    def compute_energy(self,rsq,itype,jtype):
+        coeff = self.coeff[self.pmap[itype]][self.pmap[jtype]]
+        r = math.sqrt(rsq)
+        delta = coeff[1]-r
+        if (r <= coeff[1]):
+          return delta*delta*coeff[0]
+        else:
+          return 0.0
 
 class LJCutMelt(LAMMPSPairPotential):
     def __init__(self):

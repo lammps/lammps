@@ -36,7 +36,7 @@ Syntax
   .. parsed-literal::
 
        keyword = *units*
-         value = *box* or *lattice*
+         *units* value = *box* or *lattice*
 
 Examples
 """"""""
@@ -56,7 +56,7 @@ can be imposed on the system.  Or two groups of atoms can be brought
 into closer proximity.
 
 The *move* style displaces the group of atoms by the specified 3d
-displacement vector.  Any of the 3 quantities defining the vector
+displacement vector.  Any of the three quantities defining the vector
 components can be specified as an equal-style or atom-style
 :doc:`variable <variable>`.  If the value is a variable, it should be
 specified as v_name, where name is the variable name.  In this case,
@@ -78,22 +78,22 @@ doc page for more details.
 The *ramp* style displaces atoms a variable amount in one dimension
 depending on the atom's coordinate in a (possibly) different
 dimension.  For example, the second example command displaces atoms in
-the x-direction an amount between 0.0 and 5.0 distance units.  Each
-atom's displacement depends on the fractional distance its y
-coordinate is between 2.0 and 20.5.  Atoms with y-coordinates outside
+the *x*\ -direction an amount between 0.0 and 5.0 distance units.  Each
+atom's displacement depends on the fractional distance its *y*
+coordinate is between 2.0 and 20.5.  Atoms with *y*\ -coordinates outside
 those bounds will be moved the minimum (0.0) or maximum (5.0) amount.
 
 The *random* style independently moves each atom in the group by a
-random displacement, uniformly sampled from a value between -dx and
-+dx in the x dimension, and similarly for y and z.  Random numbers are
-used in such a way that the displacement of a particular atom is the
-same, regardless of how many processors are being used.
+random displacement, uniformly sampled from a value between :math:`-dx` and
+:math:`+dx` in the *x* dimension, and similarly for *y* and *z*.
+Random numbers are used in such a way that the displacement of a particular
+atom is the same, regardless of how many processors are being used.
 
 The *rotate* style rotates each atom in the group by the angle *theta*
-around a rotation axis *R* = (Rx,Ry,Rz) that goes through a point *P* =
-(Px,Py,Pz).  The direction of rotation for the atoms around the
+around a rotation axis :math:`R = (R_x,R_y,R_z)` that goes through a point
+:math:`P = (P_x,P_y,P_z)`.  The direction of rotation for the atoms around the
 rotation axis is consistent with the right-hand rule: if your
-right-hand thumb points along *R*\ , then your fingers wrap around the
+right-hand thumb points along *R*, then your fingers wrap around the
 axis in the direction of positive theta.
 
 If the defined :doc:`atom_style <atom_style>` assigns an orientation to
@@ -104,10 +104,10 @@ atom's rotation.
 Distance units for displacements and the origin point of the *rotate*
 style are determined by the setting of *box* or *lattice* for the
 *units* keyword.  *Box* means distance units as defined by the
-:doc:`units <units>` command - e.g. Angstroms for *real* units.
-*Lattice* means distance units are in lattice spacings.  The
-:doc:`lattice <lattice>` command must have been previously used to
-define the lattice spacing.
+:doc:`units <units>` command (e.g., :math:`\AA` for
+*real* or *metal* units). *Lattice* means distance units are in lattice
+spacings.  The :doc:`lattice <lattice>` command must have been previously used
+to define the lattice spacing.
 
 ----------
 
@@ -139,7 +139,7 @@ Restrictions
 """"""""""""
 
 For a 2d simulation, only rotations around the a vector parallel to
-the z-axis are allowed.
+the :math:`z`-axis are allowed.
 
 Related commands
 """"""""""""""""

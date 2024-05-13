@@ -1,4 +1,5 @@
 .. index:: group2ndx
+.. index:: ndx2group
 
 group2ndx command
 =================
@@ -9,13 +10,13 @@ ndx2group command
 Syntax
 """"""
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
-   group2ndx file group-ID ...
-   ndx2group file group-ID ...
+   group2ndx file args
+   ndx2group file args
 
 * file = name of index file to write out or read in
-* zero or more group IDs may be appended
+* args = zero or more group IDs may be appended
 
 Examples
 """"""""
@@ -57,8 +58,8 @@ Restrictions
 This command requires that atoms have atom IDs, since this is the
 information that is written to the index file.
 
-These commands are part of the USER-COLVARS package.  They are only
-enabled if LAMMPS was built with that package.  See the :doc:`Build package <Build_package>` doc page for more info.
+These commands are part of the COLVARS package.  They are only
+enabled if LAMMPS was built with that package.  See the :doc:`Build package <Build_package>` page for more info.
 
 Related commands
 """"""""""""""""

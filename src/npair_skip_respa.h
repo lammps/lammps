@@ -1,7 +1,7 @@
 /* -*- c++ -*- ----------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    https://www.lammps.org/, Sandia National Laboratories
-   Steve Plimpton, sjplimp@sandia.gov
+   LAMMPS development team: developers@lammps.org
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
@@ -13,11 +13,20 @@
 
 #ifdef NPAIR_CLASS
 // clang-format off
+typedef NPairSkipRespaTemp<0> NPairSkipRespa;
 NPairStyle(skip/half/respa,
            NPairSkipRespa,
            NP_SKIP | NP_RESPA | NP_HALF | NP_FULL |
            NP_NSQ | NP_BIN | NP_MULTI | NP_MULTI_OLD |
            NP_NEWTON | NP_NEWTOFF | NP_ORTHO | NP_TRI);
+
+typedef NPairSkipRespaTemp<1> NPairSkipTrimRespa;
+NPairStyle(skip/trim/half/respa,
+           NPairSkipTrimRespa,
+           NP_SKIP | NP_RESPA | NP_HALF | NP_FULL |
+           NP_NSQ | NP_BIN | NP_MULTI | NP_MULTI_OLD |
+           NP_NEWTON | NP_NEWTOFF | NP_ORTHO | NP_TRI | NP_TRIM);
+
 // clang-format on
 #else
 
@@ -28,22 +37,14 @@ NPairStyle(skip/half/respa,
 
 namespace LAMMPS_NS {
 
-class NPairSkipRespa : public NPair {
+template<int TRIM>
+class NPairSkipRespaTemp : public NPair {
  public:
-  NPairSkipRespa(class LAMMPS *);
-  ~NPairSkipRespa() {}
-  void build(class NeighList *);
+  NPairSkipRespaTemp(class LAMMPS *);
+  void build(class NeighList *) override;
 };
 
 }    // namespace LAMMPS_NS
 
 #endif
 #endif
-
-/* ERROR/WARNING messages:
-
-E: Neighbor list overflow, boost neigh_modify one
-
-UNDOCUMENTED
-
-*/

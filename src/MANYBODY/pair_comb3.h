@@ -1,7 +1,7 @@
 /* -*- c++ -*- ----------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    https://www.lammps.org/, Sandia National Laboratories
-   Steve Plimpton, sjplimp@sandia.gov
+   LAMMPS development team: developers@lammps.org
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
@@ -27,13 +27,13 @@ namespace LAMMPS_NS {
 class PairComb3 : public Pair {
  public:
   PairComb3(class LAMMPS *);
-  virtual ~PairComb3();
-  virtual void compute(int, int);
-  void settings(int, char **);
-  void coeff(int, char **);
-  void init_style();
-  double init_one(int, int);
-  double memory_usage();
+  ~PairComb3() override;
+  void compute(int, int) override;
+  void settings(int, char **) override;
+  void coeff(int, char **) override;
+  void init_style() override;
+  double init_one(int, int) override;
+  double memory_usage() override;
   virtual double combqeq(double *, int &);
   double enegtot;
 
@@ -221,82 +221,12 @@ class PairComb3 : public Pair {
                    double, double, double, double, int, int, double &, double &, double *);
 
   // communication functions
-  int pack_reverse_comm(int, int, double *);
-  void unpack_reverse_comm(int, int *, double *);
-  int pack_forward_comm(int, int *, double *, int, int *);
-  void unpack_forward_comm(int, int, double *);
+  int pack_reverse_comm(int, int, double *) override;
+  void unpack_reverse_comm(int, int *, double *) override;
+  int pack_forward_comm(int, int *, double *, int, int *) override;
+  void unpack_forward_comm(int, int, double *) override;
 };
 }    // namespace LAMMPS_NS
 
 #endif
 #endif
-
-/* ERROR/WARNING messages:
-
-E: Illegal ... command
-
-Self-explanatory.  Check the input script syntax and compare to the
-documentation for the command.  You can use -echo screen as a
-command-line option when running LAMMPS to see the offending line.
-
-E: Incorrect args for pair coefficients
-
-Self-explanatory.  Check the input script or data file.
-
-E: Pair style COMB3 requires atom IDs
-
-This is a requirement to use the COMB3 potential.
-
-E: Pair style COMB3 requires newton pair on
-
-See the newton command.  This is a restriction to use the COMB3
-potential.
-
-E: Pair style COMB3 requires atom attribute q
-
-Self-explanatory.
-
-E: All pair coeffs are not set
-
-All pair coefficients must be set in the data file or by the
-pair_coeff command before running a simulation.
-
-E: Cannot open COMB3 lib.comb3 file
-
-The COMB3 library file cannot be opened.  Check that the path and name
-are correct.
-
-E: Cannot open COMB3 potential file %s
-
-The specified COMB3 potential file cannot be opened.  Check that the
-path and name are correct.
-
-E: Incorrect format in COMB3 potential file
-
-Incorrect number of words per line in the potential file.
-
-E: Illegal COMB3 parameter
-
-One or more of the coefficients defined in the potential file is
-invalid.
-
-E: Potential file has duplicate entry
-
-The potential file has more than one entry for the same element.
-
-E: Potential file is missing an entry
-
-The potential file does not have a needed entry.
-
-E: Neighbor list overflow, boost neigh_modify one
-
-There are too many neighbors of a single atom.  Use the neigh_modify
-command to increase the max number of neighbors allowed for one atom.
-You may also want to boost the page size.
-
-E: Error in vdw spline: inner radius > outer radius
-
-A pre-tabulated spline is invalid.  Likely a problem with the
-potential parameters.
-
-*/

@@ -36,7 +36,7 @@ __kernel void k_coul_dsf(const __global numtyp4 *restrict x_,
                          const __global numtyp *restrict sp_lj_in,
                          const __global int *dev_nbor,
                          const __global int *dev_packed,
-                         __global acctyp4 *restrict ans,
+                         __global acctyp3 *restrict ans,
                          __global acctyp *restrict engv,
                          const int eflag, const int vflag, const int inum,
                          const int nbor_pitch,
@@ -56,7 +56,7 @@ __kernel void k_coul_dsf(const __global numtyp4 *restrict x_,
   sp_lj[2]=sp_lj_in[2];
   sp_lj[3]=sp_lj_in[3];
 
-  acctyp4 f;
+  acctyp3 f;
   f.x=(acctyp)0; f.y=(acctyp)0; f.z=(acctyp)0;
   acctyp energy, e_coul, virial[6];
   if (EVFLAG) {
@@ -81,6 +81,7 @@ __kernel void k_coul_dsf(const __global numtyp4 *restrict x_,
     }
 
     for ( ; nbor<nbor_end; nbor+=n_stride) {
+      ucl_prefetch(dev_packed+nbor+n_stride);
       int j=dev_packed[nbor];
 
       numtyp factor_coul, r, prefactor, erfcc;
@@ -138,7 +139,7 @@ __kernel void k_coul_dsf_fast(const __global numtyp4 *restrict x_,
                               const __global numtyp *restrict sp_lj_in,
                               const __global int *dev_nbor,
                               const __global int *dev_packed,
-                              __global acctyp4 *restrict ans,
+                              __global acctyp3 *restrict ans,
                               __global acctyp *restrict engv,
                               const int eflag, const int vflag, const int inum,
                               const int nbor_pitch,
@@ -156,7 +157,7 @@ __kernel void k_coul_dsf_fast(const __global numtyp4 *restrict x_,
   if (tid<4)
     sp_lj[tid]=sp_lj_in[tid];
 
-  acctyp4 f;
+  acctyp3 f;
   f.x=(acctyp)0; f.y=(acctyp)0; f.z=(acctyp)0;
   acctyp energy, e_coul, virial[6];
   if (EVFLAG) {
@@ -183,6 +184,7 @@ __kernel void k_coul_dsf_fast(const __global numtyp4 *restrict x_,
     }
 
     for ( ; nbor<nbor_end; nbor+=n_stride) {
+      ucl_prefetch(dev_packed+nbor+n_stride);
       int j=dev_packed[nbor];
 
       numtyp factor_coul, r, prefactor, erfcc;

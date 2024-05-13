@@ -88,7 +88,7 @@ potential for the Donor-Acceptor interactions. :ref:`(Liu) <Liu>` showed
 that the Morse form gives improved results for Dendrimer simulations,
 when n = 2.
 
-See the :doc:`Howto bioFF <Howto_bioFF>` doc page for more information
+See the :doc:`Howto bioFF <Howto_bioFF>` page for more information
 on the DREIDING force field.
 
 .. note::
@@ -170,11 +170,11 @@ A single hydrogen atom type K can be specified, or a wild-card asterisk
 can be used in place of or in conjunction with the K arguments to
 select multiple types as hydrogen atoms.  This takes the form
 "\*" or "\*n" or "n\*" or "m\*n".  See the :doc:`pair_coeff <pair_coeff>`
-command doc page for details.
+command page for details.
 
-If the donor flag is *i*\ , then the atom of type I in the pair_coeff
+If the donor flag is *i*, then the atom of type I in the pair_coeff
 command is treated as the donor, and J is the acceptor.  If the donor
-flag is *j*\ , then the atom of type J in the pair_coeff command is
+flag is *j*, then the atom of type J in the pair_coeff command is
 treated as the donor and I is the donor.  This option is required
 because the :doc:`pair_coeff <pair_coeff>` command requires that I <= J.
 
@@ -219,7 +219,7 @@ re-specified in an input script that reads a restart file.
 
 These pair styles can only be used via the *pair* keyword of the
 :doc:`run_style respa <run_style>` command.  They do not support the
-*inner*\ , *middle*\ , *outer* keywords.
+*inner*, *middle*, *outer* keywords.
 
 These pair styles tally a count of how many hydrogen bonding
 interactions they calculate each timestep and the hbond energy.  These

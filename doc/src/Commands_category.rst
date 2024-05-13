@@ -2,7 +2,7 @@ Commands by category
 ====================
 
 This page lists most of the LAMMPS commands, grouped by category.  The
-:doc:`General commands <Commands_all>` doc page lists all general commands
+:doc:`General commands <Commands_all>` page lists all general commands
 alphabetically.  Style options for entries like fix, compute, pair etc.
 have their own pages where they are listed alphabetically.
 
@@ -25,7 +25,6 @@ Setup simulation box:
    :columns: 4
 
    * :doc:`boundary <boundary>`
-   * :doc:`box <box>`
    * :doc:`change_box <change_box>`
    * :doc:`create_box <create_box>`
    * :doc:`dimension <dimension>`

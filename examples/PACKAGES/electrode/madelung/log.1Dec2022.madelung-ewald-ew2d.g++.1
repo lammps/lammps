@@ -1,0 +1,130 @@
+LAMMPS (3 Nov 2022)
+boundary p p f
+kspace_style ewald/electrode 1.0e-8
+kspace_modify slab ew2d
+
+include "settings.mod" # styles, computes, groups and fixes
+# set boundary in main script because ffield is periodic
+units real
+# distribute electrode atoms among all processors:
+if "$(extract_setting(world_size) % 2) == 0" then "processors * * 2"
+
+atom_style full
+pair_style lj/cut/coul/long 12
+
+read_data "data.au-elyt"
+Reading data file ...
+  orthogonal box = (0 0 -10) to (1 1 10)
+  1 by 1 by 1 MPI processor grid
+  reading atoms ...
+  4 atoms
+Finding 1-2 1-3 1-4 neighbors ...
+  special bond factors lj:    0        0        0       
+  special bond factors coul:  0        0        0       
+     0 = max # of 1-2 neighbors
+     0 = max # of 1-3 neighbors
+     0 = max # of 1-4 neighbors
+     1 = max # of special neighbors
+  special bonds CPU = 0.001 seconds
+  read_data CPU = 0.002 seconds
+
+group bot type 1
+1 atoms in group bot
+group top type 2
+1 atoms in group top
+
+# get electrode charges
+variable q atom q
+compute qbot bot reduce sum v_q
+compute qtop top reduce sum v_q
+
+compute compute_pe all pe
+variable vpe equal c_compute_pe
+variable charge equal c_qtop
+fix fxprint all print 1 "${vpe}, ${charge}" file "out.csv"
+
+thermo_style custom step pe c_qbot c_qtop
+fix conp bot electrode/conp 0 2 couple top 1 symm on write_inv inv.csv write_vec vec.csv
+2 atoms in group conp_group
+
+run 0
+
+CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE
+
+Your simulation uses code contributions which should be cited:
+
+- fix electrode command:
+
+@article{Ahrens2022
+author = {Ahrens-Iwers, Ludwig J.V. and Janssen, Mahijs and Tee, Shern R. and Mei{\ss}ner, Robert H.},
+doi = {10.1063/5.0099239},
+title = {{ELECTRODE: An electrochemistry package for LAMMPS}},
+journal = {The Journal of Chemical Physics},
+year = {2022}
+volume = {157},
+pages = {084801},
+}
+CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE
+
+WARNING: No fixes with time integration, atoms won't move (src/verlet.cpp:60)
+Ewald/electrode initialization ...
+  using 12-bit tables for long-range coulomb (src/kspace.cpp:342)
+WARNING: For better accuracy use 'pair_modify table 0' (src/kspace.cpp:365)
+  G vector (1/distance) = 0.32261103
+  estimated absolute RMS force accuracy = 9.9990544e-06
+  estimated relative force accuracy = 3.0111855e-08
+  KSpace vectors: actual max1d max3d = 2 8 2456
+                  kxmax kymax kzmax  = 1 1 8
+Generated 3 of 3 mixed pair_coeff terms from geometric mixing rule
+Neighbor list info ...
+  update: every = 1 steps, delay = 0 steps, check = yes
+  max neighbors/atom: 2000, page size: 100000
+  master list distance cutoff = 14
+  ghost atom cutoff = 14
+  binsize = 7, bins = 1 1 3
+  2 neighbor lists, perpetual/occasional/extra = 2 0 0
+  (1) pair lj/cut/coul/long, perpetual
+      attributes: half, newton on
+      pair build: half/bin/newton
+      stencil: half/bin/3d
+      bin: standard
+  (2) fix electrode/conp, perpetual, copy from (1)
+      attributes: half, newton on
+      pair build: copy
+      stencil: none
+      bin: none
+WARNING: Proc sub-domain size < neighbor skin, could lead to lost atoms (src/domain.cpp:966)
+139.946125020193, 0.279214126709814
+Per MPI rank memory allocation (min/avg/max) = 20.42 | 20.42 | 20.42 Mbytes
+   Step         PotEng         c_qbot         c_qtop    
+         0   139.94613     -0.27921413     0.27921413   
+Loop time of 1.082e-06 on 1 procs for 0 steps with 4 atoms
+
+0.0% CPU use with 1 MPI tasks x no OpenMP threads
+
+MPI task timing breakdown:
+Section |  min time  |  avg time  |  max time  |%varavg| %total
+---------------------------------------------------------------
+Pair    | 0          | 0          | 0          |   0.0 |  0.00
+Bond    | 0          | 0          | 0          |   0.0 |  0.00
+Kspace  | 0          | 0          | 0          |   0.0 |  0.00
+Neigh   | 0          | 0          | 0          |   0.0 |  0.00
+Comm    | 0          | 0          | 0          |   0.0 |  0.00
+Output  | 0          | 0          | 0          |   0.0 |  0.00
+Modify  | 0          | 0          | 0          |   0.0 |  0.00
+Other   |            | 1.082e-06  |            |       |100.00
+
+Nlocal:              4 ave           4 max           4 min
+Histogram: 1 0 0 0 0 0 0 0 0 0
+Nghost:           3596 ave        3596 max        3596 min
+Histogram: 1 0 0 0 0 0 0 0 0 0
+Neighs:           4790 ave        4790 max        4790 min
+Histogram: 1 0 0 0 0 0 0 0 0 0
+
+Total # of neighbors = 4790
+Ave neighs/atom = 1197.5
+Ave special neighs/atom = 0
+Neighbor list builds = 0
+Dangerous builds = 0
+
+Total wall time: 0:00:00

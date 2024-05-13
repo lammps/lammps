@@ -2,7 +2,7 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    https://www.lammps.org/, Sandia National Laboratories
-   Steve Plimpton, sjplimp@sandia.gov
+   LAMMPS development team: developers@lammps.org
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
@@ -20,33 +20,28 @@
 
 #include "pair_lubricateU_poly.h"
 
-#include <cmath>
-#include <cstring>
 #include "atom.h"
 #include "comm.h"
-#include "force.h"
-#include "neighbor.h"
-#include "neigh_list.h"
-#include "neigh_request.h"
 #include "domain.h"
-#include "modify.h"
+#include "error.h"
 #include "fix.h"
 #include "fix_wall.h"
+#include "force.h"
 #include "input.h"
-#include "variable.h"
 #include "math_const.h"
 #include "memory.h"
-#include "error.h"
+#include "modify.h"
+#include "neigh_list.h"
+#include "neighbor.h"
+#include "variable.h"
+
+#include <cmath>
+#include <cstring>
 
 using namespace LAMMPS_NS;
 using namespace MathConst;
 
-#define TOL 1E-3   // tolerance for conjugate gradient
-
-// same as fix_wall.cpp
-
-enum{EDGE,CONSTANT,VARIABLE};
-
+static constexpr double TOL = 1e-3;   // tolerance for conjugate gradient
 
 /* ---------------------------------------------------------------------- */
 
@@ -198,7 +193,7 @@ void PairLubricateUPoly::iterate(double **x, int stage)
 
   // set velocities for ghost particles
 
-  comm->forward_comm_pair(this);
+  comm->forward_comm(this);
 
   // Find initial residual
 
@@ -233,7 +228,7 @@ void PairLubricateUPoly::iterate(double **x, int stage)
 
     // set velocities for ghost particles
 
-    comm->forward_comm_pair(this);
+    comm->forward_comm(this);
 
     compute_RU(x);
 
@@ -292,7 +287,7 @@ void PairLubricateUPoly::iterate(double **x, int stage)
 
   // set velocities for ghost particles
 
-  comm->forward_comm_pair(this);
+  comm->forward_comm(this);
 
   // compute the viscosity/pressure
 
@@ -365,7 +360,7 @@ void PairLubricateUPoly::compute_Fh(double **x)
          for (int m = 0; m < wallfix->nwall; m++) {
            int dim = wallfix->wallwhich[m] / 2;
            int side = wallfix->wallwhich[m] % 2;
-           if (wallfix->xstyle[m] == VARIABLE) {
+           if (wallfix->xstyle[m] == FixWall::VARIABLE) {
              wallcoord = input->variable->compute_equal(wallfix->xindex[m]);
            }
            else wallcoord = wallfix->coord0[m];
@@ -640,7 +635,7 @@ void PairLubricateUPoly::compute_RU(double **x)
          for (int m = 0; m < wallfix->nwall; m++) {
            int dim = wallfix->wallwhich[m] / 2;
            int side = wallfix->wallwhich[m] % 2;
-           if (wallfix->xstyle[m] == VARIABLE) {
+           if (wallfix->xstyle[m] == FixWall::VARIABLE) {
              wallcoord = input->variable->compute_equal(wallfix->xindex[m]);
            }
            else wallcoord = wallfix->coord0[m];
@@ -1126,14 +1121,15 @@ void PairLubricateUPoly::settings(int narg, char **arg)
 void PairLubricateUPoly::init_style()
 {
   if (force->newton_pair == 1)
-    error->all(FLERR,"Pair lubricateU/poly requires newton pair off");
+    error->all(FLERR, "Pair lubricateU/poly requires newton pair off");
   if (comm->ghost_velocity == 0)
-    error->all(FLERR,
-               "Pair lubricateU/poly requires ghost atoms store velocity");
-  if (!atom->sphere_flag)
-    error->all(FLERR,"Pair lubricate/poly requires atom style sphere");
+    error->all(FLERR, "Pair lubricateU/poly requires ghost atoms store velocity");
+  if (!atom->omega_flag)
+    error->all(FLERR, "Pair lubricateU/poly requires atom attribute omega");
+  if (!atom->radius_flag)
+    error->all(FLERR, "Pair lubricateU/poly requires atom attribute radius");
 
-  // insure all particles are finite-size
+  // ensure all particles are finite-size
   // for pair hybrid, should limit test to types using the pair style
 
   double *radius = atom->radius;
@@ -1141,7 +1137,7 @@ void PairLubricateUPoly::init_style()
 
   for (int i = 0; i < nlocal; i++)
     if (radius[i] == 0.0)
-      error->one(FLERR,"Pair lubricate/poly requires extended particles");
+      error->one(FLERR,"Pair lubricateU/poly requires extended particles");
 
   // Set the isotropic constants depending on the volume fraction
 
@@ -1161,11 +1157,9 @@ void PairLubricateUPoly::init_style()
       flagdeform = 1;
     else if (strstr(modify->fix[i]->style,"wall") != nullptr) {
       if (flagwall)
-        error->all(FLERR,
-                   "Cannot use multiple fix wall commands with "
-                   "pair lubricateU");
+        error->all(FLERR, "Cannot use multiple fix wall commands with pair lubricateU/poly");
       flagwall = 1; // Walls exist
-      wallfix = (FixWall *) modify->fix[i];
+      wallfix = dynamic_cast<FixWall *>(modify->fix[i]);
       if (wallfix->xflag) flagwall = 2; // Moving walls exist
     }
   }
@@ -1184,7 +1178,7 @@ void PairLubricateUPoly::init_style()
     for (int m = 0; m < wallfix->nwall; m++) {
       int dim = wallfix->wallwhich[m] / 2;
       int side = wallfix->wallwhich[m] % 2;
-      if (wallfix->xstyle[m] == VARIABLE) {
+      if (wallfix->xstyle[m] == FixWall::VARIABLE) {
         wallfix->xindex[m] = input->variable->find(wallfix->xstr[m]);
         //Since fix->wall->init happens after pair->init_style
         wallcoord = input->variable->compute_equal(wallfix->xindex[m]);
@@ -1214,14 +1208,8 @@ void PairLubricateUPoly::init_style()
 
   if (!flagVF) vol_f = 0;
 
-  if (!comm->me) {
-    if (logfile)
-      fprintf(logfile, "lubricateU: vol_f = %g, vol_p = %g, vol_T = %g\n",
-          vol_f,vol_P,vol_T);
-    if (screen)
-      fprintf(screen, "lubricateU: vol_f = %g, vol_p = %g, vol_T = %g\n",
-          vol_f,vol_P,vol_T);
-  }
+  if (comm->me == 0)
+    utils::logmesg(lmp, "lubricateU: vol_f = {}, vol_p = {}, vol_T = {}\n", vol_f, vol_P, vol_T);
 
   // Set the isotropic constant
 
@@ -1235,7 +1223,5 @@ void PairLubricateUPoly::init_style()
     RS0 = 20.0/3.0*MY_PI*mu*(1.0 + 3.64*vol_f - 6.95*vol_f*vol_f);
   }
 
-  int irequest = neighbor->request(this,instance_me);
-  neighbor->requests[irequest]->half = 0;
-  neighbor->requests[irequest]->full = 1;
+  neighbor->add_request(this, NeighConst::REQ_FULL);
 }

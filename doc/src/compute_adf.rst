@@ -6,7 +6,7 @@ compute adf command
 Syntax
 """"""
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    compute ID group-ID adf Nbin itype1 jtype1 ktype1 Rjinner1 Rjouter1 Rkinner1 Rkouter1 ...
 
@@ -16,10 +16,10 @@ Syntax
 * itypeN = central atom type for Nth ADF histogram (see asterisk form below)
 * jtypeN = J atom type for Nth ADF histogram (see asterisk form below)
 * ktypeN = K atom type for Nth ADF histogram (see asterisk form below)
-* RjinnerN =  inner radius of J atom shell for Nth ADF histogram (distance units)
-* RjouterN =  outer radius of J atom shell for Nth ADF histogram (distance units)
+* RjinnerN = inner radius of J atom shell for Nth ADF histogram (distance units)
+* RjouterN = outer radius of J atom shell for Nth ADF histogram (distance units)
 * RkinnerN = inner radius of K atom shell for Nth ADF histogram (distance units)
-* RkouterN =  outer radius of K atom shell for Nth ADF histogram (distance units)
+* RkouterN = outer radius of K atom shell for Nth ADF histogram (distance units)
 * zero or one keyword/value pairs may be appended
 * keyword = *ordinate*
 
@@ -62,7 +62,7 @@ neighbor atom in each requested ADF.
    command, and means those pairwise interactions do not appear in the
    neighbor list.  Because this fix uses a neighbor list, it also means
    those pairs will not be included in the ADF. This does not apply when
-   using long-range coulomb interactions (\ *coul/long*\ , *coul/msm*\ ,
+   using long-range coulomb interactions (\ *coul/long*, *coul/msm*,
    *coul/wolf* or similar.  One way to get around this would be to set
    special_bond scaling factors to very tiny numbers that are not exactly
    zero (e.g. 1.0e-50). Another workaround is to write a dump file, and
@@ -75,13 +75,13 @@ neighbor atom in each requested ADF.
 
    If you request any outer cutoff *Router* > force cutoff, or if no
    pair style is defined,  e.g. the :doc:`rerun <rerun>` command is being used to
-   post-process a dump file of snapshots you must insure ghost atom information
+   post-process a dump file of snapshots you must ensure ghost atom information
    out to the largest value of *Router* + *skin* is communicated, via the
    :doc:`comm_modify cutoff <comm_modify>` command, else the ADF computation
    cannot be performed, and LAMMPS will give an error message.  The *skin* value
    is what is specified with the :doc:`neighbor <neighbor>` command.
 
-The *itypeN*\ ,\ *jtypeN*\ ,\ *ktypeN* settings can be specified in one of two
+The *itypeN*,\ *jtypeN*,\ *ktypeN* settings can be specified in one of two
 ways.  An explicit numeric value can be used, as in the first example
 above.  Or a wild-card asterisk can be used to specify a range of atom
 types as in the second example above.
@@ -92,10 +92,10 @@ all types from 1 to N.  A leading asterisk means all types from 1 to n
 (inclusive).  A middle asterisk means all types from m to n
 (inclusive).
 
-If *itypeN*\ , *jtypeN*\ , and *ktypeN* are single values, as in the first example
+If *itypeN*, *jtypeN*, and *ktypeN* are single values, as in the first example
 above, this means that the ADF is computed where atoms of type *itypeN*
 are the central atom, and neighbor atoms of type *jtypeN* and *ktypeN*
-are forming the angle.  If any of *itypeN*\ , *jtypeN*\ , or *ktypeN*
+are forming the angle.  If any of *itypeN*, *jtypeN*, or *ktypeN*
 represent a range of values via
 the wild-card asterisk, as in the second example above, this means that the
 ADF is computed where atoms of any of the range of types represented
@@ -103,7 +103,7 @@ by *itypeN* are the central atom, and the angle is formed by two neighbors,
 one neighbor in the range of types represented by *jtypeN* and another neighbor
 in the range of types represented by *ktypeN*\ .
 
-If no *itypeN*\ , *jtypeN*\ , *ktypeN* settings are specified, then
+If no *itypeN*, *jtypeN*, *ktypeN* settings are specified, then
 LAMMPS will generate a single ADF for all atoms in the group.
 The inner cutoff is set to zero and the outer cutoff is set
 to the force cutoff. If no pair_style is specified, there is no
@@ -135,7 +135,7 @@ Each unique angle satisfying the above criteria is counted only once, regardless
 of whether either or both of the neighbor atoms making up the
 angle appear in both the J and K lists.
 It is OK if a particular angle is included in more than
-one individual histogram, due to the way the *itypeN*\ , *jtypeN*\ , *ktypeN*
+one individual histogram, due to the way the *itypeN*, *jtypeN*, *ktypeN*
 arguments are specified.
 
 The first ADF value for a bin is calculated from the histogram count by
@@ -177,13 +177,13 @@ Output info
 """""""""""
 
 This compute calculates a global array with the number of rows =
-*Nbins*\ , and the number of columns = 1 + 2\*Ntriples, where Ntriples is the
-number of I,J,K triples specified.  The first column has the bin
+*Nbins* and the number of columns = :math:`1 + 2 \times` *Ntriples*, where *Ntriples*
+is the number of I,J,K triples specified.  The first column has the bin
 coordinate (angle-related ordinate at midpoint of bin). Each subsequent column has
-the two ADF values for a specific set of (\ *itypeN*\ ,\ *jtypeN*\ ,\ *ktypeN*\ )
+the two ADF values for a specific set of (\ *itypeN*,\ *jtypeN*,\ *ktypeN*\ )
 interactions, as described above.  These values can be used
 by any command that uses a global values from a compute as input.  See
-the :doc:`Howto output <Howto_output>` doc page for an overview of
+the :doc:`Howto output <Howto_output>` page for an overview of
 LAMMPS output options.
 
 The array values calculated by this compute are all "intensive".
@@ -191,11 +191,11 @@ The array values calculated by this compute are all "intensive".
 The first column of array values is the angle-related ordinate, either
 the angle in degrees or radians, or the cosine of the angle.  Each
 subsequent pair of columns gives the first and second kinds of ADF
-for a specific set of (\ *itypeN*\ ,\ *jtypeN*\ ,\ *ktypeN*\ ). The values
-in the first ADF column are normalized numbers >= 0.0,
+for a specific set of (\ *itypeN*,\ *jtypeN*,\ *ktypeN*\ ). The values
+in the first ADF column are normalized numbers :math:`\ge 0.0`,
 whose integral w.r.t. the ordinate is 1,
 i.e. the first ADF is a normalized probability distribution.
-The values in the second ADF column are also numbers >= 0.0.
+The values in the second ADF column are also numbers :math:`\ge 0.0`.
 They are the cumulative density distribution of angles per atom.
 By definition, this ADF is monotonically increasing from zero to
 a maximum value equal to the average total number of
@@ -203,6 +203,24 @@ angles per atom satisfying the ADF criteria.
 
 Restrictions
 """"""""""""
+
+This compute is part of the EXTRA-COMPUTE package.  It is only enabled
+if LAMMPS was built with that package.  See the :doc:`Build package
+<Build_package>` page for more info.
+
+By default, the ADF is not computed for distances longer than the
+largest force cutoff, since the neighbor list creation will only contain
+pairs up to that distance (plus neighbor list skin).  If you use outer
+cutoffs larger than that, you must use :doc:`neighbor style 'bin' or
+'nsq' <neighbor>`.
+
+If you want an ADF for a larger outer cutoff, you can also use the
+:doc:`rerun <rerun>` command to post-process a dump file, use :doc:`pair
+style zero <pair_zero>` and set the force cutoff to be larger in the
+rerun script.  Note that in the rerun context, the force cutoff is
+arbitrary and with pair style zero you are not computing any forces, and
+since you are not running dynamics you are not changing the model that
+generated the trajectory.
 
 The ADF is not computed for neighbors outside the force cutoff,
 since processors (in parallel) don't know about atom coordinates for

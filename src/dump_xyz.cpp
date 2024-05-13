@@ -2,7 +2,7 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    https://www.lammps.org/, Sandia National Laboratories
-   Steve Plimpton, sjplimp@sandia.gov
+   LAMMPS development team: developers@lammps.org
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
@@ -13,16 +13,18 @@
 ------------------------------------------------------------------------- */
 
 #include "dump_xyz.h"
-#include <cstring>
+
 #include "atom.h"
 #include "error.h"
 #include "memory.h"
 #include "update.h"
 
+#include <cstring>
+
 using namespace LAMMPS_NS;
 
-#define ONELINE 128
-#define DELTA 1048576
+static constexpr int ONELINE = 128;
+static constexpr int DELTA = 1048576;
 
 /* ---------------------------------------------------------------------- */
 
@@ -39,7 +41,7 @@ DumpXYZ::DumpXYZ(LAMMPS *lmp, int narg, char **arg) : Dump(lmp, narg, arg),
   sort_flag = 1;
   sortcol = 0;
 
-  if (format_default) delete [] format_default;
+  delete[] format_default;
 
   format_default = utils::strdup("%s %g %g %g");
 
@@ -128,8 +130,12 @@ int DumpXYZ::modify_param(int narg, char **arg)
 void DumpXYZ::write_header(bigint n)
 {
   if (me == 0) {
-    fprintf(fp,BIGINT_FORMAT "\n",n);
-    fprintf(fp,"Atoms. Timestep: " BIGINT_FORMAT "\n",update->ntimestep);
+    if (!fp) error->one(FLERR, "Must not use 'run pre no' after creating a new dump");
+
+    auto header = fmt::format("{}\n Atoms. Timestep: {}", n, update->ntimestep);
+    if (time_flag) header += fmt::format(" Time: {:.6f}", compute_time());
+    header += "\n";
+    fmt::print(fp, header);
   }
 }
 
@@ -157,7 +163,6 @@ void DumpXYZ::pack(tagint *ids)
     }
 }
 
-
 /* ----------------------------------------------------------------------
    convert mybuf of doubles to one big formatted string in sbuf
    return -1 if strlen exceeds an int, since used as arg in MPI calls in Dump
@@ -174,9 +179,8 @@ int DumpXYZ::convert_string(int n, double *mybuf)
       memory->grow(sbuf,maxsbuf,"dump:sbuf");
     }
 
-    offset += sprintf(&sbuf[offset],format,
-                      typenames[static_cast<int> (mybuf[m+1])],
-                      mybuf[m+2],mybuf[m+3],mybuf[m+4]);
+    offset += sprintf(&sbuf[offset], format, typenames[static_cast<int> (mybuf[m+1])],
+                      mybuf[m+2], mybuf[m+3], mybuf[m+4]);
     m += size_one;
   }
 
@@ -194,7 +198,8 @@ void DumpXYZ::write_data(int n, double *mybuf)
 
 void DumpXYZ::write_string(int n, double *mybuf)
 {
-  fwrite(mybuf,sizeof(char),n,fp);
+  if (mybuf)
+    fwrite(mybuf,sizeof(char),n,fp);
 }
 
 /* ---------------------------------------------------------------------- */

@@ -76,7 +76,7 @@ int ykcolloid_gpu_init(const int ntypes, double **cutsq, double **host_a,
                             inum, nall, max_nbors, maxspecial, cell_size, gpu_split,
                             screen, kappa);
 
-    YKCOLLMF.device->gpu_barrier();
+    YKCOLLMF.device->serialize_init();
     if (message)
       fprintf(screen,"Done.\n");
   }

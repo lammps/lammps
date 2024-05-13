@@ -20,7 +20,7 @@ Syntax
        *model* values = style
          style = *linear* or *quadratic* or *mliappy*
        *descriptor* values = style filename
-         style = *sna*
+         style = *sna* or *ace*
          filename = name of file containing descriptor definitions
        *gradgradflag* value = 0/1
          toggle gradgrad method for force gradient
@@ -31,46 +31,57 @@ Examples
 .. code-block:: LAMMPS
 
    compute mliap model linear descriptor sna Ta06A.mliap.descriptor
+   compute mliap model linear descriptor ace H_N_O_ccs.yace gradgradflag 1
 
 Description
 """""""""""
 
 Compute style *mliap* provides a general interface to the gradient
-of machine-learning interatomic potentials w.r.t. model parameters.
+of machine-learning interatomic potentials with respect to model parameters.
 It is used primarily for calculating the gradient of energy, force, and
-stress components w.r.t. model parameters, which is useful when training
-:doc:`mliap pair_style <pair_mliap>` models to match target data.
-It provides separate
-definitions of the interatomic potential functional form (*model*)
-and the geometric quantities that characterize the atomic positions
-(*descriptor*). By defining *model* and *descriptor* separately,
+stress components with respect to model parameters, which is useful when
+training :doc:`mliap pair_style <pair_mliap>` models to match target data.
+It provides separate definitions of the interatomic potential functional
+form (*model*) and the geometric quantities that characterize the atomic
+positions (*descriptor*). By defining *model* and *descriptor* separately,
 it is possible to use many different models with a given descriptor,
-or many different descriptors with a given model. Currently, the
-compute supports just two models, *linear* and *quadratic*,
-and one descriptor, *sna*, the SNAP descriptor used by
-:doc:`pair_style snap <pair_snap>`, including the linear, quadratic,
-and chem variants. Work is currently underway to extend
-the interface to handle neural network energy models,
-and it is also straightforward to add new descriptor styles.
+or many different descriptors with a given model. Currently, the compute
+supports *linear* and *quadratic* SNAP descriptor computes used in
+:doc:`pair_style snap <pair_snap>`, *linear* SO3 descriptor computes, and
+*linear* ACE descriptor computes used in :doc:`pair_style pace <pair_pace>`,
+and it is straightforward to add new descriptor styles.
 
 The compute *mliap* command must be followed by two keywords
 *model* and *descriptor* in either order.
 
-The *model* keyword is followed by the model style (*linear*, *quadratic* or *mliappy*).
-The *mliappy* model is only available
-if lammps is built with MLIAPPY package.
+The *model* keyword is followed by the model style (*linear*,
+*quadratic* or *mliappy*).  The *mliappy* model is only available if
+LAMMPS is built with the *mliappy* Python module. There are
+:ref:`specific installation instructions <mliap>` for that module.
+For the *mliap* compute, specifying a *linear* model will compute the
+specified descriptors and gradients with respect to linear model parameters
+whereas *quadratic* will do the same, but for the quadratic products of
+descriptors.
 
-The *descriptor* keyword is followed by a descriptor style, and additional arguments.
-The compute currently supports just one descriptor style, but it is
-is straightforward to add new descriptor styles.
-The SNAP descriptor style *sna* is the same as that used by :doc:`pair_style snap <pair_snap>`,
-including the linear, quadratic, and chem variants.
-A single additional argument specifies the descriptor filename
-containing the parameters and setting used by the SNAP descriptor.
-The descriptor filename usually ends in the *.mliap.descriptor* extension.
-The format of this file is identical to the descriptor file in the
-:doc:`pair_style mliap <pair_mliap>`, and is described in detail
-there.
+The *descriptor* keyword is followed by a descriptor style, and
+additional arguments.  The compute currently supports three descriptor
+styles: *sna*, *so3*, and *ace*, but it is is straightforward to add
+additional descriptor styles.  The SNAP descriptor style *sna* is the
+same as that used by :doc:`pair_style snap <pair_snap>`, including the
+linear, quadratic, and chem variants.  A single additional argument
+specifies the descriptor filename containing the parameters and setting used
+by the SNAP descriptor.  The descriptor filename usually ends in the
+*.mliap.descriptor* extension.  The format of this file is identical to
+the descriptor file in the :doc:`pair_style mliap <pair_mliap>`, and is
+described in detail there.
+
+The ACE descriptor style *ace* is the same as :doc:`pair_style pace <pair_pace>`.
+A single additional argument specifies the *ace* descriptor filename
+that contains parameters and settings for the ACE descriptors. This file
+format differs from the SNAP or SO3 descriptor files, and has a *.yace* or
+*.ace* extension. However, as with other mliap descriptor styles, this file
+is identical to the ace descriptor file in :doc:`pair_style mliap <pair_mliap>`,
+where it is described in further detail.
 
 .. note::
 
@@ -78,13 +89,13 @@ there.
    must match the value of *nelems* in the descriptor file.
 
 Compute *mliap* calculates a global array containing gradient information.
-The number of columns in the array is :math:`nelems \times nparams + 1`.
-The first row of the array contain the derivative of potential energy w.r.t. to
-each parameter and each element. The last six rows
+The number of columns in the array is *nelems* :math:`\times` *nparams* + 1.
+The first row of the array contain the derivative of potential energy with
+respect to. to each parameter and each element. The last six rows
 of the array contain the corresponding derivatives of the
 virial stress tensor, listed in Voigt notation: *pxx*, *pyy*, *pzz*,
-*pyz*, *pxz*, *pxy*. In between the energy and stress rows are
-the 3\*\ *N* rows containing the derivatives of the force components.
+*pyz*, *pxz*, and *pxy*. In between the energy and stress rows are
+the :math:`3N` rows containing the derivatives of the force components.
 See section below on output for a detailed description of how
 rows and columns are ordered.
 
@@ -106,19 +117,19 @@ layout in the global array.
 
 The optional keyword *gradgradflag* controls how the force
 gradient is calculated. A value of 1 requires that the model provide
-the matrix of double gradients of energy w.r.t. both parameters
+the matrix of double gradients of energy with respect to both parameters
 and descriptors. For the linear and quadratic models this matrix is
 sparse and so is easily calculated and stored. For other models, this
 matrix may be prohibitively expensive to calculate and store.
 A value of 0 requires that the descriptor provide the derivative
-of the descriptors w.r.t. the position of every neighbor atom.
+of the descriptors with respect to the position of every neighbor atom.
 This is not optimal for linear and quadratic models, but may be
 a better choice for more complex models.
 
 Atoms not in the group do not contribute to this compute.
 Neighbor atoms not in the group do not contribute to this compute.
 The neighbor list needed to compute this quantity is constructed each
-time the calculation is performed (i.e. each time a snapshot of atoms
+time the calculation is performed (i.e., each time a snapshot of atoms
 is dumped).  Thus it can be inefficient to compute/dump this quantity
 too frequently.
 
@@ -143,17 +154,20 @@ too frequently.
 Output info
 """""""""""
 
-Compute *mliap* evaluates a global array.
-The columns are arranged into
+Compute *mliap* evaluates a global array.  The columns are arranged into
 *nelems* blocks, listed in order of element *I*\ . Each block
 contains one column for each of the *nparams* model parameters.
 A final column contains the corresponding energy, force component
 on an atom, or virial stress component. The rows of the array appear
 in the following order:
 
-* 1 row: Derivatives of potential energy w.r.t. each parameter of each element.
-* 3\*\ *N* rows: Derivatives of force components. x, y, and z components of force on atom *i* appearing in consecutive rows. The atoms are sorted based on atom ID.
-* 6 rows: Derivatives of virial stress tensor  w.r.t. each parameter of each element. The ordering of the rows follows Voigt notation: *pxx*, *pyy*, *pzz*, *pyz*, *pxz*, *pxy*.
+* 1 row: Derivatives of potential energy with respect to each parameter of each element.
+* :math:`3N` rows: Derivatives of force components; the *x*, *y*, and *z*
+  components of the force on atom *i* appear in consecutive rows. The atoms are
+  sorted based on atom ID.
+* 6 rows: Derivatives of the virial stress tensor with respect to each
+  parameter of each element. The ordering of the rows follows Voigt notation:
+  *pxx*, *pyy*, *pzz*, *pyz*, *pxz*, *pxy*.
 
 These values can be accessed by any command that uses a global array
 from a compute as input.  See the :doc:`Howto output <Howto_output>` doc
@@ -164,11 +178,14 @@ potentials, see the examples in `FitSNAP <https://github.com/FitSNAP/FitSNAP>`_.
 Restrictions
 """"""""""""
 
-This compute is part of the MLIAP package.  It is only enabled if LAMMPS
-was built with that package. In addition, building LAMMPS with the MLIAP package
-requires building LAMMPS with the SNAP package.
-The *mliappy* model requires building LAMMPS with the PYTHON package.
-See the :doc:`Build package <Build_package>` doc page for more info.
+This compute is part of the ML-IAP package.  It is only enabled if
+LAMMPS was built with that package. In addition, building LAMMPS with
+the ML-IAP package requires building LAMMPS with the ML-SNAP package.
+The *mliappy* model also requires building LAMMPS with the PYTHON
+package. The *ace* descriptor also requires building LAMMPS with the
+ML-PACE package. See the :doc:`Build package <Build_package>` page for
+more info. Note that `kk` (KOKKOS) accelerated variants of SNAP and
+ACE descriptors are not compatible with `mliap descriptor`.
 
 Related commands
 """"""""""""""""

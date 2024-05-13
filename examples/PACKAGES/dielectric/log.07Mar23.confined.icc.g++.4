@@ -1,0 +1,189 @@
+LAMMPS (8 Feb 2023)
+  using 1 OpenMP thread(s) per MPI task
+# Two ions, a cation and an anion, confined between two interfaces: epsilon1 | epsilon2  | epsilon1
+# The interface normal vectors should be consistent with ed, pointing from region with epsilon1 to that with epsilon2
+# bottom interface: n = (0, 0, 1)
+# top interface:    n = (0, 0, -1)
+# so that ed's are the same for both interfaces
+
+# Dielectric constants can be set to be different from the input data file
+
+variable epsilon1 index 20
+variable epsilon2 index 10
+
+variable    data index data.confined
+
+newton off
+units       lj
+atom_style  dielectric
+atom_modify map array
+dimension   3
+boundary    p p f
+
+variable    method index gmres  # gmres = BEM/GMRES
+                                # icc   = BEM/ICC*
+                                # dof   = Direct optimization of the functional
+                                # none
+
+# compute the relevant values for the interface particles
+
+variable ed      equal "v_epsilon2 - v_epsilon1"
+variable em      equal "(v_epsilon2 + v_epsilon1)/2"
+variable epsilon equal 1.0                             # epsilon at the patch, not used for now
+variable area    equal 0.866                           # patch area, same as in the data file
+
+read_data   ${data}
+read_data   data.confined
+Reading data file ...
+  orthogonal box = (0 0 0) to (40.000006 43.301277 40)
+  2 by 2 by 1 MPI processor grid
+WARNING: Atom style in data file differs from currently defined atom style (src/read_data.cpp:620)
+  reading atoms ...
+  4002 atoms
+Finding 1-2 1-3 1-4 neighbors ...
+  special bond factors lj:    0        0        0       
+  special bond factors coul:  0        0        0       
+     0 = max # of 1-2 neighbors
+     0 = max # of 1-3 neighbors
+     0 = max # of 1-4 neighbors
+     1 = max # of special neighbors
+  special bonds CPU = 0.000 seconds
+  read_data CPU = 0.012 seconds
+
+group interface type 1
+4000 atoms in group interface
+group ions type 2 3
+2 atoms in group ions
+
+group cations type 2
+1 atoms in group cations
+group anions  type 3
+1 atoms in group anions
+
+# set the dielectric constant of the medium where the ions reside
+
+set group cations epsilon ${epsilon2}
+set group cations epsilon 10
+Setting atom values ...
+  1 settings made for epsilon
+set group anions  epsilon ${epsilon2}
+set group anions  epsilon 10
+Setting atom values ...
+  1 settings made for epsilon
+
+pair_style      lj/cut/coul/long/dielectric 1.122 10.0
+pair_coeff      * * 1.0 1.0
+pair_coeff      1 1 0.0 1.0
+
+kspace_style    pppm/dielectric 0.0001
+kspace_modify   slab 3.0
+
+neigh_modify    every 1 delay 0 check yes one 5000
+
+#compute         ef all efield/atom
+#dump            1 all custom 100 all.dump id mol type q x y z #fx fy fz c_ef[1] c_ef[2] c_ef[3]
+#dump            2 interface custom 100 interface.dump id mol type q x y z #fx fy fz c_ef[1] c_ef[2] c_ef[3]
+#dump_modify     1 sort id
+
+#dump            3 ions custom 100 ions.dump id mol type q x y z fx fy fz #c_ef[1] c_ef[2] c_ef[3]
+
+fix             1 ions nve
+
+# fix modify is used to set the properties of the interface particle group
+
+if "${method} == gmres" then   "fix             3 interface polarize/bem/gmres 1 1.0e-4"   "fix_modify      3 itr_max 50 dielectrics ${ed} ${em} ${epsilon} ${area} NULL" elif "${method} == icc"  "fix             3 interface polarize/bem/icc 1 1.0e-4"   "fix_modify      3 itr_max 50 dielectrics ${ed} ${em} ${epsilon} ${area} NULL" elif "${method} == dof"   "fix             3 interface polarize/functional 1 0.0001"   "fix_modify      3 dielectrics ${ed} ${em} ${epsilon} ${area} NULL" else   "print 'Unsupported polarization solver' "
+fix             3 interface polarize/bem/icc 1 1.0e-4
+fix_modify      3 itr_max 50 dielectrics ${ed} ${em} ${epsilon} ${area} NULL
+fix_modify      3 itr_max 50 dielectrics -10 ${em} ${epsilon} ${area} NULL
+fix_modify      3 itr_max 50 dielectrics -10 15 ${epsilon} ${area} NULL
+fix_modify      3 itr_max 50 dielectrics -10 15 1 ${area} NULL
+fix_modify      3 itr_max 50 dielectrics -10 15 1 0.866 NULL
+
+thermo          1000
+thermo_style    custom step evdwl ecoul elong epair #f_3
+thermo_modify   flush yes
+
+run             0
+
+CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE
+
+Your simulation uses code contributions which should be cited:
+
+- DIELECTRIC package: doi:10.1016/j.cpc.2019.03.006
+
+@Article{TrungCPC19,
+ author = {Trung Dac Nguyen and Honghao Li and Debarshee Bagchi and   Francisco J. Solis and Olvera de la Cruz, Monica}
+ title = {Incorporating Surface Polarization Effects Into Large-Scale
+   Coarse-Grained Molecular Dynamics Simulation},
+ journal = {Comput.\ Phys.\ Commun.},
+ year =    2019,
+ volume =  241,
+ pages =   {80--91}
+}
+
+CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE
+
+PPPM initialization ...
+  using 12-bit tables for long-range coulomb (src/kspace.cpp:342)
+  G vector (1/distance) = 0.24260797
+  grid = 12 12 36
+  stencil order = 5
+  estimated absolute RMS force accuracy = 2.5219574e-07
+  estimated relative force accuracy = 2.5219574e-07
+  using double precision KISS FFT
+  3d grid and FFT values/proc = 4598 1296
+Generated 0 of 3 mixed pair_coeff terms from geometric mixing rule
+BEM/ICC solver for 4000 induced charges
+ using pair style lj/cut/coul/long/dielectric
+ using kspace style pppm/dielectric
+Neighbor list info ...
+  update: every = 1 steps, delay = 0 steps, check = yes
+  max neighbors/atom: 5000, page size: 100000
+  master list distance cutoff = 10.3
+  ghost atom cutoff = 10.3
+  binsize = 5.15, bins = 8 9 8
+  1 neighbor lists, perpetual/occasional/extra = 1 0 0
+  (1) pair lj/cut/coul/long/dielectric, perpetual
+      attributes: full, newton off
+      pair build: full/bin
+      stencil: full/bin/3d
+      bin: standard
+Per MPI rank memory allocation (min/avg/max) = 9.647 | 9.647 | 9.647 Mbytes
+   Step         E_vdwl         E_coul         E_long         E_pair    
+         0   0             -1.7228514e-08 -1.8534756e-05 -1.8551985e-05
+Loop time of 2.29425e-06 on 4 procs for 0 steps with 4002 atoms
+
+141.7% CPU use with 4 MPI tasks x 1 OpenMP threads
+
+MPI task timing breakdown:
+Section |  min time  |  avg time  |  max time  |%varavg| %total
+---------------------------------------------------------------
+Pair    | 0          | 0          | 0          |   0.0 |  0.00
+Bond    | 0          | 0          | 0          |   0.0 |  0.00
+Kspace  | 0          | 0          | 0          |   0.0 |  0.00
+Neigh   | 0          | 0          | 0          |   0.0 |  0.00
+Comm    | 0          | 0          | 0          |   0.0 |  0.00
+Output  | 0          | 0          | 0          |   0.0 |  0.00
+Modify  | 0          | 0          | 0          |   0.0 |  0.00
+Other   |            | 2.294e-06  |            |       |100.00
+
+Nlocal:         1000.5 ave        1001 max        1000 min
+Histogram: 2 0 0 0 0 0 0 0 0 2
+Nghost:         2889.5 ave        2890 max        2889 min
+Histogram: 2 0 0 0 0 0 0 0 0 2
+Neighs:              0 ave           0 max           0 min
+Histogram: 4 0 0 0 0 0 0 0 0 0
+FullNghs:       378290 ave      378465 max      378117 min
+Histogram: 2 0 0 0 0 0 0 0 0 2
+
+Total # of neighbors = 1513160
+Ave neighs/atom = 378.10095
+Ave special neighs/atom = 0
+Neighbor list builds = 0
+Dangerous builds = 0
+
+
+
+
+
+Total wall time: 0:00:00

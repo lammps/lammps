@@ -22,8 +22,8 @@ ElectronFlux::ElectronFlux() :
 
 
 ElectronFluxLinear::ElectronFluxLinear(
-  fstream &fileId, map<string,double> & parameters) 
-  : ElectronFlux(), 
+  fstream &fileId, map<string,double> & parameters)
+  : ElectronFlux(),
   electronMobility_(0),
   electronDiffusivity_(0)
 {
@@ -52,7 +52,7 @@ ElectronFluxLinear::ElectronFluxLinear(
 }
 
 ElectronFluxThermopower::ElectronFluxThermopower(
-  fstream &fileId, map<string,double> & parameters) 
+  fstream &fileId, map<string,double> & parameters)
   : ElectronFlux(),
   electronMobility_(0),
   seebeckCoef_(0)
@@ -61,7 +61,7 @@ ElectronFluxThermopower::ElectronFluxThermopower(
   vector<string> line;
   while(fileId.good()) {
     command_line(fileId, line);
-    if (line.size() == 0) continue; 
+    if (line.size() == 0) continue;
     if (line[0] == "end") return;
     double value = str2dbl(line[1]);
     if (line[0] == "mobility") {
@@ -79,7 +79,7 @@ ElectronFluxThermopower::ElectronFluxThermopower(
 }
 
 ElectronFluxConvection::ElectronFluxConvection(
-  fstream &fileId, map<string,double> & /* parameters */) 
+  fstream &fileId, map<string,double> & /* parameters */)
   : ElectronFlux()
 {
   if (!fileId.is_open()) throw ATC_Error("cannot open material file");

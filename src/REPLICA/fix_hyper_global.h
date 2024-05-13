@@ -1,7 +1,7 @@
 /* -*- c++ -*- ----------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    https://www.lammps.org/, Sandia National Laboratories
-   Steve Plimpton, sjplimp@sandia.gov
+   LAMMPS development team: developers@lammps.org
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
@@ -27,24 +27,24 @@ namespace LAMMPS_NS {
 class FixHyperGlobal : public FixHyper {
  public:
   FixHyperGlobal(class LAMMPS *, int, char **);
-  ~FixHyperGlobal();
-  int setmask();
-  void init();
-  void init_list(int, class NeighList *);
-  void setup_pre_neighbor();
-  void setup_pre_reverse(int, int);
-  void pre_neighbor();
-  void pre_reverse(int, int);
-  double compute_scalar();
-  double compute_vector(int);
-  double query(int);
+  ~FixHyperGlobal() override;
+  int setmask() override;
+  void init() override;
+  void init_list(int, class NeighList *) override;
+  void setup_pre_neighbor() override;
+  void setup_pre_reverse(int, int) override;
+  void pre_neighbor() override;
+  void pre_reverse(int, int) override;
+  double compute_scalar() override;
+  double compute_vector(int) override;
+  double query(int) override;
 
-  double memory_usage();
+  double memory_usage() override;
 
   // extra methods visible to callers
 
-  void init_hyper();
-  void build_bond_list(int);
+  void init_hyper() override;
+  void build_bond_list(int) override;
 
  private:
   int me;
@@ -103,13 +103,3 @@ class FixHyperGlobal : public FixHyper {
 
 #endif
 #endif
-
-/* ERROR/WARNING messages:
-
-E: Illegal ... command
-
-Self-explanatory.  Check the input script syntax and compare to the
-documentation for the command.  You can use -echo screen as a
-command-line option when running LAMMPS to see the offending line.
-
-*/

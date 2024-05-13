@@ -125,46 +125,16 @@ std::ostream & operator << (std::ostream &os, colvarmodule::quaternion const &q)
 std::istream & operator >> (std::istream &is, colvarmodule::quaternion &q)
 {
   std::streampos const start_pos = is.tellg();
-
-  std::string euler("");
-
-  if ( (is >> euler) && (colvarparse::to_lower_cppstr(euler) ==
-                         std::string("euler")) ) {
-
-    // parse the Euler angles
-
-    char sep;
-    cvm::real phi, theta, psi;
-    if ( !(is >> sep)   || !(sep == '(') ||
-         !(is >> phi)   || !(is >> sep)  || !(sep == ',') ||
-         !(is >> theta) || !(is >> sep)  || !(sep == ',') ||
-         !(is >> psi)   || !(is >> sep)  || !(sep == ')') ) {
-      is.clear();
-      is.seekg(start_pos, std::ios::beg);
-      is.setstate(std::ios::failbit);
-      return is;
-    }
-
-    q = colvarmodule::quaternion(phi, theta, psi);
-
-  } else {
-
-    // parse the quaternion components
-
+  char sep;
+  if ( !(is >> sep)  || !(sep == '(') ||
+       !(is >> q.q0) || !(is >> sep)  || !(sep == ',') ||
+       !(is >> q.q1) || !(is >> sep)  || !(sep == ',') ||
+       !(is >> q.q2) || !(is >> sep)  || !(sep == ',') ||
+       !(is >> q.q3) || !(is >> sep)  || !(sep == ')') ) {
+    is.clear();
     is.seekg(start_pos, std::ios::beg);
-    char sep;
-    if ( !(is >> sep)  || !(sep == '(') ||
-         !(is >> q.q0) || !(is >> sep)  || !(sep == ',') ||
-         !(is >> q.q1) || !(is >> sep)  || !(sep == ',') ||
-         !(is >> q.q2) || !(is >> sep)  || !(sep == ',') ||
-         !(is >> q.q3) || !(is >> sep)  || !(sep == ')') ) {
-      is.clear();
-      is.seekg(start_pos, std::ios::beg);
-      is.setstate(std::ios::failbit);
-      return is;
-    }
+    is.setstate(std::ios::failbit);
   }
-
   return is;
 }
 
@@ -253,9 +223,18 @@ namespace {
 #endif
 
 
-colvarmodule::rotation::rotation()
+int colvarmodule::rotation::init()
 {
   b_debug_gradients = false;
+  lambda = 0.0;
+  cvm::main()->cite_feature("Optimal rotation via flexible fitting");
+  return COLVARS_OK;
+}
+
+
+colvarmodule::rotation::rotation()
+{
+  init();
 #ifdef COLVARS_LAMMPS
   jacobi = new_Jacobi_solver(4);
 #else
@@ -267,7 +246,7 @@ colvarmodule::rotation::rotation()
 colvarmodule::rotation::rotation(cvm::quaternion const &qi)
   : q(qi)
 {
-  b_debug_gradients = false;
+  init();
 #ifdef COLVARS_LAMMPS
   jacobi = new_Jacobi_solver(4);
 #else
@@ -278,7 +257,7 @@ colvarmodule::rotation::rotation(cvm::quaternion const &qi)
 
 colvarmodule::rotation::rotation(cvm::real angle, cvm::rvector const &axis)
 {
-  b_debug_gradients = false;
+  init();
   cvm::rvector const axis_n = axis.unit();
   cvm::real const sina = cvm::sin(angle/2.0);
   q = cvm::quaternion(cvm::cos(angle/2.0),
@@ -309,15 +288,15 @@ void colvarmodule::rotation::build_correlation_matrix(
   // build the correlation matrix
   size_t i;
   for (i = 0; i < pos1.size(); i++) {
-    C.xx() += pos1[i].x * pos2[i].x;
-    C.xy() += pos1[i].x * pos2[i].y;
-    C.xz() += pos1[i].x * pos2[i].z;
-    C.yx() += pos1[i].y * pos2[i].x;
-    C.yy() += pos1[i].y * pos2[i].y;
-    C.yz() += pos1[i].y * pos2[i].z;
-    C.zx() += pos1[i].z * pos2[i].x;
-    C.zy() += pos1[i].z * pos2[i].y;
-    C.zz() += pos1[i].z * pos2[i].z;
+    C.xx += pos1[i].x * pos2[i].x;
+    C.xy += pos1[i].x * pos2[i].y;
+    C.xz += pos1[i].x * pos2[i].z;
+    C.yx += pos1[i].y * pos2[i].x;
+    C.yy += pos1[i].y * pos2[i].y;
+    C.yz += pos1[i].y * pos2[i].z;
+    C.zx += pos1[i].z * pos2[i].x;
+    C.zy += pos1[i].z * pos2[i].y;
+    C.zz += pos1[i].z * pos2[i].z;
   }
 }
 
@@ -326,22 +305,22 @@ void colvarmodule::rotation::compute_overlap_matrix()
 {
   // build the "overlap" matrix, whose eigenvectors are stationary
   // points of the RMSD in the space of rotations
-  S[0][0] =    C.xx() + C.yy() + C.zz();
-  S[1][0] =    C.yz() - C.zy();
+  S[0][0] =    C.xx + C.yy + C.zz;
+  S[1][0] =    C.yz - C.zy;
   S[0][1] = S[1][0];
-  S[2][0] =  - C.xz() + C.zx() ;
+  S[2][0] =  - C.xz + C.zx ;
   S[0][2] = S[2][0];
-  S[3][0] =    C.xy() - C.yx();
+  S[3][0] =    C.xy - C.yx;
   S[0][3] = S[3][0];
-  S[1][1] =    C.xx() - C.yy() - C.zz();
-  S[2][1] =    C.xy() + C.yx();
+  S[1][1] =    C.xx - C.yy - C.zz;
+  S[2][1] =    C.xy + C.yx;
   S[1][2] = S[2][1];
-  S[3][1] =    C.xz() + C.zx();
+  S[3][1] =    C.xz + C.zx;
   S[1][3] = S[3][1];
-  S[2][2] = - C.xx() + C.yy() - C.zz();
-  S[3][2] =   C.yz() + C.zy();
+  S[2][2] = - C.xx + C.yy - C.zz;
+  S[3][2] =   C.yz + C.zy;
   S[2][3] = S[3][2];
-  S[3][3] = - C.xx() - C.yy() + C.zz();
+  S[3][3] = - C.xx - C.yy + C.zz;
 }
 
 
@@ -393,7 +372,6 @@ void colvarmodule::rotation::calc_optimal_rotation(
                                         std::vector<cvm::atom_pos> const &pos1,
                                         std::vector<cvm::atom_pos> const &pos2)
 {
-  C.resize(3, 3);
   C.reset();
   build_correlation_matrix(pos1, pos2);
 

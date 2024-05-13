@@ -1,0 +1,164 @@
+LAMMPS (7 Jan 2022)
+OMP_NUM_THREADS environment is not set. Defaulting to 1 thread. (../comm.cpp:98)
+  using 1 OpenMP thread(s) per MPI task
+units           metal
+atom_style      full
+processors      * * 1
+boundary        p p f
+read_data       ./3Lgold_1Lgr_atop_sliding.data
+Reading data file ...
+  triclinic box = (0 0 -30) to (17.21664 14.910048 30) with tilt (8.60832 0 0)
+  1 by 1 by 1 MPI processor grid
+  reading atoms ...
+  206 atoms
+Finding 1-2 1-3 1-4 neighbors ...
+  special bond factors lj:    0        0        0       
+  special bond factors coul:  0        0        0       
+     0 = max # of 1-2 neighbors
+     0 = max # of 1-3 neighbors
+     0 = max # of 1-4 neighbors
+     1 = max # of special neighbors
+  special bonds CPU = 0.001 seconds
+  read_data CPU = 0.003 seconds
+
+# global group definition
+group          gold type 1
+108 atoms in group gold
+group          gra  type 2
+98 atoms in group gra
+
+# Define mass
+mass            * 12.0107  # mass of carbon atom , uint: a.u.=1.66X10^(-27)kg
+mass            1 196.96657  # mass of gold atom , uint: a.u.=1.66X10^(-27)kg
+
+# Define potentials
+pair_style 	hybrid/overlay eam rebo saip/metal 16.0
+pair_coeff      1 1 eam  ./Au_u3.eam
+Reading eam potential file ./Au_u3.eam with DATE: 2007-06-11
+pair_coeff      * * rebo ./CH.rebo NULL C
+Reading rebo potential file ./CH.rebo with DATE: 2018-7-3
+pair_coeff      * * saip/metal ./CHAu.ILP Au C
+Reading saip/metal potential file ./CHAu.ILP with DATE: 2021-12-02
+
+# compute energy
+compute         0 all pair rebo
+compute         1 all pair eam
+compute         2 all pair saip/metal
+variable        REBO equal c_0
+variable        EAM  equal c_1
+variable        ILP  equal c_2
+
+thermo_style    custom step etotal pe ke v_REBO v_ILP temp
+
+thermo          100
+thermo_modify   lost error
+
+# Creat initial velocity
+velocity        all set 0.0 0.0 0.0
+velocity 	gra create 300.0 4928459 mom yes rot yes dist gaussian
+velocity 	gold create 300.0 4928459 mom yes rot yes dist gaussian
+
+# Integration
+fix             intsub gold nve
+fix             intrib gra nve
+
+timestep        1e-3
+run		1000
+
+CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE
+
+Your simulation uses code contributions which should be cited:
+
+- ilp/graphene/hbn potential doi:10.1021/acs.nanolett.8b02848
+@Article{Ouyang2018
+ author = {W. Ouyang, D. Mandelli, M. Urbakh, and O. Hod},
+ title = {Nanoserpents: Graphene Nanoribbon Motion on Two-Dimensional Hexagonal Materials},
+ journal = {Nano Letters},
+ volume =  18,
+ pages =   {6009}
+ year =    2018,
+}
+
+- saip/metal potential doi.org/10.1021/acs.jctc.1c00622
+@Article{Ouyang2021
+ author = {W. Ouyang, O. Hod, and R. Guerra},
+ title = {Registry-Dependent Potential for Interfaces of Gold with Graphitic Systems},
+ journal = {J. Chem. Theory Comput.},
+ volume =  17,
+ pages =   {7215-7223}
+ year =    2021,
+}
+
+CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE
+
+Neighbor list info ...
+  update every 1 steps, delay 10 steps, check yes
+  max neighbors/atom: 2000, page size: 100000
+  master list distance cutoff = 18
+  ghost atom cutoff = 18
+  binsize = 9, bins = 3 2 7
+  4 neighbor lists, perpetual/occasional/extra = 4 0 0
+  (1) pair eam, perpetual, skip from (4)
+      attributes: half, newton on
+      pair build: skip
+      stencil: none
+      bin: none
+  (2) pair rebo, perpetual, skip from (3)
+      attributes: full, newton on, ghost
+      pair build: skip/ghost
+      stencil: none
+      bin: none
+  (3) pair saip/metal, perpetual
+      attributes: full, newton on, ghost
+      pair build: full/bin/ghost
+      stencil: full/ghost/bin/3d
+      bin: standard
+  (4) neighbor class addition, perpetual
+      attributes: half, newton on
+      pair build: half/bin/newton/tri
+      stencil: half/bin/3d/tri
+      bin: standard
+Per MPI rank memory allocation (min/avg/max) = 9.747 | 9.747 | 9.747 Mbytes
+Step TotEng PotEng KinEng v_REBO v_ILP Temp 
+       0   -1121.4621   -1129.3728    7.9107209   -724.70925   -6.0302289    298.53659 
+     100   -1121.4483   -1124.9731    3.5248501   -723.03272   -5.9765533    133.02159 
+     200   -1121.4403   -1125.2912    3.8509646   -722.66784   -6.0468507    145.32858 
+     300   -1121.4424   -1126.4665    5.0240531   -722.72787   -6.0350568    189.59886 
+     400   -1121.4419   -1125.1443    3.7023978   -722.59976   -5.8294548    139.72193 
+     500   -1121.4413   -1125.2711    3.8297939    -722.5342   -6.0189944    144.52963 
+     600   -1121.4449   -1125.8808    4.4359049   -722.77707   -5.8685221    167.40319 
+     700   -1121.4489   -1126.1966     4.747709   -723.13681   -5.8666379    179.17012 
+     800   -1121.4443   -1125.8469     4.402607   -722.94487   -6.0094567    166.14658 
+     900   -1121.4424   -1125.8437    4.4013317   -722.94918   -5.8699702    166.09846 
+    1000   -1121.4467   -1125.7453    4.2986881   -722.66682   -6.0651168    162.22487 
+Loop time of 6.43246 on 1 procs for 1000 steps with 206 atoms
+
+Performance: 13.432 ns/day, 1.787 hours/ns, 155.462 timesteps/s
+99.8% CPU use with 1 MPI tasks x 1 OpenMP threads
+
+MPI task timing breakdown:
+Section |  min time  |  avg time  |  max time  |%varavg| %total
+---------------------------------------------------------------
+Pair    | 6.4201     | 6.4201     | 6.4201     |   0.0 | 99.81
+Bond    | 8.9059e-05 | 8.9059e-05 | 8.9059e-05 |   0.0 |  0.00
+Neigh   | 0          | 0          | 0          |   0.0 |  0.00
+Comm    | 0.0071852  | 0.0071852  | 0.0071852  |   0.0 |  0.11
+Output  | 0.00026031 | 0.00026031 | 0.00026031 |   0.0 |  0.00
+Modify  | 0.0019433  | 0.0019433  | 0.0019433  |   0.0 |  0.03
+Other   |            | 0.002875   |            |       |  0.04
+
+Nlocal:            206 ave         206 max         206 min
+Histogram: 1 0 0 0 0 0 0 0 0 0
+Nghost:           2187 ave        2187 max        2187 min
+Histogram: 1 0 0 0 0 0 0 0 0 0
+Neighs:              0 ave           0 max           0 min
+Histogram: 1 0 0 0 0 0 0 0 0 0
+FullNghs:       158548 ave      158548 max      158548 min
+Histogram: 1 0 0 0 0 0 0 0 0 0
+
+Total # of neighbors = 158548
+Ave neighs/atom = 769.65049
+Ave special neighs/atom = 0
+Neighbor list builds = 0
+Dangerous builds = 0
+Total wall time: 0:00:06

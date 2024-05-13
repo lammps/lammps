@@ -31,11 +31,11 @@ namespace ATC {
   //  Class ATC_CouplingMass
   //--------------------------------------------------------
   //--------------------------------------------------------
-  
+
   //--------------------------------------------------------
   //  Constructor
   //--------------------------------------------------------
-  ATC_CouplingMass::ATC_CouplingMass(string groupName, 
+  ATC_CouplingMass::ATC_CouplingMass(string groupName,
                                      double **& perAtomArray,
                                      LAMMPS_NS::Fix * thisFix,
                                      string matParamFile,
@@ -43,19 +43,19 @@ namespace ATC {
     : ATC_Coupling(groupName,perAtomArray,thisFix),
       resetNlocal_(false)
   {
-    // Allocate PhysicsModel 
-    create_physics_model(SPECIES, matParamFile); 
+    // Allocate PhysicsModel
+    create_physics_model(SPECIES, matParamFile);
 
     // create extrinsic physics model
     if (extrinsicModel != NO_MODEL) {
-      extrinsicModelManager_.create_model(extrinsicModel,matParamFile);  
+      extrinsicModelManager_.create_model(extrinsicModel,matParamFile);
     }
 
     // Defaults
     set_time();
     bndyIntType_ = NO_QUADRATURE;
-    
-  
+
+
     // set up field data based on physicsModel
     physicsModel_->num_fields(fieldSizes_,fieldMask_);
 
@@ -87,13 +87,13 @@ namespace ATC {
 
   //--------------------------------------------------------
   //  modify
-  //    parses inputs and modifies state 
+  //    parses inputs and modifies state
   //--------------------------------------------------------
   bool ATC_CouplingMass::modify(int narg, char **arg)
   {
     bool match = false;
     // check to see if it is a transfer class command
-    
+
     // check derived class before base class
     int argIndex = 0;
     // pass-through to concentration regulator
@@ -117,7 +117,7 @@ namespace ATC {
   //--------------------------------------------------------
   void ATC_CouplingMass::initialize()
   {
-    
+
     fieldSizes_[SPECIES_CONCENTRATION] = ntracked();
 
     // Base class initalizations
@@ -135,9 +135,9 @@ namespace ATC {
     FieldManager fmgr(this);
     atomicFields_[MASS_DENSITY]  = fmgr.nodal_atomic_field(MASS_DENSITY, field_to_intrinsic_name(MASS_DENSITY));
 
-    if (has_tracked_species()) { 
+    if (has_tracked_species()) {
       atomicFields_[SPECIES_CONCENTRATION]  = fmgr.nodal_atomic_field(SPECIES_CONCENTRATION, field_to_intrinsic_name(SPECIES_CONCENTRATION));
-      
+
       //if (atomicRegulator_->needs_temperature()) {
 
         atomicFields_[TEMPERATURE]  = fmgr.nodal_atomic_field(KINETIC_TEMPERATURE, field_to_intrinsic_name(TEMPERATURE));
@@ -146,7 +146,7 @@ namespace ATC {
         //}
     }
     else {
-      
+
       throw ATC_Error("ATC_CouplingMass: no tracked species");
     }
 
@@ -161,14 +161,14 @@ namespace ATC {
       const string moleculeName = molecule->first;
       SmallMoleculeSet * smallMoleculeSet = interscaleManager_.small_molecule_set(moleculeName);
       SPAR_MAN * shpFcnMol = interscaleManager_.sparse_matrix("ShapeFunction"+moleculeName);
-      AtomToSmallMoleculeTransfer<double> * moleculeMass = 
+      AtomToSmallMoleculeTransfer<double> * moleculeMass =
         new AtomToSmallMoleculeTransfer<double>(this,mass,smallMoleculeSet);
       interscaleManager_.add_dense_matrix(moleculeMass,"MoleculeMass"+moleculeName);
-      MotfShapeFunctionRestriction * nodalAtomicMoleculeMass = 
+      MotfShapeFunctionRestriction * nodalAtomicMoleculeMass =
         new MotfShapeFunctionRestriction(moleculeMass,shpFcnMol);
       interscaleManager_.add_dense_matrix(nodalAtomicMoleculeMass,"NodalMoleculeMass"+moleculeName);
 
-      
+
       AtfShapeFunctionMdProjection * nodalAtomicMoleculeMassDensity =
         new AtfShapeFunctionMdProjection(this,nodalAtomicMoleculeMass,MASS_DENSITY);
       interscaleManager_.add_dense_matrix(nodalAtomicMoleculeMassDensity,"NodalMoleculeMassDensity"+moleculeName);
@@ -180,7 +180,7 @@ namespace ATC {
 
   void ATC_CouplingMass::init_filter()
   {
-    
+
     ATC_Coupling::init_filter();
   }
 
@@ -192,11 +192,11 @@ namespace ATC {
   void ATC_CouplingMass::pre_exchange()
   {
     ATC_Coupling::pre_exchange();
-    
+
     //if (atomicRegulator_->needs_temperature()) {
-      field(TEMPERATURE) = atomicFields_[TEMPERATURE]->quantity(); 
+      field(TEMPERATURE) = atomicFields_[TEMPERATURE]->quantity();
 ///}
-    atomicRegulator_->pre_exchange(); 
+    atomicRegulator_->pre_exchange();
     if (resetNlocal_) {
       this->reset_nlocal();
       resetNlocal_ = false;
@@ -208,7 +208,7 @@ namespace ATC {
   //    does post-processing steps and outputs data
   //--------------------------------------------------------
   void ATC_CouplingMass::output()
-  { 
+  {
     if (output_now()) {
       feEngine_->departition_mesh();
       OUTPUT_LIST outputData;
@@ -226,10 +226,10 @@ namespace ATC {
         (_tiIt_->second)->output(outputData);
       }
       extrinsicModelManager_.output(outputData);
-      atomicRegulator_->output(outputData); 
+      atomicRegulator_->output(outputData);
 
       FIELD_POINTERS::iterator itr;
-      for (itr=atomicFields_.begin(); itr!=atomicFields_.end();itr++) { 
+      for (itr=atomicFields_.begin(); itr!=atomicFields_.end();itr++) {
         FieldName name = itr->first;
         const DENS_MAT & data = (itr->second)->quantity();
         outputData[field_to_intrinsic_name(name)] = & data;

@@ -1,7 +1,7 @@
 /* -*- c++ -*- ----------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    https://www.lammps.org/, Sandia National Laboratories
-   Steve Plimpton, sjplimp@sandia.gov
+   LAMMPS development team: developers@lammps.org
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
@@ -42,6 +42,7 @@ class NeighList : protected Pointers {
   int respamiddle;    // 1 if there is also a rRespa middle list
   int respainner;     // 1 if there is also a rRespa inner list
   int copy;           // 1 if this list is copied from another list
+  int trim;           // 1 if this list is trimmed from another list
   int kk2cpu;         // 1 if this list is copied from Kokkos to CPU
   int copymode;       // 1 if this is a Kokkos on-device copy
   int id;             // copied from neighbor list request
@@ -95,14 +96,14 @@ class NeighList : protected Pointers {
   int kokkos;    // 1 if list stores Kokkos data
   ExecutionSpace execution_space;
 
-  // USER-DPD package and Shardlow Splitting Algorithm (SSA) support
+  // DPD-REACT package and Shardlow Splitting Algorithm (SSA) support
 
   class NPair *np;    // ptr to NPair instance I depend on
 
   // methods
 
   NeighList(class LAMMPS *);
-  virtual ~NeighList();
+  ~NeighList() override;
   void post_constructor(class NeighRequest *);
   void setup_pages(int, int);    // setup page data structures
   void grow(int, int);           // grow all data structs

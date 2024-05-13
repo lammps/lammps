@@ -66,7 +66,7 @@ class PPPM {
   }
 
   /// Check if there is enough storage for local atoms and realloc if not
-  inline void resize_local(const int inum, bool &success) {
+  inline void resize_local(const int, bool &) {
   }
 
   /// Clear all host and device data

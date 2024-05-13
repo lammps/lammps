@@ -1,50 +1,21 @@
-/*
 //@HEADER
 // ************************************************************************
 //
-//                        Kokkos v. 3.0
-//       Copyright (2020) National Technology & Engineering
+//                        Kokkos v. 4.0
+//       Copyright (2022) National Technology & Engineering
 //               Solutions of Sandia, LLC (NTESS).
 //
 // Under the terms of Contract DE-NA0003525 with NTESS,
 // the U.S. Government retains certain rights in this software.
 //
-// Redistribution and use in source and binary forms, with or without
-// modification, are permitted provided that the following conditions are
-// met:
+// Part of Kokkos, under the Apache License v2.0 with LLVM Exceptions.
+// See https://kokkos.org/LICENSE for license information.
+// SPDX-License-Identifier: Apache-2.0 WITH LLVM-exception
 //
-// 1. Redistributions of source code must retain the above copyright
-// notice, this list of conditions and the following disclaimer.
-//
-// 2. Redistributions in binary form must reproduce the above copyright
-// notice, this list of conditions and the following disclaimer in the
-// documentation and/or other materials provided with the distribution.
-//
-// 3. Neither the name of the Corporation nor the names of the
-// contributors may be used to endorse or promote products derived from
-// this software without specific prior written permission.
-//
-// THIS SOFTWARE IS PROVIDED BY NTESS "AS IS" AND ANY
-// EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
-// IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR
-// PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL NTESS OR THE
-// CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
-// EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
-// PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR
-// PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF
-// LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING
-// NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
-// SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-//
-// Questions? Contact Christian R. Trott (crtrott@sandia.gov)
-//
-// ************************************************************************
 //@HEADER
-*/
 
 #include <gtest/gtest.h>
 
-#include <stdexcept>
 #include <sstream>
 #include <iostream>
 
@@ -81,7 +52,7 @@ struct TestViewMappingSubview {
   using DLT  = Kokkos::View<int** * [13][14], Kokkos::LayoutLeft, ExecSpace>;
   using DLS1 = Kokkos::Subview<DLT, range, int, int, int, int>;
 
-#if !defined(KOKKOS_IMPL_CUDA_VERSION_9_WORKAROUND)
+#if defined(__CUDA_ARCH__) && __CUDA_ARCH__ >= 1000
   static_assert(
       DLS1::rank == 1 &&
           std::is_same<typename DLS1::array_layout, Kokkos::LayoutLeft>::value,
@@ -92,7 +63,7 @@ struct TestViewMappingSubview {
   using DRT  = Kokkos::View<int** * [13][14], Kokkos::LayoutRight, ExecSpace>;
   using DRS1 = Kokkos::Subview<DRT, int, int, int, int, range>;
 
-#if !defined(KOKKOS_IMPL_CUDA_VERSION_9_WORKAROUND)
+#if defined(__CUDA_ARCH__) && __CUDA_ARCH__ >= 1000
   static_assert(
       DRS1::rank == 1 &&
           std::is_same<typename DRS1::array_layout, Kokkos::LayoutRight>::value,
@@ -129,8 +100,7 @@ struct TestViewMappingSubview {
 
   KOKKOS_INLINE_FUNCTION
   void operator()(const int, long& error_count) const {
-    auto Ad = Kokkos::subview<Kokkos::MemoryUnmanaged>(
-        Aa, Kokkos::pair<int, int>(1, AN - 1));
+    auto Ad = Kokkos::subview(Aa, Kokkos::pair<int, int>(1, AN - 1));
 
     for (int i = 1; i < AN - 1; ++i)
       if (&Aa[i] != &Ab[i - 1]) ++error_count;
@@ -164,23 +134,23 @@ struct TestViewMappingSubview {
     TestViewMappingSubview<ExecSpace> self;
 
     ASSERT_EQ(Aa.extent(0), AN);
-    ASSERT_EQ(Ab.extent(0), AN - 2);
-    ASSERT_EQ(Ac.extent(0), AN - 2);
+    ASSERT_EQ(Ab.extent(0), (size_t)AN - 2);
+    ASSERT_EQ(Ac.extent(0), (size_t)AN - 2);
     ASSERT_EQ(Ba.extent(0), BN0);
     ASSERT_EQ(Ba.extent(1), BN1);
     ASSERT_EQ(Ba.extent(2), BN2);
-    ASSERT_EQ(Bb.extent(0), BN0 - 2);
-    ASSERT_EQ(Bb.extent(1), BN1 - 2);
-    ASSERT_EQ(Bb.extent(2), BN2 - 2);
+    ASSERT_EQ(Bb.extent(0), (size_t)BN0 - 2);
+    ASSERT_EQ(Bb.extent(1), (size_t)BN1 - 2);
+    ASSERT_EQ(Bb.extent(2), (size_t)BN2 - 2);
 
     ASSERT_EQ(Ca.extent(0), CN0);
     ASSERT_EQ(Ca.extent(1), CN1);
     ASSERT_EQ(Ca.extent(2), CN2);
-    ASSERT_EQ(Ca.extent(3), 13);
-    ASSERT_EQ(Ca.extent(4), 14);
-    ASSERT_EQ(Cb.extent(0), CN0 - 2);
-    ASSERT_EQ(Cb.extent(1), CN1 - 2);
-    ASSERT_EQ(Cb.extent(2), CN2 - 2);
+    ASSERT_EQ(Ca.extent(3), (size_t)13);
+    ASSERT_EQ(Ca.extent(4), (size_t)14);
+    ASSERT_EQ(Cb.extent(0), (size_t)CN0 - 2);
+    ASSERT_EQ(Cb.extent(1), (size_t)CN1 - 2);
+    ASSERT_EQ(Cb.extent(2), (size_t)CN2 - 2);
 
     ASSERT_EQ(Da.extent(0), DN0);
     ASSERT_EQ(Da.extent(1), DN1);
@@ -188,9 +158,9 @@ struct TestViewMappingSubview {
     ASSERT_EQ(Da.extent(3), DN3);
     ASSERT_EQ(Da.extent(4), DN4);
 
-    ASSERT_EQ(Db.extent(0), DN1 - 2);
-    ASSERT_EQ(Db.extent(1), DN2 - 2);
-    ASSERT_EQ(Db.extent(2), DN3 - 2);
+    ASSERT_EQ(Db.extent(0), (size_t)DN1 - 2);
+    ASSERT_EQ(Db.extent(1), (size_t)DN2 - 2);
+    ASSERT_EQ(Db.extent(2), (size_t)DN3 - 2);
 
     ASSERT_EQ(Da.stride_1(), Db.stride_0());
     ASSERT_EQ(Da.stride_2(), Db.stride_1());

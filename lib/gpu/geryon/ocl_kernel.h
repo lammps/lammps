@@ -95,7 +95,8 @@ class UCL_Program {
 
   /// Load a program from a string and compile with flags
   inline int load_string(const void *program, const char *flags="",
-                         std::string *log=nullptr, FILE* foutput=nullptr) {
+                         std::string *log=nullptr, FILE* foutput=nullptr,
+                         const int compile_test=0) {
     cl_int error_flag;
     const char *prog=(const char *)program;
     _program=clCreateProgramWithSource(_context,1,&prog,nullptr,&error_flag);
@@ -113,31 +114,33 @@ class UCL_Program {
     {
       size_t ms;
       CL_SAFE_CALL(clGetProgramBuildInfo(_program,_device,CL_PROGRAM_BUILD_LOG,
-					 0,NULL,&ms));
+                                         0,NULL,&ms));
       char *build_log = new char[ms];
       CL_SAFE_CALL(clGetProgramBuildInfo(_program,_device,CL_PROGRAM_BUILD_LOG,
-					 ms,build_log, NULL));
+                                         ms,build_log, NULL));
       std::cout << std::endl << std::endl
-		<< "--------------------------------------------------------\n"
-		<< "   UCL PROGRAM DUMP\n"
-		<< "--------------------------------------------------------\n"
-		<< flags << std::endl
-		<< "--------------------------------------------------------\n"
-		<< prog << std::endl
-		<< "--------------------------------------------------------\n"
-		<< build_log
-		<< "--------------------------------------------------------\n"
-		<< std::endl << std::endl;
+                << "--------------------------------------------------------\n"
+                << "   UCL PROGRAM DUMP\n"
+                << "--------------------------------------------------------\n"
+                << flags << std::endl
+                << "--------------------------------------------------------\n"
+                << prog << std::endl
+                << "--------------------------------------------------------\n"
+                << build_log
+                << "--------------------------------------------------------\n"
+                << std::endl << std::endl;
     }
     #endif
-    
+
+    if (build_status != CL_SUCCESS && compile_test) return UCL_COMPILE_ERROR;
+
     if (build_status != CL_SUCCESS || log!=NULL) {
       size_t ms;
       CL_SAFE_CALL(clGetProgramBuildInfo(_program,_device,CL_PROGRAM_BUILD_LOG,
-					 0,NULL,&ms));
+                                         0,NULL,&ms));
       char *build_log = new char[ms];
       CL_SAFE_CALL(clGetProgramBuildInfo(_program,_device,CL_PROGRAM_BUILD_LOG,
-					 ms,build_log, NULL));
+                                         ms,build_log, NULL));
 
       if (log!=nullptr)
         *log=std::string(build_log);
@@ -150,25 +153,25 @@ class UCL_Program {
           << build_status << ") ...\n"
           << "----------------------------------------------------------\n";
         std::cerr << build_log << std::endl;
-	std::cerr <<
-	  "----------------------------------------------------------\n"
-	  << std::endl << std::endl;
+        std::cerr <<
+          "----------------------------------------------------------\n"
+          << std::endl << std::endl;
         #endif
-	if (foutput != NULL) {
-	  fprintf(foutput,"\n\n");
-	  fprintf(foutput,
-	    "----------------------------------------------------------\n");
-	  fprintf(foutput,
-		  " UCL Error: Error compiling OpenCL Program (%d) ...\n",
-		  build_status);
-	  fprintf(foutput,
-	    "----------------------------------------------------------\n");
-	  fprintf(foutput,"%s\n",build_log);
-	  fprintf(foutput,
-	    "----------------------------------------------------------\n");
-	  fprintf(foutput,"\n\n");
-	}
-	delete[] build_log;
+        if (foutput != NULL) {
+          fprintf(foutput,"\n\n");
+          fprintf(foutput,
+            "----------------------------------------------------------\n");
+          fprintf(foutput,
+                  " UCL Error: Error compiling OpenCL Program (%d) ...\n",
+                  build_status);
+          fprintf(foutput,
+            "----------------------------------------------------------\n");
+          fprintf(foutput,"%s\n",build_log);
+          fprintf(foutput,
+            "----------------------------------------------------------\n");
+          fprintf(foutput,"\n\n");
+        }
+        delete[] build_log;
         return UCL_COMPILE_ERROR;
       } else delete[] build_log;
     }

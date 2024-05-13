@@ -22,11 +22,11 @@ namespace ATC {
   //  Class ATC_CouplingMomentum
   //--------------------------------------------------------
   //--------------------------------------------------------
-  
+
   //--------------------------------------------------------
   //  Constructor
   //--------------------------------------------------------
-  ATC_CouplingMomentum::ATC_CouplingMomentum(string groupName, 
+  ATC_CouplingMomentum::ATC_CouplingMomentum(string groupName,
                                              double **& perAtomArray,
                                              LAMMPS_NS::Fix * thisFix,
                                              string matParamFile,
@@ -35,14 +35,14 @@ namespace ATC {
     : ATC_Coupling(groupName,perAtomArray,thisFix),
       refPE_(0)
   {
-    // Allocate PhysicsModel 
+    // Allocate PhysicsModel
     create_physics_model(intrinsicModel, matParamFile);
 
     // create extrinsic physics model
     if (extrinsicModel != NO_MODEL) {
-      extrinsicModelManager_.create_model(extrinsicModel,matParamFile);  
+      extrinsicModelManager_.create_model(extrinsicModel,matParamFile);
     }
-  
+
     // set up field data based on physicsModel
     physicsModel_->num_fields(fieldSizes_,fieldMask_);
 
@@ -166,14 +166,14 @@ namespace ATC {
         atomicMassWeightedDisplacement = new AtomicMassWeightedDisplacement(this);
       interscaleManager_.add_per_atom_quantity(atomicMassWeightedDisplacement,
                                                "AtomicMassWeightedDisplacement");
-      
+
       // nodal (RHS) mass-weighted displacement
       AtfShapeFunctionRestriction * nodalAtomicMassWeightedDisplacement = new AtfShapeFunctionRestriction(this,
                                                                                                  atomicMassWeightedDisplacement,
                                                                                                  shpFcn_);
       interscaleManager_.add_dense_matrix(nodalAtomicMassWeightedDisplacement,
                                           "NodalAtomicMassWeightedDisplacement");
-      
+
       // nodal displacement derived only from atoms
       AtfShapeFunctionMdProjection * nodalAtomicDisplacement = new AtfShapeFunctionMdProjection(this,
                                                                                                 nodalAtomicMassWeightedDisplacement,
@@ -194,7 +194,7 @@ namespace ATC {
   //---------------------------------------------------------
   void ATC_CouplingMomentum::init_filter()
   {
-    
+
     ATC_Coupling::init_filter();
 
     if (timeFilterManager_.end_equilibrate() && equilibriumStart_) // set up correct initial lambda forces to enforce initial accerlation
@@ -288,35 +288,35 @@ namespace ATC {
     ATC_Method::min_post_force();
 
     // Set sources
-    
+
     prescribedDataMgr_->set_sources(time(),sources_);
     extrinsicModelManager_.set_sources(fields_,extrinsicSources_);
     extrinsicModelManager_.pre_final_integrate();
 
 
 
-    
+
     if (outputNow_) {
       update_time(1.0);
       update_step();
       output();
       outputNow_ = false;
     }
-    
-    
+
+
     localStep_ += 1;
   }
-  
+
   //--------------------------------------------------------
   //  output
   //    does post-processing steps and outputs data
   //--------------------------------------------------------
-  void ATC_CouplingMomentum::output() 
+  void ATC_CouplingMomentum::output()
   {
     if (output_now()) {
       feEngine_->departition_mesh();
       OUTPUT_LIST outputData;
-      
+
       // base class output
       ATC_Method::output();
 
@@ -331,7 +331,7 @@ namespace ATC {
       }
       atomicRegulator_->output(outputData);
       extrinsicModelManager_.output(outputData);
-      
+
       DENS_MAT & velocity(nodalAtomicFields_[VELOCITY].set_quantity());
       DENS_MAT & rhs(rhs_[VELOCITY].set_quantity());
       if (lammpsInterface_->rank_zero()) {
@@ -341,7 +341,7 @@ namespace ATC {
         if (trackDisplacement_) {
           outputData["NodalAtomicDisplacement"] = & nodalAtomicFields_[DISPLACEMENT].set_quantity();
         }
-        
+
         feEngine_->write_data(output_index(), fields_, & outputData);
       }
       // force optional variables to reset to keep in sync
@@ -357,7 +357,7 @@ namespace ATC {
   //     compute_scalar : added energy
   //        this is used in the line search
   //--------------------------------------------------------------------
-  double ATC_CouplingMomentum::compute_scalar(void)
+  double ATC_CouplingMomentum::compute_scalar()
   {
     double energy = extrinsicModelManager_.compute_scalar();
     return energy;
@@ -376,7 +376,7 @@ namespace ATC {
       kineticEnergy += v.dot(M*v);
     }
     if (domain == FE_DOMAIN) {
-      
+
       Array<FieldName> massMask(1);
       massMask(0) = VELOCITY;
       feEngine_->compute_lumped_mass_matrix(massMask,fields_,physicsModel_,atomMaterialGroups_,
@@ -388,20 +388,20 @@ namespace ATC {
         kineticEnergy -= v.dot(Ma*v);
       }
     }
-    double mvv2e = lammpsInterface_->mvv2e(); 
+    double mvv2e = lammpsInterface_->mvv2e();
     kineticEnergy *= 0.5*mvv2e; // convert to LAMMPS units
 
     return kineticEnergy;
   }
   //--------------------------------------------------------------------
-  //     potential/strain energy 
+  //     potential/strain energy
   //--------------------------------------------------------------------
   double ATC_CouplingMomentum::potential_energy(const IntegrationDomainType domain) const
   {
     Array<FieldName> mask(1);
     mask(0) = VELOCITY;
     FIELD_MATS energy;
-    feEngine_->compute_energy(mask, 
+    feEngine_->compute_energy(mask,
                                 fields_,
                                 physicsModel_,
                                 elementToMaterialMap_,
@@ -424,7 +424,7 @@ namespace ATC {
     // output[3] = total coarse scale energy
     // output[4] = fe-only coarse scale kinetic energy
     // output[5] = fe-only coarse scale potential energy
-  
+
 
 
     if (n == 0) {

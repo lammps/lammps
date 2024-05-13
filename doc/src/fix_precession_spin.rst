@@ -103,15 +103,15 @@ possible easy axis for the magnetic spins in the defined group:
 
    H_{cubic} = -\sum_{{ i}=1}^{N} K_{1}
    \Big[
-   \left(\vec{s}_{i} \cdot \vec{n_1} \right)^2
-   \left(\vec{s}_{i} \cdot \vec{n_2} \right)^2 +
-   \left(\vec{s}_{i} \cdot \vec{n_2} \right)^2
-   \left(\vec{s}_{i} \cdot \vec{n_3} \right)^2 +
-   \left(\vec{s}_{i} \cdot \vec{n_1} \right)^2
-   \left(\vec{s}_{i} \cdot \vec{n_3} \right)^2 \Big]
-   +K_{2}^{(c)} \left(\vec{s}_{i} \cdot \vec{n_1} \right)^2
-   \left(\vec{s}_{i} \cdot \vec{n_2} \right)^2
-   \left(\vec{s}_{i} \cdot \vec{n_3} \right)^2
+   \left(\vec{s}_{i} \cdot \vec{n}_1 \right)^2
+   \left(\vec{s}_{i} \cdot \vec{n}_2 \right)^2 +
+   \left(\vec{s}_{i} \cdot \vec{n}_2 \right)^2
+   \left(\vec{s}_{i} \cdot \vec{n}_3 \right)^2 +
+   \left(\vec{s}_{i} \cdot \vec{n}_1 \right)^2
+   \left(\vec{s}_{i} \cdot \vec{n}_3 \right)^2 \Big]
+   +K_{2}^{(c)} \left(\vec{s}_{i} \cdot \vec{n}_1 \right)^2
+   \left(\vec{s}_{i} \cdot \vec{n}_2 \right)^2
+   \left(\vec{s}_{i} \cdot \vec{n}_3 \right)^2
 
 with :math:`K_1` and :math:`K_{2c}` (in eV) the intensity coefficients
 and :math:`\vec{n}_1`, :math:`\vec{n}_2` and :math:`\vec{n}_3`
@@ -175,7 +175,7 @@ Restrictions
 The *precession/spin* style is part of the SPIN package.  This style
 is only enabled if LAMMPS was built with this package, and if the
 atom_style "spin" was declared.  See the :doc:`Build package
-<Build_package>` doc page for more info.
+<Build_package>` page for more info.
 
 Related commands
 """"""""""""""""

@@ -111,4 +111,6 @@ pair_coeff 100 100 1.0 1.0
 compute da all displace/atom
 
 dump 1 all atom 10 dump.md
+dump 2 all image 10 image_lammps.*.ppm type type zoom 1.6
+dump_modify 2 pad 4 acolor * red/green/blue/aqua/magenta/yellow
 thermo 1

@@ -76,7 +76,7 @@ int table_gpu_init(const int ntypes, double **cutsq, double ***table_coeffs,
                       special_lj, inum, nall, max_nbors, maxspecial, cell_size,
                       gpu_split, screen, tabstyle, ntables, tablength);
 
-    TBMF.device->gpu_barrier();
+    TBMF.device->serialize_init();
     if (message)
       fprintf(screen,"Done.\n");
   }

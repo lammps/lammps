@@ -45,22 +45,22 @@ static const double localCoordinatesTolerance = 1.e-09;
   }
 
   int FE_Element::num_ips() const
-  { 
-    return feInterpolate_->num_ips(); 
+  {
+    return feInterpolate_->num_ips();
   }
 
   int FE_Element::num_face_ips() const
-  { 
-    return feInterpolate_->num_face_ips(); 
+  {
+    return feInterpolate_->num_face_ips();
   }
 
-  void FE_Element::face_coordinates(const DENS_MAT &eltCoords, 
+  void FE_Element::face_coordinates(const DENS_MAT &eltCoords,
                                     const int faceID,
                                     DENS_MAT & faceCoords) const
   {
     faceCoords.reset(nSD_, numFaceNodes_);
 
-    for (int inode=0; inode < numFaceNodes_; inode++) 
+    for (int inode=0; inode < numFaceNodes_; inode++)
     {
       int id = localFaceConn_(faceID,inode);
       for (int isd=0; isd<nSD_; isd++) {
@@ -94,7 +94,7 @@ static const double localCoordinatesTolerance = 1.e-09;
       centroid(i) = eltCoords.row_mean(i);
     }
   }
- 
+
   // -------------------------------------------------------------
   //  generic conversion from global to local coordinates using
   //  Newton's method to solve the nonliear equation that arises
@@ -110,8 +110,8 @@ static const double localCoordinatesTolerance = 1.e-09;
     if (fabs(xiGuess(0)) > 1.0) xiGuess(0) = 0.;
     if (fabs(xiGuess(1)) > 1.0) xiGuess(1) = 0.;
     if (fabs(xiGuess(2)) > 1.0) xiGuess(2) = 0.;
-    
-    // iteratively solve the equation by calculating the global 
+
+    // iteratively solve the equation by calculating the global
     // position of the guess and bringing the difference between it
     // and the actual global position of x to zero
     //
@@ -127,12 +127,12 @@ static const double localCoordinatesTolerance = 1.e-09;
     while (count < localCoordinatesMaxIterations_) {
       feInterpolate_->compute_N_dNdr(xiGuess,N,dNdr);
       xGuess = N*eltCoordsT;
-      xDiff  = xGuess-x; 
+      xDiff  = xGuess-x;
       // determine if the guess is close enough.
       // if it is, take it and run
       // if not, use Newton's method to update the guess
-      if (!dbl_geq(abs(xDiff(0)),tolerance_) && 
-          !dbl_geq(abs(xDiff(1)),tolerance_) && 
+      if (!dbl_geq(abs(xDiff(0)),tolerance_) &&
+          !dbl_geq(abs(xDiff(1)),tolerance_) &&
           !dbl_geq(abs(xDiff(2)),tolerance_)) {
         converged = true;
         xi = xiGuess;
@@ -160,11 +160,11 @@ static const double localCoordinatesTolerance = 1.e-09;
         xi(i) = 2.0*(x(i)-min)/(max-min) - 1.0;
       }
     }
-    else if (projectionGuess_ == CENTROID_LINEARIZED) { 
+    else if (projectionGuess_ == CENTROID_LINEARIZED) {
       DENS_VEC xi0(nSD_); xi0 = 0;
       DENS_VEC x0(nSD_), dx(nSD_);
-      centroid(eltCoords,x0); 
-      dx = x - x0; 
+      centroid(eltCoords,x0);
+      dx = x - x0;
       vector<DENS_VEC> ts; ts.reserve(nSD_);
       tangents(eltCoords,xi0,ts);
       DENS_VEC & t1 = ts[0];
@@ -178,7 +178,7 @@ static const double localCoordinatesTolerance = 1.e-09;
       xi(1) = J2/J;
       xi(2) = J3/J;
     }
-    else if (projectionGuess_ == TWOD_ANALYTIC) { 
+    else if (projectionGuess_ == TWOD_ANALYTIC) {
       // assume x-y planar and HEX8
       double x0 = x(0), y0 = x(1);
       double X[4] = {eltCoords(0,0),eltCoords(0,1),eltCoords(0,2),eltCoords(0,3)};
@@ -186,7 +186,7 @@ static const double localCoordinatesTolerance = 1.e-09;
       double c[3]={0,0,0};
       c[0] = y0*X[0] - y0*X[1] - y0*X[2] + y0*X[3] - x0*Y[0] + (X[1]*Y[0])*0.5 + (X[2]*Y[0])*0.5 + x0*Y[1] - (X[0]*Y[1])*0.5 - (X[3]*Y[1])*0.5 + x0*Y[2] - (X[0]*Y[2])*0.5 - (X[3]*Y[2])*0.5 - x0*Y[3] + (X[1]*Y[3])*0.5 + (X[2]*Y[3])*0.5;
       c[1] = -(y0*X[0]) + y0*X[1] - y0*X[2] + y0*X[3] + x0*Y[0] - X[1]*Y[0] - x0*Y[1] + X[0]*Y[1] + x0*Y[2] - X[3]*Y[2] - x0*Y[3] + X[2]*Y[3];
-      c[1] = (X[1]*Y[0])*0.5 - (X[2]*Y[0])*0.5 - (X[0]*Y[1])*0.5 + (X[3]*Y[1])*0.5 + (X[0]*Y[2])*0.5 - (X[3]*Y[2])*0.5 - (X[1]*Y[3])*0.5 + (X[2]*Y[3])*0.5;
+      c[2] = (X[1]*Y[0])*0.5 - (X[2]*Y[0])*0.5 - (X[0]*Y[1])*0.5 + (X[3]*Y[1])*0.5 + (X[0]*Y[2])*0.5 - (X[3]*Y[2])*0.5 - (X[1]*Y[3])*0.5 + (X[2]*Y[3])*0.5;
       double xi2[2]={0,0};
       int nroots = solve_quadratic(c,xi2);
       if (nroots == 0) throw ATC_Error("no real roots in 2D analytic projection guess");
@@ -194,13 +194,13 @@ static const double localCoordinatesTolerance = 1.e-09;
       xi1[0] = (4*x0 - X[0] + xi2[0]*X[0] - X[0] + xi2[0]*X[0] - X[0] - xi2[0]*X[0] - X[0] - xi2[0]*X[0])/(-X[0] + xi2[0]*X[0] + X[0] - xi2[0]*X[0] + X[0] + xi2[0]*X[0] - X[0] - xi2[0]*X[0]);
       xi1[1] = (4*x0 - X[0] + xi2[0]*X[0] - X[0] + xi2[0]*X[0] - X[0] - xi2[0]*X[0] - X[0] - xi2[0]*X[0])/(-X[0] + xi2[0]*X[0] + X[0] - xi2[0]*X[0] + X[0] + xi2[0]*X[0] - X[0] - xi2[0]*X[0]);
       // choose which one gives back x
-      xi(0) = xi1[0]; 
-      xi(1) = xi2[0]; 
-      xi(2) = 0; 
+      xi(0) = xi1[0];
+      xi(1) = xi2[0];
+      xi(2) = 0;
     }
   }
 
- 
+
   bool FE_Element::range_check(const DENS_MAT &eltCoords,
                                const DENS_VEC &x) const
   {
@@ -214,7 +214,7 @@ static const double localCoordinatesTolerance = 1.e-09;
 
 
   // -------------------------------------------------------------
-  //   Note: Only works for convex elements with planar faces with 
+  //   Note: Only works for convex elements with planar faces with
   //   outward normals
   // -------------------------------------------------------------
   bool FE_Element::contains_point(const DENS_MAT &eltCoords,
@@ -229,7 +229,7 @@ static const double localCoordinatesTolerance = 1.e-09;
     bool inside = true;
     for (int faceID=0; faceID<numFaces_; ++faceID) {
       face_coordinates(eltCoords, faceID, faceCoords);
-      feInterpolate_->face_normal(faceCoords, 
+      feInterpolate_->face_normal(faceCoords,
                                   0,
                                   normal);
       faceToPoint = x - column(faceCoords, 0);
@@ -258,8 +258,8 @@ static const double localCoordinatesTolerance = 1.e-09;
         if (dbl_geq(eltCoords(dim,it),min)) {
           ++it;
         } else {
-          // set min to this node's coord in the specified dim, if it's 
-          // smaller than the value previously stored 
+          // set min to this node's coord in the specified dim, if it's
+          // smaller than the value previously stored
           min = eltCoords(dim,it);
         }
       } else {
@@ -277,7 +277,7 @@ static const double localCoordinatesTolerance = 1.e-09;
       }
     }
   }
-  
+
   // -------------------------------------------------------------
   //   shape_function calls should stay generic at all costs
   // -------------------------------------------------------------
@@ -306,7 +306,7 @@ static const double localCoordinatesTolerance = 1.e-09;
     local_coordinates(eltCoords, x, xi);
 
     feInterpolate_->shape_function(eltCoords, xi, N, dNdx);
-  }  
+  }
 
   void FE_Element::shape_function_derivatives(const DENS_MAT eltCoords,
                                   const VECTOR &x,
@@ -316,7 +316,7 @@ static const double localCoordinatesTolerance = 1.e-09;
     local_coordinates(eltCoords, x, xi);
 
     feInterpolate_->shape_function_derivatives(eltCoords, xi, dNdx);
-  }  
+  }
 
 
   void FE_Element::shape_function(const DENS_MAT eltCoords,
@@ -334,8 +334,8 @@ static const double localCoordinatesTolerance = 1.e-09;
                                        DIAG_MAT &weights)
   {
     DENS_MAT faceCoords;
-    face_coordinates(eltCoords, faceID, faceCoords); 
-    
+    face_coordinates(eltCoords, faceID, faceCoords);
+
     feInterpolate_->face_shape_function(eltCoords, faceCoords, faceID,
                                         N, n, weights);
   }
@@ -348,8 +348,8 @@ static const double localCoordinatesTolerance = 1.e-09;
                                        DIAG_MAT &weights)
   {
     DENS_MAT faceCoords;
-    face_coordinates(eltCoords, faceID, faceCoords); 
-    
+    face_coordinates(eltCoords, faceID, faceCoords);
+
     feInterpolate_->face_shape_function(eltCoords, faceCoords, faceID,
                                         N, dN, Nn, weights);
   }
@@ -357,7 +357,7 @@ static const double localCoordinatesTolerance = 1.e-09;
   double FE_Element::face_normal(const DENS_MAT &eltCoords,
                                  const int faceID,
                                  int ip,
-                                 DENS_VEC &normal) 
+                                 DENS_VEC &normal)
   {
     DENS_MAT faceCoords;
     face_coordinates(eltCoords, faceID, faceCoords);
@@ -373,12 +373,12 @@ static const double localCoordinatesTolerance = 1.e-09;
   {
     feInterpolate_->tangents(eltCoords,localCoords,tangents,normalize);
   }
-  
-  
+
+
   // =============================================================
   //   class FE_ElementHex
   // =============================================================
-  FE_ElementHex::FE_ElementHex(int numNodes, 
+  FE_ElementHex::FE_ElementHex(int numNodes,
                                int numFaceNodes,
                                int numNodes1d)
     : FE_Element(3,                 // number of spatial dimensions
@@ -396,126 +396,126 @@ static const double localCoordinatesTolerance = 1.e-09;
     //                  /
     //                 /
     //                z
-  
+
     // Basic properties of element:
     vol_ = 8.0;
     faceArea_ = 4.0;
-    
+
     // Order-specific information:
     if (numNodes != 8  &&
         numNodes != 20 &&
         numNodes != 27) {
-      throw ATC_Error("Unrecognized interpolation order specified " 
-                      "for element class: \n"                       
-                      "  element only knows how to construct lin "  
+      throw ATC_Error("Unrecognized interpolation order specified "
+                      "for element class: \n"
+                      "  element only knows how to construct lin "
                         "and quad elements.");
     }
 
     localCoords_.resize(nSD_,numNodes_);
     localFaceConn_ = Array2D<int>(numFaces_,numFaceNodes_);
-    
+
     // Matrix of local nodal coordinates
-    localCoords_(0,0) = -1; localCoords_(0,4) = -1; 
-    localCoords_(1,0) = -1; localCoords_(1,4) = -1; 
+    localCoords_(0,0) = -1; localCoords_(0,4) = -1;
+    localCoords_(1,0) = -1; localCoords_(1,4) = -1;
     localCoords_(2,0) = -1; localCoords_(2,4) =  1;
-    // 
-    localCoords_(0,1) =  1; localCoords_(0,5) =  1; 
-    localCoords_(1,1) = -1; localCoords_(1,5) = -1; 
+    //
+    localCoords_(0,1) =  1; localCoords_(0,5) =  1;
+    localCoords_(1,1) = -1; localCoords_(1,5) = -1;
     localCoords_(2,1) = -1; localCoords_(2,5) =  1;
     //
-    localCoords_(0,2) =  1; localCoords_(0,6) =  1; 
-    localCoords_(1,2) =  1; localCoords_(1,6) =  1; 
+    localCoords_(0,2) =  1; localCoords_(0,6) =  1;
+    localCoords_(1,2) =  1; localCoords_(1,6) =  1;
     localCoords_(2,2) = -1; localCoords_(2,6) =  1;
     //
-    localCoords_(0,3) = -1; localCoords_(0,7) = -1; 
-    localCoords_(1,3) =  1; localCoords_(1,7) =  1; 
+    localCoords_(0,3) = -1; localCoords_(0,7) = -1;
+    localCoords_(1,3) =  1; localCoords_(1,7) =  1;
     localCoords_(2,3) = -1; localCoords_(2,7) =  1;
     if (numNodes >= 20) {
       // only for quads
-      localCoords_(0,8) =  0;  localCoords_(0,14) =  1; 
-      localCoords_(1,8) = -1;  localCoords_(1,14) =  1; 
+      localCoords_(0,8) =  0;  localCoords_(0,14) =  1;
+      localCoords_(1,8) = -1;  localCoords_(1,14) =  1;
       localCoords_(2,8) = -1;  localCoords_(2,14) =  0;
-      // 
-      localCoords_(0,9) =  1;  localCoords_(0,15) = -1; 
-      localCoords_(1,9) =  0;  localCoords_(1,15) =  1; 
+      //
+      localCoords_(0,9) =  1;  localCoords_(0,15) = -1;
+      localCoords_(1,9) =  0;  localCoords_(1,15) =  1;
       localCoords_(2,9) = -1;  localCoords_(2,15) =  0;
       //
-      localCoords_(0,10) =  0; localCoords_(0,16) =  0; 
-      localCoords_(1,10) =  1; localCoords_(1,16) = -1; 
+      localCoords_(0,10) =  0; localCoords_(0,16) =  0;
+      localCoords_(1,10) =  1; localCoords_(1,16) = -1;
       localCoords_(2,10) = -1; localCoords_(2,16) =  1;
       //
-      localCoords_(0,11) = -1; localCoords_(0,17) =  1; 
-      localCoords_(1,11) =  0; localCoords_(1,17) =  0; 
+      localCoords_(0,11) = -1; localCoords_(0,17) =  1;
+      localCoords_(1,11) =  0; localCoords_(1,17) =  0;
       localCoords_(2,11) = -1; localCoords_(2,17) =  1;
       //
-      localCoords_(0,12) = -1; localCoords_(0,18) =  0; 
-      localCoords_(1,12) = -1; localCoords_(1,18) =  1; 
+      localCoords_(0,12) = -1; localCoords_(0,18) =  0;
+      localCoords_(1,12) = -1; localCoords_(1,18) =  1;
       localCoords_(2,12) =  0; localCoords_(2,18) =  1;
       //
-      localCoords_(0,13) =  1; localCoords_(0,19) = -1; 
-      localCoords_(1,13) = -1; localCoords_(1,19) =  0; 
+      localCoords_(0,13) =  1; localCoords_(0,19) = -1;
+      localCoords_(1,13) = -1; localCoords_(1,19) =  0;
       localCoords_(2,13) =  0; localCoords_(2,19) =  1;
       if (numNodes >= 27) {
         // only for quads
-        localCoords_(0,20) =  0; localCoords_(0,24) =  1; 
-        localCoords_(1,20) =  0; localCoords_(1,24) =  0; 
+        localCoords_(0,20) =  0; localCoords_(0,24) =  1;
+        localCoords_(1,20) =  0; localCoords_(1,24) =  0;
         localCoords_(2,20) =  0; localCoords_(2,24) =  0;
         //
-        localCoords_(0,21) =  0; localCoords_(0,25) =  0; 
-        localCoords_(1,21) =  0; localCoords_(1,25) = -1; 
+        localCoords_(0,21) =  0; localCoords_(0,25) =  0;
+        localCoords_(1,21) =  0; localCoords_(1,25) = -1;
         localCoords_(2,21) = -1; localCoords_(2,25) =  0;
         //
-        localCoords_(0,22) =  0; localCoords_(0,26) =  0; 
-        localCoords_(1,22) =  0; localCoords_(1,26) =  1; 
+        localCoords_(0,22) =  0; localCoords_(0,26) =  0;
+        localCoords_(1,22) =  0; localCoords_(1,26) =  1;
         localCoords_(2,22) =  1; localCoords_(2,26) =  0;
         //
-        localCoords_(0,23) = -1; 
-        localCoords_(1,23) =  0; 
+        localCoords_(0,23) = -1;
+        localCoords_(1,23) =  0;
         localCoords_(2,23) =  0;
       }
     }
 
     // Matrix of local face connectivity
     // -x                    // +x
-    localFaceConn_(0,0) = 0; localFaceConn_(1,0) = 1; 
-    localFaceConn_(0,1) = 4; localFaceConn_(1,1) = 2; 
-    localFaceConn_(0,2) = 7; localFaceConn_(1,2) = 6; 
-    localFaceConn_(0,3) = 3; localFaceConn_(1,3) = 5; 
+    localFaceConn_(0,0) = 0; localFaceConn_(1,0) = 1;
+    localFaceConn_(0,1) = 4; localFaceConn_(1,1) = 2;
+    localFaceConn_(0,2) = 7; localFaceConn_(1,2) = 6;
+    localFaceConn_(0,3) = 3; localFaceConn_(1,3) = 5;
     if (numNodes >= 20) {
-      localFaceConn_(0,4) = 12; localFaceConn_(1,4) = 9; 
-      localFaceConn_(0,5) = 19; localFaceConn_(1,5) = 14; 
-      localFaceConn_(0,6) = 15; localFaceConn_(1,6) = 17; 
-      localFaceConn_(0,7) = 11; localFaceConn_(1,7) = 13; 
+      localFaceConn_(0,4) = 12; localFaceConn_(1,4) = 9;
+      localFaceConn_(0,5) = 19; localFaceConn_(1,5) = 14;
+      localFaceConn_(0,6) = 15; localFaceConn_(1,6) = 17;
+      localFaceConn_(0,7) = 11; localFaceConn_(1,7) = 13;
       if (numNodes >= 27) {
         localFaceConn_(0,8) = 23; localFaceConn_(1,8) = 24;
       }
     }
 
     // -y                    // +y
-    localFaceConn_(2,0) = 0; localFaceConn_(3,0) = 3; 
-    localFaceConn_(2,1) = 1; localFaceConn_(3,1) = 7; 
-    localFaceConn_(2,2) = 5; localFaceConn_(3,2) = 6; 
-    localFaceConn_(2,3) = 4; localFaceConn_(3,3) = 2; 
+    localFaceConn_(2,0) = 0; localFaceConn_(3,0) = 3;
+    localFaceConn_(2,1) = 1; localFaceConn_(3,1) = 7;
+    localFaceConn_(2,2) = 5; localFaceConn_(3,2) = 6;
+    localFaceConn_(2,3) = 4; localFaceConn_(3,3) = 2;
     if (numNodes >= 20) {
-      localFaceConn_(2,4) = 8;  localFaceConn_(3,4) = 15; 
-      localFaceConn_(2,5) = 13; localFaceConn_(3,5) = 18; 
-      localFaceConn_(2,6) = 16; localFaceConn_(3,6) = 14; 
-      localFaceConn_(2,7) = 12; localFaceConn_(3,7) = 10; 
+      localFaceConn_(2,4) = 8;  localFaceConn_(3,4) = 15;
+      localFaceConn_(2,5) = 13; localFaceConn_(3,5) = 18;
+      localFaceConn_(2,6) = 16; localFaceConn_(3,6) = 14;
+      localFaceConn_(2,7) = 12; localFaceConn_(3,7) = 10;
       if (numNodes >= 27) {
         localFaceConn_(2,8) = 25; localFaceConn_(3,8) = 26;
       }
     }
- 
+
     // -z                    // +z
-    localFaceConn_(4,0) = 0; localFaceConn_(5,0) = 4; 
-    localFaceConn_(4,1) = 3; localFaceConn_(5,1) = 5; 
-    localFaceConn_(4,2) = 2; localFaceConn_(5,2) = 6; 
-    localFaceConn_(4,3) = 1; localFaceConn_(5,3) = 7; 
+    localFaceConn_(4,0) = 0; localFaceConn_(5,0) = 4;
+    localFaceConn_(4,1) = 3; localFaceConn_(5,1) = 5;
+    localFaceConn_(4,2) = 2; localFaceConn_(5,2) = 6;
+    localFaceConn_(4,3) = 1; localFaceConn_(5,3) = 7;
     if (numNodes >= 20) {
-      localFaceConn_(4,4) = 8;  localFaceConn_(5,4) = 16; 
-      localFaceConn_(4,5) = 11; localFaceConn_(5,5) = 17; 
-      localFaceConn_(4,6) = 10; localFaceConn_(5,6) = 18; 
-      localFaceConn_(4,7) = 9;  localFaceConn_(5,7) = 19; 
+      localFaceConn_(4,4) = 8;  localFaceConn_(5,4) = 16;
+      localFaceConn_(4,5) = 11; localFaceConn_(5,5) = 17;
+      localFaceConn_(4,6) = 10; localFaceConn_(5,6) = 18;
+      localFaceConn_(4,7) = 9;  localFaceConn_(5,7) = 19;
       if (numNodes >= 27) {
         localFaceConn_(4,8) = 21; localFaceConn_(5,8) = 22;
       }
@@ -530,7 +530,7 @@ static const double localCoordinatesTolerance = 1.e-09;
     }
 
     // determine alignment and skewness to see which guess we should use
-    
+
   }
 
   FE_ElementHex::~FE_ElementHex()
@@ -538,18 +538,18 @@ static const double localCoordinatesTolerance = 1.e-09;
     // Handled by base class
   }
 
-  void FE_ElementHex::set_quadrature(FeIntQuadrature type) 
-  { 
+  void FE_ElementHex::set_quadrature(FeIntQuadrature type)
+  {
     feInterpolate_->set_quadrature(HEXA,type);
   }
-  
+
   bool FE_ElementHex::contains_point(const DENS_MAT &eltCoords,
                                      const DENS_VEC &x) const
   {
     if (! range_check(eltCoords,x) ) return false;
 
     DENS_VEC xi;
-    bool converged = local_coordinates(eltCoords,x,xi); 
+    bool converged = local_coordinates(eltCoords,x,xi);
     if (!converged) return false;
     for (int i=0; i<nSD_; ++i) {
       if (!dbl_geq(1.0,abs(xi(i)))) return false;
@@ -592,7 +592,7 @@ static const double localCoordinatesTolerance = 1.e-09;
     }
     return true;
   }
-  
+
 
   // =============================================================
   //   class FE_ElementTet
@@ -614,12 +614,12 @@ static const double localCoordinatesTolerance = 1.e-09;
     // 3                     .7
     // |\```---           .
     // |  \     ```--2 .
-    // |    \       .| 
+    // |    \       .|
     // |      \  .   |
     // |      . \    |
     // |   .      \  |
     // |.___________\|  -------> r
-    // 0             1  
+    // 0             1
     //
     // (This is as dictated by the EXODUSII standard.)
     //
@@ -631,18 +631,18 @@ static const double localCoordinatesTolerance = 1.e-09;
     // Basic properties of element:
     vol_ = 1.0/6.0; // local volume
     faceArea_ = 1.0/2.0;
- 
+
     // Order-specific information:
     if (numNodes != 4 && numNodes != 10) {
-      throw ATC_Error("Unrecognized interpolation order specified " 
-                      "for element class: \n"                       
-                      "  element only knows how to construct lin "  
+      throw ATC_Error("Unrecognized interpolation order specified "
+                      "for element class: \n"
+                      "  element only knows how to construct lin "
                         "and quad elements.");
     }
-    
+
     localCoords_.resize(nSD_+1, numNodes_);
     localFaceConn_ = Array2D<int>(numFaces_,numFaceNodes_);
-    
+
     // Matrix of local nodal coordinates
     //
     // Remember, there's actually another coordinate too (u), coming
@@ -653,45 +653,45 @@ static const double localCoordinatesTolerance = 1.e-09;
     //
     // The first three axes correspond to x, y, and z (essentially),
     // for the canonical element.
-    
+
     // Everyone gets these nodes...
     localCoords_(0,0) = 0; localCoords_(0,2) = 0;
-    localCoords_(1,0) = 0; localCoords_(1,2) = 1; 
+    localCoords_(1,0) = 0; localCoords_(1,2) = 1;
     localCoords_(2,0) = 0; localCoords_(2,2) = 0;
     localCoords_(3,0) = 1; localCoords_(3,2) = 0;
     //
-    localCoords_(0,1) = 1; localCoords_(0,3) = 0; 
-    localCoords_(1,1) = 0; localCoords_(1,3) = 0; 
-    localCoords_(2,1) = 0; localCoords_(2,3) = 1; 
+    localCoords_(0,1) = 1; localCoords_(0,3) = 0;
+    localCoords_(1,1) = 0; localCoords_(1,3) = 0;
+    localCoords_(2,1) = 0; localCoords_(2,3) = 1;
     localCoords_(3,1) = 0; localCoords_(3,3) = 0;
     if (numNodes >= 10) {
       // ...quads get even more!
       localCoords_(0,4) = 0.5; localCoords_(0,5) = 0.5;
-      localCoords_(1,4) = 0.0; localCoords_(1,5) = 0.5; 
+      localCoords_(1,4) = 0.0; localCoords_(1,5) = 0.5;
       localCoords_(2,4) = 0.0; localCoords_(2,5) = 0.0;
       localCoords_(3,4) = 0.5; localCoords_(3,5) = 0.0;
       //
-      localCoords_(0,6) = 0.0; localCoords_(0,7) = 0.0; 
-      localCoords_(1,6) = 0.5; localCoords_(1,7) = 0.0; 
-      localCoords_(2,6) = 0.0; localCoords_(2,7) = 0.5; 
+      localCoords_(0,6) = 0.0; localCoords_(0,7) = 0.0;
+      localCoords_(1,6) = 0.5; localCoords_(1,7) = 0.0;
+      localCoords_(2,6) = 0.0; localCoords_(2,7) = 0.5;
       localCoords_(3,6) = 0.5; localCoords_(3,7) = 0.5;
       //
-      localCoords_(0,8) = 0.5; localCoords_(0,9) = 0.0; 
-      localCoords_(1,8) = 0.0; localCoords_(1,9) = 0.5; 
-      localCoords_(2,8) = 0.5; localCoords_(2,9) = 0.5; 
+      localCoords_(0,8) = 0.5; localCoords_(0,9) = 0.0;
+      localCoords_(1,8) = 0.0; localCoords_(1,9) = 0.5;
+      localCoords_(2,8) = 0.5; localCoords_(2,9) = 0.5;
       localCoords_(3,8) = 0.0; localCoords_(3,9) = 0.0;
     }
-  
+
     // Matrix of local face connectivity:
-    // ...opposite point 0,     ...opposite point 2, 
+    // ...opposite point 0,     ...opposite point 2,
     localFaceConn_(0,0) = 1; localFaceConn_(2,0) = 0;
     localFaceConn_(0,1) = 2; localFaceConn_(2,1) = 1;
     localFaceConn_(0,2) = 3; localFaceConn_(2,2) = 3;
-   
+
     // ...opposite point 1,     ...opposite point 3.
-    localFaceConn_(1,0) = 2; localFaceConn_(3,0) = 0; 
-    localFaceConn_(1,1) = 0; localFaceConn_(3,1) = 2; 
-    localFaceConn_(1,2) = 3; localFaceConn_(3,2) = 1; 
+    localFaceConn_(1,0) = 2; localFaceConn_(3,0) = 0;
+    localFaceConn_(1,1) = 0; localFaceConn_(3,1) = 2;
+    localFaceConn_(1,2) = 3; localFaceConn_(3,2) = 1;
 
     feInterpolate_ = new FE_InterpolateSimpLin(this);
   }
@@ -701,8 +701,8 @@ static const double localCoordinatesTolerance = 1.e-09;
     // Handled by base class
   }
 
-  void FE_ElementTet::set_quadrature(FeIntQuadrature type) 
-  { 
+  void FE_ElementTet::set_quadrature(FeIntQuadrature type)
+  {
     feInterpolate_->set_quadrature(TETRA,type);
   }
 

@@ -1,46 +1,22 @@
-/*
 //@HEADER
 // ************************************************************************
 //
-//                        Kokkos v. 3.0
-//       Copyright (2020) National Technology & Engineering
+//                        Kokkos v. 4.0
+//       Copyright (2022) National Technology & Engineering
 //               Solutions of Sandia, LLC (NTESS).
 //
 // Under the terms of Contract DE-NA0003525 with NTESS,
 // the U.S. Government retains certain rights in this software.
 //
-// Redistribution and use in source and binary forms, with or without
-// modification, are permitted provided that the following conditions are
-// met:
+// Part of Kokkos, under the Apache License v2.0 with LLVM Exceptions.
+// See https://kokkos.org/LICENSE for license information.
+// SPDX-License-Identifier: Apache-2.0 WITH LLVM-exception
 //
-// 1. Redistributions of source code must retain the above copyright
-// notice, this list of conditions and the following disclaimer.
-//
-// 2. Redistributions in binary form must reproduce the above copyright
-// notice, this list of conditions and the following disclaimer in the
-// documentation and/or other materials provided with the distribution.
-//
-// 3. Neither the name of the Corporation nor the names of the
-// contributors may be used to endorse or promote products derived from
-// this software without specific prior written permission.
-//
-// THIS SOFTWARE IS PROVIDED BY NTESS "AS IS" AND ANY
-// EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
-// IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR
-// PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL NTESS OR THE
-// CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
-// EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
-// PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR
-// PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF
-// LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING
-// NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
-// SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-//
-// Questions? Contact Christian R. Trott (crtrott@sandia.gov)
-//
-// ************************************************************************
 //@HEADER
-*/
+
+#ifndef KOKKOS_IMPL_PUBLIC_INCLUDE
+#define KOKKOS_IMPL_PUBLIC_INCLUDE
+#endif
 
 #include <Kokkos_Core.hpp>
 
@@ -95,8 +71,6 @@ TaskExec<Kokkos::Experimental::OpenMPTarget>::TaskExec(
   Kokkos::memory_fence();
 }
 
-#if defined(KOKKOS_ACTIVE_EXECUTION_MEMORY_SPACE_HOST)
-
 void TaskExec<Kokkos::Experimental::OpenMPTarget>::team_barrier_impl() const {
   if (m_team_exec->scratch_reduce_size() < int(2 * sizeof(int64_t))) {
     Kokkos::abort("TaskQueue<OpenMPTarget> scratch_reduce memory too small");
@@ -112,34 +86,10 @@ void TaskExec<Kokkos::Experimental::OpenMPTarget>::team_barrier_impl() const {
   // This team member sets one byte within the sync variable
   int8_t volatile *const sync_self = ((int8_t *)sync) + m_team_rank;
 
-#if 0
-fprintf( stdout
-       , "barrier group(%d) member(%d) step(%d) wait(%lx) : before(%lx)\n"
-       , m_group_rank
-       , m_team_rank
-       , m_sync_step
-       , m_sync_value
-       , *sync
-       );
-fflush(stdout);
-#endif
-
   *sync_self = int8_t(m_sync_value & 0x03);  // signal arrival
 
   while (m_sync_value != *sync)
     ;  // wait for team to arrive
-
-#if 0
-fprintf( stdout
-       , "barrier group(%d) member(%d) step(%d) wait(%lx) : after(%lx)\n"
-       , m_group_rank
-       , m_team_rank
-       , m_sync_step
-       , m_sync_value
-       , *sync
-       );
-fflush(stdout);
-#endif
 
   ++m_sync_step;
 
@@ -148,8 +98,6 @@ fflush(stdout);
     if (1000 < m_sync_step) m_sync_step = 0;
   }
 }
-
-#endif
 
 //----------------------------------------------------------------------------
 
@@ -221,17 +169,6 @@ void TaskQueueSpecialization<Kokkos::Experimental::OpenMPTarget>::execute(
 
         task = *task_shared;
       }
-
-#if 0
-fprintf( stdout
-       , "\nexecute group(%d) member(%d) task_shared(0x%lx) task(0x%lx)\n"
-       , team_exec.m_group_rank
-       , team_exec.m_team_rank
-       , uintptr_t(task_shared)
-       , uintptr_t(task)
-       );
-fflush(stdout);
-#endif
 
       if (0 == task) break;  // 0 == m_ready_count
 

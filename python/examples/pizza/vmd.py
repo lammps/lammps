@@ -1,9 +1,9 @@
-# Pizza.py toolkit, www.cs.sandia.gov/~sjplimp/pizza.html
-# Steve Plimpton, sjplimp@sandia.gov, Sandia National Laboratories
+# Pizza.py toolkit, https://lammps.github.io/pizza
+# LAMMPS Development team: developers@lammps.org, Sandia National Laboratories
 #
 # Copyright (2005) Sandia Corporation.  Under the terms of Contract
 # DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
-# certain rights in this software.  This software is distributed under 
+# certain rights in this software.  This software is distributed under
 # the GNU General Public License.
 
 # for python3 compatibility
@@ -20,24 +20,24 @@ from __future__ import print_function
 oneline = "Control VMD from python"
 
 docstr = """
-v = vmd()		       start up VMD
-v.stop()		       shut down VMD instance
-v.clear()		       delete all visualizations
+v = vmd()                      start up VMD
+v.stop()                       shut down VMD instance
+v.clear()                      delete all visualizations
 
-v.rep(style)		       set default representation style. One of
-			       (Lines|VDW|Licorice|DynamicBonds|Points|CPK) 
-v.new(file[,type])   	       load new file (default file type 'lammpstrj')
+v.rep(style)                   set default representation style. One of
+                               (Lines|VDW|Licorice|DynamicBonds|Points|CPK)
+v.new(file[,type])             load new file (default file type 'lammpstrj')
 v.data(file[,atomstyle])       load new data file (default atom style 'full')
-v.replace(file[,type])	       replace current frames with new file
-v.append(file[,type]) 	       append file to current frame(s)
+v.replace(file[,type])         replace current frames with new file
+v.append(file[,type])          append file to current frame(s)
 v.set(snap,x,y,z,(True|False)) set coordinates from a pizza.py snapshot to new or current frame
 
-v.frame(frame)		       set current frame
-v.flush()		       flush pending input to VMD and update GUI
-v.read(file)		       read Tcl script file (e.g. saved state)
-    
-v.enter()		       enter interactive shell
-v.debug([True|False])	       display generated VMD script commands?
+v.frame(frame)                 set current frame
+v.flush()                      flush pending input to VMD and update GUI
+v.read(file)                   read Tcl script file (e.g. saved state)
+
+v.enter()                      enter interactive shell
+v.debug([True|False])          display generated VMD script commands?
 """
 
 # History
@@ -71,7 +71,7 @@ except ImportError:
 # Class definition
 
 class vmd:
-  
+
   # --------------------------------------------------------------------
 
   def __init__(self):
@@ -103,7 +103,7 @@ class vmd:
     # open pipe to vmd and wait until we have a prompt
     self.VMD = pexpect.spawn(self.vmdexe)
     self.VMD.expect('vmd >')
-              
+
   # --------------------------------------------------------------------
   # post command to vmd and wait until the prompt returns.
   def __call__(self,command):
@@ -113,7 +113,7 @@ class vmd:
       if self.debugme:
         print("call+result:"+self.VMD.before)
     return
-    
+
   # --------------------------------------------------------------------
   # exit VMD
   def stop(self):
@@ -198,7 +198,7 @@ class vmd:
     self.__call__('mol addfile ' + filename + ' mol $tmol type ' + filetype + ' waitfor all')
     self.__call__('foreach mol [molinfo list] { molinfo $mol set {center_matrix rotate_matrix scale_matrix global_matrix} $viewpoints($mol)}')
     self.flush()
-    
+
   # --------------------------------------------------------------------
   # replace all frames of a molecule with those from a given file
   def update(self,filename,filetype='lammpstrj'):
@@ -209,7 +209,7 @@ class vmd:
     self.__call__('mol addfile ' + filename + ' mol $tmol type ' + filetype + ' waitfor all')
     self.__call__('foreach mol [molinfo list] {molinfo $mol set {center_matrix rotate_matrix scale_matrix global_matrix} $viewpoints($mol)}')
     self.flush()
-    
+
   # --------------------------------------------------------------------
   # add or overwrite coordinates with coordinates in a snapshot
   def set(self,snap,x,y,z,append=True):

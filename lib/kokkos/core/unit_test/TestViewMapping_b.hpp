@@ -1,50 +1,21 @@
-/*
 //@HEADER
 // ************************************************************************
 //
-//                        Kokkos v. 3.0
-//       Copyright (2020) National Technology & Engineering
+//                        Kokkos v. 4.0
+//       Copyright (2022) National Technology & Engineering
 //               Solutions of Sandia, LLC (NTESS).
 //
 // Under the terms of Contract DE-NA0003525 with NTESS,
 // the U.S. Government retains certain rights in this software.
 //
-// Redistribution and use in source and binary forms, with or without
-// modification, are permitted provided that the following conditions are
-// met:
+// Part of Kokkos, under the Apache License v2.0 with LLVM Exceptions.
+// See https://kokkos.org/LICENSE for license information.
+// SPDX-License-Identifier: Apache-2.0 WITH LLVM-exception
 //
-// 1. Redistributions of source code must retain the above copyright
-// notice, this list of conditions and the following disclaimer.
-//
-// 2. Redistributions in binary form must reproduce the above copyright
-// notice, this list of conditions and the following disclaimer in the
-// documentation and/or other materials provided with the distribution.
-//
-// 3. Neither the name of the Corporation nor the names of the
-// contributors may be used to endorse or promote products derived from
-// this software without specific prior written permission.
-//
-// THIS SOFTWARE IS PROVIDED BY NTESS "AS IS" AND ANY
-// EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
-// IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR
-// PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL NTESS OR THE
-// CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
-// EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
-// PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR
-// PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF
-// LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING
-// NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
-// SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-//
-// Questions? Contact Christian R. Trott (crtrott@sandia.gov)
-//
-// ************************************************************************
 //@HEADER
-*/
 
 #include <gtest/gtest.h>
 
-#include <stdexcept>
 #include <sstream>
 #include <iostream>
 
@@ -141,25 +112,17 @@ struct MappingClassValueType {
   KOKKOS_INLINE_FUNCTION
   MappingClassValueType() {
 #if 0
-#if defined(KOKKOS_ACTIVE_EXECUTION_MEMORY_SPACE_CUDA)
-      printf( "TestViewMappingClassValue construct on Cuda\n" );
-#elif defined(KOKKOS_ACTIVE_EXECUTION_MEMORY_SPACE_HOST)
-      printf( "TestViewMappingClassValue construct on Host\n" );
-#else
-      printf( "TestViewMappingClassValue construct unknown\n" );
-#endif
+    KOKKOS_IF_ON_DEVICE(
+        (printf("TestViewMappingClassValue construct on Device\n");))
+    KOKKOS_IF_ON_HOST((printf("TestViewMappingClassValue construct on Host\n");))
 #endif
   }
   KOKKOS_INLINE_FUNCTION
   ~MappingClassValueType() {
 #if 0
-#if defined(KOKKOS_ACTIVE_EXECUTION_MEMORY_SPACE_CUDA)
-      printf( "TestViewMappingClassValue destruct on Cuda\n" );
-#elif defined(KOKKOS_ACTIVE_EXECUTION_MEMORY_SPACE_HOST)
-      printf( "TestViewMappingClassValue destruct on Host\n" );
-#else
-      printf( "TestViewMappingClassValue destruct unknown\n" );
-#endif
+    KOKKOS_IF_ON_DEVICE(
+        (printf("TestViewMappingClassValue destruct on Device\n");))
+    KOKKOS_IF_ON_HOST((printf("TestViewMappingClassValue destruct on Host\n");))
 #endif
   }
 };
@@ -193,7 +156,7 @@ TEST(TEST_CATEGORY, view_mapping_assignable) {
     using dst_traits = Kokkos::ViewTraits<int, Kokkos::LayoutLeft, exec_space>;
     using src_traits = Kokkos::ViewTraits<int, Kokkos::LayoutRight, exec_space>;
     using mapping    = Kokkos::Impl::ViewMapping<dst_traits, src_traits, void>;
-    static_assert(mapping::is_assignable, "");
+    static_assert(mapping::is_assignable);
 
     Kokkos::View<int, Kokkos::LayoutRight, exec_space> src;
     Kokkos::View<int, Kokkos::LayoutLeft, exec_space> dst(src);
@@ -204,7 +167,7 @@ TEST(TEST_CATEGORY, view_mapping_assignable) {
     using dst_traits = Kokkos::ViewTraits<int, Kokkos::LayoutRight, exec_space>;
     using src_traits = Kokkos::ViewTraits<int, Kokkos::LayoutLeft, exec_space>;
     using mapping    = Kokkos::Impl::ViewMapping<dst_traits, src_traits, void>;
-    static_assert(mapping::is_assignable, "");
+    static_assert(mapping::is_assignable);
 
     Kokkos::View<int, Kokkos::LayoutLeft, exec_space> src;
     Kokkos::View<int, Kokkos::LayoutRight, exec_space> dst(src);
@@ -217,7 +180,7 @@ TEST(TEST_CATEGORY, view_mapping_assignable) {
     using src_traits =
         Kokkos::ViewTraits<int *, Kokkos::LayoutRight, exec_space>;
     using mapping = Kokkos::Impl::ViewMapping<dst_traits, src_traits, void>;
-    static_assert(mapping::is_assignable, "");
+    static_assert(mapping::is_assignable);
 
     Kokkos::View<int *, Kokkos::LayoutRight, exec_space> src;
     Kokkos::View<int *, Kokkos::LayoutLeft, exec_space> dst(src);
@@ -230,7 +193,7 @@ TEST(TEST_CATEGORY, view_mapping_assignable) {
     using src_traits =
         Kokkos::ViewTraits<int *, Kokkos::LayoutLeft, exec_space>;
     using mapping = Kokkos::Impl::ViewMapping<dst_traits, src_traits, void>;
-    static_assert(mapping::is_assignable, "");
+    static_assert(mapping::is_assignable);
 
     Kokkos::View<int *, Kokkos::LayoutLeft, exec_space> src;
     Kokkos::View<int *, Kokkos::LayoutRight, exec_space> dst(src);
@@ -243,7 +206,7 @@ TEST(TEST_CATEGORY, view_mapping_assignable) {
     using src_traits =
         Kokkos::ViewTraits<int **, Kokkos::LayoutRight, exec_space>;
     using mapping = Kokkos::Impl::ViewMapping<dst_traits, src_traits, void>;
-    static_assert(!mapping::is_assignable, "");
+    static_assert(!mapping::is_assignable);
   }
 
   {  // Assignment of rank-2 Right = Left
@@ -252,7 +215,7 @@ TEST(TEST_CATEGORY, view_mapping_assignable) {
     using src_traits =
         Kokkos::ViewTraits<int **, Kokkos::LayoutLeft, exec_space>;
     using mapping = Kokkos::Impl::ViewMapping<dst_traits, src_traits, void>;
-    static_assert(!mapping::is_assignable, "");
+    static_assert(!mapping::is_assignable);
   }
 }
 
@@ -263,7 +226,7 @@ TEST(TEST_CATEGORY, view_mapping_trivially_copyable) {
   using src_traits = dst_traits;
   using mapping    = Kokkos::Impl::ViewMapping<dst_traits, src_traits, void>;
 
-  static_assert(std::is_trivially_copyable<mapping>{}, "");
+  static_assert(std::is_trivially_copyable<mapping>{});
 }
 
 }  // namespace Test

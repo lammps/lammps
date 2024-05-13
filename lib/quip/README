@@ -76,15 +76,17 @@ and QUIP_ARCH should be autodetected, even without having to set
 the environment variables.  Otherwise export the environment variables
 as shown above or edit Makefile.lammps
 
-LAMMPS ships with a user package containing the interface necessary
+LAMMPS ships with a package containing the interface necessary
 to use QUIP potentials, but it needs to be added to the compilation
-first. To do that, enter the LAMMPS source directory and type:
+first. To do that, either enter the LAMMPS source directory and type:
 
-$ make yes-user-quip
+$ make yes-ml-quip
+
+or use -DPKG_ML-QUIP=yes when configuring LAMMPS for compilation with CMake.
 
 2.2) Build LAMMPS according to the instructions on the LAMMPS website.
 
-3) There are three example sets in examples/USER/quip:
+3) There are three example sets in examples/PACKAGES/quip:
 
 - a set of input files to compute the energy of an 8-atom cubic
   diamond cell of silicon with the Stillinger-Weber potential. Use

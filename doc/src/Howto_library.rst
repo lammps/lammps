@@ -6,22 +6,22 @@ can be built as a static or shared library, so that it can be called by
 another code, used in a :doc:`coupled manner <Howto_couple>` with other
 codes, or driven through a :doc:`Python interface <Python_head>`.
 
-At the core of LAMMPS is the ``LAMMPS`` class which encapsulates the
+At the core of LAMMPS is the ``LAMMPS`` class, which encapsulates the
 state of the simulation program through the state of the various class
 instances that it is composed of.  So a calculation using LAMMPS
-requires to create an instance of the ``LAMMPS`` class and then send it
+requires creating an instance of the ``LAMMPS`` class and then send it
 (text) commands, either individually or from a file, or perform other
 operations that modify the state stored inside that instance or drive
-simulations.  This is essentially what the ``src/main.cpp`` file does
-as well for the standalone LAMMPS executable with reading commands
-either from an input file or stdin.
+simulations.  This is essentially what the ``src/main.cpp`` file does as
+well for the standalone LAMMPS executable, reading commands either from
+an input file or the standard input.
 
 Creating a LAMMPS instance can be done by using C++ code directly or
 through a C-style interface library to LAMMPS that is provided in the
-files ``src/library.cpp`` and ``library.h``.  This
-:ref:`C language API <lammps_c_api>`, can be used from C and C++,
-and is also the basis for the :doc:`Python <Python_module>` and
-:doc:`Fortran <Fortran>` interfaces or wrappers included in the
+files ``src/library.cpp`` and ``src/library.h``.  This :ref:`C language
+API <lammps_c_api>`, can be used from C and C++, and is also the basis
+for the :doc:`Python <Python_module>` and :doc:`Fortran <Fortran>`
+interfaces or the :ref:`SWIG based wrappers <swig>` included in the
 LAMMPS source code.
 
 The ``examples/COUPLE`` and ``python/examples`` directories contain some

@@ -1,46 +1,22 @@
-/*
 //@HEADER
 // ************************************************************************
 //
-//                        Kokkos v. 3.0
-//       Copyright (2020) National Technology & Engineering
+//                        Kokkos v. 4.0
+//       Copyright (2022) National Technology & Engineering
 //               Solutions of Sandia, LLC (NTESS).
 //
 // Under the terms of Contract DE-NA0003525 with NTESS,
 // the U.S. Government retains certain rights in this software.
 //
-// Redistribution and use in source and binary forms, with or without
-// modification, are permitted provided that the following conditions are
-// met:
+// Part of Kokkos, under the Apache License v2.0 with LLVM Exceptions.
+// See https://kokkos.org/LICENSE for license information.
+// SPDX-License-Identifier: Apache-2.0 WITH LLVM-exception
 //
-// 1. Redistributions of source code must retain the above copyright
-// notice, this list of conditions and the following disclaimer.
-//
-// 2. Redistributions in binary form must reproduce the above copyright
-// notice, this list of conditions and the following disclaimer in the
-// documentation and/or other materials provided with the distribution.
-//
-// 3. Neither the name of the Corporation nor the names of the
-// contributors may be used to endorse or promote products derived from
-// this software without specific prior written permission.
-//
-// THIS SOFTWARE IS PROVIDED BY NTESS "AS IS" AND ANY
-// EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
-// IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR
-// PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL NTESS OR THE
-// CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
-// EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
-// PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR
-// PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF
-// LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING
-// NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
-// SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-//
-// Questions? Contact Christian R. Trott (crtrott@sandia.gov)
-//
-// ************************************************************************
 //@HEADER
-*/
+
+#ifndef KOKKOS_IMPL_PUBLIC_INCLUDE
+#define KOKKOS_IMPL_PUBLIC_INCLUDE
+#endif
 
 #define DEBUG_PRINT 0
 
@@ -234,7 +210,6 @@ unsigned thread_mapping(const char* const label, const bool allow_async,
 
 #include <iostream>
 #include <sstream>
-#include <stdexcept>
 
 /*--------------------------------------------------------------------------*/
 /* Third Party Libraries */
@@ -272,9 +247,9 @@ enum { MAX_CORE = 1024 };
 
 std::pair<unsigned, unsigned> s_core_topology(0, 0);
 unsigned s_core_capacity(0);
-hwloc_topology_t s_hwloc_topology(0);
-hwloc_bitmap_t s_hwloc_location(0);
-hwloc_bitmap_t s_process_binding(0);
+hwloc_topology_t s_hwloc_topology(nullptr);
+hwloc_bitmap_t s_hwloc_location(nullptr);
+hwloc_bitmap_t s_process_binding(nullptr);
 hwloc_bitmap_t s_core[MAX_CORE];
 bool s_can_bind_threads(true);
 
@@ -286,13 +261,13 @@ struct Sentinel {
 bool sentinel() {
   static Sentinel self;
 
-  if (0 == s_hwloc_topology) {
+  if (nullptr == s_hwloc_topology) {
     std::cerr << "Kokkos::hwloc ERROR : Called after return from main()"
               << std::endl;
     std::cerr.flush();
   }
 
-  return 0 != s_hwloc_topology;
+  return nullptr != s_hwloc_topology;
 }
 
 Sentinel::~Sentinel() {
@@ -303,9 +278,9 @@ Sentinel::~Sentinel() {
   s_core_topology.first  = 0;
   s_core_topology.second = 0;
   s_core_capacity        = 0;
-  s_hwloc_topology       = 0;
-  s_hwloc_location       = 0;
-  s_process_binding      = 0;
+  s_hwloc_topology       = nullptr;
+  s_hwloc_location       = nullptr;
+  s_process_binding      = nullptr;
 }
 
 Sentinel::Sentinel() {
@@ -317,11 +292,11 @@ Sentinel::Sentinel() {
 
   s_core_topology   = std::pair<unsigned, unsigned>(0, 0);
   s_core_capacity   = 0;
-  s_hwloc_topology  = 0;
-  s_hwloc_location  = 0;
-  s_process_binding = 0;
+  s_hwloc_topology  = nullptr;
+  s_hwloc_location  = nullptr;
+  s_process_binding = nullptr;
 
-  for (unsigned i = 0; i < MAX_CORE; ++i) s_core[i] = 0;
+  for (unsigned i = 0; i < MAX_CORE; ++i) s_core[i] = nullptr;
 
   hwloc_topology_init(&s_hwloc_topology);
   hwloc_topology_load(s_hwloc_topology);

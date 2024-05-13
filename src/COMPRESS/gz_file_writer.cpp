@@ -1,8 +1,7 @@
-// clang-format off
 /* -*- c++ -*- ----------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    https://www.lammps.org/, Sandia National Laboratories
-   Steve Plimpton, sjplimp@sandia.gov
+   LAMMPS development team: developers@lammps.org
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
@@ -17,46 +16,41 @@
 ------------------------------------------------------------------------- */
 
 #include "gz_file_writer.h"
-#include <stdio.h>
 #include "fmt/format.h"
+#include <cstdio>
 
 using namespace LAMMPS_NS;
 
-GzFileWriter::GzFileWriter() : FileWriter(),
-    compression_level(Z_BEST_COMPRESSION),
-    gzFp(nullptr)
-{
-}
+GzFileWriter::GzFileWriter() : compression_level(Z_BEST_COMPRESSION), gzFp(nullptr) {}
 
 /* ---------------------------------------------------------------------- */
 
 GzFileWriter::~GzFileWriter()
 {
-  close();
+  GzFileWriter::close();
 }
 
 /* ---------------------------------------------------------------------- */
 
 void GzFileWriter::open(const std::string &path, bool append)
 {
-    if (isopen()) return;
+  if (isopen()) return;
 
-    std::string mode;
-    if (append) {
-      mode = fmt::format("ab{}", mode, compression_level);
-    } else {
-      mode = fmt::format("wb{}", mode, compression_level);
-    }
+  std::string mode;
+  if (append) {
+    mode = fmt::format("ab{}", mode, compression_level);
+  } else {
+    mode = fmt::format("wb{}", mode, compression_level);
+  }
 
-    gzFp = gzopen(path.c_str(), mode.c_str());
+  gzFp = gzopen(path.c_str(), mode.c_str());
 
-    if (gzFp == nullptr)
-      throw FileWriterException(fmt::format("Could not open file '{}'", path));
+  if (gzFp == nullptr) throw FileWriterException(fmt::format("Could not open file '{}'", path));
 }
 
 /* ---------------------------------------------------------------------- */
 
-size_t GzFileWriter::write(const void * buffer, size_t length)
+size_t GzFileWriter::write(const void *buffer, size_t length)
 {
   if (!isopen()) return 0;
 
@@ -76,7 +70,7 @@ void GzFileWriter::flush()
 
 void GzFileWriter::close()
 {
-  if (!isopen()) return;
+  if (!GzFileWriter::isopen()) return;
 
   gzclose(gzFp);
   gzFp = nullptr;
@@ -100,7 +94,8 @@ void GzFileWriter::setCompressionLevel(int level)
   const int max_level = Z_BEST_COMPRESSION;
 
   if (level < min_level || level > max_level)
-    throw FileWriterException(fmt::format("Compression level must in the range of [{}, {}]", min_level, max_level));
+    throw FileWriterException(
+        fmt::format("Compression level must in the range of [{}, {}]", min_level, max_level));
 
   compression_level = level;
 }

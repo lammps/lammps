@@ -24,6 +24,7 @@ colvarbias_histogram::colvarbias_histogram(char const *key)
 int colvarbias_histogram::init(std::string const &conf)
 {
   colvarbias::init(conf);
+  cvm::main()->cite_feature("Histogram colvar bias implementation");
 
   enable(f_cvb_scalar_variables);
   enable(f_cvb_history_dependent);
@@ -48,27 +49,27 @@ int colvarbias_histogram::init(std::string const &conf)
     if (colvar_array) {
       for (i = 0; i < num_variables(); i++) { // should be all vector
         if (colvars[i]->value().type() != colvarvalue::type_vector) {
-          cvm::error("Error: used gatherVectorColvars with non-vector colvar.\n", INPUT_ERROR);
-          return INPUT_ERROR;
+          cvm::error("Error: used gatherVectorColvars with non-vector colvar.\n", COLVARS_INPUT_ERROR);
+          return COLVARS_INPUT_ERROR;
         }
         if (i == 0) {
           colvar_array_size = colvars[i]->value().size();
           if (colvar_array_size < 1) {
-            cvm::error("Error: vector variable has dimension less than one.\n", INPUT_ERROR);
-            return INPUT_ERROR;
+            cvm::error("Error: vector variable has dimension less than one.\n", COLVARS_INPUT_ERROR);
+            return COLVARS_INPUT_ERROR;
           }
         } else {
           if (colvar_array_size != colvars[i]->value().size()) {
-            cvm::error("Error: trying to combine vector colvars of different lengths.\n", INPUT_ERROR);
-            return INPUT_ERROR;
+            cvm::error("Error: trying to combine vector colvars of different lengths.\n", COLVARS_INPUT_ERROR);
+            return COLVARS_INPUT_ERROR;
           }
         }
       }
     } else {
       for (i = 0; i < num_variables(); i++) { // should be all scalar
         if (colvars[i]->value().type() != colvarvalue::type_scalar) {
-          cvm::error("Error: only scalar colvars are supported when gatherVectorColvars is off.\n", INPUT_ERROR);
-          return INPUT_ERROR;
+          cvm::error("Error: only scalar colvars are supported when gatherVectorColvars is off.\n", COLVARS_INPUT_ERROR);
+          return COLVARS_INPUT_ERROR;
         }
       }
     }
@@ -129,14 +130,14 @@ int colvarbias_histogram::update()
     // output_prefix is unset during the constructor
     if (cvm::step_relative() == 0) {
       out_name = cvm::output_prefix() + "." + this->name + ".dat";
-      cvm::log("Histogram " + this->name + " will be written to file \"" + out_name + "\"");
+      cvm::log("Histogram " + this->name + " will be written to file \"" + out_name + "\"\n");
     }
   }
 
   if (out_name_dx.size() == 0) {
     if (cvm::step_relative() == 0) {
       out_name_dx = cvm::output_prefix() + "." + this->name + ".dx";
-      cvm::log("Histogram " + this->name + " will be written to file \"" + out_name_dx + "\"");
+      cvm::log("Histogram " + this->name + " will be written to file \"" + out_name_dx + "\"\n");
     }
   }
 
@@ -178,31 +179,19 @@ int colvarbias_histogram::write_output_files()
     return COLVARS_OK;
   }
 
+  int error_code = COLVARS_OK;
+
   if (out_name.size() && out_name != "none") {
     cvm::log("Writing the histogram file \""+out_name+"\".\n");
-    cvm::backup_file(out_name.c_str());
-    std::ostream *grid_os = cvm::proxy->output_stream(out_name);
-    if (!grid_os) {
-      return cvm::error("Error opening histogram file "+out_name+
-                        " for writing.\n", FILE_ERROR);
-    }
-    grid->write_multicol(*grid_os);
-    cvm::proxy->close_output_stream(out_name);
+    error_code |= grid->write_multicol(out_name, "histogram output file");
   }
 
   if (out_name_dx.size() && out_name_dx != "none") {
     cvm::log("Writing the histogram file \""+out_name_dx+"\".\n");
-    cvm::backup_file(out_name_dx.c_str());
-    std::ostream *grid_os = cvm::proxy->output_stream(out_name_dx);
-    if (!grid_os) {
-      return cvm::error("Error opening histogram file "+out_name_dx+
-                        " for writing.\n", FILE_ERROR);
-    }
-    grid->write_opendx(*grid_os);
-    cvm::proxy->close_output_stream(out_name_dx);
+    error_code |= grid->write_opendx(out_name_dx, "histogram DX output file");
   }
 
-  return COLVARS_OK;
+  return error_code;
 }
 
 

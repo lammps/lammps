@@ -1,12 +1,16 @@
 .. index:: compute erotate/sphere
+.. index:: compute erotate/sphere/kk
 
 compute erotate/sphere command
 ==============================
 
+Accelerator Variants: *erotate/sphere/kk*
+
+
 Syntax
 """"""
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    compute ID group-ID erotate/sphere
 
@@ -26,8 +30,9 @@ Description
 Define a computation that calculates the rotational kinetic energy of
 a group of spherical particles.
 
-The rotational energy is computed as 1/2 I w\^2, where I is the moment
-of inertia for a sphere and w is the particle's angular velocity.
+The rotational energy is computed as :math:`\frac12 I \omega^2`,
+where :math:`I` is the moment of inertia for a sphere and :math:`\omega`
+is the particle's angular velocity.
 
 .. note::
 
@@ -35,12 +40,18 @@ of inertia for a sphere and w is the particle's angular velocity.
    spheres, not disks, meaning their moment of inertia will be the same
    as in 3d.
 
+----------
+
+.. include:: accel_styles.rst
+
+----------
+
 Output info
 """""""""""
 
 This compute calculates a global scalar (the KE).  This value can be
 used by any command that uses a global scalar value from a compute as
-input.  See the :doc:`Howto output <Howto_output>` doc page for an
+input.  See the :doc:`Howto output <Howto_output>` page for an
 overview of LAMMPS output options.
 
 The scalar value calculated by this compute is "extensive".  The

@@ -2,7 +2,7 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    https://www.lammps.org/, Sandia National Laboratories
-   Steve Plimpton, sjplimp@sandia.gov
+   LAMMPS development team: developers@lammps.org
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
@@ -20,21 +20,16 @@
 ------------------------------------------------------------------------- */
 
 #include "pair_lj_charmm_coul_long_opt.h"
-#include <cmath>
 
 #include "atom.h"
+#include "ewald_const.h"
 #include "force.h"
 #include "neigh_list.h"
 
-using namespace LAMMPS_NS;
+#include <cmath>
 
-#define EWALD_F   1.12837917
-#define EWALD_P   0.3275911
-#define EWALD_A1  0.254829592
-#define EWALD_A2 -0.284496736
-#define EWALD_A3  1.421413741
-#define EWALD_A4 -1.453152027
-#define EWALD_A5  1.061405429
+using namespace LAMMPS_NS;
+using namespace EwaldConst;
 
 /* ---------------------------------------------------------------------- */
 
@@ -98,8 +93,8 @@ void PairLJCharmmCoulLongOpt::eval()
   int** _noalias firstneigh = list->firstneigh;
   int* _noalias numneigh = list->numneigh;
 
-  vec3_t* _noalias xx = (vec3_t*)x[0];
-  vec3_t* _noalias ff = (vec3_t*)f[0];
+  auto * _noalias xx = (vec3_t*)x[0];
+  auto * _noalias ff = (vec3_t*)f[0];
 
   int ntypes = atom->ntypes;
   int ntypes2 = ntypes*ntypes;
@@ -107,7 +102,7 @@ void PairLJCharmmCoulLongOpt::eval()
   double tmp_coef1 = 1.0/denom_lj;
   double tmp_coef2 = cut_ljsq - 3.0*cut_lj_innersq;
 
-  fast_alpha_t* _noalias fast_alpha =
+  auto * _noalias fast_alpha =
     (fast_alpha_t*)malloc(ntypes2*sizeof(fast_alpha_t));
   for (i = 0; i < ntypes; i++) for (j = 0; j < ntypes; j++) {
     fast_alpha_t& a = fast_alpha[i*ntypes+j];
@@ -117,7 +112,7 @@ void PairLJCharmmCoulLongOpt::eval()
     a.lj3 = lj3[i+1][j+1];
     a.lj4 = lj4[i+1][j+1];
   }
-  fast_alpha_t* _noalias tabsix = fast_alpha;
+  auto * _noalias tabsix = fast_alpha;
 
   // loop over neighbors of my atoms
 
@@ -135,7 +130,7 @@ void PairLJCharmmCoulLongOpt::eval()
     double tmpfy = 0.0;
     double tmpfz = 0.0;
 
-    fast_alpha_t* _noalias tabsixi = (fast_alpha_t*) &tabsix[itype*ntypes];
+    auto * _noalias tabsixi = (fast_alpha_t*) &tabsix[itype*ntypes];
 
     for (jj = 0; jj < jnum; jj++) {
       j = jlist[jj];
@@ -158,9 +153,7 @@ void PairLJCharmmCoulLongOpt::eval()
               grij = g_ewald * r;
               expm2 = exp(-grij*grij);
               t = 1.0 / (1.0 + EWALD_P*grij);
-              erfc = t *
-                (EWALD_A1+t*(EWALD_A2+t*(EWALD_A3+t*(EWALD_A4+t*EWALD_A5)))) *
-                expm2;
+              erfc = t * (A1 + t*(A2 + t*(A3 + t*(A4 + t*A5)))) * expm2;
               prefactor = qqrd2e * tmp_coef3/r;
               forcecoul = prefactor * (erfc + EWALD_F*grij*expm2);
             } else {
@@ -247,9 +240,7 @@ void PairLJCharmmCoulLongOpt::eval()
               grij = g_ewald * r;
               expm2 = exp(-grij*grij);
               t = 1.0 / (1.0 + EWALD_P*grij);
-              erfc = t *
-                (EWALD_A1+t*(EWALD_A2+t*(EWALD_A3+t*(EWALD_A4+t*EWALD_A5)))) *
-                expm2;
+              erfc = t * (A1 + t*(A2 + t*(A3 + t*(A4 + t*A5)))) * expm2;
               prefactor = qqrd2e * tmp_coef3/r;
               forcecoul = prefactor * (erfc + EWALD_F*grij*expm2);
               if (factor_coul < 1.0) {
@@ -333,7 +324,7 @@ void PairLJCharmmCoulLongOpt::eval()
     ff[i].z += tmpfz;
   }
 
-  free(fast_alpha); fast_alpha = 0;
+  free(fast_alpha); fast_alpha = nullptr;
 
   if (vflag_fdotr) virial_fdotr_compute();
 }

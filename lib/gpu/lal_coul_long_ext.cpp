@@ -76,7 +76,7 @@ int cl_gpu_init(const int ntypes, double **host_scale,
                         cell_size, gpu_split, screen, host_cut_coulsq,
                         host_special_coul, qqrd2e, g_ewald);
 
-    CLMF.device->gpu_barrier();
+    CLMF.device->serialize_init();
     if (message)
       fprintf(screen,"Done.\n");
   }
@@ -105,7 +105,7 @@ void cl_gpu_reinit(const int ntypes, double **host_scale) {
     if (gpu_rank==i && world_me!=0)
       CLMF.reinit(ntypes, host_scale);
 
-    CLMF.device->gpu_barrier();
+    CLMF.device->serialize_init();
   }
 }
 

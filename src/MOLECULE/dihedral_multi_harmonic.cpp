@@ -1,8 +1,7 @@
-// clang-format off
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    https://www.lammps.org/, Sandia National Laboratories
-   Steve Plimpton, sjplimp@sandia.gov
+   LAMMPS development team: developers@lammps.org
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
@@ -18,26 +17,26 @@
 
 #include "dihedral_multi_harmonic.h"
 
-#include <cmath>
 #include "atom.h"
-#include "neighbor.h"
 #include "comm.h"
-#include "force.h"
-#include "update.h"
-#include "memory.h"
 #include "error.h"
+#include "force.h"
+#include "memory.h"
+#include "neighbor.h"
 
+#include <cmath>
 
 using namespace LAMMPS_NS;
 
-#define TOLERANCE 0.05
-#define SMALL     0.001
+static constexpr double TOLERANCE = 0.05;
+static constexpr double SMALL = 0.001;
 
 /* ---------------------------------------------------------------------- */
 
-DihedralMultiHarmonic::DihedralMultiHarmonic(LAMMPS *lmp) : Dihedral(lmp)
+DihedralMultiHarmonic::DihedralMultiHarmonic(LAMMPS *_lmp) : Dihedral(_lmp)
 {
   writedata = 1;
+  born_matrix_enable = 1;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -58,17 +57,17 @@ DihedralMultiHarmonic::~DihedralMultiHarmonic()
 
 void DihedralMultiHarmonic::compute(int eflag, int vflag)
 {
-  int i1,i2,i3,i4,n,type;
-  double vb1x,vb1y,vb1z,vb2x,vb2y,vb2z,vb3x,vb3y,vb3z,vb2xm,vb2ym,vb2zm;
-  double edihedral,f1[3],f2[3],f3[3],f4[3];
-  double sb1,sb2,sb3,rb1,rb3,c0,b1mag2,b1mag,b2mag2;
-  double b2mag,b3mag2,b3mag,ctmp,r12c1,c1mag,r12c2;
-  double c2mag,sc1,sc2,s1,s12,c,p,pd,a,a11,a22;
-  double a33,a12,a13,a23,sx2,sy2,sz2;
-  double s2,sin2;
+  int i1, i2, i3, i4, n, type;
+  double vb1x, vb1y, vb1z, vb2x, vb2y, vb2z, vb3x, vb3y, vb3z, vb2xm, vb2ym, vb2zm;
+  double edihedral, f1[3], f2[3], f3[3], f4[3];
+  double sb1, sb2, sb3, rb1, rb3, c0, b1mag2, b1mag, b2mag2;
+  double b2mag, b3mag2, b3mag, ctmp, r12c1, c1mag, r12c2;
+  double c2mag, sc1, sc2, s1, s12, c, p, pd, a, a11, a22;
+  double a33, a12, a13, a23, sx2, sy2, sz2;
+  double s2, sin2;
 
   edihedral = 0.0;
-  ev_init(eflag,vflag);
+  ev_init(eflag, vflag);
 
   double **x = atom->x;
   double **f = atom->f;
@@ -108,53 +107,52 @@ void DihedralMultiHarmonic::compute(int eflag, int vflag)
 
     // c0 calculation
 
-    sb1 = 1.0 / (vb1x*vb1x + vb1y*vb1y + vb1z*vb1z);
-    sb2 = 1.0 / (vb2x*vb2x + vb2y*vb2y + vb2z*vb2z);
-    sb3 = 1.0 / (vb3x*vb3x + vb3y*vb3y + vb3z*vb3z);
+    sb1 = 1.0 / (vb1x * vb1x + vb1y * vb1y + vb1z * vb1z);
+    sb2 = 1.0 / (vb2x * vb2x + vb2y * vb2y + vb2z * vb2z);
+    sb3 = 1.0 / (vb3x * vb3x + vb3y * vb3y + vb3z * vb3z);
 
     rb1 = sqrt(sb1);
     rb3 = sqrt(sb3);
 
-    c0 = (vb1x*vb3x + vb1y*vb3y + vb1z*vb3z) * rb1*rb3;
+    c0 = (vb1x * vb3x + vb1y * vb3y + vb1z * vb3z) * rb1 * rb3;
 
     // 1st and 2nd angle
 
-    b1mag2 = vb1x*vb1x + vb1y*vb1y + vb1z*vb1z;
+    b1mag2 = vb1x * vb1x + vb1y * vb1y + vb1z * vb1z;
     b1mag = sqrt(b1mag2);
-    b2mag2 = vb2x*vb2x + vb2y*vb2y + vb2z*vb2z;
+    b2mag2 = vb2x * vb2x + vb2y * vb2y + vb2z * vb2z;
     b2mag = sqrt(b2mag2);
-    b3mag2 = vb3x*vb3x + vb3y*vb3y + vb3z*vb3z;
+    b3mag2 = vb3x * vb3x + vb3y * vb3y + vb3z * vb3z;
     b3mag = sqrt(b3mag2);
 
-    ctmp = vb1x*vb2x + vb1y*vb2y + vb1z*vb2z;
-    r12c1 = 1.0 / (b1mag*b2mag);
+    ctmp = vb1x * vb2x + vb1y * vb2y + vb1z * vb2z;
+    r12c1 = 1.0 / (b1mag * b2mag);
     c1mag = ctmp * r12c1;
 
-    ctmp = vb2xm*vb3x + vb2ym*vb3y + vb2zm*vb3z;
-    r12c2 = 1.0 / (b2mag*b3mag);
+    ctmp = vb2xm * vb3x + vb2ym * vb3y + vb2zm * vb3z;
+    r12c2 = 1.0 / (b2mag * b3mag);
     c2mag = ctmp * r12c2;
 
     // cos and sin of 2 angles and final c
 
-    sin2 = MAX(1.0 - c1mag*c1mag,0.0);
+    sin2 = MAX(1.0 - c1mag * c1mag, 0.0);
     sc1 = sqrt(sin2);
     if (sc1 < SMALL) sc1 = SMALL;
-    sc1 = 1.0/sc1;
+    sc1 = 1.0 / sc1;
 
-    sin2 = MAX(1.0 - c2mag*c2mag,0.0);
+    sin2 = MAX(1.0 - c2mag * c2mag, 0.0);
     sc2 = sqrt(sin2);
     if (sc2 < SMALL) sc2 = SMALL;
-    sc2 = 1.0/sc2;
+    sc2 = 1.0 / sc2;
 
     s1 = sc1 * sc1;
     s2 = sc2 * sc2;
     s12 = sc1 * sc2;
-    c = (c0 + c1mag*c2mag) * s12;
+    c = (c0 + c1mag * c2mag) * s12;
 
     // error check
 
-    if (c > 1.0 + TOLERANCE || c < (-1.0 - TOLERANCE))
-      problem(FLERR, i1, i2, i3, i4);
+    if (c > 1.0 + TOLERANCE || c < (-1.0 - TOLERANCE)) problem(FLERR, i1, i2, i3, i4);
 
     if (c > 1.0) c = 1.0;
     if (c < -1.0) c = -1.0;
@@ -163,36 +161,36 @@ void DihedralMultiHarmonic::compute(int eflag, int vflag)
     // p = sum (i=1,5) a_i * c**(i-1)
     // pd = dp/dc
 
-    p = a1[type] + c*(a2[type] + c*(a3[type] + c*(a4[type] + c*a5[type])));
-    pd = a2[type] + c*(2.0*a3[type] + c*(3.0*a4[type] + c*4.0*a5[type]));
+    p = a1[type] + c * (a2[type] + c * (a3[type] + c * (a4[type] + c * a5[type])));
+    pd = a2[type] + c * (2.0 * a3[type] + c * (3.0 * a4[type] + c * 4.0 * a5[type]));
 
     if (eflag) edihedral = p;
 
     a = pd;
     c = c * a;
     s12 = s12 * a;
-    a11 = c*sb1*s1;
-    a22 = -sb2 * (2.0*c0*s12 - c*(s1+s2));
-    a33 = c*sb3*s2;
-    a12 = -r12c1*(c1mag*c*s1 + c2mag*s12);
-    a13 = -rb1*rb3*s12;
-    a23 = r12c2*(c2mag*c*s2 + c1mag*s12);
+    a11 = c * sb1 * s1;
+    a22 = -sb2 * (2.0 * c0 * s12 - c * (s1 + s2));
+    a33 = c * sb3 * s2;
+    a12 = -r12c1 * (c1mag * c * s1 + c2mag * s12);
+    a13 = -rb1 * rb3 * s12;
+    a23 = r12c2 * (c2mag * c * s2 + c1mag * s12);
 
-    sx2  = a12*vb1x + a22*vb2x + a23*vb3x;
-    sy2  = a12*vb1y + a22*vb2y + a23*vb3y;
-    sz2  = a12*vb1z + a22*vb2z + a23*vb3z;
+    sx2 = a12 * vb1x + a22 * vb2x + a23 * vb3x;
+    sy2 = a12 * vb1y + a22 * vb2y + a23 * vb3y;
+    sz2 = a12 * vb1z + a22 * vb2z + a23 * vb3z;
 
-    f1[0] = a11*vb1x + a12*vb2x + a13*vb3x;
-    f1[1] = a11*vb1y + a12*vb2y + a13*vb3y;
-    f1[2] = a11*vb1z + a12*vb2z + a13*vb3z;
+    f1[0] = a11 * vb1x + a12 * vb2x + a13 * vb3x;
+    f1[1] = a11 * vb1y + a12 * vb2y + a13 * vb3y;
+    f1[2] = a11 * vb1z + a12 * vb2z + a13 * vb3z;
 
     f2[0] = -sx2 - f1[0];
     f2[1] = -sy2 - f1[1];
     f2[2] = -sz2 - f1[2];
 
-    f4[0] = a13*vb1x + a23*vb2x + a33*vb3x;
-    f4[1] = a13*vb1y + a23*vb2y + a33*vb3y;
-    f4[2] = a13*vb1z + a23*vb2z + a33*vb3z;
+    f4[0] = a13 * vb1x + a23 * vb2x + a33 * vb3x;
+    f4[1] = a13 * vb1y + a23 * vb2y + a33 * vb3y;
+    f4[2] = a13 * vb1z + a23 * vb2z + a33 * vb3z;
 
     f3[0] = sx2 - f4[0];
     f3[1] = sy2 - f4[1];
@@ -225,8 +223,8 @@ void DihedralMultiHarmonic::compute(int eflag, int vflag)
     }
 
     if (evflag)
-      ev_tally(i1,i2,i3,i4,nlocal,newton_bond,edihedral,f1,f3,f4,
-               vb1x,vb1y,vb1z,vb2x,vb2y,vb2z,vb3x,vb3y,vb3z);
+      ev_tally(i1, i2, i3, i4, nlocal, newton_bond, edihedral, f1, f3, f4, vb1x, vb1y, vb1z, vb2x,
+               vb2y, vb2z, vb3x, vb3y, vb3z);
   }
 }
 
@@ -235,16 +233,16 @@ void DihedralMultiHarmonic::compute(int eflag, int vflag)
 void DihedralMultiHarmonic::allocate()
 {
   allocated = 1;
-  int n = atom->ndihedraltypes;
+  const int np1 = atom->ndihedraltypes + 1;
 
-  memory->create(a1,n+1,"dihedral:a1");
-  memory->create(a2,n+1,"dihedral:a2");
-  memory->create(a3,n+1,"dihedral:a3");
-  memory->create(a4,n+1,"dihedral:a4");
-  memory->create(a5,n+1,"dihedral:a5");
+  memory->create(a1, np1, "dihedral:a1");
+  memory->create(a2, np1, "dihedral:a2");
+  memory->create(a3, np1, "dihedral:a3");
+  memory->create(a4, np1, "dihedral:a4");
+  memory->create(a5, np1, "dihedral:a5");
 
-  memory->create(setflag,n+1,"dihedral:setflag");
-  for (int i = 1; i <= n; i++) setflag[i] = 0;
+  memory->create(setflag, np1, "dihedral:setflag");
+  for (int i = 1; i < np1; i++) setflag[i] = 0;
 }
 
 /* ----------------------------------------------------------------------
@@ -253,17 +251,17 @@ void DihedralMultiHarmonic::allocate()
 
 void DihedralMultiHarmonic::coeff(int narg, char **arg)
 {
-  if (narg != 6) error->all(FLERR,"Incorrect args for dihedral coefficients");
+  if (narg != 6) error->all(FLERR, "Incorrect args for dihedral coefficients");
   if (!allocated) allocate();
 
-  int ilo,ihi;
-  utils::bounds(FLERR,arg[0],1,atom->ndihedraltypes,ilo,ihi,error);
+  int ilo, ihi;
+  utils::bounds(FLERR, arg[0], 1, atom->ndihedraltypes, ilo, ihi, error);
 
-  double a1_one = utils::numeric(FLERR,arg[1],false,lmp);
-  double a2_one = utils::numeric(FLERR,arg[2],false,lmp);
-  double a3_one = utils::numeric(FLERR,arg[3],false,lmp);
-  double a4_one = utils::numeric(FLERR,arg[4],false,lmp);
-  double a5_one = utils::numeric(FLERR,arg[5],false,lmp);
+  double a1_one = utils::numeric(FLERR, arg[1], false, lmp);
+  double a2_one = utils::numeric(FLERR, arg[2], false, lmp);
+  double a3_one = utils::numeric(FLERR, arg[3], false, lmp);
+  double a4_one = utils::numeric(FLERR, arg[4], false, lmp);
+  double a5_one = utils::numeric(FLERR, arg[5], false, lmp);
 
   int count = 0;
   for (int i = ilo; i <= ihi; i++) {
@@ -276,7 +274,7 @@ void DihedralMultiHarmonic::coeff(int narg, char **arg)
     count++;
   }
 
-  if (count == 0) error->all(FLERR,"Incorrect args for dihedral coefficients");
+  if (count == 0) error->all(FLERR, "Incorrect args for dihedral coefficients");
 }
 
 /* ----------------------------------------------------------------------
@@ -285,11 +283,11 @@ void DihedralMultiHarmonic::coeff(int narg, char **arg)
 
 void DihedralMultiHarmonic::write_restart(FILE *fp)
 {
-  fwrite(&a1[1],sizeof(double),atom->ndihedraltypes,fp);
-  fwrite(&a2[1],sizeof(double),atom->ndihedraltypes,fp);
-  fwrite(&a3[1],sizeof(double),atom->ndihedraltypes,fp);
-  fwrite(&a4[1],sizeof(double),atom->ndihedraltypes,fp);
-  fwrite(&a5[1],sizeof(double),atom->ndihedraltypes,fp);
+  fwrite(&a1[1], sizeof(double), atom->ndihedraltypes, fp);
+  fwrite(&a2[1], sizeof(double), atom->ndihedraltypes, fp);
+  fwrite(&a3[1], sizeof(double), atom->ndihedraltypes, fp);
+  fwrite(&a4[1], sizeof(double), atom->ndihedraltypes, fp);
+  fwrite(&a5[1], sizeof(double), atom->ndihedraltypes, fp);
 }
 
 /* ----------------------------------------------------------------------
@@ -301,17 +299,17 @@ void DihedralMultiHarmonic::read_restart(FILE *fp)
   allocate();
 
   if (comm->me == 0) {
-    utils::sfread(FLERR,&a1[1],sizeof(double),atom->ndihedraltypes,fp,nullptr,error);
-    utils::sfread(FLERR,&a2[1],sizeof(double),atom->ndihedraltypes,fp,nullptr,error);
-    utils::sfread(FLERR,&a3[1],sizeof(double),atom->ndihedraltypes,fp,nullptr,error);
-    utils::sfread(FLERR,&a4[1],sizeof(double),atom->ndihedraltypes,fp,nullptr,error);
-    utils::sfread(FLERR,&a5[1],sizeof(double),atom->ndihedraltypes,fp,nullptr,error);
+    utils::sfread(FLERR, &a1[1], sizeof(double), atom->ndihedraltypes, fp, nullptr, error);
+    utils::sfread(FLERR, &a2[1], sizeof(double), atom->ndihedraltypes, fp, nullptr, error);
+    utils::sfread(FLERR, &a3[1], sizeof(double), atom->ndihedraltypes, fp, nullptr, error);
+    utils::sfread(FLERR, &a4[1], sizeof(double), atom->ndihedraltypes, fp, nullptr, error);
+    utils::sfread(FLERR, &a5[1], sizeof(double), atom->ndihedraltypes, fp, nullptr, error);
   }
-  MPI_Bcast(&a1[1],atom->ndihedraltypes,MPI_DOUBLE,0,world);
-  MPI_Bcast(&a2[1],atom->ndihedraltypes,MPI_DOUBLE,0,world);
-  MPI_Bcast(&a3[1],atom->ndihedraltypes,MPI_DOUBLE,0,world);
-  MPI_Bcast(&a4[1],atom->ndihedraltypes,MPI_DOUBLE,0,world);
-  MPI_Bcast(&a5[1],atom->ndihedraltypes,MPI_DOUBLE,0,world);
+  MPI_Bcast(&a1[1], atom->ndihedraltypes, MPI_DOUBLE, 0, world);
+  MPI_Bcast(&a2[1], atom->ndihedraltypes, MPI_DOUBLE, 0, world);
+  MPI_Bcast(&a3[1], atom->ndihedraltypes, MPI_DOUBLE, 0, world);
+  MPI_Bcast(&a4[1], atom->ndihedraltypes, MPI_DOUBLE, 0, world);
+  MPI_Bcast(&a5[1], atom->ndihedraltypes, MPI_DOUBLE, 0, world);
 
   for (int i = 1; i <= atom->ndihedraltypes; i++) setflag[i] = 1;
 }
@@ -323,5 +321,89 @@ void DihedralMultiHarmonic::read_restart(FILE *fp)
 void DihedralMultiHarmonic::write_data(FILE *fp)
 {
   for (int i = 1; i <= atom->ndihedraltypes; i++)
-    fprintf(fp,"%d %g %g %g %g %g\n",i,a1[i],a2[i],a3[i],a4[i],a5[i]);
+    fprintf(fp, "%d %g %g %g %g %g\n", i, a1[i], a2[i], a3[i], a4[i], a5[i]);
+}
+
+/* ---------------------------------------------------------------------- */
+
+void DihedralMultiHarmonic::born_matrix(int nd, int i1, int i2, int i3, int i4,
+                             double &du, double &du2)
+{
+  double vb1x, vb1y, vb1z, vb2x, vb2y, vb2z, vb3x, vb3y, vb3z, vb2xm, vb2ym, vb2zm;
+  double sb1, sb3, rb1, rb3, c0, b1mag2, b1mag, b2mag2;
+  double b2mag, b3mag2, b3mag, ctmp, r12c1, c1mag, r12c2;
+  double c2mag, sc1, sc2, s12, c;
+  double sin2;
+
+  double **x = atom->x;
+  int **dihedrallist = neighbor->dihedrallist;
+
+  int type = dihedrallist[nd][4];
+
+  // 1st bond
+  vb1x = x[i1][0] - x[i2][0];
+  vb1y = x[i1][1] - x[i2][1];
+  vb1z = x[i1][2] - x[i2][2];
+
+  // 2nd bond
+  vb2x = x[i3][0] - x[i2][0];
+  vb2y = x[i3][1] - x[i2][1];
+  vb2z = x[i3][2] - x[i2][2];
+
+  vb2xm = -vb2x;
+  vb2ym = -vb2y;
+  vb2zm = -vb2z;
+
+  // 3rd bond
+  vb3x = x[i4][0] - x[i3][0];
+  vb3y = x[i4][1] - x[i3][1];
+  vb3z = x[i4][2] - x[i3][2];
+
+  // c0 calculation
+  sb1 = 1.0 / (vb1x * vb1x + vb1y * vb1y + vb1z * vb1z);
+  sb3 = 1.0 / (vb3x * vb3x + vb3y * vb3y + vb3z * vb3z);
+
+  rb1 = sqrt(sb1);
+  rb3 = sqrt(sb3);
+
+  c0 = (vb1x * vb3x + vb1y * vb3y + vb1z * vb3z) * rb1 * rb3;
+
+  // 1st and 2nd angle
+  b1mag2 = vb1x * vb1x + vb1y * vb1y + vb1z * vb1z;
+  b1mag = sqrt(b1mag2);
+  b2mag2 = vb2x * vb2x + vb2y * vb2y + vb2z * vb2z;
+  b2mag = sqrt(b2mag2);
+  b3mag2 = vb3x * vb3x + vb3y * vb3y + vb3z * vb3z;
+  b3mag = sqrt(b3mag2);
+
+  ctmp = vb1x * vb2x + vb1y * vb2y + vb1z * vb2z;
+  r12c1 = 1.0 / (b1mag * b2mag);
+  c1mag = ctmp * r12c1;
+
+  ctmp = vb2xm * vb3x + vb2ym * vb3y + vb2zm * vb3z;
+  r12c2 = 1.0 / (b2mag * b3mag);
+  c2mag = ctmp * r12c2;
+
+  // cos and sin of 2 angles and final c
+  sin2 = MAX(1.0 - c1mag * c1mag, 0.0);
+  sc1 = sqrt(sin2);
+  if (sc1 < SMALL) sc1 = SMALL;
+  sc1 = 1.0 / sc1;
+
+  sin2 = MAX(1.0 - c2mag * c2mag, 0.0);
+  sc2 = sqrt(sin2);
+  if (sc2 < SMALL) sc2 = SMALL;
+  sc2 = 1.0 / sc2;
+
+  s12 = sc1 * sc2;
+  c = (c0 + c1mag * c2mag) * s12;
+
+  // error check
+  if (c > 1.0 + TOLERANCE || c < (-1.0 - TOLERANCE)) problem(FLERR, i1, i2, i3, i4);
+
+  if (c > 1.0) c = 1.0;
+  if (c < -1.0) c = -1.0;
+
+  du = a2[type] + c * (2.0 * a3[type] + c * (3.0 * a4[type] + c * 4.0 * a5[type]));
+  du2 = 2.0 * a3[type] + 6.0 * c * (a4[type] + 2.0 * a5[type] * c);
 }

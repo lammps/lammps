@@ -18,7 +18,7 @@ namespace ATC {
   typedef std::pair< std::pair< int,int >,int > ATOM_PAIR;
 
   /**
-   *  @class  PairMap 
+   *  @class  PairMap
    *  @brief  Base class maps of pair indices to a single index
    */
 
@@ -28,7 +28,7 @@ namespace ATC {
     virtual ~PairMap(void);
 
     virtual void reset(void) const = 0;
-    void quantity() {}; 
+    void quantity() {};
     void set_quantity() { throw ATC_Error("inappropriate access to pair map");}
 
     // lammps communication
@@ -36,9 +36,9 @@ namespace ATC {
     virtual void rest_nlocal() {this->force_reset();};
 
     // iterator interface
-    int size(void) const { 
-      if (this->need_reset()) reset(); 
-      return nPairs_+nBonds_; 
+    int size(void) const {
+      if (this->need_reset()) reset();
+      return nPairs_+nBonds_;
     }
     int num_bonds(void) const { return nBonds_; }
     virtual ATOM_PAIR  start() const = 0; // const reset / non-const call propagte reset
@@ -66,10 +66,10 @@ namespace ATC {
       iterator_ = pairMap_.begin(); return *iterator_;}
     virtual ATOM_PAIR  next(void)  const {
        iterator_++; return *iterator_;}
-    virtual bool       finished()  const  { 
+    virtual bool       finished()  const  {
          return (iterator_==pairMap_.end());}
   protected:
-    mutable PAIR_MAP pairMap_; 
+    mutable PAIR_MAP pairMap_;
   private:
     mutable PAIR_MAP_ITERATOR iterator_;
     PairMapNeighbor();// do not define
@@ -79,12 +79,12 @@ namespace ATC {
   public:
     PairMapBond(LammpsInterface * lammpsInterface, int groupbit);
     virtual ~PairMapBond(void) {};
-    virtual bool need_reset(void) const { return true;} 
+    virtual bool need_reset(void) const { return true;}
     virtual void reset(void) const {nBonds_ = lammpsInterface_->bond_list_length(); };
     ATOM_PAIR  start() const {
       reset();
 //    if (needs_reset()) propagate_reset()
-      index_ = 0; return atom_pair(index_);} 
+      index_ = 0; return atom_pair(index_);}
     ATOM_PAIR  next()  const {return atom_pair(++index_);}
     bool       finished()  const  { return index_==nBonds_; }
     ATOM_PAIR  atom_pair(int n) const {
@@ -94,7 +94,7 @@ namespace ATC {
         return p;
       }
       int * bond = (lammpsInterface_->bond_list())[n];
-      std::pair<int,int> pair_ij(bond[0],bond[1]); 
+      std::pair<int,int> pair_ij(bond[0],bond[1]);
       ATOM_PAIR p(pair_ij,n);
       return p;
     }
@@ -108,31 +108,31 @@ namespace ATC {
     PairMapBoth(LammpsInterface * lammpsInterface, int groupbit);
     virtual ~PairMapBoth(void) {};
     virtual bool need_reset(void) const {
-      nBonds_ = lammpsInterface_->bond_list_length(); 
+      nBonds_ = lammpsInterface_->bond_list_length();
       return PairMapNeighbor::need_reset();
     }
-    virtual void reset(void) const { 
-     nBonds_ = lammpsInterface_->bond_list_length(); 
+    virtual void reset(void) const {
+     nBonds_ = lammpsInterface_->bond_list_length();
      PairMapNeighbor::reset();
     }
     virtual ATOM_PAIR  start(void) const {
       if (need_reset()) reset();
       index_ = 0;
-      iterator_ = pairMap_.begin(); 
+      iterator_ = pairMap_.begin();
       return atom_pair(index_); // start with bonds
     }
     virtual ATOM_PAIR  next(void)  const {
       ++index_;
-      if (index_ < nBonds_) { return atom_pair(index_);} 
+      if (index_ < nBonds_) { return atom_pair(index_);}
       else { if (index_>nBonds_) iterator_++; return *iterator_; }
     }
     ATOM_PAIR  atom_pair(int n) const {
       int * bond = (lammpsInterface_->bond_list())[n];
-      std::pair<int,int> pair_ij(bond[0],bond[1]); 
+      std::pair<int,int> pair_ij(bond[0],bond[1]);
       ATOM_PAIR p(pair_ij,n);
       return p;
     }
-    virtual bool       finished()  const  { 
+    virtual bool       finished()  const  {
          return (iterator_==pairMap_.end());}
   private:
     mutable int index_;
@@ -141,18 +141,18 @@ namespace ATC {
   };
 
   /**
-   *  @class  DensePerPairQuantity 
-   *  @brief  Base class for objects that manage pair/bond quantities 
+   *  @class  DensePerPairQuantity
+   *  @brief  Base class for objects that manage pair/bond quantities
    */
   class DensePerPairMatrix : public MatrixDependencyManager<DenseMatrix, double> {
 
   public:
-    
+
     // constructor
-    DensePerPairMatrix(LammpsInterface * lammpsInterface, 
-       const PairMap & pairMap, 
+    DensePerPairMatrix(LammpsInterface * lammpsInterface,
+       const PairMap & pairMap,
        int nCols = 1);
-    
+
     // destructor
     virtual ~DensePerPairMatrix(){};
 
@@ -171,7 +171,7 @@ namespace ATC {
     virtual void reset() const = 0;
 
   protected:
-    
+
     /** pointer to access Lammps data */
     LammpsInterface * lammpsInterface_;
 
@@ -186,7 +186,7 @@ namespace ATC {
   };
 
   /**
-   *  @class  PairVirial 
+   *  @class  PairVirial
    *  @brief  f_ab (x) x_ab where (ab) -> p
    */
   class PairVirial : public DensePerPairMatrix {
@@ -201,12 +201,12 @@ namespace ATC {
 
     /** resets data, if necessary */
     virtual void reset() const = 0;
-    
+
   private:
     PairVirial(void); // do not define
   };
   /**
-   *  @class  PairVirial 
+   *  @class  PairVirial
    *  @brief  f_ab (x) x_ab where (ab) -> p
    */
   class PairVirialEulerian : public PairVirial {
@@ -221,7 +221,7 @@ namespace ATC {
 
     /** resets data, if necessary */
     virtual void reset() const;
-    
+
   private:
     PairVirialEulerian(void); // do not define
   };
@@ -230,7 +230,7 @@ namespace ATC {
   public:
     // constructor
     PairVirialLagrangian(LammpsInterface * lammpsInterface,
-      const PairMap & pairMap, 
+      const PairMap & pairMap,
       double ** xRef);
 //    const PerAtomQuantity<double> * x0);
 
@@ -242,13 +242,13 @@ namespace ATC {
   protected:
     double ** xRef_; // note difficult to make a ** const
 //  const PerAtomQuantity<double> * xRef_;
-    
+
   private:
     PairVirialLagrangian(void); // do not define
   };
 
   /**`
-   *  @class  PairPotentialHeatFlux 
+   *  @class  PairPotentialHeatFlux
    *  @brief  f_ab v_b where (ab) -> p
    */
   class PairPotentialHeatFlux : public DensePerPairMatrix {
@@ -263,7 +263,7 @@ namespace ATC {
 
     /** resets data, if necessary */
     virtual void reset() const =0;
-    
+
   private:
     PairPotentialHeatFlux(void); // do not define
   };
@@ -279,7 +279,7 @@ namespace ATC {
 
     /** resets data, if necessary */
     virtual void reset() const;
-    
+
   private:
     PairPotentialHeatFluxEulerian(void); // do not define
   };
@@ -299,23 +299,23 @@ namespace ATC {
   protected:
     double ** xRef_; // note difficult to make a ** const
     //const PerAtomQuantity<double> * x0_;
-    
+
   private:
     PairPotentialHeatFluxLagrangian(void); // do not define
   };
 
   /**
-   *  @class  SparsePerPairMatrix 
-   *  @brief  Base class for objects that manage pair/bond quantities 
+   *  @class  SparsePerPairMatrix
+   *  @brief  Base class for objects that manage pair/bond quantities
    */
   class SparsePerPairMatrix : public MatrixDependencyManager<SparseMatrix, double> {
 
   public:
-    
+
     // constructor
-    SparsePerPairMatrix(LammpsInterface * lammpsInterface, 
-       const PairMap & pairMap); 
-    
+    SparsePerPairMatrix(LammpsInterface * lammpsInterface,
+       const PairMap & pairMap);
+
     // destructor
     virtual ~SparsePerPairMatrix(){};
 
@@ -331,7 +331,7 @@ namespace ATC {
     virtual void reset() const = 0;
 
   protected:
-    
+
     /** pointer to access Lammps data */
     LammpsInterface * lammpsInterface_;
 
@@ -362,7 +362,7 @@ namespace ATC {
   protected:
     double ** x_;
     const class FE_Mesh * feMesh_;
-    
+
   private:
     BondMatrix(void); // do not define
   };
@@ -376,7 +376,7 @@ namespace ATC {
   public:
     // constructor
     BondMatrixKernel(LammpsInterface * lammpsInterface,
-      const PairMap & pairMap, 
+      const PairMap & pairMap,
       double ** x,
       const class FE_Mesh * feMesh,
       const class KernelFunction * kernelFunction);
@@ -389,7 +389,7 @@ namespace ATC {
 
   protected:
     const class KernelFunction * kernelFunction_;
-    
+
   private:
     BondMatrixKernel(void); // do not define
   };
@@ -403,7 +403,7 @@ namespace ATC {
   public:
     // constructor
     BondMatrixPartitionOfUnity(LammpsInterface * lammpsInterface,
-      const PairMap & pairMap, 
+      const PairMap & pairMap,
       double ** x,
       const class FE_Mesh * feMesh,
       const DIAG_MAN * invVol);

@@ -1,0 +1,281 @@
+LAMMPS (2 Jul 2021)
+variable number	equal 5
+variable ofreq	equal 1000
+variable efreq	equal 1000
+variable T      equal 0.1
+variable rhos   equal 0.2
+
+units lj
+
+dimension 3
+
+newton on
+
+boundary  p p p
+
+atom_style hybrid bond ellipsoid oxdna
+WARNING: Atom style hybrid defines both, per-type and per-atom masses; both must be set, but only per-atom masses will be used (../atom_vec_hybrid.cpp:157)
+atom_modify sort 0 1.0
+
+# Pair interactions require lists of neighbours to be calculated
+neighbor 2.0 bin
+neigh_modify every 1 delay 0 check yes
+
+read_data data.dsring
+Reading data file ...
+  orthogonal box = (0.0000000 0.0000000 0.0000000) to (100.00000 100.00000 100.00000)
+  1 by 2 by 2 MPI processor grid
+  reading atoms ...
+  148 atoms
+  reading velocities ...
+  148 velocities
+  scanning bonds ...
+  1 = max bonds/atom
+  148 ellipsoids
+  reading bonds ...
+  148 bonds
+Finding 1-2 1-3 1-4 neighbors ...
+  special bond factors lj:    0        0        0       
+  special bond factors coul:  0        0        0       
+     2 = max # of 1-2 neighbors
+     2 = max # of 1-3 neighbors
+     4 = max # of 1-4 neighbors
+     6 = max # of special neighbors
+  special bonds CPU = 0.001 seconds
+  read_data CPU = 0.008 seconds
+
+set atom * mass 3.1575
+Setting atom values ...
+  148 settings made for mass
+
+group all type 1 4
+148 atoms in group all
+
+# oxDNA2 bond interactions - FENE backbone
+bond_style oxdna2/fene
+bond_coeff * 2.0 0.25 0.7564
+special_bonds lj 0 1 1
+Finding 1-2 1-3 1-4 neighbors ...
+  special bond factors lj:    0        1        1       
+  special bond factors coul:  0        0        0       
+     2 = max # of 1-2 neighbors
+     2 = max # of 1-3 neighbors
+     4 = max # of 1-4 neighbors
+     6 = max # of special neighbors
+  special bonds CPU = 0.000 seconds
+
+# oxDNA2 pair interactions
+pair_style hybrid/overlay oxdna2/excv oxdna2/stk oxdna2/hbond oxdna2/xstk oxdna2/coaxstk oxdna2/dh
+pair_coeff * * oxdna2/excv    2.0 0.7 0.675 2.0 0.515 0.5 2.0 0.33 0.32
+pair_coeff * * oxdna2/stk     seqdep ${T} 1.3523 2.6717 6.0 0.4 0.9 0.32 0.75 1.3 0 0.8 0.9 0 0.95 0.9 0 0.95 2.0 0.65 2.0 0.65
+pair_coeff * * oxdna2/stk     seqdep 0.1 1.3523 2.6717 6.0 0.4 0.9 0.32 0.75 1.3 0 0.8 0.9 0 0.95 0.9 0 0.95 2.0 0.65 2.0 0.65
+pair_coeff * * oxdna2/hbond   seqdep 0.0 8.0 0.4 0.75 0.34 0.7 1.5 0 0.7 1.5 0 0.7 1.5 0 0.7 0.46 3.141592653589793 0.7 4.0 1.5707963267948966 0.45 4.0 1.5707963267948966 0.45
+pair_coeff 1 4 oxdna2/hbond   seqdep 1.0678 8.0 0.4 0.75 0.34 0.7 1.5 0 0.7 1.5 0 0.7 1.5 0 0.7 0.46 3.141592653589793 0.7 4.0 1.5707963267948966 0.45 4.0 1.5707963267948966 0.45
+pair_coeff 2 3 oxdna2/hbond   seqdep 1.0678 8.0 0.4 0.75 0.34 0.7 1.5 0 0.7 1.5 0 0.7 1.5 0 0.7 0.46 3.141592653589793 0.7 4.0 1.5707963267948966 0.45 4.0 1.5707963267948966 0.45
+pair_coeff * * oxdna2/xstk    47.5 0.575 0.675 0.495 0.655 2.25 0.791592653589793 0.58 1.7 1.0 0.68 1.7 1.0 0.68 1.5 0 0.65 1.7 0.875 0.68 1.7 0.875 0.68
+pair_coeff * * oxdna2/coaxstk 58.5 0.4 0.6 0.22 0.58 2.0 2.891592653589793 0.65 1.3 0 0.8 0.9 0 0.95 0.9 0 0.95 40.0 3.116592653589793
+pair_coeff * * oxdna2/dh      ${T} ${rhos} 0.815
+pair_coeff * * oxdna2/dh      0.1 ${rhos} 0.815
+pair_coeff * * oxdna2/dh      0.1 0.2 0.815
+
+# NVE ensemble
+fix 1 all nve/asphere
+#fix 2 all langevin ${T} ${T} 2.5 457145 angmom 10
+
+timestep 1e-5
+
+#comm_style tiled
+fix 3 all balance 1000 1.03 shift xyz 10 1.03
+comm_modify cutoff 3.8
+
+compute quat all property/atom quatw quati quatj quatk
+
+compute erot all erotate/asphere
+compute ekin all ke
+compute epot all pe
+variable erot equal c_erot
+variable ekin equal c_ekin
+variable epot equal c_epot
+variable etot equal c_erot+c_ekin+c_epot
+fix 5 all print ${efreq} "$(step)  ekin = ${ekin} |  erot = ${erot} | epot = ${epot} | etot = ${etot}" screen yes
+fix 5 all print 1000 "$(step)  ekin = ${ekin} |  erot = ${erot} | epot = ${epot} | etot = ${etot}" screen yes
+
+dump out all custom ${ofreq} out.${number}.lammpstrj id mol type x y z ix iy iz vx vy vz c_quat[1] c_quat[2] c_quat[3] c_quat[4] angmomx angmomy angmomz
+dump out all custom 1000 out.${number}.lammpstrj id mol type x y z ix iy iz vx vy vz c_quat[1] c_quat[2] c_quat[3] c_quat[4] angmomx angmomy angmomz
+dump out all custom 1000 out.5.lammpstrj id mol type x y z ix iy iz vx vy vz c_quat[1] c_quat[2] c_quat[3] c_quat[4] angmomx angmomy angmomz
+dump_modify out sort id
+dump_modify out format line "%d %d %d  %22.15le %22.15le %22.15le  %d %d %d  %22.15le %22.15le %22.15le  %22.15le %22.15le %22.15le %22.15le  %22.15le %22.15le %22.15le"
+
+run 100000
+Neighbor list info ...
+  update every 1 steps, delay 0 steps, check yes
+  max neighbors/atom: 2000, page size: 100000
+  master list distance cutoff = 5.6389877
+  ghost atom cutoff = 5.6389877
+  binsize = 2.8194939, bins = 36 36 36
+  5 neighbor lists, perpetual/occasional/extra = 5 0 0
+  (1) pair oxdna2/excv, perpetual
+      attributes: half, newton on
+      pair build: half/bin/newton
+      stencil: half/bin/3d
+      bin: standard
+  (2) pair oxdna2/hbond, perpetual, copy from (1)
+      attributes: half, newton on
+      pair build: copy
+      stencil: none
+      bin: none
+  (3) pair oxdna2/xstk, perpetual, copy from (1)
+      attributes: half, newton on
+      pair build: copy
+      stencil: none
+      bin: none
+  (4) pair oxdna2/coaxstk, perpetual, copy from (1)
+      attributes: half, newton on
+      pair build: copy
+      stencil: none
+      bin: none
+  (5) pair oxdna2/dh, perpetual, copy from (1)
+      attributes: half, newton on
+      pair build: copy
+      stencil: none
+      bin: none
+WARNING: Communication cutoff adjusted to 5.638987723814632 (../comm.cpp:739)
+0  ekin = 20.4724634226502 |  erot = 21.0406985312466 | epot = -222.283862600785 | etot = -180.770700646889
+Per MPI rank memory allocation (min/avg/max) = 9.383 | 9.432 | 9.506 Mbytes
+Step Temp E_pair E_mol TotEng Press Volume 
+       0  0.092845639   -1.5501211   0.04820308   -1.3635905 -9.0052368e-06      1000000 
+1000  ekin = 20.531989141805 |  erot = 21.2158633183735 | epot = -222.518553109361 | etot = -180.770700649183
+2000  ekin = 20.585620972069 |  erot = 21.391859435226 | epot = -222.748181058335 | etot = -180.77070065104
+3000  ekin = 20.6239332104643 |  erot = 21.5529389082727 | epot = -222.947572771312 | etot = -180.770700652575
+4000  ekin = 20.6395549184482 |  erot = 21.6854113323894 | epot = -223.095666904229 | etot = -180.770700653391
+5000  ekin = 20.6295551742564 |  erot = 21.7809539301804 | epot = -223.181209757876 | etot = -180.770700653439
+6000  ekin = 20.5959625511847 |  erot = 21.8369756530726 | epot = -223.203638857302 | etot = -180.770700653045
+7000  ekin = 20.5431034482069 |  erot = 21.8556844173874 | epot = -223.169488517717 | etot = -180.770700652123
+8000  ekin = 20.4774701419093 |  erot = 21.8437134145373 | epot = -223.09188420739 | etot = -180.770700650943
+9000  ekin = 20.4074566554239 |  erot = 21.8097283692397 | epot = -222.987885674261 | etot = -180.770700649598
+10000  ekin = 20.3427303660297 |  erot = 21.7629575866662 | epot = -222.876388600949 | etot = -180.770700648253
+11000  ekin = 20.2927407149578 |  erot = 21.7112100845349 | epot = -222.774651446682 | etot = -180.77070064719
+12000  ekin = 20.2665977502213 |  erot = 21.6594999867139 | epot = -222.696798383222 | etot = -180.770700646287
+13000  ekin = 20.2733920359447 |  erot = 21.6092715397933 | epot = -222.653364221617 | etot = -180.770700645879
+14000  ekin = 20.3196524789069 |  erot = 21.5586630974992 | epot = -222.649016222076 | etot = -180.77070064567
+15000  ekin = 20.410400937429 |  erot = 21.5031572556307 | epot = -222.684258838858 | etot = -180.770700645799
+16000  ekin = 20.5472869005792 |  erot = 21.4346177247041 | epot = -222.752605272037 | etot = -180.770700646753
+17000  ekin = 20.7266657908773 |  erot = 21.3426631585218 | epot = -222.840029597232 | etot = -180.770700647833
+18000  ekin = 20.9417612759978 |  erot = 21.2178611180927 | epot = -222.930323042998 | etot = -180.770700648907
+19000  ekin = 21.1819308659396 |  erot = 21.0532289630294 | epot = -223.005860478921 | etot = -180.770700649952
+20000  ekin = 21.4358169889472 |  erot = 20.8473069564707 | epot = -223.053824595387 | etot = -180.77070064997
+21000  ekin = 21.6968513750995 |  erot = 20.6066744652585 | epot = -223.074226489837 | etot = -180.770700649479
+22000  ekin = 21.9614458442779 |  erot = 20.3429420444508 | epot = -223.075088537371 | etot = -180.770700648642
+23000  ekin = 22.2276099755697 |  erot = 20.070338516524 | epot = -223.068649139875 | etot = -180.770700647781
+24000  ekin = 22.4935893196667 |  erot = 19.8020671721661 | epot = -223.066357139277 | etot = -180.770700647444
+25000  ekin = 22.756606454822 |  erot = 19.5464828008836 | epot = -223.073789902976 | etot = -180.77070064727
+26000  ekin = 23.0126717548391 |  erot = 19.3065017718461 | epot = -223.089874174572 | etot = -180.770700647887
+27000  ekin = 23.2550417060586 |  erot = 19.0797753474566 | epot = -223.105517701932 | etot = -180.770700648417
+28000  ekin = 23.4774329734797 |  erot = 18.8646197299572 | epot = -223.112753352067 | etot = -180.77070064863
+29000  ekin = 23.6747927720654 |  erot = 18.6628653411822 | epot = -223.108358761694 | etot = -180.770700648446
+30000  ekin = 23.8432321400238 |  erot = 18.4812216983633 | epot = -223.095154486375 | etot = -180.770700647988
+31000  ekin = 23.979304175222 |  erot = 18.3307845334015 | epot = -223.08078935577 | etot = -180.770700647146
+32000  ekin = 24.0810246040226 |  erot = 18.2261577055998 | epot = -223.077882955919 | etot = -180.770700646297
+33000  ekin = 24.1468986449389 |  erot = 18.1820705445401 | epot = -223.09966983514 | etot = -180.770700645661
+34000  ekin = 24.1756615132855 |  erot = 18.2103812210167 | epot = -223.156743379607 | etot = -180.770700645304
+35000  ekin = 24.1663193894644 |  erot = 18.3185351073563 | epot = -223.255555142089 | etot = -180.770700645269
+36000  ekin = 24.1167205812957 |  erot = 18.5091649894184 | epot = -223.396586216223 | etot = -180.770700645509
+37000  ekin = 24.0274860006128 |  erot = 18.7785134320987 | epot = -223.576700078937 | etot = -180.770700646226
+38000  ekin = 23.8991479078978 |  erot = 19.1166063146994 | epot = -223.786454869891 | etot = -180.770700647293
+39000  ekin = 23.7326911853231 |  erot = 19.5069160952493 | epot = -224.010307929336 | etot = -180.770700648764
+40000  ekin = 23.5294223072117 |  erot = 19.9254673141828 | epot = -224.225590272293 | etot = -180.770700650899
+41000  ekin = 23.289939614139 |  erot = 20.3408097780563 | epot = -224.401450045568 | etot = -180.770700653372
+42000  ekin = 23.0154529235022 |  erot = 20.7165619564848 | epot = -224.502715535762 | etot = -180.770700655775
+43000  ekin = 22.7111536814277 |  erot = 21.0163895622231 | epot = -224.498243901359 | etot = -180.770700657708
+44000  ekin = 22.3710575806355 |  erot = 21.2060371289783 | epot = -224.347795365754 | etot = -180.77070065614
+45000  ekin = 22.0515843162889 |  erot = 21.2588026881768 | epot = -224.081087646891 | etot = -180.770700642425
+46000  ekin = 21.7855632553133 |  erot = 21.20360137666 | epot = -223.759865260062 | etot = -180.770700628089
+47000  ekin = 21.5167766971456 |  erot = 21.0656367023667 | epot = -223.353114011016 | etot = -180.770700611503
+48000  ekin = 21.4540196107333 |  erot = 20.8430832424321 | epot = -223.067803499525 | etot = -180.77070064636
+49000  ekin = 21.3647564765274 |  erot = 20.5521507191682 | epot = -222.687607816922 | etot = -180.770700621226
+50000  ekin = 21.3125768184617 |  erot = 20.2526464671325 | epot = -222.33592390431 | etot = -180.770700618715
+51000  ekin = 21.2949924810834 |  erot = 19.9798421626035 | epot = -222.045535260404 | etot = -180.770700616717
+52000  ekin = 21.3137144249679 |  erot = 19.7627691343679 | epot = -221.847184173963 | etot = -180.770700614627
+53000  ekin = 21.3664076685099 |  erot = 19.6202359856891 | epot = -221.757344279695 | etot = -180.770700625496
+54000  ekin = 21.4214245524052 |  erot = 19.5588232319492 | epot = -221.750948393748 | etot = -180.770700609393
+55000  ekin = 21.5995673396082 |  erot = 19.580521488567 | epot = -221.950789453583 | etot = -180.770700625408
+56000  ekin = 21.7643125668294 |  erot = 19.681604210777 | epot = -222.216617401429 | etot = -180.770700623823
+57000  ekin = 21.922130908443 |  erot = 19.8499880475945 | epot = -222.542819582064 | etot = -180.770700626026
+58000  ekin = 22.0666093644375 |  erot = 20.0713856445709 | epot = -222.908695636278 | etot = -180.770700627269
+59000  ekin = 22.1910921687932 |  erot = 20.3284024096003 | epot = -223.290195207095 | etot = -180.770700628702
+60000  ekin = 22.2920682490219 |  erot = 20.6003319531534 | epot = -223.663100832376 | etot = -180.770700630201
+61000  ekin = 22.3680528265772 |  erot = 20.8645614198856 | epot = -224.003314878046 | etot = -180.770700631583
+62000  ekin = 22.4198570332617 |  erot = 21.0983714926625 | epot = -224.288929158679 | etot = -180.770700632755
+63000  ekin = 22.4500800739905 |  erot = 21.2815521440892 | epot = -224.502332851297 | etot = -180.770700633217
+64000  ekin = 22.4634052763968 |  erot = 21.3990470998276 | epot = -224.633153009904 | etot = -180.770700633679
+65000  ekin = 22.463988539095 |  erot = 21.4413332838523 | epot = -224.676022456448 | etot = -180.770700633501
+66000  ekin = 22.4559522488531 |  erot = 21.4074154510864 | epot = -224.634068332759 | etot = -180.770700632819
+67000  ekin = 22.4417384097814 |  erot = 21.3051580893563 | epot = -224.517597130739 | etot = -180.770700631601
+68000  ekin = 22.4218785446449 |  erot = 21.1490017805243 | epot = -224.341580956061 | etot = -180.770700630892
+69000  ekin = 22.3954651199567 |  erot = 20.9555571676359 | epot = -224.121722917264 | etot = -180.770700629671
+70000  ekin = 22.3613349801186 |  erot = 20.743354587176 | epot = -223.875390195707 | etot = -180.770700628413
+71000  ekin = 22.3171019087134 |  erot = 20.5301141425052 | epot = -223.617916679047 | etot = -180.770700627829
+72000  ekin = 22.2595195485144 |  erot = 20.3296309382966 | epot = -223.3598511141 | etot = -180.77070062729
+73000  ekin = 22.1869461213875 |  erot = 20.1521902584591 | epot = -223.109837006431 | etot = -180.770700626585
+74000  ekin = 22.0990935565682 |  erot = 20.0059494138151 | epot = -222.875743596758 | etot = -180.770700626375
+75000  ekin = 21.9959491639282 |  erot = 19.8965902063257 | epot = -222.663239996051 | etot = -180.770700625797
+76000  ekin = 21.8806005890446 |  erot = 19.8284243363261 | epot = -222.479725550681 | etot = -180.77070062531
+77000  ekin = 21.759026189981 |  erot = 19.8043252195865 | epot = -222.334052034218 | etot = -180.770700624651
+78000  ekin = 21.6392419839505 |  erot = 19.8262630279235 | epot = -222.236205635988 | etot = -180.770700624114
+79000  ekin = 21.5302317519718 |  erot = 19.8938812521574 | epot = -222.19481362777 | etot = -180.770700623641
+80000  ekin = 21.4402276725659 |  erot = 20.0060100278939 | epot = -222.216938324075 | etot = -180.770700623615
+81000  ekin = 21.3741486759857 |  erot = 20.1585144791605 | epot = -222.303363779439 | etot = -180.770700624293
+82000  ekin = 21.3325013763506 |  erot = 20.3431413542717 | epot = -222.446343355881 | etot = -180.770700625259
+83000  ekin = 21.3128808684039 |  erot = 20.5483309907712 | epot = -222.63191248578 | etot = -180.770700626605
+84000  ekin = 21.3107661707932 |  erot = 20.7607919785166 | epot = -222.842258777119 | etot = -180.77070062781
+85000  ekin = 21.3216301567279 |  erot = 20.9678418539237 | epot = -223.060172639486 | etot = -180.770700628834
+86000  ekin = 21.3400295156725 |  erot = 21.1566564817949 | epot = -223.267386627524 | etot = -180.770700630057
+87000  ekin = 21.3617783036995 |  erot = 21.3170902458388 | epot = -223.449569179883 | etot = -180.770700630345
+88000  ekin = 21.3873913218413 |  erot = 21.4454439910414 | epot = -223.603535942849 | etot = -180.770700629967
+89000  ekin = 21.4215740693994 |  erot = 21.5439953706451 | epot = -223.73627006895 | etot = -180.770700628906
+90000  ekin = 21.4723781618096 |  erot = 21.6216769093343 | epot = -223.864755698472 | etot = -180.770700627328
+91000  ekin = 21.5494066254725 |  erot = 21.6927202486459 | epot = -224.012827499725 | etot = -180.770700625606
+92000  ekin = 21.6619209347601 |  erot = 21.7730744493007 | epot = -224.20569600835 | etot = -180.77070062429
+93000  ekin = 21.8158778641474 |  erot = 21.8756732628043 | epot = -224.462251750827 | etot = -180.770700623875
+94000  ekin = 22.0110275730999 |  erot = 22.0060799403016 | epot = -224.787808138198 | etot = -180.770700624796
+95000  ekin = 22.2387555838384 |  erot = 22.1596167137185 | epot = -225.169072924291 | etot = -180.770700626735
+96000  ekin = 22.4832444899359 |  erot = 22.3220202374394 | epot = -225.575965356876 | etot = -180.770700629501
+97000  ekin = 22.7237276202691 |  erot = 22.4720556690115 | epot = -225.966483921719 | etot = -180.770700632439
+98000  ekin = 22.9377647716038 |  erot = 22.5858660312271 | epot = -226.294331437119 | etot = -180.770700634288
+99000  ekin = 23.1071231637233 |  erot = 22.645741104618 | epot = -226.523564904806 | etot = -180.770700636465
+100000  ekin = 23.2156001924307 |  erot = 22.6390310936004 | epot = -226.625331923823 | etot = -180.770700637791
+  100000   0.10528617   -1.5761124  0.044860201   -1.3743901 -1.9205819e-05      1000000 
+Loop time of 28.0802 on 4 procs for 100000 steps with 148 atoms
+
+Performance: 3076.899 tau/day, 3561.226 timesteps/s
+99.7% CPU use with 4 MPI tasks x no OpenMP threads
+
+MPI task timing breakdown:
+Section |  min time  |  avg time  |  max time  |%varavg| %total
+---------------------------------------------------------------
+Pair    | 16.209     | 21.356     | 25.248     |  81.3 | 76.05
+Bond    | 0.26072    | 0.26526    | 0.27015    |   0.9 |  0.94
+Neigh   | 0.005772   | 0.0058625  | 0.005932   |   0.1 |  0.02
+Comm    | 1.7227     | 5.6246     | 10.79      | 158.9 | 20.03
+Output  | 0.043943   | 0.046855   | 0.048664   |   0.9 |  0.17
+Modify  | 0.54715    | 0.55336    | 0.55902    |   0.7 |  1.97
+Other   |            | 0.2279     |            |       |  0.81
+
+Nlocal:        37.0000 ave          38 max          36 min
+Histogram: 1 0 0 0 0 2 0 0 0 1
+Nghost:        111.000 ave         112 max         110 min
+Histogram: 1 0 0 0 0 2 0 0 0 1
+Neighs:        1049.75 ave        1270 max         757 min
+Histogram: 1 0 0 1 0 0 0 0 0 2
+
+Total # of neighbors = 4199
+Ave neighs/atom = 28.371622
+Ave special neighs/atom = 6.0000000
+Neighbor list builds = 100
+Dangerous builds = 0
+
+write_data last_config.${number}.* nocoeff
+write_data last_config.5.* nocoeff
+System init for write_data ...
+#write_restart last_config.${number}.*
+Total wall time: 0:00:28

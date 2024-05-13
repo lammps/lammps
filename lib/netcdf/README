@@ -1,6 +1,6 @@
 The Makefile.lammps file in this directory is used when building
 LAMMPS with packages that make use of the NetCDF library or its
-parallel version.  For example, the USER-NETCDF package which adds
+parallel version.  For example, the NETCDF package which adds
 dump netcdf and dump netcdf/mpiio commands.
 
 The file has several settings needed to compile

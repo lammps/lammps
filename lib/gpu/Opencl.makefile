@@ -6,7 +6,7 @@ UCL_H  = $(wildcard ./geryon/ucl*.h)
 OCL_H  = $(wildcard ./geryon/ocl*.h) $(UCL_H) lal_precision.h
 
 # Headers for Host files
-HOST_H = lal_answer.h lal_atom.h lal_balance.h lal_base_atomic.h \
+HOST_H = lal_answer.h lal_atom.h lal_balance.h lal_base_atomic.h lal_base_amoeba.h \
          lal_base_charge.h lal_base_dipole.h lal_base_dpd.h \
          lal_base_ellipsoid.h lal_base_three.h lal_device.h lal_neighbor.h \
          lal_neighbor_shared.h lal_pre_ocl_config.h $(OCL_H)
@@ -73,6 +73,9 @@ $(OBJ_DIR)/tersoff_mod_cl.h: lal_tersoff_mod.cu $(PRE1_H) lal_tersoff_mod_extra.
 
 $(OBJ_DIR)/tersoff_zbl_cl.h: lal_tersoff_zbl.cu $(PRE1_H) lal_tersoff_zbl_extra.h
 	$(BSH) ./geryon/file_to_cstr.sh tersoff_zbl $(PRE1_H) lal_tersoff_zbl_extra.h lal_tersoff_zbl.cu $(OBJ_DIR)/tersoff_zbl_cl.h;
+
+$(OBJ_DIR)/hippo_cl.h: lal_hippo.cu $(PRE1_H) lal_hippo_extra.h
+	$(BSH) ./geryon/file_to_cstr.sh hippo $(PRE1_H) lal_hippo_extra.h lal_hippo.cu $(OBJ_DIR)/hippo_cl.h;
 
 $(OBJ_DIR)/%_cl.h: lal_%.cu $(PRE1_H)
 	$(BSH) ./geryon/file_to_cstr.sh $* $(PRE1_H) $< $@;

@@ -129,14 +129,14 @@ atom type J.  If all three :math:`\epsilon_i` values are zero, they are
 ignored.  Thus the typical way to define the :math:`\epsilon_i` and
 :math:`\epsilon_j` coefficients is to list their values in "pair_coeff
 I J" commands when I = J, but set them to 0.0 when I != J.  If you do
-list them when I != J, you should insure they are consistent with their
+list them when I != J, you should ensure they are consistent with their
 values in other pair_coeff commands.
 
 Note that if this potential is being used as a sub-style of
 :doc:`pair_style hybrid <pair_hybrid>`, and there is no "pair_coeff I I"
 setting made for RE-squared for a particular type I (because I-I
 interactions are computed by another hybrid pair potential), then you
-still need to insure the epsilon a,b,c coefficients are assigned to
+still need to ensure the epsilon a,b,c coefficients are assigned to
 that type in a "pair_coeff I J" command.
 
 For large uniform molecules it has been shown that the :math:`\epsilon_{*,*}`
@@ -191,7 +191,7 @@ to be specified in an input script that reads a restart file.
 
 This pair style can only be used via the *pair* keyword of the
 :doc:`run_style respa <run_style>` command.  It does not support the
-*inner*\ , *middle*\ , *outer* keywords of the :doc:`run_style command <run_style>`.
+*inner*, *middle*, *outer* keywords of the :doc:`run_style command <run_style>`.
 
 ----------
 
@@ -199,7 +199,7 @@ Restrictions
 """"""""""""
 
 This style is part of the ASPHERE package.  It is only enabled if
-LAMMPS was built with that package.  See the :doc:`Build package <Build_package>` doc page for more info.
+LAMMPS was built with that package.  See the :doc:`Build package <Build_package>` page for more info.
 
 This pair style requires that atoms be ellipsoids as defined by the
 :doc:`atom_style ellipsoid <atom_style>` command.

@@ -15,7 +15,7 @@ Any hardware. Any compiler.
 Building LAMMPS with the OPT package
 """"""""""""""""""""""""""""""""""""
 
-See the :ref:`Build extras <opt>` doc page for instructions.
+See the :ref:`Build extras <opt>` page for instructions.
 
 Run with the OPT package from the command line
 """"""""""""""""""""""""""""""""""""""""""""""

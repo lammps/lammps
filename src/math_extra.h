@@ -1,7 +1,7 @@
 /* -*- c++ -*- ----------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    https://www.lammps.org/, Sandia National Laboratories
-   Steve Plimpton, sjplimp@sandia.gov
+   LAMMPS development team: developers@lammps.org
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
@@ -47,6 +47,7 @@ inline void cross3(const double *v1, const double *v2, double *ans);
 
 inline void zeromat3(double m[3][3]);
 inline void zeromat3(double **m);
+inline void transpose3(const double m[3][3], double ans[3][3]);
 
 inline void col2mat(const double *ex, const double *ey, const double *ez, double m[3][3]);
 inline double det3(const double mat[3][3]);
@@ -76,6 +77,7 @@ void write3(const double mat[3][3]);
 int mldivide3(const double mat[3][3], const double *vec, double *ans);
 void rotate(double matrix[3][3], int i, int j, int k, int l, double s, double tau);
 void richardson(double *q, double *m, double *w, double *moments, double dtq);
+void richardson_sphere(double *q, double *w, double dtq);
 void no_squish_rotate(int k, double *p, double *q, double *inertia, double dt);
 
 // shape matrix operations
@@ -91,12 +93,14 @@ inline void vecquat(double *a, double *b, double *c);
 inline void quatvec(double *a, double *b, double *c);
 inline void quatquat(double *a, double *b, double *c);
 inline void invquatvec(double *a, double *b, double *c);
+inline void quatrotvec(double *a, double *b, double *c);
 inline void axisangle_to_quat(const double *v, const double angle, double *quat);
 
 void angmom_to_omega(double *m, double *ex, double *ey, double *ez, double *idiag, double *w);
 void omega_to_angmom(double *w, double *ex, double *ey, double *ez, double *idiag, double *m);
 void mq_to_omega(double *m, double *q, double *moments, double *w);
 void exyz_to_q(double *ex, double *ey, double *ez, double *q);
+void mat_to_quat(double mat[3][3], double *quat);
 void q_to_exyz(double *q, double *ex, double *ey, double *ez);
 void quat_to_mat(const double *quat, double mat[3][3]);
 void quat_to_mat_trans(const double *quat, double mat[3][3]);
@@ -117,6 +121,11 @@ void inertia_ellipsoid(double *shape, double *quat, double mass, double *inertia
 void inertia_line(double length, double theta, double mass, double *inertia);
 void inertia_triangle(double *v0, double *v1, double *v2, double mass, double *inertia);
 void inertia_triangle(double *idiag, double *quat, double mass, double *inertia);
+
+// triclinic bounding box of a spher
+
+void tribbox(double *, double, double *);
+
 }    // namespace MathExtra
 
 /* ----------------------------------------------------------------------
@@ -652,6 +661,29 @@ inline void MathExtra::invquatvec(double *a, double *b, double *c)
 }
 
 /* ----------------------------------------------------------------------
+   quaternion rotation of vector: c = a*b*conj(a)
+   a is a quaternion
+   b is a three component vector
+   c is a three component vector
+------------------------------------------------------------------------- */
+
+inline void MathExtra::quatrotvec(double *a, double *b, double *c)
+{
+  double temp[4];
+
+  // temp = a*b
+  temp[0] = -a[1] * b[0] - a[2] * b[1] - a[3] * b[2];
+  temp[1] = a[0] * b[0] + a[2] * b[2] - a[3] * b[1];
+  temp[2] = a[0] * b[1] + a[3] * b[0] - a[1] * b[2];
+  temp[3] = a[0] * b[2] + a[1] * b[1] - a[2] * b[0];
+
+  // c = temp*conj(a)
+  c[0] = -a[1] * temp[0] + a[0] * temp[1] - a[3] * temp[2] + a[2] * temp[3];
+  c[1] = -a[2] * temp[0] + a[3] * temp[1] + a[0] * temp[2] - a[1] * temp[3];
+  c[2] = -a[3] * temp[0] - a[2] * temp[1] + a[1] * temp[2] + a[0] * temp[3];
+}
+
+/* ----------------------------------------------------------------------
    compute quaternion from axis-angle rotation
    v MUST be a unit vector
 ------------------------------------------------------------------------- */
@@ -731,6 +763,21 @@ inline void MathExtra::zeromat3(double **m)
   m[0][0] = m[0][1] = m[0][2] = 0.0;
   m[1][0] = m[1][1] = m[1][2] = 0.0;
   m[2][0] = m[2][1] = m[2][2] = 0.0;
+}
+
+// transpose a matrix
+
+inline void MathExtra::transpose3(const double m[3][3], double ans[3][3])
+{
+  ans[0][0] = m[0][0];
+  ans[0][1] = m[1][0];
+  ans[0][2] = m[2][0];
+  ans[1][0] = m[0][1];
+  ans[1][1] = m[1][1];
+  ans[1][2] = m[2][1];
+  ans[2][0] = m[0][2];
+  ans[2][1] = m[1][2];
+  ans[2][2] = m[2][2];
 }
 
 // add two matrices

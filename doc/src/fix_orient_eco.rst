@@ -98,7 +98,7 @@ to track the grain boundary motion throughout the simulation.
 Restart, fix_modify, output, run start/stop, minimize info
 """""""""""""""""""""""""""""""""""""""""""""""""""""""""""
 
-No information about this fix is written to :doc: `binary restart
+No information about this fix is written to :doc:`binary restart
 files <restart>`.
 
 The :doc:`fix_modify <fix_modify>` *energy* option is supported by
@@ -122,9 +122,9 @@ the run command. This fix is not invoked during energy minimization.
 Restrictions
 """"""""""""
 
-This fix is part of the USER-MISC package. It is only enabled if
+This fix is part of the ORIENT package. It is only enabled if
 LAMMPS was built with that package. See the :doc:`Build package
-<Build_package>` doc page for more info.
+<Build_package>` page for more info.
 
 
 Related commands

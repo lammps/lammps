@@ -4,13 +4,14 @@ Include packages in build
 In LAMMPS, a package is a group of files that enable a specific set of
 features.  For example, force fields for molecular systems or
 rigid-body constraints are in packages.  In the src directory, each
-package is a sub-directory with the package name in capital letters.
+package is a subdirectory with the package name in capital letters.
 
 An overview of packages is given on the :doc:`Packages <Packages>` doc
-page.  Brief overviews of each package are on the :doc:`Packages details <Packages_details>` page.
+page.  Brief overviews of each package are on the :doc:`Packages details
+<Packages_details>` page.
 
 When building LAMMPS, you can choose to include or exclude each
-package.  In general there is no need to include a package if you
+package.  Generally, there is no need to include a package if you
 never plan to use its features.
 
 If you get a run-time error that a LAMMPS command or style is
@@ -30,17 +31,40 @@ steps, as explained on the :doc:`Build extras <Build_extras>` page.
 These links take you to the extra instructions for those select
 packages:
 
-+--------------------------------------+--------------------------------------+------------------------------------+----------------------------------+--------------------------------+--------------------------------+
-| :ref:`COMPRESS <compress>`           | :ref:`GPU <gpu>`                     | :ref:`KIM <kim>`                   | :ref:`KOKKOS <kokkos>`           | :ref:`LATTE <latte>`           | :ref:`MESSAGE <message>`       |
-+--------------------------------------+--------------------------------------+------------------------------------+----------------------------------+--------------------------------+--------------------------------+
-| :ref:`MSCG <mscg>`                   | :ref:`OPT <opt>`                     | :ref:`POEMS <poems>`               | :ref:`PYTHON <python>`           | :ref:`VORONOI <voronoi>`       | :ref:`USER-ADIOS <user-adios>` |
-+--------------------------------------+--------------------------------------+------------------------------------+----------------------------------+--------------------------------+--------------------------------+
-| :ref:`USER-ATC <user-atc>`           | :ref:`USER-AWPMD <user-awpmd>`       | :ref:`USER-COLVARS <user-colvars>` | :ref:`USER-H5MD <user-h5md>`     | :ref:`USER-HDNNP <user-hdnnp>` | :ref:`USER-INTEL <user-intel>` |
-+--------------------------------------+--------------------------------------+------------------------------------+----------------------------------+--------------------------------+--------------------------------+
-| :ref:`USER-MOLFILE <user-molfile>`   | :ref:`USER-NETCDF <user-netcdf>`     | :ref:`USER-PACE <user-pace>`       | :ref:`USER-PLUMED <user-plumed>` | :ref:`USER-OMP <user-omp>`     | :ref:`USER-QMMM <user-qmmm>`   |
-+--------------------------------------+--------------------------------------+------------------------------------+----------------------------------+--------------------------------+--------------------------------+
-| :ref:`USER-QUIP <user-quip>`         | :ref:`USER-SCAFACOS <user-scafacos>` | :ref:`USER-SMD <user-smd>`         | :ref:`USER-VTK <user-vtk>`       |                                |                                |
-+--------------------------------------+--------------------------------------+------------------------------------+----------------------------------+--------------------------------+--------------------------------+
+.. this list must be kept in sync with its counterpart in Build_extras.rst
+.. table_from_list::
+   :columns: 6
+
+   * :ref:`ADIOS <adios>`
+   * :ref:`ATC <atc>`
+   * :ref:`AWPMD <awpmd>`
+   * :ref:`COLVARS <colvar>`
+   * :ref:`COMPRESS <compress>`
+   * :ref:`ELECTRODE <electrode>`
+   * :ref:`GPU <gpu>`
+   * :ref:`H5MD <h5md>`
+   * :ref:`INTEL <intel>`
+   * :ref:`KIM <kim>`
+   * :ref:`KOKKOS <kokkos>`
+   * :ref:`LEPTON <lepton>`
+   * :ref:`MACHDYN <machdyn>`
+   * :ref:`MDI <mdi>`
+   * :ref:`ML-HDNNP <ml-hdnnp>`
+   * :ref:`ML-IAP <mliap>`
+   * :ref:`ML-PACE <ml-pace>`
+   * :ref:`ML-POD <ml-pod>`
+   * :ref:`ML-QUIP <ml-quip>`
+   * :ref:`MOLFILE <molfile>`
+   * :ref:`NETCDF <netcdf>`
+   * :ref:`OPENMP <openmp>`
+   * :ref:`OPT <opt>`
+   * :ref:`PLUMED <plumed>`
+   * :ref:`POEMS <poems>`
+   * :ref:`PYTHON <python>`
+   * :ref:`QMMM <qmmm>`
+   * :ref:`SCAFACOS <scafacos>`
+   * :ref:`VORONOI <voronoi>`
+   * :ref:`VTK <vtk>`
 
 The mechanism for including packages is simple but different for CMake
 versus make.
@@ -58,21 +82,17 @@ versus make.
       .. code-block:: csh
 
          -D PKG_MANYBODY=yes
-         -D PKG_USER-INTEL=yes
+         -D PKG_INTEL=yes
 
-      All standard and user packages are included the same way.  Note
-      that USER packages have a hyphen between USER and the rest of the
-      package name, not an underscore.
-
-      See the shortcut section below for how to install many packages at
-      once with CMake.
+      All packages are included the same way.  See the shortcut section
+      below for how to install many packages at once with CMake.
 
       .. note::
 
          If you switch between building with CMake and make builds, no
          packages in the src directory can be installed when you invoke
          ``cmake``.  CMake will give an error if that is not the case,
-         indicating how you can un-install all packages in the src dir.
+         indicating how you can uninstall all packages in the src dir.
 
    .. tab:: Traditional make
 
@@ -81,7 +101,7 @@ versus make.
          cd lammps/src
          make ps                    # check which packages are currently installed
          make yes-name              # install a package with name
-         make no-name               # un-install a package with name
+         make no-name               # uninstall a package with name
          make mpi                   # build LAMMPS with whatever packages are now installed
 
       Examples:
@@ -89,23 +109,21 @@ versus make.
       .. code-block:: bash
 
          make no-rigid
-         make yes-user-intel
+         make yes-intel
 
-      All standard and user packages are included the same way.
-
-      See the shortcut section below for how to install many packages at
-      once with make.
+      All packages are included the same way.  See the shortcut section
+      below for how to install many packages at once with make.
 
       .. note::
 
          You must always re-build LAMMPS (via make) after installing or
-         un-installing a package, for the action to take effect. The
+         uninstalling a package, for the action to take effect. The
          included dependency tracking will make certain only files that
          are required to be rebuilt are recompiled.
 
       .. note::
 
-         You cannot install or un-install packages and build LAMMPS in a
+         You cannot install or uninstall packages and build LAMMPS in a
          single make command with multiple targets, e.g. ``make
          yes-colloid mpi``.  This is because the make procedure creates
          a list of source files that will be out-of-date for the build
@@ -126,18 +144,18 @@ other files dependent on that package are also excluded.
 
 .. note::
 
-   By default no package is installed.  Prior to August 2018, however,
+   By default no packages are installed.  Prior to August 2018, however,
    if you downloaded a tarball, 3 packages (KSPACE, MANYBODY, MOLECULE)
    were pre-installed via the traditional make procedure in the ``src``
    directory.  That is no longer the case, so that CMake will build
-   as-is without needing to un-install those packages.
+   as-is without needing to uninstall those packages.
 
 ----------
 
 .. _cmake_presets:
 
 CMake presets for installing many packages
-""""""""""""""""""""""""""""""""""""""""""
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 Instead of specifying all the CMake options via the command-line,
 CMake allows initializing its settings cache using script files.
@@ -147,13 +165,13 @@ control flow constructs for more complex operations.
 
 LAMMPS includes several of these files to define configuration
 "presets", similar to the options that exist for the Make based
-system. Using these files you can enable/disable portions of the
-available packages in LAMMPS. If you need a custom preset you can take
-one of them as a starting point and customize it to your needs.
+system. Using these files, you can enable/disable portions of the
+available packages in LAMMPS. If you need a custom preset, you can
+make a copy of one of them and modify it to suit your needs.
 
 .. code-block:: bash
 
-    cmake -C ../cmake/presets/minimal.cmake  [OPTIONS] ../cmake  # enable just a few core packages
+    cmake -C ../cmake/presets/basic.cmake    [OPTIONS] ../cmake  # enable just a few core packages
     cmake -C ../cmake/presets/most.cmake     [OPTIONS] ../cmake  # enable most packages
     cmake -C ../cmake/presets/download.cmake [OPTIONS] ../cmake  # enable packages which download sources or potential files
     cmake -C ../cmake/presets/nolib.cmake    [OPTIONS] ../cmake  # disable packages that do require extra libraries or tools
@@ -163,7 +181,13 @@ one of them as a starting point and customize it to your needs.
     cmake -C ../cmake/presets/pgi.cmake      [OPTIONS] ../cmake  # change settings to use the PGI compilers by default
     cmake -C ../cmake/presets/all_on.cmake   [OPTIONS] ../cmake  # enable all packages
     cmake -C ../cmake/presets/all_off.cmake  [OPTIONS] ../cmake  # disable all packages
-    mingw64-cmake -C ../cmake/presets/mingw-cross.cmake [OPTIONS] ../cmake  #  compile with MinGW cross compilers
+    mingw64-cmake -C ../cmake/presets/mingw-cross.cmake [OPTIONS] ../cmake  #  compile with MinGW cross-compilers
+    cmake -C ../cmake/presets/macos-multiarch.cmake [OPTIONS] ../cmake # compile serial multi-arch binaries on macOS
+
+Presets that have names starting with "windows" are specifically for
+compiling LAMMPS :doc:`natively on Windows <Build_windows>` and
+presets that have names starting with "kokkos" are specifically for
+selecting configurations for compiling LAMMPS with :ref:`KOKKOS <kokkos>`.
 
 .. note::
 
@@ -202,56 +226,56 @@ The following commands are useful for managing package source files
 and their installation when building LAMMPS via traditional make.
 Just type ``make`` in lammps/src to see a one-line summary.
 
-These commands install/un-install sets of packages:
+These commands install/uninstall sets of packages:
 
 .. code-block:: bash
 
     make yes-all                        # install all packages
-    make no-all                         # uninstall all packages
-    make yes-standard or make yes-std   # install standard packages
-    make no-standard or make no-std     # uninstall standard packages
-    make yes-user                       # install user packages
-    make no-user                        # uninstall user packages
+    make no-all                         # check for changes and uninstall all packages
+    make no-installed                   # only check and uninstall installed packages
+    make yes-basic                      # install a few commonly used packages'
+    make no-basic                       # remove a few commonly used packages'
+    make yes-most                       # install most packages w/o libs'
+    make no-most                        # remove most packages w/o libs'
     make yes-lib                        # install packages that require extra libraries
     make no-lib                         # uninstall packages that require extra libraries
     make yes-ext                        # install packages that require external libraries
     make no-ext                         # uninstall packages that require external libraries
 
-which install/un-install various sets of packages.  Typing ``make
+which install/uninstall various sets of packages.  Typing ``make
 package`` will list all the these commands.
 
 .. note::
 
-   Installing or un-installing a package for the make based build process
+   Installing or uninstalling a package for the make based build process
    works by simply copying files back and forth between the main source
-   directory src and the sub-directories with the package name (e.g.
-   src/KSPACE, src/USER-ATC), so that the files are included or excluded
+   directory src and the subdirectories with the package name (e.g.
+   src/KSPACE, src/ATC), so that the files are included or excluded
    when LAMMPS is built.  Only source files in the src folder will be
    compiled.
 
 The following make commands help manage files that exist in both the
-src directory and in package sub-directories.  You do not normally
+src directory and in package subdirectories.  You do not normally
 need to use these commands unless you are editing LAMMPS files or are
-:doc:`installing a patch <Install_patch>` downloaded from the LAMMPS web
-site.
+updating LAMMPS via git.
 
 Type ``make package-status`` or ``make ps`` to show which packages are
 currently installed.  For those that are installed, it will list any
 files that are different in the src directory and package
-sub-directory.
+subdirectory.
 
 Type ``make package-installed`` or ``make pi`` to show which packages are
 currently installed, without listing the status of packages that are
 not installed.
 
 Type ``make package-update`` or ``make pu`` to overwrite src files with
-files from the package sub-directories if the package is installed.
-It should be used after a :doc:`patch has been applied <Install_patch>`,
-since patches only update the files in the package sub-directory, but
-not the src files.
+files from the package subdirectories if the package is installed.  It
+should be used after the checkout has been :doc:`updated or changed
+with git <Install_git>`, this will only update the files in the package
+subdirectories, but not the copies in the src folder.
 
 Type ``make package-overwrite`` to overwrite files in the package
-sub-directories with src files.
+subdirectories with src files.
 
 Type ``make package-diff`` to list all differences between pairs of
 files in both the source directory and the package directory.

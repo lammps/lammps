@@ -56,7 +56,7 @@ commands:
 The global DSMC *max_cell_size* determines the maximum cell length
 used in the DSMC calculation.  A structured mesh is overlayed on the
 simulation box such that an integer number of cells are created in
-each direction for each processor's sub-domain.  Cell lengths are
+each direction for each processor's subdomain.  Cell lengths are
 adjusted up to the user-specified maximum cell size.
 
 ----------
@@ -131,15 +131,19 @@ continued past the restart time.
 
 This pair style can only be used via the *pair* keyword of the
 :doc:`run_style respa <run_style>` command.  It does not support the
-*inner*\ , *middle*\ , *outer* keywords.
+*inner*, *middle*, *outer* keywords.
 
 ----------
 
 Restrictions
 """"""""""""
 
-This style is part of the MC package.  It is only enabled if LAMMPS
-was built with that package.  See the :doc:`Build package <Build_package>` doc page for more info.
+This pair style is part of the MC package.  It is only enabled if LAMMPS
+was built with that package.  See the :doc:`Build package
+<Build_package>` page for more info.
+
+This pair style requires an :doc:`atom style <atom_style>` with per
+atom type masses.
 
 Related commands
 """"""""""""""""

@@ -3,24 +3,20 @@ CHARMM, AMBER, COMPASS, and DREIDING force fields
 
 A force field has 2 parts: the formulas that define it and the
 coefficients used for a particular system.  Here we only discuss
-formulas implemented in LAMMPS that correspond to formulas commonly
-used in the CHARMM, AMBER, COMPASS, and DREIDING force fields.  Setting
+formulas implemented in LAMMPS that correspond to formulas commonly used
+in the CHARMM, AMBER, COMPASS, and DREIDING force fields.  Setting
 coefficients is done either from special sections in an input data file
 via the :doc:`read_data <read_data>` command or in the input script with
-commands like :doc:`pair_coeff <pair_coeff>` or
-:doc:`bond_coeff <bond_coeff>` and so on.  See the :doc:`Tools <Tools>` doc
-page for additional tools that can use CHARMM, AMBER, or Materials
-Studio generated files to assign force field coefficients and convert
-their output into LAMMPS input.
+commands like :doc:`pair_coeff <pair_coeff>` or :doc:`bond_coeff
+<bond_coeff>` and so on.  See the :doc:`Tools <Tools>` doc page for
+additional tools that can use CHARMM, AMBER, or Materials Studio
+generated files to assign force field coefficients and convert their
+output into LAMMPS input.
 
-See :ref:`(MacKerell) <howto-MacKerell>` for a description of the CHARMM force
-field.  See :ref:`(Cornell) <howto-Cornell>` for a description of the AMBER
-force field.  See :ref:`(Sun) <howto-Sun>` for a description of the COMPASS
-force field.
-
-.. _charmm: http://www.scripps.edu/brooks
-
-.. _amber: http://amber.scripps.edu
+See :ref:`(MacKerell) <howto-MacKerell>` for a description of the CHARMM
+force field.  See :ref:`(Cornell) <howto-Cornell>` for a description of
+the AMBER force field.  See :ref:`(Sun) <howto-Sun>` for a description
+of the COMPASS force field.
 
 The interaction styles listed below compute force field formulas that
 are consistent with common options in CHARMM or AMBER.  See each
@@ -41,15 +37,16 @@ command's documentation for the formula it computes.
 
 .. note::
 
-   For CHARMM, newer *charmmfsw* or *charmmfsh* styles were released
-   in March 2017.  We recommend they be used instead of the older *charmm*
-   styles.  See discussion of the differences on the :doc:`pair charmm <pair_charmm>` and :doc:`dihedral charmm <dihedral_charmm>` doc
+   For CHARMM, newer *charmmfsw* or *charmmfsh* styles were released in
+   March 2017.  We recommend they be used instead of the older *charmm*
+   styles.  See discussion of the differences on the :doc:`pair charmm
+   <pair_charmm>` and :doc:`dihedral charmm <dihedral_charmm>` doc
    pages.
 
 COMPASS is a general force field for atomistic simulation of common
 organic molecules, inorganic small molecules, and polymers which was
 developed using ab initio and empirical parameterization techniques.
-See the :doc:`Tools <Tools>` doc page for the msi2lmp tool for creating
+See the :doc:`Tools <Tools>` page for the msi2lmp tool for creating
 LAMMPS template input and data files from BIOVIA's Materials Studio
 files.  Please note that the msi2lmp tool is very old and largely
 unmaintained, so it does not support all features of Materials Studio

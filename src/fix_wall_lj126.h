@@ -1,7 +1,7 @@
 /* -*- c++ -*- ----------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    https://www.lammps.org/, Sandia National Laboratories
-   Steve Plimpton, sjplimp@sandia.gov
+   LAMMPS development team: developers@lammps.org
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
@@ -27,8 +27,8 @@ namespace LAMMPS_NS {
 class FixWallLJ126 : public FixWall {
  public:
   FixWallLJ126(class LAMMPS *, int, char **);
-  void precompute(int);
-  void wall_particle(int, int, double);
+  void precompute(int) override;
+  void wall_particle(int, int, double) override;
 
  private:
   double coeff1[6], coeff2[6], coeff3[6], coeff4[6], offset[6];
@@ -38,12 +38,3 @@ class FixWallLJ126 : public FixWall {
 
 #endif
 #endif
-
-/* ERROR/WARNING messages:
-
-E: Particle on or inside fix wall surface
-
-Particles must be "exterior" to the wall in order for energy/force to
-be calculated.
-
-*/

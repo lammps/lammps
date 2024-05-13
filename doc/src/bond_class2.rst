@@ -55,7 +55,7 @@ Restrictions
 """"""""""""
 
 This bond style can only be used if LAMMPS was built with the CLASS2
-package.  See the :doc:`Build package <Build_package>` doc page for more
+package.  See the :doc:`Build package <Build_package>` page for more
 info.
 
 Related commands

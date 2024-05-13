@@ -6,7 +6,7 @@ fix atc command
 Syntax
 """"""
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    fix <fixID> <group> atc <type> <parameter_file>
 
@@ -40,8 +40,8 @@ This fix is the beginning to creating a coupled FE/MD simulation and/or
 an on-the-fly estimation of continuum fields. The coupled versions of
 this fix do Verlet integration and the post-processing does not. After
 instantiating this fix, several other fix_modify commands will be
-needed to set up the problem, e.g. define the finite element mesh and
-prescribe initial and boundary conditions.
+needed to set up the problem (i.e., define the finite element mesh and
+prescribe initial and boundary conditions).
 
 .. image:: JPG/atc_nanotube.jpg
    :align: center
@@ -147,7 +147,7 @@ Restrictions
 Thermal and two_temperature (coupling) types use a Verlet
 time-integration algorithm. The hardy type does not contain its own
 time-integrator and must be used with a separate fix that does contain
-one, e.g. nve, nvt, etc. In addition, currently:
+one (e.g., nve, nvt). In addition, currently:
 
 * the coupling is restricted to thermal physics
 * the FE computations are done in serial on each processor.
@@ -159,8 +159,8 @@ Related commands
 
 After specifying this fix in your input script, several
 :doc:`fix_modify AtC <fix_modify>` commands are used to setup the
-problem, e.g. define the finite element mesh and prescribe initial and
-boundary conditions.  Each of these options has its own doc page.
+problem (e.g., define the finite element mesh and prescribe initial and
+boundary conditions).  Each of these options has its own doc page.
 
 *fix_modify* commands for setup:
 
@@ -253,7 +253,7 @@ miscellaneous *fix_modify* commands:
 * :doc:`fix_modify AtC remove_molecule <atc_remove_molecule>`
 
 Note: a set of example input files with the attendant material files
-are included in the ``examples/USER/atc`` folders.
+are included in the ``examples/PACKAGES/atc`` folders.
 
 Default
 """""""
@@ -266,51 +266,51 @@ For detailed exposition of the theory and algorithms please see:
 .. _Wagner:
 
 **(Wagner)** Wagner, GJ; Jones, RE; Templeton, JA; Parks, MA, "An
- atomistic-to-continuum coupling method for heat transfer in solids."
- Special Issue of Computer Methods and Applied Mechanics (2008)
- 197:3351.
+atomistic-to-continuum coupling method for heat transfer in solids."
+Special Issue of Computer Methods and Applied Mechanics (2008)
+197:3351.
 
 .. _Zimmeman2004:
 
 **(Zimmerman2004)** Zimmerman, JA; Webb, EB; Hoyt, JJ;. Jones, RE;
- Klein, PA; Bammann, DJ, "Calculation of stress in atomistic
- simulation." Special Issue of Modelling and Simulation in Materials
- Science and Engineering (2004), 12:S319.
+Klein, PA; Bammann, DJ, "Calculation of stress in atomistic
+simulation." Special Issue of Modelling and Simulation in Materials
+Science and Engineering (2004), 12:S319.
 
 .. _Zimmerman2010:
 
 **(Zimmerman2010)** Zimmerman, JA; Jones, RE; Templeton, JA, "A
- material frame approach for evaluating continuum variables in
- atomistic simulations." Journal of Computational Physics (2010),
- 229:2364.
+material frame approach for evaluating continuum variables in
+atomistic simulations." Journal of Computational Physics (2010),
+229:2364.
 
 .. _Templeton2010:
 
 **(Templeton2010)** Templeton, JA; Jones, RE; Wagner, GJ, "Application
- of a field-based method to spatially varying thermal transport
- problems in molecular dynamics." Modelling and Simulation in
- Materials Science and Engineering (2010), 18:085007.
+of a field-based method to spatially varying thermal transport
+problems in molecular dynamics." Modelling and Simulation in
+Materials Science and Engineering (2010), 18:085007.
 
 .. _Jones:
 
 **(Jones)** Jones, RE; Templeton, JA; Wagner, GJ; Olmsted, D; Modine,
- JA, "Electron transport enhanced molecular dynamics for metals and
- semi-metals." International Journal for Numerical Methods in
- Engineering (2010), 83:940.
+JA, "Electron transport enhanced molecular dynamics for metals and
+semi-metals." International Journal for Numerical Methods in
+Engineering (2010), 83:940.
 
 .. _Templeton2011:
 
 **(Templeton2011)** Templeton, JA; Jones, RE; Lee, JW; Zimmerman, JA;
- Wong, BM, "A long-range electric field solver for molecular dynamics
- based on atomistic-to-continuum modeling." Journal of Chemical Theory
- and Computation (2011), 7:1736.
+Wong, BM, "A long-range electric field solver for molecular dynamics
+based on atomistic-to-continuum modeling." Journal of Chemical Theory
+and Computation (2011), 7:1736.
 
 .. _Mandadapu:
 
 **(Mandadapu)** Mandadapu, KK; Templeton, JA; Lee, JW, "Polarization
- as a field variable from molecular dynamics simulations." Journal of
- Chemical Physics (2013), 139:054115.
+as a field variable from molecular dynamics simulations." Journal of
+Chemical Physics (2013), 139:054115.
 
-Please refer to the standard finite element (FE) texts, e.g. T.J.R
-Hughes " The finite element method ", Dover 2003, for the basics of FE
-simulation.
+Please refer to the standard finite element (FE) texts (e.g., T.J.R.
+Hughes, *The Finite Element Method,* Dover 2003) for the basics of FE
+simulations.

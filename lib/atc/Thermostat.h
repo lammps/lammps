@@ -22,22 +22,22 @@ namespace ATC {
    *  @brief  Manager class for atom-continuum control of thermal energy
    */
   class Thermostat : public AtomicRegulator {
-  
+
   public:
 
     // constructor
     Thermostat(ATC_Coupling * atc,
                const std::string & regulatorPrefix = "");
-        
+
     // destructor
     virtual ~Thermostat(){};
-        
+
     /** parser/modifier */
     virtual bool modify(int narg, char **arg);
 
     /** instantiate up the desired method(s) */
     virtual void construct_methods();
-        
+
     // data access, intended for method objects
     /** reset the nodal power to a prescribed value */
     virtual void reset_lambda_contribution(const DENS_MAT & target);
@@ -57,10 +57,10 @@ namespace ATC {
     int lambdaMaxIterations_;
 
   private:
-    
+
     // DO NOT define this
     Thermostat();
-        
+
   };
 
   /**
@@ -68,15 +68,15 @@ namespace ATC {
    *  @brief  Class for thermostat algorithms using the shape function matrices
    *          (thermostats have general for of N^T w N lambda = rhs)
    */
-  
+
   class ThermostatShapeFunction : public RegulatorShapeFunction {
 
-  
+
   public:
-  
+
     ThermostatShapeFunction(AtomicRegulator * thermostat,
                             const std::string & regulatorPrefix = "");
-        
+
     virtual ~ThermostatShapeFunction() {};
 
     /** instantiate all needed data */
@@ -89,9 +89,9 @@ namespace ATC {
     virtual void set_weights();
 
     // member data
-    
+
     /** MD mass matrix */
-    DIAG_MAN & mdMassMatrix_;  
+    DIAG_MAN & mdMassMatrix_;
 
     /** pointer to atom velocities */
     FundamentalAtomQuantity * atomVelocities_;
@@ -110,20 +110,20 @@ namespace ATC {
    *  @class  ThermostatRescale
    *  @brief  Enforces constraint on atomic kinetic energy based on FE temperature
    */
-  
+
   class ThermostatRescale : public ThermostatShapeFunction {
-  
+
   public:
 
     friend class KinetoThermostatRescale; // since this is sometimes used as a set of member functions for friend
-  
+
     ThermostatRescale(AtomicRegulator * thermostat);
-        
+
     virtual ~ThermostatRescale() {};
 
     /** instantiate all needed data */
     virtual void construct_transfers();
-        
+
     /** applies thermostat to atoms in the post-corrector phase */
     virtual void apply_post_corrector(double dt);
 
@@ -133,7 +133,7 @@ namespace ATC {
 
     /** get data for output */
     virtual void output(OUTPUT_LIST & outputData);
-        
+
   protected:
 
     /** set weighting factor for in matrix Nhat^T * weights * Nhat */
@@ -147,7 +147,7 @@ namespace ATC {
 
     /** construct the RHS vector */
     virtual void set_rhs(DENS_MAT & rhs);
-        
+
     /** FE temperature field */
     DENS_MAN & nodalTemperature_;
 
@@ -161,7 +161,7 @@ namespace ATC {
 
     // DO NOT define this
     ThermostatRescale();
-  
+
   };
 
   /**
@@ -169,13 +169,13 @@ namespace ATC {
    *  @brief  Enforces constraint on atomic kinetic energy based on FE temperature
    *          when the temperature is a mix of the KE and PE
    */
-  
+
   class ThermostatRescaleMixedKePe : public ThermostatRescale {
-  
+
   public:
-  
+
     ThermostatRescaleMixedKePe(AtomicRegulator * thermostat);
-        
+
     virtual ~ThermostatRescaleMixedKePe() {};
 
     /** instantiate all needed data */
@@ -183,7 +183,7 @@ namespace ATC {
 
     /** pre-run initialization of method data */
     virtual void initialize();
-        
+
   protected:
 
     /** set weighting factor for in matrix Nhat^T * weights * Nhat */
@@ -205,7 +205,7 @@ namespace ATC {
 
     // DO NOT define this
     ThermostatRescaleMixedKePe();
-  
+
   };
 
     /**
@@ -213,16 +213,16 @@ namespace ATC {
    *  @brief  Class for solving the linear system for lambda
    *          (thermostats have general for of N^T w N lambda = rhs)
    */
-  
+
   class ThermostatFsSolver : public RegulatorShapeFunction {
 
-  
+
   public:
-  
+
     ThermostatFsSolver(AtomicRegulator * thermostat,
                        int lambdaMaxIterations,
                        const std::string & regulatorPrefix = "");
-        
+
     virtual ~ThermostatFsSolver() {};
 
     /** pre-run initialization of method data */
@@ -240,7 +240,7 @@ namespace ATC {
 
   protected:
 
-    // methods  
+    // methods
     /** solves the non-linear equation for lambda iteratively */
     void iterate_lambda(const MATRIX & rhs);
 
@@ -277,15 +277,15 @@ namespace ATC {
    *  @class  ThermostatGlcFs
    *  @brief  Class for thermostat algorithms which perform the time-integration component of the fractional step method
    */
-  
+
   class ThermostatGlcFs : public RegulatorMethod {
-  
+
   public:
-  
+
     ThermostatGlcFs(AtomicRegulator * thermostat,
                     int lambdaMaxIterations,
                     const std::string & regulatorPrefix = "");
-        
+
     virtual ~ThermostatGlcFs() {};
 
     /** instantiate all needed data */
@@ -302,10 +302,10 @@ namespace ATC {
 
     /** applies thermostat to atoms in the post-corrector phase */
     virtual void apply_post_corrector(double dt);
-    
+
     /** compute boundary flux, requires regulator input since it is part of the coupling scheme */
     virtual void compute_boundary_flux(FIELDS & fields);
-    
+
     /** get data for output */
     virtual void output(OUTPUT_LIST & outputData);
 
@@ -343,9 +343,9 @@ namespace ATC {
     /** solver for lambda linear system */
     ThermostatFsSolver * lambdaSolver_;
 
-    
+
     /** MD mass matrix */
-    DIAG_MAN & mdMassMatrix_;  
+    DIAG_MAN & mdMassMatrix_;
 
     /** pointer to atom velocities */
     FundamentalAtomQuantity * atomVelocities_;
@@ -413,18 +413,18 @@ namespace ATC {
    */
 
   class ThermostatSolverFlux : public ThermostatFsSolver {
-  
+
   public:
-  
+
     ThermostatSolverFlux(AtomicRegulator * thermostat,
                          int lambdaMaxIterations,
                          const std::string & regulatorPrefix = "");
-        
+
     virtual ~ThermostatSolverFlux() {};
 
     /** instantiate all needed data */
     virtual void construct_transfers();
-       
+
   protected:
 
     // methods
@@ -444,18 +444,18 @@ namespace ATC {
    */
 
   class ThermostatIntegratorFlux : public ThermostatGlcFs {
-  
+
   public:
-  
+
     ThermostatIntegratorFlux(AtomicRegulator * thermostat,
                              int lambdaMaxIterations,
                              const std::string & regulatorPrefix = "");
-        
+
     virtual ~ThermostatIntegratorFlux() {};
 
     /** pre-run initialization of method data */
     virtual void initialize();
-       
+
   protected:
 
     /** sets up appropriate rhs for thermostat equations */
@@ -484,18 +484,18 @@ namespace ATC {
    */
 
   class ThermostatSolverFixed : public ThermostatFsSolver {
-  
+
   public:
-  
+
     ThermostatSolverFixed(AtomicRegulator * thermostat,
                           int lambdaMaxIterations,
                           const std::string & regulatorPrefix = "");
-        
+
     virtual ~ThermostatSolverFixed() {};
 
     /** instantiate all needed data */
     virtual void construct_transfers();
-       
+
   protected:
 
     // methods
@@ -515,13 +515,13 @@ namespace ATC {
    */
 
   class ThermostatIntegratorFixed : public ThermostatGlcFs {
-  
+
   public:
-  
+
     ThermostatIntegratorFixed(AtomicRegulator * thermostat,
                               int lambdaMaxIterations,
                               const std::string & regulatorPrefix = "");
-        
+
     virtual ~ThermostatIntegratorFixed() {};
 
     /** instantiate all needed data */
@@ -529,7 +529,7 @@ namespace ATC {
 
     /** pre-run initialization of method data */
     virtual void initialize();
-        
+
     /** applies thermostat to atoms in the predictor phase */
     virtual void apply_pre_predictor(double dt);
 
@@ -545,7 +545,7 @@ namespace ATC {
 
     /** determine if local shape function matrices are needed */
     virtual bool use_local_shape_functions() const {return atomicRegulator_->use_localized_lambda();};
-        
+
   protected:
 
     // methods
@@ -613,13 +613,13 @@ namespace ATC {
    */
 
   class ThermostatIntegratorFluxFiltered : public ThermostatIntegratorFlux {
-  
+
   public:
-  
+
     ThermostatIntegratorFluxFiltered(AtomicRegulator * thermostat,
                                      int lambdaMaxIterations,
                                      const std::string & regulatorPrefix = "");
-        
+
     virtual ~ThermostatIntegratorFluxFiltered() {};
 
     /** pre-run initialization of method data */
@@ -630,7 +630,7 @@ namespace ATC {
 
     /** get data for output */
     virtual void output(OUTPUT_LIST & outputData);
-       
+
   protected:
 
     /** sets up appropriate rhs for thermostat equations */
@@ -660,20 +660,20 @@ namespace ATC {
    *  @brief  Class for thermostatting using the temperature matching constraint and is compatible with
  the fractional step time-integration with time filtering
    */
-  
+
   class ThermostatIntegratorFixedFiltered : public ThermostatIntegratorFixed {
-  
+
   public:
-  
+
     ThermostatIntegratorFixedFiltered(AtomicRegulator * thermostat,
                                       int lambdaMaxIterations,
                                       const std::string & regulatorPrefix = "");
-        
+
     virtual ~ThermostatIntegratorFixedFiltered() {};
 
     /** get data for output */
     virtual void output(OUTPUT_LIST & outputData);
-        
+
   protected:
 
     // methods
@@ -711,7 +711,7 @@ namespace ATC {
     ThermostatFluxFixed(AtomicRegulator * thermostat,
                         int lambdaMaxIterations,
                         bool constructThermostats = true);
-        
+
     virtual ~ThermostatFluxFixed();
 
     /** instantiate all needed data */
@@ -728,7 +728,7 @@ namespace ATC {
 
     /** applies thermostat to atoms in the post-corrector phase */
     virtual void apply_post_corrector(double dt);
-    
+
     /** get data for output */
     virtual void output(OUTPUT_LIST & outputData);
 
@@ -765,7 +765,7 @@ namespace ATC {
 
     ThermostatFluxFixedFiltered(AtomicRegulator * thermostat,
                                 int lambdaMaxIterations);
-        
+
     virtual ~ThermostatFluxFixedFiltered(){};
 
   private:
@@ -779,13 +779,13 @@ namespace ATC {
    *  @class  ThermostatGlc
    *  @brief  Class for thermostat algorithms based on Gaussian least constraints (GLC)
    */
-  
+
   class ThermostatGlc : public ThermostatShapeFunction {
-  
+
   public:
-  
+
     ThermostatGlc(AtomicRegulator * thermostat);
-        
+
     virtual ~ThermostatGlc() {};
 
     /** instantiate all needed data */
@@ -795,7 +795,7 @@ namespace ATC {
 
     // methods
     /** apply forces to atoms */
-    virtual void apply_to_atoms(PerAtomQuantity<double> * atomicVelocity, 
+    virtual void apply_to_atoms(PerAtomQuantity<double> * atomicVelocity,
                                 const DENS_MAT & lambdaForce,
                                 double dt);
 
@@ -830,21 +830,21 @@ namespace ATC {
    *  @brief  Class for thermostatting using the heat flux matching constraint and is compatible with
  the Gear time-integration
    */
-  
+
   class ThermostatPowerVerlet : public ThermostatGlc {
-  
+
   public:
 
     ThermostatPowerVerlet(AtomicRegulator * thermostat);
-        
+
     virtual ~ThermostatPowerVerlet() {};
 
     /** instantiate all needed data */
     virtual void construct_transfers();
-    
+
     /** pre-run initialization of method data */
     virtual void initialize();
-        
+
     /** applies thermostat to atoms in the predictor phase */
     virtual void apply_pre_predictor(double dt);
 
@@ -895,19 +895,19 @@ namespace ATC {
     ThermostatPowerVerlet();
 
   };
-  
+
   /**
    *  @class  ThermostatHooverVerlet
    *  @brief  Classfor thermostatting using the temperature matching constraint and is compatible with
- Gear time-integration 
+ Gear time-integration
    */
-  
+
   class ThermostatHooverVerlet : public ThermostatPowerVerlet {
-  
+
   public:
 
     ThermostatHooverVerlet(AtomicRegulator * thermostat);
-        
+
     virtual ~ThermostatHooverVerlet() {};
 
     /** instantiate all needed data */
@@ -956,13 +956,13 @@ namespace ATC {
    *  @brief  Class for thermostatting using the heat flux matching constraint and is compatible with
  Gear time-integration with time filtering
    */
-  
+
   class ThermostatPowerVerletFiltered : public ThermostatPowerVerlet {
-  
+
   public:
 
     ThermostatPowerVerletFiltered(AtomicRegulator * thermostat);
-        
+
     virtual ~ThermostatPowerVerletFiltered(){};
 
     /** get data for output */
@@ -987,7 +987,7 @@ namespace ATC {
 
     /** references to ATC field rates of changing for inverting the filtered heat sources */
     FIELDS & fieldsRoc_;
-   
+
     /** flux rate of changes for inverting filtered fluxes */
     FIELDS fluxRoc_;
 
@@ -1006,21 +1006,21 @@ namespace ATC {
    *  @brief  Class for thermostatting using the temperature matching constraint and is compatible with
  Gear time-integration with time filtering
    */
-  
+
   class ThermostatHooverVerletFiltered : public ThermostatPowerVerletFiltered {
-  
+
   public:
 
     ThermostatHooverVerletFiltered(AtomicRegulator * thermostat);
-        
+
     virtual ~ThermostatHooverVerletFiltered() {};
 
     /** instantiate all needed data */
     virtual void construct_transfers();
-    
+
     /** final tasks of a run */
     virtual void finish() {};
-    
+
     /** compute boundary flux, requires thermostat input since it is part of the coupling scheme */
     virtual void compute_boundary_flux(FIELDS & /* fields */)
       {boundaryFlux_[TEMPERATURE] = 0.;};

@@ -1,7 +1,7 @@
 /* -*- c++ -*- ----------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    https://www.lammps.org/ Sandia National Laboratories
-   Steve Plimpton, sjplimp@sandia.gov
+   LAMMPS Development team: developers@lammps.org
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
@@ -22,6 +22,8 @@ class TestConfigReader : public YamlReader<TestConfigReader> {
 
 public:
     TestConfigReader(TestConfig &config);
+    TestConfigReader() = delete;
+    const TestConfigReader & operator=(TestConfig &) = delete;
 
     void skip_tests(const yaml_event_t &event);
     void prerequisites(const yaml_event_t &event);
@@ -58,6 +60,7 @@ public:
     void run_energy(const yaml_event_t &event);
     void global_scalar(const yaml_event_t &event);
     void global_vector(const yaml_event_t &event);
+    void tags(const yaml_event_t &event);
 };
 
 #endif

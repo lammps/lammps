@@ -128,12 +128,12 @@ Makefile.lammps is created by the make command, by copying one of the
 Makefile.lammps.* files.  See the EXTRAMAKE setting at the top of the
 Makefile.* files.
 
-IMPORTANT: You should examine the final Makefile.lammps to insure it is
+IMPORTANT: You should examine the final Makefile.lammps to ensure it is
 correct for your system, else the LAMMPS build can fail.
 
 IMPORTANT: If you re-build the library, e.g. for a different precision
 (see below), you should do a "make clean" first, e.g. make -f
-Makefile.linux clean, to insure all previous derived files are removed
+Makefile.linux clean, to ensure all previous derived files are removed
 before the new build is done.
 
 NOTE: The system-specific setting LAMMPS_SMALLBIG (default), LAMMPS_BIGBIG,
@@ -171,7 +171,13 @@ NOTE: when compiling with CMake, all of the considerations listed below
 are considered within the CMake configuration process, so no separate
 compilation of the gpu library is required. Also this will build in support
 for all compute architecture that are supported by the CUDA toolkit version
-used to build the gpu library.
+used to build the gpu library.  A similar setup is possible using
+Makefile.linux_multi after adjusting the settings for the CUDA toolkit in use.
+
+Only CUDA toolkit version 8.0 and later and only GPU architecture 3.0
+(aka Kepler) and later are supported by this version of LAMMPS. If you want
+to use older hard- or software you have to compile for OpenCL or use an older
+version of LAMMPS.
 
 If you do not want to use a fat binary, that supports multiple CUDA
 architectures, the CUDA_ARCH must be set to match the GPU architecture. This
@@ -199,8 +205,7 @@ $(CUDA_HOME)/lib64/stubs), that can be used for linking.
 Best performance with the GPU library is typically with multiple MPI processes
 sharing the same GPU cards. For NVIDIA, this is most efficient with CUDA
 MPS enabled. To prevent runtime errors for GPUs configured in exclusive process
-mode with MPS, the GPU library should be build with either of the equivalent
--DCUDA_MPS_SUPPORT or -DCUDA_PROXY flags.
+mode with MPS, the GPU library should be build with the -DCUDA_MPS_SUPPORT flag.
 
 ------------------------------------------------------------------------------
                              HIP BUILD NOTES
@@ -225,7 +230,8 @@ If GERYON_NUMA_FISSION is defined at build time, LAMMPS will consider separate
 NUMA nodes on GPUs or accelerators as separate devices. For example, a 2-socket
 CPU would appear as two separate devices for OpenCL (and LAMMPS would require
 two MPI processes to use both sockets with the GPU library - each with its
-own device ID as output by ocl_get_devices).
+own device ID as output by ocl_get_devices). OpenCL version 1.2 or later is
+required.
 
 For a debug build, use "-DUCL_DEBUG -DGERYON_KERNEL_DUMP" and remove
 "-DUCL_NO_EXIT" and "-DMPI_GERYON" from the build options.
@@ -237,7 +243,6 @@ _SINGLE_SINGLE          Build library for single precision mode
 _SINGLE_DOUBLE          Build library for mixed precision mode
 _DOUBLE_DOUBLE          Build library for double precision mode
 CUDA_MPS_SUPPORT        Do not generate errors for exclusive mode for CUDA
-CUDA_PROXY              Same as above
 MPI_GERYON              Library should use MPI_Abort for unhandled errors
 GERYON_NUMA_FISSION     Accelerators with main memory NUMA are split into
                         multiple virtual accelerators for each NUMA node
@@ -257,6 +262,21 @@ GERYON_KERNEL_DUMP      Dump all compiled OpenCL programs with compiler
                         flags and build logs
 GPU_CAST                Casting performed on GPU, untested recently
 THREE_CONCURRENT        Concurrent 3-body calcs in separate queues, untested
+LAL_SERIALIZE_INIT      Force serialization of initialization and compilation
+                        for multiple MPI tasks sharing the same accelerator.
+                        Some accelerator API implementations have had issues
+                        with temporary file conflicts in the past.
+LAL_DISABLE_PREFETCH    Disable prefetch in kernels
+GERYON_FORCE_SHARED_MAIN_MEM_ON      Should only be used for builds where the
+                                     accelerator is guaranteed to share physical
+                                     main memory with the host (e.g. integrated
+                                     GPU or CPU device). Default behavior is to
+                                     auto-detect. Impacts OpenCL only.
+GERYON_FORCE_SHARED_MAIN_MEM_OFF     Should only be used for builds where the
+                                     accelerator is guaranteed to have discrete
+                                     physical main memory vs the host (discrete
+                                     GPU card). Default behavior is to
+                                     auto-detect. Impacts OpenCL only.
 
 
 ------------------------------------------------------------------------------

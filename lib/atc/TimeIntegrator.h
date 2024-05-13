@@ -18,7 +18,7 @@ namespace ATC {
    */
 
   class AtomTimeIntegrator {
-  
+
   public:
 
     // constructor
@@ -29,7 +29,7 @@ namespace ATC {
 
     /** create and get necessary transfer operators */
     virtual void construct_transfers(){};
-        
+
    /** Predictor phase, Verlet first step for velocity */
     virtual void init_integrate_velocity(double /* dt */){};
 
@@ -47,7 +47,7 @@ namespace ATC {
    */
 
   class AtomTimeIntegratorType : public AtomTimeIntegrator {
-  
+
   public:
 
     // constructor
@@ -58,7 +58,7 @@ namespace ATC {
 
     /** create and get necessary transfer operators */
     virtual void construct_transfers();
-        
+
    /** Predictor phase, Verlet first step for velocity */
     virtual void init_integrate_velocity(double dt);
 
@@ -102,9 +102,9 @@ namespace ATC {
    *  @class  TimeIntegrator
    *  @brief  Base class for various time integrators for FE quantities
    */
-  
+
   class TimeIntegrator {
-  
+
   public:
 
     /** types of time integration */
@@ -119,14 +119,14 @@ namespace ATC {
       CRANK_NICOLSON,
       DIRECT
     };
-      
+
     // constructor
     TimeIntegrator(ATC_Coupling * atc,
                    TimeIntegrationType timeIntegrationType = STEADY);
-        
+
     // destructor
     virtual ~TimeIntegrator();
-        
+
     /** parser/modifier */
     virtual bool modify(int /* narg */, char ** /* arg */){return false;};
 
@@ -141,7 +141,7 @@ namespace ATC {
 
     /** flag if reset is needed */
     bool need_reset() const {return needReset_;};
-        
+
     // time step methods, corresponding to ATC_Coupling
     /** first part of pre_initial_integrate */
     virtual void pre_initial_integrate1(double dt);
@@ -152,12 +152,12 @@ namespace ATC {
     virtual void post_initial_integrate1(double dt);
     /** second part of post_initial_integrate */
     virtual void post_initial_integrate2(double dt);
-        
+
     /** first part of pre_final_integrate */
     virtual void pre_final_integrate1(double dt);
     /** second part of pre_final_integrate */
     virtual void pre_final_integrate2(double dt);
-        
+
     /** first part of post_final_integrate */
     virtual void post_final_integrate1(double dt);
     /** second part of post_final_integrate */
@@ -206,19 +206,19 @@ namespace ATC {
 
     /** pointer to time integrator method */
     TimeIntegrationMethod * timeIntegrationMethod_;
-        
+
     /** pointer to access ATC methods */
     ATC_Coupling * atc_;
-        
+
     /** time filter for specific updates */
     TimeFilter * timeFilter_;
 
     /** time filter manager for getting time filtering info */
     TimeFilterManager * timeFilterManager_;
-        
+
     /** type of integration scheme being used */
     TimeIntegrationType timeIntegrationType_;
-  
+
     /** flat to reset data */
     bool needReset_;
 
@@ -235,12 +235,12 @@ namespace ATC {
    */
 
   class TimeIntegrationMethod {
-  
+
   public:
-  
+
     // constructor
     TimeIntegrationMethod(TimeIntegrator * timeIntegrator);
-        
+
     // destructor
     virtual ~TimeIntegrationMethod(){};
 
@@ -248,7 +248,7 @@ namespace ATC {
     virtual void construct_transfers(){};
     /** pre time integration */
     virtual void initialize(){};
-        
+
     // time step methods, corresponding to ATC_Coupling and TimeIntegrator
     /** first part of pre_initial_integrate */
     virtual void pre_initial_integrate1(double /* dt */){};
@@ -259,12 +259,12 @@ namespace ATC {
     virtual void post_initial_integrate1(double /* dt */){};
     /** second part of post_initial_integrate */
     virtual void post_initial_integrate2(double /* dt */){};
-        
+
     /** first part of pre_final_integrate */
     virtual void pre_final_integrate1(double /* dt */){};
     /** second part of pre_final_integrate */
     virtual void pre_final_integrate2(double /* dt */){};
-        
+
     /** first part of post_final_integrate */
     virtual void post_final_integrate1(double /* dt */){};
     /** second part of post_final_integrate */
@@ -288,7 +288,7 @@ namespace ATC {
 
     /** finalize any states */
     virtual void finish(){};
-        
+
   protected:
 
     /** owning time integrator */
@@ -358,7 +358,7 @@ namespace ATC {
     dot_f  = dot_f  + (1./dt)*R_f;
     ddot_f = ddot_f + (1./dt/dt)*R_f;
   };
-  
+
   inline void explicit_1(MATRIX & f,
                          const MATRIX & dot_f,
                          double dt)

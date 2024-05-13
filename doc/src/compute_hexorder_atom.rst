@@ -6,7 +6,7 @@ compute hexorder/atom command
 Syntax
 """"""
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    compute ID group-ID hexorder/atom keyword values ...
 
@@ -48,7 +48,7 @@ is formed by the bond vector :math:`r_{ij}` and the *x* axis.
 :math:`\theta` is calculated only using the *x* and *y* components,
 whereas the distance from the
 central atom is calculated using all three
-*x*\ , *y*\ , and *z* components of the bond vector.
+*x*, *y*, and *z* components of the bond vector.
 Neighbor atoms not in the group
 are included in the order parameter of atoms in the group.
 
@@ -102,7 +102,7 @@ Output info
 
 This compute calculates a per-atom array with 2 columns, giving the
 real and imaginary parts :math:`q_n`, a complex number restricted to the
-unit disk of the complex plane i.e. :math:`Re(q_n)^2 + Im(q_n)^2 <= 1`.
+unit disk of the complex plane (i.e., :math:`\Re(q_n)^2 + \Im(q_n)^2 \le 1`).
 
 These values can be accessed by any command that uses per-atom values
 from a compute as input.  See the :doc:`Howto output <Howto_output>` doc
@@ -110,7 +110,9 @@ page for an overview of LAMMPS output options.
 
 Restrictions
 """"""""""""
- none
+
+This compute is part of the EXTRA-COMPUTE package.  It is only enabled if
+LAMMPS was built with that package.  See the :doc:`Build package <Build_package>` page for more info.
 
 Related commands
 """"""""""""""""

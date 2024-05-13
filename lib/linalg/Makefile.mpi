@@ -6,21 +6,17 @@ SHELL = /bin/sh
 
 # ------ FILES ------
 
-SRC =	$(wildcard *.f)
-SRC1 =	$(wildcard *.F)
-
-FILES = $(SRC) $(SRC1) Makefile.* README
+SRC =	$(wildcard *.cpp)
 
 # ------ DEFINITIONS ------
 
 LIB = liblinalg.a
-OBJ =   $(SRC:.f=.o) $(SRC1:.F=.o)
+OBJ =   $(SRC:.cpp=.o)
 
 # ------ SETTINGS ------
 
-FC =          mpifort
-FFLAGS =      -O3 -fPIC
-FFLAGS0 =     -O0 -fPIC
+CC =          mpicxx
+CCFLAGS =      -O3 -fPIC
 ARCHIVE =	ar
 AR =	ar
 ARCHFLAG =	-rcs
@@ -34,20 +30,11 @@ lib: 	$(OBJ)
 
 # ------ COMPILE RULES ------
 
-%.o:%.F
-	$(FC) $(FFLAGS) -c $<
-
-%.o:%.f
-	$(FC) $(FFLAGS) -c $<
-
-dlamch.o: dlamch.f
-	$(FC) $(FFLAGS0) -c $<
+%.o:%.cpp
+	$(CC) $(CCFLAGS) -c $<
 
 # ------ CLEAN ------
 
 clean:
-	-rm -f *.o *.mod *~ $(LIB)
-
-tar:
-	-tar -czvf ../linalg.tar.gz $(FILES)
+	-rm -f *.o *~ $(LIB)
 

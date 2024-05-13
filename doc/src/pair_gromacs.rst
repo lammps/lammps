@@ -53,7 +53,7 @@ Description
 The *lj/gromacs* styles compute shifted LJ and Coulombic interactions
 with an additional switching function S(r) that ramps the energy and force
 smoothly to zero between an inner and outer cutoff.  It is a commonly
-used potential in the `GROMACS <http://www.gromacs.org>`_ MD code and for
+used potential in the `GROMACS <https://www.gromacs.org>`_ MD code and for
 the coarse-grained models of :ref:`(Marrink) <Marrink>`.
 
 .. math::
@@ -140,13 +140,16 @@ not need to be specified in an input script that reads a restart file.
 
 All of the GROMACS pair styles can only be used via the *pair*
 keyword of the :doc:`run_style respa <run_style>` command.  They do not
-support the *inner*\ , *middle*\ , *outer* keywords.
+support the *inner*, *middle*, *outer* keywords.
 
 ----------
 
 Restrictions
 """"""""""""
- none
+
+This pair style is part of the EXTRA-PAIR package.  It is only enabled if
+LAMMPS was built with that package.  See the
+:doc:`Build package <Build_package>` page for more info.
 
 Related commands
 """"""""""""""""

@@ -1,7 +1,7 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    https://www.lammps.org/, Sandia National Laboratories
-   Steve Plimpton, sjplimp@sandia.gov
+   LAMMPS Development team: developers@lammps.org
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
@@ -25,9 +25,10 @@
 
 using ::testing::Eq;
 
-char *BINARY2TXT_BINARY = nullptr;
-bool verbose            = false;
+char *BINARY2TXT_EXECUTABLE = nullptr;
+bool verbose                = false;
 
+namespace LAMMPS_NS {
 class DumpLocalTest : public MeltTest {
     std::string dump_style = "local";
 
@@ -39,7 +40,8 @@ public:
         END_HIDE_OUTPUT();
     }
 
-    void generate_dump(std::string dump_file, std::string dump_options, std::string dump_modify_options, int ntimesteps)
+    void generate_dump(const std::string &dump_file, const std::string &dump_options,
+                       const std::string &dump_modify_options, int ntimesteps)
     {
         BEGIN_HIDE_OUTPUT();
         command(fmt::format("dump id all {} 1 {} {}", dump_style, dump_file, dump_options));
@@ -59,7 +61,8 @@ public:
         END_HIDE_OUTPUT();
     }
 
-    void SetUp() override {
+    void SetUp() override
+    {
         MeltTest::SetUp();
 
         BEGIN_HIDE_OUTPUT();
@@ -87,7 +90,7 @@ TEST_F(DumpLocalTest, run0)
     ASSERT_EQ(utils::split_words(lines[5]).size(), 2);
     ASSERT_EQ(utils::split_words(lines[6]).size(), 2);
     ASSERT_EQ(utils::split_words(lines[7]).size(), 2);
-    ASSERT_THAT(lines[8], Eq("ITEM: ENTRIES index c_comp[1] "));
+    ASSERT_THAT(lines[8], Eq("ITEM: ENTRIES index c_comp[1]"));
     ASSERT_EQ(utils::split_words(lines[9]).size(), 2);
     ASSERT_THAT(lines[9], Eq("1 1.18765 "));
     delete_file(dump_file);
@@ -101,7 +104,7 @@ TEST_F(DumpLocalTest, label_run0)
     ASSERT_FILE_EXISTS(dump_file);
     auto lines = read_lines(dump_file);
     ASSERT_THAT(lines[2], Eq("ITEM: NUMBER OF ELEMENTS"));
-    ASSERT_THAT(lines[8], Eq("ITEM: ELEMENTS index c_comp[1] "));
+    ASSERT_THAT(lines[8], Eq("ITEM: ELEMENTS index c_comp[1]"));
     delete_file(dump_file);
 }
 
@@ -176,7 +179,7 @@ TEST_F(DumpLocalTest, no_buffer_run0)
     ASSERT_EQ(utils::split_words(lines[5]).size(), 2);
     ASSERT_EQ(utils::split_words(lines[6]).size(), 2);
     ASSERT_EQ(utils::split_words(lines[7]).size(), 2);
-    ASSERT_THAT(lines[8], Eq("ITEM: ENTRIES index c_comp[1] "));
+    ASSERT_THAT(lines[8], Eq("ITEM: ENTRIES index c_comp[1]"));
     ASSERT_EQ(utils::split_words(lines[9]).size(), 2);
     ASSERT_THAT(lines[9], Eq("1 1.18765 "));
     delete_file(dump_file);
@@ -235,6 +238,7 @@ TEST_F(DumpLocalTest, triclinic_run0)
     ASSERT_EQ(utils::split_words(lines[7]).size(), 3);
     delete_file(dump_file);
 }
+} // namespace LAMMPS_NS
 
 int main(int argc, char **argv)
 {
@@ -243,7 +247,7 @@ int main(int argc, char **argv)
 
     // handle arguments passed via environment variable
     if (const char *var = getenv("TEST_ARGS")) {
-        std::vector<std::string> env = utils::split_words(var);
+        std::vector<std::string> env = LAMMPS_NS::utils::split_words(var);
         for (auto arg : env) {
             if (arg == "-v") {
                 verbose = true;
@@ -251,7 +255,7 @@ int main(int argc, char **argv)
         }
     }
 
-    BINARY2TXT_BINARY = getenv("BINARY2TXT_BINARY");
+    BINARY2TXT_EXECUTABLE = getenv("BINARY2TXT_EXECUTABLE");
 
     if ((argc > 1) && (strcmp(argv[1], "-v") == 0)) verbose = true;
 

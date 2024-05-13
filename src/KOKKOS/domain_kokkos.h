@@ -2,7 +2,7 @@
 /* -*- c++ -*- ----------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    https://www.lammps.org/, Sandia National Laboratories
-   Steve Plimpton, sjplimp@sandia.gov
+   LAMMPS development team: developers@lammps.org
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
@@ -29,17 +29,16 @@ struct TagDomain_x2lamda{};
 class DomainKokkos : public Domain {
  public:
   DomainKokkos(class LAMMPS *);
-  ~DomainKokkos() {}
-  void init();
-  void reset_box();
-  void pbc();
+  ~DomainKokkos() override = default;
+  void reset_box() override;
+  void pbc() override;
   void remap_all();
   void image_flip(int, int, int);
-  void x2lamda(int);
-  void lamda2x(int);
+  void x2lamda(int) override;
+  void lamda2x(int) override;
   // forward remaining x2lamda() and lambda2x() variants to parent class
-  void x2lamda(double *a, double *b) { Domain::x2lamda(a,b); }
-  void lamda2x(double *a, double *b) { Domain::lamda2x(a,b); }
+  void x2lamda(double *a, double *b) override { Domain::x2lamda(a,b); }
+  void lamda2x(double *a, double *b) override { Domain::lamda2x(a,b); }
   void x2lamda(double *a, double *b, double *c, double *d) {
     Domain::x2lamda(a,b,c,d);
   }
@@ -93,10 +92,3 @@ Few<double,3> DomainKokkos::unmap(Few<double,3> prd, Few<double,6> h,
 
 #endif
 
-/* ERROR/WARNING messages:
-
-E: Illegal simulation box
-
-The lower bound of the simulation box is greater than the upper bound.
-
-*/

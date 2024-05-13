@@ -10,7 +10,7 @@ namespace ATC {
   //  Class TimeFilterManager
   //--------------------------------------------------------
   //--------------------------------------------------------
-  
+
   //--------------------------------------------------------
   //  Constructor
   //--------------------------------------------------------
@@ -25,7 +25,7 @@ namespace ATC {
   {
     // do nothing
   }
-  
+
   //--------------------------------------------------------
   //  Constructor
   //--------------------------------------------------------
@@ -35,7 +35,7 @@ namespace ATC {
     for (it = timeFilterSet_.begin(); it != timeFilterSet_.end(); it++)
       if (*it) delete *it;
   }
-  
+
   //--------------------------------------------------------
   //  modify
   //    parses input commands
@@ -43,7 +43,7 @@ namespace ATC {
   bool TimeFilterManager::modify(int /* narg */, char ** arg)
   {
     bool foundMatch = false;
-  
+
     // filter scale size
     /*! \page man_filter_scale fix_modify AtC filter scale
       \section syntax
@@ -96,7 +96,7 @@ namespace ATC {
       \section default
       off
     */
-    else if (strcmp(arg[0],"on")==0) { 
+    else if (strcmp(arg[0],"on")==0) {
       if (filterScale_<=0. && filterType_ != STEP_FILTER)
         throw ATC_Error("Filtering time scale not initialized");
       useFilter_ = true;
@@ -110,7 +110,7 @@ namespace ATC {
       equilibrateFilter_ = false;
       foundMatch = true;
     }
-    else if (strcmp(arg[0],"off")==0) { 
+    else if (strcmp(arg[0],"off")==0) {
       useFilter_ = false;
       equilibrateFilter_ = false;
       endEquilibrate_ = false;
@@ -127,8 +127,8 @@ namespace ATC {
       foundMatch = true;
     }
 
-    // filter type 
-    /*! \page man_filter_type fix_modify AtC filter type 
+    // filter type
+    /*! \page man_filter_type fix_modify AtC filter type
       \section syntax
       fix_modify AtC filter type <exponential | step | no_filter> \n
 
@@ -146,16 +146,16 @@ namespace ATC {
       \ref man_filter_scale
 
       \section default
-      No default. 
+      No default.
     */
-    else if (strcmp(arg[0],"type")==0) { 
-      if (strcmp(arg[1],"exponential")==0) { 
+    else if (strcmp(arg[0],"type")==0) {
+      if (strcmp(arg[1],"exponential")==0) {
         filterType_ = EXPONENTIAL_FILTER;
       }
-      else if (strcmp(arg[1],"step")==0) { 
+      else if (strcmp(arg[1],"step")==0) {
         filterType_ = STEP_FILTER;
       }
-      else if (strcmp(arg[1],"no_filter")==0) { 
+      else if (strcmp(arg[1],"no_filter")==0) {
         filterType_ = NO_FILTER;
       }
       else throw ATC_Error("Not a supported time filter type");
@@ -180,51 +180,51 @@ namespace ATC {
   //  construct
   //    instantiates the filter
   //--------------------------------------------------------
-  
+
   TimeFilter * TimeFilterManager::construct(const FilterIntegrationType intType)
   {
     TimeFilter * newTimeFilter;
     if (useFilter_ || equilibrateFilter_) {
       if (filterType_ == EXPONENTIAL_FILTER) {
         if (intType == IMPLICIT_EXPLICIT) {
-          newTimeFilter = new TimeFilterImplicitExplicit(*this);     
+          newTimeFilter = new TimeFilterImplicitExplicit(*this);
         }
         else if (intType == EXPLICIT_IMPLICIT) {
-          newTimeFilter = new TimeFilterExplicitImplicit(*this);     
+          newTimeFilter = new TimeFilterExplicitImplicit(*this);
         }
         else if (intType == EXPLICIT) {
-          newTimeFilter = new TimeFilterExplicit(*this);     
+          newTimeFilter = new TimeFilterExplicit(*this);
         }
         else if (intType == IMPLICIT) {
-          newTimeFilter = new TimeFilterImplicit(*this);     
+          newTimeFilter = new TimeFilterImplicit(*this);
         }
         else if (intType == IMPLICIT_UPDATE) {
-          newTimeFilter = new TimeFilterImplicitUpdate(*this);     
+          newTimeFilter = new TimeFilterImplicitUpdate(*this);
         }
         else if (intType == CRANK_NICHOLSON) {
-          newTimeFilter = new TimeFilterCrankNicolson(*this);     
+          newTimeFilter = new TimeFilterCrankNicolson(*this);
         }
         else { // default to return base class
-          newTimeFilter = new TimeFilter(*this); 
+          newTimeFilter = new TimeFilter(*this);
         }
       }
       else if (filterType_ == STEP_FILTER) {
-        newTimeFilter = new TimeFilterStep(*this); 
+        newTimeFilter = new TimeFilterStep(*this);
       } else newTimeFilter = nullptr;
     }
     else { // default to return base class
-      newTimeFilter = new TimeFilter(*this); 
+      newTimeFilter = new TimeFilter(*this);
     }
     timeFilterSet_.insert(newTimeFilter);
     return newTimeFilter;
   }
-  
+
   //--------------------------------------------------------
   //--------------------------------------------------------
   //  Class TimeFilter
   //--------------------------------------------------------
   //--------------------------------------------------------
-  
+
   //--------------------------------------------------------
   //  Constructor
   //--------------------------------------------------------
@@ -275,13 +275,13 @@ namespace ATC {
     unFilteredQuantityOld_.reset(target.nRows(),target.nCols());
     unFilteredQuantityOld_ = target;
   }
-  
+
   //--------------------------------------------------------
   //--------------------------------------------------------
   //  Class TimeFilterExplicit
   //--------------------------------------------------------
   //--------------------------------------------------------
-  
+
   //--------------------------------------------------------
   //  Constructor
   //--------------------------------------------------------
@@ -290,13 +290,13 @@ namespace ATC {
   {
     // do nothing
   }
-  
+
   //--------------------------------------------------------
   //--------------------------------------------------------
   //  Class TimeFilterImplicit
   //--------------------------------------------------------
   //--------------------------------------------------------
-  
+
   //--------------------------------------------------------
   //  Constructor
   //--------------------------------------------------------
@@ -305,13 +305,13 @@ namespace ATC {
   {
     // do nothing
   }
-  
+
   //--------------------------------------------------------
   //--------------------------------------------------------
   //  Class TimeFilterImplicitExplicit
   //--------------------------------------------------------
   //--------------------------------------------------------
-  
+
   //--------------------------------------------------------
   //  Constructor
   //--------------------------------------------------------
@@ -326,7 +326,7 @@ namespace ATC {
   //  Class TimeFilterExplicitImplicit
   //--------------------------------------------------------
   //--------------------------------------------------------
-  
+
   //--------------------------------------------------------
   //  Constructor
   //--------------------------------------------------------
@@ -341,7 +341,7 @@ namespace ATC {
   //  Class TimeFilterImplicitUpdate
   //--------------------------------------------------------
   //--------------------------------------------------------
-  
+
   //--------------------------------------------------------
   //  Constructor
   //--------------------------------------------------------
@@ -356,7 +356,7 @@ namespace ATC {
   //  Class TimeFilterStep
   //--------------------------------------------------------
   //--------------------------------------------------------
-  
+
   //--------------------------------------------------------
   //  Constructor
   //--------------------------------------------------------

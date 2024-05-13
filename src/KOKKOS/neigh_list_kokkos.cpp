@@ -2,7 +2,7 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    https://www.lammps.org/, Sandia National Laboratories
-   Steve Plimpton, sjplimp@sandia.gov
+   LAMMPS development team: developers@lammps.org
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
@@ -13,6 +13,8 @@
 ------------------------------------------------------------------------- */
 
 #include "neigh_list_kokkos.h"
+#include "kokkos.h"
+#include "memory_kokkos.h"
 
 using namespace LAMMPS_NS;
 
@@ -39,10 +41,15 @@ void NeighListKokkos<DeviceType>::grow(int nmax)
   if (nmax <= maxatoms && (int)d_neighbors.extent(1) >= maxneighs) return;
   maxatoms = nmax;
 
-  k_ilist = DAT::tdual_int_1d("neighlist:ilist",maxatoms);
+  MemoryKokkos::realloc_kokkos(k_ilist,"neighlist:ilist",maxatoms);
   d_ilist = k_ilist.view<DeviceType>();
   d_numneigh = typename ArrayTypes<DeviceType>::t_int_1d("neighlist:numneigh",maxatoms);
-  d_neighbors = typename ArrayTypes<DeviceType>::t_neighbors_2d(Kokkos::NoInit("neighlist:neighbors"),maxatoms,maxneighs);
+  MemoryKokkos::realloc_kokkos(d_neighbors,"neighlist:neighbors",maxatoms,maxneighs);
+
+  if (lmp->kokkos->neigh_transpose) {
+    d_neighbors_transpose = typename ArrayTypes<DeviceType>::t_neighbors_2d_lr();
+    d_neighbors_transpose = typename ArrayTypes<DeviceType>::t_neighbors_2d_lr(Kokkos::NoInit("neighlist:neighbors"),maxatoms,maxneighs);
+  }
 }
 
 /* ---------------------------------------------------------------------- */

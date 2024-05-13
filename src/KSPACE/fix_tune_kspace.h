@@ -1,7 +1,7 @@
 /* -*- c++ -*- ----------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    https://www.lammps.org/, Sandia National Laboratories
-   Steve Plimpton, sjplimp@sandia.gov
+   LAMMPS development team: developers@lammps.org
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
@@ -27,10 +27,10 @@ namespace LAMMPS_NS {
 class FixTuneKspace : public Fix {
  public:
   FixTuneKspace(class LAMMPS *, int, char **);
-  ~FixTuneKspace() {}
-  int setmask();
-  void init();
-  void pre_exchange();
+
+  int setmask() override;
+  void init() override;
+  void pre_exchange() override;
   double get_timing_info();
   void store_old_kspace_settings();
   void update_pair_style(const std::string &, double);
@@ -83,26 +83,3 @@ class FixTuneKspace : public Fix {
 
 #endif
 #endif
-
-/* ERROR/WARNING messages:
-
-E: Illegal ... command
-
-Self-explanatory.  Check the input script syntax and compare to the
-documentation for the command.  You can use -echo screen as a
-command-line option when running LAMMPS to see the offending line.
-
-E: Cannot use fix tune/kspace without a kspace style
-
-Self-explanatory.
-
-E: Cannot use fix tune/kspace without a pair style
-
-This fix (tune/kspace) can only be used when a pair style has been specified.
-
-E: Bad real space Coulomb cutoff in fix tune/kspace
-
-Fix tune/kspace tried to find the optimal real space Coulomb cutoff using
-the Newton-Rhaphson method, but found a non-positive or NaN cutoff
-
-*/

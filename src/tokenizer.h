@@ -1,7 +1,7 @@
 /* -*- c++ -*- ----------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    https://www.lammps.org/, Sandia National Laboratories
-   Steve Plimpton, sjplimp@sandia.gov
+   LAMMPS development team: developers@lammps.org
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
@@ -20,9 +20,9 @@
 
 #include "lmptype.h"
 
-#include <exception>    // IWYU pragma: export
-#include <string>       // IWYU pragma: export
-#include <vector>       // IWYU pragma: export
+#include <exception>
+#include <string>
+#include <vector>
 
 namespace LAMMPS_NS {
 
@@ -35,7 +35,7 @@ class Tokenizer {
   size_t ntokens;
 
  public:
-  Tokenizer(const std::string &str, const std::string &separators = TOKENIZER_DEFAULT_SEPARATORS);
+  Tokenizer(std::string str, std::string separators = TOKENIZER_DEFAULT_SEPARATORS);
   Tokenizer(Tokenizer &&);
   Tokenizer(const Tokenizer &);
   Tokenizer &operator=(const Tokenizer &);
@@ -52,40 +52,48 @@ class Tokenizer {
   std::vector<std::string> as_vector();
 };
 
+/** General Tokenizer exception class */
+
 class TokenizerException : public std::exception {
   std::string message;
 
  public:
+  // remove unused default constructor
+  TokenizerException() = delete;
+
   /** Thrown during retrieving or skipping tokens
    *
    * \param  msg    String with error message
    * \param  token  String of the token/word that caused the error */
-  TokenizerException(const std::string &msg, const std::string &token);
-
-  ~TokenizerException() throw() {}
+  explicit TokenizerException(const std::string &msg, const std::string &token);
 
   /** Retrieve message describing the thrown exception
    * \return string with error message */
-  virtual const char *what() const throw() { return message.c_str(); }
+  const char *what() const noexcept override { return message.c_str(); }
 };
 
+/** Exception thrown by ValueTokenizer when trying to convert an invalid integer string */
+
 class InvalidIntegerException : public TokenizerException {
+
  public:
   /** Thrown during converting string to integer number
    *
    * \param  token  String of the token/word that caused the error */
-  InvalidIntegerException(const std::string &token) :
+  explicit InvalidIntegerException(const std::string &token) :
       TokenizerException("Not a valid integer number", token)
   {
   }
 };
+
+/** Exception thrown by ValueTokenizer when trying to convert an floating point string */
 
 class InvalidFloatException : public TokenizerException {
  public:
   /** Thrown during converting string to floating point number
    *
    * \param  token  String of the token/word that caused the error */
-  InvalidFloatException(const std::string &token) :
+  explicit InvalidFloatException(const std::string &token) :
       TokenizerException("Not a valid floating-point number", token)
   {
   }
@@ -97,7 +105,7 @@ class ValueTokenizer {
  public:
   ValueTokenizer(const std::string &str,
                  const std::string &separators = TOKENIZER_DEFAULT_SEPARATORS);
-  ValueTokenizer(const ValueTokenizer &);
+  ValueTokenizer(const ValueTokenizer &) = default;
   ValueTokenizer(ValueTokenizer &&);
   ValueTokenizer &operator=(const ValueTokenizer &);
   ValueTokenizer &operator=(ValueTokenizer &&);

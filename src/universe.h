@@ -1,7 +1,7 @@
 /* -*- c++ -*- ----------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    https://www.lammps.org/, Sandia National Laboratories
-   Steve Plimpton, sjplimp@sandia.gov
+   LAMMPS development team: developers@lammps.org
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
@@ -37,7 +37,7 @@ class Universe : protected Pointers {
                      // proc uni2orig[I] in original communicator
 
   Universe(class LAMMPS *, MPI_Comm);
-  ~Universe();
+  ~Universe() override;
   void reorder(char *, char *);
   void add_world(char *);
   int consistent();
@@ -46,36 +46,3 @@ class Universe : protected Pointers {
 }    // namespace LAMMPS_NS
 
 #endif
-
-/* ERROR/WARNING messages:
-
-E: Invalid -reorder N value
-
-Self-explanatory.
-
-E: Nprocs not a multiple of N for -reorder
-
-Self-explanatory.
-
-E: Cannot open -reorder file
-
-Self-explanatory.
-
-E: Unexpected end of -reorder file
-
-Self-explanatory.
-
-E: Invalid entry in -reorder file
-
-Self-explanatory.
-
-E: Invalid command-line argument
-
-One or more command-line arguments is invalid.  Check the syntax of
-the command you are using to launch LAMMPS.
-
-E: Invalid partition string '%s'
-
-UNDOCUMENTED
-
-*/

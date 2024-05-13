@@ -1,8 +1,7 @@
-// clang-format off
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    https://www.lammps.org/, Sandia National Laboratories
-   Steve Plimpton, sjplimp@sandia.gov
+   LAMMPS development team: developers@lammps.org
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
@@ -32,26 +31,22 @@ AtomVecAngle::AtomVecAngle(LAMMPS *lmp) : AtomVec(lmp)
   // order of fields in a string does not matter
   // except: fields_data_atom & fields_data_vel must match data file
 
-  fields_grow = (char *)
-    "molecule num_bond bond_type bond_atom "
-    "num_angle angle_type angle_atom1 angle_atom2 angle_atom3 nspecial special";
-  fields_copy = (char *)
-    "molecule num_bond bond_type bond_atom "
-    "num_angle angle_type angle_atom1 angle_atom2 angle_atom3 nspecial special";
-  fields_comm = (char *) "";
-  fields_comm_vel = (char *) "";
-  fields_reverse = (char *) "";
-  fields_border = (char *) "molecule";
-  fields_border_vel = (char *) "molecule";
-  fields_exchange = (char *)
-    "molecule num_bond bond_type bond_atom "
-    "num_angle angle_type angle_atom1 angle_atom2 angle_atom3 nspecial special";
-  fields_restart = (char *)
-    "molecule num_bond bond_type bond_atom "
-    "num_angle angle_type angle_atom1 angle_atom2 angle_atom3";
-  fields_create = (char *) "molecule num_bond num_angle nspecial";
-  fields_data_atom = (char *) "id molecule type x";
-  fields_data_vel = (char *) "id v";
+  fields_grow = {"molecule",    "num_bond",   "bond_type",   "bond_atom",
+                 "num_angle",   "angle_type", "angle_atom1", "angle_atom2",
+                 "angle_atom3", "nspecial",   "special"};
+  fields_copy = {"molecule",    "num_bond",   "bond_type",   "bond_atom",
+                 "num_angle",   "angle_type", "angle_atom1", "angle_atom2",
+                 "angle_atom3", "nspecial",   "special"};
+  fields_border = {"molecule"};
+  fields_border_vel = {"molecule"};
+  fields_exchange = {"molecule",    "num_bond",   "bond_type",   "bond_atom",
+                     "num_angle",   "angle_type", "angle_atom1", "angle_atom2",
+                     "angle_atom3", "nspecial",   "special"};
+  fields_restart = {"molecule",   "num_bond",    "bond_type",   "bond_atom",  "num_angle",
+                    "angle_type", "angle_atom1", "angle_atom2", "angle_atom3"};
+  fields_create = {"molecule", "num_bond", "num_angle", "nspecial"};
+  fields_data_atom = {"id", "molecule", "type", "x"};
+  fields_data_vel = {"id", "v"};
 
   setup_fields();
 
@@ -63,8 +58,8 @@ AtomVecAngle::AtomVecAngle(LAMMPS *lmp) : AtomVec(lmp)
 
 AtomVecAngle::~AtomVecAngle()
 {
-  delete [] bond_negative;
-  delete [] angle_negative;
+  delete[] bond_negative;
+  delete[] angle_negative;
 }
 
 /* ----------------------------------------------------------------------
@@ -87,15 +82,15 @@ void AtomVecAngle::grow_pointers()
 
 void AtomVecAngle::pack_restart_pre(int ilocal)
 {
-  // insure negative vectors are needed length
+  // ensure negative vectors are needed length
 
   if (bond_per_atom < atom->bond_per_atom) {
-    delete [] bond_negative;
+    delete[] bond_negative;
     bond_per_atom = atom->bond_per_atom;
     bond_negative = new int[bond_per_atom];
   }
   if (angle_per_atom < atom->angle_per_atom) {
-    delete [] angle_negative;
+    delete[] angle_negative;
     angle_per_atom = atom->angle_per_atom;
     angle_negative = new int[angle_per_atom];
   }
@@ -108,7 +103,8 @@ void AtomVecAngle::pack_restart_pre(int ilocal)
       bond_negative[m] = 1;
       bond_type[ilocal][m] = -bond_type[ilocal][m];
       any_bond_negative = 1;
-    } else bond_negative[m] = 0;
+    } else
+      bond_negative[m] = 0;
   }
 
   any_angle_negative = 0;
@@ -117,7 +113,8 @@ void AtomVecAngle::pack_restart_pre(int ilocal)
       angle_negative[m] = 1;
       angle_type[ilocal][m] = -angle_type[ilocal][m];
       any_angle_negative = 1;
-    } else angle_negative[m] = 0;
+    } else
+      angle_negative[m] = 0;
   }
 }
 

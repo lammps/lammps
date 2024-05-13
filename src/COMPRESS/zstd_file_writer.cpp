@@ -1,8 +1,7 @@
-// clang-format off
 /* -*- c++ -*- ----------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    https://www.lammps.org/, Sandia National Laboratories
-   Steve Plimpton, sjplimp@sandia.gov
+   LAMMPS development team: developers@lammps.org
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
@@ -19,16 +18,13 @@
 #ifdef LAMMPS_ZSTD
 
 #include "zstd_file_writer.h"
-#include <stdio.h>
 #include "fmt/format.h"
+#include <cstdio>
 
 using namespace LAMMPS_NS;
 
-ZstdFileWriter::ZstdFileWriter() : FileWriter(),
-    compression_level(0),
-    checksum_flag(1),
-    cctx(nullptr),
-    fp(nullptr)
+ZstdFileWriter::ZstdFileWriter() :
+    compression_level(0), checksum_flag(1), cctx(nullptr), fp(nullptr)
 {
   out_buffer_size = ZSTD_CStreamOutSize();
   out_buffer = new char[out_buffer_size];
@@ -38,9 +34,9 @@ ZstdFileWriter::ZstdFileWriter() : FileWriter(),
 
 ZstdFileWriter::~ZstdFileWriter()
 {
-  close();
+  ZstdFileWriter::close();
 
-  delete [] out_buffer;
+  delete[] out_buffer;
   out_buffer = nullptr;
   out_buffer_size = 0;
 }
@@ -49,41 +45,39 @@ ZstdFileWriter::~ZstdFileWriter()
 
 void ZstdFileWriter::open(const std::string &path, bool append)
 {
-    if (isopen()) return;
+  if (isopen()) return;
 
-    if (append) {
-      fp = fopen(path.c_str(), "ab");
-    } else {
-      fp = fopen(path.c_str(), "wb");
-    }
+  if (append) {
+    fp = fopen(path.c_str(), "ab");
+  } else {
+    fp = fopen(path.c_str(), "wb");
+  }
 
-    if (!fp) {
-        throw FileWriterException(fmt::format("Could not open file '{}'", path));
-    }
+  if (!fp) { throw FileWriterException(fmt::format("Could not open file '{}'", path)); }
 
-    cctx = ZSTD_createCCtx();
+  cctx = ZSTD_createCCtx();
 
-    if (!cctx) {
-        fclose(fp);
-        fp = nullptr;
-        throw FileWriterException("Could not create Zstd context");
-    }
+  if (!cctx) {
+    fclose(fp);
+    fp = nullptr;
+    throw FileWriterException("Could not create Zstd context");
+  }
 
-    ZSTD_CCtx_setParameter(cctx, ZSTD_c_compressionLevel, compression_level);
-    ZSTD_CCtx_setParameter(cctx, ZSTD_c_checksumFlag, checksum_flag);
+  ZSTD_CCtx_setParameter(cctx, ZSTD_c_compressionLevel, compression_level);
+  ZSTD_CCtx_setParameter(cctx, ZSTD_c_checksumFlag, checksum_flag);
 }
 
 /* ---------------------------------------------------------------------- */
 
-size_t ZstdFileWriter::write(const void * buffer, size_t length)
+size_t ZstdFileWriter::write(const void *buffer, size_t length)
 {
   if (!isopen()) return 0;
 
-  ZSTD_inBuffer input = { buffer, length, 0 };
+  ZSTD_inBuffer input = {buffer, length, 0};
   ZSTD_EndDirective mode = ZSTD_e_continue;
 
   do {
-    ZSTD_outBuffer output = { out_buffer, out_buffer_size, 0 };
+    ZSTD_outBuffer output = {out_buffer, out_buffer_size, 0};
     ZSTD_compressStream2(cctx, &output, &input, mode);
     fwrite(out_buffer, sizeof(char), output.pos, fp);
   } while (input.pos < input.size);
@@ -98,11 +92,11 @@ void ZstdFileWriter::flush()
   if (!isopen()) return;
 
   size_t remaining;
-  ZSTD_inBuffer input = { nullptr, 0, 0 };
+  ZSTD_inBuffer input = {nullptr, 0, 0};
   ZSTD_EndDirective mode = ZSTD_e_flush;
 
   do {
-    ZSTD_outBuffer output = { out_buffer, out_buffer_size, 0 };
+    ZSTD_outBuffer output = {out_buffer, out_buffer_size, 0};
     remaining = ZSTD_compressStream2(cctx, &output, &input, mode);
     fwrite(out_buffer, sizeof(char), output.pos, fp);
   } while (remaining);
@@ -114,14 +108,14 @@ void ZstdFileWriter::flush()
 
 void ZstdFileWriter::close()
 {
-  if (!isopen()) return;
+  if (!ZstdFileWriter::isopen()) return;
 
   size_t remaining;
-  ZSTD_inBuffer input = { nullptr, 0, 0 };
+  ZSTD_inBuffer input = {nullptr, 0, 0};
   ZSTD_EndDirective mode = ZSTD_e_end;
 
   do {
-    ZSTD_outBuffer output = { out_buffer, out_buffer_size, 0 };
+    ZSTD_outBuffer output = {out_buffer, out_buffer_size, 0};
     remaining = ZSTD_compressStream2(cctx, &output, &input, mode);
     fwrite(out_buffer, sizeof(char), output.pos, fp);
   } while (remaining);
@@ -150,7 +144,8 @@ void ZstdFileWriter::setCompressionLevel(int level)
   const int max_level = ZSTD_maxCLevel();
 
   if (level < min_level || level > max_level)
-    throw FileWriterException(fmt::format("Compression level must in the range of [{}, {}]", min_level, max_level));
+    throw FileWriterException(
+        fmt::format("Compression level must in the range of [{}, {}]", min_level, max_level));
 
   compression_level = level;
 }
@@ -159,8 +154,7 @@ void ZstdFileWriter::setCompressionLevel(int level)
 
 void ZstdFileWriter::setChecksum(bool enabled)
 {
-  if (isopen())
-    throw FileWriterException("Checksum flag can not be changed while file is open");
+  if (isopen()) throw FileWriterException("Checksum flag can not be changed while file is open");
   checksum_flag = enabled ? 1 : 0;
 }
 

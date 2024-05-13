@@ -10,7 +10,7 @@ Syntax
 
    bond_style style args
 
-* style = *none* or *hybrid* or *class2* or *fene* or *fene/expand* or         *harmonic* or *morse* or *nonlinear* or *quartic*
+* style = *none* or *zero* or *hybrid* or *bpm/rotational* or *bpm/spring* or *class2* or *fene* or *fene/expand* or *fene/nm* or *gaussian* or *gromos* or *harmonic* or *harmonic/restrain* *harmonic/shift* or *harmonic/shift/cut* or *lepton* or *morse* or *nonlinear* or *oxdna/fene* or *oxdena2/fene* or *oxrna2/fene* or *quartic* or *special* or *table*
 
 * args = none for any style except *hybrid*
 
@@ -32,13 +32,13 @@ Set the formula(s) LAMMPS uses to compute bond interactions between
 pairs of atoms.  In LAMMPS, a bond differs from a pairwise
 interaction, which are set via the :doc:`pair_style <pair_style>`
 command.  Bonds are defined between specified pairs of atoms and
-remain in force for the duration of the simulation (unless the bond
-breaks which is possible in some bond potentials).  The list of bonded
-atoms is read in by a :doc:`read_data <read_data>` or
-:doc:`read_restart <read_restart>` command from a data or restart file.
-By contrast, pair potentials are typically defined between all pairs
-of atoms within a cutoff distance and the set of active interactions
-changes over time.
+remain in force for the duration of the simulation (unless new bonds
+are created or existing bonds break, which is possible in some fixes
+and bond potentials).  The list of bonded atoms is read in by a
+:doc:`read_data <read_data>` or :doc:`read_restart <read_restart>`
+command from a data or restart file.  By contrast, pair potentials are
+typically defined between all pairs of atoms within a cutoff distance
+and the set of active interactions changes over time.
 
 Hybrid models where bonds are computed using different bond potentials
 can be setup using the *hybrid* bond style.
@@ -84,14 +84,20 @@ accelerated styles exist.
 * :doc:`zero <bond_zero>` - topology but no interactions
 * :doc:`hybrid <bond_hybrid>` - define multiple styles of bond interactions
 
+* :doc:`bpm/rotational <bond_bpm_rotational>` - breakable bond with forces and torques based on deviation from reference state
+* :doc:`bpm/spring <bond_bpm_spring>` - breakable bond with forces based on deviation from reference length
 * :doc:`class2 <bond_class2>` - COMPASS (class 2) bond
 * :doc:`fene <bond_fene>` - FENE (finite-extensible non-linear elastic) bond
 * :doc:`fene/expand <bond_fene_expand>` - FENE bonds with variable size particles
+* :doc:`fene/nm <bond_fene>` - FENE bonds with a generalized Lennard-Jones potential
 * :doc:`gaussian <bond_gaussian>` - multicentered Gaussian-based bond potential
 * :doc:`gromos <bond_gromos>` - GROMOS force field bond
 * :doc:`harmonic <bond_harmonic>` - harmonic bond
+* :doc:`harmonic/restrain <bond_harmonic_restrain>` - harmonic bond to restrain to original bond distance
 * :doc:`harmonic/shift <bond_harmonic_shift>` - shifted harmonic bond
 * :doc:`harmonic/shift/cut <bond_harmonic_shift_cut>` - shifted harmonic bond with a cutoff
+* :doc:`lepton <bond_lepton>` - bond potential from evaluating a string
+* :doc:`mesocnt <bond_mesocnt>` - Harmonic bond wrapper with parameterization presets for nanotubes
 * :doc:`mm3 <bond_mm3>` - MM3 anharmonic bond
 * :doc:`morse <bond_morse>` - Morse bond
 * :doc:`nonlinear <bond_nonlinear>` - nonlinear bond
@@ -111,7 +117,7 @@ Bond styles can only be set for atom styles that allow bonds to be
 defined.
 
 Most bond styles are part of the MOLECULE package.  They are only
-enabled if LAMMPS was built with that package.  See the :doc:`Build package <Build_package>` doc page for more info.  The doc pages for
+enabled if LAMMPS was built with that package.  See the :doc:`Build package <Build_package>` page for more info.  The doc pages for
 individual bond potentials tell if it is part of a package.
 
 Related commands

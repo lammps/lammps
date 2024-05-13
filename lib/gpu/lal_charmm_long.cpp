@@ -44,19 +44,15 @@ int CHARMMLongT::bytes_per_atom(const int max_nbors) const {
 }
 
 template <class numtyp, class acctyp>
-int CHARMMLongT::init(const int ntypes,
-                           double host_cut_bothsq, double **host_lj1,
-                           double **host_lj2, double **host_lj3,
-                           double **host_lj4, double **host_offset,
-                           double *host_special_lj, const int nlocal,
-                           const int nall, const int max_nbors,
-                           const int maxspecial, const double cell_size,
-                           const double gpu_split, FILE *_screen,
-                           double host_cut_ljsq, const double host_cut_coulsq,
-                           double *host_special_coul, const double qqrd2e,
-                           const double g_ewald, const double cut_lj_innersq,
-                           const double denom_lj, double **epsilon,
-                           double **sigma, const bool mix_arithmetic) {
+int CHARMMLongT::init(const int ntypes, double host_cut_bothsq, double **host_lj1,
+                      double **host_lj2, double **host_lj3, double **host_lj4,
+                      double ** /*host_offset*/, double *host_special_lj, const int nlocal,
+                      const int nall, const int max_nbors, const int maxspecial,
+                      const double cell_size, const double gpu_split, FILE *_screen,
+                      double host_cut_ljsq, const double host_cut_coulsq,
+                      double *host_special_coul, const double qqrd2e, const double g_ewald,
+                      const double cut_lj_innersq, const double denom_lj, double **epsilon,
+                      double **sigma, const bool mix_arithmetic) {
   int success;
   success=this->init_atomic(nlocal,nall,max_nbors,maxspecial,cell_size,gpu_split,
                             _screen,charmm_long,"k_charmm_long");

@@ -1,7 +1,7 @@
 /* -*- c++ -*- ----------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    https://www.lammps.org/, Sandia National Laboratories
-   Steve Plimpton, sjplimp@sandia.gov
+   LAMMPS development team: developers@lammps.org
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
@@ -17,6 +17,7 @@
 #include "pointers.h"    // IWYU pragma: export
 
 namespace LAMMPS_NS {
+class Compute;
 
 class Min : protected Pointers {
  public:
@@ -29,11 +30,12 @@ class Min : protected Pointers {
   int searchflag;    // 0 if damped dynamics, 1 if sub-cycles on local search
 
   Min(class LAMMPS *);
-  virtual ~Min();
+  ~Min() override;
   virtual void init();
   virtual void setup(int flag = 1);
   virtual void setup_minimal(int);
   virtual void run(int);
+  virtual void force_clear();
   void cleanup();
   int request(class Pair *, int, double);
   virtual double memory_usage() { return 0; }
@@ -71,6 +73,12 @@ class Min : protected Pointers {
     MAXVDOTF
   };
 
+  // integrator styles
+  enum { EULERIMPLICIT, VERLET, LEAPFROG, EULEREXPLICIT };
+
+  // line search styles
+  enum { BACKTRACK, QUADRATIC, FORCEZERO, SPIN_CUBIC, SPIN_NONE };
+
  protected:
   int eflag, vflag;            // flags for energy/virial computation
   int virial_style;            // compute virial explicitly or implicitly
@@ -93,14 +101,10 @@ class Min : protected Pointers {
   int halfstepback_flag;         // half step backward when v.f <= 0.0
   int delaystep_start_flag;      // delay the initial dt_shrink
   int max_vdotf_negatif;         // maximum iteration with v.f > 0.0
+  int abcflag;                   // when 1 use ABC-FIRE variant instead of FIRE, default 0
 
-  int nelist_global, nelist_atom;    // # of PE,virial computes to check
-  int nvlist_global, nvlist_atom, ncvlist_atom;
-  class Compute **elist_global;    // lists of PE,virial Computes
-  class Compute **elist_atom;
-  class Compute **vlist_global;
-  class Compute **vlist_atom;
-  class Compute **cvlist_atom;
+  // lists of PE,virial Computes
+  std::vector<Compute *> elist_global, elist_atom, vlist_global, vlist_atom, cvlist_atom;
 
   int triclinic;    // 0 if domain is orthog, 1 if triclinic
   int pairflag;
@@ -112,7 +116,7 @@ class Min : protected Pointers {
   int narray;                         // # of arrays stored by fix_minimize
   class FixMinimize *fix_minimize;    // fix that stores auxiliary data
 
-  class Compute *pe_compute;    // compute for potential energy
+  Compute *pe_compute;    // compute for potential energy
   double ecurrent;              // current potential energy
 
   bigint ndoftotal;    // total dof for entire problem
@@ -138,7 +142,6 @@ class Min : protected Pointers {
   int neigh_every, neigh_delay, neigh_dist_check;    // neighboring params
 
   virtual double energy_force(int);
-  virtual void force_clear();
 
   void ev_setup();
   void ev_set(bigint);
@@ -149,53 +152,3 @@ class Min : protected Pointers {
 }    // namespace LAMMPS_NS
 
 #endif
-
-/* ERROR/WARNING messages:
-
-W: Using 'neigh_modify every 1 delay 0 check yes' setting during minimization
-
-UNDOCUMENTED
-
-E: Minimization could not find thermo_pe compute
-
-This compute is created by the thermo command.  It must have been
-explicitly deleted by a uncompute command.
-
-E: Cannot use a damped dynamics min style with fix box/relax
-
-This is a current restriction in LAMMPS.  Use another minimizer
-style.
-
-E: Cannot use a damped dynamics min style with per-atom DOF
-
-This is a current restriction in LAMMPS.  Use another minimizer
-style.
-
-E: Cannot use hftn min style with fix box/relax
-
-UNDOCUMENTED
-
-E: Cannot use hftn min style with per-atom DOF
-
-UNDOCUMENTED
-
-E: Illegal ... command
-
-Self-explanatory.  Check the input script syntax and compare to the
-documentation for the command.  You can use -echo screen as a
-command-line option when running LAMMPS to see the offending line.
-
-U: Resetting reneighboring criteria during minimization
-
-Minimization requires that neigh_modify settings be delay = 0, every =
-1, check = yes.  Since these settings were not in place, LAMMPS
-changed them and will restore them to their original values after the
-minimization.
-
-U: Energy due to X extra global DOFs will be included in minimizer energies
-
-When using fixes like box/relax, the potential energy used by the minimizer
-is augmented by an additional energy provided by the fix. Thus the printed
-converged energy may be different from the total potential energy.
-
-*/

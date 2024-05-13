@@ -54,7 +54,7 @@ BIN2C = $(CUDA_HOME)/bin/bin2c
 
 CUDR_CPP = mpicxx -DMPI_GERYON -DUCL_NO_EXIT -DMPICH_IGNORE_CXX_SEEK -DOMPI_SKIP_MPICXX=1 -fPIC
 CUDR_OPTS = -O2 $(LMP_INC)
-CUDR  = $(CUDR_CPP) $(CUDR_OPTS) $(CUDA_PROXY) $(CUDA_PRECISION) $(CUDA_INCLUDE) \
+CUDR  = $(CUDR_CPP) $(CUDR_OPTS) $(CUDA_MPS) $(CUDA_PRECISION) $(CUDA_INCLUDE) \
          $(CUDPP_OPT)
 
 # Headers for Geryon
@@ -134,11 +134,11 @@ $(OBJ_DIR)/scan_app.cu_o: cudpp_mini/scan_app.cu
 $(GPU_LIB): $(OBJS) $(CUDPP)
 	$(AR) -crusv $(GPU_LIB) $(OBJS) $(CUDPP)
 	@cp $(EXTRAMAKE) Makefile.lammps
- 
+
 # test app for querying device info
 
 $(BIN_DIR)/nvc_get_devices: ./geryon/ucl_get_devices.cpp $(NVD_H)
-	$(CUDR) -o $@ ./geryon/ucl_get_devices.cpp -DUCL_CUDADR $(CUDA_LIB) -lcuda 
+	$(CUDR) -o $@ ./geryon/ucl_get_devices.cpp -DUCL_CUDADR $(CUDA_LIB) -lcuda
 
 clean:
 	-rm -f $(EXECS) $(GPU_LIB) $(OBJS) $(CUDPP) $(CUHS) *.linkinfo

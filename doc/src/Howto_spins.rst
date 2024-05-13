@@ -30,9 +30,11 @@ can be coupled to another Langevin thermostat applied to the atoms
 using :doc:`fix langevin <fix_langevin>` in order to simulate
 thermostatted spin-lattice systems.
 
-The magnetic Gilbert damping can also be applied using :doc:`fix langevin/spin <fix_langevin_spin>`. It allows to either dissipate
-the thermal energy of the Langevin thermostat, or to perform a
-relaxation of the magnetic configuration toward an equilibrium state.
+The magnetic damping can also be applied
+using :doc:`fix langevin/spin <fix_langevin_spin>`.
+It allows to either dissipate the thermal energy of the Langevin
+thermostat, or to perform a relaxation of the magnetic configuration
+toward an equilibrium state.
 
 The command :doc:`fix setforce/spin <fix_setforce>` allows to set the
 components of the magnetic precession vectors (while erasing and
@@ -52,9 +54,11 @@ All the computed magnetic properties can be output by two main
 commands. The first one is :doc:`compute spin <compute_spin>`, that
 enables to evaluate magnetic averaged quantities, such as the total
 magnetization of the system along x, y, or z, the spin temperature, or
-the magnetic energy. The second command is :doc:`compute property/atom <compute_property_atom>`. It enables to output all the
-per atom magnetic quantities. Typically, the orientation of a given
-magnetic spin, or the magnetic force acting on this spin.
+the magnetic energy. The second command
+is :doc:`compute property/atom <compute_property_atom>`.
+It enables to output all the per atom magnetic quantities. Typically,
+the orientation of a given magnetic spin, or the magnetic force
+acting on this spin.
 
 ----------
 

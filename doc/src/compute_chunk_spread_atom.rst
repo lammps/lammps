@@ -6,7 +6,7 @@ compute chunk/spread/atom command
 Syntax
 """"""
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    compute ID group-ID chunk/spread/atom chunkID input1 input2 ...
 
@@ -18,10 +18,10 @@ Syntax
 
   .. parsed-literal::
 
-       c_ID = global vector calculated by a compute with ID
-       c_ID[I] = Ith column of global array calculated by a compute with ID, I can include wildcard (see below)
-       f_ID = global vector calculated by a fix with ID
-       f_ID[I] = Ith column of global array calculated by a fix with ID, I can include wildcard (see below)
+     c_ID = global vector calculated by a compute with ID
+     c_ID[I] = Ith column of global array calculated by a compute with ID, I can include wildcard (see below)
+     f_ID = global vector calculated by a fix with ID
+     f_ID[I] = Ith column of global array calculated by a fix with ID, I can include wildcard (see below)
 
 Examples
 """"""""
@@ -193,7 +193,7 @@ Output info
 
 This compute calculates a per-atom vector or array, which can be
 accessed by any command that uses per-atom values from a compute as
-input.  See the :doc:`Howto output <Howto_output>` doc page for an
+input.  See the :doc:`Howto output <Howto_output>` page for an
 overview of LAMMPS output options.
 
 The output is a per-atom vector if a single input value is specified,

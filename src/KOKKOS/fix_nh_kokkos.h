@@ -2,7 +2,7 @@
 /* -*- c++ -*- ----------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    https://www.lammps.org/, Sandia National Laboratories
-   Steve Plimpton, sjplimp@sandia.gov
+   LAMMPS development team: developers@lammps.org
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
@@ -36,12 +36,12 @@ class FixNHKokkos : public FixNH {
   typedef DeviceType device_type;
 
   FixNHKokkos(class LAMMPS *, int, char **);
-  virtual ~FixNHKokkos();
-  virtual void init();
-  virtual void setup(int);
-  virtual void initial_integrate(int);
-  virtual void final_integrate();
-  virtual void pre_exchange();
+
+  void init() override;
+  void setup(int) override;
+  void initial_integrate(int) override;
+  void final_integrate() override;
+  void pre_exchange() override;
 
   template<int TRICLINIC_FLAG>
   KOKKOS_INLINE_FUNCTION
@@ -58,12 +58,12 @@ class FixNHKokkos : public FixNH {
   void operator()(TagFixNH_nh_v_temp, const int&) const;
 
  protected:
-  virtual void remap();
+  void remap() override;
 
-  virtual void nve_x();            // may be overwritten by child classes
-  virtual void nve_v();
-  virtual void nh_v_press();
-  virtual void nh_v_temp();
+  void nve_x() override;            // may be overwritten by child classes
+  void nve_v() override;
+  void nh_v_press() override;
+  void nh_v_temp() override;
 
   F_FLOAT factor[3];
 
@@ -82,15 +82,3 @@ class FixNHKokkos : public FixNH {
 
 #endif
 
-/* ERROR/WARNING messages:
-
-E: Cannot (yet) use rigid bodies with fix nh and Kokkos
-
-Self-explanatory.
-
-E: Fix npt/nph has tilted box too far in one step - periodic cell is too far from equilibrium state
-
-Self-explanatory.  The change in the box tilt is too extreme
-on a short timescale.
-
-*/

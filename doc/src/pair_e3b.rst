@@ -50,6 +50,12 @@ Examples
    pair_style hybrid/overlay e3b 1 lj/cut/tip4p/long 1 2 1 1 0.15 8.5
    pair_coeff * * e3b preset 2011
 
+Used in example input script:
+
+.. parsed-literal::
+
+   examples/PACKAGES/e3b/in.e3b-tip4p2005
+
 Description
 """""""""""
 
@@ -68,21 +74,27 @@ The *e3b* style computes an \"explicit three-body\" (E3B) potential for water :r
    0 & r>R_f\\
    \end{cases}
 
-This potential was developed as a water model that includes the three-body cooperativity of hydrogen bonding explicitly.
-To use it in this way, it must be applied in conjunction with a conventional two-body water model, through *pair_style hybrid/overlay*.
-The three body interactions are split into three types: A, B, and C.
-Type A corresponds to anti-cooperative double hydrogen bond donor interactions.
-Type B corresponds to the cooperative interaction of molecules that both donate and accept a hydrogen bond.
-Type C corresponds to anti-cooperative double hydrogen bond acceptor interactions.
-The three-body interactions are smoothly cutoff by the switching function s(r) between Rs and Rc3.
-The two-body interactions are designed to correct for the effective many-body interactions implicitly included in the conventional two-body potential.
-The two-body interactions are cut off sharply at Rc2, because K3 is typically significantly smaller than K2.
-See :ref:`(Kumar 2008) <Kumar>` for more details.
+This potential was developed as a water model that includes the
+three-body cooperativity of hydrogen bonding explicitly.  To use it in
+this way, it must be applied in conjunction with a conventional two-body
+water model, through pair style :doc:`hybrid/overlay <pair_hybrid>`.  The
+three body interactions are split into three types: A, B, and C.  Type A
+corresponds to anti-cooperative double hydrogen bond donor interactions.
+Type B corresponds to the cooperative interaction of molecules that both
+donate and accept a hydrogen bond.  Type C corresponds to
+anti-cooperative double hydrogen bond acceptor interactions.  The
+three-body interactions are smoothly cutoff by the switching function
+s(r) between Rs and Rc3.  The two-body interactions are designed to
+correct for the effective many-body interactions implicitly included in
+the conventional two-body potential.  The two-body interactions are cut
+off sharply at Rc2, because K3 is typically significantly smaller than
+K2.  See :ref:`(Kumar 2008) <Kumar>` for more details.
 
-Only a single *pair_coeff* command is used with the *e3b* style.
-The first two arguments must be \* \*.
-The oxygen atom type for the pair style is passed as the only argument to the *pair_style* command, not in the *pair_coeff* command.
-The hydrogen atom type is inferred by the ordering of the atoms.
+Only a single :doc:`pair_coeff <pair_coeff>` command is used with the
+*e3b* style and the first two arguments must be \* \*.  The oxygen atom
+type for the pair style is passed as the only argument to the
+*pair_style* command, not in the *pair_coeff* command.  The hydrogen
+atom type is inferred from the ordering of the atoms.
 
 .. note::
 
@@ -90,28 +102,43 @@ The hydrogen atom type is inferred by the ordering of the atoms.
    Each water molecule must have consecutive IDs with the oxygen first.
    This pair style does not test that this criteria is met.
 
-The *pair_coeff* command must have at least one keyword/value pair, as described above.
-The *preset* keyword sets the potential parameters to the values used in :ref:`(Tainter 2011) <Tainter2011>` or :ref:`(Tainter 2015) <Tainter2015>`.
-To use the water models defined in those references, the *e3b* style should always be used in conjunction with an *lj/cut/tip4p/long* style through *pair_style hybrid/overlay*, as demonstrated in the second example above.
-The *preset 2011* option should be used with the :doc:`TIP4P water model <Howto_tip4p>`.
-The *preset 2015* option should be used with the :doc:`TIP4P/2005 water model <Howto_tip4p>`.
-If the *preset* keyword is used, no other keyword is needed.
-Changes to the preset parameters can be made by specifying the *preset* keyword followed by the specific parameter to change, like *Ea*\ .
-Note that the other keywords must come after *preset* in the pair_style command.
-The *e3b* style can also be used to implement any three-body potential of the same form by specifying all the keywords except *neigh*\ : *Ea*\ , *Eb*\ , *Ec*\ , *E2*\ , *K3*\ , *K2*\ , *Rc3*\ , *Rc2*\ , *Rs*\ , and *bondL*\ .
-The keyword *bondL* specifies the intramolecular OH bond length of the water model being used.
-This is needed to include H atoms that are within the cutoff even when the attached oxygen atom is not.
+The *pair_coeff* command must have at least one keyword/value pair, as
+described above.  The *preset* keyword sets the potential parameters to
+the values used in :ref:`(Tainter 2011) <Tainter2011>` or
+:ref:`(Tainter 2015) <Tainter2015>`.  To use the water models defined in
+those references, the *e3b* style should always be used in conjunction
+with an *lj/cut/tip4p/long* style through *pair_style hybrid/overlay*,
+as demonstrated in the second example above.  The *preset 2011* option
+should be used with the :doc:`TIP4P water model <Howto_tip4p>`.  The
+*preset 2015* option should be used with the :doc:`TIP4P/2005 water
+model <Howto_tip4p>`.  If the *preset* keyword is used, no other keyword
+is needed.  Changes to the preset parameters can be made by specifying
+the *preset* keyword followed by the specific parameter to change, like
+*Ea*\ .  Note that the other keywords must come after *preset* in the
+pair_style command.  The *e3b* style can also be used to implement any
+three-body potential of the same form by specifying all the keywords
+except *neigh*\ : *Ea*, *Eb*, *Ec*, *E2*, *K3*, *K2*, *Rc3*, *Rc2*,
+*Rs*, and *bondL*\ .  The keyword *bondL* specifies the intramolecular
+OH bond length of the water model being used.  This is needed to include
+H atoms that are within the cutoff even when the attached oxygen atom is
+not.
 
-This pair style allocates arrays sized according to the number of pairwise interactions within Rc3.
-To do this it needs an estimate for the number of water molecules within Rc3 of an oxygen atom.
-This estimate defaults to 10 and can be changed using the *neigh* keyword, which takes an integer as an argument.
-If the neigh setting is too small, the simulation will fail with the error "neigh is too small".
-If the neigh setting is too large, the pair style will use more memory than necessary.
+This pair style allocates arrays sized according to the number of
+pairwise interactions within Rc3.  To do this it needs an estimate for
+the number of water molecules within Rc3 of an oxygen atom.  This
+estimate defaults to 10 and can be changed using the *neigh* keyword,
+which takes an integer as an argument.  If the neigh setting is too
+small, the simulation will fail with the error "neigh is too small".  If
+the neigh setting is too large, the pair style will use more memory than
+necessary.
 
-This pair style tallies a breakdown of the total E3B potential energy into sub-categories, which can be accessed via the :doc:`compute pair <compute_pair>` command as a vector of values of length 4.
-The 4 values correspond to the terms in the first equation above: the E2 term, the Ea term, the Eb term, and the Ec term.
+This pair style tallies a breakdown of the total E3B potential energy
+into sub-categories, which can be accessed via the :doc:`compute pair
+<compute_pair>` command as a vector of values of length 4.  The 4 values
+correspond to the terms in the first equation above: the E2 term, the Ea
+term, the Eb term, and the Ec term.
 
-See the examples/USER/misc/e3b directory for a complete example script.
+See the examples/PACKAGES/e3b directory for a complete example script.
 
 ----------
 
@@ -132,8 +159,8 @@ This pair style is incompatible with :doc:`respa <run_style>`.
 Restrictions
 """"""""""""
 
-This pair style is part of the USER-MISC package.  It is only enabled
-if LAMMPS was built with that package.  See the :doc:`Build package <Build_package>` doc page for more info.
+This pair style is part of the EXTRA-PAIR package.  It is only enabled
+if LAMMPS was built with that package.  See the :doc:`Build package <Build_package>` page for more info.
 
 This pair style requires the :doc:`newton <newton>` setting to be "on"
 for pair interactions.

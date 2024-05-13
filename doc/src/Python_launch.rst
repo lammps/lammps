@@ -6,15 +6,15 @@ interactively from the ``bench`` directory:
 
 .. code-block:: python
 
-   >>> from lammps import lammps
-   >>> lmp = lammps()
-   >>> lmp.file("in.lj")
+   from lammps import lammps
+   lmp = lammps()
+   lmp.file("in.lj")
 
 Or put the same lines in the file ``test.py`` and run it as
 
 .. code-block:: bash
 
-   $ python3 test.py
+   python3 test.py
 
 Either way, you should see the results of running the ``in.lj`` benchmark
 on a single processor appear on the screen, the same as if you had
@@ -46,17 +46,17 @@ You can run the script in parallel as:
 
 .. code-block:: bash
 
-   $ mpirun -np 4 python3 test.py
+   mpirun -np 4 python3 test.py
 
 and you should see the same output as if you had typed
 
 .. code-block:: bash
 
-   $ mpirun -np 4 lmp_mpi -in in.lj
+   mpirun -np 4 lmp_mpi -in in.lj
 
 Note that without the mpi4py specific lines from ``test.py``
 
-.. code-block:: Python
+.. code-block:: python
 
    from lammps import lammps
    lmp = lammps()
@@ -70,7 +70,7 @@ single processor outputs, mpi4py is not working correctly.
 Also note that once you import the mpi4py module, mpi4py initializes MPI
 for you, and you can use MPI calls directly in your Python script, as
 described in the mpi4py documentation.  The last line of your Python
-script should be ``MPI.finalize()``, to insure MPI is shut down
+script should be ``MPI.finalize()``, to ensure MPI is shut down
 correctly.
 
 
@@ -82,9 +82,9 @@ one of several ways:
 
 .. code-block:: bash
 
-   $ python script.py
-   $ python -i script.py
-   $ ./script.py
+   python script.py
+   python -i script.py
+   ./script.py
 
 The last command requires that the first line of the script be
 something like this:
@@ -92,17 +92,23 @@ something like this:
 .. code-block:: bash
 
    #!/usr/bin/python
-   #!/usr/bin/python -i
 
-where the path points to where you have Python installed, and that you
-have made the script file executable:
+or
 
 .. code-block:: bash
 
-   $ chmod +x script.py
+   #!/usr/bin/env python
+
+where the path in the first case needs to point to where you have Python
+installed (the second option is workaround for when this may change),
+and that you have made the script file executable:
+
+.. code-block:: bash
+
+   chmod +x script.py
 
 Without the ``-i`` flag, Python will exit when the script finishes.
 With the ``-i`` flag, you will be left in the Python interpreter when
-the script finishes, so you can type subsequent commands.  As
-mentioned above, you can only run Python interactively when running
-Python on a single processor, not in parallel.
+the script finishes, so you can type subsequent commands.  As mentioned
+above, you can only run Python interactively when running Python on a
+single processor, not in parallel.

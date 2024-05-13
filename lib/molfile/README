@@ -1,6 +1,6 @@
 This directory has a Makefile.lammps file with settings that allows
 LAMMPS to dynamically link to the VMD molfile library.  This is
-required to use the USER-MOLFILE package and its interface to the dump
+required to use the MOLFILE package and its interface to the dump
 and write_dump commands in a LAMMPS input script.
 
 More information about the VMD molfile plugins can be found at
@@ -10,7 +10,7 @@ NOTE: while the programming interface (API) of the VMD molfile plugins
 is backward compatible (i.e. you can expect to be able to compile this
 package for plugins from newer VMD packages), the binary interface
 (ABI) is not.  So it is necessary to compile this package with the
-VMD molfile plugin header files (vmdplugin.h and molfile_plugin.h) 
+VMD molfile plugin header files (vmdplugin.h and molfile_plugin.h)
 matching VMD installation that the (binary) plugin files are taken from.
 These header files can be found inside the VMD installation tree under
 "plugins/include". For convenience, this package includes a set of

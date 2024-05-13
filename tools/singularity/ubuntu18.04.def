@@ -5,7 +5,7 @@ From: ubuntu:18.04
     export DEBIAN_FRONTEND=noninteractive
     apt-get update
     apt-get install --no-install-recommends -y software-properties-common
-    add-apt-repository ppa:openkim/latest
+    add-apt-repository ppa:openkim/latest -y
     apt-get update
     apt-get upgrade --no-install-recommends -y
     apt-get install --no-install-recommends -y \
@@ -56,6 +56,7 @@ From: ubuntu:18.04
         python3-pkg-resources \
         python3-setuptools \
         python3-virtualenv \
+        python3-venv \
         rsync \
         ssh \
         texlive \
@@ -75,6 +76,7 @@ From: ubuntu:18.04
         valgrind \
         gdb \
         zstd \
+        libyaml-cpp-dev \
         libkim-api-dev \
         openkim-models
 
@@ -105,7 +107,7 @@ From: ubuntu:18.04
     # Plumed
     ###########################################################################
 
-    export PLUMED_PKG_VERSION=2.6.1
+    export PLUMED_PKG_VERSION=2.8.2
 
     mkdir plumed
     cd plumed

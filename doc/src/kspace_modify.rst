@@ -11,7 +11,7 @@ Syntax
    kspace_modify keyword value ...
 
 * one or more keyword/value pairs may be listed
-* keyword = *collective* or *compute* or *cutoff/adjust* or *diff* or *disp/auto* or *fftbench* or *force/disp/kspace* or *force/disp/real* or *force* or *gewald/disp* or *gewald* or *kmax/ewald* or *mesh* or *minorder* or *mix/disp* or *order/disp* or *order* or *overlap* or *scafacos* or *slab* or *splittol*
+* keyword = *collective* or *compute* or *cutoff/adjust* or *diff* or *disp/auto* or *fftbench* or *force/disp/kspace* or *force/disp/real* or *force* or *gewald/disp* or *gewald* or *kmax/ewald* or *mesh* or *minorder* or *mix/disp* or *order/disp* or *order* or *overlap* or *scafacos* or *slab* or *splittol* or *wire*
 
   .. parsed-literal::
 
@@ -54,6 +54,9 @@ Syntax
          *nozforce* turns off kspace forces in the z direction
        *splittol* value = tol
          tol = relative size of two eigenvalues (see discussion below)
+       *wire* value = volfactor (available with ELECTRODE package)
+         volfactor = ratio of the total extended dimension used in the 1d
+           approximation compared with the dimension of the simulation domain
 
 Examples
 """"""""
@@ -75,7 +78,7 @@ relevant to all kspace styles.
 
 The *collective* keyword applies only to PPPM.  It is set to *no* by
 default, except on IBM BlueGene machines.  If this option is set to
-*yes*\ , LAMMPS will use MPI collective operations to remap data for
+*yes*, LAMMPS will use MPI collective operations to remap data for
 3d-FFT operations instead of the default point-to-point communication.
 This is faster on IBM BlueGene machines, and may also be faster on
 other machines if they have an efficient implementation of MPI
@@ -131,15 +134,16 @@ always used for MSM.
 ----------
 
 The *disp/auto* option controls whether the pppm/disp is allowed to
-generate PPPM parameters automatically. If set to *no*\ , parameters have
-to be specified using the *gewald/disp*\ , *mesh/disp*\ ,
+generate PPPM parameters automatically. If set to *no*, parameters have
+to be specified using the *gewald/disp*, *mesh/disp*,
 *force/disp/real* or *force/disp/kspace* keywords, or
 the code will stop with an error message. When this option is set to
-*yes*\ , the error message will not appear and the simulation will start.
+*yes*, the error message will not appear and the simulation will start.
 For a typical application, using the automatic parameter generation
 will provide simulations that are either inaccurate or slow. Using this
 option is thus not recommended. For guidelines on how to obtain good
-parameters, see the :doc:`How-To <Howto_dispersion>` discussion.
+parameters, see the :doc:`long-range dispersion howto <Howto_dispersion>`
+discussion.
 
 ----------
 
@@ -165,8 +169,8 @@ calculated by the long-range solver and is thus specified in force
 units.  A negative value for the accuracy setting means to use the
 relative accuracy parameter.  The accuracy setting is used in
 conjunction with the pairwise cutoff to determine the number of
-K-space vectors for style *ewald*\ , the FFT grid size for style
-*pppm*\ , or the real space grid size for style *msm*\ .
+K-space vectors for style *ewald*, the FFT grid size for style
+*pppm*, or the real space grid size for style *msm*\ .
 
 ----------
 
@@ -223,7 +227,7 @@ The *minorder* keyword allows LAMMPS to reduce the *order* setting if
 necessary to keep the communication of ghost grid point limited to
 exchanges between nearest-neighbor processors.  See the discussion of
 the *overlap* keyword for details.  If the *overlap* keyword is set to
-*yes*\ , which is the default, this is never needed.  If it set to *no*
+*yes*, which is the default, this is never needed.  If it set to *no*
 and overlap occurs, then LAMMPS will reduce the order setting, one
 step at a time, until the ghost grid overlap only extends to nearest
 neighbor processors.  The *minorder* keyword limits how small the
@@ -237,13 +241,13 @@ MSM.
 ----------
 
 The *mix/disp* keyword selects the mixing rule for the dispersion
-coefficients.  With *pair*\ , the dispersion coefficients of unlike
+coefficients.  With *pair*, the dispersion coefficients of unlike
 types are computed as indicated with :doc:`pair_modify <pair_modify>`.
-With *geom*\ , geometric mixing is enforced on the dispersion
+With *geom*, geometric mixing is enforced on the dispersion
 coefficients in the kspace coefficients. When using the arithmetic
 mixing rule, this will speed-up the simulations but introduces some
 error in the force computations, as shown in :ref:`(Wennberg) <Wennberg>`.
-With *none*\ , it is assumed that no mixing rule is
+With *none*, it is assumed that no mixing rule is
 applicable. Splitting of the dispersion coefficients will be performed
 as described in :ref:`(Isele-Holder) <Isele-Holder1>`.
 
@@ -377,18 +381,22 @@ solver is set up.
 
 The *slab* keyword allows an Ewald or PPPM solver to be used for a
 systems that are periodic in x,y but non-periodic in z - a
-:doc:`boundary <boundary>` setting of "boundary p p f".  This is done by
-treating the system as if it were periodic in z, but inserting empty
-volume between atom slabs and removing dipole inter-slab interactions
-so that slab-slab interactions are effectively turned off.  The
-volfactor value sets the ratio of the extended dimension in z divided
-by the actual dimension in z.  The recommended value is 3.0.  A larger
-value is inefficient; a smaller value introduces unwanted slab-slab
+:doc:`boundary <boundary>` setting of "boundary p p f".  This is done
+by treating the system as if it were periodic in z, but inserting
+empty volume between atom slabs and removing dipole inter-slab
+interactions so that slab-slab interactions are effectively turned
+off.  The volfactor value sets the ratio of the extended dimension in
+z divided by the actual dimension in z.  It must be a value >= 1.0.  A
+value of 1.0 (the default) means the slab approximation is not used.
+
+The recommended value for volfactor is 3.0.  A larger value is
+inefficient; a smaller value introduces unwanted slab-slab
 interactions.  The use of fixed boundaries in z means that the user
 must prevent particle migration beyond the initial z-bounds, typically
 by providing a wall-style fix.  The methodology behind the *slab*
-option is explained in the paper by :ref:`(Yeh) <Yeh>`.  The *slab* option
-is also extended to non-neutral systems :ref:`(Ballenegger) <Ballenegger>`.
+option is explained in the paper by :ref:`(Yeh) <Yeh>`.  The *slab*
+option is also extended to non-neutral systems :ref:`(Ballenegger)
+<Ballenegger>`.
 
 An alternative slab option can be invoked with the *nozforce* keyword
 in lieu of the volfactor.  This turns off all kspace forces in the z
@@ -398,8 +406,8 @@ boundaries can be set using :doc:`boundary <boundary>` (the slab
 approximation in not needed).  The *slab* keyword is not currently
 supported by Ewald or PPPM when using a triclinic simulation cell. The
 slab correction has also been extended to point dipole interactions
-:ref:`(Klapp) <Klapp>` in :doc:`kspace_style <kspace_style>` *ewald/disp*\ ,
-*ewald/dipole*\ , and *pppm/dipole*\ .
+:ref:`(Klapp) <Klapp>` in :doc:`kspace_style <kspace_style>`
+*ewald/disp*, *ewald/dipole*, and *pppm/dipole*\ .
 
 .. note::
 
@@ -419,10 +427,10 @@ optimal performance and accuracy in the results is obtained when these
 values are different.
 
 The *disp/auto* option controls whether the pppm/disp is allowed to
-generate PPPM parameters automatically. If set to *no*\ , parameters
-have to be specified using the *gewald/disp*\ , *mesh/disp*\ ,
+generate PPPM parameters automatically. If set to *no*, parameters
+have to be specified using the *gewald/disp*, *mesh/disp*,
 *force/disp/real* or *force/disp/kspace* keywords, or the code will
-stop with an error message. When this option is set to *yes*\ , the
+stop with an error message. When this option is set to *yes*, the
 error message will not appear and the simulation will start.  For a
 typical application, using the automatic parameter generation will
 provide simulations that are either inaccurate or slow. Using this
@@ -444,15 +452,32 @@ Related commands
 Default
 """""""
 
-The option defaults are mesh = mesh/disp = 0 0 0, order = order/disp =
-5 (PPPM), order = 10 (MSM), minorder = 2, overlap = yes, force = -1.0,
-gewald = gewald/disp = 0.0, slab = 1.0, compute = yes, cutoff/adjust =
-yes (MSM), pressure/scalar = yes (MSM), fftbench = no (PPPM), diff =
-ik (PPPM), mix/disp = pair, force/disp/real = -1.0, force/disp/kspace
-= -1.0, split = 0, tol = 1.0e-6, and disp/auto = no. For pppm/intel,
-order = order/disp = 7.  For scafacos settings, the scafacos tolerance
-option depends on the method chosen, as documented above.  The
-scafacos fmm_tuning default = 0.
+The option defaults are as follows:
+
+* compute = yes
+* cutoff/adjust = yes (MSM)
+* diff = ik (PPPM)
+* disp/auto = no
+* fftbench = no (PPPM)
+* force = -1.0,
+* force/disp/kspace = -1.0
+* force/disp/real = -1.0
+* gewald = gewald/disp = 0.0
+* mesh = mesh/disp = 0 0 0
+* minorder = 2
+* mix/disp = pair
+* order = 10 (MSM)
+* order = order/disp = 5 (PPPM)
+* order = order/disp = 7 (PPPM/intel)
+* overlap = yes
+* pressure/scalar = yes (MSM)
+* slab = 1.0
+* split = 0
+* tol = 1.0e-6
+
+For scafacos settings, the scafacos tolerance option depends on the
+method chosen, as documented above.  The scafacos fmm_tuning default
+= 0.
 
 ----------
 

@@ -1,7 +1,7 @@
 /* -*- c++ -*- ----------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    https://www.lammps.org/, Sandia National Laboratories
-   Steve Plimpton, sjplimp@sandia.gov
+   LAMMPS development team: developers@lammps.org
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
@@ -27,16 +27,16 @@ namespace LAMMPS_NS {
 class FixTempRescale : public Fix {
  public:
   FixTempRescale(class LAMMPS *, int, char **);
-  virtual ~FixTempRescale();
-  int setmask();
-  void init();
-  virtual void end_of_step();
-  int modify_param(int, char **);
-  void reset_target(double);
-  double compute_scalar();
-  void write_restart(FILE *);
-  void restart(char *buf);
-  virtual void *extract(const char *, int &);
+  ~FixTempRescale() override;
+  int setmask() override;
+  void init() override;
+  void end_of_step() override;
+  int modify_param(int, char **) override;
+  void reset_target(double) override;
+  double compute_scalar() override;
+  void write_restart(FILE *) override;
+  void restart(char *buf) override;
+  void *extract(const char *, int &) override;
 
  protected:
   int which;
@@ -54,48 +54,3 @@ class FixTempRescale : public Fix {
 
 #endif
 #endif
-
-/* ERROR/WARNING messages:
-
-E: Illegal ... command
-
-Self-explanatory.  Check the input script syntax and compare to the
-documentation for the command.  You can use -echo screen as a
-command-line option when running LAMMPS to see the offending line.
-
-E: Variable name for fix temp/rescale does not exist
-
-Self-explanatory.
-
-E: Variable for fix temp/rescale is invalid style
-
-Only equal-style variables can be used.
-
-E: Temperature ID for fix temp/rescale does not exist
-
-Self-explanatory.
-
-E: Computed temperature for fix temp/rescale cannot be 0.0
-
-Cannot rescale the temperature to a new value if the current
-temperature is 0.0.
-
-E: Fix temp/rescale variable returned negative temperature
-
-Self-explanatory.
-
-E: Could not find fix_modify temperature ID
-
-The compute ID for computing temperature does not exist.
-
-E: Fix_modify temperature ID does not compute temperature
-
-The compute ID assigned to the fix must compute temperature.
-
-W: Group for fix_modify temp != fix group
-
-The fix_modify command is specifying a temperature computation that
-computes a temperature on a different group of atoms than the fix
-itself operates on.  This is probably not what you want to do.
-
-*/

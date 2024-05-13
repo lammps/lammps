@@ -64,7 +64,7 @@ can be found in pair style :doc:`ilp/graphene/hbn <pair_ilp_graphene_hbn>`.
    thus a data file with the "full" atom style is required to use this potential.
 
 The parameter file (e.g. CH.KC), is intended for use with *metal*
-:doc:`units <units>`, with energies in meV. Two additional parameters, *S*\ ,
+:doc:`units <units>`, with energies in meV. Two additional parameters, *S*,
 and *rcut* are included in the parameter file. *S* is designed to
 facilitate scaling of energies. *rcut* is designed to build the neighbor
 list for calculating the normals for each atom pair.
@@ -119,16 +119,17 @@ that reads a restart file.
 Restrictions
 """"""""""""
 
-This fix is part of the USER-MISC package.  It is only enabled if
-LAMMPS was built with that package.  See the :doc:`Build package <Build_package>` doc page for more info.
+This pair style is part of the INTERLAYER package.  It is only enabled
+if LAMMPS was built with that package.  See the :doc:`Build package
+<Build_package>` page for more info.
 
-This pair potential requires the newton setting to be *on* for pair
+This pair style requires the newton setting to be *on* for pair
 interactions.
 
 The CH.KC potential file provided with LAMMPS (see the potentials
-folder) are parameterized for metal units.  You can use this potential
+folder) is parameterized for metal units.  You can use this pair style
 with any LAMMPS units, but you would need to create your own custom
-CC.KC potential file with all coefficients converted to the appropriate
+CH.KC potential file with all coefficients converted to the appropriate
 units.
 
 Related commands

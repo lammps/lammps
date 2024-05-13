@@ -1,8 +1,7 @@
-// clang-format off
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    https://www.lammps.org/, Sandia National Laboratories
-   Steve Plimpton, sjplimp@sandia.gov
+   LAMMPS development team: developers@lammps.org
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
@@ -26,11 +25,12 @@
 
 #include <cctype>
 #include <cstring>
-#include <unistd.h>
 
 using namespace LAMMPS_NS;
 
-enum {REGULAR_MODE, CLASS2_MODE};
+enum { REGULAR_MODE, CLASS2_MODE };
+
+static constexpr int BUF_SIZE = 256;
 
 /* ----------------------------------------------------------------------
    called as write_coeff command in input script
@@ -39,121 +39,116 @@ enum {REGULAR_MODE, CLASS2_MODE};
 void WriteCoeff::command(int narg, char **arg)
 {
   if (domain->box_exist == 0)
-    error->all(FLERR,"Write_coeff command before simulation box is defined");
+    error->all(FLERR, "Write_coeff command before simulation box is defined");
 
-  if (narg != 1) error->all(FLERR,"Illegal write_coeff command");
+  if (narg != 1) utils::missing_cmd_args(FLERR, "write_coeff", error);
 
-  char *file = utils::strdup(fmt::format("tmp.{}",arg[0]));
+  char *file = utils::strdup(fmt::format("{}.tmp", arg[0]));
 
   // initialize relevant styles
   lmp->init();
 
   if (comm->me == 0) {
-    char str[256], coeff[256];
-    FILE *one = fopen(file,"wb+");
+    char str[BUF_SIZE], coeff[BUF_SIZE];
+    FILE *one = fopen(file, "wb+");
 
     if (one == nullptr)
-      error->one(FLERR,"Cannot open coeff file {}: {}",
-                                   file, utils::getsyserror());
+      error->one(FLERR, "Cannot open coeff file {}: {}", file, utils::getsyserror());
 
     if (force->pair && force->pair->writedata) {
-      fprintf(one,"# pair_style %s\npair_coeff\n",force->pair_style);
+      fprintf(one, "# pair_style %s\npair_coeff\n", force->pair_style);
       force->pair->write_data_all(one);
-      fprintf(one,"end\n");
+      fprintf(one, "end\n");
     }
     if (force->bond && force->bond->writedata) {
-      fprintf(one,"# bond_style %s\nbond_coeff\n",force->bond_style);
+      fprintf(one, "# bond_style %s\nbond_coeff\n", force->bond_style);
       force->bond->write_data(one);
-      fprintf(one,"end\n");
+      fprintf(one, "end\n");
     }
     if (force->angle && force->angle->writedata) {
-      fprintf(one,"# angle_style %s\nangle_coeff\n",force->angle_style);
+      fprintf(one, "# angle_style %s\nangle_coeff\n", force->angle_style);
       force->angle->write_data(one);
-      fprintf(one,"end\n");
+      fprintf(one, "end\n");
     }
     if (force->dihedral && force->dihedral->writedata) {
-      fprintf(one,"# dihedral_style %s\ndihedral_coeff\n",
-              force->dihedral_style);
+      fprintf(one, "# dihedral_style %s\ndihedral_coeff\n", force->dihedral_style);
       force->dihedral->write_data(one);
-      fprintf(one,"end\n");
+      fprintf(one, "end\n");
     }
     if (force->improper && force->improper->writedata) {
-      fprintf(one,"# improper_style %s\nimproper_coeff\n",
-              force->improper_style);
+      fprintf(one, "# improper_style %s\nimproper_coeff\n", force->improper_style);
       force->improper->write_data(one);
-      fprintf(one,"end\n");
+      fprintf(one, "end\n");
     }
     rewind(one);
 
-    FILE *two = fopen(file+4,"w");
+    FILE *two = fopen(arg[0], "w");
     if (two == nullptr)
-      error->one(FLERR,"Cannot open coeff file {}: {}",
-                                   file+4, utils::getsyserror());
+      error->one(FLERR, "Cannot open coeff file {}: {}", arg[0], utils::getsyserror());
 
-    fprintf(two,"# LAMMPS coeff file via write_coeff, version %s\n",
-            lmp->version);
+    fprintf(two, "# LAMMPS coeff file via write_coeff, version %s\n", lmp->version);
 
-    while (1) {
+    while (true) {
       int coeff_mode = REGULAR_MODE;
-      if (fgets(str,256,one) == nullptr) break;
+      if (fgets(str, BUF_SIZE, one) == nullptr) break;
 
       // some coeffs need special treatment
-      if (strstr(str,"class2") != nullptr) {
-        if (strstr(str,"angle_style") != nullptr)
+      if (strstr(str, "class2") != nullptr) {
+        if (strstr(str, "angle_style") != nullptr)
           coeff_mode = CLASS2_MODE;
-        else if (strstr(str,"dihedral_style") != nullptr)
+        else if (strstr(str, "dihedral_style") != nullptr)
           coeff_mode = CLASS2_MODE;
-        else if (strstr(str,"improper_style") != nullptr)
+        else if (strstr(str, "improper_style") != nullptr)
           coeff_mode = CLASS2_MODE;
       }
 
-      const char *section = (const char *)"";
-      fputs(str,two);      // style
-      utils::sfgets(FLERR,str,256,one,file,error);  // coeff
+      const char *section = (const char *) "";                  // NOLINT
+      fputs(str, two);                                          // style
+      utils::sfgets(FLERR, str, BUF_SIZE, one, file, error);    // coeff
       int n = strlen(str);
-      strcpy(coeff,str);
-      coeff[n-1] = '\0';
-      utils::sfgets(FLERR,str,256,one,file,error);
+      strncpy(coeff, str, BUF_SIZE);
+      coeff[n - 1] = '\0';
+      utils::sfgets(FLERR, str, BUF_SIZE, one, file, error);
 
-      while (strcmp(str,"end\n") != 0) {
+      while (strcmp(str, "end\n") != 0) {
 
         if (coeff_mode == REGULAR_MODE) {
 
-          fprintf(two,"%s %s",coeff,str);
-          utils::sfgets(FLERR,str,256,one,file,error);
+          fprintf(two, "%s %s", coeff, str);
+          utils::sfgets(FLERR, str, BUF_SIZE, one, file, error);
 
         } else if (coeff_mode == CLASS2_MODE) {
 
           // class2 angles, dihedrals, and impropers can have
           // multiple sections and thus need special treatment
 
-          if (strcmp(str,"\n") == 0) {
+          if (strcmp(str, "\n") == 0) {
 
             // all but the the last section end with an empty line.
             // skip it and read and parse the next section title
 
-            utils::sfgets(FLERR,str,256,one,file,error);
+            utils::sfgets(FLERR, str, BUF_SIZE, one, file, error);
 
-            if (strcmp(str,"BondBond Coeffs\n") == 0)
-              section = (const char *)"bb";
-            else if (strcmp(str,"BondAngle Coeffs\n") ==0)
-              section = (const char *)"ba";
-            else if (strcmp(str,"MiddleBondTorsion Coeffs\n") == 0)
-              section = (const char *)"mbt";
-            else if (strcmp(str,"EndBondTorsion Coeffs\n") == 0)
-              section = (const char *)"ebt";
-            else if (strcmp(str,"AngleTorsion Coeffs\n") == 0)
-              section = (const char *)"at";
-            else if (strcmp(str,"AngleAngleTorsion Coeffs\n") == 0)
-              section = (const char *)"aat";
-            else if (strcmp(str,"BondBond13 Coeffs\n") == 0)
-              section = (const char *)"bb13";
-            else if (strcmp(str,"AngleAngle Coeffs\n") == 0)
-              section = (const char *)"aa";
+            if (strcmp(str, "BondBond Coeffs\n") == 0)
+              section = (const char *) "bb";
+            else if (strcmp(str, "BondAngle Coeffs\n") == 0)
+              section = (const char *) "ba";
+            else if (strcmp(str, "MiddleBondTorsion Coeffs\n") == 0)
+              section = (const char *) "mbt";
+            else if (strcmp(str, "EndBondTorsion Coeffs\n") == 0)
+              section = (const char *) "ebt";
+            else if (strcmp(str, "AngleTorsion Coeffs\n") == 0)
+              section = (const char *) "at";
+            else if (strcmp(str, "AngleAngleTorsion Coeffs\n") == 0)
+              section = (const char *) "aat";
+            else if (strcmp(str, "BondBond13 Coeffs\n") == 0)
+              section = (const char *) "bb13";
+            else if (strcmp(str, "AngleAngle Coeffs\n") == 0)
+              section = (const char *) "aa";
 
             // gobble up one more empty line
-            utils::sfgets(FLERR,str,256,one,file,error);
-            utils::sfgets(FLERR,str,256,one,file,error);
+            utils::sfgets(FLERR, str, BUF_SIZE, one, file, error);
+            utils::sfgets(FLERR, str, BUF_SIZE, one, file, error);
           }
 
           // parse type number and skip over it
@@ -162,16 +157,15 @@ void WriteCoeff::command(int narg, char **arg)
           while ((*p != '\0') && (*p == ' ')) ++p;
           while ((*p != '\0') && isdigit(*p)) ++p;
 
-          fprintf(two,"%s %d %s %s",coeff,type,section,p);
-          utils::sfgets(FLERR,str,256,one,file,error);
+          fprintf(two, "%s %d %s %s", coeff, type, section, p);
+          utils::sfgets(FLERR, str, BUF_SIZE, one, file, error);
         }
       }
-      fputc('\n',two);
+      fputc('\n', two);
     }
     fclose(one);
     fclose(two);
-    unlink(file);
+    platform::unlink(file);
   }
-
-  delete [] file;
+  delete[] file;
 }

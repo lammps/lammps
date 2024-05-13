@@ -1,8 +1,7 @@
-// clang-format off
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    https://www.lammps.org/, Sandia National Laboratories
-   Steve Plimpton, sjplimp@sandia.gov
+   LAMMPS development team: developers@lammps.org
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
@@ -14,21 +13,20 @@
 
 #include "compute_improper.h"
 
-#include "update.h"
+#include "error.h"
 #include "force.h"
 #include "improper.h"
 #include "improper_hybrid.h"
-#include "error.h"
+#include "update.h"
 
 using namespace LAMMPS_NS;
 
 /* ---------------------------------------------------------------------- */
 
 ComputeImproper::ComputeImproper(LAMMPS *lmp, int narg, char **arg) :
-  Compute(lmp, narg, arg),
-  emine(nullptr)
+    Compute(lmp, narg, arg), emine(nullptr)
 {
-  if (narg != 3) error->all(FLERR,"Illegal compute improper command");
+  if (narg != 3) error->all(FLERR, "Illegal compute improper command");
 
   vector_flag = 1;
   extvector = 1;
@@ -37,10 +35,8 @@ ComputeImproper::ComputeImproper(LAMMPS *lmp, int narg, char **arg) :
 
   // check if improper style hybrid exists
 
-  improper = (ImproperHybrid *) force->improper_match("hybrid");
-  if (!improper)
-    error->all(FLERR,
-               "Improper style for compute improper command is not hybrid");
+  improper = dynamic_cast<ImproperHybrid *>(force->improper_match("hybrid"));
+  if (!improper) error->all(FLERR, "Improper style for compute improper command is not hybrid");
   size_vector = nsub = improper->nstyles;
 
   emine = new double[nsub];
@@ -51,8 +47,8 @@ ComputeImproper::ComputeImproper(LAMMPS *lmp, int narg, char **arg) :
 
 ComputeImproper::~ComputeImproper()
 {
-  delete [] emine;
-  delete [] vector;
+  delete[] emine;
+  delete[] vector;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -61,12 +57,10 @@ void ComputeImproper::init()
 {
   // recheck improper style in case it has been changed
 
-  improper = (ImproperHybrid *) force->improper_match("hybrid");
-  if (!improper)
-    error->all(FLERR,
-               "Improper style for compute improper command is not hybrid");
+  improper = dynamic_cast<ImproperHybrid *>(force->improper_match("hybrid"));
+  if (!improper) error->all(FLERR, "Improper style for compute improper command is not hybrid");
   if (improper->nstyles != nsub)
-    error->all(FLERR,"Improper style for compute improper command has changed");
+    error->all(FLERR, "Improper style for compute improper command has changed");
 }
 
 /* ---------------------------------------------------------------------- */
@@ -75,10 +69,9 @@ void ComputeImproper::compute_vector()
 {
   invoked_vector = update->ntimestep;
   if (update->eflag_global != invoked_vector)
-    error->all(FLERR,"Energy was not tallied on needed timestep");
+    error->all(FLERR, "Energy was not tallied on needed timestep");
 
-  for (int i = 0; i < nsub; i++)
-    emine[i] = improper->styles[i]->energy;
+  for (int i = 0; i < nsub; i++) emine[i] = improper->styles[i]->energy;
 
-  MPI_Allreduce(emine,vector,nsub,MPI_DOUBLE,MPI_SUM,world);
+  MPI_Allreduce(emine, vector, nsub, MPI_DOUBLE, MPI_SUM, world);
 }

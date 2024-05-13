@@ -1,7 +1,7 @@
 /* -*- c++ -*- ----------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    https://www.lammps.org/, Sandia National Laboratories
-   Steve Plimpton, sjplimp@sandia.gov
+   LAMMPS development team: developers@lammps.org
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
@@ -30,10 +30,10 @@ class FixWallReflect : public Fix {
   enum { NONE = 0, EDGE, CONSTANT, VARIABLE };
 
   FixWallReflect(class LAMMPS *, int, char **);
-  virtual ~FixWallReflect();
-  int setmask();
-  void init();
-  void post_integrate();
+  ~FixWallReflect() override;
+  int setmask() override;
+  void init() override;
+  void post_integrate() override;
 
  protected:
   int nwall;
@@ -51,37 +51,3 @@ class FixWallReflect : public Fix {
 
 #endif
 #endif
-
-/* ERROR/WARNING messages:
-
-E: Illegal ... command
-
-Self-explanatory.  Check the input script syntax and compare to the
-documentation for the command.  You can use -echo screen as a
-command-line option when running LAMMPS to see the offending line.
-
-E: Wall defined twice in fix wall/reflect command
-
-Self-explanatory.
-
-E: Cannot use fix wall/reflect in periodic dimension
-
-Self-explanatory.
-
-E: Cannot use fix wall/reflect zlo/zhi for a 2d simulation
-
-Self-explanatory.
-
-E: Variable name for fix wall/reflect does not exist
-
-Self-explanatory.
-
-E: Variable for fix wall/reflect is invalid style
-
-Only equal-style variables can be used.
-
-W: Should not allow rigid bodies to bounce off relecting walls
-
-LAMMPS allows this, but their dynamics are not computed correctly.
-
-*/

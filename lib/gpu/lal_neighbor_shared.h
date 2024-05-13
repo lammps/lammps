@@ -87,7 +87,7 @@ class NeighborShared {
 
   /// Compile kernels for neighbor lists
   void compile_kernels(UCL_Device &dev, const int gpu_nbor,
-                       const std::string flags);
+                       const std::string &flags);
 
   // ----------------------------- Kernels
   UCL_Program *nbor_program, *build_program;

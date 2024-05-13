@@ -6,7 +6,7 @@ fix wall/srd command
 Syntax
 """"""
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    fix ID group-ID wall/srd face arg ... keyword value ...
 
@@ -17,11 +17,11 @@ Syntax
 
   .. parsed-literal::
 
-       *xlo*\ ,\ *ylo*\ ,\ *zlo* arg = EDGE or constant or variable
+       *xlo*,\ *ylo*,\ *zlo* arg = EDGE or constant or variable
          EDGE = current lo edge of simulation box
          constant = number like 0.0 or -30.0 (distance units)
          variable = :doc:`equal-style variable <variable>` like v_x or v_wiggle
-       *xhi*\ ,\ *yhi*\ ,\ *zhi* arg = EDGE or constant or variable
+       *xhi*,\ *yhi*,\ *zhi* arg = EDGE or constant or variable
          EDGE = current hi edge of simulation box
          constant = number like 50.0 or 100.3 (distance units)
          variable = :doc:`equal-style variable <variable>` like v_x or v_wiggle
@@ -72,8 +72,8 @@ tangential direction for the SRD velocity is chosen randomly.  This
 collision style imparts both a normal and tangential force to the
 wall.
 
-Up to 6 walls or faces can be specified in a single command: *xlo*\ ,
-*xhi*\ , *ylo*\ , *yhi*\ , *zlo*\ , *zhi*\ .  A *lo* face reflects particles
+Up to 6 walls or faces can be specified in a single command: *xlo*,
+*xhi*, *ylo*, *yhi*, *zlo*, *zhi*\ .  A *lo* face reflects particles
 that move to a coordinate less than the wall position, back in the
 *hi* direction.  A *hi* face reflects particles that move to a
 coordinate higher than the wall position, back in the *lo* direction.
@@ -96,7 +96,7 @@ specify a time-dependent wall position.
 .. note::
 
    Because the trajectory of the SRD particle is tracked as it
-   collides with the wall, you must insure that r = distance of the
+   collides with the wall, you must ensure that r = distance of the
    particle from the wall, is always > 0 for SRD particles, or LAMMPS
    will generate an error.  This means you cannot start your simulation
    with SRD particles at the wall position *coord* (r = 0) or with
@@ -117,7 +117,7 @@ specify a time-dependent wall position.
    a mixture containing other kinds of particles, then you should
    typically use :doc:`another wall command <fix_wall>` to act on the other
    particles.  Since SRD particles will be colliding both with the walls
-   and the other particles, it is important to insure that the other
+   and the other particles, it is important to ensure that the other
    particle's finite extent does not overlap an SRD wall.  If you do not
    do this, you may generate errors when SRD particles end up "inside"
    another particle or a wall at the beginning of a collision step.

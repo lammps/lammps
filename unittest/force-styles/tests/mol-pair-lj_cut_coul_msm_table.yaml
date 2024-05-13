@@ -1,6 +1,6 @@
 ---
-lammps_version: 10 Feb 2021
-date_generated: Fri Feb 26 23:08:49 2021
+lammps_version: 17 Feb 2022
+date_generated: Fri Mar 18 22:17:32 2022
 epsilon: 1e-13
 skip_tests: gpu
 prerequisites: ! |
@@ -14,7 +14,7 @@ post_commands: ! |
   kspace_style msm 1.0e-4
   kspace_modify compute no
   kspace_modify cutoff/adjust no
-  kspace_modify pressure/scalar no # required for USER-OMP with msm
+  kspace_modify pressure/scalar no # required for OPENMP with msm
 input_file: in.fourmol
 pair_style: lj/cut/coul/msm 12.0
 pair_coeff: ! |
@@ -29,8 +29,8 @@ extract: ! |
   sigma 2
   cut_coul 0
 natoms: 29
-init_vdwl: 749.234609413223
-init_coul: 114.131383580102
+init_vdwl: 749.2346094132226
+init_coul: 114.13138358010185
 init_stress: ! |2-
    2.1551147134940634e+03  2.1531310043019439e+03  4.6224274905057619e+03 -7.5399489040253616e+02  1.8659601917152798e+01  6.7753815264542743e+02
 init_forces: ! |2
@@ -63,8 +63,8 @@ init_forces: ! |2
    27  4.9268806410294808e+01 -2.1540599247253076e+02  8.6345394352289631e+01
    28 -1.7572634941651745e+02  7.2424827092422973e+01 -1.1807149055311780e+02
    29  1.2694498129839906e+02  1.4289100074319830e+02  3.1729223050582846e+01
-run_vdwl: 719.582182590983
-run_coul: 114.22046093329
+run_vdwl: 719.5821825909827
+run_coul: 114.22046093328994
 run_stress: ! |2-
    2.1092365278604757e+03  2.1092562238992905e+03  4.3557362167859274e+03 -7.3297378125979174e+02  3.5809210720302019e+01  6.3889359742297256e+02
 run_forces: ! |2

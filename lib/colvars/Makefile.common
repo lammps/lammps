@@ -28,14 +28,18 @@ COLVARS_SRCS = \
         colvarbias_alb.cpp \
         colvarbias.cpp \
         colvarbias_histogram.cpp \
+        colvarbias_histogram_reweight_amd.cpp \
         colvarbias_meta.cpp \
         colvarbias_restraint.cpp \
+        colvarcomp_alchlambda.cpp \
         colvarcomp_angles.cpp \
         colvarcomp_apath.cpp \
         colvarcomp_coordnums.cpp \
         colvarcomp.cpp \
         colvarcomp_distances.cpp \
         colvarcomp_gpath.cpp \
+        colvarcomp_neuralnetwork.cpp \
+        colvarcomp_combination.cpp \
         colvarcomp_protein.cpp \
         colvarcomp_rotations.cpp \
         colvarcomp_volmaps.cpp \
@@ -46,7 +50,9 @@ COLVARS_SRCS = \
         colvarparams.cpp \
         colvarparse.cpp \
         colvarproxy.cpp \
+        colvarproxy_io.cpp \
         colvarproxy_replicas.cpp \
+        colvarproxy_system.cpp \
         colvarproxy_tcl.cpp \
         colvarproxy_volmaps.cpp \
         colvarscript.cpp \
@@ -54,28 +60,28 @@ COLVARS_SRCS = \
         colvarscript_commands_bias.cpp \
         colvarscript_commands_colvar.cpp \
         colvartypes.cpp \
-        colvarvalue.cpp
-
-LEPTON_SRCS = \
-	lepton/src/CompiledExpression.cpp lepton/src/ExpressionTreeNode.cpp \
-	lepton/src/ParsedExpression.cpp lepton/src/ExpressionProgram.cpp    \
-	lepton/src/Operation.cpp lepton/src/Parser.cpp
-
+        colvarvalue.cpp \
+        colvar_neuralnetworkcompute.cpp
 
 # Allow to selectively turn off Lepton
 ifeq ($(COLVARS_LEPTON),no)
-LEPTON_INCFLAGS = 
-COLVARS_OBJS = $(COLVARS_SRCS:.cpp=.o)
+
+LEPTON_INCFLAGS =
+
 else
-LEPTON_INCFLAGS = -Ilepton/include -DLEPTON
-COLVARS_OBJS = $(COLVARS_SRCS:.cpp=.o) $(LEPTON_SRCS:.cpp=.o)
+
+LEPTON_DIR = ../lepton
+include $(LEPTON_DIR)/Settings.mk
+LEPTON_INCFLAGS = $(LEPTON_INC) $(LEPTON_DEF)
+
 endif
 
+COLVARS_OBJS = $(COLVARS_SRCS:.cpp=.o)
 
 %.o: %.cpp
 	$(CXX) $(CXXFLAGS) $(COLVARS_INCFLAGS) $(LEPTON_INCFLAGS) -c -o $@ $<
 
-$(COLVARS_LIB):	Makefile.deps $(COLVARS_OBJS)
+$(COLVARS_LIB): Makefile.deps $(COLVARS_OBJS)
 	$(AR) $(ARFLAGS) $(COLVARS_LIB) $(COLVARS_OBJS)
 
 
@@ -88,4 +94,4 @@ Makefile.deps: $(COLVARS_SRCS)
 	  done
 
 include Makefile.deps
-include Makefile.lepton.deps # Hand-generated
+

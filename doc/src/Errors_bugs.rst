@@ -17,7 +17,7 @@ the steps outlined below:
    if your issue has already been reported and if it is still open.
  * Check the `GitHub Pull Requests page <https://github.com/lammps/lammps/pulls>`_
    to see if there is already a fix for your bug pending.
- * Check the `mailing list archives <https://www.lammps.org/mail.html>`_
+ * Check the `LAMMPS forum at MatSci <https://matsci.org/lammps/>`_
    to see if the issue has been discussed before.
 
 If none of these steps yields any useful information, please file a new
@@ -37,12 +37,9 @@ generate this restart from a data file or a simple additional input.
 This input deck can be used with tools like a debugger or `valgrind
 <https://valgrind.org>`_ to further :doc:`debug the crash <Errors_debug>`.
 
-You may also send an email to the LAMMPS mailing list at
-"lammps-users at lists.sourceforge.net" describing the problem with the
-same kind of information.  The mailing list can provide a faster response,
-especially if the bug reported is actually expected behavior.  But because
-of the high volume of the mailing list, it can happen that your e-mail
-is overlooked and then forgotten.  Issues on GitHub have to be explicitly
-closed, so that will *guarantee* that at least one LAMMPS developer will
-have looked at it.
+You may also post a message in the `development category of the LAMMPS
+forum at MatSci <https://matsci.org/c/lammps/lammps-development/>`_
+describing the problem with the same kind of information.  The forum can
+provide a faster response, especially if the bug reported is actually
+expected behavior or other LAMMPS users have come across it before.
 

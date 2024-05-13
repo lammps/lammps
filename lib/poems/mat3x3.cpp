@@ -3,7 +3,7 @@
  *      POEMS: PARALLELIZABLE OPEN SOURCE EFFICIENT MULTIBODY SOFTWARE     *
  *      DESCRIPTION: SEE READ-ME                                           *
  *      FILE NAME: mat3x3.cpp                                              *
- *      AUTHORS: See Author List                                           * 
+ *      AUTHORS: See Author List                                           *
  *      GRANTS: See Grants List                                            *
  *      COPYRIGHT: (C) 2005 by Authors as listed in Author's List          *
  *      LICENSE: Please see License Agreement                              *
@@ -11,7 +11,7 @@
  *      ADMINISTRATOR: Prof. Kurt Anderson                                 *
  *                     Computational Dynamics Lab                          *
  *                     Rensselaer Polytechnic Institute                    *
- *                     110 8th St. Troy NY 12180                           * 
+ *                     110 8th St. Troy NY 12180                           *
  *      CONTACT:        anderk5@rpi.edu                                    *
  *_________________________________________________________________________*/
 
@@ -23,8 +23,6 @@ using namespace std;
 
 Mat3x3::Mat3x3(){
   numrows = numcols = 3;
-}
-Mat3x3::~Mat3x3(){
 }
 
 Mat3x3::Mat3x3(const Mat3x3& A){
@@ -42,7 +40,7 @@ Mat3x3::Mat3x3(const VirtualMatrix& A){
     cerr << "illegal matrix size" << endl;
     exit(0);
   }
-  
+
   for(int i=0;i<3;i++)
     for(int j=0;j<3;j++)
       elements[i][j] = A.BasicGet(i,j);

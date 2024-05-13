@@ -1,0 +1,249 @@
+LAMMPS (4 Nov 2022)
+# two molecules DGEBA (diepoxy) and one DETA (linker)
+# two crosslinking reactions
+
+units real
+
+boundary p p p
+
+atom_style full
+
+pair_style lj/class2 8
+
+angle_style class2
+
+bond_style class2
+
+dihedral_style class2
+
+improper_style class2
+
+read_data tiny_epoxy.data
+Reading data file ...
+  orthogonal box = (10 -10 -15) to (30 20 10)
+  1 by 2 by 2 MPI processor grid
+  reading atom labelmap ...
+  reading bond labelmap ...
+  reading angle labelmap ...
+  reading dihedral labelmap ...
+  reading improper labelmap ...
+  reading atoms ...
+  118 atoms
+  scanning bonds ...
+  4 = max bonds/atom
+  scanning angles ...
+  6 = max angles/atom
+  scanning dihedrals ...
+  18 = max dihedrals/atom
+  scanning impropers ...
+  4 = max impropers/atom
+  reading bonds ...
+  123 bonds
+  reading angles ...
+  221 angles
+  reading dihedrals ...
+  302 dihedrals
+  reading impropers ...
+  115 impropers
+Finding 1-2 1-3 1-4 neighbors ...
+  special bond factors lj:    0        0        0       
+  special bond factors coul:  0        0        0       
+     4 = max # of 1-2 neighbors
+    10 = max # of 1-3 neighbors
+    19 = max # of 1-4 neighbors
+    22 = max # of special neighbors
+  special bonds CPU = 0.000 seconds
+  read_data CPU = 0.013 seconds
+
+velocity all create 300.0 4928459 dist gaussian
+
+molecule mol1 rxn1_stp1_pre.molecule_template
+Read molecule template mol1:
+  1 molecules
+  0 fragments
+  31 atoms with max type 10
+  30 bonds with max type 15
+  53 angles with max type 29
+  66 dihedrals with max type 39
+  3 impropers with max type 5
+molecule mol2 rxn1_stp1_post.molecule_template
+Read molecule template mol2:
+  1 molecules
+  0 fragments
+  31 atoms with max type 10
+  30 bonds with max type 17
+  55 angles with max type 36
+  75 dihedrals with max type 51
+  2 impropers with max type 5
+molecule mol3 rxn1_stp2_post.molecule_template
+Read molecule template mol3:
+  1 molecules
+  0 fragments
+  31 atoms with max type 11
+  30 bonds with max type 18
+  53 angles with max type 37
+  72 dihedrals with max type 53
+  3 impropers with max type 5
+molecule mol4 rxn2_stp1_pre.molecule_template
+Read molecule template mol4:
+  1 molecules
+  0 fragments
+  42 atoms with max type 11
+  41 bonds with max type 18
+  73 angles with max type 41
+  96 dihedrals with max type 54
+  3 impropers with max type 5
+molecule mol5 rxn2_stp1_post.molecule_template
+Read molecule template mol5:
+  1 molecules
+  0 fragments
+  42 atoms with max type 11
+  41 bonds with max type 18
+  75 angles with max type 37
+  108 dihedrals with max type 53
+  2 impropers with max type 5
+molecule mol6 rxn2_stp2_post.molecule_template
+Read molecule template mol6:
+  1 molecules
+  0 fragments
+  42 atoms with max type 11
+  41 bonds with max type 19
+  73 angles with max type 50
+  102 dihedrals with max type 66
+  3 impropers with max type 22
+
+thermo 50
+
+# dump 1 all xyz 1 test_vis.xyz
+
+fix rxns all bond/react stabilization yes statted_grp .03   react rxn1_stp1 all 1 0.0 5 mol1 mol2 rxn1_stp1.map   react rxn1_stp2 all 1 0.0 5 mol2 mol3 rxn1_stp2.map   react rxn2_stp1 all 1 0.0 5 mol4 mol5 rxn2_stp1.map   react rxn2_stp2 all 1 0.0 5 mol5 mol6 rxn2_stp2.map
+dynamic group bond_react_MASTER_group defined
+dynamic group statted_grp_REACT defined
+
+
+fix 1 statted_grp_REACT nvt temp 300 300 100
+
+thermo_style custom step temp f_rxns[1] f_rxns[2] f_rxns[3] f_rxns[4]
+
+run 2000
+
+CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE
+
+Your simulation uses code contributions which should be cited:
+
+- fix bond/react: reacter.org doi:10.1016/j.polymer.2017.09.038, doi:10.1021/acs.macromol.0c02012
+
+@Article{Gissinger17,
+ author = {J. R. Gissinger and B. D. Jensen and K. E. Wise},
+ title = {Modeling Chemical Reactions in Classical Molecular Dynamics Simulations},
+ journal = {Polymer},
+ year =    2017,
+ volume =  128,
+ pages =   {211--217}
+}
+
+@Article{Gissinger20,
+ author = {J. R. Gissinger, B. D. Jensen, K. E. Wise},
+ title = {{REACTER}: A Heuristic Method for Reactive Molecular Dynamics},
+ journal = {Macromolecules},
+ year =    2020,
+ volume =  53,
+ number =  22,
+ pages =   {9953--9961}
+}
+
+CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE
+
+Generated 55 of 55 mixed pair_coeff terms from sixthpower/geometric mixing rule
+Neighbor list info ...
+  update: every = 1 steps, delay = 0 steps, check = yes
+  max neighbors/atom: 2000, page size: 100000
+  master list distance cutoff = 10
+  ghost atom cutoff = 10
+  binsize = 5, bins = 4 6 5
+  2 neighbor lists, perpetual/occasional/extra = 1 1 0
+  (1) pair lj/class2, perpetual
+      attributes: half, newton on
+      pair build: half/bin/newton
+      stencil: half/bin/3d
+      bin: standard
+  (2) fix bond/react, occasional, copy from (1)
+      attributes: half, newton on
+      pair build: copy
+      stencil: none
+      bin: none
+Per MPI rank memory allocation (min/avg/max) = 16.63 | 16.63 | 16.64 Mbytes
+   Step          Temp        f_rxns[1]      f_rxns[2]      f_rxns[3]      f_rxns[4]   
+         0   300            0              0              0              0            
+        50   378.29345      1              0              0              0            
+       100   471.04152      1              1              0              0            
+       150   583.79755      1              1              1              0            
+       200   526.00812      1              1              1              1            
+       250   429.56812      1              1              1              1            
+       300   512.54655      1              1              1              1            
+       350   461.18357      1              1              1              1            
+       400   379.38965      1              1              1              1            
+       450   424.89528      1              1              1              1            
+       500   324.72257      1              1              1              1            
+       550   302.91042      1              1              1              1            
+       600   253.80911      1              1              1              1            
+       650   252.90262      1              1              1              1            
+       700   270.62628      1              1              1              1            
+       750   311.64391      1              1              1              1            
+       800   318.9413       1              1              1              1            
+       850   354.20196      1              1              1              1            
+       900   302.19641      1              1              1              1            
+       950   316.97905      1              1              1              1            
+      1000   303.08194      1              1              1              1            
+      1050   317.51619      1              1              1              1            
+      1100   287.57204      1              1              1              1            
+      1150   226.72101      1              1              1              1            
+      1200   283.97519      1              1              1              1            
+      1250   287.0607       1              1              1              1            
+      1300   327.65278      1              1              1              1            
+      1350   316.06809      1              1              1              1            
+      1400   337.69947      1              1              1              1            
+      1450   326.12278      1              1              1              1            
+      1500   300.89265      1              1              1              1            
+      1550   325.2415       1              1              1              1            
+      1600   294.1844       1              1              1              1            
+      1650   293.98596      1              1              1              1            
+      1700   317.35477      1              1              1              1            
+      1750   296.97768      1              1              1              1            
+      1800   274.97297      1              1              1              1            
+      1850   335.36698      1              1              1              1            
+      1900   315.3756       1              1              1              1            
+      1950   260.65334      1              1              1              1            
+      2000   354.03612      1              1              1              1            
+Loop time of 0.47159 on 4 procs for 2000 steps with 118 atoms
+
+Performance: 366.420 ns/day, 0.065 hours/ns, 4240.970 timesteps/s, 500.434 katom-step/s
+99.9% CPU use with 4 MPI tasks x no OpenMP threads
+
+MPI task timing breakdown:
+Section |  min time  |  avg time  |  max time  |%varavg| %total
+---------------------------------------------------------------
+Pair    | 0.016546   | 0.024458   | 0.038858   |   5.5 |  5.19
+Bond    | 0.072622   | 0.16458    | 0.21778    |  13.9 | 34.90
+Neigh   | 0.0056307  | 0.0056812  | 0.0057292  |   0.1 |  1.20
+Comm    | 0.028022   | 0.095922   | 0.19526    |  20.3 | 20.34
+Output  | 0.00034591 | 0.00041633 | 0.00062378 |   0.0 |  0.09
+Modify  | 0.17613    | 0.17649    | 0.17711    |   0.1 | 37.43
+Other   |            | 0.00404    |            |       |  0.86
+
+Nlocal:           29.5 ave          45 max           7 min
+Histogram: 1 0 0 0 0 0 1 1 0 1
+Nghost:            315 ave         343 max         287 min
+Histogram: 1 1 0 0 0 0 0 0 1 1
+Neighs:         871.75 ave        1772 max         236 min
+Histogram: 1 0 1 1 0 0 0 0 0 1
+
+Total # of neighbors = 3487
+Ave neighs/atom = 29.550847
+Ave special neighs/atom = 10.576271
+Neighbor list builds = 68
+Dangerous builds = 0
+
+# write_restart restart_longrun
+# write_data restart_longrun.data nofix
+Total wall time: 0:00:00

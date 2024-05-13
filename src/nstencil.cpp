@@ -2,7 +2,7 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    https://www.lammps.org/, Sandia National Laboratories
-   Steve Plimpton, sjplimp@sandia.gov
+   LAMMPS development team: developers@lammps.org
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
@@ -20,6 +20,8 @@
 #include "update.h"
 #include "domain.h"
 #include "memory.h"
+
+#include <cmath>
 
 using namespace LAMMPS_NS;
 
@@ -82,6 +84,7 @@ NStencil::NStencil(LAMMPS *lmp) : Pointers(lmp)
 
   flag_half_multi = nullptr;
   flag_skip_multi = nullptr;
+  flag_same_multi = nullptr;
   bin_collection_multi = nullptr;
 
   maxcollections = 0;
@@ -120,6 +123,7 @@ NStencil::~NStencil()
     memory->destroy(maxstencil_multi);
     memory->destroy(flag_half_multi);
     memory->destroy(flag_skip_multi);
+    memory->destroy(flag_same_multi);
     memory->destroy(bin_collection_multi);
 
     memory->destroy(stencil_sx_multi);
@@ -204,8 +208,8 @@ void NStencil::copy_bin_info_multi()
 }
 
 /* ----------------------------------------------------------------------
-   insure NBin data is current
-   insure stencils are allocated large enough
+   ensure NBin data is current
+   ensure stencils are allocated large enough
 ------------------------------------------------------------------------- */
 
 void NStencil::create_setup()
@@ -287,6 +291,7 @@ void NStencil::create_setup()
       memory->destroy(maxstencil_multi);
       memory->destroy(flag_half_multi);
       memory->destroy(flag_skip_multi);
+      memory->destroy(flag_same_multi);
       memory->destroy(bin_collection_multi);
       memory->destroy(stencil_sx_multi);
       memory->destroy(stencil_sy_multi);
@@ -305,6 +310,8 @@ void NStencil::create_setup()
                      "neighstencil:flag_half_multi");
       memory->create(flag_skip_multi, n, n,
                      "neighstencil:flag_skip_multi");
+      memory->create(flag_same_multi, n, n,
+                     "neighstencil:flag_same_multi");
       memory->create(bin_collection_multi, n, n,
                      "neighstencil:bin_collection_multi");
 
@@ -335,7 +342,7 @@ void NStencil::create_setup()
       for (i = 0; i < n; ++i) {
         stencil_multi[i] = new int*[n]();
         for (j = 0; j < n; ++j) {
-	      maxstencil_multi[i][j] = 0;
+              maxstencil_multi[i][j] = 0;
           nstencil_multi[i][j] = 0;
           stencil_multi[i][j] = nullptr;
         }
@@ -346,7 +353,7 @@ void NStencil::create_setup()
     // Skip all stencils by default, initialize smax
     for (i = 0; i < n; i++) {
       for (j = 0; j < n; j++) {
-        flag_skip_multi[i][j] = 1;
+        flag_skip_multi[i][j] = true;
       }
     }
 
@@ -390,7 +397,7 @@ void NStencil::create_setup()
           if(stencil_multi[i][j])
             memory->destroy(stencil_multi[i][j]);
           memory->create(stencil_multi[i][j], smax,
-	  	                 "neighstencil::stencil_multi");
+                                 "neighstencil::stencil_multi");
         }
       }
     }

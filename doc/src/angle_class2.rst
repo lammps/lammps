@@ -24,7 +24,7 @@ Examples
 .. code-block:: LAMMPS
 
    angle_style class2
-   angle_coeff * 75.0
+   angle_coeff * 75.0 25.0 0.3 0.002
    angle_coeff 1 bb 10.5872 1.0119 1.5228
    angle_coeff * ba 3.6551 24.895 1.0119 1.5228
 
@@ -64,33 +64,43 @@ These are the 4 coefficients for the :math:`E_a` formula:
 radians internally; hence the various :math:`K` are effectively energy
 per radian\^2 or radian\^3 or radian\^4.
 
-For the :math:`E_{bb}` formula, each line in a :doc:`angle_coeff <angle_coeff>`
-command in the input script lists 4 coefficients, the first of which
-is "bb" to indicate they are BondBond coefficients.  In a data file,
-these coefficients should be listed under a "BondBond Coeffs" heading
-and you must leave out the "bb", i.e. only list 3 coefficients after
-the angle type.
+For the :math:`E_{bb}` formula, each line in a :doc:`angle_coeff
+<angle_coeff>` command in the input script lists 4 coefficients, the
+first of which is "bb" to indicate they are BondBond coefficients.  In
+a data file, these coefficients should be listed under a "BondBond
+Coeffs" heading and you must leave out the "bb", i.e. only list 3
+coefficients after the angle type.
 
 * bb
 * :math:`M` (energy/distance\^2)
 * :math:`r_1` (distance)
 * :math:`r_2` (distance)
 
-For the :math:`E_{ba}` formula, each line in a :doc:`angle_coeff <angle_coeff>`
-command in the input script lists 5 coefficients, the first of which
-is "ba" to indicate they are BondAngle coefficients.  In a data file,
-these coefficients should be listed under a "BondAngle Coeffs" heading
-and you must leave out the "ba", i.e. only list 4 coefficients after
-the angle type.
+For the :math:`E_{ba}` formula, each line in a :doc:`angle_coeff
+<angle_coeff>` command in the input script lists 5 coefficients, the
+first of which is "ba" to indicate they are BondAngle coefficients.
+In a data file, these coefficients should be listed under a "BondAngle
+Coeffs" heading and you must leave out the "ba", i.e. only list 4
+coefficients after the angle type.
 
 * ba
-* :math:`N_1` (energy/distance\^2)
-* :math:`N_2` (energy/distance\^2)
+* :math:`N_1` (energy/distance)
+* :math:`N_2` (energy/distance)
 * :math:`r_1` (distance)
 * :math:`r_2` (distance)
 
 The :math:`\theta_0` value in the :math:`E_{ba}` formula is not specified,
 since it is the same value from the :math:`E_a` formula.
+
+.. note::
+
+   It is important that the order of the I,J,K atoms in each angle
+   listed in the Angles section of the data file read by the
+   :doc:`read_data <read_data>` command be consistent with the order
+   of the :math:`r_1` and :math:`r_2` BondBond and BondAngle
+   coefficients.  This is because the terms in the formulas for
+   :math:`E_{bb}` and :math:`E_{ba}` will use the I,J atoms to compute
+   :math:`r_{ij}` and the J,K atoms to compute :math:`r_{jk}`.
 
 ----------
 
@@ -126,7 +136,7 @@ Restrictions
 
 This angle style can only be used if LAMMPS was built with the CLASS2
 package.  For the *class2/p6* style LAMMPS needs to be built with the
-USER-MOFFF package.  See the :doc:`Build package <Build_package>` doc
+MOFFF package.  See the :doc:`Build package <Build_package>` doc
 page for more info.
 
 Related commands

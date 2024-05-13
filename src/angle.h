@@ -1,7 +1,7 @@
 /* -*- c++ -*- ----------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    https://www.lammps.org/, Sandia National Laboratories
-   Steve Plimpton, sjplimp@sandia.gov
+   LAMMPS development team: developers@lammps.org
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
@@ -25,7 +25,8 @@ class Angle : protected Pointers {
  public:
   int allocated;
   int *setflag;
-  int writedata;             // 1 if writes coeffs to data file
+  int writedata;    // 1 if writes coeffs to data file
+  int born_matrix_enable;
   double energy;             // accumulated energies
   double virial[6];          // accumulated virial: xx,yy,zz,xy,xz,yz
   double *eatom, **vatom;    // accumulated per-atom energy/virial
@@ -36,6 +37,9 @@ class Angle : protected Pointers {
                              // CENTROID_AVAIL = different and implemented
                              // CENTROID_NOTAVAIL = different, not yet implemented
 
+  int reinitflag;    // 0 if not compatible with fix adapt
+                     // extract() method may still need to be added
+
   // KOKKOS host/device flag and data masks
 
   ExecutionSpace execution_space;
@@ -43,10 +47,10 @@ class Angle : protected Pointers {
   int copymode;
 
   Angle(class LAMMPS *);
-  virtual ~Angle();
+  ~Angle() override;
   virtual void init();
   virtual void compute(int, int) = 0;
-  virtual void settings(int, char **) {}
+  virtual void settings(int, char **);
   virtual void coeff(int, char **) = 0;
   virtual void init_style(){};
   virtual double equilibrium_angle(int) = 0;
@@ -56,7 +60,15 @@ class Angle : protected Pointers {
   virtual void read_restart_settings(FILE *){};
   virtual void write_data(FILE *) {}
   virtual double single(int, int, int, int) = 0;
+  virtual void born_matrix(int /*atype*/, int /*at1*/, int /*at2*/, int /*at3*/, double &du,
+                           double &du2)
+  {
+    du = 0.0;
+    du2 = 0.0;
+  }
   virtual double memory_usage();
+  virtual void *extract(const char *, int &) { return nullptr; }
+  void reinit();
 
  protected:
   int suffix_flag;    // suffix compatibility flag
@@ -77,22 +89,10 @@ class Angle : protected Pointers {
   void ev_setup(int, int, int alloc = 1);
   void ev_tally(int, int, int, int, int, double, double *, double *, double, double, double, double,
                 double, double);
+  void ev_tally4(int, int, int, int, int, int, double, double *, double *, double *, double *);
+  void ev_tally2(int, int, int, int, double, double, double, double, double);
 };
 
 }    // namespace LAMMPS_NS
 
 #endif
-
-/* ERROR/WARNING messages:
-
-E: Angle coeffs are not set
-
-No angle coefficients have been assigned in the data file or via the
-angle_coeff command.
-
-E: All angle coeffs are not set
-
-All angle coefficients must be set in the data file or by the
-angle_coeff command before running a simulation.
-
-*/

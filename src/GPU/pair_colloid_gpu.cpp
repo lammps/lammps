@@ -1,8 +1,7 @@
-// clang-format off
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    https://www.lammps.org/, Sandia National Laboratories
-   Steve Plimpton, sjplimp@sandia.gov
+   LAMMPS development team: developers@lammps.org
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
@@ -25,7 +24,6 @@
 #include "gpu_extra.h"
 #include "memory.h"
 #include "neigh_list.h"
-#include "neigh_request.h"
 #include "neighbor.h"
 #include "suffix.h"
 
@@ -35,26 +33,21 @@ using namespace LAMMPS_NS;
 
 // External functions from cuda library for atom decomposition
 
-int colloid_gpu_init(const int ntypes, double **cutsq, double **host_lj1,
-                     double **host_lj2, double **host_lj3, double **host_lj4,
-                     double **offset, double *special_lj, double **host_a12,
-                     double **host_a1, double **host_a2, double **host_d1,
-                     double **host_d2, double **host_sigma3,
-                     double **host_sigma6, int **host_form, const int nlocal,
-                     const int nall, const int max_nbors, const int maxspecial,
+int colloid_gpu_init(const int ntypes, double **cutsq, double **host_lj1, double **host_lj2,
+                     double **host_lj3, double **host_lj4, double **offset, double *special_lj,
+                     double **host_a12, double **host_a1, double **host_a2, double **host_d1,
+                     double **host_d2, double **host_sigma3, double **host_sigma6, int **host_form,
+                     const int nlocal, const int nall, const int max_nbors, const int maxspecial,
                      const double cell_size, int &gpu_mode, FILE *screen);
 void colloid_gpu_clear();
-int ** colloid_gpu_compute_n(const int ago, const int inum, const int nall,
-                             double **host_x, int *host_type, double *sublo,
-                             double *subhi, tagint *tag, int **nspecial,
-                             tagint **special, const bool eflag,
-                             const bool vflag, const bool eatom,
-                             const bool vatom, int &host_start, int **ilist,
-                             int **jnum, const double cpu_time, bool &success);
-void colloid_gpu_compute(const int ago, const int inum, const int nall,
-                         double **host_x, int *host_type, int *ilist, int *numj,
-                         int **firstneigh, const bool eflag, const bool vflag,
-                         const bool eatom, const bool vatom, int &host_start,
+int **colloid_gpu_compute_n(const int ago, const int inum, const int nall, double **host_x,
+                            int *host_type, double *sublo, double *subhi, tagint *tag,
+                            int **nspecial, tagint **special, const bool eflag, const bool vflag,
+                            const bool eatom, const bool vatom, int &host_start, int **ilist,
+                            int **jnum, const double cpu_time, bool &success);
+void colloid_gpu_compute(const int ago, const int inum, const int nall, double **host_x,
+                         int *host_type, int *ilist, int *numj, int **firstneigh, const bool eflag,
+                         const bool vflag, const bool eatom, const bool vatom, int &host_start,
                          const double cpu_time, bool &success);
 double colloid_gpu_bytes();
 
@@ -82,7 +75,7 @@ PairColloidGPU::~PairColloidGPU()
 
 void PairColloidGPU::compute(int eflag, int vflag)
 {
-  ev_init(eflag,vflag);
+  ev_init(eflag, vflag);
 
   int nall = atom->nlocal + atom->nghost;
   int inum, host_start;
@@ -90,7 +83,7 @@ void PairColloidGPU::compute(int eflag, int vflag)
   bool success = true;
   int *ilist, *numneigh, **firstneigh;
   if (gpu_mode != GPU_FORCE) {
-    double sublo[3],subhi[3];
+    double sublo[3], subhi[3];
     if (domain->triclinic == 0) {
       sublo[0] = domain->sublo[0];
       sublo[1] = domain->sublo[1];
@@ -99,31 +92,29 @@ void PairColloidGPU::compute(int eflag, int vflag)
       subhi[1] = domain->subhi[1];
       subhi[2] = domain->subhi[2];
     } else {
-      domain->bbox(domain->sublo_lamda,domain->subhi_lamda,sublo,subhi);
+      domain->bbox(domain->sublo_lamda, domain->subhi_lamda, sublo, subhi);
     }
     inum = atom->nlocal;
-    firstneigh = colloid_gpu_compute_n(neighbor->ago, inum, nall,
-                                       atom->x, atom->type, sublo,
-                                       subhi, atom->tag, atom->nspecial,
-                                       atom->special, eflag, vflag, eflag_atom,
-                                       vflag_atom, host_start,
-                                       &ilist, &numneigh, cpu_time, success);
+    firstneigh =
+        colloid_gpu_compute_n(neighbor->ago, inum, nall, atom->x, atom->type, sublo, subhi,
+                              atom->tag, atom->nspecial, atom->special, eflag, vflag, eflag_atom,
+                              vflag_atom, host_start, &ilist, &numneigh, cpu_time, success);
   } else {
     inum = list->inum;
     ilist = list->ilist;
     numneigh = list->numneigh;
     firstneigh = list->firstneigh;
-    colloid_gpu_compute(neighbor->ago, inum, nall, atom->x, atom->type,
-                        ilist, numneigh, firstneigh, eflag, vflag, eflag_atom,
-                        vflag_atom, host_start, cpu_time, success);
+    colloid_gpu_compute(neighbor->ago, inum, nall, atom->x, atom->type, ilist, numneigh, firstneigh,
+                        eflag, vflag, eflag_atom, vflag_atom, host_start, cpu_time, success);
   }
-  if (!success)
-    error->one(FLERR,"Insufficient memory on accelerator");
+  if (!success) error->one(FLERR, "Insufficient memory on accelerator");
 
-  if (host_start<inum) {
-    cpu_time = MPI_Wtime();
+  if (atom->molecular != Atom::ATOMIC && neighbor->ago == 0)
+    neighbor->build_topology();
+  if (host_start < inum) {
+    cpu_time = platform::walltime();
     cpu_compute(host_start, inum, eflag, vflag, ilist, numneigh, firstneigh);
-    cpu_time = MPI_Wtime() - cpu_time;
+    cpu_time = platform::walltime() - cpu_time;
   }
 }
 
@@ -133,8 +124,6 @@ void PairColloidGPU::compute(int eflag, int vflag)
 
 void PairColloidGPU::init_style()
 {
-  if (force->newton_pair)
-    error->all(FLERR,"Pair style colloid/gpu requires newton pair off");
 
   // Repeat cutsq calculation because done after call to init_style
   double maxcut = -1.0;
@@ -142,10 +131,9 @@ void PairColloidGPU::init_style()
   for (int i = 1; i <= atom->ntypes; i++) {
     for (int j = i; j <= atom->ntypes; j++) {
       if (setflag[i][j] != 0 || (setflag[i][i] != 0 && setflag[j][j] != 0)) {
-        cut = init_one(i,j);
+        cut = init_one(i, j);
         cut *= cut;
-        if (cut > maxcut)
-          maxcut = cut;
+        if (cut > maxcut) maxcut = cut;
         cutsq[i][j] = cutsq[j][i] = cut;
       } else
         cutsq[i][j] = cutsq[j][i] = 0.0;
@@ -154,32 +142,29 @@ void PairColloidGPU::init_style()
   double cell_size = sqrt(maxcut) + neighbor->skin;
 
   int **_form = nullptr;
-  int n=atom->ntypes;
-  memory->create(_form,n+1,n+1,"colloid/gpu:_form");
+  int n = atom->ntypes;
+  memory->create(_form, n + 1, n + 1, "colloid/gpu:_form");
   for (int i = 1; i <= n; i++) {
     for (int j = 1; j <= n; j++) {
-      if (form[i][j] == SMALL_SMALL) _form[i][j] = 0;
-      else if (form[i][j] == SMALL_LARGE) _form[i][j] = 1;
-      else if (form[i][j] == LARGE_LARGE) _form[i][j] = 2;
+      if (form[i][j] == SMALL_SMALL)
+        _form[i][j] = 0;
+      else if (form[i][j] == SMALL_LARGE)
+        _form[i][j] = 1;
+      else if (form[i][j] == LARGE_LARGE)
+        _form[i][j] = 2;
     }
   }
-  int maxspecial=0;
-  if (atom->molecular != Atom::ATOMIC)
-    maxspecial=atom->maxspecial;
+  int maxspecial = 0;
+  if (atom->molecular != Atom::ATOMIC) maxspecial = atom->maxspecial;
   int mnf = 5e-2 * neighbor->oneatom;
-  int success = colloid_gpu_init(atom->ntypes+1, cutsq, lj1, lj2, lj3, lj4,
-                                 offset, force->special_lj, a12, a1, a2,
-                                 d1, d2, sigma3, sigma6, _form, atom->nlocal,
-                                 atom->nlocal+atom->nghost, mnf, maxspecial,
-                                 cell_size, gpu_mode, screen);
+  int success =
+      colloid_gpu_init(atom->ntypes + 1, cutsq, lj1, lj2, lj3, lj4, offset, force->special_lj, a12,
+                       a1, a2, d1, d2, sigma3, sigma6, _form, atom->nlocal,
+                       atom->nlocal + atom->nghost, mnf, maxspecial, cell_size, gpu_mode, screen);
   memory->destroy(_form);
-  GPU_EXTRA::check_flag(success,error,world);
+  GPU_EXTRA::check_flag(success, error, world);
 
-  if (gpu_mode == GPU_FORCE) {
-    int irequest = neighbor->request(this,instance_me);
-    neighbor->requests[irequest]->half = 0;
-    neighbor->requests[irequest]->full = 1;
-  }
+  if (gpu_mode == GPU_FORCE) neighbor->add_request(this, NeighConst::REQ_FULL);
 }
 
 /* ---------------------------------------------------------------------- */
@@ -192,15 +177,14 @@ double PairColloidGPU::memory_usage()
 
 /* ---------------------------------------------------------------------- */
 
-void PairColloidGPU::cpu_compute(int start, int inum, int eflag,
-                                 int /* vflag */, int *ilist,
+void PairColloidGPU::cpu_compute(int start, int inum, int eflag, int /* vflag */, int *ilist,
                                  int *numneigh, int **firstneigh)
 {
-  int i,j,ii,jj,jnum,itype,jtype;
-  double xtmp,ytmp,ztmp,delx,dely,delz,evdwl,fpair;
-  double r,rsq,r2inv,r6inv,forcelj,factor_lj;
-  double c1,c2,fR,dUR,dUA;
-  double K[9],h[4],g[4];
+  int i, j, ii, jj, jnum, itype, jtype;
+  double xtmp, ytmp, ztmp, delx, dely, delz, evdwl, fpair;
+  double r, rsq, r2inv, r6inv, forcelj, factor_lj;
+  double c1, c2, fR, dUR, dUA;
+  double K[9], h[4], g[4];
   int *jlist;
 
   double **x = atom->x;
@@ -227,90 +211,91 @@ void PairColloidGPU::cpu_compute(int start, int inum, int eflag,
       delx = xtmp - x[j][0];
       dely = ytmp - x[j][1];
       delz = ztmp - x[j][2];
-      rsq = delx*delx + dely*dely + delz*delz;
+      rsq = delx * delx + dely * dely + delz * delz;
       jtype = type[j];
 
       if (rsq >= cutsq[itype][jtype]) continue;
 
       switch (form[itype][jtype]) {
-      case SMALL_SMALL:
-        r2inv = 1.0/rsq;
-        r6inv = r2inv*r2inv*r2inv;
-        forcelj = r6inv * (lj1[itype][jtype]*r6inv - lj2[itype][jtype]);
-        fpair = factor_lj*forcelj*r2inv;
-        if (eflag)
-          evdwl = r6inv*(r6inv*lj3[itype][jtype]-lj4[itype][jtype]) -
-            offset[itype][jtype];
-        break;
+        case SMALL_SMALL:
+          r2inv = 1.0 / rsq;
+          r6inv = r2inv * r2inv * r2inv;
+          forcelj = r6inv * (lj1[itype][jtype] * r6inv - lj2[itype][jtype]);
+          fpair = factor_lj * forcelj * r2inv;
+          if (eflag)
+            evdwl = r6inv * (r6inv * lj3[itype][jtype] - lj4[itype][jtype]) - offset[itype][jtype];
+          break;
 
-      case SMALL_LARGE:
-        c2 = a2[itype][jtype];
-        K[1] = c2*c2;
-        K[2] = rsq;
-        K[0] = K[1] - rsq;
-        K[4] = rsq*rsq;
-        K[3] = K[1] - K[2];
-        K[3] *= K[3]*K[3];
-        K[6] = K[3]*K[3];
-        fR = sigma3[itype][jtype]*a12[itype][jtype]*c2*K[1]/K[3];
-        fpair = 4.0/15.0*fR*factor_lj *
-          (2.0*(K[1]+K[2]) * (K[1]*(5.0*K[1]+22.0*K[2])+5.0*K[4]) *
-          sigma6[itype][jtype]/K[6]-5.0) / K[0];
-        if (eflag)
-          evdwl = 2.0/9.0*fR *
-            (1.0-(K[1]*(K[1]*(K[1]/3.0+3.0*K[2])+4.2*K[4])+K[2]*K[4]) *
-            sigma6[itype][jtype]/K[6]) - offset[itype][jtype];
-        if (rsq <= K[1])
-          error->one(FLERR,"Overlapping small/large in pair colloid");
-        break;
+        case SMALL_LARGE:
+          c2 = a2[itype][jtype];
+          K[1] = c2 * c2;
+          K[2] = rsq;
+          K[0] = K[1] - rsq;
+          K[4] = rsq * rsq;
+          K[3] = K[1] - K[2];
+          K[3] *= K[3] * K[3];
+          K[6] = K[3] * K[3];
+          fR = sigma3[itype][jtype] * a12[itype][jtype] * c2 * K[1] / K[3];
+          fpair = 4.0 / 15.0 * fR * factor_lj *
+              (2.0 * (K[1] + K[2]) * (K[1] * (5.0 * K[1] + 22.0 * K[2]) + 5.0 * K[4]) *
+                   sigma6[itype][jtype] / K[6] -
+               5.0) /
+              K[0];
+          if (eflag)
+            evdwl = 2.0 / 9.0 * fR *
+                    (1.0 -
+                     (K[1] * (K[1] * (K[1] / 3.0 + 3.0 * K[2]) + 4.2 * K[4]) + K[2] * K[4]) *
+                         sigma6[itype][jtype] / K[6]) -
+                offset[itype][jtype];
+          if (rsq <= K[1]) error->one(FLERR, "Overlapping small/large in pair colloid");
+          break;
 
-      case LARGE_LARGE:
-        r = sqrt(rsq);
-        c1 = a1[itype][jtype];
-        c2 = a2[itype][jtype];
-        K[0] = c1*c2;
-        K[1] = c1+c2;
-        K[2] = c1-c2;
-        K[3] = K[1]+r;
-        K[4] = K[1]-r;
-        K[5] = K[2]+r;
-        K[6] = K[2]-r;
-        K[7] = 1.0/(K[3]*K[4]);
-        K[8] = 1.0/(K[5]*K[6]);
-        g[0] = pow(K[3],-7.0);
-        g[1] = pow(K[4],-7.0);
-        g[2] = pow(K[5],-7.0);
-        g[3] = pow(K[6],-7.0);
-        h[0] = ((K[3]+5.0*K[1])*K[3]+30.0*K[0])*g[0];
-        h[1] = ((K[4]+5.0*K[1])*K[4]+30.0*K[0])*g[1];
-        h[2] = ((K[5]+5.0*K[2])*K[5]-30.0*K[0])*g[2];
-        h[3] = ((K[6]+5.0*K[2])*K[6]-30.0*K[0])*g[3];
-        g[0] *= 42.0*K[0]/K[3]+6.0*K[1]+K[3];
-        g[1] *= 42.0*K[0]/K[4]+6.0*K[1]+K[4];
-        g[2] *= -42.0*K[0]/K[5]+6.0*K[2]+K[5];
-        g[3] *= -42.0*K[0]/K[6]+6.0*K[2]+K[6];
+        case LARGE_LARGE:
+          r = sqrt(rsq);
+          c1 = a1[itype][jtype];
+          c2 = a2[itype][jtype];
+          K[0] = c1 * c2;
+          K[1] = c1 + c2;
+          K[2] = c1 - c2;
+          K[3] = K[1] + r;
+          K[4] = K[1] - r;
+          K[5] = K[2] + r;
+          K[6] = K[2] - r;
+          K[7] = 1.0 / (K[3] * K[4]);
+          K[8] = 1.0 / (K[5] * K[6]);
+          g[0] = pow(K[3], -7.0);
+          g[1] = pow(K[4], -7.0);
+          g[2] = pow(K[5], -7.0);
+          g[3] = pow(K[6], -7.0);
+          h[0] = ((K[3] + 5.0 * K[1]) * K[3] + 30.0 * K[0]) * g[0];
+          h[1] = ((K[4] + 5.0 * K[1]) * K[4] + 30.0 * K[0]) * g[1];
+          h[2] = ((K[5] + 5.0 * K[2]) * K[5] - 30.0 * K[0]) * g[2];
+          h[3] = ((K[6] + 5.0 * K[2]) * K[6] - 30.0 * K[0]) * g[3];
+          g[0] *= 42.0 * K[0] / K[3] + 6.0 * K[1] + K[3];
+          g[1] *= 42.0 * K[0] / K[4] + 6.0 * K[1] + K[4];
+          g[2] *= -42.0 * K[0] / K[5] + 6.0 * K[2] + K[5];
+          g[3] *= -42.0 * K[0] / K[6] + 6.0 * K[2] + K[6];
 
-        fR = a12[itype][jtype]*sigma6[itype][jtype]/r/37800.0;
-        evdwl = fR * (h[0]-h[1]-h[2]+h[3]);
-        dUR = evdwl/r + 5.0*fR*(g[0]+g[1]-g[2]-g[3]);
-        dUA = -a12[itype][jtype]/3.0*r*((2.0*K[0]*K[7]+1.0)*K[7] +
-          (2.0*K[0]*K[8]-1.0)*K[8]);
-        fpair = factor_lj * (dUR+dUA)/r;
-        if (eflag)
-          evdwl += a12[itype][jtype]/6.0 *
-            (2.0*K[0]*(K[7]+K[8])-log(K[8]/K[7])) - offset[itype][jtype];
-        if (r <= K[1])
-          error->one(FLERR,"Overlapping large/large in pair colloid");
-        break;
+          fR = a12[itype][jtype] * sigma6[itype][jtype] / r / 37800.0;
+          evdwl = fR * (h[0] - h[1] - h[2] + h[3]);
+          dUR = evdwl / r + 5.0 * fR * (g[0] + g[1] - g[2] - g[3]);
+          dUA = -a12[itype][jtype] / 3.0 * r *
+              ((2.0 * K[0] * K[7] + 1.0) * K[7] + (2.0 * K[0] * K[8] - 1.0) * K[8]);
+          fpair = factor_lj * (dUR + dUA) / r;
+          if (eflag)
+            evdwl += a12[itype][jtype] / 6.0 * (2.0 * K[0] * (K[7] + K[8]) - log(K[8] / K[7])) -
+                offset[itype][jtype];
+          if (r <= K[1]) error->one(FLERR, "Overlapping large/large in pair colloid");
+          break;
       }
 
       if (eflag) evdwl *= factor_lj;
 
-      f[i][0] += delx*fpair;
-      f[i][1] += dely*fpair;
-      f[i][2] += delz*fpair;
+      f[i][0] += delx * fpair;
+      f[i][1] += dely * fpair;
+      f[i][2] += delz * fpair;
 
-      if (evflag) ev_tally_full(i,evdwl,0.0,fpair,delx,dely,delz);
+      if (evflag) ev_tally_full(i, evdwl, 0.0, fpair, delx, dely, delz);
     }
   }
 }

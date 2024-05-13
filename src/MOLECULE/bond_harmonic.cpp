@@ -1,8 +1,7 @@
-// clang-format off
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    https://www.lammps.org/, Sandia National Laboratories
-   Steve Plimpton, sjplimp@sandia.gov
+   LAMMPS development team: developers@lammps.org
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
@@ -14,23 +13,23 @@
 
 #include "bond_harmonic.h"
 
-#include <cmath>
-#include <cstring>
 #include "atom.h"
-#include "neighbor.h"
 #include "comm.h"
+#include "error.h"
 #include "force.h"
 #include "memory.h"
-#include "error.h"
+#include "neighbor.h"
 
+#include <cmath>
+#include <cstring>
 
 using namespace LAMMPS_NS;
 
 /* ---------------------------------------------------------------------- */
 
-BondHarmonic::BondHarmonic(LAMMPS *lmp) : Bond(lmp)
+BondHarmonic::BondHarmonic(LAMMPS *_lmp) : Bond(_lmp)
 {
-  reinitflag = 1;
+  born_matrix_enable = 1;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -48,12 +47,12 @@ BondHarmonic::~BondHarmonic()
 
 void BondHarmonic::compute(int eflag, int vflag)
 {
-  int i1,i2,n,type;
-  double delx,dely,delz,ebond,fbond;
-  double rsq,r,dr,rk;
+  int i1, i2, n, type;
+  double delx, dely, delz, ebond, fbond;
+  double rsq, r, dr, rk;
 
   ebond = 0.0;
-  ev_init(eflag,vflag);
+  ev_init(eflag, vflag);
 
   double **x = atom->x;
   double **f = atom->f;
@@ -71,33 +70,35 @@ void BondHarmonic::compute(int eflag, int vflag)
     dely = x[i1][1] - x[i2][1];
     delz = x[i1][2] - x[i2][2];
 
-    rsq = delx*delx + dely*dely + delz*delz;
+    rsq = delx * delx + dely * dely + delz * delz;
     r = sqrt(rsq);
     dr = r - r0[type];
     rk = k[type] * dr;
 
     // force & energy
 
-    if (r > 0.0) fbond = -2.0*rk/r;
-    else fbond = 0.0;
+    if (r > 0.0)
+      fbond = -2.0 * rk / r;
+    else
+      fbond = 0.0;
 
-    if (eflag) ebond = rk*dr;
+    if (eflag) ebond = rk * dr;
 
     // apply force to each of 2 atoms
 
     if (newton_bond || i1 < nlocal) {
-      f[i1][0] += delx*fbond;
-      f[i1][1] += dely*fbond;
-      f[i1][2] += delz*fbond;
+      f[i1][0] += delx * fbond;
+      f[i1][1] += dely * fbond;
+      f[i1][2] += delz * fbond;
     }
 
     if (newton_bond || i2 < nlocal) {
-      f[i2][0] -= delx*fbond;
-      f[i2][1] -= dely*fbond;
-      f[i2][2] -= delz*fbond;
+      f[i2][0] -= delx * fbond;
+      f[i2][1] -= dely * fbond;
+      f[i2][2] -= delz * fbond;
     }
 
-    if (evflag) ev_tally(i1,i2,nlocal,newton_bond,ebond,fbond,delx,dely,delz);
+    if (evflag) ev_tally(i1, i2, nlocal, newton_bond, ebond, fbond, delx, dely, delz);
   }
 }
 
@@ -106,13 +107,13 @@ void BondHarmonic::compute(int eflag, int vflag)
 void BondHarmonic::allocate()
 {
   allocated = 1;
-  int n = atom->nbondtypes;
+  const int np1 = atom->nbondtypes + 1;
 
-  memory->create(k,n+1,"bond:k");
-  memory->create(r0,n+1,"bond:r0");
+  memory->create(k, np1, "bond:k");
+  memory->create(r0, np1, "bond:r0");
 
-  memory->create(setflag,n+1,"bond:setflag");
-  for (int i = 1; i <= n; i++) setflag[i] = 0;
+  memory->create(setflag, np1, "bond:setflag");
+  for (int i = 1; i < np1; i++) setflag[i] = 0;
 }
 
 /* ----------------------------------------------------------------------
@@ -121,14 +122,14 @@ void BondHarmonic::allocate()
 
 void BondHarmonic::coeff(int narg, char **arg)
 {
-  if (narg != 3) error->all(FLERR,"Incorrect args for bond coefficients");
+  if (narg != 3) error->all(FLERR, "Incorrect args for bond coefficients");
   if (!allocated) allocate();
 
-  int ilo,ihi;
-  utils::bounds(FLERR,arg[0],1,atom->nbondtypes,ilo,ihi,error);
+  int ilo, ihi;
+  utils::bounds(FLERR, arg[0], 1, atom->nbondtypes, ilo, ihi, error);
 
-  double k_one = utils::numeric(FLERR,arg[1],false,lmp);
-  double r0_one = utils::numeric(FLERR,arg[2],false,lmp);
+  double k_one = utils::numeric(FLERR, arg[1], false, lmp);
+  double r0_one = utils::numeric(FLERR, arg[2], false, lmp);
 
   int count = 0;
   for (int i = ilo; i <= ihi; i++) {
@@ -138,7 +139,7 @@ void BondHarmonic::coeff(int narg, char **arg)
     count++;
   }
 
-  if (count == 0) error->all(FLERR,"Incorrect args for bond coefficients");
+  if (count == 0) error->all(FLERR, "Incorrect args for bond coefficients");
 }
 
 /* ----------------------------------------------------------------------
@@ -156,8 +157,8 @@ double BondHarmonic::equilibrium_distance(int i)
 
 void BondHarmonic::write_restart(FILE *fp)
 {
-  fwrite(&k[1],sizeof(double),atom->nbondtypes,fp);
-  fwrite(&r0[1],sizeof(double),atom->nbondtypes,fp);
+  fwrite(&k[1], sizeof(double), atom->nbondtypes, fp);
+  fwrite(&r0[1], sizeof(double), atom->nbondtypes, fp);
 }
 
 /* ----------------------------------------------------------------------
@@ -169,11 +170,11 @@ void BondHarmonic::read_restart(FILE *fp)
   allocate();
 
   if (comm->me == 0) {
-    utils::sfread(FLERR,&k[1],sizeof(double),atom->nbondtypes,fp,nullptr,error);
-    utils::sfread(FLERR,&r0[1],sizeof(double),atom->nbondtypes,fp,nullptr,error);
+    utils::sfread(FLERR, &k[1], sizeof(double), atom->nbondtypes, fp, nullptr, error);
+    utils::sfread(FLERR, &r0[1], sizeof(double), atom->nbondtypes, fp, nullptr, error);
   }
-  MPI_Bcast(&k[1],atom->nbondtypes,MPI_DOUBLE,0,world);
-  MPI_Bcast(&r0[1],atom->nbondtypes,MPI_DOUBLE,0,world);
+  MPI_Bcast(&k[1], atom->nbondtypes, MPI_DOUBLE, 0, world);
+  MPI_Bcast(&r0[1], atom->nbondtypes, MPI_DOUBLE, 0, world);
 
   for (int i = 1; i <= atom->nbondtypes; i++) setflag[i] = 1;
 }
@@ -184,32 +185,41 @@ void BondHarmonic::read_restart(FILE *fp)
 
 void BondHarmonic::write_data(FILE *fp)
 {
-  for (int i = 1; i <= atom->nbondtypes; i++)
-    fprintf(fp,"%d %g %g\n",i,k[i],r0[i]);
+  for (int i = 1; i <= atom->nbondtypes; i++) fprintf(fp, "%d %g %g\n", i, k[i], r0[i]);
 }
 
 /* ---------------------------------------------------------------------- */
 
-double BondHarmonic::single(int type, double rsq, int /*i*/, int /*j*/,
-                            double &fforce)
+double BondHarmonic::single(int type, double rsq, int /*i*/, int /*j*/, double &fforce)
 {
   double r = sqrt(rsq);
   double dr = r - r0[type];
   double rk = k[type] * dr;
   fforce = 0;
-  if (r > 0.0) fforce = -2.0*rk/r;
-  return rk*dr;
+  if (r > 0.0) fforce = -2.0 * rk / r;
+  return rk * dr;
+}
+
+/* ---------------------------------------------------------------------- */
+
+void BondHarmonic::born_matrix(int type, double rsq, int /*i*/, int /*j*/, double &du, double &du2)
+{
+  double r = sqrt(rsq);
+  double dr = r - r0[type];
+  du2 = 0.0;
+  du = 0.0;
+  du2 = 2 * k[type];
+  if (r > 0.0) du = du2 * dr;
 }
 
 /* ----------------------------------------------------------------------
-    Return ptr to internal members upon request.
+   return ptr to internal members upon request
 ------------------------------------------------------------------------ */
+
 void *BondHarmonic::extract(const char *str, int &dim)
 {
   dim = 1;
-  if (strcmp(str,"kappa")==0) return (void*) k;
-  if (strcmp(str,"r0")==0) return (void*) r0;
+  if (strcmp(str, "k") == 0) return (void *) k;
+  if (strcmp(str, "r0") == 0) return (void *) r0;
   return nullptr;
 }
-
-

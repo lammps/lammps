@@ -150,7 +150,7 @@ double SWT::host_memory_usage() const {
 // ---------------------------------------------------------------------------
 template <class numtyp, class acctyp>
 int SWT::loop(const int eflag, const int vflag, const int evatom,
-              bool &success) {
+              bool & /*success*/) {
   const int nbor_pitch=this->nbor->nbor_pitch();
 
   // build the short neighbor list

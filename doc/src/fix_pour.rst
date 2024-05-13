@@ -6,7 +6,7 @@ fix pour command
 Syntax
 """"""
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    fix ID group-ID pour N type seed keyword values ...
 
@@ -16,7 +16,7 @@ Syntax
 * type = atom type to assign to inserted particles (offset for molecule insertion)
 * seed = random # seed (positive integer)
 * one or more keyword/value pairs may be appended to args
-* keyword = *region* or *diam* or *vol* or *rate* or *dens* or *vel* or *mol* or *rigid* or *shake* or *ignore*
+* keyword = *region* or *diam* or *id* or *vol* or *rate* or *dens* or *vel* or *mol* or *molfrac* or *rigid* or *shake* or *ignore*
 
   .. parsed-literal::
 
@@ -123,15 +123,17 @@ command which also appears in your input script.
 
 .. note::
 
-   If you wish the new rigid molecules (and other rigid molecules)
-   to be thermostatted correctly via :doc:`fix rigid/small/nvt <fix_rigid>`
-   or :doc:`fix rigid/small/npt <fix_rigid>`, then you need to use the
-   "fix_modify dynamic/dof yes" command for the rigid fix.  This is to
-   inform that fix that the molecule count will vary dynamically.
+   If you wish the new rigid molecules (and other rigid molecules) to be
+   thermostatted correctly via :doc:`fix rigid/small/nvt <fix_rigid>` or
+   :doc:`fix rigid/small/npt <fix_rigid>`, then you need to use the
+   :doc:`fix_modify dynamic/dof yes <fix_modify>` command for the rigid
+   fix.  This is to inform that fix that the molecule count will vary
+   dynamically.
 
 If you wish to insert molecules via the *mol* keyword, that will have
 their bonds or angles constrained via SHAKE, use the *shake* keyword,
-specifying as its value the ID of a separate :doc:`fix shake <fix_shake>` command which also appears in your input script.
+specifying as its value the ID of a separate :doc:`fix shake
+<fix_shake>` command which also appears in your input script.
 
 Each timestep particles are inserted, they are placed randomly inside
 the insertion volume so as to mimic a stream of poured particles.  If
@@ -148,20 +150,20 @@ many timesteps until the desired # of particles has been inserted.
 
 .. note::
 
-   If you are monitoring the temperature of a system where the
-   particle count is changing due to adding particles, you typically
-   should use the :doc:`compute_modify dynamic yes <compute_modify>`
-   command for the temperature compute you are using.
+   If you are monitoring the temperature of a system where the particle
+   count is changing due to adding particles, you typically should use
+   the :doc:`compute_modify dynamic/dof yes <compute_modify>` command
+   for the temperature compute you are using.
 
 ----------
 
 All other keywords are optional with defaults as shown below.
 
 The *diam* option is only used when inserting atoms and specifies the
-diameters of inserted particles.  There are 3 styles: *one*\ , *range*\ ,
-or *poly*\ .  For *one*\ , all particles will have diameter *D*\ .  For
-*range*\ , the diameter of each particle will be chosen randomly and
-uniformly between the specified *Dlo* and *Dhi* bounds.  For *poly*\ , a
+diameters of inserted particles.  There are 3 styles: *one*, *range*,
+or *poly*\ .  For *one*, all particles will have diameter *D*\ .  For
+*range*, the diameter of each particle will be chosen randomly and
+uniformly between the specified *Dlo* and *Dhi* bounds.  For *poly*, a
 series of *Npoly* diameters is specified.  For each diameter a
 percentage value from 0.0 to 1.0 is also specified.  The *Npoly*
 percentages must sum to 1.0.  For the example shown above with "diam 2
@@ -243,8 +245,9 @@ produce the same behavior if you adjust the fix pour parameters
 appropriately.
 
 None of the :doc:`fix_modify <fix_modify>` options are relevant to this
-fix.  No global or per-atom quantities are stored by this fix for
-access by various :doc:`output commands <Howto_output>`.  No parameter
+fix.  This fix computes a global scalar, which can be accessed by various
+output commands.  The scalar is the cumulative number of insertions.  The
+scalar value calculated by this fix is "intensive".  No parameter
 of this fix can be used with the *start/stop* keywords of the
 :doc:`run <run>` command.  This fix is not invoked during :doc:`energy minimization <minimize>`.
 
@@ -252,7 +255,7 @@ Restrictions
 """"""""""""
 
 This fix is part of the GRANULAR package.  It is only enabled if
-LAMMPS was built with that package.  See the :doc:`Build package <Build_package>` doc page for more info.
+LAMMPS was built with that package.  See the :doc:`Build package <Build_package>` page for more info.
 
 For 3d simulations, a gravity fix in the -z direction must be defined
 for use in conjunction with this fix.  For 2d simulations, gravity

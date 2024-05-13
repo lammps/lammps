@@ -1,7 +1,7 @@
 /* -*- c++ -*- ----------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    https://www.lammps.org/, Sandia National Laboratories
-   Steve Plimpton, sjplimp@sandia.gov
+   LAMMPS development team: developers@lammps.org
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
@@ -31,14 +31,14 @@ class ImproperHybrid : public Improper {
   char **keywords;      // keyword for each improper style
 
   ImproperHybrid(class LAMMPS *);
-  ~ImproperHybrid();
-  void init_style();
-  void compute(int, int);
-  void settings(int, char **);
-  void coeff(int, char **);
-  void write_restart(FILE *);
-  void read_restart(FILE *);
-  double memory_usage();
+  ~ImproperHybrid() override;
+  void init_style() override;
+  void compute(int, int) override;
+  void settings(int, char **) override;
+  void coeff(int, char **) override;
+  void write_restart(FILE *) override;
+  void read_restart(FILE *) override;
+  double memory_usage() override;
 
  private:
   int *map;    // which style each improper type points to
@@ -54,31 +54,3 @@ class ImproperHybrid : public Improper {
 
 #endif
 #endif
-
-/* ERROR/WARNING messages:
-
-E: Illegal ... command
-
-Self-explanatory.  Check the input script syntax and compare to the
-documentation for the command.  You can use -echo screen as a
-command-line option when running LAMMPS to see the offending line.
-
-E: Improper style hybrid cannot use same improper style twice
-
-Self-explanatory.
-
-E: Improper style hybrid cannot have hybrid as an argument
-
-Self-explanatory.
-
-E: Improper style hybrid cannot have none as an argument
-
-Self-explanatory.
-
-E: Improper coeff for hybrid has invalid style
-
-Improper style hybrid uses another improper style as one of its
-coefficients.  The improper style used in the improper_coeff command
-or read from a restart file is not recognized.
-
-*/

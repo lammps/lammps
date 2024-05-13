@@ -5,11 +5,7 @@
 #include <cassert>
 #include <hip/hip_runtime.h>
 
-//#if CUDA_VERSION >= 3020
 #define CUDA_INT_TYPE size_t
-//#else
-//#define CUDA_INT_TYPE unsigned
-//#endif
 
 #ifdef MPI_GERYON
 #include "mpi.h"
@@ -30,6 +26,9 @@
 #ifdef UCL_DEBUG
 #define UCL_SYNC_DEBUG
 #define UCL_DESTRUCT_CHECK
+#define UCL_DEBUG_ARG(arg) arg
+#else
+#define UCL_DEBUG_ARG(arg)
 #endif
 
 #ifndef UCL_NO_API_CHECK

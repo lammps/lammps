@@ -1,0 +1,53 @@
+units           lj
+dimension       3
+boundary        f f f
+atom_style      bond
+special_bonds   lj 0.0 1.0 1.0 coul 0.0 1.0 1.0
+newton          on off
+comm_modify     vel yes cutoff 2.6
+lattice         fcc 1.0
+region          box block -25 15 -22 22 -22 22
+create_box      1 box bond/types 2 extra/bond/per/atom 20 extra/special/per/atom 50
+
+region          disk cylinder x 0.0 0.0 20.0 -0.5 0.5
+create_atoms    1 region disk
+group           plate region disk
+
+region          ball sphere 8.0 0.0 0.0 6.0
+create_atoms    1 region ball
+group           projectile region ball
+
+displace_atoms  all random 0.1 0.1 0.1 134598738
+
+mass            1 1.0
+
+neighbor        1.0 bin
+pair_style      bpm/spring
+pair_coeff      1 1 1.0 1.0 1.0
+
+fix             1 all nve
+
+create_bonds    many plate plate 1 0.0 1.5
+create_bonds    many projectile projectile 2 0.0 1.5
+
+neighbor        0.3 bin
+special_bonds   lj 0.0 1.0 1.0 coul 1.0 1.0 1.0
+
+bond_style      bpm/spring store/local brkbond 100 time id1 id2
+bond_coeff      1 1.0 0.04 1.0
+bond_coeff      2 1.0 0.20 1.0
+
+velocity        projectile set -0.05 0.0 0.0
+compute         nbond all nbond/atom
+compute         tbond all reduce sum c_nbond
+
+timestep        0.1
+thermo_style    custom step ke pe pxx pyy pzz c_tbond
+thermo          100
+thermo_modify   lost ignore lost/bond ignore
+#dump            1 all custom 100 atomDump id x y z c_nbond
+
+dump            2 all local 100 brokenDump f_brkbond[1] f_brkbond[2] f_brkbond[3]
+dump_modify     2 header no
+
+run             7500

@@ -1,8 +1,7 @@
-// clang-format off
 /* -*- c++ -*- ----------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    https://www.lammps.org/, Sandia National Laboratories
-   Steve Plimpton, sjplimp@sandia.gov
+   LAMMPS development team: developers@lammps.org
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
@@ -20,6 +19,7 @@ ComputeStyle(coord/atom/kk/host,ComputeCoordAtomKokkos<LMPHostType>);
 // clang-format on
 #else
 
+// clang-format off
 #ifndef LMP_COMPUTE_COORD_ATOM_KOKKOS_H
 #define LMP_COMPUTE_COORD_ATOM_KOKKOS_H
 
@@ -38,9 +38,9 @@ class ComputeCoordAtomKokkos : public ComputeCoordAtom {
   typedef ArrayTypes<DeviceType> AT;
 
   ComputeCoordAtomKokkos(class LAMMPS *, int, char **);
-  virtual ~ComputeCoordAtomKokkos();
-  void init();
-  void compute_peratom();
+  ~ComputeCoordAtomKokkos() override;
+  void init() override;
+  void compute_peratom() override;
   enum {NONE,CUTOFF,ORIENT};
 
   template<int CSTYLE, int NCOL>
@@ -74,6 +74,3 @@ class ComputeCoordAtomKokkos : public ComputeCoordAtom {
 #endif
 #endif
 
-/* ERROR/WARNING messages:
-
-*/

@@ -1,8 +1,7 @@
-// clang-format off
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    https://www.lammps.org/, Sandia National Laboratories
-   Steve Plimpton, sjplimp@sandia.gov
+   LAMMPS development team: developers@lammps.org
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
@@ -18,25 +17,26 @@
 
 #include "angle_charmm.h"
 
-#include <cmath>
 #include "atom.h"
-#include "neighbor.h"
-#include "domain.h"
 #include "comm.h"
+#include "domain.h"
+#include "error.h"
 #include "force.h"
 #include "math_const.h"
 #include "memory.h"
-#include "error.h"
+#include "neighbor.h"
 
+#include <cmath>
 
 using namespace LAMMPS_NS;
-using namespace MathConst;
+using MathConst::DEG2RAD;
+using MathConst::RAD2DEG;
 
-#define SMALL 0.001
+static constexpr double SMALL = 0.001;
 
 /* ---------------------------------------------------------------------- */
 
-AngleCharmm::AngleCharmm(LAMMPS *lmp) : Angle(lmp) {}
+AngleCharmm::AngleCharmm(LAMMPS *_lmp) : Angle(_lmp) {}
 
 /* ---------------------------------------------------------------------- */
 
@@ -55,15 +55,15 @@ AngleCharmm::~AngleCharmm()
 
 void AngleCharmm::compute(int eflag, int vflag)
 {
-  int i1,i2,i3,n,type;
-  double delx1,dely1,delz1,delx2,dely2,delz2;
-  double eangle,f1[3],f3[3];
-  double dtheta,tk;
-  double rsq1,rsq2,r1,r2,c,s,a,a11,a12,a22;
-  double delxUB,delyUB,delzUB,rsqUB,rUB,dr,rk,forceUB;
+  int i1, i2, i3, n, type;
+  double delx1, dely1, delz1, delx2, dely2, delz2;
+  double eangle, f1[3], f3[3];
+  double dtheta, tk;
+  double rsq1, rsq2, r1, r2, c, s, a, a11, a12, a22;
+  double delxUB, delyUB, delzUB, rsqUB, rUB, dr, rk, forceUB;
 
   eangle = 0.0;
-  ev_init(eflag,vflag);
+  ev_init(eflag, vflag);
 
   double **x = atom->x;
   double **f = atom->f;
@@ -84,7 +84,7 @@ void AngleCharmm::compute(int eflag, int vflag)
     dely1 = x[i1][1] - x[i2][1];
     delz1 = x[i1][2] - x[i2][2];
 
-    rsq1 = delx1*delx1 + dely1*dely1 + delz1*delz1;
+    rsq1 = delx1 * delx1 + dely1 * dely1 + delz1 * delz1;
     r1 = sqrt(rsq1);
 
     // 2nd bond
@@ -93,7 +93,7 @@ void AngleCharmm::compute(int eflag, int vflag)
     dely2 = x[i3][1] - x[i2][1];
     delz2 = x[i3][2] - x[i2][2];
 
-    rsq2 = delx2*delx2 + dely2*dely2 + delz2*delz2;
+    rsq2 = delx2 * delx2 + dely2 * dely2 + delz2 * delz2;
     r2 = sqrt(rsq2);
 
     // Urey-Bradley bond
@@ -102,7 +102,7 @@ void AngleCharmm::compute(int eflag, int vflag)
     delyUB = x[i3][1] - x[i1][1];
     delzUB = x[i3][2] - x[i1][2];
 
-    rsqUB = delxUB*delxUB + delyUB*delyUB + delzUB*delzUB;
+    rsqUB = delxUB * delxUB + delyUB * delyUB + delzUB * delzUB;
     rUB = sqrt(rsqUB);
 
     // Urey-Bradley force & energy
@@ -110,42 +110,44 @@ void AngleCharmm::compute(int eflag, int vflag)
     dr = rUB - r_ub[type];
     rk = k_ub[type] * dr;
 
-    if (rUB > 0.0) forceUB = -2.0*rk/rUB;
-    else forceUB = 0.0;
+    if (rUB > 0.0)
+      forceUB = -2.0 * rk / rUB;
+    else
+      forceUB = 0.0;
 
-    if (eflag) eangle = rk*dr;
+    if (eflag) eangle = rk * dr;
 
     // angle (cos and sin)
 
-    c = delx1*delx2 + dely1*dely2 + delz1*delz2;
-    c /= r1*r2;
+    c = delx1 * delx2 + dely1 * dely2 + delz1 * delz2;
+    c /= r1 * r2;
 
     if (c > 1.0) c = 1.0;
     if (c < -1.0) c = -1.0;
 
-    s = sqrt(1.0 - c*c);
+    s = sqrt(1.0 - c * c);
     if (s < SMALL) s = SMALL;
-    s = 1.0/s;
+    s = 1.0 / s;
 
     // harmonic force & energy
 
     dtheta = acos(c) - theta0[type];
     tk = k[type] * dtheta;
 
-    if (eflag) eangle += tk*dtheta;
+    if (eflag) eangle += tk * dtheta;
 
     a = -2.0 * tk * s;
-    a11 = a*c / rsq1;
-    a12 = -a / (r1*r2);
-    a22 = a*c / rsq2;
+    a11 = a * c / rsq1;
+    a12 = -a / (r1 * r2);
+    a22 = a * c / rsq2;
 
-    f1[0] = a11*delx1 + a12*delx2 - delxUB*forceUB;
-    f1[1] = a11*dely1 + a12*dely2 - delyUB*forceUB;
-    f1[2] = a11*delz1 + a12*delz2 - delzUB*forceUB;
+    f1[0] = a11 * delx1 + a12 * delx2 - delxUB * forceUB;
+    f1[1] = a11 * dely1 + a12 * dely2 - delyUB * forceUB;
+    f1[2] = a11 * delz1 + a12 * delz2 - delzUB * forceUB;
 
-    f3[0] = a22*delx2 + a12*delx1 + delxUB*forceUB;
-    f3[1] = a22*dely2 + a12*dely1 + delyUB*forceUB;
-    f3[2] = a22*delz2 + a12*delz1 + delzUB*forceUB;
+    f3[0] = a22 * delx2 + a12 * delx1 + delxUB * forceUB;
+    f3[1] = a22 * dely2 + a12 * dely1 + delyUB * forceUB;
+    f3[2] = a22 * delz2 + a12 * delz1 + delzUB * forceUB;
 
     // apply force to each of 3 atoms
 
@@ -167,8 +169,9 @@ void AngleCharmm::compute(int eflag, int vflag)
       f[i3][2] += f3[2];
     }
 
-    if (evflag) ev_tally(i1,i2,i3,nlocal,newton_bond,eangle,f1,f3,
-                         delx1,dely1,delz1,delx2,dely2,delz2);
+    if (evflag)
+      ev_tally(i1, i2, i3, nlocal, newton_bond, eangle, f1, f3, delx1, dely1, delz1, delx2, dely2,
+               delz2);
   }
 }
 
@@ -177,14 +180,14 @@ void AngleCharmm::compute(int eflag, int vflag)
 void AngleCharmm::allocate()
 {
   allocated = 1;
-  int n = atom->nangletypes;
+  const int np1 = atom->nangletypes + 1;
 
-  memory->create(k,n+1,"angle:k");
-  memory->create(theta0,n+1,"angle:theta0");
-  memory->create(k_ub,n+1,"angle:k_ub");
-  memory->create(r_ub,n+1,"angle:r_ub");
-  memory->create(setflag,n+1,"angle:setflag");
-  for (int i = 1; i <= n; i++) setflag[i] = 0;
+  memory->create(k, np1, "angle:k");
+  memory->create(theta0, np1, "angle:theta0");
+  memory->create(k_ub, np1, "angle:k_ub");
+  memory->create(r_ub, np1, "angle:r_ub");
+  memory->create(setflag, np1, "angle:setflag");
+  for (int i = 1; i < np1; i++) setflag[i] = 0;
 }
 
 /* ----------------------------------------------------------------------
@@ -193,30 +196,30 @@ void AngleCharmm::allocate()
 
 void AngleCharmm::coeff(int narg, char **arg)
 {
-  if (narg != 5) error->all(FLERR,"Incorrect args for angle coefficients");
+  if (narg != 5) error->all(FLERR, "Incorrect args for angle coefficients");
   if (!allocated) allocate();
 
-  int ilo,ihi;
-  utils::bounds(FLERR,arg[0],1,atom->nangletypes,ilo,ihi,error);
+  int ilo, ihi;
+  utils::bounds(FLERR, arg[0], 1, atom->nangletypes, ilo, ihi, error);
 
-  double k_one = utils::numeric(FLERR,arg[1],false,lmp);
-  double theta0_one = utils::numeric(FLERR,arg[2],false,lmp);
-  double k_ub_one = utils::numeric(FLERR,arg[3],false,lmp);
-  double r_ub_one = utils::numeric(FLERR,arg[4],false,lmp);
+  double k_one = utils::numeric(FLERR, arg[1], false, lmp);
+  double theta0_one = utils::numeric(FLERR, arg[2], false, lmp);
+  double k_ub_one = utils::numeric(FLERR, arg[3], false, lmp);
+  double r_ub_one = utils::numeric(FLERR, arg[4], false, lmp);
 
   // convert theta0 from degrees to radians
 
   int count = 0;
   for (int i = ilo; i <= ihi; i++) {
     k[i] = k_one;
-    theta0[i] = theta0_one/180.0 * MY_PI;
+    theta0[i] = DEG2RAD * theta0_one;
     k_ub[i] = k_ub_one;
     r_ub[i] = r_ub_one;
     setflag[i] = 1;
     count++;
   }
 
-  if (count == 0) error->all(FLERR,"Incorrect args for angle coefficients");
+  if (count == 0) error->all(FLERR, "Incorrect args for angle coefficients");
 }
 
 /* ---------------------------------------------------------------------- */
@@ -232,10 +235,10 @@ double AngleCharmm::equilibrium_angle(int i)
 
 void AngleCharmm::write_restart(FILE *fp)
 {
-  fwrite(&k[1],sizeof(double),atom->nangletypes,fp);
-  fwrite(&theta0[1],sizeof(double),atom->nangletypes,fp);
-  fwrite(&k_ub[1],sizeof(double),atom->nangletypes,fp);
-  fwrite(&r_ub[1],sizeof(double),atom->nangletypes,fp);
+  fwrite(&k[1], sizeof(double), atom->nangletypes, fp);
+  fwrite(&theta0[1], sizeof(double), atom->nangletypes, fp);
+  fwrite(&k_ub[1], sizeof(double), atom->nangletypes, fp);
+  fwrite(&r_ub[1], sizeof(double), atom->nangletypes, fp);
 }
 
 /* ----------------------------------------------------------------------
@@ -247,15 +250,15 @@ void AngleCharmm::read_restart(FILE *fp)
   allocate();
 
   if (comm->me == 0) {
-    utils::sfread(FLERR,&k[1],sizeof(double),atom->nangletypes,fp,nullptr,error);
-    utils::sfread(FLERR,&theta0[1],sizeof(double),atom->nangletypes,fp,nullptr,error);
-    utils::sfread(FLERR,&k_ub[1],sizeof(double),atom->nangletypes,fp,nullptr,error);
-    utils::sfread(FLERR,&r_ub[1],sizeof(double),atom->nangletypes,fp,nullptr,error);
+    utils::sfread(FLERR, &k[1], sizeof(double), atom->nangletypes, fp, nullptr, error);
+    utils::sfread(FLERR, &theta0[1], sizeof(double), atom->nangletypes, fp, nullptr, error);
+    utils::sfread(FLERR, &k_ub[1], sizeof(double), atom->nangletypes, fp, nullptr, error);
+    utils::sfread(FLERR, &r_ub[1], sizeof(double), atom->nangletypes, fp, nullptr, error);
   }
-  MPI_Bcast(&k[1],atom->nangletypes,MPI_DOUBLE,0,world);
-  MPI_Bcast(&theta0[1],atom->nangletypes,MPI_DOUBLE,0,world);
-  MPI_Bcast(&k_ub[1],atom->nangletypes,MPI_DOUBLE,0,world);
-  MPI_Bcast(&r_ub[1],atom->nangletypes,MPI_DOUBLE,0,world);
+  MPI_Bcast(&k[1], atom->nangletypes, MPI_DOUBLE, 0, world);
+  MPI_Bcast(&theta0[1], atom->nangletypes, MPI_DOUBLE, 0, world);
+  MPI_Bcast(&k_ub[1], atom->nangletypes, MPI_DOUBLE, 0, world);
+  MPI_Bcast(&r_ub[1], atom->nangletypes, MPI_DOUBLE, 0, world);
 
   for (int i = 1; i <= atom->nangletypes; i++) setflag[i] = 1;
 }
@@ -267,8 +270,7 @@ void AngleCharmm::read_restart(FILE *fp)
 void AngleCharmm::write_data(FILE *fp)
 {
   for (int i = 1; i <= atom->nangletypes; i++)
-    fprintf(fp,"%d %g %g %g %g\n",
-            i,k[i],theta0[i]/MY_PI*180.0,k_ub[i],r_ub[i]);
+    fprintf(fp, "%d %g %g %g %g\n", i, k[i], RAD2DEG * theta0[i], k_ub[i], r_ub[i]);
 }
 
 /* ---------------------------------------------------------------------- */
@@ -280,23 +282,23 @@ double AngleCharmm::single(int type, int i1, int i2, int i3)
   double delx1 = x[i1][0] - x[i2][0];
   double dely1 = x[i1][1] - x[i2][1];
   double delz1 = x[i1][2] - x[i2][2];
-  domain->minimum_image(delx1,dely1,delz1);
-  double r1 = sqrt(delx1*delx1 + dely1*dely1 + delz1*delz1);
+  domain->minimum_image(delx1, dely1, delz1);
+  double r1 = sqrt(delx1 * delx1 + dely1 * dely1 + delz1 * delz1);
 
   double delx2 = x[i3][0] - x[i2][0];
   double dely2 = x[i3][1] - x[i2][1];
   double delz2 = x[i3][2] - x[i2][2];
-  domain->minimum_image(delx2,dely2,delz2);
-  double r2 = sqrt(delx2*delx2 + dely2*dely2 + delz2*delz2);
+  domain->minimum_image(delx2, dely2, delz2);
+  double r2 = sqrt(delx2 * delx2 + dely2 * dely2 + delz2 * delz2);
 
   double delxUB = x[i3][0] - x[i1][0];
   double delyUB = x[i3][1] - x[i1][1];
   double delzUB = x[i3][2] - x[i1][2];
-  domain->minimum_image(delxUB,delyUB,delzUB);
-  double rUB = sqrt(delxUB*delxUB + delyUB*delyUB + delzUB*delzUB);
+  domain->minimum_image(delxUB, delyUB, delzUB);
+  double rUB = sqrt(delxUB * delxUB + delyUB * delyUB + delzUB * delzUB);
 
-  double c = delx1*delx2 + dely1*dely2 + delz1*delz2;
-  c /= r1*r2;
+  double c = delx1 * delx2 + dely1 * dely2 + delz1 * delz2;
+  c /= r1 * r2;
   if (c > 1.0) c = 1.0;
   if (c < -1.0) c = -1.0;
 
@@ -305,5 +307,5 @@ double AngleCharmm::single(int type, int i1, int i2, int i3)
   double dr = rUB - r_ub[type];
   double rk = k_ub[type] * dr;
 
-  return (tk*dtheta + rk*dr);
+  return (tk * dtheta + rk * dr);
 }

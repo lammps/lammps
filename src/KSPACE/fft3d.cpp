@@ -2,7 +2,7 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    https://www.lammps.org/, Sandia National Laboratories
-   Steve Plimpton, sjplimp@sandia.gov
+   LAMMPS development team: developers@lammps.org
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
@@ -211,7 +211,8 @@ void fft_3d(FFT_DATA *in, FFT_DATA *out, int flag, struct fft_plan_3d *plan)
       *(out_ptr++) *= norm;
       *(out_ptr++) *= norm;
 #elif defined(FFT_MKL)
-      out[i] *= norm;
+      out[i].real *= norm;
+      out[i].imag *= norm;
 #else  /* FFT_KISS */
       out[i].re *= norm;
       out[i].im *= norm;
@@ -308,10 +309,9 @@ struct fft_plan_3d *fft_3d_create_plan(
     first_jhi = (ip1+1)*nmid/np1 - 1;
     first_klo = ip2*nslow/np2;
     first_khi = (ip2+1)*nslow/np2 - 1;
-    plan->pre_plan =
-      remap_3d_create_plan(comm,in_ilo,in_ihi,in_jlo,in_jhi,in_klo,in_khi,
-                           first_ilo,first_ihi,first_jlo,first_jhi,
-                           first_klo,first_khi,2,0,0,FFT_PRECISION,0);
+    plan->pre_plan = remap_3d_create_plan(comm,in_ilo,in_ihi,in_jlo,in_jhi,in_klo,in_khi,
+                                          first_ilo,first_ihi,first_jlo,first_jhi,
+                                          first_klo,first_khi,2,0,0,FFT_PRECISION,0);
     if (plan->pre_plan == nullptr) return nullptr;
   }
 
@@ -330,13 +330,10 @@ struct fft_plan_3d *fft_3d_create_plan(
   second_jhi = nmid - 1;
   second_klo = ip2*nslow/np2;
   second_khi = (ip2+1)*nslow/np2 - 1;
-  plan->mid1_plan =
-      remap_3d_create_plan(comm,
-                           first_ilo,first_ihi,first_jlo,first_jhi,
-                           first_klo,first_khi,
-                           second_ilo,second_ihi,second_jlo,second_jhi,
-                           second_klo,second_khi,2,1,0,FFT_PRECISION,
-                           usecollective);
+  plan->mid1_plan = remap_3d_create_plan(comm, first_ilo,first_ihi,first_jlo,first_jhi,
+                                         first_klo,first_khi,second_ilo,second_ihi,
+                                         second_jlo,second_jhi,second_klo,second_khi,
+                                         2,1,0,FFT_PRECISION,usecollective);
   if (plan->mid1_plan == nullptr) return nullptr;
 
   // 1d FFTs along mid axis
@@ -806,7 +803,8 @@ void fft_1d_only(FFT_DATA *data, int nsize, int flag, struct fft_plan_3d *plan)
       *(data_ptr++) *= norm;
       *(data_ptr++) *= norm;
 #elif defined(FFT_MKL)
-      data[i] *= norm;
+      data[i].real *= norm;
+      data[i].imag *= norm;
 #else
       data[i].re *= norm;
       data[i].im *= norm;

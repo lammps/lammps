@@ -7,7 +7,7 @@ units           metal
 atom_style      atomic
 atom_modify     map array
 boundary        p p p
-atom_modify	sort 0 0.0
+atom_modify     sort 0 0.0
 
 # temperature
 
@@ -35,23 +35,23 @@ region          myreg block     0 4 &
 
 create_box      8 myreg
 create_atoms    1 region myreg &
-		basis 1 1  &
-		basis 2 2  &
-		basis 3 3  &
-		basis 4 4  &
-		basis 5 5  &
-		basis 6 6  &
-		basis 7 7  &
-		basis 8 8
+                basis 1 1  &
+                basis 2 2  &
+                basis 3 3  &
+                basis 4 4  &
+                basis 5 5  &
+                basis 6 6  &
+                basis 7 7  &
+                basis 8 8
 
 mass            *       28.06
 
-velocity 	all create $t 5287287 loop geom
+velocity        all create $t 5287287 loop geom
 
 # Equilibrate using Stillinger-Weber model for silicon
 
 pair_style      sw
-pair_coeff 	* * Si.sw Si Si Si Si Si Si Si Si
+pair_coeff      * * Si.sw Si Si Si Si Si Si Si Si
 
 thermo_style    custom step temp epair etotal econserve press
 thermo          10
@@ -61,15 +61,15 @@ neighbor        1.0 bin
 neigh_modify    every 1 delay 10 check yes
 run             100
 
-write_restart	restart.equil
+write_restart   restart.equil
 
 # Test Stillinger-Weber model for Cd/Te/Zn/Se/Hg/S
 
 clear
-read_restart	restart.equil
+read_restart    restart.equil
 
 pair_style      sw
-pair_coeff 	* * CdTeZnSeHgS0.sw Cd Zn Hg Cd Te S Se Te
+pair_coeff      * * CdTeZnSeHgS0.sw Cd Zn Hg Cd Te S Se Te
 
 thermo_style    custom step temp epair etotal econserve press
 thermo          10
@@ -82,10 +82,10 @@ run             100
 # Test Vashishta model for In/P
 
 clear
-read_restart	restart.equil
+read_restart    restart.equil
 
 pair_style      vashishta
-pair_coeff 	* * InP.vashishta In In In In P P P P
+pair_coeff      * * InP.vashishta In In In In P P P P
 
 thermo_style    custom step temp epair etotal econserve press
 thermo          10
@@ -98,13 +98,13 @@ run             100
 # Test Tersoff model for B/N/C 
 
 clear
-read_restart	restart.equil
+read_restart    restart.equil
 
-variable	fac equal 0.6
-change_box 	all x scale ${fac} y scale ${fac} z scale ${fac} remap
+variable        fac equal 0.6
+change_box      all x scale ${fac} y scale ${fac} z scale ${fac} remap
 
 pair_style      tersoff
-pair_coeff 	* * BNC.tersoff N N N C B B C B
+pair_coeff      * * BNC.tersoff N N N C B B C B
 
 thermo_style    custom step temp epair etotal econserve press
 thermo          10
@@ -114,3 +114,23 @@ neighbor        1.0 bin
 neigh_modify    every 1 delay 10 check yes
 run             100
 
+# Test Tersoff/ZBL model for SiC
+
+clear
+read_restart    restart.equil
+
+variable        fac equal 0.6
+change_box      all x scale ${fac} y scale ${fac} z scale ${fac} remap
+
+pair_style      tersoff/zbl
+pair_coeff      * * SiC.tersoff.zbl C C C C Si Si Si Si
+
+thermo_style    custom step temp epair etotal econserve press
+thermo          10
+fix             1 all nvt temp $t $t 0.1
+timestep        1.0e-3
+neighbor        1.0 bin
+neigh_modify    every 1 delay 10 check yes
+run             100
+
+shell rm restart.equil

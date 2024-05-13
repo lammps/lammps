@@ -2,7 +2,7 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    https://www.lammps.org/
-   Steve Plimpton, sjplimp@sandia.gov, Sandia National Laboratories
+   LAMMPS development team: developers@lammps.org, Sandia National Laboratories
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
@@ -463,7 +463,7 @@ void PairSpinDipoleCut::read_restart(FILE *fp)
         if (me == 0) {
           utils::sfread(FLERR,&cut_spin_long[i][j],sizeof(int),1,fp,nullptr,error);
         }
-        MPI_Bcast(&cut_spin_long[i][j],1,MPI_INT,0,world);
+        MPI_Bcast(&cut_spin_long[i][j],1,MPI_DOUBLE,0,world);
       }
     }
   }

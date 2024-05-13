@@ -2,7 +2,7 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    https://www.lammps.org/, Sandia National Laboratories
-   Steve Plimpton, sjplimp@sandia.gov
+   LAMMPS development team: developers@lammps.org
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
@@ -18,13 +18,12 @@
 ------------------------------------------------------------------------- */
 
 #include "nbin_ssa_kokkos.h"
-#include "neighbor.h"
+
 #include "atom_kokkos.h"
 #include "domain.h"
 #include "update.h"
 #include "atom_masks.h"
-
-// #include "memory_kokkos.h"
+#include "kokkos_type.h"
 
 using namespace LAMMPS_NS;
 
@@ -82,12 +81,12 @@ void NBinSSAKokkos<DeviceType>::bin_atoms_setup(int /*nall*/)
   h_lbinxhi() = 0; // Safe to = mbinx - stencil->sx - 1
   h_lbinyhi() = 0; // Safe to = mbiny - stencil->sy - 1
   h_lbinzhi() = 0; // Safe to = mbinz - stencil->sz - 1
-  deep_copy(d_lbinxlo, h_lbinxlo);
-  deep_copy(d_lbinylo, h_lbinylo);
-  deep_copy(d_lbinzlo, h_lbinzlo);
-  deep_copy(d_lbinxhi, h_lbinxhi);
-  deep_copy(d_lbinyhi, h_lbinyhi);
-  deep_copy(d_lbinzhi, h_lbinzhi);
+  Kokkos::deep_copy(d_lbinxlo, h_lbinxlo);
+  Kokkos::deep_copy(d_lbinylo, h_lbinylo);
+  Kokkos::deep_copy(d_lbinzlo, h_lbinzlo);
+  Kokkos::deep_copy(d_lbinxhi, h_lbinxhi);
+  Kokkos::deep_copy(d_lbinyhi, h_lbinyhi);
+  Kokkos::deep_copy(d_lbinzhi, h_lbinzhi);
 }
 
 /* ----------------------------------------------------------------------
@@ -128,12 +127,12 @@ void NBinSSAKokkos<DeviceType>::bin_atoms()
     NPairSSAKokkosBinIDAtomsFunctor<DeviceType> f(*this);
     Kokkos::parallel_reduce(nlocal, f, atoms_per_bin);
   }
-  deep_copy(h_lbinxlo, d_lbinxlo);
-  deep_copy(h_lbinylo, d_lbinylo);
-  deep_copy(h_lbinzlo, d_lbinzlo);
-  deep_copy(h_lbinxhi, d_lbinxhi);
-  deep_copy(h_lbinyhi, d_lbinyhi);
-  deep_copy(h_lbinzhi, d_lbinzhi);
+  Kokkos::deep_copy(h_lbinxlo, d_lbinxlo);
+  Kokkos::deep_copy(h_lbinylo, d_lbinylo);
+  Kokkos::deep_copy(h_lbinzlo, d_lbinzlo);
+  Kokkos::deep_copy(h_lbinxhi, d_lbinxhi);
+  Kokkos::deep_copy(h_lbinyhi, d_lbinyhi);
+  Kokkos::deep_copy(h_lbinzhi, d_lbinzhi);
 
   // find each ghost's binID (AIR number)
   {
@@ -142,7 +141,7 @@ void NBinSSAKokkos<DeviceType>::bin_atoms()
     k_gbincount.sync<DeviceType>();
     ghosts_per_gbin = 0;
     NPairSSAKokkosBinIDGhostsFunctor<DeviceType> f(*this);
-    Kokkos::parallel_reduce(Kokkos::RangePolicy<LMPDeviceType>(nlocal,nall), f, ghosts_per_gbin);
+    Kokkos::parallel_reduce(Kokkos::RangePolicy<DeviceType>(nlocal,nall), f, ghosts_per_gbin);
   }
 
   // actually bin the ghost atoms
@@ -228,12 +227,12 @@ void NBinSSAKokkos<DeviceType>::binIDAtomsItem(const int &i, int &update) const
   binID(i) = ibin;
 
   // Find the bounding box of the local atoms in the bins
-  if (loc[0] < d_lbinxlo()) Kokkos::atomic_fetch_min(&d_lbinxlo(),loc[0]);
-  if (loc[0] >= d_lbinxhi()) Kokkos::atomic_fetch_max(&d_lbinxhi(),loc[0] + 1);
-  if (loc[1] < d_lbinylo()) Kokkos::atomic_fetch_min(&d_lbinylo(),loc[1]);
-  if (loc[1] >= d_lbinyhi()) Kokkos::atomic_fetch_max(&d_lbinyhi(),loc[1] + 1);
-  if (loc[2] < d_lbinzlo()) Kokkos::atomic_fetch_min(&d_lbinzlo(),loc[2]);
-  if (loc[2] >= d_lbinzhi()) Kokkos::atomic_fetch_max(&d_lbinzhi(),loc[2] + 1);
+  if (loc[0] < d_lbinxlo()) Kokkos::atomic_min(&d_lbinxlo(),loc[0]);
+  if (loc[0] >= d_lbinxhi()) Kokkos::atomic_max(&d_lbinxhi(),loc[0] + 1);
+  if (loc[1] < d_lbinylo()) Kokkos::atomic_min(&d_lbinylo(),loc[1]);
+  if (loc[1] >= d_lbinyhi()) Kokkos::atomic_max(&d_lbinyhi(),loc[1] + 1);
+  if (loc[2] < d_lbinzlo()) Kokkos::atomic_min(&d_lbinzlo(),loc[2]);
+  if (loc[2] >= d_lbinzhi()) Kokkos::atomic_max(&d_lbinzhi(),loc[2] + 1);
 
   const int ac = Kokkos::atomic_fetch_add(&(bincount[ibin]), (int)1);
   if (update <= ac) update = ac + 1;
@@ -284,7 +283,7 @@ void NBinSSAKokkos<DeviceType>::sortBin(
       child = parent*2+1; /* Find the next child */
     }
     gbins(ibin, parent) = t; /* We save t in the heap */
-  } while (1);
+  } while (true);
 }
 
 namespace LAMMPS_NS {

@@ -1,7 +1,7 @@
 /* -*- c++ -*- ----------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    https://www.lammps.org/, Sandia National Laboratories
-   Steve Plimpton, sjplimp@sandia.gov
+   LAMMPS development team: developers@lammps.org
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
@@ -24,19 +24,19 @@ AtomStyle(sphere,AtomVecSphere);
 
 namespace LAMMPS_NS {
 
-class AtomVecSphere : public AtomVec {
+class AtomVecSphere : virtual public AtomVec {
  public:
   AtomVecSphere(class LAMMPS *);
-  void process_args(int, char **);
-  void init();
+  void process_args(int, char **) override;
+  void init() override;
 
-  void grow_pointers();
-  void create_atom_post(int);
-  void data_atom_post(int);
-  void pack_data_pre(int);
-  void pack_data_post(int);
+  void grow_pointers() override;
+  void create_atom_post(int) override;
+  void data_atom_post(int) override;
+  void pack_data_pre(int) override;
+  void pack_data_post(int) override;
 
- private:
+ protected:
   double *radius, *rmass;
   double **omega;
 
@@ -48,15 +48,3 @@ class AtomVecSphere : public AtomVec {
 
 #endif
 #endif
-
-/* ERROR/WARNING messages:
-
-E: Invalid radius in Atoms section of data file
-
-Radius must be >= 0.0.
-
-E: Invalid density in Atoms section of data file
-
-Density value cannot be <= 0.0.
-
-*/

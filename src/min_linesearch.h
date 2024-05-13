@@ -1,7 +1,7 @@
 /* -*- c++ -*- ----------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    https://www.lammps.org/, Sandia National Laboratories
-   Steve Plimpton, sjplimp@sandia.gov
+   LAMMPS development team: developers@lammps.org
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
@@ -21,10 +21,10 @@ namespace LAMMPS_NS {
 class MinLineSearch : public Min {
  public:
   MinLineSearch(class LAMMPS *);
-  ~MinLineSearch();
-  void init();
-  void setup_style();
-  void reset_vectors();
+  ~MinLineSearch() override;
+  void init() override;
+  void setup_style() override;
+  void reset_vectors() override;
 
  protected:
   // vectors needed by linesearch minimizers

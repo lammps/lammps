@@ -2,7 +2,7 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    https://www.lammps.org/, Sandia National Laboratories
-   Steve Plimpton, sjplimp@sandia.gov
+   LAMMPS development team: developers@lammps.org
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
@@ -35,7 +35,7 @@ enum{NODLM,DLM};
 FixNVESphere::FixNVESphere(LAMMPS *lmp, int narg, char **arg) :
   FixNVE(lmp, narg, arg)
 {
-  if (narg < 3) error->all(FLERR,"Illegal fix nve/sphere command");
+  if (narg < 3) utils::missing_cmd_args(FLERR, "fix nve/sphere", error);
 
   time_integrate = 1;
 
@@ -49,12 +49,12 @@ FixNVESphere::FixNVESphere(LAMMPS *lmp, int narg, char **arg) :
   int iarg = 3;
   while (iarg < narg) {
     if (strcmp(arg[iarg],"update") == 0) {
-      if (iarg+2 > narg) error->all(FLERR,"Illegal fix nve/sphere command");
+      if (iarg+2 > narg) utils::missing_cmd_args(FLERR, "fix nve/sphere update", error);
       if (strcmp(arg[iarg+1],"dipole") == 0) extra = DIPOLE;
       else if (strcmp(arg[iarg+1],"dipole/dlm") == 0) {
         extra = DIPOLE;
         dlm = DLM;
-      } else error->all(FLERR,"Illegal fix nve/sphere command");
+      } else error->all(FLERR,"Unknown keyword in fix nve/sphere update command: {}",arg[iarg+1]);
       iarg += 2;
     }
     else if (strcmp(arg[iarg],"disc")==0) {
@@ -63,13 +63,13 @@ FixNVESphere::FixNVESphere(LAMMPS *lmp, int narg, char **arg) :
         error->all(FLERR,"Fix nve/sphere disc requires 2d simulation");
       iarg++;
     }
-    else error->all(FLERR,"Illegal fix nve/sphere command");
+    else error->all(FLERR,"Unknown keyword in fix nve/sphere command: {}",arg[iarg]);
   }
 
   // error checks
 
-  if (!atom->sphere_flag)
-    error->all(FLERR,"Fix nve/sphere requires atom style sphere");
+  if (!atom->omega_flag)
+    error->all(FLERR,"Fix nve/sphere requires atom attribute omega");
   if (extra == DIPOLE && !atom->mu_flag)
     error->all(FLERR,"Fix nve/sphere update dipole requires atom attribute mu");
 }
@@ -294,7 +294,6 @@ void FixNVESphere::final_integrate()
   // update v,omega for all particles
   // d_omega/dt = torque / inertia
 
-  double rke = 0.0;
   for (int i = 0; i < nlocal; i++)
     if (mask[i] & groupbit) {
       dtfm = dtf / rmass[i];
@@ -306,8 +305,5 @@ void FixNVESphere::final_integrate()
       omega[i][0] += dtirotate * torque[i][0];
       omega[i][1] += dtirotate * torque[i][1];
       omega[i][2] += dtirotate * torque[i][2];
-      rke += (omega[i][0]*omega[i][0] + omega[i][1]*omega[i][1] +
-              omega[i][2]*omega[i][2])*radius[i]*radius[i]*rmass[i];
     }
-
 }

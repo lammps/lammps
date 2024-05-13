@@ -19,7 +19,7 @@ while line.startswith("#"):
 tok = line.split()
 lo = float(tok[1])
 
-i = 0
+i = 1
 sum = 0.0
 for line in sys.stdin:
     tok = line.split()

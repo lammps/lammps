@@ -8,6 +8,7 @@
 #include <mpi.h>
 #include <string>
 
+#include "../testing/utils.h"
 #include "gtest/gtest.h"
 
 const char *demo_input[] = {"region       box block 0 $x 0 2 0 2", "create_box 1 box",
@@ -21,25 +22,23 @@ protected:
     LAMMPS *lmp;
     Input_commands()
     {
-        const char *args[] = {"LAMMPS_test"};
-        char **argv        = (char **)args;
-        int argc           = sizeof(args) / sizeof(char *);
+        const char * args[] = {"LAMMPS_test", nullptr};
+        char ** argv = (char**)args;
+        int argc = 1;
 
         int flag;
         MPI_Initialized(&flag);
         if (!flag) MPI_Init(&argc, &argv);
     }
-    ~Input_commands() override {}
+    ~Input_commands() override = default;
 
     void SetUp() override
     {
-        const char *args[] = {"LAMMPS_test", "-log", "none", "-echo", "screen", "-nocite",
-                              "-var",        "zpos", "1.5",  "-var",  "x",      "2"};
-        char **argv        = (char **)args;
-        int argc           = sizeof(args) / sizeof(char *);
+        LAMMPS::argv args = {"LAMMPS_test", "-log", "none", "-echo", "screen", "-nocite",
+                             "-var",        "zpos", "1.5",  "-var",  "x",      "2"};
 
         ::testing::internal::CaptureStdout();
-        lmp                = new LAMMPS(argc, argv, MPI_COMM_WORLD);
+        lmp                = new LAMMPS(args, MPI_COMM_WORLD);
         std::string output = ::testing::internal::GetCapturedStdout();
         EXPECT_STREQ(output.substr(0, 8).c_str(), "LAMMPS (");
     }
@@ -60,14 +59,14 @@ TEST_F(Input_commands, from_file)
     const char cont_file[] = "in.cont";
 
     fp = fopen(demo_file, "w");
-    for (unsigned int i = 0; i < sizeof(demo_input) / sizeof(char *); ++i) {
-        fputs(demo_input[i], fp);
+    for (auto &inp : demo_input) {
+        fputs(inp, fp);
         fputc('\n', fp);
     }
     fclose(fp);
     fp = fopen(cont_file, "w");
-    for (unsigned int i = 0; i < sizeof(cont_input) / sizeof(char *); ++i) {
-        fputs(cont_input[i], fp);
+    for (auto &inp : cont_input) {
+        fputs(inp, fp);
         fputc('\n', fp);
     }
     fclose(fp);
@@ -77,15 +76,15 @@ TEST_F(Input_commands, from_file)
     lmp->input->file(cont_file);
     EXPECT_EQ(lmp->atom->natoms, 2);
 
-    unlink(demo_file);
-    unlink(cont_file);
+    platform::unlink(demo_file);
+    platform::unlink(cont_file);
 };
 
 TEST_F(Input_commands, from_line)
 {
     EXPECT_EQ(lmp->atom->natoms, 0);
-    for (unsigned int i = 0; i < sizeof(demo_input) / sizeof(char *); ++i) {
-        lmp->input->one(demo_input[i]);
+    for (auto &inp : demo_input) {
+        lmp->input->one(inp);
     }
     EXPECT_EQ(lmp->atom->natoms, 1);
 };

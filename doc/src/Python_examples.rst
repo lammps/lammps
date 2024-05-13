@@ -33,36 +33,28 @@ with ``gl`` or ``atomeye`` or ``pymol`` or ``vmd``, depending on what
 visualization package you have installed.
 
 Note that for GL, you need to be able to run the Pizza.py GL tool,
-which is included in the pizza sub-directory.  See the Pizza.py doc pages for more info:
+which is included in the pizza subdirectory.  See the Pizza.py doc pages for more info:
 
-* `https://pizza.sandia.gov <pizza_>`_
+* `https://lammps.github.io/pizza <pizza_>`_
 
-.. _pizza: https://pizza.sandia.gov
+.. _pizza: https://lammps.github.io/pizza
 
 Note that for AtomEye, you need version 3, and there is a line in the
 scripts that specifies the path and name of the executable.  See the
 AtomEye web pages for more details:
 
-* `http://li.mit.edu/Archive/Graphics/A/ <atomeye_>`_
-* `http://li.mit.edu/Archive/Graphics/A3/A3.html <atomeye3_>`_
+* `http://li.mit.edu/Archive/Graphics/A/ <http://li.mit.edu/Archive/Graphics/A/>`_
+* `http://li.mit.edu/Archive/Graphics/A3/A3.html <http://li.mit.edu/Archive/Graphics/A3/A3.html>`_
 
-.. _atomeye: http://li.mit.edu/Archive/Graphics/A/
-
-.. _atomeye3: http://li.mit.edu/Archive/Graphics/A3/A3.html
-
-The latter link is to AtomEye 3 which has the scripting
-capability needed by these Python scripts.
+The latter link is to AtomEye 3 which has the scripting capability
+needed by these Python scripts.
 
 Note that for PyMol, you need to have built and installed the
 open-source version of PyMol in your Python, so that you can import it
 from a Python script.  See the PyMol web pages for more details:
 
- * `https://www.pymol.org <pymolhome_>`_
- * `https://github.com/schrodinger/pymol-open-source <pymolopen_>`_
-
-.. _pymolhome: https://www.pymol.org
-
-.. _pymolopen: https://github.com/schrodinger/pymol-open-source
+ * `https://www.pymol.org <https://www.pymol.org>`_
+ * `https://github.com/schrodinger/pymol-open-source <https://github.com/schrodinger/pymol-open-source>`_
 
 The latter link is to the open-source version.
 

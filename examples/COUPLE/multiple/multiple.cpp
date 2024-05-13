@@ -1,11 +1,11 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   https://www.lammps.org/
-   Steve Plimpton, sjplimp@sandia.gov, Sandia National Laboratories
+   https://www.lammps.org/, Sandia National Laboratories
+   LAMMPS development team: developers@lammps.org
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
-   certain rights in this software.  This software is distributed under 
+   certain rights in this software.  This software is distributed under
    the GNU General Public License.
 
    See the README file in the top-level LAMMPS directory.
@@ -28,12 +28,8 @@
 #include <cstdlib>
 #include <cstring>
 
-#include "lammps.h"         // these are LAMMPS include files
-#include "input.h"
-#include "atom.h"
+#define LAMMPS_LIB_MPI  // to make lammps_open() visible
 #include "library.h"
-
-using namespace LAMMPS_NS;
 
 int main(int narg, char **arg)
 {
@@ -68,13 +64,13 @@ int main(int narg, char **arg)
   int instance = me*ninstance / nprocs;
   MPI_Comm comm_lammps;
   MPI_Comm_split(MPI_COMM_WORLD,instance,0,&comm_lammps);
-  
+
   // each instance: unique screen file, log file, temperature
 
   char str1[32],str2[32],str3[32];
 
   char **lmparg = new char*[8];
-  lmparg[0] = NULL;                 // required placeholder for program name
+  lmparg[0] = (char *) "LAMMPS";              // required placeholder for program name
   lmparg[1] = (char *) "-screen";
   sprintf(str1,"screen.%d",instance);
   lmparg[2] = str1;
@@ -86,13 +82,9 @@ int main(int narg, char **arg)
   sprintf(str3,"%g",temperature + instance*tdelta);
   lmparg[7] = str3;
 
-  // open N instances of LAMMPS
-  // either of these methods will work
+  // create N instances of LAMMPS
 
-  LAMMPS *lmp = new LAMMPS(8,lmparg,comm_lammps);
-
-  //LAMMPS *lmp;
-  //lammps_open(8,lmparg,comm_lammps,(void **) &lmp);
+  void *lmp = lammps_open(8,lmparg,comm_lammps,NULL);
 
   delete [] lmparg;
 
@@ -102,8 +94,8 @@ int main(int narg, char **arg)
 
   // query final temperature and print result for each instance
 
-  double *ptr = (double *) 
-    lammps_extract_compute(lmp,(char *) "thermo_temp",0,0);
+  double *ptr = (double *)
+    lammps_extract_compute(lmp,"thermo_temp",LMP_STYLE_GLOBAL,LMP_TYPE_SCALAR);
   double finaltemp = *ptr;
 
   double *temps = new double[ninstance];
@@ -112,7 +104,7 @@ int main(int narg, char **arg)
   int me_lammps;
   MPI_Comm_rank(comm_lammps,&me_lammps);
   if (me_lammps == 0) temps[instance] = finaltemp;
-  
+
   double *alltemps = new double[ninstance];
   MPI_Allreduce(temps,alltemps,ninstance,MPI_DOUBLE,MPI_SUM,MPI_COMM_WORLD);
 
@@ -125,7 +117,7 @@ int main(int narg, char **arg)
 
   // delete LAMMPS instances
 
-  delete lmp;
+  lammps_close(lmp);
 
   // close down MPI
 

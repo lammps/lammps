@@ -1,8 +1,7 @@
-// clang-format off
 /* -*- c++ -*- ----------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    https://www.lammps.org/, Sandia National Laboratories
-   Steve Plimpton, sjplimp@sandia.gov
+   LAMMPS development team: developers@lammps.org
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
@@ -20,6 +19,7 @@ FixStyle(enforce2d/kk/host,FixEnforce2DKokkos<LMPHostType>);
 // clang-format on
 #else
 
+// clang-format off
 #ifndef LMP_FIX_ENFORCE2D_KOKKOS_H
 #define LMP_FIX_ENFORCE2D_KOKKOS_H
 
@@ -33,10 +33,10 @@ class FixEnforce2DKokkos : public FixEnforce2D {
  public:
   FixEnforce2DKokkos(class LAMMPS *, int, char **);
   // ~FixEnforce2DKokkos() {}
-  void setup(int);
-  void post_force(int);
+  void setup(int) override;
+  void post_force(int) override;
 
-  template <int omega_flag, int angmom_flag, int torque_flag>
+  template <int OMEGA_FLAG, int ANGMOM_FLAG, int TORQUE_FLAG>
   KOKKOS_INLINE_FUNCTION
   void post_force_item(const int i) const;
 
@@ -76,10 +76,3 @@ struct FixEnforce2DKokkosPostForceFunctor {
 #endif
 #endif
 
-/* ERROR/WARNING messages:
-
-E: Flag in fix_enforce2d_kokkos outside of what it should be
-
-LAMMPS developer-only error.
-
-*/

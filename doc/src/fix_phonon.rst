@@ -6,7 +6,7 @@ fix phonon command
 Syntax
 """"""
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    fix ID group-ID phonon N Noutput Nwait map_file prefix keyword values ...
 
@@ -134,16 +134,16 @@ for other systems, *nasr* = 10 is typically sufficient.
 The *map_file* contains the mapping information between the lattice
 indices and the atom IDs, which tells the code which atom sits at
 which lattice point; the lattice indices start from 0. An auxiliary
-code, `latgen <http://code.google.com/p/latgen>`_, can be employed to
+code, `latgen <https://code.google.com/p/latgen>`_, can be employed to
 generate the compatible map file for various crystals.
 
 In case one simulates a non-periodic system, where the whole simulation
-box is treated as a unit cell, one can set *map_file* as *GAMMA*\ , so
+box is treated as a unit cell, one can set *map_file* as *GAMMA*, so
 that the mapping info will be generated internally and a file is not
 needed. In this case, the dynamical matrix at only the gamma-point
 will/can be evaluated. Please keep in mind that fix-phonon is designed
 for cyrstals, it will be inefficient and even degrade the performance
-of lammps in case the unit cell is too large.
+of LAMMPS in case the unit cell is too large.
 
 The calculated dynamical matrix elements are written out in
 :doc:`energy/distance\^2/mass <units>` units.  The coordinates for *q*
@@ -181,10 +181,10 @@ This fix assumes a crystalline system with periodical lattice. The
 temperature of the system should not exceed the melting temperature to
 keep the system in its solid state.
 
-This fix is part of the USER-PHONON package.  It is only enabled if
-LAMMPS was built with that package.  See the :doc:`Build package <Build_package>` doc page for more info.
-
-This fix requires LAMMPS be built with an FFT library.  See the :doc:`Build settings <Build_settings>` doc page for details.
+This fix is part of the PHONON package.  It is only enabled if LAMMPS
+was built with that package.  This fix also requires LAMMPS to be built
+with 3d-FFT support which is included in the KSPACE package.  See the
+:doc:`Build package <Build_package>` page for more info.
 
 Related commands
 """"""""""""""""
@@ -204,19 +204,19 @@ the :doc:`dimension <dimension>` command, and nasr = 20.
 
 **(Campana)** C. Campana and
 M. H. Muser, *Practical Green's function approach to the
-simulation of elastic semi-infinite solids*\ , `Phys. Rev. B [74], 075420 (2006) <https://doi.org/10.1103/PhysRevB.74.075420>`_
+simulation of elastic semi-infinite solids*, `Phys. Rev. B [74], 075420 (2006) <https://doi.org/10.1103/PhysRevB.74.075420>`_
 
 .. _Kong:
 
 **(Kong)** L.T. Kong, G. Bartels, C. Campana,
 C. Denniston, and Martin H. Muser, *Implementation of Green's
-function molecular dynamics: An extension to LAMMPS*\ , `Computer Physics Communications [180](6):1004-1010 (2009). <https://doi.org/10.1016/j.cpc.2008.12.035>`_
+function molecular dynamics: An extension to LAMMPS*, `Computer Physics Communications [180](6):1004-1010 (2009). <https://doi.org/10.1016/j.cpc.2008.12.035>`_
 
 L.T. Kong, C. Denniston, and Martin H. Muser,
 *An improved version of the Green's function molecular dynamics
-method*\ , `Computer Physics Communications [182](2):540-541 (2011). <https://doi.org/10.1016/j.cpc.2010.10.006>`_
+method*, `Computer Physics Communications [182](2):540-541 (2011). <https://doi.org/10.1016/j.cpc.2010.10.006>`_
 
 .. _Kong2011:
 
 **(Kong2011)** L.T. Kong, *Phonon dispersion measured directly from
-molecular dynamics simulations*\ , `Computer Physics Communications [182](10):2201-2207, (2011). <https://doi.org/10.1016/j.cpc.2011.04.019>`_
+molecular dynamics simulations*, `Computer Physics Communications [182](10):2201-2207, (2011). <https://doi.org/10.1016/j.cpc.2011.04.019>`_

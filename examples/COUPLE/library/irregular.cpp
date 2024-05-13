@@ -2,8 +2,8 @@
 #include <cstdlib>
 #include <cstring>
 #include "irregular.h"
-#include "memory.h"
-#include "error.h"
+#include "memorylib.h"
+#include "errorlib.h"
 
 #define MAX(A,B) ((A) > (B)) ? (A) : (B)
 
@@ -18,8 +18,8 @@ Irregular::Irregular(MPI_Comm caller)
   MPI_Comm_rank(comm,&me);
   MPI_Comm_size(comm,&nprocs);
 
-  memory = new Memory(comm);
-  error = new Error(comm);
+  memory = new MemoryLib(comm);
+  error = new ErrorLib(comm);
 
   init();
 
@@ -119,7 +119,7 @@ void Irregular::pattern(int n, int *proclist)
   for (int i = 0; i < nrecv; i++)
     MPI_Irecv(&recvcount[i],1,MPI_INT,MPI_ANY_SOURCE,0,comm,&request[i]);
 
-  // barrier to insure receives are posted
+  // barrier to ensure receives are posted
 
   MPI_Barrier(comm);
 
@@ -128,7 +128,7 @@ void Irregular::pattern(int n, int *proclist)
   for (int i = 0; i < nsend; i++)
     MPI_Send(&sendcount[i],1,MPI_INT,sendproc[i],0,comm);
 
-  // insure all MPI_ANY_SOURCE messages are received
+  // ensure all MPI_ANY_SOURCE messages are received
   // set recvproc
 
   if (nrecv) MPI_Waitall(nrecv,request,status);
@@ -270,7 +270,7 @@ void Irregular::exchange_same(char *sendbuf, char *recvbuf)
 
   char *buf = (char *) memory->smalloc(nsendmax,"buf");
 
-  // barrier to insure receives are posted
+  // barrier to ensure receives are posted
 
   MPI_Barrier(comm);
 
@@ -325,7 +325,7 @@ void Irregular::exchange_varying(char *sendbuf, char *recvbuf)
 
   char *buf = (char *) memory->smalloc(nsendmax,"buf");
 
-  // barrier to insure receives are posted
+  // barrier to ensure receives are posted
 
   MPI_Barrier(comm);
 

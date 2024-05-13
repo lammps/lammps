@@ -1,47 +1,24 @@
-/*
 //@HEADER
 // ************************************************************************
 //
-//                        Kokkos v. 3.0
-//       Copyright (2020) National Technology & Engineering
+//                        Kokkos v. 4.0
+//       Copyright (2022) National Technology & Engineering
 //               Solutions of Sandia, LLC (NTESS).
 //
 // Under the terms of Contract DE-NA0003525 with NTESS,
 // the U.S. Government retains certain rights in this software.
 //
-// Redistribution and use in source and binary forms, with or without
-// modification, are permitted provided that the following conditions are
-// met:
+// Part of Kokkos, under the Apache License v2.0 with LLVM Exceptions.
+// See https://kokkos.org/LICENSE for license information.
+// SPDX-License-Identifier: Apache-2.0 WITH LLVM-exception
 //
-// 1. Redistributions of source code must retain the above copyright
-// notice, this list of conditions and the following disclaimer.
-//
-// 2. Redistributions in binary form must reproduce the above copyright
-// notice, this list of conditions and the following disclaimer in the
-// documentation and/or other materials provided with the distribution.
-//
-// 3. Neither the name of the Corporation nor the names of the
-// contributors may be used to endorse or promote products derived from
-// this software without specific prior written permission.
-//
-// THIS SOFTWARE IS PROVIDED BY NTESS "AS IS" AND ANY
-// EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
-// IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR
-// PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL NTESS OR THE
-// CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
-// EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
-// PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR
-// PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF
-// LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING
-// NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
-// SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-//
-// Questions? Contact Christian R. Trott (crtrott@sandia.gov)
-//
-// ************************************************************************
 //@HEADER
-*/
 
+#ifndef KOKKOS_IMPL_PUBLIC_INCLUDE
+#include <Kokkos_Macros.hpp>
+static_assert(false,
+              "Including non-public Kokkos header files is not allowed.");
+#endif
 #ifndef KOKKOS_FUTURE_HPP
 #define KOKKOS_FUTURE_HPP
 
@@ -155,13 +132,13 @@ class BasicFuture<ValueType, SimpleTaskScheduler<ExecutionSpace, QueueType>> {
   KOKKOS_INLINE_FUNCTION BasicFuture(
       BasicFuture<T, S>&& rhs) noexcept  // NOLINT(google-explicit-constructor)
       : m_task(std::move(rhs.m_task)) {
-    static_assert(std::is_same<scheduler_type, void>::value ||
+    static_assert(std::is_void<scheduler_type>::value ||
                       std::is_same<scheduler_type, S>::value,
                   "Moved Futures must have the same scheduler");
 
-    static_assert(std::is_same<value_type, void>::value ||
-                      std::is_same<value_type, T>::value,
-                  "Moved Futures must have the same value_type");
+    static_assert(
+        std::is_void<value_type>::value || std::is_same<value_type, T>::value,
+        "Moved Futures must have the same value_type");
 
     // reference counts are unchanged, since this is a move
     rhs.m_task = nullptr;
@@ -172,13 +149,13 @@ class BasicFuture<ValueType, SimpleTaskScheduler<ExecutionSpace, QueueType>> {
       BasicFuture<T, S> const& rhs)  // NOLINT(google-explicit-constructor)
                                      //: m_task(rhs.m_task)
       : m_task(nullptr) {
-    static_assert(std::is_same<scheduler_type, void>::value ||
+    static_assert(std::is_void<scheduler_type>::value ||
                       std::is_same<scheduler_type, S>::value,
                   "Copied Futures must have the same scheduler");
 
-    static_assert(std::is_same<value_type, void>::value ||
-                      std::is_same<value_type, T>::value,
-                  "Copied Futures must have the same value_type");
+    static_assert(
+        std::is_void<value_type>::value || std::is_same<value_type, T>::value,
+        "Copied Futures must have the same value_type");
 
     *static_cast<task_base_type* volatile*>(&m_task) = rhs.m_task;
     if (m_task) m_task->increment_reference_count();
@@ -186,13 +163,13 @@ class BasicFuture<ValueType, SimpleTaskScheduler<ExecutionSpace, QueueType>> {
 
   template <class T, class S>
   KOKKOS_INLINE_FUNCTION BasicFuture& operator=(BasicFuture<T, S> const& rhs) {
-    static_assert(std::is_same<scheduler_type, void>::value ||
+    static_assert(std::is_void<scheduler_type>::value ||
                       std::is_same<scheduler_type, S>::value,
                   "Assigned Futures must have the same scheduler");
 
-    static_assert(std::is_same<value_type, void>::value ||
-                      std::is_same<value_type, T>::value,
-                  "Assigned Futures must have the same value_type");
+    static_assert(
+        std::is_void<value_type>::value || std::is_same<value_type, T>::value,
+        "Assigned Futures must have the same value_type");
 
     if (m_task != rhs.m_task) {
       clear();
@@ -207,13 +184,13 @@ class BasicFuture<ValueType, SimpleTaskScheduler<ExecutionSpace, QueueType>> {
 
   template <class T, class S>
   KOKKOS_INLINE_FUNCTION BasicFuture& operator=(BasicFuture<T, S>&& rhs) {
-    static_assert(std::is_same<scheduler_type, void>::value ||
+    static_assert(std::is_void<scheduler_type>::value ||
                       std::is_same<scheduler_type, S>::value,
                   "Assigned Futures must have the same scheduler");
 
-    static_assert(std::is_same<value_type, void>::value ||
-                      std::is_same<value_type, T>::value,
-                  "Assigned Futures must have the same value_type");
+    static_assert(
+        std::is_void<value_type>::value || std::is_same<value_type, T>::value,
+        "Assigned Futures must have the same value_type");
 
     if (m_task != rhs.m_task) {
       clear();
@@ -361,13 +338,13 @@ class BasicFuture {
   KOKKOS_INLINE_FUNCTION BasicFuture(
       BasicFuture<T, S>&& rhs) noexcept  // NOLINT(google-explicit-constructor)
       : m_task(rhs.m_task) {
-    static_assert(std::is_same<scheduler_type, void>::value ||
+    static_assert(std::is_void<scheduler_type>::value ||
                       std::is_same<scheduler_type, S>::value,
                   "Assigned Futures must have the same scheduler");
 
-    static_assert(std::is_same<value_type, void>::value ||
-                      std::is_same<value_type, T>::value,
-                  "Assigned Futures must have the same value_type");
+    static_assert(
+        std::is_void<value_type>::value || std::is_same<value_type, T>::value,
+        "Assigned Futures must have the same value_type");
 
     rhs.m_task = 0;
   }
@@ -376,26 +353,26 @@ class BasicFuture {
   KOKKOS_INLINE_FUNCTION BasicFuture(
       BasicFuture<T, S> const& rhs)  // NOLINT(google-explicit-constructor)
       : m_task(nullptr) {
-    static_assert(std::is_same<scheduler_type, void>::value ||
+    static_assert(std::is_void<scheduler_type>::value ||
                       std::is_same<scheduler_type, S>::value,
                   "Assigned Futures must have the same scheduler");
 
-    static_assert(std::is_same<value_type, void>::value ||
-                      std::is_same<value_type, T>::value,
-                  "Assigned Futures must have the same value_type");
+    static_assert(
+        std::is_void<value_type>::value || std::is_same<value_type, T>::value,
+        "Assigned Futures must have the same value_type");
 
     if (rhs.m_task) queue_type::assign(&m_task, rhs.m_task);
   }
 
   template <class T, class S>
   KOKKOS_INLINE_FUNCTION BasicFuture& operator=(BasicFuture<T, S> const& rhs) {
-    static_assert(std::is_same<scheduler_type, void>::value ||
+    static_assert(std::is_void<scheduler_type>::value ||
                       std::is_same<scheduler_type, S>::value,
                   "Assigned Futures must have the same scheduler");
 
-    static_assert(std::is_same<value_type, void>::value ||
-                      std::is_same<value_type, T>::value,
-                  "Assigned Futures must have the same value_type");
+    static_assert(
+        std::is_void<value_type>::value || std::is_same<value_type, T>::value,
+        "Assigned Futures must have the same value_type");
 
     if (m_task || rhs.m_task) queue_type::assign(&m_task, rhs.m_task);
     return *this;
@@ -403,13 +380,13 @@ class BasicFuture {
 
   template <class T, class S>
   KOKKOS_INLINE_FUNCTION BasicFuture& operator=(BasicFuture<T, S>&& rhs) {
-    static_assert(std::is_same<scheduler_type, void>::value ||
+    static_assert(std::is_void<scheduler_type>::value ||
                       std::is_same<scheduler_type, S>::value,
                   "Assigned Futures must have the same scheduler");
 
-    static_assert(std::is_same<value_type, void>::value ||
-                      std::is_same<value_type, T>::value,
-                  "Assigned Futures must have the same value_type");
+    static_assert(
+        std::is_void<value_type>::value || std::is_same<value_type, T>::value,
+        "Assigned Futures must have the same value_type");
 
     clear();
     m_task     = rhs.m_task;
@@ -422,7 +399,7 @@ class BasicFuture {
   KOKKOS_INLINE_FUNCTION
   int is_ready() const noexcept {
     return (nullptr == m_task) ||
-           (((task_base*)task_base::LockTag) == m_task->m_wait);
+           (reinterpret_cast<task_base*>(task_base::LockTag) == m_task->m_wait);
   }
 
   KOKKOS_INLINE_FUNCTION
@@ -440,10 +417,9 @@ struct is_future : public std::false_type {};
 
 template <typename ValueType, typename Scheduler, typename ExecSpace>
 struct is_future<BasicFuture<ValueType, Scheduler>, ExecSpace>
-    : std::integral_constant<
-          bool,
+    : std::bool_constant<
           std::is_same<ExecSpace, typename Scheduler::execution_space>::value ||
-              std::is_void<ExecSpace>::value> {};
+          std::is_void<ExecSpace>::value> {};
 
 ////////////////////////////////////////////////////////////////////////////////
 // END OLD CODE
@@ -456,8 +432,8 @@ class ResolveFutureArgOrder {
  private:
   enum { Arg1_is_space = Kokkos::is_space<Arg1>::value };
   enum { Arg2_is_space = Kokkos::is_space<Arg2>::value };
-  enum { Arg1_is_value = !Arg1_is_space && !std::is_same<Arg1, void>::value };
-  enum { Arg2_is_value = !Arg2_is_space && !std::is_same<Arg2, void>::value };
+  enum { Arg1_is_value = !Arg1_is_space && !std::is_void<Arg1>::value };
+  enum { Arg2_is_value = !Arg2_is_space && !std::is_void<Arg2>::value };
 
   static_assert(!(Arg1_is_space && Arg2_is_space),
                 "Future cannot be given two spaces");
@@ -465,14 +441,13 @@ class ResolveFutureArgOrder {
   static_assert(!(Arg1_is_value && Arg2_is_value),
                 "Future cannot be given two value types");
 
-  using value_type = typename std::conditional<
-      Arg1_is_value, Arg1,
-      typename std::conditional<Arg2_is_value, Arg2, void>::type>::type;
+  using value_type =
+      std::conditional_t<Arg1_is_value, Arg1,
+                         std::conditional_t<Arg2_is_value, Arg2, void>>;
 
-  using execution_space = typename std::conditional<
+  using execution_space = typename std::conditional_t<
       Arg1_is_space, Arg1,
-      typename std::conditional<Arg2_is_space, Arg2,
-                                void>::type>::type::execution_space;
+      std::conditional_t<Arg2_is_space, Arg2, void>>::execution_space;
 
  public:
   using type = BasicFuture<value_type, TaskScheduler<execution_space>>;

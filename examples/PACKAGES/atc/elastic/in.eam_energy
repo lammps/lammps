@@ -1,0 +1,80 @@
+echo both
+units		metal
+atom_style      atomic
+atom_modify map hash
+boundary	p p p
+
+variable l equal 3
+variable l2 equal 0.5*$l
+variable L equal 10
+variable L2 equal 0.5*$L
+variable h equal $L
+
+lattice fcc 4.08 origin 0.25 0.25 0.25
+region	BOX  block -${l2} ${l2} -${L2} ${L2} -${l2} ${l2} 
+create_box 1 BOX
+create_atoms 1 region BOX
+
+pair_style  eam 
+pair_coeff  * * Au_u3.eam
+mass          *  196.97
+
+
+### NOTE change to CB -linear
+fix         PP  all   atc field   Au_elastic.mat 
+fix_modify  PP  mesh  create 1 $h 1 BOX p f p
+fix_modify  PP  fields add displacement velocity potential_energy cauchy_born_energy #  kinetic_energy
+fix_modify  PP  gradients add displacement 
+fix_modify  PP  set reference_potential_energy 
+fix_modify  PP  output counter step
+fix_modify  PP  output eam_energyPP 1 text
+
+fix         ATC all   atc elastic Au_elastic.mat
+fix_modify  ATC mesh  create 1 $h 1 BOX p f p
+fix_modify  ATC internal_quadrature off
+fix_modify  ATC control momentum none
+#fix_modify  ATC consistent_fe_initialization on
+fix_modify  ATC output counter step
+fix_modify  ATC output eam_energyFE 1 text binary
+fix_modify  ATC material all Au_cubic
+
+
+dump  CONFIG all custom 1 eam_energy.dmp id type x y z
+thermo 1
+
+timestep 0 # 1.e-20 # 0
+
+variable e0 equal pe
+variable L0 equal ly
+run 0
+variable pe equal pe-${e0}
+variable dL equal ly-${L0}
+variable strain equal v_dL/${L0}
+
+variable x equal y[1]
+variable x2 equal y[2]
+variable v equal vy[1]
+thermo_style custom step etotal v_pe ke f_ATC[1] f_ATC[2] v_x v_v v_x2 ly v_dL v_strain
+thermo_modify format 2 %15.8g
+
+###############################################################################
+log  eam_energy.log
+run 1
+velocity all set 0 0.1 0 units box
+fix_modify ATC fix velocity y all 0.1
+run 1
+velocity all set 0 0.2 0 units box
+fix_modify ATC fix velocity y all 0.2
+run 1
+velocity all set 0 0.3 0 units box
+fix_modify ATC fix velocity y all 0.3
+run 1
+change_box all y scale 1.01 remap
+fix_modify ATC fix displacement y all linear 0 0 0 0 0.01 0 0
+run 1
+change_box all y scale 1.01 remap
+fix_modify ATC fix displacement y all linear 0 0 0 0 0.0201 0 0
+run 1
+change_box all y scale 1.01 remap
+fix_modify ATC fix displacement y all linear 0 0 0 0 0.030301 0 0
+run 1

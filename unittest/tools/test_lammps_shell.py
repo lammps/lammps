@@ -94,25 +94,25 @@ class LammpsShell(unittest.TestCase):
 
     def testExpandComputeGroup(self):
         """Test expansion of a group-ID and a compute command"""
-        matches = re.findall(cmd_group_re, self.InputRunner(b'compute test al\tcentro/at\t\n'), re.MULTILINE)
+        matches = re.findall(cmd_group_re, self.InputRunner(b'compute test al\tstress/at\t\n'), re.MULTILINE)
         if self.timeout:
             self.fail("Timeout")
         else:
             self.assertEqual(matches[0][1],"compute")
             self.assertEqual(matches[0][2],"test")
             self.assertEqual(matches[0][3],"all")
-            self.assertEqual(matches[0][4],"centro/atom")
+            self.assertEqual(matches[0][4],"stress/atom")
 
     def testExpandFixGroup(self):
         """Test expansion of a group-ID and a fix command"""
-        matches = re.findall(cmd_group_re, self.InputRunner(b'fix test al\tcontroll\t\n'), re.MULTILINE)
+        matches = re.findall(cmd_group_re, self.InputRunner(b'fix test al\tpropert\t\n'), re.MULTILINE)
         if self.timeout:
             self.fail("Timeout")
         else:
             self.assertEqual(matches[0][1],"fix")
             self.assertEqual(matches[0][2],"test")
             self.assertEqual(matches[0][3],"all")
-            self.assertEqual(matches[0][4],"controller")
+            self.assertEqual(matches[0][4],"property/atom")
 
     def testExpandSource(self):
         """Test expansion of a shell command and a file name"""
@@ -138,7 +138,7 @@ class LammpsShell(unittest.TestCase):
             for line in lines:
                 if line.startswith('LAMMPS Shell>'): break
                 idx += 1
-                
+
             self.assertEqual(lines[idx+4],"dimension 2")
             self.assertEqual(lines[idx+6],"units real")
             self.assertEqual(lines[idx+8],"dimension 2")

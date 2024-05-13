@@ -1,7 +1,7 @@
 /* -*- c++ -*- ----------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    https://www.lammps.org/, Sandia National Laboratories
-   Steve Plimpton, sjplimp@sandia.gov
+   LAMMPS development team: developers@lammps.org
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
@@ -27,14 +27,15 @@ namespace LAMMPS_NS {
 class AngleCosineSquared : public Angle {
  public:
   AngleCosineSquared(class LAMMPS *);
-  virtual ~AngleCosineSquared();
-  virtual void compute(int, int);
-  void coeff(int, char **);
-  double equilibrium_angle(int);
-  void write_restart(FILE *);
-  void read_restart(FILE *);
-  void write_data(FILE *);
-  virtual double single(int, int, int, int);
+  ~AngleCosineSquared() override;
+  void compute(int, int) override;
+  void coeff(int, char **) override;
+  double equilibrium_angle(int) override;
+  void write_restart(FILE *) override;
+  void read_restart(FILE *) override;
+  void write_data(FILE *) override;
+  double single(int, int, int, int) override;
+  void born_matrix(int type, int i1, int i2, int i3, double &du, double &du2) override;
 
  protected:
   double *k, *theta0;
@@ -46,11 +47,3 @@ class AngleCosineSquared : public Angle {
 
 #endif
 #endif
-
-/* ERROR/WARNING messages:
-
-E: Incorrect args for angle coefficients
-
-Self-explanatory.  Check the input script or data file.
-
-*/

@@ -14,7 +14,7 @@ namespace ATC {
 //=============================================================================
 // isotropic constant viscosity
 //=============================================================================
-ViscousStressConstant::ViscousStressConstant(fstream &fileId) 
+ViscousStressConstant::ViscousStressConstant(fstream &fileId)
   : ViscousStress(), viscosity_(0)
 {
   if (!fileId.is_open()) throw ATC_Error("cannot open material file");
@@ -22,7 +22,7 @@ ViscousStressConstant::ViscousStressConstant(fstream &fileId)
   while(fileId.good()) {
     command_line(fileId, line);
     if (line[0] == "end") {
-      if (viscosity_ < 0.0) 
+      if (viscosity_ < 0.0)
         throw ATC_Error("ViscousStressConstant:: bad constant viscosity");
       return;
     }
@@ -74,7 +74,7 @@ void ViscousStressConstant::viscosity(const FIELD_MATS &fields,
                                       DENS_MAT &coefs) const
 {
   const DENS_MAT & v = (fields.find(VELOCITY))->second;
-  
+
   coefs.resize(v.nRows(),v.nCols());
   coefs = -1.*viscosity_;
 }

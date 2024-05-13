@@ -1,12 +1,12 @@
 #!/bin/sh
 
-# convert ptx assembly output into 
+# convert ptx assembly output into
 # a c-style string constant written
 # in portable posix shell script.
 # requires: sed, rm, mv
 #
 # Author: Axel Kohlmeyer, Temple University
- 
+
 num_args=$#
 
 # Check command-line arguments
@@ -26,14 +26,14 @@ string_name=$1
 eval output=\${$num_args}
 shift
 
-# remove temporary file in case we're interrupted. 
+# remove temporary file in case we're interrupted.
 cleanup () {
   rm -f $output
 }
 trap cleanup INT QUIT TERM
 
-# loop over arguments and convert to 
-# string constant. 
+# loop over arguments and convert to
+# string constant.
 i=2
 echo "const char * $string_name = " > $output
 while [ $i -lt $num_args ]

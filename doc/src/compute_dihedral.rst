@@ -6,7 +6,7 @@ compute dihedral command
 Syntax
 """"""
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    compute ID group-ID dihedral
 
@@ -34,10 +34,12 @@ total energy contributed by one or more of the hybrid sub-styles.
 Output info
 """""""""""
 
-This compute calculates a global vector of length N where N is the
-number of sub_styles defined by the :doc:`dihedral_style hybrid <dihedral_style>` command.  which can be accessed by indices
-1-N.  These values can be used by any command that uses global scalar
-or vector values from a compute as input.  See the :doc:`Howto output <Howto_output>` doc page for an overview of LAMMPS output
+This compute calculates a global vector of length :math:`N`, where :math:`N`
+is the number of sub_styles defined by the
+:doc:`dihedral_style hybrid <dihedral_style>` command, which can be accessed by
+the indices 1 through :math:`N`.  These values can be used by any command that
+uses global scalar or vector values from a compute as input.  See the
+:doc:`Howto output <Howto_output>` page for an overview of LAMMPS output
 options.
 
 The vector values are "extensive" and will be in energy

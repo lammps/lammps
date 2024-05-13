@@ -1,7 +1,7 @@
 /* -*- c++ -*- ----------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    https://www.lammps.org/, Sandia National Laboratories
-   Steve Plimpton, sjplimp@sandia.gov
+   LAMMPS development team: developers@lammps.org
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
@@ -29,14 +29,15 @@ class FixGravity : public Fix {
 
  public:
   FixGravity(class LAMMPS *, int, char **);
-  virtual ~FixGravity();
-  int setmask();
-  void init();
-  void setup(int);
-  virtual void post_force(int);
-  virtual void post_force_respa(int, int, int);
-  double compute_scalar();
-  void *extract(const char *, int &);
+  ~FixGravity() override;
+  int setmask() override;
+  void init() override;
+  void setup(int) override;
+  void post_force(int) override;
+  void post_force_respa(int, int, int) override;
+  double compute_scalar() override;
+  void *extract(const char *, int &) override;
+  enum { CONSTANT, EQUAL };
 
  protected:
   int style, disable;
@@ -44,7 +45,6 @@ class FixGravity : public Fix {
   double vert, phi, theta;
   double xdir, ydir, zdir;
   double xgrav, ygrav, zgrav, xacc, yacc, zacc;
-  double degree2rad;
   int ilevel_respa;
   int time_origin;
   double gvec[3];
@@ -64,21 +64,3 @@ class FixGravity : public Fix {
 
 #endif
 #endif
-
-/* ERROR/WARNING messages:
-
-E: Illegal ... command
-
-Self-explanatory.  Check the input script syntax and compare to the
-documentation for the command.  You can use -echo screen as a
-command-line option when running LAMMPS to see the offending line.
-
-E: Variable name for fix gravity does not exist
-
-Self-explanatory.
-
-E: Variable for fix gravity is invalid style
-
-Only equal-style variables can be used.
-
-*/

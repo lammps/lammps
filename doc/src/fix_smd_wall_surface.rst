@@ -44,23 +44,23 @@ is possible to move the triangulated surface via the
 
 Immediately after a .STL file has been read, the simulation needs to
 be run for 0 timesteps in order to properly register the new particles
-in the system. See the "funnel_flow" example in the USER-SMD examples
+in the system. See the "funnel_flow" example in the MACHDYN examples
 directory.
 
-See `this PDF guide <PDF/SMD_LAMMPS_userguide.pdf>`_ to use Smooth Mach
+See `this PDF guide <PDF/MACHDYN_LAMMPS_userguide.pdf>`_ to use Smooth Mach
 Dynamics in LAMMPS.
 
 Restart, fix_modify, output, run start/stop, minimize info
 """""""""""""""""""""""""""""""""""""""""""""""""""""""""""
 
-Currently, no part of USER-SMD supports restarting nor
+Currently, no part of MACHDYN supports restarting nor
 minimization. This fix has no outputs.
 
 Restrictions
 """"""""""""
 
-This fix is part of the USER-SMD package.  It is only enabled if
-LAMMPS was built with that package.  See the :doc:`Build package <Build_package>` doc page for more info.
+This fix is part of the MACHDYN package.  It is only enabled if
+LAMMPS was built with that package.  See the :doc:`Build package <Build_package>` page for more info.
 
 The molecule ID given to the particles created by this fix have to be
 equal to or larger than 65535.

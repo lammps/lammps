@@ -1,0 +1,141 @@
+# Setup output
+
+# Stress fluctuation term F
+
+compute stress all pressure thermo_temp
+variable s1 equal c_stress[1]
+variable s2 equal c_stress[2]
+variable s3 equal c_stress[3]
+variable s4 equal c_stress[6]
+variable s5 equal c_stress[5]
+variable s6 equal c_stress[4]
+
+variable s11 equal v_s1*v_s1
+variable s22 equal v_s2*v_s2
+variable s33 equal v_s3*v_s3
+variable s44 equal v_s4*v_s4
+variable s55 equal v_s5*v_s5
+variable s66 equal v_s6*v_s6
+variable s33 equal v_s3*v_s3
+variable s12 equal v_s1*v_s2
+variable s13 equal v_s1*v_s3
+variable s14 equal v_s1*v_s4
+variable s15 equal v_s1*v_s5
+variable s16 equal v_s1*v_s6
+variable s23 equal v_s2*v_s3
+variable s24 equal v_s2*v_s4
+variable s25 equal v_s2*v_s5
+variable s26 equal v_s2*v_s6
+variable s34 equal v_s3*v_s4
+variable s35 equal v_s3*v_s5
+variable s36 equal v_s3*v_s6
+variable s45 equal v_s4*v_s5
+variable s46 equal v_s4*v_s6
+variable s56 equal v_s5*v_s6
+
+variable mytemp equal temp
+variable mypress equal press
+variable mype equal pe/atoms
+fix avt all ave/time ${nevery} ${nrepeat} ${nfreq} v_mytemp ave running
+fix avp all ave/time ${nevery} ${nrepeat} ${nfreq} v_mypress ave running
+fix avpe all ave/time ${nevery} ${nrepeat} ${nfreq} v_mype ave running
+fix avs all ave/time ${nevery} ${nrepeat} ${nfreq} v_s1 v_s2 v_s3 v_s4 v_s5 v_s6 ave running
+fix avssq all ave/time ${nevery} ${nrepeat} ${nfreq} &
+v_s11 v_s22 v_s33 v_s44 v_s55 v_s66 &
+v_s12 v_s13 v_s14 v_s15 v_s16 &
+v_s23 v_s24 v_s25 v_s26 &
+v_s34 v_s35 v_s36 &
+v_s45 v_s46 &
+v_s56 &
+ave running
+
+# bar to GPa
+variable pconv equal 1.0e5/1.0e9 
+variable cunits index GPa
+# metal unit constants from LAMMPS
+# force->nktv2p = 1.6021765e6;
+# force->boltz = 8.617343e-5;
+variable boltz equal 8.617343e-5
+variable nktv2p equal 1.6021765e6
+variable vkt equal vol/(${boltz}*${temp})/${nktv2p}
+variable ffac equal ${pconv}*${vkt}
+
+variable F11 equal -(f_avssq[1]-f_avs[1]*f_avs[1])*${ffac}
+variable F22 equal -(f_avssq[2]-f_avs[2]*f_avs[2])*${ffac}
+variable F33 equal -(f_avssq[3]-f_avs[3]*f_avs[3])*${ffac}
+variable F44 equal -(f_avssq[4]-f_avs[4]*f_avs[4])*${ffac}
+variable F55 equal -(f_avssq[5]-f_avs[5]*f_avs[5])*${ffac}
+variable F66 equal -(f_avssq[6]-f_avs[6]*f_avs[6])*${ffac}
+
+variable F12 equal -(f_avssq[7]-f_avs[1]*f_avs[2])*${ffac}
+variable F13 equal -(f_avssq[8]-f_avs[1]*f_avs[3])*${ffac}
+variable F14 equal -(f_avssq[9]-f_avs[1]*f_avs[4])*${ffac}
+variable F15 equal -(f_avssq[10]-f_avs[1]*f_avs[5])*${ffac}
+variable F16 equal -(f_avssq[11]-f_avs[1]*f_avs[6])*${ffac}
+
+variable F23 equal -(f_avssq[12]-f_avs[2]*f_avs[3])*${ffac}
+variable F24 equal -(f_avssq[13]-f_avs[2]*f_avs[4])*${ffac}
+variable F25 equal -(f_avssq[14]-f_avs[2]*f_avs[5])*${ffac}
+variable F26 equal -(f_avssq[15]-f_avs[2]*f_avs[6])*${ffac}
+
+variable F34 equal -(f_avssq[16]-f_avs[3]*f_avs[4])*${ffac}
+variable F35 equal -(f_avssq[17]-f_avs[3]*f_avs[5])*${ffac}
+variable F36 equal -(f_avssq[18]-f_avs[3]*f_avs[6])*${ffac}
+
+variable F45 equal -(f_avssq[19]-f_avs[4]*f_avs[5])*${ffac}
+variable F46 equal -(f_avssq[20]-f_avs[4]*f_avs[6])*${ffac}
+
+variable F56 equal -(f_avssq[21]-f_avs[5]*f_avs[6])*${ffac}
+
+# Born term
+
+compute     virial all pressure NULL virial
+compute     born all born/matrix numdiff ${delta} virial
+fix 	    avborn all ave/time ${neveryborn} ${nrepeatborn} ${nfreq} c_born[*] ave running
+
+variable bfac equal ${pconv}*${nktv2p}/vol
+variable B vector f_avborn*${bfac}
+
+# Kinetic term
+
+variable kfac equal ${pconv}*${nktv2p}*atoms*${boltz}*${temp}/vol
+variable K11 equal 4.0*${kfac}
+variable K22 equal 4.0*${kfac}
+variable K33 equal 4.0*${kfac}
+variable K44 equal 2.0*${kfac}
+variable K55 equal 2.0*${kfac}
+variable K66 equal 2.0*${kfac}
+
+# Add F, K, and B together
+
+variable C11 equal v_F11+v_B[1]+v_K11
+variable C22 equal v_F22+v_B[2]+v_K22
+variable C33 equal v_F33+v_B[3]+v_K33
+variable C44 equal v_F44+v_B[4]+v_K44
+variable C55 equal v_F55+v_B[5]+v_K55
+variable C66 equal v_F66+v_B[6]+v_K66
+
+variable C12 equal v_F12+v_B[7] 
+variable C13 equal v_F13+v_B[8] 
+variable C14 equal v_F14+v_B[9] 
+variable C15 equal v_F15+v_B[10]
+variable C16 equal v_F16+v_B[11]
+
+variable C23 equal v_F23+v_B[12] 
+variable C24 equal v_F24+v_B[13] 
+variable C25 equal v_F25+v_B[14]
+variable C26 equal v_F26+v_B[15]
+
+variable C34 equal v_F34+v_B[16]
+variable C35 equal v_F35+v_B[17]
+variable C36 equal v_F36+v_B[18]
+
+variable C45 equal v_F45+v_B[19]
+variable C46 equal v_F46+v_B[20]
+
+variable C56 equal v_F56+v_B[21]
+
+thermo		${nthermo}
+thermo_style custom step temp pe press density f_avt f_avp f_avpe v_F11 v_F22 v_F33 v_F44 v_F55 v_F66 v_F12 v_F13 v_F23 v_B[*8] v_B[12]
+
+thermo_modify norm no

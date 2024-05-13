@@ -1,50 +1,21 @@
-/*
 //@HEADER
 // ************************************************************************
 //
-//                        Kokkos v. 3.0
-//       Copyright (2020) National Technology & Engineering
+//                        Kokkos v. 4.0
+//       Copyright (2022) National Technology & Engineering
 //               Solutions of Sandia, LLC (NTESS).
 //
 // Under the terms of Contract DE-NA0003525 with NTESS,
 // the U.S. Government retains certain rights in this software.
 //
-// Redistribution and use in source and binary forms, with or without
-// modification, are permitted provided that the following conditions are
-// met:
+// Part of Kokkos, under the Apache License v2.0 with LLVM Exceptions.
+// See https://kokkos.org/LICENSE for license information.
+// SPDX-License-Identifier: Apache-2.0 WITH LLVM-exception
 //
-// 1. Redistributions of source code must retain the above copyright
-// notice, this list of conditions and the following disclaimer.
-//
-// 2. Redistributions in binary form must reproduce the above copyright
-// notice, this list of conditions and the following disclaimer in the
-// documentation and/or other materials provided with the distribution.
-//
-// 3. Neither the name of the Corporation nor the names of the
-// contributors may be used to endorse or promote products derived from
-// this software without specific prior written permission.
-//
-// THIS SOFTWARE IS PROVIDED BY NTESS "AS IS" AND ANY
-// EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
-// IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR
-// PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL NTESS OR THE
-// CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
-// EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
-// PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR
-// PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF
-// LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING
-// NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
-// SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-//
-// Questions? Contact Christian R. Trott (crtrott@sandia.gov)
-//
-// ************************************************************************
 //@HEADER
-*/
 
 #include <gtest/gtest.h>
 
-#include <stdexcept>
 #include <sstream>
 #include <iostream>
 
@@ -65,7 +36,6 @@ struct SharedAllocDestroy {
 
 template <class MemorySpace, class ExecutionSpace>
 void test_shared_alloc() {
-#if defined(KOKKOS_ACTIVE_EXECUTION_MEMORY_SPACE_HOST)
   using Header     = const Kokkos::Impl::SharedAllocationHeader;
   using Tracker    = Kokkos::Impl::SharedAllocationTracker;
   using RecordBase = Kokkos::Impl::SharedAllocationRecord<void, void>;
@@ -91,16 +61,16 @@ void test_shared_alloc() {
 
   {
     // Since always executed on host space, leave [=]
-    Kokkos::parallel_for(range, [=](size_t i) {
+    Kokkos::parallel_for(range, [=](int i) {
       char name[64];
-      sprintf(name, "test_%.2d", int(i));
+      snprintf(name, 64, "test_%.2d", i);
 
       r[i] = RecordMemS::allocate(s, name, size * (i + 1));
       h[i] = Header::get_header(r[i]->data());
 
       ASSERT_EQ(r[i]->use_count(), 0);
 
-      for (size_t j = 0; j < (i / 10) + 1; ++j) RecordBase::increment(r[i]);
+      for (int j = 0; j < (i / 10) + 1; ++j) RecordBase::increment(r[i]);
 
       ASSERT_EQ(r[i]->use_count(), (i / 10) + 1);
       ASSERT_EQ(r[i], RecordMemS::get_record(r[i]->data()));
@@ -115,14 +85,18 @@ void test_shared_alloc() {
     // RecordMemS::print_records( std::cout, s, true );
 #endif
 
-    Kokkos::parallel_for(range, [=](size_t i) {
+    // This must be a plain for-loop since deallocation (which can be triggered
+    // by RecordBase::decrement) fences all execution space instances. If this
+    // is a parallel_for, the test can hang with the parallel_for blocking
+    // waiting for itself to complete.
+    for (size_t i = range.begin(); i < range.end(); ++i) {
       while (nullptr !=
              (r[i] = static_cast<RecordMemS*>(RecordBase::decrement(r[i])))) {
 #ifdef KOKKOS_ENABLE_DEBUG
         if (r[i]->use_count() == 1) RecordBase::is_sane(r[i]);
 #endif
       }
-    });
+    }
 
     Kokkos::fence();
   }
@@ -133,7 +107,7 @@ void test_shared_alloc() {
 
     Kokkos::parallel_for(range, [=](size_t i) {
       char name[64];
-      sprintf(name, "test_%.2d", int(i));
+      snprintf(name, 64, "test_%.2d", int(i));
 
       RecordFull* rec = RecordFull::allocate(s, name, size * (i + 1));
 
@@ -146,7 +120,7 @@ void test_shared_alloc() {
 
       for (size_t j = 0; j < (i / 10) + 1; ++j) RecordBase::increment(r[i]);
 
-      ASSERT_EQ(r[i]->use_count(), (i / 10) + 1);
+      ASSERT_EQ(r[i]->use_count(), int((i / 10) + 1));
       ASSERT_EQ(r[i], RecordMemS::get_record(r[i]->data()));
     });
 
@@ -156,14 +130,18 @@ void test_shared_alloc() {
     RecordBase::is_sane(r[0]);
 #endif
 
-    Kokkos::parallel_for(range, [=](size_t i) {
+    // This must be a plain for-loop since deallocation (which can be triggered
+    // by RecordBase::decrement) fences all execution space instances. If this
+    // is a parallel_for, the test can hang with the parallel_for blocking
+    // waiting for itself to complete.
+    for (size_t i = range.begin(); i < range.end(); ++i) {
       while (nullptr !=
              (r[i] = static_cast<RecordMemS*>(RecordBase::decrement(r[i])))) {
 #ifdef KOKKOS_ENABLE_DEBUG
         if (r[i]->use_count() == 1) RecordBase::is_sane(r[i]);
 #endif
       }
-    });
+    }
 
     Kokkos::fence();
 
@@ -223,8 +201,6 @@ void test_shared_alloc() {
 
     ASSERT_EQ(destroy_count, 1);
   }
-
-#endif /* #if defined( KOKKOS_ACTIVE_EXECUTION_MEMORY_SPACE_HOST ) */
 }
 
 TEST(TEST_CATEGORY, impl_shared_alloc) {
@@ -237,10 +213,12 @@ TEST(TEST_CATEGORY, impl_shared_alloc) {
 #elif (TEST_CATEGORY_NUMBER == 5)  // cuda
   test_shared_alloc<Kokkos::CudaSpace, Kokkos::DefaultHostExecutionSpace>();
 #elif (TEST_CATEGORY_NUMBER == 6)  // hip
-  test_shared_alloc<Kokkos::Experimental::HIPSpace,
-                    Kokkos::DefaultHostExecutionSpace>();
+  test_shared_alloc<Kokkos::HIPSpace, Kokkos::DefaultHostExecutionSpace>();
 #elif (TEST_CATEGORY_NUMBER == 7)  // sycl
   test_shared_alloc<Kokkos::Experimental::SYCLDeviceUSMSpace,
+                    Kokkos::DefaultHostExecutionSpace>();
+#elif (TEST_CATEGORY_NUMBER == 8)  // openacc
+  test_shared_alloc<Kokkos::Experimental::OpenACCSpace,
                     Kokkos::DefaultHostExecutionSpace>();
 #endif
 #else

@@ -2,7 +2,7 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    https://www.lammps.org/, Sandia National Laboratories
-   Steve Plimpton, sjplimp@sandia.gov
+   LAMMPS development team: developers@lammps.org
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
@@ -18,8 +18,10 @@
 
 #ifdef LAMMPS_ZSTD
 
-#include "domain.h"
 #include "dump_custom_zstd.h"
+
+#include "file_writer.h"
+#include "domain.h"
 #include "error.h"
 #include "update.h"
 
@@ -35,15 +37,9 @@ DumpCustomZstd::DumpCustomZstd(LAMMPS *lmp, int narg, char **arg) :
     error->all(FLERR,"Dump custom/zstd only writes compressed files");
 }
 
-/* ---------------------------------------------------------------------- */
-
-DumpCustomZstd::~DumpCustomZstd()
-{
-}
-
 /* ----------------------------------------------------------------------
    generic opening of a dump file
-   ASCII or binary or gzipped
+   ASCII or binary or compressed
    some derived classes override this function
 ------------------------------------------------------------------------- */
 
@@ -60,20 +56,7 @@ void DumpCustomZstd::openfile()
   if (multiproc) filecurrent = multiname;
 
   if (multifile) {
-    char *filestar = filecurrent;
-    filecurrent = new char[strlen(filestar) + 16];
-    char *ptr = strchr(filestar,'*');
-    *ptr = '\0';
-    if (padflag == 0)
-      sprintf(filecurrent,"%s" BIGINT_FORMAT "%s",
-              filestar,update->ntimestep,ptr+1);
-    else {
-      char bif[8],pad[16];
-      strcpy(bif,BIGINT_FORMAT);
-      sprintf(pad,"%%s%%0%d%s%%s",padflag,&bif[1]);
-      sprintf(filecurrent,pad,filestar,update->ntimestep,ptr+1);
-    }
-    *ptr = '*';
+    filecurrent = utils::strdup(utils::star_subst(filecurrent, update->ntimestep, padflag));
     if (maxfiles > 0) {
       if (numfiles < maxfiles) {
         nameslist[numfiles] = utils::strdup(filecurrent);
@@ -201,16 +184,13 @@ int DumpCustomZstd::modify_param(int narg, char **arg)
   int consumed = DumpCustom::modify_param(narg, arg);
   if (consumed == 0) {
     try {
-      if (strcmp(arg[0],"checksum") == 0) {
-        if (narg < 2) error->all(FLERR,"Illegal dump_modify command");
-        if (strcmp(arg[1],"yes") == 0) writer.setChecksum(true);
-        else if (strcmp(arg[1],"no") == 0) writer.setChecksum(false);
-        else error->all(FLERR,"Illegal dump_modify command");
+      if (strcmp(arg[0], "checksum") == 0) {
+        if (narg < 2) error->all(FLERR, "Illegal dump_modify command");
+        writer.setChecksum(utils::logical(FLERR, arg[1], false, lmp) == 1);
         return 2;
-      } else if (strcmp(arg[0],"compression_level") == 0) {
-        if (narg < 2) error->all(FLERR,"Illegal dump_modify command");
-        int compression_level = utils::inumeric(FLERR, arg[1], false, lmp);
-        writer.setCompressionLevel(compression_level);
+      } else if (strcmp(arg[0], "compression_level") == 0) {
+        if (narg < 2) error->all(FLERR, "Illegal dump_modify command");
+        writer.setCompressionLevel(utils::inumeric(FLERR, arg[1], false, lmp));
         return 2;
       }
     } catch (FileWriterException &e) {

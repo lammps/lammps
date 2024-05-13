@@ -37,7 +37,7 @@ ifeq ($(KOKKOS_INTERNAL_USE_HIP), 1)
 	TEST_TARGETS += test-hip
 endif
 
-ifeq ($(KOKKOS_INTERNAL_USE_PTHREADS), 1)
+ifeq ($(KOKKOS_INTERNAL_USE_THREADS), 1)
 	OBJ_THREADS = TestThreads.o TestMain.o gtest-all.o
 	TARGETS += KokkosContainers_PerformanceTest_Threads
 	TEST_TARGETS += test-threads

@@ -11,14 +11,14 @@ namespace ATC_matrix {
 //* performs a matrix-matrix multiply with optional transposes BLAS version
 // C = b*C + a*A*B
 //-----------------------------------------------------------------------------
-void MultAB(const MATRIX &A, const MATRIX &B, DENS_MAT &C, 
+void MultAB(const MATRIX &A, const MATRIX &B, DENS_MAT &C,
             const bool At, const bool Bt, double a, double b)
-{ 
+{
   static char t[2] = {'N','T'};
   char *ta=t+At, *tb=t+Bt;
   int sA[2] = {A.nRows(), A.nCols()};  // sizes of A
   int sB[2] = {B.nRows(), B.nCols()};  // sizes of B
-  
+
   GCK(A, B, sA[!At]!=sB[Bt], "MultAB<double>: matrix-matrix multiply");
   if (!C.is_size(sA[At],sB[!Bt]))
   {
@@ -33,11 +33,11 @@ void MultAB(const MATRIX &A, const MATRIX &B, DENS_MAT &C,
   double *pa=A.ptr(), *pb=B.ptr(), *pc=C.ptr();
 
 #ifdef COL_STORAGE
-  dgemm_(ta, tb, M, N, K, &a, pa, sA, pb, sB, &b, pc, M); 
+  dgemm_(ta, tb, M, N, K, &a, pa, sA, pb, sB, &b, pc, M);
 #else
-  dgemm_(tb, ta, N, M, K, &a, pb, sB+1, pa, sA+1, &b, pc, N); 
+  dgemm_(tb, ta, N, M, K, &a, pb, sB+1, pa, sA+1, &b, pc, N);
 #endif
-  
+
 }
 
 //-----------------------------------------------------------------------------
@@ -54,13 +54,13 @@ DenseMatrix<double> inv(const MATRIX& A)
 
   int *ipiv = new int[m<<1]; // need 2m storage
   int *iwork=ipiv+m;
-  
+
   dgetrf_(&m,&m,invA.ptr(),&m,ipiv,&info); // compute LU factorization
   GCK(A,A,info<0,"DenseMatrix::inv() dgetrf error: Argument had bad value.");
   GCK(A,A,info>0,"DenseMatrix::inv() dgetrf error: Matrix not invertible.");
   if (info > 0) {
     delete [] ipiv;
-    invA = 0; 
+    invA = 0;
     return invA;
   }
 
@@ -80,9 +80,9 @@ DenseMatrix<double> inv(const MATRIX& A)
   dgetri_(&m, invA.ptr(), &m, ipiv, work_dummy, &lwork, &info);
   GCK(A,A,info<0,"DenseMatrix::inv() dgetri error: Argument had bad value.");
   GCHK(info>0,"DenseMatrix::inv() dgetri error: Matrix not invertible.");
-  
+
   // Work size query succeeded
-  lwork = (int)work_dummy[0];  
+  lwork = (int)work_dummy[0];
   double *work = new double[lwork];    // Allocate vector of appropriate size
 
   // Compute and store matrix inverse
@@ -100,21 +100,21 @@ DenseMatrix<double> inv(const MATRIX& A)
 //* returns all eigenvalues & e-vectors of a pair of double precision matrices
 //-----------------------------------------------------------------------------
 
-DenseMatrix<double>  eigensystem(const MATRIX& AA, const MATRIX & BB, 
+DenseMatrix<double>  eigensystem(const MATRIX& AA, const MATRIX & BB,
   DenseMatrix<double> & eVals, bool normalize)
 {
-  DENS_MAT A(AA);  // Make copy of A 
-  DENS_MAT B(BB);  
+  DENS_MAT A(AA);  // Make copy of A
+  DENS_MAT B(BB);
   int m = A.nRows(); // size
-  eVals.resize(m,1); // eigenvectors 
+  eVals.resize(m,1); // eigenvectors
   //A.print("A");
   //B.print("B");
   SQCK(A, "DenseMatrix::eigensystem(), matrix not square"); // check matrix is square
   SQCK(B, "DenseMatrix::eigensystem(), matrix not square"); // check matrix is square
   SSCK(A, B, "DenseMatrix::eigensystem(), not same size");// check same size
 
-  // workspace 
-  int lwork=-1; //1+(NB+6+2*NMAX)*NMAX) 
+  // workspace
+  int lwork=-1; //1+(NB+6+2*NMAX)*NMAX)
   double tmp[1];
   double *work = tmp;
   int liwork = -1; // 3+5*NMAX
@@ -133,7 +133,7 @@ DenseMatrix<double>  eigensystem(const MATRIX& AA, const MATRIX & BB,
   lwork = int(work[0]);
   liwork = iwork[0];
   work = new double[lwork];
-  iwork = new int[liwork]; 
+  iwork = new int[liwork];
   dsygvd_(&type,vectors,upper,&m,A.ptr(),&m,B.ptr(),&m,
     eVals.ptr(),work,&lwork,iwork,&liwork,&info);
   GCK(A,B,info!=0,"DenseMatrix::eigensystem(), error");
@@ -153,7 +153,7 @@ DenseMatrix<double>  eigensystem(const MATRIX& AA, const MATRIX & BB,
       }
     }
     //(A.transpose()).print("normalized e-vectors");
-  }  
+  }
   delete [] work;
   delete [] iwork;
 
@@ -168,7 +168,7 @@ double condition_number(const MATRIX& AA)
 {
   DenseMatrix<double> eVals, I;
   I.identity(AA.nRows());
-  eigensystem(AA, I, eVals); 
+  eigensystem(AA, I, eVals);
 // [1] William W. Hager, "Condition Estimates," SIAM J. Sci. Stat. Comput. 5, 1984, 311-316, 1984.
 // [2] Nicholas J. Higham and Françoise Tisseur, "A Block Algorithm for Matrix 1-Norm Estimation with an Application to 1-Norm Pseudospectra, "SIAM J. Matrix Anal. Appl., Vol. 21, 1185-1201, 2000.
   double max = eVals.maxabs();
@@ -178,23 +178,23 @@ double condition_number(const MATRIX& AA)
 //-----------------------------------------------------------------------------
 //* returns polar decomposition of a square double precision matrix via SVD
 //-----------------------------------------------------------------------------
-DenseMatrix<double>  polar_decomposition(const MATRIX& AA, 
+DenseMatrix<double>  polar_decomposition(const MATRIX& AA,
   DenseMatrix<double> & rotation,
   DenseMatrix<double> & stretch,
   bool leftRotation)
 {
-  DENS_MAT A(AA);  // Make copy of A 
-  SQCK(A, "DenseMatrix::polar_decomposition(), matrix not square"); 
+  DENS_MAT A(AA);  // Make copy of A
+  SQCK(A, "DenseMatrix::polar_decomposition(), matrix not square");
   int m = A.nRows(); // size
-  DENS_MAT D(m,1); 
+  DENS_MAT D(m,1);
   DENS_MAT U(m,m), VT(m,m); // left and right SVD rotations
 
-  // workspace 
-  int lwork=-1; 
+  // workspace
+  int lwork=-1;
   double tmp[1];
   double *work = tmp;
-  
-  // calculate singular value decomposition A = U D V^T 
+
+  // calculate singular value decomposition A = U D V^T
   char type[] = "A"; // all columns are returned
   int info;
   // query optimal sizes
@@ -207,7 +207,7 @@ DenseMatrix<double>  polar_decomposition(const MATRIX& AA,
   dgesvd_(type,type,&m,&m,A.ptr(),&m,D.ptr(),
     U.ptr(),&m,VT.ptr(),&m,
     work,&lwork,&info);
-  
+
   //GCK(A,B,info!=0,"DenseMatrix::polar_decomposition(), error");
   GCK(A,A,info!=0,"DenseMatrix::polar_decomposition(), error");
   delete [] work;
@@ -218,7 +218,7 @@ DenseMatrix<double>  polar_decomposition(const MATRIX& AA,
   // A = R' U' = (U V^T) (V D V^T)
   stretch.resize(m,m);
 //if (leftRotation) { stretch = (VT.transpose())*D*VT; }
-  if (leftRotation) { 
+  if (leftRotation) {
     DENS_MAT V = VT.transpose();
     for (int i = 0; i < m; ++i) {
       for (int j = 0; j < m; ++j) {
@@ -229,7 +229,7 @@ DenseMatrix<double>  polar_decomposition(const MATRIX& AA,
   }
   // A = V' R' = (U D U^T) (U V^T)
 //else              { stretch = U*D*(U.transpose()); }
-  else { 
+  else {
     for (int i = 0; i < m; ++i) {
       for (int j = 0; j < m; ++j) {
         stretch(i,j) = U(i,j)*D(j,0);
@@ -237,7 +237,7 @@ DenseMatrix<double>  polar_decomposition(const MATRIX& AA,
     }
     stretch = stretch*(U.transpose());
   }
-  return D; 
+  return D;
 }
 //-----------------------------------------------------------------------------
 //* computes the determinant of a square matrix by LU decomposition (if n>3)
@@ -255,7 +255,7 @@ double det(const MATRIX& A)
       return A(0,0)*(A(1,1)*A(2,2)-A(1,2)*A(2,1))
            + A(0,1)*(A(1,2)*A(2,0)-A(1,0)*A(2,2))
            + A(0,2)*(A(1,0)*A(2,1)-A(1,1)*A(2,0));
-    default: break; 
+    default: break;
   }
   // First compute LU factorization
   int info, *ipiv = new int[m];
@@ -271,12 +271,12 @@ double det(const MATRIX& A)
 
     det = PLUA(0,0);
     OddNumPivots = ipiv[0]!=(1);
-    for(i=1; i<m; i++) 
-    { 
-      det *= PLUA(i,i); 
+    for(i=1; i<m; i++)
+    {
+      det *= PLUA(i,i);
       OddNumPivots += (ipiv[i]!=(i+1)); // # pivots even/odd
     }
-    det *= sign[OddNumPivots&1];  
+    det *= sign[OddNumPivots&1];
   }
   delete [] ipiv;  // Clean-up
   return det;
@@ -289,7 +289,7 @@ double max_eigenvalue(const Matrix<double>& A)
 
   GCK(A,A,!A.is_size(3,3), "max_eigenvalue only implemented for 3x3");
   const double c0 = det(A);
-  const double c1 = A(1,0)*A(0,1) + A(2,0)*A(0,2) + A(1,2)*A(2,1) 
+  const double c1 = A(1,0)*A(0,1) + A(2,0)*A(0,2) + A(1,2)*A(2,1)
                   - A(0,0)*A(1,1) - A(0,0)*A(2,2) - A(1,1)*A(2,2);
   const double c2 = trace(A);
   double c[4] = {c0, c1, c2, -1.0}, x[3];

@@ -2,7 +2,7 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    https://www.lammps.org/, Sandia National Laboratories
-   Steve Plimpton, sjplimp@sandia.gov
+   LAMMPS development team: developers@lammps.org
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
@@ -105,7 +105,6 @@ void PairSpinExchange::coeff(int narg, char **arg)
 
   // get exchange arguments from input command
 
-  int iarg = 7;
   const double rc = utils::numeric(FLERR,arg[3],false,lmp);
   const double j1 = utils::numeric(FLERR,arg[4],false,lmp);
   const double j2 = utils::numeric(FLERR,arg[5],false,lmp);
@@ -113,13 +112,10 @@ void PairSpinExchange::coeff(int narg, char **arg)
 
   // read energy offset flag if specified
 
+  int iarg = 7;
   while (iarg < narg) {
-    if (strcmp(arg[7],"offset") == 0) {
-      if (strcmp(arg[8],"yes") == 0) {
-        e_offset = 1;
-      } else if  (strcmp(arg[8],"no") == 0) {
-        e_offset = 0;
-      } else error->all(FLERR,"Incorrect args for pair coefficients");
+    if (strcmp(arg[iarg],"offset") == 0) {
+      e_offset = utils::logical(FLERR, arg[iarg+1], false, lmp);
       iarg += 2;
     } else error->all(FLERR,"Incorrect args for pair coefficients");
   }

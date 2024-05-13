@@ -34,7 +34,7 @@ __kernel void k_gayberne_sphere_ellipsoid(const __global numtyp4 *restrict x_,
                                           const __global numtyp *restrict lshape,
                                           const __global int *dev_nbor,
                                           const int stride,
-                                          __global acctyp4 *restrict ans,
+                                          __global acctyp3 *restrict ans,
                                           __global acctyp *restrict engv,
                                           __global int *restrict err_flag,
                                           const int eflag, const int vflag,
@@ -53,7 +53,7 @@ __kernel void k_gayberne_sphere_ellipsoid(const __global numtyp4 *restrict x_,
   sp_lj[2]=gum[5];
   sp_lj[3]=gum[6];
 
-  acctyp4 f;
+  acctyp3 f;
   f.x=(acctyp)0; f.y=(acctyp)0; f.z=(acctyp)0;
   acctyp energy, virial[6];
   if (EVFLAG) {
@@ -75,6 +75,7 @@ __kernel void k_gayberne_sphere_ellipsoid(const __global numtyp4 *restrict x_,
 
     numtyp factor_lj;
     for ( ; nbor<nbor_end; nbor+=n_stride) {
+      ucl_prefetch(dev_nbor+nbor+n_stride);
 
       int j=dev_nbor[nbor];
       factor_lj = sp_lj[sbmask(j)];
@@ -259,7 +260,7 @@ __kernel void k_gayberne_lj(const __global numtyp4 *restrict x_,
                             const __global numtyp *restrict gum,
                             const int stride,
                             const __global int *dev_ij,
-                            __global acctyp4 *restrict ans,
+                            __global acctyp3 *restrict ans,
                             __global acctyp *restrict engv,
                             __global int *restrict err_flag,
                             const int eflag, const int vflag, const int start,
@@ -277,7 +278,7 @@ __kernel void k_gayberne_lj(const __global numtyp4 *restrict x_,
   sp_lj[2]=gum[5];
   sp_lj[3]=gum[6];
 
-  acctyp4 f;
+  acctyp3 f;
   f.x=(acctyp)0; f.y=(acctyp)0; f.z=(acctyp)0;
   acctyp energy, virial[6];
   if (EVFLAG) {
@@ -296,6 +297,7 @@ __kernel void k_gayberne_lj(const __global numtyp4 *restrict x_,
 
     numtyp factor_lj;
     for ( ; nbor<nbor_end; nbor+=n_stride) {
+      ucl_prefetch(dev_ij+nbor+n_stride);
 
       int j=dev_ij[nbor];
       factor_lj = sp_lj[sbmask(j)];
@@ -347,7 +349,7 @@ __kernel void k_gayberne_lj_fast(const __global numtyp4 *restrict x_,
                                  const __global numtyp *restrict gum,
                                  const int stride,
                                  const __global int *dev_ij,
-                                 __global acctyp4 *restrict ans,
+                                 __global acctyp3 *restrict ans,
                                  __global acctyp *restrict engv,
                                  __global int *restrict err_flag,
                                  const int eflag, const int vflag,
@@ -371,7 +373,7 @@ __kernel void k_gayberne_lj_fast(const __global numtyp4 *restrict x_,
       lj3[tid]=lj3_in[tid];
   }
 
-  acctyp4 f;
+  acctyp3 f;
   f.x=(acctyp)0; f.y=(acctyp)0; f.z=(acctyp)0;
   acctyp energy, virial[6];
   if (EVFLAG) {
@@ -393,6 +395,7 @@ __kernel void k_gayberne_lj_fast(const __global numtyp4 *restrict x_,
 
     numtyp factor_lj;
     for ( ; nbor<nbor_end; nbor+=n_stride) {
+      ucl_prefetch(dev_ij+nbor+n_stride);
 
       int j=dev_ij[nbor];
       factor_lj = sp_lj[sbmask(j)];

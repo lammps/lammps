@@ -1,7 +1,7 @@
 /* -*- c++ -*- ----------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    https://www.lammps.org/, Sandia National Laboratories
-   Steve Plimpton, sjplimp@sandia.gov
+   LAMMPS development team: developers@lammps.org
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
@@ -28,7 +28,7 @@ class PairEAM : public Pair {
  public:
   friend class FixSemiGrandCanonicalMC;    // Alex Stukowski option
 
-  // public variables so USER-ATC package can access them
+  // public variables so ATC package can access them
 
   double cutmax;
 
@@ -45,27 +45,31 @@ class PairEAM : public Pair {
   double ***rhor_spline, ***frho_spline, ***z2r_spline;
 
   PairEAM(class LAMMPS *);
-  virtual ~PairEAM();
-  virtual void compute(int, int);
-  void settings(int, char **);
-  virtual void coeff(int, char **);
-  void init_style();
-  double init_one(int, int);
-  double single(int, int, int, int, double, double, double, double &);
-  virtual void *extract(const char *, int &);
+  ~PairEAM() override;
+  void compute(int, int) override;
+  void settings(int, char **) override;
+  void coeff(int, char **) override;
+  void init_style() override;
+  double init_one(int, int) override;
+  double single(int, int, int, int, double, double, double, double &) override;
+  void *extract(const char *, int &) override;
+  void *extract_peratom(const char *, int &) override;
 
-  virtual int pack_forward_comm(int, int *, double *, int, int *);
-  virtual void unpack_forward_comm(int, int, double *);
-  int pack_reverse_comm(int, int, double *);
-  void unpack_reverse_comm(int, int *, double *);
-  double memory_usage();
-  void swap_eam(double *, double **);
+  int pack_forward_comm(int, int *, double *, int, int *) override;
+  void unpack_forward_comm(int, int, double *) override;
+  int pack_reverse_comm(int, int, double *) override;
+  void unpack_reverse_comm(int, int *, double *) override;
+  double memory_usage() override;
+  void swap_eam(double *, double **) override;
 
  protected:
   int nmax;    // allocated size of per-atom arrays
   double cutforcesq;
   double **scale;
   bigint embedstep;    // timestep, the embedding term was computed
+
+  int exceeded_rhomax;    // global flag for whether rho[i] has exceeded rhomax
+                          // on a step energy is computed - 0 = no, 1 = yes
 
   // per-atom arrays
 
@@ -113,26 +117,3 @@ class PairEAM : public Pair {
 
 #endif
 #endif
-
-/* ERROR/WARNING messages:
-
-E: Illegal ... command
-
-Self-explanatory.  Check the input script syntax and compare to the
-documentation for the command.  You can use -echo screen as a
-command-line option when running LAMMPS to see the offending line.
-
-E: Incorrect args for pair coefficients
-
-Self-explanatory.  Check the input script or data file.
-
-E: Cannot open EAM potential file %s
-
-The specified EAM potential file cannot be opened.  Check that the
-path and name are correct.
-
-E: Invalid EAM potential file
-
-UNDOCUMENTED
-
-*/

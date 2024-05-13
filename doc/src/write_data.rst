@@ -12,12 +12,15 @@ Syntax
 
 * file = name of data file to write out
 * zero or more keyword/value pairs may be appended
-* keyword = *pair* or *nocoeff*
+* keyword = *pair* or *nocoeff* or *nofix* or *nolabelmap*
 
   .. parsed-literal::
 
        *nocoeff* = do not write out force field info
        *nofix* = do not write out extra sections read by fixes
+       *nolabelmap* = do not write out type labels
+       *triclinic/general = write data file in general triclinic format
+       *types* value = *numeric* or *labels*
        *pair* value = *ii* or *ij*
          *ii* = write one line of pair coefficient info per atom type
          *ij* = write one line of pair coefficient info per IJ atom type pair
@@ -29,6 +32,7 @@ Examples
 
    write_data data.polymer
    write_data data.*
+   write_data data.solid triclinic/general
 
 Description
 """""""""""
@@ -83,10 +87,11 @@ using the :doc:`-r command-line switch <Run_options>`.
    :doc:`fixes <fix>` are stored.  :doc:`Binary restart files <read_restart>`
    store more information.
 
-Bond interactions (angle, etc) that have been turned off by the :doc:`fix shake <fix_shake>` or :doc:`delete_bonds <delete_bonds>` command will
-be written to a data file as if they are turned on.  This means they
-will need to be turned off again in a new run after the data file is
-read.
+Bond interactions (angle, etc) that have been turned off by the
+:doc:`fix shake <fix_shake>` or :doc:`delete_bonds <delete_bonds>`
+command will be written to a data file as if they are turned on.  This
+means they will need to be turned off again in a new run after the
+data file is read.
 
 Bonds that are broken (e.g. by a bond-breaking potential) are not
 written to the data file.  Thus these bonds will not exist when the
@@ -94,20 +99,60 @@ data file is read.
 
 ----------
 
-The *nocoeff* keyword requests that no force field parameters should
-be written to the data file. This can be very helpful, if one wants
-to make significant changes to the force field or if the parameters
-are read in separately anyway, e.g. from an include file.
+Use of the *nocoeff* keyword means no force field parameters are
+written to the data file. This can be helpful, for example, if you
+want to make significant changes to the force field or if the force
+field parameters are read in separately, e.g. from an include file.
 
-The *nofix* keyword requests that no extra sections read by fixes
-should be written to the data file (see the *fix* option of the
-:doc:`read_data <read_data>` command for details). For example, this
-option excludes sections for user-created per-atom properties
-from :doc:`fix property/atom <fix_property_atom>`.
+Use of the *nofix* keyword means no extra sections read by fixes are
+written to the data file (see the *fix* option of the :doc:`read_data
+<read_data>` command for details). For example, this option excludes
+sections for user-created per-atom properties from :doc:`fix
+property/atom <fix_property_atom>`.
+
+The *nolabelmap* and *types* keywords refer to type labels that may be
+defined for numeric atom types, bond types, angle types, etc.  The
+label map can be defined in two ways, either by the :doc:`labelmap
+<labelmap>` command or in data files read by the :doc:`read_data
+<read_data>` command which have sections for Atom Type Labels, Bond
+Type Labels, Angle Type Labels, etc.  See the :doc:`Howto type labels
+<Howto_type_labels>` doc page for the allowed syntax of type labels
+and a general discussion of how type labels can be used.
+
+Use of the *nolabelmap* keyword means that even if type labels exist
+for a given type-kind (Atoms, Bonds, Angles, etc.), type labels are
+not written to the data file.  By default, they are written if they
+exist.  A type label must be defined for every numeric type (within a
+given type-kind) to be written to the data file.
+
+Use of the *triclinic/general* keyword will output a data file which
+specifies a general triclinic simulation box as well as per-atom
+quantities consistent with the general triclinic box.  The latter means
+that per-atom vectors, such as velocities and dipole moments will be
+oriented consistent with the 3d rotation implied by the general
+triclinic box (relative to the associated restricted triclinic box).
+
+This option can only be requested if the simulation box was initially
+defined to be general triclinic.  If if was and the
+*triclinic/general* keyword is not used, then the data file will
+specify a restricted triclinic box, since that is the internal format
+LAMMPS uses for both general and restricted triclinic simulations.
+See the :doc:`Howto triclinic <Howto_triclinic>` doc page for more
+explanation of how general triclinic simulation boxes are supported by
+LAMMPS.  And see the :doc:`read_data <read_data>` doc page for details
+of how the format is altered for general triclinic data files.
+
+The *types* keyword determines how atom types, bond types, angle
+types, etc are written into these data file sections: Atoms, Bonds,
+Angles, etc.  The default is the *numeric* setting, even if type label
+maps exist.  If the *labels* setting is used, type labels will be
+written to the data file, if the corresponding label map exists.  Note
+that when using *types labels*, the *nolabelmap* keyword cannot be
+used.
 
 The *pair* keyword lets you specify in what format the pair
 coefficient information is written into the data file.  If the value
-is specified as *ii*\ , then one line per atom type is written, to
+is specified as *ii*, then one line per atom type is written, to
 specify the coefficients for each of the I=J interactions.  This means
 that no cross-interactions for I != J will be specified in the data
 file and the pair style will apply its mixing rule, as documented on
@@ -116,7 +161,7 @@ behavior can be overridden in the input script after reading the data
 file, by specifying additional :doc:`pair_coeff <pair_coeff>` commands
 for any desired I,J pairs.
 
-If the value is specified as *ij*\ , then one line of coefficients is
+If the value is specified as *ij*, then one line of coefficients is
 written for all I,J pairs where I <= J.  These coefficients will
 include any specific settings made in the input script up to that
 point.  The presence of these I != J coefficients in the data file
@@ -144,4 +189,4 @@ Related commands
 Default
 """""""
 
-The option defaults are pair = ii.
+The option defaults are pair = ii and types_style = numeric.

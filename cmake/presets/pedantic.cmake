@@ -1,4 +1,4 @@
-# preset that will restore gcc/g++ with support for MPI and OpenMP (on Linux boxes)
+# preset that will set gcc/g++ with extra warnings enabled and support for MPI and OpenMP (on Linux boxes)
 
 set(CMAKE_CXX_COMPILER "g++" CACHE STRING "" FORCE)
 set(CMAKE_C_COMPILER "gcc" CACHE STRING "" FORCE)
@@ -17,10 +17,3 @@ set(MPI_Fortran "gfortran" CACHE STRING "" FORCE)
 set(MPI_Fortran_COMPILER "mpifort" CACHE STRING "" FORCE)
 unset(HAVE_OMP_H_INCLUDE CACHE)
 
-set(OpenMP_C "gcc" CACHE STRING "" FORCE)
-set(OpenMP_C_FLAGS "-fopenmp" CACHE STRING "" FORCE)
-set(OpenMP_C_LIB_NAMES "gomp" CACHE STRING "" FORCE)
-set(OpenMP_CXX "g++" CACHE STRING "" FORCE)
-set(OpenMP_CXX_FLAGS "-fopenmp" CACHE STRING "" FORCE)
-set(OpenMP_CXX_LIB_NAMES "gomp" CACHE STRING "" FORCE)
-set(OpenMP_omp_LIBRARY "libgomp.so" CACHE PATH "" FORCE)

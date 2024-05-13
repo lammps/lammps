@@ -6,7 +6,7 @@ fix_modify AtC reset_time command
 Syntax
 """"""
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    fix_modify <AtC fixID> reset_time <value>
 

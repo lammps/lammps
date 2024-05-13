@@ -1,7 +1,7 @@
 /* -*- c++ -*- ----------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    https://www.lammps.org/, Sandia National Laboratories
-   Steve Plimpton, sjplimp@sandia.gov
+   LAMMPS development team: developers@lammps.org
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
@@ -27,18 +27,18 @@ namespace LAMMPS_NS {
 class FixNPHug : public FixNH {
  public:
   FixNPHug(class LAMMPS *, int, char **);
-  ~FixNPHug();
-  void init();
-  void setup(int);
-  int modify_param(int, char **);
-  int pack_restart_data(double *);    // pack restart data
-  void restart(char *);
+  ~FixNPHug() override;
+  void init() override;
+  void setup(int) override;
+  int modify_param(int, char **) override;
+  int pack_restart_data(double *) override;    // pack restart data
+  void restart(char *) override;
 
  private:
   class Compute *pe;    // PE compute pointer
 
-  void compute_temp_target();
-  double compute_vector(int);
+  void compute_temp_target() override;
+  double compute_vector(int) override;
   double compute_etotal();
   double compute_vol();
   double compute_hugoniot();
@@ -52,46 +52,10 @@ class FixNPHug : public FixNH {
   int idir;
   int uniaxial;
 
-  int size_restart_global();
+  int size_restart_global() override;
 };
 
 }    // namespace LAMMPS_NS
 
 #endif
 #endif
-
-/* ERROR/WARNING messages:
-
-E: Pstart and Pstop must have the same value
-
-Self-explanatory.
-
-E: Specified target stress must be uniaxial or hydrostatic
-
-Self-explanatory.
-
-E: For triclinic deformation, specified target stress must be hydrostatic
-
-Triclinic pressure control is allowed using the tri keyword, but
-non-hydrostatic pressure control can not be used in this case.
-
-E: Temperature control must be used with fix nphug
-
-The temp keyword must be provided.
-
-E: Pressure control must be used with fix nphug
-
-A pressure control keyword (iso, aniso, tri, x, y, or z) must be
-provided.
-
-E: Potential energy ID for fix nvt/nph/npt does not exist
-
-A compute for potential energy must be defined.
-
-E: Illegal ... command
-
-Self-explanatory.  Check the input script syntax and compare to the
-documentation for the command.  You can use -echo screen as a
-command-line option when running LAMMPS to see the offending line.
-
-*/

@@ -6,11 +6,11 @@ neb command
 Syntax
 """"""
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
-   neb etol ftol N1 N2 Nevery file-style arg keyword
+   neb etol ftol N1 N2 Nevery file-style arg keyword values
 
-* etol = stopping tolerance for energy (energy units)
+* etol = stopping tolerance for energy (dimensionless)
 * ftol = stopping tolerance for force (force units)
 * N1 = max # of iterations (timesteps) to run initial NEB
 * N2 = max # of iterations (timesteps) to run barrier-climbing NEB
@@ -29,7 +29,15 @@ Syntax
        *none* arg = no argument all replicas assumed to already have
            their initial coords
 
-keyword = *verbose*
+* zero or more keyword/value pairs may be appended
+* keyword = *verbosity*
+
+  .. parsed-literal::
+
+     *verbosity* value = *verbose* or *default* or *terse*
+       *verbose* = very detailed per-replica output
+       *default* = some per-replica output
+       *terse* = only global state output
 
 Examples
 """"""""
@@ -47,19 +55,21 @@ Perform a nudged elastic band (NEB) calculation using multiple
 replicas of a system.  Two or more replicas must be used; the first
 and last are the end points of the transition path.
 
-NEB is a method for finding both the atomic configurations and height
-of the energy barrier associated with a transition state, e.g. for an
-atom to perform a diffusive hop from one energy basin to another in a
+NEB is a method for finding both the atomic configurations and height of
+the energy barrier associated with a transition state, e.g. for an atom
+to perform a diffusive hop from one energy basin to another in a
 coordinated fashion with its neighbors.  The implementation in LAMMPS
-follows the discussion in these 4 papers: :ref:`(HenkelmanA) <HenkelmanA>`,
-:ref:`(HenkelmanB) <HenkelmanB>`, :ref:`(Nakano) <Nakano3>` and :ref:`(Maras) <Maras2>`.
+follows the discussion in these 4 papers: :ref:`(HenkelmanA)
+<HenkelmanA>`, :ref:`(HenkelmanB) <HenkelmanB>`, :ref:`(Nakano)
+<Nakano3>` and :ref:`(Maras) <Maras2>`.
 
 Each replica runs on a partition of one or more processors.  Processor
-partitions are defined at run-time using the :doc:`-partition command-line switch <Run_options>`.  Note that if you have MPI installed, you
-can run a multi-replica simulation with more replicas (partitions)
-than you have physical processors, e.g you can run a 10-replica
-simulation on just one or two processors.  You will simply not get the
-performance speed-up you would see with one or more physical
+partitions are defined at run-time using the :doc:`-partition
+command-line switch <Run_options>`.  Note that if you have MPI
+installed, you can run a multi-replica simulation with more replicas
+(partitions) than you have physical processors, e.g you can run a
+10-replica simulation on just one or two processors.  You will simply
+not get the performance speed-up you would see with one or more physical
 processors per replica.  See the :doc:`Howto replica <Howto_replica>`
 doc page for further discussion.
 
@@ -79,10 +89,11 @@ potentials, and the starting configuration when the neb command is
 issued should be the same for every replica.
 
 In a NEB calculation each replica is connected to other replicas by
-inter-replica nudging forces.  These forces are imposed by the :doc:`fix neb <fix_neb>` command, which must be used in conjunction with the
-neb command.  The group used to define the fix neb command defines the
-NEB atoms which are the only ones that inter-replica springs are
-applied to.  If the group does not include all atoms, then non-NEB
+inter-replica nudging forces.  These forces are imposed by the
+:doc:`fix neb <fix_neb>` command, which must be used in conjunction
+with the neb command.  The group used to define the fix neb command
+defines the NEB atoms which are the only ones that inter-replica springs
+are applied to.  If the group does not include all atoms, then non-NEB
 atoms have no inter-replica springs and the forces they feel and their
 motion is computed in the usual way due only to other atoms within
 their replica.  Conceptually, the non-NEB atoms provide a background
@@ -114,7 +125,7 @@ closer to the MEP and read them in.
 
 ----------
 
-For a *file-style* setting of *final*\ , a filename is specified which
+For a *file-style* setting of *final*, a filename is specified which
 contains atomic coordinates for zero or more atoms, in the format
 described below.  For each atom that appears in the file, the new
 coordinates are assigned to that atom in the final replica.  Each
@@ -143,7 +154,7 @@ case.
    interpolation is outside the periodic box, the atom will be wrapped
    back into the box when the NEB calculation begins.
 
-For a *file-style* setting of *each*\ , a filename is specified which is
+For a *file-style* setting of *each*, a filename is specified which is
 assumed to be unique to each replica.  This can be done by using a
 variable in the filename, e.g.
 
@@ -162,7 +173,7 @@ as described below, and for any atom that appears in the file, assign
 the specified coordinates to its atom.  The various files do not need
 to contain the same set of atoms.
 
-For a *file-style* setting of *none*\ , no filename is specified.  Each
+For a *file-style* setting of *none*, no filename is specified.  Each
 replica is assumed to already be in its initial configuration at the
 time the neb command is issued.  This allows each replica to define
 its own configuration by reading a replica-specific data or restart or
@@ -185,13 +196,13 @@ that a long calculation can be restarted if needed.
 A NEB calculation proceeds in two stages, each of which is a
 minimization procedure, performed via damped dynamics.  To enable
 this, you must first define a damped dynamics
-:doc:`min_style <min_style>`, such as *quickmin* or *fire*\ .  The *cg*\ ,
-*sd*\ , and *hftn* styles cannot be used, since they perform iterative
+:doc:`min_style <min_style>`, such as *quickmin* or *fire*\ .  The *cg*,
+*sd*, and *hftn* styles cannot be used, since they perform iterative
 line searches in their inner loop, which cannot be easily synchronized
 across multiple replicas.
 
 The minimizer tolerances for energy and force are set by *etol* and
-*ftol*\ , the same as for the :doc:`minimize <minimize>` command.
+*ftol*, the same as for the :doc:`minimize <minimize>` command.
 
 A non-zero *etol* means that the NEB calculation will terminate if the
 energy criterion is met by every replica.  The energies being compared
@@ -302,12 +313,26 @@ and restart files.
 
 When running with multiple partitions (each of which is a replica in
 this case), the print-out to the screen and master log.lammps file
-contains a line of output, printed once every *Nevery* timesteps.  It
-contains the timestep, the maximum force per replica, the maximum
-force per atom (in any replica), potential gradients in the initial,
-final, and climbing replicas, the forward and backward energy
-barriers, the total reaction coordinate (RDT), and the normalized
-reaction coordinate and potential energy of each replica.
+contains a line of output, printed once every *Nevery* timesteps.  The
+amount of information printed in this line can be selected with the
+*verbosity* keyword.  Available options are *terse*, *default*, and
+*verbose*.
+
+With the *terse* setting, it contains the timestep, the maximum force of
+a replica, the maximum force per atom (in any replica), potential
+gradients in the initial, final, and climbing replicas, the forward and
+backward energy barriers, the total reaction coordinate (RDT).
+
+With the *default* setting, additionally the normalized
+reaction coordinate and potential energy of each replica are printed.
+
+With the *verbose* setting, additional per-replica properties are
+printed: the "path angle" (pathangle), the angle between the 3N-length
+tangent vector and the 3N-length force vector at image *i*
+(angletangrad), the angle between the 3N-length energy gradient vector
+of replica *i* and that of replica *i*\ +1 (anglegrad), the norm of the
+energy gradient (gradV), the the two-norm of the 3N-length force vector
+(RepForce), and the maximum force component of any atom (MaxAtomForce).
 
 The "maximum force per replica" is the two-norm of the 3N-length force
 vector for the atoms in each replica, maximized across replicas, which
@@ -330,22 +355,21 @@ the fix neb command.
 The forward (reverse) energy barrier is the potential energy of the
 highest replica minus the energy of the first (last) replica.
 
-Supplementary information for all replicas can be printed out to the
-screen and master log.lammps file by adding the verbose keyword. This
-information include the following.  The "path angle" (pathangle) for
-the replica i which is the angle between the 3N-length vectors (Ri-1 -
-Ri) and (Ri+1 - Ri) (where Ri is the atomic coordinates of replica
-i). A "path angle" of 180 indicates that replicas i-1, i and i+1 are
-aligned.  "angletangrad" is the angle between the 3N-length tangent
-vector and the 3N-length force vector at image i. The tangent vector
-is calculated as in :ref:`(HenkelmanA) <HenkelmanA>` for all intermediate
-replicas and at R2 - R1 and RM - RM-1 for the first and last replica,
-respectively.  "anglegrad" is the angle between the 3N-length energy
-gradient vector of replica i and that of replica i+1. It is not
-defined for the final replica and reads nan.  gradV is the norm of the
-energy gradient of image i.  ReplicaForce is the two-norm of the
-3N-length force vector (including nudging forces) for replica i.
-MaxAtomForce is the maximum force component of any atom in replica i.
+The "path angle" (pathangle) for the replica i which is the angle
+between the 3N-length vectors :math:`(R_{i-1} - R_i)` and
+:math:`(R_{i+1} - R_i)` (where :math:`R_i` is the atomic coordinates of
+replica *i*). A "path angle" of 180 indicates that replicas *i*\ -1, *i*
+and *i*\ +1 are aligned.  "angletangrad" is the angle between the
+3N-length tangent vector and the 3N-length force vector at image
+*i*. The tangent vector is calculated as in :ref:`(HenkelmanA)
+<HenkelmanA>` for all intermediate replicas and at R2 - R1 and RM - RM-1
+for the first and last replica, respectively.  "anglegrad" is the angle
+between the 3N-length energy gradient vector of replica *i* and that of
+replica *i*\ +1. It is not defined for the final replica and reads nan.
+gradV is the norm of the energy gradient of image *i* (:math:`\nabla
+V`).  ReplicaForce is the two-norm of the 3N-length force vector
+(including nudging forces) for replica *i*.  MaxAtomForce is the maximum
+force component of any atom in replica *i*.
 
 When a NEB calculation does not converge properly, the supplementary
 information can help understanding what is going wrong. For instance
@@ -422,12 +446,12 @@ Related commands
 """"""""""""""""
 
 :doc:`prd <prd>`, :doc:`temper <temper>`, :doc:`fix langevin <fix_langevin>`,
-:doc:`fix viscous <fix_viscous>`
+:doc:`fix viscous <fix_viscous>`, :doc:`fix neb <fix_neb>`
 
 Default
 """""""
 
-none
+*verbosity* = *default*
 
 ----------
 

@@ -4,10 +4,37 @@
 # try to improperly start up a new interpreter.
 import sysconfig
 import ctypes
-library = sysconfig.get_config_vars('INSTSONAME')[0]
-pylib = ctypes.CDLL(library)
-if not pylib.Py_IsInitialized():
-    raise RuntimeError("This interpreter is not compatible with python-based mliap for LAMMPS.")
-del sysconfig, ctypes, library, pylib
+import platform
+import warnings
 
-from .loader import load_model, activate_mliappy
+py_ver = sysconfig.get_config_var('VERSION')
+abi_flags = sysconfig.get_config_var('abiflags')
+OS_name = platform.system()
+
+if OS_name == "Darwin":
+    SHLIB_SUFFIX = '.dylib'
+    library = 'libpython' + py_ver + abi_flags + SHLIB_SUFFIX
+elif OS_name == "Windows":
+    SHLIB_SUFFIX = '.dll'
+    library = 'python' + py_ver + abi_flags + SHLIB_SUFFIX
+else:
+    SHLIB_SUFFIX = '.so'
+    library = 'libpython' + py_ver + abi_flags + SHLIB_SUFFIX
+
+try:
+    pylib = ctypes.CDLL(library)
+except Exception as e:
+    raise OSError("Unable to locate python shared library") from e
+
+if not pylib.Py_IsInitialized():
+    warnings.warn("This interpreter is not compatible with python-based MLIAP for LAMMPS. "
+                  "Attempting to activate the MLIAP-python coupling from python may result "
+                  "in undefined behavior.")
+else:
+    from .loader import load_model, load_unified, activate_mliappy
+    try:
+         from .loader import  load_model_kokkos, load_unified_kokkos,  activate_mliappy_kokkos
+    except Exception as ee:
+        # ignore import error, it means that the KOKKOS package was not included in LAMMPS
+        pass
+del sysconfig, ctypes, library, pylib

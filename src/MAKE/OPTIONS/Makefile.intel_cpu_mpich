@@ -1,4 +1,4 @@
-# intel_cpu_mpich = USER-INTEL package, MPICH with compiler set to Intel icc
+# intel_cpu_mpich = INTEL package, MPICH with compiler set to Intel icc
 
 SHELL = /bin/sh
 
@@ -6,16 +6,17 @@ SHELL = /bin/sh
 # compiler/linker settings
 # specify flags and libraries needed for your compiler
 
-CC =		mpicxx -cxx=icc -std=c++11
+CC =		mpicxx -cxx=icc -std=c++11 -diag-disable=10441 -diag-disable=2196 -diag-disable=11074 -diag-disable=11076
 OPTFLAGS =      -xHost -O2 -fp-model fast=2 -no-prec-div -qoverride-limits \
                 -qopt-zmm-usage=high
 CCFLAGS =	-qopenmp -qno-offload -ansi-alias -restrict \
                 -DLMP_INTEL_USELRT -DLMP_USE_MKL_RNG $(OPTFLAGS) \
                 -I$(MKLROOT)/include
 SHFLAGS =	-fPIC
+FMTFLAGS = 	-std=c++11
 DEPFLAGS =	-M
 
-LINK =		mpicxx -cxx=icc -std=c++11
+LINK =		mpicxx -cxx=icc -std=c++11 -diag-disable=10441 -diag-disable=2196
 LINKFLAGS =	-qopenmp $(OPTFLAGS) -L$(MKLROOT)/lib/intel64/
 LIB =           -ltbbmalloc -lmkl_intel_ilp64 -lmkl_sequential -lmkl_core
 SIZE =		size
@@ -69,6 +70,11 @@ JPG_INC =
 JPG_PATH = 	
 JPG_LIB =	
 
+#  library for loading shared objects (defaults to -ldl, should be empty on Windows)
+# uncomment to change the default
+
+# override DYN_LIB =
+
 # ---------------------------------------------------------------------
 # build rules and dependencies
 # do not edit this section
@@ -78,7 +84,7 @@ include Makefile.package
 
 EXTRA_INC = $(LMP_INC) $(PKG_INC) $(MPI_INC) $(FFT_INC) $(JPG_INC) $(PKG_SYSINC)
 EXTRA_PATH = $(PKG_PATH) $(MPI_PATH) $(FFT_PATH) $(JPG_PATH) $(PKG_SYSPATH)
-EXTRA_LIB = $(PKG_LIB) $(MPI_LIB) $(FFT_LIB) $(JPG_LIB) $(PKG_SYSLIB)
+EXTRA_LIB = $(PKG_LIB) $(MPI_LIB) $(FFT_LIB) $(JPG_LIB) $(PKG_SYSLIB) $(DYN_LIB)
 EXTRA_CPP_DEPENDS = $(PKG_CPP_DEPENDS)
 EXTRA_LINK_DEPENDS = $(PKG_LINK_DEPENDS)
 
@@ -111,6 +117,18 @@ $(SHLIB): $(OBJ) $(EXTRA_LINK_DEPENDS)
 
 %.o:%.cpp
 	$(CC) $(CCFLAGS) $(SHFLAGS) $(EXTRA_INC) -c $<
+
+variable.o : ../variable.cpp
+	$(CC) $(CCFLAGS) $(SHFLAGS) $(EXTRA_INC) $(FMTFLAGS) -c $<
+
+utils.o : ../utils.cpp
+	$(CC) $(CCFLAGS) $(SHFLAGS) $(EXTRA_INC) $(FMTFLAGS) -c $<
+
+fmtlib_format.o : ../fmtlib_format.cpp
+	$(CC) $(CCFLAGS) $(SHFLAGS) $(EXTRA_INC) $(FMTFLAGS) -c $<
+
+fmtlib_os.o : ../fmtlib_os.cpp
+	$(CC) $(CCFLAGS) $(SHFLAGS) $(EXTRA_INC) $(FMTFLAGS) -c $<
 
 # Individual dependencies
 

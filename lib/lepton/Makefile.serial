@@ -1,0 +1,8 @@
+# -*- makefile -*-
+
+CC=g++
+CXXFLAGS=-D_DEFAULT_SOURCE -O3 -DNDEBUG -Wall -fPIC -std=c++11 -ffast-math -msse4.2
+AR=ar
+ARFLAGS=rc
+
+include Common.mk

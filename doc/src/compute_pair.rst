@@ -6,7 +6,7 @@ compute pair command
 Syntax
 """"""
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    compute ID group-ID pair pstyle [nstyle] [evalue]
 
@@ -24,7 +24,7 @@ Examples
    compute 1 all pair gauss
    compute 1 all pair lj/cut/coul/cut ecoul
    compute 1 all pair tersoff 2 epair
-   compute 1 all pair reax/c
+   compute 1 all pair reaxff
 
 Description
 """""""""""
@@ -50,11 +50,11 @@ two parts: *evdwl* and *ecoul* such that *epair* = *evdwl* + *ecoul*\ .
 If the pair style calculates Coulombic interactions, their energy will
 be tallied in *ecoul*\ .  Everything else (whether it is a Lennard-Jones
 style van der Waals interaction or not) is tallied in *evdwl*\ .  If
-*evalue* is blank or specified as *epair*\ , then *epair* is stored
+*evalue* is blank or specified as *epair*, then *epair* is stored
 as a global scalar by this compute.  This is useful when using
 :doc:`pair_style hybrid <pair_hybrid>` if you want to know the portion
 of the total energy contributed by one sub-style.  If *evalue* is
-specified as *evdwl* or *ecoul*\ , then just that portion of the energy
+specified as *evdwl* or *ecoul*, then just that portion of the energy
 is stored as a global scalar.
 
 .. note::
@@ -64,8 +64,9 @@ is stored as a global scalar.
    :doc:`pair_modify <pair_modify>` command.
 
 Some pair styles tally additional quantities, e.g. a breakdown of
-potential energy into 14 components is tallied by the :doc:`pair_style reax/c <pair_reaxc>` command.  These values (1 or more)
-are stored as a global vector by this compute.  See the doc page for
+potential energy into 14 components is tallied by the
+:doc:`pair_style reaxff <pair_reaxff>` command.  These values (1 or more)
+are stored as a global vector by this compute.  See the page for
 :doc:`individual pair styles <pair_style>` for info on these values.
 
 Output info
@@ -73,7 +74,7 @@ Output info
 
 This compute calculates a global scalar which is *epair* or *evdwl* or
 *ecoul*\ .  If the pair style supports it, it also calculates a global
-vector of length >= 1, as determined by the pair style.  These values
+vector of length :math:`\ge` 1, as determined by the pair style.  These values
 can be used by any command that uses global scalar or vector values
 from a compute as input.  See the :doc:`Howto output <Howto_output>` doc
 page for an overview of LAMMPS output options.
@@ -83,7 +84,7 @@ The scalar and vector values calculated by this compute are
 
 The scalar value will be in energy :doc:`units <units>`.  The vector
 values will typically also be in energy :doc:`units <units>`, but see
-the doc page for the pair style for details.
+the page for the pair style for details.
 
 Restrictions
 """"""""""""
@@ -92,9 +93,11 @@ Restrictions
 Related commands
 """"""""""""""""
 
-:doc:`compute pe <compute_pe>`, :doc:`compute bond <compute_bond>`
+:doc:`compute pe <compute_pe>`, :doc:`compute bond <compute_bond>`,
+:doc:`fix pair <fix_pair>`
+
 
 Default
 """""""
 
-The keyword defaults are *evalue* = *epair*\ , nsub = 0.
+The keyword defaults are *evalue* = *epair*, nsub = 0.

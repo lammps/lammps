@@ -2,7 +2,7 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    https://www.lammps.org/, Sandia National Laboratories
-   Steve Plimpton, sjplimp@sandia.gov
+   LAMMPS development team: developers@lammps.org
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
@@ -185,8 +185,8 @@ void PairEIM::compute(int eflag, int vflag)
   // communicate and sum densities
 
   rhofp = 1;
-  if (newton_pair) comm->reverse_comm_pair(this);
-  comm->forward_comm_pair(this);
+  if (newton_pair) comm->reverse_comm(this);
+  comm->forward_comm(this);
 
   for (ii = 0; ii < inum; ii++) {
     i = ilist[ii];
@@ -226,12 +226,11 @@ void PairEIM::compute(int eflag, int vflag)
   // communicate and sum modified densities
 
   rhofp = 2;
-  if (newton_pair) comm->reverse_comm_pair(this);
-  comm->forward_comm_pair(this);
+  if (newton_pair) comm->reverse_comm(this);
+  comm->forward_comm(this);
 
   for (ii = 0; ii < inum; ii++) {
     i = ilist[ii];
-    itype = type[i];
     if (eflag) {
       phi = 0.5*rho[i]*fp[i];
       if (eflag_global) eng_vdwl += phi;
@@ -350,7 +349,7 @@ void PairEIM::coeff(int narg, char **arg)
 
   if (narg < 5) error->all(FLERR,"Incorrect args for pair coefficients");
 
-  // insure I,J args are * *
+  // ensure I,J args are * *
 
   if (strcmp(arg[0],"*") != 0 || strcmp(arg[1],"*") != 0)
     error->all(FLERR,"Incorrect args for pair coefficients");
@@ -383,7 +382,7 @@ void PairEIM::init_style()
   file2array();
   array2spline();
 
-  neighbor->request(this,instance_me);
+  neighbor->add_request(this);
 }
 
 /* ----------------------------------------------------------------------

@@ -1,7 +1,7 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    https://www.lammps.org/, Sandia National Laboratories
-   Steve Plimpton, sjplimp@sandia.gov
+   LAMMPS development team: developers@lammps.org
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
@@ -16,10 +16,10 @@
 #include "atom.h"
 #include "domain.h"
 #include "error.h"
-#include "group.h"
 #include "update.h"
 
 #include <cmath>
+#include <cstring>
 
 using namespace LAMMPS_NS;
 
@@ -29,7 +29,7 @@ enum { MASSCENTER, GEOMCENTER };
 
 ComputeDipole::ComputeDipole(LAMMPS *lmp, int narg, char **arg) : Compute(lmp, narg, arg)
 {
-  if (narg != 3) error->all(FLERR, "Illegal compute com command");
+  if ((narg < 3) || (narg > 4)) error->all(FLERR, "Illegal compute dipole command");
 
   scalar_flag = 1;
   vector_flag = 1;
@@ -39,10 +39,7 @@ ComputeDipole::ComputeDipole(LAMMPS *lmp, int narg, char **arg) : Compute(lmp, n
 
   vector = new double[size_vector];
   vector[0] = vector[1] = vector[2] = 0.0;
-
   usecenter = MASSCENTER;
-
-  if ((narg != 3) && (narg != 4)) error->all(FLERR, "Illegal compute dipole command");
 
   if (narg == 4) {
     if (utils::strmatch(arg[3], "^geom"))

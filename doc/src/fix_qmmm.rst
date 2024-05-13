@@ -6,7 +6,7 @@ fix qmmm command
 Syntax
 """"""
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    fix ID group-ID qmmm
 
@@ -31,7 +31,7 @@ wave DFT package.  Electrostatic coupling is in preparation and the
 interface has been written in a manner that coupling to other QM codes
 should be possible without changes to LAMMPS itself.
 
-.. _espresso: http://www.quantum-espresso.org
+.. _espresso: https://www.quantum-espresso.org
 
 The interface code for this is in the lib/qmmm directory of the LAMMPS
 distribution and is being made available at this early stage of
@@ -54,9 +54,9 @@ fix is not invoked during :doc:`energy minimization <minimize>`.
 Restrictions
 """"""""""""
 
-This fix is part of the USER-QMMM package.  It is only enabled if
+This fix is part of the QMMM package.  It is only enabled if
 LAMMPS was built with that package. It also requires building a
-library provided with LAMMPS.  See the :doc:`Build package <Build_package>` doc page for more info.
+library provided with LAMMPS.  See the :doc:`Build package <Build_package>` page for more info.
 
 The fix is only functional when LAMMPS is built as a library and
 linked with a compatible QM program and a QM/MM front end into a QM/MM

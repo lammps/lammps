@@ -46,7 +46,7 @@ Used in input scripts:
 Description
 """""""""""
 
-.. versionadded:: TBD
+.. versionadded:: 17Apr2024
 
 Pair style *pedone* computes the **non-Coulomb** interactions of the Pedone
 (or PMMCS) potential :ref:`(Pedone) <Pedone>` which combines Coulomb

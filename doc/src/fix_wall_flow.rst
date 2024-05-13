@@ -40,7 +40,7 @@ Examples
 Description
 """""""""""
 
-.. versionadded:: TBD
+.. versionadded:: 17Apr2024
 
 This fix implements flow boundary conditions (FBC) introduced in
 :ref:`(Pavlov1) <fbc-Pavlov1>` and :ref:`(Pavlov2) <fbc-Pavlov2>`.

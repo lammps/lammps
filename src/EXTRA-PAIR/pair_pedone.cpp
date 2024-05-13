@@ -32,8 +32,8 @@ using namespace LAMMPS_NS;
 /* ---------------------------------------------------------------------- */
 
 PairPedone::PairPedone(LAMMPS *lmp) :
-    Pair(lmp), d0(nullptr), alpha(nullptr), r0(nullptr), c0(nullptr), pedone1(nullptr),
-    pedone2(nullptr)
+    Pair(lmp), cut(nullptr), d0(nullptr), alpha(nullptr), r0(nullptr), c0(nullptr),
+    pedone1(nullptr), pedone2(nullptr), offset(nullptr)
 {
   writedata = 1;
 }

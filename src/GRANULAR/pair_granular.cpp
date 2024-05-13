@@ -37,7 +37,6 @@
 #include "update.h"
 
 #include <cstring>
-#include <vector>
 
 using namespace LAMMPS_NS;
 using namespace Granular_NS;

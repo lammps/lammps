@@ -13,6 +13,7 @@ from libc.stdint cimport uintptr_t
 cimport cython
 from cpython.ref cimport PyObject
 from libc.stdlib cimport malloc, free
+from libc.string cimport memcpy
 
 
 cdef extern from "lammps.h" namespace "LAMMPS_NS":
@@ -451,15 +452,24 @@ cdef public object mliap_unified_connect_kokkos(char *fname, MLIAPDummyModel * m
 
     cdef int nelements = <int>len(unified.element_types)
     cdef char **elements = <char**>malloc(nelements * sizeof(char*))
+    cdef char * c_str
+    cdef char * s
+    cdef ssize_t slen
 
     if not elements:
         raise MemoryError("failed to allocate memory for element names")
 
-    cdef char *elem_name
     for i, elem in enumerate(unified.element_types):
-        elem_name_bytes = elem.encode('UTF-8')
-        elem_name = elem_name_bytes
-        elements[i] = &elem_name[0]
+        py_str = elem.encode('UTF-8')
+        s = py_str
+        slen = len(py_str)
+        c_str = <char *>malloc((slen+1)*sizeof(char))
+        if not c_str:
+            raise MemoryError("failed to allocate memory for element names")
+        memcpy(c_str, s, slen)
+        c_str[slen] = 0
+        elements[i] = c_str
+
     unified_int.descriptor.set_elements(elements, nelements)
     unified_int.model.nelements = nelements
 

@@ -329,7 +329,7 @@ class Atom : protected Pointers {
 
   void deallocate_topology();
 
-  void data_atoms(int, char *, tagint, tagint, int, int, double *, int, int *);
+  void data_atoms(int, char *, tagint, tagint, int, int, double *, int, int *, int);
   void data_vels(int, char *, tagint);
   void data_bonds(int, char *, int *, tagint, int, int, int *);
   void data_angles(int, char *, int *, tagint, int, int, int *);

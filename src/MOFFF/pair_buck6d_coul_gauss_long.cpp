@@ -36,7 +36,7 @@
 
 using namespace LAMMPS_NS;
 
-#define EWALD_F   1.12837917
+static constexpr double EWALD_F = 1.12837917;
 
 /* ---------------------------------------------------------------------- */
 

@@ -230,11 +230,10 @@ void FixLangevin::init()
     // warn if any integrate fix comes after this one
     int before = 1;
     int flag = 0;
-    for (int i = 0; i < modify->nfix; i++) {
-      auto ifix = modify->get_fix_by_index(i);
+    for (auto ifix : modify->get_fix_list()) {
       if (strcmp(id, ifix->id) == 0)
         before = 0;
-      else if ((modify->fmask[i] && utils::strmatch(ifix->style, "^nve")) && before)
+      else if ((modify->get_fix_mask(ifix) && utils::strmatch(ifix->style, "^nve")) && before)
         flag = 1;
     }
     if (flag) error->all(FLERR, "Fix langevin gjf should come before fix nve");

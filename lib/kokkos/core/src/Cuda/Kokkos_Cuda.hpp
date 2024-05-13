@@ -46,7 +46,6 @@ static_assert(false,
 
 namespace Kokkos {
 namespace Impl {
-class CudaExec;
 class CudaInternal;
 }  // namespace Impl
 }  // namespace Kokkos
@@ -129,33 +128,16 @@ class Cuda {
 
   /// \brief True if and only if this method is being called in a
   ///   thread-parallel function.
-  KOKKOS_INLINE_FUNCTION static int in_parallel() {
+
+#ifdef KOKKOS_ENABLE_DEPRECATED_CODE_4
+  KOKKOS_DEPRECATED KOKKOS_INLINE_FUNCTION static int in_parallel() {
 #if defined(__CUDA_ARCH__)
     return true;
 #else
     return false;
 #endif
   }
-
-  /** \brief  Set the device in a "sleep" state.
-   *
-   * This function sets the device in a "sleep" state in which it is
-   * not ready for work.  This may consume less resources than if the
-   * device were in an "awake" state, but it may also take time to
-   * bring the device from a sleep state to be ready for work.
-   *
-   * \return True if the device is in the "sleep" state, else false if
-   *   the device is actively working and could not enter the "sleep"
-   *   state.
-   */
-  static bool sleep();
-
-  /// \brief Wake the device from the 'sleep' state so it is ready for work.
-  ///
-  /// \return True if the device is in the "ready" state, else "false"
-  ///  if the device is actively working (which also means that it's
-  ///  awake).
-  static bool wake();
+#endif
 
   /// \brief Wait until all dispatched functors complete.
   ///
@@ -199,18 +181,37 @@ class Cuda {
   //! Initialize, telling the CUDA run-time library which device to use.
   static void impl_initialize(InitializationSettings const&);
 
+#ifdef KOKKOS_ENABLE_DEPRECATED_CODE_4
   /// \brief Cuda device architecture of the selected device.
   ///
   /// This matches the __CUDA_ARCH__ specification.
-  static size_type device_arch();
+  KOKKOS_DEPRECATED static size_type device_arch() {
+    const cudaDeviceProp& cudaProp = Cuda().cuda_device_prop();
+    return cudaProp.major * 100 + cudaProp.minor;
+  }
 
   //! Query device count.
-  static size_type detect_device_count();
+  KOKKOS_DEPRECATED static size_type detect_device_count() {
+    int count;
+    KOKKOS_IMPL_CUDA_SAFE_CALL(cudaGetDeviceCount(&count));
+    return count;
+  }
 
   /** \brief  Detect the available devices and their architecture
    *          as defined by the __CUDA_ARCH__ specification.
    */
-  static std::vector<unsigned> detect_device_arch();
+  KOKKOS_DEPRECATED static std::vector<unsigned> detect_device_arch() {
+    int count;
+    KOKKOS_IMPL_CUDA_SAFE_CALL(cudaGetDeviceCount(&count));
+    std::vector<unsigned> out;
+    for (int i = 0; i < count; ++i) {
+      cudaDeviceProp prop;
+      KOKKOS_IMPL_CUDA_SAFE_CALL(cudaGetDeviceProperties(&prop, i));
+      out.push_back(prop.major * 100 + prop.minor);
+    }
+    return out;
+  }
+#endif
 
   cudaStream_t cuda_stream() const;
   int cuda_device() const;

@@ -150,13 +150,9 @@ void ProcMap::twolevel_grid(int nprocs, int *user_procgrid, int *procgrid,
    auto-detects NUMA sockets within a multi-core node
 ------------------------------------------------------------------------- */
 
-void ProcMap::numa_grid(int nprocs, int *user_procgrid, int *procgrid,
-                        int *numagrid)
+void ProcMap::numa_grid(int numa_nodes, int nprocs, int *user_procgrid,
+                        int *procgrid, int *numagrid)
 {
-  // hardwire this for now
-
-  int numa_nodes = 1;
-
   // get names of all nodes
 
   int name_length;
@@ -181,6 +177,7 @@ void ProcMap::numa_grid(int nprocs, int *user_procgrid, int *procgrid,
   }
   procs_per_node = name_map.begin()->second;
   procs_per_numa = procs_per_node / numa_nodes;
+  if (procs_per_numa < 1) procs_per_numa = 1;
 
   delete [] node_names;
 
@@ -191,6 +188,24 @@ void ProcMap::numa_grid(int nprocs, int *user_procgrid, int *procgrid,
       user_procgrid[1] > 1 ||
       user_procgrid[2] > 1)
     error->all(FLERR,"Could not create numa grid of processors");
+
+  // factorization for the grid of NUMA nodes
+
+  int node_count = nprocs / procs_per_numa;
+
+  int **nodefactors;
+  int nodepossible = factor(node_count,nullptr);
+  memory->create(nodefactors,nodepossible,3,"procmap:nodefactors");
+  nodepossible = factor(node_count,nodefactors);
+
+  if (domain->dimension == 2)
+    nodepossible = cull_2d(nodepossible,nodefactors,3);
+  nodepossible = cull_user(nodepossible,nodefactors,3,user_procgrid);
+
+  if (nodepossible == 0)
+    error->all(FLERR,"Could not create numa grid of processors");
+
+  best_factors(nodepossible,nodefactors,nodegrid,1,1,1);
 
   // user settings for the factorization per numa node
   // currently not user settable
@@ -204,6 +219,7 @@ void ProcMap::numa_grid(int nprocs, int *user_procgrid, int *procgrid,
   if (user_procgrid[1] == 1) user_numagrid[1] = 1;
   if (user_procgrid[2] == 1) user_numagrid[2] = 1;
 
+  // perform NUMA node factorization using subdomain sizes
   // initial factorization within NUMA node
 
   int **numafactors;
@@ -217,38 +233,6 @@ void ProcMap::numa_grid(int nprocs, int *user_procgrid, int *procgrid,
 
   if (numapossible == 0)
     error->all(FLERR,"Could not create numa grid of processors");
-
-  best_factors(numapossible,numafactors,numagrid,1,1,1);
-
-  // user_nodegrid = implied user constraints on nodes
-
-  int user_nodegrid[3];
-  user_nodegrid[0] = user_procgrid[0] / numagrid[0];
-  user_nodegrid[1] = user_procgrid[1] / numagrid[1];
-  user_nodegrid[2] = user_procgrid[2] / numagrid[2];
-
-  // factorization for the grid of NUMA nodes
-
-  int node_count = nprocs / procs_per_numa;
-
-  int **nodefactors;
-  int nodepossible = factor(node_count,nullptr);
-  memory->create(nodefactors,nodepossible,3,"procmap:nodefactors");
-  nodepossible = factor(node_count,nodefactors);
-
-  if (domain->dimension == 2)
-    nodepossible = cull_2d(nodepossible,nodefactors,3);
-  nodepossible = cull_user(nodepossible,nodefactors,3,user_nodegrid);
-
-  if (nodepossible == 0)
-    error->all(FLERR,"Could not create numa grid of processors");
-
-  best_factors(nodepossible,nodefactors,nodegrid,
-               numagrid[0],numagrid[1],numagrid[2]);
-
-  // repeat NUMA node factorization using subdomain sizes
-  // refines the factorization if the user specified the node layout
-  // NOTE: this will not re-enforce user-procgrid constraint will it?
 
   best_factors(numapossible,numafactors,numagrid,
                nodegrid[0],nodegrid[1],nodegrid[2]);
@@ -270,6 +254,7 @@ void ProcMap::numa_grid(int nprocs, int *user_procgrid, int *procgrid,
   procgrid[0] = nodegrid[0] * numagrid[0];
   procgrid[1] = nodegrid[1] * numagrid[1];
   procgrid[2] = nodegrid[2] * numagrid[2];
+
 }
 
 /* ----------------------------------------------------------------------

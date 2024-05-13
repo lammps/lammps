@@ -68,7 +68,7 @@ struct PolicyTraitAdaptorImpl<
     TraitSpec, PolicyTemplate, type_list<ProcessedTraits...>,
     type_list<MatchingTrait, ToProcessTraits...>, NewTrait,
     std::enable_if_t<PolicyTraitMatcher<TraitSpec, MatchingTrait>::value>> {
-  static_assert(PolicyTraitMatcher<TraitSpec, NewTrait>::value, "");
+  static_assert(PolicyTraitMatcher<TraitSpec, NewTrait>::value);
   using type = PolicyTemplate<ProcessedTraits..., NewTrait, ToProcessTraits...>;
 };
 
@@ -92,7 +92,7 @@ template <class TraitSpec, template <class...> class PolicyTemplate,
 struct PolicyTraitAdaptorImpl<TraitSpec, PolicyTemplate,
                               type_list<ProcessedTraits...>, type_list<>,
                               NewTrait> {
-  static_assert(PolicyTraitMatcher<TraitSpec, NewTrait>::value, "");
+  static_assert(PolicyTraitMatcher<TraitSpec, NewTrait>::value);
   using type = PolicyTemplate<ProcessedTraits..., NewTrait>;
 };
 

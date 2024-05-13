@@ -1,14 +1,1 @@
-# DATE: 2018-09-22 UNITS: metal CONTRIBUTOR: Steve Valone, smv@lanl.gov CITATION: Baskes, PRB 1992; smv, sr, mib, JNM 2010
-# ms-meam data format May 2010
-#  elt   lat    z     ielement      atwt
-#  alpha b0     b1    b2     b3     b1m     b2m   b3m      alat   esub   asub
-#    -   t0     t1    t2     t3     t1m     t2m   t3m      rozero ibar
-#  NOTE:  leading character cannot be a space
-
-'H'    'dim'  1.0   1      1.0079
-2.960  2.960  3.0   1.0    1.0    1.0    3.0  1.0       0.741  2.235  2.50
-1.0    0.44721 0.0  0.00   0.0    0.31623 0  6.70 0
-
-'Ga4'  'fcc'  12.0  31     69.723
-4.42   4.80   3.10  6.00   0.00   0.0    0.0  0.5       4.247  2.897  0.97
-1.0    1.649 1.435  0.00   0.0    0.0  2.0       0.70   0
+../../../potentials/library.msmeam

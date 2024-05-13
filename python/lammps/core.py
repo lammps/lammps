@@ -1078,15 +1078,23 @@ class lammps(object):
   def extract_fix(self,fid,fstyle,ftype,nrow=0,ncol=0):
     """Retrieve data from a LAMMPS fix
 
-    This is a wrapper around the :cpp:func:`lammps_extract_fix`
-    function of the C-library interface.
-    This function returns ``None`` if either the fix id is not
-    recognized, or an invalid combination of :ref:`fstyle <py_style_constants>`
-    and :ref:`ftype <py_type_constants>` constants is used. The
-    names and functionality of the constants are the same as for
-    the corresponding C-library function.  For requests to return
-    a scalar or a size, the value is returned, also when accessing
-    global vectors or arrays, otherwise a pointer.
+    This is a wrapper around the :cpp:func:`lammps_extract_fix` function
+    of the C-library interface.  This function returns ``None`` if
+    either the fix id is not recognized, or an invalid combination of
+    :ref:`fstyle <py_style_constants>` and :ref:`ftype
+    <py_type_constants>` constants is used. The names and functionality
+    of the constants are the same as for the corresponding C-library
+    function.  For requests to return a scalar or a size, the value is
+    returned, also when accessing global vectors or arrays, otherwise a
+    pointer.
+
+    .. note::
+
+       When requesting global data, the fix data can only be accessed
+       one item at a time without access to the whole vector or array.
+       Thus this function will always return a scalar.  To access vector
+       or array elements the "nrow" and "ncol" arguments need to be set
+       accordingly (they default to 0).
 
     :param fid: fix ID
     :type fid:  string
@@ -1254,7 +1262,7 @@ class lammps(object):
   def set_variable(self,name,value):
     """Set a new value for a LAMMPS string style variable
 
-    .. deprecated:: TBD
+    .. deprecated:: 7Feb2024
 
     This is a wrapper around the :cpp:func:`lammps_set_variable`
     function of the C-library interface.
@@ -1278,7 +1286,7 @@ class lammps(object):
   def set_string_variable(self,name,value):
     """Set a new value for a LAMMPS string style variable
 
-    .. versionadded:: TBD
+    .. versionadded:: 7Feb2024
 
     This is a wrapper around the :cpp:func:`lammps_set_string_variable`
     function of the C-library interface.
@@ -1302,7 +1310,7 @@ class lammps(object):
   def set_internal_variable(self,name,value):
     """Set a new value for a LAMMPS internal style variable
 
-    .. versionadded:: TBD
+    .. versionadded:: 7Feb2024
 
     This is a wrapper around the :cpp:func:`lammps_set_internal_variable`
     function of the C-library interface.

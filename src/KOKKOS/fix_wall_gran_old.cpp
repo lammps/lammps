@@ -37,13 +37,13 @@ using namespace LAMMPS_NS;
 using namespace FixConst;
 using namespace MathConst;
 
-#define PI27SQ 266.47931882941264802866    // 27*PI**2
-#define THREEROOT3 5.19615242270663202362  // 3*sqrt(3)
-#define SIXROOT6 14.69693845669906728801   // 6*sqrt(6)
-#define INVROOT6 0.40824829046386307274    // 1/sqrt(6)
-#define FOURTHIRDS 1.333333333333333       // 4/3
-#define THREEQUARTERS 0.75                 // 3/4
-#define TWOPI 6.28318530717959             // 2*PI
+static constexpr double PI27SQ = 266.47931882941264802866;     // 27*PI**2
+static constexpr double THREEROOT3 = 5.19615242270663202362;   // 3*sqrt(3)
+static constexpr double SIXROOT6 = 14.69693845669906728801;    // 6*sqrt(6)
+static constexpr double INVROOT6 = 0.40824829046386307274;     // 1/sqrt(6)
+static constexpr double FOURTHIRDS = 1.333333333333333;        // 4/3
+static constexpr double THREEQUARTERS = 0.75;                  // 3/4
+static constexpr double TWOPI = 6.28318530717959;              // 2*PI
 
 static constexpr double BIG = 1.0e20;
 static constexpr double EPSILON = 1e-10;
@@ -1704,4 +1704,3 @@ double FixWallGranOld::pulloff_distance(double radius)
   dist = a*a/radius - 2*sqrt(MY_PI*coh*a/E);
   return dist;
 }
-

@@ -28,6 +28,7 @@
 #include "force.h"
 #include "kspace.h"
 #include "lattice.h"
+#include "math_extra.h"
 #include "memory.h"
 #include "modify.h"
 #include "molecule.h"
@@ -41,6 +42,7 @@
 #include <cmath>
 
 using namespace LAMMPS_NS;
+using namespace MathExtra;
 
 static constexpr double BIG =   1.0e20;
 static constexpr double SMALL = 1.0e-4;
@@ -80,7 +82,7 @@ Domain::Domain(LAMMPS *lmp) : Pointers(lmp)
   minylo = minyhi = 0.0;
   minzlo = minzhi = 0.0;
 
-  triclinic = 0;
+  triclinic = triclinic_general = 0;
 
   boxlo[0] = boxlo[1] = boxlo[2] = -0.5;
   boxhi[0] = boxhi[1] = boxhi[2] = 0.5;
@@ -286,6 +288,30 @@ void Domain::set_global_box()
     boxhi_bound[0] = MAX(boxhi_bound[0],boxhi_bound[0]+xz);
     boxhi_bound[1] = MAX(boxhi[1],boxhi[1]+yz);
     boxhi_bound[2] = boxhi[2];
+  }
+
+  // update general triclinic box if defined
+  // reset general tri ABC edge vectors from restricted tri box
+
+  if (triclinic_general) {
+    double aprime[3],bprime[3],cprime[3];
+
+    // A'B'C' = edge vectors of restricted triclinic box
+
+    aprime[0] = boxhi[0] - boxlo[0];
+    aprime[1] = aprime[2] = 0.0;
+    bprime[0] = xy;
+    bprime[1] = boxhi[1] - boxlo[1];
+    bprime[2] = 0.0;
+    cprime[0] = xz;
+    cprime[1] = yz;
+    cprime[2] = boxhi[2] - boxlo[2];
+
+    // transform restricted A'B'C' to general triclinic ABC
+
+    MathExtra::matvec(rotate_r2g,aprime,avec);
+    MathExtra::matvec(rotate_r2g,bprime,bvec);
+    MathExtra::matvec(rotate_r2g,cprime,cvec);
   }
 }
 
@@ -516,6 +542,220 @@ void Domain::reset_box()
 }
 
 /* ----------------------------------------------------------------------
+   define and store a general triclinic simulation box
+   3 edge vectors of box = avec/bvec/cvec caller
+   origin of edge vectors = origin_caller = lower left corner of box
+   create mapping to restricted triclinic box
+   set boxlo[3], boxhi[3] and 3 tilt factors
+   create rotation matrices for general <--> restricted transformations
+------------------------------------------------------------------------- */
+
+void Domain::define_general_triclinic(double *avec_caller, double *bvec_caller,
+                                      double *cvec_caller, double *origin_caller)
+{
+  if (triclinic || triclinic_general)
+    error->all(FLERR,"General triclinic box edge vectors are already set");
+
+  triclinic = triclinic_general = 1;
+
+  avec[0] = avec_caller[0];
+  avec[1] = avec_caller[1];
+  avec[2] = avec_caller[2];
+
+  bvec[0] = bvec_caller[0];
+  bvec[1] = bvec_caller[1];
+  bvec[2] = bvec_caller[2];
+
+  cvec[0] = cvec_caller[0];
+  cvec[1] = cvec_caller[1];
+  cvec[2] = cvec_caller[2];
+
+  // error check on cvec for 2d systems
+
+  if (dimension == 2 && (cvec[0] != 0.0 || cvec[1] != 0.0))
+    error->all(FLERR,"General triclinic box edge vector C invalid for 2d system");
+
+  // rotate_g2r = rotation matrix from general to restricted triclnic
+  // rotate_r2g = rotation matrix from restricted to general triclnic
+
+  double aprime[3],bprime[3],cprime[3];
+  general_to_restricted_rotation(avec,bvec,cvec,rotate_g2r,aprime,bprime,cprime);
+  MathExtra::transpose3(rotate_g2r,rotate_r2g);
+
+  // set restricted triclinic boxlo, boxhi, and tilt factors
+
+  boxlo[0] = origin_caller[0];
+  boxlo[1] = origin_caller[1];
+  boxlo[2] = origin_caller[2];
+
+  boxhi[0] = boxlo[0] + aprime[0];
+  boxhi[1] = boxlo[1] + bprime[1];
+  boxhi[2] = boxlo[2] + cprime[2];
+
+  xy = bprime[0];
+  xz = cprime[0];
+  yz = cprime[1];
+}
+
+/* ----------------------------------------------------------------------
+   compute rotation matrix to transform from general to restricted triclinic
+   ABC = 3 general triclinic edge vectors
+   rotmat = rotation matrix
+   A`B`C` = 3 restricited triclinic edge vectors
+------------------------------------------------------------------------- */
+
+void Domain::general_to_restricted_rotation(double *a, double *b, double *c,
+                                            double rotmat[3][3],
+                                            double *aprime, double *bprime, double *cprime)
+{
+  // error checks
+  // A,B,C cannot be co-planar
+  // A x B must point in C direction (right-handed)
+
+  double abcross[3];
+  MathExtra::cross3(a,b,abcross);
+  double dot = MathExtra::dot3(abcross,c);
+  if (dot == 0.0)
+    error->all(FLERR,"General triclinic edge vectors are co-planar");
+  if (dot < 0.0)
+    error->all(FLERR,"General triclinic edge vectors must be right-handed");
+
+  // quat1 = convert A into A' along +x-axis
+  // rot1 = unit vector to rotate A around
+  // theta1 = angle of rotation calculated from
+  //   A dot xunit = Ax = |A| cos(theta1)
+
+  double rot1[3],quat1[4];
+  double xaxis[3] = {1.0, 0.0, 0.0};
+
+  double alen = MathExtra::len3(a);
+  MathExtra::cross3(a,xaxis,rot1);
+  MathExtra::norm3(rot1);
+  double theta1 = acos(a[0]/alen);
+  MathExtra::axisangle_to_quat(rot1,theta1,quat1);
+
+  // rotmat1 = rotation matrix associated with quat1
+
+  double rotmat1[3][3];
+  MathExtra::quat_to_mat(quat1,rotmat1);
+
+  // B1 = rotation of B by quat1 rotation matrix
+
+  double b1[3];
+  MathExtra::matvec(rotmat1,b,b1);
+
+  // quat2 = rotation to convert B1 into B' in xy plane
+  // Byz1 = projection of B1 into yz plane
+  // +xaxis = unit vector to rotate B1 around
+  // theta2 = angle of rotation calculated from
+  //   Byz1 dot yunit = B1y = |Byz1| cos(theta2)
+  // theta2 via acos() is positive (0 to PI)
+  //   positive is valid if B1z < 0.0 else flip sign of theta2
+
+  double byzvec1[3],quat2[4];
+  MathExtra::copy3(b1,byzvec1);
+  byzvec1[0] = 0.0;
+  double byzvec1_len = MathExtra::len3(byzvec1);
+  double theta2 = acos(b1[1]/byzvec1_len);
+  if (b1[2] > 0.0) theta2 = -theta2;
+  MathExtra::axisangle_to_quat(xaxis,theta2,quat2);
+
+  // quat_single = rotation via single quat = quat2 * quat1
+  // quat_r2g = rotation from restricted to general
+  // rotmat = general to restricted rotation matrix
+
+  double quat_single[4];
+  MathExtra::quatquat(quat2,quat1,quat_single);
+  MathExtra::quat_to_mat(quat_single,rotmat);
+
+  // rotate general ABC to restricted triclinic A'B'C'
+
+  MathExtra::matvec(rotmat,a,aprime);
+  MathExtra::matvec(rotmat,b,bprime);
+  MathExtra::matvec(rotmat,c,cprime);
+}
+
+/* ----------------------------------------------------------------------
+   transform atom coords from general triclinic to restricted triclinic
+------------------------------------------------------------------------- */
+
+void Domain::general_to_restricted_coords(double *x)
+{
+  double xshift[3],xnew[3];
+
+  xshift[0] = x[0] - boxlo[0];
+  xshift[1] = x[1] - boxlo[1];
+  xshift[2] = x[2] - boxlo[2];
+  MathExtra::matvec(rotate_g2r,xshift,xnew);
+  x[0] = xnew[0] + boxlo[0];
+  x[1] = xnew[1] + boxlo[1];
+  x[2] = xnew[2] + boxlo[2];
+}
+
+/* ----------------------------------------------------------------------
+   transform atom coords from restricted triclinic to general triclinic
+------------------------------------------------------------------------- */
+
+void Domain::restricted_to_general_coords(double *x)
+{
+  double xshift[3],xnew[3];
+
+  xshift[0] = x[0] - boxlo[0];
+  xshift[1] = x[1] - boxlo[1];
+  xshift[2] = x[2] - boxlo[2];
+  MathExtra::matvec(rotate_r2g,xshift,xnew);
+  x[0] = xnew[0] + boxlo[0];
+  x[1] = xnew[1] + boxlo[1];
+  x[2] = xnew[2] + boxlo[2];
+}
+
+void Domain::restricted_to_general_coords(double *x, double *xnew)
+{
+  double xshift[3];
+
+  xshift[0] = x[0] - boxlo[0];
+  xshift[1] = x[1] - boxlo[1];
+  xshift[2] = x[2] - boxlo[2];
+  MathExtra::matvec(rotate_r2g,xshift,xnew);
+  xnew[0] += boxlo[0];
+  xnew[1] += boxlo[1];
+  xnew[2] += boxlo[2];
+}
+
+/* ----------------------------------------------------------------------
+   transform atom vector from general triclinic to restricted triclinic
+------------------------------------------------------------------------- */
+
+void Domain::general_to_restricted_vector(double *v)
+{
+  double vnew[3];
+
+  MathExtra::matvec(rotate_g2r,v,vnew);
+  v[0] = vnew[0];
+  v[1] = vnew[1];
+  v[2] = vnew[2];
+}
+
+/* ----------------------------------------------------------------------
+   transform atom vector from restricted triclinic to general triclinic
+------------------------------------------------------------------------- */
+
+void Domain::restricted_to_general_vector(double *v)
+{
+  double vnew[3];
+
+  MathExtra::matvec(rotate_r2g,v,vnew);
+  v[0] = vnew[0];
+  v[1] = vnew[1];
+  v[2] = vnew[2];
+}
+
+void Domain::restricted_to_general_vector(double *v, double *vnew)
+{
+  MathExtra::matvec(rotate_r2g,v,vnew);
+}
+
+/* ----------------------------------------------------------------------
    enforce PBC and modify box image flags for each atom
    called every reneighboring and by other commands that change atoms
    resulting coord must satisfy lo <= coord < hi
@@ -675,9 +915,7 @@ int Domain::inside(double* x)
         lamda[1] < lo[1] || lamda[1] >= hi[1] ||
         lamda[2] < lo[2] || lamda[2] >= hi[2]) return 0;
     else return 1;
-
   }
-
 }
 
 /* ----------------------------------------------------------------------
@@ -712,7 +950,6 @@ int Domain::inside_nonperiodic(double* x)
     if (!zperiodic && (lamda[2] < lo[2] || lamda[2] >= hi[2])) return 0;
     return 1;
   }
-
 }
 
 /* ----------------------------------------------------------------------
@@ -973,6 +1210,9 @@ void Domain::subbox_too_small_check(double thresh)
    changed "if" to "while" to enable distance to
      far-away ghost atom returned by atom->map() to be wrapped back into box
      could be problem for looking up atom IDs when cutoff > boxsize
+   should be used for most cases where the difference in the image count
+     is small (usually 0 or 1)
+   use minimum_image_big() when a large difference between image counts is expected
 ------------------------------------------------------------------------- */
 
 static constexpr double MAXIMGCOUNT = 16;
@@ -1041,6 +1281,72 @@ void Domain::minimum_image(double &dx, double &dy, double &dz) const
         if (dx < 0.0) dx += xprd;
         else dx -= xprd;
       }
+    }
+  }
+}
+
+/* ----------------------------------------------------------------------
+   minimum image convention in periodic dimensions
+   use 1/2 of box size as test
+   for triclinic, also add/subtract tilt factors in other dims as needed
+   allow multiple box lengths to enable distance to
+     far-away ghost atom returned by atom->map() to be wrapped back into box
+     could be problem for looking up atom IDs when cutoff > boxsize
+   this should be used when there is a large image count difference possible
+     this applies for example to fix rigid/small
+------------------------------------------------------------------------- */
+
+void Domain::minimum_image_big(double &dx, double &dy, double &dz) const
+{
+  if (triclinic == 0) {
+    if (xperiodic) {
+      double dfactor = dx/xprd + 0.5;
+      if (dx < 0) dfactor -= 1.0;
+      if (dfactor > MAXSMALLINT)
+        error->one(FLERR, "Atoms have moved too far apart ({}) for minimum image\n", dx);
+      dx -= xprd * static_cast<int>(dfactor);
+    }
+    if (yperiodic) {
+      double dfactor = dy/yprd + 0.5;
+      if (dy < 0) dfactor -= 1.0;
+      if (dfactor > MAXSMALLINT)
+        error->one(FLERR, "Atoms have moved too far apart ({}) for minimum image\n", dy);
+      dy -= yprd * static_cast<int>(dfactor);
+    }
+    if (zperiodic) {
+      double dfactor = dz/zprd + 0.5;
+      if (dz < 0) dfactor -= 1.0;
+      if (dfactor > MAXSMALLINT)
+        error->one(FLERR, "Atoms have moved too far apart ({}) for minimum image\n", dz);
+      dz -= zprd * static_cast<int>(dfactor);
+    }
+
+  } else {
+    if (zperiodic) {
+      double dfactor = dz/zprd + 0.5;
+      if (dz < 0) dfactor -= 1.0;
+      if (dfactor > MAXSMALLINT)
+        error->one(FLERR, "Atoms have moved too far apart ({}) for minimum image\n", dz);
+      int factor = static_cast<int>(dfactor);
+      dz -= zprd * factor;
+      dy -= yz * factor;
+      dx -= xz * factor;
+    }
+    if (yperiodic) {
+      double dfactor = dy/yprd + 0.5;
+      if (dy < 0) dfactor -= 1.0;
+      if (dfactor > MAXSMALLINT)
+        error->one(FLERR, "Atoms have moved too far apart ({}) for minimum image\n", dy);
+      int factor = static_cast<int>(dfactor);
+      dy -= yprd * factor;
+      dx -= xy * factor;
+    }
+    if (xperiodic) {
+      double dfactor = dx/xprd + 0.5;
+      if (dx < 0) dfactor -= 1.0;
+      if (dfactor > MAXSMALLINT)
+        error->one(FLERR, "Atoms have moved too far apart ({}) for minimum image\n", dx);
+      dx -= xprd * static_cast<int>(dfactor);
     }
   }
 }
@@ -1117,7 +1423,7 @@ int Domain::closest_image(const double * const pos, int j)
 /* ----------------------------------------------------------------------
    find and return Xj image = periodic image of Xj that is closest to Xi
    for triclinic, add/subtract tilt factors in other dims as needed
-   called by ServerMD class and LammpsInterface in lib/atc.
+   called by ServerMD class and LammpsInterface in lib/atc
 ------------------------------------------------------------------------- */
 
 void Domain::closest_image(const double * const xi, const double * const xj, double * const xjimage)

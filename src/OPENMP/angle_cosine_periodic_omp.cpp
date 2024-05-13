@@ -30,8 +30,6 @@
 using namespace LAMMPS_NS;
 using namespace MathSpecial;
 
-static constexpr double SMALL = 0.001;
-
 /* ---------------------------------------------------------------------- */
 
 AngleCosinePeriodicOMP::AngleCosinePeriodicOMP(class LAMMPS *lmp)

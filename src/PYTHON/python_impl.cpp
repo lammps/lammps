@@ -17,7 +17,6 @@
 
 #include "python_impl.h"
 
-#include "comm.h"
 #include "error.h"
 #include "input.h"
 #include "memory.h"

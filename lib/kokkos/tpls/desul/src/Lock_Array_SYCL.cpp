@@ -14,10 +14,12 @@ SPDX-License-Identifier: (BSD-3-Clause)
 
 namespace desul::Impl {
 
+#ifdef DESUL_ATOMICS_ENABLE_SYCL_SEPARABLE_COMPILATION
 SYCL_EXTERNAL
 sycl_device_global<int32_t*> SYCL_SPACE_ATOMIC_LOCKS_DEVICE;
 SYCL_EXTERNAL
 sycl_device_global<int32_t*> SYCL_SPACE_ATOMIC_LOCKS_NODE;
+#endif
 
 int32_t* SYCL_SPACE_ATOMIC_LOCKS_DEVICE_h = nullptr;
 int32_t* SYCL_SPACE_ATOMIC_LOCKS_NODE_h = nullptr;
@@ -31,19 +33,7 @@ void init_lock_arrays_sycl<int>(sycl::queue q) {
   SYCL_SPACE_ATOMIC_LOCKS_NODE_h =
       sycl::malloc_host<int32_t>(SYCL_SPACE_ATOMIC_MASK + 1, q);
 
-  // FIXME_SYCL Once supported, the following should be replaced by
-  // q.memcpy(SYCL_SPACE_ATOMIC_LOCKS_DEVICE,
-  //          &SYCL_SPACE_ATOMIC_LOCKS_DEVICE_h,
-  //          sizeof(int32_t*));
-  // q.memcpy(SYCL_SPACE_ATOMIC_LOCKS_NODE,
-  //          &SYCL_SPACE_ATOMIC_LOCKS_NODE_h,
-  //          sizeof(int32_t*));
-  auto device_ptr = SYCL_SPACE_ATOMIC_LOCKS_DEVICE_h;
-  auto node_ptr = SYCL_SPACE_ATOMIC_LOCKS_NODE_h;
-  q.single_task([=] {
-    SYCL_SPACE_ATOMIC_LOCKS_DEVICE.get() = device_ptr;
-    SYCL_SPACE_ATOMIC_LOCKS_NODE.get() = node_ptr;
-  });
+  copy_sycl_lock_arrays_to_device(q);
 
   q.memset(SYCL_SPACE_ATOMIC_LOCKS_DEVICE_h,
            0,
@@ -63,7 +53,10 @@ void finalize_lock_arrays_sycl<int>(sycl::queue q) {
   sycl::free(SYCL_SPACE_ATOMIC_LOCKS_NODE_h, q);
   SYCL_SPACE_ATOMIC_LOCKS_DEVICE_h = nullptr;
   SYCL_SPACE_ATOMIC_LOCKS_NODE_h = nullptr;
+#ifdef DESUL_ATOMICS_ENABLE_SYCL_SEPARABLE_COMPILATION
+  copy_sycl_lock_arrays_to_device(q);
+#endif
 }
 
-} // namespace desul::Impl
+}  // namespace desul::Impl
 #endif

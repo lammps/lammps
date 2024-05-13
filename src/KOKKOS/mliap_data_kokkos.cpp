@@ -22,8 +22,6 @@
 #include "kokkos_type.h"
 #include "pair_mliap_kokkos.h"
 #include "atom_masks.h"
-#include "mliap_descriptor.h"
-#include "lammps.h"
 #include "kokkos.h"
 
 /* ---------------------------------------------------------------------- */
@@ -59,7 +57,6 @@ MLIAPDataKokkos<DeviceType>::~MLIAPDataKokkos() {
   memoryKK->destroy_kokkos(k_pair_i,pair_i);
   memoryKK->destroy_kokkos(k_jelems,jelems);
   memoryKK->destroy_kokkos(k_elems,elems);
-  memoryKK->destroy_kokkos(k_ij);
   memoryKK->destroy_kokkos(k_rij,rij);
   memoryKK->destroy_kokkos(k_graddesc,graddesc);
 }
@@ -72,7 +69,6 @@ void MLIAPDataKokkos<DeviceType>::generate_neighdata(class NeighList *list_in, i
   list = list_in;
 
   // grow nmax gradforce array if necessary
-
   if (atom->nmax > nmax) {
     nmax = atom->nmax;
     if (gradgradflag > -1){
@@ -149,13 +145,13 @@ void MLIAPDataKokkos<DeviceType>::generate_neighdata(class NeighList *list_in, i
   auto type = atomKK->k_type.view<DeviceType>();
   auto map=k_pairmliap->k_map.template view<DeviceType>();
 
-  Kokkos::parallel_scan(nlistatoms, KOKKOS_LAMBDA (int ii, int &update, const bool final) {
+  Kokkos::parallel_scan(natomneigh, KOKKOS_LAMBDA (int ii, int &update, const bool final) {
     if (final)
       d_ij(ii) = update;
     update += d_numneighs(ii);
   });
 
-  Kokkos::parallel_for(nlistatoms, KOKKOS_LAMBDA (int ii)  {
+  Kokkos::parallel_for(natomneigh, KOKKOS_LAMBDA (int ii)  {
     int ij = d_ij(ii);
     const int i = d_ilist[ii];
     const double xtmp = x(i, 0);
@@ -186,10 +182,12 @@ void MLIAPDataKokkos<DeviceType>::generate_neighdata(class NeighList *list_in, i
     d_iatoms[ii] = i;
     d_ielems[ii] = ielem;
   });
+
   Kokkos::parallel_for(nmax, KOKKOS_LAMBDA (int i)  {
     const int itype = type(i);
     d_elems(i) = map(itype);
   });
+
   modified(execution_space, NUMNEIGHS_MASK | IATOMS_MASK | IELEMS_MASK | ELEMS_MASK | JATOMS_MASK | PAIR_I_MASK | JELEMS_MASK | RIJ_MASK | IJ_MASK );
   eflag = eflag_in;
   vflag = vflag_in;
@@ -203,15 +201,15 @@ void MLIAPDataKokkos<DeviceType>::grow_neigharrays() {
   f = atom->f;
   f_device = atomKK->k_f.view<DeviceType>().data();
   // grow neighbor arrays if necessary
-
-  if (natomneigh_max < nlistatoms) {
-    natomneigh_max = nlistatoms;
+  natomneigh = list->inum;
+  if (list->ghost == 1) natomneigh += list->gnum;
+  if (natomneigh_max < natomneigh) {
+    natomneigh_max = natomneigh;
 
     memoryKK->destroy_kokkos(k_iatoms,iatoms);
     memoryKK->create_kokkos(k_iatoms, iatoms, natomneigh_max, "mliap_data:iatoms");
     memoryKK->destroy_kokkos(k_ielems,ielems);
     memoryKK->create_kokkos(k_ielems, ielems, natomneigh_max, "mliap_data:ielems");
-    memoryKK->destroy_kokkos(k_ij);
     memoryKK->create_kokkos(k_ij, natomneigh_max, "mliap_data:ij");
     memoryKK->destroy_kokkos(k_numneighs,numneighs);
     memoryKK->create_kokkos(k_numneighs, numneighs, natomneigh_max, "mliap_data:numneighs");
@@ -227,7 +225,7 @@ void MLIAPDataKokkos<DeviceType>::grow_neigharrays() {
   auto d_cutsq=k_pairmliap->k_cutsq.template view<DeviceType>();
   auto h_cutsq=k_pairmliap->k_cutsq.template view<LMPHostType>();
   auto d_numneighs = k_numneighs.template view<DeviceType>();
-  Kokkos::parallel_reduce(nlistatoms, KOKKOS_LAMBDA (int ii, int &contrib) {
+  Kokkos::parallel_reduce(natomneigh, KOKKOS_LAMBDA (int ii, int &contrib) {
     const int i = d_ilist[ii];
     int count=0;
     const double xtmp = x(i, 0);

@@ -7,7 +7,7 @@ print "potential chosen ${Pu}"
 pair_style meam/ms
 print		"we just executed"
 
-pair_coeff      * * library.msmeam ${Pu} Ga4  HGa.meam ${Pu} Ga4
+pair_coeff      * * library.msmeam ${Pu} Ga4  HGa.msmeam ${Pu} Ga4
 # Setup neighbor style
 neighbor 1.0 bin
 neigh_modify once no every 1 delay 0 check yes

@@ -103,7 +103,7 @@ template <class FunctorType>
 __device__ bool cuda_inter_block_reduction(
     typename FunctorType::reference_type value,
     typename FunctorType::reference_type neutral, const FunctorType& reducer,
-    Cuda::size_type* const m_scratch_space,
+    typename FunctorType::pointer_type const m_scratch_space,
     typename FunctorType::pointer_type const /*result*/,
     Cuda::size_type* const m_scratch_flags,
     const int max_active_thread = blockDim.y) {
@@ -117,7 +117,7 @@ __device__ bool cuda_inter_block_reduction(
 
   // One thread in the block writes block result to global scratch_memory
   if (id == 0) {
-    pointer_type global = ((pointer_type)m_scratch_space) + blockIdx.x;
+    pointer_type global = m_scratch_space + blockIdx.x;
     *global             = value;
   }
 
@@ -140,7 +140,7 @@ __device__ bool cuda_inter_block_reduction(
       last_block = true;
       value      = neutral;
 
-      pointer_type const volatile global = (pointer_type)m_scratch_space;
+      pointer_type const volatile global = m_scratch_space;
 
       // Reduce all global values with splitting work over threads in one warp
       const int step_size =
@@ -702,8 +702,7 @@ inline void check_reduced_view_shmem_size(const Policy& policy,
   unsigned reqShmemSize =
       cuda_single_inter_block_reduce_scan_shmem<false, WorkTag, ValueType>(
           functor, minBlockSize);
-  size_t maxShmemPerBlock =
-      policy.space().impl_internal_space_instance()->m_maxShmemPerBlock;
+  size_t maxShmemPerBlock = policy.space().cuda_device_prop().sharedMemPerBlock;
 
   if (reqShmemSize > maxShmemPerBlock) {
     Kokkos::Impl::throw_runtime_exception(

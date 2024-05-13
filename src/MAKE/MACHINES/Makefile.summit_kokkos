@@ -57,7 +57,7 @@ MPI_LIB = -L${MY_MPI_PATH}../lib -lmpi_ibm
 # PATH = path for FFT library
 # LIB = name of FFT library
 
-FFT_INC = -DFFT_CUFFT
+FFT_INC = -DFFT_KOKKOS_CUFFT
 FFT_PATH = 
 FFT_LIB = -lcufft
 

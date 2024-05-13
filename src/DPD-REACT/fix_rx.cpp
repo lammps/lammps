@@ -42,7 +42,6 @@ enum { NONE, HARMONIC };
 enum { LUCY };
 
 static constexpr int MAXLINE = 1024;
-static constexpr int DELTA = 4;
 
 #ifdef DBL_EPSILON
 static constexpr double MY_EPSILON = 10.0*DBL_EPSILON;

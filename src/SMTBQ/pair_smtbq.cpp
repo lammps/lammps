@@ -60,6 +60,7 @@
 #include <cstring>
 
 #include <algorithm>
+#include <exception>
 #include <fstream>
 #include <iomanip>
 
@@ -70,9 +71,6 @@ using namespace MathConst;
 using namespace MathExtra;
 using namespace MathSpecial;
 
-static constexpr int MAXLINE = 2048;
-static constexpr int MAXTOKENS = 2048;
-static constexpr int DELTA = 4;
 static constexpr int PGDELTA = 1;
 static constexpr int MAXNEIGH = 24;
 

@@ -507,7 +507,25 @@ void AtomVecTri::data_atom_bonus(int m, const std::vector<std::string> &values)
   MathExtra::sub3(c3, c1, c3mc1);
   double size = MAX(MathExtra::len3(c2mc1), MathExtra::len3(c3mc1));
 
+  // convert c1,c2,c3 from general to restricted triclniic
+  // x is already restricted triclinic
+
+  if (domain->triclinic_general) {
+    domain->general_to_restricted_coords(c1);
+    domain->general_to_restricted_coords(c2);
+    domain->general_to_restricted_coords(c3);
+  }
+
+  // remap corner points to be near x
+  // necessary if atom x was remapped into periodic box
+
+  domain->remap_near(c1,x[m]);
+  domain->remap_near(c2,x[m]);
+  domain->remap_near(c3,x[m]);
+
   // centroid = 1/3 of sum of vertices
+  // error if centroid is not within EPSILON of atom x
+  // reset atom x to centroid
 
   double centroid[3];
   centroid[0] = (c1[0] + c2[0] + c3[0]) / 3.0;
@@ -705,7 +723,12 @@ int AtomVecTri::pack_data_bonus(double *buf, int /*flag*/)
   double dc1[3], dc2[3], dc3[3];
   double p[3][3];
 
-  double **x = atom->x;
+  int triclinic_general = domain->triclinic_general;
+
+  double **x_bonus;
+  if (triclinic_general) x_bonus = x_hold;
+  else x_bonus = x;
+
   tagint *tag = atom->tag;
   int nlocal = atom->nlocal;
 
@@ -719,9 +742,10 @@ int AtomVecTri::pack_data_bonus(double *buf, int /*flag*/)
       MathExtra::matvec(p, bonus[j].c1, dc1);
       MathExtra::matvec(p, bonus[j].c2, dc2);
       MathExtra::matvec(p, bonus[j].c3, dc3);
-      xc = x[i][0];
-      yc = x[i][1];
-      zc = x[i][2];
+
+      xc = x_bonus[i][0];
+      yc = x_bonus[i][1];
+      zc = x_bonus[i][2];
       buf[m++] = xc + dc1[0];
       buf[m++] = yc + dc1[1];
       buf[m++] = zc + dc1[2];
@@ -731,6 +755,17 @@ int AtomVecTri::pack_data_bonus(double *buf, int /*flag*/)
       buf[m++] = xc + dc3[0];
       buf[m++] = yc + dc3[1];
       buf[m++] = zc + dc3[2];
+
+      // if triclinic_general:
+      // rotate 9 buf values from restricted to general triclinic
+      // output by write_data_bonus() as c1,c2,c3
+
+      if (triclinic_general) {
+        domain->restricted_to_general_coords(&buf[m-9]);
+        domain->restricted_to_general_coords(&buf[m-6]);
+        domain->restricted_to_general_coords(&buf[m-3]);
+      }
+
     } else
       m += size_data_bonus;
   }

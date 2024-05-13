@@ -205,6 +205,14 @@ ComputePropertyAtom::ComputePropertyAtom(LAMMPS *lmp, int narg, char **arg) :
       if (!atom->omega_flag)
         error->all(FLERR,"Compute property/atom {} is not available", arg[iarg]);
       pack_choice[i] = &ComputePropertyAtom::pack_omegaz;
+    } else if (strcmp(arg[iarg],"temperature") == 0) {
+      if (!atom->temperature_flag)
+        error->all(FLERR,"Compute property/atom {} is not available", arg[iarg]);
+      pack_choice[i] = &ComputePropertyAtom::pack_temperature;
+    } else if (strcmp(arg[iarg],"heatflow") == 0) {
+      if (!atom->heatflow_flag)
+        error->all(FLERR,"Compute property/atom {} is not available", arg[iarg]);
+      pack_choice[i] = &ComputePropertyAtom::pack_heatflow;
     } else if (strcmp(arg[iarg],"angmomx") == 0) {
       if (!atom->angmom_flag)
         error->all(FLERR,"Compute property/atom {} is not available", arg[iarg]);
@@ -1206,6 +1214,36 @@ void ComputePropertyAtom::pack_omegaz(int n)
 
   for (int i = 0; i < nlocal; i++) {
     if (mask[i] & groupbit) buf[n] = omega[i][2];
+    else buf[n] = 0.0;
+    n += nvalues;
+  }
+}
+
+/* ---------------------------------------------------------------------- */
+
+void ComputePropertyAtom::pack_temperature(int n)
+{
+  double *temperature = atom->temperature;
+  int *mask = atom->mask;
+  int nlocal = atom->nlocal;
+
+  for (int i = 0; i < nlocal; i++) {
+    if (mask[i] & groupbit) buf[n] = temperature[i];
+    else buf[n] = 0.0;
+    n += nvalues;
+  }
+}
+
+/* ---------------------------------------------------------------------- */
+
+void ComputePropertyAtom::pack_heatflow(int n)
+{
+  double *heatflow = atom->heatflow;
+  int *mask = atom->mask;
+  int nlocal = atom->nlocal;
+
+  for (int i = 0; i < nlocal; i++) {
+    if (mask[i] & groupbit) buf[n] = heatflow[i];
     else buf[n] = 0.0;
     n += nvalues;
   }

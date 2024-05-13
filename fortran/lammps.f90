@@ -1673,7 +1673,7 @@ CONTAINS
     CHARACTER(LEN=*), INTENT(IN) :: name
     REAL(KIND=c_double), INTENT(IN) :: val
     INTEGER :: err
-    TYPE(c_ptr) :: Cstr, Cname
+    TYPE(c_ptr) :: Cname
 
     Cname = f2c_string(name)
     err = lammps_set_internal_variable(self%handle, Cname, val)
@@ -3687,7 +3687,7 @@ CONTAINS
 
     n = LEN_TRIM(f_string)
     ptr = lammps_malloc(n+1)
-    CALL C_F_POINTER(ptr, c_string, [1])
+    CALL C_F_POINTER(ptr, c_string, [n+1])
     DO i=1, n
         c_string(i) = f_string(i:i)
     END DO

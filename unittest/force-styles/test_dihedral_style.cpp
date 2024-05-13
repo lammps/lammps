@@ -27,6 +27,7 @@
 #include "compute.h"
 #include "dihedral.h"
 #include "exceptions.h"
+#include "fix.h"
 #include "fmt/format.h"
 #include "force.h"
 #include "info.h"
@@ -531,3 +532,57 @@ TEST(DihedralStyle, omp)
     cleanup_lammps(lmp, test_config);
     if (!verbose) ::testing::internal::GetCapturedStdout();
 };
+
+
+TEST(DihedralStyle, numdiff)
+{
+    if (!LAMMPS::is_installed_pkg("EXTRA-FIX")) GTEST_SKIP();
+    if (test_config.skip_tests.count(test_info_->name())) GTEST_SKIP();
+
+    LAMMPS::argv args = {"DihedralStyle", "-log", "none", "-echo", "screen", "-nocite"};
+
+    ::testing::internal::CaptureStdout();
+    LAMMPS *lmp = init_lammps(args, test_config, true);
+
+    std::string output = ::testing::internal::GetCapturedStdout();
+    if (verbose) std::cout << output;
+
+    if (!lmp) {
+        std::cerr << "One or more prerequisite styles are not available "
+                     "in this LAMMPS configuration:\n";
+        for (auto &prerequisite : test_config.prerequisites) {
+            std::cerr << prerequisite.first << "_style " << prerequisite.second << "\n";
+        }
+        GTEST_SKIP();
+    }
+
+    EXPECT_THAT(output, StartsWith("LAMMPS ("));
+    EXPECT_THAT(output, HasSubstr("Loop time"));
+
+    // abort if running in parallel and not all atoms are local
+    const int nlocal = lmp->atom->nlocal;
+    ASSERT_EQ(lmp->atom->natoms, nlocal);
+
+    if (!verbose) ::testing::internal::CaptureStdout();
+    lmp->input->one("fix diff all numdiff 2 6.05504e-6");
+    lmp->input->one("run 2 post no");
+    if (!verbose) ::testing::internal::GetCapturedStdout();
+    Fix *ifix = lmp->modify->get_fix_by_id("diff");
+    if (ifix) {
+        double epsilon = test_config.epsilon * 5.0e8;
+        ErrorStats stats;
+        double **f1 = lmp->atom->f;
+        double **f2 = ifix->array_atom;
+        SCOPED_TRACE("EXPECT FORCES: numdiff");
+        for (int i = 0; i < nlocal; ++i) {
+            EXPECT_FP_LE_WITH_EPS(f1[i][0], f2[i][0], epsilon);
+            EXPECT_FP_LE_WITH_EPS(f1[i][1], f2[i][1], epsilon);
+            EXPECT_FP_LE_WITH_EPS(f1[i][2], f2[i][2], epsilon);
+        }
+        if (print_stats)
+            std::cerr << "numdiff  stats: " << stats << " epsilon: " << epsilon << std::endl;
+    }
+    if (!verbose) ::testing::internal::CaptureStdout();
+    cleanup_lammps(lmp, test_config);
+    if (!verbose) ::testing::internal::GetCapturedStdout();
+}

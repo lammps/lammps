@@ -273,6 +273,8 @@ public:
   void allocate();
 
   struct Matrix {
+    Matrix() = default;
+    Matrix(const Matrix &) = default;
     static int sz;
 
     double m[8][8];

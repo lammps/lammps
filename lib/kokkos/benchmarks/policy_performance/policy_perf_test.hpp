@@ -21,13 +21,13 @@ struct ParallelScanFunctor {
   using value_type = double;
   ViewType v;
 
-  ParallelScanFunctor(const ViewType& v_) : v(v_) {}
+  explicit ParallelScanFunctor(const ViewType& v_) : v(v_) {}
 
   KOKKOS_INLINE_FUNCTION
-  void operator()(const int idx, value_type& val, const bool& final) const {
+  void operator()(const int idx, value_type& val, const bool& is_final) const {
     // inclusive scan
     val += v(idx);
-    if (final) {
+    if (is_final) {
       v(idx) = val;
     }
   }
@@ -109,7 +109,7 @@ void test_policy(int team_range, int thread_range, int vector_range,
                       vector_result = 0.0;
                       Kokkos::parallel_reduce(
                           Kokkos::ThreadVectorRange(team, vector_range),
-                          [&](const int vi, double& vval) { vval += 1; },
+                          [&](const int, double& vval) { vval += 1; },
                           vector_result);
                     }
                     v2(idx, t) = vector_result;
@@ -128,7 +128,7 @@ void test_policy(int team_range, int thread_range, int vector_range,
               team_result = 0.0;
               Kokkos::parallel_reduce(
                   Kokkos::TeamThreadRange(team, thread_range),
-                  [&](const int t, double& lval) { lval += 1; }, team_result);
+                  [&](const int, double& lval) { lval += 1; }, team_result);
             }
             v1(idx) = team_result;
             // prevent compiler optimizing loop away
@@ -170,13 +170,13 @@ void test_policy(int team_range, int thread_range, int vector_range,
             for (int tr = 0; tr < thread_repeat; ++tr) {
               Kokkos::parallel_reduce(
                   Kokkos::TeamThreadRange(team, thread_range),
-                  [&](const int t, double& lval) {
+                  [&](const int, double& lval) {
                     double vector_result = 0.0;
                     for (int vr = 0; vr < inner_repeat; ++vr) {
                       vector_result = 0.0;
                       Kokkos::parallel_reduce(
                           Kokkos::ThreadVectorRange(team, vector_range),
-                          [&](const int vi, double& vval) { vval += 1; },
+                          [&](const int, double& vval) { vval += 1; },
                           vector_result);
                       lval += vector_result;
                     }

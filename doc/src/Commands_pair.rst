@@ -245,6 +245,7 @@ OPT.
    * :doc:`oxrna2/coaxstk <pair_oxrna2>`
    * :doc:`pace (k) <pair_pace>`
    * :doc:`pace/extrapolation (k) <pair_pace>`
+   * :doc:`pedone (o) <pair_pedone>`
    * :doc:`pod <pair_pod>`
    * :doc:`peri/eps <pair_peri>`
    * :doc:`peri/lps (o) <pair_peri>`
@@ -256,6 +257,7 @@ OPT.
    * :doc:`rann <pair_rann>`
    * :doc:`reaxff (ko) <pair_reaxff>`
    * :doc:`rebo (io) <pair_airebo>`
+   * :doc:`rebomos (o) <pair_rebomos>`
    * :doc:`resquared (go) <pair_resquared>`
    * :doc:`saip/metal (t) <pair_saip_metal>`
    * :doc:`sdpd/taitwater/isothermal <pair_sdpd_taitwater_isothermal>`

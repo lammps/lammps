@@ -246,9 +246,8 @@ class FixACKS2ReaxFFKokkos : public FixACKS2ReaxFF, public KokkosBase {
   int count, isuccess;
   double alpha, beta, omega, cutsq;
 
-  int iswap;
   int first;
-  typename AT::t_int_2d d_sendlist;
+  typename AT::t_int_1d d_sendlist;
   typename AT::t_xfloat_1d_um v_buf;
 
   void grow_arrays(int) override;

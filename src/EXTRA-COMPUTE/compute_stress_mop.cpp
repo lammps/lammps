@@ -146,8 +146,11 @@ ComputeStressMop::ComputeStressMop(LAMMPS *lmp, int narg, char **arg) : Compute(
 
   // Error checks:
 
-  // 3D only
+  // orthogonal simulation box
+  if (domain->triclinic != 0)
+    error->all(FLERR, "Compute stress/mop is incompatible with triclinic simulation box");
 
+  // 2D and pressure calculation in the Z coordinate
   if (domain->dimension == 2 && dir == Z)
     error->all(FLERR, "Compute stress/mop is incompatible with Z in 2d system");
 

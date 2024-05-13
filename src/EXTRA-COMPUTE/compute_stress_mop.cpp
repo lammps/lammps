@@ -89,6 +89,12 @@ ComputeStressMop::ComputeStressMop(LAMMPS *lmp, int narg, char **arg) : Compute(
       error->all(FLERR, "Plane for compute stress/mop is out of bounds");
   }
 
+ if (pos < (domain->boxlo[dir] + domain->prd_half[dir])) {
+    pos1 = pos + domain->prd[dir];
+  } else {
+    pos1 = pos - domain->prd[dir];
+  }
+
   // parse values until one isn't recognized
 
   which = new int[3 * (narg - 5)];
@@ -387,9 +393,6 @@ void ComputeStressMop::compute_pairs()
         jlist = firstneigh[i];
         jnum = numneigh[i];
 
-        xi[dir] -= pos;
-        domain->minimum_image(xi[0], xi[1], xi[2]);
-
         for (jj = 0; jj < jnum; jj++) {
           j = jlist[jj];
           factor_lj = special_lj[sbmask(j)];
@@ -403,9 +406,6 @@ void ComputeStressMop::compute_pairs()
           xj[1] = atom->x[j][1];
           xj[2] = atom->x[j][2];
 
-          xj[dir] -= pos;
-          domain->minimum_image(xj[0], xj[1], xj[2]);
-
           delx = xi[0] - xj[0];
           dely = xi[1] - xj[1];
           delz = xi[2] - xj[2];
@@ -416,19 +416,20 @@ void ComputeStressMop::compute_pairs()
           if (newton_pair || j < nlocal) {
 
             //check if ij pair is across plane, add contribution to pressure
-            if ((xi[dir] > 0.0) && (xj[dir] < 0.0)) {
+            if (((xi[dir] > pos) && (xj[dir] < pos)) || ((xi[dir] > pos1) && (xj[dir] < pos1))) {
               pair->single(i, j, itype, jtype, rsq, factor_coul, factor_lj, fpair);
               values_local[m] += fpair * (xi[0] - xj[0]) / area * nktv2p;
               values_local[m + 1] += fpair * (xi[1] - xj[1]) / area * nktv2p;
               values_local[m + 2] += fpair * (xi[2] - xj[2]) / area * nktv2p;
-            } else if ((xi[dir] < 0.0) && (xj[dir] > 0.0)) {
+            } else if (((xi[dir] < pos) && (xj[dir] > pos)) ||
+                        ((xi[dir] < pos1) && (xj[dir] > pos1))) {
               pair->single(i, j, itype, jtype, rsq, factor_coul, factor_lj, fpair);
               values_local[m] -= fpair * (xi[0] - xj[0]) / area * nktv2p;
               values_local[m + 1] -= fpair * (xi[1] - xj[1]) / area * nktv2p;
               values_local[m + 2] -= fpair * (xi[2] - xj[2]) / area * nktv2p;
             }
           } else {
-            if ((xi[dir] > 0.0) && (xj[dir] < 0.0)) {
+            if (((xi[dir] > pos) && (xj[dir] < pos)) || ((xi[dir] > pos1) && (xj[dir] < pos1))) {
               pair->single(i, j, itype, jtype, rsq, factor_coul, factor_lj, fpair);
               values_local[m] += fpair * (xi[0] - xj[0]) / area * nktv2p;
               values_local[m + 1] += fpair * (xi[1] - xj[1]) / area * nktv2p;

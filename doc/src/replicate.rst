@@ -59,7 +59,7 @@ atoms.
 
    The bond discussion which follows only refers to models with
    permanent covalent bonds typically defined in LAMMPS via a data
-   file.  It is not relevant to sytems modeled with many-body
+   file.  It is not relevant to systems modeled with many-body
    potentials which can define bonds on-the-fly, based on the current
    positions of nearby atoms, e.g. models using the :doc:`AIREBO
    <pair_airebo>` or :doc:`ReaxFF <pair_reaxff>` potentials.
@@ -141,7 +141,7 @@ To work around this restriction two options are possible.  (1) Fixes
 which use the stored data in the restart file can be defined before
 replication and then deleted via the :doc:`unfix <unfix>` command and
 re-defined after it.  Or (2) the restart file can be converted to a
-data file (which deletes the stored fix infomation) and fixes defined
+data file (which deletes the stored fix information) and fixes defined
 after the replicate command.  In both these scenarios, the per-atom
 fix information in the restart file is lost.
 

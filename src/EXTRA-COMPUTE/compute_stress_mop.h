@@ -51,7 +51,7 @@ class ComputeStressMop : public Compute {
   double *bond_local, *bond_global;
   double *angle_local, *angle_global;
   double *dihedral_local, *dihedral_global;
-  double pos, dt, nktv2p, ftm2v;
+  double pos, pos1, dt, nktv2p, ftm2v;
   double area;
   class NeighList *list;
 };

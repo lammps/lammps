@@ -1505,7 +1505,7 @@ void CreateAtoms::get_xmol(double *center)
 
   onemol->quat_external = quatone;
 
-  int n, natoms = onemol->natoms;
+  int natoms = onemol->natoms;
   double xnew[3];
   for (int m = 0; m < natoms; m++) {
     MathExtra::matvec(rotmat, onemol->dx[m], xnew);

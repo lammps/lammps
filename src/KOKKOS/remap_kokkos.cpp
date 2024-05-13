@@ -608,9 +608,6 @@ struct remap_plan_3d_kokkos<DeviceType>* RemapKokkos<DeviceType>::remap_3d_creat
       plan->sendcnts = (int *) malloc(plan->commringlen*sizeof(int));
       plan->sdispls = (int *) malloc(plan->commringlen*sizeof(int));
 
-      // unused
-      plan->send_proc = (int *) malloc(plan->commringlen*sizeof(int));
-
       // only used when sendcnt > 0
 
       plan->packplan = (struct pack_plan_3d *)
@@ -647,11 +644,6 @@ struct remap_plan_3d_kokkos<DeviceType>* RemapKokkos<DeviceType>::remap_3d_creat
 
       plan->rcvcnts = (int *) malloc(plan->commringlen*sizeof(int));
       plan->rdispls = (int *) malloc(plan->commringlen*sizeof(int));
-
-      // unused
-      plan->recv_proc = (int *) malloc(nrecv*sizeof(int));
-      plan->recv_bufloc = (int *) malloc(nrecv*sizeof(int));
-      plan->request = (MPI_Request *) malloc(nrecv*sizeof(MPI_Request));
 
       // only used when recvcnt > 0
 
@@ -768,7 +760,7 @@ struct remap_plan_3d_kokkos<DeviceType>* RemapKokkos<DeviceType>::remap_3d_creat
     // init remaining fields in remap plan
 
     plan->memory = memory;
-    //plan->self = 0;
+
     if (plan->sendcnts[plan->selfcommringloc]) {
       plan->self = 1;
       plan->sendcnts[plan->selfcommringloc] = 0;
@@ -840,26 +832,38 @@ void RemapKokkos<DeviceType>::remap_3d_destroy_plan_kokkos(struct remap_plan_3d_
       free(plan->rcvcnts);
       free(plan->sdispls);
       free(plan->rdispls);
-      //free(plan->nrecvmap);
     }
-  }
 
-  // free internal arrays
+    if (plan->nsend) {
+      free(plan->send_offset);
+      free(plan->send_size);
+      free(plan->packplan);
+    }
 
-  if (plan->nsend || plan->self) {
-    free(plan->send_offset);
-    free(plan->send_size);
-    free(plan->send_proc);
-    free(plan->packplan);
-  }
+    if (plan->nrecv) {
+      free(plan->recv_offset);
+      free(plan->recv_size);
+      free(plan->unpackplan);
+    }
+  } else {
+ 
+    // free arrays used in pt2pt communication
 
-  if (plan->nrecv || plan->self) {
-    free(plan->recv_offset);
-    free(plan->recv_size);
-    free(plan->recv_proc);
-    free(plan->recv_bufloc);
-    free(plan->request);
-    free(plan->unpackplan);
+    if (plan->nsend || plan->self) {
+      free(plan->send_offset);
+      free(plan->send_size);
+      free(plan->send_proc);
+      free(plan->packplan);
+    }
+
+    if (plan->nrecv || plan->self) {
+      free(plan->recv_offset);
+      free(plan->recv_size);
+      free(plan->recv_proc);
+      free(plan->recv_bufloc);
+      free(plan->request);
+      free(plan->unpackplan);
+    }
   }
 
   // free plan itself

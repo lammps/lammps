@@ -28,7 +28,7 @@
 #include <cmath>
 #include <cstring>
 
-#define EPSILON 1e-10
+static constexpr double EPSILON = 1e-10;
 
 using namespace LAMMPS_NS;
 using MathConst::MY_SQRT2;
@@ -645,7 +645,7 @@ void BondBPMRotational::init_style()
 {
   BondBPM::init_style();
 
-  if (!atom->quat_flag || !atom->sphere_flag)
+  if (!atom->quat_flag || !atom->radius_flag || !atom->omega_flag)
     error->all(FLERR, "Bond bpm/rotational requires atom style bpm/sphere");
   if (comm->ghost_velocity == 0)
     error->all(FLERR, "Bond bpm/rotational requires ghost atoms store velocity");

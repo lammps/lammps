@@ -17,17 +17,17 @@ parser = ArgumentParser(prog='Install.py',
 
 # settings
 
-version = "2.8.2"
+version = "2.8.3"
 mode = "static"
 
 # help message
 
 HELP = """
 Syntax from src dir: make lib-plumed args="-b"
-                 or: make lib-plumed args="-b -v 2.8.2"
+                 or: make lib-plumed args="-b -v 2.8.3"
                  or: make lib-plumed args="-p /usr/local/plumed2 -m shared"
 
-Syntax from lib dir: python Install.py -b -v 2.8.2
+Syntax from lib dir: python Install.py -b -v 2.8.3
                  or: python Install.py -b
                  or: python Install.py -p /usr/local/plumed2 -m shared
 
@@ -45,6 +45,8 @@ checksums = { \
         '2.7.6' : 'fb8c0ec10f97a9353eb123a5c4c35aa6', \
         '2.8.1' : '6bfe72ebdae63dc38a9ca27d9b0e08f8', \
         '2.8.2' : '599092b6a0aa6fff992612537ad98994', \
+        '2.8.3' : '76d23cd394eba9e6530316ed1184e219', \
+        '2.9.0' : '661eabeebee05cf84bbf9dc23d7d5f46', \
         }
 
 # parse and process arguments

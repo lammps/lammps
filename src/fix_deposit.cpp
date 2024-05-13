@@ -42,7 +42,7 @@ using namespace MathConst;
 enum{ATOM,MOLECULE};
 enum{DIST_UNIFORM,DIST_GAUSSIAN};
 
-#define EPSILON 1.0e6
+static constexpr double EPSILON = 1.0e6;
 
 /* ---------------------------------------------------------------------- */
 
@@ -54,6 +54,7 @@ FixDeposit::FixDeposit(LAMMPS *lmp, int narg, char **arg) :
   if (narg < 7) error->all(FLERR,"Illegal fix deposit command");
 
   scalar_flag = 1;
+  extscalar = 0;
   restart_global = 1;
   time_depend = 1;
 

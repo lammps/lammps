@@ -21,235 +21,192 @@ namespace Test {
 
 TEST(sycl, space_access) {
   static_assert(Kokkos::Impl::MemorySpaceAccess<Kokkos::HostSpace,
-                                                Kokkos::HostSpace>::assignable,
-                "");
+                                                Kokkos::HostSpace>::assignable);
 
   static_assert(Kokkos::Impl::MemorySpaceAccess<
-                    Kokkos::HostSpace,
-                    Kokkos::Experimental::SYCLHostUSMSpace>::assignable,
-                "");
+                Kokkos::HostSpace,
+                Kokkos::Experimental::SYCLHostUSMSpace>::assignable);
 
   static_assert(!Kokkos::Impl::MemorySpaceAccess<
-                    Kokkos::HostSpace,
-                    Kokkos::Experimental::SYCLDeviceUSMSpace>::assignable,
-                "");
+                Kokkos::HostSpace,
+                Kokkos::Experimental::SYCLDeviceUSMSpace>::assignable);
 
   static_assert(!Kokkos::Impl::MemorySpaceAccess<
-                    Kokkos::HostSpace,
-                    Kokkos::Experimental::SYCLDeviceUSMSpace>::accessible,
-                "");
+                Kokkos::HostSpace,
+                Kokkos::Experimental::SYCLDeviceUSMSpace>::accessible);
 
   static_assert(!Kokkos::Impl::MemorySpaceAccess<
-                    Kokkos::HostSpace,
-                    Kokkos::Experimental::SYCLSharedUSMSpace>::assignable,
-                "");
+                Kokkos::HostSpace,
+                Kokkos::Experimental::SYCLSharedUSMSpace>::assignable);
 
   static_assert(Kokkos::Impl::MemorySpaceAccess<
-                    Kokkos::HostSpace,
-                    Kokkos::Experimental::SYCLSharedUSMSpace>::accessible,
-                "");
+                Kokkos::HostSpace,
+                Kokkos::Experimental::SYCLSharedUSMSpace>::accessible);
 
   //--------------------------------------
 
   static_assert(Kokkos::Impl::MemorySpaceAccess<
-                    Kokkos::Experimental::SYCLDeviceUSMSpace,
-                    Kokkos::Experimental::SYCLDeviceUSMSpace>::assignable,
-                "");
+                Kokkos::Experimental::SYCLDeviceUSMSpace,
+                Kokkos::Experimental::SYCLDeviceUSMSpace>::assignable);
 
   static_assert(Kokkos::Impl::MemorySpaceAccess<
-                    Kokkos::Experimental::SYCLDeviceUSMSpace,
-                    Kokkos::Experimental::SYCLSharedUSMSpace>::assignable,
-                "");
+                Kokkos::Experimental::SYCLDeviceUSMSpace,
+                Kokkos::Experimental::SYCLSharedUSMSpace>::assignable);
 
   static_assert(!Kokkos::Impl::MemorySpaceAccess<
-                    Kokkos::Experimental::SYCLDeviceUSMSpace,
-                    Kokkos::Experimental::SYCLHostUSMSpace>::assignable,
-                "");
+                Kokkos::Experimental::SYCLDeviceUSMSpace,
+                Kokkos::Experimental::SYCLHostUSMSpace>::assignable);
 
   static_assert(Kokkos::Impl::MemorySpaceAccess<
-                    Kokkos::Experimental::SYCLDeviceUSMSpace,
-                    Kokkos::Experimental::SYCLHostUSMSpace>::accessible,
-                "");
+                Kokkos::Experimental::SYCLDeviceUSMSpace,
+                Kokkos::Experimental::SYCLHostUSMSpace>::accessible);
 
   static_assert(
       !Kokkos::Impl::MemorySpaceAccess<Kokkos::Experimental::SYCLDeviceUSMSpace,
-                                       Kokkos::HostSpace>::assignable,
-      "");
+                                       Kokkos::HostSpace>::assignable);
 
   static_assert(
       !Kokkos::Impl::MemorySpaceAccess<Kokkos::Experimental::SYCLDeviceUSMSpace,
-                                       Kokkos::HostSpace>::accessible,
-      "");
+                                       Kokkos::HostSpace>::accessible);
 
   //--------------------------------------
 
   static_assert(Kokkos::Impl::MemorySpaceAccess<
-                    Kokkos::Experimental::SYCLSharedUSMSpace,
-                    Kokkos::Experimental::SYCLSharedUSMSpace>::assignable,
-                "");
+                Kokkos::Experimental::SYCLSharedUSMSpace,
+                Kokkos::Experimental::SYCLSharedUSMSpace>::assignable);
 
   static_assert(!Kokkos::Impl::MemorySpaceAccess<
-                    Kokkos::Experimental::SYCLSharedUSMSpace,
-                    Kokkos::Experimental::SYCLDeviceUSMSpace>::assignable,
-                "");
+                Kokkos::Experimental::SYCLSharedUSMSpace,
+                Kokkos::Experimental::SYCLDeviceUSMSpace>::assignable);
 
   static_assert(Kokkos::Impl::MemorySpaceAccess<
-                    Kokkos::Experimental::SYCLSharedUSMSpace,
-                    Kokkos::Experimental::SYCLDeviceUSMSpace>::accessible,
-                "");
+                Kokkos::Experimental::SYCLSharedUSMSpace,
+                Kokkos::Experimental::SYCLDeviceUSMSpace>::accessible);
 
   static_assert(
       !Kokkos::Impl::MemorySpaceAccess<Kokkos::Experimental::SYCLSharedUSMSpace,
-                                       Kokkos::HostSpace>::assignable,
-      "");
+                                       Kokkos::HostSpace>::assignable);
 
   static_assert(
       !Kokkos::Impl::MemorySpaceAccess<Kokkos::Experimental::SYCLSharedUSMSpace,
-                                       Kokkos::HostSpace>::accessible,
-      "");
+                                       Kokkos::HostSpace>::accessible);
 
   static_assert(!Kokkos::Impl::MemorySpaceAccess<
-                    Kokkos::Experimental::SYCLSharedUSMSpace,
-                    Kokkos::Experimental::SYCLHostUSMSpace>::assignable,
-                "");
+                Kokkos::Experimental::SYCLSharedUSMSpace,
+                Kokkos::Experimental::SYCLHostUSMSpace>::assignable);
 
   static_assert(Kokkos::Impl::MemorySpaceAccess<
-                    Kokkos::Experimental::SYCLSharedUSMSpace,
-                    Kokkos::Experimental::SYCLHostUSMSpace>::accessible,
-                "");
+                Kokkos::Experimental::SYCLSharedUSMSpace,
+                Kokkos::Experimental::SYCLHostUSMSpace>::accessible);
 
   //--------------------------------------
 
   static_assert(Kokkos::Impl::MemorySpaceAccess<
-                    Kokkos::Experimental::SYCLHostUSMSpace,
-                    Kokkos::Experimental::SYCLHostUSMSpace>::assignable,
-                "");
+                Kokkos::Experimental::SYCLHostUSMSpace,
+                Kokkos::Experimental::SYCLHostUSMSpace>::assignable);
 
   static_assert(
       !Kokkos::Impl::MemorySpaceAccess<Kokkos::Experimental::SYCLHostUSMSpace,
-                                       Kokkos::HostSpace>::assignable,
-      "");
+                                       Kokkos::HostSpace>::assignable);
 
   static_assert(
       Kokkos::Impl::MemorySpaceAccess<Kokkos::Experimental::SYCLHostUSMSpace,
-                                      Kokkos::HostSpace>::accessible,
-      "");
+                                      Kokkos::HostSpace>::accessible);
 
   static_assert(!Kokkos::Impl::MemorySpaceAccess<
-                    Kokkos::Experimental::SYCLHostUSMSpace,
-                    Kokkos::Experimental::SYCLDeviceUSMSpace>::assignable,
-                "");
+                Kokkos::Experimental::SYCLHostUSMSpace,
+                Kokkos::Experimental::SYCLDeviceUSMSpace>::assignable);
 
   static_assert(!Kokkos::Impl::MemorySpaceAccess<
-                    Kokkos::Experimental::SYCLHostUSMSpace,
-                    Kokkos::Experimental::SYCLDeviceUSMSpace>::accessible,
-                "");
+                Kokkos::Experimental::SYCLHostUSMSpace,
+                Kokkos::Experimental::SYCLDeviceUSMSpace>::accessible);
 
   static_assert(!Kokkos::Impl::MemorySpaceAccess<
-                    Kokkos::Experimental::SYCLHostUSMSpace,
-                    Kokkos::Experimental::SYCLSharedUSMSpace>::assignable,
-                "");
+                Kokkos::Experimental::SYCLHostUSMSpace,
+                Kokkos::Experimental::SYCLSharedUSMSpace>::assignable);
 
   static_assert(Kokkos::Impl::MemorySpaceAccess<
-                    Kokkos::Experimental::SYCLHostUSMSpace,
-                    Kokkos::Experimental::SYCLSharedUSMSpace>::accessible,
-                "");
+                Kokkos::Experimental::SYCLHostUSMSpace,
+                Kokkos::Experimental::SYCLSharedUSMSpace>::accessible);
 
   //--------------------------------------
 
   static_assert(!Kokkos::SpaceAccessibility<Kokkos::Experimental::SYCL,
-                                            Kokkos::HostSpace>::accessible,
-                "");
+                                            Kokkos::HostSpace>::accessible);
 
   static_assert(Kokkos::SpaceAccessibility<
-                    Kokkos::Experimental::SYCL,
-                    Kokkos::Experimental::SYCLDeviceUSMSpace>::accessible,
-                "");
+                Kokkos::Experimental::SYCL,
+                Kokkos::Experimental::SYCLDeviceUSMSpace>::accessible);
 
   static_assert(Kokkos::SpaceAccessibility<
-                    Kokkos::Experimental::SYCL,
-                    Kokkos::Experimental::SYCLSharedUSMSpace>::accessible,
-                "");
+                Kokkos::Experimental::SYCL,
+                Kokkos::Experimental::SYCLSharedUSMSpace>::accessible);
 
   static_assert(Kokkos::SpaceAccessibility<
-                    Kokkos::Experimental::SYCL,
-                    Kokkos::Experimental::SYCLHostUSMSpace>::accessible,
-                "");
+                Kokkos::Experimental::SYCL,
+                Kokkos::Experimental::SYCLHostUSMSpace>::accessible);
 
   static_assert(!Kokkos::SpaceAccessibility<
-                    Kokkos::HostSpace,
-                    Kokkos::Experimental::SYCLDeviceUSMSpace>::accessible,
-                "");
+                Kokkos::HostSpace,
+                Kokkos::Experimental::SYCLDeviceUSMSpace>::accessible);
 
   static_assert(Kokkos::SpaceAccessibility<
-                    Kokkos::HostSpace,
-                    Kokkos::Experimental::SYCLSharedUSMSpace>::accessible,
-                "");
+                Kokkos::HostSpace,
+                Kokkos::Experimental::SYCLSharedUSMSpace>::accessible);
 
   static_assert(Kokkos::SpaceAccessibility<
-                    Kokkos::HostSpace,
-                    Kokkos::Experimental::SYCLHostUSMSpace>::accessible,
-                "");
+                Kokkos::HostSpace,
+                Kokkos::Experimental::SYCLHostUSMSpace>::accessible);
 
   static_assert(
       std::is_same<Kokkos::Impl::HostMirror<
                        Kokkos::Experimental::SYCLDeviceUSMSpace>::Space,
-                   Kokkos::HostSpace>::value,
-      "");
+                   Kokkos::HostSpace>::value);
 
   static_assert(
       std::is_same<
           Kokkos::Impl::HostMirror<
               Kokkos::Experimental::SYCLSharedUSMSpace>::Space,
           Kokkos::Device<Kokkos::HostSpace::execution_space,
-                         Kokkos::Experimental::SYCLSharedUSMSpace>>::value,
-      "");
+                         Kokkos::Experimental::SYCLSharedUSMSpace>>::value);
 
   static_assert(
       Kokkos::Impl::MemorySpaceAccess<Kokkos::Experimental::SYCLHostUSMSpace,
-                                      Kokkos::HostSpace>::accessible,
-      "");
+                                      Kokkos::HostSpace>::accessible);
 
   static_assert(Kokkos::Impl::MemorySpaceAccess<
-                    Kokkos::HostSpace,
-                    Kokkos::Experimental::SYCLHostUSMSpace>::accessible,
-                "");
+                Kokkos::HostSpace,
+                Kokkos::Experimental::SYCLHostUSMSpace>::accessible);
 
   static_assert(std::is_same<Kokkos::Impl::HostMirror<
                                  Kokkos::Experimental::SYCLHostUSMSpace>::Space,
-                             Kokkos::Experimental::SYCLHostUSMSpace>::value,
-                "");
+                             Kokkos::Experimental::SYCLHostUSMSpace>::value);
 
   static_assert(
       std::is_same<
           Kokkos::Device<Kokkos::HostSpace::execution_space,
                          Kokkos::Experimental::SYCLSharedUSMSpace>,
           Kokkos::Device<Kokkos::HostSpace::execution_space,
-                         Kokkos::Experimental::SYCLSharedUSMSpace>>::value,
-      "");
+                         Kokkos::Experimental::SYCLSharedUSMSpace>>::value);
 
   static_assert(Kokkos::SpaceAccessibility<
-                    Kokkos::Impl::HostMirror<Kokkos::Experimental::SYCL>::Space,
-                    Kokkos::HostSpace>::accessible,
-                "");
+                Kokkos::Impl::HostMirror<Kokkos::Experimental::SYCL>::Space,
+                Kokkos::HostSpace>::accessible);
 
   static_assert(Kokkos::SpaceAccessibility<
-                    Kokkos::Impl::HostMirror<
-                        Kokkos::Experimental::SYCLDeviceUSMSpace>::Space,
-                    Kokkos::HostSpace>::accessible,
-                "");
+                Kokkos::Impl::HostMirror<
+                    Kokkos::Experimental::SYCLDeviceUSMSpace>::Space,
+                Kokkos::HostSpace>::accessible);
 
   static_assert(Kokkos::SpaceAccessibility<
-                    Kokkos::Impl::HostMirror<
-                        Kokkos::Experimental::SYCLSharedUSMSpace>::Space,
-                    Kokkos::HostSpace>::accessible,
-                "");
+                Kokkos::Impl::HostMirror<
+                    Kokkos::Experimental::SYCLSharedUSMSpace>::Space,
+                Kokkos::HostSpace>::accessible);
 
   static_assert(Kokkos::SpaceAccessibility<
-                    Kokkos::Impl::HostMirror<
-                        Kokkos::Experimental::SYCLHostUSMSpace>::Space,
-                    Kokkos::HostSpace>::accessible,
-                "");
+                Kokkos::Impl::HostMirror<
+                    Kokkos::Experimental::SYCLHostUSMSpace>::Space,
+                Kokkos::HostSpace>::accessible);
 }
 
 TEST(sycl, uvm) {

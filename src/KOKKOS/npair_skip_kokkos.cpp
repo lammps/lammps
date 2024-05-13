@@ -16,7 +16,6 @@
 
 #include "atom_kokkos.h"
 #include "atom_masks.h"
-#include "atom_vec.h"
 #include "neigh_list_kokkos.h"
 
 using namespace LAMMPS_NS;

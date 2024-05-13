@@ -31,7 +31,7 @@ using namespace LAMMPS_NS;
 enum { NONE, NEIGH, PAIR, BOND, ANGLE, DIHEDRAL, IMPROPER };
 enum { TYPE, RADIUS };
 
-#define DELTA 10000
+static constexpr int DELTA = 10000;
 
 /* ---------------------------------------------------------------------- */
 

@@ -21,18 +21,11 @@
 #include "atom_kokkos.h"
 #include "comm.h"
 #include "error.h"
-#include "memory.h"
 #include "mliap_data_kokkos.h"
 #include "mliap_so3_kokkos.h"
 #include "pair_mliap.h"
-#include "tokenizer.h"
-
-#include <cstring>
 
 using namespace LAMMPS_NS;
-
-#define MAXLINE 1024
-#define MAXWORD 3
 
 /* ---------------------------------------------------------------------- */
 template <class DeviceType>

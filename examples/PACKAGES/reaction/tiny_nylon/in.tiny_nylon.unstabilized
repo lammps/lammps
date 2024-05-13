@@ -47,7 +47,7 @@ fix myrxns all bond/react stabilization no &
 
 fix 1 all nve/limit .03
 
-thermo_style custom step temp press density f_myrxns[1] f_myrxns[2]
+thermo_style custom step temp press density f_myrxns[*]
 
 # restart 100 restart1 restart2
 

@@ -427,7 +427,7 @@ the following global cumulative quantities:
 * 7 = rotation attempts
 * 8 = rotation successes
 
-The vector values calculated by this fix are "extensive".
+The vector values calculated by this fix are "intensive".
 
 No parameter of this fix can be used with the *start/stop* keywords of
 the :doc:`run <run>` command.  This fix is not invoked during
@@ -440,8 +440,11 @@ This fix is part of the MC package.  It is only enabled if LAMMPS was
 built with that package.  See the :doc:`Build package <Build_package>`
 doc page for more info.
 
+This fix style requires an :doc:`atom style <atom_style>` with per atom
+type masses.
+
 Do not set "neigh_modify once yes" or else this fix will never be
-called.  Reneighboring is required.
+called.  Reneighboring is **required**.
 
 Only usable for 3D simulations.
 

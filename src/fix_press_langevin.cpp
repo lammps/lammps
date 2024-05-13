@@ -24,7 +24,6 @@
 #include "error.h"
 #include "fix_deform.h"
 #include "force.h"
-#include "group.h"
 #include "irregular.h"
 #include "kspace.h"
 #include "modify.h"
@@ -37,8 +36,8 @@
 using namespace LAMMPS_NS;
 using namespace FixConst;
 
-#define DELTAFLIP 0.1
-#define TILTMAX 1.5
+static constexpr double DELTAFLIP = 0.1;
+static constexpr double TILTMAX = 1.5;
 
 enum { NONE, XYZ, XY, YZ, XZ };
 enum { ISO, ANISO, TRICLINIC };

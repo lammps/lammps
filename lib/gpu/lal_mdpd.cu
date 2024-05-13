@@ -210,13 +210,12 @@ __kernel void k_mdpd(const __global numtyp4 *restrict x_,
 
     const numtyp rhoi = extra[i].x;
 
-    numtyp factor_dpd, factor_sqrt;
+    numtyp factor_dpd;
     for ( ; nbor<nbor_end; nbor+=n_stride) {
       ucl_prefetch(dev_packed+nbor+n_stride);
 
       int j=dev_packed[nbor];
       factor_dpd = sp_lj[sbmask(j)];
-      factor_sqrt = sp_sqrt[sbmask(j)];
       j &= NEIGHMASK;
 
       numtyp4 jx; fetch4(jx,j,pos_tex); //x_[j];
@@ -240,22 +239,21 @@ __kernel void k_mdpd(const __global numtyp4 *restrict x_,
         numtyp delvy = iv.y - jv.y;
         numtyp delvz = iv.z - jv.z;
         numtyp dot = delx*delvx + dely*delvy + delz*delvz;
-        
+
         numtyp A_attij = coeff[mtype].x;
         numtyp B_repij = coeff[mtype].y;
         numtyp gammaij = coeff[mtype].z;
         numtyp sigmaij = coeff[mtype].w;
         numtyp cutij =   coeff2[mtype].x;
         numtyp cut_rij = coeff2[mtype].y;
-        numtyp cutsqij = coeff2[mtype].z;
-        
+
         numtyp wc = (numtyp)1.0 - r/cutij;
         numtyp wc_r = (numtyp)1.0 - r/cut_rij;
         wc_r = MAX(wc_r,(numtyp)0.0);
         numtyp wr = wc;
 
         const numtyp rhoj = extra[j].x;
-        
+
         unsigned int tag1=itag, tag2=jtag;
         if (tag1 > tag2) {
           tag1 = jtag; tag2 = itag;
@@ -322,10 +320,8 @@ __kernel void k_mdpd_fast(const __global numtyp4 *restrict x_,
   __local numtyp4 coeff[MAX_SHARED_TYPES*MAX_SHARED_TYPES];
   __local numtyp4 coeff2[MAX_SHARED_TYPES*MAX_SHARED_TYPES];
   __local numtyp sp_lj[4];
-  __local numtyp sp_sqrt[4];
   if (tid<4) {
     sp_lj[tid]=sp_lj_in[tid];
-    sp_sqrt[tid]=sp_sqrt_in[tid];
   }
   if (tid<MAX_SHARED_TYPES*MAX_SHARED_TYPES) {
     coeff[tid]=coeff_in[tid];
@@ -339,7 +335,6 @@ __kernel void k_mdpd_fast(const __global numtyp4 *restrict x_,
   const numtyp sigmaij=coeff_in[ONETYPE].w;
   const numtyp cutij=coeff2_in[ONETYPE].x;
   const numtyp cut_rij=coeff2_in[ONETYPE].y;
-  const numtyp cutsqij=coeff2_in[ONETYPE].z;
   const numtyp cutsq_p=cutsq[ONETYPE];
   #endif
 
@@ -412,7 +407,6 @@ __kernel void k_mdpd_fast(const __global numtyp4 *restrict x_,
         numtyp sigmaij = coeff[mtype].w;
         numtyp cutij =   coeff2[mtype].x;
         numtyp cut_rij = coeff2[mtype].y;
-        numtyp cutsqij = coeff2[mtype].z;
         #endif
 
         numtyp wc = (numtyp)1.0 - r/cutij;
@@ -421,7 +415,7 @@ __kernel void k_mdpd_fast(const __global numtyp4 *restrict x_,
         numtyp wr = wc;
 
         const numtyp rhoj = extra[j].x;
-        
+
         unsigned int tag1=itag, tag2=jtag;
         if (tag1 > tag2) {
           tag1 = jtag; tag2 = itag;

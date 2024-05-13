@@ -25,8 +25,8 @@ KSpaceStyle(pppm/disp,PPPMDisp);
 
 namespace LAMMPS_NS {
 
-#define EWALD_MAXORDER 6
-#define EWALD_FUNCS 4
+static constexpr int EWALD_MAXORDER = 6;
+static constexpr int EWALD_FUNCS = 4;
 
 class PPPMDisp : public KSpace {
  public:

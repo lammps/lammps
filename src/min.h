@@ -17,6 +17,7 @@
 #include "pointers.h"    // IWYU pragma: export
 
 namespace LAMMPS_NS {
+class Compute;
 
 class Min : protected Pointers {
  public:
@@ -102,13 +103,8 @@ class Min : protected Pointers {
   int max_vdotf_negatif;         // maximum iteration with v.f > 0.0
   int abcflag;                   // when 1 use ABC-FIRE variant instead of FIRE, default 0
 
-  int nelist_global, nelist_atom;    // # of PE,virial computes to check
-  int nvlist_global, nvlist_atom, ncvlist_atom;
-  class Compute **elist_global;    // lists of PE,virial Computes
-  class Compute **elist_atom;
-  class Compute **vlist_global;
-  class Compute **vlist_atom;
-  class Compute **cvlist_atom;
+  // lists of PE,virial Computes
+  std::vector<Compute *> elist_global, elist_atom, vlist_global, vlist_atom, cvlist_atom;
 
   int triclinic;    // 0 if domain is orthog, 1 if triclinic
   int pairflag;
@@ -120,7 +116,7 @@ class Min : protected Pointers {
   int narray;                         // # of arrays stored by fix_minimize
   class FixMinimize *fix_minimize;    // fix that stores auxiliary data
 
-  class Compute *pe_compute;    // compute for potential energy
+  Compute *pe_compute;    // compute for potential energy
   double ecurrent;              // current potential energy
 
   bigint ndoftotal;    // total dof for entire problem

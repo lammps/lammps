@@ -19,6 +19,7 @@
 #include <limits>
 
 #include <Kokkos_Core.hpp>
+#include <TestNonTrivialScalarTypes.hpp>
 
 //--------------------------------------------------------------------------
 
@@ -44,6 +45,37 @@ struct TestReducers {
 
     KOKKOS_INLINE_FUNCTION
     void operator()(const int& i, Scalar& value) const { value += values(i); }
+  };
+
+  struct TeamSumFunctor {
+    using member_type = typename Kokkos::TeamPolicy<ExecSpace>::member_type;
+
+    KOKKOS_INLINE_FUNCTION
+    void operator()(const member_type& m, Scalar& value) const {
+      if (m.team_rank() == m.team_size() - 1) value += Scalar(1);
+    }
+  };
+
+  struct TeamSumNestedFunctor {
+    using member_type = typename Kokkos::TeamPolicy<ExecSpace>::member_type;
+
+    SumFunctor f;
+    int M, N;
+    Kokkos::View<Scalar*, ExecSpace> result;
+
+    TeamSumNestedFunctor(SumFunctor& f_, const int M_, const int N_,
+                         Kokkos::View<Scalar*, ExecSpace> result_)
+        : f(f_), M(M_), N(N_), result(result_) {}
+
+    KOKKOS_INLINE_FUNCTION
+    void operator()(const member_type& m) const {
+      const int i = m.league_rank();
+      Scalar local_scalar;
+      Kokkos::Sum<Scalar, typename ExecSpace::memory_space> reducer_scalar(
+          local_scalar);
+      Kokkos::parallel_reduce(Kokkos::TeamThreadRange(m, N), f, reducer_scalar);
+      result(i) = local_scalar;
+    }
   };
 
   struct ProdFunctor {
@@ -319,6 +351,102 @@ struct TestReducers {
       value = value || values(i);
     }
   };
+
+  // get number of teams for TeamPolicy depending on the tested type
+  constexpr static int get_num_teams() {
+    if constexpr (sizeof(Scalar) == 1) {
+      return 126;
+    } else if constexpr (std::is_same_v<Scalar,
+                                        Kokkos::Experimental::bhalf_t>) {
+      return 256;
+    }
+
+    return 1024;
+  }
+
+  static void test_sum_team_policy(int N, SumFunctor f, Scalar reference_sum) {
+#ifdef KOKKOS_ENABLE_OPENACC
+    if constexpr (std::is_same_v<ExecSpace, Kokkos::Experimental::OpenACC> &&
+                  (std::is_same_v<Scalar, size_t> ||
+                   std::is_same_v<Scalar, double>)) {
+      return;  // FIXME_OPENACC
+    }
+#endif
+
+    Scalar sum_scalar;
+    Kokkos::View<Scalar, ExecSpace> sum_view("result");
+    Kokkos::deep_copy(sum_view, Scalar(1));
+
+    // Test team policy reduction
+    {
+      constexpr int num_teams = get_num_teams();
+      TeamSumFunctor tf;
+      // FIXME_OPENMPTARGET temporary restriction for team size to be at least
+      // 32
+#ifdef KOKKOS_ENABLE_OPENMPTARGET
+      int team_size =
+          std::is_same<ExecSpace, Kokkos::Experimental::OpenMPTarget>::value
+              ? 32
+              : 1;
+#else
+      int team_size         = 1;
+#endif
+      auto team_pol = Kokkos::TeamPolicy<ExecSpace>(num_teams, team_size);
+      Kokkos::parallel_reduce(team_pol, tf, sum_view);
+      Kokkos::deep_copy(sum_scalar, sum_view);
+      ASSERT_EQ(sum_scalar, Scalar{num_teams}) << "num_teams: " << num_teams;
+    }
+
+    // Test TeamThreadRange level reduction with 0 work produces 0 result
+    {
+      const int league_size = 1;
+      Kokkos::View<Scalar*, ExecSpace> result("result", league_size);
+      TeamSumNestedFunctor tnf(f, league_size, 0, result);
+      // FIXME_OPENMPTARGET temporary restriction for team size to be at least
+      // 32
+#ifdef KOKKOS_ENABLE_OPENMPTARGET
+      int team_size =
+          std::is_same<ExecSpace, Kokkos::Experimental::OpenMPTarget>::value
+              ? 32
+              : 1;
+#else
+      int team_size         = 1;
+#endif
+      auto team_pol = Kokkos::TeamPolicy<ExecSpace>(1, team_size);
+      Kokkos::parallel_for(team_pol, tnf);
+      auto result_h =
+          Kokkos::create_mirror_view_and_copy(Kokkos::HostSpace(), result);
+      ASSERT_EQ(result_h(0), Scalar{0}) << "N: " << N;
+    }
+
+    // Same test as above, but with inner reduction over N, and league_size=10
+    {
+      const int league_size = 10;
+      Kokkos::View<Scalar*, ExecSpace> result("result", league_size);
+      TeamSumNestedFunctor tnf(f, league_size, N, result);
+      // FIXME_OPENMPTARGET temporary restriction for team size to be at least
+      // 32
+#ifdef KOKKOS_ENABLE_OPENMPTARGET
+      int initial_team_size =
+          std::is_same_v<ExecSpace, Kokkos::Experimental::OpenMPTarget> ? 32
+                                                                        : 1;
+#else
+      int initial_team_size = 1;
+#endif
+      auto team_size_max =
+          Kokkos::TeamPolicy<ExecSpace>(league_size, initial_team_size)
+              .team_size_max(tnf, Kokkos::ParallelForTag());
+      auto team_size = std::min(team_size_max, TEST_EXECSPACE().concurrency());
+      auto team_pol  = Kokkos::TeamPolicy<ExecSpace>(league_size, team_size);
+      Kokkos::parallel_for(team_pol, tnf);
+      auto result_h =
+          Kokkos::create_mirror_view_and_copy(Kokkos::HostSpace(), result);
+      for (int i = 0; i < result_h.extent_int(0); ++i) {
+        ASSERT_EQ(result_h(i), reference_sum) << "N: " << N;
+      }
+    }
+  }
+
   static void test_sum(int N) {
     Kokkos::View<Scalar*, ExecSpace> values("Values", N);
     auto h_values        = Kokkos::create_mirror_view(values);
@@ -373,6 +501,8 @@ struct TestReducers {
       Scalar sum_scalar_view = reducer_scalar.reference();
       ASSERT_EQ(sum_scalar_view, reference_sum) << "N: " << N;
     }
+
+    test_sum_team_policy(N, f, reference_sum);
 
     {
       Kokkos::View<Scalar, Kokkos::HostSpace> sum_view("View");

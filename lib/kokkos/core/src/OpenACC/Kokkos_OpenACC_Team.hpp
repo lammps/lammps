@@ -82,7 +82,7 @@ class OpenACCTeamMember {
   // FIXME_OPENACC: team_broadcast() is not implemented.
   template <class ValueType>
   KOKKOS_FUNCTION void team_broadcast(ValueType& value, int thread_id) const {
-    static_assert(!Kokkos::Impl::always_true<ValueType>::value,
+    static_assert(Kokkos::Impl::always_false<ValueType>::value,
                   "Kokkos Error: team_broadcast() is not implemented for the "
                   "OpenACC backend");
     return ValueType();
@@ -99,7 +99,7 @@ class OpenACCTeamMember {
   template <class ValueType, class JoinOp>
   KOKKOS_FUNCTION ValueType team_reduce(const ValueType& value,
                                         const JoinOp& op_in) const {
-    static_assert(!Kokkos::Impl::always_true<ValueType>::value,
+    static_assert(Kokkos::Impl::always_false<ValueType>::value,
                   "Kokkos Error: team_reduce() is not implemented for the "
                   "OpenACC backend");
     return ValueType();
@@ -110,7 +110,7 @@ class OpenACCTeamMember {
   KOKKOS_FUNCTION ArgType team_scan(const ArgType& /*value*/,
                                     ArgType* const /*global_accum*/) const {
     static_assert(
-        !Kokkos::Impl::always_true<ArgType>::value,
+        Kokkos::Impl::always_false<ArgType>::value,
         "Kokkos Error: team_scan() is not implemented for the OpenACC backend");
     return ArgType();
   }

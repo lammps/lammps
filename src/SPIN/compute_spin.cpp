@@ -215,9 +215,8 @@ void ComputeSpin::compute_vector()
         tempnum += tx*tx+ty*ty+tz*tz;
         tempdenom += sp[i][0]*fm[i][0]+fm[i][1]*sp[i][1]+sp[i][2]*fm[i][2];
         countsp++;
-      }
+      } else error->all(FLERR,"Compute compute/spin requires atom/spin style");
     }
-    else error->all(FLERR,"Compute compute/spin requires atom/spin style");
   }
 
   MPI_Allreduce(mag,magtot,4,MPI_DOUBLE,MPI_SUM,world);

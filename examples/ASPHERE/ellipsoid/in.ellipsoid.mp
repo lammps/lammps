@@ -117,4 +117,4 @@ thermo          1000
 #dump           1 all image 500 image.*.jpg type type zoom 1.6
 #dump_modify    1 pad 6 adiam 1 1 adiam 2 0.2
 
-run             50000
+run             10000

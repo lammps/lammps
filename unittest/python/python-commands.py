@@ -475,6 +475,26 @@ create_atoms 1 single &
         a = self.lmp.extract_variable("a")
         self.assertEqual(a, 3.14)
 
+    def test_extract_variable_stringstyle(self):
+        self.lmp.command("variable a string xxx")
+        a = self.lmp.extract_variable("a")
+        self.assertEqual(a, 'xxx')
+
+        rv = self.lmp.set_string_variable("a","20")
+        a = self.lmp.extract_variable("a")
+        self.assertEqual(a, '20')
+        self.assertEqual(rv, 0)
+
+    def test_extract_variable_internalstyle(self):
+        self.lmp.command("variable a internal 2.0")
+        a = self.lmp.extract_variable("a")
+        self.assertEqual(a, 2.0)
+
+        rv = self.lmp.set_internal_variable("a",-4.5)
+        a = self.lmp.extract_variable("a")
+        self.assertEqual(a, -4.5)
+        self.assertEqual(rv, 0)
+
     def test_extract_variable_atomstyle(self):
         self.lmp.command("units lj")
         self.lmp.command("atom_style atomic")

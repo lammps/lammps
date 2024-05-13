@@ -28,7 +28,7 @@ Syntax
        v_name[I] = value calculated by a vector-style variable with name, I can include wildcard (see below)
 
 * zero or more keyword/arg pairs may be appended
-* keyword = *mode* or *file* or *ave* or *start* or *off* or *overwrite* or *format* or *title1* or *title2* or *title3*
+* keyword = *mode* or *file* or *append* or *ave* or *start* or *off* or *overwrite* or *format* or *title1* or *title2* or *title3*
 
   .. parsed-literal::
 
@@ -45,6 +45,8 @@ Syntax
          M = value # from 1 to Nvalues
        *file* arg = filename
          filename = name of file to output time averages to
+       *append* arg = filename
+         filename = name of file to append time averages to
        *overwrite* arg = none = overwrite output file with only latest output
        *format* arg = string
          string = C-style format string
@@ -270,16 +272,21 @@ are effectively constant or are simply current values (e.g., they are
 being written to a file with other time-averaged values for purposes
 of creating well-formatted output).
 
-The *file* keyword allows a filename to be specified.  Every *Nfreq*
-steps, one quantity or vector of quantities is written to the file for
-each input value specified in the fix ave/time command.  For *mode* =
-scalar, this means a single line is written each time output is
-performed.  Thus the file ends up to be a series of lines, i.e. one
-column of numbers for each input value.  For *mode* = vector, an array
-of numbers is written each time output is performed.  The number of rows
-is the length of the input vectors, and the number of columns is the
-number of values.  Thus the file ends up to be a series of these array
-sections.
+.. versionadded:: 17Apr2024
+   new keyword *append*
+
+The *file* or *append* keywords allow a filename to be specified.  If
+*file* is used, then the filename is overwritten if it already exists.
+If *append* is used, then the filename is appended to if it already
+exists, or created if it does not exist.  Every *Nfreq* steps, one
+quantity or vector of quantities is written to the file for each input
+value specified in the fix ave/time command.  For *mode* = scalar, this
+means a single line is written each time output is performed.  Thus the
+file ends up to be a series of lines, i.e. one column of numbers for
+each input value.  For *mode* = vector, an array of numbers is written
+each time output is performed.  The number of rows is the length of the
+input vectors, and the number of columns is the number of values.  Thus
+the file ends up to be a series of these array sections.
 
 .. versionadded:: 4May2022
 

@@ -2,4 +2,4 @@
 
 gpu_SYSINC =
 gpu_SYSLIB = -lOpenCL
-gpu_SYSPATH = 
+gpu_SYSPATH =

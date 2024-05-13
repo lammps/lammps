@@ -1,0 +1,134 @@
+LAMMPS (21 Nov 2023 - Development - patch_21Nov2023-744-g031cef558e-modified)
+OMP_NUM_THREADS environment is not set. Defaulting to 1 thread. (src/comm.cpp:98)
+  using 1 OpenMP thread(s) per MPI task
+# script for mgpt t=0 eos in bulk bcc structure
+
+units           electron
+atom_style      atomic
+
+# Atomic volume for MGPT potential in a.u.
+variable        atomic_vol equal 121.6
+
+# Derive lattice constant from volume
+variable        lattice_constant equal (${atomic_vol}*2.0)^(1.0/3.0)
+variable        lattice_constant equal (121.6*2.0)^(1.0/3.0)
+
+# Create bcc lattice with 5x5x5 unit cells (250 atoms)
+lattice         bcc ${lattice_constant}
+lattice         bcc 6.24196300283154
+Lattice spacing in x,y,z = 6.241963 6.241963 6.241963
+region          box block 0 5 0 5 0 5
+create_box      1 box
+Created orthogonal box = (0 0 0) to (31.209815 31.209815 31.209815)
+  1 by 2 by 2 MPI processor grid
+create_atoms    1 box
+Created 250 atoms
+  using lattice units in orthogonal box = (0 0 0) to (31.209815 31.209815 31.209815)
+  create_atoms CPU = 0.000 seconds
+
+# Define potential for use in simulation
+pair_style      mgpt
+
+# Set parameters for potential:
+#                  parameter files  atomic volume
+#pair_coeff      * * parmin potin    ${atomic_vol}
+pair_coeff      * * Ta6.8x.mgpt.parmin Ta6.8x.mgpt.potin  ${atomic_vol}
+pair_coeff      * * Ta6.8x.mgpt.parmin Ta6.8x.mgpt.potin  121.6
+Reading potential file Ta6.8x.mgpt.potin with DATE: 2015-07-30
+
+# Create velocities at 0 K
+velocity        all create 0.0 87287
+
+# Set neighbor list parameters
+neighbor        0.1 bin
+neigh_modify    every 1 delay 0 check yes
+
+# Set up microcanonical integrator
+fix             1 all nve
+
+# Dump coordinates to file every 50 timesteps
+#dump            id all atom 50 dump.bcc0
+
+# Output thermodynamical data every 10 timesteps
+thermo          10
+
+# Set output quantities and output format
+thermo_style custom step vol temp pe etotal press
+
+## Example: Output floating point number with 5 digits exponential notation.
+#thermo_modify format float %15.5e
+
+# Run 0 timesteps
+run             0
+Generated 0 of 0 mixed pair_coeff terms from geometric mixing rule
+Neighbor list info ...
+  update: every = 1 steps, delay = 0 steps, check = yes
+  max neighbors/atom: 2000, page size: 100000
+  master list distance cutoff = 13.161827
+  ghost atom cutoff = 13.161827
+  binsize = 6.5809134, bins = 5 5 5
+  2 neighbor lists, perpetual/occasional/extra = 2 0 0
+  (1) pair mgpt, perpetual
+      attributes: full, newton on, ghost
+      pair build: full/bin/ghost
+      stencil: full/ghost/bin/3d
+      bin: standard
+  (2) pair mgpt, perpetual
+      attributes: half, newton on
+      pair build: half/bin/atomonly/newton
+      stencil: half/bin/3d
+      bin: standard
+Per MPI rank memory allocation (min/avg/max) = 3.73 | 3.73 | 3.73 Mbytes
+   Step         Volume          Temp          PotEng         TotEng         Press     
+         0   30400          0             -74.412503     -74.412503     -1.1594626e+09
+Loop time of 3.56525e-06 on 4 procs for 0 steps with 250 atoms
+
+119.2% CPU use with 4 MPI tasks x 1 OpenMP threads
+
+MPI task timing breakdown:
+Section |  min time  |  avg time  |  max time  |%varavg| %total
+---------------------------------------------------------------
+Pair    | 0          | 0          | 0          |   0.0 |  0.00
+Neigh   | 0          | 0          | 0          |   0.0 |  0.00
+Comm    | 0          | 0          | 0          |   0.0 |  0.00
+Output  | 0          | 0          | 0          |   0.0 |  0.00
+Modify  | 0          | 0          | 0          |   0.0 |  0.00
+Other   |            | 3.565e-06  |            |       |100.00
+
+Nlocal:           62.5 ave          65 max          60 min
+Histogram: 2 0 0 0 0 0 0 0 0 2
+Nghost:          868.5 ave         871 max         866 min
+Histogram: 2 0 0 0 0 0 0 0 0 2
+Neighs:           2000 ave        2110 max        1890 min
+Histogram: 2 0 0 0 0 0 0 0 0 2
+FullNghs:         4000 ave        4160 max        3840 min
+Histogram: 2 0 0 0 0 0 0 0 0 2
+
+Total # of neighbors = 16000
+Ave neighs/atom = 64
+Neighbor list builds = 0
+Dangerous builds = 0
+
+# Convert energy to rydbergs and pressure to gpa
+
+variable natoms equal "count(all)"
+variable voltot equal "vol"
+variable atvol equal "v_voltot/v_natoms"
+variable etot equal "2.0*pe"
+variable etotry equal "v_etot/v_natoms"
+variable ptot equal "press"
+variable ptotgpa equal "v_ptot/1.0e+09"
+
+print "number of atoms = ${natoms}"
+number of atoms = 250
+print "atomic volume (a.u.) = ${atvol}"
+atomic volume (a.u.) = 121.6
+print "total energy (ry/atom) = ${etotry}"
+total energy (ry/atom) = -0.595300024887348
+print "pressure (gpa) = ${ptotgpa}"
+pressure (gpa) = -1.15946260887575
+print "${natoms}   ${atvol}   ${etot}   ${ptotgpa}"
+250   121.6   -148.825006221837   -1.15946260887575
+print "${atvol}   ${etotry}   ${ptotgpa}"
+121.6   -0.595300024887348   -1.15946260887575
+Total wall time: 0:00:00

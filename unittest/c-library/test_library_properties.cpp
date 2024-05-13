@@ -335,7 +335,7 @@ TEST_F(LibraryProperties, setting)
         EXPECT_EQ(lammps_extract_setting(lmp, "mu_flag"), 0);
         EXPECT_EQ(lammps_extract_setting(lmp, "rmass_flag"), 0);
         EXPECT_EQ(lammps_extract_setting(lmp, "radius_flag"), 0);
-        EXPECT_EQ(lammps_extract_setting(lmp, "sphere_flag"), 0);
+        EXPECT_EQ(lammps_extract_setting(lmp, "sphere_flag"), -1);
         EXPECT_EQ(lammps_extract_setting(lmp, "ellipsoid_flag"), 0);
         EXPECT_EQ(lammps_extract_setting(lmp, "omega_flag"), 0);
         EXPECT_EQ(lammps_extract_setting(lmp, "torque_flag"), 0);

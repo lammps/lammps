@@ -203,6 +203,13 @@ class numpy_wrapper:
     It behaves the same as the original method, but returns NumPy arrays
     instead of ``ctypes`` pointers.
 
+    .. note::
+
+       When requesting global data, the fix data can only be accessed one
+       item at a time without access to the whole vector or array.  Thus this
+       function will always return a scalar.  To access vector or array elements
+       the "nrow" and "ncol" arguments need to be set accordingly (they default to 0).
+
     :param fid: fix ID
     :type fid:  string
     :param fstyle: style of the data retrieve (global, atom, or local), see :ref:`py_style_constants`

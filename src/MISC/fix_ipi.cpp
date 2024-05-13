@@ -368,14 +368,14 @@ void FixIPI::initial_integrate(int /*vflag*/)
   // ensure atoms are in current box & update box via shrink-wrap
   // has to be be done before invoking Irregular::migrate_atoms()
   //   since it requires atoms be inside simulation box
-  if (neighbor->ncalls == 0) { 
+  if (neighbor->ncalls == 0) {
     // just fold coordinates at the first step
     if (domain->triclinic) domain->x2lamda(atom->nlocal);
     domain->pbc();
     domain->reset_box();
     if (domain->triclinic) domain->lamda2x(atom->nlocal);
-  } else { 
-    // "unwraps" the trajectory because we have no guarantee of what has 
+  } else {
+    // "unwraps" the trajectory because we have no guarantee of what has
     // happened server-side to the atoms folding, and we want to have continuous
     // trajectories to build NL in a meaningful way and as rarely as possible
 

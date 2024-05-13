@@ -145,6 +145,7 @@ class Fix : protected Pointers {
 
   virtual void post_constructor() {}
   virtual void init() {}
+  void init_flags();
   virtual void init_list(int, class NeighList *) {}
   virtual void setup(int) {}
   virtual void setup_pre_exchange() {}

@@ -136,6 +136,7 @@ TEST_F(Advanced_utils, expand_args)
     }
 
     auto output = END_CAPTURE_OUTPUT();
+    if (verbose) std::cout << output << std::endl;
 
     char **args, **earg;
     constexpr int oarg = 9;

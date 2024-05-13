@@ -81,6 +81,7 @@ Fix::Fix(LAMMPS *lmp, int /*narg*/, char **arg) :
   diam_flag = 0;
 
   scalar_flag = vector_flag = array_flag = 0;
+  extscalar = extvector = extarray = -1;
   peratom_flag = local_flag = pergrid_flag = 0;
   global_freq = local_freq = peratom_freq = pergrid_freq = -1;
   size_vector_variable = size_array_rows_variable = 0;
@@ -124,6 +125,21 @@ Fix::~Fix()
   memory->destroy(eatom);
   memory->destroy(vatom);
   memory->destroy(cvatom);
+}
+
+/* ---------------------------------------------------------------------- */
+
+void Fix::init_flags()
+{
+   if (scalar_flag && (extscalar < 0))
+    error->all(FLERR, "Must set 'extscalar' when setting 'scalar_flag' for fix {}.  "
+               "Contact the developer.", style);
+  if (vector_flag && (extvector < 0) && !extlist)
+    error->all(FLERR, "Must set 'extvector' or 'extlist' when setting 'vector_flag' for fix {}.  "
+               "Contact the developer.", style);
+  if (array_flag && (extarray < 0))
+    error->all(FLERR, "Must set 'extarray' when setting 'array_flag' for fix {}.  "
+               "Contact the developer.", style);
 }
 
 /* ----------------------------------------------------------------------

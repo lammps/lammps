@@ -148,6 +148,8 @@ components of the vector represent the following quantities:
 * ...
 * N+2: The current global concentration of species *X* (= number of atoms of type *N* / total number of atoms)
 
+The vector values calculated by this fix are "intensive".
+
 Restrictions
 """"""""""""
 

@@ -75,7 +75,7 @@ As an example, if a LAMMPS simulation contains 2 atom types (elements
    pair_style uf3 3
    pair_coeff * * AB.uf3 A B
 
-The AB.uf3 file should conatin all two-body (A-A, A-B, B-B) and three-body
+The AB.uf3 file should contain all two-body (A-A, A-B, B-B) and three-body
 (A-A-A, A-A-B, A-B-B, B-A-A, B-A-B, B-B-B).
 
 If a value of "2" is specified in the :code:`pair_style uf3` command,

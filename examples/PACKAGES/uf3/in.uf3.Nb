@@ -4,7 +4,7 @@
 
 variable        nsteps index 100
 variable        nrep equal 4
-variable        a equal 3.187
+variable        a equal 3.3005
 units           metal
 
 # generate the box and atom positions using a BCC lattice
@@ -20,13 +20,12 @@ region          box block 0 ${nx} 0 ${ny} 0 ${nz}
 create_box      1 box
 create_atoms    1 box
 
-mass            1 183.84
+mass            1 92.906
 
 # # ============= set pair style
 
 pair_style      uf3 3
-pair_coeff      1 1 W_W.uf3
-pair_coeff      3b 1 1 1 W_W_W.uf3
+pair_coeff      * * Nb.uf3 Nb
 
 
 # # ============= Setup output

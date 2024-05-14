@@ -346,13 +346,14 @@ int FixReaxFFSpecies::setmask()
 void FixReaxFFSpecies::setup(int /*vflag*/)
 {
   ntotal = static_cast<int>(atom->natoms);
-  if (Name == nullptr) memory->create(Name, nutypes, "reaxff/species:Name");
 
   if (!eleflag) {
     for (int i = 0; i < ntypes; i++)
       eletype[i] = reaxff->eletype[i+1];
     GetUniqueElements();
   }
+  memory->destroy(Name);
+  memory->create(Name, nutypes, "reaxff/species:Name");
 
   post_integrate();
 }

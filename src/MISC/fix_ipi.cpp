@@ -368,37 +368,28 @@ void FixIPI::initial_integrate(int /*vflag*/)
   // ensure atoms are in current box & update box via shrink-wrap
   // has to be be done before invoking Irregular::migrate_atoms()
   //   since it requires atoms be inside simulation box
-  if (neighbor->ncalls == 0) {
-    // just fold coordinates at the first step
-    if (domain->triclinic) domain->x2lamda(atom->nlocal);
-    domain->pbc();
-    domain->reset_box();
-    if (domain->triclinic) domain->lamda2x(atom->nlocal);
-  } else {
-    // "unwraps" the trajectory because we have no guarantee of what has
-    // happened server-side to the atoms folding, and we want to have continuous
-    // trajectories to build NL in a meaningful way and as rarely as possible
 
-    auto xhold = neighbor->get_xhold();
-    for (int i = 0; i < nlocal; i++) {
-      if (mask[i] & groupbit) {
-        x[i][0] -= xhold[i][0];
-        x[i][1] -= xhold[i][1];
-        x[i][2] -= xhold[i][2];
-      }
-    }
-    // applies PBC to the displacements
-    if (domain->triclinic) domain->x2lamda(atom->nlocal);
-    domain->pbc();
-    domain->reset_box();
-    if (domain->triclinic) domain->lamda2x(atom->nlocal);
-    // recovers "unwrapped" positions
-    for (int i = 0; i < nlocal; i++) {
-      if (mask[i] & groupbit) {
-        x[i][0] += xhold[i][0];
-        x[i][1] += xhold[i][1];
-        x[i][2] += xhold[i][2];
-      }
+  // folds atomic coordinates close to the origin
+  if (domain->triclinic) domain->x2lamda(atom->nlocal);
+  domain->pbc();
+  domain->reset_box();
+  if (domain->triclinic) domain->lamda2x(atom->nlocal);
+
+  // ensures continuity of trajectories relative to the
+  // snapshot at neighbor list creation, minimizing the
+  // number of neighbor list updates
+  auto xhold = neighbor->get_xhold();
+  for (int i = 0; i < nlocal; i++) {
+    if (mask[i] & groupbit) {
+      auto delx = x[i][0] - xhold[i][0];
+      auto dely = x[i][1] - xhold[i][1];
+      auto delz = x[i][2] - xhold[i][2];
+
+      domain->minimum_image(delx, dely, delz);
+
+      x[i][0] = xhold[i][0] + delx;
+      x[i][1] = xhold[i][1] + dely;
+      x[i][2] = xhold[i][2] + delz;
     }
   }
 

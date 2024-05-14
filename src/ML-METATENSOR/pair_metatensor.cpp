@@ -144,7 +144,27 @@ void PairMetatensor::settings(int argc, char ** argv) {
             available_devices.push_back(torch::kCPU);
         } else if (device == "cuda") {
             if (torch::cuda::is_available()) {
-                available_devices.push_back(torch::Device("cuda"));
+                // Get a MPI communicator for all processes on the current node
+                MPI_Comm local;
+                MPI_Comm_split_type(world, MPI_COMM_TYPE_SHARED, 0, MPI_INFO_NULL, &local);
+                // Get the rank of this MPI process on the current node
+                int local_rank;
+                MPI_Comm_rank(local, &local_rank);
+
+                int size;
+                MPI_Comm_size(local, &size);
+                if (size < torch::cuda::device_count()) {
+                    if (comm->me == 0) {
+                        error->warning(FLERR,
+                            "found {} CUDA-capable GPUs, but only {} MPI processes on the current node; the remaining GPUs will not be used",
+                            torch::cuda::device_count(), size
+                        );
+                    }
+                }
+
+                // split GPUs between node-local processes using round-robin allocation
+                int gpu_to_use = local_rank % torch::cuda::device_count();
+                available_devices.push_back(torch::Device(torch::kCUDA, gpu_to_use));
             }
         } else if (device == "mps") {
             #if TORCH_VERSION_MAJOR >= 2

@@ -370,6 +370,13 @@ int MPI_Comm_split(MPI_Comm comm, int color, int key, MPI_Comm *comm_out)
 
 /* ---------------------------------------------------------------------- */
 
+int MPI_Comm_split_type(MPI_Comm comm, int split_type, int key, MPI_Info info, MPI_Comm *comm_out) {
+  *comm_out = comm + 1;
+  return 0;
+}
+
+/* ---------------------------------------------------------------------- */
+
 int MPI_Comm_dup(MPI_Comm comm, MPI_Comm *comm_out)
 {
   *comm_out = comm + 1;

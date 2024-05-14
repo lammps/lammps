@@ -58,12 +58,18 @@
 #define MPI_STATUS_IGNORE NULL
 
 #define MPI_Comm int
+#define MPI_Info int
 #define MPI_Request int
 #define MPI_Datatype int
 #define MPI_Op int
 #define MPI_Fint int
 #define MPI_Group int
 #define MPI_Offset long
+
+#define MPI_INFO_NULL 0
+
+// TODO: should all the COMM_TYPE be defined here?
+#define MPI_COMM_TYPE_SHARED 0xABCDEF01
 
 #define MPI_IN_PLACE NULL
 
@@ -114,6 +120,7 @@ int MPI_Sendrecv(const void *sbuf, int scount, MPI_Datatype sdatatype, int dest,
 int MPI_Get_count(MPI_Status *status, MPI_Datatype datatype, int *count);
 
 int MPI_Comm_split(MPI_Comm comm, int color, int key, MPI_Comm *comm_out);
+int MPI_Comm_split_type(MPI_Comm comm, int split_type, int key, MPI_Info info, MPI_Comm *comm_out);
 int MPI_Comm_dup(MPI_Comm comm, MPI_Comm *comm_out);
 int MPI_Comm_free(MPI_Comm *comm);
 MPI_Fint MPI_Comm_c2f(MPI_Comm comm);

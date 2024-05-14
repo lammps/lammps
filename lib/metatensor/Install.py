@@ -21,7 +21,7 @@ if sys.version_info < (3, 6):
 
 HERE = fullpath(".")
 METATENSOR_CORE_VERSION_DEFAULT = "0.1.7"
-METATENSOR_TORCH_VERSION_DEFAULT = "0.4.0"
+METATENSOR_TORCH_VERSION_DEFAULT = "0.5.1"
 LIBTORCH_VERSION_DEFAULT = "2.2.2"
 
 # known checksums for different versions. used to validate the download.
@@ -31,7 +31,8 @@ METATENSOR_CORE_CHECKSUMS = {
     "0.1.8": "22ae27fb3b26f356ca6e477326be6470",
 }
 METATENSOR_TORCH_CHECKSUMS = {
-    "0.4.0": "d10ddfaf0213ec351a4386aae7d89dd0",
+    "0.5.0": "8ef9e235bbd5db22520f3abdc110f904",
+    "0.5.1": "a4c535faae3a811784679a55b32d9dce",
 }
 
 GITHUB_RELEASES = "https://github.com/lab-cosmo/metatensor/releases/download"

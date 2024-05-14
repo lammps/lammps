@@ -68,7 +68,7 @@ void MetatensorSystemAdaptor::init_list(int id, NeighList* ptr) {
     list_ = ptr;
 }
 
-void MetatensorSystemAdaptor::add_nl_request(double cutoff, metatensor_torch::NeighborsListOptions request) {
+void MetatensorSystemAdaptor::add_nl_request(double cutoff, metatensor_torch::NeighborListOptions request) {
     if (cutoff > options_.interaction_range) {
         error->all(FLERR,
             "Invalid metatensor model: one of the requested neighbor lists "
@@ -339,7 +339,7 @@ void MetatensorSystemAdaptor::setup_neighbors(metatensor_torch::System& system) 
         );
 
         metatensor_torch::register_autograd_neighbors(system, neighbors, options_.check_consistency);
-        system->add_neighbors_list(cache.options, neighbors);
+        system->add_neighbor_list(cache.options, neighbors);
     }
 }
 

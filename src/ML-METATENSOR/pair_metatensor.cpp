@@ -312,11 +312,11 @@ void PairMetatensor::init_style() {
     };
     this->system_adaptor = std::make_unique<MetatensorSystemAdaptor>(lmp, this, options);
 
-    // Translate from the metatensor neighbors lists requests to LAMMPS
-    // neighbors lists requests.
-    auto requested_nl = this->torch_model->run_method("requested_neighbors_lists");
+    // Translate from the metatensor neighbor lists requests to LAMMPS neighbor
+    // lists requests.
+    auto requested_nl = this->torch_model->run_method("requested_neighbor_lists");
     for (const auto& ivalue: requested_nl.toList()) {
-        auto options = ivalue.get().toCustomClass<metatensor_torch::NeighborsListOptionsHolder>();
+        auto options = ivalue.get().toCustomClass<metatensor_torch::NeighborListOptionsHolder>();
         auto cutoff = options->engine_cutoff(this->evaluation_options->length_unit());
 
         this->system_adaptor->add_nl_request(cutoff, options);

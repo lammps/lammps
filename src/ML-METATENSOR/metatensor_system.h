@@ -60,7 +60,7 @@ struct MetatensorNeighborsData {
     // cutoff for this NL in LAMMPS units
     double cutoff;
     // options of the NL as requested by the model
-    metatensor_torch::NeighborsListOptions options;
+    metatensor_torch::NeighborListOptions options;
 
     // Below are cached allocations for the LAMMPS -> metatensor NL translation
     // TODO: report memory usage for these?
@@ -84,7 +84,7 @@ public:
 
     void init_list(int id, NeighList* ptr);
 
-    void add_nl_request(double cutoff, metatensor_torch::NeighborsListOptions request);
+    void add_nl_request(double cutoff, metatensor_torch::NeighborListOptions request);
 
     // Create a metatensor system matching the LAMMPS system data
     metatensor_torch::System system_from_lmp(bool do_virial, torch::ScalarType dtype, torch::Device device);

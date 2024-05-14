@@ -71,7 +71,11 @@ if(DOWNLOAD_KOKKOS)
   add_dependencies(LAMMPS::KOKKOSCORE kokkos_build)
   add_dependencies(LAMMPS::KOKKOSCONTAINERS kokkos_build)
 elseif(EXTERNAL_KOKKOS)
-  find_package(Kokkos 4.3.00 REQUIRED CONFIG)
+  if(Kokkos_ENABLE_COMPILE_AS_CMAKE_LANGUAGE)
+    find_package(Kokkos 4.3.00 REQUIRED CONFIG COMPONENTS separable_compilation)
+  else()
+    find_package(Kokkos 4.3.00 REQUIRED CONFIG)
+  endif()
   target_link_libraries(lammps PRIVATE Kokkos::kokkos)
 else()
   set(LAMMPS_LIB_KOKKOS_SRC_DIR ${LAMMPS_LIB_SOURCE_DIR}/kokkos)
@@ -86,12 +90,7 @@ else()
   endif()
   add_subdirectory(${LAMMPS_LIB_KOKKOS_SRC_DIR} ${LAMMPS_LIB_KOKKOS_BIN_DIR} EXCLUDE_FROM_ALL)
 
-  set(Kokkos_INCLUDE_DIRS ${LAMMPS_LIB_KOKKOS_SRC_DIR}/core/src
-                          ${LAMMPS_LIB_KOKKOS_SRC_DIR}/containers/src
-                          ${LAMMPS_LIB_KOKKOS_SRC_DIR}/algorithms/src
-                          ${LAMMPS_LIB_KOKKOS_BIN_DIR})
-  target_include_directories(lammps PRIVATE ${Kokkos_INCLUDE_DIRS})
-  target_link_libraries(lammps PRIVATE kokkos)
+  target_link_libraries(lammps PRIVATE Kokkos::kokkos)
   if(BUILD_SHARED_LIBS_WAS_ON)
     set(BUILD_SHARED_LIBS ON)
   endif()
@@ -205,6 +204,72 @@ if(PKG_DPD-REACT)
 endif()
 
 get_property(KOKKOS_PKG_SOURCES GLOBAL PROPERTY KOKKOS_PKG_SOURCES)
+
+if(Kokkos_ENABLE_COMPILE_AS_CMAKE_LANGUAGE)
+  if(Kokkos_ENABLE_CUDA)
+    set(Kokkos_COMPILE_LANGUAGE CUDA)
+  elseif(Kokkos_ENABLE_HIP)
+    set(Kokkos_COMPILE_LANGUAGE HIP)
+  endif()
+  enable_language(${Kokkos_COMPILE_LANGUAGE})
+  set_source_files_properties(
+    ${KOKKOS_PKG_SOURCES}
+    ${LAMMPS_SOURCE_DIR}/atom.cpp
+    ${LAMMPS_SOURCE_DIR}/comm.cpp
+    ${LAMMPS_SOURCE_DIR}/domain.cpp
+    ${LAMMPS_SOURCE_DIR}/error.cpp
+    ${LAMMPS_SOURCE_DIR}/finish.cpp
+    ${LAMMPS_SOURCE_DIR}/force.cpp
+    ${LAMMPS_SOURCE_DIR}/imbalance_neigh.cpp
+    ${LAMMPS_SOURCE_DIR}/input.cpp
+    ${LAMMPS_SOURCE_DIR}/replicate.cpp
+    ${LAMMPS_SOURCE_DIR}/lammps.cpp
+    ${LAMMPS_SOURCE_DIR}/special.cpp
+    ${LAMMPS_SOURCE_DIR}/info.cpp
+    ${LAMMPS_SOURCE_DIR}/library.cpp
+    ${LAMMPS_SOURCE_DIR}/modify.cpp
+    ${LAMMPS_SOURCE_DIR}/neighbor.cpp
+    ${LAMMPS_SOURCE_DIR}/update.cpp
+    ${LAMMPS_SOURCE_DIR}/DPD-REACT/fix_shardlow.cpp
+    # due to LAMMPS_INLINE (coming from accerlator_kokkos.h)
+    ${LAMMPS_SOURCE_DIR}/REAXFF/reaxff_init_md.cpp
+    ${LAMMPS_SOURCE_DIR}/REAXFF/compute_reaxff_atom.cpp
+    ${LAMMPS_SOURCE_DIR}/REAXFF/compute_spec_atom.cpp
+    ${LAMMPS_SOURCE_DIR}/REAXFF/fix_acks2_reaxff.cpp
+    ${LAMMPS_SOURCE_DIR}/REAXFF/fix_qeq_reaxff.cpp
+    ${LAMMPS_SOURCE_DIR}/REAXFF/fix_reaxff_bonds.cpp
+    ${LAMMPS_SOURCE_DIR}/REAXFF/fix_reaxff.cpp
+    ${LAMMPS_SOURCE_DIR}/REAXFF/fix_reaxff_species.cpp
+    ${LAMMPS_SOURCE_DIR}/REAXFF/pair_reaxff.cpp
+    ${LAMMPS_SOURCE_DIR}/REAXFF/reaxff_allocate.cpp
+    ${LAMMPS_SOURCE_DIR}/REAXFF/reaxff_bond_orders.cpp
+    ${LAMMPS_SOURCE_DIR}/REAXFF/reaxff_bonds.cpp
+    ${LAMMPS_SOURCE_DIR}/REAXFF/reaxff_control.cpp
+    ${LAMMPS_SOURCE_DIR}/REAXFF/reaxff_ffield.cpp
+    ${LAMMPS_SOURCE_DIR}/REAXFF/reaxff_forces.cpp
+    ${LAMMPS_SOURCE_DIR}/REAXFF/reaxff_hydrogen_bonds.cpp
+    ${LAMMPS_SOURCE_DIR}/REAXFF/reaxff_init_md.cpp
+    ${LAMMPS_SOURCE_DIR}/REAXFF/reaxff_list.cpp
+    ${LAMMPS_SOURCE_DIR}/REAXFF/reaxff_lookup.cpp
+    ${LAMMPS_SOURCE_DIR}/REAXFF/reaxff_multi_body.cpp
+    ${LAMMPS_SOURCE_DIR}/REAXFF/reaxff_nonbonded.cpp
+    ${LAMMPS_SOURCE_DIR}/REAXFF/reaxff_reset_tools.cpp
+    ${LAMMPS_SOURCE_DIR}/REAXFF/reaxff_tool_box.cpp
+    ${LAMMPS_SOURCE_DIR}/REAXFF/reaxff_torsion_angles.cpp
+    ${LAMMPS_SOURCE_DIR}/REAXFF/reaxff_valence_angles.cpp
+    ${LAMMPS_SOURCE_DIR}/OPENMP/reaxff_bond_orders_omp.cpp
+    ${LAMMPS_SOURCE_DIR}/OPENMP/reaxff_bonds_omp.cpp
+    ${LAMMPS_SOURCE_DIR}/OPENMP/reaxff_forces_omp.cpp
+    ${LAMMPS_SOURCE_DIR}/OPENMP/reaxff_hydrogen_bonds_omp.cpp
+    ${LAMMPS_SOURCE_DIR}/OPENMP/reaxff_init_md_omp.cpp
+    ${LAMMPS_SOURCE_DIR}/OPENMP/reaxff_multi_body_omp.cpp
+    ${LAMMPS_SOURCE_DIR}/OPENMP/reaxff_nonbonded_omp.cpp
+    ${LAMMPS_SOURCE_DIR}/OPENMP/reaxff_torsion_angles_omp.cpp
+    ${LAMMPS_SOURCE_DIR}/OPENMP/reaxff_valence_angles_omp.cpp
+    ${LAMMPS_SOURCE_DIR}/OPENMP/pair_reaxff_omp.cpp
+    PROPERTIES LANGUAGE ${Kokkos_COMPILE_LANGUAGE}
+  )
+endif()
 
 target_sources(lammps PRIVATE ${KOKKOS_PKG_SOURCES})
 target_include_directories(lammps PUBLIC $<BUILD_INTERFACE:${KOKKOS_PKG_SOURCES_DIR}>)

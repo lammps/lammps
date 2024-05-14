@@ -1388,6 +1388,10 @@
 /pair_peri_ves.h
 /pair_quip.cpp
 /pair_quip.h
+/pair_metatensor.cpp
+/pair_metatensor.h
+/metatensor_system.cpp
+/metatensor_system.h
 /pair_reaxff.cpp
 /pair_reaxff.h
 /pair_rebo.cpp
@@ -1749,4 +1753,3 @@
 /pair_smtbq.h
 /pair_vashishta*.cpp
 /pair_vashishta*.h
-

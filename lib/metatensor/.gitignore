@@ -1,0 +1,6 @@
+virtualenv/
+*.tar.gz
+metatensor-core/
+metatensor-torch/
+
+usr/

@@ -39,13 +39,12 @@ Description
 """""""""""
 
 Pair style *metatensor* provides access to models following `metatensor's
-atomistic models
-<https://lab-cosmo.github.io/metatensor/latest/atomistic/index.html>` interface;
-and enable using such models as interatomic potentials to drive a LAMMPS
-simulation. The models can be fully defined and trained by the user using Python
-code, or be existing pre-trained models. The interface can be used with any type
-of machine learning model, as long as the implementation of the model is
-compatible with TorchScript.
+atomistic models <https://docs.metatensor.org/latest/atomistic/index.html>`
+interface; and enable using such models as interatomic potentials to drive a
+LAMMPS simulation. The models can be fully defined and trained by the user using
+Python code, or be existing pre-trained models. The interface can be used with
+any type of machine learning model, as long as the implementation of the model
+is compatible with TorchScript.
 
 The only required argument for *pair_style metatensor* is the path to the model
 file, which should be an exported metatensor model.

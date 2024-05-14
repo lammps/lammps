@@ -1,0 +1,23 @@
+# ML-METATENSOR
+
+The files in this directory are helpers to install all the dependencies of the
+ML-METATENSOR package:
+
+- the C++ version of libtorch;
+- the core metatensor library;
+- the metatensor_torch library;
+
+You can type "make lib-metatensor" from the src directory to see help on how to
+download and build this library via make commands, or you can do the same thing
+by typing "python Install.py" from within this directory. There are many options
+you can set to choose where to install the libraries and whether to download
+pre-built versions or compile your own.
+
+Alternatively, you can download and build the above dependencies (see
+https://docs.metatensor.org/latest/installation.html for information on how to
+do this) somewhere on your system; and then make a copy of
+`Makefile.lammps.empty` named `Makefile.lammps`, and edit it to add the right
+flags for your compiler. You'll need to add the three libraries above to the
+include search path, library search path; and you'll need to link LAMMPS with
+the `torch`, `c10`, (optionally `torch_cuda` and `c10_cuda` for GPU support),
+`metatensor` and `metatensor_torch` libraries.

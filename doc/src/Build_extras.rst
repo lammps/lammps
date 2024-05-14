@@ -1029,7 +1029,25 @@ https://pytorch.org/get-started/locally/.
 
    .. tab:: Traditional make
 
-      This is not yet implemented, use CMake for now.
+      You can either download and build metatensor (and it's dependencies)
+      inside the `lib/metatensor` folder or use previously installed libraries
+      and point LAMMPS to their location.
+
+      All the dependencies can be automatically downloaded and built from the
+      `src` folder with the followig make arguments:
+
+      .. code-block:: bash
+
+         make lib-metatensor           # print help message
+         make lib-metatensor args="-b" # download dependencies in lib/metatensor, and create the corresponding Makefile.lammps
+
+      Once this is done, you can install the metatensor package and compile
+      LAMMPS in the usual manner:
+
+      .. code-block:: bash
+
+         make yes-metatensor
+         make <machine>
 
 ----------
 

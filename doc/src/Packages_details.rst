@@ -1803,7 +1803,7 @@ custom Python code, use separate packages such as `metatensor-models`_ to train
 existing architectures with their own dataset; or use pre-trained models
 provided by others.
 
-.. _metatensor interface: https://lab-cosmo.github.io/metatensor/latest/atomistic/index.html
+.. _metatensor interface: https://docs.metatensor.org/latest/atomistic/index.html
 .. _PyTorch: https://pytorch.org/
 .. _metatensor-models: https://github.com/lab-cosmo/metatensor-models/
 

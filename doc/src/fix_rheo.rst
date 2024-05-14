@@ -17,7 +17,7 @@ Syntax
 * zmin = minimal number of neighbors for reproducing kernels
 * zero or more keyword/value pairs may be appended to args
 * keyword = *thermal* or *interface/reconstruct* or *surface/detection* or
-            *shift* or *rho/sum* or *density* or *speed/sound*
+            *shift* or *rho/sum* or *density* or *self/mass* or *speed/sound*
 
   .. parsed-literal::
 
@@ -29,6 +29,7 @@ Syntax
          *limit/splash* = threshold for splash particles
        *shift* values = none, turns on velocity shifting
        *rho/sum* values = none, uses the kernel to compute the density of particles
+       *self/mass* values = none, a particle uses its own mass in a rho summation
        *density* values = *rho01*, ... *rho0N* (density)
        *speed/sound* values = *cs0*, ... *csN* (velocity)
 
@@ -106,24 +107,38 @@ threshold for this classification is set by the numerical value of
 
 By default, RHEO integrates particles' densities using a mass diffusion
 equation. Alternatively, one can update densities every timestep by performing
-a kernel summation of the masses of neighboring particles by specifying the *rho/sum* keyword.
+a kernel summation of the masses of neighboring particles by specifying the *rho/sum*
+keyword.
 
-The *density* is used to specify the equilbrium density of each of the N
+The *self/mass* keyword modifies the behavior of the density summation in *rho/sum*.
+Typically, the density :math:`\rho` of a particle is calculated as the sum
+
+.. math::
+   \rho_i = \Sum_{j} W_{ij} M_j
+
+where the summation is over neighbors, :math:`W_{ij}` is the kernel, and :math:`M_j`
+is the mass of particle :math:`j`. The *self/mass* keyword augments this expression
+by replacing :math:`M_j` with :math:`M_i`. This may be useful in simulations of
+multiple fluid phases with large differences in density, :ref:`(Hu) <fix_rheo_hu>`.
+
+The *density* keyword is used to specify the equilbrium density of each of the N
 particle types. It must be followed by N numerical values specifying each
 type's equilibrium density *rho0*.
 
-The *density* is used to specify the speed of sound of each of the N particle
-types. It must be followed by N numerical values specifying each type's speed
-of sound *cs*.
+The *speed/sound* keyword is used to specify the speed of sound of each of the
+N particle types. It must be followed by N numerical values specifying each
+type's speed of sound *cs*.
 
 Restart, fix_modify, output, run start/stop, minimize info
 """""""""""""""""""""""""""""""""""""""""""""""""""""""""""
 
-No information about this fix is written to :doc:`binary restart files <restart>`.  None of the :doc:`fix_modify <fix_modify>` options
+No information about this fix is written to :doc:`binary restart files <restart>`.
+None of the :doc:`fix_modify <fix_modify>` options
 are relevant to this fix.  No global or per-atom quantities are stored
 by this fix for access by various :doc:`output commands <Howto_output>`.
 No parameter of this fix can be used with the *start/stop* keywords of
-the :doc:`run <run>` command.  This fix is not invoked during :doc:`energy minimization <minimize>`.
+the :doc:`run <run>` command.  This fix is not invoked during
+:doc:`energy minimization <minimize>`.
 
 Restrictions
 """"""""""""
@@ -138,7 +153,8 @@ set to all. Only one instance of fix rheo may be defined and it
 must be defined prior to all other RHEO fixes.
 
 This fix is part of the RHEO package.  It is only enabled if
-LAMMPS was built with that package.  See the :doc:`Build package <Build_package>` page for more info.
+LAMMPS was built with that package.  See the
+:doc:`Build package <Build_package>` page for more info.
 
 Related commands
 """"""""""""""""
@@ -156,6 +172,10 @@ Default
 
 ----------
 
-.. _howto-howto_rheo_palermo:
+.. _howto_rheo_palermo:
 
 **(Palermo)** Palermo, Clemmer, Wolf, O'Connor, in preparation.
+
+.. _fix_rheo_hu:
+
+**(Hu)** Hu, and Adams J. Comp. Physics, 213, 844-861 (2006).

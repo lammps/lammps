@@ -35,7 +35,9 @@ using namespace LAMMPS_NS;
 ComputeRHEORhoSum::ComputeRHEORhoSum(LAMMPS *lmp, int narg, char **arg) :
   Compute(lmp, narg, arg), fix_rheo(nullptr), compute_kernel(nullptr)
 {
-  if (narg != 3) error->all(FLERR,"Illegal compute RHEO/rho command");
+  if (narg != 4) error->all(FLERR,"Illegal compute RHEO/rho command");
+
+  self_mass_flag = utils::bnumeric(FLERR, arg[3], false, lmp);
 
   comm_forward = 1;
   comm_reverse = 1;
@@ -117,9 +119,15 @@ void ComputeRHEORhoSum::compute_peratom()
       rsq = delx * delx + dely * dely + delz * delz;
       if (rsq < cutsq) {
         w = compute_kernel->calc_w(i, j, delx, dely, delz, sqrt(rsq));
-        rho[i] += w * mass[type[i]];
-        if (newton || j < nlocal) {
-          rho[j] += w * mass[type[j]];
+
+        if (self_mass_flag) {
+          rho[i] += w * mass[type[i]];
+          if (newton || j < nlocal)
+            rho[j] += w * mass[type[j]];
+        } else {
+          rho[i] += w * mass[type[j]];
+          if (newton || j < nlocal)
+            rho[j] += w * mass[type[i]];
         }
       }
     }

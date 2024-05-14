@@ -141,6 +141,10 @@ void FixRHEOOxidation::setup_pre_force(int /*vflag*/)
 
 void FixRHEOOxidation::pre_force(int /*vflag*/)
 {
+  int *status = atom->status;
+  for (int i = 0; i < atom->nlocal; i++)
+    if (num_bond[i] != 0)
+      status[i] |= STATUS_NO_SHIFT;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -215,7 +219,7 @@ void FixRHEOOxidation::post_integrate()
       if (bflag) continue;
 
       // Add bonds to owned atoms
-      // If newton bond, add to both, otherwise add to whichever has a smaller tag
+      // If newton bond off, add to both, otherwise add to whichever has a smaller tag
 
       if (!newton_bond || tagi < tagj) {
         if (num_bond[i] == atom->bond_per_atom)

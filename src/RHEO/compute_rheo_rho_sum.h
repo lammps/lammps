@@ -39,6 +39,7 @@ class ComputeRHEORhoSum : public Compute {
   class FixRHEO *fix_rheo;
 
  private:
+  int self_mass_flag;
   double cut, cutsq;
 
   class NeighList *list;

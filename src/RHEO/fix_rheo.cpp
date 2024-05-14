@@ -60,6 +60,7 @@ FixRHEO::FixRHEO(LAMMPS *lmp, int narg, char **arg) :
   interface_flag = 0;
   surface_flag = 0;
   oxidation_flag = 0;
+  self_mass_flag = 0;
 
   int i;
   int n = atom->ntypes;
@@ -124,6 +125,8 @@ FixRHEO::FixRHEO(LAMMPS *lmp, int narg, char **arg) :
       interface_flag = 1;
     } else if (strcmp(arg[iarg], "rho/sum") == 0) {
       rhosum_flag = 1;
+    } else if (strcmp(arg[iarg], "self/mass")) {
+      self_mass_flag = 1;
     } else if (strcmp(arg[iarg], "density") == 0) {
       if (iarg + n >= narg) error->all(FLERR, "Illegal rho0 option in fix rheo");
       for (i = 1; i <= n; i++)
@@ -141,6 +144,9 @@ FixRHEO::FixRHEO(LAMMPS *lmp, int narg, char **arg) :
     }
     iarg += 1;
   }
+
+  if (self_mass_flag && !rhosum_flag)
+    error->all(FLERR, "Cannot use self/mass setting without rho/sum");
 
   if (lmp->citeme) lmp->citeme->add(cite_rheo);
 }
@@ -178,7 +184,7 @@ void FixRHEO::post_constructor()
 
   if (rhosum_flag) {
     compute_rhosum = dynamic_cast<ComputeRHEORhoSum *>(modify->add_compute(
-      "rheo_rhosum all RHEO/RHO/SUM"));
+      fmt::format("rheo_rhosum all RHEO/RHO/SUM {}", self_mass_flag)));
     compute_rhosum->fix_rheo = this;
   }
 

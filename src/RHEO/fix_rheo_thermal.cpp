@@ -674,7 +674,7 @@ void FixRHEOThermal::create_bonds()
       if (rsq > cutsq_bond) continue;
 
       // Add bonds to owned atoms
-      // If newton bond, add to both, otherwise add to whichever has a smaller tag
+      // If newton bond off, add to both, otherwise add to whichever has a smaller tag
       if (i < nlocal && (!newton_bond || tag[i] < tag[j])) {
         if (num_bond[i] == atom->bond_per_atom)
           error->one(FLERR,"New bond exceeded bonds per atom in fix rheo/thermal");

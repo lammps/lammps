@@ -41,6 +41,7 @@ class FixRHEO : public Fix {
   // Model parameters
   double h, cut;
   double *rho0, *csq;
+  int self_mass_flag;
   int zmin_kernel, zmin_surface, zmin_splash;
   int kernel_style, surface_style;
   double divr_surface;

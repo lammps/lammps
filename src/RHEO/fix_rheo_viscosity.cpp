@@ -56,6 +56,7 @@ FixRHEOViscosity::FixRHEOViscosity(LAMMPS *lmp, int narg, char **arg) :
   memory->create(gd0, n + 1, "rheo:gd0");
   memory->create(K, n + 1, "rheo:K");
   memory->create(npow, n + 1, "rheo:npow");
+  memory->create(tau0, n + 1, "rheo:tau0");
   for (i = 1; i <= n; i++) viscosity_style[i] = NONE;
 
   int iarg = 3;
@@ -76,7 +77,7 @@ FixRHEOViscosity::FixRHEOViscosity(LAMMPS *lmp, int narg, char **arg) :
         viscosity_style[i] = CONSTANT;
         eta[i] = eta_one;
       }
-    } else if (strcmp(arg[iarg], "power") == 0) {
+    } else if (strcmp(arg[iarg + 1], "power") == 0) {
       if (iarg + 5 >= narg) utils::missing_cmd_args(FLERR, "fix rheo/viscosity power", error);
 
       comm_forward = 1;

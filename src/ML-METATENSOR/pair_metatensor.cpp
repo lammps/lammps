@@ -465,6 +465,10 @@ void PairMetatensor::load_torch_model(
     auto capabilities_ivalue = this->torch_model->run_method("capabilities");
     this->capabilities = capabilities_ivalue.toCustomClass<metatensor_torch::ModelCapabilitiesHolder>();
 
+    if (!this->capabilities->outputs().contains("energy")) {
+        error->all(FLERR, "the model at '{}' does not have an \"energy\" output, we can not use it in pair_style metatensor", path);
+    }
+
     if (lmp->comm->me == 0) {
         auto metadata_ivalue = this->torch_model->run_method("metadata");
         auto metadata = metadata_ivalue.toCustomClass<metatensor_torch::ModelMetadataHolder>();

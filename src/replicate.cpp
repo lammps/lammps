@@ -45,7 +45,7 @@ Replicate::Replicate(LAMMPS *lmp) : Command(lmp) {}
 
 void Replicate::command(int narg, char **arg)
 {
-  int i,j,m,n;
+  int i,n;
 
   if (domain->box_exist == 0)
     error->all(FLERR,"Replicate command before simulation box is defined");

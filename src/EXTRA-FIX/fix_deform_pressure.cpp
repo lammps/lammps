@@ -438,8 +438,6 @@ void FixDeformPressure::init()
   // error if style PRESSURE/ERATEER for yz, can't calculate if box flip occurs
 
   if (set[3].style && set[5].style) {
-    int flag = 0;
-    double lo,hi;
     if (flipflag && set[3].style == PRESSURE)
       error->all(FLERR, "Fix {} cannot use yz pressure with xy", style);
     if (flipflag && set[3].style == ERATERS)

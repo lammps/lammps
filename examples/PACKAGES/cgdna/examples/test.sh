@@ -18,7 +18,7 @@ if [ $# -eq 1 ] && [ $1 = run ]; then
   make -j8 mpi | tee -a $EXDIR/test.log
 
   ######################################################
-  echo '# Running oxDNA duplex1 test' | tee -a $EXDIR/test.log
+  printf '\n# Running oxDNA duplex1 test\n' | tee -a $EXDIR/test.log
   cd $EXDIR/oxDNA/duplex1
   mkdir test
   cd test
@@ -53,7 +53,7 @@ if [ $# -eq 1 ] && [ $1 = run ]; then
   ######################################################
 
   ######################################################
-  echo '# Running oxDNA duplex2 test' | tee -a $EXDIR/test.log
+  printf '\n# Running oxDNA duplex2 test\n' | tee -a $EXDIR/test.log
   cd $EXDIR/oxDNA/duplex2
   mkdir test
   cd test
@@ -88,7 +88,7 @@ if [ $# -eq 1 ] && [ $1 = run ]; then
   ######################################################
 
   ######################################################
-  echo '# Running oxDNA2 duplex1 test' | tee -a $EXDIR/test.log
+  printf '\n# Running oxDNA2 duplex1 test\n' | tee -a $EXDIR/test.log
   cd $EXDIR/oxDNA2/duplex1
   mkdir test
   cd test
@@ -123,7 +123,7 @@ if [ $# -eq 1 ] && [ $1 = run ]; then
   ######################################################
 
   ######################################################
-  echo '# Running oxDNA2 duplex2 test' | tee -a $EXDIR/test.log
+  printf '\n# Running oxDNA2 duplex2 test\n' | tee -a $EXDIR/test.log
   cd $EXDIR/oxDNA2/duplex2
   mkdir test
   cd test
@@ -158,7 +158,7 @@ if [ $# -eq 1 ] && [ $1 = run ]; then
   ######################################################
 
   ######################################################
-  echo '# Running oxDNA2 duplex3 test' | tee -a $EXDIR/test.log
+  printf '\n# Running oxDNA2 duplex3 test\n' | tee -a $EXDIR/test.log
   cd $EXDIR/oxDNA2/duplex3
   mkdir test
   cd test
@@ -193,7 +193,7 @@ if [ $# -eq 1 ] && [ $1 = run ]; then
   ######################################################
 
   ######################################################
-  echo '# Running oxDNA2 unique_bp test' | tee -a $EXDIR/test.log
+  printf '\n# Running oxDNA2 unique_bp test\n' | tee -a $EXDIR/test.log
   cd $EXDIR/oxDNA2/unique_bp
   mkdir test
   cd test
@@ -254,7 +254,7 @@ if [ $# -eq 1 ] && [ $1 = run ]; then
   ######################################################
 
   ######################################################
-  echo '# Running oxDNA2 dsring test' | tee -a $EXDIR/test.log
+  printf'\n# Running oxDNA2 dsring test\n' | tee -a $EXDIR/test.log
   cd $EXDIR/oxDNA2/dsring
   mkdir test
   cd test
@@ -289,7 +289,7 @@ if [ $# -eq 1 ] && [ $1 = run ]; then
   ######################################################
 
   ######################################################
-  echo '# Running oxRNA2 duplex2 test' | tee -a $EXDIR/test.log
+  printf '\n# Running oxRNA2 duplex2 test\n' | tee -a $EXDIR/test.log
   cd $EXDIR/oxRNA2/duplex2
   mkdir test
   cd test

@@ -167,6 +167,7 @@ void BondOxdnaFene::compute(int eflag, int vflag)
   int nlocal = atom->nlocal;
   int newton_bond = force->newton_bond;
 
+  const double rlogarg_min = 0.1;
   ebond = 0.0;
   ev_init(eflag, vflag);
 
@@ -219,24 +220,40 @@ void BondOxdnaFene::compute(int eflag, int vflag)
     Deltasq = Delta[type] * Delta[type];
     rlogarg = 1.0 - rr0sq / Deltasq;
 
-    // if r -> Delta, then rlogarg < 0.0 which is an error
-    // issue a warning and reset rlogarg = epsilon
-    // if r > 2*Delta something serious is wrong, abort
+    // energy
+    if (eflag) {
+      ebond = -0.5 * k[type] * log(rlogarg);
+    }
 
-    if (rlogarg < 0.1) {
+    if (rlogarg < rlogarg_min) {
+      // if r-r0 -> Delta, then rlogarg < 0.0 which is an error
+      // issue warning and reset rlogarg = rlogarg_min to cap force to
+      // F_max = F(r_max) = F(r_min) = F(r_0 +/- Delta*sqrt(1-rlogarg_min))
       error->warning(FLERR, "FENE bond too long: {} {} {} {}", update->ntimestep, atom->tag[a],
                      atom->tag[b], r);
-      rlogarg = 0.1;
+      rlogarg = rlogarg_min;
+
+      // energy of capped force potential if r > r_max and r < r_min
+      if (eflag) {
+        // if overstretched  E(r) = E(r_max) + F_max * (r-r_max)
+        if (r > r0[type]) {
+          ebond = -0.5 * k[type] * log(rlogarg) +
+                   k[type] * sqrt(1.0-rlogarg) / rlogarg / Delta[type] *
+                  (r - r0[type] - Delta[type] * sqrt(1.0-rlogarg));
+        }
+        // if overcompressed E(r) = E(r_min) + F_max * (r_min - r)
+        if (r < r0[type]) {
+          ebond = -0.5 * k[type] * log(rlogarg) +
+                   k[type] * sqrt(1.0-rlogarg) / rlogarg / Delta[type] *
+                  (r0[type] - Delta[type] * sqrt(1.0-rlogarg) - r);
+        }
+      }
     }
 
     fbond = -k[type] * rr0 / rlogarg / Deltasq / r;
     delf[0] = delr[0] * fbond;
     delf[1] = delr[1] * fbond;
     delf[2] = delr[2] * fbond;
-
-    // energy
-
-    if (eflag) { ebond = -0.5 * k[type] * log(rlogarg); }
 
     // apply force and torque to each of 2 atoms
 

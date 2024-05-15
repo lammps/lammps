@@ -30,7 +30,7 @@ if [ $# -eq 1 ] && [ $1 = run ]; then
   mv log.lammps log.$DATE.duplex1.g++.1
   grep etot log.$DATE.duplex1.g++.1 > e_test.1.dat
   grep etot ../log*1 > e_old.1.dat
-  ndiff -relerr $TOL e_test.1.dat e_old.1.dat | tee -a $EXDIR/test.log
+  ndiff -relerr $TOL e_test.1.dat e_old.1.dat
   if [ $? -eq 0 ];
   then 
       echo "# 1 MPI-task passed" | tee -a $EXDIR/test.log
@@ -42,7 +42,7 @@ if [ $# -eq 1 ] && [ $1 = run ]; then
   mv log.lammps log.$DATE.duplex1.g++.4
   grep etot log.$DATE.duplex1.g++.4 > e_test.4.dat
   grep etot ../log*4 > e_old.4.dat
-  ndiff -relerr $TOL e_test.4.dat e_old.4.dat | tee -a $EXDIR/test.log
+  ndiff -relerr $TOL e_test.4.dat e_old.4.dat
   if [ $? -eq 0 ];
   then 
       echo "# 4 MPI-tasks passed" | tee -a $EXDIR/test.log
@@ -65,7 +65,7 @@ if [ $# -eq 1 ] && [ $1 = run ]; then
   mv log.lammps log.$DATE.duplex2.g++.1
   grep etot log.$DATE.duplex2.g++.1 > e_test.1.dat
   grep etot ../log*1 > e_old.1.dat
-  ndiff -relerr $TOL e_test.1.dat e_old.1.dat | tee -a $EXDIR/test.log
+  ndiff -relerr $TOL e_test.1.dat e_old.1.dat
   if [ $? -eq 0 ];
   then 
       echo "# 1 MPI-task passed" | tee -a $EXDIR/test.log
@@ -77,7 +77,7 @@ if [ $# -eq 1 ] && [ $1 = run ]; then
   mv log.lammps log.$DATE.duplex2.g++.4
   grep etot log.$DATE.duplex2.g++.4 > e_test.4.dat
   grep etot ../log*4 > e_old.4.dat
-  ndiff -relerr $TOL e_test.4.dat e_old.4.dat | tee -a $EXDIR/test.log
+  ndiff -relerr $TOL e_test.4.dat e_old.4.dat
   if [ $? -eq 0 ];
   then 
       echo "# 4 MPI-tasks passed" | tee -a $EXDIR/test.log
@@ -100,7 +100,7 @@ if [ $# -eq 1 ] && [ $1 = run ]; then
   mv log.lammps log.$DATE.duplex1.g++.1
   grep etot log.$DATE.duplex1.g++.1 > e_test.1.dat
   grep etot ../log*1 > e_old.1.dat
-  ndiff -relerr $TOL e_test.1.dat e_old.1.dat | tee -a $EXDIR/test.log
+  ndiff -relerr $TOL e_test.1.dat e_old.1.dat
   if [ $? -eq 0 ];
   then 
       echo "# 1 MPI-task passed" | tee -a $EXDIR/test.log
@@ -112,7 +112,7 @@ if [ $# -eq 1 ] && [ $1 = run ]; then
   mv log.lammps log.$DATE.duplex1.g++.4
   grep etot log.$DATE.duplex1.g++.4 > e_test.4.dat
   grep etot ../log*4 > e_old.4.dat
-  ndiff -relerr $TOL e_test.4.dat e_old.4.dat | tee -a $EXDIR/test.log
+  ndiff -relerr $TOL e_test.4.dat e_old.4.dat
   if [ $? -eq 0 ];
   then 
       echo "# 4 MPI-tasks passed" | tee -a $EXDIR/test.log
@@ -135,7 +135,7 @@ if [ $# -eq 1 ] && [ $1 = run ]; then
   mv log.lammps log.$DATE.duplex2.g++.1
   grep etot log.$DATE.duplex2.g++.1 > e_test.1.dat
   grep etot ../log*1 > e_old.1.dat
-  ndiff -relerr $TOL e_test.1.dat e_old.1.dat | tee -a $EXDIR/test.log
+  ndiff -relerr $TOL e_test.1.dat e_old.1.dat
   if [ $? -eq 0 ];
   then 
       echo "# 1 MPI-task passed" | tee -a $EXDIR/test.log
@@ -147,7 +147,7 @@ if [ $# -eq 1 ] && [ $1 = run ]; then
   mv log.lammps log.$DATE.duplex2.g++.4
   grep etot log.$DATE.duplex2.g++.4 > e_test.4.dat
   grep etot ../log*4 > e_old.4.dat
-  ndiff -relerr $TOL e_test.4.dat e_old.4.dat | tee -a $EXDIR/test.log
+  ndiff -relerr $TOL e_test.4.dat e_old.4.dat
   if [ $? -eq 0 ];
   then 
       echo "# 4 MPI-tasks passed" | tee -a $EXDIR/test.log
@@ -170,7 +170,7 @@ if [ $# -eq 1 ] && [ $1 = run ]; then
   mv log.lammps log.$DATE.duplex3.g++.1
   grep etot log.$DATE.duplex3.g++.1 > e_test.1.dat
   grep etot ../log*1 > e_old.1.dat
-  ndiff -relerr $TOL e_test.1.dat e_old.1.dat | tee -a $EXDIR/test.log
+  ndiff -relerr $TOL e_test.1.dat e_old.1.dat
   if [ $? -eq 0 ];
   then 
       echo "# 1 MPI-task passed" | tee -a $EXDIR/test.log
@@ -182,7 +182,7 @@ if [ $# -eq 1 ] && [ $1 = run ]; then
   mv log.lammps log.$DATE.duplex3.g++.4
   grep etot  log.$DATE.duplex3.g++.4 > e_test.4.dat
   grep etot ../log*4 > e_old.4.dat
-  ndiff -relerr $TOL e_test.4.dat e_old.4.dat | tee -a $EXDIR/test.log
+  ndiff -relerr $TOL e_test.4.dat e_old.4.dat
   if [ $? -eq 0 ];
   then 
       echo "# 4 MPI-tasks passed" | tee -a $EXDIR/test.log
@@ -207,7 +207,7 @@ if [ $# -eq 1 ] && [ $1 = run ]; then
   mv log.lammps log.$DATE.duplex4.4type.g++.1
   grep etot log.$DATE.duplex4.4type.g++.1 > e_test.4type.1.dat
   grep etot ../log*4type*1 > e_old.4type.1.dat
-  ndiff -relerr $TOL e_test.4type.1.dat e_old.4type.1.dat | tee -a $EXDIR/test.log
+  ndiff -relerr $TOL e_test.4type.1.dat e_old.4type.1.dat
   if [ $? -eq 0 ];
   then 
       echo "# 1 MPI-task 4 types passed" | tee -a $EXDIR/test.log
@@ -219,7 +219,7 @@ if [ $# -eq 1 ] && [ $1 = run ]; then
   mv log.lammps log.$DATE.duplex4.4type.g++.4
   grep etot log.$DATE.duplex4.4type.g++.4 > e_test.4type.4.dat
   grep etot ../log*4type*4 > e_old.4type.4.dat
-  ndiff -relerr $TOL e_test.4type.4.dat e_old.4type.4.dat | tee -a $EXDIR/test.log
+  ndiff -relerr $TOL e_test.4type.4.dat e_old.4type.4.dat
   if [ $? -eq 0 ];
   then 
       echo "# 4 MPI-tasks 4 types passed" | tee -a $EXDIR/test.log
@@ -231,7 +231,7 @@ if [ $# -eq 1 ] && [ $1 = run ]; then
   mv log.lammps log.$DATE.duplex4.8type.g++.1
   grep etot log.$DATE.duplex4.8type.g++.1 > e_test.8type.1.dat
   grep etot ../log*8type*1 > e_old.8type.1.dat
-  ndiff -relerr $TOL e_test.8type.1.dat e_old.8type.1.dat | tee -a $EXDIR/test.log
+  ndiff -relerr $TOL e_test.8type.1.dat e_old.8type.1.dat
   if [ $? -eq 0 ];
   then 
       echo "# 1 MPI-task 8 types passed" | tee -a $EXDIR/test.log
@@ -243,7 +243,7 @@ if [ $# -eq 1 ] && [ $1 = run ]; then
   mv log.lammps log.$DATE.duplex4.8type.g++.4
   grep etot log.$DATE.duplex4.8type.g++.4 > e_test.8type.4.dat
   grep etot ../log*8type*4 > e_old.8type.4.dat
-  ndiff -relerr $TOL e_test.8type.4.dat e_old.8type.4.dat | tee -a $EXDIR/test.log
+  ndiff -relerr $TOL e_test.8type.4.dat e_old.8type.4.dat
   if [ $? -eq 0 ];
   then 
       echo "# 4 MPI-tasks 8 types passed" | tee -a $EXDIR/test.log
@@ -266,7 +266,7 @@ if [ $# -eq 1 ] && [ $1 = run ]; then
   mv log.lammps log.$DATE.dsring.g++.1
   grep etot log.$DATE.dsring.g++.1 > e_test.1.dat
   grep etot ../log*1 > e_old.1.dat
-  ndiff -relerr $TOL e_test.1.dat e_old.1.dat | tee -a $EXDIR/test.log
+  ndiff -relerr $TOL e_test.1.dat e_old.1.dat
   if [ $? -eq 0 ];
   then 
       echo "# 1 MPI-task passed" | tee -a $EXDIR/test.log
@@ -278,7 +278,7 @@ if [ $# -eq 1 ] && [ $1 = run ]; then
   mv log.lammps log.$DATE.dsring.g++.4
   grep etot log.$DATE.dsring.g++.4 > e_test.4.dat
   grep etot ../log*4 > e_old.4.dat
-  ndiff -relerr $TOL e_test.4.dat e_old.4.dat | tee -a $EXDIR/test.log
+  ndiff -relerr $TOL e_test.4.dat e_old.4.dat
   if [ $? -eq 0 ];
   then 
       echo "# 4 MPI-tasks passed" | tee -a $EXDIR/test.log
@@ -301,7 +301,7 @@ if [ $# -eq 1 ] && [ $1 = run ]; then
   mv log.lammps log.$DATE.duplex2.g++.1
   grep etot log.$DATE.duplex2.g++.1 > e_test.1.dat
   grep etot ../log*1 > e_old.1.dat
-  ndiff -relerr $TOL e_test.1.dat e_old.1.dat | tee -a $EXDIR/test.log
+  ndiff -relerr $TOL e_test.1.dat e_old.1.dat
   if [ $? -eq 0 ];
   then 
       echo "# 1 MPI-task passed" | tee -a $EXDIR/test.log
@@ -313,7 +313,7 @@ if [ $# -eq 1 ] && [ $1 = run ]; then
   mv log.lammps log.$DATE.duplex2.g++.4
   grep etot log.$DATE.duplex2.g++.4 > e_test.4.dat
   grep etot ../log*4 > e_old.4.dat
-  ndiff -relerr $TOL e_test.4.dat e_old.4.dat | tee -a $EXDIR/test.log
+  ndiff -relerr $TOL e_test.4.dat e_old.4.dat
   if [ $? -eq 0 ];
   then 
       echo "# 4 MPI-tasks passed" | tee -a $EXDIR/test.log

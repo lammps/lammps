@@ -322,6 +322,7 @@ if [ $# -eq 1 ] && [ $1 = run ]; then
   fi
 
   ######################################################
+  echo
   echo '# Done' | tee -a $EXDIR/test.log
 
 elif [ $# -eq 1 ] && [ $1 = clean ]; then

@@ -167,7 +167,7 @@ void BondOxdnaFene::compute(int eflag, int vflag)
   int nlocal = atom->nlocal;
   int newton_bond = force->newton_bond;
 
-  const double rlogarg_min = 0.7;
+  const double rlogarg_min = 0.1;
   ebond = 0.0;
   ev_init(eflag, vflag);
 
@@ -229,7 +229,6 @@ void BondOxdnaFene::compute(int eflag, int vflag)
     // r > r_max = r0 + Delta*sqrt(1-rlogarg) OR
     // r < r_min = r0 - Delta*sqrt(1-rlogarg)
     if (rlogarg < rlogarg_min) {
-
       // issue warning, reset rlogarg and rr0 to cap force to
       error->warning(FLERR, "FENE bond too long: {} {} {} {}", update->ntimestep, atom->tag[a],
                      atom->tag[b], r);
@@ -253,7 +252,6 @@ void BondOxdnaFene::compute(int eflag, int vflag)
                   (r0[type] - Delta[type] * sqrt(1.0-rlogarg) - r);
         }
       }
-
     }
 
     fbond = -k[type] * rr0 / rlogarg / Deltasq / r;

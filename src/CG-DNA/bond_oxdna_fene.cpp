@@ -167,7 +167,7 @@ void BondOxdnaFene::compute(int eflag, int vflag)
   int nlocal = atom->nlocal;
   int newton_bond = force->newton_bond;
 
-  const double rlogarg_min = 0.1;
+  const double rlogarg_min = 0.2;
   ebond = 0.0;
   ev_init(eflag, vflag);
 
@@ -225,11 +225,11 @@ void BondOxdnaFene::compute(int eflag, int vflag)
       ebond = -0.5 * k[type] * log(rlogarg);
     }
 
-    // switching to capped force for r-r0 -> Delta, i.e. 
+    // switching to capped force for r-r0 -> Delta at 
     // r > r_max = r0 + Delta*sqrt(1-rlogarg) OR
     // r < r_min = r0 - Delta*sqrt(1-rlogarg)
     if (rlogarg < rlogarg_min) {
-      // issue warning, reset rlogarg and rr0 to cap force to
+      // issue warning, reset rlogarg and rr0 to cap force
       error->warning(FLERR, "FENE bond too long: {} {} {} {}", update->ntimestep, atom->tag[a],
                      atom->tag[b], r);
       rlogarg = rlogarg_min;
@@ -243,7 +243,7 @@ void BondOxdnaFene::compute(int eflag, int vflag)
                   (r - r0[type] - Delta[type] * sqrt(1.0-rlogarg));
         }
       }
-      // if overcompressed F(r)=F(r_min)=F_max, E(r)=E(r_min)+F_max*(r-r_min)
+      // if overcompressed F(r)=F(r_min)=F_max, E(r)=E(r_min)+F_max*(r_min-r)
       else if (r < r0[type]) {
         rr0 = -Delta[type]*sqrt(1.0-rlogarg);
         // energy

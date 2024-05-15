@@ -167,7 +167,7 @@ void BondOxdnaFene::compute(int eflag, int vflag)
   int nlocal = atom->nlocal;
   int newton_bond = force->newton_bond;
 
-  const double rlogarg_min = 0.1;
+  const double rlogarg_min = 0.7;
   ebond = 0.0;
   ev_init(eflag, vflag);
 
@@ -225,29 +225,35 @@ void BondOxdnaFene::compute(int eflag, int vflag)
       ebond = -0.5 * k[type] * log(rlogarg);
     }
 
+    // switching to capped force for r-r0 -> Delta, i.e. 
+    // r > r_max = r0 + Delta*sqrt(1-rlogarg) OR
+    // r < r_min = r0 - Delta*sqrt(1-rlogarg)
     if (rlogarg < rlogarg_min) {
-      // if r-r0 -> Delta, then rlogarg < 0.0 which is an error
-      // issue warning and reset rlogarg = rlogarg_min to cap force to
-      // F_max = F(r_max) = F(r_min) = F(r_0 +/- Delta*sqrt(1-rlogarg_min))
+
+      // issue warning, reset rlogarg and rr0 to cap force to
       error->warning(FLERR, "FENE bond too long: {} {} {} {}", update->ntimestep, atom->tag[a],
                      atom->tag[b], r);
       rlogarg = rlogarg_min;
 
-      // energy of capped force potential if r > r_max and r < r_min
-      if (eflag) {
-        // if overstretched  E(r) = E(r_max) + F_max * (r-r_max)
-        if (r > r0[type]) {
-          ebond = -0.5 * k[type] * log(rlogarg) +
-                   k[type] * sqrt(1.0-rlogarg) / rlogarg / Delta[type] *
+      // if overstretched F(r)=F(r_max)=F_max, E(r)=E(r_max)+F_max*(r-r_max)
+      if (r > r0[type]) {
+        rr0 =  Delta[type]*sqrt(1.0-rlogarg);
+        // energy
+        if (eflag) {
+          ebond = -0.5 * k[type] * log(rlogarg) + k[type] * sqrt(1.0-rlogarg) / rlogarg / Delta[type] *
                   (r - r0[type] - Delta[type] * sqrt(1.0-rlogarg));
         }
-        // if overcompressed E(r) = E(r_min) + F_max * (r_min - r)
-        if (r < r0[type]) {
-          ebond = -0.5 * k[type] * log(rlogarg) +
-                   k[type] * sqrt(1.0-rlogarg) / rlogarg / Delta[type] *
+      }
+      // if overcompressed F(r)=F(r_min)=F_max, E(r)=E(r_min)+F_max*(r-r_min)
+      else if (r < r0[type]) {
+        rr0 = -Delta[type]*sqrt(1.0-rlogarg);
+        // energy
+        if (eflag) {
+          ebond = -0.5 * k[type] * log(rlogarg) + k[type] * sqrt(1.0-rlogarg) / rlogarg / Delta[type] *
                   (r0[type] - Delta[type] * sqrt(1.0-rlogarg) - r);
         }
       }
+
     }
 
     fbond = -k[type] * rr0 / rlogarg / Deltasq / r;

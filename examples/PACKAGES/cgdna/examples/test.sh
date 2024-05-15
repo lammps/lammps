@@ -254,7 +254,7 @@ if [ $# -eq 1 ] && [ $1 = run ]; then
   ######################################################
 
   ######################################################
-  printf'\n# Running oxDNA2 dsring test\n' | tee -a $EXDIR/test.log
+  printf '\n# Running oxDNA2 dsring test\n' | tee -a $EXDIR/test.log
   cd $EXDIR/oxDNA2/dsring
   mkdir test
   cd test

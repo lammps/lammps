@@ -19,14 +19,11 @@ PairStyle(metatensor, PairMetatensor);
 #ifndef LMP_PAIR_METATENSOR_H
 #define LMP_PAIR_METATENSOR_H
 
-#include <memory>
-
 #include "pair.h"
-
-#include <metatensor/torch/atomistic.hpp>
 
 namespace LAMMPS_NS {
 class MetatensorSystemAdaptor;
+struct PairMetatensorData;
 
 class PairMetatensor : public Pair {
 public:
@@ -41,30 +38,11 @@ public:
     void init_list(int id, NeighList *ptr) override;
 
     void allocate();
-
 private:
-    void load_torch_model(const char* path, const char* extensions_directory);
+    PairMetatensorData* mts_data;
 
-    // torch model in metatensor format
-    std::unique_ptr<torch::jit::Module> torch_model;
-    // device to use for the calculations
-    torch::Device device;
-    // model capabilities, declared by the model
-    metatensor_torch::ModelCapabilities capabilities;
-    // run-time evaluation options, decided by this class
-    metatensor_torch::ModelEvaluationOptions evaluation_options;
-    // should metatensor check the data LAMMPS send to the model
-    // and the data the model returns?
-    bool check_consistency;
-    // how far away the model needs to know about neighbors
-    double interaction_range = -1;
-
-    // allocation cache for the selected atoms
-    torch::Tensor selected_atoms_values;
-    // adaptor from LAMMPS system to metatensor's
-    std::unique_ptr<MetatensorSystemAdaptor> system_adaptor;
     // mapping from LAMMPS types to metatensor types
-    int32_t* type_mapping = nullptr;
+    int32_t* type_mapping;
 };
 
 }    // namespace LAMMPS_NS

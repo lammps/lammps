@@ -35,6 +35,8 @@
     #include <torch/mps.h>
 #endif
 
+#include <memory>
+
 #include <metatensor/torch.hpp>
 #include <metatensor/torch/atomistic.hpp>
 
@@ -42,12 +44,36 @@
 
 using namespace LAMMPS_NS;
 
-/* ---------------------------------------------------------------------- */
+struct LAMMPS_NS::PairMetatensorData {
+    PairMetatensorData(std::string length_unit, std::string energy_unit);
 
-PairMetatensor::PairMetatensor(LAMMPS *lmp):
-    Pair(lmp),
+    void load_model(LAMMPS* lmp, const char* path, const char* extensions_directory);
+
+    // torch model in metatensor format
+    std::unique_ptr<torch::jit::Module> model;
+    // device to use for the calculations
+    torch::Device device;
+    // model capabilities, declared by the model
+    metatensor_torch::ModelCapabilities capabilities;
+    // run-time evaluation options, decided by this class
+    metatensor_torch::ModelEvaluationOptions evaluation_options;
+    // should metatensor check the data LAMMPS send to the model
+    // and the data the model returns?
+    bool check_consistency;
+    // how far away the model needs to know about neighbors
+    double interaction_range;
+
+    // allocation cache for the selected atoms
+    torch::Tensor selected_atoms_values;
+    // adaptor from LAMMPS system to metatensor's
+    std::unique_ptr<MetatensorSystemAdaptor> system_adaptor;
+};
+
+PairMetatensorData::PairMetatensorData(std::string length_unit, std::string energy_unit):
     system_adaptor(nullptr),
-    device(torch::kCPU)
+    device(torch::kCPU),
+    check_consistency(false),
+    interaction_range(-1)
 {
     auto options = torch::TensorOptions().dtype(torch::kInt32);
     this->selected_atoms_values = torch::zeros({0, 2}, options);
@@ -57,22 +83,7 @@ PairMetatensor::PairMetatensor(LAMMPS *lmp):
 
     // Initialize evaluation_options
     this->evaluation_options = torch::make_intrusive<metatensor_torch::ModelEvaluationOptionsHolder>();
-    auto energy_unit = std::string();
-    if (strcmp(update->unit_style, "real") == 0) {
-        this->evaluation_options->set_length_unit("angstrom");
-        energy_unit = "kcal/mol";
-    } else if (strcmp(update->unit_style, "metal") == 0) {
-        this->evaluation_options->set_length_unit("angstrom");
-        energy_unit = "eV";
-    } else if (strcmp(update->unit_style, "si") == 0) {
-        this->evaluation_options->set_length_unit("meter");
-        energy_unit = "joule";
-    } else if (strcmp(update->unit_style, "electron") == 0) {
-        this->evaluation_options->set_length_unit("Bohr");
-        energy_unit = "Hartree";
-    } else {
-        error->all(FLERR, "unsupported units '{}' for pair metatensor ", update->unit_style);
-    }
+    this->evaluation_options->set_length_unit(std::move(length_unit));
 
     auto output = torch::make_intrusive<metatensor_torch::ModelOutputHolder>();
     output->explicit_gradients = {};
@@ -81,13 +92,92 @@ PairMetatensor::PairMetatensor(LAMMPS *lmp):
     output->per_atom = false;
 
     this->evaluation_options->outputs.insert("energy", output);
+}
+
+void PairMetatensorData::load_model(
+    LAMMPS* lmp,
+    const char* path,
+    const char* extensions_directory
+) {
+    // TODO: seach for the model & extensions inside `$LAMMPS_POTENTIALS`?
+
+    if (this->model != nullptr) {
+        lmp->error->all(FLERR, "torch model is already loaded");
+    }
+
+    torch::optional<std::string> extensions = torch::nullopt;
+    if (extensions_directory != nullptr) {
+        extensions = std::string(extensions_directory);
+    }
+
+    try {
+        this->model = std::make_unique<torch::jit::Module>(
+            metatensor_torch::load_atomistic_model(path, extensions)
+        );
+    } catch (const c10::Error& e) {
+        lmp->error->all(FLERR, "failed to load metatensor model at '{}': {}", path, e.what());
+    }
+
+    auto capabilities_ivalue = this->model->run_method("capabilities");
+    this->capabilities = capabilities_ivalue.toCustomClass<metatensor_torch::ModelCapabilitiesHolder>();
+
+    if (!this->capabilities->outputs().contains("energy")) {
+        lmp->error->all(FLERR, "the model at '{}' does not have an \"energy\" output, we can not use it in pair_style metatensor", path);
+    }
+
+    if (lmp->comm->me == 0) {
+        auto metadata_ivalue = this->model->run_method("metadata");
+        auto metadata = metadata_ivalue.toCustomClass<metatensor_torch::ModelMetadataHolder>();
+        auto to_print = metadata->print();
+
+        if (lmp->screen) {
+            fprintf(lmp->screen, "\n%s\n", to_print.c_str());
+        }
+        if (lmp->logfile) {
+            fprintf(lmp->logfile,"\n%s\n", to_print.c_str());
+        }
+
+        // add the model references to LAMMPS citation handling mechanism
+        for (const auto& it: metadata->references) {
+            for (const auto& ref: it.value()) {
+                lmp->citeme->add(ref + "\n");
+            }
+        }
+    }
+}
+
+
+/* ---------------------------------------------------------------------- */
+
+PairMetatensor::PairMetatensor(LAMMPS *lmp): Pair(lmp), type_mapping(nullptr) {
+    std::string energy_unit;
+    std::string length_unit;
+    if (strcmp(update->unit_style, "real") == 0) {
+        length_unit = "angstrom";
+        energy_unit = "kcal/mol";
+    } else if (strcmp(update->unit_style, "metal") == 0) {
+        length_unit = "angstrom";
+        energy_unit = "eV";
+    } else if (strcmp(update->unit_style, "si") == 0) {
+        length_unit = "meter";
+        energy_unit = "joule";
+    } else if (strcmp(update->unit_style, "electron") == 0) {
+        length_unit = "Bohr";
+        energy_unit = "Hartree";
+    } else {
+        error->all(FLERR, "unsupported units '{}' for pair metatensor ", update->unit_style);
+    }
 
     // we might not be running a pure pair potential,
     // so we can not compute virial as fdotr
     this->no_virial_fdotr_compute = 1;
+
+    this->mts_data = new PairMetatensorData(std::move(length_unit), std::move(energy_unit));
 }
 
 PairMetatensor::~PairMetatensor() {
+    delete this->mts_data;
+
     if (allocated) {
         memory->destroy(setflag);
         memory->destroy(cutsq);
@@ -109,9 +199,9 @@ void PairMetatensor::settings(int argc, char ** argv) {
             if (i == argc - 1) {
                 error->all(FLERR, "expected <on/off> after 'check_consistency' in pair_style metatensor, got nothing");
             } else if (strcmp(argv[i + 1], "on") == 0) {
-                this->check_consistency = true;
+                mts_data->check_consistency = true;
             } else if (strcmp(argv[i + 1], "off") == 0) {
-                this->check_consistency = false;
+                mts_data->check_consistency = false;
             } else {
                 error->all(FLERR, "expected <on/off> after 'check_consistency' in pair_style metatensor, got '{}'", argv[i + 1]);
             }
@@ -134,12 +224,12 @@ void PairMetatensor::settings(int argc, char ** argv) {
         }
     }
 
-    this->load_torch_model(model_path, extensions_directory);
+    mts_data->load_model(this->lmp, model_path, extensions_directory);
 
     // Select the device to use based on the model's preference, the user choice
     // and what's available.
     auto available_devices = std::vector<torch::Device>();
-    for (const auto& device: this->capabilities->supported_devices) {
+    for (const auto& device: mts_data->capabilities->supported_devices) {
         if (device == "cpu") {
             available_devices.push_back(torch::kCPU);
         } else if (device == "cuda") {
@@ -183,26 +273,26 @@ void PairMetatensor::settings(int argc, char ** argv) {
         error->all(FLERR,
             "failed to find a valid device for the model at '{}': "
             "the model supports {}, none of these where available",
-            model_path, torch::str(this->capabilities->supported_devices)
+            model_path, torch::str(mts_data->capabilities->supported_devices)
         );
     }
 
     if (requested_device == nullptr) {
         // no user request, pick the device the model prefers
-        this->device = available_devices[0];
+        mts_data->device = available_devices[0];
     } else {
         bool found_requested_device = false;
         for (const auto& device: available_devices) {
             if (device.is_cpu() && strcmp(requested_device, "cpu") == 0) {
-                this->device = device;
+                mts_data->device = device;
                 found_requested_device = true;
                 break;
             } else if (device.is_cuda() && strcmp(requested_device, "cuda") == 0) {
-                this->device = device;
+                mts_data->device = device;
                 found_requested_device = true;
                 break;
             } else if (device.is_mps() && strcmp(requested_device, "mps") == 0) {
-                this->device = device;
+                mts_data->device = device;
                 found_requested_device = true;
                 break;
             }
@@ -217,9 +307,9 @@ void PairMetatensor::settings(int argc, char ** argv) {
         }
     }
 
-    this->torch_model->to(device);
+    mts_data->model->to(mts_data->device);
 
-    auto message = "Running simulation on " + this->device.str() + " device with " + this->capabilities->dtype() + " data";
+    auto message = "Running simulation on " + mts_data->device.str() + " device with " + mts_data->capabilities->dtype() + " data";
     if (screen) {
         fprintf(screen, "%s\n", message.c_str());
     }
@@ -272,7 +362,7 @@ void PairMetatensor::allocate() {
 }
 
 double PairMetatensor::init_one(int, int) {
-    return this->interaction_range;
+    return mts_data->interaction_range;
 }
 
 
@@ -315,37 +405,37 @@ void PairMetatensor::init_style() {
     }
 
     // get the model's interaction range
-    auto range = this->capabilities->engine_interaction_range(this->evaluation_options->length_unit());
+    auto range = mts_data->capabilities->engine_interaction_range(mts_data->evaluation_options->length_unit());
     if (range < 0) {
         error->all(FLERR, "interaction_range is negative for this model");
     } else if (!std::isfinite(range)) {
         error->all(FLERR, "interaction_range is infinite for this model, this is not yet supported");
     } else {
-        this->interaction_range = range;
+        mts_data->interaction_range = range;
     }
 
     // create system adaptor
     auto options = MetatensorSystemOptions{
-        type_mapping,
-        this->interaction_range,
-        check_consistency,
+        this->type_mapping,
+        mts_data->interaction_range,
+        mts_data->check_consistency,
     };
-    this->system_adaptor = std::make_unique<MetatensorSystemAdaptor>(lmp, this, options);
+    mts_data->system_adaptor = std::make_unique<MetatensorSystemAdaptor>(lmp, this, options);
 
     // Translate from the metatensor neighbor lists requests to LAMMPS neighbor
     // lists requests.
-    auto requested_nl = this->torch_model->run_method("requested_neighbor_lists");
+    auto requested_nl = mts_data->model->run_method("requested_neighbor_lists");
     for (const auto& ivalue: requested_nl.toList()) {
         auto options = ivalue.get().toCustomClass<metatensor_torch::NeighborListOptionsHolder>();
-        auto cutoff = options->engine_cutoff(this->evaluation_options->length_unit());
+        auto cutoff = options->engine_cutoff(mts_data->evaluation_options->length_unit());
 
-        this->system_adaptor->add_nl_request(cutoff, options);
+        mts_data->system_adaptor->add_nl_request(cutoff, options);
     }
 }
 
 
 void PairMetatensor::init_list(int id, NeighList *ptr) {
-    system_adaptor->init_list(id, ptr);
+    mts_data->system_adaptor->init_list(id, ptr);
 }
 
 
@@ -357,40 +447,42 @@ void PairMetatensor::compute(int eflag, int vflag) {
     }
 
     if (eflag_atom) {
-        this->evaluation_options->outputs.at("energy")->per_atom = true;
+        mts_data->evaluation_options->outputs.at("energy")->per_atom = true;
     } else {
-        this->evaluation_options->outputs.at("energy")->per_atom = false;
+        mts_data->evaluation_options->outputs.at("energy")->per_atom = false;
     }
 
     auto dtype = torch::kFloat64;
-    if (this->capabilities->dtype() == "float64") {
+    if (mts_data->capabilities->dtype() == "float64") {
         dtype = torch::kFloat64;
-    } else if (this->capabilities->dtype() == "float32") {
+    } else if (mts_data->capabilities->dtype() == "float32") {
         dtype = torch::kFloat32;
     } else {
-        error->all(FLERR, "the model requested an unsupported dtype '{}'", this->capabilities->dtype());
+        error->all(FLERR, "the model requested an unsupported dtype '{}'", mts_data->capabilities->dtype());
     }
 
     // transform from LAMMPS to metatensor System
-    auto system = system_adaptor->system_from_lmp(static_cast<bool>(vflag_global), dtype, this->device);
+    auto system = mts_data->system_adaptor->system_from_lmp(
+        static_cast<bool>(vflag_global), dtype, mts_data->device
+    );
 
     // only run the calculation for atoms actually in the current domain
-    selected_atoms_values.resize_({atom->nlocal, 2});
+    mts_data->selected_atoms_values.resize_({atom->nlocal, 2});
     for (int i=0; i<atom->nlocal; i++) {
-        selected_atoms_values[i][0] = 0;
-        selected_atoms_values[i][1] = i;
+        mts_data->selected_atoms_values[i][0] = 0;
+        mts_data->selected_atoms_values[i][1] = i;
     }
     auto selected_atoms = torch::make_intrusive<metatensor_torch::LabelsHolder>(
-        std::vector<std::string>{"system", "atom"}, selected_atoms_values
+        std::vector<std::string>{"system", "atom"}, mts_data->selected_atoms_values
     );
-    evaluation_options->set_selected_atoms(selected_atoms->to(this->device));
+    mts_data->evaluation_options->set_selected_atoms(selected_atoms->to(mts_data->device));
 
     torch::IValue result_ivalue;
     try {
-        result_ivalue = this->torch_model->forward({
+        result_ivalue = mts_data->model->forward({
             std::vector<metatensor_torch::System>{system},
-            evaluation_options,
-            this->check_consistency
+            mts_data->evaluation_options,
+            mts_data->check_consistency
         });
     } catch (const std::exception& e) {
         error->all(FLERR, "error evaluating the torch model: {}", e.what());
@@ -422,12 +514,12 @@ void PairMetatensor::compute(int eflag, int vflag) {
     }
 
     // reset gradients to zero before calling backward
-    system_adaptor->positions.mutable_grad() = torch::Tensor();
-    system_adaptor->strain.mutable_grad() = torch::Tensor();
+    mts_data->system_adaptor->positions.mutable_grad() = torch::Tensor();
+    mts_data->system_adaptor->strain.mutable_grad() = torch::Tensor();
 
     // compute forces/virial with backward propagation
     energy_tensor.backward(-torch::ones_like(energy_tensor));
-    auto forces_tensor = system_adaptor->positions.grad();
+    auto forces_tensor = mts_data->system_adaptor->positions.grad();
     assert(forces_tensor.is_cpu() && forces_tensor.scalar_type() == torch::kFloat64);
 
     auto forces = forces_tensor.accessor<double, 2>();
@@ -440,7 +532,7 @@ void PairMetatensor::compute(int eflag, int vflag) {
     assert(!vflag_fdotr);
 
     if (vflag_global) {
-        auto virial_tensor = system_adaptor->strain.grad();
+        auto virial_tensor = mts_data->system_adaptor->strain.grad();
         assert(virial_tensor.is_cpu() && forces_tensor.scalar_type() == torch::kFloat64);
         auto predicted_virial = virial_tensor.accessor<double, 2>();
 
@@ -455,57 +547,5 @@ void PairMetatensor::compute(int eflag, int vflag) {
 
     if (vflag_atom) {
         error->all(FLERR, "per atom virial is not implemented");
-    }
-}
-
-
-void PairMetatensor::load_torch_model(
-    const char* path,
-    const char* extensions_directory
-) {
-    // TODO: seach for the model & extensions inside `$LAMMPS_POTENTIALS`?
-
-    if (this->torch_model != nullptr) {
-        error->all(FLERR, "torch model is already loaded");
-    }
-
-    torch::optional<std::string> extensions = torch::nullopt;
-    if (extensions_directory != nullptr) {
-        extensions = std::string(extensions_directory);
-    }
-
-    try {
-        this->torch_model = std::make_unique<torch::jit::Module>(
-            metatensor_torch::load_atomistic_model(path, extensions)
-        );
-    } catch (const c10::Error& e) {
-        error->all(FLERR, "failed to load metatensor model at '{}': {}", path, e.what());
-    }
-
-    auto capabilities_ivalue = this->torch_model->run_method("capabilities");
-    this->capabilities = capabilities_ivalue.toCustomClass<metatensor_torch::ModelCapabilitiesHolder>();
-
-    if (!this->capabilities->outputs().contains("energy")) {
-        error->all(FLERR, "the model at '{}' does not have an \"energy\" output, we can not use it in pair_style metatensor", path);
-    }
-
-    if (lmp->comm->me == 0) {
-        auto metadata_ivalue = this->torch_model->run_method("metadata");
-        auto metadata = metadata_ivalue.toCustomClass<metatensor_torch::ModelMetadataHolder>();
-        auto to_print = metadata->print();
-
-        if (screen) {
-            fprintf(screen, "\n%s\n", to_print.c_str());
-        }
-        if (logfile) {
-            fprintf(logfile,"\n%s\n", to_print.c_str());
-        }
-
-        // add the model references to LAMMPS citation handling mechanism
-        for (const auto& it: metadata->references) {
-            for (const auto& ref: it.value()) {
-                lmp->citeme->add(ref + "\n");
-            }
-        }
     }
 }

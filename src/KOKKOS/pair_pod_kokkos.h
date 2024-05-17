@@ -145,6 +145,7 @@ class PairPODKokkos : public PairPOD {
   t_pod_1d abfy; // y-derivatives of angular basis functions nij x K3  
   t_pod_1d abfz; // z-derivatives of angular basis functions nij x K3
   t_pod_1d sumU; // sum of radial basis functions ni x K3 x nrbfmax x nelements
+  t_pod_1d forcecoeff; // force coefficients ni x K3 x nrbfmax x nelements
   t_pod_1d Proj; // PCA Projection matrix
   t_pod_1d Centroids; // centroids of the clusters  
   t_pod_1d bd;   // base descriptors ni x Mdesc
@@ -203,6 +204,16 @@ class PairPODKokkos : public PairPOD {
     t_pod_1d l_rbfz, t_pod_1d l_abf, t_pod_1d l_abfx, t_pod_1d l_abfy, t_pod_1d l_abfz, t_pod_1d l_sumU, 
     t_pod_1i l_idxi, t_pod_1i l_tj, t_pod_1i l_pa4, t_pod_1i l_pb4, t_pod_1i l_pc4, t_pod_1i l_elemindex, 
     int l_nelements, int l_nrbf3, int l_nrbf4, int l_nabf4, int l_K3, int l_Q4, int Ni, int Nij);
+  
+  void threebody_forcecoeff(t_pod_1d fb3, t_pod_1d cb3, t_pod_1d l_sumU, t_pod_1i l_pc3, 
+    t_pod_1i l_pn3, t_pod_1i l_elemindex, int l_nelements, int l_nrbf3, int l_nabf3, int l_K3, int Ni);
+  
+  void fourbody_forcecoeff(t_pod_1d fb4, t_pod_1d cb4, t_pod_1d l_sumU, t_pod_1i l_pa4, 
+    t_pod_1i l_pb4, t_pod_1i l_pc4, int l_nelements, int l_nrbf3, int l_nrbf4, int l_nabf4, int l_K3, int l_Q4, int Ni);
+
+  void allbody_forces(t_pod_1d fij, t_pod_1d l_forcecoeff, t_pod_1d l_rbf, t_pod_1d l_rbfx, 
+    t_pod_1d l_rbfy, t_pod_1d l_rbfz, t_pod_1d l_abf, t_pod_1d l_abfx, t_pod_1d l_abfy, t_pod_1d l_abfz, 
+    t_pod_1i l_idxi, t_pod_1i l_tj, int l_nelements, int l_nrbf3, int l_nabf3, int l_K3, int Nij);
   
   void blockatom_energyforce(t_pod_1d l_ei, t_pod_1d l_fij, int Ni, int Nij);
   void tallyenergy(t_pod_1d l_ei, int istart, int Ni);

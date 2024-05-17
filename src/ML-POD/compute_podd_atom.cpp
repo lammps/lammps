@@ -187,7 +187,7 @@ void ComputePODDAtom::compute_peratom()
           int ain = 3*ai[n];
           int ajn = 3*aj[n];
           for (int m = 0; m < Mdesc; m++) {
-            int nm = 3*n + 3*nij*m;
+            int nm = 3*n + 3*nij*m;  // d D_im/ d R_j, m = 1, ..., M, i = 1, ..., N, j = 1, ..., N
             pod[i][m + Mdesc*0 + Mdesc*ain] += bdd[0 + nm];
             pod[i][m + Mdesc*1 + Mdesc*ain] += bdd[1 + nm];
             pod[i][m + Mdesc*2 + Mdesc*ain] += bdd[2 + nm];

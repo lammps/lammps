@@ -55,7 +55,7 @@ PairPOD::PairPOD(LAMMPS *lmp) : Pair(lmp), fastpodptr(nullptr)
   nimax = 0;
   nij = 0;
   nijmax = 0;  
-  atomBlockSize = 4096;
+  atomBlockSize = 10;
   nAtomBlocks = 0;
 
   rij = nullptr;
@@ -78,6 +78,7 @@ PairPOD::PairPOD(LAMMPS *lmp) : Pair(lmp), fastpodptr(nullptr)
   abfy = nullptr;
   abfz = nullptr;
   sumU = nullptr;
+  forcecoeff = nullptr;
   Centroids = nullptr;
   Proj = nullptr;
   bd = nullptr;  
@@ -124,6 +125,7 @@ PairPOD::~PairPOD()
   memory->destroy(abfy);
   memory->destroy(abfz);
   memory->destroy(sumU);
+  memory->destroy(forcecoeff);
   memory->destroy(Centroids);
   memory->destroy(Proj);
   memory->destroy(bd);
@@ -201,7 +203,7 @@ void PairPOD::compute(int eflag, int vflag)
     int *tj1 = &fastpodptr->tmpint[3*nijmax];    
     lammpsNeighborList(rij1, ai1, aj1, ti1, tj1, x, firstneigh, type, map, numneigh, rcutsq, i);
     
-    evdwl = fastpodptr->peratomenergyforce(fij1, rij1, tmp, ti1, tj1, nij);
+    evdwl = fastpodptr->peratomenergyforce2(fij1, rij1, tmp, ti1, tj1, nij);
             
     // tally atomic energy to global energy
     ev_tally_full(i,2.0*evdwl,0.0,0.0,0.0,0.0,0.0);
@@ -579,20 +581,20 @@ void PairPOD::copy_data_from_pod_class()
 
   memory->create(Phi, ns * ns, "pair_pod:Phi");
   for (int i=0; i<ns*ns; i++)    
-      Phi[i] = fastpodptr->Phi[i];
+    Phi[i] = fastpodptr->Phi[i];
 
   memory->create(coefficients, nCoeffPerElement * nelements, "pair_pod:coefficients");
   for (int i=0; i<nCoeffPerElement * nelements; i++)
-      coefficients[i] = fastpodptr->coeff[i];
+    coefficients[i] = fastpodptr->coeff[i];
 
   if (nClusters > 1) {
     memory->create(Proj, Mdesc * nComponents * nelements, "pair_pod:Proj");
     for (int i=0; i<Mdesc * nComponents * nelements; i++)
-        Proj[i] = fastpodptr->Proj[i];
+      Proj[i] = fastpodptr->Proj[i];
 
     memory->create(Centroids, nClusters * nComponents * nelements, "pair_pod:Centroids");
     for (int i=0; i<nClusters * nComponents * nelements; i++)
-        Centroids[i] = fastpodptr->Centroids[i];
+      Centroids[i] = fastpodptr->Centroids[i];
   }
   
   memory->create(pn3, nabf3+1, "pn3"); // array stores the number of monomials for each degree
@@ -629,6 +631,7 @@ void PairPOD::grow_atoms(int Ni)
     memory->destroy(typeai);
     memory->destroy(numij);
     memory->destroy(sumU);
+    memory->destroy(forcecoeff);
     memory->destroy(bd);
     memory->destroy(cb);
     memory->destroy(pd);
@@ -638,6 +641,7 @@ void PairPOD::grow_atoms(int Ni)
     memory->create(numij, nimax+1, "pair_pod:typeai");
     int n = nimax * nelements * K3 * nrbfmax;    
     memory->create(sumU, n , "pair_pod:sumU");
+    memory->create(forcecoeff, n , "pair_pod:forcecoeff");
     memory->create(bd, nimax * Mdesc, "pair_pod:bd");
     memory->create(cb, nimax * Mdesc, "pair_pod:bd");
     if (nClusters > 1) memory->create(pd, nimax * (1 + nComponents + 3*nClusters), "pair_pod:pd");    
@@ -1172,14 +1176,14 @@ void PairPOD::threebody_forces(double *fij, double *cb3, int Ni, int Nij)
       double fy = 0;
       double fz = 0;      
       for (int p = 0; p < nabf3; p++) {
-        double c3 = 2.0 * cb3[idxi[j] + Ni*p + Ni*nabf3*m];
+        double c3 = 2.0 * cb3[idxi[j] + Ni*p + Ni*nabf3*m]; // Ni*nabf3*nrbf3
         int n1 = pn3[p];
         int n2 = pn3[p + 1];
         int nn = n2 - n1;        
-        int idxU = K3 * m + K3*nrbf3*idxi[j];
+        int idxU = K3 * m + K3*nrbf3*idxi[j]; // K3*nrbf3*Ni
         for (int q = 0; q < nn; q++) {                  
           int idxNQ = n1 + q;  // Combine n1 and q into a single index for pc3 and sumU
-          double f = c3 * pc3[idxNQ] * sumU[idxNQ + idxU];          
+          double f = c3 * pc3[idxNQ] * sumU[idxNQ + idxU]; // K3*nrbf3*Ni         
           int idxA = idxNQ + K3 * j;  // Pre-compute the index for abf          
           double abfA = abf[idxA];  
 
@@ -1224,10 +1228,10 @@ void PairPOD::threebody_forces(double *fij, double *cb3, int Ni, int Nij)
           double abfzA = abfz[idxA];
           for (int i1 = 0; i1 < nelements; i1++) {
             int k = elemindex[i2 + nelements * i1];       
-            double c3 = cb3[jmp + N3*k];
-            double t1 = c3 * pc3[idxNQ] * sumU[i1 + idxU];                          
-            double f = (i1 == i2) ? 2.0 * t1 : t1;            
-            fx += f * (abfxA * rbfBase + rbfxBase * abfA);
+            double c3 = cb3[jmp + N3*k]; // Ni *  nabf3 * nrbf3 * k
+            double t1 = c3 * pc3[idxNQ] * sumU[i1 + idxU]; // nelements*K3*nrbf3*Ni                          
+            double f = (i1 == i2) ? 2.0 * t1 : t1;   // nelements*(nelements+1)/2*K3*nrbf3*Ni         
+            fx += f * (abfxA * rbfBase + rbfxBase * abfA); // K3*nrbf3*Nij 
             fy += f * (abfyA * rbfBase + rbfyBase * abfA);
             fz += f * (abfzA * rbfBase + rbfzBase * abfA);          
           }
@@ -1237,6 +1241,54 @@ void PairPOD::threebody_forces(double *fij, double *cb3, int Ni, int Nij)
       fij[baseIdx]     += fx;
       fij[baseIdx + 1] += fy;
       fij[baseIdx + 2] += fz;                          
+    }
+  }
+}
+
+void PairPOD::threebody_forcecoeff(double *fb3, double *cb3, int Ni)
+{
+  int totalIterations = nrbf3 * Ni;
+  if (nelements==1) {
+    for (int idx = 0; idx < totalIterations; ++idx) {
+      int i = idx / nrbf3;       // Calculate j using integer division
+      int m = idx % nrbf3;       // Calculate m using modulo operation
+      for (int p = 0; p < nabf3; p++) {
+        double c3 = 2.0 * cb3[i + Ni*p + Ni*nabf3*m]; // Ni*nabf3*nrbf3
+        int n1 = pn3[p];
+        int n2 = pn3[p + 1];
+        int nn = n2 - n1;        
+        int idxU = K3 * m + K3*nrbf3*i; // K3*nrbf3*Ni
+        for (int q = 0; q < nn; q++) {                  
+          int k = n1 + q;  // Combine n1 and q into a single index for pc3 and sumU
+          fb3[k + idxU] += c3 * pc3[k] * sumU[k + idxU]; // K3*nrbf3*Ni          
+        }
+      }
+    }
+  }
+  else {
+    int N3 = Ni *  nabf3 * nrbf3;    
+    for (int idx = 0; idx < totalIterations; ++idx) {
+      int i = idx / nrbf3;  // Derive the original j value
+      int m = idx % nrbf3;  // Derive the original m value
+      for (int p = 0; p < nabf3; p++) {
+        int n1 = pn3[p];
+        int n2 = pn3[p + 1];
+        int nn = n2 - n1;
+        int jmp = i + Ni*(p + nabf3*m);
+        for (int q = 0; q < nn; q++) {
+          int k = n1 + q;  // Combine n1 and q into a single index
+          int idxU = nelements * k + nelements * K3 * m + nelements*K3*nrbf3*i;          
+          for (int i1 = 0; i1 < nelements; i1++) {
+            double tm = pc3[k] * sumU[i1 + idxU];
+            for (int i2 = i1; i2 < nelements; i2++) {
+              int em = elemindex[i2 + nelements * i1];       
+              double t1 = tm * cb3[jmp + N3*em]; // Ni *  nabf3 * nrbf3 * nelements*(nelements+1)/2
+              fb3[i2 + idxU] += t1;   // K3*nrbf3*Ni         
+              fb3[i1 + idxU] += pc3[k] * cb3[jmp + N3*em] * sumU[i2 + idxU];
+            }
+          }
+        }
+      }
     }
   }
 }
@@ -1577,6 +1629,109 @@ void PairPOD::fourbody_forces(double *fij, double *cb4, int Ni, int Nij)
   }
 }
 
+void PairPOD::fourbody_forcecoeff(double *fb4, double *cb4, int Ni)
+{
+  if (nelements==1) {
+    for (int idx = 0; idx < Ni * nrbf4; ++idx) {
+      int i = idx / nrbf4;  // Derive the original j value
+      int m = idx % nrbf4;  // Derive the original m value
+      int idxU = K3 * m + K3*nrbf3*i;                  
+      for (int p = 0; p < nabf4; p++) {
+        int n1 = pa4[p];
+        int n2 = pa4[p + 1];
+        int nn = n2 - n1;
+        double c4 = cb4[i + Ni*p + Ni*nabf4*m];
+        for (int q = 0; q < nn; q++) {
+          int idxNQ = n1 + q;  // Combine n1 and q into a single index
+          double c = c4 * pc4[idxNQ];
+          int j1 = idxU + pb4[idxNQ];
+          int j2 = idxU + pb4[idxNQ + Q4];
+          int j3 = idxU + pb4[idxNQ + 2 * Q4];
+          double c1 = sumU[j1];
+          double c2 = sumU[j2];
+          double c3 = sumU[j3];          
+          fb4[j3] += c * c1 * c2;          
+          fb4[j2] += c * c1 * c3;
+          fb4[j1] += c * c2 * c3;          
+        }
+      }
+    }
+  }
+  else {        
+    int N3 = Ni * nabf4 * nrbf4;
+    int totalIterations = nrbf4 * Ni;
+    for (int idx = 0; idx < totalIterations; idx++) {
+      int i = idx / nrbf4;  // Derive the original j value
+      int m = idx % nrbf4;  // Derive the original m value    
+      for (int p = 0; p < nabf4; p++)  {
+        int n1 = pa4[p];
+        int n2 = pa4[p + 1];
+        int nn = n2 - n1;        
+        int jpm = i + Ni*p + Ni*nabf4*m;
+        for (int q = 0; q < nn; q++) {
+          int c = pc4[n1 + q];
+          int j1 = pb4[n1 + q];
+          int j2 = pb4[n1 + q + Q4];
+          int j3 = pb4[n1 + q + 2 * Q4];
+          // Pre-calculate commonly used indices for j3, j2, j1, and m
+          int idx1 = nelements * j1 + nelements * K3 * m + nelements * K3 * nrbf3 * i;
+          int idx2 = nelements * j2 + nelements * K3 * m + nelements * K3 * nrbf3 * i;
+          int idx3 = nelements * j3 + nelements * K3 * m + nelements * K3 * nrbf3 * i;
+          int k = 0;          
+          for (int i1 = 0; i1 < nelements; i1++) {            
+            double c1 = sumU[idx1 + i1];
+            for (int i2 = i1; i2 < nelements; i2++) {
+              double c2 = sumU[idx2 + i2];              
+              for (int i3 = i2; i3 < nelements; i3++) {                       
+                double c3 = sumU[idx3 + i3];          
+                double c4 = c * cb4[jpm + N3*k];
+                fb4[idx3 + i3] += c4*(c1 * c2);  
+                fb4[idx2 + i2] += c4*(c1 * c3);
+                fb4[idx1 + i1] += c4*(c2 * c3);                                                
+                k += 1;
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+}
+
+void PairPOD::allbody_forces(double *fij, double *forcecoeff, int Nij)
+{
+  int totalIterations = nrbf3 * Nij;  
+  for (int idx = 0; idx < totalIterations; ++idx) {
+    int j = idx / nrbf3;  // Derive the original j value
+    int m = idx % nrbf3;  // Derive the original m value
+    int idxR = m + nrbfmax * j;  // Pre-compute the index for rbf
+    int i2 = tj[j] - 1;   
+    double rbfBase = rbf[idxR];
+    double rbfxBase = rbfx[idxR];
+    double rbfyBase = rbfy[idxR];
+    double rbfzBase = rbfz[idxR];
+    double fx = 0;
+    double fy = 0;
+    double fz = 0;            
+    for (int k = 0; k < K3; k++) {
+      int idxU = nelements * k + nelements * K3 * m + nelements*K3*nrbf3*idxi[j];
+      double fc = forcecoeff[i2 + idxU];
+      int idxA = k + K3 * j;  // Pre-compute the index for abf          
+      double abfA = abf[idxA];   
+      double abfxA = abfx[idxA];
+      double abfyA = abfy[idxA];
+      double abfzA = abfz[idxA];        
+      fx += fc * (abfxA * rbfBase + rbfxBase * abfA); // K3*nrbf3*Nij 
+      fy += fc * (abfyA * rbfBase + rbfyBase * abfA);
+      fz += fc * (abfzA * rbfBase + rbfzBase * abfA);                        
+    }
+    int baseIdx = 3 * j; 
+    fij[baseIdx]     += fx;
+    fij[baseIdx + 1] += fy;
+    fij[baseIdx + 2] += fz;                           
+  }  
+}
+
 void PairPOD::crossdesc(double *d12, double *d1, double *d2, int *ind1, int *ind2, int n12, int Ni)
 {
   int totalIterations = n12 * Ni;
@@ -1862,43 +2017,6 @@ void PairPOD::blockatom_energies(double *ei, int Ni, int Nij)
   }        
 }
 
-void PairPOD::blockatom_energyforce(double *ei, double *fij, int Ni, int Nij)
-{  
-  // calculate base descriptors and their derivatives with respect to atom coordinates
-  blockatom_base_descriptors(bd, Ni, Nij);  
-  
-  if (nClusters > 1) {    
-    blockatom_environment_descriptors(ei, cb, bd, Ni);
-  }
-  else {
-    blockatom_base_coefficients(ei, cb, bd, Ni);
-  }      
-  
-  double *d3 =  &bd[Ni*nl2]; // nl3
-  double *d4 =  &bd[Ni*(nl2 + nl3)]; // nl4    
-  double *cb2 =  &cb[0]; // nl3
-  double *cb3 =  &cb[Ni*nl2]; // nl3
-  double *cb4 =  &cb[Ni*(nl2 + nl3)]; // nl4
-  double *cb33 = &cb[Ni*(nl2 + nl3 + nl4)]; // nl33
-  double *cb34 = &cb[Ni*(nl2 + nl3 + nl4 + nl33)]; // nl34
-  double *cb44 = &cb[Ni*(nl2 + nl3 + nl4 + nl33 + nl34)]; // nl44
-  
-  if ((nl33>0) && (Nij>3)) {
-    crossdesc_reduction(cb3, cb3, cb33, d3, d3, ind33l, ind33r, nl33, Ni);      
-  }
-  if ((nl34>0) && (Nij>4)) {
-    crossdesc_reduction(cb3, cb4, cb34, d3, d4, ind34l, ind34r, nl34, Ni);      
-  }  
-  if ((nl44>0) && (Nij>5)) {
-    crossdesc_reduction(cb4, cb4, cb44, d4, d4, ind44l, ind44r, nl44, Ni);        
-  }     
-  
-  for (int n=0; n<3*Nij; n++) fij[n] = 0;  
-  if ((nl2 > 0) && (Nij>0)) twobody_forces(fij, cb2, Ni, Nij);  
-  if ((nl3 > 0) && (Nij>1)) threebody_forces(fij, cb3, Ni, Nij);
-  if ((nl4 > 0) && (Nij>2)) fourbody_forces(fij, cb4, Ni, Nij); 
-}
-
 void PairPOD::blockatom_forces(double *fij, int Ni, int Nij)
 {
   
@@ -1970,6 +2088,48 @@ void PairPOD::blockatom_forces(double *fij, int Ni, int Nij)
   }          
 }
 
+void PairPOD::blockatom_energyforce(double *ei, double *fij, int Ni, int Nij)
+{  
+  // calculate base descriptors and their derivatives with respect to atom coordinates
+  blockatom_base_descriptors(bd, Ni, Nij);  
+  
+  if (nClusters > 1) {    
+    blockatom_environment_descriptors(ei, cb, bd, Ni);
+  }
+  else {
+    blockatom_base_coefficients(ei, cb, bd, Ni);
+  }      
+  
+  double *d3 =  &bd[Ni*nl2]; // nl3
+  double *d4 =  &bd[Ni*(nl2 + nl3)]; // nl4    
+  double *cb2 =  &cb[0]; // nl3
+  double *cb3 =  &cb[Ni*nl2]; // nl3
+  double *cb4 =  &cb[Ni*(nl2 + nl3)]; // nl4
+  double *cb33 = &cb[Ni*(nl2 + nl3 + nl4)]; // nl33
+  double *cb34 = &cb[Ni*(nl2 + nl3 + nl4 + nl33)]; // nl34
+  double *cb44 = &cb[Ni*(nl2 + nl3 + nl4 + nl33 + nl34)]; // nl44
+  
+  if ((nl33>0) && (Nij>3)) {
+    crossdesc_reduction(cb3, cb3, cb33, d3, d3, ind33l, ind33r, nl33, Ni);      
+  }
+  if ((nl34>0) && (Nij>4)) {
+    crossdesc_reduction(cb3, cb4, cb34, d3, d4, ind34l, ind34r, nl34, Ni);      
+  }  
+  if ((nl44>0) && (Nij>5)) {
+    crossdesc_reduction(cb4, cb4, cb44, d4, d4, ind44l, ind44r, nl44, Ni);        
+  }     
+  
+  for (int n=0; n<3*Nij; n++) fij[n] = 0;  
+  if ((nl2 > 0) && (Nij>0)) twobody_forces(fij, cb2, Ni, Nij);  
+  //if ((nl3 > 0) && (Nij>1)) threebody_forces(fij, cb3, Ni, Nij);
+  //if ((nl4 > 0) && (Nij>2)) fourbody_forces(fij, cb4, Ni, Nij); 
+  
+    // Initialize forcecoeff to zero
+   std::fill(forcecoeff, forcecoeff + Ni * nelements * K3 * nrbf3, 0.0);
+   if ((nl3 > 0) && (Nij>1)) threebody_forcecoeff(forcecoeff, cb3, Ni);
+   if ((nl4 > 0) && (Nij>2)) fourbody_forcecoeff(forcecoeff, cb4, Ni);
+   if ((nl3 > 0) && (Nij>1)) allbody_forces(fij, forcecoeff, Nij);    
+}
 
 void PairPOD::blockatomenergyforce(double *ei, double *fij, int Ni, int Nij)
 {  

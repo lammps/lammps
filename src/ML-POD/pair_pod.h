@@ -81,6 +81,10 @@ public:
   void threebody_forces(double *fij, double *cb3, int Ni, int Nij);
   void fourbody_forces(double *fij, double *cb4, int Ni, int Nij);
   
+  void threebody_forcecoeff(double *fb3, double *cb3, int Ni);
+  void fourbody_forcecoeff(double *fb4, double *cb4, int Ni);
+  void allbody_forces(double *fij, double *forcecoeff, int Nij);
+  
   void savematrix2binfile(std::string filename, double *A, int nrows, int ncols);
   void saveintmatrix2binfile(std::string filename, int *A, int nrows, int ncols);  
   void savedatafordebugging();    
@@ -144,6 +148,7 @@ protected:
   double *abfz; // z-derivatives of angular basis functions nij x K3
   double *abftm ; // angular basis functions 4 x K3
   double *sumU; // sum of radial basis functions ni x K3 x nrbfmax x nelements
+  double *forcecoeff; // force coefficients ni x K3 x nrbfmax x nelements
   double *Proj; // PCA Projection matrix
   double *Centroids; // centroids of the clusters  
   double *bd;   // base descriptors ni x Mdesc

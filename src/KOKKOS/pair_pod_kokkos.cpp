@@ -514,6 +514,7 @@ void PairPODKokkos<DeviceType>::grow_atoms(int Ni)
     MemKK::realloc_kokkos(typeai, "pair_pod:typeai", nimax);
     int n = nimax * nelements * K3 * nrbfmax;
     MemKK::realloc_kokkos(sumU, "pair_pod:sumU", n);
+    MemKK::realloc_kokkos(forcecoeff, "pair_pod:forcecoeff", n);
     MemKK::realloc_kokkos(bd, "pair_pod:bd", nimax * Mdesc);
     MemKK::realloc_kokkos(cb, "pair_pod:cb", nimax * Mdesc);
     if (nClusters > 1)MemKK::realloc_kokkos(pd, "pair_pod:pd", nimax * (1 + nComponents + 3*nClusters));    
@@ -1023,6 +1024,55 @@ void PairPODKokkos<DeviceType>::threebody_forces(t_pod_1d fij, t_pod_1d cb3, t_p
 }
 
 template<class DeviceType>
+void PairPODKokkos<DeviceType>::threebody_forcecoeff(t_pod_1d fb3, t_pod_1d cb3,     
+    t_pod_1d l_sumU, t_pod_1i l_pc3, t_pod_1i l_pn3, t_pod_1i l_elemindex, 
+    int l_nelements, int l_nrbf3, int l_nabf3, int l_K3, int Ni)
+{
+  int totalIterations = l_nrbf3 * Ni;
+  if (l_nelements==1) {
+    Kokkos::parallel_for("threebody_forcecoeff1", totalIterations, KOKKOS_LAMBDA(int idx) {
+      int i = idx / l_nrbf3;       // Calculate j using integer division
+      int m = idx % l_nrbf3;       // Calculate m using modulo operation            
+      for (int p = 0; p < l_nabf3; p++) {
+        double c3 = 2.0 * cb3(i + Ni*p + Ni*l_nabf3*m);
+        int n1 = l_pn3(p);        
+        int nn = l_pn3(p + 1) - n1;        
+        int idxU = l_K3 * m + l_K3*l_nrbf3*i;
+        for (int q = 0; q < nn; q++) {                  
+          int idxNQ = n1 + q;  // Combine n1 and q into a single index for pc3 and sumU          
+          fb3(idxNQ + idxU) += c3 * l_pc3(idxNQ) * l_sumU(idxNQ + idxU);                                       
+        }
+      }
+    });
+  }
+  else {
+    int N3 = Ni *  l_nabf3 * l_nrbf3;
+    Kokkos::parallel_for("threebody_forcecoeff2", totalIterations, KOKKOS_LAMBDA(int idx) {
+      int i = idx / l_nrbf3;  // Derive the original j value
+      int m = idx % l_nrbf3;  // Derive the original m value      
+      for (int p = 0; p < l_nabf3; p++) {
+        int n1 = l_pn3(p);
+        int nn = l_pn3(p + 1) - n1;        
+        int jmp = i + Ni*(p + l_nabf3*m);
+        for (int q = 0; q < nn; q++) {
+          int k = n1 + q;  // Combine n1 and q into a single index            
+          int idxU = l_nelements * k + l_nelements * l_K3 * m + l_nelements*l_K3*l_nrbf3*i;          
+          for (int i1 = 0; i1 < l_nelements; i1++) {
+            double tm = l_pc3[k] * l_sumU[i1 + idxU];
+            for (int i2 = i1; i2 < l_nelements; i2++) {
+              int em = l_elemindex[i2 + l_nelements * i1];       
+              double t1 = tm * cb3[jmp + N3*em]; // Ni *  nabf3 * nrbf3 * nelements*(nelements+1)/2
+              fb3[i2 + idxU] += t1;   // K3*nrbf3*Ni         
+              fb3[i1 + idxU] += l_pc3[k] * cb3[jmp + N3*em] * l_sumU[i2 + idxU];
+            }
+          }          
+        }
+      }
+    });    
+  }
+}
+
+template<class DeviceType>
 void PairPODKokkos<DeviceType>::fourbodydesc(t_pod_1d d4,  t_pod_1d l_sumU, t_pod_1i l_pa4, t_pod_1i l_pb4, 
     t_pod_1i l_pc4, int l_nelements, int l_nrbf3, int l_nrbf4, int l_nabf4, int l_K3, int l_Q4, int Ni)
 {
@@ -1205,6 +1255,114 @@ void PairPODKokkos<DeviceType>::fourbody_forces(t_pod_1d fij, t_pod_1d cb4, t_po
       Kokkos::atomic_add(&fij(2 + ii), fz); // Add the derivative with respect to z to the corresponding descriptor derivative                            
     });    
   }
+}
+
+template<class DeviceType>
+void PairPODKokkos<DeviceType>::fourbody_forcecoeff(t_pod_1d fb4, t_pod_1d cb4,     
+    t_pod_1d l_sumU, t_pod_1i l_pa4, t_pod_1i l_pb4, t_pod_1i l_pc4, int l_nelements, 
+        int l_nrbf3, int l_nrbf4, int l_nabf4, int l_K3, int l_Q4, int Ni)
+{
+  int totalIterations = l_nrbf4 * Ni;
+  if (l_nelements==1) {
+    Kokkos::parallel_for("fourbody_forcecoeff1", totalIterations, KOKKOS_LAMBDA(int idx) {
+      int i = idx / l_nrbf4;  // Derive the original j value
+      int m = idx % l_nrbf4;  // Derive the original m value      
+      int idxU = l_K3 * m + l_K3*l_nrbf3*i;      
+      for (int p = 0; p < l_nabf4; p++) {
+        int n1 = l_pa4(p);
+        int n2 = l_pa4(p + 1);
+        int nn = n2 - n1;
+        double c4 = cb4(i + Ni*p + Ni*l_nabf4*m);
+        for (int q = 0; q < nn; q++) {
+          int idxNQ = n1 + q;  // Combine n1 and q into a single index
+          double c = c4 * l_pc4[idxNQ];          
+          int j1 = idxU + l_pb4(idxNQ);
+          int j2 = idxU + l_pb4(idxNQ + l_Q4);
+          int j3 = idxU + l_pb4(idxNQ + 2 * l_Q4);
+          double c1 = l_sumU(j1);
+          double c2 = l_sumU(j2);
+          double c3 = l_sumU(j3);                    
+          fb4[j3] += c * c1 * c2;          
+          fb4[j2] += c * c1 * c3;
+          fb4[j1] += c * c2 * c3;          
+        }
+      }
+    });
+  }
+  else {        
+    int N3 = Ni * l_nabf4 * l_nrbf4;
+    Kokkos::parallel_for("fourbody_forcecoeff2", totalIterations, KOKKOS_LAMBDA(int idx) {
+      int i = idx / l_nrbf4;  // Derive the original j value
+      int m = idx % l_nrbf4;  // Derive the original m value          
+      for (int p = 0; p < l_nabf4; p++)  {
+        int n1 = l_pa4(p);
+        int n2 = l_pa4(p + 1);
+        int nn = n2 - n1;
+        int jpm = i + Ni*p + Ni*l_nabf4*m;        
+        for (int q = 0; q < nn; q++) {  
+          double c = l_pc4(n1 + q);                
+          int j1 = l_pb4(n1 + q);
+          int j2 = l_pb4(n1 + q + l_Q4);
+          int j3 = l_pb4(n1 + q + 2 * l_Q4);     
+          int idx1 = l_nelements * j1 + l_nelements * l_K3 * m + l_nelements * l_K3 * l_nrbf3 * i;
+          int idx2 = l_nelements * j2 + l_nelements * l_K3 * m + l_nelements * l_K3 * l_nrbf3 * i;
+          int idx3 = l_nelements * j3 + l_nelements * l_K3 * m + l_nelements * l_K3 * l_nrbf3 * i;  
+          int k = 0;          
+          for (int i1 = 0; i1 < l_nelements; i1++) {        
+            double c1 = l_sumU[idx1 + i1];
+            for (int i2 = i1; i2 < l_nelements; i2++) {                          
+              double c2 = l_sumU[idx2 + i2];    
+              for (int i3 = i2; i3 < l_nelements; i3++) {                     
+                double c3 = l_sumU[idx3 + i3];          
+                double c4 = c * cb4[jpm + N3*k];
+                fb4[idx3 + i3] += c4*(c1 * c2);  
+                fb4[idx2 + i2] += c4*(c1 * c3);
+                fb4[idx1 + i1] += c4*(c2 * c3);                                                
+                k += 1;                
+              }              
+            }
+          }
+        }
+      }
+    });    
+  }
+}
+
+template<class DeviceType>
+void PairPODKokkos<DeviceType>::allbody_forces(t_pod_1d fij, t_pod_1d l_forcecoeff, t_pod_1d l_rbf, t_pod_1d l_rbfx, 
+    t_pod_1d l_rbfy, t_pod_1d l_rbfz, t_pod_1d l_abf, t_pod_1d l_abfx, t_pod_1d l_abfy, t_pod_1d l_abfz, 
+    t_pod_1i l_idxi, t_pod_1i l_tj, int l_nelements, int l_nrbf3, int l_nabf3, int l_K3, int Nij)
+{
+  int totalIterations = l_nrbf3 * Nij;
+  Kokkos::parallel_for("allbody_forces", totalIterations, KOKKOS_LAMBDA(int idx) {
+    int j = idx / l_nrbf3;       // Calculate j using integer division
+    int m = idx % l_nrbf3;       // Calculate m using modulo operation
+    int i2 = l_tj(j) - 1;
+    int idxR = j + Nij * m;  // Pre-compute the index for rbf
+    double rbfBase = l_rbf(idxR);
+    double rbfxBase = l_rbfx(idxR);
+    double rbfyBase = l_rbfy(idxR);
+    double rbfzBase = l_rbfz(idxR);
+    double fx = 0;
+    double fy = 0;
+    double fz = 0;      
+    for (int k = 0; k < l_K3; k++) {
+      int idxU = l_nelements * k + l_nelements * l_K3 * m + l_nelements*l_K3*l_nrbf3*l_idxi[j];
+      double fc = l_forcecoeff[i2 + idxU];
+      int idxA = j + Nij*k;  // Pre-compute the index for abf          
+      double abfA = l_abf[idxA];   
+      double abfxA = l_abfx[idxA];
+      double abfyA = l_abfy[idxA];
+      double abfzA = l_abfz[idxA];        
+      fx += fc * (abfxA * rbfBase + rbfxBase * abfA); // K3*nrbf3*Nij 
+      fy += fc * (abfyA * rbfBase + rbfyBase * abfA);
+      fz += fc * (abfzA * rbfBase + rbfzBase * abfA);                        
+    }    
+    int ii = 3 * j;  // Pre-compute the base index for dd3        
+    Kokkos::atomic_add(&fij(0 + ii), fx); // Add the derivative with respect to x to the corresponding descriptor derivative
+    Kokkos::atomic_add(&fij(1 + ii), fy); // Add the derivative with respect to y to the corresponding descriptor derivative
+    Kokkos::atomic_add(&fij(2 + ii), fz); // Add the derivative with respect to z to the corresponding descriptor derivative          
+  });
 }
 
 template<class DeviceType>
@@ -1522,19 +1680,27 @@ void PairPODKokkos<DeviceType>::blockatom_energyforce(t_pod_1d l_ei, t_pod_1d l_
   end = std::chrono::high_resolution_clock::now();   
   comptime[7] += std::chrono::duration_cast<std::chrono::nanoseconds>(end-begin).count()/1e6;                        
   
-  begin = std::chrono::high_resolution_clock::now();    
-  if ((nl3 > 0) && (Nij>1)) threebody_forces(l_fij, cb3, rbf, rbfx, rbfy, rbfz, abf, abfx, abfy, abfz, sumU, 
-          idxi, tj, pc3, pn3, elemindex, nelements, nrbf3, nabf3, K3, Ni, Nij);
-  Kokkos::fence();
-  end = std::chrono::high_resolution_clock::now();   
-  comptime[8] += std::chrono::duration_cast<std::chrono::nanoseconds>(end-begin).count()/1e6;                        
-  
-  begin = std::chrono::high_resolution_clock::now();    
-  if ((nl4 > 0) && (Nij>2)) fourbody_forces(l_fij, cb4, rbf, rbfx, rbfy, rbfz, abf, abfx, abfy, abfz, sumU, idxi, tj, 
-      pa4, pb4, pc4, elemindex, nelements, nrbf3, nrbf4, nabf4, K3, Q4, Ni, Nij);        
-  Kokkos::fence();
-  end = std::chrono::high_resolution_clock::now();   
-  comptime[9] += std::chrono::duration_cast<std::chrono::nanoseconds>(end-begin).count()/1e6;                          
+  set_array_to_zero(forcecoeff, nelements * nrbf3 * K3 * Ni);   
+  if ((nl3 > 0) && (Nij>1)) threebody_forcecoeff(forcecoeff, cb3, sumU, 
+          pc3, pn3, elemindex, nelements, nrbf3, nabf3, K3, Ni);
+  if ((nl4 > 0) && (Nij>2)) fourbody_forcecoeff(forcecoeff, cb4, sumU, 
+      pa4, pb4, pc4, nelements, nrbf3, nrbf4, nabf4, K3, Q4, Ni);        
+  if ((nl3 > 0) && (Nij>1)) allbody_forces(l_fij, forcecoeff, rbf, rbfx, rbfy, rbfz, abf, abfx, abfy, abfz, 
+          idxi, tj, nelements, nrbf3, nabf3, K3, Nij);
+    
+//   begin = std::chrono::high_resolution_clock::now();    
+//   if ((nl3 > 0) && (Nij>1)) threebody_forces(l_fij, cb3, rbf, rbfx, rbfy, rbfz, abf, abfx, abfy, abfz, sumU, 
+//           idxi, tj, pc3, pn3, elemindex, nelements, nrbf3, nabf3, K3, Ni, Nij);
+//   Kokkos::fence();
+//   end = std::chrono::high_resolution_clock::now();   
+//   comptime[8] += std::chrono::duration_cast<std::chrono::nanoseconds>(end-begin).count()/1e6;                        
+//   
+//   begin = std::chrono::high_resolution_clock::now();    
+//   if ((nl4 > 0) && (Nij>2)) fourbody_forces(l_fij, cb4, rbf, rbfx, rbfy, rbfz, abf, abfx, abfy, abfz, sumU, idxi, tj, 
+//       pa4, pb4, pc4, elemindex, nelements, nrbf3, nrbf4, nabf4, K3, Q4, Ni, Nij);        
+//   Kokkos::fence();
+//   end = std::chrono::high_resolution_clock::now();   
+//   comptime[9] += std::chrono::duration_cast<std::chrono::nanoseconds>(end-begin).count()/1e6;                          
 }
 
 template<class DeviceType>

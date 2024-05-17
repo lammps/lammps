@@ -30,8 +30,6 @@
 #include "atom_masks.h"
 #include "kokkos_base.h"
 
-#include <cstring>
-
 using namespace LAMMPS_NS;
 using namespace FixConst;
 

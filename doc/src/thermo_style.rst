@@ -25,12 +25,18 @@ Syntax
                              evdwl, ecoul, epair, ebond, eangle, edihed, eimp,
                              emol, elong, etail,
                              enthalpy, ecouple, econserve,
-                             vol, density, lx, ly, lz, xlo, xhi, ylo, yhi, zlo, zhi,
-                             xy, xz, yz, xlat, ylat, zlat,
-                             bonds, angles, dihedrals, impropers,
-                             pxx, pyy, pzz, pxy, pxz, pyz,
-                             fmax, fnorm, nbuild, ndanger,
+                             vol, density,
+                             xlo, xhi, ylo, yhi, zlo, zhi,
+                             xy, xz, yz,
+                             avecx, avecy, avecz,
+                             bvecx, bvecy, bvecz,
+                             cvecx, cvecy, cvecz,
+                             lx, ly, lz,
+                             xlat, ylat, zlat,
                              cella, cellb, cellc, cellalpha, cellbeta, cellgamma,
+                             pxx, pyy, pzz, pxy, pxz, pyz,
+                             bonds, angles, dihedrals, impropers,
+                             fmax, fnorm, nbuild, ndanger,
                              c_ID, c_ID[I], c_ID[I][J],
                              f_ID, f_ID[I], f_ID[I][J],
                              v_name, v_name[I]
@@ -66,18 +72,21 @@ Syntax
            econserve = pe + ke + ecouple = etotal + ecouple
            vol = volume
            density = mass density of system
-           lx,ly,lz = box lengths in x,y,z
            xlo,xhi,ylo,yhi,zlo,zhi = box boundaries
-           xy,xz,yz = box tilt for triclinic (non-orthogonal) simulation boxes
+           xy,xz,yz = box tilt for restricted triclinic (non-orthogonal) simulation boxes
+           avecx,avecy,avecz = components of edge vector A of the simulation box
+           bvecx,bvecy,bvecz = components of edge vector B of the simulation box
+           cvecx,cvecy,cvecz = components of edge vector C of the simulation box
+           lx,ly,lz = box lengths in x,y,z
            xlat,ylat,zlat = lattice spacings as calculated by :doc:`lattice <lattice>` command
-           bonds,angles,dihedrals,impropers = # of these interactions defined
+           cella,cellb,cellc = periodic cell lattice constants a,b,c
+           cellalpha, cellbeta, cellgamma = periodic cell angles alpha,beta,gamma
            pxx,pyy,pzz,pxy,pxz,pyz = 6 components of pressure tensor
+           bonds,angles,dihedrals,impropers = # of these interactions defined
            fmax = max component of force on any atom in any dimension
            fnorm = length of force vector for all atoms
            nbuild = # of neighbor list builds
            ndanger = # of dangerous neighbor list builds
-           cella,cellb,cellc = periodic cell lattice constants a,b,c
-           cellalpha, cellbeta, cellgamma = periodic cell angles alpha,beta,gamma
            c_ID = global scalar value calculated by a compute with ID
            c_ID[I] = Ith component of global vector calculated by a compute with ID, I can include wildcard (see below)
            c_ID[I][J] = I,J component of global array calculated by a compute with ID
@@ -102,8 +111,11 @@ Examples
 Description
 """""""""""
 
-Set the style and content for printing thermodynamic data to the screen
-and log files.
+Set the style and content for printing thermodynamic data to the
+screen and log files.  The units for each column of output
+corresponding to the list of keywords is determined by the :doc:`units
+<units>` command for the simulation.  E.g. energies will be in energy
+units, temperature in temperature units, pressure in pressure units.
 
 Style *one* prints a single line of thermodynamic info that is the
 equivalent of "thermo_style custom step temp epair emol etotal press".
@@ -245,7 +257,7 @@ and *pxx*, *pyy*, etc.
 ----------
 
 Here is more information on other keywords whose meaning may not be
-clear:
+clear.
 
 The *step*, *elapsed*, and *elaplong* keywords refer to timestep
 count.  *Step* is the current timestep, or iteration count when a
@@ -319,6 +331,63 @@ thermostatting or barostatting to their coupling reservoirs -- that is,
 the NVT, NPH, or NPT ensembles, the *econserve* quantity should remain
 constant over time even though *etotal* may change.
 
+In LAMMPS, the simulation box can be defined as orthogonal or
+triclinic (non-orthogonal).  See the :doc:`Howto_triclinic
+<Howto_triclinic>` doc page for a detailed explanation of orthogonal,
+restricted triclinic, and general triclinic simulation boxes and how
+LAMMPS rotates a general triclinic box to be restricted triclinic
+internally.
+
+The *lx*, *ly*, *lz* keywords are the extent of the simulation box in
+each dimension.  The *xlo*, *xhi*, *ylo*, *yhi*, *zlo*, *zhi* keywords
+are the lower and upper bounds of the simulation box in each dimension.
+I.e. *lx* = *xhi* - *xlo*).  These 9 values are the same for all 3 kinds
+of boxes.  I.e. for a restricted triclinic box, they are the values as
+if the box were not tilted.  For a general triclinic box, they are the
+values after it is internally rotated to be a restricted triclinic box.
+
+The *xy*, *xz*, *yz* are the current tilt factors for a triclinic box.
+They are the same for restricted and general triclinic boxes.
+
+The *avecx*, *avecy*, *avecz*, *bvecx*, *bvecy*, *bvecz*, *cvecx*,
+*cvecy*, *cvecz* are the components of the 3 edge vectors of the
+current general simulation box.  If it is an orthogonal box the
+vectors are along the x, y, z coordinate axes.  If it is a restricted
+triclinic box, the **A** vector is along the x axis, the **B** vector
+is in the xy plane with a +y coordinate, and the **C** vector has a +z
+coordinate, as explained on the :doc:`Howto_triclinic
+<Howto_triclinic>` doc page.  If the :doc:`thermo_modify
+triclinic/general <thermo_modify>` option is set then they are the
+**A**, **B**, **C** vector which define the general triclinic box.
+
+The *cella*, *cellb*, *cellc*, *cellalpha*, *cellbeta*, *cellgamma*
+keywords correspond to the usual crystallographic quantities that
+define the periodic simulation box of a crystalline system.  See the
+:doc:`Howto triclinic <Howto_triclinic>` page for a precise definition
+of these quantities in terms of the LAMMPS representation of a
+restricted triclinic simulation box via *lx*, *ly*, *lz*, *yz*, *xz*,
+*xy*\ .
+
+The *pxx,pyy,pzz,pxy,pxz,pyz* keywords are the 6 components of the
+symmetric pressure tensor for the system.  See the :doc:`compute
+pressure <compute_pressure>` command doc page for details of how it is
+calculated.
+
+If the :doc:`thermo_modify triclinic/general <thermo_modify>` option
+is set then the 6 components will be output as values consistent with
+the orientation of the general triclinic box relative to the standard
+xyz coordinate axes.  If this keyword is not used, the values will be
+consistent with the orientation of the restricted triclinic box (which
+aligns with the xyz coordinate axes).  As explained on the
+:doc:`Howto_triclinic <Howto_triclinic>` doc page, even if the
+simulation box is created as a general triclinic box, internally
+LAMMPS uses a restricted triclinic box.
+
+Note that because the pressure tensor components are computed using
+force vectors and atom coordinates, both of which are rotated in the
+general versus restricted triclinic representation, the values will
+typically be different for the two cases.
+
 The *fmax* and *fnorm* keywords are useful for monitoring the progress
 of an :doc:`energy minimization <minimize>`.  The *fmax* keyword
 calculates the maximum force in any dimension on any atom in the
@@ -337,14 +406,6 @@ atom movement was checked for.  If this count is non-zero you may wish
 to reduce the delay factor to ensure no force interactions are missed
 by atoms moving beyond the neighbor skin distance before a rebuild
 takes place.
-
-The keywords *cella*, *cellb*, *cellc*, *cellalpha*,
-*cellbeta*, *cellgamma*, correspond to the usual crystallographic
-quantities that define the periodic unit cell of a crystal.  See the
-:doc:`Howto triclinic <Howto_triclinic>` page for a geometric
-description of triclinic periodic cells, including a precise
-definition of these quantities in terms of the internal LAMMPS cell
-dimensions *lx*, *ly*, *lz*, *yz*, *xz*, *xy*\ .
 
 ----------
 

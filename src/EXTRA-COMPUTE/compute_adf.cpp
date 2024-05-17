@@ -34,32 +34,27 @@
 #include <cstring>
 
 using namespace LAMMPS_NS;
-using namespace MathConst;
+using MathConst::MY_PI;
+using MathConst::RAD2DEG;
 
-enum{DEGREE, RADIAN, COSINE};
+enum { DEGREE, RADIAN, COSINE };
 
 /* ----------------------------------------------------------------------
    compute angular distribution functions for I, J, K atoms
  ---------------------------------------------------------------------- */
 
 ComputeADF::ComputeADF(LAMMPS *lmp, int narg, char **arg) :
-  Compute(lmp, narg, arg),
-  ilo(nullptr), ihi(nullptr), jlo(nullptr), jhi(nullptr), klo(nullptr), khi(nullptr),
-  hist(nullptr), histall(nullptr),
-  rcutinnerj(nullptr), rcutinnerk(nullptr),
-  rcutouterj(nullptr), rcutouterk(nullptr),
-  list(nullptr),
-  iatomcount(nullptr), iatomcountall(nullptr), iatomflag(nullptr),
-  maxjatom(nullptr), maxkatom(nullptr),
-  numjatom(nullptr), numkatom(nullptr),
-  neighjatom(nullptr),neighkatom(nullptr),
-  jatomflag(nullptr), katomflag(nullptr),
-  maxjkatom(nullptr), numjkatom(nullptr),
-  neighjkatom(nullptr), bothjkatom(nullptr), delrjkatom(nullptr)
+    Compute(lmp, narg, arg), ilo(nullptr), ihi(nullptr), jlo(nullptr), jhi(nullptr), klo(nullptr),
+    khi(nullptr), hist(nullptr), histall(nullptr), rcutinnerj(nullptr), rcutinnerk(nullptr),
+    rcutouterj(nullptr), rcutouterk(nullptr), list(nullptr), iatomcount(nullptr),
+    iatomcountall(nullptr), iatomflag(nullptr), maxjatom(nullptr), maxkatom(nullptr),
+    numjatom(nullptr), numkatom(nullptr), neighjatom(nullptr), neighkatom(nullptr),
+    jatomflag(nullptr), katomflag(nullptr), maxjkatom(nullptr), numjkatom(nullptr),
+    neighjkatom(nullptr), bothjkatom(nullptr), delrjkatom(nullptr)
 {
   int nargsperadf = 7;
 
-  if (narg < 4 ) error->all(FLERR,"Illegal compute adf command");
+  if (narg < 4) utils::missing_cmd_args(FLERR, "compute adf", error);
 
   array_flag = 1;
   extarray = 0;
@@ -89,17 +84,16 @@ ComputeADF::ComputeADF(LAMMPS *lmp, int narg, char **arg) :
       if (strcmp(arg[iarg+1],"degree") == 0) ordinate_style = DEGREE;
       else if (strcmp(arg[iarg+1],"radian") == 0) ordinate_style = RADIAN;
       else if (strcmp(arg[iarg+1],"cosine") == 0) ordinate_style = COSINE;
-      else error->all(FLERR,"Illegal compute adf command");
+      else error->all(FLERR,"Unknown compute adf ordinate flag {}",arg[iarg+1]);
       iarg += 2;
-    } else error->all(FLERR,"Illegal compute adf command");
+    } else error->all(FLERR,"Unknown compute adf keyword {}", arg[iarg]);
   }
 
   // triplewise args
 
   if (!nargtriple) ntriples = 1;
   else {
-    if (nargtriple % nargsperadf)
-      error->all(FLERR,"Illegal compute adf command");
+    if (nargtriple % nargsperadf) error->all(FLERR,"Illegal compute adf command");
     ntriples = nargtriple/nargsperadf;
   }
 
@@ -107,12 +101,9 @@ ComputeADF::ComputeADF(LAMMPS *lmp, int narg, char **arg) :
   size_array_cols = 1 + 2*ntriples;
 
   int ntypes = atom->ntypes;
-  memory->create(iatomflag,ntriples,ntypes+1,
-                 "adf:iatomflag");
-  memory->create(jatomflag,ntriples,ntypes+1,
-                 "adf:jatomflag");
-  memory->create(katomflag,ntriples,ntypes+1,
-                 "adf:katomflag");
+  memory->create(iatomflag,ntriples,ntypes+1,"adf:iatomflag");
+  memory->create(jatomflag,ntriples,ntypes+1,"adf:jatomflag");
+  memory->create(katomflag,ntriples,ntypes+1,"adf:katomflag");
 
   ilo = new int[ntriples];
   ihi = new int[ntriples];
@@ -134,14 +125,14 @@ ComputeADF::ComputeADF(LAMMPS *lmp, int narg, char **arg) :
     klo[0] = 1; khi[0] = ntypes;
   } else {
     cutflag = 1;
+    if ((neighbor->style == Neighbor::MULTI) || (neighbor->style == Neighbor::MULTI_OLD))
+      error->all(FLERR, "Compute adf with custom cutoffs requires neighbor style 'bin' or 'nsq'");
     iarg = 4;
     for (int m = 0; m < ntriples; m++) {
       utils::bounds(FLERR,arg[iarg],1,atom->ntypes,ilo[m],ihi[m],error);
       utils::bounds(FLERR,arg[iarg+1],1,atom->ntypes,jlo[m],jhi[m],error);
       utils::bounds(FLERR,arg[iarg+2],1,atom->ntypes,klo[m],khi[m],error);
-      if (ilo[m] > ihi[m] ||
-          jlo[m] > jhi[m] ||
-          klo[m] > khi[m])
+      if ((ilo[m] > ihi[m]) || (jlo[m] > jhi[m]) || (klo[m] > khi[m]))
         error->all(FLERR,"Illegal compute adf command");
       rcutinnerj[m] = utils::numeric(FLERR,arg[iarg+3],false,lmp);
       rcutouterj[m] = utils::numeric(FLERR,arg[iarg+4],false,lmp);
@@ -221,8 +212,6 @@ ComputeADF::ComputeADF(LAMMPS *lmp, int narg, char **arg) :
     memory->create(bothjkatom[m],maxjkatom[m],"adf:bothjkatom");
     memory->create(delrjkatom[m],maxjkatom[m],4,"adf:delrjkatom");
   }
-
-  rad2deg = 180.0 / MY_PI;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -230,47 +219,47 @@ ComputeADF::ComputeADF(LAMMPS *lmp, int narg, char **arg) :
 ComputeADF::~ComputeADF()
 {
   memory->destroy(iatomflag);
-  delete [] ilo;
-  delete [] ihi;
-  delete [] jlo;
-  delete [] jhi;
-  delete [] klo;
-  delete [] khi;
-  delete [] iatomcount;
-  delete [] iatomcountall;
+  delete[] ilo;
+  delete[] ihi;
+  delete[] jlo;
+  delete[] jhi;
+  delete[] klo;
+  delete[] khi;
+  delete[] iatomcount;
+  delete[] iatomcountall;
   memory->destroy(hist);
   memory->destroy(histall);
   memory->destroy(array);
 
   memory->destroy(jatomflag);
-  delete [] rcutinnerj;
-  delete [] rcutouterj;
-  delete [] maxjatom;
-  delete [] numjatom;
+  delete[] rcutinnerj;
+  delete[] rcutouterj;
+  delete[] maxjatom;
+  delete[] numjatom;
   for (int m = 0; m < ntriples; m++)
     memory->destroy(neighjatom[m]);
-  delete [] neighjatom;
+  delete[] neighjatom;
 
   memory->destroy(katomflag);
-  delete [] rcutinnerk;
-  delete [] rcutouterk;
-  delete [] maxkatom;
-  delete [] numkatom;
+  delete[] rcutinnerk;
+  delete[] rcutouterk;
+  delete[] maxkatom;
+  delete[] numkatom;
   for (int m = 0; m < ntriples; m++)
     memory->destroy(neighkatom[m]);
-  delete [] neighkatom;
+  delete[] neighkatom;
 
-  delete [] maxjkatom;
-  delete [] numjkatom;
+  delete[] maxjkatom;
+  delete[] numjkatom;
   for (int m = 0; m < ntriples; m++)
     memory->destroy(neighjkatom[m]);
-  delete [] neighjkatom;
+  delete[] neighjkatom;
   for (int m = 0; m < ntriples; m++)
     memory->destroy(bothjkatom[m]);
-  delete [] bothjkatom;
+  delete[] bothjkatom;
   for (int m = 0; m < ntriples; m++)
     memory->destroy(delrjkatom[m]);
-  delete [] delrjkatom;
+  delete[] delrjkatom;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -282,8 +271,7 @@ void ComputeADF::init()
 
   if (!cutflag) {
     if (!force->pair)
-      error->all(FLERR,"Compute adf requires a pair style be defined "
-                 "or an outer cutoff specified");
+      error->all(FLERR,"Compute adf requires a pair style be defined or an outer cutoff specified");
     rcutinnerj[0] = 0.0;
     rcutinnerk[0] = 0.0;
     rcutouterj[0] = force->pair->cutforce;
@@ -298,7 +286,7 @@ void ComputeADF::init()
 
   // specify mycutneigh if force cutoff too small or non-existent
 
-  if (!(force->pair) || maxouter > force->pair->cutforce) {
+  if (!(force->pair) || (maxouter > force->pair->cutforce)) {
     double skin = neighbor->skin;
     mycutneigh = maxouter + skin;
     if (mycutneigh > comm->cutghostuser)
@@ -310,7 +298,7 @@ void ComputeADF::init()
 
   int x0;
   if (ordinate_style == DEGREE) {
-    deltax = MY_PI / nbin * rad2deg;
+    deltax = MY_PI / nbin * RAD2DEG;
     deltaxinv = nbin / MY_PI;
     x0 = 0.0;
 
@@ -337,7 +325,11 @@ void ComputeADF::init()
   //   than maxouter apart, just like a normal neighbor list does
 
   auto req = neighbor->add_request(this, NeighConst::REQ_FULL | NeighConst::REQ_OCCASIONAL);
-  if (mycutneigh > 0.0) req->set_cutoff(mycutneigh);
+  if (mycutneigh > 0.0) {
+    if ((neighbor->style == Neighbor::MULTI) || (neighbor->style == Neighbor::MULTI_OLD))
+      error->all(FLERR, "Compute adf with custom cutoffs requires neighbor style 'bin' or 'nsq'");
+    req->set_cutoff(mycutneigh);
+  }
 }
 
 /* ---------------------------------------------------------------------- */

@@ -59,6 +59,7 @@ FixPour::FixPour(LAMMPS *lmp, int narg, char **arg) :
   if (lmp->kokkos) error->all(FLERR, "Cannot yet use fix pour with the KOKKOS package");
 
   scalar_flag = 1;
+  extscalar = 0;
   time_depend = 1;
 
   if (!atom->radius_flag || !atom->rmass_flag)

@@ -19,7 +19,7 @@ Syntax
        scale = lattice constant in distance units (for all other units)
 
 * zero or more keyword/value pairs may be appended
-* keyword = *origin* or *orient* or *spacing* or *a1* or *a2* or *a3* or *basis*
+* keyword = *origin* or *orient* or *spacing* or *a1* or *a2* or *a3* or *basis* or *triclinic/general*
 
   .. parsed-literal::
 
@@ -34,6 +34,7 @@ Syntax
          x,y,z = primitive vector components that define unit cell
        *basis* values = x y z
          x,y,z = fractional coords of a basis atom (0 <= x,y,z < 1)
+       *triclinic/general* values = no values
 
 Examples
 """"""""
@@ -44,7 +45,7 @@ Examples
    lattice hex 0.85
    lattice sq 0.8 origin 0.0 0.5 0.0 orient x 1 1 0 orient y -1 1 0
    lattice custom 3.52 a1 1.0 0.0 0.0 a2 0.5 1.0 0.0 a3 0.0 0.0 0.5 &
-                       basis 0.0 0.0 0.0 basis 0.5 0.5 0.5
+                       basis 0.0 0.0 0.0 basis 0.5 0.5 0.5 triclinic/general
    lattice none 2.0
 
 Description
@@ -129,10 +130,13 @@ and a3 are 3 orthogonal unit vectors (edges of a unit cube).  But you
 can specify them to be of any length and non-orthogonal to each other,
 so that they describe a tilted parallelepiped.  Via the *basis*
 keyword you add atoms, one at a time, to the unit cell.  Its arguments
-are fractional coordinates (0.0 <= x,y,z < 1.0).  The position vector
-x of a basis atom within the unit cell is thus a linear combination of
-the unit cell's 3 edge vectors, i.e. x = bx a1 + by a2 + bz a3,
-where bx,by,bz are the 3 values specified for the *basis* keyword.
+are fractional coordinates (0.0 <= x,y,z < 1.0).  For 2d simulations,
+the fractional z coordinate for any basis atom must be 0.0.
+
+The position vector x of a basis atom within the unit cell is a linear
+combination of the unit cell's 3 edge vectors, i.e. x = bx a1 + by
+a2 + bz a3, where bx,by,bz are the 3 values specified for the *basis*
+keyword.
 
 ----------
 
@@ -168,18 +172,21 @@ The *origin* option specifies how the unit cell will be shifted or
 translated when mapping it into the simulation box.  The x,y,z values
 are fractional values (0.0 <= x,y,z < 1.0) meaning shift the lattice
 by a fraction of the lattice spacing in each dimension.  The meaning
-of "lattice spacing" is discussed below.
+of "lattice spacing" is discussed below.  For 2d simulations, the
+*origin* z value must be 0.0.
 
 The *orient* option specifies how the unit cell will be rotated when
 mapping it into the simulation box.  The *dim* argument is one of the
 3 coordinate axes in the simulation box.  The other 3 arguments are
 the crystallographic direction in the lattice that you want to orient
 along that axis, specified as integers.  E.g. "orient x 2 1 0" means
-the x-axis in the simulation box will be the [210] lattice
-direction, and similarly for y and z.  The 3 lattice directions you
-specify do not have to be unit vectors, but they must be mutually
-orthogonal and obey the right-hand rule, i.e. (X cross Y) points in
-the Z direction.
+the x-axis in the simulation box will be the [210] lattice direction,
+and similarly for y and z.  The 3 lattice directions you specify do
+not have to be unit vectors, but they must be mutually orthogonal and
+obey the right-hand rule, i.e. (X cross Y) points in the Z direction.
+For 2d simulations, the *orient* x and y vectors must define 0 for
+their 3rd component.  Similarly the *orient* z vector must define 0
+for its 1st and 2nd components.
 
 .. note::
 
@@ -190,6 +197,59 @@ the Z direction.
    of the 3 *orient* vectors as creating a 3x3 rotation matrix which is
    applied to a1,a2,a3 to rotate the original unit cell to a new
    orientation in the simulation box.
+
+----------
+
+The *triclinic/general* option specifies that the defined lattice is
+for use with a general triclinic simulation box, as opposed to an
+orthogonal or restricted triclinic box.  The :doc:`Howto triclinic
+<Howto_triclinic>` doc page explains all 3 kinds of simulation boxes
+LAMMPS supports.
+
+If this option is specified, a *custom* lattice style must be used.
+The *a1*, *a2*, *a3* vectors should define the edge vectors of a
+single unit cell of the lattice with one or more basis atoms.  They
+edge vectors can be arbitrary so long as they are non-zero, distinct,
+and not co-planar.  In addition, they must define a right-handed
+system, such that (*a1* cross *a2*) points in the direction of *a3*.
+Note that a left-handed system can be converted to a right-handed
+system by simply swapping the order of any pair of the *a1*, *a2*,
+*a3* vectors.  For 2d simulations, the *a3* vector must be specified
+as (0.0,0.0,1.0), which is its default value.
+
+If this option is used, the *origin* and *orient* settings must have
+their default values.  Namely (0.0,0.0,0.0) for the *origin* and
+(100), (010), (001) for the *orient* vectors.
+
+The :doc:`create_box <create_box>` command can be used to create a
+general triclinic box that replicates the *a1*, *a2*, *a3* unit cell
+vectors in each direction to create the 3 arbitrary edge vectors of
+the overall simulation box.  It requires a lattice with the
+*triclinic/general* option.
+
+Likewise, the :doc:`create_atoms <create_atoms>` command can be used
+to add atoms (or molecules) to a general triclinic box which lie on
+the lattice points defined by *a1*, *a2*, *a3* and the unit cell basis
+atoms.  To do this, it also requires a lattice with the
+*triclinic/general* option.
+
+.. note::
+
+   LAMMPS allows specification of general triclinic lattices and
+   simulation boxes as a convenience for users who may be converting
+   data from solid-state crystallographic representations or from DFT
+   codes for input to LAMMPS.  However, as explained on the
+   :doc:`Howto_triclinic <Howto_triclinic>` doc page, internally,
+   LAMMPS only uses restricted triclinic simulation boxes.  This means
+   the box and per-atom information (e.g. coordinates, velocities)
+   defined by the :doc:`create_box <create_box>` and
+   :doc:`create_atoms <create_atoms>` commands are converted from
+   general to restricted triclinic form when the two commands are
+   invoked.  It also means that any other commands which use lattice
+   spacings from this command (e.g. the region command), will be
+   operating on a restricted triclinic simulation box, even if the
+   *triclinic/general* option was used to define the lattice.  See the
+   next section for details.
 
 ----------
 
@@ -215,6 +275,18 @@ X is defined as the difference between the min/max extent of the x
 coordinates of the 8 corner points of the modified unit cell (4 in
 2d).  Similarly, the Y and Z lattice spacings are defined as the
 difference in the min/max of the y and z coordinates.
+
+.. note::
+
+   If the *triclinic/general* option is specified, the unit cell
+   defined by *a1*, *a2*, *a3* edge vectors is first converted to a
+   restricted triclinic orientation, which is a rotation operation.
+   The min/max extent of the 8 corner points is then determined, as
+   described in the preceding paragraph, to set the lattice
+   spacings. As explained for the *triclinic/general* option above,
+   this is because any use of the lattice spacings by other commands
+   will be for a restricted triclinic simulation box, not a general
+   triclinic box.
 
 Note that if the unit cell is orthogonal with axis-aligned edges (no
 rotation via the *orient* keyword), then the lattice spacings in each

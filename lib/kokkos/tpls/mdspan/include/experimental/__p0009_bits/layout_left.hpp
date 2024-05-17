@@ -18,6 +18,9 @@
 #include "macros.hpp"
 #include "trait_backports.hpp"
 #include "extents.hpp"
+#include "../__p2642_bits/layout_padded_fwd.hpp"
+#include <cassert>
+#include <type_traits>
 
 namespace MDSPAN_IMPL_STANDARD_NAMESPACE {
 
@@ -108,6 +111,36 @@ class layout_left::mapping {
         */
     }
 
+#if MDSPAN_HAS_CXX_17
+    /**
+     * Converting constructor from `layout_left_padded::mapping`.
+     *
+     * This overload participates in overload resolution only if _Mapping is a layout_left_padded mapping and
+     * extents_type is constructible from _Mapping::extents_type.
+     *
+     * \note There is currently a difference from p2642r2, where this function is specified as taking
+     * `layout_left_padded< padding_value >::mapping< Extents>`. However, this makes `padding_value` non-deducible.
+     */
+    MDSPAN_TEMPLATE_REQUIRES(
+      class _Mapping,
+      /* requires */ (
+        MDSPAN_IMPL_PROPOSED_NAMESPACE::detail::is_layout_left_padded_mapping<_Mapping>::value
+        && std::is_constructible_v<extents_type, typename _Mapping::extents_type>
+      )
+    )
+    MDSPAN_CONDITIONAL_EXPLICIT((!std::is_convertible_v<typename _Mapping::extents_type, extents_type>))
+    mapping(const _Mapping& __other) noexcept
+      : __extents(__other.extents())
+    {
+      MDSPAN_IMPL_PROPOSED_NAMESPACE::detail::
+          check_padded_layout_converting_constructor_mandates<extents_type,
+                                                                _Mapping>();
+      MDSPAN_IMPL_PROPOSED_NAMESPACE::detail::
+          check_padded_layout_converting_constructor_preconditions<
+              extents_type>(__other);
+    }
+#endif
+
     MDSPAN_TEMPLATE_REQUIRES(
       class OtherExtents,
       /* requires */ (
@@ -124,13 +157,14 @@ class layout_left::mapping {
         * other.required_span_size() is a representable value of type index_type
         */
        #if !defined(_MDSPAN_HAS_CUDA) && !defined(_MDSPAN_HAS_HIP) && !defined(NDEBUG)
-       index_type stride = 1;
-       for(rank_type r=0; r<__extents.rank(); r++) {
-         if(stride != static_cast<index_type>(other.stride(r))) {
-           // Note this throw will lead to a terminate if triggered since this function is marked noexcept
-           throw std::runtime_error("Assigning layout_stride to layout_left with invalid strides.");
+       if constexpr (extents_type::rank() > 0) {
+         index_type stride = 1;
+         using common_t = std::common_type_t<index_type, typename OtherExtents::index_type>;
+         for(rank_type r=0; r<__extents.rank(); r++) {
+           if(static_cast<common_t>(stride) != static_cast<common_t>(other.stride(r)))
+             std::abort(); // ("Assigning layout_stride to layout_left with invalid strides.");
+           stride *= __extents.extent(r);
          }
-         stride *= __extents.extent(r);
        }
        #endif
     }
@@ -155,10 +189,7 @@ class layout_left::mapping {
       class... Indices,
       /* requires */ (
         (sizeof...(Indices) == extents_type::rank()) &&
-        _MDSPAN_FOLD_AND(
-           (_MDSPAN_TRAIT(std::is_convertible, Indices, index_type) &&
-            _MDSPAN_TRAIT(std::is_nothrow_constructible, index_type, Indices))
-        )
+        (detail::are_valid_indices<index_type, Indices...>())
       )
     )
     _MDSPAN_HOST_DEVICE
@@ -172,9 +203,9 @@ class layout_left::mapping {
     MDSPAN_INLINE_FUNCTION static constexpr bool is_always_exhaustive() noexcept { return true; }
     MDSPAN_INLINE_FUNCTION static constexpr bool is_always_strided() noexcept { return true; }
 
-    MDSPAN_INLINE_FUNCTION constexpr bool is_unique() const noexcept { return true; }
-    MDSPAN_INLINE_FUNCTION constexpr bool is_exhaustive() const noexcept { return true; }
-    MDSPAN_INLINE_FUNCTION constexpr bool is_strided() const noexcept { return true; }
+    MDSPAN_INLINE_FUNCTION static constexpr bool is_unique() noexcept { return true; }
+    MDSPAN_INLINE_FUNCTION static constexpr bool is_exhaustive() noexcept { return true; }
+    MDSPAN_INLINE_FUNCTION static constexpr bool is_strided() noexcept { return true; }
 
     MDSPAN_INLINE_FUNCTION
     constexpr index_type stride(rank_type i) const noexcept
@@ -187,7 +218,10 @@ class layout_left::mapping {
       return value;
     }
 
-    template<class OtherExtents>
+    MDSPAN_TEMPLATE_REQUIRES(
+      class OtherExtents,
+      /* requires */ ( Extents::rank() == OtherExtents::rank())
+    )
     MDSPAN_INLINE_FUNCTION
     friend constexpr bool operator==(mapping const& lhs, mapping<OtherExtents> const& rhs) noexcept {
       return lhs.extents() == rhs.extents();
@@ -195,7 +229,10 @@ class layout_left::mapping {
 
     // In C++ 20 the not equal exists if equal is found
 #if !(MDSPAN_HAS_CXX_20)
-    template<class OtherExtents>
+    MDSPAN_TEMPLATE_REQUIRES(
+      class OtherExtents,
+      /* requires */ ( Extents::rank() == OtherExtents::rank())
+    )
     MDSPAN_INLINE_FUNCTION
     friend constexpr bool operator!=(mapping const& lhs, mapping<OtherExtents> const& rhs) noexcept {
       return lhs.extents() != rhs.extents();
@@ -215,6 +252,17 @@ class layout_left::mapping {
 private:
    _MDSPAN_NO_UNIQUE_ADDRESS extents_type __extents{};
 
+   // [mdspan.submdspan.mapping], submdspan mapping specialization
+   template<class... SliceSpecifiers>
+    MDSPAN_INLINE_FUNCTION
+    constexpr auto submdspan_mapping_impl(
+       SliceSpecifiers... slices) const;
+
+   template<class... SliceSpecifiers>
+     friend constexpr auto submdspan_mapping(
+       const mapping& src, SliceSpecifiers... slices) {
+         return src.submdspan_mapping_impl(slices...);
+     }
 };
 
 

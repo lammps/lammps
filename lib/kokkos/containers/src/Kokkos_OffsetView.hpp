@@ -124,15 +124,8 @@ KOKKOS_INLINE_FUNCTION void offsetview_verify_operator_bounds(
                                              args...);
          Kokkos::Impl::throw_runtime_exception(std::string(buffer));))
 
-    KOKKOS_IF_ON_DEVICE((
-        /* Check #1: is there a SharedAllocationRecord?
-          (we won't use it, but if it is not there then there isn't
-           a corresponding SharedAllocationHeader containing a label).
-          This check should cover the case of Views that don't
-          have the Unmanaged trait but were initialized by pointer. */
-        if (tracker.has_record()) {
-          Kokkos::Impl::operator_bounds_error_on_device(map);
-        } else { Kokkos::abort("OffsetView bounds error"); }))
+    KOKKOS_IF_ON_DEVICE(
+        (Kokkos::abort("OffsetView bounds error"); (void)tracker;))
   }
 }
 

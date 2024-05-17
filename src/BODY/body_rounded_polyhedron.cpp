@@ -99,10 +99,9 @@ int BodyRoundedPolyhedron::nedges(AtomVecBody::Bonus *bonus)
 {
   int nvertices = bonus->ivalue[0];
   int nedges = bonus->ivalue[1];
-  //int nfaces = bonus->ivalue[2];
   if (nvertices == 1) return 0;
   else if (nvertices == 2) return 1;
-  return nedges; //(nvertices+nfaces-2); // Euler formula: V-E+F=2
+  return nedges;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -116,6 +115,9 @@ double *BodyRoundedPolyhedron::edges(AtomVecBody::Bonus *bonus)
 
 int BodyRoundedPolyhedron::nfaces(AtomVecBody::Bonus *bonus)
 {
+  int nvertices = bonus->ivalue[0];
+  if (nvertices < 3) return 0;
+
   return bonus->ivalue[2];
 }
 
@@ -185,7 +187,7 @@ int BodyRoundedPolyhedron::unpack_border_body(AtomVecBody::Bonus *bonus, double 
 }
 
 /* ----------------------------------------------------------------------
-   populate bonus data structure with data file values
+   populate bonus data structure with data file values for one body
 ------------------------------------------------------------------------- */
 
 void BodyRoundedPolyhedron::data_body(int ibonus, int ninteger, int ndouble,

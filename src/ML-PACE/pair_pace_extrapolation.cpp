@@ -29,15 +29,12 @@ Copyright 2022 Yury Lysogorskiy^1, Anton Bochkarev^1, Matous Mrovec^1, Ralf Drau
 #include "force.h"
 #include "math_const.h"
 #include "memory.h"
-#include "modify.h"
 #include "neigh_list.h"
-#include "neigh_request.h"
 #include "neighbor.h"
 #include "update.h"
 
-#include <cmath>
-#include <cstdlib>
 #include <cstring>
+#include <exception>
 
 #include "ace/ace_b_basis.h"
 #include "ace/ace_b_evaluator.h"

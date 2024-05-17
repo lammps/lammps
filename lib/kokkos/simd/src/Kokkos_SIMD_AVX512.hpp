@@ -193,9 +193,17 @@ class simd<double, simd_abi::avx512_fixed_size<8>> {
                                                        element_aligned_tag) {
     m_value = _mm512_loadu_pd(ptr);
   }
+  KOKKOS_IMPL_HOST_FORCEINLINE_FUNCTION void copy_from(value_type const* ptr,
+                                                       vector_aligned_tag) {
+    m_value = _mm512_load_pd(ptr);
+  }
   KOKKOS_IMPL_HOST_FORCEINLINE_FUNCTION void copy_to(
       value_type* ptr, element_aligned_tag) const {
     _mm512_storeu_pd(ptr, m_value);
+  }
+  KOKKOS_IMPL_HOST_FORCEINLINE_FUNCTION void copy_to(value_type* ptr,
+                                                     vector_aligned_tag) const {
+    _mm512_store_pd(ptr, m_value);
   }
   KOKKOS_IMPL_HOST_FORCEINLINE_FUNCTION constexpr explicit operator __m512d()
       const {
@@ -475,9 +483,17 @@ class simd<float, simd_abi::avx512_fixed_size<8>> {
                                                        element_aligned_tag) {
     m_value = _mm256_loadu_ps(ptr);
   }
+  KOKKOS_IMPL_HOST_FORCEINLINE_FUNCTION void copy_from(value_type const* ptr,
+                                                       vector_aligned_tag) {
+    m_value = _mm256_load_ps(ptr);
+  }
   KOKKOS_IMPL_HOST_FORCEINLINE_FUNCTION void copy_to(
       value_type* ptr, element_aligned_tag) const {
     _mm256_storeu_ps(ptr, m_value);
+  }
+  KOKKOS_IMPL_HOST_FORCEINLINE_FUNCTION void copy_to(value_type* ptr,
+                                                     vector_aligned_tag) const {
+    _mm256_store_ps(ptr, m_value);
   }
   KOKKOS_IMPL_HOST_FORCEINLINE_FUNCTION constexpr explicit operator __m256()
       const {
@@ -735,15 +751,25 @@ class simd<std::int32_t, simd_abi::avx512_fixed_size<8>> {
   operator[](std::size_t i) const {
     return reinterpret_cast<value_type const*>(&m_value)[i];
   }
+  KOKKOS_IMPL_HOST_FORCEINLINE_FUNCTION void copy_from(value_type const* ptr,
+                                                       element_aligned_tag) {
+    m_value = _mm256_mask_loadu_epi32(
+        _mm256_set1_epi32(0), static_cast<__mmask8>(mask_type(true)), ptr);
+  }
+  KOKKOS_IMPL_HOST_FORCEINLINE_FUNCTION void copy_from(value_type const* ptr,
+                                                       vector_aligned_tag) {
+    m_value = _mm256_mask_load_epi32(
+        _mm256_set1_epi32(0), static_cast<__mmask8>(mask_type(true)), ptr);
+  }
   KOKKOS_IMPL_HOST_FORCEINLINE_FUNCTION void copy_to(
       value_type* ptr, element_aligned_tag) const {
     _mm256_mask_storeu_epi32(ptr, static_cast<__mmask8>(mask_type(true)),
                              m_value);
   }
-  KOKKOS_IMPL_HOST_FORCEINLINE_FUNCTION void copy_from(value_type const* ptr,
-                                                       element_aligned_tag) {
-    m_value = _mm256_mask_loadu_epi32(
-        _mm256_set1_epi32(0), static_cast<__mmask8>(mask_type(true)), ptr);
+  KOKKOS_IMPL_HOST_FORCEINLINE_FUNCTION void copy_to(value_type* ptr,
+                                                     vector_aligned_tag) const {
+    _mm256_mask_store_epi32(ptr, static_cast<__mmask8>(mask_type(true)),
+                            m_value);
   }
   KOKKOS_IMPL_HOST_FORCEINLINE_FUNCTION constexpr explicit operator __m256i()
       const {
@@ -934,21 +960,30 @@ class simd<std::uint32_t, simd_abi::avx512_fixed_size<8>> {
   operator[](std::size_t i) const {
     return reinterpret_cast<value_type const*>(&m_value)[i];
   }
-  KOKKOS_IMPL_HOST_FORCEINLINE_FUNCTION void copy_to(
-      value_type* ptr, element_aligned_tag) const {
-    _mm256_mask_storeu_epi32(ptr, static_cast<__mmask8>(mask_type(true)),
-                             m_value);
-  }
   KOKKOS_IMPL_HOST_FORCEINLINE_FUNCTION void copy_from(value_type const* ptr,
                                                        element_aligned_tag) {
     m_value = _mm256_mask_loadu_epi32(
         _mm256_set1_epi32(0), static_cast<__mmask8>(mask_type(true)), ptr);
   }
+  KOKKOS_IMPL_HOST_FORCEINLINE_FUNCTION void copy_from(value_type const* ptr,
+                                                       vector_aligned_tag) {
+    m_value = _mm256_mask_load_epi32(
+        _mm256_set1_epi32(0), static_cast<__mmask8>(mask_type(true)), ptr);
+  }
+  KOKKOS_IMPL_HOST_FORCEINLINE_FUNCTION void copy_to(
+      value_type* ptr, element_aligned_tag) const {
+    _mm256_mask_storeu_epi32(ptr, static_cast<__mmask8>(mask_type(true)),
+                             m_value);
+  }
+  KOKKOS_IMPL_HOST_FORCEINLINE_FUNCTION void copy_to(value_type* ptr,
+                                                     vector_aligned_tag) const {
+    _mm256_mask_store_epi32(ptr, static_cast<__mmask8>(mask_type(true)),
+                            m_value);
+  }
   KOKKOS_IMPL_HOST_FORCEINLINE_FUNCTION constexpr explicit operator __m256i()
       const {
     return m_value;
   }
-
   [[nodiscard]] KOKKOS_IMPL_HOST_FORCEINLINE_FUNCTION friend simd operator*(
       simd const& lhs, simd const& rhs) noexcept {
     return simd(_mm256_mullo_epi32(static_cast<__m256i>(lhs),
@@ -1130,10 +1165,19 @@ class simd<std::int64_t, simd_abi::avx512_fixed_size<8>> {
                                                        element_aligned_tag) {
     m_value = _mm512_loadu_si512(ptr);
   }
+  KOKKOS_IMPL_HOST_FORCEINLINE_FUNCTION void copy_from(value_type const* ptr,
+                                                       vector_aligned_tag) {
+    m_value = _mm512_load_si512(ptr);
+  }
   KOKKOS_IMPL_HOST_FORCEINLINE_FUNCTION void copy_to(
       value_type* ptr, element_aligned_tag) const {
     _mm512_storeu_si512(ptr, m_value);
   }
+  KOKKOS_IMPL_HOST_FORCEINLINE_FUNCTION void copy_to(value_type* ptr,
+                                                     vector_aligned_tag) const {
+    _mm512_store_si512(ptr, m_value);
+  }
+
   KOKKOS_IMPL_HOST_FORCEINLINE_FUNCTION constexpr explicit operator __m512i()
       const {
     return m_value;
@@ -1331,10 +1375,19 @@ class simd<std::uint64_t, simd_abi::avx512_fixed_size<8>> {
                                                        element_aligned_tag) {
     m_value = _mm512_loadu_si512(ptr);
   }
+  KOKKOS_IMPL_HOST_FORCEINLINE_FUNCTION void copy_from(value_type const* ptr,
+                                                       vector_aligned_tag) {
+    m_value = _mm512_load_si512(ptr);
+  }
   KOKKOS_IMPL_HOST_FORCEINLINE_FUNCTION void copy_to(
       value_type* ptr, element_aligned_tag) const {
     _mm512_storeu_si512(ptr, m_value);
   }
+  KOKKOS_IMPL_HOST_FORCEINLINE_FUNCTION void copy_to(value_type* ptr,
+                                                     vector_aligned_tag) const {
+    _mm512_store_si512(ptr, m_value);
+  }
+
   KOKKOS_IMPL_HOST_FORCEINLINE_FUNCTION constexpr explicit operator __m512i()
       const {
     return m_value;
@@ -1505,6 +1558,11 @@ class const_where_expression<simd_mask<double, simd_abi::avx512_fixed_size<8>>,
                           static_cast<__m512d>(m_value));
   }
   KOKKOS_IMPL_HOST_FORCEINLINE_FUNCTION
+  void copy_to(double* mem, vector_aligned_tag) const {
+    _mm512_mask_store_pd(mem, static_cast<__mmask8>(m_mask),
+                         static_cast<__m512d>(m_value));
+  }
+  KOKKOS_IMPL_HOST_FORCEINLINE_FUNCTION
   void scatter_to(
       double* mem,
       simd<std::int32_t, simd_abi::avx512_fixed_size<8>> const& index) const {
@@ -1538,6 +1596,11 @@ class where_expression<simd_mask<double, simd_abi::avx512_fixed_size<8>>,
   KOKKOS_IMPL_HOST_FORCEINLINE_FUNCTION
   void copy_from(double const* mem, element_aligned_tag) {
     m_value = value_type(_mm512_mask_loadu_pd(
+        _mm512_set1_pd(0.0), static_cast<__mmask8>(m_mask), mem));
+  }
+  KOKKOS_IMPL_HOST_FORCEINLINE_FUNCTION
+  void copy_from(double const* mem, vector_aligned_tag) {
+    m_value = value_type(_mm512_mask_load_pd(
         _mm512_set1_pd(0.0), static_cast<__mmask8>(m_mask), mem));
   }
   KOKKOS_IMPL_HOST_FORCEINLINE_FUNCTION
@@ -1584,6 +1647,11 @@ class const_where_expression<simd_mask<float, simd_abi::avx512_fixed_size<8>>,
                           static_cast<__m256>(m_value));
   }
   KOKKOS_IMPL_HOST_FORCEINLINE_FUNCTION
+  void copy_to(float* mem, vector_aligned_tag) const {
+    _mm256_mask_store_ps(mem, static_cast<__mmask8>(m_mask),
+                         static_cast<__m256>(m_value));
+  }
+  KOKKOS_IMPL_HOST_FORCEINLINE_FUNCTION
   void scatter_to(
       float* mem,
       simd<std::int32_t, simd_abi::avx512_fixed_size<8>> const& index) const {
@@ -1617,6 +1685,10 @@ class where_expression<simd_mask<float, simd_abi::avx512_fixed_size<8>>,
   KOKKOS_IMPL_HOST_FORCEINLINE_FUNCTION
   void copy_from(float const* mem, element_aligned_tag) {
     m_value = value_type(_mm256_mask_loadu_ps(
+        _mm256_set1_ps(0.0), static_cast<__mmask8>(m_mask), mem));
+  }
+  void copy_from(float const* mem, vector_aligned_tag) {
+    m_value = value_type(_mm256_mask_load_ps(
         _mm256_set1_ps(0.0), static_cast<__mmask8>(m_mask), mem));
   }
   KOKKOS_IMPL_HOST_FORCEINLINE_FUNCTION
@@ -1667,6 +1739,12 @@ class const_where_expression<
                              static_cast<__m256i>(m_value));
   }
   KOKKOS_IMPL_HOST_FORCEINLINE_FUNCTION
+  void copy_to(std::int32_t* mem, vector_aligned_tag) const {
+    _mm256_mask_store_epi32(mem, static_cast<__mmask8>(m_mask),
+                            static_cast<__m256i>(m_value));
+  }
+
+  KOKKOS_IMPL_HOST_FORCEINLINE_FUNCTION
   void scatter_to(
       std::int32_t* mem,
       simd<std::int32_t, simd_abi::avx512_fixed_size<8>> const& index) const {
@@ -1702,6 +1780,11 @@ class where_expression<simd_mask<std::int32_t, simd_abi::avx512_fixed_size<8>>,
     m_value = value_type(_mm256_mask_loadu_epi32(
         _mm256_set1_epi32(0), static_cast<__mmask8>(m_mask), mem));
   }
+  void copy_from(std::int32_t const* mem, vector_aligned_tag) {
+    m_value = value_type(_mm256_mask_load_epi32(
+        _mm256_set1_epi32(0), static_cast<__mmask8>(m_mask), mem));
+  }
+
   KOKKOS_IMPL_HOST_FORCEINLINE_FUNCTION
   void gather_from(
       std::int32_t const* mem,
@@ -1710,6 +1793,7 @@ class where_expression<simd_mask<std::int32_t, simd_abi::avx512_fixed_size<8>>,
         static_cast<__m256i>(m_value), static_cast<__mmask8>(m_mask),
         static_cast<__m256i>(index), mem, 4));
   }
+
   template <class U,
             std::enable_if_t<
                 std::is_convertible_v<
@@ -1749,6 +1833,12 @@ class const_where_expression<
                              static_cast<__m256i>(m_value));
   }
   KOKKOS_IMPL_HOST_FORCEINLINE_FUNCTION
+  void copy_to(std::uint32_t* mem, vector_aligned_tag) const {
+    _mm256_mask_store_epi32(mem, static_cast<__mmask8>(m_mask),
+                            static_cast<__m256i>(m_value));
+  }
+
+  KOKKOS_IMPL_HOST_FORCEINLINE_FUNCTION
   void scatter_to(
       std::uint32_t* mem,
       simd<std::int32_t, simd_abi::avx512_fixed_size<8>> const& index) const {
@@ -1785,6 +1875,12 @@ class where_expression<simd_mask<std::uint32_t, simd_abi::avx512_fixed_size<8>>,
         _mm256_set1_epi32(0), static_cast<__mmask8>(m_mask), mem));
   }
   KOKKOS_IMPL_HOST_FORCEINLINE_FUNCTION
+  void copy_from(std::uint32_t const* mem, vector_aligned_tag) {
+    m_value = value_type(_mm256_mask_load_epi32(
+        _mm256_set1_epi32(0), static_cast<__mmask8>(m_mask), mem));
+  }
+
+  KOKKOS_IMPL_HOST_FORCEINLINE_FUNCTION
   void gather_from(
       std::uint32_t const* mem,
       simd<std::int32_t, simd_abi::avx512_fixed_size<8>> const& index) {
@@ -1792,6 +1888,7 @@ class where_expression<simd_mask<std::uint32_t, simd_abi::avx512_fixed_size<8>>,
         static_cast<__m256i>(m_value), static_cast<__mmask8>(m_mask),
         static_cast<__m256i>(index), mem, 4));
   }
+
   template <class U,
             std::enable_if_t<
                 std::is_convertible_v<
@@ -1831,6 +1928,12 @@ class const_where_expression<
                              static_cast<__m512i>(m_value));
   }
   KOKKOS_IMPL_HOST_FORCEINLINE_FUNCTION
+  void copy_to(std::int64_t* mem, vector_aligned_tag) const {
+    _mm512_mask_store_epi64(mem, static_cast<__mmask8>(m_mask),
+                            static_cast<__m512i>(m_value));
+  }
+
+  KOKKOS_IMPL_HOST_FORCEINLINE_FUNCTION
   void scatter_to(
       std::int64_t* mem,
       simd<std::int32_t, simd_abi::avx512_fixed_size<8>> const& index) const {
@@ -1867,6 +1970,12 @@ class where_expression<simd_mask<std::int64_t, simd_abi::avx512_fixed_size<8>>,
         _mm512_set1_epi64(0.0), static_cast<__mmask8>(m_mask), mem));
   }
   KOKKOS_IMPL_HOST_FORCEINLINE_FUNCTION
+  void copy_from(std::int64_t const* mem, vector_aligned_tag) {
+    m_value = value_type(_mm512_mask_load_epi64(
+        _mm512_set1_epi64(0.0), static_cast<__mmask8>(m_mask), mem));
+  }
+
+  KOKKOS_IMPL_HOST_FORCEINLINE_FUNCTION
   void gather_from(
       std::int64_t const* mem,
       simd<std::int32_t, simd_abi::avx512_fixed_size<8>> const& index) {
@@ -1874,6 +1983,7 @@ class where_expression<simd_mask<std::int64_t, simd_abi::avx512_fixed_size<8>>,
         static_cast<__m512i>(m_value), static_cast<__mmask8>(m_mask),
         static_cast<__m256i>(index), mem, 8));
   }
+
   template <class U,
             std::enable_if_t<
                 std::is_convertible_v<
@@ -1913,6 +2023,12 @@ class const_where_expression<
                              static_cast<__m512i>(m_value));
   }
   KOKKOS_IMPL_HOST_FORCEINLINE_FUNCTION
+  void copy_to(std::uint64_t* mem, vector_aligned_tag) const {
+    _mm512_mask_store_epi64(mem, static_cast<__mmask8>(m_mask),
+                            static_cast<__m512i>(m_value));
+  }
+
+  KOKKOS_IMPL_HOST_FORCEINLINE_FUNCTION
   void scatter_to(
       std::uint64_t* mem,
       simd<std::int32_t, simd_abi::avx512_fixed_size<8>> const& index) const {
@@ -1949,6 +2065,11 @@ class where_expression<simd_mask<std::uint64_t, simd_abi::avx512_fixed_size<8>>,
         _mm512_set1_epi64(0.0), static_cast<__mmask8>(m_mask), mem));
   }
   KOKKOS_IMPL_HOST_FORCEINLINE_FUNCTION
+  void copy_from(std::uint64_t const* mem, vector_aligned_tag) {
+    m_value = value_type(_mm512_mask_load_epi64(
+        _mm512_set1_epi64(0.0), static_cast<__mmask8>(m_mask), mem));
+  }
+  KOKKOS_IMPL_HOST_FORCEINLINE_FUNCTION
   void gather_from(
       std::uint64_t const* mem,
       simd<std::int32_t, simd_abi::avx512_fixed_size<8>> const& index) {
@@ -1956,6 +2077,7 @@ class where_expression<simd_mask<std::uint64_t, simd_abi::avx512_fixed_size<8>>,
         static_cast<__m512i>(m_value), static_cast<__mmask8>(m_mask),
         static_cast<__m256i>(index), mem, 8));
   }
+
   template <class U,
             std::enable_if_t<
                 std::is_convertible_v<

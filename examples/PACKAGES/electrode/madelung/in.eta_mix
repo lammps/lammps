@@ -1,0 +1,14 @@
+boundary p p f
+kspace_style ewald/electrode 1.0e-8
+kspace_modify slab 8.0 # ew3dc
+
+include "settings.mod" # styles, computes, groups and fixes
+
+thermo_style custom step pe c_qbot c_qtop
+fix feta all property/atom d_eta ghost on
+set group bot d_eta 0.5
+set group top d_eta 3.0
+fix conp bot electrode/conp 0 2 couple top 1 symm on eta d_eta write_inv inv.csv write_vec vec.csv
+
+run 0
+

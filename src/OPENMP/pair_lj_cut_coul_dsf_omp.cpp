@@ -17,6 +17,7 @@
 
 #include "atom.h"
 #include "comm.h"
+#include "ewald_const.h"
 #include "force.h"
 #include "math_const.h"
 #include "neigh_list.h"
@@ -27,14 +28,8 @@
 #include "omp_compat.h"
 
 using namespace LAMMPS_NS;
+using namespace EwaldConst;
 using MathConst::MY_PIS;
-
-static constexpr double EWALD_P = 0.3275911;
-static constexpr double A1 = 0.254829592;
-static constexpr double A2 = -0.284496736;
-static constexpr double A3 = 1.421413741;
-static constexpr double A4 = -1.453152027;
-static constexpr double A5 = 1.061405429;
 
 /* ---------------------------------------------------------------------- */
 

@@ -369,7 +369,8 @@ void Variable::set(int narg, char **arg)
     data[nvar][0] = new char[MAXLINE];
     reader[nvar] = new VarReader(lmp,arg[0],arg[2],SCALARFILE);
     int flag = reader[nvar]->read_scalar(data[nvar][0]);
-    if (flag) error->all(FLERR,"File variable could not read value");
+    if (flag)
+      error->all(FLERR,"File variable {} could not read value from {}", arg[0], arg[2]);
 
   // ATOMFILE for numbers
   // which = 1st value
@@ -387,7 +388,8 @@ void Variable::set(int narg, char **arg)
     data[nvar][0] = nullptr;
     reader[nvar] = new VarReader(lmp,arg[0],arg[2],ATOMFILE);
     int flag = reader[nvar]->read_peratom();
-    if (flag) error->all(FLERR,"Atomfile variable could not read values");
+    if (flag)
+      error->all(FLERR,"Atomfile variable {} could not read values from {}", arg[0], arg[2]);
 
   // FORMAT
   // num = 3, which = 1st value
@@ -1225,7 +1227,6 @@ int Variable::compute_vector(int ivar, double **result)
   int nlen = size_tree_vector(tree);
   if (nlen == 0)
     print_var_error(FLERR,"Vector-style variable has zero length",ivar);
-
   if (nlen < 0)
     print_var_error(FLERR,"Inconsistent lengths in vector-style variable",ivar);
 
@@ -1281,7 +1282,12 @@ void Variable::remove(int n)
     reader[i-1] = reader[i];
     data[i-1] = data[i];
     dvalue[i-1] = dvalue[i];
+
+    // copy VecVar struct from vecs[i] to vecs[i-1]
+
+    memcpy(&vecs[i-1],&vecs[i],sizeof(VecVar));
   }
+
   nvar--;
   data[nvar] = nullptr;
   reader[nvar] = nullptr;
@@ -1530,9 +1536,6 @@ double Variable::evaluate(char *str, Tree **tree, int ivar)
 
             if (!compute->vector_flag)
               print_var_error(FLERR,"Mismatched compute in variable formula",ivar);
-            if (index1 > compute->size_vector &&
-                compute->size_vector_variable == 0)
-              print_var_error(FLERR,"Variable formula compute vector is accessed out-of-range",ivar,0);
             if (!compute->is_initialized())
               print_var_error(FLERR,"Variable formula compute cannot be invoked before "
                               "initialization by a run",ivar);
@@ -1541,10 +1544,14 @@ double Variable::evaluate(char *str, Tree **tree, int ivar)
               compute->invoked_flag |= Compute::INVOKED_VECTOR;
             }
 
-          if (compute->size_vector_variable &&
-              index1 > compute->size_vector) value1 = 0.0;
-          else value1 = compute->vector[index1-1];
-          argstack[nargstack++] = value1;
+            // wait to check index1 until after compute invocation
+            // to allow for computes with size_vector_variable == 1
+
+            if (index1 > compute->size_vector)
+              print_var_error(FLERR,"Variable formula compute vector is accessed out-of-range",ivar,0);
+
+            value1 = compute->vector[index1-1];
+            argstack[nargstack++] = value1;
 
           // c_ID[i][j] = scalar from global array
 
@@ -1552,9 +1559,6 @@ double Variable::evaluate(char *str, Tree **tree, int ivar)
 
             if (!compute->array_flag)
               print_var_error(FLERR,"Mismatched compute in variable formula",ivar);
-            if (index1 > compute->size_array_rows &&
-                compute->size_array_rows_variable == 0)
-              print_var_error(FLERR,"Variable formula compute array is accessed out-of-range",ivar,0);
             if (index2 > compute->size_array_cols)
               print_var_error(FLERR,"Variable formula compute array is accessed out-of-range",ivar,0);
             if (!compute->is_initialized())
@@ -1565,9 +1569,13 @@ double Variable::evaluate(char *str, Tree **tree, int ivar)
               compute->invoked_flag |= Compute::INVOKED_ARRAY;
             }
 
-            if (compute->size_array_rows_variable &&
-                index1 > compute->size_array_rows) value1 = 0.0;
-            else value1 = compute->array[index1-1][index2-1];
+            // wait to check index1 until after compute invocation
+            // to allow for computes with size_array_rows_variable == 1
+
+            if (index1 > compute->size_array_rows)
+              print_var_error(FLERR,"Variable formula compute array is accessed out-of-range",ivar,0);
+
+            value1 = compute->array[index1-1][index2-1];
             argstack[nargstack++] = value1;
 
           // C_ID[i] = scalar element of per-atom vector, note uppercase "C"
@@ -1629,8 +1637,6 @@ double Variable::evaluate(char *str, Tree **tree, int ivar)
 
             if (!compute->vector_flag)
               print_var_error(FLERR,"Mismatched compute in variable formula",ivar);
-            if (compute->size_vector == 0)
-              print_var_error(FLERR,"Variable formula compute vector is zero length",ivar);
             if (!compute->is_initialized())
               print_var_error(FLERR,"Variable formula compute cannot be invoked before "
                               "initialization by a run",ivar);
@@ -1638,6 +1644,12 @@ double Variable::evaluate(char *str, Tree **tree, int ivar)
               compute->compute_vector();
               compute->invoked_flag |= Compute::INVOKED_VECTOR;
             }
+
+            // wait to check vector size until after compute invocation
+            // to allow for computes with size_vector_variable == 1
+
+            if (compute->size_vector == 0)
+              print_var_error(FLERR,"Variable formula compute vector is zero length",ivar);
 
             auto newtree = new Tree();
             newtree->type = VECTORARRAY;
@@ -1652,17 +1664,21 @@ double Variable::evaluate(char *str, Tree **tree, int ivar)
 
             if (!compute->array_flag)
               print_var_error(FLERR,"Mismatched compute in variable formula",ivar);
-            if (compute->size_array_rows == 0)
-              print_var_error(FLERR,"Variable formula compute array is zero length",ivar);
-            if (index1 > compute->size_array_cols)
-              print_var_error(FLERR,"Variable formula compute array is accessed out-of-range",ivar,0);
             if (!compute->is_initialized())
               print_var_error(FLERR,"Variable formula compute cannot be invoked before "
                               "initialization by a run",ivar);
+            if (index1 > compute->size_array_cols)
+              print_var_error(FLERR,"Variable formula compute array is accessed out-of-range",ivar,0);
             if (!(compute->invoked_flag & Compute::INVOKED_ARRAY)) {
               compute->compute_array();
               compute->invoked_flag |= Compute::INVOKED_ARRAY;
             }
+
+            // wait to check row count until after compute invocation
+            // to allow for computes with size_array_rows_variable == 1
+
+            if (compute->size_array_rows == 0)
+              print_var_error(FLERR,"Variable formula compute array has zero rows",ivar);
 
             auto newtree = new Tree();
             newtree->type = VECTORARRAY;
@@ -1793,13 +1809,16 @@ double Variable::evaluate(char *str, Tree **tree, int ivar)
 
             if (!fix->vector_flag)
               print_var_error(FLERR,"Mismatched fix in variable formula",ivar);
-            if (index1 > fix->size_vector &&
-                fix->size_vector_variable == 0)
+            if (index1 > fix->size_vector && fix->size_vector_variable == 0)
               print_var_error(FLERR,"Variable formula fix vector is accessed out-of-range",ivar,0);
             if (update->whichflag > 0 && update->ntimestep % fix->global_freq)
               print_var_error(FLERR,"Fix in variable not computed at a compatible time",ivar);
 
-            value1 = fix->compute_vector(index1-1);
+            // if index exceeds variable vector length, use a zero value
+            // this can be useful if vector length is not known a priori
+
+            if (fix->size_vector_variable && index1 > fix->size_vector) value1 = 0.0;
+            else value1 = fix->compute_vector(index1-1);
             argstack[nargstack++] = value1;
 
           // f_ID[i][j] = scalar from global array
@@ -1808,15 +1827,18 @@ double Variable::evaluate(char *str, Tree **tree, int ivar)
 
             if (!fix->array_flag)
               print_var_error(FLERR,"Mismatched fix in variable formula",ivar);
-            if (index1 > fix->size_array_rows &&
-                fix->size_array_rows_variable == 0)
+            if (index1 > fix->size_array_rows && fix->size_array_rows_variable == 0)
               print_var_error(FLERR,"Variable formula fix array is accessed out-of-range",ivar,0);
             if (index2 > fix->size_array_cols)
               print_var_error(FLERR,"Variable formula fix array is accessed out-of-range",ivar,0);
             if (update->whichflag > 0 && update->ntimestep % fix->global_freq)
               print_var_error(FLERR,"Fix in variable not computed at a compatible time",ivar);
 
-            value1 = fix->compute_array(index1-1,index2-1);
+            // if index exceeds variable array rows, use a zero value
+            // this can be useful if array size is not known a priori
+
+            if (fix->size_array_rows_variable && index1 > fix->size_array_rows) value1 = 0.0;
+            else value1 = fix->compute_array(index1-1,index2-1);
             argstack[nargstack++] = value1;
 
           // F_ID[i] = scalar element of per-atom vector, note uppercase "F"
@@ -1972,12 +1994,12 @@ double Variable::evaluate(char *str, Tree **tree, int ivar)
 
       } else if (strncmp(word,"v_",2) == 0) {
 
-        int ivar = find(word+2);
-        if (ivar < 0)
+        int jvar = find(word+2);
+        if (jvar < 0)
           print_var_error(FLERR,fmt::format("Invalid variable reference {} in variable formula",word),
-                          ivar);
-        if (eval_in_progress[ivar])
-          print_var_error(FLERR,"has a circular dependency",ivar);
+                          jvar);
+        if (eval_in_progress[jvar])
+          print_var_error(FLERR,"has a circular dependency",jvar);
 
         // parse zero or one trailing brackets
         // point i beyond last bracket
@@ -2001,9 +2023,9 @@ double Variable::evaluate(char *str, Tree **tree, int ivar)
           // scalar from internal-style variable
           // access value directly
 
-          if (style[ivar] == INTERNAL) {
+          if (style[jvar] == INTERNAL) {
 
-            value1 = dvalue[ivar];
+            value1 = dvalue[jvar];
             if (tree) {
               auto newtree = new Tree();
               newtree->type = VALUE;
@@ -2014,13 +2036,13 @@ double Variable::evaluate(char *str, Tree **tree, int ivar)
             // scalar from any style variable except VECTOR, ATOM, ATOMFILE
             // access value via retrieve()
 
-          } else if (style[ivar] != ATOM && style[ivar] != ATOMFILE && style[ivar] != VECTOR) {
+          } else if (style[jvar] != ATOM && style[jvar] != ATOMFILE && style[jvar] != VECTOR) {
 
             char *var = retrieve(word+2);
             if (var == nullptr)
-              print_var_error(FLERR,"Invalid variable evaluation in variable formula",ivar);
+              print_var_error(FLERR,"Invalid variable evaluation in variable formula",jvar);
             if (!utils::is_double(var))
-              print_var_error(FLERR,"Non-numeric variable value in variable formula",ivar);
+              print_var_error(FLERR,"Non-numeric variable value in variable formula",jvar);
             if (tree) {
               auto newtree = new Tree();
               newtree->type = VALUE;
@@ -2031,15 +2053,15 @@ double Variable::evaluate(char *str, Tree **tree, int ivar)
           // vector from vector-style variable
           // evaluate the vector-style variable, put result in newtree
 
-          } else if (style[ivar] == VECTOR) {
+          } else if (style[jvar] == VECTOR) {
 
             if (tree == nullptr)
-              print_var_error(FLERR,"Vector-style variable in equal-style variable formula",ivar);
+              print_var_error(FLERR,"Vector-style variable in equal-style variable formula",jvar);
             if (treetype == ATOM)
-              print_var_error(FLERR,"Vector-style variable in atom-style variable formula",ivar);
+              print_var_error(FLERR,"Vector-style variable in atom-style variable formula",jvar);
 
             double *vec;
-            int nvec = compute_vector(ivar,&vec);
+            int nvec = compute_vector(jvar,&vec);
 
             auto newtree = new Tree();
             newtree->type = VECTORARRAY;
@@ -2051,36 +2073,36 @@ double Variable::evaluate(char *str, Tree **tree, int ivar)
           // vector from atom-style variable
           // evaluate the atom-style variable as newtree
 
-          } else if (style[ivar] == ATOM) {
+          } else if (style[jvar] == ATOM) {
 
             if (tree == nullptr)
-              print_var_error(FLERR,"Atom-style variable in equal-style variable formula",ivar);
+              print_var_error(FLERR,"Atom-style variable in equal-style variable formula",jvar);
             if (treetype == VECTOR)
-              print_var_error(FLERR,"Atom-style variable in vector-style variable formula",ivar);
+              print_var_error(FLERR,"Atom-style variable in vector-style variable formula",jvar);
 
             Tree *newtree = nullptr;
-            evaluate(data[ivar][0],&newtree,ivar);
+            evaluate(data[jvar][0],&newtree,jvar);
             treestack[ntreestack++] = newtree;
 
           // vector from atomfile-style variable
           // point to the values in FixStore instance
 
-          } else if (style[ivar] == ATOMFILE) {
+          } else if (style[jvar] == ATOMFILE) {
 
             if (tree == nullptr)
-              print_var_error(FLERR,"Atomfile-style variable in equal-style variable formula",ivar);
+              print_var_error(FLERR,"Atomfile-style variable in equal-style variable formula",jvar);
             if (treetype == VECTOR)
-              print_var_error(FLERR,"Atomfile-style variable in vector-style variable formula",ivar);
+              print_var_error(FLERR,"Atomfile-style variable in vector-style variable formula",jvar);
 
             auto newtree = new Tree();
             newtree->type = ATOMARRAY;
-            newtree->array = reader[ivar]->fixstore->vstore;
+            newtree->array = reader[jvar]->fixstore->vstore;
             newtree->nstride = 1;
             treestack[ntreestack++] = newtree;
 
           // no other possibilities for variable with no bracket
 
-          } else print_var_error(FLERR,"Mismatched variable in variable formula",ivar);
+          } else print_var_error(FLERR,"Mismatched variable in variable formula",jvar);
 
         // vname[i] with one bracket
 
@@ -2089,12 +2111,12 @@ double Variable::evaluate(char *str, Tree **tree, int ivar)
           // scalar from vector-style variable
           // compute the vector-style variable, extract single value
 
-          if (style[ivar] == VECTOR) {
+          if (style[jvar] == VECTOR) {
 
             double *vec;
-            int nvec = compute_vector(ivar,&vec);
+            int nvec = compute_vector(jvar,&vec);
             if (index <= 0 || index > nvec)
-              print_var_error(FLERR,"Invalid index into vector-style variable",ivar);
+              print_var_error(FLERR,"Invalid index into vector-style variable",jvar);
             int m = index;   // convert from tagint to int
 
             if (tree) {
@@ -2108,25 +2130,25 @@ double Variable::evaluate(char *str, Tree **tree, int ivar)
           // compute the per-atom variable in result
           // use peratom2global to extract single value from result
 
-          } else if (style[ivar] == ATOM) {
+          } else if (style[jvar] == ATOM) {
 
             double *result;
             memory->create(result,atom->nlocal,"variable:result");
-            compute_atom(ivar,0,result,1,0);
+            compute_atom(jvar,0,result,1,0);
             peratom2global(1,nullptr,result,1,index,tree,treestack,ntreestack,argstack,nargstack);
             memory->destroy(result);
 
           // scalar from atomfile-style variable
           // use peratom2global to extract single value from FixStore instance
 
-          } else if (style[ivar] == ATOMFILE) {
+          } else if (style[jvar] == ATOMFILE) {
 
-            peratom2global(1,nullptr,reader[ivar]->fixstore->vstore,1,index,
+            peratom2global(1,nullptr,reader[jvar]->fixstore->vstore,1,index,
                            tree,treestack,ntreestack,argstack,nargstack);
 
           // no other possibilities for variable with one bracket
 
-          } else print_var_error(FLERR,"Mismatched variable in variable formula",ivar);
+          } else print_var_error(FLERR,"Mismatched variable in variable formula",jvar);
         }
 
       // ----------------
@@ -5393,7 +5415,8 @@ VarReader::VarReader(LAMMPS *lmp, char *name, char *file, int flag) :
   if (me == 0) {
     fp = fopen(file,"r");
     if (fp == nullptr)
-      error->one(FLERR,"Cannot open file variable file {}: {}", file, utils::getsyserror());
+      error->one(FLERR,"Cannot open {} variable {} file {}: {}", (style == Variable::ATOMFILE)
+                 ? "atomfile" : "file", name, file, utils::getsyserror());
   }
 
   // if atomfile-style variable, must store per-atom values read from file
@@ -5451,14 +5474,12 @@ int VarReader::read_scalar(char *str)
     while (true) {
       ptr = fgets(str,MAXLINE,fp);
       if (!ptr) { n=0; break; }             // end of file
-      ptr[strcspn(ptr,"#")] = '\0';         // strip comment
-      ptr += strspn(ptr," \t\n\r\f");       // strip leading whitespace
-      ptr[strcspn(ptr," \t\n\r\f")] = '\0'; // strip trailing whitespace
-      n = strlen(ptr) + 1;
+      auto line = utils::trim(utils::trim_comment(str));
+      n = line.size() + 1;
       if (n == 1) continue;                 // skip if blank line
+      memcpy(str, line.c_str(), n);
       break;
     }
-    if (n > 0) memmove(str,ptr,n);                       // move trimmed string back
   }
   MPI_Bcast(&n,1,MPI_INT,0,world);
   if (n == 0) return 1;
@@ -5474,9 +5495,9 @@ int VarReader::read_scalar(char *str)
 
 int VarReader::read_peratom()
 {
-  int i,m,n,nchunk,eof;
+  int i,m,nchunk,eof;
   tagint tag;
-  char *ptr,*next;
+  char *ptr;
   double value;
 
   // set all per-atom values to 0.0
@@ -5490,24 +5511,22 @@ int VarReader::read_peratom()
   // read one string from file, convert to Nlines
 
   char str[MAXLINE];
+  bigint nlines = 0;
   if (me == 0) {
     while (true) {
       ptr = fgets(str,MAXLINE,fp);
-      if (!ptr) { n=0; break; }             // end of file
-      ptr[strcspn(ptr,"#")] = '\0';         // strip comment
-      ptr += strspn(ptr," \t\n\r\f");       // strip leading whitespace
-      ptr[strcspn(ptr," \t\n\r\f")] = '\0'; // strip trailing whitespace
-      n = strlen(ptr) + 1;
-      if (n == 1) continue;                 // skip if blank line
+      if (!ptr) { nlines = 0; break; }             // end of file
+      Tokenizer words(utils::trim(utils::trim_comment(str)));
+      if (words.count() == 0) continue;      // skip if blank or comment line
+      if (words.count() != 1)
+        error->one(FLERR, "Expected 1 token but found {} when parsing {}", words.count(), str);
+      nlines = utils::bnumeric(FLERR,words.next(),true,lmp);
       break;
     }
-    memmove(str,ptr,n);                     // move trimmed string back
   }
+  MPI_Bcast(&nlines,1,MPI_LMP_BIGINT,0,world);
+  if (nlines == 0) return 1;
 
-  MPI_Bcast(&n,1,MPI_INT,0,world);
-  if (n == 0) return 1;
-  MPI_Bcast(str,n,MPI_CHAR,0,world);
-  bigint nlines = utils::bnumeric(FLERR,str,false,lmp);
   tagint map_tag_max = atom->map_tag_max;
 
   bigint nread = 0;
@@ -5516,24 +5535,22 @@ int VarReader::read_peratom()
     eof = utils::read_lines_from_file(fp,nchunk,MAXLINE,buffer,me,world);
     if (eof) return 1;
 
-    char *buf = buffer;
-    for (i = 0; i < nchunk; i++) {
-      next = strchr(buf,'\n');
-      *next = '\0';
+    for (const auto &line : utils::split_lines(buffer)) {
       try {
-        ValueTokenizer words(buf);
+        ValueTokenizer words(utils::trim_comment(utils::trim(line)));
+        if (words.count() == 0) continue; // skip comment or empty lines
+        if (words.count() != 2)
+          throw TokenizerException(fmt::format("expected 2 tokens but found {}", words.count()), "");
         tag = words.next_bigint();
         value = words.next_double();
+        ++nread;
       } catch (TokenizerException &e) {
-        error->all(FLERR,"Invalid atomfile line '{}': {}",buf,e.what());
+        error->all(FLERR,"Invalid atomfile line '{}': {}", line, e.what());
       }
       if ((tag <= 0) || (tag > map_tag_max))
         error->all(FLERR,"Invalid atom ID {} in variable file", tag);
       if ((m = atom->map(tag)) >= 0) vstore[m] = value;
-      buf = next + 1;
     }
-
-    nread += nchunk;
   }
 
   return 0;

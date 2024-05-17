@@ -26,7 +26,6 @@
 #include "math_const.h"
 #include "memory.h"
 #include "neigh_list.h"
-#include "neighbor.h"
 #include "table_file_reader.h"
 #include "potential_file_reader.h"
 

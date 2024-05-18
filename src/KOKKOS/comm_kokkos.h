@@ -45,18 +45,21 @@ class CommKokkos : public CommBrick {
   void exchange() override;                     // move atoms to new procs
   void borders() override;                      // setup list of atoms to comm
 
-  void forward_comm(class Pair *) override;    // forward comm from a Pair
-  void reverse_comm(class Pair *) override;    // reverse comm from a Pair
-  void forward_comm(class Fix *, int size=0) override;      // forward comm from a Fix
-  void reverse_comm(class Fix *, int size=0) override;      // reverse comm from a Fix
-  void forward_comm(class Compute *) override;  // forward from a Compute
-  void reverse_comm(class Compute *) override;  // reverse from a Compute
-  void forward_comm(class Dump *) override;    // forward comm from a Dump
-  void reverse_comm(class Dump *) override;    // reverse comm from a Dump
+  void forward_comm(class Pair *) override;                 // forward comm from a Pair
+  void reverse_comm(class Pair *) override;                 // reverse comm from a Pair
+  void forward_comm(class Bond *) override;                 // forward comm from a Bond
+  void reverse_comm(class Bond *) override;                 // reverse comm from a Bond
+  void forward_comm(class Fix *, int size = 0) override;    // forward comm from a Fix
+  void reverse_comm(class Fix *, int size = 0) override;    // reverse comm from a Fix
+  void reverse_comm_variable(class Fix *) override;         // variable size reverse comm from a Fix
+  void forward_comm(class Compute *) override;              // forward from a Compute
+  void reverse_comm(class Compute *) override;              // reverse from a Compute
+  void forward_comm(class Dump *) override;                 // forward comm from a Dump
+  void reverse_comm(class Dump *) override;                 // reverse comm from a Dump
 
   void forward_comm_array(int, double **) override;            // forward comm of array
 
-  template<class DeviceType> void forward_comm_device(int dummy);
+  template<class DeviceType> void forward_comm_device();
   template<class DeviceType> void reverse_comm_device();
   template<class DeviceType> void forward_comm_device(Pair *pair);
   template<class DeviceType> void reverse_comm_device(Pair *pair);
@@ -95,7 +98,6 @@ class CommKokkos : public CommBrick {
   void copy_swap_info();
 };
 
-}
+}    // namespace LAMMPS_NS
 
 #endif
-

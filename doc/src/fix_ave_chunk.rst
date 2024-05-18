@@ -31,7 +31,7 @@ Syntax
        v_name = per-atom vector calculated by an atom-style variable with name
 
 * zero or more keyword/arg pairs may be appended
-* keyword = *norm* or *ave* or *bias* or *adof* or *cdof* or *file* or *overwrite* or *format* or *title1* or *title2* or *title3*
+* keyword = *norm* or *ave* or *bias* or *adof* or *cdof* or *file* or *append* or *overwrite* or *format* or *title1* or *title2* or *title3*
 
   .. parsed-literal::
 
@@ -51,6 +51,8 @@ Syntax
          dof_per_chunk = define this many degrees-of-freedom per chunk for temperature calculation
        *file* arg = filename
          filename = file to write results to
+       *append* arg = filename
+         filename = file to append results to
        *overwrite* arg = none = overwrite output file with only latest output
        *format* arg = string
          string = C-style format string
@@ -433,15 +435,21 @@ molecule.
 
 ----------
 
-The *file* keyword allows a filename to be specified.  Every
-:math:`N_\text{freq}` timesteps, a section of chunk info will be written to a
-text file in the following format.  A line with the timestep and number of
-chunks is written.  Then one line per chunk is written, containing the chunk
-ID :math:`(1-N_\text{chunk}),` an optional original ID value, optional
-coordinate values for chunks that represent spatial bins, the number of atoms
-in the chunk, and one or more calculated values.  More explanation of the
-optional values is given below.  The number of values in each line
-corresponds to the number of values specified in the fix ave/chunk
+.. versionadded:: 17Apr2024
+   new keyword *append*
+
+The *file* or *append* keywords allow a filename to be specified.  If
+*file* is used, then the filename is overwritten if it already exists.
+If *append* is used, then the filename is appended to if it already
+exists, or created if it does not exist.  Every :math:`N_\text{freq}`
+timesteps, a section of chunk info will be written to a text file in the
+following format.  A line with the timestep and number of chunks is
+written.  Then one line per chunk is written, containing the chunk ID
+:math:`(1-N_\text{chunk}),` an optional original ID value, optional
+coordinate values for chunks that represent spatial bins, the number of
+atoms in the chunk, and one or more calculated values.  More explanation
+of the optional values is given below.  The number of values in each
+line corresponds to the number of values specified in the fix ave/chunk
 command.  The number of atoms and the value(s) are summed or average
 quantities, as explained above.
 

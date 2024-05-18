@@ -25,6 +25,8 @@
 #include "neighbor.h"
 
 #include <cmath>
+#include <cstring>
+#include <exception>
 
 #include "Lepton.h"
 #include "lepton_utils.h"

@@ -127,9 +127,16 @@ class simd<T, simd_abi::scalar> {
                                              element_aligned_tag) {
     m_value = *ptr;
   }
+  KOKKOS_FORCEINLINE_FUNCTION void copy_from(T const* ptr, vector_aligned_tag) {
+    m_value = *ptr;
+  }
   KOKKOS_FORCEINLINE_FUNCTION void copy_to(T* ptr, element_aligned_tag) const {
     *ptr = m_value;
   }
+  KOKKOS_FORCEINLINE_FUNCTION void copy_to(T* ptr, vector_aligned_tag) const {
+    *ptr = m_value;
+  }
+
   KOKKOS_FORCEINLINE_FUNCTION reference operator[](std::size_t) {
     return m_value;
   }
@@ -224,7 +231,7 @@ template <typename T>
   using data_type = std::conditional_t<std::is_floating_point_v<T>, T, double>;
   return Experimental::simd<data_type, Experimental::simd_abi::scalar>(
       Kokkos::floor(static_cast<data_type>(a[0])));
-};
+}
 
 template <typename T>
 [[nodiscard]] KOKKOS_FORCEINLINE_FUNCTION auto ceil(
@@ -232,7 +239,7 @@ template <typename T>
   using data_type = std::conditional_t<std::is_floating_point_v<T>, T, double>;
   return Experimental::simd<data_type, Experimental::simd_abi::scalar>(
       Kokkos::ceil(static_cast<data_type>(a[0])));
-};
+}
 
 template <typename T>
 [[nodiscard]] KOKKOS_FORCEINLINE_FUNCTION auto round(
@@ -240,7 +247,7 @@ template <typename T>
   using data_type = std::conditional_t<std::is_floating_point_v<T>, T, double>;
   return Experimental::simd<data_type, Experimental::simd_abi::scalar>(
       Experimental::round_half_to_nearest_even(static_cast<data_type>(a[0])));
-};
+}
 
 template <typename T>
 [[nodiscard]] KOKKOS_FORCEINLINE_FUNCTION auto trunc(
@@ -248,7 +255,7 @@ template <typename T>
   using data_type = std::conditional_t<std::is_floating_point_v<T>, T, double>;
   return Experimental::simd<data_type, Experimental::simd_abi::scalar>(
       Kokkos::trunc(static_cast<data_type>(a[0])));
-};
+}
 
 template <class T>
 [[nodiscard]] KOKKOS_FORCEINLINE_FUNCTION
@@ -308,6 +315,10 @@ class const_where_expression<simd_mask<T, simd_abi::scalar>,
   void copy_to(T* mem, element_aligned_tag) const {
     if (static_cast<bool>(m_mask)) *mem = static_cast<T>(m_value);
   }
+  KOKKOS_FORCEINLINE_FUNCTION
+  void copy_to(T* mem, vector_aligned_tag) const {
+    if (static_cast<bool>(m_mask)) *mem = static_cast<T>(m_value);
+  }
   template <class Integral>
   KOKKOS_FORCEINLINE_FUNCTION std::enable_if_t<std::is_integral_v<Integral>>
   scatter_to(T* mem, simd<Integral, simd_abi::scalar> const& index) const {
@@ -315,13 +326,13 @@ class const_where_expression<simd_mask<T, simd_abi::scalar>,
       mem[static_cast<Integral>(index)] = static_cast<T>(m_value);
   }
 
-  [[nodiscard]] KOKKOS_IMPL_HOST_FORCEINLINE_FUNCTION value_type const&
-  impl_get_value() const {
+  [[nodiscard]] KOKKOS_FORCEINLINE_FUNCTION value_type const& impl_get_value()
+      const {
     return m_value;
   }
 
-  [[nodiscard]] KOKKOS_IMPL_HOST_FORCEINLINE_FUNCTION mask_type const&
-  impl_get_mask() const {
+  [[nodiscard]] KOKKOS_FORCEINLINE_FUNCTION mask_type const& impl_get_mask()
+      const {
     return m_mask;
   }
 };
@@ -342,6 +353,10 @@ class where_expression<simd_mask<T, simd_abi::scalar>,
       : base_type(mask_arg, value_arg) {}
   KOKKOS_FORCEINLINE_FUNCTION
   void copy_from(T const* mem, element_aligned_tag) {
+    if (static_cast<bool>(this->m_mask)) this->m_value = *mem;
+  }
+  KOKKOS_FORCEINLINE_FUNCTION
+  void copy_from(T const* mem, vector_aligned_tag) {
     if (static_cast<bool>(this->m_mask)) this->m_value = *mem;
   }
   template <class Integral>

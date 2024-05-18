@@ -34,6 +34,7 @@ class KokkosLMP : protected Pointers {
   int forward_fix_comm_classic;
   int reverse_comm_classic;
   int sort_classic;
+  int atom_map_classic;
   int exchange_comm_on_host;
   int forward_comm_on_host;
   int reverse_comm_on_host;
@@ -44,6 +45,7 @@ class KokkosLMP : protected Pointers {
   int forward_fix_comm_changed;
   int reverse_comm_changed;
   int sort_changed;
+  int atom_map_changed;
   int nthreads,ngpus;
   int auto_sync;
   int gpu_aware_flag;

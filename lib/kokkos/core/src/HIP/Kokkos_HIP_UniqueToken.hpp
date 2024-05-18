@@ -19,7 +19,6 @@
 
 #include <HIP/Kokkos_HIP_Space.hpp>
 #include <Kokkos_UniqueToken.hpp>
-#include <impl/Kokkos_SharedAlloc.hpp>
 
 namespace Kokkos {
 

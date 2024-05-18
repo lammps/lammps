@@ -103,26 +103,6 @@ IteratorType shift_right_exespace_impl(
   return first + n;
 }
 
-template <class Iterator>
-struct StdShiftRightTeamSingleFunctor {
-  Iterator m_first;
-  Iterator m_last;
-  std::size_t m_shift;
-
-  KOKKOS_FUNCTION
-  void operator()() const {
-    // the impl function calling this functor guarantees that
-    // - m_shift is non-negative
-    // - m_first, m_last identify a valid range with m_last > m_first
-    // - m_shift is less than m_last - m_first
-    // so I can safely use std::size_t here
-  }
-
-  KOKKOS_FUNCTION
-  StdShiftRightTeamSingleFunctor(Iterator _first, Iterator _last, std::size_t n)
-      : m_first(std::move(_first)), m_last(std::move(_last)), m_shift(n) {}
-};
-
 template <class TeamHandleType, class IteratorType>
 KOKKOS_FUNCTION IteratorType shift_right_team_impl(
     const TeamHandleType& teamHandle, IteratorType first, IteratorType last,
@@ -145,10 +125,11 @@ KOKKOS_FUNCTION IteratorType shift_right_team_impl(
   // execution space impl because for this team impl we are
   // within a parallel region, so for now we solve serially
 
-  const std::size_t numElementsToMove =
+  using difference_type = typename IteratorType::difference_type;
+  const difference_type numElementsToMove =
       ::Kokkos::Experimental::distance(first, last - n);
   Kokkos::single(Kokkos::PerTeam(teamHandle), [=]() {
-    for (std::size_t i = 0; i < numElementsToMove; ++i) {
+    for (difference_type i = 0; i < numElementsToMove; ++i) {
       last[-i - 1] = std::move(last[-n - i - 1]);
     }
   });

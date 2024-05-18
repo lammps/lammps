@@ -163,7 +163,7 @@ auto prefer(Policy const& p, DesiredOccupancy occ) {
 
 template <typename Policy>
 constexpr auto prefer(Policy const& p, MaximizeOccupancy) {
-  static_assert(Kokkos::is_execution_policy<Policy>::value, "");
+  static_assert(Kokkos::is_execution_policy<Policy>::value);
   using new_policy_t =
       Kokkos::Impl::OccupancyControlTrait::policy_with_trait<Policy,
                                                              MaximizeOccupancy>;

@@ -216,7 +216,7 @@ TEST_F(VariableTest, CreateDelete)
                  command("variable one internal 2"););
     TEST_FAILURE(".*ERROR: Cannot use atomfile-style variable unless an atom map exists.*",
                  command("variable eleven    atomfile  test_variable.atomfile"););
-    TEST_FAILURE(".*ERROR on proc 0: Cannot open file variable file test_variable.xxx.*",
+    TEST_FAILURE(".*ERROR on proc 0: Cannot open file variable nine1 file test_variable.xxx.*",
                  command("variable nine1  file      test_variable.xxx"););
     TEST_FAILURE(".*ERROR: World variable count doesn't match # of partitions.*",
                  command("variable ten10 world xxx xxx"););
@@ -293,7 +293,7 @@ TEST_F(VariableTest, AtomicSystem)
                  command("variable one atom x"););
     TEST_FAILURE(".*ERROR: Cannot redefine variable as a different style.*",
                  command("variable id vector f_press"););
-    TEST_FAILURE(".*ERROR on proc 0: Cannot open file variable file test_variable.xxx.*",
+    TEST_FAILURE(".*ERROR on proc 0: Cannot open atomfile variable ten1 file test_variable.xxx.*",
                  command("variable ten1   atomfile  test_variable.xxx"););
     TEST_FAILURE(".*ERROR: Variable loop: has a circular dependency.*",
                  variable->compute_equal("v_loop"););

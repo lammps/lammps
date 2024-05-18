@@ -21,7 +21,6 @@
 #include "atom_kokkos.h"
 #include "atom_masks.h"
 #include "domain_kokkos.h"
-#include "error.h"
 #include "force.h"
 #include "input.h"
 #include "irregular.h"
@@ -32,7 +31,6 @@
 #include "variable.h"
 
 #include <cmath>
-#include <cstring>
 
 using namespace LAMMPS_NS;
 using namespace FixConst;
@@ -120,11 +118,11 @@ void FixDeformKokkos::end_of_step()
     } else if (set[i].style == WIGGLE) {
       double delt = (update->ntimestep - update->beginstep) * update->dt;
       set[i].lo_target = set[i].lo_start -
-        0.5*set[i].amplitude * sin(TWOPI*delt/set[i].tperiod);
+        0.5*set[i].amplitude * sin(MY_2PI*delt/set[i].tperiod);
       set[i].hi_target = set[i].hi_start +
-        0.5*set[i].amplitude * sin(TWOPI*delt/set[i].tperiod);
-      h_rate[i] = TWOPI/set[i].tperiod * set[i].amplitude *
-        cos(TWOPI*delt/set[i].tperiod);
+        0.5*set[i].amplitude * sin(MY_2PI*delt/set[i].tperiod);
+      h_rate[i] = MY_2PI/set[i].tperiod * set[i].amplitude *
+        cos(MY_2PI*delt/set[i].tperiod);
       h_ratelo[i] = -0.5*h_rate[i];
     } else if (set[i].style == VARIABLE) {
       double del = input->variable->compute_equal(set[i].hvar);
@@ -212,9 +210,9 @@ void FixDeformKokkos::end_of_step()
       } else if (set[i].style == WIGGLE) {
         double delt = (update->ntimestep - update->beginstep) * update->dt;
         set[i].tilt_target = set[i].tilt_start +
-          set[i].amplitude * sin(TWOPI*delt/set[i].tperiod);
-        h_rate[i] = TWOPI/set[i].tperiod * set[i].amplitude *
-          cos(TWOPI*delt/set[i].tperiod);
+          set[i].amplitude * sin(MY_2PI*delt/set[i].tperiod);
+        h_rate[i] = MY_2PI/set[i].tperiod * set[i].amplitude *
+          cos(MY_2PI*delt/set[i].tperiod);
       } else if (set[i].style == VARIABLE) {
         double delta_tilt = input->variable->compute_equal(set[i].hvar);
         set[i].tilt_target = set[i].tilt_start + delta_tilt;

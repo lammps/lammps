@@ -16,6 +16,7 @@
 
 #include "atom.h"
 #include "comm.h"
+#include "error.h"
 #include "force.h"
 #include "neigh_list.h"
 #include "suffix.h"
@@ -23,8 +24,9 @@
 #include "Lepton.h"
 #include "lepton_utils.h"
 #include "omp_compat.h"
-#include <array>
+
 #include <cmath>
+#include <exception>
 
 using namespace LAMMPS_NS;
 

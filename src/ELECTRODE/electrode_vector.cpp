@@ -29,6 +29,7 @@
 #include "neigh_list.h"
 #include "pair.h"
 
+#include <cassert>
 #include <cmath>
 #include <exception>
 
@@ -47,6 +48,7 @@ ElectrodeVector::ElectrodeVector(LAMMPS *lmp, int sensor_group, int source_group
   source_grpbit = group->bitmask[source_group];
   this->eta = eta;
   tfflag = false;
+  etaflag = false;
 
   kspace_time_total = 0;
   pair_time_total = 0;
@@ -93,6 +95,14 @@ void ElectrodeVector::setup_tf(const std::map<int, double> &tf_types)
 
 /* ---------------------------------------------------------------------- */
 
+void ElectrodeVector::setup_eta(int index)
+{
+  etaflag = true;
+  eta_index = index;
+}
+
+/* ---------------------------------------------------------------------- */
+
 void ElectrodeVector::compute_vector(double *vector)
 {
   MPI_Barrier(world);
@@ -121,7 +131,6 @@ void ElectrodeVector::compute_vector(double *vector)
 
 void ElectrodeVector::pair_contribution(double *vector)
 {
-  double const etaij = eta * MY_ISQRT2;
   double **x = atom->x;
   double *q = atom->q;
   int *type = atom->type;
@@ -142,6 +151,7 @@ void ElectrodeVector::pair_contribution(double *vector)
     double const xtmp = x[i][0];
     double const ytmp = x[i][1];
     double const ztmp = x[i][2];
+    double const eta_i = etaflag ? atom->dvector[eta_index][i] : eta;
     int itype = type[i];
     int *jlist = firstneigh[i];
     int jnum = numneigh[i];
@@ -158,18 +168,22 @@ void ElectrodeVector::pair_contribution(double *vector)
       double const rsq = delx * delx + dely * dely + delz * delz;
       int jtype = type[j];
       if (rsq >= cutsq[itype][jtype]) continue;
+      double const eta_j = etaflag ? atom->dvector[eta_index][j] : eta;
+      double etaij;
+      if (i_in_sensor && j_in_sensor) {
+        etaij = eta_i * eta_j / sqrt(eta_i * eta_i + eta_j * eta_j);
+      } else if (i_in_sensor) {
+        etaij = eta_i;
+      } else {
+        assert(j_in_sensor);
+        etaij = eta_j;
+      }
       double const r = sqrt(rsq);
       double const rinv = 1.0 / r;
       double aij = rinv;
       aij *= ElectrodeMath::safe_erfc(g_ewald * r);
-      if (invert_source)
-        aij -= ElectrodeMath::safe_erfc(eta * r) * rinv;
-      else
-        aij -= ElectrodeMath::safe_erfc(etaij * r) * rinv;
-      if (i_in_sensor) {
-        vector[i] += aij * q[j];
-        //} else if (j_in_sensor) {
-      }
+      aij -= ElectrodeMath::safe_erfc(etaij * r) * rinv;
+      if (i_in_sensor) { vector[i] += aij * q[j]; }
       if (j_in_sensor && (!invert_source || !i_in_sensor)) { vector[j] += aij * q[i]; }
     }
   }
@@ -189,9 +203,10 @@ void ElectrodeVector::self_contribution(double *vector)
 
   for (int ii = 0; ii < inum; ii++) {
     int const i = ilist[ii];
+    double const eta_i = etaflag ? atom->dvector[eta_index][i] : eta;
     bool const i_in_sensor = (mask[i] & groupbit);
     bool const i_in_source = !!(mask[i] & source_grpbit) != invert_source;
-    if (i_in_sensor && i_in_source) vector[i] += (preta * eta - selfint) * q[i];
+    if (i_in_sensor && i_in_source) vector[i] += (preta * eta_i - selfint) * q[i];
   }
 }
 

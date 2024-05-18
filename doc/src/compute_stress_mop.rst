@@ -126,15 +126,18 @@ These styles are part of the EXTRA-COMPUTE package. They are only
 enabled if LAMMPS is built with that package. See the :doc:`Build
 package <Build_package>` doc page on for more info.
 
-The method is only implemented for 3d orthogonal simulation boxes whose
+The method is implemented for orthogonal simulation boxes whose
 size does not change in time, and axis-aligned planes.
 
 The method only works with two-body pair interactions, because it
 requires the class method ``Pair::single()`` to be implemented, which is
 not possible for manybody potentials.  In particular, compute
-*stress/mop/profile* and *stress/mop* do not work with more than two-body pair
-interactions, long range (kspace) interactions and
+*stress/mop/profile* and *stress/mop* do not work with more than two-body
+pair interactions, long range (kspace) interactions and
 improper intramolecular interactions.
+
+The impact of fixes that affect the stress (e.g. fix langevin) is
+also not included in the stress computed here.
 
 Related commands
 """"""""""""""""

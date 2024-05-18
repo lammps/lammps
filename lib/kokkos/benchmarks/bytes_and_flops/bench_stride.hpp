@@ -15,28 +15,28 @@
 //@HEADER
 
 #define UNROLL 1
-#include <bench_unroll_stride.hpp>
+#include "bench_unroll_stride.hpp"
 #undef UNROLL
 #define UNROLL 2
-#include <bench_unroll_stride.hpp>
+#include "bench_unroll_stride.hpp"
 #undef UNROLL
 #define UNROLL 3
-#include <bench_unroll_stride.hpp>
+#include "bench_unroll_stride.hpp"
 #undef UNROLL
 #define UNROLL 4
-#include <bench_unroll_stride.hpp>
+#include "bench_unroll_stride.hpp"
 #undef UNROLL
 #define UNROLL 5
-#include <bench_unroll_stride.hpp>
+#include "bench_unroll_stride.hpp"
 #undef UNROLL
 #define UNROLL 6
-#include <bench_unroll_stride.hpp>
+#include "bench_unroll_stride.hpp"
 #undef UNROLL
 #define UNROLL 7
-#include <bench_unroll_stride.hpp>
+#include "bench_unroll_stride.hpp"
 #undef UNROLL
 #define UNROLL 8
-#include <bench_unroll_stride.hpp>
+#include "bench_unroll_stride.hpp"
 #undef UNROLL
 
 template <class Scalar>

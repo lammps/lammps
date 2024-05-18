@@ -34,30 +34,30 @@ enum{SCALAR,VECTOR,ARRAY};
 
 ComputePODDAtom::ComputePODDAtom(LAMMPS *lmp, int narg, char **arg) :
   Compute(lmp, narg, arg), list(nullptr), map(nullptr), pod(nullptr), elements(nullptr)
-{  
+{
 
   int nargmin = 7;
 
   if (narg < nargmin) error->all(FLERR, "Illegal compute {} command", style);
   if (comm->nprocs > 1) error->all(FLERR, "compute command does not support multi processors");
-  
+
   std::string pod_file = std::string(arg[3]);      // pod input file
   std::string coeff_file = "";    // coefficient input file
   std::string proj_file = std::string(arg[4]);    // coefficient input file
-  std::string centroid_file = std::string(arg[5]);    // coefficient input file              
-  podptr = new EAPOD(lmp, pod_file, coeff_file, proj_file, centroid_file);   
-  
+  std::string centroid_file = std::string(arg[5]);    // coefficient input file
+  podptr = new EAPOD(lmp, pod_file, coeff_file, proj_file, centroid_file);
+
   int ntypes = atom->ntypes;
   memory->create(map, ntypes + 1, "compute_pod_global:map");
-  map_element2type(narg - 6, arg + 6, podptr->nelements);    
-        
+  map_element2type(narg - 6, arg + 6, podptr->nelements);
+
   cutmax = podptr->rcut;
 
-  nmax = 0;  
+  nmax = 0;
   nijmax = 0;
   pod = nullptr;
-  elements = nullptr;  
-  
+  elements = nullptr;
+
   size_peratom_cols = podptr->Mdesc * podptr->nClusters*3*atom->natoms;
   peratom_flag = 1;
 }
@@ -117,23 +117,23 @@ void ComputePODDAtom::compute_peratom()
     for (int icoeff = 0; icoeff < size_peratom_cols; icoeff++) {
       pod[i][icoeff] = 0.0;
     }
-  
+
   // invoke full neighbor list (will copy or build if necessary)
 
   neighbor->build_one(list);
-  
+
   double **x = atom->x;
   int **firstneigh = list->firstneigh;
   int *numneigh = list->numneigh;
   int *type = atom->type;
   int *ilist = list->ilist;
-  int inum = list->inum;  
+  int inum = list->inum;
   int nClusters = podptr->nClusters;
   int Mdesc = podptr->Mdesc;
   double rcutsq = podptr->rcut*podptr->rcut;
-  
+
   for (int ii = 0; ii < inum; ii++) {
-    int i = ilist[ii];    
+    int i = ilist[ii];
     int jnum = numneigh[i];
 
     // allocate temporary memory
@@ -142,34 +142,34 @@ void ComputePODDAtom::compute_peratom()
       podptr->free_temp_memory();
       podptr->allocate_temp_memory(nijmax);
     }
-    
-    rij = &podptr->tmpmem[0];    
-    tmpmem = &podptr->tmpmem[3*nijmax]; 
-    ai = &podptr->tmpint[0];      
-    aj = &podptr->tmpint[nijmax]; 
+
+    rij = &podptr->tmpmem[0];
+    tmpmem = &podptr->tmpmem[3*nijmax];
+    ai = &podptr->tmpint[0];
+    aj = &podptr->tmpint[nijmax];
     ti = &podptr->tmpint[2*nijmax];
     tj = &podptr->tmpint[3*nijmax];
 
     // get neighbor list for atom i
     lammpsNeighborList(x, firstneigh, atom->tag, type, numneigh, rcutsq, i);
-    
+
     if (nij > 0) {
       // peratom base descriptors
       double *bd = &podptr->bd[0];
       double *bdd = &podptr->bdd[0];
-      podptr->peratombase_descriptors(bd, bdd, rij, tmpmem, ti, tj, nij);        
+      podptr->peratombase_descriptors(bd, bdd, rij, tmpmem, ti, tj, nij);
 
       if (nClusters>1) {
         // peratom env descriptors
         double *pd = &podptr->pd[0];
         double *pdd = &podptr->pdd[0];
-        podptr->peratomenvironment_descriptors(pd, pdd, bd, bdd, tmpmem, ti[0] - 1,  nij);    
+        podptr->peratomenvironment_descriptors(pd, pdd, bd, bdd, tmpmem, ti[0] - 1,  nij);
         for (int n=0; n<nij; n++) {
           int ain = 3*ai[n];
-          int ajn = 3*aj[n];      
+          int ajn = 3*aj[n];
           for (int k = 0; k < nClusters; k++) {
             for (int m = 0; m < Mdesc; m++) {
-              int mk = m + Mdesc*k;          
+              int mk = m + Mdesc*k;
               int nm = 3*n + 3*nij*m;
               int nk = 3*n + 3*nij*k;
               pod[i][mk + Mdesc*nClusters*0 + Mdesc*nClusters*ain] += bdd[0 + nm]*pd[k] + bd[m]*pdd[0+nk];
@@ -178,7 +178,7 @@ void ComputePODDAtom::compute_peratom()
               pod[i][mk + Mdesc*nClusters*0 + Mdesc*nClusters*ajn] -= bdd[0 + nm]*pd[k] + bd[m]*pdd[0+nk];
               pod[i][mk + Mdesc*nClusters*1 + Mdesc*nClusters*ajn] -= bdd[1 + nm]*pd[k] + bd[m]*pdd[1+nk];
               pod[i][mk + Mdesc*nClusters*2 + Mdesc*nClusters*ajn] -= bdd[2 + nm]*pd[k] + bd[m]*pdd[2+nk];
-            }                  
+            }
           }
         }
       }
@@ -194,11 +194,11 @@ void ComputePODDAtom::compute_peratom()
             pod[i][m + Mdesc*0 + Mdesc*ajn] -= bdd[0 + nm];
             pod[i][m + Mdesc*1 + Mdesc*ajn] -= bdd[1 + nm];
             pod[i][m + Mdesc*2 + Mdesc*ajn] -= bdd[2 + nm];
-          }       
+          }
         }
       }
-    }    
-  }  
+    }
+  }
 }
 
 /* ----------------------------------------------------------------------
@@ -213,7 +213,7 @@ double ComputePODDAtom::memory_usage()
 }
 
 
-void ComputePODDAtom::lammpsNeighborList(double **x, int **firstneigh, int *atomid, int *atomtypes, 
+void ComputePODDAtom::lammpsNeighborList(double **x, int **firstneigh, int *atomid, int *atomtypes,
                                int *numneigh, double rcutsq, int gi)
 {
   nij = 0;

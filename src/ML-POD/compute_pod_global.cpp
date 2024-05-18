@@ -34,32 +34,32 @@ enum{SCALAR,VECTOR,ARRAY};
 
 ComputePODGlobal::ComputePODGlobal(LAMMPS *lmp, int narg, char **arg) :
   Compute(lmp, narg, arg), list(nullptr), map(nullptr), pod(nullptr), elements(nullptr)
-{  
+{
   array_flag = 1;
   extarray = 0;
-  
+
   int nargmin = 7;
 
-  if (narg < nargmin) error->all(FLERR, "Illegal compute {} command", style); 
+  if (narg < nargmin) error->all(FLERR, "Illegal compute {} command", style);
   if (comm->nprocs > 1) error->all(FLERR, "compute command does not support multi processors");
-          
+
   std::string pod_file = std::string(arg[3]);      // pod input file
   std::string coeff_file = "";    // coefficient input file
   std::string proj_file = std::string(arg[4]);    // coefficient input file
-  std::string centroid_file = std::string(arg[5]);    // coefficient input file              
-  podptr = new EAPOD(lmp, pod_file, coeff_file, proj_file, centroid_file);   
-  
+  std::string centroid_file = std::string(arg[5]);    // coefficient input file
+  podptr = new EAPOD(lmp, pod_file, coeff_file, proj_file, centroid_file);
+
   int ntypes = atom->ntypes;
   memory->create(map, ntypes + 1, "compute_pod_global:map");
-  map_element2type(narg - 6, arg + 6, podptr->nelements);    
-      
-  size_array_rows = 1 + 3*atom->natoms;  
+  map_element2type(narg - 6, arg + 6, podptr->nelements);
+
+  size_array_rows = 1 + 3*atom->natoms;
   size_array_cols = podptr->nCoeffAll;
   cutmax = podptr->rcut;
-    
+
   nijmax = 0;
   pod = nullptr;
-  elements = nullptr;  
+  elements = nullptr;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -87,7 +87,7 @@ void ComputePODGlobal::init()
 
   if (modify->get_compute_by_style("pod").size() > 1 && comm->me == 0)
     error->warning(FLERR,"More than one compute pod");
-  
+
  // allocate memory for global array
   memory->create(pod,size_array_rows,size_array_cols,
                  "compute_pod_global:pod");
@@ -105,7 +105,7 @@ void ComputePODGlobal::init_list(int /*id*/, NeighList *ptr)
 
 void ComputePODGlobal::compute_array()
 {
-  // int ntotal = atom->nlocal + atom->nghost;  
+  // int ntotal = atom->nlocal + atom->nghost;
   invoked_peratom = update->ntimestep;
 
   // clear global array
@@ -113,23 +113,23 @@ void ComputePODGlobal::compute_array()
   for (int irow = 0; irow < size_array_rows; irow++)
     for (int icoeff = 0; icoeff < size_array_cols; icoeff++)
       pod[irow][icoeff] = 0.0;
-    
+
   // invoke full neighbor list (will copy or build if necessary)
 
   neighbor->build_one(list);
-  
+
   double **x = atom->x;
   int **firstneigh = list->firstneigh;
   int *numneigh = list->numneigh;
   int *type = atom->type;
   int *ilist = list->ilist;
-  int inum = list->inum;  
+  int inum = list->inum;
   int nClusters = podptr->nClusters;
   int Mdesc = podptr->Mdesc;
   int nCoeffPerElement = podptr->nCoeffPerElement;
-  
+
   double rcutsq = podptr->rcut*podptr->rcut;
-  
+
   for (int ii = 0; ii < inum; ii++) {
     int i = ilist[ii];
     int jnum = numneigh[i];
@@ -140,22 +140,22 @@ void ComputePODGlobal::compute_array()
       podptr->free_temp_memory();
       podptr->allocate_temp_memory(nijmax);
     }
-    
-    rij = &podptr->tmpmem[0];    
-    tmpmem = &podptr->tmpmem[3*nijmax]; 
-    ai = &podptr->tmpint[0];      
-    aj = &podptr->tmpint[nijmax]; 
+
+    rij = &podptr->tmpmem[0];
+    tmpmem = &podptr->tmpmem[3*nijmax];
+    ai = &podptr->tmpint[0];
+    aj = &podptr->tmpint[nijmax];
     ti = &podptr->tmpint[2*nijmax];
     tj = &podptr->tmpint[3*nijmax];
-        
+
     // get neighbor list for atom i
     lammpsNeighborList(x, firstneigh, atom->tag, type, numneigh, rcutsq, i);
-    
+
     if (nij > 0) {
       // peratom base descriptors
       double *bd = &podptr->bd[0];
-      double *bdd = &podptr->bdd[0];    
-      podptr->peratombase_descriptors(bd, bdd, rij, tmpmem, ti, tj, nij);        
+      double *bdd = &podptr->bdd[0];
+      podptr->peratombase_descriptors(bd, bdd, rij, tmpmem, ti, tj, nij);
 
       pod[0][nCoeffPerElement*(ti[0]-1)] += 1.0; // one-body descriptor
 
@@ -163,7 +163,7 @@ void ComputePODGlobal::compute_array()
         // peratom env descriptors
         double *pd = &podptr->pd[0];
         double *pdd = &podptr->pdd[0];
-        podptr->peratomenvironment_descriptors(pd, pdd, bd, bdd, tmpmem, ti[0] - 1,  nij);    
+        podptr->peratomenvironment_descriptors(pd, pdd, bd, bdd, tmpmem, ti[0] - 1,  nij);
 
         for (int j = 0; j < nClusters; j++) {
           for (int m=0; m<Mdesc; m++) {
@@ -171,7 +171,7 @@ void ComputePODGlobal::compute_array()
             pod[0][k] += pd[j]*bd[m];
             for (int n=0; n<nij; n++) {
               int ain = 3*ai[n];
-              int ajn = 3*aj[n];     
+              int ajn = 3*aj[n];
               int nm = 3*n + 3*nij*m;
               int nj = 3*n + 3*nij*j;
               pod[1+ain][k] += bdd[0 + nm]*pd[j] + bd[m]*pdd[0 + nj];
@@ -182,7 +182,7 @@ void ComputePODGlobal::compute_array()
               pod[3+ajn][k] -= bdd[2 + nm]*pd[j] + bd[m]*pdd[2 + nj];
             }
           }
-        }      
+        }
       }
       else {
         for (int m=0; m<Mdesc; m++) {
@@ -190,7 +190,7 @@ void ComputePODGlobal::compute_array()
           pod[0][k] += bd[m];
           for (int n=0; n<nij; n++) {
             int ain = 3*ai[n];
-            int ajn = 3*aj[n];     
+            int ajn = 3*aj[n];
             int nm = 3*n + 3*nij*m;
             pod[1+ain][k] += bdd[0 + nm];
             pod[2+ain][k] += bdd[1 + nm];
@@ -199,10 +199,10 @@ void ComputePODGlobal::compute_array()
             pod[2+ajn][k] -= bdd[1 + nm];
             pod[3+ajn][k] -= bdd[2 + nm];
           }
-        }      
-      }    
+        }
+      }
     }
-  }    
+  }
 }
 
 /* ----------------------------------------------------------------------
@@ -217,7 +217,7 @@ double ComputePODGlobal::memory_usage()
 }
 
 
-void ComputePODGlobal::lammpsNeighborList(double **x, int **firstneigh, int *atomid, int *atomtypes, 
+void ComputePODGlobal::lammpsNeighborList(double **x, int **firstneigh, int *atomid, int *atomtypes,
                                int *numneigh, double rcutsq, int gi)
 {
   nij = 0;

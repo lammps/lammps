@@ -124,14 +124,14 @@ private:
     double *gdd=nullptr; // derivatives of global descriptors and peratom descriptors
     double *A=nullptr;  // least-square matrix for all descriptors
     double *b=nullptr;  // least-square vector for all descriptors
-    double *c=nullptr;  // coefficents of descriptors    
-    int szd = 0;    
+    double *c=nullptr;  // coefficents of descriptors
+    int szd = 0;
     int nCoeffAll = 0; // number of global descriptors
-    int nClusters = 0; // number of environment clusters 
+    int nClusters = 0; // number of environment clusters
   };
 
   int save_descriptors = 0;
-  int compute_descriptors = 0;  
+  int compute_descriptors = 0;
   datastruct traindata;
   datastruct testdata;
   datastruct envdata;
@@ -162,7 +162,7 @@ private:
   void matrix33_multiplication(double *xrot, double *Rmat, double *x, int natom);
   void matrix33_inverse(double *invA, double *A1, double *A2, double *A3);
 
-  double squareDistance(const double *a, const double *b, int DIMENSIONS);  
+  double squareDistance(const double *a, const double *b, int DIMENSIONS);
   void assignPointsToClusters(double *points, double *centroids, int *assignments, int *clusterSizes, int NUM_POINTS, int NUM_CLUSTERS, int DIMENSION);
   void updateCentroids(double *points, double *centroids, int *assignments, int *clusterSizes, int NUM_POINTS, int NUM_CLUSTERS, int DIMENSIONS);
   void KmeansClustering(double *points, double *centroids, int *assignments, int *clusterSizes, int NUM_POINTS, int NUM_CLUSTERS, int DIMENSIONS, int MAX_ITER);
@@ -196,7 +196,7 @@ private:
   void estimate_memory_neighborstruct(const datastruct &data, int *pbc, double rcut, int nelements);
   void allocate_memory_neighborstruct();
   void allocate_memory_descriptorstruct(int nd);
-  void estimate_memory_fastpod(const datastruct &data);  
+  void estimate_memory_fastpod(const datastruct &data);
   void local_descriptors_fastpod(const datastruct &data, int ci);
   void base_descriptors_fastpod(const datastruct &data, int ci);
   void least_squares_matrix(const datastruct &data, int ci);
@@ -204,7 +204,7 @@ private:
   void descriptors_calculation(const datastruct &data);
   void environment_cluster_calculation(const datastruct &data);
   void print_analysis(const datastruct &data, double *outarray, double *errors);
-  void error_analysis(const datastruct &data, double *coeff);  
+  void error_analysis(const datastruct &data, double *coeff);
   double energyforce_calculation_fastpod(double *force, const datastruct &data, int ci);
   void energyforce_calculation(const datastruct &data, double *coeff);
 };

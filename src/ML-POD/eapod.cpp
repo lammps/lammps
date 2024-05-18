@@ -49,7 +49,7 @@ EAPOD::EAPOD(LAMMPS *_lmp, const std::string &pod_file, const std::string &coeff
   ind34r = nullptr;
   ind44l = nullptr;
   ind44r = nullptr;
-          
+
   rin = 0.5;
   rcut = 5.0;
   nClusters = 1;
@@ -101,20 +101,20 @@ EAPOD::EAPOD(LAMMPS *_lmp, const std::string &pod_file, const std::string &coeff
       error->all(FLERR,"number of coefficients in the coefficient file is not correct");
   }
   if (nClusters > 1) {
-    // read projection matrix file to podstruct 
+    // read projection matrix file to podstruct
     if (proj_file != "") {
       nproj = read_projection_matrix(proj_file);
       if (nproj != nComponents*Mdesc*nelements)
         error->all(FLERR,"number of coefficients in the projection file is not correct");
     }
-    
+
     // read centroids file to podstruct
     if (centroids_file != "") {
       ncentroids = read_centroids(centroids_file);
       if (ncentroids != nComponents*nClusters*nelements)
         error->all(FLERR,"number of coefficients in the projection file is not correct");
     }
-  }    
+  }
 }
 
 // destructor
@@ -129,7 +129,7 @@ EAPOD::~EAPOD()
   memory->destroy(bdd);
   memory->destroy(pd);
   memory->destroy(pdd);
-  memory->destroy(coeff);   
+  memory->destroy(coeff);
   memory->destroy(tmpmem);
   memory->destroy(tmpint);
   memory->destroy(pn3);
@@ -150,7 +150,7 @@ EAPOD::~EAPOD()
   memory->destroy(ind44l);
   memory->destroy(ind33r);
   memory->destroy(ind34r);
-  memory->destroy(ind44r);    
+  memory->destroy(ind44r);
 }
 
 void EAPOD::read_pod_file(std::string pod_file)
@@ -268,7 +268,7 @@ void EAPOD::read_pod_file(std::string pod_file)
   if (P4 < P44) error->all(FLERR,"seven-body angular degree must be equal or less than four-body angular degree");
 
   if (P3 > 12) error->all(FLERR,"three-body angular degree must be equal or less than 12");
-  if (P4 > 6) error->all(FLERR,"four-body angular degree must be equal or less than 6");  
+  if (P4 > 6) error->all(FLERR,"four-body angular degree must be equal or less than 6");
 
   int Ne = nelements;
   memory->create(elemindex, Ne*Ne, "elemindex");
@@ -416,7 +416,7 @@ void EAPOD::read_pod_file(std::string pod_file)
     utils::logmesg(lmp, "number of local descriptors per element for five-body potential: {}\n", nl33);
     utils::logmesg(lmp, "number of local descriptors per element for six-body potential: {}\n", nl34);
     utils::logmesg(lmp, "number of local descriptors per element for seven-body potential: {}\n", nl44);
-    utils::logmesg(lmp, "number of local descriptors per element for all potentials: {}\n", nl);    
+    utils::logmesg(lmp, "number of local descriptors per element for all potentials: {}\n", nl);
     utils::logmesg(lmp, "number of global descriptors: {}\n", nCoeffAll);
     utils::logmesg(lmp, "**************** End of POD Potentials ****************\n\n");
   }
@@ -702,7 +702,7 @@ void EAPOD::peratombase_descriptors(double *bd1, double *bdd1, double *rij, doub
   for (int i=0; i<3*Nj*Mdesc; i++) bdd1[i] = 0.0;
 
   if (Nj == 0) return;
-  
+
   double *d2 =  &bd1[0]; // nl2
   double *d3 =  &bd1[nl2]; // nl3
   double *d4 =  &bd1[nl2 + nl3]; // nl4
@@ -711,8 +711,8 @@ void EAPOD::peratombase_descriptors(double *bd1, double *bdd1, double *rij, doub
   double *d34 =  &bd1[nl2 + nl3 + nl4 + nl23 + nl33]; // nl34
   double *d44 =  &bd1[nl2 + nl3 + nl4 + nl23 + nl33 + nl34]; // nl44
 
-  double *dd2 = &bdd1[0]; // 3*Nj*nl2  
-  double *dd3 = &bdd1[3*Nj*nl2]; // 3*Nj*nl3  
+  double *dd2 = &bdd1[0]; // 3*Nj*nl2
+  double *dd3 = &bdd1[3*Nj*nl2]; // 3*Nj*nl3
   double *dd4 = &bdd1[3*Nj*(nl2+nl3)]; // 3*Nj*nl4
   double *dd23 = &bdd1[3*Nj*(nl2+nl3+nl4)]; // 3*Nj*nl23
   double *dd33 = &bdd1[3*Nj*(nl2+nl3+nl4+nl23)]; // 3*Nj*nl33
@@ -797,7 +797,7 @@ void EAPOD::peratombase_descriptors(double *bd1, double *bdd1, double *rij, doub
             }
       }
       fourbodydescderiv(d4, dd4, sumU, Ux, Uy, Uz, tj, Nj);
-      
+
       if ((nl34>0) && (Nj>4)) {
         crossdesc(d34, d3, d4, ind34l, ind34r, nl34);
         crossdescderiv(dd34, d3, d4, dd3, dd4, ind34l, ind34r, nl34, 3*Nj);
@@ -812,39 +812,39 @@ void EAPOD::peratombase_descriptors(double *bd1, double *bdd1, double *rij, doub
 }
 
 double EAPOD::peratombase_coefficients(double *cb, double *bd, int *ti)
-{    
+{
   int nc = nCoeffPerElement*(ti[0]-1);
-  
+
   double ei = coeff[0 + nc];
-  for (int m=0; m<Mdesc; m++) {    
-    ei += coeff[1 + m + nc]*bd[m];  
-    cb[m] = coeff[1 + m + nc];       
-  }      
-  
+  for (int m=0; m<Mdesc; m++) {
+    ei += coeff[1 + m + nc]*bd[m];
+    cb[m] = coeff[1 + m + nc];
+  }
+
   return ei;
 }
 
 double EAPOD::peratom_environment_descriptors(double *cb, double *bd, double *tm, int *ti)
-{  
-  double *P    = &tm[0];    // nClusters 
-  double *cp   = &tm[(nClusters)];  // nClusters  
+{
+  double *P    = &tm[0];    // nClusters
+  double *cp   = &tm[(nClusters)];  // nClusters
   double *D    = &tm[(2*nClusters)];   // nClusters
-  double *pca  = &tm[(3*nClusters)]; // nComponents 
-     
+  double *pca  = &tm[(3*nClusters)]; // nComponents
+
   double *proj = &Proj[0];
-  double *cent = &Centroids[0];  
+  double *cent = &Centroids[0];
   int typei = ti[0]-1;
-  
+
   for (int k=0; k<nComponents; k++) {
-    double sum = 0.0;    
+    double sum = 0.0;
     for (int m = 0; m < Mdesc; m++) {
       sum += proj[k + nComponents*m + nComponents*Mdesc*typei] * bd[m];
     }
-    pca[k] = sum;    
+    pca[k] = sum;
   }
-  
+
   for (int j=0; j<nClusters; j++) {
-    double sum = 1e-20; 
+    double sum = 1e-20;
     for (int k = 0; k < nComponents; k++) {
       double c = cent[k + j * nComponents + nClusters*nComponents*typei];
       double p = pca[k];
@@ -852,35 +852,35 @@ double EAPOD::peratom_environment_descriptors(double *cb, double *bd, double *tm
     }
     D[j] = 1.0 / sum;
   }
-  
-  double sum = 0; 
-  for (int j = 0; j < nClusters; j++) sum += D[j];    
+
+  double sum = 0;
+  for (int j = 0; j < nClusters; j++) sum += D[j];
   double sumD = sum;
-  for (int j = 0; j < nClusters; j++) P[j] = D[j]/sum;    
-  
+  for (int j = 0; j < nClusters; j++) P[j] = D[j]/sum;
+
   int nc = nCoeffPerElement*(ti[0]-1);
   double ei = coeff[0 + nc];
   for (int k = 0; k<nClusters; k++)
-    for (int m=0; m<Mdesc; m++)     
+    for (int m=0; m<Mdesc; m++)
       ei += coeff[1 + m + Mdesc*k + nc]*bd[m]*P[k];
-  
-  for (int k=0; k<nClusters; k++) {        
+
+  for (int k=0; k<nClusters; k++) {
     double sum = 0;
-    for (int m = 0; m<Mdesc; m++)     
+    for (int m = 0; m<Mdesc; m++)
       sum += coeff[1 + m + k*Mdesc + nc]*bd[m];
     cp[k] = sum;
-  }            
+  }
 
   for (int m = 0; m<Mdesc; m++) {
-    double sum = 0.0;    
-    for (int k = 0; k<nClusters; k++)    
-      sum += coeff[1 + m + k*Mdesc + nc]*P[k];      
+    double sum = 0.0;
+    for (int k = 0; k<nClusters; k++)
+      sum += coeff[1 + m + k*Mdesc + nc]*P[k];
     cb[m] = sum;
-  }              
-  
+  }
+
   for (int m = 0; m<Mdesc; m++) {
     double S1 = 1/sumD;
-    double S2 = sumD*sumD;   
+    double S2 = sumD*sumD;
     double sum = 0.0;
     for (int j=0; j<nClusters; j++) {
       double dP_dB = 0.0;
@@ -890,16 +890,16 @@ double EAPOD::peratom_environment_descriptors(double *cb, double *bd, double *tm
         double dD_dB = 0.0;
         double D2 = 2 * D[k] * D[k];
         for (int n = 0; n < nComponents; n++) {
-          double dD_dpca = D2 * (cent[n + k * nComponents + nClusters*nComponents*typei] - pca[n]);        
+          double dD_dpca = D2 * (cent[n + k * nComponents + nClusters*nComponents*typei] - pca[n]);
           dD_dB += dD_dpca * proj[n + m * nComponents + nComponents*Mdesc*typei];
-        }                
+        }
         dP_dB += dP_dD * dD_dB;
-      }      
-      sum += cp[j]*dP_dB;      
+      }
+      sum += cp[j]*dP_dB;
     }
     cb[m] += sum;
-  }  
-  
+  }
+
   return ei;
 }
 
@@ -912,7 +912,7 @@ void EAPOD::twobody_forces(double *fij, double *cb2, double *rbfx, double *rbfy,
     int m = idx % nrbf2; // Recalculate n
 
     int i2 = n + Nj * m; // Index of the radial basis function for atom n and RBF m
-    int i1 = 3*n; 
+    int i1 = 3*n;
     double c = cb2[m + nrbf2*(tj[n] - 1)];
     fij[0 + i1] += c*rbfx[i2]; // Add the derivative with respect to x to the corresponding descriptor derivative
     fij[1 + i1] += c*rbfy[i2]; // Add the derivative with respect to y to the corresponding descriptor derivative
@@ -925,20 +925,20 @@ void EAPOD::threebody_forcecoeff(double *fb3, double *cb3, double *sumU)
   if (nelements==1) {
     for (int m = 0; m < nrbf3; ++m) {
       for (int p = 0; p < nabf3; p++) {
-        double c3 = 2.0 * cb3[p + nabf3*m]; 
+        double c3 = 2.0 * cb3[p + nabf3*m];
         int n1 = pn3[p];
         int n2 = pn3[p + 1];
-        int nn = n2 - n1;        
-        int idxU = K3 * m; 
-        for (int q = 0; q < nn; q++) {                  
-          int k = n1 + q;  
-          fb3[k + idxU] += c3 * pc3[k] * sumU[k + idxU]; 
+        int nn = n2 - n1;
+        int idxU = K3 * m;
+        for (int q = 0; q < nn; q++) {
+          int k = n1 + q;
+          fb3[k + idxU] += c3 * pc3[k] * sumU[k + idxU];
         }
       }
     }
   }
   else {
-    int N3 = nabf3 * nrbf3;    
+    int N3 = nabf3 * nrbf3;
     for (int m = 0; m < nrbf3; ++m) {
       for (int p = 0; p < nabf3; p++) {
         int n1 = pn3[p];
@@ -947,13 +947,13 @@ void EAPOD::threebody_forcecoeff(double *fb3, double *cb3, double *sumU)
         int jmp = p + nabf3*m;
         for (int q = 0; q < nn; q++) {
           int k = n1 + q;  // Combine n1 and q into a single index
-          int idxU = nelements * k + nelements * K3 * m;          
+          int idxU = nelements * k + nelements * K3 * m;
           for (int i1 = 0; i1 < nelements; i1++) {
             double tm = pc3[k] * sumU[i1 + idxU];
             for (int i2 = i1; i2 < nelements; i2++) {
-              int em = elemindex[i2 + nelements * i1];       
+              int em = elemindex[i2 + nelements * i1];
               double t1 = tm * cb3[jmp + N3*em]; // Ni *  nabf3 * nrbf3 * nelements*(nelements+1)/2
-              fb3[i2 + idxU] += t1;   // K3*nrbf3*Ni         
+              fb3[i2 + idxU] += t1;   // K3*nrbf3*Ni
               fb3[i1 + idxU] += pc3[k] * cb3[jmp + N3*em] * sumU[i2 + idxU];
             }
           }
@@ -967,7 +967,7 @@ void EAPOD::fourbody_forcecoeff(double *fb4, double *cb4, double *sumU)
 {
   if (nelements==1) {
     for (int m = 0; m < nrbf4; ++m) {
-      int idxU = K3 * m;                  
+      int idxU = K3 * m;
       for (int p = 0; p < nabf4; p++) {
         int n1 = pa4[p];
         int n2 = pa4[p + 1];
@@ -981,21 +981,21 @@ void EAPOD::fourbody_forcecoeff(double *fb4, double *cb4, double *sumU)
           int j3 = idxU + pb4[idxNQ + 2 * Q4];
           double c1 = sumU[j1];
           double c2 = sumU[j2];
-          double c3 = sumU[j3];          
-          fb4[j3] += c * c1 * c2;          
+          double c3 = sumU[j3];
+          fb4[j3] += c * c1 * c2;
           fb4[j2] += c * c1 * c3;
-          fb4[j1] += c * c2 * c3;          
+          fb4[j1] += c * c2 * c3;
         }
       }
     }
   }
-  else {        
-    int N3 = nabf4 * nrbf4;    
+  else {
+    int N3 = nabf4 * nrbf4;
     for (int m = 0; m < nrbf4; ++m) {
       for (int p = 0; p < nabf4; p++)  {
         int n1 = pa4[p];
         int n2 = pa4[p + 1];
-        int nn = n2 - n1;        
+        int nn = n2 - n1;
         int jpm = p + nabf4*m;
         for (int q = 0; q < nn; q++) {
           int c = pc4[n1 + q];
@@ -1005,17 +1005,17 @@ void EAPOD::fourbody_forcecoeff(double *fb4, double *cb4, double *sumU)
           int idx1 = nelements * j1 + nelements * K3 * m;
           int idx2 = nelements * j2 + nelements * K3 * m;
           int idx3 = nelements * j3 + nelements * K3 * m;
-          int k = 0;          
-          for (int i1 = 0; i1 < nelements; i1++) {            
+          int k = 0;
+          for (int i1 = 0; i1 < nelements; i1++) {
             double c1 = sumU[idx1 + i1];
             for (int i2 = i1; i2 < nelements; i2++) {
-              double c2 = sumU[idx2 + i2];              
-              for (int i3 = i2; i3 < nelements; i3++) {                       
-                double c3 = sumU[idx3 + i3];          
+              double c2 = sumU[idx2 + i2];
+              for (int i3 = i2; i3 < nelements; i3++) {
+                double c3 = sumU[idx3 + i3];
                 double c4 = c * cb4[jpm + N3*k];
-                fb4[idx3 + i3] += c4*(c1 * c2);  
+                fb4[idx3 + i3] += c4*(c1 * c2);
                 fb4[idx2 + i2] += c4*(c1 * c3);
-                fb4[idx1 + i1] += c4*(c2 * c3);                                                
+                fb4[idx1 + i1] += c4*(c2 * c3);
                 k += 1;
               }
             }
@@ -1029,74 +1029,74 @@ void EAPOD::fourbody_forcecoeff(double *fb4, double *cb4, double *sumU)
 void EAPOD::allbody_forces(double *fij, double *forcecoeff, double *rbf, double *rbfx, double *rbfy, double *rbfz,
         double *abf, double *abfx, double *abfy, double *abfz, int *tj, int Nj)
 {
-  int totalIterations = nrbf3 * Nj;  
+  int totalIterations = nrbf3 * Nj;
   for (int idx = 0; idx < totalIterations; ++idx) {
     int j = idx / nrbf3;  // Derive the original j value
     int m = idx % nrbf3;  // Derive the original m value
     int idxR = m + nrbfmax * j;  // Pre-compute the index for rbf
-    int i2 = tj[j] - 1;   
+    int i2 = tj[j] - 1;
     double rbfBase = rbf[idxR];
     double rbfxBase = rbfx[idxR];
     double rbfyBase = rbfy[idxR];
     double rbfzBase = rbfz[idxR];
     double fx = 0;
     double fy = 0;
-    double fz = 0;            
+    double fz = 0;
     for (int k = 0; k < K3; k++) {
       int idxU = nelements * k + nelements * K3 * m;
       double fc = forcecoeff[i2 + idxU];
-      int idxA = k + K3 * j;  // Pre-compute the index for abf          
-      double abfA = abf[idxA];   
+      int idxA = k + K3 * j;  // Pre-compute the index for abf
+      double abfA = abf[idxA];
       double abfxA = abfx[idxA];
       double abfyA = abfy[idxA];
-      double abfzA = abfz[idxA];        
-      fx += fc * (abfxA * rbfBase + rbfxBase * abfA); // K3*nrbf3*Nij 
+      double abfzA = abfz[idxA];
+      fx += fc * (abfxA * rbfBase + rbfxBase * abfA); // K3*nrbf3*Nij
       fy += fc * (abfyA * rbfBase + rbfyBase * abfA);
-      fz += fc * (abfzA * rbfBase + rbfzBase * abfA);                        
+      fz += fc * (abfzA * rbfBase + rbfzBase * abfA);
     }
-    int baseIdx = 3 * j; 
+    int baseIdx = 3 * j;
     fij[baseIdx]     += fx;
     fij[baseIdx + 1] += fy;
-    fij[baseIdx + 2] += fz;                           
-  }  
+    fij[baseIdx + 2] += fz;
+  }
 }
 
 void EAPOD::allbody_forces(double *fij, double *forcecoeff, double *Ux, double *Uy, double *Uz, int *tj, int Nj)
 {
   for (int j = 0; j < Nj; ++j) {
-    int i2 = tj[j] - 1;   
+    int i2 = tj[j] - 1;
     double fx = 0;
     double fy = 0;
-    double fz = 0;            
-    for (int m = 0; m < nrbf3; m++) 
-      for (int k = 0; k < K3; k++) {      
+    double fz = 0;
+    for (int m = 0; m < nrbf3; m++)
+      for (int k = 0; k < K3; k++) {
         double fc = forcecoeff[i2 + nelements * k + nelements * K3 * m];
-        int idxU = j + Nj*k + Nj * K3 * m;  // Pre-compute the index for abf          
-        fx += fc * Ux[idxU]; // K3*nrbf3*Nij 
+        int idxU = j + Nj*k + Nj * K3 * m;  // Pre-compute the index for abf
+        fx += fc * Ux[idxU]; // K3*nrbf3*Nij
         fy += fc * Uy[idxU];
-        fz += fc * Uz[idxU];                        
+        fz += fc * Uz[idxU];
       }
-    int baseIdx = 3 * j; 
+    int baseIdx = 3 * j;
     fij[baseIdx]     += fx;
     fij[baseIdx + 1] += fy;
-    fij[baseIdx + 2] += fz;                           
-  }  
+    fij[baseIdx + 2] += fz;
+  }
 }
 
 double EAPOD::peratomenergyforce2(double *fij, double *rij, double *temp,
         int *ti, int *tj, int Nj)
 {
   if (Nj==0) {
-    return coeff[nCoeffPerElement*(ti[0]-1)];    
+    return coeff[nCoeffPerElement*(ti[0]-1)];
   }
- 
+
   int N = 3*Nj;
   for (int n=0; n<N; n++) fij[n] = 0.0;
-  
+
   //double *coeff1 = &coeff[nCoeffPerElement*(ti[0]-1)];
-  double e = 0.0;   
+  double e = 0.0;
   for (int i=0; i<Mdesc; i++) bd[i] = 0.0;
-  
+
   double *d2 =  &bd[0]; // nl2
   double *d3 =  &bd[nl2]; // nl3
   double *d4 =  &bd[nl2 + nl3]; // nl4
@@ -1126,7 +1126,7 @@ double EAPOD::peratomenergyforce2(double *fij, double *rij, double *temp,
   double *rbfxt = &temp[4*n1 + n5 + 4*n2 + n3]; // Nj*ns
   double *rbfyt = &temp[4*n1 + n5 + 4*n2 + 2*n3]; // Nj*ns
   double *rbfzt = &temp[4*n1 + n5 + 4*n2 + 3*n3]; // Nj*ns
-  
+
   radialbasis(rbft, rbfxt, rbfyt, rbfzt, rij, besselparams, rin, rcut-rin, pdegree[0], pdegree[1], nbesselpars, Nj);
 
   char chn = 'N';
@@ -1144,7 +1144,7 @@ double EAPOD::peratomenergyforce2(double *fij, double *rij, double *temp,
     double *abf = &temp[4*n1 + n5 + 4*n2]; // Nj*K3
     double *abfx = &temp[4*n1 + n5 + 4*n2 + n4]; // Nj*K3
     double *abfy = &temp[4*n1 + n5 + 4*n2 + 2*n4]; // Nj*K3
-    double *abfz = &temp[4*n1 + n5 + 4*n2 + 3*n4]; // Nj*K3      
+    double *abfz = &temp[4*n1 + n5 + 4*n2 + 3*n4]; // Nj*K3
     double *tm = &temp[4*n1 + n5 + 4*n2 + 4*n4]; // 4*K3
 
     angularbasis(abf, abfx, abfy, abfz, rij, tm, pq3, Nj, K3);
@@ -1164,7 +1164,7 @@ double EAPOD::peratomenergyforce2(double *fij, double *rij, double *temp,
 
     if ((nl4 > 0) && (Nj>2)) {
       fourbodydesc(d4, sumU);
-      
+
       if ((nl34>0) && (Nj>4)) {
         crossdesc(d34, d3, d4, ind34l, ind34r, nl34);
       }
@@ -1174,47 +1174,47 @@ double EAPOD::peratomenergyforce2(double *fij, double *rij, double *temp,
       }
     }
   }
-  
-  double *cb = &bdd[0];          
-  if (nClusters > 1) {    
+
+  double *cb = &bdd[0];
+  if (nClusters > 1) {
     e += peratom_environment_descriptors(cb, bd, &temp[4*n1 + n5 + 4*n2], ti);
   }
   else {
     e += peratombase_coefficients(cb, bd, ti);
-  }      
-    
+  }
+
   double *cb2 =  &cb[0]; // nl3
   double *cb3 =  &cb[nl2]; // nl3
   double *cb4 =  &cb[(nl2 + nl3)]; // nl4
   double *cb33 = &cb[(nl2 + nl3 + nl4)]; // nl33
   double *cb34 = &cb[(nl2 + nl3 + nl4 + nl33)]; // nl34
   double *cb44 = &cb[(nl2 + nl3 + nl4 + nl33 + nl34)]; // nl44
-  
+
   if ((nl33>0) && (Nj>3)) {
-    crossdesc_reduction(cb3, cb3, cb33, d3, d3, ind33l, ind33r, nl33);      
+    crossdesc_reduction(cb3, cb3, cb33, d3, d3, ind33l, ind33r, nl33);
   }
   if ((nl34>0) && (Nj>4)) {
-    crossdesc_reduction(cb3, cb4, cb34, d3, d4, ind34l, ind34r, nl34);      
-  }  
+    crossdesc_reduction(cb3, cb4, cb34, d3, d4, ind34l, ind34r, nl34);
+  }
   if ((nl44>0) && (Nj>5)) {
-    crossdesc_reduction(cb4, cb4, cb44, d4, d4, ind44l, ind44r, nl44);        
-  }     
-    
-  if ((nl2 > 0) && (Nj>0)) twobody_forces(fij, cb2, rbfx, rbfy, rbfz, tj, Nj);  
+    crossdesc_reduction(cb4, cb4, cb44, d4, d4, ind44l, ind44r, nl44);
+  }
+
+  if ((nl2 > 0) && (Nj>0)) twobody_forces(fij, cb2, rbfx, rbfy, rbfz, tj, Nj);
 //   print_matrix("cb2", 1, nl2, cb2, 1);
 //   print_matrix("rbfx", Nj, nrbf2, rbfx, Nj);
 //   print_matrix("rbfy", Nj, nrbf2, rbfy, Nj);
 //   print_matrix("rbfz", Nj, nrbf2, rbfz, Nj);
 //   print_matrix("fij", 3, Nj, fij, 3);
 //   error->all(FLERR,"stop");
-  
-  // Initialize forcecoeff to zero  
+
+  // Initialize forcecoeff to zero
   double *forcecoeff = &cb[(nl2 + nl3 + nl4)]; // nl33
   std::fill(forcecoeff, forcecoeff + nelements * K3 * nrbf3, 0.0);
   if ((nl3 > 0) && (Nj>1)) threebody_forcecoeff(forcecoeff, cb3, sumU);
   if ((nl4 > 0) && (Nj>2)) fourbody_forcecoeff(forcecoeff, cb4, sumU);
-  if ((nl3 > 0) && (Nj>1)) allbody_forces(fij, forcecoeff, Ux, Uy, Uz, tj, Nj);   
-      
+  if ((nl3 > 0) && (Nj>1)) allbody_forces(fij, forcecoeff, Ux, Uy, Uz, tj, Nj);
+
   return e;
 }
 
@@ -1222,51 +1222,51 @@ double EAPOD::peratomenergyforce(double *fij, double *rij, double *temp,
         int *ti, int *tj, int Nj)
 {
   if (Nj==0) {
-    return coeff[nCoeffPerElement*(ti[0]-1)];    
+    return coeff[nCoeffPerElement*(ti[0]-1)];
   }
- 
+
   int N = 3*Nj;
   for (int n=0; n<N; n++) fij[n] = 0.0;
-  
+
   double *coeff1 = &coeff[nCoeffPerElement*(ti[0]-1)];
   double e = coeff1[0];
-   
+
   // calculate base descriptors and their derivatives with respect to atom coordinates
-  peratombase_descriptors(bd, bdd, rij, temp, ti, tj, Nj);  
+  peratombase_descriptors(bd, bdd, rij, temp, ti, tj, Nj);
 
   if (nClusters > 1) { // multi-environment descriptors
     // calculate multi-environment descriptors and their derivatives with respect to atom coordinates
     peratomenvironment_descriptors(pd, pdd, bd, bdd, temp, ti[0] - 1,  Nj);
-    
+
     for (int j = 0; j<nClusters; j++)
-      for (int m=0; m<Mdesc; m++) 
+      for (int m=0; m<Mdesc; m++)
         e += coeff1[1 + m + j*Mdesc]*bd[m]*pd[j];
-          
+
     double *cb = &temp[0];
     double *cp = &temp[Mdesc];
-    for (int m = 0; m<Mdesc; m++) cb[m] = 0.0;    
+    for (int m = 0; m<Mdesc; m++) cb[m] = 0.0;
     for (int j = 0; j<nClusters; j++) cp[j] = 0.0;
-    for (int j = 0; j<nClusters; j++)  
-      for (int m = 0; m<Mdesc; m++)  {   
+    for (int j = 0; j<nClusters; j++)
+      for (int m = 0; m<Mdesc; m++)  {
         cb[m] += coeff1[1 + m + j*Mdesc]*pd[j];
         cp[j] += coeff1[1 + m + j*Mdesc]*bd[m];
       }
-    char chn = 'N';    
+    char chn = 'N';
     double alpha = 1.0, beta = 0.0;
     int inc1 = 1;
-    DGEMV(&chn, &N, &Mdesc, &alpha, bdd, &N, cb, &inc1, &beta, fij, &inc1);    
-    DGEMV(&chn, &N, &nClusters, &alpha, pdd, &N, cp, &inc1, &alpha, fij, &inc1);    
+    DGEMV(&chn, &N, &Mdesc, &alpha, bdd, &N, cb, &inc1, &beta, fij, &inc1);
+    DGEMV(&chn, &N, &nClusters, &alpha, pdd, &N, cp, &inc1, &alpha, fij, &inc1);
   }
   else { // single-environment descriptors
-    for (int m=0; m<Mdesc; m++) 
+    for (int m=0; m<Mdesc; m++)
       e += coeff1[1+m]*bd[m];
-      
-    char chn = 'N';    
+
+    char chn = 'N';
     double alpha = 1.0, beta = 0.0;
     int inc1 = 1;
-    DGEMV(&chn, &N, &Mdesc, &alpha, bdd, &N, &coeff1[1], &inc1, &beta, fij, &inc1);    
+    DGEMV(&chn, &N, &Mdesc, &alpha, bdd, &N, &coeff1[1], &inc1, &beta, fij, &inc1);
   }
-  
+
   return e;
 }
 
@@ -1333,7 +1333,7 @@ void EAPOD::base_descriptors(double *basedesc, double *x,
       int *tj = &tmpint[3*Nj]; // Nj
 
       myneighbors(rij, x, ai, aj, ti, tj, jlist, pairnumsum, atomtype, alist, i);
-      
+
       // many-body descriptors
       peratombase_descriptors(bd, bdd, rij, &tmpmem[3*Nj], ti, tj, Nj);
 
@@ -1342,7 +1342,7 @@ void EAPOD::base_descriptors(double *basedesc, double *x,
       }
 
     }
-  }  
+  }
 }
 
 void EAPOD::descriptors(double *gd, double *gdd, double *basedesc, double *x,
@@ -1376,7 +1376,7 @@ void EAPOD::descriptors(double *gd, double *gdd, double *basedesc, double *x,
       int *tj = &tmpint[3*Nj]; // Nj
 
       myneighbors(rij, x, ai, aj, ti, tj, jlist, pairnumsum, atomtype, alist, i);
-      
+
       // many-body descriptors
       peratombase_descriptors(bd, bdd, rij, &tmpmem[3*Nj], ti, tj, Nj);
 
@@ -1398,7 +1398,7 @@ void EAPOD::descriptors(double *gd, double *gdd, double *basedesc, double *x,
       }
 
     }
-  }  
+  }
 }
 
 void EAPOD::descriptors(double *gd, double *gdd, double *basedesc, double *probdesc, double *x,
@@ -1433,7 +1433,7 @@ void EAPOD::descriptors(double *gd, double *gdd, double *basedesc, double *probd
       int *tj = &tmpint[3*Nj]; // Nj
 
       myneighbors(rij, x, ai, aj, ti, tj, jlist, pairnumsum, atomtype, alist, i);
-      
+
       // many-body descriptors
       peratombase_descriptors(bd, bdd, rij, &tmpmem[3*Nj], ti, tj, Nj);
 
@@ -1462,7 +1462,7 @@ void EAPOD::descriptors(double *gd, double *gdd, double *basedesc, double *probd
       }
 
     }
-  }  
+  }
 }
 
 void EAPOD::fourbodydesc23(double *d23, double *d2, double *d3)
@@ -1494,15 +1494,15 @@ void EAPOD::crossdescderiv(double *dd12, double *d1, double *d2, double *dd1, do
       dd12[n + N*i] = d1[ind1[i]]*dd2[n + N*ind2[i]] + dd1[n + N*ind1[i]]*d2[ind2[i]];
 }
 
-void EAPOD::crossdesc_reduction(double *cb1, double *cb2, double *c12, double *d1, 
+void EAPOD::crossdesc_reduction(double *cb1, double *cb2, double *c12, double *d1,
         double *d2, int *ind1, int *ind2, int n12)
-{  
+{
   for (int m = 0; m < n12; m++) {
     int k1 = ind1[m]; // dd1
     int k2 = ind2[m]; // dd2
-    double c = c12[m];        
-    cb1[k1] += c * d2[k2];        
-    cb2[k2] += c * d1[k1];     
+    double c = c12[m];
+    cb1[k1] += c * d2[k2];
+    cb2[k2] += c * d1[k1];
   }
 }
 
@@ -1550,14 +1550,14 @@ void EAPOD::fourbodydesc(double *d4, double *sumU)
             for (int i3 = i2; i3 < nelements; i3++) {
               double c3 = sumU[idxU + i3 + nelements * j3];
               int kk = p + nabf4 * m + nabf4 * nrbf4 * k;
-              d4[kk] += t12 * c3;              
+              d4[kk] += t12 * c3;
               k += 1;
             }
           }
         }
       }
     }
-  }   
+  }
 }
 
 void EAPOD::fourbodydescderiv(double *d4, double *dd4, double *sumU, double *Ux, double *Uy,
@@ -1587,7 +1587,7 @@ void EAPOD::fourbodydescderiv(double *d4, double *dd4, double *sumU, double *Ux,
           double c2 = c*sumU[j2 + K4*m];
           double t12 = c1*sumU[j2 + K4*m];
           double c3 = sumU[j3 + K4*m];
-          double t13 = c1*c3; 
+          double t13 = c1*c3;
           double t23 = c2*c3;
           int kk = p + nabf4*m;
           int ii = 3*N*(p + nabf4*m);
@@ -1956,7 +1956,7 @@ void EAPOD::radialbasis(double *rbf, double *rbfx, double *rbfy, double *rbfz, d
     for (int i=0; i<inversedegree; i++) {
       int p = besseldegree*nbesselpars + i;
       int nij = n + N*p;
-      double a = pow(dij, (double) (i+1.0));
+      double a = powint(dij, i+1);
 
       rbf[nij] = fcut/a;
 
@@ -2219,7 +2219,7 @@ void EAPOD::snapshots(double *rbf, double *xij, int N)
     double y2 = y*y;
     double y3 = 1.0 - y2*y;
     double y4 = y3*y3 + 1e-6;
-    double y5 = pow(y4, 0.5);
+    double y5 = sqrt(y4);
     double y6 = exp(-1.0/y5);
 
     // Compute the cutoff function
@@ -2493,7 +2493,7 @@ void EAPOD::allocate_temp_memory(int Nj)
   memory->create(bd, Mdesc, "bdd");
   memory->create(bdd, 3*Nj*Mdesc, "bdd");
   memory->create(pd, nClusters, "bdd");
-  memory->create(pdd, 3*Nj*nClusters, "bdd");  
+  memory->create(pdd, 3*Nj*nClusters, "bdd");
 }
 
 void EAPOD::free_temp_memory()
@@ -2684,7 +2684,7 @@ void EAPOD::MatMul(double *c, double *a, double *b, int r1, int c1, int c2)
         c[i + r1*j] += a[i + r1*k] * b[k + c1*j];
 }
 
-void EAPOD::peratomenvironment_descriptors(double *P, double *dP_dR, double *B, double *dB_dR, double *tmp, int elem, int nNeighbors) 
+void EAPOD::peratomenvironment_descriptors(double *P, double *dP_dR, double *B, double *dB_dR, double *tmp, int elem, int nNeighbors)
 {
   double *ProjMat = &Proj[nComponents*Mdesc*elem];
   double *centroids = &Centroids[nComponents*nClusters*elem];
@@ -2693,7 +2693,7 @@ void EAPOD::peratomenvironment_descriptors(double *P, double *dP_dR, double *B, 
   double *dD_dpca = &tmp[nComponents + nClusters];
   double *dD_dB = &tmp[nComponents + nClusters + nClusters*nComponents];
   double *dP_dD = &tmp[nComponents + nClusters + nClusters*nComponents + nClusters*Mdesc];
-  double *dP_dB = &tmp[nComponents + nClusters + nClusters*nComponents + nClusters*Mdesc + nClusters*nClusters];      
+  double *dP_dB = &tmp[nComponents + nClusters + nClusters*nComponents + nClusters*Mdesc + nClusters*nClusters];
 
   // calculate principal components
   for (int k = 0; k < nComponents; k++) {
@@ -2731,7 +2731,7 @@ void EAPOD::peratomenvironment_descriptors(double *P, double *dP_dR, double *B, 
   char cht = 'T';
   double alpha = 1.0, beta = 0.0;
   DGEMM(&chn, &chn, &nClusters, &Mdesc, &nComponents, &alpha, dD_dpca, &nClusters, ProjMat, &nComponents, &beta, dD_dB, &nClusters);
-  
+
   // calculate dP_dD
   double S1 = 1 / sumD;
   double S2 = sumD * sumD;
@@ -2744,12 +2744,12 @@ void EAPOD::peratomenvironment_descriptors(double *P, double *dP_dR, double *B, 
     dP_dD[j + j * nClusters] += S1;
   }
 
-  // calculate dP_dB = dP_dD * dD_dB, which are derivatives of probabilities with respect to local descriptors 
+  // calculate dP_dB = dP_dD * dD_dB, which are derivatives of probabilities with respect to local descriptors
   DGEMM(&chn, &chn, &nClusters, &Mdesc, &nClusters, &alpha, dP_dD, &nClusters, dD_dB, &nClusters, &beta, dP_dB, &nClusters);
-  
-  // calculate dP_dR = dB_dR * dP_dB , which are derivatives of probabilities with respect to atomic coordinates  
+
+  // calculate dP_dR = dB_dR * dP_dB , which are derivatives of probabilities with respect to atomic coordinates
   int N = 3*nNeighbors;
-  DGEMM(&chn, &cht, &N, &nClusters, &Mdesc, &alpha, dB_dR, &N, dP_dB, &nClusters, &beta, dP_dR, &N);  
+  DGEMM(&chn, &cht, &N, &nClusters, &Mdesc, &alpha, dB_dR, &N, dP_dB, &nClusters, &beta, dP_dR, &N);
 }
 
 void EAPOD::init3bodyarray(int *np, int *pq, int *pc, int Pa)

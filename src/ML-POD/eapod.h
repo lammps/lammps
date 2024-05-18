@@ -86,7 +86,7 @@ public:
   double rin;
   double rcut;
   int true4BodyDesc;
-  
+
 
   int nelements; // number of elements
   int pbc[3];
@@ -110,8 +110,8 @@ public:
   int nClusters; // number of environment clusters
   int nComponents; // number of principal components
   //int nNeighbors; // numbe of neighbors
-  int Mdesc; // number of base descriptors 
-  
+  int Mdesc; // number of base descriptors
+
   double *Proj; // PCA Projection matrix
   double *Centroids; // centroids of the clusters
   double *bd; // base descriptors
@@ -125,7 +125,7 @@ public:
   int Njmax;
   int nCoeffPerElement; // number of coefficients per element = (nl1 + Mdesc*nClusters)
   int nCoeffAll; // number of coefficients for all elements = (nl1 + Mdesc*nClusters)*nelements
-  int ncoeff;  // number of coefficients in the input file 
+  int ncoeff;  // number of coefficients in the input file
   int ns;      // number of snapshots for radial basis functions
   int nd1, nd2, nd3, nd4, nd5, nd6, nd7, nd;   // number of global descriptors
   int nl1, nl2, nl3, nl4, nl5, nl6, nl7, nl;   // number of local descriptors
@@ -167,19 +167,19 @@ public:
   int read_projection_matrix(std::string proj_file);
   int read_centroids(std::string centroids_file);
 
-  int estimate_temp_memory(int Nj);    
-  void free_temp_memory();  
+  int estimate_temp_memory(int Nj);
+  void free_temp_memory();
   void allocate_temp_memory(int Nj);
 
   //void mknewcoeff();
 
   void mknewcoeff(double *c, int nc);
 
-  void twobodydesc(double *d2, double *rbf, int *tj, int N);  
+  void twobodydesc(double *d2, double *rbf, int *tj, int N);
   void twobodydescderiv(double *d2, double *dd2, double *rbf, double *rbfx,
         double *rbfy, double *rbfz, int *tj, int N);
   void twobody_forces(double *fij, double *cb2, double *rbfx, double *rbfy, double *rbfz, int *tj, int Nj);
-  
+
   void threebodydesc(double *d3, double *sumU);
   void threebodydescderiv(double *dd3, double *sumU, double *Ux, double *Uy, double *Uz,
         int *atomtype, int N);
@@ -189,7 +189,7 @@ public:
   void fourbodydescderiv(double *d4, double *dd4, double *sumU, double *Ux, double *Uy, double *Uz,
       int *atomtype, int N);
   void fourbody_forcecoeff(double *fb4, double *cb4, double *sumU);
-  
+
   void allbody_forces(double *fij, double *forcecoeff, double *rbf, double *rbfx, double *rbfy, double *rbfz,
         double *abf, double *abfx, double *abfy, double *abfz, int *tj, int Nj);
   void allbody_forces(double *fij, double *forcecoeff, double *Ux, double *Uy, double *Uz, int *tj, int Nj);
@@ -204,7 +204,7 @@ public:
         int *ti, int *tj, int Nj);
   double peratombase_coefficients(double *cb, double *bd, int *ti);
   double peratom_environment_descriptors(double *cb, double *bd, double *tm, int *ti);
-  
+
   void peratomenvironment_descriptors(double *P, double *dP_dR, double *B, double *dB_dR, double *tmp, int elem, int nNeighbors);
 
   void base_descriptors(double *basedesc, double *x, int *atomtype, int *alist,
@@ -212,7 +212,7 @@ public:
 
   void descriptors(double *basedesc, double *probdesc, double *x, int *atomtype, int *alist,
           int *jlist, int *pairnumsum, int natom);
-  
+
   double peratomenergyforce(double *fij, double *rij, double *temp, int *ti, int *tj, int Nj);
   double peratomenergyforce2(double *fij, double *rij, double *temp, int *ti, int *tj, int Nj);
 
@@ -226,8 +226,8 @@ public:
 
   void crossdesc(double *d12, double *d1, double *d2, int *ind1, int *ind2, int n12);
   void crossdescderiv(double *dd12, double *d1, double *d2, double *dd1, double *dd2,
-        int *ind1, int *ind2, int n12, int N);  
-  void crossdesc_reduction(double *cb1, double *cb2, double *c12, double *d1, 
+        int *ind1, int *ind2, int n12, int N);
+  void crossdesc_reduction(double *cb1, double *cb2, double *c12, double *d1,
         double *d2, int *ind1, int *ind2, int n12);
 };
 

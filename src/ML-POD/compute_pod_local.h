@@ -35,7 +35,7 @@ class ComputePODLocal : public Compute {
   void lammpsNeighborList(double **x, int **firstneigh, int *atomid, int *atomtype, int *numneigh,
                         double rcutsq, int i);
   void map_element2type(int narg, char **arg, int nelements);
-  
+
  private:
   class NeighList *list;
   class EAPOD *podptr;
@@ -43,7 +43,7 @@ class ComputePODLocal : public Compute {
   double cutmax;
   int nij;
   int nijmax;
-     
+
   double *tmpmem;      // temporary memory
   double *rij;         // (xj - xi) for all pairs (I, J)
   char **elements;
@@ -51,7 +51,7 @@ class ComputePODLocal : public Compute {
   int *ai;             // IDs of atoms I for all pairs (I, J)
   int *aj;             // IDs of atoms J for all pairs (I, J)
   int *ti;             // types of atoms I for all pairs (I, J)
-  int *tj;             // types of atoms J  for all pairs (I, J)  
+  int *tj;             // types of atoms J  for all pairs (I, J)
 };
 
 }    // namespace LAMMPS_NS

@@ -227,7 +227,6 @@ void BondRHEOShell::compute(int eflag, int vflag)
     if (t < EPSILON || std::isnan(t))
       t = store_bond(n, i1, i2);
 
-
     delx = x[i1][0] - x[i2][0];
     dely = x[i1][1] - x[i2][1];
     delz = x[i1][2] - x[i2][2];

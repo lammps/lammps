@@ -259,7 +259,8 @@ void FixRHEOThermal::init()
   compute_grad = fix_rheo->compute_grad;
   compute_vshift = fix_rheo->compute_vshift;
 
-  dtf = 0.5 * update->dt * force->ftm2v;
+  dt = update->dt;
+  dth = 0.5 * update->dt;
 
   if (atom->esph_flag != 1)
     error->all(FLERR,"fix rheo/thermal command requires atom property esph");
@@ -337,7 +338,7 @@ void FixRHEOThermal::initial_integrate(int /*vflag*/)
   for (i = 0; i < nlocal; i++) {
     if (status[i] & STATUS_NO_SHIFT) continue;
     for (a = 0; a < dim; a++)
-      energy[i] += dtv * vshift[i][a] * grade[i][a];
+      energy[i] += dt * vshift[i][a] * grade[i][a];
   }
 }
 
@@ -363,7 +364,7 @@ void FixRHEOThermal::post_integrate()
 
     itype = type[i];
     cvi = calc_cv(i, itype);
-    energy[i] += dtf * heatflow[i];
+    energy[i] += dth * heatflow[i];
     temperature[i] = energy[i] / cvi;
 
     if (Tc_style[itype] != NONE) {
@@ -376,6 +377,8 @@ void FixRHEOThermal::post_integrate()
         temperature[i] = Ti;
       }
 
+      // Check phase change if Ti != Tci
+
       if (Ti > Tci) {
         // If solid, melt
         if (status[i] & STATUS_SOLID) {
@@ -383,7 +386,9 @@ void FixRHEOThermal::post_integrate()
           status[i] |= STATUS_MELTING;
           n_melt += 1;
         }
-      } else {
+      }
+
+      if (Ti < Tci) {
         // If fluid, freeze
         if (!(status[i] & STATUS_SOLID)) {
           status[i] &= PHASEMASK;
@@ -400,6 +405,23 @@ void FixRHEOThermal::post_integrate()
   MPI_Allreduce(&n_freeze, &n_freeze_all, 1, MPI_INT, MPI_SUM, world);
 
   if (cut_bond > 0 && (n_melt_all || n_freeze_all)) {
+
+    // If a particle freezes, check if it already has bonds of that type
+    // If so, assume it was inserted as a solid particle
+    // Note: inserted solid particle may still shift one timestep
+    int *num_bond = atom->num_bond;
+    int **bond_type = atom->bond_type;
+    for (i = 0; i < atom->nlocal; i++) {
+      if (status[i] & STATUS_FREEZING) {
+        for (int n = 0; n < num_bond[i]; n++) {
+          if (bond_type[i][n] == btype) {
+            status[i] &= ~STATUS_FREEZING;
+            break;
+          }
+        }
+      }
+    }
+
     // Forward status + positions (after inititial integrate, before comm)
     comm->forward_comm(this);
 
@@ -464,11 +486,6 @@ void FixRHEOThermal::pre_force(int /*vflag*/)
       }
     }
   }
-
-  // Add temporary options, wiped by preceding fix rheo preforce
-  for (int i = 0; i < nall; i++)
-    if (status[i] & STATUS_SOLID)
-      status[i] |= STATUS_NO_SHIFT;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -482,7 +499,7 @@ void FixRHEOThermal::final_integrate()
   //Integrate energy
   for (int i = 0; i < atom->nlocal; i++) {
     if (status[i] & STATUS_NO_INTEGRATION) continue;
-    energy[i] += dtf * heatflow[i];
+    energy[i] += dth * heatflow[i];
   }
 }
 
@@ -490,8 +507,8 @@ void FixRHEOThermal::final_integrate()
 
 void FixRHEOThermal::reset_dt()
 {
-  dtv = update->dt;
-  dtf = 0.5 * update->dt * force->ftm2v;
+  dt = update->dt;
+  dth = 0.5 * update->dt;
 }
 
 /* ---------------------------------------------------------------------- */

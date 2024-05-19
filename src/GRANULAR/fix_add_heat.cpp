@@ -68,7 +68,7 @@ FixAddHeat::FixAddHeat(LAMMPS *lmp, int narg, char **arg) :
   while (iarg < narg) {
     if (strcmp(arg[iarg], "overwrite") == 0) {
       if (iarg + 1 >= narg) utils::missing_cmd_args(FLERR, "fix add/heat", error);
-      overwrite_flag = utils::bnumeric(FLERR, arg[iarg + 1], false, lmp);
+      overwrite_flag = utils::logical(FLERR, arg[iarg + 1], false, lmp);
       iarg += 2;
     } else {
       error->all(FLERR, "Illegal fix add/heat command, invalid argument {}", arg[iarg]);

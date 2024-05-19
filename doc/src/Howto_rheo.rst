@@ -10,8 +10,12 @@ particles can dynamically change between a fluid and solid state, e.g. during
 melting/solidification, which determines how they interact and their physical
 behavior. The package is designed with modularity in mind, so one can easily
 turn various features on/off, adjust physical details of the system, or
-develop new capabilities. Additional numerical details can be found in
-:ref:`(Palermo) <howto_rheo_palermo>` and :ref:`(Clemmer) <howto_rheo_clemmer>`.
+develop new capabilities. For instance, the numerics associated with
+calculating gradients, reproducing kernels, etc. are separated into distinct
+classes to simplify the development of new integration schemes which can call
+these calculations. Additional numerical details can be found in
+:ref:`(Palermo) <howto_rheo_palermo>` and
+:ref:`(Clemmer) <howto_rheo_clemmer>`.
 
 ----------
 
@@ -29,12 +33,17 @@ other RHEO fixes.
 Typically, RHEO requires atom style rheo. In addition to typical atom
 properties like positions and forces, particles store a local density,
 viscosity, pressure, and status. If thermal evolution is modeled, one must
-use atom style rheo/thermal which also include a local temperature and
-conductivity. The status variable uses bitmasking to track various
-properties of a particle such as its current state of matter (fluid or solid)
-and its location relative to a surface. Many of these properties (and others)
-can be easily accessed using
-:doc:`compute rheo/property/atom <fix_rheo_property_atom>`.
+use atom style rheo/thermal which also includes a local energy, temperature, and
+conductivity. Note that the temperature is always derived from the energy.
+This implies the *temperature* attribute of :doc:`the set command <set>` does not
+affect particles. Instead, one should use the *sph/e* attribute.
+
+The status variable uses bitmasking to track various properties of a particle
+such as its current state of matter (fluid or solid) and its location relative
+to a surface. Some of these properties (and others) can be accessed using
+:doc:`compute rheo/property/atom <fix_rheo_property_atom>`. The *status* attribute
+in :doc:`the set command <set>` only allows control over the first bit which sets
+the state of matter, 0 is fluid and 1 is solid.
 
 Fluid interactions, including pressure forces, viscous forces, and heat exchange,
 are calculated using :doc:`pair rheo <pair_rheo>`. Unlike typical pair styles,
@@ -61,7 +70,8 @@ in the same elastic body.
 
 In systems with thermal evolution, fix rheo/thermal can optionally set a
 melting/solidification temperature allowing particles to dynamically swap their
-state between fluid and solid. Using the *react* option, one can specify a maximum
+state between fluid and solid when the temperature exceeds or drops below the
+critical temperature, respectively. Using the *react* option, one can specify a maximum
 bond length and a bond type. Then, when solidifying, particles will search their
 local neighbors and automatically create bonds with any neighboring solid particles
 in range. For BPM bond styles, bonds will then use the immediate position of the two

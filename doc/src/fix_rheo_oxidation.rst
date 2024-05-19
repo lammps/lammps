@@ -35,10 +35,12 @@ for use with bond style :doc:`bond rheo/shell <bond_rheo_shell>`.
 
 Every timestep, particles check neighbors within a distance of *cut*.
 This distance must be smaller than the kernel length defined in
-:doc:`fix rheo <fix_rheo>`. If both particles are on the fluid surface,
-or within a distance of *rsurf* from the surface, a bond of type
-*btype* is created between the two particles. This process is
-further described in Ref. :ref:`(Clemmer) <howto_rheo_clemmer>`.
+:doc:`fix rheo <fix_rheo>`. Bonds of type *btype* are created between
+pairs of particles that satisfy one of two conditions. First, if both
+particles are on the fluid surface, or within a distance of *rsurf*
+from the surface. Secondly, if one particle is on the fluid surface
+and the other bond is solid. This process is further described in
+:ref:`(Clemmer) <howto_rheo_clemmer>`.
 
 If used in conjunction with solid bodies, such as those generated
 by the *react* option of :doc:`fix rheo/thermal <fix_rheo_thermal>`,

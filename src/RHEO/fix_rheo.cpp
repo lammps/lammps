@@ -125,7 +125,7 @@ FixRHEO::FixRHEO(LAMMPS *lmp, int narg, char **arg) :
       interface_flag = 1;
     } else if (strcmp(arg[iarg], "rho/sum") == 0) {
       rhosum_flag = 1;
-    } else if (strcmp(arg[iarg], "self/mass")) {
+    } else if (strcmp(arg[iarg], "self/mass") == 0) {
       self_mass_flag = 1;
     } else if (strcmp(arg[iarg], "density") == 0) {
       if (iarg + n >= narg) error->all(FLERR, "Illegal rho0 option in fix rheo");
@@ -145,7 +145,7 @@ FixRHEO::FixRHEO(LAMMPS *lmp, int narg, char **arg) :
     iarg += 1;
   }
 
-  if (self_mass_flag && !rhosum_flag)
+  if (self_mass_flag && (!rhosum_flag))
     error->all(FLERR, "Cannot use self/mass setting without rho/sum");
 
   if (lmp->citeme) lmp->citeme->add(cite_rheo);
@@ -227,6 +227,26 @@ void FixRHEO::init()
 
   if (modify->get_fix_by_style("^rheo$").size() > 1)
     error->all(FLERR, "Can only specify one instance of fix rheo");
+
+  if (atom->status_flag != 1)
+    error->all(FLERR,"fix rheo command requires atom property status");
+  if (atom->rho_flag != 1)
+    error->all(FLERR,"fix rheo command requires atom property rho");
+  if (atom->pressure_flag != 1)
+    error->all(FLERR,"fix rheo command requires atom property pressure");
+  if (atom->viscosity_flag != 1)
+    error->all(FLERR,"fix rheo command requires atom property viscosity");
+
+  if (thermal_flag) {
+    if (atom->esph_flag != 1)
+      error->all(FLERR,"fix rheo command requires atom property esph with thermal setting");
+    if (atom->temperature_flag != 1)
+      error->all(FLERR,"fix rheo command requires atom property temperature with thermal setting");
+    if (atom->heatflow_flag != 1)
+      error->all(FLERR,"fix rheo command requires atom property heatflow with thermal setting");
+    if (atom->conductivity_flag != 1)
+      error->all(FLERR,"fix rheo command requires atom property conductivity with thermal setting");
+  }
 }
 
 /* ---------------------------------------------------------------------- */
@@ -386,6 +406,7 @@ void FixRHEO::initial_integrate(int /*vflag*/)
     for (i = 0; i < nlocal; i++) {
 
       if (status[i] & STATUS_NO_SHIFT) continue;
+      if (status[i] & PHASECHECK) continue;
 
       if (mask[i] & groupbit) {
         for (a = 0; a < dim; a++) {

@@ -34,8 +34,9 @@ class FixRHEOOxidation : public Fix {
   void init() override;
   void init_list(int, class NeighList *) override;
   void setup_pre_force(int) override;
-  void pre_force(int) override;
   void post_integrate() override;
+  void pre_force(int) override;
+  void post_force(int) override;
   int pack_forward_comm(int, int *, double *, int, int *) override;
   void unpack_forward_comm(int, int, double *) override;
   int *nbond;

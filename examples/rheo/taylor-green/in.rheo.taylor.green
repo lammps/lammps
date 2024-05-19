@@ -10,19 +10,16 @@ newton off
 
 # ------ Create simulation box ------ #
 
-variable           sf equal 0.1
-variable           n equal 1.0/(${sf}^2)
-variable           cut equal 3.5*${sf}
+variable           n equal 1.0
+variable           cut equal 3.0
 
-region             box block 0 10 0 10 -0.01 0.01 units box
+region             box block 0 40 0 40 -0.01 0.01
 create_box         1 box
 lattice            sq ${n}
 
 create_atoms       1 region box
 
-variable           dr equal 0.1*${sf}
-displace_atoms     all random ${dr} ${dr} 0 135414 units box
-
+displace_atoms     all random 0.1 0.1 0 135414 units box
 
 # ------ Model parameters ------ #
 
@@ -53,22 +50,17 @@ pair_coeff         * *
 
 # ------ Fixes & computes ------ #
 
-fix                1 all rheo ${cut} quintic 0 shift
-fix                2 all rheo/viscosity constant ${eta}
-fix                3 all rheo/pressure linear
+fix                1 all rheo ${cut} RK1 8 shift
+fix                2 all rheo/viscosity * constant ${eta}
+fix                3 all rheo/pressure * linear
 
-compute            1 all rheo/property/atom rho phase
-
+compute            rho all rheo/property/atom rho
 
 # ------ Output & Run ------ #
 
 thermo             200
 thermo_style       custom step time ke press
 
-variable           skin equal 0.2*${cut}
-neighbor           ${skin} bin
-neigh_modify       one 10000 #increase number of allowed neighbors
-
-#dump               1 all custom 200 atomDump id type x y vx vy fx fy c_1[*]
+#dump               1 all custom 200 atomDump id type x y vx vy fx fy c_rho
 
 run 10000

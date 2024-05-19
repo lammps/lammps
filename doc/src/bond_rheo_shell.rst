@@ -65,7 +65,7 @@ the setup of a run. Data is then preserved across run commands and is
 written to :doc:`binary restart files <restart>` such that restarting
 the system will not reset the reference state of a bond or the timer.
 
-This bond style is based on a model described in Ref.
+This bond style is based on a model described in
 :ref:`(Clemmer) <howto_rheo_clemmer>`. The force has a magnitude of
 
 .. math::

@@ -165,11 +165,11 @@ void ComputeRHEOInterface::compute_peratom()
         fluidj = !(status[j] & PHASECHECK);
         w = compute_kernel->calc_w_quintic(i, j, dx[0], dx[1], dx[2], sqrt(rsq));
 
-        status_match = 0;
         norm[i] += w;
+
+        status_match = 0;
         if ((fluidi && fluidj) || ((!fluidi) && (!fluidj)))
           status_match = 1;
-
         if (status_match) {
           chi[i] += w;
         } else {
@@ -307,30 +307,26 @@ void ComputeRHEOInterface::unpack_reverse_comm(int n, int *list, double *buf)
 
 /* ---------------------------------------------------------------------- */
 
-void ComputeRHEOInterface::correct_v(double *vi, double *vj, int i, int j)
+void ComputeRHEOInterface::correct_v(double *v_solid, double *v_fluid, int i_solid, int i_fluid)
 {
   double wall_prefactor, wall_denom, wall_numer;
 
-  wall_numer = 2.0 * cut * (chi[i] - 0.5);
-  if (wall_numer < 0) wall_numer = 0;
-  wall_denom = 2.0 * cut * (chi[j] - 0.5);
-  if (wall_denom < wall_max) wall_denom = wall_max;
+  wall_numer = MAX(2.0 * cut * (chi[i_solid] - 0.5), 0.0);
+  wall_denom = MAX(2.0 * cut * (chi[i_fluid] - 0.5), wall_max);
 
   wall_prefactor = wall_numer / wall_denom;
 
-  vi[0] = (vi[0] - vj[0]) * wall_prefactor + vi[0];
-  vi[1] = (vi[1] - vj[1]) * wall_prefactor + vi[1];
-  vi[2] = (vi[2] - vj[2]) * wall_prefactor + vi[2];
+  v_solid[0] = (v_solid[0] - v_fluid[0]) * wall_prefactor;
+  v_solid[1] = (v_solid[1] - v_fluid[1]) * wall_prefactor;
+  v_solid[2] = (v_solid[2] - v_fluid[2]) * wall_prefactor;
 }
 
 /* ---------------------------------------------------------------------- */
 
-double ComputeRHEOInterface::correct_rho(int i, int j)
+double ComputeRHEOInterface::correct_rho(int i_solid, int i_fluid)
 {
-  // i is wall, j is fluid
-  //In future may depend on atom type j's pressure equation
-  int itype = atom->type[i];
-  return MAX(rho0[itype], atom->rho[i]);
+  int itype = atom->type[i_solid];
+  return MAX(rho0[itype], atom->rho[i_solid]);
 }
 
 /* ---------------------------------------------------------------------- */

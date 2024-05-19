@@ -30,6 +30,7 @@
 #include "neighbor.h"
 #include "neigh_list.h"
 #include "neigh_request.h"
+#include "update.h"
 
 using namespace LAMMPS_NS;
 using namespace RHEO_NS;
@@ -55,6 +56,8 @@ FixRHEOOxidation::FixRHEOOxidation(LAMMPS *lmp, int narg, char **arg) :
 {
   if (narg != 6) error->all(FLERR,"Illegal fix command");
 
+  force_reneighbor = 1;
+  next_reneighbor = -1;
   comm_forward = 3;
 
   cut = utils::numeric(FLERR, arg[3], false, lmp);
@@ -82,8 +85,9 @@ FixRHEOOxidation::~FixRHEOOxidation()
 int FixRHEOOxidation::setmask()
 {
   int mask = 0;
-  mask |= PRE_FORCE;
   mask |= POST_INTEGRATE;
+  mask |= PRE_FORCE;
+  mask |= POST_FORCE;
   return mask;
 }
 
@@ -133,25 +137,19 @@ void FixRHEOOxidation::setup_pre_force(int /*vflag*/)
   if (!fix_rheo->surface_flag) error->all(FLERR,
       "fix rheo/oxidation requires surface calculation in fix rheo");
   compute_surface = fix_rheo->compute_surface;
-
-  pre_force(0);
 }
 
 /* ---------------------------------------------------------------------- */
 
 void FixRHEOOxidation::pre_force(int /*vflag*/)
 {
-  int *status = atom->status;
-  for (int i = 0; i < atom->nlocal; i++)
-    if (num_bond[i] != 0)
-      status[i] |= STATUS_NO_SHIFT;
 }
 
 /* ---------------------------------------------------------------------- */
 
 void FixRHEOOxidation::post_integrate()
 {
-  int i, j, n, ii, jj, inum, jnum, bflag;
+  int i, j, n, ii, jj, inum, jnum, bflag, fluidi, fluidj;
   int *ilist, *jlist, *numneigh, **firstneigh;
   double delx, dely, delz, rsq;
   tagint tagi, tagj;
@@ -163,6 +161,8 @@ void FixRHEOOxidation::post_integrate()
   tagint **bond_atom = atom->bond_atom;
   int **bond_type = atom->bond_type;
   int *num_bond = atom->num_bond;
+  int *mask = atom->mask;
+  int *status = atom->status;
   double *rsurface = compute_surface->rsurface;
   double **x = atom->x;
 
@@ -175,10 +175,15 @@ void FixRHEOOxidation::post_integrate()
   // Note: surface designation lags one timestep, acceptable error
   comm->forward_comm(this);
 
+  int added_bonds = 0;
   // loop over neighbors of my atoms
   for (ii = 0; ii < inum; ii++) {
     i = ilist[ii];
-    if (rsurface[i] > rsurf) continue;
+    if (!(mask[i] & groupbit)) continue;
+
+    // Exclude particles that aren't solid or surface
+    fluidi = !(status[i] & PHASECHECK);
+    if (fluidi && (rsurface[i] > rsurf)) continue;
 
     tagi = tag[i];
 
@@ -188,8 +193,13 @@ void FixRHEOOxidation::post_integrate()
     for (jj = 0; jj < jnum; jj++) {
       j = jlist[jj];
       j &= NEIGHMASK;
+      if (!(mask[j] & groupbit)) continue;
 
-      if (rsurface[j] > rsurf) continue;
+      fluidj = !(status[j] & PHASECHECK);
+      if (fluidj && (rsurface[j] > rsurf)) continue;
+
+      // Skip solid-solid, leaves surface-surface or surface-solid
+      if ((!fluidi) && (!fluidj)) continue;
 
       tagj = tag[j];
 
@@ -218,6 +228,8 @@ void FixRHEOOxidation::post_integrate()
       }
       if (bflag) continue;
 
+      added_bonds += 1;
+
       // Add bonds to owned atoms
       // If newton bond off, add to both, otherwise add to whichever has a smaller tag
 
@@ -230,6 +242,23 @@ void FixRHEOOxidation::post_integrate()
       }
     }
   }
+
+  int added_bonds_all;
+  MPI_Allreduce(&added_bonds, &added_bonds_all, 1, MPI_INT, MPI_SUM, world);
+
+  if (added_bonds_all > 0)
+    next_reneighbor = update->ntimestep;
+}
+
+/* ---------------------------------------------------------------------- */
+
+void FixRHEOOxidation::post_force(int /*vflag*/)
+{
+  int *status = atom->status;
+  int *num_bond = atom->num_bond;
+  for (int i = 0; i < atom->nlocal; i++)
+    if (num_bond[i] != 0)
+      status[i] |= STATUS_NO_SHIFT;
 }
 
 /* ---------------------------------------------------------------------- */

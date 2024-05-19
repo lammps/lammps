@@ -55,11 +55,19 @@ rheo/thermal. In addition, it  defines multiple thermal properties of
 particles and handles melting/solidification, if applicable. For more details
 on phase transitions in RHEO, see :doc:`the RHEO howto <Howto_rheo>`.
 
+Note that the temperature of a particle is always derived from the energy.
+This implies the *temperature* attribute of :doc:`the set command <set>` does
+not affect particles. Instead, one should use the *sph/e* attribute.
+
 For each atom type, one can define attributes for the *conductivity*,
 *specific/heat*, *latent/heat*, and critical temperature (*Tfreeze*).
 The conductivity and specific heat must be defined for all atom types.
 The latent heat and critical temperature are optional. However, a
 critical temperature must be defined to specify a latent heat.
+
+Note, if shifting is turned on in :doc:`fix rheo <fix_rheo>`, the gradient
+of the energy is used to shift energies. This may be inappropriate in systems
+with multiple atom types with different specific heats.
 
 For each property, one must first define a list of atom types. A wild-card
 asterisk can be used in place of or in conjunction with the *types* argument

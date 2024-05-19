@@ -79,7 +79,7 @@ namespace RHEO_NS {
   enum Status{
     // Phase status
     STATUS_SOLID = 1 << 0,
-    // STATUS_REACTIVE = 1 << 1,
+    // Gap for future phase: STATUS_ = 1 << 1,
 
     // Surface status
     STATUS_BULK = 1 << 2,

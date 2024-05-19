@@ -16,19 +16,18 @@ Syntax
 
   .. parsed-literal::
 
-       possible attributes = phase, chi, surface, surface/r,
+       possible attributes = phase, surface, surface/r,
                              surface/divr, surface/n/x, surface/n/y,
                              surface/n/z, coordination, cv, shift/v/x,
                              shift/v/y, shift/v/z, energy, temperature, heatflow,
                              conductivity, cv, viscosity, pressure,
-                             status, rho, grad/v/xx, grad/v/xy, grad/v/xz,
+                             rho, grad/v/xx, grad/v/xy, grad/v/xz,
                              grad/v/yx, grad/v/yy/, grad/v/yz, grad/v/zx,
                              grad/v/zy, grad/v/zz
 
   .. parsed-literal::
 
            *phase* = atom phase state
-           *chi* = atom local phase metric
            *surface* = atom surface status
            *surface/r* = atom distance from the surface
            *surface/divr* = divergence of position at atom position
@@ -42,7 +41,6 @@ Syntax
            *cv* = atom specific heat
            *viscosity* = atom viscosity
            *pressure* = atom pressure
-           *status* = atom full status
            *rho* = atom density
            *grad/v/\** = atom velocity gradient
            *nbond/shell* = number of oxide bonds
@@ -70,13 +68,31 @@ computes as inputs. See for example, the
 :doc:`fix ave/chunk <fix_ave_chunk>`, and
 :doc:`atom-style variable <variable>` commands.
 
-The possible attributes are described in more detail in other RHEO doc
-pages including :doc:`the RHEO howto page <Howto_rheo>`. Many
-properties require their respective fixes, listed below in related
-commands, be defined.
+Many properties require their respective fixes, listed below in related
+commands, be defined. For instance, the *viscosity* attribute is the
+viscosity of a particle calculated by
+:doc:`fix rheo/viscous <fix_rheo_viscosity>`. The meaning of less obvious
+properties is described below.
+
+The *phase* property indicates whether the particle is in a fluid state,
+a value of 0, or a solid state, a value of 1.
+
+The *surface* property indicates the surface designation produced by
+the *interface/reconstruct* option of :doc:`fix rheo <fix_rheo>`. Bulk
+particles have a value of 0, surface particles have a value of 1, and
+splash particles have a value of 2. The *surface/r* property is the
+distance from the surface, up to the kernel cutoff length. Surface particles
+have a value of 0. The *surface/n* properties are the components of the
+surface normal vector.
+
+The *shift/v* properties are the components of the shifting velocity
+produced by the *shift* option of :doc:`fix rheo <fix_rheo>`.
 
 The *surface/n/\** and *shift/v/\** attributes are vectors that require
 specification of the *x*, *y*, or *z* component, e.g. *surface/n/x*.
+
+The *nbond/shell* property is the number of shell bonds that have been
+activated from :doc:`bond style rheo/shell <bond_rheo_shell>`.
 
 The *grad/v/\** attribute is a tensor and requires specification of
 the *xx*, *yy*, *zz*, *xy*, *xz*, *yx*, *yz*, *zx*, or *zy* component,

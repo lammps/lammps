@@ -48,7 +48,7 @@ class FixRHEOThermal : public Fix {
 
  private:
   double *cv, *Tc, *kappa, *L;
-  double dtf, dtv;
+  double dt, dth;
   double cut_kernel, cut_bond, cutsq_bond;
   int *cv_style, *Tc_style, *kappa_style, *L_style;
   int btype;

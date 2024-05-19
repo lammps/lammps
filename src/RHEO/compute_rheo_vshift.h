@@ -43,6 +43,7 @@ class ComputeRHEOVShift : public Compute {
   int nmax_store;
   double dtv, cut, cutsq, cutthird;
   int surface_flag, interface_flag;
+  double *rho0;
 
   class NeighList *list;
   class ComputeRHEOInterface *compute_interface;

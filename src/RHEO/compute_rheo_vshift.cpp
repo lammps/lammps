@@ -72,6 +72,7 @@ void ComputeRHEOVShift::init()
   compute_interface = fix_rheo->compute_interface;
   compute_surface = fix_rheo->compute_surface;
 
+  rho0 = fix_rheo->rho0;
   cut = fix_rheo->cut;
   cutsq = cut * cut;
   cutthird = cut / 3.0;
@@ -174,16 +175,14 @@ void ComputeRHEOVShift::compute_peratom()
         // Add corrections for walls
         if (interface_flag) {
           if (fluidi && (!fluidj)) {
-            compute_interface->correct_v(vi, vj, i, j);
-            //compute_interface->correct_v(vj, vi, j, i);
-            rhoj = compute_interface->correct_rho(j,i);
-          } else if ((!fluidi) && fluidj) {
             compute_interface->correct_v(vj, vi, j, i);
-            //compute_interface->correct_v(vi, vj, i, j);
-            rhoi = compute_interface->correct_rho(i,j);
+            rhoj = compute_interface->correct_rho(j, i);
+          } else if ((!fluidi) && fluidj) {
+            compute_interface->correct_v(vi, vj, i, j);
+            rhoi = compute_interface->correct_rho(i, j);
           } else if ((!fluidi) && (!fluidj)) {
-            rhoi = 1.0;
-            rhoj = 1.0;
+            rhoi = rho0[itype];
+            rhoj = rho0[jtype];
           }
         }
 
@@ -196,7 +195,7 @@ void ComputeRHEOVShift::compute_peratom()
         w4 = w * w * w * w / (w0 * w0 * w0 * w0);
         dr = -2 * cutthird * (1 + 0.2 * w4) * wp * rinv;
 
-        if (mask[i] & groupbit) {
+        if ((mask[i] & groupbit) && fluidi) {
           vmag = sqrt(vi[0] * vi[0] + vi[1] * vi[1] + vi[2] * vi[2]);
           prefactor = vmag * volj * dr;
 
@@ -206,7 +205,7 @@ void ComputeRHEOVShift::compute_peratom()
         }
 
         if (newton_pair || j < nlocal) {
-          if (mask[j] & groupbit) {
+          if ((mask[j] & groupbit) && fluidj) {
             vmag = sqrt(vj[0] * vj[0] + vj[1] * vj[1] + vj[2] * vj[2]);
             prefactor = vmag * voli * dr;
 
@@ -241,7 +240,11 @@ void ComputeRHEOVShift::correct_surfaces()
   double nx, ny, nz, vx, vy, vz, dot;
   for (i = 0; i < nlocal; i++) {
     if (mask[i] & groupbit) {
-      if ((status[i] & STATUS_SURFACE) || (status[i] & STATUS_LAYER)) {
+
+      if (status[i] & PHASECHECK) continue;
+
+      //if ((status[i] & STATUS_SURFACE) || (status[i] & STATUS_LAYER)) {
+      if (status[i] & STATUS_SURFACE) {
         nx = nsurface[i][0];
         ny = nsurface[i][1];
         vx = vshift[i][0];
@@ -266,6 +269,10 @@ void ComputeRHEOVShift::correct_surfaces()
         } else {
           vshift[i][2] = 0.0;
         }
+      } else if (status[i] & STATUS_SPLASH) {
+        vshift[i][0] = 0.0;
+        vshift[i][1] = 0.0;
+        vshift[i][2] = 0.0;
       }
     }
   }

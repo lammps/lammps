@@ -292,9 +292,14 @@ void ComputeRHEOPropertyAtom::pack_surface(int n)
   int *mask = atom->mask;
   int nlocal = atom->nlocal;
 
+  double label;
   for (int i = 0; i < nlocal; i++) {
-    if (mask[i] & groupbit) buf[n] = (status[i] & SURFACECHECK);
-    else buf[n] = 0.0;
+    label = 0;
+    if (mask[i] & groupbit) {
+      if (status[i] & STATUS_SURFACE) label = 1.0;
+      if (status[i] & STATUS_SPLASH) label = 2.0;
+    }
+    buf[n] = label;
     n += nvalues;
   }
 }

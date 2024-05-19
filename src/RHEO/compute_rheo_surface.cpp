@@ -50,23 +50,18 @@ ComputeRHEOSurface::ComputeRHEOSurface(LAMMPS *lmp, int narg, char **arg) :
   int dim = domain->dimension;
   comm_forward = 2;
   comm_reverse = dim * dim + 1;
+
+  nmax_store = 0;
+  grow_arrays(atom->nmax);
 }
 
 /* ---------------------------------------------------------------------- */
 
 ComputeRHEOSurface::~ComputeRHEOSurface()
 {
-  // Remove custom property if it exists
-  int tmp1, tmp2, index;
-  index = atom->find_custom("rheo_divr", tmp1, tmp2);
-  if (index != -1) atom->remove_custom(index, 1, 0);
-
-  index = atom->find_custom("rheo_rsurface", tmp1, tmp2);
-  if (index != -1) atom->remove_custom(index, 1, 0);
-
-  index = atom->find_custom("rheo_nsurface", tmp1, tmp2);
-  if (index != -1) atom->remove_custom(index, 1, 3);
-
+  memory->destroy(divr);
+  memory->destroy(rsurface);
+  memory->destroy(nsurface);
   memory->destroy(B);
   memory->destroy(gradC);
 }
@@ -86,29 +81,6 @@ void ComputeRHEOSurface::init()
   interface_flag = fix_rheo->interface_flag;
 
   cutsq = cut * cut;
-
-  // Create rsurface, divr, nsurface arrays as custom atom properties,
-  //   can print with compute property/atom
-  //   no grow callback as there's no reason to copy/exchange data, manually grow
-  // For B and gradC, create a local array since they are unlikely to be printed
-
-  int dim = domain->dimension;
-  int tmp1, tmp2;
-  index_divr = atom->find_custom("rheo_divr", tmp1, tmp2);
-  if (index_divr == -1) index_divr = atom->add_custom("rheo_divr", 1, 0);
-  divr = atom->dvector[index_divr];
-
-  index_rsurf = atom->find_custom("rheo_rsurface", tmp1, tmp2);
-  if (index_rsurf == -1) index_rsurf = atom->add_custom("rheo_rsurface", 1, 0);
-  rsurface = atom->dvector[index_rsurf];
-
-  index_nsurf = atom->find_custom("rheo_nsurface", tmp1, tmp2);
-  if (index_nsurf == -1) index_nsurf = atom->add_custom("rheo_nsurface", 1, dim);
-  nsurface = atom->darray[index_nsurf];
-
-  nmax_store = atom->nmax;
-  memory->create(B, nmax_store, dim * dim, "rheo/surface:B");
-  memory->create(gradC, nmax_store, dim * dim, "rheo/surface:gradC");
 
   // need an occasional half neighbor list
   neighbor->add_request(this, NeighConst::REQ_DEFAULT);
@@ -148,7 +120,7 @@ void ComputeRHEOSurface::compute_peratom()
   firstneigh = list->firstneigh;
 
   // Grow and zero arrays
-  if (nmax_store <= atom->nmax)
+  if (nmax_store < atom->nmax)
     grow_arrays(atom->nmax);
 
   size_t nbytes = nmax_store * sizeof(double);
@@ -253,6 +225,10 @@ void ComputeRHEOSurface::compute_peratom()
       else
         test = coordination[i] < threshold_z;
 
+      // Treat nonfluid particles as bulk
+      if (status[i] & PHASECHECK)
+        test = 0;
+
       if (test) {
         if (coordination[i] < threshold_splash)
           status[i] |= STATUS_SPLASH;
@@ -272,6 +248,7 @@ void ComputeRHEOSurface::compute_peratom()
     xtmp = x[i][0];
     ytmp = x[i][1];
     ztmp = x[i][2];
+    fluidi = !(status[i] & PHASECHECK);
 
     jlist = firstneigh[i];
     jnum = numneigh[i];
@@ -280,22 +257,25 @@ void ComputeRHEOSurface::compute_peratom()
       j = jlist[jj];
       j &= NEIGHMASK;
 
+      fluidj = !(status[j] & PHASECHECK);
+
       dx[0] = xtmp - x[j][0];
       dx[1] = ytmp - x[j][1];
       dx[2] = ztmp - x[j][2];
       rsq = lensq3(dx);
       if (rsq < cutsq) {
-        if ((status[i] & STATUS_BULK) && (status[j] & STATUS_SURFACE)) {
-          status[i] &= SURFACEMASK;
-          status[i] |= STATUS_LAYER;
+        if (fluidi) {
+          if ((status[i] & STATUS_BULK) && (status[j] & STATUS_SURFACE)) {
+            status[i] &= SURFACEMASK;
+            status[i] |= STATUS_LAYER;
+          }
+
+          if (status[j] & STATUS_SURFACE)
+            rsurface[i] = MIN(rsurface[i], sqrt(rsq));
         }
 
-        if (status[j] & STATUS_SURFACE)
-          rsurface[i] = MIN(rsurface[i], sqrt(rsq));
-
-
-        if (j < nlocal || newton) {
-          if ((status[j] & STATUS_BULK) && (status[i] & STATUS_SURFACE)) {
+        if (fluidj && (j < nlocal || newton)) {
+          if ((status[j] & STATUS_BULK) && (status[j] & PHASECHECK) && (status[i] & STATUS_SURFACE)) {
             status[j] &= SURFACEMASK;
             status[j] |= STATUS_LAYER;
           }
@@ -304,6 +284,16 @@ void ComputeRHEOSurface::compute_peratom()
             rsurface[j] = MIN(rsurface[j], sqrt(rsq));
         }
       }
+    }
+  }
+
+  // clear normal vectors for non surface particles
+
+  for (i = 0; i < nall; i++) {
+    if (mask[i] & groupbit) {
+      if (!(status[i] & STATUS_SURFACE))
+        for (a = 0; a < dim; a++)
+          nsurface[i][a] = 0.0;
     }
   }
 
@@ -416,18 +406,11 @@ void ComputeRHEOSurface::grow_arrays(int nmax)
 {
   int dim = domain->dimension;
 
-  // Grow atom variables and reassign pointers
-  memory->grow(atom->dvector[index_divr], nmax, "atom:rheo_divr");
-  memory->grow(atom->dvector[index_rsurf], nmax, "atom:rheo_rsurface");
-  memory->grow(atom->darray[index_nsurf], nmax, dim, "atom:rheo_nsurface");
-
-  divr = atom->dvector[index_divr];
-  rsurface = atom->dvector[index_rsurf];
-  nsurface = atom->darray[index_nsurf];
-
-  // Grow local variables
+  memory->grow(divr, nmax, "rheo/surface:divr");
+  memory->grow(rsurface, nmax, "rheo/surface:rsurface");
+  memory->grow(nsurface, nmax, dim, "rheo/surface:nsurface");
   memory->grow(B, nmax, dim * dim, "rheo/surface:B");
   memory->grow(gradC, nmax, dim * dim, "rheo/surface:gradC");
 
-  nmax_store = atom->nmax;
+  nmax_store = nmax;
 }

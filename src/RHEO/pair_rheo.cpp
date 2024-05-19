@@ -208,14 +208,14 @@ void PairRHEO::compute(int eflag, int vflag)
         // Add corrections for walls
         rhoi = rho[i];
         rhoj = rho[j];
-        rho0i = rho[itype];
-        rho0j = rho[jtype];
+        rho0i = rho0[itype];
+        rho0j = rho0[jtype];
         Pi = pressure[i];
         Pj = pressure[j];
         fmag = 0;
         if (interface_flag) {
           if (fluidi && (!fluidj)) {
-            compute_interface->correct_v(vi, vj, i, j);
+            compute_interface->correct_v(vj, vi, j, i);
             rhoj = compute_interface->correct_rho(j, i);
             Pj = fix_pressure->calc_pressure(rhoj, jtype);
 
@@ -223,7 +223,7 @@ void PairRHEO::compute(int eflag, int vflag)
               fmag = (chi[j] - 0.9) * (h * 0.5 - r) * rho0j * csq_ave * h * rinv;
 
           } else if ((!fluidi) && fluidj) {
-            compute_interface->correct_v(vj, vi, j, i);
+            compute_interface->correct_v(vi, vj, i, j);
             rhoi = compute_interface->correct_rho(i, j);
             Pi = fix_pressure->calc_pressure(rhoi, itype);
 

@@ -213,12 +213,10 @@ void ComputeRHEOGrad::compute_peratom()
         // Add corrections for walls
         if (interface_flag) {
           if (fluidi && (!fluidj)) {
-            compute_interface->correct_v(vi, vj, i, j);
-            //compute_interface->correct_v(vj, vi, j, i);
+            compute_interface->correct_v(vj, vi, j, i);
             rhoj = compute_interface->correct_rho(j, i);
           } else if ((!fluidi) && fluidj) {
-            compute_interface->correct_v(vj, vi, j, i);
-            //compute_interface->correct_v(vi, vj, i, j);
+            compute_interface->correct_v(vi, vj, i, j);
             rhoi = compute_interface->correct_rho(i, j);
           } else if ((!fluidi) && (!fluidj)) {
             rhoi = rho0[itype];
@@ -346,7 +344,7 @@ int ComputeRHEOGrad::pack_forward_comm(int n, int *list, double *buf,
     } else if (comm_stage == COMMFIELD) {
 
       if (velocity_flag) {
-        if (remap_v_flag & pbc_flag & (mask[j] & deform_groupbit)) {
+        if (remap_v_flag && pbc_flag && (mask[j] & deform_groupbit)) {
           for (k = 0; k < dim; k++)
             buf[m++] = v[j][k] + dv[k];
         } else {

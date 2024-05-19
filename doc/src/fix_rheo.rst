@@ -92,7 +92,8 @@ Shifting is then disabled in the direction away from the free surface to
 prevent it from diffusing particles away from the bulk fluid. Surface
 detection can also be used to control surface-nucleated effects like
 oxidation when used in combination with
-:doc:`fix rheo/oxidation <fix_rheo_oxidation>`.
+:doc:`fix rheo/oxidation <fix_rheo_oxidation>`. Surface detection is not
+performed on solid bodies.
 
 The *surface/detection* keyword takes three arguments: *sdstyle*, *limit*,
 and *limi/splash*. The first, *sdstyle*, specifies whether surface particles

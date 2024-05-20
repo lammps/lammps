@@ -114,7 +114,6 @@ FixDeformPressure::FixDeformPressure(LAMMPS *lmp, int narg, char **arg) :
         if (iarg + 3 > narg) utils::missing_cmd_args(FLERR, "fix deform/pressure erate/rescale", error);
         set[index].style = ERATERS;
         set[index].rate = utils::numeric(FLERR, arg[iarg + 2], false, lmp);
-        iarg += 3;
         i += 3;
       } else error->all(FLERR, "Illegal fix deform/pressure command: {}", arg[iarg + 1]);
 

@@ -38,7 +38,7 @@ BondHybridKokkos::BondHybridKokkos(LAMMPS *lmp) : BondHybrid(lmp)
   neighborKK = (NeighborKokkos *) neighbor;
 
   execution_space = Device;
-  
+
   datamask_read = EMPTY_MASK;
   datamask_modify = EMPTY_MASK;
 }

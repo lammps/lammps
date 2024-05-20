@@ -162,11 +162,11 @@ void BondHybrid::allocate()
 /* ---------------------------------------------------------------------- */
 
 void BondHybrid::deallocate()
-{ 
+{
   if (!allocated) return;
-  
+
   allocated = 0;
-  
+
   memory->destroy(setflag);
   memory->destroy(map);
   delete[] nbondlist;

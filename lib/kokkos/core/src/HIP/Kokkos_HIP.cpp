@@ -146,6 +146,10 @@ void HIP::print_configuration(std::ostream& os, bool /*verbose*/) const {
 #else
   os << "no\n";
 #endif
+#ifdef KOKKOS_ENABLE_IMPL_HIP_UNIFIED_MEMORY
+  os << "  KOKKOS_ENABLE_IMPL_HIP_UNIFIED_MEMORY: ";
+  os << "yes\n";
+#endif
 
   os << "\nRuntime Configuration:\n";
 

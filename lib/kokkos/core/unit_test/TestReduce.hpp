@@ -625,4 +625,30 @@ TEST(TEST_CATEGORY, int_combined_reduce_mixed) {
 }
 #endif
 #endif
+
+#if defined(NDEBUG)
+// the following test was made for:
+// https://github.com/kokkos/kokkos/issues/6517
+
+struct FunctorReductionWithLargeIterationCount {
+  KOKKOS_FUNCTION void operator()(const int64_t /*i*/, double& update) const {
+    update += 1.0;
+  }
+};
+
+TEST(TEST_CATEGORY, reduction_with_large_iteration_count) {
+  if constexpr (std::is_same_v<typename TEST_EXECSPACE::memory_space,
+                               Kokkos::HostSpace>) {
+    GTEST_SKIP() << "Disabling for host backends";
+  }
+
+  const int64_t N = pow(2LL, 39LL) - pow(2LL, 8LL) + 1;
+  Kokkos::RangePolicy<TEST_EXECSPACE, Kokkos::IndexType<int64_t>> p(0, N);
+  double nu = 0;
+  EXPECT_NO_THROW(Kokkos::parallel_reduce(
+      "sample reduction", p, FunctorReductionWithLargeIterationCount(), nu));
+  ASSERT_DOUBLE_EQ(nu, double(N));
+}
+#endif
+
 }  // namespace Test

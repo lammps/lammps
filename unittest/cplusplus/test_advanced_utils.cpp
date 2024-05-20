@@ -110,17 +110,33 @@ TEST_F(Advanced_utils, expand_args)
 {
     atomic_system();
     BEGIN_CAPTURE_OUTPUT();
-    command("compute temp all temp");
-    command("variable temp vector c_temp");
-    command("variable step equal step");
-    command("variable pe equal pe");
-    command("variable pe equal pe");
-    command("variable epair equal epair");
-    command("compute gofr all rdf 20 1 1 1 2");
-    command("fix 1 all ave/time 1 1 1 v_step v_pe v_epair");
-    command("fix 2 all nve");
-    command("run 1 post no");
+    try {
+        command("compute temp all temp");
+        command("variable temp vector c_temp");
+        command("variable step equal step");
+        command("variable pe equal pe");
+        command("variable pe equal pe");
+        command("variable epair equal epair");
+        command("compute gofr all rdf 20 1 1 1 2");
+        command("fix 1 all ave/time 1 1 1 v_step v_pe v_epair");
+        command("fix 2 all nve");
+        command("run 1 post no");
+    } catch (LAMMPSAbortException &ae) {
+        fprintf(stderr, "LAMMPS Error: %s\n", ae.what());
+        exit(2);
+    } catch (LAMMPSException &e) {
+        fprintf(stderr, "LAMMPS Error: %s\n", e.what());
+        exit(3);
+    } catch (fmt::format_error &fe) {
+        fprintf(stderr, "fmt::format_error: %s\n", fe.what());
+        exit(4);
+    } catch (std::exception &e) {
+        fprintf(stderr, "General exception: %s\n", e.what());
+        exit(5);
+    }
+
     auto output = END_CAPTURE_OUTPUT();
+    if (verbose) std::cout << output << std::endl;
 
     char **args, **earg;
     constexpr int oarg = 9;

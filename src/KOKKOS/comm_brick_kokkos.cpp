@@ -83,6 +83,18 @@ CommBrickKokkos::CommBrickKokkos(LAMMPS *lmp) : CommBrick(lmp)
 }
 
 /* ---------------------------------------------------------------------- */
+//IMPORTANT: we *MUST* pass "*oldcomm" to the Comm initializer here, as
+//           the code below *requires* that the (implicit) copy constructor
+//           for Comm is run and thus creating a shallow copy of "oldcomm".
+//           The call to Comm::copy_arrays() then converts the shallow copy
+//           into a deep copy of the class with the new layout.
+
+CommBrickKokkos::CommBrickKokkos(LAMMPS *_lmp, Comm *oldcomm) : CommBrick(_lmp,oldcomm)
+{
+  sendlist = nullptr;
+}
+
+/* ---------------------------------------------------------------------- */
 
 CommBrickKokkos::~CommBrickKokkos()
 {
@@ -217,7 +229,7 @@ void CommBrickKokkos::forward_comm_device()
           auto k_sendlist_iswap = Kokkos::subview(k_sendlist,iswap,Kokkos::ALL);
           n = atomKK->avecKK->pack_comm_kokkos(sendnum[iswap],k_sendlist_iswap,
                                      k_buf_send,pbc_flag[iswap],pbc[iswap]);
-          DeviceType().fence();
+          eviceType().fence();
           if (n) {
             MPI_Send(k_buf_send.view<DeviceType>().data(),
                      n,MPI_DOUBLE,sendproc[iswap],0,world);

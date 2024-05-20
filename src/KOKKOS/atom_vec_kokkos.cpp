@@ -99,7 +99,9 @@ struct AtomVecKokkos_PackComm {
 /* ---------------------------------------------------------------------- */
 
 int AtomVecKokkos::pack_comm_kokkos(const int &n,
-                                          const DAT::tdual_int_1d &list,
+                                          const DAT::tdual_int_2d &list,
+                                          const DAT::tdual_int_2d &list,
+                                          const DAT::tdual_int_2d &list,
                                           const DAT::tdual_xfloat_2d &buf,
                                           const int &pbc_flag,
                                           const int* const pbc)
@@ -164,6 +166,135 @@ int AtomVecKokkos::pack_comm_kokkos(const int &n,
   }
 
   return n*size_forward;
+}
+
+/* ---------------------------------------------------------------------- */
+
+template<class DeviceType,int TRICLINIC>
+struct AtomVecKokkos_PackCommDirect {
+  typedef DeviceType device_type;
+
+  typename ArrayTypes<DeviceType>::t_x_array_randomread _x;
+  typename ArrayTypes<DeviceType>::t_x_array _xw;
+  typename ArrayTypes<DeviceType>::t_int_2d_const _list;
+  typename ArrayTypes<DeviceType>::t_int_2d_const _pbc;
+  typename ArrayTypes<DeviceType>::t_int_1d_const _pbc_flag;
+  typename ArrayTypes<DeviceType>::t_int_1d_const _firstrecv;
+  typename ArrayTypes<DeviceType>::t_int_1d_const _sendnum_scan;
+  typename ArrayTypes<DeviceType>::t_int_1d_const _swap2list;
+  X_FLOAT _xprd,_yprd,_zprd,_xy,_xz,_yz;
+
+  AtomVecKokkos_PackCommDirect(
+      const typename DAT::tdual_x_array &x,
+      const typename DAT::tdual_int_2d &list,
+      const typename DAT::tdual_int_2d &pbc,
+      const typename DAT::tdual_int_1d &pbc_flag,
+      const typename DAT::tdual_int_1d &firstrecv,
+      const typename DAT::tdual_int_1d &sendnum_scan,
+      const typename DAT::tdual_int_1d &swap2list,
+      const X_FLOAT &xprd, const X_FLOAT &yprd, const X_FLOAT &zprd,
+      const X_FLOAT &xy, const X_FLOAT &xz, const X_FLOAT &yz):
+      _x(x.view<DeviceType>()),_xw(x.view<DeviceType>()),
+      _list(list.view<DeviceType>()),
+      _pbc(pbc.view<DeviceType>()),
+      _pbc_flag(pbc_flag.view<DeviceType>()),
+      _firstrecv(firstrecv.view<DeviceType>()),
+      _sendnum_scan(sendnum_scan.view<DeviceType>()),
+      _swap2list(swap2list.view<DeviceType>()),
+      _xprd(xprd),_yprd(yprd),_zprd(zprd),
+      _xy(xy),_xz(xz),_yz(yz) {};
+
+  KOKKOS_INLINE_FUNCTION
+  void operator() (const int& ii) const {
+
+    int iswap = 0;
+    while (ii >= _sendnum_scan[iswap]) iswap++;
+
+    int i = ii;
+    if (iswap > 0)
+      i = ii - _sendnum_scan[iswap-1];
+
+    const int _nfirst = _firstrecv[iswap];
+    const int ilist = _swap2list[iswap];
+    const int j = _list(ilist,i);
+
+    if (self_flag) {
+      if (_pbc_flag(iswap) == 0) {
+        _xw(i+_nfirst,0) = _x(j,0);
+        _xw(i+_nfirst,1) = _x(j,1);
+        _xw(i+_nfirst,2) = _x(j,2);
+      } else {
+        if (TRICLINIC == 0) {
+          _xw(i+_nfirst,0) = _x(j,0) + _pbc(iswap,0)*_xprd;
+          _xw(i+_nfirst,1) = _x(j,1) + _pbc(iswap,1)*_yprd;
+          _xw(i+_nfirst,2) = _x(j,2) + _pbc(iswap,2)*_zprd;
+        } else {
+          _xw(i+_nfirst,0) = _x(j,0) + _pbc(iswap,0)*_xprd + _pbc(iswap,5)*_xy + _pbc(iswap,4)*_xz;
+          _xw(i+_nfirst,1) = _x(j,1) + _pbc(iswap,1)*_yprd + _pbc(iswap,3)*_yz;
+          _xw(i+_nfirst,2) = _x(j,2) + _pbc(iswap,2)*_zprd;
+        }
+      }
+    } else {
+      if (_pbc_flag(iswap) == 0) {
+        _buf(ii,0) = _x(j,0);
+        _buf(ii,1) = _x(j,1);
+        _buf(ii,2) = _x(j,2);
+      } else {
+        if (TRICLINIC == 0) {
+          _buf(ii,0) = _x(j,0) + _pbc(iswap,0)*_xprd;
+          _buf(ii,1) = _x(j,1) + _pbc(iswap,1)*_yprd;
+          _buf(ii,2) = _x(j,2) + _pbc(iswap,2)*_zprd;
+        } else {
+          _buf(ii,0) = _x(j,0) + _pbc(iswap,0)*_xprd + _pbc(iswap,5)*_xy + _pbc(iswap,4)*_xz;
+          _buf(ii,1) = _x(j,1) + _pbc(iswap,1)*_yprd + _pbc(iswap,3)*_yz;
+          _buf(ii,2) = _x(j,2) + _pbc(iswap,2)*_zprd;
+        }
+      }
+    }
+  }
+};
+
+/* ---------------------------------------------------------------------- */
+
+int AtomVecKokkos::pack_comm_direct(const int &n, const DAT::tdual_int_2d &list,
+                                      const DAT::tdual_int_1d &sendnum_scan,
+                                      const DAT::tdual_int_1d &firstrecv,
+                                      const DAT::tdual_int_1d &pbc_flag,
+                                      const DAT::tdual_int_2d &pbc,
+                                      const DAT::tdual_int_1d &swap2list,
+                                      const DAT::tdual_xfloat_2d &buf)
+{
+  if (lmp->kokkos->forward_comm_on_host) {
+    atomKK->sync(Host,X_MASK);
+    if (domain->triclinic) {
+      struct AtomVecKokkos_PackCommDirect<LMPHostType,1> f(atomKK->k_x,list,pbc,pbc_flag,firstrecv,sendnum_scan,swap2list,
+        domain->xprd,domain->yprd,domain->zprd,
+        domain->xy,domain->xz,domain->yz);
+      Kokkos::parallel_for(n,f);
+    } else {
+      struct AtomVecKokkos_PackCommDirect<LMPHostType,0> f(atomKK->k_x,list,pbc,pbc_flag,firstrecv,sendnum_scan,swap2list,
+        domain->xprd,domain->yprd,domain->zprd,
+        domain->xy,domain->xz,domain->yz);
+      Kokkos::parallel_for(n,f);
+    }
+    atomKK->modified(Host,X_MASK);
+  } else {
+    atomKK->sync(Device,X_MASK);
+    if (domain->triclinic) {
+      struct AtomVecKokkos_PackCommDirect<LMPDeviceType,1> f(atomKK->k_x,list,pbc,pbc_flag,firstrecv,sendnum_scan,swap2list,
+        domain->xprd,domain->yprd,domain->zprd,
+        domain->xy,domain->xz,domain->yz);
+      Kokkos::parallel_for(n,f);
+    } else {
+      struct AtomVecKokkos_PackCommDirect<LMPDeviceType,0> f(atomKK->k_x,list,pbc,pbc_flag,firstrecv,sendnum_scan,swap2list,
+        domain->xprd,domain->yprd,domain->zprd,
+        domain->xy,domain->xz,domain->yz);
+      Kokkos::parallel_for(n,f);
+    }
+    atomKK->modified(Device,X_MASK);
+  }
+
+  return n*3;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -321,11 +452,11 @@ struct AtomVecKokkos_PackCommSelfFused {
 
     int iswap = 0;
     while (ii >= _sendnum_scan[iswap]) iswap++;
+
     int i = ii;
     if (iswap > 0)
       i = ii - _sendnum_scan[iswap-1];
 
-    const int _nfirst = _firstrecv[iswap];
     const int nlocal = _firstrecv[0];
 
     int j = _list(iswap,i);
@@ -333,18 +464,18 @@ struct AtomVecKokkos_PackCommSelfFused {
       j = _g2l(j-nlocal);
 
     if (_pbc_flag(ii) == 0) {
-        _xw(i+_nfirst,0) = _x(j,0);
-        _xw(i+_nfirst,1) = _x(j,1);
-        _xw(i+_nfirst,2) = _x(j,2);
+        _xw(ii+nlocal,0) = _x(j,0);
+        _xw(ii+nlocal,1) = _x(j,1);
+        _xw(ii+nlocal,2) = _x(j,2);
     } else {
       if (TRICLINIC == 0) {
-        _xw(i+_nfirst,0) = _x(j,0) + _pbc(ii,0)*_xprd;
-        _xw(i+_nfirst,1) = _x(j,1) + _pbc(ii,1)*_yprd;
-        _xw(i+_nfirst,2) = _x(j,2) + _pbc(ii,2)*_zprd;
+        _xw(ii+nlocal,0) = _x(j,0) + _pbc(ii,0)*_xprd;
+        _xw(ii+nlocal,1) = _x(j,1) + _pbc(ii,1)*_yprd;
+        _xw(ii+nlocal,2) = _x(j,2) + _pbc(ii,2)*_zprd;
       } else {
-        _xw(i+_nfirst,0) = _x(j,0) + _pbc(ii,0)*_xprd + _pbc(ii,5)*_xy + _pbc(ii,4)*_xz;
-        _xw(i+_nfirst,1) = _x(j,1) + _pbc(ii,1)*_yprd + _pbc(ii,3)*_yz;
-        _xw(i+_nfirst,2) = _x(j,2) + _pbc(ii,2)*_zprd;
+        _xw(ii+nlocal,0) = _x(j,0) + _pbc(ii,0)*_xprd + _pbc(ii,5)*_xy + _pbc(ii,4)*_xz;
+        _xw(ii+nlocal,1) = _x(j,1) + _pbc(ii,1)*_yprd + _pbc(ii,3)*_yz;
+        _xw(ii+nlocal,2) = _x(j,2) + _pbc(ii,2)*_zprd;
       }
     }
   }

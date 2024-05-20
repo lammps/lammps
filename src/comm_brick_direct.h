@@ -125,8 +125,8 @@ class CommBrickDirect : public CommBrick {
   void deallocate_lists(int);
 
   void check_buffer_sizes();
-  void grow_send_direct(int, int);
-  void grow_recv_direct(int);
+  virtual void grow_send_direct(int, int);
+  virtual void grow_recv_direct(int);
   void grow_list_direct(int, int);
 };
 

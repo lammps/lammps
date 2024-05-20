@@ -35,6 +35,7 @@ class CommBrickKokkos : public CommBrick {
   bool reverse_comm_on_host;
 
   CommBrickKokkos(class LAMMPS *);
+  CommBrickKokkos(class LAMMPS *, class Comm *);
   ~CommBrickKokkos() override;
   void init() override;
 

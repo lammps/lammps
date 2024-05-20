@@ -500,6 +500,8 @@ void CommBrickDirect::order_swaps(int ilo, int ihi, int jlo, int jhi, int klo, i
   }
 
   if (idirect != ndirect) error->all(FLERR,"Mistake in stencil ordering");
+
+  // move self to front out of place
 }
 
 /* ----------------------------------------------------------------------

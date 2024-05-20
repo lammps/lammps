@@ -67,6 +67,16 @@ class AtomVecKokkos : virtual public AtomVec {
                      const DAT::tdual_xfloat_2d &buf,
                      const int &pbc_flag, const int pbc[]);
 
+
+  virtual int
+    pack_comm_direct(const int &n, const DAT::tdual_int_2d &list,
+                     const DAT::tdual_int_1d &sendnum_scan,
+                     const DAT::tdual_int_1d &firstrecv,
+                     const DAT::tdual_int_1d &pbc_flag,
+                     const DAT::tdual_int_2d &pbc,
+                     const DAT::tdual_int_1d &swap2llist,
+                     const DAT::tdual_xfloat_2d &buf);
+
   virtual void
     unpack_comm_kokkos(const int &n, const int &nfirst,
                        const DAT::tdual_xfloat_2d &buf);

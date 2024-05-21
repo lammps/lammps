@@ -1,4 +1,4 @@
-# frontier_kokkos = KOKKOS/HIP, AMD MI250X GPU and AMD EPYC 7A53 "Optimized 3rd Gen EPYC" CPU, Cray MPICH, hipcc compiler, hipFFT
+# elcapitan_kokkos = KOKKOS/HIP, AMD MI300A APU, Cray MPICH, hipcc compiler, hipFFT
 
 SHELL = /bin/sh
 
@@ -7,7 +7,7 @@ SHELL = /bin/sh
 # specify flags and libraries needed for your compiler
 
 CC =		hipcc
-CCFLAGS =	-g -O3 -munsafe-fp-atomics -DNDEBUG -DKOKKOS_ENABLE_HIP_MULTIPLE_KERNEL_INSTANTIATIONS -DKOKKOS_ENABLE_ROCTHRUST
+CCFLAGS =	-g -O3 -DNDEBUG -DKOKKOS_ENABLE_HIP_MULTIPLE_KERNEL_INSTANTIATIONS -DKOKKOS_ENABLE_IMPL_HIP_UNIFIED_MEMORY -DKOKKOS_ENABLE_ROCTHRUST
 SHFLAGS =	-fPIC
 DEPFLAGS =	-M
 
@@ -20,7 +20,7 @@ ARCHIVE =	ar
 ARFLAGS =	-rc
 SHLIBFLAGS =	-shared
 KOKKOS_DEVICES = HIP
-KOKKOS_ARCH = AMD_GFX90A,ZEN3
+KOKKOS_ARCH = AMD_GFX942
 
 # ---------------------------------------------------------------------
 # LAMMPS-specific settings, all OPTIONAL

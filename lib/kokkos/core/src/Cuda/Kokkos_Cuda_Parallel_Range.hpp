@@ -312,8 +312,9 @@ class ParallelReduce<CombinedFunctorReducerType, Kokkos::RangePolicy<Traits...>,
       // REQUIRED ( 1 , N , 1 )
       dim3 block(1, block_size, 1);
       // Required grid.x <= block.y
-      dim3 grid(std::min(int(block.y), int((nwork + block.y - 1) / block.y)), 1,
-                1);
+      dim3 grid(std::min(index_type(block.y),
+                         index_type((nwork + block.y - 1) / block.y)),
+                1, 1);
 
       // TODO @graph We need to effectively insert this in to the graph
       const int shmem =

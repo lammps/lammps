@@ -470,8 +470,9 @@ followed by one line per atom with the atom type and the :math:`x`-,
 :math:`y`-, and :math:`z`-coordinate of that atom.  You can use the
 :doc:`dump_modify element <dump_modify>` option to change the output
 from using the (numerical) atom type to an element name (or some other
-label). This will help many visualization programs to guess bonds and
-colors.
+label). This option will help many visualization programs to guess bonds
+and colors. You can use the :doc:`dump_modify types labels <dump_modify>`
+option to replace numeric atom types with :doc:`type labels <Howto_type_labels>`.
 
 .. versionadded:: 22Dec2022
 

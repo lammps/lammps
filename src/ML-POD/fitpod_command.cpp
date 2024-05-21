@@ -242,7 +242,7 @@ int FitPOD::read_data_file(double *fitting_weights, std::string &file_format,
     auto keywd = words[0];
 
     if (words.size() != 2)
-      error->one(FLERR,"Improper POD file.", utils::getsyserror());
+      error->one(FLERR,"Improper POD data file.", utils::getsyserror());
 
     // settings for fitting weights
 
@@ -622,7 +622,8 @@ void FitPOD::get_data(datastruct &data, const std::vector<std::string> &species)
     utils::logmesg(lmp, "number of atoms in all files: {}\n", data.num_atom_sum);
   }
 
-  if (data.data_files.size() < 1) error->all(FLERR, "Cannot fit potential without data files");
+  if (data.data_files.size() < 1)
+    error->all(FLERR, "Cannot fit potential without data files. The data paths may not be valid. Please check the data paths in the POD data file.");
 
   int n = data.num_config_sum;
   memory->create(data.lattice, 9*n, "fitpod:lattice");

@@ -108,6 +108,10 @@ KOKKOS, o = OPENMP, t = OPT.
    * :doc:`pe/mol/tally <compute_tally>`
    * :doc:`pe/tally <compute_tally>`
    * :doc:`plasticity/atom <compute_plasticity_atom>`
+   * :doc:`pod/atom <compute_pod_atom>`
+   * :doc:`podd/atom <compute_pod_atom>`
+   * :doc:`pod/ldd <compute_pod_atom>`
+   * :doc:`pod/gdd <compute_pod_atom>`
    * :doc:`pressure <compute_pressure>`
    * :doc:`pressure/alchemy <compute_pressure_alchemy>`
    * :doc:`pressure/uef <compute_pressure_uef>`

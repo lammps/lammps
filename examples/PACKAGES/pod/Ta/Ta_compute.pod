@@ -1,0 +1,41 @@
+# Demonstrate bispectrum computes
+
+# initialize simulation
+
+variable 	nsteps index 0
+variable 	nrep equal 1
+variable 	a equal 2.0
+units		metal
+
+# generate the box and atom positions using a BCC lattice
+
+variable 	nx equal ${nrep}
+variable 	ny equal ${nrep}
+variable 	nz equal ${nrep}
+
+boundary	p p p
+
+atom_modify	map hash
+lattice         bcc $a
+region		box block 0 ${nx} 0 ${ny} 0 ${nz}
+create_box	2 box
+create_atoms	2 box
+
+mass 		* 180.88
+
+displace_atoms 	all random 0.1 0.1 0.1 123456
+
+# set up dummy potential to satisfy cutoff
+variable 	rcutfac equal 6.0
+pair_style 	zero ${rcutfac}
+pair_coeff 	* *
+
+# calculate global POD descriptors and their derivatives
+compute gdd all pod/gdd Ta_param.pod "" "" C C
+fix 		gdd all ave/time 1 1 1 c_gdd[*] file pod.gdd.dat mode vector
+
+# calculate per-atom POD descriptors and their derivatives
+compute ldd all pod/ldd Ta_param.pod "" "" C C
+fix 		ldd all ave/time 1 1 1 c_ldd[*] file pod.ldd.dat mode vector
+
+

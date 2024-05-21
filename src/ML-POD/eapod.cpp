@@ -62,11 +62,11 @@ EAPOD::EAPOD(LAMMPS *_lmp, const std::string &pod_file, const std::string &coeff
   true4BodyDesc = 1;
   ns = nbesselpars*besseldegree + inversedegree;
   Njmax = 100;
-  nrbf2 = 6;
-  nrbf3 = 5;
+  nrbf2 = 8;
+  nrbf3 = 6;
   nrbf4 = 4;
   nabf3 = 5;
-  nabf4 = 4;
+  nabf4 = 3;
   nrbf23 = 0;
   nabf23 = 0;
   nrbf33 = 0;

@@ -379,20 +379,21 @@ void FixIPI::initial_integrate(int /*vflag*/)
   // snapshot at neighbor list creation, minimizing the
   // number of neighbor list updates
   auto xhold = neighbor->get_xhold();
-  for (int i = 0; i < nlocal; i++) {
-    if (mask[i] & groupbit) {
-      auto delx = x[i][0] - xhold[i][0];
-      auto dely = x[i][1] - xhold[i][1];
-      auto delz = x[i][2] - xhold[i][2];
+  if (xhold != NULL) { // don't wrap if xhold is not used in the NL
+    for (int i = 0; i < nlocal; i++) {
+      if (mask[i] & groupbit) {
+        auto delx = x[i][0] - xhold[i][0];
+        auto dely = x[i][1] - xhold[i][1];
+        auto delz = x[i][2] - xhold[i][2];
 
-      domain->minimum_image(delx, dely, delz);
+        domain->minimum_image(delx, dely, delz);
 
-      x[i][0] = xhold[i][0] + delx;
-      x[i][1] = xhold[i][1] + dely;
-      x[i][2] = xhold[i][2] + delz;
+        x[i][0] = xhold[i][0] + delx;
+        x[i][1] = xhold[i][1] + dely;
+        x[i][2] = xhold[i][2] + delz;
+      }
     }
   }
-
   // move atoms to new processors via irregular()
   // only needed if migrate_check() says an atom moves to far
   if (domain->triclinic) domain->x2lamda(atom->nlocal);

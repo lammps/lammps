@@ -2976,13 +2976,11 @@ bigint Neighbor::get_nneigh_half()
   return nneighhalf;
 }
 
+/* ----------------------------------------------------------------------
+ return the pointer containing the last positions stored by the NL builder
+------------------------------------------------------------------------- */
 double **Neighbor::get_xhold()
 {
-  // Returns the pointer containing the last positions stored by the NL builder,
-  // checking it has actually been initialized
-  if (maxhold == 0) {
-    error->all(FLERR, "trying to access uninitialized xhold list");
-  }
   return xhold;
 }
 

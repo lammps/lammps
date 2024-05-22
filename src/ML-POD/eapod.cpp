@@ -2272,6 +2272,7 @@ void EAPOD::eigenvaluedecomposition(double *Phi, double *Lambda, int N)
   double *S = (double *) malloc(N*ns*sizeof(double));
   double *Q = (double *) malloc(N*ns*sizeof(double));
   double *A = (double *) malloc(ns*ns*sizeof(double));
+  double *work = (double *) malloc(ns*ns*sizeof(double));
   double *b = (double *) malloc(ns*sizeof(double));
 
   // Generate the xij array
@@ -2294,7 +2295,7 @@ void EAPOD::eigenvaluedecomposition(double *Phi, double *Lambda, int N)
   // Compute the eigenvectors and eigenvalues of A
   int lwork = ns * ns;  // the length of the array work, lwork >= max(1,3*N-1)
   int info = 1;     // = 0:  successful exit
-  double work[ns*ns];
+  //double work[ns*ns];
   char chv = 'V';
   char chu = 'U';
   DSYEV(&chv, &chu, &ns, A, &ns, b, work, &lwork, &info);
@@ -2331,7 +2332,7 @@ void EAPOD::eigenvaluedecomposition(double *Phi, double *Lambda, int N)
   }
 
   // Free temporary arrays
-  free(xij); free(S); free(A); free(b); free(Q);
+  free(xij); free(S); free(A); free(work); free(b); free(Q);
 }
 
 /**

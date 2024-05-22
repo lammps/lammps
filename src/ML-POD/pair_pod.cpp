@@ -981,7 +981,7 @@ void PairPOD::radialangularsum2(int Ni, int Nij)
 
     int start = numij[i];
     int nj = numij[i+1]-start;
-    double sum[nelements];
+    double sum[100];
     for (int j=0; j<nj; j++) {
       int n = start + j;
       int ia = k + K3 * n;

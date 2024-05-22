@@ -1301,6 +1301,7 @@ void FitPOD::environment_cluster_calculation(const datastruct &data)
   double *basedescmatrix = (double *) malloc(nAtoms*Mdesc*sizeof(double));
   double *pca = (double *) malloc(nAtoms*nComponents*sizeof(double));
   double *A = (double *) malloc(Mdesc*Mdesc*sizeof(double));
+  double *work = (double *) malloc(Mdesc*Mdesc*sizeof(double));
   double *b = (double *) malloc(Mdesc*sizeof(double));
   double *Lambda = (double *) malloc(Mdesc*nelements*sizeof(double));
   int *clusterSizes = (int *) malloc(nClusters*nelements*sizeof(int));
@@ -1333,12 +1334,6 @@ void FitPOD::environment_cluster_calculation(const datastruct &data)
     nElemAtomsCumSum[elem+1] = nElemAtomsCumSum[elem] + nElemAtoms[elem];
     nElemAtomsCount[elem] = 0;
   }
-
-//   //std::cout<<nElemAtoms[0]<<"  "<<nElemAtoms[1]<<std::endl;
-//   //std::cout<<nElemAtomsCount[0]<<"  "<<nElemAtomsCount[1]<<"  "<<nElemAtomsCount[2]<<std::endl;
-//   printf("%d %d %d\n",comm->me, nElemAtoms[0], nElemAtoms[1]);
-//   printf("%d %d %d\n",comm->me, nElemAtomsCount[0], nElemAtomsCount[1]);
-//   printf("%d %d %d %d\n",comm->me, nElemAtomsCumSum[0], nElemAtomsCumSum[1], nElemAtomsCumSum[2]);
 
   MPI_Barrier(MPI_COMM_WORLD);
 
@@ -1412,7 +1407,6 @@ void FitPOD::environment_cluster_calculation(const datastruct &data)
     // Calculate eigenvalues and eigenvectors of A
     int lwork = Mdesc * Mdesc;  // the length of the array work, lwork >= max(1,3*N-1)
     int info = 1;     // = 0:  successful exit
-    double work[lwork];
 
     DSYEV(&chv, &chu, &Mdesc, A, &Mdesc, b, work, &lwork, &info);
 
@@ -1454,8 +1448,6 @@ void FitPOD::environment_cluster_calculation(const datastruct &data)
       savematrix2binfile(data.filenametag + "_pca_matrix_elem" + std::to_string(elem+1) + "_proc" + std::to_string(comm->me+1) + ".bin", pca, nComponents, nAtoms);
       saveintmatrix2binfile(data.filenametag + "_cluster_assignments_elem" + std::to_string(elem+1) + "_proc" + std::to_string(comm->me+1) + ".bin", assignments, nAtoms, 1);
     }
-    //savematrix2binfile(data.filenametag + "_pca_matrix_elem" + std::to_string(elem+1) + "_proc" + std::to_string(comm->me+1) + ".bin", pca, nComponents, nAtoms);
-    //saveintmatrix2binfile(data.filenametag + "_cluster_assignments_elem" + std::to_string(elem+1) + "_proc" + std::to_string(comm->me+1) + ".bin", assignments, nAtoms, 1);
 
     MPI_Barrier(MPI_COMM_WORLD);
   }
@@ -1468,6 +1460,7 @@ void FitPOD::environment_cluster_calculation(const datastruct &data)
   free(basedescmatrix);
   free(pca);
   free(A);
+  free(work);
   free(b);
   free(clusterSizes);
   free(Lambda);

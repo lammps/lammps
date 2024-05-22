@@ -1,11 +1,11 @@
 #! /bin/bash
 
-DATE='15May24'
+DATE='22May24'
 TOL=1e-8
 
 LMPDIR=/Users/ohenrich/Work/code/lammps
 SRCDIR=$LMPDIR/src
-EXDIR=$LMPDIR/examples/PACKAGES/cgdna/examples
+EXDIR=$LMPDIR/examples/PACKAGES/cgdna/examples/lj_units
 
 if [ $# -eq 1 ] && [ $1 = run ]; then
   echo '# Compiling executable in' $SRCDIR | tee -a $EXDIR/test.log

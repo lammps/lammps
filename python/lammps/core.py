@@ -376,12 +376,16 @@ class lammps(object):
         narg = 0
         cargs = None
         if cmdargs is not None:
-          cmdargs.insert(0,"lammps")
-          narg = len(cmdargs)
-          for i in range(narg):
-            if type(cmdargs[i]) is str:
-              cmdargs[i] = cmdargs[i].encode()
-          cargs = (c_char_p*(narg+1))(*cmdargs)
+          myargs = ["lammps".encode()]
+          narg = len(cmdargs) + 1
+          for arg in cmdargs:
+            if type(arg) is str:
+              myargs.append(arg.encode())
+            elif type(arg) is bytes:
+              myargs.append(arg)
+            else:
+              raise TypeError('Unsupported cmdargs type ', type(arg))
+          cargs = (c_char_p*(narg+1))(*myargs)
           cargs[narg] = None
           self.lib.lammps_open.argtypes = [c_int, c_char_p*(narg+1), MPI_Comm, c_void_p]
         else:
@@ -397,12 +401,16 @@ class lammps(object):
           self.comm = self.MPI.COMM_WORLD
         self.opened = 1
         if cmdargs is not None:
-          cmdargs.insert(0,"lammps")
-          narg = len(cmdargs)
-          for i in range(narg):
-            if type(cmdargs[i]) is str:
-              cmdargs[i] = cmdargs[i].encode()
-          cargs = (c_char_p*(narg+1))(*cmdargs)
+          myargs = ["lammps".encode()]
+          narg = len(cmdargs) + 1
+          for arg in cmdargs:
+            if type(arg) is str:
+              myargs.append(arg.encode())
+            elif type(arg) is bytes:
+              myargs.append(arg)
+            else:
+              raise TypeError('Unsupported cmdargs type ', type(arg))
+          cargs = (c_char_p*(narg+1))(*myargs)
           cargs[narg] = None
           self.lib.lammps_open_no_mpi.argtypes = [c_int, c_char_p*(narg+1), c_void_p]
           self.lmp = c_void_p(self.lib.lammps_open_no_mpi(narg,cargs,None))

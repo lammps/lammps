@@ -26,29 +26,34 @@
 #include "comm.h"
 #include "domain.h"
 #include "error.h"
+#include "label_map.h"
 #include "memory.h"
 #include "special.h"
-#include "label_map.h"
 
 #include <cstring>
 
 using namespace LAMMPS_NS;
 
 static constexpr double LB_FACTOR = 1.1;
-static constexpr double EPSILON =   1.0e-6;
+static constexpr double EPSILON = 1.0e-6;
 
 /* ---------------------------------------------------------------------- */
 
-Replicate::Replicate(LAMMPS *lmp) : Command(lmp) {}
+Replicate::Replicate(LAMMPS *lmp) : Command(lmp), old(nullptr), old_x(nullptr), old_tag(nullptr)
+{
+  bbox_flag = 0;
+  bond_flag = 0;
+}
 
 /* ---------------------------------------------------------------------- */
 
 void Replicate::command(int narg, char **arg)
 {
-  int i,j,m,n;
+  int i,n;
 
   if (domain->box_exist == 0)
     error->all(FLERR,"Replicate command before simulation box is defined");
+
   if (narg < 3 || narg > 4) error->all(FLERR,"Illegal replicate command");
 
   int me = comm->me;
@@ -77,9 +82,6 @@ void Replicate::command(int narg, char **arg)
                    nx, ny, nz, nrep);
 
   // optional keywords
-
-  bbox_flag = 0;
-  bond_flag = 0;
 
   int iarg = 3;
   while (iarg < narg) {

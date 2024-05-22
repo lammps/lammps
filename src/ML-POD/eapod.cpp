@@ -2267,14 +2267,20 @@ void EAPOD::eigenvaluedecomposition(double *Phi, double *Lambda, int N)
 {
   int ns = besseldegree*nbesselpars + inversedegree;
 
-  // Allocate memory for temporary arrays
-  double *xij = (double *) malloc(N*sizeof(double));
-  double *S = (double *) malloc(N*ns*sizeof(double));
-  double *Q = (double *) malloc(N*ns*sizeof(double));
-  double *A = (double *) malloc(ns*ns*sizeof(double));
-  double *work = (double *) malloc(ns*ns*sizeof(double));
-  double *b = (double *) malloc(ns*sizeof(double));
+  double *xij;
+  double *S;
+  double *Q;
+  double *A;
+  double *work;
+  double *b;
 
+  memory->create(xij, N, "eapod:xij");
+  memory->create(S, N*ns, "eapod:S");
+  memory->create(Q, N*ns, "eapod:Q");
+  memory->create(A, ns*ns, "eapod:A");
+  memory->create(work, ns*ns, "eapod:work");
+  memory->create(b, ns, "eapod:ns");
+  
   // Generate the xij array
   for (int i=0; i<N; i++)
     xij[i] = (rin+1e-6) + (rcut-rin-1e-6)*(i*1.0/(N-1));
@@ -2332,7 +2338,12 @@ void EAPOD::eigenvaluedecomposition(double *Phi, double *Lambda, int N)
   }
 
   // Free temporary arrays
-  free(xij); free(S); free(A); free(work); free(b); free(Q);
+  memory->destroy(xij);
+  memory->destroy(S);
+  memory->destroy(A);
+  memory->destroy(work);
+  memory->destroy(b);
+  memory->destroy(Q);  
 }
 
 /**

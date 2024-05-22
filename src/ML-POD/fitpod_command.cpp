@@ -1298,18 +1298,30 @@ void FitPOD::environment_cluster_calculation(const datastruct &data)
     nTotalAtoms += data.num_atom[ci];
   }
 
-  double *basedescmatrix = (double *) malloc(nAtoms*Mdesc*sizeof(double));
-  double *pca = (double *) malloc(nAtoms*nComponents*sizeof(double));
-  double *A = (double *) malloc(Mdesc*Mdesc*sizeof(double));
-  double *work = (double *) malloc(Mdesc*Mdesc*sizeof(double));
-  double *b = (double *) malloc(Mdesc*sizeof(double));
-  double *Lambda = (double *) malloc(Mdesc*nelements*sizeof(double));
-  int *clusterSizes = (int *) malloc(nClusters*nelements*sizeof(int));
-  int *assignments = (int *) malloc(nAtoms*sizeof(int));
-  int *nElemAtoms = (int *) malloc(nelements*sizeof(int));
-  int *nElemAtomsCumSum = (int *) malloc((1+nelements)*sizeof(int));
-  int *nElemAtomsCount = (int *) malloc(nelements*sizeof(int));
-
+  double *basedescmatrix;
+  double *pca;
+  double *A;
+  double *work;
+  double *b;
+  double *Lambda;
+  int *clusterSizes;
+  int *assignments;
+  int *nElemAtoms;
+  int *nElemAtomsCumSum;
+  int *nElemAtomsCount;
+  
+  memory->create(basedescmatrix, nAtoms*Mdesc, "fitpod:basedescmatrix");
+  memory->create(pca, nAtoms*nComponents, "fitpod:pca");
+  memory->create(A, Mdesc*Mdesc, "fitpod:A");
+  memory->create(work, Mdesc*Mdesc, "fitpod:work");
+  memory->create(b, Mdesc, "fitpod:b");
+  memory->create(Lambda, Mdesc*nelements, "fitpod:Lambda");
+  memory->create(clusterSizes, nClusters*nelements, "fitpod:clusterSizes");
+  memory->create(assignments, nAtoms, "fitpod:assignments");
+  memory->create(nElemAtoms, nelements, "fitpod:nElemAtoms");
+  memory->create(nElemAtomsCumSum, 1+nelements, "fitpod:nElemAtomsCumSum");
+  memory->create(nElemAtomsCount, nelements, "fitpod:nElemAtomsCount");
+  
   char chn = 'N';
   char cht = 'T';
   char chv = 'V';
@@ -1456,18 +1468,18 @@ void FitPOD::environment_cluster_calculation(const datastruct &data)
     savedata2textfile(data.filenametag + "_projection_matrix"  + ".pod", "projection_matrix: {}\n ", fastpodptr->Proj, nComponents*Mdesc*nelements, 1, 1);
     savedata2textfile(data.filenametag + "_centroids"  + ".pod", "centroids: {} \n", fastpodptr->Centroids, nComponents*nClusters*nelements, 1, 1);
   }
-
-  free(basedescmatrix);
-  free(pca);
-  free(A);
-  free(work);
-  free(b);
-  free(clusterSizes);
-  free(Lambda);
-  free(assignments);
-  free(nElemAtoms);
-  free(nElemAtomsCumSum);
-  free(nElemAtomsCount);
+  
+  memory->destroy(basedescmatrix);
+  memory->destroy(pca);
+  memory->destroy(A);
+  memory->destroy(work);
+  memory->destroy(b);
+  memory->destroy(clusterSizes);
+  memory->destroy(Lambda);
+  memory->destroy(assignments);
+  memory->destroy(nElemAtoms);
+  memory->destroy(nElemAtomsCumSum);
+  memory->destroy(nElemAtomsCount);
 
   if (comm->me == 0)
     utils::logmesg(lmp, "**************** End Calculating Environment Descriptor Matrix ****************\n");

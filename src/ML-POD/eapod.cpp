@@ -2280,7 +2280,7 @@ void EAPOD::eigenvaluedecomposition(double *Phi, double *Lambda, int N)
   memory->create(A, ns*ns, "eapod:A");
   memory->create(work, ns*ns, "eapod:work");
   memory->create(b, ns, "eapod:ns");
-  
+
   // Generate the xij array
   for (int i=0; i<N; i++)
     xij[i] = (rin+1e-6) + (rcut-rin-1e-6)*(i*1.0/(N-1));
@@ -2343,7 +2343,7 @@ void EAPOD::eigenvaluedecomposition(double *Phi, double *Lambda, int N)
   memory->destroy(A);
   memory->destroy(work);
   memory->destroy(b);
-  memory->destroy(Q);  
+  memory->destroy(Q);
 }
 
 /**

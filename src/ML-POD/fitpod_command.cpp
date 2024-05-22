@@ -1309,7 +1309,7 @@ void FitPOD::environment_cluster_calculation(const datastruct &data)
   int *nElemAtoms;
   int *nElemAtomsCumSum;
   int *nElemAtomsCount;
-  
+
   memory->create(basedescmatrix, nAtoms*Mdesc, "fitpod:basedescmatrix");
   memory->create(pca, nAtoms*nComponents, "fitpod:pca");
   memory->create(A, Mdesc*Mdesc, "fitpod:A");
@@ -1321,7 +1321,7 @@ void FitPOD::environment_cluster_calculation(const datastruct &data)
   memory->create(nElemAtoms, nelements, "fitpod:nElemAtoms");
   memory->create(nElemAtomsCumSum, 1+nelements, "fitpod:nElemAtomsCumSum");
   memory->create(nElemAtomsCount, nelements, "fitpod:nElemAtomsCount");
-  
+
   char chn = 'N';
   char cht = 'T';
   char chv = 'V';
@@ -1468,7 +1468,7 @@ void FitPOD::environment_cluster_calculation(const datastruct &data)
     savedata2textfile(data.filenametag + "_projection_matrix"  + ".pod", "projection_matrix: {}\n ", fastpodptr->Proj, nComponents*Mdesc*nelements, 1, 1);
     savedata2textfile(data.filenametag + "_centroids"  + ".pod", "centroids: {} \n", fastpodptr->Centroids, nComponents*nClusters*nelements, 1, 1);
   }
-  
+
   memory->destroy(basedescmatrix);
   memory->destroy(pca);
   memory->destroy(A);

@@ -41,14 +41,14 @@ Syntax
 
      *oxrna2/stk* args = seq T xi kappa 6.0 0.43 0.93 0.35 0.78 0.9 0 0.95 0.9 0 0.95 1.3 0 0.8 1.3 0 0.8 2.0 0.65 2.0 0.65
        seq = seqav (for average sequence stacking strength) or seqdep (for sequence-dependent stacking strength)
-       T = temperature (oxDNA units, 0.1 = 300 K)
-       xi = 1.40206 (temperature-independent coefficient in stacking strength)
-       kappa = 2.77 (coefficient of linear temperature dependence in stacking strength)
+       T = temperature (LJ units: 0.1 = 300 K, real units: 300 = 300 K) 
+       xi = 1.40206 (LJ units) or 8.35864576375849 (real units), temperature-independent coefficient in stacking strength
+       kappa = 2.77 (LJ units) or 0.005504556 (real units), coefficient of linear temperature dependence in stacking strength
      *oxrna2/hbond* args = seq eps 8.0 0.4 0.75 0.34 0.7 1.5 0 0.7 1.5 0 0.7 1.5 0 0.7 0.46 3.141592653589793 0.7 4.0 1.5707963267948966 0.45 4.0 1.5707963267948966 0.45
        seq = seqav (for average sequence base-pairing strength) or seqdep (for sequence-dependent base-pairing strength)
-       eps = 0.870439 (between base pairs A-T, C-G and G-T) or 0 (all other pairs)
+       eps = 0.870439 (LJ units) or 5.18928666388042 (real units), average hydrogen bonding strength between A-U and C-G Watson-Crick and G-U wobble base pairs, 0 between all other pairs
      *oxrna2/dh* args = T rhos qeff
-       T = temperature (oxDNA units, 0.1 = 300 K)
+       T = temperature (LJ units: 0.1 = 300 K, real units: 300 = 300 K)
        rhos = salt concentration (mole per litre)
        qeff = 1.02455 (effective charge in elementary charges)
 

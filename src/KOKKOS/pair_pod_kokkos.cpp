@@ -868,7 +868,8 @@ void PairPODKokkos<DeviceType>::radialangularsum(t_pod_1d l_sumU, t_pod_1d l_rbf
       int start = l_numij(i);
       int nj = l_numij(i+1)-start;
 
-      double tm[10] = {0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
+      double tm[10];
+      for (int j=0; j<l_nelements; j++) tm[j] = 0;
       for (int j=0; j<nj; j++) {
         int n = start + j;
         int ia = n + Nij * k;

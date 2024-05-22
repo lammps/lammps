@@ -32,7 +32,7 @@ class ComputePODDAtom : public Compute {
   void init_list(int, class NeighList *) override;
   void compute_peratom() override;
   double memory_usage() override;
-  void lammpsNeighborList(double **x, int **firstneigh, int *atomid, int *atomtype, int *numneigh,
+  void lammpsNeighborList(double **x, int **firstneigh, tagint *atomid, int *atomtype, int *numneigh,
                         double rcutsq, int i);
   void map_element2type(int narg, char **arg, int nelements);
 

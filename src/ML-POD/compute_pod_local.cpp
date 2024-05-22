@@ -214,7 +214,7 @@ double ComputePODLocal::memory_usage()
 }
 
 
-void ComputePODLocal::lammpsNeighborList(double **x, int **firstneigh, int *atomid, int *atomtypes,
+void ComputePODLocal::lammpsNeighborList(double **x, int **firstneigh, tagint *atomid, int *atomtypes,
                                int *numneigh, double rcutsq, int gi)
 {
   nij = 0;

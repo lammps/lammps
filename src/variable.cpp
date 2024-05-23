@@ -2288,7 +2288,7 @@ double Variable::evaluate(char *str, Tree **tree, int ivar)
 
           if (math_function(word,contents,tree,treestack,ntreestack,argstack,nargstack,ivar));
           else if (group_function(word,contents,tree,treestack,ntreestack,argstack,nargstack,ivar));
-          else if (special_function(std::string(word),contents,tree,treestack,ntreestack,argstack,nargstack,ivar));
+          else if (special_function(std::string(word),contents,tree,treestack,ntreestack,argstack,nargstack,ivar,str,i,ptr));
           else if (feature_function(word,contents,tree,treestack,ntreestack,argstack,nargstack,ivar));
           else print_var_error(FLERR,fmt::format("Invalid math/group/special/feature function '{}()' "
                                                  "in variable formula", word),ivar);
@@ -4271,7 +4271,7 @@ Region *Variable::region_function(char *id, int ivar)
 ------------------------------------------------------------------------- */
 
 int Variable::special_function(const std::string &word, char *contents, Tree **tree, Tree **treestack,
-                               int &ntreestack, double *argstack, int &nargstack, int ivar)
+                               int &ntreestack, double *argstack, int &nargstack, int ivar, char *str, int &istr, char *&ptr)
 {
   double sx,sxx;
   double value,sy,sxy;
@@ -4569,12 +4569,12 @@ int Variable::special_function(const std::string &word, char *contents, Tree **t
       if (method == SORT) std::sort(unsorted.begin(), unsorted.end(), std::less<double>());
       if (method == RSORT) std::sort(unsorted.begin(), unsorted.end(), std::greater<double>());
 
-      double *newvec;
-      memory->create(newvec,nvec,"variable:values");
-      for (int m = 0; m < nvec; m++)
-        newvec[m] = unsorted[m];
-
       if (tree) {
+        double *newvec;
+        memory->create(newvec,nvec,"variable:values");
+        for (int m = 0; m < nvec; m++)
+          newvec[m] = unsorted[m];
+
         auto newtree = new Tree();
         newtree->type = VECTORARRAY;
         newtree->array = newvec;
@@ -4582,8 +4582,22 @@ int Variable::special_function(const std::string &word, char *contents, Tree **t
         newtree->nstride = 1;
         newtree->selfalloc = 1;
         treestack[ntreestack++] = newtree;
+
       } else {
-        error->all(FLERR, "Cannot use argstack for sorted vector");
+
+        // process one pair of trailing brackets
+        // point istr beyond last bracket
+        // nbracket = # of bracket pairs
+        // index    = int inside each bracket pair, vector index
+
+        if (str[istr] == '[') {
+          ptr = &str[istr];
+          int index = int_between_brackets(ptr,1);
+          if (index > nvec)
+            print_var_error(FLERR, fmt::format("index {} exceeds vector size of {}\n", index, nvec),ivar);
+          istr = ptr-str+1;
+          argstack[nargstack++] = unsorted[index-1];
+        }
       }
     } else {
 

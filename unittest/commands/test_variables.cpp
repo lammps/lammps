@@ -340,6 +340,9 @@ TEST_F(VariableTest, Expressions)
     command("variable vec4   vector    '[1, 5, 2.5, -10, -5, 20, 120, 4, 3, 3]'");
     command("variable sort   vector    sort(v_vec4)");
     command("variable rsrt   vector    rsort(v_vec4)");
+    command("variable max2   equal     sort(v_vec4)[2]");
+    command("variable rmax   equal     rsort(v_vec4)[1]");
+    command("variable xxxl   equal     rsort(v_vec4)[11]");
     command("variable isrt   vector    sort(v_one)");
     variable->set("dummy  index     1 2");
     END_HIDE_OUTPUT();
@@ -372,6 +375,8 @@ TEST_F(VariableTest, Expressions)
     ASSERT_DOUBLE_EQ(variable->compute_equal("v_vec3"), 0.5);
     EXPECT_THAT(variable->retrieve("sort"), StrEq("[-10,-5,1,2.5,3,3,4,5,20,120]"));
     EXPECT_THAT(variable->retrieve("rsrt"), StrEq("[120,20,5,4,3,3,2.5,1,-5,-10]"));
+    ASSERT_DOUBLE_EQ(variable->compute_equal("v_max2"), -5);
+    ASSERT_DOUBLE_EQ(variable->compute_equal("v_rmax"), 120);
 
     TEST_FAILURE(".*ERROR: Variable six: Invalid thermo keyword 'XXX' in variable formula.*",
                  command("print \"${six}\""););
@@ -385,6 +390,8 @@ TEST_F(VariableTest, Expressions)
                  command("print \"${err3}\""););
     TEST_FAILURE(".*ERROR: Variable one: Mis-matched special function variable in variable formula.*",
                  command("print \"${isrt}\""););
+    TEST_FAILURE(".*ERROR: Variable vec4: index 11 exceeds vector size of 10.*",
+                 command("print \"${xxxl}\""););
 }
 
 TEST_F(VariableTest, Functions)

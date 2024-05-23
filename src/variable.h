@@ -56,7 +56,7 @@ class Variable : protected Pointers {
   int nvar;        // # of defined variables
   char **names;    // name of each variable
 
-  // must match "varstyles" array in info.cpp
+  // must match "varstyles" array in variables.cpp, UNKNOWN must be last.
   enum {
     INDEX,
     LOOP,
@@ -73,9 +73,11 @@ class Variable : protected Pointers {
     VECTOR,
     PYTHON,
     TIMER,
-    INTERNAL
+    INTERNAL,
+    UNKNOWN
   };
   static constexpr int VALUELENGTH = 64;
+  static const std::vector<std::string> varstyles;
 
  private:
   int me;

@@ -54,6 +54,12 @@ static constexpr int MAXLINE = 256;
 static constexpr int CHUNK = 1024;
 static constexpr int MAXFUNCARG = 6;
 
+// must match enumerator in variable.h
+const std::vector<std::string> Variable::varstyles = {
+  "index", "loop", "world", "universe", "uloop", "string", "getenv",
+  "file", "atomfile", "format", "equal", "atom", "vector", "python",
+  "timer", "internal", "(unknown)"};
+
 static inline double MYROUND(double a) { return ((a - floor(a)) >= 0.5) ? ceil(a) : floor(a); }
 
 enum{ARG,OP};

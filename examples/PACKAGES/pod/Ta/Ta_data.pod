@@ -16,5 +16,5 @@ error_analysis_for_test_data_set 0
 basename_for_output_files Ta
 
 # number of digits after the decimal point for pod coefficients
-precision_for_pod_coefficients 6
+precision_for_pod_coefficients 5
 

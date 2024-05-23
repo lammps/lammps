@@ -1,13 +1,13 @@
-# Demonstrate POD potential for InP 
+# Demonstrate POD Ta potential
 
 # Initialize simulation
 
 variable nsteps index 100
 variable nrep equal 4
-variable a equal 3.816
+variable a equal 3.316
 units           metal
 
-# generate the box and atom positions using a FCC lattice
+# generate the box and atom positions using a BCC lattice
 
 variable nx equal ${nrep}
 variable ny equal ${nrep}
@@ -22,9 +22,10 @@ create_atoms    1 box
 
 mass 1 180.88
 
+
 # POD potential
 pair_style pod
-pair_coeff * * Ta_param.pod Ta_coefficients.pod Ta
+pair_coeff * * Ta_param.pod Ta_coeff.pod Ta
 
 # Setup output
 

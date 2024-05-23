@@ -1,16 +1,16 @@
-LAMMPS (17 Apr 2024 - Development - patch_17Apr2024-176-gc2e4ad220f-modified)
+LAMMPS (17 Apr 2024 - Development - patch_17Apr2024-177-g86abf4f680-modified)
 OMP_NUM_THREADS environment is not set. Defaulting to 1 thread. (src/comm.cpp:98)
   using 1 OpenMP thread(s) per MPI task
-# Demonstrate POD potential for InP
+# Demonstrate POD Ta potential
 
 # Initialize simulation
 
 variable nsteps index 100
 variable nrep equal 4
-variable a equal 3.816
+variable a equal 3.316
 units           metal
 
-# generate the box and atom positions using a FCC lattice
+# generate the box and atom positions using a BCC lattice
 
 variable nx equal ${nrep}
 variable nx equal 4
@@ -22,25 +22,26 @@ variable nz equal 4
 boundary        p p p
 
 lattice         bcc $a
-lattice         bcc 3.816
-Lattice spacing in x,y,z = 3.816 3.816 3.816
+lattice         bcc 3.316
+Lattice spacing in x,y,z = 3.316 3.316 3.316
 region          box block 0 ${nx} 0 ${ny} 0 ${nz}
 region          box block 0 4 0 ${ny} 0 ${nz}
 region          box block 0 4 0 4 0 ${nz}
 region          box block 0 4 0 4 0 4
 create_box      1 box
-Created orthogonal box = (0 0 0) to (15.264 15.264 15.264)
+Created orthogonal box = (0 0 0) to (13.264 13.264 13.264)
   1 by 2 by 2 MPI processor grid
 create_atoms    1 box
 Created 128 atoms
-  using lattice units in orthogonal box = (0 0 0) to (15.264 15.264 15.264)
-  create_atoms CPU = 0.002 seconds
+  using lattice units in orthogonal box = (0 0 0) to (13.264 13.264 13.264)
+  create_atoms CPU = 0.001 seconds
 
 mass 1 180.88
 
+
 # POD potential
 pair_style pod
-pair_coeff * * Ta_param.pod Ta_coefficients.pod Ta
+pair_coeff * * Ta_param.pod Ta_coeff.pod Ta
 **************** Begin of POD Potentials ****************
 species: Ta 
 periodic boundary conditions: 1 1 1
@@ -48,15 +49,15 @@ number of environment clusters: 1
 number of principal compoments: 2
 inner cut-off radius: 1
 outer cut-off radius: 5
-bessel polynomial degree: 4
-inverse polynomial degree: 8
+bessel polynomial degree: 3
+inverse polynomial degree: 6
 one-body potential: 1
 two-body radial basis functions: 6
 three-body radial basis functions: 5
 three-body angular degree: 4
-four-body radial basis functions: 4
-four-body angular degree: 3
-five-body radial basis functions: 2
+four-body radial basis functions: 0
+four-body angular degree: 0
+five-body radial basis functions: 0
 five-body angular degree: 0
 six-body radial basis functions: 0
 six-body angular degree: 0
@@ -65,16 +66,16 @@ seven-body angular degree: 0
 number of local descriptors per element for one-body potential: 1
 number of local descriptors per element for two-body potential: 6
 number of local descriptors per element for three-body potential: 25
-number of local descriptors per element for four-body potential: 28
-number of local descriptors per element for five-body potential: 2
+number of local descriptors per element for four-body potential: 0
+number of local descriptors per element for five-body potential: 0
 number of local descriptors per element for six-body potential: 0
 number of local descriptors per element for seven-body potential: 0
-number of local descriptors per element for all potentials: 62
-number of global descriptors: 62
+number of local descriptors per element for all potentials: 32
+number of global descriptors: 32
 **************** End of POD Potentials ****************
 
 **************** Begin of Model Coefficients ****************
-total number of coefficients for POD potential: 62
+total number of coefficients for POD potential: 32
 total number of elements for PCA projection matrix: 0
 total number of elements for PCA centroids: 0
 **************** End of Model Coefficients ****************
@@ -102,40 +103,40 @@ Neighbor list info ...
   max neighbors/atom: 2000, page size: 100000
   master list distance cutoff = 6
   ghost atom cutoff = 6
-  binsize = 3, bins = 6 6 6
+  binsize = 3, bins = 5 5 5
   1 neighbor lists, perpetual/occasional/extra = 1 0 0
   (1) pair pod, perpetual
       attributes: full, newton on
       pair build: full/bin/atomonly
       stencil: full/bin/3d
       bin: standard
-Per MPI rank memory allocation (min/avg/max) = 3.188 | 3.188 | 3.188 Mbytes
+Per MPI rank memory allocation (min/avg/max) = 3.187 | 3.187 | 3.187 Mbytes
    Step          Temp          E_pair         E_mol          TotEng         Press     
-         0   300           -10.361449      0             -10.322974     -354249.12    
-        10   300.08332     -10.361459      0             -10.322974     -354201.89    
-        20   300.33492     -10.361492      0             -10.322974     -354060.15    
-        30   300.76425     -10.361547      0             -10.322974     -353823.72    
-        40   301.39008     -10.361627      0             -10.322974     -353492.3     
-        50   302.24056     -10.361736      0             -10.322974     -353065.43    
-        60   303.35321     -10.361879      0             -10.322974     -352542.47    
-        70   304.77506     -10.362061      0             -10.322974     -351922.54    
-        80   306.56275     -10.36229       0             -10.322974     -351204.53    
-        90   308.78281     -10.362575      0             -10.322974     -350386.99    
-       100   311.51191     -10.362925      0             -10.322974     -349468.1     
-Loop time of 0.134056 on 4 procs for 100 steps with 128 atoms
+         0   300           -11.842971      0             -11.804496     -24843.054    
+        10   296.87227     -11.84257       0             -11.804496     -24609.859    
+        20   287.65971     -11.841388      0             -11.804496     -23926.722    
+        30   272.87511     -11.839492      0             -11.804496     -22841.672    
+        40   253.34724     -11.836988      0             -11.804496     -21429.268    
+        50   230.17169     -11.834015      0             -11.804496     -19782.77     
+        60   204.64408     -11.830741      0             -11.804496     -18004.755    
+        70   178.17888     -11.827347      0             -11.804495     -16197.482    
+        80   152.21769     -11.824017      0             -11.804495     -14454.425    
+        90   128.13189     -11.820928      0             -11.804495     -12854.075    
+       100   107.12666     -11.818234      0             -11.804495     -11456.437    
+Loop time of 0.153961 on 4 procs for 100 steps with 128 atoms
 
-Performance: 32.225 ns/day, 0.745 hours/ns, 745.959 timesteps/s, 95.483 katom-step/s
-90.7% CPU use with 4 MPI tasks x 1 OpenMP threads
+Performance: 28.059 ns/day, 0.855 hours/ns, 649.516 timesteps/s, 83.138 katom-step/s
+96.2% CPU use with 4 MPI tasks x 1 OpenMP threads
 
 MPI task timing breakdown:
 Section |  min time  |  avg time  |  max time  |%varavg| %total
 ---------------------------------------------------------------
-Pair    | 0.10115    | 0.10421    | 0.10541    |   0.5 | 77.74
+Pair    | 0.1281     | 0.12977    | 0.1312     |   0.3 | 84.29
 Neigh   | 0          | 0          | 0          |   0.0 |  0.00
-Comm    | 0.024822   | 0.026183   | 0.029671   |   1.3 | 19.53
-Output  | 0.00057395 | 0.00094904 | 0.0011461  |   0.0 |  0.71
-Modify  | 0.00037802 | 0.00041906 | 0.00046194 |   0.0 |  0.31
-Other   |            | 0.002294   |            |       |  1.71
+Comm    | 0.01967    | 0.021169   | 0.022796   |   0.8 | 13.75
+Output  | 0.00045049 | 0.00053796 | 0.00078459 |   0.0 |  0.35
+Modify  | 0.00039544 | 0.0004393  | 0.00048043 |   0.0 |  0.29
+Other   |            | 0.002049   |            |       |  1.33
 
 Nlocal:             32 ave          32 max          32 min
 Histogram: 4 0 0 0 0 0 0 0 0 0
@@ -143,11 +144,11 @@ Nghost:            431 ave         431 max         431 min
 Histogram: 4 0 0 0 0 0 0 0 0 0
 Neighs:              0 ave           0 max           0 min
 Histogram: 4 0 0 0 0 0 0 0 0 0
-FullNghs:          832 ave         832 max         832 min
+FullNghs:         1856 ave        1856 max        1856 min
 Histogram: 4 0 0 0 0 0 0 0 0 0
 
-Total # of neighbors = 3328
-Ave neighs/atom = 26
+Total # of neighbors = 7424
+Ave neighs/atom = 58
 Neighbor list builds = 0
 Dangerous builds = 0
 

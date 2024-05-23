@@ -17,8 +17,8 @@ number_of_environment_clusters 1
 number_of_principal_components 2
 
 # polynomial degrees for radial basis functions
-bessel_polynomial_degree 4
-inverse_polynomial_degree 8
+bessel_polynomial_degree 3
+inverse_polynomial_degree 6
 
 # two-body linear POD potential
 twobody_number_radial_basis_functions 6
@@ -28,11 +28,11 @@ threebody_number_radial_basis_functions 5
 threebody_angular_degree 4
 
 # four-body linear POD potential
-fourbody_number_radial_basis_functions 4
-fourbody_angular_degree 3
+fourbody_number_radial_basis_functions 0
+fourbody_angular_degree 0
 
 # five-body linear POD potential
-fivebody_number_radial_basis_functions 2
+fivebody_number_radial_basis_functions 0
 fivebody_angular_degree 0
 
 # six-body linear POD potential

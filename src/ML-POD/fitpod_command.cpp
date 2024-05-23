@@ -56,16 +56,8 @@ void FitPOD::command(int narg, char **arg)
     coeff_file = std::string(arg[2]); // coefficient input file
   else
     coeff_file = "";
-  if (narg > 3)
-    proj_file = std::string(arg[3]); // projection input file
-  else
-    proj_file = "";
-  if (narg > 4)
-    cent_file = std::string(arg[4]); // centroid input file
-  else
-    cent_file = "";
 
-  fastpodptr = new EAPOD(lmp, pod_file, coeff_file, proj_file, cent_file);
+  fastpodptr = new EAPOD(lmp, pod_file, coeff_file);
 
   desc.nCoeffAll = fastpodptr->nCoeffAll;
   desc.nClusters = fastpodptr->nClusters;
@@ -97,9 +89,33 @@ void FitPOD::command(int narg, char **arg)
     }
 
     // compute POD coefficients using least-squares method
+    if (coeff_file == "") {
+      least_squares_fit(traindata);
 
-    if (coeff_file == "") least_squares_fit(traindata);
-    //error->all(FLERR, "stop after least_squares_fit");
+      if (comm->me == 0) {     // save coefficients into a text file
+        std::string filename = traindata.filenametag + "_coefficients"  + ".pod";
+        FILE *fp = fopen(filename.c_str(), "w");
+
+        int nCoeffAll = desc.nCoeffAll;
+        int n1 = 0, n2=0;
+        if (((int) envdata.data_path.size() > 1) && (desc.nClusters > 1)) {
+          n1 = fastpodptr->nComponents*fastpodptr->Mdesc*fastpodptr->nelements;
+          n2 = fastpodptr->nComponents*fastpodptr->nClusters*fastpodptr->nelements;
+        }
+
+        fmt::print(fp, "model_coefficients: {} {} {}\n", nCoeffAll, n1, n2);
+        for (int count = 0; count < nCoeffAll; count++) {
+          fmt::print(fp, "{:<10.{}f}\n",  desc.c[count], traindata.precision);
+        }
+        for (int count = 0; count < n1; count++) {
+          fmt::print(fp, "{:<10.{}f}\n",  fastpodptr->Proj[count], 14);
+        }
+        for (int count = 0; count < n2; count++) {
+          fmt::print(fp, "{:<10.{}f}\n",  fastpodptr->Centroids[count], 14);
+        }
+        fclose(fp);
+      }
+    }
 
     // calculate errors for the training data set
 
@@ -1464,10 +1480,10 @@ void FitPOD::environment_cluster_calculation(const datastruct &data)
     MPI_Barrier(MPI_COMM_WORLD);
   }
 
-  if (comm->me == 0) {
-    savedata2textfile(data.filenametag + "_projection_matrix"  + ".pod", "projection_matrix: {}\n ", fastpodptr->Proj, nComponents*Mdesc*nelements, 1, 1);
-    savedata2textfile(data.filenametag + "_centroids"  + ".pod", "centroids: {} \n", fastpodptr->Centroids, nComponents*nClusters*nelements, 1, 1);
-  }
+  // if (comm->me == 0) {
+  //   savedata2textfile(data.filenametag + "_projection_matrix"  + ".pod", "projection_matrix: {}\n ", fastpodptr->Proj, nComponents*Mdesc*nelements, 1, 1);
+  //   savedata2textfile(data.filenametag + "_centroids"  + ".pod", "centroids: {} \n", fastpodptr->Centroids, nComponents*nClusters*nelements, 1, 1);
+  // }
 
   memory->destroy(basedescmatrix);
   memory->destroy(pca);
@@ -1615,17 +1631,17 @@ void FitPOD::least_squares_fit(const datastruct &data)
   // update coefficients in POD class to compute energy and force
   fastpodptr->mknewcoeff(desc.c, nCoeffAll);
 
-  if (comm->me == 0) {     // save coefficients into a text file
-    std::string filename = data.filenametag + "_coefficients"  + ".pod";
-    FILE *fp = fopen(filename.c_str(), "w");
+  // if (comm->me == 0) {     // save coefficients into a text file
+  //   std::string filename = data.filenametag + "_coefficients"  + ".pod";
+  //   FILE *fp = fopen(filename.c_str(), "w");
 
-    fmt::print(fp, "POD_coefficients: {}\n", nCoeffAll);
-    for (int count = 0; count < nCoeffAll; count++) {
-      fmt::print(fp, "{:<10.{}f}\n",  desc.c[count], data.precision);
-    }
-    fclose(fp);
-    utils::logmesg(lmp, "**************** End of Least-Squares Fitting ****************\n");
-  }
+  //   fmt::print(fp, "POD_coefficients: {}\n", nCoeffAll);
+  //   for (int count = 0; count < nCoeffAll; count++) {
+  //     fmt::print(fp, "{:<10.{}f}\n",  desc.c[count], data.precision);
+  //   }
+  //   fclose(fp);
+  //   utils::logmesg(lmp, "**************** End of Least-Squares Fitting ****************\n");
+  // }
 }
 
 double latticevolume(double *lattice)

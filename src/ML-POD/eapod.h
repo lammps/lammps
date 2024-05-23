@@ -154,7 +154,7 @@ public:
   int nld33, nld34, nld44, ngd33, ngd34, ngd44;
   int *ind33l, *ind33r, *ind34l, *ind34r, *ind44l, *ind44r;
 
-  EAPOD(LAMMPS *, const std::string &pod_file, const std::string &coeff_file, const std::string &proj_file, const std::string &centroids_file);
+  EAPOD(LAMMPS *, const std::string &pod_file, const std::string &coeff_file);
 
   EAPOD(LAMMPS *lmp) : Pointers(lmp){};
   ~EAPOD() override;
@@ -163,6 +163,7 @@ public:
   void print_matrix(const char* desc, int m, int n, double* a, int lda );
 
   void read_pod_file(std::string pod_file);
+  void read_model_coeff_file(std::string coeff_file);
   int read_coeff_file(std::string coeff_file);
   int read_projection_matrix(std::string proj_file);
   int read_centroids(std::string centroids_file);

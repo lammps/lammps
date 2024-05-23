@@ -5,11 +5,11 @@ of the training data taken from [the FitSNAP repo](https://github.com/FitSNAP/Fi
 
 Fit POD with
 
-    lmp -in Ta_fit.pod
+    lmp -in in.fitpod
 
 This creates `Ta_coefficients.pod` for the linear model, which we can use to run MD with
 
-    lmp -in Ta_mdrun.pod
+    lmp -in in.pod
 
 
  

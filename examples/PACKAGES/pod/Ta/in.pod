@@ -4,7 +4,7 @@
 
 variable nsteps index 100
 variable nrep equal 4
-variable a equal 5.83
+variable a equal 3.816
 units           metal
 
 # generate the box and atom positions using a FCC lattice
@@ -15,17 +15,16 @@ variable nz equal ${nrep}
 
 boundary        p p p
 
-lattice         diamond $a
+lattice         bcc $a
 region          box block 0 ${nx} 0 ${ny} 0 ${nz}
-create_box      2 box
-create_atoms    1 box basis 5 2 basis 6 2 basis 7 2 basis 8 2
+create_box      1 box
+create_atoms    1 box
 
-mass 1 114.76
-mass 2 30.98
+mass 1 180.88
 
 # POD potential
 pair_style pod
-pair_coeff * * InP_param.pod InP_coefficients.pod InP_projection_matrix.pod InP_centroids.pod In P
+pair_coeff * * Ta_param.pod Ta_coefficients.pod Ta
 
 # Setup output
 

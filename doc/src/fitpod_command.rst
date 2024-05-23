@@ -8,14 +8,12 @@ Syntax
 
 .. code-block:: LAMMPS
 
-   fitpod Ta_param.pod Ta_data.pod Ta_coefficients.pod Ta_projection_matrix.pod Ta_centroids.pod
+   fitpod Ta_param.pod Ta_data.pod Ta_coefficients.pod
 
 * fitpod = style name of this command
 * Ta_param.pod = an input file that describes proper orthogonal descriptors (PODs)
 * Ta_data.pod = an input file that specifies DFT data used to fit a POD potential
 * Ta_coefficients.pod (optional) = an input file that specifies trainable coefficients of a POD potential
-* Ta_projection_matrix.pod (optional) = an input file that specifies a projection matrix for dimensionlity reduction via principal component analysis
-* Ta_centroids.pod (optional) = an input file that specifies centroids of clusters computed using k-means algorithm
 
 Examples
 """"""""
@@ -24,7 +22,6 @@ Examples
 
    fitpod Ta_param.pod Ta_data.pod
    fitpod Ta_param.pod Ta_data.pod Ta_coefficients.pod
-   fitpod Ta_param.pod Ta_data.pod Ta_coefficients.pod Ta_projection_matrix.pod Ta_centroids.pod
 
 Description
 """""""""""
@@ -220,13 +217,9 @@ successful training, a number of output files are produced, if enabled:
 * ``<basename>_test_errors.pod`` reports errors for the test data set
 * ``<basename>_test_analysis.pod`` reports detailed errors for all test configurations
 * ``<basename>_coefficients.pod`` contains the coefficients of the POD potential
-* ``<basename>_projection_matrix.pod`` contains the projection matrix from the principal component analysis
-* ``<basename>_centroids.pod`` contains the centroids of the atom clusters
 
 After training the POD potential, ``Ta_param.pod`` and ``<basename>_coefficients.pod``
 are the two files needed to use the POD potential in LAMMPS.
-If the number of environment clusters is greater than 1, then
-``<basename>_projection_matrix.pod`` and ``<basename>_centroids.pod`` are also needed.
 See :doc:`pair_style pod <pair_pod>` for using the POD potential. Examples
 about training and using POD potentials are found in the directory
 lammps/examples/PACKAGES/pod and the Github repo https://github.com/cesmix-mit/pod-examples.
@@ -336,13 +329,6 @@ for example,
 .. code-block:: LAMMPS
 
    fitpod Ta_param.pod Ta_data.pod Ta_coefficients.pod
-
-However, if the number of clusters is greater than 1, then both the projection matrix and the centroids
-must also be provided
-
-.. code-block:: LAMMPS
-
-   fitpod Ta_param.pod Ta_data.pod Ta_coefficients.pod Ta_projection_matrix.pod Ta_centroids.pod
 
 Restrictions
 """"""""""""

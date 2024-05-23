@@ -36,23 +36,18 @@ ComputePODAtom::ComputePODAtom(LAMMPS *lmp, int narg, char **arg) :
   Compute(lmp, narg, arg), list(nullptr), map(nullptr), pod(nullptr), elements(nullptr)
 {
 
-  int nargmin = 7;
+  int nargmin = 6;
 
   if (narg < nargmin) error->all(FLERR, "Illegal compute {} command", style);
   if (comm->nprocs > 1) error->all(FLERR, "compute command does not support multi processors");
 
   std::string pod_file = std::string(arg[3]);      // pod input file
-  std::string coeff_file = "";    // coefficient input file
-  std::string proj_file = std::string(arg[4]);    // coefficient input file
-  std::string centroid_file = std::string(arg[5]);    // coefficient input file
-  podptr = new EAPOD(lmp, pod_file, coeff_file, proj_file, centroid_file);
+  std::string coeff_file = std::string(arg[4]);    // coefficient input file
+  podptr = new EAPOD(lmp, pod_file, coeff_file);
 
   int ntypes = atom->ntypes;
   memory->create(map, ntypes + 1, "compute_pod_global:map");
-  map_element2type(narg - 6, arg + 6, podptr->nelements);
-
-  //size_array_rows = 1 + 3*atom->natoms;
-  //size_array_cols = podptr->nCoeffAll;
+  map_element2type(narg - 5, arg + 5, podptr->nelements);
 
   cutmax = podptr->rcut;
 

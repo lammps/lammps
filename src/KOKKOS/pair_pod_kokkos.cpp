@@ -140,7 +140,7 @@ double PairPODKokkos<DeviceType>::init_one(int i, int j)
 template<class DeviceType>
 void PairPODKokkos<DeviceType>::coeff(int narg, char **arg)
 {
-  if (narg < 7) utils::missing_cmd_args(FLERR, "pair_coeff", error);
+  if (narg < 5) utils::missing_cmd_args(FLERR, "pair_coeff", error);
 
   PairPOD::coeff(narg,arg); // create a PairPOD object
 

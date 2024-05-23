@@ -37,7 +37,7 @@ using MathSpecial::powint;
 #define MAXLINE 1024
 
 // constructor
-EAPOD::EAPOD(LAMMPS *_lmp, const std::string &pod_file, const std::string &coeff_file, const std::string &proj_file, const std::string &centroids_file) :
+EAPOD::EAPOD(LAMMPS *_lmp, const std::string &pod_file, const std::string &coeff_file) :
         Pointers(_lmp), elemindex(nullptr), Phi(nullptr), Lambda(nullptr), Proj(nullptr),
         Centroids(nullptr),  bd(nullptr), bdd(nullptr), pd(nullptr), pdd(nullptr), coeff(nullptr), tmpmem(nullptr), tmpint(nullptr),
         pn3(nullptr), pq3(nullptr), pc3(nullptr), pq4(nullptr), pa4(nullptr), pb4(nullptr), pc4(nullptr),
@@ -94,27 +94,31 @@ EAPOD::EAPOD(LAMMPS *_lmp, const std::string &pod_file, const std::string &coeff
   // read pod input file to podstruct
   read_pod_file(pod_file);
 
-  // read pod coefficient file to podstruct
   if (coeff_file != "") {
-    ncoeff = read_coeff_file(coeff_file);
-    if (ncoeff != nCoeffAll)
-      error->all(FLERR,"number of coefficients in the coefficient file is not correct");
+    read_model_coeff_file(coeff_file);
   }
-  if (nClusters > 1) {
-    // read projection matrix file to podstruct
-    if (proj_file != "") {
-      nproj = read_projection_matrix(proj_file);
-      if (nproj != nComponents*Mdesc*nelements)
-        error->all(FLERR,"number of coefficients in the projection file is not correct");
-    }
 
-    // read centroids file to podstruct
-    if (centroids_file != "") {
-      ncentroids = read_centroids(centroids_file);
-      if (ncentroids != nComponents*nClusters*nelements)
-        error->all(FLERR,"number of coefficients in the projection file is not correct");
-    }
-  }
+  // // read pod coefficient file to podstruct
+  // if (coeff_file != "") {
+  //   ncoeff = read_coeff_file(coeff_file);
+  //   if (ncoeff != nCoeffAll)
+  //     error->all(FLERR,"number of coefficients in the coefficient file is not correct");
+  // }
+  // if (nClusters > 1) {
+  //   // read projection matrix file to podstruct
+  //   if (proj_file != "") {
+  //     nproj = read_projection_matrix(proj_file);
+  //     if (nproj != nComponents*Mdesc*nelements)
+  //       error->all(FLERR,"number of coefficients in the projection file is not correct");
+  //   }
+
+  //   // read centroids file to podstruct
+  //   if (centroids_file != "") {
+  //     ncentroids = read_centroids(centroids_file);
+  //     if (ncentroids != nComponents*nClusters*nelements)
+  //       error->all(FLERR,"number of coefficients in the projection file is not correct");
+  //   }
+  // }
 }
 
 // destructor
@@ -422,6 +426,157 @@ void EAPOD::read_pod_file(std::string pod_file)
   }
 }
 
+void EAPOD::read_model_coeff_file(std::string coeff_file)
+{
+  std::string coefffilename = coeff_file;
+  FILE *fpcoeff;
+  if (comm->me == 0) {
+
+    fpcoeff = utils::open_potential(coefffilename,lmp,nullptr);
+    if (fpcoeff == nullptr)
+      error->one(FLERR,"Cannot open model coefficient file {}: ", coefffilename, utils::getsyserror());
+  }
+
+  // check format for first line of file
+
+  char line[MAXLINE],*ptr;
+  int eof = 0;
+  int nwords = 0;
+  while (nwords == 0) {
+    if (comm->me == 0) {
+      ptr = fgets(line,MAXLINE,fpcoeff);
+      if (ptr == nullptr) {
+        eof = 1;
+        fclose(fpcoeff);
+      }
+    }
+    MPI_Bcast(&eof,1,MPI_INT,0,world);
+    if (eof) break;
+    MPI_Bcast(line,MAXLINE,MPI_CHAR,0,world);
+
+    // strip comment, skip line if blank
+    nwords = utils::count_words(utils::trim_comment(line));
+  }
+
+  if (nwords != 4)
+    error->all(FLERR,"Incorrect format in POD coefficient file");
+
+  // strip single and double quotes from words
+
+  int ncoeffall, nprojall, ncentall;
+  std::string tmp_str;
+  try {
+    ValueTokenizer words(utils::trim_comment(line),"\"' \t\n\r\f");
+    tmp_str = words.next_string();
+    ncoeffall = words.next_int();
+    nprojall = words.next_int();
+    ncentall = words.next_int();
+  } catch (TokenizerException &e) {
+    error->all(FLERR,"Incorrect format in POD coefficient file: {}", e.what());
+  }
+
+  // loop over single block of coefficients and insert values in coeff
+
+  memory->create(coeff, ncoeffall, "pod:pod_coeff");
+
+  for (int icoeff = 0; icoeff < ncoeffall; icoeff++) {
+    if (comm->me == 0) {
+      ptr = fgets(line,MAXLINE,fpcoeff);
+      if (ptr == nullptr) {
+        eof = 1;
+        fclose(fpcoeff);
+      }
+    }
+
+    MPI_Bcast(&eof,1,MPI_INT,0,world);
+    if (eof) error->all(FLERR,"Incorrect format in model coefficient file");
+    MPI_Bcast(line,MAXLINE,MPI_CHAR,0,world);
+
+    try {
+      ValueTokenizer cff(utils::trim_comment(line));
+      if (cff.count() != 1) error->all(FLERR,"Incorrect format in model coefficient file");
+
+      coeff[icoeff] = cff.next_double();
+    } catch (TokenizerException &e) {
+      error->all(FLERR,"Incorrect format in model coefficient file: {}", e.what());
+    }
+  }
+
+  memory->create(Proj, nprojall, "pod:pca_proj");
+
+  for (int iproj = 0; iproj < nprojall; iproj++) {
+    if (comm->me == 0) {
+      ptr = fgets(line,MAXLINE,fpcoeff);
+      if (ptr == nullptr) {
+        eof = 1;
+        fclose(fpcoeff);
+      }
+    }
+
+    MPI_Bcast(&eof,1,MPI_INT,0,world);
+    if (eof) error->all(FLERR,"Incorrect format in model coefficient file");
+    MPI_Bcast(line,MAXLINE,MPI_CHAR,0,world);
+
+    try {
+      ValueTokenizer cff(utils::trim_comment(line));
+      if (cff.count() != 1) error->all(FLERR,"Incorrect format in model coefficient file");
+
+      Proj[iproj] = cff.next_double();
+    } catch (TokenizerException &e) {
+      error->all(FLERR,"Incorrect format in model coefficient file: {}", e.what());
+    }
+  }
+
+  memory->create(Centroids, ncentall, "pod:pca_cent");
+
+  for (int icent = 0; icent < ncentall; icent++) {
+    if (comm->me == 0) {
+      ptr = fgets(line,MAXLINE,fpcoeff);
+      if (ptr == nullptr) {
+        eof = 1;
+        fclose(fpcoeff);
+      }
+    }
+
+    MPI_Bcast(&eof,1,MPI_INT,0,world);
+    if (eof) error->all(FLERR,"Incorrect format in model coefficient file");
+    MPI_Bcast(line,MAXLINE,MPI_CHAR,0,world);
+
+    try {
+      ValueTokenizer cff(utils::trim_comment(line));
+      if (cff.count() != 1) error->all(FLERR,"Incorrect format in model coefficient file");
+
+      Centroids[icent] = cff.next_double();
+    } catch (TokenizerException &e) {
+      error->all(FLERR,"Incorrect format in model coefficient file: {}", e.what());
+    }
+  }
+
+  if (comm->me == 0) {
+    if (!eof) fclose(fpcoeff);
+  }
+
+
+  if (ncoeffall != nCoeffAll)
+    error->all(FLERR,"number of coefficients in the coefficient file is not correct");
+
+  if (nClusters > 1) {
+    if (nprojall != nComponents*Mdesc*nelements)
+      error->all(FLERR,"number of coefficients in the projection file is not correct");
+
+    if (ncentall != nComponents*nClusters*nelements)
+        error->all(FLERR,"number of coefficients in the projection file is not correct");
+  }
+
+  if (comm->me == 0) {
+    utils::logmesg(lmp, "**************** Begin of Model Coefficients ****************\n");
+    utils::logmesg(lmp, "total number of coefficients for POD potential: {}\n", ncoeffall);
+    utils::logmesg(lmp, "total number of elements for PCA projection matrix: {}\n", nprojall);
+    utils::logmesg(lmp, "total number of elements for PCA centroids: {}\n", ncentall);
+    utils::logmesg(lmp, "**************** End of Model Coefficients ****************\n\n");
+  }
+}
+
 int EAPOD::read_coeff_file(std::string coeff_file)
 {
   std::string coefffilename = coeff_file;
@@ -499,6 +654,7 @@ int EAPOD::read_coeff_file(std::string coeff_file)
       error->all(FLERR,"Incorrect format in POD coefficient file: {}", e.what());
     }
   }
+
   if (comm->me == 0) {
     if (!eof) fclose(fpcoeff);
   }
@@ -506,7 +662,7 @@ int EAPOD::read_coeff_file(std::string coeff_file)
   if (comm->me == 0) {
     utils::logmesg(lmp, "**************** Begin of POD Coefficients ****************\n");
     utils::logmesg(lmp, "total number of coefficients for POD potential: {}\n", ncoeffall);
-    utils::logmesg(lmp, "**************** End of POD Potentials ****************\n\n");
+    utils::logmesg(lmp, "**************** End of POD Coefficients ****************\n\n");
   }
 
   return ncoeffall;

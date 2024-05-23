@@ -20,16 +20,15 @@ Syntax
 
 .. code-block:: LAMMPS
 
-   compute ID group-ID pod/atom param.pod projection_matrix.pod centroids.pod
-   compute ID group-ID podd/atom param.pod projection_matrix.pod centroids.pod
-   compute ID group-ID pod/ldd param.pod projection_matrix.pod centroids.pod
-   compute ID group-ID pod/gdd param.pod projection_matrix.pod centroids.pod
+   compute ID group-ID pod/atom param.pod coefficients.pod
+   compute ID group-ID podd/atom param.pod coefficients.pod
+   compute ID group-ID pod/ldd param.pod coefficients.pod
+   compute ID group-ID pod/gdd param.pod coefficients.pod
 
 * ID, group-ID are documented in :doc:`compute <compute>` command
 * pod/atom = style name of this compute command
 * param.pod = the parameter file specifies parameters of the POD descriptors
-* projection_matrix.pod = the projection matrix file
-* centroids.pod = the centroid file
+* coefficients.pod = the coefficient file specifies coefficients of the POD potential
 
 Examples
 """"""""
@@ -40,10 +39,10 @@ Examples
    compute dd all podd/atom Ta_param.pod
    compute ldd all pod/ldd Ta_param.pod
    compute gdd all podd/gdd Ta_param.pod
-   compute d all pod/atom Ta_param.pod Ta_projection_matrix.pod Ta_centroids.pod
-   compute dd all podd/atom Ta_param.pod Ta_projection_matrix.pod Ta_centroids.pod
-   compute ldd all pod/ldd Ta_param.pod Ta_projection_matrix.pod Ta_centroids.pod
-   compute gdd all podd/gdd Ta_param.pod Ta_projection_matrix.pod Ta_centroids.pod
+   compute d all pod/atom Ta_param.pod Ta_coefficients.pod
+   compute dd all podd/atom Ta_param.pod Ta_coefficients.pod
+   compute ldd all pod/ldd Ta_param.pod Ta_coefficients.pod
+   compute gdd all podd/gdd Ta_param.pod Ta_coefficients.pod
 
 Description
 """""""""""

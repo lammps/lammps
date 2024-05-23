@@ -6,11 +6,11 @@ Please download the training data from [the repo](https://github.com/cesmix-mit/
 
 Fit POD with
 
-    lmp -in InP_fit.pod
+    lmp -in in.fitpod
 
 This creates `InP_coefficients.pod` for the linear model, which we can use to run MD with
 
-    lmp -in InP_mdrun.pod
+    lmp -in in.pod
 
 
  

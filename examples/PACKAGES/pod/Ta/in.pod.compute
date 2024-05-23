@@ -32,21 +32,21 @@ pair_coeff 	* *
 
 # set up per-atom computes
 
-compute ld all pod/atom Ta_param.pod Ta_projection_matrix.pod Ta_centroids.pod Ta Ta
-compute dd all podd/atom Ta_param.pod Ta_projection_matrix.pod Ta_centroids.pod Ta Ta
+compute ld all pod/atom Ta_param.pod Ta_coefficients.pod Ta Ta
+compute dd all podd/atom Ta_param.pod Ta_coefficients.pod Ta Ta
 
 # set up compute snap generating global array
 
-compute gdd all pod/gdd Ta_param.pod Ta_projection_matrix.pod Ta_centroids.pod Ta Ta
-fix 		gdd all ave/time 1 1 1 c_gdd[*] file pod.gdd.dat mode vector
+compute gdd all pod/gdd Ta_param.pod Ta_coefficients.pod Ta Ta
+#fix 		gdd all ave/time 1 1 1 c_gdd[*] file pod.gdd.dat mode vector
 
-compute ldd all pod/ldd Ta_param.pod Ta_projection_matrix.pod Ta_centroids.pod Ta Ta
-fix 		ldd all ave/time 1 1 1 c_ldd[*] file pod.ldd.dat mode vector
+compute ldd all pod/ldd Ta_param.pod Ta_coefficients.pod Ta Ta
+#fix 		ldd all ave/time 1 1 1 c_ldd[*] file pod.ldd.dat mode vector
 
-dump 		mydump_ld all custom 1000 dump_ld id c_ld[*]
-dump 		mydump_dd all custom 1000 dump_dd id c_dd[*]
+#dump 		mydump_ld all custom 1000 dump_ld id c_ld[*]
+#dump 		mydump_dd all custom 1000 dump_dd id c_dd[*]
 
 variable sample_ld1 equal C_ld[1][10]  # Arbitrary local descriptor
-fix ldprint all print 1 "${sample_ld1}" file sample_ld.txt
+fix ldprint all print 1 "${sample_ld1}" 
 
 run             ${nsteps}

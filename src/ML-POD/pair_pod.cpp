@@ -290,21 +290,14 @@ void PairPOD::coeff(int narg, char **arg)
   map = new int[np1];
   allocated = 1;
 
-  if (narg < 7) utils::missing_cmd_args(FLERR, "pair_coeff", error);
+  if (narg < 5) utils::missing_cmd_args(FLERR, "pair_coeff", error);
 
   std::string pod_file = std::string(arg[2]);      // pod input file
   std::string coeff_file = std::string(arg[3]);    // coefficient input file
-  std::string proj_file = std::string(arg[4]);     // projection matrix file
-  std::string centroid_file = std::string(arg[5]); // centroid matrix file
-  map_element2type(narg - 6, arg + 6);
+  map_element2type(narg - 4, arg + 4);
 
   delete fastpodptr;
-  fastpodptr = new EAPOD(lmp, pod_file, coeff_file, proj_file, centroid_file);
-
-  if (fastpodptr->nClusters > 1) {
-    if (proj_file == "") error->all(FLERR,"The projection file name can not be empty when the number of clusters is greater than 1.");
-    if (centroid_file == "") error->all(FLERR,"The centroids file name can not be empty when the number of clusters is greater than 1.");
-  }
+  fastpodptr = new EAPOD(lmp, pod_file, coeff_file);
 
   copy_data_from_pod_class();
   rcut = fastpodptr->rcut;

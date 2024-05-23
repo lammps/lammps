@@ -40,9 +40,11 @@
 
 #include "fmt/ranges.h"
 
+#include <algorithm>
 #include <cctype>
 #include <cmath>
 #include <cstring>
+#include <functional>
 #include <unordered_map>
 #include <unordered_set>
 
@@ -80,7 +82,7 @@ enum{DONE,ADD,SUBTRACT,MULTIPLY,DIVIDE,CARAT,MODULO,UNARY,
 
 // customize by adding a special function
 
-enum{SUM,XMIN,XMAX,AVE,TRAP,SLOPE};
+enum{SUM,XMIN,XMAX,AVE,TRAP,SLOPE,SORT,RSORT};
 
 static constexpr double BIG = 1.0e20;
 
@@ -4478,6 +4480,7 @@ int Variable::special_function(const std::string &word, char *contents, Tree **t
     if (method == SLOPE) sx = sxx = sy = sxy = 0.0;
     else if (method == XMIN) value = BIG;
     else if (method == XMAX) value = -BIG;
+    std::vector<double> unsorted;
 
     if (compute) {
       double *vec;
@@ -4486,6 +4489,7 @@ int Variable::special_function(const std::string &word, char *contents, Tree **t
         else vec = nullptr;
       } else vec = compute->vector;
 
+      if ((method == SORT) || (method == RSORT)) unsorted.reserve(nvec);
       int j = 0;
       for (int i = 0; i < nvec; i++) {
         if (method == SUM) value += vec[j];
@@ -4493,6 +4497,7 @@ int Variable::special_function(const std::string &word, char *contents, Tree **t
         else if (method == XMAX) value = MAX(value,vec[j]);
         else if (method == AVE) value += vec[j];
         else if (method == TRAP) value += vec[j];
+        else if ((method == SORT) || (method == RSORT)) unsorted.push_back(vec[j]);
         else if (method == SLOPE) {
           sx += (double)i;
           sy += vec[j];
@@ -4514,6 +4519,7 @@ int Variable::special_function(const std::string &word, char *contents, Tree **t
         else if (method == XMAX) value = MAX(value,one);
         else if (method == AVE) value += one;
         else if (method == TRAP) value += one;
+        else if ((method == SORT) || (method == RSORT)) unsorted.push_back(one);
         else if (method == SLOPE) {
           sx += (double)i;
           sy += one;
@@ -4539,6 +4545,7 @@ int Variable::special_function(const std::string &word, char *contents, Tree **t
         else if (method == XMAX) value = MAX(value,one);
         else if (method == AVE) value += one;
         else if (method == TRAP) value += one;
+        else if ((method == SORT) || (method == RSORT)) unsorted.push_back(one);
         else if (method == SLOPE) {
           sx += (double) i;
           sy += one;
@@ -4558,14 +4565,37 @@ int Variable::special_function(const std::string &word, char *contents, Tree **t
       else value = BIG;
     }
 
-    // save value in tree or on argstack
+    if ((method == SORT) || (method == RSORT)) {
+      if (method == SORT) std::sort(unsorted.begin(), unsorted.end(), std::less<double>());
+      if (method == RSORT) std::sort(unsorted.begin(), unsorted.end(), std::greater<double>());
 
-    if (tree) {
-      auto newtree = new Tree();
-      newtree->type = VALUE;
-      newtree->value = value;
-      treestack[ntreestack++] = newtree;
-    } else argstack[nargstack++] = value;
+      double *newvec;
+      memory->create(newvec,nvec,"variable:values");
+      for (int m = 0; m < nvec; m++)
+        newvec[m] = unsorted[m];
+
+      if (tree) {
+        auto newtree = new Tree();
+        newtree->type = VECTORARRAY;
+        newtree->array = newvec;
+        newtree->nvector = nvec;
+        newtree->nstride = 1;
+        newtree->selfalloc = 1;
+        treestack[ntreestack++] = newtree;
+      } else {
+        error->all(FLERR, "Cannot use argstack for sorted vector");
+      }
+    } else {
+
+      // save value in tree or on argstack
+
+      if (tree) {
+        auto newtree = new Tree();
+        newtree->type = VALUE;
+        newtree->value = value;
+        treestack[ntreestack++] = newtree;
+      } else argstack[nargstack++] = value;
+    }
 
   // mask special functions
 

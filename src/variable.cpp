@@ -44,6 +44,7 @@
 #include <cmath>
 #include <cstring>
 #include <unordered_map>
+#include <unordered_set>
 
 using namespace LAMMPS_NS;
 using namespace MathConst;
@@ -2285,7 +2286,7 @@ double Variable::evaluate(char *str, Tree **tree, int ivar)
 
           if (math_function(word,contents,tree,treestack,ntreestack,argstack,nargstack,ivar));
           else if (group_function(word,contents,tree,treestack,ntreestack,argstack,nargstack,ivar));
-          else if (special_function(word,contents,tree,treestack,ntreestack,argstack,nargstack,ivar));
+          else if (special_function(std::string(word),contents,tree,treestack,ntreestack,argstack,nargstack,ivar));
           else if (feature_function(word,contents,tree,treestack,ntreestack,argstack,nargstack,ivar));
           else print_var_error(FLERR,fmt::format("Invalid math/group/special/feature function '{}()' "
                                                  "in variable formula", word),ivar);
@@ -4267,32 +4268,29 @@ Region *Variable::region_function(char *id, int ivar)
      extract_setting(x),label2type(x,y),is_typelabel(x,y)
 ------------------------------------------------------------------------- */
 
-int Variable::special_function(char *word, char *contents, Tree **tree, Tree **treestack,
+int Variable::special_function(const std::string &word, char *contents, Tree **tree, Tree **treestack,
                                int &ntreestack, double *argstack, int &nargstack, int ivar)
 {
   double sx,sxx;
   double value,sy,sxy;
 
   // word is not a match to any special function
+  std::unordered_set<std::string> functions = {
+    "sum", "min", "max", "ave", "trap", "slope", "sort", "rsort", "gmask", "rmask", "grmask",
+    "next", "is_file", "is_os", "extract_setting", "label2type", "is_typelabel" };
 
-  if (strcmp(word,"sum") != 0 && strcmp(word,"min") && strcmp(word,"max") != 0 &&
-      strcmp(word,"ave") != 0 && strcmp(word,"trap") != 0 && strcmp(word,"slope") != 0 &&
-      strcmp(word,"gmask") != 0 && strcmp(word,"rmask") != 0 && strcmp(word,"grmask") != 0 &&
-      strcmp(word,"next") != 0 && strcmp(word,"is_file") != 0 && strcmp(word,"is_os") != 0 &&
-      strcmp(word,"extract_setting") != 0 && strcmp(word,"label2type") != 0 &&
-      strcmp(word,"is_typelabel") != 0)
-    return 0;
+  if (functions.find(word) == functions.end()) return 0;
 
   // process label2type() separately b/c its label arg can have commas in it
 
-  if (strcmp(word,"label2type") == 0 || strcmp(word,"is_typelabel") == 0) {
+  if ((word == "label2type") || (word == "is_typelabel")) {
     if (!atom->labelmapflag)
       print_var_error(FLERR,fmt::format("Cannot use {}() function without a labelmap",word),ivar);
 
     std::string contents_copy(contents);
     auto pos = contents_copy.find_first_of(',');
     if (pos == std::string::npos) {
-      if (strcmp(word,"label2type") == 0) {
+      if (word == "label2type") {
         print_var_error(FLERR, fmt::format("Invalid label2type({}) function in variable formula",
                                            contents_copy), ivar);
       } else {
@@ -4319,7 +4317,7 @@ int Variable::special_function(char *word, char *contents, Tree **tree, Tree **t
       print_var_error(FLERR, fmt::format("Invalid kind {} in {}() in variable", kind, word),ivar);
     }
 
-    if (strcmp(word,"label2type") == 0) {
+    if (word == "label2type") {
       if (value == -1)
         print_var_error(FLERR, fmt::format("Invalid {} type label {} in label2type() in variable",
                                            kind, typestr), ivar);
@@ -4348,20 +4346,21 @@ int Variable::special_function(char *word, char *contents, Tree **tree, Tree **t
 
   // special functions that operate on global vectors
 
-  if (strcmp(word,"sum") == 0 || strcmp(word,"min") == 0 ||
-      strcmp(word,"max") == 0 || strcmp(word,"ave") == 0 ||
-      strcmp(word,"trap") == 0 || strcmp(word,"slope") == 0) {
+  if ((word == "sum") || (word == "min") || (word == "max") || (word == "ave") ||
+      (word == "trap") || (word == "slope") || (word == "sort") || (word == "rsort")) {
 
     int method = 0;
-    if (strcmp(word,"sum") == 0) method = SUM;
-    else if (strcmp(word,"min") == 0) method = XMIN;
-    else if (strcmp(word,"max") == 0) method = XMAX;
-    else if (strcmp(word,"ave") == 0) method = AVE;
-    else if (strcmp(word,"trap") == 0) method = TRAP;
-    else if (strcmp(word,"slope") == 0) method = SLOPE;
+    if (word == "sum")  method = SUM;
+    else if (word == "min") method = XMIN;
+    else if (word == "max") method = XMAX;
+    else if (word == "ave") method = AVE;
+    else if (word == "trap") method = TRAP;
+    else if (word == "slope") method = SLOPE;
+    else if (word == "sort") method = SORT;
+    else if (word == "rsort") method = RSORT;
 
     if (narg != 1)
-      print_var_error(FLERR,"Invalid special function in variable formula",ivar);
+      print_var_error(FLERR,fmt::format("Invalid special function {}() in variable formula", word),ivar);
 
     Compute *compute = nullptr;
     Fix *fix = nullptr;
@@ -4570,7 +4569,7 @@ int Variable::special_function(char *word, char *contents, Tree **tree, Tree **t
 
   // mask special functions
 
-  } else if (strcmp(word,"gmask") == 0) {
+  } else if (word == "gmask") {
     if (tree == nullptr)
       print_var_error(FLERR,"Gmask function in equal-style variable formula",ivar);
     if (narg != 1)
@@ -4585,7 +4584,7 @@ int Variable::special_function(char *word, char *contents, Tree **tree, Tree **t
     newtree->ivalue = group->bitmask[igroup];
     treestack[ntreestack++] = newtree;
 
-  } else if (strcmp(word,"rmask") == 0) {
+  } else if (word == "rmask") {
     if (tree == nullptr)
       print_var_error(FLERR,"Rmask function in equal-style variable formula",ivar);
     if (narg != 1)
@@ -4599,7 +4598,7 @@ int Variable::special_function(char *word, char *contents, Tree **tree, Tree **t
     newtree->region = region;
     treestack[ntreestack++] = newtree;
 
-  } else if (strcmp(word,"grmask") == 0) {
+  } else if (word == "grmask") {
     if (tree == nullptr)
       print_var_error(FLERR,"Grmask function in equal-style variable formula",ivar);
     if (narg != 2)
@@ -4619,7 +4618,7 @@ int Variable::special_function(char *word, char *contents, Tree **tree, Tree **t
 
   // special function for file-style or atomfile-style variables
 
-  } else if (strcmp(word,"next") == 0) {
+  } else if (word == "next") {
     if (narg != 1)
       print_var_error(FLERR,"Invalid special function in variable formula",ivar);
 
@@ -4670,7 +4669,7 @@ int Variable::special_function(char *word, char *contents, Tree **tree, Tree **t
 
     } else print_var_error(FLERR,"Invalid variable style in special function next",ivar);
 
-  } else if (strcmp(word,"is_file") == 0) {
+  } else if (word == "is_file") {
     if (narg != 1)
       print_var_error(FLERR,"Invalid is_file() function in variable formula",ivar);
 
@@ -4687,7 +4686,7 @@ int Variable::special_function(char *word, char *contents, Tree **tree, Tree **t
       treestack[ntreestack++] = newtree;
     } else argstack[nargstack++] = value;
 
-  } else if (strcmp(word,"is_os") == 0) {
+  } else if (word == "is_os") {
     if (narg != 1) print_var_error(FLERR,"Invalid is_os() function in variable formula",ivar);
     value = utils::strmatch(platform::os_info(), args[0]) ? 1.0 : 0.0;
 
@@ -4700,7 +4699,7 @@ int Variable::special_function(char *word, char *contents, Tree **tree, Tree **t
       treestack[ntreestack++] = newtree;
     } else argstack[nargstack++] = value;
 
-  } else if (strcmp(word,"extract_setting") == 0) {
+  } else if (word == "extract_setting") {
     if (narg != 1) print_var_error(FLERR,"Invalid extract_setting() function in variable formula",ivar);
 
     value = lammps_extract_setting(lmp, args[0]);

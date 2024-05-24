@@ -117,7 +117,7 @@ void PairCoulSlaterLong::compute(int eflag, int vflag)
         erfc = t * (A1+t*(A2+t*(A3+t*(A4+t*A5)))) * expm2;
         slater_term = exp(-2*r/lamda)*(1 + (2*r/lamda*(1+r/lamda)));
         prefactor = qqrd2e * scale[itype][jtype] * qtmp*q[j]/r;
-        forcecoul = prefactor * (erfc + EWALD_F*grij*expm2 - slater_term);
+        forcecoul = prefactor * (erfc + EWALD_F*grij*expm2)*(1 - slater_term);
         if (factor_coul < 1.0) forcecoul -= (1.0-factor_coul)*prefactor*(1-slater_term);
 
         fpair = forcecoul * r2inv;
@@ -132,7 +132,7 @@ void PairCoulSlaterLong::compute(int eflag, int vflag)
         }
 
         if (eflag) {
-          ecoul = prefactor*(erfc - (1 + r/lamda)*exp(-2*r/lamda));
+          ecoul = prefactor*erfc*(1 - (1 + r/lamda)*exp(-2*r/lamda));
           if (factor_coul < 1.0) ecoul -= (1.0-factor_coul)*prefactor*(1.0-(1 + r/lamda)*exp(-2*r/lamda));
         }
 
@@ -321,12 +321,12 @@ double PairCoulSlaterLong::single(int i, int j, int /*itype*/, int /*jtype*/, do
   erfc = t * (A1+t*(A2+t*(A3+t*(A4+t*A5)))) * expm2;
   slater_term = exp(-2*r/lamda)*(1 + (2*r/lamda*(1+r/lamda)));
   prefactor = force->qqrd2e * atom->q[i]*atom->q[j]/r;
-  forcecoul = prefactor * (erfc + EWALD_F*grij*expm2 - slater_term);
+  forcecoul = prefactor * (erfc + EWALD_F*grij*expm2)*(1 - slater_term);
   if (factor_coul < 1.0) forcecoul -= (1.0-factor_coul)*prefactor;
   fforce = forcecoul * r2inv;
 
-  phicoul = prefactor*(erfc - (1 + r/lamda)*exp(-2*r/lamda));
-  if (factor_coul < 1.0) phicoul -= (1.0-factor_coul)*prefactor*(1.0-(1 + r/lamda)*exp(-2*r/lamda));
+  phicoul = prefactor*erfc*(1 - (1 + r/lamda)*exp(-2*r/lamda));
+  if (factor_coul < 1.0) phicoul -= (1.0-factor_coul)*prefactor*(1 - (1 + r/lamda)*exp(-2*r/lamda));
 
   return phicoul;
 }

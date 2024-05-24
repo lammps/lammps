@@ -326,7 +326,7 @@ double PairCoulSlaterLong::single(int i, int j, int /*itype*/, int /*jtype*/, do
   fforce = forcecoul * r2inv;
 
   phicoul = prefactor*(erfc - (1 + r/lamda)*exp(-2*r/lamda));
-  if (factor_coul < 1.0) phicoul -= (1.0-factor_coul)*prefactor;
+  if (factor_coul < 1.0) phicoul -= (1.0-factor_coul)*prefactor*(1.0-(1 + r/lamda)*exp(-2*r/lamda));
 
   return phicoul;
 }

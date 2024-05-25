@@ -46,7 +46,6 @@
 #include <cstring>
 #include <functional>
 #include <unordered_map>
-#include <unordered_set>
 
 using namespace LAMMPS_NS;
 using namespace MathConst;
@@ -82,7 +81,7 @@ enum{DONE,ADD,SUBTRACT,MULTIPLY,DIVIDE,CARAT,MODULO,UNARY,
 
 // customize by adding a special function
 
-enum{SUM,XMIN,XMAX,AVE,TRAP,SLOPE,SORT,RSORT};
+enum{SUM,XMIN,XMAX,AVE,TRAP,SLOPE,SORT,RSORT,NOVECTOR};
 
 static constexpr double BIG = 1.0e20;
 
@@ -4270,18 +4269,23 @@ Region *Variable::region_function(char *id, int ivar)
      extract_setting(x),label2type(x,y),is_typelabel(x,y)
 ------------------------------------------------------------------------- */
 
-int Variable::special_function(const std::string &word, char *contents, Tree **tree, Tree **treestack,
-                               int &ntreestack, double *argstack, int &nargstack, int ivar, char *str, int &istr, char *&ptr)
+// to simplify finding matches and assigning constants for functions operating on vectors
+
+static const std::unordered_map<std::string,int> special_function_map = {
+  {"sum", SUM}, {"min", XMIN}, {"max", XMAX}, {"ave", AVE}, {"trap", TRAP}, {"slope", SLOPE},
+  {"sort", SORT}, {"rsort", RSORT}, {"gmask", NOVECTOR}, {"rmask", NOVECTOR}, {"grmask", NOVECTOR},
+  {"next", NOVECTOR}, {"is_file", NOVECTOR}, {"is_os", NOVECTOR}, {"extract_setting", NOVECTOR},
+  {"label2type", NOVECTOR}, {"is_typelabel", NOVECTOR} };
+
+int Variable::special_function(const std::string &word, char *contents, Tree **tree,
+                               Tree **treestack, int &ntreestack, double *argstack,
+                               int &nargstack, int ivar, char *str, int &istr, char *&ptr)
 {
   double sx,sxx;
   double value,sy,sxy;
 
-  // word is not a match to any special function
-  std::unordered_set<std::string> functions = {
-    "sum", "min", "max", "ave", "trap", "slope", "sort", "rsort", "gmask", "rmask", "grmask",
-    "next", "is_file", "is_os", "extract_setting", "label2type", "is_typelabel" };
-
-  if (functions.find(word) == functions.end()) return 0;
+  // return if "word" is not a match to any special function
+  if (special_function_map.find(word) == special_function_map.end()) return 0;
 
   // process label2type() separately b/c its label arg can have commas in it
 
@@ -4346,20 +4350,10 @@ int Variable::special_function(const std::string &word, char *contents, Tree **t
   char *args[MAXFUNCARG];
   int narg = parse_args(contents,args);
 
-  // special functions that operate on global vectors
+  // special functions that operate on global vectors are NOT mapped to NOVECTOR
 
-  if ((word == "sum") || (word == "min") || (word == "max") || (word == "ave") ||
-      (word == "trap") || (word == "slope") || (word == "sort") || (word == "rsort")) {
-
-    int method = 0;
-    if (word == "sum")  method = SUM;
-    else if (word == "min") method = XMIN;
-    else if (word == "max") method = XMAX;
-    else if (word == "ave") method = AVE;
-    else if (word == "trap") method = TRAP;
-    else if (word == "slope") method = SLOPE;
-    else if (word == "sort") method = SORT;
-    else if (word == "rsort") method = RSORT;
+  int method = special_function_map.find(word)->second;
+  if (method != NOVECTOR) {
 
     if (narg != 1)
       print_var_error(FLERR,fmt::format("Invalid special function {}() in variable formula", word),ivar);

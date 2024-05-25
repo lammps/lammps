@@ -935,7 +935,7 @@ class lammps(object):
   # map global atom ID to local atom index
 
   def map_atom(self, id):
-    """Map a global atom ID (aka tag) to the local atom indx
+    """Map a global atom ID (aka tag) to the local atom index
 
     This is a wrapper around the :cpp:func:`lammps_map_atom`
     function of the C-library interface.

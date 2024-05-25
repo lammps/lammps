@@ -1364,7 +1364,7 @@ CONTAINS
     END IF
     lmp_map_atom_big = lammps_map_atom(self%handle, Cptr) + 1
   END FUNCTION lmp_map_atom_big
-  
+
   ! equivalent function to lammps_extract_atom
   ! the assignment is actually overloaded so as to bind the pointers to
   ! lammps data based on the information available from LAMMPS

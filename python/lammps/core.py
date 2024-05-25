@@ -893,6 +893,8 @@ class lammps(object):
       veclen = vec_dict[name]
     elif name == 'respa_dt':
       veclen = self.extract_global('respa_levels',LAMMPS_INT)
+    elif name == 'sametag':
+      veclen = self.extract_setting('nall')
     else:
       veclen = 1
 

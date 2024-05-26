@@ -335,6 +335,46 @@ class UCL_Kernel {
 
   /// Run the kernel in the default command queue
   inline void run() {
+    const unsigned int maxBlockSize = 65535;
+    unsigned long totalThreads = static_cast<unsigned long>(_num_blocks[0]) * _num_blocks[1] * _num_blocks[2];
+    if (_num_blocks[0] > maxBlockSize) {
+        _num_blocks[1] = static_cast<unsigned int>((totalThreads / maxBlockSize) / _num_blocks[2]);
+        _num_blocks[0] = maxBlockSize;
+    }
+    if (_num_blocks[1] > maxBlockSize) {
+        _num_blocks[2] = static_cast<unsigned int>((totalThreads / maxBlockSize) / _num_blocks[0]);
+        _num_blocks[1] = maxBlockSize;
+    }
+    if (_num_blocks[2] > maxBlockSize) {
+        _num_blocks[0] = static_cast<unsigned int>((totalThreads / maxBlockSize) / _num_blocks[1]);
+        _num_blocks[2] = maxBlockSize;
+    }
+    unsigned long adjustedTotalThreads = static_cast<unsigned long>(_num_blocks[0]) * _num_blocks[1] * _num_blocks[2];
+    if (adjustedTotalThreads != totalThreads) {
+        unsigned long difference = totalThreads - adjustedTotalThreads;
+        unsigned long increment = difference / (_num_blocks[0] * _num_blocks[1] * _num_blocks[2]);
+
+        while (adjustedTotalThreads < totalThreads) {
+            if (_num_blocks[0] < maxBlockSize) {
+                _num_blocks[0]++;
+                adjustedTotalThreads += (_num_blocks[1] * _num_blocks[2]);
+            } else if (_num_blocks[1] < maxBlockSize) {
+                _num_blocks[1]++;
+                adjustedTotalThreads += (_num_blocks[0] * _num_blocks[2]);
+            } else if (_num_blocks[2] < maxBlockSize) {
+                _num_blocks[2]++;
+                adjustedTotalThreads += (_num_blocks[0] * _num_blocks[1]);
+            } else {
+                break;
+            }
+        }
+    }
+    adjustedTotalThreads = static_cast<unsigned long>(_num_blocks[0]) * _num_blocks[1] * _num_blocks[2];
+    if (adjustedTotalThreads != totalThreads) {
+        fprintf(stderr, "Warning: Adjusted block size changes total thread count from %lu to %lu\n",
+                totalThreads, adjustedTotalThreads);
+    }
+
     CU_SAFE_CALL(cuLaunchKernel(_kernel,_num_blocks[0],_num_blocks[1],
                                 _num_blocks[2],_block_size[0],_block_size[1],
                                 _block_size[2],0,_cq,_kernel_args,nullptr));

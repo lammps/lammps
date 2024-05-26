@@ -1,6 +1,6 @@
 dimension       2
 units           micro
-atom_style      meso
+atom_style      sph
 
 variable        R equal 0.5             # radius of sphere          micrometers
 variable        a equal $R/5            # lattice spacing           micrometers
@@ -27,12 +27,12 @@ group           fluid type 1
 group           sphere type 2
 
 mass            * ${mass}
-set             group all meso/rho ${rho_0}
+set             group all sph/rho ${rho_0}
 
 pair_style      sdpd/taitwater/isothermal $T ${mu} 76787    # temperature viscosity random_seed
 pair_coeff      * * ${rho_0} ${c_0} ${h}
 
-fix             1 fluid meso
+fix             1 fluid sph
 fix             2 sphere rigid/meso single
 
 fix             2d all enforce2d

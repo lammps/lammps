@@ -16,15 +16,18 @@
 
 #include "atom.h"
 #include "comm.h"
+#include "error.h"
 #include "force.h"
 #include "neigh_list.h"
 #include "suffix.h"
 
-#include <cmath>
-
 #include "Lepton.h"
 #include "lepton_utils.h"
 #include "omp_compat.h"
+
+#include <cmath>
+#include <exception>
+
 using namespace LAMMPS_NS;
 
 /* ---------------------------------------------------------------------- */
@@ -96,10 +99,17 @@ void PairLeptonOMP::eval(int iifrom, int iito, ThrData *const thr)
 
   std::vector<Lepton::CompiledExpression> pairforce;
   std::vector<Lepton::CompiledExpression> pairpot;
+  std::vector<bool> have_ref;
   try {
     for (const auto &expr : expressions) {
       auto parsed = Lepton::Parser::parse(LeptonUtils::substitute(expr, Pointers::lmp), functions);
       pairforce.emplace_back(parsed.differentiate("r").createCompiledExpression());
+      have_ref.push_back(true);
+      try {
+        pairforce.back().getVariableReference("r");
+      } catch (Lepton::Exception &) {
+        have_ref.back() = false;
+      }
       if (EFLAG) pairpot.emplace_back(parsed.createCompiledExpression());
     }
   } catch (std::exception &e) {
@@ -132,7 +142,7 @@ void PairLeptonOMP::eval(int iifrom, int iito, ThrData *const thr)
       if (rsq < cutsq[itype][jtype]) {
         const double r = sqrt(rsq);
         const int idx = type2expression[itype][jtype];
-        pairforce[idx].getVariableReference("r") = r;
+        if (have_ref[idx]) pairforce[idx].getVariableReference("r") = r;
         const double fpair = -pairforce[idx].evaluate() / r * factor_lj;
 
         fxtmp += delx * fpair;
@@ -146,7 +156,11 @@ void PairLeptonOMP::eval(int iifrom, int iito, ThrData *const thr)
 
         double evdwl = 0.0;
         if (EFLAG) {
-          pairpot[idx].getVariableReference("r") = r;
+          try {
+            pairpot[idx].getVariableReference("r") = r;
+          } catch (Lepton::Exception &) {
+            ;    // ignore -> constant potential
+          }
           evdwl = pairpot[idx].evaluate() - offset[itype][jtype];
           evdwl *= factor_lj;
         }

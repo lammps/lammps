@@ -9,7 +9,7 @@ Accelerator Variants: *nph/sphere/omp*
 Syntax
 """"""
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    fix ID group-ID nph/sphere args keyword value ...
 

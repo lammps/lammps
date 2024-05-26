@@ -23,8 +23,8 @@ class Grid3d : protected Pointers {
   enum { KSPACE = 0, PAIR = 1, FIX = 2 };    // calling classes
 
   Grid3d(class LAMMPS *, MPI_Comm, int, int, int);
-  Grid3d(class LAMMPS *, MPI_Comm, int, int, int,
-         int, int, int, int, int, int, int, int, int, int, int, int);
+  Grid3d(class LAMMPS *, MPI_Comm, int, int, int, int, int, int, int, int, int, int, int, int, int,
+         int, int);
   ~Grid3d();
 
   void set_distance(double);
@@ -41,8 +41,8 @@ class Grid3d : protected Pointers {
   void get_bounds_owned(int &, int &, int &, int &, int &, int &);
   void get_bounds_ghost(int &, int &, int &, int &, int &, int &);
 
-  void setup_grid(int &, int &, int &, int &, int &, int &,
-                  int &, int &, int &, int &, int &, int &);
+  void setup_grid(int &, int &, int &, int &, int &, int &, int &, int &, int &, int &, int &,
+                  int &);
 
   void setup_comm(int &, int &);
   int ghost_adjacent();
@@ -57,24 +57,23 @@ class Grid3d : protected Pointers {
 
  protected:
   int me, nprocs;
-  int layout;           // not TILED or TILED, same as Comm class
   MPI_Comm gridcomm;    // communicator for this class
                         // usually world, but MSM calls with subset
 
   // input from caller
 
-  int nx, ny, nz;      // size of global grid in all 3 dims
-  double maxdist;      // distance owned atoms can move outside subdomain
-  int stencil_atom_lo,stencil_atom_hi;    // grid cells accessed beyond atom's cell
-  int stencil_grid_lo,stencil_grid_hi;    // grid cells accessed beyond owned cell
-  double shift_grid;   // location of grid point within grid cell
-                       // only affects which proc owns grid cell
-  double shift_atom_lo,shift_atom_hi;;   // max shift applied to atoms
-                       // when mapped to grid cell by caller
-                       // can be different in lo/hi directions
-                       // only affects extent of ghost cells
-  int zextra;          // 1 if extra grid cells in Z, 0 if not
-  double zfactor;      // multiplier on extent of grid in Z direction
+  int nx, ny, nz;                          // size of global grid in all 3 dims
+  double maxdist;                          // distance owned atoms can move outside subdomain
+  int stencil_atom_lo, stencil_atom_hi;    // grid cells accessed beyond atom's cell
+  int stencil_grid_lo, stencil_grid_hi;    // grid cells accessed beyond owned cell
+  double shift_grid;                       // location of grid point within grid cell
+                                           // only affects which proc owns grid cell
+  double shift_atom_lo, shift_atom_hi;     // max shift applied to atoms
+                                           // when mapped to grid cell by caller
+                                           // can be different in lo/hi directions
+                                           // only affects extent of ghost cells
+  int zextra;                              // 1 if extra grid cells in Z, 0 if not
+  double zfactor;                          // multiplier on extent of grid in Z direction
 
   // extent of my owned and ghost cells
 
@@ -196,11 +195,11 @@ class Grid3d : protected Pointers {
   // internal variables for OVERLAP operation
   // -------------------------------------------
 
-  int *overlap_procs;       // length of Nprocs in communicator
+  int *overlap_procs;    // length of Nprocs in communicator
 
   // BRICK decomposition
 
-  double *xsplit,*ysplit,*zsplit;
+  double *xsplit, *ysplit, *zsplit;
   int ***grid2proc;
 
   // TILED decomposition

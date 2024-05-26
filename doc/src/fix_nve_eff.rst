@@ -6,7 +6,7 @@ fix nve/eff command
 Syntax
 """"""
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    fix ID group-ID nve/eff
 

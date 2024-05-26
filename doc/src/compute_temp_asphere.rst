@@ -49,25 +49,26 @@ rotational).
 
 .. note::
 
-   This choice for degrees of freedom (DOF) assumes that all
-   finite-size aspherical or spherical particles in your model will
-   freely rotate, sampling all their rotational DOF.  It is possible to
-   use a combination of interaction potentials and fixes that induce no
-   torque or otherwise constrain some of all of your particles so that
-   this is not the case.  Then there are fewer DOF and you should use the
-   :doc:`compute_modify extra <compute_modify>` command to adjust the DOF
-   accordingly.
+   This choice for degrees of freedom (DOF) assumes that all finite-size
+   aspherical or spherical particles in your model will freely rotate,
+   sampling all their rotational DOF.  It is possible to use a
+   combination of interaction potentials and fixes that induce no torque
+   or otherwise constrain some of all of your particles so that this is
+   not the case.  Then there are fewer DOF and you should use the
+   :doc:`compute_modify extra/dof <compute_modify>` command to adjust
+   the DOF accordingly.
 
 For example, an aspherical particle with all three of its shape
-parameters the same is a sphere.  If it does not rotate, then it
-should have 3 DOF instead of 6 in 3d (or two instead of three in 2d).
-A uniaxial aspherical particle has two of its three shape parameters the
+parameters the same is a sphere.  If it does not rotate, then it should
+have 3 DOF instead of 6 in 3d (or two instead of three in 2d).  A
+uniaxial aspherical particle has two of its three shape parameters the
 same.  If it does not rotate around the axis perpendicular to its
 circular cross section, then it should have 5 DOF instead of 6 in 3d.
-The latter is the case for uniaxial ellipsoids in a :doc:`GayBerne model <pair_gayberne>` since there is no induced torque around the
-optical axis.  It will also be the case for biaxial ellipsoids when
-exactly two of the semiaxes have the same length and the corresponding
-relative well depths are equal.
+The latter is the case for uniaxial ellipsoids in a :doc:`GayBerne model
+<pair_gayberne>` since there is no induced torque around the optical
+axis.  It will also be the case for biaxial ellipsoids when exactly two
+of the semiaxes have the same length and the corresponding relative well
+depths are equal.
 
 The translational kinetic energy is computed the same as is described
 by the :doc:`compute temp <compute_temp>` command.  The rotational
@@ -90,15 +91,17 @@ inertia tensor are used.  The six components of the vector are ordered
 :math:`xx`, :math:`yy`, :math:`zz`, :math:`xy`, :math:`xz`, :math:`yz`.
 
 The number of atoms contributing to the temperature is assumed to be
-constant for the duration of the run; use the *dynamic* option of the
-:doc:`compute_modify <compute_modify>` command if this is not the case.
+constant for the duration of the run; use the *dynamic/dof* option of
+the :doc:`compute_modify <compute_modify>` command if this is not the
+case.
 
-This compute subtracts out translational degrees-of-freedom due to
-fixes that constrain molecular motion, such as :doc:`fix shake <fix_shake>` and :doc:`fix rigid <fix_rigid>`.  This means the
-temperature of groups of atoms that include these constraints will be
-computed correctly.  If needed, the subtracted degrees-of-freedom can
-be altered using the *extra* option of the
-:doc:`compute_modify <compute_modify>` command.
+This compute subtracts out translational degrees-of-freedom due to fixes
+that constrain molecular motion, such as :doc:`fix shake <fix_shake>`
+and :doc:`fix rigid <fix_rigid>`.  This means the temperature of groups
+of atoms that include these constraints will be computed correctly.  If
+needed, the subtracted degrees-of-freedom can be altered using the
+*extra/dof* option of the :doc:`compute_modify <compute_modify>`
+command.
 
 See the :doc:`Howto thermostat <Howto_thermostat>` page for a
 discussion of different ways to compute temperature and perform

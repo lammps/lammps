@@ -6,7 +6,7 @@ fix langevin/drude command
 Syntax
 """"""
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    fix ID group-ID langevin/drude Tcom damp_com seed_com Tdrude damp_drude seed_drude keyword values ...
 

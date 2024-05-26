@@ -1,55 +1,23 @@
-/*
 //@HEADER
 // ************************************************************************
 //
-//                        Kokkos v. 3.0
-//       Copyright (2020) National Technology & Engineering
+//                        Kokkos v. 4.0
+//       Copyright (2022) National Technology & Engineering
 //               Solutions of Sandia, LLC (NTESS).
 //
 // Under the terms of Contract DE-NA0003525 with NTESS,
 // the U.S. Government retains certain rights in this software.
 //
-// Redistribution and use in source and binary forms, with or without
-// modification, are permitted provided that the following conditions are
-// met:
+// Part of Kokkos, under the Apache License v2.0 with LLVM Exceptions.
+// See https://kokkos.org/LICENSE for license information.
+// SPDX-License-Identifier: Apache-2.0 WITH LLVM-exception
 //
-// 1. Redistributions of source code must retain the above copyright
-// notice, this list of conditions and the following disclaimer.
-//
-// 2. Redistributions in binary form must reproduce the above copyright
-// notice, this list of conditions and the following disclaimer in the
-// documentation and/or other materials provided with the distribution.
-//
-// 3. Neither the name of the Corporation nor the names of the
-// contributors may be used to endorse or promote products derived from
-// this software without specific prior written permission.
-//
-// THIS SOFTWARE IS PROVIDED BY NTESS "AS IS" AND ANY
-// EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
-// IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR
-// PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL NTESS OR THE
-// CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
-// EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
-// PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR
-// PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF
-// LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING
-// NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
-// SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-//
-// Questions? Contact Christian R. Trott (crtrott@sandia.gov)
-//
-// ************************************************************************
 //@HEADER
-*/
 
 #ifndef KOKKOS_IMPL_PUBLIC_INCLUDE
 #include <Kokkos_Macros.hpp>
-#ifndef KOKKOS_ENABLE_DEPRECATED_CODE_3
 static_assert(false,
               "Including non-public Kokkos header files is not allowed.");
-#else
-KOKKOS_IMPL_WARNING("Including non-public Kokkos header files is not allowed.")
-#endif
 #endif
 #ifndef KOKKOS_CRS_HPP
 #define KOKKOS_CRS_HPP
@@ -336,11 +304,11 @@ struct CountAndFillBase {
   Functor m_functor;
   counts_type m_counts;
   struct Count {};
-  inline void operator()(Count, size_type i) const {
+  KOKKOS_FUNCTION void operator()(Count, size_type i) const {
     m_counts(i) = m_functor(i, nullptr);
   }
   struct Fill {};
-  inline void operator()(Fill, size_type i) const {
+  KOKKOS_FUNCTION void operator()(Fill, size_type i) const {
     auto j = m_crs.row_map(i);
     /* we don't want to access entries(entries.size()), even if its just to get
        its address and never use it. this can happen when row (i) is empty and
@@ -354,42 +322,6 @@ struct CountAndFillBase {
   }
   CountAndFillBase(CrsType& crs, Functor const& f) : m_crs(crs), m_functor(f) {}
 };
-
-#if defined(KOKKOS_ENABLE_CUDA) || defined(KOKKOS_ENABLE_HIP)
-#if defined(KOKKOS_ENABLE_CUDA)
-#define EXEC_SPACE Kokkos::Cuda
-#elif defined(KOKKOS_ENABLE_HIP)
-#define EXEC_SPACE Kokkos::Experimental::HIP
-#endif
-template <class CrsType, class Functor>
-struct CountAndFillBase<CrsType, Functor, EXEC_SPACE> {
-  using data_type    = typename CrsType::data_type;
-  using size_type    = typename CrsType::size_type;
-  using row_map_type = typename CrsType::row_map_type;
-  using counts_type  = row_map_type;
-  CrsType m_crs;
-  Functor m_functor;
-  counts_type m_counts;
-  struct Count {};
-  __device__ inline void operator()(Count, size_type i) const {
-    m_counts(i) = m_functor(i, nullptr);
-  }
-  struct Fill {};
-  __device__ inline void operator()(Fill, size_type i) const {
-    auto j = m_crs.row_map(i);
-    /* we don't want to access entries(entries.size()), even if its just to get
-       its address and never use it. this can happen when row (i) is empty and
-       all rows after it are also empty. we could compare to row_map(i + 1), but
-       that is a read from global memory, whereas dimension_0() should be part
-       of the View in registers (or constant memory) */
-    data_type* fill = (j == static_cast<decltype(j)>(m_crs.entries.extent(0)))
-                          ? nullptr
-                          : (&(m_crs.entries(j)));
-    m_functor(i, fill);
-  }
-  CountAndFillBase(CrsType& crs, Functor const& f) : m_crs(crs), m_functor(f) {}
-};
-#endif
 
 template <class CrsType, class Functor>
 struct CountAndFill : public CountAndFillBase<CrsType, Functor> {

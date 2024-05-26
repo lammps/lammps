@@ -31,15 +31,15 @@
 #include "respa.h"
 #include "update.h"
 
-#include <cmath>
 #include <cctype>
+#include <cmath>
 #include <cstring>
 
 using namespace LAMMPS_NS;
 using namespace FixConst;
 using namespace MathConst;
 
-#define RVOUS 1   // 0 for irregular, 1 for all2all
+static constexpr int RVOUS = 1;    // 0 for irregular, 1 for all2all
 
 static constexpr double BIG = 1.0e20;
 static constexpr double MASSDELTA = 0.1;
@@ -47,15 +47,15 @@ static constexpr double MASSDELTA = 0.1;
 /* ---------------------------------------------------------------------- */
 
 FixShake::FixShake(LAMMPS *lmp, int narg, char **arg) :
-  Fix(lmp, narg, arg), bond_flag(nullptr), angle_flag(nullptr),
-  type_flag(nullptr), mass_list(nullptr), bond_distance(nullptr), angle_distance(nullptr),
-  loop_respa(nullptr), step_respa(nullptr), x(nullptr), v(nullptr), f(nullptr), ftmp(nullptr),
-  vtmp(nullptr), mass(nullptr), rmass(nullptr), type(nullptr), shake_flag(nullptr),
-  shake_atom(nullptr), shake_type(nullptr), xshake(nullptr), nshake(nullptr), list(nullptr),
-  b_count(nullptr), b_count_all(nullptr), b_ave(nullptr), b_max(nullptr), b_min(nullptr),
-  b_ave_all(nullptr), b_max_all(nullptr), b_min_all(nullptr), a_count(nullptr),
-  a_count_all(nullptr), a_ave(nullptr), a_max(nullptr), a_min(nullptr), a_ave_all(nullptr),
-  a_max_all(nullptr), a_min_all(nullptr), atommols(nullptr), onemols(nullptr), closest_list(nullptr)
+    Fix(lmp, narg, arg), bond_flag(nullptr), angle_flag(nullptr), type_flag(nullptr),
+    mass_list(nullptr), bond_distance(nullptr), angle_distance(nullptr), loop_respa(nullptr),
+    step_respa(nullptr), x(nullptr), v(nullptr), f(nullptr), ftmp(nullptr), vtmp(nullptr),
+    mass(nullptr), rmass(nullptr), type(nullptr), shake_flag(nullptr), shake_atom(nullptr),
+    shake_type(nullptr), xshake(nullptr), nshake(nullptr), list(nullptr), closest_list(nullptr),
+    b_count(nullptr), b_count_all(nullptr), b_ave(nullptr), b_max(nullptr), b_min(nullptr),
+    b_ave_all(nullptr), b_max_all(nullptr), b_min_all(nullptr), a_count(nullptr),
+    a_count_all(nullptr), a_ave(nullptr), a_max(nullptr), a_min(nullptr), a_ave_all(nullptr),
+    a_max_all(nullptr), a_min_all(nullptr), atommols(nullptr), onemols(nullptr)
 {
   energy_global_flag = energy_peratom_flag = 1;
   virial_global_flag = virial_peratom_flag = 1;
@@ -63,6 +63,7 @@ FixShake::FixShake(LAMMPS *lmp, int narg, char **arg) :
   create_attribute = 1;
   dof_flag = 1;
   scalar_flag = 1;
+  extscalar = 1;
   stores_ids = 1;
   centroidstressflag = CENTROID_AVAIL;
   next_output = -1;
@@ -76,7 +77,7 @@ FixShake::FixShake(LAMMPS *lmp, int narg, char **arg) :
 
   molecular = atom->molecular;
   if (molecular == Atom::ATOMIC)
-    error->all(FLERR,"Cannot use fix {} with non-molecular system", style);
+    error->all(FLERR, "Cannot use fix {} with non-molecular system", style);
 
   // perform initial allocation of atom-based arrays
   // register with Atom class
@@ -97,13 +98,13 @@ FixShake::FixShake(LAMMPS *lmp, int narg, char **arg) :
   comm_forward = 3;
 
   // parse SHAKE args
-  auto mystyle = fmt::format("fix {}",style);
+  auto mystyle = fmt::format("fix {}", style);
 
-  if (narg < 8) utils::missing_cmd_args(FLERR,mystyle, error);
+  if (narg < 8) utils::missing_cmd_args(FLERR, mystyle, error);
 
-  tolerance = utils::numeric(FLERR,arg[3],false,lmp);
-  max_iter = utils::inumeric(FLERR,arg[4],false,lmp);
-  output_every = utils::inumeric(FLERR,arg[5],false,lmp);
+  tolerance = utils::numeric(FLERR, arg[3], false, lmp);
+  max_iter = utils::inumeric(FLERR, arg[4], false, lmp);
+  output_every = utils::inumeric(FLERR, arg[5], false, lmp);
 
   // parse SHAKE args for bond and angle types
   // will be used by find_clusters
@@ -111,11 +112,11 @@ FixShake::FixShake(LAMMPS *lmp, int narg, char **arg) :
   // store args for "m" in list of length nmass for looping over
   // for "m" verify that atom masses have been set
 
-  bond_flag = new int[atom->nbondtypes+1];
+  bond_flag = new int[atom->nbondtypes + 1];
   for (int i = 1; i <= atom->nbondtypes; i++) bond_flag[i] = 0;
-  angle_flag = new int[atom->nangletypes+1];
+  angle_flag = new int[atom->nangletypes + 1];
   for (int i = 1; i <= atom->nangletypes; i++) angle_flag[i] = 0;
-  type_flag = new int[atom->ntypes+1];
+  type_flag = new int[atom->ntypes + 1];
   for (int i = 1; i <= atom->ntypes; i++) type_flag[i] = 0;
   mass_list = new double[atom->ntypes];
   nmass = 0;
@@ -207,8 +208,8 @@ FixShake::FixShake(LAMMPS *lmp, int narg, char **arg) :
 
   if (output_every) {
     int nb = atom->nbondtypes + 1;
-    b_count = new int[nb];
-    b_count_all = new int[nb];
+    b_count = new bigint[nb];
+    b_count_all = new bigint[nb];
     b_ave = new double[nb];
     b_ave_all = new double[nb];
     b_max = new double[nb];
@@ -217,8 +218,8 @@ FixShake::FixShake(LAMMPS *lmp, int narg, char **arg) :
     b_min_all = new double[nb];
 
     int na = atom->nangletypes + 1;
-    a_count = new int[na];
-    a_count_all = new int[na];
+    a_count = new bigint[na];
+    a_count_all = new bigint[na];
     a_ave = new double[na];
     a_ave_all = new double[na];
     a_max = new double[na];
@@ -255,7 +256,7 @@ FixShake::~FixShake()
 
   // unregister callbacks to this fix from Atom class
 
-  atom->delete_callback(id,Atom::GROW);
+  if (modify->get_fix_by_id(id)) atom->delete_callback(id,Atom::GROW);
 
   // set bond_type and angle_type back to positive for SHAKE clusters
   // must set for all SHAKE bonds and angles stored by each atom
@@ -755,7 +756,7 @@ void FixShake::min_post_force(int vflag)
    count # of degrees-of-freedom removed by SHAKE for atoms in igroup
 ------------------------------------------------------------------------- */
 
-int FixShake::dof(int igroup)
+bigint FixShake::dof(int igroup)
 {
   int groupbit = group->bitmask[igroup];
 
@@ -766,7 +767,7 @@ int FixShake::dof(int igroup)
   // count dof in a cluster if and only if
   // the central atom is in group and atom i is the central atom
 
-  int n = 0;
+  bigint n = 0;
   for (int i = 0; i < nlocal; i++) {
     if (!(mask[i] & groupbit)) continue;
     if (shake_flag[i] == 0) continue;
@@ -777,8 +778,8 @@ int FixShake::dof(int igroup)
     else if (shake_flag[i] == 4) n += 3;
   }
 
-  int nall;
-  MPI_Allreduce(&n,&nall,1,MPI_INT,MPI_SUM,world);
+  bigint nall;
+  MPI_Allreduce(&n,&nall,1,MPI_LMP_BIGINT,MPI_SUM,world);
   return nall;
 }
 
@@ -877,7 +878,7 @@ void FixShake::find_clusters()
       tagprev = tag[i] - iatom - 1;
       npartner[i] = atommols[imol]->nspecial[iatom][0];
       for (j = 0; j < npartner[i]; j++)
-        partner_tag[i][j] = atommols[imol]->special[iatom][j] + tagprev;;
+        partner_tag[i][j] = atommols[imol]->special[iatom][j] + tagprev;
     }
   }
 
@@ -1098,7 +1099,7 @@ void FixShake::find_clusters()
   // print info on SHAKE clusters
   // -----------------------------------------------------
 
-  int count1,count2,count3,count4;
+  bigint count1,count2,count3,count4;
   count1 = count2 = count3 = count4 = 0;
   for (i = 0; i < nlocal; i++) {
     if (shake_flag[i] == 1) count1++;
@@ -1107,15 +1108,15 @@ void FixShake::find_clusters()
     else if (shake_flag[i] == 4) count4++;
   }
 
-  int tmp;
+  bigint tmp;
   tmp = count1;
-  MPI_Allreduce(&tmp,&count1,1,MPI_INT,MPI_SUM,world);
+  MPI_Allreduce(&tmp,&count1,1,MPI_LMP_BIGINT,MPI_SUM,world);
   tmp = count2;
-  MPI_Allreduce(&tmp,&count2,1,MPI_INT,MPI_SUM,world);
+  MPI_Allreduce(&tmp,&count2,1,MPI_LMP_BIGINT,MPI_SUM,world);
   tmp = count3;
-  MPI_Allreduce(&tmp,&count3,1,MPI_INT,MPI_SUM,world);
+  MPI_Allreduce(&tmp,&count3,1,MPI_LMP_BIGINT,MPI_SUM,world);
   tmp = count4;
-  MPI_Allreduce(&tmp,&count4,1,MPI_INT,MPI_SUM,world);
+  MPI_Allreduce(&tmp,&count4,1,MPI_LMP_BIGINT,MPI_SUM,world);
 
   if (comm->me == 0) {
     utils::logmesg(lmp,"{:>8} = # of size 2 clusters\n"
@@ -2682,12 +2683,12 @@ void FixShake::stats()
 
   // sum across all procs
 
-  MPI_Allreduce(b_count,b_count_all,nb,MPI_INT,MPI_SUM,world);
+  MPI_Allreduce(b_count,b_count_all,nb,MPI_LMP_BIGINT,MPI_SUM,world);
   MPI_Allreduce(b_ave,b_ave_all,nb,MPI_DOUBLE,MPI_SUM,world);
   MPI_Allreduce(b_max,b_max_all,nb,MPI_DOUBLE,MPI_MAX,world);
   MPI_Allreduce(b_min,b_min_all,nb,MPI_DOUBLE,MPI_MIN,world);
 
-  MPI_Allreduce(a_count,a_count_all,na,MPI_INT,MPI_SUM,world);
+  MPI_Allreduce(a_count,a_count_all,na,MPI_LMP_BIGINT,MPI_SUM,world);
   MPI_Allreduce(a_ave,a_ave_all,na,MPI_DOUBLE,MPI_SUM,world);
   MPI_Allreduce(a_max,a_max_all,na,MPI_DOUBLE,MPI_MAX,world);
   MPI_Allreduce(a_min,a_min_all,na,MPI_DOUBLE,MPI_MIN,world);

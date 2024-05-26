@@ -35,7 +35,7 @@ The *mie/cut* style computes the Mie potential, given by
    E =  C \epsilon \left[ \left(\frac{\sigma}{r}\right)^{\gamma_{rep}} - \left(\frac{\sigma}{r}\right)^{\gamma_{att}} \right]
                          \qquad r < r_c
 
-Rc is the cutoff and C is a function that depends on the repulsive and
+:math:`r_c` is the cutoff and C is a function that depends on the repulsive and
 attractive exponents, given by:
 
 .. math::

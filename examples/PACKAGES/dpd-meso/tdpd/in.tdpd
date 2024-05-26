@@ -11,13 +11,14 @@
 ### advection-diffusion-reaction problems. J. Chem. Phys.,           ###
 ### 2015, 143: 014101. DOI: 10.1063/1.4923254                        ###
 ########################################################################
-units 		        lj
-dimension	        3
-boundary	        p p p
-neighbor	        0.2 bin
+units                   lj
+dimension               3
+boundary                p p p
+neighbor                0.2 bin
 neigh_modify        every 1 delay 0 check yes
 
-atom_style	        tdpd 2
+atom_style              tdpd 2
+comm_modify  vel yes
 
 region     tdpd     block -10 10 -10 10 -5 5 units box
 create_box          1 tdpd

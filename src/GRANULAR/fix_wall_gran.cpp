@@ -34,6 +34,7 @@
 #include "update.h"
 #include "variable.h"
 
+#include <cmath>
 #include <cstring>
 
 using namespace LAMMPS_NS;
@@ -42,7 +43,7 @@ using namespace FixConst;
 using namespace MathConst;
 using namespace MathExtra;
 
-#define BIG 1.0e20
+static constexpr double BIG = 1.0e20;
 
 // XYZ PLANE need to be 0,1,2
 
@@ -52,13 +53,13 @@ enum {NONE,CONSTANT,EQUAL};
 /* ---------------------------------------------------------------------- */
 
 FixWallGran::FixWallGran(LAMMPS *lmp, int narg, char **arg) :
-  Fix(lmp, narg, arg), idregion(nullptr), history_one(nullptr),
+  Fix(lmp, narg, arg), idregion(nullptr), tstr(nullptr), history_one(nullptr),
   fix_rigid(nullptr), mass_rigid(nullptr)
 {
-  if (narg < 4) error->all(FLERR,"Illegal fix wall/gran command");
+  if (narg < 4) utils::missing_cmd_args(FLERR,"fix wall/gran", error);
 
-  if (!atom->sphere_flag)
-    error->all(FLERR,"Fix wall/gran requires atom style sphere");
+  if (!atom->omega_flag) error->all(FLERR,"Fix wall/gran requires atom attribute omega");
+  if (!atom->radius_flag) error->all(FLERR,"Fix wall/gran requires atom attribute radius");
 
   create_attribute = 1;
 
@@ -110,7 +111,7 @@ FixWallGran::FixWallGran(LAMMPS *lmp, int narg, char **arg) :
         model->limit_damping = 1;
         iarg += 1;
       } else {
-        error->all(FLERR, "Illegal fix wall/gran command");
+        error->all(FLERR, "Unknown fix wall/gran keyword {}", arg[iarg]);
       }
     }
   }
@@ -126,9 +127,6 @@ FixWallGran::FixWallGran(LAMMPS *lmp, int narg, char **arg) :
   else use_history = restart_peratom = 1;
 
   // wallstyle args
-
-  idregion = nullptr;
-  tstr = nullptr;
 
   if (iarg >= narg) error->all(FLERR, "Illegal fix wall/gran command");
 
@@ -247,13 +245,11 @@ FixWallGran::FixWallGran(LAMMPS *lmp, int narg, char **arg) :
   // perform initial allocation of atom-based arrays
   // register with Atom class
 
-  history_one = nullptr;
   FixWallGran::grow_arrays(atom->nmax);
   atom->add_callback(Atom::GROW);
   atom->add_callback(Atom::RESTART);
 
   nmax = 0;
-  mass_rigid = nullptr;
 
   // initialize history as if particle is not touching region
   // history_one will be a null pointer for wallstyle = REGION
@@ -276,6 +272,8 @@ FixWallGran::FixWallGran(LAMMPS *lmp, int narg, char **arg) :
 
 FixWallGran::~FixWallGran()
 {
+  if (copymode) return;
+
   // unregister callbacks to this fix from Atom class
 
   atom->delete_callback(id,Atom::GROW);
@@ -284,8 +282,8 @@ FixWallGran::~FixWallGran()
   // delete local storage
 
   delete model;
-  delete [] tstr;
-  delete [] idregion;
+  delete[] tstr;
+  delete[] idregion;
   memory->destroy(history_one);
   memory->destroy(mass_rigid);
 }
@@ -323,7 +321,6 @@ void FixWallGran::init()
 
   // check for FixRigid so can extract rigid body masses
 
-  fix_rigid = nullptr;
   for (i = 0; i < modify->nfix; i++)
     if (modify->fix[i]->rigid_flag) break;
   if (i < modify->nfix) fix_rigid = modify->fix[i];
@@ -452,7 +449,7 @@ void FixWallGran::post_force(int /*vflag*/)
   }
 
   for (int i = 0; i < nlocal; i++) {
-    if ((!mask[i]) & groupbit) continue;
+    if (!(mask[i] & groupbit)) continue;
 
     dx = dy = dz = 0.0;
 
@@ -548,7 +545,10 @@ void FixWallGran::post_force(int /*vflag*/)
   }
 }
 
-void FixWallGran::clear_stored_contacts() {
+/* ---------------------------------------------------------------------- */
+
+void FixWallGran::clear_stored_contacts()
+{
   const int nlocal = atom->nlocal;
   for (int i = 0; i < nlocal; i++) {
     for (int m = 0; m < size_peratom_cols; m++) {

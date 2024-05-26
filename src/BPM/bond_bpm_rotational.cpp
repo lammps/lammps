@@ -28,7 +28,7 @@
 #include <cmath>
 #include <cstring>
 
-#define EPSILON 1e-10
+static constexpr double EPSILON = 1e-10;
 
 using namespace LAMMPS_NS;
 using MathConst::MY_SQRT2;
@@ -50,6 +50,7 @@ BondBPMRotational::BondBPMRotational(LAMMPS *_lmp) :
 {
   partial_flag = 1;
   smooth_flag = 1;
+  normalize_flag = 0;
 
   single_extra = 7;
   svector = new double[7];
@@ -203,6 +204,13 @@ double BondBPMRotational::elastic_forces(int i1, int i2, int type, double r_mag,
   double Ts[3], Tb[3], Tt[3], Tbp[3], Ttp[3], Tsp[3], T_rot[3], Ttmp[3];
 
   double **quat = atom->quat;
+  double r0_mag_inv = 1.0 / r0_mag;
+  double Kr_type = Kr[type];
+  double Ks_type = Ks[type];
+  if (normalize_flag) {
+    Kr_type *= r0_mag_inv;
+    Ks_type *= r0_mag_inv;
+  }
 
   q1[0] = quat[i1][0];
   q1[1] = quat[i1][1];
@@ -217,26 +225,26 @@ double BondBPMRotational::elastic_forces(int i1, int i2, int type, double r_mag,
   // Calculate normal forces, rb = bond vector in particle 1's frame
   MathExtra::qconjugate(q2, q2inv);
   MathExtra::quatrotvec(q2inv, r, rb);
-  Fr = Kr[type] * (r_mag - r0_mag);
+  Fr = Kr_type * (r_mag - r0_mag);
 
   MathExtra::scale3(Fr * r_mag_inv, rb, F_rot);
 
   // Calculate forces due to tangential displacements (no rotation)
   r0_dot_rb = MathExtra::dot3(r0, rb);
-  c = r0_dot_rb * r_mag_inv / r0_mag;
+  c = r0_dot_rb * r_mag_inv * r0_mag_inv;
   gamma = acos_limit(c);
 
   MathExtra::cross3(rb, r0, rb_x_r0);
   MathExtra::cross3(rb, rb_x_r0, s);
   MathExtra::norm3(s);
 
-  MathExtra::scale3(Ks[type] * r_mag * gamma, s, Fs);
+  MathExtra::scale3(Ks_type * r_mag * gamma, s, Fs);
 
   // Calculate torque due to tangential displacements
   MathExtra::cross3(r0, rb, t);
   MathExtra::norm3(t);
 
-  MathExtra::scale3(0.5 * r_mag * Ks[type] * r_mag * gamma, t, Ts);
+  MathExtra::scale3(0.5 * r_mag * Ks_type * r_mag * gamma, t, Ts);
 
   // Relative rotation force/torque
   // Use representation of X'Y'Z' rotations from Wang, Mora 2009
@@ -316,12 +324,12 @@ double BondBPMRotational::elastic_forces(int i1, int i2, int type, double r_mag,
   Ttp[1] = 0.0;
   Ttp[2] = Kt[type] * psi;
 
-  Fsp[0] = -0.5 * Ks[type] * r_mag * theta * cos_phi;
-  Fsp[1] = -0.5 * Ks[type] * r_mag * theta * sin_phi;
+  Fsp[0] = -0.5 * Ks_type * r_mag * theta * cos_phi;
+  Fsp[1] = -0.5 * Ks_type * r_mag * theta * sin_phi;
   Fsp[2] = 0.0;
 
-  Tsp[0] = 0.25 * Ks[type] * r_mag * r_mag * theta * sin_phi;
-  Tsp[1] = -0.25 * Ks[type] * r_mag * r_mag * theta * cos_phi;
+  Tsp[0] = 0.25 * Ks_type * r_mag * r_mag * theta * sin_phi;
+  Tsp[1] = -0.25 * Ks_type * r_mag * r_mag * theta * cos_phi;
   Tsp[2] = 0.0;
 
   // Rotate forces/torques back to 1st particle's frame
@@ -637,7 +645,7 @@ void BondBPMRotational::init_style()
 {
   BondBPM::init_style();
 
-  if (!atom->quat_flag || !atom->sphere_flag)
+  if (!atom->quat_flag || !atom->radius_flag || !atom->omega_flag)
     error->all(FLERR, "Bond bpm/rotational requires atom style bpm/sphere");
   if (comm->ghost_velocity == 0)
     error->all(FLERR, "Bond bpm/rotational requires ghost atoms store velocity");
@@ -666,6 +674,10 @@ void BondBPMRotational::settings(int narg, char **arg)
     if (strcmp(arg[iarg], "smooth") == 0) {
       if (iarg + 1 > narg) error->all(FLERR, "Illegal bond bpm command, missing option for smooth");
       smooth_flag = utils::logical(FLERR, arg[iarg + 1], false, lmp);
+      i += 1;
+    } else if (strcmp(arg[iarg], "normalize") == 0) {
+      if (iarg + 1 > narg) error->all(FLERR, "Illegal bond bpm command, missing option for normalize");
+      normalize_flag = utils::logical(FLERR, arg[iarg + 1], false, lmp);
       i += 1;
     } else {
       error->all(FLERR, "Illegal bond bpm command, invalid argument {}", arg[iarg]);
@@ -793,7 +805,7 @@ double BondBPMRotational::single(int type, double rsq, int i, int j, double &ffo
   double breaking = elastic_forces(i, j, type, r_mag, r0_mag, r_mag_inv, rhat, r, r0, force1on2,
                                    torque1on2, torque2on1);
   damping_forces(i, j, type, rhat, r, force1on2, torque1on2, torque2on1);
-  fforce = MathExtra::dot3(force1on2, r);
+  fforce = MathExtra::dot3(force1on2, rhat);
   fforce *= -1;
 
   double smooth = 1.0;

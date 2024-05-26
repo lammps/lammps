@@ -20,7 +20,7 @@ PairStyle(amoeba,PairAmoeba);
 #ifndef LMP_PAIR_AMOEBA_H
 #define LMP_PAIR_AMOEBA_H
 
-#include "lmpfftsettings.h"
+#include "lmpfftsettings.h"    // IWYU pragma: export
 #include "pair.h"
 
 namespace LAMMPS_NS {
@@ -330,10 +330,10 @@ class PairAmoeba : public Pair {
   double *qfac;        // convoulution pre-factors
   double *gridfft1;    // copy of p_kspace FFT grid
 
-  double **cmp,**fmp;              // Cartesian and fractional multipoles
-  double **cphi,**fphi;
+  double **cmp, **fmp;    // Cartesian and fractional multipoles
+  double **cphi, **fphi;
 
-  double *_moduli_array;           // buffers for moduli
+  double *_moduli_array;    // buffers for moduli
   double *_moduli_bsarray;
   int _nfft_max;
 
@@ -345,11 +345,11 @@ class PairAmoeba : public Pair {
   double ctf[10][10];         // indices NOT flipped vs Fortran
   double ftc[10][10];         // indices NOT flipped vs Fortran
 
-  class AmoebaConvolution *m_kspace;   // multipole KSpace
-  class AmoebaConvolution *p_kspace;   // polar KSpace
+  class AmoebaConvolution *m_kspace;    // multipole KSpace
+  class AmoebaConvolution *p_kspace;    // polar KSpace
   class AmoebaConvolution *pc_kspace;
-  class AmoebaConvolution *d_kspace;   // dispersion KSpace
-  class AmoebaConvolution *i_kspace;   // induce KSpace
+  class AmoebaConvolution *d_kspace;    // dispersion KSpace
+  class AmoebaConvolution *i_kspace;    // induce KSpace
   class AmoebaConvolution *ic_kspace;
 
   // FFT grid size factors
@@ -362,8 +362,8 @@ class PairAmoeba : public Pair {
   void hal();
 
   virtual void repulsion();
-  void damprep(double, double, double, double, double, double, double, double,
-               int, double, double, double *);
+  void damprep(double, double, double, double, double, double, double, double, int, double, double,
+               double *);
 
   void dispersion();
   virtual void dispersion_real();
@@ -418,6 +418,10 @@ class PairAmoeba : public Pair {
                        int &, int &, int &, int &, int &, int &, int &, int &, int &, int &);
   double ewaldcof(double);
   int factorable(int);
+
+  double final_accuracy_mpole();
+  double rms(int km, double prd, bigint natoms, double g_ewald, double q2);
+  double two_charge_force;
 
   // debug methods
 

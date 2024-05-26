@@ -6,7 +6,7 @@ fix ti/spring command
 Syntax
 """"""
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    fix ID group-ID ti/spring k t_s t_eq keyword value ...
 

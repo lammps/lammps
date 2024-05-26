@@ -29,10 +29,11 @@ protected:
     {
         const char *args[] = {"LAMMPS_test", "-log",      "none",
                               "-echo",       "screen",    "-nocite",
-                              "-var",        "input_dir", STRINGIFY(TEST_INPUT_FOLDER)};
+                              "-var",        "input_dir", STRINGIFY(TEST_INPUT_FOLDER),
+                              nullptr};
 
         char **argv = (char **)args;
-        int argc    = sizeof(args) / sizeof(char *);
+        int argc    = (sizeof(args) / sizeof(char *)) - 1;
 
         ::testing::internal::CaptureStdout();
         lmp = lammps_open_no_mpi(argc, argv, nullptr);
@@ -195,7 +196,7 @@ TEST_F(LibraryConfig, force_timeout)
 
 TEST(LAMMPSConfig, exceptions)
 {
-    EXPECT_EQ(lammps_config_has_exceptions(), LAMMPS_HAS_EXCEPTIONS);
+    EXPECT_EQ(lammps_config_has_exceptions(), 1);
 };
 
 TEST(LAMMPSConfig, mpi_support)

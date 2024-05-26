@@ -23,7 +23,7 @@ class KokkosBaseFFT {
  public:
   KokkosBaseFFT() {}
 
-  //Kspace
+  // Kspace
   virtual void pack_forward_grid_kokkos(int, FFT_DAT::tdual_FFT_SCALAR_1d &, int, DAT::tdual_int_2d &, int) {};
   virtual void unpack_forward_grid_kokkos(int, FFT_DAT::tdual_FFT_SCALAR_1d &, int, int, DAT::tdual_int_2d &, int) {};
   virtual void pack_reverse_grid_kokkos(int, FFT_DAT::tdual_FFT_SCALAR_1d &, int, DAT::tdual_int_2d &, int) {};

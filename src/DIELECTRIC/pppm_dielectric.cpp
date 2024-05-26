@@ -23,7 +23,6 @@
 #include "comm.h"
 #include "domain.h"
 #include "error.h"
-#include "fft3d_wrap.h"
 #include "force.h"
 #include "grid3d.h"
 #include "math_const.h"
@@ -36,18 +35,12 @@ using namespace LAMMPS_NS;
 using namespace MathConst;
 using namespace MathSpecial;
 
-#define SMALL 0.00001
+static constexpr double SMALL = 0.00001;
 
-enum {REVERSE_RHO};
-enum {FORWARD_IK,FORWARD_AD,FORWARD_IK_PERATOM,FORWARD_AD_PERATOM};
+enum { REVERSE_RHO };
+enum { FORWARD_IK, FORWARD_AD, FORWARD_IK_PERATOM, FORWARD_AD_PERATOM };
 
-#ifdef FFT_SINGLE
-#define ZEROF 0.0f
-#define ONEF  1.0f
-#else
-#define ZEROF 0.0
-#define ONEF  1.0
-#endif
+static constexpr FFT_SCALAR ZEROF = 0.0;
 
 /* ---------------------------------------------------------------------- */
 
@@ -575,7 +568,7 @@ void PPPMDielectric::slabcorr()
   int nlocal = atom->nlocal;
 
   double dipole = 0.0;
-  for (int i = 0; i < nlocal; i++) dipole += q[i]*x[i][2];
+  for (int i = 0; i < nlocal; i++) dipole += eps[i]*q[i]*x[i][2];
 
   // sum local contributions to get global dipole moment
 
@@ -588,7 +581,7 @@ void PPPMDielectric::slabcorr()
   double dipole_r2 = 0.0;
   if (eflag_atom || fabs(qsum) > SMALL) {
     for (int i = 0; i < nlocal; i++)
-      dipole_r2 += q[i]*x[i][2]*x[i][2];
+      dipole_r2 += eps[i]*q[i]*x[i][2]*x[i][2];
 
     // sum local contributions
 
@@ -621,6 +614,6 @@ void PPPMDielectric::slabcorr()
 
   for (int i = 0; i < nlocal; i++) {
     f[i][2] += ffact * eps[i]*q[i]*(dipole_all - qsum*x[i][2]);
-    efield[i][2] += ffact * eps[i]*(dipole_all - qsum*x[i][2]);
+    efield[i][2] += ffact * (dipole_all - qsum*x[i][2]);
   }
 }

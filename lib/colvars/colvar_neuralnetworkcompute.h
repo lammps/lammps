@@ -1,3 +1,12 @@
+// -*- c++ -*-
+
+// This file is part of the Collective Variables module (Colvars).
+// The original version of Colvars and its updates are located at:
+// https://github.com/Colvars/colvars
+// Please update all Colvars source files before making any changes.
+// If you wish to distribute your changes, please submit them to the
+// Colvars repository at GitHub.
+
 #if (__cplusplus >= 201103L)
 #ifndef NEURALNETWORKCOMPUTE_H
 #define NEURALNETWORKCOMPUTE_H
@@ -5,7 +14,6 @@
 #include <vector>
 #include <functional>
 #include <string>
-#include <iostream>
 #include <cmath>
 #include <memory>
 #include <map>

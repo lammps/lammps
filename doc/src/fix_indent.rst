@@ -6,35 +6,46 @@ fix indent command
 Syntax
 """"""
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
-   fix ID group-ID indent K keyword values ...
+   fix ID group-ID indent K gstyle args keyword value ...
 
 * ID, group-ID are documented in :doc:`fix <fix>` command
 * indent = style name of this fix command
 * K = force constant for indenter surface (force/distance\^2 units)
-* one or more keyword/value pairs may be appended
-* keyword = *sphere* or *cylinder* or *plane* or *side* or *units*
+* gstyle = *sphere* or *cylinder* or *cone* or *plane*
 
   .. parsed-literal::
 
        *sphere* args = x y z R
-         x,y,z = position of center of indenter (distance units)
+         x, y, z = position of center of indenter (distance units)
          R = sphere radius of indenter (distance units)
-         any of x,y,z,R can be a variable (see below)
+         any of x, y, z, R can be a variable (see below)
        *cylinder* args = dim c1 c2 R
          dim = *x* or *y* or *z* = axis of cylinder
-         c1,c2 = coords of cylinder axis in other 2 dimensions (distance units)
+         c1, c2 = coords of cylinder axis in other 2 dimensions (distance units)
          R = cylinder radius of indenter (distance units)
          any of c1,c2,R can be a variable (see below)
+       *cone* args = dim c1 c2 radlo radhi lo hi
+         dim = *x* or *y* or *z* = axis of cone
+         c1, c2 = coords of cone axis in other 2 dimensions (distance units)
+         radlo,radhi = cone radii at lo and hi end (distance units)
+         lo,hi = bounds of cone in dim (distance units)
+         any of c1, c2, radlo, radhi, lo, hi can be a variable (see below)
        *plane* args = dim pos side
          dim = *x* or *y* or *z* = plane perpendicular to this dimension
          pos = position of plane in dimension x, y, or z (distance units)
          pos can be a variable (see below)
          side = *lo* or *hi*
+
+* zero or more keyword/value pairs may be appended
+* keyword = *side* or *units*
+
+  .. parsed-literal::
+
        *side* value = *in* or *out*
-         *in* = the indenter acts on particles inside the sphere or cylinder
-         *out* = the indenter acts on particles outside the sphere or cylinder
+         *in* = the indenter acts on particles inside the sphere or cylinder or cone
+         *out* = the indenter acts on particles outside the sphere or cylinder or cone
        *units* value = *lattice* or *box*
          lattice = the geometry is defined in lattice units
          box = the geometry is defined in simulation box units
@@ -53,12 +64,12 @@ Description
 
 Insert an indenter within a simulation box.  The indenter repels all
 atoms in the group that touch it, so it can be used to push into a
-material or as an obstacle in a flow.  Or it can be used as a
+material or as an obstacle in a flow.  Alternatively, it can be used as a
 constraining wall around a simulation; see the discussion of the
 *side* keyword below.
 
-The indenter can either be spherical or cylindrical or planar.  You
-must set one of those 3 keywords.
+The *gstyle* geometry of the indenter can either be a sphere, a
+cylinder, a cone, or a plane.
 
 A spherical indenter exerts a force of magnitude
 
@@ -75,15 +86,20 @@ A cylindrical indenter exerts the same force, except that *r* is the
 distance from the atom to the center axis of the cylinder.  The
 cylinder extends infinitely along its axis.
 
-Spherical and cylindrical indenters account for periodic boundaries in
-two ways.  First, the center point of a spherical indenter (x,y,z) or
-axis of a cylindrical indenter (c1,c2) is remapped back into the
-simulation box, if the box is periodic in a particular dimension.
-This occurs every timestep if the indenter geometry is specified with
-a variable (see below), e.g. it is moving over time.  Second, the
-calculation of distance to the indenter center or axis accounts for
-periodic boundaries.  Both of these mean that an indenter can
-effectively move through and straddle one or more periodic boundaries.
+A conical indenter is similar to a cylindrical indenter except that it
+has a finite length (between *lo* and *hi*), and that two different
+radii (one at each end, *radlo* and *radhi*) can be defined.
+
+Spherical, cylindrical, and conical indenters account for periodic
+boundaries in two ways.  First, the center point of a spherical
+indenter (x,y,z) or axis of a cylindrical/conical indenter (c1,c2) is
+remapped back into the simulation box, if the box is periodic in a
+particular dimension.  This occurs every timestep if the indenter
+geometry is specified with a variable (see below), e.g. it is moving
+over time.  Second, the calculation of distance to the indenter center
+or axis accounts for periodic boundaries.  Both of these mean that an
+indenter can effectively move through and straddle one or more
+periodic boundaries.
 
 A planar indenter is really an axis-aligned infinite-extent wall
 exerting the same force on atoms in the system, where *R* is the
@@ -97,9 +113,13 @@ is specified as *hi*\ .
 
 Any of the 4 quantities defining a spherical indenter's geometry can
 be specified as an equal-style :doc:`variable <variable>`, namely *x*,
-*y*, *z*, or *R*\ .  Similarly, for a cylindrical indenter, any of *c1*,
-*c2*, or *R*, can be a variable.  For a planar indenter, *pos* can be
-a variable.  If the value is a variable, it should be specified as
+*y*, *z*, or *R*\ .  For a cylindrical indenter, any of the 3
+quantities *c1*, *c2*, or *R*, can be a variable.  For a conical
+indenter, any of the 6 quantities *c1*, *c2*, *radlo*, *radhi*, *lo*,
+or *hi* can be a variable.  For a planar indenter, the single value
+*pos* can be a variable.
+
+If any of these values is a variable, it should be specified as
 v_name, where name is the variable name.  In this case, the variable
 will be evaluated each timestep, and its value used to define the
 indenter geometry.
@@ -110,7 +130,8 @@ command keywords for the simulation box parameters and timestep and
 elapsed time.  Thus it is easy to specify indenter properties that
 change as a function of time or span consecutive runs in a continuous
 fashion.  For the latter, see the *start* and *stop* keywords of the
-:doc:`run <run>` command and the *elaplong* keyword of :doc:`thermo_style custom <thermo_style>` for details.
+:doc:`run <run>` command and the *elaplong* keyword of
+:doc:`thermo_style custom <thermo_style>` for details.
 
 For example, if a spherical indenter's x-position is specified as v_x,
 then this variable definition will keep it's center at a relative
@@ -141,12 +162,13 @@ rate.
 
 If the *side* keyword is specified as *out*, which is the default,
 then particles outside the indenter are pushed away from its outer
-surface, as described above.  This only applies to spherical or
-cylindrical indenters.  If the *side* keyword is specified as *in*,
-the action of the indenter is reversed.  Particles inside the indenter
-are pushed away from its inner surface.  In other words, the indenter
-is now a containing wall that traps the particles inside it.  If the
-radius shrinks over time, it will squeeze the particles.
+surface, as described above.  This only applies to spherical,
+cylindrical, and conical indenters.  If the *side* keyword is
+specified as *in*, the action of the indenter is reversed.  Particles
+inside the indenter are pushed away from its inner surface.  In other
+words, the indenter is now a containing wall that traps the particles
+inside it.  If the radius shrinks over time, it will squeeze the
+particles.
 
 The *units* keyword determines the meaning of the distance units used
 to define the indenter geometry.  A *box* value selects standard
@@ -166,10 +188,10 @@ lattice spacings in a variable formula.
 
 The force constant *K* is not affected by the *units* keyword.  It is
 always in force/distance\^2 units where force and distance are defined
-by the :doc:`units <units>` command.  If you wish K to be scaled by the
-lattice spacing, you can define K with a variable whose formula
-contains *xlat*, *ylat*, *zlat* keywords of the
-:doc:`thermo_style <thermo_style>` command, e.g.
+by the :doc:`units <units>` command.  If you wish K to be scaled by
+the lattice spacing, you can define K with a variable whose formula
+contains *xlat*, *ylat*, *zlat* keywords of the :doc:`thermo_style
+<thermo_style>` command, e.g.
 
 .. code-block:: LAMMPS
 

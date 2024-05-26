@@ -25,6 +25,7 @@
 #include "atom.h"
 #include "comm.h"
 #include "error.h"
+#include "ewald_const.h"
 #include "force.h"
 #include "kspace.h"
 #include "memory.h"
@@ -37,14 +38,7 @@
 #include <cstring>
 
 using namespace LAMMPS_NS;
-
-#define EWALD_F   1.12837917
-#define EWALD_P   0.3275911
-#define A1        0.254829592
-#define A2       -0.284496736
-#define A3        1.421413741
-#define A4       -1.453152027
-#define A5        1.061405429
+using namespace EwaldConst;
 
 /* ---------------------------------------------------------------------- */
 
@@ -76,6 +70,8 @@ PairLJCharmmfswCoulLong::PairLJCharmmfswCoulLong(LAMMPS *lmp) : Pair(lmp)
 
 PairLJCharmmfswCoulLong::~PairLJCharmmfswCoulLong()
 {
+  if (copymode) return;
+
   // switch qqr2e back from CHARMM value to LAMMPS value
 
   if (update && strcmp(update->unit_style,"real") == 0) {
@@ -84,8 +80,6 @@ PairLJCharmmfswCoulLong::~PairLJCharmmfswCoulLong()
                      " conversion constant");
     force->qqr2e = force->qqr2e_lammps_real;
   }
-
-  if (copymode) return;
 
   if (allocated) {
     memory->destroy(setflag);
@@ -230,7 +224,7 @@ void PairLJCharmmfswCoulLong::compute(int eflag, int vflag)
               evdwl12 = lj3[itype][jtype]*cut_lj6*denom_lj12 *
                 (r6inv - cut_lj6inv)*(r6inv - cut_lj6inv);
               evdwl6 = -lj4[itype][jtype]*cut_lj3*denom_lj6 *
-                (r3inv - cut_lj3inv)*(r3inv - cut_lj3inv);;
+                (r3inv - cut_lj3inv)*(r3inv - cut_lj3inv);
               evdwl = evdwl12 + evdwl6;
             } else {
               evdwl12 = r6inv*lj3[itype][jtype]*r6inv -
@@ -588,7 +582,7 @@ void PairLJCharmmfswCoulLong::compute_outer(int eflag, int vflag)
               evdwl12 = lj3[itype][jtype]*cut_lj6*denom_lj12 *
                 (r6inv - cut_lj6inv)*(r6inv - cut_lj6inv);
               evdwl6 = -lj4[itype][jtype]*cut_lj3*denom_lj6 *
-                (r3inv - cut_lj3inv)*(r3inv - cut_lj3inv);;
+                (r3inv - cut_lj3inv)*(r3inv - cut_lj3inv);
               evdwl = evdwl12 + evdwl6;
             } else {
               evdwl12 = r6inv*lj3[itype][jtype]*r6inv -
@@ -1015,7 +1009,7 @@ double PairLJCharmmfswCoulLong::single(int i, int j, int itype, int jtype,
       philj12 = lj3[itype][jtype]*cut_lj6*denom_lj12 *
         (r6inv - cut_lj6inv)*(r6inv - cut_lj6inv);
       philj6 = -lj4[itype][jtype]*cut_lj3*denom_lj6 *
-        (r3inv - cut_lj3inv)*(r3inv - cut_lj3inv);;
+        (r3inv - cut_lj3inv)*(r3inv - cut_lj3inv);
       philj = philj12 + philj6;
     } else {
       philj12 = r6inv*lj3[itype][jtype]*r6inv -

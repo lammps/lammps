@@ -33,9 +33,9 @@
 
 using namespace LAMMPS_NS;
 
-#define MAXLINE 1024
-#define TOL 1.0e-9
-#define PGDELTA 1
+static constexpr int MAXLINE = 1024;
+static constexpr double TOL = 1.0e-9;
+static constexpr int PGDELTA = 1;
 
 /* ---------------------------------------------------------------------- */
 
@@ -115,7 +115,7 @@ void PairLCBOP::allocate()
 ------------------------------------------------------------------------- */
 
 void PairLCBOP::settings(int narg, char **/*arg*/) {
-  if (narg != 0 ) error->all(FLERR,"Illegal pair_style command");
+  if (narg != 0) error->all(FLERR,"Illegal pair_style command");
 }
 
 /* ----------------------------------------------------------------------

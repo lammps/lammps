@@ -16,7 +16,7 @@ jobs:
 
     steps:
     - name: Checkout repository
-      uses: actions/checkout@v3
+      uses: actions/checkout@v4
       with:
         fetch-depth: 2
 
@@ -25,7 +25,7 @@ jobs:
 
     - name: Cache Coverity
       id: cache-coverity
-      uses: actions/cache@v3
+      uses: actions/cache@v4
       with:
         path: ./download/
         key: ${{ runner.os }}-download-${{ hashFiles('**/coverity_tool.*') }}
@@ -59,16 +59,13 @@ jobs:
         -D BUILD_SHARED_LIBS=on \
         -D LAMMPS_SIZES=SMALLBIG \
         -D LAMMPS_EXCEPTIONS=off \
-        -D PKG_MESSAGE=on \
-        -D PKG_MPIIO=on \
         -D PKG_ATC=on \
         -D PKG_AWPMD=on \
-        -D PKG_BOCS=on \
-        -D PKG_EFF=on \
         -D PKG_H5MD=on \
         -D PKG_INTEL=on \
         -D PKG_LATBOLTZ=on \
         -D PKG_MANIFOLD=on \
+        -D PKG_MDI=on \
         -D PKG_MGPT=on \
         -D PKG_ML-PACE=on \
         -D PKG_ML-RANN=on \
@@ -77,7 +74,6 @@ jobs:
         -D PKG_PTM=on \
         -D PKG_QTB=on \
         -D PKG_SMTBQ=on \
-        -D PKG_TALLY=on \
         ../cmake
 
     - name: Run Coverity Scan

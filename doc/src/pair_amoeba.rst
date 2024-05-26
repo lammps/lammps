@@ -94,22 +94,22 @@ The formulas for the AMOEBA energy terms are:
 
 .. math::
 
-   U_{hal} = \epsilon_{ij} \left( \frac{1.07}{\rho_{ij} + 0.07} \right)^7 \left( \frac{1.12}{\rho_{ij}^7 + 0.12} - 2 \right)
-   U_{multipole} = \vec{M_i}\bold{T_{ij}}\vec{M_j}
-      \vec{M} = \left( q, \vec{\mu_{perm}}, \bold{\Theta} \right)
-   U_{polar} = \frac{1}{2}\vec{\mu_i}^{ind} \vec{E_i}^{perm}
+   U_{hal} = & \epsilon_{ij} \left( \frac{1.07}{\rho_{ij} + 0.07} \right)^7 \left( \frac{1.12}{\rho_{ij}^7 + 0.12} - 2 \right) \\
+   U_{multipole} = & \vec{M}_i\boldsymbol{T_{ij}}\vec{M}_j, \quad \mbox{with} \quad
+      \vec{M} = \left(q, \vec{\mu}_{perm}, \boldsymbol{\Theta} \right) \\
+   U_{polar} = & \frac{1}{2}\vec{\mu}_i^{ind} \vec{E}_i^{perm}
 
 The formulas for the HIPPO energy terms are:
 
 .. math::
 
-   U_{multipole} = Z_i \frac{1}{r_{ij}} Z_j + Z_i T_{ij}^{damp} \vec{M_j} + Z_j T_{ji}^{damp} \vec{M_i} + \vec{M_i} T_{ij}^{damp} \vec{M_j}
-      \vec{M} = \left( Q, \vec{\mu_{perm}}, \bold{\Theta} \right)
-   U_{polar} = \frac{1}{2}\vec{\mu_i}^{ind} \vec{E_i}^{perm}
-   U_{qxfer} = \epsilon_i e^{-\eta_j r_{ij}} + \epsilon_j e^{-\eta_i r_{ij}}
-   U_{repulsion} = \frac{K_i K_j}{r_{ij}} S^2
-      S^2 = \left( \int{\phi_i \phi_j} dv \right)^2 = \vec{M_i}\bold{T_{ij}^{repulsion}}\vec{M_j}
-   U_{dispersion} = -\frac{C_6^iC_6^j}{r_{ij}^6} \left( f_{damp}^{dispersion} \right)_{ij}^2
+   U_{multipole} = & Z_i \frac{1}{r_{ij}} Z_j + Z_i T_{ij}^{damp} \vec{M}_j + Z_j T_{ji}^{damp} \vec{M}_i + \vec{M}_i T_{ij}^{damp} \vec{M}_j, \quad \mbox{with} \quad
+      \vec{M} = \left(q, \vec{\mu}_{perm}, \boldsymbol{\Theta} \right) \\
+   U_{polar} = & \frac{1}{2}\vec{\mu}_i^{ind} \vec{E}_i^{perm} \\
+   U_{qxfer} = & \epsilon_i e^{-\eta_j r_{ij}} + \epsilon_j e^{-\eta_i r_{ij}} \\
+   U_{repulsion} = & \frac{K_i K_j}{r_{ij}} S^2
+      S^2 = \left( \int{\phi_i \phi_j} dv \right)^2 = \vec{M}_i\boldsymbol{T_{ij}^{repulsion}}\vec{M}_j \\
+   U_{dispersion} = & -\frac{C_6^iC_6^j}{r_{ij}^6} \left( f_{damp}^{dispersion} \right)_{ij}^2
 
 .. note::
 

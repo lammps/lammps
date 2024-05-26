@@ -281,7 +281,7 @@ void FixTTMGrid::read_electron_temperatures(const std::string &filename)
   }
 
   // read the file
-  // Grid3d::read_file() calls back to read_grid_lines() with chunks of lines
+  // Grid3d::read_file() calls back to unpack_read_grid() with chunks of lines
 
   grid->read_file(Grid3d::FIX,this,fp,CHUNK,MAXLINE);
 
@@ -419,7 +419,7 @@ void FixTTMGrid::write_restart_file(const char *file)
   }
 
   // write file
-  // Grid3d::write_file() calls back to pack_write_file() and unpack_write_file()
+  // Grid3d::write_file() calls back to pack_write_grid() and unpack_write_grid()
 
   grid->write_file(Grid3d::FIX,this,0,1,sizeof(double), MPI_DOUBLE);
 

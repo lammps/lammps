@@ -6,7 +6,7 @@ fitpod command
 Syntax
 """"""
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    fitpod Ta_param.pod Ta_data.pod
 

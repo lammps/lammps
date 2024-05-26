@@ -1,5 +1,7 @@
 # Find clang-format
 find_program(ClangFormat_EXECUTABLE NAMES clang-format
+                                          clang-format-17.0
+                                          clang-format-16.0
                                           clang-format-15.0
                                           clang-format-14.0
                                           clang-format-13.0
@@ -19,7 +21,7 @@ if(ClangFormat_EXECUTABLE)
                   OUTPUT_VARIABLE clang_format_version
                   ERROR_QUIET OUTPUT_STRIP_TRAILING_WHITESPACE)
 
-  if(clang_format_version MATCHES "^(Ubuntu |)clang-format version .*")
+  if(clang_format_version MATCHES "^(Ubuntu |Debian |)clang-format version .*")
     # Arch Linux output:
     # clang-format version 10.0.0
     #
@@ -32,9 +34,15 @@ if(ClangFormat_EXECUTABLE)
     # Ubuntu 22.04 LTS output:
     # Ubuntu clang-format version 14.0.0-1ubuntu1
     #
+    # Debian 11 output:
+    # Debian clang-format version 11.0.1-2
+    #
+    # Debian 12 output:
+    # Debian clang-format version 14.0.6
+    #
     # Fedora 36 output:
     # clang-format version 14.0.5 (Fedora 14.0.5-1.fc36)
-    string(REGEX REPLACE "^(Ubuntu |)clang-format version ([0-9.]+).*"
+    string(REGEX REPLACE "^(Ubuntu |Debian |)clang-format version ([0-9.]+).*"
                          "\\2"
                          ClangFormat_VERSION
                          "${clang_format_version}")

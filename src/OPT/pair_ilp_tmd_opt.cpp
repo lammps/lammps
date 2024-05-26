@@ -23,7 +23,7 @@
      e-mail: qdgaoping at gmail dot com
 
    Optimizations are described in:
-     Gao, Ping and Duan, Xiaohui, et al:
+     Gao, Ping and Duan, Xiaohui, et al.:
        LMFF: Efficient and Scalable Layered Materials Force Field on Heterogeneous Many-Core Processors
      DOI: 10.1145/3458817.3476137
 

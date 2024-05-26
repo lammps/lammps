@@ -23,10 +23,23 @@ coordinated.
 
 ----------
 
-The content for this manual is part of the LAMMPS distribution.  The
-online version always corresponds to the latest feature release version.
-If needed, you can build a local copy of the manual as HTML pages or a
-PDF file by following the steps on the :doc:`Build_manual` page.  If you
+The content for this manual is part of the LAMMPS distribution in its
+doc directory.
+
+* The version of the manual on the LAMMPS website corresponds to the
+  latest LAMMPS feature release.  It is available at:
+  `https://docs.lammps.org/ <https://docs.lammps.org/>`_.
+* A version of the manual corresponding to the latest LAMMPS stable
+  release (state of the *stable* branch on GitHub) is available online
+  at: `https://docs.lammps.org/stable/
+  <https://docs.lammps.org/stable/>`_
+* A version of the manual with the features most recently added to
+  LAMMPS (state of the *develop* branch on GitHub) is available at:
+  `https://docs.lammps.org/latest/ <https://docs.lammps.org/latest/>`_
+
+If needed, you can build a copy on your local machine of the manual
+(HTML pages or PDF file) for the version of LAMMPS you have
+downloaded.  Follow the steps on the :doc:`Build_manual` page.  If you
 have difficulties viewing the pages, please :ref:`see this note
 <webbrowser>`.
 
@@ -136,10 +149,21 @@ Indices and tables
    :class: note
 
    The HTML version of the manual makes use of advanced features present
-   in "modern" web browsers.  This can lead to incompatibilities with older
-   web browsers (released more than 4 years ago) and specific vendor browsers
-   (e.g. Internet Explorer on Windows; Microsoft Edge works well though)
+   in "modern" web browsers.  This leads to incompatibilities with older
+   web browsers and specific vendor browsers (e.g. Internet Explorer on Windows)
    where parts of the pages are not rendered as expected (e.g. the layout is
    broken or mathematical expressions not typeset).  In that case we
    recommend to install/use a different/newer web browser or use
    the `PDF version of the manual <https://docs.lammps.org/Manual.pdf>`_.
+
+   The following web browser versions have been verified to work as
+   expected on Linux, macOS, and Windows where available:
+
+   - Safari version 11.1 and later
+   - Firefox version 54 and later
+   - Chrome version 54 and later
+   - Opera version 41 and later
+   - Edge version 80 and later
+
+   Also Android version 7.1 and later and iOS version 11 and later have
+   been verified to render this website as expected.

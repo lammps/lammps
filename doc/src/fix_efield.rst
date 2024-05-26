@@ -1,4 +1,5 @@
 .. index:: fix efield
+.. index:: fix efield/kk
 .. index:: fix efield/tip4p
 
 fix efield command
@@ -10,7 +11,7 @@ fix efield/tip4p command
 Syntax
 """"""
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    fix ID group-ID style ex ey ez keyword value ...
 
@@ -19,7 +20,7 @@ Syntax
 * ex,ey,ez = E-field component values (electric field units)
 * any of ex,ey,ez can be a variable (see below)
 * zero or more keyword/value pairs may be appended to args
-* keyword = *region* or *energy*
+* keyword = *region* or *energy* or *potential*
 
   .. parsed-literal::
 
@@ -27,6 +28,8 @@ Syntax
          region-ID = ID of region atoms must be in to have added force
        *energy* value = v_name
          v_name = variable with name that calculates the potential energy of each atom in the added E-field
+       *potential* value = v_name
+         v_name = variable with name that calculates the electric potential of each atom in the added E-field
 
 Examples
 """"""""
@@ -112,7 +115,8 @@ one or more variables, and if you are performing dynamics via the
 :doc:`run <run>` command.  If the keyword is not used, LAMMPS will set
 the energy to 0.0, which is typically fine for dynamics.
 
-The *energy* keyword is required if the added force is defined with
+The *energy* keyword (or *potential* keyword, described below)
+is required if the added force is defined with
 one or more variables, and you are performing energy minimization via
 the "minimize" command for charged particles.  It is not required for
 point-dipoles, but a warning is issued since the minimizer in LAMMPS
@@ -122,7 +126,7 @@ minimize the orientation of dipoles in an applied electric field.
 The *energy* keyword specifies the name of an atom-style
 :doc:`variable <variable>` which is used to compute the energy of each
 atom as function of its position.  Like variables used for *ex*,
-*ey*, *ez*, the energy variable is specified as v_name, where name
+*ey*, *ez*, the energy variable is specified as "v_name", where "name"
 is the variable name.
 
 Note that when the *energy* keyword is used during an energy
@@ -132,6 +136,27 @@ variable formulas, i.e. that -Grad(E) = F.  For example, if the force
 due to the electric field were a spring-like F = kx, then the energy
 formula should be E = -0.5kx\^2.  If you don't do this correctly, the
 minimization will not converge properly.
+
+.. versionadded:: 15Jun2023
+
+The *potential* keyword can be used as an alternative to the *energy* keyword
+to specify the name of an atom-style variable, which is used to compute the
+added electric potential to each atom as a function of its position.  The
+variable should have units of electric field multiplied by distance (that is,
+in `units real`, the potential should be in volts). As with the *energy*
+keyword, the variable name is specified as "v_name". The energy added by this
+fix is then calculated as the electric potential multiplied by charge.
+
+The *potential* keyword is mainly intended for correct charge
+equilibration in simulations with :doc:`fix qeq/reaxff<fix_qeq_reaxff>`,
+since with variable charges the electric potential can be known
+beforehand but the energy cannot.  A small additional benefit is that
+the *energy* keyword requires an additional conversion to energy units
+which the *potential* keyword avoids.  Thus, when the *potential*
+keyword is specified, the *energy* keyword must not be used.  As with
+*energy*, the *potential* keyword is not allowed if the added field is a
+constant vector.  The *potential* keyword is not supported by *fix
+efield/tip4p*.
 
 ----------
 
@@ -185,6 +210,12 @@ the iteration count during the minimization.
    added forces to be included in the total potential energy of the
    system (the quantity being minimized), you MUST enable the
    :doc:`fix_modify <fix_modify>` *energy* option for this fix.
+
+----------
+
+.. include:: accel_styles.rst
+
+----------
 
 Restrictions
 """"""""""""

@@ -205,6 +205,14 @@ ComputePropertyAtom::ComputePropertyAtom(LAMMPS *lmp, int narg, char **arg) :
       if (!atom->omega_flag)
         error->all(FLERR,"Compute property/atom {} is not available", arg[iarg]);
       pack_choice[i] = &ComputePropertyAtom::pack_omegaz;
+    } else if (strcmp(arg[iarg],"temperature") == 0) {
+      if (!atom->temperature_flag)
+        error->all(FLERR,"Compute property/atom {} is not available", arg[iarg]);
+      pack_choice[i] = &ComputePropertyAtom::pack_temperature;
+    } else if (strcmp(arg[iarg],"heatflow") == 0) {
+      if (!atom->heatflow_flag)
+        error->all(FLERR,"Compute property/atom {} is not available", arg[iarg]);
+      pack_choice[i] = &ComputePropertyAtom::pack_heatflow;
     } else if (strcmp(arg[iarg],"angmomx") == 0) {
       if (!atom->angmom_flag)
         error->all(FLERR,"Compute property/atom {} is not available", arg[iarg]);
@@ -376,7 +384,7 @@ ComputePropertyAtom::ComputePropertyAtom(LAMMPS *lmp, int narg, char **arg) :
       index[i] = atom->avec->property_atom(arg[iarg]);
       if (index[i] < 0)
         error->all(FLERR,"Invalid keyword {} for atom style {} in compute property/atom command ",
-                   atom->get_style(), arg[iarg]);
+                   arg[iarg], atom->get_style());
       pack_choice[i] = &ComputePropertyAtom::pack_atom_style;
     }
   }
@@ -1213,6 +1221,36 @@ void ComputePropertyAtom::pack_omegaz(int n)
 
 /* ---------------------------------------------------------------------- */
 
+void ComputePropertyAtom::pack_temperature(int n)
+{
+  double *temperature = atom->temperature;
+  int *mask = atom->mask;
+  int nlocal = atom->nlocal;
+
+  for (int i = 0; i < nlocal; i++) {
+    if (mask[i] & groupbit) buf[n] = temperature[i];
+    else buf[n] = 0.0;
+    n += nvalues;
+  }
+}
+
+/* ---------------------------------------------------------------------- */
+
+void ComputePropertyAtom::pack_heatflow(int n)
+{
+  double *heatflow = atom->heatflow;
+  int *mask = atom->mask;
+  int nlocal = atom->nlocal;
+
+  for (int i = 0; i < nlocal; i++) {
+    if (mask[i] & groupbit) buf[n] = heatflow[i];
+    else buf[n] = 0.0;
+    n += nvalues;
+  }
+}
+
+/* ---------------------------------------------------------------------- */
+
 void ComputePropertyAtom::pack_angmomx(int n)
 {
   double **angmom = atom->angmom;
@@ -1268,7 +1306,7 @@ void ComputePropertyAtom::pack_shapex(int n)
   for (int i = 0; i < nlocal; i++) {
     if ((mask[i] & groupbit) && ellipsoid[i] >= 0)
       buf[n] = 2.0*bonus[ellipsoid[i]].shape[0];
-    else buf[n] = 0.0;
+    else buf[n] = 1.0;
     n += nvalues;
   }
 }
@@ -1285,7 +1323,7 @@ void ComputePropertyAtom::pack_shapey(int n)
   for (int i = 0; i < nlocal; i++) {
     if ((mask[i] & groupbit) && ellipsoid[i] >= 0)
       buf[n] = 2.0*bonus[ellipsoid[i]].shape[1];
-    else buf[n] = 0.0;
+    else buf[n] = 1.0;
     n += nvalues;
   }
 }
@@ -1302,7 +1340,7 @@ void ComputePropertyAtom::pack_shapez(int n)
   for (int i = 0; i < nlocal; i++) {
     if ((mask[i] & groupbit) && ellipsoid[i] >= 0)
       buf[n] = 2.0*bonus[ellipsoid[i]].shape[2];
-    else buf[n] = 0.0;
+    else buf[n] = 1.0;
     n += nvalues;
   }
 }
@@ -1320,7 +1358,7 @@ void ComputePropertyAtom::pack_quatw(int n)
     for (int i = 0; i < nlocal; i++) {
       if ((mask[i] & groupbit) && ellipsoid[i] >= 0)
         buf[n] = bonus[ellipsoid[i]].quat[0];
-      else buf[n] = 0.0;
+      else buf[n] = 1.0;
       n += nvalues;
     }
 

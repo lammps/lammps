@@ -1,46 +1,18 @@
-/*
 //@HEADER
 // ************************************************************************
 //
-//                        Kokkos v. 3.0
-//       Copyright (2020) National Technology & Engineering
+//                        Kokkos v. 4.0
+//       Copyright (2022) National Technology & Engineering
 //               Solutions of Sandia, LLC (NTESS).
 //
 // Under the terms of Contract DE-NA0003525 with NTESS,
 // the U.S. Government retains certain rights in this software.
 //
-// Redistribution and use in source and binary forms, with or without
-// modification, are permitted provided that the following conditions are
-// met:
+// Part of Kokkos, under the Apache License v2.0 with LLVM Exceptions.
+// See https://kokkos.org/LICENSE for license information.
+// SPDX-License-Identifier: Apache-2.0 WITH LLVM-exception
 //
-// 1. Redistributions of source code must retain the above copyright
-// notice, this list of conditions and the following disclaimer.
-//
-// 2. Redistributions in binary form must reproduce the above copyright
-// notice, this list of conditions and the following disclaimer in the
-// documentation and/or other materials provided with the distribution.
-//
-// 3. Neither the name of the Corporation nor the names of the
-// contributors may be used to endorse or promote products derived from
-// this software without specific prior written permission.
-//
-// THIS SOFTWARE IS PROVIDED BY NTESS "AS IS" AND ANY
-// EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
-// IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR
-// PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL NTESS OR THE
-// CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
-// EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
-// PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR
-// PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF
-// LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING
-// NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
-// SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-//
-// Questions? Contact Christian R. Trott (crtrott@sandia.gov)
-//
-// ************************************************************************
 //@HEADER
-*/
 
 #include <gtest/gtest.h>
 
@@ -935,7 +907,13 @@ void impl_test_local_deepcopy_rangepolicy_rank_7(const int N) {
 #if defined(KOKKOS_ENABLE_CXX11_DISPATCH_LAMBDA)
 TEST(TEST_CATEGORY, local_deepcopy_teampolicy_layoutleft) {
   using ExecSpace = TEST_EXECSPACE;
-  using ViewType  = Kokkos::View<double********, Kokkos::LayoutLeft, ExecSpace>;
+#if defined(KOKKOS_ENABLE_CUDA) && \
+    defined(KOKKOS_COMPILER_NVHPC)  // FIXME_NVHPC 23.7
+  if (std::is_same_v<ExecSpace, Kokkos::Cuda>)
+    GTEST_SKIP()
+        << "FIXME_NVHPC : Compiler bug affecting subviews of high rank Views";
+#endif
+  using ViewType = Kokkos::View<double********, Kokkos::LayoutLeft, ExecSpace>;
 
   {  // Rank-1
     impl_test_local_deepcopy_teampolicy_rank_1<ExecSpace, ViewType>(8);
@@ -962,7 +940,13 @@ TEST(TEST_CATEGORY, local_deepcopy_teampolicy_layoutleft) {
 //-------------------------------------------------------------------------------------------------------------
 TEST(TEST_CATEGORY, local_deepcopy_rangepolicy_layoutleft) {
   using ExecSpace = TEST_EXECSPACE;
-  using ViewType  = Kokkos::View<double********, Kokkos::LayoutLeft, ExecSpace>;
+#if defined(KOKKOS_ENABLE_CUDA) && \
+    defined(KOKKOS_COMPILER_NVHPC)  // FIXME_NVHPC 23.7
+  if (std::is_same_v<ExecSpace, Kokkos::Cuda>)
+    GTEST_SKIP()
+        << "FIXME_NVHPC : Compiler bug affecting subviews of high rank Views";
+#endif
+  using ViewType = Kokkos::View<double********, Kokkos::LayoutLeft, ExecSpace>;
 
   {  // Rank-1
     impl_test_local_deepcopy_rangepolicy_rank_1<ExecSpace, ViewType>(8);
@@ -989,6 +973,12 @@ TEST(TEST_CATEGORY, local_deepcopy_rangepolicy_layoutleft) {
 //-------------------------------------------------------------------------------------------------------------
 TEST(TEST_CATEGORY, local_deepcopy_teampolicy_layoutright) {
   using ExecSpace = TEST_EXECSPACE;
+#if defined(KOKKOS_ENABLE_CUDA) && \
+    defined(KOKKOS_COMPILER_NVHPC)  // FIXME_NVHPC 23.7
+  if (std::is_same_v<ExecSpace, Kokkos::Cuda>)
+    GTEST_SKIP()
+        << "FIXME_NVHPC : Compiler bug affecting subviews of high rank Views";
+#endif
   using ViewType = Kokkos::View<double********, Kokkos::LayoutRight, ExecSpace>;
 
   {  // Rank-1
@@ -1016,6 +1006,13 @@ TEST(TEST_CATEGORY, local_deepcopy_teampolicy_layoutright) {
 //-------------------------------------------------------------------------------------------------------------
 TEST(TEST_CATEGORY, local_deepcopy_rangepolicy_layoutright) {
   using ExecSpace = TEST_EXECSPACE;
+#if defined(KOKKOS_ENABLE_CUDA) && \
+    defined(KOKKOS_COMPILER_NVHPC)  // FIXME_NVHPC 23.7
+  if (std::is_same_v<ExecSpace, Kokkos::Cuda>)
+    GTEST_SKIP()
+        << "FIXME_NVHPC : Compiler bug affecting subviews of high rank Views";
+#endif
+
   using ViewType = Kokkos::View<double********, Kokkos::LayoutRight, ExecSpace>;
 
   {  // Rank-1

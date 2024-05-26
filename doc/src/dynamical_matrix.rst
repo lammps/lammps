@@ -4,7 +4,7 @@
 dynamical_matrix command
 ========================
 
-Accelerator Variants: dynamical_matrix/kk
+Accelerator Variant: dynamical_matrix/kk
 
 Syntax
 """"""

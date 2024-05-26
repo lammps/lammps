@@ -79,7 +79,7 @@ void PairOxdna2Dh::compute_interaction_sites(double e1[3],
 
 void PairOxdna2Dh::compute(int eflag, int vflag)
 {
-  double delf[3],delta[3],deltb[3]; // force, torque increment;;
+  double delf[3],delta[3],deltb[3]; // force, torque increment
   double rtmp_s[3],delr[3];
   double evdwl,fpair,factor_lj;
   double r,rsq,rinv;

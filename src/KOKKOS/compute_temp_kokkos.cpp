@@ -21,8 +21,6 @@
 #include "force.h"
 #include "update.h"
 
-#include <cstring>
-
 using namespace LAMMPS_NS;
 
 /* ---------------------------------------------------------------------- */
@@ -159,4 +157,3 @@ template class ComputeTempKokkos<LMPDeviceType>;
 template class ComputeTempKokkos<LMPHostType>;
 #endif
 }
-

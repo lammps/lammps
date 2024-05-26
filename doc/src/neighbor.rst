@@ -6,7 +6,7 @@ neighbor command
 Syntax
 """"""
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    neighbor skin style
 

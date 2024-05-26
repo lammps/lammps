@@ -96,29 +96,29 @@ force (F), and torque (T) between particles I and J.
                         \left(\frac{\sigma}{r}\right)^6 \right] \\
    E_{qq}  = & \frac{q_i q_j}{r} \\
    E_{qp}  = & \frac{q}{r^3} (p \bullet \vec{r}) \\
-   E_{pp}  = & \frac{1}{r^3} (\vec{p_i} \bullet \vec{p_j}) -
-             \frac{3}{r^5} (\vec{p_i} \bullet \vec{r}) (\vec{p_j} \bullet \vec{r}) \\
+   E_{pp}  = & \frac{1}{r^3} (\vec{p}_i \bullet \vec{p}_j) -
+             \frac{3}{r^5} (\vec{p}_i \bullet \vec{r}) (\vec{p}_j \bullet \vec{r}) \\
              & \\
    F_{qq}  = & \frac{q_i q_j}{r^3} \vec{r} \\
    F_{qp}  = & -\frac{q}{r^3} \vec{p} + \frac{3q}{r^5}
              (\vec{p} \bullet \vec{r}) \vec{r} \\
-   F_{pp}  = & \frac{3}{r^5} (\vec{p_i} \bullet \vec{p_j}) \vec{r} -
-             \frac{15}{r^7} (\vec{p_i} \bullet \vec{r})
-             (\vec{p_j} \bullet \vec{r}) \vec{r} +
-             \frac{3}{r^5} \left[ (\vec{p_j} \bullet \vec{r}) \vec{p_i} +
-             (\vec{p_i} \bullet \vec{r}) \vec{p_j} \right] \\
+   F_{pp}  = & \frac{3}{r^5} (\vec{p}_i \bullet \vec{p}_j) \vec{r} -
+             \frac{15}{r^7} (\vec{p}_i \bullet \vec{r})
+             (\vec{p}_j \bullet \vec{r}) \vec{r} +
+             \frac{3}{r^5} \left[ (\vec{p}_j \bullet \vec{r}) \vec{p}_i +
+             (\vec{p}_i \bullet \vec{r}) \vec{p}_j \right] \\
              & \\
-   T_{pq} = T_{ij}  = & \frac{q_j}{r^3} (\vec{p_i} \times \vec{r}) \\
-   T_{qp} = T_{ji}  = & - \frac{q_i}{r^3} (\vec{p_j} \times \vec{r}) \\
-   T_{pp} = T_{ij}  = & -\frac{1}{r^3} (\vec{p_i} \times \vec{p_j}) +
-                      \frac{3}{r^5} (\vec{p_j} \bullet \vec{r})
-                      (\vec{p_i} \times \vec{r}) \\
-   T_{pp} = T_{ji}  = & -\frac{1}{r^3} (\vec{p_j} \times \vec{p_i}) +
-                      \frac{3}{r^5} (\vec{p_i} \bullet \vec{r})
-                      (\vec{p_j} \times \vec{r})
+   T_{pq} = T_{ij}  = & \frac{q_j}{r^3} (\vec{p}_i \times \vec{r}) \\
+   T_{qp} = T_{ji}  = & - \frac{q_i}{r^3} (\vec{p}_j \times \vec{r}) \\
+   T_{pp} = T_{ij}  = & -\frac{1}{r^3} (\vec{p}_i \times \vec{p}_j) +
+                      \frac{3}{r^5} (\vec{p}_j \bullet \vec{r})
+                      (\vec{p}_i \times \vec{r}) \\
+   T_{pp} = T_{ji}  = & -\frac{1}{r^3} (\vec{p}_j \times \vec{p}_i) +
+                      \frac{3}{r^5} (\vec{p}_i \bullet \vec{r})
+                      (\vec{p}_j \times \vec{r})
 
 where :math:`q_i` and :math:`q_j` are the charges on the two
-particles, :math:`\vec{p_i}` and :math:`\vec{p_j}` are the dipole
+particles, :math:`\vec{p}_i` and :math:`\vec{p}_j` are the dipole
 moment vectors of the two particles, r is their separation distance,
 and the vector r = Ri - Rj is the separation vector between the two
 particles.  Note that Eqq and Fqq are simply Coulombic energy and
@@ -163,8 +163,8 @@ energy (E), force (F), and torque (T) between particles I and J:
   2\left(\frac{r}{r_c}\right)^{\!3}\right] (\vec{p}\bullet\vec{r}) \\
   E_{pp} = & \left[1-4\left(\frac{r}{r_c}\right)^{\!3} +
   3\left(\frac{r}{r_c}\right)^{\!4}\right]\left[\frac{1}{r^3}
-  (\vec{p_i} \bullet \vec{p_j}) - \frac{3}{r^5}
-  (\vec{p_i} \bullet \vec{r}) (\vec{p_j} \bullet \vec{r})\right] \\
+  (\vec{p}_i \bullet \vec{p}_j) - \frac{3}{r^5}
+  (\vec{p}_i \bullet \vec{r}) (\vec{p}_j \bullet \vec{r})\right] \\
            & \\
 
   F_{LJ}  = & \left\{\left[48\epsilon \left(\frac{\sigma}{r}\right)^{\!12} -
@@ -182,37 +182,37 @@ energy (E), force (F), and torque (T) between particles I and J:
   \frac{q}{r^3}\left[1-3\left(\frac{r}{r_c}\right)^{\!2} +
   2\left(\frac{r}{r_c}\right)^{\!3}\right] \vec{p} \\
   F_{pp}  = &\frac{3}{r^5}\Bigg\{\left[1-\left(\frac{r}{r_c}\right)^{\!4}\right]
-  \left[(\vec{p_i}\bullet\vec{p_j}) - \frac{3}{r^2} (\vec{p_i}\bullet\vec{r})
-  (\vec{p_j} \bullet \vec{r})\right] \vec{r} + \\
+  \left[(\vec{p}_i\bullet\vec{p}_j) - \frac{3}{r^2} (\vec{p}_i\bullet\vec{r})
+  (\vec{p}_j \bullet \vec{r})\right] \vec{r} + \\
     & \left[1 -
   4\left(\frac{r}{r_c}\right)^{\!3}+3\left(\frac{r}{r_c}\right)^{\!4}\right]
-  \left[ (\vec{p_j} \bullet \vec{r}) \vec{p_i} + (\vec{p_i} \bullet \vec{r})
-  \vec{p_j} -\frac{2}{r^2} (\vec{p_i} \bullet \vec{r})
-  (\vec{p_j} \bullet \vec{r})\vec{r}\right] \Bigg\}
+  \left[ (\vec{p}_j \bullet \vec{r}) \vec{p}_i + (\vec{p}_i \bullet \vec{r})
+  \vec{p}_j -\frac{2}{r^2} (\vec{p}_i \bullet \vec{r})
+  (\vec{p}_j \bullet \vec{r})\vec{r}\right] \Bigg\}
 
 .. math::
 
    T_{pq} = T_{ij}  = & \frac{q_j}{r^3} \left[ 1 -
   3\left(\frac{r}{r_c}\right)^{\!2} +
-  2\left(\frac{r}{r_c}\right)^{\!3}\right] (\vec{p_i}\times\vec{r}) \\
+  2\left(\frac{r}{r_c}\right)^{\!3}\right] (\vec{p}_i\times\vec{r}) \\
   T_{qp} = T_{ji}  = & - \frac{q_i}{r^3} \left[ 1 -
   3\left(\frac{r}{r_c}\right)^{\!2} +
-  2\left(\frac{r}{r_c}\right)^{\!3} \right] (\vec{p_j}\times\vec{r}) \\
+  2\left(\frac{r}{r_c}\right)^{\!3} \right] (\vec{p}_j\times\vec{r}) \\
   T_{pp} = T_{ij}  = & -\frac{1}{r^3}\left[1-4\left(\frac{r}{r_c}\right)^{\!3} +
-  e3\left(\frac{r}{r_c}\right)^{\!4}\right] (\vec{p_i} \times \vec{p_j}) + \\
+  e3\left(\frac{r}{r_c}\right)^{\!4}\right] (\vec{p}_i \times \vec{p}_j) + \\
                      & \frac{3}{r^5}\left[1-4\left(\frac{r}{r_c}\right)^{\!3} +
-  3\left(\frac{r}{r_c}\right)^{\!4}\right] (\vec{p_j}\bullet\vec{r})
-  (\vec{p_i} \times \vec{r}) \\
+  3\left(\frac{r}{r_c}\right)^{\!4}\right] (\vec{p}_j\bullet\vec{r})
+  (\vec{p}_i \times \vec{r}) \\
   T_{pp} = T_{ji} = & -\frac{1}{r^3}\left[1-4\left(\frac{r}{r_c}\right)^{\!3} +
-  3\left(\frac{r}{r_c}\right)^{\!4}\right](\vec{p_j} \times \vec{p_i}) + \\
+  3\left(\frac{r}{r_c}\right)^{\!4}\right](\vec{p}_j \times \vec{p}_i) + \\
                      & \frac{3}{r^5}\left[1-4\left(\frac{r}{r_c}\right)^{\!3} +
-  3\left(\frac{r}{r_c}\right)^{\!4}\right] (\vec{p_i} \bullet \vec{r})
-  (\vec{p_j} \times \vec{r})
+  3\left(\frac{r}{r_c}\right)^{\!4}\right] (\vec{p}_i \bullet \vec{r})
+  (\vec{p}_j \times \vec{r})
 
 where :math:`\epsilon` and :math:`\sigma` are the standard LJ
 parameters, :math:`r_c` is the cutoff, :math:`q_i` and :math:`q_j` are
-the charges on the two particles, :math:`\vec{p_i}` and
-:math:`\vec{p_j}` are the dipole moment vectors of the two particles,
+the charges on the two particles, :math:`\vec{p}_i` and
+:math:`\vec{p}_j` are the dipole moment vectors of the two particles,
 r is their separation distance, and the vector r = Ri - Rj is the
 separation vector between the two particles.  Note that Eqq and Fqq
 are simply Coulombic energy and force, Fij = -Fji as symmetric forces,

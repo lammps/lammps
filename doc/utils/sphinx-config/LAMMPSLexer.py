@@ -2,14 +2,15 @@ from pygments.lexer import RegexLexer, words, include, default
 from pygments.token import *
 
 LAMMPS_COMMANDS = ("angle_coeff", "angle_style", "atom_modify",
-                   "atom_style", "balance", "bond_coeff", "bond_style",
-                   "bond_write", "boundary", "clear", "comm_modify",
-                   "comm_style", "compute_modify", "create_atoms",
-                   "create_bonds", "create_box", "delete_atoms",
-                   "delete_bonds", "dielectric", "dihedral_coeff",
-                   "dihedral_style", "dimension", "displace_atoms",
-                   "dump_modify", "dynamical_matrix", "echo", "elif",
-                   "else", "fix_modify", "group2ndx", "hyper", "if",
+                   "atom_style", "angle_write", "balance", "bond_coeff",
+                   "bond_style", "bond_write", "boundary", "clear",
+                   "comm_modify", "comm_style", "compute_modify",
+                   "create_atoms", "create_bonds", "create_box",
+                   "delete_atoms", "delete_bonds", "dielectric",
+                   "dihedral_coeff", "dihedral_style", "dihedral_write",
+                   "dimension", "displace_atoms", "dump_modify",
+                   "dynamical_matrix", "echo", "fitpod",
+                   "fix_modify", "group2ndx", "hyper",
                    "improper_coeff", "improper_style", "include",
                    "info", "jump", "kim", "kspace_modify",
                    "kspace_style", "label", "labelmap", "lattice",
@@ -23,7 +24,7 @@ LAMMPS_COMMANDS = ("angle_coeff", "angle_style", "atom_modify",
                    "read_restart", "replicate", "rerun", "reset_atoms",
                    "reset_timestep", "restart", "run", "run_style",
                    "server", "set", "shell", "special_bonds", "suffix",
-                   "tad", "temper", "temper/grem", "temper/npt", "then",
+                   "tad", "temper", "temper/grem", "temper/npt",
                    "thermo", "thermo_modify", "thermo_style",
                    "third_order", "timer", "timestep", "units",
                    "velocity", "write_coeff", "write_data",
@@ -45,50 +46,76 @@ class LAMMPSLexer(RegexLexer):
     tokens = {
         'root': [
             (r'fix\s+', Keyword, 'fix'),
+            (r'fix_modify\s+', Keyword, 'modify_cmd'),
             (r'compute\s+', Keyword, 'compute'),
+            (r'compute_modify\s+', Keyword, 'modify_cmd'),
             (r'dump\s+', Keyword, 'dump'),
+            (r'dump_modify\s+', Keyword, 'modify_cmd'),
             (r'region\s+', Keyword, 'region'),
-            (r'^\s*variable\s+', Keyword, 'variable_cmd'),
+            (r'variable\s+', Keyword, 'variable_cmd'),
             (r'group\s+', Keyword, 'group'),
             (r'change_box\s+', Keyword, 'change_box'),
-            (r'uncompute\s+', Keyword, 'uncompute'),
-            (r'unfix\s+', Keyword, 'unfix'),
-            (r'undump\s+', Keyword, 'undump'),
+            (r'create_box\s+', Keyword, 'create_box'),
+            (r'delete_bonds\s+', Keyword, 'id_cmd'),
+            (r'displace_atoms\s+', Keyword, 'id_cmd'),
+            (r'dynamical_matrix\s+', Keyword, 'id_cmd'),
+            (r'group2ndx\s+', Keyword, 'ndx_cmd'),
+            (r'ndx2group\s+', Keyword, 'ndx_cmd'),
+            (r'jump\s+', Keyword, 'jump_cmd'),
+            (r'label\s+', Keyword, 'jump_cmd'),
+            (r'next\s+', Keyword, 'id_cmd'),
+            (r'kim\s+', Keyword, 'kim_cmd'),
+            (r'uncompute\s+', Keyword, 'id_cmd'),
+            (r'unfix\s+', Keyword, 'id_cmd'),
+            (r'undump\s+', Keyword, 'id_cmd'),
+            (r'velocity\s+', Keyword, 'id_cmd'),
+            (r'write_coeff\s+', Keyword, 'ndx_cmd'),
+            (r'write_data\s+', Keyword, 'ndx_cmd'),
             (r'write_dump\s+', Keyword, 'write_dump'),
+            (r'write_restart\s+', Keyword, 'ndx_cmd'),
+            include('conditionals'),
             include('keywords'),
             (r'#.*?\n', Comment),
-            ('"', String, 'string'),
-            ('\'', String, 'single_quote_string'),
+            (r'"', String, 'string'),
+            (r'\'', String, 'single_quote_string'),
             (r'[0-9]+:[0-9]+(:[0-9]+)?', Number),
             (r'[0-9]+(\.[0-9]+)?([eE]\-?[0-9]+)?', Number),
-            ('\$?\(', Name.Variable, 'expression'),
-            ('\$\{', Name.Variable, 'variable'),
+            (r'\$?\(', Name.Variable, 'expression'),
+            (r'\$\{', Name.Variable, 'variable'),
             (r'[\w_\.\[\]]+', Name),
             (r'\$[\w_]+', Name.Variable),
             (r'\s+', Whitespace),
             (r'[\+\-\*\^\|\/\!%&=<>]', Operator),
             (r'[\~\.\w_:,@\-\/\\0-9]+', Text),
         ],
+        'conditionals' : [
+            (words(('if','else','elif','then'), suffix=r'\b', prefix=r'\b'), Keyword)
+        ]
+        ,
         'keywords' : [
-            (words(LAMMPS_COMMANDS, suffix=r'\b', prefix=r'^'), Keyword)
+            (words(LAMMPS_COMMANDS, suffix=r'\b', prefix=r'^\s*'), Keyword)
         ]
         ,
         'variable' : [
-            ('[^\}]+', Name.Variable),
-            ('\}', Name.Variable, '#pop'),
+            (r'[^\}]+', Name.Variable),
+            (r'\}', Name.Variable, '#pop'),
         ],
         'string' : [
-            ('[^"]+', String),
-            ('"', String, '#pop'),
+            (r'[^"]+', String),
+            (r'"', String, '#pop'),
         ],
         'single_quote_string' : [
-            ('[^\']+', String),
-            ('\'', String, '#pop'),
+            (r'[^\']+', String),
+            (r'\'', String, '#pop'),
         ],
         'expression' : [
-            ('[^\(\)]+', Name.Variable),
-            ('\(', Name.Variable, 'expression'),
-            ('\)', Name.Variable, '#pop'),
+            (r'[^\(\)]+', Name.Variable),
+            (r'\(', Name.Variable, 'expression'),
+            (r'\)', Name.Variable, '#pop'),
+        ],
+        'modify_cmd' : [
+            (r'[\w_\-\.\[\]]+', Name.Variable.Identifier),
+            default('#pop')
         ],
         'fix' : [
             (r'[\w_\-\.\[\]]+', Name.Variable.Identifier),
@@ -121,16 +148,25 @@ class LAMMPSLexer(RegexLexer):
             (r'[\w_\-\.\[\]]+', Name.Variable.Identifier),
             default('#pop')
         ],
-        'unfix' : [
+        'create_box' : [
+            (r'[\w_\-\.\[\]]+', Name.Variable.Identifier),
+            (r'\s+', Whitespace, 'group_id'),
+            default('#pop')
+        ],
+        'id_cmd' : [
             (r'[\w_\-\.\[\]]+', Name.Variable.Identifier),
             default('#pop')
         ],
-        'undump' : [
+        'ndx_cmd' : [
             (r'[\w_\-\.\[\]]+', Name.Variable.Identifier),
             default('#pop')
         ],
-        'uncompute' : [
-            (r'[\w_\-\.\[\]]+', Name.Variable.Identifier),
+        'jump_cmd' : [
+            (r'[\w_\-\.\[\]]+', Literal.String.Char),
+            default('#pop')
+        ],
+        'kim_cmd' : [
+            (r'[\w_\-\.\[\]]+', Literal.String.Single),
             default('#pop')
         ],
         'write_dump' : [

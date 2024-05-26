@@ -1,0 +1,58 @@
+########################################################################
+### Heat conduction analog of periodic Poiseuille flow problem       ###
+### using energy-conserving DPD (eDPD) simulation                    ###
+###                                                                  ### 
+### Created  : Zhen Li (zhen_li@brown.edu)                           ### 
+###            Division of Applied Mathematics, Brown University.    ###
+###                                                                  ###
+### mDPD system setup follows Fig.12 in the publication:             ###
+### Z. Li, Y.-H. Tang, H. Lei, B. Caswell and G.E. Karniadakis.      ###
+### "Energy-conserving dissipative particle dynamics with            ###
+### temperature-dependent properties". J. Comput. Phys.,             ###
+### 2014, 265: 113-127. DOI: 10.1016/j.jcp.2014.02.003               ###
+########################################################################
+units                   lj
+dimension               3
+boundary                p p p
+neighbor                0.2 bin
+neigh_modify        every 1 delay 0 check yes
+
+atom_style              edpd
+comm_modify vel yes
+
+region     edpd     block -10 10 -10 10 -5 5 units box
+create_box          1 edpd
+create_atoms        1 random 16000 276438 NULL
+mass                1 1.0
+set                 atom * edpd/temp 1.0
+set                 atom * edpd/cv 1.0E5
+
+pair_style          edpd 1.58 9872598 
+#pair_coeff          1 1 18.75 4.5 0.41 1.58 1.45E-5 2.0 1.58
+pair_coeff          1 1 18.75 4.5 0.41 1.58 1.41E-5 2.0 1.58 &
+                        power 10.54 -3.66 3.44 -4.10 &
+                        kappa -0.44 -3.21 5.04  0.00
+
+compute             mythermo all temp
+thermo              100
+thermo_modify       temp mythermo
+thermo_modify       flush yes
+
+velocity            all create 1.0 432982 loop local dist gaussian
+
+region upper block -10.0  10.0   0.0 10.0 -5.0 5.0
+region lower block -10.0  10.0 -10.0  0.0 -5.0 5.0
+
+fix         mvv     all mvv/edpd 0.5
+fix         upper   all edpd/source region upper  0.011
+fix         lower   all edpd/source region lower -0.011
+
+timestep            0.01
+run                 500
+reset_timestep      0
+
+compute     temp    all edpd/temp/atom
+compute     ccT     all chunk/atom bin/1d y 0.0 1.0 
+fix         stat    all ave/chunk 1 500 500 ccT c_temp density/number norm sample file temp.profile
+
+run                 500

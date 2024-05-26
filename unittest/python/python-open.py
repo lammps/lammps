@@ -4,7 +4,7 @@ from lammps import lammps
 
 has_mpi=False
 has_mpi4py=False
-has_exceptions=False
+
 try:
     from mpi4py import __version__ as mpi4py_version
     # tested to work with mpi4py versions 2 and 3
@@ -19,7 +19,6 @@ try:
         machine = ""
     lmp = lammps(name=machine)
     has_mpi = lmp.has_mpi_support
-    has_exceptions = lmp.has_exceptions
     lmp.close()
 except:
     pass
@@ -79,7 +78,6 @@ class PythonOpen(unittest.TestCase):
         self.assertEqual(lmp.opened,1)
         lmp.close()
 
-    @unittest.skipIf(not has_exceptions,"Skipping death test since LAMMPS isn't compiled with exception support")
     def testUnknownCommand(self):
         lmp = lammps(name=self.machine)
 
@@ -88,7 +86,6 @@ class PythonOpen(unittest.TestCase):
 
         lmp.close()
 
-    @unittest.skipIf(not has_exceptions,"Skipping death test since LAMMPS isn't compiled with exception support")
     def testUnknownCommandInList(self):
         lmp = lammps(name=self.machine)
 
@@ -97,7 +94,6 @@ class PythonOpen(unittest.TestCase):
 
         lmp.close()
 
-    @unittest.skipIf(not has_exceptions,"Skipping death test since LAMMPS isn't compiled with exception support")
     def testUnknownCommandInString(self):
         lmp = lammps(name=self.machine)
 

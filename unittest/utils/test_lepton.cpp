@@ -73,16 +73,14 @@ TEST_F(LeptonUtilsTest, substitute)
     lmp->update->reset_timestep(100LL, false);
     ASSERT_THAT(LeptonUtils::substitute("(2.5/v_pre)", lmp), StrEq("(2.5/0.1)"));
 
-    if (LAMMPS_NS::Info::has_exceptions()) {
-        bool caught = false;
-        try {
-            LeptonUtils::substitute("v_none", lmp);
-        } catch (std::exception &e) {
-            ASSERT_THAT(e.what(), StrEq("Variable none in expression v_none does not exist"));
-            caught = true;
-        }
-        ASSERT_TRUE(caught);
+    bool caught = false;
+    try {
+        LeptonUtils::substitute("v_none", lmp);
+    } catch (std::exception &e) {
+        ASSERT_THAT(e.what(), StrEq("Variable none in expression v_none does not exist"));
+        caught = true;
     }
+    ASSERT_TRUE(caught);
 }
 
 // zbl() custom function
@@ -131,9 +129,9 @@ TEST(LeptonCustomFunction, zbl)
  */
 
 class ExampleFunction : public Lepton::CustomFunction {
-    int getNumArguments() const { return 2; }
-    double evaluate(const double *arguments) const { return 2.0 * arguments[0] * arguments[1]; }
-    double evaluateDerivative(const double *arguments, const int *derivOrder) const
+    int getNumArguments() const override { return 2; }
+    double evaluate(const double *arguments) const override { return 2.0 * arguments[0] * arguments[1]; }
+    double evaluateDerivative(const double *arguments, const int *derivOrder) const override
     {
         if (derivOrder[0] == 1) {
             if (derivOrder[1] == 0)
@@ -144,7 +142,7 @@ class ExampleFunction : public Lepton::CustomFunction {
         if (derivOrder[1] == 1 && derivOrder[0] == 0) return 2.0 * arguments[0];
         return 0.0;
     }
-    Lepton::CustomFunction *clone() const { return new ExampleFunction(); }
+    Lepton::CustomFunction *clone() const override { return new ExampleFunction(); }
 };
 
 /**
@@ -542,6 +540,41 @@ TEST(Lepton, Optimize)
     out << Lepton::Parser::parse("log(3*cos(x))^(sqrt(4)-2)").optimize();
     ASSERT_THAT(out.str(), StrEq("1"));
     out.str("");
+}
+
+TEST(Lepton, Exception)
+{
+    Lepton::CompiledExpression function, derivative;
+
+    auto parsed = Lepton::Parser::parse("x*x");
+    function    = parsed.createCompiledExpression();
+    derivative  = parsed.differentiate("x").createCompiledExpression();
+
+    double x = 1.5;
+    EXPECT_NO_THROW(function.getVariableReference("x") = x;);
+    EXPECT_NO_THROW(derivative.getVariableReference("x") = x;);
+    EXPECT_DOUBLE_EQ(function.evaluate(), 2.25);
+    EXPECT_DOUBLE_EQ(derivative.evaluate(), 3.0);
+
+    parsed     = Lepton::Parser::parse("x");
+    function   = parsed.createCompiledExpression();
+    derivative = parsed.differentiate("x").createCompiledExpression();
+
+    x = 2.5;
+    EXPECT_NO_THROW(function.getVariableReference("x") = x;);
+    EXPECT_THROW(derivative.getVariableReference("x") = x;, Lepton::Exception);
+    EXPECT_DOUBLE_EQ(function.evaluate(), 2.5);
+    EXPECT_DOUBLE_EQ(derivative.evaluate(), 1.0);
+
+    parsed     = Lepton::Parser::parse("1.0");
+    function   = parsed.createCompiledExpression();
+    derivative = parsed.differentiate("x").createCompiledExpression();
+
+    x = 0.5;
+    EXPECT_THROW(function.getVariableReference("x") = x;, Lepton::Exception);
+    EXPECT_THROW(derivative.getVariableReference("x") = x;, Lepton::Exception);
+    EXPECT_DOUBLE_EQ(function.evaluate(), 1.0);
+    EXPECT_DOUBLE_EQ(derivative.evaluate(), 0.0);
 }
 
 int main(int argc, char **argv)

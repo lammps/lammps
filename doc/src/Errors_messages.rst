@@ -7148,9 +7148,6 @@ keyword to allow for additional bonds to be formed
 *Read_dump xyz fields do not have consistent scaling/wrapping*
    Self-explanatory.
 
-*Reading from MPI-IO filename when MPIIO package is not installed*
-   Self-explanatory.
-
 *Reax_defs.h setting for NATDEF is too small*
    Edit the setting in the ReaxFF library and re-compile the
    library and re-build LAMMPS.
@@ -7886,12 +7883,6 @@ keyword to allow for additional bonds to be formed
    Fix poems cannot (yet) work with coupled bodies whose joints connect
    the bodies in a tree structure.
 
-*Triclinic box skew is too large*
-   The displacement in a skewed direction must be less than half the box
-   length in that dimension.  E.g. the xy tilt must be between -half and
-   +half of the x box length.  This constraint can be relaxed by using
-   the box tilt command.
-
 *Tried to convert a double to int, but input_double > INT_MAX*
    Self-explanatory.
 
@@ -8488,9 +8479,6 @@ keyword to allow for additional bonds to be formed
 *Write_restart command before simulation box is defined*
    The write_restart command cannot be used before a read_data,
    read_restart, or create_box command.
-
-*Writing to MPI-IO filename when MPIIO package is not installed*
-   Self-explanatory.
 
 *Zero length rotation vector with displace_atoms*
    Self-explanatory.

@@ -21,7 +21,7 @@ DEFAULT_CONFIG = """
 recursive: true
 include:
     - doc/src/**
-    - python
+    - python/**
     - src/**
 exclude:
     - src/Make.sh

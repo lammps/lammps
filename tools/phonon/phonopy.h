@@ -4,22 +4,16 @@
 #ifndef PHONOPY_H
 #define PHONOPY_H
 
-#include "stdio.h"
-#include "stdlib.h"
-#include "string.h"
-#include "memory.h"
-#include "qnodes.h"
-#include "dynmat.h"
-#include "global.h"
+#include "zheevd.h"
 
 class Phonopy {
 public:
-   Phonopy(DynMat *);
+   Phonopy(class DynMat *);
    ~Phonopy();
 
 private:
-   Memory *memory;
-   char str[MAXLINE];
+   class UserInput *input;
+   class Memory *memory;
    int npt, fftdim2;       // local variables
    int nx, ny, nz, nucell; // local variables
    int sysdim, fftdim;     // local variables
@@ -27,7 +21,7 @@ private:
 
    doublecomplex **FC_all;
 
-   DynMat *dm;
+   class DynMat *dm;
    void write(int);
    void get_my_FC();
    void phonopy();

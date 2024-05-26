@@ -845,7 +845,7 @@ __kernel void k_hippo_dispersion(const __global numtyp4 *restrict x_,
       numtyp scale = factor_disp * damp*damp;
       scale = scale - (numtyp)1.0;
       numtyp e = -ci * ck * (expa+scale) / r6;
-      numtyp rterm = -ucl_powr(ralpha2,(numtyp)3.0) * expterm / r;
+      numtyp rterm = -ralpha2*ralpha2*ralpha2 * expterm / r;
       numtyp de = (numtyp)-6.0*e/r2 - ci*ck*rterm/r7 - (numtyp)2.0*ci*ck*factor_disp*damp*ddamp/r7;
 
       energy+= e;
@@ -1072,7 +1072,12 @@ __kernel void k_hippo_multipole(const __global numtyp4 *restrict x_,
       numtyp ralpha = aewald * r;
       numtyp exp2a = ucl_exp(-ralpha*ralpha);
       numtyp bn[6];
+#ifdef INTEL_OCL
+      numtyp t = ucl_recip((numtyp)1.0 + EWALD_P*ralpha);
+      bn[0] = t * (A1+t*(A2+t*(A3+t*(A4+t*A5)))) * exp2a * rinv;
+#else
       bn[0] = ucl_erfc(ralpha) * rinv;
+#endif
 
       numtyp alsq2 = (numtyp)2.0 * aewald*aewald;
       numtyp alsq2n = (numtyp)0.0;
@@ -1220,7 +1225,9 @@ __kernel void k_hippo_udirect2b(const __global numtyp4 *restrict x_,
   atom_info(t_per_atom,ii,tid,offset);
 
   int n_stride;
+#if (SHUFFLE_AVAIL == 0)
   local_allocate_store_charge();
+#endif
 
   acctyp _fieldp[6];
   for (int l=0; l<6; l++) _fieldp[l]=(acctyp)0;
@@ -1319,7 +1326,12 @@ __kernel void k_hippo_udirect2b(const __global numtyp4 *restrict x_,
       numtyp ralpha = aewald * r;
       numtyp exp2a = ucl_exp(-ralpha*ralpha);
       numtyp bn[4];
+#ifdef INTEL_OCL
+      numtyp t = ucl_recip((numtyp)1.0 + EWALD_P*ralpha);
+      bn[0] = t * (A1+t*(A2+t*(A3+t*(A4+t*A5)))) * exp2a * rinv;
+#else
       bn[0] = ucl_erfc(ralpha) * rinv;
+#endif
 
       numtyp aefac = aesq2n;
       for (int m = 1; m <= 3; m++) {
@@ -1400,7 +1412,9 @@ __kernel void k_hippo_umutual2b(const __global numtyp4 *restrict x_,
   atom_info(t_per_atom,ii,tid,offset);
 
   int n_stride;
+#if (SHUFFLE_AVAIL == 0)
   local_allocate_store_charge();
+#endif
 
   acctyp _fieldp[6];
   for (int l=0; l<6; l++) _fieldp[l]=(acctyp)0;
@@ -1477,7 +1491,12 @@ __kernel void k_hippo_umutual2b(const __global numtyp4 *restrict x_,
       numtyp ralpha = aewald * r;
       numtyp exp2a = ucl_exp(-ralpha*ralpha);
       numtyp bn[4];
+#ifdef INTEL_OCL
+      numtyp t = ucl_recip((numtyp)1.0 + EWALD_P*ralpha);
+      bn[0] = t * (A1+t*(A2+t*(A3+t*(A4+t*A5)))) * exp2a * rinv;
+#else
       bn[0] = ucl_erfc(ralpha) * rinv;
+#endif
 
       numtyp aefac = aesq2n;
       for (int m = 1; m <= 3; m++) {
@@ -1702,7 +1721,12 @@ __kernel void k_hippo_polar(const __global numtyp4 *restrict x_,
       numtyp ralpha = aewald * r;
       numtyp exp2a = ucl_exp(-ralpha*ralpha);
       numtyp bn[5];
+#ifdef INTEL_OCL
+      numtyp t = ucl_recip((numtyp)1.0 + EWALD_P*ralpha);
+      bn[0] = t * (A1+t*(A2+t*(A3+t*(A4+t*A5)))) * exp2a * rinv;
+#else
       bn[0] = ucl_erfc(ralpha) * rinv;
+#endif
 
       numtyp alsq2 = (numtyp)2.0 * aewald*aewald;
       numtyp alsq2n = (numtyp)0.0;
@@ -2432,13 +2456,13 @@ __kernel void k_hippo_special15(__global int * dev_nbor,
                           const __global tagint *restrict special15,
                           const int inum, const int nall, const int nbor_pitch,
                           const int t_per_atom) {
-  int tid, ii, offset, n_stride, i;
+  int tid, ii, offset, n_stride, j;
   atom_info(t_per_atom,ii,tid,offset);
 
   if (ii<inum) {
 
     int numj, nbor, nbor_end;
-    nbor_info(dev_nbor,dev_packed,nbor_pitch,t_per_atom,ii,offset,i,numj,
+    nbor_info(dev_nbor,dev_packed,nbor_pitch,t_per_atom,ii,offset,j,numj,
               n_stride,nbor_end,nbor);
 
     int n15 = nspecial15[ii];
@@ -2447,7 +2471,7 @@ __kernel void k_hippo_special15(__global int * dev_nbor,
 
       int sj=dev_packed[nbor];
       int which = sj >> SBBITS & 3;
-      int j = sj & NEIGHMASK;
+      j = sj & NEIGHMASK;
       tagint jtag = tag[j];
 
       if (!which) {

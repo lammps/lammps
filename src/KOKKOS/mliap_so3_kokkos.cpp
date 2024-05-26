@@ -2,7 +2,7 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    https://www.lammps.org/, Sandia National Laboratories
-   LAMMPS Development team: developers@lammps.org
+   LAMMPS development team: developers@lammps.org
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
@@ -21,7 +21,6 @@
 #include "error.h"
 #include "math_const.h"
 #include "math_special_kokkos.h"
-#include "memory.h"
 #include "memory_kokkos.h"
 #include "mliap_so3_math.h"
 
@@ -32,7 +31,7 @@ using namespace LAMMPS_NS;
 using namespace MathConst;
 using namespace MathSpecialKokkos;
 
-#define SMALL 1.0e-8
+static constexpr double SMALL = 1.0e-8;
 
 /* ---------------------------------------------------------------------- */
 
@@ -60,44 +59,6 @@ MLIAP_SO3Kokkos<DeviceType>::MLIAP_SO3Kokkos(LAMMPS *lmp, double vrcut, int vlma
 template <class DeviceType>
 MLIAP_SO3Kokkos<DeviceType>::~MLIAP_SO3Kokkos()
 {
-  memoryKK->destroy_kokkos(m_ellpl1);
-  memoryKK->destroy_kokkos(m_ellm1);
-  memoryKK->destroy_kokkos(m_pfac);
-  memoryKK->destroy_kokkos(m_Ylms);
-  memoryKK->destroy_kokkos(m_dfac0);
-  memoryKK->destroy_kokkos(m_dfac1);
-  memoryKK->destroy_kokkos(m_dfac2);
-  memoryKK->destroy_kokkos(m_dfac3);
-  memoryKK->destroy_kokkos(m_dfac4);
-  memoryKK->destroy_kokkos(m_dfac5);
-  memoryKK->destroy_kokkos(m_w);
-  memoryKK->destroy_kokkos(m_g_array);
-
-  memoryKK->destroy_kokkos(m_rootpq);
-  memoryKK->destroy_kokkos(m_idxu_block);
-  memoryKK->destroy_kokkos(m_idxylm);
-
-  memoryKK->destroy_kokkos(m_rip_array);
-  memoryKK->destroy_kokkos(m_rip_darray);
-
-  memoryKK->destroy_kokkos(m_sbes_array);
-  memoryKK->destroy_kokkos(m_sbes_darray);
-
-  memoryKK->destroy_kokkos(m_plist_r);
-
-  memoryKK->destroy_kokkos(m_ulist_r);
-  memoryKK->destroy_kokkos(m_ulist_i);
-
-  memoryKK->destroy_kokkos(m_dYlm_r);
-  memoryKK->destroy_kokkos(m_dYlm_i);
-
-  memoryKK->destroy_kokkos(k_dplist_r);
-
-  memoryKK->destroy_kokkos(m_dclist);
-
-  memoryKK->destroy_kokkos(m_clisttot_r);
-  memoryKK->destroy_kokkos(m_clisttot_i);
-
   t_numneighs = int_1d();
   t_jelems = int_1d();
   t_wjelem = float_1d();
@@ -121,9 +82,7 @@ void MLIAP_SO3Kokkos<DeviceType>::init()
   int totali;
 
   totali = m_lmax + 1;
-  memoryKK->destroy_kokkos(m_ellpl1);
   memoryKK->create_kokkos(m_ellpl1, totali, "MLIAP_SO3Kokkos:m_ellpl1");
-  memoryKK->destroy_kokkos(m_ellm1);
   memoryKK->create_kokkos(m_ellm1, totali, "MLIAP_SO3Kokkos:m_ellm1");
   alloc_init = 2.0 * totali * sizeof(double);
   using range=Kokkos::RangePolicy<DeviceType>;
@@ -139,9 +98,7 @@ void MLIAP_SO3Kokkos<DeviceType>::init()
   m_pfac_l1 = m_lmax + 2;
   m_pfac_l2 = (m_lmax + 2) * (m_lmax + 2) + 1;
   totali = m_pfac_l1 * m_pfac_l2;
-  memoryKK->destroy_kokkos(m_pfac);
   memoryKK->create_kokkos(m_pfac, totali, "MLIAP_SO3Kokkos:m_pfac");
-  memoryKK->destroy_kokkos(m_Ylms);
   memoryKK->create_kokkos(m_Ylms, totali, "MLIAP_SO3Kokkos:m_Ylms");
   alloc_init += 2 * totali * sizeof(double);
 
@@ -161,17 +118,11 @@ void MLIAP_SO3Kokkos<DeviceType>::init()
   m_dfac_l1 = m_lmax + 1;
   m_dfac_l2 = m_numYlms + 1;
   totali = m_dfac_l1 * m_dfac_l2;
-  memoryKK->destroy_kokkos(m_dfac0);
   memoryKK->create_kokkos(m_dfac0, totali, "MLIAP_SO3Kokkos:m_dfac0");
-  memoryKK->destroy_kokkos(m_dfac1);
   memoryKK->create_kokkos(m_dfac1, totali, "MLIAP_SO3Kokkos:m_dfac1");
-  memoryKK->destroy_kokkos(m_dfac2);
   memoryKK->create_kokkos(m_dfac2, totali, "MLIAP_SO3Kokkos:m_dfac2");
-  memoryKK->destroy_kokkos(m_dfac3);
   memoryKK->create_kokkos(m_dfac3, totali, "MLIAP_SO3Kokkos:m_dfac3");
-  memoryKK->destroy_kokkos(m_dfac4);
   memoryKK->create_kokkos(m_dfac4, totali, "MLIAP_SO3Kokkos:m_dfac4");
-  memoryKK->destroy_kokkos(m_dfac5);
   memoryKK->create_kokkos(m_dfac5, totali, "MLIAP_SO3Kokkos:m_dfac5");
   alloc_init += 6.0 * totali * sizeof(double);
 
@@ -197,12 +148,10 @@ void MLIAP_SO3Kokkos<DeviceType>::init()
   });
 
   totali = m_nmax * m_nmax;
-  memoryKK->destroy_kokkos(m_w);
   memoryKK->create_kokkos(m_w, totali, "MLIAP_SO3Kokkos:w");
   alloc_init += totali * sizeof(double);
 
   totali = m_nmax * m_Nmax;
-  memoryKK->destroy_kokkos(m_g_array);
   memoryKK->create_kokkos(m_g_array, totali, "MLIAP_SO3Kokkos:g_array");
   alloc_init += totali * sizeof(double);
 
@@ -218,7 +167,6 @@ void MLIAP_SO3Kokkos<DeviceType>::init()
   twolmax = 2 * (m_lmax + 1);
   int m_ldim = twolmax + 1;
   totali = m_ldim * m_ldim;
-  memoryKK->destroy_kokkos(m_rootpq);
   memoryKK->create_kokkos(m_rootpq, totali, "MLIAP_SO3Kokkos:rootpq");
   alloc_init += totali * sizeof(double);
 
@@ -229,12 +177,10 @@ void MLIAP_SO3Kokkos<DeviceType>::init()
       rootpq[p * ldim + q] = sqrt(static_cast<double>(p) / q);
   });
 
-  memoryKK->destroy_kokkos(m_idxu_block);
   memoryKK->create_kokkos(m_idxu_block, m_ldim, "MLIAP_SO3Kokkos:idxu_bloc");
   alloc_init += totali * sizeof(double);
 
   totali = square(m_lmax + 2);
-  memoryKK->destroy_kokkos(m_idxylm);
   memoryKK->create_kokkos(m_idxylm, totali, "MLIAP_SO3Kokkos:idxylm");
   alloc_init += totali * sizeof(double);
 
@@ -278,7 +224,6 @@ void MLIAP_SO3Kokkos<DeviceType>::init_arrays(int nlocal, int ncoefs)
 
   int totali = nlocal * ncoefs;
   if ( nlocal > (int)m_plist_r.extent(0)) {
-    memoryKK->destroy_kokkos(m_plist_r);
     memoryKK->create_kokkos(m_plist_r, nlocal, ncoefs, "MLIAP_SO3Kokkos:m_plist_r");
     alloc_arrays = totali * sizeof(double);
   }
@@ -286,26 +231,19 @@ void MLIAP_SO3Kokkos<DeviceType>::init_arrays(int nlocal, int ncoefs)
   int num_of_temp = std::min(nlocal, m_chunk_size);
   if ((int)m_ulist_r.extent(0) < num_of_temp ) {
     totali = m_idxu_count;
-    memoryKK->destroy_kokkos(m_ulist_r);
     memoryKK->create_kokkos(m_ulist_r, num_of_temp, totali, "MLIAP_SO3Kokkos:m_ulist_r");
-    memoryKK->destroy_kokkos(m_ulist_i);
     memoryKK->create_kokkos(m_ulist_i, num_of_temp, totali, "MLIAP_SO3Kokkos:m_ulist_i");
     alloc_arrays += 2.0 * totali * num_of_temp * sizeof(double);
 
     totali = m_numYlms * 3;
-    memoryKK->destroy_kokkos(m_dYlm_r);
     memoryKK->create_kokkos(m_dYlm_r, num_of_temp, m_numYlms, 3, "MLIAP_SO3Kokkos:m_dYlm_r");
-    memoryKK->destroy_kokkos(m_dYlm_i);
     memoryKK->create_kokkos(m_dYlm_i, num_of_temp, m_numYlms, 3, "MLIAP_SO3Kokkos:m_dYlm_i");
     alloc_arrays += 2.0 * m_numYlms * 3 * num_of_temp * sizeof(double);
 
-    memoryKK->destroy_kokkos(m_dclist);
     memoryKK->create_kokkos(m_dclist, num_of_temp, m_nmax, m_numYlms, 3, "MLIAP_SO3Kokkos:k_dclist_r");
     alloc_arrays += m_nmax * m_numYlms * 3 * num_of_temp* sizeof(double);
 
-    memoryKK->destroy_kokkos(m_clisttot_r);
     memoryKK->create_kokkos(m_clisttot_r, num_of_temp, m_nmax, m_numYlms, "MLIAP_SO3Kokkos:m_clisttot_r");
-    memoryKK->destroy_kokkos(m_clisttot_i);
     memoryKK->create_kokkos(m_clisttot_i, num_of_temp, m_nmax, m_numYlms, "MLIAP_SO3Kokkos:m_clisttot_i");
     alloc_arrays += 2.0 * m_nmax * m_numYlms * num_of_temp * sizeof(double);
     m_init_arrays = 1;
@@ -850,21 +788,15 @@ void MLIAP_SO3Kokkos<DeviceType>::spectrum_dxdr(int nlocal, DAT::tdual_int_1d nu
   bigint totali;
 
   if ( nlocal > (int)m_clisttot_r.extent(0)){
-    memoryKK->destroy_kokkos(m_clisttot_r);
     memoryKK->create_kokkos(m_clisttot_r, nlocal, m_nmax, m_numYlms, "MLIAP_SO3Kokkos:m_clisttot_r");
-    memoryKK->destroy_kokkos(m_clisttot_i);
     memoryKK->create_kokkos(m_clisttot_i, nlocal, m_nmax, m_numYlms, "MLIAP_SO3Kokkos:m_clisttot_i");
     int num_of_temp = std::min(nlocal, m_chunk_size);
     int delta=num_of_temp-m_ulist_r.extent(0);
-    if (delta > 0 ){
-      memoryKK->destroy_kokkos(m_ulist_r);
+    if (delta > 0){
       memoryKK->create_kokkos(m_ulist_r, num_of_temp, m_idxu_count, "MLIAP_SO3Kokkos:m_ulist_r");
-      memoryKK->destroy_kokkos(m_ulist_i);
       memoryKK->create_kokkos(m_ulist_i, num_of_temp, m_idxu_count, "MLIAP_SO3Kokkos:m_ulist_i");
       alloc_arrays += 2.0 * m_idxu_count * delta * sizeof(double);
-      memoryKK->destroy_kokkos(m_dYlm_r);
       memoryKK->create_kokkos(m_dYlm_r, num_of_temp, m_numYlms, 3, "MLIAP_SO3Kokkos:m_dYlm_r");
-      memoryKK->destroy_kokkos(m_dYlm_i);
       memoryKK->create_kokkos(m_dYlm_i, num_of_temp, m_numYlms, 3, "MLIAP_SO3Kokkos:m_dYlm_i");
       alloc_arrays += 2.0 * m_numYlms * 3 * delta * sizeof(double);
     }
@@ -872,18 +804,13 @@ void MLIAP_SO3Kokkos<DeviceType>::spectrum_dxdr(int nlocal, DAT::tdual_int_1d nu
 
   totali = totaln * m_Nmax * (m_lmax + 1);
   if ( totali > (int)m_sbes_array.extent(0)) {
-    memoryKK->destroy_kokkos(m_sbes_array);
     memoryKK->create_kokkos(m_sbes_array, totali, "MLIAP_SO3Kokkos:m_sbes_array");
-    memoryKK->destroy_kokkos(m_sbes_darray);
     memoryKK->create_kokkos(m_sbes_darray, totali, "MLIAP_SO3Kokkos:m_sbes_darray");
 
     totali = totaln * m_nmax * (m_lmax + 1);
-    memoryKK->destroy_kokkos(m_rip_array);
     memoryKK->create_kokkos(m_rip_array, totali, "MLIAP_SO3Kokkos:m_rip_array");
-    memoryKK->destroy_kokkos(m_rip_darray);
     memoryKK->create_kokkos(m_rip_darray, totali, "MLIAP_SO3Kokkos:m_rip_darray");
 
-    memoryKK->destroy_kokkos(k_dplist_r);
     memoryKK->create_kokkos(k_dplist_r, (int)totaln, ncoefs, 3, "MLIAP_SO3Kokkos:m_dplist_r");
   }
 

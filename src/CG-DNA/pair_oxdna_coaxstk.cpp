@@ -749,7 +749,7 @@ void PairOxdnaCoaxstk::coeff(int narg, char **arg)
         (0.5 * (cut_cxst_lo_one - cut_cxst_0_one) * (cut_cxst_lo_one - cut_cxst_0_one) -
         k_cxst_one * 0.5 * (cut_cxst_0_one -cut_cxst_c_one) * (cut_cxst_0_one - cut_cxst_c_one)/k_cxst_one);
 
-  cut_cxst_lc_one = cut_cxst_lo_one - 0.5 * (cut_cxst_lo_one - cut_cxst_0_one)/b_cxst_lo_one;;
+  cut_cxst_lc_one = cut_cxst_lo_one - 0.5 * (cut_cxst_lo_one - cut_cxst_0_one)/b_cxst_lo_one;
 
   b_cxst_hi_one = 0.25 * (cut_cxst_hi_one - cut_cxst_0_one) * (cut_cxst_hi_one - cut_cxst_0_one)/
         (0.5 * (cut_cxst_hi_one - cut_cxst_0_one) * (cut_cxst_hi_one - cut_cxst_0_one) -

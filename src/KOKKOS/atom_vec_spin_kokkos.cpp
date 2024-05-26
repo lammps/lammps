@@ -1,6 +1,5 @@
 // clang-format off
 /* ----------------------------------------------------------------------
-
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    https://www.lammps.org/, Sandia National Laboratories
    LAMMPS development team: developers@lammps.org
@@ -11,7 +10,6 @@
    the GNU General Public License.
 
    See the README file in the top-level LAMMPS directory.
-
 ------------------------------------------------------------------------- */
 
 /* ------------------------------------------------------------------------
@@ -28,7 +26,6 @@
 
 #include "atom_kokkos.h"
 #include "atom_masks.h"
-#include "comm_kokkos.h"
 #include "domain.h"
 #include "error.h"
 #include "fix.h"
@@ -37,7 +34,7 @@
 
 using namespace LAMMPS_NS;
 
-#define DELTA 10
+static constexpr int DELTA = 10;
 
 /* ---------------------------------------------------------------------- */
 
@@ -131,6 +128,25 @@ void AtomVecSpinKokkos::grow_pointers()
   h_fm_long = atomKK->k_fm_long.h_view;
 }
 
+/* ----------------------------------------------------------------------
+   sort atom arrays on device
+------------------------------------------------------------------------- */
+
+void AtomVecSpinKokkos::sort_kokkos(Kokkos::BinSort<KeyViewType, BinOp> &Sorter)
+{
+  atomKK->sync(Device, TAG_MASK|TYPE_MASK|MASK_MASK|IMAGE_MASK|X_MASK|V_MASK|SP_MASK);
+
+  Sorter.sort(LMPDeviceType(), d_tag);
+  Sorter.sort(LMPDeviceType(), d_type);
+  Sorter.sort(LMPDeviceType(), d_mask);
+  Sorter.sort(LMPDeviceType(), d_image);
+  Sorter.sort(LMPDeviceType(), d_x);
+  Sorter.sort(LMPDeviceType(), d_v);
+  Sorter.sort(LMPDeviceType(), d_sp);
+
+  atomKK->modified(Device, TAG_MASK|TYPE_MASK|MASK_MASK|IMAGE_MASK|X_MASK|V_MASK|SP_MASK);
+}
+
 /* ---------------------------------------------------------------------- */
 
 template<class DeviceType,int PBC_FLAG,int TRICLINIC>
@@ -140,8 +156,7 @@ struct AtomVecSpinKokkos_PackComm {
   typename ArrayTypes<DeviceType>::t_x_array_randomread _x;
   typename ArrayTypes<DeviceType>::t_sp_array_randomread _sp;
   typename ArrayTypes<DeviceType>::t_xfloat_2d_um _buf;
-  typename ArrayTypes<DeviceType>::t_int_2d_const _list;
-  const int _iswap;
+  typename ArrayTypes<DeviceType>::t_int_1d_const _list;
   X_FLOAT _xprd,_yprd,_zprd,_xy,_xz,_yz;
   X_FLOAT _pbc[6];
 
@@ -149,12 +164,11 @@ struct AtomVecSpinKokkos_PackComm {
       const typename DAT::tdual_x_array &x,
       const typename DAT::tdual_float_1d_4 &sp,
       const typename DAT::tdual_xfloat_2d &buf,
-      const typename DAT::tdual_int_2d &list,
-      const int & iswap,
+      const typename DAT::tdual_int_1d &list,
       const X_FLOAT &xprd, const X_FLOAT &yprd, const X_FLOAT &zprd,
       const X_FLOAT &xy, const X_FLOAT &xz, const X_FLOAT &yz, const int* const pbc):
       _x(x.view<DeviceType>()),_sp(sp.view<DeviceType>()),
-      _list(list.view<DeviceType>()),_iswap(iswap),
+      _list(list.view<DeviceType>()),
       _xprd(xprd),_yprd(yprd),_zprd(zprd),
       _xy(xy),_xz(xz),_yz(yz) {
         const size_t maxsend = (buf.view<DeviceType>().extent(0)*buf.view<DeviceType>().extent(1))/3;
@@ -166,7 +180,7 @@ struct AtomVecSpinKokkos_PackComm {
 
   KOKKOS_INLINE_FUNCTION
   void operator() (const int& i) const {
-        const int j = _list(_iswap,i);
+        const int j = _list(i);
       if (PBC_FLAG == 0) {
           _buf(i,0) = _x(j,0);
           _buf(i,1) = _x(j,1);
@@ -204,8 +218,7 @@ struct AtomVecSpinKokkos_PackBorder {
   typedef DeviceType device_type;
 
   typename ArrayTypes<DeviceType>::t_xfloat_2d _buf;
-  const typename ArrayTypes<DeviceType>::t_int_2d_const _list;
-  const int _iswap;
+  const typename ArrayTypes<DeviceType>::t_int_1d_const _list;
   const typename ArrayTypes<DeviceType>::t_x_array_randomread _x;
   const typename ArrayTypes<DeviceType>::t_tagint_1d _tag;
   const typename ArrayTypes<DeviceType>::t_int_1d _type;
@@ -215,21 +228,20 @@ struct AtomVecSpinKokkos_PackBorder {
 
   AtomVecSpinKokkos_PackBorder(
       const typename ArrayTypes<DeviceType>::t_xfloat_2d &buf,
-      const typename ArrayTypes<DeviceType>::t_int_2d_const &list,
-      const int & iswap,
+      const typename ArrayTypes<DeviceType>::t_int_1d_const &list,
       const typename ArrayTypes<DeviceType>::t_x_array &x,
       const typename ArrayTypes<DeviceType>::t_tagint_1d &tag,
       const typename ArrayTypes<DeviceType>::t_int_1d &type,
       const typename ArrayTypes<DeviceType>::t_int_1d &mask,
       const typename ArrayTypes<DeviceType>::t_sp_array &sp,
       const X_FLOAT &dx, const X_FLOAT &dy, const X_FLOAT &dz):
-  _buf(buf),_list(list),_iswap(iswap),
+  _buf(buf),_list(list),
     _x(x),_tag(tag),_type(type),_mask(mask),_sp(sp),
     _dx(dx),_dy(dy),_dz(dz) {}
 
   KOKKOS_INLINE_FUNCTION
   void operator() (const int& i) const {
-      const int j = _list(_iswap,i);
+      const int j = _list(i);
       if (PBC_FLAG == 0) {
           _buf(i,0) = _x(j,0);
           _buf(i,1) = _x(j,1);
@@ -258,7 +270,7 @@ struct AtomVecSpinKokkos_PackBorder {
 
 /* ---------------------------------------------------------------------- */
 
-int AtomVecSpinKokkos::pack_border_kokkos(int n, DAT::tdual_int_2d k_sendlist, DAT::tdual_xfloat_2d buf,int iswap,
+int AtomVecSpinKokkos::pack_border_kokkos(int n, DAT::tdual_int_1d k_sendlist, DAT::tdual_xfloat_2d buf,
                                int pbc_flag, int *pbc, ExecutionSpace space)
 {
   X_FLOAT dx,dy,dz;
@@ -276,12 +288,12 @@ int AtomVecSpinKokkos::pack_border_kokkos(int n, DAT::tdual_int_2d k_sendlist, D
     if(space==Host) {
       AtomVecSpinKokkos_PackBorder<LMPHostType,1> f(
         buf.view<LMPHostType>(), k_sendlist.view<LMPHostType>(),
-        iswap,h_x,h_tag,h_type,h_mask,h_sp,dx,dy,dz);
+        h_x,h_tag,h_type,h_mask,h_sp,dx,dy,dz);
       Kokkos::parallel_for(n,f);
     } else {
       AtomVecSpinKokkos_PackBorder<LMPDeviceType,1> f(
         buf.view<LMPDeviceType>(), k_sendlist.view<LMPDeviceType>(),
-        iswap,d_x,d_tag,d_type,d_mask,d_sp,dx,dy,dz);
+        d_x,d_tag,d_type,d_mask,d_sp,dx,dy,dz);
       Kokkos::parallel_for(n,f);
     }
 
@@ -290,12 +302,12 @@ int AtomVecSpinKokkos::pack_border_kokkos(int n, DAT::tdual_int_2d k_sendlist, D
     if(space==Host) {
       AtomVecSpinKokkos_PackBorder<LMPHostType,0> f(
         buf.view<LMPHostType>(), k_sendlist.view<LMPHostType>(),
-        iswap,h_x,h_tag,h_type,h_mask,h_sp,dx,dy,dz);
+        h_x,h_tag,h_type,h_mask,h_sp,dx,dy,dz);
       Kokkos::parallel_for(n,f);
     } else {
       AtomVecSpinKokkos_PackBorder<LMPDeviceType,0> f(
         buf.view<LMPDeviceType>(), k_sendlist.view<LMPDeviceType>(),
-        iswap,d_x,d_tag,d_type,d_mask,d_sp,dx,dy,dz);
+        d_x,d_tag,d_type,d_mask,d_sp,dx,dy,dz);
       Kokkos::parallel_for(n,f);
     }
   }
@@ -386,15 +398,13 @@ struct AtomVecSpinKokkos_PackExchangeFunctor {
   typename AT::t_xfloat_2d_um _buf;
   typename AT::t_int_1d_const _sendlist;
   typename AT::t_int_1d_const _copylist;
-  int _nlocal,_dim;
-  X_FLOAT _lo,_hi;
+  int _size_exchange;
 
   AtomVecSpinKokkos_PackExchangeFunctor(
       const AtomKokkos* atom,
       const typename AT::tdual_xfloat_2d buf,
       typename AT::tdual_int_1d sendlist,
-      typename AT::tdual_int_1d copylist,int nlocal, int dim,
-                X_FLOAT lo, X_FLOAT hi):
+      typename AT::tdual_int_1d copylist):
     _x(atom->k_x.view<DeviceType>()),
     _v(atom->k_v.view<DeviceType>()),
     _tag(atom->k_tag.view<DeviceType>()),
@@ -411,19 +421,16 @@ struct AtomVecSpinKokkos_PackExchangeFunctor {
     _spw(atom->k_sp.view<DeviceType>()),
     _sendlist(sendlist.template view<DeviceType>()),
     _copylist(copylist.template view<DeviceType>()),
-    _nlocal(nlocal),_dim(dim),
-    _lo(lo),_hi(hi){
-    const size_t elements = 15;
+    _size_exchange(atom->avecKK->size_exchange) {
     const int maxsendlist = (buf.template view<DeviceType>().extent(0)*
-                             buf.template view<DeviceType>().extent(1))/elements;
-
-    buffer_view<DeviceType>(_buf,buf,maxsendlist,elements);
+                             buf.template view<DeviceType>().extent(1))/_size_exchange;
+    buffer_view<DeviceType>(_buf,buf,maxsendlist,_size_exchange);
   }
 
   KOKKOS_INLINE_FUNCTION
   void operator() (const int &mysend) const {
     const int i = _sendlist(mysend);
-    _buf(mysend,0) = 15;
+    _buf(mysend,0) = _size_exchange;
     _buf(mysend,1) = _x(i,0);
     _buf(mysend,2) = _x(i,1);
     _buf(mysend,3) = _x(i,2);
@@ -440,7 +447,7 @@ struct AtomVecSpinKokkos_PackExchangeFunctor {
     _buf(mysend,14) = _sp(i,3);
     const int j = _copylist(mysend);
 
-    if(j>-1) {
+    if (j>-1) {
     _xw(i,0) = _x(j,0);
     _xw(i,1) = _x(j,1);
     _xw(i,2) = _x(j,2);
@@ -464,23 +471,24 @@ struct AtomVecSpinKokkos_PackExchangeFunctor {
 int AtomVecSpinKokkos::pack_exchange_kokkos(const int &nsend,DAT::tdual_xfloat_2d &k_buf,
                                               DAT::tdual_int_1d k_sendlist,
                                               DAT::tdual_int_1d k_copylist,
-                                              ExecutionSpace space,int dim,
-                                              X_FLOAT lo,X_FLOAT hi )
+                                              ExecutionSpace space)
 {
-  if(nsend > (int) (k_buf.view<LMPHostType>().extent(0)*k_buf.view<LMPHostType>().extent(1))/15) {
-    int newsize = nsend*15/k_buf.view<LMPHostType>().extent(1)+1;
+  size_exchange = 15;
+
+  if (nsend > (int) (k_buf.view<LMPHostType>().extent(0)*k_buf.view<LMPHostType>().extent(1))/size_exchange) {
+    int newsize = nsend*size_exchange/k_buf.view<LMPHostType>().extent(1)+1;
     k_buf.resize(newsize,k_buf.view<LMPHostType>().extent(1));
   }
-  if(space == Host) {
+  if (space == Host) {
     AtomVecSpinKokkos_PackExchangeFunctor<LMPHostType>
-      f(atomKK,k_buf,k_sendlist,k_copylist,atom->nlocal,dim,lo,hi);
+      f(atomKK,k_buf,k_sendlist,k_copylist);
     Kokkos::parallel_for(nsend,f);
-    return nsend*15;
+    return nsend*size_exchange;
   } else {
     AtomVecSpinKokkos_PackExchangeFunctor<LMPDeviceType>
-      f(atomKK,k_buf,k_sendlist,k_copylist,atom->nlocal,dim,lo,hi);
+      f(atomKK,k_buf,k_sendlist,k_copylist);
     Kokkos::parallel_for(nsend,f);
-    return nsend*15;
+    return nsend*size_exchange;
   }
 }
 
@@ -501,25 +509,25 @@ struct AtomVecSpinKokkos_UnpackExchangeFunctor {
   typename AT::t_int_1d _nlocal;
   int _dim;
   X_FLOAT _lo,_hi;
+  int _size_exchange;
 
   AtomVecSpinKokkos_UnpackExchangeFunctor(
       const AtomKokkos* atom,
       const typename AT::tdual_xfloat_2d buf,
       typename AT::tdual_int_1d nlocal,
       int dim, X_FLOAT lo, X_FLOAT hi):
-    _x(atom->k_x.view<DeviceType>()),
-    _v(atom->k_v.view<DeviceType>()),
-    _tag(atom->k_tag.view<DeviceType>()),
-    _type(atom->k_type.view<DeviceType>()),
-    _mask(atom->k_mask.view<DeviceType>()),
-    _image(atom->k_image.view<DeviceType>()),
-    _sp(atom->k_sp.view<DeviceType>()),
-    _nlocal(nlocal.template view<DeviceType>()),_dim(dim),
-    _lo(lo),_hi(hi){
-    const size_t elements = 15;
-    const int maxsendlist = (buf.template view<DeviceType>().extent(0)*buf.template view<DeviceType>().extent(1))/elements;
+      _x(atom->k_x.view<DeviceType>()),
+      _v(atom->k_v.view<DeviceType>()),
+      _tag(atom->k_tag.view<DeviceType>()),
+      _type(atom->k_type.view<DeviceType>()),
+      _mask(atom->k_mask.view<DeviceType>()),
+      _image(atom->k_image.view<DeviceType>()),
+      _sp(atom->k_sp.view<DeviceType>()),
+      _nlocal(nlocal.template view<DeviceType>()),
+      _dim(dim),_lo(lo),_hi(hi),_size_exchange(atom->avecKK->size_exchange) {
+    const int maxsendlist = (buf.template view<DeviceType>().extent(0)*buf.template view<DeviceType>().extent(1))/_size_exchange;
 
-    buffer_view<DeviceType>(_buf,buf,maxsendlist,elements);
+    buffer_view<DeviceType>(_buf,buf,maxsendlist,_size_exchange);
   }
 
   KOKKOS_INLINE_FUNCTION
@@ -547,15 +555,16 @@ struct AtomVecSpinKokkos_UnpackExchangeFunctor {
 
 /* ---------------------------------------------------------------------- */
 
-int AtomVecSpinKokkos::unpack_exchange_kokkos(DAT::tdual_xfloat_2d &k_buf,int nrecv,
-                                                int nlocal,int dim,X_FLOAT lo,X_FLOAT hi,
-                                                ExecutionSpace space) {
-  while (nlocal + nrecv/15 >= nmax) grow(0);
+int AtomVecSpinKokkos::unpack_exchange_kokkos(DAT::tdual_xfloat_2d &k_buf, int nrecv, int nlocal,
+                                              int dim, X_FLOAT lo, X_FLOAT hi, ExecutionSpace space,
+                                              DAT::tdual_int_1d &/*k_indices*/)
+{
+  while (nlocal + nrecv/size_exchange >= nmax) grow(0);
 
   if(space == Host) {
     k_count.h_view(0) = nlocal;
     AtomVecSpinKokkos_UnpackExchangeFunctor<LMPHostType> f(atomKK,k_buf,k_count,dim,lo,hi);
-    Kokkos::parallel_for(nrecv/15,f);
+    Kokkos::parallel_for(nrecv/size_exchange,f);
     return k_count.h_view(0);
   } else {
     k_count.h_view(0) = nlocal;
@@ -563,11 +572,43 @@ int AtomVecSpinKokkos::unpack_exchange_kokkos(DAT::tdual_xfloat_2d &k_buf,int nr
     k_count.sync<LMPDeviceType>();
     AtomVecSpinKokkos_UnpackExchangeFunctor<LMPDeviceType>
       f(atomKK,k_buf,k_count,dim,lo,hi);
-    Kokkos::parallel_for(nrecv/15,f);
+    Kokkos::parallel_for(nrecv/size_exchange,f);
     k_count.modify<LMPDeviceType>();
     k_count.sync<LMPHostType>();
 
     return k_count.h_view(0);
+  }
+}
+
+/* ----------------------------------------------------------------------
+   clear extra forces starting at atom N
+   nbytes = # of bytes to clear for a per-atom vector
+   include f b/c this is invoked from within SPIN pair styles
+------------------------------------------------------------------------- */
+
+void AtomVecSpinKokkos::force_clear(int /*n*/, size_t nbytes)
+{
+  int nzero = (double)nbytes/sizeof(double);
+
+  if (nzero) {
+    atomKK->k_fm.clear_sync_state(); // will be cleared below
+    atomKK->k_fm_long.clear_sync_state(); // will be cleared below
+
+    // local variables for lambda capture
+
+    auto l_fm = atomKK->k_fm.d_view;
+    auto l_fm_long = atomKK->k_fm_long.d_view;
+
+    Kokkos::parallel_for(nzero, LAMMPS_LAMBDA(int i) {
+      l_fm(i,0) = 0.0;
+      l_fm(i,1) = 0.0;
+      l_fm(i,2) = 0.0;
+      l_fm_long(i,0) = 0.0;
+      l_fm_long(i,1) = 0.0;
+      l_fm_long(i,2) = 0.0;
+    });
+
+    atomKK->modified(Device,FM_MASK|FML_MASK);
   }
 }
 

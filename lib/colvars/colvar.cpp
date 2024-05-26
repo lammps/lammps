@@ -10,6 +10,8 @@
 #include <list>
 #include <vector>
 #include <algorithm>
+#include <iostream>
+#include <iomanip>
 
 #include "colvarmodule.h"
 #include "colvarvalue.h"
@@ -24,12 +26,11 @@ std::map<std::string, std::function<colvar::cvc* (const std::string& subcv_conf)
 
 colvar::colvar()
 {
-  runave_os = NULL;
-
   prev_timestep = -1L;
   after_restart = false;
   kinetic_energy = 0.0;
   potential_energy = 0.0;
+  period = 0.0;
 
 #ifdef LEPTON
   dev_null = 0.0;
@@ -291,7 +292,6 @@ int colvar::init(std::string const &conf)
     enable(f_cv_multiple_ts);
   }
 
-  // TODO use here information from the CVCs' own natural boundaries
   error_code |= init_grid_parameters(conf);
 
   // Detect if we have a single component that is an alchemical lambda
@@ -634,6 +634,7 @@ harmonicWalls {\n\
 
 int colvar::init_extended_Lagrangian(std::string const &conf)
 {
+  colvarproxy *proxy = cvm::main()->proxy;
   get_keyval_feature(this, conf, "extendedLagrangian", f_cv_extended_Lagrangian, false);
 
   if (is_enabled(f_cv_extended_Lagrangian)) {
@@ -646,7 +647,8 @@ int colvar::init_extended_Lagrangian(std::string const &conf)
     x_ext.type(colvarvalue::type_notset);
     v_ext.type(value());
     fr.type(value());
-    const bool temp_provided = get_keyval(conf, "extendedTemp", temp, cvm::temperature());
+    const bool temp_provided = get_keyval(conf, "extendedTemp", temp,
+                                          proxy->target_temperature());
     if (is_enabled(f_cv_external)) {
       // In the case of an "external" coordinate, there is no coupling potential:
       // only the fictitious mass is meaningful
@@ -669,14 +671,14 @@ int colvar::init_extended_Lagrangian(std::string const &conf)
         cvm::error("Error: \"extendedFluctuation\" must be positive.\n", COLVARS_INPUT_ERROR);
         return COLVARS_INPUT_ERROR;
       }
-      ext_force_k = cvm::boltzmann() * temp / (tolerance * tolerance);
+      ext_force_k = proxy->boltzmann() * temp / (tolerance * tolerance);
       cvm::log("Computed extended system force constant: " + cvm::to_str(ext_force_k) + " [E]/U^2\n");
 
       get_keyval(conf, "extendedTimeConstant", extended_period, 200.0);
       if (extended_period <= 0.0) {
         cvm::error("Error: \"extendedTimeConstant\" must be positive.\n", COLVARS_INPUT_ERROR);
       }
-      ext_mass = (cvm::boltzmann() * temp * extended_period * extended_period)
+      ext_mass = (proxy->boltzmann() * temp * extended_period * extended_period)
         / (4.0 * PI * PI * tolerance * tolerance);
       cvm::log("Computed fictitious mass: " + cvm::to_str(ext_mass) + " [E]/(U/fs)^2   (U: colvar unit)\n");
     }
@@ -697,7 +699,7 @@ int colvar::init_extended_Lagrangian(std::string const &conf)
       enable(f_cv_Langevin);
       ext_gamma *= 1.0e-3; // correct as long as input is required in ps-1 and cvm::dt() is in fs
       // Adjust Langevin sigma for slow time step if time_step_factor != 1
-      ext_sigma = cvm::sqrt(2.0 * cvm::boltzmann() * temp * ext_gamma * ext_mass / (cvm::dt() * cvm::real(time_step_factor)));
+      ext_sigma = cvm::sqrt(2.0 * proxy->boltzmann() * temp * ext_gamma * ext_mass / (cvm::dt() * cvm::real(time_step_factor)));
     }
 
     get_keyval_feature(this, conf, "reflectingLowerBoundary", f_cv_reflecting_lower_boundary, false);
@@ -1664,6 +1666,7 @@ int colvar::calc_cvc_Jacobians(int first_cvc, size_t num_cvcs)
 
 int colvar::collect_cvc_Jacobians()
 {
+  colvarproxy *proxy = cvm::main()->proxy;
   if (is_enabled(f_cv_Jacobian)) {
     fj.reset();
     for (size_t i = 0; i < cvcs.size(); i++) {
@@ -1676,7 +1679,7 @@ int colvar::collect_cvc_Jacobians()
       // linear combination is assumed
       fj += (cvcs[i])->Jacobian_derivative() * (cvcs[i])->sup_coeff / active_cvc_square_norm;
     }
-    fj *= cvm::boltzmann() * cvm::temperature();
+    fj *= proxy->boltzmann() * proxy->target_temperature();
   }
 
   return COLVARS_OK;
@@ -2411,8 +2414,8 @@ std::ostream & colvar::write_state(std::ostream &os) {
 
   os << "}\n\n";
 
-  if (runave_os) {
-    cvm::main()->proxy->flush_output_stream(runave_os);
+  if (runave_outfile.size() > 0) {
+    cvm::main()->proxy->flush_output_stream(runave_outfile);
   }
 
   return os;
@@ -2536,9 +2539,13 @@ int colvar::write_output_files()
       }
       cvm::log("Writing correlation function to file \""+acf_outfile+"\".\n");
       cvm::backup_file(acf_outfile.c_str());
-      std::ostream *acf_os = cvm::proxy->output_stream(acf_outfile);
-      if (!acf_os) return cvm::get_error();
-      error_code |= write_acf(*acf_os);
+      std::ostream &acf_os = cvm::proxy->output_stream(acf_outfile,
+                                                       "colvar ACF file");
+      if (!acf_os) {
+        error_code |= COLVARS_FILE_ERROR;
+      } else {
+        error_code |= write_acf(acf_os);
+      }
       cvm::proxy->close_output_stream(acf_outfile);
     }
   }
@@ -2807,6 +2814,7 @@ int colvar::write_acf(std::ostream &os)
 int colvar::calc_runave()
 {
   int error_code = COLVARS_OK;
+  colvarproxy *proxy = cvm::main()->proxy;
 
   if (x_history.empty()) {
 
@@ -2831,22 +2839,22 @@ int colvar::calc_runave()
 
       if ((*x_history_p).size() >= runave_length-1) {
 
-        if (runave_os == NULL) {
-          if (runave_outfile.size() == 0) {
-            runave_outfile = std::string(cvm::output_prefix()+"."+
-                                         this->name+".runave.traj");
-          }
+        if (runave_outfile.size() == 0) {
+          runave_outfile = std::string(cvm::output_prefix()+"."+
+                                       this->name+".runave.traj");
+        }
 
+        if (! proxy->output_stream_exists(runave_outfile)) {
           size_t const this_cv_width = x.output_width(cvm::cv_width);
-          cvm::proxy->backup_file(runave_outfile);
-          runave_os = cvm::proxy->output_stream(runave_outfile);
-          runave_os->setf(std::ios::scientific, std::ios::floatfield);
-          *runave_os << "# " << cvm::wrap_string("step", cvm::it_width-2)
-                     << "   "
-                     << cvm::wrap_string("running average", this_cv_width)
-                     << " "
-                     << cvm::wrap_string("running stddev", this_cv_width)
-                     << "\n";
+          std::ostream &runave_os = proxy->output_stream(runave_outfile,
+                                                         "colvar running average");
+          runave_os.setf(std::ios::scientific, std::ios::floatfield);
+          runave_os << "# " << cvm::wrap_string("step", cvm::it_width-2)
+                    << "   "
+                    << cvm::wrap_string("running average", this_cv_width)
+                    << " "
+                    << cvm::wrap_string("running stddev", this_cv_width)
+                    << "\n";
         }
 
         runave = x;
@@ -2866,12 +2874,17 @@ int colvar::calc_runave()
         }
         runave_variance *= 1.0 / cvm::real(runave_length-1);
 
-        *runave_os << std::setw(cvm::it_width) << cvm::step_relative()
-                   << "   "
-                   << std::setprecision(cvm::cv_prec) << std::setw(cvm::cv_width)
-                   << runave << " "
-                   << std::setprecision(cvm::cv_prec) << std::setw(cvm::cv_width)
-                   << cvm::sqrt(runave_variance) << "\n";
+        if (runave_outfile.size() > 0) {
+          std::ostream &runave_os = proxy->output_stream(runave_outfile);
+          runave_os << std::setw(cvm::it_width) << cvm::step_relative()
+                    << "   "
+                    << std::setprecision(cvm::cv_prec)
+                    << std::setw(cvm::cv_width)
+                    << runave << " "
+                    << std::setprecision(cvm::cv_prec)
+                    << std::setw(cvm::cv_width)
+                    << cvm::sqrt(runave_variance) << "\n";
+        }
       }
 
       history_add_value(runave_length, *x_history_p, x);

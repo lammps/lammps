@@ -65,7 +65,7 @@ compute         bsum2 snapgroup2 reduce sum c_b[*]
 # fix 		bsum2 all ave/time 1 1 1 c_bsum2 file bsum2.dat mode vector
 compute		vbsum all reduce sum c_vb[*]
 # fix 		vbsum all ave/time 1 1 1 c_vbsum file vbsum.dat mode vector
-variable	db_2_25 equal c_db[2][25]
+variable	db_2_25 equal C_db[2][25]
 
 thermo 		100
 

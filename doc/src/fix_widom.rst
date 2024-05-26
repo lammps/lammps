@@ -6,7 +6,7 @@ fix widom command
 Syntax
 """"""
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    fix ID group-ID widom N M type seed T keyword values ...
 
@@ -179,7 +179,7 @@ the following global cumulative quantities:
 * 2 = average difference in potential energy on each timestep
 * 3 = volume of the insertion region
 
-The vector values calculated by this fix are "extensive".
+The vector values calculated by this fix are "intensive".
 
 No parameter of this fix can be used with the *start/stop* keywords of
 the :doc:`run <run>` command.  This fix is not invoked during
@@ -195,8 +195,11 @@ doc page for more info.
 Do not set "neigh_modify once yes" or else this fix will never be
 called.  Reneighboring is **required**.
 
-Can be run in parallel, but aspects of the GCMC part will not scale well
-in parallel. Only usable for 3D simulations.
+This fix style requires an :doc:`atom style <atom_style>` with per atom
+type masses.
+
+Can be run in parallel, but some aspects of the insertion procedure
+will not scale well in parallel. Only usable for 3D simulations.
 
 
 Related commands

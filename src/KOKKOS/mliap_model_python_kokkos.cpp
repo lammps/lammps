@@ -2,7 +2,7 @@
 /* -*- c++ -*- ----------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    https://www.lammps.org/, Sandia National Laboratories
-   LAMMPS Development team: developers@lammps.org
+   LAMMPS development team: developers@lammps.org
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
@@ -43,7 +43,7 @@ MLIAPModelPythonKokkos<DeviceType>::MLIAPModelPythonKokkos(LAMMPS *lmp, char *co
   MLIAPModelPython(lmp,coefffilename,true),
   MLIAPModelKokkos<DeviceType>(lmp, this)
 {
-  if  (!std::is_same<DeviceType,LMPDeviceType>::value )
+  if  (!std::is_same_v<DeviceType,LMPDeviceType> )
     MLIAPModelKokkos<DeviceType>::error->all(FLERR, "MLIAP Kokkos version of the python interface is ONLY available on device");
 
   model_loaded = 0;

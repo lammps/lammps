@@ -23,7 +23,7 @@ class WavePacket;
 
 ///\en Template for v=der operation in \ref Wavepacket::int2phys_der()
 template<class Type>
-struct eq_second : public binary_function <Type, Type, Type> {
+struct eq_second {
   Type operator()(const Type& /* _Left */, const Type& _Right) const{
     return _Right;
   }
@@ -31,7 +31,7 @@ struct eq_second : public binary_function <Type, Type, Type> {
 
 ///\en Template for v=-der operation in \ref Wavepacket::int2phys_der()
 template<class Type>
-struct eq_minus_second : public binary_function <Type, Type, Type> {
+struct eq_minus_second {
   Type operator()(const Type& /* _Left */, const Type& _Right) const{
     return -_Right;
   }

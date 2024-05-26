@@ -42,29 +42,20 @@
 #include "update.h"
 #include "wire_dipole.h"
 
+#include <algorithm>
 #include <cmath>
 #include <cstring>
 
 using namespace LAMMPS_NS;
 using namespace std;
 
-#define MAXORDER 7
-#define OFFSET 16384
-#define LARGE 10000.0
-#define SMALL 0.00001
-#define EPS_HOC 1.0e-7
+static constexpr int OFFSET = 16384;
 
 enum { REVERSE_RHO };
 enum { FORWARD_IK, FORWARD_AD, FORWARD_IK_PERATOM, FORWARD_AD_PERATOM };
 enum : bool { ELECTRODE = true, ELECTROLYTE = false };
 
-#ifdef FFT_SINGLE
-#define ZEROF 0.0f
-#define ONEF 1.0f
-#else
-#define ZEROF 0.0
-#define ONEF 1.0
-#endif
+static constexpr FFT_SCALAR ZEROF = 0.0;
 
 static const char cite_pppm_electrode[] =
     "kspace_style pppm/electrode command:\n\n"
@@ -169,7 +160,6 @@ void PPPMElectrodeIntel::setup()
   PPPMIntel::setup();
   prd[0] /= wire_volfactor;
   prd[1] /= wire_volfactor;
-
 }
 
 void PPPMElectrodeIntel::compute(int eflag, int vflag)
@@ -285,7 +275,7 @@ void PPPMElectrodeIntel::compute(int eflag, int vflag)
   slabflag = 0;    // bypass compute_second's slabcorr()
   PPPMIntel::compute_second(eflag, vflag);
   slabflag = tempslabflag;
-  boundcorr->compute_corr(qsum,  eflag_atom, eflag_global, energy, eatom);
+  boundcorr->compute_corr(qsum, eflag_atom, eflag_global, energy, eatom);
   compute_vector_called = false;
 }
 
@@ -338,7 +328,7 @@ void PPPMElectrodeIntel::compute_vector(double *vec, int sensor_grpbit, int sour
   // electrolyte density (without writing an additional function)
   FFT_SCALAR ***density_brick_real = density_brick;
   FFT_SCALAR *density_fft_real = density_fft;
-  if (neighbor->ago != 0) pack_buffers(); // since midstep positions may be outdated
+  if (neighbor->ago != 0) pack_buffers();    // since midstep positions may be outdated
   switch (fix->precision()) {
     case FixIntel::PREC_MODE_MIXED:
       make_rho_in_brick<float, double>(fix->get_mixed_buffers(), source_grpbit,
@@ -420,7 +410,9 @@ void PPPMElectrodeIntel::project_psi(IntelBuffers<flt_t, acc_t> *buffers, double
 #endif
   {
     int *mask = atom->mask;
-    const flt_t scaleinv = 1.0 / (nx_pppm * ny_pppm * nz_pppm);
+
+    const bigint ngridtotal = (bigint) nx_pppm * ny_pppm * nz_pppm;
+    const flt_t scaleinv = 1.0 / ngridtotal;
 
     const flt_t lo0 = boxlo[0];
     const flt_t lo1 = boxlo[1];
@@ -719,7 +711,7 @@ void PPPMElectrodeIntel::one_step_multiplication(bigint *imat, double *greens_re
   MPI_Barrier(world);
   memory->destroy(rho1d_j);
   if (timer_flag && (comm->me == 0))
-    utils::logmesg(lmp, fmt::format("Single step time: {:.4g} s\n", MPI_Wtime() - step1_time));
+    utils::logmesg(lmp, "Single step time: {:.4g} s\n", MPI_Wtime() - step1_time);
 }
 
 /* ----------------------------------------------------------------------*/
@@ -844,7 +836,7 @@ void PPPMElectrodeIntel::two_step_multiplication(bigint *imat, double *greens_re
   }
   MPI_Barrier(world);
   if (timer_flag && (comm->me == 0))
-    utils::logmesg(lmp, fmt::format("step 1 time: {:.4g} s\n", MPI_Wtime() - step1_time));
+    utils::logmesg(lmp, "step 1 time: {:.4g} s\n", MPI_Wtime() - step1_time);
 
   // nested loop over electrode atoms i and j and stencil of i
   double step2_time = MPI_Wtime();
@@ -914,7 +906,7 @@ void PPPMElectrodeIntel::two_step_multiplication(bigint *imat, double *greens_re
   }
   MPI_Barrier(world);
   if (timer_flag && (comm->me == 0))
-    utils::logmesg(lmp, fmt::format("step 2 time: {:.4g} s\n", MPI_Wtime() - step2_time));
+    utils::logmesg(lmp, "step 2 time: {:.4g} s\n", MPI_Wtime() - step2_time);
 }
 
 template <class flt_t, class acc_t, int use_table>
@@ -1205,22 +1197,23 @@ void PPPMElectrodeIntel::pack_buffers_q()
 {
   fix->start_watch(TIME_PACK);
   int packthreads;
-  if (comm->nthreads > INTEL_HTHREADS) packthreads = comm->nthreads;
-  else packthreads = 1;
-  #if defined(_OPENMP)
-  #pragma omp parallel if (packthreads > 1)
-  #endif
+  if (comm->nthreads > INTEL_HTHREADS)
+    packthreads = comm->nthreads;
+  else
+    packthreads = 1;
+#if defined(_OPENMP)
+#pragma omp parallel if (packthreads > 1)
+#endif
   {
     int ifrom, ito, tid;
-    IP_PRE_omp_range_id_align(ifrom, ito, tid, atom->nlocal+atom->nghost,
-                              packthreads,
-                              sizeof(IntelBuffers<float,double>::atom_t));
+    IP_PRE_omp_range_id_align(ifrom, ito, tid, atom->nlocal + atom->nghost, packthreads,
+                              sizeof(IntelBuffers<float, double>::atom_t));
     if (fix->precision() == FixIntel::PREC_MODE_MIXED)
-      fix->get_mixed_buffers()->thr_pack_q(ifrom,ito);
+      fix->get_mixed_buffers()->thr_pack_q(ifrom, ito);
     else if (fix->precision() == FixIntel::PREC_MODE_DOUBLE)
-      fix->get_double_buffers()->thr_pack_q(ifrom,ito);
+      fix->get_double_buffers()->thr_pack_q(ifrom, ito);
     else
-      fix->get_single_buffers()->thr_pack_q(ifrom,ito);
+      fix->get_single_buffers()->thr_pack_q(ifrom, ito);
   }
   fix->stop_watch(TIME_PACK);
 }

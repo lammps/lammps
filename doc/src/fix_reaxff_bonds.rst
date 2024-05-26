@@ -9,7 +9,7 @@ Accelerator Variants: *reaxff/bonds/kk*
 Syntax
 """"""
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    fix ID group-ID reaxff/bonds Nevery filename
 

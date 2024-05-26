@@ -168,7 +168,7 @@ void BondHarmonicIntel::eval(const int vflag,
       const flt_t delz = x[i1].z - x[i2].z;
 
       const flt_t rsq = delx*delx + dely*dely + delz*delz;
-      const flt_t r = sqrt(rsq);
+      const flt_t r = std::sqrt(rsq);
       const flt_t dr = r - fc.fc[type].r0;
       const flt_t rk = fc.fc[type].k * dr;
 

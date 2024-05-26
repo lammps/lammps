@@ -168,7 +168,7 @@ the following global cumulative quantities:
 * 1 = swap attempts
 * 2 = swap accepts
 
-The vector values calculated by this fix are "extensive".
+The vector values calculated by this fix are "intensive".
 
 No parameter of this fix can be used with the *start/stop* keywords of
 the :doc:`run <run>` command.  This fix is not invoked during
@@ -180,6 +180,12 @@ Restrictions
 This fix is part of the MC package.  It is only enabled if LAMMPS was
 built with that package.  See the :doc:`Build package <Build_package>`
 doc page for more info.
+
+This fix cannot be used with systems that do not have per-type masses
+(e.g. atom style sphere) since the implemented algorithm pre-computes
+velocity rescaling factors from per-type masses and ignores any per-atom
+masses, if present.  In case both, per-type and per-atom masses are
+present, a warning is printed.
 
 Related commands
 """"""""""""""""

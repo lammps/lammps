@@ -27,6 +27,7 @@ namespace LAMMPS_NS {
 class FixTDPDSource : public Fix {
  public:
   FixTDPDSource(class LAMMPS *, int, char **);
+  ~FixTDPDSource() override;
   int setmask() override;
   void init() override;
   void post_force(int) override;
@@ -34,11 +35,11 @@ class FixTDPDSource : public Fix {
  protected:
   int option;
   int cc_index;
+  char *idregion;
+  class Region *region;
   double center[3], radius, dLx, dLy, dLz;
   double value;
 };
-
 }    // namespace LAMMPS_NS
-
 #endif
 #endif

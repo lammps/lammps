@@ -1,7 +1,7 @@
 /* -*- c++ -*- ----------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    https://www.lammps.org/, Sandia National Laboratories
-   LAMMPS Development team: developers@lammps.org
+   LAMMPS development team: developers@lammps.org
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
@@ -53,26 +53,25 @@ class Grid2d : protected Pointers {
   void read_file(int, void *, FILE *, int, int);
   void write_file(int, void *, int, int, int, MPI_Datatype);
 
-protected:
+ protected:
   int me, nprocs;
-  int layout;           // not TILED or TILED, same as Comm class
   MPI_Comm gridcomm;    // communicator for this class
                         // usually world, but MSM calls with subset
 
   // inputs from caller via constructor
 
-  int nx, ny;          // size of global grid in both dims
-  double maxdist;      // distance owned atoms can move outside subdomain
-  int stencil_atom_lo,stencil_atom_hi;    // grid cells accessed beyond atom's cell
-  int stencil_grid_lo,stencil_grid_hi;    // grid cells accessed beyond owned cell
-  double shift_grid;   // location of grid point within grid cell
-                       // only affects which proc owns grid cell
-  double shift_atom_lo,shift_atom_hi;;   // max shift applied to atoms
-                       // when mapped to grid cell by caller
-                       // can be different in lo/hi directions
-                       // only affects extent of ghost cells
-  int yextra;          // 1 if extra grid cells in Y, 0 if not
-  double yfactor;      // multiplier on extent of grid in Y direction
+  int nx, ny;                              // size of global grid in both dims
+  double maxdist;                          // distance owned atoms can move outside subdomain
+  int stencil_atom_lo, stencil_atom_hi;    // grid cells accessed beyond atom's cell
+  int stencil_grid_lo, stencil_grid_hi;    // grid cells accessed beyond owned cell
+  double shift_grid;                       // location of grid point within grid cell
+                                           // only affects which proc owns grid cell
+  double shift_atom_lo, shift_atom_hi;     // max shift applied to atoms
+                                           // when mapped to grid cell by caller
+                                           // can be different in lo/hi directions
+                                           // only affects extent of ghost cells
+  int yextra;                              // 1 if extra grid cells in Y, 0 if not
+  double yfactor;                          // multiplier on extent of grid in Y direction
 
   // extent of my owned and ghost cells
 
@@ -190,11 +189,11 @@ protected:
   // internal variables for OVERLAP operation
   // -------------------------------------------
 
-  int *overlap_procs;       // length of Nprocs in communicator
+  int *overlap_procs;    // length of Nprocs in communicator
 
   // BRICK decomposition
 
-  double *xsplit,*ysplit,*zsplit;
+  double *xsplit, *ysplit, *zsplit;
   int ***grid2proc;
 
   // TILED decomposition

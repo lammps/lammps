@@ -23,9 +23,7 @@
 
 using namespace LAMMPS_NS;
 
-#define MAXLINE 1024        // max line length in dump file
-
-enum{ID,TYPE,X,Y,Z};
+static constexpr int MAXLINE = 1024;        // max line length in dump file
 
 /* ---------------------------------------------------------------------- */
 
@@ -40,7 +38,7 @@ ReaderXYZ::ReaderXYZ(LAMMPS *lmp) : Reader(lmp)
 
 ReaderXYZ::~ReaderXYZ()
 {
-  delete [] line;
+  delete[] line;
   memory->destroy(fieldindex);
 }
 

@@ -314,7 +314,7 @@ TEST_F(GroupTest, Dynamic)
                  command("group ramp variable grow"););
 }
 
-constexpr double EPSILON = 1.0e-14;
+constexpr double EPSILON = 1.0e-13;
 
 TEST_F(GroupTest, VariableFunctions)
 {
@@ -468,9 +468,6 @@ int main(int argc, char **argv)
 {
     MPI_Init(&argc, &argv);
     ::testing::InitGoogleMock(&argc, argv);
-
-    if (LAMMPS_NS::platform::mpi_vendor() == "Open MPI" && !Info::has_exceptions())
-        std::cout << "Warning: using OpenMPI without exceptions. Death tests will be skipped\n";
 
     // handle arguments passed via environment variable
     if (const char *var = getenv("TEST_ARGS")) {

@@ -14,6 +14,7 @@
 #define STRINGIFY(val) XSTR(val)
 #define XSTR(val) #val
 
+using ::LAMMPS_NS::bigint;
 using ::LAMMPS_NS::tagint;
 using ::LAMMPS_NS::platform::path_join;
 using ::testing::HasSubstr;
@@ -32,10 +33,11 @@ protected:
     {
         const char *args[] = {"LAMMPS_test", "-log",      "none",
                               "-echo",       "screen",    "-nocite",
-                              "-var",        "input_dir", STRINGIFY(TEST_INPUT_FOLDER)};
+                              "-var",        "input_dir", STRINGIFY(TEST_INPUT_FOLDER),
+                              nullptr};
 
         char **argv = (char **)args;
-        int argc    = sizeof(args) / sizeof(char *);
+        int argc    = (sizeof(args) / sizeof(char *)) - 1;
 
         ::testing::internal::CaptureStdout();
         lmp                = lammps_open_no_mpi(argc, argv, nullptr);
@@ -93,6 +95,9 @@ TEST_F(LibraryProperties, natoms)
 
 TEST_F(LibraryProperties, thermo)
 {
+    bigint bval = *(bigint *)lammps_last_thermo(lmp, "step", 0);
+    EXPECT_EQ(bval, -1);
+
     if (!lammps_has_style(lmp, "atom", "full")) GTEST_SKIP();
     std::string input = path_join(INPUT_DIR, "in.fourmol");
     ::testing::internal::CaptureStdout();
@@ -105,6 +110,59 @@ TEST_F(LibraryProperties, thermo)
     EXPECT_DOUBLE_EQ(lammps_get_thermo(lmp, "vol"), 3375.0);
     EXPECT_DOUBLE_EQ(lammps_get_thermo(lmp, "density"), 0.12211250945013695);
     EXPECT_DOUBLE_EQ(lammps_get_thermo(lmp, "cellalpha"), 90.0);
+
+    bval = *(bigint *)lammps_last_thermo(lmp, "step", 0);
+    EXPECT_EQ(bval, 2);
+    int ival = *(int *)lammps_last_thermo(lmp, "num", 0);
+    EXPECT_EQ(ival, 6);
+
+    const char *key = (const char *)lammps_last_thermo(lmp, "keyword", 0);
+    EXPECT_THAT(key, StrEq("Step"));
+    ival = *(int *)lammps_last_thermo(lmp, "type", 0);
+#if defined(LAMMPS_SMALLSMALL)
+    EXPECT_EQ(ival, LAMMPS_INT);
+    ival = *(int *)lammps_last_thermo(lmp, "data", 0);
+    EXPECT_EQ(ival, 2);
+#else
+    EXPECT_EQ(ival, LAMMPS_INT64);
+    bval = *(bigint *)lammps_last_thermo(lmp, "data", 0);
+    EXPECT_EQ(bval, 2);
+#endif
+
+    key = (const char *)lammps_last_thermo(lmp, "keyword", 1);
+    EXPECT_THAT(key, StrEq("Temp"));
+    ival = *(int *)lammps_last_thermo(lmp, "type", 1);
+    EXPECT_EQ(ival, LAMMPS_DOUBLE);
+    double dval = *(double *)lammps_last_thermo(lmp, "data", 1);
+    EXPECT_DOUBLE_EQ(dval, 28.042780385852982);
+
+    key = (const char *)lammps_last_thermo(lmp, "keyword", 2);
+    EXPECT_THAT(key, StrEq("E_pair"));
+    ival = *(int *)lammps_last_thermo(lmp, "type", 2);
+    EXPECT_EQ(ival, LAMMPS_DOUBLE);
+    dval = *(double *)lammps_last_thermo(lmp, "data", 2);
+    EXPECT_DOUBLE_EQ(dval, 0.0);
+
+    key = (const char *)lammps_last_thermo(lmp, "keyword", 3);
+    EXPECT_THAT(key, StrEq("E_mol"));
+    ival = *(int *)lammps_last_thermo(lmp, "type", 3);
+    EXPECT_EQ(ival, LAMMPS_DOUBLE);
+    dval = *(double *)lammps_last_thermo(lmp, "data", 3);
+    EXPECT_DOUBLE_EQ(dval, 0.0);
+
+    key = (const char *)lammps_last_thermo(lmp, "keyword", 4);
+    EXPECT_THAT(key, StrEq("TotEng"));
+    ival = *(int *)lammps_last_thermo(lmp, "type", 4);
+    EXPECT_EQ(ival, LAMMPS_DOUBLE);
+    dval = *(double *)lammps_last_thermo(lmp, "data", 4);
+    EXPECT_DOUBLE_EQ(dval, 2.3405256449146163);
+
+    key = (const char *)lammps_last_thermo(lmp, "keyword", 5);
+    EXPECT_THAT(key, StrEq("Press"));
+    ival = *(int *)lammps_last_thermo(lmp, "type", 5);
+    EXPECT_EQ(ival, LAMMPS_DOUBLE);
+    dval = *(double *)lammps_last_thermo(lmp, "data", 5);
+    EXPECT_DOUBLE_EQ(dval, 31.700964689115658);
 };
 
 TEST_F(LibraryProperties, box)
@@ -277,7 +335,7 @@ TEST_F(LibraryProperties, setting)
         EXPECT_EQ(lammps_extract_setting(lmp, "mu_flag"), 0);
         EXPECT_EQ(lammps_extract_setting(lmp, "rmass_flag"), 0);
         EXPECT_EQ(lammps_extract_setting(lmp, "radius_flag"), 0);
-        EXPECT_EQ(lammps_extract_setting(lmp, "sphere_flag"), 0);
+        EXPECT_EQ(lammps_extract_setting(lmp, "sphere_flag"), -1);
         EXPECT_EQ(lammps_extract_setting(lmp, "ellipsoid_flag"), 0);
         EXPECT_EQ(lammps_extract_setting(lmp, "omega_flag"), 0);
         EXPECT_EQ(lammps_extract_setting(lmp, "torque_flag"), 0);
@@ -325,8 +383,8 @@ TEST_F(LibraryProperties, global)
 
     EXPECT_EQ(lammps_extract_global_datatype(lmp, "special_lj"), LAMMPS_DOUBLE);
     EXPECT_EQ(lammps_extract_global_datatype(lmp, "special_coul"), LAMMPS_DOUBLE);
-    double *special_lj = (double *)lammps_extract_global(lmp, "special_lj");
-    double *special_coul= (double *)lammps_extract_global(lmp, "special_coul");
+    double *special_lj   = (double *)lammps_extract_global(lmp, "special_lj");
+    double *special_coul = (double *)lammps_extract_global(lmp, "special_coul");
     EXPECT_DOUBLE_EQ(special_lj[0], 1.0);
     EXPECT_DOUBLE_EQ(special_lj[1], 0.0);
     EXPECT_DOUBLE_EQ(special_lj[2], 0.5);
@@ -461,9 +519,6 @@ TEST_F(LibraryProperties, neighlist)
 
 TEST_F(LibraryProperties, has_error)
 {
-    // need errors to throw exceptions to be able to intercept them.
-    if (!lammps_config_has_exceptions()) GTEST_SKIP();
-
     EXPECT_EQ(lammps_has_error(lmp), 0);
 
     // trigger an error, but hide output
@@ -497,10 +552,10 @@ protected:
 
     void SetUp() override
     {
-        const char *args[] = {"LAMMPS_test", "-log", "none", "-echo", "screen", "-nocite"};
+        const char *args[] = {"LAMMPS_test", "-log", "none", "-echo", "screen", "-nocite", nullptr};
 
         char **argv = (char **)args;
-        int argc    = sizeof(args) / sizeof(char *);
+        int argc    = (sizeof(args) / sizeof(char *)) - 1;
 
         ::testing::internal::CaptureStdout();
         lmp                = lammps_open_no_mpi(argc, argv, nullptr);
@@ -578,10 +633,10 @@ TEST(SystemSettings, kokkos)
 
     // clang-format off
     const char *args[] = {"SystemSettings", "-log", "none", "-echo", "screen", "-nocite",
-                          "-k", "on", "t", "4", "-sf", "kk"};
+                          "-k", "on", "t", "4", "-sf", "kk", nullptr};
     // clang-format on
     char **argv = (char **)args;
-    int argc    = sizeof(args) / sizeof(char *);
+    int argc    = (sizeof(args) / sizeof(char *)) - 1;
 
     ::testing::internal::CaptureStdout();
     void *lmp          = lammps_open_no_mpi(argc, argv, nullptr);

@@ -1,13 +1,13 @@
-Download an executable for Linux or Mac via Conda
--------------------------------------------------
+Download an executable for Linux or macOS via Conda
+---------------------------------------------------
 
 Pre-compiled LAMMPS binaries are available for macOS and Linux via the
 `Conda <conda_>`_ package management system.
 
-First, one must set up the Conda package manager on your system.  Follow the
-instructions to install `Miniconda <mini_conda_install_>`_, then create a conda
-environment (named `my-lammps-env` or whatever you prefer) for your LAMMPS
-install:
+First, one must set up the Conda package manager on your system.  Follow
+the instructions to install `Miniconda <mini_conda_install_>`_, then
+create a conda environment (named `my-lammps-env` or whatever you
+prefer) for your LAMMPS install:
 
 .. code-block:: bash
 

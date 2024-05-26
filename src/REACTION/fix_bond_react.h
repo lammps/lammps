@@ -12,7 +12,7 @@
 ------------------------------------------------------------------------- */
 
 /* ----------------------------------------------------------------------
-   Contributing Author: Jacob Gissinger (jacob.r.gissinger@gmail.com)
+   Contributing Author: Jacob Gissinger (jgissing@stevens.edu)
 ------------------------------------------------------------------------- */
 
 #ifdef FIX_CLASS
@@ -71,7 +71,9 @@ class FixBondReact : public Fix {
   int **store_rxn_count;
   int *stabilize_steps_flag;
   int *custom_charges_fragid;
-  int *rescale_charges_flag;
+  int *rescale_charges_flag;   // if nonzero, indicates number of atoms whose charges are updated
+  int rescale_charges_anyflag; // indicates if any reactions do charge rescaling
+  double *mol_total_charge;    // sum of charges of post-reaction atoms whose charges are updated
   int *create_atoms_flag;
   int *modify_create_fragid;
   double *overlapsq;
@@ -137,7 +139,7 @@ class FixBondReact : public Fix {
   int avail_guesses;     // num of restore points available
   int *guess_branch;     // used when there is more than two choices when guessing
   int **restore_pt;      // contains info about restore points
-  tagint **restore;      // contaings info about restore points
+  tagint **restore;      // contains info about restore points
   int *pioneer_count;    // counts pioneers
 
   int **edge;                // atoms in molecule templates with incorrect valences
@@ -156,10 +158,12 @@ class FixBondReact : public Fix {
   int lcl_inst;              // reaction instance
   tagint **glove;            // 1st colmn: pre-reacted template, 2nd colmn: global IDs
   // for all mega_gloves: first row is the ID of bond/react
-  tagint **my_mega_glove;         // local + ghostly reaction instances
-  tagint **local_mega_glove;      // consolidation of local reaction instances
-  tagint **ghostly_mega_glove;    // consolidation of nonlocal reaction instances
-  tagint **global_mega_glove;     // consolidation (inter-processor) of gloves
+  // 'cuff' leaves room for additional values carried around
+  int cuff;                       // default = 1, w/ rescale_charges_flag = 2
+  double **my_mega_glove;         // local + ghostly reaction instances
+  double **local_mega_glove;      // consolidation of local reaction instances
+  double **ghostly_mega_glove;    // consolidation of nonlocal reaction instances
+  double **global_mega_glove;     // consolidation (inter-processor) of gloves
                                   // containing nonlocal atoms
 
   int *localsendlist;      // indicates ghosts of other procs
@@ -191,6 +195,7 @@ class FixBondReact : public Fix {
   int check_constraints();
   void get_IDcoords(int, int, double *);
   double get_temperature(tagint **, int, int);
+  double get_totalcharge();
   void customvarnames();    // get per-atom variables names used by custom constraint
   void get_customvars();    // evaluate local values for variables names used by custom constraint
   double custom_constraint(const std::string &);    // evaulate expression for custom constraint

@@ -35,7 +35,7 @@
 using namespace LAMMPS_NS;
 using namespace MathConst;
 
-#define SMALL 0.00001
+static constexpr double SMALL = 0.00001;
 
 /* ---------------------------------------------------------------------- */
 
@@ -857,7 +857,7 @@ void Ewald::coeffs()
         vg[kcount][3] = -vterm*unitk[0]*k*unitk[1]*l;
         vg[kcount][4] = 0.0;
         vg[kcount][5] = 0.0;
-        kcount++;;
+        kcount++;
       }
     }
   }

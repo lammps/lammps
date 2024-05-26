@@ -89,16 +89,19 @@ class PairZBLKokkos : public PairZBL {
 
   void allocate() override;
 
-  friend struct PairComputeFunctor<PairZBLKokkos,FULL,true>;
+  friend struct PairComputeFunctor<PairZBLKokkos,FULL,true,0>;
+  friend struct PairComputeFunctor<PairZBLKokkos,FULL,true,1>;
   friend struct PairComputeFunctor<PairZBLKokkos,HALF,true>;
   friend struct PairComputeFunctor<PairZBLKokkos,HALFTHREAD,true>;
-  friend struct PairComputeFunctor<PairZBLKokkos,FULL,false>;
+  friend struct PairComputeFunctor<PairZBLKokkos,FULL,false,0>;
+  friend struct PairComputeFunctor<PairZBLKokkos,FULL,false,1>;
   friend struct PairComputeFunctor<PairZBLKokkos,HALF,false>;
   friend struct PairComputeFunctor<PairZBLKokkos,HALFTHREAD,false>;
-  friend EV_FLOAT pair_compute_neighlist<PairZBLKokkos,FULL,void>(PairZBLKokkos*,NeighListKokkos<DeviceType>*);
-  friend EV_FLOAT pair_compute_neighlist<PairZBLKokkos,HALF,void>(PairZBLKokkos*,NeighListKokkos<DeviceType>*);
-  friend EV_FLOAT pair_compute_neighlist<PairZBLKokkos,HALFTHREAD,void>(PairZBLKokkos*,NeighListKokkos<DeviceType>*);
-  friend EV_FLOAT pair_compute<PairZBLKokkos,void>(PairZBLKokkos*,NeighListKokkos<DeviceType>*);
+  friend EV_FLOAT pair_compute_neighlist<PairZBLKokkos,FULL,0>(PairZBLKokkos*,NeighListKokkos<DeviceType>*);
+  friend EV_FLOAT pair_compute_neighlist<PairZBLKokkos,FULL,1>(PairZBLKokkos*,NeighListKokkos<DeviceType>*);
+  friend EV_FLOAT pair_compute_neighlist<PairZBLKokkos,HALF>(PairZBLKokkos*,NeighListKokkos<DeviceType>*);
+  friend EV_FLOAT pair_compute_neighlist<PairZBLKokkos,HALFTHREAD>(PairZBLKokkos*,NeighListKokkos<DeviceType>*);
+  friend EV_FLOAT pair_compute<PairZBLKokkos>(PairZBLKokkos*,NeighListKokkos<DeviceType>*);
   friend void pair_virial_fdotr_compute<PairZBLKokkos>(PairZBLKokkos*);
 };
 

@@ -12,7 +12,7 @@ Accelerator Variants: *nve/gpu*, *nve/intel*, *nve/kk*, *nve/omp*
 Syntax
 """"""
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    fix ID group-ID nve
 

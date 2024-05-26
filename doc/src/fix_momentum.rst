@@ -13,7 +13,7 @@ fix momentum/chunk command
 Syntax
 """"""
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    fix ID group-ID momentum N keyword values ...
 

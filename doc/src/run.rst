@@ -6,7 +6,7 @@ run command
 Syntax
 """"""
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    run N keyword values ...
 

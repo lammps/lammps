@@ -15,7 +15,8 @@ orientation for rotational models. This produces a stress-free initial
 state. Furthermore, bonds are allowed to break under large strains,
 producing fracture. The examples/bpm directory has sample input scripts
 for simulations of the fragmentation of an impacted plate and the
-pouring of extended, elastic bodies.
+pouring of extended, elastic bodies. See :ref:`(Clemmer) <howto-Clemmer>`
+for more general information on the approach and the LAMMPS implementation.
 
 ----------
 
@@ -79,9 +80,9 @@ As bonds can be broken between neighbor list builds, the
 bond styles. There are two possible settings which determine how pair
 interactions work between bonded particles.  First, one can overlay
 pair forces with bond forces such that all bonded particles also
-feel pair interactions. This can be accomplished by using the *overlay/pair*
-keyword present in all bpm bond styles and by using the following special
-bond settings
+feel pair interactions. This can be accomplished by setting the *overlay/pair*
+keyword present in all bpm bond styles to *yes* and requires using the
+following special bond settings
 
    .. code-block:: LAMMPS
 
@@ -107,7 +108,17 @@ bond lists is expensive.  By setting the lj weight for 1-2 bonds to
 zero, this turns off pairwise interactions.  Even though there are no
 charges in BPM models, setting a nonzero coul weight for 1-2 bonds
 ensures all bonded neighbors are still included in the neighbor list
-in case bonds break between neighbor list builds.
+in case bonds break between neighbor list builds. If bond breakage is
+disabled during a simulation run by setting the *break* keyword to *no*,
+a zero coul weight for 1-2 bonds can be used to exclude bonded atoms
+from the neighbor list builds
+
+   .. code-block:: LAMMPS
+
+      special_bonds lj 0 1 1 coul 0 1 1
+
+This can be useful for post-processing, or to determine pair interaction
+properties between distinct bonded particles.
 
 To monitor the fracture of bonds in the system, all BPM bond styles
 have the ability to record instances of bond breakage to output using
@@ -140,3 +151,9 @@ the following are currently compatible with BPM bond styles:
    interactions, one will need to switch between different *special_bonds*
    settings in the input script. An example is found in
    ``examples/bpm/impact``.
+
+----------
+
+.. _howto-Clemmer:
+
+**(Clemmer)** Clemmer, Monti, Lechman, Soft Matter, 20, 1702 (2024).

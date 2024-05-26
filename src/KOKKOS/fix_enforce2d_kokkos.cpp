@@ -17,14 +17,13 @@
 ------------------------------------------------------------------------- */
 
 #include "fix_enforce2d_kokkos.h"
+
 #include "atom_masks.h"
 #include "atom_kokkos.h"
 #include "comm.h"
 #include "error.h"
 
-
 using namespace LAMMPS_NS;
-
 
 template <class DeviceType>
 FixEnforce2DKokkos<DeviceType>::FixEnforce2DKokkos(LAMMPS *lmp, int narg, char **arg) :
@@ -34,20 +33,15 @@ FixEnforce2DKokkos<DeviceType>::FixEnforce2DKokkos(LAMMPS *lmp, int narg, char *
   atomKK = (AtomKokkos *) atom;
   execution_space = ExecutionSpaceFromDevice<DeviceType>::space;
 
-  datamask_read   = V_MASK | F_MASK | OMEGA_MASK | MASK_MASK
-          | TORQUE_MASK | ANGMOM_MASK;
-
-  datamask_modify = V_MASK | F_MASK | OMEGA_MASK
-          | TORQUE_MASK | ANGMOM_MASK;
+  datamask_read   = V_MASK | F_MASK | OMEGA_MASK | MASK_MASK | TORQUE_MASK | ANGMOM_MASK;
+  datamask_modify = V_MASK | F_MASK | OMEGA_MASK | TORQUE_MASK | ANGMOM_MASK;
 }
-
 
 template <class DeviceType>
 void FixEnforce2DKokkos<DeviceType>::setup(int vflag)
 {
   post_force(vflag);
 }
-
 
 template <class DeviceType>
 void FixEnforce2DKokkos<DeviceType>::post_force(int /*vflag*/)
@@ -65,7 +59,6 @@ void FixEnforce2DKokkos<DeviceType>::post_force(int /*vflag*/)
 
   if (atomKK->torque_flag)
     torque = atomKK->k_torque.view<DeviceType>();
-
 
   mask = atomKK->k_mask.view<DeviceType>();
 
@@ -125,18 +118,11 @@ void FixEnforce2DKokkos<DeviceType>::post_force(int /*vflag*/)
   copymode = 0;
 
   atomKK->modified(execution_space,datamask_modify);
-
-  for (int m = 0; m < nfixlist; m++) {
-    atomKK->sync(flist[m]->execution_space,flist[m]->datamask_read);
-    flist[m]->enforce2d();
-    atomKK->modified(flist[m]->execution_space,flist[m]->datamask_modify);
-  }
-
 }
 
 
 template <class DeviceType>
-template <int omega_flag, int angmom_flag, int torque_flag>
+template <int OMEGA_FLAG, int ANGMOM_FLAG, int TORQUE_FLAG>
 KOKKOS_INLINE_FUNCTION
 void FixEnforce2DKokkos<DeviceType>::post_force_item( int i ) const
 {
@@ -144,17 +130,17 @@ void FixEnforce2DKokkos<DeviceType>::post_force_item( int i ) const
     v(i,2) = 0.0;
     f(i,2) = 0.0;
 
-    if (omega_flag) {
+    if (OMEGA_FLAG) {
       omega(i,0) = 0.0;
       omega(i,1) = 0.0;
     }
 
-    if (angmom_flag) {
+    if (ANGMOM_FLAG) {
       angmom(i,0) = 0.0;
       angmom(i,1) = 0.0;
     }
 
-    if (torque_flag) {
+    if (TORQUE_FLAG) {
       torque(i,0) = 0.0;
       torque(i,1) = 0.0;
     }

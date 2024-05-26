@@ -200,7 +200,10 @@ bool Timer::_check_timeout()
 /* ---------------------------------------------------------------------- */
 double Timer::get_timeout_remain()
 {
-  return (_timeout < 0.0) ? 0.0 : _timeout + timeout_start - platform::walltime();
+  double remain = _timeout + timeout_start - platform::walltime();
+  // never report a negative remaining time.
+  if (remain < 0.0) remain = 0.0;
+  return (_timeout < 0.0) ? 0.0 : remain;
 }
 
 /* ----------------------------------------------------------------------
@@ -249,8 +252,8 @@ void Timer::modify_params(int narg, char **arg)
     // format timeout setting
     std::string timeout = "off";
     if (_timeout >= 0) {
-      std::time_t tv = _timeout;
-      timeout = fmt::format("{:%H:%M:%S}", fmt::gmtime(tv));
+      std::tm tv = fmt::gmtime((std::time_t) _timeout);
+      timeout = fmt::format("{:02d}:{:%M:%S}", tv.tm_yday * 24 + tv.tm_hour, tv);
     }
 
     utils::logmesg(lmp, "New timer settings: style={}  mode={}  timeout={}\n", timer_style[_level],

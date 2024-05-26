@@ -28,11 +28,13 @@
 #include "fix_ave_atom.h"
 #include "force.h"
 #include "group.h"
+#include "input.h"
 #include "memory.h"
 #include "modify.h"
 #include "neigh_list.h"
 #include "neighbor.h"
 #include "update.h"
+#include "variable.h"
 
 #include "pair_reaxff.h"
 #include "reaxff_defs.h"
@@ -46,15 +48,16 @@ using namespace LAMMPS_NS;
 using namespace FixConst;
 
 static const char cite_reaxff_species_delete[] =
-  "fix reaxff/species, 'delete' keyword: https://doi.org/10.1016/j.carbon.2022.11.002\n\n"
-  "@Article{Gissinger23,\n"
-  " author = {J. R. Gissinger, S. R. Zavada, J. G. Smith, J. Kemppainen, I. Gallegos, G. M. Odegard, E. J. Siochi, K. E. Wise},\n"
-  " title = {Predicting char yield of high-temperature resins},\n"
-  " journal = {Carbon},\n"
-  " year =    2023,\n"
-  " volume =  202,\n"
-  " pages =   {336-347}\n"
-  "}\n\n";
+    "fix reaxff/species, 'delete' keyword: https://doi.org/10.1016/j.carbon.2022.11.002\n\n"
+    "@Article{Gissinger23,\n"
+    " author = {J. R. Gissinger, S. R. Zavada, J. G. Smith, J. Kemppainen, I. Gallegos, G. M. "
+    "Odegard, E. J. Siochi, K. E. Wise},\n"
+    " title = {Predicting char yield of high-temperature resins},\n"
+    " journal = {Carbon},\n"
+    " year =    2023,\n"
+    " volume =  202,\n"
+    " pages =   {336-347}\n"
+    "}\n\n";
 
 /* ---------------------------------------------------------------------- */
 
@@ -62,7 +65,7 @@ FixReaxFFSpecies::FixReaxFFSpecies(LAMMPS *lmp, int narg, char **arg) :
     Fix(lmp, narg, arg), Name(nullptr), MolName(nullptr), NMol(nullptr), nd(nullptr),
     MolType(nullptr), molmap(nullptr), mark(nullptr), Mol2Spec(nullptr), clusterID(nullptr),
     x0(nullptr), BOCut(nullptr), fp(nullptr), pos(nullptr), fdel(nullptr), delete_Tcount(nullptr),
-    ele(nullptr), eletype(nullptr), filepos(nullptr), filedel(nullptr)
+    filepos(nullptr), filedel(nullptr)
 {
   if (narg < 7) utils::missing_cmd_args(FLERR, "fix reaxff/species", error);
 
@@ -81,6 +84,9 @@ FixReaxFFSpecies::FixReaxFFSpecies(LAMMPS *lmp, int narg, char **arg) :
   nvalid = -1;
 
   ntypes = atom->ntypes;
+  eletype.resize(ntypes);
+  ueletype.resize(ntypes);
+  ele2uele.resize(ntypes);
 
   nevery = utils::inumeric(FLERR, arg[3], false, lmp);
   nrepeat = utils::inumeric(FLERR, arg[4], false, lmp);
@@ -146,17 +152,14 @@ FixReaxFFSpecies::FixReaxFFSpecies(LAMMPS *lmp, int narg, char **arg) :
   setupflag = 0;
 
   // set default bond order cutoff
-  int itype, jtype;
-  double bo_cut;
-  bg_cut = 0.30;
+  double bo_cut = 0.30;
   int np1 = ntypes + 1;
   memory->create(BOCut, np1, np1, "reaxff/species:BOCut");
   for (int i = 1; i < np1; i++)
-    for (int j = 1; j < np1; j++) BOCut[i][j] = bg_cut;
+    for (int j = 1; j < np1; j++) BOCut[i][j] = bo_cut;
 
   // optional args
-  eletype = nullptr;
-  ele = filepos = filedel = nullptr;
+  filepos = filedel = nullptr;
   eleflag = posflag = padflag = 0;
   delflag = specieslistflag = masslimitflag = 0;
   delete_Nlimit = delete_Nsteps = 0;
@@ -170,16 +173,19 @@ FixReaxFFSpecies::FixReaxFFSpecies(LAMMPS *lmp, int narg, char **arg) :
     // set BO cutoff
     if (strcmp(arg[iarg], "cutoff") == 0) {
       if (iarg + 4 > narg) utils::missing_cmd_args(FLERR, "fix reaxff/species cutoff", error);
-      itype = utils::inumeric(FLERR, arg[iarg + 1], false, lmp);
-      jtype = utils::inumeric(FLERR, arg[iarg + 2], false, lmp);
+      int ilo, ihi, jlo, jhi;
+      utils::bounds(FLERR, arg[iarg + 1], 1, atom->ntypes, ilo, ihi, error);
+      utils::bounds(FLERR, arg[iarg + 2], 1, atom->ntypes, jlo, jhi, error);
       bo_cut = utils::numeric(FLERR, arg[iarg + 3], false, lmp);
-      if ((itype <= 0) || (jtype <= 0) || (itype > ntypes) || (jtype > ntypes))
-        error->all(FLERR, "Fix reaxff/species cutoff atom type(s) out of range");
       if ((bo_cut > 1.0) || (bo_cut < 0.0))
         error->all(FLERR, "Fix reaxff/species invalid cutoff value: {}", bo_cut);
 
-      BOCut[itype][jtype] = bo_cut;
-      BOCut[jtype][itype] = bo_cut;
+      for (int i = ilo; i <= ihi; ++i) {
+        for (int j = MAX(jlo, i); j <= jhi; ++j) {
+          BOCut[i][j] = bo_cut;
+          BOCut[j][i] = bo_cut;
+        }
+      }
       iarg += 4;
 
       // modify element type names
@@ -187,14 +193,9 @@ FixReaxFFSpecies::FixReaxFFSpecies(LAMMPS *lmp, int narg, char **arg) :
       if (iarg + ntypes + 1 > narg)
         utils::missing_cmd_args(FLERR, "fix reaxff/species element", error);
 
-      eletype = (char **) malloc(ntypes * sizeof(char *));
-      int len;
-      for (int i = 0; i < ntypes; i++) {
-        len = strlen(arg[iarg + 1 + i]) + 1;
-        eletype[i] = (char *) malloc(len * sizeof(char));
-        strcpy(eletype[i], arg[iarg + 1 + i]);
-      }
-      eleflag = 1;
+      for (int i = 0; i < ntypes; i++)
+        eletype[i] = arg[iarg + 1 + i];
+      GetUniqueElements();
       iarg += ntypes + 1;
 
       // delete species
@@ -238,9 +239,21 @@ FixReaxFFSpecies::FixReaxFFSpecies(LAMMPS *lmp, int narg, char **arg) :
         error->all(FLERR, "Unknown fix reaxff/species delete option: {}", arg[iarg]);
       // rate limit when deleting molecules
     } else if (strcmp(arg[iarg], "delete_rate_limit") == 0) {
-      if (iarg + 3 > narg) utils::missing_cmd_args(FLERR, "fix reaxff/species delete_rate_limit", error);
-      delete_Nlimit = utils::numeric(FLERR, arg[iarg+1], false, lmp);
-      delete_Nsteps = utils::numeric(FLERR, arg[iarg+2], false, lmp);
+      if (iarg + 3 > narg)
+        utils::missing_cmd_args(FLERR, "fix reaxff/species delete_rate_limit", error);
+      delete_Nlimit_varid = -1;
+      if (strncmp(arg[iarg + 1], "v_", 2) == 0) {
+        delete_Nlimit_varname = &arg[iarg + 1][2];
+        delete_Nlimit_varid = input->variable->find(delete_Nlimit_varname.c_str());
+        if (delete_Nlimit_varid < 0)
+          error->all(FLERR, "Fix reaxff/species: Variable name {} does not exist",
+                     delete_Nlimit_varname);
+        if (!input->variable->equalstyle(delete_Nlimit_varid))
+          error->all(FLERR, "Fix reaxff/species: Variable {} is not equal-style",
+                     delete_Nlimit_varname);
+      } else
+        delete_Nlimit = utils::numeric(FLERR, arg[iarg + 1], false, lmp);
+      delete_Nsteps = utils::numeric(FLERR, arg[iarg + 2], false, lmp);
       iarg += 3;
       // position of molecules
     } else if (strcmp(arg[iarg], "position") == 0) {
@@ -269,23 +282,14 @@ FixReaxFFSpecies::FixReaxFFSpecies(LAMMPS *lmp, int narg, char **arg) :
       error->all(FLERR, "Unknown fix reaxff/species keyword: {}", arg[iarg]);
   }
 
-  if (!eleflag) {
-    memory->create(ele, ntypes + 1, "reaxff/species:ele");
-    ele[0] = 'C';
-    if (ntypes > 1) ele[1] = 'H';
-    if (ntypes > 2) ele[2] = 'O';
-    if (ntypes > 3) ele[3] = 'N';
-  }
-
   if (delflag && specieslistflag && masslimitflag)
     error->all(FLERR, "Incompatible combination fix reaxff/species command options");
 
-  if (delete_Nlimit > 0) {
+  if (delete_Nsteps > 0) {
     if (lmp->citeme) lmp->citeme->add(cite_reaxff_species_delete);
-    memory->create(delete_Tcount,delete_Nsteps,"reaxff/species:delete_Tcount");
+    memory->create(delete_Tcount, delete_Nsteps, "reaxff/species:delete_Tcount");
 
-    for (int i = 0; i < delete_Nsteps; i++)
-      delete_Tcount[i] = -1;
+    for (int i = 0; i < delete_Nsteps; i++) delete_Tcount[i] = -1;
     delete_Tcount[0] = 0;
   }
 
@@ -297,7 +301,6 @@ FixReaxFFSpecies::FixReaxFFSpecies(LAMMPS *lmp, int narg, char **arg) :
 
 FixReaxFFSpecies::~FixReaxFFSpecies()
 {
-  memory->destroy(ele);
   memory->destroy(BOCut);
   memory->destroy(clusterID);
   memory->destroy(x0);
@@ -343,7 +346,14 @@ int FixReaxFFSpecies::setmask()
 void FixReaxFFSpecies::setup(int /*vflag*/)
 {
   ntotal = static_cast<int>(atom->natoms);
-  if (Name == nullptr) memory->create(Name, ntypes, "reaxff/species:Name");
+
+  if (!eleflag) {
+    for (int i = 0; i < ntypes; i++)
+      eletype[i] = reaxff->eletype[i+1];
+    GetUniqueElements();
+  }
+  memory->destroy(Name);
+  memory->create(Name, nutypes, "reaxff/species:Name");
 
   post_integrate();
 }
@@ -378,6 +388,17 @@ void FixReaxFFSpecies::init()
     f_SPECBOND = dynamic_cast<FixAveAtom *>(modify->add_fix(fixcmd));
     setupflag = 1;
   }
+
+  // check for valid variable name for delete Nlimit keyword
+  if (delete_Nsteps > 0) {
+    delete_Nlimit_varid = input->variable->find(delete_Nlimit_varname.c_str());
+    if (delete_Nlimit_varid < 0)
+      error->all(FLERR, "Fix reaxff/species: Variable name {} does not exist",
+                 delete_Nlimit_varname);
+    if (!input->variable->equalstyle(delete_Nlimit_varid))
+      error->all(FLERR, "Fix reaxff/species: Variable {} is not equal-style",
+                 delete_Nlimit_varname);
+  }
 }
 
 /* ---------------------------------------------------------------------- */
@@ -407,9 +428,8 @@ void FixReaxFFSpecies::Output_ReaxFF_Bonds(bigint ntimestep, FILE * /*fp*/)
 
   if (ntimestep != nvalid) {
     // push back delete_Tcount on every step
-    if (delete_Nlimit > 0)
-      for (int i = delete_Nsteps-1; i > 0; i--)
-        delete_Tcount[i] = delete_Tcount[i-1];
+    if (delete_Nsteps > 0)
+      for (int i = delete_Nsteps - 1; i > 0; i--) delete_Tcount[i] = delete_Tcount[i - 1];
     return;
   }
 
@@ -623,14 +643,14 @@ void FixReaxFFSpecies::FindSpecies(int Nmole, int &Nspec)
 
   memory->destroy(MolName);
   MolName = nullptr;
-  memory->create(MolName, Nmole * (ntypes + 1), "reaxff/species:MolName");
+  memory->create(MolName, Nmole * (nutypes + 1), "reaxff/species:MolName");
 
   memory->destroy(NMol);
   NMol = nullptr;
   memory->create(NMol, Nmole, "reaxff/species:NMol");
   for (m = 0; m < Nmole; m++) NMol[m] = 1;
 
-  memory->create(Nameall, ntypes, "reaxff/species:Nameall");
+  memory->create(Nameall, nutypes, "reaxff/species:Nameall");
   memory->create(NMolall, Nmole, "reaxff/species:NMolall");
 
   memory->destroy(Mol2Spec);
@@ -639,12 +659,12 @@ void FixReaxFFSpecies::FindSpecies(int Nmole, int &Nspec)
   for (m = 0; m < Nmole; m++) Mol2Spec[m] = -1;
 
   for (m = 1, Nspec = 0; m <= Nmole; m++) {
-    for (n = 0; n < ntypes; n++) Name[n] = 0;
+    for (n = 0; n < nutypes; n++) Name[n] = 0;
     for (n = 0, flag_mol = 0; n < nlocal; n++) {
       if (!(mask[n] & groupbit)) continue;
       cid = nint(clusterID[n]);
       if (cid == m) {
-        itype = atom->type[n] - 1;
+        itype = ele2uele[atom->type[n] - 1];
         Name[itype]++;
         flag_mol = 1;
       }
@@ -652,15 +672,15 @@ void FixReaxFFSpecies::FindSpecies(int Nmole, int &Nspec)
     MPI_Allreduce(&flag_mol, &flag_tmp, 1, MPI_INT, MPI_MAX, world);
     flag_mol = flag_tmp;
 
-    MPI_Allreduce(Name, Nameall, ntypes, MPI_INT, MPI_SUM, world);
-    for (n = 0; n < ntypes; n++) Name[n] = Nameall[n];
+    MPI_Allreduce(Name, Nameall, nutypes, MPI_INT, MPI_SUM, world);
+    for (n = 0; n < nutypes; n++) Name[n] = Nameall[n];
 
     if (flag_mol == 1) {
       flag_identity = 1;
       for (k = 0; k < Nspec; k++) {
         flag_spec = 0;
-        for (l = 0; l < ntypes; l++)
-          if (MolName[ntypes * k + l] != Name[l]) flag_spec = 1;
+        for (l = 0; l < nutypes; l++)
+          if (MolName[nutypes * k + l] != Name[l]) flag_spec = 1;
         if (flag_spec == 0) {
           NMol[k]++;
           Mol2Spec[m - 1] = k;
@@ -668,7 +688,7 @@ void FixReaxFFSpecies::FindSpecies(int Nmole, int &Nspec)
         flag_identity *= flag_spec;
       }
       if (Nspec == 0 || flag_identity == 1) {
-        for (l = 0; l < ntypes; l++) MolName[ntypes * Nspec + l] = Name[l];
+        for (l = 0; l < nutypes; l++) MolName[nutypes * Nspec + l] = Name[l];
         Mol2Spec[m - 1] = Nspec;
         Nspec++;
       }
@@ -683,27 +703,71 @@ void FixReaxFFSpecies::FindSpecies(int Nmole, int &Nspec)
 
   memory->destroy(MolType);
   MolType = nullptr;
-  memory->create(MolType, Nspec * (ntypes + 2), "reaxff/species:MolType");
+  memory->create(MolType, Nspec * (nutypes + 2), "reaxff/species:MolType");
 }
 
 /* ---------------------------------------------------------------------- */
 
-int FixReaxFFSpecies::CheckExistence(int id, int ntypes)
+int FixReaxFFSpecies::CheckExistence(int id, int nutypes)
 {
   int i, j, molid, flag;
 
   for (i = 0; i < Nmoltype; i++) {
     flag = 0;
-    for (j = 0; j < ntypes; j++) {
-      molid = MolType[ntypes * i + j];
-      if (molid != MolName[ntypes * id + j]) flag = 1;
+    for (j = 0; j < nutypes; j++) {
+      molid = MolType[nutypes * i + j];
+      if (molid != MolName[nutypes * id + j]) flag = 1;
     }
     if (flag == 0) return i;
   }
-  for (i = 0; i < ntypes; i++) MolType[ntypes * Nmoltype + i] = MolName[ntypes * id + i];
+  for (i = 0; i < nutypes; i++) MolType[nutypes * Nmoltype + i] = MolName[nutypes * id + i];
 
   Nmoltype++;
   return Nmoltype - 1;
+}
+
+/* ---------------------------------------------------------------------- */
+
+void FixReaxFFSpecies::GetUniqueElements()
+{
+  eleflag = 1;
+
+  // get unique 'element' labels
+
+  nutypes = 0;
+  int skipflag;
+  for (int i = 0; i < ntypes; i++) {
+    skipflag = 0;
+    for (int j = 0; j < nutypes; j++)
+      if (eletype[i] == ueletype[j]) {
+        skipflag = 1;
+        break;
+      }
+    if (skipflag) continue;
+    ueletype[nutypes++] = eletype[i];
+  }
+
+  // reorder CHON, if necessary
+
+  int incr = 0;
+  std::vector<std::string> CHON = {"C", "H", "O", "N"};
+  for (auto it = CHON.begin(); it != CHON.end(); ++it)
+    for (int j = incr; j < nutypes; j++) {
+      if (ueletype[j] == *it) {
+        ueletype.erase(ueletype.begin() + j);
+        ueletype.insert(ueletype.begin() + incr++, *it);
+        break;
+      }
+    }
+
+  // map user input to unique list
+
+  for (int i = 0; i < ntypes; i++)
+    for (int j = 0; j < nutypes; j++)
+      if (eletype[i] == ueletype[j]) {
+        ele2uele[i] = j;
+        break;
+      }
 }
 
 /* ---------------------------------------------------------------------- */
@@ -713,31 +777,28 @@ void FixReaxFFSpecies::WriteFormulas(int Nmole, int Nspec)
   int i, j, itemp;
   bigint ntimestep = update->ntimestep;
 
-  fprintf(fp, "# Timestep     No_Moles     No_Specs     ");
+  fprintf(fp, "#  Timestep    No_Moles    No_Specs");
 
   Nmoltype = 0;
 
-  for (i = 0; i < Nspec; i++) nd[i] = CheckExistence(i, ntypes);
+  for (i = 0; i < Nspec; i++) nd[i] = CheckExistence(i, nutypes);
 
   for (i = 0; i < Nmoltype; i++) {
-    for (j = 0; j < ntypes; j++) {
-      itemp = MolType[ntypes * i + j];
+    std::string molname;
+    for (j = 0; j < nutypes; j++) {
+      itemp = MolType[nutypes * i + j];
       if (itemp != 0) {
-        if (eletype)
-          fprintf(fp, "%s", eletype[j]);
-        else
-          fprintf(fp, "%c", ele[j]);
-        if (itemp != 1) fprintf(fp, "%d", itemp);
+        molname += ueletype[j];
+        if (itemp != 1) molname += std::to_string(itemp);
       }
     }
-    fputs("\t", fp);
+    fmt::print(fp, " {:>11}", molname);
   }
   fputs("\n", fp);
 
-  fmt::print(fp, "{} {:11} {:11}\t", ntimestep, Nmole, Nspec);
-
-  for (i = 0; i < Nmoltype; i++) fprintf(fp, " %d\t", NMol[i]);
-  fprintf(fp, "\n");
+  fmt::print(fp, "{:>11} {:>11} {:>11}", ntimestep, Nmole, Nspec);
+  for (i = 0; i < Nmoltype; i++) fmt::print(fp, " {:>11}", NMol[i]);
+  fputs("\n", fp);
 }
 
 /* ---------------------------------------------------------------------- */
@@ -785,20 +846,20 @@ void FixReaxFFSpecies::WritePos(int Nmole, int Nspec)
   }
 
   Nameall = nullptr;
-  memory->create(Nameall, ntypes, "reaxff/species:Nameall");
+  memory->create(Nameall, nutypes, "reaxff/species:Nameall");
 
   for (m = 1; m <= Nmole; m++) {
 
     count = 0;
     avq = 0.0;
     for (n = 0; n < 3; n++) avx[n] = 0.0;
-    for (n = 0; n < ntypes; n++) Name[n] = 0;
+    for (n = 0; n < nutypes; n++) Name[n] = 0;
 
     for (i = 0; i < nlocal; i++) {
       if (!(mask[i] & groupbit)) continue;
       cid = nint(clusterID[i]);
       if (cid == m) {
-        itype = atom->type[i] - 1;
+        itype = ele2uele[atom->type[i] - 1];
         Name[itype]++;
         count++;
         avq += spec_atom[i][0];
@@ -825,17 +886,14 @@ void FixReaxFFSpecies::WritePos(int Nmole, int Nspec)
     MPI_Reduce(&count, &count_tmp, 1, MPI_INT, MPI_SUM, 0, world);
     count = count_tmp;
 
-    MPI_Reduce(Name, Nameall, ntypes, MPI_INT, MPI_SUM, 0, world);
-    for (n = 0; n < ntypes; n++) Name[n] = Nameall[n];
+    MPI_Reduce(Name, Nameall, nutypes, MPI_INT, MPI_SUM, 0, world);
+    for (n = 0; n < nutypes; n++) Name[n] = Nameall[n];
 
     if (comm->me == 0) {
       fprintf(pos, "%d\t%d\t", m, count);
-      for (n = 0; n < ntypes; n++) {
+      for (n = 0; n < nutypes; n++) {
         if (Name[n] != 0) {
-          if (eletype)
-            fprintf(pos, "%s", eletype[n]);
-          else
-            fprintf(pos, "%c", ele[n]);
+          fprintf(pos, "%s", ueletype[n].c_str());
           if (Name[n] != 1) fprintf(pos, "%d", Name[n]);
         }
       }
@@ -864,9 +922,11 @@ void FixReaxFFSpecies::DeleteSpecies(int Nmole, int Nspec)
 {
   int ndeletions;
   int headroom = -1;
-  if (delete_Nlimit > 0) {
-    if (delete_Tcount[delete_Nsteps-1] == -1) return;
-    ndeletions = delete_Tcount[0] - delete_Tcount[delete_Nsteps-1];
+  if (delete_Nsteps > 0) {
+    if (delete_Tcount[delete_Nsteps - 1] == -1) return;
+    ndeletions = delete_Tcount[0] - delete_Tcount[delete_Nsteps - 1];
+    if (delete_Nlimit_varid > -1)
+      delete_Nlimit = input->variable->compute_equal(delete_Nlimit_varid);
     headroom = MAX(0, delete_Nlimit - ndeletions);
     if (headroom == 0) return;
   }
@@ -885,7 +945,7 @@ void FixReaxFFSpecies::DeleteSpecies(int Nmole, int Nspec)
   for (i = 0; i < nlocal; i++) mark[i] = 0;
 
   Nameall = nullptr;
-  memory->create(Nameall, ntypes, "reaxff/species:Nameall");
+  memory->create(Nameall, nutypes, "reaxff/species:Nameall");
 
   int ndelcomm;
   if (masslimitflag)
@@ -904,13 +964,11 @@ void FixReaxFFSpecies::DeleteSpecies(int Nmole, int Nspec)
   std::random_device rnd;
   std::minstd_rand park_rng(rnd());
   int *molrange;
-  memory->create(molrange,Nmole,"reaxff/species:molrange");
-  for (m = 0; m < Nmole; m++)
-    molrange[m] = m + 1;
-  if (delete_Nlimit > 0) {
+  memory->create(molrange, Nmole, "reaxff/species:molrange");
+  for (m = 0; m < Nmole; m++) molrange[m] = m + 1;
+  if (delete_Nsteps > 0) {
     // shuffle index when using rate_limit, in case order is biased
-    if (comm->me == 0)
-      std::shuffle(&molrange[0],&molrange[Nmole], park_rng);
+    if (comm->me == 0) std::shuffle(&molrange[0], &molrange[Nmole], park_rng);
     MPI_Bcast(&molrange[0], Nmole, MPI_INT, 0, world);
   }
 
@@ -919,13 +977,13 @@ void FixReaxFFSpecies::DeleteSpecies(int Nmole, int Nspec)
     if (this_delete_Tcount == headroom) break;
     m = molrange[mm];
     localmass = totalmass = count = nmarklist = 0;
-    for (n = 0; n < ntypes; n++) Name[n] = 0;
+    for (n = 0; n < nutypes; n++) Name[n] = 0;
 
     for (i = 0; i < nlocal; i++) {
       if (!(mask[i] & groupbit)) continue;
       cid = nint(clusterID[i]);
       if (cid == m) {
-        itype = atom->type[i] - 1;
+        itype = ele2uele[atom->type[i] - 1];
         Name[itype]++;
         count++;
         marklist[nmarklist++] = i;
@@ -936,18 +994,15 @@ void FixReaxFFSpecies::DeleteSpecies(int Nmole, int Nspec)
     MPI_Allreduce(&count, &count_tmp, 1, MPI_INT, MPI_SUM, world);
     count = count_tmp;
 
-    MPI_Allreduce(Name, Nameall, ntypes, MPI_INT, MPI_SUM, world);
-    for (n = 0; n < ntypes; n++) Name[n] = Nameall[n];
+    MPI_Allreduce(Name, Nameall, nutypes, MPI_INT, MPI_SUM, world);
+    for (n = 0; n < nutypes; n++) Name[n] = Nameall[n];
 
     MPI_Allreduce(&localmass, &totalmass, 1, MPI_DOUBLE, MPI_SUM, world);
 
     species_str = "";
-    for (j = 0; j < ntypes; j++) {
+    for (j = 0; j < nutypes; j++) {
       if (Name[j] != 0) {
-        if (eletype)
-          species_str += eletype[j];
-        else
-          species_str += ele[j];
+        species_str += ueletype[j];
         if (Name[j] != 1) species_str += fmt::format("{}", Name[j]);
       }
     }
@@ -1009,13 +1064,10 @@ void FixReaxFFSpecies::DeleteSpecies(int Nmole, int Nspec)
             printflag = 1;
           }
           fprintf(fdel, " %g ", deletecount[m]);
-          for (j = 0; j < ntypes; j++) {
-            int itemp = MolName[ntypes * m + j];
+          for (j = 0; j < nutypes; j++) {
+            int itemp = MolName[nutypes * m + j];
             if (itemp != 0) {
-              if (eletype)
-                fprintf(fdel, "%s", eletype[j]);
-              else
-                fprintf(fdel, "%c", ele[j]);
+              fprintf(fdel, "%s", ueletype[j].c_str());
               if (itemp != 1) fprintf(fdel, "%d", itemp);
             }
           }
@@ -1039,11 +1091,9 @@ void FixReaxFFSpecies::DeleteSpecies(int Nmole, int Nspec)
     }
   }
 
-
   // push back delete_Tcount on every step
-  if (delete_Nlimit > 0) {
-    for (i = delete_Nsteps-1; i > 0; i--)
-      delete_Tcount[i] = delete_Tcount[i-1];
+  if (delete_Nsteps > 0) {
+    for (i = delete_Nsteps - 1; i > 0; i--) delete_Tcount[i] = delete_Tcount[i - 1];
     delete_Tcount[0] += this_delete_Tcount;
   }
 

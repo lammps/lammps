@@ -1,4 +1,4 @@
-# DATE: 2013-03-21 UNITS: metal CONTRIBUTOR: Cem Sevik CITATION: Kinaci, Haskins, Sevik and Cagin,  Phys Rev B, 86, 115410 (2012) 
+# DATE: 2013-03-21 UNITS: metal CONTRIBUTOR: Cem Sevik CITATION: Kinaci, Haskins, Sevik and Cagin,  Phys Rev B, 86, 115410 (2012)
 # Tersoff parameters for B, C, and BN-C hybrid based graphene like nano structures
 # multiple entries can be added to this file, LAMMPS reads the ones it needs
 
@@ -7,11 +7,11 @@
 #   other quantities are unitless
 
 # Cem Sevik (csevik at anadolu.edu.tr) takes full blame for this
-# file.  It specifies B-N, B-C, and N-C interaction parameters 
-# generated and published by the reseacrh group of Prof. Tahir Cagin.
+# file.  It specifies B-N, B-C, and N-C interaction parameters
+# generated and published by the research group of Prof. Tahir Cagin.
 
 # 1. Physical Review B 84, 085409 2011
-#    Characterization of thermal transport in low-dimensional boron nitride nanostructures, 
+#    Characterization of thermal transport in low-dimensional boron nitride nanostructures,
 #
 
 # 2. Physical Review B 86, 075403 2012
@@ -22,14 +22,14 @@
 #    Thermal conductivity of BN-C nanostructures
 #
 
-# The file also specifies C-C, interaction parameters 
-# generated and published by the reseacrh group of Dr. D. A. Broido
+# The file also specifies C-C, interaction parameters
+# generated and published by the research group of Dr. D. A. Broido
 # Physical Review B 81, 205441 2010
-# Optimized Tersoff and Brenner empirical potential parameters for 
+# Optimized Tersoff and Brenner empirical potential parameters for
 # lattice dynamics and phonon thermal transport in carbon nanotubes and graphene
 
 # Users in referring the full parameters can cite the full parameter paper (3) as:
-#      A. Kinaci, J. B. Haskins, C. Sevik, T. Cagin,  Physical Review B 86, 115410 (2012) 
+#      A. Kinaci, J. B. Haskins, C. Sevik, T. Cagin,  Physical Review B 86, 115410 (2012)
 #      Thermal conductivity of BN-C nanostructures
 #
 
@@ -38,11 +38,11 @@
 #   m, gamma, lambda3, c, d, costheta0, n, beta, lambda2, B, R, D, lambda1, A
 
 N      B       B         3.0 1.0 0.0 25000    4.3484 -0.89000 0.72751   1.25724e-7      2.199        340.00          1.95    0.05    3.568       1380.0
-N      B       N         3.0 1.0 0.0 25000    4.3484 -0.89000 0.72751   1.25724e-7      2.199        340.00          1.95    0.05    3.568       1380.0    
+N      B       N         3.0 1.0 0.0 25000    4.3484 -0.89000 0.72751   1.25724e-7      2.199        340.00          1.95    0.05    3.568       1380.0
 N      B       C         3.0 1.0 0.0 25000    4.3484 -0.89000 0.72751   1.25724e-7      2.199        340.00          1.95    0.05    3.568       1380.0
 
 B      N       B         3.0 1.0 0.0 25000    4.3484 -0.89000 0.72751   1.25724e-7      2.199        340.00          1.95    0.05    3.568       1380.0
-B      N       N         3.0 1.0 0.0 25000    4.3484 -0.89000 0.72751   1.25724e-7      2.199        340.00          1.95    0.05    3.568       1380.0    
+B      N       N         3.0 1.0 0.0 25000    4.3484 -0.89000 0.72751   1.25724e-7      2.199        340.00          1.95    0.05    3.568       1380.0
 B      N       C         3.0 1.0 0.0 25000    4.3484 -0.89000 0.72751   1.25724e-7      2.199        340.00          1.95    0.05    3.568       1380.0
 
 N      N       B         3.0 1.0 0.0 17.7959  5.9484  0.00000 0.6184432 0.019251        2.6272721    138.77866       2.0     0.1     2.8293093    128.86866

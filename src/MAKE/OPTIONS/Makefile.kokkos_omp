@@ -9,6 +9,8 @@ SHELL = /bin/sh
 CC =		mpicxx
 CCFLAGS =	-g -O3 -DNDEBUG
 SHFLAGS =	-fPIC
+# uncomment when compiling with Intel 21.5 or older
+FMTFLAGS = 	# -std=c++11
 DEPFLAGS =	-M
 
 LINK =		mpicxx
@@ -113,6 +115,18 @@ $(SHLIB): $(OBJ) $(EXTRA_LINK_DEPENDS)
 
 %.o:%.cpp
 	$(CC) $(CCFLAGS) $(SHFLAGS) $(EXTRA_INC) -c $<
+
+variable.o : ../variable.cpp
+	$(CC) $(CCFLAGS) $(SHFLAGS) $(EXTRA_INC) $(FMTFLAGS) -c $<
+
+utils.o : ../utils.cpp
+	$(CC) $(CCFLAGS) $(SHFLAGS) $(EXTRA_INC) $(FMTFLAGS) -c $<
+
+fmtlib_format.o : ../fmtlib_format.cpp
+	$(CC) $(CCFLAGS) $(SHFLAGS) $(EXTRA_INC) $(FMTFLAGS) -c $<
+
+fmtlib_os.o : ../fmtlib_os.cpp
+	$(CC) $(CCFLAGS) $(SHFLAGS) $(EXTRA_INC) $(FMTFLAGS) -c $<
 
 # Individual dependencies
 

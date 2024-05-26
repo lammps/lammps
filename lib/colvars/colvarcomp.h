@@ -616,7 +616,7 @@ public:
   dipole_magnitude (std::string const &conf);
   dipole_magnitude (cvm::atom const &a1);
   dipole_magnitude();
-  virtual inline ~dipole_magnitude() {}
+  virtual ~dipole_magnitude() {}
   virtual void calc_value();
   virtual void calc_gradients();
   //virtual void calc_force_invgrads();

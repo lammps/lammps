@@ -633,9 +633,8 @@ namespace overloaded {
     compared to original code.
    ---------------------------------------------------------------------- */
 
-#define CARBON 0
-#define HYDROGEN 1
-#define TOL 1.0e-9
+enum { CARBON, HYDROGEN };
+static constexpr double TOL = 1.0e-9;
 
 template<typename T>
 inline T fmin_nonan(T a, T b) {
@@ -905,7 +904,7 @@ inline flt_t frebo_pij(KernelArgsAIREBOT<flt_t,acc_t> * ka, int i, int j,
       flt_t rho_k = ka->params.rho[ktype][1];
       flt_t rho_j = ka->params.rho[jtype][1];
       flt_t lamdajik = 4 * itype * ((rho_k - rikmag) - (rho_j - rijmag));
-      flt_t ex_lam = exp(lamdajik);
+      flt_t ex_lam = overloaded::exp(lamdajik);
       flt_t rcminik = ka->params.rcmin[itype][ktype];
       flt_t rcmaxik = ka->params.rcmax[itype][ktype];
       flt_t dwik;
@@ -1603,9 +1602,6 @@ void ref_torsion_single_interaction(KernelArgsAIREBOT<flt_t,acc_t> * ka, int i,
   flt_t thmin = ka->params.thmin;
   flt_t thmax = ka->params.thmax;
   int itype = map[x[i].w];
-  flt_t xtmp = x[i].x;
-  flt_t ytmp = x[i].y;
-  flt_t ztmp = x[i].z;
   int * REBO_neighs_i = &ka->neigh_rebo.entries[ka->neigh_rebo.offset[i]];
   int jnum = ka->neigh_rebo.num[i];
   int jtype = map[x[j].w];

@@ -18,10 +18,8 @@
 #include "atom.h"
 #include "comm.h"
 #include "error.h"
-#include "fix.h"
 #include "force.h"
 #include "memory.h"
-#include "modify.h"
 #include "neigh_list.h"
 
 #include <cmath>
@@ -38,6 +36,8 @@ PairBornGauss::PairBornGauss(LAMMPS *lmp) :
   single_enable = 1;
   respa_enable = 0;
   writedata = 1;
+
+  cut_global = 0.0;
 }
 
 /* ---------------------------------------------------------------------- */

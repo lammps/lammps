@@ -6,7 +6,7 @@ rerun command
 Syntax
 """"""
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    rerun file1 file2 ... keyword args ...
 

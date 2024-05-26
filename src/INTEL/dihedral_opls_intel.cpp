@@ -195,15 +195,15 @@ void DihedralOPLSIntel::eval(const int vflag,
       // 1st and 2nd angle
 
       const flt_t b1mag2 = vb1x*vb1x + vb1y*vb1y + vb1z*vb1z;
-      const flt_t rb1 = (flt_t)1.0 / sqrt(b1mag2);
+      const flt_t rb1 = (flt_t)1.0 / std::sqrt(b1mag2);
       const flt_t sb1 = (flt_t)1.0 / b1mag2;
 
       const flt_t b2mag2 = vb2xm*vb2xm + vb2ym*vb2ym + vb2zm*vb2zm;
-      const flt_t rb2 = (flt_t)1.0 / sqrt(b2mag2);
+      const flt_t rb2 = (flt_t)1.0 / std::sqrt(b2mag2);
       const flt_t sb2 = (flt_t)1.0 / b2mag2;
 
       const flt_t b3mag2 = vb3x*vb3x + vb3y*vb3y + vb3z*vb3z;
-      const flt_t rb3 = (flt_t)1.0 / sqrt(b3mag2);
+      const flt_t rb3 = (flt_t)1.0 / std::sqrt(b3mag2);
       const flt_t sb3 = (flt_t)1.0 / b3mag2;
 
       const flt_t c0 = (vb1x*vb3x + vb1y*vb3y + vb1z*vb3z) * rb1*rb3;
@@ -219,11 +219,11 @@ void DihedralOPLSIntel::eval(const int vflag,
       // cos and sin of 2 angles and final c
 
       flt_t sin2 = MAX((flt_t)1.0 - c1mag*c1mag,(flt_t)0.0);
-      flt_t sc1 = (flt_t)1.0/sqrt(sin2);
+      flt_t sc1 = (flt_t)1.0/std::sqrt(sin2);
       if (sin2 < SMALL2) sc1 = INVSMALL;
 
       sin2 = MAX((flt_t)1.0 - c2mag*c2mag,(flt_t)0.0);
-      flt_t sc2 = (flt_t)1.0/sqrt(sin2);
+      flt_t sc2 = (flt_t)1.0/std::sqrt(sin2);
       if (sin2 < SMALL2) sc2 = INVSMALL;
 
       const flt_t s1 = sc1 * sc1;
@@ -234,7 +234,7 @@ void DihedralOPLSIntel::eval(const int vflag,
       const flt_t cx = vb1z*vb2ym - vb1y*vb2zm;
       const flt_t cy = vb1x*vb2zm - vb1z*vb2xm;
       const flt_t cz = vb1y*vb2xm - vb1x*vb2ym;
-      const flt_t cmag = (flt_t)1.0/sqrt(cx*cx + cy*cy + cz*cz);
+      const flt_t cmag = (flt_t)1.0/std::sqrt(cx*cx + cy*cy + cz*cz);
       const flt_t dx = (cx*vb3x + cy*vb3y + cz*vb3z)*cmag*rb3;
 
       // error check
@@ -252,7 +252,7 @@ void DihedralOPLSIntel::eval(const int vflag,
 
       const flt_t cossq = c * c;
       const flt_t sinsq = (flt_t)1.0 - cossq;
-      flt_t siinv = (flt_t)1.0/sqrt(sinsq);
+      flt_t siinv = (flt_t)1.0/std::sqrt(sinsq);
       if (sinsq < SMALLER2 ) siinv = INVSMALLER;
       if (dx < (flt_t)0.0) siinv = -siinv;
 

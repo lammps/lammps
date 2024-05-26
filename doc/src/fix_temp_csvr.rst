@@ -10,7 +10,7 @@ fix temp/csld command
 Syntax
 """"""
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    fix ID group-ID temp/csvr Tstart Tstop Tdamp seed
    fix ID group-ID temp/csld Tstart Tstop Tdamp seed

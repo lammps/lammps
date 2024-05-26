@@ -11,8 +11,7 @@ SPDX-License-Identifier: (BSD-3-Clause)
 #include <sstream>
 #include <string>
 
-#ifdef DESUL_HAVE_CUDA_ATOMICS
-#ifdef __CUDACC_RDC__
+#ifdef DESUL_ATOMICS_ENABLE_CUDA_SEPARABLE_COMPILATION
 namespace desul {
 namespace Impl {
 __device__ __constant__ int32_t* CUDA_SPACE_ATOMIC_LOCKS_DEVICE = nullptr;
@@ -70,7 +69,7 @@ void init_lock_arrays_cuda() {
                              "init_lock_arrays_cuda: cudaMalloc host locks");
 
   auto error_sync1 = cudaDeviceSynchronize();
-  DESUL_IMPL_COPY_CUDA_LOCK_ARRAYS_TO_DEVICE();
+  copy_cuda_lock_arrays_to_device();
   check_error_and_throw_cuda(error_sync1, "init_lock_arrays_cuda: post mallocs");
   init_lock_arrays_cuda_kernel<<<(CUDA_SPACE_ATOMIC_MASK + 1 + 255) / 256, 256>>>();
   auto error_sync2 = cudaDeviceSynchronize();
@@ -84,8 +83,8 @@ void finalize_lock_arrays_cuda() {
   cudaFreeHost(CUDA_SPACE_ATOMIC_LOCKS_NODE_h);
   CUDA_SPACE_ATOMIC_LOCKS_DEVICE_h = nullptr;
   CUDA_SPACE_ATOMIC_LOCKS_NODE_h = nullptr;
-#ifdef __CUDACC_RDC__
-  DESUL_IMPL_COPY_CUDA_LOCK_ARRAYS_TO_DEVICE();
+#ifdef DESUL_ATOMICS_ENABLE_CUDA_SEPARABLE_COMPILATION
+  copy_cuda_lock_arrays_to_device();
 #endif
 }
 
@@ -96,4 +95,3 @@ template void finalize_lock_arrays_cuda<int>();
 }  // namespace Impl
 
 }  // namespace desul
-#endif

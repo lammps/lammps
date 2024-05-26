@@ -1,46 +1,18 @@
-/*
 //@HEADER
 // ************************************************************************
 //
-//                        Kokkos v. 3.0
-//       Copyright (2020) National Technology & Engineering
+//                        Kokkos v. 4.0
+//       Copyright (2022) National Technology & Engineering
 //               Solutions of Sandia, LLC (NTESS).
 //
 // Under the terms of Contract DE-NA0003525 with NTESS,
 // the U.S. Government retains certain rights in this software.
 //
-// Redistribution and use in source and binary forms, with or without
-// modification, are permitted provided that the following conditions are
-// met:
+// Part of Kokkos, under the Apache License v2.0 with LLVM Exceptions.
+// See https://kokkos.org/LICENSE for license information.
+// SPDX-License-Identifier: Apache-2.0 WITH LLVM-exception
 //
-// 1. Redistributions of source code must retain the above copyright
-// notice, this list of conditions and the following disclaimer.
-//
-// 2. Redistributions in binary form must reproduce the above copyright
-// notice, this list of conditions and the following disclaimer in the
-// documentation and/or other materials provided with the distribution.
-//
-// 3. Neither the name of the Corporation nor the names of the
-// contributors may be used to endorse or promote products derived from
-// this software without specific prior written permission.
-//
-// THIS SOFTWARE IS PROVIDED BY NTESS "AS IS" AND ANY
-// EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
-// IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR
-// PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL NTESS OR THE
-// CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
-// EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
-// PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR
-// PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF
-// LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING
-// NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
-// SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-//
-// Questions? Contact Christian R. Trott (crtrott@sandia.gov)
-//
-// ************************************************************************
 //@HEADER
-*/
 
 #ifndef KOKKOS_BITSET_HPP
 #define KOKKOS_BITSET_HPP
@@ -98,13 +70,32 @@ class Bitset {
     block_shift = Kokkos::Impl::integral_power_of_two(block_size)
   };
 
+  //! Type of @ref m_blocks.
+  using block_view_type = View<unsigned*, Device, MemoryTraits<RandomAccess>>;
+
  public:
-  /// constructor
+  Bitset() = default;
+
   /// arg_size := number of bit in set
-  Bitset(unsigned arg_size = 0u)
-      : m_size(arg_size),
-        m_last_block_mask(0u),
-        m_blocks("Bitset", ((m_size + block_mask) >> block_shift)) {
+  Bitset(unsigned arg_size) : Bitset(Kokkos::view_alloc(), arg_size) {}
+
+  template <class... P>
+  Bitset(const Impl::ViewCtorProp<P...>& arg_prop, unsigned arg_size)
+      : m_size(arg_size), m_last_block_mask(0u) {
+    //! Ensure that allocation properties are consistent.
+    using alloc_prop_t = std::decay_t<decltype(arg_prop)>;
+    static_assert(alloc_prop_t::initialize,
+                  "Allocation property 'initialize' should be true.");
+    static_assert(
+        !alloc_prop_t::has_pointer,
+        "Allocation properties should not contain the 'pointer' property.");
+
+    //! Update 'label' property and allocate.
+    const auto prop_copy =
+        Impl::with_properties_if_unset(arg_prop, std::string("Bitset"));
+    m_blocks =
+        block_view_type(prop_copy, ((m_size + block_mask) >> block_shift));
+
     for (int i = 0, end = static_cast<int>(m_size & block_mask); i < end; ++i) {
       m_last_block_mask |= 1u << i;
     }
@@ -133,7 +124,7 @@ class Bitset {
   /// number of bits which are set to 1
   /// can only be called from the host
   unsigned count() const {
-    Impl::BitsetCount<Bitset<Device> > f(*this);
+    Impl::BitsetCount<Bitset<Device>> f(*this);
     return f.apply();
   }
 
@@ -301,9 +292,9 @@ class Bitset {
   }
 
  private:
-  unsigned m_size;
-  unsigned m_last_block_mask;
-  View<unsigned*, Device, MemoryTraits<RandomAccess> > m_blocks;
+  unsigned m_size            = 0;
+  unsigned m_last_block_mask = 0;
+  block_view_type m_blocks;
 
  private:
   template <typename DDevice>
@@ -330,6 +321,7 @@ class ConstBitset {
  public:
   using execution_space = typename Device::execution_space;
   using size_type       = unsigned int;
+  using block_view_type = typename Bitset<Device>::block_view_type::const_type;
 
  private:
   enum { block_size = static_cast<unsigned>(sizeof(unsigned) * CHAR_BIT) };
@@ -368,7 +360,7 @@ class ConstBitset {
   unsigned size() const { return m_size; }
 
   unsigned count() const {
-    Impl::BitsetCount<ConstBitset<Device> > f(*this);
+    Impl::BitsetCount<ConstBitset<Device>> f(*this);
     return f.apply();
   }
 
@@ -384,7 +376,7 @@ class ConstBitset {
 
  private:
   unsigned m_size;
-  View<const unsigned*, Device, MemoryTraits<RandomAccess> > m_blocks;
+  block_view_type m_blocks;
 
  private:
   template <typename DDevice>

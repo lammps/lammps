@@ -6,7 +6,7 @@ fix heat/flow command
 Syntax
 """"""
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    fix ID group-ID heat/flow style values ...
 

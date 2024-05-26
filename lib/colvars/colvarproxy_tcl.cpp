@@ -8,6 +8,7 @@
 // Colvars repository at GitHub.
 
 #include <sstream>
+#include <iostream>
 
 #include "colvarmodule.h"
 #include "colvarproxy.h"

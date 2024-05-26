@@ -106,7 +106,7 @@ ComputeChunkSpreadAtom(LAMMPS *lmp, int narg, char **arg) :
 
     } else if (val.which == ArgInfo::FIX) {
       auto ifix = modify->get_fix_by_id(val.id);
-      if (ifix)
+      if (!ifix)
         error->all(FLERR,"Fix ID {} for compute chunk/spread/atom does not exist", val.id);
       if (val.argindex == 0) {
         if (!ifix->vector_flag)

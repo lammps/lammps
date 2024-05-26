@@ -38,7 +38,7 @@ using namespace MathConst;
 using namespace MathSpecial;
 using namespace MathExtra;
 
-#define SMALL 0.00001
+static constexpr double SMALL = 0.00001;
 
 //#define DEBUG
 
@@ -1128,8 +1128,6 @@ void EwaldDisp::compute_energy_peratom()
 }
 
 /* ---------------------------------------------------------------------- */
-
-#define swap(a, b) { register double t = a; a= b; b = t; }
 
 void EwaldDisp::compute_virial()
 {

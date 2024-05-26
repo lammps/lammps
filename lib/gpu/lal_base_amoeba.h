@@ -33,12 +33,14 @@
 
 //#define ASYNC_DEVICE_COPY
 
+#if 0
 #if !defined(USE_OPENCL) && !defined(USE_HIP)
 // temporary workaround for int2 also defined in cufft
 #ifdef int2
 #undef int2
 #endif
 #include "cufft.h"
+#endif
 #endif
 
 namespace LAMMPS_AL {
@@ -203,7 +205,7 @@ class BaseAmoeba {
   virtual void update_fieldp(void **fieldp_ptr) {
     *fieldp_ptr=_fieldp.host.begin();
      // _fieldp store both arrays, one after another
-    _fieldp.update_host(_max_fieldp_size*8,false);
+    _fieldp.update_host(_max_fieldp_size*6,false);
   }
 
   /// setup a plan for FFT, where size is the number of elements
@@ -313,10 +315,11 @@ class BaseAmoeba {
   virtual int fphi_mpole();
   virtual int polar_real(const int eflag, const int vflag) = 0;
 
-
+#if 0
   #if !defined(USE_OPENCL) && !defined(USE_HIP)
   cufftHandle plan;
   #endif
+#endif
   bool fft_plan_created;
 };
 

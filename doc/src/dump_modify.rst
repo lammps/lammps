@@ -17,7 +17,7 @@ Syntax
 * one or more keyword/value pairs may be appended
 
 * these keywords apply to various dump styles
-* keyword = *append* or *at* or *balance* or *buffer* or *colname* or *delay* or *element* or *every* or *every/time* or *fileper* or *first* or *flush* or *format* or *header* or *image* or *label* or *maxfiles* or *nfile* or *pad* or *pbc* or *precision* or *region* or *refresh* or *scale* or *sfactor* or *skip* or *sort* or *tfactor* or *thermo* or *thresh* or *time* or *units* or *unwrap*
+* keyword = *append* or *at* or *balance* or *buffer* or *colname* or *delay* or *element* or *every* or *every/time* or *fileper* or *first* or *flush* or *format* or *header* or *image* or *label* or *maxfiles* or *nfile* or *pad* or *pbc* or *precision* or *region* or *refresh* or *scale* or *sfactor* or *skip* or *sort* or *tfactor* or *thermo* or *thresh* or *time* or *triclinic/general* or *units* or *unwrap*
 
   .. parsed-literal::
 
@@ -74,12 +74,13 @@ Syntax
           -N = sort per-atom lines in descending order by the Nth column
        *tfactor* arg = time scaling factor (> 0.0)
        *thermo* arg = *yes* or *no*
-       *time* arg = *yes* or *no*
        *thresh* args = attribute operator value
          attribute = same attributes (x,fy,etotal,sxx,etc) used by dump custom style
          operator = "<" or "<=" or ">" or ">=" or "==" or "!=" or "\|\^"
          value = numeric value to compare to, or LAST
          these 3 args can be replaced by the word "none" to turn off thresholding
+       *time* arg = *yes* or *no*
+       *triclinic/general* arg = *yes* or *no*
        *units* arg = *yes* or *no*
        *unwrap* arg = *yes* or *no*
 
@@ -123,17 +124,6 @@ Description
 
 Modify the parameters of a previously defined dump command.  Not all
 parameters are relevant to all dump styles.
-
-As explained on the :doc:`dump <dump>` doc page, the *atom/mpiio*,
-*custom/mpiio*, and *xyz/mpiio* dump styles are identical in command
-syntax and in the format of the dump files they create, to the
-corresponding styles without "mpiio", except the single dump file they
-produce is written in parallel via the MPI-IO library.  Thus if a
-dump_modify option below is valid for the *atom* style, it is also
-valid for the *atom/mpiio* style, and similarly for the other styles
-which allow for use of MPI-IO.
-
-----------
 
 Unless otherwise noted, the following keywords apply to all the
 various dump styles, including the :doc:`dump image <dump_image>` and
@@ -181,19 +171,20 @@ extra buffering.
 .. versionadded:: 4May2022
 
 The *colname* keyword can be used to change the default header keyword
-for dump styles: *atom*, *custom*, *cfg*, and *local* and their compressed,
-ADIOS, and MPIIO variants.  The setting for *ID string* replaces the default
-text with the provided string.  *ID* can be a positive integer when it
-represents the column number counting from the left, a negative integer
-when it represents the column number from the right (i.e. -1 is the last
-column/keyword), or a custom dump keyword (or compute, fix, property, or
-variable reference) and then it replaces the string for that specific
-keyword. For *atom* dump styles only the keywords "id", "type", "x",
-"y", "z", "ix", "iy", "iz" can be accessed via string regardless of
-whether scaled or unwrapped coordinates were enabled or disabled, and
-it always assumes 8 columns for indexing regardless of whether image
-flags are enabled or not.  For dump style *cfg* only changes to the
-"auxiliary" keywords (6th or later keyword) will become visible.
+for dump styles: *atom*, *custom*, *cfg*, and *local* and their
+compressed, ADIOS variants.  The setting for *ID string* replaces the
+default text with the provided string.  *ID* can be a positive integer
+when it represents the column number counting from the left, a negative
+integer when it represents the column number from the right (i.e. -1 is
+the last column/keyword), or a custom dump keyword (or compute, fix,
+property, or variable reference) and then it replaces the string for
+that specific keyword. For *atom* dump styles only the keywords "id",
+"type", "x", "y", "z", "ix", "iy", "iz" can be accessed via string
+regardless of whether scaled or unwrapped coordinates were enabled or
+disabled, and it always assumes 8 columns for indexing regardless of
+whether image flags are enabled or not.  For dump style *cfg* only
+changes to the "auxiliary" keywords (6th or later keyword) will become
+visible.
 
 The *colname* keyword can be used multiple times. If multiple *colname*
 settings refer to the same keyword, the last setting has precedence.  A
@@ -417,10 +408,10 @@ performed with dump style *xtc*\ .
 
 ----------
 
-The *format* keyword can be used to change the default numeric format output
-by the text-based dump styles: *atom*, *local*, *custom*, *cfg*, and
-*xyz* styles, and their MPIIO variants. Only the *line* or *none*
-options can be used with the *atom* and *xyz* styles.
+The *format* keyword can be used to change the default numeric format
+output by the text-based dump styles: *atom*, *local*, *custom*, *cfg*,
+and *xyz* styles. Only the *line* or *none* options can be used with the
+*atom* and *xyz* styles.
 
 All the specified format strings are C-style formats, such as used by
 the C/C++ printf() command.  The *line* keyword takes a single
@@ -753,9 +744,13 @@ run, this option is ignored since the output is already balanced.
 ----------
 
 The *thermo* keyword only applies the dump styles *netcdf* and *yaml*.
-It triggers writing of :doc:`thermo <thermo>` information to the dump file
-alongside per-atom data.  The values included in the dump file are
-identical to the values specified by :doc:`thermo_style <thermo_style>`.
+It triggers writing of :doc:`thermo <thermo>` information to the dump
+file alongside per-atom data.  The values included in the dump file are
+cached values from the last thermo output and include the exact same the
+values as specified by the :doc:`thermo_style <thermo_style>` command.
+Because these are cached values, they are only up-to-date when dump
+output is on a timestep that also has thermo output. Dump style *yaml*
+will skip thermo output on incompatible steps.
 
 ----------
 
@@ -808,14 +803,27 @@ region since the last dump.
    dump_modify ... thresh v_charge |^ LAST
 
 This will dump atoms whose charge has changed from an absolute value
-less than :math:`\frac12` to greater than :math:`\frac12` (or vice versa) since the last dump (e.g., due to reactions and subsequent charge equilibration in a
-reactive force field).
+less than :math:`\frac12` to greater than :math:`\frac12` (or vice
+versa) since the last dump (e.g., due to reactions and subsequent
+charge equilibration in a reactive force field).
 
 The choice of operators listed above are the usual comparison
 operators.  The XOR operation (exclusive or) is also included as "\|\^".
 In this context, XOR means that if either the attribute or value is
 0.0 and the other is non-zero, then the result is "true" and the
 threshold criterion is met.  Otherwise it is not met.
+
+.. note::
+
+   For style *custom*, the *triclinic/general* keyword can alter dump
+   output for general triclinic simulation boxes and their atoms.  See
+   the :doc:`dump <dump>` command for details of how this changes the
+   format of dump file snapshots.  The thresh keyword may access
+   per-atom attributes either directly or indirectly through a compute
+   or variable.  If the attribute is an atom coordinate or a per-atom
+   vector (such as velocity, force, or dipole moment), its value will
+   *NOT* be a general triclinic (rotated) value.  Rather it will be a
+   restricted triclinic value.
 
 ----------
 
@@ -838,6 +846,29 @@ time units equivalent to the :doc:`thermo keyword <thermo_style>` *time*\ .
 This is to simplify post-processing of trajectories using a variable time
 step (e.g., when using :doc:`fix dt/reset <fix_dt_reset>`).
 The default setting is *no*\ .
+
+----------
+
+The *triclinic/general* keyword only applies to the dump *atom* and
+*custom* styles.  It can only be used with a value of *yes* if the
+simulation box was created as a general triclinic box.  See the
+:doc:`Howto_triclinic <Howto_triclinic>` doc page for a detailed
+explanation of orthogonal, restricted triclinic, and general triclinic
+simulation boxes.
+
+If this keyword is used with a value of *yes*, the box information at
+the beginning of each snapshot will include information about the 3
+arbitrary edge vectors **A**, **B**, **C** that define the general
+triclinic box as well as their origin.  The format is described on the
+:doc:`dump <dump>` doc page.
+
+The coordinates of each atom will likewise be output as values in (or
+near) the general triclinic box.  Likewise, per-atom vector quantities
+such as velocity, omega, dipole moment, etc will have orientations
+consistent with the general triclinic box, meaning they will be
+rotated relative to the standard xyz coordinate axes.  See the
+:doc:`dump <dump>` doc page for a full list of which dump attributes
+this affects.
 
 ----------
 
@@ -928,6 +959,8 @@ The option defaults are
 * sort = off for dump styles *atom*, *custom*, *cfg*, and *local*
 * sort = id for dump styles *dcd*, *xtc*, and *xyz*
 * thresh = none
+* time = no
+* triclinic/general no
 * units = no
 * unwrap = no
 

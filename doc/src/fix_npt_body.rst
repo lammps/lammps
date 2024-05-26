@@ -6,7 +6,7 @@ fix npt/body command
 Syntax
 """"""
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    fix ID group-ID npt/body keyword value ...
 

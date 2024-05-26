@@ -1,6 +1,19 @@
+// -*- Mode:c++; c-basic-offset: 4; -*-
+
+// This file is part of the Collective Variables module (Colvars).
+// The original version of Colvars and its updates are located at:
+// https://github.com/Colvars/colvars
+// Please update all Colvars source files before making any changes.
+// If you wish to distribute your changes, please submit them to the
+// Colvars repository at GitHub.
+
+#include <iostream>
+#include <fstream>
+
 #if (__cplusplus >= 201103L)
 #include "colvar_neuralnetworkcompute.h"
 #include "colvarparse.h"
+#include "colvarproxy.h"
 
 namespace neuralnetworkCV {
 std::map<std::string, std::pair<std::function<double(double)>, std::function<double(double)>>> activation_function_map
@@ -124,12 +137,10 @@ void denseLayer::readFromFile(const std::string& weights_file, const std::string
     m_weights.clear();
     m_biases.clear();
     std::string line;
-    std::ifstream ifs_weights(weights_file.c_str());
-    if (!ifs_weights) {
-        throw std::runtime_error("Cannot open file " + weights_file);
-    }
+    colvarproxy *proxy = cvm::main()->proxy;
+    auto &ifs_weights = proxy->input_stream(weights_file, "weights file");
     while (std::getline(ifs_weights, line)) {
-        if (ifs_weights.bad()) {
+        if (!ifs_weights) {
             throw std::runtime_error("I/O error while reading " + weights_file);
         }
         std::vector<std::string> splitted_data;
@@ -146,13 +157,12 @@ void denseLayer::readFromFile(const std::string& weights_file, const std::string
             m_weights.push_back(weights_tmp);
         }
     }
+    proxy->close_input_stream(weights_file);
+
     // parse biases file
-    std::ifstream ifs_biases(biases_file.c_str());
-    if (!ifs_biases) {
-        throw std::runtime_error("Cannot open file " + biases_file);
-    }
+    auto &ifs_biases = proxy->input_stream(biases_file, "biases file");
     while (std::getline(ifs_biases, line)) {
-        if (ifs_biases.bad()) {
+        if (!ifs_biases) {
             throw std::runtime_error("I/O error while reading " + biases_file);
         }
         std::vector<std::string> splitted_data;
@@ -167,6 +177,8 @@ void denseLayer::readFromFile(const std::string& weights_file, const std::string
             m_biases.push_back(bias);
         }
     }
+    proxy->close_input_stream(biases_file);
+
     m_input_size = m_weights[0].size();
     m_output_size = m_weights.size();
 }

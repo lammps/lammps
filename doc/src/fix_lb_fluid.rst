@@ -6,7 +6,7 @@ fix lb/fluid command
 Syntax
 """"""
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    fix ID group-ID lb/fluid nevery viscosity density keyword values ...
 

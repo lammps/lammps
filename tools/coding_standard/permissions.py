@@ -26,6 +26,7 @@ include:
     - src/**
     - examples/**
     - tools/coding_standard
+    - tools/lammps-gui
 patterns:
     - "*.c"
     - "*.cmake"

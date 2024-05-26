@@ -9,7 +9,7 @@ Accelerator Variants: *nphug/omp*
 Syntax
 """"""
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    fix ID group-ID nphug keyword value ...
 

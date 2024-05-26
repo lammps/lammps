@@ -6,7 +6,7 @@ fix manifoldforce command
 Syntax
 """"""
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    fix ID group-ID manifoldforce manifold manifold-args ...
 

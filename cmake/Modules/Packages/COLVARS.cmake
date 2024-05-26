@@ -1,6 +1,6 @@
 set(COLVARS_SOURCE_DIR ${LAMMPS_LIB_SOURCE_DIR}/colvars)
 
-file(GLOB COLVARS_SOURCES ${CONFIGURE_DEPENDS} ${COLVARS_SOURCE_DIR}/[^.]*.cpp)
+file(GLOB COLVARS_SOURCES CONFIGURE_DEPENDS ${COLVARS_SOURCE_DIR}/[^.]*.cpp)
 
 option(COLVARS_DEBUG "Enable debugging messages for Colvars (quite verbose)" OFF)
 

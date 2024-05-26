@@ -6,7 +6,7 @@ fix smd/setvel command
 Syntax
 """"""
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    fix ID group-ID smd/setvel vx vy vz keyword value ...
 

@@ -921,13 +921,13 @@ void PairEffCut::coeff(int narg, char **arg)
   } else {
     int ecp;
     ecp = utils::inumeric(FLERR,arg[0],false,lmp);
-    if (strcmp(arg[1],"s") ==0) {
+    if (strcmp(arg[1],"s") == 0) {
       PAULI_CORE_A[ecp_type[ecp]] = utils::numeric(FLERR,arg[2],false,lmp);
       PAULI_CORE_B[ecp_type[ecp]] = utils::numeric(FLERR,arg[3],false,lmp);
       PAULI_CORE_C[ecp_type[ecp]] = utils::numeric(FLERR,arg[4],false,lmp);
       PAULI_CORE_D[ecp_type[ecp]] = 0.0;
       PAULI_CORE_E[ecp_type[ecp]] = 0.0;
-    } else if (strcmp(arg[1],"p") ==0) {
+    } else if (strcmp(arg[1],"p") == 0) {
       PAULI_CORE_A[ecp_type[ecp]] = utils::numeric(FLERR,arg[2],false,lmp);
       PAULI_CORE_B[ecp_type[ecp]] = utils::numeric(FLERR,arg[3],false,lmp);
       PAULI_CORE_C[ecp_type[ecp]] = utils::numeric(FLERR,arg[4],false,lmp);

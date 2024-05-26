@@ -6,7 +6,7 @@ fix smd command
 Syntax
 """"""
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    fix ID group-ID smd type values keyword values
 

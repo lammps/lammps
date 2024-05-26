@@ -119,12 +119,13 @@ class Pair : protected Pointers {
 
   int beyond_contact, nondefault_history_transfer;    // for granular styles
 
-  // KOKKOS host/device flag and data masks
+  // KOKKOS flags and variables
 
   ExecutionSpace execution_space;
   unsigned int datamask_read, datamask_modify;
   int kokkosable;             // 1 if Kokkos pair
   int reverse_comm_device;    // 1 if reverse comm on Device
+  int fuse_force_clear_flag;   // 1 if can fuse force clear with force compute
 
   Pair(class LAMMPS *);
   ~Pair() override;
@@ -230,12 +231,13 @@ class Pair : protected Pointers {
   // management of callbacks to be run from ev_tally()
 
  protected:
-  int num_tally_compute;
+  int num_tally_compute, did_tally_flag;
   class Compute **list_tally_compute;
 
  public:
   virtual void add_tally_callback(class Compute *);
   virtual void del_tally_callback(class Compute *);
+  bool did_tally_callback() const { return did_tally_flag != 0; }
 
  protected:
   int instance_me;      // which Pair class instantiation I am

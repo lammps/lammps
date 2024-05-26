@@ -6,7 +6,7 @@ fix recenter command
 Syntax
 """"""
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    fix ID group-ID recenter x y z keyword value ...
 

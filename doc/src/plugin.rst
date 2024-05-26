@@ -6,7 +6,7 @@ plugin command
 Syntax
 """"""
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    plugin command args
 

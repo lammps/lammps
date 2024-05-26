@@ -31,7 +31,7 @@ class ComputeERotateSphere : public Compute {
   void init() override;
   double compute_scalar() override;
 
- private:
+ protected:
   double pfactor;
 };
 

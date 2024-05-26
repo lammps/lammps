@@ -131,8 +131,7 @@ void PairLJCharmmCoulCharmmIntel::eval(const int offload, const int vflag,
   int nlocal, nall, minlocal;
   fix->get_buffern(offload, nlocal, nall, minlocal);
 
-  const int ago = neighbor->ago;
-  IP_PRE_pack_separate_buffers(fix, buffers, ago, offload, nlocal, nall);
+  IP_PRE_pack_separate_buffers(fix, buffers, neighbor->ago, offload, nlocal, nall);
 
   ATOM_T * _noalias const x = buffers->get_x(offload);
   flt_t * _noalias const q = buffers->get_q(offload);
@@ -231,7 +230,6 @@ void PairLJCharmmCoulCharmmIntel::eval(const int offload, const int vflag,
       else foff = -minlocal;
       FORCE_T * _noalias const f = f_start + foff;
       if (NEWTON_PAIR) memset(f + minlocal, 0, f_stride * sizeof(FORCE_T));
-      flt_t cutboth = cut_coulsq;
 
       const int toffs = tid * ccache_stride;
       flt_t * _noalias const tdelx = ccachex + toffs;
@@ -246,7 +244,6 @@ void PairLJCharmmCoulCharmmIntel::eval(const int offload, const int vflag,
         const int itype = x[i].w;
 
         const int ptr_off = itype * ntypes;
-        const flt_t * _noalias const cutsqi = cutsq + ptr_off;
         const LJ_T * _noalias const lji = lj + ptr_off;
 
         const int   * _noalias const jlist = firstneigh[i];
@@ -306,7 +303,7 @@ void PairLJCharmmCoulCharmmIntel::eval(const int offload, const int vflag,
           const int sbindex = tj[jj] >> SBBITS & 3;
           const flt_t rsq = trsq[jj];
           const flt_t r2inv = (flt_t)1.0 / rsq;
-          const flt_t r_inv = (flt_t)1.0 / sqrt(rsq);
+          const flt_t r_inv = (flt_t)1.0 / std::sqrt(rsq);
           forcecoul = qqrd2e * qtmp * q[j] * r_inv;
           if (rsq > cut_coul_innersq) {
             const flt_t ccr = cut_coulsq - rsq;

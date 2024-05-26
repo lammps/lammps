@@ -16,6 +16,8 @@
 
 #include <cstdio>
 #include <mpi.h>
+#include <string>
+#include <vector>
 
 namespace LAMMPS_NS {
 
@@ -84,8 +86,12 @@ class LAMMPS {
   static const char *git_branch();
   static const char *git_descriptor();
 
+  using argv = std::vector<std::string>;
+  static std::vector<char*> argv_pointers(argv & args);
+
+  LAMMPS(argv & args, MPI_Comm);
   LAMMPS(int, char **, MPI_Comm);
-  ~LAMMPS();
+  ~LAMMPS() noexcept(false);
   void create();
   void post_create();
   void init();

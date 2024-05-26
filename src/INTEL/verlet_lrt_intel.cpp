@@ -19,7 +19,6 @@
 #include "atom_vec.h"
 #include "bond.h"
 #include "comm.h"
-#include "compute.h"
 #include "dihedral.h"
 #include "domain.h"
 #include "error.h"
@@ -27,7 +26,6 @@
 #include "force.h"
 #include "improper.h"
 #include "kspace.h"
-#include "memory.h"
 #include "modify.h"
 #include "neighbor.h"
 #include "output.h"
@@ -35,9 +33,7 @@
 #include "timer.h"
 #include "update.h"
 
-#if defined(_OPENMP)
-#include <omp.h>
-#endif
+#include <cstring>
 
 using namespace LAMMPS_NS;
 
@@ -67,7 +63,7 @@ void VerletLRTIntel::init()
 {
   Verlet::init();
 
-  _intel_kspace = dynamic_cast<PPPMIntel*>(force->kspace_match("^pppm\\..*intel$", 0));
+  _intel_kspace = dynamic_cast<PPPMIntel*>(force->kspace_match("^pppm/.*intel$", 0));
   // include pppm/electrode/intel
 
   #ifndef LMP_INTEL_USELRT
@@ -95,12 +91,15 @@ void VerletLRTIntel::setup(int flag)
   }
   #endif
 
-  if (comm->me == 0) {
-    fprintf(screen,"Setting up VerletLRTIntel run ...\n");
-    fprintf(screen,"  Unit style    : %s\n", update->unit_style);
-    fmt::print(screen,"  Current step  : {}\n", update->ntimestep);
-    fprintf(screen,"  Time step     : %g\n", update->dt);
-    timer->print_timeout(screen);
+  if (comm->me == 0 && screen) {
+    fputs("Setting up VerletLRTIntel run ...\n",screen);
+    if (flag) {
+      fmt::print(screen,"  Unit style    : {}\n"
+                        "  Current step  : {}\n"
+                        "  Time step     : {}\n",
+                 update->unit_style,update->ntimestep,update->dt);
+      timer->print_timeout(screen);
+    }
   }
 
   #if defined(_LMP_INTEL_LRT_PTHREAD)
@@ -110,8 +109,9 @@ void VerletLRTIntel::setup(int flag)
     sched_getaffinity(0, sizeof(cpuset), &cpuset);
     int my_cpu_count = CPU_COUNT(&cpuset);
     if (my_cpu_count < comm->nthreads + 1) {
-      error->warning(FLERR, "Using {} threads per MPI rank, but only {} core(s) allocated "
-                     "for each MPI rank", comm->nthreads + 1, my_cpu_count);
+      error->warning(FLERR, "Using {} threads per MPI rank, but only {} "
+                     "core(s) allocated for each MPI rank",
+                     comm->nthreads + 1, my_cpu_count);
     }
   }
   #endif
@@ -144,6 +144,7 @@ void VerletLRTIntel::setup(int flag)
   domain->box_too_small_check();
   modify->setup_pre_neighbor();
   neighbor->build(1);
+  modify->setup_post_neighbor();
   neighbor->ncalls = 0;
 
   // compute all forces
@@ -189,11 +190,11 @@ void VerletLRTIntel::setup(int flag)
 
   if (kspace_compute_flag) _intel_kspace->compute_second(eflag,vflag);
 
-  modify->pre_reverse(eflag,vflag);
+  modify->setup_pre_reverse(eflag,vflag);
   if (force->newton) comm->reverse_comm();
 
   modify->setup(vflag);
-  output->setup();
+  output->setup(flag);
   update->setupflag = 0;
 }
 
@@ -214,9 +215,10 @@ void VerletLRTIntel::run(int n)
   int n_post_integrate = modify->n_post_integrate;
   int n_pre_exchange = modify->n_pre_exchange;
   int n_pre_neighbor = modify->n_pre_neighbor;
+  int n_post_neighbor = modify->n_post_neighbor;
   int n_pre_force = modify->n_pre_force;
   int n_pre_reverse = modify->n_pre_reverse;
-  int n_post_force = modify->n_post_force_any;
+  int n_post_force_any = modify->n_post_force_any;
   int n_end_of_step = modify->n_end_of_step;
 
   if (atom->sortfreq > 0) sortflag = 1;
@@ -279,6 +281,10 @@ void VerletLRTIntel::run(int n)
       }
       neighbor->build(1);
       timer->stamp(Timer::NEIGH);
+      if (n_post_neighbor) {
+        modify->post_neighbor();
+        timer->stamp(Timer::MODIFY);
+      }
     }
 
     // force computations
@@ -353,7 +359,7 @@ void VerletLRTIntel::run(int n)
 
     // force modifications, final time integration, diagnostics
 
-    if (n_post_force) modify->post_force(vflag);
+    if (n_post_force_any) modify->post_force(vflag);
     modify->final_integrate();
     if (n_end_of_step) modify->end_of_step();
     timer->stamp(Timer::MODIFY);

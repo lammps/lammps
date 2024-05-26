@@ -103,6 +103,8 @@ model = torch.load(torch_model)
 
 # Connect the PyTorch model to the mliap pair style.
 lammps.mliap.load_model(model)
-  
+
 # run the simulation with the mliap pair style
 lmp.commands_string(after_loading)
+lmp.close()
+lmp.finalize()

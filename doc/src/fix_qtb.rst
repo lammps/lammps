@@ -6,7 +6,7 @@ fix qtb command
 Syntax
 """"""
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    fix ID group-ID qtb keyword value ...
 

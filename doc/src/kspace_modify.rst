@@ -142,7 +142,8 @@ the code will stop with an error message. When this option is set to
 For a typical application, using the automatic parameter generation
 will provide simulations that are either inaccurate or slow. Using this
 option is thus not recommended. For guidelines on how to obtain good
-parameters, see the :doc:`How-To <Howto_dispersion>` discussion.
+parameters, see the :doc:`long-range dispersion howto <Howto_dispersion>`
+discussion.
 
 ----------
 

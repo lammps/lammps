@@ -1,7 +1,7 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    https://www.lammps.org/, Sandia National Laboratories
-   LAMMPS Development team: developers@lammps.org
+   LAMMPS development team: developers@lammps.org
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
@@ -13,6 +13,7 @@
 
 #include "compute_property_grid.h"
 
+#include "comm.h"
 #include "domain.h"
 #include "error.h"
 #include "grid2d.h"
@@ -26,8 +27,6 @@ using namespace LAMMPS_NS;
 
 enum { LOW, CTR };
 enum { UNSCALED, SCALED };
-
-#define DELTA 10000
 
 /* ---------------------------------------------------------------------- */
 
@@ -59,6 +58,8 @@ ComputePropertyGrid::ComputePropertyGrid(LAMMPS *lmp, int narg, char **arg) :
 
     if (strcmp(arg[iarg], "id") == 0) {
       pack_choice[jarg] = &ComputePropertyGrid::pack_id;
+    } else if (strcmp(arg[iarg], "proc") == 0) {
+      pack_choice[jarg] = &ComputePropertyGrid::pack_proc;
 
     } else if (strcmp(arg[iarg], "ix") == 0) {
       pack_choice[jarg] = &ComputePropertyGrid::pack_indices<0>;
@@ -317,6 +318,37 @@ void ComputePropertyGrid::pack_id(int n)
         for (int iy = nylo_in; iy <= nyhi_in; iy++)
           for (int ix = nxlo_in; ix <= nxhi_in; ix++)
             array3d[iz][iy][ix][n] = iz * nygrid * nxgrid + iy * nxgrid + ix + 1;
+    }
+  }
+}
+
+/* ----------------------------------------------------------------------
+   grid point owning processor
+------------------------------------------------------------------------- */
+
+void ComputePropertyGrid::pack_proc(int n)
+{
+  int me = comm->me;
+
+  if (dimension == 2) {
+    if (nvalues == 1) {
+      for (int iy = nylo_in; iy <= nyhi_in; iy++)
+        for (int ix = nxlo_in; ix <= nxhi_in; ix++) vec2d[iy][ix] = me;
+    } else {
+      for (int iy = nylo_in; iy <= nyhi_in; iy++)
+        for (int ix = nxlo_in; ix <= nxhi_in; ix++) array2d[iy][ix][n] = me;
+    }
+  } else if (dimension == 3) {
+    if (nvalues == 1) {
+      for (int iz = nzlo_in; iz <= nzhi_in; iz++)
+        for (int iy = nylo_in; iy <= nyhi_in; iy++)
+          for (int ix = nxlo_in; ix <= nxhi_in; ix++)
+            vec3d[iz][iy][ix] = me;
+    } else {
+      for (int iz = nzlo_in; iz <= nzhi_in; iz++)
+        for (int iy = nylo_in; iy <= nyhi_in; iy++)
+          for (int ix = nxlo_in; ix <= nxhi_in; ix++)
+            array3d[iz][iy][ix][n] = me;
     }
   }
 }

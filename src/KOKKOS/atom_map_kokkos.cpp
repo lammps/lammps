@@ -16,16 +16,12 @@
 #include "atom_masks.h"
 #include "comm.h"
 #include "error.h"
-#include "fix.h"
+#include "kokkos.h"
 #include "memory_kokkos.h"
-#include "modify.h"
-#include "neighbor_kokkos.h"
-
-#include <cmath>
 
 using namespace LAMMPS_NS;
 
-#define EXTRA 1000
+static constexpr int EXTRA = 1000;
 
 /* ----------------------------------------------------------------------
    allocate and initialize array or hash table for global -> local map
@@ -48,27 +44,29 @@ void AtomKokkos::map_init(int check)
   int recreate = 0;
   if (check) recreate = map_style_set();
 
-  if (map_style == MAP_ARRAY && map_tag_max > map_maxarray)
-    recreate = 1;
-  else if (map_style == MAP_HASH && nlocal + nghost > map_nhash)
-    recreate = 1;
+  if (map_style == MAP_ARRAY && map_tag_max > map_maxarray) recreate = 1;
+  else if (map_style == MAP_HASH && nlocal+nghost > map_nhash) recreate = 1;
 
   // if not recreating:
   // for array, initialize current map_tag_max values
   // for hash, set all buckets to empty, put all entries in free list
 
   if (!recreate) {
-    if (map_style == MAP_ARRAY) {
-      for (int i = 0; i <= map_tag_max; i++) map_array[i] = -1;
+    if (lmp->kokkos->atom_map_classic) {
+      if (map_style == MAP_ARRAY) {
+        for (int i = 0; i <= map_tag_max; i++) map_array[i] = -1;
+      } else {
+        for (int i = 0; i < map_nbucket; i++) map_bucket[i] = -1;
+        map_nused = 0;
+        map_free = 0;
+        for (int i = 0; i < map_nhash; i++) map_hash[i].next = i+1;
+        if (map_nhash > 0) map_hash[map_nhash-1].next = -1;
+      }
     } else {
-      for (int i = 0; i < map_nbucket; i++) map_bucket[i] = -1;
-      map_nused = 0;
-      map_free = 0;
-      for (int i = 0; i < map_nhash; i++) map_hash[i].next = i + 1;
-      if (map_nhash > 0) map_hash[map_nhash - 1].next = -1;
+      map_clear();
     }
 
-    // recreating: delete old map and create new one for array or hash
+  // recreating: delete old map and create new one for array or hash
 
   } else {
     map_delete();
@@ -76,7 +74,7 @@ void AtomKokkos::map_init(int check)
     if (map_style == MAP_ARRAY) {
       map_maxarray = map_tag_max;
       memoryKK->create_kokkos(k_map_array, map_array, map_maxarray + 1, "atom:map_array");
-      for (int i = 0; i <= map_tag_max; i++) map_array[i] = -1;
+      map_clear();
 
     } else {
 
@@ -85,40 +83,66 @@ void AtomKokkos::map_init(int check)
       // multiply by 2, require at least 1000
       // doubling means hash table will need to be re-init only rarely
 
-      int nper = static_cast<int>(natoms / comm->nprocs);
-      map_nhash = MAX(nper, nmax);
+      int nper = static_cast<int> (natoms/comm->nprocs);
+      map_nhash = MAX(nper,nmax);
       map_nhash *= 2;
-      map_nhash = MAX(map_nhash, 1000);
+      map_nhash = MAX(map_nhash,1000);
 
-      // map_nbucket = prime just larger than map_nhash
-      // next_prime() should be fast enough,
-      //   about 10% of odd integers are prime above 1M
+      if (lmp->kokkos->atom_map_classic) {
+        // map_nbucket = prime just larger than map_nhash
+        // next_prime() should be fast enough,
+        //   about 10% of odd integers are prime above 1M
 
-      map_nbucket = next_prime(map_nhash);
+        map_nbucket = next_prime(map_nhash);
 
-      // set all buckets to empty
-      // set hash to map_nhash in length
-      // put all hash entries in free list and point them to each other
+        // set all buckets to empty
+        // set hash to map_nhash in length
+        // put all hash entries in free list and point them to each other
 
-      map_bucket = new int[map_nbucket];
-      for (int i = 0; i < map_nbucket; i++) map_bucket[i] = -1;
+        map_bucket = new int[map_nbucket];
+        for (int i = 0; i < map_nbucket; i++) map_bucket[i] = -1;
 
-      map_hash = new HashElem[map_nhash];
-      map_nused = 0;
-      map_free = 0;
-      for (int i = 0; i < map_nhash; i++) map_hash[i].next = i + 1;
-      map_hash[map_nhash - 1].next = -1;
+        map_hash = new HashElem[map_nhash];
+        map_nused = 0;
+        map_free = 0;
+        for (int i = 0; i < map_nhash; i++) map_hash[i].next = i + 1;
+        map_hash[map_nhash - 1].next = -1;
+      }
 
-      // use "view" template method to avoid unnecessary deep_copy
-
-      auto h_map_hash = k_map_hash.view<LMPHostType>();    // get type
-      h_map_hash = decltype(h_map_hash)(map_nhash);
-      k_map_hash.view<LMPHostType>() = h_map_hash;
+      k_map_hash = dual_hash_type(map_nhash);
     }
   }
 
-  k_sametag.modify_host();
-  if (map_style == Atom::MAP_ARRAY) k_map_array.modify_host();
+  if (lmp->kokkos->atom_map_classic)
+    if (map_style == MAP_ARRAY) k_map_array.modify_host();
+}
+
+/* ----------------------------------------------------------------------
+   clear global -> local map for all of my own and ghost atoms
+   for hash table option:
+     global ID may not be in table if image atom was already cleared
+------------------------------------------------------------------------- */
+
+void AtomKokkos::map_clear()
+{
+  if (map_style == MAP_ARRAY) {
+    if (lmp->kokkos->atom_map_classic) {
+      Kokkos::deep_copy(k_map_array.h_view,-1);
+      k_map_array.modify_host();
+    } else {
+      Kokkos::deep_copy(k_map_array.d_view,-1);
+      k_map_array.modify_device();
+    }
+  } else {
+    if (lmp->kokkos->atom_map_classic) {
+      Atom::map_clear();
+      k_map_hash.h_view.clear();
+      k_map_hash.modify_host();
+    } else {
+      k_map_hash.d_view.clear();
+      k_map_hash.modify_device();
+    }
+  }
 }
 
 /* ----------------------------------------------------------------------
@@ -133,14 +157,129 @@ void AtomKokkos::map_init(int check)
 
 void AtomKokkos::map_set()
 {
+  if (lmp->kokkos->atom_map_classic)
+    map_set_host();
+  else
+    map_set_device();
+}
+
+/* ---------------------------------------------------------------------- */
+
+void AtomKokkos::map_set_device()
+{
+  int nall = nlocal + nghost;
+
+  // possible reallocation of sametag must come before loop over atoms
+  // since loop sets sametag
+
+  if (nall > max_same) {
+    max_same = nall + EXTRA;
+    memoryKK->destroy_kokkos(k_sametag, sametag);
+    memoryKK->create_kokkos(k_sametag, sametag, max_same, "atom:sametag");
+  }
+
+  if (map_style == MAP_HASH) {
+
+    // if this proc has more atoms than hash table size, call map_init()
+    //   call with 0 since max atomID in system has not changed
+    // possible reallocation of sametag must come after map_init(),
+    //   b/c map_init() may invoke map_delete(), whacking sametag
+
+    if (nall > map_nhash) map_init(0);
+  }
+
+  atomKK->sync(Device, TAG_MASK);
+
+  int map_style_array = (map_style == MAP_ARRAY);
+
+  auto d_tag = atomKK->k_tag.d_view;
+  auto d_sametag = k_sametag.d_view;
+
+  int nmax = atom->nmax;
+
+  // sort by tag then local id
+
+  if (!d_sorted.data() || (int)d_sorted.extent(0) < nmax)
+    MemKK::realloc_kokkos(d_sorted,"atom:sorted",nmax);
+
+  auto l_sorted = Kokkos::subview(d_sorted,std::make_pair(0,nall));
+
+  Kokkos::parallel_for(nall, LAMMPS_LAMBDA(int i) {
+    l_sorted(i).i = i;
+    l_sorted(i).tag = d_tag(i);
+  });
+
+  Kokkos::sort(LMPDeviceType(),l_sorted,MyComp{});
+
+  auto d_map_array = k_map_array.d_view;
+  auto d_map_hash = k_map_hash.d_view;
+  if (!map_style_array)
+    d_map_hash.clear();
+
+  auto d_error_flag = k_error_flag.d_view;
+  Kokkos::deep_copy(d_error_flag,0);
+
+  //  atom with smallest local id for atom map
+
+  Kokkos::parallel_for(nall, LAMMPS_LAMBDA(int ii) {
+
+    const int i = l_sorted(ii).i;
+    const tagint tag_i = l_sorted(ii).tag;
+
+    // sametag
+
+    tagint tag_j = -1;
+    int jj = ii+1;
+    if (jj < nall) tag_j = l_sorted(jj).tag;
+
+    if (tag_j == tag_i)
+      d_sametag(i) = l_sorted(jj).i;
+    else
+      d_sametag(i) = -1;
+
+    // atom map
+
+    tag_j = -1;
+    jj = ii-1;
+    if (jj >= 0) tag_j = l_sorted(jj).tag;
+
+    if (tag_j != tag_i) {
+      if (map_style_array)
+        d_map_array(tag_i) = i;
+      else {
+        auto insert_result = d_map_hash.insert(tag_i, i);
+        if (insert_result.failed()) d_error_flag() = 1;
+      }
+    }
+
+  });
+
+  auto h_error_flag = k_error_flag.h_view;
+  Kokkos::deep_copy(h_error_flag,d_error_flag);
+
+  if (h_error_flag())
+    error->one(FLERR,"Failed to insert into Kokkos hash atom map");
+
+  k_sametag.modify_device();
+  k_sametag.sync_host();
+
+  if (map_style == MAP_ARRAY)
+    k_map_array.modify_device();
+  else
+    k_map_hash.modify_device();
+}
+
+/* ---------------------------------------------------------------------- */
+
+void AtomKokkos::map_set_host()
+{
   int nall = nlocal + nghost;
 
   atomKK->sync(Host, TAG_MASK);
-
   k_sametag.sync_host();
-  if (map_style == Atom::MAP_ARRAY) k_map_array.sync_host();
 
   if (map_style == MAP_ARRAY) {
+    k_map_array.sync_host();
 
     // possible reallocation of sametag must come before loop over atoms
     // since loop sets sametag
@@ -174,7 +313,7 @@ void AtomKokkos::map_set()
     tagint global;
 
     for (int i = nall - 1; i >= 0; i--) {
-      sametag[i] = map_find_hash(tag[i]);
+      sametag[i] = Atom::map_find_hash(tag[i]);
 
       // search for key
       // if found it, just overwrite local value with index
@@ -240,31 +379,51 @@ void AtomKokkos::map_set()
   }
 
   k_sametag.modify_host();
-  if (map_style == Atom::MAP_ARRAY)
+  if (map_style == MAP_ARRAY)
     k_map_array.modify_host();
-  else if (map_style == Atom::MAP_HASH) {
+  else if (map_style == MAP_HASH)
+    k_map_hash.modify_host();
+}
 
-    // use "view" template method to avoid unnecessary deep_copy
+/* ----------------------------------------------------------------------
+   set global to local map for one atom
+   for hash table option:
+     global ID may already be in table if atom was already set
+   called by Special class
+------------------------------------------------------------------------- */
 
-    auto h_map_hash = k_map_hash.view<LMPHostType>();
-    auto d_map_hash = k_map_hash.view<LMPDeviceType>();
+void AtomKokkos::map_one(tagint global, int local)
+{
+  if (map_style == MAP_ARRAY) {
+    k_map_array.sync_host();
+    k_map_array.h_view[global] = local;
+  } else {
+    k_map_hash.sync_host();
+    auto& h_map_hash = k_map_hash.h_view;
 
-    // check if fix shake or neigh bond needs a device hash
-
-    int device_hash_flag = 0;
-
-    auto neighborKK = (NeighborKokkos *) neighbor;
-    if (neighborKK->device_flag) device_hash_flag = 1;
-
-    for (int n = 0; n < modify->nfix; n++)
-      if (utils::strmatch(modify->fix[n]->style, "^shake"))
-        if (modify->fix[n]->execution_space == Device) device_hash_flag = 1;
-
-    if (device_hash_flag) {
-      Kokkos::deep_copy(d_map_hash, h_map_hash);
-      k_map_hash.view<LMPDeviceType>() = d_map_hash;
-    }
+    auto insert_result = h_map_hash.insert(global, local);
+    if (insert_result.existing())
+      h_map_hash.value_at(h_map_hash.find(global)) = local;
+    else if (insert_result.failed())
+      error->one(FLERR,"Failed to insert into Kokkos hash atom map");
   }
+}
+
+/* ----------------------------------------------------------------------
+   lookup global ID in hash table, return local index
+   called by map() in atom.h
+------------------------------------------------------------------------- */
+
+int AtomKokkos::map_find_hash(tagint global)
+{
+  k_map_hash.sync_host();
+  auto& h_map_hash = k_map_hash.h_view;
+
+  int local = -1;
+  auto index = h_map_hash.find(global);
+  if (h_map_hash.valid_at(index))
+    local = h_map_hash.value_at(index);
+  return local;
 }
 
 /* ----------------------------------------------------------------------
@@ -279,10 +438,9 @@ void AtomKokkos::map_delete()
   if (map_style == MAP_ARRAY) {
     memoryKK->destroy_kokkos(k_map_array, map_array);
     map_array = nullptr;
-  } else {
-    k_map_hash.h_view = host_hash_type();
-    k_map_hash.d_view = hash_type();
-  }
+  } else
+    k_map_hash = dual_hash_type();
 
-  Atom::map_delete();
+  if (lmp->kokkos->atom_map_classic)
+    Atom::map_delete();
 }

@@ -104,6 +104,9 @@ template <class T> class MyPage {
   int errorflag;    // flag > 0 if error has occurred
                     // 1 = chunk size exceeded maxchunk
                     // 2 = memory allocation error
+#if defined(_OPENMP)
+  char pad[64];     // to avoid false sharing with multi-threading
+#endif
   void allocate();
   void deallocate();
 };

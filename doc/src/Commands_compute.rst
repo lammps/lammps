@@ -46,6 +46,7 @@ KOKKOS, o = OPENMP, t = OPT.
    * :doc:`com/chunk <compute_com_chunk>`
    * :doc:`contact/atom <compute_contact_atom>`
    * :doc:`coord/atom (k) <compute_coord_atom>`
+   * :doc:`count/type <compute_count_type>`
    * :doc:`damage/atom <compute_damage_atom>`
    * :doc:`dihedral <compute_dihedral>`
    * :doc:`dihedral/local <compute_dihedral_local>`
@@ -63,7 +64,7 @@ KOKKOS, o = OPENMP, t = OPT.
    * :doc:`entropy/atom <compute_entropy_atom>`
    * :doc:`erotate/asphere <compute_erotate_asphere>`
    * :doc:`erotate/rigid <compute_erotate_rigid>`
-   * :doc:`erotate/sphere <compute_erotate_sphere>`
+   * :doc:`erotate/sphere (k) <compute_erotate_sphere>`
    * :doc:`erotate/sphere/atom <compute_erotate_sphere_atom>`
    * :doc:`event/displace <compute_event_displace>`
    * :doc:`fabric <compute_fabric>`
@@ -90,6 +91,7 @@ KOKKOS, o = OPENMP, t = OPT.
    * :doc:`ke/atom/eff <compute_ke_atom_eff>`
    * :doc:`ke/eff <compute_ke_eff>`
    * :doc:`ke/rigid <compute_ke_rigid>`
+   * :doc:`composition/atom (k) <compute_composition_atom>`
    * :doc:`mliap <compute_mliap>`
    * :doc:`momentum <compute_momentum>`
    * :doc:`msd <compute_msd>`
@@ -98,6 +100,7 @@ KOKKOS, o = OPENMP, t = OPT.
    * :doc:`nbond/atom <compute_nbond_atom>`
    * :doc:`omega/chunk <compute_omega_chunk>`
    * :doc:`orientorder/atom (k) <compute_orientorder_atom>`
+   * :doc:`pace <compute_pace>`
    * :doc:`pair <compute_pair>`
    * :doc:`pair/local <compute_pair_local>`
    * :doc:`pe <compute_pe>`
@@ -113,12 +116,15 @@ KOKKOS, o = OPENMP, t = OPT.
    * :doc:`property/grid <compute_property_grid>`
    * :doc:`property/local <compute_property_local>`
    * :doc:`ptm/atom <compute_ptm_atom>`
+   * :doc:`rattlers/atom <compute_rattlers_atom>`
    * :doc:`rdf <compute_rdf>`
+   * :doc:`reaxff/atom (k) <compute_reaxff_atom>`
    * :doc:`reduce <compute_reduce>`
    * :doc:`reduce/chunk <compute_reduce_chunk>`
    * :doc:`reduce/region <compute_reduce>`
    * :doc:`rigid/local <compute_rigid_local>`
    * :doc:`saed <compute_saed>`
+   * :doc:`slcsa/atom <compute_slcsa_atom>`
    * :doc:`slice <compute_slice>`
    * :doc:`smd/contact/radius <compute_smd_contact_radius>`
    * :doc:`smd/damage <compute_smd_damage>`
@@ -152,11 +158,11 @@ KOKKOS, o = OPENMP, t = OPT.
    * :doc:`sph/t/atom <compute_sph_t_atom>`
    * :doc:`spin <compute_spin>`
    * :doc:`stress/atom <compute_stress_atom>`
-   * :doc:`stress/cartesian <compute_stress_profile>`
-   * :doc:`stress/cylinder <compute_stress_profile>`
+   * :doc:`stress/cartesian <compute_stress_cartesian>`
+   * :doc:`stress/cylinder <compute_stress_curvilinear>`
    * :doc:`stress/mop <compute_stress_mop>`
    * :doc:`stress/mop/profile <compute_stress_mop>`
-   * :doc:`stress/spherical <compute_stress_profile>`
+   * :doc:`stress/spherical <compute_stress_curvilinear>`
    * :doc:`stress/tally <compute_tally>`
    * :doc:`tdpd/cc/atom <compute_tdpd_cc_atom>`
    * :doc:`temp (k) <compute_temp>`

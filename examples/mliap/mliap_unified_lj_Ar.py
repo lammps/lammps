@@ -6,30 +6,30 @@
 before_loading =\
 """# 3d Lennard-Jones melt
 
-units		lj
-atom_style	atomic
+units       lj
+atom_style  atomic
 
-lattice		fcc 0.8442
-region		box block 0 10 0 10 0 10
-create_box	1 box
-create_atoms	1 box
-mass		1 1.0
+lattice     fcc 0.8442
+region      box block 0 10 0 10 0 10
+create_box  1 box
+create_atoms    1 box
+mass        1 1.0
 
-velocity	all create 3.0 87287 loop geom
+velocity    all create 3.0 87287 loop geom
 """
 after_loading =\
 """
 
-pair_style	mliap unified EXISTS
-pair_coeff	* * Ar
+pair_style  mliap unified EXISTS
+pair_coeff  * * Ar
 
-neighbor	0.3 bin
-neigh_modify	every 20 delay 0 check no
+neighbor    0.3 bin
+neigh_modify    every 20 delay 0 check no
 
-fix		1 all nve
+fix     1 all nve
 
-thermo		50
-run		250
+thermo      50
+run     250
 """
 
 import lammps
@@ -63,3 +63,5 @@ lammps.mliap.load_unified(unified)
 # Run the simulation with the mliap unified pair style
 # Use pre-loaded model by specifying model filename as "EXISTS"
 lmp.commands_string(after_loading)
+lmp.close()
+lmp.finalize()

@@ -6,7 +6,7 @@ fix box/relax command
 Syntax
 """"""
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    fix ID group-ID box/relax keyword value ...
 

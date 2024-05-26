@@ -187,6 +187,7 @@ for the damping model currently supported are:
 2. *mass_velocity*
 3. *viscoelastic*
 4. *tsuji*
+5. *coeff_restitution*
 
 If the *damping* keyword is not specified, the *viscoelastic* model is
 used by default.
@@ -247,6 +248,29 @@ according to:
 The dimensionless coefficient of restitution :math:`e` specified as part
 of the normal contact model parameters should be between 0 and 1, but
 no error check is performed on this.
+
+The *coeff_restitution* model is useful when a specific normal coefficient of
+restitution :math:`e` is required. In these models, the normal coefficient of
+restitution :math:`e` is specified as an input. Following the approach of
+:ref:`(Brilliantov et al) <Brill1996>`, when using the *hooke* normal model,
+*coeff_restitution* calculates the damping coefficient as:
+
+.. math::
+
+   \eta_n = \sqrt{\frac{4m_{eff}k_n}{1+\left( \frac{\pi}{\log(e)}\right)^2}} ,
+
+For any other normal model, e.g. the *hertz* and *hertz/material* models, the damping
+coefficient is:
+
+.. math::
+
+   \eta_n = -2\sqrt{\frac{5}{6}}\frac{\log(e)}{\sqrt{\pi^2+(\log(e))^2}}(R_{eff} \delta_{ij})^{\frac{1}{4}}\sqrt{\frac{3}{2}k_n m_{eff}} ,
+
+where :math:`k_n = \frac{4}{3} E_{eff}` for the *hertz/material* model. Since
+*coeff_restitution* accounts for the effective mass, effective radius, and
+pairwise overlaps (except when used with the *hooke* normal model) when calculating
+the damping coefficient, it accurately reproduces the specified coefficient of
+restitution for both monodisperse and polydisperse particle pairs.
 
 The total normal force is computed as the sum of the elastic and
 damping components:
@@ -641,22 +665,36 @@ The optional *heat* keyword enables heat conduction. The options currently
 supported are:
 
 1. *none*
-2. *area* : :math:`k_{s}`
+2. *radius* : :math:`k_{s}`
+3. *area* : :math:`h_{s}`
 
 If the *heat* keyword is not specified, the model defaults to *none*.
+
+For *heat* *radius*, the heat
+:math:`Q` conducted between two particles is given by
+
+.. math::
+
+   Q = 2 k_{s} a \Delta T
+
+where :math:`\Delta T` is the difference in the two particles' temperature,
+:math:`k_{s}` is a non-negative numeric value for the conductivity (in units
+of power/(length*temperature)), and :math:`a` is the radius of the contact and
+depends on the normal force model. This is the model proposed by
+:ref:`Vargas and McCarthy <VargasMcCarthy2001>`.
 
 For *heat* *area*, the heat
 :math:`Q` conducted between two particles is given by
 
 .. math::
 
-   Q = k_{s} a \Delta T
-
+   Q = h_{s} A \Delta T
 
 
 where :math:`\Delta T` is the difference in the two particles' temperature,
-:math:`k_{s}` is a non-negative numeric value for the conductivity, and
-:math:`a` is the area of the contact and depends on the normal force model.
+:math:`h_{s}` is a non-negative numeric value for the heat transfer
+coefficient (in units of power/(area*temperature)), and :math:`A=\pi a^2` is
+the area of the contact and depends on the normal force model.
 
 Note that the option *none* must either be used in all or none of of the
 *pair_coeff* calls. See :doc:`fix heat/flow <fix_heat_flow>` and
@@ -736,7 +774,7 @@ or
 
 .. math::
 
-   E_{eff,ij} = \frac{E_{ij}}{2(1-\nu_{ij})}
+   E_{eff,ij} = \frac{E_{ij}}{2(1-\nu_{ij}^2)}
 
 These pair styles write their information to :doc:`binary restart files <restart>`, so a pair_style command does not need to be
 specified in an input script that reads a restart file.
@@ -749,15 +787,17 @@ The single() function of these pair styles returns 0.0 for the energy
 of a pairwise interaction, since energy is not conserved in these
 dissipative potentials.  It also returns only the normal component of
 the pairwise interaction force.  However, the single() function also
-calculates 12 extra pairwise quantities.  The first 3 are the
+calculates 13 extra pairwise quantities.  The first 3 are the
 components of the tangential force between particles I and J, acting
 on particle I.  The fourth is the magnitude of this tangential force.
 The next 3 (5-7) are the components of the rolling torque acting on
 particle I. The next entry (8) is the magnitude of the rolling torque.
 The next entry (9) is the magnitude of the twisting torque acting
 about the vector connecting the two particle centers.
-The last 3 (10-12) are the components of the vector connecting
-the centers of the two particles (x_I - x_J).
+The next 3 (10-12) are the components of the vector connecting
+the centers of the two particles (x_I - x_J). The last quantity (13)
+is the heat flow between the two particles, set to 0 if no heat model
+is active.
 
 These extra quantities can be accessed by the :doc:`compute pair/local <compute_pair_local>` command, as *p1*, *p2*, ...,
 *p12*\ .
@@ -894,3 +934,10 @@ J. Appl. Mech., ASME 20, 327-344.
 **(Agnolin and Roux 2007)** Agnolin, I. & Roux, J-N. (2007).
 Internal states of model isotropic granular packings.
 I. Assembling process, geometry, and contact networks. Phys. Rev. E, 76, 061302.
+
+.. _VargasMcCarthy2001:
+
+**(Vargas and McCarthy 2001)** Vargas, W.L. and McCarthy, J.J. (2001).
+Heat conduction in granular materials.
+AIChE Journal, 47(5), 1052-1059.
+

@@ -28,12 +28,12 @@
 #include <cmath>
 #include <cstring>
 
-#define MAXLINE 1024
+static constexpr int MAXLINE = 1024;
 
 #ifdef DBL_EPSILON
-  #define MY_EPSILON (10.0*DBL_EPSILON)
+static constexpr double MY_EPSILON = 10.0*DBL_EPSILON;
 #else
-  #define MY_EPSILON (10.0*2.220446049250313e-16)
+static constexpr double MY_EPSILON = 10.0*2.220446049250313e-16;
 #endif
 
 using namespace LAMMPS_NS;
@@ -318,7 +318,8 @@ void FixEOStableRX::read_file(char *file)
 
   // one set of params can span multiple lines
   int n,nwords,ispecies;
-  char line[MAXLINE],*ptr;
+  char line[MAXLINE] = {'\0'};
+  char *ptr;
   int eof = 0;
 
   while (true) {
@@ -414,7 +415,7 @@ void FixEOStableRX::free_table(Table *tb)
 
 void FixEOStableRX::read_table(Table *tb, Table *tb2, char *file, char *keyword)
 {
-  char line[MAXLINE];
+  char line[MAXLINE] = {'\0'};
 
   // open file
 
@@ -476,16 +477,14 @@ void FixEOStableRX::read_table(Table *tb, Table *tb2, char *file, char *keyword)
     utils::sfgets(FLERR,line,MAXLINE,fp,file,error);
 
     nwords = utils::count_words(utils::trim_comment(line));
-    if (nwords != nspecies+2) {
-      printf("nwords=%d  nspecies=%d\n",nwords,nspecies);
-      error->all(FLERR,"Illegal fix eos/table/rx command");
-    }
-    nwords = 0;
+    if (nwords != nspecies+2)
+      error->all(FLERR,"Illegal fix eos/table/rx command: nwords={} nspecies={}", nwords, nspecies);
+
     word = strtok(line," \t\n\r\f");
     word = strtok(nullptr," \t\n\r\f");
     rtmp = atof(word);
 
-    for (int icolumn=0;icolumn<ncolumn;icolumn++) {
+    for (int icolumn=0; icolumn < ncolumn; icolumn++) {
       ispecies = eosSpecies[icolumn];
 
       Table *tbl = &tables[ispecies];

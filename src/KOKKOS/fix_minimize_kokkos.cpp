@@ -19,6 +19,8 @@
 #include "domain.h"
 #include "memory_kokkos.h"
 
+#include <cmath>
+
 using namespace LAMMPS_NS;
 using namespace FixConst;
 
@@ -27,6 +29,7 @@ using namespace FixConst;
 FixMinimizeKokkos::FixMinimizeKokkos(LAMMPS *lmp, int narg, char **arg) :
   FixMinimize(lmp, narg, arg)
 {
+  kokkosable = 1;
   atomKK = (AtomKokkos *) atom;
 }
 

@@ -65,8 +65,6 @@ void NPairSSAKokkos<DeviceType>::copy_neighbor_info()
   k_ex1_type = neighborKK->k_ex1_type;
   k_ex2_type = neighborKK->k_ex2_type;
   k_ex_type = neighborKK->k_ex_type;
-  k_ex1_group = neighborKK->k_ex1_group;
-  k_ex2_group = neighborKK->k_ex2_group;
   k_ex1_bit = neighborKK->k_ex1_bit;
   k_ex2_bit = neighborKK->k_ex2_bit;
   k_ex_mol_group = neighborKK->k_ex_mol_group;
@@ -417,8 +415,6 @@ fprintf(stdout, "tota%03d total %3d could use %6d inums, expected %6d inums. inu
          k_ex2_type.view<DeviceType>(),
          k_ex_type.view<DeviceType>(),
          nex_group,
-         k_ex1_group.view<DeviceType>(),
-         k_ex2_group.view<DeviceType>(),
          k_ex1_bit.view<DeviceType>(),
          k_ex2_bit.view<DeviceType>(),
          nex_mol,
@@ -433,8 +429,6 @@ fprintf(stdout, "tota%03d total %3d could use %6d inums, expected %6d inums. inu
   k_ex1_type.sync<DeviceType>();
   k_ex2_type.sync<DeviceType>();
   k_ex_type.sync<DeviceType>();
-  k_ex1_group.sync<DeviceType>();
-  k_ex2_group.sync<DeviceType>();
   k_ex1_bit.sync<DeviceType>();
   k_ex2_bit.sync<DeviceType>();
   k_ex_mol_group.sync<DeviceType>();

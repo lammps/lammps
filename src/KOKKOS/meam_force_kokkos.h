@@ -131,7 +131,7 @@ KOKKOS_INLINE_FUNCTION void MEAMKokkos<DeviceType>::operator()(TagMEAMForce<NEIG
   double drho3mdr1, drho3mdr2, drho3mds1, drho3mds2;
   double drho3mdrm1[3], drho3mdrm2[3];
 
-  // The f, etc. arrays are duplicated for OpenMP, atomic for CUDA, and neither for Serial
+  // The f, etc. arrays are duplicated for OpenMP, atomic for GPU, and neither for Serial
 
   auto v_f =
       ScatterViewHelper<NeedDup_v<NEIGHFLAG, DeviceType>, decltype(dup_f), decltype(ndup_f)>::get(
@@ -601,8 +601,31 @@ KOKKOS_INLINE_FUNCTION void MEAMKokkos<DeviceType>::operator()(TagMEAMForce<NEIG
             drho2mds2 = a2 * rhoa2mi * arg1j2m - 2.0 / 3.0 * d_arho2mb[j] * rhoa2mi;
             drho3mds1 = a3 * rhoa3mj * arg1i3m - a3a * rhoa3mj * arg3i3m;
             drho3mds2 = a3 * rhoa3mi * arg1j3m - a3a * rhoa3mi * arg3j3m;
+            drho1mds1 *= -1;
+            drho1mds2 *= -1;
             drho3mds1 *= -1;
             drho3mds2 *= -1;
+
+            t1i = 1.0;
+            t2i = 1.0;
+            t3i = 1.0;
+            t1j = 1.0;
+            t2j = 1.0;
+            t3j = 1.0;
+            dt1dr1 = 0.0;
+            dt1dr2 = 0.0;
+            dt2dr1 = 0.0;
+            dt2dr2 = 0.0;
+            dt3dr1 = 0.0;
+            dt3dr2 = 0.0;
+
+            // these formulae are simplifed by substituting t=1, dt=0 from above
+
+            drhods1 = d_dgamma1[i] * drho0ds1 + d_dgamma2[i]
+              * ((drho1ds1 - drho1mds1) + (drho2ds1 - drho2mds1) + (drho3ds1 - drho3mds1));
+            drhods2 = d_dgamma1[j] * drho0ds2 + d_dgamma2[j]
+              * ((drho1ds2 - drho1mds2) + (drho2ds2 - drho2mds2) + (drho3ds2 - drho3mds2));
+
           } else {
             drho1mds1 = 0.0;
             drho1mds2 = 0.0;
@@ -610,61 +633,49 @@ KOKKOS_INLINE_FUNCTION void MEAMKokkos<DeviceType>::operator()(TagMEAMForce<NEIG
             drho2mds2 = 0.0;
             drho3mds1 = 0.0;
             drho3mds2 = 0.0;
-          }
 
-          if (ialloy == 1) {
-            a1i = fdiv_zero_kk(rhoa0j, d_tsq_ave(i, 0));
-            a1j = fdiv_zero_kk(rhoa0i, d_tsq_ave(j, 0));
-            a2i = fdiv_zero_kk(rhoa0j, d_tsq_ave(i, 1));
-            a2j = fdiv_zero_kk(rhoa0i, d_tsq_ave(j, 1));
-            a3i = fdiv_zero_kk(rhoa0j, d_tsq_ave(i, 2));
-            a3j = fdiv_zero_kk(rhoa0i, d_tsq_ave(j, 2));
+            if (ialloy == 1) {
 
-            dt1ds1 = a1i * (t1mj - t1i * MathSpecialKokkos::square(t1mj));
-            dt1ds2 = a1j * (t1mi - t1j * MathSpecialKokkos::square(t1mi));
-            dt2ds1 = a2i * (t2mj - t2i * MathSpecialKokkos::square(t2mj));
-            dt2ds2 = a2j * (t2mi - t2j * MathSpecialKokkos::square(t2mi));
-            dt3ds1 = a3i * (t3mj - t3i * MathSpecialKokkos::square(t3mj));
-            dt3ds2 = a3j * (t3mi - t3j * MathSpecialKokkos::square(t3mi));
+              a1i = fdiv_zero_kk(rhoa0j, d_tsq_ave(i, 0));
+              a1j = fdiv_zero_kk(rhoa0i, d_tsq_ave(j, 0));
+              a2i = fdiv_zero_kk(rhoa0j, d_tsq_ave(i, 1));
+              a2j = fdiv_zero_kk(rhoa0i, d_tsq_ave(j, 1));
+              a3i = fdiv_zero_kk(rhoa0j, d_tsq_ave(i, 2));
+              a3j = fdiv_zero_kk(rhoa0i, d_tsq_ave(j, 2));
 
-          } else if (ialloy == 2) {
+              dt1ds1 = a1i * (t1mj - t1i * MathSpecialKokkos::square(t1mj));
+              dt1ds2 = a1j * (t1mi - t1j * MathSpecialKokkos::square(t1mi));
+              dt2ds1 = a2i * (t2mj - t2i * MathSpecialKokkos::square(t2mj));
+              dt2ds2 = a2j * (t2mi - t2j * MathSpecialKokkos::square(t2mi));
+              dt3ds1 = a3i * (t3mj - t3i * MathSpecialKokkos::square(t3mj));
+              dt3ds2 = a3j * (t3mi - t3j * MathSpecialKokkos::square(t3mi));
 
-            dt1ds1 = 0.0;
-            dt1ds2 = 0.0;
-            dt2ds1 = 0.0;
-            dt2ds2 = 0.0;
-            dt3ds1 = 0.0;
-            dt3ds2 = 0.0;
+            } else if (ialloy == 2) {
 
-          } else {
+              dt1ds1 = 0.0;
+              dt1ds2 = 0.0;
+              dt2ds1 = 0.0;
+              dt2ds2 = 0.0;
+              dt3ds1 = 0.0;
+              dt3ds2 = 0.0;
 
-            ai = 0.0;
-            if (!iszero_kk(d_rho0[i])) ai = rhoa0j / d_rho0[i];
-            aj = 0.0;
-            if (!iszero_kk(d_rho0[j])) aj = rhoa0i / d_rho0[j];
+            } else {
 
-            dt1ds1 = ai * (t1mj - t1i);
-            dt1ds2 = aj * (t1mi - t1j);
-            dt2ds1 = ai * (t2mj - t2i);
-            dt2ds2 = aj * (t2mi - t2j);
-            dt3ds1 = ai * (t3mj - t3i);
-            dt3ds2 = aj * (t3mi - t3j);
-          }
+              ai = 0.0;
+              if (!iszero_kk(d_rho0[i])) ai = rhoa0j / d_rho0[i];
+              aj = 0.0;
+              if (!iszero_kk(d_rho0[j])) aj = rhoa0i / d_rho0[j];
 
-          if (msmeamflag) {
+              dt1ds1 = ai * (t1mj - t1i);
+              dt1ds2 = aj * (t1mi - t1j);
+              dt2ds1 = ai * (t2mj - t2i);
+              dt2ds2 = aj * (t2mi - t2j);
+              dt3ds1 = ai * (t3mj - t3i);
+              dt3ds2 = aj * (t3mi - t3j);
+            }
+
             drhods1 = d_dgamma1[i] * drho0ds1 +
-              d_dgamma2[i] * (dt1ds1 * d_rho1[i] + t1i * (drho1ds1 - drho1mds1) +
-                              dt2ds1 * d_rho2[i] + t2i * (drho2ds1 - drho2mds1) +
-                              dt3ds1 * d_rho3[i] + t3i * (drho3ds1 - drho3mds1)) -
-              d_dgamma3[i] * (shpi[0] * dt1ds1 + shpi[1] * dt2ds1 + shpi[2] * dt3ds1);
-            drhods2 = d_dgamma1[j] * drho0ds2 +
-              d_dgamma2[j] * (dt1ds2 * d_rho1[j] + t1j * (drho1ds2 - drho1mds2) +
-                              dt2ds2 * d_rho2[j] + t2j * (drho2ds2 - drho2mds2) +
-                              dt3ds2 * d_rho3[j] + t3j * (drho3ds2 - drho3mds2)) -
-              d_dgamma3[j] * (shpj[0] * dt1ds2 + shpj[1] * dt2ds2 + shpj[2] * dt3ds2);
-          } else {
-            drhods1 = d_dgamma1[i] * drho0ds1 +
-                d_dgamma2[i] *
+              d_dgamma2[i] *
                     (dt1ds1 * d_rho1[i] + t1i * drho1ds1 + dt2ds1 * d_rho2[i] + t2i * drho2ds1 +
                      dt3ds1 * d_rho3[i] + t3i * drho3ds1) -
                 d_dgamma3[i] * (shpi[0] * dt1ds1 + shpi[1] * dt2ds1 + shpi[2] * dt3ds1);

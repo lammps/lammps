@@ -98,7 +98,7 @@ static void open_socket(int &sockfd, int inet, int port, char *host, Error *erro
 
     // creates socket
     sockfd = socket(res->ai_family, res->ai_socktype, res->ai_protocol);
-    if (sockfd < 0) error->one(FLERR, "Error opening socket");
+    if (sockfd < 0) error->one(FLERR, "Error creating socket for fix ipi");
 
     // makes connection
     if (connect(sockfd, res->ai_addr, res->ai_addrlen) < 0)
@@ -116,6 +116,7 @@ static void open_socket(int &sockfd, int inet, int port, char *host, Error *erro
 
     // creates the socket
     sockfd = socket(AF_UNIX, SOCK_STREAM, 0);
+    if (sockfd < 0) error->one(FLERR, "Error creating socket for fix ipi");
 
     // connects
     if (connect(sockfd, (struct sockaddr *) &serv_addr, sizeof(serv_addr)) < 0)
@@ -284,17 +285,17 @@ void FixIPI::initial_integrate(int /*vflag*/)
       // while i-PI just asks for status, signal we are ready and wait
       readbuffer(ipisock, header, MSGLEN, error); header[MSGLEN]=0;
 
-      if (strcmp(header,"STATUS      ") == 0 )
+      if (strcmp(header,"STATUS      ") == 0)
         writebuffer(ipisock,"READY       ",MSGLEN, error);
       else break;
     }
 
-    if (strcmp(header,"EXIT        ") == 0 )
+    if (strcmp(header,"EXIT        ") == 0)
       error->one(FLERR, "Got EXIT message from i-PI. Now leaving!");
 
     // when i-PI signals it has positions to evaluate new forces,
     // read positions and cell data
-    if (strcmp(header,"POSDATA     ") == 0 )  {
+    if (strcmp(header,"POSDATA     ") == 0)  {
       readbuffer(ipisock, (char*) cellh, 9*8, error);
       readbuffer(ipisock, (char*) cellih, 9*8, error);
       readbuffer(ipisock, (char*) &nat, 4, error);
@@ -454,15 +455,15 @@ void FixIPI::final_integrate()
     while (true) {
       readbuffer(ipisock, header, MSGLEN, error); header[MSGLEN]=0;
 
-      if (strcmp(header,"STATUS      ") == 0 )
+      if (strcmp(header,"STATUS      ") == 0)
         writebuffer(ipisock,"HAVEDATA    ",MSGLEN, error);
       else break;
     }
 
-    if (strcmp(header,"EXIT        ") == 0 )
+    if (strcmp(header,"EXIT        ") == 0)
       error->one(FLERR, "Got EXIT message from i-PI. Now leaving!");
 
-    if (strcmp(header,"GETFORCE    ") == 0 )  {
+    if (strcmp(header,"GETFORCE    ") == 0)  {
       writebuffer(ipisock,"FORCEREADY  ",MSGLEN, error);
       writebuffer(ipisock,(char*) &pot,8, error);
       writebuffer(ipisock,(char*) &nat,4, error);

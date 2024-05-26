@@ -56,8 +56,8 @@ FixReaxFFBonds::FixReaxFFBonds(LAMMPS *lmp, int narg, char **arg) :
       if (!fp) error->one(FLERR,"Cannot open compressed file");
     } else fp = fopen(arg[4],"w");
 
-    if (!fp) error->one(FLERR,fmt::format("Cannot open fix reaxff/bonds file {}: {}",
-                                          arg[4],utils::getsyserror()));
+    if (!fp) error->one(FLERR,"Cannot open fix reaxff/bonds file {}: {}",
+                        arg[4],utils::getsyserror());
   }
 
   if (atom->tag_consecutive() == 0)
@@ -295,7 +295,7 @@ void FixReaxFFBonds::RecvBuffer(double *buf, int nbuf, int nbuf_local,
     MPI_Isend(&buf[0],nbuf_local,MPI_DOUBLE,0,0,world,&irequest2);
     MPI_Wait(&irequest2,MPI_STATUS_IGNORE);
   }
-  if (me ==0) fputs("# \n",fp);
+  if (me == 0) fputs("# \n",fp);
 
 }
 

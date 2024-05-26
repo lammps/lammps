@@ -1,46 +1,18 @@
-/*
 //@HEADER
 // ************************************************************************
 //
-//                        Kokkos v. 3.0
-//       Copyright (2020) National Technology & Engineering
+//                        Kokkos v. 4.0
+//       Copyright (2022) National Technology & Engineering
 //               Solutions of Sandia, LLC (NTESS).
 //
 // Under the terms of Contract DE-NA0003525 with NTESS,
 // the U.S. Government retains certain rights in this software.
 //
-// Redistribution and use in source and binary forms, with or without
-// modification, are permitted provided that the following conditions are
-// met:
+// Part of Kokkos, under the Apache License v2.0 with LLVM Exceptions.
+// See https://kokkos.org/LICENSE for license information.
+// SPDX-License-Identifier: Apache-2.0 WITH LLVM-exception
 //
-// 1. Redistributions of source code must retain the above copyright
-// notice, this list of conditions and the following disclaimer.
-//
-// 2. Redistributions in binary form must reproduce the above copyright
-// notice, this list of conditions and the following disclaimer in the
-// documentation and/or other materials provided with the distribution.
-//
-// 3. Neither the name of the Corporation nor the names of the
-// contributors may be used to endorse or promote products derived from
-// this software without specific prior written permission.
-//
-// THIS SOFTWARE IS PROVIDED BY NTESS "AS IS" AND ANY
-// EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
-// IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR
-// PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL NTESS OR THE
-// CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
-// EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
-// PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR
-// PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF
-// LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING
-// NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
-// SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-//
-// Questions? Contact Christian R. Trott (crtrott@sandia.gov)
-//
-// ************************************************************************
 //@HEADER
-*/
 #ifndef KOKKOS_DETECTION_IDIOM_HPP
 #define KOKKOS_DETECTION_IDIOM_HPP
 #ifndef KOKKOS_IMPL_PUBLIC_INCLUDE
@@ -48,7 +20,9 @@
 #define KOKKOS_IMPL_PUBLIC_INCLUDE_NOTDEFINED_DETECTIONIDIOM
 #endif
 
-#include <impl/Kokkos_Utilities.hpp>  // void_t
+#include <Kokkos_Macros.hpp>  // FIXME doesn't actually need it if it wasn't
+                              // for the header self-containment test
+
 #include <type_traits>
 
 // NOTE This header implements the detection idiom from Version 2 of the C++
@@ -73,7 +47,7 @@ struct detector {
 
 // specialization recognizes and handles only types supporting Op
 template <class Default, template <class...> class Op, class... Args>
-struct detector<Default, void_t<Op<Args...>>, Op, Args...> {
+struct detector<Default, std::void_t<Op<Args...>>, Op, Args...> {
   using value_t = std::true_type;
   using type    = Op<Args...>;
 };
@@ -102,7 +76,6 @@ template <class To, template <class...> class Op, class... Args>
 using is_detected_convertible =
     std::is_convertible<detected_t<Op, Args...>, To>;
 
-#ifdef KOKKOS_ENABLE_CXX17
 template <template <class...> class Op, class... Args>
 inline constexpr bool is_detected_v = is_detected<Op, Args...>::value;
 
@@ -113,7 +86,6 @@ inline constexpr bool is_detected_exact_v =
 template <class Expected, template <class...> class Op, class... Args>
 inline constexpr bool is_detected_convertible_v =
     is_detected_convertible<Expected, Op, Args...>::value;
-#endif
 
 }  // namespace Kokkos
 

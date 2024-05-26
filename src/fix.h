@@ -72,13 +72,13 @@ class Fix : protected Pointers {
   int dynamic_group_allow;     // 1 if can be used with dynamic group, else 0
   int dof_flag;                // 1 if has dof() method (not min_dof())
   int special_alter_flag;      // 1 if has special_alter() meth for spec lists
-  int enforce2d_flag;          // 1 if has enforce2d method
   int respa_level_support;     // 1 if fix supports fix_modify respa
   int respa_level;             // which respa level to apply fix (1-Nrespa)
   int maxexchange;             // max # of per-atom values for Comm::exchange()
   int maxexchange_dynamic;     // 1 if fix sets maxexchange dynamically
   int pre_exchange_migrate;    // 1 if fix migrates atoms in pre_exchange()
   int stores_ids;              // 1 if fix stores atom IDs
+  int diam_flag;               // 1 if fix may change partical diameter
 
   int scalar_flag;                 // 0/1 if compute_scalar() function exists
   int vector_flag;                 // 0/1 if compute_vector() function exists
@@ -99,8 +99,8 @@ class Fix : protected Pointers {
   int size_local_cols;    // 0 = vector, N = columns in local array
   int local_freq;         // frequency local data is available at
 
-  int pergrid_flag;       // 0/1 if per-grid data is stored
-  int pergrid_freq;       // frequency per-grid data is available at
+  int pergrid_flag;    // 0/1 if per-grid data is stored
+  int pergrid_freq;    // frequency per-grid data is available at
 
   int extscalar;    // 0/1 if global scalar is intensive/extensive
   int extvector;    // 0/1/-1 if global vector is all int/ext/extlist
@@ -127,10 +127,13 @@ class Fix : protected Pointers {
 
   int restart_reset;    // 1 if restart just re-initialized fix
 
-  // KOKKOS host/device flag and data masks
+  // KOKKOS flags and variables
 
-  int kokkosable;             // 1 if Kokkos fix
-  int forward_comm_device;    // 1 if forward comm on Device
+  int kokkosable;              // 1 if Kokkos fix
+  int forward_comm_device;     // 1 if forward comm on Device
+  int exchange_comm_device;    // 1 if exchange comm on Device
+  int fuse_integrate_flag;     // 1 if can fuse initial integrate with final integrate
+  int sort_device;             // 1 if sort on Device
   ExecutionSpace execution_space;
   unsigned int datamask_read, datamask_modify;
 
@@ -142,6 +145,7 @@ class Fix : protected Pointers {
 
   virtual void post_constructor() {}
   virtual void init() {}
+  void init_flags();
   virtual void init_list(int, class NeighList *) {}
   virtual void setup(int) {}
   virtual void setup_pre_exchange() {}
@@ -159,6 +163,7 @@ class Fix : protected Pointers {
   virtual void pre_reverse(int, int) {}
   virtual void post_force(int) {}
   virtual void final_integrate() {}
+  virtual void fused_integrate(int) {}
   virtual void end_of_step() {}
   virtual void post_run() {}
   virtual void write_restart(FILE *) {}
@@ -219,7 +224,7 @@ class Fix : protected Pointers {
   virtual void unpack_reverse_grid(int, void *, int, int *){};
   virtual void pack_remap_grid(int, void *, int, int *){};
   virtual void unpack_remap_grid(int, void *, int, int *){};
-  virtual int unpack_read_grid(int, char *) {return 0;};
+  virtual int unpack_read_grid(int, char *) { return 0; };
   virtual void pack_write_grid(int, void *){};
   virtual void unpack_write_grid(int, void *, int *){};
 
@@ -232,11 +237,10 @@ class Fix : protected Pointers {
   virtual double compute_vector(int) { return 0.0; }
   virtual double compute_array(int, int) { return 0.0; }
 
-  virtual int dof(int) { return 0; }
+  virtual bigint dof(int) { return 0; }
   virtual void deform(int) {}
   virtual void reset_target(double) {}
   virtual void reset_dt() {}
-  virtual void enforce2d() {}
 
   virtual void read_data_header(char *) {}
   virtual void read_data_section(char *, int, char *, tagint) {}

@@ -6,7 +6,7 @@ fix_modify AtC remove_species command
 Syntax
 """"""
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    fix_modify <AtC fixID> remove_species <tag>
 

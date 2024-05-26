@@ -43,8 +43,7 @@ given by
 .. math::
 
    E = 4 \epsilon \left[ \left(\frac{\sigma}{r}\right)^{12} -
-       \left(\frac{\sigma}{r}\right)^6 \right]
-                       \qquad r < r_c
+       \left(\frac{\sigma}{r}\right)^6 \right]   \qquad r < r_c
 
 :math:`r_c` is the cutoff.
 
@@ -64,11 +63,23 @@ file or restart files read by the :doc:`read_data <read_data>` or
 * :math:`\sigma` (distance units)
 * LJ cutoff (distance units)
 
-Note that :math:`\sigma` is defined in the LJ formula as the zero-crossing
-distance for the potential, not as the energy minimum at :math:`2^{\frac{1}{6}} \sigma`.
-
 The last coefficient is optional.  If not specified, the global
 LJ cutoff specified in the pair_style command is used.
+
+Note that :math:`\sigma` is defined in the LJ formula as the
+zero-crossing distance for the potential, *not* as the energy minimum at
+:math:`r_0 = 2^{\frac{1}{6}} \sigma`.  The _same_ potential function becomes:
+
+.. math::
+
+  E = \epsilon \left[ \left(\frac{r_0}{r}\right)^{12} -
+       2 \left(\frac{r_0}{r}\right)^6 \right]  \qquad r < r_c
+
+When using the minimum as reference width. In the literature both
+formulations are used, but the describe the same potential, only the
+:math:`\sigma` value must be computed by :math:`\sigma = r_0 /
+2^{\frac{1}{6}}` for use with LAMMPS, if this latter formulation is
+used.
 
 ----------
 

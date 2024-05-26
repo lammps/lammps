@@ -6,7 +6,7 @@ fix rigid/meso command
 Syntax
 """"""
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    fix ID group-ID rigid/meso bodystyle args keyword values ...
 

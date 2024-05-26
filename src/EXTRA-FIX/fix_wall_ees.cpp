@@ -116,7 +116,7 @@ void FixWallEES::wall_particle(int m, int which, double coord)
       nhat[(dim+2)%3] = 0 ;
 
 
-      double* shape = bonus[ellipsoid[i]].shape;;
+      double* shape = bonus[ellipsoid[i]].shape;
       MathExtra::quat_to_mat(bonus[ellipsoid[i]].quat,A);
       MathExtra::transpose_matvec(A,nhat,tempvec);
       for (int k = 0; k<3; k++) {

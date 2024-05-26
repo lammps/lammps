@@ -20,13 +20,10 @@
 #include "force.h"
 #include "kokkos.h"
 #include "memory_kokkos.h"
-#include "neigh_list.h"
 #include "neigh_request.h"
 #include "neighbor.h"
 #include "respa.h"
 #include "update.h"
-
-#include <cstring>
 
 using namespace LAMMPS_NS;
 
@@ -216,9 +213,9 @@ void PairLJCutKokkos<DeviceType>::init_style()
 
   neighflag = lmp->kokkos->neighflag;
   auto request = neighbor->find_request(this);
-  request->set_kokkos_host(std::is_same<DeviceType,LMPHostType>::value &&
-                           !std::is_same<DeviceType,LMPDeviceType>::value);
-  request->set_kokkos_device(std::is_same<DeviceType,LMPDeviceType>::value);
+  request->set_kokkos_host(std::is_same_v<DeviceType,LMPHostType> &&
+                           !std::is_same_v<DeviceType,LMPDeviceType>);
+  request->set_kokkos_device(std::is_same_v<DeviceType,LMPDeviceType>);
   if (neighflag == FULL) request->enable_full();
 }
 

@@ -95,6 +95,8 @@ class FixNeighHistory : public Fix {
 
   // Shift by HISTBITS and check the first bit
   inline int histmask(int j) const { return j >> HISTBITS & 1; }
+
+  enum { DEFAULT, NPARTNER, PERPARTNER };
 };
 
 }    // namespace LAMMPS_NS

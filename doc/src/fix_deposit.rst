@@ -6,7 +6,7 @@ fix deposit command
 Syntax
 """"""
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    fix ID group-ID deposit N type M seed keyword values ...
 
@@ -17,12 +17,16 @@ Syntax
 * M = insert a single atom or molecule every M steps
 * seed = random # seed (positive integer)
 * one or more keyword/value pairs may be appended to args
-* keyword = *region* or *id* or *global* or *local* or *near* or *gaussian* or *attempt* or *rate* or *vx* or *vy* or *vz* or *target* or *mol* or *molfrac* or *rigid* or *shake* or *orient* or *units*
+* keyword = *region* or *var* or *set* or *id* or *global* or *local* or *near* or *gaussian* or *attempt* or *rate* or *vx* or *vy* or *vz* or *target* or *mol* or *molfrac* or *rigid* or *shake* or *orient* or *units*
 
   .. parsed-literal::
 
        *region* value = region-ID
          region-ID = ID of region to use as insertion volume
+       *var* value = name = variable name to evaluate for test of atom creation
+       *set* values = dim name
+         dim = *x* or *y* or *z*
+         name = name of variable to set with x, y, or z atom position
        *id* value = *max* or *next*
          max = atom ID for new atom(s) is max ID of all current atoms plus one
          next = atom ID for new atom(s) increments by one for every deposition
@@ -95,10 +99,9 @@ default group "all" and the group specified in the fix deposit command
 (which can also be "all").
 
 If you are computing temperature values which include inserted
-particles, you will want to use the
-:doc:`compute_modify <compute_modify>` dynamic option, which ensures the
-current number of atoms is used as a normalizing factor each time the
-temperature is computed.
+particles, you will want to use the :doc:`compute_modify dynamic/dof yes
+<compute_modify>` option, which ensures the current number of atoms is
+used as a normalizing factor each time the temperature is computed.
 
 Care must be taken that inserted particles are not too near existing
 atoms, using the options described below.  When inserting particles
@@ -160,15 +163,17 @@ command which also appears in your input script.
 
 .. note::
 
-   If you wish the new rigid molecules (and other rigid molecules)
-   to be thermostatted correctly via :doc:`fix rigid/small/nvt <fix_rigid>`
-   or :doc:`fix rigid/small/npt <fix_rigid>`, then you need to use the
-   "fix_modify dynamic/dof yes" command for the rigid fix.  This is to
-   inform that fix that the molecule count will vary dynamically.
+   If you wish the new rigid molecules (and other rigid molecules) to be
+   thermostatted correctly via :doc:`fix rigid/small/nvt <fix_rigid>` or
+   :doc:`fix rigid/small/npt <fix_rigid>`, then you need to use the
+   :doc:`fix_modify dynamic/dof yes <fix_modify>` command for the rigid
+   fix.  This is to inform that fix that the molecule count will vary
+   dynamically.
 
 If you wish to insert molecules via the *mol* keyword, that will have
 their bonds or angles constrained via SHAKE, use the *shake* keyword,
-specifying as its value the ID of a separate :doc:`fix shake <fix_shake>` command which also appears in your input script.
+specifying as its value the ID of a separate :doc:`fix shake
+<fix_shake>` command which also appears in your input script.
 
 Each timestep a particle is inserted, the coordinates for its atoms
 are chosen as follows.  For insertion of individual atoms, the
@@ -192,17 +197,19 @@ simulation that is "nearby" the chosen x,y position.  In this context,
 particles is less than the *delta* setting.
 
 Once a trial x,y,z position has been selected, the insertion is only
-performed if no current atom in the simulation is within a distance R
-of any atom in the new particle, including the effect of periodic
-boundary conditions if applicable.  R is defined by the *near*
-keyword.  Note that the default value for R is 0.0, which will allow
-atoms to strongly overlap if you are inserting where other atoms are
-present.  This distance test is performed independently for each atom
-in an inserted molecule, based on the randomly rotated configuration
-of the molecule.  If this test fails, a new random position within the
-insertion volume is chosen and another trial is made.  Up to Q
-attempts are made.  If the particle is not successfully inserted,
-LAMMPS prints a warning message.
+performed if both the *near* and *var* keywords are satisfied (see below).
+If either the *near* or the *var* keyword is not satisfied, a new random
+position within the insertion volume is chosen and another trial is made.
+Up to Q attempts are made.  If one or more particle insertions are not
+successful, LAMMPS prints a warning message.
+
+The *near* keyword ensures that no current atom in the simulation is within
+a distance R of any atom in the new particle, including the effect of
+periodic boundary conditions if applicable.  Note that the default value
+for R is 0.0, which will allow atoms to strongly overlap if you are
+inserting where other atoms are present.  This distance test is performed
+independently for each atom in an inserted molecule, based on the randomly
+rotated configuration of the molecule.
 
 .. note::
 
@@ -212,6 +219,26 @@ LAMMPS prints a warning message.
    particle may overlap with either a previously inserted particle or an
    existing particle.  LAMMPS will issue a warning if R is smaller than
    this value, based on the radii of existing and inserted particles.
+
+.. versionadded:: 21Nov2023
+
+The *var* and *set* keywords can be used together to provide a criterion
+for accepting or rejecting the addition of an individual atom, based on its
+coordinates.  The *name* specified for the *var* keyword is the name of an
+:doc:`equal-style variable <variable>` that should evaluate to a zero or
+non-zero value based on one or two or three variables that will store the
+*x*, *y*, or *z* coordinates of an atom (one variable per coordinate).  If
+used, these other variables must be :doc:`internal-style variables
+<variable>` defined in the input script; their initial numeric value can be
+anything. They must be internal-style variables, because this command
+resets their values directly.  The *set* keyword is used to identify the
+names of these other variables, one variable for the *x*-coordinate of a
+created atom, one for *y*, and one for *z*.  When an atom is created, its
+:math:`(x,y,z)` coordinates become the values for any *set* variable that
+is defined.  The *var* variable is then evaluated.  If the returned value
+is 0.0, the atom is not created.  If it is non-zero, the atom is created.
+For an example of how to use these keywords, see the
+:doc:`create_atoms <create_atoms>` command.
 
 The *rate* option moves the insertion volume in the z direction (3d)
 or y direction (2d).  This enables particles to be inserted from a
@@ -268,8 +295,8 @@ units of distance or velocity.
 
    If you are monitoring the temperature of a system where the atom
    count is changing due to adding particles, you typically should use
-   the :doc:`compute_modify dynamic yes <compute_modify>` command for the
-   temperature compute you are using.
+   the :doc:`compute_modify dynamic/dof yes <compute_modify>` command
+   for the temperature compute you are using.
 
 Restart, fix_modify, output, run start/stop, minimize info
 """""""""""""""""""""""""""""""""""""""""""""""""""""""""""
@@ -288,10 +315,11 @@ operation of the fix continues in an uninterrupted fashion.
    The fix will try to detect it and stop with an error.
 
 None of the :doc:`fix_modify <fix_modify>` options are relevant to this
-fix.  No global or per-atom quantities are stored by this fix for
-access by various :doc:`output commands <Howto_output>`.  No parameter
-of this fix can be used with the *start/stop* keywords of the
-:doc:`run <run>` command.  This fix is not invoked during :doc:`energy minimization <minimize>`.
+fix.  This fix computes a global scalar, which can be accessed by various
+output commands.  The scalar is the cumulative number of insertions.  The
+scalar value calculated by this fix is "intensive".  No parameter of this
+fix can be used with the *start/stop* keywords of the :doc:`run <run>`
+command.  This fix is not invoked during :doc:`energy minimization <minimize>`.
 
 Restrictions
 """"""""""""

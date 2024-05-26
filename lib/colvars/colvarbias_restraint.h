@@ -123,6 +123,9 @@ protected:
   /// \brief Changing force constant?
   bool b_chg_force_k;
 
+  /// \brief Perform decoupling of the restraint?
+  bool b_decoupling;
+
   /// \brief Number of stages over which to perform the change
   /// If zero, perform a continuous change
   int target_nstages;
@@ -136,6 +139,9 @@ protected:
   /// \brief Number of steps required to reach the target force constant
   /// or restraint centers
   cvm::step_number target_nsteps;
+
+  /// \brief Timestep at which the restraint starts moving
+  cvm::step_number first_step;
 
   /// \brief Accumulated work (computed when outputAccumulatedWork == true)
   cvm::real acc_work;
@@ -207,7 +213,7 @@ protected:
   cvm::real starting_force_k;
 
   /// \brief Exponent for varying the force constant
-  cvm::real force_k_exp;
+  cvm::real lambda_exp;
 
   /// \brief Intermediate quantity to compute the restraint free energy
   /// (in TI, would be the accumulating FE derivative)

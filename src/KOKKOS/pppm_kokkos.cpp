@@ -20,6 +20,7 @@
 
 #include "atom_kokkos.h"
 #include "atom_masks.h"
+#include "comm.h"
 #include "domain.h"
 #include "error.h"
 #include "fft3d_kokkos.h"
@@ -39,22 +40,14 @@ using namespace LAMMPS_NS;
 using namespace MathConst;
 using namespace MathSpecialKokkos;
 
-#define MAXORDER 7
-#define OFFSET 16384
-#define LARGE 10000.0
-#define SMALL 0.00001
-#define EPS_HOC 1.0e-7
+static constexpr int MAXORDER = 7;
+static constexpr int OFFSET = 16384;
+static constexpr double SMALL = 0.00001;
+static constexpr double EPS_HOC = 1.0e-7;
+static constexpr FFT_SCALAR ZEROF = 0.0;
 
-enum{REVERSE_RHO};
-enum{FORWARD_IK,FORWARD_IK_PERATOM};
-
-#ifdef FFT_SINGLE
-#define ZEROF 0.0f
-#define ONEF  1.0f
-#else
-#define ZEROF 0.0
-#define ONEF  1.0
-#endif
+enum { REVERSE_RHO };
+enum { FORWARD_IK, FORWARD_IK_PERATOM };
 
 /* ---------------------------------------------------------------------- */
 
@@ -113,6 +106,13 @@ PPPMKokkos<DeviceType>::PPPMKokkos(LAMMPS *lmp) : PPPM(lmp)
   fft1 = nullptr;
   fft2 = nullptr;
   remap = nullptr;
+
+#if defined (LMP_KOKKOS_GPU)
+  #if defined(FFT_KOKKOS_KISS)
+    if (comm->me == 0)
+      error->warning(FLERR,"Using default KISS FFT with Kokkos GPU backends may give suboptimal performance");
+  #endif
+#endif
 }
 
 /* ----------------------------------------------------------------------
@@ -138,7 +138,7 @@ PPPMKokkos<DeviceType>::~PPPMKokkos()
 template<class DeviceType>
 void PPPMKokkos<DeviceType>::init()
 {
-  if (me == 0) utils::logmesg(lmp,"PPPM initialization ...\n");
+  if (me == 0) utils::logmesg(lmp,"PPPM Kokkos initialization ...\n");
 
   // error check
 
@@ -146,6 +146,10 @@ void PPPMKokkos<DeviceType>::init()
     error->all(FLERR,"Cannot (yet) use PPPM Kokkos with 'kspace_modify diff ad'");
 
   triclinic_check();
+
+  if (triclinic != domain->triclinic)
+    error->all(FLERR,"Must redefine kspace_style after changing to triclinic box");
+
   if (domain->triclinic && slabflag)
     error->all(FLERR,"Cannot (yet) use PPPM with triclinic box and slab correction");
   if (domain->dimension == 2)
@@ -281,7 +285,7 @@ void PPPMKokkos<DeviceType>::init()
                        estimated_accuracy);
     mesg += fmt::format("  estimated relative force accuracy = {:.8g}\n",
                        estimated_accuracy/two_charge_force);
-    mesg += "  using " LMP_FFT_PREC " precision " LMP_FFT_LIB "\n";
+    mesg += "  using " LMP_FFT_PREC " precision " LMP_FFT_KOKKOS_LIB "\n";
     mesg += fmt::format("  3d grid and FFT values/proc = {} {}\n",
                        ngrid_max,nfft_both_max);
     utils::logmesg(lmp,mesg);
@@ -1367,8 +1371,6 @@ void PPPMKokkos<DeviceType>::operator()(TagPPPM_brick2fft, const int &ii) const
 template<class DeviceType>
 void PPPMKokkos<DeviceType>::poisson_ik()
 {
-  int j;
-
   // transform charge density (r -> k)
 
   copymode = 1;
@@ -1379,7 +1381,8 @@ void PPPMKokkos<DeviceType>::poisson_ik()
 
   // global energy and virial contribution
 
-  scaleinv = 1.0/(nx_pppm*ny_pppm*nz_pppm);
+  bigint ngridtotal = (bigint) nx_pppm * ny_pppm * nz_pppm;
+  scaleinv = 1.0/ngridtotal;
   s2 = scaleinv*scaleinv;
 
   if (eflag_global || vflag_global) {
@@ -1388,7 +1391,7 @@ void PPPMKokkos<DeviceType>::poisson_ik()
       copymode = 1;
       Kokkos::parallel_reduce(Kokkos::RangePolicy<DeviceType, TagPPPM_poisson_ik2>(0,nfft),*this,ev);
       copymode = 0;
-      for (j = 0; j < 6; j++) virial[j] += ev.v[j];
+      for (int j = 0; j < 6; j++) virial[j] += ev.v[j];
       energy += ev.ecoul;
     } else {
       copymode = 1;

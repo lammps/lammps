@@ -114,6 +114,7 @@ accelerated styles exist.
 
 * :doc:`adp <pair_adp>` - angular dependent potential (ADP) of Mishin
 * :doc:`agni <pair_agni>` - AGNI machine-learning potential
+* :doc:`aip/water/2dm <pair_aip_water_2dm>` - anisotropic interfacial potential for water in 2d geometries
 * :doc:`airebo <pair_airebo>` - AIREBO potential of Stuart
 * :doc:`airebo/morse <pair_airebo>` - AIREBO with Morse instead of LJ
 * :doc:`amoeba <pair_amoeba>` -
@@ -215,6 +216,7 @@ accelerated styles exist.
 * :doc:`lennard/mdf <pair_mdf>` - LJ potential in A/B form with a taper function
 * :doc:`lepton <pair_lepton>` - pair potential from evaluating a string
 * :doc:`lepton/coul <pair_lepton>` - pair potential from evaluating a string with support for charges
+* :doc:`lepton/sphere <pair_lepton>` - pair potential from evaluating a string with support for radii
 * :doc:`line/lj <pair_line_lj>` - LJ potential between line segments
 * :doc:`list <pair_list>` - potential between pairs of atoms explicitly listed in an input file
 * :doc:`lj/charmm/coul/charmm <pair_charmm>` - CHARMM potential with cutoff Coulomb
@@ -249,12 +251,14 @@ accelerated styles exist.
 * :doc:`lj/cut/dipole/cut <pair_dipole>` - point dipoles with cutoff
 * :doc:`lj/cut/dipole/long <pair_dipole>` - point dipoles with long-range Ewald
 * :doc:`lj/cut/soft <pair_fep_soft>` - LJ with a soft core
+* :doc:`lj/cut/sphere <pair_lj_cut_sphere>` - LJ where per-atom radius is used as LJ sigma
 * :doc:`lj/cut/thole/long <pair_thole>` - LJ with Coulomb with thole damping
 * :doc:`lj/cut/tip4p/cut <pair_lj_cut_tip4p>` - LJ with cutoff Coulomb for TIP4P water
 * :doc:`lj/cut/tip4p/long <pair_lj_cut_tip4p>` - LJ with long-range Coulomb for TIP4P water
 * :doc:`lj/cut/tip4p/long/soft <pair_fep_soft>` - LJ with cutoff Coulomb for TIP4P water with a soft core
 * :doc:`lj/expand <pair_lj_expand>` - Lennard-Jones for variable size particles
 * :doc:`lj/expand/coul/long <pair_lj_expand>` - Lennard-Jones for variable size particles with long-range Coulomb
+* :doc:`lj/expand/sphere <pair_lj_expand_sphere>` - Variable size LJ where per-atom radius is used as delta (size)
 * :doc:`lj/gromacs <pair_gromacs>` - GROMACS-style Lennard-Jones potential
 * :doc:`lj/gromacs/coul/gromacs <pair_gromacs>` - GROMACS-style LJ and Coulomb potential
 * :doc:`lj/long/coul/long <pair_lj_long>` - long-range LJ and long-range Coulomb
@@ -271,29 +275,30 @@ accelerated styles exist.
 * :doc:`lj/smooth/linear <pair_lj_smooth_linear>` - linear smoothed LJ potential
 * :doc:`lj/switch3/coulgauss/long <pair_lj_switch3_coulgauss_long>` - smoothed LJ vdW potential with Gaussian electrostatics
 * :doc:`lj96/cut <pair_lj96>` - Lennard-Jones 9/6 potential
-* :doc:`local/density <pair_local_density>` - generalized basic local density potential
-* :doc:`lubricate <pair_lubricate>` - hydrodynamic lubrication forces
-* :doc:`lubricate/poly <pair_lubricate>` - hydrodynamic lubrication forces with polydispersity
-* :doc:`lubricateU <pair_lubricateU>` - hydrodynamic lubrication forces for Fast Lubrication Dynamics
-* :doc:`lubricateU/poly <pair_lubricateU>` - hydrodynamic lubrication forces for Fast Lubrication with polydispersity
+* :doc:`local/density <pair_local_density>` - Generalized basic local density potential
+* :doc:`lubricate <pair_lubricate>` - Hydrodynamic lubrication forces
+* :doc:`lubricate/poly <pair_lubricate>` - Hydrodynamic lubrication forces with polydispersity
+* :doc:`lubricateU <pair_lubricateU>` - Hydrodynamic lubrication forces for Fast Lubrication Dynamics
+* :doc:`lubricateU/poly <pair_lubricateU>` - Hydrodynamic lubrication forces for Fast Lubrication with polydispersity
 * :doc:`mdpd <pair_mesodpd>` - mDPD particle interactions
 * :doc:`mdpd/rhosum <pair_mesodpd>` - mDPD particle interactions for mass density
-* :doc:`meam <pair_meam>` - modified embedded atom method (MEAM)
-* :doc:`meam/ms <pair_meam>` - multi-state modified embedded atom method (MS-MEAM)
-* :doc:`meam/spline <pair_meam_spline>` - splined version of MEAM
-* :doc:`meam/sw/spline <pair_meam_sw_spline>` - splined version of MEAM with a Stillinger-Weber term
-* :doc:`mesocnt <pair_mesocnt>` - mesoscopic vdW potential for (carbon) nanotubes
-* :doc:`mesocnt/viscous <pair_mesocnt>` - mesoscopic vdW potential for (carbon) nanotubes with friction
-* :doc:`mgpt <pair_mgpt>` - simplified model generalized pseudopotential theory (MGPT) potential
+* :doc:`meam <pair_meam>` - Modified embedded atom method (MEAM)
+* :doc:`meam/ms <pair_meam>` - Multi-state modified embedded atom method (MS-MEAM)
+* :doc:`meam/spline <pair_meam_spline>` - Splined version of MEAM
+* :doc:`meam/sw/spline <pair_meam_sw_spline>` - Splined version of MEAM with a Stillinger-Weber term
+* :doc:`mesocnt <pair_mesocnt>` - Mesoscopic vdW potential for (carbon) nanotubes
+* :doc:`mesocnt/viscous <pair_mesocnt>` - Mesoscopic vdW potential for (carbon) nanotubes with friction
+* :doc:`mgpt <pair_mgpt>` - Simplified model generalized pseudopotential theory (MGPT) potential
 * :doc:`mie/cut <pair_mie>` - Mie potential
-* :doc:`mm3/switch3/coulgauss/long <pair_lj_switch3_coulgauss_long>` - smoothed MM3 vdW potential with Gaussian electrostatics
+* :doc:`mm3/switch3/coulgauss/long <pair_lj_switch3_coulgauss_long>` - Smoothed MM3 vdW potential with Gaussian electrostatics
 * :doc:`momb <pair_momb>` - Many-Body Metal-Organic (MOMB) force field
 * :doc:`morse <pair_morse>` - Morse potential
-* :doc:`morse/smooth/linear <pair_morse>` - linear smoothed Morse potential
+* :doc:`morse/smooth/linear <pair_morse>` - Linear smoothed Morse potential
 * :doc:`morse/soft <pair_morse>` - Morse potential with a soft core
 * :doc:`multi/lucy <pair_multi_lucy>` - DPD potential with density-dependent force
 * :doc:`multi/lucy/rx <pair_multi_lucy_rx>` - reactive DPD potential with density-dependent force
-* :doc:`nb3b/harmonic <pair_nb3b_harmonic>` - non-bonded 3-body harmonic potential
+* :doc:`nb3b/harmonic <pair_nb3b>` - Non-bonded 3-body harmonic potential
+* :doc:`nb3b/screened <pair_nb3b>` - Non-bonded 3-body screened harmonic potential
 * :doc:`nm/cut <pair_nm>` - N-M potential
 * :doc:`nm/cut/coul/cut <pair_nm>` - N-M potential with cutoff Coulomb
 * :doc:`nm/cut/coul/long <pair_nm>` - N-M potential with long-range Coulomb
@@ -317,20 +322,22 @@ accelerated styles exist.
 * :doc:`oxrna2/xstk <pair_oxrna2>` -
 * :doc:`pace <pair_pace>` - Atomic Cluster Expansion (ACE) machine-learning potential
 * :doc:`pace/extrapolation <pair_pace>` - Atomic Cluster Expansion (ACE) machine-learning potential with extrapolation grades
+* :doc:`pedone <pair_pedone>` - Pedone (PMMCS) potential (non-Coulomb part)
 * :doc:`pod <pair_pod>` - Proper orthogonal decomposition (POD) machine-learning potential
-* :doc:`peri/eps <pair_peri>` - peridynamic EPS potential
-* :doc:`peri/lps <pair_peri>` - peridynamic LPS potential
-* :doc:`peri/pmb <pair_peri>` - peridynamic PMB potential
-* :doc:`peri/ves <pair_peri>` - peridynamic VES potential
-* :doc:`polymorphic <pair_polymorphic>` - polymorphic 3-body potential
+* :doc:`peri/eps <pair_peri>` - Peridynamic EPS potential
+* :doc:`peri/lps <pair_peri>` - Peridynamic LPS potential
+* :doc:`peri/pmb <pair_peri>` - Peridynamic PMB potential
+* :doc:`peri/ves <pair_peri>` - Peridynamic VES potential
+* :doc:`polymorphic <pair_polymorphic>` - Polymorphic 3-body potential
 * :doc:`python <pair_python>` -
 * :doc:`quip <pair_quip>` -
 * :doc:`rann <pair_rann>` -
 * :doc:`reaxff <pair_reaxff>` - ReaxFF potential
-* :doc:`rebo <pair_airebo>` - second generation REBO potential of Brenner
+* :doc:`rebo <pair_airebo>` - Second generation REBO potential of Brenner
+* :doc:`rebomos <pair_rebomos>` - REBOMoS potential for MoS2
 * :doc:`resquared <pair_resquared>` - Everaers RE-Squared ellipsoidal potential
-* :doc:`saip/metal <pair_saip_metal>` - interlayer potential for hetero-junctions formed with hexagonal 2D materials and metal surfaces
-* :doc:`sdpd/taitwater/isothermal <pair_sdpd_taitwater_isothermal>` - smoothed dissipative particle dynamics for water at isothermal conditions
+* :doc:`saip/metal <pair_saip_metal>` - Interlayer potential for hetero-junctions formed with hexagonal 2D materials and metal surfaces
+* :doc:`sdpd/taitwater/isothermal <pair_sdpd_taitwater_isothermal>` - Smoothed dissipative particle dynamics for water at isothermal conditions
 * :doc:`smatb <pair_smatb>` - Second Moment Approximation to the Tight Binding
 * :doc:`smatb/single <pair_smatb>` - Second Moment Approximation to the Tight Binding for single-element systems
 * :doc:`smd/hertz <pair_smd_hertz>` -

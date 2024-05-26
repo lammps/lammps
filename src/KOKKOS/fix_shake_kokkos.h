@@ -39,11 +39,10 @@ template<int PBC_FLAG>
 struct TagFixShakePackForwardComm{};
 
 struct TagFixShakeUnpackForwardComm{};
+struct TagFixShakeUnpackExchange{};
 
 template<class DeviceType>
 class FixShakeKokkos : public FixShake, public KokkosBase {
-
- //friend class FixEHEX;
 
  public:
   typedef DeviceType device_type;
@@ -60,13 +59,14 @@ class FixShakeKokkos : public FixShake, public KokkosBase {
 
   void grow_arrays(int) override;
   void copy_arrays(int, int, int) override;
+  void sort_kokkos(Kokkos::BinSort<KeyViewType, BinOp> &Sorter) override;
   void set_arrays(int) override;
   void update_arrays(int, int) override;
   void set_molecule(int, tagint, int, double *, double *, double *) override;
 
   int pack_exchange(int, double *) override;
   int unpack_exchange(int, double *) override;
-  int pack_forward_comm_kokkos(int, DAT::tdual_int_2d, int, DAT::tdual_xfloat_1d&,
+  int pack_forward_comm_kokkos(int, DAT::tdual_int_1d, DAT::tdual_xfloat_1d&,
                        int, int *) override;
   void unpack_forward_comm_kokkos(int, int, DAT::tdual_xfloat_1d&) override;
   int pack_forward_comm(int, int *, double *, int, int *) override;
@@ -75,7 +75,7 @@ class FixShakeKokkos : public FixShake, public KokkosBase {
   void shake_end_of_step(int vflag) override;
   void correct_coordinates(int vflag) override;
 
-  int dof(int) override;
+  bigint dof(int) override;
 
   void unconstrained_update() override;
 
@@ -97,7 +97,24 @@ class FixShakeKokkos : public FixShake, public KokkosBase {
   KOKKOS_INLINE_FUNCTION
   void operator()(TagFixShakeUnpackForwardComm, const int&) const;
 
+  KOKKOS_INLINE_FUNCTION
+  void pack_exchange_item(const int&, int &, const bool &) const;
+
+  KOKKOS_INLINE_FUNCTION
+  void operator()(TagFixShakeUnpackExchange, const int&) const;
+
+  int pack_exchange_kokkos(const int &nsend,DAT::tdual_xfloat_2d &buf,
+                           DAT::tdual_int_1d k_sendlist,
+                           DAT::tdual_int_1d k_copylist,
+                           ExecutionSpace space) override;
+
+  void unpack_exchange_kokkos(DAT::tdual_xfloat_2d &k_buf,
+                              DAT::tdual_int_1d &indices,int nrecv,
+                              int nrecv1,int nrecv1extra,
+                              ExecutionSpace space) override;
+
  protected:
+  int nrecv1,nextrarecv1;
 
   typename AT::t_x_array d_x;
   typename AT::t_v_array d_v;
@@ -143,6 +160,9 @@ class FixShakeKokkos : public FixShake, public KokkosBase {
 
   DAT::tdual_int_scalar k_error_flag;
   DAT::tdual_int_scalar k_nlist;
+
+  typename AT::t_int_scalar d_count;
+  HAT::t_int_scalar h_count;
 
   void stats() override;
 
@@ -191,10 +211,15 @@ class FixShakeKokkos : public FixShake, public KokkosBase {
   KOKKOS_INLINE_FUNCTION
   void v_tally(EV_FLOAT&, int, int *, double, double *) const;
 
-  int iswap;
-  int first;
-  typename AT::t_int_2d d_sendlist;
+  int first,nsend;
+
+  typename AT::t_int_1d d_sendlist;
   typename AT::t_xfloat_1d_um d_buf;
+
+  typename AT::t_int_1d d_exchange_sendlist;
+  typename AT::t_int_1d d_copylist;
+  typename AT::t_int_1d d_indices;
+
   X_FLOAT dx,dy,dz;
 
   int *shake_flag_tmp;
@@ -219,8 +244,19 @@ class FixShakeKokkos : public FixShake, public KokkosBase {
   X_FLOAT xy,xz,yz;
 };
 
+template <class DeviceType>
+struct FixShakeKokkosPackExchangeFunctor {
+  typedef DeviceType device_type;
+  typedef int value_type;
+  FixShakeKokkos<DeviceType> c;
+  FixShakeKokkosPackExchangeFunctor(FixShakeKokkos<DeviceType>* c_ptr):c(*c_ptr) {};
+  KOKKOS_INLINE_FUNCTION
+  void operator()(const int &i, int &offset, const bool &final) const {
+    c.pack_exchange_item(i, offset, final);
+  }
+};
+
 }
 
 #endif
 #endif
-

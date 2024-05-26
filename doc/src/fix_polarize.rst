@@ -14,7 +14,7 @@ fix polarize/functional command
 Syntax
 """"""
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    fix ID group-ID style nevery tolerance
 
@@ -130,9 +130,22 @@ Fix *polarize/functional* employs the energy functional variation
 approach as described in :ref:`(Jadhao) <Jadhao>` to solve
 :math:`\sigma_b`.
 
+The induced charges computed by these fixes are stored in the *q_scaled* field,
+and can be accessed as in the following example:
+
+.. code-block:: LAMMPS
+
+  compute qs all property/atom q_scaled
+  dump 1 all custom 1000 all.txt id type q x y z c_qs
+
+Note that the *q* field is the regular atom charges, which do not change
+during the simulation. For interface particles, *q_scaled* is the sum
+of the real charge, divided by the local dielectric constant *epsilon*,
+and their induced charges. For non-interface particles, *q_scaled* is
+the real charge, divided by the local dielectric constant *epsilon*.
+
 More details on the implementation of these fixes and their recommended
 use are described in :ref:`(NguyenTD) <NguyenTD>`.
-
 
 Restart, fix_modify, output, run start/stop, minimize info
 """"""""""""""""""""""""""""""""""""""""""""""""""""""""""

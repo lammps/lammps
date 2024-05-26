@@ -79,6 +79,8 @@ grdtyp *PPPMT::init(const int nlocal, const int nall, FILE *_screen,
     return nullptr;
   }
 
+  if (ucl_device!=device->gpu) _compiled=false;
+
   ucl_device=device->gpu;
   atom=&device->atom;
 

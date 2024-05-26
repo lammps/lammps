@@ -7,9 +7,12 @@
 // If you wish to distribute your changes, please submit them to the
 // Colvars repository at GitHub.
 
+#include <iostream>
+#include <iomanip>
 #include <cstdlib>
 
 #include "colvarmodule.h"
+#include "colvarproxy.h"
 #include "colvarbias.h"
 #include "colvarbias_alb.h"
 
@@ -36,6 +39,7 @@ colvarbias_alb::colvarbias_alb(char const *key)
 
 int colvarbias_alb::init(std::string const &conf)
 {
+  colvarproxy *proxy = cvm::main()->proxy;
   colvarbias::init(conf);
   cvm::main()->cite_feature("ALB colvar bias implementation");
 
@@ -110,10 +114,12 @@ int colvarbias_alb::init(std::string const &conf)
   if (!get_keyval(conf, "forceRange", max_coupling_range, max_coupling_range)) {
     //set to default
     for (i = 0; i < num_variables(); i++) {
-      if (cvm::temperature() > 0)
-        max_coupling_range[i] =   3 * cvm::temperature() * cvm::boltzmann();
-      else
-        max_coupling_range[i] =   3 * cvm::boltzmann();
+      if (proxy->target_temperature() > 0.0) {
+        max_coupling_range[i] = 3 * proxy->target_temperature() *
+          proxy->boltzmann();
+      } else {
+        max_coupling_range[i] = 3 * proxy->boltzmann();
+      }
     }
   }
 
@@ -139,6 +145,7 @@ colvarbias_alb::~colvarbias_alb()
 
 int colvarbias_alb::update()
 {
+  colvarproxy *proxy = cvm::main()->proxy;
 
   bias_energy = 0.0;
   update_calls++;
@@ -214,10 +221,11 @@ int colvarbias_alb::update()
 
       temp = 2. * (means[i] / (static_cast<cvm::real> (colvar_centers[i])) - 1) * ssd[i] / (update_calls - 1);
 
-      if (cvm::temperature() > 0)
-        step_size = temp / (cvm::temperature()  * cvm::boltzmann());
-      else
-        step_size = temp / cvm::boltzmann();
+      if (proxy->target_temperature() > 0.0) {
+        step_size = temp / (proxy->target_temperature() * proxy->boltzmann());
+      } else {
+        step_size = temp / proxy->boltzmann();
+      }
 
       means[i] = 0;
       ssd[i] = 0;

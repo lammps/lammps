@@ -6,7 +6,7 @@ fix hyper/local command
 Syntax
 """"""
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    fix ID group-ID hyper/local cutbond qfactor Vmax Tequil Dcut alpha Btarget
 
@@ -512,8 +512,7 @@ Value 27 computes the average boost for biased bonds only on this step.
 Value 28 is the count of bonds with an absolute value of strain >= q
 on this step.
 
-The scalar value is an "extensive" quantity since it grows with the
-system size; the vector values are all "intensive".
+The scalar value and vector values are all "intensive".
 
 This fix also computes a local vector of length the number of bonds
 currently in the system.  The value for each bond is its :math:`C_{ij}`

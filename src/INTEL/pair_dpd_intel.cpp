@@ -180,7 +180,7 @@ void PairDPDIntel::eval(const int offload, const int vflag,
   ATOM_T * _noalias const x = buffers->get_x(offload);
   typedef struct { double x, y, z; } lmp_vt;
   auto *v = (lmp_vt *)atom->v[0];
-  const flt_t dtinvsqrt = 1.0/sqrt(update->dt);
+  const flt_t dtinvsqrt = 1.0/std::sqrt(update->dt);
 
   const int * _noalias const ilist = list->ilist;
   const int * _noalias const numneigh = list->numneigh;
@@ -322,7 +322,7 @@ void PairDPDIntel::eval(const int offload, const int vflag,
             icut = parami[jtype].icut;
           }
           const flt_t rsq = delx * delx + dely * dely + delz * delz;
-          const flt_t rinv = (flt_t)1.0/sqrt(rsq);
+          const flt_t rinv = (flt_t)1.0/std::sqrt(rsq);
 
           if (rinv > icut) {
             flt_t factor_dpd, factor_sqrt;

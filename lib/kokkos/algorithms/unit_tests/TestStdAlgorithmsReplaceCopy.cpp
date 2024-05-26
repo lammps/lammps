@@ -1,46 +1,18 @@
-/*
 //@HEADER
 // ************************************************************************
 //
-//                        Kokkos v. 3.0
-//       Copyright (2020) National Technology & Engineering
+//                        Kokkos v. 4.0
+//       Copyright (2022) National Technology & Engineering
 //               Solutions of Sandia, LLC (NTESS).
 //
 // Under the terms of Contract DE-NA0003525 with NTESS,
 // the U.S. Government retains certain rights in this software.
 //
-// Redistribution and use in source and binary forms, with or without
-// modification, are permitted provided that the following conditions are
-// met:
+// Part of Kokkos, under the Apache License v2.0 with LLVM Exceptions.
+// See https://kokkos.org/LICENSE for license information.
+// SPDX-License-Identifier: Apache-2.0 WITH LLVM-exception
 //
-// 1. Redistributions of source code must retain the above copyright
-// notice, this list of conditions and the following disclaimer.
-//
-// 2. Redistributions in binary form must reproduce the above copyright
-// notice, this list of conditions and the following disclaimer in the
-// documentation and/or other materials provided with the distribution.
-//
-// 3. Neither the name of the Corporation nor the names of the
-// contributors may be used to endorse or promote products derived from
-// this software without specific prior written permission.
-//
-// THIS SOFTWARE IS PROVIDED BY NTESS "AS IS" AND ANY
-// EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
-// IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR
-// PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL NTESS OR THE
-// CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
-// EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
-// PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR
-// PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF
-// LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING
-// NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
-// SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-//
-// Questions? Contact Christian R. Trott (crtrott@sandia.gov)
-//
-// ************************************************************************
 //@HEADER
-*/
 
 #include <TestStdAlgorithmsCommon.hpp>
 #include <utility>
@@ -140,40 +112,40 @@ void verify_data(const std::string& name, ViewTypeFrom view_from,
   }
 
   else if (name == "one-element-a") {
-    EXPECT_EQ(view_from_h(0), ValueType{1});
-    EXPECT_EQ(view_test_h(0), view_from_h(0));
+    ASSERT_EQ(view_from_h(0), ValueType{1});
+    ASSERT_EQ(view_test_h(0), view_from_h(0));
   }
 
   else if (name == "one-element-b") {
-    EXPECT_EQ(view_from_h(0), ValueType{2});
-    EXPECT_EQ(view_test_h(0), new_value);
+    ASSERT_EQ(view_from_h(0), ValueType{2});
+    ASSERT_EQ(view_test_h(0), new_value);
   }
 
   else if (name == "two-elements-a") {
-    EXPECT_EQ(view_from_h(0), ValueType{1});
-    EXPECT_EQ(view_from_h(1), ValueType{2});
+    ASSERT_EQ(view_from_h(0), ValueType{1});
+    ASSERT_EQ(view_from_h(1), ValueType{2});
 
-    EXPECT_EQ(view_test_h(0), view_from_h(0));
-    EXPECT_EQ(view_test_h(1), new_value);
+    ASSERT_EQ(view_test_h(0), view_from_h(0));
+    ASSERT_EQ(view_test_h(1), new_value);
   }
 
   else if (name == "two-elements-b") {
-    EXPECT_EQ(view_from_h(0), ValueType{2});
-    EXPECT_EQ(view_from_h(1), ValueType{-1});
+    ASSERT_EQ(view_from_h(0), ValueType{2});
+    ASSERT_EQ(view_from_h(1), ValueType{-1});
 
-    EXPECT_EQ(view_test_h(0), new_value);
-    EXPECT_EQ(view_test_h(1), view_from_h(1));
+    ASSERT_EQ(view_test_h(0), new_value);
+    ASSERT_EQ(view_test_h(1), view_from_h(1));
   }
 
   else if (name == "small-a") {
     for (std::size_t i = 0; i < view_test_h.extent(0); ++i) {
       if (i == 0 || i == 3 || i == 5 || i == 6) {
-        EXPECT_EQ(view_from_h(i), ValueType{2});
-        EXPECT_EQ(view_test_h(i), new_value);
+        ASSERT_EQ(view_from_h(i), ValueType{2});
+        ASSERT_EQ(view_test_h(i), new_value);
       } else {
         const auto gold = ValueType{-5} + static_cast<ValueType>(i + 1);
-        EXPECT_EQ(view_from_h(i), gold);
-        EXPECT_EQ(view_test_h(i), gold);
+        ASSERT_EQ(view_from_h(i), gold);
+        ASSERT_EQ(view_test_h(i), gold);
       }
     }
   }
@@ -181,11 +153,11 @@ void verify_data(const std::string& name, ViewTypeFrom view_from,
   else if (name == "small-b") {
     for (std::size_t i = 0; i < view_test_h.extent(0); ++i) {
       if (i < 4) {
-        EXPECT_EQ(view_from_h(i), ValueType{-1});
-        EXPECT_EQ(view_test_h(i), view_from_h(i));
+        ASSERT_EQ(view_from_h(i), ValueType{-1});
+        ASSERT_EQ(view_test_h(i), view_from_h(i));
       } else {
-        EXPECT_EQ(view_from_h(i), ValueType{2});
-        EXPECT_EQ(view_test_h(i), new_value);
+        ASSERT_EQ(view_from_h(i), ValueType{2});
+        ASSERT_EQ(view_test_h(i), new_value);
       }
     }
   }
@@ -193,11 +165,11 @@ void verify_data(const std::string& name, ViewTypeFrom view_from,
   else if (name == "medium" || name == "large") {
     for (std::size_t i = 0; i < view_test_h.extent(0); ++i) {
       if (i % 2 == 0) {
-        EXPECT_EQ(view_from_h(i), ValueType{-1});
-        EXPECT_EQ(view_test_h(i), view_from_h(i));
+        ASSERT_EQ(view_from_h(i), ValueType{-1});
+        ASSERT_EQ(view_test_h(i), view_from_h(i));
       } else {
-        EXPECT_EQ(view_from_h(i), ValueType{2});
-        EXPECT_EQ(view_test_h(i), new_value);
+        ASSERT_EQ(view_from_h(i), ValueType{2});
+        ASSERT_EQ(view_test_h(i), new_value);
       }
     }
   }
@@ -230,7 +202,7 @@ void run_single_scenario(const InfoType& scenario_info) {
         KE::replace_copy(exespace(), KE::cbegin(view_from), KE::cend(view_from),
                          KE::begin(view_dest), old_value, new_value);
     verify_data(name, view_from, view_dest, new_value);
-    EXPECT_EQ(rit, (KE::begin(view_dest) + view_ext));
+    ASSERT_EQ(rit, (KE::begin(view_dest) + view_ext));
   }
 
   {
@@ -243,7 +215,7 @@ void run_single_scenario(const InfoType& scenario_info) {
                                 KE::cend(view_from), KE::begin(view_dest),
                                 old_value, new_value);
     verify_data(name, view_from, view_dest, new_value);
-    EXPECT_EQ(rit, (KE::begin(view_dest) + view_ext));
+    ASSERT_EQ(rit, (KE::begin(view_dest) + view_ext));
   }
 
   {
@@ -255,7 +227,7 @@ void run_single_scenario(const InfoType& scenario_info) {
     auto rit = KE::replace_copy(exespace(), view_from, view_dest, old_value,
                                 new_value);
     verify_data(name, view_from, view_dest, new_value);
-    EXPECT_EQ(rit, (KE::begin(view_dest) + view_ext));
+    ASSERT_EQ(rit, (KE::begin(view_dest) + view_ext));
   }
 
   {
@@ -267,7 +239,7 @@ void run_single_scenario(const InfoType& scenario_info) {
     auto rit = KE::replace_copy("label", exespace(), view_from, view_dest,
                                 old_value, new_value);
     verify_data(name, view_from, view_dest, new_value);
-    EXPECT_EQ(rit, (KE::begin(view_dest) + view_ext));
+    ASSERT_EQ(rit, (KE::begin(view_dest) + view_ext));
   }
 
   Kokkos::fence();

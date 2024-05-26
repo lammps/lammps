@@ -6,7 +6,7 @@ fix nvt/manifold/rattle command
 Syntax
 """"""
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    fix ID group-ID nvt/manifold/rattle tol maxit manifold manifold-args keyword value ...
 

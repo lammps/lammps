@@ -6,7 +6,7 @@ set command
 Syntax
 """"""
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    set style ID keyword values ...
 

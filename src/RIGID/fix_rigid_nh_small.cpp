@@ -46,83 +46,62 @@ using namespace RigidConst;
 /* ---------------------------------------------------------------------- */
 
 FixRigidNHSmall::FixRigidNHSmall(LAMMPS *lmp, int narg, char **arg) :
-  FixRigidSmall(lmp, narg, arg), w(nullptr), wdti1(nullptr),
-  wdti2(nullptr), wdti4(nullptr), q_t(nullptr), q_r(nullptr), eta_t(nullptr),
-  eta_r(nullptr), eta_dot_t(nullptr), eta_dot_r(nullptr), f_eta_t(nullptr),
-  f_eta_r(nullptr), q_b(nullptr), eta_b(nullptr), eta_dot_b(nullptr),
-  f_eta_b(nullptr), rfix(nullptr), id_temp(nullptr), id_press(nullptr),
-  temperature(nullptr), pressure(nullptr)
+    FixRigidSmall(lmp, narg, arg), w(nullptr), wdti1(nullptr), wdti2(nullptr), wdti4(nullptr),
+    q_t(nullptr), q_r(nullptr), eta_t(nullptr), eta_r(nullptr), eta_dot_t(nullptr),
+    eta_dot_r(nullptr), f_eta_t(nullptr), f_eta_r(nullptr), q_b(nullptr), eta_b(nullptr),
+    eta_dot_b(nullptr), f_eta_b(nullptr), id_temp(nullptr), id_press(nullptr),
+    temperature(nullptr), pressure(nullptr)
 {
   if (tstat_flag || pstat_flag) ecouple_flag = 1;
 
   // error checks
 
-  if ((p_flag[0] == 1 && p_period[0] <= 0.0) ||
-      (p_flag[1] == 1 && p_period[1] <= 0.0) ||
-      (p_flag[2] == 1 && p_period[2] <= 0.0))
-    error->all(FLERR,"Fix rigid/small npt/nph period must be > 0.0");
-
-  dimension = domain->dimension;
-
-  if (dimension == 2 && p_flag[2])
-    error->all(FLERR,"Invalid fix rigid/small npt/nph command "
-               "for a 2d simulation");
-  if (dimension == 2 && (pcouple == YZ || pcouple == XZ))
-    error->all(FLERR,"Invalid fix rigid/small npt/nph command "
-               "for a 2d simulation");
+  if (domain->dimension == 2 && p_flag[2])
+    error->all(FLERR,"Invalid fix {} command for a 2d simulation", style);
+  if (domain->dimension == 2 && (pcouple == YZ || pcouple == XZ))
+    error->all(FLERR,"Invalid fix {} command for a 2d simulation", style);
 
   if (pcouple == XYZ && (p_flag[0] == 0 || p_flag[1] == 0))
-    error->all(FLERR,"Invalid fix rigid/small npt/nph command "
-               "pressure settings");
-  if (pcouple == XYZ && dimension == 3 && p_flag[2] == 0)
-    error->all(FLERR,"Invalid fix rigid/small npt/nph command "
-               "pressure settings");
+    error->all(FLERR,"Invalid fix {} command pressure settings", style);
+  if (pcouple == XYZ && domain->dimension == 3 && p_flag[2] == 0)
+    error->all(FLERR,"Invalid fix {} command pressure settings", style);
   if (pcouple == XY && (p_flag[0] == 0 || p_flag[1] == 0))
-    error->all(FLERR,"Invalid fix rigid/small npt/nph command "
-               "pressure settings");
+    error->all(FLERR,"Invalid fix {} command pressure settings", style);
   if (pcouple == YZ && (p_flag[1] == 0 || p_flag[2] == 0))
-    error->all(FLERR,"Invalid fix rigid/small npt/nph command "
-               "pressure settings");
+    error->all(FLERR,"Invalid fix {} command pressure settings", style);
   if (pcouple == XZ && (p_flag[0] == 0 || p_flag[2] == 0))
-    error->all(FLERR,"Invalid fix rigid/small npt/nph command "
-               "pressure settings");
+    error->all(FLERR,"Invalid fix {} command pressure settings", style);
 
   // require periodicity in tensile dimension
 
   if (p_flag[0] && domain->xperiodic == 0)
-    error->all(FLERR,
-               "Cannot use fix rigid/small npt/nph on a "
-               "non-periodic dimension");
+    error->all(FLERR, "Cannot use fix {} on a non-periodic dimension", style);
   if (p_flag[1] && domain->yperiodic == 0)
-    error->all(FLERR,
-               "Cannot use fix rigid/small npt/nph on a "
-               "non-periodic dimension");
+    error->all(FLERR, "Cannot use fix {} on a non-periodic dimension", style);
   if (p_flag[2] && domain->zperiodic == 0)
-    error->all(FLERR,
-               "Cannot use fix rigid/small npt/nph on a "
-               "non-periodic dimension");
+    error->all(FLERR, "Cannot use fix {} on a non-periodic dimension", style);
 
-  if (pcouple == XYZ && dimension == 3 &&
+  if (pcouple == XYZ && domain->dimension == 3 &&
       (p_start[0] != p_start[1] || p_start[0] != p_start[2] ||
        p_stop[0] != p_stop[1] || p_stop[0] != p_stop[2] ||
        p_period[0] != p_period[1] || p_period[0] != p_period[2]))
-    error->all(FLERR,"Invalid fix rigid/small npt/nph command pressure settings");
-  if (pcouple == XYZ && dimension == 2 &&
+    error->all(FLERR, "Invalid fix {} command pressure settings", style);
+  if (pcouple == XYZ && domain->dimension == 2 &&
       (p_start[0] != p_start[1] || p_stop[0] != p_stop[1] ||
        p_period[0] != p_period[1]))
-    error->all(FLERR,"Invalid fix rigid/small npt/nph command pressure settings");
+    error->all(FLERR, "Invalid fix {} command pressure settings", style);
   if (pcouple == XY &&
       (p_start[0] != p_start[1] || p_stop[0] != p_stop[1] ||
        p_period[0] != p_period[1]))
-    error->all(FLERR,"Invalid fix rigid/small npt/nph command pressure settings");
+    error->all(FLERR, "Invalid fix {} command pressure settings", style);
   if (pcouple == YZ &&
       (p_start[1] != p_start[2] || p_stop[1] != p_stop[2] ||
        p_period[1] != p_period[2]))
-    error->all(FLERR,"Invalid fix rigid/small npt/nph command pressure settings");
+    error->all(FLERR, "Invalid fix {} command pressure settings", style);
   if (pcouple == XZ &&
       (p_start[0] != p_start[2] || p_stop[0] != p_stop[2] ||
        p_period[0] != p_period[2]))
-    error->all(FLERR,"Invalid fix rigid/small npt/nph command pressure settings");
+    error->all(FLERR, "Invalid fix {} command pressure settings", style);
 
   if (p_flag[0]) box_change |= BOX_CHANGE_X;
   if (p_flag[1]) box_change |= BOX_CHANGE_Y;
@@ -132,8 +111,7 @@ FixRigidNHSmall::FixRigidNHSmall(LAMMPS *lmp, int narg, char **arg) :
       (p_flag[0] && p_period[0] <= 0.0) ||
       (p_flag[1] && p_period[1] <= 0.0) ||
       (p_flag[2] && p_period[2] <= 0.0))
-    error->all(FLERR,"Fix rigid/small nvt/npt/nph damping parameters "
-               "must be > 0.0");
+    error->all(FLERR,"Fix {} damping parameters must be > 0.0", style);
 
   // memory allocation and initialization
 
@@ -160,19 +138,11 @@ FixRigidNHSmall::FixRigidNHSmall(LAMMPS *lmp, int narg, char **arg) :
       eta_b[i] = eta_dot_b[i] = 0.0;
   }
 
-  // rigid body pointers
-
-  nrigidfix = 0;
-  rfix = nullptr;
-
   vol0 = 0.0;
   t0 = 1.0;
 
   tcomputeflag = 0;
   pcomputeflag = 0;
-
-  id_temp = nullptr;
-  id_press = nullptr;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -184,16 +154,14 @@ FixRigidNHSmall::~FixRigidNHSmall()
     deallocate_order();
   }
 
-  delete[] rfix;
-
   if (tcomputeflag) modify->delete_compute(id_temp);
-  delete [] id_temp;
+  delete[] id_temp;
 
   // delete pressure if fix created it
 
   if (pstat_flag) {
     if (pcomputeflag) modify->delete_compute(id_press);
-    delete [] id_press;
+    delete[] id_press;
   }
 }
 
@@ -216,8 +184,7 @@ void FixRigidNHSmall::init()
 
   if (allremap == 0) {
     int idilate = group->find(id_dilate);
-    if (idilate == -1)
-      error->all(FLERR,"Fix rigid npt/nph dilate group ID does not exist");
+    if (idilate == -1) error->all(FLERR,"Fix {} dilate group ID does not exist", style);
     dilate_group_bit = group->bitmask[idilate];
   }
 
@@ -252,28 +219,27 @@ void FixRigidNHSmall::init()
     }
   }
 
-  int icompute;
   if (tcomputeflag) {
-    icompute = modify->find_compute(id_temp);
-    if (icompute < 0)
-      error->all(FLERR,"Temperature ID for fix rigid nvt/npt/nph does not exist");
-    temperature = modify->compute[icompute];
+    temperature = modify->get_compute_by_id(id_temp);
+    if (!temperature)
+      error->all(FLERR,"Temperature ID {} for fix {} does not exist", id_temp, style);
   }
 
   if (pstat_flag) {
     if (domain->triclinic)
-      error->all(FLERR,"Fix rigid npt/nph does not yet allow triclinic box");
+      error->all(FLERR,"Fix {} does not yet allow triclinic box", style);
 
     // ensure no conflict with fix deform
 
-    for (int i = 0; i < modify->nfix; i++)
-      if (strcmp(modify->fix[i]->style,"deform") == 0) {
-        int *dimflag = (dynamic_cast<FixDeform *>(modify->fix[i]))->dimflag;
+    for (auto &ifix : modify->get_fix_by_style("^deform")) {
+      auto deform = dynamic_cast<FixDeform *>(ifix);
+      if (deform) {
+        int *dimflag = deform->dimflag;
         if ((p_flag[0] && dimflag[0]) || (p_flag[1] && dimflag[1]) ||
             (p_flag[2] && dimflag[2]))
-          error->all(FLERR,"Cannot use fix rigid npt/nph and fix deform on "
-                     "same component of stress tensor");
+          error->all(FLERR,"Cannot use fix {} and fix deform on same component of stress tensor", style);
       }
+    }
 
     // set frequency
 
@@ -286,33 +252,21 @@ void FixRigidNHSmall::init()
 
     pdim = p_flag[0] + p_flag[1] + p_flag[2];
     if (vol0 == 0.0) {
-      if (dimension == 2) vol0 = domain->xprd * domain->yprd;
+      if (domain->dimension == 2) vol0 = domain->xprd * domain->yprd;
       else vol0 = domain->xprd * domain->yprd * domain->zprd;
     }
 
     // set pressure compute ptr
 
-    icompute = modify->find_compute(id_press);
-    if (icompute < 0)
-      error->all(FLERR,"Pressure ID for fix rigid npt/nph does not exist");
-    pressure = modify->compute[icompute];
+    pressure = modify->get_compute_by_id(id_press);
+    if (!pressure) error->all(FLERR,"Pressure ID {} for fix {} does not exist", id_press, style);
 
     // detect if any rigid fixes exist so rigid bodies move on remap
-    // rfix[] = indices to each fix rigid
     // this will include self
 
-    delete[] rfix;
-    nrigidfix = 0;
-    rfix = nullptr;
-
-    for (int i = 0; i < modify->nfix; i++)
-      if (modify->fix[i]->rigid_flag) nrigidfix++;
-    if (nrigidfix) {
-      rfix = new int[nrigidfix];
-      nrigidfix = 0;
-      for (int i = 0; i < modify->nfix; i++)
-        if (modify->fix[i]->rigid_flag) rfix[nrigidfix++] = i;
-    }
+    rfix.clear();
+    for (auto &ifix : modify->get_fix_list())
+      if (ifix->rigid_flag) rfix.push_back(ifix);
   }
 }
 
@@ -404,6 +358,7 @@ void FixRigidNHSmall::setup(int vflag)
   }
 
   // initial forces on barostat thermostat variables
+  int dimension = domain->dimension;
 
   if (pstat_flag) {
     for (int i = 0; i < 3; i++)
@@ -855,6 +810,7 @@ void FixRigidNHSmall::nhc_press_integrate()
 
   // update thermostat masses
 
+  int dimension = domain->dimension;
   double tb_mass = kt / (p_freq_max * p_freq_max);
   q_b[0] = dimension * dimension * tb_mass;
   for (i = 1; i < p_chain; i++) {
@@ -1011,7 +967,7 @@ double FixRigidNHSmall::compute_scalar()
     energy += e*(0.5/pdim);
 
     double vol;
-    if (dimension == 2) vol = domain->xprd * domain->yprd;
+    if (domain->dimension == 2) vol = domain->xprd * domain->yprd;
     else vol = domain->xprd * domain->yprd * domain->zprd;
 
     double p0 = (p_target[0] + p_target[1] + p_target[2]) / 3.0;
@@ -1080,9 +1036,7 @@ void FixRigidNHSmall::remap()
         domain->x2lamda(x[i],x[i]);
   }
 
-  if (nrigidfix)
-    for (i = 0; i < nrigidfix; i++)
-      modify->fix[rfix[i]]->deform(0);
+  for (auto &ifix : rfix) ifix->deform(0);
 
   // reset global and local box to new size/shape
 
@@ -1109,9 +1063,7 @@ void FixRigidNHSmall::remap()
         domain->lamda2x(x[i],x[i]);
   }
 
-  if (nrigidfix)
-    for (i = 0; i< nrigidfix; i++)
-      modify->fix[rfix[i]]->deform(1);
+  for (auto &ifix : rfix) ifix->deform(1);
 }
 
 /* ----------------------------------------------------------------------
@@ -1155,7 +1107,7 @@ void FixRigidNHSmall::nh_epsilon_dot()
   int i;
   double volume,scale,f_epsilon;
 
-  if (dimension == 2) volume = domain->xprd*domain->yprd;
+  if (domain->dimension == 2) volume = domain->xprd*domain->yprd;
   else volume = domain->xprd*domain->yprd*domain->zprd;
 
   // MTK terms
@@ -1183,6 +1135,7 @@ void FixRigidNHSmall::nh_epsilon_dot()
 void FixRigidNHSmall::compute_dof()
 {
   // total translational and rotational degrees of freedom
+  int dimension = domain->dimension;
 
   nf_t = dimension * nlocal_body;
   if (dimension == 3) {
@@ -1316,27 +1269,23 @@ int FixRigidNHSmall::modify_param(int narg, char **arg)
       modify->delete_compute(id_temp);
       tcomputeflag = 0;
     }
-    delete [] id_temp;
+    delete[] id_temp;
     id_temp = utils::strdup(arg[1]);
 
-    int icompute = modify->find_compute(arg[1]);
-    if (icompute < 0)
-      error->all(FLERR,"Could not find fix_modify temperature ID");
-    temperature = modify->compute[icompute];
+    temperature = modify->get_compute_by_id(id_temp);
+    if (!temperature) error->all(FLERR,"Could not find fix_modify temperature ID {}", id_temp);
 
     if (temperature->tempflag == 0)
-      error->all(FLERR,
-                 "Fix_modify temperature ID does not compute temperature");
+      error->all(FLERR, "Fix_modify temperature ID {} does not compute temperature", id_temp);
     if (temperature->igroup != 0 && comm->me == 0)
       error->warning(FLERR,"Temperature for fix modify is not for group all");
 
     // reset id_temp of pressure to new temperature ID
 
     if (pstat_flag) {
-      icompute = modify->find_compute(id_press);
-      if (icompute < 0)
-        error->all(FLERR,"Pressure ID for fix modify does not exist");
-      modify->compute[icompute]->reset_extra_compute_fix(id_temp);
+      pressure = modify->get_compute_by_id(id_press);
+      if (!pressure) error->all(FLERR,"Pressure ID {} for fix modify does not exist", id_press);
+      pressure->reset_extra_compute_fix(id_temp);
     }
 
     return 2;
@@ -1348,15 +1297,14 @@ int FixRigidNHSmall::modify_param(int narg, char **arg)
       modify->delete_compute(id_press);
       pcomputeflag = 0;
     }
-    delete [] id_press;
+    delete[] id_press;
     id_press = utils::strdup(arg[1]);
 
-    int icompute = modify->find_compute(arg[1]);
-    if (icompute < 0) error->all(FLERR,"Could not find fix_modify pressure ID");
-    pressure = modify->compute[icompute];
+    pressure = modify->get_compute_by_id(id_press);
+    if (!pressure) error->all(FLERR,"Could not find fix_modify pressure ID {}", id_press);
 
     if (pressure->pressflag == 0)
-      error->all(FLERR,"Fix_modify pressure ID does not compute pressure");
+      error->all(FLERR,"Fix_modify pressure ID {} does not compute pressure", id_press);
     return 2;
   }
 
@@ -1408,21 +1356,21 @@ void FixRigidNHSmall::allocate_order()
 void FixRigidNHSmall::deallocate_chain()
 {
   if (tstat_flag) {
-    delete [] q_t;
-    delete [] q_r;
-    delete [] eta_t;
-    delete [] eta_r;
-    delete [] eta_dot_t;
-    delete [] eta_dot_r;
-    delete [] f_eta_t;
-    delete [] f_eta_r;
+    delete[] q_t;
+    delete[] q_r;
+    delete[] eta_t;
+    delete[] eta_r;
+    delete[] eta_dot_t;
+    delete[] eta_dot_r;
+    delete[] f_eta_t;
+    delete[] f_eta_r;
   }
 
   if (pstat_flag) {
-    delete [] q_b;
-    delete [] eta_b;
-    delete [] eta_dot_b;
-    delete [] f_eta_b;
+    delete[] q_b;
+    delete[] eta_b;
+    delete[] eta_dot_b;
+    delete[] f_eta_b;
   }
 }
 
@@ -1430,8 +1378,8 @@ void FixRigidNHSmall::deallocate_chain()
 
 void FixRigidNHSmall::deallocate_order()
 {
-  delete [] w;
-  delete [] wdti1;
-  delete [] wdti2;
-  delete [] wdti4;
+  delete[] w;
+  delete[] wdti1;
+  delete[] wdti2;
+  delete[] wdti4;
 }

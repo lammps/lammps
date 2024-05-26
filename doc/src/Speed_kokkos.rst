@@ -18,51 +18,75 @@ package was developed primarily by Christian Trott (Sandia) and Stan
 Moore (Sandia) with contributions of various styles by others,
 including Sikandar Mashayak (UIUC), Ray Shan (Sandia), and Dan Ibanez
 (Sandia). For more information on developing using Kokkos abstractions
-see the Kokkos `Wiki <https://github.com/kokkos/kokkos/wiki>`_.
+see the `Kokkos Wiki <https://github.com/kokkos/kokkos/wiki>`_.
 
-Kokkos currently provides support for 4 modes of execution (per MPI
+.. note::
+
+   The Kokkos library is under active development and tracking the
+   availability of accelerator hardware, so is the KOKKOS package in
+   LAMMPS.  This means that only a certain range of versions of the
+   Kokkos library are compatible with the KOKKOS package of a certain
+   range of LAMMPS versions.  For that reason LAMMPS comes with a
+   bundled version of the Kokkos library that has been validated on
+   multiple platforms and may contain selected back-ported bug fixes
+   from upstream Kokkos versions.  While it is possible to build LAMMPS
+   with an external version of Kokkos, it is untested and may result in
+   incorrect execution or crashes.
+
+Kokkos currently provides full support for 4 modes of execution (per MPI
 task). These are Serial (MPI-only for CPUs and Intel Phi), OpenMP
-(threading for many-core CPUs and Intel Phi), CUDA (for NVIDIA
-GPUs) and HIP (for AMD GPUs). You choose the mode at build time to
-produce an executable compatible with a specific hardware.
+(threading for many-core CPUs and Intel Phi), CUDA (for NVIDIA GPUs) and
+HIP (for AMD GPUs).  Additional modes (e.g. OpenMP target, Intel data
+center GPUs) are under development.  You choose the mode at build time
+to produce an executable compatible with a specific hardware.
 
-.. admonition:: C++14 support
+The following compatibility notes have been last updated for LAMMPS
+version 23 November 2023 and Kokkos version 4.2.
+
+.. admonition:: C++17 support
    :class: note
 
-   Kokkos requires using a compiler that supports the c++14 standard. For
-   some compilers, it may be necessary to add a flag to enable c++14 support.
-   For example, the GNU compiler uses the -std=c++14 flag. For a list of
-   compilers that have been tested with the Kokkos library, see the Kokkos
-   `README <https://github.com/kokkos/kokkos/blob/master/README.md>`_.
+   Kokkos requires using a compiler that supports the c++17 standard. For
+   some compilers, it may be necessary to add a flag to enable c++17 support.
+   For example, the GNU compiler uses the -std=c++17 flag. For a list of
+   compilers that have been tested with the Kokkos library, see the
+   `requirements document of the Kokkos Wiki
+   <https://kokkos.github.io/kokkos-core-wiki/requirements.html>`_.
 
 .. admonition:: NVIDIA CUDA support
    :class: note
 
    To build with Kokkos support for NVIDIA GPUs, the NVIDIA CUDA toolkit
-   software version 9.0 or later must be installed on your system. See
+   software version 11.0 or later must be installed on your system. See
    the discussion for the :doc:`GPU package <Speed_gpu>` for details of
    how to check and do this.
+
+.. admonition:: AMD ROCm (HIP) support
+   :class: note
+
+   To build with Kokkos support for AMD GPUs, the AMD ROCm toolkit
+   software version 5.2.0 or later must be installed on your system.
 
 .. admonition:: CUDA and MPI library compatibility
    :class: note
 
    Kokkos with CUDA currently implicitly assumes that the MPI library is
-   GPU-aware. This is not always the case, especially when using
+   GPU-aware.  This is not always the case, especially when using
    pre-compiled MPI libraries provided by a Linux distribution. This is
    not a problem when using only a single GPU with a single MPI
-   rank. When running with multiple MPI ranks, you may see segmentation
+   rank.  When running with multiple MPI ranks, you may see segmentation
    faults without GPU-aware MPI support. These can be avoided by adding
    the flags :doc:`-pk kokkos gpu/aware off <Run_options>` to the
    LAMMPS command line or by using the command :doc:`package kokkos
    gpu/aware off <package>` in the input file.
 
-.. admonition:: AMD GPU support
+.. admonition:: Intel Data Center GPU support
    :class: note
 
-   To build with Kokkos the HIPCC compiler from the AMD ROCm software
-   version 3.5 or later is required.  Supporting this Kokkos mode in
-   LAMMPS is still work in progress.  Please contact the LAMMPS developers
-   if you run into problems.
+   Support for Kokkos with Intel Data Center GPU accelerators (formerly
+   known under the code name "Ponte Vecchio") in LAMMPS is still a work
+   in progress.  Only a subset of the functionality works correctly.
+   Please contact the LAMMPS developers if you run into problems.
 
 Building LAMMPS with the KOKKOS package
 """""""""""""""""""""""""""""""""""""""
@@ -291,6 +315,26 @@ one or more nodes, each with two GPUs:
 
 .. note::
 
+   The default binsize for :doc:`atom sorting <atom_modify>` on GPUs
+   is equal to the default CPU neighbor binsize (i.e. 2x smaller than the
+   default GPU neighbor binsize). When running simple pair-wise
+   potentials like Lennard Jones on GPUs, using a 2x larger binsize for
+   atom sorting (equal to the default GPU neighbor binsize) and a more
+   frequent sorting than default (e.g. sorting every 100 time steps
+   instead of 1000) may improve performance.
+
+.. note::
+
+   When running on GPUs with many MPI ranks (tens of thousands and
+   more), the creation of the atom map (required for molecular systems)
+   on the GPU can slow down significantly or run out of GPU memory and
+   thus slow down the whole calculation or cause a crash.  You can use
+   the "-pk kokkos atom/map no" :doc:`command-line switch <Run_options>`
+   of the :doc:`package kokkos atom/map no <package>` command to create
+   the atom map on the CPU instead.
+
+.. note::
+
    When using a GPU, you will achieve the best performance if your
    input script does not use fix or compute styles which are not yet
    Kokkos-enabled. This allows data to stay on the GPU for multiple
@@ -399,15 +443,22 @@ Generally speaking, the following rules of thumb apply:
   performance of a KOKKOS style is a bit slower than the OPENMP
   package.
 * When running large number of atoms per GPU, KOKKOS is typically faster
-  than the GPU package when compiled for double precision. The benefit
+  than the GPU package when compiled for double precision.  The benefit
   of using single or mixed precision with the GPU package depends
   significantly on the hardware in use and the simulated system and pair
   style.
-* When running on Intel hardware, KOKKOS is not as fast as
+* When running on Intel Phi hardware, KOKKOS is not as fast as
   the INTEL package, which is optimized for x86 hardware (not just
   from Intel) and compilation with the Intel compilers.  The INTEL
   package also can increase the vector length of vector instructions
   by switching to single or mixed precision mode.
+* The KOKKOS package by default assumes that you are using exactly one
+  MPI rank per GPU. When trying to use multiple MPI ranks per GPU it is
+  mandatory to enable `CUDA Multi-Process Service (MPS)
+  <https://docs.nvidia.com/deploy/mps/index.html>`_ to get good
+  performance.  In this case it is better to not use all available
+  MPI ranks in order to avoid competing with the MPS daemon for
+  CPU resources.
 
 See the `Benchmark page <https://www.lammps.org/bench.html>`_ of the
 LAMMPS website for performance of the KOKKOS package on different

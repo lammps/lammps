@@ -39,8 +39,8 @@ using namespace LAMMPS_NS;
 using namespace FixConst;
 using namespace MathConst;
 
-enum{PAIR,KSPACE,ATOM,BOND,ANGLE};
-enum{DIAMETER,CHARGE};
+enum{PAIR, KSPACE, ATOM, BOND, ANGLE};
+enum{DIAMETER, CHARGE};
 
 /* ---------------------------------------------------------------------- */
 
@@ -90,7 +90,6 @@ FixAdapt::FixAdapt(LAMMPS *lmp, int narg, char **arg) :
   // parse keywords
 
   nadapt = 0;
-  diamflag = 0;
   chgflag = 0;
 
   iarg = 4;
@@ -149,7 +148,7 @@ FixAdapt::FixAdapt(LAMMPS *lmp, int narg, char **arg) :
       if (strcmp(arg[iarg+1],"diameter") == 0 ||
           strcmp(arg[iarg+1],"diameter/disc") == 0) {
         adapt[nadapt].atomparam = DIAMETER;
-        diamflag = 1;
+        diam_flag = 1;
         discflag = 0;
         if (strcmp(arg[iarg+1],"diameter/disc") == 0) discflag = 1;
       } else if (strcmp(arg[iarg+1],"charge") == 0) {
@@ -190,7 +189,7 @@ FixAdapt::FixAdapt(LAMMPS *lmp, int narg, char **arg) :
   // then previous step scale factors are written to restart file
   // initialize them here in case one is used and other is never defined
 
-  if (scaleflag && (diamflag || chgflag)) restart_global = 1;
+  if (scaleflag && (diam_flag || chgflag)) restart_global = 1;
   previous_diam_scale = previous_chg_scale = 1.0;
 
   // allocate pair style arrays
@@ -260,7 +259,7 @@ int FixAdapt::setmask()
 void FixAdapt::post_constructor()
 {
   if (!resetflag) return;
-  if (!diamflag && !chgflag) return;
+  if (!diam_flag && !chgflag) return;
 
   // new id = fix-ID + FIX_STORE_ATTRIBUTE
   // new fix group = group for this fix
@@ -268,10 +267,10 @@ void FixAdapt::post_constructor()
   id_fix_diam = nullptr;
   id_fix_chg = nullptr;
 
-  if (diamflag && atom->radius_flag) {
+  if (diam_flag && atom->radius_flag) {
     id_fix_diam = utils::strdup(id + std::string("_FIX_STORE_DIAM"));
     fix_diam = dynamic_cast<FixStoreAtom *>(
-      modify->add_fix(fmt::format("{} {} STORE/ATOM 1 0 0 1", id_fix_diam,group->names[igroup])));
+      modify->add_fix(fmt::format("{} {} STORE/ATOM 1 0 0 1", id_fix_diam, group->names[igroup])));
     if (fix_diam->restart_reset) fix_diam->restart_reset = 0;
     else {
       double *vec = fix_diam->vstore;
@@ -289,7 +288,7 @@ void FixAdapt::post_constructor()
   if (chgflag && atom->q_flag) {
     id_fix_chg = utils::strdup(id + std::string("_FIX_STORE_CHG"));
     fix_chg = dynamic_cast<FixStoreAtom *>(
-      modify->add_fix(fmt::format("{} {} STORE/ATOM 1 0 0 1",id_fix_chg,group->names[igroup])));
+      modify->add_fix(fmt::format("{} {} STORE/ATOM 1 0 0 1", id_fix_chg, group->names[igroup])));
     if (fix_chg->restart_reset) fix_chg->restart_reset = 0;
     else {
       double *vec = fix_chg->vstore;
@@ -707,7 +706,7 @@ void FixAdapt::restore_settings()
       *kspace_scale = 1.0;
 
     } else if (ad->which == ATOM) {
-      if (diamflag) {
+      if (diam_flag) {
         double scale;
 
         double *vec = fix_diam->vstore;

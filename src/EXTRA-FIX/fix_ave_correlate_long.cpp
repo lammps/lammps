@@ -454,6 +454,8 @@ void FixAveCorrelateLong::end_of_step()
         scalar = val.val.f->compute_vector(val.argindex-1);
 
     // evaluate equal-style or vector-style variable
+    // if index exceeds vector length, use a zero value
+    //   this can be useful if vector length is not known a priori
 
     } else if (val.which == ArgInfo::VARIABLE) {
       if (val.argindex == 0)
@@ -462,7 +464,7 @@ void FixAveCorrelateLong::end_of_step()
         double *varvec;
         int nvec = input->variable->compute_vector(val.val.v,&varvec);
         int index = val.argindex;
-        if (nvec < index) scalar = 0.0;
+        if (index > nvec) scalar = 0.0;
         else scalar = varvec[index-1];
       }
     }
@@ -503,7 +505,7 @@ void FixAveCorrelateLong::end_of_step()
     if (overwrite) {
       bigint fileend = platform::ftell(fp);
       if ((fileend > 0) && (platform::ftruncate(fp,fileend)))
-        error->warning(FLERR,"Error while tuncating output: {}", utils::getsyserror());
+        error->warning(FLERR,"Error while truncating output: {}", utils::getsyserror());
     }
   }
 }
@@ -728,7 +730,7 @@ double FixAveCorrelateLong::memory_usage() {
 void FixAveCorrelateLong::write_restart(FILE *fp) {
   if (comm->me == 0) {
     int nsize = 3*npair*numcorrelators*p + 2*npair*numcorrelators
-                + numcorrelators*p + 2*numcorrelators + 6;
+                + numcorrelators*p + 2*numcorrelators + 7;
     int n=0;
     double *list;
     memory->create(list,nsize,"correlator:list");
@@ -736,6 +738,7 @@ void FixAveCorrelateLong::write_restart(FILE *fp) {
     list[n++] = numcorrelators;
     list[n++] = p;
     list[n++] = m;
+    list[n++] = kmax;
     list[n++] = last_accumulated_step;
     for (int i=0; i < npair; i++)
       for (int j=0; j < numcorrelators; j++) {
@@ -771,6 +774,7 @@ void FixAveCorrelateLong::restart(char *buf)
   int numcorrelatorsin = static_cast<int> (list[n++]);
   int pin = static_cast<int>(list[n++]);
   int min = static_cast<int>(list[n++]);
+  kmax = static_cast<int>(list[n++]);
   last_accumulated_step = static_cast<int>(list[n++]);
 
   if ((npairin!=npair) || (numcorrelatorsin!=numcorrelators) || (pin!=(int)p) || (min!=(int)m))

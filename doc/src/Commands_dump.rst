@@ -23,17 +23,14 @@ An alphabetic list of all LAMMPS :doc:`dump <dump>` commands.
    * :doc:`atom <dump>`
    * :doc:`atom/adios <dump_adios>`
    * :doc:`atom/gz <dump>`
-   * :doc:`atom/mpiio <dump>`
    * :doc:`atom/zstd <dump>`
    * :doc:`cfg <dump>`
    * :doc:`cfg/gz <dump>`
-   * :doc:`cfg/mpiio <dump>`
    * :doc:`cfg/uef <dump_cfg_uef>`
    * :doc:`cfg/zstd <dump>`
    * :doc:`custom <dump>`
    * :doc:`custom/adios <dump_adios>`
    * :doc:`custom/gz <dump>`
-   * :doc:`custom/mpiio <dump>`
    * :doc:`custom/zstd <dump>`
    * :doc:`dcd <dump>`
    * :doc:`grid <dump>`
@@ -51,7 +48,6 @@ An alphabetic list of all LAMMPS :doc:`dump <dump>` commands.
    * :doc:`xtc <dump>`
    * :doc:`xyz <dump>`
    * :doc:`xyz/gz <dump>`
-   * :doc:`xyz/mpiio <dump>`
    * :doc:`xyz/zstd <dump>`
    * :doc:`yaml <dump>`
 

@@ -6,7 +6,7 @@ fix_modify AtC extrinsic electron_integration command
 Syntax
 """"""
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    fix_modify <AtC fixID> extrinsic electron_integration <integration_type> [<num_subcycle_steps>]
 

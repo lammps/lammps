@@ -322,14 +322,14 @@ void PairMEAMKokkos<DeviceType>::init_style()
 
   neighflag = lmp->kokkos->neighflag;
   auto request = neighbor->find_request(this,1);
-  request->set_kokkos_host(std::is_same<DeviceType,LMPHostType>::value &&
-                           !std::is_same<DeviceType,LMPDeviceType>::value);
-  request->set_kokkos_device(std::is_same<DeviceType,LMPDeviceType>::value);
+  request->set_kokkos_host(std::is_same_v<DeviceType,LMPHostType> &&
+                           !std::is_same_v<DeviceType,LMPDeviceType>);
+  request->set_kokkos_device(std::is_same_v<DeviceType,LMPDeviceType>);
 
   request = neighbor->find_request(this,2);
-  request->set_kokkos_host(std::is_same<DeviceType,LMPHostType>::value &&
-                           !std::is_same<DeviceType,LMPDeviceType>::value);
-  request->set_kokkos_device(std::is_same<DeviceType,LMPDeviceType>::value);
+  request->set_kokkos_host(std::is_same_v<DeviceType,LMPHostType> &&
+                           !std::is_same_v<DeviceType,LMPDeviceType>);
+  request->set_kokkos_device(std::is_same_v<DeviceType,LMPDeviceType>);
 
   if (neighflag == FULL)
     error->all(FLERR,"Must use half neighbor list style with pair meam/kk");
@@ -338,11 +338,10 @@ void PairMEAMKokkos<DeviceType>::init_style()
 /* ---------------------------------------------------------------------- */
 
 template<class DeviceType>
-int PairMEAMKokkos<DeviceType>::pack_forward_comm_kokkos(int n, DAT::tdual_int_2d k_sendlist, int iswap_in, DAT::tdual_xfloat_1d &buf,
+int PairMEAMKokkos<DeviceType>::pack_forward_comm_kokkos(int n, DAT::tdual_int_1d k_sendlist, DAT::tdual_xfloat_1d &buf,
                                 int /*pbc_flag*/, int * /*pbc*/)
 {
   d_sendlist = k_sendlist.view<DeviceType>();
-  iswap = iswap_in;
   v_buf = buf.view<DeviceType>();
   Kokkos::parallel_for(Kokkos::RangePolicy<DeviceType, TagPairMEAMPackForwardComm>(0,n),*this);
   return n*comm_forward;
@@ -353,7 +352,7 @@ int PairMEAMKokkos<DeviceType>::pack_forward_comm_kokkos(int n, DAT::tdual_int_2
 template<class DeviceType>
 KOKKOS_INLINE_FUNCTION
 void PairMEAMKokkos<DeviceType>::operator()(TagPairMEAMPackForwardComm, const int &i) const {
-  int j = d_sendlist(iswap, i);
+  int j = d_sendlist(i);
   int m = i*comm_forward;
   v_buf[m++] = d_rho0[j];
   v_buf[m++] = d_rho1[j];
@@ -782,10 +781,9 @@ int PairMEAMKokkos<DeviceType>::pack_reverse_comm(int n, int first, double *buf)
 /* ---------------------------------------------------------------------- */
 
 template<class DeviceType>
-void PairMEAMKokkos<DeviceType>::unpack_reverse_comm_kokkos(int n, DAT::tdual_int_2d k_sendlist, int iswap_in, DAT::tdual_xfloat_1d &buf)
+void PairMEAMKokkos<DeviceType>::unpack_reverse_comm_kokkos(int n, DAT::tdual_int_1d k_sendlist, DAT::tdual_xfloat_1d &buf)
 {
   d_sendlist = k_sendlist.view<DeviceType>();
-  iswap = iswap_in;
   v_buf = buf.view<DeviceType>();
   Kokkos::parallel_for(Kokkos::RangePolicy<DeviceType, TagPairMEAMUnpackReverseComm>(0,n),*this);
 }
@@ -795,7 +793,7 @@ void PairMEAMKokkos<DeviceType>::unpack_reverse_comm_kokkos(int n, DAT::tdual_in
 template<class DeviceType>
 KOKKOS_INLINE_FUNCTION
 void PairMEAMKokkos<DeviceType>::operator()(TagPairMEAMUnpackReverseComm, const int &i) const {
-  int j = d_sendlist(iswap, i);
+  int j = d_sendlist(i);
   //int m = i*30;
   int m = i*comm_reverse;
 
@@ -980,7 +978,7 @@ void PairMEAMKokkos<DeviceType>::update_meam_views()
 
 namespace LAMMPS_NS {
 template class PairMEAMKokkos<LMPDeviceType>;
-#ifdef KOKKOS_ENABLE_CUDA
+#ifdef LMP_KOKKOS_GPU
 template class PairMEAMKokkos<LMPHostType>;
 #endif
 }

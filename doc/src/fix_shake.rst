@@ -13,7 +13,7 @@ fix rattle command
 Syntax
 """"""
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    fix ID group-ID style tol iter N constraint values ... keyword value ...
 

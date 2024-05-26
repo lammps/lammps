@@ -64,7 +64,7 @@ tangential force tensor. The contact tensor is calculated as
 
 .. math::
 
-   C_{ab}  =  \frac{15}{2} (\phi_{ab} - \mathrm{Tr}(\phi) \delta_{ab})
+   C_{ab}  =  \frac{15}{2} (\phi_{ab} - \frac{1}{3} \mathrm{Tr}(\phi) \delta_{ab})
 
 where :math:`a` and :math:`b` are the :math:`x`, :math:`y`, :math:`z`
 directions, :math:`\delta_{ab}` is the Kronecker delta function, and
@@ -83,7 +83,7 @@ The branch tensor is calculated as
 
 .. math::
 
-   B_{ab}  =  \frac{15}{6 \mathrm{Tr}(D)} (D_{ab} - \mathrm{Tr}(D) \delta_{ab})
+   B_{ab}  =  \frac{15}{2\, \mathrm{Tr}(D)} (D_{ab} - \frac{1}{3} \mathrm{Tr}(D) \delta_{ab})
 
 where the tensor :math:`D` is defined as
 
@@ -101,7 +101,7 @@ The normal force fabric tensor is calculated as
 
 .. math::
 
-   F^n_{ab}  =  \frac{15}{6\, \mathrm{Tr}(N)} (N_{ab} - \mathrm{Tr}(N) \delta_{ab})
+   F^n_{ab}  =  \frac{15}{2\, \mathrm{Tr}(N)} (N_{ab} - \frac{1}{3} \mathrm{Tr}(N) \delta_{ab})
 
 where the tensor :math:`N` is defined as
 
@@ -119,7 +119,7 @@ as
 
 .. math::
 
-   F^t_{ab}  =  \frac{15}{9\, \mathrm{Tr}(N)} (T_{ab} - \mathrm{Tr}(T) \delta_{ab})
+   F^t_{ab}  =  \frac{5}{\mathrm{Tr}(N)} (T_{ab} - \frac{1}{3} \mathrm{Tr}(T) \delta_{ab})
 
 where the tensor :math:`T` is defined as
 
@@ -146,13 +146,13 @@ m to :math:`M` (inclusive).  A middle asterisk means all types from m to n
 Output info
 """""""""""
 
-This compute calculates a local vector of doubles and a scalar. The vector
-stores the unique components of the first requested tensor in the order
-:math:`xx`, :math:`yy`, :math:`zz`, :math:`xy`, :math:`xz`, :math:`yz`
-followed by the same components for all subsequent tensors.
+This compute calculates a global vector of doubles and a global scalar. The
+vector stores the unique components of the first requested tensor in the
+order :math:`xx`, :math:`yy`, :math:`zz`, :math:`xy`, :math:`xz`,
+:math:`yz` followed by the same components for all subsequent tensors.
 The length of the vector is therefore six times the number of requested
-tensors. The scalar output is the number of pairwise interactions included in
-the calculation of the fabric tensor.
+tensors. The scalar output is the number of pairwise interactions included
+in the calculation of the fabric tensor.
 
 Restrictions
 """"""""""""

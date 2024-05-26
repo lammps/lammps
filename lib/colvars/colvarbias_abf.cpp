@@ -7,6 +7,8 @@
 // If you wish to distribute your changes, please submit them to the
 // Colvars repository at GitHub.
 
+#include <iostream>
+
 #include "colvarmodule.h"
 #include "colvar.h"
 #include "colvarbias_abf.h"
@@ -38,17 +40,17 @@ colvarbias_abf::colvarbias_abf(char const *key)
 
 int colvarbias_abf::init(std::string const &conf)
 {
+  colvarproxy *proxy = cvm::main()->proxy;
+
   colvarbias::init(conf);
   cvm::main()->cite_feature("ABF colvar bias implementation");
-
-  colvarproxy *proxy = cvm::main()->proxy;
 
   enable(f_cvb_scalar_variables);
   enable(f_cvb_calc_pmf);
 
-  // TODO relax this in case of VMD plugin
-  if (cvm::temperature() == 0.0)
+  if ((proxy->target_temperature() == 0.0) && proxy->simulation_running()) {
     cvm::log("WARNING: ABF should not be run without a thermostat or at 0 Kelvin!\n");
+  }
 
   // ************* parsing general ABF options ***********************
 
@@ -277,7 +279,7 @@ int colvarbias_abf::init(std::string const &conf)
                                          cvm::restart_out_freq,
                                          UI_restart,                    // whether restart from a .count and a .grad file
                                          input_prefix,   // the prefixes of input files
-                                         cvm::temperature());
+                                         proxy->target_temperature());
     }
   }
 
@@ -599,17 +601,17 @@ int colvarbias_abf::replica_share() {
 template <class T> int colvarbias_abf::write_grid_to_file(T const *grid,
                                                           std::string const &filename,
                                                           bool close) {
-  std::ostream *os = cvm::proxy->output_stream(filename);
+  std::ostream &os = cvm::proxy->output_stream(filename);
   if (!os) {
     return cvm::error("Error opening file " + filename + " for writing.\n", COLVARS_ERROR | COLVARS_FILE_ERROR);
   }
-  grid->write_multicol(*os);
+  grid->write_multicol(os);
   if (close) {
     cvm::proxy->close_output_stream(filename);
   } else {
     // Insert empty line between frames in history files
-    *os << std::endl;
-    cvm::proxy->flush_output_stream(os);
+    os << std::endl;
+    cvm::proxy->flush_output_stream(filename);
   }
 
   // In dimension higher than 2, dx is easier to handle and visualize
@@ -617,11 +619,11 @@ template <class T> int colvarbias_abf::write_grid_to_file(T const *grid,
   // (could be implemented as multiple dx files)
   if (num_variables() > 2 && close) {
     std::string  dx = filename + ".dx";
-    std::ostream *dx_os = cvm::proxy->output_stream(dx);
+    std::ostream &dx_os = cvm::proxy->output_stream(dx);
     if (!dx_os)  {
       return cvm::error("Error opening file " + dx + " for writing.\n", COLVARS_ERROR | COLVARS_FILE_ERROR);
     }
-    grid->write_opendx(*dx_os);
+    grid->write_opendx(dx_os);
     // if (close) {
       cvm::proxy->close_output_stream(dx);
     // }
@@ -637,6 +639,8 @@ template <class T> int colvarbias_abf::write_grid_to_file(T const *grid,
 
 void colvarbias_abf::write_gradients_samples(const std::string &prefix, bool close)
 {
+  colvarproxy *proxy = cvm::main()->proxy;
+
   write_grid_to_file<colvar_grid_count>(samples, prefix + ".count", close);
   write_grid_to_file<colvar_grid_gradient>(gradients, prefix + ".grad", close);
 
@@ -660,7 +664,7 @@ void colvarbias_abf::write_gradients_samples(const std::string &prefix, bool clo
           czar_gradients->index_ok(ix); czar_gradients->incr(ix)) {
       for (size_t n = 0; n < czar_gradients->multiplicity(); n++) {
         czar_gradients->set_value(ix, z_gradients->value_output(ix, n)
-          - cvm::temperature() * cvm::boltzmann() * z_samples->log_gradient_finite_diff(ix, n), n);
+          - proxy->target_temperature() * proxy->boltzmann() * z_samples->log_gradient_finite_diff(ix, n), n);
       }
     }
     write_grid_to_file<colvar_grid_gradient>(czar_gradients, prefix + ".czar.grad", close);
@@ -698,8 +702,10 @@ int colvarbias_abf::bin_count(int bin_index) {
 }
 
 
-void colvarbias_abf::read_gradients_samples()
+int colvarbias_abf::read_gradients_samples()
 {
+  int error_code = COLVARS_OK;
+
   std::string samples_in_name, gradients_in_name, z_samples_in_name, z_gradients_in_name;
 
   for ( size_t i = 0; i < input_prefix.size(); i++ ) {
@@ -708,43 +714,30 @@ void colvarbias_abf::read_gradients_samples()
     z_samples_in_name = input_prefix[i] + ".zcount";
     z_gradients_in_name = input_prefix[i] + ".zgrad";
     // For user-provided files, the per-bias naming scheme may not apply
+    cvm::log("Reading sample count from " + samples_in_name +
+             " and gradient from " + gradients_in_name);
 
-    std::ifstream is;
+    error_code |= samples->read_multicol(samples_in_name,
+                                         "ABF samples file",
+                                         true);
 
-    cvm::log("Reading sample count from " + samples_in_name + " and gradient from " + gradients_in_name);
-    is.open(samples_in_name.c_str());
-    if (!is.is_open()) cvm::error("Error opening ABF samples file " + samples_in_name + " for reading");
-    samples->read_multicol(is, true);
-    is.close();
-    is.clear();
-
-    is.open(gradients_in_name.c_str());
-    if (!is.is_open()) {
-      cvm::error("Error opening ABF gradient file " +
-                 gradients_in_name + " for reading", COLVARS_INPUT_ERROR);
-    } else {
-      gradients->read_multicol(is, true);
-      is.close();
-    }
+    error_code |= gradients->read_multicol(gradients_in_name,
+                                           "ABF gradient file",
+                                           true);
 
     if (b_CZAR_estimator) {
       // Read eABF z-averaged data for CZAR
       cvm::log("Reading z-histogram from " + z_samples_in_name + " and z-gradient from " + z_gradients_in_name);
-
-      is.clear();
-      is.open(z_samples_in_name.c_str());
-      if (!is.is_open())  cvm::error("Error opening eABF z-histogram file " + z_samples_in_name + " for reading");
-      z_samples->read_multicol(is, true);
-      is.close();
-      is.clear();
-
-      is.open(z_gradients_in_name.c_str());
-      if (!is.is_open())  cvm::error("Error opening eABF z-gradient file " + z_gradients_in_name + " for reading");
-      z_gradients->read_multicol(is, true);
-      is.close();
+      error_code |= z_samples->read_multicol(z_samples_in_name,
+                                             "eABF z-histogram file",
+                                             true);
+      error_code |= z_gradients->read_multicol(z_gradients_in_name,
+                                               "eABF z-gradient file",
+                                               true);
     }
   }
-  return;
+
+  return error_code;
 }
 
 

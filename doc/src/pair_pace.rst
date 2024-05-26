@@ -40,6 +40,9 @@ Examples
    pair_style pace product chunksize 2048
    pair_coeff * * Cu-PBE-core-rep.ace Cu
 
+   pair_style pace
+   pair_coeff * * Cu.yaml Cu
+
    pair_style pace/extrapolation
    pair_coeff * * Cu.yaml Cu.asi Cu
 
@@ -48,9 +51,9 @@ Description
 
 Pair style *pace* computes interactions using the Atomic Cluster
 Expansion (ACE), which is a general expansion of the atomic energy in
-multi-body basis functions. :ref:`(Drautz) <Drautz20191>`.  The *pace*
+multi-body basis functions. :ref:`(Drautz19) <Drautz20191>`.  The *pace*
 pair style provides an efficient implementation that is described in
-this paper :ref:`(Lysogorskiy) <Lysogorskiy20211>`.
+this paper :ref:`(Lysogorskiy21) <Lysogorskiy20211>`.
 
 In ACE, the total energy is decomposed into a sum over atomic
 energies. The energy of atom *i* is expressed as a linear or non-linear
@@ -64,7 +67,7 @@ specifies an ACE coefficient file followed by N additional arguments
 specifying the mapping of ACE elements to LAMMPS atom types, where N is
 the number of LAMMPS atom types:
 
-* ACE coefficient file
+* ACE coefficient file (.yaml or .yace/.ace format)
 * N element names = mapping of ACE elements to atom types
 
 Only a single pair_coeff command is used with the *pace* style which
@@ -91,7 +94,7 @@ Extrapolation grade
 Calculation of extrapolation grade in PACE is implemented in `pair_style
 pace/extrapolation`.  It is based on the MaxVol algorithm similar to
 Moment Tensor Potential (MTP) by Shapeev et al.  and is described in
-:ref:`(Lysogorskiy2) <Lysogorskiy2022>`.  In order to compute
+:ref:`(Lysogorskiy23) <Lysogorskiy2023>`.  In order to compute
 extrapolation grade one needs to provide:
 
 #. ACE potential in B-basis form (`.yaml` format) and
@@ -135,6 +138,22 @@ product B-basis evaluator is always used and only *linear* ASI is supported.
 
 See the :doc:`pair_coeff <pair_coeff>` page for alternate ways
 to specify the path for the ACE coefficient file.
+
+Core repulsion
+"""""""""""""""""""
+The ACE potential can be configured to initiate core-repulsion from an inner cutoff,
+seamlessly transitioning from ACE to ZBL. The core repulsion factor can be accessed
+as a per-atom quantity, as demonstrated in the example below:
+
+.. code-block:: LAMMPS
+
+    pair_style  pace
+    pair_coeff  * * CuNi.yaml Cu Ni
+
+    fix pace_corerep all pair 1 pace corerep 1
+
+In this case, per-atom `f_pace_corerep` quantities represent the fraction of ZBL
+core-repulsion for each atom.
 
 Mixing, shift, table, tail correction, restart, rRESPA info
 """""""""""""""""""""""""""""""""""""""""""""""""""""""""""
@@ -182,12 +201,12 @@ recursive, chunksize = 4096,
 
 .. _Drautz20191:
 
-**(Drautz)** Drautz, Phys Rev B, 99, 014104 (2019).
+**(Drautz19)** Drautz, Phys Rev B, 99, 014104 (2019).
 
 .. _Lysogorskiy20211:
 
-**(Lysogorskiy)** Lysogorskiy, van der Oord, Bochkarev, Menon, Rinaldi, Hammerschmidt, Mrovec, Thompson, Csanyi, Ortner, Drautz, npj Comp Mat, 7, 97 (2021).
+**(Lysogorskiy21)** Lysogorskiy, van der Oord, Bochkarev, Menon, Rinaldi, Hammerschmidt, Mrovec, Thompson, Csanyi, Ortner, Drautz, npj Comp Mat, 7, 97 (2021).
 
-.. _Lysogorskiy2022:
+.. _Lysogorskiy2023:
 
-**(Lysogorskiy2022)** Lysogorskiy, Bochkarev, Mrovec, Drautz, arXiv:2212.08716 (2022).
+**(Lysogorskiy23)** Lysogorskiy, Bochkarev, Mrovec, Drautz, Phys Rev Mater, 7, 043801 (2023) / arXiv:2212.08716 (2022).

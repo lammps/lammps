@@ -76,7 +76,7 @@ class PairGayBerneIntel : public PairGayBerne {
     int **jtype_form, **jlist_form;
 
     ForceConst() : _ntypes(0) {}
-    ~ForceConst() { set_ntypes(0, 0, 0, nullptr, _cop); }
+    ~ForceConst() noexcept(false) { set_ntypes(0, 0, 0, nullptr, _cop); }
 
     void set_ntypes(const int ntypes, const int one_length, const int nthreads, Memory *memory,
                     const int cop);

@@ -51,11 +51,10 @@ rotational).
    This choice for degrees of freedom (DOF) assumes that all body
    particles in your model will freely rotate, sampling all their
    rotational DOF.  It is possible to use a combination of interaction
-   potentials and fixes that induce no torque or otherwise constrain some
-   of all of your particles so that this is not the case.  Then there are
-   less DOF and you should use the
-   :doc:`compute_modify extra <compute_modify>` command to adjust the DOF
-   accordingly.
+   potentials and fixes that induce no torque or otherwise constrain
+   some of all of your particles so that this is not the case.  Then
+   there are less DOF and you should use the :doc:`compute_modify
+   extra/dof <compute_modify>` command to adjust the DOF accordingly.
 
 The translational kinetic energy is computed the same as is described
 by the :doc:`compute temp <compute_temp>` command.  The rotational
@@ -72,15 +71,16 @@ used.  The six components of the vector are ordered :math:`xx`, :math:`yy`,
 :math:`zz`, :math:`xy`, :math:`xz`, :math:`yz`.
 
 The number of atoms contributing to the temperature is assumed to be
-constant for the duration of the run; use the *dynamic* option of the
-:doc:`compute_modify <compute_modify>` command if this is not the case.
+constant for the duration of the run; use the *dynamic/dof* option of
+the :doc:`compute_modify <compute_modify>` command if this is not the
+case.
 
 This compute subtracts out translational degrees-of-freedom due to
 fixes that constrain molecular motion, such as :doc:`fix shake <fix_shake>`
 and :doc:`fix rigid <fix_rigid>`.  This means the
 temperature of groups of atoms that include these constraints will be
 computed correctly.  If needed, the subtracted degrees-of-freedom can
-be altered using the *extra* option of the
+be altered using the *extra/dof* option of the
 :doc:`compute_modify <compute_modify>` command.
 
 See the :doc:`Howto thermostat <Howto_thermostat>` page for a

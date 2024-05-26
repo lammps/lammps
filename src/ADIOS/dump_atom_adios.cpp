@@ -281,8 +281,8 @@ void DumpAtomADIOS::init_style()
       auto nstreams = std::to_string(num_aggregators);
       internal->io.SetParameters({{"substreams", nstreams}});
       if (me == 0)
-        utils::logmesg(lmp, "ADIOS method for {} is n-to-m (aggregation with {} writers)\n", filename,
-                       nstreams);
+        utils::logmesg(lmp, "ADIOS method for {} is n-to-m (aggregation with {} writers)\n",
+                       filename, nstreams);
     }
 
     internal->io.DefineVariable<uint64_t>("ntimestep");
@@ -325,6 +325,6 @@ void DumpAtomADIOS::init_style()
     // it will be correctly defined at the moment of write
     size_t UnknownSizeYet = 1;
     internal->varAtoms = internal->io.DefineVariable<double>(
-      "atoms", {UnknownSizeYet, nColumns}, {UnknownSizeYet, 0}, {UnknownSizeYet, nColumns});
+        "atoms", {UnknownSizeYet, nColumns}, {UnknownSizeYet, 0}, {UnknownSizeYet, nColumns});
   }
 }

@@ -39,15 +39,15 @@
 
 using namespace LAMMPS_NS;
 
-#define DELTA 10000
-#define EPSILON 1e-3
-#define MAX_CONTACTS 4  // maximum number of contacts for 2D models
-#define EFF_CONTACTS 2  // effective contacts for 2D models
+static constexpr int DELTA = 10000;
+static constexpr double EPSILON = 1.0e-3; // dimensionless threshold (dot products, end point checks, contact checks)
+static constexpr int MAX_CONTACTS = 4;    // maximum number of contacts for 2D models
+static constexpr int EFF_CONTACTS = 2;    // effective contacts for 2D models
 
 //#define _CONVEX_POLYGON
 //#define _POLYGON_DEBUG
 
-enum {INVALID=0,NONE=1,VERTEXI=2,VERTEXJ=3,EDGE=4};
+enum { INVALID=0, NONE=1, VERTEXI=2, VERTEXJ=3, EDGE=4 };
 
 /* ---------------------------------------------------------------------- */
 
@@ -415,17 +415,14 @@ void PairBodyRoundedPolygon::init_style()
   if (!avec)
     error->all(FLERR,"Pair body/rounded/polygon requires atom style body");
   if (strcmp(avec->bptr->style,"rounded/polygon") != 0)
-    error->all(FLERR,"Pair body/rounded/polygon requires "
-               "body style rounded/polygon");
+    error->all(FLERR,"Pair body/rounded/polygon requires body style rounded/polygon");
   bptr = dynamic_cast<BodyRoundedPolygon *>(avec->bptr);
 
   if (force->newton_pair == 0)
-    error->all(FLERR,"Pair style body/rounded/polygon requires "
-               "newton pair on");
+    error->all(FLERR,"Pair style body/rounded/polygon requires newton pair on");
 
   if (comm->ghost_velocity == 0)
-    error->all(FLERR,"Pair body/rounded/polygon requires "
-               "ghost atoms store velocity");
+    error->all(FLERR,"Pair body/rounded/polygon requires ghost atoms store velocity");
 
   neighbor->add_request(this);
 
@@ -463,27 +460,24 @@ void PairBodyRoundedPolygon::init_style()
   for (i = 1; i <= ntypes; i++)
     maxerad[i] = merad[i] = 0;
 
-  int ipour;
-  for (ipour = 0; ipour < modify->nfix; ipour++)
-    if (strcmp(modify->fix[ipour]->style,"pour") == 0) break;
-  if (ipour == modify->nfix) ipour = -1;
+  Fix *fixpour = nullptr;
+  auto pours = modify->get_fix_by_style("^pour");
+  if (pours.size() > 0) fixpour = pours[0];
 
-  int idep;
-  for (idep = 0; idep < modify->nfix; idep++)
-    if (strcmp(modify->fix[idep]->style,"deposit") == 0) break;
-  if (idep == modify->nfix) idep = -1;
+  Fix *fixdep = nullptr;
+  auto deps = modify->get_fix_by_style("^deposit");
+  if (deps.size() > 0) fixdep = deps[0];
+
 
   for (i = 1; i <= ntypes; i++) {
     merad[i] = 0.0;
-    if (ipour >= 0) {
+    if (fixpour) {
       itype = i;
-      merad[i] =
-        *((double *) modify->fix[ipour]->extract("radius",itype));
+      merad[i] = *((double *) fixpour->extract("radius",itype));
     }
-    if (idep >= 0) {
+    if (fixdep) {
       itype = i;
-      merad[i] =
-        *((double *) modify->fix[idep]->extract("radius",itype));
+      merad[i] = *((double *) fixdep->extract("radius",itype));
     }
   }
 
@@ -570,8 +564,7 @@ void PairBodyRoundedPolygon::body2space(int i)
   }
 
   if ((body_num_edges > 0) && (edge_ends == nullptr))
-    error->one(FLERR,"Inconsistent edge data for body of atom {}",
-                                 atom->tag[i]);
+    error->one(FLERR,"Inconsistent edge data for body of atom {}", atom->tag[i]);
 
   for (int m = 0; m < body_num_edges; m++) {
     edge[nedge][0] = static_cast<int>(edge_ends[2*m+0]);
@@ -624,7 +617,8 @@ void PairBodyRoundedPolygon::sphere_against_sphere(int i, int j,
   fy = dely*fpair/rij;
   fz = delz*fpair/rij;
 
-  if (R <= EPSILON) { // in contact
+  double rmin = MIN(rradi, rradj);
+  if (R <= EPSILON*rmin) { // in contact
 
     // relative translational velocity
 
@@ -1019,6 +1013,7 @@ int PairBodyRoundedPolygon::compute_distance_to_vertex(int ibody,
   double xi1[3],xi2[3],u[3],v[3],uij[3];
   double udotv, magv, magucostheta;
   double delx,dely,delz;
+  double rmin = MIN(rounded_radius, x0_rounded_radius);
 
   ifirst = dfirst[ibody];
   iefirst = edfirst[ibody];
@@ -1105,17 +1100,17 @@ int PairBodyRoundedPolygon::compute_distance_to_vertex(int ibody,
       // x0 and xmi are on the different sides
       // t is the ratio to detect if x0 is closer to the vertices xi or xj
 
-      if (fabs(xi2[0] - xi1[0]) > EPSILON)
+      if (fabs(xi2[0] - xi1[0]) > EPSILON*rmin)
         t = (hi[0] - xi1[0]) / (xi2[0] - xi1[0]);
-      else if (fabs(xi2[1] - xi1[1]) > EPSILON)
+      else if (fabs(xi2[1] - xi1[1]) > EPSILON*rmin)
         t = (hi[1] - xi1[1]) / (xi2[1] - xi1[1]);
-      else if (fabs(xi2[2] - xi1[2]) > EPSILON)
+      else if (fabs(xi2[2] - xi1[2]) > EPSILON*rmin)
         t = (hi[2] - xi1[2]) / (xi2[2] - xi1[2]);
 
       double contact_dist = rounded_radius + x0_rounded_radius;
       if (t >= 0 && t <= 1) {
         mode = EDGE;
-        if (d < contact_dist + EPSILON)
+        if (d < contact_dist + EPSILON*rmin)
           contact = 1;
 
       } else { // t < 0 || t > 1: closer to either vertices of the edge
@@ -1293,8 +1288,14 @@ double PairBodyRoundedPolygon::contact_separation(const Contact& c1,
   double x3 = c2.xv[0];
   double y3 = c2.xv[1];
 
+  int ibody = c1.ibody;
+  int jbody = c1.ibody;
+  double rradi = rounded_radius[ibody];
+  double rradj = rounded_radius[jbody];
+  double rmin = MIN(rradi, rradj);
+
   double delta_a = 0.0;
-  if (fabs(x2 - x1) > EPSILON) {
+  if (fabs(x2 - x1) > EPSILON*rmin) {
     double A = (y2 - y1) / (x2 - x1);
     delta_a = fabs(y1 - A * x1 - y3 + A * x3) / sqrt(1 + A * A);
   } else {

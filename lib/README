@@ -41,8 +41,6 @@ mdi           hooks to the MDI library, used by MDI package
                 from Taylor Barnes (MolSSI at Virginia Tech)
 molfile       hooks to VMD molfile plugins, used by the MOLFILE package
                 from Axel Kohlmeyer (Temple U) and the VMD development team
-mscg          hooks to the MSCG library, used by fix_mscg command
-                from Jacob Wagner and Greg Voth group (U Chicago)
 netcdf        hooks to a NetCDF library installed on your system
                 from Lars Pastewka (Karlsruhe Institute of Technology)
 plugin        settings to load styles into LAMMPS from plugins

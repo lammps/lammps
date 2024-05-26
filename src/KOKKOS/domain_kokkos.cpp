@@ -22,8 +22,7 @@
 
 using namespace LAMMPS_NS;
 
-#define BIG   1.0e20
-#define SMALL 1.0e-4
+static constexpr double BIG = 1.0e20;
 
 /* ---------------------------------------------------------------------- */
 
@@ -81,6 +80,11 @@ public:
 void DomainKokkos::reset_box()
 {
   // perform shrink-wrapping
+
+  // nothing to do for empty systems
+
+  if (atom->natoms == 0) return;
+
   // compute extent of atoms on this proc
   // for triclinic, this is done in lamda space
 
@@ -571,9 +575,11 @@ void DomainKokkos::lamda2x(int n)
 
 KOKKOS_INLINE_FUNCTION
 void DomainKokkos::operator()(TagDomain_lamda2x, const int &i) const {
-  x(i,0) = h[0]*x(i,0) + h[5]*x(i,1) + h[4]*x(i,2) + boxlo[0];
-  x(i,1) = h[1]*x(i,1) + h[3]*x(i,2) + boxlo[1];
-  x(i,2) = h[2]*x(i,2) + boxlo[2];
+  const double xi1 = x(i,1);
+  const double xi2 = x(i,2);
+  x(i,0) = h[0]*x(i,0) + h[5]*xi1 + h[4]*xi2 + boxlo[0];
+  x(i,1) = h[1]*xi1 + h[3]*xi2 + boxlo[1];
+  x(i,2) = h[2]*xi2 + boxlo[2];
 }
 
 /* ----------------------------------------------------------------------

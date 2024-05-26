@@ -10,7 +10,7 @@ dump netcdf/mpiio command
 Syntax
 """"""
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    dump ID group-ID netcdf N file args
    dump ID group-ID netcdf/mpiio N file args

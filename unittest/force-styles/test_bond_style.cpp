@@ -26,6 +26,8 @@
 #include "atom.h"
 #include "bond.h"
 #include "compute.h"
+#include "exceptions.h"
+#include "fix.h"
 #include "fmt/format.h"
 #include "force.h"
 #include "info.h"
@@ -59,11 +61,11 @@ void cleanup_lammps(LAMMPS *lmp, const TestConfig &cfg)
     delete lmp;
 }
 
-LAMMPS *init_lammps(int argc, char **argv, const TestConfig &cfg, const bool newton = true)
+LAMMPS *init_lammps(LAMMPS::argv &args, const TestConfig &cfg, const bool newton = true)
 {
     LAMMPS *lmp;
 
-    lmp = new LAMMPS(argc, argv, MPI_COMM_WORLD);
+    lmp = new LAMMPS(args, MPI_COMM_WORLD);
 
     // check if prerequisite styles are available
     Info *info = new Info(lmp);
@@ -90,7 +92,21 @@ LAMMPS *init_lammps(int argc, char **argv, const TestConfig &cfg, const bool new
 
     // utility lambdas to improve readability
     auto command = [&](const std::string &line) {
-        lmp->input->one(line);
+        try {
+            lmp->input->one(line);
+        } catch (LAMMPSAbortException &ae) {
+            fprintf(stderr, "LAMMPS Error: %s\n", ae.what());
+            exit(2);
+        } catch (LAMMPSException &e) {
+            fprintf(stderr, "LAMMPS Error: %s\n", e.what());
+            exit(3);
+        } catch (fmt::format_error &fe) {
+            fprintf(stderr, "fmt::format_error: %s\n", fe.what());
+            exit(4);
+        } catch (std::exception &e) {
+            fprintf(stderr, "General exception: %s\n", e.what());
+            exit(5);
+        }
     };
     auto parse_input_script = [&](const std::string &filename) {
         lmp->input->file(filename.c_str());
@@ -211,11 +227,9 @@ void data_lammps(LAMMPS *lmp, const TestConfig &cfg)
 void generate_yaml_file(const char *outfile, const TestConfig &config)
 {
     // initialize system geometry
-    const char *args[] = {"BondStyle", "-log", "none", "-echo", "screen", "-nocite"};
+    LAMMPS::argv args = {"BondStyle", "-log", "none", "-echo", "screen", "-nocite"};
 
-    char **argv = (char **)args;
-    int argc    = sizeof(args) / sizeof(char *);
-    LAMMPS *lmp = init_lammps(argc, argv, config);
+    LAMMPS *lmp = init_lammps(args, config);
     if (!lmp) {
         std::cerr << "One or more prerequisite styles are not available "
                      "in this LAMMPS configuration:\n";
@@ -303,13 +317,10 @@ TEST(BondStyle, plain)
 {
     if (test_config.skip_tests.count(test_info_->name())) GTEST_SKIP();
 
-    const char *args[] = {"BondStyle", "-log", "none", "-echo", "screen", "-nocite"};
-
-    char **argv = (char **)args;
-    int argc    = sizeof(args) / sizeof(char *);
+    LAMMPS::argv args = {"BondStyle", "-log", "none", "-echo", "screen", "-nocite"};
 
     ::testing::internal::CaptureStdout();
-    LAMMPS *lmp = init_lammps(argc, argv, test_config, true);
+    LAMMPS *lmp = init_lammps(args, test_config, true);
 
     std::string output = ::testing::internal::GetCapturedStdout();
     if (verbose) std::cout << output;
@@ -358,7 +369,7 @@ TEST(BondStyle, plain)
 
     if (!verbose) ::testing::internal::CaptureStdout();
     cleanup_lammps(lmp, test_config);
-    lmp = init_lammps(argc, argv, test_config, false);
+    lmp = init_lammps(args, test_config, false);
     if (!verbose) ::testing::internal::GetCapturedStdout();
 
     // skip over these tests if newton bond is forced to be on
@@ -424,14 +435,11 @@ TEST(BondStyle, omp)
     if (!LAMMPS::is_installed_pkg("OPENMP")) GTEST_SKIP();
     if (test_config.skip_tests.count(test_info_->name())) GTEST_SKIP();
 
-    const char *args[] = {"BondStyle", "-log", "none", "-echo", "screen", "-nocite",
-                          "-pk",       "omp",  "4",    "-sf",   "omp"};
-
-    char **argv = (char **)args;
-    int argc    = sizeof(args) / sizeof(char *);
+    LAMMPS::argv args = {"BondStyle", "-log", "none", "-echo", "screen", "-nocite",
+                         "-pk",       "omp",  "4",    "-sf",   "omp"};
 
     ::testing::internal::CaptureStdout();
-    LAMMPS *lmp = init_lammps(argc, argv, test_config, true);
+    LAMMPS *lmp = init_lammps(args, test_config, true);
 
     std::string output = ::testing::internal::GetCapturedStdout();
     if (verbose) std::cout << output;
@@ -484,7 +492,7 @@ TEST(BondStyle, omp)
 
     if (!verbose) ::testing::internal::CaptureStdout();
     cleanup_lammps(lmp, test_config);
-    lmp = init_lammps(argc, argv, test_config, false);
+    lmp = init_lammps(args, test_config, false);
     if (!verbose) ::testing::internal::GetCapturedStdout();
 
     // skip over these tests if newton bond is forced to be on
@@ -523,18 +531,69 @@ TEST(BondStyle, omp)
     if (!verbose) ::testing::internal::GetCapturedStdout();
 };
 
+
+TEST(BondStyle, numdiff)
+{
+    if (!LAMMPS::is_installed_pkg("EXTRA-FIX")) GTEST_SKIP();
+    if (test_config.skip_tests.count(test_info_->name())) GTEST_SKIP();
+
+    LAMMPS::argv args = {"BondStyle", "-log", "none", "-echo", "screen", "-nocite"};
+
+    ::testing::internal::CaptureStdout();
+    LAMMPS *lmp = init_lammps(args, test_config, true);
+
+    std::string output = ::testing::internal::GetCapturedStdout();
+    if (verbose) std::cout << output;
+
+    if (!lmp) {
+        std::cerr << "One or more prerequisite styles are not available "
+                     "in this LAMMPS configuration:\n";
+        for (auto &prerequisite : test_config.prerequisites) {
+            std::cerr << prerequisite.first << "_style " << prerequisite.second << "\n";
+        }
+        GTEST_SKIP();
+    }
+
+    EXPECT_THAT(output, StartsWith("LAMMPS ("));
+    EXPECT_THAT(output, HasSubstr("Loop time"));
+
+    // abort if running in parallel and not all atoms are local
+    const int nlocal = lmp->atom->nlocal;
+    ASSERT_EQ(lmp->atom->natoms, nlocal);
+
+    if (!verbose) ::testing::internal::CaptureStdout();
+    lmp->input->one("fix diff all numdiff 2 6.05504e-6");
+    lmp->input->one("run 2 post no");
+    if (!verbose) ::testing::internal::GetCapturedStdout();
+    Fix *ifix = lmp->modify->get_fix_by_id("diff");
+    if (ifix) {
+        double epsilon = test_config.epsilon * 5.0e8;
+        ErrorStats stats;
+        double **f1 = lmp->atom->f;
+        double **f2 = ifix->array_atom;
+        SCOPED_TRACE("EXPECT FORCES: numdiff");
+        for (int i = 0; i < nlocal; ++i) {
+            EXPECT_FP_LE_WITH_EPS(f1[i][0], f2[i][0], epsilon);
+            EXPECT_FP_LE_WITH_EPS(f1[i][1], f2[i][1], epsilon);
+            EXPECT_FP_LE_WITH_EPS(f1[i][2], f2[i][2], epsilon);
+        }
+        if (print_stats)
+            std::cerr << "numdiff  stats: " << stats << " epsilon: " << epsilon << std::endl;
+    }
+    if (!verbose) ::testing::internal::CaptureStdout();
+    cleanup_lammps(lmp, test_config);
+    if (!verbose) ::testing::internal::GetCapturedStdout();
+}
+
 TEST(BondStyle, single)
 {
     if (test_config.skip_tests.count(test_info_->name())) GTEST_SKIP();
 
-    const char *args[] = {"BondStyle", "-log", "none", "-echo", "screen", "-nocite"};
-
-    char **argv = (char **)args;
-    int argc    = sizeof(args) / sizeof(char *);
+    LAMMPS::argv args = {"BondStyle", "-log", "none", "-echo", "screen", "-nocite"};
 
     // create a LAMMPS instance with standard settings to detect the number of atom types
     if (!verbose) ::testing::internal::CaptureStdout();
-    LAMMPS *lmp = init_lammps(argc, argv, test_config);
+    LAMMPS *lmp = init_lammps(args, test_config);
     if (!verbose) ::testing::internal::GetCapturedStdout();
 
     if (!lmp) {
@@ -785,13 +844,10 @@ TEST(BondStyle, extract)
 {
     if (test_config.skip_tests.count(test_info_->name())) GTEST_SKIP();
 
-    const char *args[] = {"BondStyle", "-log", "none", "-echo", "screen", "-nocite"};
-
-    char **argv = (char **)args;
-    int argc    = sizeof(args) / sizeof(char *);
+    LAMMPS::argv args = {"BondStyle", "-log", "none", "-echo", "screen", "-nocite"};
 
     if (!verbose) ::testing::internal::CaptureStdout();
-    LAMMPS *lmp = init_lammps(argc, argv, test_config, true);
+    LAMMPS *lmp = init_lammps(args, test_config, true);
     if (!verbose) ::testing::internal::GetCapturedStdout();
 
     if (!lmp) {

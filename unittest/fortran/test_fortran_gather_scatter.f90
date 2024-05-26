@@ -207,7 +207,7 @@ END SUBROUTINE f_lammps_scatter_atoms_subset_mask
 
 SUBROUTINE f_lammps_setup_gather_topology() BIND(C)
   USE LIBLAMMPS
-  USE keepstuff, ONLY : lmp, cont_input, more_input, pair_input
+  USE keepstuff, ONLY : lmp
   IMPLICIT NONE
 
   CALL lmp%command('include ${input_dir}/in.fourmol')
@@ -232,7 +232,7 @@ FUNCTION f_lammps_test_gather_bonds_small() BIND(C) RESULT(count)
       nbonds = nbonds_small
   ELSE
       nbonds_big = lmp%extract_global('nbonds')
-      nbonds = nbonds_big
+      nbonds = INT(nbonds_big)
   END IF
 
   CALL lmp%gather_bonds(bonds)
@@ -280,7 +280,7 @@ FUNCTION f_lammps_test_gather_bonds_big() BIND(C) RESULT(count)
   INTEGER(c_int64_t), POINTER :: nbonds_big
 
   nbonds_big = lmp%extract_global('nbonds')
-  nbonds = nbonds_big
+  nbonds = INT(nbonds_big)
   CALL lmp%gather_bonds(bonds)
   bonds_array(1:3,1:SIZE(bonds)/3) => bonds
   count = 0
@@ -332,7 +332,7 @@ FUNCTION f_lammps_test_gather_angles_small() BIND(C) RESULT(count)
       nangles = nangles_small
   ELSE
       nangles_big = lmp%extract_global('nangles')
-      nangles = nangles_big
+      nangles = INT(nangles_big)
   END IF
 
   CALL lmp%gather_angles(angles)
@@ -380,7 +380,7 @@ FUNCTION f_lammps_test_gather_angles_big() BIND(C) RESULT(count)
   INTEGER(c_int64_t), POINTER :: nangles_big
 
   nangles_big = lmp%extract_global('nangles')
-  nangles = nangles_big
+  nangles = INT(nangles_big)
   CALL lmp%gather_angles(angles)
   angles_array(1:4,1:SIZE(angles)/4) => angles
   count = 0
@@ -432,7 +432,7 @@ FUNCTION f_lammps_test_gather_dihedrals_small() BIND(C) RESULT(count)
       ndihedrals = ndihedrals_small
   ELSE
       ndihedrals_big = lmp%extract_global('ndihedrals')
-      ndihedrals = ndihedrals_big
+      ndihedrals = INT(ndihedrals_big)
   END IF
 
   CALL lmp%gather_dihedrals(dihedrals)
@@ -478,7 +478,7 @@ FUNCTION f_lammps_test_gather_dihedrals_big() BIND(C) RESULT(count)
   INTEGER(c_int64_t), POINTER :: ndihedrals_big
 
   ndihedrals_big = lmp%extract_global('ndihedrals')
-  ndihedrals = ndihedrals_big
+  ndihedrals = INT(ndihedrals_big)
   CALL lmp%gather_dihedrals(dihedrals)
   dihedrals_array(1:5,1:SIZE(dihedrals)/5) => dihedrals
   count = 0
@@ -528,7 +528,7 @@ FUNCTION f_lammps_test_gather_impropers_small() BIND(C) RESULT(count)
       nimpropers = nimpropers_small
   ELSE
       nimpropers_big = lmp%extract_global('nimpropers')
-      nimpropers = nimpropers_big
+      nimpropers = INT(nimpropers_big)
   END IF
 
   CALL lmp%gather_impropers(impropers)
@@ -566,7 +566,7 @@ FUNCTION f_lammps_test_gather_impropers_big() BIND(C) RESULT(count)
   INTEGER(c_int64_t), POINTER :: nimpropers_big
 
   nimpropers_big = lmp%extract_global('nimpropers')
-  nimpropers = nimpropers_big
+  nimpropers = INT(nimpropers_big)
   CALL lmp%gather_impropers(impropers)
   impropers_array(1:5,1:SIZE(impropers)/5) => impropers
   count = 0

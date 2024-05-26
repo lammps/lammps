@@ -1,13 +1,13 @@
 # Contributing to LAMMPS via GitHub
 
-Thank your for considering to contribute to the LAMMPS software project.
+Thank you for considering to contribute to the LAMMPS software project.
 
 The following is a set of guidelines as well as explanations of policies and work flows for contributing to the LAMMPS molecular dynamics software project. These guidelines focus on submitting issues or pull requests on the LAMMPS GitHub project.
 
 Thus please also have a look at:
-* [The guide for submitting new features in the LAMMPS manual](https://www.lammps.org/doc/Modify_contribute.html)
-* [The guide on programming style and requirement in the LAMMPS manual](https://www.lammps.org/doc/Modify_style.html)
-* [The GitHub tutorial in the LAMMPS manual](http://lammps.sandia.gov/doc/Howto_github.html)
+* [The guide for submitting new features in the LAMMPS manual](https://docs.lammps.org/Modify_contribute.html)
+* [The guide on programming style and requirement in the LAMMPS manual](https://docs.lammps.org/Modify_requirements.html)
+* [The GitHub tutorial in the LAMMPS manual](http://docs.lammps.org/Howto_github.html)
 
 ## Table of Contents
 
@@ -27,17 +27,17 @@ __
 
 ## I don't want to read this whole thing I just have a question!
 
-> **Note:** Please do not file an issue to ask a general question about LAMMPS, its features, how to use specific commands, or how perform simulations or analysis in LAMMPS. Instead post your question to either the ['lammps-users' mailing list](https://lammps.sandia.gov/mail.html) or the [LAMMPS Material Science Discourse forum](https://matsci.org/lammps). You do not need to be subscribed to post to the list (but a mailing list subscription avoids having your post delayed until it is approved by a mailing list moderator). Most posts to the mailing list receive a response within less than 24 hours. Before posting to the mailing list, please read the [mailing list guidelines](https://lammps.sandia.gov/guidelines.html). Following those guidelines will help greatly to get a helpful response. Always mention which LAMMPS version you are using. The LAMMPS forum was recently created as part of a larger effort to build a materials science community and have discussions not just about using LAMMPS. Thus the forum may be also used for discussions that would be off-topic for the mailing list. Those will just have to be posted to a more general category.
+> **Note:** Please do not file an issue to ask a general question about LAMMPS, its features, how to use specific commands, or how perform simulations or analysis in LAMMPS. Instead post your question to the [LAMMPS Material Science Discourse forum](https://matsci.org/lammps). Before posting to the forum, please read the general [guidelines](https://www.lammps.org/guidelines.html) and the forum specific [suggestions](https://matsci.org/t/please-read-this-first-guidelines-and-suggestions-for-posting-lammps-questions/49913). Following those guidelines and suggestions will help greatly to get a helpful response.  *Always* mention which LAMMPS version you are using. The MatSci website may be also used for discussions that would be off-topic for the LAMMPS categories. Those will just have to be posted to a different category.
 
 ## How Can I Contribute?
 
 There are several ways how you can actively contribute to the LAMMPS project: you can discuss compiling and using LAMMPS, and solving LAMMPS related problems with other LAMMPS users on the lammps-users mailing list or the forum, you can report bugs or suggest enhancements by creating issues on GitHub (or posting them to the lammps-users mailing list or posting in the LAMMPS Materials Science Discourse forum), and you can contribute by submitting pull requests on GitHub or e-mail your code
-to one of the [LAMMPS core developers](https://lammps.sandia.gov/authors.html). As you may see from the aforementioned developer page, the LAMMPS software package includes the efforts of a very large number of contributors beyond the principal authors and maintainers.
+to one of the [LAMMPS core developers](https://www.lammps.org/authors.html). As you may see from the aforementioned developer page, the LAMMPS software package includes the efforts of a very large number of contributors beyond the principal authors and maintainers.
 
 ### Discussing How To Use LAMMPS
 
 The LAMMPS mailing list is hosted at SourceForge. The mailing list began in 2005, and now includes tens of thousands of messages in thousands of threads. LAMMPS developers try to respond to posted questions in a timely manner, but there are no guarantees. Please consider that people live in different timezone and may not have time to answer e-mails outside of their work hours.
-You can post to list by sending your email to lammps-users at lists.sourceforge.net (no subscription required), but before posting, please read the [mailing list guidelines](https://lammps.sandia.gov/guidelines.html) to maximize your chances to receive a helpful response.
+You can post to list by sending your email to lammps-users at lists.sourceforge.net (no subscription required), but before posting, please read the [mailing list guidelines](https://www.lammps.org/guidelines.html) to maximize your chances to receive a helpful response.
 
 Anyone can browse/search previous questions/answers in the archives. You do not have to subscribe to the list to post questions, receive answers (to your questions), or browse/search the archives. You **do** need to subscribe to the list if you want emails for **all** the posts (as individual messages or in digest form), or to answer questions yourself. Feel free to sign up and help us out! Answering questions from fellow LAMMPS users is a great way to pay back the community for providing you a useful tool for free, and to pass on the advice you have received yourself to others. It improves your karma and helps you understand your own research better.
 
@@ -47,7 +47,7 @@ The LAMMPS Materials Science Discourse forum was created recently to facilitate 
 
 ### Reporting Bugs
 
-While developers writing code for LAMMPS are careful to test their code, LAMMPS is such a large and complex software, that it is impossible to test for all combinations of features under all normal and not so normal circumstances. Thus bugs do happen, and if you suspect, that you have encountered one, please try to document it and report it as an [Issue](https://github.com/lammps/lammps/issues) on the LAMMPS GitHub project web page. However, before reporting a bug, you need to check whether this is something that may have already been corrected. The [Latest Features and Bug Fixes in LAMMPS](https://lammps.sandia.gov/bug.html) web page lists all significant changes to LAMMPS over the years. It also tells you what the current latest development version of LAMMPS is, and you should test whether your issue still applies to that version.
+While developers writing code for LAMMPS are careful to test their code, LAMMPS is such a large and complex software, that it is impossible to test for all combinations of features under all normal and not so normal circumstances. Thus bugs do happen, and if you suspect, that you have encountered one, please try to document it and report it as an [Issue](https://github.com/lammps/lammps/issues) on the LAMMPS GitHub project web page. However, before reporting a bug, you need to check whether this is something that may have already been corrected. The [Latest Features and Bug Fixes in LAMMPS](https://www.lammps.org/bug.html) web page lists all significant changes to LAMMPS over the years. It also tells you what the current latest development version of LAMMPS is, and you should test whether your issue still applies to that version.
 
 When you click on the green "New Issue" button, you will be provided with a text field, where you can enter your message. That text field with contain a template with several headlines and some descriptions. Keep the headlines that are relevant to your reported potential bug and replace the descriptions with the information as suggested by the descriptions.
 You can also attach small text files (please add the file name extension `.txt` or it will be rejected), images, or small compressed text files (using gzip, do not use RAR or 7-ZIP or similar tools that are uncommon outside of Windows machines). In many cases, bugs are best illustrated by providing a small input deck (do **not** attach your entire production input, but remove everything that is not required to reproduce the issue, and scale down your system size, that the resulting calculation runs fast and can be run on small desktop quickly).
@@ -65,9 +65,9 @@ To be able to submit an issue on GitHub, you have to register for an account (fo
 
 We encourage users to submit new features or modifications for LAMMPS. Instructions, guidelines, requirements,
 and recommendations are in the following sections of the LAMMPS manual:
-* [The guide for submitting new features in the LAMMPS manual](https://lammps.sandia.gov/doc/Modify_contribute.html)
-* [The guide on programming style and requirement in the LAMMPS manual](https://lammps.sandia.gov/doc/Modify_contribute.html)
-* [The GitHub tutorial in the LAMMPS manual](http://lammps.sandia.gov/doc/Howto_github.html)
+* [The guide for submitting new features in the LAMMPS manual](https://docs.lammps.org/Modify_contribute.html)
+* [The guide on programming style and requirement in the LAMMPS manual](https://docs.lammps.org/Modify_requirements.html)
+* [The GitHub tutorial in the LAMMPS manual](http://docs.lammps.org/Howto_github.html)
 
 
 ## GitHub Workflows
@@ -85,7 +85,7 @@ For bug reports, the next step is that one of the core LAMMPS developers will se
 ### Pull Requests
 
 Pull requests are the **only** way that changes get made to the LAMMPS distribution.  So also the LAMMPS core developers will submit pull requests for their own changes and discuss them on GitHub.  Thus if you submit a pull request it will be treated in a similar fashion. When you submit a pull request you may opt to submit a "Draft" pull request.  That means your changes are visible and will be subject to testing, but reviewers will not be (auto-)assigned and comments will take into account that this is not complete. On the other hand, this is a perfect way to ask the LAMMPS developers for comments on non-obvious changes and get feedback and possible suggestions for improvements or recommendations about what to avoid.
-Immediately after the submission, the LAMMPS continuing integration server at ci.lammps.org will download your submitted branch and perform a number of tests: it will tests whether it compiles cleanly under various conditions, it will also do a check on whether your included documentation translates cleanly and run some unit tests and other checks. Whether these tests are successful or fail will be recorded.  If a test fails, please inspect the corresponding output on the CI server and take the necessary steps, if needed, so that the code can compile cleanly again.  The test will be re-run each time the pull request is updated with a push to the remote branch on GitHub.  If you are unsure about what you need to change, ask a question in the discussion area of the pull request.
+Immediately after the submission, the LAMMPS continuing integration server at https://ci.lammps.org will download your submitted branch and perform a number of tests: it will tests whether it compiles cleanly under various conditions, it will also do a check on whether your included documentation translates cleanly and run some unit tests and other checks. Whether these tests are successful or fail will be recorded.  If a test fails, please inspect the corresponding output on the CI server and take the necessary steps, if needed, so that the code can compile cleanly again.  The test will be re-run each time the pull request is updated with a push to the remote branch on GitHub.  If you are unsure about what you need to change, ask a question in the discussion area of the pull request.
 Next a LAMMPS core developer will self-assign and do an overall technical assessment of the submission.  If you submitted a draft pull request, this will not happen unless you mark it "ready for review".  If you are not yet invited as a LAMMPS collaborator, and your contribution seems significant, you may also receive an invitation for collaboration on the LAMMPS repository.  As part of the assessment, the pull request will be categorized with labels. There are two special labels: `needs_work` (indicates that work from the submitter of the pull request is needed) and `work_in_progress` (indicates, that the assigned LAMMPS developer will make changes, if not done by the contributor who made the submit). 
 You may also receive comments and suggestions on the overall submission or specific details and on occasion specific requests for changes as part of the review. If permitted, also additional changes may be pushed into your pull request branch or a pull request may be filed in your LAMMPS fork on GitHub to include those changes.
 The LAMMPS developer may then decide to assign the pull request to another developer (e.g. when that developer is more knowledgeable about the submitted feature or enhancement or has written the modified code). It may also happen, that additional developers are requested to provide a review and approve the changes. For submissions, that may change the general behavior of LAMMPS, or where a possibility of unwanted side effects exists, additional tests may be requested by the assigned developer.

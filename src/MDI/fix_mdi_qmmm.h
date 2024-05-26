@@ -59,16 +59,16 @@ class FixMDIQMMM : public Fix {
   int maxlocal;
   int sumflag;
   int *elements;
-  int mode;            // QMMM method = DIRECT or POTENTIAL
+  int mode;    // QMMM method = DIRECT or POTENTIAL
 
-  double qm_cell[9],qm_cell_displ[3];
+  double qm_cell[9], qm_cell_displ[3];
 
   double qm_energy;
   double qm_virial[9], qm_virial_symmetric[6];
 
   MDI_Comm mdicomm;
-  int natoms_exists,celldispl_exists,elements_exists,types_exists;
-  int stress_exists;
+  int natoms_exists, celldispl_exists, elements_exists, types_exists;
+  int stress_exists, pe_exists, keelec_exists;
 
   int nmax;
 
@@ -76,41 +76,41 @@ class FixMDIQMMM : public Fix {
 
   // QM atom data structs
 
-  int nqm;                   // # of QM atoms
-  int nqm_last,max_nqm;
+  int nqm;    // # of QM atoms
+  int nqm_last, max_nqm;
 
-  tagint *qmIDs;             // IDs of QM atoms in ascending order
-  int *qm2owned;             // index of local atom for each QM atom
-                             // index = -1 if this proc does not own
+  tagint *qmIDs;    // IDs of QM atoms in ascending order
+  int *qm2owned;    // index of local atom for each QM atom
+                    // index = -1 if this proc does not own
 
-  int *eqm,*eqm_mine;
-  int *tqm,*tqm_mine;
-  double **xqm,**xqm_mine;
-  double *qqm,*qqm_mine;
-  double *qpotential,*qpotential_mine;
+  int *eqm, *eqm_mine;
+  int *tqm, *tqm_mine;
+  double **xqm, **xqm_mine;
+  double *qqm, *qqm_mine;
+  double *qpotential, *qpotential_mine;
   double **fqm;
 
-  double *ecoul;             // peratom Coulombic energy from LAMMPS
-  int ncoulmax;              // length of ecoul
+  double *ecoul;    // peratom Coulombic energy from LAMMPS
+  int ncoulmax;     // length of ecoul
 
   // MM atom data structs
 
-  int nmm;                   // # of MM atoms
-  int nmm_last,max_nmm;
+  int nmm;    // # of MM atoms
+  int nmm_last, max_nmm;
 
-  tagint *mmIDs;             // IDs of MM atoms in ascending order
-  int *mm2owned;             // index of local atom for each MM atom
-                             // index = -1 if this proc does not own
+  tagint *mmIDs;    // IDs of MM atoms in ascending order
+  int *mm2owned;    // index of local atom for each MM atom
+                    // index = -1 if this proc does not own
 
-  int *emm,*emm_mine;
-  int *tmm,*tmm_mine;
-  double **xmm,**xmm_mine;
-  double *qmm,*qmm_mine;
+  int *emm, *emm_mine;
+  int *tmm, *tmm_mine;
+  double **xmm, **xmm_mine;
+  double *qmm, *qmm_mine;
   double **fmm;
 
   // unit conversion factors
 
-  int lmpunits;        // REAL, METAL, or NATIVE
+  int lmpunits;    // REAL, METAL, or NATIVE
 
   double lmp2mdi_length, mdi2lmp_length;
   double lmp2mdi_energy, mdi2lmp_energy;
@@ -156,8 +156,9 @@ class FixMDIQMMM : public Fix {
   void send_elements_mm();
   void send_charges_mm();
 
-  void unit_conversions();
+  void request_qm_energy();
 
+  void unit_conversions();
 };
 
 }    // namespace LAMMPS_NS

@@ -188,7 +188,7 @@ void PairLJCharmmfswCoulCharmmfsh::compute(int eflag, int vflag)
               evdwl12 = lj3[itype][jtype]*cut_lj6*denom_lj12 *
                 (r6inv - cut_lj6inv)*(r6inv - cut_lj6inv);
               evdwl6 = -lj4[itype][jtype]*cut_lj3*denom_lj6 *
-                (r3inv - cut_lj3inv)*(r3inv - cut_lj3inv);;
+                (r3inv - cut_lj3inv)*(r3inv - cut_lj3inv);
               evdwl = evdwl12 + evdwl6;
             } else {
               evdwl12 = r6inv*lj3[itype][jtype]*r6inv -
@@ -525,7 +525,7 @@ single(int i, int j, int itype, int jtype,
       philj12 = lj3[itype][jtype]*cut_lj6*denom_lj12 *
         (r6inv - cut_lj6inv)*(r6inv - cut_lj6inv);
       philj6 = -lj4[itype][jtype]*cut_lj3*denom_lj6 *
-        (r3inv - cut_lj3inv)*(r3inv - cut_lj3inv);;
+        (r3inv - cut_lj3inv)*(r3inv - cut_lj3inv);
       philj = philj12 + philj6;
     } else {
       philj12 = r6inv*lj3[itype][jtype]*r6inv -

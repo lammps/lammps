@@ -868,105 +868,67 @@ public:
 
 /// \brief 2-dimensional array of real numbers with three components
 /// along each dimension (works with colvarmodule::rvector)
-class colvarmodule::rmatrix
-  : public colvarmodule::matrix2d<colvarmodule::real> {
-private:
+class colvarmodule::rmatrix {
 
 public:
 
-  /// Return the xx element
-  inline cvm::real & xx() { return (*this)[0][0]; }
-  /// Return the xy element
-  inline cvm::real & xy() { return (*this)[0][1]; }
-  /// Return the xz element
-  inline cvm::real & xz() { return (*this)[0][2]; }
-  /// Return the yx element
-  inline cvm::real & yx() { return (*this)[1][0]; }
-  /// Return the yy element
-  inline cvm::real & yy() { return (*this)[1][1]; }
-  /// Return the yz element
-  inline cvm::real & yz() { return (*this)[1][2]; }
-  /// Return the zx element
-  inline cvm::real & zx() { return (*this)[2][0]; }
-  /// Return the zy element
-  inline cvm::real & zy() { return (*this)[2][1]; }
-  /// Return the zz element
-  inline cvm::real & zz() { return (*this)[2][2]; }
-
-  /// Return the xx element
-  inline cvm::real xx() const { return (*this)[0][0]; }
-  /// Return the xy element
-  inline cvm::real xy() const { return (*this)[0][1]; }
-  /// Return the xz element
-  inline cvm::real xz() const { return (*this)[0][2]; }
-  /// Return the yx element
-  inline cvm::real yx() const { return (*this)[1][0]; }
-  /// Return the yy element
-  inline cvm::real yy() const { return (*this)[1][1]; }
-  /// Return the yz element
-  inline cvm::real yz() const { return (*this)[1][2]; }
-  /// Return the zx element
-  inline cvm::real zx() const { return (*this)[2][0]; }
-  /// Return the zy element
-  inline cvm::real zy() const { return (*this)[2][1]; }
-  /// Return the zz element
-  inline cvm::real zz() const { return (*this)[2][2]; }
+  cvm::real xx, xy, xz, yx, yy, yz, zx, zy, zz;
 
   /// Default constructor
   inline rmatrix()
-    : cvm::matrix2d<cvm::real>(3, 3)
-  {}
+  {
+    reset();
+  }
 
   /// Constructor component by component
   inline rmatrix(cvm::real xxi, cvm::real xyi, cvm::real xzi,
                  cvm::real yxi, cvm::real yyi, cvm::real yzi,
                  cvm::real zxi, cvm::real zyi, cvm::real zzi)
-    : cvm::matrix2d<cvm::real>(3, 3)
   {
-    this->xx() = xxi;
-    this->xy() = xyi;
-    this->xz() = xzi;
-    this->yx() = yxi;
-    this->yy() = yyi;
-    this->yz() = yzi;
-    this->zx() = zxi;
-    this->zy() = zyi;
-    this->zz() = zzi;
+    xx = xxi;
+    xy = xyi;
+    xz = xzi;
+    yx = yxi;
+    yy = yyi;
+    yz = yzi;
+    zx = zxi;
+    zy = zyi;
+    zz = zzi;
   }
 
   /// Destructor
   inline ~rmatrix()
   {}
 
+  inline void reset()
+  {
+    xx = xy = xz = yx = yy = yz = zx = zy = zz = 0.0;
+  }
+
   /// Return the determinant
   inline cvm::real determinant() const
   {
     return
-      (  xx() * (yy()*zz() - zy()*yz()))
-      - (yx() * (xy()*zz() - zy()*xz()))
-      + (zx() * (xy()*yz() - yy()*xz()));
+      (  xx * (yy*zz - zy*yz))
+      - (yx * (xy*zz - zy*xz))
+      + (zx * (xy*yz - yy*xz));
   }
 
   inline cvm::rmatrix transpose() const
   {
-    return cvm::rmatrix(this->xx(), this->yx(), this->zx(),
-                        this->xy(), this->yy(), this->zy(),
-                        this->xz(), this->yz(), this->zz());
+    return cvm::rmatrix(xx, yx, zx,
+                        xy, yy, zy,
+                        xz, yz, zz);
   }
 
-  friend cvm::rvector operator * (cvm::rmatrix const &m, cvm::rvector const &r);
-
+  inline friend cvm::rvector operator * (cvm::rmatrix const &m,
+                                         cvm::rvector const &r)
+  {
+    return cvm::rvector(m.xx*r.x + m.xy*r.y + m.xz*r.z,
+                        m.yx*r.x + m.yy*r.y + m.yz*r.z,
+                        m.zx*r.x + m.zy*r.y + m.zz*r.z);
+  }
 };
-
-
-inline cvm::rvector operator * (cvm::rmatrix const &m,
-                                cvm::rvector const &r)
-{
-  return cvm::rvector(m.xx()*r.x + m.xy()*r.y + m.xz()*r.z,
-                      m.yx()*r.x + m.yy()*r.y + m.yz()*r.z,
-                      m.zx()*r.x + m.zy()*r.y + m.zz()*r.z);
-}
-
 
 
 
@@ -1151,11 +1113,6 @@ public:
     q0-=h.q0; q1-=h.q1; q2-=h.q2; q3-=h.q3;
   }
 
-  /// Promote a 3-vector to a quaternion
-  static inline cvm::quaternion promote(cvm::rvector const &v)
-  {
-    return cvm::quaternion(0.0, v.x, v.y, v.z);
-  }
   /// Return the vector component
   inline cvm::rvector get_vector() const
   {
@@ -1207,7 +1164,8 @@ public:
   /// reference frame)
   inline cvm::rvector rotate(cvm::rvector const &v) const
   {
-    return ((*this) * promote(v) * ((*this).conjugate())).get_vector();
+    return ( (*this) * cvm::quaternion(0.0, v.x, v.y, v.z) *
+             this->conjugate() ).get_vector();
   }
 
   /// \brief Rotate Q2 through this quaternion (put it in the rotated
@@ -1223,18 +1181,18 @@ public:
   {
     cvm::rmatrix R;
 
-    R.xx() = q0*q0 + q1*q1 - q2*q2 - q3*q3;
-    R.yy() = q0*q0 - q1*q1 + q2*q2 - q3*q3;
-    R.zz() = q0*q0 - q1*q1 - q2*q2 + q3*q3;
+    R.xx = q0*q0 + q1*q1 - q2*q2 - q3*q3;
+    R.yy = q0*q0 - q1*q1 + q2*q2 - q3*q3;
+    R.zz = q0*q0 - q1*q1 - q2*q2 + q3*q3;
 
-    R.xy() = 2.0 * (q1*q2 - q0*q3);
-    R.xz() = 2.0 * (q0*q2 + q1*q3);
+    R.xy = 2.0 * (q1*q2 - q0*q3);
+    R.xz = 2.0 * (q0*q2 + q1*q3);
 
-    R.yx() = 2.0 * (q0*q3 + q1*q2);
-    R.yz() = 2.0 * (q2*q3 - q0*q1);
+    R.yx = 2.0 * (q0*q3 + q1*q2);
+    R.yz = 2.0 * (q2*q3 - q0*q1);
 
-    R.zx() = 2.0 * (q1*q3 - q0*q2);
-    R.zy() = 2.0 * (q0*q1 + q2*q3);
+    R.zx = 2.0 * (q1*q3 - q0*q2);
+    R.zy = 2.0 * (q0*q1 + q2*q3);
 
     return R;
   }

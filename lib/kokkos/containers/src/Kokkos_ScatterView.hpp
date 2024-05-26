@@ -1,46 +1,18 @@
-/*
 //@HEADER
 // ************************************************************************
 //
-//                        Kokkos v. 3.0
-//       Copyright (2020) National Technology & Engineering
+//                        Kokkos v. 4.0
+//       Copyright (2022) National Technology & Engineering
 //               Solutions of Sandia, LLC (NTESS).
 //
 // Under the terms of Contract DE-NA0003525 with NTESS,
 // the U.S. Government retains certain rights in this software.
 //
-// Redistribution and use in source and binary forms, with or without
-// modification, are permitted provided that the following conditions are
-// met:
+// Part of Kokkos, under the Apache License v2.0 with LLVM Exceptions.
+// See https://kokkos.org/LICENSE for license information.
+// SPDX-License-Identifier: Apache-2.0 WITH LLVM-exception
 //
-// 1. Redistributions of source code must retain the above copyright
-// notice, this list of conditions and the following disclaimer.
-//
-// 2. Redistributions in binary form must reproduce the above copyright
-// notice, this list of conditions and the following disclaimer in the
-// documentation and/or other materials provided with the distribution.
-//
-// 3. Neither the name of the Corporation nor the names of the
-// contributors may be used to endorse or promote products derived from
-// this software without specific prior written permission.
-//
-// THIS SOFTWARE IS PROVIDED BY NTESS "AS IS" AND ANY
-// EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
-// IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR
-// PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL NTESS OR THE
-// CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
-// EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
-// PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR
-// PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF
-// LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING
-// NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
-// SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-//
-// Questions? Contact Christian R. Trott (crtrott@sandia.gov)
-//
-// ************************************************************************
 //@HEADER
-*/
 
 /// \file Kokkos_ScatterView.hpp
 /// \brief Declaration and definition of Kokkos::ScatterView.
@@ -195,16 +167,16 @@ struct DefaultContribution<Kokkos::Cuda,
 
 #ifdef KOKKOS_ENABLE_HIP
 template <>
-struct DefaultDuplication<Kokkos::Experimental::HIP> {
+struct DefaultDuplication<Kokkos::HIP> {
   using type = Kokkos::Experimental::ScatterNonDuplicated;
 };
 template <>
-struct DefaultContribution<Kokkos::Experimental::HIP,
+struct DefaultContribution<Kokkos::HIP,
                            Kokkos::Experimental::ScatterNonDuplicated> {
   using type = Kokkos::Experimental::ScatterAtomic;
 };
 template <>
-struct DefaultContribution<Kokkos::Experimental::HIP,
+struct DefaultContribution<Kokkos::HIP,
                            Kokkos::Experimental::ScatterDuplicated> {
   using type = Kokkos::Experimental::ScatterAtomic;
 };
@@ -560,7 +532,7 @@ void args_to_array(size_t* array, int pos, T dim0, Dims... dims) {
    subview where the index specified is the largest-stride one. */
 template <typename Layout, int rank, typename V, typename... Args>
 struct Slice {
-  using next       = Slice<Layout, rank - 1, V, Kokkos::Impl::ALL_t, Args...>;
+  using next       = Slice<Layout, rank - 1, V, Kokkos::ALL_t, Args...>;
   using value_type = typename next::value_type;
 
   static value_type get(V const& src, const size_t i, Args... args) {
@@ -691,6 +663,18 @@ template <typename DataType,
                   typename DeviceType::execution_space, Duplication>::type>
 class ScatterView;
 
+template <class>
+struct is_scatter_view : public std::false_type {};
+
+template <class D, class... P>
+struct is_scatter_view<ScatterView<D, P...>> : public std::true_type {};
+
+template <class D, class... P>
+struct is_scatter_view<const ScatterView<D, P...>> : public std::true_type {};
+
+template <class T>
+inline constexpr bool is_scatter_view_v = is_scatter_view<T>::value;
+
 template <typename DataType, typename Op, typename DeviceType, typename Layout,
           typename Duplication, typename Contribution,
           typename OverrideContribution>
@@ -749,10 +733,11 @@ class ScatterView<DataType, Layout, DeviceType, Op, ScatterNonDuplicated,
       : internal_view(other_view.internal_view) {}
 
   template <typename OtherDataType, typename OtherDeviceType>
-  KOKKOS_FUNCTION void operator=(
+  KOKKOS_FUNCTION ScatterView& operator=(
       const ScatterView<OtherDataType, Layout, OtherDeviceType, Op,
                         ScatterNonDuplicated, Contribution>& other_view) {
     internal_view = other_view.internal_view;
+    return *this;
   }
 
   template <typename OverrideContribution = Contribution>
@@ -970,11 +955,12 @@ class ScatterView<DataType, Kokkos::LayoutRight, DeviceType, Op,
         internal_view(other_view.internal_view) {}
 
   template <typename OtherDataType, typename OtherDeviceType>
-  KOKKOS_FUNCTION void operator=(
+  KOKKOS_FUNCTION ScatterView& operator=(
       const ScatterView<OtherDataType, Kokkos::LayoutRight, OtherDeviceType, Op,
                         ScatterDuplicated, Contribution>& other_view) {
     unique_token  = other_view.unique_token;
     internal_view = other_view.internal_view;
+    return *this;
   }
 
   template <typename RT, typename... RP>
@@ -1027,10 +1013,8 @@ class ScatterView<DataType, Kokkos::LayoutRight, DeviceType, Op,
         check_scatter_view_allocation_properties_argument;
     check_scatter_view_allocation_properties_argument(arg_prop);
 
-    auto const exec_space =
-        static_cast<::Kokkos::Impl::ViewCtorProp<void, execution_space> const&>(
-            arg_prop)
-            .value;
+    auto const& exec_space =
+        Kokkos::Impl::get_property<Kokkos::Impl::ExecutionSpaceTag>(arg_prop);
     reset(exec_space);
   }
 
@@ -1049,7 +1033,7 @@ class ScatterView<DataType, Kokkos::LayoutRight, DeviceType, Op,
                                              internal_view_type>::value_type
   subview() const {
     return Kokkos::Impl::Experimental::Slice<
-        Kokkos::LayoutRight, internal_view_type::Rank,
+        Kokkos::LayoutRight, internal_view_type::rank,
         internal_view_type>::get(internal_view, 0);
   }
 
@@ -1289,18 +1273,14 @@ class ScatterView<DataType, Kokkos::LayoutLeft, DeviceType, Op,
     Kokkos::Impl::Experimental::args_to_array(arg_N, 0, dims...);
     arg_N[internal_view_type::rank - 1] = unique_token.size();
 
-    auto const name =
-        static_cast<::Kokkos::Impl::ViewCtorProp<void, std::string> const&>(
-            arg_prop)
-            .value;
+    auto const& name =
+        Kokkos::Impl::get_property<Kokkos::Impl::LabelTag>(arg_prop);
     internal_view = internal_view_type(view_alloc(WithoutInitializing, name),
                                        arg_N[0], arg_N[1], arg_N[2], arg_N[3],
                                        arg_N[4], arg_N[5], arg_N[6], arg_N[7]);
 
-    auto const exec_space =
-        static_cast<::Kokkos::Impl::ViewCtorProp<void, execution_space> const&>(
-            arg_prop)
-            .value;
+    auto const& exec_space =
+        Kokkos::Impl::get_property<Kokkos::Impl::ExecutionSpaceTag>(arg_prop);
     reset(exec_space);
   }
 
@@ -1312,11 +1292,12 @@ class ScatterView<DataType, Kokkos::LayoutLeft, DeviceType, Op,
         internal_view(other_view.internal_view) {}
 
   template <typename OtherDataType, typename OtherDeviceType>
-  KOKKOS_FUNCTION void operator=(
+  KOKKOS_FUNCTION ScatterView& operator=(
       const ScatterView<OtherDataType, Kokkos::LayoutLeft, OtherDeviceType, Op,
                         ScatterDuplicated, Contribution>& other_view) {
     unique_token  = other_view.unique_token;
     internal_view = other_view.internal_view;
+    return *this;
   }
 
   template <typename OverrideContribution = Contribution>

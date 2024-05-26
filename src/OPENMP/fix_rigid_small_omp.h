@@ -36,11 +36,11 @@ class FixRigidSmallOMP : public FixRigidSmall {
   void final_integrate() override;
 
  protected:
-  virtual void compute_forces_and_torques();
+  void compute_forces_and_torques() override;
 
  private:
-  template <int, int> void set_xv_thr();
-  template <int, int> void set_v_thr();
+  template <int, int, int> void set_xv_thr();
+  template <int, int, int> void set_v_thr();
 };
 
 }    // namespace LAMMPS_NS

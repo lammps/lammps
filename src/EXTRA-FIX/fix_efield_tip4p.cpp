@@ -16,7 +16,6 @@
 #include "angle.h"
 #include "atom.h"
 #include "bond.h"
-#include "comm.h"
 #include "domain.h"
 #include "error.h"
 #include "force.h"
@@ -25,11 +24,10 @@
 #include "modify.h"
 #include "pair.h"
 #include "region.h"
-#include "respa.h"
 #include "update.h"
 #include "variable.h"
 
-#include <cstring>
+#include <cmath>
 
 using namespace LAMMPS_NS;
 using namespace FixConst;
@@ -47,6 +45,7 @@ void FixEfieldTIP4P::init()
   if (atom->tag_enable == 0) error->all(FLERR, "Fix efield/tip4p requires atom IDs");
   if (!atom->q_flag) error->all(FLERR, "Fix efield/tip4p requires atom attribute q");
   if (!force->pair) error->all(FLERR, "A TIP4P pair style must be defined fix efield/tip4p");
+  if (pstr) error->all(FLERR, "Fix efield/tip4p does not support the potential keyword");
 
   int itmp;
   double *p_qdist = (double *) force->pair->extract("qdist", itmp);

@@ -31,8 +31,8 @@ checksums = { \
 # help message
 
 HELP = """
-Syntax from src dir: make lib-smd args="-b"
-                 or: make lib-smd args="-p /usr/include/eigen3"
+Syntax from src dir: make lib-machdyn args="-b"
+                 or: make lib-machdyn args="-p /usr/include/eigen3"
 
 Syntax from lib dir: python Install.py -b
                  or: python Install.py -p /usr/include/eigen3"
@@ -40,8 +40,8 @@ Syntax from lib dir: python Install.py -b
 
 Example:
 
-make lib-smd args="-b"   # download/build in default lib/smd/eigen-eigen-*
-make lib-smd args="-p /usr/include/eigen3" # use existing Eigen installation in /usr/include/eigen3
+make lib-machdyn args="-b"   # download/build in default lib/machdyn/eigen-eigen-*
+make lib-machdyn args="-p /usr/include/eigen3" # use existing Eigen installation in /usr/include/eigen3
 """
 
 pgroup = parser.add_mutually_exclusive_group()
@@ -105,7 +105,7 @@ if buildflag:
   edir = os.path.join(homepath, "eigen-%s" % version)
   os.rename(edir, eigenpath)
 
-# create link in lib/smd to Eigen src dir
+# create link in lib/machdyn to Eigen src dir
 
 print("Creating link to Eigen include folder")
 if os.path.isfile("includelink") or os.path.islink("includelink"):

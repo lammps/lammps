@@ -28,9 +28,11 @@ class RegCone : public Region {
  public:
   RegCone(class LAMMPS *, int, char **);
   ~RegCone() override;
+  void init() override;
   int inside(double, double, double) override;
   int surface_interior(double *, double) override;
   int surface_exterior(double *, double) override;
+  void shape_update() override;
 
  private:
   char axis;
@@ -39,7 +41,12 @@ class RegCone : public Region {
   double lo, hi;
   double maxradius;
 
+  int c1style, c2style, rlostyle, rhistyle, lostyle, histyle;
+  int c1var, c2var, rlovar, rhivar, lovar, hivar;
+  char *c1str, *c2str, *rlostr, *rhistr, *lostr, *histr;
+
   double closest(double *, double *, double *, double);
+  void variable_check();
 };
 
 }    // namespace LAMMPS_NS

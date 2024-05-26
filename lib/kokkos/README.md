@@ -28,7 +28,7 @@ To start learning about Kokkos:
 
 - [Use cases and Examples](https://kokkos.github.io/kokkos-core-wiki/usecases.html): a series of examples ranging from how to use Kokkos with MPI to Fortran interoperability.
 
-For questions find us on Slack: https://kokkosteam.slack.com or open a github issue.
+For questions find us on Slack: https://kokkosteam.slack.com or open a GitHub issue.
 
 For non-public questions send an email to: *crtrott(at)sandia.gov*
 
@@ -48,10 +48,10 @@ Please see the [following page](https://kokkos.github.io/kokkos-core-wiki/citati
 
 # License
 
-[![License](https://img.shields.io/badge/License-BSD%203--Clause-blue.svg)](https://opensource.org/licenses/BSD-3-Clause)
+[![License](https://img.shields.io/badge/License-Apache--2.0_WITH_LLVM--exception-blue)](https://spdx.org/licenses/LLVM-exception.html)
 
 Under the terms of Contract DE-NA0003525 with NTESS,
 the U.S. Government retains certain rights in this software.
 
-The full license statement used in all headers is available [here](https://kokkos.github.io/kokkos-core-wiki/license.html) or
-[here](https://github.com/kokkos/kokkos/blob/master/LICENSE).
+The full license statement used in all headers is available [here](https://kokkos.org/kokkos-core-wiki/license.html) or
+[here](https://github.com/kokkos/kokkos/blob/develop/LICENSE).

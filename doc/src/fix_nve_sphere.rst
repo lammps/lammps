@@ -10,7 +10,7 @@ Accelerator Variants: *nve/sphere/omp*, *nve/sphere/kk*
 Syntax
 """"""
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    fix ID group-ID nve/sphere
 

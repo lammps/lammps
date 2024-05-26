@@ -85,8 +85,7 @@ class LinearModel():
   def __call__(self,elems,bispectrum,beta,energy):
       energy[:] = bispectrum @ self.weights + self.bias
       beta[:] = self.weights
-      
-      
+
 mymodel = LinearModel("Ta06A.mliap.model")
 
 import lammps
@@ -98,4 +97,5 @@ lammps.mliap.activate_mliappy(lmp)
 lmp.commands_string(before_loading)
 lammps.mliap.load_model(mymodel)
 lmp.commands_string(after_loading)
-
+lmp.close()
+lmp.finalize()

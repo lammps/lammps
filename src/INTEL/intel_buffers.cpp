@@ -28,6 +28,7 @@ template <class flt_t, class acc_t>
 IntelBuffers<flt_t, acc_t>::IntelBuffers(class LAMMPS *lmp_in) :
     lmp(lmp_in), _x(nullptr), _q(nullptr), _quat(nullptr), _f(nullptr), _off_threads(0),
     _n_list_ptrs(1), _max_list_ptrs(4), _buf_size(0), _buf_local_size(0) {
+  _torque_flag = 0;
   _neigh_list_ptrs = new IntelNeighListPtrs[_max_list_ptrs];
   _neigh_list_ptrs[0].cnumneigh = nullptr;
   _list_alloc_atoms = 0;
@@ -391,9 +392,10 @@ void IntelBuffers<flt_t, acc_t>::_grow_nbor_list(NeighList * /*list*/,
   free_nbor_list();
   _list_alloc_atoms = 1.10 * nlocal;
   int nt = MAX(nthreads, _off_threads);
-  int list_alloc_size = (_list_alloc_atoms + nt * 2 + pack_width - 1) *
-    get_max_nbors();
-  lmp->memory->create(_list_alloc, list_alloc_size, "_list_alloc");
+
+  bigint list_alloc_size =
+    (bigint)(_list_alloc_atoms + nt * 2 + pack_width - 1) * (bigint)get_max_nbors();
+  _list_alloc = (int *) lmp->memory->smalloc(list_alloc_size * sizeof(int), "_list_alloc");
   #ifdef _LMP_INTEL_OFFLOAD
   if (offload_end > 0) {
     int * list_alloc =_list_alloc;
@@ -694,7 +696,7 @@ double IntelBuffers<flt_t, acc_t>::memory_usage(const int nthreads)
 {
   double tmem = sizeof(atom_t);
   if (lmp->atom->q) tmem += sizeof(flt_t);
-  if (lmp->atom->torque) tmem += sizeof(quat_t);
+  if (_torque_flag) tmem += sizeof(quat_t);
   #ifdef _LMP_INTEL_OFFLOAD
   if (_separate_buffers) tmem *= 2;
   #endif
@@ -706,7 +708,7 @@ double IntelBuffers<flt_t, acc_t>::memory_usage(const int nthreads)
   if (_off_f) tmem += fstride*_off_threads * sizeof(vec3_acc_t);
   #endif
 
-  tmem += (_list_alloc_atoms + _off_threads) * get_max_nbors() * sizeof(int);
+  tmem += (bigint)(_list_alloc_atoms + _off_threads) * (bigint)get_max_nbors() * sizeof(int);
   tmem += _ntypes * _ntypes * sizeof(int);
 
   tmem += _buf_local_size + (_n_list_ptrs - 1) * _buf_local_size * 2;

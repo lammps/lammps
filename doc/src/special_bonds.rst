@@ -92,9 +92,24 @@ The Coulomb factors are applied to any Coulomb (charge interaction)
 term that the potential calculates.  The LJ factors are applied to the
 remaining terms that the potential calculates, whether they represent
 LJ interactions or not.  The weighting factors are a scaling
-prefactor on the energy and force between the pair of atoms.  A value
-of 1.0 means include the full interaction; a value of 0.0 means
-exclude it completely.
+prefactor on the energy and force between the pair of atoms.
+
+A value of 1.0 means include the full interaction without flagging the
+pair as a "special pair"; a value of 0.0 means exclude the pair
+completely from the neighbor list, except for pair styles that require a
+:doc:`kspace style <kspace_style>` and pair styles :doc:`amoeba
+<pair_amoeba>`, :doc:`hippo <pair_amoeba>`, :doc:`thole <pair_thole>`,
+:doc:`coul/exclude <pair_coul>`, and pair styles that include
+"coul/dsf" or "coul/wolf".
+
+.. note::
+
+   To include pairs that would otherwise be excluded (so they are
+   included in the neighbor list for certain analysis compute styles),
+   you can use a very small but non-zero value like 1.0e-100 instead of
+   0.0.  Due to using floating-point math, the computed force, energy,
+   and virial contributions from the pairs will be too small to cause
+   differences.
 
 The first of the 3 coefficients (LJ or Coulombic) is the weighting
 factor on 1-2 atom pairs, which are pairs of atoms directly bonded to

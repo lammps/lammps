@@ -6,7 +6,7 @@ fix nvt/body command
 Syntax
 """"""
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    fix ID group-ID nvt/body keyword value ...
 

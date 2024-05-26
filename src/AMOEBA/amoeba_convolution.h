@@ -15,17 +15,7 @@
 #define LMP_AMOEBA_CONVOLUTION_H
 
 #include "pointers.h"
-
-#ifdef FFT_SINGLE
-typedef float FFT_SCALAR;
-#define LMP_FFT_PREC "single"
-#define MPI_FFT_SCALAR MPI_FLOAT
-#else
-
-typedef double FFT_SCALAR;
-#define LMP_FFT_PREC "double"
-#define MPI_FFT_SCALAR MPI_DOUBLE
-#endif
+#include "lmpfftsettings.h"
 
 namespace LAMMPS_NS {
 

@@ -6,7 +6,7 @@ fix flow/gauss command
 Syntax
 """"""
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    fix ID group-ID flow/gauss xflag yflag zflag keyword
 

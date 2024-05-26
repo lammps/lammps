@@ -176,22 +176,29 @@ also numbers :math:`\ge 0.0`.
 Restrictions
 """"""""""""
 
-The RDF is not computed for distances longer than the force cutoff,
-since processors (in parallel) do not know about atom coordinates for
-atoms further away than that distance.  If you want an RDF for larger
-distances, you can use the :doc:`rerun <rerun>` command to post-process
-a dump file and set the cutoff for the potential to be longer in the
+By default, the RDF is not computed for distances longer than the
+largest force cutoff, since the neighbor list creation will only contain
+pairs up to that distance (plus neighbor list skin).  This distance can
+be increased using the *cutoff* keyword but this keyword is only valid
+with :doc:`neighbor styles 'bin' and 'nsq' <neighbor>`.
+
+If you want an RDF for larger distances, you can also use the
+:doc:`rerun <rerun>` command to post-process a dump file, use :doc:`pair
+style zero <pair_zero>` and set the force cutoff to be longer in the
 rerun script.  Note that in the rerun context, the force cutoff is
-arbitrary, since you are not running dynamics and thus are not changing
-your model.  The definition of :math:`g(r)` used by LAMMPS is only appropriate
-for characterizing atoms that are uniformly distributed throughout the
-simulation cell. In such cases, the coordination number is still
-correct and meaningful.  As an example, if a large simulation cell
-contains only one atom of type *itypeN* and one of *jtypeN*, then :math:`g(r)`
-will register an arbitrarily large spike at whatever distance they
-happen to be at, and zero everywhere else.
-The function :math:`\text{coord}(r)` will show a step
-change from zero to one at the location of the spike in :math:`g(r)`.
+arbitrary and with pair style zero you are not computing any forces, and
+you are not running dynamics you are not changing the model that
+generated the trajectory.
+
+The definition of :math:`g(r)` used by LAMMPS is only appropriate for
+characterizing atoms that are uniformly distributed throughout the
+simulation cell. In such cases, the coordination number is still correct
+and meaningful.  As an example, if a large simulation cell contains only
+one atom of type *itypeN* and one of *jtypeN*, then :math:`g(r)` will
+register an arbitrarily large spike at whatever distance they happen to
+be at, and zero everywhere else.  The function :math:`\text{coord}(r)`
+will show a step change from zero to one at the location of the spike in
+:math:`g(r)`.
 
 .. note::
 
@@ -202,7 +209,7 @@ change from zero to one at the location of the spike in :math:`g(r)`.
    parallel efficiency and scaling. For systems, where only the type
    of atoms changes (e.g., when using :doc:`fix atom/swap <fix_atom_swap>`),
    you need to explicitly request the dynamic normalization updates
-   via :doc:`compute_modify dynamic yes <compute_modify>`
+   via :doc:`compute_modify dynamic/dof yes <compute_modify>`
 
 Related commands
 """"""""""""""""

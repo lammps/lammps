@@ -40,11 +40,11 @@
 using namespace LAMMPS_NS;
 using namespace MathConst;
 
-#define MAXORDER   7
-#define OFFSET 16384
-#define SMALL 0.00001
-#define LARGE 10000.0
-#define EPS_HOC 1.0e-7
+static constexpr int MAXORDER =   7;
+static constexpr int OFFSET = 16384;
+static constexpr double SMALL = 0.00001;
+static constexpr double LARGE = 10000.0;
+static constexpr FFT_SCALAR ZEROF = 0.0;
 
 enum{REVERSE_RHO,REVERSE_RHO_GEOM,REVERSE_RHO_ARITH,REVERSE_RHO_NONE};
 enum{FORWARD_IK,FORWARD_AD,FORWARD_IK_PERATOM,FORWARD_AD_PERATOM,
@@ -54,14 +54,6 @@ enum{FORWARD_IK,FORWARD_AD,FORWARD_IK_PERATOM,FORWARD_AD_PERATOM,
      FORWARD_IK_PERATOM_ARITH,FORWARD_AD_PERATOM_ARITH,
      FORWARD_IK_NONE,FORWARD_AD_NONE,FORWARD_IK_PERATOM_NONE,
      FORWARD_AD_PERATOM_NONE};
-
-#ifdef FFT_SINGLE
-#define ZEROF 0.0f
-#define ONEF  1.0f
-#else
-#define ZEROF 0.0
-#define ONEF  1.0
-#endif
 
 /* ---------------------------------------------------------------------- */
 
@@ -110,6 +102,7 @@ PPPMDisp::PPPMDisp(LAMMPS *lmp) : KSpace(lmp),
 {
   triclinic_support = 0;
   pppmflag = dispersionflag = 1;
+  triclinic = domain->triclinic;
 
   nfactors = 3;
   factors = new int[nfactors];
@@ -242,12 +235,12 @@ void PPPMDisp::settings(int narg, char **arg)
 
 PPPMDisp::~PPPMDisp()
 {
-  delete [] factors;
-  delete [] B;
+  delete[] factors;
+  delete[] B;
   B = nullptr;
-  delete [] cii;
+  delete[] cii;
   cii = nullptr;
-  delete [] csumi;
+  delete[] csumi;
   csumi = nullptr;
   PPPMDisp::deallocate();
   PPPMDisp::deallocate_peratom();
@@ -267,6 +260,9 @@ void PPPMDisp::init()
   // error check
 
   triclinic_check();
+
+  if (triclinic != domain->triclinic)
+    error->all(FLERR,"Must redefine kspace_style after changing to triclinic box");
 
   if (domain->dimension == 2)
     error->all(FLERR,"Cannot use PPPMDisp with 2d simulation");
@@ -1277,7 +1273,7 @@ void PPPMDisp::init_coeffs()
   int n = atom->ntypes;
   int converged;
 
-  delete [] B;
+  delete[] B;
   B = nullptr;
 
   // no mixing rule or arithmetic
@@ -1370,6 +1366,7 @@ void PPPMDisp::init_coeffs()
 
     if (nsplit == 1) {
       delete[] B;
+      B = nullptr;
       function[3] = 0;
       function[2] = 0;
       function[1] = 1;
@@ -1383,11 +1380,13 @@ void PPPMDisp::init_coeffs()
       //function[3] = 1;
       //function[2] = 0;
       delete[] B;   // remove this when un-comment previous 2 lines
+      B = nullptr;
    }
 
     if (function[2] && (nsplit > 6)) {
       if (me == 0) utils::logmesg(lmp,"  Using 7 structure factors\n");
       delete[] B;
+      B = nullptr;
     }
 
     if (function[3]) {
@@ -3352,10 +3351,10 @@ void PPPMDisp::calc_csum()
   int ntypes = atom->ntypes;
   int i,j,k;
 
-  delete [] cii;
+  delete[] cii;
   cii = new double[ntypes+1];
   for (i = 0; i<=ntypes; i++) cii[i] = 0.0;
-  delete [] csumi;
+  delete[] csumi;
   csumi = new double[ntypes+1];
   for (i = 0; i<=ntypes; i++) csumi[i] = 0.0;
   int *neach = new int[ntypes+1];
@@ -3447,8 +3446,8 @@ void PPPMDisp::calc_csum()
     }
   }
 
-  delete [] neach;
-  delete [] neach_all;
+  delete[] neach;
+  delete[] neach_all;
 }
 
 /* ----------------------------------------------------------------------
@@ -4549,7 +4548,8 @@ void PPPMDisp::poisson_ik(FFT_SCALAR* wk1, FFT_SCALAR* wk2,
 
   // if requested, compute energy and virial contribution
 
-  double scaleinv = 1.0/(nx_p*ny_p*nz_p);
+  bigint ngridtotal = (bigint) nx_p * ny_p * nz_p;
+  double scaleinv = 1.0/ngridtotal;
   double s2 = scaleinv*scaleinv;
 
   if (eflag_global || vflag_global) {
@@ -4647,7 +4647,7 @@ void PPPMDisp::poisson_ik(FFT_SCALAR* wk1, FFT_SCALAR* wk2,
       for (j = nylo_i; j <= nyhi_i; j++)
         for (i = nxlo_i; i <= nxhi_i; i++) {
           vz_brick[k][j][i] = wk2[n++];
-          u_pa[k][j][i] = -wk2[n++];;
+          u_pa[k][j][i] = -wk2[n++];
         }
   }
 
@@ -4689,7 +4689,8 @@ void PPPMDisp::poisson_ad(FFT_SCALAR* wk1, FFT_SCALAR* wk2,
 
   // if requested, compute energy and virial contribution
 
-  double scaleinv = 1.0/(nx_p*ny_p*nz_p);
+  bigint ngridtotal = (bigint) nx_p * ny_p * nz_p;
+  double scaleinv = 1.0/ngridtotal;
   double s2 = scaleinv*scaleinv;
 
   if (eflag_global || vflag_global) {
@@ -4837,7 +4838,8 @@ poisson_2s_ik(FFT_SCALAR* dfft_1, FFT_SCALAR* dfft_2,
   int i,j,k,n;
   double eng;
 
-  double scaleinv = 1.0/(nx_pppm_6*ny_pppm_6*nz_pppm_6);
+  bigint ngridtotal = (bigint) nx_pppm_6 * ny_pppm_6 * nz_pppm_6;
+  double scaleinv = 1.0/ngridtotal;
 
   // transform charge/dispersion density (r -> k)
   // only one transform when energies and pressures not calculated
@@ -5010,7 +5012,8 @@ poisson_none_ik(int n1, int n2,FFT_SCALAR* dfft_1, FFT_SCALAR* dfft_2,
   int i,j,k,n;
   double eng;
 
-  double scaleinv = 1.0/(nx_pppm_6*ny_pppm_6*nz_pppm_6);
+  bigint ngridtotal = (bigint) nx_pppm_6 * ny_pppm_6 * nz_pppm_6;
+  double scaleinv = 1.0/ngridtotal;
 
   // transform charge/dispersion density (r -> k)
   // only one transform required when energies and pressures not needed
@@ -5184,7 +5187,8 @@ poisson_2s_ad(FFT_SCALAR* dfft_1, FFT_SCALAR* dfft_2,
   int i,j,k,n;
   double eng;
 
-  double scaleinv = 1.0/(nx_pppm_6*ny_pppm_6*nz_pppm_6);
+  bigint ngridtotal = (bigint) nx_pppm_6 * ny_pppm_6 * nz_pppm_6;
+  double scaleinv = 1.0/ngridtotal;
 
   // transform charge/dispersion density (r -> k)
   // only one tansform required when energies and pressures not needed
@@ -5282,7 +5286,8 @@ poisson_none_ad(int n1, int n2, FFT_SCALAR* dfft_1, FFT_SCALAR* dfft_2,
   int i,j,k,n;
   double eng;
 
-  double scaleinv = 1.0/(nx_pppm_6*ny_pppm_6*nz_pppm_6);
+  bigint ngridtotal = (bigint) nx_pppm_6 * ny_pppm_6 * nz_pppm_6;
+  double scaleinv = 1.0/ngridtotal;
 
   // transform charge/dispersion density (r -> k)
   // only one tansform required when energies and pressures not needed
@@ -6538,9 +6543,9 @@ void PPPMDisp::fieldforce_none_ik()
     }
   }
 
-  delete [] ekx;
-  delete [] eky;
-  delete [] ekz;
+  delete[] ekx;
+  delete[] eky;
+  delete[] ekz;
 }
 
 /* ----------------------------------------------------------------------
@@ -6660,9 +6665,9 @@ void PPPMDisp::fieldforce_none_ad()
     }
   }
 
-  delete [] ekx;
-  delete [] eky;
-  delete [] ekz;
+  delete[] ekx;
+  delete[] eky;
+  delete[] ekz;
 }
 
 /* ----------------------------------------------------------------------
@@ -6756,13 +6761,13 @@ void PPPMDisp::fieldforce_none_peratom()
     }
   }
 
-  delete [] u_pa;
-  delete [] v0;
-  delete [] v1;
-  delete [] v2;
-  delete [] v3;
-  delete [] v4;
-  delete [] v5;
+  delete[] u_pa;
+  delete[] v0;
+  delete[] v1;
+  delete[] v2;
+  delete[] v3;
+  delete[] v4;
+  delete[] v5;
 }
 
 /* ----------------------------------------------------------------------

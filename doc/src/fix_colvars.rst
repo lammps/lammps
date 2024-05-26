@@ -6,7 +6,7 @@ fix colvars command
 Syntax
 """"""
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    fix ID group-ID colvars configfile keyword values ...
 

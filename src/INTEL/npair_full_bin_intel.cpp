@@ -62,7 +62,7 @@ fbi(NeighList *list, IntelBuffers<flt_t,acc_t> *buffers) {
   list->inum = nlocal;
   list->gnum = 0;
 
-  int host_start = _fix->host_start_neighbor();;
+  int host_start = _fix->host_start_neighbor();
   const int off_end = _fix->offload_end_neighbor();
 
   #ifdef _LMP_INTEL_OFFLOAD

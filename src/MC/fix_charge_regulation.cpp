@@ -46,6 +46,7 @@
 
 #include <cmath>
 #include <cstring>
+#include <exception>
 #include <memory>
 
 using namespace LAMMPS_NS;
@@ -66,9 +67,9 @@ static const char cite_fix_charge_regulation[] =
 enum{CONSTANT,EQUAL}; // parsing input variables
 
 // large energy value used to signal overlap
-#define MAXENERGYSIGNAL 1.0e100
-#define MAXENERGYTEST 1.0e50
-#define SMALL 0.0000001
+static constexpr double MAXENERGYSIGNAL = 1.0e100;
+static constexpr double MAXENERGYTEST = 1.0e50;
+static constexpr double SMALL = 0.0000001;
 #define NA_RHO0 0.602214 // Avogadro's constant times reference concentration  (N_A * mol / liter)  [nm^-3]
 
 /* ---------------------------------------------------------------------- */
@@ -160,7 +161,12 @@ FixChargeRegulation::~FixChargeRegulation() {
 
   if (exclusion_group_bit && group) {
     auto group_id = std::string("FixChargeRegulation:gcmc_exclusion_group:") + id;
-    group->assign(group_id + " delete");
+    try {
+      group->assign(group_id + " delete");
+    } catch (std::exception &e) {
+      if (comm->me == 0)
+        fprintf(stderr, "Error deleting group %s: %s\n", group_id.c_str(), e.what());
+    }
   }
 
   if (group) {
@@ -185,6 +191,11 @@ int FixChargeRegulation::setmask() {
 /* ---------------------------------------------------------------------- */
 
 void FixChargeRegulation::init() {
+
+  if (!atom->mass) error->all(FLERR, "Fix charge/regulation requires per atom type masses");
+  if (atom->rmass_flag && (comm->me == 0))
+    error->warning(FLERR, "Fix charge/regulation will use per atom type masses for "
+                   "velocity initialization");
 
   triclinic = domain->triclinic;
   int ipe = modify->find_compute("thermo_pe");

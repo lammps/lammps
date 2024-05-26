@@ -332,7 +332,7 @@ void PairLJCutCoulLongIntel::eval(const int offload, const int vflag,
             const flt_t EWALD_F = 1.12837917;
             const flt_t INV_EWALD_P = 1.0 / 0.3275911;
 
-            const flt_t r = (flt_t)1.0 / sqrt(r2inv);
+            const flt_t r = (flt_t)1.0 / std::sqrt(r2inv);
             const flt_t grij = g_ewald * r;
             const flt_t expm2 = std::exp(-grij * grij);
             const flt_t t = INV_EWALD_P / (INV_EWALD_P + grij);

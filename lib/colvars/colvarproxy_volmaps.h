@@ -108,7 +108,7 @@ protected:
 
   /// \brief Keep track of how many times each vol map is used by a
   /// separate colvar object
-  std::vector<size_t>       volmaps_ncopies;
+  std::vector<size_t>       volmaps_refcount;
 
   /// \brief Current values of the vol maps
   std::vector<cvm::real>    volmaps_values;

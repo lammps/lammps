@@ -204,8 +204,23 @@ angles per atom satisfying the ADF criteria.
 Restrictions
 """"""""""""
 
-This compute is part of the EXTRA-COMPUTE package.  It is only enabled if
-LAMMPS was built with that package.  See the :doc:`Build package <Build_package>` page for more info.
+This compute is part of the EXTRA-COMPUTE package.  It is only enabled
+if LAMMPS was built with that package.  See the :doc:`Build package
+<Build_package>` page for more info.
+
+By default, the ADF is not computed for distances longer than the
+largest force cutoff, since the neighbor list creation will only contain
+pairs up to that distance (plus neighbor list skin).  If you use outer
+cutoffs larger than that, you must use :doc:`neighbor style 'bin' or
+'nsq' <neighbor>`.
+
+If you want an ADF for a larger outer cutoff, you can also use the
+:doc:`rerun <rerun>` command to post-process a dump file, use :doc:`pair
+style zero <pair_zero>` and set the force cutoff to be larger in the
+rerun script.  Note that in the rerun context, the force cutoff is
+arbitrary and with pair style zero you are not computing any forces, and
+since you are not running dynamics you are not changing the model that
+generated the trajectory.
 
 The ADF is not computed for neighbors outside the force cutoff,
 since processors (in parallel) don't know about atom coordinates for

@@ -199,14 +199,14 @@ void DihedralFourierIntel::eval(const int vflag,
       const flt_t rasq = ax*ax + ay*ay + az*az;
       const flt_t rbsq = bx*bx + by*by + bz*bz;
       const flt_t rgsq = vb2xm*vb2xm + vb2ym*vb2ym + vb2zm*vb2zm;
-      const flt_t rg = sqrt(rgsq);
+      const flt_t rg = std::sqrt(rgsq);
 
       flt_t rginv, ra2inv, rb2inv;
       rginv = ra2inv = rb2inv = (flt_t)0.0;
       if (rg > 0) rginv = (flt_t)1.0/rg;
       if (rasq > 0) ra2inv = (flt_t)1.0/rasq;
       if (rbsq > 0) rb2inv = (flt_t)1.0/rbsq;
-      const flt_t rabinv = sqrt(ra2inv*rb2inv);
+      const flt_t rabinv = std::sqrt(ra2inv*rb2inv);
 
       flt_t c = (ax*bx + ay*by + az*bz)*rabinv;
       const flt_t s = rg*rabinv*(ax*vb3x + ay*vb3y + az*vb3z);

@@ -1,11 +1,11 @@
-Using CMake with LAMMPS tutorial
-================================
+Using CMake with LAMMPS
+=======================
 
 The support for building LAMMPS with CMake is a recent addition to
 LAMMPS thanks to the efforts of Christoph Junghans (LANL) and Richard
-Berger (Temple U).  One of the key strengths of CMake is that it is not
-tied to a specific platform or build system and thus generate the files
-necessary to build and develop for different build systems and on
+Berger (LANL).  One of the key strengths of CMake is that it is not
+tied to a specific platform or build system. Instead it generates the
+files necessary to build and develop for different build systems and on
 different platforms.  Note, that this applies to the build system itself
 not the LAMMPS code. In other words, without additional porting effort,
 it is not possible - for example - to compile LAMMPS with Visual C++ on
@@ -14,7 +14,7 @@ necessary to program LAMMPS as a project in integrated development
 environments (IDE) like Eclipse, Visual Studio, QtCreator, Xcode,
 CodeBlocks, Kate and others.
 
-A second important feature of CMake is, that it can detect and validate
+A second important feature of CMake is that it can detect and validate
 available libraries, optimal settings, available support tools and so
 on, so that by default LAMMPS will take advantage of available tools
 without requiring to provide the details about how to enable/integrate
@@ -32,8 +32,8 @@ program ``cmake`` (or ``cmake3``), a text mode interactive user
 interface (TUI) program ``ccmake`` (or ``ccmake3``), or a graphical user
 interface (GUI) program ``cmake-gui``.  All of them are portable
 software available on all supported platforms and can be used
-interchangeably.  The minimum supported CMake version is 3.10 (3.12 or
-later is recommended).
+interchangeably.  As of LAMMPS version 2 August 2023, the minimum
+required CMake version is 3.16.
 
 All details about features and settings for CMake are in the `CMake
 online documentation <https://cmake.org/documentation/>`_. We focus
@@ -43,11 +43,20 @@ Prerequisites
 -------------
 
 This tutorial assumes that you are operating in a command-line environment
-using a shell like Bash.
+using a shell like Bash or Zsh.
 
-- Linux: any Terminal window will work
-- macOS: launch the Terminal application.
-- Windows 10: install and run the :doc:`Windows Subsystem for Linux <Howto_wsl>`
+- Linux: any Terminal window will work or text console
+- macOS: launch the Terminal application
+- Windows 10 or 11: install and run the :doc:`Windows Subsystem for Linux <Howto_wsl>`
+- other Unix-like operating systems like FreeBSD
+
+.. note::
+
+   It is also possible to use CMake on Windows 10 or 11 through either the Microsoft
+   Visual Studio IDE with the bundled CMake or from the Windows command prompt using
+   a separately installed CMake package, both using the native Microsoft Visual C++
+   compilers and (optionally) the Microsoft MPI SDK.  This tutorial, however, only
+   covers unix-like command line interfaces.
 
 We also assume that you have downloaded and unpacked a recent LAMMPS source code package
 or used Git to create a clone of the LAMMPS sources on your compilation machine.
@@ -338,10 +347,10 @@ Some common LAMMPS specific variables
      - common compiler flags, for optimization or instrumentation (default:)
    * - ``LAMMPS_MACHINE``
      - when set to ``name`` the LAMMPS executable and library will be called ``lmp_name`` and ``liblammps_name.a``
-   * - ``LAMMPS_EXCEPTIONS``
-     - when set to ``on`` errors will throw a C++ exception instead of aborting (default: ``off``)
    * - ``FFT``
      - select which FFT library to use: ``FFTW3``, ``MKL``, ``KISS`` (default, unless FFTW3 is found)
+   * - ``FFT_KOKKOS``
+     - select which FFT library to use in Kokkos-enabled styles: ``FFTW3``, ``MKL``, ``HIPFFT``, ``CUFFT``, ``KISS`` (default)
    * - ``FFT_SINGLE``
      - select whether to use single precision FFTs (default: ``off``)
    * - ``WITH_JPEG``
@@ -412,9 +421,9 @@ interface (``ccmake`` or ``cmake-gui``).
 
    Using a preset to select a compiler package (``clang.cmake``,
    ``gcc.cmake``, ``intel.cmake``, ``oneapi.cmake``, or ``pgi.cmake``)
-   are an exception to the mechanism of updating the configuration incrementally,
-   as they will trigger a reset of cached internal CMake settings and thus
-   reset settings to their default values.
+   are an exception to the mechanism of updating the configuration
+   incrementally, as they will trigger a reset of cached internal CMake
+   settings and thus reset settings to their default values.
 
 Compilation and build targets
 -----------------------------

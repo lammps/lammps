@@ -6,7 +6,7 @@ compute smd/tlsph/dt command
 Syntax
 """"""
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    compute ID group-ID smd/tlsph/dt
 

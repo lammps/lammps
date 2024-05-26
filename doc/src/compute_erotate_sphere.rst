@@ -1,7 +1,11 @@
 .. index:: compute erotate/sphere
+.. index:: compute erotate/sphere/kk
 
 compute erotate/sphere command
 ==============================
+
+Accelerator Variants: *erotate/sphere/kk*
+
 
 Syntax
 """"""
@@ -35,6 +39,12 @@ is the particle's angular velocity.
    For :doc:`2d models <dimension>`, particles are treated as
    spheres, not disks, meaning their moment of inertia will be the same
    as in 3d.
+
+----------
+
+.. include:: accel_styles.rst
+
+----------
 
 Output info
 """""""""""

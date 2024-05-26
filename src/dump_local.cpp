@@ -27,8 +27,8 @@
 
 using namespace LAMMPS_NS;
 
-#define ONEFIELD 32
-#define DELTA 1048576
+static constexpr int ONEFIELD = 32;
+static constexpr int DELTA = 1048576;
 
 /* ---------------------------------------------------------------------- */
 
@@ -325,21 +325,16 @@ int DumpLocal::count()
   int i;
 
   // invoke Computes for local quantities
-  // only if within a run or minimize
-  // else require that computes are current
-  // this prevents a compute from being invoked by the WriteDump class
+  // cannot invoke before first run, otherwise invoke if necessary
 
   if (ncompute) {
-    if (update->whichflag == 0) {
-      for (i = 0; i < ncompute; i++)
-        if (compute[i]->invoked_local != update->ntimestep)
-          error->all(FLERR,"Compute used in dump between runs is not current");
-    } else {
-      for (i = 0; i < ncompute; i++) {
-        if (!(compute[i]->invoked_flag & Compute::INVOKED_LOCAL)) {
-          compute[i]->compute_local();
-          compute[i]->invoked_flag |= Compute::INVOKED_LOCAL;
-        }
+    for (i = 0; i < ncompute; i++) {
+      if (!compute[i]->is_initialized())
+        error->all(FLERR,"Dump compute ID {} cannot be invoked before initialization by a run",
+          compute[i]->id);
+      if (!(compute[i]->invoked_flag & Compute::INVOKED_LOCAL)) {
+        compute[i]->compute_local();
+        compute[i]->invoked_flag |= Compute::INVOKED_LOCAL;
       }
     }
   }

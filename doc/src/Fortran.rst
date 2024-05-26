@@ -56,17 +56,6 @@ C++ in the ``examples/COUPLE/simple`` folder of the LAMMPS distribution.
    and Ubuntu 18.04 LTS and not compatible.  Either newer compilers
    need to be installed or the Linux updated.
 
-.. versionchanged:: 8Feb2023
-
-.. note::
-
-   A contributed Fortran interface is available in the
-   ``examples/COUPLE/fortran2`` folder.  However, since the completion
-   of the :f:mod:`LIBLAMMPS` module, this interface is now deprecated,
-   no longer actively maintained and will likely be removed in the
-   future.  Please see the ``README`` file in that folder for more
-   information about it and how to contact its author and maintainer.
-
 ----------
 
 Creating or deleting a LAMMPS object
@@ -203,40 +192,62 @@ Below is an example demonstrating some of the possible uses.
 
 .. code-block:: fortran
 
-  PROGRAM testprop
-    USE LIBLAMMPS
-    USE, INTRINSIC :: ISO_C_BINDING, ONLY : c_double, c_int64_t
-    USE, INTRINSIC :: ISO_FORTRAN_ENV, ONLY : OUTPUT_UNIT
-    TYPE(lammps) :: lmp
-    INTEGER(KIND=c_int64_t), POINTER :: natoms
-    REAL(KIND=c_double), POINTER :: dt
-    INTEGER(KIND=c_int64_t), POINTER :: ntimestep
-    REAL(KIND=c_double) :: pe, ke
+   PROGRAM testprop
+     USE LIBLAMMPS
+     USE, INTRINSIC :: ISO_C_BINDING, ONLY : c_double, c_int64_t, c_int
+     USE, INTRINSIC :: ISO_FORTRAN_ENV, ONLY : OUTPUT_UNIT
+     TYPE(lammps) :: lmp
+     INTEGER(KIND=c_int64_t), POINTER :: natoms, ntimestep, bval
+     REAL(KIND=c_double), POINTER :: dt, dval
+     INTEGER(KIND=c_int), POINTER :: nfield, typ, ival
+     INTEGER(KIND=c_int) :: i
+     CHARACTER(LEN=11) :: key
+     REAL(KIND=c_double) :: pe, ke
 
-    lmp = lammps()
-    CALL lmp%file('in.sysinit')
-    natoms = lmp%extract_global('natoms')
-    WRITE(OUTPUT_UNIT,'(A,I0,A)') 'Running a simulation with ', natoms, ' atoms'
-    WRITE(OUTPUT_UNIT,'(I0,A,I0,A,I0,A)') lmp%extract_setting('nlocal'), &
-        ' local and ', lmp%extract_setting('nghost'), ' ghost atoms. ', &
-        lmp%extract_setting('ntypes'), ' atom types'
+     lmp = lammps()
+     CALL lmp%file('in.sysinit')
+     natoms = lmp%extract_global('natoms')
+     WRITE(OUTPUT_UNIT,'(A,I0,A)') 'Running a simulation with ', natoms, ' atoms'
+     WRITE(OUTPUT_UNIT,'(I0,A,I0,A,I0,A)') lmp%extract_setting('nlocal'), &
+         ' local and ', lmp%extract_setting('nghost'), ' ghost atoms. ', &
+         lmp%extract_setting('ntypes'), ' atom types'
 
-    CALL lmp%command('run 2 post no')
-    dt = lmp%extract_global('dt')
-    ntimestep = lmp%extract_global('ntimestep')
-    WRITE(OUTPUT_UNIT,'(A,I0,A,F4.1,A)') 'At step: ', ntimestep, &
-        '  Changing timestep from', dt, ' to 0.5'
-    dt = 0.5_c_double
-    CALL lmp%command('run 2 post no')
+     CALL lmp%command('run 2 post no')
 
-    WRITE(OUTPUT_UNIT,'(A,I0)') 'At step: ', ntimestep
-    pe = lmp%get_thermo('pe')
-    ke = lmp%get_thermo('ke')
-    PRINT*, 'PE = ', pe
-    PRINT*, 'KE = ', ke
+     ntimestep = lmp%last_thermo('step', 0)
+     nfield = lmp%last_thermo('num', 0)
+     WRITE(OUTPUT_UNIT,'(A,I0,A,I0)') 'Last thermo output on step: ', ntimestep, &
+         ',  number of fields: ', nfield
+     DO i=1, nfield
+         key = lmp%last_thermo('keyword',i)
+         typ = lmp%last_thermo('type',i)
+         IF (typ == lmp%dtype%i32) THEN
+             ival = lmp%last_thermo('data',i)
+             WRITE(OUTPUT_UNIT,*) key, ':', ival
+         ELSE IF (typ == lmp%dtype%i64) THEN
+             bval = lmp%last_thermo('data',i)
+             WRITE(OUTPUT_UNIT,*) key, ':', bval
+         ELSE IF (typ == lmp%dtype%r64) THEN
+             dval = lmp%last_thermo('data',i)
+             WRITE(OUTPUT_UNIT,*) key, ':', dval
+         END IF
+     END DO
 
-    CALL lmp%close(.TRUE.)
-  END PROGRAM testprop
+     dt = lmp%extract_global('dt')
+     ntimestep = lmp%extract_global('ntimestep')
+     WRITE(OUTPUT_UNIT,'(A,I0,A,F4.1,A)') 'At step: ', ntimestep, &
+         '  Changing timestep from', dt, ' to 0.5'
+     dt = 0.5_c_double
+     CALL lmp%command('run 2 post no')
+
+     WRITE(OUTPUT_UNIT,'(A,I0)') 'At step: ', ntimestep
+     pe = lmp%get_thermo('pe')
+     ke = lmp%get_thermo('ke')
+     WRITE(OUTPUT_UNIT,*) 'PE = ', pe
+     WRITE(OUTPUT_UNIT,*) 'KE = ', ke
+
+     CALL lmp%close(.TRUE.)
+   END PROGRAM testprop
 
 ---------------
 
@@ -262,6 +273,8 @@ of the contents of the :f:mod:`LIBLAMMPS` Fortran interface to LAMMPS.
    :ftype style: type(lammps_style)
    :f type: derived type to access lammps type constants
    :ftype type: type(lammps_type)
+   :f dtype: derived type to access lammps data type constants
+   :ftype dtype: type(lammps_dtype)
    :f close: :f:subr:`close`
    :ftype close: subroutine
    :f subroutine error: :f:subr:`error`
@@ -278,6 +291,8 @@ of the contents of the :f:mod:`LIBLAMMPS` Fortran interface to LAMMPS.
    :ftype get_natoms: function
    :f get_thermo: :f:func:`get_thermo`
    :ftype get_thermo: function
+   :f last_thermo: :f:func:`last_thermo`
+   :ftype last_thermo: function
    :f extract_box: :f:subr:`extract_box`
    :ftype extract_box: subroutine
    :f reset_box: :f:subr:`reset_box`
@@ -300,6 +315,10 @@ of the contents of the :f:mod:`LIBLAMMPS` Fortran interface to LAMMPS.
    :ftype extract_variable: function
    :f set_variable: :f:subr:`set_variable`
    :ftype set_variable: subroutine
+   :f set_string_variable: :f:subr:`set_set_string_variable`
+   :ftype set_string_variable: subroutine
+   :f set_internal_variable: :f:subr:`set_internal_variable`
+   :ftype set_internal_variable: subroutine
    :f gather_atoms: :f:subr:`gather_atoms`
    :ftype gather_atoms: subroutine
    :f gather_atoms_concat: :f:subr:`gather_atoms_concat`
@@ -587,6 +606,96 @@ Procedures Bound to the :f:type:`lammps` Derived Type
 
 --------
 
+.. f:function:: last_thermo(what, index)
+
+   This function will call :cpp:func:`lammps_last_thermo` and returns
+   either a string or a pointer to a cached copy of LAMMPS last thermodynamic
+   output, depending on the data requested through *what*.  Note that *index*
+   uses 1-based indexing to access thermo output columns.
+
+   .. versionadded:: 15Jun2023
+
+   Note that this function actually does not return a value, but rather
+   associates the pointer on the left side of the assignment to point to
+   internal LAMMPS data (with the exception of string data, which are
+   copied and returned as ordinary Fortran strings).  Pointers must be
+   of the correct data type to point to said data (typically
+   ``INTEGER(c_int)``, ``INTEGER(c_int64_t)``, or ``REAL(c_double)``).
+   The pointer being associated with LAMMPS data is type-checked at
+   run-time via an overloaded assignment operator.  The pointers
+   returned by this function point to temporary, read-only data that may
+   be overwritten at any time, so their target values need to be copied
+   to local storage if they are supposed to persist.
+
+   For example,
+
+   .. code-block:: fortran
+
+      PROGRAM thermo
+        USE LIBLAMMPS
+        USE, INTRINSIC :: ISO_C_BINDING, ONLY : c_double, c_int64_t, c_int
+        TYPE(lammps) :: lmp
+        INTEGER(KIND=c_int64_t), POINTER :: ntimestep, bval
+        REAL(KIND=c_double), POINTER :: dval
+        INTEGER(KIND=c_int), POINTER :: nfield, typ, ival
+        INTEGER(KIND=c_int) :: i
+        CHARACTER(LEN=11) :: key
+
+        lmp = lammps()
+        CALL lmp%file('in.sysinit')
+
+        ntimestep = lmp%last_thermo('step', 0)
+        nfield = lmp%last_thermo('num', 0)
+        PRINT*, 'Last thermo output on step: ', ntimestep, '  Number of fields: ', nfield
+        DO i=1, nfield
+            key = lmp%last_thermo('keyword',i)
+            typ = lmp%last_thermo('type',i)
+            IF (typ == lmp%dtype%i32) THEN
+                ival = lmp%last_thermo('data',i)
+                PRINT*, key, ':', ival
+            ELSE IF (typ == lmp%dtype%i64) THEN
+                bval = lmp%last_thermo('data',i)
+                PRINT*, key, ':', bval
+            ELSE IF (typ == lmp%dtype%r64) THEN
+                dval = lmp%last_thermo('data',i)
+                PRINT*, key, ':', dval
+            END IF
+        END DO
+        CALL lmp%close(.TRUE.)
+      END PROGRAM thermo
+
+   would extract the last timestep where thermo output was done and the number
+   of columns it printed.  Then it loops over the columns to print out column
+   header keywords and the corresponding data.
+
+   .. note::
+
+      If :f:func:`last_thermo` returns a string, the string must have a length
+      greater than or equal to the length of the string (not including the
+      terminal ``NULL`` character) that LAMMPS returns. If the variable's
+      length is too short, the string will be truncated.  As usual in Fortran,
+      strings are padded with spaces at the end.  If you use an allocatable
+      string, the string **must be allocated** prior to calling this function.
+
+   :p character(len=\*) what: string with the name of the thermo keyword
+   :p integer(c_int) index: 1-based column index
+   :to: :cpp:func:`lammps_last_thermo`
+   :r pointer [polymorphic]: pointer to LAMMPS data. The left-hand side of the
+    assignment should be either a string (if expecting string data) or a
+    C-compatible pointer (e.g., ``INTEGER(c_int), POINTER :: nlocal``) to the
+    extracted property.
+
+   .. warning::
+
+       Modifying the data in the location pointed to by the returned pointer
+       may lead to inconsistent internal data and thus may cause failures,
+       crashes, or bogus simulations.  In general, it is much better
+       to use a LAMMPS input command that sets or changes these parameters.
+       Using an input command will take care of all side effects and necessary
+       updates of settings derived from such settings.
+
+--------
+
 .. f:subroutine:: extract_box([boxlo][, boxhi][, xy][, yz][, xz][, pflags][, boxflag])
 
    This subroutine will call :cpp:func:`lammps_extract_box`. All
@@ -764,13 +873,14 @@ Procedures Bound to the :f:type:`lammps` Derived Type
 
    .. note::
 
-      If :f:func:`extract_global` returns a string, the string must have length
-      greater than or equal to the length of the string (not including the
-      terminal ``NULL`` character) that LAMMPS returns. If the variable's
-      length is too short, the string will be truncated. As usual in Fortran,
-      strings are padded with spaces at the end. If you use an allocatable
-      string, the string **must be allocated** prior to calling this function,
-      but you can automatically reallocate it to the correct length after the
+      If :f:func:`extract_global` returns a string, the string must have
+      a length greater than or equal to the length of the string (not
+      including the terminal ``NULL`` character) that LAMMPS returns. If
+      the variable's length is too short, the string will be
+      truncated. As usual in Fortran, strings are padded with spaces at
+      the end. If you use an allocatable string, the string **must be
+      allocated** prior to calling this function, but you can
+      automatically reallocate it to the correct length after the
       function returns, viz.,
 
       .. code-block :: fortran
@@ -1145,8 +1255,8 @@ Procedures Bound to the :f:type:`lammps` Derived Type
    three elements of the global vector calculated by fix recenter into the
    variables *dx*, *dy*, and *dz*, respectively.
 
-   If asked for per-atom or local data, :f:func:`extract_compute` returns a
-   pointer to actual LAMMPS data. The pointer so returned will have the
+   If asked for per-atom or local data, :f:func:`extract_fix` returns a
+   pointer to actual LAMMPS data.  The pointer returned will have the
    appropriate size to match the internal data, and will be
    type/kind/rank-checked at the time of the assignment. For example,
 
@@ -1292,7 +1402,28 @@ Procedures Bound to the :f:type:`lammps` Derived Type
 
    Set the value of a string-style variable.
 
-   .. versionadded:: 3Nov2022
+   .. deprecated:: 7Feb2024
+
+   This function assigns a new value from the string *str* to the string-style
+   variable *name*\ . If *name* does not exist or is not a string-style
+   variable, an error is generated.
+
+   .. warning::
+
+      This subroutine is deprecated and :f:subr:`set_string_variable`
+      should be used instead.
+
+   :p character(len=*) name: name of the variable
+   :p character(len=*) str:  new value to assign to the variable
+   :to: :cpp:func:`lammps_set_variable`
+
+--------
+
+.. f:subroutine:: set_string_variable(name, str)
+
+   Set the value of a string-style variable.
+
+   .. versionadded:: 7Feb2024
 
    This function assigns a new value from the string *str* to the string-style
    variable *name*\ . If *name* does not exist or is not a string-style
@@ -1300,7 +1431,23 @@ Procedures Bound to the :f:type:`lammps` Derived Type
 
    :p character(len=*) name: name of the variable
    :p character(len=*) str:  new value to assign to the variable
-   :to: :cpp:func:`lammps_set_variable`
+   :to: :cpp:func:`lammps_set_string_variable`
+
+--------
+
+.. f:subroutine:: set_internal_variable(name, val)
+
+   Set the value of a internal-style variable.
+
+   .. versionadded:: 7Feb2024
+
+   This function assigns a new value from the floating-point number *val* to
+   the internal-style variable *name*\ . If *name* does not exist or is not
+   an internal-style variable, an error is generated.
+
+   :p character(len=*) name: name of the variable
+   :p read(c_double) val:  new value to assign to the variable
+   :to: :cpp:func:`lammps_set_internal_variable`
 
 --------
 
@@ -2172,19 +2319,13 @@ Procedures Bound to the :f:type:`lammps` Derived Type
 
    .. versionadded:: 3Nov2022
 
-   In case of an error, LAMMPS will either abort or throw a C++ exception.
-   The latter has to be :ref:`enabled at compile time <exceptions>`.
-   This function checks if exceptions were enabled.
-
-   When using the library interface with C++ exceptions enabled, the library
-   interface functions will "catch" them, and the error status can then be
-   checked by calling :f:func:`has_error`. The most recent error message can be
-   retrieved via :f:func:`get_last_error_message`.
-   This can allow one to restart a calculation or delete and recreate
-   the LAMMPS instance when a C++ exception occurs.  One application
-   of using exceptions this way is the :ref:`lammps_shell`.  If C++
-   exceptions are disabled and an error happens during a call to
-   LAMMPS or the Fortran API, the application will terminate.
+   When using the library interface, the library interface functions
+   will "catch" exceptions, and then the error status can be checked by
+   calling :f:func:`has_error`.  The most recent error message can be
+   retrieved via :f:func:`get_last_error_message`.  This allows to
+   restart a calculation or delete and recreate the LAMMPS instance when
+   a C++ exception occurs.  One application of using exceptions this way
+   is the :ref:`lammps_shell`.
 
    :to: :cpp:func:`lammps_config_has_exceptions`
    :r has_exceptions:
@@ -2938,14 +3079,6 @@ Procedures Bound to the :f:type:`lammps` Derived Type
    This function can be used to query if an error inside of LAMMPS
    has thrown a :ref:`C++ exception <exceptions>`.
 
-   .. note::
-
-      This function will always report "no error" when the LAMMPS library
-      has been compiled without ``-DLAMMPS_EXCEPTIONS``, which turns fatal
-      errors aborting LAMMPS into C++ exceptions. You can use the library
-      function :cpp:func:`lammps_config_has_exceptions` to check if this is
-      the case.
-
    :to: :cpp:func:`lammps_has_error`
    :r has_error: ``.TRUE.`` if there is an error.
    :rtype has_error: logical
@@ -2967,13 +3100,6 @@ Procedures Bound to the :f:type:`lammps` Derived Type
    MPI ranks and is often recoverable, while a "2" indicates an abort that
    would happen only in a single MPI rank and thus may not be recoverable, as
    other MPI ranks may be waiting on the failing MPI rank(s) to send messages.
-
-   .. note::
-
-      This function will do nothing when the LAMMPS library has been
-      compiled without ``-DLAMMPS_EXCEPTIONS``, which turns errors aborting
-      LAMMPS into C++ exceptions.  You can use the function
-      :f:func:`config_has_exceptions` to check whether this is the case.
 
    :p character(len=\*) buffer: string buffer to copy the error message into
    :o integer(c_int) status [optional]: 1 when all ranks had the error,

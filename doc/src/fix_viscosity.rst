@@ -6,7 +6,7 @@ fix viscosity command
 Syntax
 """"""
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    fix ID group-ID viscosity N vdim pdim Nbin keyword value ...
 

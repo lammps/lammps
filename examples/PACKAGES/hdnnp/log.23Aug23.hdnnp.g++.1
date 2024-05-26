@@ -1,0 +1,667 @@
+LAMMPS (2 Aug 2023 - Development - patch_2Aug2023-264-g174825fe8c)
+OMP_NUM_THREADS environment is not set. Defaulting to 1 thread. (src/comm.cpp:98)
+  using 1 OpenMP thread(s) per MPI task
+###############################################################################
+# MD simulation for HDNNP water
+###############################################################################
+
+###############################################################################
+# VARIABLES
+###############################################################################
+clear
+OMP_NUM_THREADS environment is not set. Defaulting to 1 thread. (src/comm.cpp:98)
+  using 1 OpenMP thread(s) per MPI task
+# Configuration files
+variable cfgFile         string "data.H2O-360mol"
+# Timesteps
+variable numSteps        equal  10
+variable dt              equal  0.0005
+# HDNNP
+variable hdnnpCutoff     equal  6.36
+variable hdnnpDir        string "hdnnp-data"
+
+###############################################################################
+# GENERAL SETUP
+###############################################################################
+units metal
+boundary p p p
+atom_style atomic
+read_data ${cfgFile}
+read_data data.H2O-360mol
+Reading data file ...
+  orthogonal box = (0 0 0) to (22.695687 23.586034 22.23713)
+  1 by 1 by 1 MPI processor grid
+  reading atoms ...
+  1080 atoms
+  read_data CPU = 0.004 seconds
+timestep ${dt}
+timestep 0.0005
+thermo 1
+
+###############################################################################
+# HDNNP
+###############################################################################
+pair_style hdnnp ${hdnnpCutoff} dir ${hdnnpDir} showew no showewsum 5 resetew no maxew 100 cflength 1.8897261328 cfenergy 0.0367493254
+pair_style hdnnp 6.36 dir ${hdnnpDir} showew no showewsum 5 resetew no maxew 100 cflength 1.8897261328 cfenergy 0.0367493254
+pair_style hdnnp 6.36 dir hdnnp-data showew no showewsum 5 resetew no maxew 100 cflength 1.8897261328 cfenergy 0.0367493254
+pair_coeff * * H O
+
+###############################################################################
+# INTEGRATOR
+###############################################################################
+fix INT all nve
+
+###############################################################################
+# OUTPUT
+###############################################################################
+# dump 1 all atom 1 dump.hdnnp
+
+###############################################################################
+# SIMULATION
+###############################################################################
+run ${numSteps}
+run 10
+
+CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE
+
+Your simulation uses code contributions which should be cited:
+
+- ML-HDNNP package: doi:10.1021/acs.jctc.8b00770
+
+@Article{Singraber19,
+ author = {Singraber, Andreas and Behler, J{"o}rg and Dellago, Christoph},
+ title = {Library-Based {LAMMPS} Implementation of High-Dimensional
+    Neural Network Potentials},
+ year = {2019},
+ month = mar,
+ volume = {15},
+ pages = {1827--1840},
+ doi = {10.1021/acs.jctc.8b00770},
+ journal = {J.~Chem.\ Theory Comput.},
+ number = {3}
+}
+
+CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE
+
+
+*******************************************************************************
+
+WELCOME TO n²p², A SOFTWARE PACKAGE FOR NEURAL NETWORK POTENTIALS!
+------------------------------------------------------------------
+
+n²p² version  (from git): patch_2Aug2023-264-g174825fe8c
+             (version.h): v2.2.0
+------------------------------------------------------------
+Git branch              : collected-small-changes
+Git revision            : 174825fe8c9493cb252d7b9e8dafdcc5d74be96d
+Compile date/time       : Aug 23 2023 08:43:11
+------------------------------------------------------------
+
+Features/Flags:
+------------------------------------------------------------
+Symmetry function groups     : enabled
+Symmetry function cache      : enabled
+Timing function available    : available
+Asymmetric polynomial SFs    : available
+SF low neighbor number check : enabled
+SF derivative memory layout  : reduced
+MPI explicitly disabled      : no
+------------------------------------------------------------
+
+Please cite the following papers when publishing results obtained with n²p²:
+-------------------------------------------------------------------------------
+ * General citation for n²p² and the LAMMPS interface:
+
+ Singraber, A.; Behler, J.; Dellago, C.
+ Library-Based LAMMPS Implementation of High-Dimensional
+ Neural Network Potentials.
+ J. Chem. Theory Comput. 2019 15 (3), 1827–1840.
+ https://doi.org/10.1021/acs.jctc.8b00770
+-------------------------------------------------------------------------------
+ * Additionally, if you use the NNP training features of n²p²:
+
+ Singraber, A.; Morawietz, T.; Behler, J.; Dellago, C.
+ Parallel Multistream Training of High-Dimensional Neural
+ Network Potentials.
+ J. Chem. Theory Comput. 2019, 15 (5), 3075–3092.
+ https://doi.org/10.1021/acs.jctc.8b01092
+-------------------------------------------------------------------------------
+ * Additionally, if polynomial symmetry functions are used:
+
+ Bircher, M. P.; Singraber, A.; Dellago, C.
+ Improved Description of Atomic Environments Using Low-Cost
+ Polynomial Functions with Compact Support.
+ arXiv:2010.14414 [cond-mat, physics:physics] 2020.
+ https://arxiv.org/abs/2010.14414
+*******************************************************************************
+
+*** SETUP: SETTINGS FILE ******************************************************
+
+Settings file name: hdnnp-data/input.nn
+Read 120 lines.
+Found 70 lines with keywords.
+This settings file defines a short-range only NNP.
+*******************************************************************************
+
+*** SETUP: NORMALIZATION ******************************************************
+
+Data set normalization is used.
+Mean energy per atom     :  -2.5521343547039809E+01
+Conversion factor energy :   2.4265748255366972E+02
+Conversion factor length :   5.8038448995319847E+00
+*******************************************************************************
+
+*** SETUP: ELEMENT MAP ********************************************************
+
+Number of element strings found: 2
+Element  0:  H (  1)
+Element  1:  O (  8)
+*******************************************************************************
+
+*** SETUP: ELEMENTS ***********************************************************
+
+Number of elements is consistent: 2
+Atomic energy offsets per element:
+Element  0:   0.00000000E+00
+Element  1:   0.00000000E+00
+Energy offsets are automatically subtracted from reference energies.
+*******************************************************************************
+
+*** SETUP: CUTOFF FUNCTIONS ***************************************************
+
+Parameter alpha for inner cutoff: 0.000000
+Inner cutoff = Symmetry function cutoff * alpha
+Equal cutoff function type for all symmetry functions:
+CutoffFunction::CT_TANHU (2)
+f(r) = tanh^3(1 - r/rc)
+*******************************************************************************
+
+*** SETUP: SYMMETRY FUNCTIONS *************************************************
+
+Abbreviations:
+--------------
+ind .... Symmetry function index.
+ec ..... Central atom element.
+tp ..... Symmetry function type.
+sbtp ... Symmetry function subtype (e.g. cutoff type).
+e1 ..... Neighbor 1 element.
+e2 ..... Neighbor 2 element.
+eta .... Gaussian width eta.
+rs/rl... Shift distance of Gaussian or left cutoff radius for polynomial.
+angl.... Left cutoff angle for polynomial.
+angr.... Right cutoff angle for polynomial.
+la ..... Angle prefactor lambda.
+zeta ... Angle term exponent zeta.
+rc ..... Cutoff radius / right cutoff radius for polynomial.
+a ...... Free parameter alpha (e.g. cutoff alpha).
+ln ..... Line number in settings file.
+
+Short range atomic symmetry functions element  H :
+-------------------------------------------------------------------------------------------------
+ ind ec tp sbtp e1 e2       eta      rs/rl         rc   angl   angr la zeta    a    ln
+-------------------------------------------------------------------------------------------------
+   1  H  2  ct2  H    1.000E-03  0.000E+00  1.200E+01                       0.00    51
+   2  H  2  ct2  O    1.000E-03  0.000E+00  1.200E+01                       0.00    61
+   3  H  2  ct2  H    1.000E-02  0.000E+00  1.200E+01                       0.00    52
+   4  H  2  ct2  O    1.000E-02  0.000E+00  1.200E+01                       0.00    62
+   5  H  2  ct2  H    3.000E-02  0.000E+00  1.200E+01                       0.00    53
+   6  H  2  ct2  O    3.000E-02  0.000E+00  1.200E+01                       0.00    63
+   7  H  2  ct2  H    6.000E-02  0.000E+00  1.200E+01                       0.00    54
+   8  H  2  ct2  O    6.000E-02  0.000E+00  1.200E+01                       0.00    64
+   9  H  2  ct2  O    1.500E-01  9.000E-01  1.200E+01                       0.00    65
+  10  H  2  ct2  H    1.500E-01  1.900E+00  1.200E+01                       0.00    55
+  11  H  2  ct2  O    3.000E-01  9.000E-01  1.200E+01                       0.00    66
+  12  H  2  ct2  H    3.000E-01  1.900E+00  1.200E+01                       0.00    56
+  13  H  2  ct2  O    6.000E-01  9.000E-01  1.200E+01                       0.00    67
+  14  H  2  ct2  H    6.000E-01  1.900E+00  1.200E+01                       0.00    57
+  15  H  2  ct2  O    1.500E+00  9.000E-01  1.200E+01                       0.00    68
+  16  H  2  ct2  H    1.500E+00  1.900E+00  1.200E+01                       0.00    58
+  17  H  3  ct2  O  O 1.000E-03  0.000E+00  1.200E+01               -1  4.0 0.00   115
+  18  H  3  ct2  O  O 1.000E-03  0.000E+00  1.200E+01                1  4.0 0.00   114
+  19  H  3  ct2  H  O 1.000E-02  0.000E+00  1.200E+01               -1  4.0 0.00   105
+  20  H  3  ct2  H  O 1.000E-02  0.000E+00  1.200E+01                1  4.0 0.00   103
+  21  H  3  ct2  H  O 3.000E-02  0.000E+00  1.200E+01               -1  1.0 0.00   100
+  22  H  3  ct2  O  O 3.000E-02  0.000E+00  1.200E+01               -1  1.0 0.00   113
+  23  H  3  ct2  H  O 3.000E-02  0.000E+00  1.200E+01                1  1.0 0.00    98
+  24  H  3  ct2  O  O 3.000E-02  0.000E+00  1.200E+01                1  1.0 0.00   112
+  25  H  3  ct2  H  O 7.000E-02  0.000E+00  1.200E+01               -1  1.0 0.00    95
+  26  H  3  ct2  H  O 7.000E-02  0.000E+00  1.200E+01                1  1.0 0.00    93
+  27  H  3  ct2  H  O 2.000E-01  0.000E+00  1.200E+01                1  1.0 0.00    90
+-------------------------------------------------------------------------------------------------
+Short range atomic symmetry functions element  O :
+-------------------------------------------------------------------------------------------------
+ ind ec tp sbtp e1 e2       eta      rs/rl         rc   angl   angr la zeta    a    ln
+-------------------------------------------------------------------------------------------------
+   1  O  2  ct2  H    1.000E-03  0.000E+00  1.200E+01                       0.00    70
+   2  O  2  ct2  O    1.000E-03  0.000E+00  1.200E+01                       0.00    80
+   3  O  2  ct2  H    1.000E-02  0.000E+00  1.200E+01                       0.00    71
+   4  O  2  ct2  O    1.000E-02  0.000E+00  1.200E+01                       0.00    81
+   5  O  2  ct2  H    3.000E-02  0.000E+00  1.200E+01                       0.00    72
+   6  O  2  ct2  O    3.000E-02  0.000E+00  1.200E+01                       0.00    82
+   7  O  2  ct2  H    6.000E-02  0.000E+00  1.200E+01                       0.00    73
+   8  O  2  ct2  O    6.000E-02  0.000E+00  1.200E+01                       0.00    83
+   9  O  2  ct2  H    1.500E-01  9.000E-01  1.200E+01                       0.00    74
+  10  O  2  ct2  O    1.500E-01  4.000E+00  1.200E+01                       0.00    84
+  11  O  2  ct2  H    3.000E-01  9.000E-01  1.200E+01                       0.00    75
+  12  O  2  ct2  O    3.000E-01  4.000E+00  1.200E+01                       0.00    85
+  13  O  2  ct2  H    6.000E-01  9.000E-01  1.200E+01                       0.00    76
+  14  O  2  ct2  O    6.000E-01  4.000E+00  1.200E+01                       0.00    86
+  15  O  2  ct2  H    1.500E+00  9.000E-01  1.200E+01                       0.00    77
+  16  O  2  ct2  O    1.500E+00  4.000E+00  1.200E+01                       0.00    87
+  17  O  3  ct2  H  O 1.000E-03  0.000E+00  1.200E+01               -1  4.0 0.00   110
+  18  O  3  ct2  O  O 1.000E-03  0.000E+00  1.200E+01               -1  4.0 0.00   120
+  19  O  3  ct2  H  O 1.000E-03  0.000E+00  1.200E+01                1  4.0 0.00   109
+  20  O  3  ct2  O  O 1.000E-03  0.000E+00  1.200E+01                1  4.0 0.00   119
+  21  O  3  ct2  H  H 1.000E-02  0.000E+00  1.200E+01               -1  4.0 0.00   104
+  22  O  3  ct2  H  H 1.000E-02  0.000E+00  1.200E+01                1  4.0 0.00   102
+  23  O  3  ct2  H  H 3.000E-02  0.000E+00  1.200E+01               -1  1.0 0.00    99
+  24  O  3  ct2  H  O 3.000E-02  0.000E+00  1.200E+01               -1  1.0 0.00   108
+  25  O  3  ct2  O  O 3.000E-02  0.000E+00  1.200E+01               -1  1.0 0.00   118
+  26  O  3  ct2  H  H 3.000E-02  0.000E+00  1.200E+01                1  1.0 0.00    97
+  27  O  3  ct2  H  O 3.000E-02  0.000E+00  1.200E+01                1  1.0 0.00   107
+  28  O  3  ct2  O  O 3.000E-02  0.000E+00  1.200E+01                1  1.0 0.00   117
+  29  O  3  ct2  H  H 7.000E-02  0.000E+00  1.200E+01               -1  1.0 0.00    94
+  30  O  3  ct2  H  H 7.000E-02  0.000E+00  1.200E+01                1  1.0 0.00    92
+-------------------------------------------------------------------------------------------------
+Minimum cutoff radius for element  H: 12.000000
+Minimum cutoff radius for element  O: 12.000000
+Maximum cutoff radius (global)      : 12.000000
+*******************************************************************************
+
+*** SETUP: SYMMETRY FUNCTION MEMORY *******************************************
+
+Symmetry function derivatives memory table for element  H :
+-------------------------------------------------------------------------------
+Relevant symmetry functions for neighbors with element:
+-  H:   15 of   27 ( 55.6 %)
+-  O:   19 of   27 ( 70.4 %)
+-------------------------------------------------------------------------------
+Symmetry function derivatives memory table for element  O :
+-------------------------------------------------------------------------------
+Relevant symmetry functions for neighbors with element:
+-  H:   18 of   30 ( 60.0 %)
+-  O:   16 of   30 ( 53.3 %)
+-------------------------------------------------------------------------------
+*******************************************************************************
+
+*** SETUP: SYMMETRY FUNCTION CACHE ********************************************
+
+Element  H: in total 4 caches, used 17.00 times on average.
+Element  O: in total 4 caches, used 17.00 times on average.
+*******************************************************************************
+
+*** SETUP: SYMMETRY FUNCTION GROUPS *******************************************
+
+Abbreviations:
+--------------
+ind .... Symmetry function index.
+ec ..... Central atom element.
+tp ..... Symmetry function type.
+sbtp ... Symmetry function subtype (e.g. cutoff type).
+e1 ..... Neighbor 1 element.
+e2 ..... Neighbor 2 element.
+eta .... Gaussian width eta.
+rs/rl... Shift distance of Gaussian or left cutoff radius for polynomial.
+angl.... Left cutoff angle for polynomial.
+angr.... Right cutoff angle for polynomial.
+la ..... Angle prefactor lambda.
+zeta ... Angle term exponent zeta.
+rc ..... Cutoff radius / right cutoff radius for polynomial.
+a ...... Free parameter alpha (e.g. cutoff alpha).
+ln ..... Line number in settings file.
+mi ..... Member index.
+sfi .... Symmetry function index.
+e ...... Recalculate exponential term.
+
+Short range atomic symmetry function groups element  H :
+----------------------------------------------------------------------------------------------------------
+ ind ec tp sbtp e1 e2       eta      rs/rl         rc   angl   angr la zeta    a    ln   mi  sfi e
+----------------------------------------------------------------------------------------------------------
+   1  H  2  ct2  H            *          *  1.200E+01                       0.00     *    *    *  
+   -  -  -    -  -    1.000E-03  0.000E+00          -                          -    51    1    1  
+   -  -  -    -  -    1.000E-02  0.000E+00          -                          -    52    2    3  
+   -  -  -    -  -    3.000E-02  0.000E+00          -                          -    53    3    5  
+   -  -  -    -  -    6.000E-02  0.000E+00          -                          -    54    4    7  
+   -  -  -    -  -    1.500E-01  1.900E+00          -                          -    55    5   10  
+   -  -  -    -  -    3.000E-01  1.900E+00          -                          -    56    6   12  
+   -  -  -    -  -    6.000E-01  1.900E+00          -                          -    57    7   14  
+   -  -  -    -  -    1.500E+00  1.900E+00          -                          -    58    8   16  
+   2  H  2  ct2  O            *          *  1.200E+01                       0.00     *    *    *  
+   -  -  -    -  -    1.000E-03  0.000E+00          -                          -    61    1    2  
+   -  -  -    -  -    1.000E-02  0.000E+00          -                          -    62    2    4  
+   -  -  -    -  -    3.000E-02  0.000E+00          -                          -    63    3    6  
+   -  -  -    -  -    6.000E-02  0.000E+00          -                          -    64    4    8  
+   -  -  -    -  -    1.500E-01  9.000E-01          -                          -    65    5    9  
+   -  -  -    -  -    3.000E-01  9.000E-01          -                          -    66    6   11  
+   -  -  -    -  -    6.000E-01  9.000E-01          -                          -    67    7   13  
+   -  -  -    -  -    1.500E+00  9.000E-01          -                          -    68    8   15  
+   3  H  3  ct2  H  O         *          *  1.200E+01                *    * 0.00     *    *    * *
+   -  -  -    -  -  - 1.000E-02  0.000E+00          -               -1  4.0    -   105    1   19 1
+   -  -  -    -  -  - 1.000E-02  0.000E+00          -                1  4.0    -   103    2   20 0
+   -  -  -    -  -  - 3.000E-02  0.000E+00          -               -1  1.0    -   100    3   21 1
+   -  -  -    -  -  - 3.000E-02  0.000E+00          -                1  1.0    -    98    4   23 0
+   -  -  -    -  -  - 7.000E-02  0.000E+00          -               -1  1.0    -    95    5   25 1
+   -  -  -    -  -  - 7.000E-02  0.000E+00          -                1  1.0    -    93    6   26 0
+   -  -  -    -  -  - 2.000E-01  0.000E+00          -                1  1.0    -    90    7   27 1
+   4  H  3  ct2  O  O         *          *  1.200E+01                *    * 0.00     *    *    * *
+   -  -  -    -  -  - 1.000E-03  0.000E+00          -               -1  4.0    -   115    1   17 1
+   -  -  -    -  -  - 1.000E-03  0.000E+00          -                1  4.0    -   114    2   18 0
+   -  -  -    -  -  - 3.000E-02  0.000E+00          -               -1  1.0    -   113    3   22 1
+   -  -  -    -  -  - 3.000E-02  0.000E+00          -                1  1.0    -   112    4   24 0
+----------------------------------------------------------------------------------------------------------
+Short range atomic symmetry function groups element  O :
+----------------------------------------------------------------------------------------------------------
+ ind ec tp sbtp e1 e2       eta      rs/rl         rc   angl   angr la zeta    a    ln   mi  sfi e
+----------------------------------------------------------------------------------------------------------
+   1  O  2  ct2  H            *          *  1.200E+01                       0.00     *    *    *  
+   -  -  -    -  -    1.000E-03  0.000E+00          -                          -    70    1    1  
+   -  -  -    -  -    1.000E-02  0.000E+00          -                          -    71    2    3  
+   -  -  -    -  -    3.000E-02  0.000E+00          -                          -    72    3    5  
+   -  -  -    -  -    6.000E-02  0.000E+00          -                          -    73    4    7  
+   -  -  -    -  -    1.500E-01  9.000E-01          -                          -    74    5    9  
+   -  -  -    -  -    3.000E-01  9.000E-01          -                          -    75    6   11  
+   -  -  -    -  -    6.000E-01  9.000E-01          -                          -    76    7   13  
+   -  -  -    -  -    1.500E+00  9.000E-01          -                          -    77    8   15  
+   2  O  2  ct2  O            *          *  1.200E+01                       0.00     *    *    *  
+   -  -  -    -  -    1.000E-03  0.000E+00          -                          -    80    1    2  
+   -  -  -    -  -    1.000E-02  0.000E+00          -                          -    81    2    4  
+   -  -  -    -  -    3.000E-02  0.000E+00          -                          -    82    3    6  
+   -  -  -    -  -    6.000E-02  0.000E+00          -                          -    83    4    8  
+   -  -  -    -  -    1.500E-01  4.000E+00          -                          -    84    5   10  
+   -  -  -    -  -    3.000E-01  4.000E+00          -                          -    85    6   12  
+   -  -  -    -  -    6.000E-01  4.000E+00          -                          -    86    7   14  
+   -  -  -    -  -    1.500E+00  4.000E+00          -                          -    87    8   16  
+   3  O  3  ct2  H  H         *          *  1.200E+01                *    * 0.00     *    *    * *
+   -  -  -    -  -  - 1.000E-02  0.000E+00          -               -1  4.0    -   104    1   21 1
+   -  -  -    -  -  - 1.000E-02  0.000E+00          -                1  4.0    -   102    2   22 0
+   -  -  -    -  -  - 3.000E-02  0.000E+00          -               -1  1.0    -    99    3   23 1
+   -  -  -    -  -  - 3.000E-02  0.000E+00          -                1  1.0    -    97    4   26 0
+   -  -  -    -  -  - 7.000E-02  0.000E+00          -               -1  1.0    -    94    5   29 1
+   -  -  -    -  -  - 7.000E-02  0.000E+00          -                1  1.0    -    92    6   30 0
+   4  O  3  ct2  H  O         *          *  1.200E+01                *    * 0.00     *    *    * *
+   -  -  -    -  -  - 1.000E-03  0.000E+00          -               -1  4.0    -   110    1   17 1
+   -  -  -    -  -  - 1.000E-03  0.000E+00          -                1  4.0    -   109    2   19 0
+   -  -  -    -  -  - 3.000E-02  0.000E+00          -               -1  1.0    -   108    3   24 1
+   -  -  -    -  -  - 3.000E-02  0.000E+00          -                1  1.0    -   107    4   27 0
+   5  O  3  ct2  O  O         *          *  1.200E+01                *    * 0.00     *    *    * *
+   -  -  -    -  -  - 1.000E-03  0.000E+00          -               -1  4.0    -   120    1   18 1
+   -  -  -    -  -  - 1.000E-03  0.000E+00          -                1  4.0    -   119    2   20 0
+   -  -  -    -  -  - 3.000E-02  0.000E+00          -               -1  1.0    -   118    3   25 1
+   -  -  -    -  -  - 3.000E-02  0.000E+00          -                1  1.0    -   117    4   28 0
+----------------------------------------------------------------------------------------------------------
+*******************************************************************************
+
+*** SETUP: NEURAL NETWORKS ****************************************************
+
+Normalize neurons (all elements): 0
+-------------------------------------------------------------------------------
+Atomic short range NN for element  H :
+Number of weights    :   1325
+Number of biases     :     51
+Number of connections:   1376
+Architecture       27   25   25    1
+-------------------------------------------------------------------------------
+   1   G   t   t   l
+   2   G   t   t    
+   3   G   t   t    
+   4   G   t   t    
+   5   G   t   t    
+   6   G   t   t    
+   7   G   t   t    
+   8   G   t   t    
+   9   G   t   t    
+  10   G   t   t    
+  11   G   t   t    
+  12   G   t   t    
+  13   G   t   t    
+  14   G   t   t    
+  15   G   t   t    
+  16   G   t   t    
+  17   G   t   t    
+  18   G   t   t    
+  19   G   t   t    
+  20   G   t   t    
+  21   G   t   t    
+  22   G   t   t    
+  23   G   t   t    
+  24   G   t   t    
+  25   G   t   t    
+  26   G            
+  27   G            
+-------------------------------------------------------------------------------
+Atomic short range NN for element  O :
+Number of weights    :   1400
+Number of biases     :     51
+Number of connections:   1451
+Architecture       30   25   25    1
+-------------------------------------------------------------------------------
+   1   G   t   t   l
+   2   G   t   t    
+   3   G   t   t    
+   4   G   t   t    
+   5   G   t   t    
+   6   G   t   t    
+   7   G   t   t    
+   8   G   t   t    
+   9   G   t   t    
+  10   G   t   t    
+  11   G   t   t    
+  12   G   t   t    
+  13   G   t   t    
+  14   G   t   t    
+  15   G   t   t    
+  16   G   t   t    
+  17   G   t   t    
+  18   G   t   t    
+  19   G   t   t    
+  20   G   t   t    
+  21   G   t   t    
+  22   G   t   t    
+  23   G   t   t    
+  24   G   t   t    
+  25   G   t   t    
+  26   G            
+  27   G            
+  28   G            
+  29   G            
+  30   G            
+-------------------------------------------------------------------------------
+*******************************************************************************
+
+*** SETUP: SYMMETRY FUNCTION SCALING ******************************************
+
+Equal scaling type for all symmetry functions:
+Scaling type::ST_SCALECENTER (3)
+Gs = Smin + (Smax - Smin) * (G - Gmean) / (Gmax - Gmin)
+Smin = 0.000000
+Smax = 1.000000
+Symmetry function scaling statistics from file: hdnnp-data/scaling.data
+-------------------------------------------------------------------------------
+
+Abbreviations:
+--------------
+ind ..... Symmetry function index.
+min ..... Minimum symmetry function value.
+max ..... Maximum symmetry function value.
+mean .... Mean symmetry function value.
+sigma ... Standard deviation of symmetry function values.
+sf ...... Scaling factor for derivatives.
+Smin .... Desired minimum scaled symmetry function value.
+Smax .... Desired maximum scaled symmetry function value.
+t ....... Scaling type.
+
+Scaling data for symmetry functions element  H :
+-------------------------------------------------------------------------------
+ ind       min       max      mean     sigma        sf  Smin  Smax t
+-------------------------------------------------------------------------------
+   1  1.09E+00  9.62E+00  2.27E+00  6.79E-01  1.17E-01  0.00  1.00 3
+   2  7.33E-01  5.00E+00  1.33E+00  3.39E-01  2.34E-01  0.00  1.00 3
+   3  7.60E-01  7.14E+00  1.65E+00  5.08E-01  1.57E-01  0.00  1.00 3
+   4  5.48E-01  3.77E+00  1.02E+00  2.54E-01  3.11E-01  0.00  1.00 3
+   5  4.01E-01  4.15E+00  9.09E-01  2.98E-01  2.67E-01  0.00  1.00 3
+   6  3.62E-01  2.27E+00  6.49E-01  1.48E-01  5.25E-01  0.00  1.00 3
+   7  1.89E-01  2.23E+00  4.57E-01  1.60E-01  4.90E-01  0.00  1.00 3
+   8  2.67E-01  1.32E+00  4.24E-01  8.05E-02  9.49E-01  0.00  1.00 3
+   9  2.45E-01  9.48E-01  3.62E-01  5.30E-02  1.42E+00  0.00  1.00 3
+  10  2.22E-01  2.76E+00  5.39E-01  2.01E-01  3.94E-01  0.00  1.00 3
+  11  1.47E-01  5.56E-01  2.68E-01  2.62E-02  2.45E+00  0.00  1.00 3
+  12  9.91E-02  1.73E+00  2.96E-01  1.16E-01  6.14E-01  0.00  1.00 3
+  13  6.51E-02  3.45E-01  1.85E-01  1.97E-02  3.57E+00  0.00  1.00 3
+  14  3.17E-02  9.13E-01  1.50E-01  5.35E-02  1.13E+00  0.00  1.00 3
+  15  2.92E-03  2.65E-01  7.65E-02  1.88E-02  3.82E+00  0.00  1.00 3
+  16  3.21E-04  2.87E-01  4.58E-02  2.33E-02  3.49E+00  0.00  1.00 3
+  17  2.47E-04  1.38E-01  1.77E-02  9.75E-03  7.23E+00  0.00  1.00 3
+  18  5.10E-03  5.83E-01  2.39E-02  3.78E-02  1.73E+00  0.00  1.00 3
+  19  3.23E-04  2.16E-01  1.71E-02  1.40E-02  4.63E+00  0.00  1.00 3
+  20  4.96E-02  1.69E+00  1.45E-01  1.10E-01  6.11E-01  0.00  1.00 3
+  21  3.41E-03  3.16E-01  1.84E-02  2.01E-02  3.20E+00  0.00  1.00 3
+  22  1.31E-04  1.03E-01  6.37E-03  6.61E-03  9.76E+00  0.00  1.00 3
+  23  3.38E-02  9.16E-01  8.13E-02  5.79E-02  1.13E+00  0.00  1.00 3
+  24  4.17E-04  1.58E-01  4.66E-03  9.86E-03  6.35E+00  0.00  1.00 3
+  25  7.35E-04  5.92E-02  3.70E-03  3.31E-03  1.71E+01  0.00  1.00 3
+  26  8.98E-03  1.94E-01  2.41E-02  1.10E-02  5.40E+00  0.00  1.00 3
+  27  2.12E-04  8.78E-03  2.06E-03  5.88E-04  1.17E+02  0.00  1.00 3
+-------------------------------------------------------------------------------
+Scaling data for symmetry functions element  O :
+-------------------------------------------------------------------------------
+ ind       min       max      mean     sigma        sf  Smin  Smax t
+-------------------------------------------------------------------------------
+   1  1.51E+00  1.00E+01  2.65E+00  6.78E-01  1.18E-01  0.00  1.00 3
+   2  4.44E-01  4.62E+00  9.66E-01  3.37E-01  2.39E-01  0.00  1.00 3
+   3  1.19E+00  7.53E+00  2.03E+00  5.06E-01  1.58E-01  0.00  1.00 3
+   4  2.76E-01  3.39E+00  6.59E-01  2.50E-01  3.21E-01  0.00  1.00 3
+   5  8.06E-01  4.54E+00  1.30E+00  2.94E-01  2.68E-01  0.00  1.00 3
+   6  1.05E-01  1.89E+00  3.07E-01  1.42E-01  5.60E-01  0.00  1.00 3
+   7  5.69E-01  2.62E+00  8.48E-01  1.57E-01  4.89E-01  0.00  1.00 3
+   8  2.33E-02  9.36E-01  1.11E-01  6.98E-02  1.10E+00  0.00  1.00 3
+   9  5.14E-01  1.85E+00  7.25E-01  9.80E-02  7.46E-01  0.00  1.00 3
+  10  1.11E-01  2.91E+00  4.75E-01  2.34E-01  3.57E-01  0.00  1.00 3
+  11  3.53E-01  1.07E+00  5.35E-01  4.52E-02  1.39E+00  0.00  1.00 3
+  12  3.04E-02  2.53E+00  3.17E-01  2.10E-01  4.00E-01  0.00  1.00 3
+  13  1.60E-01  6.63E-01  3.70E-01  3.08E-02  1.99E+00  0.00  1.00 3
+  14  2.78E-03  2.30E+00  1.77E-01  1.86E-01  4.35E-01  0.00  1.00 3
+  15  9.56E-03  3.91E-01  1.53E-01  2.79E-02  2.62E+00  0.00  1.00 3
+  16  3.75E-06  2.04E+00  5.41E-02  1.43E-01  4.91E-01  0.00  1.00 3
+  17  2.47E-03  3.43E-01  1.67E-02  2.19E-02  2.93E+00  0.00  1.00 3
+  18  1.74E-05  5.63E-02  9.55E-04  3.36E-03  1.78E+01  0.00  1.00 3
+  19  5.48E-02  3.02E+00  2.04E-01  2.01E-01  3.37E-01  0.00  1.00 3
+  20  1.38E-03  4.99E-01  1.28E-02  3.18E-02  2.01E+00  0.00  1.00 3
+  21  6.69E-03  2.67E-01  3.09E-02  1.71E-02  3.84E+00  0.00  1.00 3
+  22  1.70E-02  1.42E+00  7.63E-02  9.29E-02  7.14E-01  0.00  1.00 3
+  23  1.98E-02  4.08E-01  4.88E-02  2.55E-02  2.58E+00  0.00  1.00 3
+  24  5.28E-04  2.33E-01  7.21E-03  1.45E-02  4.30E+00  0.00  1.00 3
+  25  1.11E-05  3.53E-02  4.25E-04  2.05E-03  2.83E+01  0.00  1.00 3
+  26  1.60E-02  8.22E-01  5.08E-02  5.28E-02  1.24E+00  0.00  1.00 3
+  27  3.99E-03  7.86E-01  3.69E-02  5.05E-02  1.28E+00  0.00  1.00 3
+  28  4.05E-05  9.84E-02  1.21E-03  5.79E-03  1.02E+01  0.00  1.00 3
+  29  6.04E-03  9.93E-02  1.62E-02  5.52E-03  1.07E+01  0.00  1.00 3
+  30  2.96E-03  1.55E-01  1.16E-02  8.94E-03  6.59E+00  0.00  1.00 3
+-------------------------------------------------------------------------------
+*******************************************************************************
+
+*** SETUP: SYMMETRY FUNCTION STATISTICS ***************************************
+
+Equal symmetry function statistics for all elements.
+Collect min/max/mean/sigma                        : 0
+Collect extrapolation warnings                    : 1
+Write extrapolation warnings immediately to stderr: 0
+Halt on any extrapolation warning                 : 0
+*******************************************************************************
+
+*** SETUP: NEURAL NETWORK WEIGHTS *********************************************
+
+Short  NN weight file name format: hdnnp-data/weights.%03d.data
+Setting short  NN weights for element  H from file: hdnnp-data/weights.001.data
+Setting short  NN weights for element  O from file: hdnnp-data/weights.008.data
+*******************************************************************************
+
+*** SETUP: LAMMPS INTERFACE ***************************************************
+
+Individual extrapolation warnings will not be shown.
+Extrapolation warning summary will be shown every 5 timesteps.
+The simulation will be stopped when 100 extrapolation warnings are exceeded.
+Extrapolation warnings are accumulated over all time steps.
+-------------------------------------------------------------------------------
+CAUTION: If the LAMMPS unit system differs from the one used
+         during NN training, appropriate conversion factors
+         must be provided (see keywords cflength and cfenergy).
+
+Length unit conversion factor:   1.8897261327999999E+00
+Energy unit conversion factor:   3.6749325399999998E-02
+
+Checking consistency of cutoff radii (in LAMMPS units):
+LAMMPS Cutoff (via pair_coeff)  :   6.360E+00
+Maximum symmetry function cutoff:   6.350E+00
+Cutoff radii are consistent.
+-------------------------------------------------------------------------------
+Element mapping string from LAMMPS to n2p2: "1:H,2:O"
+
+CAUTION: Please ensure that this mapping between LAMMPS
+         atom types and NNP elements is consistent:
+
+---------------------------
+LAMMPS type  |  NNP element
+---------------------------
+          1 <->  H (  1)
+          2 <->  O (  8)
+---------------------------
+
+NNP setup for LAMMPS completed.
+*******************************************************************************
+Neighbor list info ...
+  update: every = 1 steps, delay = 0 steps, check = yes
+  max neighbors/atom: 2000, page size: 100000
+  master list distance cutoff = 8.36
+  ghost atom cutoff = 8.36
+  binsize = 4.18, bins = 6 6 6
+  1 neighbor lists, perpetual/occasional/extra = 1 0 0
+  (1) pair hdnnp, perpetual
+      attributes: full, newton on
+      pair build: full/bin/atomonly
+      stencil: full/bin/3d
+      bin: standard
+### NNP EW SUMMARY ### TS:          0 EW          0 EWPERSTEP  0.000e+00
+Per MPI rank memory allocation (min/avg/max) = 4.021 | 4.021 | 4.021 Mbytes
+   Step          Temp          E_pair         E_mol          TotEng         Press     
+         0   0             -750069.48      0             -750069.48     -5297.5537    
+         1   8.5815594     -750070.71      0             -750069.51     -5249.2914    
+         2   30.988787     -750073.91      0             -750069.59     -5023.6945    
+         3   58.859866     -750077.88      0             -750069.67     -4427.8346    
+         4   82.576399     -750081.26      0             -750069.74     -3275.4378    
+### NNP EW SUMMARY ### TS:          5 EW          0 EWPERSTEP  0.000e+00
+         5   94.968097     -750083.01      0             -750069.76     -1511.6733    
+         6   93.724286     -750082.8       0             -750069.73      709.20465    
+         7   82.243957     -750081.13      0             -750069.66      3020.5084    
+         8   68.611429     -750079.14      0             -750069.57      4922.5176    
+         9   62.314385     -750078.21      0             -750069.51      5933.1543    
+### NNP EW SUMMARY ### TS:         10 EW          0 EWPERSTEP  0.000e+00
+        10   69.501045     -750079.21      0             -750069.52      5761.8646    
+Loop time of 3.2801 on 1 procs for 10 steps with 1080 atoms
+
+Performance: 0.132 ns/day, 182.228 hours/ns, 3.049 timesteps/s, 3.293 katom-step/s
+99.8% CPU use with 1 MPI tasks x 1 OpenMP threads
+
+MPI task timing breakdown:
+Section |  min time  |  avg time  |  max time  |%varavg| %total
+---------------------------------------------------------------
+Pair    | 3.2794     | 3.2794     | 3.2794     |   0.0 | 99.98
+Neigh   | 0          | 0          | 0          |   0.0 |  0.00
+Comm    | 0.00030785 | 0.00030785 | 0.00030785 |   0.0 |  0.01
+Output  | 0.00018531 | 0.00018531 | 0.00018531 |   0.0 |  0.01
+Modify  | 0.00013118 | 0.00013118 | 0.00013118 |   0.0 |  0.00
+Other   |            | 9.142e-05  |            |       |  0.00
+
+Nlocal:           1080 ave        1080 max        1080 min
+Histogram: 1 0 0 0 0 0 0 0 0 0
+Nghost:           4536 ave        4536 max        4536 min
+Histogram: 1 0 0 0 0 0 0 0 0 0
+Neighs:              0 ave           0 max           0 min
+Histogram: 1 0 0 0 0 0 0 0 0 0
+FullNghs:       239270 ave      239270 max      239270 min
+Histogram: 1 0 0 0 0 0 0 0 0 0
+
+Total # of neighbors = 239270
+Ave neighs/atom = 221.5463
+Neighbor list builds = 0
+Dangerous builds = 0
+Total wall time: 0:00:03

@@ -66,8 +66,8 @@ The deviation is calculated as:
 
    \text{RMSD}(\mathbf{u}, \mathbf{v})
     = \min_{s, \mathbf{Q}} \sqrt{\frac{1}{N} \sum\limits_{i=1}^{N}
-   {\left\lVert s[\vec{u_i} - \mathbf{\bar{u}}]
-                 - \mathbf{Q} \cdot \vec{v_i} \right\rVert}^2}
+   {\left\lVert s[\vec{u}_i - \mathbf{\bar{u}}]
+                 - \mathbf{Q} \cdot \vec{v}_i \right\rVert}^2}
 
 Here, :math:`\vec u` and :math:`\vec v` contain the coordinates of the local
 and ideal structures respectively, :math:`s` is a scale factor, and

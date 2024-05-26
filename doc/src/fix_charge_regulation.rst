@@ -7,7 +7,7 @@ fix charge/regulation command
 Syntax
 """"""
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
     fix ID group-ID charge/regulation cation_type anion_type keyword value(s)
 
@@ -45,10 +45,10 @@ Syntax
 
 Examples
 """"""""
+
 .. code-block:: LAMMPS
 
     fix chareg all charge/regulation 1 2 acid_type 3 base_type 4 pKa 5.0 pKb 6.0 pH 7.0 pIp 3.0 pIm 3.0 nevery 200 nmc 200 seed 123 tempfixid fT
-
     fix chareg all charge/regulation 1 2 pIp 3 pIm 3 onlysalt yes 2 -1 seed 123 tag yes temp 1.0
 
 Description
@@ -171,7 +171,7 @@ Langevin thermostat:
 .. code-block:: LAMMPS
 
     compute dtemp all temp
-    compute_modify dtemp dynamic yes
+    compute_modify dtemp dynamic/dof yes
     fix fT all langevin 1.0 1.0 1.0 123
     fix_modify fT temp dtemp
 
@@ -253,11 +253,11 @@ built with that package.  See the :doc:`Build package <Build_package>`
 page for more info.
 
 The :doc:`atom_style <atom_style>`, used must contain the charge
-property, for example, the style could be *charge* or *full*. Only
-usable for 3D simulations. Atoms specified as free ions cannot be part
-of rigid bodies or molecules and cannot have bonding interactions. The
-scheme is limited to integer charges, any atoms with non-integer charges
-will not be considered by the fix.
+property and have per atom type masses, for example, the style could be
+*charge* or *full*. Only usable for 3D simulations.  Atoms specified as
+free ions cannot be part of rigid bodies or molecules and cannot have
+bonding interactions.  The scheme is limited to integer charges, any
+atoms with non-integer charges will not be considered by the fix.
 
 All interaction potentials used must be continuous, otherwise the MD
 integration and the particle exchange MC moves do not correspond to the

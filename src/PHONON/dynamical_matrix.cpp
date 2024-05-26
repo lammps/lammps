@@ -365,7 +365,7 @@ void DynamicalMatrix::calculateMatrix()
     delete [] fdynmat[i];
   delete [] fdynmat;
 
-  if (screen && me ==0 ) fprintf(screen,"Finished Calculating Dynamical Matrix\n");
+  if (screen && me == 0) fprintf(screen,"Finished Calculating Dynamical Matrix\n");
 }
 
 /* ----------------------------------------------------------------------

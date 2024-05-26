@@ -39,7 +39,7 @@ class PairILPGrapheneHBN : public Pair {
 
   static constexpr int NPARAMS_PER_LINE = 13;
 
-  enum { ILP_GrhBN, ILP_TMD, SAIP_METAL };    // for telling class variants apart in shared code
+  enum { ILP_GrhBN, ILP_TMD, SAIP_METAL, AIP_WATER_2DM };    // for telling class variants apart in shared code
 
  protected:
   int me;

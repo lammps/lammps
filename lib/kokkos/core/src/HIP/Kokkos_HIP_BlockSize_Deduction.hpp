@@ -1,46 +1,18 @@
-/*
 //@HEADER
 // ************************************************************************
 //
-//                        Kokkos v. 3.0
-//       Copyright (2020) National Technology & Engineering
+//                        Kokkos v. 4.0
+//       Copyright (2022) National Technology & Engineering
 //               Solutions of Sandia, LLC (NTESS).
 //
 // Under the terms of Contract DE-NA0003525 with NTESS,
 // the U.S. Government retains certain rights in this software.
 //
-// Redistribution and use in source and binary forms, with or without
-// modification, are permitted provided that the following conditions are
-// met:
+// Part of Kokkos, under the Apache License v2.0 with LLVM Exceptions.
+// See https://kokkos.org/LICENSE for license information.
+// SPDX-License-Identifier: Apache-2.0 WITH LLVM-exception
 //
-// 1. Redistributions of source code must retain the above copyright
-// notice, this list of conditions and the following disclaimer.
-//
-// 2. Redistributions in binary form must reproduce the above copyright
-// notice, this list of conditions and the following disclaimer in the
-// documentation and/or other materials provided with the distribution.
-//
-// 3. Neither the name of the Corporation nor the names of the
-// contributors may be used to endorse or promote products derived from
-// this software without specific prior written permission.
-//
-// THIS SOFTWARE IS PROVIDED BY NTESS "AS IS" AND ANY
-// EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
-// IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR
-// PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL NTESS OR THE
-// CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
-// EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
-// PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR
-// PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF
-// LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING
-// NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
-// SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-//
-// Questions? Contact Christian R. Trott (crtrott@sandia.gov)
-//
-// ************************************************************************
 //@HEADER
-*/
 
 #ifndef KOKKOS_HIP_BLOCKSIZE_DEDUCTION_HPP
 #define KOKKOS_HIP_BLOCKSIZE_DEDUCTION_HPP
@@ -54,7 +26,6 @@
 #include <HIP/Kokkos_HIP_KernelLaunch.hpp>
 
 namespace Kokkos {
-namespace Experimental {
 namespace Impl {
 
 enum class BlockType { Max, Preferred };
@@ -63,9 +34,8 @@ template <typename DriverType, typename LaunchBounds = Kokkos::LaunchBounds<>,
           HIPLaunchMechanism LaunchMechanism =
               DeduceHIPLaunchMechanism<DriverType>::launch_mechanism>
 unsigned get_preferred_blocksize_impl() {
-  // FIXME_HIP - could be if constexpr for c++17
-  if (!HIPParallelLaunch<DriverType, LaunchBounds,
-                         LaunchMechanism>::default_launchbounds()) {
+  if constexpr (!HIPParallelLaunch<DriverType, LaunchBounds,
+                                   LaunchMechanism>::default_launchbounds()) {
     // use the user specified value
     return LaunchBounds::maxTperB;
   } else {
@@ -77,14 +47,12 @@ unsigned get_preferred_blocksize_impl() {
   }
 }
 
-// FIXME_HIP - entire function could be constexpr for c++17
 template <typename DriverType, typename LaunchBounds = Kokkos::LaunchBounds<>,
           HIPLaunchMechanism LaunchMechanism =
               DeduceHIPLaunchMechanism<DriverType>::launch_mechanism>
-unsigned get_max_blocksize_impl() {
-  // FIXME_HIP - could be if constexpr for c++17
-  if (!HIPParallelLaunch<DriverType, LaunchBounds,
-                         LaunchMechanism>::default_launchbounds()) {
+constexpr unsigned get_max_blocksize_impl() {
+  if constexpr (!HIPParallelLaunch<DriverType, LaunchBounds,
+                                   LaunchMechanism>::default_launchbounds()) {
     // use the user specified value
     return LaunchBounds::maxTperB;
   } else {
@@ -105,15 +73,13 @@ hipFuncAttributes get_hip_func_attributes_impl() {
   return HIPParallelLaunch<DriverType, LaunchBounds,
                            LaunchMechanism>::get_hip_func_attributes();
 #else
-  // FIXME_HIP - could be if constexpr for c++17
-  if (!HIPParallelLaunch<DriverType, LaunchBounds,
-                         LaunchMechanism>::default_launchbounds()) {
+  if constexpr (!HIPParallelLaunch<DriverType, LaunchBounds,
+                                   LaunchMechanism>::default_launchbounds()) {
     // for user defined, we *always* honor the request
     return HIPParallelLaunch<DriverType, LaunchBounds,
                              LaunchMechanism>::get_hip_func_attributes();
   } else {
-    // FIXME_HIP - could be if constexpr for c++17
-    if (BlockSize == BlockType::Max) {
+    if constexpr (BlockSize == BlockType::Max) {
       return HIPParallelLaunch<
           DriverType, Kokkos::LaunchBounds<HIPTraits::MaxThreadsPerBlock, 1>,
           LaunchMechanism>::get_hip_func_attributes();
@@ -154,8 +120,7 @@ unsigned hip_internal_get_block_size(const HIPInternal *hip_instance,
     // find how many threads we can fit with this blocksize based on LDS usage
     unsigned tperb_shmem = total_shmem > shmem_per_sm ? 0 : block_size;
 
-    // FIXME_HIP - could be if constexpr for c++17
-    if (BlockSize == BlockType::Max) {
+    if constexpr (BlockSize == BlockType::Max) {
       // we want the maximum blocksize possible
       // just wait until we get a case where we can fit the LDS per SM
       if (tperb_shmem) return block_size;
@@ -296,7 +261,6 @@ unsigned hip_get_max_team_blocksize(HIPInternal const *hip_instance,
 }
 
 }  // namespace Impl
-}  // namespace Experimental
 }  // namespace Kokkos
 
 #endif

@@ -129,7 +129,7 @@ interactions.
 The CH.KC potential file provided with LAMMPS (see the potentials
 folder) is parameterized for metal units.  You can use this pair style
 with any LAMMPS units, but you would need to create your own custom
-CC.KC potential file with all coefficients converted to the appropriate
+CH.KC potential file with all coefficients converted to the appropriate
 units.
 
 Related commands

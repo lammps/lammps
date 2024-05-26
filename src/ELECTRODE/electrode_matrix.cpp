@@ -43,6 +43,7 @@ ElectrodeMatrix::ElectrodeMatrix(LAMMPS *lmp, int electrode_group, double eta) :
   groupbit = group->bitmask[igroup];
   ngroup = group->count(igroup);
   this->eta = eta;
+  etaflag = false;
   tfflag = false;
 }
 
@@ -72,6 +73,14 @@ void ElectrodeMatrix::setup_tf(const std::map<int, double> &tf_types)
 
 /* ---------------------------------------------------------------------- */
 
+void ElectrodeMatrix::setup_eta(int index)
+{
+  etaflag = true;
+  eta_index = index;
+}
+
+/* ---------------------------------------------------------------------- */
+
 void ElectrodeMatrix::compute_array(double **array, bool timer_flag)
 {
   // setting all entries of coulomb matrix to zero
@@ -84,7 +93,7 @@ void ElectrodeMatrix::compute_array(double **array, bool timer_flag)
   electrode_kspace->compute_matrix(&mpos[0], array, timer_flag);
   MPI_Barrier(world);
   if (timer_flag && (comm->me == 0))
-    utils::logmesg(lmp, fmt::format("KSpace time: {:.4g} s\n", MPI_Wtime() - kspace_time));
+    utils::logmesg(lmp, "KSpace time: {:.4g} s\n", MPI_Wtime() - kspace_time);
   //cout << array[0][0] << ", " << array[0][1] << endl;
   pair_contribution(array);
   //cout << array[0][0] << ", " << array[0][1] << endl;
@@ -115,8 +124,6 @@ void ElectrodeMatrix::pair_contribution(double **array)
   int nlocal = atom->nlocal;
   int newton_pair = force->newton_pair;
 
-  double const etaij = eta * eta / sqrt(2.0 * eta * eta);    // see mw ewald theory eq. (29)-(30)
-
   // neighbor list will be ready because called from post_neighbor
   inum = list->inum;
   ilist = list->ilist;
@@ -135,6 +142,7 @@ void ElectrodeMatrix::pair_contribution(double **array)
     xtmp = x[i][0];
     ytmp = x[i][1];
     ztmp = x[i][2];
+    double const eta_i = etaflag ? atom->dvector[eta_index][i] : eta;
     itype = type[i];
     jlist = firstneigh[i];
     jnum = numneigh[i];
@@ -152,6 +160,9 @@ void ElectrodeMatrix::pair_contribution(double **array)
       jtype = type[j];
 
       if (rsq < cutsq[itype][jtype]) {
+        double const eta_j = etaflag ? atom->dvector[eta_index][j] : eta;
+        double const etaij = eta_i * eta_j / sqrt(eta_i * eta_i + eta_j * eta_j);
+
         r = sqrt(rsq);
         rinv = 1.0 / r;
         aij = rinv;
@@ -178,7 +189,10 @@ void ElectrodeMatrix::self_contribution(double **array)
   const double preta = MY_SQRT2 / MY_PIS;
 
   for (int i = 0; i < nlocal; i++)
-    if (mask[i] & groupbit) { array[mpos[i]][mpos[i]] += preta * eta - selfint; }
+    if (mask[i] & groupbit) {
+      double const eta_i = etaflag ? atom->dvector[eta_index][i] : eta;
+      array[mpos[i]][mpos[i]] += preta * eta_i - selfint;
+    }
 }
 
 /* ---------------------------------------------------------------------- */

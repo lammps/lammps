@@ -27,9 +27,7 @@
 #include "memory.h"
 #include "modify.h"
 #include "neigh_list.h"
-#include "pair.h"
 #include "respa.h"
-#include "suffix.h"
 #include "text_file_reader.h"
 #include "update.h"
 
@@ -75,6 +73,9 @@ FixQEq::FixQEq(LAMMPS *lmp, int narg, char **arg) :
   // check for sane arguments
   if ((nevery <= 0) || (cutoff <= 0.0) || (tolerance <= 0.0) || (maxiter <= 0))
     error->all(FLERR,"Illegal fix qeq command");
+
+  // must have charges
+  if (!atom->q_flag) error->all(FLERR, "Fix {} requires atom attribute q", style);
 
   alpha = 0.20;
   swa = 0.0;
@@ -143,7 +144,8 @@ FixQEq::FixQEq(LAMMPS *lmp, int narg, char **arg) :
 FixQEq::~FixQEq()
 {
   // unregister callbacks to this fix from Atom class
-  atom->delete_callback(id,Atom::GROW);
+
+  if (modify->get_fix_by_id(id)) atom->delete_callback(id,Atom::GROW);
 
   memory->destroy(s_hist);
   memory->destroy(t_hist);
@@ -336,12 +338,6 @@ void FixQEq::setup_pre_force(int vflag)
 {
   if (force->newton_pair == 0)
     error->all(FLERR,"QEQ with 'newton pair off' not supported");
-
-  if (force->pair) {
-    if (force->pair->suffix_flag & (Suffix::INTEL|Suffix::GPU))
-      error->all(FLERR,"QEQ is not compatiple with suffix version "
-                 "of pair style");
-  }
 
   deallocate_storage();
   allocate_storage();
@@ -809,8 +805,7 @@ void FixQEq::read_file(char *file)
 
     for (int n=1; n <= ntypes; ++n)
       if (setflag[n] == 0)
-        error->one(FLERR,fmt::format("Parameters for atom type {} missing in "
-                                     "qeq parameter file", n));
+        error->one(FLERR,"Parameters for atom type {} missing in qeq parameter file", n);
     delete[] setflag;
   }
 

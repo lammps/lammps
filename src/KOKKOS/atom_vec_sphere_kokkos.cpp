@@ -20,13 +20,10 @@
 #include "domain.h"
 #include "error.h"
 #include "fix.h"
-#include "fix_adapt.h"
+#include "kokkos.h"
 #include "math_const.h"
-#include "memory.h"
 #include "memory_kokkos.h"
 #include "modify.h"
-
-#include <cstring>
 
 using namespace LAMMPS_NS;
 using namespace MathConst;
@@ -37,6 +34,7 @@ AtomVecSphereKokkos::AtomVecSphereKokkos(LAMMPS *lmp) : AtomVec(lmp),
 AtomVecKokkos(lmp), AtomVecSphere(lmp)
 {
   no_border_vel_flag = 0;
+  unpack_exchange_indices_flag = 1;
 }
 
 /* ----------------------------------------------------------------------
@@ -122,6 +120,27 @@ void AtomVecSphereKokkos::grow_pointers()
   h_torque = atomKK->k_torque.h_view;
 }
 
+/* ----------------------------------------------------------------------
+   sort atom arrays on device
+------------------------------------------------------------------------- */
+
+void AtomVecSphereKokkos::sort_kokkos(Kokkos::BinSort<KeyViewType, BinOp> &Sorter)
+{
+  atomKK->sync(Device, ALL_MASK & ~F_MASK & ~TORQUE_MASK);
+
+  Sorter.sort(LMPDeviceType(), d_tag);
+  Sorter.sort(LMPDeviceType(), d_type);
+  Sorter.sort(LMPDeviceType(), d_mask);
+  Sorter.sort(LMPDeviceType(), d_image);
+  Sorter.sort(LMPDeviceType(), d_x);
+  Sorter.sort(LMPDeviceType(), d_v);
+  Sorter.sort(LMPDeviceType(), d_radius);
+  Sorter.sort(LMPDeviceType(), d_rmass);
+  Sorter.sort(LMPDeviceType(), d_omega);
+
+  atomKK->modified(Device, ALL_MASK & ~F_MASK & ~TORQUE_MASK);
+}
+
 /* ---------------------------------------------------------------------- */
 
 template<class DeviceType,int PBC_FLAG,int TRICLINIC>
@@ -131,8 +150,7 @@ struct AtomVecSphereKokkos_PackComm {
   typename ArrayTypes<DeviceType>::t_x_array_randomread _x;
   typename ArrayTypes<DeviceType>::t_float_1d _radius,_rmass;
   typename ArrayTypes<DeviceType>::t_xfloat_2d_um _buf;
-  typename ArrayTypes<DeviceType>::t_int_2d_const _list;
-  const int _iswap;
+  typename ArrayTypes<DeviceType>::t_int_1d_const _list;
   X_FLOAT _xprd,_yprd,_zprd,_xy,_xz,_yz;
   X_FLOAT _pbc[6];
 
@@ -141,14 +159,13 @@ struct AtomVecSphereKokkos_PackComm {
     const typename DAT::tdual_float_1d &radius,
     const typename DAT::tdual_float_1d &rmass,
     const typename DAT::tdual_xfloat_2d &buf,
-    const typename DAT::tdual_int_2d &list,
-    const int & iswap,
+    const typename DAT::tdual_int_1d &list,
     const X_FLOAT &xprd, const X_FLOAT &yprd, const X_FLOAT &zprd,
     const X_FLOAT &xy, const X_FLOAT &xz, const X_FLOAT &yz, const int* const pbc):
     _x(x.view<DeviceType>()),
     _radius(radius.view<DeviceType>()),
     _rmass(rmass.view<DeviceType>()),
-    _list(list.view<DeviceType>()),_iswap(iswap),
+    _list(list.view<DeviceType>()),
     _xprd(xprd),_yprd(yprd),_zprd(zprd),
     _xy(xy),_xz(xz),_yz(yz) {
     const size_t elements = 5;
@@ -160,7 +177,7 @@ struct AtomVecSphereKokkos_PackComm {
 
   KOKKOS_INLINE_FUNCTION
   void operator() (const int& i) const {
-    const int j = _list(_iswap,i);
+    const int j = _list(i);
     if (PBC_FLAG == 0) {
       _buf(i,0) = _x(j,0);
       _buf(i,1) = _x(j,1);
@@ -185,25 +202,24 @@ struct AtomVecSphereKokkos_PackComm {
 
 int AtomVecSphereKokkos::pack_comm_kokkos(
   const int &n,
-  const DAT::tdual_int_2d &list,
-  const int & iswap,
+  const DAT::tdual_int_1d &list,
   const DAT::tdual_xfloat_2d &buf,
   const int &pbc_flag,
   const int* const pbc)
 {
   // Fallback to AtomVecKokkos if radvary == 0
   if (radvary == 0)
-    return AtomVecKokkos::pack_comm_kokkos(n,list,iswap,buf,pbc_flag,pbc);
+    return AtomVecKokkos::pack_comm_kokkos(n,list,buf,pbc_flag,pbc);
   // Check whether to always run forward communication on the host
   // Choose correct forward PackComm kernel
-  if (commKK->forward_comm_on_host) {
+  if (lmp->kokkos->forward_comm_on_host) {
     atomKK->sync(Host,X_MASK|RADIUS_MASK|RMASS_MASK);
     if (pbc_flag) {
       if (domain->triclinic) {
         struct AtomVecSphereKokkos_PackComm<LMPHostType,1,1> f(
           atomKK->k_x,
           atomKK->k_radius,atomKK->k_rmass,
-          buf,list,iswap,
+          buf,list,
           domain->xprd,domain->yprd,domain->zprd,
           domain->xy,domain->xz,domain->yz,pbc);
         Kokkos::parallel_for(n,f);
@@ -211,7 +227,7 @@ int AtomVecSphereKokkos::pack_comm_kokkos(
         struct AtomVecSphereKokkos_PackComm<LMPHostType,1,0> f(
           atomKK->k_x,
           atomKK->k_radius,atomKK->k_rmass,
-          buf,list,iswap,
+          buf,list,
           domain->xprd,domain->yprd,domain->zprd,
           domain->xy,domain->xz,domain->yz,pbc);
         Kokkos::parallel_for(n,f);
@@ -221,7 +237,7 @@ int AtomVecSphereKokkos::pack_comm_kokkos(
         struct AtomVecSphereKokkos_PackComm<LMPHostType,0,1> f(
           atomKK->k_x,
           atomKK->k_radius,atomKK->k_rmass,
-          buf,list,iswap,
+          buf,list,
           domain->xprd,domain->yprd,domain->zprd,
           domain->xy,domain->xz,domain->yz,pbc);
         Kokkos::parallel_for(n,f);
@@ -229,7 +245,7 @@ int AtomVecSphereKokkos::pack_comm_kokkos(
         struct AtomVecSphereKokkos_PackComm<LMPHostType,0,0> f(
           atomKK->k_x,
           atomKK->k_radius,atomKK->k_rmass,
-          buf,list,iswap,
+          buf,list,
           domain->xprd,domain->yprd,domain->zprd,
           domain->xy,domain->xz,domain->yz,pbc);
         Kokkos::parallel_for(n,f);
@@ -242,7 +258,7 @@ int AtomVecSphereKokkos::pack_comm_kokkos(
         struct AtomVecSphereKokkos_PackComm<LMPDeviceType,1,1> f(
           atomKK->k_x,
           atomKK->k_radius,atomKK->k_rmass,
-          buf,list,iswap,
+          buf,list,
           domain->xprd,domain->yprd,domain->zprd,
           domain->xy,domain->xz,domain->yz,pbc);
         Kokkos::parallel_for(n,f);
@@ -250,7 +266,7 @@ int AtomVecSphereKokkos::pack_comm_kokkos(
         struct AtomVecSphereKokkos_PackComm<LMPDeviceType,1,0> f(
           atomKK->k_x,
           atomKK->k_radius,atomKK->k_rmass,
-          buf,list,iswap,
+          buf,list,
           domain->xprd,domain->yprd,domain->zprd,
           domain->xy,domain->xz,domain->yz,pbc);
         Kokkos::parallel_for(n,f);
@@ -260,7 +276,7 @@ int AtomVecSphereKokkos::pack_comm_kokkos(
         struct AtomVecSphereKokkos_PackComm<LMPDeviceType,0,1> f(
           atomKK->k_x,
           atomKK->k_radius,atomKK->k_rmass,
-          buf,list,iswap,
+          buf,list,
           domain->xprd,domain->yprd,domain->zprd,
           domain->xy,domain->xz,domain->yz,pbc);
         Kokkos::parallel_for(n,f);
@@ -268,7 +284,7 @@ int AtomVecSphereKokkos::pack_comm_kokkos(
         struct AtomVecSphereKokkos_PackComm<LMPDeviceType,0,0> f(
           atomKK->k_x,
           atomKK->k_radius,atomKK->k_rmass,
-          buf,list,iswap,
+          buf,list,
           domain->xprd,domain->yprd,domain->zprd,
           domain->xy,domain->xz,domain->yz,pbc);
         Kokkos::parallel_for(n,f);
@@ -289,8 +305,7 @@ struct AtomVecSphereKokkos_PackCommVel {
   typename ArrayTypes<DeviceType>::t_float_1d _radius,_rmass;
   typename ArrayTypes<DeviceType>::t_v_array _v, _omega;
   typename ArrayTypes<DeviceType>::t_xfloat_2d_um _buf;
-  typename ArrayTypes<DeviceType>::t_int_2d_const _list;
-  const int _iswap;
+  typename ArrayTypes<DeviceType>::t_int_1d_const _list;
   X_FLOAT _xprd,_yprd,_zprd,_xy,_xz,_yz;
   X_FLOAT _pbc[6];
   X_FLOAT _h_rate[6];
@@ -304,8 +319,7 @@ struct AtomVecSphereKokkos_PackCommVel {
     const typename DAT::tdual_v_array &v,
     const typename DAT::tdual_v_array &omega,
     const typename DAT::tdual_xfloat_2d &buf,
-    const typename DAT::tdual_int_2d &list,
-    const int &iswap,
+    const typename DAT::tdual_int_1d &list,
     const X_FLOAT &xprd, const X_FLOAT &yprd, const X_FLOAT &zprd,
     const X_FLOAT &xy, const X_FLOAT &xz, const X_FLOAT &yz, const int* const pbc,
     const double * const h_rate,
@@ -316,7 +330,7 @@ struct AtomVecSphereKokkos_PackCommVel {
     _rmass(rmass.view<DeviceType>()),
     _v(v.view<DeviceType>()),
     _omega(omega.view<DeviceType>()),
-    _list(list.view<DeviceType>()),_iswap(iswap),
+    _list(list.view<DeviceType>()),
     _xprd(xprd),_yprd(yprd),_zprd(zprd),
     _xy(xy),_xz(xz),_yz(yz),
     _deform_vremap(deform_vremap)
@@ -332,7 +346,7 @@ struct AtomVecSphereKokkos_PackCommVel {
 
   KOKKOS_INLINE_FUNCTION
   void operator() (const int& i) const {
-    const int j = _list(_iswap,i);
+    const int j = _list(i);
     if (PBC_FLAG == 0) {
       _buf(i,0) = _x(j,0);
       _buf(i,1) = _x(j,1);
@@ -377,13 +391,12 @@ struct AtomVecSphereKokkos_PackCommVel {
 
 int AtomVecSphereKokkos::pack_comm_vel_kokkos(
   const int &n,
-  const DAT::tdual_int_2d &list,
-  const int & iswap,
+  const DAT::tdual_int_1d &list,
   const DAT::tdual_xfloat_2d &buf,
   const int &pbc_flag,
   const int* const pbc)
 {
-  if (commKK->forward_comm_on_host) {
+  if (lmp->kokkos->forward_comm_on_host) {
     atomKK->sync(Host,X_MASK|RADIUS_MASK|RMASS_MASK|V_MASK|OMEGA_MASK);
     if (pbc_flag) {
       if (deform_vremap) {
@@ -393,7 +406,7 @@ int AtomVecSphereKokkos::pack_comm_vel_kokkos(
               atomKK->k_x,atomKK->k_mask,
               atomKK->k_radius,atomKK->k_rmass,
               atomKK->k_v,atomKK->k_omega,
-              buf,list,iswap,
+              buf,list,
               domain->xprd,domain->yprd,domain->zprd,
               domain->xy,domain->xz,domain->yz,pbc,h_rate,deform_vremap);
             Kokkos::parallel_for(n,f);
@@ -402,7 +415,7 @@ int AtomVecSphereKokkos::pack_comm_vel_kokkos(
               atomKK->k_x,atomKK->k_mask,
               atomKK->k_radius,atomKK->k_rmass,
               atomKK->k_v,atomKK->k_omega,
-              buf,list,iswap,
+              buf,list,
               domain->xprd,domain->yprd,domain->zprd,
               domain->xy,domain->xz,domain->yz,pbc,h_rate,deform_vremap);
             Kokkos::parallel_for(n,f);
@@ -413,7 +426,7 @@ int AtomVecSphereKokkos::pack_comm_vel_kokkos(
               atomKK->k_x,atomKK->k_mask,
               atomKK->k_radius,atomKK->k_rmass,
               atomKK->k_v,atomKK->k_omega,
-              buf,list,iswap,
+              buf,list,
               domain->xprd,domain->yprd,domain->zprd,
               domain->xy,domain->xz,domain->yz,pbc,h_rate,deform_vremap);
             Kokkos::parallel_for(n,f);
@@ -422,7 +435,7 @@ int AtomVecSphereKokkos::pack_comm_vel_kokkos(
               atomKK->k_x,atomKK->k_mask,
               atomKK->k_radius,atomKK->k_rmass,
               atomKK->k_v,atomKK->k_omega,
-              buf,list,iswap,
+              buf,list,
               domain->xprd,domain->yprd,domain->zprd,
               domain->xy,domain->xz,domain->yz,pbc,h_rate,deform_vremap);
             Kokkos::parallel_for(n,f);
@@ -435,7 +448,7 @@ int AtomVecSphereKokkos::pack_comm_vel_kokkos(
               atomKK->k_x,atomKK->k_mask,
               atomKK->k_radius,atomKK->k_rmass,
               atomKK->k_v,atomKK->k_omega,
-              buf,list,iswap,
+              buf,list,
               domain->xprd,domain->yprd,domain->zprd,
               domain->xy,domain->xz,domain->yz,pbc,h_rate,deform_vremap);
             Kokkos::parallel_for(n,f);
@@ -444,7 +457,7 @@ int AtomVecSphereKokkos::pack_comm_vel_kokkos(
               atomKK->k_x,atomKK->k_mask,
               atomKK->k_radius,atomKK->k_rmass,
               atomKK->k_v,atomKK->k_omega,
-              buf,list,iswap,
+              buf,list,
               domain->xprd,domain->yprd,domain->zprd,
               domain->xy,domain->xz,domain->yz,pbc,h_rate,deform_vremap);
             Kokkos::parallel_for(n,f);
@@ -455,7 +468,7 @@ int AtomVecSphereKokkos::pack_comm_vel_kokkos(
               atomKK->k_x,atomKK->k_mask,
               atomKK->k_radius,atomKK->k_rmass,
               atomKK->k_v,atomKK->k_omega,
-              buf,list,iswap,
+              buf,list,
               domain->xprd,domain->yprd,domain->zprd,
               domain->xy,domain->xz,domain->yz,pbc,h_rate,deform_vremap);
             Kokkos::parallel_for(n,f);
@@ -464,7 +477,7 @@ int AtomVecSphereKokkos::pack_comm_vel_kokkos(
               atomKK->k_x,atomKK->k_mask,
               atomKK->k_radius,atomKK->k_rmass,
               atomKK->k_v,atomKK->k_omega,
-              buf,list,iswap,
+              buf,list,
               domain->xprd,domain->yprd,domain->zprd,
               domain->xy,domain->xz,domain->yz,pbc,h_rate,deform_vremap);
             Kokkos::parallel_for(n,f);
@@ -478,7 +491,7 @@ int AtomVecSphereKokkos::pack_comm_vel_kokkos(
             atomKK->k_x,atomKK->k_mask,
             atomKK->k_radius,atomKK->k_rmass,
             atomKK->k_v,atomKK->k_omega,
-            buf,list,iswap,
+            buf,list,
             domain->xprd,domain->yprd,domain->zprd,
             domain->xy,domain->xz,domain->yz,pbc,h_rate,deform_vremap);
           Kokkos::parallel_for(n,f);
@@ -487,7 +500,7 @@ int AtomVecSphereKokkos::pack_comm_vel_kokkos(
             atomKK->k_x,atomKK->k_mask,
             atomKK->k_radius,atomKK->k_rmass,
             atomKK->k_v,atomKK->k_omega,
-            buf,list,iswap,
+            buf,list,
             domain->xprd,domain->yprd,domain->zprd,
             domain->xy,domain->xz,domain->yz,pbc,h_rate,deform_vremap);
           Kokkos::parallel_for(n,f);
@@ -498,7 +511,7 @@ int AtomVecSphereKokkos::pack_comm_vel_kokkos(
             atomKK->k_x,atomKK->k_mask,
             atomKK->k_radius,atomKK->k_rmass,
             atomKK->k_v,atomKK->k_omega,
-            buf,list,iswap,
+            buf,list,
             domain->xprd,domain->yprd,domain->zprd,
             domain->xy,domain->xz,domain->yz,pbc,h_rate,deform_vremap);
           Kokkos::parallel_for(n,f);
@@ -507,7 +520,7 @@ int AtomVecSphereKokkos::pack_comm_vel_kokkos(
             atomKK->k_x,atomKK->k_mask,
             atomKK->k_radius,atomKK->k_rmass,
             atomKK->k_v,atomKK->k_omega,
-            buf,list,iswap,
+            buf,list,
             domain->xprd,domain->yprd,domain->zprd,
             domain->xy,domain->xz,domain->yz,pbc,h_rate,deform_vremap);
           Kokkos::parallel_for(n,f);
@@ -524,7 +537,7 @@ int AtomVecSphereKokkos::pack_comm_vel_kokkos(
               atomKK->k_x,atomKK->k_mask,
               atomKK->k_radius,atomKK->k_rmass,
               atomKK->k_v,atomKK->k_omega,
-              buf,list,iswap,
+              buf,list,
               domain->xprd,domain->yprd,domain->zprd,
               domain->xy,domain->xz,domain->yz,pbc,h_rate,deform_vremap);
             Kokkos::parallel_for(n,f);
@@ -533,7 +546,7 @@ int AtomVecSphereKokkos::pack_comm_vel_kokkos(
               atomKK->k_x,atomKK->k_mask,
               atomKK->k_radius,atomKK->k_rmass,
               atomKK->k_v,atomKK->k_omega,
-              buf,list,iswap,
+              buf,list,
               domain->xprd,domain->yprd,domain->zprd,
               domain->xy,domain->xz,domain->yz,pbc,h_rate,deform_vremap);
             Kokkos::parallel_for(n,f);
@@ -544,7 +557,7 @@ int AtomVecSphereKokkos::pack_comm_vel_kokkos(
               atomKK->k_x,atomKK->k_mask,
               atomKK->k_radius,atomKK->k_rmass,
               atomKK->k_v,atomKK->k_omega,
-              buf,list,iswap,
+              buf,list,
               domain->xprd,domain->yprd,domain->zprd,
               domain->xy,domain->xz,domain->yz,pbc,h_rate,deform_vremap);
             Kokkos::parallel_for(n,f);
@@ -553,7 +566,7 @@ int AtomVecSphereKokkos::pack_comm_vel_kokkos(
               atomKK->k_x,atomKK->k_mask,
               atomKK->k_radius,atomKK->k_rmass,
               atomKK->k_v,atomKK->k_omega,
-              buf,list,iswap,
+              buf,list,
               domain->xprd,domain->yprd,domain->zprd,
               domain->xy,domain->xz,domain->yz,pbc,h_rate,deform_vremap);
             Kokkos::parallel_for(n,f);
@@ -566,7 +579,7 @@ int AtomVecSphereKokkos::pack_comm_vel_kokkos(
               atomKK->k_x,atomKK->k_mask,
               atomKK->k_radius,atomKK->k_rmass,
               atomKK->k_v,atomKK->k_omega,
-              buf,list,iswap,
+              buf,list,
               domain->xprd,domain->yprd,domain->zprd,
               domain->xy,domain->xz,domain->yz,pbc,h_rate,deform_vremap);
             Kokkos::parallel_for(n,f);
@@ -575,7 +588,7 @@ int AtomVecSphereKokkos::pack_comm_vel_kokkos(
               atomKK->k_x,atomKK->k_mask,
               atomKK->k_radius,atomKK->k_rmass,
               atomKK->k_v,atomKK->k_omega,
-              buf,list,iswap,
+              buf,list,
               domain->xprd,domain->yprd,domain->zprd,
               domain->xy,domain->xz,domain->yz,pbc,h_rate,deform_vremap);
             Kokkos::parallel_for(n,f);
@@ -586,7 +599,7 @@ int AtomVecSphereKokkos::pack_comm_vel_kokkos(
               atomKK->k_x,atomKK->k_mask,
               atomKK->k_radius,atomKK->k_rmass,
               atomKK->k_v,atomKK->k_omega,
-              buf,list,iswap,
+              buf,list,
               domain->xprd,domain->yprd,domain->zprd,
               domain->xy,domain->xz,domain->yz,pbc,h_rate,deform_vremap);
             Kokkos::parallel_for(n,f);
@@ -595,7 +608,7 @@ int AtomVecSphereKokkos::pack_comm_vel_kokkos(
               atomKK->k_x,atomKK->k_mask,
               atomKK->k_radius,atomKK->k_rmass,
               atomKK->k_v,atomKK->k_omega,
-              buf,list,iswap,
+              buf,list,
               domain->xprd,domain->yprd,domain->zprd,
               domain->xy,domain->xz,domain->yz,pbc,h_rate,deform_vremap);
             Kokkos::parallel_for(n,f);
@@ -609,7 +622,7 @@ int AtomVecSphereKokkos::pack_comm_vel_kokkos(
             atomKK->k_x,atomKK->k_mask,
             atomKK->k_radius,atomKK->k_rmass,
             atomKK->k_v,atomKK->k_omega,
-            buf,list,iswap,
+            buf,list,
             domain->xprd,domain->yprd,domain->zprd,
             domain->xy,domain->xz,domain->yz,pbc,h_rate,deform_vremap);
           Kokkos::parallel_for(n,f);
@@ -618,7 +631,7 @@ int AtomVecSphereKokkos::pack_comm_vel_kokkos(
             atomKK->k_x,atomKK->k_mask,
             atomKK->k_radius,atomKK->k_rmass,
             atomKK->k_v,atomKK->k_omega,
-            buf,list,iswap,
+            buf,list,
             domain->xprd,domain->yprd,domain->zprd,
             domain->xy,domain->xz,domain->yz,pbc,h_rate,deform_vremap);
           Kokkos::parallel_for(n,f);
@@ -629,7 +642,7 @@ int AtomVecSphereKokkos::pack_comm_vel_kokkos(
             atomKK->k_x,atomKK->k_mask,
             atomKK->k_radius,atomKK->k_rmass,
             atomKK->k_v,atomKK->k_omega,
-            buf,list,iswap,
+            buf,list,
             domain->xprd,domain->yprd,domain->zprd,
             domain->xy,domain->xz,domain->yz,pbc,h_rate,deform_vremap);
           Kokkos::parallel_for(n,f);
@@ -638,7 +651,7 @@ int AtomVecSphereKokkos::pack_comm_vel_kokkos(
             atomKK->k_x,atomKK->k_mask,
             atomKK->k_radius,atomKK->k_rmass,
             atomKK->k_v,atomKK->k_omega,
-            buf,list,iswap,
+            buf,list,
             domain->xprd,domain->yprd,domain->zprd,
             domain->xy,domain->xz,domain->yz,pbc,h_rate,deform_vremap);
           Kokkos::parallel_for(n,f);
@@ -659,8 +672,7 @@ struct AtomVecSphereKokkos_PackCommSelf {
   typename ArrayTypes<DeviceType>::t_x_array _xw;
   typename ArrayTypes<DeviceType>::t_float_1d _radius,_rmass;
   int _nfirst;
-  typename ArrayTypes<DeviceType>::t_int_2d_const _list;
-  const int _iswap;
+  typename ArrayTypes<DeviceType>::t_int_1d_const _list;
   X_FLOAT _xprd,_yprd,_zprd,_xy,_xz,_yz;
   X_FLOAT _pbc[6];
 
@@ -669,14 +681,13 @@ struct AtomVecSphereKokkos_PackCommSelf {
     const typename DAT::tdual_float_1d &radius,
     const typename DAT::tdual_float_1d &rmass,
     const int &nfirst,
-    const typename DAT::tdual_int_2d &list,
-    const int & iswap,
+    const typename DAT::tdual_int_1d &list,
     const X_FLOAT &xprd, const X_FLOAT &yprd, const X_FLOAT &zprd,
     const X_FLOAT &xy, const X_FLOAT &xz, const X_FLOAT &yz, const int* const pbc):
     _x(x.view<DeviceType>()),_xw(x.view<DeviceType>()),
     _radius(radius.view<DeviceType>()),
     _rmass(rmass.view<DeviceType>()),
-    _nfirst(nfirst),_list(list.view<DeviceType>()),_iswap(iswap),
+    _nfirst(nfirst),_list(list.view<DeviceType>()),
     _xprd(xprd),_yprd(yprd),_zprd(zprd),
     _xy(xy),_xz(xz),_yz(yz) {
     _pbc[0] = pbc[0]; _pbc[1] = pbc[1]; _pbc[2] = pbc[2];
@@ -685,7 +696,7 @@ struct AtomVecSphereKokkos_PackCommSelf {
 
   KOKKOS_INLINE_FUNCTION
   void operator() (const int& i) const {
-    const int j = _list(_iswap,i);
+    const int j = _list(i);
     if (PBC_FLAG == 0) {
       _xw(i+_nfirst,0) = _x(j,0);
       _xw(i+_nfirst,1) = _x(j,1);
@@ -709,12 +720,12 @@ struct AtomVecSphereKokkos_PackCommSelf {
 /* ---------------------------------------------------------------------- */
 
 int AtomVecSphereKokkos::pack_comm_self(
-  const int &n, const DAT::tdual_int_2d &list, const int &iswap,
+  const int &n, const DAT::tdual_int_1d &list,
   const int nfirst, const int &pbc_flag, const int* const pbc) {
   // Fallback to AtomVecKokkos if radvary == 0
   if (radvary == 0)
-    return AtomVecKokkos::pack_comm_self(n,list,iswap,nfirst,pbc_flag,pbc);
-  if (commKK->forward_comm_on_host) {
+    return AtomVecKokkos::pack_comm_self(n,list,nfirst,pbc_flag,pbc);
+  if (lmp->kokkos->forward_comm_on_host) {
     atomKK->sync(Host,X_MASK|RADIUS_MASK|RMASS_MASK);
     atomKK->modified(Host,X_MASK|RADIUS_MASK|RMASS_MASK);
     if (pbc_flag) {
@@ -722,7 +733,7 @@ int AtomVecSphereKokkos::pack_comm_self(
         struct AtomVecSphereKokkos_PackCommSelf<LMPHostType,1,1> f(
           atomKK->k_x,
           atomKK->k_radius,atomKK->k_rmass,
-          nfirst,list,iswap,
+          nfirst,list,
           domain->xprd,domain->yprd,domain->zprd,
           domain->xy,domain->xz,domain->yz,pbc);
         Kokkos::parallel_for(n,f);
@@ -730,7 +741,7 @@ int AtomVecSphereKokkos::pack_comm_self(
         struct AtomVecSphereKokkos_PackCommSelf<LMPHostType,1,0> f(
           atomKK->k_x,
           atomKK->k_radius,atomKK->k_rmass,
-          nfirst,list,iswap,
+          nfirst,list,
           domain->xprd,domain->yprd,domain->zprd,
           domain->xy,domain->xz,domain->yz,pbc);
         Kokkos::parallel_for(n,f);
@@ -740,7 +751,7 @@ int AtomVecSphereKokkos::pack_comm_self(
         struct AtomVecSphereKokkos_PackCommSelf<LMPHostType,0,1> f(
           atomKK->k_x,
           atomKK->k_radius,atomKK->k_rmass,
-          nfirst,list,iswap,
+          nfirst,list,
           domain->xprd,domain->yprd,domain->zprd,
           domain->xy,domain->xz,domain->yz,pbc);
         Kokkos::parallel_for(n,f);
@@ -748,7 +759,7 @@ int AtomVecSphereKokkos::pack_comm_self(
         struct AtomVecSphereKokkos_PackCommSelf<LMPHostType,0,0> f(
           atomKK->k_x,
           atomKK->k_radius,atomKK->k_rmass,
-          nfirst,list,iswap,
+          nfirst,list,
           domain->xprd,domain->yprd,domain->zprd,
           domain->xy,domain->xz,domain->yz,pbc);
         Kokkos::parallel_for(n,f);
@@ -762,7 +773,7 @@ int AtomVecSphereKokkos::pack_comm_self(
         struct AtomVecSphereKokkos_PackCommSelf<LMPDeviceType,1,1> f(
           atomKK->k_x,
           atomKK->k_radius,atomKK->k_rmass,
-          nfirst,list,iswap,
+          nfirst,list,
           domain->xprd,domain->yprd,domain->zprd,
           domain->xy,domain->xz,domain->yz,pbc);
         Kokkos::parallel_for(n,f);
@@ -770,7 +781,7 @@ int AtomVecSphereKokkos::pack_comm_self(
         struct AtomVecSphereKokkos_PackCommSelf<LMPDeviceType,1,0> f(
           atomKK->k_x,
           atomKK->k_radius,atomKK->k_rmass,
-          nfirst,list,iswap,
+          nfirst,list,
           domain->xprd,domain->yprd,domain->zprd,
           domain->xy,domain->xz,domain->yz,pbc);
         Kokkos::parallel_for(n,f);
@@ -780,7 +791,7 @@ int AtomVecSphereKokkos::pack_comm_self(
         struct AtomVecSphereKokkos_PackCommSelf<LMPDeviceType,0,1> f(
           atomKK->k_x,
           atomKK->k_radius,atomKK->k_rmass,
-          nfirst,list,iswap,
+          nfirst,list,
           domain->xprd,domain->yprd,domain->zprd,
           domain->xy,domain->xz,domain->yz,pbc);
         Kokkos::parallel_for(n,f);
@@ -788,7 +799,7 @@ int AtomVecSphereKokkos::pack_comm_self(
         struct AtomVecSphereKokkos_PackCommSelf<LMPDeviceType,0,0> f(
           atomKK->k_x,
           atomKK->k_radius,atomKK->k_rmass,
-          nfirst,list,iswap,
+          nfirst,list,
           domain->xprd,domain->yprd,domain->zprd,
           domain->xy,domain->xz,domain->yz,pbc);
         Kokkos::parallel_for(n,f);
@@ -845,7 +856,7 @@ void AtomVecSphereKokkos::unpack_comm_kokkos(
     AtomVecKokkos::unpack_comm_kokkos(n,first,buf);
     return;
   }
-  if (commKK->forward_comm_on_host) {
+  if (lmp->kokkos->forward_comm_on_host) {
     atomKK->modified(Host,X_MASK|RADIUS_MASK|RMASS_MASK);
     struct AtomVecSphereKokkos_UnpackComm<LMPHostType> f(
       atomKK->k_x,
@@ -917,7 +928,7 @@ struct AtomVecSphereKokkos_UnpackCommVel {
 void AtomVecSphereKokkos::unpack_comm_vel_kokkos(
   const int &n, const int &first,
   const DAT::tdual_xfloat_2d &buf) {
-  if (commKK->forward_comm_on_host) {
+  if (lmp->kokkos->forward_comm_on_host) {
     atomKK->modified(Host,X_MASK|RADIUS_MASK|RMASS_MASK|V_MASK|OMEGA_MASK);
     if (radvary == 0) {
       struct AtomVecSphereKokkos_UnpackCommVel<LMPHostType,0> f(
@@ -961,8 +972,7 @@ struct AtomVecSphereKokkos_PackBorder {
   typedef DeviceType device_type;
 
   typename ArrayTypes<DeviceType>::t_xfloat_2d_um _buf;
-  const typename ArrayTypes<DeviceType>::t_int_2d_const _list;
-  const int _iswap;
+  const typename ArrayTypes<DeviceType>::t_int_1d_const _list;
   const typename ArrayTypes<DeviceType>::t_x_array_randomread _x;
   const typename ArrayTypes<DeviceType>::t_tagint_1d _tag;
   const typename ArrayTypes<DeviceType>::t_int_1d _type;
@@ -972,8 +982,7 @@ struct AtomVecSphereKokkos_PackBorder {
 
   AtomVecSphereKokkos_PackBorder(
     const typename ArrayTypes<DeviceType>::t_xfloat_2d &buf,
-    const typename ArrayTypes<DeviceType>::t_int_2d_const &list,
-    const int &iswap,
+    const typename ArrayTypes<DeviceType>::t_int_1d_const &list,
     const typename ArrayTypes<DeviceType>::t_x_array &x,
     const typename ArrayTypes<DeviceType>::t_tagint_1d &tag,
     const typename ArrayTypes<DeviceType>::t_int_1d &type,
@@ -981,7 +990,7 @@ struct AtomVecSphereKokkos_PackBorder {
     const typename ArrayTypes<DeviceType>::t_float_1d &radius,
     const typename ArrayTypes<DeviceType>::t_float_1d &rmass,
     const X_FLOAT &dx, const X_FLOAT &dy, const X_FLOAT &dz):
-    _list(list),_iswap(iswap),
+    _buf(buf),_list(list),
     _x(x),_tag(tag),_type(type),_mask(mask),
     _radius(radius),
     _rmass(rmass),
@@ -994,7 +1003,7 @@ struct AtomVecSphereKokkos_PackBorder {
 
   KOKKOS_INLINE_FUNCTION
   void operator() (const int& i) const {
-    const int j = _list(_iswap,i);
+    const int j = _list(i);
     if (PBC_FLAG == 0) {
       _buf(i,0) = _x(j,0);
       _buf(i,1) = _x(j,1);
@@ -1015,7 +1024,7 @@ struct AtomVecSphereKokkos_PackBorder {
 /* ---------------------------------------------------------------------- */
 
 int AtomVecSphereKokkos::pack_border_kokkos(
-  int n, DAT::tdual_int_2d k_sendlist, DAT::tdual_xfloat_2d buf,int iswap,
+  int n, DAT::tdual_int_1d k_sendlist, DAT::tdual_xfloat_2d buf,
   int pbc_flag, int *pbc, ExecutionSpace space)
 {
   X_FLOAT dx,dy,dz;
@@ -1036,14 +1045,14 @@ int AtomVecSphereKokkos::pack_border_kokkos(
     if (space==Host) {
       AtomVecSphereKokkos_PackBorder<LMPHostType,1> f(
         buf.view<LMPHostType>(), k_sendlist.view<LMPHostType>(),
-        iswap,h_x,h_tag,h_type,h_mask,
+        h_x,h_tag,h_type,h_mask,
         h_radius,h_rmass,
         dx,dy,dz);
       Kokkos::parallel_for(n,f);
     } else {
       AtomVecSphereKokkos_PackBorder<LMPDeviceType,1> f(
         buf.view<LMPDeviceType>(), k_sendlist.view<LMPDeviceType>(),
-        iswap,d_x,d_tag,d_type,d_mask,
+        d_x,d_tag,d_type,d_mask,
         d_radius,d_rmass,
         dx,dy,dz);
       Kokkos::parallel_for(n,f);
@@ -1053,14 +1062,14 @@ int AtomVecSphereKokkos::pack_border_kokkos(
     if (space==Host) {
       AtomVecSphereKokkos_PackBorder<LMPHostType,0> f(
         buf.view<LMPHostType>(), k_sendlist.view<LMPHostType>(),
-        iswap,h_x,h_tag,h_type,h_mask,
+        h_x,h_tag,h_type,h_mask,
         h_radius,h_rmass,
         dx,dy,dz);
       Kokkos::parallel_for(n,f);
     } else {
       AtomVecSphereKokkos_PackBorder<LMPDeviceType,0> f(
         buf.view<LMPDeviceType>(), k_sendlist.view<LMPDeviceType>(),
-        iswap,d_x,d_tag,d_type,d_mask,
+        d_x,d_tag,d_type,d_mask,
         d_radius,d_rmass,
         dx,dy,dz);
       Kokkos::parallel_for(n,f);
@@ -1076,8 +1085,7 @@ struct AtomVecSphereKokkos_PackBorderVel {
   typedef DeviceType device_type;
 
   typename ArrayTypes<DeviceType>::t_xfloat_2d_um _buf;
-  const typename ArrayTypes<DeviceType>::t_int_2d_const _list;
-  const int _iswap;
+  const typename ArrayTypes<DeviceType>::t_int_1d_const _list;
   const typename ArrayTypes<DeviceType>::t_x_array_randomread _x;
   const typename ArrayTypes<DeviceType>::t_tagint_1d _tag;
   const typename ArrayTypes<DeviceType>::t_int_1d _type;
@@ -1089,8 +1097,7 @@ struct AtomVecSphereKokkos_PackBorderVel {
 
   AtomVecSphereKokkos_PackBorderVel(
     const typename ArrayTypes<DeviceType>::t_xfloat_2d &buf,
-    const typename ArrayTypes<DeviceType>::t_int_2d_const &list,
-    const int &iswap,
+    const typename ArrayTypes<DeviceType>::t_int_1d_const &list,
     const typename ArrayTypes<DeviceType>::t_x_array &x,
     const typename ArrayTypes<DeviceType>::t_tagint_1d &tag,
     const typename ArrayTypes<DeviceType>::t_int_1d &type,
@@ -1102,7 +1109,7 @@ struct AtomVecSphereKokkos_PackBorderVel {
     const X_FLOAT &dx, const X_FLOAT &dy, const X_FLOAT &dz,
     const X_FLOAT &dvx, const X_FLOAT &dvy, const X_FLOAT &dvz,
     const int &deform_groupbit):
-    _buf(buf),_list(list),_iswap(iswap),
+    _buf(buf),_list(list),
     _x(x),_tag(tag),_type(type),_mask(mask),
     _radius(radius),
     _rmass(rmass),
@@ -1118,7 +1125,7 @@ struct AtomVecSphereKokkos_PackBorderVel {
 
   KOKKOS_INLINE_FUNCTION
   void operator() (const int& i) const {
-    const int j = _list(_iswap,i);
+    const int j = _list(i);
     if (PBC_FLAG == 0) {
       _buf(i,0) = _x(j,0);
       _buf(i,1) = _x(j,1);
@@ -1154,7 +1161,7 @@ struct AtomVecSphereKokkos_PackBorderVel {
 /* ---------------------------------------------------------------------- */
 
 int AtomVecSphereKokkos::pack_border_vel_kokkos(
-  int n, DAT::tdual_int_2d k_sendlist, DAT::tdual_xfloat_2d buf,int iswap,
+  int n, DAT::tdual_int_1d k_sendlist, DAT::tdual_xfloat_2d buf,
   int pbc_flag, int *pbc, ExecutionSpace space)
 {
   X_FLOAT dx=0,dy=0,dz=0;
@@ -1177,7 +1184,7 @@ int AtomVecSphereKokkos::pack_border_vel_kokkos(
       if (space==Host) {
         AtomVecSphereKokkos_PackBorderVel<LMPHostType,1,0> f(
           buf.view<LMPHostType>(), k_sendlist.view<LMPHostType>(),
-          iswap,h_x,h_tag,h_type,h_mask,
+          h_x,h_tag,h_type,h_mask,
           h_radius,h_rmass,
           h_v, h_omega,
           dx,dy,dz,dvx,dvy,dvz,
@@ -1186,7 +1193,7 @@ int AtomVecSphereKokkos::pack_border_vel_kokkos(
       } else {
         AtomVecSphereKokkos_PackBorderVel<LMPDeviceType,1,0> f(
           buf.view<LMPDeviceType>(), k_sendlist.view<LMPDeviceType>(),
-          iswap,d_x,d_tag,d_type,d_mask,
+          d_x,d_tag,d_type,d_mask,
           d_radius,d_rmass,
           d_v, d_omega,
           dx,dy,dz,dvx,dvy,dvz,
@@ -1201,7 +1208,7 @@ int AtomVecSphereKokkos::pack_border_vel_kokkos(
       if (space==Host) {
         AtomVecSphereKokkos_PackBorderVel<LMPHostType,1,1> f(
           buf.view<LMPHostType>(), k_sendlist.view<LMPHostType>(),
-          iswap,h_x,h_tag,h_type,h_mask,
+          h_x,h_tag,h_type,h_mask,
           h_radius,h_rmass,
           h_v, h_omega,
           dx,dy,dz,dvx,dvy,dvz,
@@ -1210,7 +1217,7 @@ int AtomVecSphereKokkos::pack_border_vel_kokkos(
       } else {
         AtomVecSphereKokkos_PackBorderVel<LMPDeviceType,1,1> f(
           buf.view<LMPDeviceType>(), k_sendlist.view<LMPDeviceType>(),
-          iswap,d_x,d_tag,d_type,d_mask,
+          d_x,d_tag,d_type,d_mask,
           d_radius,d_rmass,
           d_v, d_omega,
           dx,dy,dz,dvx,dvy,dvz,
@@ -1222,7 +1229,7 @@ int AtomVecSphereKokkos::pack_border_vel_kokkos(
     if (space==Host) {
       AtomVecSphereKokkos_PackBorderVel<LMPHostType,0,0> f(
         buf.view<LMPHostType>(), k_sendlist.view<LMPHostType>(),
-        iswap,h_x,h_tag,h_type,h_mask,
+        h_x,h_tag,h_type,h_mask,
         h_radius,h_rmass,
         h_v, h_omega,
         dx,dy,dz,dvx,dvy,dvz,
@@ -1231,7 +1238,7 @@ int AtomVecSphereKokkos::pack_border_vel_kokkos(
     } else {
       AtomVecSphereKokkos_PackBorderVel<LMPDeviceType,0,0> f(
         buf.view<LMPDeviceType>(), k_sendlist.view<LMPDeviceType>(),
-        iswap,d_x,d_tag,d_type,d_mask,
+        d_x,d_tag,d_type,d_mask,
         d_radius,d_rmass,
         d_v, d_omega,
         dx,dy,dz,dvx,dvy,dvz,
@@ -1420,14 +1427,13 @@ struct AtomVecSphereKokkos_PackExchangeFunctor {
   typename AT::t_xfloat_2d_um _buf;
   typename AT::t_int_1d_const _sendlist;
   typename AT::t_int_1d_const _copylist;
-  int _nlocal,_dim;
-  X_FLOAT _lo,_hi;
+  int _size_exchange;
 
   AtomVecSphereKokkos_PackExchangeFunctor(
     const AtomKokkos* atom,
     const typename AT::tdual_xfloat_2d buf,
     typename AT::tdual_int_1d sendlist,
-    typename AT::tdual_int_1d copylist,int nlocal, int dim,X_FLOAT lo, X_FLOAT hi):
+    typename AT::tdual_int_1d copylist):
     _x(atom->k_x.view<DeviceType>()),
     _v(atom->k_v.view<DeviceType>()),
     _tag(atom->k_tag.view<DeviceType>()),
@@ -1448,19 +1454,16 @@ struct AtomVecSphereKokkos_PackExchangeFunctor {
     _omegaw(atom->k_omega.view<DeviceType>()),
     _sendlist(sendlist.template view<DeviceType>()),
     _copylist(copylist.template view<DeviceType>()),
-    _nlocal(nlocal),_dim(dim),
-    _lo(lo),_hi(hi)
-  {
-    const size_t elements = 16;
-    const int maxsend = (buf.template view<DeviceType>().extent(0)*buf.template view<DeviceType>().extent(1))/elements;
+    _size_exchange(atom->avecKK->size_exchange) {
+    const int maxsend = (buf.template view<DeviceType>().extent(0)*buf.template view<DeviceType>().extent(1))/_size_exchange;
 
-    _buf = typename AT::t_xfloat_2d_um(buf.template view<DeviceType>().data(),maxsend,elements);
+    _buf = typename AT::t_xfloat_2d_um(buf.template view<DeviceType>().data(),maxsend,_size_exchange);
   }
 
   KOKKOS_INLINE_FUNCTION
   void operator() (const int &mysend) const {
     const int i = _sendlist(mysend);
-    _buf(mysend,0) = 16;
+    _buf(mysend,0) = _size_exchange;
     _buf(mysend,1) = _x(i,0);
     _buf(mysend,2) = _x(i,1);
     _buf(mysend,3) = _x(i,2);
@@ -1505,9 +1508,11 @@ int AtomVecSphereKokkos::pack_exchange_kokkos(
   DAT::tdual_xfloat_2d &k_buf,
   DAT::tdual_int_1d k_sendlist,
   DAT::tdual_int_1d k_copylist,
-  ExecutionSpace space,int dim,X_FLOAT lo,X_FLOAT hi)
+  ExecutionSpace space)
 {
-  if (nsend > (int) (k_buf.view<LMPHostType>().extent(0)*k_buf.view<LMPHostType>().extent(1))/16) {
+  size_exchange = 16;
+
+  if (nsend > (int) (k_buf.view<LMPHostType>().extent(0)*k_buf.view<LMPHostType>().extent(1))/size_exchange) {
     int newsize = nsend*17/k_buf.view<LMPHostType>().extent(1)+1;
     k_buf.resize(newsize,k_buf.view<LMPHostType>().extent(1));
   }
@@ -1516,18 +1521,18 @@ int AtomVecSphereKokkos::pack_exchange_kokkos(
              OMEGA_MASK);
 
   if (space == Host) {
-    AtomVecSphereKokkos_PackExchangeFunctor<LMPHostType> f(atomKK,k_buf,k_sendlist,k_copylist,atom->nlocal,dim,lo,hi);
+    AtomVecSphereKokkos_PackExchangeFunctor<LMPHostType> f(atomKK,k_buf,k_sendlist,k_copylist);
     Kokkos::parallel_for(nsend,f);
   } else {
-    AtomVecSphereKokkos_PackExchangeFunctor<LMPDeviceType> f(atomKK,k_buf,k_sendlist,k_copylist,atom->nlocal,dim,lo,hi);
+    AtomVecSphereKokkos_PackExchangeFunctor<LMPDeviceType> f(atomKK,k_buf,k_sendlist,k_copylist);
     Kokkos::parallel_for(nsend,f);
   }
-  return nsend*16;
+  return nsend*size_exchange;
 }
 
 /* ---------------------------------------------------------------------- */
 
-template<class DeviceType>
+template<class DeviceType,int OUTPUT_INDICES>
 struct AtomVecSphereKokkos_UnpackExchangeFunctor {
   typedef DeviceType device_type;
   typedef ArrayTypes<DeviceType> AT;
@@ -1542,37 +1547,41 @@ struct AtomVecSphereKokkos_UnpackExchangeFunctor {
   typename AT::t_v_array _omega;
   typename AT::t_xfloat_2d_um _buf;
   typename AT::t_int_1d _nlocal;
+  typename AT::t_int_1d _indices;
   int _dim;
   X_FLOAT _lo,_hi;
+  int _size_exchange;
 
   AtomVecSphereKokkos_UnpackExchangeFunctor(
     const AtomKokkos* atom,
     const typename AT::tdual_xfloat_2d buf,
     typename AT::tdual_int_1d nlocal,
+    typename AT::tdual_int_1d indices,
     int dim, X_FLOAT lo, X_FLOAT hi):
-    _x(atom->k_x.view<DeviceType>()),
-    _v(atom->k_v.view<DeviceType>()),
-    _tag(atom->k_tag.view<DeviceType>()),
-    _type(atom->k_type.view<DeviceType>()),
-    _mask(atom->k_mask.view<DeviceType>()),
-    _image(atom->k_image.view<DeviceType>()),
-    _radius(atom->k_radius.view<DeviceType>()),
-    _rmass(atom->k_rmass.view<DeviceType>()),
-    _omega(atom->k_omega.view<DeviceType>()),
-    _nlocal(nlocal.template view<DeviceType>()),_dim(dim),
-    _lo(lo),_hi(hi)
-  {
-    const size_t elements = 16;
-    const int maxsendlist = (buf.template view<DeviceType>().extent(0)*buf.template view<DeviceType>().extent(1))/elements;
+      _x(atom->k_x.view<DeviceType>()),
+      _v(atom->k_v.view<DeviceType>()),
+      _tag(atom->k_tag.view<DeviceType>()),
+      _type(atom->k_type.view<DeviceType>()),
+      _mask(atom->k_mask.view<DeviceType>()),
+      _image(atom->k_image.view<DeviceType>()),
+      _radius(atom->k_radius.view<DeviceType>()),
+      _rmass(atom->k_rmass.view<DeviceType>()),
+      _omega(atom->k_omega.view<DeviceType>()),
+      _nlocal(nlocal.template view<DeviceType>()),
+      _indices(indices.template view<DeviceType>()),
+      _dim(dim),_lo(lo),_hi(hi),_size_exchange(atom->avecKK->size_exchange) {
+    const size_t size_exchange = 16;
+    const int maxsendlist = (buf.template view<DeviceType>().extent(0)*buf.template view<DeviceType>().extent(1))/size_exchange;
 
-    buffer_view<DeviceType>(_buf,buf,maxsendlist,elements);
+    buffer_view<DeviceType>(_buf,buf,maxsendlist,size_exchange);
   }
 
   KOKKOS_INLINE_FUNCTION
   void operator() (const int &myrecv) const {
     X_FLOAT x = _buf(myrecv,_dim+1);
+    int i = -1;
     if (x >= _lo && x < _hi) {
-      int i = Kokkos::atomic_fetch_add(&_nlocal(0),1);
+      i = Kokkos::atomic_fetch_add(&_nlocal(0),1);
       _x(i,0) = _buf(myrecv,1);
       _x(i,1) = _buf(myrecv,2);
       _x(i,2) = _buf(myrecv,3);
@@ -1589,24 +1598,39 @@ struct AtomVecSphereKokkos_UnpackExchangeFunctor {
       _omega(i,1) = _buf(myrecv,14);
       _omega(i,2) = _buf(myrecv,15);
     }
+    if (OUTPUT_INDICES)
+      _indices(myrecv) = i;
   }
 };
 
 /* ---------------------------------------------------------------------- */
 
-int AtomVecSphereKokkos::unpack_exchange_kokkos(DAT::tdual_xfloat_2d &k_buf,int nrecv,int nlocal,int dim,X_FLOAT lo,X_FLOAT hi,ExecutionSpace space) {
-  while (nlocal + nrecv/16 >= nmax) grow(0);
+int AtomVecSphereKokkos::unpack_exchange_kokkos(DAT::tdual_xfloat_2d &k_buf, int nrecv, int nlocal,
+                                                int dim, X_FLOAT lo, X_FLOAT hi, ExecutionSpace space,
+                                                DAT::tdual_int_1d &k_indices)
+{
+  while (nlocal + nrecv/size_exchange >= nmax) grow(0);
 
   if (space == Host) {
     k_count.h_view(0) = nlocal;
-    AtomVecSphereKokkos_UnpackExchangeFunctor<LMPHostType> f(atomKK,k_buf,k_count,dim,lo,hi);
-    Kokkos::parallel_for(nrecv/16,f);
+    if (k_indices.h_view.data()) {
+      AtomVecSphereKokkos_UnpackExchangeFunctor<LMPHostType,1> f(atomKK,k_buf,k_count,k_indices,dim,lo,hi);
+      Kokkos::parallel_for(nrecv/size_exchange,f);
+    } else {
+      AtomVecSphereKokkos_UnpackExchangeFunctor<LMPHostType,0> f(atomKK,k_buf,k_count,k_indices,dim,lo,hi);
+      Kokkos::parallel_for(nrecv/size_exchange,f);
+    }
   } else {
     k_count.h_view(0) = nlocal;
     k_count.modify<LMPHostType>();
     k_count.sync<LMPDeviceType>();
-    AtomVecSphereKokkos_UnpackExchangeFunctor<LMPDeviceType> f(atomKK,k_buf,k_count,dim,lo,hi);
-    Kokkos::parallel_for(nrecv/16,f);
+    if (k_indices.h_view.data()) {
+      AtomVecSphereKokkos_UnpackExchangeFunctor<LMPDeviceType,1> f(atomKK,k_buf,k_count,k_indices,dim,lo,hi);
+      Kokkos::parallel_for(nrecv/size_exchange,f);
+    } else {
+      AtomVecSphereKokkos_UnpackExchangeFunctor<LMPDeviceType,0> f(atomKK,k_buf,k_count,k_indices,dim,lo,hi);
+      Kokkos::parallel_for(nrecv/size_exchange,f);
+    }
     k_count.modify<LMPDeviceType>();
     k_count.sync<LMPHostType>();
   }

@@ -1,7 +1,7 @@
 /* -*- c++ -*- ----------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    https://www.lammps.org/, Sandia National Laboratories
-   LAMMPS Development team: developers@lammps.org
+   LAMMPS development team: developers@lammps.org
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
@@ -29,13 +29,11 @@ template <class DeviceType> class MLIAPDescriptorKokkos : virtual protected Poin
   MLIAPDescriptorKokkos(LAMMPS *lmp, MLIAPDescriptor *descriptor_in) :
       Pointers(lmp), descriptor(descriptor_in)
   {
-    memoryKK->destroy_kokkos(k_wjelem);
   }
 
   void init_data()
   {
     int num_elems = descriptor->nelements;
-    memoryKK->destroy_kokkos(k_wjelem);
     memoryKK->create_kokkos(k_wjelem, num_elems, "MLIAPDescriptorKokkos::k_wjelem");
     for (int i = 0; i < num_elems; ++i) k_wjelem.h_view(i) = descriptor->wjelem[i];
     k_wjelem.modify<LMPHostType>();
@@ -44,7 +42,6 @@ template <class DeviceType> class MLIAPDescriptorKokkos : virtual protected Poin
 
   virtual ~MLIAPDescriptorKokkos()
   {
-    memoryKK->destroy_kokkos(k_wjelem);
   }
 
   MLIAPDescriptor *descriptor;

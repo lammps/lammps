@@ -6,7 +6,7 @@ region command
 Syntax
 """"""
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    region ID style args keyword arg ...
 
@@ -24,6 +24,7 @@ Syntax
          c1,c2 = coords of cone axis in other 2 dimensions (distance units)
          radlo,radhi = cone radii at lo and hi end (distance units)
          lo,hi = bounds of cone in dim (distance units)
+         c1,c2,radlo,radhi,lo,hi can be a variable (see below)
        *cylinder* args = dim c1 c2 radius lo hi
          dim = *x* or *y* or *z* = axis of cylinder
          c1,c2 = coords of cylinder axis in other 2 dimensions (distance units)
@@ -206,7 +207,8 @@ equal-style :doc:`variable <variable>`.  Likewise, for style *sphere*
 and *ellipsoid* the x-, y-, and z- coordinates of the center of the
 sphere/ellipsoid can be specified as an equal-style variable.  And for
 style *cylinder* the two center positions c1 and c2 for the location
-of the cylinder axes can be specified as a equal-style variable.
+of the cylinder axes can be specified as a equal-style variable. For style *cone*
+all properties can be defined via equal-style variables.
 
 If the value is a variable, it should be specified as v_name, where
 name is the variable name.  In this case, the variable will be

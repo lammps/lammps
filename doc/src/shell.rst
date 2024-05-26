@@ -6,7 +6,7 @@ shell command
 Syntax
 """"""
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    shell command args
 

@@ -6,7 +6,7 @@ compute smd/tlsph/num/neighs command
 Syntax
 """"""
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    compute ID group-ID smd/tlsph/num/neighs
 

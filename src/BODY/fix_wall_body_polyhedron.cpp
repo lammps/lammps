@@ -17,18 +17,20 @@
 ------------------------------------------------------------------------- */
 
 #include "fix_wall_body_polyhedron.h"
-#include <cmath>
-#include <cstring>
+
 #include "atom.h"
 #include "atom_vec_body.h"
 #include "body_rounded_polyhedron.h"
 #include "domain.h"
-#include "update.h"
+#include "error.h"
 #include "force.h"
 #include "math_const.h"
 #include "math_extra.h"
 #include "memory.h"
-#include "error.h"
+#include "update.h"
+
+#include <cmath>
+#include <cstring>
 
 using namespace LAMMPS_NS;
 using namespace FixConst;
@@ -41,11 +43,10 @@ enum {INVALID=0,NONE=1,VERTEX=2};
 enum {FAR=0,XLO,XHI,YLO,YHI,ZLO,ZHI};
 
 //#define _POLYHEDRON_DEBUG
-#define DELTA 10000
-#define EPSILON 1e-2
-#define BIG 1.0e20
-#define MAX_CONTACTS 4  // maximum number of contacts for 2D models
-#define EFF_CONTACTS 2  // effective contacts for 2D models
+static constexpr int DELTA = 10000;
+static constexpr double EPSILON = 1.0e-3; // dimensionless threshold (dot products, end point checks)
+static constexpr double BIG = 1.0e20;
+static constexpr int MAX_CONTACTS = 4;    // maximum number of contacts for 2D models
 
 /* ---------------------------------------------------------------------- */
 

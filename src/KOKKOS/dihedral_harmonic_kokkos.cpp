@@ -30,9 +30,7 @@
 
 using namespace LAMMPS_NS;
 
-#define TOLERANCE 0.05
-#define SMALL     0.001
-#define SMALLER   0.00001
+static constexpr double TOLERANCE = 0.05;
 
 /* ---------------------------------------------------------------------- */
 
@@ -265,9 +263,9 @@ void DihedralHarmonicKokkos<DeviceType>::operator()(TagDihedralHarmonicCompute<N
 
   const F_FLOAT df = -d_k[type] * df1;
 
-  const F_FLOAT sx2  = df*dtgx;;
-  const F_FLOAT sy2  = df*dtgy;;
-  const F_FLOAT sz2  = df*dtgz;;
+  const F_FLOAT sx2  = df*dtgx;
+  const F_FLOAT sy2  = df*dtgy;
+  const F_FLOAT sz2  = df*dtgz;
 
   F_FLOAT f1[3],f2[3],f3[3],f4[3];
   f1[0] = df*dtfx;

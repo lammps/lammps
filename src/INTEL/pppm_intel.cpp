@@ -41,22 +41,11 @@ using namespace LAMMPS_NS;
 using namespace MathConst;
 using namespace MathSpecial;
 
-#define MAXORDER 7
-#define OFFSET 16384
-#define LARGE 10000.0
-#define SMALL 0.00001
-#define EPS_HOC 1.0e-7
+static constexpr int OFFSET = 16384;
+static constexpr FFT_SCALAR ZEROF = 0.0;
 
-enum{REVERSE_RHO};
-enum{FORWARD_IK,FORWARD_AD,FORWARD_IK_PERATOM,FORWARD_AD_PERATOM};
-
-#ifdef FFT_SINGLE
-#define ZEROF 0.0f
-#define ONEF  1.0f
-#else
-#define ZEROF 0.0
-#define ONEF  1.0
-#endif
+enum { REVERSE_RHO };
+enum { FORWARD_IK, FORWARD_AD, FORWARD_IK_PERATOM, FORWARD_AD_PERATOM };
 
 /* ---------------------------------------------------------------------- */
 
@@ -156,8 +145,6 @@ void PPPMIntel::compute(int eflag, int vflag)
 
 void PPPMIntel::compute_first(int eflag, int vflag)
 {
-  int i,j;
-
   // set energy/virial flags
   // invoke allocate_peratom() if needed for first time
 
@@ -465,7 +452,6 @@ void PPPMIntel::make_rho(IntelBuffers<flt_t,acc_t> *buffers)
     const flt_t xi = delxinv;
     const flt_t yi = delyinv;
     const flt_t zi = delzinv;
-    const flt_t fshift = shift;
     const flt_t fshiftone = shiftone;
     const flt_t fdelvolinv = delvolinv;
 
@@ -698,8 +684,6 @@ void PPPMIntel::fieldforce_ik(IntelBuffers<flt_t,acc_t> *buffers)
       _alignvar(FFT_SCALAR ekx_arr[INTEL_P3M_ALIGNED_MAXORDER], 64) = {0};
       _alignvar(FFT_SCALAR eky_arr[INTEL_P3M_ALIGNED_MAXORDER], 64) = {0};
       _alignvar(FFT_SCALAR ekz_arr[INTEL_P3M_ALIGNED_MAXORDER], 64) = {0};
-      _alignvar(FFT_SCALAR ekxy_arr[2 * INTEL_P3M_ALIGNED_MAXORDER], 64) = {0};
-      _alignvar(FFT_SCALAR ekz0_arr[2 * INTEL_P3M_ALIGNED_MAXORDER], 64) = {0};
 
       #if defined(LMP_SIMD_COMPILER)
       #pragma loop_count min(2), max(INTEL_P3M_ALIGNED_MAXORDER), avg(7)
@@ -953,18 +937,18 @@ void PPPMIntel::fieldforce_ad(IntelBuffers<flt_t,acc_t> *buffers)
       const flt_t s1 = x[i].x * hx_inv;
       const flt_t s2 = x[i].y * hy_inv;
       const flt_t s3 = x[i].z * hz_inv;
-      flt_t sf = fsf_coeff0 * sin(ftwo_pi * s1);
-      sf += fsf_coeff1 * sin(ffour_pi * s1);
+      flt_t sf = fsf_coeff0 * std::sin(ftwo_pi * s1);
+      sf += fsf_coeff1 * std::sin(ffour_pi * s1);
       sf *= twoqsq;
       f[i].x += qfactor * particle_ekx[i] - fqqrd2es * sf;
 
-      sf = fsf_coeff2 * sin(ftwo_pi * s2);
-      sf += fsf_coeff3 * sin(ffour_pi * s2);
+      sf = fsf_coeff2 * std::sin(ftwo_pi * s2);
+      sf += fsf_coeff3 * std::sin(ffour_pi * s2);
       sf *= twoqsq;
       f[i].y += qfactor * particle_eky[i] - fqqrd2es * sf;
 
-      sf = fsf_coeff4 * sin(ftwo_pi * s3);
-      sf += fsf_coeff5 * sin(ffour_pi * s3);
+      sf = fsf_coeff4 * std::sin(ftwo_pi * s3);
+      sf += fsf_coeff5 * std::sin(ffour_pi * s3);
       sf *= twoqsq;
 
       if (slabflag != 2) f[i].z += qfactor * particle_ekz[i] - fqqrd2es * sf;

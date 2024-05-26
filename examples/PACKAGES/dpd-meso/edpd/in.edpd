@@ -11,13 +11,14 @@
 ### temperature-dependent properties". J. Comput. Phys.,             ###
 ### 2014, 265: 113-127. DOI: 10.1016/j.jcp.2014.02.003               ###
 ########################################################################
-units 		        lj
-dimension	        3
-boundary	        p p p
-neighbor	        0.2 bin
+units                   lj
+dimension               3
+boundary                p p p
+neighbor                0.2 bin
 neigh_modify        every 1 delay 0 check yes
 
-atom_style	        edpd
+atom_style              edpd
+comm_modify vel yes
 
 region     edpd     block -10 10 -10 10 -5 5 units box
 create_box          1 edpd

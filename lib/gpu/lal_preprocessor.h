@@ -333,12 +333,12 @@ inline void ucl_prefetch(const __global int *p) {
 struct _lgpu_float3 {
   float x; float y; float z;
 };
-struct _lgpu_double3 {
-  double x; double y; double z;
-};
 #ifdef _SINGLE_SINGLE
 #define acctyp3 struct _lgpu_float3
 #else
+struct _lgpu_double3 {
+  double x; double y; double z;
+};
 #define acctyp3 struct _lgpu_double3
 #endif
 

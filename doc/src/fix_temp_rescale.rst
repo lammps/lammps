@@ -1,12 +1,15 @@
 .. index:: fix temp/rescale
+.. index:: fix temp/rescale/kk
 
 fix temp/rescale command
 ========================
 
+Accelerator Variants: *temp/rescale/kk*
+
 Syntax
 """"""
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    fix ID group-ID temp/rescale N Tstart Tstop window fraction
 
@@ -122,6 +125,10 @@ fix that includes such a bias term.  See the doc pages for individual
 a bias.  In this case, the thermostat works in the following manner:
 bias is removed from each atom, thermostatting is performed on the
 remaining thermal degrees of freedom, and the bias is added back in.
+
+----------
+
+.. include:: accel_styles.rst
 
 ----------
 

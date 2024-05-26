@@ -26,7 +26,7 @@ namespace LAMMPS_NS {
 
 class ComputeReduce : public Compute {
  public:
-  enum { SUM, SUMSQ, SUMABS, MINN, MAXX, AVE, AVESQ, AVEABS };
+  enum { SUM, SUMSQ, SUMABS, MINN, MAXX, AVE, AVESQ, AVEABS, MINABS, MAXABS };
   enum { PERATOM, LOCAL };
 
   ComputeReduce(class LAMMPS *, int, char **);
@@ -37,12 +37,11 @@ class ComputeReduce : public Compute {
   double memory_usage() override;
 
  protected:
-  int mode, nvalues;
+  int mode, nvalues, input_mode;
   struct value_t {
     int which;
     int argindex;
     std::string id;
-    int flavor;
     union {
       class Compute *c;
       class Fix *f;
@@ -52,6 +51,7 @@ class ComputeReduce : public Compute {
   std::vector<value_t> values;
   double *onevec;
   int *replace, *indices, *owner;
+  MPI_Op scalar_reduction_operation;
 
   int index;
   char *idregion;

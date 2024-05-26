@@ -135,6 +135,17 @@
    obj:*
 }
 {
+   OpenMP_init_part12
+   Memcheck:Leak
+   match-leak-kinds: reachable
+   fun:calloc
+   fun:gomp_malloc_cleared
+   ...
+   fun:call_init
+   ...
+   obj:*
+}
+{
    OpenMP_init_clang1
    Memcheck:Leak
    match-leak-kinds: possible

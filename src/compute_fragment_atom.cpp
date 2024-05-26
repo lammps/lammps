@@ -31,7 +31,8 @@
 
 using namespace LAMMPS_NS;
 
-#define BIG 1.0e20
+static constexpr double BIG = 1.0e20;
+static constexpr int MAXLOOP = 100;
 
 /* ---------------------------------------------------------------------- */
 
@@ -84,11 +85,8 @@ void ComputeFragmentAtom::init()
   if (atom->molecular != Atom::MOLECULAR)
     error->all(FLERR,"Compute fragment/atom requires a molecular system");
 
-  int count = 0;
-  for (int i = 0; i < modify->ncompute; i++)
-    if (strcmp(modify->compute[i]->style,"fragment/atom") == 0) count++;
-  if (count > 1 && comm->me == 0)
-    error->warning(FLERR,"More than one compute fragment/atom");
+  if (modify->get_compute_by_style(style).size() > 1)
+    if (comm->me == 0) error->warning(FLERR, "More than one compute {}", style);
 }
 
 /* ---------------------------------------------------------------------- */
@@ -148,8 +146,11 @@ void ComputeFragmentAtom::compute_peratom()
 
   commflag = 1;
 
-  while (true) {
+  int counter = 0;
+  // stop after MAXLOOP iterations
+  while (counter < MAXLOOP) {
     comm->forward_comm(this);
+    ++counter;
     done = 1;
 
     // set markflag = 0 for all owned atoms, for new iteration
@@ -226,6 +227,8 @@ void ComputeFragmentAtom::compute_peratom()
     MPI_Allreduce(&done,&alldone,1,MPI_INT,MPI_MIN,world);
     if (alldone) break;
   }
+  if ((comm->me == 0) && (counter >= MAXLOOP))
+    error->warning(FLERR, "Compute fragment/atom did not converge after {} iterations", MAXLOOP);
 }
 
 /* ---------------------------------------------------------------------- */

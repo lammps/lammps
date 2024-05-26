@@ -1764,7 +1764,7 @@ struct vector_ops<flt_t, NONE> {
       return a < b;
     }
     static fvec invsqrt(const fvec &a) {
-      return 1. / sqrt(a);
+      return 1. / std::sqrt(a);
     }
     static fvec sincos(fvec *c, const fvec &a) {
       *c = cos(a);

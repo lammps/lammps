@@ -47,8 +47,7 @@ void ComputeERotateAsphere::init()
   avec_line = dynamic_cast<AtomVecLine *>(atom->style_match("line"));
   avec_tri = dynamic_cast<AtomVecTri *>(atom->style_match("tri"));
   if (!avec_ellipsoid && !avec_line && !avec_tri)
-    error->all(FLERR,"Compute erotate/asphere requires "
-               "atom style ellipsoid or line or tri");
+    error->all(FLERR,"Compute erotate/asphere requires atom style ellipsoid or line or tri");
 
   // check that all particles are finite-size
   // no point particles allowed, spherical is OK
@@ -79,12 +78,13 @@ double ComputeERotateAsphere::compute_scalar()
 {
   invoked_scalar = update->ntimestep;
 
-  AtomVecEllipsoid::Bonus *ebonus;
+  AtomVecEllipsoid::Bonus *ebonus = nullptr;
   if (avec_ellipsoid) ebonus = avec_ellipsoid->bonus;
-  AtomVecLine::Bonus *lbonus;
+  AtomVecLine::Bonus *lbonus = nullptr;
   if (avec_line) lbonus = avec_line->bonus;
-  AtomVecTri::Bonus *tbonus;
+  AtomVecTri::Bonus *tbonus = nullptr;
   if (avec_tri) tbonus = avec_tri->bonus;
+
   int *ellipsoid = atom->ellipsoid;
   int *line = atom->line;
   int *tri = atom->tri;
@@ -98,14 +98,14 @@ double ComputeERotateAsphere::compute_scalar()
   // no point particles since divide by inertia
 
   double length;
-  double *shape,*quat;
-  double wbody[3],inertia[3];
+  double *shape, *quat;
+  double wbody[3], inertia[3];
   double rot[3][3];
   double erotate = 0.0;
 
   for (int i = 0; i < nlocal; i++)
     if (mask[i] & groupbit) {
-      if (ellipsoid && ellipsoid[i] >= 0) {
+      if (ellipsoid && ebonus && (ellipsoid[i] >= 0)) {
         shape = ebonus[ellipsoid[i]].shape;
         quat = ebonus[ellipsoid[i]].quat;
 
@@ -126,13 +126,13 @@ double ComputeERotateAsphere::compute_scalar()
         erotate += inertia[0]*wbody[0]*wbody[0] +
           inertia[1]*wbody[1]*wbody[1] + inertia[2]*wbody[2]*wbody[2];
 
-      } else if (line && line[i] >= 0) {
+      } else if (line && lbonus && (line[i] >= 0)) {
         length = lbonus[line[i]].length;
 
         erotate += (omega[i][0]*omega[i][0] + omega[i][1]*omega[i][1] +
                     omega[i][2]*omega[i][2]) * length*length*rmass[i] / 12.0;
 
-      } else if (tri && tri[i] >= 0) {
+      } else if (tri && tbonus && (tri[i] >= 0)) {
 
         // principal moments of inertia
 

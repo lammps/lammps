@@ -15,7 +15,7 @@
    e-mail: w.g.ouyang at gmail dot com
 
    This is a full version of the potential described in
-   [Ouyang et al, J. Chem. Theory Comput. 17, 7215-7223 (2021)]
+   [Ouyang et al., J. Chem. Theory Comput. 17, 7215-7223 (2021)]
 ------------------------------------------------------------------------- */
 
 #include "pair_saip_metal.h"
@@ -32,10 +32,6 @@
 
 using namespace LAMMPS_NS;
 using namespace InterLayer;
-
-#define MAXLINE 1024
-#define DELTA 4
-#define PGDELTA 1
 
 static const char cite_saip[] =
     "saip/metal potential: doi:10.1021/acs.jctc.1c00622\n\n"

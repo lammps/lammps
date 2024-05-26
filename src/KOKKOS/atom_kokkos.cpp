@@ -16,12 +16,16 @@
 #include "atom_masks.h"
 #include "atom_vec.h"
 #include "atom_vec_kokkos.h"
-#include "comm_kokkos.h"
+#include "comm.h"
 #include "domain.h"
 #include "error.h"
 #include "kokkos.h"
 #include "memory_kokkos.h"
 #include "update.h"
+#include "kokkos_base.h"
+#include "modify.h"
+#include "fix.h"
+#include "fix_property_atom_kokkos.h"
 
 using namespace LAMMPS_NS;
 
@@ -29,8 +33,21 @@ using namespace LAMMPS_NS;
 
 AtomKokkos::AtomKokkos(LAMMPS *lmp) : Atom(lmp)
 {
-  k_error_flag = DAT::tdual_int_scalar("atom:error_flag");
   avecKK = nullptr;
+
+  k_error_flag = DAT::tdual_int_scalar("atom:error_flag");
+
+  d_tag_min_max = t_tagint_2(Kokkos::NoInit("atom:tag_min_max"));
+  h_tag_min_max = t_host_tagint_2(Kokkos::NoInit("atom:tag_min_max"));
+
+  d_tag_min = Kokkos::subview(d_tag_min_max,0);
+  d_tag_max = Kokkos::subview(d_tag_min_max,1);
+
+  h_tag_min = Kokkos::subview(h_tag_min_max,0);
+  h_tag_max = Kokkos::subview(h_tag_min_max,1);
+
+  nprop_atom = 0;
+  fix_prop_atom = nullptr;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -99,15 +116,51 @@ AtomKokkos::~AtomKokkos()
 
   memoryKK->destroy_kokkos(k_dvector, dvector);
   dvector = nullptr;
+  delete [] fix_prop_atom;
+}
+
+/* ---------------------------------------------------------------------- */
+
+void AtomKokkos::init()
+{
+  Atom::init();
+
+  sort_classic = lmp->kokkos->sort_classic;
+}
+
+/* ---------------------------------------------------------------------- */
+
+void AtomKokkos::update_property_atom()
+{
+  nprop_atom = 0;
+  std::vector<Fix *> prop_atom_fixes;
+  for (auto &ifix : modify->get_fix_by_style("^property/atom")) {
+    if (!ifix->kokkosable)
+      error->all(FLERR, "KOKKOS package requires a Kokkos-enabled version of fix property/atom");
+
+    ++nprop_atom;
+    prop_atom_fixes.push_back(ifix);
+  }
+
+  delete[] fix_prop_atom;
+  fix_prop_atom = new FixPropertyAtomKokkos *[nprop_atom];
+
+  int n = 0;
+  for (auto &ifix : prop_atom_fixes)
+    fix_prop_atom[n++] = dynamic_cast<FixPropertyAtomKokkos *>(ifix);
 }
 
 /* ---------------------------------------------------------------------- */
 
 void AtomKokkos::sync(const ExecutionSpace space, unsigned int mask)
 {
-  if (space == Device && lmp->kokkos->auto_sync) avecKK->modified(Host, mask);
+  if (space == Device && lmp->kokkos->auto_sync) {
+    avecKK->modified(Host, mask);
+    for (int n = 0; n < nprop_atom; n++) fix_prop_atom[n]->modified(Host, mask);
+  }
 
   avecKK->sync(space, mask);
+  for (int n = 0; n < nprop_atom; n++) fix_prop_atom[n]->sync(space, mask);
 }
 
 /* ---------------------------------------------------------------------- */
@@ -115,13 +168,20 @@ void AtomKokkos::sync(const ExecutionSpace space, unsigned int mask)
 void AtomKokkos::modified(const ExecutionSpace space, unsigned int mask)
 {
   avecKK->modified(space, mask);
+  for (int n = 0; n < nprop_atom; n++) fix_prop_atom[n]->modified(space, mask);
 
-  if (space == Device && lmp->kokkos->auto_sync) avecKK->sync(Host, mask);
+  if (space == Device && lmp->kokkos->auto_sync) {
+    avecKK->sync(Host, mask);
+    for (int n = 0; n < nprop_atom; n++) fix_prop_atom[n]->sync(Host, mask);
+  }
 }
+
+/* ---------------------------------------------------------------------- */
 
 void AtomKokkos::sync_overlapping_device(const ExecutionSpace space, unsigned int mask)
 {
   avecKK->sync_overlapping_device(space, mask);
+  for (int n = 0; n < nprop_atom; n++) fix_prop_atom[n]->sync_overlapping_device(space, mask);
 }
 /* ---------------------------------------------------------------------- */
 
@@ -140,8 +200,37 @@ void AtomKokkos::allocate_type_arrays()
 
 void AtomKokkos::sort()
 {
-  int i, m, n, ix, iy, iz, ibin, empty;
+  // check if all fixes with atom-based arrays support sort on device
 
+  if (!sort_classic) {
+    int flag = 1;
+    for (int iextra = 0; iextra < atom->nextra_grow; iextra++) {
+      auto fix_iextra = modify->fix[atom->extra_grow[iextra]];
+      if (!fix_iextra->sort_device) {
+        flag = 0;
+        break;
+      }
+    }
+    if (!flag) {
+      if (comm->me == 0) {
+        error->warning(FLERR,"Fix with atom-based arrays not compatible with Kokkos sorting on device, "
+                           "switching to classic host sorting");
+      }
+      sort_classic = true;
+    }
+  }
+
+  if (sort_classic) {
+    sync(Host, ALL_MASK);
+    Atom::sort();
+    modified(Host, ALL_MASK);
+  } else sort_device();
+}
+
+/* ---------------------------------------------------------------------- */
+
+void AtomKokkos::sort_device()
+{
   // set next timestep for sorting to take place
 
   nextsort = (update->ntimestep / sortfreq) * sortfreq + sortfreq;
@@ -151,88 +240,40 @@ void AtomKokkos::sort()
   if (domain->box_change) setup_sort_bins();
   if (nbins == 1) return;
 
-  // reallocate per-atom vectors if needed
+  // for triclinic, atoms must be in box coords (not lamda) to match bbox
 
-  if (atom->nmax > maxnext) {
-    memory->destroy(next);
-    memory->destroy(permute);
-    maxnext = atom->nmax;
-    memory->create(next, maxnext, "atom:next");
-    memory->create(permute, maxnext, "atom:permute");
-  }
+  if (domain->triclinic) domain->lamda2x(nlocal);
 
-  // ensure there is one extra atom location at end of arrays for swaps
+  auto d_x = k_x.d_view;
+  sync(Device, X_MASK);
 
-  if (nlocal == nmax) avec->grow(0);
+  // sort
 
-  sync(Host, ALL_MASK);
-  modified(Host, ALL_MASK);
+  int max_bins[3];
+  max_bins[0] = nbinx;
+  max_bins[1] = nbiny;
+  max_bins[2] = nbinz;
 
-  // bin atoms in reverse order so linked list will be in forward order
+  using KeyViewType = DAT::t_x_array;
+  using BinOp = BinOp3DLAMMPS<KeyViewType>;
+  BinOp binner(max_bins, bboxlo, bboxhi);
+  Kokkos::BinSort<KeyViewType, BinOp> Sorter(d_x, 0, nlocal, binner, false);
+  Sorter.create_permute_vector(LMPDeviceType());
 
-  for (i = 0; i < nbins; i++) binhead[i] = -1;
+  avecKK->sort_kokkos(Sorter);
 
-  HAT::t_x_array_const h_x = k_x.view<LMPHostType>();
-  for (i = nlocal - 1; i >= 0; i--) {
-    ix = static_cast<int>((h_x(i, 0) - bboxlo[0]) * bininvx);
-    iy = static_cast<int>((h_x(i, 1) - bboxlo[1]) * bininvy);
-    iz = static_cast<int>((h_x(i, 2) - bboxlo[2]) * bininvz);
-    ix = MAX(ix, 0);
-    iy = MAX(iy, 0);
-    iz = MAX(iz, 0);
-    ix = MIN(ix, nbinx - 1);
-    iy = MIN(iy, nbiny - 1);
-    iz = MIN(iz, nbinz - 1);
-    ibin = iz * nbiny * nbinx + iy * nbinx + ix;
-    next[i] = binhead[ibin];
-    binhead[ibin] = i;
-  }
+  if (atom->nextra_grow) {
+    for (int iextra = 0; iextra < atom->nextra_grow; iextra++) {
+      auto fix_iextra = modify->fix[atom->extra_grow[iextra]];
+      KokkosBase *kkbase = dynamic_cast<KokkosBase*>(fix_iextra);
 
-  // permute = desired permutation of atoms
-  // permute[I] = J means Ith new atom will be Jth old atom
-
-  n = 0;
-  for (m = 0; m < nbins; m++) {
-    i = binhead[m];
-    while (i >= 0) {
-      permute[n++] = i;
-      i = next[i];
+      kkbase->sort_kokkos(Sorter);
     }
   }
 
-  // current = current permutation, just reuse next vector
-  // current[I] = J means Ith current atom is Jth old atom
+ //  convert back to lamda coords
 
-  int *current = next;
-  for (i = 0; i < nlocal; i++) current[i] = i;
-
-  // reorder local atom list, when done, current = permute
-  // perform "in place" using copy() to extra atom location at end of list
-  // inner while loop processes one cycle of the permutation
-  // copy before inner-loop moves an atom to end of atom list
-  // copy after inner-loop moves atom at end of list back into list
-  // empty = location in atom list that is currently empty
-
-  for (i = 0; i < nlocal; i++) {
-    if (current[i] == permute[i]) continue;
-    avec->copy(i, nlocal, 0);
-    empty = i;
-    while (permute[empty] != i) {
-      avec->copy(permute[empty], empty, 0);
-      empty = current[empty] = permute[empty];
-    }
-    avec->copy(nlocal, empty, 0);
-    current[empty] = permute[empty];
-  }
-
-  // sanity check that current = permute
-
-  //int flag = 0;
-  //for (i = 0; i < nlocal; i++)
-  //  if (current[i] != permute[i]) flag = 1;
-  //int flagall;
-  //MPI_Allreduce(&flag,&flagall,1,MPI_INT,MPI_SUM,world);
-  //if (flagall) errorX->all(FLERR,"Atom sort did not operate correctly");
+ if (domain->triclinic) domain->x2lamda(nlocal);
 }
 
 /* ----------------------------------------------------------------------
@@ -241,7 +282,6 @@ void AtomKokkos::sort()
 
 void AtomKokkos::grow(unsigned int mask)
 {
-
   if (mask & SPECIAL_MASK) {
     memoryKK->destroy_kokkos(k_special, special);
     sync(Device, mask);
@@ -258,15 +298,17 @@ void AtomKokkos::grow(unsigned int mask)
    return index in ivector or dvector of its location
 ------------------------------------------------------------------------- */
 
-int AtomKokkos::add_custom(const char *name, int flag, int cols)
+int AtomKokkos::add_custom(const char *name, int flag, int cols, int ghost)
 {
-  int index;
+  int index = -1;
 
   if (flag == 0 && cols == 0) {
     index = nivector;
     nivector++;
     ivname = (char **) memory->srealloc(ivname, nivector * sizeof(char *), "atom:ivname");
     ivname[index] = utils::strdup(name);
+    ivghost = (int *) memory->srealloc(ivghost,nivector * sizeof(int),"atom:ivghost");
+    ivghost[index] = ghost;
     ivector = (int **) memory->srealloc(ivector, nivector * sizeof(int *), "atom:ivector");
     memory->create(ivector[index], nmax, "atom:ivector");
 
@@ -275,6 +317,8 @@ int AtomKokkos::add_custom(const char *name, int flag, int cols)
     ndvector++;
     dvname = (char **) memory->srealloc(dvname, ndvector * sizeof(char *), "atom:dvname");
     dvname[index] = utils::strdup(name);
+    dvghost = (int *) memory->srealloc(dvghost, ndvector * sizeof(int), "atom:dvghost");
+    dvghost[index] = ghost;
     dvector = (double **) memory->srealloc(dvector, ndvector * sizeof(double *), "atom:dvector");
     this->sync(Device, DVECTOR_MASK);
     memoryKK->grow_kokkos(k_dvector, dvector, ndvector, nmax, "atom:dvector");
@@ -285,6 +329,8 @@ int AtomKokkos::add_custom(const char *name, int flag, int cols)
     niarray++;
     ianame = (char **) memory->srealloc(ianame, niarray * sizeof(char *), "atom:ianame");
     ianame[index] = utils::strdup(name);
+    iaghost = (int *) memory->srealloc(iaghost, niarray * sizeof(int), "atom:iaghost");
+    iaghost[index] = ghost;
     iarray = (int ***) memory->srealloc(iarray, niarray * sizeof(int **), "atom:iarray");
     memory->create(iarray[index], nmax, cols, "atom:iarray");
 
@@ -296,12 +342,17 @@ int AtomKokkos::add_custom(const char *name, int flag, int cols)
     ndarray++;
     daname = (char **) memory->srealloc(daname, ndarray * sizeof(char *), "atom:daname");
     daname[index] = utils::strdup(name);
+    daghost = (int *) memory->srealloc(daghost, ndarray * sizeof(int), "atom:daghost");
+    daghost[index] = ghost;
     darray = (double ***) memory->srealloc(darray, ndarray * sizeof(double **), "atom:darray");
     memory->create(darray[index], nmax, cols, "atom:darray");
 
     dcols = (int *) memory->srealloc(dcols, ndarray * sizeof(int), "atom:dcols");
     dcols[index] = cols;
   }
+
+  if (index < 0)
+    error->all(FLERR,"Invalid call to AtomKokkos::add_custom()");
 
   return index;
 }
@@ -364,18 +415,7 @@ void AtomKokkos::deallocate_topology()
   memoryKK->destroy_kokkos(k_improper_atom4, improper_atom4);
 }
 
-/* ----------------------------------------------------------------------
-   perform sync and modify for each of 2 masks
-   called by individual styles to override default sync/modify calls
-     done at higher levels (Verlet,Modify,etc)
-------------------------------------------------------------------------- */
-
-void AtomKokkos::sync_modify(ExecutionSpace execution_space, unsigned int datamask_read,
-                             unsigned int datamask_modify)
-{
-  sync(execution_space, datamask_read);
-  modified(execution_space, datamask_modify);
-}
+/* ---------------------------------------------------------------------- */
 
 AtomVec *AtomKokkos::new_avec(const std::string &style, int trysuffix, int &sflag)
 {
@@ -384,7 +424,7 @@ AtomVec *AtomKokkos::new_avec(const std::string &style, int trysuffix, int &sfla
   int hybrid_substyle_flag = (avec != nullptr);
 
   AtomVec *avec = Atom::new_avec(style, trysuffix, sflag);
-  if (!avec->kokkosable) error->all(FLERR, "KOKKOS package requires a kokkos enabled atom_style");
+  if (!avec->kokkosable) error->all(FLERR, "KOKKOS package requires a Kokkos-enabled atom_style");
 
   if (!hybrid_substyle_flag)
     avecKK = dynamic_cast<AtomVecKokkos*>(avec);

@@ -1,46 +1,18 @@
-/*
 //@HEADER
 // ************************************************************************
 //
-//                        Kokkos v. 3.0
-//       Copyright (2020) National Technology & Engineering
+//                        Kokkos v. 4.0
+//       Copyright (2022) National Technology & Engineering
 //               Solutions of Sandia, LLC (NTESS).
 //
 // Under the terms of Contract DE-NA0003525 with NTESS,
 // the U.S. Government retains certain rights in this software.
 //
-// Redistribution and use in source and binary forms, with or without
-// modification, are permitted provided that the following conditions are
-// met:
+// Part of Kokkos, under the Apache License v2.0 with LLVM Exceptions.
+// See https://kokkos.org/LICENSE for license information.
+// SPDX-License-Identifier: Apache-2.0 WITH LLVM-exception
 //
-// 1. Redistributions of source code must retain the above copyright
-// notice, this list of conditions and the following disclaimer.
-//
-// 2. Redistributions in binary form must reproduce the above copyright
-// notice, this list of conditions and the following disclaimer in the
-// documentation and/or other materials provided with the distribution.
-//
-// 3. Neither the name of the Corporation nor the names of the
-// contributors may be used to endorse or promote products derived from
-// this software without specific prior written permission.
-//
-// THIS SOFTWARE IS PROVIDED BY NTESS "AS IS" AND ANY
-// EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
-// IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR
-// PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL NTESS OR THE
-// CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
-// EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
-// PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR
-// PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF
-// LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING
-// NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
-// SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-//
-// Questions? Contact Christian R. Trott (crtrott@sandia.gov)
-//
-// ************************************************************************
 //@HEADER
-*/
 
 #ifndef KOKKOS_IMPL_ANALYZE_POLICY_HPP
 #define KOKKOS_IMPL_ANALYZE_POLICY_HPP
@@ -206,27 +178,13 @@ struct ExecPolicyTraitsWithDefaults : AnalysisResults {
 
 //------------------------------------------------------------------------------
 
-constexpr bool warn_if_deprecated(std::false_type) { return true; }
-KOKKOS_DEPRECATED_WITH_COMMENT(
-    "Invalid WorkTag template argument in execution policy!!")
-constexpr bool warn_if_deprecated(std::true_type) { return true; }
-#define KOKKOS_IMPL_STATIC_WARNING(...) \
-  static_assert(                        \
-      warn_if_deprecated(std::integral_constant<bool, __VA_ARGS__>()), "")
-
 template <typename... Traits>
 struct PolicyTraits
     : ExecPolicyTraitsWithDefaults<AnalyzeExecPolicy<void, Traits...>> {
   using base_t =
       ExecPolicyTraitsWithDefaults<AnalyzeExecPolicy<void, Traits...>>;
   using base_t::base_t;
-#ifdef KOKKOS_ENABLE_DEPRECATED_CODE_3
-  KOKKOS_IMPL_STATIC_WARNING(!std::is_empty<typename base_t::work_tag>::value &&
-                             !std::is_void<typename base_t::work_tag>::value);
-#endif
 };
-
-#undef KOKKOS_IMPL_STATIC_WARNING
 
 }  // namespace Impl
 }  // namespace Kokkos

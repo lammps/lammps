@@ -53,10 +53,10 @@ System-wide Installation
 Step 1: Building LAMMPS as a shared library
 """""""""""""""""""""""""""""""""""""""""""
 
-To use LAMMPS inside of Python it has to be compiled as shared library. This
-library is then loaded by the Python interface. In this example we enable the
-MOLECULE package and compile LAMMPS with C++ exceptions, PNG, JPEG and FFMPEG
-output support enabled.
+To use LAMMPS inside of Python it has to be compiled as shared
+library. This library is then loaded by the Python interface. In this
+example we enable the MOLECULE package and compile LAMMPS with PNG, JPEG
+and FFMPEG output support enabled.
 
 Step 1a: For the CMake based build system, the steps are:
 
@@ -66,7 +66,7 @@ Step 1a: For the CMake based build system, the steps are:
    cd  $LAMMPS_DIR/build-shared
 
    # MPI, PNG, Jpeg, FFMPEG are auto-detected
-   cmake ../cmake -DPKG_MOLECULE=yes -DLAMMPS_EXCEPTIONS=yes -DBUILD_LIB=yes -DBUILD_SHARED_LIBS=yes
+   cmake ../cmake -DPKG_MOLECULE=yes -DBUILD_LIB=yes -DBUILD_SHARED_LIBS=yes
    make
 
 Step 1b: For the legacy, make based build system, the steps are:
@@ -79,7 +79,7 @@ Step 1b: For the legacy, make based build system, the steps are:
    make yes-MOLECULE
 
    # compile shared library using Makefile
-   make mpi mode=shlib LMP_INC="-DLAMMPS_PNG -DLAMMPS_JPEG -DLAMMPS_FFMPEG -DLAMMPS_EXCEPTIONS" JPG_LIB="-lpng -ljpeg"
+   make mpi mode=shlib LMP_INC="-DLAMMPS_PNG -DLAMMPS_JPEG -DLAMMPS_FFMPEG" JPG_LIB="-lpng -ljpeg"
 
 Step 2: Installing the LAMMPS Python package
 """"""""""""""""""""""""""""""""""""""""""""
@@ -133,7 +133,7 @@ to the location in the virtual environment with:
 
 .. code-block:: bash
 
-   cmake . -DPYTHON_EXECUTABLE=$(which python)
+   cmake . -DPython_EXECUTABLE=$(which python)
 
    # install LAMMPS package in virtualenv
    (testing) make install-python
@@ -356,18 +356,16 @@ Together with matplotlib plotting data out of LAMMPS becomes simple:
 Error handling with PyLammps
 ----------------------------
 
-Compiling the shared library with C++ exception support provides a better error
-handling experience.  Without exceptions the LAMMPS code will terminate the
-current Python process with an error message.  C++ exceptions allow capturing
-them on the C++ side and rethrowing them on the Python side. This way you
-can handle LAMMPS errors through the Python exception handling mechanism.
+Using C++ exceptions in LAMMPS for errors allows capturing them on the
+C++ side and rethrowing them on the Python side.  This way you can handle
+LAMMPS errors through the Python exception handling mechanism.
 
 .. warning::
 
    Capturing a LAMMPS exception in Python can still mean that the
-   current LAMMPS process is in an illegal state and must be terminated. It is
-   advised to save your data and terminate the Python instance as quickly as
-   possible.
+   current LAMMPS process is in an illegal state and must be
+   terminated. It is advised to save your data and terminate the Python
+   instance as quickly as possible.
 
 Using PyLammps in IPython notebooks and Jupyter
 -----------------------------------------------

@@ -1,57 +1,30 @@
-/*
 //@HEADER
 // ************************************************************************
 //
-//                        Kokkos v. 3.0
-//       Copyright (2020) National Technology & Engineering
+//                        Kokkos v. 4.0
+//       Copyright (2022) National Technology & Engineering
 //               Solutions of Sandia, LLC (NTESS).
 //
 // Under the terms of Contract DE-NA0003525 with NTESS,
 // the U.S. Government retains certain rights in this software.
 //
-// Redistribution and use in source and binary forms, with or without
-// modification, are permitted provided that the following conditions are
-// met:
+// Part of Kokkos, under the Apache License v2.0 with LLVM Exceptions.
+// See https://kokkos.org/LICENSE for license information.
+// SPDX-License-Identifier: Apache-2.0 WITH LLVM-exception
 //
-// 1. Redistributions of source code must retain the above copyright
-// notice, this list of conditions and the following disclaimer.
-//
-// 2. Redistributions in binary form must reproduce the above copyright
-// notice, this list of conditions and the following disclaimer in the
-// documentation and/or other materials provided with the distribution.
-//
-// 3. Neither the name of the Corporation nor the names of the
-// contributors may be used to endorse or promote products derived from
-// this software without specific prior written permission.
-//
-// THIS SOFTWARE IS PROVIDED BY NTESS "AS IS" AND ANY
-// EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
-// IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR
-// PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL NTESS OR THE
-// CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
-// EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
-// PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR
-// PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF
-// LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING
-// NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
-// SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-//
-// Questions? Contact Christian R. Trott (crtrott@sandia.gov)
-//
-// ************************************************************************
 //@HEADER
-*/
 
 #ifndef KOKKOS_IMPL_PUBLIC_INCLUDE
 #define KOKKOS_IMPL_PUBLIC_INCLUDE
 #endif
 
 #include <Kokkos_Core.hpp>
+#include <iomanip>
+#include <iostream>
+#include <sstream>
 
 namespace Kokkos {
 namespace Impl {
-
-thread_local int SharedAllocationRecord<void, void>::t_tracking_enabled = 1;
 
 #ifdef KOKKOS_ENABLE_DEBUG
 bool SharedAllocationRecord<void, void>::is_sane(
@@ -311,57 +284,34 @@ SharedAllocationRecord<void, void>* SharedAllocationRecord<
 void SharedAllocationRecord<void, void>::print_host_accessible_records(
     std::ostream& s, const char* const space_name,
     const SharedAllocationRecord* const root, const bool detail) {
-  const SharedAllocationRecord<void, void>* r = root;
+  // Print every node except the root, which does not represent an actual
+  // allocation.
+  const SharedAllocationRecord<void, void>* r = root->m_next;
 
-  char buffer[256];
-
+  std::ios_base::fmtflags saved_flags = s.flags();
+#define KOKKOS_PAD_HEX(ptr)                              \
+  "0x" << std::hex << std::setw(12) << std::setfill('0') \
+       << reinterpret_cast<uintptr_t>(ptr)
   if (detail) {
-    do {
-      // Formatting dependent on sizeof(uintptr_t)
-      const char* format_string;
+    while (r != root) {
+      s << space_name << " addr( " << KOKKOS_PAD_HEX(r) << " ) list ( "
+        << KOKKOS_PAD_HEX(r->m_prev) << ' ' << KOKKOS_PAD_HEX(r->m_next)
+        << " ) extent[ " << KOKKOS_PAD_HEX(r->m_alloc_ptr) << " + " << std::dec
+        << std::setw(8) << r->m_alloc_size << " ] count(" << r->use_count()
+        << ") dealloc(" << KOKKOS_PAD_HEX(r->m_dealloc) << ") "
+        << r->m_alloc_ptr->m_label << '\n';
 
-      if (sizeof(uintptr_t) == sizeof(unsigned long)) {
-        format_string =
-            "%s addr( 0x%.12lx ) list( 0x%.12lx 0x%.12lx ) extent[ 0x%.12lx + "
-            "%.8ld ] count(%d) dealloc(0x%.12lx) %s\n";
-      } else if (sizeof(uintptr_t) == sizeof(unsigned long long)) {
-        format_string =
-            "%s addr( 0x%.12llx ) list( 0x%.12llx 0x%.12llx ) extent[ "
-            "0x%.12llx + %.8ld ] count(%d) dealloc(0x%.12llx) %s\n";
-      }
-
-      snprintf(buffer, 256, format_string, space_name,
-               reinterpret_cast<uintptr_t>(r),
-               reinterpret_cast<uintptr_t>(r->m_prev),
-               reinterpret_cast<uintptr_t>(r->m_next),
-               reinterpret_cast<uintptr_t>(r->m_alloc_ptr), r->m_alloc_size,
-               r->use_count(), reinterpret_cast<uintptr_t>(r->m_dealloc),
-               r->m_alloc_ptr->m_label);
-      s << buffer;
       r = r->m_next;
-    } while (r != root);
+    }
   } else {
-    do {
-      if (r->m_alloc_ptr) {
-        // Formatting dependent on sizeof(uintptr_t)
-        const char* format_string;
-
-        if (sizeof(uintptr_t) == sizeof(unsigned long)) {
-          format_string = "%s [ 0x%.12lx + %ld ] %s\n";
-        } else if (sizeof(uintptr_t) == sizeof(unsigned long long)) {
-          format_string = "%s [ 0x%.12llx + %ld ] %s\n";
-        }
-
-        snprintf(buffer, 256, format_string, space_name,
-                 reinterpret_cast<uintptr_t>(r->data()), r->size(),
-                 r->m_alloc_ptr->m_label);
-      } else {
-        snprintf(buffer, 256, "%s [ 0 + 0 ]\n", space_name);
-      }
-      s << buffer;
+    while (r != root) {
+      s << space_name << " [ " << KOKKOS_PAD_HEX(r->data()) << " + " << std::dec
+        << r->size() << " ] " << r->m_alloc_ptr->m_label << '\n';
       r = r->m_next;
-    } while (r != root);
+    }
   }
+#undef KOKKOS_PAD_HEX
+  s.flags(saved_flags);
 }
 #else
 void SharedAllocationRecord<void, void>::print_host_accessible_records(
@@ -372,6 +322,54 @@ void SharedAllocationRecord<void, void>::print_host_accessible_records(
       " only works with KOKKOS_ENABLE_DEBUG enabled");
 }
 #endif
+
+void safe_throw_allocation_with_header_failure(
+    std::string const& space_name, std::string const& label,
+    Kokkos::Experimental::RawMemoryAllocationFailure const& failure) {
+  auto generate_failure_message = [&](std::ostream& o) {
+    o << "Kokkos failed to allocate memory for label \"" << label
+      << "\".  Allocation using MemorySpace named \"" << space_name
+      << "\" failed with the following error:  ";
+    failure.print_error_message(o);
+    if (failure.failure_mode() ==
+        Kokkos::Experimental::RawMemoryAllocationFailure::FailureMode::
+            AllocationNotAligned) {
+      // TODO: delete the misaligned memory?
+      o << "Warning: Allocation failed due to misalignment; memory may "
+           "be leaked.\n";
+    }
+    o.flush();
+  };
+  try {
+    std::ostringstream sstr;
+    generate_failure_message(sstr);
+    Kokkos::Impl::throw_runtime_exception(sstr.str());
+  } catch (std::bad_alloc const&) {
+    // Probably failed to allocate the string because we're so close to out
+    // of memory. Try printing to std::cerr instead
+    try {
+      generate_failure_message(std::cerr);
+    } catch (std::bad_alloc const&) {
+      // oh well, we tried...
+    }
+    Kokkos::Impl::throw_runtime_exception(
+        "Kokkos encountered an allocation failure, then another allocation "
+        "failure while trying to create the error message.");
+  }
+}
+
+void fill_host_accessible_header_info(
+    SharedAllocationRecord<void, void>* arg_record,
+    SharedAllocationHeader& arg_header, std::string const& arg_label) {
+  // Fill in the Header information, directly accessible on the host
+
+  arg_header.m_record = arg_record;
+
+  strncpy(arg_header.m_label, arg_label.c_str(),
+          SharedAllocationHeader::maximum_label_length);
+  // Set last element zero, in case c_str is too long
+  arg_header.m_label[SharedAllocationHeader::maximum_label_length - 1] = '\0';
+}
 
 } /* namespace Impl */
 } /* namespace Kokkos */

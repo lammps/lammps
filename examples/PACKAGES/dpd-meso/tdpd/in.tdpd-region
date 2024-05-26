@@ -1,0 +1,58 @@
+########################################################################
+### Pure diffusion with a reaction source term analog of a periodic  ### 
+### Poiseuille flow problem using transport DPD (tDPD) simulation    ###
+###                                                                  ### 
+### Created  : Zhen Li (zhen_li@brown.edu)                           ### 
+###            Division of Applied Mathematics, Brown University.    ###
+###                                                                  ###
+### tDPD system setup follows Fig.1 in the publication:              ###
+### Z. Li, A. Yazdani, A. Tartakovsky and G.E. Karniadakis.          ###
+### "Transport dissipative particle dynamics model for mesoscopic    ###
+### advection-diffusion-reaction problems. J. Chem. Phys.,           ###
+### 2015, 143: 014101. DOI: 10.1063/1.4923254                        ###
+########################################################################
+units                   lj
+dimension               3
+boundary                p p p
+neighbor                0.2 bin
+neigh_modify        every 1 delay 0 check yes
+
+atom_style              tdpd 2
+comm_modify  vel yes
+
+region     tdpd     block -10 10 -10 10 -5 5 units box
+create_box          1 tdpd
+create_atoms        1 random 16000 276438 NULL
+mass                1 1.0
+set                 atom * cc 1 1.0
+set                 atom * cc 2 1.0
+
+pair_style          tdpd 1.0 1.58 9872598 
+pair_coeff          1 1 18.75 4.5 0.41 1.58 1.58 1.0 1.0E-5 2.0 3.0 1.0E-5 2.0
+
+compute             mythermo all temp
+thermo              50
+thermo_modify       temp mythermo
+thermo_modify       flush yes
+
+velocity            all create 1.0 432982 loop local dist gaussian
+
+region upper block -10.0  10.0   0.0 10.0 -5.0 5.0
+region lower block -10.0  10.0 -10.0  0.0 -5.0 5.0
+
+fix         mvv     all mvv/tdpd 0.5
+fix         upper1  all tdpd/source 1 region upper  0.01
+fix         lower1  all tdpd/source 1 region lower -0.01
+fix         upper2  all tdpd/source 2 region upper -0.01
+fix         lower2  all tdpd/source 2 region lower  0.01
+
+timestep            0.01
+run                 500
+reset_timestep      0
+
+compute     cc1     all tdpd/cc/atom 1
+compute     cc2     all tdpd/cc/atom 2
+compute     bin     all chunk/atom bin/1d y 0.0 1.0 
+fix         stat    all ave/chunk 1 100 100 bin c_cc1 c_cc2 norm sample file cc.profile
+
+run                 100

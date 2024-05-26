@@ -463,7 +463,7 @@ void FixTTM::read_electron_temperatures(const std::string &filename)
   if (comm->me == 0) {
 
     int ***T_initial_set;
-    memory->create(T_initial_set,nxgrid,nygrid,nzgrid,"ttm:T_initial_set");
+    memory->create(T_initial_set,nzgrid,nygrid,nxgrid,"ttm:T_initial_set");
     memset(&T_initial_set[0][0][0],0,ngridtotal*sizeof(int));
 
     // read initial electron temperature values from file

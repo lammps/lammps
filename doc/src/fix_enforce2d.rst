@@ -9,7 +9,7 @@ Accelerator Variants: *enforce2d/kk*
 Syntax
 """"""
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    fix ID group-ID enforce2d
 

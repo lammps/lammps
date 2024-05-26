@@ -5,8 +5,7 @@ The LAMMPS Python module enables calling the :ref:`LAMMPS C library API
 <lammps_c_api>` from Python by dynamically loading functions in the
 LAMMPS shared library through the Python `ctypes <ctypes_>`_
 module.  Because of the dynamic loading, it is required that LAMMPS is
-compiled in :ref:`"shared" mode <exe>`.  It is also recommended to
-compile LAMMPS with :ref:`C++ exceptions <exceptions>` enabled.
+compiled in :ref:`"shared" mode <exe>`.
 
 Two components are necessary for Python to be able to invoke LAMMPS code:
 

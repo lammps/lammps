@@ -1055,6 +1055,7 @@ colvar::rmsd::rmsd(std::string const &conf)
   n_permutations = 1;
 
   while (key_lookup(conf, "atomPermutation", &perm_conf, &pos)) {
+    cvm::main()->cite_feature("Symmetry-adapted RMSD");
     std::vector<size_t> perm;
     if (perm_conf.size()) {
       std::istringstream is(perm_conf);

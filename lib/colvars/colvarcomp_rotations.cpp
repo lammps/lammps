@@ -67,15 +67,17 @@ int colvar::orientation::init(std::string const &conf)
   }
 
 
-  cvm::log("Centering the reference coordinates: it is "
-            "assumed that each atom is the closest "
-            "periodic image to the center of geometry.\n");
   cvm::rvector ref_cog(0.0, 0.0, 0.0);
   size_t i;
   for (i = 0; i < ref_pos.size(); i++) {
     ref_cog += ref_pos[i];
   }
   ref_cog /= cvm::real(ref_pos.size());
+  cvm::log("Centering the reference coordinates on the origin by subtracting "
+           "the center of geometry at "+
+           cvm::to_str(-1.0 * ref_cog)+"; it is "
+           "assumed that each atom is the closest "
+           "periodic image to the center of geometry.\n");
   for (i = 0; i < ref_pos.size(); i++) {
     ref_pos[i] -= ref_cog;
   }

@@ -6,7 +6,7 @@ fix nve/dotc/langevin command
 Syntax
 """"""
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    fix ID group-ID nve/dotc/langevin Tstart Tstop damp seed keyword value
 

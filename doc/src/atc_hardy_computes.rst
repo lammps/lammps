@@ -6,7 +6,7 @@ fix_modify AtC computes command
 Syntax
 """"""
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    fix_modify <AtC fixID> computes <add|delete> <per-atom compute-ID> <volume|number>
 

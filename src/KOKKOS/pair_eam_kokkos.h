@@ -60,6 +60,7 @@ class PairEAMKokkos : public PairEAM, public KokkosBase {
   void compute(int, int) override;
   void init_style() override;
 
+
   KOKKOS_INLINE_FUNCTION
   void operator()(TagPairEAMPackForwardComm, const int&) const;
 
@@ -89,6 +90,14 @@ class PairEAMKokkos : public PairEAM, public KokkosBase {
   KOKKOS_INLINE_FUNCTION
   void operator()(TagPairEAMKernelAB<EFLAG>, const int&) const;
 
+  template<int EFLAG>
+  KOKKOS_INLINE_FUNCTION
+  void operator()(TagPairEAMKernelAB<EFLAG>, const typename Kokkos::TeamPolicy<DeviceType>::member_type&, EV_FLOAT&) const;
+
+  template<int EFLAG>
+  KOKKOS_INLINE_FUNCTION
+  void operator()(TagPairEAMKernelAB<EFLAG>, const typename Kokkos::TeamPolicy<DeviceType>::member_type&) const;
+
   template<int NEIGHFLAG, int NEWTON_PAIR, int EVFLAG>
   KOKKOS_INLINE_FUNCTION
   void operator()(TagPairEAMKernelC<NEIGHFLAG,NEWTON_PAIR,EVFLAG>, const int&, EV_FLOAT&) const;
@@ -97,13 +106,21 @@ class PairEAMKokkos : public PairEAM, public KokkosBase {
   KOKKOS_INLINE_FUNCTION
   void operator()(TagPairEAMKernelC<NEIGHFLAG,NEWTON_PAIR,EVFLAG>, const int&) const;
 
+  template<int NEIGHFLAG, int NEWTON_PAIR, int EVFLAG>
+  KOKKOS_INLINE_FUNCTION
+  void operator()(TagPairEAMKernelC<NEIGHFLAG,NEWTON_PAIR,EVFLAG>, const typename Kokkos::TeamPolicy<DeviceType>::member_type&, EV_FLOAT&) const;
+
+  template<int NEIGHFLAG, int NEWTON_PAIR, int EVFLAG>
+  KOKKOS_INLINE_FUNCTION
+  void operator()(TagPairEAMKernelC<NEIGHFLAG,NEWTON_PAIR,EVFLAG>, const typename Kokkos::TeamPolicy<DeviceType>::member_type&) const;
+
   template<int NEIGHFLAG, int NEWTON_PAIR>
   KOKKOS_INLINE_FUNCTION
   void ev_tally(EV_FLOAT &ev, const int &i, const int &j,
       const F_FLOAT &epair, const F_FLOAT &fpair, const F_FLOAT &delx,
                   const F_FLOAT &dely, const F_FLOAT &delz) const;
 
-  int pack_forward_comm_kokkos(int, DAT::tdual_int_2d, int, DAT::tdual_xfloat_1d&,
+  int pack_forward_comm_kokkos(int, DAT::tdual_int_1d, DAT::tdual_xfloat_1d&,
                        int, int *) override;
   void unpack_forward_comm_kokkos(int, int, DAT::tdual_xfloat_1d&) override;
   int pack_forward_comm(int, int *, double *, int, int *) override;
@@ -121,7 +138,7 @@ class PairEAMKokkos : public PairEAM, public KokkosBase {
   typename AT::t_efloat_1d d_eatom;
   typename AT::t_virial_array d_vatom;
 
-  int need_dup;
+  int need_dup,inum;
 
   using KKDeviceType = typename KKDevice<DeviceType>::value;
 
@@ -162,13 +179,15 @@ class PairEAMKokkos : public PairEAM, public KokkosBase {
   void file2array() override;
   void array2spline() override;
 
+  template<class TAG>
+  struct policyInstance;
+
   typename AT::t_neighbors_2d d_neighbors;
   typename AT::t_int_1d d_ilist;
   typename AT::t_int_1d d_numneigh;
 
-  int iswap;
   int first;
-  typename AT::t_int_2d d_sendlist;
+  typename AT::t_int_1d d_sendlist;
   typename AT::t_xfloat_1d_um v_buf;
 
   int neighflag,newton_pair;

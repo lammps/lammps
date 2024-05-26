@@ -6,7 +6,7 @@ fix ehex command
 Syntax
 """"""
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    fix ID group-ID ehex nevery F keyword value
 

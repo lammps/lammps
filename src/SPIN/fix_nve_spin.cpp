@@ -58,8 +58,6 @@ static const char cite_fix_nve_spin[] =
   "doi={10.1016/j.jcp.2018.06.042}\n"
   "}\n\n";
 
-enum{NONE};
-
 /* ---------------------------------------------------------------------- */
 
 FixNVESpin::FixNVESpin(LAMMPS *lmp, int narg, char **arg) :
@@ -74,7 +72,6 @@ FixNVESpin::FixNVESpin(LAMMPS *lmp, int narg, char **arg) :
   if (narg < 4) error->all(FLERR,"Illegal fix/nve/spin command");
 
   time_integrate = 1;
-  sector_flag = NONE;
   lattice_flag = 1;
   nlocal_max = 0;
   npairs = 0;
@@ -88,14 +85,9 @@ FixNVESpin::FixNVESpin(LAMMPS *lmp, int narg, char **arg) :
   if (atom->map_style == Atom::MAP_NONE)
     error->all(FLERR,"Fix nve/spin requires an atom map, see atom_modify");
 
-  // defining sector_flag
+  // define sector_flag
 
-  int nprocs_tmp = comm->nprocs;
-  if (nprocs_tmp == 1) {
-    sector_flag = 0;
-  } else if (nprocs_tmp >= 1) {
-    sector_flag = 1;
-  } else error->all(FLERR,"Illegal fix/nve/spin command");
+  sector_flag = (comm->nprocs > 1) ? 1 : 0;
 
   // defining lattice_flag
 
@@ -120,11 +112,6 @@ FixNVESpin::FixNVESpin(LAMMPS *lmp, int narg, char **arg) :
 
   if (!atom->sp_flag)
     error->all(FLERR,"Fix nve/spin requires atom/spin style");
-
-  // check if sector_flag is correctly defined
-
-  if (sector_flag == 0 && nprocs_tmp > 1)
-    error->all(FLERR,"Illegal fix/nve/spin command");
 
   // initialize the magnetic interaction flags
 
@@ -378,8 +365,8 @@ void FixNVESpin::initial_integrate(int /*vflag*/)
         }
       }
     }
-  } else if (sector_flag == 0) {                // serial seq. update
-    comm->forward_comm();                       // comm. positions of ghost atoms
+  } else {                                       // serial seq. update
+    comm->forward_comm();                        // comm. positions of ghost atoms
     for (int i = 0; i < nlocal; i++) {           // advance quarter s for nlocal
       if (mask[i] & groupbit) {
         ComputeInteractionsSpin(i);
@@ -392,7 +379,7 @@ void FixNVESpin::initial_integrate(int /*vflag*/)
         AdvanceSingleSpin(i);
       }
     }
-  } else error->all(FLERR,"Illegal fix nve/spin command");
+  }
 
   // update x for all particles
 
@@ -610,7 +597,7 @@ void FixNVESpin::sectoring()
 
   nsectors = sec[0]*sec[1]*sec[2];
 
-  if (sector_flag == 1 && nsectors != 8)
+  if (sector_flag && (nsectors != 8))
     error->all(FLERR,"Illegal sectoring operation");
 
   rsec[0] = rsx;
@@ -694,7 +681,7 @@ void FixNVESpin::AdvanceSingleSpin(int i)
 
   // comm. sp[i] to atoms with same tag (for serial algo)
 
-  if (sector_flag == 0) {
+  if (!sector_flag) {
     if (sametag[i] >= 0) {
       j = sametag[i];
       while (j >= 0) {

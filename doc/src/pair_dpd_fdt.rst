@@ -56,13 +56,13 @@ given as a sum of 3 terms
 
    \vec{f}  = & (F^C + F^D + F^R) \hat{r_{ij}} \qquad \qquad r < r_c \\
    F^C      = & A w(r) \\
-   F^D      = & - \gamma w^2(r) (\hat{r_{ij}} \bullet \vec{v_{ij}}) \\
+   F^D      = & - \gamma w^2(r) (\hat{r_{ij}} \bullet \vec{v}_{ij}) \\
    F^R      = & \sigma w(r) \alpha (\Delta t)^{-1/2} \\
    w(r)     = & 1 - \frac{r}{r_c}
 
 where :math:`F^C` is a conservative force, :math:`F^D` is a dissipative
 force, and :math:`F^R` is a random force.  :math:`\hat{r_{ij}}` is a
-unit vector in the direction :math:`r_i - r_j`, :math:`\vec{v_{ij}}` is
+unit vector in the direction :math:`r_i - r_j`, :math:`\vec{v}_{ij}` is
 the vector difference in velocities of the two atoms, :math:`\vec{v}_i -
 \vec{v}_j`, :math:`\alpha` is a Gaussian random number with zero mean
 and unit variance, *dt* is the timestep size, and :math:`w(r)` is a
@@ -99,9 +99,9 @@ energies are computed within style *dpd/fdt/energy* as:
 .. math::
 
    du_{i}^{cond}  = & \kappa_{ij}(\frac{1}{\theta_{i}}-\frac{1}{\theta_{j}})\omega_{ij}^{2} + \alpha_{ij}\omega_{ij}\zeta_{ij}^{q}(\Delta{t})^{-1/2} \\
-   du_{i}^{mech}  = & -\frac{1}{2}\gamma_{ij}\omega_{ij}^{2}(\frac{\vec{r_{ij}}}{r_{ij}}\bullet\vec{v_{ij}})^{2} -
+   du_{i}^{mech}  = & -\frac{1}{2}\gamma_{ij}\omega_{ij}^{2}(\frac{\vec{r}_{ij}}{r_{ij}}\bullet\vec{v}_{ij})^{2} -
    \frac{\sigma^{2}_{ij}}{4}(\frac{1}{m_{i}}+\frac{1}{m_{j}})\omega_{ij}^{2} -
-   \frac{1}{2}\sigma_{ij}\omega_{ij}(\frac{\vec{r_{ij}}}{r_{ij}}\bullet\vec{v_{ij}})\zeta_{ij}(\Delta{t})^{-1/2}
+   \frac{1}{2}\sigma_{ij}\omega_{ij}(\frac{\vec{r}_{ij}}{r_{ij}}\bullet\vec{v}_{ij})\zeta_{ij}(\Delta{t})^{-1/2}
 
 where
 

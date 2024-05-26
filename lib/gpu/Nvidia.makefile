@@ -11,7 +11,7 @@ HOST_H = lal_answer.h lal_atom.h lal_balance.h lal_base_atomic.h lal_base_amoeba
          lal_base_charge.h lal_base_dipole.h lal_base_dpd.h \
          lal_base_ellipsoid.h lal_base_three.h lal_device.h lal_neighbor.h \
          lal_neighbor_shared.h lal_pre_ocl_config.h $(NVD_H)
-         
+
 # Source files
 SRCS := $(wildcard ./lal_*.cpp)
 OBJS := $(subst ./,$(OBJ_DIR)/,$(SRCS:%.cpp=%.o))
@@ -127,7 +127,7 @@ $(GPU_LIB): $(OBJS) $(CUDPP)
 # test app for querying device info
 
 $(BIN_DIR)/nvc_get_devices: ./geryon/ucl_get_devices.cpp $(NVD_H)
-	$(CUDR) -o $@ ./geryon/ucl_get_devices.cpp -DUCL_CUDADR $(CUDA_LIB) -lcuda 
+	$(CUDR) -o $@ ./geryon/ucl_get_devices.cpp -DUCL_CUDADR $(CUDA_LIB) -lcuda
 
 clean:
 	-rm -f $(EXECS) $(GPU_LIB) $(OBJS) $(CUDPP) $(CUHS) *.cubin *.linkinfo

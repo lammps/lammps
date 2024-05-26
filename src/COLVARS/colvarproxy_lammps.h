@@ -33,7 +33,7 @@ class colvarproxy_lammps : public colvarproxy {
   LAMMPS_NS::RanPark *_random;
 
   // state of LAMMPS properties
-  double t_target, my_timestep, my_boltzmann, my_angstrom;
+  double my_timestep, my_angstrom;
   double bias_energy;
   int previous_step;
 
@@ -50,7 +50,7 @@ class colvarproxy_lammps : public colvarproxy {
   colvarproxy_lammps(LAMMPS_NS::LAMMPS *lmp, const char *, const char *, const int, const double,
                      MPI_Comm);
   ~colvarproxy_lammps() override;
-  void init(const char *);
+  void init();
   int setup() override;
 
   // disable default and copy constructor
@@ -60,7 +60,7 @@ class colvarproxy_lammps : public colvarproxy {
 
   // methods for lammps to move data or trigger actions in the proxy
  public:
-  void set_temperature(double t) { t_target = t; };
+
   bool total_forces_enabled() const override { return total_force_requested; };
   bool total_forces_same_step() const override { return true; };
   bool want_exit() const { return do_exit; };
@@ -86,10 +86,6 @@ class colvarproxy_lammps : public colvarproxy {
   // Request to set the units used internally by Colvars
   int set_unit_system(std::string const &units_in, bool check_only) override;
 
-  inline cvm::real backend_angstrom_value() override { return my_angstrom; };
-
-  inline cvm::real boltzmann() override { return my_boltzmann; };
-  inline cvm::real temperature() override { return t_target; };
   inline cvm::real dt() override
   {
     return my_timestep;
@@ -101,8 +97,7 @@ class colvarproxy_lammps : public colvarproxy {
   void log(std::string const &message) override;
   void error(std::string const &message) override;
 
-  cvm::rvector position_distance(cvm::atom_pos const &pos1,
-                                 cvm::atom_pos const &pos2) const override;
+  cvm::rvector position_distance(cvm::atom_pos const &pos1, cvm::atom_pos const &pos2) const override;
 
   cvm::real rand_gaussian(void) override { return _random->gaussian(); };
 

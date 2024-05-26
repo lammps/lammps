@@ -6,7 +6,7 @@ fix ave/grid command
 Syntax
 """"""
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    fix ID group-ID ave/grid Nevery Nrepeat Nfreq Nx Ny Nz value1 value2 ... keyword args ...
 
@@ -129,12 +129,12 @@ overlays the simulation box.  For 2d simulations, *Nz* must be 1.  The
 very coarse compared to the particle count, or very fine.  If one or
 more of the values = 1, then bins are 2d planes or 1d slices of the
 simulation domain.  Note that if the total number of grid cells is
-small, it may be more efficient to use the doc:`fix ave/chunk
+small, it may be more efficient to use the :doc:`fix ave/chunk
 <fix_ave_chunk>` command which can treat a grid defined by the
 :doc:`compute chunk/atom <compute_chunk_atom>` command as a global
 grid where each processor owns a copy of all the grid cells.  If *Nx*
 = *Ny* = *Nz* = 1 is used, the same calculation would be more
-efficiently performed by the doc:`fix ave/atom <fix_ave_atom>`
+efficiently performed by the :doc:`fix ave/atom <fix_ave_atom>`
 command.
 
 If the simulation box size or shape changes during a simulation, the

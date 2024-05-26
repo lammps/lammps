@@ -6,7 +6,7 @@ fix_modify AtC filter command
 Syntax
 """"""
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    fix_modify <AtC fixID> filter <on|off|equilibrate>
 

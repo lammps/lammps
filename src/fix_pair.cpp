@@ -21,7 +21,8 @@
 #include "memory.h"
 #include "pair.h"
 #include "update.h"
-#include "fmt/format.h"
+
+#include <cstring>
 
 using namespace LAMMPS_NS;
 using namespace FixConst;
@@ -283,11 +284,14 @@ void FixPair::post_force(int /*vflag*/)
 
     } else {
       double **parray = (double **) pvoid;
-      for (int i = 0; i < nlocal; i++)
+      int icoltmp = icol;
+      for (int i = 0; i < nlocal; i++) {
+        icol = icoltmp;
         for (int m = 0; m < columns; m++) {
           array[i][icol] = parray[i][m];
           icol++;
         }
+      }
     }
   }
 

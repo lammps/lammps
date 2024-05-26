@@ -63,10 +63,6 @@ PairSNAPKokkos<DeviceType, real_type, vector_length>::PairSNAPKokkos(LAMMPS *lmp
   datamask_read = EMPTY_MASK;
   datamask_modify = EMPTY_MASK;
 
-  k_cutsq = tdual_fparams("PairSNAPKokkos::cutsq",atom->ntypes+1,atom->ntypes+1);
-  auto d_cutsq = k_cutsq.template view<DeviceType>();
-  rnd_cutsq = d_cutsq;
-
   host_flag = (execution_space == Host);
 }
 
@@ -106,9 +102,9 @@ void PairSNAPKokkos<DeviceType, real_type, vector_length>::init_style()
   neighflag = lmp->kokkos->neighflag;
 
   auto request = neighbor->add_request(this, NeighConst::REQ_FULL);
-  request->set_kokkos_host(std::is_same<DeviceType,LMPHostType>::value &&
-                           !std::is_same<DeviceType,LMPDeviceType>::value);
-  request->set_kokkos_device(std::is_same<DeviceType,LMPDeviceType>::value);
+  request->set_kokkos_host(std::is_same_v<DeviceType,LMPHostType> &&
+                           !std::is_same_v<DeviceType,LMPDeviceType>);
+  request->set_kokkos_device(std::is_same_v<DeviceType,LMPDeviceType>);
   if (neighflag == FULL)
     error->all(FLERR,"Must use half neighbor list style with pair snap/kk");
 }
@@ -546,6 +542,9 @@ void PairSNAPKokkos<DeviceType, real_type, vector_length>::allocate()
 
   int n = atom->ntypes;
   MemKK::realloc_kokkos(d_map,"PairSNAPKokkos::map",n+1);
+
+  MemKK::realloc_kokkos(k_cutsq,"PairSNAPKokkos::cutsq",n+1,n+1);
+  rnd_cutsq = k_cutsq.template view<DeviceType>();
 }
 
 
@@ -1266,7 +1265,7 @@ template<int NEIGHFLAG, int EVFLAG>
 KOKKOS_INLINE_FUNCTION
 void PairSNAPKokkos<DeviceType, real_type, vector_length>::operator() (TagPairSNAPComputeForce<NEIGHFLAG,EVFLAG>, const int& ii, EV_FLOAT& ev) const {
 
-  // The f array is duplicated for OpenMP, atomic for CUDA, and neither for Serial
+  // The f array is duplicated for OpenMP, atomic for GPU, and neither for Serial
   auto v_f = ScatterViewHelper<NeedDup_v<NEIGHFLAG,DeviceType>,decltype(dup_f),decltype(ndup_f)>::get(dup_f,ndup_f);
   auto a_f = v_f.template access<AtomicDup_v<NEIGHFLAG,DeviceType>>();
 
@@ -1366,7 +1365,7 @@ void PairSNAPKokkos<DeviceType, real_type, vector_length>::v_tally_xyz(EV_FLOAT 
       const F_FLOAT &fx, const F_FLOAT &fy, const F_FLOAT &fz,
       const F_FLOAT &delx, const F_FLOAT &dely, const F_FLOAT &delz) const
 {
-  // The vatom array is duplicated for OpenMP, atomic for CUDA, and neither for Serial
+  // The vatom array is duplicated for OpenMP, atomic for GPU, and neither for Serial
 
   auto v_vatom = ScatterViewHelper<NeedDup_v<NEIGHFLAG,DeviceType>,decltype(dup_vatom),decltype(ndup_vatom)>::get(dup_vatom,ndup_vatom);
   auto a_vatom = v_vatom.template access<AtomicDup_v<NEIGHFLAG,DeviceType>>();

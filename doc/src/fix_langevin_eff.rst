@@ -6,7 +6,7 @@ fix langevin/eff command
 Syntax
 """"""
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    fix ID group-ID langevin/eff Tstart Tstop damp seed keyword values ...
 

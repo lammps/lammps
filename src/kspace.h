@@ -16,14 +16,6 @@
 
 #include "pointers.h"    // IWYU pragma: export
 
-#ifdef FFT_SINGLE
-typedef float FFT_SCALAR;
-#define MPI_FFT_SCALAR MPI_FLOAT
-#else
-typedef double FFT_SCALAR;
-#define MPI_FFT_SCALAR MPI_DOUBLE
-#endif
-
 namespace LAMMPS_NS {
 
 class KSpace : protected Pointers {

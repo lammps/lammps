@@ -127,11 +127,11 @@ result in more consistent heat flux values for angle, dihedrals,
 improper and constraint force contributions
 when computed via :doc:`compute heat/flux <compute_heat_flux>`.
 
-If no extra keywords are listed, the kinetic contribution all of the
-virial contribution terms are included in the per-atom stress tensor.
-If any extra keywords are listed, only those terms are summed to
-compute the tensor.  The *virial* keyword means include all terms
-except the kinetic energy *ke*\ .
+If no extra keywords are listed, the kinetic contribution *and* all
+of the virial contribution terms are included in the per-atom stress
+tensor.  If any extra keywords are listed, only those terms are
+summed to compute the tensor.  The *virial* keyword means include all
+terms except the kinetic energy *ke*\ .
 
 Note that the stress for each atom is due to its interaction with all
 other atoms in the simulation, not just with other atoms in the group.
@@ -223,7 +223,7 @@ result. I.e. the last 2 columns of thermo output will be the same:
    system pressure.
 
 The compute stress/atom can be used in a number of ways.  Here is an
-example to compute a 1-d pressure profile in z-direction across the
+example to compute a 1-d pressure profile in x-direction across the
 complete simulation box. You will need to adjust the number of bins and the
 selections for time averaging to your specific simulation.  This assumes
 that the dimensions of the simulation cell does not change.
@@ -289,7 +289,8 @@ Related commands
 Default
 """""""
 
-none
+By default the compute includes contributions from the keywords:
+``ke pair bond angle dihedral improper kspace fix``
 
 ----------
 

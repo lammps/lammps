@@ -228,28 +228,24 @@ void FixNHUef::init()
 
 
   // find conflict with fix/deform or other box chaging fixes
-  for (int i=0; i < modify->nfix; i++)
-  {
-    if (strcmp(modify->fix[i]->id,id) != 0)
-      if ((modify->fix[i]->box_change & BOX_CHANGE_SHAPE) != 0)
-        error->all(FLERR,"Can't use another fix which changes box shape with fix/nvt/npt/uef");
+  for (auto &ifix : modify->get_fix_list()) {
+    if (strcmp(ifix->id, id) != 0)
+      if ((ifix->box_change & BOX_CHANGE_SHAPE) != 0)
+        error->all(FLERR,"Can't use another fix which changes box shape with fix {}", style);
   }
 
 
   // this will make the pressure compute for nvt
   if (!pstat_flag)
     if (pcomputeflag) {
-      int icomp = modify->find_compute(id_press);
-      if (icomp<0)
-        error->all(FLERR,"Pressure ID for fix/nvt/uef doesn't exist");
-      pressure = modify->compute[icomp];
-
+      pressure = modify->get_compute_by_id(id_press);
+      if (!pressure) error->all(FLERR,"Pressure ID {} for {} doesn't exist", id_press, style);
       if (strcmp(pressure->style,"pressure/uef") != 0)
-        error->all(FLERR,"Using fix nvt/npt/uef without a compute pressure/uef");
+        error->all(FLERR,"Using fix {} without a compute pressure/uef", style);
     }
 
   if (strcmp(temperature->style,"temp/uef") != 0)
-    error->all(FLERR,"Using fix nvt/npt/uef without a compute temp/uef");
+    error->all(FLERR,"Using fix {} without a compute temp/uef", style);
 }
 
 /* ----------------------------------------------------------------------

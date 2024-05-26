@@ -153,7 +153,8 @@ Related commands
 Default
 """""""
 
-none
+By default the compute includes contributions from the keywords:
+``ke pair bond angle dihedral improper kspace fix``
 
 ----------
 

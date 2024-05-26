@@ -6,7 +6,7 @@ fix alchemy command
 Syntax
 """"""
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    fix ID group-ID alchemy v_name
 

@@ -82,14 +82,26 @@ class PythonPyLammps(unittest.TestCase):
         self.pylmp.variable("fx atom fx")
         self.pylmp.run(10)
 
-        self.assertEqual(len(self.pylmp.runs), 1)
-        self.assertEqual(self.pylmp.last_run, self.pylmp.runs[0])
-        self.assertEqual(len(self.pylmp.last_run.thermo.Step), 2)
-        self.assertEqual(len(self.pylmp.last_run.thermo.Temp), 2)
-        self.assertEqual(len(self.pylmp.last_run.thermo.E_pair), 2)
-        self.assertEqual(len(self.pylmp.last_run.thermo.E_mol), 2)
-        self.assertEqual(len(self.pylmp.last_run.thermo.TotEng), 2)
-        self.assertEqual(len(self.pylmp.last_run.thermo.Press), 2)
+        # thermo data is only captured during a run if PYTHON package is enabled
+        # without it, it will only capture the final thermo at completion
+        if self.pylmp.lmp.has_package("PYTHON"):
+            self.assertEqual(len(self.pylmp.runs), 1)
+            self.assertEqual(self.pylmp.last_run, self.pylmp.runs[0])
+            self.assertEqual(len(self.pylmp.last_run.thermo.Step), 2)
+            self.assertEqual(len(self.pylmp.last_run.thermo.Temp), 2)
+            self.assertEqual(len(self.pylmp.last_run.thermo.E_pair), 2)
+            self.assertEqual(len(self.pylmp.last_run.thermo.E_mol), 2)
+            self.assertEqual(len(self.pylmp.last_run.thermo.TotEng), 2)
+            self.assertEqual(len(self.pylmp.last_run.thermo.Press), 2)
+        else:
+            self.assertEqual(len(self.pylmp.runs), 1)
+            self.assertEqual(self.pylmp.last_run, self.pylmp.runs[0])
+            self.assertEqual(len(self.pylmp.last_run.thermo.Step), 1)
+            self.assertEqual(len(self.pylmp.last_run.thermo.Temp), 1)
+            self.assertEqual(len(self.pylmp.last_run.thermo.E_pair), 1)
+            self.assertEqual(len(self.pylmp.last_run.thermo.E_mol), 1)
+            self.assertEqual(len(self.pylmp.last_run.thermo.TotEng), 1)
+            self.assertEqual(len(self.pylmp.last_run.thermo.Press), 1)
 
     def test_info_queries(self):
         self.pylmp.lattice("fcc", 0.8442),

@@ -6,7 +6,7 @@ fix wall/piston command
 Syntax
 """"""
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    fix ID group-ID wall/piston face ... keyword value ...
 

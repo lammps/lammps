@@ -90,7 +90,7 @@ standard. A more detailed discussion of that is below.
       directory, or ``make`` from the ``src/STUBS`` dir.  If the build
       fails, you may need to edit the ``STUBS/Makefile`` for your
       platform.  The stubs library does not provide MPI/IO functions
-      required by some LAMMPS packages, e.g. ``MPIIO`` or ``LATBOLTZ``,
+      required by some LAMMPS packages, e.g. ``LATBOLTZ``,
       and thus is not compatible with those packages.
 
       .. note::
@@ -128,14 +128,13 @@ and adds vectorization support when compiled with compatible compilers,
 in particular the Intel compilers on top of OpenMP. Also, the ``KOKKOS``
 package can be compiled to include OpenMP threading.
 
-In addition, there are a few commands in LAMMPS that have native
-OpenMP support included as well.  These are commands in the ``MPIIO``,
-``ML-SNAP``, ``DIFFRACTION``, and ``DPD-REACT`` packages.
-Furthermore, some packages support OpenMP threading indirectly through
-the libraries they interface to: e.g. ``KSPACE``, and ``COLVARS``.
-See the :doc:`Packages details <Packages_details>` page for more info
-on these packages, and the pages for their respective commands for
-OpenMP threading info.
+In addition, there are a few commands in LAMMPS that have native OpenMP
+support included as well.  These are commands in the ``ML-SNAP``,
+``DIFFRACTION``, and ``DPD-REACT`` packages.  Furthermore, some packages
+support OpenMP threading indirectly through the libraries they interface
+to: e.g. ``KSPACE``, and ``COLVARS``.  See the :doc:`Packages details
+<Packages_details>` page for more info on these packages, and the pages
+for their respective commands for OpenMP threading info.
 
 For CMake, if you use ``BUILD_OMP=yes``, you can use these packages
 and turn on their native OpenMP support and turn on their native OpenMP
@@ -489,8 +488,9 @@ using CMake or Make.
 
       .. code-block:: bash
 
-         -D BUILD_TOOLS=value         # yes or no (default)
-         -D BUILD_LAMMPS_SHELL=value  # yes or no (default)
+         -D BUILD_TOOLS=value         # yes or no (default). Build binary2txt, chain.x, micelle2d.x, msi2lmp, phana, stl_bin2txt
+         -D BUILD_LAMMPS_SHELL=value  # yes or no (default). Build lammps-shell
+         -D BUILD_LAMMPS_GUI=value    # yes or no (default). Build lammps-gui
 
       The generated binaries will also become part of the LAMMPS installation
       (see below).
@@ -504,7 +504,6 @@ using CMake or Make.
          make binary2txt       # build only binary2txt tool
          make chain            # build only chain tool
          make micelle2d        # build only micelle2d tool
-         make thermo_extract   # build only thermo_extract tool
 
          cd lammps/tools/lammps-shell
          make                  # build LAMMPS shell

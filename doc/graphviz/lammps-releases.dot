@@ -1,0 +1,34 @@
+// LAMMPS branches and releases
+digraph releases {
+    rankdir="LR";
+    github [shape="box" label="Pull Requests\non GitHub" height=0.75];
+    github -> develop [label="Merge commits"];
+    {
+        rank = "same";
+        work [shape="none" label="Development branches:"]
+        develop [label="'develop' branch" height=0.75];
+        maintenance [label="'maintenance' branch" height=0.75];
+    };
+    {
+        rank = "same";
+        upload [shape="none" label="Release branches:"]
+        release [label="'release' branch" height=0.75];
+        stable [label="'stable' branch" height=0.75];
+    };
+    develop -> release [label="Feature release\n(every 4-8 weeks)"];
+    release -> stable [label="Stable release\n(once per year)"];
+    stable -> maintenance [label="Reset on stable release" style="setlinewidth(2)"];
+    develop -> maintenance [label="Backports of bugfixes" style="dashed"];
+    maintenance -> stable [label="Updates to stable release"];
+    {
+        rank = "same";
+        tag [shape="none" label="Applied tags:"];
+        patchtag [shape="box" label="patch_<date>"];
+        stabletag [shape="box" label="stable_<date>"];
+        updatetag [shape="box" label="stable_<date>_update<num>"];
+    };
+    release -> patchtag [label="feature release" style="dotted"];
+    stable -> stabletag [label="stable release" style="dotted"];
+    stable -> updatetag [label="update release" style="dotted"];
+}
+

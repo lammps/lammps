@@ -14,7 +14,7 @@ class Many2One {
  protected:
   int me,nprocs;
   MPI_Comm comm;
-  class Memory *memory;
+  class MemoryLib *memory;
 
   int nsrc,nall;
   int *counts,*multicounts;

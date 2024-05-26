@@ -3,8 +3,8 @@
 #include <cstdio>
 #include "many2many.h"
 #include "irregular.h"
-#include "memory.h"
-#include "error.h"
+#include "memorylib.h"
+#include "errorlib.h"
 
 #include <map>
 
@@ -18,8 +18,8 @@ Many2Many::Many2Many(MPI_Comm caller)
   MPI_Comm_rank(comm,&me);
   MPI_Comm_size(comm,&nprocs);
 
-  memory = new Memory(comm);
-  error = new Error(comm);
+  memory = new MemoryLib(comm);
+  error = new ErrorLib(comm);
 
   src_own = dest_own = NULL;
   src_off = dest_off = NULL;

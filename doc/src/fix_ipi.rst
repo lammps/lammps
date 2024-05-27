@@ -39,10 +39,17 @@ wrapper :ref:`(IPI) <ipihome>` for performing a path integral molecular dynamics
 (PIMD) simulation.  The philosophy behind i-PI is described in the
 following publication :ref:`(IPI-CPC) <IPICPC>`.
 
-A version of the i-PI package, containing only files needed for use
-with LAMMPS, is provided in the tools/i-pi directory.  See the
-tools/i-pi/manual.pdf for an introduction to i-PI.  The
-examples/PACKAGES/i-pi directory contains example scripts for using i-PI
+Here are the commands to set up a virtual environment and install i-PI
+into it with all its dependencies via the PyPi repository and the pip package manager.
+
+.. code-block:: sh
+
+   python -m venv ipienv
+   source ipienv/bin/activate
+   pip install --upgrade pip
+   pip install i-PI
+
+The examples/PACKAGES/i-pi directory contains example scripts for using i-PI
 with LAMMPS.
 
 In brief, the path integral molecular dynamics is performed by the

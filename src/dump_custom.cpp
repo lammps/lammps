@@ -23,6 +23,7 @@
 #include "fix_store_atom.h"
 #include "group.h"
 #include "input.h"
+#include "label_map.h"
 #include "memory.h"
 #include "modify.h"
 #include "region.h"
@@ -36,7 +37,7 @@ using namespace LAMMPS_NS;
 // customize by adding keyword
 // also customize compute_property_atom.cpp
 
-enum{ID,MOL,PROC,PROCP1,TYPE,ELEMENT,MASS,
+enum{ID,MOL,PROC,PROCP1,TYPE,TYPELABEL,ELEMENT,MASS,
      X,Y,Z,XS,YS,ZS,XSTRI,YSTRI,ZSTRI,XU,YU,ZU,XUTRI,YUTRI,ZUTRI,
      XSU,YSU,ZSU,XSUTRI,YSUTRI,ZSUTRI,
      IX,IY,IZ,
@@ -140,6 +141,7 @@ DumpCustom::DumpCustom(LAMMPS *lmp, int narg, char **arg) :
     if (vtype[i] == Dump::INT) cols += "%d ";
     else if (vtype[i] == Dump::DOUBLE) cols += "%g ";
     else if (vtype[i] == Dump::STRING) cols += "%s ";
+    else if (vtype[i] == Dump::STRING2) cols += "%s ";
     else if (vtype[i] == Dump::BIGINT) cols += BIGINT_FORMAT " ";
     vformat[i] = nullptr;
   }
@@ -695,7 +697,12 @@ int DumpCustom::count()
         for (i = 0; i < nlocal; i++) dchoose[i] = type[i];
         ptr = dchoose;
         nstride = 1;
-      } else if (thresh_array[ithresh] == ELEMENT) {
+      } else if (thresh_array[ithresh] == TYPELABEL) { // dead code?
+        int *type = atom->type;
+        for (i = 0; i < nlocal; i++) dchoose[i] = type[i];
+        ptr = dchoose;
+        nstride = 1;
+      } else if (thresh_array[ithresh] == ELEMENT) { // dead code?
         int *type = atom->type;
         for (i = 0; i < nlocal; i++) dchoose[i] = type[i];
         ptr = dchoose;
@@ -1235,6 +1242,8 @@ int DumpCustom::convert_string(int n, double *mybuf)
         offset += sprintf(&sbuf[offset],vformat[j],mybuf[m]);
       else if (vtype[j] == Dump::STRING)
         offset += sprintf(&sbuf[offset],vformat[j],typenames[(int) mybuf[m]]);
+      else if (vtype[j] == Dump::STRING2)
+        offset += sprintf(&sbuf[offset],vformat[j],atom->lmap->typelabel[(int) mybuf[m]-1].c_str());
       else if (vtype[j] == Dump::BIGINT)
         offset += sprintf(&sbuf[offset],vformat[j],
                           static_cast<bigint> (mybuf[m]));
@@ -1283,6 +1292,8 @@ void DumpCustom::write_lines(int n, double *mybuf)
       else if (vtype[j] == Dump::DOUBLE) fprintf(fp,vformat[j],mybuf[m]);
       else if (vtype[j] == Dump::STRING)
         fprintf(fp,vformat[j],typenames[(int) mybuf[m]]);
+      else if (vtype[j] == Dump::STRING2)
+        fprintf(fp,vformat[j],atom->lmap->typelabel[(int) mybuf[m]-1].c_str());
       else if (vtype[j] == Dump::BIGINT)
         fprintf(fp,vformat[j],static_cast<bigint> (mybuf[m]));
       m++;
@@ -1323,6 +1334,9 @@ int DumpCustom::parse_fields(int narg, char **arg)
     } else if (strcmp(arg[iarg],"element") == 0) {
       pack_choice[iarg] = &DumpCustom::pack_type;
       vtype[iarg] = Dump::STRING;
+    } else if (strcmp(arg[iarg],"typelabel") == 0) {
+      pack_choice[iarg] = &DumpCustom::pack_type;
+      vtype[iarg] = Dump::STRING2;
     } else if (strcmp(arg[iarg],"mass") == 0) {
       pack_choice[iarg] = &DumpCustom::pack_mass;
       vtype[iarg] = Dump::DOUBLE;

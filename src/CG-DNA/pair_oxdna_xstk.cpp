@@ -751,7 +751,7 @@ void PairOxdnaXstk::coeff(int narg, char **arg)
     MPI_Bcast(&cut_xst_c_one, 1, MPI_DOUBLE, 0, world);
     MPI_Bcast(&cut_xst_lo_one, 1, MPI_DOUBLE, 0, world);
     MPI_Bcast(&cut_xst_hi_one, 1, MPI_DOUBLE, 0, world);
-    
+ 
     MPI_Bcast(&a_xst1_one, 1, MPI_DOUBLE, 0, world);
     MPI_Bcast(&theta_xst1_0_one, 1, MPI_DOUBLE, 0, world);
     MPI_Bcast(&dtheta_xst1_ast_one, 1, MPI_DOUBLE, 0, world);

@@ -58,8 +58,7 @@ Examples
    be changed without reparameterizing the entire model. They are provided in forms
    compatible with both *units lj* and *units real* (see documentation of :doc:`units <units>`).
    These can also be read from a potential file with correct unit style by specifying the name
-   of the file. Several potential files for each unit style are included in the 
-   /potentials/ directory of the LAMMPS distribution.
+   of the file. Several potential files for each unit style are included in the /potentials/ directory of the LAMMPS distribution.
 
 Description
 """""""""""
@@ -146,7 +145,7 @@ For each style oxdna, oxdna2 and oxrna2, the first parameter argument can be a f
    bond_style oxdna/fene
    bond_coeff * oxdna.lj
 
-will be interpreted as a request to read the (FENE) potential :ref:`(Ouldridge) <Ouldridge0>` parameters from the file with the given name. 
+will be interpreted as a request to read the (FENE) potential :ref:`(Ouldridge) <Ouldridge0>` parameters from the file with the given name.
 The file can define multiple potential parameters for both bonded and pair interactions, but for the above bonded interactions there must exist in the file a line of the form:
 
 .. code-block:: LAMMPS
@@ -154,8 +153,7 @@ The file can define multiple potential parameters for both bonded and pair inter
    *   fene    epsilon delta r0
 
 There are sample potential files for each unit style in the /potentials/ directory of the LAMMPS distribution. The potential file unit system must align with
-the units defined via the :doc:`units <units>` command. For conversion between different *LJ* and *real* unit systems for oxDNA, the python tool *lj2real.py* located in the examples/PACKAGES/cgdna/util/ 
-directory can be used. This tool assumes similar file structure to the examples found in examples/PACKAGES/cgdna/examples/.
+the units defined via the :doc:`units <units>` command. For conversion between different *LJ* and *real* unit systems for oxDNA, the python tool *lj2real.py* located in the examples/PACKAGES/cgdna/util/ directory can be used. This tool assumes similar file structure to the examples found in examples/PACKAGES/cgdna/examples/.
 
 ----------
 

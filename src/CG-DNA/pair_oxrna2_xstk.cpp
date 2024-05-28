@@ -675,7 +675,7 @@ void PairOxrna2Xstk::coeff(int narg, char **arg)
             a_xst8_one = values.next_double();
             theta_xst8_0_one = values.next_double();
             dtheta_xst8_ast_one = values.next_double();
-          
+ 
           break;
           } else continue;
         } catch (std::exception &e) {

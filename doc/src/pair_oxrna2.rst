@@ -41,7 +41,7 @@ Syntax
 
      *oxrna2/stk* args = seq T xi kappa 6.0 0.43 0.93 0.35 0.78 0.9 0 0.95 0.9 0 0.95 1.3 0 0.8 1.3 0 0.8 2.0 0.65 2.0 0.65
        seq = seqav (for average sequence stacking strength) or seqdep (for sequence-dependent stacking strength)
-       T = temperature (LJ units: 0.1 = 300 K, real units: 300 = 300 K) 
+       T = temperature (LJ units: 0.1 = 300 K, real units: 300 = 300 K)
        xi = 1.40206 (LJ units) or 8.35864576375849 (real units), temperature-independent coefficient in stacking strength
        kappa = 2.77 (LJ units) or 0.005504556 (real units), coefficient of linear temperature dependence in stacking strength
      *oxrna2/hbond* args = seq eps 8.0 0.4 0.75 0.34 0.7 1.5 0 0.7 1.5 0 0.7 1.5 0 0.7 0.46 3.141592653589793 0.7 4.0 1.5707963267948966 0.45 4.0 1.5707963267948966 0.45
@@ -106,8 +106,7 @@ Examples
 .. note::
 
    The coefficients in the above examples are provided in forms compatible with both *units lj* and *units real* (see documentation of :doc:`units <units>`).
-   These can also be read from a potential file with correct unit style by specifying the name of the file. Several potential files for each unit style are included in the 
-   /potentials/ directory of the LAMMPS distribution.
+   These can also be read from a potential file with correct unit style by specifying the name of the file. Several potential files for each unit style are included in the /potentials/ directory of the LAMMPS distribution.
 
 Description
 """""""""""
@@ -174,7 +173,7 @@ Therefore the following command:
 
    pair_coeff 3 4 oxrna2/hbond   seqdep oxrna2.lj
 
-will be interpreted as a request to read the corresponding hydrogen bonding potential parameters from the file with the given name. 
+will be interpreted as a request to read the corresponding hydrogen bonding potential parameters from the file with the given name.
 The file can define multiple potential parameters for both bonded and pair interactions, but for the example pair interaction above there must exist in the file a line of the form:
 
 .. code-block:: LAMMPS
@@ -199,8 +198,7 @@ If potential customization is required, the potential file reading can be mixed 
 will read the excluded volume and Debye-Hueckel effective charge *qeff* parameters from the manual specification and all others from the potential file *oxrna2.lj*.
 
 There are sample potential files for each unit style in the /potentials/ directory of the LAMMPS distribution. The potential file unit system must align with
-the units defined via the :doc:`units <units>` command. For conversion between different *LJ* and *real* unit systems for oxDNA, the python tool *lj2real.py* located in the examples/PACKAGES/cgdna/util/ 
-directory can be used. This tool assumes similar file structure to the examples found in examples/PACKAGES/cgdna/examples/.
+the units defined via the :doc:`units <units>` command. For conversion between different *LJ* and *real* unit systems for oxDNA, the python tool *lj2real.py* located in the examples/PACKAGES/cgdna/util/ directory can be used. This tool assumes similar file structure to the examples found in examples/PACKAGES/cgdna/examples/.
 
 ----------
 

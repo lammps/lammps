@@ -868,7 +868,7 @@ void PairOxdnaStk::coeff(int narg, char **arg)
             cosphi_st1_ast_one = values.next_double();
             a_st2_one = values.next_double();
             cosphi_st2_ast_one = values.next_double();
-            
+ 
             break;
           } else continue;
         } catch (std::exception &e) {

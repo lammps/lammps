@@ -225,7 +225,7 @@ void BondOxdnaFene::compute(int eflag, int vflag)
       ebond = -0.5 * k[type] * log(rlogarg);
     }
 
-    // switching to capped force for r-r0 -> Delta at 
+    // switching to capped force for r-r0 -> Delta at
     // r > r_max = r0 + Delta*sqrt(1-rlogarg) OR
     // r < r_min = r0 - Delta*sqrt(1-rlogarg)
     if (rlogarg < rlogarg_min) {
@@ -356,7 +356,7 @@ void BondOxdnaFene::coeff(int narg, char **arg)
       }
       if (iloc != arg[0] || potential_name != "fene") error->one(FLERR, "No corresponding fene potential found in file {} for bond type {}", arg[1], arg[0]);
     }
-    
+
     MPI_Bcast(&k_one, 1, MPI_DOUBLE, 0, world);
     MPI_Bcast(&Delta_one, 1, MPI_DOUBLE, 0, world);
     MPI_Bcast(&r0_one, 1, MPI_DOUBLE, 0, world);

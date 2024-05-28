@@ -102,8 +102,7 @@ Examples
 .. note::
 
    The coefficients in the above examples are provided in forms compatible with both *units lj* and *units real* (see documentation of :doc:`units <units>`).
-   These can also be read from a potential file with correct unit style by specifying the name of the file. Several potential files for each unit style are included in the 
-   /potentials/ directory of the LAMMPS distribution.
+   These can also be read from a potential file with correct unit style by specifying the name of the file. Several potential files for each unit style are included in the /potentials/ directory of the LAMMPS distribution.
 
 Description
 """""""""""
@@ -170,7 +169,7 @@ Therefore the following command:
 
    pair_coeff 1 4 oxdna2/hbond   seqdep oxdna.real
 
-will be interpreted as a request to read the corresponding hydrogen bonding potential parameters from the file with the given name. 
+will be interpreted as a request to read the corresponding hydrogen bonding potential parameters from the file with the given name.
 The file can define multiple potential parameters for both bonded and pair interactions, but for the example pair interaction above there must exist in the file a line of the form:
 
 .. code-block:: LAMMPS
@@ -194,8 +193,7 @@ If potential customization is required, the potential file reading can be mixed 
 will read the excluded volume and Debye-Hueckel effective charge *qeff* parameters from the manual specification and all others from the potential file *oxdna2.lj*.
 
 There are sample potential files for each unit style in the /potentials/ directory of the LAMMPS distribution. The potential file unit system must align with
-the units defined via the :doc:`units <units>` command. For conversion between different *LJ* and *real* unit systems for oxDNA, the python tool *lj2real.py* located in the examples/PACKAGES/cgdna/util/ 
-directory can be used. This tool assumes similar file structure to the examples found in examples/PACKAGES/cgdna/examples/.
+the units defined via the :doc:`units <units>` command. For conversion between different *LJ* and *real* unit systems for oxDNA, the python tool *lj2real.py* located in the examples/PACKAGES/cgdna/util/ directory can be used. This tool assumes similar file structure to the examples found in examples/PACKAGES/cgdna/examples/.
 
 ----------
 

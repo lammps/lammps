@@ -60,9 +60,9 @@ void ConstantsOxdna::set_real_units()
   // oxRNA 2 parameters in real units
   // d_cs_x = -3.4072 = d_cs for RNA
   d_cs_z = +1.7036;
-  d_cst_x_3p = +3.4072, 
+  d_cst_x_3p = +3.4072;
   d_cst_y_3p = +0.8518;
-  d_cst_x_5p = +1.063949977, 
+  d_cst_x_5p = +1.063949977;
   d_cst_y_5p = -0.07378929747;
 };
 

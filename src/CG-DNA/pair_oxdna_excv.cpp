@@ -574,7 +574,7 @@ void PairOxdnaExcv::coeff(int narg, char **arg)
       }
       if (iloc != arg[0] || jloc != arg[1] || potential_name != "excv") error->one(FLERR, "No corresponding excv potential found in file {} for pair type {} {}", arg[2], arg[0], arg[1]);
     }
-    
+
     MPI_Bcast(&epsilon_ss_one, 1, MPI_DOUBLE, 0, world);
     MPI_Bcast(&sigma_ss_one, 1, MPI_DOUBLE, 0, world);
     MPI_Bcast(&cut_ss_ast_one, 1, MPI_DOUBLE, 0, world);
@@ -587,7 +587,7 @@ void PairOxdnaExcv::coeff(int narg, char **arg)
     MPI_Bcast(&sigma_bb_one, 1, MPI_DOUBLE, 0, world);
     MPI_Bcast(&cut_bb_ast_one, 1, MPI_DOUBLE, 0, world);
   }
-  
+
   // smoothing - determined through continuity and differentiability
   b_ss_one = 4.0/sigma_ss_one
       *(6.0*pow(sigma_ss_one/cut_ss_ast_one,7)-12.0*pow(sigma_ss_one/cut_ss_ast_one,13))

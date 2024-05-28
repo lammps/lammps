@@ -776,7 +776,7 @@ void PairOxdnaHbond::coeff(int narg, char **arg)
     MPI_Bcast(&a_hb3_one, 1, MPI_DOUBLE, 0, world);
     MPI_Bcast(&theta_hb3_0_one, 1, MPI_DOUBLE, 0, world);
     MPI_Bcast(&dtheta_hb3_ast_one, 1, MPI_DOUBLE, 0, world);
- 
+
     MPI_Bcast(&a_hb4_one, 1, MPI_DOUBLE, 0, world);
     MPI_Bcast(&theta_hb4_0_one, 1, MPI_DOUBLE, 0, world);
     MPI_Bcast(&dtheta_hb4_ast_one, 1, MPI_DOUBLE, 0, world);

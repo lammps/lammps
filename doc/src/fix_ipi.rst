@@ -131,7 +131,7 @@ Related commands
 
 .. _IPICPC2:
 
-**(IPI-CPC-2019)** Kapil et al., Comp Phys Comm 236, 214–223 (2019).
+**(IPI-CPC-2019)** Kapil et al., Comp Phys Comm 236, 214-223 (2019).
 
 
 .. _ipihome:

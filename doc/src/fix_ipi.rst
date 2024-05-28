@@ -35,23 +35,23 @@ Description
 """""""""""
 
 This fix enables LAMMPS to be run as a client for the i-PI Python
-wrapper :ref:`(IPI) <ipihome>`. i-PI is a universal force engine, 
+wrapper :ref:`(IPI) <ipihome>`. i-PI is a universal force engine,
 designed to perform advanced molecular simulations, with a special
-focus on path integral molecular dynamics (PIMD) simulation. 
-The philosophy behind i-PI is to separate the evaluation of the 
+focus on path integral molecular dynamics (PIMD) simulation.
+The philosophy behind i-PI is to separate the evaluation of the
 energy and forces, which is delegated to the client, and the evolution
 of the dynamics, that is the responsibility of i-PI. This approach also
 simplifies combining energies computed from different codes, which
-can for instance be useful to mix first-principles calculations, 
-empirical force fields or machine-learning potentials. 
-The following publication :ref:`(IPI-CPC-2014) <IPICPC>` discusses the 
+can for instance be useful to mix first-principles calculations,
+empirical force fields or machine-learning potentials.
+The following publication :ref:`(IPI-CPC-2014) <IPICPC>` discusses the
 overall implementation of i-PI, and focuses on path-integral techniques,
 while a later release :ref:`(IPI-CPC-2019) <IPICPC2>` introduces several
-additional features and simulation schemes. 
+additional features and simulation schemes.
 
-The communication between i-PI and LAMMPS takes place using sockets, 
-and is reduced to the bare minimum. All the parameters of the dynamics 
-are specified in the input of i-PI, and all the parameters of the force 
+The communication between i-PI and LAMMPS takes place using sockets,
+and is reduced to the bare minimum. All the parameters of the dynamics
+are specified in the input of i-PI, and all the parameters of the force
 field must be specified as LAMMPS inputs, preceding the *fix ipi* command.
 
 The server address must be specified by the *address* argument, and
@@ -81,7 +81,7 @@ Obtaining i-PI
 
 A simple version of the i-PI package, containing only files needed for use
 with LAMMPS, is provided in the tools/i-pi directory. We recommend you
-obtain the latest stable version from the github repository of i-PI, 
+obtain the latest stable version from the github repository of i-PI,
 or from the python package index.
 
 Restart, fix_modify, output, run start/stop, minimize info

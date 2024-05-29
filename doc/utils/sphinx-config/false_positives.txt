@@ -3255,6 +3255,7 @@ rRESPA
 Rsi
 Rso
 Rspace
+rsort
 rsq
 rst
 rstyle

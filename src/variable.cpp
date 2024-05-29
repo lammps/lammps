@@ -40,9 +40,11 @@
 
 #include "fmt/ranges.h"
 
+#include <algorithm>
 #include <cctype>
 #include <cmath>
 #include <cstring>
+#include <functional>
 #include <unordered_map>
 
 using namespace LAMMPS_NS;
@@ -53,6 +55,12 @@ static constexpr int MAXLEVEL = 4;
 static constexpr int MAXLINE = 256;
 static constexpr int CHUNK = 1024;
 static constexpr int MAXFUNCARG = 6;
+
+// must match enumerator in variable.h
+const std::vector<std::string> Variable::varstyles = {
+  "index", "loop", "world", "universe", "uloop", "string", "getenv",
+  "file", "atomfile", "format", "equal", "atom", "vector", "python",
+  "timer", "internal", "(unknown)"};
 
 static inline double MYROUND(double a) { return ((a - floor(a)) >= 0.5) ? ceil(a) : floor(a); }
 
@@ -73,7 +81,7 @@ enum{DONE,ADD,SUBTRACT,MULTIPLY,DIVIDE,CARAT,MODULO,UNARY,
 
 // customize by adding a special function
 
-enum{SUM,XMIN,XMAX,AVE,TRAP,SLOPE};
+enum{SUM,XMIN,XMAX,AVE,TRAP,SLOPE,SORT,RSORT,NOVECTOR};
 
 static constexpr double BIG = 1.0e20;
 
@@ -2279,7 +2287,7 @@ double Variable::evaluate(char *str, Tree **tree, int ivar)
 
           if (math_function(word,contents,tree,treestack,ntreestack,argstack,nargstack,ivar));
           else if (group_function(word,contents,tree,treestack,ntreestack,argstack,nargstack,ivar));
-          else if (special_function(word,contents,tree,treestack,ntreestack,argstack,nargstack,ivar));
+          else if (special_function(std::string(word),contents,tree,treestack,ntreestack,argstack,nargstack,ivar,str,i,ptr));
           else if (feature_function(word,contents,tree,treestack,ntreestack,argstack,nargstack,ivar));
           else print_var_error(FLERR,fmt::format("Invalid math/group/special/feature function '{}()' "
                                                  "in variable formula", word),ivar);
@@ -4261,32 +4269,34 @@ Region *Variable::region_function(char *id, int ivar)
      extract_setting(x),label2type(x,y),is_typelabel(x,y)
 ------------------------------------------------------------------------- */
 
-int Variable::special_function(char *word, char *contents, Tree **tree, Tree **treestack,
-                               int &ntreestack, double *argstack, int &nargstack, int ivar)
+// to simplify finding matches and assigning constants for functions operating on vectors
+
+static const std::unordered_map<std::string,int> special_function_map = {
+  {"sum", SUM}, {"min", XMIN}, {"max", XMAX}, {"ave", AVE}, {"trap", TRAP}, {"slope", SLOPE},
+  {"sort", SORT}, {"rsort", RSORT}, {"gmask", NOVECTOR}, {"rmask", NOVECTOR}, {"grmask", NOVECTOR},
+  {"next", NOVECTOR}, {"is_file", NOVECTOR}, {"is_os", NOVECTOR}, {"extract_setting", NOVECTOR},
+  {"label2type", NOVECTOR}, {"is_typelabel", NOVECTOR} };
+
+int Variable::special_function(const std::string &word, char *contents, Tree **tree,
+                               Tree **treestack, int &ntreestack, double *argstack,
+                               int &nargstack, int ivar, char *str, int &istr, char *&ptr)
 {
   double sx,sxx;
   double value,sy,sxy;
 
-  // word is not a match to any special function
-
-  if (strcmp(word,"sum") != 0 && strcmp(word,"min") && strcmp(word,"max") != 0 &&
-      strcmp(word,"ave") != 0 && strcmp(word,"trap") != 0 && strcmp(word,"slope") != 0 &&
-      strcmp(word,"gmask") != 0 && strcmp(word,"rmask") != 0 && strcmp(word,"grmask") != 0 &&
-      strcmp(word,"next") != 0 && strcmp(word,"is_file") != 0 && strcmp(word,"is_os") != 0 &&
-      strcmp(word,"extract_setting") != 0 && strcmp(word,"label2type") != 0 &&
-      strcmp(word,"is_typelabel") != 0)
-    return 0;
+  // return if "word" is not a match to any special function
+  if (special_function_map.find(word) == special_function_map.end()) return 0;
 
   // process label2type() separately b/c its label arg can have commas in it
 
-  if (strcmp(word,"label2type") == 0 || strcmp(word,"is_typelabel") == 0) {
+  if ((word == "label2type") || (word == "is_typelabel")) {
     if (!atom->labelmapflag)
       print_var_error(FLERR,fmt::format("Cannot use {}() function without a labelmap",word),ivar);
 
     std::string contents_copy(contents);
     auto pos = contents_copy.find_first_of(',');
     if (pos == std::string::npos) {
-      if (strcmp(word,"label2type") == 0) {
+      if (word == "label2type") {
         print_var_error(FLERR, fmt::format("Invalid label2type({}) function in variable formula",
                                            contents_copy), ivar);
       } else {
@@ -4313,7 +4323,7 @@ int Variable::special_function(char *word, char *contents, Tree **tree, Tree **t
       print_var_error(FLERR, fmt::format("Invalid kind {} in {}() in variable", kind, word),ivar);
     }
 
-    if (strcmp(word,"label2type") == 0) {
+    if (word == "label2type") {
       if (value == -1)
         print_var_error(FLERR, fmt::format("Invalid {} type label {} in label2type() in variable",
                                            kind, typestr), ivar);
@@ -4340,22 +4350,13 @@ int Variable::special_function(char *word, char *contents, Tree **tree, Tree **t
   char *args[MAXFUNCARG];
   int narg = parse_args(contents,args);
 
-  // special functions that operate on global vectors
+  // special functions that operate on global vectors are NOT mapped to NOVECTOR
 
-  if (strcmp(word,"sum") == 0 || strcmp(word,"min") == 0 ||
-      strcmp(word,"max") == 0 || strcmp(word,"ave") == 0 ||
-      strcmp(word,"trap") == 0 || strcmp(word,"slope") == 0) {
-
-    int method = 0;
-    if (strcmp(word,"sum") == 0) method = SUM;
-    else if (strcmp(word,"min") == 0) method = XMIN;
-    else if (strcmp(word,"max") == 0) method = XMAX;
-    else if (strcmp(word,"ave") == 0) method = AVE;
-    else if (strcmp(word,"trap") == 0) method = TRAP;
-    else if (strcmp(word,"slope") == 0) method = SLOPE;
+  int method = special_function_map.find(word)->second;
+  if (method != NOVECTOR) {
 
     if (narg != 1)
-      print_var_error(FLERR,"Invalid special function in variable formula",ivar);
+      print_var_error(FLERR,fmt::format("Invalid special function {}() in variable formula", word),ivar);
 
     Compute *compute = nullptr;
     Fix *fix = nullptr;
@@ -4473,6 +4474,7 @@ int Variable::special_function(char *word, char *contents, Tree **tree, Tree **t
     if (method == SLOPE) sx = sxx = sy = sxy = 0.0;
     else if (method == XMIN) value = BIG;
     else if (method == XMAX) value = -BIG;
+    std::vector<double> unsorted;
 
     if (compute) {
       double *vec;
@@ -4481,6 +4483,7 @@ int Variable::special_function(char *word, char *contents, Tree **tree, Tree **t
         else vec = nullptr;
       } else vec = compute->vector;
 
+      if ((method == SORT) || (method == RSORT)) unsorted.reserve(nvec);
       int j = 0;
       for (int i = 0; i < nvec; i++) {
         if (method == SUM) value += vec[j];
@@ -4488,6 +4491,7 @@ int Variable::special_function(char *word, char *contents, Tree **tree, Tree **t
         else if (method == XMAX) value = MAX(value,vec[j]);
         else if (method == AVE) value += vec[j];
         else if (method == TRAP) value += vec[j];
+        else if ((method == SORT) || (method == RSORT)) unsorted.push_back(vec[j]);
         else if (method == SLOPE) {
           sx += (double)i;
           sy += vec[j];
@@ -4509,6 +4513,7 @@ int Variable::special_function(char *word, char *contents, Tree **tree, Tree **t
         else if (method == XMAX) value = MAX(value,one);
         else if (method == AVE) value += one;
         else if (method == TRAP) value += one;
+        else if ((method == SORT) || (method == RSORT)) unsorted.push_back(one);
         else if (method == SLOPE) {
           sx += (double)i;
           sy += one;
@@ -4534,6 +4539,7 @@ int Variable::special_function(char *word, char *contents, Tree **tree, Tree **t
         else if (method == XMAX) value = MAX(value,one);
         else if (method == AVE) value += one;
         else if (method == TRAP) value += one;
+        else if ((method == SORT) || (method == RSORT)) unsorted.push_back(one);
         else if (method == SLOPE) {
           sx += (double) i;
           sy += one;
@@ -4553,18 +4559,55 @@ int Variable::special_function(char *word, char *contents, Tree **tree, Tree **t
       else value = BIG;
     }
 
-    // save value in tree or on argstack
+    if ((method == SORT) || (method == RSORT)) {
+      if (method == SORT) std::sort(unsorted.begin(), unsorted.end(), std::less<double>());
+      if (method == RSORT) std::sort(unsorted.begin(), unsorted.end(), std::greater<double>());
 
-    if (tree) {
-      auto newtree = new Tree();
-      newtree->type = VALUE;
-      newtree->value = value;
-      treestack[ntreestack++] = newtree;
-    } else argstack[nargstack++] = value;
+      if (tree) {
+        double *newvec;
+        memory->create(newvec,nvec,"variable:values");
+        for (int m = 0; m < nvec; m++)
+          newvec[m] = unsorted[m];
+
+        auto newtree = new Tree();
+        newtree->type = VECTORARRAY;
+        newtree->array = newvec;
+        newtree->nvector = nvec;
+        newtree->nstride = 1;
+        newtree->selfalloc = 1;
+        treestack[ntreestack++] = newtree;
+
+      } else {
+
+        // process one pair of trailing brackets
+        // point istr beyond last bracket
+        // nbracket = # of bracket pairs
+        // index    = int inside each bracket pair, vector index
+
+        if (str[istr] == '[') {
+          ptr = &str[istr];
+          int index = int_between_brackets(ptr,1);
+          if (index > nvec)
+            print_var_error(FLERR, fmt::format("index {} exceeds vector size of {}\n", index, nvec),ivar);
+          istr = ptr-str+1;
+          argstack[nargstack++] = unsorted[index-1];
+        }
+      }
+    } else {
+
+      // save value in tree or on argstack
+
+      if (tree) {
+        auto newtree = new Tree();
+        newtree->type = VALUE;
+        newtree->value = value;
+        treestack[ntreestack++] = newtree;
+      } else argstack[nargstack++] = value;
+    }
 
   // mask special functions
 
-  } else if (strcmp(word,"gmask") == 0) {
+  } else if (word == "gmask") {
     if (tree == nullptr)
       print_var_error(FLERR,"Gmask function in equal-style variable formula",ivar);
     if (narg != 1)
@@ -4579,7 +4622,7 @@ int Variable::special_function(char *word, char *contents, Tree **tree, Tree **t
     newtree->ivalue = group->bitmask[igroup];
     treestack[ntreestack++] = newtree;
 
-  } else if (strcmp(word,"rmask") == 0) {
+  } else if (word == "rmask") {
     if (tree == nullptr)
       print_var_error(FLERR,"Rmask function in equal-style variable formula",ivar);
     if (narg != 1)
@@ -4593,7 +4636,7 @@ int Variable::special_function(char *word, char *contents, Tree **tree, Tree **t
     newtree->region = region;
     treestack[ntreestack++] = newtree;
 
-  } else if (strcmp(word,"grmask") == 0) {
+  } else if (word == "grmask") {
     if (tree == nullptr)
       print_var_error(FLERR,"Grmask function in equal-style variable formula",ivar);
     if (narg != 2)
@@ -4613,7 +4656,7 @@ int Variable::special_function(char *word, char *contents, Tree **tree, Tree **t
 
   // special function for file-style or atomfile-style variables
 
-  } else if (strcmp(word,"next") == 0) {
+  } else if (word == "next") {
     if (narg != 1)
       print_var_error(FLERR,"Invalid special function in variable formula",ivar);
 
@@ -4664,7 +4707,7 @@ int Variable::special_function(char *word, char *contents, Tree **tree, Tree **t
 
     } else print_var_error(FLERR,"Invalid variable style in special function next",ivar);
 
-  } else if (strcmp(word,"is_file") == 0) {
+  } else if (word == "is_file") {
     if (narg != 1)
       print_var_error(FLERR,"Invalid is_file() function in variable formula",ivar);
 
@@ -4681,7 +4724,7 @@ int Variable::special_function(char *word, char *contents, Tree **tree, Tree **t
       treestack[ntreestack++] = newtree;
     } else argstack[nargstack++] = value;
 
-  } else if (strcmp(word,"is_os") == 0) {
+  } else if (word == "is_os") {
     if (narg != 1) print_var_error(FLERR,"Invalid is_os() function in variable formula",ivar);
     value = utils::strmatch(platform::os_info(), args[0]) ? 1.0 : 0.0;
 
@@ -4694,7 +4737,7 @@ int Variable::special_function(char *word, char *contents, Tree **tree, Tree **t
       treestack[ntreestack++] = newtree;
     } else argstack[nargstack++] = value;
 
-  } else if (strcmp(word,"extract_setting") == 0) {
+  } else if (word == "extract_setting") {
     if (narg != 1) print_var_error(FLERR,"Invalid extract_setting() function in variable formula",ivar);
 
     value = lammps_extract_setting(lmp, args[0]);

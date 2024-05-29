@@ -42,6 +42,8 @@ using namespace LAMMPS_NS;
 using namespace MathConst;
 using namespace MathSpecial;
 
+//#define _NO_RANDOM
+
 /* ---------------------------------------------------------------------- */
 
 PairBrownian::PairBrownian(LAMMPS *lmp) : Pair(lmp)
@@ -54,6 +56,8 @@ PairBrownian::PairBrownian(LAMMPS *lmp) : Pair(lmp)
 
 PairBrownian::~PairBrownian()
 {
+  if(copymode) return;
+  
   if (allocated) {
     memory->destroy(setflag);
     memory->destroy(cutsq);
@@ -68,6 +72,10 @@ PairBrownian::~PairBrownian()
 
 void PairBrownian::compute(int eflag, int vflag)
 {
+#ifdef _NO_RANDOM
+  printf("Warning:: PairBrownian::compute()  Random numbers all set to 0.5\n");
+#endif
+  
   int i, j, ii, jj, inum, jnum, itype, jtype;
   double xtmp, ytmp, ztmp, delx, dely, delz, fx, fy, fz, tx, ty, tz;
   double rsq, r, h_sep, radi;
@@ -91,7 +99,7 @@ void PairBrownian::compute(int eflag, int vflag)
 
   // This section of code adjusts R0/RT0/RS0 if necessary due to changes
   // in the volume fraction as a result of fix deform or moving walls
-
+  
   double dims[3], wallcoord;
   if (flagVF)                             // Flag for volume fraction corrections
     if (flagdeform || flagwall == 2) {    // Possible changes in volume fraction
@@ -134,12 +142,12 @@ void PairBrownian::compute(int eflag, int vflag)
 
   prethermostat = sqrt(24.0 * force->boltz * t_target / update->dt);
   prethermostat *= sqrt(force->vxmu2f / force->ftm2v / force->mvv2e);
-
+  
   inum = list->inum;
   ilist = list->ilist;
   numneigh = list->numneigh;
   firstneigh = list->firstneigh;
-
+  
   for (ii = 0; ii < inum; ii++) {
     i = ilist[ii];
     xtmp = x[i][0];
@@ -152,6 +160,18 @@ void PairBrownian::compute(int eflag, int vflag)
 
     // FLD contribution to force and torque due to isotropic terms
 
+#ifdef _NO_RANDOM
+    if (flagfld) {
+      f[i][0] += prethermostat * sqrt(R0) * 0.5;
+      f[i][1] += prethermostat * sqrt(R0) * 0.5;
+      f[i][2] += prethermostat * sqrt(R0) * 0.5;
+      if (flaglog) {
+        torque[i][0] += prethermostat * sqrt(RT0) * 0.5;
+        torque[i][1] += prethermostat * sqrt(RT0) * 0.5;
+        torque[i][2] += prethermostat * sqrt(RT0) * 0.5;
+      }
+    }
+#else
     if (flagfld) {
       f[i][0] += prethermostat * sqrt(R0) * (random->uniform() - 0.5);
       f[i][1] += prethermostat * sqrt(R0) * (random->uniform() - 0.5);
@@ -162,7 +182,8 @@ void PairBrownian::compute(int eflag, int vflag)
         torque[i][2] += prethermostat * sqrt(RT0) * (random->uniform() - 0.5);
       }
     }
-
+#endif
+    
     if (!flagHI) continue;
 
     for (jj = 0; jj < jnum; jj++) {
@@ -205,7 +226,11 @@ void PairBrownian::compute(int eflag, int vflag)
 
         // generate a random number
 
+#ifdef _NO_RANDOM
+        randr = 0.5;
+#else
         randr = random->uniform() - 0.5;
+#endif
 
         // contribution due to Brownian motion
 
@@ -230,12 +255,18 @@ void PairBrownian::compute(int eflag, int vflag)
 
           // force in each of the two directions
 
+#ifdef _NO_RANDOM
+	  randr = 0.5;
+#else
           randr = random->uniform() - 0.5;
+#endif
           fx += Fbmag * randr * p2[0];
           fy += Fbmag * randr * p2[1];
           fz += Fbmag * randr * p2[2];
 
+#ifndef _NO_RANDOM
           randr = random->uniform() - 0.5;
+#endif
           fx += Fbmag * randr * p3[0];
           fy += Fbmag * randr * p3[1];
           fz += Fbmag * randr * p3[2];
@@ -246,7 +277,7 @@ void PairBrownian::compute(int eflag, int vflag)
         fx = vxmu2f * fx;
         fy = vxmu2f * fy;
         fz = vxmu2f * fz;
-
+	
         // sum to total force
 
         f[i][0] -= fx;
@@ -298,12 +329,18 @@ void PairBrownian::compute(int eflag, int vflag)
 
           // force in each direction
 
+#ifdef _NO_RANDOM
+	  randr = 0.5;
+#else
           randr = random->uniform() - 0.5;
+#endif
           tx = Fbmag * randr * p2[0];
           ty = Fbmag * randr * p2[1];
           tz = Fbmag * randr * p2[2];
 
+#ifndef _NO_RANDOM
           randr = random->uniform() - 0.5;
+#endif
           tx += Fbmag * randr * p3[0];
           ty += Fbmag * randr * p3[1];
           tz += Fbmag * randr * p3[2];
@@ -321,12 +358,12 @@ void PairBrownian::compute(int eflag, int vflag)
           }
         }
 
-        if (evflag)
-          ev_tally_xyz(i, j, nlocal, newton_pair, 0.0, 0.0, -fx, -fy, -fz, delx, dely, delz);
+	if (evflag)
+	  ev_tally_xyz(i, j, nlocal, newton_pair, 0.0, 0.0, -fx, -fy, -fz, delx, dely, delz);
       }
     }
   }
-
+    
   if (vflag_fdotr) virial_fdotr_compute();
 }
 
@@ -434,7 +471,7 @@ void PairBrownian::coeff(int narg, char **arg)
 ------------------------------------------------------------------------- */
 
 void PairBrownian::init_style()
-{
+{  
   if (!atom->radius_flag) error->all(FLERR, "Pair brownian requires atom attribute radius");
 
   // if newton off, forces between atoms ij will be double computed
@@ -477,8 +514,8 @@ void PairBrownian::init_style()
 
   flagdeform = flagwall = 0;
   for (int i = 0; i < modify->nfix; i++) {
-    if (strcmp(modify->fix[i]->style, "deform") == 0)
-      flagdeform = 1;
+    if (strcmp(modify->fix[i]->style, "deform") == 0) flagdeform = 1;
+    else if (strcmp(modify->fix[i]->style, "deform/kk") == 0) flagdeform = 1; // cleaner way to do this?? what about flagwall?
     else if (strstr(modify->fix[i]->style, "wall") != nullptr) {
       if (flagwall) error->all(FLERR, "Cannot use multiple fix wall commands with pair brownian");
       flagwall = 1;    // Walls exist

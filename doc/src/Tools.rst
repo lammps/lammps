@@ -383,14 +383,14 @@ i-PI tool
 
 The tools/i-pi directory used to contain a bundled version of the i-PI
 software package for use with LAMMPS.  This version, however, was
-removed in 05/2024.
+removed in 06/2024.
 
 The i-PI package was created and is maintained by Michele Ceriotti,
 michele.ceriotti at gmail.com, to interface to a variety of molecular
 dynamics codes.
 
 i-PI is now available via PyPi using the pip package manager at:
-https://pypi.org/project/i-PI/
+https://pypi.org/project/ipi/
 
 Here are the commands to set up a virtual environment and install
 i-PI into it with all its dependencies.
@@ -400,7 +400,7 @@ i-PI into it with all its dependencies.
    python -m venv ipienv
    source ipienv/bin/activate
    pip install --upgrade pip
-   pip install i-PI
+   pip install ipi
 
 To install the development version from GitHub, please use:
 

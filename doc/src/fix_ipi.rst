@@ -88,7 +88,7 @@ the pip package manager.
    python -m venv ipienv
    source ipienv/bin/activate
    pip install --upgrade pip
-   pip install i-PI
+   pip install ipi
 
 Restart, fix_modify, output, run start/stop, minimize info
 """""""""""""""""""""""""""""""""""""""""""""""""""""""""""

@@ -151,7 +151,7 @@ and allow running LAMMPS with GPU acceleration.
 i-PI tool
 ---------
 
-.. deprecated:: TBD
+.. versionchanged:: TBD
 
 The i-PI tool has been removed from the LAMMPS distribution.  Instead,
 instructions to install i-PI from PyPi via pip are provided.

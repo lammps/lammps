@@ -51,6 +51,9 @@ class FixDeformPressure : public FixDeform {
   struct SetExtra {
     double ptarget, pgain;
     double prior_pressure, prior_rate;
+    double cumulative_shift;
+    double cumulative_vshift[3];
+    double cumulative_remap;
     int saved;
     char *pstr;
     int pvar, pvar_flag;

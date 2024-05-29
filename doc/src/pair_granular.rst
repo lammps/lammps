@@ -187,6 +187,7 @@ for the damping model currently supported are:
 2. *mass_velocity*
 3. *viscoelastic*
 4. *tsuji*
+5. *coeff_restitution*
 
 If the *damping* keyword is not specified, the *viscoelastic* model is
 used by default.
@@ -247,6 +248,29 @@ according to:
 The dimensionless coefficient of restitution :math:`e` specified as part
 of the normal contact model parameters should be between 0 and 1, but
 no error check is performed on this.
+
+The *coeff_restitution* model is useful when a specific normal coefficient of
+restitution :math:`e` is required. In these models, the normal coefficient of
+restitution :math:`e` is specified as an input. Following the approach of
+:ref:`(Brilliantov et al) <Brill1996>`, when using the *hooke* normal model,
+*coeff_restitution* calculates the damping coefficient as:
+
+.. math::
+
+   \eta_n = \sqrt{\frac{4m_{eff}k_n}{1+\left( \frac{\pi}{\log(e)}\right)^2}} ,
+
+For any other normal model, e.g. the *hertz* and *hertz/material* models, the damping
+coefficient is:
+
+.. math::
+
+   \eta_n = -2\sqrt{\frac{5}{6}}\frac{\log(e)}{\sqrt{\pi^2+(\log(e))^2}}(R_{eff} \delta_{ij})^{\frac{1}{4}}\sqrt{\frac{3}{2}k_n m_{eff}} ,
+
+where :math:`k_n = \frac{4}{3} E_{eff}` for the *hertz/material* model. Since
+*coeff_restitution* accounts for the effective mass, effective radius, and
+pairwise overlaps (except when used with the *hooke* normal model) when calculating
+the damping coefficient, it accurately reproduces the specified coefficient of
+restitution for both monodisperse and polydisperse particle pairs.
 
 The total normal force is computed as the sum of the elastic and
 damping components:

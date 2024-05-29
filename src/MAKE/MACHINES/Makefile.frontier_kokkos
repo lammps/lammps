@@ -7,7 +7,7 @@ SHELL = /bin/sh
 # specify flags and libraries needed for your compiler
 
 CC =		hipcc
-CCFLAGS =	-g -O3 -munsafe-fp-atomics -DNDEBUG -DKOKKOS_ENABLE_HIP_MULTIPLE_KERNEL_INSTANTIATIONS
+CCFLAGS =	-g -O3 -munsafe-fp-atomics -DNDEBUG -DKOKKOS_ENABLE_HIP_MULTIPLE_KERNEL_INSTANTIATIONS -DKOKKOS_ENABLE_ROCTHRUST
 SHFLAGS =	-fPIC
 DEPFLAGS =	-M
 
@@ -20,7 +20,7 @@ ARCHIVE =	ar
 ARFLAGS =	-rc
 SHLIBFLAGS =	-shared
 KOKKOS_DEVICES = HIP
-KOKKOS_ARCH = Vega90A,Zen3
+KOKKOS_ARCH = AMD_GFX90A,ZEN3
 
 # ---------------------------------------------------------------------
 # LAMMPS-specific settings, all OPTIONAL

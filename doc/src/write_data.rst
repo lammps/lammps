@@ -12,14 +12,14 @@ Syntax
 
 * file = name of data file to write out
 * zero or more keyword/value pairs may be appended
-* keyword = *pair* or *nocoeff* or *nofix* or *nolabelmap*
+* keyword = *nocoeff* or *nofix* or *nolabelmap* or *triclinic/general* or *types* or *pair*
 
   .. parsed-literal::
 
        *nocoeff* = do not write out force field info
        *nofix* = do not write out extra sections read by fixes
        *nolabelmap* = do not write out type labels
-       *triclinic/general = write data file in general triclinic format
+       *triclinic/general* = write data file in general triclinic format
        *types* value = *numeric* or *labels*
        *pair* value = *ii* or *ij*
          *ii* = write one line of pair coefficient info per atom type
@@ -189,4 +189,4 @@ Related commands
 Default
 """""""
 
-The option defaults are pair = ii and types_style = numeric.
+The option defaults are pair = ii and types = numeric.

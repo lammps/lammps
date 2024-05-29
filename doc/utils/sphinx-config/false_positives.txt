@@ -3252,6 +3252,7 @@ rRESPA
 Rsi
 Rso
 Rspace
+rsort
 rsq
 rst
 rstyle
@@ -4162,6 +4163,7 @@ zenodo
 Zepeda
 zflag
 Zhang
+Zhao
 Zhen
 zhi
 Zhigilei

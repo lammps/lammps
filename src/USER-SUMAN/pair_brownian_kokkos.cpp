@@ -16,6 +16,7 @@
 
 #include "atom_kokkos.h"
 #include "atom_masks.h"
+#include "domain_kokkos.h"
 #include "error.h"
 #include "fix.h"
 #include "fix_wall.h"

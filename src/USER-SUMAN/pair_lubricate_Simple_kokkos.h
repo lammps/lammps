@@ -25,6 +25,7 @@ PairStyle(lubricate/Simple/kk/host,PairLubricateSimpleKokkos<LMPHostType>);
 
 #include "pair_lubricate_Simple.h"
 #include "pair_kokkos.h"
+#include "kokkos_few.h"
 //#include "kokkos_type.h"
 //#include "kokkos_base.h"
 //#include "Kokkos_Random.hpp"

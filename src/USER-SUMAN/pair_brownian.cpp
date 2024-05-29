@@ -476,7 +476,7 @@ void PairBrownian::coeff(int narg, char **arg)
 
 void PairBrownian::init_style()
 {  
-  if (!atom->sphere_flag) error->all(FLERR, "Pair brownian requires atom style sphere");
+  if (!atom->radius_flag) error->all(FLERR, "Pair brownian requires atom attribute radius");
 
   // if newton off, forces between atoms ij will be double computed
   // using different random numbers

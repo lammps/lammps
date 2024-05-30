@@ -75,6 +75,7 @@ Comm::Comm(LAMMPS *lmp) : Pointers(lmp)
   maxexchange = maxexchange_atom = maxexchange_fix = 0;
   maxexchange_fix_dynamic = 0;
   bufextra = BUFEXTRA;
+  bufextra_max = bufextra;
 
   grid2proc = nullptr;
   xsplit = ysplit = zsplit = nullptr;

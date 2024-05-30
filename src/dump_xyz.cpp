@@ -125,13 +125,6 @@ int DumpXYZ::modify_param(int narg, char **arg)
 
   if (strcmp(arg[0],"types") == 0) {
     if (narg < 2) error->all(FLERR,"Illegal dump_modify command");
-    if (strcmp(arg[1],"numeric") == 0) {
-      return 2;
-    } else if (strcmp(arg[1],"labels") == 0) {
-      if (!atom->labelmapflag)
-        error->all(FLERR, "Label map must be defined when using 'types labels'");
-    } else error->all(FLERR, "Illegal option for dump_modify 'types' keyword");
-
 
     if (typenames) {
       for (int i = 1; i <= ntypes; i++)
@@ -140,6 +133,13 @@ int DumpXYZ::modify_param(int narg, char **arg)
       delete [] typenames;
       typenames = nullptr;
     }
+
+    if (strcmp(arg[1],"numeric") == 0) {
+      return 2;
+    } else if (strcmp(arg[1],"labels") == 0) {
+      if (!atom->labelmapflag)
+        error->all(FLERR, "Label map must be defined when using 'types labels'");
+    } else error->all(FLERR, "Illegal option for dump_modify 'types' keyword");
 
     typenames = new char*[ntypes+1];
     for (int itype = 1; itype <= ntypes; itype++) {

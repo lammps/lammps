@@ -216,9 +216,15 @@ int GranularModel::define_classic_model(char **arg, int iarg, int narg)
   // manually parse coeffs
   normal_model->coeffs[0] = kn;
   normal_model->coeffs[1] = gamman;
-  tangential_model->coeffs[0] = kt;
-  tangential_model->coeffs[1] = gammat / gamman;
-  tangential_model->coeffs[2] = xmu;
+
+  if (tangential_model->num_coeffs == 2) {
+    tangential_model->coeffs[0] = gammat / gamman;
+    tangential_model->coeffs[1] = xmu;
+  } else {
+    tangential_model->coeffs[0] = kt;
+    tangential_model->coeffs[1] = gammat / gamman;
+    tangential_model->coeffs[2] = xmu;
+  }
 
   normal_model->coeffs_to_local();
   tangential_model->coeffs_to_local();

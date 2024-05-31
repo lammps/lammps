@@ -110,12 +110,6 @@ static const int STYLES = ATOM_STYLES | INTEGRATE_STYLES | MINIMIZE_STYLES
 
 using namespace LAMMPS_NS;
 
-// must match enumerator in variable.h
-static const char *varstyles[] = {
-  "index", "loop", "world", "universe", "uloop", "string", "getenv",
-  "file", "atomfile", "format", "equal", "atom", "vector", "python",
-  "timer", "internal", "(unknown)"};
-
 static const char *mapstyles[] = { "none", "array", "hash", "yes" };
 
 static const char *commstyles[] = { "brick", "tiled" };
@@ -1401,7 +1395,7 @@ std::string Info::get_variable_info(int num) {
   std::string text;
   int ndata = 1;
   text = fmt::format("Variable[{:3d}]: {:16}  style = {:16}  def =", num,
-                     std::string(names[num]) + ',', std::string(varstyles[style[num]]) + ',');
+                     std::string(names[num]) + ',', Variable::varstyles[style[num]] + ',');
   if (style[num] == Variable::INTERNAL) {
     text += fmt::format("{:.8}\n",input->variable->dvalue[num]);
     return text;

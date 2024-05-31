@@ -88,8 +88,25 @@ class AtomKokkos : public Atom {
   DAT::tdual_int_1d k_map_array;
   dual_hash_type k_map_hash;
 
-  DAT::t_tagint_1d d_tag_sorted;
-  DAT::t_int_1d d_i_sorted;
+  struct KeyValue {
+    int i;
+    bigint tag;
+  };
+
+  typedef Kokkos::View<KeyValue*,LMPDeviceType> t_keyvalue_1d;
+  t_keyvalue_1d d_sorted;
+
+  struct MyComp {
+    KOKKOS_FUNCTION
+    bool operator()(const KeyValue& a, const KeyValue& b) const
+    {
+      if (a.tag < b.tag)
+        return true;
+      if (b.tag < a.tag)
+        return false;
+      return a.i < b.i;
+    }
+  };
 
   typedef Kokkos::DualView<tagint[2], LMPDeviceType::array_layout, LMPDeviceType> tdual_tagint_2;
   typedef tdual_tagint_2::t_dev t_tagint_2;
@@ -100,11 +117,6 @@ class AtomKokkos : public Atom {
 
   DAT::t_tagint_scalar d_tag_min,d_tag_max;
   HAT::t_tagint_scalar h_tag_min,h_tag_max;
-
-  using MapKeyViewType = decltype(d_tag_sorted);
-  using BinOpMap = Kokkos::BinOp1D<MapKeyViewType>;
-  BinOpMap mapBinner;
-  Kokkos::BinSort<MapKeyViewType, BinOpMap> mapSorter;
 
   class AtomVecKokkos* avecKK;
 
@@ -156,7 +168,7 @@ class AtomKokkos : public Atom {
   virtual void grow(unsigned int mask);
   int add_custom(const char *, int, int, int border = 0) override;
   void remove_custom(int, int, int) override;
-  virtual void deallocate_topology();
+  void deallocate_topology() override;
 
   void map_set_device();
   void map_set_host();

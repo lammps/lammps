@@ -70,6 +70,7 @@ KOKKOS_ENABLE_OPTION(TUNING               OFF "Whether to create bindings for tu
 KOKKOS_ENABLE_OPTION(AGGRESSIVE_VECTORIZATION OFF "Whether to aggressively vectorize loops")
 KOKKOS_ENABLE_OPTION(COMPILE_AS_CMAKE_LANGUAGE OFF "Whether to use native cmake language support")
 KOKKOS_ENABLE_OPTION(HIP_MULTIPLE_KERNEL_INSTANTIATIONS OFF "Whether multiple kernels are instantiated at compile time - improve performance but increase compile time")
+KOKKOS_ENABLE_OPTION(IMPL_HIP_UNIFIED_MEMORY OFF "Whether to leverage unified memory architectures for HIP")
 
 # This option will go away eventually, but allows fallback to old implementation when needed.
 KOKKOS_ENABLE_OPTION(DESUL_ATOMICS_EXTERNAL OFF "Whether to use an external desul installation")

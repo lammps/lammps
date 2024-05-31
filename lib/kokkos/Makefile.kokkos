@@ -12,7 +12,7 @@ endif
 
 KOKKOS_VERSION_MAJOR = 4
 KOKKOS_VERSION_MINOR = 3
-KOKKOS_VERSION_PATCH = 0
+KOKKOS_VERSION_PATCH = 1
 KOKKOS_VERSION = $(shell echo $(KOKKOS_VERSION_MAJOR)*10000+$(KOKKOS_VERSION_MINOR)*100+$(KOKKOS_VERSION_PATCH) | bc)
 
 # Options: Cuda,HIP,SYCL,OpenMPTarget,OpenMP,Threads,Serial
@@ -1232,6 +1232,22 @@ ifneq ($(KOKKOS_INTERNAL_NEW_CONFIG), 0)
   tmp := $(call kokkos_update_config_header, KOKKOS_FWD_HPP_, "KokkosCore_Config_FwdBackend.tmp", "KokkosCore_Config_FwdBackend.hpp")
   tmp := $(call kokkos_update_config_header, KOKKOS_SETUP_HPP_, "KokkosCore_Config_SetupBackend.tmp", "KokkosCore_Config_SetupBackend.hpp")
   tmp := $(call kokkos_update_config_header, KOKKOS_DECLARE_HPP_, "KokkosCore_Config_DeclareBackend.tmp", "KokkosCore_Config_DeclareBackend.hpp")
+  ifeq ($(KOKKOS_INTERNAL_USE_OPENMP), 1)
+    tmp := $(call kokkos_append_config_header,"$H""include <fwd/Kokkos_Fwd_OPENMP.hpp>","KokkosCore_Config_FwdBackend.hpp")
+    tmp := $(call kokkos_append_config_header,"$H""include <decl/Kokkos_Declare_OPENMP.hpp>","KokkosCore_Config_DeclareBackend.hpp")
+  endif
+  ifeq ($(KOKKOS_INTERNAL_USE_THREADS), 1)
+    tmp := $(call kokkos_append_config_header,"$H""include <fwd/Kokkos_Fwd_THREADS.hpp>","KokkosCore_Config_FwdBackend.hpp")
+    tmp := $(call kokkos_append_config_header,"$H""include <decl/Kokkos_Declare_THREADS.hpp>","KokkosCore_Config_DeclareBackend.hpp")
+  endif
+  ifeq ($(KOKKOS_INTERNAL_USE_HPX), 1)
+    tmp := $(call kokkos_append_config_header,"$H""include <fwd/Kokkos_Fwd_HPX.hpp>","KokkosCore_Config_FwdBackend.hpp")
+    tmp := $(call kokkos_append_config_header,"$H""include <decl/Kokkos_Declare_HPX.hpp>","KokkosCore_Config_DeclareBackend.hpp")
+  endif
+  ifeq ($(KOKKOS_INTERNAL_USE_SERIAL), 1)
+    tmp := $(call kokkos_append_config_header,"$H""include <fwd/Kokkos_Fwd_SERIAL.hpp>","KokkosCore_Config_FwdBackend.hpp")
+    tmp := $(call kokkos_append_config_header,"$H""include <decl/Kokkos_Declare_SERIAL.hpp>","KokkosCore_Config_DeclareBackend.hpp")
+  endif
   ifeq ($(KOKKOS_INTERNAL_USE_CUDA), 1)
     tmp := $(call kokkos_append_config_header,"$H""include <fwd/Kokkos_Fwd_CUDA.hpp>","KokkosCore_Config_FwdBackend.hpp")
     tmp := $(call kokkos_append_config_header,"$H""include <decl/Kokkos_Declare_CUDA.hpp>","KokkosCore_Config_DeclareBackend.hpp")
@@ -1251,25 +1267,9 @@ ifneq ($(KOKKOS_INTERNAL_NEW_CONFIG), 0)
     tmp := $(call kokkos_append_config_header,"$H""include <decl/Kokkos_Declare_HIP.hpp>","KokkosCore_Config_DeclareBackend.hpp")
     tmp := $(call kokkos_append_config_header,"$H""include <setup/Kokkos_Setup_HIP.hpp>","KokkosCore_Config_SetupBackend.hpp")
   endif
-  ifeq ($(KOKKOS_INTERNAL_USE_OPENMP), 1)
-    tmp := $(call kokkos_append_config_header,"$H""include <fwd/Kokkos_Fwd_OPENMP.hpp>","KokkosCore_Config_FwdBackend.hpp")
-    tmp := $(call kokkos_append_config_header,"$H""include <decl/Kokkos_Declare_OPENMP.hpp>","KokkosCore_Config_DeclareBackend.hpp")
-  endif
   ifeq ($(KOKKOS_INTERNAL_USE_OPENACC), 1)
     tmp := $(call kokkos_append_config_header,"$H""include <fwd/Kokkos_Fwd_OPENACC.hpp>","KokkosCore_Config_FwdBackend.hpp")
     tmp := $(call kokkos_append_config_header,"$H""include <decl/Kokkos_Declare_OPENACC.hpp>","KokkosCore_Config_DeclareBackend.hpp")
-  endif
-  ifeq ($(KOKKOS_INTERNAL_USE_THREADS), 1)
-    tmp := $(call kokkos_append_config_header,"$H""include <fwd/Kokkos_Fwd_THREADS.hpp>","KokkosCore_Config_FwdBackend.hpp")
-    tmp := $(call kokkos_append_config_header,"$H""include <decl/Kokkos_Declare_THREADS.hpp>","KokkosCore_Config_DeclareBackend.hpp")
-  endif
-  ifeq ($(KOKKOS_INTERNAL_USE_HPX), 1)
-    tmp := $(call kokkos_append_config_header,"$H""include <fwd/Kokkos_Fwd_HPX.hpp>","KokkosCore_Config_FwdBackend.hpp")
-    tmp := $(call kokkos_append_config_header,"$H""include <decl/Kokkos_Declare_HPX.hpp>","KokkosCore_Config_DeclareBackend.hpp")
-  endif
-  ifeq ($(KOKKOS_INTERNAL_USE_SERIAL), 1)
-    tmp := $(call kokkos_append_config_header,"$H""include <fwd/Kokkos_Fwd_SERIAL.hpp>","KokkosCore_Config_FwdBackend.hpp")
-    tmp := $(call kokkos_append_config_header,"$H""include <decl/Kokkos_Declare_SERIAL.hpp>","KokkosCore_Config_DeclareBackend.hpp")
   endif
 endif
 

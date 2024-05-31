@@ -29,7 +29,7 @@ class FixDeform : public Fix {
   int remapflag;     // whether x,v are remapped across PBC
   int dimflag[6];    // which dims are deformed
 
-  enum { NONE, FINAL, DELTA, SCALE, VEL, ERATE, TRATE, VOLUME, WIGGLE, VARIABLE, PRESSURE, PMEAN };
+  enum { NONE, FINAL, DELTA, SCALE, VEL, ERATE, TRATE, VOLUME, WIGGLE, VARIABLE, PRESSURE, PMEAN, ERATERS };
   enum { ONE_FROM_ONE, ONE_FROM_TWO, TWO_FROM_ONE };
 
   FixDeform(class LAMMPS *, int, char **);

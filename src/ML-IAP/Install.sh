@@ -40,6 +40,20 @@ for file in *.cpp *.h; do
   test -f ${file} && action $file
 done
 
+# Edit makefile for ace descriptors if ML-PACE is available
+if (test $1 = 1 || test $1 = 2) then
+  if (test -e ../Makefile.package) then
+    sed -i -e 's/[^ \t]*-DMLIAP_ACE[^ \t]* //g' ../Makefile.package
+    if (test -e ../compute_pace.h) then
+      sed -i -e 's|^PKG_INC =[ \t]*|&-DMLIAP_ACE |' ../Makefile.package
+    else
+      rm -f ../mliap_descriptor_ace.cpp ../mliap_descriptor_ace.h
+    fi
+  else
+    rm -f ../mliap_descriptor_ace.cpp ../mliap_descriptor_ace.h
+  fi
+fi
+
 # Install cython pyx file only if also Python is available
 action mliap_model_python_couple.pyx python_impl.cpp
 action mliap_unified_couple.pyx python_impl.cpp
@@ -69,6 +83,10 @@ elif (test $1 = 0) then
   rm -f ../mliap_model_python_couple.cpp ../mliap_model_python_couple.h \
     ../mliap_unified_couple.cpp ../mliap_unified_couple.h
   sed -i -e '/^[ \t]*include.*python.*mliap_python.*$/d' ../Makefile.package.settings
+  if (test -e ../Makefile.package) then
+    sed -i -e 's/[^ \t]*-DMLIAP_ACE[^ \t]* //g' ../Makefile.package
+  fi
+  rm -f ../mliap_descriptor_ace.cpp ../mliap_descriptor_ace.h
 
 elif (test $1 = 2) then
   if (type cythonize > /dev/null 2>&1 && test -e ../python_impl.cpp) then

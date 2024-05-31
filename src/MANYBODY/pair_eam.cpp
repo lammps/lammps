@@ -148,6 +148,8 @@ void PairEAM::compute(int eflag, int vflag)
   evdwl = 0.0;
   ev_init(eflag,vflag);
 
+  int beyond_rhomax = 0;
+
   // grow energy and fp arrays if necessary
   // need to be atom->nmax in length
 
@@ -237,7 +239,10 @@ void PairEAM::compute(int eflag, int vflag)
     fp[i] = (coeff[0]*p + coeff[1])*p + coeff[2];
     if (eflag) {
       phi = ((coeff[3]*p + coeff[4])*p + coeff[5])*p + coeff[6];
-      if (rho[i] > rhomax) phi += fp[i] * (rho[i]-rhomax);
+      if (rho[i] > rhomax) {
+        phi += fp[i] * (rho[i]-rhomax);
+        beyond_rhomax = 1;
+      }
       phi *= scale[type[i]][type[i]];
       if (eflag_global) eng_vdwl += phi;
       if (eflag_atom) eatom[i] += phi;
@@ -319,6 +324,16 @@ void PairEAM::compute(int eflag, int vflag)
         if (eflag) evdwl = scale[itype][jtype]*phi;
         if (evflag) ev_tally(i,j,nlocal,newton_pair,evdwl,0.0,fpair,delx,dely,delz);
       }
+    }
+  }
+
+  if (eflag && (!exceeded_rhomax)) {
+    MPI_Allreduce(&beyond_rhomax, &exceeded_rhomax, 1, MPI_INT, MPI_SUM, world);
+    if (exceeded_rhomax) {
+      if (comm->me == 0)
+        error->warning(FLERR,
+                       "A per-atom density exceeded rhomax of EAM potential table - "
+                       "a linear extrapolation to the energy was made");
     }
   }
 
@@ -424,6 +439,8 @@ void PairEAM::init_style()
 
   neighbor->add_request(this);
   embedstep = -1;
+
+  exceeded_rhomax = 0;
 }
 
 /* ----------------------------------------------------------------------

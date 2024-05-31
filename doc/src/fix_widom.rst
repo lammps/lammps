@@ -179,7 +179,7 @@ the following global cumulative quantities:
 * 2 = average difference in potential energy on each timestep
 * 3 = volume of the insertion region
 
-The vector values calculated by this fix are "extensive".
+The vector values calculated by this fix are "intensive".
 
 No parameter of this fix can be used with the *start/stop* keywords of
 the :doc:`run <run>` command.  This fix is not invoked during

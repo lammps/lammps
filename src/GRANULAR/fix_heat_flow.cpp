@@ -16,6 +16,7 @@
 #include "atom.h"
 #include "comm.h"
 #include "error.h"
+#include "force.h"
 #include "memory.h"
 #include "modify.h"
 #include "update.h"
@@ -127,7 +128,7 @@ void FixHeatFlow::final_integrate()
   if (igroup == atom->firstgroup) nlocal = atom->nfirst;
 
   // add ghost contributions to heatflow if first instance of fix
-  if (first_flag) comm->reverse_comm(this);
+  if (force->newton_pair && first_flag) comm->reverse_comm(this);
 
   if (rmass) {
     for (int i = 0; i < nlocal; i++)

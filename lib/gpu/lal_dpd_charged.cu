@@ -161,7 +161,8 @@ _texture_2d( vel_tex,int4);
 }
 #endif
 
-__kernel void k_dpd(const __global numtyp4 *restrict x_,
+__kernel void k_dpd_charged(const __global numtyp4 *restrict x_,
+                    const __global numtyp4 *restrict extra,
                     const __global numtyp4 *restrict coeff,
                     const int lj_types,
                     const __global numtyp *restrict sp_lj,
@@ -201,6 +202,8 @@ __kernel void k_dpd(const __global numtyp4 *restrict x_,
     numtyp4 iv; fetch4(iv,i,vel_tex); //v_[i];
     int itag=iv.w;
 
+    const numtyp qi = extra[i].x;
+
     numtyp factor_dpd, factor_sqrt;
     for ( ; nbor<nbor_end; nbor+=n_stride) {
       ucl_prefetch(dev_packed+nbor+n_stride);
@@ -232,6 +235,8 @@ __kernel void k_dpd(const __global numtyp4 *restrict x_,
         numtyp delvz = iv.z - jv.z;
         numtyp dot = delx*delvx + dely*delvy + delz*delvz;
         numtyp wd = (numtyp)1.0 - r/coeff[mtype].w;
+
+        const numtyp qj = extra[j].x;
 
         unsigned int tag1=itag, tag2=jtag;
         if (tag1 > tag2) {
@@ -279,7 +284,8 @@ __kernel void k_dpd(const __global numtyp4 *restrict x_,
                 ans,engv);
 }
 
-__kernel void k_dpd_fast(const __global numtyp4 *restrict x_,
+__kernel void k_dpd_charged_fast(const __global numtyp4 *restrict x_,
+                         const __global numtyp4 *restrict extra,
                          const __global numtyp4 *restrict coeff_in,
                          const __global numtyp *restrict sp_lj_in,
                          const __global numtyp *restrict sp_sqrt_in,
@@ -341,6 +347,8 @@ __kernel void k_dpd_fast(const __global numtyp4 *restrict x_,
     numtyp4 iv; fetch4(iv,i,vel_tex); //v_[i];
     int itag=iv.w;
 
+    const numtyp qi = extra[i].x;
+
     #ifndef ONETYPE
     numtyp factor_dpd, factor_sqrt;
     #endif
@@ -382,6 +390,8 @@ __kernel void k_dpd_fast(const __global numtyp4 *restrict x_,
         #endif
         numtyp wd = (numtyp)1.0 - r/coeffw;
 
+        const numtyp qj = extra[j].x;
+        
         unsigned int tag1=itag, tag2=jtag;
         if (tag1 > tag2) {
           tag1 = jtag; tag2 = itag;

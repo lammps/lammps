@@ -277,6 +277,14 @@ void PairDPDChargedGPU::compute(int eflag, int vflag)
 void PairDPDChargedGPU::init_style()
 {
 
+  if (comm->ghost_velocity == 0)
+    error->all(FLERR,"Pair dpd requires ghost atoms store velocity");
+  if (!atom->q_flag)
+    error->all(FLERR,"Pair style coul/slater/long requires atom attribute q");
+  // ensure use of KSpace long-range solver, set g_ewald
+  if (force->kspace == nullptr) error->all(FLERR, "Pair style requires a KSpace style");
+  g_ewald = force->kspace->g_ewald;
+
   // Repeat cutsq calculation because done after call to init_style
   double maxcut = -1.0;
   double mcut;
@@ -319,13 +327,14 @@ void PairDPDChargedGPU::cpu_compute(int start, int inum, int eflag, int /* vflag
                              int *numneigh, int **firstneigh)
 {
   int i, j, ii, jj, jnum, itype, jtype;
-  double xtmp, ytmp, ztmp, delx, dely, delz, evdwl, fpair;
+  double qtmp, xtmp, ytmp, ztmp, delx, dely, delz, evdwl, ecoul, fpair;
   double vxtmp, vytmp, vztmp, delvx, delvy, delvz;
   double r2inv,forcedpd,forcecoul,factor_coul;
   double grij,expm2,prefactor,t,erfc;
   double rsq,r,rinv,dot,wd,randnum,factor_dpd,factor_sqrt;
   int *ilist,*jlist,*numneigh,**firstneigh;
   double slater_term;
+
   int *jlist;
   tagint itag, jtag;
 
@@ -422,19 +431,26 @@ void PairDPDChargedGPU::cpu_compute(int start, int inum, int eflag, int /* vflag
           forcecoul *= r2inv;          
         } else forcecoul = 0.0;
 
+        fpair = forcedpd + forcecoul;
+
         f[i][0] += delx * fpair;
         f[i][1] += dely * fpair;
         f[i][2] += delz * fpair;
 
         if (eflag) {
-          // unshifted eng of conservative term:
-          // evdwl = -a0[itype][jtype]*r * (1.0-0.5*r/cut[itype][jtype]);
-          // eng shifted to 0.0 at cutoff
-          evdwl = 0.5 * a0[itype][jtype] * cut[itype][jtype] * wd * wd;
-          evdwl *= factor_dpd;
+          if (rsq < cut_dpdsq[itype][jtype]) {
+            // eng shifted to 0.0 at cutoff
+            evdwl = 0.5*a0[itype][jtype]*cut_dpd[itype][jtype] * wd*wd;
+            evdwl *= factor_dpd;
+          } else evdwl = 0.0;
+
+          if (cut_slater[itype][jtype] != 0.0 && rsq < cut_slatersq[itype][jtype]){
+            ecoul = prefactor*(erfc - (1 + r/lamda)*exp(-2*r/lamda));
+            if (factor_coul < 1.0) ecoul -= (1.0-factor_coul)*prefactor*(1.0-(1 + r/lamda)*exp(-2*r/lamda));
+          } else ecoul = 0.0;
         }
 
-        if (evflag) ev_tally_full(i, evdwl, 0.0, fpair, delx, dely, delz);
+        if (evflag) ev_tally_full(i, evdwl, ecoul, fpair, delx, dely, delz);
       }
     }
   }

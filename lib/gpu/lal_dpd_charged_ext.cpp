@@ -17,12 +17,12 @@
 #include <cassert>
 #include <cmath>
 
-#include "lal_dpd.h"
+#include "lal_dpd_charged.h"
 
 using namespace std;
 using namespace LAMMPS_AL;
 
-static DPD<PRECISION,ACC_PRECISION> DPDCMF;
+static DPDCharged<PRECISION,ACC_PRECISION> DPDCMF;
 
 // ---------------------------------------------------------------------------
 // Allocate memory on host and device and copy constants to device

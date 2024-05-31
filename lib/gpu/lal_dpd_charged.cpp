@@ -14,36 +14,36 @@
  ***************************************************************************/
 
 #if defined(USE_OPENCL)
-#include "dpd_cl.h"
+#include "dpd_charged_cl.h"
 #elif defined(USE_CUDART)
 const char *dpd=0;
 #else
-#include "dpd_cubin.h"
+#include "dpd_charged_cubin.h"
 #endif
 
-#include "lal_dpd.h"
+#include "lal_dpd_charged.h"
 #include <cassert>
 namespace LAMMPS_AL {
-#define DPDT DPD<numtyp, acctyp>
+#define DPDChargedT DPDCharged<numtyp, acctyp>
 
 extern Device<PRECISION,ACC_PRECISION> device;
 
 template <class numtyp, class acctyp>
-DPDT::DPD() : BaseDPD<numtyp,acctyp>(), _allocated(false) {
+DPDChargedT::DPDCharged() : BaseDPD<numtyp,acctyp>(), _allocated(false) {
 }
 
 template <class numtyp, class acctyp>
-DPDT::~DPD() {
+DPDChargedT::~DPDCharged() {
   clear();
 }
 
 template <class numtyp, class acctyp>
-int DPDT::bytes_per_atom(const int max_nbors) const {
+int DPDChargedT::bytes_per_atom(const int max_nbors) const {
   return this->bytes_per_atom_atomic(max_nbors);
 }
 
 template <class numtyp, class acctyp>
-int DPDT::init(const int ntypes,
+int DPDChargedT::init(const int ntypes,
                double **host_cutsq, double **host_a0,
                double **host_gamma, double **host_sigma,
                double **host_cut, double *host_special_lj,
@@ -122,7 +122,7 @@ int DPDT::init(const int ntypes,
 }
 
 template <class numtyp, class acctyp>
-void DPDT::clear() {
+void DPDChargedT::clear() {
   if (!_allocated)
     return;
   _allocated=false;
@@ -135,7 +135,7 @@ void DPDT::clear() {
 }
 
 template <class numtyp, class acctyp>
-double DPDT::host_memory_usage() const {
+double DPDChargedT::host_memory_usage() const {
   return this->host_memory_usage_atomic()+sizeof(DPD<numtyp,acctyp>);
 }
 
@@ -143,7 +143,28 @@ double DPDT::host_memory_usage() const {
 // Calculate energies, forces, and torques
 // ---------------------------------------------------------------------------
 template <class numtyp, class acctyp>
-int DPDT::loop(const int eflag, const int vflag) {
+int DPDChargedT::loop(const int eflag, const int vflag) {
+
+  int nall = this->atom->nall();
+  // signal that we need to transfer extra data from the host
+
+  this->atom->extra_data_unavail();
+
+  numtyp4 *pextra=reinterpret_cast<numtyp4*>(&(this->atom->extra[0]));
+
+  int n = 0;
+  int nstride = 1;
+  for (int i = 0; i < nall; i++) {
+    int idx = n+i*nstride;
+    numtyp4 v;
+    v.x = q[i];
+    v.y = 0;
+    v.z = 0;
+    v.w = 0;
+    pextra[idx] = v;
+  }
+  this->atom->add_extra_data();
+
   // Compute the block size and grid size to keep all cores busy
   const int BX=this->block_size();
   int GX=static_cast<int>(ceil(static_cast<double>(this->ans->inum())/
@@ -154,7 +175,7 @@ int DPDT::loop(const int eflag, const int vflag) {
   this->time_pair.start();
   if (shared_types) {
     this->k_pair_sel->set_size(GX,BX);
-    this->k_pair_sel->run(&this->atom->x, &coeff, &sp_lj, &sp_sqrt,
+    this->k_pair_sel->run(&this->atom->x, &this->atom->extra, &coeff, &sp_lj, &sp_sqrt,
                           &this->nbor->dev_nbor, &this->_nbor_data->begin(),
                           &this->ans->force, &this->ans->engv, &eflag,
                           &vflag, &ainum, &nbor_pitch, &this->atom->v, &cutsq,
@@ -162,7 +183,7 @@ int DPDT::loop(const int eflag, const int vflag) {
                           &this->_tstat_only, &this->_threads_per_atom);
   } else {
     this->k_pair.set_size(GX,BX);
-    this->k_pair.run(&this->atom->x, &coeff, &_lj_types, &sp_lj, &sp_sqrt,
+    this->k_pair.run(&this->atom->x, &this->atom->extra, &coeff, &_lj_types, &sp_lj, &sp_sqrt,
                      &this->nbor->dev_nbor, &this->_nbor_data->begin(),
                      &this->ans->force, &this->ans->engv, &eflag, &vflag,
                      &ainum, &nbor_pitch, &this->atom->v, &cutsq, &this->_dtinvsqrt,
@@ -174,7 +195,7 @@ int DPDT::loop(const int eflag, const int vflag) {
 }
 
 template <class numtyp, class acctyp>
-void DPDT::update_coeff(int ntypes, double **host_a0, double **host_gamma,
+void DPDChargedT::update_coeff(int ntypes, double **host_a0, double **host_gamma,
                         double **host_sigma, double **host_cut)
 {
   UCL_H_Vec<numtyp> host_write(_lj_types*_lj_types*32,*(this->ucl_device),
@@ -183,5 +204,16 @@ void DPDT::update_coeff(int ntypes, double **host_a0, double **host_gamma,
                          host_sigma,host_cut);
 }
 
-template class DPD<PRECISION,ACC_PRECISION>;
+// ---------------------------------------------------------------------------
+// Get the extra data pointers from host
+// ---------------------------------------------------------------------------
+
+template <class numtyp, class acctyp>
+void DPDChargedT::get_extra_data(double *host_q) {
+  q = host_q;
 }
+
+template class DPDCharged<PRECISION,ACC_PRECISION>;
+}
+
+

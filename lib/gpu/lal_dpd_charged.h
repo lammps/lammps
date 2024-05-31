@@ -63,6 +63,10 @@ class DPDCharged : public BaseDPD<numtyp, acctyp> {
   UCL_D_Vec<numtyp4> coeff;
 
   UCL_D_Vec<numtyp> cutsq;
+  UCL_D_Vec<numtyp> cut_dpd;
+  UCL_D_Vec<numtyp> cut_dpdsq;
+  UCL_D_Vec<numtyp> cut_slater;
+  UCL_D_Vec<numtyp> cut_slatersq;
 
   /// Special LJ values
   UCL_D_Vec<numtyp> sp_lj, sp_sqrt;
@@ -76,8 +80,8 @@ class DPDCharged : public BaseDPD<numtyp, acctyp> {
   /// Only used for thermostat
   int _tstat_only;
 
-  /// pointer to host data of charge
-  double *
+  /// pointer to host data for atom charge
+  double *q;
 
  private:
   bool _allocated;

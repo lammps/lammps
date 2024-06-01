@@ -35,6 +35,7 @@
 #include "pair.h"
 #include "update.h"
 
+#include <cmath>
 #include <cstring>
 
 using namespace LAMMPS_NS;
@@ -44,6 +45,8 @@ using namespace MathExtra;
 enum { TYPE, RADIUS, CUSTOM };
 enum { INTEGRATED, D2MIN };
 enum { FIXED, OFFSET, UPDATE };
+
+static constexpr double EPSILON = 1.0e-15;
 
 static const char cite_nonaffine_d2min[] =
   "@article{PhysRevE.57.7192,\n"
@@ -64,28 +67,33 @@ static const char cite_nonaffine_d2min[] =
 /* ---------------------------------------------------------------------- */
 
 FixNonaffineDisplacement::FixNonaffineDisplacement(LAMMPS *lmp, int narg, char **arg) :
-  Fix(lmp, narg, arg), id_fix(nullptr), X(nullptr), Y(nullptr), F(nullptr), norm(nullptr)
+  Fix(lmp, narg, arg), id_fix(nullptr), fix(nullptr), D2min(nullptr), X(nullptr), Y(nullptr),
+  F(nullptr), norm(nullptr), singular(nullptr)
 {
-  if (narg < 4) error->all(FLERR,"Illegal fix nonaffine/displacement command");
+  if (narg < 4) utils::missing_cmd_args(FLERR,"fix nonaffine/displacement", error);
 
   nevery = utils::inumeric(FLERR, arg[3], false, lmp);
   if (nevery <= 0) error->all(FLERR,"Illegal nevery value {} in fix nonaffine/displacement", nevery);
 
   reference_timestep = update_timestep = offset_timestep = -1;
+  z_min = 0;
+
   int iarg = 4;
   if (strcmp(arg[iarg], "integrated") == 0) {
     nad_style = INTEGRATED;
-    nevery = 1;
     iarg += 1;
   } else if (strcmp(arg[iarg], "d2min") == 0) {
-    if (iarg + 1 > narg) error->all(FLERR,"Illegal fix nonaffine/displacement command");
+    if (iarg + 1 > narg) utils::missing_cmd_args(FLERR,"fix nonaffine/displacement d2min", error);
     nad_style = D2MIN;
     if (strcmp(arg[iarg + 1], "type") == 0) {
       cut_style = TYPE;
     } else if (strcmp(arg[iarg + 1], "radius") == 0) {
       cut_style = RADIUS;
     } else if (strcmp(arg[iarg + 1], "custom") == 0) {
-      if (iarg + 2 > narg) error->all(FLERR,"Illegal fix nonaffine/displacement command");
+      if (iarg + 2 > narg)
+        utils::missing_cmd_args(FLERR,"fix nonaffine/displacement custom", error);
+      if ((neighbor->style == Neighbor::MULTI) || (neighbor->style == Neighbor::MULTI_OLD))
+        error->all(FLERR, "Fix nonaffine/displacement with custom cutoff requires neighbor style 'bin' or 'nsq'");
       cut_style = CUSTOM;
       cutoff_custom = utils::numeric(FLERR, arg[iarg + 2], false, lmp);
       cutsq_custom = cutoff_custom * cutoff_custom;
@@ -96,7 +104,7 @@ FixNonaffineDisplacement::FixNonaffineDisplacement(LAMMPS *lmp, int narg, char *
     iarg += 2;
   } else error->all(FLERR,"Illegal nonaffine displacement style {} in fix nonaffine/displacement", arg[iarg]);
 
-  if (iarg + 2 > narg) error->all(FLERR,"Illegal fix nonaffine/displacement command");
+  if (iarg + 2 > narg) utils::missing_cmd_args(FLERR,"fix nonaffine/displacement", error);
   if (strcmp(arg[iarg], "fixed") == 0) {
     reference_style = FIXED;
     reference_timestep = utils::inumeric(FLERR, arg[iarg + 1], false, lmp);
@@ -105,7 +113,7 @@ FixNonaffineDisplacement::FixNonaffineDisplacement(LAMMPS *lmp, int narg, char *
   } else if (strcmp(arg[iarg], "update") == 0) {
     reference_style = UPDATE;
     update_timestep = utils::inumeric(FLERR, arg[iarg + 1], false, lmp);
-    if (update_timestep < 0)
+    if (update_timestep <= 0)
       error->all(FLERR, "Illegal update timestep {} in fix nonaffine/displacement", arg[iarg + 1]);
   } else if (strcmp(arg[iarg], "offset") == 0) {
     reference_style = OFFSET;
@@ -113,13 +121,20 @@ FixNonaffineDisplacement::FixNonaffineDisplacement(LAMMPS *lmp, int narg, char *
     if ((offset_timestep <= 0) || (offset_timestep > nevery))
       error->all(FLERR, "Illegal offset timestep {} in fix nonaffine/displacement", arg[iarg + 1]);
   } else error->all(FLERR,"Illegal reference style {} in fix nonaffine/displacement", arg[iarg]);
+  iarg += 2;
+
+  while (iarg < narg) {
+    if (strcmp(arg[iarg], "z/min") == 0) {
+      if (iarg + 2 > narg) utils::missing_cmd_args(FLERR,"fix nonaffine/displacement", error);
+      z_min = utils::inumeric(FLERR, arg[iarg + 1], false, lmp);
+      if (z_min < 0) error->all(FLERR, "Minimum coordination must be positive");
+      iarg += 2;
+    } else error->all(FLERR,"Illegal keyword {} in fix nonaffine/displacement", arg[iarg]);
+  }
 
   if (nad_style == D2MIN)
     if (cut_style == RADIUS && (!atom->radius_flag))
       error->all(FLERR, "Fix nonaffine/displacement radius style requires atom attribute radius");
-
-  if (nad_style == INTEGRATED && reference_style == OFFSET)
-    error->all(FLERR, "Fix nonaffine/displacement cannot use the integrated style with an offset reference state");
 
   peratom_flag = 1;
   peratom_freq = nevery;
@@ -150,8 +165,11 @@ FixNonaffineDisplacement::~FixNonaffineDisplacement()
     memory->destroy(Y);
     memory->destroy(F);
     memory->destroy(norm);
-    memory->destroy(array_atom);
+    memory->destroy(singular);
+    memory->destroy(D2min);
   }
+
+  memory->destroy(array_atom);
 }
 
 /* ---------------------------------------------------------------------- */
@@ -175,12 +193,7 @@ void FixNonaffineDisplacement::post_constructor()
   id_fix = utils::strdup(id + std::string("_FIX_PA"));
   fix = dynamic_cast<FixStoreAtom *>(modify->add_fix(fmt::format("{} {} STORE/ATOM 3 0 {} 1", id_fix, group->names[igroup], ghost_status)));
 
-  if (nad_style == INTEGRATED)
-    array_atom = fix->astore;
-
-  if (nad_style == D2MIN)
-    grow_arrays(atom->nmax);
-
+  grow_arrays(atom->nmax);
   for (int i = 0; i < atom->nlocal; i++)
     for (int j = 0; j < 3; j++) array_atom[i][j] = 0.0;
 }
@@ -206,6 +219,9 @@ void FixNonaffineDisplacement::init()
     } else {
       auto req = neighbor->add_request(this, NeighConst::REQ_OCCASIONAL);
       if (cut_style == CUSTOM) {
+        if ((neighbor->style == Neighbor::MULTI) || (neighbor->style == Neighbor::MULTI_OLD))
+          error->all(FLERR, "Fix nonaffine/displacement with custom cutoff requires neighbor style 'bin' or 'nsq'");
+
         double skin = neighbor->skin;
         mycutneigh = cutoff_custom + skin;
 
@@ -245,6 +261,15 @@ void FixNonaffineDisplacement::post_force(int /*vflag*/)
   if (reference_saved && (!update->setupflag)) {
     if (nad_style == INTEGRATED) {
       integrate_velocity();
+      if ((update->ntimestep % nevery) == 0) {
+        if (atom->nmax > nmax)
+          grow_arrays(atom->nmax);
+
+        double **x_nonaffine = fix->astore;
+        for (int i = 0; i < atom->nlocal; i++)
+          for (int m = 0; m < 3; m++)
+            array_atom[i][m] = x_nonaffine[i][m];
+      }
     } else {
       if ((update->ntimestep % nevery) == 0) calculate_D2Min();
     }
@@ -291,11 +316,12 @@ void FixNonaffineDisplacement::integrate_velocity()
 
   int *mask = atom->mask;
   int nlocal = atom->nlocal;
+  double **x_nonaffine = fix->astore;
 
   for (int m = 0; m < 3; m++) {
     for (int i = 0; i < nlocal; i++) {
       if (mask[i] & groupbit) {
-        array_atom[i][m] += dtv * v[i][m];
+        x_nonaffine[i][m] += dtv * v[i][m];
       }
     }
   }
@@ -306,6 +332,7 @@ void FixNonaffineDisplacement::integrate_velocity()
 void FixNonaffineDisplacement::save_reference_state()
 {
   double **x = atom->x;
+  double **x0 = fix->astore;
 
   int *mask = atom->mask;
   int nlocal = atom->nlocal;
@@ -314,13 +341,13 @@ void FixNonaffineDisplacement::save_reference_state()
   if (nad_style == D2MIN) {
     for (int m = 0; m < 3; m++) {
       for (int i = 0; i < nall; i++) {
-        if (mask[i] & groupbit)  array_atom[i][m] = x[i][m];
+        if (mask[i] & groupbit)  x0[i][m] = x[i][m];
       }
     }
   } else {
     for (int m = 0; m < 3; m++) {
       for (int i = 0; i < nall; i++) {
-        if (mask[i] & groupbit)  array_atom[i][m] = 0.0;
+        if (mask[i] & groupbit)  x0[i][m] = 0.0;
       }
     }
   }
@@ -358,7 +385,7 @@ void FixNonaffineDisplacement::calculate_D2Min()
   int *ilist, *jlist, *numneigh, **firstneigh;
 
   double **x = atom->x;
-  double **x0 = array_atom;
+  double **x0 = fix->astore;
   double *radius = atom->radius;
   int *type = atom->type;
   int *mask = atom->mask;
@@ -383,7 +410,8 @@ void FixNonaffineDisplacement::calculate_D2Min()
       }
     }
     norm[i] = 0;
-    array_atom[i][0] = 0;
+    singular[i] = 0;
+    D2min[i] = 0;
   }
 
   // First loop through neighbors
@@ -459,14 +487,29 @@ void FixNonaffineDisplacement::calculate_D2Min()
     }
 
     if (dim == 3) {
-      invert3(Y_tmp, Y_inv);
+      denom = det3(Y_tmp);
+      if (fabs(denom) < EPSILON) {
+        singular[i] = 1;
+        for (j = 0; j < 3; j++)
+          for (k = 0; k < 3; k++)
+            Y_inv[j][k] = 0.0;
+      } else {
+        invert3(Y_tmp, Y_inv);
+      }
     } else {
       denom = Y_tmp[0][0] * Y_tmp[1][1] - Y_tmp[0][1] * Y_tmp[1][0];
-      if (denom != 0.0) denom = 1.0 / denom;
-      Y_inv[0][0] = Y_tmp[1][1] * denom;
-      Y_inv[0][1] = -Y_tmp[0][1] * denom;
-      Y_inv[1][0] = -Y_tmp[1][0] * denom;
-      Y_inv[1][1] = Y_tmp[0][0] * denom;
+      if (fabs(denom) < EPSILON) {
+        singular[i] = 1;
+        for (j = 0; j < 2; j++)
+          for (k = 0; k < 2; k++)
+            Y_inv[j][k] = 0.0;
+      } else {
+        denom = 1.0 / denom;
+        Y_inv[0][0] = Y_tmp[1][1] * denom;
+        Y_inv[0][1] = -Y_tmp[0][1] * denom;
+        Y_inv[1][0] = -Y_tmp[1][0] * denom;
+        Y_inv[1][1] = Y_tmp[0][0] * denom;
+      }
     }
 
     times3(X_tmp, Y_inv, F_tmp);
@@ -524,7 +567,7 @@ void FixNonaffineDisplacement::calculate_D2Min()
       }
 
       sub3(r, temp, temp);
-      array_atom[i][0] += lensq3(temp);
+      D2min[i] += lensq3(temp);
       norm[i] += 1;
 
       if (newton_pair || j < nlocal) {
@@ -535,7 +578,7 @@ void FixNonaffineDisplacement::calculate_D2Min()
         }
 
         sub3(r, temp, temp);
-        array_atom[j][0] += lensq3(temp);
+        D2min[j] += lensq3(temp);
         norm[j] += 1;
       }
     }
@@ -547,11 +590,16 @@ void FixNonaffineDisplacement::calculate_D2Min()
   for (i = 0; i < nlocal; i++) {
     if (!(mask[i] & groupbit)) continue;
 
-    if (norm[i] != 0)
-      array_atom[i][0] /= norm[i];
-    else
+    if (norm[i] < z_min || singular[i] == 1) {
+      if (norm[i] >= z_min)
+        error->warning(FLERR, "Singular matrix detected for atom {}, defaulting output to zero", atom->tag[i]);
       array_atom[i][0] = 0.0;
-    array_atom[i][0] = sqrt(array_atom[i][0]);
+      array_atom[i][1] = 0.0;
+      array_atom[i][2] = 0.0;
+      continue;
+    }
+
+    D2min[i] /= norm[i];
 
     for (j = 0; j < 3; j++)
       for (k = 0; k < 3; k++)
@@ -571,6 +619,7 @@ void FixNonaffineDisplacement::calculate_D2Min()
 
     edev = sqrt(0.5 * j2);
 
+    array_atom[i][0] = sqrt(D2min[i]);
     array_atom[i][1] = evol;
     array_atom[i][2] = edev;
   }
@@ -593,7 +642,7 @@ int FixNonaffineDisplacement::pack_reverse_comm(int n, int first, double *buf)
         }
       }
     } else {
-      buf[m++] = array_atom[i][0];
+      buf[m++] = D2min[i];
       buf[m++] = ubuf(norm[i]).d;
     }
   }
@@ -617,7 +666,7 @@ void FixNonaffineDisplacement::unpack_reverse_comm(int n, int *list, double *buf
         }
       }
     } else {
-      array_atom[j][0] += buf[m++];
+      D2min[j] += buf[m++];
       norm[j] += (int) ubuf(buf[m++]).i;
     }
   }
@@ -723,12 +772,20 @@ void FixNonaffineDisplacement::minimum_image0(double *delta)
 void FixNonaffineDisplacement::grow_arrays(int nmax_new)
 {
   nmax = nmax_new;
-  memory->destroy(X);
-  memory->destroy(Y);
-  memory->destroy(F);
-  memory->destroy(norm);
-  memory->create(X, nmax, 3, 3, "fix_nonaffine_displacement:X");
-  memory->create(Y, nmax, 3, 3, "fix_nonaffine_displacement:Y");
-  memory->create(F, nmax, 3, 3, "fix_nonaffine_displacement:F");
-  memory->create(norm, nmax, "fix_nonaffine_displacement:norm");
+  memory->destroy(array_atom);
+  memory->create(array_atom, nmax, 3, "fix_nonaffine_displacement:array_atom");
+  if (nad_style == D2MIN) {
+    memory->destroy(X);
+    memory->destroy(Y);
+    memory->destroy(F);
+    memory->destroy(D2min);
+    memory->destroy(norm);
+    memory->destroy(singular);
+    memory->create(X, nmax, 3, 3, "fix_nonaffine_displacement:X");
+    memory->create(Y, nmax, 3, 3, "fix_nonaffine_displacement:Y");
+    memory->create(F, nmax, 3, 3, "fix_nonaffine_displacement:F");
+    memory->create(D2min, nmax, "fix_nonaffine_displacement:D2min");
+    memory->create(norm, nmax, "fix_nonaffine_displacement:norm");
+    memory->create(singular, nmax, "fix_nonaffine_displacement:singular");
+  }
 }

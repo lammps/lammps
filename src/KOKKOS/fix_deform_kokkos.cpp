@@ -21,7 +21,6 @@
 #include "atom_kokkos.h"
 #include "atom_masks.h"
 #include "domain_kokkos.h"
-#include "error.h"
 #include "force.h"
 #include "input.h"
 #include "irregular.h"
@@ -32,7 +31,6 @@
 #include "variable.h"
 
 #include <cmath>
-#include <cstring>
 
 using namespace LAMMPS_NS;
 using namespace FixConst;

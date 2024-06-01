@@ -49,7 +49,24 @@ class FixIndent : public Fix {
   int cdim, varflag;
   int ilevel_respa;
 
+  char *rlostr, *rhistr, *lostr, *histr;
+  int rlovar, rhivar, lovar, hivar;
+  double rlovalue, rhivalue, lovalue, hivalue;
+
+  // methods for argument parsing
+
+  int geometry(int, char **);
   void options(int, char **);
+
+  // methods for conical indenter
+
+  bool PointInsideCone(int, double *, double, double, double, double, double *);
+  void DistanceExteriorPoint(int, double *, double, double, double, double,
+                             double &, double &, double &);
+  void DistanceInteriorPoint(int, double *, double, double, double, double,
+                             double &, double &, double &);
+  void point_on_line_segment(double *, double *, double *, double *);
+  double closest(double *, double *, double *, double);
 };
 
 }    // namespace LAMMPS_NS

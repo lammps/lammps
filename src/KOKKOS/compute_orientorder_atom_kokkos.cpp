@@ -24,14 +24,11 @@
 
 #include "atom_kokkos.h"
 #include "atom_masks.h"
-#include "kokkos.h"
 #include "math_const.h"
 #include "math_special.h"
 #include "memory_kokkos.h"
-#include "neigh_list.h"
 #include "neigh_request.h"
 #include "neighbor_kokkos.h"
-#include "pair.h"
 #include "update.h"
 
 #include <cmath>

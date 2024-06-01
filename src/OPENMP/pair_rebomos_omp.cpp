@@ -47,7 +47,6 @@
 #endif
 
 using namespace LAMMPS_NS;
-using namespace MathConst;
 using MathSpecial::cube;
 using MathSpecial::powint;
 using MathSpecial::square;

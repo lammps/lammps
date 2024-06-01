@@ -30,14 +30,13 @@
 
 using namespace LAMMPS_NS;
 
-enum{SCALAR,VECTOR,ARRAY};
+enum { SCALAR, VECTOR, ARRAY };
 
 ComputeSnap::ComputeSnap(LAMMPS *lmp, int narg, char **arg) :
-  Compute(lmp, narg, arg), cutsq(nullptr), list(nullptr), snap(nullptr),
-  snapall(nullptr), snap_peratom(nullptr), radelem(nullptr), wjelem(nullptr),
-  sinnerelem(nullptr), dinnerelem(nullptr), snaptr(nullptr)
+    Compute(lmp, narg, arg), cutsq(nullptr), list(nullptr), snap(nullptr), snapall(nullptr),
+    snap_peratom(nullptr), radelem(nullptr), wjelem(nullptr), map(nullptr), sinnerelem(nullptr),
+    dinnerelem(nullptr), snaptr(nullptr), c_pe(nullptr), c_virial(nullptr)
 {
-
   array_flag = 1;
   extarray = 0;
 
@@ -172,22 +171,18 @@ ComputeSnap::ComputeSnap(LAMMPS *lmp, int narg, char **arg) :
   }
 
   if (switchinnerflag && !(sinnerflag && dinnerflag))
-    error->all(
-        FLERR,
-        "Illegal compute {} command: switchinnerflag = 1, missing sinner/dinner keyword",
-        style);
+    error->all(FLERR, "Illegal compute {} command: switchinnerflag = 1, "
+               "missing sinner/dinner keyword", style);
 
   if (!switchinnerflag && (sinnerflag || dinnerflag))
-    error->all(
-        FLERR,
-        "Illegal compute {} command: switchinnerflag = 0, unexpected sinner/dinner keyword",
-        style);
+    error->all(FLERR, "Illegal compute {} command: switchinnerflag = 0, "
+               "unexpected sinner/dinner keyword", style);
 
   if (dgradflag && !bikflag)
-    error->all(FLERR,"Illegal compute snap command: dgradflag=1 requires bikflag=1");
+    error->all(FLERR, "Illegal compute snap command: dgradflag=1 requires bikflag=1");
 
   if (dgradflag && quadraticflag)
-    error->all(FLERR,"Illegal compute snap command: dgradflag=1 not implemented for quadratic SNAP");
+    error->all(FLERR, "Illegal compute snap command: dgradflag=1 not implemented for quadratic SNAP");
 
   snaptr = new SNA(lmp, rfac0, twojmax, rmin0, switchflag, bzeroflag, chemflag, bnormflag,
                    wselfallflag, nelements, switchinnerflag);
@@ -210,7 +205,8 @@ ComputeSnap::ComputeSnap(LAMMPS *lmp, int narg, char **arg) :
   if (dgradflag) {
     size_array_rows = bik_rows + 3*natoms*natoms + 1;
     size_array_cols = nvalues + 3;
-    error->warning(FLERR,"dgradflag=1 creates a N^2 array, beware of large systems.");
+    if (comm->me == 0)
+      error->warning(FLERR, "dgradflag=1 creates a N^2 array, beware of large systems.");
   }
   else size_array_cols = nvalues*atom->ntypes + 1;
   lastcol = size_array_cols-1;
@@ -249,7 +245,8 @@ void ComputeSnap::init()
     error->all(FLERR,"Compute snap requires a pair style be defined");
 
   if (cutmax > force->pair->cutforce)
-    error->all(FLERR,"Compute snap cutoff is longer than pairwise cutoff");
+    error->all(FLERR,"Compute snap cutoff {} is longer than pairwise cutoff {}",
+               cutmax, force->pair->cutforce);
 
   // need an occasional full neighbor list
 
@@ -261,31 +258,19 @@ void ComputeSnap::init()
 
   // allocate memory for global array
 
-  memory->create(snap,size_array_rows,size_array_cols,
-                 "snap:snap");
-  memory->create(snapall,size_array_rows,size_array_cols,
-                 "snap:snapall");
+  memory->create(snap,size_array_rows,size_array_cols, "snap:snap");
+  memory->create(snapall,size_array_rows,size_array_cols, "snap:snapall");
   array = snapall;
 
-  // find compute for reference energy
+  // find compute for global reference potential energy
 
-  std::string id_pe = std::string("thermo_pe");
-  int ipe = modify->find_compute(id_pe);
-  if (ipe == -1)
-    error->all(FLERR,"compute thermo_pe does not exist.");
-  c_pe = modify->compute[ipe];
+  c_pe = modify->get_compute_by_id("thermo_pe");
+  if (!c_pe) error->all(FLERR,"compute thermo_pe does not exist.");
 
-  // add compute for reference virial tensor
+  // add compute for global reference virial tensor
 
-  std::string id_virial = std::string("snap_press");
-  std::string pcmd = id_virial + " all pressure NULL virial";
-  modify->add_compute(pcmd);
-
-  int ivirial = modify->find_compute(id_virial);
-  if (ivirial == -1)
-    error->all(FLERR,"compute snap_press does not exist.");
-  c_virial = modify->compute[ivirial];
-
+  id_virial = id + std::string("_press");
+  c_virial = modify->add_compute(id_virial + " all pressure NULL virial");
 }
 
 
@@ -309,8 +294,7 @@ void ComputeSnap::compute_array()
   if (atom->nmax > nmax) {
     memory->destroy(snap_peratom);
     nmax = atom->nmax;
-    memory->create(snap_peratom,nmax,size_peratom,
-                   "snap:snap_peratom");
+    memory->create(snap_peratom,nmax,size_peratom, "snap:snap_peratom");
   }
 
   // clear global array

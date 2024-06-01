@@ -12,13 +12,14 @@ Syntax
 
 * file = name of data file to write out
 * zero or more keyword/value pairs may be appended
-* keyword = *pair* or *nocoeff* or *nofix* or *nolabelmap*
+* keyword = *nocoeff* or *nofix* or *nolabelmap* or *triclinic/general* or *types* or *pair*
 
   .. parsed-literal::
 
        *nocoeff* = do not write out force field info
        *nofix* = do not write out extra sections read by fixes
        *nolabelmap* = do not write out type labels
+       *triclinic/general* = write data file in general triclinic format
        *types* value = *numeric* or *labels*
        *pair* value = *ii* or *ij*
          *ii* = write one line of pair coefficient info per atom type
@@ -31,6 +32,7 @@ Examples
 
    write_data data.polymer
    write_data data.*
+   write_data data.solid triclinic/general
 
 Description
 """""""""""
@@ -85,10 +87,11 @@ using the :doc:`-r command-line switch <Run_options>`.
    :doc:`fixes <fix>` are stored.  :doc:`Binary restart files <read_restart>`
    store more information.
 
-Bond interactions (angle, etc) that have been turned off by the :doc:`fix shake <fix_shake>` or :doc:`delete_bonds <delete_bonds>` command will
-be written to a data file as if they are turned on.  This means they
-will need to be turned off again in a new run after the data file is
-read.
+Bond interactions (angle, etc) that have been turned off by the
+:doc:`fix shake <fix_shake>` or :doc:`delete_bonds <delete_bonds>`
+command will be written to a data file as if they are turned on.  This
+means they will need to be turned off again in a new run after the
+data file is read.
 
 Bonds that are broken (e.g. by a bond-breaking potential) are not
 written to the data file.  Thus these bonds will not exist when the
@@ -121,6 +124,23 @@ for a given type-kind (Atoms, Bonds, Angles, etc.), type labels are
 not written to the data file.  By default, they are written if they
 exist.  A type label must be defined for every numeric type (within a
 given type-kind) to be written to the data file.
+
+Use of the *triclinic/general* keyword will output a data file which
+specifies a general triclinic simulation box as well as per-atom
+quantities consistent with the general triclinic box.  The latter means
+that per-atom vectors, such as velocities and dipole moments will be
+oriented consistent with the 3d rotation implied by the general
+triclinic box (relative to the associated restricted triclinic box).
+
+This option can only be requested if the simulation box was initially
+defined to be general triclinic.  If if was and the
+*triclinic/general* keyword is not used, then the data file will
+specify a restricted triclinic box, since that is the internal format
+LAMMPS uses for both general and restricted triclinic simulations.
+See the :doc:`Howto triclinic <Howto_triclinic>` doc page for more
+explanation of how general triclinic simulation boxes are supported by
+LAMMPS.  And see the :doc:`read_data <read_data>` doc page for details
+of how the format is altered for general triclinic data files.
 
 The *types* keyword determines how atom types, bond types, angle
 types, etc are written into these data file sections: Atoms, Bonds,
@@ -169,4 +189,4 @@ Related commands
 Default
 """""""
 
-The option defaults are pair = ii and types_style = numeric.
+The option defaults are pair = ii and types = numeric.

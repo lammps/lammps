@@ -29,35 +29,31 @@ void TestViewAggregate() {
                                      value_type>;
 
   static_assert(
-      std::is_same<typename analysis_1d::specialize, Kokkos::Array<> >::value,
-      "");
+      std::is_same<typename analysis_1d::specialize, Kokkos::Array<> >::value);
 
   using a32_traits = Kokkos::ViewTraits<value_type **, DeviceType>;
   using flat_traits =
       Kokkos::ViewTraits<typename a32_traits::scalar_array_type, DeviceType>;
 
   static_assert(
-      std::is_same<typename a32_traits::specialize, Kokkos::Array<> >::value,
-      "");
+      std::is_same<typename a32_traits::specialize, Kokkos::Array<> >::value);
   static_assert(
-      std::is_same<typename a32_traits::value_type, value_type>::value, "");
-  static_assert(a32_traits::rank == 2, "");
-  static_assert(a32_traits::rank_dynamic == 2, "");
+      std::is_same<typename a32_traits::value_type, value_type>::value);
+  static_assert(a32_traits::rank == 2);
+  static_assert(a32_traits::rank_dynamic == 2);
 
-  static_assert(std::is_void<typename flat_traits::specialize>::value, "");
-  static_assert(flat_traits::rank == 3, "");
-  static_assert(flat_traits::rank_dynamic == 2, "");
-  static_assert(flat_traits::dimension::N2 == 32, "");
+  static_assert(std::is_void<typename flat_traits::specialize>::value);
+  static_assert(flat_traits::rank == 3);
+  static_assert(flat_traits::rank_dynamic == 2);
+  static_assert(flat_traits::dimension::N2 == 32);
 
   using a32_type      = Kokkos::View<Kokkos::Array<double, 32> **, DeviceType>;
   using a32_flat_type = typename a32_type::array_type;
 
-  static_assert(std::is_same<typename a32_type::value_type, value_type>::value,
-                "");
-  static_assert(std::is_same<typename a32_type::pointer_type, double *>::value,
-                "");
-  static_assert(a32_type::rank == 2, "");
-  static_assert(a32_flat_type::rank == 3, "");
+  static_assert(std::is_same<typename a32_type::value_type, value_type>::value);
+  static_assert(std::is_same<typename a32_type::pointer_type, double *>::value);
+  static_assert(a32_type::rank == 2);
+  static_assert(a32_flat_type::rank == 3);
 
   a32_type x("test", 4, 5);
   a32_flat_type y(x);

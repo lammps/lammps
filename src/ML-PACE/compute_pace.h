@@ -43,10 +43,11 @@ class ComputePACE : public Compute {
   double **pace_peratom;
   int *map;    // map types to [0,nelements)
   int bikflag, bik_rows, dgradflag, dgrad_rows;
-  double *cg;
   double cutmax;
+
   Compute *c_pe;
   Compute *c_virial;
+  std::string id_virial;
 
   void dbdotr_compute();
   struct ACECimpl *acecimpl;

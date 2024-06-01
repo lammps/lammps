@@ -376,12 +376,16 @@ class lammps(object):
         narg = 0
         cargs = None
         if cmdargs is not None:
-          cmdargs.insert(0,"lammps")
-          narg = len(cmdargs)
-          for i in range(narg):
-            if type(cmdargs[i]) is str:
-              cmdargs[i] = cmdargs[i].encode()
-          cargs = (c_char_p*(narg+1))(*cmdargs)
+          myargs = ["lammps".encode()]
+          narg = len(cmdargs) + 1
+          for arg in cmdargs:
+            if type(arg) is str:
+              myargs.append(arg.encode())
+            elif type(arg) is bytes:
+              myargs.append(arg)
+            else:
+              raise TypeError('Unsupported cmdargs type ', type(arg))
+          cargs = (c_char_p*(narg+1))(*myargs)
           cargs[narg] = None
           self.lib.lammps_open.argtypes = [c_int, c_char_p*(narg+1), MPI_Comm, c_void_p]
         else:
@@ -397,12 +401,16 @@ class lammps(object):
           self.comm = self.MPI.COMM_WORLD
         self.opened = 1
         if cmdargs is not None:
-          cmdargs.insert(0,"lammps")
-          narg = len(cmdargs)
-          for i in range(narg):
-            if type(cmdargs[i]) is str:
-              cmdargs[i] = cmdargs[i].encode()
-          cargs = (c_char_p*(narg+1))(*cmdargs)
+          myargs = ["lammps".encode()]
+          narg = len(cmdargs) + 1
+          for arg in cmdargs:
+            if type(arg) is str:
+              myargs.append(arg.encode())
+            elif type(arg) is bytes:
+              myargs.append(arg)
+            else:
+              raise TypeError('Unsupported cmdargs type ', type(arg))
+          cargs = (c_char_p*(narg+1))(*myargs)
           cargs[narg] = None
           self.lib.lammps_open_no_mpi.argtypes = [c_int, c_char_p*(narg+1), c_void_p]
           self.lmp = c_void_p(self.lib.lammps_open_no_mpi(narg,cargs,None))
@@ -1078,15 +1086,23 @@ class lammps(object):
   def extract_fix(self,fid,fstyle,ftype,nrow=0,ncol=0):
     """Retrieve data from a LAMMPS fix
 
-    This is a wrapper around the :cpp:func:`lammps_extract_fix`
-    function of the C-library interface.
-    This function returns ``None`` if either the fix id is not
-    recognized, or an invalid combination of :ref:`fstyle <py_style_constants>`
-    and :ref:`ftype <py_type_constants>` constants is used. The
-    names and functionality of the constants are the same as for
-    the corresponding C-library function.  For requests to return
-    a scalar or a size, the value is returned, also when accessing
-    global vectors or arrays, otherwise a pointer.
+    This is a wrapper around the :cpp:func:`lammps_extract_fix` function
+    of the C-library interface.  This function returns ``None`` if
+    either the fix id is not recognized, or an invalid combination of
+    :ref:`fstyle <py_style_constants>` and :ref:`ftype
+    <py_type_constants>` constants is used. The names and functionality
+    of the constants are the same as for the corresponding C-library
+    function.  For requests to return a scalar or a size, the value is
+    returned, also when accessing global vectors or arrays, otherwise a
+    pointer.
+
+    .. note::
+
+       When requesting global data, the fix data can only be accessed
+       one item at a time without access to the whole vector or array.
+       Thus this function will always return a scalar.  To access vector
+       or array elements the "nrow" and "ncol" arguments need to be set
+       accordingly (they default to 0).
 
     :param fid: fix ID
     :type fid:  string

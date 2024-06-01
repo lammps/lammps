@@ -17,8 +17,8 @@
 ------------------------------------------------------------------------- */
 
 #include "compute_reaxff_atom.h"
+
 #include "atom.h"
-#include "molecule.h"
 #include "update.h"
 #include "force.h"
 #include "memory.h"

@@ -48,6 +48,9 @@ TEST(hip, memory_requirements) {
   // we want all user-facing memory in hip to be coarse grained. As of
   // today(07.01.22) the documentation is not reliable/correct, we test the
   // memory on the device and host
+  // FIXME_HIP
+  GTEST_SKIP() << "skipping the test because the CI on MI100 returns:  error( "
+                  "hipErrorInvalidValue)";
   KOKKOS_TEST_MEMORY_COARSEGRAINEDNESS(Kokkos::HIPSpace, int, 10);
   KOKKOS_TEST_MEMORY_COARSEGRAINEDNESS(Kokkos::HIPHostPinnedSpace, int, 10);
   KOKKOS_TEST_MEMORY_COARSEGRAINEDNESS(Kokkos::HIPManagedSpace, int, 10);

@@ -19,8 +19,8 @@
 #include <OpenACC/Kokkos_OpenACC.hpp>
 #include <OpenACC/Kokkos_OpenACCSpace.hpp>
 #include <OpenACC/Kokkos_OpenACC_DeepCopy.hpp>
-#include <impl/Kokkos_MemorySpace.hpp>
 #include <impl/Kokkos_Profiling_Interface.hpp>
+#include <impl/Kokkos_Error.hpp>
 
 #include <openacc.h>
 
@@ -65,6 +65,19 @@ void *Kokkos::Experimental::OpenACCSpace::impl_allocate(
   void *ptr = nullptr;
 
   ptr = acc_malloc(arg_alloc_size);
+
+  if (!ptr) {
+    size_t alignment = 1;  // OpenACC does not handle alignment
+    using Kokkos::Experimental::RawMemoryAllocationFailure;
+    auto failure_mode =
+        arg_alloc_size > 0
+            ? RawMemoryAllocationFailure::FailureMode::OutOfMemoryError
+            : RawMemoryAllocationFailure::FailureMode::InvalidAllocationSize;
+    auto alloc_mechanism =
+        RawMemoryAllocationFailure::AllocationMechanism::OpenACCMalloc;
+    throw RawMemoryAllocationFailure(arg_alloc_size, alignment, failure_mode,
+                                     alloc_mechanism);
+  }
 
   if (Kokkos::Profiling::profileLibraryLoaded()) {
     const size_t reported_size =

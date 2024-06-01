@@ -631,8 +631,9 @@ int Group::get_bitmask_by_id(const std::string &file, int line, const std::strin
                              const std::string &caller)
 {
   int igroup = 0;
-  while (igroup < MAX_GROUP)
+  for (; igroup < MAX_GROUP; ++igroup) {
     if (names[igroup] && (name == names[igroup])) break;
+  }
   if (igroup == MAX_GROUP)
     error->all(file, line, "Group ID {} requested by {} does not exist", name, caller);
   return bitmask[igroup];

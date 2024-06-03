@@ -60,6 +60,7 @@ fix             1 all rheo ${cut} quintic 0 &
 fix             2 all rheo/viscosity * constant ${eta}
 fix             3 all rheo/pressure * linear
 fix             4 all wall/harmonic ylo EDGE 2.0 1.0 1.0
+fix             5 all enforce2d
 
 compute         rho all rheo/property/atom rho
 compute         phase all rheo/property/atom phase

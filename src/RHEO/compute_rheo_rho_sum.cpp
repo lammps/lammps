@@ -94,7 +94,7 @@ void ComputeRHEORhoSum::compute_peratom()
 
   // initialize arrays, local with quintic self-contribution, ghosts are zeroed
   for (i = 0; i < nlocal; i++) {
-    w = compute_kernel->calc_w_quintic(i, i, 0.0, 0.0, 0.0, 0.0);
+    w = compute_kernel->calc_w_self(i, i);
     rho[i] = w * mass[type[i]];
   }
 

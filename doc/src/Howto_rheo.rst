@@ -17,6 +17,10 @@ these calculations. Additional numerical details can be found in
 :ref:`(Palermo) <howto_rheo_palermo>` and
 :ref:`(Clemmer) <howto_rheo_clemmer>`.
 
+Note, if you simply want to run a traditional SPH simulation, the SPH package
+is likely better suited for your application. It has fewer advanced features
+and therefore benefits from improved performance.
+
 ----------
 
 At the core of the package is :doc:`fix rheo <fix_rheo>` which integrates

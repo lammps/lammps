@@ -10,7 +10,6 @@ newton             off
 region             box block -60 60 0 80 -0.01 0.01 units box
 create_box         3 box bond/types 2 extra/bond/per/atom 20 extra/special/per/atom 50
 
-
 region             lbar block -15 0 3 80 EDGE EDGE units box
 region             rbar block 0 15 3 80 EDGE EDGE units box
 region             bar union 2 lbar rbar
@@ -83,6 +82,7 @@ fix             7 all gravity 5e-5 vector 0 -1 0
 fix             8 floor setforce 0.0 0.0 0.0
 fix             9 surf add/heat linear 1.1 0.05
 fix             10 floor add/heat constant 0 overwrite yes # fix the temperature of the floor
+fix             11 all enforce2d
 
 compute         surf all rheo/property/atom surface
 compute         rho all rheo/property/atom rho

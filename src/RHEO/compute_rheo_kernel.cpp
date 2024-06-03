@@ -25,6 +25,7 @@
 #include "error.h"
 #include "fix_rheo.h"
 #include "force.h"
+#include "math_const.h"
 #include "math_extra.h"
 #include "memory.h"
 #include "modify.h"
@@ -43,6 +44,7 @@
 
 using namespace LAMMPS_NS;
 using namespace RHEO_NS;
+using namespace MathConst;
 using namespace MathExtra;
 
 static constexpr int DELTA = 2000;
@@ -57,8 +59,7 @@ ComputeRHEOKernel::ComputeRHEOKernel(LAMMPS *lmp, int narg, char **arg) :
 
   kernel_style = utils::inumeric(FLERR,arg[3],false,lmp);
 
-
-  if (kernel_style == QUINTIC) {
+  if (kernel_style == QUINTIC || kernel_style == WENDLANDC4) {
     correction_order = -1;
   } else if (kernel_style == RK0) {
     correction_order = 0;
@@ -115,12 +116,22 @@ void ComputeRHEOKernel::init()
   hsqinv = hinv * hinv;
 
 
-  if (dim == 3) {
-    pre_w = 0.002652582384864922 * 27.0 * hsqinv * hinv;
-    pre_wp = pre_w * 3.0 * hinv;
+  if (kernel_style != WENDLANDC4) {
+    if (dim == 3) {
+      pre_w = 1.0 / (120.0 * MY_PI) * 27.0 * hsqinv * hinv;
+      pre_wp = pre_w * 3.0 * hinv;
+    } else {
+      pre_w = 7.0 / (478.0 * MY_PI)  * 9 * hsqinv;
+      pre_wp = pre_w * 3.0 * hinv;
+    }
   } else {
-    pre_w = 0.004661441847879780 * 9 * hsqinv;
-    pre_wp = pre_w * 3.0 * hinv;
+    if (dim == 3) {
+      pre_w = 495.0 / (32.0 * MY_PI * hsq * h);
+      pre_wp = pre_w * hinv;
+    } else {
+      pre_w = 9.0 / (MY_PI * hsq);
+      pre_wp = pre_w * hinv;
+    }
   }
 
   nmax_store = atom->nmax;
@@ -163,10 +174,26 @@ int ComputeRHEOKernel::check_corrections(int i)
 
 /* ---------------------------------------------------------------------- */
 
+double ComputeRHEOKernel::calc_w_self(int i, int j)
+{
+  double w;
+  if (kernel_style == WENDLANDC4)
+    w = calc_w_wendlandc4(i, j, 0.0, 0.0, 0.0, 0.0);
+  else
+    w = calc_w_quintic(i, j, 0.0, 0.0, 0.0, 0.0);
+
+  return w;
+}
+
+/* ---------------------------------------------------------------------- */
+
 double ComputeRHEOKernel::calc_w(int i, int j, double delx, double dely, double delz, double r)
 {
   double w;
   int corrections_i, corrections_j, corrections;
+
+  if (kernel_style == WENDLANDC4)
+    return calc_w_wendlandc4(i,j,delx,dely,delz,r);
 
   if (kernel_style != QUINTIC) {
     corrections_i = check_corrections(i);
@@ -190,6 +217,9 @@ double ComputeRHEOKernel::calc_dw(int i, int j, double delx, double dely, double
 {
   double wp;
   int corrections_i, corrections_j;
+
+  if (kernel_style == WENDLANDC4)
+    return calc_dw_wendlandc4(i,j,delx,dely,delz,r,dWij,dWji);
 
   if (kernel_style != QUINTIC) {
     corrections_i = check_corrections(i);
@@ -288,6 +318,62 @@ double ComputeRHEOKernel::calc_dw_quintic(int i, int j, double delx, double dely
   return wp;
 }
 
+/* ---------------------------------------------------------------------- */
+
+double ComputeRHEOKernel::calc_w_wendlandc4(int i, int j, double delx, double dely, double delz, double r)
+{
+  double w, tmp6, s;
+  s = r * hinv;
+
+	if (s > 1.0) {
+	  w = 0.0;
+	} else {
+    tmp6 = (1.0 - s) * (1.0 - s);
+    tmp6 *= tmp6 * tmp6;
+    w = tmp6 * (1.0 + 6.0 * s + 35.0 * THIRD * s * s);
+  }
+
+  w *= pre_w;
+
+  Wij = w;
+  Wji = w;
+
+  return w;
+}
+
+/* ---------------------------------------------------------------------- */
+
+double ComputeRHEOKernel::calc_dw_wendlandc4(int i, int j, double delx, double dely, double delz, double r, double *dW1, double *dW2)
+{
+  double wp, tmp1, tmp5, tmp6, s, wprinv;
+  double *mass = atom->mass;
+  int *type = atom->type;
+
+  s = r * hinv;
+
+	if (s > 1.0) {
+	  wp = 0.0;
+	} else {
+    tmp1 = 1.0 - s;
+    tmp5 = tmp1 * tmp1;
+    tmp5 = tmp5 * tmp5 * tmp1;
+    tmp6 = tmp5 * tmp1;
+    wp = tmp6 * (6.0 + 70.0 * THIRD * s);
+    wp -= 6 * tmp5 * (1.0 + 6.0 * s + 35.0 * THIRD * s * s);
+  }
+
+  wp *= pre_wp;
+  wprinv = wp / r;
+  dW1[0] = delx * wprinv;
+  dW1[1] = dely * wprinv;
+  dW1[2] = delz * wprinv;
+
+  dW2[0] = -delx * wprinv;
+  dW2[1] = -dely * wprinv;
+  dW2[2] = -delz * wprinv;
+
+  return wp;
+}
 
 /* ---------------------------------------------------------------------- */
 

@@ -36,10 +36,13 @@ class ComputeRHEOKernel : public Compute {
   void unpack_forward_comm(int, int, double *) override;
   double memory_usage() override;
   void compute_coordination();
+  double calc_w_self(int,int);
   double calc_w(int,int,double,double,double,double);
   double calc_dw(int,int,double,double,double,double);
   double calc_w_quintic(int,int,double,double,double,double);
   double calc_dw_quintic(int,int,double,double,double,double,double *,double *);
+  double calc_w_wendlandc4(int,int,double,double,double,double);
+  double calc_dw_wendlandc4(int,int,double,double,double,double,double *,double *);
   void grow_arrays(int);
 
   double dWij[3], dWji[3], Wij, Wji;

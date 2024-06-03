@@ -90,6 +90,8 @@ FixRHEO::FixRHEO(LAMMPS *lmp, int narg, char **arg) :
   cut = h;
   if (strcmp(arg[4], "quintic") == 0) {
       kernel_style = QUINTIC;
+  } else if (strcmp(arg[4], "wendland/c4") == 0) {
+      kernel_style = WENDLANDC4;
   } else if (strcmp(arg[4], "RK0") == 0) {
       kernel_style = RK0;
   } else if (strcmp(arg[4], "RK1") == 0) {

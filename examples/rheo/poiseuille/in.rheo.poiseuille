@@ -6,7 +6,6 @@ atom_style         rheo
 boundary           p p p
 comm_modify        vel yes
 
-
 # ------ Create simulation box ------ #
 
 variable           n equal 1.0
@@ -53,7 +52,6 @@ timestep           ${dt_max}
 pair_style         rheo ${cut} artificial/visc ${zeta} rho/damp ${Dr}
 pair_coeff         * *
 
-
 # ------ Fixes & computes ------ #
 
 fix                1 all rheo ${cut} quintic 0 shift
@@ -62,9 +60,9 @@ fix                2 all rheo/viscosity * constant ${eta}
 fix                3 all rheo/pressure * linear
 fix                4 rig setforce 0.0 0.0 0.0
 fix                5 fluid addforce ${fext} 0.0 0.0
+fix                6 all enforce2d
 
 compute            rho all rheo/property/atom rho
-
 
 # ------ Output & Run ------ #
 

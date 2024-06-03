@@ -55,6 +55,8 @@ PairLJSPICACoulLong::PairLJSPICACoulLong(LAMMPS *lmp) :
 
 PairLJSPICACoulLong::~PairLJSPICACoulLong()
 {
+  if (copymode) return;
+
   if (allocated) {
     memory->destroy(setflag);
     memory->destroy(lj_type);
@@ -385,7 +387,8 @@ double PairLJSPICACoulLong::init_one(int i, int j)
 
   const int ljt = lj_type[i][j];
 
-  if (ljt == LJ_NOT_SET) error->all(FLERR, "unrecognized LJ parameter flag");
+  if (ljt == LJ_NOT_SET)
+    error->all(FLERR,"unrecognized LJ parameter flag");
 
   double cut = MAX(cut_lj[i][j], cut_coul);
   cut_ljsq[i][j] = cut_lj[i][j] * cut_lj[i][j];

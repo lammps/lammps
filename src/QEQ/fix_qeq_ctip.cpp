@@ -131,7 +131,7 @@ void FixQEqCTIP::pre_force(int /*vflag*/)
        matvecs += CG(b_t, t);        // CG on t - parallel
        matvecs /= 2;
        n=calculate_check_Q();
-       MPI_Allreduce(&n, &nout, 1, MPI_INTEGER, MPI_SUM, world);
+       MPI_Allreduce(&n, &nout, 1, MPI_INT, MPI_SUM, world);
        if (nout == 0) break;
   }
 

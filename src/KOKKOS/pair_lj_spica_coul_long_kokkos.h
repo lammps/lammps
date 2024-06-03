@@ -49,12 +49,12 @@ class PairLJSPICACoulLongKokkos : public PairLJSPICACoulLong {
   void init_style() override;
   double init_one(int, int) override;
 
-  struct params_lj{
+  struct params_lj_coul{
     KOKKOS_INLINE_FUNCTION
-    params_lj() {cutsq=0;cut_lj=0;cut_ljsq=0;lj1=0;lj2=0;lj3=0;lj4=0;offset=0;lj_type=0;};
+    params_lj_coul() {cutsq=0;cut_coulsq=0;cut_lj=0;cut_ljsq=0;lj1=0;lj2=0;lj3=0;lj4=0;offset=0;lj_type=0;};
     KOKKOS_INLINE_FUNCTION
-    params_lj(int /*i*/) {cutsq=0;cut_lj=0;cut_ljsq=0;lj1=0;lj2=0;lj3=0;lj4=0;offset=0;lj_type=0;};
-    F_FLOAT cutsq,cut_lj,cut_ljsq,lj1,lj2,lj3,lj4,offset;
+    params_lj_coul(int /*i*/) {cutsq=0;cut_coulsq=0;cut_lj=0;cut_ljsq=0;lj1=0;lj2=0;lj3=0;lj4=0;offset=0;lj_type=0;};
+    F_FLOAT cutsq,cut_coulsq,cut_lj,cut_ljsq,lj1,lj2,lj3,lj4,offset;
     int lj_type;
   };
 
@@ -82,12 +82,13 @@ class PairLJSPICACoulLongKokkos : public PairLJSPICACoulLong {
   F_FLOAT compute_ecoul(const F_FLOAT& rsq, const int& i, const int&j,
                         const int& itype, const int& jtype, const F_FLOAT& factor_coul, const F_FLOAT& qtmp) const;
 
-  Kokkos::DualView<params_lj**,Kokkos::LayoutRight,DeviceType> k_params;
-  typename Kokkos::DualView<params_lj**,Kokkos::LayoutRight,DeviceType>::t_dev_const_um params;
-  params_lj m_params[MAX_TYPES_STACKPARAMS+1][MAX_TYPES_STACKPARAMS+1];  // hardwired to space for 12 atom types
+  Kokkos::DualView<params_lj_coul**,Kokkos::LayoutRight,DeviceType> k_params;
+  typename Kokkos::DualView<params_lj_coul**,Kokkos::LayoutRight,DeviceType>::t_dev_const_um params;
+  params_lj_coul m_params[MAX_TYPES_STACKPARAMS+1][MAX_TYPES_STACKPARAMS+1];  // hardwired to space for 12 atom types
   F_FLOAT m_cutsq[MAX_TYPES_STACKPARAMS+1][MAX_TYPES_STACKPARAMS+1];
   F_FLOAT m_cut_lj[MAX_TYPES_STACKPARAMS+1][MAX_TYPES_STACKPARAMS+1];
   F_FLOAT m_cut_ljsq[MAX_TYPES_STACKPARAMS+1][MAX_TYPES_STACKPARAMS+1];
+  F_FLOAT m_cut_coulsq[MAX_TYPES_STACKPARAMS+1][MAX_TYPES_STACKPARAMS+1];
   typename AT::t_x_array_randomread x;
   typename AT::t_x_array c_x;
   typename AT::t_f_array f;
@@ -100,12 +101,9 @@ class PairLJSPICACoulLongKokkos : public PairLJSPICACoulLong {
   typename AT::t_virial_array d_vatom;
 
   int newton_pair;
-  double special_lj[4];
-  double special_coul[4];
-  double qqrd2e;
 
   typename AT::tdual_ffloat_2d k_cutsq, k_cut_lj, k_cut_ljsq;
-  typename AT::t_ffloat_2d d_cutsq, d_cut_lj, d_cut_ljsq;
+  typename AT::t_ffloat_2d d_cutsq, d_cut_lj, d_cut_ljsq, d_cut_coulsq;
 
   typename AT::t_ffloat_1d_randomread
     d_rtable, d_drtable, d_ftable, d_dftable,
@@ -114,20 +112,40 @@ class PairLJSPICACoulLongKokkos : public PairLJSPICACoulLong {
   int neighflag;
   int nlocal,nall,eflag,vflag;
 
+  double special_lj[4];
+  double special_coul[4];
+  double qqrd2e;
+
   void allocate() override;
-  friend struct PairComputeFunctor<PairLJSPICACoulLongKokkos,FULL,true,0>;
-  friend struct PairComputeFunctor<PairLJSPICACoulLongKokkos,FULL,true,1>;
-  friend struct PairComputeFunctor<PairLJSPICACoulLongKokkos,HALF,true>;
-  friend struct PairComputeFunctor<PairLJSPICACoulLongKokkos,HALFTHREAD,true>;
-  friend struct PairComputeFunctor<PairLJSPICACoulLongKokkos,FULL,false,0>;
-  friend struct PairComputeFunctor<PairLJSPICACoulLongKokkos,FULL,false,1>;
-  friend struct PairComputeFunctor<PairLJSPICACoulLongKokkos,HALF,false>;
-  friend struct PairComputeFunctor<PairLJSPICACoulLongKokkos,HALFTHREAD,false>;
-  friend EV_FLOAT pair_compute_neighlist<PairLJSPICACoulLongKokkos,FULL,0>(PairLJSPICACoulLongKokkos*,NeighListKokkos<DeviceType>*);
-  friend EV_FLOAT pair_compute_neighlist<PairLJSPICACoulLongKokkos,FULL,1>(PairLJSPICACoulLongKokkos*,NeighListKokkos<DeviceType>*);
-  friend EV_FLOAT pair_compute_neighlist<PairLJSPICACoulLongKokkos,HALF>(PairLJSPICACoulLongKokkos*,NeighListKokkos<DeviceType>*);
-  friend EV_FLOAT pair_compute_neighlist<PairLJSPICACoulLongKokkos,HALFTHREAD>(PairLJSPICACoulLongKokkos*,NeighListKokkos<DeviceType>*);
-  friend EV_FLOAT pair_compute<PairLJSPICACoulLongKokkos>(PairLJSPICACoulLongKokkos*,NeighListKokkos<DeviceType>*);
+  friend struct PairComputeFunctor<PairLJSPICACoulLongKokkos,FULL,true,0,CoulLongTable<1>>;
+  friend struct PairComputeFunctor<PairLJSPICACoulLongKokkos,FULL,true,1,CoulLongTable<1>>;
+  friend struct PairComputeFunctor<PairLJSPICACoulLongKokkos,HALF,true,0,CoulLongTable<1>>;
+  friend struct PairComputeFunctor<PairLJSPICACoulLongKokkos,HALFTHREAD,true,0,CoulLongTable<1>>;
+  friend struct PairComputeFunctor<PairLJSPICACoulLongKokkos,FULL,false,0,CoulLongTable<1>>;
+  friend struct PairComputeFunctor<PairLJSPICACoulLongKokkos,FULL,false,1,CoulLongTable<1>>;
+  friend struct PairComputeFunctor<PairLJSPICACoulLongKokkos,HALF,false,0,CoulLongTable<1>>;
+  friend struct PairComputeFunctor<PairLJSPICACoulLongKokkos,HALFTHREAD,false,0,CoulLongTable<1>>;
+  friend EV_FLOAT pair_compute_neighlist<PairLJSPICACoulLongKokkos,FULL,0,CoulLongTable<1>>(PairLJSPICACoulLongKokkos*,NeighListKokkos<DeviceType>*);
+  friend EV_FLOAT pair_compute_neighlist<PairLJSPICACoulLongKokkos,FULL,1,CoulLongTable<1>>(PairLJSPICACoulLongKokkos*,NeighListKokkos<DeviceType>*);
+  friend EV_FLOAT pair_compute_neighlist<PairLJSPICACoulLongKokkos,HALF,0,CoulLongTable<1>>(PairLJSPICACoulLongKokkos*,NeighListKokkos<DeviceType>*);
+  friend EV_FLOAT pair_compute_neighlist<PairLJSPICACoulLongKokkos,HALFTHREAD,0,CoulLongTable<1>>(PairLJSPICACoulLongKokkos*,NeighListKokkos<DeviceType>*);
+  friend EV_FLOAT pair_compute<PairLJSPICACoulLongKokkos,CoulLongTable<1>>(PairLJSPICACoulLongKokkos*,NeighListKokkos<DeviceType>*);
+
+  friend struct PairComputeFunctor<PairLJSPICACoulLongKokkos,FULL,true,0,CoulLongTable<0>>;
+  friend struct PairComputeFunctor<PairLJSPICACoulLongKokkos,FULL,true,1,CoulLongTable<0>>;
+  friend struct PairComputeFunctor<PairLJSPICACoulLongKokkos,HALF,true,0,CoulLongTable<0>>;
+  friend struct PairComputeFunctor<PairLJSPICACoulLongKokkos,HALFTHREAD,true,0,CoulLongTable<0>>;
+  friend struct PairComputeFunctor<PairLJSPICACoulLongKokkos,FULL,false,0,CoulLongTable<0>>;
+  friend struct PairComputeFunctor<PairLJSPICACoulLongKokkos,FULL,false,1,CoulLongTable<0>>;
+  friend struct PairComputeFunctor<PairLJSPICACoulLongKokkos,HALF,false,0,CoulLongTable<0>>;
+  friend struct PairComputeFunctor<PairLJSPICACoulLongKokkos,HALFTHREAD,false,0,CoulLongTable<0>>;
+  friend EV_FLOAT pair_compute_neighlist<PairLJSPICACoulLongKokkos,FULL,0,CoulLongTable<0>>(PairLJSPICACoulLongKokkos*,NeighListKokkos<DeviceType>*);
+  friend EV_FLOAT pair_compute_neighlist<PairLJSPICACoulLongKokkos,FULL,1,CoulLongTable<0>>(PairLJSPICACoulLongKokkos*,NeighListKokkos<DeviceType>*);
+  friend EV_FLOAT pair_compute_neighlist<PairLJSPICACoulLongKokkos,HALF,0,CoulLongTable<0>>(PairLJSPICACoulLongKokkos*,NeighListKokkos<DeviceType>*);
+  friend EV_FLOAT pair_compute_neighlist<PairLJSPICACoulLongKokkos,HALFTHREAD,0,CoulLongTable<0>>(PairLJSPICACoulLongKokkos*,NeighListKokkos<DeviceType>*);
+  friend EV_FLOAT pair_compute<PairLJSPICACoulLongKokkos,CoulLongTable<0>>(PairLJSPICACoulLongKokkos*,NeighListKokkos<DeviceType>*);
+
+  
   friend void pair_virial_fdotr_compute<PairLJSPICACoulLongKokkos>(PairLJSPICACoulLongKokkos*);
 };
 

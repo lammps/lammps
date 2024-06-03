@@ -16,7 +16,7 @@
 
 #include "atom_kokkos.h"
 #include "atom_masks.h"
-//#include "comm.h"
+#include "comm.h"
 #include "error.h"
 #include "ewald_const.h"
 #include "force.h"
@@ -35,8 +35,6 @@
 
 using namespace LAMMPS_NS;
 using namespace LJSPICAParms;
-
-// FIXME:
 using namespace EwaldConst;
 
 /* ---------------------------------------------------------------------- */
@@ -299,11 +297,8 @@ compute_fcoul(const F_FLOAT& rsq, const int& /*i*/, const int&j,
             }
           }
         }
-
 */
 
-
-              
   if (Specialisation::DoTable && rsq > tabinnersq) {
     union_int_float_t rsq_lookup;
     rsq_lookup.f = rsq;
@@ -330,6 +325,8 @@ compute_fcoul(const F_FLOAT& rsq, const int& /*i*/, const int&j,
 
     return forcecoul*rinv*rinv;
   }
+
+
 }
 
 
@@ -381,16 +378,16 @@ void PairLJSPICACoulLongKokkos<DeviceType>::allocate()
   PairLJSPICACoulLong::allocate();
 
   int n = atom->ntypes;
-  //memory->destroy(cutsq);
-  //memory->destroy(cut_lj);
-  //memory->destroy(cut_ljsq);
+
+  memory->destroy(cutsq);
   memoryKK->create_kokkos(k_cutsq,cutsq,n+1,n+1,"pair:cutsq");
-  memoryKK->create_kokkos(k_cut_lj,cut_lj,n+1,n+1,"pair:cut_lj");
-  memoryKK->create_kokkos(k_cut_ljsq,cut_ljsq,n+1,n+1,"pair:cut_ljsq");
   d_cutsq = k_cutsq.template view<DeviceType>();
-  d_cut_lj = k_cut_lj.template view<DeviceType>();
-  d_cut_ljsq = k_cut_ljsq.template view<DeviceType>();
-  k_params = Kokkos::DualView<params_lj**,Kokkos::LayoutRight,DeviceType>("PairLJSPICACoulLong::params",n+1,n+1);
+
+  d_cut_lj = typename AT::t_ffloat_2d("pair:cut_lj",n+1,n+1);
+  d_cut_ljsq = typename AT::t_ffloat_2d("pair:cut_ljsq",n+1,n+1);
+  d_cut_coulsq = typename AT::t_ffloat_2d("pair:cut_coulsq",n+1,n+1);
+
+  k_params = Kokkos::DualView<params_lj_coul**,Kokkos::LayoutRight,DeviceType>("PairLJSPICACoulLong::params",n+1,n+1);
   params = k_params.template view<DeviceType>();
 }
 
@@ -411,7 +408,7 @@ void PairLJSPICACoulLongKokkos<DeviceType>::settings(int narg, char **arg)
    init tables
 ------------------------------------------------------------------------- */
 
-/*
+
 template<class DeviceType>
 void PairLJSPICACoulLongKokkos<DeviceType>::init_tables(double cut_coul, double *cut_respa)
 {
@@ -514,7 +511,7 @@ void PairLJSPICACoulLongKokkos<DeviceType>::init_tables(double cut_coul, double 
   d_detable = d_table;
   }
 }
-*/
+
 
 
 /* ----------------------------------------------------------------------
@@ -525,6 +522,9 @@ template<class DeviceType>
 void PairLJSPICACoulLongKokkos<DeviceType>::init_style()
 {
   PairLJSPICACoulLong::init_style();
+
+  //Kokkos::deep_copy(d_cut_ljsq,cut_ljsq);
+  //Kokkos::deep_copy(d_cut_coulsq,cut_coulsq);
 
   // error if rRESPA with inner levels
 
@@ -561,15 +561,17 @@ double PairLJSPICACoulLongKokkos<DeviceType>::init_one(int i, int j)
   k_params.h_view(i,j).lj4 = lj4[i][j];
   k_params.h_view(i,j).offset = offset[i][j];
   k_params.h_view(i,j).cutsq = cutone*cutone;
+  k_params.h_view(i,j).cut_lj = cut_lj[i][j];
   k_params.h_view(i,j).cut_ljsq = cut_ljsq[i][j];
-  k_params.h_view(i,j).cut_coulsq = cut_coulsq[i][j];
+  k_params.h_view(i,j).cut_coulsq = cut_coulsq;
   k_params.h_view(i,j).lj_type = lj_type[i][j];
   k_params.h_view(j,i) = k_params.h_view(i,j);
   if (i<MAX_TYPES_STACKPARAMS+1 && j<MAX_TYPES_STACKPARAMS+1) {
     m_params[i][j] = m_params[j][i] = k_params.h_view(i,j);
     m_cutsq[j][i] = m_cutsq[i][j] = cutone*cutone;
+    m_cut_lj[j][i] = m_cut_lj[i][j] = cut_lj[i][j];
     m_cut_ljsq[j][i] = m_cut_ljsq[i][j] = cut_ljsq[i][j];
-    //m_cut_coulsq[j][i] = m_cut_coulsq[i][j] = cut_coulsq;
+    m_cut_coulsq[j][i] = m_cut_coulsq[i][j] = cut_coulsq;
   }
 
   k_cutsq.h_view(i,j) = k_cutsq.h_view(j,i) = cutone*cutone;

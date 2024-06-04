@@ -148,6 +148,14 @@ performance characteristics on NVIDIA GPUs. Both, the KOKKOS
 and the :ref:`GPU package <PKG-GPU>` are maintained
 and allow running LAMMPS with GPU acceleration.
 
+i-PI tool
+---------
+
+.. versionchanged:: TBD
+
+The i-PI tool has been removed from the LAMMPS distribution.  Instead,
+instructions to install i-PI from PyPi via pip are provided.
+
 restart2data tool
 -----------------
 

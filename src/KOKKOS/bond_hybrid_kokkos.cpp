@@ -82,6 +82,7 @@ void BondHybridKokkos::compute(int eflag, int vflag)
     k_nbondlist.modify_device();
     k_nbondlist.sync_host();
 
+    maxbond_all = 0;
     for (int m = 0; m < nstyles; m++)
       if (h_nbondlist[m] > maxbond_all)
         maxbond_all = h_nbondlist[m] + EXTRA;

@@ -90,7 +90,7 @@ Miscellaneous tools
 
    * :ref:`LAMMPS coding standards <coding_standard>`
    * :ref:`emacs <emacs>`
-   * :ref:`i-pi <ipi>`
+   * :ref:`i-PI <ipi>`
    * :ref:`kate <kate>`
    * :ref:`LAMMPS shell <lammps_shell>`
    * :ref:`LAMMPS GUI <lammps_gui>`
@@ -376,21 +376,40 @@ See README file in the tools/fep directory.
 
 .. _ipi:
 
-i-pi tool
+i-PI tool
 -------------------
 
-The tools/i-pi directory contains a version of the i-PI package, with
-all the LAMMPS-unrelated files removed.  It is provided so that it can
-be used with the :doc:`fix ipi <fix_ipi>` command to perform
-path-integral molecular dynamics (PIMD).
+.. versionchanged:: TBD
+
+The tools/i-pi directory used to contain a bundled version of the i-PI
+software package for use with LAMMPS.  This version, however, was
+removed in 06/2024.
 
 The i-PI package was created and is maintained by Michele Ceriotti,
 michele.ceriotti at gmail.com, to interface to a variety of molecular
 dynamics codes.
 
-See the tools/i-pi/manual.pdf file for an overview of i-PI, and the
-:doc:`fix ipi <fix_ipi>` page for further details on running PIMD
-calculations with LAMMPS.
+i-PI is now available via PyPi using the pip package manager at:
+https://pypi.org/project/ipi/
+
+Here are the commands to set up a virtual environment and install
+i-PI into it with all its dependencies.
+
+.. code-block:: sh
+
+   python -m venv ipienv
+   source ipienv/bin/activate
+   pip install --upgrade pip
+   pip install ipi
+
+To install the development version from GitHub, please use:
+
+.. code-block:: sh
+
+   pip install git+https://github.com/i-pi/i-pi.git
+
+For further information, please consult the [i-PI home
+page](https://ipi-code.org).
 
 ----------
 

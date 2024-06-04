@@ -46,7 +46,9 @@ template <class numtyp, class acctyp>
 int DPDChargedT::init(const int ntypes,
                double **host_cutsq, double **host_a0,
                double **host_gamma, double **host_sigma,
-               double **host_cut, double *host_special_lj,
+               double **host_cut,
+               double **host_cut_dpd, **host_cut_slater,
+               double *host_special_lj,
                const bool tstat_only,
                const int nlocal, const int nall,
                const int max_nbors, const int maxspecial,
@@ -70,7 +72,7 @@ int DPDChargedT::init(const int ntypes,
 
   int success;
   success=this->init_atomic(nlocal,nall,max_nbors,maxspecial,cell_size,
-                            gpu_split,_screen,dpd,"k_dpd",onetype);
+                            gpu_split,_screen,dpd,"k_dpd_charged",onetype);
   if (success!=0)
     return success;
 
@@ -98,6 +100,15 @@ int DPDChargedT::init(const int ntypes,
                              UCL_WRITE_ONLY);
   cutsq.alloc(lj_types*lj_types,*(this->ucl_device),UCL_READ_ONLY);
   this->atom->type_pack1(ntypes,lj_types,cutsq,host_rsq,host_cutsq);
+
+  cut_dpd.alloc(lj_types*lj_types,*(this->ucl_device),UCL_READ_ONLY);
+  this->atom->type_pack1(ntypes,lj_types,cut_dpdsq,host_rsq,host_cut_dpd);
+  
+  cutsq.alloc(lj_types*lj_types,*(this->ucl_device),UCL_READ_ONLY);
+  this->atom->type_pack1(ntypes,lj_types,cutsq,host_rsq,host_cutsq);
+
+  scale.alloc(lj_types*lj_types,*(this->ucl_device),UCL_READ_ONLY);
+  this->atom->type_pack1(ntypes,lj_types,scale,host_write,host_scale);
 
   double special_sqrt[4];
   special_sqrt[0] = sqrt(host_special_lj[0]);
@@ -196,12 +207,12 @@ int DPDChargedT::loop(const int eflag, const int vflag) {
 
 template <class numtyp, class acctyp>
 void DPDChargedT::update_coeff(int ntypes, double **host_a0, double **host_gamma,
-                        double **host_sigma, double **host_cut)
+                        double **host_sigma, double **host_cut, double **host_cut_dpd, **host_cut_slater)
 {
   UCL_H_Vec<numtyp> host_write(_lj_types*_lj_types*32,*(this->ucl_device),
                                UCL_WRITE_ONLY);
   this->atom->type_pack4(ntypes,_lj_types,coeff,host_write,host_a0,host_gamma,
-                         host_sigma,host_cut);
+                         host_sigma,host_cut,host_cut_dpd, host_cut_slater);
 }
 
 // ---------------------------------------------------------------------------

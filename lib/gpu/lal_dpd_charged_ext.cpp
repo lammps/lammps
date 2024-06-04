@@ -29,6 +29,7 @@ static DPDCharged<PRECISION,ACC_PRECISION> DPDCMF;
 // ---------------------------------------------------------------------------
 int dpd_charged_gpu_init(const int ntypes, double **cutsq, double **host_a0,
                  double **host_gamma, double **host_sigma, double **host_cut,
+                 double **host_cut_dpd, double **host_cut_slater,
                  double *special_lj, const int inum,
                  const int nall, const int max_nbors,  const int maxspecial,
                  const double cell_size, int &gpu_mode, FILE *screen) {
@@ -55,7 +56,7 @@ int dpd_charged_gpu_init(const int ntypes, double **cutsq, double **host_a0,
   int init_ok=0;
   if (world_me==0)
     init_ok=DPDCMF.init(ntypes, cutsq, host_a0, host_gamma, host_sigma,
-                       host_cut, special_lj, false, inum, nall, max_nbors,
+                       host_cut, host_cut_dpd, host_cut_slater, special_lj, false, inum, nall, max_nbors,
                        maxspecial, cell_size, gpu_split, screen);
 
   DPDCMF.device->world_barrier();
@@ -73,7 +74,7 @@ int dpd_charged_gpu_init(const int ntypes, double **cutsq, double **host_a0,
     }
     if (gpu_rank==i && world_me!=0)
       init_ok=DPDCMF.init(ntypes, cutsq, host_a0, host_gamma, host_sigma,
-                         host_cut, special_lj, false, inum, nall, max_nbors,
+                         host_cut, host_cut_dpd, host_cut_slater, special_lj, false, inum, nall, max_nbors,
                          maxspecial, cell_size, gpu_split, screen);
 
     DPDCMF.device->serialize_init();
@@ -121,9 +122,13 @@ void dpd_charged_gpu_compute(const int ago, const int inum_full, const int nall,
 }
 
 void dpd_charged_gpu_update_coeff(int ntypes, double **host_a0, double **host_gamma,
-                          double **host_sigma, double **host_cut)
+                          double **host_sigma, double **host_cut, double **host_cut_dpd, **host_cut_slater)
 {
-   DPDCMF.update_coeff(ntypes,host_a0,host_gamma,host_sigma,host_cut);
+   DPDCMF.update_coeff(ntypes,host_a0,host_gamma,host_sigma,host_cut, host_cut_dpd, host_cut_slater,);
+}
+
+void dpd_charged_gpu_get_extra_data(double *host_q) {
+  DPDCMF.get_extra_data(host_q);
 }
 
 double dpd_charged_gpu_bytes() {

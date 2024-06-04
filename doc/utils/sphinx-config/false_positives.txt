@@ -1765,6 +1765,7 @@ keflag
 Keir
 Kelchner
 Kelkar
+Kemppainen
 Kemper
 kepler
 Kemppainen
@@ -2486,6 +2487,7 @@ Nevery
 newfile
 Newns
 newtype
+nextsort
 Neyts
 Nf
 nfft
@@ -3292,6 +3294,7 @@ Saidi
 saip
 Salanne
 Salles
+sametag
 sandia
 Sandia
 sandybrown
@@ -3457,6 +3460,7 @@ solvated
 solvation
 someuser
 Sorensen
+sortfreq
 soundspeed
 sourceforge
 Souza

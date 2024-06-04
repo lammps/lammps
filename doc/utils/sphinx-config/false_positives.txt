@@ -992,6 +992,7 @@ emax
 Emax
 Embt
 emi
+Emilie
 Emmrich
 emol
 eN
@@ -1732,6 +1733,7 @@ Kalia
 Kamberaj
 Kantorovich
 Kapfer
+Kapil
 Karhunen
 Karls
 Karlsruhe
@@ -1765,6 +1767,7 @@ Kelchner
 Kelkar
 Kemper
 kepler
+Kemppainen
 keV
 Keyes
 keyfile
@@ -2672,6 +2675,7 @@ nzlo
 ocl
 octahedral
 octants
+Odegard
 Ohara
 O'Hearn
 ohenrich
@@ -3405,6 +3409,7 @@ sinh
 sinusoid
 sinusoidally
 SiO
+Siochi
 Sirk
 Sival
 sizeI
@@ -4150,6 +4155,7 @@ yy
 yz
 Zagaceta
 Zannoni
+Zavada
 Zavattieri
 zbl
 ZBL

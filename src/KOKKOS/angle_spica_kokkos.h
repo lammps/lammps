@@ -77,10 +77,12 @@ class AngleSPICAKokkos : public AngleSPICA {
 
   typename ArrayTypes<DeviceType>::tdual_ffloat_1d k_k;
   typename ArrayTypes<DeviceType>::tdual_ffloat_1d k_theta0;
-
+  typename ArrayTypes<DeviceType>::tdual_ffloat_1d k_repscale;
+  
   typename ArrayTypes<DeviceType>::t_ffloat_1d d_k;
   typename ArrayTypes<DeviceType>::t_ffloat_1d d_theta0;
-
+  typename ArrayTypes<DeviceType>::t_ffloat_1d d_repscale;
+  
   void allocate();
 };
 

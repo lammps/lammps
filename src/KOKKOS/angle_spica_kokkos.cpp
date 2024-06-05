@@ -36,7 +36,7 @@ static constexpr double SMALL = 0.001;
 /* ---------------------------------------------------------------------- */
 
 template<class DeviceType>
-AngleSPICAKokkos<DeviceType>::AngleSPICAKokkos(LAMMPS *lmp) : AngleHarmonic(lmp)
+AngleSPICAKokkos<DeviceType>::AngleSPICAKokkos(LAMMPS *lmp) : AngleSPICA(lmp)
 {
   atomKK = (AtomKokkos *) atom;
   neighborKK = (NeighborKokkos *) neighbor;
@@ -103,15 +103,15 @@ void AngleSPICAKokkos<DeviceType>::compute(int eflag_in, int vflag_in)
 
   if (evflag) {
     if (newton_bond) {
-      Kokkos::parallel_reduce(Kokkos::RangePolicy<DeviceType, TagAngleHarmonicCompute<1,1> >(0,nanglelist),*this,ev);
+      Kokkos::parallel_reduce(Kokkos::RangePolicy<DeviceType, TagAngleSPICACompute<1,1> >(0,nanglelist),*this,ev);
     } else {
-      Kokkos::parallel_reduce(Kokkos::RangePolicy<DeviceType, TagAngleHarmonicCompute<0,1> >(0,nanglelist),*this,ev);
+      Kokkos::parallel_reduce(Kokkos::RangePolicy<DeviceType, TagAngleSPICACompute<0,1> >(0,nanglelist),*this,ev);
     }
   } else {
     if (newton_bond) {
-      Kokkos::parallel_for(Kokkos::RangePolicy<DeviceType, TagAngleHarmonicCompute<1,0> >(0,nanglelist),*this);
+      Kokkos::parallel_for(Kokkos::RangePolicy<DeviceType, TagAngleSPICACompute<1,0> >(0,nanglelist),*this);
     } else {
-      Kokkos::parallel_for(Kokkos::RangePolicy<DeviceType, TagAngleHarmonicCompute<0,0> >(0,nanglelist),*this);
+      Kokkos::parallel_for(Kokkos::RangePolicy<DeviceType, TagAngleSPICACompute<0,0> >(0,nanglelist),*this);
     }
   }
 
@@ -141,7 +141,7 @@ void AngleSPICAKokkos<DeviceType>::compute(int eflag_in, int vflag_in)
 template<class DeviceType>
 template<int NEWTON_BOND, int EVFLAG>
 KOKKOS_INLINE_FUNCTION
-void AngleSPICAKokkos<DeviceType>::operator()(TagAngleHarmonicCompute<NEWTON_BOND,EVFLAG>, const int &n, EV_FLOAT& ev) const {
+void AngleSPICAKokkos<DeviceType>::operator()(TagAngleSPICACompute<NEWTON_BOND,EVFLAG>, const int &n, EV_FLOAT& ev) const {
 
   // The f array is atomic
   Kokkos::View<F_FLOAT*[3], typename DAT::t_f_array::array_layout,typename KKDevice<DeviceType>::value,Kokkos::MemoryTraits<Kokkos::Atomic|Kokkos::Unmanaged> > a_f = f;
@@ -294,9 +294,9 @@ void AngleSPICAKokkos<DeviceType>::operator()(TagAngleHarmonicCompute<NEWTON_BON
 template<class DeviceType>
 template<int NEWTON_BOND, int EVFLAG>
 KOKKOS_INLINE_FUNCTION
-void AngleSPICAKokkos<DeviceType>::operator()(TagAngleHarmonicCompute<NEWTON_BOND,EVFLAG>, const int &n) const {
+void AngleSPICAKokkos<DeviceType>::operator()(TagAngleSPICACompute<NEWTON_BOND,EVFLAG>, const int &n) const {
   EV_FLOAT ev;
-  this->template operator()<NEWTON_BOND,EVFLAG>(TagAngleHarmonicCompute<NEWTON_BOND,EVFLAG>(), n, ev);
+  this->template operator()<NEWTON_BOND,EVFLAG>(TagAngleSPICACompute<NEWTON_BOND,EVFLAG>(), n, ev);
 }
 
 /* ---------------------------------------------------------------------- */
@@ -304,11 +304,11 @@ void AngleSPICAKokkos<DeviceType>::operator()(TagAngleHarmonicCompute<NEWTON_BON
 template<class DeviceType>
 void AngleSPICAKokkos<DeviceType>::allocate()
 {
-  AngleHarmonic::allocate();
+  AngleSPICA::allocate();
 
   int n = atom->nangletypes;
-  k_k = typename ArrayTypes<DeviceType>::tdual_ffloat_1d("AngleHarmonic::k",n+1);
-  k_theta0 = typename ArrayTypes<DeviceType>::tdual_ffloat_1d("AngleHarmonic::theta0",n+1);
+  k_k = typename ArrayTypes<DeviceType>::tdual_ffloat_1d("AngleSPICA::k",n+1);
+  k_theta0 = typename ArrayTypes<DeviceType>::tdual_ffloat_1d("AngleSPICA::theta0",n+1);
 
   d_k = k_k.template view<DeviceType>();
   d_theta0 = k_theta0.template view<DeviceType>();
@@ -321,7 +321,7 @@ void AngleSPICAKokkos<DeviceType>::allocate()
 template<class DeviceType>
 void AngleSPICAKokkos<DeviceType>::coeff(int narg, char **arg)
 {
-  AngleHarmonic::coeff(narg, arg);
+  AngleSPICA::coeff(narg, arg);
 
   int n = atom->nangletypes;
   for (int i = 1; i <= n; i++) {
@@ -340,7 +340,7 @@ void AngleSPICAKokkos<DeviceType>::coeff(int narg, char **arg)
 template<class DeviceType>
 void AngleSPICAKokkos<DeviceType>::read_restart(FILE *fp)
 {
-  AngleHarmonic::read_restart(fp);
+  AngleSPICA::read_restart(fp);
 
   int n = atom->nangletypes;
   for (int i = 1; i <= n; i++) {

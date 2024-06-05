@@ -13,10 +13,10 @@
 ------------------------------------------------------------------------- */
 
 /* ----------------------------------------------------------------------
-   Contributing author: Stan Moore (SNL)
+   Contributing author: Mitch Murphy (alphataubio@gmail.com)
 ------------------------------------------------------------------------- */
 
-#include "angle_harmonic_kokkos.h"
+#include "angle_spica_kokkos.h"
 
 #include "atom_kokkos.h"
 #include "atom_masks.h"
@@ -36,7 +36,7 @@ static constexpr double SMALL = 0.001;
 /* ---------------------------------------------------------------------- */
 
 template<class DeviceType>
-AngleHarmonicKokkos<DeviceType>::AngleHarmonicKokkos(LAMMPS *lmp) : AngleHarmonic(lmp)
+AngleSPICAKokkos<DeviceType>::AngleSPICAKokkos(LAMMPS *lmp) : AngleHarmonic(lmp)
 {
   atomKK = (AtomKokkos *) atom;
   neighborKK = (NeighborKokkos *) neighbor;
@@ -50,7 +50,7 @@ AngleHarmonicKokkos<DeviceType>::AngleHarmonicKokkos(LAMMPS *lmp) : AngleHarmoni
 /* ---------------------------------------------------------------------- */
 
 template<class DeviceType>
-AngleHarmonicKokkos<DeviceType>::~AngleHarmonicKokkos()
+AngleSPICAKokkos<DeviceType>::~AngleSPICAKokkos()
 {
   if (!copymode) {
     memoryKK->destroy_kokkos(k_eatom,eatom);
@@ -61,7 +61,7 @@ AngleHarmonicKokkos<DeviceType>::~AngleHarmonicKokkos()
 /* ---------------------------------------------------------------------- */
 
 template<class DeviceType>
-void AngleHarmonicKokkos<DeviceType>::compute(int eflag_in, int vflag_in)
+void AngleSPICAKokkos<DeviceType>::compute(int eflag_in, int vflag_in)
 {
   eflag = eflag_in;
   vflag = vflag_in;
@@ -141,7 +141,7 @@ void AngleHarmonicKokkos<DeviceType>::compute(int eflag_in, int vflag_in)
 template<class DeviceType>
 template<int NEWTON_BOND, int EVFLAG>
 KOKKOS_INLINE_FUNCTION
-void AngleHarmonicKokkos<DeviceType>::operator()(TagAngleHarmonicCompute<NEWTON_BOND,EVFLAG>, const int &n, EV_FLOAT& ev) const {
+void AngleSPICAKokkos<DeviceType>::operator()(TagAngleHarmonicCompute<NEWTON_BOND,EVFLAG>, const int &n, EV_FLOAT& ev) const {
 
   // The f array is atomic
   Kokkos::View<F_FLOAT*[3], typename DAT::t_f_array::array_layout,typename KKDevice<DeviceType>::value,Kokkos::MemoryTraits<Kokkos::Atomic|Kokkos::Unmanaged> > a_f = f;
@@ -180,6 +180,67 @@ void AngleHarmonicKokkos<DeviceType>::operator()(TagAngleHarmonicCompute<NEWTON_
   F_FLOAT s = sqrt(1.0 - c*c);
   if (s < SMALL) s = SMALL;
   s = 1.0/s;
+  
+  // 1-3 LJ interaction.
+  // we only want to use the repulsive part,
+  // and it can be scaled (or off).
+  // so this has to be done here and not in the
+  // general non-bonded code.
+  
+  F_FLOAT f13, e13, delx3, dely3, delz3;
+  f13 = e13 = delx3 = dely3 = delz3 = 0.0;
+  
+  if (repflag) {
+    
+    delx3 = x[i1][0] - x[i3][0];
+    dely3 = x[i1][1] - x[i3][1];
+    delz3 = x[i1][2] - x[i3][2];
+    const F_FLOAT rsq3 = delx3*delx3 + dely3*dely3 + delz3*delz3;
+    
+    const int type1 = atom->type[i1];
+    const int type3 = atom->type[i3];
+    
+    f13=0.0;
+    e13=0.0;
+    
+    if (rsq3 < rminsq[type1][type3]) {
+      const int ljt = lj_type[type1][type3];
+      const double r2inv = 1.0/rsq3;
+      
+      if (ljt == LJ12_4) {
+        const double r4inv=r2inv*r2inv;
+        
+        f13 = r4inv*(lj1[type1][type3]*r4inv*r4inv - lj2[type1][type3]);
+        if (eflag) e13 = r4inv*(lj3[type1][type3]*r4inv*r4inv - lj4[type1][type3]);
+        
+      } else if (ljt == LJ9_6) {
+        const double r3inv = r2inv*sqrt(r2inv);
+        const double r6inv = r3inv*r3inv;
+        
+        f13 = r6inv*(lj1[type1][type3]*r3inv - lj2[type1][type3]);
+        if (eflag) e13 = r6inv*(lj3[type1][type3]*r3inv - lj4[type1][type3]);
+        
+      } else if (ljt == LJ12_6) {
+        const double r6inv = r2inv*r2inv*r2inv;
+        
+        f13 = r6inv*(lj1[type1][type3]*r6inv - lj2[type1][type3]);
+        if (eflag) e13 = r6inv*(lj3[type1][type3]*r6inv - lj4[type1][type3]);
+        
+      } else if (ljt == LJ12_5) {
+        const double r5inv = r2inv*r2inv*sqrt(r2inv);
+        const double r7inv = r5inv*r2inv;
+        
+        f13 = r5inv*(lj1[type1][type3]*r7inv - lj2[type1][type3]);
+        if (eflag) e13 = r5inv*(lj3[type1][type3]*r7inv - lj4[type1][type3]);
+      }
+      
+      // make sure energy is 0.0 at the cutoff.
+      if (eflag) e13 -= emin[type1][type3];
+      
+      f13 *= r2inv;
+    }
+  }
+  
 
   // force & energy
 
@@ -205,9 +266,9 @@ void AngleHarmonicKokkos<DeviceType>::operator()(TagAngleHarmonicCompute<NEWTON_
   // apply force to each of 3 atoms
 
   if (NEWTON_BOND || i1 < nlocal) {
-    a_f(i1,0) += f1[0];
-    a_f(i1,1) += f1[1];
-    a_f(i1,2) += f1[2];
+    a_f(i1,0) += f1[0] + f13*delx3;
+    a_f(i1,1) += f1[1] + f13*dely3;
+    a_f(i1,2) += f1[2] + f13*delz3;
   }
 
   if (NEWTON_BOND || i2 < nlocal) {
@@ -217,19 +278,23 @@ void AngleHarmonicKokkos<DeviceType>::operator()(TagAngleHarmonicCompute<NEWTON_
   }
 
   if (NEWTON_BOND || i3 < nlocal) {
-    a_f(i3,0) += f3[0];
-    a_f(i3,1) += f3[1];
-    a_f(i3,2) += f3[2];
+    a_f(i3,0) += f3[0] - f13*delx3;
+    a_f(i3,1) += f3[1] - f13*dely3;
+    a_f(i3,2) += f3[2] - f13*delz3;
   }
 
-  if (EVFLAG) ev_tally(ev,i1,i2,i3,eangle,f1,f3,
-                       delx1,dely1,delz1,delx2,dely2,delz2);
+  if (EVFLAG) {
+    ev_tally(ev,i1,i2,i3,eangle,f1,f3,delx1,dely1,delz1,delx2,dely2,delz2);
+
+    if (repflag)
+      ev_tally13(i1,i3,nlocal,newton_bond,e13,f13,delx3,dely3,delz3);  
+  }
 }
 
 template<class DeviceType>
 template<int NEWTON_BOND, int EVFLAG>
 KOKKOS_INLINE_FUNCTION
-void AngleHarmonicKokkos<DeviceType>::operator()(TagAngleHarmonicCompute<NEWTON_BOND,EVFLAG>, const int &n) const {
+void AngleSPICAKokkos<DeviceType>::operator()(TagAngleHarmonicCompute<NEWTON_BOND,EVFLAG>, const int &n) const {
   EV_FLOAT ev;
   this->template operator()<NEWTON_BOND,EVFLAG>(TagAngleHarmonicCompute<NEWTON_BOND,EVFLAG>(), n, ev);
 }
@@ -237,7 +302,7 @@ void AngleHarmonicKokkos<DeviceType>::operator()(TagAngleHarmonicCompute<NEWTON_
 /* ---------------------------------------------------------------------- */
 
 template<class DeviceType>
-void AngleHarmonicKokkos<DeviceType>::allocate()
+void AngleSPICAKokkos<DeviceType>::allocate()
 {
   AngleHarmonic::allocate();
 
@@ -254,7 +319,7 @@ void AngleHarmonicKokkos<DeviceType>::allocate()
 ------------------------------------------------------------------------- */
 
 template<class DeviceType>
-void AngleHarmonicKokkos<DeviceType>::coeff(int narg, char **arg)
+void AngleSPICAKokkos<DeviceType>::coeff(int narg, char **arg)
 {
   AngleHarmonic::coeff(narg, arg);
 
@@ -273,7 +338,7 @@ void AngleHarmonicKokkos<DeviceType>::coeff(int narg, char **arg)
 ------------------------------------------------------------------------- */
 
 template<class DeviceType>
-void AngleHarmonicKokkos<DeviceType>::read_restart(FILE *fp)
+void AngleSPICAKokkos<DeviceType>::read_restart(FILE *fp)
 {
   AngleHarmonic::read_restart(fp);
 
@@ -295,7 +360,7 @@ void AngleHarmonicKokkos<DeviceType>::read_restart(FILE *fp)
 template<class DeviceType>
 //template<int NEWTON_BOND>
 KOKKOS_INLINE_FUNCTION
-void AngleHarmonicKokkos<DeviceType>::ev_tally(EV_FLOAT &ev, const int i, const int j, const int k,
+void AngleSPICAKokkos<DeviceType>::ev_tally(EV_FLOAT &ev, const int i, const int j, const int k,
                      F_FLOAT &eangle, F_FLOAT *f1, F_FLOAT *f3,
                      const F_FLOAT &delx1, const F_FLOAT &dely1, const F_FLOAT &delz1,
                      const F_FLOAT &delx2, const F_FLOAT &dely2, const F_FLOAT &delz2) const
@@ -405,9 +470,9 @@ void AngleHarmonicKokkos<DeviceType>::ev_tally(EV_FLOAT &ev, const int i, const 
 /* ---------------------------------------------------------------------- */
 
 namespace LAMMPS_NS {
-template class AngleHarmonicKokkos<LMPDeviceType>;
+template class AngleSPICAKokkos<LMPDeviceType>;
 #ifdef LMP_KOKKOS_GPU
-template class AngleHarmonicKokkos<LMPHostType>;
+template class AngleSPICAKokkos<LMPHostType>;
 #endif
 }
 

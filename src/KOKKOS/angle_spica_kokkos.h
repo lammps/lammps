@@ -13,9 +13,9 @@
 
 #ifdef ANGLE_CLASS
 // clang-format off
-AngleStyle(spica/kk,AngleHarmonicKokkos<LMPDeviceType>);
-AngleStyle(spica/kk/device,AngleHarmonicKokkos<LMPDeviceType>);
-AngleStyle(spica/kk/host,AngleHarmonicKokkos<LMPHostType>);
+AngleStyle(spica/kk,AngleSPICAKokkos<LMPDeviceType>);
+AngleStyle(spica/kk/device,AngleSPICAKokkos<LMPDeviceType>);
+AngleStyle(spica/kk/host,AngleSPICAKokkos<LMPHostType>);
 // clang-format on
 #else
 

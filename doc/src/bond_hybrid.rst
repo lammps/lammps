@@ -1,4 +1,5 @@
 .. index:: bond_style hybrid
+.. index:: bond_style hybrid/kk
 
 bond_style hybrid command
 =========================

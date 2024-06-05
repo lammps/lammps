@@ -243,7 +243,7 @@ void AngleSPICAKokkos<DeviceType>::operator()(TagAngleSPICACompute<NEWTON_BOND,E
       f13 *= r2inv;
     }
   }
-  
+
 
   // force & energy
 
@@ -314,7 +314,7 @@ void AngleSPICAKokkos<DeviceType>::allocate()
   k_theta0 = typename ArrayTypes<DeviceType>::tdual_ffloat_1d("AngleSPICA::theta0",n+1);
   k_repscale = typename ArrayTypes<DeviceType>::tdual_ffloat_1d("AngleSPICA::repscale",n+1);
   k_setflag = typename ArrayTypes<DeviceType>::tdual_int_1d("AngleSPICA::setflag",n+1);
-  
+
   d_k = k_k.template view<DeviceType>();
   d_theta0 = k_theta0.template view<DeviceType>();
   d_repscale = k_repscale.template view<DeviceType>();

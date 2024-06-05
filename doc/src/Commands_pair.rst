@@ -269,7 +269,7 @@ OPT.
    * :doc:`smd/ulsph <pair_smd_ulsph>`
    * :doc:`smtbq <pair_smtbq>`
    * :doc:`snap (ik) <pair_snap>`
-   * :doc:`soft (go) <pair_soft>`
+   * :doc:`soft (gko) <pair_soft>`
    * :doc:`sph/heatconduction (g) <pair_sph_heatconduction>`
    * :doc:`sph/idealgas <pair_sph_idealgas>`
    * :doc:`sph/lj (g) <pair_sph_lj>`

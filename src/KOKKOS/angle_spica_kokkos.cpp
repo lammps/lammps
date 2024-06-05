@@ -313,10 +313,12 @@ void AngleSPICAKokkos<DeviceType>::allocate()
   k_k = typename ArrayTypes<DeviceType>::tdual_ffloat_1d("AngleSPICA::k",n+1);
   k_theta0 = typename ArrayTypes<DeviceType>::tdual_ffloat_1d("AngleSPICA::theta0",n+1);
   k_repscale = typename ArrayTypes<DeviceType>::tdual_ffloat_1d("AngleSPICA::repscale",n+1);
+  k_setflag = typename ArrayTypes<DeviceType>::tdual_int_1d("AngleSPICA::setflag",n+1);
   
   d_k = k_k.template view<DeviceType>();
   d_theta0 = k_theta0.template view<DeviceType>();
   d_repscale = k_repscale.template view<DeviceType>();
+  d_setflag = k_setflag.template view<DeviceType>();
 }
 
 /* ----------------------------------------------------------------------
@@ -333,11 +335,13 @@ void AngleSPICAKokkos<DeviceType>::coeff(int narg, char **arg)
     k_k.h_view[i] = k[i];
     k_theta0.h_view[i] = theta0[i];
     k_repscale.h_view[i] = repscale[i];
+    k_setflag.h_view[i] = setflag[i];
   }
 
   k_k.template modify<LMPHostType>();
   k_theta0.template modify<LMPHostType>();
   k_repscale.template modify<LMPHostType>();
+  k_setflag.template modify<LMPHostType>();
 }
 
 /* ----------------------------------------------------------------------
@@ -354,11 +358,13 @@ void AngleSPICAKokkos<DeviceType>::read_restart(FILE *fp)
     k_k.h_view[i] = k[i];
     k_theta0.h_view[i] = theta0[i];
     k_repscale.h_view[i] = repscale[i];
+    k_setflag.h_view[i] = setflag[i];
   }
 
   k_k.template modify<LMPHostType>();
   k_theta0.template modify<LMPHostType>();
   k_repscale.template modify<LMPHostType>();
+  k_setflag.template modify<LMPHostType>();
 }
 
 /* ----------------------------------------------------------------------

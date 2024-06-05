@@ -3,6 +3,8 @@
 bond_style hybrid command
 =========================
 
+Accelerator Variants: *hybrid/kk*
+
 Syntax
 """"""
 
@@ -15,7 +17,7 @@ Syntax
 Examples
 """"""""
 
-.. code-block: LAMMPS
+.. code-block:: LAMMPS
 
    bond_style hybrid harmonic fene
    bond_coeff 1 harmonic 80.0 1.2
@@ -57,6 +59,10 @@ A bond style of *none* with no additional coefficients can be used in
 place of a bond style, either in a input script bond_coeff command or
 in the data file, if you desire to turn off interactions for specific
 bond types.
+
+----------
+
+.. include:: accel_styles.rst
 
 ----------
 

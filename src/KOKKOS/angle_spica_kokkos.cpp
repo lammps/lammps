@@ -289,8 +289,8 @@ void AngleSPICAKokkos<DeviceType>::operator()(TagAngleSPICACompute<NEWTON_BOND,E
   if (EVFLAG) {
     ev_tally(ev,i1,i2,i3,eangle,f1,f3,delx1,dely1,delz1,delx2,dely2,delz2);
 
-    //if (repflag)
-    //  ev_tally13(i1,i3,nlocal,newton_bond,e13,f13,delx3,dely3,delz3);  
+    if (repflag)
+      ev_tally13(ev,i1,i3,e13,f13,delx3,dely3,delz3);
   }
 }
 
@@ -482,6 +482,96 @@ void AngleSPICAKokkos<DeviceType>::ev_tally(EV_FLOAT &ev, const int i, const int
   }
 }
 
+/* ---------------------------------------------------------------------- */
+
+//void AngleSPICA::ev_tally13(int i, int j, int nlocal, int newton_bond,
+//                          double evdwl, double fpair,
+//                          double delx, double dely, double delz)
+template<class DeviceType>
+KOKKOS_INLINE_FUNCTION
+void AngleSPICAKokkos<DeviceType>::ev_tally13(EV_FLOAT &ev, const int i, const int j,
+                     const F_FLOAT &evdwl, const F_FLOAT &fpair,
+                     const F_FLOAT &delx, const F_FLOAT &dely, const F_FLOAT &delz) const
+{
+  double v[6];
+
+  // The eatom and vatom arrays are atomic
+  Kokkos::View<E_FLOAT*, typename DAT::t_efloat_1d::array_layout,typename KKDevice<DeviceType>::value,Kokkos::MemoryTraits<Kokkos::Atomic|Kokkos::Unmanaged> > v_eatom = k_eatom.template view<DeviceType>();
+  Kokkos::View<F_FLOAT*[6], typename DAT::t_virial_array::array_layout,typename KKDevice<DeviceType>::value,Kokkos::MemoryTraits<Kokkos::Atomic|Kokkos::Unmanaged> > v_vatom = k_vatom.template view<DeviceType>();
+
+  if (eflag_either) {
+    if (eflag_global) {
+      if (newton_bond) {
+        ev.evdwl += evdwl;
+      } else {
+        if (i < nlocal)
+          ev.evdwl += 0.5*evdwl;
+        if (j < nlocal)
+          ev.evdwl += 0.5*evdwl;
+      }
+    }
+    if (eflag_atom) {
+      if (newton_bond || i < nlocal) v_eatom[i] += 0.5*evdwl;
+      if (newton_bond || j < nlocal) v_eatom[j] += 0.5*evdwl;
+    }
+  }
+
+  if (vflag_either) {
+    v[0] = delx*delx*fpair;
+    v[1] = dely*dely*fpair;
+    v[2] = delz*delz*fpair;
+    v[3] = delx*dely*fpair;
+    v[4] = delx*delz*fpair;
+    v[5] = dely*delz*fpair;
+
+    if (vflag_global) {
+      if (newton_bond) {
+        ev.v[0] += v[0];
+        ev.v[1] += v[1];
+        ev.v[2] += v[2];
+        ev.v[3] += v[3];
+        ev.v[4] += v[4];
+        ev.v[5] += v[5];
+      } else {
+        if (i < nlocal) {
+          ev.v[0] += 0.5*v[0];
+          ev.v[1] += 0.5*v[1];
+          ev.v[2] += 0.5*v[2];
+          ev.v[3] += 0.5*v[3];
+          ev.v[4] += 0.5*v[4];
+          ev.v[5] += 0.5*v[5];
+        }
+        if (j < nlocal) {
+          ev.v[0] += 0.5*v[0];
+          ev.v[1] += 0.5*v[1];
+          ev.v[2] += 0.5*v[2];
+          ev.v[3] += 0.5*v[3];
+          ev.v[4] += 0.5*v[4];
+          ev.v[5] += 0.5*v[5];
+        }
+      }
+    }
+
+    if (vflag_atom) {
+      if (newton_bond || i < nlocal) {
+        v_vatom(i,0) += 0.5*v[0];
+        v_vatom(i,1) += 0.5*v[1];
+        v_vatom(i,2) += 0.5*v[2];
+        v_vatom(i,3) += 0.5*v[3];
+        v_vatom(i,4) += 0.5*v[4];
+        v_vatom(i,5) += 0.5*v[5];
+      }
+      if (newton_bond || j < nlocal) {
+        v_vatom(j,0) += 0.5*v[0];
+        v_vatom(j,1) += 0.5*v[1];
+        v_vatom(j,2) += 0.5*v[2];
+        v_vatom(j,3) += 0.5*v[3];
+        v_vatom(j,4) += 0.5*v[4];
+        v_vatom(j,5) += 0.5*v[5];
+      }
+    }
+  }
+}
 /* ---------------------------------------------------------------------- */
 
 namespace LAMMPS_NS {

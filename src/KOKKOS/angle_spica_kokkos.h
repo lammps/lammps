@@ -59,6 +59,11 @@ class AngleSPICAKokkos : public AngleSPICA {
                      const F_FLOAT &delx1, const F_FLOAT &dely1, const F_FLOAT &delz1,
                      const F_FLOAT &delx2, const F_FLOAT &dely2, const F_FLOAT &delz2) const;
 
+  KOKKOS_INLINE_FUNCTION
+  void ev_tally13(EV_FLOAT &ev, const int i, const int j,
+                     const F_FLOAT &evdwl, const F_FLOAT &fpair,
+                     const F_FLOAT &delx, const F_FLOAT &dely, const F_FLOAT &delz) const;
+                     
  protected:
 
   class NeighborKokkos *neighborKK;

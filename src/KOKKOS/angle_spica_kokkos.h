@@ -63,7 +63,7 @@ class AngleSPICAKokkos : public AngleSPICA {
   void ev_tally13(EV_FLOAT &ev, const int i, const int j,
                      const F_FLOAT &evdwl, const F_FLOAT &fpair,
                      const F_FLOAT &delx, const F_FLOAT &dely, const F_FLOAT &delz) const;
-                     
+
  protected:
 
   class NeighborKokkos *neighborKK;
@@ -84,12 +84,12 @@ class AngleSPICAKokkos : public AngleSPICA {
   typename ArrayTypes<DeviceType>::tdual_ffloat_1d k_theta0;
   typename ArrayTypes<DeviceType>::tdual_ffloat_1d k_repscale;
   typename ArrayTypes<DeviceType>::tdual_int_1d k_setflag;
-  
+
   typename ArrayTypes<DeviceType>::t_ffloat_1d d_k;
   typename ArrayTypes<DeviceType>::t_ffloat_1d d_theta0;
   typename ArrayTypes<DeviceType>::t_ffloat_1d d_repscale;
   typename ArrayTypes<DeviceType>::t_int_1d d_setflag;
-  
+
   void allocate() override;
 };
 

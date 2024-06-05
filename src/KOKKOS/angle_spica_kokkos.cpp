@@ -183,63 +183,63 @@ void AngleSPICAKokkos<DeviceType>::operator()(TagAngleSPICACompute<NEWTON_BOND,E
   F_FLOAT s = sqrt(1.0 - c*c);
   if (s < SMALL) s = SMALL;
   s = 1.0/s;
-  
+
   // 1-3 LJ interaction.
   // we only want to use the repulsive part,
   // and it can be scaled (or off).
   // so this has to be done here and not in the
   // general non-bonded code.
-  
+
   F_FLOAT f13, e13, delx3, dely3, delz3;
   f13 = e13 = delx3 = dely3 = delz3 = 0.0;
-  
+
   if (repflag) {
-    
+
     delx3 = x(i1,0) - x(i3,0);
     dely3 = x(i1,1) - x(i3,1);
     delz3 = x(i1,2) - x(i3,2);
     const F_FLOAT rsq3 = delx3*delx3 + dely3*dely3 + delz3*delz3;
-    
+
     const int type1 = atom->type[i1];
     const int type3 = atom->type[i3];
-    
+
     f13=0.0;
     e13=0.0;
-    
+
     if (rsq3 < rminsq[type1][type3]) {
       const int ljt = lj_type[type1][type3];
       const double r2inv = 1.0/rsq3;
-      
+
       if (ljt == LJ12_4) {
         const double r4inv=r2inv*r2inv;
-        
+
         f13 = r4inv*(lj1[type1][type3]*r4inv*r4inv - lj2[type1][type3]);
         if (eflag) e13 = r4inv*(lj3[type1][type3]*r4inv*r4inv - lj4[type1][type3]);
-        
+
       } else if (ljt == LJ9_6) {
         const double r3inv = r2inv*sqrt(r2inv);
         const double r6inv = r3inv*r3inv;
-        
+
         f13 = r6inv*(lj1[type1][type3]*r3inv - lj2[type1][type3]);
         if (eflag) e13 = r6inv*(lj3[type1][type3]*r3inv - lj4[type1][type3]);
-        
+
       } else if (ljt == LJ12_6) {
         const double r6inv = r2inv*r2inv*r2inv;
-        
+
         f13 = r6inv*(lj1[type1][type3]*r6inv - lj2[type1][type3]);
         if (eflag) e13 = r6inv*(lj3[type1][type3]*r6inv - lj4[type1][type3]);
-        
+
       } else if (ljt == LJ12_5) {
         const double r5inv = r2inv*r2inv*sqrt(r2inv);
         const double r7inv = r5inv*r2inv;
-        
+
         f13 = r5inv*(lj1[type1][type3]*r7inv - lj2[type1][type3]);
         if (eflag) e13 = r5inv*(lj3[type1][type3]*r7inv - lj4[type1][type3]);
       }
-      
+
       // make sure energy is 0.0 at the cutoff.
       if (eflag) e13 -= emin[type1][type3];
-      
+
       f13 *= r2inv;
     }
   }
@@ -484,9 +484,6 @@ void AngleSPICAKokkos<DeviceType>::ev_tally(EV_FLOAT &ev, const int i, const int
 
 /* ---------------------------------------------------------------------- */
 
-//void AngleSPICA::ev_tally13(int i, int j, int nlocal, int newton_bond,
-//                          double evdwl, double fpair,
-//                          double delx, double dely, double delz)
 template<class DeviceType>
 KOKKOS_INLINE_FUNCTION
 void AngleSPICAKokkos<DeviceType>::ev_tally13(EV_FLOAT &ev, const int i, const int j,

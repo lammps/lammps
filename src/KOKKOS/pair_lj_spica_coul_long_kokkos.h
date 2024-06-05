@@ -94,7 +94,7 @@ class PairLJSPICACoulLongKokkos : public PairLJSPICACoulLong {
   typename AT::t_f_array f;
   typename AT::t_int_1d_randomread type;
   typename AT::t_float_1d_randomread q;
-  
+
   DAT::tdual_efloat_1d k_eatom;
   DAT::tdual_virial_array k_vatom;
   typename AT::t_efloat_1d d_eatom;
@@ -145,7 +145,6 @@ class PairLJSPICACoulLongKokkos : public PairLJSPICACoulLong {
   friend EV_FLOAT pair_compute_neighlist<PairLJSPICACoulLongKokkos,HALFTHREAD,0,CoulLongTable<0>>(PairLJSPICACoulLongKokkos*,NeighListKokkos<DeviceType>*);
   friend EV_FLOAT pair_compute<PairLJSPICACoulLongKokkos,CoulLongTable<0>>(PairLJSPICACoulLongKokkos*,NeighListKokkos<DeviceType>*);
 
-  
   friend void pair_virial_fdotr_compute<PairLJSPICACoulLongKokkos>(PairLJSPICACoulLongKokkos*);
 };
 

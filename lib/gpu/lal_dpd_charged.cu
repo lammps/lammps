@@ -174,7 +174,7 @@ __kernel void k_dpd_charged(const __global numtyp4 *restrict x_,
                     const int eflag, const int vflag, const int inum,
                     const int nbor_pitch,
                     const __global numtyp4 *restrict v_,
-                    const __global numtyp *restrict cutsq,
+                    const __global numtyp4 *restrict cutsq,
                     const numtyp dtinvsqrt, const int seed,
                     const int timestep, const int tstat_only,
                     const int t_per_atom) {
@@ -202,7 +202,7 @@ __kernel void k_dpd_charged(const __global numtyp4 *restrict x_,
     numtyp4 iv; fetch4(iv,i,vel_tex); //v_[i];
     int itag=iv.w;
 
-    const numtyp qi = extra[i].x;
+    const numtyp qtmp = extra[i].x; // q[i]
 
     numtyp factor_dpd, factor_sqrt;
     for ( ; nbor<nbor_end; nbor+=n_stride) {
@@ -225,7 +225,7 @@ __kernel void k_dpd_charged(const __global numtyp4 *restrict x_,
       numtyp rsq = delx*delx+dely*dely+delz*delz;
 
       int mtype=itype*lj_types+jtype;
-      if (rsq<cutsq[mtype]) {
+      if (rsq<cutsq.x[mtype]) {
         numtyp r=ucl_sqrt(rsq);
         if (r < EPSILON) continue;
 
@@ -296,7 +296,7 @@ __kernel void k_dpd_charged_fast(const __global numtyp4 *restrict x_,
                          const int eflag, const int vflag, const int inum,
                          const int nbor_pitch,
                          const __global numtyp4 *restrict v_,
-                         const __global numtyp *restrict cutsq,
+                         const __global numtyp4 *restrict cutsq,
                          const numtyp dtinvsqrt, const int seed,
                          const int timestep, const int tstat_only,
                          const int t_per_atom) {

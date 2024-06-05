@@ -39,6 +39,7 @@ class DPDCharged : public BaseDPD<numtyp, acctyp> {
     * - -5 Double precision is not supported on card **/
   int init(const int ntypes, double **host_cutsq, double **host_a0,
            double **host_gamma, double **host_sigma, double **host_cut,
+           double **host_cut_dpd, double **host_cut_dpdsq, double **host_cut_slatersq,
            double *host_special_lj, bool tstat_only, const int nlocal,
            const int nall, const int max_nbors, const int maxspecial,
            const double cell_size, const double gpu_split, FILE *screen);
@@ -55,18 +56,15 @@ class DPDCharged : public BaseDPD<numtyp, acctyp> {
 
   /// Update coeff if needed (tstat only)
   void update_coeff(int ntypes, double **host_a0, double **host_gamma,
-                    double **host_sigma, double **host_cut);
+                    double **host_sigma, double **host_cut_dpd );
 
   // --------------------------- TYPE DATA --------------------------
 
-  /// coeff.x = a0, coeff.y = gamma, coeff.z = sigma, coeff.w = cut
+  /// coeff.x = a0, coeff.y = gamma, coeff.z = sigma, coeff.w = cut_dpd
   UCL_D_Vec<numtyp4> coeff;
 
-  UCL_D_Vec<numtyp> cutsq;
-  UCL_D_Vec<numtyp> cut_dpd;
-  UCL_D_Vec<numtyp> cut_dpdsq;
-  UCL_D_Vec<numtyp> cut_slater;
-  UCL_D_Vec<numtyp> cut_slatersq;
+  /// cutsq.x = cutsq, cutsq.y = cut_dpd_sq, cutsq.z = cut_dpd, cutsq.w = cut_slatersq
+  UCL_D_Vec<numtyp4> cutsq;
 
   /// Special LJ values
   UCL_D_Vec<numtyp> sp_lj, sp_sqrt;

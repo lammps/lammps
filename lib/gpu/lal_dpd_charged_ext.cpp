@@ -56,7 +56,7 @@ int dpd_charged_gpu_init(const int ntypes, double **cutsq, double **host_a0,
   int init_ok=0;
   if (world_me==0)
     init_ok=DPDCMF.init(ntypes, cutsq, host_a0, host_gamma, host_sigma,
-                       host_cut, host_cut_dpd, host_cut_slater, special_lj, false, inum, nall, max_nbors,
+                       host_cut, host_cut_dpd, host_cut_dpdsq, host_cut_slatersq, special_lj, false, inum, nall, max_nbors,
                        maxspecial, cell_size, gpu_split, screen);
 
   DPDCMF.device->world_barrier();
@@ -122,9 +122,9 @@ void dpd_charged_gpu_compute(const int ago, const int inum_full, const int nall,
 }
 
 void dpd_charged_gpu_update_coeff(int ntypes, double **host_a0, double **host_gamma,
-                          double **host_sigma, double **host_cut, double **host_cut_dpd, **host_cut_slater)
+                          double **host_sigma, double **host_cut, double **host_cut_dpd)
 {
-   DPDCMF.update_coeff(ntypes,host_a0,host_gamma,host_sigma,host_cut, host_cut_dpd, host_cut_slater,);
+   DPDCMF.update_coeff(ntypes,host_a0,host_gamma,host_sigma,host_cut, host_cut_dpd);
 }
 
 void dpd_charged_gpu_get_extra_data(double *host_q) {

@@ -26,10 +26,13 @@
 #include "memory_kokkos.h"
 #include "neighbor_kokkos.h"
 
+#include "lj_spica_common.h"
+
 #include <cmath>
 
 using namespace LAMMPS_NS;
 using namespace MathConst;
+using namespace LJSPICAParms;
 
 static constexpr double SMALL = 0.001;
 

@@ -85,7 +85,7 @@ class AngleSPICAKokkos : public AngleSPICA {
   typename ArrayTypes<DeviceType>::t_ffloat_1d d_repscale;
   typename ArrayTypes<DeviceType>::t_int_1d d_setflag;
   
-  void allocate();
+  void allocate() override;
 };
 
 }

@@ -53,6 +53,7 @@ action angle_cosine_kokkos.cpp angle_cosine.cpp
 action angle_cosine_kokkos.h angle_cosine.h
 action angle_harmonic_kokkos.cpp angle_harmonic.cpp
 action angle_harmonic_kokkos.h angle_harmonic.h
+action angle_spica_kokkos.h angle_spica.h
 action atom_kokkos.cpp
 action atom_kokkos.h
 action atom_map_kokkos.cpp
@@ -340,6 +341,8 @@ action pair_lj_gromacs_coul_gromacs_kokkos.cpp pair_lj_gromacs_coul_gromacs.cpp
 action pair_lj_gromacs_coul_gromacs_kokkos.h pair_lj_gromacs_coul_gromacs.h
 action pair_lj_gromacs_kokkos.cpp pair_lj_gromacs.cpp
 action pair_lj_gromacs_kokkos.h pair_lj_gromacs.h
+action pair_lj_spica_coul_long_kokkos.cpp pair_lj_coul_long_spica.cpp
+action pair_lj_spica_coul_long_kokkos.h pair_lj_coul_long_spica.h
 action pair_lj_spica_kokkos.cpp pair_lj_spica.cpp
 action pair_lj_spica_kokkos.h pair_lj_spica.h
 action pair_meam_kokkos.cpp pair_meam.cpp

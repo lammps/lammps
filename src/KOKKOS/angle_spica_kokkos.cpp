@@ -192,9 +192,9 @@ void AngleSPICAKokkos<DeviceType>::operator()(TagAngleSPICACompute<NEWTON_BOND,E
   
   if (repflag) {
     
-    delx3 = x[i1][0] - x[i3][0];
-    dely3 = x[i1][1] - x[i3][1];
-    delz3 = x[i1][2] - x[i3][2];
+    delx3 = x(i1,0) - x(i3,0);
+    dely3 = x(i1,1) - x(i3,1);
+    delz3 = x(i1,2) - x(i3,2);
     const F_FLOAT rsq3 = delx3*delx3 + dely3*dely3 + delz3*delz3;
     
     const int type1 = atom->type[i1];
@@ -286,8 +286,8 @@ void AngleSPICAKokkos<DeviceType>::operator()(TagAngleSPICACompute<NEWTON_BOND,E
   if (EVFLAG) {
     ev_tally(ev,i1,i2,i3,eangle,f1,f3,delx1,dely1,delz1,delx2,dely2,delz2);
 
-    if (repflag)
-      ev_tally13(i1,i3,nlocal,newton_bond,e13,f13,delx3,dely3,delz3);  
+    //if (repflag)
+    //  ev_tally13(i1,i3,nlocal,newton_bond,e13,f13,delx3,dely3,delz3);  
   }
 }
 

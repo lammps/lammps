@@ -46,14 +46,15 @@ template <class numtyp, class acctyp>
 int DPDChargedT::init(const int ntypes,
                double **host_cutsq, double **host_a0,
                double **host_gamma, double **host_sigma,
-               double **host_cut,
-               double **host_cut_dpd, double **host_cut_dpdsq, double **host_cut_slatersq,
+               double **host_cut_dpd, double **host_cut_dpdsq, 
+               double **host_cut_slatersq, **host_scale,
                double *host_special_lj,
                const bool tstat_only,
                const int nlocal, const int nall,
                const int max_nbors, const int maxspecial,
                const double cell_size,
-               const double gpu_split, FILE *_screen) {
+               const double gpu_split, FILE *_screen, double *host_special_coul,
+               const double qqrd2e, const double g_ewald, double lamda) {
   const int max_shared_types=this->device->max_shared_types();
 
   int onetype=0;
@@ -83,7 +84,28 @@ int DPDChargedT::init(const int ntypes,
     lj_types=max_shared_types;
     shared_types=true;
   }
+  
+  // Allocate a host write buffer for data initialization
+  UCL_H_Vec<numtyp> host_write_coul(lj_types*lj_types*32,*(this->ucl_device),
+                               UCL_WRITE_ONLY);
+
+  for (int i=0; i<lj_types*lj_types; i++)
+    host_write_coul[i]=0.0;
+
+  scale.alloc(lj_types*lj_types,*(this->ucl_device),UCL_READ_ONLY);
+  this->atom->type_pack1(ntypes,lj_types,scale,host_write_coul,host_scale);
+
+  sp_cl.alloc(4,*(this->ucl_device),UCL_READ_ONLY);
+  for (int i=0; i<4; i++) {
+    host_write_coul[i]=host_special_coul[i];
+  }
+  ucl_copy(sp_cl,host_write_coul,4,false);
+
   _lj_types=lj_types;
+  _cut_coulsq=host_cut_coulsq;
+  _qqrd2e=qqrd2e;
+  _g_ewald=g_ewald;
+  _lamda=lamda;
 
   // Allocate a host write buffer for data initialization
   UCL_H_Vec<numtyp> host_write(lj_types*lj_types*32,*(this->ucl_device),
@@ -103,7 +125,7 @@ int DPDChargedT::init(const int ntypes,
     host_rsq[i]=0.0;
   cutsq.alloc(lj_types*lj_types,*(this->ucl_device),UCL_READ_ONLY);
   this->atom->type_pack4(ntypes,lj_types,cutsq,host_rsq,host_cutsq, 
-                          host_cut_dpdsq, host_cut_dpd, host_cut_slatersq);
+                          host_cut_dpdsq, host_scale, host_cut_slatersq);
 
   double special_sqrt[4];
   special_sqrt[0] = sqrt(host_special_lj[0]);
@@ -181,20 +203,23 @@ int DPDChargedT::loop(const int eflag, const int vflag) {
   this->time_pair.start();
   if (shared_types) {
     this->k_pair_sel->set_size(GX,BX);
-    this->k_pair_sel->run(&this->atom->x, &this->atom->extra, &coeff, &sp_lj, &sp_sqrt,
+    this->k_pair_sel->run(&this->atom->x, &this->atom->extra, &coeff, &sp_lj, &sp_cl, &sp_sqrt,
                           &this->nbor->dev_nbor, &this->_nbor_data->begin(),
                           &this->ans->force, &this->ans->engv, &eflag,
                           &vflag, &ainum, &nbor_pitch, &this->atom->v, &cutsq,
                           &this->_dtinvsqrt, &this->_seed, &this->_timestep,
-                          &this->_tstat_only, &this->_threads_per_atom);
+                          &_qqrd2e, &_g_ewald, &_lamda,
+                          &this->_tstat_only, &this->_threads_per_atom,);
   } else {
     this->k_pair.set_size(GX,BX);
-    this->k_pair.run(&this->atom->x, &this->atom->extra, &coeff, &_lj_types, &sp_lj, &sp_sqrt,
+    this->k_pair.run(&this->atom->x, &this->atom->extra, &coeff, &_lj_types, &sp_lj, &sp_cl, &sp_sqrt,
                      &this->nbor->dev_nbor, &this->_nbor_data->begin(),
                      &this->ans->force, &this->ans->engv, &eflag, &vflag,
                      &ainum, &nbor_pitch, &this->atom->v, &cutsq, &this->_dtinvsqrt,
-                     &this->_seed, &this->_timestep, &this->_tstat_only,
-                     &this->_threads_per_atom);
+                     &_qqrd2e, &_g_ewald, &_lamda,
+                     &this->_seed, &this->_timestep,
+                     &_qqrd2e, &_g_ewald, &_lamda,
+                     &this->_tstat_only, &this->_threads_per_atom,);
   }
   this->time_pair.stop();
   return GX;

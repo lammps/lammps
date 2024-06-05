@@ -166,6 +166,7 @@ __kernel void k_dpd_charged(const __global numtyp4 *restrict x_,
                     const __global numtyp4 *restrict coeff,
                     const int lj_types,
                     const __global numtyp *restrict sp_lj,
+                    const __global numtyp *restrict sp_cl_in,
                     const __global numtyp *restrict sp_sqrt,
                     const __global int * dev_nbor,
                     const __global int * dev_packed,
@@ -176,19 +177,31 @@ __kernel void k_dpd_charged(const __global numtyp4 *restrict x_,
                     const __global numtyp4 *restrict v_,
                     const __global numtyp4 *restrict cutsq,
                     const numtyp dtinvsqrt, const int seed,
-                    const int timestep, const int tstat_only,
+                    const int timestep, const numtyp qqrd2e, 
+                    const numtyp g_ewald, const numtyp lamda,
+                    const int tstat_only,
                     const int t_per_atom) {
   int tid, ii, offset;
   atom_info(t_per_atom,ii,tid,offset);
+
+  __local numtyp sp_cl[4];
+  int n_stride;
+  local_allocate_store_charge();
+
+  sp_cl[0]=sp_cl_in[0];
+  sp_cl[1]=sp_cl_in[1];
+  sp_cl[2]=sp_cl_in[2];
+  sp_cl[3]=sp_cl_in[3];
 
   int n_stride;
   local_allocate_store_pair();
 
   acctyp3 f;
   f.x=(acctyp)0; f.y=(acctyp)0; f.z=(acctyp)0;
-  acctyp energy, virial[6];
+  acctyp e_coul, energy, virial[6];
   if (EVFLAG) {
     energy=(acctyp)0;
+    e_coul=(acctyp)0
     for (int i=0; i<6; i++) virial[i]=(acctyp)0;
   }
 
@@ -202,7 +215,8 @@ __kernel void k_dpd_charged(const __global numtyp4 *restrict x_,
     numtyp4 iv; fetch4(iv,i,vel_tex); //v_[i];
     int itag=iv.w;
 
-    const numtyp qtmp = extra[i].x; // q[i]
+    numtyp qtmp = extra[i].x; // q[i]
+    numtyp lamdainv = ucl_recip(lamda);
 
     numtyp factor_dpd, factor_sqrt;
     for ( ; nbor<nbor_end; nbor+=n_stride) {
@@ -211,6 +225,8 @@ __kernel void k_dpd_charged(const __global numtyp4 *restrict x_,
       int j=dev_packed[nbor];
       factor_dpd = sp_lj[sbmask(j)];
       factor_sqrt = sp_sqrt[sbmask(j)];
+      numtyp factor_coul;
+      factor_coul = (numtyp)1.0-sp_cl[sbmask(j)];
       j &= NEIGHMASK;
 
       numtyp4 jx; fetch4(jx,j,pos_tex); //x_[j];
@@ -225,48 +241,88 @@ __kernel void k_dpd_charged(const __global numtyp4 *restrict x_,
       numtyp rsq = delx*delx+dely*dely+delz*delz;
 
       int mtype=itype*lj_types+jtype;
-      if (rsq<cutsq.x[mtype]) {
+
+      // cutsq[mtype].x -> global squared cutoff
+      if (rsq<cutsq[mtype].x) {
         numtyp r=ucl_sqrt(rsq);
-        if (r < EPSILON) continue;
+        numtyp force_dpd = (numtyp)0.0;
+        numtyp force_coul = (numtyp)0.0;
 
-        numtyp rinv=ucl_recip(r);
-        numtyp delvx = iv.x - jv.x;
-        numtyp delvy = iv.y - jv.y;
-        numtyp delvz = iv.z - jv.z;
-        numtyp dot = delx*delvx + dely*delvy + delz*delvz;
-        numtyp wd = (numtyp)1.0 - r/coeff[mtype].w;
+        // apply DPD force if distance below DPD cutoff
+        // cutsq[mtype].y -> DPD squared cutoff
+        if (rsq < cutsq[mtype].y && r < EPSILON) {
 
-        const numtyp qj = extra[j].x;
+          numtyp rinv=ucl_recip(r);
+          numtyp delvx = iv.x - jv.x;
+          numtyp delvy = iv.y - jv.y;
+          numtyp delvz = iv.z - jv.z;
+          numtyp dot = delx*delvx + dely*delvy + delz*delvz;
+          numtyp wd = (numtyp)1.0 - r/coeff[mtype].w;
 
-        unsigned int tag1=itag, tag2=jtag;
-        if (tag1 > tag2) {
-          tag1 = jtag; tag2 = itag;
+          const numtyp qj = extra[j].x;
+
+          unsigned int tag1=itag, tag2=jtag;
+          if (tag1 > tag2) {
+            tag1 = jtag; tag2 = itag;
+          }
+
+          numtyp randnum = (numtyp)0.0;
+          saru(tag1, tag2, seed, timestep, randnum);
+
+          // conservative force = a0 * wd, or 0 if tstat only
+          // drag force = -gamma * wd^2 * (delx dot delv) / r
+          // random force = sigma * wd * rnd * dtinvsqrt;
+
+          
+          if (!tstat_only) force_dpd = coeff[mtype].x*wd;
+          force_dpd -= coeff[mtype].y*wd*wd*dot*rinv;
+          force_dpd *= factor_dpd;
+          force_dpd += factor_sqrt*coeff[mtype].z*wd*randnum*dtinvsqrt;
+          force_dpd *=rinv;
+        }
+      
+        // apply Slater electrostatic force if distance below Slater cutoff 
+        // and the two species have a slater coeff
+        // cutsq[mtype].w -> Coulombic squared cutoff
+        if ( cutsq[mtype].w != 0.0 && rsq < cutsq[mtype].w){
+          numtyp r2inv=ucl_recip(rsq);
+          numtyp _erfc;
+
+          numtyp r = ucl_rsqrt(r2inv);
+          numtyp grij = g_ewald * r;
+          numtyp expm2 = ucl_exp(-grij*grij);
+          numtyp t = ucl_recip((numtyp)1.0 + EWALD_P*grij);
+          _erfc = t * (A1+t*(A2+t*(A3+t*(A4+t*A5)))) * expm2;
+          numtyp prefactor = extra[j].x;
+          prefactor *= qqrd2e * cutsq[mtype].z * qtmp/r;
+          numtyp rlamdainv = r * lamdainv;
+          numtyp exprlmdainv = ucl_exp((numtyp)-2.0*rlamdainv);
+          numtyp slater_term = exprlmdainv*((numtyp)1.0 + ((numtyp)2.0*rlamdainv*((numtyp)1.0+rlamdainv)));
+          force_coul = prefactor*(_erfc + EWALD_F*grij*expm2-slater_term);
+          if (factor_coul > (numtyp)0) force_coul -= factor_coul*prefactor*((numtyp)1.0-slater_term);
+          force_coul *= r2inv;
         }
 
-        numtyp randnum = (numtyp)0.0;
-        saru(tag1, tag2, seed, timestep, randnum);
-
-        // conservative force = a0 * wd, or 0 if tstat only
-        // drag force = -gamma * wd^2 * (delx dot delv) / r
-        // random force = sigma * wd * rnd * dtinvsqrt;
-
-        numtyp force = (numtyp)0.0;
-        if (!tstat_only) force = coeff[mtype].x*wd;
-        force -= coeff[mtype].y*wd*wd*dot*rinv;
-        force *= factor_dpd;
-        force += factor_sqrt*coeff[mtype].z*wd*randnum*dtinvsqrt;
-        force*=rinv;
-
+        numtyp force = force_coul + force_dpd;
         f.x+=delx*force;
         f.y+=dely*force;
         f.z+=delz*force;
 
         if (EVFLAG && eflag) {
-          // unshifted eng of conservative term:
-          // evdwl = -a0[itype][jtype]*r * (1.0-0.5*r/cut[itype][jtype]);
-          // eng shifted to 0.0 at cutoff
-          numtyp e = (numtyp)0.5*coeff[mtype].x*coeff[mtype].w * wd*wd;
-          energy+=factor_dpd*e;
+
+          if (rsq < cutsq[mtype].y && r < EPSILON) {
+            // unshifted eng of conservative term:
+            // evdwl = -a0[itype][jtype]*r * (1.0-0.5*r/cut[itype][jtype]);
+            // eng shifted to 0.0 at cutoff
+            numtyp e = (numtyp)0.5*coeff[mtype].x*coeff[mtype].w * wd*wd;
+            energy+=factor_dpd*e;
+          }
+          if ( cutsq[mtype].w != 0.0 && rsq < cutsq[mtype].w){
+            numtyp e_slater = ((numtyp)1.0 + rlamdainv)*exprlmdainv;
+            numtyp e = prefactor*(_erfc-e_slater);
+            if (factor_coul > (numtyp)0) e -= factor_coul*prefactor*((numtyp)1.0 - e_slater);
+            e_coul += e;
+          }
         }
         if (EVFLAG && vflag) {
           virial[0] += delx*delx*force;
@@ -276,18 +332,22 @@ __kernel void k_dpd_charged(const __global numtyp4 *restrict x_,
           virial[4] += delx*delz*force;
           virial[5] += dely*delz*force;
         }
+
+
       }
 
     } // for nbor
   } // if ii
-  store_answers(f,energy,virial,ii,inum,tid,t_per_atom,offset,eflag,vflag,
+  store_answers_q(f,energy, e_coul,virial,ii,inum,tid,t_per_atom,offset,eflag,vflag,
                 ans,engv);
+
 }
 
 __kernel void k_dpd_charged_fast(const __global numtyp4 *restrict x_,
                          const __global numtyp4 *restrict extra,
                          const __global numtyp4 *restrict coeff_in,
                          const __global numtyp *restrict sp_lj_in,
+                         const __global numtyp *restrict sp_cl_in,
                          const __global numtyp *restrict sp_sqrt_in,
                          const __global int * dev_nbor,
                          const __global int * dev_packed,
@@ -298,39 +358,41 @@ __kernel void k_dpd_charged_fast(const __global numtyp4 *restrict x_,
                          const __global numtyp4 *restrict v_,
                          const __global numtyp4 *restrict cutsq,
                          const numtyp dtinvsqrt, const int seed,
-                         const int timestep, const int tstat_only,
+                         const int timestep, const numtyp qqrd2e, 
+                         const numtyp g_ewald, const numtyp lamda,
+                         const int tstat_only,
                          const int t_per_atom) {
   int tid, ii, offset;
   atom_info(t_per_atom,ii,tid,offset);
 
-  #ifndef ONETYPE
   __local numtyp4 coeff[MAX_SHARED_TYPES*MAX_SHARED_TYPES];
   __local numtyp sp_lj[4];
   __local numtyp sp_sqrt[4];
+  /// COUL Init
+  __local numtyp scale[MAX_SHARED_TYPES*MAX_SHARED_TYPES];
+  __local numtyp sp_cl[4];
   if (tid<4) {
     sp_lj[tid]=sp_lj_in[tid];
     sp_sqrt[tid]=sp_sqrt_in[tid];
+    sp_cl[tid]=sp_cl_in[tid];
   }
   if (tid<MAX_SHARED_TYPES*MAX_SHARED_TYPES) {
     coeff[tid]=coeff_in[tid];
+    scale[tid]=scale_in[tid];
   }
+
   __syncthreads();
-  #else
-  const numtyp coeffx=coeff_in[ONETYPE].x;
-  const numtyp coeffy=coeff_in[ONETYPE].y;
-  const numtyp coeffz=coeff_in[ONETYPE].z;
-  const numtyp coeffw=coeff_in[ONETYPE].w;
-  const numtyp cutsq_p=cutsq[ONETYPE];
-  #endif
+  
 
   int n_stride;
   local_allocate_store_pair();
 
   acctyp3 f;
   f.x=(acctyp)0; f.y=(acctyp)0; f.z=(acctyp)0;
-  acctyp energy, virial[6];
+  acctyp e_coul, energy, virial[6];
   if (EVFLAG) {
     energy=(acctyp)0;
+    e_coul=(acctyp)0;
     for (int i=0; i<6; i++) virial[i]=(acctyp)0;
   }
 
@@ -340,33 +402,26 @@ __kernel void k_dpd_charged_fast(const __global numtyp4 *restrict x_,
               n_stride,nbor_end,nbor);
 
     numtyp4 ix; fetch4(ix,i,pos_tex); //x_[i];
-    #ifndef ONETYPE
     int iw=ix.w;
     int itype=fast_mul((int)MAX_SHARED_TYPES,iw);
-    #endif
     numtyp4 iv; fetch4(iv,i,vel_tex); //v_[i];
     int itag=iv.w;
 
-    const numtyp qi = extra[i].x;
+    numtyp qtmp = extra[i].x; // q[i]
+    numtyp lamdainv = ucl_recip(lamda);
 
-    #ifndef ONETYPE
     numtyp factor_dpd, factor_sqrt;
-    #endif
     for ( ; nbor<nbor_end; nbor+=n_stride) {
       ucl_prefetch(dev_packed+nbor+n_stride);
 
       int j=dev_packed[nbor];
-      #ifndef ONETYPE
       factor_dpd = sp_lj[sbmask(j)];
       factor_sqrt = sp_sqrt[sbmask(j)];
+      numtyp factor_coul;
+      factor_coul = (numtyp)1.0-sp_cl[sbmask(j)];
       j &= NEIGHMASK;
-      #endif
 
       numtyp4 jx; fetch4(jx,j,pos_tex); //x_[j];
-      #ifndef ONETYPE
-      int mtype=itype+jx.w;
-      const numtyp cutsq_p=cutsq[mtype];
-      #endif
       numtyp4 jv; fetch4(jv,j,vel_tex); //v_[j];
       int jtag=jv.w;
 
@@ -376,64 +431,89 @@ __kernel void k_dpd_charged_fast(const __global numtyp4 *restrict x_,
       numtyp delz = ix.z-jx.z;
       numtyp rsq = delx*delx+dely*dely+delz*delz;
 
-      if (rsq<cutsq_p) {
+      int mtype=itype+jx.w;
+      
+      // cutsq[mtype].x -> global squared cutoff
+      if (rsq<cutsq[mtype].x) {
         numtyp r=ucl_sqrt(rsq);
-        if (r < EPSILON) continue;
+        numtyp force_dpd = (numtyp)0.0;
+        numtyp force_coul = (numtyp)0.0;
 
-        numtyp rinv=ucl_recip(r);
-        numtyp delvx = iv.x - jv.x;
-        numtyp delvy = iv.y - jv.y;
-        numtyp delvz = iv.z - jv.z;
-        numtyp dot = delx*delvx + dely*delvy + delz*delvz;
-        #ifndef ONETYPE
-        const numtyp coeffw=coeff[mtype].w;
-        #endif
-        numtyp wd = (numtyp)1.0 - r/coeffw;
+        // apply DPD force if distance below DPD cutoff
+        // cutsq[mtype].y -> DPD squared cutoff
+        if (rsq < cutsq[mtype].y && r < EPSILON) {
 
-        const numtyp qj = extra[j].x;
-        
-        unsigned int tag1=itag, tag2=jtag;
-        if (tag1 > tag2) {
-          tag1 = jtag; tag2 = itag;
+          numtyp rinv=ucl_recip(r);
+          numtyp delvx = iv.x - jv.x;
+          numtyp delvy = iv.y - jv.y;
+          numtyp delvz = iv.z - jv.z;
+          numtyp dot = delx*delvx + dely*delvy + delz*delvz;
+          numtyp wd = (numtyp)1.0 - r/coeff[mtype].w;
+
+          const numtyp qj = extra[j].x;
+
+          unsigned int tag1=itag, tag2=jtag;
+          if (tag1 > tag2) {
+            tag1 = jtag; tag2 = itag;
+          }
+
+          numtyp randnum = (numtyp)0.0;
+          saru(tag1, tag2, seed, timestep, randnum);
+
+          // conservative force = a0 * wd, or 0 if tstat only
+          // drag force = -gamma * wd^2 * (delx dot delv) / r
+          // random force = sigma * wd * rnd * dtinvsqrt;
+
+          
+          if (!tstat_only) force_dpd = coeff[mtype].x*wd;
+          force_dpd -= coeff[mtype].y*wd*wd*dot*rinv;
+          force_dpd *= factor_dpd;
+          force_dpd += factor_sqrt*coeff[mtype].z*wd*randnum*dtinvsqrt;
+          force_dpd *=rinv;
+        }
+      
+        // apply Slater electrostatic force if distance below Slater cutoff 
+        // and the two species have a slater coeff
+        // cutsq[mtype].w -> Coulombic squared cutoff
+        if ( cutsq[mtype].w != 0.0 && rsq < cutsq[mtype].w){
+          numtyp r2inv=ucl_recip(rsq);
+          numtyp _erfc;
+
+          numtyp r = ucl_rsqrt(r2inv);
+          numtyp grij = g_ewald * r;
+          numtyp expm2 = ucl_exp(-grij*grij);
+          numtyp t = ucl_recip((numtyp)1.0 + EWALD_P*grij);
+          _erfc = t * (A1+t*(A2+t*(A3+t*(A4+t*A5)))) * expm2;
+          numtyp prefactor = extra[j].x;
+          prefactor *= qqrd2e * cutsq[mtype].z * qtmp/r;
+          numtyp rlamdainv = r * lamdainv;
+          numtyp exprlmdainv = ucl_exp((numtyp)-2.0*rlamdainv);
+          numtyp slater_term = exprlmdainv*((numtyp)1.0 + ((numtyp)2.0*rlamdainv*((numtyp)1.0+rlamdainv)));
+          force_coul = prefactor*(_erfc + EWALD_F*grij*expm2-slater_term);
+          if (factor_coul > (numtyp)0) force_coul -= factor_coul*prefactor*((numtyp)1.0-slater_term);
+          force_coul *= r2inv;
         }
 
-        numtyp randnum = (numtyp)0.0;
-        saru(tag1, tag2, seed, timestep, randnum);
-
-        // conservative force = a0 * wd, or 0 if tstat only
-        // drag force = -gamma * wd^2 * (delx dot delv) / r
-        // random force = sigma * wd * rnd * dtinvsqrt;
-
-        #ifndef ONETYPE
-        const numtyp coeffx=coeff[mtype].x;
-        const numtyp coeffy=coeff[mtype].y;
-        const numtyp coeffz=coeff[mtype].z;
-        #endif
-        numtyp force = (numtyp)0.0;
-        if (!tstat_only) force = coeffx*wd;
-        force -= coeffy*wd*wd*dot*rinv;
-        #ifndef ONETYPE
-        force *= factor_dpd;
-        force += factor_sqrt*coeffz*wd*randnum*dtinvsqrt;
-        #else
-        force += coeffz*wd*randnum*dtinvsqrt;
-        #endif
-        force*=rinv;
-
+        numtyp force = force_coul + force_dpd;
         f.x+=delx*force;
         f.y+=dely*force;
         f.z+=delz*force;
 
         if (EVFLAG && eflag) {
-          // unshifted eng of conservative term:
-          // evdwl = -a0[itype][jtype]*r * (1.0-0.5*r/cut[itype][jtype]);
-          // eng shifted to 0.0 at cutoff
-          numtyp e = (numtyp)0.5*coeffx*coeffw * wd*wd;
-          #ifndef ONETYPE
-          energy+=factor_dpd*e;
-          #else
-          energy+=e;
-          #endif
+
+          if (rsq < cutsq[mtype].y && r < EPSILON) {
+            // unshifted eng of conservative term:
+            // evdwl = -a0[itype][jtype]*r * (1.0-0.5*r/cut[itype][jtype]);
+            // eng shifted to 0.0 at cutoff
+            numtyp e = (numtyp)0.5*coeff[mtype].x*coeff[mtype].w * wd*wd;
+            energy+=factor_dpd*e;
+          }
+          if ( cutsq[mtype].w != 0.0 && rsq < cutsq[mtype].w){
+            numtyp e_slater = ((numtyp)1.0 + rlamdainv)*exprlmdainv;
+            numtyp e = prefactor*(_erfc-e_slater);
+            if (factor_coul > (numtyp)0) e -= factor_coul*prefactor*((numtyp)1.0 - e_slater);
+            e_coul += e;
+          }
         }
         if (EVFLAG && vflag) {
           virial[0] += delx*delx*force;
@@ -443,6 +523,8 @@ __kernel void k_dpd_charged_fast(const __global numtyp4 *restrict x_,
           virial[4] += delx*delz*force;
           virial[5] += dely*delz*force;
         }
+
+
       }
 
     } // for nbor

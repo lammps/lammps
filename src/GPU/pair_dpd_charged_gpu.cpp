@@ -39,10 +39,11 @@ using namespace EwaldConst;
 // External functions from cuda library for atom decomposition
 
 int dpd_charged_gpu_init(const int ntypes, double **cutsq, double **host_a0, double **host_gamma,
-                 double **host_sigma, double **host_cut, double **host_cut_dpd, double **host_cut_slater, double *special_lj, const int inum,
+                 double **host_sigma, double **host_cut_dpd, double **host_cut_dpd_sq, double **host_cut_slatersq,
+                 double **host_scale, double *special_lj, const int inum,
                  const int nall, const int max_nbors, const int maxspecial, const double cell_size,
-                 int &gpu_mode, FILE *screen, 
-                 double *host_special_coul, const double qqrd2e, const double g_ewald, const double lamda);
+                 int &gpu_mode, FILE *screen, double *host_special_coul,
+                 const double qqrd2e, const double g_ewald, const double lamda);
 void dpd_charged_gpu_clear();
 int **dpd_charged_gpu_compute_n(const int ago, const int inum_full, const int nall, double **host_x,
                         int *host_type, double *sublo, double *subhi, tagint *tag, int **nspecial,
@@ -313,8 +314,9 @@ void PairDPDChargedGPU::init_style()
   if (atom->molecular != Atom::ATOMIC) maxspecial = atom->maxspecial;
   int mnf = 5e-2 * neighbor->oneatom;
   int success =
-      dpd_charged_gpu_init(atom->ntypes + 1, cutsq, a0, gamma, sigma, cut, 
-                   cut_dpd, cut_dpdsq, cut_slatersq, force->special_lj, atom->nlocal,
+      dpd_charged_gpu_init(atom->ntypes + 1, cutsq, a0, gamma, sigma,
+                   cut_dpd, cut_dpdsq, cut_slatersq, scale,
+                   force->special_lj, atom->nlocal,
                    atom->nlocal + atom->nghost, mnf, maxspecial, cell_size, gpu_mode, screen,
                    force->special_coul, force->qqrd2e, g_ewald, lamda);
   GPU_EXTRA::check_flag(success, error, world);

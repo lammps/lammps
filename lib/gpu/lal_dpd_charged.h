@@ -59,6 +59,8 @@ class DPDCharged : public BaseDPD<numtyp, acctyp> {
   void update_coeff(int ntypes, double **host_a0, double **host_gamma,
                     double **host_sigma, double **host_cut_dpd );
 
+  void get_extra_data(double *host_q);
+  
   // --------------------------- TYPE DATA --------------------------
 
   /// coeff.x = a0, coeff.y = gamma, coeff.z = sigma, coeff.w = cut_dpd

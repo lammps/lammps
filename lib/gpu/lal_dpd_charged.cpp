@@ -47,7 +47,7 @@ int DPDChargedT::init(const int ntypes,
                double **host_cutsq, double **host_a0,
                double **host_gamma, double **host_sigma,
                double **host_cut_dpd, double **host_cut_dpdsq, 
-               double **host_cut_slatersq, **host_scale,
+               double **host_cut_slatersq, double **host_scale,
                double *host_special_lj,
                const bool tstat_only,
                const int nlocal, const int nall,
@@ -164,7 +164,7 @@ void DPDChargedT::clear() {
 
 template <class numtyp, class acctyp>
 double DPDChargedT::host_memory_usage() const {
-  return this->host_memory_usage_atomic()+sizeof(DPD<numtyp,acctyp>);
+  return this->host_memory_usage_atomic()+sizeof(DPDCharged<numtyp,acctyp>);
 }
 
 // ---------------------------------------------------------------------------
@@ -209,7 +209,7 @@ int DPDChargedT::loop(const int eflag, const int vflag) {
                           &vflag, &ainum, &nbor_pitch, &this->atom->v, &cutsq,
                           &this->_dtinvsqrt, &this->_seed, &this->_timestep,
                           &_qqrd2e, &_g_ewald, &_lamda,
-                          &this->_tstat_only, &this->_threads_per_atom,);
+                          &this->_tstat_only, &this->_threads_per_atom);
   } else {
     this->k_pair.set_size(GX,BX);
     this->k_pair.run(&this->atom->x, &this->atom->extra, &coeff, &_lj_types, &sp_lj, &sp_cl, &sp_sqrt,
@@ -219,7 +219,7 @@ int DPDChargedT::loop(const int eflag, const int vflag) {
                      &_qqrd2e, &_g_ewald, &_lamda,
                      &this->_seed, &this->_timestep,
                      &_qqrd2e, &_g_ewald, &_lamda,
-                     &this->_tstat_only, &this->_threads_per_atom,);
+                     &this->_tstat_only, &this->_threads_per_atom);
   }
   this->time_pair.stop();
   return GX;

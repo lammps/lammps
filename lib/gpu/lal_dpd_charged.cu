@@ -485,7 +485,7 @@ __kernel void k_dpd_charged_fast(const __global numtyp4 *restrict x_,
           numtyp t = ucl_recip((numtyp)1.0 + EWALD_P*grij);
           _erfc = t * (A1+t*(A2+t*(A3+t*(A4+t*A5)))) * expm2;
           numtyp prefactor = extra[j].x;
-          prefactor *= qqrd2e * cutsq[mtype].z * qtmp/r;
+          prefactor *= qqrd2e * scale[mtype] * qtmp/r;
           numtyp rlamdainv = r * lamdainv;
           numtyp exprlmdainv = ucl_exp((numtyp)-2.0*rlamdainv);
           numtyp slater_term = exprlmdainv*((numtyp)1.0 + ((numtyp)2.0*rlamdainv*((numtyp)1.0+rlamdainv)));

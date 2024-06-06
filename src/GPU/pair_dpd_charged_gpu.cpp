@@ -40,7 +40,7 @@ using namespace EwaldConst;
 // External functions from cuda library for atom decomposition
 
 int dpd_charged_gpu_init(const int ntypes, double **cutsq, double **host_a0, double **host_gamma,
-                 double **host_sigma, double **host_cut_dpd, double **host_cut_dpd_sq, double **host_cut_slatersq,
+                 double **host_sigma, double **host_cut_dpd, double **host_cut_dpdsq, double **host_cut_slatersq,
                  double **host_scale, double *special_lj, const int inum,
                  const int nall, const int max_nbors, const int maxspecial, const double cell_size,
                  int &gpu_mode, FILE *screen, double *host_special_coul,

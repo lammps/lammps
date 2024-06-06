@@ -1399,6 +1399,16 @@ int lammps_extract_global_datatype(void * /*handle*/, const char *name)
   if (strcmp(name,"special_lj") == 0) return LAMMPS_DOUBLE;
   if (strcmp(name,"special_coul") == 0) return LAMMPS_DOUBLE;
 
+  if (strcmp(name,"map_style") == 0) return LAMMPS_INT;
+#if defined(LAMMPS_BIGBIG)
+  if (strcmp(name,"map_tag_max") == 0) return LAMMPS_BIGINT;
+#else
+  if (strcmp(name,"map_tag_max") == 0) return LAMMPS_INT;
+#endif
+  if (strcmp(name,"sametag") == 0) return LAMMPS_INT;
+  if (strcmp(name,"sortfreq") == 0) return LAMMPS_INT;
+  if (strcmp(name,"nextsort") == 0) return LAMMPS_BIGINT;
+
   if (strcmp(name,"q_flag") == 0) return LAMMPS_INT;
 
   if (strcmp(name,"units") == 0) return LAMMPS_STRING;
@@ -1651,6 +1661,26 @@ report the "native" data type.  The following tables are provided:
      - double
      - 4
      - special :doc:`pair weighting factors <special_bonds>` for Coulomb interactions (first element is always 1.0)
+   * - map_style
+     - int
+     - 1
+     - :doc:`atom map setting <atom_modify>`: 0 = none, 1 = array, 2 = hash, 3 = yes
+   * - map_tag_max
+     - bigint or int
+     - 1
+     - largest atom ID that can be mapped to a local index (bigint only with -DLAMMPS_BIGBIG)
+   * - sametag
+     - int
+     - nlocal+nghost
+     - index of next local atom with the same ID in ascending order. -1 signals end.
+   * - sortfreq
+     - int
+     - 1
+     - frequency of atom sorting. 0 means sorting is off.
+   * - nextsort
+     - bigint
+     - 1
+     - timestep when atoms are sorted next
    * - q_flag
      - int
      - 1
@@ -1846,6 +1876,12 @@ void *lammps_extract_global(void *handle, const char *name)
 
   if (strcmp(name,"q_flag") == 0) return (void *) &lmp->atom->q_flag;
 
+  if (strcmp(name,"map_style") == 0) return (void *) &lmp->atom->map_style;
+  if (strcmp(name,"map_tag_max") == 0) return (void *) &lmp->atom->map_tag_max;
+  if (strcmp(name,"sametag") == 0) return (void *) lmp->atom->sametag;
+  if (strcmp(name,"sortfreq") == 0) return (void *) &lmp->atom->sortfreq;
+  if (strcmp(name,"nextsort") == 0) return (void *) &lmp->atom->nextsort;
+
   // global constants defined by units
 
   if (strcmp(name,"boltz") == 0) return (void *) &lmp->force->boltz;
@@ -1869,6 +1905,37 @@ void *lammps_extract_global(void *handle, const char *name)
   if (strcmp(name,"qelectron") == 0) return (void *) &lmp->force->qelectron;
 
   return nullptr;
+}
+
+/* ---------------------------------------------------------------------- */
+
+/** Map global atom ID to local atom index
+ *
+\verbatim embed:rst
+
+.. versionadded:: TBD
+
+This function returns an integer that corresponds to the local atom
+index for an atom with the global atom ID *id*. The atom ID is passed
+as a void pointer so that it can use the same interface for either a
+32-bit or 64-bit tagint. The size of the tagint can be determined
+using :cpp:func:`lammps_extract_setting`.
+
+\endverbatim
+ *
+ * \param  handle  pointer to a previously created LAMMPS instance
+ * \param  id      void pointer to the atom ID (of data type tagint, i.e. 32-bit or 64-bit integer)
+ * \return         local atom index or -1 if the atom is not found or no map exists
+ * */
+
+int lammps_map_atom(void *handle, const void *id)
+{
+  auto lmp = (LAMMPS *) handle;
+  auto tag = (const tagint *) id;
+  if (lmp->atom->map_style > Atom::MAP_NONE)
+    return lmp->atom->map(*tag);
+  else
+    return -1;
 }
 
 /* ---------------------------------------------------------------------- */

@@ -1408,6 +1408,7 @@ typedef SNAComplex<SNAreal> SNAcomplex;
 #endif
 
 #define LAMMPS_LAMBDA KOKKOS_LAMBDA
+#define LAMMPS_CLASS_LAMBDA KOKKOS_CLASS_LAMBDA
 
 #if defined(KOKKOS_ENABLE_CUDA) || defined(KOKKOS_ENABLE_HIP)
 #define LAMMPS_DEVICE_FUNCTION __device__

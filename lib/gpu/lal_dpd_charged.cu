@@ -185,7 +185,7 @@ __kernel void k_dpd_charged(const __global numtyp4 *restrict x_,
   atom_info(t_per_atom,ii,tid,offset);
 
   __local numtyp sp_cl[4];
-  local_allocate_store_charge();
+  ///local_allocate_store_charge();
 
   sp_cl[0]=sp_cl_in[0];
   sp_cl[1]=sp_cl_in[1];
@@ -200,7 +200,7 @@ __kernel void k_dpd_charged(const __global numtyp4 *restrict x_,
   acctyp e_coul, energy, virial[6];
   if (EVFLAG) {
     energy=(acctyp)0;
-    e_coul=(acctyp)0
+    e_coul=(acctyp)0;
     for (int i=0; i<6; i++) virial[i]=(acctyp)0;
   }
 
@@ -270,13 +270,21 @@ __kernel void k_dpd_charged(const __global numtyp4 *restrict x_,
           // drag force = -gamma * wd^2 * (delx dot delv) / r
           // random force = sigma * wd * rnd * dtinvsqrt;
 
-          
           if (!tstat_only) force_dpd = coeff[mtype].x*wd;
           force_dpd -= coeff[mtype].y*wd*wd*dot*rinv;
           force_dpd *= factor_dpd;
           force_dpd += factor_sqrt*coeff[mtype].z*wd*randnum*dtinvsqrt;
           force_dpd *=rinv;
-        }
+
+          if (EVFLAG && eflag) {
+            // unshifted eng of conservative term:
+            // evdwl = -a0[itype][jtype]*r * (1.0-0.5*r/cut[itype][jtype]);
+            // eng shifted to 0.0 at cutoff
+            numtyp e = (numtyp)0.5*coeff[mtype].x*coeff[mtype].w * wd*wd;
+            energy += factor_dpd*e;
+          }
+
+        }// if cut_dpdsq
       
         // apply Slater electrostatic force if distance below Slater cutoff 
         // and the two species have a slater coeff
@@ -298,29 +306,20 @@ __kernel void k_dpd_charged(const __global numtyp4 *restrict x_,
           force_coul = prefactor*(_erfc + EWALD_F*grij*expm2-slater_term);
           if (factor_coul > (numtyp)0) force_coul -= factor_coul*prefactor*((numtyp)1.0-slater_term);
           force_coul *= r2inv;
-        }
 
-        numtyp force = force_coul + force_dpd;
-        f.x+=delx*force;
-        f.y+=dely*force;
-        f.z+=delz*force;
-
-        if (EVFLAG && eflag) {
-
-          if (rsq < cutsq[mtype].y && r < EPSILON) {
-            // unshifted eng of conservative term:
-            // evdwl = -a0[itype][jtype]*r * (1.0-0.5*r/cut[itype][jtype]);
-            // eng shifted to 0.0 at cutoff
-            numtyp e = (numtyp)0.5*coeff[mtype].x*coeff[mtype].w * wd*wd;
-            energy+=factor_dpd*e;
-          }
-          if ( cutsq[mtype].w != 0.0 && rsq < cutsq[mtype].w){
+          if (EVFLAG && eflag) {
             numtyp e_slater = ((numtyp)1.0 + rlamdainv)*exprlmdainv;
             numtyp e = prefactor*(_erfc-e_slater);
             if (factor_coul > (numtyp)0) e -= factor_coul*prefactor*((numtyp)1.0 - e_slater);
             e_coul += e;
           }
-        }
+        } // if cut_coulsq
+
+        numtyp force = force_coul + force_dpd;
+        f.x += delx*force;
+        f.y += dely*force;
+        f.z += delz*force;
+
         if (EVFLAG && vflag) {
           virial[0] += delx*delx*force;
           virial[1] += dely*dely*force;
@@ -329,13 +328,12 @@ __kernel void k_dpd_charged(const __global numtyp4 *restrict x_,
           virial[4] += delx*delz*force;
           virial[5] += dely*delz*force;
         }
-
-
-      }
+      
+      } // if cutsq
 
     } // for nbor
   } // if ii
-  store_answers_q(f,energy, e_coul,virial,ii,inum,tid,t_per_atom,offset,eflag,vflag,
+  store_answers_q(f,energy,e_coul,virial,ii,inum,tid,t_per_atom,offset,eflag,vflag,
                 ans,engv);
 
 }
@@ -459,13 +457,21 @@ __kernel void k_dpd_charged_fast(const __global numtyp4 *restrict x_,
           // drag force = -gamma * wd^2 * (delx dot delv) / r
           // random force = sigma * wd * rnd * dtinvsqrt;
 
-          
           if (!tstat_only) force_dpd = coeff[mtype].x*wd;
           force_dpd -= coeff[mtype].y*wd*wd*dot*rinv;
           force_dpd *= factor_dpd;
           force_dpd += factor_sqrt*coeff[mtype].z*wd*randnum*dtinvsqrt;
           force_dpd *=rinv;
-        }
+
+          if (EVFLAG && eflag) {
+            // unshifted eng of conservative term:
+            // evdwl = -a0[itype][jtype]*r * (1.0-0.5*r/cut[itype][jtype]);
+            // eng shifted to 0.0 at cutoff
+            numtyp e = (numtyp)0.5*coeff[mtype].x*coeff[mtype].w * wd*wd;
+            energy += factor_dpd*e;
+          }
+
+        }// if cut_dpdsq
       
         // apply Slater electrostatic force if distance below Slater cutoff 
         // and the two species have a slater coeff
@@ -487,29 +493,20 @@ __kernel void k_dpd_charged_fast(const __global numtyp4 *restrict x_,
           force_coul = prefactor*(_erfc + EWALD_F*grij*expm2-slater_term);
           if (factor_coul > (numtyp)0) force_coul -= factor_coul*prefactor*((numtyp)1.0-slater_term);
           force_coul *= r2inv;
-        }
 
-        numtyp force = force_coul + force_dpd;
-        f.x+=delx*force;
-        f.y+=dely*force;
-        f.z+=delz*force;
-
-        if (EVFLAG && eflag) {
-
-          if (rsq < cutsq[mtype].y && r < EPSILON) {
-            // unshifted eng of conservative term:
-            // evdwl = -a0[itype][jtype]*r * (1.0-0.5*r/cut[itype][jtype]);
-            // eng shifted to 0.0 at cutoff
-            numtyp e = (numtyp)0.5*coeff[mtype].x*coeff[mtype].w * wd*wd;
-            energy+=factor_dpd*e;
-          }
-          if ( cutsq[mtype].w != 0.0 && rsq < cutsq[mtype].w){
+          if (EVFLAG && eflag) {
             numtyp e_slater = ((numtyp)1.0 + rlamdainv)*exprlmdainv;
             numtyp e = prefactor*(_erfc-e_slater);
             if (factor_coul > (numtyp)0) e -= factor_coul*prefactor*((numtyp)1.0 - e_slater);
             e_coul += e;
           }
-        }
+        } // if cut_coulsq
+
+        numtyp force = force_coul + force_dpd;
+        f.x += delx*force;
+        f.y += dely*force;
+        f.z += delz*force;
+
         if (EVFLAG && vflag) {
           virial[0] += delx*delx*force;
           virial[1] += dely*dely*force;
@@ -518,9 +515,8 @@ __kernel void k_dpd_charged_fast(const __global numtyp4 *restrict x_,
           virial[4] += delx*delz*force;
           virial[5] += dely*delz*force;
         }
-
-
-      }
+      
+      } // if cutsq
 
     } // for nbor
   } // if ii

@@ -53,6 +53,7 @@ action angle_cosine_kokkos.cpp angle_cosine.cpp
 action angle_cosine_kokkos.h angle_cosine.h
 action angle_harmonic_kokkos.cpp angle_harmonic.cpp
 action angle_harmonic_kokkos.h angle_harmonic.h
+action angle_spica_kokkos.cpp angle_spica.cpp
 action angle_spica_kokkos.h angle_spica.h
 action atom_kokkos.cpp
 action atom_kokkos.h

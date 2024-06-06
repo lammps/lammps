@@ -519,7 +519,7 @@ __kernel void k_dpd_charged_fast(const __global numtyp4 *restrict x_,
 
     } // for nbor
   } // if ii
-  store_answersq(f,energy,e_coul,virial,ii,inum,tid,t_per_atom,offset,eflag,vflag,
+  store_answers_q(f,energy,e_coul,virial,ii,inum,tid,t_per_atom,offset,eflag,vflag,
                 ans,engv);
 }
 

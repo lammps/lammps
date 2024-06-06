@@ -18,6 +18,7 @@
 #include "pair_dpd_charged_gpu.h"
 
 #include "atom.h"
+#include "comm.h"
 #include "domain.h"
 #include "error.h"
 #include "force.h"
@@ -206,7 +207,7 @@ static constexpr double EPSILON = 1.0e-10;
 
 /* ---------------------------------------------------------------------- */
 
-PairDPDChargedGPU::PairDPDCharged(LAMMPS *lmp) : PairDPD(lmp), gpu_mode(GPU_FORCE)
+PairDPDChargedGPU::PairDPDChargedGPU(LAMMPS *lmp) : PairDPDCharged(lmp), gpu_mode(GPU_FORCE)
 {
   respa_enable = 0;
   reinitflag = 0;
@@ -344,10 +345,9 @@ void PairDPDChargedGPU::cpu_compute(int start, int inum, int eflag, int /* vflag
   double r2inv,forcedpd,forcecoul,factor_coul;
   double grij,expm2,prefactor,t,erfc;
   double rsq,r,rinv,dot,wd,randnum,factor_dpd,factor_sqrt;
-  int *ilist,*jlist,*numneigh,**firstneigh;
+  int *jlist;
   double slater_term;
 
-  int *jlist;
   tagint itag, jtag;
 
   double *q = atom->q;

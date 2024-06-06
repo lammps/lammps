@@ -73,7 +73,7 @@ int DPDChargedT::init(const int ntypes,
 
   int success;
   success=this->init_atomic(nlocal,nall,max_nbors,maxspecial,cell_size,
-                            gpu_split,_screen,dpd,"k_dpd_charged",onetype);
+                            gpu_split,_screen,dpd_charged,"k_dpd_charged",onetype);
   if (success!=0)
     return success;
 
@@ -88,13 +88,6 @@ int DPDChargedT::init(const int ntypes,
   // Allocate a host write buffer for data initialization
   UCL_H_Vec<numtyp> host_write_coul(lj_types*lj_types*32,*(this->ucl_device),
                                UCL_WRITE_ONLY);
-
-  for (int i=0; i<lj_types*lj_types; i++)
-    host_write_coul[i]=0.0;
-
-  scale.alloc(lj_types*lj_types,*(this->ucl_device),UCL_READ_ONLY);
-  this->atom->type_pack1(ntypes,lj_types,scale,host_write_coul,host_scale);
-
   sp_cl.alloc(4,*(this->ucl_device),UCL_READ_ONLY);
   for (int i=0; i<4; i++) {
     host_write_coul[i]=host_special_coul[i];
@@ -102,7 +95,6 @@ int DPDChargedT::init(const int ntypes,
   ucl_copy(sp_cl,host_write_coul,4,false);
 
   _lj_types=lj_types;
-  _cut_coulsq=host_cut_coulsq;
   _qqrd2e=qqrd2e;
   _g_ewald=g_ewald;
   _lamda=lamda;

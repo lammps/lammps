@@ -75,6 +75,7 @@ class DPDCharged : public BaseDPD<numtyp, acctyp> {
   /// Special Coul values [0-3]
   UCL_D_Vec<numtyp> sp_cl;
 
+
   /// If atom type constants fit in shared memory, use fast kernels
   bool shared_types;
 
@@ -85,7 +86,7 @@ class DPDCharged : public BaseDPD<numtyp, acctyp> {
   int _tstat_only;
 
   /// Coulombic terms
-  numtyp _cut_coulsq, _qqrd2e, _g_ewald, _lamda;
+  numtyp _qqrd2e, _g_ewald, _lamda;
 
   /// pointer to host data for atom charge
   double *q;

@@ -42,7 +42,7 @@ class DPDCharged : public BaseDPD<numtyp, acctyp> {
            double **host_cut_dpd, double **host_cut_dpdsq, double **host_cut_slatersq,
            double **host_scale, double *host_special_lj, bool tstat_only, const int nlocal,
            const int nall, const int max_nbors, const int maxspecial,
-           const double cell_size, const double gpu_split, FILE *screen,
+           const double cell_size, const double gpu_split, FILE *screen, double *host_special_coul,
            const double qqrd2e, const double g_ewald, const double lamda);
 
   /// Clear all host and device data

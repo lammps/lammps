@@ -335,7 +335,6 @@ __kernel void k_dpd_charged(const __global numtyp4 *restrict x_,
   } // if ii
   store_answers_q(f,energy,e_coul,virial,ii,inum,tid,t_per_atom,offset,eflag,vflag,
                 ans,engv);
-
 }
 
 __kernel void k_dpd_charged_fast(const __global numtyp4 *restrict x_,
@@ -520,7 +519,7 @@ __kernel void k_dpd_charged_fast(const __global numtyp4 *restrict x_,
 
     } // for nbor
   } // if ii
-  store_answers(f,energy,virial,ii,inum,tid,t_per_atom,offset,eflag,vflag,
+  store_answersq(f,energy,e_coul,virial,ii,inum,tid,t_per_atom,offset,eflag,vflag,
                 ans,engv);
 }
 

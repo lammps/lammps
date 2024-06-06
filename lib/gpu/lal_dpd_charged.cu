@@ -185,7 +185,6 @@ __kernel void k_dpd_charged(const __global numtyp4 *restrict x_,
   atom_info(t_per_atom,ii,tid,offset);
 
   __local numtyp sp_cl[4];
-  int n_stride;
   local_allocate_store_charge();
 
   sp_cl[0]=sp_cl_in[0];
@@ -258,8 +257,6 @@ __kernel void k_dpd_charged(const __global numtyp4 *restrict x_,
           numtyp delvz = iv.z - jv.z;
           numtyp dot = delx*delvx + dely*delvy + delz*delvz;
           numtyp wd = (numtyp)1.0 - r/coeff[mtype].w;
-
-          const numtyp qj = extra[j].x;
 
           unsigned int tag1=itag, tag2=jtag;
           if (tag1 > tag2) {
@@ -378,7 +375,7 @@ __kernel void k_dpd_charged_fast(const __global numtyp4 *restrict x_,
   }
   if (tid<MAX_SHARED_TYPES*MAX_SHARED_TYPES) {
     coeff[tid]=coeff_in[tid];
-    scale[tid]=scale_in[tid];
+    scale[tid]=cutsq[tid].z;
   }
 
   __syncthreads();
@@ -449,8 +446,6 @@ __kernel void k_dpd_charged_fast(const __global numtyp4 *restrict x_,
           numtyp delvz = iv.z - jv.z;
           numtyp dot = delx*delvx + dely*delvy + delz*delvz;
           numtyp wd = (numtyp)1.0 - r/coeff[mtype].w;
-
-          const numtyp qj = extra[j].x;
 
           unsigned int tag1=itag, tag2=jtag;
           if (tag1 > tag2) {

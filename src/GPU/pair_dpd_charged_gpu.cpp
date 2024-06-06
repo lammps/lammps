@@ -239,8 +239,8 @@ void PairDPDChargedGPU::compute(int eflag, int vflag)
   bool success = true;
   int *ilist, *numneigh, **firstneigh;
 
-  double *charge = atom->q;
-  dpd_charged_gpu_get_extra_data(charge);
+  double *q = atom->q;
+  dpd_charged_gpu_get_extra_data(q);
 
   if (gpu_mode != GPU_FORCE) {
     double sublo[3], subhi[3];

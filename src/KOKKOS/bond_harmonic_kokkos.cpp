@@ -34,6 +34,8 @@ using namespace LAMMPS_NS;
 template<class DeviceType>
 BondHarmonicKokkos<DeviceType>::BondHarmonicKokkos(LAMMPS *lmp) : BondHarmonic(lmp)
 {
+  kokkosable = 1;
+
   atomKK = (AtomKokkos *) atom;
   neighborKK = (NeighborKokkos *) neighbor;
   execution_space = ExecutionSpaceFromDevice<DeviceType>::space;
@@ -65,22 +67,19 @@ void BondHarmonicKokkos<DeviceType>::compute(int eflag_in, int vflag_in)
   // reallocate per-atom arrays if necessary
 
   if (eflag_atom) {
-    //if(k_eatom.extent(0)<maxeatom) { // won't work without adding zero functor
+    if (k_eatom.extent(0) < maxeatom) {
       memoryKK->destroy_kokkos(k_eatom,eatom);
       memoryKK->create_kokkos(k_eatom,eatom,maxeatom,"improper:eatom");
       d_eatom = k_eatom.template view<KKDeviceType>();
-    //}
+    } else Kokkos::deep_copy(d_eatom,0.0);
   }
   if (vflag_atom) {
-    //if(k_vatom.extent(0)<maxvatom) { // won't work without adding zero functor
+    if (k_vatom.extent(0) < maxvatom) {
       memoryKK->destroy_kokkos(k_vatom,vatom);
       memoryKK->create_kokkos(k_vatom,vatom,maxvatom,"improper:vatom");
       d_vatom = k_vatom.template view<KKDeviceType>();
-    //}
+    } else Kokkos::deep_copy(d_vatom,0.0);
   }
-
-//  if (eflag || vflag) atomKK->modified(execution_space,datamask_modify);
-//  else atomKK->modified(execution_space,F_MASK);
 
   x = atomKK->k_x.template view<DeviceType>();
   f = atomKK->k_f.template view<DeviceType>();
@@ -122,12 +121,12 @@ void BondHarmonicKokkos<DeviceType>::compute(int eflag_in, int vflag_in)
 
   if (eflag_atom) {
     k_eatom.template modify<DeviceType>();
-    k_eatom.template sync<LMPHostType>();
+    k_eatom.sync_host();
   }
 
   if (vflag_atom) {
     k_vatom.template modify<DeviceType>();
-    k_vatom.template sync<LMPHostType>();
+    k_vatom.sync_host();
   }
 
   copymode = 0;
@@ -214,8 +213,8 @@ void BondHarmonicKokkos<DeviceType>::coeff(int narg, char **arg)
     k_r0.h_view[i] = r0[i];
   }
 
-  k_k.template modify<LMPHostType>();
-  k_r0.template modify<LMPHostType>();
+  k_k.modify_host();
+  k_r0.modify_host();
   k_k.template sync<DeviceType>();
   k_r0.template sync<DeviceType>();
 }
@@ -241,8 +240,8 @@ void BondHarmonicKokkos<DeviceType>::read_restart(FILE *fp)
     k_r0.h_view[i] = r0[i];
   }
 
-  k_k.template modify<LMPHostType>();
-  k_r0.template modify<LMPHostType>();
+  k_k.modify_host();
+  k_r0.modify_host();
   k_k.template sync<DeviceType>();
   k_r0.template sync<DeviceType>();
 }

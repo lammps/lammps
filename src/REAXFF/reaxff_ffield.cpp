@@ -30,7 +30,6 @@
 #include "error.h"
 #include "memory.h"
 #include "text_file_reader.h"
-#include "tokenizer.h"
 #include "utils.h"
 
 #include <cmath>
@@ -40,6 +39,7 @@
 
 using LAMMPS_NS::utils::open_potential;
 using LAMMPS_NS::utils::getsyserror;
+using LAMMPS_NS::utils::strmatch;
 using LAMMPS_NS::utils::uppercase;
 using LAMMPS_NS::EOFException;
 using LAMMPS_NS::ValueTokenizer;
@@ -72,7 +72,7 @@ namespace ReaxFF {
                                           filename, lineno, want, values.count()))
 
     if (control->me == 0) {
-      FILE *fp = LAMMPS_NS::utils::open_potential(filename, lmp, nullptr);
+      FILE *fp = open_potential(filename, lmp, nullptr);
       if (!fp)
         error->one(FLERR,"The ReaxFF parameter file {} cannot be opened: {}",
                    filename, getsyserror());
@@ -82,9 +82,11 @@ namespace ReaxFF {
       try {
         int i,j,k,l,m,n,lineno = 0;
 
-        // skip header comment line
+        // check if header comment line is present
 
-        reader.skip_line();
+        auto line = reader.next_line();
+        if (strmatch(line, "^\\s*[0-9]+\\s+!.*general parameters.*"))
+          THROW_ERROR("First line of ReaxFF potential file must be a comment or empty");
         ++lineno;
 
         // set some defaults

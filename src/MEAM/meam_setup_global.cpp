@@ -38,7 +38,7 @@ void MEAM::meam_setup_global(int nelt, lattice_t *lat, int *ielement, double * /
                              double *b2m, double *b3m, double *t1m, double *t2m, double *t3m)
 {
   int i;
-  double tmplat[maxelt];
+  double tmplat[MAXELT];
 
   neltypes = nelt;
 
@@ -123,4 +123,7 @@ void MEAM::meam_setup_global(int nelt, lattice_t *lat, int *ielement, double * /
   // for trimer, zigzag, line refernece structure, sungkwang
   setall2d(stheta_meam, 1.0);    // stheta = sin(theta/2*pi/180) where theta is 180, so 1.0
   setall2d(ctheta_meam, 0.0);    // stheta = cos(theta/2*pi/180) where theta is 180, so 0
+
+  if (msmeamflag) ialloy = 1;
+
 }

@@ -427,6 +427,9 @@ void Neighbor::init()
         }
       }
     } else {
+      if (!force->pair)
+        error->all(FLERR, "Cannot use collection/interval command without defining a pairstyle");
+
       if (force->pair->finitecutflag) {
         finite_cut_flag = 1;
         // If cutoffs depend on finite atom sizes, use radii of intervals to find cutoffs
@@ -2381,7 +2384,7 @@ int Neighbor::check_distance()
     dely = x[i][1] - xhold[i][1];
     delz = x[i][2] - xhold[i][2];
     rsq = delx*delx + dely*dely + delz*delz;
-    if (rsq > deltasq) flag = 1;
+    if (rsq > deltasq) { flag = 1; break; }
   }
 
   int flagall;
@@ -2971,6 +2974,14 @@ bigint Neighbor::get_nneigh_half()
     } else if (lmp->kokkos) nneighhalf = lmp->kokkos->neigh_count(m);
   }
   return nneighhalf;
+}
+
+/* ----------------------------------------------------------------------
+ return the pointer containing the last positions stored by the NL builder
+------------------------------------------------------------------------- */
+double **Neighbor::get_xhold()
+{
+  return xhold;
 }
 
 /* ----------------------------------------------------------------------

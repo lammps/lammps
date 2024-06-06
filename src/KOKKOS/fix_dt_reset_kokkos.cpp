@@ -18,14 +18,12 @@
 #include "atom_masks.h"
 #include "error.h"
 #include "force.h"
-#include "input.h"
-#include "integrate.h"
-#include "kokkos_base.h"
-#include "memory_kokkos.h"
 #include "modify.h"
 #include "output.h"
 #include "pair.h"
 #include "update.h"
+
+#include <cmath>
 
 using namespace LAMMPS_NS;
 using namespace FixConst;

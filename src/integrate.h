@@ -15,9 +15,9 @@
 #define LMP_INTEGRATE_H
 
 #include "pointers.h"
-#include "compute.h"
 
 namespace LAMMPS_NS {
+class Compute;
 
 class Integrate : protected Pointers {
  public:

@@ -26,18 +26,18 @@ class KokkosBase {
   KokkosBase() {}
 
   // Pair
-  virtual int pack_forward_comm_kokkos(int, DAT::tdual_int_2d,
-                                       int, DAT::tdual_xfloat_1d &,
+  virtual int pack_forward_comm_kokkos(int, DAT::tdual_int_1d,
+                                       DAT::tdual_xfloat_1d &,
                                        int, int *) {return 0;};
   virtual void unpack_forward_comm_kokkos(int, int, DAT::tdual_xfloat_1d &) {}
 
   virtual int pack_reverse_comm_kokkos(int, int, DAT::tdual_xfloat_1d &) {return 0;};
-  virtual void unpack_reverse_comm_kokkos(int, DAT::tdual_int_2d,
-                                          int, DAT::tdual_xfloat_1d &) {}
+  virtual void unpack_reverse_comm_kokkos(int, DAT::tdual_int_1d,
+                                          DAT::tdual_xfloat_1d &) {}
 
   // Fix
-  virtual int pack_forward_comm_fix_kokkos(int, DAT::tdual_int_2d,
-                                           int, DAT::tdual_xfloat_1d &,
+  virtual int pack_forward_comm_fix_kokkos(int, DAT::tdual_int_1d,
+                                           DAT::tdual_xfloat_1d &,
                                            int, int *) {return 0;};
   virtual void unpack_forward_comm_fix_kokkos(int, int, DAT::tdual_xfloat_1d &) {}
 

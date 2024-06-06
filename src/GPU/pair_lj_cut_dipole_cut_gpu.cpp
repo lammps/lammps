@@ -179,7 +179,7 @@ void PairLJCutDipoleCutGPU::cpu_compute(int start, int inum, int eflag, int vfla
   double qtmp, xtmp, ytmp, ztmp, delx, dely, delz, evdwl, ecoul, fx, fy, fz;
   double rsq, rinv, r2inv, r6inv, r3inv, r5inv, r7inv;
   double forcecoulx, forcecouly, forcecoulz, crossx, crossy, crossz;
-  double tixcoul, tiycoul, tizcoul, tjxcoul, tjycoul, tjzcoul;
+  double tixcoul, tiycoul, tizcoul;
   double fq, pdotp, pidotr, pjdotr, pre1, pre2, pre3, pre4;
   double forcelj, factor_coul, factor_lj;
   int *jlist;
@@ -230,7 +230,6 @@ void PairLJCutDipoleCutGPU::cpu_compute(int start, int inum, int eflag, int vfla
 
         forcecoulx = forcecouly = forcecoulz = 0.0;
         tixcoul = tiycoul = tizcoul = 0.0;
-        tjxcoul = tjycoul = tjzcoul = 0.0;
 
         if (rsq < cut_coulsq[itype][jtype]) {
 
@@ -268,9 +267,6 @@ void PairLJCutDipoleCutGPU::cpu_compute(int start, int inum, int eflag, int vfla
             tixcoul += crossx + pre2 * (mu[i][1] * delz - mu[i][2] * dely);
             tiycoul += crossy + pre2 * (mu[i][2] * delx - mu[i][0] * delz);
             tizcoul += crossz + pre2 * (mu[i][0] * dely - mu[i][1] * delx);
-            tjxcoul += -crossx + pre3 * (mu[j][1] * delz - mu[j][2] * dely);
-            tjycoul += -crossy + pre3 * (mu[j][2] * delx - mu[j][0] * delz);
-            tjzcoul += -crossz + pre3 * (mu[j][0] * dely - mu[j][1] * delx);
           }
 
           if (mu[i][3] > 0.0 && q[j] != 0.0) {
@@ -298,9 +294,6 @@ void PairLJCutDipoleCutGPU::cpu_compute(int start, int inum, int eflag, int vfla
             forcecoulx += pre1 * delx - pre2 * mu[j][0];
             forcecouly += pre1 * dely - pre2 * mu[j][1];
             forcecoulz += pre1 * delz - pre2 * mu[j][2];
-            tjxcoul += -pre2 * (mu[j][1] * delz - mu[j][2] * dely);
-            tjycoul += -pre2 * (mu[j][2] * delx - mu[j][0] * delz);
-            tjzcoul += -pre2 * (mu[j][0] * dely - mu[j][1] * delx);
           }
         }
 

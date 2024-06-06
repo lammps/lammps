@@ -15,9 +15,9 @@
 #define LMP_MIN_H
 
 #include "pointers.h"    // IWYU pragma: export
-#include "compute.h"
 
 namespace LAMMPS_NS {
+class Compute;
 
 class Min : protected Pointers {
  public:
@@ -116,7 +116,7 @@ class Min : protected Pointers {
   int narray;                         // # of arrays stored by fix_minimize
   class FixMinimize *fix_minimize;    // fix that stores auxiliary data
 
-  class Compute *pe_compute;    // compute for potential energy
+  Compute *pe_compute;    // compute for potential energy
   double ecurrent;              // current potential energy
 
   bigint ndoftotal;    // total dof for entire problem

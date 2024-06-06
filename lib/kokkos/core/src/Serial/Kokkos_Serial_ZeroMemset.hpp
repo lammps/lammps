@@ -22,6 +22,7 @@
 #include <Serial/Kokkos_Serial.hpp>
 
 #include <type_traits>
+#include <cstring>
 
 namespace Kokkos {
 namespace Impl {
@@ -34,14 +35,11 @@ template <class T, class... P>
 struct ZeroMemset<
     std::conditional_t<!std::is_same<Serial, DefaultHostExecutionSpace>::value,
                        Serial, DummyExecutionSpace>,
-    View<T, P...>>
-    : public ZeroMemset<DefaultHostExecutionSpace, View<T, P...>> {
-  using Base = ZeroMemset<DefaultHostExecutionSpace, View<T, P...>>;
-  using Base::Base;
-
-  ZeroMemset(const Serial&, const View<T, P...>& dst,
-             typename View<T, P...>::const_value_type& value)
-      : Base(dst, value) {}
+    View<T, P...>> {
+  ZeroMemset(const Serial&, const View<T, P...>& dst) {
+    using ValueType = typename View<T, P...>::value_type;
+    std::memset(dst.data(), 0, sizeof(ValueType) * dst.size());
+  }
 };
 
 }  // namespace Impl

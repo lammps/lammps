@@ -20,7 +20,6 @@
 #include "force.h"
 #include "kokkos.h"
 #include "memory_kokkos.h"
-#include "neigh_list.h"
 #include "neigh_request.h"
 #include "neighbor.h"
 

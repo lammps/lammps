@@ -46,6 +46,7 @@
 
 #include <cmath>
 #include <cstring>
+#include <exception>
 #include <memory>
 
 using namespace LAMMPS_NS;
@@ -190,6 +191,11 @@ int FixChargeRegulation::setmask() {
 /* ---------------------------------------------------------------------- */
 
 void FixChargeRegulation::init() {
+
+  if (!atom->mass) error->all(FLERR, "Fix charge/regulation requires per atom type masses");
+  if (atom->rmass_flag && (comm->me == 0))
+    error->warning(FLERR, "Fix charge/regulation will use per atom type masses for "
+                   "velocity initialization");
 
   triclinic = domain->triclinic;
   int ipe = modify->find_compute("thermo_pe");

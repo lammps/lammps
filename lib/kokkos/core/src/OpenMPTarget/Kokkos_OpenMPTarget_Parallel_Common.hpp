@@ -21,6 +21,7 @@
 #include <sstream>
 #include <Kokkos_Parallel.hpp>
 #include <OpenMPTarget/Kokkos_OpenMPTarget_Reducer.hpp>
+#include <OpenMPTarget/Kokkos_OpenMPTarget_Macros.hpp>
 
 namespace Kokkos {
 namespace Impl {
@@ -394,9 +395,11 @@ struct ParallelReduceSpecialize<FunctorType, TeamPolicyInternal<PolicyArgs...>,
     initializer(OpenMPTargetReducerWrapper <ReducerType>::init(omp_priv))
 
 #if !defined(KOKKOS_IMPL_OPENMPTARGET_HIERARCHICAL_INTEL_GPU)
-#pragma omp target teams num_teams(max_active_teams) thread_limit(team_size) \
-    firstprivate(f) is_device_ptr(scratch_ptr) reduction(custom              \
-                                                         : result)
+    KOKKOS_IMPL_OMPTARGET_PRAGMA(
+        teams num_teams(max_active_teams) thread_limit(team_size)
+            firstprivate(f) is_device_ptr(scratch_ptr) reduction(custom
+                                                                 : result)
+                KOKKOS_IMPL_OMPX_DYN_CGROUP_MEM(shmem_size_L0))
 #pragma omp parallel reduction(custom : result)
     {
       if (omp_get_num_teams() > max_active_teams)
@@ -482,9 +485,11 @@ struct ParallelReduceSpecialize<FunctorType, TeamPolicyInternal<PolicyArgs...>,
 
       // Case where reduction is on a native data type.
       if constexpr (std::is_arithmetic<ValueType>::value) {
-#pragma omp target teams num_teams(max_active_teams) thread_limit(team_size) map(to   \
-                                                                       : f) \
-    is_device_ptr(scratch_ptr) reduction(+: result)
+        // Use scratch memory extensions to request dynamic shared memory for
+        // the right compiler/architecture combination.
+        KOKKOS_IMPL_OMPTARGET_PRAGMA(teams num_teams(max_active_teams) thread_limit(team_size) map(to: f) \
+    is_device_ptr(scratch_ptr) reduction(+: result)               \
+        KOKKOS_IMPL_OMPX_DYN_CGROUP_MEM(shmem_size_L0))
 #pragma omp parallel reduction(+ : result)
         {
           if (omp_get_num_teams() > max_active_teams)
@@ -636,11 +641,13 @@ struct ParallelReduceSpecialize<FunctorType, TeamPolicyInternal<PolicyArgs...>,
 
       return;
     }
-
-#pragma omp target teams num_teams(nteams) thread_limit(team_size) map(to   \
-                                                                       : f) \
-    is_device_ptr(scratch_ptr)
-    {
+    // Use scratch memory extensions to request dynamic shared memory for the
+    // right compiler/architecture combination.
+    KOKKOS_IMPL_OMPTARGET_PRAGMA(
+        teams num_teams(nteams) thread_limit(team_size) map(to
+                                                            : f)
+            is_device_ptr(scratch_ptr)
+                KOKKOS_IMPL_OMPX_DYN_CGROUP_MEM(shmem_size_L0)) {
 #pragma omp parallel
       {
         const int team_num      = omp_get_team_num();
@@ -665,9 +672,8 @@ struct ParallelReduceSpecialize<FunctorType, TeamPolicyInternal<PolicyArgs...>,
 
     int tree_neighbor_offset = 1;
     do {
-#pragma omp target teams distribute parallel for simd map(to               \
-                                                          : final_reducer) \
-    is_device_ptr(scratch_ptr)
+#pragma omp target teams distribute parallel for simd firstprivate( \
+    final_reducer) is_device_ptr(scratch_ptr)
       for (int i = 0; i < nteams - tree_neighbor_offset;
            i += 2 * tree_neighbor_offset) {
         ValueType* team_scratch = static_cast<ValueType*>(scratch_ptr);

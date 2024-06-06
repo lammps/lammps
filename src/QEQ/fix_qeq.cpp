@@ -27,9 +27,7 @@
 #include "memory.h"
 #include "modify.h"
 #include "neigh_list.h"
-#include "pair.h"
 #include "respa.h"
-#include "suffix.h"
 #include "text_file_reader.h"
 #include "update.h"
 
@@ -75,6 +73,9 @@ FixQEq::FixQEq(LAMMPS *lmp, int narg, char **arg) :
   // check for sane arguments
   if ((nevery <= 0) || (cutoff <= 0.0) || (tolerance <= 0.0) || (maxiter <= 0))
     error->all(FLERR,"Illegal fix qeq command");
+
+  // must have charges
+  if (!atom->q_flag) error->all(FLERR, "Fix {} requires atom attribute q", style);
 
   alpha = 0.20;
   swa = 0.0;

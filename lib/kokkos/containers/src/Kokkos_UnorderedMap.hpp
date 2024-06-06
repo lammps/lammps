@@ -243,16 +243,16 @@ class UnorderedMap {
   using const_map_type = UnorderedMap<const_key_type, const_value_type,
                                       device_type, hasher_type, equal_to_type>;
 
-  static const bool is_set = std::is_void<value_type>::value;
-  static const bool has_const_key =
-      std::is_same<const_key_type, declared_key_type>::value;
-  static const bool has_const_value =
-      is_set || std::is_same<const_value_type, declared_value_type>::value;
+  static constexpr bool is_set = std::is_void_v<value_type>;
+  static constexpr bool has_const_key =
+      std::is_same_v<const_key_type, declared_key_type>;
+  static constexpr bool has_const_value =
+      is_set || std::is_same_v<const_value_type, declared_value_type>;
 
-  static const bool is_insertable_map =
+  static constexpr bool is_insertable_map =
       !has_const_key && (is_set || !has_const_value);
-  static const bool is_modifiable_map = has_const_key && !has_const_value;
-  static const bool is_const_map      = has_const_key && has_const_value;
+  static constexpr bool is_modifiable_map = has_const_key && !has_const_value;
+  static constexpr bool is_const_map      = has_const_key && has_const_value;
 
   using insert_result = UnorderedMapInsertResult;
 
@@ -337,27 +337,27 @@ class UnorderedMap {
         Impl::get_property<Impl::LabelTag>(prop_copy) + " - size"));
 
     m_available_indexes =
-        bitset_type(Kokkos::Impl::with_updated_label(prop_copy, " - bitset"),
+        bitset_type(Kokkos::Impl::append_to_label(prop_copy, " - bitset"),
                     calculate_capacity(capacity_hint));
 
     m_hash_lists = size_type_view(
-        Kokkos::Impl::with_updated_label(prop_copy_noinit, " - hash list"),
+        Kokkos::Impl::append_to_label(prop_copy_noinit, " - hash list"),
         Impl::find_hash_size(capacity()));
 
     m_next_index = size_type_view(
-        Kokkos::Impl::with_updated_label(prop_copy_noinit, " - next index"),
+        Kokkos::Impl::append_to_label(prop_copy_noinit, " - next index"),
         capacity() + 1);  // +1 so that the *_at functions can always return a
                           // valid reference
 
-    m_keys = key_type_view(
-        Kokkos::Impl::with_updated_label(prop_copy, " - keys"), capacity());
+    m_keys = key_type_view(Kokkos::Impl::append_to_label(prop_copy, " - keys"),
+                           capacity());
 
-    m_values = value_type_view(
-        Kokkos::Impl::with_updated_label(prop_copy, " - values"),
-        is_set ? 0 : capacity());
+    m_values =
+        value_type_view(Kokkos::Impl::append_to_label(prop_copy, " - values"),
+                        is_set ? 0 : capacity());
 
     m_scalars =
-        scalars_view(Kokkos::Impl::with_updated_label(prop_copy, " - scalars"));
+        scalars_view(Kokkos::Impl::append_to_label(prop_copy, " - scalars"));
 
     /**
      * Deep copies should also be done using the space instance if given.

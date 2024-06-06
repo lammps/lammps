@@ -103,8 +103,8 @@ public:
   MDSPAN_TEMPLATE_REQUIRES(
     class... SizeTypes,
     /* requires */ (
-      _MDSPAN_FOLD_AND(_MDSPAN_TRAIT( std::is_convertible, SizeTypes, index_type) /* && ... */) &&
-      _MDSPAN_TRAIT( std::is_constructible, extents_type, SizeTypes...) &&
+      (::MDSPAN_IMPL_STANDARD_NAMESPACE::detail::are_valid_indices<index_type, SizeTypes...>()) &&
+        _MDSPAN_TRAIT( std::is_constructible, extents_type, SizeTypes...) &&
       _MDSPAN_TRAIT( std::is_constructible, mapping_type, extents_type) &&
       (_MDSPAN_TRAIT( std::is_constructible, container_type, size_t) ||
        container_is_array<container_type>::value) &&
@@ -133,59 +133,27 @@ public:
   ) : map_(m), ctr_(container_is_array<container_type>::construct(map_))
   { }
 
-  // Constructors from container
-  MDSPAN_TEMPLATE_REQUIRES(
-    class... SizeTypes,
-    /* requires */ (
-      _MDSPAN_FOLD_AND(_MDSPAN_TRAIT( std::is_convertible, SizeTypes, index_type) /* && ... */) &&
-      _MDSPAN_TRAIT( std::is_constructible, extents_type, SizeTypes...) &&
-      _MDSPAN_TRAIT( std::is_constructible, mapping_type, extents_type)
-    )
-  )
-  MDSPAN_INLINE_FUNCTION
-  explicit constexpr mdarray(const container_type& ctr, SizeTypes... dynamic_extents)
-    : map_(extents_type(dynamic_extents...)), ctr_(ctr)
-  { assert(ctr.size() >= static_cast<size_t>(map_.required_span_size())); }
-
-
   MDSPAN_FUNCTION_REQUIRES(
     (MDSPAN_INLINE_FUNCTION constexpr),
-    mdarray, (const container_type& ctr, const extents_type& exts), ,
+    mdarray, (const extents_type& exts, const container_type& ctr), ,
     /* requires */ (_MDSPAN_TRAIT( std::is_constructible, mapping_type, extents_type))
   ) : map_(exts), ctr_(ctr)
   { assert(ctr.size() >= static_cast<size_t>(map_.required_span_size())); }
 
-  constexpr mdarray(const container_type& ctr, const mapping_type& m)
+  constexpr mdarray(const mapping_type& m, const container_type& ctr)
     : map_(m), ctr_(ctr)
   { assert(ctr.size() >= static_cast<size_t>(map_.required_span_size())); }
 
-
-  // Constructors from container
-  MDSPAN_TEMPLATE_REQUIRES(
-    class... SizeTypes,
-    /* requires */ (
-      _MDSPAN_FOLD_AND(_MDSPAN_TRAIT( std::is_convertible, SizeTypes, index_type) /* && ... */) &&
-      _MDSPAN_TRAIT( std::is_constructible, extents_type, SizeTypes...) &&
-      _MDSPAN_TRAIT( std::is_constructible, mapping_type, extents_type)
-    )
-  )
-  MDSPAN_INLINE_FUNCTION
-  explicit constexpr mdarray(container_type&& ctr, SizeTypes... dynamic_extents)
-    : map_(extents_type(dynamic_extents...)), ctr_(std::move(ctr))
-  { assert(ctr_.size() >= static_cast<size_t>(map_.required_span_size())); }
-
-
   MDSPAN_FUNCTION_REQUIRES(
     (MDSPAN_INLINE_FUNCTION constexpr),
-    mdarray, (container_type&& ctr, const extents_type& exts), ,
+    mdarray, (const extents_type& exts, container_type&& ctr), ,
     /* requires */ (_MDSPAN_TRAIT( std::is_constructible, mapping_type, extents_type))
   ) : map_(exts), ctr_(std::move(ctr))
   { assert(ctr_.size() >= static_cast<size_t>(map_.required_span_size())); }
 
-  constexpr mdarray(container_type&& ctr, const mapping_type& m)
+  constexpr mdarray(const mapping_type& m, container_type&& ctr)
     : map_(m), ctr_(std::move(ctr))
   { assert(ctr_.size() >= static_cast<size_t>(map_.required_span_size())); }
-
 
 
   MDSPAN_TEMPLATE_REQUIRES(
@@ -229,7 +197,7 @@ public:
                     _MDSPAN_TRAIT( std::is_constructible, mapping_type, extents_type))
   )
   MDSPAN_INLINE_FUNCTION
-  constexpr mdarray(const container_type& ctr, const extents_type& exts, const Alloc& a)
+  constexpr mdarray(const extents_type& exts, const container_type& ctr, const Alloc& a)
     : map_(exts), ctr_(ctr, a)
   { assert(ctr_.size() >= static_cast<size_t>(map_.required_span_size())); }
 
@@ -238,7 +206,7 @@ public:
     /* requires */ (_MDSPAN_TRAIT( std::is_constructible, container_type, size_t, Alloc))
   )
   MDSPAN_INLINE_FUNCTION
-  constexpr mdarray(const container_type& ctr, const mapping_type& map, const Alloc& a)
+  constexpr mdarray(const mapping_type& map, const container_type& ctr, const Alloc& a)
     : map_(map), ctr_(ctr, a)
   { assert(ctr_.size() >= static_cast<size_t>(map_.required_span_size())); }
 
@@ -248,7 +216,7 @@ public:
                     _MDSPAN_TRAIT( std::is_constructible, mapping_type, extents_type))
   )
   MDSPAN_INLINE_FUNCTION
-  constexpr mdarray(container_type&& ctr, const extents_type& exts, const Alloc& a)
+  constexpr mdarray(const extents_type& exts, container_type&& ctr, const Alloc& a)
     : map_(exts), ctr_(std::move(ctr), a)
   { assert(ctr_.size() >= static_cast<size_t>(map_.required_span_size())); }
 
@@ -257,7 +225,7 @@ public:
     /* requires */ (_MDSPAN_TRAIT( std::is_constructible, container_type, size_t, Alloc))
   )
   MDSPAN_INLINE_FUNCTION
-  constexpr mdarray(container_type&& ctr, const mapping_type& map, const Alloc& a)
+  constexpr mdarray(const mapping_type& map, container_type&& ctr, const Alloc& a)
     : map_(map), ctr_(std::move(ctr), a)
   { assert(ctr_.size() >= map_.required_span_size()); }
 
@@ -344,8 +312,8 @@ public:
   MDSPAN_TEMPLATE_REQUIRES(
     class... SizeTypes,
     /* requires */ (
-      _MDSPAN_FOLD_AND(_MDSPAN_TRAIT( std::is_convertible, SizeTypes, index_type) /* && ... */) &&
-      extents_type::rank() == sizeof...(SizeTypes)
+        (::MDSPAN_IMPL_STANDARD_NAMESPACE::detail::are_valid_indices<index_type, SizeTypes...>()) &&
+        extents_type::rank() == sizeof...(SizeTypes)
     )
   )
   MDSPAN_FORCE_INLINE_FUNCTION
@@ -356,8 +324,8 @@ public:
   MDSPAN_TEMPLATE_REQUIRES(
     class... SizeTypes,
     /* requires */ (
-      _MDSPAN_FOLD_AND(_MDSPAN_TRAIT( std::is_convertible, SizeTypes, index_type) /* && ... */) &&
-      extents_type::rank() == sizeof...(SizeTypes)
+        (::MDSPAN_IMPL_STANDARD_NAMESPACE::detail::are_valid_indices<index_type, SizeTypes...>()) &&
+        extents_type::rank() == sizeof...(SizeTypes)
     )
   )
   MDSPAN_FORCE_INLINE_FUNCTION
@@ -433,8 +401,9 @@ public:
     class OtherElementType, class OtherExtents,
     class OtherLayoutType, class OtherAccessorType,
     /* requires */ (
-      _MDSPAN_TRAIT(std::is_assignable, mdspan_type,
-                       mdspan<OtherElementType, OtherExtents, OtherLayoutType, OtherAccessorType>)
+      _MDSPAN_TRAIT(std::is_assignable,
+                      mdspan<OtherElementType, OtherExtents, OtherLayoutType, OtherAccessorType>,
+                      mdspan_type)
     )
   )
   constexpr operator mdspan<OtherElementType, OtherExtents, OtherLayoutType, OtherAccessorType> () {
@@ -445,8 +414,9 @@ public:
     class OtherElementType, class OtherExtents,
     class OtherLayoutType, class OtherAccessorType,
     /* requires */ (
-      _MDSPAN_TRAIT(std::is_assignable, const_mdspan_type,
-                      mdspan<OtherElementType, OtherExtents, OtherLayoutType, OtherAccessorType>)
+      _MDSPAN_TRAIT(std::is_assignable,
+                      mdspan<OtherElementType, OtherExtents, OtherLayoutType, OtherAccessorType>,
+                      const_mdspan_type)
     )
   )
   constexpr operator mdspan<OtherElementType, OtherExtents, OtherLayoutType, OtherAccessorType> () const {

@@ -35,23 +35,24 @@ Description
 """""""""""
 
 This fix enables LAMMPS to be run as a client for the i-PI Python
-wrapper :ref:`(IPI) <ipihome>` for performing a path integral molecular dynamics
-(PIMD) simulation.  The philosophy behind i-PI is described in the
-following publication :ref:`(IPI-CPC) <IPICPC>`.
+wrapper :ref:`(IPI) <ipihome>`. i-PI is a universal force engine,
+designed to perform advanced molecular simulations, with a special
+focus on path integral molecular dynamics (PIMD) simulation.
+The philosophy behind i-PI is to separate the evaluation of the
+energy and forces, which is delegated to the client, and the evolution
+of the dynamics, that is the responsibility of i-PI. This approach also
+simplifies combining energies computed from different codes, which
+can for instance be useful to mix first-principles calculations,
+empirical force fields or machine-learning potentials.
+The following publication :ref:`(IPI-CPC-2014) <IPICPC>` discusses the
+overall implementation of i-PI, and focuses on path-integral techniques,
+while a later release :ref:`(IPI-CPC-2019) <IPICPC2>` introduces several
+additional features and simulation schemes.
 
-A version of the i-PI package, containing only files needed for use
-with LAMMPS, is provided in the tools/i-pi directory.  See the
-tools/i-pi/manual.pdf for an introduction to i-PI.  The
-examples/PACKAGES/i-pi directory contains example scripts for using i-PI
-with LAMMPS.
-
-In brief, the path integral molecular dynamics is performed by the
-Python wrapper, while the client (LAMMPS in this case) simply computes
-forces and energy for each configuration. The communication between
-the two components takes place using sockets, and is reduced to the
-bare minimum. All the parameters of the dynamics are specified in the
-input of i-PI, and all the parameters of the force field must be
-specified as LAMMPS inputs, preceding the *fix ipi* command.
+The communication between i-PI and LAMMPS takes place using sockets,
+and is reduced to the bare minimum. All the parameters of the dynamics
+are specified in the input of i-PI, and all the parameters of the force
+field must be specified as LAMMPS inputs, preceding the *fix ipi* command.
 
 The server address must be specified by the *address* argument, and
 can be either the IP address, the fully-qualified name of the server,
@@ -74,6 +75,20 @@ This is required to e.g. obtain reproducible and conserved forces.
 If the cell varies too wildly, it may be advisable to re-initialize
 these interactions at each call. This behavior can be requested by
 setting the *reset* switch.
+
+Obtaining i-PI
+""""""""""""""
+
+Here are the commands to set up a virtual environment and install
+i-PI into it with all its dependencies via the PyPi repository and
+the pip package manager.
+
+.. code-block:: sh
+
+   python -m venv ipienv
+   source ipienv/bin/activate
+   pip install --upgrade pip
+   pip install ipi
 
 Restart, fix_modify, output, run start/stop, minimize info
 """""""""""""""""""""""""""""""""""""""""""""""""""""""""""
@@ -111,8 +126,13 @@ Related commands
 
 .. _IPICPC:
 
-**(IPI-CPC)** Ceriotti, More and Manolopoulos, Comp Phys Comm, 185,
+**(IPI-CPC-2014)** Ceriotti, More and Manolopoulos, Comp Phys Comm 185,
 1019-1026 (2014).
+
+.. _IPICPC2:
+
+**(IPI-CPC-2019)** Kapil et al., Comp Phys Comm 236, 214-223 (2019).
+
 
 .. _ipihome:
 

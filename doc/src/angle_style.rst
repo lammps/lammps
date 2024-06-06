@@ -10,7 +10,7 @@ Syntax
 
    angle_style style
 
-* style = *none* or *zero* or *hybrid* or *amoeba* or *charmm* or *class2* or *class2/p6* or *cosine* or *cosine/buck6d* or *cosine/delta* or *cosine/periodic* or *cosine/shift* or *cosine/shift/exp* or *cosine/squared* or *cross* or *dipole* or *fourier* or *fourier/simple* or *gaussian* or *harmonic* or *lepton* or *mm3* or *quartic* or *spica* or *table*
+* style = *none* or *zero* or *hybrid* or *amoeba* or *charmm* or *class2* or *class2/p6* or *cosine* or *cosine/buck6d* or *cosine/delta* or *cosine/periodic* or *cosine/shift* or *cosine/shift/exp* or *cosine/squared* or *cosine/squared/restricted* or *cross* or *dipole* or *fourier* or *fourier/simple* or *gaussian* or *harmonic* or *lepton* or *mm3* or *quartic* or *spica* or *table*
 
 Examples
 """"""""
@@ -84,6 +84,7 @@ of (g,i,k,o,t) to indicate which accelerated styles exist.
 * :doc:`cosine/shift <angle_cosine_shift>` - angle cosine with a shift
 * :doc:`cosine/shift/exp <angle_cosine_shift_exp>` - cosine with shift and exponential term in spring constant
 * :doc:`cosine/squared <angle_cosine_squared>` - angle with cosine squared term
+* :doc:`cosine/squared/restricted <angle_cosine_squared_restricted>` - angle with restricted cosine squared term
 * :doc:`cross <angle_cross>` - cross term coupling angle and bond lengths
 * :doc:`dipole <angle_dipole>` - angle that controls orientation of a point dipole
 * :doc:`fourier <angle_fourier>` - angle with multiple cosine terms

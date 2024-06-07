@@ -1,17 +1,17 @@
 i-PI path integral interface examples
 =====================================
 
-This folder contains a couple of examples to run LAMMPS as a client,
+This folder contains an example to run LAMMPS as a client,
 exchanging information on the atomic configurations, energy and forces
-with the i-PI Python interface
-[http://epfl-cosmo.github.io/gle4md/index.html?page=ipi].  These
+with the [http://ipi-code.org](i-PI Python interface).  These
 examples require a working copy of i-PI and compiling LAMMPS in a UNIX
-environment.  Note that a copy of i-PI is provided with LAMMPS, in the
-tools/i-pi directory.
+environment. 
+i-PI can be installed from source or from `pip`. Please refer to the
+documentation for up-to-date installation instruction.
 
-Note that the i-PI examples listed here are designed for the public V1.0
-version of i-PI. Refer to the LAMMPS examples distributed with i-PI if you
-are using a development version.
+Note that the i-PI examples listed here have been tested to work with the
+3.0 version of i-PI. Refer to the LAMMPS examples distributed with i-PI if you
+are using a different version.
 
 Path integral simulation of graphene
 ------------------------------------
@@ -25,7 +25,7 @@ and the format of the output.
 How to run i-PI
 ---------------
 
-You should have a relatively recent (>=2.5) version of Python and Numpy,
+You should have a relatively recent (>=3.5) version of Python and Numpy,
 and the public version of i-PI. You can then run i-PI by executing
 
 ```bash
@@ -33,7 +33,7 @@ and the public version of i-PI. You can then run i-PI by executing
 ```
 
 In a separate terminal, then, you should run LAMMPS compiled to provide 
-fix_ipi functionalities.
+`fix_ipi` functionalities.
 
 ```bash
    $LAMMPS -in in.graphene
@@ -41,6 +41,3 @@ fix_ipi functionalities.
 
 You can run multiple instances of LAMMPS if you want to exploit the 
 parallelism over the path integral beads.
-
-
-

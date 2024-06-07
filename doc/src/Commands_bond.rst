@@ -72,7 +72,7 @@ OPT.
 
    * :doc:`none <angle_none>`
    * :doc:`zero <angle_zero>`
-   * :doc:`hybrid <angle_hybrid>`
+   * :doc:`hybrid (k) <angle_hybrid>`
    *
    *
    *

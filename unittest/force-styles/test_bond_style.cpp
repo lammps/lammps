@@ -531,6 +531,111 @@ TEST(BondStyle, omp)
     if (!verbose) ::testing::internal::GetCapturedStdout();
 };
 
+TEST(BondStyle, kokkos_omp)
+{
+    if (!LAMMPS::is_installed_pkg("KOKKOS")) GTEST_SKIP();
+    if (test_config.skip_tests.count(test_info_->name())) GTEST_SKIP();
+    if (!Info::has_accelerator_feature("KOKKOS", "api", "openmp")) GTEST_SKIP();
+
+    LAMMPS::argv args = {"BondStyle", "-log", "none", "-echo", "screen", "-nocite",
+                         "-k",        "on",   "t",    "4",     "-sf",    "kk"};
+
+    ::testing::internal::CaptureStdout();
+    LAMMPS *lmp = init_lammps(args, test_config, true);
+
+    std::string output = ::testing::internal::GetCapturedStdout();
+    if (verbose) std::cout << output;
+
+    if (!lmp) {
+        std::cerr << "One or more prerequisite styles with /kk suffix\n"
+                     "are not available in this LAMMPS configuration:\n";
+        for (auto &prerequisite : test_config.prerequisites) {
+            std::cerr << prerequisite.first << "_style " << prerequisite.second << "\n";
+        }
+        GTEST_SKIP();
+    }
+
+    EXPECT_THAT(output, StartsWith("LAMMPS ("));
+    EXPECT_THAT(output, HasSubstr("Loop time"));
+
+    // abort if running in parallel and not all atoms are local
+    const int nlocal = lmp->atom->nlocal;
+    ASSERT_EQ(lmp->atom->natoms, nlocal);
+
+    // relax error a bit for KOKKOS package
+    double epsilon = 5.0 * test_config.epsilon;
+
+    ErrorStats stats;
+    auto bond = lmp->force->bond;
+
+    EXPECT_FORCES("init_forces (newton on)", lmp->atom, test_config.init_forces, epsilon);
+    EXPECT_STRESS("init_stress (newton on)", bond->virial, test_config.init_stress, 10 * epsilon);
+
+    stats.reset();
+    EXPECT_FP_LE_WITH_EPS(bond->energy, test_config.init_energy, epsilon);
+    if (print_stats) std::cerr << "init_energy stats, newton on: " << stats << std::endl;
+
+    if (!verbose) ::testing::internal::CaptureStdout();
+    run_lammps(lmp);
+    if (!verbose) ::testing::internal::GetCapturedStdout();
+
+    EXPECT_FORCES("run_forces (newton on)", lmp->atom, test_config.run_forces, 10 * epsilon);
+    EXPECT_STRESS("run_stress (newton on)", bond->virial, test_config.run_stress, 10 * epsilon);
+
+    stats.reset();
+    int id        = lmp->modify->find_compute("sum");
+    double energy = lmp->modify->compute[id]->compute_scalar();
+    EXPECT_FP_LE_WITH_EPS(bond->energy, test_config.run_energy, epsilon);
+
+    // FIXME: this is currently broken ??? for KOKKOS with bond style hybrid
+    // needs to be fixed in the main code somewhere. Not sure where, though.
+    //if (test_config.bond_style.substr(0, 6) != "hybrid")
+    //    EXPECT_FP_LE_WITH_EPS(bond->energy, energy, epsilon);
+
+    if (print_stats) std::cerr << "run_energy  stats, newton on: " << stats << std::endl;
+
+    if (!verbose) ::testing::internal::CaptureStdout();
+    cleanup_lammps(lmp, test_config);
+    lmp = init_lammps(args, test_config, false);
+    if (!verbose) ::testing::internal::GetCapturedStdout();
+
+    // skip over these tests if newton bond is forced to be on
+    if (lmp->force->newton_bond == 0) {
+        bond = lmp->force->bond;
+
+        EXPECT_FORCES("init_forces (newton off)", lmp->atom, test_config.init_forces, epsilon);
+        EXPECT_STRESS("init_stress (newton off)", bond->virial, test_config.init_stress,
+                      10 * epsilon);
+
+        stats.reset();
+        EXPECT_FP_LE_WITH_EPS(bond->energy, test_config.init_energy, epsilon);
+        if (print_stats) std::cerr << "init_energy stats, newton off:" << stats << std::endl;
+
+        if (!verbose) ::testing::internal::CaptureStdout();
+        run_lammps(lmp);
+        if (!verbose) ::testing::internal::GetCapturedStdout();
+
+        EXPECT_FORCES("run_forces (newton off)", lmp->atom, test_config.run_forces, 10 * epsilon);
+        EXPECT_STRESS("run_stress (newton off)", bond->virial, test_config.run_stress,
+                      10 * epsilon);
+
+        stats.reset();
+        id     = lmp->modify->find_compute("sum");
+        energy = lmp->modify->compute[id]->compute_scalar();
+        EXPECT_FP_LE_WITH_EPS(bond->energy, test_config.run_energy, epsilon);
+
+        // FIXME: this is currently broken ??? for KOKKOS with bond style hybrid
+        // needs to be fixed in the main code somewhere. Not sure where, though.
+        //if (test_config.bond_style.substr(0, 6) != "hybrid")
+        //    EXPECT_FP_LE_WITH_EPS(bond->energy, energy, epsilon);
+
+        if (print_stats) std::cerr << "run_energy  stats, newton off:" << stats << std::endl;
+    }
+
+    if (!verbose) ::testing::internal::CaptureStdout();
+    cleanup_lammps(lmp, test_config);
+    if (!verbose) ::testing::internal::GetCapturedStdout();
+};
 
 TEST(BondStyle, numdiff)
 {

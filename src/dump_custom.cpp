@@ -1766,7 +1766,8 @@ int DumpCustom::modify_param(int narg, char **arg)
     if (narg < 2) error->all(FLERR,"Illegal dump_modify command");
     triclinic_general = utils::logical(FLERR,arg[1],false,lmp);
     if (triclinic_general && !domain->triclinic_general)
-      error->all(FLERR,"Dump_modify triclinic/general invalid b/c simulation box is not");
+      error->all(FLERR,"Dump_modify triclinic/general cannot be used "
+                 "if simulation box is not general triclinic");
     return 2;
   }
 

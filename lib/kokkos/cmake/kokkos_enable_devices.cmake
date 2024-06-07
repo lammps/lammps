@@ -40,6 +40,26 @@ ELSE()
 ENDIF()
 KOKKOS_DEVICE_OPTION(OPENMP ${OMP_DEFAULT} HOST "Whether to build OpenMP backend")
 
+
+# We want this to default to OFF for cache reasons, but if no
+# host space is given, then activate serial
+IF (KOKKOS_HAS_TRILINOS)
+  #However, Trilinos always wants Serial ON
+  SET(SERIAL_DEFAULT ON)
+ELSEIF (KOKKOS_HAS_HOST)
+  SET(SERIAL_DEFAULT OFF)
+ELSE()
+  SET(SERIAL_DEFAULT ON)
+  IF (NOT DEFINED Kokkos_ENABLE_SERIAL)
+    MESSAGE(STATUS "SERIAL backend is being turned on to ensure there is at least one Host space. To change this, you must enable another host execution space and configure with -DKokkos_ENABLE_SERIAL=OFF or change CMakeCache.txt")
+  ENDIF()
+ENDIF()
+KOKKOS_DEVICE_OPTION(SERIAL ${SERIAL_DEFAULT} HOST "Whether to build serial backend")
+
+KOKKOS_DEVICE_OPTION(HPX OFF HOST "Whether to build HPX backend (experimental)")
+
+# Device backends have to come after host backends for header include order reasons
+# Without this we can't make e.g. CudaSpace accessible by HostSpace
 KOKKOS_DEVICE_OPTION(OPENACC OFF DEVICE "Whether to build the OpenACC backend")
 IF (KOKKOS_ENABLE_OPENACC)
   COMPILER_SPECIFIC_FLAGS(
@@ -89,23 +109,6 @@ IF (KOKKOS_ENABLE_CUDA)
 ## Cuda has extra setup requirements, turn on Kokkos_Setup_Cuda.hpp in macros
   LIST(APPEND DEVICE_SETUP_LIST Cuda)
 ENDIF()
-
-# We want this to default to OFF for cache reasons, but if no
-# host space is given, then activate serial
-IF (KOKKOS_HAS_TRILINOS)
-  #However, Trilinos always wants Serial ON
-  SET(SERIAL_DEFAULT ON)
-ELSEIF (KOKKOS_HAS_HOST)
-  SET(SERIAL_DEFAULT OFF)
-ELSE()
-  SET(SERIAL_DEFAULT ON)
-  IF (NOT DEFINED Kokkos_ENABLE_SERIAL)
-    MESSAGE(STATUS "SERIAL backend is being turned on to ensure there is at least one Host space. To change this, you must enable another host execution space and configure with -DKokkos_ENABLE_SERIAL=OFF or change CMakeCache.txt")
-  ENDIF()
-ENDIF()
-KOKKOS_DEVICE_OPTION(SERIAL ${SERIAL_DEFAULT} HOST "Whether to build serial backend")
-
-KOKKOS_DEVICE_OPTION(HPX OFF HOST "Whether to build HPX backend (experimental)")
 
 KOKKOS_DEVICE_OPTION(HIP OFF DEVICE "Whether to build HIP backend")
 

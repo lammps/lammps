@@ -56,6 +56,9 @@ void PairDeprecated::settings(int, char **)
       utils::logmesg(lmp,
                      "\nPair style 'mesont/tpm' has been removed from LAMMPS. "
                      "Please use pair style 'mesocnt' instead\n\n");
+  } else if (utils::strmatch(my_style, "^meam/c")) {
+    if (lmp->comm->me == 0)
+      utils::logmesg(lmp, "\nPair style 'meam/c' has been renamed to 'meam'\n\n");
   }
   error->all(FLERR, "This pair style is no longer available");
 }

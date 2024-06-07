@@ -37,6 +37,8 @@ class TeamPolicyInternal<Kokkos::Serial, Properties...>
   int m_league_size;
   int m_chunk_size;
 
+  Kokkos::Serial m_space;
+
  public:
   //! Tag this class as a kokkos execution policy
   using execution_policy = TeamPolicyInternal;
@@ -46,10 +48,7 @@ class TeamPolicyInternal<Kokkos::Serial, Properties...>
   //! Execution space of this execution policy:
   using execution_space = Kokkos::Serial;
 
-  const typename traits::execution_space& space() const {
-    static typename traits::execution_space m_space;
-    return m_space;
-  }
+  const typename traits::execution_space& space() const { return m_space; }
 
   template <class ExecSpace, class... OtherProperties>
   friend class TeamPolicyInternal;
@@ -116,12 +115,13 @@ class TeamPolicyInternal<Kokkos::Serial, Properties...>
     return (level == 0 ? 1024 * 32 : 20 * 1024 * 1024);
   }
   /** \brief  Specify league size, request team size */
-  TeamPolicyInternal(const execution_space&, int league_size_request,
+  TeamPolicyInternal(const execution_space& space, int league_size_request,
                      int team_size_request, int /* vector_length_request */ = 1)
       : m_team_scratch_size{0, 0},
         m_thread_scratch_size{0, 0},
         m_league_size(league_size_request),
-        m_chunk_size(32) {
+        m_chunk_size(32),
+        m_space(space) {
     if (team_size_request > 1)
       Kokkos::abort("Kokkos::abort: Requested Team Size is too large!");
   }

@@ -46,6 +46,7 @@ FixSpringRG::FixSpringRG(LAMMPS *lmp, int narg, char **arg) :
 
   restart_global = 1;
   scalar_flag = 1;
+  extscalar = 0;
   restart_global = 1;
   dynamic_group_allow = 1;
   respa_level_support = 1;

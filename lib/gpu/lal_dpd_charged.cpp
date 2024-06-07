@@ -70,10 +70,12 @@ int DPDChargedT::init(const int ntypes,
         }
   if (onetype<0) onetype=0;
   #endif
-
+  int extra_fields = 4; // round up to accomodate quadruples of numtyp values
+                        // q
   int success;
   success=this->init_atomic(nlocal,nall,max_nbors,maxspecial,cell_size,
-                            gpu_split,_screen,dpd_charged,"k_dpd_charged",onetype);
+                            gpu_split,_screen,dpd_charged,"k_dpd_charged",onetype, extra_fields);
+                            
   if (success!=0)
     return success;
 

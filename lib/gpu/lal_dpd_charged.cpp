@@ -16,7 +16,7 @@
 #if defined(USE_OPENCL)
 #include "dpd_charged_cl.h"
 #elif defined(USE_CUDART)
-const char *dpd=0;
+const char *dpd_charged=0;
 #else
 #include "dpd_charged_cubin.h"
 #endif
@@ -75,7 +75,7 @@ int DPDChargedT::init(const int ntypes,
   int success;
   success=this->init_atomic(nlocal,nall,max_nbors,maxspecial,cell_size,
                             gpu_split,_screen,dpd_charged,"k_dpd_charged",onetype, extra_fields);
-                            
+
   if (success!=0)
     return success;
 
@@ -210,7 +210,6 @@ int DPDChargedT::loop(const int eflag, const int vflag) {
                      &this->nbor->dev_nbor, &this->_nbor_data->begin(),
                      &this->ans->force, &this->ans->engv, &eflag, &vflag,
                      &ainum, &nbor_pitch, &this->atom->v, &cutsq, &this->_dtinvsqrt,
-                     &_qqrd2e, &_g_ewald, &_lamda,
                      &this->_seed, &this->_timestep,
                      &_qqrd2e, &_g_ewald, &_lamda,
                      &this->_tstat_only, &this->_threads_per_atom);

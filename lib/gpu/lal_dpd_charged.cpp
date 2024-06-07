@@ -112,13 +112,8 @@ int DPDChargedT::init(const int ntypes,
   this->atom->type_pack4(ntypes,lj_types,coeff,host_write,host_a0,host_gamma,
                          host_sigma,host_cut_dpd);
 
-  // Allocate a host write buffer for data initialization
-  UCL_H_Vec<numtyp> host_rsq(lj_types*lj_types*32,*(this->ucl_device),
-                             UCL_WRITE_ONLY);
-  for (int i=0; i<lj_types*lj_types; i++)
-    host_rsq[i]=0.0;
   cutsq.alloc(lj_types*lj_types,*(this->ucl_device),UCL_READ_ONLY);
-  this->atom->type_pack4(ntypes,lj_types,cutsq,host_rsq,host_cutsq, 
+  this->atom->type_pack4(ntypes,lj_types,cutsq,host_write,host_cutsq, 
                           host_cut_dpdsq, host_scale, host_cut_slatersq);
 
   double special_sqrt[4];

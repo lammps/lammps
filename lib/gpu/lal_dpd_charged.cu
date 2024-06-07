@@ -249,7 +249,7 @@ __kernel void k_dpd_charged(const __global numtyp4 *restrict x_,
 
         // apply DPD force if distance below DPD cutoff
         // cutsq[mtype].y -> DPD squared cutoff
-        if (rsq < cutsq[mtype].y && r < EPSILON) {
+        if (rsq < cutsq[mtype].y && r > EPSILON) {
 
           numtyp rinv=ucl_recip(r);
           numtyp delvx = iv.x - jv.x;
@@ -350,7 +350,7 @@ __kernel void k_dpd_charged_fast(const __global numtyp4 *restrict x_,
                          const int eflag, const int vflag, const int inum,
                          const int nbor_pitch,
                          const __global numtyp4 *restrict v_,
-                         const __global numtyp4 *restrict cutsq,
+                         const __global numtyp4 *restrict cutsq_in,
                          const numtyp dtinvsqrt, const int seed,
                          const int timestep, const numtyp qqrd2e, 
                          const numtyp g_ewald, const numtyp lamda,
@@ -360,10 +360,10 @@ __kernel void k_dpd_charged_fast(const __global numtyp4 *restrict x_,
   atom_info(t_per_atom,ii,tid,offset);
 
   __local numtyp4 coeff[MAX_SHARED_TYPES*MAX_SHARED_TYPES];
+  __local numtyp4 cutsq[MAX_SHARED_TYPES*MAX_SHARED_TYPES];
   __local numtyp sp_lj[4];
   __local numtyp sp_sqrt[4];
   /// COUL Init
-  __local numtyp scale[MAX_SHARED_TYPES*MAX_SHARED_TYPES];
   __local numtyp sp_cl[4];
   if (tid<4) {
     sp_lj[tid]=sp_lj_in[tid];
@@ -372,7 +372,7 @@ __kernel void k_dpd_charged_fast(const __global numtyp4 *restrict x_,
   }
   if (tid<MAX_SHARED_TYPES*MAX_SHARED_TYPES) {
     coeff[tid]=coeff_in[tid];
-    scale[tid]=cutsq[tid].z;
+    cutsq[tid]=cutsq_in[tid];
   }
 
   __syncthreads();
@@ -435,7 +435,7 @@ __kernel void k_dpd_charged_fast(const __global numtyp4 *restrict x_,
 
         // apply DPD force if distance below DPD cutoff
         // cutsq[mtype].y -> DPD squared cutoff
-        if (rsq < cutsq[mtype].y && r < EPSILON) {
+        if (rsq < cutsq[mtype].y && r > EPSILON) {
 
           numtyp rinv=ucl_recip(r);
           numtyp delvx = iv.x - jv.x;

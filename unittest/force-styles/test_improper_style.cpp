@@ -532,7 +532,7 @@ TEST(ImproperStyle, kokkos_omp)
     if (test_config.skip_tests.count(test_info_->name())) GTEST_SKIP();
 
     LAMMPS::argv args = {"ImproperStyle", "-log", "none", "-echo", "screen", "-nocite",
-                         "-pk",           "omp",  "4",    "-sf",   "omp"};
+                         "-k",        "on",   "t",    "4",     "-sf",    "kk"};
 
     ::testing::internal::CaptureStdout();
     LAMMPS *lmp = init_lammps(args, test_config, true);

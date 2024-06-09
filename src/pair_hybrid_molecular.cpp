@@ -42,10 +42,10 @@ void PairHybridMolecular::init_style()
   bool first = true;
   for (auto &request : neighbor->get_pair_requests()) {
     if (first) {
-      request->set_molskip(NeighRequest::INTER);
+      request->set_molskip(NeighRequest::INTRA);
       first = false;
     } else {
-      request->set_molskip(NeighRequest::INTRA);
+      request->set_molskip(NeighRequest::INTER);
     }
   }
   born_matrix_enable = 0;

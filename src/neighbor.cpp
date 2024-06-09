@@ -2170,6 +2170,7 @@ int Neighbor::choose_pair(NeighRequest *rq)
     if (!rq->ssa != !(mask & NP_SSA)) continue;
 
     if (!rq->skip != !(mask & NP_SKIP)) continue;
+    if (!(rq->molskip > NeighRequest::REGULAR) != !(mask & NP_INTRA)) continue;
 
     if (!rq->trim != !(mask & NP_TRIM)) continue;
 

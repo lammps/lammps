@@ -76,7 +76,7 @@ NeighRequest::NeighRequest(LAMMPS *_lmp) : Pointers(_lmp)
   skip = 0;
   iskip = nullptr;
   ijskip = nullptr;
-  molskip = 0;
+  molskip = REGULAR;
 
   // only set when command = 1;
 

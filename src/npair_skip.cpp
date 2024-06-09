@@ -74,7 +74,7 @@ void NPairSkipTemp<TRIM>::build(NeighList *list)
   for (ii = 0; ii < num_skip; ii++) {
     i = ilist_skip[ii];
     itype = type[i];
-    
+
     if (!molskip && iskip[itype]) continue;
 
     if (TRIM) {
@@ -97,7 +97,7 @@ void NPairSkipTemp<TRIM>::build(NeighList *list)
       if (!molskip && ijskip[itype][type[j]]) continue;
       if ((molskip == NeighRequest::INTRA) && (molecule[i] != molecule[j])) continue;
       if ((molskip == NeighRequest::INTER) && (molecule[i] == molecule[j])) continue;
-        
+
       if (TRIM) {
         delx = xtmp - x[j][0];
         dely = ytmp - x[j][1];

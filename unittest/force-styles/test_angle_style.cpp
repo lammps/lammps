@@ -138,8 +138,9 @@ LAMMPS *init_lammps(LAMMPS::argv &args, const TestConfig &cfg, const bool newton
     }
 
     command("run 0 post no");
+    command("variable write_data_pair index ii");
     command("write_restart " + cfg.basename + ".restart");
-    command("write_data " + cfg.basename + ".data");
+    command("write_data " + cfg.basename + ".data pair ${write_data_pair}");
     command("write_coeff " + cfg.basename + "-coeffs.in");
 
     return lmp;
@@ -644,8 +645,13 @@ TEST(AngleStyle, single)
                         "extra/angle/per/atom 2 extra/special/per/atom 2",
                         nangletypes));
 
-    command("pair_style zero 8.0");
-    command("pair_coeff * *");
+    if (utils::strmatch(test_config.angle_style, "spica")) {
+      command("pair_style lj/spica 8.0");
+      command("pair_coeff * * lj9_6 0.02 2.5");
+    } else {
+      command("pair_style zero 8.0");
+      command("pair_coeff * *");
+    }
 
     command("angle_style " + test_config.angle_style);
     Angle *angle = lmp->force->angle;

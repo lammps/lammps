@@ -13,8 +13,6 @@ variable  dihedral_style  index zero
 variable  improper_style  index zero
 variable  t_target        index 100.0
 
-echo both
-
 atom_style       full
 atom_modify      map array
 neigh_modify     delay 2 every 2 check no

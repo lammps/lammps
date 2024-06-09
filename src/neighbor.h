@@ -334,7 +334,8 @@ namespace NeighConst {
     NP_HALF_FULL = 1 << 23,
     NP_OFF2ON = 1 << 24,
     NP_MULTI_OLD = 1 << 25,
-    NP_TRIM = 1 << 26
+    NP_TRIM = 1 << 26,
+    NP_INTRA = 1 << 27
   };
 
   enum {

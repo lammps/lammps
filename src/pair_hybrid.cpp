@@ -398,8 +398,7 @@ void PairHybrid::flags()
   for (m = 0; m < nstyles; m++) {
     if (styles[m]) comm_forward = MAX(comm_forward,styles[m]->comm_forward);
     if (styles[m]) comm_reverse = MAX(comm_reverse,styles[m]->comm_reverse);
-    if (styles[m]) comm_reverse_off = MAX(comm_reverse_off,
-                                          styles[m]->comm_reverse_off);
+    if (styles[m]) comm_reverse_off = MAX(comm_reverse_off,styles[m]->comm_reverse_off);
   }
 
   // single_enable = 1 if all sub-styles are set

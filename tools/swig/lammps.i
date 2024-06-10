@@ -125,6 +125,7 @@ extern int    lammps_get_mpi_comm(void *handle);
 extern int    lammps_extract_setting(void *handle, const char *keyword);
 extern int    lammps_extract_global_datatype(void *handle, const char *name);
 extern void  *lammps_extract_global(void *handle, const char *name);
+extern int    lammps_map_atom(void *handle, const void *id);
 
 extern int    lammps_extract_atom_datatype(void *handle, const char *name);
 extern void  *lammps_extract_atom(void *handle, const char *name);
@@ -310,6 +311,7 @@ extern int    lammps_get_mpi_comm(void *handle);
 extern int    lammps_extract_setting(void *handle, const char *keyword);
 extern int    lammps_extract_global_datatype(void *handle, const char *name);
 extern void  *lammps_extract_global(void *handle, const char *name);
+extern int    lammps_map_atom(void *handle, const void *id);
 
 extern int    lammps_extract_atom_datatype(void *handle, const char *name);
 extern void  *lammps_extract_atom(void *handle, const char *name);

@@ -67,7 +67,7 @@ Syntax
                            bound(group,dir,region), gyration(group,region), ke(group,reigon),
                            angmom(group,dim,region), torque(group,dim,region),
                            inertia(group,dimdim,region), omega(group,dim,region)
-         special functions = sum(x), min(x), max(x), ave(x), trap(x), slope(x), gmask(x), rmask(x), grmask(x,y), next(x), is_file(name), is_os(name), extract_setting(name), label2type(kind,label), is_typelabel(kind,label)
+         special functions = sum(x), min(x), max(x), ave(x), trap(x), slope(x), sort(x), rsort(x), gmask(x), rmask(x), grmask(x,y), next(x), is_file(name), is_os(name), extract_setting(name), label2type(kind,label), is_typelabel(kind,label)
          feature functions = is_available(category,feature), is_active(category,feature), is_defined(category,id)
          atom value = id[i], mass[i], type[i], mol[i], x[i], y[i], z[i], vx[i], vy[i], vz[i], fx[i], fy[i], fz[i], q[i]
          atom vector = id, mass, type, mol, radius, q, x, y, z, vx, vy, vz, fx, fy, fz
@@ -547,7 +547,7 @@ variables.
 +------------------------+---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+
 | Region functions       | count(ID,IDR), mass(ID,IDR), charge(ID,IDR), xcm(ID,dim,IDR), vcm(ID,dim,IDR), fcm(ID,dim,IDR), bound(ID,dir,IDR), gyration(ID,IDR), ke(ID,IDR), angmom(ID,dim,IDR), torque(ID,dim,IDR), inertia(ID,dimdim,IDR), omega(ID,dim,IDR)                                                                                                                |
 +------------------------+---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+
-| Special functions      | sum(x), min(x), max(x), ave(x), trap(x), slope(x), gmask(x), rmask(x), grmask(x,y), next(x), is_file(name), is_os(name), extract_setting(name), label2type(kind,label), is_typelabel(kind,label)                                                                                                                                                  |
+| Special functions      | sum(x), min(x), max(x), ave(x), trap(x), slope(x), sort(x), rsort(x), gmask(x), rmask(x), grmask(x,y), next(x), is_file(name), is_os(name), extract_setting(name), label2type(kind,label), is_typelabel(kind,label)                                                                                                                               |
 +------------------------+---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+
 | Feature functions      | is_available(category,feature), is_active(category,feature), is_defined(category,id)                                                                                                                                                                                                                                                              |
 +------------------------+---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+
@@ -913,23 +913,27 @@ Special Functions
 Special functions take specific kinds of arguments, meaning their
 arguments cannot be formulas themselves.
 
-The sum(x), min(x), max(x), ave(x), trap(x), and slope(x) functions
-each take 1 argument which is of the form "c_ID" or "c_ID[N]" or
-"f_ID" or "f_ID[N]" or "v_name".  The first two are computes and the
-second two are fixes; the ID in the reference should be replaced by
-the ID of a compute or fix defined elsewhere in the input script.  The
-compute or fix must produce either a global vector or array.  If it
-produces a global vector, then the notation without "[N]" should be
-used.  If it produces a global array, then the notation with "[N]"
-should be used, when N is an integer, to specify which column of the
-global array is being referenced.  The last form of argument "v_name"
-is for a vector-style variable where "name" is replaced by the name of
-the variable.
+The sum(x), min(x), max(x), ave(x), trap(x), slope(x), sort(x), and
+rsort(x) functions each take 1 argument which is of the form "c_ID" or
+"c_ID[N]" or "f_ID" or "f_ID[N]" or "v_name".  The first two are
+computes and the second two are fixes; the ID in the reference should be
+replaced by the ID of a compute or fix defined elsewhere in the input
+script.  The compute or fix must produce either a global vector or
+array.  If it produces a global vector, then the notation without "[N]"
+should be used.  If it produces a global array, then the notation with
+"[N]" should be used, where N is an integer, to specify which column of
+the global array is being referenced.  The last form of argument
+"v_name" is for a vector-style variable where "name" is replaced by the
+name of the variable.
 
-These functions operate on a global vector of inputs and reduce it to
-a single scalar value.  This is analogous to the operation of the
-:doc:`compute reduce <compute_reduce>` command, which performs similar
-operations on per-atom and local vectors.
+The sum(x), min(x), max(x), ave(x), trap(x), and slope(x) functions
+operate on a global vector of inputs and reduce it to a single scalar
+value.  This is analogous to the operation of the :doc:`compute reduce
+<compute_reduce>` command, which performs similar operations on per-atom
+and local vectors.
+
+The sort(x) and rsort(x) functions operate on a global vector of inputs
+and return a global vector of the same length.
 
 The sum() function calculates the sum of all the vector elements.  The
 min() and max() functions find the minimum and maximum element
@@ -952,6 +956,12 @@ of points, equally spaced by 1 in their x coordinate: (1,V1), (2,V2),
 ..., (N,VN), where the Vi are the values in the global vector of
 length N.  The returned value is the slope of the line.  If the line
 has a single point or is vertical, it returns 1.0e20.
+
+.. versionadded:: TBD
+
+The sort(x) and rsort(x) functions sort the data of the input vector by
+their numeric value: sort(x) sorts in ascending order, rsort(x) sorts
+in descending order.
 
 The gmask(x) function takes 1 argument which is a group ID.  It
 can only be used in atom-style variables.  It returns a 1 for

@@ -399,9 +399,9 @@ void PairDPDChargedGPU::cpu_compute(int start, int inum, int eflag, int /* vflag
       // forces if below maximum cutoff
       if (rsq < cutsq[itype][jtype]) {
         r = sqrt(rsq);
-        if (r < EPSILON) continue;    // r can be 0.0 in DPD systems
+        if (evflag) evdwl = ecoul = 0.0;
         // apply DPD force if distance below DPD cutoff
-        if (rsq < cut_dpdsq[itype][jtype]) {
+        if (rsq < cut_dpdsq[itype][jtype] && r > EPSILON ) {
           rinv = 1.0 / r;
           delvx = vxtmp - v[j][0];
           delvy = vytmp - v[j][1];
@@ -426,11 +426,18 @@ void PairDPDChargedGPU::cpu_compute(int start, int inum, int eflag, int /* vflag
           forcedpd *= factor_dpd;
           forcedpd += factor_sqrt*sigma[itype][jtype]*wd*randnum*dtinvsqrt;
           forcedpd *= rinv;
+
+          if (eflag) {
+            // eng shifted to 0.0 at cutoff
+            evdwl = 0.5*a0[itype][jtype]*cut_dpd[itype][jtype] * wd*wd;
+            evdwl *= factor_dpd;
+          }
+
         } else forcedpd = 0.0;
 
         // apply Slater electrostatic force if distance below Slater cutoff 
         // and the two species are charged
-        if (cut_slater[itype][jtype] != 0.0 && rsq < cut_slatersq[itype][jtype]){
+        if (rsq < cut_slatersq[itype][jtype]){
           r2inv = 1.0/rsq;
           grij = g_ewald * r;
           expm2 = exp(-grij*grij);
@@ -440,7 +447,13 @@ void PairDPDChargedGPU::cpu_compute(int start, int inum, int eflag, int /* vflag
           prefactor = qqrd2e * scale[itype][jtype] * qtmp*q[j]/r;
           forcecoul = prefactor * (erfc + EWALD_F*grij*expm2 - slater_term);
           if (factor_coul < 1.0) forcecoul -= (1.0-factor_coul)*prefactor*(1-slater_term);
-          forcecoul *= r2inv;          
+          forcecoul *= r2inv;
+
+          if (eflag) {
+            ecoul = prefactor*(erfc - (1 + r/lamda)*exp(-2*r/lamda));
+            if (factor_coul < 1.0) ecoul -= (1.0-factor_coul)*prefactor*(1.0-(1 + r/lamda)*exp(-2*r/lamda));
+          }
+
         } else forcecoul = 0.0;
 
         fpair = forcedpd + forcecoul;
@@ -448,19 +461,6 @@ void PairDPDChargedGPU::cpu_compute(int start, int inum, int eflag, int /* vflag
         f[i][0] += delx * fpair;
         f[i][1] += dely * fpair;
         f[i][2] += delz * fpair;
-
-        if (eflag) {
-          if (rsq < cut_dpdsq[itype][jtype]) {
-            // eng shifted to 0.0 at cutoff
-            evdwl = 0.5*a0[itype][jtype]*cut_dpd[itype][jtype] * wd*wd;
-            evdwl *= factor_dpd;
-          } else evdwl = 0.0;
-
-          if (cut_slater[itype][jtype] != 0.0 && rsq < cut_slatersq[itype][jtype]){
-            ecoul = prefactor*(erfc - (1 + r/lamda)*exp(-2*r/lamda));
-            if (factor_coul < 1.0) ecoul -= (1.0-factor_coul)*prefactor*(1.0-(1 + r/lamda)*exp(-2*r/lamda));
-          } else ecoul = 0.0;
-        }
 
         if (evflag) ev_tally_full(i, evdwl, ecoul, fpair, delx, dely, delz);
       }

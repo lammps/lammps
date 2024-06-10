@@ -425,7 +425,7 @@ __kernel void k_dpd_charged_fast(const __global numtyp4 *restrict x_,
 
       int mtype=itype+jx.w;
       
-      // cutsq[mtype].x -> global squared cutoff
+      /// cutsq.x = cutsq, cutsq.y = cut_dpdsq, cutsq.z = scale, cutsq.w = cut_slatersq
       if (rsq<cutsq[mtype].x) {
         numtyp r=ucl_sqrt(rsq);
         numtyp force_dpd = (numtyp)0.0;
@@ -453,6 +453,7 @@ __kernel void k_dpd_charged_fast(const __global numtyp4 *restrict x_,
           // conservative force = a0 * wd, or 0 if tstat only
           // drag force = -gamma * wd^2 * (delx dot delv) / r
           // random force = sigma * wd * rnd * dtinvsqrt;
+          /// coeff.x = a0, coeff.y = gamma, coeff.z = sigma, coeff.w = cut_dpd
 
           if (!tstat_only) force_dpd = coeff[mtype].x*wd;
           force_dpd -= coeff[mtype].y*wd*wd*dot*rinv;
@@ -491,9 +492,9 @@ __kernel void k_dpd_charged_fast(const __global numtyp4 *restrict x_,
 
           if (EVFLAG && eflag) {
             numtyp e_slater = ((numtyp)1.0 + rlamdainv)*exprlmdainv;
-            numtyp e = prefactor*(_erfc-e_slater);
-            if (factor_coul > (numtyp)0) e -= factor_coul*prefactor*((numtyp)1.0 - e_slater);
-            e_coul += e;
+            numtyp e_sf = prefactor*(_erfc-e_slater);
+            if (factor_coul > (numtyp)0) e_sf -= factor_coul*prefactor*((numtyp)1.0 - e_slater);
+            e_coul += e_sf;
           }
         } // if cut_coulsq
 

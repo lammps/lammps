@@ -894,7 +894,7 @@ EXTRA-COMMAND package
 
 **Contents:**
 
-Additional compute styles that are less commonly used.
+Additional command styles that are less commonly used.
 
 **Supporting info:**
 

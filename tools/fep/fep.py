@@ -15,7 +15,7 @@ def compute_fep():
 
     args = parser.parse_args()
 
-    r_value = {'lj': 1.0, 'real': 0.0019872036, 'si': 8.314}
+    r_value = {'lj': 1.0, 'real': 0.0019872036, 'si': 8.31446}
 
     if args.units in r_value:
         rt = r_value[args.units] * args.Temperature

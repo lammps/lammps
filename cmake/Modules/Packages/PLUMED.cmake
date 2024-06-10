@@ -21,9 +21,9 @@ else()
   set(PLUMED_CONFIG_OMP "--disable-openmp")
 endif()
 
-set(PLUMED_URL "https://github.com/plumed/plumed2/releases/download/v2.8.2/plumed-src-2.8.2.tgz"
+set(PLUMED_URL "https://github.com/plumed/plumed2/releases/download/v2.9.1/plumed-src-2.9.1.tgz"
   CACHE STRING "URL for PLUMED tarball")
-set(PLUMED_MD5 "599092b6a0aa6fff992612537ad98994" CACHE STRING "MD5 checksum of PLUMED tarball")
+set(PLUMED_MD5 "c3b2d31479c1e9ce211719d40e9efbd7" CACHE STRING "MD5 checksum of PLUMED tarball")
 
 mark_as_advanced(PLUMED_URL)
 mark_as_advanced(PLUMED_MD5)

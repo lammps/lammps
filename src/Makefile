@@ -74,6 +74,7 @@ PACKAGE = \
 	dpd-smooth \
 	drude \
 	eff \
+	extra-command \
 	extra-compute \
 	extra-dump \
 	extra-fix \
@@ -167,6 +168,7 @@ PACKMOST = \
 	dpd-smooth \
 	drude \
 	eff \
+	extra-command \
 	extra-compute \
 	extra-dump \
 	extra-fix \

@@ -52,6 +52,7 @@ page gives those details.
    * :ref:`DRUDE <PKG-DRUDE>`
    * :ref:`EFF <PKG-EFF>`
    * :ref:`ELECTRODE <PKG-ELECTRODE>`
+   * :ref:`EXTRA-COMMAND <PKG-EXTRA-COMMAND>`
    * :ref:`EXTRA-COMPUTE <PKG-EXTRA-COMPUTE>`
    * :ref:`EXTRA-DUMP <PKG-EXTRA-DUMP>`
    * :ref:`EXTRA-FIX <PKG-EXTRA-FIX>`
@@ -883,6 +884,22 @@ This package has :ref:`specific installation instructions <electrode>` on the
 * :doc:`fix electrode/conp <fix_electrode>`
 * :doc:`fix electrode/conq <fix_electrode>`
 * :doc:`fix electrode/thermo <fix_electrode>`
+
+----------
+
+.. _PKG-EXTRA-COMMAND:
+
+EXTRA-COMMAND package
+---------------------
+
+**Contents:**
+
+Additional compute styles that are less commonly used.
+
+**Supporting info:**
+
+* src/EXTRA-COMMAND: filenames -> commands
+* :doc:`general commands <Commands_all>`
 
 ----------
 

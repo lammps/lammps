@@ -1,6 +1,8 @@
 # Plumed2 support for PLUMED package
 
+# for supporting multiple concurrent plumed2 installations for debugging and testing
 set(PLUMED_SUFFIX "" CACHE STRING "Suffix for Plumed2 library")
+mark_as_advanced(PLUMED_SUFFIX)
 
 if(BUILD_MPI)
   set(PLUMED_CONFIG_MPI "--enable-mpi")

@@ -1,25 +1,33 @@
 .. index:: pair_style hybrid
 .. index:: pair_style hybrid/kk
+.. index:: pair_style hybrid/omp
 .. index:: pair_style hybrid/molecular
+.. index:: pair_style hybrid/molecular/omp
 .. index:: pair_style hybrid/overlay
+.. index:: pair_style hybrid/overlay/omp
 .. index:: pair_style hybrid/overlay/kk
 .. index:: pair_style hybrid/scaled
+.. index:: pair_style hybrid/scaled/omp
 
 pair_style hybrid command
 =========================
 
-Accelerator Variants: *hybrid/kk*
+Accelerator Variants: *hybrid/kk*, *hybrid/omp*
 
 pair_style hybrid/molecular command
 ===================================
 
+Accelerator Variant: *hybrid/molecular/omp*
+
 pair_style hybrid/overlay command
 =================================
 
-Accelerator Variants: *hybrid/overlay/kk*
+Accelerator Variants: *hybrid/overlay/kk*, *hybrid/overlay/omp*
 
 pair_style hybrid/scaled command
 ==================================
+
+Accelerator Variant: *hybrid/scaled/omp*
 
 Syntax
 """"""

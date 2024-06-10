@@ -25,10 +25,10 @@ OPT.
 
    * :doc:`none <pair_none>`
    * :doc:`zero <pair_zero>`
-   * :doc:`hybrid (k) <pair_hybrid>`
-   * :doc:`hybrid/molecular <pair_hybrid>`
-   * :doc:`hybrid/overlay (k) <pair_hybrid>`
-   * :doc:`hybrid/scaled <pair_hybrid>`
+   * :doc:`hybrid (ko) <pair_hybrid>`
+   * :doc:`hybrid/molecular (o) <pair_hybrid>`
+   * :doc:`hybrid/overlay (ko) <pair_hybrid>`
+   * :doc:`hybrid/scaled (o) <pair_hybrid>`
    * :doc:`kim <pair_kim>`
    * :doc:`list <pair_list>`
    * :doc:`tracker <pair_tracker>`

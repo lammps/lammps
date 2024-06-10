@@ -16,42 +16,42 @@
 typedef NPairSkipTemp<0> NPairSkip;
 NPairStyle(skip,
            NPairSkip,
-           NP_SKIP | NP_HALF | NP_FULL | NP_INTRA |
+           NP_SKIP | NP_HALF | NP_FULL |
            NP_NSQ | NP_BIN | NP_MULTI | NP_MULTI_OLD |
            NP_NEWTON | NP_NEWTOFF | NP_ORTHO | NP_TRI);
 
 typedef NPairSkipTemp<0> NPairSkip;
 NPairStyle(skip/ghost,
            NPairSkip,
-           NP_SKIP | NP_HALF | NP_FULL | NP_INTRA |
+           NP_SKIP | NP_HALF | NP_FULL |
            NP_NSQ | NP_BIN | NP_MULTI | NP_MULTI_OLD |
            NP_NEWTON | NP_NEWTOFF | NP_ORTHO | NP_TRI | NP_GHOST);
 
 typedef NPairSkipTemp<0> NPairSkipSize;
 NPairStyle(skip/half/size,
            NPairSkipSize,
-           NP_SKIP | NP_SIZE | NP_HALF | NP_FULL | NP_INTRA |
+           NP_SKIP | NP_SIZE | NP_HALF | NP_FULL |
            NP_NSQ | NP_BIN | NP_MULTI | NP_MULTI_OLD |
            NP_NEWTON | NP_NEWTOFF | NP_ORTHO | NP_TRI);
 
 typedef NPairSkipTemp<1> NPairSkipTrim;
 NPairStyle(skip/trim,
            NPairSkipTrim,
-           NP_SKIP | NP_HALF | NP_FULL | NP_INTRA |
+           NP_SKIP | NP_HALF | NP_FULL |
            NP_NSQ | NP_BIN | NP_MULTI | NP_MULTI_OLD |
            NP_NEWTON | NP_NEWTOFF | NP_ORTHO | NP_TRI | NP_TRIM);
 
 typedef NPairSkipTemp<1> NPairSkipTrim;
 NPairStyle(skip/ghost/trim,
            NPairSkipTrim,
-           NP_SKIP | NP_HALF | NP_FULL | NP_INTRA |
+           NP_SKIP | NP_HALF | NP_FULL |
            NP_NSQ | NP_BIN | NP_MULTI | NP_MULTI_OLD |
            NP_NEWTON | NP_NEWTOFF | NP_ORTHO | NP_TRI | NP_GHOST | NP_TRIM);
 
 typedef NPairSkipTemp<1> NPairSkipTrimSize;
 NPairStyle(skip/trim/half/size,
            NPairSkipTrimSize,
-           NP_SKIP | NP_SIZE | NP_HALF | NP_FULL | NP_INTRA |
+           NP_SKIP | NP_SIZE | NP_HALF | NP_FULL |
            NP_NSQ | NP_BIN | NP_MULTI | NP_MULTI_OLD |
            NP_NEWTON | NP_NEWTOFF | NP_ORTHO | NP_TRI | NP_TRIM);
 

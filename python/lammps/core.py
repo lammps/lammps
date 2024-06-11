@@ -269,6 +269,9 @@ class lammps(object):
     self.lib.lammps_extract_global_datatype.restype = c_int
     self.lib.lammps_extract_compute.argtypes = [c_void_p, c_char_p, c_int, c_int]
 
+    self.lib.lammps_map_atom.argtypes = [c_void_p, c_void_p]
+    self.lib.lammps_map_atom.restype = c_int
+
     self.lib.lammps_get_thermo.argtypes = [c_void_p, c_char_p]
     self.lib.lammps_get_thermo.restype = c_double
 
@@ -376,12 +379,16 @@ class lammps(object):
         narg = 0
         cargs = None
         if cmdargs is not None:
-          cmdargs.insert(0,"lammps")
-          narg = len(cmdargs)
-          for i in range(narg):
-            if type(cmdargs[i]) is str:
-              cmdargs[i] = cmdargs[i].encode()
-          cargs = (c_char_p*(narg+1))(*cmdargs)
+          myargs = ["lammps".encode()]
+          narg = len(cmdargs) + 1
+          for arg in cmdargs:
+            if type(arg) is str:
+              myargs.append(arg.encode())
+            elif type(arg) is bytes:
+              myargs.append(arg)
+            else:
+              raise TypeError('Unsupported cmdargs type ', type(arg))
+          cargs = (c_char_p*(narg+1))(*myargs)
           cargs[narg] = None
           self.lib.lammps_open.argtypes = [c_int, c_char_p*(narg+1), MPI_Comm, c_void_p]
         else:
@@ -397,12 +404,16 @@ class lammps(object):
           self.comm = self.MPI.COMM_WORLD
         self.opened = 1
         if cmdargs is not None:
-          cmdargs.insert(0,"lammps")
-          narg = len(cmdargs)
-          for i in range(narg):
-            if type(cmdargs[i]) is str:
-              cmdargs[i] = cmdargs[i].encode()
-          cargs = (c_char_p*(narg+1))(*cmdargs)
+          myargs = ["lammps".encode()]
+          narg = len(cmdargs) + 1
+          for arg in cmdargs:
+            if type(arg) is str:
+              myargs.append(arg.encode())
+            elif type(arg) is bytes:
+              myargs.append(arg)
+            else:
+              raise TypeError('Unsupported cmdargs type ', type(arg))
+          cargs = (c_char_p*(narg+1))(*myargs)
           cargs[narg] = None
           self.lib.lammps_open_no_mpi.argtypes = [c_int, c_char_p*(narg+1), c_void_p]
           self.lmp = c_void_p(self.lib.lammps_open_no_mpi(narg,cargs,None))
@@ -885,6 +896,8 @@ class lammps(object):
       veclen = vec_dict[name]
     elif name == 'respa_dt':
       veclen = self.extract_global('respa_levels',LAMMPS_INT)
+    elif name == 'sametag':
+      veclen = self.extract_setting('nall')
     else:
       veclen = 1
 
@@ -917,6 +930,24 @@ class lammps(object):
         return result
       else: return target_type(ptr[0])
     return None
+
+  # -------------------------------------------------------------------------
+  # map global atom ID to local atom index
+
+  def map_atom(self, id):
+    """Map a global atom ID (aka tag) to the local atom index
+
+    This is a wrapper around the :cpp:func:`lammps_map_atom`
+    function of the C-library interface.
+
+    :param id: atom ID
+    :type id:  int
+    :return: local index
+    :rtype: int
+    """
+
+    tag = self.c_tagint(id)
+    return self.lib.lammps_map_atom(self.lmp, pointer(tag))
 
   # -------------------------------------------------------------------------
   # extract per-atom info datatype

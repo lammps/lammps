@@ -379,10 +379,11 @@ These pair styles can only be used via the *pair* keyword of the
 Restrictions
 """"""""""""
 
-The *coul/cut/global*, *coul/long*, *coul/msm*, *coul/streitz*, and *tip4p/long* styles
-are part of the KSPACE package.  They are only enabled if LAMMPS was built
-with that package.  See the :doc:`Build package <Build_package>` doc page
-for more info.
+The *coul/long*, *coul/msm*, *coul/streitz*, and *tip4p/long* styles are
+part of the KSPACE package.  The *coul/cut/global* and *coul/exclude* are
+part of the EXTRA-PAIR package.  A pair style is only enabled if LAMMPS was
+built with its corresponding package.  See the :doc:`Build package <Build_package>`
+doc page for more info.
 
 Related commands
 """"""""""""""""

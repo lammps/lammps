@@ -39,7 +39,7 @@ static_assert(false,
 #ifdef KOKKOS_ENABLE_IMPL_MDSPAN
 #include <View/MDSpan/Kokkos_MDSpan_Extents.hpp>
 #endif
-#include <Kokkos_MinMaxClamp.hpp>
+#include <Kokkos_MinMax.hpp>
 
 //----------------------------------------------------------------------------
 //----------------------------------------------------------------------------
@@ -75,25 +75,59 @@ constexpr KOKKOS_INLINE_FUNCTION std::size_t count_valid_integers(
          (i6 != KOKKOS_INVALID_INDEX) + (i7 != KOKKOS_INVALID_INDEX);
 }
 
-KOKKOS_INLINE_FUNCTION
-void runtime_check_rank(const size_t rank, const size_t dyn_rank,
-                        const bool is_void_spec, const size_t i0,
-                        const size_t i1, const size_t i2, const size_t i3,
-                        const size_t i4, const size_t i5, const size_t i6,
-                        const size_t i7, const std::string& label) {
+// FIXME Ideally, we would not instantiate this function for every possible View
+// type. We should be able to only pass "extent" when we use mdspan.
+template <typename View>
+KOKKOS_INLINE_FUNCTION void runtime_check_rank(
+    const View&, const bool is_void_spec, const size_t i0, const size_t i1,
+    const size_t i2, const size_t i3, const size_t i4, const size_t i5,
+    const size_t i6, const size_t i7, const char* label) {
   (void)(label);
 
   if (is_void_spec) {
     const size_t num_passed_args =
         count_valid_integers(i0, i1, i2, i3, i4, i5, i6, i7);
+    // We either allow to pass as many extents as the dynamic rank is, or
+    // as many extents as the total rank is. In the latter case, the given
+    // extents for the static dimensions must match the
+    // compile-time extents.
+    constexpr int rank            = View::rank();
+    constexpr int dyn_rank        = View::rank_dynamic();
+    const bool n_args_is_dyn_rank = num_passed_args == dyn_rank;
+    const bool n_args_is_rank     = num_passed_args == rank;
 
-    if (num_passed_args != dyn_rank && num_passed_args != rank) {
+    if constexpr (rank != dyn_rank) {
+      if (n_args_is_rank) {
+        size_t new_extents[8] = {i0, i1, i2, i3, i4, i5, i6, i7};
+        for (int i = dyn_rank; i < rank; ++i)
+          if (new_extents[i] != View::static_extent(i)) {
+            KOKKOS_IF_ON_HOST(
+                const std::string message =
+                    "The specified run-time extent for Kokkos::View '" +
+                    std::string(label) +
+                    "' does not match the compile-time extent in dimension " +
+                    std::to_string(i) + ". The given extent is " +
+                    std::to_string(new_extents[i]) + " but should be " +
+                    std::to_string(View::static_extent(i)) + ".\n";
+                Kokkos::abort(message.c_str());)
+            KOKKOS_IF_ON_DEVICE(
+                Kokkos::abort(
+                    "The specified run-time extents for a Kokkos::View "
+                    "do not match the compile-time extents.");)
+          }
+      }
+    }
+
+    if (!n_args_is_dyn_rank && !n_args_is_rank) {
       KOKKOS_IF_ON_HOST(
           const std::string message =
-              "Constructor for Kokkos View '" + label +
-              "' has mismatched number of arguments. Number of arguments = " +
+              "Constructor for Kokkos::View '" + std::string(label) +
+              "' has mismatched number of arguments. The number "
+              "of arguments = " +
               std::to_string(num_passed_args) +
-              " but dynamic rank = " + std::to_string(dyn_rank) + " \n";
+              " neither matches the dynamic rank = " +
+              std::to_string(dyn_rank) +
+              " nor the total rank = " + std::to_string(rank) + "\n";
           Kokkos::abort(message.c_str());)
       KOKKOS_IF_ON_DEVICE(Kokkos::abort("Constructor for Kokkos View has "
                                         "mismatched number of arguments.");)
@@ -814,15 +848,15 @@ class View : public ViewTraits<DataType, Properties...> {
 
   template <typename... Is>
   static KOKKOS_FUNCTION void check_access_member_function_valid_args(Is...) {
-    static_assert(rank <= sizeof...(Is), "");
-    static_assert(sizeof...(Is) <= 8, "");
-    static_assert(Kokkos::Impl::are_integral<Is...>::value, "");
+    static_assert(rank <= sizeof...(Is));
+    static_assert(sizeof...(Is) <= 8);
+    static_assert(Kokkos::Impl::are_integral<Is...>::value);
   }
 
   template <typename... Is>
   static KOKKOS_FUNCTION void check_operator_parens_valid_args(Is...) {
-    static_assert(rank == sizeof...(Is), "");
-    static_assert(Kokkos::Impl::are_integral<Is...>::value, "");
+    static_assert(rank == sizeof...(Is));
+    static_assert(Kokkos::Impl::are_integral<Is...>::value);
   }
 
  public:
@@ -1402,21 +1436,30 @@ class View : public ViewTraits<DataType, Properties...> {
           "execution space");
     }
 
-    size_t i0 = arg_layout.dimension[0];
-    size_t i1 = arg_layout.dimension[1];
-    size_t i2 = arg_layout.dimension[2];
-    size_t i3 = arg_layout.dimension[3];
-    size_t i4 = arg_layout.dimension[4];
-    size_t i5 = arg_layout.dimension[5];
-    size_t i6 = arg_layout.dimension[6];
-    size_t i7 = arg_layout.dimension[7];
+#ifdef KOKKOS_ENABLE_DEBUG_BOUNDS_CHECK
+    if constexpr (std::is_same_v<typename traits::array_layout,
+                                 Kokkos::LayoutLeft> ||
+                  std::is_same_v<typename traits::array_layout,
+                                 Kokkos::LayoutRight> ||
+                  std::is_same_v<typename traits::array_layout,
+                                 Kokkos::LayoutStride> ||
+                  is_layouttiled<typename traits::array_layout>::value) {
+      size_t i0 = arg_layout.dimension[0];
+      size_t i1 = arg_layout.dimension[1];
+      size_t i2 = arg_layout.dimension[2];
+      size_t i3 = arg_layout.dimension[3];
+      size_t i4 = arg_layout.dimension[4];
+      size_t i5 = arg_layout.dimension[5];
+      size_t i6 = arg_layout.dimension[6];
+      size_t i7 = arg_layout.dimension[7];
 
-    const std::string& alloc_name =
-        Impl::get_property<Impl::LabelTag>(prop_copy);
-    Impl::runtime_check_rank(
-        rank, rank_dynamic,
-        std::is_same<typename traits::specialize, void>::value, i0, i1, i2, i3,
-        i4, i5, i6, i7, alloc_name);
+      const std::string& alloc_name =
+          Impl::get_property<Impl::LabelTag>(prop_copy);
+      Impl::runtime_check_rank(
+          *this, std::is_same<typename traits::specialize, void>::value, i0, i1,
+          i2, i3, i4, i5, i6, i7, alloc_name.c_str());
+    }
+#endif
 
     Kokkos::Impl::SharedAllocationRecord<>* record = m_map.allocate_shared(
         prop_copy, arg_layout, Impl::ViewCtorProp<P...>::has_execution_space);
@@ -1445,6 +1488,29 @@ class View : public ViewTraits<DataType, Properties...> {
                      typename Impl::ViewCtorProp<P...>::pointer_type>::value,
         "Constructing View to wrap user memory must supply matching pointer "
         "type");
+
+#ifdef KOKKOS_ENABLE_DEBUG_BOUNDS_CHECK
+    if constexpr (std::is_same_v<typename traits::array_layout,
+                                 Kokkos::LayoutLeft> ||
+                  std::is_same_v<typename traits::array_layout,
+                                 Kokkos::LayoutRight> ||
+                  std::is_same_v<typename traits::array_layout,
+                                 Kokkos::LayoutStride> ||
+                  is_layouttiled<typename traits::array_layout>::value) {
+      size_t i0 = arg_layout.dimension[0];
+      size_t i1 = arg_layout.dimension[1];
+      size_t i2 = arg_layout.dimension[2];
+      size_t i3 = arg_layout.dimension[3];
+      size_t i4 = arg_layout.dimension[4];
+      size_t i5 = arg_layout.dimension[5];
+      size_t i6 = arg_layout.dimension[6];
+      size_t i7 = arg_layout.dimension[7];
+
+      Impl::runtime_check_rank(
+          *this, std::is_same<typename traits::specialize, void>::value, i0, i1,
+          i2, i3, i4, i5, i6, i7, "UNMANAGED");
+    }
+#endif
   }
 
   // Simple dimension-only layout

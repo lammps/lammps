@@ -126,7 +126,7 @@ These styles are part of the EXTRA-COMPUTE package. They are only
 enabled if LAMMPS is built with that package. See the :doc:`Build
 package <Build_package>` doc page on for more info.
 
-The method is only implemented for 3d orthogonal simulation boxes whose
+The method is implemented for orthogonal simulation boxes whose
 size does not change in time, and axis-aligned planes.
 
 The method only works with two-body pair interactions, because it

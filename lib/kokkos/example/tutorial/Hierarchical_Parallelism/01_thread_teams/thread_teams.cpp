@@ -47,13 +47,9 @@ struct hello_world {
     // The TeamPolicy<>::member_type provides functions to query the multi
     // dimensional index of a thread as well as the number of thread-teams and
     // the size of each team.
-#ifndef __SYCL_DEVICE_ONLY__
-    // FIXME_SYCL needs printf workaround
-    printf("Hello World: %i %i // %i %i\n", thread.league_rank(),
-           thread.team_rank(), thread.league_size(), thread.team_size());
-#else
-    (void)thread;
-#endif
+    Kokkos::printf("Hello World: %i %i // %i %i\n", thread.league_rank(),
+                   thread.team_rank(), thread.league_size(),
+                   thread.team_size());
   }
 };
 

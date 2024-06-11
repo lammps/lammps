@@ -51,24 +51,6 @@ KOKKOS_IMPL_MATH_CONSTANT(phi,        1.618033988749894848204586834365638118L);
 
 }  // namespace Kokkos::numbers
 
-#ifdef KOKKOS_ENABLE_DEPRECATED_CODE_3
-namespace Kokkos::Experimental {
-using Kokkos::numbers::e_v;
-using Kokkos::numbers::egamma_v;
-using Kokkos::numbers::inv_pi_v;
-using Kokkos::numbers::inv_sqrt3_v;
-using Kokkos::numbers::inv_sqrtpi_v;
-using Kokkos::numbers::ln10_v;
-using Kokkos::numbers::ln2_v;
-using Kokkos::numbers::log10e_v;
-using Kokkos::numbers::log2e_v;
-using Kokkos::numbers::phi_v;
-using Kokkos::numbers::pi_v;
-using Kokkos::numbers::sqrt2_v;
-using Kokkos::numbers::sqrt3_v;
-}  // namespace Kokkos::Experimental
-#endif
-
 #ifdef KOKKOS_IMPL_PUBLIC_INCLUDE_NOTDEFINED_MATHCONSTANTS
 #undef KOKKOS_IMPL_PUBLIC_INCLUDE
 #undef KOKKOS_IMPL_PUBLIC_INCLUDE_NOTDEFINED_MATHCONSTANTS

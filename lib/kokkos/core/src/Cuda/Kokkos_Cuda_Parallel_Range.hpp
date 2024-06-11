@@ -28,7 +28,6 @@
 #include <Cuda/Kokkos_Cuda_KernelLaunch.hpp>
 #include <Cuda/Kokkos_Cuda_ReduceScan.hpp>
 #include <Cuda/Kokkos_Cuda_BlockSize_Deduction.hpp>
-#include <Kokkos_MinMaxClamp.hpp>
 
 #include <impl/Kokkos_Tools.hpp>
 #include <typeinfo>
@@ -86,18 +85,18 @@ class ParallelFor<FunctorType, Kokkos::RangePolicy<Traits...>, Kokkos::Cuda> {
     const typename Policy::index_type nwork = m_policy.end() - m_policy.begin();
 
     cudaFuncAttributes attr =
-        CudaParallelLaunch<ParallelFor,
-                           LaunchBounds>::get_cuda_func_attributes();
+        CudaParallelLaunch<ParallelFor, LaunchBounds>::get_cuda_func_attributes(
+            m_policy.space().cuda_device());
     const int block_size =
         Kokkos::Impl::cuda_get_opt_block_size<FunctorType, LaunchBounds>(
             m_policy.space().impl_internal_space_instance(), attr, m_functor, 1,
             0, 0);
     KOKKOS_ASSERT(block_size > 0);
     dim3 block(1, block_size, 1);
+    const int maxGridSizeX = m_policy.space().cuda_device_prop().maxGridSize[0];
     dim3 grid(
-        std::min(
-            typename Policy::index_type((nwork + block.y - 1) / block.y),
-            typename Policy::index_type(cuda_internal_maximum_grid_count()[0])),
+        std::min(typename Policy::index_type((nwork + block.y - 1) / block.y),
+                 typename Policy::index_type(maxGridSizeX)),
         1, 1);
 #ifdef KOKKOS_IMPL_DEBUG_CUDA_SERIAL_EXECUTION
     if (Kokkos::Impl::CudaInternal::cuda_use_serial_execution()) {
@@ -244,10 +243,10 @@ class ParallelReduce<CombinedFunctorReducerType, Kokkos::RangePolicy<Traits...>,
       if (CudaTraits::WarpSize < word_count.value) {
         __syncthreads();
       } else if (word_count.value > 1) {
-        // Inside cuda_single_inter_block_reduce_scan() above, shared[i] below
-        // might have been updated by a single thread within a warp without
-        // synchronization afterwards. Synchronize threads within warp to avoid
-        // potential racecondition.
+        // Inside cuda_single_inter_block_reduce_scan() and final() above,
+        // shared[i] below might have been updated by a single thread within a
+        // warp without synchronization afterwards. Synchronize threads within
+        // warp to avoid potential race condition.
         __syncwarp(0xffffffff);
       }
 
@@ -260,19 +259,18 @@ class ParallelReduce<CombinedFunctorReducerType, Kokkos::RangePolicy<Traits...>,
   // Determine block size constrained by shared memory:
   inline unsigned local_block_size(const FunctorType& f) {
     unsigned n = CudaTraits::WarpSize * 8;
+    const int maxShmemPerBlock =
+        m_policy.space().cuda_device_prop().sharedMemPerBlock;
     int shmem_size =
         cuda_single_inter_block_reduce_scan_shmem<false, WorkTag, value_type>(
             f, n);
     using closure_type =
         Impl::ParallelReduce<CombinedFunctorReducer<FunctorType, ReducerType>,
                              Policy, Kokkos::Cuda>;
-    cudaFuncAttributes attr =
-        CudaParallelLaunch<closure_type,
-                           LaunchBounds>::get_cuda_func_attributes();
+    cudaFuncAttributes attr = CudaParallelLaunch<closure_type, LaunchBounds>::
+        get_cuda_func_attributes(m_policy.space().cuda_device());
     while (
-        (n &&
-         (m_policy.space().impl_internal_space_instance()->m_maxShmemPerBlock <
-          shmem_size)) ||
+        (n && (maxShmemPerBlock < shmem_size)) ||
         (n >
          static_cast<unsigned>(
              Kokkos::Impl::cuda_get_max_block_size<FunctorType, LaunchBounds>(
@@ -314,8 +312,9 @@ class ParallelReduce<CombinedFunctorReducerType, Kokkos::RangePolicy<Traits...>,
       // REQUIRED ( 1 , N , 1 )
       dim3 block(1, block_size, 1);
       // Required grid.x <= block.y
-      dim3 grid(std::min(int(block.y), int((nwork + block.y - 1) / block.y)), 1,
-                1);
+      dim3 grid(std::min(index_type(block.y),
+                         index_type((nwork + block.y - 1) / block.y)),
+                1, 1);
 
       // TODO @graph We need to effectively insert this in to the graph
       const int shmem =
@@ -615,11 +614,11 @@ class ParallelScan<FunctorType, Kokkos::RangePolicy<Traits...>, Kokkos::Cuda> {
     // 4 warps was 10% faster than 8 warps and 20% faster than 16 warps in unit
     // testing
 
+    const int maxShmemPerBlock =
+        m_policy.space().cuda_device_prop().sharedMemPerBlock;
     unsigned n = CudaTraits::WarpSize * 4;
     while (n &&
-           unsigned(m_policy.space()
-                        .impl_internal_space_instance()
-                        ->m_maxShmemPerBlock) <
+           unsigned(maxShmemPerBlock) <
                cuda_single_inter_block_reduce_scan_shmem<true, WorkTag,
                                                          value_type>(f, n)) {
       n >>= 1;
@@ -939,11 +938,11 @@ class ParallelScanWithTotal<FunctorType, Kokkos::RangePolicy<Traits...>,
     // 4 warps was 10% faster than 8 warps and 20% faster than 16 warps in unit
     // testing
 
+    const int maxShmemPerBlock =
+        m_policy.space().cuda_device_prop().sharedMemPerBlock;
     unsigned n = CudaTraits::WarpSize * 4;
     while (n &&
-           unsigned(m_policy.space()
-                        .impl_internal_space_instance()
-                        ->m_maxShmemPerBlock) <
+           unsigned(maxShmemPerBlock) <
                cuda_single_inter_block_reduce_scan_shmem<true, WorkTag,
                                                          value_type>(f, n)) {
       n >>= 1;

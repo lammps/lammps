@@ -43,16 +43,11 @@ struct hello_world {
     // the operator using a team_policy acts like a parallel region for the
     // team. That means that everything outside of the nested parallel_for is
     // also executed by all threads of the team.
-    Kokkos::parallel_for(Kokkos::TeamThreadRange(thread, 31),
-                         [&](const int& i) {
-#ifndef __SYCL_DEVICE_ONLY__
-                           // FIXME_SYCL needs printf workaround
-                           printf("Hello World: (%i , %i) executed loop %i \n",
-                                  thread.league_rank(), thread.team_rank(), i);
-#else
-			   (void) i;
-#endif
-                         });
+    Kokkos::parallel_for(
+        Kokkos::TeamThreadRange(thread, 31), [&](const int& i) {
+          Kokkos::printf("Hello World: (%i , %i) executed loop %i \n",
+                         thread.league_rank(), thread.team_rank(), i);
+        });
   }
 };
 

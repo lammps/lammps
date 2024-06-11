@@ -178,7 +178,7 @@ FixAveTime::FixAveTime(LAMMPS *lmp, int narg, char **arg) :
       if (val.argindex && (val.val.f->array_flag == 0))
         error->all(FLERR,"Fix ave/time fix {} does not calculate an array", val.id);
       if (val.argindex && (val.val.f->size_array_rows_variable))
-        error->all(FLERR,"Fix ave/time fix {} array cannot be variable length", val.id);
+        error->all(FLERR,"Fix ave/time fix {} array cannot have variable row length", val.id);
       if (val.argindex && (val.argindex > val.val.f->size_array_cols))
         error->all(FLERR,"Fix ave/time fix {} array is accessed out-of-range", val.id);
       if (nevery % val.val.f->global_freq)
@@ -562,7 +562,8 @@ void FixAveTime::invoke_scalar(bigint ntimestep)
         scalar = val.val.f->compute_vector(val.argindex-1);
 
     // evaluate equal-style or vector-style variable
-    // ensure no out-of-range access to vector-style variable
+    // if index exceeds vector length, use a zero value
+    //   this can be useful if vector length is not known a priori
 
     } else if (val.which == ArgInfo::VARIABLE) {
       if (val.argindex == 0)
@@ -570,7 +571,7 @@ void FixAveTime::invoke_scalar(bigint ntimestep)
       else {
         double *varvec;
         int nvec = input->variable->compute_vector(val.val.v,&varvec);
-        if (nvec < val.argindex) scalar = 0.0;
+        if (val.argindex > nvec) scalar = 0.0;
         else scalar = varvec[val.argindex-1];
       }
     }

@@ -25,9 +25,13 @@
 #include <HIP/Kokkos_HIP_Half_Conversion.hpp>
 #include <HIP/Kokkos_HIP_Instance.hpp>
 #include <HIP/Kokkos_HIP_MDRangePolicy.hpp>
-#include <HIP/Kokkos_HIP_Parallel_Range.hpp>
-#include <HIP/Kokkos_HIP_Parallel_MDRange.hpp>
-#include <HIP/Kokkos_HIP_Parallel_Team.hpp>
+#include <HIP/Kokkos_HIP_ParallelFor_Range.hpp>
+#include <HIP/Kokkos_HIP_ParallelFor_MDRange.hpp>
+#include <HIP/Kokkos_HIP_ParallelFor_Team.hpp>
+#include <HIP/Kokkos_HIP_ParallelReduce_Range.hpp>
+#include <HIP/Kokkos_HIP_ParallelReduce_MDRange.hpp>
+#include <HIP/Kokkos_HIP_ParallelReduce_Team.hpp>
+#include <HIP/Kokkos_HIP_ParallelScan_Range.hpp>
 #include <HIP/Kokkos_HIP_SharedAllocationRecord.hpp>
 #include <HIP/Kokkos_HIP_UniqueToken.hpp>
 #include <HIP/Kokkos_HIP_ZeroMemset.hpp>

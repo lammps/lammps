@@ -71,7 +71,7 @@ Examples
 Description
 """""""""""
 
-.. versionadded:: TBD
+.. versionadded:: 17Apr2024
 
 This fix is an extension of the :doc:`fix deform <fix_deform>`
 command, which allows all of its options to be used as well as new
@@ -310,6 +310,10 @@ This fix is not invoked during :doc:`energy minimization <minimize>`.
 
 Restrictions
 """"""""""""
+
+This fix is part of the EXTRA-FIX package.  It is only enabled if LAMMPS
+was built with that package.  See the :doc:`Build package <Build_package>`
+page for more info.
 
 You cannot apply x, y, or z deformations to a dimension that is
 shrink-wrapped via the :doc:`boundary <boundary>` command.

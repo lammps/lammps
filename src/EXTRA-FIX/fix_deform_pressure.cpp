@@ -114,7 +114,6 @@ FixDeformPressure::FixDeformPressure(LAMMPS *lmp, int narg, char **arg) :
         if (iarg + 3 > narg) utils::missing_cmd_args(FLERR, "fix deform/pressure erate/rescale", error);
         set[index].style = ERATERS;
         set[index].rate = utils::numeric(FLERR, arg[iarg + 2], false, lmp);
-        iarg += 3;
         i += 3;
       } else error->all(FLERR, "Illegal fix deform/pressure command: {}", arg[iarg + 1]);
 
@@ -438,8 +437,6 @@ void FixDeformPressure::init()
   // error if style PRESSURE/ERATEER for yz, can't calculate if box flip occurs
 
   if (set[3].style && set[5].style) {
-    int flag = 0;
-    double lo,hi;
     if (flipflag && set[3].style == PRESSURE)
       error->all(FLERR, "Fix {} cannot use yz pressure with xy", style);
     if (flipflag && set[3].style == ERATERS)

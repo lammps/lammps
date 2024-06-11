@@ -37,22 +37,22 @@ struct RunStride {
 };
 
 #define STRIDE 1
-#include <bench_stride.hpp>
+#include "bench_stride.hpp"
 #undef STRIDE
 #define STRIDE 2
-#include <bench_stride.hpp>
+#include "bench_stride.hpp"
 #undef STRIDE
 #define STRIDE 4
-#include <bench_stride.hpp>
+#include "bench_stride.hpp"
 #undef STRIDE
 #define STRIDE 8
-#include <bench_stride.hpp>
+#include "bench_stride.hpp"
 #undef STRIDE
 #define STRIDE 16
-#include <bench_stride.hpp>
+#include "bench_stride.hpp"
 #undef STRIDE
 #define STRIDE 32
-#include <bench_stride.hpp>
+#include "bench_stride.hpp"
 #undef STRIDE
 
 template <class Scalar>

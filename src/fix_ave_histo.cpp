@@ -207,7 +207,8 @@ FixAveHisto::FixAveHisto(LAMMPS *lmp, int narg, char **arg) :
       if (val.val.v < 0)
         error->all(FLERR,"Variable name {} for {} does not exist", val.id, mycmd);
       // variables only produce one kind of output
-      if (input->variable->equalstyle(val.val.v)) kindglobal = 1;
+      if (input->variable->equalstyle(val.val.v) || input->variable->vectorstyle(val.val.v))
+          kindglobal = 1;
       else if (input->variable->atomstyle(val.val.v)) kindperatom = 1;
       else error->all(FLERR,"{} variable {} is incompatible style", mycmd, val.id);
     }
@@ -600,6 +601,8 @@ void FixAveHisto::end_of_step()
       }
 
     // evaluate equal-style or vector-style or atom-style variable
+    // if index exceeds vector length, use a zero value
+    //   this can be useful if vector length is not known a priori
 
     } else if (val.which == ArgInfo::VARIABLE) {
       if (kind == GLOBAL && mode == SCALAR) {
@@ -607,7 +610,7 @@ void FixAveHisto::end_of_step()
         else {
           double *varvec;
           int nvec = input->variable->compute_vector(val.val.v,&varvec);
-          if (nvec < j) bin_one(0.0);
+          if (j > nvec) bin_one(0.0);
           else bin_one(varvec[j-1]);
         }
 

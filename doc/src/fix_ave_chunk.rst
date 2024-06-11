@@ -435,7 +435,7 @@ molecule.
 
 ----------
 
-.. versionadded:: TBD
+.. versionadded:: 17Apr2024
    new keyword *append*
 
 The *file* or *append* keywords allow a filename to be specified.  If

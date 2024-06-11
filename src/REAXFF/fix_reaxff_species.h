@@ -43,7 +43,7 @@ class FixReaxFFSpecies : public Fix {
   double compute_vector(int) override;
 
  protected:
-  int nmax, nlocal, ntypes, ntotal;
+  int nmax, nlocal, ntypes, nutypes, ntotal;
   int nrepeat, nfreq, posfreq, compressed, ndelspec;
   int Nmoltype, vector_nmole, vector_nspec;
   int *Name, *MolName, *NMol, *nd, *MolType, *molmap, *mark;
@@ -62,7 +62,10 @@ class FixReaxFFSpecies : public Fix {
   int delete_Nsteps, *delete_Tcount;
   double massmin, massmax;
   int singlepos_opened, multipos_opened, del_opened;
-  char *ele, **eletype, *filepos, *filedel;
+  char *filepos, *filedel;
+  std::vector<int> ele2uele;            // for element eletype[i], ele2uele[i] stores index of unique element
+  std::vector<std::string> eletype;     // list of ReaxFF elements of length ntypes
+  std::vector<std::string> ueletype;    // list of unique elements, of quantity nutypes
 
   void Output_ReaxFF_Bonds(bigint, FILE *);
   AtomCoord chAnchor(AtomCoord, AtomCoord);
@@ -72,6 +75,7 @@ class FixReaxFFSpecies : public Fix {
   void WriteFormulas(int, int);
   void DeleteSpecies(int, int);
   int CheckExistence(int, int);
+  void GetUniqueElements();
 
   int nint(const double &);
   int pack_forward_comm(int, int *, double *, int, int *) override;

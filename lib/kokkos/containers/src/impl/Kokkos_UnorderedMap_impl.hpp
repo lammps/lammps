@@ -27,6 +27,18 @@
 namespace Kokkos {
 namespace Impl {
 
+//! Append to the label contained in view_ctor_prop.
+template <typename... P>
+auto append_to_label(const ViewCtorProp<P...>& view_ctor_prop,
+                     const std::string& label) {
+  using vcp_t = ViewCtorProp<P...>;
+  static_assert(vcp_t::has_label);
+  vcp_t new_ctor_props(view_ctor_prop);
+  static_cast<ViewCtorProp<void, std::string>&>(new_ctor_props)
+      .value.append(label);
+  return new_ctor_props;
+}
+
 uint32_t find_hash_size(uint32_t size);
 
 template <typename Map>

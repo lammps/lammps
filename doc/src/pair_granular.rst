@@ -271,7 +271,8 @@ where :math:`k_n = \frac{4}{3} E_{eff}` for the *hertz/material* model. Since
 *coeff_restitution* accounts for the effective mass, effective radius, and
 pairwise overlaps (except when used with the *hooke* normal model) when calculating
 the damping coefficient, it accurately reproduces the specified coefficient of
-restitution for both monodisperse and polydisperse particle pairs.
+restitution for both monodisperse and polydisperse particle pairs.  This damping
+model is not compatible with cohesive normal models such as *JKR* or *DMT*.
 
 The total normal force is computed as the sum of the elastic and
 damping components:

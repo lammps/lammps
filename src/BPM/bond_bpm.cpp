@@ -352,19 +352,37 @@ void BondBPM::process_broken(int i, int j)
 {
   if (!break_flag)
     error->one(FLERR, "BPM bond broke with break no option");
-  if (fix_store_local) {
-    for (int n = 0; n < nvalues; n++) (this->*pack_choice[n])(n, i, j);
 
-    fix_store_local->add_data(output_data, i, j);
+  int nlocal = atom->nlocal;
+  if (fix_store_local) {
+    // If newton off, bond can break on two procs so only record if proc owns lower tag
+    //    (BPM bond styles should sort so i -> atom with lower tag)
+    if (force->newton_bond || (i < nlocal)) {
+      for (int n = 0; n < nvalues; n++) (this->*pack_choice[n])(n, i, j);
+      fix_store_local->add_data(output_data, i, j);
+    }
   }
 
-  if (fix_update_special_bonds) fix_update_special_bonds->add_broken_bond(i, j);
+  if (fix_update_special_bonds) {
+    // If one atom is a ghost, ensure that this processor does not own two copies of the bond
+    //   i.e. if the domain is periodic and 1 processor thick
+    // If the processor owns both, only break if atom with lower tag is local
+    //    (BPM bond styles should sort so i -> atom with lower tag)
+    int check = 1;
+    tagint *tag = atom->tag;
+    if ((i >= nlocal) || (j >= nlocal)) {
+      int imap = atom->map(tag[i]);
+      int jmap = atom->map(tag[j]);
+      if (imap < nlocal && jmap < nlocal)
+        if (i >= nlocal) check = 0;
+    }
+    if (check) fix_update_special_bonds->add_broken_bond(i, j);
+  }
 
   // Manually search and remove from atom arrays
   // need to remove in case special bonds arrays rebuilt
-  int m, n;
-  int nlocal = atom->nlocal;
 
+  int m, n;
   tagint *tag = atom->tag;
   tagint **bond_atom = atom->bond_atom;
   int **bond_type = atom->bond_type;

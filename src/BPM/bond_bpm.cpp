@@ -364,17 +364,12 @@ void BondBPM::process_broken(int i, int j)
   }
 
   if (fix_update_special_bonds) {
-    // If one atom is a ghost, ensure that this processor does not own two copies of the bond
-    //   i.e. if the domain is periodic and 1 processor thick
-    // If the processor owns both, only break if atom with lower tag is local
-    //    (BPM bond styles should sort so i -> atom with lower tag)
+    // If this processor owns two copies of the bond (i.e. if the domain is periodic and 1 proc thick),
+    //   skip instance where larger tag (j) owned
     int check = 1;
-    tagint *tag = atom->tag;
-    if ((i >= nlocal) || (j >= nlocal)) {
-      int imap = atom->map(tag[i]);
-      int jmap = atom->map(tag[j]);
-      if (imap < nlocal && jmap < nlocal)
-        if (i >= nlocal) check = 0;
+    if (i >= nlocal) {
+      int imap = atom->map(atom->tag[i]);
+      if (imap < nlocal) check = 0;
     }
     if (check) fix_update_special_bonds->add_broken_bond(i, j);
   }

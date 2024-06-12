@@ -15,7 +15,7 @@
    Contributing author: Trung Dac Nguyen (ORNL)
 ------------------------------------------------------------------------- */
 
-#include "pair_dpd_charged_gpu.h"
+#include "pair_dpd_coul_slater_long_gpu.h"
 
 #include "atom.h"
 #include "comm.h"

@@ -14,14 +14,14 @@
  ***************************************************************************/
 
 #if defined(USE_OPENCL)
-#include "dpd_charged_cl.h"
+#include "lal_dpd_coul_slater_long_cl.h"
 #elif defined(USE_CUDART)
 const char *dpd_charged=0;
 #else
-#include "dpd_charged_cubin.h"
+#include "lal_dpd_coul_slater_long_cubin.h"
 #endif
 
-#include "lal_dpd_charged.h"
+#include "lal_dpd_coul_slater_long.h"
 #include <cassert>
 namespace LAMMPS_AL {
 #define DPDChargedT DPDCharged<numtyp, acctyp>

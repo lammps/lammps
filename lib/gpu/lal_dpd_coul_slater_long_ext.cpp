@@ -17,7 +17,7 @@
 #include <cassert>
 #include <cmath>
 
-#include "lal_dpd_charged.h"
+#include "lal_dpd_coul_slater_long.h"
 
 using namespace std;
 using namespace LAMMPS_AL;

@@ -16,7 +16,7 @@
    Contributing author: Kurt Smith (U Pittsburgh)
 ------------------------------------------------------------------------- */
 
-#include "pair_dpd_charged.h"
+#include "pair_dpd_coul_slater_long.h"
 
 #include "atom.h"
 #include "comm.h"

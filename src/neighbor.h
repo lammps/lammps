@@ -175,6 +175,7 @@ class Neighbor : protected Pointers {
   double memory_usage();
 
   bigint last_setup_bins;    // step of last neighbor::setup_bins() call
+  double **get_xhold();      // access the latest-computed neighbor list positions
 
  protected:
   int me, nprocs;

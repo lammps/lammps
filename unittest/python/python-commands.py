@@ -609,6 +609,10 @@ create_atoms 1 single &
         self.lmp.command("special_bonds lj/coul 0.0 1.0 1.0")
         self.assertEqual(self.lmp.extract_global("special_lj"), [1.0, 0.0, 1.0, 1.0])
         self.assertEqual(self.lmp.extract_global("special_coul"), [1.0, 0.0, 1.0, 1.0])
+        self.assertEqual(self.lmp.extract_global("map_style"), 0)
+        self.assertEqual(self.lmp.extract_global("map_tag_max"), -1)
+        self.assertEqual(self.lmp.extract_global("sortfreq"), 1000)
+        self.assertEqual(self.lmp.extract_global("nextsort"), 0)
 
         # set and initialize r-RESPA
         self.lmp.command("run_style respa 3 5 2 pair 2 kspace 3")
@@ -660,6 +664,19 @@ create_atoms 1 single &
                 self.assertEqual(vel[i][0:3],result[i][3])
                 self.assertEqual(self.lmp.decode_image_flags(img[i]), result[i][4])
 
+    def test_map_atom(self):
+        self.lmp.command('shell cd ' + os.environ['TEST_INPUT_DIR'])
+        self.lmp.command("newton on on")
+        self.lmp.file("in.fourmol")
+        self.lmp.command("run 4 post no")
+        sometags = [1, 10, 25, 29]
+        tags = self.lmp.extract_atom("id")
+        sametag = self.lmp.extract_global("sametag")
+        for mytag in sometags:
+            myidx = self.lmp.map_atom(mytag)
+            self.assertEqual(mytag, tags[myidx])
+            if sametag[myidx] < 0: continue
+            self.assertEqual(mytag, tags[sametag[myidx]])
 
 ##############################
 if __name__ == "__main__":

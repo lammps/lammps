@@ -113,6 +113,9 @@ MODULE LIBLAMMPS
     PROCEDURE :: get_mpi_comm           => lmp_get_mpi_comm
     PROCEDURE :: extract_setting        => lmp_extract_setting
     PROCEDURE :: extract_global         => lmp_extract_global
+    PROCEDURE, PRIVATE :: lmp_map_atom_int
+    PROCEDURE, PRIVATE :: lmp_map_atom_big
+    GENERIC :: map_atom               => lmp_map_atom_int, lmp_map_atom_big
     PROCEDURE :: extract_atom           => lmp_extract_atom
     PROCEDURE :: extract_compute        => lmp_extract_compute
     PROCEDURE :: extract_fix            => lmp_extract_fix
@@ -507,6 +510,13 @@ MODULE LIBLAMMPS
       TYPE(c_ptr), INTENT(IN), VALUE :: handle, name
       TYPE(c_ptr) :: lammps_extract_global
     END FUNCTION lammps_extract_global
+
+    FUNCTION lammps_map_atom(handle, tag) BIND(C)
+      IMPORT :: c_ptr, c_int
+      IMPLICIT NONE
+      TYPE(c_ptr), INTENT(IN), VALUE :: handle, tag
+      INTEGER(c_int) :: lammps_map_atom
+    END FUNCTION lammps_map_atom
 
     FUNCTION lammps_extract_atom_datatype(handle, name) BIND(C)
       IMPORT :: c_ptr, c_int
@@ -1322,6 +1332,38 @@ CONTAINS
           'Unknown pointer type in extract_global')
     END SELECT
   END FUNCTION
+
+  ! equivalent function to lammps_map_atom (for 32-bit integer tags)
+  INTEGER FUNCTION lmp_map_atom_int(self, id)
+    CLASS(lammps), INTENT(IN) :: self
+    INTEGER(c_int), INTENT(IN), TARGET :: id
+    INTEGER(c_int64_t), TARGET :: id64
+    TYPE(c_ptr) :: Cptr
+
+    IF (SIZE_TAGINT == 8) THEN
+        id64 = id
+        Cptr = C_LOC(id64)
+    ELSE
+        Cptr = C_LOC(id)
+    END IF
+    lmp_map_atom_int = lammps_map_atom(self%handle, Cptr) + 1
+  END FUNCTION lmp_map_atom_int
+
+  ! equivalent function to lammps_map_atom (for 64-bit integer tags)
+  INTEGER FUNCTION lmp_map_atom_big(self, id)
+    CLASS(lammps), INTENT(IN) :: self
+    INTEGER(c_int64_t), INTENT(IN), TARGET :: id
+    INTEGER(c_int), TARGET :: id32
+    TYPE(c_ptr) :: Cptr
+
+    IF (SIZE_TAGINT == 8) THEN
+        Cptr = C_LOC(id)
+    ELSE
+        id32 = id
+        Cptr = C_LOC(id32)
+    END IF
+    lmp_map_atom_big = lammps_map_atom(self%handle, Cptr) + 1
+  END FUNCTION lmp_map_atom_big
 
   ! equivalent function to lammps_extract_atom
   ! the assignment is actually overloaded so as to bind the pointers to

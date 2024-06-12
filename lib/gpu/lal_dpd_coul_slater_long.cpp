@@ -75,7 +75,7 @@ int DPDChargedT::init(const int ntypes,
   int success;
   bool need_charges = true;
   success=this->init_atomic(nlocal,nall,max_nbors,maxspecial,cell_size,
-                            gpu_split,_screen,dpd_charged,"k_dpd_charged",onetype, extra_fields, need_charges);
+                            gpu_split,_screen,dpd_coul_slater_long,"k_dpd_charged",onetype, extra_fields, need_charges);
 
   if (success!=0)
     return success;

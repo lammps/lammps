@@ -14,11 +14,11 @@
  ***************************************************************************/
 
 #if defined(USE_OPENCL)
-#include "lal_dpd_coul_slater_long_cl.h"
+#include "dpd_coul_slater_long_cl.h"
 #elif defined(USE_CUDART)
 const char *dpd_charged=0;
 #else
-#include "lal_dpd_coul_slater_long_cubin.h"
+#include "dpd_coul_slater_long_cubin.h"
 #endif
 
 #include "lal_dpd_coul_slater_long.h"

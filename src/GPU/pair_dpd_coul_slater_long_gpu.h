@@ -20,7 +20,7 @@ PairStyle(dpd/coul/slater/long,PairDPDChargedGPU);
 #ifndef LMP_PAIR_DPD_CHARGED_GPU_H
 #define LMP_PAIR_DPD_CHARGED_GPU_H
 
-#include "pair_coul_slater_long.h"
+#include "pair_dpd_coul_slater_long.h"
 
 namespace LAMMPS_NS {
 

@@ -2,7 +2,7 @@
 .. index:: pair_style dpd/coul/slater/long/gpu
 
 pair_style dpd/coul/slater/long command
-======================
+=======================================
 
 Accelerator Variants: *dpd/coul/slater/long/gpu*
 
@@ -38,7 +38,7 @@ Description
 """""""""""
 
 Style *dpd/coul/slater/long* computes a force field for dissipative particle dynamics
-(DPD) following the exposition in :ref:`(Groot) <Groot1>` with the addition of
+(DPD) following the exposition in :ref:`(Groot) <Groot5>` with the addition of
 electrostatic interactions. The coulombic forces in mesoscopic models
 employ potentials without explicit excluded-volume interactions.
 The goal is to prevent artificial ionic pair formation by including a charge
@@ -168,7 +168,7 @@ is_charged = no
 
 ----------
 
-.. _Groot1:
+.. _Groot5:
 
 **(Groot)** Groot and Warren, J Chem Phys, 107, 4423-35 (1997).
 

@@ -676,7 +676,12 @@ DPD-BASIC package
 Pair styles for the basic dissipative particle dynamics (DPD) method
 and DPD thermostatting.
 
-**Author:** Kurt Smith (U Pittsburgh), Martin Svoboda, Martin Lisal (ICPF and UJEP)
+Pair style :doc:`dpd/coul/slater/long <pair_dpd_coul_slater_long>` also
+includes smeared charges for coulomb interactions and thus requires the
+:ref:`KSPACE <PKG-KSPACE>` package to be installed to handle the long-range
+Coulomb part of the interactions.
+
+**Authors:** Kurt Smith (U Pittsburgh), Martin Svoboda, Martin Lisal (ICPF and UJEP), Eddy Barraud (IFPEN)
 
 **Supporting info:**
 
@@ -685,6 +690,7 @@ and DPD thermostatting.
 * :doc:`pair_style dpd/tstat <pair_dpd>`
 * :doc:`pair_style dpd/ext <pair_dpd_ext>`
 * :doc:`pair_style dpd/ext/tstat <pair_dpd_ext>`
+* :doc:`pair_style dpd/coul/slater/long <pair_dpd_coul_slater_long>`
 * examples/PACKAGES/dpd-basic
 
 ----------

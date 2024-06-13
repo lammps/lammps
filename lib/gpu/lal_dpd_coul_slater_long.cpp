@@ -16,7 +16,7 @@
 #if defined(USE_OPENCL)
 #include "dpd_coul_slater_long_cl.h"
 #elif defined(USE_CUDART)
-const char *dpd_charged=0;
+const char *dpd_coul_slater_long=0;
 #else
 #include "dpd_coul_slater_long_cubin.h"
 #endif

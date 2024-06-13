@@ -992,6 +992,7 @@ emax
 Emax
 Embt
 emi
+Emilie
 Emmrich
 emol
 eN
@@ -1732,6 +1733,7 @@ Kalia
 Kamberaj
 Kantorovich
 Kapfer
+Kapil
 Karhunen
 Karls
 Karlsruhe
@@ -1763,8 +1765,10 @@ keflag
 Keir
 Kelchner
 Kelkar
+Kemppainen
 Kemper
 kepler
+Kemppainen
 keV
 Keyes
 keyfile
@@ -2483,6 +2487,7 @@ Nevery
 newfile
 Newns
 newtype
+nextsort
 Neyts
 Nf
 nfft
@@ -2672,6 +2677,7 @@ nzlo
 ocl
 octahedral
 octants
+Odegard
 Ohara
 O'Hearn
 ohenrich
@@ -3252,6 +3258,7 @@ rRESPA
 Rsi
 Rso
 Rspace
+rsort
 rsq
 rst
 rstyle
@@ -3287,6 +3294,7 @@ Saidi
 saip
 Salanne
 Salles
+sametag
 sandia
 Sandia
 sandybrown
@@ -3404,6 +3412,7 @@ sinh
 sinusoid
 sinusoidally
 SiO
+Siochi
 Sirk
 Sival
 sizeI
@@ -3451,6 +3460,7 @@ solvated
 solvation
 someuser
 Sorensen
+sortfreq
 soundspeed
 sourceforge
 Souza
@@ -4149,6 +4159,7 @@ yy
 yz
 Zagaceta
 Zannoni
+Zavada
 Zavattieri
 zbl
 ZBL
@@ -4162,6 +4173,7 @@ zenodo
 Zepeda
 zflag
 Zhang
+Zhao
 Zhen
 zhi
 Zhigilei

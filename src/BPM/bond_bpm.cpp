@@ -14,6 +14,7 @@
 #include "bond_bpm.h"
 
 #include "atom.h"
+#include "citeme.h"
 #include "comm.h"
 #include "domain.h"
 #include "error.h"
@@ -29,6 +30,19 @@
 #include <cstring>
 
 using namespace LAMMPS_NS;
+
+static const char cite_bpm[] =
+  "BPM bond style: doi:10.1039/D3SM01373A\n\n"
+  "@Article{Clemmer2024,\n"
+  " author =  {Clemmer, Joel T. and Monti, Joseph M. and Lechman, Jeremy B.},\n"
+  " title =   {A soft departure from jamming: the compaction of deformable\n"
+  "            granular matter under high pressures},\n"
+  " journal = {Soft Matter},\n"
+  " year =    2024,\n"
+  " volume =  20,\n"
+  " number =  8,\n"
+  " pages =   {1702--1718}\n"
+  "}\n\n";
 
 /* ---------------------------------------------------------------------- */
 
@@ -55,6 +69,8 @@ BondBPM::BondBPM(LAMMPS *_lmp) :
 
   id_fix_dummy2 = utils::strdup("BPM_DUMMY2");
   modify->add_fix(fmt::format("{} all DUMMY ", id_fix_dummy2));
+
+  if (lmp->citeme) lmp->citeme->add(cite_bpm);
 }
 
 /* ---------------------------------------------------------------------- */

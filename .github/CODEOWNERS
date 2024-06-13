@@ -72,6 +72,8 @@ src/MC/fix_sgcmc.*                  @athomps
 src/REAXFF/compute_reaxff_atom.*    @rbberger
 src/KOKKOS/compute_reaxff_atom_kokkos.*    @rbberger
 src/REPLICA/fix_pimd_langevin.*     @Yi-FanLi
+src/DPD-BASIC/pair_dpd_coul_slater_long.* @Eddy-Barraud
+src/GPU/pair_dpd_coul_slater_long.* @Eddy-Barraud
 
 # core LAMMPS classes
 src/lammps.*              @sjplimp

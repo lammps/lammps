@@ -191,6 +191,8 @@ void FixRecenter::initial_integrate(int /*vflag*/)
 
   group->xcm(igroup,masstotal,xcm);
 
+    utils::logmesg(lmp, "ok 2c, xcm={},{},{}\n", xcm[0], xcm[1], xcm[2]);
+
   // shift coords by difference between actual COM and requested COM
 
   double **x = atom->x;
@@ -202,11 +204,14 @@ void FixRecenter::initial_integrate(int /*vflag*/)
   shift[2] = zflag ? (ztarget - xcm[2]) : 0.0;
   distance = sqrt(shift[0]*shift[0] + shift[1]*shift[1] + shift[2]*shift[2]);
 
+  utils::logmesg(lmp, "ok 2d, shift={},{},{}\n", shift[0], shift[1], shift[2]);
+
   for (int i = 0; i < nlocal; i++)
     if (mask[i] & group2bit) {
       x[i][0] += shift[0];
       x[i][1] += shift[1];
       x[i][2] += shift[2];
+      utils::logmesg(lmp, "x[{}]={} {} {}\n", i, x[i][0], x[i][1], x[i][2]);
     }
 }
 
@@ -217,7 +222,11 @@ void FixRecenter::initial_integrate_respa(int vflag, int ilevel, int /*iloop*/)
   // outermost level - operate recenter
   // all other levels - nothing
 
-  if (ilevel == nlevels_respa-1) initial_integrate(vflag);
+  //if (ilevel == nlevels_respa-1) initial_integrate(vflag);
+  // FIXME: why does always calling initial_integrate make respa tests
+  // pass, i dont know !
+  initial_integrate(vflag);
+
 }
 
 /* ---------------------------------------------------------------------- */

@@ -4,14 +4,14 @@ date_generated: Fri Mar 18 22:17:59 2022
 epsilon: 5e-14
 skip_tests:
 prerequisites: ! |
-  #atom full
-  #atom dipole
-  #atom sphere
-  #fix nve/sphere
-  #pair lj/cut/dipole/cut
+  atom full
+  atom dipole
+  atom sphere
+  fix nve/sphere
+  pair lj/cut/dipole/cut
 pre_commands: ! ""
 post_commands: ! |
-  pair_style lj/cut/dipole/cut 2.5 5.0
+  pair_style lj/cut/dipole/cut 8.0
   pair_coeff * * 0.0 3.0
   fix test solute nve/sphere
 input_file: in.dipole

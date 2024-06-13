@@ -94,9 +94,10 @@ OPT.
    * :doc:`coul/wolf (ko) <pair_coul>`
    * :doc:`coul/wolf/cs <pair_cs>`
    * :doc:`dpd (giko) <pair_dpd>`
-   * :doc:`dpd/fdt <pair_dpd_fdt>`
+   * :doc:`dpd/coul/slater/long (g) <pair_dpd_coul_slater_long>`
    * :doc:`dpd/ext (ko) <pair_dpd_ext>`
    * :doc:`dpd/ext/tstat (ko) <pair_dpd_ext>`
+   * :doc:`dpd/fdt <pair_dpd_fdt>`
    * :doc:`dpd/fdt/energy (k) <pair_dpd_fdt>`
    * :doc:`dpd/tstat (gko) <pair_dpd>`
    * :doc:`dsmc <pair_dsmc>`

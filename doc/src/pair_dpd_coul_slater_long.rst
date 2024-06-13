@@ -20,7 +20,7 @@ Syntax
 * seed = random # seed (positive integer)
 * lambda = decay length of the charge (distance units)
 * cutoff_coul = real part cutoff for Coulombic interactions (distance units)
-* I,J = numeric atom types (see asterisk form below), or type labels
+* I,J = numeric atom types, or type labels
 * Gamma = DPD Gamma coefficient
 * is_charged (boolean) set to yes if I and J are charged beads
 
@@ -51,9 +51,9 @@ of 4 terms
 .. math::
 
    \vec{f}  = & (F^C + F^D + F^R + F^E) \hat{r_{ij}} \\
-   F^C      = & A w(r) \qquad \qquad r < r_c \\
+   F^C      = & A w(r) \qquad \qquad \qquad \qquad \qquad r < r_c \\
    F^D      = & - \gamma w^2(r) (\hat{r_{ij}} \bullet \vec{v}_{ij}) \qquad \qquad r < r_c \\
-   F^R      = & \sigma w(r) \alpha (\Delta t)^{-1/2} \qquad \qquad r < r_c \\
+   F^R      = & \sigma w(r) \alpha (\Delta t)^{-1/2} \qquad \qquad \qquad r < r_c \\
    w(r)     = & 1 - \frac{r}{r_c} \\
    F^E      = & \frac{Cq_iq_j}{\epsilon r^2} \left( 1- exp\left( \frac{2r_{ij}}{\lambda} \right) \left( 1 + \frac{2r_{ij}}{\lambda} \left( 1 + \frac{r_{ij}}{\lambda} \right)\right) \right)
 
@@ -84,9 +84,6 @@ commands:
 * :math:`\gamma` (force/velocity units)
 * is_charged (boolean)
 
-Note that sigma is set equal to sqrt(2 T gamma),
-where T is the temperature set by the :doc:`pair_style <pair_style>`
-command so it does not need to be specified.
 
 .. note::
 
@@ -161,30 +158,19 @@ Related commands
 """"""""""""""""
 
 :doc:`pair_style dpd <pair_dpd>`, :doc:`pair_style coul/slater/long <pair_coul_slater>`,
- :doc:`pair_coeff <pair_coeff>`,
-:doc:`fix nvt <fix_nh>`, :doc:`fix langevin <fix_langevin>`,
+:doc:`pair_coeff <pair_coeff>`, :doc:`fix nvt <fix_nh>`, :doc:`fix langevin <fix_langevin>`,
 :doc:`pair_style srp <pair_srp>`, :doc:`fix mvv/dpd <fix_mvv_dpd>`.
 
 Default
 """""""
 
-none
+is_charged = no
 
 ----------
 
 .. _Groot1:
 
 **(Groot)** Groot and Warren, J Chem Phys, 107, 4423-35 (1997).
-
-.. _Afshar:
-
-**(Afshar)** Afshar, F. Schmid, A. Pishevar, S. Worley, Comput Phys
-Comm, 184, 1119-1128 (2013).
-
-.. _Phillips:
-
-**(Phillips)** C. L. Phillips, J. A. Anderson, S. C. Glotzer, Comput
-Phys Comm, 230, 7191-7201 (2011).
 
 .. _Melchor:
 

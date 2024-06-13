@@ -12,7 +12,7 @@
 ------------------------------------------------------------------------- */
 
 /* ----------------------------------------------------------------------
-   Contributing author: Trung Dac Nguyen (ORNL)
+   Contributing author: Eddy BARRAUD (IFPEN/Sorbonne)
 ------------------------------------------------------------------------- */
 
 #include "pair_dpd_coul_slater_long_gpu.h"

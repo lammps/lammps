@@ -1,16 +1,16 @@
 /***************************************************************************
-                                   dpd.cpp
+                                 lal_dpd_coul_slater_long.cpp
                              -------------------
-                            Trung Dac Nguyen (ORNL)
+                            Eddy BARRAUD (IFPEN/Sorbonne)
 
-  Class for acceleration of the dpd pair style.
+  Class for acceleration of the dpd/coul/slater/long pair style.
 
  __________________________________________________________________________
     This file is part of the LAMMPS Accelerator Library (LAMMPS_AL)
  __________________________________________________________________________
 
-    begin                : Jan 15, 2014
-    email                : nguyentd@ornl.gov
+    begin                : May 28, 2024
+    email                : eddy.barraud@outlook.fr
  ***************************************************************************/
 
 #if defined(USE_OPENCL)

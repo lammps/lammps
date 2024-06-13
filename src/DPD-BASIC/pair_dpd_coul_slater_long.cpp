@@ -13,7 +13,7 @@
 ------------------------------------------------------------------------- */
 
 /* ----------------------------------------------------------------------
-   Contributing author: Kurt Smith (U Pittsburgh)
+   Contributing author: Eddy BARRAUD (IFPEN/Sorbonne)
 ------------------------------------------------------------------------- */
 
 #include "pair_dpd_coul_slater_long.h"

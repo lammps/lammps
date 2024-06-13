@@ -3,7 +3,7 @@
 //                             -------------------
 //                           Trung Dac Nguyen (ORNL)
 //
-//  Device code for acceleration of the dpd pair style
+//  Device code for acceleration of the dpd/coul/slater/long pair style
 //
 // __________________________________________________________________________
 //    This file is part of the LAMMPS Accelerator Library (LAMMPS_AL)

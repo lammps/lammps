@@ -79,6 +79,9 @@ FixElectrodeConp::FixElectrodeConp(LAMMPS *lmp, int narg, char **arg) :
     potential_i(nullptr), potential_iele(nullptr)
 {
   if (lmp->citeme) lmp->citeme->add(cite_fix_electrode);
+  if (!atom->map_style)
+    error->all(FLERR,
+               "Atom style does not have an atom map. Use 'atom_modify map yes' to activate it.");
   // fix.h output flags
   scalar_flag = 1;
   vector_flag = 1;

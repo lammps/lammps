@@ -78,7 +78,7 @@ int dpd_charged_gpu_init(const int ntypes, double **host_cutsq, double **host_a0
       init_ok=DPDCMF.init(ntypes, host_cutsq, host_a0, host_gamma, host_sigma,
                          host_cut_dpd, host_cut_dpdsq, host_cut_slatersq,
                          host_scale, special_lj, false, inum, nall, max_nbors,
-                         maxspecial, cell_size, gpu_split, screen, 
+                         maxspecial, cell_size, gpu_split, screen,
                          host_special_coul,qqrd2e, g_ewald, lamda);
 
     DPDCMF.device->serialize_init();

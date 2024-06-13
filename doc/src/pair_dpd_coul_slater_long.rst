@@ -38,8 +38,8 @@ Description
 """""""""""
 
 Style *dpd/coul/slater/long* computes a force field for dissipative particle dynamics
-(DPD) following the exposition in :ref:`(Groot) <Groot1>` with the addition of 
-electrostatic interactions. The coulombic forces in mesoscopic models 
+(DPD) following the exposition in :ref:`(Groot) <Groot1>` with the addition of
+electrostatic interactions. The coulombic forces in mesoscopic models
 employ potentials without explicit excluded-volume interactions.
 The goal is to prevent artificial ionic pair formation by including a charge
 distribution in the Coulomb potential, following the formulation of
@@ -58,8 +58,8 @@ of 4 terms
    F^E      = & \frac{Cq_iq_j}{\epsilon r^2} \left( 1- exp\left( \frac{2r_{ij}}{\lambda} \right) \left( 1 + \frac{2r_{ij}}{\lambda} \left( 1 + \frac{r_{ij}}{\lambda} \right)\right) \right)
 
 where :math:`F^C` is a conservative force, :math:`F^D` is a dissipative
-force, :math:`F^R` is a random force, and :math:`F^E` is an electrostatic force.  
-:math:`\hat{r_{ij}}` is a unit vector in the direction 
+force, :math:`F^R` is a random force, and :math:`F^E` is an electrostatic force.
+:math:`\hat{r_{ij}}` is a unit vector in the direction
 :math:`r_i - r_j`, :math:`\vec{v}_{ij}` is
 the vector difference in velocities of the two atoms :math:`\vec{v}_i -
 \vec{v}_j`, :math:`\alpha` is a Gaussian random number with zero mean
@@ -68,9 +68,9 @@ weighting factor that varies between 0 and 1.  :math:`r_c` is the
 pairwise cutoff.  :math:`\sigma` is set equal to :math:`\sqrt{2 k_B T
 \gamma}`, where :math:`k_B` is the Boltzmann constant and *T* is the
 temperature parameter in the pair_style command.
-C is the same Coulomb conversion factor as in the pair_styles 
+C is the same Coulomb conversion factor as in the pair_styles
 coul/cut and coul/long. In this way the Coulomb
-interaction between ions is corrected at small distances r, and 
+interaction between ions is corrected at small distances r, and
 the long-range interactions are computed either by the Ewald or the PPPM technique.
 
 

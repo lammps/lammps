@@ -46,7 +46,7 @@ template <class numtyp, class acctyp>
 int DPDChargedT::init(const int ntypes,
                double **host_cutsq, double **host_a0,
                double **host_gamma, double **host_sigma,
-               double **host_cut_dpd, double **host_cut_dpdsq, 
+               double **host_cut_dpd, double **host_cut_dpdsq,
                double **host_cut_slatersq, double **host_scale,
                double *host_special_lj,
                const bool tstat_only,
@@ -87,7 +87,7 @@ int DPDChargedT::init(const int ntypes,
     lj_types=max_shared_types;
     shared_types=true;
   }
-  
+
   // Allocate a host write buffer for data initialization
   UCL_H_Vec<numtyp> host_write_coul(lj_types*lj_types*32,*(this->ucl_device),
                                UCL_WRITE_ONLY);
@@ -114,7 +114,7 @@ int DPDChargedT::init(const int ntypes,
                          host_sigma,host_cut_dpd);
 
   cutsq.alloc(lj_types*lj_types,*(this->ucl_device),UCL_READ_ONLY);
-  this->atom->type_pack4(ntypes,lj_types,cutsq,host_write,host_cutsq, 
+  this->atom->type_pack4(ntypes,lj_types,cutsq,host_write,host_cutsq,
                           host_cut_dpdsq, host_scale, host_cut_slatersq);
 
   double special_sqrt[4];

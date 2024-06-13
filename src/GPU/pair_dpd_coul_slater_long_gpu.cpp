@@ -323,7 +323,7 @@ void PairDPDChargedGPU::init_style()
   GPU_EXTRA::check_flag(success, error, world);
 
   if (gpu_mode == GPU_FORCE) neighbor->add_request(this, NeighConst::REQ_FULL);
-  
+
 }
 
 /* ---------------------------------------------------------------------- */
@@ -353,7 +353,7 @@ void PairDPDChargedGPU::cpu_compute(int start, int inum, int eflag, int /* vflag
   double *q = atom->q;
   double *special_coul = force->special_coul;
   double qqrd2e = force->qqrd2e;
-  
+
   evdwl = 0.0;
   ecoul = 0.0;
 
@@ -435,7 +435,7 @@ void PairDPDChargedGPU::cpu_compute(int start, int inum, int eflag, int /* vflag
 
         } else forcedpd = 0.0;
 
-        // apply Slater electrostatic force if distance below Slater cutoff 
+        // apply Slater electrostatic force if distance below Slater cutoff
         // and the two species are charged
         if (rsq < cut_slatersq[itype][jtype]){
           r2inv = 1.0/rsq;

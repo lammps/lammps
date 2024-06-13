@@ -85,7 +85,7 @@ void PairDPDCharged::compute(int eflag, int vflag)
   double rsq,r,rinv,dot,wd,randnum,factor_dpd,factor_sqrt;
   int *ilist,*jlist,*numneigh,**firstneigh;
   double slater_term;
-  
+
   evdwl = ecoul = 0.0;
   ev_init(eflag,vflag);
 
@@ -134,7 +134,7 @@ void PairDPDCharged::compute(int eflag, int vflag)
       delz = ztmp - x[j][2];
       rsq = delx*delx + dely*dely + delz*delz;
       jtype = type[j];
-      
+
       // forces if below maximum cutoff
       if (rsq < cutsq[itype][jtype]) {
         r = sqrt(rsq);
@@ -169,7 +169,7 @@ void PairDPDCharged::compute(int eflag, int vflag)
 
         } else forcedpd = 0.0;
 
-        // apply Slater electrostatic force if distance below Slater cutoff 
+        // apply Slater electrostatic force if distance below Slater cutoff
         // and the two species are charged
         if (rsq < cut_slatersq[itype][jtype]){
           r2inv = 1.0/rsq;
@@ -182,14 +182,14 @@ void PairDPDCharged::compute(int eflag, int vflag)
           forcecoul = prefactor * (erfc + EWALD_F*grij*expm2 - slater_term);
           if (factor_coul < 1.0) forcecoul -= (1.0-factor_coul)*prefactor*(1-slater_term);
           forcecoul *= r2inv;
-          
+
           if (eflag) {
             ecoul = prefactor*(erfc - (1 + r/lamda)*exp(-2*r/lamda));
             if (factor_coul < 1.0) ecoul -= (1.0-factor_coul)*prefactor*(1.0-(1 + r/lamda)*exp(-2*r/lamda));
           }
 
         } else forcecoul = 0.0;
-        
+
         fpair = forcedpd + forcecoul;
 
         f[i][0] += delx*fpair;
@@ -200,7 +200,7 @@ void PairDPDCharged::compute(int eflag, int vflag)
           f[j][1] -= dely*fpair;
           f[j][2] -= delz*fpair;
         }
-        
+
 
         if (evflag) ev_tally(i,j,nlocal,newton_pair,
                              evdwl,ecoul,fpair,delx,dely,delz);
@@ -326,7 +326,7 @@ void PairDPDCharged::init_style()
     error->all(FLERR,"Pair dpd requires ghost atoms store velocity");
   if (!atom->q_flag)
     error->all(FLERR,"Pair style coul/slater/long requires atom attribute q");
-  
+
   // if newton off, forces between atoms ij will be double computed
   // using different random numbers
 

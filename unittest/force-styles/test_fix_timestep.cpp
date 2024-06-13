@@ -104,8 +104,13 @@ LAMMPS *init_lammps(LAMMPS::argv & args, const TestConfig &cfg, const bool use_r
 
     if (use_respa) command("run_style respa 2 1 bond 1 pair 2");
 
-    // set up molecular system force field
+    std::cerr << "============ test_config.input_file = " << test_config.input_file << "\n\n";
 
+    if (!utils::strmatch(test_config.input_file, "in.dpdrx-shardlow") ) {
+
+    std::cerr << "set up molecular system force field\n\n";
+
+    // set up molecular system force field
     command("pair_style lj/cut 8.0");
     command("pair_coeff  1 1  0.02   2.5");
     command("pair_coeff  2 2  0.005  1.0");
@@ -126,11 +131,16 @@ LAMMPS *init_lammps(LAMMPS::argv & args, const TestConfig &cfg, const bool use_r
     command("angle_coeff  4 100.0 108.5");
     command("group solute  molecule 1:2");
     command("group solvent molecule 3:5");
+    }
 
     for (auto &post_command : cfg.post_commands)
         command(post_command);
 
-    command("timestep 0.25");
+    if (utils::strmatch(test_config.input_file, "in.dpdrx-shardlow") )
+      command("timestep 0.001");
+    else
+      command("timestep 0.25");
+
     command("run 0 post no");
     command("thermo 2");
     command("run 4 post no start 0 stop 8");

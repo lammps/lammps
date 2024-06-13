@@ -1,0 +1,16 @@
+# rx parameters for various molecules
+# multiple entries can be added to this file, LAMMPS reads the ones it needs
+# these entries are in LAMMPS "metal" units:
+#   alpha = unitless; epsilon = eV; rho = Angstroms; 
+
+# format of a single entry (one or more lines):
+#   species, exp6, alpha, epsilon, rm
+
+hcn     exp6  13.57  0.030862657941745  5.3725
+no2     exp6  13.57  0.029126283357001  4.2744
+no      exp6  13.10  0.013090454747817  3.7142
+h2o     exp6  11.01  0.022473771300313  3.5348
+co      exp6  13.24  0.0086353397713660428  4.1759
+co2     exp6  14.09  0.019672305322873507  4.1757
+h2      exp6  11.23  0.002618780329051 3.4925
+n2      exp6  12.97  0.008635339808299 4.1778

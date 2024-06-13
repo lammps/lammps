@@ -1,0 +1,12 @@
+# reaction equations and parameters
+# multiple entries can be added to this file
+# these entries are in LAMMPS "metal" units:
+#   Arr = 1/picosec or Angstroms^3/mol/picosec; Ern = eV
+
+# format of a single entry (one or more lines):
+#   rxn equation, Arn, Ern
+
+1.0 rdx           = 3.0 hcn + 1.5 no2 + 1.5 no + 1.5 h2o  2.51000000000000E+04 0.0 1.912325921964536
+1.0 hcn + 1.0 no2 = 1.0  no + 0.5 n2  + 0.5 h2 + 1.0 co   2.49081028001241E+01 0.0 1.344265387322009
+1.0 hcn + 1.0  no = 1.0  co + 1.0 n2  + 0.5 h2            4.98162056E+00 0.0 1.517718985686140
+1.0  no + 1.0  co = 0.5  n2 + 1.0 co2                     1.66054018667494E+06 0.0 6.938245245

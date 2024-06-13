@@ -796,6 +796,7 @@ class PyLammps(object):
     comm = {}
     comm['nprocs'] = self.lmp.extract_setting("world_size")
     comm['nthreads'] = self.lmp.extract_setting("nthreads")
+    comm['proc_grid'] = self.lmp.extract_global("proc_grid")
 
     for line in output:
       if line.startswith("MPI library"):
@@ -804,8 +805,6 @@ class PyLammps(object):
         parts = self._split_values(line)
         comm['comm_style'] = self._get_pair(parts[0])[1]
         comm['comm_layout'] = self._get_pair(parts[1])[1]
-      elif line.startswith("Processor grid"):
-        comm['proc_grid'] = [int(x) for x in self._get_pair(line)[1].split('x')]
       elif line.startswith("Communicate velocities for ghost atoms"):
         comm['ghost_velocity'] = (self._get_pair(line)[1] == "yes")
     return comm

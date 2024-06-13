@@ -1386,6 +1386,7 @@ int lammps_extract_global_datatype(void * /*handle*/, const char *name)
   if (strcmp(name,"xy") == 0) return LAMMPS_DOUBLE;
   if (strcmp(name,"xz") == 0) return LAMMPS_DOUBLE;
   if (strcmp(name,"yz") == 0) return LAMMPS_DOUBLE;
+  if (strcmp(name,"proc_grid") == 0) return LAMMPS_INT;
 
   if (strcmp(name,"natoms") == 0) return LAMMPS_BIGINT;
   if (strcmp(name,"nbonds") == 0) return LAMMPS_BIGINT;
@@ -1604,6 +1605,10 @@ report the "native" data type.  The following tables are provided:
      - double
      - 1
      - triclinic tilt factor. See :doc:`Howto_triclinic`.
+   * - proc_grid
+     - int
+     - 3
+     - processor count assigned to each dimension of 3d grid. See :doc:`processors`.
 
 .. _extract_system_settings:
 
@@ -1861,6 +1866,10 @@ void *lammps_extract_global(void *handle, const char *name)
   if (strcmp(name,"xy") == 0) return (void *) &lmp->domain->xy;
   if (strcmp(name,"xz") == 0) return (void *) &lmp->domain->xz;
   if (strcmp(name,"yz") == 0) return (void *) &lmp->domain->yz;
+  if ((lmp->comm->layout == Comm::LAYOUT_UNIFORM ||
+       lmp->comm->layout == Comm::LAYOUT_NONUNIFORM) &&
+     (strcmp(name,"proc_grid") == 0))
+    return (void *) &lmp->comm->procgrid;
 
   if (strcmp(name,"natoms") == 0) return (void *) &lmp->atom->natoms;
   if (strcmp(name,"ntypes") == 0) return (void *) &lmp->atom->ntypes;

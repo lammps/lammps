@@ -1,7 +1,8 @@
 // **************************************************************************
 //                                   dpd.cu
 //                             -------------------
-//                           Trung Dac Nguyen (ORNL)
+//                           Eddy BARRAUD (IFPEN/Sorbonne)
+//                           Trung Dac Nguyen (U Chicago)
 //
 //  Device code for acceleration of the dpd/coul/slater/long pair style
 //

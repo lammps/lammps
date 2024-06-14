@@ -1,0 +1,94 @@
+# DPD Ionic Fluid
+
+variable    T           equal 1.0
+variable    cut_DPD     equal 1.0
+variable    seed        equal 165412
+variable    lambda      equal 0.25
+variable    cut_coul    equal 2.0
+
+#-------------------------------------------------------------------------------
+# Initialize LAMMPS run for 3-d periodic
+#-------------------------------------------------------------------------------
+
+units			lj
+boundary		p p p # periodic at all axes
+atom_style		full
+dimension    3
+
+bond_style		none
+angle_style		none
+dihedral_style		none
+improper_style		none
+
+newton on
+comm_modify vel yes # store info of ghost atoms btw processors
+
+#-------------------------------------------------------------------------------
+# Box creation and configuration
+#-------------------------------------------------------------------------------
+
+## Box definition
+region box block 0 5 0 5 0 5 # 5x5x5 reduced dimensions
+create_box 3 box # 3 species in the box
+
+# Random insertion of beads, number density of 3.0
+# Insert Water beads Type 1
+create_atoms 1 random 315 ${seed} box overlap 0.1 maxtry 5000
+# Insert Sodium beads Type 2
+create_atoms 2 random 30 ${seed} box overlap 0.1 maxtry 5000
+# Insert Chlorure beads Type 3
+create_atoms 3 random 30 ${seed} box overlap 0.1 maxtry 5000
+
+# Define masses
+mass 1       1.00000
+mass 2       1.00000
+mass 3       1.00000
+
+# Define Charges
+set type 1 charge 0.000
+set type 2 charge 1.000
+set type 3 charge -1.000
+
+# Initiate velocities
+velocity all create 1 35642 dist gaussian mom yes rot no
+
+
+# Define pair style and coefficients
+pair_style dpd/coul/slater/long ${T} ${cut_DPD} ${seed} ${lambda} ${cut_coul}
+
+# Enable long range electrostatics solver
+kspace_style    pppm       5e-04
+
+# Define interactions without coulombic interactions
+pair_coeff 1 1*3 78.0 4.5
+
+# Define interactions with coulombic interactions (both beads charged)
+pair_coeff    2*3     2*3 78.0 4.5 yes
+
+# Construct neighbors every steps
+neighbor 1.0 bin
+neigh_modify every 1 delay 0 check yes
+
+
+#-------------------------------------------------------------------------------
+# Minimize
+#-------------------------------------------------------------------------------
+
+minimize 1e-4 1e-4 1000 1000
+
+#-------------------------------------------------------------------------------
+# Run the simulation
+#-------------------------------------------------------------------------------
+
+thermo_style		custom step temp press vol evdwl ecoul elong pe ke fnorm fmax
+thermo_modify norm no
+thermo			100
+
+timestep     0.01
+run_style    verlet
+
+fix			1 all nve
+
+run			5000
+
+unfix		1

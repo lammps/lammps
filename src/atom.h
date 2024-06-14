@@ -110,6 +110,12 @@ class Atom : protected Pointers {
   int **improper_type;
   tagint **improper_atom1, **improper_atom2, **improper_atom3, **improper_atom4;
 
+  //Type sets
+  std::map<int, int*> typeset_map;
+  int current_typeset;
+  int ntype_sets;
+  int nactive_typesets;
+
   // PERI package
 
   double *vfrac, *s0;
@@ -312,6 +318,10 @@ class Atom : protected Pointers {
   void add_peratom_vary(const std::string &, void *, int, int *, void *, int collength = 0);
   void create_avec(const std::string &, int, char **, int);
   virtual AtomVec *new_avec(const std::string &, int, int &);
+
+  //Type sets
+  int add_typeset(const int *types);
+  int delete_typeset(int typeset_id);
 
   virtual void init();
   void setup();

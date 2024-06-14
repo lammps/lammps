@@ -164,6 +164,12 @@ void *lammps_extract_global(void *handle, const char *name);
 
 int lammps_map_atom(void *handle, const void *id);
 
+//Type sets
+int lammps_add_typeset(void *handle, const int *types);
+int lammps_change_typeset(void *handle, int typeset_id);
+int lammps_reset_typesets(void *hanle);
+int lammps_delete_typeset(void *handle, int typeset_id);
+
 /* ----------------------------------------------------------------------
  * Library functions to read or modify per-atom data in LAMMPS
  * ---------------------------------------------------------------------- */

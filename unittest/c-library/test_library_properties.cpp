@@ -7,6 +7,7 @@
 #include "lmptype.h"
 #include "platform.h"
 #include <string>
+#include <vector>
 
 #include "gmock/gmock.h"
 #include "gtest/gtest.h"
@@ -465,6 +466,95 @@ TEST_F(LibraryProperties, global)
     if (!verbose) ::testing::internal::GetCapturedStdout();
     map_style = *(int *)lammps_extract_global(lmp, "map_style");
     EXPECT_EQ(map_style, Atom::MAP_ARRAY);
+
+    //Type sets
+
+    EXPECT_EQ(lammps_extract_global_datatype(lmp, "ntype_sets"), LAMMPS_INT)
+    EXPECT_EQ(lammps_extract_global_datatype(lmp, "current_typeset"), LAMMPS_INT)
+
+    int ntype_sets, current_typeset, new_typeset_id, i;
+    std::vector<int> type2s(100, 2);
+    std::vector<int> type3s(100, 3);
+
+    if (!verbose) ::testing::internal::CaptureStdout();
+    lammps_command(lmp, "clear");
+    if (!verbose) ::testing::internal::GetCapturedStdout();
+    ntype_sets = lammps_extract_global(lmp, "ntype_sets");
+    current_typeset = lammps_extract_global(lmp, "current_typeset");
+    EXPECT_EQ(ntype_sets, 0);
+    EXPECT_EQ(current_typeset, 0);
+
+    if (!verbose) ::testing::internal::CaptureStdout();
+    lammps_command(lmp, "clear");
+    lammps_command(lmp, "region box block 1 10 0 10 0 10");
+    lammps_command(lmp, "create_box 3 box");
+    lammps_command(lmp, "create_atoms 1 random 100 12345 box");
+    lammps_command(lmp, "mass 1 1.0");
+    lammps_command(lmp, "mass 2 2.0");
+    lammps_command(lmp, "mass 3 3.0");
+    if (!verbose) ::testing::internal::GetCapturedStdout();
+
+    //Initially there should be no type sets.
+    ntype_sets = lammps_extract_global(lmp, "ntype_sets");
+    current_typeset = lammps_extract_global(lmp, "current_typeset");
+    EXPECT_EQ(ntype_sets, 0);
+    EXPECT_EQ(current_typeset, 0);
+
+    //Adding a new type set where all atoms have type 2.
+    new_typeset_id = lammps_add_typeset(lmp, type2s.data());
+    ntype_sets = lammps_extract_global(lmp, "ntype_sets");
+    //Two type sets should have been created - initial and new (all type 2).
+    EXPECT_EQ(ntype_sets, 2);
+    EXPECT_EQ(new_typeset_id, 1);
+
+    //Changing to type set with id 1 (all type 2).
+    lammps_change_typeset(lmp, new_typeset_id);
+    //Checking that all the types have been assigned correctly.
+    for(i = 0; i < lmp->atom->natoms; i++){
+        EXPECT_EQ(lmp->atom->type[i], 2);
+        }
+    current_typeset = lammps_extract_global(lmp, "current_typeset");
+    EXPECT_EQ(current_typeset, new_typeset_id);
+
+    //Adding another type set (all atoms type 3) which would have an id 2.
+    new_typeset_id = lammps_add_typeset(lmp, type3s.data());
+    ntype_sets = lammps_extract_global(lmp, "ntype_sets");
+    EXPECT_EQ(ntype_sets, 3);
+    EXPECT_EQ(new_typeset_id, 2);
+
+    //Switching to the type set with id 2 (all type 3).
+    lammps_change_typeset(lmp, new_typeset_id);
+    current_typeset = lammps_extract_global(lmp, "current_typeset");
+    EXPECT_EQ(current_typeset, new_typeset_id);
+    //Checking that all the types have been assigned correctly.
+    for(i = 0; i < lmp->atom->natoms; i++){
+        EXPECT_EQ(lmp->atom->type[i], 3);
+        }
+
+    //Switching back to the type set with id 1 (all type 2).
+    lammps_change_typeset(lmp, 1);
+    current_typeset = lammps_extract_global(lmp, "current_typeset");
+    EXPECT_EQ(current_typeset, 1);
+    for(i = 0; i < lmp->atom->natoms; i++){
+        EXPECT_EQ(lmp->atom->type[i], 2);
+        }
+
+    //Deleting a type set with id 2 (all type 3).
+    lammps_delete_typeset(lmp, 2);
+    ntype_sets = lammps_extract_global(lmp, "ntype_sets");
+    EXPECT_EQ(ntype_sets, 2);
+
+    //Deleting all type sets and going back to the initial state.
+    lammps_reset_typesets(lmp);
+    ntype_sets = lammps_extract_global(lmp, "ntype_sets");
+    current_typeset = lammps_extract_global(lmp, "current_typeset");
+    EXPECT_EQ(ntype_sets, 0);
+    EXPECT_EQ(current_typeset, 0);
+    //Checking that all the types have been assigned correctly.
+    for(i = 0; i < lmp->atom->natoms; i++){
+        EXPECT_EQ(lmp->atom->type[i], 1);
+        }
+
 };
 
 TEST_F(LibraryProperties, neighlist)

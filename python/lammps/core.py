@@ -333,6 +333,14 @@ class lammps(object):
     self.lib.lammps_fix_external_set_vector_length.argtypes = [c_void_p, c_char_p, c_int]
     self.lib.lammps_fix_external_set_vector.argtypes = [c_void_p, c_char_p, c_int, c_double]
 
+    #Type sets
+    self.lib.lammps_change_typeset.argtypes = [c_void_p, c_int]
+    self.lib.lammps_change_typeset.restype = c_int
+    self.lib.lammps_reset_typesets.argtypes = [c_void_p]
+    self.lib.lammps_reset_typesets.restype = c_int
+    self.lib.lammps_delete_typeset.argtypes = [c_void_p, c_int]
+    self.lib.lammps_delete_typeset.restype = c_int
+
     # detect if Python is using a version of mpi4py that can pass communicators
     # only needed if LAMMPS has been compiled with MPI support.
     self.has_mpi4py = False
@@ -1735,6 +1743,88 @@ class lammps(object):
                                      POINTER(self.c_imageint*n), c_int]
     with ExceptionCheck(self):
       return self.lib.lammps_create_atoms(self.lmp, n, id_lmp, type_lmp, x_lmp, v_lmp, img_lmp, se_lmp)
+
+  #----------------------------------------------------------------
+  #The follosing section provides a bridge to lammps functionality governing type sets' behavior
+
+  def add_typeset(self, type_list):
+    """
+    Add a new version of type assignments (type set).
+
+    This function is a wrapper around the :cpp:func:`lammps_add_typeset`
+    function of the C-library interface.
+
+    The list of types has to be a list of integers.
+
+    :param type_list: list of atom types with the length corresponding to the number of atoms in the simulation
+    :type type_list: list of lammps.int
+
+    :return: id of the newly created typeset
+    :rtype: int
+    """
+    n = len(type_list)
+    if n != self.get_natoms():
+      raise RuntimeError("Provided type list length does not match the number of existing atoms")
+
+    type_lmp = (c_int*n)()
+    try:
+      type_lmp[:] = type_list[0:n]
+    except ValueError:
+      return 0
+
+    self.lib.lammps_add_typeset.argtypes = [c_void_p, POINTER(c_int*n)]
+    self.lib.lammps_add_typeset.restype = c_int
+    with ExceptionCheck(self):
+      return self.lib.lammps_add_typeset(self.lmp, type_lmp)
+
+  def change_typeset(self, typeset_id):
+    """
+    Toggle a type set to one specified.
+
+    This function is a wrapper around the :cpp:func:`lammps_change_typeset`
+    function of the C-library interface.
+
+    :param typeset_id: The id associated with a type set to be switched to
+    :type typeset_id: lammps.int
+
+    :return: 0 if type set was successfully switched, -1 in case of an error
+    :rtype: int
+    """
+    with ExceptionCheck(self):
+      return self.lib.lammps_change_typeset(self.lmp, typeset_id)
+
+  def reset_typesets(self):
+    """
+    Delete all the type sets and change atom types to initial state.
+
+    This function is a wrapper around the :cpp:func:`lammps_reset_typesets`
+    function of the C-library interface.
+
+    :return: 0 if type sets were successfully deleted, -1 in case of an error
+    :rtype: int
+    """
+    with ExceptionCheck(self):
+      return self.lib.lammps_reset_typesets(self.lmp)
+
+  def delete_typeset(self, typeset_id):
+    """
+    Delete a particular type set to clear memory
+
+    This function is a wrapper around the :cpp:func:`lammps_delete_typeset`
+    function of the C-library interface.
+
+    :param typeset_id: The id associated with a type set to be deleted
+    :type typeset_id: lammps.int
+
+    :return: 0 if type set was successfully deleted, -1 in case of an error
+    :rtype: int
+    """
+    with ExceptionCheck(self):
+      return self.lib.lammps_delete_typeset(self.lmp, typeset_id)
+
+
+
+        
 
   # -------------------------------------------------------------------------
 

@@ -127,6 +127,12 @@ extern int    lammps_extract_global_datatype(void *handle, const char *name);
 extern void  *lammps_extract_global(void *handle, const char *name);
 extern int    lammps_map_atom(void *handle, const void *id);
 
+extern int    lammps_add_typeset(void *handle, const int *types);
+extern int    lammps_change_typeset(void *handle, int typeset_id);
+extern int    lammps_reset_typesets(void *hanle);
+extern int    lammps_delete_typeset(void *handle, int typeset_id);
+
+
 extern int    lammps_extract_atom_datatype(void *handle, const char *name);
 extern void  *lammps_extract_atom(void *handle, const char *name);
 
@@ -312,6 +318,11 @@ extern int    lammps_extract_setting(void *handle, const char *keyword);
 extern int    lammps_extract_global_datatype(void *handle, const char *name);
 extern void  *lammps_extract_global(void *handle, const char *name);
 extern int    lammps_map_atom(void *handle, const void *id);
+
+extern int    lammps_add_typeset(void *handle, const int *types);
+extern int    lammps_change_typeset(void *handle, int typeset_id);
+extern int    lammps_reset_typesets(void *hanle);
+extern int    lammps_delete_typeset(void *handle, int typeset_id);
 
 extern int    lammps_extract_atom_datatype(void *handle, const char *name);
 extern void  *lammps_extract_atom(void *handle, const char *name);

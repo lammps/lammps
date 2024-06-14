@@ -1439,6 +1439,10 @@ int lammps_extract_global_datatype(void * /*handle*/, const char *name)
   if (strcmp(name,"femtosecond") == 0) return LAMMPS_DOUBLE;
   if (strcmp(name,"qelectron") == 0) return LAMMPS_DOUBLE;
 
+  //Type sets
+  if (strcmp(name,"current_typeset") == 0) return LAMMPS_INT;
+  if (strcmp(name,"ntype_sets") == 0) return LAMMPS_INT;
+
   return -1;
 }
 
@@ -1713,6 +1717,14 @@ report the "native" data type.  The following tables are provided:
      - char \*
      - 1
      - string with the current KSpace style.
+   * - ntype_sets
+     - int
+     - 1
+     - number of existing type sets
+   * - current_typeset
+     - int
+     - 1
+     - currently enabled type set
 
 .. _extract_unit_settings:
 
@@ -1903,6 +1915,10 @@ void *lammps_extract_global(void *handle, const char *name)
   if (strcmp(name,"angstrom") == 0) return (void *) &lmp->force->angstrom;
   if (strcmp(name,"femtosecond") == 0) return (void *) &lmp->force->femtosecond;
   if (strcmp(name,"qelectron") == 0) return (void *) &lmp->force->qelectron;
+
+  //Type sets
+  if (strcmp(name,"ntype_sets") == 0) return (void *) &lmp->atom->nactive_typesets;
+  if (strcmp(name,"current_typeset") == 0) return (void *) &lmp->atom->current_typeset;
 
   return nullptr;
 }
@@ -5409,6 +5425,188 @@ int lammps_create_atoms(void *handle, int n, const tagint *id, const int *type,
   END_CAPTURE;
   return (int) lmp->atom->natoms - natoms_prev;
 }
+
+//Type sets
+
+/** These functions add type set functionality which allows switching between different type sets during the simulation. 
+  * This can be used for any algorithms employing LAMMPS to perform global system properties' evaluation - like potential energy -  of multiple systems or variations of one system. */
+
+/** Add a new type set given a pointer to a list of type values
+  *
+  * \verbatim embed:rst
+  *
+  * This function adds a new typeset based on the provided list of type values.
+  * 
+  * The function is useful for setting up multiple sets of atom types which can be
+  * switched between for global properties' evaluation of multiple systems.
+  * 
+  * The function returns the index of the new typeset on success or -1 on failure.
+  *
+  * \endverbatim
+  *
+  * \param  handle   pointer to a previously created LAMMPS instance
+  * \param  types    pointer to a list of type values for the new type set
+  * \return          index of the new type set on success; -1 on failure
+  */
+int lammps_add_typeset(void *handle, const int *types){
+  auto lmp = (LAMMPS *) handle;
+  int res = -1;
+  BEGIN_CAPTURE
+  {
+    // Add the new type set
+    res = lmp->atom->add_typeset(types);
+  }
+  END_CAPTURE;
+  return res;
+}
+
+/** Change the atom types to ones specified in a type set corresponding to a provided ID
+  *
+  * \verbatim embed:rst
+  *
+  * This function changes the atom types to those specified in the type set corresponding 
+  * to the provided ID.
+  *
+  * The function returns 0 on success or -1 on failure.
+  *
+  * \endverbatim
+  *
+  * \param  handle       pointer to a previously created LAMMPS instance
+  * \param  typeset_id   ID of the type set to switch to
+  * \return              0 on success; -1 on failure
+  */
+int lammps_change_typeset(void *handle, int typeset_id){
+  auto lmp = (LAMMPS *) handle;
+  int res = -1;
+  BEGIN_CAPTURE
+  {
+    int flag = 0;
+
+    // Check if the type set ID is valid
+    if(typeset_id > lmp->atom->ntype_sets || typeset_id < 0){
+      flag = 1;
+    } else {
+      if(lmp->atom->typeset_map[typeset_id] == nullptr) flag = 1;
+    }
+    if(flag){
+      std::string msg("Type set id does not exist");
+      lmp->error->all(FLERR, msg);
+      return -1;
+    }
+
+    // Change the atom types to the new type set
+    Domain *domain = lmp->domain;
+    int n = lmp->atom->natoms;
+    double xdata[3];
+    for(int i = 0; i < n; i++){
+      xdata[0] = lmp->atom->x[i][0];
+      xdata[1] = lmp->atom->x[i][1];
+      xdata[2] = lmp->atom->x[i][2];
+      if (!domain->ownatom(lmp->atom->tag[i], xdata, &(lmp->atom->image[i]), 0)) continue;
+      lmp->atom->type[i] = lmp->atom->typeset_map[typeset_id][i];
+    }
+
+    // Update the current type set
+    lmp->atom->current_typeset = typeset_id;
+    res = 0;
+  }
+  END_CAPTURE;
+  return res;
+}
+
+/** Delete a specified type set
+  *
+  * \verbatim embed:rst
+  *
+  * This function deletes the specified type set.
+  *
+  * The function returns 0 on success or -1 on failure.
+  *
+  * \endverbatim
+  *
+  * \param  handle       pointer to a previously created LAMMPS instance
+  * \param  typeset_id   ID of the type set to be deleted
+  * \return              0 on success; -1 on failure
+  */
+int lammps_delete_typeset(void *handle, int typeset_id){
+  auto lmp = (LAMMPS *) handle;
+  int res = -1;
+  BEGIN_CAPTURE
+  {
+    int flag = 0;
+
+    // Check if the type set ID is valid
+    if(typeset_id > lmp->atom->ntype_sets || typeset_id < 0){
+      flag = 1;
+    } else {
+      if(lmp->atom->typeset_map[typeset_id] == nullptr) flag = 1;
+    }
+    if(flag){
+      std::string msg("Type set id does not exist");
+      lmp->error->all(FLERR, msg);
+      return -1;
+    }
+
+    // Check if the type set to be deleted is the current one
+    if(typeset_id == lmp->atom->current_typeset){
+      std::string msg("Cannot delete the current type set");
+      lmp->error->all(FLERR, msg);
+      return -1;
+    }
+
+    // Delete the typeset
+    res = lmp->atom->delete_typeset(typeset_id);
+  }
+  END_CAPTURE;
+  return res;
+}
+
+/** Delete all the type sets and change atom types back to initial values
+  *
+  * \verbatim embed:rst
+  *
+  * This function deletes all the typesets and changes atom types back to the initial values.
+  *
+  * The function returns 0 on success or -1 on failure.
+  *
+  * \endverbatim
+  *
+  * \param  handle   pointer to a previously created LAMMPS instance
+  * \return          0 on success; -1 on failure
+  */
+int lammps_reset_typesets(void *handle){
+  auto lmp = (LAMMPS *) handle;
+  int res = -1;
+  BEGIN_CAPTURE
+  {
+    Domain *domain = lmp->domain;
+    int n = lmp->atom->natoms;
+    double xdata[3];
+
+    // Reset atom types to initial values
+    for(int i = 0; i < n; i++){
+      xdata[0] = lmp->atom->x[i][0];
+      xdata[1] = lmp->atom->x[i][1];
+      xdata[2] = lmp->atom->x[i][2];
+      if (!domain->ownatom(lmp->atom->tag[i], xdata, &(lmp->atom->image[i]), 0)) continue;
+      lmp->atom->type[i] = lmp->atom->typeset_map[0][i];
+    }
+
+    // Delete all type sets
+    for(int i = 0; i < lmp->atom->ntype_sets; i++){
+      lmp->atom->delete_typeset(i);
+    }
+
+    // Reset type set counters
+    lmp->atom->ntype_sets = 0;
+    lmp->atom->current_typeset = 0;
+    lmp->atom->nactive_typesets = 0;
+    res = 0;
+  }
+  END_CAPTURE;
+  return res;
+}
+
 
 // ----------------------------------------------------------------------
 // Library functions for accessing neighbor lists

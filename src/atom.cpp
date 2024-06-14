@@ -276,6 +276,11 @@ Atom::Atom(LAMMPS *_lmp) : Pointers(_lmp), atom_style(nullptr), avec(nullptr), a
 
   avec_map = new AtomVecCreatorMap();
 
+  //Type sets
+  ntype_sets = 0;
+  current_typeset = 0;
+  nactive_typesets = 0;
+
 #define ATOM_CLASS
 #define AtomStyle(key,Class) \
   (*avec_map)[#key] = &avec_creator<Class>;
@@ -323,6 +328,10 @@ Atom::~Atom()
   for (int i = 0; i < ndarray; i++) {
     delete[] daname[i];
     memory->destroy(darray[i]);
+  }
+
+  for (int i = 0; i < ntype_sets; i++){
+      memory->destroy(typeset_map[i]);
   }
 
   memory->sfree(ivname);
@@ -3254,4 +3263,39 @@ double Atom::memory_usage()
   }
 
   return bytes;
+}
+
+
+//Type sets
+
+//Create a new type set. On the first call type set 0 (existing atom types) and type set 1 (new types) are created
+int Atom::add_typeset(const int *types){
+  if(!ntype_sets){
+    int *initial_replacement = nullptr;
+    initial_replacement = memory->grow(initial_replacement, natoms, "atom:typeset");
+    for(int i = 0; i < natoms; i++){
+      initial_replacement[i] = type[i];
+      }
+    typeset_map[ntype_sets++] = initial_replacement;
+    nactive_typesets++;
+  }
+  int *new_types = nullptr;
+  new_types = memory->grow(new_types, natoms, "atom:typeset");
+  for(int i = 0; i < natoms; i++){
+    new_types[i] = types[i];
+    }
+  typeset_map[ntype_sets] = new_types;
+  nactive_typesets++;
+  return ntype_sets++;
+}
+
+//Delete a particular type set
+int Atom::delete_typeset(int typeset_id){
+  int res = -1;
+  if(typeset_id != current_typeset){
+    memory->destroy(typeset_map[typeset_id]);
+    nactive_typesets--;
+    res = 0;
+    }    
+  return res;
 }

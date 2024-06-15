@@ -801,7 +801,7 @@ class PyLammps(object):
     comm['comm_style'] = ('brick', 'tiled')[idx]
     idx = self.lmp.extract_setting("comm_style")
     comm['comm_layout'] = ('uniform', 'nonuniform', 'irregular')[idx]
-    comm['ghost_velocity'] = self.lmp_extract_setting("ghost_velocity") == 1
+    comm['ghost_velocity'] = self.lmp.extract_setting("ghost_velocity") == 1
 
     for line in output:
       if line.startswith("MPI library"):

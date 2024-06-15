@@ -1221,6 +1221,8 @@ internally by the :doc:`Fortran interface <Fortran>` and are not likely to be us
      - communication layout (0 = LAYOUT_UNIFORM, 1 = LAYOUT_NONUNIFORM, 2 = LAYOUT_TILED)
    * - comm_mode
      - communication mode (0 = SINGLE, 1 = MULTI, 2 = MULTIOLD)
+   * - ghost_velocity
+     - whether velocities are communicated for ghost atoms (0 = no, 1 = yes)
 
 .. _extract_system_sizes:
 
@@ -1328,6 +1330,7 @@ int lammps_extract_setting(void *handle, const char *keyword)
   if (strcmp(keyword,"comm_style") == 0) return lmp->comm->style;
   if (strcmp(keyword,"comm_layout") == 0) return lmp->comm->layout;
   if (strcmp(keyword,"comm_mode") == 0) return lmp->comm->mode;
+  if (strcmp(keyword,"ghost_velocity") == 0) return lmp->comm->ghost_velocity;
 
   if (strcmp(keyword,"nlocal") == 0) return lmp->atom->nlocal;
   if (strcmp(keyword,"nghost") == 0) return lmp->atom->nghost;

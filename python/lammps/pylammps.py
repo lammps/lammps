@@ -797,9 +797,9 @@ class PyLammps(object):
     comm['nprocs'] = self.lmp.extract_setting("world_size")
     comm['nthreads'] = self.lmp.extract_setting("nthreads")
     comm['proc_grid'] = self.lmp.extract_global("proc_grid")
-    idx = self.lmp_extract_setting("comm_style")
+    idx = self.lmp.extract_setting("comm_style")
     comm['comm_style'] = ('brick', 'tiled')[idx]
-    idx = self.lmp_extract_setting("comm_style")
+    idx = self.lmp.extract_setting("comm_style")
     comm['comm_layout'] = ('uniform', 'nonuniform', 'irregular')[idx]
     comm['ghost_velocity'] = self.lmp_extract_setting("ghost_velocity") == 1
 

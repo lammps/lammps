@@ -3,6 +3,7 @@ import sys,os,unittest,ctypes
 from lammps import lammps, LMP_VAR_ATOM, LMP_STYLE_GLOBAL, LMP_STYLE_LOCAL
 from lammps import LMP_TYPE_VECTOR, LMP_SIZE_VECTOR, LMP_SIZE_ROWS, LMP_SIZE_COLS
 from lammps import LAMMPS_DOUBLE_2D, LAMMPS_AUTODETECT
+from lammps import LAMMPS_INT64
 import numpy as np
 
 has_manybody=False
@@ -684,66 +685,67 @@ create_atoms 1 single &
             self.assertEqual(mytag, tags[sametag[myidx]])
 
     def test_type_sets(self):
-        type2s = np.full(100, 2)
-        type3s = np.full(100, 3)
-        self.lmp.command('shell cd ' + os.environ['TEST_INPUT_DIR'])
-        self.lmp.command("clear")
-        self.lmp.command("atom_modify map yes")
-        
-        self.assertEqual(self.lmp.extract_global("ntype_sets"), 0)
-        self.assertEqual(self.lmp.extract_global("current_typeset"), 0)
-        
-        self.lmp.command("region box block 0 10 0 10 0 10")
-        self.lmp.command("create_box 3 box")
-        self.lmp.command("create_atoms 1 random 100 12345 box")
-        self.lmp.command("set group all type 1")
-        
-        self.lmp.command("mass 1 1.0")
-        self.lmp.command("mass 2 1.5")
-        self.lmp.command("mass 3 2.5")
-        
-        # Initially there should be no type sets.
-        self.assertEqual(self.lmp.extract_global("ntype_sets"), 0)
-        self.assertEqual(self.lmp.extract_global("current_typeset"), 0)
-        
-        # Adding a new type set where all atoms have type 2.
-        new_typeset_id = self.lmp.add_typeset(type2s)
-        # Two type sets should have been created - initial and new (all type 2).
-        self.assertEqual(self.lmp.extract_global("ntype_sets"), 2)
-        self.assertEqual(new_typeset_id, 1)
-        
-        # Changing to type set with id 1 (all type 2).
-        self.lmp.change_typeset(new_typeset_id)
-        # Check that all the types have been assigned correctly
-        self.assertEqual(np.array_equal(type2s, np.array(self.lmp.gather_atoms("type", 0, 1), dtype=ctypes.c_int)), True)
-        self.assertEqual(new_typeset_id, self.lmp.extract_global("current_typeset"))
-        
-        # Adding another type set (all atoms type 3) which would have an id 2.
-        new_typeset_id = self.lmp.add_typeset(type3s)
-        self.assertEqual(self.lmp.extract_global("ntype_sets"), 3)
-        self.assertEqual(new_typeset_id, 2)
-        
-        # Switching to the type set with id 2 (all type 3).
-        self.lmp.change_typeset(new_typeset_id)
-        # Check that all the types have been assigned correctly
-        self.assertEqual(np.array_equal(type3s, np.array(self.lmp.gather_atoms("type", 0, 1), dtype=ctypes.c_int)), True)
-        self.assertEqual(new_typeset_id, self.lmp.extract_global("current_typeset"))
-        
-        # Switching back to the type set with id 1 (all type 2).
-        self.lmp.change_typeset(1)
-        self.assertEqual(self.lmp.extract_global("current_typeset"), 1)
-        # Check that all the types have been assigned correctly
-        self.assertEqual(np.array_equal(type2s, np.array(self.lmp.gather_atoms("type", 0, 1), dtype=ctypes.c_int)), True)
-        
-        # Deleting a type set with id 2 (all type 3).
-        self.lmp.delete_typeset(2)
-        self.assertEqual(self.lmp.extract_global("ntype_sets"), 2)
-        
-        # Deleting all type sets and going back to the initial state.
-        self.lmp.reset_typesets()
-        self.assertEqual(self.lmp.extract_global("ntype_sets"), 0)
-        self.assertEqual(self.lmp.extract_global("current_typeset"), 0)
-        self.assertEqual(np.array_equal(np.full(100, 1), np.array(self.lmp.gather_atoms("type", 0, 1), dtype=ctypes.c_int)), True)
+        if self.lmp.extract_global_datatype("map_tag_max") != LAMMPS_INT64:
+            type2s = np.full(100, 2)
+            type3s = np.full(100, 3)
+            self.lmp.command('shell cd ' + os.environ['TEST_INPUT_DIR'])
+            self.lmp.command("clear")
+            self.lmp.command("atom_modify map yes")
+            
+            self.assertEqual(self.lmp.extract_global("ntype_sets"), 0)
+            self.assertEqual(self.lmp.extract_global("current_typeset"), 0)
+            
+            self.lmp.command("region box block 0 10 0 10 0 10")
+            self.lmp.command("create_box 3 box")
+            self.lmp.command("create_atoms 1 random 100 12345 box")
+            self.lmp.command("set group all type 1")
+            
+            self.lmp.command("mass 1 1.0")
+            self.lmp.command("mass 2 1.5")
+            self.lmp.command("mass 3 2.5")
+            
+            # Initially there should be no type sets.
+            self.assertEqual(self.lmp.extract_global("ntype_sets"), 0)
+            self.assertEqual(self.lmp.extract_global("current_typeset"), 0)
+            
+            # Adding a new type set where all atoms have type 2.
+            new_typeset_id = self.lmp.add_typeset(type2s)
+            # Two type sets should have been created - initial and new (all type 2).
+            self.assertEqual(self.lmp.extract_global("ntype_sets"), 2)
+            self.assertEqual(new_typeset_id, 1)
+            
+            # Changing to type set with id 1 (all type 2).
+            self.lmp.change_typeset(new_typeset_id)
+            # Check that all the types have been assigned correctly
+            self.assertEqual(np.array_equal(type2s, np.array(self.lmp.gather_atoms("type", 0, 1), dtype=ctypes.c_int)), True)
+            self.assertEqual(new_typeset_id, self.lmp.extract_global("current_typeset"))
+            
+            # Adding another type set (all atoms type 3) which would have an id 2.
+            new_typeset_id = self.lmp.add_typeset(type3s)
+            self.assertEqual(self.lmp.extract_global("ntype_sets"), 3)
+            self.assertEqual(new_typeset_id, 2)
+            
+            # Switching to the type set with id 2 (all type 3).
+            self.lmp.change_typeset(new_typeset_id)
+            # Check that all the types have been assigned correctly
+            self.assertEqual(np.array_equal(type3s, np.array(self.lmp.gather_atoms("type", 0, 1), dtype=ctypes.c_int)), True)
+            self.assertEqual(new_typeset_id, self.lmp.extract_global("current_typeset"))
+            
+            # Switching back to the type set with id 1 (all type 2).
+            self.lmp.change_typeset(1)
+            self.assertEqual(self.lmp.extract_global("current_typeset"), 1)
+            # Check that all the types have been assigned correctly
+            self.assertEqual(np.array_equal(type2s, np.array(self.lmp.gather_atoms("type", 0, 1), dtype=ctypes.c_int)), True)
+            
+            # Deleting a type set with id 2 (all type 3).
+            self.lmp.delete_typeset(2)
+            self.assertEqual(self.lmp.extract_global("ntype_sets"), 2)
+            
+            # Deleting all type sets and going back to the initial state.
+            self.lmp.reset_typesets()
+            self.assertEqual(self.lmp.extract_global("ntype_sets"), 0)
+            self.assertEqual(self.lmp.extract_global("current_typeset"), 0)
+            self.assertEqual(np.array_equal(np.full(100, 1), np.array(self.lmp.gather_atoms("type", 0, 1), dtype=ctypes.c_int)), True)
 
 
 if __name__ == "__main__":

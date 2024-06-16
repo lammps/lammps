@@ -5453,12 +5453,16 @@ int lammps_add_typeset(void *handle, const int *types){
   int res = -1;
   BEGIN_CAPTURE
   {
+#if defined(LAMMPS_BIGBIG)
+    lmp->error->all(FLERR,"Library type set interface is not compatible with -DLAMMPS_BIGBIG");
+#else
     if (lmp->atom->map_style == Atom::MAP_NONE){
       lmp->error->all(FLERR, "lammps_add_typeset(): Atoms must be mapped");
       return res;
     }
     // Add the new type set
     res = lmp->atom->add_typeset(types);
+#endif
   }
   END_CAPTURE;
   return res;
@@ -5533,7 +5537,7 @@ int lammps_delete_typeset(void *handle, int typeset_id){
     int flag = 0;
 
     // Check if the type set ID is valid
-    if(typeset_id > lmp->atom->ntype_sets || typeset_id < 0){
+    if(typeset_id > lmp->atom->ntype_sets || typeset_id <= 0){
       flag = 1;
     } else {
       if(lmp->atom->typeset_map[typeset_id] == nullptr) flag = 1;
@@ -5577,21 +5581,24 @@ int lammps_reset_typesets(void *handle){
   BEGIN_CAPTURE
   {
 
-    //Reset atoms to original type values
-    for (int i = 0; i < lmp->atom->nmax; i++){
-      lmp->atom->type[i] = lmp->atom->typeset_map[0][i];
-    }
+    if(lmp->atom->ntype_sets){
 
-    // Delete all type sets
-    for(int i = 0; i < lmp->atom->ntype_sets; i++){
-      lmp->atom->delete_typeset(i);
-    }
+      //Reset atoms to original type values
+      for (int i = 0; i < lmp->atom->nmax; i++){
+        lmp->atom->type[i] = lmp->atom->typeset_map[0][i];
+      }
 
-    // Reset type set counters
-    lmp->atom->ntype_sets = 0;
-    lmp->atom->current_typeset = 0;
-    lmp->atom->nactive_typesets = 0;
-    res = 0;
+      // Delete all type sets
+      for(int i = 0; i < lmp->atom->ntype_sets; i++){
+        lmp->atom->delete_typeset(i);
+      }
+
+      // Reset type set counters
+      lmp->atom->ntype_sets = 0;
+      lmp->atom->current_typeset = 0;
+      lmp->atom->nactive_typesets = 0;
+      res = 0;
+    }
   }
   END_CAPTURE;
   return res;

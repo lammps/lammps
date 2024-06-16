@@ -469,6 +469,7 @@ TEST_F(LibraryProperties, global)
 
     //Type sets
 
+#if !defined(LAMMPS_BIGBIG)
     EXPECT_EQ(lammps_extract_global_datatype(lmp, "ntype_sets"), LAMMPS_INT);
     EXPECT_EQ(lammps_extract_global_datatype(lmp, "current_typeset"), LAMMPS_INT);
 
@@ -561,6 +562,7 @@ TEST_F(LibraryProperties, global)
     for(i = 0; i < natoms; i++){
         EXPECT_EQ(atom_types[i], 1);
         }
+#endif
 
 };
 

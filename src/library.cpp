@@ -5453,6 +5453,10 @@ int lammps_add_typeset(void *handle, const int *types){
   int res = -1;
   BEGIN_CAPTURE
   {
+    if (lmp->atom->map_style == Atom::MAP_NONE){
+      lmp->error->all(FLERR, "lammps_add_typeset(): Atoms must be mapped");
+      return res;
+    }
     // Add the new type set
     res = lmp->atom->add_typeset(types);
   }
@@ -5489,20 +5493,13 @@ int lammps_change_typeset(void *handle, int typeset_id){
       if(lmp->atom->typeset_map[typeset_id] == nullptr) flag = 1;
     }
     if(flag){
-      std::string msg("Type set id does not exist");
+      std::string msg("lammps_change_typeset(): Type set id does not exist");
       lmp->error->all(FLERR, msg);
       return -1;
     }
 
     // Change the atom types to the new type set
-    Domain *domain = lmp->domain;
-    int n = lmp->atom->natoms;
-    double xdata[3];
-    for(int i = 0; i < n; i++){
-      xdata[0] = lmp->atom->x[i][0];
-      xdata[1] = lmp->atom->x[i][1];
-      xdata[2] = lmp->atom->x[i][2];
-      if (!domain->ownatom(lmp->atom->tag[i], xdata, &(lmp->atom->image[i]), 0)) continue;
+    for (int i = 0; i < lmp->atom->nmax; i++){
       lmp->atom->type[i] = lmp->atom->typeset_map[typeset_id][i];
     }
 
@@ -5579,16 +5576,9 @@ int lammps_reset_typesets(void *handle){
   int res = -1;
   BEGIN_CAPTURE
   {
-    Domain *domain = lmp->domain;
-    int n = lmp->atom->natoms;
-    double xdata[3];
 
-    // Reset atom types to initial values
-    for(int i = 0; i < n; i++){
-      xdata[0] = lmp->atom->x[i][0];
-      xdata[1] = lmp->atom->x[i][1];
-      xdata[2] = lmp->atom->x[i][2];
-      if (!domain->ownatom(lmp->atom->tag[i], xdata, &(lmp->atom->image[i]), 0)) continue;
+    //Reset atoms to original type values
+    for (int i = 0; i < lmp->atom->nmax; i++){
       lmp->atom->type[i] = lmp->atom->typeset_map[0][i];
     }
 

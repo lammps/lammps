@@ -475,8 +475,8 @@ TEST_F(LibraryProperties, global)
     int natoms = 100;
     int *atom_types = new int[natoms];
     int ntype_sets, current_typeset, new_typeset_id, i;
-    std::vector<int> type2s(100, 2);
-    std::vector<int> type3s(100, 3);
+    std::vector<int> type2s(natoms, 2);
+    std::vector<int> type3s(natoms, 3);
 
     if (!verbose) ::testing::internal::CaptureStdout();
     lammps_command(lmp, "clear");
@@ -488,6 +488,7 @@ TEST_F(LibraryProperties, global)
 
     if (!verbose) ::testing::internal::CaptureStdout();
     lammps_command(lmp, "clear");
+    lammps_command(lmp, "atom_modify map yes");
     lammps_command(lmp, "region box block 1 10 0 10 0 10");
     lammps_command(lmp, "create_box 3 box");
     lammps_command(lmp, "create_atoms 1 random 100 12345 box");

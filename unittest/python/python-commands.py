@@ -688,6 +688,7 @@ create_atoms 1 single &
         type3s = np.full(100, 3)
         self.lmp.command('shell cd ' + os.environ['TEST_INPUT_DIR'])
         self.lmp.command("clear")
+        self.lmp.command("atom_modify map yes")
         
         self.assertEqual(self.lmp.extract_global("ntype_sets"), 0)
         self.assertEqual(self.lmp.extract_global("current_typeset"), 0)

@@ -3272,19 +3272,24 @@ double Atom::memory_usage()
 int Atom::add_typeset(const int *types){
   if(!ntype_sets){
     int *initial_replacement = nullptr;
-    initial_replacement = memory->grow(initial_replacement, natoms, "atom:typeset");
-    for(int i = 0; i < natoms; i++){
+    initial_replacement = memory->grow(initial_replacement, nmax, "atom:typeset");
+    for(int i = 0; i < nmax; i++){
       initial_replacement[i] = type[i];
       }
     typeset_map[ntype_sets++] = initial_replacement;
     nactive_typesets++;
   }
-  int *new_types = nullptr;
-  new_types = memory->grow(new_types, natoms, "atom:typeset");
+
+  int *sub_types = nullptr;
+  int m;
+  sub_types = memory->grow(sub_types, nmax, "atom:typeset");
   for(int i = 0; i < natoms; i++){
-    new_types[i] = types[i];
-    }
-  typeset_map[ntype_sets] = new_types;
+    if((m = map(i+1)) >= 0){
+      sub_types[m] = types[i];
+      }
+  }
+
+  typeset_map[ntype_sets] = sub_types;
   nactive_typesets++;
   return ntype_sets++;
 }

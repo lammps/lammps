@@ -34,14 +34,16 @@ static std::string find_section(FILE *fp, const std::string &name)
 {
   char linebuf[BUFLEN];
 
-  std::string pattern = "^\\s*\\[\\s+\\S+\\s+\\]\\s*$";
-  if (!name.empty())
-    pattern = fmt::format("^\\s*\\[\\s+{}\\s+\\]\\s*$",name);
-
   fgets(linebuf,BUFLEN,fp);
   while (!feof(fp)) {
-    if (utils::strmatch(linebuf,pattern))
-      return Tokenizer(linebuf).as_vector()[1];
+    if (utils::strmatch(linebuf, "^\\s*\\[.*\\]\\s*$")) {
+      auto words = Tokenizer(linebuf).as_vector();
+      if (words.size() != 3)
+        throw TokenizerException("Invalid group name in index file",
+                                 utils::trim(utils::strfind(linebuf,"[^\\[^\\]]+")));
+      if (name.empty() || (name == words[1]))
+          return words[1];
+    }
     fgets(linebuf,BUFLEN,fp);
   }
   return "";
@@ -51,12 +53,15 @@ static std::vector<tagint> read_section(FILE *fp, std::string &name)
 {
   char linebuf[BUFLEN];
   std::vector<tagint> tagbuf;
-  std::string pattern = "^\\s*\\[\\s+\\S+\\s+\\]\\s*$";
 
   while (fgets(linebuf,BUFLEN,fp)) {
     // start of new section. we are done, update "name"
-    if (utils::strmatch(linebuf,pattern)) {
-      name = Tokenizer(linebuf).as_vector()[1];
+    if (utils::strmatch(linebuf, "^\\s*\\[.*\\]\\s*$")) {
+      auto words = Tokenizer(linebuf).as_vector();
+      if (words.size() != 3)
+        throw TokenizerException("Invalid group name in index file",
+                                 utils::trim(utils::strfind(linebuf,"[^\\[^\\]]+")));
+      name = words[1];
       return tagbuf;
     }
     ValueTokenizer values(linebuf);
@@ -93,12 +98,20 @@ void Ndx2Group::command(int narg, char **arg)
   if (narg == 1) {              // restore all groups
 
     if (comm->me == 0) {
-      name = find_section(fp,"");
-      while (!name.empty()) {
+      try {
+        name = find_section(fp,"");
+      } catch (std::exception &e) {
+        error->one(FLERR, e.what());
+      }
 
+      while (!name.empty()) {
         // skip over group "all", which is called "System" in gromacs
         if (name == "System") {
-          name = find_section(fp,"");
+          try {
+            name = find_section(fp,"");
+          } catch (std::exception &e) {
+            error->one(FLERR, e.what());
+          }
           continue;
         }
 
@@ -109,7 +122,12 @@ void Ndx2Group::command(int narg, char **arg)
           MPI_Bcast((void *)name.c_str(),len,MPI_CHAR,0,world);
 
           // read tags for atoms in group and broadcast
-          std::vector<tagint> tags = read_section(fp,next);
+          std::vector<tagint> tags;
+          try {
+            tags = read_section(fp,next);
+          } catch (std::exception &e) {
+            error->one(FLERR, e.what());
+          }
           num = tags.size();
           MPI_Bcast(&num,1,MPI_LMP_BIGINT,0,world);
           MPI_Bcast((void *)tags.data(),num,MPI_LMP_TAGINT,0,world);
@@ -145,7 +163,11 @@ void Ndx2Group::command(int narg, char **arg)
 
         // find named section, search from beginning of file
         rewind(fp);
-        name = find_section(fp,arg[idx]);
+        try {
+          name = find_section(fp,arg[idx]);
+        } catch (std::exception &e) {
+          error->one(FLERR, e.what());
+        }
         utils::logmesg(lmp," {} group '{}'\n", name.size()
                        ? "Processing" : "Skipping",arg[idx]);
         len = name.size()+1;
@@ -154,7 +176,12 @@ void Ndx2Group::command(int narg, char **arg)
           MPI_Bcast((void *)name.c_str(),len,MPI_CHAR,0,world);
 
           // read tags for atoms in group and broadcast
-          std::vector<tagint> tags = read_section(fp,next);
+          std::vector<tagint> tags;
+          try {
+            tags = read_section(fp,next);
+          } catch (std::exception &e) {
+            error->one(FLERR, e.what());
+          }
           num = tags.size();
           MPI_Bcast(&num,1,MPI_LMP_BIGINT,0,world);
           MPI_Bcast((void *)tags.data(),num,MPI_LMP_TAGINT,0,world);

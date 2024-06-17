@@ -39,30 +39,30 @@ using namespace EwaldConst;
 
 // External functions from cuda library for atom decomposition
 
-int dpd_charged_gpu_init(const int ntypes, double **cutsq, double **host_a0, double **host_gamma,
+int dpd_coul_slater_long_gpu_init(const int ntypes, double **cutsq, double **host_a0, double **host_gamma,
                  double **host_sigma, double **host_cut_dpd, double **host_cut_dpdsq, double **host_cut_slatersq,
                  double **host_scale, double *special_lj, const int inum,
                  const int nall, const int max_nbors, const int maxspecial, const double cell_size,
                  int &gpu_mode, FILE *screen, double *host_special_coul,
                  const double qqrd2e, const double g_ewald, const double lamda);
-void dpd_charged_gpu_clear();
-int **dpd_charged_gpu_compute_n(const int ago, const int inum_full, const int nall, double **host_x,
+void dpd_coul_slater_long_gpu_clear();
+int **dpd_coul_slater_long_gpu_compute_n(const int ago, const int inum_full, const int nall, double **host_x,
                         int *host_type, double *sublo, double *subhi, tagint *tag, int **nspecial,
                         tagint **special, const bool eflag, const bool vflag, const bool eatom,
                         const bool vatom, int &host_start, int **ilist, int **jnum,
                         const double cpu_time, bool &success, double **host_v,
                         const double dtinvsqrt, const int seed, const int timestep, double *boxlo,
                         double *prd);
-void dpd_charged_gpu_compute(const int ago, const int inum_full, const int nall, double **host_x,
+void dpd_coul_slater_long_gpu_compute(const int ago, const int inum_full, const int nall, double **host_x,
                      int *host_type, int *ilist, int *numj, int **firstneigh, const bool eflag,
                      const bool vflag, const bool eatom, const bool vatom, int &host_start,
                      const double cpu_time, bool &success, tagint *tag, double **host_v,
                      const double dtinvsqrt, const int seed, const int timestep, const int nlocal,
                      double *boxlo, double *prd);
 
-void dpd_charged_gpu_get_extra_data(double *host_q);
+void dpd_coul_slater_long_gpu_get_extra_data(double *host_q);
 
-double dpd_charged_gpu_bytes();
+double dpd_coul_slater_long_gpu_bytes();
 
 static constexpr double EPSILON = 1.0e-10;
 
@@ -207,7 +207,7 @@ static constexpr double EPSILON = 1.0e-10;
 
 /* ---------------------------------------------------------------------- */
 
-PairDPDChargedGPU::PairDPDChargedGPU(LAMMPS *lmp) : PairDPDCharged(lmp), gpu_mode(GPU_FORCE)
+PairDPDCoulSlaterLongGPU::PairDPDCoulSlaterLongGPU(LAMMPS *lmp) : PairDPDCoulSlaterLong(lmp), gpu_mode(GPU_FORCE)
 {
   respa_enable = 0;
   reinitflag = 0;
@@ -220,14 +220,14 @@ PairDPDChargedGPU::PairDPDChargedGPU(LAMMPS *lmp) : PairDPDCharged(lmp), gpu_mod
    free all arrays
 ------------------------------------------------------------------------- */
 
-PairDPDChargedGPU::~PairDPDChargedGPU()
+PairDPDCoulSlaterLongGPU::~PairDPDCoulSlaterLongGPU()
 {
-  dpd_charged_gpu_clear();
+  dpd_coul_slater_long_gpu_clear();
 }
 
 /* ---------------------------------------------------------------------- */
 
-void PairDPDChargedGPU::compute(int eflag, int vflag)
+void PairDPDCoulSlaterLongGPU::compute(int eflag, int vflag)
 {
   ev_init(eflag, vflag);
 
@@ -240,7 +240,7 @@ void PairDPDChargedGPU::compute(int eflag, int vflag)
   int *ilist, *numneigh, **firstneigh;
 
   double *q = atom->q;
-  dpd_charged_gpu_get_extra_data(q);
+  dpd_coul_slater_long_gpu_get_extra_data(q);
 
   if (gpu_mode != GPU_FORCE) {
     double sublo[3], subhi[3];
@@ -255,7 +255,7 @@ void PairDPDChargedGPU::compute(int eflag, int vflag)
       domain->bbox(domain->sublo_lamda, domain->subhi_lamda, sublo, subhi);
     }
     inum = atom->nlocal;
-    firstneigh = dpd_charged_gpu_compute_n(
+    firstneigh = dpd_coul_slater_long_gpu_compute_n(
         neighbor->ago, inum, nall, atom->x, atom->type, sublo, subhi, atom->tag, atom->nspecial,
         atom->special, eflag, vflag, eflag_atom, vflag_atom, host_start, &ilist, &numneigh,
         cpu_time, success, atom->v, dtinvsqrt, seed, update->ntimestep, domain->boxlo, domain->prd);
@@ -264,7 +264,7 @@ void PairDPDChargedGPU::compute(int eflag, int vflag)
     ilist = list->ilist;
     numneigh = list->numneigh;
     firstneigh = list->firstneigh;
-    dpd_charged_gpu_compute(neighbor->ago, inum, nall, atom->x, atom->type, ilist, numneigh, firstneigh,
+    dpd_coul_slater_long_gpu_compute(neighbor->ago, inum, nall, atom->x, atom->type, ilist, numneigh, firstneigh,
                     eflag, vflag, eflag_atom, vflag_atom, host_start, cpu_time, success, atom->tag,
                     atom->v, dtinvsqrt, seed, update->ntimestep, atom->nlocal, domain->boxlo,
                     domain->prd);
@@ -284,7 +284,7 @@ void PairDPDChargedGPU::compute(int eflag, int vflag)
    init specific to this pair style
 ------------------------------------------------------------------------- */
 
-void PairDPDChargedGPU::init_style()
+void PairDPDCoulSlaterLongGPU::init_style()
 {
 
   if (comm->ghost_velocity == 0)
@@ -315,7 +315,7 @@ void PairDPDChargedGPU::init_style()
   if (atom->molecular != Atom::ATOMIC) maxspecial = atom->maxspecial;
   int mnf = 5e-2 * neighbor->oneatom;
   int success =
-      dpd_charged_gpu_init(atom->ntypes + 1, cutsq, a0, gamma, sigma,
+      dpd_coul_slater_long_gpu_init(atom->ntypes + 1, cutsq, a0, gamma, sigma,
                    cut_dpd, cut_dpdsq, cut_slatersq, scale,
                    force->special_lj, atom->nlocal,
                    atom->nlocal + atom->nghost, mnf, maxspecial, cell_size, gpu_mode, screen,
@@ -328,15 +328,15 @@ void PairDPDChargedGPU::init_style()
 
 /* ---------------------------------------------------------------------- */
 
-double PairDPDChargedGPU::memory_usage()
+double PairDPDCoulSlaterLongGPU::memory_usage()
 {
   double bytes = Pair::memory_usage();
-  return bytes + dpd_charged_gpu_bytes();
+  return bytes + dpd_coul_slater_long_gpu_bytes();
 }
 
 /* ---------------------------------------------------------------------- */
 
-void PairDPDChargedGPU::cpu_compute(int start, int inum, int eflag, int /* vflag */, int *ilist,
+void PairDPDCoulSlaterLongGPU::cpu_compute(int start, int inum, int eflag, int /* vflag */, int *ilist,
                              int *numneigh, int **firstneigh)
 {
   int i, j, ii, jj, jnum, itype, jtype;

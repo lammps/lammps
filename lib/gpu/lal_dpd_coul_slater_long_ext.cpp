@@ -22,12 +22,12 @@
 using namespace std;
 using namespace LAMMPS_AL;
 
-static DPDCharged<PRECISION,ACC_PRECISION> DPDCMF;
+static DPDCoulSlaterLong<PRECISION,ACC_PRECISION> DPDCMF;
 
 // ---------------------------------------------------------------------------
 // Allocate memory on host and device and copy constants to device
 // ---------------------------------------------------------------------------
-int dpd_charged_gpu_init(const int ntypes, double **host_cutsq, double **host_a0, double **host_gamma,
+int dpd_coul_slater_long_gpu_init(const int ntypes, double **host_cutsq, double **host_a0, double **host_gamma,
                  double **host_sigma, double **host_cut_dpd, double **host_cut_dpdsq, double **host_cut_slatersq,
                  double **host_scale, double *special_lj, const int inum,
                  const int nall, const int max_nbors, const int maxspecial, const double cell_size,
@@ -93,11 +93,11 @@ int dpd_charged_gpu_init(const int ntypes, double **host_cutsq, double **host_a0
   return init_ok;
 }
 
-void dpd_charged_gpu_clear() {
+void dpd_coul_slater_long_gpu_clear() {
   DPDCMF.clear();
 }
 
-int ** dpd_charged_gpu_compute_n(const int ago, const int inum_full, const int nall,
+int ** dpd_coul_slater_long_gpu_compute_n(const int ago, const int inum_full, const int nall,
                          double **host_x, int *host_type, double *sublo,
                          double *subhi, tagint *tag, int **nspecial,
                          tagint **special, const bool eflag, const bool vflag,
@@ -112,7 +112,7 @@ int ** dpd_charged_gpu_compute_n(const int ago, const int inum_full, const int n
                        host_v, dtinvsqrt, seed, timestep, boxlo, prd);
 }
 
-void dpd_charged_gpu_compute(const int ago, const int inum_full, const int nall,
+void dpd_coul_slater_long_gpu_compute(const int ago, const int inum_full, const int nall,
                      double **host_x, int *host_type, int *ilist, int *numj,
                      int **firstneigh, const bool eflag, const bool vflag,
                      const bool eatom, const bool vatom, int &host_start,
@@ -125,17 +125,17 @@ void dpd_charged_gpu_compute(const int ago, const int inum_full, const int nall,
                 tag, host_v, dtinvsqrt, seed, timestep, nlocal, boxlo, prd);
 }
 
-void dpd_charged_gpu_update_coeff(int ntypes, double **host_a0, double **host_gamma,
+void dpd_coul_slater_long_gpu_update_coeff(int ntypes, double **host_a0, double **host_gamma,
                           double **host_sigma, double **host_cut_dpd)
 {
    DPDCMF.update_coeff(ntypes,host_a0,host_gamma,host_sigma, host_cut_dpd);
 }
 
-void dpd_charged_gpu_get_extra_data(double *host_q) {
+void dpd_coul_slater_long_gpu_get_extra_data(double *host_q) {
   DPDCMF.get_extra_data(host_q);
 }
 
-double dpd_charged_gpu_bytes() {
+double dpd_coul_slater_long_gpu_bytes() {
   return DPDCMF.host_memory_usage();
 }
 

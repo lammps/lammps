@@ -13,21 +13,21 @@
 
 #ifdef PAIR_CLASS
 // clang-format off
-PairStyle(dpd/coul/slater/long,PairDPDCharged);
+PairStyle(dpd/coul/slater/long,PairDPDCoulSlaterLong);
 // clang-format on
 #else
 
-#ifndef LMP_PAIR_DPD_CHARGED_H
-#define LMP_PAIR_DPD_CHARGED_H
+#ifndef LMP_PAIR_DPD_COUL_SLATER_LONG_H
+#define LMP_PAIR_DPD_COUL_SLATER_LONG_H
 
 #include "pair.h"
 
 namespace LAMMPS_NS {
 
-class PairDPDCharged : public Pair {
+class PairDPDCoulSlaterLong : public Pair {
  public:
-  PairDPDCharged(class LAMMPS *);
-  ~PairDPDCharged() override;
+  PairDPDCoulSlaterLong(class LAMMPS *);
+  ~PairDPDCoulSlaterLong() override;
   void compute(int, int) override;
   void settings(int, char **) override;
   void coeff(int, char **) override;

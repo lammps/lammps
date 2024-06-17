@@ -21,10 +21,10 @@
 namespace LAMMPS_AL {
 
 template <class numtyp, class acctyp>
-class DPDCharged : public BaseDPD<numtyp, acctyp> {
+class DPDCoulSlaterLong : public BaseDPD<numtyp, acctyp> {
  public:
-  DPDCharged();
-  ~DPDCharged();
+  DPDCoulSlaterLong();
+  ~DPDCoulSlaterLong();
 
   /// Clear any previous data and set up for a new LAMMPS run
   /** \param max_nbors initial number of rows in the neighbor matrix

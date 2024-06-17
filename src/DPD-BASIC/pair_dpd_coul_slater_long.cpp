@@ -41,7 +41,7 @@ static constexpr double EPSILON = 1.0e-10;
 
 /* ---------------------------------------------------------------------- */
 
-PairDPDCharged::PairDPDCharged(LAMMPS *lmp) : Pair(lmp)
+PairDPDCoulSlaterLong::PairDPDCoulSlaterLong(LAMMPS *lmp) : Pair(lmp)
 {
   writedata = 1;
   ewaldflag = pppmflag = 1;
@@ -51,7 +51,7 @@ PairDPDCharged::PairDPDCharged(LAMMPS *lmp) : Pair(lmp)
 
 /* ---------------------------------------------------------------------- */
 
-PairDPDCharged::~PairDPDCharged()
+PairDPDCoulSlaterLong::~PairDPDCoulSlaterLong()
 {
   if (copymode) return;
 
@@ -75,7 +75,7 @@ PairDPDCharged::~PairDPDCharged()
 
 /* ---------------------------------------------------------------------- */
 
-void PairDPDCharged::compute(int eflag, int vflag)
+void PairDPDCoulSlaterLong::compute(int eflag, int vflag)
 {
   int i,j,ii,jj,inum,jnum,itype,jtype;
   double qtmp,xtmp,ytmp,ztmp,delx,dely,delz,evdwl,ecoul,fpair;
@@ -215,7 +215,7 @@ void PairDPDCharged::compute(int eflag, int vflag)
    allocate all arrays
 ------------------------------------------------------------------------- */
 
-void PairDPDCharged::allocate()
+void PairDPDCoulSlaterLong::allocate()
 {
   int i,j;
   allocated = 1;
@@ -246,7 +246,7 @@ void PairDPDCharged::allocate()
    global settings
 ------------------------------------------------------------------------- */
 
-void PairDPDCharged::settings(int narg, char **arg)
+void PairDPDCoulSlaterLong::settings(int narg, char **arg)
 {
   // params : T cut_dpd seed lambda cut_coul
   if (narg != 5) error->all(FLERR,"Illegal pair_style command");
@@ -276,7 +276,7 @@ void PairDPDCharged::settings(int narg, char **arg)
    set coeffs for one or more type pairs
 ------------------------------------------------------------------------- */
 
-void PairDPDCharged::coeff(int narg, char **arg)
+void PairDPDCoulSlaterLong::coeff(int narg, char **arg)
 {
   if (narg < 4 || narg > 6)
     error->all(FLERR,"Incorrect args for pair coefficients");
@@ -320,7 +320,7 @@ void PairDPDCharged::coeff(int narg, char **arg)
    init specific to this pair style
 ------------------------------------------------------------------------- */
 
-void PairDPDCharged::init_style()
+void PairDPDCoulSlaterLong::init_style()
 {
   if (comm->ghost_velocity == 0)
     error->all(FLERR,"Pair dpd requires ghost atoms store velocity");
@@ -353,7 +353,7 @@ void PairDPDCharged::init_style()
    return the DPD cutoff for uncharged
 ------------------------------------------------------------------------- */
 
-double PairDPDCharged::init_one(int i, int j)
+double PairDPDCoulSlaterLong::init_one(int i, int j)
 {
   if (setflag[i][j] == 0) error->all(FLERR,"All pair coeffs are not set");
 
@@ -380,7 +380,7 @@ double PairDPDCharged::init_one(int i, int j)
    proc 0 writes to restart file
 ------------------------------------------------------------------------- */
 
-void PairDPDCharged::write_restart(FILE *fp)
+void PairDPDCoulSlaterLong::write_restart(FILE *fp)
 {
   write_restart_settings(fp);
 
@@ -405,7 +405,7 @@ void PairDPDCharged::write_restart(FILE *fp)
    proc 0 reads from restart file, bcasts
 ------------------------------------------------------------------------- */
 
-void PairDPDCharged::read_restart(FILE *fp)
+void PairDPDCoulSlaterLong::read_restart(FILE *fp)
 {
   read_restart_settings(fp);
 
@@ -440,7 +440,7 @@ void PairDPDCharged::read_restart(FILE *fp)
    proc 0 writes to restart file
 ------------------------------------------------------------------------- */
 
-void PairDPDCharged::write_restart_settings(FILE *fp)
+void PairDPDCoulSlaterLong::write_restart_settings(FILE *fp)
 {
   fwrite(&temperature,sizeof(double),1,fp);
   fwrite(&cut_global,sizeof(double),1,fp);
@@ -459,7 +459,7 @@ void PairDPDCharged::write_restart_settings(FILE *fp)
    proc 0 reads from restart file, bcasts
 ------------------------------------------------------------------------- */
 
-void PairDPDCharged::read_restart_settings(FILE *fp)
+void PairDPDCoulSlaterLong::read_restart_settings(FILE *fp)
 {
   if (comm->me == 0) {
     utils::sfread(FLERR,&temperature,sizeof(double),1,fp,nullptr,error);
@@ -493,7 +493,7 @@ void PairDPDCharged::read_restart_settings(FILE *fp)
    proc 0 writes to data file
 ------------------------------------------------------------------------- */
 
-void PairDPDCharged::write_data(FILE *fp)
+void PairDPDCoulSlaterLong::write_data(FILE *fp)
 {
   for (int i = 1; i <= atom->ntypes; i++)
     fprintf(fp,"%d %g %g\n",i,a0[i][i],gamma[i][i]);
@@ -503,7 +503,7 @@ void PairDPDCharged::write_data(FILE *fp)
    proc 0 writes all pairs to data file
 ------------------------------------------------------------------------- */
 
-void PairDPDCharged::write_data_all(FILE *fp)
+void PairDPDCoulSlaterLong::write_data_all(FILE *fp)
 {
   for (int i = 1; i <= atom->ntypes; i++)
     for (int j = i; j <= atom->ntypes; j++)
@@ -512,7 +512,7 @@ void PairDPDCharged::write_data_all(FILE *fp)
 
 /* ---------------------------------------------------------------------- */
 
-double PairDPDCharged::single(int i, int j, int itype, int jtype, double rsq,
+double PairDPDCoulSlaterLong::single(int i, int j, int itype, int jtype, double rsq,
                        double factor_coul, double factor_dpd, double &fforce)
 {
   double r,rinv,wd,phi;
@@ -555,7 +555,7 @@ double PairDPDCharged::single(int i, int j, int itype, int jtype, double rsq,
   return energy;
 }
 
-void *PairDPDCharged::extract(const char *str, int &dim)
+void *PairDPDCoulSlaterLong::extract(const char *str, int &dim)
 {
   if (strcmp(str,"cut_coul") == 0) {
     dim = 0;

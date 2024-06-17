@@ -13,21 +13,21 @@
 
 #ifdef PAIR_CLASS
 // clang-format off
-PairStyle(dpd/coul/slater/long/gpu,PairDPDChargedGPU);
+PairStyle(dpd/coul/slater/long/gpu,PairDPDCoulSlaterLongGPU);
 // clang-format on
 #else
 
-#ifndef LMP_PAIR_DPD_CHARGED_GPU_H
-#define LMP_PAIR_DPD_CHARGED_GPU_H
+#ifndef LMP_PAIR_DPD_COUL_SLATER_LONG_GPU_H
+#define LMP_PAIR_DPD_COUL_SLATER_LONG_GPU_H
 
 #include "pair_dpd_coul_slater_long.h"
 
 namespace LAMMPS_NS {
 
-class PairDPDChargedGPU : public PairDPDCharged {
+class PairDPDCoulSlaterLongGPU : public PairDPDCoulSlaterLong {
  public:
-  PairDPDChargedGPU(LAMMPS *lmp);
-  ~PairDPDChargedGPU() override;
+  PairDPDCoulSlaterLongGPU(LAMMPS *lmp);
+  ~PairDPDCoulSlaterLongGPU() override;
   void cpu_compute(int, int, int, int, int *, int *, int **);
   void compute(int, int) override;
   void init_style() override;

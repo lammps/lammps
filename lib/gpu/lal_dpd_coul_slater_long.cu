@@ -10,8 +10,8 @@
 //    This file is part of the LAMMPS Accelerator Library (LAMMPS_AL)
 // __________________________________________________________________________
 //
-//    begin                : Jan 15, 2014
-//    email                : nguyentd@ornl.gov
+//    begin                : May 28, 2024
+//    email                : eddy.barraud@outlook.fr
 // ***************************************************************************
 
 #if defined(NV_KERNEL) || defined(USE_HIP)
@@ -162,7 +162,7 @@ _texture_2d( vel_tex,int4);
 }
 #endif
 
-__kernel void k_dpd_charged(const __global numtyp4 *restrict x_,
+__kernel void k_dpd_coul_slater_long(const __global numtyp4 *restrict x_,
                     const __global numtyp4 *restrict extra,
                     const __global numtyp4 *restrict coeff,
                     const int lj_types,
@@ -336,7 +336,7 @@ __kernel void k_dpd_charged(const __global numtyp4 *restrict x_,
                 ans,engv);
 }
 
-__kernel void k_dpd_charged_fast(const __global numtyp4 *restrict x_,
+__kernel void k_dpd_coul_slater_long_fast(const __global numtyp4 *restrict x_,
                          const __global numtyp4 *restrict extra,
                          const __global numtyp4 *restrict coeff_in,
                          const __global numtyp *restrict sp_lj_in,

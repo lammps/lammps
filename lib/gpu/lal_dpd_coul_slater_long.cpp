@@ -24,26 +24,26 @@ const char *dpd_coul_slater_long=0;
 #include "lal_dpd_coul_slater_long.h"
 #include <cassert>
 namespace LAMMPS_AL {
-#define DPDChargedT DPDCharged<numtyp, acctyp>
+#define DPDCoulSlaterLongT DPDCoulSlaterLong<numtyp, acctyp>
 
 extern Device<PRECISION,ACC_PRECISION> device;
 
 template <class numtyp, class acctyp>
-DPDChargedT::DPDCharged() : BaseDPD<numtyp,acctyp>(), _allocated(false) {
+DPDCoulSlaterLongT::DPDCoulSlaterLong() : BaseDPD<numtyp,acctyp>(), _allocated(false) {
 }
 
 template <class numtyp, class acctyp>
-DPDChargedT::~DPDCharged() {
+DPDCoulSlaterLongT::~DPDCoulSlaterLong() {
   clear();
 }
 
 template <class numtyp, class acctyp>
-int DPDChargedT::bytes_per_atom(const int max_nbors) const {
+int DPDCoulSlaterLongT::bytes_per_atom(const int max_nbors) const {
   return this->bytes_per_atom_atomic(max_nbors);
 }
 
 template <class numtyp, class acctyp>
-int DPDChargedT::init(const int ntypes,
+int DPDCoulSlaterLongT::init(const int ntypes,
                double **host_cutsq, double **host_a0,
                double **host_gamma, double **host_sigma,
                double **host_cut_dpd, double **host_cut_dpdsq,
@@ -75,7 +75,7 @@ int DPDChargedT::init(const int ntypes,
   int success;
   bool need_charges = true;
   success=this->init_atomic(nlocal,nall,max_nbors,maxspecial,cell_size,
-                            gpu_split,_screen,dpd_coul_slater_long,"k_dpd_charged",onetype, extra_fields, need_charges);
+                            gpu_split,_screen,dpd_coul_slater_long,"k_dpd_coul_slater_long",onetype, extra_fields, need_charges);
 
   if (success!=0)
     return success;
@@ -140,7 +140,7 @@ int DPDChargedT::init(const int ntypes,
 }
 
 template <class numtyp, class acctyp>
-void DPDChargedT::clear() {
+void DPDCoulSlaterLongT::clear() {
   if (!_allocated)
     return;
   _allocated=false;
@@ -153,15 +153,15 @@ void DPDChargedT::clear() {
 }
 
 template <class numtyp, class acctyp>
-double DPDChargedT::host_memory_usage() const {
-  return this->host_memory_usage_atomic()+sizeof(DPDCharged<numtyp,acctyp>);
+double DPDCoulSlaterLongT::host_memory_usage() const {
+  return this->host_memory_usage_atomic()+sizeof(DPDCoulSlaterLong<numtyp,acctyp>);
 }
 
 // ---------------------------------------------------------------------------
 // Calculate energies, forces, and torques
 // ---------------------------------------------------------------------------
 template <class numtyp, class acctyp>
-int DPDChargedT::loop(const int eflag, const int vflag) {
+int DPDCoulSlaterLongT::loop(const int eflag, const int vflag) {
 
   int nall = this->atom->nall();
   // signal that we need to transfer extra data from the host
@@ -215,7 +215,7 @@ int DPDChargedT::loop(const int eflag, const int vflag) {
 }
 
 template <class numtyp, class acctyp>
-void DPDChargedT::update_coeff(int ntypes, double **host_a0, double **host_gamma,
+void DPDCoulSlaterLongT::update_coeff(int ntypes, double **host_a0, double **host_gamma,
                         double **host_sigma, double **host_cut_dpd)
 {
   UCL_H_Vec<numtyp> host_write(_lj_types*_lj_types*32,*(this->ucl_device),
@@ -229,11 +229,11 @@ void DPDChargedT::update_coeff(int ntypes, double **host_a0, double **host_gamma
 // ---------------------------------------------------------------------------
 
 template <class numtyp, class acctyp>
-void DPDChargedT::get_extra_data(double *host_q) {
+void DPDCoulSlaterLongT::get_extra_data(double *host_q) {
   q = host_q;
 }
 
-template class DPDCharged<PRECISION,ACC_PRECISION>;
+template class DPDCoulSlaterLong<PRECISION,ACC_PRECISION>;
 }
 
 

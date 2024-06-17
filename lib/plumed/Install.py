@@ -16,6 +16,8 @@ parser = ArgumentParser(prog='Install.py',
                         description="LAMMPS library build wrapper script")
 
 # settings
+# Note: must also adjust check for supported API versions in
+# fix_plumed.cpp when version changes from v2.n.x to v2.n+1.y
 
 version = "2.9.1"
 mode = "static"

@@ -84,6 +84,10 @@ void Group2Ndx::write_group(FILE *fp, int gid)
   bigint gcount = group->count(gid);
   int lnum, width, cols;
 
+  if (utils::strmatch(group->names[gid], "\\s+")) {
+    if (fp) utils::logmesg(lmp, " skipping group {}...done", group->names[gid]);
+    return;
+  }
   if (fp) {
     utils::logmesg(lmp, " writing group {}...", group->names[gid]);
 

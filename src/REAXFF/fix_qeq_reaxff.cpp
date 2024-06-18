@@ -205,6 +205,7 @@ int FixQEqReaxFF::setmask()
 
 void FixQEqReaxFF::pertype_parameters(char *arg)
 {
+  const int ntypes = atom->ntypes;
   if (utils::strmatch(arg,"^reaxff")) {
     reaxflag = 1;
     Pair *pair = force->pair_match("^reaxff",0);
@@ -214,15 +215,20 @@ void FixQEqReaxFF::pertype_parameters(char *arg)
     chi = (double *) pair->extract("chi",tmp);
     eta = (double *) pair->extract("eta",tmp);
     gamma = (double *) pair->extract("gamma",tmp);
-    if (chi == nullptr || eta == nullptr || gamma == nullptr)
-      error->all(FLERR, "Fix qeq/reaxff could not extract params from pair reaxff");
+    if ((chi == nullptr) || (eta == nullptr) || (gamma == nullptr))
+      error->all(FLERR, "Fix qeq/reaxff could not extract all QEq parameters from pair reaxff");
+    for (int i = 1; i <= ntypes; ++i) {
+      if ((chi[i] == 0.0) && (eta[i] == 0.0) && (gamma[i] == 0.0))
+        error->all(FLERR, "No QEq parameters for atom type {} provided by pair reaxff", i);
+    }
     return;
   } else if (utils::strmatch(arg,"^reax/c")) {
     error->all(FLERR, "Fix qeq/reaxff keyword 'reax/c' is obsolete; please use 'reaxff'");
+  } else {
+    error->all(FLERR, "Unknown fix qeq/reaxff keyword {}", arg);
   }
 
   reaxflag = 0;
-  const int ntypes = atom->ntypes;
 
   memory->create(chi,ntypes+1,"qeq/reaxff:chi");
   memory->create(eta,ntypes+1,"qeq/reaxff:eta");

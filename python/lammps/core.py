@@ -333,6 +333,9 @@ class lammps(object):
     self.lib.lammps_fix_external_set_vector_length.argtypes = [c_void_p, c_char_p, c_int]
     self.lib.lammps_fix_external_set_vector.argtypes = [c_void_p, c_char_p, c_int, c_double]
 
+    self.lib.lammps_check_symbol.argtypes = [c_char_p]
+    self.lib.lammps_check_symbol.restype = c_int
+
     #Type sets
     self.lib.lammps_change_typeset.argtypes = [c_void_p, c_int]
     self.lib.lammps_change_typeset.restype = c_int
@@ -1744,8 +1747,27 @@ class lammps(object):
     with ExceptionCheck(self):
       return self.lib.lammps_create_atoms(self.lmp, n, id_lmp, type_lmp, x_lmp, v_lmp, img_lmp, se_lmp)
 
+    
+
   #----------------------------------------------------------------
   #The follosing section provides a bridge to lammps functionality governing type sets' behavior
+
+  def check_symbol(self, symname):
+    """
+    Check if a specific preprocessor symbol is defined.
+
+    This function is a wrapper around the :cpp:func:`lammps_check_symbol`
+    function of the C-library interface.
+
+    It returns `True` if the symbol is defined, otherwise it returns `False`.
+
+    :param symbol: a string representing the preprocessor symbol to check
+    :type symbol: str
+
+    :return: `True` if the symbol is defined; `False` otherwise
+    :rtype: bool
+    """
+    return bool(self.lib.lammps_check_symbol(symname.encode()))
 
   def add_typeset(self, type_list):
     """
@@ -2488,3 +2510,4 @@ class lammps(object):
     computeid = computeid.encode()
     idx = self.lib.lammps_find_compute_neighlist(self.lmp, computeid, reqid)
     return idx
+

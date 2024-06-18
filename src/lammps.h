@@ -19,6 +19,8 @@
 #include <string>
 #include <vector>
 
+
+
 namespace LAMMPS_NS {
 
 class LAMMPS {
@@ -85,6 +87,10 @@ class LAMMPS {
   static const char *git_commit();
   static const char *git_branch();
   static const char *git_descriptor();
+
+#if defined(PKG_VERSIONS)
+  class VStorage *vstorage;
+#endif
 
   using argv = std::vector<std::string>;
   static std::vector<char*> argv_pointers(argv & args);

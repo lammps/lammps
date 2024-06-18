@@ -67,11 +67,16 @@
 #include "lmpinstalledpkgs.h"
 #include "lmpgitversion.h"
 
+#if defined(PKG_VERSIONS)
+#include "version_storage.h"
+#endif
+
 #if defined(LAMMPS_UPDATE)
 #define UPDATE_STRING " - " LAMMPS_UPDATE
 #else
 #define UPDATE_STRING ""
 #endif
+
 
 static void print_style(FILE *fp, const char *str, int &pos);
 
@@ -868,6 +873,10 @@ void LAMMPS::create()
 #if defined(LMP_PLUGIN)
   plugin_auto_load(this);
 #endif
+#if defined(PKG_VERSIONS)
+  vstorage = new VStorage(this);
+#endif
+
 }
 
 /* ----------------------------------------------------------------------

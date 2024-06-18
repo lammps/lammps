@@ -164,6 +164,8 @@ void *lammps_extract_global(void *handle, const char *name);
 
 int lammps_map_atom(void *handle, const void *id);
 
+int lammps_check_symbol(const char* symbol);
+
 //Type sets
 int lammps_add_typeset(void *handle, const int *types);
 int lammps_change_typeset(void *handle, int typeset_id);

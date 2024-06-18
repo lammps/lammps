@@ -60,6 +60,10 @@
 #include <Python.h>
 #endif
 
+#if defined(PKG_VERSIONS)
+#include "version_storage.h"
+#endif
+
 /// string buffer for error messages of global errors
 static std::string lammps_last_global_errormessage;
 
@@ -1917,8 +1921,8 @@ void *lammps_extract_global(void *handle, const char *name)
   if (strcmp(name,"qelectron") == 0) return (void *) &lmp->force->qelectron;
 
   //Type sets
-  if (strcmp(name,"ntype_sets") == 0) return (void *) &lmp->atom->nactive_typesets;
-  if (strcmp(name,"current_typeset") == 0) return (void *) &lmp->atom->current_typeset;
+  if (strcmp(name,"ntype_sets") == 0) return (void *) &lmp->vstorage->nactive_typesets;
+  if (strcmp(name,"current_typeset") == 0) return (void *) &lmp->vstorage->current_typeset;
 
   return nullptr;
 }
@@ -5453,6 +5457,7 @@ int lammps_add_typeset(void *handle, const int *types){
   int res = -1;
   BEGIN_CAPTURE
   {
+#if defined(PKG_VERSIONS)
 #if defined(LAMMPS_BIGBIG)
     lmp->error->all(FLERR,"Library type set interface is not compatible with -DLAMMPS_BIGBIG");
 #else
@@ -5461,8 +5466,12 @@ int lammps_add_typeset(void *handle, const int *types){
       return res;
     }
     // Add the new type set
-    res = lmp->atom->add_typeset(types);
+    res = lmp->vstorage->add_typeset(types);
 #endif
+#else
+    lmp->error->all(FLERR,"Type set functionality is part of VERSIONS package.");
+#endif
+
   }
   END_CAPTURE;
   return res;
@@ -5488,13 +5497,14 @@ int lammps_change_typeset(void *handle, int typeset_id){
   int res = -1;
   BEGIN_CAPTURE
   {
+#if defined(PKG_VERSIONS)
     int flag = 0;
 
     // Check if the type set ID is valid
-    if(typeset_id > lmp->atom->ntype_sets || typeset_id < 0){
+    if(typeset_id > lmp->vstorage->ntype_sets || typeset_id < 0){
       flag = 1;
     } else {
-      if(lmp->atom->typeset_map[typeset_id] == nullptr) flag = 1;
+      if(lmp->vstorage->typeset_map[typeset_id] == nullptr) flag = 1;
     }
     if(flag){
       std::string msg("lammps_change_typeset(): Type set id does not exist");
@@ -5504,12 +5514,15 @@ int lammps_change_typeset(void *handle, int typeset_id){
 
     // Change the atom types to the new type set
     for (int i = 0; i < lmp->atom->nmax; i++){
-      lmp->atom->type[i] = lmp->atom->typeset_map[typeset_id][i];
+      lmp->atom->type[i] = lmp->vstorage->typeset_map[typeset_id][i];
     }
 
     // Update the current type set
-    lmp->atom->current_typeset = typeset_id;
+    lmp->vstorage->current_typeset = typeset_id;
     res = 0;
+#else
+    lmp->error->all(FLERR,"Type set functionality is part of VERSIONS package.");
+#endif
   }
   END_CAPTURE;
   return res;
@@ -5534,13 +5547,14 @@ int lammps_delete_typeset(void *handle, int typeset_id){
   int res = -1;
   BEGIN_CAPTURE
   {
+#if defined(PKG_VERSIONS)
     int flag = 0;
 
     // Check if the type set ID is valid
-    if(typeset_id > lmp->atom->ntype_sets || typeset_id <= 0){
+    if(typeset_id > lmp->vstorage->ntype_sets || typeset_id <= 0){
       flag = 1;
     } else {
-      if(lmp->atom->typeset_map[typeset_id] == nullptr) flag = 1;
+      if(lmp->vstorage->typeset_map[typeset_id] == nullptr) flag = 1;
     }
     if(flag){
       std::string msg("Type set id does not exist");
@@ -5549,14 +5563,17 @@ int lammps_delete_typeset(void *handle, int typeset_id){
     }
 
     // Check if the type set to be deleted is the current one
-    if(typeset_id == lmp->atom->current_typeset){
+    if(typeset_id == lmp->vstorage->current_typeset){
       std::string msg("Cannot delete the current type set");
       lmp->error->all(FLERR, msg);
       return -1;
     }
 
     // Delete the typeset
-    res = lmp->atom->delete_typeset(typeset_id);
+    res = lmp->vstorage->delete_typeset(typeset_id);
+#else
+    lmp->error->all(FLERR,"Type set functionality is part of VERSIONS package.");
+#endif
   }
   END_CAPTURE;
   return res;
@@ -5580,29 +5597,57 @@ int lammps_reset_typesets(void *handle){
   int res = -1;
   BEGIN_CAPTURE
   {
-
-    if(lmp->atom->ntype_sets){
+#if defined(PKG_VERSIONS)
+    if(lmp->vstorage->ntype_sets){
 
       //Reset atoms to original type values
       for (int i = 0; i < lmp->atom->nmax; i++){
-        lmp->atom->type[i] = lmp->atom->typeset_map[0][i];
+        lmp->atom->type[i] = lmp->vstorage->typeset_map[0][i];
       }
 
       // Delete all type sets
-      for(int i = 0; i < lmp->atom->ntype_sets; i++){
-        lmp->atom->delete_typeset(i);
+      for(int i = 0; i < lmp->vstorage->ntype_sets; i++){
+        lmp->vstorage->delete_typeset(i);
       }
 
       // Reset type set counters
-      lmp->atom->ntype_sets = 0;
-      lmp->atom->current_typeset = 0;
-      lmp->atom->nactive_typesets = 0;
+      lmp->vstorage->ntype_sets = 0;
+      lmp->vstorage->current_typeset = 0;
+      lmp->vstorage->nactive_typesets = 0;
       res = 0;
     }
+#else
+    lmp->error->all(FLERR,"Type set functionality is part of VERSIONS package.");
+#endif
   }
   END_CAPTURE;
   return res;
 }
+
+/** Check if a specific preprocessor symbol is defined
+  *
+  * \verbatim embed:rst
+  *
+  * This function checks if a specific preprocessor symbol is defined at compile time.
+  * It returns 1 if the symbol is defined, otherwise it returns 0.
+  *
+  * The function helps in determining the availability of certain features based on
+  * preprocessor directives.
+  *
+  * \endverbatim
+  *
+  * \param  symbol   a string representing the preprocessor symbol to check
+  * \return          1 if the symbol is defined; 0 otherwise
+  */
+int lammps_check_symbol(const char* symbol){
+#if defined(PKG_VERSIONS)
+    if (strcmp(symbol, "PKG_VERSIONS") == 0) return 1;
+#endif
+#if defined(LAMMPS_BIGBIG)
+    if (strcmp(symbol, "LAMMPS_BIGBIG") == 0) return 1;
+#endif
+    return 0;
+    }
 
 
 // ----------------------------------------------------------------------

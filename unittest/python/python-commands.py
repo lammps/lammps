@@ -685,7 +685,7 @@ create_atoms 1 single &
             self.assertEqual(mytag, tags[sametag[myidx]])
 
     def test_type_sets(self):
-        if self.lmp.extract_global_datatype("map_tag_max") != LAMMPS_INT64:
+        if self.lmp.check_symbol("PKG_VERSIONS") and not self.lmp.check_symbol("LAMMPS_BIGBIG"):
             type2s = np.full(100, 2)
             type3s = np.full(100, 3)
             self.lmp.command('shell cd ' + os.environ['TEST_INPUT_DIR'])

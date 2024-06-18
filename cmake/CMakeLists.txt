@@ -314,7 +314,8 @@ set(STANDARD_PACKAGES
   UEF
   VORONOI
   VTK
-  YAFF)
+  YAFF
+  VERSIONS)
 
 set(SUFFIX_PACKAGES CORESHELL GPU KOKKOS OPT INTEL OPENMP)
 
@@ -683,6 +684,10 @@ endif()
 
 if(PKG_H5MD)
   include(Packages/H5MD)
+endif()
+
+if(PKG_VERSIONS)
+  target_compile_definitions(lammps PUBLIC -DPKG_VERSIONS)
 endif()
 
 ######################################################################

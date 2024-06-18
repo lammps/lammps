@@ -205,22 +205,31 @@ int FixQEqReaxFF::setmask()
 
 void FixQEqReaxFF::pertype_parameters(char *arg)
 {
-  const int ntypes = atom->ntypes;
+  const int nlocal = atom->nlocal;
+  const int *mask = atom->mask;
+  const int *type = atom->type;
+
   if (utils::strmatch(arg,"^reaxff")) {
     reaxflag = 1;
     Pair *pair = force->pair_match("^reaxff",0);
     if (!pair) error->all(FLERR,"No reaxff pair style for fix qeq/reaxff");
 
-    int tmp;
+    int tmp, tmp_all;
     chi = (double *) pair->extract("chi",tmp);
     eta = (double *) pair->extract("eta",tmp);
     gamma = (double *) pair->extract("gamma",tmp);
     if ((chi == nullptr) || (eta == nullptr) || (gamma == nullptr))
       error->all(FLERR, "Fix qeq/reaxff could not extract all QEq parameters from pair reaxff");
-    for (int i = 1; i <= ntypes; ++i) {
-      if ((chi[i] == 0.0) && (eta[i] == 0.0) && (gamma[i] == 0.0))
-        error->all(FLERR, "No QEq parameters for atom type {} provided by pair reaxff", i);
+    tmp = tmp_all = 0;
+    for (int i = 0; i < nlocal; ++i) {
+      if (mask[i] & groupbit) {
+        if ((chi[type[i]] == 0.0) && (eta[type[i]] == 0.0) && (gamma[type[i]] == 0.0))
+          tmp = type[i];
+      }
     }
+    MPI_Allreduce(&tmp, &tmp_all, 1, MPI_INT, MPI_MAX, world);
+    if (tmp_all)
+      error->all(FLERR, "No QEq parameters for atom type {} provided by pair reaxff", tmp_all);
     return;
   } else if (utils::strmatch(arg,"^reax/c")) {
     error->all(FLERR, "Fix qeq/reaxff keyword 'reax/c' is obsolete; please use 'reaxff'");
@@ -230,6 +239,7 @@ void FixQEqReaxFF::pertype_parameters(char *arg)
 
   reaxflag = 0;
 
+  const int ntypes = atom->ntypes;
   memory->create(chi,ntypes+1,"qeq/reaxff:chi");
   memory->create(eta,ntypes+1,"qeq/reaxff:eta");
   memory->create(gamma,ntypes+1,"qeq/reaxff:gamma");

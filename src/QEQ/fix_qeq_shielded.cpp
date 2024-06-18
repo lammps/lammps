@@ -70,14 +70,19 @@ void FixQEqShielded::init()
 
 void FixQEqShielded::extract_reax()
 {
-  Pair *pair = force->pair_match("^reax..", 0);
-  if (pair == nullptr) error->all(FLERR, "No pair reaxff for fix qeq/shielded");
+  const int ntypes = atom->ntypes;
+  Pair *pair = force->pair_match("^reaxff", 0);
+  if (pair == nullptr) error->all(FLERR, "No reaxff pair style for fix qeq/shielded");
   int tmp;
   chi = (double *) pair->extract("chi", tmp);
   eta = (double *) pair->extract("eta", tmp);
   gamma = (double *) pair->extract("gamma", tmp);
-  if (chi == nullptr || eta == nullptr || gamma == nullptr)
-    error->all(FLERR, "Fix qeq/shielded could not extract params from pair reaxff");
+  if ((chi == nullptr) || (eta == nullptr) || (gamma == nullptr))
+    error->all(FLERR, "Fix qeq/shielded could not extract all QEq parameters from pair reaxff");
+  for (int i = 1; i <= ntypes; ++i) {
+    if ((chi[i] == 0.0) && (eta[i] == 0.0) && (gamma[i] == 0.0))
+      error->all(FLERR, "No QEq parameters for atom type {} provided by pair reaxff", i);
+  }
 }
 
 // clang-format off

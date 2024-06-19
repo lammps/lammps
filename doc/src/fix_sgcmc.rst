@@ -105,7 +105,7 @@ the effective average constraint in the parallel VC-SGC MC algorithm
 (see Eqs. (20-21) in :ref:`Sadigh1 <Sadigh1>`).
 The parameter *conc* sets the `N-1` target atomic concentration
 fractions (parameter :math:`c_0` in Eqs.  (20-21) of :ref:`Sadigh1 <Sadigh1>`)
-:math:`0 \le c_2, \ldots, c_N \le 1`, with 
+:math:`0 \le c_2, \ldots, c_N \le 1`, with
 :math:`c_1 = 1 - \Sigma_{i=2}^N c_i`.
 When the simulation includes `N` atom types (elements),
 `N-1` concentration values must be specified.

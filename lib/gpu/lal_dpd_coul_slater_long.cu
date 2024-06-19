@@ -289,8 +289,8 @@ __kernel void k_dpd_coul_slater_long(const __global numtyp4 *restrict x_,
       
         // apply Slater electrostatic force if distance below Slater cutoff 
         // and the two species have a slater coeff
-        // cutsq[mtype].w -> Coulombic squared cutoff
-        if ( cutsq[mtype].w != 0.0 && rsq < cutsq[mtype].w){
+        // cutsq[mtype].z -> Coulombic squared cutoff
+        if ( cutsq[mtype].z != 0.0 && rsq < cutsq[mtype].z){
           numtyp r2inv=ucl_recip(rsq);
           numtyp _erfc;
           numtyp grij = g_ewald * r;
@@ -426,7 +426,7 @@ __kernel void k_dpd_coul_slater_long_fast(const __global numtyp4 *restrict x_,
 
       int mtype=itype+jx.w;
       
-      /// cutsq.x = cutsq, cutsq.y = cut_dpdsq, cutsq.z = scale, cutsq.w = cut_slatersq
+      /// cutsq.x = cutsq, cutsq.y = cut_dpdsq, cutsq.z = cut_slatersq
       if (rsq<cutsq[mtype].x) {
         numtyp r=ucl_sqrt(rsq);
         numtyp force_dpd = (numtyp)0.0;
@@ -474,8 +474,8 @@ __kernel void k_dpd_coul_slater_long_fast(const __global numtyp4 *restrict x_,
       
         // apply Slater electrostatic force if distance below Slater cutoff 
         // and the two species have a slater coeff
-        // cutsq[mtype].w -> Coulombic squared cutoff
-        if ( cutsq[mtype].w != 0.0 && rsq < cutsq[mtype].w){
+        // cutsq[mtype].z -> Coulombic squared cutoff
+        if ( cutsq[mtype].z != 0.0 && rsq < cutsq[mtype].z){
           numtyp r2inv=ucl_recip(rsq);
           numtyp _erfc;
           numtyp grij = g_ewald * r;

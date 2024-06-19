@@ -39,26 +39,32 @@ using namespace EwaldConst;
 
 // External functions from cuda library for atom decomposition
 
-int dpd_coul_slater_long_gpu_init(const int ntypes, double **cutsq, double **host_a0, double **host_gamma,
-                 double **host_sigma, double **host_cut_dpd, double **host_cut_dpdsq, double **host_cut_slatersq,
-                 double **host_scale, double *special_lj, const int inum,
-                 const int nall, const int max_nbors, const int maxspecial, const double cell_size,
-                 int &gpu_mode, FILE *screen, double *host_special_coul,
-                 const double qqrd2e, const double g_ewald, const double lamda);
+int dpd_coul_slater_long_gpu_init(const int ntypes, double **cutsq, double **host_a0,
+                                  double **host_gamma, double **host_sigma, double **host_cut_dpd,
+                                  double **host_cut_dpdsq, double **host_cut_slatersq,
+                                  double *special_lj, const int inum, const int nall,
+                                  const int max_nbors, const int maxspecial,
+                                  const double cell_size, int &gpu_mode, FILE *screen,
+                                  double *host_special_coul, const double qqrd2e,
+                                  const double g_ewald, const double lamda);
 void dpd_coul_slater_long_gpu_clear();
-int **dpd_coul_slater_long_gpu_compute_n(const int ago, const int inum_full, const int nall, double **host_x,
-                        int *host_type, double *sublo, double *subhi, tagint *tag, int **nspecial,
-                        tagint **special, const bool eflag, const bool vflag, const bool eatom,
-                        const bool vatom, int &host_start, int **ilist, int **jnum,
-                        const double cpu_time, bool &success, double **host_v,
-                        const double dtinvsqrt, const int seed, const int timestep, double *boxlo,
-                        double *prd);
-void dpd_coul_slater_long_gpu_compute(const int ago, const int inum_full, const int nall, double **host_x,
-                     int *host_type, int *ilist, int *numj, int **firstneigh, const bool eflag,
-                     const bool vflag, const bool eatom, const bool vatom, int &host_start,
-                     const double cpu_time, bool &success, tagint *tag, double **host_v,
-                     const double dtinvsqrt, const int seed, const int timestep, const int nlocal,
-                     double *boxlo, double *prd);
+int **dpd_coul_slater_long_gpu_compute_n(const int ago, const int inum_full, const int nall,
+                                         double **host_x, int *host_type, double *sublo,
+                                         double *subhi, tagint *tag, int **nspecial,
+                                         tagint **special, const bool eflag, const bool vflag,
+                                         const bool eatom, const bool vatom, int &host_start,
+                                         int **ilist, int **jnum, const double cpu_time,
+                                         bool &success, double **host_v, const double dtinvsqrt,
+                                         const int seed, const int timestep, double *boxlo,
+                                         double *prd);
+void dpd_coul_slater_long_gpu_compute(const int ago, const int inum_full, const int nall,
+                                      double **host_x, int *host_type, int *ilist, int *numj,
+                                      int **firstneigh, const bool eflag, const bool vflag,
+                                      const bool eatom, const bool vatom, int &host_start,
+                                      const double cpu_time, bool &success, tagint *tag,
+                                      double **host_v, const double dtinvsqrt, const int seed,
+                                      const int timestep, const int nlocal, double *boxlo,
+                                      double *prd);
 
 void dpd_coul_slater_long_gpu_get_extra_data(double *host_q);
 
@@ -316,8 +322,7 @@ void PairDPDCoulSlaterLongGPU::init_style()
   int mnf = 5e-2 * neighbor->oneatom;
   int success =
       dpd_coul_slater_long_gpu_init(atom->ntypes + 1, cutsq, a0, gamma, sigma,
-                   cut_dpd, cut_dpdsq, cut_slatersq, scale,
-                   force->special_lj, atom->nlocal,
+                   cut_dpd, cut_dpdsq, cut_slatersq, force->special_lj, atom->nlocal,
                    atom->nlocal + atom->nghost, mnf, maxspecial, cell_size, gpu_mode, screen,
                    force->special_coul, force->qqrd2e, g_ewald, lamda);
   GPU_EXTRA::check_flag(success, error, world);
@@ -444,7 +449,7 @@ void PairDPDCoulSlaterLongGPU::cpu_compute(int start, int inum, int eflag, int /
           t = 1.0 / (1.0 + EWALD_P*grij);
           erfc = t * (A1+t*(A2+t*(A3+t*(A4+t*A5)))) * expm2;
           slater_term = exp(-2*r/lamda)*(1 + (2*r/lamda*(1+r/lamda)));
-          prefactor = qqrd2e * scale[itype][jtype] * qtmp*q[j]/r;
+          prefactor = qqrd2e * qtmp*q[j]/r;
           forcecoul = prefactor * (erfc + EWALD_F*grij*expm2 - slater_term);
           if (factor_coul < 1.0) forcecoul -= (1.0-factor_coul)*prefactor*(1-slater_term);
           forcecoul *= r2inv;

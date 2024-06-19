@@ -37,13 +37,12 @@ class DPDCoulSlaterLong : public BaseDPD<numtyp, acctyp> {
     * - -3 if there is an out of memory error
     * - -4 if the GPU library was not compiled for GPU
     * - -5 Double precision is not supported on card **/
-  int init(const int ntypes, double **host_cutsq, double **host_a0,
-           double **host_gamma, double **host_sigma,
-           double **host_cut_dpd, double **host_cut_dpdsq, double **host_cut_slatersq,
-           double **host_scale, double *host_special_lj, bool tstat_only, const int nlocal,
-           const int nall, const int max_nbors, const int maxspecial,
-           const double cell_size, const double gpu_split, FILE *screen, double *host_special_coul,
-           const double qqrd2e, const double g_ewald, const double lamda);
+  int init(const int ntypes, double **host_cutsq, double **host_a0, double **host_gamma,
+           double **host_sigma, double **host_cut_dpd, double **host_cut_dpdsq,
+           double **host_cut_slatersq, double *host_special_lj, bool tstat_only, const int nlocal,
+           const int nall, const int max_nbors, const int maxspecial, const double cell_size,
+           const double gpu_split, FILE *screen, double *host_special_coul, const double qqrd2e,
+           const double g_ewald, const double lamda);
 
   /// Clear all host and device data
   /** \note This is called at the beginning of the init() routine **/
@@ -66,7 +65,7 @@ class DPDCoulSlaterLong : public BaseDPD<numtyp, acctyp> {
   /// coeff.x = a0, coeff.y = gamma, coeff.z = sigma, coeff.w = cut_dpd
   UCL_D_Vec<numtyp4> coeff;
 
-  /// cutsq.x = cutsq, cutsq.y = cut_dpdsq, cutsq.z = scale, cutsq.w = cut_slatersq
+  /// cutsq.x = cutsq, cutsq.y = cut_dpdsq, cutsq.w = cut_slatersq
   UCL_D_Vec<numtyp4> cutsq;
 
   /// Special LJ values

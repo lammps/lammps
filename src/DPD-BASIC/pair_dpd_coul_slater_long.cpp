@@ -41,12 +41,13 @@ static constexpr double EPSILON = 1.0e-10;
 
 /* ---------------------------------------------------------------------- */
 
-PairDPDCoulSlaterLong::PairDPDCoulSlaterLong(LAMMPS *lmp) : Pair(lmp)
+PairDPDCoulSlaterLong::PairDPDCoulSlaterLong(LAMMPS *lmp) :
+    Pair(lmp), cut_dpd(nullptr), cut_dpdsq(nullptr), cut_slatersq(nullptr),
+    a0(nullptr), gamma(nullptr), sigma(nullptr), random(nullptr)
 {
   writedata = 1;
   ewaldflag = pppmflag = 1;
-  qdist = 0.0;
-  random = nullptr;
+  respa_enable = 0;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -60,14 +61,12 @@ PairDPDCoulSlaterLong::~PairDPDCoulSlaterLong()
     memory->destroy(cutsq);
     memory->destroy(cut_dpd);
     memory->destroy(cut_dpdsq);
-    memory->destroy(cut_slater);
     memory->destroy(cut_slatersq);
 
     memory->destroy(cut);
     memory->destroy(a0);
     memory->destroy(gamma);
     memory->destroy(sigma);
-    memory->destroy(scale);
   }
 
   if (random) delete random;
@@ -178,7 +177,7 @@ void PairDPDCoulSlaterLong::compute(int eflag, int vflag)
           t = 1.0 / (1.0 + EWALD_P*grij);
           erfc = t * (A1+t*(A2+t*(A3+t*(A4+t*A5)))) * expm2;
           slater_term = exp(-2*r/lamda)*(1 + (2*r/lamda*(1+r/lamda)));
-          prefactor = qqrd2e * scale[itype][jtype] * qtmp*q[j]/r;
+          prefactor = qqrd2e * qtmp*q[j]/r;
           forcecoul = prefactor * (erfc + EWALD_F*grij*expm2 - slater_term);
           if (factor_coul < 1.0) forcecoul -= (1.0-factor_coul)*prefactor*(1-slater_term);
           forcecoul *= r2inv;
@@ -227,12 +226,9 @@ void PairDPDCoulSlaterLong::allocate()
       setflag[i][j] = 0;
 
   memory->create(cutsq,n+1,n+1,"pair:cutsq");
-  memory->create(scale,n+1,n+1,"pair:scale");
-
   memory->create(cut,n+1,n+1,"pair:cut");
   memory->create(cut_dpd,n+1,n+1,"pair:cut_dpd");
   memory->create(cut_dpdsq,n+1,n+1,"pair:cut_dpdsq");
-  memory->create(cut_slater,n+1,n+1,"pair:cut_slater");
   memory->create(cut_slatersq,n+1,n+1,"pair:cut_slatersq");
   memory->create(a0,n+1,n+1,"pair:a0");
   memory->create(gamma,n+1,n+1,"pair:gamma");
@@ -256,9 +252,11 @@ void PairDPDCoulSlaterLong::settings(int narg, char **arg)
   seed = utils::inumeric(FLERR,arg[2],false,lmp);
   lamda = utils::numeric(FLERR,arg[3],false,lmp);
   cut_coul = utils::numeric(FLERR,arg[4],false,lmp);
+
   // initialize Marsaglia RNG with processor-unique seed
 
-  if (seed <= 0) error->all(FLERR,"Illegal pair_style command");
+  if (seed <= 0)
+    error->all(FLERR,"Invalid random seed {} for pair_style dpd/coul/slater/long command", seed);
   delete random;
   random = new RanMars(lmp,seed + comm->me);
 
@@ -294,7 +292,7 @@ void PairDPDCoulSlaterLong::coeff(int narg, char **arg)
 
   if (narg > 4) {
     bool do_slater = utils::logical(FLERR,arg[4],false,lmp);
-    if (do_slater) cut_two = cut_coul+2.0*qdist;
+    if (do_slater) cut_two = cut_coul;
   }
 
   if (narg > 5) cut_one = utils::numeric(FLERR,arg[5],false,lmp);
@@ -305,10 +303,9 @@ void PairDPDCoulSlaterLong::coeff(int narg, char **arg)
       a0[i][j] = a0_one;
       gamma[i][j] = gamma_one;
       cut_dpd[i][j] = cut_one;
-      cut_slater[i][j] = cut_two;
+      cut_slatersq[i][j] = cut_two * cut_two;
       cut[i][j] = MAX(cut_one, cut_two);
       setflag[i][j] = 1;
-      scale[i][j] = 1.0;
       count++;
     }
   }
@@ -360,20 +357,16 @@ double PairDPDCoulSlaterLong::init_one(int i, int j)
   sigma[i][j] = sqrt(2.0*force->boltz*temperature*gamma[i][j]);
 
   cut_dpdsq[i][j] = cut_dpd[i][j] * cut_dpd[i][j];
-  cut_dpdsq[j][i] = cut_dpdsq[i][j];
-  cut_slatersq[i][j] = cut_slater[i][j] * cut_slater[i][j];
-  cut_slatersq[j][i] = cut_slatersq[i][j];
 
   a0[j][i] = a0[i][j];
   gamma[j][i] = gamma[i][j];
   sigma[j][i] = sigma[i][j];
-  scale[j][i] = scale[i][j];
   cut_dpd[j][i] = cut_dpd[i][j];
-  cut_slater[j][i] = cut_slater[i][j];
   cut[j][i] = cut[i][j];
+  cut_dpdsq[j][i] = cut_dpdsq[i][j];
+  cut_slatersq[j][i] = cut_slatersq[i][j];
 
-  //return cut[i][j];
-  return MAX(cut_dpd[i][j], cut_slater[i][j]);
+  return MAX(cut_dpd[i][j], sqrt(cut_slatersq[i][j]));
 }
 
 /* ----------------------------------------------------------------------
@@ -385,7 +378,7 @@ void PairDPDCoulSlaterLong::write_restart(FILE *fp)
   write_restart_settings(fp);
 
   int i,j;
-  for (i = 1; i <= atom->ntypes; i++)
+  for (i = 1; i <= atom->ntypes; i++) {
     for (j = i; j <= atom->ntypes; j++) {
       fwrite(&setflag[i][j],sizeof(int),1,fp);
       if (setflag[i][j]) {
@@ -393,12 +386,10 @@ void PairDPDCoulSlaterLong::write_restart(FILE *fp)
         fwrite(&gamma[i][j],sizeof(double),1,fp);
         fwrite(&cut[i][j],sizeof(double),1,fp);
         fwrite(&cut_dpd[i][j],sizeof(double),1,fp);
-        fwrite(&cut_dpdsq[i][j],sizeof(double),1,fp);
-        fwrite(&cut_slater[i][j],sizeof(double),1,fp);
         fwrite(&cut_slatersq[i][j],sizeof(double),1,fp);
-        fwrite(&scale[i][j],sizeof(double),1,fp);
       }
     }
+  }
 }
 
 /* ----------------------------------------------------------------------
@@ -413,7 +404,7 @@ void PairDPDCoulSlaterLong::read_restart(FILE *fp)
 
   int i,j;
   int me = comm->me;
-  for (i = 1; i <= atom->ntypes; i++)
+  for (i = 1; i <= atom->ntypes; i++) {
     for (j = i; j <= atom->ntypes; j++) {
       if (me == 0) utils::sfread(FLERR,&setflag[i][j],sizeof(int),1,fp,nullptr,error);
       MPI_Bcast(&setflag[i][j],1,MPI_INT,0,world);
@@ -422,18 +413,17 @@ void PairDPDCoulSlaterLong::read_restart(FILE *fp)
           utils::sfread(FLERR,&a0[i][j],sizeof(double),1,fp,nullptr,error);
           utils::sfread(FLERR,&gamma[i][j],sizeof(double),1,fp,nullptr,error);
           utils::sfread(FLERR,&cut[i][j],sizeof(double),1,fp,nullptr,error);
-          utils::sfread(FLERR, &scale[i][j],sizeof(double),1,fp, nullptr, error);
+          utils::sfread(FLERR,&cut_dpd[i][j],sizeof(double),1,fp,nullptr,error);
+          utils::sfread(FLERR,&cut_slatersq[i][j],sizeof(double),1,fp,nullptr,error);
         }
         MPI_Bcast(&a0[i][j],1,MPI_DOUBLE,0,world);
         MPI_Bcast(&gamma[i][j],1,MPI_DOUBLE,0,world);
         MPI_Bcast(&cut[i][j],1,MPI_DOUBLE,0,world);
         MPI_Bcast(&cut_dpd[i][j],1,MPI_DOUBLE,0,world);
-        MPI_Bcast(&cut_dpdsq[i][j],1,MPI_DOUBLE,0,world);
-        MPI_Bcast(&cut_slater[i][j],1,MPI_DOUBLE,0,world);
         MPI_Bcast(&cut_slatersq[i][j],1,MPI_DOUBLE,0,world);
-        MPI_Bcast(&scale[i][j],1,MPI_DOUBLE,0,world);
       }
     }
+  }
 }
 
 /* ----------------------------------------------------------------------
@@ -445,14 +435,8 @@ void PairDPDCoulSlaterLong::write_restart_settings(FILE *fp)
   fwrite(&temperature,sizeof(double),1,fp);
   fwrite(&cut_global,sizeof(double),1,fp);
   fwrite(&seed,sizeof(int),1,fp);
-  fwrite(&mix_flag,sizeof(int),1,fp);
-  fwrite(&cut_coul,sizeof(double),1,fp);
-  fwrite(&cut_dpd,sizeof(double),1,fp);
-  fwrite(&cut_dpdsq,sizeof(double),1,fp);
-  fwrite(&cut_slater,sizeof(double),1,fp);
-  fwrite(&cut_slatersq,sizeof(double),1,fp);
   fwrite(&lamda,sizeof(double),1,fp);
-  fwrite(&offset_flag,sizeof(int),1,fp);
+  fwrite(&cut_coul,sizeof(double),1,fp);
 }
 
 /* ----------------------------------------------------------------------
@@ -465,22 +449,14 @@ void PairDPDCoulSlaterLong::read_restart_settings(FILE *fp)
     utils::sfread(FLERR,&temperature,sizeof(double),1,fp,nullptr,error);
     utils::sfread(FLERR,&cut_global,sizeof(double),1,fp,nullptr,error);
     utils::sfread(FLERR,&seed,sizeof(int),1,fp,nullptr,error);
-    utils::sfread(FLERR,&mix_flag,sizeof(int),1,fp,nullptr,error);
-    utils::sfread(FLERR, &cut_coul,sizeof(double),1,fp,nullptr,error);
-    utils::sfread(FLERR, &cut_dpd,sizeof(double),1,fp,nullptr,error);
-    utils::sfread(FLERR, &cut_dpdsq,sizeof(double),1,fp,nullptr,error);
-    utils::sfread(FLERR, &cut_slater,sizeof(double),1,fp,nullptr,error);
-    utils::sfread(FLERR, &cut_slatersq,sizeof(double),1,fp,nullptr,error);
-    utils::sfread(FLERR, &lamda,sizeof(double),1,fp,nullptr,error);
-    utils::sfread(FLERR, &offset_flag,sizeof(int),1,fp,nullptr,error);
+    utils::sfread(FLERR,&lamda,sizeof(double),1,fp,nullptr,error);
+    utils::sfread(FLERR,&cut_coul,sizeof(double),1,fp,nullptr,error);
   }
   MPI_Bcast(&temperature,1,MPI_DOUBLE,0,world);
   MPI_Bcast(&cut_global,1,MPI_DOUBLE,0,world);
   MPI_Bcast(&seed,1,MPI_INT,0,world);
-  MPI_Bcast(&mix_flag,1,MPI_INT,0,world);
-  MPI_Bcast(&cut_coul,1,MPI_DOUBLE,0,world);
   MPI_Bcast(&lamda,1,MPI_DOUBLE,0,world);
-  MPI_Bcast(&offset_flag,1,MPI_INT,0,world);
+  MPI_Bcast(&cut_coul,1,MPI_DOUBLE,0,world);
 
   // initialize Marsaglia RNG with processor-unique seed
   // same seed that pair_style command initially specified
@@ -507,13 +483,14 @@ void PairDPDCoulSlaterLong::write_data_all(FILE *fp)
 {
   for (int i = 1; i <= atom->ntypes; i++)
     for (int j = i; j <= atom->ntypes; j++)
-      fprintf(fp,"%d %d %g %g %g\n",i,j,a0[i][j],gamma[i][j],cut[i][j]);
+      fprintf(fp,"%d %d %g %g %s %g\n",i,j,a0[i][j],gamma[i][j],
+              (cut_slatersq[i][j] == 0.0) ? "yes" : "no", cut_dpd[i][j]);
 }
 
 /* ---------------------------------------------------------------------- */
 
 double PairDPDCoulSlaterLong::single(int i, int j, int itype, int jtype, double rsq,
-                       double factor_coul, double factor_dpd, double &fforce)
+                                     double factor_coul, double factor_dpd, double &fforce)
 {
   double r,rinv,wd,phi;
   double r2inv,grij,expm2,t,erfc,prefactor;
@@ -557,17 +534,11 @@ double PairDPDCoulSlaterLong::single(int i, int j, int itype, int jtype, double 
 
 void *PairDPDCoulSlaterLong::extract(const char *str, int &dim)
 {
-  if (strcmp(str,"cut_coul") == 0) {
-    dim = 0;
-    return (void *) &cut_coul;
-  }
-  if (strcmp(str,"lamda") == 0) {
-    dim = 0;
-    return (void *) &lamda;
-  }
-  if (strcmp(str,"scale") == 0) {
-    dim = 2;
-    return (void *) scale;
-  }
+  dim = 0;
+  if (strcmp(str,"cut_coul") == 0) return (void *) &cut_coul;
+  if (strcmp(str,"lamda") == 0) return (void *) &lamda;
+  dim = 2;
+  if (strcmp(str,"a0") == 0) return (void *) a0;
+  if (strcmp(str,"gamma") == 0) return (void *) gamma;
   return nullptr;
 }

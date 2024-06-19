@@ -27,12 +27,14 @@ static DPDCoulSlaterLong<PRECISION,ACC_PRECISION> DPDCMF;
 // ---------------------------------------------------------------------------
 // Allocate memory on host and device and copy constants to device
 // ---------------------------------------------------------------------------
-int dpd_coul_slater_long_gpu_init(const int ntypes, double **host_cutsq, double **host_a0, double **host_gamma,
-                 double **host_sigma, double **host_cut_dpd, double **host_cut_dpdsq, double **host_cut_slatersq,
-                 double **host_scale, double *special_lj, const int inum,
-                 const int nall, const int max_nbors, const int maxspecial, const double cell_size,
-                 int &gpu_mode, FILE *screen, double *host_special_coul,
-                 const double qqrd2e, const double g_ewald, const double lamda) {
+int dpd_coul_slater_long_gpu_init(const int ntypes, double **host_cutsq, double **host_a0,
+                                  double **host_gamma, double **host_sigma, double **host_cut_dpd,
+                                  double **host_cut_dpdsq, double **host_cut_slatersq,
+                                  double *special_lj, const int inum, const int nall,
+                                  const int max_nbors, const int maxspecial,
+                                  const double cell_size, int &gpu_mode, FILE *screen,
+                                  double *host_special_coul, const double qqrd2e,
+                                  const double g_ewald, const double lamda) {
   DPDCMF.clear();
   gpu_mode=DPDCMF.device->gpu_mode();
   double gpu_split=DPDCMF.device->particle_split();
@@ -55,11 +57,10 @@ int dpd_coul_slater_long_gpu_init(const int ntypes, double **host_cutsq, double 
 
   int init_ok=0;
   if (world_me==0)
-    init_ok=DPDCMF.init(ntypes, host_cutsq, host_a0, host_gamma, host_sigma,
-                       host_cut_dpd, host_cut_dpdsq, host_cut_slatersq,
-                       host_scale, special_lj, false, inum, nall, max_nbors,
-                       maxspecial, cell_size, gpu_split, screen,
-                       host_special_coul,qqrd2e, g_ewald, lamda);
+    init_ok=DPDCMF.init(ntypes, host_cutsq, host_a0, host_gamma, host_sigma, host_cut_dpd,
+                        host_cut_dpdsq, host_cut_slatersq, special_lj, false, inum, nall,
+                        max_nbors, maxspecial, cell_size, gpu_split, screen, host_special_coul,
+                        qqrd2e, g_ewald, lamda);
 
   DPDCMF.device->world_barrier();
   if (message)
@@ -75,11 +76,10 @@ int dpd_coul_slater_long_gpu_init(const int ntypes, double **host_cutsq, double 
       fflush(screen);
     }
     if (gpu_rank==i && world_me!=0)
-      init_ok=DPDCMF.init(ntypes, host_cutsq, host_a0, host_gamma, host_sigma,
-                         host_cut_dpd, host_cut_dpdsq, host_cut_slatersq,
-                         host_scale, special_lj, false, inum, nall, max_nbors,
-                         maxspecial, cell_size, gpu_split, screen,
-                         host_special_coul,qqrd2e, g_ewald, lamda);
+      init_ok=DPDCMF.init(ntypes, host_cutsq, host_a0, host_gamma, host_sigma, host_cut_dpd,
+                          host_cut_dpdsq, host_cut_slatersq, special_lj, false, inum, nall,
+                          max_nbors, maxspecial, cell_size, gpu_split, screen, host_special_coul,
+                          qqrd2e, g_ewald, lamda);
 
     DPDCMF.device->serialize_init();
     if (message)

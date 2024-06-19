@@ -47,15 +47,13 @@ class PairDPDCoulSlaterLong : public Pair {
   double special_sqrt[4];
   int seed;
   double **cut;
-  double **cut_dpd, **cut_dpdsq;
-  double **cut_slater, **cut_slatersq;
+  double **cut_dpd, **cut_dpdsq, **cut_slatersq;
   double **a0, **gamma;
   double **sigma;
   class RanMars *random;
   double cut_coul, qdist;
   double lamda;
   double g_ewald;
-  double **scale;
 
   virtual void allocate();
 };

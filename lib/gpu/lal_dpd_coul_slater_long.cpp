@@ -47,8 +47,7 @@ int DPDCoulSlaterLongT::init(const int ntypes,
                double **host_cutsq, double **host_a0,
                double **host_gamma, double **host_sigma,
                double **host_cut_dpd, double **host_cut_dpdsq,
-               double **host_cut_slatersq, double **host_scale,
-               double *host_special_lj,
+               double **host_cut_slatersq, double *host_special_lj,
                const bool tstat_only,
                const int nlocal, const int nall,
                const int max_nbors, const int maxspecial,
@@ -115,7 +114,7 @@ int DPDCoulSlaterLongT::init(const int ntypes,
 
   cutsq.alloc(lj_types*lj_types,*(this->ucl_device),UCL_READ_ONLY);
   this->atom->type_pack4(ntypes,lj_types,cutsq,host_write,host_cutsq,
-                          host_cut_dpdsq, host_scale, host_cut_slatersq);
+                          host_cut_dpdsq,host_cut_slatersq);
 
   double special_sqrt[4];
   special_sqrt[0] = sqrt(host_special_lj[0]);

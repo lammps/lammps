@@ -1715,6 +1715,8 @@
 /pair_dpd.h
 /pair_dpd_tstat.cpp
 /pair_dpd_tstat.h
+/pair_dpd_coul_slater_long.cpp
+/pair_dpd_coul_slater_long.h
 /pair_dpd_ext.cpp
 /pair_dpd_ext.h
 /pair_dpd_ext_tstat.cpp

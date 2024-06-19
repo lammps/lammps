@@ -13,26 +13,26 @@
 
 #ifdef PAIR_CLASS
 // clang-format off
-PairStyle(hybrid/overlay,PairHybridOverlay);
-PairStyle(hybrid/overlay/omp,PairHybridOverlay);
+PairStyle(hybrid/molecular,PairHybridMolecular);
+PairStyle(hybrid/molecular/omp,PairHybridMolecular);
 // clang-format on
 #else
 
-#ifndef LMP_PAIR_HYBRID_OVERLAY_H
-#define LMP_PAIR_HYBRID_OVERLAY_H
+#ifndef LMP_PAIR_HYBRID_MOLECULAR_H
+#define LMP_PAIR_HYBRID_MOLECULAR_H
 
-#include "pair_hybrid.h"
+#include "pair_hybrid_overlay.h"
 
 namespace LAMMPS_NS {
 
-class PairHybridOverlay : public PairHybrid {
+class PairHybridMolecular : public PairHybridOverlay {
  public:
-  PairHybridOverlay(class LAMMPS *);
+  PairHybridMolecular(class LAMMPS *);
 
-  void coeff(int, char **) override;
+  void init_style() override;
+  double init_one(int, int) override;
 
-  void init_svector() override;
-  void copy_svector(int, int) override;
+  double single(int, int, int, int, double, double, double, double &) override;
 };
 
 }    // namespace LAMMPS_NS

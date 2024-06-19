@@ -37,13 +37,15 @@ Examples
 Description
 """""""""""
 
+.. versionadded:: TBD
+
 Style *dpd/coul/slater/long* computes a force field for dissipative particle dynamics
 (DPD) following the exposition in :ref:`(Groot) <Groot5>` with the addition of
 electrostatic interactions. The coulombic forces in mesoscopic models
 employ potentials without explicit excluded-volume interactions.
 The goal is to prevent artificial ionic pair formation by including a charge
 distribution in the Coulomb potential, following the formulation of
-:ref:`(Melchor) <Melchor>`:
+:ref:`(Melchor) <Melchor1>`:
 
 The force on bead I due to bead J is given as a sum
 of 4 terms
@@ -172,6 +174,6 @@ is_charged = no
 
 **(Groot)** Groot and Warren, J Chem Phys, 107, 4423-35 (1997).
 
-.. _Melchor:
+.. _Melchor1:
 
 **(Melchor)** Gonzalez-Melchor, Mayoral, Velazquez, and Alejandre, J Chem Phys, 125, 224107 (2006).

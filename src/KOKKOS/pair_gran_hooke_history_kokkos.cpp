@@ -443,7 +443,7 @@ void PairGranHookeHistoryKokkos<DeviceType>::operator()(TagPairGranHookeHistoryC
     }
 
     if (VFLAG)
-      ev_tally_xyz<NEIGHFLAG, NEWTON_PAIR>(ev, i, j, fx_i, fy_i, fz_i, delx, dely, delz);
+      ev_tally_xyz<NEIGHFLAG, NEWTON_PAIR>(ev, i, j, fx, fy, fz, delx, dely, delz);
   }
 
   a_f(i,0) += fx_i;

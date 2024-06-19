@@ -1,21 +1,33 @@
 .. index:: pair_style hybrid
 .. index:: pair_style hybrid/kk
+.. index:: pair_style hybrid/omp
+.. index:: pair_style hybrid/molecular
+.. index:: pair_style hybrid/molecular/omp
 .. index:: pair_style hybrid/overlay
+.. index:: pair_style hybrid/overlay/omp
 .. index:: pair_style hybrid/overlay/kk
 .. index:: pair_style hybrid/scaled
+.. index:: pair_style hybrid/scaled/omp
 
 pair_style hybrid command
 =========================
 
-Accelerator Variants: *hybrid/kk*
+Accelerator Variants: *hybrid/kk*, *hybrid/omp*
+
+pair_style hybrid/molecular command
+===================================
+
+Accelerator Variant: *hybrid/molecular/omp*
 
 pair_style hybrid/overlay command
 =================================
 
-Accelerator Variants: *hybrid/overlay/kk*
+Accelerator Variants: *hybrid/overlay/kk*, *hybrid/overlay/omp*
 
 pair_style hybrid/scaled command
 ==================================
+
+Accelerator Variant: *hybrid/scaled/omp*
 
 Syntax
 """"""
@@ -23,6 +35,7 @@ Syntax
 .. code-block:: LAMMPS
 
    pair_style hybrid style1 args style2 args ...
+   pair_style hybrid/molecular factor1 style1 args factor2 style 2 args
    pair_style hybrid/overlay style1 args style2 args ...
    pair_style hybrid/scaled factor1 style1 args factor2 style 2 args ...
 
@@ -47,6 +60,10 @@ Examples
    pair_coeff * * tersoff Si.tersoff Si
    pair_coeff * * sw Si.sw Si
 
+   pair_style hybrid/molecular lj/cut 2.5 lj/cut 2.5
+   pair_coeff * * lj/cut 1 1.0 1.0
+   pair_coeff * * lj/cut 2 1.5 1.0
+
    variable one equal ramp(1.0,0.0)
    variable two equal 1.0-v_one
    pair_style hybrid/scaled v_one lj/cut 2.5 v_two morse 2.5
@@ -56,17 +73,26 @@ Examples
 Description
 """""""""""
 
-The *hybrid*, *hybrid/overlay*, and *hybrid/scaled* styles enable the
-use of multiple pair styles in one simulation.  With the *hybrid* style,
-exactly one pair style is assigned to each pair of atom types.  With the
-*hybrid/overlay* and *hybrid/scaled* styles, one or more pair styles can
-be assigned to each pair of atom types.  The assignment of pair styles
-to type pairs is made via the :doc:`pair_coeff <pair_coeff>` command.
-The major difference between the *hybrid/overlay* and *hybrid/scaled*
-styles is that the *hybrid/scaled* adds a scale factor for each
-sub-style contribution to forces, energies and stresses.  Because of the
-added complexity, the *hybrid/scaled* style has more overhead and thus
-may be slower than *hybrid/overlay*.
+The *hybrid*, *hybrid/overlay*, *hybrid/molecular*, and *hybrid/scaled*
+styles enable the use of multiple pair styles in one simulation.  With
+the *hybrid* style, exactly one pair style is assigned to each pair of
+atom types.  With the *hybrid/overlay* and *hybrid/scaled* styles, one
+or more pair styles can be assigned to each pair of atom types.  With
+the hybrid/molecular style, pair styles are assigned to either intra-
+or inter-molecular interactions.
+
+The assignment of pair styles to type pairs is made via the
+:doc:`pair_coeff <pair_coeff>` command.  The major difference between
+the *hybrid/overlay* and *hybrid/scaled* styles is that the
+*hybrid/scaled* adds a scale factor for each sub-style contribution to
+forces, energies and stresses.  Because of the added complexity, the
+*hybrid/scaled* style has more overhead and thus may be slower than
+*hybrid/overlay*.
+
+The *hybrid/molecular* pair style accepts *only* two sub-styles: the
+first is assigned to intra-molecular interactions (i.e. both atoms
+have the same molecule ID), the second to inter-molecular interactions
+(i.e. interacting atoms have different molecule IDs).
 
 Here are two examples of hybrid simulations.  The *hybrid* style could
 be used for a simulation of a metal droplet on a LJ surface.  The metal
@@ -475,6 +501,8 @@ the same or else LAMMPS will generate an error.
 
 Pair style *hybrid/scaled* currently only works for non-accelerated
 pair styles and pair styles from the OPT package.
+
+Pair style *hybrid/molecular* is not compatible with manybody potentials.
 
 When using pair styles from the GPU package they must not be listed
 multiple times.  LAMMPS will detect this and abort.

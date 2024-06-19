@@ -25,13 +25,13 @@ OPT.
 
    * :doc:`none <pair_none>`
    * :doc:`zero <pair_zero>`
-   * :doc:`hybrid (k) <pair_hybrid>`
-   * :doc:`hybrid/overlay (k) <pair_hybrid>`
-   * :doc:`hybrid/scaled <pair_hybrid>`
+   * :doc:`hybrid (ko) <pair_hybrid>`
+   * :doc:`hybrid/molecular (o) <pair_hybrid>`
+   * :doc:`hybrid/overlay (ko) <pair_hybrid>`
+   * :doc:`hybrid/scaled (o) <pair_hybrid>`
    * :doc:`kim <pair_kim>`
    * :doc:`list <pair_list>`
    * :doc:`tracker <pair_tracker>`
-   *
    *
    *
    *
@@ -269,7 +269,7 @@ OPT.
    * :doc:`smd/ulsph <pair_smd_ulsph>`
    * :doc:`smtbq <pair_smtbq>`
    * :doc:`snap (ik) <pair_snap>`
-   * :doc:`soft (go) <pair_soft>`
+   * :doc:`soft (gko) <pair_soft>`
    * :doc:`sph/heatconduction (g) <pair_sph_heatconduction>`
    * :doc:`sph/idealgas <pair_sph_idealgas>`
    * :doc:`sph/lj (g) <pair_sph_lj>`
@@ -303,6 +303,7 @@ OPT.
    * :doc:`tip4p/long/soft (o) <pair_fep_soft>`
    * :doc:`tri/lj <pair_tri_lj>`
    * :doc:`ufm (got) <pair_ufm>`
+   * :doc:`uf3 (k) <pair_uf3>`
    * :doc:`vashishta (gko) <pair_vashishta>`
    * :doc:`vashishta/table (o) <pair_vashishta>`
    * :doc:`wf/cut <pair_wf_cut>`

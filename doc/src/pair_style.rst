@@ -108,6 +108,7 @@ accelerated styles exist.
 
 * :doc:`none <pair_none>` - turn off pairwise interactions
 * :doc:`hybrid <pair_hybrid>` - multiple styles of pairwise interactions
+* :doc:`hybrid/molecular <pair_hybrid>` - different pair styles for intra- and inter-molecular interactions
 * :doc:`hybrid/overlay <pair_hybrid>` - multiple styles of superposed pairwise interactions
 * :doc:`hybrid/scaled <pair_hybrid>` - multiple styles of scaled superposed pairwise interactions
 * :doc:`zero <pair_zero>` - neighbor list but no interactions
@@ -382,6 +383,7 @@ accelerated styles exist.
 * :doc:`tracker <pair_tracker>` - monitor information about pairwise interactions
 * :doc:`tri/lj <pair_tri_lj>` - LJ potential between triangles
 * :doc:`ufm <pair_ufm>` -
+* :doc:`uf3 <pair_uf3>` - UF3 machine-learning potential
 * :doc:`vashishta <pair_vashishta>` - Vashishta 2-body and 3-body potential
 * :doc:`vashishta/table <pair_vashishta>` -
 * :doc:`wf/cut <pair_wf_cut>` - Wang-Frenkel Potential for short-ranged interactions

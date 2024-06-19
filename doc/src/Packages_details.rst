@@ -84,6 +84,7 @@ page gives those details.
    * :ref:`ML-QUIP <PKG-ML-QUIP>`
    * :ref:`ML-RANN <PKG-ML-RANN>`
    * :ref:`ML-SNAP <PKG-ML-SNAP>`
+   * :ref:`ML-UF3 <PKG-ML-UF3>`
    * :ref:`MOFFF <PKG-MOFFF>`
    * :ref:`MOLECULE <PKG-MOLECULE>`
    * :ref:`MOLFILE <PKG-MOLFILE>`
@@ -1924,6 +1925,31 @@ computes which analyze attributes of the potential.
 * examples/snap
 
 ----------
+
+.. _PKG-ML-UF3:
+
+ML-UF3 package
+--------------
+
+**Contents:**
+
+A pair style for the ultra-fast force field potentials (UF3). UF3 is a
+methodology for deriving a highly accurate classical potential which is
+fast to evaluate and is fitted to a large archives of quantum mechanical
+(DFT) data.  The use of b-spline basis set in UF3 enables the rapid
+evaluation of 2-body and 3-body interactions.
+
+**Authors:** Ajinkya C Hire (University of Florida),
+Hendrik Krass (University of Constance),
+Matthias Rupp (Luxembourg Institute of Science and Technology),
+Richard Hennig (University of Florida)
+
+**Supporting info:**
+
+* src/ML-UF3: filenames -> commands
+* :doc:`pair_style uf3 <pair_uf3>`
+* examples/uf3
+* https://github.com/uf3/uf3
 
 .. _PKG-MOFFF:
 

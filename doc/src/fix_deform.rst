@@ -64,6 +64,8 @@ Syntax
                  effectively an engineering shear strain rate
            *erate* value = R
              R = engineering shear strain rate (1/time units)
+           *erate/rescale* value = R (ONLY available in :doc:`fix deform/pressure <fix_deform_pressure>` command)
+             R = engineering shear strain rate (1/time units)
            *trate* value = R
              R = true shear strain rate (1/time units)
            *wiggle* values = A Tp

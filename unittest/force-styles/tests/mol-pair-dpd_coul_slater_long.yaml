@@ -12,10 +12,10 @@ pre_commands: ! |
   variable newton_pair delete
   variable newton_pair index on
   comm_modify vel yes
+post_commands: ! |
   kspace_style ewald 1.0e-6
   kspace_modify gewald 0.3
   kspace_modify compute no
-post_commands: ! ""
 input_file: in.fourmol
 pair_style: dpd/coul/slater/long 100.0 8.0 11223344 1.0 8.0
 pair_coeff: ! |
@@ -26,7 +26,11 @@ pair_coeff: ! |
   3 3 0.4 3.2 yes
   4 4 0.3 3.1 yes
   5 5 0.3 3.1 yes
-extract: ! ""
+extract: ! |
+  cut_coul 0
+  lamda 0
+  a0 2
+  gamma 2
 natoms: 29
 init_vdwl: 50.81607024833933
 init_coul: 246.30486150616926

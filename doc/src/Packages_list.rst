@@ -158,6 +158,11 @@ whether an extra library is needed to build and use the package:
      - :doc:`fix electrode/conp <fix_electrode>`
      - PACKAGES/electrode
      - no
+   * - :ref:`EXTRA-COMMAND <PKG-EXTRA-COMMAND>`
+     - additional command styles
+     - :doc:`general commands <Commands_all>`
+     - n/a
+     - no
    * - :ref:`EXTRA-COMPUTE <PKG-EXTRA-COMPUTE>`
      - additional compute styles
      - :doc:`compute <compute>`

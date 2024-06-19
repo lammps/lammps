@@ -232,6 +232,8 @@ void FixQEqReaxFF::pertype_parameters(char *arg)
     if (tmp_all)
       error->all(FLERR, "No QEq parameters for atom type {} provided by pair reaxff", tmp_all);
     return;
+  } else if (platform::file_is_readable(arg)) {
+    ; // arg is readable file. will read below
   } else {
     error->all(FLERR, "Unknown fix qeq/reaxff keyword {}", arg);
   }

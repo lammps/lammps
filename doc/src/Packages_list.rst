@@ -318,6 +318,11 @@ whether an extra library is needed to build and use the package:
      - :doc:`pair_style snap <pair_snap>`
      - snap
      - no
+   * - :ref:`ML-UF3 <PKG-ML-UF3>`
+     - quantum-fitted ultra fast potentials
+     - :doc:`pair_style uf3 <pair_uf3>`
+     - PACKAGES/uf3
+     - no
    * - :ref:`MOFFF <PKG-MOFFF>`
      - styles for `MOF-FF <MOFplus_>`_ force field
      - :doc:`pair_style buck6d/coul/gauss <pair_buck6d_coul_gauss>`

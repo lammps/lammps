@@ -660,11 +660,11 @@ create_atoms 1 single &
         self.assertEqual(self.lmp.extract_global("subhi_lambda"), [1.0, 1.0, 1.0])
 
         # processor grid
-        self.assertEqual(self.lmp.extract_global("proc_grid"), [1,1,1])
+        self.assertEqual(self.lmp.extract_global("procgrid"), [1,1,1])
         self.lmp.command("comm_style tiled")
         self.lmp.command("run 0 post no")
         self.lmp.command("balance 0.1 rcb")
-        self.assertEqual(self.lmp.extract_global("proc_grid"), None)
+        self.assertEqual(self.lmp.extract_global("procgrid"), None)
 
     def test_create_atoms(self):
         self.lmp.command("boundary f p m")

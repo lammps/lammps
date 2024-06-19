@@ -796,7 +796,7 @@ class PyLammps(object):
     comm = {}
     comm['nprocs'] = self.lmp.extract_setting("world_size")
     comm['nthreads'] = self.lmp.extract_setting("nthreads")
-    comm['proc_grid'] = self.lmp.extract_global("proc_grid")
+    comm['proc_grid'] = comm['procgrid'] = self.lmp.extract_global("procgrid")
     idx = self.lmp.extract_setting("comm_style")
     comm['comm_style'] = ('brick', 'tiled')[idx]
     idx = self.lmp.extract_setting("comm_style")

@@ -1,0 +1,58 @@
+# DPD Ionic Fluid
+
+variable    T           equal 1.0
+variable    cut_DPD     equal 1.0
+variable    seed        equal 165412
+variable    lambda      equal 0.25
+variable    cut_coul    equal 2.0
+
+#-------------------------------------------------------------------------------
+# Initialize LAMMPS run for 3-d periodic
+#-------------------------------------------------------------------------------
+
+units                   lj
+boundary                p p p # periodic at all axes
+atom_style              full
+dimension    3
+
+bond_style              none
+angle_style             none
+dihedral_style          none
+improper_style          none
+
+newton on
+comm_modify vel yes # store info of ghost atoms btw processors
+
+#-------------------------------------------------------------------------------
+# Box creation and configuration
+#-------------------------------------------------------------------------------
+
+# Define pair style and coefficients
+pair_style dpd/coul/slater/long ${T} ${cut_DPD} ${seed} ${lambda} ${cut_coul}
+
+read_data data.dpd_coul_slater_long
+
+# Enable long range electrostatics solver
+kspace_style    pppm       1e-04
+
+# Construct neighbors every steps
+neighbor 1.0 bin
+neigh_modify every 1 delay 0 check yes
+
+#-------------------------------------------------------------------------------
+# Run the simulation
+#-------------------------------------------------------------------------------
+
+thermo_style            custom step temp press vol evdwl ecoul elong pe ke fnorm fmax
+thermo_modify norm no
+thermo                  100
+
+timestep     0.01
+run_style    verlet
+
+fix                     1 all nve
+
+run                     1000
+
+unfix           1
+

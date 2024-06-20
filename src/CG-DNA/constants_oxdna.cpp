@@ -38,8 +38,8 @@ double ConstantsOxdna::d_cb = +0.4;
 // oxDNA 2 parameters
 double ConstantsOxdna::d_cs_x = -0.34;
 double ConstantsOxdna::d_cs_y = +0.3408;
-double ConstantsOxdna::lambda_dh_one_prefactor = +0.3616455075438555; // = C1
-double ConstantsOxdna::qeff_dh_pf_one_prefactor = +0.08173808693529228; // = C2
+double ConstantsOxdna::lambda_dh_one_prefactor = +0.3616455075438555;      // = C1
+double ConstantsOxdna::qeff_dh_pf_one_prefactor = +0.08173808693529228;    // = C2
 // oxRNA 2 parameters
 double ConstantsOxdna::d_cs_z = +0.2;
 double ConstantsOxdna::d_cst_x_3p = +0.4;
@@ -57,8 +57,8 @@ void ConstantsOxdna::set_real_units()
   // oxDNA 2 parameters in real units
   d_cs_x = -2.89612;
   d_cs_y = +2.9029344;
-  lambda_dh_one_prefactor = +0.05624154892; // = C1 * 8.518 * sqrt(k_B/4.142e-20)
-  qeff_dh_pf_one_prefactor = +4.15079634587587; // = C2 * 5.961689060210325 * 8.518
+  lambda_dh_one_prefactor = +0.05624154892;        // = C1 * 8.518 * sqrt(k_B/4.142e-20)
+  qeff_dh_pf_one_prefactor = +4.15079634587587;    // = C2 * 5.961689060210325 * 8.518
   // oxRNA 2 parameters in real units
   // d_cs_x = -3.4072 = d_cs for RNA
   d_cs_z = +1.7036;

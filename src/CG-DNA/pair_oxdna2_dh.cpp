@@ -307,7 +307,7 @@ void PairOxdna2Dh::coeff(int narg, char **arg)
   T = utils::numeric(FLERR,arg[2],false,lmp);
   rhos_dh_one = utils::numeric(FLERR,arg[3],false,lmp);
 
-  if (utils::strmatch(arg[4], "^[a-zA-Z0-9]*\\.[a-zA-Z]+$") == true) { // if last arg is a potential file
+  if (utils::strmatch(arg[4], "^[a-zA-Z0-9_]*\\.cgdna$")) { // if last arg is a potential file
     if (comm->me == 0) { // read value from potential file
       PotentialFileReader reader(lmp, arg[4], "oxdna potential", " (dh)");
       char * line;

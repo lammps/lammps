@@ -26,18 +26,18 @@ group all type 1 4
 
 # oxDNA bond interactions - FENE backbone
 bond_style oxdna/fene
-bond_coeff * oxdna.lj
+bond_coeff * oxdna_lj.cgdna
 special_bonds lj 0 1 1
 
 # oxDNA pair interactions
 pair_style hybrid/overlay oxdna/excv oxdna/stk oxdna/hbond oxdna/xstk oxdna/coaxstk
-pair_coeff * * oxdna/excv    oxdna.lj
-pair_coeff * * oxdna/stk     seqav 0.1 1.3448 2.6568 oxdna.lj
-pair_coeff * * oxdna/hbond   seqav oxdna.lj
-pair_coeff 1 4 oxdna/hbond   seqav oxdna.lj
-pair_coeff 2 3 oxdna/hbond   seqav oxdna.lj
-pair_coeff * * oxdna/xstk    oxdna.lj
-pair_coeff * * oxdna/coaxstk oxdna.lj
+pair_coeff * * oxdna/excv    oxdna_lj.cgdna
+pair_coeff * * oxdna/stk     seqav 0.1 1.3448 2.6568 oxdna_lj.cgdna
+pair_coeff * * oxdna/hbond   seqav oxdna_lj.cgdna
+pair_coeff 1 4 oxdna/hbond   seqav oxdna_lj.cgdna
+pair_coeff 2 3 oxdna/hbond   seqav oxdna_lj.cgdna
+pair_coeff * * oxdna/xstk    oxdna_lj.cgdna
+pair_coeff * * oxdna/coaxstk oxdna_lj.cgdna
 
 # NVE ensemble
 fix 1 all nve/asphere

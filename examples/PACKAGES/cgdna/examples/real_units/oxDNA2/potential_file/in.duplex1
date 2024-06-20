@@ -1,7 +1,7 @@
 # LAMMPS input file in real units via oxdna lj2real.py, date 2024-05-19
-variable number	equal 1
-variable ofreq	equal 1000
-variable efreq	equal 1000
+variable number equal 1
+variable ofreq  equal 1000
+variable efreq  equal 1000
 variable T      equal 300.0
 variable rhos   equal 0.2
 
@@ -28,19 +28,19 @@ group all type 1 4
 
 # oxDNA2 bond interactions - FENE backbone
 bond_style oxdna2/fene
-bond_coeff * oxdna2.real
+bond_coeff * oxdna2_real.cgdna
 special_bonds fene
 
 # oxDNA2 pair interactions
 pair_style hybrid/overlay oxdna2/excv oxdna2/stk oxdna2/hbond oxdna2/xstk oxdna2/coaxstk oxdna2/dh
-pair_coeff * * oxdna2/excv    oxdna2.real
-pair_coeff * * oxdna2/stk     seqav 300.0 8.06199211612242 0.005309213 oxdna2.real
-pair_coeff * * oxdna2/hbond   seqav oxdna2.real
-pair_coeff 1 4 oxdna2/hbond   seqav oxdna2.real
-pair_coeff 2 3 oxdna2/hbond   seqav oxdna2.real
-pair_coeff * * oxdna2/xstk    oxdna2.real
-pair_coeff * * oxdna2/coaxstk oxdna2.real
-pair_coeff * * oxdna2/dh      300.0 0.5 oxdna2.real
+pair_coeff * * oxdna2/excv    oxdna2_real.cgdna
+pair_coeff * * oxdna2/stk     seqav 300.0 8.06199211612242 0.005309213 oxdna2_real.cgdna
+pair_coeff * * oxdna2/hbond   seqav oxdna2_real.cgdna
+pair_coeff 1 4 oxdna2/hbond   seqav oxdna2_real.cgdna
+pair_coeff 2 3 oxdna2/hbond   seqav oxdna2_real.cgdna
+pair_coeff * * oxdna2/xstk    oxdna2_real.cgdna
+pair_coeff * * oxdna2/coaxstk oxdna2_real.cgdna
+pair_coeff * * oxdna2/dh      300.0 0.5 oxdna2_real.cgdna
 
 
 # NVE ensemble

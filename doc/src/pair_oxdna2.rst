@@ -69,14 +69,14 @@ Examples
    pair_coeff * * oxdna2/dh      0.1 0.5 0.815
 
    pair_style hybrid/overlay oxdna2/excv oxdna2/stk oxdna2/hbond oxdna2/xstk oxdna2/coaxstk oxdna2/dh
-   pair_coeff * * oxdna2/excv    oxdna2.lj
-   pair_coeff * * oxdna2/stk     seqdep 0.1 1.3523 2.6717 oxdna2.lj
-   pair_coeff * * oxdna2/hbond   seqdep oxdna2.lj
-   pair_coeff 1 4 oxdna2/hbond   seqdep oxdna2.lj
-   pair_coeff 2 3 oxdna2/hbond   seqdep oxdna2.lj
-   pair_coeff * * oxdna2/xstk    oxdna2.lj
-   pair_coeff * * oxdna2/coaxstk oxdna2.lj
-   pair_coeff * * oxdna2/dh      0.1 0.5 oxdna2.lj
+   pair_coeff * * oxdna2/excv    oxdna2_lj.cgdna
+   pair_coeff * * oxdna2/stk     seqdep 0.1 1.3523 2.6717 oxdna2_lj.cgdna
+   pair_coeff * * oxdna2/hbond   seqdep oxdna2_lj.cgdna
+   pair_coeff 1 4 oxdna2/hbond   seqdep oxdna2_lj.cgdna
+   pair_coeff 2 3 oxdna2/hbond   seqdep oxdna2_lj.cgdna
+   pair_coeff * * oxdna2/xstk    oxdna2_lj.cgdna
+   pair_coeff * * oxdna2/coaxstk oxdna2_lj.cgdna
+   pair_coeff * * oxdna2/dh      0.1 0.5 oxdna2_lj.cgdna
 
    # Real units
    pair_style hybrid/overlay oxdna2/excv oxdna2/stk oxdna2/hbond oxdna2/xstk oxdna2/coaxstk oxdna2/dh
@@ -90,69 +90,88 @@ Examples
    pair_coeff * * oxdna2/dh      300.0 0.5 0.815
 
    pair_style hybrid/overlay oxdna2/excv oxdna2/stk oxdna2/hbond oxdna2/xstk oxdna2/coaxstk oxdna2/dh
-   pair_coeff * * oxdna2/excv    oxdna2.real
-   pair_coeff * * oxdna2/stk     seqdep 300.0 8.06199211612242 0.005309213 oxdna2.real
-   pair_coeff * * oxdna2/hbond   seqdep oxdna2.real
-   pair_coeff 1 4 oxdna2/hbond   seqdep oxdna2.real
-   pair_coeff 2 3 oxdna2/hbond   seqdep oxdna2.real
-   pair_coeff * * oxdna2/xstk    oxdna2.real
-   pair_coeff * * oxdna2/coaxstk oxdna2.real
-   pair_coeff * * oxdna2/dh      300.0 0.5 oxdna2.real
+   pair_coeff * * oxdna2/excv    oxdna2_real.cgdna
+   pair_coeff * * oxdna2/stk     seqdep 300.0 8.06199211612242 0.005309213 oxdna2_real.cgdna
+   pair_coeff * * oxdna2/hbond   seqdep oxdna2_real.cgdna
+   pair_coeff 1 4 oxdna2/hbond   seqdep oxdna2_real.cgdna
+   pair_coeff 2 3 oxdna2/hbond   seqdep oxdna2_real.cgdna
+   pair_coeff * * oxdna2/xstk    oxdna2_real.cgdna
+   pair_coeff * * oxdna2/coaxstk oxdna2_real.cgdna
+   pair_coeff * * oxdna2/dh      300.0 0.5 oxdna2_real.cgdna
 
 .. note::
 
-   The coefficients in the above examples are provided in forms compatible with both *units lj* and *units real* (see documentation of :doc:`units <units>`).
-   These can also be read from a potential file with correct unit style by specifying the name of the file. Several potential files for each unit style are included in the /potentials/ directory of the LAMMPS distribution.
+   The coefficients in the above examples are provided in forms
+   compatible with both *units lj* and *units real* (see documentation
+   of :doc:`units <units>`).  These can also be read from a potential
+   file with correct unit style by specifying the name of the
+   file. Several potential files for each unit style are included in the
+   ``potentials`` directory of the LAMMPS distribution.
 
 Description
 """""""""""
 
-The *oxdna2* pair styles compute the pairwise-additive parts of the oxDNA force field
-for coarse-grained modelling of DNA. The effective interaction between the nucleotides consists of potentials for the
-excluded volume interaction *oxdna2/excv*, the stacking *oxdna2/stk*, cross-stacking *oxdna2/xstk*
-and coaxial stacking interaction *oxdna2/coaxstk*, electrostatic Debye-Hueckel interaction *oxdna2/dh*
-as well as the hydrogen-bonding interaction *oxdna2/hbond* between complementary pairs of nucleotides on
-opposite strands. Average sequence or sequence-dependent stacking and base-pairing strengths
-are supported :ref:`(Sulc) <Sulc2>`. Quasi-unique base-pairing between nucleotides can be achieved by using
-more complementary pairs of atom types like 5-8 and 6-7, 9-12 and 10-11, 13-16 and 14-15, etc.
-This prevents the hybridization of in principle complementary bases within Ntypes/4 bases
+The *oxdna2* pair styles compute the pairwise-additive parts of the
+oxDNA force field for coarse-grained modelling of DNA. The effective
+interaction between the nucleotides consists of potentials for the
+excluded volume interaction *oxdna2/excv*, the stacking *oxdna2/stk*,
+cross-stacking *oxdna2/xstk* and coaxial stacking interaction
+*oxdna2/coaxstk*, electrostatic Debye-Hueckel interaction *oxdna2/dh* as
+well as the hydrogen-bonding interaction *oxdna2/hbond* between
+complementary pairs of nucleotides on opposite strands. Average sequence
+or sequence-dependent stacking and base-pairing strengths are supported
+:ref:`(Sulc) <Sulc2>`. Quasi-unique base-pairing between nucleotides can
+be achieved by using more complementary pairs of atom types like 5-8 and
+6-7, 9-12 and 10-11, 13-16 and 14-15, etc.  This prevents the
+hybridization of in principle complementary bases within Ntypes/4 bases
 up and down along the backbone.
 
-The exact functional form of the pair styles is rather complex.
-The individual potentials consist of products of modulation factors,
-which themselves are constructed from a number of more basic potentials
-(Morse, Lennard-Jones, harmonic angle and distance) as well as quadratic smoothing and modulation terms.
-We refer to :ref:`(Snodin) <Snodin2>` and the original oxDNA publications :ref:`(Ouldridge-DPhil) <Ouldridge-DPhil2>`
-and  :ref:`(Ouldridge) <Ouldridge2>` for a detailed description of the oxDNA2 force field.
+The exact functional form of the pair styles is rather complex.  The
+individual potentials consist of products of modulation factors, which
+themselves are constructed from a number of more basic potentials
+(Morse, Lennard-Jones, harmonic angle and distance) as well as quadratic
+smoothing and modulation terms.  We refer to :ref:`(Snodin) <Snodin2>`
+and the original oxDNA publications :ref:`(Ouldridge-DPhil)
+<Ouldridge-DPhil2>` and :ref:`(Ouldridge) <Ouldridge2>` for a detailed
+description of the oxDNA2 force field.
 
 .. note::
 
-   These pair styles have to be used together with the related oxDNA2 bond style
-   *oxdna2/fene* for the connectivity of the phosphate backbone (see also documentation of
-   :doc:`bond_style oxdna2/fene <bond_oxdna>`). Most of the coefficients
-   in the above example have to be kept fixed and cannot be changed without reparameterizing the entire model.
-   Exceptions are the first four coefficients after *oxdna2/stk* (seq=seqdep, T=0.1, xi=1.3523 and kappa=2.6717 and corresponding *real unit* equivalents in the above examples).
-   the first coefficient after *oxdna2/hbond* (seq=seqdep in the above example) and the three coefficients
-   after *oxdna2/dh* (T=0.1, rhos=0.5, qeff=0.815 in the above example). When using a Langevin thermostat
-   e.g. through :doc:`fix langevin <fix_langevin>` or :doc:`fix nve/dotc/langevin <fix_nve_dotc_langevin>`
-   the temperature coefficients have to be matched to the one used in the fix.
+   These pair styles have to be used together with the related oxDNA2
+   bond style *oxdna2/fene* for the connectivity of the phosphate
+   backbone (see also documentation of :doc:`bond_style oxdna2/fene
+   <bond_oxdna>`). Most of the coefficients in the above example have to
+   be kept fixed and cannot be changed without reparameterizing the
+   entire model.  Exceptions are the first four coefficients after
+   *oxdna2/stk* (seq=seqdep, T=0.1, xi=1.3523 and kappa=2.6717 and
+   corresponding *real unit* equivalents in the above examples).  the
+   first coefficient after *oxdna2/hbond* (seq=seqdep in the above
+   example) and the three coefficients after *oxdna2/dh* (T=0.1,
+   rhos=0.5, qeff=0.815 in the above example). When using a Langevin
+   thermostat e.g. through :doc:`fix langevin <fix_langevin>` or
+   :doc:`fix nve/dotc/langevin <fix_nve_dotc_langevin>` the temperature
+   coefficients have to be matched to the one used in the fix.
 
 .. note::
 
-   These pair styles have to be used with the *atom_style hybrid bond ellipsoid oxdna*
-   (see documentation of :doc:`atom_style <atom_style>`). The *atom_style oxdna*
-   stores the 3'-to-5' polarity of the nucleotide strand, which is set through
-   the bond topology in the data file. The first (second) atom in a bond definition
-   is understood to point towards the 3'-end (5'-end) of the strand.
+   These pair styles have to be used with the *atom_style hybrid bond
+   ellipsoid oxdna* (see documentation of :doc:`atom_style
+   <atom_style>`). The *atom_style oxdna* stores the 3'-to-5' polarity
+   of the nucleotide strand, which is set through the bond topology in
+   the data file. The first (second) atom in a bond definition is
+   understood to point towards the 3'-end (5'-end) of the strand.
 
-Example input and data files for DNA duplexes can be found in examples/PACKAGES/cgdna/examples/oxDNA/ and /oxDNA2/.
-A simple python setup tool which creates single straight or helical DNA strands,
-DNA duplexes or arrays of DNA duplexes can be found in examples/PACKAGES/cgdna/util/.
+Example input and data files for DNA duplexes can be found in
+``examples/PACKAGES/cgdna/examples/oxDNA/`` and ``.../oxDNA2/``.  A
+simple python setup tool which creates single straight or helical DNA
+strands, DNA duplexes or arrays of DNA duplexes can be found in
+``examples/PACKAGES/cgdna/util/``.
 
 Please cite :ref:`(Henrich) <Henrich2>` in any publication that uses
-this implementation. An updated documentation that contains general information
-on the model, its implementation and performance as well as the structure of
-the data and input file can be found `here <PDF/CG-DNA.pdf>`_.
+this implementation. An updated documentation that contains general
+information on the model, its implementation and performance as well as
+the structure of the data and input file can be found `here
+<PDF/CG-DNA.pdf>`_.
 
 Please cite also the relevant oxDNA2 publications
 :ref:`(Snodin) <Snodin2>` and :ref:`(Sulc) <Sulc2>`.
@@ -162,38 +181,53 @@ Please cite also the relevant oxDNA2 publications
 Potential file reading
 """"""""""""""""""""""
 
-For each pair style above the first non-modifiable argument can be a filename (with exception of Debye-Hueckel, for which the effective charge argument can be a filename), and if it is, no further arguments should be supplied.
-Therefore the following command:
+For each pair style above the first non-modifiable argument can be a
+filename (with exception of Debye-Hueckel, for which the effective
+charge argument can be a filename), and if it is, no further arguments
+should be supplied.  Therefore the following command:
 
 .. code-block:: LAMMPS
 
-   pair_coeff 1 4 oxdna2/hbond   seqdep oxdna.real
+   pair_coeff 1 4 oxdna2/hbond   seqdep oxdna_real.cgdna
 
-will be interpreted as a request to read the corresponding hydrogen bonding potential parameters from the file with the given name.
-The file can define multiple potential parameters for both bonded and pair interactions, but for the example pair interaction above there must exist in the file a line of the form:
+will be interpreted as a request to read the corresponding hydrogen
+bonding potential parameters from the file with the given name.  The
+file can define multiple potential parameters for both bonded and pair
+interactions, but for the example pair interaction above there must
+exist in the file a line of the form:
 
 .. code-block:: LAMMPS
 
   1 4 hbond     <coefficients>
 
-If potential customization is required, the potential file reading can be mixed with the manual specification of the potential parameters. For example, the following command:
+If potential customization is required, the potential file reading can
+be mixed with the manual specification of the potential parameters. For
+example, the following command:
 
 .. code-block:: LAMMPS
 
    pair_style hybrid/overlay oxdna2/excv oxdna2/stk oxdna2/hbond oxdna2/xstk oxdna2/coaxstk oxdna2/dh
    pair_coeff * * oxdna2/excv    2.0 0.7 0.675 2.0 0.515 0.5 2.0 0.33 0.32
-   pair_coeff * * oxdna2/stk     seqdep 0.1 1.3523 2.6717 oxdna2.lj
-   pair_coeff * * oxdna2/hbond   seqdep oxdna2.lj
-   pair_coeff 1 4 oxdna2/hbond   seqdep oxdna2.lj
-   pair_coeff 2 3 oxdna2/hbond   seqdep oxdna2.lj
-   pair_coeff * * oxdna2/xstk    oxdna2.lj
-   pair_coeff * * oxdna2/coaxstk oxdna2.lj
+   pair_coeff * * oxdna2/stk     seqdep 0.1 1.3523 2.6717 oxdna2_lj.cgdna
+   pair_coeff * * oxdna2/hbond   seqdep oxdna2_lj.cgdna
+   pair_coeff 1 4 oxdna2/hbond   seqdep oxdna2_lj.cgdna
+   pair_coeff 2 3 oxdna2/hbond   seqdep oxdna2_lj.cgdna
+   pair_coeff * * oxdna2/xstk    oxdna2_lj.cgdna
+   pair_coeff * * oxdna2/coaxstk oxdna2_lj.cgdna
    pair_coeff * * oxdna2/dh      0.1 0.5 0.815
 
-will read the excluded volume and Debye-Hueckel effective charge *qeff* parameters from the manual specification and all others from the potential file *oxdna2.lj*.
+will read the excluded volume and Debye-Hueckel effective charge *qeff*
+parameters from the manual specification and all others from the
+potential file *oxdna2_lj.cgdna*.
 
-There are sample potential files for each unit style in the /potentials/ directory of the LAMMPS distribution. The potential file unit system must align with
-the units defined via the :doc:`units <units>` command. For conversion between different *LJ* and *real* unit systems for oxDNA, the python tool *lj2real.py* located in the examples/PACKAGES/cgdna/util/ directory can be used. This tool assumes similar file structure to the examples found in examples/PACKAGES/cgdna/examples/.
+There are sample potential files for each unit style in the ``potentials``
+directory of the LAMMPS distribution. The potential file unit system
+must align with the units defined via the :doc:`units <units>`
+command. For conversion between different *LJ* and *real* unit systems
+for oxDNA, the python tool *lj2real.py* located in the
+``examples/PACKAGES/cgdna/util/`` directory can be used. This tool assumes
+similar file structure to the examples found in
+``examples/PACKAGES/cgdna/examples/``.
 
 ----------
 

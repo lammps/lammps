@@ -17,6 +17,8 @@
 
 #include "constants_oxdna.h"
 
+#include "update.h"
+
 namespace LAMMPS_NS {
 
 ConstantsOxdna::ConstantsOxdna(class LAMMPS *lmp) : Pointers(lmp)

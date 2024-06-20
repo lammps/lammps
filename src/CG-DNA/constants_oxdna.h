@@ -14,7 +14,7 @@
 #ifndef CONSTANTS_OXDNA_H
 #define CONSTANTS_OXDNA_H
 
-#include "update.h"
+#include "pointers.h"
 
 namespace LAMMPS_NS {
 

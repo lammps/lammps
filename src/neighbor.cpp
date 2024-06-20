@@ -1800,10 +1800,17 @@ void Neighbor::print_pairwise_info()
       else
         out += fmt::format(", half/full from ({})",rq->halffulllist+1);
     } else if (rq->skip) {
-      if (rq->trim)
-        out += fmt::format(", skip trim from ({})",rq->skiplist+1);
-      else
-        out += fmt::format(", skip from ({})",rq->skiplist+1);
+      if (rq->molskip) {
+        if (rq->trim)
+          out += fmt::format(", molskip trim from ({})",rq->skiplist+1);
+        else
+          out += fmt::format(", molskip from ({})",rq->skiplist+1);
+      } else {
+        if (rq->trim)
+          out += fmt::format(", skip trim from ({})",rq->skiplist+1);
+        else
+          out += fmt::format(", skip from ({})",rq->skiplist+1);
+      }
     }
     out += "\n";
 

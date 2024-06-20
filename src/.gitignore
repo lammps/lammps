@@ -688,6 +688,8 @@
 /compute_viscosity_cos.h
 /compute_voronoi_atom.cpp
 /compute_voronoi_atom.h
+/constants_oxdna.cpp
+/constants_oxdna.h
 /dihedral_charmm.cpp
 /dihedral_charmm.h
 /dihedral_class2.cpp

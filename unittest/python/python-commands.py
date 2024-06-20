@@ -580,6 +580,37 @@ create_atoms 1 single &
                 "Press" : 0.0}
         self.assertDictEqual(self.lmp.last_thermo(), ref)
 
+    def test_extract_setting(self):
+        self.assertEqual(self.lmp.extract_setting("dimension"), 3)
+        self.assertEqual(self.lmp.extract_setting("box_exist"), 0)
+        self.assertEqual(self.lmp.extract_setting("kokkos_active"), 0)
+        self.assertEqual(self.lmp.extract_setting("kokkos_nthreads"), 0)
+        self.assertEqual(self.lmp.extract_setting("kokkos_ngpus"), 0)
+        self.lmp.command("region box block -1 1 -2 2 -3 3")
+        self.lmp.command("create_box 1 box")
+        self.lmp.command("special_bonds lj 0.0 0.5 0.8 coul 0.1 0.5 1.0")
+        self.assertEqual(self.lmp.extract_setting("newton_bond"), 1)
+        self.assertEqual(self.lmp.extract_setting("newton_pair"), 1)
+        self.assertEqual(self.lmp.extract_setting("triclinic"), 0)
+        self.assertEqual(self.lmp.extract_setting("universe_rank"), 0)
+        self.assertEqual(self.lmp.extract_setting("universe_size"), 1)
+        self.assertEqual(self.lmp.extract_setting("world_rank"), 0)
+        self.assertEqual(self.lmp.extract_setting("world_size"), 1)
+        self.assertEqual(self.lmp.extract_setting("triclinic"), 0)
+        self.assertEqual(self.lmp.extract_setting("comm_style"), 0)
+        self.assertEqual(self.lmp.extract_setting("comm_layout"), 0)
+        self.assertEqual(self.lmp.extract_setting("comm_mode"), 0)
+        self.assertEqual(self.lmp.extract_setting("ghost_velocity"), 0)
+        self.lmp.command("comm_style tiled")
+        self.lmp.command("comm_modify vel yes")
+        self.lmp.command("mass 1 1.0")
+        self.lmp.command("run 0 post no")
+        self.lmp.command("balance 0.1 rcb")
+        self.assertEqual(self.lmp.extract_setting("comm_style"), 1)
+        self.assertEqual(self.lmp.extract_setting("comm_layout"), 2)
+        self.assertEqual(self.lmp.extract_setting("comm_mode"), 0)
+        self.assertEqual(self.lmp.extract_setting("ghost_velocity"), 1)
+
     def test_extract_global(self):
         self.lmp.command("region box block -1 1 -2 2 -3 3")
         self.lmp.command("create_box 1 box")
@@ -627,6 +658,13 @@ create_atoms 1 single &
         self.assertEqual(self.lmp.extract_global("triclinic"), 1)
         self.assertEqual(self.lmp.extract_global("sublo_lambda"), [0.0, 0.0, 0.0])
         self.assertEqual(self.lmp.extract_global("subhi_lambda"), [1.0, 1.0, 1.0])
+
+        # processor grid
+        self.assertEqual(self.lmp.extract_global("procgrid"), [1,1,1])
+        self.lmp.command("comm_style tiled")
+        self.lmp.command("run 0 post no")
+        self.lmp.command("balance 0.1 rcb")
+        self.assertEqual(self.lmp.extract_global("procgrid"), None)
 
     def test_create_atoms(self):
         self.lmp.command("boundary f p m")

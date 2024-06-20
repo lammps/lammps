@@ -312,7 +312,7 @@ void PairOxdna2Dh::coeff(int narg, char **arg)
       PotentialFileReader reader(lmp, arg[4], "oxdna potential", " (dh)");
       char * line;
       std::string iloc, jloc, potential_name;
-      while(line = reader.next_line()) {
+      while ((line = reader.next_line())) {
         try {
           ValueTokenizer values(line);
           iloc = values.next_string();
@@ -326,7 +326,9 @@ void PairOxdna2Dh::coeff(int narg, char **arg)
           error->one(FLERR, "Problem parsing oxDNA2 potential file: {}", e.what());
         }
       }
-      if (iloc != arg[0] || jloc != arg[1] || potential_name != "dh") error->one(FLERR, "No corresponding dh potential found in file {} for pair type {} {}", arg[4], arg[0], arg[1]);
+      if ((iloc != arg[0]) || (jloc != arg[1]) || (potential_name != "dh"))
+        error->one(FLERR, "No corresponding dh potential found in file {} for pair type {} {}",
+                   arg[4], arg[0], arg[1]);
     }
     MPI_Bcast(&qeff_dh_one, 1, MPI_DOUBLE, 0, world);
   } else qeff_dh_one = utils::numeric(FLERR,arg[4],false,lmp); // else, it is effective charge

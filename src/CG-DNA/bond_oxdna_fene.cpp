@@ -338,7 +338,7 @@ void BondOxdnaFene::coeff(int narg, char **arg)
       char * line;
       std::string iloc, potential_name;
 
-      while(line = reader.next_line()) {
+      while ((line = reader.next_line())) {
         try {
           ValueTokenizer values(line);
           iloc = values.next_string();
@@ -354,7 +354,9 @@ void BondOxdnaFene::coeff(int narg, char **arg)
           error->one(FLERR, "Problem parsing oxDNA potential file: {}", e.what());
         }
       }
-      if (iloc != arg[0] || potential_name != "fene") error->one(FLERR, "No corresponding fene potential found in file {} for bond type {}", arg[1], arg[0]);
+      if ((iloc != arg[0]) || (potential_name != "fene"))
+        error->one(FLERR, "No corresponding fene potential found in file {} for bond type {}",
+                   arg[1], arg[0]);
     }
 
     MPI_Bcast(&k_one, 1, MPI_DOUBLE, 0, world);

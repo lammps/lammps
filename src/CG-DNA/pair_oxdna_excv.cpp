@@ -543,7 +543,7 @@ void PairOxdnaExcv::coeff(int narg, char **arg)
       char * line;
       std::string iloc, jloc, potential_name;
 
-      while(line = reader.next_line()) {
+      while ((line = reader.next_line())) {
         try {
           ValueTokenizer values(line);
           iloc = values.next_string();
@@ -572,7 +572,9 @@ void PairOxdnaExcv::coeff(int narg, char **arg)
           error->one(FLERR, "Problem parsing oxDNA potential file: {}", e.what());
         }
       }
-      if (iloc != arg[0] || jloc != arg[1] || potential_name != "excv") error->one(FLERR, "No corresponding excv potential found in file {} for pair type {} {}", arg[2], arg[0], arg[1]);
+      if ((iloc != arg[0]) || (jloc != arg[1]) || (potential_name != "excv"))
+        error->one(FLERR, "No corresponding excv potential found in file {} for pair type {} {}",
+                   arg[2], arg[0], arg[1]);
     }
 
     MPI_Bcast(&epsilon_ss_one, 1, MPI_DOUBLE, 0, world);

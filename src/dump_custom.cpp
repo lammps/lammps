@@ -1482,7 +1482,7 @@ int DumpCustom::parse_fields(int narg, char **arg)
       vtype[iarg] = Dump::DOUBLE;
     } else if (strcmp(arg[iarg],"zs") == 0) {
       if (domain->triclinic) pack_choice[iarg] = &DumpCustom::pack_zs_triclinic;
-      pack_choice[iarg] = &DumpCustom::pack_zs;
+      else pack_choice[iarg] = &DumpCustom::pack_zs;
       vtype[iarg] = Dump::DOUBLE;
     } else if (strcmp(arg[iarg],"xu") == 0) {
       if (domain->triclinic) pack_choice[iarg] = &DumpCustom::pack_xu_triclinic;

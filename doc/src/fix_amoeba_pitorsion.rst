@@ -74,10 +74,10 @@ of the data file like these with :math:`M` and :math:`N` lines each:
 
    PiTorsions
 
-          1       1       8      10      12      18      20
-          2       5      18      20      22      25      27
+          1       1       2      4      3      20      21      24
+          2       5      21     23     22      37      38      41
           [...]
-          N       3     314     315     317      318    330
+          N       7      27     29     28      30      35      36
 
 For PiTorsion Coeffs, the first column is an index from 1 to :math:`M`
 to enumerate the pitorsion types.  The second column is the single

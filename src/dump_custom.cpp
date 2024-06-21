@@ -240,7 +240,7 @@ DumpCustom::~DumpCustom()
 
 void DumpCustom::init_style()
 {
-  // assemble ITEMS: column string from defaults and user values
+  // assemble ITEMS column string from defaults and user values
 
   delete[] columns;
   std::string combined;
@@ -312,7 +312,68 @@ void DumpCustom::init_style()
   else if (buffer_flag == 1) write_choice = &DumpCustom::write_string;
   else write_choice = &DumpCustom::write_lines;
 
-  // if triclinic_general = 1, change any affected pack_choice function ptrs
+  // triclinic_general can be toggled by dump_modify before or between run
+  // change any affected pack_choice function ptrs
+  
+  if (triclinic_general == 0) {
+    for (int n = 0; n < size_one; n++) {
+      if (pack_choice[n] == &DumpCustom::pack_x_triclinic_general)
+        pack_choice[n] = &DumpCustom::pack_x;
+      else if (pack_choice[n] == &DumpCustom::pack_y_triclinic_general)
+        pack_choice[n] = &DumpCustom::pack_y;
+      else if (pack_choice[n] == &DumpCustom::pack_z_triclinic_general)
+        pack_choice[n] = &DumpCustom::pack_z;
+      else if (pack_choice[n] == &DumpCustom::pack_xu_triclinic_general) {
+        if (domain->triclinic) pack_choice[n] = &DumpCustom::pack_xu_triclinic;
+        else pack_choice[n] == &DumpCustom::pack_xu;
+      } else if (pack_choice[n] == &DumpCustom::pack_yu_triclinic_general) {
+        if (domain->triclinic) pack_choice[n] = &DumpCustom::pack_yu_triclinic;
+        else pack_choice[n] == &DumpCustom::pack_yu;
+      } else if (pack_choice[n] == &DumpCustom::pack_zu_triclinic_general) {
+        if (domain->triclinic) pack_choice[n] = &DumpCustom::pack_zu_triclinic;
+        else pack_choice[n] == &DumpCustom::pack_zu;
+      }
+      
+      else if (pack_choice[n] == &DumpCustom::pack_vx_triclinic_general)
+        pack_choice[n] = &DumpCustom::pack_vx;
+      else if (pack_choice[n] == &DumpCustom::pack_vy_triclinic_general)
+        pack_choice[n] = &DumpCustom::pack_vy;
+      else if (pack_choice[n] == &DumpCustom::pack_vz_triclinic_general)
+        pack_choice[n] = &DumpCustom::pack_vz;
+      else if (pack_choice[n] == &DumpCustom::pack_fx_triclinic_general)
+        pack_choice[n] = &DumpCustom::pack_fx;
+      else if (pack_choice[n] == &DumpCustom::pack_fy_triclinic_general)
+        pack_choice[n] = &DumpCustom::pack_fy;
+      else if (pack_choice[n] == &DumpCustom::pack_fz_triclinic_general)
+        pack_choice[n] = &DumpCustom::pack_fz;
+
+      else if (pack_choice[n] == &DumpCustom::pack_mux_triclinic_general)
+        pack_choice[n] = &DumpCustom::pack_mux;
+      else if (pack_choice[n] == &DumpCustom::pack_muy_triclinic_general)
+        pack_choice[n] = &DumpCustom::pack_muy;
+      else if (pack_choice[n] == &DumpCustom::pack_muz_triclinic_general)
+        pack_choice[n] = &DumpCustom::pack_muz;
+
+      else if (pack_choice[n] == &DumpCustom::pack_omegax_triclinic_general)
+        pack_choice[n] = &DumpCustom::pack_omegax;
+      else if (pack_choice[n] == &DumpCustom::pack_omegay_triclinic_general)
+        pack_choice[n] = &DumpCustom::pack_omegay;
+      else if (pack_choice[n] == &DumpCustom::pack_omegaz_triclinic_general)
+        pack_choice[n] = &DumpCustom::pack_omegaz;
+      else if (pack_choice[n] == &DumpCustom::pack_angmomx_triclinic_general)
+        pack_choice[n] = &DumpCustom::pack_angmomx;
+      else if (pack_choice[n] == &DumpCustom::pack_angmomy_triclinic_general)
+        pack_choice[n] = &DumpCustom::pack_angmomy;
+      else if (pack_choice[n] == &DumpCustom::pack_angmomz_triclinic_general)
+        pack_choice[n] = &DumpCustom::pack_angmomz;
+      else if (pack_choice[n] == &DumpCustom::pack_tqx_triclinic_general)
+        pack_choice[n] = &DumpCustom::pack_tqx;
+      else if (pack_choice[n] == &DumpCustom::pack_tqy_triclinic_general)
+        pack_choice[n] = &DumpCustom::pack_tqy;
+      else if (pack_choice[n] == &DumpCustom::pack_tqz_triclinic_general)
+        pack_choice[n] = &DumpCustom::pack_tqz;
+    }
+  }
 
   if (triclinic_general == 1) {
     for (int n = 0; n < size_one; n++) {
@@ -322,12 +383,6 @@ void DumpCustom::init_style()
         pack_choice[n] = &DumpCustom::pack_y_triclinic_general;
       else if (pack_choice[n] == &DumpCustom::pack_z)
         pack_choice[n] = &DumpCustom::pack_z_triclinic_general;
-      else if (pack_choice[n] == &DumpCustom::pack_xs)
-        pack_choice[n] = &DumpCustom::pack_xs_triclinic_general;
-      else if (pack_choice[n] == &DumpCustom::pack_ys)
-        pack_choice[n] = &DumpCustom::pack_ys_triclinic_general;
-      else if (pack_choice[n] == &DumpCustom::pack_zs)
-        pack_choice[n] = &DumpCustom::pack_zs_triclinic_general;
       else if (pack_choice[n] == &DumpCustom::pack_xu ||
                pack_choice[n] == &DumpCustom::pack_xu_triclinic)
         pack_choice[n] = &DumpCustom::pack_xu_triclinic_general;
@@ -357,7 +412,13 @@ void DumpCustom::init_style()
         pack_choice[n] = &DumpCustom::pack_muy_triclinic_general;
       else if (pack_choice[n] == &DumpCustom::pack_muz)
         pack_choice[n] = &DumpCustom::pack_muz_triclinic_general;
-
+      
+      else if (pack_choice[n] == &DumpCustom::pack_omegax)
+        pack_choice[n] = &DumpCustom::pack_omegax_triclinic_general;
+      else if (pack_choice[n] == &DumpCustom::pack_omegay)
+        pack_choice[n] = &DumpCustom::pack_omegay_triclinic_general;
+      else if (pack_choice[n] == &DumpCustom::pack_omegaz)
+        pack_choice[n] = &DumpCustom::pack_omegaz_triclinic_general;
       else if (pack_choice[n] == &DumpCustom::pack_angmomx)
         pack_choice[n] = &DumpCustom::pack_angmomx_triclinic_general;
       else if (pack_choice[n] == &DumpCustom::pack_angmomy)
@@ -1412,12 +1473,15 @@ int DumpCustom::parse_fields(int narg, char **arg)
       pack_choice[iarg] = &DumpCustom::pack_z;
       vtype[iarg] = Dump::DOUBLE;
     } else if (strcmp(arg[iarg],"xs") == 0) {
-      pack_choice[iarg] = &DumpCustom::pack_xs;
+      if (domain->triclinic) pack_choice[iarg] = &DumpCustom::pack_xs_triclinic;
+      else pack_choice[iarg] = &DumpCustom::pack_xs;
       vtype[iarg] = Dump::DOUBLE;
     } else if (strcmp(arg[iarg],"ys") == 0) {
-      pack_choice[iarg] = &DumpCustom::pack_ys;
+      if (domain->triclinic) pack_choice[iarg] = &DumpCustom::pack_ys_triclinic;
+      else pack_choice[iarg] = &DumpCustom::pack_ys;
       vtype[iarg] = Dump::DOUBLE;
     } else if (strcmp(arg[iarg],"zs") == 0) {
+      if (domain->triclinic) pack_choice[iarg] = &DumpCustom::pack_zs_triclinic;
       pack_choice[iarg] = &DumpCustom::pack_zs;
       vtype[iarg] = Dump::DOUBLE;
     } else if (strcmp(arg[iarg],"xu") == 0) {
@@ -1514,20 +1578,17 @@ int DumpCustom::parse_fields(int narg, char **arg)
     } else if (strcmp(arg[iarg],"omegax") == 0) {
       if (!atom->omega_flag)
         error->all(FLERR,"Dumping an atom property that isn't allocated");
-      if (triclinic_general) pack_choice[iarg] = &DumpCustom::pack_omegax_triclinic_general;
-      else pack_choice[iarg] = &DumpCustom::pack_omegax;
+      pack_choice[iarg] = &DumpCustom::pack_omegax;
       vtype[iarg] = Dump::DOUBLE;
     } else if (strcmp(arg[iarg],"omegay") == 0) {
       if (!atom->omega_flag)
         error->all(FLERR,"Dumping an atom property that isn't allocated");
-      if (triclinic_general) pack_choice[iarg] = &DumpCustom::pack_omegay_triclinic_general;
-      else pack_choice[iarg] = &DumpCustom::pack_omegay;
+      pack_choice[iarg] = &DumpCustom::pack_omegay;
       vtype[iarg] = Dump::DOUBLE;
     } else if (strcmp(arg[iarg],"omegaz") == 0) {
       if (!atom->omega_flag)
         error->all(FLERR,"Dumping an atom property that isn't allocated");
-      if (triclinic_general) pack_choice[iarg] = &DumpCustom::pack_omegaz_triclinic_general;
-      else pack_choice[iarg] = &DumpCustom::pack_omegaz;
+      pack_choice[iarg] = &DumpCustom::pack_omegaz;
       vtype[iarg] = Dump::DOUBLE;
 
     } else if (strcmp(arg[iarg],"angmomx") == 0) {

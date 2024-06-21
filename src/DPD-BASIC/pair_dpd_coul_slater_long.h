@@ -51,7 +51,7 @@ class PairDPDCoulSlaterLong : public Pair {
   double **a0, **gamma;
   double **sigma;
   class RanMars *random;
-  double cut_coul, qdist;
+  double cut_coul;
   double lamda;
   double g_ewald;
 

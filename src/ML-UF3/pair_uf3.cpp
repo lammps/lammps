@@ -45,14 +45,12 @@ PairUF3::PairUF3(LAMMPS *lmp) :
     Pair(lmp), setflag_3b(nullptr), knot_spacing_type_2b(nullptr), knot_spacing_type_3b(nullptr),
     cut(nullptr), cut_3b(nullptr), cut_3b_list(nullptr), min_cut_3b(nullptr),
     knot_spacing_2b(nullptr), knot_spacing_3b(nullptr), n2b_knots_array(nullptr),
-    n2b_coeff_array(nullptr), n2b_knots_array_size(nullptr),
-    n2b_coeff_array_size(nullptr), cached_constants_2b(nullptr),
-    cached_constants_2b_deri(nullptr), map_3b(nullptr), n3b_knots_array(nullptr),
-    n3b_coeff_array(nullptr), n3b_knots_array_size(nullptr),
-    n3b_coeff_array_size(nullptr), coeff_for_der_jk(nullptr),
-    coeff_for_der_ik(nullptr), coeff_for_der_ij(nullptr),
-    cached_constants_3b(nullptr), cached_constants_3b_deri(nullptr),
-    neighshort(nullptr)
+    n2b_coeff_array(nullptr), n2b_knots_array_size(nullptr), n2b_coeff_array_size(nullptr),
+    cached_constants_2b(nullptr), cached_constants_2b_deri(nullptr), map_3b(nullptr),
+    n3b_knots_array(nullptr), n3b_coeff_array(nullptr), n3b_knots_array_size(nullptr),
+    n3b_coeff_array_size(nullptr), coeff_for_der_jk(nullptr), coeff_for_der_ik(nullptr),
+    coeff_for_der_ij(nullptr), cached_constants_3b(nullptr), cached_constants_3b_deri(nullptr),
+    neighshort(nullptr), get_starting_index_2b(nullptr), get_starting_index_3b(nullptr)
 {
   single_enable = 1;    // 1 if single() routine exists
   one_coeff = 1;        // 1 if allows only one coeff * * call
@@ -61,6 +59,13 @@ PairUF3::PairUF3(LAMMPS *lmp) :
   centroidstressflag = CENTROID_AVAIL;
   manybody_flag = 1;
   bsplines_created = 0;
+  pot_3b = false;
+  nbody_flag = 3;
+  max_num_knots_2b = 0;
+  max_num_coeff_2b = 0;
+  max_num_knots_3b = 0;
+  max_num_coeff_3b = 0;
+  tot_interaction_count_3b = 0;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -124,7 +129,6 @@ void PairUF3::settings(int narg, char **arg)
     single_enable = 0;
   } else
     error->all(FLERR, "Pair style uf3 not (yet) implemented for {}-body terms", nbody_flag);
-
 }
 
 /* ----------------------------------------------------------------------
@@ -132,17 +136,15 @@ void PairUF3::settings(int narg, char **arg)
  * ---------------------------------------------------------------------- */
 void PairUF3::coeff(int narg, char **arg)
 {
-  if (narg != 3+atom->ntypes)
+  if (narg != 3 + atom->ntypes)
     error->all(FLERR, "Invalid number of arguments uf3 in pair coeffs.");
 
   if (!allocated) allocate();
 
-  map_element2type(narg-3, arg+3, false);
+  map_element2type(narg - 3, arg + 3, false);
 
-  if (comm->me == 0)
-    uf3_read_unified_pot_file(arg[2]);
+  if (comm->me == 0) uf3_read_unified_pot_file(arg[2]);
   communicate();
-
 }
 
 void PairUF3::allocate()
@@ -150,7 +152,7 @@ void PairUF3::allocate()
   allocated = 1;
   const int num_of_elements = atom->ntypes;
 
-  map = new int[num_of_elements+1]; //No need to delete map as ~Pair deletes map
+  map = new int[num_of_elements + 1];    //No need to delete map as ~Pair deletes map
 
   // Contains info about wether UF potential were found for type i and j
   memory->create(setflag, num_of_elements + 1, num_of_elements + 1, "pair:setflag");
@@ -166,40 +168,38 @@ void PairUF3::allocate()
   //1 = non-uniform knot spacing
   memory->create(knot_spacing_type_2b, num_of_elements + 1, num_of_elements + 1,
                  "pair:knot_spacing_type_2b");
-  memory->create(knot_spacing_2b, num_of_elements + 1, num_of_elements + 1,
-                 "pair:knot_spacing_2b");
+  memory->create(knot_spacing_2b, num_of_elements + 1, num_of_elements + 1, "pair:knot_spacing_2b");
 
   //Contains size of 2b knots vectors and 2b coeff matrices
   memory->create(n2b_knots_array_size, num_of_elements + 1, num_of_elements + 1,
-                "pair:n2b_knots_array_size");
+                 "pair:n2b_knots_array_size");
   memory->create(n2b_coeff_array_size, num_of_elements + 1, num_of_elements + 1,
-                "pair:n2b_coeff_array_size");
+                 "pair:n2b_coeff_array_size");
 
   if (pot_3b) {
     // Contains info about wether UF potential were found for type i, j and k
-    memory->create(setflag_3b, num_of_elements + 1, num_of_elements + 1,
-            num_of_elements + 1, "pair:setflag_3b");
+    memory->create(setflag_3b, num_of_elements + 1, num_of_elements + 1, num_of_elements + 1,
+                   "pair:setflag_3b");
     // Contains info about 3-body cutoff distance for type i, j and k
-    memory->create(cut_3b, num_of_elements + 1, num_of_elements + 1,
-            num_of_elements + 1, "pair:cut_3b");
+    memory->create(cut_3b, num_of_elements + 1, num_of_elements + 1, num_of_elements + 1,
+                   "pair:cut_3b");
     // Contains info about 3-body cutoff distance for type i, j and k
     // for constructing 3-body list
-    memory->create(cut_3b_list, num_of_elements + 1, num_of_elements + 1,
-            "pair:cut_3b_list");
+    memory->create(cut_3b_list, num_of_elements + 1, num_of_elements + 1, "pair:cut_3b_list");
     // Contains info about minimum 3-body cutoff distance for type i, j and k
-    memory->create(min_cut_3b, num_of_elements + 1, num_of_elements + 1,
-            num_of_elements + 1, 3, "pair:min_cut_3b");
+    memory->create(min_cut_3b, num_of_elements + 1, num_of_elements + 1, num_of_elements + 1, 3,
+                   "pair:min_cut_3b");
     //Contains info about type of knot_spacing--> 0 = uniform knot spacing (default)
     //1 = non-uniform knot spacing
     memory->create(knot_spacing_type_3b, num_of_elements + 1, num_of_elements + 1,
                    num_of_elements + 1, "pair:knot_spacing_type_3b");
-    memory->create(knot_spacing_3b, num_of_elements + 1, num_of_elements + 1,
-                   num_of_elements + 1, 3, "pair:knot_spacing_3b");
+    memory->create(knot_spacing_3b, num_of_elements + 1, num_of_elements + 1, num_of_elements + 1,
+                   3, "pair:knot_spacing_3b");
 
     tot_interaction_count_3b = 0;
     //conatins map of I-J-K interaction
-    memory->create(map_3b, num_of_elements + 1, num_of_elements + 1,
-                   num_of_elements + 1, "pair:map_3b");
+    memory->create(map_3b, num_of_elements + 1, num_of_elements + 1, num_of_elements + 1,
+                   "pair:map_3b");
 
     // setting cut_3b, setflag = 0 and map_3b
     for (int i = 1; i < num_of_elements + 1; i++) {
@@ -224,10 +224,8 @@ void PairUF3::allocate()
     }
 
     //contains sizes of 3b knots vectors and 3b coeff matrices
-    memory->create(n3b_knots_array_size, tot_interaction_count_3b, 3,
-                   "pair:n3b_knots_array_size");
-    memory->create(n3b_coeff_array_size, tot_interaction_count_3b, 3,
-                   "pair:n3b_coeff_array_size");
+    memory->create(n3b_knots_array_size, tot_interaction_count_3b, 3, "pair:n3b_knots_array_size");
+    memory->create(n3b_coeff_array_size, tot_interaction_count_3b, 3, "pair:n3b_coeff_array_size");
     for (int i = 0; i < tot_interaction_count_3b; i++) {
       n3b_coeff_array_size[i][0] = 0;
       n3b_coeff_array_size[i][1] = 0;
@@ -239,7 +237,6 @@ void PairUF3::allocate()
     }
 
     memory->create(neighshort, maxshort, "pair:neighshort");
-
   }
 }
 
@@ -258,9 +255,7 @@ void PairUF3::uf3_read_unified_pot_file(char *potf_name)
   //if (true) {
   FILE *fp = utils::open_potential(potf_name, lmp, nullptr);
   if (!fp)
-    error->all(FLERR,
-               "Cannot open UF3 potential file {}: {}",
-               potf_name, utils::getsyserror());
+    error->all(FLERR, "Cannot open UF3 potential file {}: {}", potf_name, utils::getsyserror());
 
   TextFileReader txtfilereader(fp, "UF3:POTFP");
   txtfilereader.ignore_comments = false;
@@ -271,7 +266,7 @@ void PairUF3::uf3_read_unified_pot_file(char *potf_name)
   //if 3B read the knot vectors and coeff matrix size
   int line_counter = 1;
   char *line;
-  while((line = txtfilereader.next_line(1))){
+  while ((line = txtfilereader.next_line(1))) {
     Tokenizer line_token(line);
 
     //Detect start of a block
@@ -292,22 +287,22 @@ void PairUF3::uf3_read_unified_pot_file(char *potf_name)
       if (nbody_on_file == "2B") {
         //2B block
         if (fp2nd_line.count() != 6)
-          error->all(FLERR, "UF3: Expected 6 words on line {} of {} file "
-                            "but found {} word/s",
-                            line_counter, potf_name, fp2nd_line.count());
+          error->all(FLERR,
+                     "UF3: Expected 6 words on line {} of {} file but found {} word/s",
+                     line_counter, potf_name, fp2nd_line.count());
 
         //get the elements
         std::string element1 = fp2nd_line.next_string();
         std::string element2 = fp2nd_line.next_string();
         int itype = 0;
         int jtype = 0;
-        for (int i=1; i<num_of_elements+1; i++){
+        for (int i = 1; i < num_of_elements + 1; i++) {
           if (std::string(elements[map[i]]) == element1) {
             itype = i;
             break;
           }
         }
-        for (int i=1; i<num_of_elements+1; i++){
+        for (int i = 1; i < num_of_elements + 1; i++) {
           if (std::string(elements[map[i]]) == element2) {
             jtype = i;
             break;
@@ -360,18 +355,19 @@ void PairUF3::uf3_read_unified_pot_file(char *potf_name)
           if (num_coeff_2b <= 0)
             error->all(FLERR,
                        "UF3: 0 or negative number found for num_coeff_2b"
-                       " on line {} of the potential file",line_counter);
+                       " on line {} of the potential file",
+                       line_counter);
           n2b_coeff_array_size[itype][jtype] = num_coeff_2b;
           n2b_coeff_array_size[jtype][itype] = num_coeff_2b;
           max_num_coeff_2b = std::max(max_num_coeff_2b, num_coeff_2b);
         }
-      }
-      else if ((nbody_on_file == "3B") && (pot_3b)) {
+      } else if ((nbody_on_file == "3B") && (pot_3b)) {
         //3B block
         if (fp2nd_line.count() != 7)
-          error->all(FLERR, "UF3: Expected 7 words on line {} of {} file"
-                            "but found {} word/s",
-                            line_counter, potf_name, fp2nd_line.count());
+          error->all(FLERR,
+                     "UF3: Expected 7 words on line {} of {} file"
+                     "but found {} word/s",
+                     line_counter, potf_name, fp2nd_line.count());
 
         if (nbody_on_file == "3B") {
           //get the elements
@@ -381,26 +377,26 @@ void PairUF3::uf3_read_unified_pot_file(char *potf_name)
           int itype = 0;
           int jtype = 0;
           int ktype = 0;
-          for (int i=1; i<num_of_elements+1; i++) {
+          for (int i = 1; i < num_of_elements + 1; i++) {
             if (std::string(elements[map[i]]) == element1) {
               itype = i;
               break;
             }
           }
-          for (int i=1; i<num_of_elements+1; i++) {
+          for (int i = 1; i < num_of_elements + 1; i++) {
             if (std::string(elements[map[i]]) == element2) {
               jtype = i;
               break;
             }
           }
-          for (int i=1; i<num_of_elements+1; i++) {
+          for (int i = 1; i < num_of_elements + 1; i++) {
             if (std::string(elements[map[i]]) == element3) {
               ktype = i;
               break;
             }
           }
 
-          if ((itype != 0) && (jtype != 0) && (ktype!=0)) {
+          if ((itype != 0) && (jtype != 0) && (ktype != 0)) {
             //Trailing and leading trim check
             int leading_trim = fp2nd_line.next_int();
             int trailing_trim = fp2nd_line.next_int();
@@ -441,10 +437,8 @@ void PairUF3::uf3_read_unified_pot_file(char *potf_name)
                          "Current implementation only works for 2rij=2rik!=rik",
                          element1, element2, element3);
 
-            cut_3b_list[itype][jtype] =
-                std::max(cut3b_rij, cut_3b_list[itype][jtype]);
-            cut_3b_list[itype][ktype] =
-                std::max(cut_3b_list[itype][ktype], cut3b_rik);
+            cut_3b_list[itype][jtype] = std::max(cut3b_rij, cut_3b_list[itype][jtype]);
+            cut_3b_list[itype][ktype] = std::max(cut_3b_list[itype][ktype], cut3b_rik);
 
             cut_3b[itype][jtype][ktype] = cut3b_rij;
             cut_3b[itype][ktype][jtype] = cut3b_rik;
@@ -481,8 +475,7 @@ void PairUF3::uf3_read_unified_pot_file(char *potf_name)
             if (fp7th_line.count() != 3)
               error->all(FLERR,
                          "UF3: Expected 3 numbers on 7th line => "
-                         "SHAPE_OF_COEFF_MATRIX[I][J][K] "
-                         "found {} numbers",
+                         "SHAPE_OF_COEFF_MATRIX[I][J][K] found {} numbers",
                          fp7th_line.count());
 
             int coeff_matrix_dim1 = fp7th_line.next_int();
@@ -497,21 +490,19 @@ void PairUF3::uf3_read_unified_pot_file(char *potf_name)
             n3b_coeff_array_size[map_3b[itype][ktype][jtype]][1] = coeff_matrix_dim1;
             n3b_coeff_array_size[map_3b[itype][ktype][jtype]][2] = coeff_matrix_dim3;
 
-            max_num_coeff_3b = std::max(max_num_coeff_3b,coeff_matrix_dim1);
-            max_num_coeff_3b = std::max(max_num_coeff_3b,coeff_matrix_dim2);
-            max_num_coeff_3b = std::max(max_num_coeff_3b,coeff_matrix_dim3);
+            max_num_coeff_3b = std::max(max_num_coeff_3b, coeff_matrix_dim1);
+            max_num_coeff_3b = std::max(max_num_coeff_3b, coeff_matrix_dim2);
+            max_num_coeff_3b = std::max(max_num_coeff_3b, coeff_matrix_dim3);
           }
         }
-      }
-      else {
+      } else {
         if (!((nbody_on_file == "3B") && (!pot_3b)))
-          error->all(FLERR,
-                     "UF3: Expected either '2B' or '3B' word on line {} of {} file",
+          error->all(FLERR, "UF3: Expected either '2B' or '3B' word on line {} of {} file",
                      line_counter, potf_name);
       }
-    } //if of #UF3 POT
+    }    //if of #UF3 POT
     line_counter++;
-  } // while
+  }    // while
 
   //Create knot and coeff arrays
   if (max_num_knots_2b <= 0)
@@ -520,8 +511,8 @@ void PairUF3::uf3_read_unified_pot_file(char *potf_name)
                "Possibly no 2B UF3 potential block detected in {} file",
                potf_name);
   memory->destroy(n2b_knots_array);
-  memory->create(n2b_knots_array, num_of_elements + 1, num_of_elements + 1,
-                 max_num_knots_2b, "pair:n2b_knots_array");
+  memory->create(n2b_knots_array, num_of_elements + 1, num_of_elements + 1, max_num_knots_2b,
+                 "pair:n2b_knots_array");
 
   if (max_num_coeff_2b <= 0)
     error->all(FLERR,
@@ -530,9 +521,8 @@ void PairUF3::uf3_read_unified_pot_file(char *potf_name)
                potf_name);
 
   memory->destroy(n2b_coeff_array);
-  memory->create(n2b_coeff_array, num_of_elements + 1, num_of_elements + 1,
-                 max_num_coeff_2b, "pair:n2b_coeff_array");
-
+  memory->create(n2b_coeff_array, num_of_elements + 1, num_of_elements + 1, max_num_coeff_2b,
+                 "pair:n2b_coeff_array");
 
   if (pot_3b) {
     if (max_num_knots_3b <= 0)
@@ -541,8 +531,8 @@ void PairUF3::uf3_read_unified_pot_file(char *potf_name)
                  "Possibly no 3B UF3 potential block detected in {} file",
                  potf_name);
     memory->destroy(n3b_knots_array);
-    memory->create(n3b_knots_array, tot_interaction_count_3b, 3,
-                   max_num_knots_3b, "pair:n3b_knots_array");
+    memory->create(n3b_knots_array, tot_interaction_count_3b, 3, max_num_knots_3b,
+                   "pair:n3b_knots_array");
 
     if (max_num_coeff_3b <= 0)
       error->all(FLERR,
@@ -550,8 +540,8 @@ void PairUF3::uf3_read_unified_pot_file(char *potf_name)
                  "Possibly no 3B UF3 potential block detected in {} file",
                  potf_name);
     memory->destroy(n3b_coeff_array);
-    memory->create(n3b_coeff_array, tot_interaction_count_3b, max_num_coeff_3b,
-                   max_num_coeff_3b, max_num_coeff_3b, "pair:n3b_coeff_array");
+    memory->create(n3b_coeff_array, tot_interaction_count_3b, max_num_coeff_3b, max_num_coeff_3b,
+                   max_num_coeff_3b, "pair:n3b_coeff_array");
   }
 
   //Go back to the begning of the file
@@ -559,7 +549,7 @@ void PairUF3::uf3_read_unified_pot_file(char *potf_name)
 
   //Go through the file again and fill knot and coeff arrays
   //while loop to read the data
-  while((line = txtfilereader.next_line(1))){
+  while ((line = txtfilereader.next_line(1))) {
     Tokenizer line_token(line);
 
     //Detect start of a block
@@ -576,13 +566,13 @@ void PairUF3::uf3_read_unified_pot_file(char *potf_name)
         std::string element2 = fp2nd_line.next_string();
         int itype = 0;
         int jtype = 0;
-        for (int i=1; i<num_of_elements+1; i++){
+        for (int i = 1; i < num_of_elements + 1; i++) {
           if (std::string(elements[map[i]]) == element1) {
             itype = i;
             break;
           }
         }
-        for (int i=1; i<num_of_elements+1; i++){
+        for (int i = 1; i < num_of_elements + 1; i++) {
           if (std::string(elements[map[i]]) == element2) {
             jtype = i;
             break;
@@ -604,7 +594,7 @@ void PairUF3::uf3_read_unified_pot_file(char *potf_name)
           error->all(FLERR,
                      "UF3: Expected either 'uk'(uniform-knots) or 'nk'(non-uniform knots). "
                      "Found {} on the 2nd line of {}-{} interaction block",
-                      knot_type, element1, element2);
+                     knot_type, element1, element2);
 
         if ((itype != 0) && (jtype != 0)) {
           //skip line containing info of cutoff and knot vect size
@@ -616,17 +606,18 @@ void PairUF3::uf3_read_unified_pot_file(char *potf_name)
           ValueTokenizer fp4th_line(temp_line);
 
           if (fp4th_line.count() != num_knots_2b)
-            error->all(FLERR, "UF3: Error readig the 2B potential block for {}-{}\n"
-                       "Expecter {} numbers on 4th line of the block but found {} "
-                       "numbers", num_knots_2b,fp4th_line.count());
+            error->all(FLERR,
+                       "UF3: Error reading the 2B potential block for {}-{}\n"
+                       "Expected {} numbers on 4th line of the block but found {} numbers",
+                       element1, element2, num_knots_2b, fp4th_line.count());
 
           for (int k = 0; k < num_knots_2b; k++) {
             n2b_knots_array[itype][jtype][k] = fp4th_line.next_double();
             n2b_knots_array[jtype][itype][k] = n2b_knots_array[itype][jtype][k];
           }
 
-          knot_spacing_2b[itype][jtype] = n2b_knots_array[itype][jtype][4] -
-              n2b_knots_array[itype][jtype][3];
+          knot_spacing_2b[itype][jtype] =
+              n2b_knots_array[itype][jtype][4] - n2b_knots_array[itype][jtype][3];
           knot_spacing_2b[jtype][itype] = knot_spacing_2b[itype][jtype];
 
           //skip next line
@@ -639,9 +630,9 @@ void PairUF3::uf3_read_unified_pot_file(char *potf_name)
 
           if (fp6th_line.count() != num_of_coeff_2b)
             error->all(FLERR,
-                       "UF3: Error readig the 2B potential block for {}-{}\n"
-                       "Expecter {} numbers on 6th line of the block but found {} "
-                       "numbers", num_knots_2b,fp4th_line.count());
+                       "UF3: Error reading the 2B potential block for {}-{}\n"
+                       "Expected {} numbers on 6th line of the block but found {} numbers",
+                       element1, element2, num_of_coeff_2b, fp6th_line.count());
 
           for (int k = 0; k < num_of_coeff_2b; k++) {
             n2b_coeff_array[itype][jtype][k] = fp6th_line.next_double();
@@ -651,8 +642,8 @@ void PairUF3::uf3_read_unified_pot_file(char *potf_name)
           if (num_knots_2b != num_of_coeff_2b + 4)
             error->all(FLERR,
                        "UF3: {}-{} interaction block has incorrect knot and "
-                       "coeff data nknots!=ncoeffs + 3 + 1",
-                       element1, element2);
+                       "coeff data nknots (={}) != ncoeffs (={}) + 3 + 1",
+                       element1, element2, num_knots_2b, num_of_coeff_2b);
 
           setflag[itype][jtype] = 1;
           setflag[jtype][itype] = 1;
@@ -667,19 +658,19 @@ void PairUF3::uf3_read_unified_pot_file(char *potf_name)
         int itype = 0;
         int jtype = 0;
         int ktype = 0;
-        for (int i=1; i<num_of_elements+1; i++) {
+        for (int i = 1; i < num_of_elements + 1; i++) {
           if (std::string(elements[map[i]]) == element1) {
             itype = i;
             break;
           }
         }
-        for (int i=1; i<num_of_elements+1; i++) {
+        for (int i = 1; i < num_of_elements + 1; i++) {
           if (std::string(elements[map[i]]) == element2) {
             jtype = i;
             break;
           }
         }
-        for (int i=1; i<num_of_elements+1; i++) {
+        for (int i = 1; i < num_of_elements + 1; i++) {
           if (std::string(elements[map[i]]) == element3) {
             ktype = i;
             break;
@@ -703,7 +694,7 @@ void PairUF3::uf3_read_unified_pot_file(char *potf_name)
                      "Found {} on the 2nd line of {}-{}-{} interaction block",
                      knot_type, element1, element2, element3);
 
-        if ((itype != 0) && (jtype != 0) && (ktype!=0)) {
+        if ((itype != 0) && (jtype != 0) && (ktype != 0)) {
           //skip line containing info of cutoffs and knot vector sizes
           txtfilereader.skip_line();
 
@@ -715,82 +706,70 @@ void PairUF3::uf3_read_unified_pot_file(char *potf_name)
           ValueTokenizer fp4th_line(temp_line);
           if (fp4th_line.count() != num_knots_3b_jk)
             error->all(FLERR,
-                       "UF3: Error readig the 3B potential block for {}-{}-{}\n"
+                       "UF3: Error reading the 3B potential block for {}-{}-{}\n"
                        "Expected {} numbers on 4th line of the block but found {} "
-                       "numbers", element1, element2, element3,
-                       num_knots_3b_jk, fp4th_line.count());
+                       "numbers",
+                       element1, element2, element3, num_knots_3b_jk, fp4th_line.count());
 
           for (int i = 0; i < num_knots_3b_jk; i++) {
-            n3b_knots_array[map_3b[itype][jtype][ktype]][0][i] =
-                fp4th_line.next_double();
+            n3b_knots_array[map_3b[itype][jtype][ktype]][0][i] = fp4th_line.next_double();
             n3b_knots_array[map_3b[itype][ktype][jtype]][0][i] =
                 n3b_knots_array[map_3b[itype][jtype][ktype]][0][i];
           }
 
-          min_cut_3b[itype][jtype][ktype][0] =
-              n3b_knots_array[map_3b[itype][jtype][ktype]][0][0];
-          min_cut_3b[itype][ktype][jtype][0] =
-              n3b_knots_array[map_3b[itype][ktype][jtype]][0][0];
+          min_cut_3b[itype][jtype][ktype][0] = n3b_knots_array[map_3b[itype][jtype][ktype]][0][0];
+          min_cut_3b[itype][ktype][jtype][0] = n3b_knots_array[map_3b[itype][ktype][jtype]][0][0];
 
           knot_spacing_3b[itype][jtype][ktype][0] =
               n3b_knots_array[map_3b[itype][jtype][ktype]][0][4] -
               n3b_knots_array[map_3b[itype][jtype][ktype]][0][3];
-          knot_spacing_3b[itype][ktype][jtype][0] =
-              knot_spacing_3b[itype][jtype][ktype][0];
+          knot_spacing_3b[itype][ktype][jtype][0] = knot_spacing_3b[itype][jtype][ktype][0];
 
           temp_line = txtfilereader.next_line(num_knots_3b_ik);
           ValueTokenizer fp5th_line(temp_line);
           if (fp5th_line.count() != num_knots_3b_ik)
             error->all(FLERR,
-                       "UF3: Error readig the 3B potential block for {}-{}-{}\n"
+                       "UF3: Error reading the 3B potential block for {}-{}-{}\n"
                        "Expected {} numbers on 5th line of the block but found {} "
-                       "numbers",  element1, element2, element3,
-                       num_knots_3b_ik, fp5th_line.count());
+                       "numbers",
+                       element1, element2, element3, num_knots_3b_ik, fp5th_line.count());
 
           for (int i = 0; i < num_knots_3b_ik; i++) {
-            n3b_knots_array[map_3b[itype][jtype][ktype]][1][i] =
-                fp5th_line.next_double();
+            n3b_knots_array[map_3b[itype][jtype][ktype]][1][i] = fp5th_line.next_double();
             n3b_knots_array[map_3b[itype][ktype][jtype]][2][i] =
                 n3b_knots_array[map_3b[itype][jtype][ktype]][1][i];
           }
 
-          min_cut_3b[itype][jtype][ktype][1] =
-              n3b_knots_array[map_3b[itype][jtype][ktype]][1][0];
-          min_cut_3b[itype][ktype][jtype][2] =
-              n3b_knots_array[map_3b[itype][ktype][jtype]][2][0];
+          min_cut_3b[itype][jtype][ktype][1] = n3b_knots_array[map_3b[itype][jtype][ktype]][1][0];
+          min_cut_3b[itype][ktype][jtype][2] = n3b_knots_array[map_3b[itype][ktype][jtype]][2][0];
 
           knot_spacing_3b[itype][jtype][ktype][1] =
               n3b_knots_array[map_3b[itype][jtype][ktype]][1][4] -
               n3b_knots_array[map_3b[itype][jtype][ktype]][1][3];
-           knot_spacing_3b[itype][ktype][jtype][2] =
-                knot_spacing_3b[itype][jtype][ktype][1];
+          knot_spacing_3b[itype][ktype][jtype][2] = knot_spacing_3b[itype][jtype][ktype][1];
 
           temp_line = txtfilereader.next_line(num_knots_3b_ij);
           ValueTokenizer fp6th_line(temp_line);
           if (fp6th_line.count() != num_knots_3b_ij)
             error->all(FLERR,
-                       "UF3: Error readig the 3B potential block for {}-{}-{}\n"
+                       "UF3: Error reading the 3B potential block for {}-{}-{}\n"
                        "Expected {} numbers on 6th line of the block but found {} "
-                       "numbers",  element1, element2, element3,
-                       num_knots_3b_ij, fp6th_line.count());
+                       "numbers",
+                       element1, element2, element3, num_knots_3b_ij, fp6th_line.count());
 
           for (int i = 0; i < num_knots_3b_ij; i++) {
-            n3b_knots_array[map_3b[itype][jtype][ktype]][2][i] =
-                fp6th_line.next_double();
+            n3b_knots_array[map_3b[itype][jtype][ktype]][2][i] = fp6th_line.next_double();
             n3b_knots_array[map_3b[itype][ktype][jtype]][1][i] =
                 n3b_knots_array[map_3b[itype][jtype][ktype]][2][i];
           }
 
-          min_cut_3b[itype][jtype][ktype][2] =
-              n3b_knots_array[map_3b[itype][jtype][ktype]][2][0];
-          min_cut_3b[itype][ktype][jtype][1] =
-              n3b_knots_array[map_3b[itype][ktype][jtype]][1][0];
+          min_cut_3b[itype][jtype][ktype][2] = n3b_knots_array[map_3b[itype][jtype][ktype]][2][0];
+          min_cut_3b[itype][ktype][jtype][1] = n3b_knots_array[map_3b[itype][ktype][jtype]][1][0];
 
           knot_spacing_3b[itype][jtype][ktype][2] =
               n3b_knots_array[map_3b[itype][jtype][ktype]][2][4] -
               n3b_knots_array[map_3b[itype][jtype][ktype]][2][3];
-          knot_spacing_3b[itype][ktype][jtype][1] =
-              knot_spacing_3b[itype][jtype][ktype][2];
+          knot_spacing_3b[itype][ktype][jtype][1] = knot_spacing_3b[itype][jtype][ktype][2];
 
           //skip next line
           txtfilereader.skip_line();
@@ -804,21 +783,21 @@ void PairUF3::uf3_read_unified_pot_file(char *potf_name)
                        "UF3: {}-{}-{} interaction block has incorrect knot "
                        "(NUM_OF_KNOTS_JK) and coeff (coeff_matrix_dim3) data "
                        "nknots!=ncoeffs + 3 + 1",
-                        element1, element2, element3);
+                       element1, element2, element3);
 
           if (num_knots_3b_ik != coeff_matrix_dim2 + 3 + 1)
             error->all(FLERR,
                        "UF3: {}-{}-{} interaction block has incorrect knot "
                        "(NUM_OF_KNOTS_IK) and coeff (coeff_matrix_dim2) data "
                        "nknots!=ncoeffs + 3 + 1",
-                        element1, element2, element3);
+                       element1, element2, element3);
 
           if (num_knots_3b_ij != coeff_matrix_dim1 + 3 + 1)
             error->all(FLERR,
                        "UF3: {}-{}-{} interaction block has incorrect knot "
                        "(NUM_OF_KNOTS_IJ) and coeff (coeff_matrix_dim1) data "
                        "nknots!=ncoeffs + 3 + 1",
-                        element1, element2, element3);
+                       element1, element2, element3);
 
           int coeff_matrix_elements_len = coeff_matrix_dim3;
           int key1 = map_3b[itype][jtype][ktype];
@@ -830,12 +809,12 @@ void PairUF3::uf3_read_unified_pot_file(char *potf_name)
               temp_line = txtfilereader.next_line(coeff_matrix_elements_len);
               ValueTokenizer coeff_line(temp_line);
               if (coeff_line.count() != coeff_matrix_elements_len)
-              error->all(FLERR,
-                         "UF3: Error reading 3B potential block for {}-{}-{}\n"
-                         "Expected {} numbers on {}th line of the block but found {} "
-                         "numbers",  element1, element2, element3,
-                         coeff_matrix_elements_len, line_count + 8,
-                         coeff_line.count());
+                error->all(FLERR,
+                           "UF3: Error reading 3B potential block for {}-{}-{}\n"
+                           "Expected {} numbers on {}th line of the block but found {} "
+                           "numbers",
+                           element1, element2, element3, coeff_matrix_elements_len, line_count + 8,
+                           coeff_line.count());
 
               for (int k = 0; k < coeff_matrix_dim3; k++) {
                 n3b_coeff_array[key1][i][j][k] = coeff_line.next_double();
@@ -856,27 +835,26 @@ void PairUF3::uf3_read_unified_pot_file(char *potf_name)
           setflag_3b[itype][ktype][jtype] = 1;
         }
       }
-    } // if #UF3 POT
-  } //while
+    }    // if #UF3 POT
+  }      //while
   fclose(fp);
 
   //Set interaction of atom types of the same elements
   for (int i = 1; i < num_of_elements + 1; i++) {
     for (int j = 1; j < num_of_elements + 1; j++) {
-      if (setflag[i][j] != 1){
+      if (setflag[i][j] != 1) {
         //i-j interaction not set
 
         //maybe i-j is mapped to some other atom type interaction?
-        int i_mapped_to = map[i]+1; //+1 as map starts from 0
-        int j_mapped_to = map[j]+1; //+1 as map starts from 0
+        int i_mapped_to = map[i] + 1;    //+1 as map starts from 0
+        int j_mapped_to = map[j] + 1;    //+1 as map starts from 0
 
         if ((i_mapped_to == i) && (j_mapped_to == j))
           //i-j is not mapped to some other atom type ie interaction is missing on file
           error->all(FLERR,
                      "UF3: Potential for interaction {}-{} ie {}-{} not found "
                      "in {} file",
-                     i, j, elements[i_mapped_to-1], elements[j_mapped_to-1],
-                     potf_name);
+                     i, j, elements[i_mapped_to - 1], elements[j_mapped_to - 1], potf_name);
 
         cut[i][j] = cut[i_mapped_to][j_mapped_to];
 
@@ -887,12 +865,10 @@ void PairUF3::uf3_read_unified_pot_file(char *potf_name)
         knot_spacing_2b[i][j] = knot_spacing_2b[i_mapped_to][j_mapped_to];
 
         for (int knot_no = 0; knot_no < max_num_knots_2b; knot_no++)
-          n2b_knots_array[i][j][knot_no] =
-              n2b_knots_array[i_mapped_to][j_mapped_to][knot_no];
+          n2b_knots_array[i][j][knot_no] = n2b_knots_array[i_mapped_to][j_mapped_to][knot_no];
 
         for (int coeff_no = 0; coeff_no < max_num_coeff_2b; coeff_no++)
-          n2b_coeff_array[i][j][coeff_no] =
-              n2b_coeff_array[i_mapped_to][j_mapped_to][coeff_no];
+          n2b_coeff_array[i][j][coeff_no] = n2b_coeff_array[i_mapped_to][j_mapped_to][coeff_no];
 
         setflag[i][j] = 1;
       }
@@ -908,39 +884,33 @@ void PairUF3::uf3_read_unified_pot_file(char *potf_name)
             //i-j-k interaction not set
 
             //maybe i-j-k is mapped to some other atom type interaction?
-            int i_mapped_to = map[i]+1; //+1 as map starts from 0
-            int j_mapped_to = map[j]+1; //+1 as map starts from 0
-            int k_mapped_to = map[k]+1; //+1 as map starts from 0
+            int i_mapped_to = map[i] + 1;    //+1 as map starts from 0
+            int j_mapped_to = map[j] + 1;    //+1 as map starts from 0
+            int k_mapped_to = map[k] + 1;    //+1 as map starts from 0
 
             if ((i_mapped_to == i) && (j_mapped_to == j) && (k_mapped_to == k))
               error->all(FLERR,
                          "UF3: Potential for interaction {}-{}-{} ie {}-{}-{} "
                          " not found in {} file",
-                         i, j, k, elements[i_mapped_to-1], elements[j_mapped_to-1],
-                         elements[k_mapped_to-1], potf_name);
+                         i, j, k, elements[i_mapped_to - 1], elements[j_mapped_to - 1],
+                         elements[k_mapped_to - 1], potf_name);
             if (setflag_3b[i_mapped_to][j_mapped_to][k_mapped_to] != 1)
               error->all(FLERR,
                          "UF3: Interaction {}-{}-{} was mapped to {}-{}-{}, but "
                          "potential interaction for {}-{}-{} was not found in "
                          "{} file",
-                         i, j, k, i_mapped_to, j_mapped_to, k_mapped_to,
-                         i_mapped_to, j_mapped_to, k_mapped_to, potf_name);
+                         i, j, k, i_mapped_to, j_mapped_to, k_mapped_to, i_mapped_to, j_mapped_to,
+                         k_mapped_to, potf_name);
 
-
-            cut_3b_list[i][j] = std::max(cut_3b_list[i_mapped_to][j_mapped_to],
-                                         cut_3b_list[i][j]);
-
+            cut_3b_list[i][j] = std::max(cut_3b_list[i_mapped_to][j_mapped_to], cut_3b_list[i][j]);
 
             cut_3b[i][j][k] = cut_3b[i_mapped_to][j_mapped_to][k_mapped_to];
 
             knot_spacing_type_3b[i][j][k] =
                 knot_spacing_type_3b[i_mapped_to][j_mapped_to][k_mapped_to];
-            knot_spacing_3b[i][j][k][0] =
-                knot_spacing_3b[i_mapped_to][j_mapped_to][k_mapped_to][0];
-            knot_spacing_3b[i][j][k][1] =
-                knot_spacing_3b[i_mapped_to][j_mapped_to][k_mapped_to][1];
-            knot_spacing_3b[i][j][k][2] =
-                knot_spacing_3b[i_mapped_to][j_mapped_to][k_mapped_to][2];
+            knot_spacing_3b[i][j][k][0] = knot_spacing_3b[i_mapped_to][j_mapped_to][k_mapped_to][0];
+            knot_spacing_3b[i][j][k][1] = knot_spacing_3b[i_mapped_to][j_mapped_to][k_mapped_to][1];
+            knot_spacing_3b[i][j][k][2] = knot_spacing_3b[i_mapped_to][j_mapped_to][k_mapped_to][2];
 
             int key = map_3b[i][j][k];
             int mapped_to_key = map_3b[i_mapped_to][j_mapped_to][k_mapped_to];
@@ -953,14 +923,11 @@ void PairUF3::uf3_read_unified_pot_file(char *potf_name)
             n3b_coeff_array_size[key][1] = n3b_coeff_array_size[mapped_to_key][1];
             n3b_coeff_array_size[key][2] = n3b_coeff_array_size[mapped_to_key][2];
 
-            min_cut_3b[i][j][k][0] =
-                min_cut_3b[i_mapped_to][j_mapped_to][k_mapped_to][0];
+            min_cut_3b[i][j][k][0] = min_cut_3b[i_mapped_to][j_mapped_to][k_mapped_to][0];
 
-            min_cut_3b[i][j][k][1] =
-                min_cut_3b[i_mapped_to][j_mapped_to][k_mapped_to][1];
+            min_cut_3b[i][j][k][1] = min_cut_3b[i_mapped_to][j_mapped_to][k_mapped_to][1];
 
-            min_cut_3b[i][j][k][2] =
-                min_cut_3b[i_mapped_to][j_mapped_to][k_mapped_to][2];
+            min_cut_3b[i][j][k][2] = min_cut_3b[i_mapped_to][j_mapped_to][k_mapped_to][2];
 
             for (int knot_no = 0; knot_no < n3b_knots_array_size[key][0]; knot_no++)
               n3b_knots_array[key][0][knot_no] = n3b_knots_array[mapped_to_key][0][knot_no];
@@ -988,29 +955,26 @@ void PairUF3::uf3_read_unified_pot_file(char *potf_name)
 void PairUF3::communicate()
 {
   const int num_of_elements = atom->ntypes;
-  MPI_Bcast(&cut[0][0], (num_of_elements + 1)*(num_of_elements + 1),
-            MPI_DOUBLE, 0, world);
+  MPI_Bcast(&cut[0][0], (num_of_elements + 1) * (num_of_elements + 1), MPI_DOUBLE, 0, world);
 
-  MPI_Bcast(&n2b_knots_array_size[0][0],
-            (num_of_elements + 1)*(num_of_elements + 1), MPI_INT, 0, world);
-  MPI_Bcast(&n2b_coeff_array_size[0][0],
-            (num_of_elements + 1)*(num_of_elements + 1), MPI_INT, 0, world);
+  MPI_Bcast(&n2b_knots_array_size[0][0], (num_of_elements + 1) * (num_of_elements + 1), MPI_INT, 0,
+            world);
+  MPI_Bcast(&n2b_coeff_array_size[0][0], (num_of_elements + 1) * (num_of_elements + 1), MPI_INT, 0,
+            world);
 
   MPI_Bcast(&max_num_knots_2b, 1, MPI_INT, 0, world);
   MPI_Bcast(&max_num_coeff_2b, 1, MPI_INT, 0, world);
 
-  if (pot_3b){
-    MPI_Bcast(&cut_3b_list[0][0],
-              (num_of_elements + 1)*(num_of_elements + 1), MPI_DOUBLE, 0, world);
+  if (pot_3b) {
+    MPI_Bcast(&cut_3b_list[0][0], (num_of_elements + 1) * (num_of_elements + 1), MPI_DOUBLE, 0,
+              world);
 
     MPI_Bcast(&cut_3b[0][0][0],
-              (num_of_elements + 1)*(num_of_elements + 1)*(num_of_elements + 1),
-              MPI_DOUBLE, 0, world);
+              (num_of_elements + 1) * (num_of_elements + 1) * (num_of_elements + 1), MPI_DOUBLE, 0,
+              world);
 
-    MPI_Bcast(&n3b_knots_array_size[0][0], tot_interaction_count_3b*3,
-              MPI_INT, 0, world);
-    MPI_Bcast(&n3b_coeff_array_size[0][0], tot_interaction_count_3b*3,
-              MPI_INT, 0, world);
+    MPI_Bcast(&n3b_knots_array_size[0][0], tot_interaction_count_3b * 3, MPI_INT, 0, world);
+    MPI_Bcast(&n3b_coeff_array_size[0][0], tot_interaction_count_3b * 3, MPI_INT, 0, world);
 
     MPI_Bcast(&max_num_knots_3b, 1, MPI_INT, 0, world);
     MPI_Bcast(&max_num_coeff_3b, 1, MPI_INT, 0, world);
@@ -1020,55 +984,54 @@ void PairUF3::communicate()
     memory->destroy(n2b_knots_array);
     memory->destroy(n2b_coeff_array);
 
-    memory->create(n2b_knots_array, num_of_elements + 1, num_of_elements + 1,
-                   max_num_knots_2b, "pair:n2b_knots_array");
-    memory->create(n2b_coeff_array, num_of_elements + 1, num_of_elements + 1,
-                   max_num_coeff_2b, "pair:n2b_coeff_array");
+    memory->create(n2b_knots_array, num_of_elements + 1, num_of_elements + 1, max_num_knots_2b,
+                   "pair:n2b_knots_array");
+    memory->create(n2b_coeff_array, num_of_elements + 1, num_of_elements + 1, max_num_coeff_2b,
+                   "pair:n2b_coeff_array");
     if (pot_3b) {
-        memory->destroy(n3b_knots_array);
-        memory->destroy(n3b_coeff_array);
+      memory->destroy(n3b_knots_array);
+      memory->destroy(n3b_coeff_array);
 
-        memory->create(n3b_knots_array, tot_interaction_count_3b, 3,
-                       max_num_knots_3b, "pair:n3b_knots_array");
+      memory->create(n3b_knots_array, tot_interaction_count_3b, 3, max_num_knots_3b,
+                     "pair:n3b_knots_array");
 
-        memory->create(n3b_coeff_array, tot_interaction_count_3b, max_num_coeff_3b,
-                       max_num_coeff_3b, max_num_coeff_3b, "pair:n3b_coeff_array");
+      memory->create(n3b_coeff_array, tot_interaction_count_3b, max_num_coeff_3b, max_num_coeff_3b,
+                     max_num_coeff_3b, "pair:n3b_coeff_array");
     }
   }
 
-  MPI_Bcast(&knot_spacing_type_2b[0][0],
-            (num_of_elements + 1)*(num_of_elements + 1), MPI_INT, 0, world);
+  MPI_Bcast(&knot_spacing_type_2b[0][0], (num_of_elements + 1) * (num_of_elements + 1), MPI_INT, 0,
+            world);
 
-  MPI_Bcast(&knot_spacing_2b[0][0],
-            (num_of_elements + 1)*(num_of_elements + 1), MPI_DOUBLE, 0, world);
+  MPI_Bcast(&knot_spacing_2b[0][0], (num_of_elements + 1) * (num_of_elements + 1), MPI_DOUBLE, 0,
+            world);
 
   MPI_Bcast(&n2b_knots_array[0][0][0],
-            (num_of_elements + 1)*(num_of_elements + 1)*max_num_knots_2b, MPI_DOUBLE, 0, world);
+            (num_of_elements + 1) * (num_of_elements + 1) * max_num_knots_2b, MPI_DOUBLE, 0, world);
   MPI_Bcast(&n2b_coeff_array[0][0][0],
-            (num_of_elements + 1)*(num_of_elements + 1)*max_num_coeff_2b, MPI_DOUBLE, 0, world);
+            (num_of_elements + 1) * (num_of_elements + 1) * max_num_coeff_2b, MPI_DOUBLE, 0, world);
 
-  MPI_Bcast(&setflag[0][0],
-            (num_of_elements + 1)*(num_of_elements + 1), MPI_INT, 0, world);
+  MPI_Bcast(&setflag[0][0], (num_of_elements + 1) * (num_of_elements + 1), MPI_INT, 0, world);
 
   if (pot_3b) {
     MPI_Bcast(&knot_spacing_type_3b[0][0][0],
-              (num_of_elements + 1)*(num_of_elements + 1)*(num_of_elements + 1),
-              MPI_INT, 0, world);
+              (num_of_elements + 1) * (num_of_elements + 1) * (num_of_elements + 1), MPI_INT, 0,
+              world);
 
     MPI_Bcast(&knot_spacing_3b[0][0][0][0],
-              (num_of_elements + 1)*(num_of_elements + 1)*(num_of_elements + 1)*3,
+              (num_of_elements + 1) * (num_of_elements + 1) * (num_of_elements + 1) * 3, MPI_DOUBLE,
+              0, world);
+    MPI_Bcast(&n3b_knots_array[0][0][0], tot_interaction_count_3b * 3 * max_num_knots_3b,
               MPI_DOUBLE, 0, world);
-    MPI_Bcast(&n3b_knots_array[0][0][0],
-              tot_interaction_count_3b*3*max_num_knots_3b, MPI_DOUBLE, 0, world);
     MPI_Bcast(&n3b_coeff_array[0][0][0][0],
-              tot_interaction_count_3b*max_num_coeff_3b*max_num_coeff_3b*max_num_coeff_3b,
+              tot_interaction_count_3b * max_num_coeff_3b * max_num_coeff_3b * max_num_coeff_3b,
               MPI_DOUBLE, 0, world);
     MPI_Bcast(&setflag_3b[0][0][0],
-              (num_of_elements + 1)*(num_of_elements + 1)*(num_of_elements + 1),
-              MPI_INT, 0, world);
+              (num_of_elements + 1) * (num_of_elements + 1) * (num_of_elements + 1), MPI_INT, 0,
+              world);
     MPI_Bcast(&min_cut_3b[0][0][0][0],
-              (num_of_elements + 1)*(num_of_elements + 1)*(num_of_elements + 1)*3,
-              MPI_DOUBLE, 0, world);
+              (num_of_elements + 1) * (num_of_elements + 1) * (num_of_elements + 1) * 3, MPI_DOUBLE,
+              0, world);
   }
 }
 
@@ -1139,55 +1102,50 @@ void PairUF3::create_bsplines()
                        "UF3: In the current version the knot spacing type, "
                        "for all interactions needs to be same. For {}-{}-{} "
                        "i.e. {}-{}-{} interaction expected{}, but found {}",
-                       i,j,k,elements[map[i]],elements[map[j]],elements[map[k]],
-                       spacing_type,knot_spacing_type_3b[i][j][k]);
+                       i, j, k, elements[map[i]], elements[map[j]], elements[map[k]], spacing_type,
+                       knot_spacing_type_3b[i][j][k]);
         }
       }
     }
   }
 
-
   if (spacing_type) {
     get_starting_index_2b = &PairUF3::get_starting_index_nonuniform_2b;
-    if (pot_3b)
-      get_starting_index_3b = &PairUF3::get_starting_index_nonuniform_3b;
-  }
-  else {
+    if (pot_3b) get_starting_index_3b = &PairUF3::get_starting_index_nonuniform_3b;
+  } else {
     get_starting_index_2b = &PairUF3::get_starting_index_uniform_2b;
-    if (pot_3b)
-      get_starting_index_3b = &PairUF3::get_starting_index_uniform_3b;
+    if (pot_3b) get_starting_index_3b = &PairUF3::get_starting_index_uniform_3b;
   }
 
   create_cached_constants_2b();
-  if (pot_3b)
-    create_cached_constants_3b();
+  if (pot_3b) create_cached_constants_3b();
 }
 
 int PairUF3::get_starting_index_uniform_2b(int i, int j, double r)
 {
-  return 3+(int)((r-n2b_knots_array[i][j][0])/(knot_spacing_2b[i][j]));
+  return 3 + (int) ((r - n2b_knots_array[i][j][0]) / (knot_spacing_2b[i][j]));
 }
 
 int PairUF3::get_starting_index_uniform_3b(int i, int j, int k, double r, int knot_dim)
 {
-  return 3+(int)(((r-n3b_knots_array[map_3b[i][j][k]][knot_dim][0])/
-          knot_spacing_3b[i][j][k][knot_dim]));
+  return 3 +
+      (int) (((r - n3b_knots_array[map_3b[i][j][k]][knot_dim][0]) /
+              knot_spacing_3b[i][j][k][knot_dim]));
 }
 
 int PairUF3::get_starting_index_nonuniform_2b(int i, int j, double r)
 {
-  for (int l = 3; l < n2b_knots_array_size[i][j]-1; ++l) {
-    if ((n2b_knots_array[i][j][l] <= r) && (r < n2b_knots_array[i][j][l+1]))
-      return l;
+  for (int l = 3; l < n2b_knots_array_size[i][j] - 1; ++l) {
+    if ((n2b_knots_array[i][j][l] <= r) && (r < n2b_knots_array[i][j][l + 1])) return l;
   }
   return -1;
 }
 
 int PairUF3::get_starting_index_nonuniform_3b(int i, int j, int k, double r, int knot_dim)
 {
-  for (int l = 3; l < n3b_knots_array_size[map_3b[i][j][k]][knot_dim]-1; ++l) {
+  for (int l = 3; l < n3b_knots_array_size[map_3b[i][j][k]][knot_dim] - 1; ++l) {
     if ((n3b_knots_array[map_3b[i][j][k]][knot_dim][l] <= r) &&
-        (r < n3b_knots_array[map_3b[i][j][k]][knot_dim][l+1]))
+        (r < n3b_knots_array[map_3b[i][j][k]][knot_dim][l + 1]))
       return l;
   }
   return -1;
@@ -1198,18 +1156,16 @@ void PairUF3::create_cached_constants_2b()
   const int num_of_elements = atom->ntypes;
   memory->destroy(cached_constants_2b);
   memory->destroy(cached_constants_2b_deri);
-  memory->create(cached_constants_2b, num_of_elements + 1, num_of_elements + 1,
-                 max_num_coeff_2b, 16, "pair:cached_constants_2b");
+  memory->create(cached_constants_2b, num_of_elements + 1, num_of_elements + 1, max_num_coeff_2b,
+                 16, "pair:cached_constants_2b");
 
-  memory->create(cached_constants_2b_deri, num_of_elements + 1,
-                 num_of_elements + 1, max_num_coeff_2b - 1, 9,
-                 "pair:cached_constants_2b_deri");
+  memory->create(cached_constants_2b_deri, num_of_elements + 1, num_of_elements + 1,
+                 max_num_coeff_2b - 1, 9, "pair:cached_constants_2b_deri");
 
   for (int i = 1; i < num_of_elements + 1; i++) {
-    for (int j = 1; j < num_of_elements + 1; j++ ) {
+    for (int j = 1; j < num_of_elements + 1; j++) {
       for (int l = 0; l < n2b_coeff_array_size[i][j]; l++) {
-        uf3_bspline_basis3 bspline_basis(lmp, &n2b_knots_array[i][j][l],
-                                         n2b_coeff_array[i][j][l]);
+        uf3_bspline_basis3 bspline_basis(lmp, &n2b_knots_array[i][j][l], n2b_coeff_array[i][j][l]);
         for (int cc = 0; cc < 16; cc++) {
           cached_constants_2b[i][j][l][cc] = bspline_basis.constants[cc];
         }
@@ -1222,25 +1178,21 @@ void PairUF3::create_cached_constants_2b()
       //initialize coeff and knots for derivative
       //double* knots_for_deri = new double[n2b_knots_array_size[i][j]-2];
       double *knots_for_deri = nullptr;
-      memory->create(knots_for_deri, n2b_knots_array_size[i][j]-2, "pair:knots_for_deri");
+      memory->create(knots_for_deri, n2b_knots_array_size[i][j] - 2, "pair:knots_for_deri");
 
       for (int l = 1; l < n2b_knots_array_size[i][j] - 1; l++)
-        knots_for_deri[l-1] = n2b_knots_array[i][j][l];
-
+        knots_for_deri[l - 1] = n2b_knots_array[i][j][l];
 
       //double* coeff_for_deri = new double[n2b_coeff_array_size[i][j]-1];
       double *coeff_for_deri = nullptr;
-      memory->create(coeff_for_deri, n2b_coeff_array_size[i][j]-1, "pair:coeff_for_deri");
+      memory->create(coeff_for_deri, n2b_coeff_array_size[i][j] - 1, "pair:coeff_for_deri");
       for (int l = 0; l < n2b_coeff_array_size[i][j] - 1; l++) {
-        double dntemp = 3 / (n2b_knots_array[i][j][l + 4] -
-                n2b_knots_array[i][j][l + 1]);
-        coeff_for_deri[l] =
-            (n2b_coeff_array[i][j][l+1] - n2b_coeff_array[i][j][l]) * dntemp;
+        double dntemp = 3 / (n2b_knots_array[i][j][l + 4] - n2b_knots_array[i][j][l + 1]);
+        coeff_for_deri[l] = (n2b_coeff_array[i][j][l + 1] - n2b_coeff_array[i][j][l]) * dntemp;
       }
 
       for (int l = 0; l < n2b_coeff_array_size[i][j] - 1; l++) {
-        uf3_bspline_basis2 bspline_basis_deri(lmp, &knots_for_deri[l],
-                                              coeff_for_deri[l]);
+        uf3_bspline_basis2 bspline_basis_deri(lmp, &knots_for_deri[l], coeff_for_deri[l]);
         for (int cc = 0; cc < 9; cc++) {
           cached_constants_2b_deri[i][j][l][cc] = bspline_basis_deri.constants[cc];
         }
@@ -1262,24 +1214,24 @@ void PairUF3::create_cached_constants_3b()
   memory->destroy(cached_constants_3b);
   memory->destroy(cached_constants_3b_deri);
 
-  memory->create(coeff_for_der_jk, tot_interaction_count_3b, max_num_coeff_3b,
-          max_num_coeff_3b, max_num_coeff_3b, "pair:coeff_for_der_jk");
+  memory->create(coeff_for_der_jk, tot_interaction_count_3b, max_num_coeff_3b, max_num_coeff_3b,
+                 max_num_coeff_3b, "pair:coeff_for_der_jk");
 
-  memory->create(coeff_for_der_ik, tot_interaction_count_3b, max_num_coeff_3b,
-          max_num_coeff_3b, max_num_coeff_3b, "pair:coeff_for_der_ik");
+  memory->create(coeff_for_der_ik, tot_interaction_count_3b, max_num_coeff_3b, max_num_coeff_3b,
+                 max_num_coeff_3b, "pair:coeff_for_der_ik");
 
-  memory->create(coeff_for_der_ij, tot_interaction_count_3b, max_num_coeff_3b,
-          max_num_coeff_3b, max_num_coeff_3b, "pair:coeff_for_der_ij");
+  memory->create(coeff_for_der_ij, tot_interaction_count_3b, max_num_coeff_3b, max_num_coeff_3b,
+                 max_num_coeff_3b, "pair:coeff_for_der_ij");
 
-  memory->create(cached_constants_3b, tot_interaction_count_3b, 3,
-          max_num_coeff_3b, 16, "pair:cached_constants_3b");
+  memory->create(cached_constants_3b, tot_interaction_count_3b, 3, max_num_coeff_3b, 16,
+                 "pair:cached_constants_3b");
 
-  memory->create(cached_constants_3b_deri, tot_interaction_count_3b, 3,
-          max_num_coeff_3b - 1, 9, "pair:cached_constants_3b_deri");
+  memory->create(cached_constants_3b_deri, tot_interaction_count_3b, 3, max_num_coeff_3b - 1, 9,
+                 "pair:cached_constants_3b_deri");
 
   for (int i = 1; i < num_of_elements + 1; i++) {
-    for (int j = 1; j < num_of_elements + 1; j++ ) {
-      for(int k = 1; k < num_of_elements + 1; k++) {
+    for (int j = 1; j < num_of_elements + 1; j++) {
+      for (int k = 1; k < num_of_elements + 1; k++) {
         int map_to = map_3b[i][j][k];
 
         for (int l = 0; l < n3b_knots_array_size[map_to][2] - 4; l++) {
@@ -1304,59 +1256,58 @@ void PairUF3::create_cached_constants_3b()
   }
 
   for (int i = 1; i < num_of_elements + 1; i++) {
-    for (int j = 1; j < num_of_elements + 1; j++ ) {
-      for(int k = 1; k < num_of_elements + 1; k++) {
+    for (int j = 1; j < num_of_elements + 1; j++) {
+      for (int k = 1; k < num_of_elements + 1; k++) {
         int map_to = map_3b[i][j][k];
-        double **knots_for_der = nullptr;//new double*[3];
+        double **knots_for_der = nullptr;    //new double*[3];
 
         //n3b_knots_array_size[map_to][0] for jk knot vector --> always largest
-        memory->create(knots_for_der, 3, n3b_knots_array_size[map_to][0]-1,
-                       "pair:knots_for_der");
+        memory->create(knots_for_der, 3, n3b_knots_array_size[map_to][0] - 1, "pair:knots_for_der");
 
         //--deri_basis_jk
         for (int l = 1; l < n3b_knots_array_size[map_to][0] - 1; l++)
-          knots_for_der[0][l-1] = n3b_knots_array[map_to][0][l];
+          knots_for_der[0][l - 1] = n3b_knots_array[map_to][0][l];
 
-        for(int l = 0; l < n3b_coeff_array_size[map_to][0]; l++) {
-          for(int m = 0; m < n3b_coeff_array_size[map_to][1]; m++) {
-            for(int n = 0; n < n3b_coeff_array_size[map_to][2] - 1; n++) {
-              double dntemp = 3/(n3b_knots_array[map_to][0][n + 4] -
-                      n3b_knots_array[map_to][0][n + 1]);
+        for (int l = 0; l < n3b_coeff_array_size[map_to][0]; l++) {
+          for (int m = 0; m < n3b_coeff_array_size[map_to][1]; m++) {
+            for (int n = 0; n < n3b_coeff_array_size[map_to][2] - 1; n++) {
+              double dntemp =
+                  3 / (n3b_knots_array[map_to][0][n + 4] - n3b_knots_array[map_to][0][n + 1]);
               coeff_for_der_jk[map_to][l][m][n] =
-                  ((n3b_coeff_array[map_to][l][m][n + 1] -
-                    n3b_coeff_array[map_to][l][m][n])*dntemp);
+                  ((n3b_coeff_array[map_to][l][m][n + 1] - n3b_coeff_array[map_to][l][m][n]) *
+                   dntemp);
             }
           }
         }
 
         //--deri_basis_ik
         for (int l = 1; l < n3b_knots_array_size[map_to][1] - 1; l++)
-          knots_for_der[1][l-1] = n3b_knots_array[map_to][1][l];
+          knots_for_der[1][l - 1] = n3b_knots_array[map_to][1][l];
 
         for (int l = 0; l < n3b_coeff_array_size[map_to][0]; l++) {
           for (int m = 0; m < n3b_coeff_array_size[map_to][1] - 1; m++) {
-            double dntemp = 3/(n3b_knots_array[map_to][1][m + 4] -
-                    n3b_knots_array[map_to][1][m + 1]);
+            double dntemp =
+                3 / (n3b_knots_array[map_to][1][m + 4] - n3b_knots_array[map_to][1][m + 1]);
             for (int n = 0; n < n3b_coeff_array_size[map_to][2]; n++) {
               coeff_for_der_ik[map_to][l][m][n] =
-                  ((n3b_coeff_array[map_to][l][m + 1][n] -
-                   n3b_coeff_array[map_to][l][m][n])*dntemp);
+                  ((n3b_coeff_array[map_to][l][m + 1][n] - n3b_coeff_array[map_to][l][m][n]) *
+                   dntemp);
             }
           }
         }
 
         //--deri_basis_ij
         for (int l = 1; l < n3b_knots_array_size[map_to][2] - 1; l++)
-          knots_for_der[2][l-1] = n3b_knots_array[map_to][2][l];
+          knots_for_der[2][l - 1] = n3b_knots_array[map_to][2][l];
 
         for (int l = 0; l < n3b_coeff_array_size[map_to][0] - 1; l++) {
-          double dntemp = 3/(n3b_knots_array[map_to][2][l + 4] -
-                  n3b_knots_array[map_to][2][l + 1]);
-          for(int m = 0; m < n3b_coeff_array_size[map_to][1]; m++) {
-            for(int n = 0; n < n3b_coeff_array_size[map_to][2]; n++) {
+          double dntemp =
+              3 / (n3b_knots_array[map_to][2][l + 4] - n3b_knots_array[map_to][2][l + 1]);
+          for (int m = 0; m < n3b_coeff_array_size[map_to][1]; m++) {
+            for (int n = 0; n < n3b_coeff_array_size[map_to][2]; n++) {
               coeff_for_der_ij[map_to][l][m][n] =
-                  ((n3b_coeff_array[map_to][l + 1][m][n] -
-                   n3b_coeff_array[map_to][l][m][n]) * dntemp);
+                  ((n3b_coeff_array[map_to][l + 1][m][n] - n3b_coeff_array[map_to][l][m][n]) *
+                   dntemp);
             }
           }
         }
@@ -1450,17 +1401,17 @@ void PairUF3::compute(int eflag, int vflag)
           }
         }
 
-        int knot_start_index = (this->*get_starting_index_2b)(itype,jtype,rij);
+        int knot_start_index = (this->*get_starting_index_2b)(itype, jtype, rij);
 
         double force_2b = cached_constants_2b_deri[itype][jtype][knot_start_index - 1][0];
-        force_2b += rij*cached_constants_2b_deri[itype][jtype][knot_start_index - 1][1];
-        force_2b += rsq*cached_constants_2b_deri[itype][jtype][knot_start_index - 1][2];
+        force_2b += rij * cached_constants_2b_deri[itype][jtype][knot_start_index - 1][1];
+        force_2b += rsq * cached_constants_2b_deri[itype][jtype][knot_start_index - 1][2];
         force_2b += cached_constants_2b_deri[itype][jtype][knot_start_index - 2][3];
-        force_2b += rij*cached_constants_2b_deri[itype][jtype][knot_start_index - 2][4];
-        force_2b += rsq*cached_constants_2b_deri[itype][jtype][knot_start_index - 2][5];
+        force_2b += rij * cached_constants_2b_deri[itype][jtype][knot_start_index - 2][4];
+        force_2b += rsq * cached_constants_2b_deri[itype][jtype][knot_start_index - 2][5];
         force_2b += cached_constants_2b_deri[itype][jtype][knot_start_index - 3][6];
-        force_2b += rij*cached_constants_2b_deri[itype][jtype][knot_start_index - 3][7];
-        force_2b += rsq*cached_constants_2b_deri[itype][jtype][knot_start_index - 3][8];
+        force_2b += rij * cached_constants_2b_deri[itype][jtype][knot_start_index - 3][7];
+        force_2b += rsq * cached_constants_2b_deri[itype][jtype][knot_start_index - 3][8];
 
         fpair = -1 * force_2b / rij;
 
@@ -1476,23 +1427,23 @@ void PairUF3::compute(int eflag, int vflag)
         f[j][2] -= fz;
 
         if (eflag) {
-          double rth = rsq*rij;
+          double rth = rsq * rij;
           evdwl = cached_constants_2b[itype][jtype][knot_start_index][0];
-          evdwl += rij*cached_constants_2b[itype][jtype][knot_start_index][1];
-          evdwl += rsq*cached_constants_2b[itype][jtype][knot_start_index][2];
-          evdwl += rth*cached_constants_2b[itype][jtype][knot_start_index][3];
-          evdwl += cached_constants_2b[itype][jtype][knot_start_index-1][4];
-          evdwl += rij*cached_constants_2b[itype][jtype][knot_start_index-1][5];
-          evdwl += rsq*cached_constants_2b[itype][jtype][knot_start_index-1][6];
-          evdwl += rth*cached_constants_2b[itype][jtype][knot_start_index-1][7];
-          evdwl += cached_constants_2b[itype][jtype][knot_start_index-2][8];
-          evdwl += rij*cached_constants_2b[itype][jtype][knot_start_index-2][9];
-          evdwl += rsq*cached_constants_2b[itype][jtype][knot_start_index-2][10];
-          evdwl += rth*cached_constants_2b[itype][jtype][knot_start_index-2][11];
-          evdwl += cached_constants_2b[itype][jtype][knot_start_index-3][12];
-          evdwl += rij*cached_constants_2b[itype][jtype][knot_start_index-3][13];
-          evdwl += rsq*cached_constants_2b[itype][jtype][knot_start_index-3][14];
-          evdwl += rth*cached_constants_2b[itype][jtype][knot_start_index-3][15];
+          evdwl += rij * cached_constants_2b[itype][jtype][knot_start_index][1];
+          evdwl += rsq * cached_constants_2b[itype][jtype][knot_start_index][2];
+          evdwl += rth * cached_constants_2b[itype][jtype][knot_start_index][3];
+          evdwl += cached_constants_2b[itype][jtype][knot_start_index - 1][4];
+          evdwl += rij * cached_constants_2b[itype][jtype][knot_start_index - 1][5];
+          evdwl += rsq * cached_constants_2b[itype][jtype][knot_start_index - 1][6];
+          evdwl += rth * cached_constants_2b[itype][jtype][knot_start_index - 1][7];
+          evdwl += cached_constants_2b[itype][jtype][knot_start_index - 2][8];
+          evdwl += rij * cached_constants_2b[itype][jtype][knot_start_index - 2][9];
+          evdwl += rsq * cached_constants_2b[itype][jtype][knot_start_index - 2][10];
+          evdwl += rth * cached_constants_2b[itype][jtype][knot_start_index - 2][11];
+          evdwl += cached_constants_2b[itype][jtype][knot_start_index - 3][12];
+          evdwl += rij * cached_constants_2b[itype][jtype][knot_start_index - 3][13];
+          evdwl += rsq * cached_constants_2b[itype][jtype][knot_start_index - 3][14];
+          evdwl += rth * cached_constants_2b[itype][jtype][knot_start_index - 3][15];
         };
 
         if (evflag) {
@@ -1567,27 +1518,27 @@ void PairUF3::compute(int eflag, int vflag)
         rik_sq = (del_rki[0] * del_rki[0]) + (del_rki[1] * del_rki[1]) + (del_rki[2] * del_rki[2]);
         rik = sqrt(rik_sq);
 
-        if ((rij <= cut_3b[itype][jtype][ktype]) &&
-                (rik <= cut_3b[itype][ktype][jtype]) &&
-                (rij >= min_cut_3b[itype][jtype][ktype][2]) &&
-                (rik >= min_cut_3b[itype][jtype][ktype][1])) {
+        if ((rij <= cut_3b[itype][jtype][ktype]) && (rik <= cut_3b[itype][ktype][jtype]) &&
+            (rij >= min_cut_3b[itype][jtype][ktype][2]) &&
+            (rik >= min_cut_3b[itype][jtype][ktype][1])) {
 
           del_rkj[0] = x[k][0] - x[j][0];
           del_rkj[1] = x[k][1] - x[j][1];
           del_rkj[2] = x[k][2] - x[j][2];
 
-          rjk_sq = (del_rkj[0] * del_rkj[0]) + (del_rkj[1] * del_rkj[1]) + (del_rkj[2] * del_rkj[2]);
+          rjk_sq =
+              (del_rkj[0] * del_rkj[0]) + (del_rkj[1] * del_rkj[1]) + (del_rkj[2] * del_rkj[2]);
           rjk = sqrt(rjk_sq);
 
           if (rjk >= min_cut_3b[itype][jtype][ktype][0]) {
-            double rij_th = rij*rij_sq;
-            double rik_th = rik*rik_sq;
-            double rjk_th = rjk*rjk_sq;
+            double rij_th = rij * rij_sq;
+            double rik_th = rik * rik_sq;
+            double rjk_th = rjk * rjk_sq;
 
             int map_to = map_3b[itype][jtype][ktype];
-            int knot_start_index_ij = (this->*get_starting_index_3b)(itype,jtype,ktype,rij,2);
-            int knot_start_index_ik = (this->*get_starting_index_3b)(itype,jtype,ktype,rik,1);
-            int knot_start_index_jk = (this->*get_starting_index_3b)(itype,jtype,ktype,rjk,0);
+            int knot_start_index_ij = (this->*get_starting_index_3b)(itype, jtype, ktype, rij, 2);
+            int knot_start_index_ik = (this->*get_starting_index_3b)(itype, jtype, ktype, rik, 1);
+            int knot_start_index_jk = (this->*get_starting_index_3b)(itype, jtype, ktype, rjk, 0);
             double basis_ij[4];
             double basis_ik[4];
             double basis_jk[4];
@@ -1597,107 +1548,125 @@ void PairUF3::compute(int eflag, int vflag)
 
             //--------------basis_ij
             basis_ij[0] = cached_constants_3b[map_to][0][knot_start_index_ij - 3][12];
-            basis_ij[0] += rij*cached_constants_3b[map_to][0][knot_start_index_ij - 3][13];
-            basis_ij[0] += rij_sq*cached_constants_3b[map_to][0][knot_start_index_ij - 3][14];
-            basis_ij[0] += rij_th*cached_constants_3b[map_to][0][knot_start_index_ij - 3][15];
+            basis_ij[0] += rij * cached_constants_3b[map_to][0][knot_start_index_ij - 3][13];
+            basis_ij[0] += rij_sq * cached_constants_3b[map_to][0][knot_start_index_ij - 3][14];
+            basis_ij[0] += rij_th * cached_constants_3b[map_to][0][knot_start_index_ij - 3][15];
 
             basis_ij[1] = cached_constants_3b[map_to][0][knot_start_index_ij - 2][8];
-            basis_ij[1] += rij*cached_constants_3b[map_to][0][knot_start_index_ij - 2][9];
-            basis_ij[1] += rij_sq*cached_constants_3b[map_to][0][knot_start_index_ij - 2][10];
-            basis_ij[1] += rij_th*cached_constants_3b[map_to][0][knot_start_index_ij - 2][11];
+            basis_ij[1] += rij * cached_constants_3b[map_to][0][knot_start_index_ij - 2][9];
+            basis_ij[1] += rij_sq * cached_constants_3b[map_to][0][knot_start_index_ij - 2][10];
+            basis_ij[1] += rij_th * cached_constants_3b[map_to][0][knot_start_index_ij - 2][11];
 
             basis_ij[2] = cached_constants_3b[map_to][0][knot_start_index_ij - 1][4];
-            basis_ij[2] += rij*cached_constants_3b[map_to][0][knot_start_index_ij - 1][5];
-            basis_ij[2] += rij_sq*cached_constants_3b[map_to][0][knot_start_index_ij - 1][6];
-            basis_ij[2] += rij_th*cached_constants_3b[map_to][0][knot_start_index_ij - 1][7];
+            basis_ij[2] += rij * cached_constants_3b[map_to][0][knot_start_index_ij - 1][5];
+            basis_ij[2] += rij_sq * cached_constants_3b[map_to][0][knot_start_index_ij - 1][6];
+            basis_ij[2] += rij_th * cached_constants_3b[map_to][0][knot_start_index_ij - 1][7];
 
             basis_ij[3] = cached_constants_3b[map_to][0][knot_start_index_ij][0];
-            basis_ij[3] += rij*cached_constants_3b[map_to][0][knot_start_index_ij][1];
-            basis_ij[3] += rij_sq*cached_constants_3b[map_to][0][knot_start_index_ij][2];
-            basis_ij[3] += rij_th*cached_constants_3b[map_to][0][knot_start_index_ij][3];
+            basis_ij[3] += rij * cached_constants_3b[map_to][0][knot_start_index_ij][1];
+            basis_ij[3] += rij_sq * cached_constants_3b[map_to][0][knot_start_index_ij][2];
+            basis_ij[3] += rij_th * cached_constants_3b[map_to][0][knot_start_index_ij][3];
 
             //--------------basis_ik
             basis_ik[0] = cached_constants_3b[map_to][1][knot_start_index_ik - 3][12];
-            basis_ik[0] += rik*cached_constants_3b[map_to][1][knot_start_index_ik - 3][13];
-            basis_ik[0] += rik_sq*cached_constants_3b[map_to][1][knot_start_index_ik - 3][14];
-            basis_ik[0] += rik_th*cached_constants_3b[map_to][1][knot_start_index_ik - 3][15];
+            basis_ik[0] += rik * cached_constants_3b[map_to][1][knot_start_index_ik - 3][13];
+            basis_ik[0] += rik_sq * cached_constants_3b[map_to][1][knot_start_index_ik - 3][14];
+            basis_ik[0] += rik_th * cached_constants_3b[map_to][1][knot_start_index_ik - 3][15];
 
             basis_ik[1] = cached_constants_3b[map_to][1][knot_start_index_ik - 2][8];
-            basis_ik[1] += rik*cached_constants_3b[map_to][1][knot_start_index_ik - 2][9];
-            basis_ik[1] += rik_sq*cached_constants_3b[map_to][1][knot_start_index_ik - 2][10];
-            basis_ik[1] += rik_th*cached_constants_3b[map_to][1][knot_start_index_ik - 2][11];
+            basis_ik[1] += rik * cached_constants_3b[map_to][1][knot_start_index_ik - 2][9];
+            basis_ik[1] += rik_sq * cached_constants_3b[map_to][1][knot_start_index_ik - 2][10];
+            basis_ik[1] += rik_th * cached_constants_3b[map_to][1][knot_start_index_ik - 2][11];
 
             basis_ik[2] = cached_constants_3b[map_to][1][knot_start_index_ik - 1][4];
-            basis_ik[2] += rik*cached_constants_3b[map_to][1][knot_start_index_ik - 1][5];
-            basis_ik[2] += rik_sq*cached_constants_3b[map_to][1][knot_start_index_ik - 1][6];
-            basis_ik[2] += rik_th*cached_constants_3b[map_to][1][knot_start_index_ik - 1][7];
+            basis_ik[2] += rik * cached_constants_3b[map_to][1][knot_start_index_ik - 1][5];
+            basis_ik[2] += rik_sq * cached_constants_3b[map_to][1][knot_start_index_ik - 1][6];
+            basis_ik[2] += rik_th * cached_constants_3b[map_to][1][knot_start_index_ik - 1][7];
 
             basis_ik[3] = cached_constants_3b[map_to][1][knot_start_index_ik][0];
-            basis_ik[3] += rik*cached_constants_3b[map_to][1][knot_start_index_ik][1];
-            basis_ik[3] += rik_sq*cached_constants_3b[map_to][1][knot_start_index_ik][2];
-            basis_ik[3] += rik_th*cached_constants_3b[map_to][1][knot_start_index_ik][3];
+            basis_ik[3] += rik * cached_constants_3b[map_to][1][knot_start_index_ik][1];
+            basis_ik[3] += rik_sq * cached_constants_3b[map_to][1][knot_start_index_ik][2];
+            basis_ik[3] += rik_th * cached_constants_3b[map_to][1][knot_start_index_ik][3];
 
             //--------------basis_jk
             basis_jk[0] = cached_constants_3b[map_to][2][knot_start_index_jk - 3][12];
-            basis_jk[0] += rjk*cached_constants_3b[map_to][2][knot_start_index_jk - 3][13];
-            basis_jk[0] += rjk_sq*cached_constants_3b[map_to][2][knot_start_index_jk - 3][14];
-            basis_jk[0] += rjk_th*cached_constants_3b[map_to][2][knot_start_index_jk - 3][15];
+            basis_jk[0] += rjk * cached_constants_3b[map_to][2][knot_start_index_jk - 3][13];
+            basis_jk[0] += rjk_sq * cached_constants_3b[map_to][2][knot_start_index_jk - 3][14];
+            basis_jk[0] += rjk_th * cached_constants_3b[map_to][2][knot_start_index_jk - 3][15];
 
             basis_jk[1] = cached_constants_3b[map_to][2][knot_start_index_jk - 2][8];
-            basis_jk[1] += rjk*cached_constants_3b[map_to][2][knot_start_index_jk - 2][9];
-            basis_jk[1] += rjk_sq*cached_constants_3b[map_to][2][knot_start_index_jk - 2][10];
-            basis_jk[1] += rjk_th*cached_constants_3b[map_to][2][knot_start_index_jk - 2][11];
+            basis_jk[1] += rjk * cached_constants_3b[map_to][2][knot_start_index_jk - 2][9];
+            basis_jk[1] += rjk_sq * cached_constants_3b[map_to][2][knot_start_index_jk - 2][10];
+            basis_jk[1] += rjk_th * cached_constants_3b[map_to][2][knot_start_index_jk - 2][11];
 
             basis_jk[2] = cached_constants_3b[map_to][2][knot_start_index_jk - 1][4];
-            basis_jk[2] += rjk*cached_constants_3b[map_to][2][knot_start_index_jk - 1][5];
-            basis_jk[2] += rjk_sq*cached_constants_3b[map_to][2][knot_start_index_jk - 1][6];
-            basis_jk[2] += rjk_th*cached_constants_3b[map_to][2][knot_start_index_jk - 1][7];
+            basis_jk[2] += rjk * cached_constants_3b[map_to][2][knot_start_index_jk - 1][5];
+            basis_jk[2] += rjk_sq * cached_constants_3b[map_to][2][knot_start_index_jk - 1][6];
+            basis_jk[2] += rjk_th * cached_constants_3b[map_to][2][knot_start_index_jk - 1][7];
 
             basis_jk[3] = cached_constants_3b[map_to][2][knot_start_index_jk][0];
-            basis_jk[3] += rjk*cached_constants_3b[map_to][2][knot_start_index_jk][1];
-            basis_jk[3] += rjk_sq*cached_constants_3b[map_to][2][knot_start_index_jk][2];
-            basis_jk[3] += rjk_th*cached_constants_3b[map_to][2][knot_start_index_jk][3];
+            basis_jk[3] += rjk * cached_constants_3b[map_to][2][knot_start_index_jk][1];
+            basis_jk[3] += rjk_sq * cached_constants_3b[map_to][2][knot_start_index_jk][2];
+            basis_jk[3] += rjk_th * cached_constants_3b[map_to][2][knot_start_index_jk][3];
 
             //----------------basis_ij_der
             basis_ij_der[0] = cached_constants_3b_deri[map_to][0][knot_start_index_ij - 3][6];
-            basis_ij_der[0] += rij*cached_constants_3b_deri[map_to][0][knot_start_index_ij - 3][7];
-            basis_ij_der[0] += rij_sq*cached_constants_3b_deri[map_to][0][knot_start_index_ij - 3][8];
+            basis_ij_der[0] +=
+                rij * cached_constants_3b_deri[map_to][0][knot_start_index_ij - 3][7];
+            basis_ij_der[0] +=
+                rij_sq * cached_constants_3b_deri[map_to][0][knot_start_index_ij - 3][8];
 
             basis_ij_der[1] = cached_constants_3b_deri[map_to][0][knot_start_index_ij - 2][3];
-            basis_ij_der[1] += rij*cached_constants_3b_deri[map_to][0][knot_start_index_ij - 2][4];
-            basis_ij_der[1] += rij_sq*cached_constants_3b_deri[map_to][0][knot_start_index_ij - 2][5];
+            basis_ij_der[1] +=
+                rij * cached_constants_3b_deri[map_to][0][knot_start_index_ij - 2][4];
+            basis_ij_der[1] +=
+                rij_sq * cached_constants_3b_deri[map_to][0][knot_start_index_ij - 2][5];
 
             basis_ij_der[2] = cached_constants_3b_deri[map_to][0][knot_start_index_ij - 1][0];
-            basis_ij_der[2] += rij*cached_constants_3b_deri[map_to][0][knot_start_index_ij - 1][1];
-            basis_ij_der[2] += rij_sq*cached_constants_3b_deri[map_to][0][knot_start_index_ij - 1][2];
+            basis_ij_der[2] +=
+                rij * cached_constants_3b_deri[map_to][0][knot_start_index_ij - 1][1];
+            basis_ij_der[2] +=
+                rij_sq * cached_constants_3b_deri[map_to][0][knot_start_index_ij - 1][2];
 
             //----------------basis_ik_der
             basis_ik_der[0] = cached_constants_3b_deri[map_to][1][knot_start_index_ik - 3][6];
-            basis_ik_der[0] += rik*cached_constants_3b_deri[map_to][1][knot_start_index_ik - 3][7];
-            basis_ik_der[0] += rik_sq*cached_constants_3b_deri[map_to][1][knot_start_index_ik - 3][8];
+            basis_ik_der[0] +=
+                rik * cached_constants_3b_deri[map_to][1][knot_start_index_ik - 3][7];
+            basis_ik_der[0] +=
+                rik_sq * cached_constants_3b_deri[map_to][1][knot_start_index_ik - 3][8];
 
             basis_ik_der[1] = cached_constants_3b_deri[map_to][1][knot_start_index_ik - 2][3];
-            basis_ik_der[1] += rik*cached_constants_3b_deri[map_to][1][knot_start_index_ik - 2][4];
-            basis_ik_der[1] += rik_sq*cached_constants_3b_deri[map_to][1][knot_start_index_ik - 2][5];
+            basis_ik_der[1] +=
+                rik * cached_constants_3b_deri[map_to][1][knot_start_index_ik - 2][4];
+            basis_ik_der[1] +=
+                rik_sq * cached_constants_3b_deri[map_to][1][knot_start_index_ik - 2][5];
 
             basis_ik_der[2] = cached_constants_3b_deri[map_to][1][knot_start_index_ik - 1][0];
-            basis_ik_der[2] += rik*cached_constants_3b_deri[map_to][1][knot_start_index_ik - 1][1];
-            basis_ik_der[2] += rik_sq*cached_constants_3b_deri[map_to][1][knot_start_index_ik - 1][2];
+            basis_ik_der[2] +=
+                rik * cached_constants_3b_deri[map_to][1][knot_start_index_ik - 1][1];
+            basis_ik_der[2] +=
+                rik_sq * cached_constants_3b_deri[map_to][1][knot_start_index_ik - 1][2];
 
             //----------------basis_jk_der
             basis_jk_der[0] = cached_constants_3b_deri[map_to][2][knot_start_index_jk - 3][6];
-            basis_jk_der[0] += rjk*cached_constants_3b_deri[map_to][2][knot_start_index_jk - 3][7];
-            basis_jk_der[0] += rjk_sq*cached_constants_3b_deri[map_to][2][knot_start_index_jk - 3][8];
+            basis_jk_der[0] +=
+                rjk * cached_constants_3b_deri[map_to][2][knot_start_index_jk - 3][7];
+            basis_jk_der[0] +=
+                rjk_sq * cached_constants_3b_deri[map_to][2][knot_start_index_jk - 3][8];
 
             basis_jk_der[1] = cached_constants_3b_deri[map_to][2][knot_start_index_jk - 2][3];
-            basis_jk_der[1] += rjk*cached_constants_3b_deri[map_to][2][knot_start_index_jk - 2][4];
-            basis_jk_der[1] += rjk_sq*cached_constants_3b_deri[map_to][2][knot_start_index_jk - 2][5];
+            basis_jk_der[1] +=
+                rjk * cached_constants_3b_deri[map_to][2][knot_start_index_jk - 2][4];
+            basis_jk_der[1] +=
+                rjk_sq * cached_constants_3b_deri[map_to][2][knot_start_index_jk - 2][5];
 
             basis_jk_der[2] = cached_constants_3b_deri[map_to][2][knot_start_index_jk - 1][0];
-            basis_jk_der[2] += rjk*cached_constants_3b_deri[map_to][2][knot_start_index_jk - 1][1];
-            basis_jk_der[2] += rjk_sq*cached_constants_3b_deri[map_to][2][knot_start_index_jk - 1][2];
+            basis_jk_der[2] +=
+                rjk * cached_constants_3b_deri[map_to][2][knot_start_index_jk - 1][1];
+            basis_jk_der[2] +=
+                rjk_sq * cached_constants_3b_deri[map_to][2][knot_start_index_jk - 1][2];
 
-            double triangle_eval[4] = {0,0,0,0};
+            double triangle_eval[4] = {0, 0, 0, 0};
 
             int iknot_ij = knot_start_index_ij - 3;
             int iknot_ik = knot_start_index_ik - 3;
@@ -1707,7 +1676,7 @@ void PairUF3::compute(int eflag, int vflag)
               const double basis_ij_der_i = basis_ij_der[l];
               for (int m = 0; m < 4; m++) {
                 const double factor = basis_ij_der_i * basis_ik[m];
-                const double* slice =
+                const double *slice =
                     &coeff_for_der_ij[map_to][iknot_ij + l][iknot_ik + m][iknot_jk];
                 double tmp[4];
                 tmp[0] = slice[0] * basis_jk[0];
@@ -1723,7 +1692,7 @@ void PairUF3::compute(int eflag, int vflag)
               const double basis_ij_i = basis_ij[l];
               for (int m = 0; m < 3; m++) {
                 const double factor = basis_ij_i * basis_ik_der[m];
-                const double* slice =
+                const double *slice =
                     &coeff_for_der_ik[map_to][iknot_ij + l][iknot_ik + m][iknot_jk];
                 double tmp[4];
                 tmp[0] = slice[0] * basis_jk[0];
@@ -1739,7 +1708,7 @@ void PairUF3::compute(int eflag, int vflag)
               const double basis_ij_i = basis_ij[l];
               for (int m = 0; m < 4; m++) {
                 const double factor = basis_ij_i * basis_ik[m];
-                const double* slice =
+                const double *slice =
                     &coeff_for_der_jk[map_to][iknot_ij + l][iknot_ik + m][iknot_jk];
                 double tmp[3];
                 tmp[0] = slice[0] * basis_jk_der[0];
@@ -1797,7 +1766,7 @@ void PairUF3::compute(int eflag, int vflag)
                 const double basis_ij_i = basis_ij[l];
                 for (int m = 0; m < 4; m++) {
                   const double factor = basis_ij_i * basis_ik[m];
-                  const double* slice =
+                  const double *slice =
                       &n3b_coeff_array[map_to][iknot_ij + l][iknot_ik + m][iknot_jk];
                   double tmp[4];
                   tmp[0] = slice[0] * basis_jk[0];
@@ -1876,36 +1845,36 @@ double PairUF3::single(int /*i*/, int /*j*/, int itype, int jtype, double rsq,
   double r = sqrt(rsq);
 
   if (r < cut[itype][jtype]) {
-    int knot_start_index = (this->*get_starting_index_2b)(itype,jtype,r);
+    int knot_start_index = (this->*get_starting_index_2b)(itype, jtype, r);
 
     double force_2b = cached_constants_2b_deri[itype][jtype][knot_start_index - 1][0];
-    force_2b += r*cached_constants_2b_deri[itype][jtype][knot_start_index - 1][1];
-    force_2b += rsq*cached_constants_2b_deri[itype][jtype][knot_start_index - 1][2];
+    force_2b += r * cached_constants_2b_deri[itype][jtype][knot_start_index - 1][1];
+    force_2b += rsq * cached_constants_2b_deri[itype][jtype][knot_start_index - 1][2];
     force_2b += cached_constants_2b_deri[itype][jtype][knot_start_index - 2][3];
-    force_2b += r*cached_constants_2b_deri[itype][jtype][knot_start_index - 2][4];
-    force_2b += rsq*cached_constants_2b_deri[itype][jtype][knot_start_index - 2][5];
+    force_2b += r * cached_constants_2b_deri[itype][jtype][knot_start_index - 2][4];
+    force_2b += rsq * cached_constants_2b_deri[itype][jtype][knot_start_index - 2][5];
     force_2b += cached_constants_2b_deri[itype][jtype][knot_start_index - 3][6];
-    force_2b += r*cached_constants_2b_deri[itype][jtype][knot_start_index - 3][7];
-    force_2b += rsq*cached_constants_2b_deri[itype][jtype][knot_start_index - 3][8];
+    force_2b += r * cached_constants_2b_deri[itype][jtype][knot_start_index - 3][7];
+    force_2b += rsq * cached_constants_2b_deri[itype][jtype][knot_start_index - 3][8];
     fforce = factor_lj * force_2b;
 
-    double rth = rsq*r;
+    double rth = rsq * r;
     value = cached_constants_2b[itype][jtype][knot_start_index][0];
-    value += r*cached_constants_2b[itype][jtype][knot_start_index][1];
-    value += rsq*cached_constants_2b[itype][jtype][knot_start_index][2];
-    value += rth*cached_constants_2b[itype][jtype][knot_start_index][3];
-    value += cached_constants_2b[itype][jtype][knot_start_index-1][4];
-    value += r*cached_constants_2b[itype][jtype][knot_start_index-1][5];
-    value += rsq*cached_constants_2b[itype][jtype][knot_start_index-1][6];
-    value += rth*cached_constants_2b[itype][jtype][knot_start_index-1][7];
-    value += cached_constants_2b[itype][jtype][knot_start_index-2][8];
-    value += r*cached_constants_2b[itype][jtype][knot_start_index-2][9];
-    value += rsq*cached_constants_2b[itype][jtype][knot_start_index-2][10];
-    value += rth*cached_constants_2b[itype][jtype][knot_start_index-2][11];
-    value += cached_constants_2b[itype][jtype][knot_start_index-3][12];
-    value += r*cached_constants_2b[itype][jtype][knot_start_index-3][13];
-    value += rsq*cached_constants_2b[itype][jtype][knot_start_index-3][14];
-    value += rth*cached_constants_2b[itype][jtype][knot_start_index-3][15];
+    value += r * cached_constants_2b[itype][jtype][knot_start_index][1];
+    value += rsq * cached_constants_2b[itype][jtype][knot_start_index][2];
+    value += rth * cached_constants_2b[itype][jtype][knot_start_index][3];
+    value += cached_constants_2b[itype][jtype][knot_start_index - 1][4];
+    value += r * cached_constants_2b[itype][jtype][knot_start_index - 1][5];
+    value += rsq * cached_constants_2b[itype][jtype][knot_start_index - 1][6];
+    value += rth * cached_constants_2b[itype][jtype][knot_start_index - 1][7];
+    value += cached_constants_2b[itype][jtype][knot_start_index - 2][8];
+    value += r * cached_constants_2b[itype][jtype][knot_start_index - 2][9];
+    value += rsq * cached_constants_2b[itype][jtype][knot_start_index - 2][10];
+    value += rth * cached_constants_2b[itype][jtype][knot_start_index - 2][11];
+    value += cached_constants_2b[itype][jtype][knot_start_index - 3][12];
+    value += r * cached_constants_2b[itype][jtype][knot_start_index - 3][13];
+    value += rsq * cached_constants_2b[itype][jtype][knot_start_index - 3][14];
+    value += rth * cached_constants_2b[itype][jtype][knot_start_index - 3][15];
   }
 
   return factor_lj * value;
@@ -1919,9 +1888,10 @@ double PairUF3::memory_usage()
   bytes += (double) (num_of_elements + 1) * (num_of_elements + 1) * (num_of_elements + 1) *
       sizeof(int);    //***setflag_3b
 
-  bytes += (double) (num_of_elements + 1) * (num_of_elements + 1) * sizeof(int);     //knot_spacing_type_2b
+  bytes += (double) (num_of_elements + 1) * (num_of_elements + 1) *
+      sizeof(int);    //knot_spacing_type_2b
   bytes += (double) (num_of_elements + 1) * (num_of_elements + 1) * (num_of_elements + 1) *
-      sizeof(int);     //knot_spacing_type_3b
+      sizeof(int);    //knot_spacing_type_3b
 
   bytes += (double) (num_of_elements + 1) * (num_of_elements + 1) * sizeof(double);    //cut
 
@@ -1933,52 +1903,55 @@ double PairUF3::memory_usage()
   bytes += (double) (num_of_elements + 1) * (num_of_elements + 1) * (num_of_elements + 1) * 3 *
       sizeof(double);    //min_cut_3b
 
-  bytes += (double) (num_of_elements + 1) * (num_of_elements + 1) * sizeof(double);     //knot_spacing_2b
+  bytes +=
+      (double) (num_of_elements + 1) * (num_of_elements + 1) * sizeof(double);    //knot_spacing_2b
   bytes += (double) (num_of_elements + 1) * (num_of_elements + 1) * (num_of_elements + 1) *
-      sizeof(double);     //knot_spacing_3b
+      sizeof(double);    //knot_spacing_3b
 
   bytes += (double) (num_of_elements + 1) * (num_of_elements + 1) * max_num_knots_2b *
-                    sizeof(double);         //n2b_knots_array
+      sizeof(double);    //n2b_knots_array
 
   bytes += (double) (num_of_elements + 1) * (num_of_elements + 1) * max_num_coeff_2b *
-                    sizeof(double);         //n2b_coeff_array
+      sizeof(double);    //n2b_coeff_array
 
-  bytes += (double) (num_of_elements + 1) * (num_of_elements + 1) * sizeof(int);   //n2b_knots_array_size
-  bytes += (double) (num_of_elements + 1) * (num_of_elements + 1) * sizeof(int);   //n2b_coeff_array_size
+  bytes += (double) (num_of_elements + 1) * (num_of_elements + 1) *
+      sizeof(int);    //n2b_knots_array_size
+  bytes += (double) (num_of_elements + 1) * (num_of_elements + 1) *
+      sizeof(int);    //n2b_coeff_array_size
 
-  bytes += (double) (num_of_elements + 1) * (num_of_elements + 1) * max_num_coeff_2b *
-      16 * sizeof(double);   //cached_constants_2b,
-  bytes += (double) (num_of_elements + 1) * (num_of_elements + 1) * (max_num_coeff_2b-1) *
-      9 * sizeof(double);   //cached_constants_2b_deri
-
+  bytes += (double) (num_of_elements + 1) * (num_of_elements + 1) * max_num_coeff_2b * 16 *
+      sizeof(double);    //cached_constants_2b,
+  bytes += (double) (num_of_elements + 1) * (num_of_elements + 1) * (max_num_coeff_2b - 1) * 9 *
+      sizeof(double);    //cached_constants_2b_deri
 
   if (pot_3b) {
-    bytes += (double) (num_of_elements + 1) * (num_of_elements + 1) *
-        (num_of_elements + 1) * sizeof(int); //map_3b
+    bytes += (double) (num_of_elements + 1) * (num_of_elements + 1) * (num_of_elements + 1) *
+        sizeof(int);    //map_3b
 
-    bytes += (double) tot_interaction_count_3b * 3 * max_num_knots_3b * sizeof(double); //n3b_knots_array
+    bytes += (double) tot_interaction_count_3b * 3 * max_num_knots_3b *
+        sizeof(double);    //n3b_knots_array
     bytes += (double) tot_interaction_count_3b * max_num_coeff_3b * max_num_coeff_3b *
-                      max_num_coeff_3b * sizeof(double); //n3b_coeff_array
+        max_num_coeff_3b * sizeof(double);    //n3b_coeff_array
 
-    bytes += (double) tot_interaction_count_3b * 3 * sizeof(int);       //n3b_knots_array_size
-    bytes += (double) tot_interaction_count_3b * 3 * sizeof(int);       //n3b_coeff_array_size
+    bytes += (double) tot_interaction_count_3b * 3 * sizeof(int);    //n3b_knots_array_size
+    bytes += (double) tot_interaction_count_3b * 3 * sizeof(int);    //n3b_coeff_array_size
 
-    bytes += (double) tot_interaction_count_3b * max_num_coeff_3b * max_num_coeff_3b
-        * max_num_coeff_3b * 3 * sizeof(double);  //coeff_for_der_jk coeff_for_der_ik coeff_for_der_ij
+    bytes += (double) tot_interaction_count_3b * max_num_coeff_3b * max_num_coeff_3b *
+        max_num_coeff_3b * 3 *
+        sizeof(double);    //coeff_for_der_jk coeff_for_der_ik coeff_for_der_ij
 
-    bytes += (double) tot_interaction_count_3b * 3 * max_num_coeff_3b * 16
-        * sizeof(double);    //cached_constants_3b
-    bytes += (double) tot_interaction_count_3b * 3 * (max_num_coeff_3b - 1) * 16
-        * sizeof(double);    //cached_constants_3b_deri
-
+    bytes += (double) tot_interaction_count_3b * 3 * max_num_coeff_3b * 16 *
+        sizeof(double);    //cached_constants_3b
+    bytes += (double) tot_interaction_count_3b * 3 * (max_num_coeff_3b - 1) * 16 *
+        sizeof(double);    //cached_constants_3b_deri
   }
 
   bytes += (double) maxshort * sizeof(int);    //neighshort
 
-  bytes += (double) 6 * sizeof(int);    //maxshort, bsplines_created, nbody_flag,
-                                        //max_num_knots_2b, max_num_coeff_2b,
-                                        //max_num_knots_3b, max_num_coeff_3b
-  bytes += (double) 1 * sizeof(bool);   //pot_3b
+  bytes += (double) 6 * sizeof(int);     //maxshort, bsplines_created, nbody_flag,
+                                         //max_num_knots_2b, max_num_coeff_2b,
+                                         //max_num_knots_3b, max_num_coeff_3b
+  bytes += (double) 1 * sizeof(bool);    //pot_3b
 
   return bytes;
 }

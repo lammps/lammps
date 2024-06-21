@@ -233,6 +233,8 @@ void FixQEqReaxFF::pertype_parameters(char *arg)
     return;
   } else if (utils::strmatch(arg,"^reax/c")) {
     error->all(FLERR, "Fix qeq/reaxff keyword 'reax/c' is obsolete; please use 'reaxff'");
+  } else if (platform::file_is_readable(arg)) {
+    ; // arg is readable file. will read below
   } else {
     error->all(FLERR, "Unknown fix qeq/reaxff keyword {}", arg);
   }

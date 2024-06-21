@@ -42,7 +42,6 @@ class PairUF3 : public Pair {
   void init_list(int, class NeighList *) override;    // needed for ptr to full neigh list
   double init_one(int, int) override;                 // needed for cutoff radius for neighbour list
   double single(int, int, int, int, double, double, double, double &) override;
-
   double memory_usage() override;
 
  protected:
@@ -57,7 +56,7 @@ class PairUF3 : public Pair {
   int ***map_3b;
   double ***n3b_knots_array, ****n3b_coeff_array;
   int **n3b_knots_array_size, **n3b_coeff_array_size;
-  double ****coeff_for_der_jk, ****coeff_for_der_ik,****coeff_for_der_ij;
+  double ****coeff_for_der_jk, ****coeff_for_der_ik, ****coeff_for_der_ij;
   double ****cached_constants_3b, ****cached_constants_3b_deri;
 
   int *neighshort, maxshort;    // short neighbor list array for 3body interaction
@@ -66,6 +65,7 @@ class PairUF3 : public Pair {
   void communicate();
   int bsplines_created;
   bool pot_3b;
+
   virtual void allocate();
   void create_bsplines();
   void create_cached_constants_2b();
@@ -80,16 +80,15 @@ class PairUF3 : public Pair {
   int (PairUF3::*get_starting_index_2b)(int i, int j, double r);
   int (PairUF3::*get_starting_index_3b)(int i, int j, int k, double r, int knot_dim);
 
-  int nbody_flag = 3;
-  int max_num_knots_2b = 0;
-  int max_num_coeff_2b = 0;
-  int max_num_knots_3b = 0;
-  int max_num_coeff_3b = 0;
-  int tot_interaction_count_3b = 0;
+  int nbody_flag;
+  int max_num_knots_2b;
+  int max_num_coeff_2b;
+  int max_num_knots_3b;
+  int max_num_coeff_3b;
+  int tot_interaction_count_3b;
 };
 
 }    // namespace LAMMPS_NS
 
 #endif
 #endif
-

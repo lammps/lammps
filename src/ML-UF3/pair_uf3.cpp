@@ -59,6 +59,13 @@ PairUF3::PairUF3(LAMMPS *lmp) :
   centroidstressflag = CENTROID_AVAIL;
   manybody_flag = 1;
   bsplines_created = 0;
+  pot_3b = false;
+  nbody_flag = 3;
+  max_num_knots_2b = 0;
+  max_num_coeff_2b = 0;
+  max_num_knots_3b = 0;
+  max_num_coeff_3b = 0;
+  tot_interaction_count_3b = 0;
 }
 
 /* ---------------------------------------------------------------------- */

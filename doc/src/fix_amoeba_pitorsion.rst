@@ -57,7 +57,7 @@ should have two lines like these in its header section:
    M pitorsion types
    N pitorsions
 
-where :math:`N` is the number of pitorsion 5-body interactions and :math:`M` is
+where :math:`N` is the number of pitorsion 6-body interactions and :math:`M` is
 the number of pitorsion types.  It should also have two sections in the body
 of the data file like these with :math:`M` and :math:`N` lines each:
 
@@ -79,16 +79,15 @@ of the data file like these with :math:`M` and :math:`N` lines each:
           [...]
           N       3     314     315     317      318    330
 
-For PiTorsion Coeffs, the first column is an index from 1 to :math:`M` to
-enumerate the pitorsion types.  The second column is the single
+For PiTorsion Coeffs, the first column is an index from 1 to :math:`M`
+to enumerate the pitorsion types.  The second column is the single
 prefactor coefficient needed for each type.
 
-For PiTorsions, the first column is an index from 1 to :math:`N` to enumerate
-the pitorsion 5-atom tuples; it is ignored by LAMMPS.  The second
-column is the "type" of the interaction; it is an index into the
-PiTorsion Coeffs.  The remaining 5 columns are the atom IDs of the
-atoms in the two 4-atom dihedrals that overlap to create the pitorsion
-5-body interaction.
+For PiTorsions, the first column is an index from 1 to :math:`N` to
+enumerate the pitorsion 6-atom tuples; it is ignored by LAMMPS.  The
+second column is the "type" of the interaction; it is an index into
+the PiTorsion Coeffs.  The remaining 6 columns are the atom IDs of the
+atoms (in order) for the 6-tuple :math:`IJKLMN`, as described above.
 
 Note that the *pitorsion types* and *pitorsions* and *PiTorsion
 Coeffs* and *PiTorsions* keywords for the header and body sections of

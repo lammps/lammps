@@ -312,7 +312,7 @@ void DumpCustom::init_style()
   else if (buffer_flag == 1) write_choice = &DumpCustom::write_string;
   else write_choice = &DumpCustom::write_lines;
 
-  // triclinic_general can be toggled by dump_modify before or between run
+  // triclinic_general can be toggled by dump_modify before or between runs
   // change any affected pack_choice function ptrs
   
   if (triclinic_general == 0) {

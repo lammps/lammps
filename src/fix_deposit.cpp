@@ -60,10 +60,10 @@ FixDeposit::FixDeposit(LAMMPS *lmp, int narg, char **arg) :
 
   // required args
 
-  ninsert = utils::inumeric(FLERR,arg[3],false,lmp);
-  ntype = utils::inumeric(FLERR,arg[4],false,lmp);
-  nfreq = utils::inumeric(FLERR,arg[5],false,lmp);
-  seed = utils::inumeric(FLERR,arg[6],false,lmp);
+  ninsert = utils::inumeric(FLERR, arg[3], false, lmp);
+  ntype = utils::expand_type_int(FLERR, arg[4], Atom::ATOM, lmp);
+  nfreq = utils::inumeric(FLERR, arg[5], false, lmp);
+  seed = utils::inumeric(FLERR, arg[6], false, lmp);
 
   if (seed <= 0) error->all(FLERR,"Illegal fix deposit command");
 

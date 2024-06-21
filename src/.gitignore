@@ -169,6 +169,17 @@
 /rann_*.cpp
 /rann_*.h
 
+/pair_uf3.cpp
+/pair_uf3.h
+/uf3_bspline_basis2.cpp
+/uf3_bspline_basis2.h
+/uf3_bspline_basis3.cpp
+/uf3_bspline_basis3.h
+/uf3_pair_bspline.cpp
+/uf3_pair_bspline.h
+/uf3_triplet_bspline.cpp
+/uf3_triplet_bspline.h
+
 /compute_test_nbl.cpp
 /compute_test_nbl.h
 /pair_multi_lucy.cpp
@@ -677,6 +688,8 @@
 /compute_viscosity_cos.h
 /compute_voronoi_atom.cpp
 /compute_voronoi_atom.h
+/constants_oxdna.cpp
+/constants_oxdna.h
 /dihedral_charmm.cpp
 /dihedral_charmm.h
 /dihedral_class2.cpp
@@ -1704,6 +1717,8 @@
 /pair_dpd.h
 /pair_dpd_tstat.cpp
 /pair_dpd_tstat.h
+/pair_dpd_coul_slater_long.cpp
+/pair_dpd_coul_slater_long.h
 /pair_dpd_ext.cpp
 /pair_dpd_ext.h
 /pair_dpd_ext_tstat.cpp

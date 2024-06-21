@@ -1434,6 +1434,7 @@ Hendrik
 Henin
 Henkelman
 Henkes
+Hennig
 henrich
 Henrich
 Hermitian
@@ -1595,6 +1596,7 @@ interlayer
 intermolecular
 interoperable
 Interparticle
+interpretable
 interstitials
 intertube
 Intr
@@ -1817,6 +1819,7 @@ Koziol
 Kp
 kradius
 Kraker
+Krass
 Kraus
 Kremer
 Kress
@@ -2959,6 +2962,7 @@ Priya
 proc
 Proc
 procs
+procgrid
 progguide
 Prony
 ps
@@ -3271,6 +3275,7 @@ Rudranarayan
 Rudzinski
 Runge
 runtime
+Rupp
 Rutuparna
 rx
 rxd
@@ -3820,6 +3825,8 @@ uChem
 uCond
 uef
 UEF
+uf
+uf3
 ufm
 Uhlenbeck
 Ui

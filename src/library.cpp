@@ -1198,14 +1198,31 @@ internally by the :doc:`Fortran interface <Fortran>` and are not likely to be us
    * - triclinic
      - 1 if the the simulation box is triclinic, 0 if orthogonal.
        See :doc:`change_box`.
+
+**Communication status**
+
+.. list-table::
+   :header-rows: 1
+   :widths: auto
+
+   * - Keyword
+     - Description / Return value
    * - universe_rank
      - MPI rank on LAMMPS' universe communicator (0 <= universe_rank < universe_size)
    * - universe_size
      - Number of ranks on LAMMPS' universe communicator (world_size <= universe_size)
    * - world_rank
-     - MPI rank on LAMMPS' world communicator (0 <= world_rank < world_size)
+     - MPI rank on LAMMPS' world communicator (0 <= world_rank < world_size, aka comm->me)
    * - world_size
-     - Number of ranks on LAMMPS' world communicator
+     - Number of ranks on LAMMPS' world communicator (aka comm->nprocs)
+   * - comm_style
+     - communication style (0 = BRICK, 1 = TILED)
+   * - comm_layout
+     - communication layout (0 = LAYOUT_UNIFORM, 1 = LAYOUT_NONUNIFORM, 2 = LAYOUT_TILED)
+   * - comm_mode
+     - communication mode (0 = SINGLE, 1 = MULTI, 2 = MULTIOLD)
+   * - ghost_velocity
+     - whether velocities are communicated for ghost atoms (0 = no, 1 = yes)
 
 .. _extract_system_sizes:
 
@@ -1310,6 +1327,10 @@ int lammps_extract_setting(void *handle, const char *keyword)
   if (strcmp(keyword,"world_rank") == 0) return lmp->comm->me;
   if (strcmp(keyword,"world_size") == 0) return lmp->comm->nprocs;
   if (strcmp(keyword,"nthreads") == 0) return lmp->comm->nthreads;
+  if (strcmp(keyword,"comm_style") == 0) return lmp->comm->style;
+  if (strcmp(keyword,"comm_layout") == 0) return lmp->comm->layout;
+  if (strcmp(keyword,"comm_mode") == 0) return lmp->comm->mode;
+  if (strcmp(keyword,"ghost_velocity") == 0) return lmp->comm->ghost_velocity;
 
   if (strcmp(keyword,"nlocal") == 0) return lmp->atom->nlocal;
   if (strcmp(keyword,"nghost") == 0) return lmp->atom->nghost;
@@ -1386,6 +1407,7 @@ int lammps_extract_global_datatype(void * /*handle*/, const char *name)
   if (strcmp(name,"xy") == 0) return LAMMPS_DOUBLE;
   if (strcmp(name,"xz") == 0) return LAMMPS_DOUBLE;
   if (strcmp(name,"yz") == 0) return LAMMPS_DOUBLE;
+  if (strcmp(name,"procgrid") == 0) return LAMMPS_INT;
 
   if (strcmp(name,"natoms") == 0) return LAMMPS_BIGINT;
   if (strcmp(name,"nbonds") == 0) return LAMMPS_BIGINT;
@@ -1604,6 +1626,10 @@ report the "native" data type.  The following tables are provided:
      - double
      - 1
      - triclinic tilt factor. See :doc:`Howto_triclinic`.
+   * - procgrid
+     - int
+     - 3
+     - processor count assigned to each dimension of 3d grid. See :doc:`processors`.
 
 .. _extract_system_settings:
 
@@ -1861,6 +1887,9 @@ void *lammps_extract_global(void *handle, const char *name)
   if (strcmp(name,"xy") == 0) return (void *) &lmp->domain->xy;
   if (strcmp(name,"xz") == 0) return (void *) &lmp->domain->xz;
   if (strcmp(name,"yz") == 0) return (void *) &lmp->domain->yz;
+  if (((lmp->comm->layout == Comm::LAYOUT_UNIFORM) ||
+       (lmp->comm->layout == Comm::LAYOUT_NONUNIFORM)) && (strcmp(name,"procgrid") == 0))
+    return (void *) &lmp->comm->procgrid;
 
   if (strcmp(name,"natoms") == 0) return (void *) &lmp->atom->natoms;
   if (strcmp(name,"ntypes") == 0) return (void *) &lmp->atom->ntypes;

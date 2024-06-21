@@ -74,6 +74,7 @@ PACKAGE = \
 	dpd-smooth \
 	drude \
 	eff \
+	extra-command \
 	extra-compute \
 	extra-dump \
 	extra-fix \
@@ -104,6 +105,7 @@ PACKAGE = \
 	ml-quip \
 	ml-rann \
 	ml-snap \
+	ml-uf3 \
 	mofff \
 	molfile \
 	netcdf \
@@ -167,6 +169,7 @@ PACKMOST = \
 	dpd-smooth \
 	drude \
 	eff \
+	extra-command \
 	extra-compute \
 	extra-dump \
 	extra-fix \

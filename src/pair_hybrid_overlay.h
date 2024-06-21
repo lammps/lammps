@@ -14,6 +14,7 @@
 #ifdef PAIR_CLASS
 // clang-format off
 PairStyle(hybrid/overlay,PairHybridOverlay);
+PairStyle(hybrid/overlay/omp,PairHybridOverlay);
 // clang-format on
 #else
 

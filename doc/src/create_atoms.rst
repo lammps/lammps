@@ -10,7 +10,7 @@ Syntax
 
    create_atoms type style args keyword values ...
 
-* type = atom type (1-Ntypes) of atoms to create (offset for molecule creation)
+* type = atom type (1-Ntypes or type label) of atoms to create (offset for molecule creation)
 * style = *box* or *region* or *single* or *mesh* or *random*
 
   .. parsed-literal::
@@ -37,7 +37,7 @@ Syntax
          seed = random # seed (positive integer)
        *basis* values = M itype
          M = which basis atom
-         itype = atom type (1-N) to assign to this basis atom
+         itype = atom type (1-Ntypes or type label) to assign to this basis atom
        *ratio* values = frac seed
          frac = fraction of lattice sites (0 to 1) to populate randomly
          seed = random # seed (positive integer)
@@ -74,6 +74,13 @@ Examples
 .. code-block:: LAMMPS
 
    create_atoms 1 box
+
+   labelmap atom 1 Pt
+   create_atoms Pt box
+
+   labelmap atom 1 C 2 Si
+   create_atoms C region regsphere basis Si C
+
    create_atoms 3 region regsphere basis 2 3
    create_atoms 3 region regsphere basis 2 3 ratio 0.5 74637
    create_atoms 3 single 0 0 5

@@ -91,7 +91,7 @@ void CreateAtoms::command(int narg, char **arg)
   // parse arguments
 
   if (narg < 2) utils::missing_cmd_args(FLERR, "create_atoms", error);
-  ntype = utils::inumeric(FLERR, arg[0], false, lmp);
+  ntype = utils::expand_type_int(FLERR, arg[0], Atom::ATOM, lmp);
 
   const char *meshfile;
   int iarg;
@@ -168,7 +168,7 @@ void CreateAtoms::command(int narg, char **arg)
     if (strcmp(arg[iarg], "basis") == 0) {
       if (iarg + 3 > narg) utils::missing_cmd_args(FLERR, "create_atoms basis", error);
       int ibasis = utils::inumeric(FLERR, arg[iarg + 1], false, lmp);
-      int itype = utils::inumeric(FLERR, arg[iarg + 2], false, lmp);
+      int itype = utils::expand_type_int(FLERR, arg[iarg + 2], Atom::ATOM, lmp);
       if (ibasis <= 0 || ibasis > nbasis || itype <= 0 || itype > atom->ntypes)
         error->all(FLERR, "Out of range basis setting '{} {}' in create_atoms command", ibasis,
                    itype);

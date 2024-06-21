@@ -314,7 +314,7 @@ void DumpCustom::init_style()
 
   // triclinic_general can be toggled by dump_modify before or between runs
   // change any affected pack_choice function ptrs
-  
+
   if (triclinic_general == 0) {
     for (int n = 0; n < size_one; n++) {
       if (pack_choice[n] == &DumpCustom::pack_x_triclinic_general)
@@ -333,7 +333,7 @@ void DumpCustom::init_style()
         if (domain->triclinic) pack_choice[n] = &DumpCustom::pack_zu_triclinic;
         else pack_choice[n] == &DumpCustom::pack_zu;
       }
-      
+
       else if (pack_choice[n] == &DumpCustom::pack_vx_triclinic_general)
         pack_choice[n] = &DumpCustom::pack_vx;
       else if (pack_choice[n] == &DumpCustom::pack_vy_triclinic_general)
@@ -405,14 +405,14 @@ void DumpCustom::init_style()
         pack_choice[n] = &DumpCustom::pack_fy_triclinic_general;
       else if (pack_choice[n] == &DumpCustom::pack_fz)
         pack_choice[n] = &DumpCustom::pack_fz_triclinic_general;
-      
+
       else if (pack_choice[n] == &DumpCustom::pack_mux)
         pack_choice[n] = &DumpCustom::pack_mux_triclinic_general;
       else if (pack_choice[n] == &DumpCustom::pack_muy)
         pack_choice[n] = &DumpCustom::pack_muy_triclinic_general;
       else if (pack_choice[n] == &DumpCustom::pack_muz)
         pack_choice[n] = &DumpCustom::pack_muz_triclinic_general;
-      
+
       else if (pack_choice[n] == &DumpCustom::pack_omegax)
         pack_choice[n] = &DumpCustom::pack_omegax_triclinic_general;
       else if (pack_choice[n] == &DumpCustom::pack_omegay)

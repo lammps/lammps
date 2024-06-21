@@ -288,8 +288,7 @@ void PairUF3::uf3_read_unified_pot_file(char *potf_name)
         //2B block
         if (fp2nd_line.count() != 6)
           error->all(FLERR,
-                     "UF3: Expected 6 words on line {} of {} file "
-                     "but found {} word/s",
+                     "UF3: Expected 6 words on line {} of {} file but found {} word/s",
                      line_counter, potf_name, fp2nd_line.count());
 
         //get the elements
@@ -476,8 +475,7 @@ void PairUF3::uf3_read_unified_pot_file(char *potf_name)
             if (fp7th_line.count() != 3)
               error->all(FLERR,
                          "UF3: Expected 3 numbers on 7th line => "
-                         "SHAPE_OF_COEFF_MATRIX[I][J][K] "
-                         "found {} numbers",
+                         "SHAPE_OF_COEFF_MATRIX[I][J][K] found {} numbers",
                          fp7th_line.count());
 
             int coeff_matrix_dim1 = fp7th_line.next_int();
@@ -609,10 +607,9 @@ void PairUF3::uf3_read_unified_pot_file(char *potf_name)
 
           if (fp4th_line.count() != num_knots_2b)
             error->all(FLERR,
-                       "UF3: Error readig the 2B potential block for {}-{}\n"
-                       "Expecter {} numbers on 4th line of the block but found {} "
-                       "numbers",
-                       num_knots_2b, fp4th_line.count());
+                       "UF3: Error reading the 2B potential block for {}-{}\n"
+                       "Expected {} numbers on 4th line of the block but found {} numbers",
+                       element1, element2, num_knots_2b, fp4th_line.count());
 
           for (int k = 0; k < num_knots_2b; k++) {
             n2b_knots_array[itype][jtype][k] = fp4th_line.next_double();
@@ -633,10 +630,9 @@ void PairUF3::uf3_read_unified_pot_file(char *potf_name)
 
           if (fp6th_line.count() != num_of_coeff_2b)
             error->all(FLERR,
-                       "UF3: Error readig the 2B potential block for {}-{}\n"
-                       "Expecter {} numbers on 6th line of the block but found {} "
-                       "numbers",
-                       num_knots_2b, fp4th_line.count());
+                       "UF3: Error reading the 2B potential block for {}-{}\n"
+                       "Expected {} numbers on 6th line of the block but found {} numbers",
+                       element1, element2, num_of_coeff_2b, fp6th_line.count());
 
           for (int k = 0; k < num_of_coeff_2b; k++) {
             n2b_coeff_array[itype][jtype][k] = fp6th_line.next_double();
@@ -646,8 +642,8 @@ void PairUF3::uf3_read_unified_pot_file(char *potf_name)
           if (num_knots_2b != num_of_coeff_2b + 4)
             error->all(FLERR,
                        "UF3: {}-{} interaction block has incorrect knot and "
-                       "coeff data nknots!=ncoeffs + 3 + 1",
-                       element1, element2);
+                       "coeff data nknots (={}) != ncoeffs (={}) + 3 + 1",
+                       element1, element2, num_knots_2b, num_of_coeff_2b);
 
           setflag[itype][jtype] = 1;
           setflag[jtype][itype] = 1;
@@ -710,7 +706,7 @@ void PairUF3::uf3_read_unified_pot_file(char *potf_name)
           ValueTokenizer fp4th_line(temp_line);
           if (fp4th_line.count() != num_knots_3b_jk)
             error->all(FLERR,
-                       "UF3: Error readig the 3B potential block for {}-{}-{}\n"
+                       "UF3: Error reading the 3B potential block for {}-{}-{}\n"
                        "Expected {} numbers on 4th line of the block but found {} "
                        "numbers",
                        element1, element2, element3, num_knots_3b_jk, fp4th_line.count());
@@ -733,7 +729,7 @@ void PairUF3::uf3_read_unified_pot_file(char *potf_name)
           ValueTokenizer fp5th_line(temp_line);
           if (fp5th_line.count() != num_knots_3b_ik)
             error->all(FLERR,
-                       "UF3: Error readig the 3B potential block for {}-{}-{}\n"
+                       "UF3: Error reading the 3B potential block for {}-{}-{}\n"
                        "Expected {} numbers on 5th line of the block but found {} "
                        "numbers",
                        element1, element2, element3, num_knots_3b_ik, fp5th_line.count());
@@ -756,7 +752,7 @@ void PairUF3::uf3_read_unified_pot_file(char *potf_name)
           ValueTokenizer fp6th_line(temp_line);
           if (fp6th_line.count() != num_knots_3b_ij)
             error->all(FLERR,
-                       "UF3: Error readig the 3B potential block for {}-{}-{}\n"
+                       "UF3: Error reading the 3B potential block for {}-{}-{}\n"
                        "Expected {} numbers on 6th line of the block but found {} "
                        "numbers",
                        element1, element2, element3, num_knots_3b_ij, fp6th_line.count());

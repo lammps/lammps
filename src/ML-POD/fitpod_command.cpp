@@ -73,20 +73,20 @@ void FitPOD::command(int narg, char **arg)
 
   if (coeff_file != "") podArrayCopy(desc.c, fastpodptr->coeff, fastpodptr->nCoeffAll);
 
+  if (((int) envdata.data_path.size() > 1) && (desc.nClusters > 1)) {
+    environment_cluster_calculation(envdata);
+    //error->all(FLERR, "stop after environment_cluster_calculation");
+      memory->destroy(envdata.lattice);
+      memory->destroy(envdata.energy);
+      memory->destroy(envdata.stress);
+      memory->destroy(envdata.position);
+      memory->destroy(envdata.force);
+      memory->destroy(envdata.atomtype);
+      memory->destroy(envdata.we);
+      memory->destroy(envdata.wf);
+  }
+  
   if (compute_descriptors==0) {
-
-    if (((int) envdata.data_path.size() > 1) && (desc.nClusters > 1)) {
-      environment_cluster_calculation(envdata);
-      //error->all(FLERR, "stop after environment_cluster_calculation");
-        memory->destroy(envdata.lattice);
-        memory->destroy(envdata.energy);
-        memory->destroy(envdata.stress);
-        memory->destroy(envdata.position);
-        memory->destroy(envdata.force);
-        memory->destroy(envdata.atomtype);
-        memory->destroy(envdata.we);
-        memory->destroy(envdata.wf);
-    }
 
     // compute POD coefficients using least-squares method
     if (coeff_file == "") {

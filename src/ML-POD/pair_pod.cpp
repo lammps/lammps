@@ -161,7 +161,7 @@ void PairPOD::compute(int eflag, int vflag)
 
 //   // we must enforce using F dot r, since we have no energy or stress tally calls.
 //   vflag_fdotr = 1;
-// 
+//
 //   if (peratom_warn && (vflag_atom || eflag_atom)) {
 //     peratom_warn = false;
 //     if (comm->me == 0)

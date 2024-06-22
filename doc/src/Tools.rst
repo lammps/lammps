@@ -802,7 +802,7 @@ and LAMMPS GUI can be launched from anywhere from the command line.
 
 The standard CMake build procedure can be applied and the
 ``mingw-cross.cmake`` preset used. By using ``mingw64-cmake`` the CMake
-command will automatically include a suitable CMake toolset file (the
+command will automatically include a suitable CMake toolchain file (the
 regular cmake command can be used after that).  After building the
 libraries and executables, you can build the target 'zip'
 (i.e. ``cmake --build <build dir> --target zip`` or ``make zip``

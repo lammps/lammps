@@ -190,33 +190,31 @@ void generate_yaml_file(const char *outfile, const TestConfig &config)
     // natoms
     writer.emit("natoms", natoms);
 
-    int ifix = lmp->modify->find_fix("test");
-    if (ifix < 0) {
+    auto ifix = lmp->modify->get_fix_by_id("test");
+    if (!ifix) {
         std::cerr << "ERROR: no fix defined with fix ID 'test'\n";
         exit(1);
     } else {
-        Fix *fix = lmp->modify->fix[ifix];
-
         // run_stress, if enabled
-        if (fix->thermo_virial) {
-            auto stress = fix->virial;
+        if (ifix->thermo_virial) {
+            auto stress = ifix->virial;
             block       = fmt::format("{:23.16e} {:23.16e} {:23.16e} {:23.16e} {:23.16e} {:23.16e}",
                                       stress[0], stress[1], stress[2], stress[3], stress[4], stress[5]);
             writer.emit_block("run_stress", block);
         }
 
         // global scalar
-        if (fix->scalar_flag) {
-            double value = fix->compute_scalar();
+        if (ifix->scalar_flag) {
+            double value = ifix->compute_scalar();
             writer.emit("global_scalar", value);
         }
 
         // global vector
-        if (fix->vector_flag) {
-            int num = fix->size_vector;
+        if (ifix->vector_flag) {
+            int num = ifix->size_vector;
             block   = std::to_string(num);
             for (int i = 0; i < num; ++i)
-                block += fmt::format(" {}", fix->compute_vector(i));
+                block += fmt::format(" {}", ifix->compute_vector(i));
             writer.emit_block("global_vector", block);
         }
     }
@@ -283,37 +281,36 @@ TEST(FixTimestep, plain)
     EXPECT_POSITIONS("run_pos (normal run, verlet)", lmp->atom, test_config.run_pos, epsilon);
     EXPECT_VELOCITIES("run_vel (normal run, verlet)", lmp->atom, test_config.run_vel, epsilon);
 
-    int ifix = lmp->modify->find_fix("test");
-    if (ifix < 0) {
+    auto ifix = lmp->modify->get_fix_by_id("test");
+    if (!ifix) {
         FAIL() << "ERROR: no fix defined with fix ID 'test'\n";
     } else {
-        Fix *fix = lmp->modify->fix[ifix];
-        if (fix->thermo_virial) {
-            EXPECT_STRESS("run_stress (normal run, verlet)", fix->virial, test_config.run_stress,
+        if (ifix->thermo_virial) {
+            EXPECT_STRESS("run_stress (normal run, verlet)", ifix->virial, test_config.run_stress,
                           epsilon);
         }
 
         stats.reset();
         // global scalar
-        if (fix->scalar_flag) {
-            double value = fix->compute_scalar();
+        if (ifix->scalar_flag) {
+            double value = ifix->compute_scalar();
             EXPECT_FP_LE_WITH_EPS(test_config.global_scalar, value, epsilon);
         }
 
         // global vector
-        if (fix->vector_flag) {
-            int num = fix->size_vector;
+        if (ifix->vector_flag) {
+            int num = ifix->size_vector;
             EXPECT_EQ(num, test_config.global_vector.size());
 
             for (int i = 0; i < num; ++i)
-                EXPECT_FP_LE_WITH_EPS(test_config.global_vector[i], fix->compute_vector(i),
+                EXPECT_FP_LE_WITH_EPS(test_config.global_vector[i], ifix->compute_vector(i),
                                       epsilon);
         }
 
         // check t_target for thermostats
 
         int dim     = -1;
-        double *ptr = (double *)fix->extract("t_target", dim);
+        double *ptr = (double *)ifix->extract("t_target", dim);
         if ((ptr != nullptr) && (dim == 0)) {
             int ivar = lmp->input->variable->find("t_target");
             if (ivar >= 0) {
@@ -333,31 +330,30 @@ TEST(FixTimestep, plain)
     EXPECT_POSITIONS("run_pos (restart, verlet)", lmp->atom, test_config.run_pos, epsilon);
     EXPECT_VELOCITIES("run_vel (restart, verlet)", lmp->atom, test_config.run_vel, epsilon);
 
-    ifix = lmp->modify->find_fix("test");
-    if (ifix < 0) {
+    ifix = lmp->modify->get_fix_by_id("test");
+    if (!ifix) {
         FAIL() << "ERROR: no fix defined with fix ID 'test'\n";
     } else {
-        Fix *fix = lmp->modify->fix[ifix];
-        if (fix->thermo_virial) {
-            EXPECT_STRESS("run_stress (restart, verlet)", fix->virial, test_config.run_stress,
+        if (ifix->thermo_virial) {
+            EXPECT_STRESS("run_stress (restart, verlet)", ifix->virial, test_config.run_stress,
                           epsilon);
         }
 
         stats.reset();
 
         // global scalar
-        if (fix->scalar_flag) {
-            double value = fix->compute_scalar();
+        if (ifix->scalar_flag) {
+            double value = ifix->compute_scalar();
             EXPECT_FP_LE_WITH_EPS(test_config.global_scalar, value, epsilon);
         }
 
         // global vector
-        if (fix->vector_flag) {
-            int num = fix->size_vector;
+        if (ifix->vector_flag) {
+            int num = ifix->size_vector;
             EXPECT_EQ(num, test_config.global_vector.size());
 
             for (int i = 0; i < num; ++i)
-                EXPECT_FP_LE_WITH_EPS(test_config.global_vector[i], fix->compute_vector(i),
+                EXPECT_FP_LE_WITH_EPS(test_config.global_vector[i], ifix->compute_vector(i),
                                       epsilon);
         }
         if (print_stats && stats.has_data())
@@ -372,31 +368,30 @@ TEST(FixTimestep, plain)
         EXPECT_POSITIONS("run_pos (rmass, verlet)", lmp->atom, test_config.run_pos, epsilon);
         EXPECT_VELOCITIES("run_vel (rmass, verlet)", lmp->atom, test_config.run_vel, epsilon);
 
-        ifix = lmp->modify->find_fix("test");
-        if (ifix < 0) {
+        ifix = lmp->modify->get_fix_by_id("test");
+        if (!ifix) {
             FAIL() << "ERROR: no fix defined with fix ID 'test'\n";
         } else {
-            Fix *fix = lmp->modify->fix[ifix];
-            if (fix->thermo_virial) {
-                EXPECT_STRESS("run_stress (rmass, verlet)", fix->virial, test_config.run_stress,
+            if (ifix->thermo_virial) {
+                EXPECT_STRESS("run_stress (rmass, verlet)", ifix->virial, test_config.run_stress,
                               epsilon);
             }
 
             stats.reset();
 
             // global scalar
-            if (fix->scalar_flag) {
-                double value = fix->compute_scalar();
+            if (ifix->scalar_flag) {
+                double value = ifix->compute_scalar();
                 EXPECT_FP_LE_WITH_EPS(test_config.global_scalar, value, epsilon);
             }
 
             // global vector
-            if (fix->vector_flag) {
-                int num = fix->size_vector;
+            if (ifix->vector_flag) {
+                int num = ifix->size_vector;
                 EXPECT_EQ(num, test_config.global_vector.size());
 
                 for (int i = 0; i < num; ++i)
-                    EXPECT_FP_LE_WITH_EPS(test_config.global_vector[i], fix->compute_vector(i),
+                    EXPECT_FP_LE_WITH_EPS(test_config.global_vector[i], ifix->compute_vector(i),
                                           epsilon);
             }
             if (print_stats && stats.has_data())
@@ -406,9 +401,9 @@ TEST(FixTimestep, plain)
 
     // rigid fixes need work to test properly with r-RESPA.
     // fix nve/limit cannot work with r-RESPA
-    ifix = lmp->modify->find_fix("test");
-    if (!utils::strmatch(lmp->modify->fix[ifix]->style, "^rigid") &&
-        !utils::strmatch(lmp->modify->fix[ifix]->style, "^nve/limit")) {
+    ifix = lmp->modify->get_fix_by_id("test");
+    if (ifix && !utils::strmatch(ifix->style, "^rigid") &&
+        !utils::strmatch(ifix->style, "^nve/limit")) {
         if (!verbose) ::testing::internal::CaptureStdout();
         cleanup_lammps(lmp, test_config);
         if (!verbose) ::testing::internal::GetCapturedStdout();
@@ -424,31 +419,30 @@ TEST(FixTimestep, plain)
         EXPECT_POSITIONS("run_pos (normal run, respa)", lmp->atom, test_config.run_pos, epsilon);
         EXPECT_VELOCITIES("run_vel (normal run, respa)", lmp->atom, test_config.run_vel, epsilon);
 
-        ifix = lmp->modify->find_fix("test");
-        if (ifix < 0) {
+        ifix = lmp->modify->get_fix_by_id("test");
+        if (!ifix) {
             FAIL() << "ERROR: no fix defined with fix ID 'test'\n";
         } else {
-            Fix *fix = lmp->modify->fix[ifix];
-            if (fix->thermo_virial) {
-                EXPECT_STRESS("run_stress (normal run, respa)", fix->virial, test_config.run_stress,
-                              1000 * epsilon);
+            if (ifix->thermo_virial) {
+                EXPECT_STRESS("run_stress (normal run, respa)", ifix->virial,
+                              test_config.run_stress, 1000 * epsilon);
             }
 
             stats.reset();
 
             // global scalar
-            if (fix->scalar_flag) {
-                double value = fix->compute_scalar();
+            if (ifix->scalar_flag) {
+                double value = ifix->compute_scalar();
                 EXPECT_FP_LE_WITH_EPS(test_config.global_scalar, value, 10 * epsilon);
             }
 
             // global vector
-            if (fix->vector_flag) {
-                int num = fix->size_vector;
+            if (ifix->vector_flag) {
+                int num = ifix->size_vector;
                 EXPECT_EQ(num, test_config.global_vector.size());
 
                 for (int i = 0; i < num; ++i)
-                    EXPECT_FP_LE_WITH_EPS(test_config.global_vector[i], fix->compute_vector(i),
+                    EXPECT_FP_LE_WITH_EPS(test_config.global_vector[i], ifix->compute_vector(i),
                                           10 * epsilon);
             }
             if (print_stats && stats.has_data())
@@ -462,31 +456,30 @@ TEST(FixTimestep, plain)
         EXPECT_POSITIONS("run_pos (restart, respa)", lmp->atom, test_config.run_pos, epsilon);
         EXPECT_VELOCITIES("run_vel (restart, respa)", lmp->atom, test_config.run_vel, epsilon);
 
-        ifix = lmp->modify->find_fix("test");
-        if (ifix < 0) {
+        ifix = lmp->modify->get_fix_by_id("test");
+        if (!ifix) {
             FAIL() << "ERROR: no fix defined with fix ID 'test'\n";
         } else {
-            Fix *fix = lmp->modify->fix[ifix];
-            if (fix->thermo_virial) {
-                EXPECT_STRESS("run_stress (restart, respa)", fix->virial, test_config.run_stress,
+            if (ifix->thermo_virial) {
+                EXPECT_STRESS("run_stress (restart, respa)", ifix->virial, test_config.run_stress,
                               1000 * epsilon);
             }
 
             stats.reset();
 
             // global scalar
-            if (fix->scalar_flag) {
-                double value = fix->compute_scalar();
+            if (ifix->scalar_flag) {
+                double value = ifix->compute_scalar();
                 EXPECT_FP_LE_WITH_EPS(test_config.global_scalar, value, 10 * epsilon);
             }
 
             // global vector
-            if (fix->vector_flag) {
-                int num = fix->size_vector;
+            if (ifix->vector_flag) {
+                int num = ifix->size_vector;
                 EXPECT_EQ(num, test_config.global_vector.size());
 
                 for (int i = 0; i < num; ++i)
-                    EXPECT_FP_LE_WITH_EPS(test_config.global_vector[i], fix->compute_vector(i),
+                    EXPECT_FP_LE_WITH_EPS(test_config.global_vector[i], ifix->compute_vector(i),
                                           10 * epsilon);
             }
             if (print_stats && stats.has_data())
@@ -501,31 +494,30 @@ TEST(FixTimestep, plain)
             EXPECT_POSITIONS("run_pos (rmass, respa)", lmp->atom, test_config.run_pos, epsilon);
             EXPECT_VELOCITIES("run_vel (rmass, respa)", lmp->atom, test_config.run_vel, epsilon);
 
-            ifix = lmp->modify->find_fix("test");
-            if (ifix < 0) {
+            ifix = lmp->modify->get_fix_by_id("test");
+            if (!ifix) {
                 FAIL() << "ERROR: no fix defined with fix ID 'test'\n";
             } else {
-                Fix *fix = lmp->modify->fix[ifix];
-                if (fix->thermo_virial) {
-                    EXPECT_STRESS("run_stress (rmass, respa)", fix->virial, test_config.run_stress,
+                if (ifix->thermo_virial) {
+                    EXPECT_STRESS("run_stress (rmass, respa)", ifix->virial, test_config.run_stress,
                                   1000 * epsilon);
                 }
 
                 stats.reset();
 
                 // global scalar
-                if (fix->scalar_flag) {
-                    double value = fix->compute_scalar();
+                if (ifix->scalar_flag) {
+                    double value = ifix->compute_scalar();
                     EXPECT_FP_LE_WITH_EPS(test_config.global_scalar, value, 10 * epsilon);
                 }
 
                 // global vector
-                if (fix->vector_flag) {
-                    int num = fix->size_vector;
+                if (ifix->vector_flag) {
+                    int num = ifix->size_vector;
                     EXPECT_EQ(num, test_config.global_vector.size());
 
                     for (int i = 0; i < num; ++i)
-                        EXPECT_FP_LE_WITH_EPS(test_config.global_vector[i], fix->compute_vector(i),
+                        EXPECT_FP_LE_WITH_EPS(test_config.global_vector[i], ifix->compute_vector(i),
                                               10 * epsilon);
                 }
                 if (print_stats && stats.has_data())
@@ -584,37 +576,36 @@ TEST(FixTimestep, omp)
     EXPECT_POSITIONS("run_pos (normal run, verlet)", lmp->atom, test_config.run_pos, epsilon);
     EXPECT_VELOCITIES("run_vel (normal run, verlet)", lmp->atom, test_config.run_vel, epsilon);
 
-    int ifix = lmp->modify->find_fix("test");
-    if (ifix < 0) {
+    auto ifix = lmp->modify->get_fix_by_id("test");
+    if (!ifix) {
         FAIL() << "ERROR: no fix defined with fix ID 'test'\n";
     } else {
-        Fix *fix = lmp->modify->fix[ifix];
-        if (fix->thermo_virial) {
-            EXPECT_STRESS("run_stress (normal run, verlet)", fix->virial, test_config.run_stress,
+        if (ifix->thermo_virial) {
+            EXPECT_STRESS("run_stress (normal run, verlet)", ifix->virial, test_config.run_stress,
                           epsilon);
         }
 
         stats.reset();
         // global scalar
-        if (fix->scalar_flag) {
-            double value = fix->compute_scalar();
+        if (ifix->scalar_flag) {
+            double value = ifix->compute_scalar();
             EXPECT_FP_LE_WITH_EPS(test_config.global_scalar, value, epsilon);
         }
 
         // global vector
-        if (fix->vector_flag) {
-            int num = fix->size_vector;
+        if (ifix->vector_flag) {
+            int num = ifix->size_vector;
             EXPECT_EQ(num, test_config.global_vector.size());
 
             for (int i = 0; i < num; ++i)
-                EXPECT_FP_LE_WITH_EPS(test_config.global_vector[i], fix->compute_vector(i),
+                EXPECT_FP_LE_WITH_EPS(test_config.global_vector[i], ifix->compute_vector(i),
                                       epsilon);
         }
 
         // check t_target for thermostats
 
         int dim     = -1;
-        double *ptr = (double *)fix->extract("t_target", dim);
+        double *ptr = (double *)ifix->extract("t_target", dim);
         if ((ptr != nullptr) && (dim == 0)) {
             int ivar = lmp->input->variable->find("t_target");
             if (ivar >= 0) {
@@ -634,31 +625,30 @@ TEST(FixTimestep, omp)
     EXPECT_POSITIONS("run_pos (restart, verlet)", lmp->atom, test_config.run_pos, epsilon);
     EXPECT_VELOCITIES("run_vel (restart, verlet)", lmp->atom, test_config.run_vel, epsilon);
 
-    ifix = lmp->modify->find_fix("test");
-    if (ifix < 0) {
+    ifix = lmp->modify->get_fix_by_id("test");
+    if (!ifix) {
         FAIL() << "ERROR: no fix defined with fix ID 'test'\n";
     } else {
-        Fix *fix = lmp->modify->fix[ifix];
-        if (fix->thermo_virial) {
-            EXPECT_STRESS("run_stress (restart, verlet)", fix->virial, test_config.run_stress,
+        if (ifix->thermo_virial) {
+            EXPECT_STRESS("run_stress (restart, verlet)", ifix->virial, test_config.run_stress,
                           epsilon);
         }
 
         stats.reset();
 
         // global scalar
-        if (fix->scalar_flag) {
-            double value = fix->compute_scalar();
+        if (ifix->scalar_flag) {
+            double value = ifix->compute_scalar();
             EXPECT_FP_LE_WITH_EPS(test_config.global_scalar, value, epsilon);
         }
 
         // global vector
-        if (fix->vector_flag) {
-            int num = fix->size_vector;
+        if (ifix->vector_flag) {
+            int num = ifix->size_vector;
             EXPECT_EQ(num, test_config.global_vector.size());
 
             for (int i = 0; i < num; ++i)
-                EXPECT_FP_LE_WITH_EPS(test_config.global_vector[i], fix->compute_vector(i),
+                EXPECT_FP_LE_WITH_EPS(test_config.global_vector[i], ifix->compute_vector(i),
                                       epsilon);
         }
         if (print_stats && stats.has_data())
@@ -673,31 +663,30 @@ TEST(FixTimestep, omp)
         EXPECT_POSITIONS("run_pos (rmass, verlet)", lmp->atom, test_config.run_pos, epsilon);
         EXPECT_VELOCITIES("run_vel (rmass, verlet)", lmp->atom, test_config.run_vel, epsilon);
 
-        ifix = lmp->modify->find_fix("test");
-        if (ifix < 0) {
+        ifix = lmp->modify->get_fix_by_id("test");
+        if (!ifix) {
             FAIL() << "ERROR: no fix defined with fix ID 'test'\n";
         } else {
-            Fix *fix = lmp->modify->fix[ifix];
-            if (fix->thermo_virial) {
-                EXPECT_STRESS("run_stress (rmass, verlet)", fix->virial, test_config.run_stress,
+            if (ifix->thermo_virial) {
+                EXPECT_STRESS("run_stress (rmass, verlet)", ifix->virial, test_config.run_stress,
                               epsilon);
             }
 
             stats.reset();
 
             // global scalar
-            if (fix->scalar_flag) {
-                double value = fix->compute_scalar();
+            if (ifix->scalar_flag) {
+                double value = ifix->compute_scalar();
                 EXPECT_FP_LE_WITH_EPS(test_config.global_scalar, value, epsilon);
             }
 
             // global vector
-            if (fix->vector_flag) {
-                int num = fix->size_vector;
+            if (ifix->vector_flag) {
+                int num = ifix->size_vector;
                 EXPECT_EQ(num, test_config.global_vector.size());
 
                 for (int i = 0; i < num; ++i)
-                    EXPECT_FP_LE_WITH_EPS(test_config.global_vector[i], fix->compute_vector(i),
+                    EXPECT_FP_LE_WITH_EPS(test_config.global_vector[i], ifix->compute_vector(i),
                                           epsilon);
             }
             if (print_stats && stats.has_data())
@@ -707,8 +696,8 @@ TEST(FixTimestep, omp)
 
     // rigid fixes need work to test properly with r-RESPA,
     // also, torque is not supported by respa/omp
-    ifix = lmp->modify->find_fix("test");
-    if (!utils::strmatch(lmp->modify->fix[ifix]->style, "^rigid") && !lmp->atom->torque) {
+    ifix = lmp->modify->get_fix_by_id("test");
+    if (ifix && !utils::strmatch(ifix->style, "^rigid") && !lmp->atom->torque) {
 
         if (!verbose) ::testing::internal::CaptureStdout();
         cleanup_lammps(lmp, test_config);
@@ -725,31 +714,30 @@ TEST(FixTimestep, omp)
         EXPECT_POSITIONS("run_pos (normal run, respa)", lmp->atom, test_config.run_pos, epsilon);
         EXPECT_VELOCITIES("run_vel (normal run, respa)", lmp->atom, test_config.run_vel, epsilon);
 
-        ifix = lmp->modify->find_fix("test");
-        if (ifix < 0) {
+        ifix = lmp->modify->get_fix_by_id("test");
+        if (!ifix) {
             FAIL() << "ERROR: no fix defined with fix ID 'test'\n";
         } else {
-            Fix *fix = lmp->modify->fix[ifix];
-            if (fix->thermo_virial) {
-                EXPECT_STRESS("run_stress (normal run, respa)", fix->virial, test_config.run_stress,
-                              1000 * epsilon);
+            if (ifix->thermo_virial) {
+                EXPECT_STRESS("run_stress (normal run, respa)", ifix->virial,
+                              test_config.run_stress, 1000 * epsilon);
             }
 
             stats.reset();
 
             // global scalar
-            if (fix->scalar_flag) {
-                double value = fix->compute_scalar();
+            if (ifix->scalar_flag) {
+                double value = ifix->compute_scalar();
                 EXPECT_FP_LE_WITH_EPS(test_config.global_scalar, value, 10 * epsilon);
             }
 
             // global vector
-            if (fix->vector_flag) {
-                int num = fix->size_vector;
+            if (ifix->vector_flag) {
+                int num = ifix->size_vector;
                 EXPECT_EQ(num, test_config.global_vector.size());
 
                 for (int i = 0; i < num; ++i)
-                    EXPECT_FP_LE_WITH_EPS(test_config.global_vector[i], fix->compute_vector(i),
+                    EXPECT_FP_LE_WITH_EPS(test_config.global_vector[i], ifix->compute_vector(i),
                                           10 * epsilon);
             }
             if (print_stats && stats.has_data())
@@ -763,31 +751,30 @@ TEST(FixTimestep, omp)
         EXPECT_POSITIONS("run_pos (restart, respa)", lmp->atom, test_config.run_pos, epsilon);
         EXPECT_VELOCITIES("run_vel (restart, respa)", lmp->atom, test_config.run_vel, epsilon);
 
-        ifix = lmp->modify->find_fix("test");
-        if (ifix < 0) {
+        ifix = lmp->modify->get_fix_by_id("test");
+        if (!ifix) {
             FAIL() << "ERROR: no fix defined with fix ID 'test'\n";
         } else {
-            Fix *fix = lmp->modify->fix[ifix];
-            if (fix->thermo_virial) {
-                EXPECT_STRESS("run_stress (restart, respa)", fix->virial, test_config.run_stress,
+            if (ifix->thermo_virial) {
+                EXPECT_STRESS("run_stress (restart, respa)", ifix->virial, test_config.run_stress,
                               1000 * epsilon);
             }
 
             stats.reset();
 
             // global scalar
-            if (fix->scalar_flag) {
-                double value = fix->compute_scalar();
+            if (ifix->scalar_flag) {
+                double value = ifix->compute_scalar();
                 EXPECT_FP_LE_WITH_EPS(test_config.global_scalar, value, 10 * epsilon);
             }
 
             // global vector
-            if (fix->vector_flag) {
-                int num = fix->size_vector;
+            if (ifix->vector_flag) {
+                int num = ifix->size_vector;
                 EXPECT_EQ(num, test_config.global_vector.size());
 
                 for (int i = 0; i < num; ++i)
-                    EXPECT_FP_LE_WITH_EPS(test_config.global_vector[i], fix->compute_vector(i),
+                    EXPECT_FP_LE_WITH_EPS(test_config.global_vector[i], ifix->compute_vector(i),
                                           10 * epsilon);
             }
             if (print_stats && stats.has_data())
@@ -802,31 +789,30 @@ TEST(FixTimestep, omp)
             EXPECT_POSITIONS("run_pos (rmass, respa)", lmp->atom, test_config.run_pos, epsilon);
             EXPECT_VELOCITIES("run_vel (rmass, respa)", lmp->atom, test_config.run_vel, epsilon);
 
-            ifix = lmp->modify->find_fix("test");
-            if (ifix < 0) {
+            ifix = lmp->modify->get_fix_by_id("test");
+            if (!ifix) {
                 FAIL() << "ERROR: no fix defined with fix ID 'test'\n";
             } else {
-                Fix *fix = lmp->modify->fix[ifix];
-                if (fix->thermo_virial) {
-                    EXPECT_STRESS("run_stress (rmass, respa)", fix->virial, test_config.run_stress,
+                if (ifix->thermo_virial) {
+                    EXPECT_STRESS("run_stress (rmass, respa)", ifix->virial, test_config.run_stress,
                                   1000 * epsilon);
                 }
 
                 stats.reset();
 
                 // global scalar
-                if (fix->scalar_flag) {
-                    double value = fix->compute_scalar();
+                if (ifix->scalar_flag) {
+                    double value = ifix->compute_scalar();
                     EXPECT_FP_LE_WITH_EPS(test_config.global_scalar, value, 10 * epsilon);
                 }
 
                 // global vector
-                if (fix->vector_flag) {
-                    int num = fix->size_vector;
+                if (ifix->vector_flag) {
+                    int num = ifix->size_vector;
                     EXPECT_EQ(num, test_config.global_vector.size());
 
                     for (int i = 0; i < num; ++i)
-                        EXPECT_FP_LE_WITH_EPS(test_config.global_vector[i], fix->compute_vector(i),
+                        EXPECT_FP_LE_WITH_EPS(test_config.global_vector[i], ifix->compute_vector(i),
                                               10 * epsilon);
                 }
                 if (print_stats && stats.has_data())

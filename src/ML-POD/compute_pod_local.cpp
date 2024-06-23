@@ -31,10 +31,12 @@
 
 using namespace LAMMPS_NS;
 
-enum{SCALAR,VECTOR,ARRAY};
+enum { SCALAR, VECTOR, ARRAY };
 
 ComputePODLocal::ComputePODLocal(LAMMPS *lmp, int narg, char **arg) :
-  Compute(lmp, narg, arg), list(nullptr), map(nullptr), pod(nullptr), elements(nullptr)
+    Compute(lmp, narg, arg), list(nullptr), podptr(nullptr), pod(nullptr), tmpmem(nullptr),
+    rij(nullptr), elements(nullptr), map(nullptr), ai(nullptr), aj(nullptr), ti(nullptr),
+    tj(nullptr)
 {
   array_flag = 1;
   extarray = 0;

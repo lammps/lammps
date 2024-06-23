@@ -1,3 +1,4 @@
+// clang-format off
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    https://www.lammps.org/ Sandia National Laboratories
@@ -38,18 +39,13 @@ using MathSpecial::powint;
 
 // constructor
 EAPOD::EAPOD(LAMMPS *_lmp, const std::string &pod_file, const std::string &coeff_file) :
-        Pointers(_lmp), elemindex(nullptr), Phi(nullptr), Lambda(nullptr), Proj(nullptr),
-        Centroids(nullptr),  bd(nullptr), bdd(nullptr), pd(nullptr), pdd(nullptr), coeff(nullptr), tmpmem(nullptr), tmpint(nullptr),
-        pn3(nullptr), pq3(nullptr), pc3(nullptr), pq4(nullptr), pa4(nullptr), pb4(nullptr), pc4(nullptr),
-        ind23(nullptr), ind32(nullptr), ind33(nullptr), ind34(nullptr), ind43(nullptr), ind44(nullptr)
+    Pointers(_lmp), elemindex(nullptr), Phi(nullptr), Lambda(nullptr), coeff(nullptr),
+    tmpmem(nullptr), Proj(nullptr), Centroids(nullptr), bd(nullptr), bdd(nullptr), pd(nullptr),
+    pdd(nullptr), pn3(nullptr), pq3(nullptr), pc3(nullptr), pq4(nullptr), pa4(nullptr),
+    pb4(nullptr), pc4(nullptr), tmpint(nullptr), ind23(nullptr), ind32(nullptr), ind33(nullptr),
+    ind34(nullptr), ind43(nullptr), ind44(nullptr), ind33l(nullptr), ind33r(nullptr),
+    ind34l(nullptr), ind34r(nullptr), ind44l(nullptr), ind44r(nullptr)
 {
-  ind33l = nullptr;
-  ind33r = nullptr;
-  ind34l = nullptr;
-  ind34r = nullptr;
-  ind44l = nullptr;
-  ind44r = nullptr;
-
   rin = 0.5;
   rcut = 5.0;
   nClusters = 1;

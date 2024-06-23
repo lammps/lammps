@@ -27,7 +27,7 @@ OPT.
 
    * :doc:`none <bond_none>`
    * :doc:`zero <bond_zero>`
-   * :doc:`hybrid <bond_hybrid>`
+   * :doc:`hybrid (k) <bond_hybrid>`
    *
    *
    *
@@ -72,7 +72,7 @@ OPT.
 
    * :doc:`none <angle_none>`
    * :doc:`zero <angle_zero>`
-   * :doc:`hybrid (k) <angle_hybrid>`
+   * :doc:`hybrid <angle_hybrid>`
    *
    *
    *

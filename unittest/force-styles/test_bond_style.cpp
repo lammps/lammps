@@ -138,8 +138,9 @@ LAMMPS *init_lammps(LAMMPS::argv &args, const TestConfig &cfg, const bool newton
     }
 
     command("run 0 post no");
+    command("variable write_data_pair index ii");
     command("write_restart " + cfg.basename + ".restart");
-    command("write_data " + cfg.basename + ".data nofix");
+    command("write_data " + cfg.basename + ".data nofix pair ${write_data_pair}");
     command("write_coeff " + cfg.basename + "-coeffs.in");
 
     return lmp;

@@ -1,4 +1,3 @@
-#!/usr/bin/env python
 """
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
@@ -16,16 +15,23 @@
 /* ----------------------------------------------------------------------
    Contributing author: Oliver Henrich (University of Strathclyde, Glasgow)
 ------------------------------------------------------------------------- */
-"""
 
+Program: generate.py
 
-"""
-Import basic modules
+Generates a simple initial ssDNA or dsDNA configuration from a given sequence.
+For dsDNA the sequence should be preceded by the 'DOUBLE' keyword.
+
+Usage: 
+$$ python generate.py box_offset box_length sequence_file 
 """
 
 # for python2/3 compatibility
 from __future__ import print_function
+#!/usr/bin/env python
 
+"""
+Import basic modules
+"""
 import sys, os, timeit
 
 from timeit import default_timer as timer

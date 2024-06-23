@@ -256,6 +256,7 @@ set(STANDARD_PACKAGES
   DRUDE
   EFF
   ELECTRODE
+  EXTRA-COMMAND
   EXTRA-COMPUTE
   EXTRA-DUMP
   EXTRA-FIX
@@ -285,6 +286,7 @@ set(STANDARD_PACKAGES
   ML-RANN
   ML-SNAP
   ML-POD
+  ML-UF3
   MOFFF
   MOLECULE
   MOLFILE
@@ -689,7 +691,7 @@ endif()
 # packages which selectively include variants based on enabled styles
 # e.g. accelerator packages
 ######################################################################
-foreach(PKG_WITH_INCL CORESHELL DPD-SMOOTH MC MISC PHONON QEQ OPENMP KOKKOS OPT INTEL GPU)
+foreach(PKG_WITH_INCL CORESHELL DPD-BASIC DPD-SMOOTH MC MISC PHONON QEQ OPENMP KOKKOS OPT INTEL GPU)
   if(PKG_${PKG_WITH_INCL})
     include(Packages/${PKG_WITH_INCL})
   endif()

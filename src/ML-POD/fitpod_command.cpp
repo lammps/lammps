@@ -18,8 +18,6 @@
 
 #include "fitpod_command.h"
 
-#include "eapod.h"
-
 #include "comm.h"
 #include "error.h"
 #include "math_special.h"
@@ -32,6 +30,8 @@
 #include <string>
 #include <vector>
 #include <unordered_map>
+
+#include "eapod.h"
 
 using namespace LAMMPS_NS;
 using MathSpecial::powint;

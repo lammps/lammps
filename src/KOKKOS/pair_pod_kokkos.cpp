@@ -16,7 +16,6 @@
    Contributing author: Ngoc Cuong Nguyen (MIT)
 ------------------------------------------------------------------------- */
 
-#include "eapod.h"
 #include "pair_pod_kokkos.h"
 
 #include "atom_kokkos.h"
@@ -32,6 +31,8 @@
 
 #include <cstring>
 #include <chrono>
+
+#include "eapod.h"
 
 using namespace LAMMPS_NS;
 using namespace MathConst;

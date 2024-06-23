@@ -15,9 +15,6 @@
    Contributing authors: Ngoc Cuong Nguyen (MIT)
 ------------------------------------------------------------------------- */
 
-// POD header file
-#include "eapod.h"
-
 // LAMMPS header files
 
 #include "comm.h"
@@ -28,6 +25,9 @@
 #include "tokenizer.h"
 
 #include <cmath>
+
+// header file. Moved down here to avoid polluting other headers with its defines
+#include "eapod.h"
 
 using namespace LAMMPS_NS;
 using MathConst::MY_PI;

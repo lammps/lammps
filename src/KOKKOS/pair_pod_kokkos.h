@@ -23,7 +23,6 @@ PairStyle(pod/kk/host,PairPODKokkos<LMPHostType>);
 #ifndef LMP_PAIR_POD_KOKKOS_H
 #define LMP_PAIR_POD_KOKKOS_H
 
-#include "eapod.h"
 #include "pair_pod.h"
 #include "kokkos_type.h"
 #include "pair_kokkos.h"

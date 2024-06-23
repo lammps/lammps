@@ -23,10 +23,11 @@
 #include "neigh_list.h"
 #include "neighbor.h"
 #include "pair.h"
-#include "eapod.h"
 #include "update.h"
 
 #include <cstring>
+
+#include "eapod.h"
 
 using namespace LAMMPS_NS;
 

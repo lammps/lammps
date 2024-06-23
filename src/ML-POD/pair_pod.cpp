@@ -17,8 +17,6 @@
 
 #include "pair_pod.h"
 
-#include "eapod.h"
-
 #include "atom.h"
 #include "comm.h"
 #include "error.h"
@@ -33,6 +31,8 @@
 #include <cmath>
 #include <cstring>
 #include <chrono>
+
+#include "eapod.h"
 
 using namespace LAMMPS_NS;
 using MathConst::MY_PI;

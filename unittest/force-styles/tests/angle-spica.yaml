@@ -1,6 +1,6 @@
 ---
 lammps_version: 7 Feb 2024
-tags: generated
+tags:
 date_generated: Wed Jun  5 18:31:11 2024
 epsilon: 1e-12
 skip_tests:
@@ -14,7 +14,11 @@ post_commands: ! |
   pair_style lj/spica 8.0
 input_file: in.spica
 angle_style: spica
-angle_coeff: ! "1  33.5 110.1 \n2  46.1 111.3 \n3  40.0 120.0 \n4  33.0 108.5 \n"
+angle_coeff: ! |
+  1  33.5 110.1
+  2  46.1 111.3
+  3  40.0 120.0
+  4  33.0 108.5
 equilibrium: 4 1.9216075064457565 1.9425514574696887 2.0943951023931953 1.8936822384138474
 extract: ! ""
 natoms: 29

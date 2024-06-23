@@ -645,7 +645,7 @@ TEST(AngleStyle, single)
                         "extra/angle/per/atom 2 extra/special/per/atom 2",
                         nangletypes));
 
-    if (utils::strmatch(test_config.angle_style, "spica")) {
+    if (utils::strmatch(test_config.angle_style, "^spica")) {
       command("pair_style lj/spica 8.0");
       command("pair_coeff * * lj9_6 0.02 2.5");
     } else {

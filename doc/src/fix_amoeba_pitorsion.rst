@@ -57,7 +57,7 @@ should have two lines like these in its header section:
    M pitorsion types
    N pitorsions
 
-where :math:`N` is the number of pitorsion 5-body interactions and :math:`M` is
+where :math:`N` is the number of pitorsion 6-body interactions and :math:`M` is
 the number of pitorsion types.  It should also have two sections in the body
 of the data file like these with :math:`M` and :math:`N` lines each:
 
@@ -74,21 +74,20 @@ of the data file like these with :math:`M` and :math:`N` lines each:
 
    PiTorsions
 
-          1       1       8      10      12      18      20
-          2       5      18      20      22      25      27
+          1       1       2      4      3      20      21      24
+          2       5      21     23     22      37      38      41
           [...]
-          N       3     314     315     317      318    330
+          N       7      27     29     28      30      35      36
 
-For PiTorsion Coeffs, the first column is an index from 1 to :math:`M` to
-enumerate the pitorsion types.  The second column is the single
+For PiTorsion Coeffs, the first column is an index from 1 to :math:`M`
+to enumerate the pitorsion types.  The second column is the single
 prefactor coefficient needed for each type.
 
-For PiTorsions, the first column is an index from 1 to :math:`N` to enumerate
-the pitorsion 5-atom tuples; it is ignored by LAMMPS.  The second
-column is the "type" of the interaction; it is an index into the
-PiTorsion Coeffs.  The remaining 5 columns are the atom IDs of the
-atoms in the two 4-atom dihedrals that overlap to create the pitorsion
-5-body interaction.
+For PiTorsions, the first column is an index from 1 to :math:`N` to
+enumerate the pitorsion 6-atom tuples; it is ignored by LAMMPS.  The
+second column is the "type" of the interaction; it is an index into
+the PiTorsion Coeffs.  The remaining 6 columns are the atom IDs of the
+atoms (in order) for the 6-tuple :math:`IJKLMN`, as described above.
 
 Note that the *pitorsion types* and *pitorsions* and *PiTorsion
 Coeffs* and *PiTorsions* keywords for the header and body sections of

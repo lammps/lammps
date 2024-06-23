@@ -27,7 +27,7 @@ OPT.
 
    * :doc:`none <bond_none>`
    * :doc:`zero <bond_zero>`
-   * :doc:`hybrid <bond_hybrid>`
+   * :doc:`hybrid (k) <bond_hybrid>`
    *
    *
    *

@@ -13,7 +13,7 @@ Syntax
 * ID, group-ID are documented in :doc:`fix <fix>` command
 * deposit = style name of this fix command
 * N = # of atoms or molecules to insert
-* type = atom type to assign to inserted atoms (offset for molecule insertion)
+* type = atom type (1-Ntypes or type label) to assign to inserted atoms (offset for molecule insertion)
 * M = insert a single atom or molecule every M steps
 * seed = random # seed (positive integer)
 * one or more keyword/value pairs may be appended to args
@@ -75,6 +75,9 @@ Examples
    fix 2 newatoms deposit 10000 1 500 12345 region disk near 2.0 vz -1.0 -0.8
    fix 4 sputter deposit 1000 2 500 12235 region sphere vz -1.0 -1.0 target 5.0 5.0 0.0 units lattice
    fix 5 insert deposit 200 2 100 777 region disk gaussian 5.0 5.0 9.0 1.0 units box
+
+   labelmap atom 1 Au
+   fix 4 sputter deposit 1000 Au 500 12235 region sphere vz -1.0 -1.0 target 5.0 5.0 0.0 units lattice
 
 Description
 """""""""""

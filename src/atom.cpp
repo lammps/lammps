@@ -1994,18 +1994,14 @@ void Atom::set_mass(const char *file, int line, int /*narg*/, char **arg)
   if (mass == nullptr)
     error->all(file,line, "Cannot set per-type atom mass for atom style {}", atom_style);
 
-  char *typestr = utils::expand_type(file, line, arg[0], Atom::ATOM, lmp);
-  const std::string str = typestr ? typestr : arg[0];
-  delete[] typestr;
-
   int lo, hi;
-  utils::bounds(file, line, str, 1, ntypes, lo, hi, error);
+  utils::bounds_typelabel(file, line, arg[0], 1, ntypes, lo, hi, error, lmp, Atom::ATOM);
   if ((lo < 1) || (hi > ntypes))
-    error->all(file, line, "Invalid atom type {} for atom mass", str);
+    error->all(file, line, "Invalid atom type {} for atom mass", arg[0]);
 
   const double value = utils::numeric(FLERR, arg[1], false, lmp);
   if (value <= 0.0)
-    error->all(file, line, "Invalid atom mass value {} for type {}", value, str);
+    error->all(file, line, "Invalid atom mass value {} for type {}", value, arg[0]);
 
   for (int itype = lo; itype <= hi; itype++) {
     mass[itype] = value;

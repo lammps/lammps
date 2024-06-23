@@ -269,6 +269,9 @@ class lammps(object):
     self.lib.lammps_extract_global_datatype.restype = c_int
     self.lib.lammps_extract_compute.argtypes = [c_void_p, c_char_p, c_int, c_int]
 
+    self.lib.lammps_map_atom.argtypes = [c_void_p, c_void_p]
+    self.lib.lammps_map_atom.restype = c_int
+
     self.lib.lammps_get_thermo.argtypes = [c_void_p, c_char_p]
     self.lib.lammps_get_thermo.restype = c_double
 
@@ -888,11 +891,13 @@ class lammps(object):
     # set length of vector for items that are not a scalar
     vec_dict = { 'boxlo':3, 'boxhi':3, 'sublo':3, 'subhi':3,
                  'sublo_lambda':3, 'subhi_lambda':3, 'periodicity':3,
-                 'special_lj':4, 'special_coul':4 }
+                 'special_lj':4, 'special_coul':4, 'procgrid':3 }
     if name in vec_dict:
       veclen = vec_dict[name]
     elif name == 'respa_dt':
       veclen = self.extract_global('respa_levels',LAMMPS_INT)
+    elif name == 'sametag':
+      veclen = self.extract_setting('nall')
     else:
       veclen = 1
 
@@ -925,6 +930,24 @@ class lammps(object):
         return result
       else: return target_type(ptr[0])
     return None
+
+  # -------------------------------------------------------------------------
+  # map global atom ID to local atom index
+
+  def map_atom(self, id):
+    """Map a global atom ID (aka tag) to the local atom index
+
+    This is a wrapper around the :cpp:func:`lammps_map_atom`
+    function of the C-library interface.
+
+    :param id: atom ID
+    :type id:  int
+    :return: local index
+    :rtype: int
+    """
+
+    tag = self.c_tagint(id)
+    return self.lib.lammps_map_atom(self.lmp, pointer(tag))
 
   # -------------------------------------------------------------------------
   # extract per-atom info datatype

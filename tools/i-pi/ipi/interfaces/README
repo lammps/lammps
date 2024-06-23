@@ -1,8 +1,0 @@
- -- Interfaces between i-PI and the drivers --
-
- * This is the directory containing the code that deals with the socket 
-   interface.
-
- * Files:
-   - sockets.py: Deals with the driver communication and the wrapper socket 
-      and threading interface.

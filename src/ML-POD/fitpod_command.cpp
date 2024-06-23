@@ -377,13 +377,13 @@ void FitPOD::get_exyz_files(std::vector<std::string>& files, std::vector<std::st
   auto allfiles = platform::list_directory(datapath);
   std::sort(allfiles.begin(), allfiles.end());
   for (const auto &fname : allfiles) {
-    if (utils::strmatch(fname, fmt::format(".*\\.{}$", extension)))
+    if (utils::strmatch(fname, fmt::format(".*\\.{}$", extension))) {
       files.push_back(datapath + platform::filepathsep + fname);
       int start_pos_erase = fname.find(extension) - 1;
       int ext_size = extension.size() + 1;
-      //std::string substr = fname.erase(start_pos_erase, ext_size);
       std::string substr = fname.substr(0, start_pos_erase);
       group_names.push_back(substr);
+    }
   }
 }
 

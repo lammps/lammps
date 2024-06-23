@@ -36,6 +36,7 @@
 #include "pair.h"
 #include "platform.h"
 #include "universe.h"
+#include "update.h"
 #include "utils.h"
 #include "variable.h"
 
@@ -160,6 +161,13 @@ void restart_lammps(LAMMPS *lmp, const TestConfig &cfg, bool use_rmass, bool use
     for (auto &post_command : cfg.post_commands)
         command(post_command);
 
+    auto ifix = lmp->modify->get_fix_by_id("test");
+    if (ifix && !utils::strmatch(ifix->style, "^move")) {
+        // must be set to trigger calling Fix::reset_dt() with timestep
+        lmp->update->first_update = 1;
+        // test validity of Fix::reset_dt(). With run_style respa there may be segfaults
+        command("timestep 0.25");
+    }
     command("thermo 2");
     command("run 4 post no start 0 stop 8");
 }

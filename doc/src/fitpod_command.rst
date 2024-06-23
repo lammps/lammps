@@ -247,7 +247,7 @@ of configurations in the loss function. For example:
     Volume_FCC    100.0 1.0
 
 This will apply an energy weight of ``100.0`` and a force weight of ``1.0`` for all groups in the
-``Ta`` example. The groups are named by their respecive filename. If certain groups are left out of
+``Ta`` example. The groups are named by their respective filename. If certain groups are left out of
 this table, then the globally defined weights from the ``fitting_weight_energy`` and
 ``fitting_weight_force`` keywords will be used.
 
@@ -277,7 +277,7 @@ It thus follows that :math:`E(\boldsymbol R, \boldsymbol Z) =
 
 The per-atom POD descriptors include one, two, three, four, five, six, and seven-body
 descriptors, which can be specified in the first input file. Furthermore, the per-atom POD descriptors
-also depend on the number of environment clusters speciefied in the first input file.
+also depend on the number of environment clusters specified in the first input file.
 Please see :ref:`(Nguyen2024) <Nguyen20242>` and :ref:`(Nguyen and Sema) <Nguyen20243>` for the detailed description of the per-atom POD descriptors.
 
 Training

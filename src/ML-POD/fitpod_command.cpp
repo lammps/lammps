@@ -36,8 +36,7 @@
 using namespace LAMMPS_NS;
 using MathSpecial::powint;
 
-#define MAXLINE 1024
-
+static constexpr int MAXLINE = 1024;
 static constexpr double SMALL = 1.0e-10;
 
 FitPOD::FitPOD(LAMMPS *_lmp) : Command(_lmp), fastpodptr(nullptr)
@@ -75,7 +74,6 @@ void FitPOD::command(int narg, char **arg)
 
   if (((int) envdata.data_path.size() > 1) && (desc.nClusters > 1)) {
     environment_cluster_calculation(envdata);
-    //error->all(FLERR, "stop after environment_cluster_calculation");
       memory->destroy(envdata.lattice);
       memory->destroy(envdata.energy);
       memory->destroy(envdata.stress);
@@ -303,7 +301,6 @@ int FitPOD::read_data_file(double *fitting_weights, std::string &file_format,
       if (eof) break;
       MPI_Bcast(line,MAXLINE,MPI_CHAR,0,world);
       // Tokenize.
-      //std::vector<std::string> words;
       try {
         words = Tokenizer(utils::trim_comment(line),"\"' \t\n\r\f").as_vector();
       } catch (TokenizerException &) {
@@ -330,7 +327,6 @@ int FitPOD::read_data_file(double *fitting_weights, std::string &file_format,
         if (eof) break;
         MPI_Bcast(line,MAXLINE,MPI_CHAR,0,world);
         // Tokenize.
-        //std::vector<std::string> words;
         try {
           words = Tokenizer(utils::trim_comment(line),"\"' \t\n\r\f").as_vector();
         } catch (TokenizerException &) {
@@ -369,8 +365,8 @@ int FitPOD::read_data_file(double *fitting_weights, std::string &file_format,
   return precision;
 }
 
-void FitPOD::get_exyz_files(std::vector<std::string>& files, std::vector<std::string> &group_names, const std::string &datapath,
-                             const std::string &extension)
+void FitPOD::get_exyz_files(std::vector<std::string>& files, std::vector<std::string> &group_names,
+                            const std::string &datapath, const std::string &extension)
 {
   auto allfiles = platform::list_directory(datapath);
   std::sort(allfiles.begin(), allfiles.end());

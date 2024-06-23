@@ -1809,7 +1809,7 @@ provided by others.
 
 **Author:** Guillaume Fraux (EPFL)
 
-.. versionadded:: TODO
+.. versionadded:: TBD
 
 **Supporting info:**
 

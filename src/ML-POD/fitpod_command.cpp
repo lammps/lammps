@@ -315,10 +315,8 @@ int FitPOD::read_data_file(double *fitting_weights, std::string &file_format,
       while (numwords == 3){
 
         // Insert in map.
-        double we = atof(words[1].c_str());
-        we_map[words[0]] = atof(words[1].c_str());
-        double wf = atof(words[2].c_str());
-        wf_map[words[0]] = atof(words[2].c_str());
+        we_map[words[0]] = utils::numeric(FLERR, words[1], false, lmp);
+        wf_map[words[0]] = utils::numeric(FLERR, words[2], false, lmp);
 
         // Get next line.
         if (comm->me == 0) {

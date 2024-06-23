@@ -190,7 +190,7 @@ OPT.
    * :doc:`lj/mdf <pair_mdf>`
    * :doc:`lj/relres (o) <pair_lj_relres>`
    * :doc:`lj/spica (gko) <pair_spica>`
-   * :doc:`lj/spica/coul/long (go) <pair_spica>`
+   * :doc:`lj/spica/coul/long (gko) <pair_spica>`
    * :doc:`lj/spica/coul/msm (o) <pair_spica>`
    * :doc:`lj/sf/dipole/sf (go) <pair_dipole>`
    * :doc:`lj/smooth (go) <pair_lj_smooth>`

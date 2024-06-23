@@ -100,7 +100,7 @@ OPT.
    * :doc:`mesocnt <angle_mesocnt>`
    * :doc:`mm3 <angle_mm3>`
    * :doc:`quartic (o) <angle_quartic>`
-   * :doc:`spica (o) <angle_spica>`
+   * :doc:`spica (ko) <angle_spica>`
    * :doc:`table (o) <angle_table>`
 
 .. _dihedral:

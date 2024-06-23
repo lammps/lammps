@@ -61,7 +61,7 @@ void cleanup_lammps(LAMMPS *lmp, const TestConfig &cfg)
     delete lmp;
 }
 
-LAMMPS *init_lammps(LAMMPS::argv & args, const TestConfig &cfg, const bool use_respa = false)
+LAMMPS *init_lammps(LAMMPS::argv &args, const TestConfig &cfg, const bool use_respa = false)
 {
     LAMMPS *lmp;
 
@@ -170,7 +170,7 @@ void generate_yaml_file(const char *outfile, const TestConfig &config)
 {
     // initialize system geometry
     LAMMPS::argv args = {"FixIntegrate", "-log", "none", "-echo", "screen", "-nocite"};
-    LAMMPS *lmp = init_lammps(args, config);
+    LAMMPS *lmp       = init_lammps(args, config);
     if (!lmp) {
         std::cerr << "One or more prerequisite styles are not available "
                      "in this LAMMPS configuration:\n";
@@ -542,7 +542,6 @@ TEST(FixTimestep, omp)
 
     LAMMPS::argv args = {"FixTimestep", "-log", "none", "-echo", "screen", "-nocite",
                          "-pk",         "omp",  "4",    "-sf",   "omp"};
-
 
     ::testing::internal::CaptureStdout();
     LAMMPS *lmp        = init_lammps(args, test_config);

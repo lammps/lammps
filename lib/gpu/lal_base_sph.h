@@ -132,7 +132,7 @@ class BaseSPH {
                int **firstneigh, const bool eflag, const bool vflag,
                const bool eatom, const bool vatom, int &host_start,
                const double cpu_time, bool &success, tagint *tag,
-               double **v, const int nlocal);
+               double **v);
 
   /// Pair loop with device neighboring
   int** compute(const int ago, const int inum_full, const int nall,

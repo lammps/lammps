@@ -19,6 +19,7 @@
 #include "domain.h"
 #include "error.h"
 #include "force.h"
+#include "lattice.h"
 #include "region.h"
 #include "region_prism.h"
 #include "update.h"
@@ -45,40 +46,117 @@ void CreateBox::command(int narg, char **arg)
 
   // region check
 
-  auto region = domain->get_region_by_id(arg[1]);
-  if (!region) error->all(FLERR, "Create_box region {} does not exist", arg[1]);
-  if (region->bboxflag == 0) error->all(FLERR, "Create_box region does not support a bounding box");
+  Region *region = nullptr;
+  int triclinic_general = 0;
 
-  region->init();
+  if (strcmp(arg[1],"NULL") == 0) triclinic_general = 1;
+  else {
+    region = domain->get_region_by_id(arg[1]);
+    if (!region) error->all(FLERR, "Create_box region {} does not exist", arg[1]);
+    if (region->bboxflag == 0) error->all(FLERR, "Create_box region does not support a bounding box");
+    region->init();
+  }
 
-  // if region not prism:
-  //   setup orthogonal domain
-  //   set simulation domain from region extent
-  // if region is prism:
-  //   seutp triclinic domain
-  //   set simulation domain params from prism params
+  // setup simulation box
+  // 3 options: orthogonal, restricted triclinic, general triclinic
 
-  if (strcmp(region->style, "prism") != 0) {
-    domain->triclinic = 0;
-    domain->boxlo[0] = region->extent_xlo;
-    domain->boxhi[0] = region->extent_xhi;
-    domain->boxlo[1] = region->extent_ylo;
-    domain->boxhi[1] = region->extent_yhi;
-    domain->boxlo[2] = region->extent_zlo;
-    domain->boxhi[2] = region->extent_zhi;
+  int iarg = 2;
 
-  } else {
-    domain->triclinic = 1;
-    auto prism = dynamic_cast<RegPrism *>(region);
-    domain->boxlo[0] = prism->xlo;
-    domain->boxhi[0] = prism->xhi;
-    domain->boxlo[1] = prism->ylo;
-    domain->boxhi[1] = prism->yhi;
-    domain->boxlo[2] = prism->zlo;
-    domain->boxhi[2] = prism->zhi;
-    domain->xy = prism->xy;
-    domain->xz = prism->xz;
-    domain->yz = prism->yz;
+  if (region) {
+
+    // region is not prism
+    // setup orthogonal box
+    // set simulation domain from region extent
+
+    if (strcmp(region->style, "prism") != 0) {
+      domain->triclinic = 0;
+      domain->boxlo[0] = region->extent_xlo;
+      domain->boxhi[0] = region->extent_xhi;
+      domain->boxlo[1] = region->extent_ylo;
+      domain->boxhi[1] = region->extent_yhi;
+      domain->boxlo[2] = region->extent_zlo;
+      domain->boxhi[2] = region->extent_zhi;
+
+    // region is prism
+    // seutp restricted triclinic box
+    // set simulation domain from prism params
+
+    } else {
+      domain->triclinic = 1;
+      auto prism = dynamic_cast<RegPrism *>(region);
+      domain->boxlo[0] = prism->xlo;
+      domain->boxhi[0] = prism->xhi;
+      domain->boxlo[1] = prism->ylo;
+      domain->boxhi[1] = prism->yhi;
+      domain->boxlo[2] = prism->zlo;
+      domain->boxhi[2] = prism->zhi;
+      domain->xy = prism->xy;
+      domain->xz = prism->xz;
+      domain->yz = prism->yz;
+    }
+
+    if (domain->dimension == 2) {
+      if (domain->boxlo[2] >= 0.0 || domain->boxhi[2] <= 0.0)
+        error->all(FLERR,"Create_box region zlo/zhi for 2d simulation must straddle 0.0");
+    }
+
+  // setup general triclinic box (with no region)
+  // read next box extent arguments to create ABC edge vectors + origin
+  // define_general_triclinic() converts
+  //   ABC edge vectors + origin to restricted triclinic
+
+  } else if (triclinic_general) {
+    if (!domain->lattice->is_general_triclinic())
+      error->all(FLERR,"Create_box for general triclinic requires triclnic/general lattice");
+
+    if (iarg + 6 > narg) utils::missing_cmd_args(FLERR, "create_box general triclinic", error);
+
+    double alo = utils::numeric(FLERR, arg[iarg + 0], false, lmp);
+    double ahi = utils::numeric(FLERR, arg[iarg + 1], false, lmp);
+    double blo = utils::numeric(FLERR, arg[iarg + 2], false, lmp);
+    double bhi = utils::numeric(FLERR, arg[iarg + 3], false, lmp);
+    double clo = utils::numeric(FLERR, arg[iarg + 4], false, lmp);
+    double chi = utils::numeric(FLERR, arg[iarg + 5], false, lmp);
+    iarg += 6;
+
+    if (domain->dimension == 2)
+      if (clo != -0.5 || chi != 0.5)
+        error->all(FLERR,"Create_box for general triclinic requires clo = -0.5 and chi = 0.5");
+
+    // use lattice2box() to generate origin and ABC vectors
+    // origin = abc lo
+    // ABC vectors = hi in one dim - origin
+
+    double avec[3],bvec[3],cvec[3],origin[3];
+    double px,py,pz;
+
+    px = alo; py = blo; pz = clo;
+    domain->lattice->lattice2box(px,py,pz);
+    origin[0] = px;
+    origin[1] = py;
+    origin[2] = pz;
+
+    px = ahi; py = blo; pz = clo;
+    domain->lattice->lattice2box(px,py,pz);
+    avec[0] = px - origin[0];
+    avec[1] = py - origin[1];
+    avec[2] = pz - origin[2];
+
+    px = alo; py = bhi; pz = clo;
+    domain->lattice->lattice2box(px,py,pz);
+    bvec[0] = px - origin[0];
+    bvec[1] = py - origin[1];
+    bvec[2] = pz - origin[2];
+
+    px = alo; py = blo; pz = chi;
+    domain->lattice->lattice2box(px,py,pz);
+    cvec[0] = px - origin[0];
+    cvec[1] = py - origin[1];
+    cvec[2] = pz - origin[2];
+
+    // define general triclinic box within Domain class
+
+    domain->define_general_triclinic(avec,bvec,cvec,origin);
   }
 
   // if molecular, zero out topology info
@@ -104,7 +182,6 @@ void CreateBox::command(int narg, char **arg)
 
   // process optional args that can overwrite default settings
 
-  int iarg = 2;
   while (iarg < narg) {
     if (strcmp(arg[iarg], "bond/types") == 0) {
       if (iarg + 2 > narg) utils::missing_cmd_args(FLERR, "create_box bond/type", error);
@@ -166,7 +243,7 @@ void CreateBox::command(int narg, char **arg)
       error->all(FLERR, "Unknown create_box keyword: {}", arg[iarg]);
   }
 
-  // problem setup using info from header
+  // setup the simulation box and initial system
   // deallocate/grow ensures any extra settings are used for topology arrays
   // necessary in case no create_atoms is performed
 

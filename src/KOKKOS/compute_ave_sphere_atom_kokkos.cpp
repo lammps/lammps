@@ -21,18 +21,11 @@
 #include "atom_masks.h"
 #include "comm.h"
 #include "domain.h"
-#include "error.h"
 #include "force.h"
 #include "memory_kokkos.h"
-#include "modify.h"
-#include "neigh_list.h"
 #include "neigh_request.h"
 #include "neighbor_kokkos.h"
-#include "pair.h"
 #include "update.h"
-
-#include <cmath>
-#include <cstring>
 
 using namespace LAMMPS_NS;
 

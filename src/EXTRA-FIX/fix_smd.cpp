@@ -38,7 +38,7 @@ enum { SMD_NONE=0,
        SMD_CVEL=1<<2, SMD_CFOR=1<<3,
        SMD_AUTOX=1<<4, SMD_AUTOY=1<<5, SMD_AUTOZ=1<<6};
 
-#define SMALL 0.001
+static constexpr double SMALL = 0.001;
 
 /* ---------------------------------------------------------------------- */
 
@@ -430,7 +430,7 @@ void FixSMD::smd_couple()
 
 void FixSMD::write_restart(FILE *fp)
 {
-#define RESTART_ITEMS 5
+  static constexpr int RESTART_ITEMS = 5;
   double buf[RESTART_ITEMS], fsign;
 
   if (comm->me == 0) {

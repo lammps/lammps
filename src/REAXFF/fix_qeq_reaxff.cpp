@@ -141,7 +141,7 @@ FixQEqReaxFF::FixQEqReaxFF(LAMMPS *lmp, int narg, char **arg) :
   // perform initial allocation of atom-based arrays
   // register with Atom class
 
-  reaxff = dynamic_cast<PairReaxFF *>(force->pair_match("^reax..",0));
+  reaxff = dynamic_cast<PairReaxFF *>(force->pair_match("^reaxff",0));
 
   s_hist = t_hist = nullptr;
   atom->add_callback(Atom::GROW);
@@ -205,23 +205,43 @@ int FixQEqReaxFF::setmask()
 
 void FixQEqReaxFF::pertype_parameters(char *arg)
 {
+  const int nlocal = atom->nlocal;
+  const int *mask = atom->mask;
+  const int *type = atom->type;
+
   if (utils::strmatch(arg,"^reaxff")) {
     reaxflag = 1;
     Pair *pair = force->pair_match("^reaxff",0);
     if (!pair) error->all(FLERR,"No reaxff pair style for fix qeq/reaxff");
 
-    int tmp;
+    int tmp, tmp_all;
     chi = (double *) pair->extract("chi",tmp);
     eta = (double *) pair->extract("eta",tmp);
     gamma = (double *) pair->extract("gamma",tmp);
-    if (chi == nullptr || eta == nullptr || gamma == nullptr)
-      error->all(FLERR, "Fix qeq/reaxff could not extract params from pair reaxff");
+    if ((chi == nullptr) || (eta == nullptr) || (gamma == nullptr))
+      error->all(FLERR, "Fix qeq/reaxff could not extract all QEq parameters from pair reaxff");
+    tmp = tmp_all = 0;
+    for (int i = 0; i < nlocal; ++i) {
+      if (mask[i] & groupbit) {
+        if ((chi[type[i]] == 0.0) && (eta[type[i]] == 0.0) && (gamma[type[i]] == 0.0))
+          tmp = type[i];
+      }
+    }
+    MPI_Allreduce(&tmp, &tmp_all, 1, MPI_INT, MPI_MAX, world);
+    if (tmp_all)
+      error->all(FLERR, "No QEq parameters for atom type {} provided by pair reaxff", tmp_all);
     return;
+  } else if (utils::strmatch(arg,"^reax/c")) {
+    error->all(FLERR, "Fix qeq/reaxff keyword 'reax/c' is obsolete; please use 'reaxff'");
+  } else if (platform::file_is_readable(arg)) {
+    ; // arg is readable file. will read below
+  } else {
+    error->all(FLERR, "Unknown fix qeq/reaxff keyword {}", arg);
   }
 
   reaxflag = 0;
-  const int ntypes = atom->ntypes;
 
+  const int ntypes = atom->ntypes;
   memory->create(chi,ntypes+1,"qeq/reaxff:chi");
   memory->create(eta,ntypes+1,"qeq/reaxff:eta");
   memory->create(gamma,ntypes+1,"qeq/reaxff:gamma");

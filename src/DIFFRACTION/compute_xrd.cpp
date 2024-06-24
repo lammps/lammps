@@ -35,7 +35,7 @@
 
 #include "omp_compat.h"
 using namespace LAMMPS_NS;
-using namespace MathConst;
+using MathConst::MY_PI;
 
 static const char cite_compute_xrd_c[] =
   "compute xrd command: doi:10.1088/0965-0393/21/5/055020\n\n"
@@ -261,7 +261,7 @@ void ComputeXRD::init()
   double ang = 0.0;
 
   double convf = 360 / MY_PI;
-  if (radflag ==1) convf = 1;
+  if (radflag == 1) convf = 2;
 
   int n = 0;
   for (int m = 0; m < mmax; m++) {

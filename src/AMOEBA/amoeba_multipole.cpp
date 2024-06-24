@@ -31,16 +31,8 @@ using namespace MathConst;
 
 using MathSpecial::square;
 
-enum{FIELD,ZRSD,TORQUE,UFLD};                          // reverse comm
-enum{VDWL,REPULSE,QFER,DISP,MPOLE,POLAR,USOLV,DISP_LONG,MPOLE_LONG,POLAR_LONG};
-
-#ifdef FFT_SINGLE
-#define ZEROF 0.0f
-#define ONEF  1.0f
-#else
-#define ZEROF 0.0
-#define ONEF  1.0
-#endif
+enum { FIELD, ZRSD, TORQUE, UFLD };    // reverse comm
+enum { VDWL, REPULSE, QFER, DISP, MPOLE, POLAR, USOLV, DISP_LONG, MPOLE_LONG, POLAR_LONG };
 
 /* ----------------------------------------------------------------------
    multipole = multipole interactions

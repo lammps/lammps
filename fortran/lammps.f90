@@ -113,11 +113,16 @@ MODULE LIBLAMMPS
     PROCEDURE :: get_mpi_comm           => lmp_get_mpi_comm
     PROCEDURE :: extract_setting        => lmp_extract_setting
     PROCEDURE :: extract_global         => lmp_extract_global
+    PROCEDURE, PRIVATE :: lmp_map_atom_int
+    PROCEDURE, PRIVATE :: lmp_map_atom_big
+    GENERIC :: map_atom               => lmp_map_atom_int, lmp_map_atom_big
     PROCEDURE :: extract_atom           => lmp_extract_atom
     PROCEDURE :: extract_compute        => lmp_extract_compute
     PROCEDURE :: extract_fix            => lmp_extract_fix
     PROCEDURE :: extract_variable       => lmp_extract_variable
     PROCEDURE :: set_variable           => lmp_set_variable
+    PROCEDURE :: set_string_variable    => lmp_set_string_variable
+    PROCEDURE :: set_internal_variable  => lmp_set_internal_variable
     PROCEDURE, PRIVATE :: lmp_gather_atoms_int
     PROCEDURE, PRIVATE :: lmp_gather_atoms_double
     GENERIC   :: gather_atoms           => lmp_gather_atoms_int, &
@@ -506,6 +511,13 @@ MODULE LIBLAMMPS
       TYPE(c_ptr) :: lammps_extract_global
     END FUNCTION lammps_extract_global
 
+    FUNCTION lammps_map_atom(handle, tag) BIND(C)
+      IMPORT :: c_ptr, c_int
+      IMPLICIT NONE
+      TYPE(c_ptr), INTENT(IN), VALUE :: handle, tag
+      INTEGER(c_int) :: lammps_map_atom
+    END FUNCTION lammps_map_atom
+
     FUNCTION lammps_extract_atom_datatype(handle, name) BIND(C)
       IMPORT :: c_ptr, c_int
       IMPLICIT NONE
@@ -556,6 +568,21 @@ MODULE LIBLAMMPS
       TYPE(c_ptr), VALUE :: handle, name, str
       INTEGER(c_int) :: lammps_set_variable
     END FUNCTION lammps_set_variable
+
+    FUNCTION lammps_set_string_variable(handle, name, str) BIND(C)
+      IMPORT :: c_int, c_ptr
+      IMPLICIT NONE
+      TYPE(c_ptr), VALUE :: handle, name, str
+      INTEGER(c_int) :: lammps_set_string_variable
+    END FUNCTION lammps_set_string_variable
+
+    FUNCTION lammps_set_internal_variable(handle, name, val) BIND(C)
+      IMPORT :: c_int, c_ptr, c_double
+      IMPLICIT NONE
+      TYPE(c_ptr), VALUE :: handle, name
+      REAL(c_double), VALUE :: val
+      INTEGER(c_int) :: lammps_set_internal_variable
+    END FUNCTION lammps_set_internal_variable
 
     SUBROUTINE lammps_gather_atoms(handle, name, type, count, data) BIND(C)
       IMPORT :: c_int, c_ptr
@@ -1306,6 +1333,38 @@ CONTAINS
     END SELECT
   END FUNCTION
 
+  ! equivalent function to lammps_map_atom (for 32-bit integer tags)
+  INTEGER FUNCTION lmp_map_atom_int(self, id)
+    CLASS(lammps), INTENT(IN) :: self
+    INTEGER(c_int), INTENT(IN), TARGET :: id
+    INTEGER(c_int64_t), TARGET :: id64
+    TYPE(c_ptr) :: Cptr
+
+    IF (SIZE_TAGINT == 8) THEN
+        id64 = id
+        Cptr = C_LOC(id64)
+    ELSE
+        Cptr = C_LOC(id)
+    END IF
+    lmp_map_atom_int = lammps_map_atom(self%handle, Cptr) + 1
+  END FUNCTION lmp_map_atom_int
+
+  ! equivalent function to lammps_map_atom (for 64-bit integer tags)
+  INTEGER FUNCTION lmp_map_atom_big(self, id)
+    CLASS(lammps), INTENT(IN) :: self
+    INTEGER(c_int64_t), INTENT(IN), TARGET :: id
+    INTEGER(c_int), TARGET :: id32
+    TYPE(c_ptr) :: Cptr
+
+    IF (SIZE_TAGINT == 8) THEN
+        Cptr = C_LOC(id)
+    ELSE
+        id32 = id
+        Cptr = C_LOC(id32)
+    END IF
+    lmp_map_atom_big = lammps_map_atom(self%handle, Cptr) + 1
+  END FUNCTION lmp_map_atom_big
+
   ! equivalent function to lammps_extract_atom
   ! the assignment is actually overloaded so as to bind the pointers to
   ! lammps data based on the information available from LAMMPS
@@ -1630,6 +1689,43 @@ CONTAINS
         // '" [Fortran/set_variable]')
     END IF
   END SUBROUTINE lmp_set_variable
+
+  ! equivalent function to lammps_set_string_variable
+  SUBROUTINE lmp_set_string_variable(self, name, str)
+    CLASS(lammps), INTENT(IN) :: self
+    CHARACTER(LEN=*), INTENT(IN) :: name, str
+    INTEGER :: err
+    TYPE(c_ptr) :: Cstr, Cname
+
+    Cstr = f2c_string(str)
+    Cname = f2c_string(name)
+    err = lammps_set_string_variable(self%handle, Cname, Cstr)
+    CALL lammps_free(Cname)
+    CALL lammps_free(Cstr)
+    IF (err /= 0) THEN
+      CALL lmp_error(self, LMP_ERROR_WARNING + LMP_ERROR_WORLD, &
+        'WARNING: unable to set string variable "' // name &
+        // '" [Fortran/set_variable]')
+    END IF
+  END SUBROUTINE lmp_set_string_variable
+
+  ! equivalent function to lammps_set_internal_variable
+  SUBROUTINE lmp_set_internal_variable(self, name, val)
+    CLASS(lammps), INTENT(IN) :: self
+    CHARACTER(LEN=*), INTENT(IN) :: name
+    REAL(KIND=c_double), INTENT(IN) :: val
+    INTEGER :: err
+    TYPE(c_ptr) :: Cname
+
+    Cname = f2c_string(name)
+    err = lammps_set_internal_variable(self%handle, Cname, val)
+    CALL lammps_free(Cname)
+    IF (err /= 0) THEN
+      CALL lmp_error(self, LMP_ERROR_WARNING + LMP_ERROR_WORLD, &
+        'WARNING: unable to set internal variable "' // name &
+        // '" [Fortran/set_variable]')
+    END IF
+  END SUBROUTINE lmp_set_internal_variable
 
   ! equivalent function to lammps_gather_atoms (for integers)
   SUBROUTINE lmp_gather_atoms_int(self, name, count, data)
@@ -3633,7 +3729,7 @@ CONTAINS
 
     n = LEN_TRIM(f_string)
     ptr = lammps_malloc(n+1)
-    CALL C_F_POINTER(ptr, c_string, [1])
+    CALL C_F_POINTER(ptr, c_string, [n+1])
     DO i=1, n
         c_string(i) = f_string(i:i)
     END DO

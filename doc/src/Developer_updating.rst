@@ -18,6 +18,7 @@ Available topics in mostly chronological order are:
 - `Setting flags in the constructor`_
 - `Rename of pack/unpack_comm() to pack/unpack_forward_comm()`_
 - `Use ev_init() to initialize variables derived from eflag and vflag`_
+- `Use utils::count_words() functions instead of atom->count_words()`_
 - `Use utils::numeric() functions instead of force->numeric()`_
 - `Use utils::open_potential() function to open potential files`_
 - `Use symbolic Atom and AtomVec constants instead of numerical values`_
@@ -130,6 +131,41 @@ Not applying this change will not cause a compilation error, but
 can lead to inconsistent behavior and incorrect tallying of
 energy or virial.
 
+Use utils::count_words() functions instead of atom->count_words()
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+.. versionchanged:: 2Jun2020
+
+The "count_words()" functions for parsing text have been moved from the
+Atom class to the :doc:`utils namespace <Developer_utils>`.  The
+"count_words()" function in "utils" uses the Tokenizer class internally
+to split a line into words and count them, thus it will not modify the
+argument string as the function in the Atoms class did and thus had a
+variant using a copy buffer.  Unlike the old version, the new version
+does not remove comments. For that you can use the
+:cpp:func:`utils::trim_comment() function
+<LAMMPS_NS::utils::trim_comment>` as shown in the example below.
+
+Old:
+
+.. code-block:: c++
+
+   nwords = atom->count_words(line);
+   int nwords = atom->count_words(buf);
+
+New:
+
+.. code-block:: c++
+
+   nwords = utils::count_words(line);
+   int nwords = utils::count_words(utils::trim_comment(buf));
+
+.. seealso::
+
+   :cpp:func:`utils::count_words() <LAMMPS_NS::utils::count_words>`,
+   :cpp:func:`utils::trim_comments() <LAMMPS_NS::utils::trim_comments>`
+
+
 Use utils::numeric() functions instead of force->numeric()
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
@@ -137,11 +173,12 @@ Use utils::numeric() functions instead of force->numeric()
 
 The "numeric()" conversion functions (including "inumeric()",
 "bnumeric()", and "tnumeric()") have been moved from the Force class to
-the utils namespace.  Also they take an additional argument that selects
-whether the ``Error::all()`` or ``Error::one()`` function should be
-called in case of an error.  The former should be used when *all* MPI
-processes call the conversion function and the latter *must* be used
-when they are called from only one or a subset of the MPI processes.
+the :doc:`utils namespace <Developer_utils>`.  Also they take an
+additional argument that selects whether the ``Error::all()`` or
+``Error::one()`` function should be called in case of an error.  The
+former should be used when *all* MPI processes call the conversion
+function and the latter *must* be used when they are called from only
+one or a subset of the MPI processes.
 
 Old:
 

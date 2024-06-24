@@ -129,7 +129,7 @@ USER-REAXC.
 USER-REAXC package
 ------------------
 
-.. deprecated:: TBD
+.. deprecated:: 7Feb2024
 
 The USER-REAXC package has been renamed to :ref:`REAXFF <PKG-REAXFF>`.
 In the process also the pair style and related fixes were renamed to use
@@ -147,6 +147,14 @@ the design were transferred to the
 performance characteristics on NVIDIA GPUs. Both, the KOKKOS
 and the :ref:`GPU package <PKG-GPU>` are maintained
 and allow running LAMMPS with GPU acceleration.
+
+i-PI tool
+---------
+
+.. versionchanged:: TBD
+
+The i-PI tool has been removed from the LAMMPS distribution.  Instead,
+instructions to install i-PI from PyPi via pip are provided.
 
 restart2data tool
 -----------------

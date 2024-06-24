@@ -47,61 +47,6 @@ void OpenMPInternal::release_lock() {
                       desul::MemoryScopeDevice());
 }
 
-#ifdef KOKKOS_ENABLE_DEPRECATED_CODE_3
-void OpenMPInternal::validate_partition_impl(const int nthreads,
-                                             int &num_partitions,
-                                             int &partition_size) {
-  if (nthreads == 1) {
-    num_partitions = 1;
-    partition_size = 1;
-  } else if (num_partitions < 1 && partition_size < 1) {
-    int idle = nthreads;
-    for (int np = 2; np <= nthreads; ++np) {
-      for (int ps = 1; ps <= nthreads / np; ++ps) {
-        if (nthreads - np * ps < idle) {
-          idle           = nthreads - np * ps;
-          num_partitions = np;
-          partition_size = ps;
-        }
-        if (idle == 0) {
-          break;
-        }
-      }
-    }
-  } else if (num_partitions < 1 && partition_size > 0) {
-    if (partition_size <= nthreads) {
-      num_partitions = nthreads / partition_size;
-    } else {
-      num_partitions = 1;
-      partition_size = nthreads;
-    }
-  } else if (num_partitions > 0 && partition_size < 1) {
-    if (num_partitions <= nthreads) {
-      partition_size = nthreads / num_partitions;
-    } else {
-      num_partitions = nthreads;
-      partition_size = 1;
-    }
-  } else if (num_partitions * partition_size > nthreads) {
-    int idle     = nthreads;
-    const int NP = num_partitions;
-    const int PS = partition_size;
-    for (int np = NP; np > 0; --np) {
-      for (int ps = PS; ps > 0; --ps) {
-        if ((np * ps <= nthreads) && (nthreads - np * ps < idle)) {
-          idle           = nthreads - np * ps;
-          num_partitions = np;
-          partition_size = ps;
-        }
-        if (idle == 0) {
-          break;
-        }
-      }
-    }
-  }
-}
-#endif
-
 void OpenMPInternal::clear_thread_data() {
   const size_t member_bytes =
       sizeof(int64_t) *
@@ -359,8 +304,6 @@ void OpenMPInternal::finalize() {
   }
 
   m_initialized = false;
-
-  Kokkos::Profiling::finalize();
 }
 
 void OpenMPInternal::print_configuration(std::ostream &s) const {

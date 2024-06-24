@@ -51,6 +51,19 @@ FixPropertyAtom::FixPropertyAtom(LAMMPS *lmp, int narg, char **arg) :
   nvalue = 0;
   values_peratom = 0;
 
+  // check for ghost keyword to use as add_custom() arg
+
+  border = 0;
+  while (iarg < narg) {
+    if (strcmp(arg[iarg], "ghost") == 0) {
+      if (iarg + 2 > narg) error->all(FLERR, "Illegal fix property/atom command");
+      border = utils::logical(FLERR, arg[iarg + 1], false, lmp);
+      iarg += 2;
+    } else iarg++;
+  }
+
+  iarg = 3;
+
   while (iarg < narg) {
     if (strcmp(arg[iarg], "mol") == 0) {
       if (atom->molecule_flag)
@@ -112,7 +125,7 @@ FixPropertyAtom::FixPropertyAtom(LAMMPS *lmp, int narg, char **arg) :
       if (index[nvalue] >= 0) error->all(FLERR, "Fix property/atom vector name already exists");
       if (ReadData::is_data_section(id))
         error->all(FLERR, "Fix property/atom fix ID must not be a data file section name");
-      index[nvalue] = atom->add_custom(&arg[iarg][2], 0, 0);
+      index[nvalue] = atom->add_custom(&arg[iarg][2], 0, 0, border);
       cols[nvalue] = 0;
       values_peratom++;
       nvalue++;
@@ -125,7 +138,7 @@ FixPropertyAtom::FixPropertyAtom(LAMMPS *lmp, int narg, char **arg) :
       if (index[nvalue] >= 0) error->all(FLERR, "Fix property/atom vector name already exists");
       if (ReadData::is_data_section(id))
         error->all(FLERR, "Fix property/atom fix ID must not be a data file section name");
-      index[nvalue] = atom->add_custom(&arg[iarg][2], 1, 0);
+      index[nvalue] = atom->add_custom(&arg[iarg][2], 1, 0, border);
       cols[nvalue] = 0;
       values_peratom++;
       nvalue++;
@@ -154,7 +167,7 @@ FixPropertyAtom::FixPropertyAtom(LAMMPS *lmp, int narg, char **arg) :
         which = 1;
         styles[nvalue] = DARRAY;
       }
-      index[nvalue] = atom->add_custom(&arg[iarg][3], which, ncols);
+      index[nvalue] = atom->add_custom(&arg[iarg][3], which, ncols, border);
       cols[nvalue] = ncols;
       values_peratom += ncols;
       nvalue++;
@@ -168,11 +181,8 @@ FixPropertyAtom::FixPropertyAtom(LAMMPS *lmp, int narg, char **arg) :
 
   // optional args
 
-  border = 0;
   while (iarg < narg) {
-    if (strcmp(arg[iarg], "ghost") == 0) {
-      if (iarg + 2 > narg) error->all(FLERR, "Illegal fix property/atom command");
-      border = utils::logical(FLERR, arg[iarg + 1], false, lmp);
+    if (strcmp(arg[iarg], "ghost") == 0) { // skip here, since handled earlier
       iarg += 2;
     } else if (strcmp(arg[iarg], "writedata") == 0) {
       if (iarg + 2 > narg) error->all(FLERR, "Illegal fix property/atom command");
@@ -318,8 +328,9 @@ void FixPropertyAtom::read_data_section(char *keyword, int n, char *buf, tagint 
     try {
       ValueTokenizer values(buf);
       if ((int) values.count() != values_peratom + 1)
-        error->all(FLERR, "Incorrect format in {} section of data file: {} expected {} and got {}",
-                   keyword, buf, values_peratom + 1, values.count());
+        error->all(FLERR, "Incorrect format in {} section of data file: {}\n"
+                   "expected {} parameters and got {}{}", keyword, utils::trim(buf),
+                   values_peratom + 1, values.count(), utils::errorurl(2));
 
       itag = values.next_tagint() + id_offset;
       if (itag <= 0 || itag > map_tag_max)

@@ -752,13 +752,6 @@ This will most likely cause errors in kinetic fluctuations.
    More than the maximum # of neighbors was found multiple times.  This
    was unexpected.
 
-*Triclinic box skew is large*
-   The displacement in a skewed direction is normally required to be less
-   than half the box length in that dimension.  E.g. the xy tilt must be
-   between -half and +half of the x box length.  You have relaxed the
-   constraint using the box tilt command, but the warning means that a
-   LAMMPS simulation may be inefficient as a result.
-
 *Use special bonds = 0,1,1 with bond style fene*
    Most FENE models need this setting for the special_bonds command.
 

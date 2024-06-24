@@ -162,6 +162,8 @@ int lammps_extract_setting(void *handle, const char *keyword);
 int lammps_extract_global_datatype(void *handle, const char *name);
 void *lammps_extract_global(void *handle, const char *name);
 
+int lammps_map_atom(void *handle, const void *id);
+
 /* ----------------------------------------------------------------------
  * Library functions to read or modify per-atom data in LAMMPS
  * ---------------------------------------------------------------------- */
@@ -177,7 +179,9 @@ void *lammps_extract_compute(void *handle, const char *, int, int);
 void *lammps_extract_fix(void *handle, const char *, int, int, int, int);
 void *lammps_extract_variable(void *handle, const char *, const char *);
 int lammps_extract_variable_datatype(void *handle, const char *name);
-int lammps_set_variable(void *handle, char *name, char *str);
+int lammps_set_variable(void *handle, const char *name, const char *str);
+int lammps_set_string_variable(void *handle, const char *name, const char *str);
+int lammps_set_internal_variable(void *handle, const char *name, double value);
 int lammps_variable_info(void *handle, int idx, char *buf, int bufsize);
 
 /* ----------------------------------------------------------------------

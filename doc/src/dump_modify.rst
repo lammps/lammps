@@ -17,7 +17,7 @@ Syntax
 * one or more keyword/value pairs may be appended
 
 * these keywords apply to various dump styles
-* keyword = *append* or *at* or *balance* or *buffer* or *colname* or *delay* or *element* or *every* or *every/time* or *fileper* or *first* or *flush* or *format* or *header* or *image* or *label* or *maxfiles* or *nfile* or *pad* or *pbc* or *precision* or *region* or *refresh* or *scale* or *sfactor* or *skip* or *sort* or *tfactor* or *thermo* or *thresh* or *time* or *units* or *unwrap*
+* keyword = *append* or *at* or *balance* or *buffer* or *colname* or *delay* or *element* or *every* or *every/time* or *fileper* or *first* or *flush* or *format* or *header* or *image* or *label* or *maxfiles* or *nfile* or *pad* or *pbc* or *precision* or *region* or *refresh* or *scale* or *sfactor* or *skip* or *sort* or *tfactor* or *thermo* or *thresh* or *time* or *triclinic/general* or *types* or *units* or *unwrap*
 
   .. parsed-literal::
 
@@ -74,12 +74,14 @@ Syntax
           -N = sort per-atom lines in descending order by the Nth column
        *tfactor* arg = time scaling factor (> 0.0)
        *thermo* arg = *yes* or *no*
-       *time* arg = *yes* or *no*
        *thresh* args = attribute operator value
          attribute = same attributes (x,fy,etotal,sxx,etc) used by dump custom style
          operator = "<" or "<=" or ">" or ">=" or "==" or "!=" or "\|\^"
          value = numeric value to compare to, or LAST
          these 3 args can be replaced by the word "none" to turn off thresholding
+       *time* arg = *yes* or *no*
+       *triclinic/general* arg = *yes* or *no*
+       *types* value = *numeric* or *labels*
        *units* arg = *yes* or *no*
        *unwrap* arg = *yes* or *no*
 
@@ -802,14 +804,27 @@ region since the last dump.
    dump_modify ... thresh v_charge |^ LAST
 
 This will dump atoms whose charge has changed from an absolute value
-less than :math:`\frac12` to greater than :math:`\frac12` (or vice versa) since the last dump (e.g., due to reactions and subsequent charge equilibration in a
-reactive force field).
+less than :math:`\frac12` to greater than :math:`\frac12` (or vice
+versa) since the last dump (e.g., due to reactions and subsequent
+charge equilibration in a reactive force field).
 
 The choice of operators listed above are the usual comparison
 operators.  The XOR operation (exclusive or) is also included as "\|\^".
 In this context, XOR means that if either the attribute or value is
 0.0 and the other is non-zero, then the result is "true" and the
 threshold criterion is met.  Otherwise it is not met.
+
+.. note::
+
+   For style *custom*, the *triclinic/general* keyword can alter dump
+   output for general triclinic simulation boxes and their atoms.  See
+   the :doc:`dump <dump>` command for details of how this changes the
+   format of dump file snapshots.  The thresh keyword may access
+   per-atom attributes either directly or indirectly through a compute
+   or variable.  If the attribute is an atom coordinate or a per-atom
+   vector (such as velocity, force, or dipole moment), its value will
+   *NOT* be a general triclinic (rotated) value.  Rather it will be a
+   restricted triclinic value.
 
 ----------
 
@@ -832,6 +847,36 @@ time units equivalent to the :doc:`thermo keyword <thermo_style>` *time*\ .
 This is to simplify post-processing of trajectories using a variable time
 step (e.g., when using :doc:`fix dt/reset <fix_dt_reset>`).
 The default setting is *no*\ .
+
+----------
+
+The *types* keyword applies only to the dump xyz style. If this keyword is
+used with a value of *numeric*, then numeric atom types are printed in the
+xyz file (default). If the value *labels* is specified, then
+:doc:`type labels <Howto_type_labels>` are printed for atom types.
+
+----------
+
+The *triclinic/general* keyword only applies to the dump *atom* and
+*custom* styles.  It can only be used with a value of *yes* if the
+simulation box was created as a general triclinic box.  See the
+:doc:`Howto_triclinic <Howto_triclinic>` doc page for a detailed
+explanation of orthogonal, restricted triclinic, and general triclinic
+simulation boxes.
+
+If this keyword is used with a value of *yes*, the box information at
+the beginning of each snapshot will include information about the 3
+arbitrary edge vectors **A**, **B**, **C** that define the general
+triclinic box as well as their origin.  The format is described on the
+:doc:`dump <dump>` doc page.
+
+The coordinates of each atom will likewise be output as values in (or
+near) the general triclinic box.  Likewise, per-atom vector quantities
+such as velocity, omega, dipole moment, etc will have orientations
+consistent with the general triclinic box, meaning they will be
+rotated relative to the standard xyz coordinate axes.  See the
+:doc:`dump <dump>` doc page for a full list of which dump attributes
+this affects.
 
 ----------
 
@@ -922,10 +967,12 @@ The option defaults are
 * sort = off for dump styles *atom*, *custom*, *cfg*, and *local*
 * sort = id for dump styles *dcd*, *xtc*, and *xyz*
 * thresh = none
+* time = no
+* triclinic/general = no
+* types = numeric
 * units = no
 * unwrap = no
 
 * compression_level = 9 (gz variants)
 * compression_level = 0 (zstd variants)
 * checksum = yes (zstd variants)
-

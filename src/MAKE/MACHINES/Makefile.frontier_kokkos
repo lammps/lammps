@@ -7,7 +7,7 @@ SHELL = /bin/sh
 # specify flags and libraries needed for your compiler
 
 CC =		hipcc
-CCFLAGS =	-g -O3 -munsafe-fp-atomics -DNDEBUG -DKOKKOS_ENABLE_HIP_MULTIPLE_KERNEL_INSTANTIATIONS
+CCFLAGS =	-g -O3 -munsafe-fp-atomics -DNDEBUG -DKOKKOS_ENABLE_HIP_MULTIPLE_KERNEL_INSTANTIATIONS -DKOKKOS_ENABLE_ROCTHRUST
 SHFLAGS =	-fPIC
 DEPFLAGS =	-M
 
@@ -20,7 +20,7 @@ ARCHIVE =	ar
 ARFLAGS =	-rc
 SHLIBFLAGS =	-shared
 KOKKOS_DEVICES = HIP
-KOKKOS_ARCH = Vega90A,Zen3
+KOKKOS_ARCH = AMD_GFX90A,ZEN3
 
 # ---------------------------------------------------------------------
 # LAMMPS-specific settings, all OPTIONAL
@@ -55,7 +55,7 @@ MPI_LIB = -L${MPICH_DIR}/lib -lmpi -L${CRAY_MPICH_ROOTDIR}/gtl/lib -lmpi_gtl_hsa
 MY_HIP_EXE = $(shell which hipcc)
 MY_HIP_PATH = $(dir ${MY_HIP_EXE})
 
-FFT_INC = -DFFT_HIPFFT
+FFT_INC = -DFFT_KOKKOS_HIPFFT
 FFT_PATH =
 FFT_LIB = -L${MY_HIP_PATH}../lib -lhipfft
 

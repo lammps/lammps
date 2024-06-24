@@ -14,13 +14,10 @@
 #include "atom_vec_bpm_sphere.h"
 
 #include "atom.h"
-#include "comm.h"
 #include "error.h"
 #include "fix.h"
 #include "math_const.h"
 #include "modify.h"
-
-#include <cstring>
 
 using namespace LAMMPS_NS;
 using MathConst::MY_PI;
@@ -35,7 +32,6 @@ AtomVecBPMSphere::AtomVecBPMSphere(LAMMPS *_lmp) : AtomVec(_lmp)
   radvary = 0;
 
   atom->molecule_flag = 1;
-  atom->sphere_flag = 1;
   atom->radius_flag = atom->rmass_flag = atom->omega_flag = atom->torque_flag = atom->quat_flag = 1;
 
   // strings with peratom variables to include in each AtomVec method

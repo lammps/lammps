@@ -45,12 +45,12 @@
 
 #include <cmath>
 #include <cstring>
+#include <exception>
 
 using namespace LAMMPS_NS;
 using namespace FixConst;
 using MathConst::MY_2PI;
 
-#define MAXENERGYTEST 1.0e50
 enum { EXCHATOM, EXCHMOL };    // exchmode
 
 /* ---------------------------------------------------------------------- */
@@ -77,11 +77,11 @@ FixWidom::FixWidom(LAMMPS *lmp, int narg, char **arg) :
 
   // required args
 
-  nevery = utils::inumeric(FLERR,arg[3],false,lmp);
-  ninsertions = utils::inumeric(FLERR,arg[4],false,lmp);
-  nwidom_type = utils::inumeric(FLERR,arg[5],false,lmp);
-  seed = utils::inumeric(FLERR,arg[6],false,lmp);
-  insertion_temperature = utils::numeric(FLERR,arg[7],false,lmp);
+  nevery = utils::inumeric(FLERR, arg[3], false, lmp);
+  ninsertions = utils::inumeric(FLERR, arg[4], false, lmp);
+  nwidom_type = utils::expand_type_int(FLERR, arg[5], Atom::ATOM, lmp);
+  seed = utils::inumeric(FLERR, arg[6], false, lmp);
+  insertion_temperature = utils::numeric(FLERR, arg[7], false, lmp);
 
   if (nevery <= 0) error->all(FLERR,"Invalid fix widom every argument: {}", nevery);
   if (ninsertions < 0) error->all(FLERR,"Invalid fix widom insertions argument: {}", ninsertions);
@@ -281,6 +281,10 @@ int FixWidom::setmask()
 
 void FixWidom::init()
 {
+  if (!atom->mass) error->all(FLERR, "Fix widom requires per atom type masses");
+  if (atom->rmass_flag && (comm->me == 0))
+    error->warning(FLERR, "Fix widom will use per atom type masses for velocity initialization");
+
   triclinic = domain->triclinic;
 
   // set index and check validity of region
@@ -969,7 +973,8 @@ void FixWidom::attempt_molecule_insertion_full()
 }
 
 /* ----------------------------------------------------------------------
-   compute particle's interaction energy with the rest of the system
+   compute particle's interaction energy with the rest of the system by
+   looping over all atoms in the sub-domain including ghosts.
 ------------------------------------------------------------------------- */
 
 double FixWidom::energy(int i, int itype, tagint imolecule, double *coord)

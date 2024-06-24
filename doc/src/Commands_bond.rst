@@ -27,7 +27,7 @@ OPT.
 
    * :doc:`none <bond_none>`
    * :doc:`zero <bond_zero>`
-   * :doc:`hybrid <bond_hybrid>`
+   * :doc:`hybrid (k) <bond_hybrid>`
    *
    *
    *
@@ -90,6 +90,7 @@ OPT.
    * :doc:`cosine/shift (o) <angle_cosine_shift>`
    * :doc:`cosine/shift/exp (o) <angle_cosine_shift_exp>`
    * :doc:`cosine/squared (o) <angle_cosine_squared>`
+   * :doc:`cosine/squared/restricted (o) <angle_cosine_squared_restricted>`
    * :doc:`cross <angle_cross>`
    * :doc:`dipole (o) <angle_dipole>`
    * :doc:`fourier (o) <angle_fourier>`
@@ -125,9 +126,10 @@ OPT.
    *
    *
    * :doc:`charmm (iko) <dihedral_charmm>`
-   * :doc:`charmmfsw <dihedral_charmm>`
+   * :doc:`charmmfsw (k) <dihedral_charmm>`
    * :doc:`class2 (ko) <dihedral_class2>`
    * :doc:`cosine/shift/exp (o) <dihedral_cosine_shift_exp>`
+   * :doc:`cosine/squared/restricted <dihedral_cosine_squared_restricted>`
    * :doc:`fourier (io) <dihedral_fourier>`
    * :doc:`harmonic (iko) <dihedral_harmonic>`
    * :doc:`helix (o) <dihedral_helix>`

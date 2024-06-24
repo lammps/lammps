@@ -33,6 +33,7 @@
 
 #include <cmath>
 #include <cstring>
+#include <exception>
 
 using namespace LAMMPS_NS;
 
@@ -383,8 +384,6 @@ void PairMEAMSWSpline::coeff(int narg, char **arg)
 /* ----------------------------------------------------------------------
    set coeffs for one or more type pairs
 ------------------------------------------------------------------------- */
-
-#define MAXLINE 1024
 
 void PairMEAMSWSpline::read_file(const char* filename)
 {

@@ -54,8 +54,8 @@
 
 using namespace LAMMPS_NS;
 
-#define DELTALINE 256
-#define DELTA 4
+static constexpr int DELTALINE = 256;
+static constexpr int DELTA = 4;
 
 // maximum nesting level of input files
 static constexpr int LMP_MAXFILE = 16;
@@ -888,6 +888,7 @@ void Input::clear()
   lmp->destroy();
   lmp->create();
   lmp->post_create();
+  variable->clear_in_progress();
 }
 
 /* ---------------------------------------------------------------------- */

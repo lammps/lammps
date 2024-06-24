@@ -280,7 +280,7 @@ namespace Test {
 
 // Test for non-arithmetic type
 TEST(TEST_CATEGORY, team_broadcast_long_wrapper) {
-  static_assert(!std::is_arithmetic<long_wrapper>::value, "");
+  static_assert(!std::is_arithmetic<long_wrapper>::value);
 
   TestTeamBroadcast<TEST_EXECSPACE, Kokkos::Schedule<Kokkos::Static>,
                     long_wrapper>::test_teambroadcast(0, 1);

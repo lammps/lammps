@@ -26,6 +26,8 @@
 #include "my_page.h"
 #include "neigh_list.h"
 
+#include <cmath>
+
 using namespace LAMMPS_NS;
 
 /* ---------------------------------------------------------------------- */

@@ -42,13 +42,12 @@ using namespace LAMMPS_NS;
 // EMACH = machine accuracy limit of energy changes (1.0e-8)
 // EPS_QUAD = tolerance for quadratic projection
 
-#define ALPHA_MAX 1.0
-#define ALPHA_REDUCE 0.5
-#define BACKTRACK_SLOPE 0.4
-#define QUADRATIC_TOL 0.1
-//#define EMACH 1.0e-8
-#define EMACH 1.0e-8
-#define EPS_QUAD 1.0e-28
+static constexpr double ALPHA_MAX = 1.0;
+static constexpr double ALPHA_REDUCE = 0.5;
+static constexpr double BACKTRACK_SLOPE = 0.4;
+static constexpr double QUADRATIC_TOL = 0.1;
+static constexpr double EMACH = 1.0e-8;
+static constexpr double EPS_QUAD = 1.0e-28;
 
 /* ---------------------------------------------------------------------- */
 
@@ -687,7 +686,7 @@ int MinLineSearch::linemin_forcezero(double eoriginal, double &alpha)
   // choosing the initial alpha that we'll use
   // rough estimate that'll decrease energy to 1/10
 
-  alpha_init = 0.1*fabs(eoriginal)/fdothall;
+  alpha_init = MAX(EPS_QUAD, 0.1*fabs(eoriginal)/fdothall);
 
   // initialize aplha to 0.0
 

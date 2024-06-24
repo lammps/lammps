@@ -49,6 +49,11 @@ struct integral_constant {
 template <typename... Is>
 struct always_true : std::true_type {};
 
+// type-dependent expression that is always false intended for use in
+// static_assert to check "we should never get there"
+template <typename... Deps>
+struct always_false : std::false_type {};
+
 //==============================================================================
 
 #if defined(__cpp_lib_type_identity)

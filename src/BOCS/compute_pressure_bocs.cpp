@@ -42,7 +42,7 @@ ComputePressureBocs::ComputePressureBocs(LAMMPS *lmp, int narg, char **arg) :
   Compute(lmp, narg, arg),
   vptr(nullptr), id_temp(nullptr)
 {
-  if (narg < 4) error->all(FLERR,"Illegal compute pressure/bocs command");
+  if (narg < 4) utils::missing_cmd_args(FLERR,"compute pressure/bocs", error);
   if (igroup) error->all(FLERR,"Compute pressure/bocs must use group all");
 
   scalar_flag = vector_flag = 1;
@@ -62,12 +62,12 @@ ComputePressureBocs::ComputePressureBocs(LAMMPS *lmp, int narg, char **arg) :
   else {
     id_temp = utils::strdup(arg[3]);
 
-    int icompute = modify->find_compute(id_temp);
-    if (icompute < 0)
-      error->all(FLERR,"Could not find compute pressure/bocs temperature ID");
-    if (modify->compute[icompute]->tempflag == 0)
-      error->all(FLERR,"Compute pressure/bocs temperature ID does not "
-                 "compute temperature");
+    temperature = modify->get_compute_by_id(id_temp);
+    if (!temperature)
+      error->all(FLERR,"Could not find compute pressure/bocs temperature compute {}", id_temp);
+    if (temperature->tempflag == 0)
+      error->all(FLERR,"Compute pressure/bocs temperature compute {} does not compute "
+                 "temperature", id_temp);
   }
 
   // process optional args
@@ -137,10 +137,9 @@ void ComputePressureBocs::init()
   // fixes could have changed or compute_modify could have changed it
 
   if (keflag) {
-    int icompute = modify->find_compute(id_temp);
-    if (icompute < 0)
-      error->all(FLERR,"Could not find compute pressure/bocs temperature ID");
-    temperature = modify->compute[icompute];
+    temperature = modify->get_compute_by_id(id_temp);
+    if (!temperature)
+      error->all(FLERR,"Could not find compute pressure/bocs temperature compute {}", id_temp);
   }
 
   // detect contributions to virial
@@ -158,10 +157,8 @@ void ComputePressureBocs::init()
     if (improperflag && force->improper) nvirial++;
   }
   if (fixflag) {
-    Fix **fix = modify->fix;
-    int nfix = modify->nfix;
-    for (int i = 0; i < nfix; i++)
-      if (fix[i]->thermo_virial) nvirial++;
+    for (const auto &ifix : modify->get_fix_list())
+      if (ifix->thermo_virial) nvirial++;
   }
 
   if (nvirial) {
@@ -174,10 +171,11 @@ void ComputePressureBocs::init()
       vptr[nvirial++] = force->dihedral->virial;
     if (improperflag && force->improper)
       vptr[nvirial++] = force->improper->virial;
-    if (fixflag)
-      for (int i = 0; i < modify->nfix; i++)
-        if (modify->fix[i]->virial_global_flag && modify->fix[i]->thermo_virial)
-          vptr[nvirial++] = modify->fix[i]->virial;
+    if (fixflag) {
+      for (const auto &ifix : modify->get_fix_list())
+        if (ifix->virial_global_flag && ifix->thermo_virial)
+          vptr[nvirial++] = ifix->virial;
+    }
   }
 
   // flag Kspace contribution separately, since not summed across procs

@@ -43,8 +43,7 @@ FixWallReflectStochastic(LAMMPS *lmp, int narg, char **arg) :
   if (narg < 8) error->all(FLERR,"Illegal fix wall/reflect/stochastic command");
 
   if (domain->triclinic != 0)
-    error->all(FLERR, "Fix wall/reflect/stochastic cannot be used with "
-               "triclinic simulation box");
+    error->all(FLERR, "Fix wall/reflect/stochastic cannot be used with triclinic simulation box");
 
   dynamic_group_allow = 1;
 
@@ -168,8 +167,7 @@ FixWallReflectStochastic(LAMMPS *lmp, int narg, char **arg) :
       xscale = domain->lattice->xlattice;
       yscale = domain->lattice->ylattice;
       zscale = domain->lattice->zlattice;
-    }
-    else xscale = yscale = zscale = 1.0;
+    } else xscale = yscale = zscale = 1.0;
 
     for (int m = 0; m < nwall; m++) {
       if (wallstyle[m] != CONSTANT) continue;

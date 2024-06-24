@@ -26,7 +26,7 @@
 
 using namespace LAMMPS_NS;
 
-#define EPSILON 1.0e-7
+static constexpr double EPSILON = 1.0e-7;
 enum{SPHERE,LINE,TRI};           // also in DumpImage
 
 /* ---------------------------------------------------------------------- */
@@ -99,7 +99,7 @@ int BodyNparticle::unpack_border_body(AtomVecBody::Bonus *bonus, double *buf)
 }
 
 /* ----------------------------------------------------------------------
-   populate bonus data structure with data file values
+   populate bonus data structure with data file values for one body
 ------------------------------------------------------------------------- */
 
 void BodyNparticle::data_body(int ibonus, int ninteger, int ndouble,

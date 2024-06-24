@@ -85,19 +85,37 @@ void DeleteBonds::command(int narg, char **arg)
     if (narg < 3) error->all(FLERR,"Illegal delete_bonds command");
 
     int n = -1;
-    if (style == ATOM) n = atom->ntypes;
-    if (style == BOND) n = atom->nbondtypes;
-    if (style == ANGLE) n = atom->nangletypes;
-    if (style == DIHEDRAL) n = atom->ndihedraltypes;
-    if (style == IMPROPER) n = atom->nimpropertypes;
+    char *typestr = nullptr;
+    if (style == ATOM) {
+      n = atom->ntypes;
+      typestr = utils::expand_type(FLERR, arg[2], Atom::ATOM, lmp);
+    }
+    if (style == BOND) {
+      n = atom->nbondtypes;
+      typestr = utils::expand_type(FLERR, arg[2], Atom::BOND, lmp);
+    }
+    if (style == ANGLE) {
+      n = atom->nangletypes;
+      typestr = utils::expand_type(FLERR, arg[2], Atom::ANGLE, lmp);
+    }
+    if (style == DIHEDRAL) {
+      n = atom->ndihedraltypes;
+      typestr = utils::expand_type(FLERR, arg[2], Atom::DIHEDRAL, lmp);
+    }
+    if (style == IMPROPER) {
+      n = atom->nimpropertypes;
+      typestr = utils::expand_type(FLERR, arg[2], Atom::IMPROPER, lmp);
+    }
 
     tlist = new int[n+1];
     for (int i = 0; i <= n; i++) tlist[i] = 0;
     int nlo,nhi;
-    utils::bounds(FLERR,arg[2],0,n,nlo,nhi,error);
+    if (typestr) nlo = nhi = utils::inumeric(FLERR, typestr, false, lmp);
+    else utils::bounds(FLERR, arg[2], 0, n, nlo, nhi, error);
     for (int i = nlo; i <= nhi; i++) tlist[i] = 1;
 
     iarg++;
+    delete[] typestr;
   }
 
   // grab optional keywords

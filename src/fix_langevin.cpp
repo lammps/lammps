@@ -46,8 +46,8 @@ using namespace FixConst;
 enum { NOBIAS, BIAS };
 enum { CONSTANT, EQUAL, ATOM };
 
-#define SINERTIA 0.4    // moment of inertia prefactor for sphere
-#define EINERTIA 0.2    // moment of inertia prefactor for ellipsoid
+static constexpr double SINERTIA = 0.4;    // moment of inertia prefactor for sphere
+static constexpr double EINERTIA = 0.2;    // moment of inertia prefactor for ellipsoid
 
 /* ---------------------------------------------------------------------- */
 
@@ -230,18 +230,19 @@ void FixLangevin::init()
     // warn if any integrate fix comes after this one
     int before = 1;
     int flag = 0;
-    for (int i = 0; i < modify->nfix; i++) {
-      auto ifix = modify->get_fix_by_index(i);
+    for (auto ifix : modify->get_fix_list()) {
       if (strcmp(id, ifix->id) == 0)
         before = 0;
-      else if ((modify->fmask[i] && utils::strmatch(ifix->style, "^nve")) && before)
+      else if ((modify->get_fix_mask(ifix) && utils::strmatch(ifix->style, "^nve")) && before)
         flag = 1;
     }
     if (flag) error->all(FLERR, "Fix langevin gjf should come before fix nve");
   }
 
-  if (oflag && !atom->sphere_flag)
-    error->all(FLERR, "Fix langevin omega requires atom style sphere");
+  if (oflag && !atom->omega_flag)
+    error->all(FLERR, "Fix langevin omega requires atom attribute omega");
+  if (oflag && !atom->radius_flag)
+    error->all(FLERR, "Fix langevin omega requires atom attribute radius");
   if (ascale && !atom->ellipsoid_flag)
     error->all(FLERR, "Fix langevin angmom requires atom style ellipsoid");
 
@@ -789,7 +790,7 @@ void FixLangevin::compute_target()
     if (tstyle == EQUAL) {
       t_target = input->variable->compute_equal(tvar);
       if (t_target < 0.0)
-        error->one(FLERR,"Fix langevin variable returned negative temperature");
+        error->one(FLERR, "Fix langevin variable returned negative temperature");
       tsqrt = sqrt(t_target);
     } else {
       if (atom->nmax > maxatom2) {
@@ -801,8 +802,7 @@ void FixLangevin::compute_target()
       for (int i = 0; i < nlocal; i++)
         if (mask[i] & groupbit)
             if (tforce[i] < 0.0)
-              error->one(FLERR,
-                         "Fix langevin variable returned negative temperature");
+              error->one(FLERR, "Fix langevin variable returned negative temperature");
     }
     modify->addstep_compute(update->ntimestep + 1);
   }

@@ -86,6 +86,8 @@ action bond_fene_kokkos.cpp bond_fene.cpp
 action bond_fene_kokkos.h bond_fene.h
 action bond_harmonic_kokkos.cpp bond_harmonic.cpp
 action bond_harmonic_kokkos.h bond_harmonic.h
+action bond_hybrid_kokkos.cpp bond_hybrid.cpp
+action bond_hybrid_kokkos.h bond_hybrid.h
 action comm_kokkos.cpp
 action comm_kokkos.h
 action comm_tiled_kokkos.cpp
@@ -106,6 +108,8 @@ action compute_temp_kokkos.cpp
 action compute_temp_kokkos.h
 action dihedral_charmm_kokkos.cpp dihedral_charmm.cpp
 action dihedral_charmm_kokkos.h dihedral_charmm.h
+action dihedral_charmmfsw_kokkos.cpp dihedral_charmmfsw.cpp
+action dihedral_charmmfsw_kokkos.h dihedral_charmmfsw.h
 action dihedral_class2_kokkos.cpp dihedral_class2.cpp
 action dihedral_class2_kokkos.h dihedral_class2.h
 action dihedral_harmonic_kokkos.cpp dihedral_harmonic.cpp
@@ -185,6 +189,8 @@ action fix_temp_rescale_kokkos.cpp
 action fix_temp_rescale_kokkos.h
 action fix_viscous_kokkos.cpp
 action fix_viscous_kokkos.h
+action fix_wall_flow_kokkos.cpp fix_wall_flow.cpp
+action fix_wall_flow_kokkos.h fix_wall_flow.h
 action fix_wall_gran_kokkos.cpp fix_wall_gran.cpp
 action fix_wall_gran_kokkos.h fix_wall_gran.h
 action fix_wall_gran_old.cpp fix_wall_gran.cpp
@@ -310,6 +316,8 @@ action pair_lj_charmm_coul_charmm_kokkos.cpp pair_lj_charmm_coul_charmm.cpp
 action pair_lj_charmm_coul_charmm_kokkos.h pair_lj_charmm_coul_charmm.h
 action pair_lj_charmm_coul_long_kokkos.cpp pair_lj_charmm_coul_long.cpp
 action pair_lj_charmm_coul_long_kokkos.h pair_lj_charmm_coul_long.h
+action pair_lj_charmmfsw_coul_long_kokkos.cpp pair_lj_charmmfsw_coul_long.cpp
+action pair_lj_charmmfsw_coul_long_kokkos.h pair_lj_charmmfsw_coul_long.h
 action pair_lj_class2_coul_cut_kokkos.cpp pair_lj_class2_coul_cut.cpp
 action pair_lj_class2_coul_cut_kokkos.h pair_lj_class2_coul_cut.h
 action pair_lj_class2_coul_long_kokkos.cpp pair_lj_class2_coul_long.cpp
@@ -357,6 +365,8 @@ action pair_reaxff_kokkos.h pair_reaxff.h
 action pair_snap_kokkos_impl.h pair_snap.cpp
 action pair_snap_kokkos.cpp pair_snap.cpp
 action pair_snap_kokkos.h pair_snap.h
+action pair_soft_kokkos.cpp
+action pair_soft_kokkos.h
 action pair_sw_kokkos.cpp pair_sw.cpp
 action pair_sw_kokkos.h pair_sw.h
 action pair_table_kokkos.cpp

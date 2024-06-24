@@ -1,0 +1,110 @@
+* Various input scripts for systems with general triclinic boxes
+  versus orthogonal boxes
+
+in.bcc.primitive = 1 atom for bcc lattice with primitive unit cell
+in.fcc.primitive = 1 atom for fcc lattice with primitive unit cell
+in.hex.primitive = 1 atom for 2d hex lattice with primitive unit cell
+in.sq2.primitive = 1 atom for 2d sq2 lattice with primitive unit cell
+
+in.bcc.orthog = 2 atoms for bcc lattice with orthogonal unit cell
+in.fcc.orthog = 4 atoms for fcc lattice with orthogonal unit cell
+in.hex.orthog = 2 atoms for 2d hex ;attice with orthogonal unit cell
+in.sq2.orthog = 2 atoms for 2d sq2 lattice with orthogonal unit cell
+
+energy and pressure should be same for primitive and orthogonal unit cells
+
+in.data.general = read a data file in general triclinic format
+
+* Run all the scripts on 1 proc
+
+lmp_mpi < in.bcc.primitive
+mv log.lammps log.compare.bcc.primitive.g++.1
+mv tmp.data.bcc.primitive data.compare.bcc.primitive.g++.1
+mv tmp.dump.bcc.primitive dump.compare.bcc.primitive.g++.1
+
+lmp_mpi < in.fcc.primitive
+mv log.lammps log.compare.fcc.primitive.g++.1
+mv tmp.data.fcc.primitive data.compare.fcc.primitive.g++.1
+mv tmp.dump.fcc.primitive dump.compare.fcc.primitive.g++.1
+
+lmp_mpi < in.hex.primitive
+mv log.lammps log.compare.hex.primitive.g++.1
+mv tmp.data.hex.primitive data.compare.hex.primitive.g++.1
+mv tmp.dump.hex.primitive dump.compare.hex.primitive.g++.1
+
+lmp_mpi < in.sq2.primitive
+mv log.lammps log.compare.sq2.primitive.g++.1
+mv tmp.data.sq2.primitive data.compare.sq2.primitive.g++.1
+mv tmp.dump.sq2.primitive dump.compare.sq2.primitive.g++.1
+
+lmp_mpi < in.bcc.orthog
+mv log.lammps log.compare.bcc.orthog.g++.1
+mv tmp.data.bcc.orthog data.compare.bcc.orthog.g++.1
+mv tmp.dump.bcc.orthog dump.compare.bcc.orthog.g++.1
+
+lmp_mpi < in.fcc.orthog
+mv log.lammps log.compare.fcc.orthog.g++.1
+mv tmp.data.fcc.orthog data.compare.fcc.orthog.g++.1
+mv tmp.dump.fcc.orthog dump.compare.fcc.orthog.g++.1
+
+lmp_mpi < in.hex.orthog
+mv log.lammps log.compare.hex.orthog.g++.1
+mv tmp.data.hex.orthog data.compare.hex.orthog.g++.1
+mv tmp.dump.hex.orthog dump.compare.hex.orthog.g++.1
+
+lmp_mpi < in.sq2.orthog
+mv log.lammps log.compare.sq2.orthog.g++.1
+mv tmp.data.sq2.orthog data.compare.sq2.orthog.g++.1
+mv tmp.dump.sq2.orthog dump.compare.sq2.orthog.g++.1
+
+lmp_mpi < in.data.general
+mv log.lammps log.compare.data.general.g++.1
+mv tmp.data.general data.compare.general.g++.1
+mv tmp.dump.general dump.compare.general.g++.1
+
+* Run all the scripts on 4 procs
+
+mpirun -np 4 lmp_mpi < in.bcc.primitive
+mv log.lammps log.compare.bcc.primitive.g++.4
+mv tmp.data.bcc.primitive data.compare.bcc.primitive.g++.4
+mv tmp.dump.bcc.primitive dump.compare.bcc.primitive.g++.4
+
+mpirun -np 4 lmp_mpi < in.fcc.primitive
+mv log.lammps log.compare.fcc.primitive.g++.4
+mv tmp.data.fcc.primitive data.compare.fcc.primitive.g++.4
+mv tmp.dump.fcc.primitive dump.compare.fcc.primitive.g++.4
+
+mpirun -np 4 lmp_mpi < in.hex.primitive
+mv log.lammps log.compare.hex.primitive.g++.4
+mv tmp.data.hex.primitive data.compare.hex.primitive.g++.4
+mv tmp.dump.hex.primitive dump.compare.hex.primitive.g++.4
+
+mpirun -np 4 lmp_mpi < in.sq2.primitive
+mv log.lammps log.compare.sq2.primitive.g++.4
+mv tmp.data.sq2.primitive data.compare.sq2.primitive.g++.4
+mv tmp.dump.sq2.primitive dump.compare.sq2.primitive.g++.4
+
+mpirun -np 4 lmp_mpi < in.bcc.orthog
+mv log.lammps log.compare.bcc.orthog.g++.4
+mv tmp.data.bcc.orthog data.compare.bcc.orthog.g++.4
+mv tmp.dump.bcc.orthog dump.compare.bcc.orthog.g++.4
+
+mpirun -np 4 lmp_mpi < in.fcc.orthog
+mv log.lammps log.compare.fcc.orthog.g++.4
+mv tmp.data.fcc.orthog data.compare.fcc.orthog.g++.4
+mv tmp.dump.fcc.orthog dump.compare.fcc.orthog.g++.4
+
+mpirun -np 4 lmp_mpi < in.hex.orthog
+mv log.lammps log.compare.hex.orthog.g++.4
+mv tmp.data.hex.orthog data.compare.hex.orthog.g++.4
+mv tmp.dump.hex.orthog dump.compare.hex.orthog.g++.4
+
+mpirun -np 4 lmp_mpi < in.sq2.orthog
+mv log.lammps log.compare.sq2.orthog.g++.4
+mv tmp.data.sq2.orthog data.compare.sq2.orthog.g++.4
+mv tmp.dump.sq2.orthog dump.compare.sq2.orthog.g++.4
+
+mpirun -np 4 lmp_mpi < in.data.general
+mv log.lammps log.compare.data.general.g++.4
+mv tmp.data.general data.compare.general.g++.4
+mv tmp.dump.general dump.compare.general.g++.4

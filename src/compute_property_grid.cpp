@@ -28,8 +28,6 @@ using namespace LAMMPS_NS;
 enum { LOW, CTR };
 enum { UNSCALED, SCALED };
 
-#define DELTA 10000
-
 /* ---------------------------------------------------------------------- */
 
 ComputePropertyGrid::ComputePropertyGrid(LAMMPS *lmp, int narg, char **arg) :

@@ -25,6 +25,8 @@ Syntax
            *numa* params = none
            *custom* params = infile
              infile = file containing grid layout
+       *numa_nodes* arg = Nn
+             Nn = number of numa domains per node
        *map* arg = *cart* or *cart/reorder* or *xyz* or *xzy* or *yxz* or *yzx* or *zxy* or *zyx*
           cart = use MPI_Cart() methods to map processors to 3d grid with reorder = 0
           cart/reorder = use MPI_Cart() methods to map processors to 3d grid with reorder = 1
@@ -157,26 +159,30 @@ surface-to-volume ratio of each processor's subdomain.
    for most MPI implementations, but some MPIs provide options for this
    ordering, e.g. via environment variable settings.
 
-The *numa* style operates similar to the *twolevel* keyword except
-that it auto-detects which cores are running on which nodes.
-Currently, it does this in only 2 levels, but it may be extended in
-the future to account for socket topology and other non-uniform memory
-access (NUMA) costs.  It also uses a different algorithm than the
-*twolevel* keyword for doing the two-level factorization of the
-simulation box into a 3d processor grid to minimize off-node
-communication, and it does its own MPI-based mapping of nodes and
-cores to the regular 3d grid.  Thus it may produce a different layout
-of the processors than the *twolevel* options.
+The *numa* style operates similar to the *twolevel* keyword except that
+it auto-detects which cores are running on which nodes.  It will also
+subdivide the cores into numa domains. Currently, the number of numa
+domains is not auto-detected and must be specified using the
+*numa_nodes* keyword; otherwise, the default value is used. The *numa*
+style uses a different algorithm than the *twolevel* keyword for doing
+the two-level factorization of the simulation box into a 3d processor
+grid to minimize off-node communication and communication across numa
+domains. It does its own MPI-based mapping of nodes and cores to the
+regular 3d grid.  Thus it may produce a different layout of the
+processors than the *twolevel* options.
 
 The *numa* style will give an error if the number of MPI processes is
 not divisible by the number of cores used per node, or any of the Px
-or Py of Pz values is greater than 1.
+or Py or Pz values is greater than 1.
 
 .. note::
 
    Unlike the *twolevel* style, the *numa* style does not require
-   any particular ordering of MPI ranks i norder to work correctly.  This
+   any particular ordering of MPI ranks in order to work correctly. This
    is because it auto-detects which processes are running on which nodes.
+   However, it assumes that the lowest ranks are in the first numa
+   domain, and so forth. MPI rank orderings that do not preserve this
+   property might result in more intra-node communication between CPUs.
 
 The *custom* style uses the file *infile* to define both the 3d
 factorization and the mapping of processors to the grid.
@@ -204,6 +210,14 @@ where ID is a processor ID (from 0 to P-1) and I,J,K are the
 processors location in the 3d grid.  I must be a number from 1 to Px
 (inclusive) and similarly for J and K.  The P lines can be listed in
 any order, but no processor ID should appear more than once.
+
+----------
+
+The *numa_nodes* keyword is used to specify the number of numa domains
+per node. It is currently only used by the *numa* style for two-level
+factorization to reduce the amount of MPI communications between CPUs.
+A good setting for this will typically be equal to the number of CPU
+sockets per node.
 
 ----------
 
@@ -356,5 +370,5 @@ Related commands
 Default
 """""""
 
-The option defaults are Px Py Pz = \* \* \*, grid = onelevel, and map =
-cart.
+The option defaults are Px Py Pz = \* \* \*, grid = onelevel, map =
+cart, and numa_nodes = 2.

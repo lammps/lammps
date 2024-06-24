@@ -48,7 +48,7 @@ using namespace FixConst;
 using namespace SMD_Kernels;
 using namespace SMD_Math;
 
-#define DELTA 16384
+static constexpr int DELTA = 16384;
 
 #define INSERT_PREDEFINED_CRACKS false
 

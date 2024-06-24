@@ -1,0 +1,25 @@
+# general triclinic box for fcc lattice primitive cell
+
+lattice       custom 1.1 a2 0.0 0.5 0.5 a3 0.5 0.0 0.5 a1 0.5 0.5 0.0 &
+              basis 0.0 0.0 0.0 triclinic/general
+
+create_box    1 NULL 0 1 0 1 0 1
+create_atoms  1 box
+
+mass          * 1.0
+
+write_data    tmp.data.fcc.primitive triclinic/general
+
+pair_style    lj/cut 1.2
+pair_coeff    * * 1.0 1.0
+
+neighbor      0.0 bin
+
+thermo_style  custom step pe avecx avecy avecz bvecx bvecy bvecz &
+              cvecx cvecy cvecz pxx pyy pzz vol
+thermo_modify triclinic/general yes
+
+dump          1 all custom 100 tmp.dump.fcc.primitive id type x y z
+dump_modify   1 triclinic/general yes
+
+run           0

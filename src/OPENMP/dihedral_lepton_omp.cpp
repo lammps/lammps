@@ -18,12 +18,14 @@
 #include "dihedral_lepton_omp.h"
 #include "atom.h"
 #include "comm.h"
+#include "error.h"
 #include "force.h"
 #include "math_extra.h"
 #include "neighbor.h"
 #include "suffix.h"
 
 #include <cmath>
+#include <exception>
 
 #include "Lepton.h"
 #include "lepton_utils.h"

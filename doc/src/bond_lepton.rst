@@ -50,7 +50,7 @@ constant *K* of 200.0 energy units:
 
    U_{bond,i} = K (r_i - r_0)^2 = K r^2 \qquad r = r_i - r_0
 
-.. versionchanged:: TBD
+.. versionchanged:: 7Feb2024
 
 By default the potential energy U is shifted so that he value U is 0.0
 for $r = r_0$.  This is equivalent to using the optional keyword

@@ -26,23 +26,24 @@ class MetatensorSystemAdaptor;
 struct PairMetatensorData;
 
 class PairMetatensor : public Pair {
-public:
-    PairMetatensor(class LAMMPS *);
-    ~PairMetatensor();
+ public:
+  PairMetatensor(class LAMMPS *);
+  ~PairMetatensor();
 
-    void compute(int, int) override;
-    void settings(int, char **) override;
-    void coeff(int, char **) override;
-    void init_style() override;
-    double init_one(int, int) override;
-    void init_list(int id, NeighList *ptr) override;
+  void compute(int, int) override;
+  void settings(int, char **) override;
+  void coeff(int, char **) override;
+  void init_style() override;
+  double init_one(int, int) override;
+  void init_list(int, NeighList *) override;
 
-    void allocate();
-private:
-    PairMetatensorData* mts_data;
+  void allocate();
 
-    // mapping from LAMMPS types to metatensor types
-    int32_t* type_mapping;
+ private:
+  PairMetatensorData *mts_data;
+
+  // mapping from LAMMPS types to metatensor types
+  int32_t *type_mapping;
 };
 
 }    // namespace LAMMPS_NS

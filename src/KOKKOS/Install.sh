@@ -346,8 +346,8 @@ action pair_lj_gromacs_coul_gromacs_kokkos.cpp pair_lj_gromacs_coul_gromacs.cpp
 action pair_lj_gromacs_coul_gromacs_kokkos.h pair_lj_gromacs_coul_gromacs.h
 action pair_lj_gromacs_kokkos.cpp pair_lj_gromacs.cpp
 action pair_lj_gromacs_kokkos.h pair_lj_gromacs.h
-action pair_lj_spica_coul_long_kokkos.cpp pair_lj_coul_long_spica.cpp
-action pair_lj_spica_coul_long_kokkos.h pair_lj_coul_long_spica.h
+action pair_lj_spica_coul_long_kokkos.cpp pair_lj_spica_coul_long.cpp
+action pair_lj_spica_coul_long_kokkos.h pair_lj_spica_coul_long.h
 action pair_lj_spica_kokkos.cpp pair_lj_spica.cpp
 action pair_lj_spica_kokkos.h pair_lj_spica.h
 action pair_meam_kokkos.cpp pair_meam.cpp

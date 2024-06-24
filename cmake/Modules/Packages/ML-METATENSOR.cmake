@@ -1,3 +1,9 @@
+# metatensor requires C++17 due to Torch requiring C++17
+if(CMAKE_CXX_STANDARD LESS 17)
+  message(FATAL_ERROR "The ML-METATENSOR package requires the C++ standard to
+be set to at least C++17")
+endif()
+
 if (BUILD_OMP AND APPLE)
     message(FATAL_ERROR
         "Can not enable both BUILD_OMP and PGK_ML-METATENSOR on Apple systems, "

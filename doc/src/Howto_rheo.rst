@@ -1,9 +1,9 @@
 Reproducing hydrodynamics and elastic objects (RHEO)
 ====================================================
 
-The RHEO package is built around an implementation of smoothed particle
-hydrodynamics (SPH) coupled to the :doc:`BPM package <Howto_bpm>` to model
-solid elements of a system. The SPH solver supports many advanced options
+The RHEO package is a hybrid implementation of smoothed particle
+hydrodynamics (SPH) for fluid flow, coupled to the :doc:`BPM package <Howto_bpm>` to model
+solid elements. RHEO combines these methods to enable mesh-free modeling of multiphase material systems. The SPH solver supports many advanced options
 including reproducing kernels, particle shifting, free surface identification,
 and solid surface reconstruction. To model fluid-solid systems, the status of
 particles can dynamically change between a fluid and solid state, e.g. during
@@ -31,7 +31,7 @@ instance of :doc:`fix rheo/pressure <fix_rheo_pressure>` and
 of state and viscosity model, respectively. Optionally, one can model
 a heat equation with :doc:`fix rheo/thermal`, which also allows the user
 to specify equations for a particle's thermal conductivity,  specific heat,
-latent heat, and melting temperature. Fix rheo must be defined prior to all
+latent heat, and melting temperature. The ordering of these fixes in an an input script matters. Fix rheo must be defined prior to all
 other RHEO fixes.
 
 Typically, RHEO requires atom style rheo. In addition to typical atom
@@ -52,14 +52,14 @@ the state of matter, 0 is fluid and 1 is solid.
 Fluid interactions, including pressure forces, viscous forces, and heat exchange,
 are calculated using :doc:`pair rheo <pair_rheo>`. Unlike typical pair styles,
 pair rheo ignores the :doc:`special bond <special_bonds>` settings. Instead,
-it determines whether to calculate forces based on the status of particles:
+it determines whether to calculate forces based on the status of particles: e.g.,
 hydrodynamic forces are only calculated if a fluid particle is involved.
 
 ----------
 
-To model elastic objects, there are current two mechanisms in RHEO, one designed
+To model elastic objects, there are currently two mechanisms in RHEO, one designed
 for bulk solid bodies and the other for thin shells. Both mechanisms rely on
-overlaying bonds and therefore require a hybrid of atom style bond and rheo
+introducing bonded forces between particles and therefore require a hybrid of atom style bond and rheo
 (or rheo/thermal).
 
 To create an elastic solid body, one has to (a) change the status of constituent

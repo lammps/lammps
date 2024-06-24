@@ -174,30 +174,6 @@ compute_fpair(const F_FLOAT& rsq, const int& i, const int&j, const int& itype, c
   const F_FLOAT lj_1 =  (STACKPARAMS?m_params[itype][jtype].lj1:params(itype,jtype).lj1);
   const F_FLOAT lj_2 =  (STACKPARAMS?m_params[itype][jtype].lj2:params(itype,jtype).lj2);
 
-  /*if (ljt == LJ12_4) {
-
-    const F_FLOAT r4inv=r2inv*r2inv;
-    return r4inv*(lj_1*r4inv*r4inv - lj_2) * r2inv;
-
-  } else if (ljt == LJ9_6) {
-
-    const F_FLOAT r3inv = r2inv*sqrt(r2inv);
-    const F_FLOAT r6inv = r3inv*r3inv;
-    return r6inv*(lj_1*r3inv - lj_2) * r2inv;
-
-  } else if (ljt == LJ12_6) {
-
-    const double r6inv = r2inv*r2inv*r2inv;
-    return r6inv*(lj_1*r6inv - lj_2) * r2inv;
-
-  } else if (ljt == LJ12_5) {
-
-    const F_FLOAT r5inv = r2inv*r2inv*sqrt(r2inv);
-    const F_FLOAT r7inv = r5inv*r2inv;
-    return r5inv*(lj_1*r7inv - lj_2) * r2inv;
-
-  }
-  if (ljt!=LJ12_4 && ljt!=LJ9_6 && ljt!=LJ12_6 && ljt!=LJ12_5) return 0.0;*/
   const F_FLOAT r4inv=r2inv*r2inv;
   const F_FLOAT r6inv=r2inv*r4inv;
   const F_FLOAT a = ljt==LJ12_4?r4inv:(ljt==LJ12_5?r4inv*sqrt(r2inv):r6inv);
@@ -225,18 +201,14 @@ compute_evdwl(const F_FLOAT& rsq, const int& i, const int&j, const int& itype, c
 
   if (ljt == LJ12_4) {
     const F_FLOAT r4inv=r2inv*r2inv;
-
     return r4inv*(lj_3*r4inv*r4inv - lj_4) - offset;
-
   } else if (ljt == LJ9_6) {
     const F_FLOAT r3inv = r2inv*sqrt(r2inv);
     const F_FLOAT r6inv = r3inv*r3inv;
     return r6inv*(lj_3*r3inv - lj_4) - offset;
-
   } else if (ljt == LJ12_6) {
     const double r6inv = r2inv*r2inv*r2inv;
     return r6inv*(lj_3*r6inv - lj_4) - offset;
-
   } else if (ljt == LJ12_5) {
     const F_FLOAT r5inv = r2inv*r2inv*sqrt(r2inv);
     const F_FLOAT r7inv = r5inv*r2inv;
@@ -256,44 +228,6 @@ F_FLOAT PairLJSPICACoulLongKokkos<DeviceType>::
 compute_fcoul(const F_FLOAT& rsq, const int& /*i*/, const int&j,
               const int& /*itype*/, const int& /*jtype*/,
               const F_FLOAT& factor_coul, const F_FLOAT& qtmp) const {
-
-/*
-
-        r2inv = 1.0 / rsq;
-        const int ljt = lj_type[itype][jtype];
-
-        if (rsq < cut_coulsq) {
-          if (!ncoultablebits || rsq <= tabinnersq) {
-            r = sqrt(rsq);
-            grij = g_ewald * r;
-            expm2 = exp(-grij * grij);
-            t = 1.0 / (1.0 + EWALD_P * grij);
-            erfc = t * (A1 + t * (A2 + t * (A3 + t * (A4 + t * A5)))) * expm2;
-            prefactor = qqrd2e * qtmp * q[j] / r;
-            forcecoul = prefactor * (erfc + EWALD_F * grij * expm2);
-            if (EFLAG) ecoul = prefactor * erfc;
-            if (factor_coul < 1.0) {
-              forcecoul -= (1.0 - factor_coul) * prefactor;
-              if (EFLAG) ecoul -= (1.0 - factor_coul) * prefactor;
-            }
-          } else {
-            union_int_float_t rsq_lookup;
-            rsq_lookup.f = rsq;
-            itable = rsq_lookup.i & ncoulmask;
-            itable >>= ncoulshiftbits;
-            fraction = (rsq_lookup.f - rtable[itable]) * drtable[itable];
-            table = ftable[itable] + fraction * dftable[itable];
-            forcecoul = qtmp * q[j] * table;
-            if (EFLAG) ecoul = qtmp * q[j] * (etable[itable] + fraction * detable[itable]);
-            if (factor_coul < 1.0) {
-              table = ctable[itable] + fraction * dctable[itable];
-              prefactor = qtmp * q[j] * table;
-              forcecoul -= (1.0 - factor_coul) * prefactor;
-              if (EFLAG) ecoul -= (1.0 - factor_coul) * prefactor;
-            }
-          }
-        }
-*/
 
   if (Specialisation::DoTable && rsq > tabinnersq) {
     union_int_float_t rsq_lookup;

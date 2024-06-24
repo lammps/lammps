@@ -1,0 +1,135 @@
+LAMMPS (17 Apr 2024 - Development - patch_17Apr2024-557-gef1630afd2)
+  using 1 OpenMP thread(s) per MPI task
+units metal
+boundary p p p
+
+atom_style atomic
+lattice fcc 3.6
+Lattice spacing in x,y,z = 3.6 3.6 3.6
+region box block 0 2 0 2 0 2
+create_box 1 box
+Created orthogonal box = (0 0 0) to (7.2 7.2 7.2)
+  1 by 2 by 2 MPI processor grid
+create_atoms 1 box
+Created 32 atoms
+  using lattice units in orthogonal box = (0 0 0) to (7.2 7.2 7.2)
+  create_atoms CPU = 0.001 seconds
+
+labelmap atom 1 Ni
+mass Ni 58.693
+
+velocity all create 123 42
+
+pair_style metatensor nickel-lj.pt
+
+This is the Test Lennard-Jones model
+====================================
+
+Minimal shifted Lennard-Jones potential, to be used when testing the
+integration of metatensor atomistic models with various simulation engines.
+
+Model authors
+-------------
+
+- Guillaume Fraux <guillaume.fraux@epfl.ch>
+
+Model references
+----------------
+
+Please cite the following references when using this model:
+- about this specific model:
+  * https://github.com/luthaf/metatensor-lj-test
+- about the implementation of this model:
+  * https://github.com/lab-cosmo/metatensor
+
+Running simulation on cpu device with float64 data
+# pair_style metatensor nickel-lj-extensions.pt extensions collected-extensions/
+pair_coeff * * 28
+
+timestep 0.001
+fix 1 all npt temp 123 123 $(100 * dt) iso 0 0 $(1000 * dt) drag 1.0
+fix 1 all npt temp 123 123 0.10000000000000000555 iso 0 0 $(1000 * dt) drag 1.0
+fix 1 all npt temp 123 123 0.10000000000000000555 iso 0 0 1 drag 1.0
+
+thermo 10
+thermo_style custom step temp pe etotal press vol
+
+# dump 1 all atom 10 dump.metatensor
+
+run 100
+
+CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE
+
+Your simulation uses code contributions which should be cited:
+
+- Type Label Framework: https://doi.org/10.1021/acs.jpcb.3c08419
+
+@Article{Gissinger24,
+ author = {Jacob R. Gissinger, Ilia Nikiforov, Yaser Afshar, Brendon Waters, Moon-ki Choi, Daniel S. Karls, Alexander Stukowski, Wonpil Im, Hendrik Heinz, Axel Kohlmeyer, and Ellad B. Tadmor},
+ title = {Type Label Framework for Bonded Force Fields in LAMMPS},
+ journal = {J. Phys. Chem. B},
+ year =    2024,
+ volume =  128,
+ number =  13,
+ pages =   {3282–-3297}
+}
+
+- https://github.com/lab-cosmo/metatensor
+- https://github.com/luthaf/metatensor-lj-test
+CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE
+
+Generated 0 of 0 mixed pair_coeff terms from geometric mixing rule
+Neighbor list info ...
+  update: every = 1 steps, delay = 0 steps, check = yes
+  max neighbors/atom: 2000, page size: 100000
+  master list distance cutoff = 8.5
+  ghost atom cutoff = 8.5
+  binsize = 4.25, bins = 2 2 2
+  1 neighbor lists, perpetual/occasional/extra = 1 0 0
+  (1) pair metatensor, perpetual
+      attributes: full, newton on, ghost
+      pair build: full/bin/ghost
+      stencil: full/ghost/bin/3d
+      bin: standard
+Per MPI rank memory allocation (min/avg/max) = 3.359 | 3.359 | 3.359 Mbytes
+   Step          Temp          PotEng         TotEng         Press          Volume    
+         0   123           -8.2814195     -7.7885506     -67585.536      373.248      
+        10   124.79957     -8.3949245     -7.8948446     -68883.161      370.7507     
+        20   130.37558     -8.7437731     -8.2213497     -72909.223      363.36859    
+        30   140.35202     -9.3570472     -8.7946476     -80147.272      351.36165    
+        40   156.04321     -10.287834     -9.6625589     -91867.312      335.19011    
+        50   179.24129     -11.608375     -10.890143     -108707.41      315.60758    
+        60   212.26895     -13.385134     -12.534558     -131437.18      293.74143    
+        70   257.12553     -15.653741     -14.623422     -160605.1       270.99882    
+        80   309.97318     -18.367667     -17.125584     -193391.56      248.74226    
+        90   345.50571     -21.286382     -19.901918     -220089.9       227.94171    
+       100   318.19414     -23.90463      -22.629605     -220782.88      209.09539    
+Loop time of 4.16296 on 4 procs for 100 steps with 32 atoms
+
+Performance: 2.075 ns/day, 11.564 hours/ns, 24.021 timesteps/s, 768.684 atom-step/s
+97.4% CPU use with 4 MPI tasks x 1 OpenMP threads
+
+MPI task timing breakdown:
+Section |  min time  |  avg time  |  max time  |%varavg| %total
+---------------------------------------------------------------
+Pair    | 3.8847     | 3.9666     | 4.0708     |   3.8 | 95.28
+Neigh   | 0.008984   | 0.0098269  | 0.012274   |   1.4 |  0.24
+Comm    | 0.060256   | 0.16685    | 0.24951    |  18.7 |  4.01
+Output  | 0.00014112 | 0.0021948  | 0.0083534  |   7.6 |  0.05
+Modify  | 0.010689   | 0.016268   | 0.018145   |   2.5 |  0.39
+Other   |            | 0.001203   |            |       |  0.03
+
+Nlocal:              8 ave          10 max           6 min
+Histogram: 2 0 0 0 0 0 0 0 0 2
+Nghost:           1259 ave        1261 max        1257 min
+Histogram: 2 0 0 0 0 0 0 0 0 2
+Neighs:              0 ave           0 max           0 min
+Histogram: 4 0 0 0 0 0 0 0 0 0
+FullNghs:         2891 ave        3614 max        2167 min
+Histogram: 2 0 0 0 0 0 0 0 0 2
+
+Total # of neighbors = 11564
+Ave neighs/atom = 361.375
+Neighbor list builds = 2
+Dangerous builds = 0
+Total wall time: 0:00:04

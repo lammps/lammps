@@ -84,11 +84,8 @@ void AngleSPICAKokkos<DeviceType>::compute(int eflag_in, int vflag_in)
     d_vatom = k_vatom.template view<DeviceType>();
   }
 
-  //atomKK->sync(execution_space,datamask_read);
   k_k.template sync<DeviceType>();
   k_theta0.template sync<DeviceType>();
-  //  if (eflag || vflag) atomKK->modified(execution_space,datamask_modify);
-  //  else atomKK->modified(execution_space,F_MASK);
 
   x = atomKK->k_x.template view<DeviceType>();
   f = atomKK->k_f.template view<DeviceType>();
@@ -243,7 +240,6 @@ void AngleSPICAKokkos<DeviceType>::operator()(TagAngleSPICACompute<NEWTON_BOND,E
       f13 *= r2inv;
     }
   }
-
 
   // force & energy
 
@@ -569,6 +565,7 @@ void AngleSPICAKokkos<DeviceType>::ev_tally13(EV_FLOAT &ev, const int i, const i
     }
   }
 }
+
 /* ---------------------------------------------------------------------- */
 
 namespace LAMMPS_NS {

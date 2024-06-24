@@ -75,7 +75,6 @@ void PairLJSPICACoulLongKokkos<DeviceType>::compute(int eflag_in, int vflag_in)
   eflag = eflag_in;
   vflag = vflag_in;
 
-
   if (neighflag == FULL) no_virial_fdotr_compute = 1;
 
   ev_init(eflag,vflag,0);
@@ -119,10 +118,7 @@ void PairLJSPICACoulLongKokkos<DeviceType>::compute(int eflag_in, int vflag_in)
 
   // loop over neighbors of my atoms
 
-  // FIXME: taken from pair_lj_charmmfsw_coul_long, is it needed ???
   copymode = 1;
-
-  //EV_FLOAT ev = pair_compute<PairLJSPICACoulLongKokkos<DeviceType>,void >(this,(NeighListKokkos<DeviceType>*)list);
 
   EV_FLOAT ev;
   if (ncoultablebits)
@@ -132,7 +128,7 @@ void PairLJSPICACoulLongKokkos<DeviceType>::compute(int eflag_in, int vflag_in)
     ev = pair_compute<PairLJSPICACoulLongKokkos<DeviceType>,CoulLongTable<0> >
       (this,(NeighListKokkos<DeviceType>*)list);
 
-  if (eflag) {
+  if (eflag_global) {
     eng_vdwl += ev.evdwl;
     eng_coul += ev.ecoul;
   }
@@ -158,6 +154,7 @@ void PairLJSPICACoulLongKokkos<DeviceType>::compute(int eflag_in, int vflag_in)
 
   if (vflag_fdotr) pair_virial_fdotr_compute(this);
 
+  copymode = 0;
 }
 
 /* ----------------------------------------------------------------------
@@ -207,7 +204,6 @@ compute_fpair(const F_FLOAT& rsq, const int& i, const int&j, const int& itype, c
   const F_FLOAT b = ljt==LJ12_4?r4inv:(ljt==LJ9_6?1.0/sqrt(r2inv):(ljt==LJ12_5?r2inv*sqrt(r2inv):r2inv));
   return a* ( lj_1*r6inv*b - lj_2 * r2inv);
 }
-
 
 /* ----------------------------------------------------------------------
    compute pair potential energy between atoms i and j
@@ -325,10 +321,7 @@ compute_fcoul(const F_FLOAT& rsq, const int& /*i*/, const int&j,
 
     return forcecoul*rinv*rinv;
   }
-
-
 }
-
 
 /* ----------------------------------------------------------------------
    compute coulomb pair potential energy between atoms i and j
@@ -366,8 +359,6 @@ compute_ecoul(const F_FLOAT& rsq, const int& /*i*/, const int&j,
   }
 }
 
-
-
 /* ----------------------------------------------------------------------
    allocate all arrays
 ------------------------------------------------------------------------- */
@@ -403,11 +394,9 @@ void PairLJSPICACoulLongKokkos<DeviceType>::settings(int narg, char **arg)
   PairLJSPICACoulLong::settings(1,arg);
 }
 
-
 /* ----------------------------------------------------------------------
    init tables
 ------------------------------------------------------------------------- */
-
 
 template<class DeviceType>
 void PairLJSPICACoulLongKokkos<DeviceType>::init_tables(double cut_coul, double *cut_respa)
@@ -512,8 +501,6 @@ void PairLJSPICACoulLongKokkos<DeviceType>::init_tables(double cut_coul, double 
   }
 }
 
-
-
 /* ----------------------------------------------------------------------
    init specific to this pair style
 ------------------------------------------------------------------------- */
@@ -522,9 +509,6 @@ template<class DeviceType>
 void PairLJSPICACoulLongKokkos<DeviceType>::init_style()
 {
   PairLJSPICACoulLong::init_style();
-
-  //Kokkos::deep_copy(d_cut_ljsq,cut_ljsq);
-  //Kokkos::deep_copy(d_cut_coulsq,cut_coulsq);
 
   // error if rRESPA with inner levels
 
@@ -580,8 +564,6 @@ double PairLJSPICACoulLongKokkos<DeviceType>::init_one(int i, int j)
 
   return cutone;
 }
-
-
 
 namespace LAMMPS_NS {
 template class PairLJSPICACoulLongKokkos<LMPDeviceType>;

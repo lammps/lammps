@@ -85,7 +85,7 @@ void FitPOD::command(int narg, char **arg)
       memory->destroy(envdata.we);
       memory->destroy(envdata.wf);
   }
-  
+
   if (compute_descriptors==0) {
 
     // compute POD coefficients using least-squares method
@@ -127,7 +127,7 @@ void FitPOD::command(int narg, char **arg)
     // calculate energy and force for the training data set
 
     if ((traindata.training_calculation) && ((int) traindata.data_path.size() > 1) )
-      energyforce_calculation(traindata, desc.c);
+      energyforce_calculation(traindata);
 
     if (!((testdata.data_path == traindata.data_path) && (testdata.fraction == 1.0) && (traindata.fraction == 1.0)))
     {
@@ -140,7 +140,7 @@ void FitPOD::command(int narg, char **arg)
       // calculate energy and force for the test data set
 
       if ((testdata.test_analysis) && (testdata.test_calculation) && ((int) testdata.data_path.size() > 1) && (testdata.fraction > 0) )
-        energyforce_calculation(testdata, desc.c);
+        energyforce_calculation(testdata);
 
       // deallocate testing data
 
@@ -380,7 +380,7 @@ void FitPOD::get_exyz_files(std::vector<std::string>& files, std::vector<std::st
     if (utils::strmatch(fname, fmt::format(".*\\.{}$", extension)))
       files.push_back(datapath + platform::filepathsep + fname);
       int start_pos_erase = fname.find(extension) - 1;
-      int ext_size = extension.size() + 1;
+      //int ext_size = extension.size() + 1;
       //std::string substr = fname.erase(start_pos_erase, ext_size);
       std::string substr = fname.substr(0, start_pos_erase);
       group_names.push_back(substr);
@@ -1885,7 +1885,7 @@ void FitPOD::error_analysis(const datastruct &data, double *coeff)
   }
 }
 
-void FitPOD::energyforce_calculation(const datastruct &data, double *coeff)
+void FitPOD::energyforce_calculation(const datastruct &data)
 {
   int dim = 3;
   double energy;

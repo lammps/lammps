@@ -852,7 +852,7 @@ int EAPOD::read_centroids(std::string centroids_file)
 
 
 void EAPOD::peratombase_descriptors(double *bd1, double *bdd1, double *rij, double *temp,
-        int *ti, int *tj, int Nj)
+        int *tj, int Nj)
 {
   for (int i=0; i<Mdesc; i++) bd1[i] = 0.0;
   for (int i=0; i<3*Nj*Mdesc; i++) bdd1[i] = 0.0;
@@ -920,7 +920,7 @@ void EAPOD::peratombase_descriptors(double *bd1, double *bdd1, double *rij, doub
     angularbasis(abf, abfx, abfy, abfz, rij, tm, pq3, Nj, K3);
 
     radialangularbasis(sumU, U, Ux, Uy, Uz, rbf, rbfx, rbfy, rbfz,
-            abf, abfx, abfy, abfz, tm, tj, Nj, K3, nrbf3, nelements);
+            abf, abfx, abfy, abfz, tj, Nj, K3, nrbf3, nelements);
 
     threebodydesc(d3, sumU);
     threebodydescderiv(dd3, sumU, Ux, Uy, Uz, tj, Nj);
@@ -1306,7 +1306,7 @@ double EAPOD::peratomenergyforce2(double *fij, double *rij, double *temp,
     angularbasis(abf, abfx, abfy, abfz, rij, tm, pq3, Nj, K3);
 
     radialangularbasis(sumU, U, Ux, Uy, Uz, rbf, rbfx, rbfy, rbfz,
-            abf, abfx, abfy, abfz, tm, tj, Nj, K3, nrbf3, nelements);
+            abf, abfx, abfy, abfz, tj, Nj, K3, nrbf3, nelements);
 
     threebodydesc(d3, sumU);
 
@@ -1388,7 +1388,7 @@ double EAPOD::peratomenergyforce(double *fij, double *rij, double *temp,
   double e = coeff1[0];
 
   // calculate base descriptors and their derivatives with respect to atom coordinates
-  peratombase_descriptors(bd, bdd, rij, temp, ti, tj, Nj);
+  peratombase_descriptors(bd, bdd, rij, temp, tj, Nj);
 
   if (nClusters > 1) { // multi-environment descriptors
     // calculate multi-environment descriptors and their derivatives with respect to atom coordinates
@@ -1491,7 +1491,7 @@ void EAPOD::base_descriptors(double *basedesc, double *x,
       myneighbors(rij, x, ai, aj, ti, tj, jlist, pairnumsum, atomtype, alist, i);
 
       // many-body descriptors
-      peratombase_descriptors(bd, bdd, rij, &tmpmem[3*Nj], ti, tj, Nj);
+      peratombase_descriptors(bd, bdd, rij, &tmpmem[3*Nj], tj, Nj);
 
       for (int m=0; m<Mdesc; m++) {
         basedesc[i + natom*(m)] = bd[m];
@@ -1534,7 +1534,7 @@ void EAPOD::descriptors(double *gd, double *gdd, double *basedesc, double *x,
       myneighbors(rij, x, ai, aj, ti, tj, jlist, pairnumsum, atomtype, alist, i);
 
       // many-body descriptors
-      peratombase_descriptors(bd, bdd, rij, &tmpmem[3*Nj], ti, tj, Nj);
+      peratombase_descriptors(bd, bdd, rij, &tmpmem[3*Nj], tj, Nj);
 
       for (int m=0; m<Mdesc; m++) {
         basedesc[i + natom*(m)] = bd[m];
@@ -1591,7 +1591,7 @@ void EAPOD::descriptors(double *gd, double *gdd, double *basedesc, double *probd
       myneighbors(rij, x, ai, aj, ti, tj, jlist, pairnumsum, atomtype, alist, i);
 
       // many-body descriptors
-      peratombase_descriptors(bd, bdd, rij, &tmpmem[3*Nj], ti, tj, Nj);
+      peratombase_descriptors(bd, bdd, rij, &tmpmem[3*Nj], tj, Nj);
 
       // calculate multi-environment descriptors and their derivatives with respect to atom coordinates
       peratomenvironment_descriptors(pd, pdd, bd, bdd, tmpmem, ti[0] - 1,  Nj);
@@ -2250,7 +2250,7 @@ void EAPOD::angularbasis(double *abf, double *abfx, double *abfy, double *abfz, 
 void EAPOD::radialangularbasis(double *sumU, double *U, double *Ux, double *Uy, double *Uz,
                  double *rbf, double *rbfx, double *rbfy, double *rbfz,
                  double *abf, double *abfx, double *abfy, double *abfz,
-                 double *tm, int *atomtype, int N, int K, int M, int Ne)
+                 int *atomtype, int N, int K, int M, int Ne)
 {
   // Initialize sumU to zero
   std::fill(sumU, sumU + Ne * K * M, 0.0);

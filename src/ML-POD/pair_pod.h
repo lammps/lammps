@@ -38,9 +38,9 @@ public:
 
   void lammpsNeighborList(double *rij1, int *ai1, int *aj1, int *ti1, int *tj1, double **x, int **firstneigh, int *atomtype, int *map, int *numneigh,
                         double rcutsq, int i);
-  void NeighborCount(double **x, int **firstneigh, int *ilist, int *numneigh, double rcutsq, int i1, int i2);
+  void NeighborCount(double **x, int **firstneigh, int *ilist, int *numneigh, double rcutsq, int i1);
   void NeighborList(double **x, int **firstneigh, int *atomtype, int *map, int *ilist, int *numneigh,
-                        double rcutsq, int i1, int i2);
+                        double rcutsq, int i1);
   void tallyenergy(double *ei, int istart, int Ni);
   void tallystress(double *fij, double *rij, int *ai, int *aj, int nlocal, int N);
   void tallyforce(double **force, double *fij,  int *ai, int *aj, int N);
@@ -53,15 +53,15 @@ public:
   void orthogonalradialbasis(int Nij);
   void angularbasis(double *tm, double *tmu, double *tmv, double *tmw, int N);
   void radialangularsum(int Ni, int Nij);
-  void radialangularsum2(int Ni, int Nij);
+  void radialangularsum2(int Ni);
   void twobodydesc(double *d2, int Ni, int Nij);
-  void twobodydescderiv(double *dd2, int Ni, int Nij);
+  void twobodydescderiv(double *dd2, int Nij);
   void twobodydescderiv(double *d2, double *dd2, int Ni, int Nij);
   void threebodydesc(double *d3, int Ni);
-  void threebodydescderiv(double *dd3, int Ni, int Nij);
+  void threebodydescderiv(double *dd3, int Nij);
   void extractsumU(int Ni);
   void fourbodydesc(double *d4, int Ni);
-  void fourbodydescderiv(double *dd4, int Ni, int Nij);
+  void fourbodydescderiv(double *dd4, int Nij);
   void crossdesc(double *d12, double *d1, double *d2, int *ind1, int *ind2, int n12, int Ni);
   void crossdescderiv(double *dd12, double *d1, double *d2, double *dd1, double *dd2,
         int *ind1, int *ind2, int *idxi, int n12, int Ni, int Nij);

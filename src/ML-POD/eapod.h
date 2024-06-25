@@ -70,7 +70,7 @@ private:
 
   void radialangularbasis(double *sumU, double *U, double *Ux, double *Uy, double *Uz,
         double *rbf, double *rbfx, double *rbfy, double *rbfz, double *abf,
-        double *abfx, double *abfy, double *abfz, double *tm, int *atomtype, int N, int K, int M, int Ne);
+        double *abfx, double *abfy, double *abfz, int *atomtype, int N, int K, int M, int Ne);
 
   void MatMul(double *c, double *a, double *b, int r1, int c1, int c2);
 
@@ -202,7 +202,7 @@ public:
           int *jlist, int *pairnumsum, int natom);
 
   void peratombase_descriptors(double *bd, double *bdd, double *rij, double *temp,
-        int *ti, int *tj, int Nj);
+        int *tj, int Nj);
   double peratombase_coefficients(double *cb, double *bd, int *ti);
   double peratom_environment_descriptors(double *cb, double *bd, double *tm, int *ti);
 

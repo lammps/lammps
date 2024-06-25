@@ -13,7 +13,7 @@
 
 #ifdef COMPUTE_CLASS
 // clang-format off
-ComputeStyle(pod/ldd,ComputePODLocal);
+ComputeStyle(pod/local,ComputePODLocal);
 // clang-format on
 #else
 

@@ -206,7 +206,7 @@ private:
   void print_analysis(const datastruct &data, double *outarray, double *errors);
   void error_analysis(const datastruct &data, double *coeff);
   double energyforce_calculation_fastpod(double *force, const datastruct &data, int ci);
-  void energyforce_calculation(const datastruct &data, double *coeff);
+  void energyforce_calculation(const datastruct &data);
 };
 
 }    // namespace LAMMPS_NS

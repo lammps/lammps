@@ -1,7 +1,7 @@
 .. index:: compute pod/atom
 .. index:: compute podd/atom
-.. index:: compute pod/ldd
-.. index:: compute pod/gdd
+.. index:: compute pod/local
+.. index:: compute pod/global
 
 compute pod/atom command
 ========================
@@ -9,10 +9,10 @@ compute pod/atom command
 compute podd/atom command
 =========================
 
-compute pod/ldd command
+compute pod/local command
 =======================
 
-compute pod/gdd command
+compute pod/global command
 =======================
 
 Syntax
@@ -22,8 +22,8 @@ Syntax
 
    compute ID group-ID pod/atom param.pod coefficients.pod
    compute ID group-ID podd/atom param.pod coefficients.pod
-   compute ID group-ID pod/ldd param.pod coefficients.pod
-   compute ID group-ID pod/gdd param.pod coefficients.pod
+   compute ID group-ID pod/local param.pod coefficients.pod
+   compute ID group-ID pod/global param.pod coefficients.pod
 
 * ID, group-ID are documented in :doc:`compute <compute>` command
 * pod/atom = style name of this compute command
@@ -37,12 +37,12 @@ Examples
 
    compute d all pod/atom Ta_param.pod
    compute dd all podd/atom Ta_param.pod
-   compute ldd all pod/ldd Ta_param.pod
-   compute gdd all podd/gdd Ta_param.pod
+   compute ldd all pod/local Ta_param.pod
+   compute gdd all podd/global Ta_param.pod
    compute d all pod/atom Ta_param.pod Ta_coefficients.pod
    compute dd all podd/atom Ta_param.pod Ta_coefficients.pod
-   compute ldd all pod/ldd Ta_param.pod Ta_coefficients.pod
-   compute gdd all podd/gdd Ta_param.pod Ta_coefficients.pod
+   compute ldd all pod/local Ta_param.pod Ta_coefficients.pod
+   compute gdd all podd/global Ta_param.pod Ta_coefficients.pod
 
 Description
 """""""""""
@@ -61,9 +61,9 @@ Compute *pod/atom* calculates the per-atom POD descriptors.
 
 Compute *podd/atom* calculates derivatives of the per-atom POD descriptors with respect to atom positions.
 
-Compute *pod/ldd* calculates the per-atom POD descriptors and their derivatives with respect to atom positions.
+Compute *pod/local* calculates the per-atom POD descriptors and their derivatives with respect to atom positions.
 
-Compute *pod/gdd* calculates the global POD descriptors and their derivatives with respect to atom positions.
+Compute *pod/global* calculates the global POD descriptors and their derivatives with respect to atom positions.
 
 Examples how to use Compute POD commands are found in the directory lammps/examples/PACKAGES/pod.
 
@@ -78,11 +78,11 @@ and :math:`M` is the number of descriptors. Each column corresponds to a particu
 Compute *podd/atom* produces an 2D array of size :math:`N \times (M * 3 N)`. Each column
 corresponds to a particular derivative of a POD descriptor.
 
-Compute *pod/ldd* produces an 2D array of size :math:`(1 + 3N) \times (M * N)`.
+Compute *pod/local* produces an 2D array of size :math:`(1 + 3N) \times (M * N)`.
 The first row contains the per-atom descriptors, and the last 3N rows contain the derivatives
 of the per-atom descriptors with respect to atom positions.
 
-Compute *pod/gdd* produces an 2D array of size :math:`(1 + 3N) \times (M)`.
+Compute *pod/global* produces an 2D array of size :math:`(1 + 3N) \times (M)`.
 The first row contains the global descriptors, and the last 3N rows contain the derivatives
 of the global descriptors with respect to atom positions.
 

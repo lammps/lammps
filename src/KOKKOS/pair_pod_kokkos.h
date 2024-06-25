@@ -44,7 +44,6 @@ class PairPODKokkos : public PairPOD {
   void init_style() override;
   double init_one(int, int) override;
 
- //protected:
   int inum, maxneigh;
   int host_flag;
 
@@ -54,8 +53,6 @@ class PairPODKokkos : public PairPOD {
   typename AT::t_neighbors_2d d_neighbors;
   typename AT::t_int_1d d_ilist;
   typename AT::t_int_1d d_numneigh;
-//   typename AT::t_int_1d_randomread d_ilist;
-//   typename AT::t_int_1d_randomread d_numneigh;
 
   DAT::tdual_efloat_1d k_eatom;
   DAT::tdual_virial_array k_vatom;

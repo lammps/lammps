@@ -229,7 +229,6 @@ void PairPODKokkos<DeviceType>::compute(int eflag_in, int vflag_in)
   x = atomKK->k_x.view<DeviceType>();
   f = atomKK->k_f.view<DeviceType>();
   type = atomKK->k_type.view<DeviceType>();
-  //k_cutsq.template sync<DeviceType>();
 
   maxneigh = 0;
   if (host_flag) {

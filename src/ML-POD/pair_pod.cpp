@@ -2228,4 +2228,3 @@ void PairPOD::savedatafordebugging()
   savematrix2binfile("podei.bin", ei, ni, 1);
   error->all(FLERR, "Save data and stop the run for debugging");
 }
-

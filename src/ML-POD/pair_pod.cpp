@@ -2032,7 +2032,7 @@ void PairPOD::blockatom_forces(double *fij, int Ni, int Nij)
 
   double *d3 =  &bd[Ni*nl2]; // nl3
   double *d4 =  &bd[Ni*(nl2 + nl3)]; // nl4
-  double *cb2 =  &cb[0]; // nl3
+  //double *cb2 =  &cb[0]; // nl3
   double *cb3 =  &cb[Ni*nl2]; // nl3
   double *cb4 =  &cb[Ni*(nl2 + nl3)]; // nl4
   double *cb33 = &cb[Ni*(nl2 + nl3 + nl4)]; // nl33

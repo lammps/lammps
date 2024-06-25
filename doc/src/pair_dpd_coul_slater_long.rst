@@ -178,10 +178,7 @@ command for more details.
 Related commands
 """"""""""""""""
 
-:doc:`pair_style dpd <pair_dpd>`, :doc:`pair_style coul/slater/long
-:doc:<pair_coul_slater>`, `pair_coeff <pair_coeff>`, :doc:`fix nvt
-:doc:<fix_nh>`, :doc:`fix langevin <fix_langevin>`, `pair_style srp
-:doc:<pair_srp>`, :doc:`fix mvv/dpd <fix_mvv_dpd>`.
+:doc:`pair_style dpd <pair_dpd>`, :doc:`pair_style coul/slater/long <pair_coul_slater>`,
 
 Default
 """""""

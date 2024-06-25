@@ -86,6 +86,8 @@ action bond_fene_kokkos.cpp bond_fene.cpp
 action bond_fene_kokkos.h bond_fene.h
 action bond_harmonic_kokkos.cpp bond_harmonic.cpp
 action bond_harmonic_kokkos.h bond_harmonic.h
+action bond_hybrid_kokkos.cpp bond_hybrid.cpp
+action bond_hybrid_kokkos.h bond_hybrid.h
 action comm_kokkos.cpp
 action comm_kokkos.h
 action comm_tiled_kokkos.cpp
@@ -365,6 +367,8 @@ action pair_reaxff_kokkos.h pair_reaxff.h
 action pair_snap_kokkos_impl.h pair_snap.cpp
 action pair_snap_kokkos.cpp pair_snap.cpp
 action pair_snap_kokkos.h pair_snap.h
+action pair_soft_kokkos.cpp
+action pair_soft_kokkos.h
 action pair_sw_kokkos.cpp pair_sw.cpp
 action pair_sw_kokkos.h pair_sw.h
 action pair_table_kokkos.cpp

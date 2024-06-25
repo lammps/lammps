@@ -331,6 +331,19 @@ namespace utils {
   void bounds(const char *file, int line, const std::string &str, bigint nmin, bigint nmax,
               TYPE &nlo, TYPE &nhi, Error *error);
 
+  /*! Same as bounds(), but supports type labels
+   *
+   * This functions adds the following case:
+   *
+   * - a single type label, typestr: nlo = nhi = label2type(typestr)
+   *
+   * \param lmp      pointer to top-level LAMMPS class instance
+   * \param mode     select labelmap using constants from Atom class */
+
+  template <typename TYPE>
+  void bounds_typelabel(const char *file, int line, const std::string &str, bigint nmin, bigint nmax,
+                        TYPE &nlo, TYPE &nhi, Error *error, LAMMPS *lmp, int mode);
+
   /*! Expand list of arguments when containing fix/compute wildcards
    *
    *  This function searches the list of arguments in *arg* for strings
@@ -378,6 +391,12 @@ namespace utils {
    * \return      pointer to expanded string or null pointer */
 
   char *expand_type(const char *file, int line, const std::string &str, int mode, LAMMPS *lmp);
+
+  /*! Expand type label string into its equivalent integer-valued numeric type
+   *
+   *  This function has the same arguments as expand_type() but returns an integer value */
+
+  int expand_type_int(const char *file, int line, const std::string &str, int mode, LAMMPS *lmp);
 
   /*! Check grid reference for valid Compute or Fix which produces per-grid data
    *

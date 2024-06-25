@@ -189,4 +189,4 @@ Related commands
 Default
 """""""
 
-The option defaults are pair = ii and types_style = numeric.
+The option defaults are pair = ii and types = numeric.

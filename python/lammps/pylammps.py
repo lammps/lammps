@@ -796,18 +796,16 @@ class PyLammps(object):
     comm = {}
     comm['nprocs'] = self.lmp.extract_setting("world_size")
     comm['nthreads'] = self.lmp.extract_setting("nthreads")
+    comm['proc_grid'] = comm['procgrid'] = self.lmp.extract_global("procgrid")
+    idx = self.lmp.extract_setting("comm_style")
+    comm['comm_style'] = ('brick', 'tiled')[idx]
+    idx = self.lmp.extract_setting("comm_style")
+    comm['comm_layout'] = ('uniform', 'nonuniform', 'irregular')[idx]
+    comm['ghost_velocity'] = self.lmp.extract_setting("ghost_velocity") == 1
 
     for line in output:
       if line.startswith("MPI library"):
         comm['mpi_version'] = line.split(':')[1].strip()
-      elif line.startswith("Comm style"):
-        parts = self._split_values(line)
-        comm['comm_style'] = self._get_pair(parts[0])[1]
-        comm['comm_layout'] = self._get_pair(parts[1])[1]
-      elif line.startswith("Processor grid"):
-        comm['proc_grid'] = [int(x) for x in self._get_pair(line)[1].split('x')]
-      elif line.startswith("Communicate velocities for ghost atoms"):
-        comm['ghost_velocity'] = (self._get_pair(line)[1] == "yes")
     return comm
 
   def _parse_element_list(self, output):

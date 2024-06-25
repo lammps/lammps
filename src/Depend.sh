@@ -116,6 +116,7 @@ if (test $1 = "KSPACE") then
   depend CG-SPICA
   depend CORESHELL
   depend DIELECTRIC
+  depend DPD-BASIC
   depend GPU
   depend KOKKOS
   depend OPT

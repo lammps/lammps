@@ -37,7 +37,7 @@ Description
 
 Style *dpd/coul/slater/long* computes a force field for dissipative
 particle dynamics (DPD) following the exposition in :ref:`(Groot)
-<GrootS>`.  It also allows for the use of charged particles in the
+<Groot5>`.  It also allows for the use of charged particles in the
 model by adding a long-range Coulombic term to the DPD interactions.
 The short-range portion of the Coulombics is calculated by this pair
 style.  The long-range Coulombics are computed by use of the
@@ -55,8 +55,11 @@ the Coulomb potential, following the formulation in :ref:`(Melchor1)
    This pair style is effectively the combination of the
    :doc:`pair_style dpd <pair_dpd>` and :doc:`pair_style
    coul/slater/long <pair_coul_slater>` commands, but should be more
-   efficient (especially on GPUs) than using :doc:`pair_style hybrid
-   dpd coul/slater/long <pair_hybrid>`.
+   efficient (especially on GPUs) than using :doc:`pair_style
+   hybrid/overlay dpd coul/slater/long <pair_hybrid>`. That is
+   particularly true for the GPU package version of the pair style since
+   this version is compatible with computing neighbor lists on the GPU
+   instead of the CPU as is required for hybrid styles.
 
 In the charged DPD model, the force on bead I due to bead J is given
 as a sum of 4 terms:
@@ -84,11 +87,11 @@ weighting factor that varies between 0 and 1.
 parameter in the pair_style command.
 
 :math:`r_{DPD}` is the pairwise cutoff for the first 3 DPD terms in
-the formula as specified by {cutoff_DPD}.  For the :math:`F^E` term,
-pairwise interactions within the specified {cutoff_coul} distance are
+the formula as specified by *cutoff_DPD*.  For the :math:`F^E` term,
+pairwise interactions within the specified *cutoff_coul* distance are
 computed directly; interactions beyond that distance are computed in
-reciprocal space.  {C} is the same Coulomb conversion factor used in
-the Coulombic formulas decribed on the :doc:`pair_coul <pair_coul>`
+reciprocal space.  *C* is the same Coulomb conversion factor used in
+the Coulombic formulas described on the :doc:`pair_coul <pair_coul>`
 doc page.
 
 The following parameters must be defined for each pair of atoms types
@@ -101,10 +104,11 @@ commands:
 * :math:`\gamma` (force/velocity units)
 * is_charged (optional boolean, default = no)
 
-The {is_charged} parameter is optional and can be specified as {yes}
-or {no}.  {Yes} should be used for interactions betwenn two types of
-charged particles.  {No} is the default and should be used for
-interactions between two types of particleswhen one or both are uncharged.
+The *is_charged* parameter is optional and can be specified as *yes* or
+*no*.  *Yes* should be used for interactions between two types of
+charged particles.  *No* is the default and should be used for
+interactions between two types of particles when one or both are
+uncharged.
 
 ----------
 

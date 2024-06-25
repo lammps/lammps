@@ -1556,19 +1556,6 @@ void FitPOD::least_squares_fit(const datastruct &data)
         desc.A[j + nCoeffAll*i] = 0.5*(a1+a2);
       }
 
-//     // scale A and b
-//
-//     double maxb = 0.0;
-//     for (int i = 0; i<nCoeffAll; i++)
-//       maxb = (maxb > fabs(desc.b[i])) ? maxb : fabs(desc.b[i]);
-//
-//     maxb = 1.0/maxb;
-//     for (int i = 0; i<nCoeffAll; i++)
-//       desc.b[i] = desc.b[i]*maxb;
-//
-//     for (int i = 0; i<nCoeffAll*nCoeffAll; i++)
-//       desc.A[i] = desc.A[i]*maxb;
-
     double regularizing_parameter = data.fitting_weights[11];
 
     for (int i = 0; i<nCoeffAll; i++) {
@@ -1588,18 +1575,6 @@ void FitPOD::least_squares_fit(const datastruct &data)
 
   // update coefficients in POD class to compute energy and force
   fastpodptr->mknewcoeff(desc.c, nCoeffAll);
-
-  // if (comm->me == 0) {     // save coefficients into a text file
-  //   std::string filename = data.filenametag + "_coefficients"  + ".pod";
-  //   FILE *fp = fopen(filename.c_str(), "w");
-
-  //   fmt::print(fp, "POD_coefficients: {}\n", nCoeffAll);
-  //   for (int count = 0; count < nCoeffAll; count++) {
-  //     fmt::print(fp, "{:<10.{}f}\n",  desc.c[count], data.precision);
-  //   }
-  //   fclose(fp);
-  //   utils::logmesg(lmp, "**************** End of Least-Squares Fitting ****************\n");
-  // }
 }
 
 double latticevolume(double *lattice)

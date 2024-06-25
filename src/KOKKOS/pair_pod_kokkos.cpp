@@ -97,8 +97,6 @@ void PairPODKokkos<DeviceType>::init_style()
   if (atom->tag_enable == 0) error->all(FLERR, "Pair style POD requires atom IDs");
   if (force->newton_pair == 0) error->all(FLERR, "Pair style POD requires newton pair on");
 
-  // neighbor list request for KOKKOS
-
   neighflag = lmp->kokkos->neighflag;
 
   auto request = neighbor->add_request(this, NeighConst::REQ_FULL);
@@ -1666,20 +1664,6 @@ void PairPODKokkos<DeviceType>::blockatom_energyforce(t_pod_1d l_ei, t_pod_1d l_
       pa4, pb4, pc4, nelements, nrbf3, nrbf4, nabf4, K3, Q4, Ni);
   if ((nl3 > 0) && (Nij>1)) allbody_forces(l_fij, forcecoeff, rbf, rbfx, rbfy, rbfz, abf, abfx, abfy, abfz,
           idxi, tj, nelements, nrbf3, K3, Nij);
-
-//   begin = std::chrono::high_resolution_clock::now();
-//   if ((nl3 > 0) && (Nij>1)) threebody_forces(l_fij, cb3, rbf, rbfx, rbfy, rbfz, abf, abfx, abfy, abfz, sumU,
-//           idxi, tj, pc3, pn3, elemindex, nelements, nrbf3, nabf3, K3, Ni, Nij);
-//   Kokkos::fence();
-//   end = std::chrono::high_resolution_clock::now();
-//   comptime[8] += std::chrono::duration_cast<std::chrono::nanoseconds>(end-begin).count()/1e6;
-//
-//   begin = std::chrono::high_resolution_clock::now();
-//   if ((nl4 > 0) && (Nij>2)) fourbody_forces(l_fij, cb4, rbf, rbfx, rbfy, rbfz, abf, abfx, abfy, abfz, sumU, idxi, tj,
-//       pa4, pb4, pc4, nelements, nrbf3, nrbf4, nabf4, K3, Q4, Ni, Nij);
-//   Kokkos::fence();
-//   end = std::chrono::high_resolution_clock::now();
-//   comptime[9] += std::chrono::duration_cast<std::chrono::nanoseconds>(end-begin).count()/1e6;
 }
 
 template<class DeviceType>

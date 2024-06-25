@@ -93,28 +93,6 @@ EAPOD::EAPOD(LAMMPS *_lmp, const std::string &pod_file, const std::string &coeff
   if (coeff_file != "") {
     read_model_coeff_file(coeff_file);
   }
-
-  // // read pod coefficient file to podstruct
-  // if (coeff_file != "") {
-  //   ncoeff = read_coeff_file(coeff_file);
-  //   if (ncoeff != nCoeffAll)
-  //     error->all(FLERR,"number of coefficients in the coefficient file is not correct");
-  // }
-  // if (nClusters > 1) {
-  //   // read projection matrix file to podstruct
-  //   if (proj_file != "") {
-  //     nproj = read_projection_matrix(proj_file);
-  //     if (nproj != nComponents*Mdesc*nelements)
-  //       error->all(FLERR,"number of coefficients in the projection file is not correct");
-  //   }
-
-  //   // read centroids file to podstruct
-  //   if (centroids_file != "") {
-  //     ncentroids = read_centroids(centroids_file);
-  //     if (ncentroids != nComponents*nClusters*nelements)
-  //       error->all(FLERR,"number of coefficients in the projection file is not correct");
-  //   }
-  // }
 }
 
 // destructor
@@ -1353,12 +1331,6 @@ double EAPOD::peratomenergyforce2(double *fij, double *rij, double *temp,
   }
 
   if ((nl2 > 0) && (Nj>0)) twobody_forces(fij, cb2, rbfx, rbfy, rbfz, tj, Nj);
-//   print_matrix("cb2", 1, nl2, cb2, 1);
-//   print_matrix("rbfx", Nj, nrbf2, rbfx, Nj);
-//   print_matrix("rbfy", Nj, nrbf2, rbfy, Nj);
-//   print_matrix("rbfz", Nj, nrbf2, rbfz, Nj);
-//   print_matrix("fij", 3, Nj, fij, 3);
-//   error->all(FLERR,"stop");
 
   // Initialize forcecoeff to zero
   double *forcecoeff = &cb[(nl2 + nl3 + nl4)]; // nl33

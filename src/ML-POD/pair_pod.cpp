@@ -661,8 +661,6 @@ void PairPOD::grow_pairs(int Nij)
     memory->destroy(abfx);
     memory->destroy(abfy);
     memory->destroy(abfz);
-//     memory->destroy(bdd);
-//     memory->destroy(pdd);
     nijmax = Nij;
     memory->create(rij, 3 * nijmax,  "pair_pod:r_ij");
     memory->create(fij, 3 * nijmax,  "pair_pod:f_ij");
@@ -680,8 +678,6 @@ void PairPOD::grow_pairs(int Nij)
     memory->create(abfx, nijmax * kmax, "pair_pod:abfx");
     memory->create(abfy, nijmax * kmax, "pair_pod:abfy");
     memory->create(abfz, nijmax * kmax, "pair_pod:abfz");
-//     memory->create(bdd, 3 * nijmax  * Mdesc, "pair_pod:bdd");
-//     memory->create(pdd, 3 * nijmax * nClusters, "pair_pod:pdd");
   }
 }
 
@@ -2012,14 +2008,9 @@ void PairPOD::blockatom_forces(double *fij, int Ni, int Nij)
   int nld = nl2 + nl3 + nl4;
   for (int i=0; i<3*Nij*nld; i++) bdd[i] = 0.0;
 
-//   double *d3 =  &bd[Ni*nl2]; // nl3
-//   double *d4 =  &bd[Ni*(nl2 + nl3)]; // nl4
   double *dd2 = &bdd[0]; // 3*Nj*nl2
   double *dd3 = &bdd[3*Nij*nl2]; // 3*Nj*nl3
   double *dd4 = &bdd[3*Nij*(nl2+nl3)]; // 3*Nj*nl4
-//   double *dd33 = &bdd[3*Nij*(nl2+nl3+nl4)]; // 3*Nj*nl33
-//   double *dd34 = &bdd[3*Nij*(nl2+nl3+nl4+nl33)]; // 3*Nj*nl34
-//   double *dd44 = &bdd[3*Nij*(nl2+nl3+nl4+nl33+nl34)]; // 3*Nj*nl44
 
   if ((nl2 > 0) && (Nij>0)) twobodydescderiv(dd2, Nij);
   if ((nl3 > 0) && (Nij>1)) threebodydescderiv(dd3, Nij);
@@ -2039,24 +2030,6 @@ void PairPOD::blockatom_forces(double *fij, int Ni, int Nij)
   if (nl34>0) crossdesc_reduction(cb3, cb4, cb34, d3, d4, ind34l, ind34r, nl34, Ni);
 
   if (nl44>0) crossdesc_reduction(cb4, cb4, cb44, d4, d4, ind44l, ind44r, nl44, Ni);
-
-//   for (int n=0; n<3*Nij; n++) fij[n] = 0;
-//   twobody_forces(fij, cb2, Ni, Nij);
-//   threebody_forces(fij, cb3, Ni, Nij);
-//   fourbody_forces(fij, cb4, Ni, Nij);
-
-
-//   if ((nl33>0) && (Nij>3)) {
-//     crossdescderiv(dd33, d3, d3, dd3, dd3, ind33l, ind33r, idxi, nl33, Ni, Nij);
-//   }
-//
-//   if ((nl34>0) && (Nij>4)) {
-//     crossdescderiv(dd34, d3, d4, dd3, dd4, ind34l, ind34r, idxi, nl34, Ni, Nij);
-//   }
-//
-//   if ((nl44>0) && (Nij>5)) {
-//     crossdescderiv(dd44, d4, d4, dd4, dd4, ind44l, ind44r, idxi, nl44, Ni, Nij);
-//   }
 
   int N3 = 3*Nij;
   for (int n=0; n<Nij; n++) {
@@ -2110,8 +2083,6 @@ void PairPOD::blockatom_energyforce(double *ei, double *fij, int Ni, int Nij)
 
   for (int n=0; n<3*Nij; n++) fij[n] = 0;
   if ((nl2 > 0) && (Nij>0)) twobody_forces(fij, cb2, Ni, Nij);
-  //if ((nl3 > 0) && (Nij>1)) threebody_forces(fij, cb3, Ni, Nij);
-  //if ((nl4 > 0) && (Nij>2)) fourbody_forces(fij, cb4, Ni, Nij);
 
     // Initialize forcecoeff to zero
    std::fill(forcecoeff, forcecoeff + Ni * nelements * K3 * nrbf3, 0.0);
@@ -2123,56 +2094,6 @@ void PairPOD::blockatom_energyforce(double *ei, double *fij, int Ni, int Nij)
 void PairPOD::blockatomenergyforce(double *ei, double *fij, int Ni, int Nij)
 {
   blockatom_energyforce(ei, fij, Ni, Nij);
-
-  //blockatom_energies(ei, Ni, Nij);
-  //blockatom_forces(fij, Ni, Nij);
-
-//   // calculate base descriptors and their derivatives with respect to atom coordinates
-//   blockatombase_descriptors(bd, bdd, Ni, Nij);
-//
-//   if (nClusters > 1) {
-//     //double *cb = &sumU[0];
-//     blockatom_environment_descriptors(ei, cb, bd, Ni);
-//
-//     int N3 = 3*Nij;
-//     for (int n=0; n<Nij; n++) {
-//       int n3 = 3*n;
-//       int i = idxi[n];
-//       double fx = 0.0;
-//       double fy = 0.0;
-//       double fz = 0.0;
-//       for (int m=0; m<Mdesc; m++) {
-//         double c = cb[i + Ni*m];
-//         fx += c*bdd[0 + n3 + N3*m];
-//         fy += c*bdd[1 + n3 + N3*m];
-//         fz += c*bdd[2 + n3 + N3*m];
-//       }
-//       fij[0 + n3] = fx;
-//       fij[1 + n3] = fy;
-//       fij[2 + n3] = fz;
-//     }
-//   }
-//   else {
-//     for (int n=0; n<Ni; n++) {
-//       ei[n] = coefficients[0 + nCoeffPerElement*(typeai[n]-1)];
-//       for (int m=0; m<Mdesc; m++)
-//         ei[n] += coefficients[1 + m + nCoeffPerElement*(typeai[n]-1)]*bd[n + Ni*m];
-//     }
-//
-//     for (int n=0; n<Nij; n++) {
-//       int n3 = 3*n;
-//       int nc = nCoeffPerElement*(ti[n]-1);
-//       int N3 = 3*Nij;
-//       fij[0 + n3] = 0.0;
-//       fij[1 + n3] = 0.0;
-//       fij[2 + n3] = 0.0;
-//       for (int m=0; m<Mdesc; m++) {
-//         fij[0 + n3] += coefficients[1 + m + nc]*bdd[0 + n3 + N3*m];
-//         fij[1 + n3] += coefficients[1 + m + nc]*bdd[1 + n3 + N3*m];
-//         fij[2 + n3] += coefficients[1 + m + nc]*bdd[2 + n3 + N3*m];
-//       }
-//     }
-//   }
 }
 
 void PairPOD::savematrix2binfile(std::string filename, double *A, int nrows, int ncols)

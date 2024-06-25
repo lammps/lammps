@@ -1,11 +1,11 @@
 # chemical element symbols
-species Ta
+species In P
 
 # periodic boundary conditions
 pbc 1 1 1
 
 # inner cut-off radius
-rin 1.0
+rin 0.8
 
 # outer cut-off radius
 rcut 5.0
@@ -17,8 +17,11 @@ number_of_environment_clusters 1
 number_of_principal_components 2
 
 # polynomial degrees for radial basis functions
-bessel_polynomial_degree 3
-inverse_polynomial_degree 6
+bessel_polynomial_degree 4
+inverse_polynomial_degree 8
+
+# one-body potential
+onebody 1
 
 # two-body linear POD potential
 twobody_number_radial_basis_functions 6
@@ -28,8 +31,8 @@ threebody_number_radial_basis_functions 5
 threebody_angular_degree 4
 
 # four-body linear POD potential
-fourbody_number_radial_basis_functions 0
-fourbody_angular_degree 0
+fourbody_number_radial_basis_functions 4
+fourbody_angular_degree 2
 
 # five-body linear POD potential
 fivebody_number_radial_basis_functions 0
@@ -42,5 +45,4 @@ sixbody_angular_degree 0
 # seven-body linear POD potential
 sevenbody_number_radial_basis_functions 0
 sevenbody_angular_degree 0
-
 

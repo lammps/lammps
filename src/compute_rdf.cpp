@@ -102,8 +102,8 @@ ComputeRDF::ComputeRDF(LAMMPS *lmp, int narg, char **arg) :
   } else {
     iarg = 4;
     for (int ipair = 0; ipair < npairs; ipair++) {
-      utils::bounds_typelabel(FLERR, arg[iarg], 1, atom->ntypes, ilo[ipair], ihi[ipair], error, lmp, Atom::ATOM);
-      utils::bounds_typelabel(FLERR, arg[iarg+1], 1, atom->ntypes, jlo[ipair], jhi[ipair], error, lmp, Atom::ATOM);
+      utils::bounds_typelabel(FLERR, arg[iarg], 1, atom->ntypes, ilo[ipair], ihi[ipair], lmp, Atom::ATOM);
+      utils::bounds_typelabel(FLERR, arg[iarg+1], 1, atom->ntypes, jlo[ipair], jhi[ipair], lmp, Atom::ATOM);
 
       // switch i,j if i > j, if wildcards were not used
 

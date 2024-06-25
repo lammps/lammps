@@ -341,8 +341,8 @@ namespace utils {
    * \param mode     select labelmap using constants from Atom class */
 
   template <typename TYPE>
-  void bounds_typelabel(const char *file, int line, const std::string &str, bigint nmin, bigint nmax,
-                        TYPE &nlo, TYPE &nhi, Error *error, LAMMPS *lmp, int mode);
+  void bounds_typelabel(const char *file, int line, const std::string &str, bigint nmin,
+                        bigint nmax, TYPE &nlo, TYPE &nhi, LAMMPS *lmp, int mode);
 
   /*! Expand list of arguments when containing fix/compute wildcards
    *

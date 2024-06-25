@@ -655,7 +655,7 @@ template void utils::bounds<>(const char *, int, const std::string &,
 
 template <typename TYPE>
 void utils::bounds_typelabel(const char *file, int line, const std::string &str, bigint nmin,
-                             bigint nmax, TYPE &nlo, TYPE &nhi, Error *error, LAMMPS *lmp, int mode)
+                             bigint nmax, TYPE &nlo, TYPE &nhi, LAMMPS *lmp, int mode)
 {
   nlo = nhi = -1;
   char *typestr;
@@ -665,15 +665,15 @@ void utils::bounds_typelabel(const char *file, int line, const std::string &str,
   if (nlo > -1)
     return;
   else
-    utils::bounds(file, line, str, nmin, nmax, nlo, nhi, error);
+    utils::bounds(file, line, str, nmin, nmax, nlo, nhi, lmp->error);
 }
 
 template void utils::bounds_typelabel<>(const char *, int, const std::string &, bigint, bigint,
-                                        int &, int &, Error *, LAMMPS *, int);
+                                        int &, int &, LAMMPS *, int);
 template void utils::bounds_typelabel<>(const char *, int, const std::string &, bigint, bigint,
-                                        long &, long &, Error *, LAMMPS *, int);
+                                        long &, long &, LAMMPS *, int);
 template void utils::bounds_typelabel<>(const char *, int, const std::string &, bigint, bigint,
-                                        long long &, long long &, Error *, LAMMPS *, int);
+                                        long long &, long long &, LAMMPS *, int);
 
 /* -------------------------------------------------------------------------
    Expand list of arguments in arg to earg if arg contains wildcards

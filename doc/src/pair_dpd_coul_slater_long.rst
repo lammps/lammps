@@ -33,7 +33,7 @@ Examples
 Description
 """""""""""
 
-.. versionadded:: TBD
+.. versionadded:: 27June2024
 
 Style *dpd/coul/slater/long* computes a force field for dissipative
 particle dynamics (DPD) following the exposition in :ref:`(Groot)

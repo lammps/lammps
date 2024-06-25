@@ -13,8 +13,8 @@ Syntax
 
 * ID, group-ID are documented in fix command
 * charge/regulation = style name of this fix command
-* cation_type = atom type of free cations
-* anion_type = atom type of free anions
+* cation_type = atom type of free cations (integer or type label)
+* anion_type = atom type of free anions (integer or type label)
 
 * zero or more keyword/value pairs may be appended
 
@@ -27,8 +27,8 @@ Syntax
      *pIp* value = activity (effective concentration) of free cations (in the -log10 representation)
      *pIm* value = activity (effective concentration) of free anions (in the -log10 representation)
      *pKs* value = solvent self-dissociation constant (in the -log10 representation)
-     *acid_type* = atom type of acid groups
-     *base_type*  = atom type of base groups
+     *acid_type* = atom type of acid groups (integer or type label)
+     *base_type*  = atom type of base groups (integer or type label)
      *lunit_nm* value = unit length used by LAMMPS (# in the units of nanometers)
      *temp* value = temperature
      *tempfixid* value = fix ID of temperature thermostat
@@ -50,6 +50,9 @@ Examples
 
     fix chareg all charge/regulation 1 2 acid_type 3 base_type 4 pKa 5.0 pKb 6.0 pH 7.0 pIp 3.0 pIm 3.0 nevery 200 nmc 200 seed 123 tempfixid fT
     fix chareg all charge/regulation 1 2 pIp 3 pIm 3 onlysalt yes 2 -1 seed 123 tag yes temp 1.0
+
+    labelmap atom 1 H+ 2 OH-
+    fix chareg all charge/regulation H+ OH- pIp 3 pIm 3 onlysalt yes 2 -1 seed 123 tag yes temp 1.0
 
 Description
 """""""""""

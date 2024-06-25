@@ -23,19 +23,20 @@
 #include "neigh_list.h"
 #include "neighbor.h"
 #include "pair.h"
-#include "eapod.h"
 #include "update.h"
 
 #include <cstring>
 
+#include "eapod.h"
+
 using namespace LAMMPS_NS;
 
-enum{SCALAR,VECTOR,ARRAY};
+enum { SCALAR, VECTOR, ARRAY };
 
 ComputePODAtom::ComputePODAtom(LAMMPS *lmp, int narg, char **arg) :
-  Compute(lmp, narg, arg), list(nullptr), map(nullptr), pod(nullptr), elements(nullptr)
+    Compute(lmp, narg, arg), list(nullptr), podptr(nullptr), pod(nullptr), tmpmem(nullptr),
+    rij(nullptr), elements(nullptr), map(nullptr)
 {
-
   int nargmin = 6;
 
   if (narg < nargmin) error->all(FLERR, "Illegal compute {} command", style);

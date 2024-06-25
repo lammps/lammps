@@ -18,8 +18,6 @@
 
 #include "fitpod_command.h"
 
-#include "eapod.h"
-
 #include "comm.h"
 #include "error.h"
 #include "math_special.h"
@@ -33,11 +31,12 @@
 #include <vector>
 #include <unordered_map>
 
+#include "eapod.h"
+
 using namespace LAMMPS_NS;
 using MathSpecial::powint;
 
-#define MAXLINE 1024
-
+static constexpr int MAXLINE = 1024;
 static constexpr double SMALL = 1.0e-10;
 
 FitPOD::FitPOD(LAMMPS *_lmp) : Command(_lmp), fastpodptr(nullptr)
@@ -75,7 +74,6 @@ void FitPOD::command(int narg, char **arg)
 
   if (((int) envdata.data_path.size() > 1) && (desc.nClusters > 1)) {
     environment_cluster_calculation(envdata);
-    //error->all(FLERR, "stop after environment_cluster_calculation");
       memory->destroy(envdata.lattice);
       memory->destroy(envdata.energy);
       memory->destroy(envdata.stress);
@@ -303,7 +301,6 @@ int FitPOD::read_data_file(double *fitting_weights, std::string &file_format,
       if (eof) break;
       MPI_Bcast(line,MAXLINE,MPI_CHAR,0,world);
       // Tokenize.
-      //std::vector<std::string> words;
       try {
         words = Tokenizer(utils::trim_comment(line),"\"' \t\n\r\f").as_vector();
       } catch (TokenizerException &) {
@@ -315,10 +312,8 @@ int FitPOD::read_data_file(double *fitting_weights, std::string &file_format,
       while (numwords == 3){
 
         // Insert in map.
-        double we = atof(words[1].c_str());
-        we_map[words[0]] = atof(words[1].c_str());
-        double wf = atof(words[2].c_str());
-        wf_map[words[0]] = atof(words[2].c_str());
+        we_map[words[0]] = utils::numeric(FLERR, words[1], false, lmp);
+        wf_map[words[0]] = utils::numeric(FLERR, words[2], false, lmp);
 
         // Get next line.
         if (comm->me == 0) {
@@ -332,7 +327,6 @@ int FitPOD::read_data_file(double *fitting_weights, std::string &file_format,
         if (eof) break;
         MPI_Bcast(line,MAXLINE,MPI_CHAR,0,world);
         // Tokenize.
-        //std::vector<std::string> words;
         try {
           words = Tokenizer(utils::trim_comment(line),"\"' \t\n\r\f").as_vector();
         } catch (TokenizerException &) {
@@ -371,19 +365,19 @@ int FitPOD::read_data_file(double *fitting_weights, std::string &file_format,
   return precision;
 }
 
-void FitPOD::get_exyz_files(std::vector<std::string>& files, std::vector<std::string> &group_names, const std::string &datapath,
-                             const std::string &extension)
+void FitPOD::get_exyz_files(std::vector<std::string>& files, std::vector<std::string> &group_names,
+                            const std::string &datapath, const std::string &extension)
 {
   auto allfiles = platform::list_directory(datapath);
   std::sort(allfiles.begin(), allfiles.end());
   for (const auto &fname : allfiles) {
-    if (utils::strmatch(fname, fmt::format(".*\\.{}$", extension)))
+    if (utils::strmatch(fname, fmt::format(".*\\.{}$", extension))) {
       files.push_back(datapath + platform::filepathsep + fname);
       int start_pos_erase = fname.find(extension) - 1;
-      //int ext_size = extension.size() + 1;
-      //std::string substr = fname.erase(start_pos_erase, ext_size);
+      int ext_size = extension.size() + 1;
       std::string substr = fname.substr(0, start_pos_erase);
       group_names.push_back(substr);
+    }
   }
 }
 

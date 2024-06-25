@@ -1198,14 +1198,31 @@ internally by the :doc:`Fortran interface <Fortran>` and are not likely to be us
    * - triclinic
      - 1 if the the simulation box is triclinic, 0 if orthogonal.
        See :doc:`change_box`.
+
+**Communication status**
+
+.. list-table::
+   :header-rows: 1
+   :widths: auto
+
+   * - Keyword
+     - Description / Return value
    * - universe_rank
      - MPI rank on LAMMPS' universe communicator (0 <= universe_rank < universe_size)
    * - universe_size
      - Number of ranks on LAMMPS' universe communicator (world_size <= universe_size)
    * - world_rank
-     - MPI rank on LAMMPS' world communicator (0 <= world_rank < world_size)
+     - MPI rank on LAMMPS' world communicator (0 <= world_rank < world_size, aka comm->me)
    * - world_size
-     - Number of ranks on LAMMPS' world communicator
+     - Number of ranks on LAMMPS' world communicator (aka comm->nprocs)
+   * - comm_style
+     - communication style (0 = BRICK, 1 = TILED)
+   * - comm_layout
+     - communication layout (0 = LAYOUT_UNIFORM, 1 = LAYOUT_NONUNIFORM, 2 = LAYOUT_TILED)
+   * - comm_mode
+     - communication mode (0 = SINGLE, 1 = MULTI, 2 = MULTIOLD)
+   * - ghost_velocity
+     - whether velocities are communicated for ghost atoms (0 = no, 1 = yes)
 
 .. _extract_system_sizes:
 
@@ -1310,6 +1327,10 @@ int lammps_extract_setting(void *handle, const char *keyword)
   if (strcmp(keyword,"world_rank") == 0) return lmp->comm->me;
   if (strcmp(keyword,"world_size") == 0) return lmp->comm->nprocs;
   if (strcmp(keyword,"nthreads") == 0) return lmp->comm->nthreads;
+  if (strcmp(keyword,"comm_style") == 0) return lmp->comm->style;
+  if (strcmp(keyword,"comm_layout") == 0) return lmp->comm->layout;
+  if (strcmp(keyword,"comm_mode") == 0) return lmp->comm->mode;
+  if (strcmp(keyword,"ghost_velocity") == 0) return lmp->comm->ghost_velocity;
 
   if (strcmp(keyword,"nlocal") == 0) return lmp->atom->nlocal;
   if (strcmp(keyword,"nghost") == 0) return lmp->atom->nghost;
@@ -1386,6 +1407,7 @@ int lammps_extract_global_datatype(void * /*handle*/, const char *name)
   if (strcmp(name,"xy") == 0) return LAMMPS_DOUBLE;
   if (strcmp(name,"xz") == 0) return LAMMPS_DOUBLE;
   if (strcmp(name,"yz") == 0) return LAMMPS_DOUBLE;
+  if (strcmp(name,"procgrid") == 0) return LAMMPS_INT;
 
   if (strcmp(name,"natoms") == 0) return LAMMPS_BIGINT;
   if (strcmp(name,"nbonds") == 0) return LAMMPS_BIGINT;
@@ -1398,6 +1420,16 @@ int lammps_extract_global_datatype(void * /*handle*/, const char *name)
   if (strcmp(name,"ntypes") == 0) return LAMMPS_INT;
   if (strcmp(name,"special_lj") == 0) return LAMMPS_DOUBLE;
   if (strcmp(name,"special_coul") == 0) return LAMMPS_DOUBLE;
+
+  if (strcmp(name,"map_style") == 0) return LAMMPS_INT;
+#if defined(LAMMPS_BIGBIG)
+  if (strcmp(name,"map_tag_max") == 0) return LAMMPS_BIGINT;
+#else
+  if (strcmp(name,"map_tag_max") == 0) return LAMMPS_INT;
+#endif
+  if (strcmp(name,"sametag") == 0) return LAMMPS_INT;
+  if (strcmp(name,"sortfreq") == 0) return LAMMPS_INT;
+  if (strcmp(name,"nextsort") == 0) return LAMMPS_BIGINT;
 
   if (strcmp(name,"q_flag") == 0) return LAMMPS_INT;
 
@@ -1594,6 +1626,10 @@ report the "native" data type.  The following tables are provided:
      - double
      - 1
      - triclinic tilt factor. See :doc:`Howto_triclinic`.
+   * - procgrid
+     - int
+     - 3
+     - processor count assigned to each dimension of 3d grid. See :doc:`processors`.
 
 .. _extract_system_settings:
 
@@ -1651,6 +1687,26 @@ report the "native" data type.  The following tables are provided:
      - double
      - 4
      - special :doc:`pair weighting factors <special_bonds>` for Coulomb interactions (first element is always 1.0)
+   * - map_style
+     - int
+     - 1
+     - :doc:`atom map setting <atom_modify>`: 0 = none, 1 = array, 2 = hash, 3 = yes
+   * - map_tag_max
+     - bigint or int
+     - 1
+     - largest atom ID that can be mapped to a local index (bigint only with -DLAMMPS_BIGBIG)
+   * - sametag
+     - int
+     - nlocal+nghost
+     - index of next local atom with the same ID in ascending order. -1 signals end.
+   * - sortfreq
+     - int
+     - 1
+     - frequency of atom sorting. 0 means sorting is off.
+   * - nextsort
+     - bigint
+     - 1
+     - timestep when atoms are sorted next
    * - q_flag
      - int
      - 1
@@ -1831,6 +1887,9 @@ void *lammps_extract_global(void *handle, const char *name)
   if (strcmp(name,"xy") == 0) return (void *) &lmp->domain->xy;
   if (strcmp(name,"xz") == 0) return (void *) &lmp->domain->xz;
   if (strcmp(name,"yz") == 0) return (void *) &lmp->domain->yz;
+  if (((lmp->comm->layout == Comm::LAYOUT_UNIFORM) ||
+       (lmp->comm->layout == Comm::LAYOUT_NONUNIFORM)) && (strcmp(name,"procgrid") == 0))
+    return (void *) &lmp->comm->procgrid;
 
   if (strcmp(name,"natoms") == 0) return (void *) &lmp->atom->natoms;
   if (strcmp(name,"ntypes") == 0) return (void *) &lmp->atom->ntypes;
@@ -1845,6 +1904,12 @@ void *lammps_extract_global(void *handle, const char *name)
   if (strcmp(name,"special_coul") == 0) return (void *) lmp->force->special_coul;
 
   if (strcmp(name,"q_flag") == 0) return (void *) &lmp->atom->q_flag;
+
+  if (strcmp(name,"map_style") == 0) return (void *) &lmp->atom->map_style;
+  if (strcmp(name,"map_tag_max") == 0) return (void *) &lmp->atom->map_tag_max;
+  if (strcmp(name,"sametag") == 0) return (void *) lmp->atom->sametag;
+  if (strcmp(name,"sortfreq") == 0) return (void *) &lmp->atom->sortfreq;
+  if (strcmp(name,"nextsort") == 0) return (void *) &lmp->atom->nextsort;
 
   // global constants defined by units
 
@@ -1869,6 +1934,37 @@ void *lammps_extract_global(void *handle, const char *name)
   if (strcmp(name,"qelectron") == 0) return (void *) &lmp->force->qelectron;
 
   return nullptr;
+}
+
+/* ---------------------------------------------------------------------- */
+
+/** Map global atom ID to local atom index
+ *
+\verbatim embed:rst
+
+.. versionadded:: TBD
+
+This function returns an integer that corresponds to the local atom
+index for an atom with the global atom ID *id*. The atom ID is passed
+as a void pointer so that it can use the same interface for either a
+32-bit or 64-bit tagint. The size of the tagint can be determined
+using :cpp:func:`lammps_extract_setting`.
+
+\endverbatim
+ *
+ * \param  handle  pointer to a previously created LAMMPS instance
+ * \param  id      void pointer to the atom ID (of data type tagint, i.e. 32-bit or 64-bit integer)
+ * \return         local atom index or -1 if the atom is not found or no map exists
+ * */
+
+int lammps_map_atom(void *handle, const void *id)
+{
+  auto lmp = (LAMMPS *) handle;
+  auto tag = (const tagint *) id;
+  if (lmp->atom->map_style > Atom::MAP_NONE)
+    return lmp->atom->map(*tag);
+  else
+    return -1;
 }
 
 /* ---------------------------------------------------------------------- */

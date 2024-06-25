@@ -1291,7 +1291,7 @@ void FitPOD::environment_cluster_calculation(const datastruct &data)
 {
   if (comm->me == 0)
     utils::logmesg(lmp, "**************** Begin Calculating Environment Descriptor Matrix ****************\n");
-  
+
   int nComponents = fastpodptr->nComponents;
   int Mdesc = fastpodptr->Mdesc;
   int nClusters = fastpodptr->nClusters;

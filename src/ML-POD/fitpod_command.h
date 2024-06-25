@@ -139,7 +139,7 @@ private:
   neighborstruct nb;
   class EAPOD *fastpodptr;
 
-  // functions for collecting/collating arrays  
+  // functions for collecting/collating arrays
   void podCumsum(int *output, int *input, int length);
   double podArrayNorm(double *a, int n);
   double podArrayErrorNorm(double *a, double *b, int n);

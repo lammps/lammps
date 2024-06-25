@@ -25,7 +25,7 @@ Examples
 .. code-block:: LAMMPS
 
    pair_style dpd/coul/slater/long 1.0 2.5 34387 0.25 3.0
-   
+
    pair_coeff 1 1 78.0 4.5          # not charged by default
    pair_coeff 2 2 78.0 4.5 yes
 

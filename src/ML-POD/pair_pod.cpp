@@ -240,12 +240,12 @@ void PairPOD::compute(int eflag, int vflag)
     int gi2 = atomBlocks[block+1]-1;
     ni = gi2 - gi1; // total number of atoms in the current atom block
 
-    NeighborCount(x, firstneigh, ilist, numneigh, rcutsq, gi1, gi2);
+    NeighborCount(x, firstneigh, ilist, numneigh, rcutsq, gi1);
     nij = numberOfNeighbors(); // total number of pairs (i,j) in the current atom block
     grow_pairs(nij); // reallocate memory only if necessary
 
     // get neighbor list for atoms i in the current atom block
-    NeighborList(x, firstneigh, type, map, ilist, numneigh, rcutsq, gi1, gi2);
+    NeighborList(x, firstneigh, type, map, ilist, numneigh, rcutsq, gi1);
 
     // compute atomic energy and force for the current atom block
     blockatomenergyforce(ei, fij, ni, nij);
@@ -381,7 +381,7 @@ void PairPOD::lammpsNeighborList(double *rij1, int *ai1, int *aj1, int *ti1, int
   }
 }
 
-void PairPOD::NeighborCount(double **x, int **firstneigh, int *ilist, int *numneigh, double rcutsq, int gi1, int gi2)
+void PairPOD::NeighborCount(double **x, int **firstneigh, int *ilist, int *numneigh, double rcutsq, int gi1)
 {
   for (int i=0; i<ni; i++) {
     int gi = ilist[gi1 + i];
@@ -413,7 +413,7 @@ int PairPOD::numberOfNeighbors()
 }
 
 void PairPOD::NeighborList(double **x, int **firstneigh, int *atomtypes, int *map,
-                               int *ilist, int *numneigh, double rcutsq, int gi1, int gi2)
+                               int *ilist, int *numneigh, double rcutsq, int gi1)
 {
   for (int i=0; i<ni; i++) {
     int gi = ilist[gi1 + i];
@@ -959,7 +959,7 @@ void PairPOD::radialangularsum(int Ni, int Nij)
   }
 }
 
-void PairPOD::radialangularsum2(int Ni, int Nij)
+void PairPOD::radialangularsum2(int Ni)
 {
   // Initialize sumU to zero
   std::fill(sumU, sumU + Ni * nelements * K3 * nrbf3, 0.0);
@@ -999,7 +999,7 @@ void PairPOD::twobodydesc(double *d2, int Ni, int Nij)
   }
 }
 
-void PairPOD::twobodydescderiv(double *dd2, int Ni, int Nij)
+void PairPOD::twobodydescderiv(double *dd2, int Nij)
 {
   // Calculate the two-body descriptors and their derivatives
   int totalIterations = nrbf2 * Nij;
@@ -1073,7 +1073,7 @@ void PairPOD::threebodydesc(double *d3, int Ni)
   }
 }
 
-void PairPOD::threebodydescderiv(double *dd3, int Ni, int Nij)
+void PairPOD::threebodydescderiv(double *dd3, int Nij)
 {
   int totalIterations = nrbf3 * Nij;
   if (nelements==1) {
@@ -1322,7 +1322,7 @@ void PairPOD::fourbodydesc(double *d4, int Ni)
   }
 }
 
-void PairPOD::fourbodydescderiv(double *dd4, int Ni, int Nij)
+void PairPOD::fourbodydescderiv(double *dd4, int Nij)
 {
   if (nelements==1) {
     for (int idx = 0; idx < Nij * nrbf4; ++idx) {
@@ -1793,7 +1793,7 @@ void PairPOD::blockatom_base_descriptors(double *bd1, int Ni, int Nij)
 
   if ((nl3 > 0) && (Nij>1)) {
     angularbasis(abftm, &abftm[K3], &abftm[2*K3], &abftm[3*K3], Nij);
-    radialangularsum2(Ni, Nij);
+    radialangularsum2(Ni);
     threebodydesc(d3, Ni);
 
     if ((nl33>0) && (Nij>3)) {
@@ -1843,10 +1843,10 @@ void PairPOD::blockatombase_descriptors(double *bd1, double *bdd1, int Ni, int N
 
   if ((nl3 > 0) && (Nij>1)) {
     angularbasis(abftm, &abftm[K3], &abftm[2*K3], &abftm[3*K3], Nij);
-    radialangularsum2(Ni, Nij);
+    radialangularsum2(Ni);
 
     threebodydesc(d3, Ni);
-    threebodydescderiv(dd3, Ni, Nij);
+    threebodydescderiv(dd3, Nij);
 
     if ((nl33>0) && (Nij>3)) {
       crossdesc(d33, d3, d3, ind33l, ind33r, nl33, Ni);
@@ -1856,7 +1856,7 @@ void PairPOD::blockatombase_descriptors(double *bd1, double *bdd1, int Ni, int N
     if ((nl4 > 0) && (Nij>2)) {
       if (K4 < K3) {
         fourbodydesc(d4, Ni);
-        fourbodydescderiv(dd4, Ni, Nij);
+        fourbodydescderiv(dd4, Nij);
       }
 
       if ((nl34>0) && (Nij>4)) {
@@ -2026,13 +2026,13 @@ void PairPOD::blockatom_forces(double *fij, int Ni, int Nij)
 //   double *dd34 = &bdd[3*Nij*(nl2+nl3+nl4+nl33)]; // 3*Nj*nl34
 //   double *dd44 = &bdd[3*Nij*(nl2+nl3+nl4+nl33+nl34)]; // 3*Nj*nl44
 
-  if ((nl2 > 0) && (Nij>0)) twobodydescderiv(dd2, Ni, Nij);
-  if ((nl3 > 0) && (Nij>1)) threebodydescderiv(dd3, Ni, Nij);
-  if ((nl4 > 0) && (Nij>2)) fourbodydescderiv(dd4, Ni, Nij);
+  if ((nl2 > 0) && (Nij>0)) twobodydescderiv(dd2, Nij);
+  if ((nl3 > 0) && (Nij>1)) threebodydescderiv(dd3, Nij);
+  if ((nl4 > 0) && (Nij>2)) fourbodydescderiv(dd4, Nij);
 
   double *d3 =  &bd[Ni*nl2]; // nl3
   double *d4 =  &bd[Ni*(nl2 + nl3)]; // nl4
-  double *cb2 =  &cb[0]; // nl3
+  //double *cb2 =  &cb[0]; // nl2
   double *cb3 =  &cb[Ni*nl2]; // nl3
   double *cb4 =  &cb[Ni*(nl2 + nl3)]; // nl4
   double *cb33 = &cb[Ni*(nl2 + nl3 + nl4)]; // nl33
@@ -2228,4 +2228,3 @@ void PairPOD::savedatafordebugging()
   savematrix2binfile("podei.bin", ei, ni, 1);
   error->all(FLERR, "Save data and stop the run for debugging");
 }
-

@@ -37,10 +37,10 @@ compute dd all podd/atom Ta_param.pod Ta_coefficients.pod Ta Ta
 
 # set up compute snap generating global array
 
-compute gdd all pod/gdd Ta_param.pod Ta_coefficients.pod Ta Ta
+compute gdd all pod/global Ta_param.pod Ta_coefficients.pod Ta Ta
 #fix 		gdd all ave/time 1 1 1 c_gdd[*] file pod.gdd.dat mode vector
 
-compute ldd all pod/ldd Ta_param.pod Ta_coefficients.pod Ta Ta
+compute ldd all pod/local Ta_param.pod Ta_coefficients.pod Ta Ta
 #fix 		ldd all ave/time 1 1 1 c_ldd[*] file pod.ldd.dat mode vector
 
 #dump 		mydump_ld all custom 1000 dump_ld id c_ld[*]

@@ -114,8 +114,8 @@ Related commands
 :doc:`fitpod <fitpod_command>`,
 :doc:`compute pod/atom <compute_pod_atom>`,
 :doc:`compute podd/atom <compute_pod_atom>`,
-:doc:`compute pod/ldd <compute_pod_atom>`,
-:doc:`compute pod/gdd <compute_pod_atom>`
+:doc:`compute pod/local <compute_pod_atom>`,
+:doc:`compute pod/global <compute_pod_atom>`
 
 Default
 """""""

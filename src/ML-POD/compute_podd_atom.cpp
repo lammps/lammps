@@ -157,7 +157,7 @@ void ComputePODDAtom::compute_peratom()
       // peratom base descriptors
       double *bd = &podptr->bd[0];
       double *bdd = &podptr->bdd[0];
-      podptr->peratombase_descriptors(bd, bdd, rij, tmpmem, ti, tj, nij);
+      podptr->peratombase_descriptors(bd, bdd, rij, tmpmem, tj, nij);
 
       if (nClusters>1) {
         // peratom env descriptors

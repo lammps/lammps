@@ -59,7 +59,7 @@ PairPODKokkos<DeviceType>::PairPODKokkos(LAMMPS *lmp) : PairPOD(lmp)
   nijmax = 0;
   atomBlockSize = 2048;
   nAtomBlocks = 0;
-  timing = 1;
+  timing = 0;
   for (int i=0; i<100; i++) comptime[i] = 0;
 
   host_flag = (execution_space == Host);
@@ -72,13 +72,11 @@ PairPODKokkos<DeviceType>::PairPODKokkos(LAMMPS *lmp) : PairPOD(lmp)
 template<class DeviceType>
 PairPODKokkos<DeviceType>::~PairPODKokkos()
 {
-  if (timing == 1) {
+  if ((timing == 1) && (comm->me == 0)) {    
     printf("\n begin timing \n");
     for (int i=0; i<10; i++) printf("%g  ", comptime[i]);
     printf("\n");
     for (int i=10; i<20; i++) printf("%g  ", comptime[i]);
-//     printf("\n");
-//     for (int i=20; i<30; i++) printf("%g  ", comptime[i]);
     printf("\n end timing \n");
   }
 
@@ -195,13 +193,6 @@ struct FindMaxNumNeighs {
 template<class DeviceType>
 void PairPODKokkos<DeviceType>::compute(int eflag_in, int vflag_in)
 {
-//   if (host_flag) {
-//     atomKK->sync(Host,X_MASK|TYPE_MASK);
-//     PairPOD::compute(eflag_in,vflag_in);
-//     atomKK->modified(Host,F_MASK);
-//     return;
-//   }
-
   eflag = eflag_in;
   vflag = vflag_in;
 
@@ -230,7 +221,6 @@ void PairPODKokkos<DeviceType>::compute(int eflag_in, int vflag_in)
   x = atomKK->k_x.view<DeviceType>();
   f = atomKK->k_f.view<DeviceType>();
   type = atomKK->k_type.view<DeviceType>();
-  //k_cutsq.template sync<DeviceType>();
 
   maxneigh = 0;
   if (host_flag) {
@@ -645,7 +635,7 @@ void PairPODKokkos<DeviceType>::NeighborList(t_pod_1d l_rij, t_pod_1i l_numij,  
 template<class DeviceType>
 void PairPODKokkos<DeviceType>::radialbasis(t_pod_1d rbft, t_pod_1d rbftx, t_pod_1d rbfty, t_pod_1d rbftz,
     t_pod_1d l_rij, t_pod_1d l_besselparams, double l_rin, double l_rmax, int l_besseldegree,
-    int l_inversedegree, int l_nbesselpars, int l_ns,  int Nij)
+    int l_inversedegree, int l_nbesselpars, int Nij)
 {
   Kokkos::parallel_for("ComputeRadialBasis", Nij, KOKKOS_LAMBDA(int n) {
     double xij1 = l_rij(0+3*n);
@@ -1112,7 +1102,7 @@ void PairPODKokkos<DeviceType>::fourbodydesc(t_pod_1d d4,  t_pod_1d l_sumU, t_po
 template<class DeviceType>
 void PairPODKokkos<DeviceType>::fourbody_forces(t_pod_1d fij, t_pod_1d cb4, t_pod_1d l_rbf, t_pod_1d l_rbfx,
     t_pod_1d l_rbfy, t_pod_1d l_rbfz, t_pod_1d l_abf, t_pod_1d l_abfx, t_pod_1d l_abfy, t_pod_1d l_abfz,
-    t_pod_1d l_sumU, t_pod_1i l_idxi, t_pod_1i l_tj, t_pod_1i l_pa4, t_pod_1i l_pb4, t_pod_1i l_pc4, t_pod_1i l_elemindex,
+    t_pod_1d l_sumU, t_pod_1i l_idxi, t_pod_1i l_tj, t_pod_1i l_pa4, t_pod_1i l_pb4, t_pod_1i l_pc4,
     int l_nelements, int l_nrbf3, int l_nrbf4, int l_nabf4, int l_K3, int l_Q4, int Ni, int Nij)
 {
   int totalIterations = l_nrbf4 * Nij;
@@ -1333,7 +1323,7 @@ void PairPODKokkos<DeviceType>::fourbody_forcecoeff(t_pod_1d fb4, t_pod_1d cb4,
 template<class DeviceType>
 void PairPODKokkos<DeviceType>::allbody_forces(t_pod_1d fij, t_pod_1d l_forcecoeff, t_pod_1d l_rbf, t_pod_1d l_rbfx,
     t_pod_1d l_rbfy, t_pod_1d l_rbfz, t_pod_1d l_abf, t_pod_1d l_abfx, t_pod_1d l_abfy, t_pod_1d l_abfz,
-    t_pod_1i l_idxi, t_pod_1i l_tj, int l_nelements, int l_nrbf3, int l_nabf3, int l_K3, int Nij)
+    t_pod_1i l_idxi, t_pod_1i l_tj, int l_nelements, int l_nrbf3, int l_K3, int Nij)
 {
   int totalIterations = l_nrbf3 * Nij;
   Kokkos::parallel_for("allbody_forces", totalIterations, KOKKOS_LAMBDA(int idx) {
@@ -1420,7 +1410,7 @@ void PairPODKokkos<DeviceType>::blockatom_base_descriptors(t_pod_1d bd, int Ni, 
 
   begin = std::chrono::high_resolution_clock::now();
   radialbasis(abf, abfx, abfy, abfz, rij, besselparams, rin, rmax,
-        besseldegree, inversedegree, nbesselpars, ns, Nij);
+        besseldegree, inversedegree, nbesselpars, Nij);
   Kokkos::fence();
   end = std::chrono::high_resolution_clock::now();
   comptime[10] += std::chrono::duration_cast<std::chrono::nanoseconds>(end-begin).count()/1e6;
@@ -1688,7 +1678,7 @@ void PairPODKokkos<DeviceType>::blockatom_energyforce(t_pod_1d l_ei, t_pod_1d l_
   if ((nl4 > 0) && (Nij>2)) fourbody_forcecoeff(forcecoeff, cb4, sumU,
       pa4, pb4, pc4, nelements, nrbf3, nrbf4, nabf4, K3, Q4, Ni);
   if ((nl3 > 0) && (Nij>1)) allbody_forces(l_fij, forcecoeff, rbf, rbfx, rbfy, rbfz, abf, abfx, abfy, abfz,
-          idxi, tj, nelements, nrbf3, nabf3, K3, Nij);
+          idxi, tj, nelements, nrbf3, K3, Nij);
 
 //   begin = std::chrono::high_resolution_clock::now();
 //   if ((nl3 > 0) && (Nij>1)) threebody_forces(l_fij, cb3, rbf, rbfx, rbfy, rbfz, abf, abfx, abfy, abfz, sumU,
@@ -1699,7 +1689,7 @@ void PairPODKokkos<DeviceType>::blockatom_energyforce(t_pod_1d l_ei, t_pod_1d l_
 //
 //   begin = std::chrono::high_resolution_clock::now();
 //   if ((nl4 > 0) && (Nij>2)) fourbody_forces(l_fij, cb4, rbf, rbfx, rbfy, rbfz, abf, abfx, abfy, abfz, sumU, idxi, tj,
-//       pa4, pb4, pc4, elemindex, nelements, nrbf3, nrbf4, nabf4, K3, Q4, Ni, Nij);
+//       pa4, pb4, pc4, nelements, nrbf3, nrbf4, nabf4, K3, Q4, Ni, Nij);
 //   Kokkos::fence();
 //   end = std::chrono::high_resolution_clock::now();
 //   comptime[9] += std::chrono::duration_cast<std::chrono::nanoseconds>(end-begin).count()/1e6;

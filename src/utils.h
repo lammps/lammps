@@ -331,7 +331,7 @@ namespace utils {
   void bounds(const char *file, int line, const std::string &str, bigint nmin, bigint nmax,
               TYPE &nlo, TYPE &nhi, Error *error);
 
-  /*! Same as bounds(), but supports type labels in addition
+  /*! Same as utils::bounds(), but string may be a typelabel
    *
 \verbatim embed:rst
 

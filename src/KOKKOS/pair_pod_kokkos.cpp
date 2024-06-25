@@ -58,7 +58,7 @@ PairPODKokkos<DeviceType>::PairPODKokkos(LAMMPS *lmp) : PairPOD(lmp)
   nijmax = 0;
   atomBlockSize = 2048;
   nAtomBlocks = 0;
-  timing = 1;
+  timing = 0;
   for (int i=0; i<100; i++) comptime[i] = 0;
 
   host_flag = (execution_space == Host);
@@ -71,13 +71,11 @@ PairPODKokkos<DeviceType>::PairPODKokkos(LAMMPS *lmp) : PairPOD(lmp)
 template<class DeviceType>
 PairPODKokkos<DeviceType>::~PairPODKokkos()
 {
-  if (timing == 1) {
+  if ((timing == 1) && (comm->me == 0)) {    
     printf("\n begin timing \n");
     for (int i=0; i<10; i++) printf("%g  ", comptime[i]);
     printf("\n");
     for (int i=10; i<20; i++) printf("%g  ", comptime[i]);
-//     printf("\n");
-//     for (int i=20; i<30; i++) printf("%g  ", comptime[i]);
     printf("\n end timing \n");
   }
 
@@ -194,13 +192,6 @@ struct FindMaxNumNeighs {
 template<class DeviceType>
 void PairPODKokkos<DeviceType>::compute(int eflag_in, int vflag_in)
 {
-//   if (host_flag) {
-//     atomKK->sync(Host,X_MASK|TYPE_MASK);
-//     PairPOD::compute(eflag_in,vflag_in);
-//     atomKK->modified(Host,F_MASK);
-//     return;
-//   }
-
   eflag = eflag_in;
   vflag = vflag_in;
 

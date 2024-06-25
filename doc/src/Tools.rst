@@ -389,7 +389,7 @@ The i-PI package was created and is maintained by Michele Ceriotti,
 michele.ceriotti at gmail.com, to interface to a variety of molecular
 dynamics codes.
 
-i-PI is now available via PyPi using the pip package manager at:
+i-PI is now available via PyPI using the pip package manager at:
 https://pypi.org/project/ipi/
 
 Here are the commands to set up a virtual environment and install

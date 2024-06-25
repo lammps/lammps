@@ -700,11 +700,6 @@ void PairPOD::divideInterval(int *intervals, int N, int M)
 
 int PairPOD::calculateNumberOfIntervals(int N, int intervalSize)
 {
-  if (intervalSize <= 0) {
-    printf("Interval size must be a positive integer.\n");
-    return -1;
-  }
-
   int M = N / intervalSize;
   if (N % intervalSize != 0) {
     M++; // Add an additional interval to cover the remainder

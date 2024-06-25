@@ -159,9 +159,6 @@ public:
   EAPOD(LAMMPS *lmp) : Pointers(lmp){};
   ~EAPOD() override;
 
-  void print_matrix(const char* desc, int m, int n, int* a, int lda );
-  void print_matrix(const char* desc, int m, int n, double* a, int lda );
-
   void read_pod_file(std::string pod_file);
   void read_model_coeff_file(std::string coeff_file);
   int read_coeff_file(std::string coeff_file);

@@ -1297,9 +1297,7 @@ void FitPOD::environment_cluster_calculation(const datastruct &data)
 {
   if (comm->me == 0)
     utils::logmesg(lmp, "**************** Begin Calculating Environment Descriptor Matrix ****************\n");
-
-  //printf("number of configurations = %d\n", (int) data.num_atom.size());
-
+  
   int nComponents = fastpodptr->nComponents;
   int Mdesc = fastpodptr->Mdesc;
   int nClusters = fastpodptr->nClusters;
@@ -1363,8 +1361,6 @@ void FitPOD::environment_cluster_calculation(const datastruct &data)
     nElemAtomsCount[elem] = 0;
   }
 
-  MPI_Barrier(MPI_COMM_WORLD);
-
 // loop over each configuration in the data set
   for (int ci=0; ci < (int) data.num_atom.size(); ci++) {
     if ((ci % 100)==0) {
@@ -1388,30 +1384,6 @@ void FitPOD::environment_cluster_calculation(const datastruct &data)
       }
     }
   }
-
-  MPI_Barrier(MPI_COMM_WORLD);
-
-//   printf("%d %d %d\n",comm->me, nElemAtomsCount[0], nElemAtomsCount[1]);
-//   MPI_Barrier(MPI_COMM_WORLD);
-//
-//   for (int elem=0; elem < nelements; elem++) {  // loop over each element
-//     nAtoms = nElemAtoms[elem];
-//     nTotalAtoms = nAtoms;
-//
-//     MPI_Barrier(MPI_COMM_WORLD);
-//     MPI_Allreduce(MPI_IN_PLACE, &nTotalAtoms, 1, MPI_INT, MPI_SUM, world);
-//
-//     double *descmatrix = &basedescmatrix[Mdesc*nElemAtomsCumSum[elem]];
-//     DGEMM(&chn, &cht, &Mdesc, &Mdesc, &nAtoms, &alpha, descmatrix, &Mdesc, descmatrix, &Mdesc, &beta, A, &Mdesc);
-//
-//     MPI_Barrier(MPI_COMM_WORLD);
-//     MPI_Allreduce(MPI_IN_PLACE, A, Mdesc*Mdesc, MPI_DOUBLE, MPI_SUM, world);
-//
-//     if (comm->me == 0) print_matrix("A", Mdesc, Mdesc, A, Mdesc);
-//   }
-//
-//   MPI_Barrier(MPI_COMM_WORLD);
-//   error->all(FLERR, "stop for debugging");
 
   int save = 0;
   for (int elem=0; elem < nelements; elem++) {  // loop over each element
@@ -1461,7 +1433,6 @@ void FitPOD::environment_cluster_calculation(const datastruct &data)
     MPI_Allreduce(MPI_IN_PLACE, centroids, nClusters * nComponents, MPI_DOUBLE, MPI_SUM, world);
     double fac = ((double) nClusters)/((double) nTotalAtoms);
     for (int i = 0; i < nClusters * nComponents; i++) centroids[i] = centroids[i]*fac;
-    //for (int i = 0; i < desc.nClusters * nComponents; i++) printf("centroids[%d] = %f\n", i, centroids[i]);
 
     // Calculate centroids using k-means clustering
     int max_iter = 100;
@@ -1476,14 +1447,7 @@ void FitPOD::environment_cluster_calculation(const datastruct &data)
       savematrix2binfile(data.filenametag + "_pca_matrix_elem" + std::to_string(elem+1) + "_proc" + std::to_string(comm->me+1) + ".bin", pca, nComponents, nAtoms);
       saveintmatrix2binfile(data.filenametag + "_cluster_assignments_elem" + std::to_string(elem+1) + "_proc" + std::to_string(comm->me+1) + ".bin", assignments, nAtoms, 1);
     }
-
-    MPI_Barrier(MPI_COMM_WORLD);
   }
-
-  // if (comm->me == 0) {
-  //   savedata2textfile(data.filenametag + "_projection_matrix"  + ".pod", "projection_matrix: {}\n ", fastpodptr->Proj, nComponents*Mdesc*nelements, 1, 1);
-  //   savedata2textfile(data.filenametag + "_centroids"  + ".pod", "centroids: {} \n", fastpodptr->Centroids, nComponents*nClusters*nelements, 1, 1);
-  // }
 
   memory->destroy(basedescmatrix);
   memory->destroy(pca);
@@ -1928,46 +1892,10 @@ void FitPOD::energyforce_calculation(const datastruct &data)
     utils::logmesg(lmp, "**************** End of Energy/Force Calculation ****************\n");
 }
 
-void FitPOD::print_matrix(const char *desc, int m, int n, double **a, int /*lda*/ )
-{
-  int i, j;
-  printf( "\n %s\n", desc );
-
-  for( i = 0; i < m; i++ )
-  {
-    for( j = 0; j < n; j++ ) printf( " %6.12f", a[j][i] );
-    printf( "\n" );
-  }
-}
-
-void FitPOD::print_matrix(const char *desc, int m, int n, double *a, int lda )
-{
-  int i, j;
-  printf( "\n %s\n", desc );
-
-  for( i = 0; i < m; i++ )
-  {
-    for( j = 0; j < n; j++ ) printf( " %6.12f", a[i+j*lda] );
-    printf( "\n" );
-  }
-}
-
-void FitPOD::print_matrix(const char *desc, int m, int n, int *a, int lda)
-{
-  int i, j;
-  printf( "\n %s\n", desc );
-
-  for( i = 0; i < m; i++ )
-  {
-    for( j = 0; j < n; j++ ) printf( " %d", a[i+j*lda] );
-    printf( "\n" );
-  }
-}
-
 void FitPOD::podArrayFill(int* output, int start, int length)
 {
-        for (int j = 0; j < length; ++j)
-                output[j] = start + j;
+  for (int j = 0; j < length; ++j)
+    output[j] = start + j;
 }
 
 double FitPOD::podArraySum(double *a, int n)

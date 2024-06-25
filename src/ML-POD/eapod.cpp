@@ -1479,7 +1479,7 @@ void EAPOD::base_descriptors(double *basedesc, double *x,
         Njmax = Nj;
         free_temp_memory();
         allocate_temp_memory(Njmax);
-        printf("reallocate temporary memory with Njmax = %d ...\n", Njmax);
+        if (comm->me == 0) utils::logmesg(lmp, "reallocate temporary memory with Njmax = %d ...\n", Njmax);                
       }
 
       double *rij = &tmpmem[0]; // 3*Nj
@@ -1522,7 +1522,7 @@ void EAPOD::descriptors(double *gd, double *gdd, double *basedesc, double *x,
         Njmax = Nj;
         free_temp_memory();
         allocate_temp_memory(Njmax);
-        printf("reallocate temporary memory with Njmax = %d ...\n", Njmax);
+        if (comm->me == 0) utils::logmesg(lmp, "reallocate temporary memory with Njmax = %d ...\n", Njmax);                
       }
 
       double *rij = &tmpmem[0]; // 3*Nj
@@ -1579,7 +1579,7 @@ void EAPOD::descriptors(double *gd, double *gdd, double *basedesc, double *probd
         Njmax = Nj;
         free_temp_memory();
         allocate_temp_memory(Njmax);
-        printf("reallocate temporary memory with Njmax = %d ...\n", Njmax);
+        if (comm->me == 0) utils::logmesg(lmp, "reallocate temporary memory with Njmax = %d ...\n", Njmax);                
       }
 
       double *rij = &tmpmem[0]; // 3*Nj
@@ -2791,30 +2791,6 @@ int EAPOD::crossindices(int *ind1, int *ind2, int *dabf1, int nabf1, int nrbf1, 
       }
 
   return n;
-}
-
-void EAPOD::print_matrix(const char* desc, int m, int n, int* a, int lda )
-{
-    int i, j;
-    printf( "\n %s\n", desc );
-
-    for( i = 0; i < m; i++ )
-    {
-        for( j = 0; j < n; j++ ) printf( " %d", a[i+j*lda] );
-        printf( "\n" );
-    }
-}
-
-void EAPOD::print_matrix(const char* desc, int m, int n, double* a, int lda )
-{
-    int i, j;
-    printf( "\n %s\n", desc );
-
-    for( i = 0; i < m; i++ )
-    {
-        for( j = 0; j < n; j++ ) printf( " %6.12f", a[i+j*lda] );
-        printf( "\n" );
-    }
 }
 
 void EAPOD::scalarproduct(double *d, double c, int N)

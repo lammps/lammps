@@ -71,14 +71,6 @@ PairPODKokkos<DeviceType>::PairPODKokkos(LAMMPS *lmp) : PairPOD(lmp)
 template<class DeviceType>
 PairPODKokkos<DeviceType>::~PairPODKokkos()
 {
-  if ((timing == 1) && (comm->me == 0)) {    
-    printf("\n begin timing \n");
-    for (int i=0; i<10; i++) printf("%g  ", comptime[i]);
-    printf("\n");
-    for (int i=10; i<20; i++) printf("%g  ", comptime[i]);
-    printf("\n end timing \n");
-  }
-
   if (copymode) return;
 
   memoryKK->destroy_kokkos(k_eatom,eatom);
@@ -481,11 +473,6 @@ void PairPODKokkos<DeviceType>::divideInterval(int *intervals, int N, int M)
 template<class DeviceType>
 int PairPODKokkos<DeviceType>::calculateNumberOfIntervals(int N, int intervalSize)
 {
-  if (intervalSize <= 0) {
-    printf("Interval size must be a positive integer.\n");
-    return -1;
-  }
-
   int M = N / intervalSize;
   if (N % intervalSize != 0) {
     M++; // Add an additional interval to cover the remainder

@@ -139,11 +139,7 @@ private:
   neighborstruct nb;
   class EAPOD *fastpodptr;
 
-  // functions for collecting/collating arrays
-
-  void print_matrix(const char *desc, int m, int n, int *a, int lda);
-  void print_matrix(const char *desc, int m, int n, double *a, int lda);
-  void print_matrix(const char *desc, int m, int n, double **a, int lda);
+  // functions for collecting/collating arrays  
   void podCumsum(int *output, int *input, int length);
   double podArrayNorm(double *a, int n);
   double podArrayErrorNorm(double *a, double *b, int n);

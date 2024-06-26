@@ -3739,7 +3739,6 @@ tokyo
 tol
 tomic
 toolchain
-toolset
 topologies
 Toporov
 Torder
@@ -3817,6 +3816,7 @@ typeJ
 typelabel
 typeN
 typesafe
+typestr
 Tz
 Tzou
 ub

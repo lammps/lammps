@@ -64,7 +64,7 @@ class KokkosLMP : protected Pointers {
   static void initialize(const Kokkos::InitializationSettings&, Error *);
   static void finalize();
   void accelerator(int, char **);
-  int neigh_count(int);
+  bigint neigh_count(int);
 
   template<class DeviceType>
   int need_dup(int qeq_flag = 0)

@@ -638,32 +638,31 @@ void KokkosLMP::accelerator(int narg, char **arg)
    called by Finish
 ------------------------------------------------------------------------- */
 
-int KokkosLMP::neigh_count(int m)
+bigint KokkosLMP::neigh_count(int m)
 {
-  int inum = 0;
-  int nneigh = 0;
-
-  ArrayTypes<LMPHostType>::t_int_1d h_ilist;
-  ArrayTypes<LMPHostType>::t_int_1d h_numneigh;
+  bigint nneigh = 0;
 
   NeighborKokkos *nk = (NeighborKokkos *) neighbor;
   if (nk->lists[m]->execution_space == Host) {
     NeighListKokkos<LMPHostType>* nlistKK = (NeighListKokkos<LMPHostType>*) nk->lists[m];
-    inum = nlistKK->inum;
-    h_ilist = Kokkos::create_mirror_view(nlistKK->d_ilist);
-    h_numneigh = Kokkos::create_mirror_view(nlistKK->d_numneigh);
-    Kokkos::deep_copy(h_ilist,nlistKK->d_ilist);
-    Kokkos::deep_copy(h_numneigh,nlistKK->d_numneigh);
+    int inum = nlistKK->inum;
+    auto d_ilist = nlistKK->d_ilist;
+    auto d_numneigh = nlistKK->d_numneigh;
+    Kokkos::parallel_reduce(Kokkos::RangePolicy<LMPHostType>(0,inum), LAMMPS_LAMBDA(int ii, bigint &nneigh) {
+      const int i = d_ilist[ii];
+      nneigh += d_numneigh[i];
+    },nneigh);
+
   } else if (nk->lists[m]->execution_space == Device) {
     NeighListKokkos<LMPDeviceType>* nlistKK = (NeighListKokkos<LMPDeviceType>*) nk->lists[m];
-    inum = nlistKK->inum;
-    h_ilist = Kokkos::create_mirror_view(nlistKK->d_ilist);
-    h_numneigh = Kokkos::create_mirror_view(nlistKK->d_numneigh);
-    Kokkos::deep_copy(h_ilist,nlistKK->d_ilist);
-    Kokkos::deep_copy(h_numneigh,nlistKK->d_numneigh);
+    int inum = nlistKK->inum;
+    auto d_ilist = nlistKK->d_ilist;
+    auto d_numneigh = nlistKK->d_numneigh;
+    Kokkos::parallel_reduce(Kokkos::RangePolicy<LMPDeviceType>(0,inum), LAMMPS_LAMBDA(int ii, bigint &nneigh) {
+      const int i = d_ilist[ii];
+      nneigh += d_numneigh[i];
+    },nneigh);
   }
-
-  for (int i = 0; i < inum; i++) nneigh += h_numneigh[h_ilist[i]];
 
   return nneigh;
 }

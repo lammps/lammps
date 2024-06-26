@@ -47,6 +47,8 @@ Examples
 Description
 """""""""""
 
+.. versionadded:: 27June2024
+
 Define a computation that calculates a set of quantities related to the
 POD descriptors of the atoms in a group. These computes are used
 primarily for calculating the dependence of energy and force components

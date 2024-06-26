@@ -10,10 +10,10 @@ compute podd/atom command
 =========================
 
 compute pod/local command
-=======================
+=========================
 
 compute pod/global command
-=======================
+==========================
 
 Syntax
 """"""
@@ -50,41 +50,50 @@ Description
 Define a computation that calculates a set of quantities related to the
 POD descriptors of the atoms in a group. These computes are used
 primarily for calculating the dependence of energy and force components
-on the linear coefficients in the :doc:`pod pair_style
-<pair_pod>`, which is useful when training a POD potential to match
-target data. POD descriptors of an atom are characterized by the
-radial and angular distribution of neighbor atoms. The detailed
-mathematical definition is given in the papers by :ref:`(Nguyen and Rohskopf) <Nguyen20222>`,
-:ref:`(Nguyen2023) <Nguyen20232>`, :ref:`(Nguyen2024) <Nguyen20242>`, and :ref:`(Nguyen and Sema) <Nguyen20243>`.
+on the linear coefficients in the :doc:`pod pair_style <pair_pod>`,
+which is useful when training a POD potential to match target data. POD
+descriptors of an atom are characterized by the radial and angular
+distribution of neighbor atoms. The detailed mathematical definition is
+given in the papers by :ref:`(Nguyen and Rohskopf) <Nguyen20222c>`,
+:ref:`(Nguyen2023) <Nguyen20232c>`, :ref:`(Nguyen2024) <Nguyen20242c>`,
+and :ref:`(Nguyen and Sema) <Nguyen20243c>`.
 
 Compute *pod/atom* calculates the per-atom POD descriptors.
 
-Compute *podd/atom* calculates derivatives of the per-atom POD descriptors with respect to atom positions.
+Compute *podd/atom* calculates derivatives of the per-atom POD
+descriptors with respect to atom positions.
 
-Compute *pod/local* calculates the per-atom POD descriptors and their derivatives with respect to atom positions.
+Compute *pod/local* calculates the per-atom POD descriptors and their
+derivatives with respect to atom positions.
 
-Compute *pod/global* calculates the global POD descriptors and their derivatives with respect to atom positions.
+Compute *pod/global* calculates the global POD descriptors and their
+derivatives with respect to atom positions.
 
-Examples how to use Compute POD commands are found in the directory lammps/examples/PACKAGES/pod.
+Examples how to use Compute POD commands are found in the directory
+``examples/PACKAGES/pod``.
 
 ----------
 
 Output info
 """""""""""
 
-Compute *pod/atom* produces an 2D array of size :math:`N \times M`, where :math:`N` is the number of atoms
-and :math:`M` is the number of descriptors. Each column corresponds to a particular POD descriptor.
+Compute *pod/atom* produces an 2D array of size :math:`N \times M`,
+where :math:`N` is the number of atoms and :math:`M` is the number of
+descriptors. Each column corresponds to a particular POD descriptor.
 
-Compute *podd/atom* produces an 2D array of size :math:`N \times (M * 3 N)`. Each column
-corresponds to a particular derivative of a POD descriptor.
+Compute *podd/atom* produces an 2D array of size :math:`N \times (M * 3
+N)`. Each column corresponds to a particular derivative of a POD
+descriptor.
 
-Compute *pod/local* produces an 2D array of size :math:`(1 + 3N) \times (M * N)`.
-The first row contains the per-atom descriptors, and the last 3N rows contain the derivatives
-of the per-atom descriptors with respect to atom positions.
+Compute *pod/local* produces an 2D array of size :math:`(1 + 3N) \times
+(M * N)`.  The first row contains the per-atom descriptors, and the last
+3N rows contain the derivatives of the per-atom descriptors with respect
+to atom positions.
 
-Compute *pod/global* produces an 2D array of size :math:`(1 + 3N) \times (M)`.
-The first row contains the global descriptors, and the last 3N rows contain the derivatives
-of the global descriptors with respect to atom positions.
+Compute *pod/global* produces an 2D array of size :math:`(1 + 3N) \times
+(M)`.  The first row contains the global descriptors, and the last 3N
+rows contain the derivatives of the global descriptors with respect to
+atom positions.
 
 Restrictions
 """"""""""""
@@ -107,19 +116,19 @@ none
 
 ----------
 
-.. _Nguyen20222:
+.. _Nguyen20222c:
 
 **(Nguyen and Rohskopf)** Nguyen and Rohskopf,  Journal of Computational Physics, 480, 112030, (2023).
 
-.. _Nguyen20232:
+.. _Nguyen20232c:
 
 **(Nguyen2023)** Nguyen, Physical Review B, 107(14), 144103, (2023).
 
-.. _Nguyen20242:
+.. _Nguyen20242c:
 
 **(Nguyen2024)** Nguyen, Journal of Computational Physics, 113102, (2024).
 
-.. _Nguyen20243:
+.. _Nguyen20243c:
 
 **(Nguyen and Sema)** Nguyen and Sema, https://arxiv.org/abs/2405.00306, (2024).
 

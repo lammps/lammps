@@ -3816,6 +3816,7 @@ typeJ
 typelabel
 typeN
 typesafe
+typestr
 Tz
 Tzou
 ub

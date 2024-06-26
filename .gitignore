@@ -43,12 +43,12 @@ Thumbs.db
 
 #cmake
 /build*
-/CMakeCache.txt
-/CMakeFiles/
-/Testing
+CMakeCache.txt
+CMakeFiles
 /Makefile
-/Testing
-/cmake_install.cmake
+Testing
+Temporary
+cmake_install.cmake
 /lmp
 out/Debug
 out/RelWithDebInfo

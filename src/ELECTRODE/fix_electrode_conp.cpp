@@ -126,7 +126,8 @@ FixElectrodeConp::FixElectrodeConp(LAMMPS *lmp, int narg, char **arg) :
   } else
     group_psi_const[0] = utils::numeric(FLERR, arg[3], false, lmp);
   char *eta_str = arg[4];
-  eta = utils::numeric(FLERR, eta_str, false, lmp);
+  bool etanull = (strcmp(eta_str, "NULL") == 0);
+  if (!etanull) eta = utils::numeric(FLERR, eta_str, false, lmp);
   int iarg = 5;
   while (iarg < narg) {
     if ((strcmp(arg[iarg], "couple") == 0)) {
@@ -217,7 +218,7 @@ FixElectrodeConp::FixElectrodeConp(LAMMPS *lmp, int narg, char **arg) :
         qtotal_var_style = VarStyle::CONST;
       }
     } else if ((strcmp(arg[iarg], "eta") == 0)) {
-      if (iarg + 2 > narg) error->all(FLERR, "Need two arguments after eta command");
+      if (iarg + 2 > narg) error->all(FLERR, "Need one argument after eta command");
       etaflag = true;
       int is_double, cols, ghost;
       eta_index = atom->find_custom_ghost(arg[++iarg] + 2, is_double, cols, ghost);
@@ -243,6 +244,7 @@ FixElectrodeConp::FixElectrodeConp(LAMMPS *lmp, int narg, char **arg) :
   if (qtotal_var_style != VarStyle::UNSET) {
     if (symm) error->all(FLERR, "{} cannot use qtotal keyword with symm on", this->style);
   }
+  if (etanull && !etaflag) error->all(FLERR, "If eta is NULL the eta keyword must be used");
 
   // computatonal potential
   group_psi = std::vector<double>(groups.size());
@@ -430,12 +432,11 @@ void FixElectrodeConp::init()
     }
     if (comm->me == 0)
       for (char *fix_id : integrate_ids)
-        error->warning(
-            FLERR,
-            "Electrode atoms are integrated by fix {}, but fix electrode is using a matrix method. "
-            "For "
-            "mobile electrodes use the conjugate gradient algorithm without matrix ('algo cg').",
-            fix_id);
+        error->warning(FLERR,
+                       "Electrode atoms are integrated by fix {}, but fix electrode is using a "
+                       "matrix method. For mobile electrodes use the conjugate gradient algorithm "
+                       "without matrix ('algo cg').",
+                       fix_id);
   }
 
   // check for package intel

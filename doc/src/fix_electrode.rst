@@ -38,7 +38,7 @@ Syntax
        *electrode/thermo* args = potential eta *temp* values
             potential = electrode potential
             charge = electrode charge
-            eta = reciprocal width of electrode charge smearing
+            eta = reciprocal width of electrode charge smearing (can be NULL if eta keyword is used)
             *temp* values = T_v tau_v rng_v
                 T_v = temperature of thermo-potentiostat
                 tau_v = time constant of thermo-potentiostat

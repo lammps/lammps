@@ -92,9 +92,9 @@ FixAdaptFEP::FixAdaptFEP(LAMMPS *lmp, int narg, char **arg) :
       adapt[nadapt].pstyle = utils::strdup(arg[iarg+1]);
       adapt[nadapt].pparam = utils::strdup(arg[iarg+2]);
       utils::bounds_typelabel(FLERR, arg[iarg+3], 1, atom->ntypes,
-                              adapt[nadapt].ilo, adapt[nadapt].ihi, error, lmp, Atom::ATOM);
+                              adapt[nadapt].ilo, adapt[nadapt].ihi, lmp, Atom::ATOM);
       utils::bounds_typelabel(FLERR, arg[iarg+4], 1, atom->ntypes,
-                              adapt[nadapt].jlo, adapt[nadapt].jhi, error, lmp, Atom::ATOM);
+                              adapt[nadapt].jlo, adapt[nadapt].jhi, lmp, Atom::ATOM);
 
       // switch i,j if i > j, if wildcards were not used
 
@@ -131,7 +131,7 @@ FixAdaptFEP::FixAdaptFEP(LAMMPS *lmp, int narg, char **arg) :
         chgflag = 1;
       } else error->all(FLERR,"Illegal fix adapt/fep command");
       utils::bounds_typelabel(FLERR, arg[iarg+2], 1, atom->ntypes,
-                              adapt[nadapt].ilo, adapt[nadapt].ihi, error, lmp, Atom::ATOM);
+                              adapt[nadapt].ilo, adapt[nadapt].ihi, lmp, Atom::ATOM);
       if (utils::strmatch(arg[iarg+3],"^v_")) {
         adapt[nadapt].var = utils::strdup(arg[iarg+3]+2);
       } else error->all(FLERR,"Illegal fix adapt/fep command");

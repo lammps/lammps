@@ -740,7 +740,7 @@ void Set::selection(int n)
       else select[i] = 0;
 
   } else if (style == TYPE_SELECT) {
-    utils::bounds_typelabel(FLERR,id,1,atom->ntypes,nlo,nhi,error,lmp,Atom::ATOM);
+    utils::bounds_typelabel(FLERR,id,1,atom->ntypes,nlo,nhi,lmp,Atom::ATOM);
 
     int *type = atom->type;
     for (int i = 0; i < n; i++)

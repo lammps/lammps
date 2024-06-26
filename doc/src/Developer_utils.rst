@@ -211,6 +211,9 @@ Argument processing
 .. doxygenfunction:: bounds
    :project: progguide
 
+.. doxygenfunction:: bounds_typelabel
+   :project: progguide
+
 .. doxygenfunction:: expand_args
    :project: progguide
 

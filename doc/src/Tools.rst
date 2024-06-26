@@ -389,7 +389,7 @@ The i-PI package was created and is maintained by Michele Ceriotti,
 michele.ceriotti at gmail.com, to interface to a variety of molecular
 dynamics codes.
 
-i-PI is now available via PyPi using the pip package manager at:
+i-PI is now available via PyPI using the pip package manager at:
 https://pypi.org/project/ipi/
 
 Here are the commands to set up a virtual environment and install
@@ -839,7 +839,7 @@ and LAMMPS GUI can be launched from anywhere from the command line.
 
 The standard CMake build procedure can be applied and the
 ``mingw-cross.cmake`` preset used. By using ``mingw64-cmake`` the CMake
-command will automatically include a suitable CMake toolset file (the
+command will automatically include a suitable CMake toolchain file (the
 regular cmake command can be used after that to modify the configuration
 settings, if needed).  After building the libraries and executables,
 you can build the target 'zip' (i.e. ``cmake --build <build dir> --target zip``

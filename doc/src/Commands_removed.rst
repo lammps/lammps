@@ -154,7 +154,7 @@ i-PI tool
 .. versionchanged:: 27June2024
 
 The i-PI tool has been removed from the LAMMPS distribution.  Instead,
-instructions to install i-PI from PyPi via pip are provided.
+instructions to install i-PI from PyPI via pip are provided.
 
 restart2data tool
 -----------------

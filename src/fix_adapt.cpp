@@ -100,9 +100,9 @@ FixAdapt::FixAdapt(LAMMPS *lmp, int narg, char **arg) :
       adapt[nadapt].pstyle = utils::strdup(arg[iarg+1]);
       adapt[nadapt].pparam = utils::strdup(arg[iarg+2]);
       utils::bounds_typelabel(FLERR, arg[iarg+3], 1, atom->ntypes,
-                              adapt[nadapt].ilo, adapt[nadapt].ihi, error, lmp, Atom::ATOM);
+                              adapt[nadapt].ilo, adapt[nadapt].ihi, lmp, Atom::ATOM);
       utils::bounds_typelabel(FLERR, arg[iarg+4], 1, atom->ntypes,
-                              adapt[nadapt].jlo, adapt[nadapt].jhi, error, lmp, Atom::ATOM);
+                              adapt[nadapt].jlo, adapt[nadapt].jhi, lmp, Atom::ATOM);
 
       // switch i,j if i > j, if wildcards were not used
 
@@ -127,7 +127,7 @@ FixAdapt::FixAdapt(LAMMPS *lmp, int narg, char **arg) :
       adapt[nadapt].bstyle = utils::strdup(arg[iarg+1]);
       adapt[nadapt].bparam = utils::strdup(arg[iarg+2]);
       utils::bounds_typelabel(FLERR, arg[iarg+3], 1, atom->nbondtypes,
-                              adapt[nadapt].ilo, adapt[nadapt].ihi, error, lmp, Atom::BOND);
+                              adapt[nadapt].ilo, adapt[nadapt].ihi, lmp, Atom::BOND);
       if (utils::strmatch(arg[iarg+4],"^v_")) {
         adapt[nadapt].var = utils::strdup(arg[iarg+4]+2);
       } else error->all(FLERR,"Argument #{} must be variable not {}", iarg+5, arg[iarg+4]);
@@ -140,7 +140,7 @@ FixAdapt::FixAdapt(LAMMPS *lmp, int narg, char **arg) :
       adapt[nadapt].astyle = utils::strdup(arg[iarg+1]);
       adapt[nadapt].aparam = utils::strdup(arg[iarg+2]);
       utils::bounds_typelabel(FLERR, arg[iarg+3], 1, atom->nangletypes,
-                              adapt[nadapt].ilo, adapt[nadapt].ihi, error, lmp, Atom::ANGLE);
+                              adapt[nadapt].ilo, adapt[nadapt].ihi, lmp, Atom::ANGLE);
       if (utils::strmatch(arg[iarg+4],"^v_")) {
         adapt[nadapt].var = utils::strdup(arg[iarg+4]+2);
       } else error->all(FLERR,"Argument #{} must be variable not {}", iarg+5, arg[iarg+4]);

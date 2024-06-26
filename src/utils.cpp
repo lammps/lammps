@@ -17,6 +17,7 @@
 #include "atom.h"
 #include "comm.h"
 #include "compute.h"
+#include "domain.h"
 #include "error.h"
 #include "fix.h"
 #include "fmt/chrono.h"
@@ -650,7 +651,7 @@ template void utils::bounds<>(const char *, int, const std::string &,
 
 // clang-format on
 /* ----------------------------------------------------------------------
-   wrapper for bounds() that accepts type label input
+   wrapper for utils::bounds() that accepts type label input
 ------------------------------------------------------------------------- */
 
 template <typename TYPE>
@@ -658,9 +659,15 @@ void utils::bounds_typelabel(const char *file, int line, const std::string &str,
                              bigint nmax, TYPE &nlo, TYPE &nhi, LAMMPS *lmp, int mode)
 {
   nlo = nhi = -1;
-  char *typestr;
+
+  // cannot check for typelabels without a LAMMPS instance or a box
+  if (!lmp || !lmp->domain->box_exist)
+    utils::bounds(file, line, str, nmin, nmax, nlo, nhi, nullptr);
+
+  char *typestr = nullptr;
   if ((typestr = utils::expand_type(FLERR, str, mode, lmp)))
     nlo = nhi = utils::inumeric(FLERR, typestr, false, lmp);
+
   delete[] typestr;
   if (nlo > -1)
     return;

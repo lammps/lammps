@@ -74,6 +74,14 @@ derivatives with respect to atom positions.
 Examples how to use Compute POD commands are found in the directory
 ``examples/PACKAGES/pod``.
 
+
+.. warnings::
+
+   All of these compute styles produce *very* large per-atom output
+   arrays that scale with the total number of atoms in the system.
+   This will result in *very* large memory consumption for systems
+   with a large number of atoms.
+
 ----------
 
 Output info

@@ -1,6 +1,10 @@
 CHARMM, AMBER, COMPASS, and DREIDING force fields
 =================================================
 
+A compact summary of the concepts, definitions, and properties of
+force fields with explicit bonded interactions (like the ones discussed
+in this HowTo) is given in :ref:`(Gissinger) <Typelabel2>`.
+
 A force field has 2 parts: the formulas that define it and the
 coefficients used for a particular system.  Here we only discuss
 formulas implemented in LAMMPS that correspond to formulas commonly used
@@ -188,6 +192,10 @@ documentation for the formula it computes.
 * :doc:`special_bonds <special_bonds>` dreiding
 
 ----------
+
+.. _Typelabel2:
+
+**(Gissinger)** J. R. Gissinger, I. Nikiforov, Y. Afshar, B. Waters, M. Choi, D. S. Karls, A. Stukowski, W. Im, H. Heinz, A. Kohlmeyer, and E. B. Tadmor, J Phys Chem B, 128, 3282-3297 (2024).
 
 .. _howto-MacKerell:
 

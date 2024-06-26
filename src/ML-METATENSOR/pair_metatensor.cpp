@@ -454,21 +454,40 @@ void PairMetatensor::compute(int eflag, int vflag)
 
   auto result = result_ivalue.toGenericDict();
   auto energy = result.at("energy").toCustomClass<metatensor_torch::TensorMapHolder>();
-  auto energy_tensor = metatensor_torch::TensorMapHolder::block_by_id(energy, 0)->values();
+  auto energy_block = metatensor_torch::TensorMapHolder::block_by_id(energy, 0);
+  auto energy_tensor = energy_block->values();
   auto energy_detached = energy_tensor.detach().to(torch::kCPU).to(torch::kFloat64);
+  auto energy_samples = energy_block->samples();
 
   // store the energy returned by the model
   torch::Tensor global_energy;
   if (eflag_atom) {
+    assert(energy_samples->size() == 2);
+    assert(energy_samples->names()[0] == "system");
+    assert(energy_samples->names()[1] == "atom");
+
+    auto samples_values = energy_samples->values().to(torch::kCPU);
+    auto samples = samples_values.accessor<int32_t, 2>();
+
+    int64_t n_atoms = atom->nlocal + atom->nghost;
+    assert(samples_values.sizes() == mts_data->selected_atoms_values.sizes());
+
     auto energies = energy_detached.accessor<double, 2>();
-    for (int i = 0; i < atom->nlocal + atom->nghost; i++) {
-      // TODO: handle out of order samples
-      eatom[i] += energies[i][0];
+    for (int64_t i=0; i<energy_samples->count(); i++) {
+      assert(samples[i][0] == 0);
+      // handle potentially out of order samples in
+      // the per-atom energy tensor
+      auto atom_i = samples[i][1];
+      assert(atom_i < n_atoms);
+      eatom[atom_i] += energies[i][0];
     }
 
     global_energy = energy_detached.sum(0);
-    assert(energy_detached.sizes() == std::vector<int64_t>({1}));
+    assert(global_energy.sizes() == std::vector<int64_t>({1}));
   } else {
+    assert(energy_samples->size() == 1);
+    assert(energy_samples->names()[0] == "system");
+
     assert(energy_detached.sizes() == std::vector<int64_t>({1, 1}));
     global_energy = energy_detached.reshape({1});
   }

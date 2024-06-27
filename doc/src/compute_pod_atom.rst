@@ -75,7 +75,7 @@ Examples how to use Compute POD commands are found in the directory
 ``examples/PACKAGES/pod``.
 
 
-.. warnings::
+.. warning::
 
    All of these compute styles produce *very* large per-atom output
    arrays that scale with the total number of atoms in the system.

@@ -1942,7 +1942,7 @@ void *lammps_extract_global(void *handle, const char *name)
  *
 \verbatim embed:rst
 
-.. versionadded:: TBD
+.. versionadded:: 27June2024
 
 This function returns an integer that corresponds to the local atom
 index for an atom with the global atom ID *id*. The atom ID is passed

@@ -151,7 +151,7 @@ and allow running LAMMPS with GPU acceleration.
 i-PI tool
 ---------
 
-.. versionchanged:: TBD
+.. versionchanged:: 27June2024
 
 The i-PI tool has been removed from the LAMMPS distribution.  Instead,
 instructions to install i-PI from PyPI via pip are provided.

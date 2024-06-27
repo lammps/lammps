@@ -379,7 +379,7 @@ See README file in the tools/fep directory.
 i-PI tool
 -------------------
 
-.. versionchanged:: TBD
+.. versionchanged:: 27June2024
 
 The tools/i-pi directory used to contain a bundled version of the i-PI
 software package for use with LAMMPS.  This version, however, was

@@ -60,7 +60,7 @@ ComputePODDAtom::ComputePODDAtom(LAMMPS *lmp, int narg, char **arg) :
 
   if (((((MAXBIGINT*3.0)*atom->natoms)*podptr->nClusters)*podptr->Mdesc) > (MAXSMALLINT*1.0))
     error->all(FLERR, "Per-atom data too large");
-  size_peratom_cols = podptr->Mdesc * podptr->nClusters*3*atom->natoms;
+  size_peratom_cols = 3 * atom->natoms * podptr->Mdesc * podptr->nClusters;
   peratom_flag = 1;
 }
 
@@ -112,7 +112,7 @@ void ComputePODDAtom::compute_peratom()
     nmax = atom->natoms;
     if (((((MAXBIGINT*3.0)*atom->natoms)*podptr->nClusters)*podptr->Mdesc) > (MAXSMALLINT*1.0))
       error->all(FLERR, "Per-atom data too large");
-    int numdesc = podptr->Mdesc * podptr->nClusters * 3 * atom->natoms;
+    int numdesc = 3 * atom->natoms * podptr->Mdesc * podptr->nClusters;
     memory->create(pod, nmax, numdesc,"podd/atom:pod");
     array_atom = pod;
   }

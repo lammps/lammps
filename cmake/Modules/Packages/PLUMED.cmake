@@ -1,5 +1,10 @@
 # Plumed2 support for PLUMED package
 
+# set policy to silence warnings about timestamps of downloaded files. review occasionally if it may be set to NEW
+if(POLICY CMP0135)
+  cmake_policy(SET CMP0135 OLD)
+endif()
+
 # for supporting multiple concurrent plumed2 installations for debugging and testing
 set(PLUMED_SUFFIX "" CACHE STRING "Suffix for Plumed2 library")
 mark_as_advanced(PLUMED_SUFFIX)

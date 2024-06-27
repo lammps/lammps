@@ -195,7 +195,7 @@ void BondHybrid::deallocate()
   delete[] maxbond;
   for (int i = 0; i < nstyles; i++) memory->destroy(bondlist[i]);
   delete[] bondlist;
-  for (i = 0; i < nstyles; i++) memory->destroy(orig_map[i]);
+  for (int i = 0; i < nstyles; i++) memory->destroy(orig_map[i]);
   delete[] orig_map;
 }
 

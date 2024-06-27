@@ -38,7 +38,7 @@ class ComputeRHEOPropertyAtom : public Compute {
   int pressure_flag, thermal_flag, interface_flag;
   int surface_flag, shift_flag, shell_flag;
   int *avec_index;
-  int *col_index;
+  int *col_index, *col_t_index;
   double *buf;
 
   typedef void (ComputeRHEOPropertyAtom::*FnPtrPack)(int);
@@ -57,11 +57,13 @@ class ComputeRHEOPropertyAtom : public Compute {
   void pack_gradv(int);
   void pack_pressure(int);
   void pack_viscosity(int);
+  void pack_viscous_stress(int);
+  void pack_total_stress(int);
   void pack_nbond_shell(int);
   void pack_atom_style(int);
 
-  int get_vector_index(char*);
-  int get_tensor_index(char*);
+  int add_vector_component(char*, int, FnPtrPack);
+  int add_tensor_component(char*, int, FnPtrPack);
 
   class FixRHEO *fix_rheo;
   class FixRHEOPressure *fix_pressure;

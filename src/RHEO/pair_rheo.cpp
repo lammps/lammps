@@ -306,13 +306,9 @@ void PairRHEO::compute(int eflag, int vflag)
           f[i][1] += ft[1];
           f[i][2] += ft[2];
 
-          if (evflag) {
-            fnorm = dot3(ft, dx) * rinv * rinv * 0.5;
-            ftang[0] = ft[0] * 0.5 - dx[0] * fnorm;
-            ftang[1] = ft[1] * 0.5 - dx[1] * fnorm;
-            ftang[2] = ft[2] * 0.5 - dx[2] * fnorm;
-            ev_tally_nt(i, j, nlocal, newton_pair, 0.0, 0.0, fnorm, ftang[0], ftang[1], ftang[2], dx[0], dx[1], dx[2]);
-          }
+          // Note the virial's definition is hazy, e.g. viscous contributions will depend on rotation
+          if (evflag)
+            ev_tally_xyz(i, j, nlocal, newton_pair, 0.0, 0.0, ft[0], ft[1], ft[2], dx[0], dx[1], dx[2]);
 
           if (newton_pair || j < nlocal) {
             for (a = 0; a < dim; a ++) {
@@ -331,13 +327,8 @@ void PairRHEO::compute(int eflag, int vflag)
             f[j][1] -= ft[1];
             f[j][2] -= ft[2];
 
-            if (evflag) {
-              fnorm = - dot3(ft, dx) * rinv * rinv * 0.5;
-              ftang[0] = ft[0] * 0.5 + dx[0] * fnorm;
-              ftang[1] = ft[1] * 0.5 + dx[1] * fnorm;
-              ftang[2] = ft[2] * 0.5 + dx[2] * fnorm;
-              ev_tally_nt(i, j, nlocal, newton_pair, 0.0, 0.0, fnorm, ftang[0], ftang[1], ftang[2], -dx[0], -dx[1], -dx[2]);
-            }
+            if (evflag)
+              ev_tally_xyz(i, j, nlocal, newton_pair, 0.0, 0.0, ft[0], ft[1], ft[2], -dx[0], -dx[1], -dx[2]);
           }
 
           if (compute_interface) {

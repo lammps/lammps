@@ -36,7 +36,7 @@ elseif(CMAKE_SYSTEM_NAME STREQUAL "Windows")
   if(MAKENSIS_PATH)
     execute_process(COMMAND ${CMAKE_COMMAND} -E copy_if_different ${CMAKE_SOURCE_DIR}/lammps.ico
       ${CMAKE_SOURCE_DIR}/lammps-text-logo-wide.bmp ${CMAKE_SOURCE_DIR}/plumedplugin.nsis
-      ${CMAKE_SOURCE_DIR}/patches ${CMAKE_BINARY_DIR})
+      ${PLUMED_LIBDIR}/plumed${PLUMED_SUFFIX}/patches ${CMAKE_BINARY_DIR})
     if(BUILD_MPI)
       if(USE_MSMPI)
         add_custom_target(package ${MAKENSIS_PATH} -V1 -DVERSION=${LAMMPS_VERSION}-MSMPI plumedplugin.nsis

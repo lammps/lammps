@@ -97,9 +97,6 @@ Section "${PLUMEDPLUGIN}" SecPlumedplugin
   File lammps.ico
   File plumedplugin.so
 
-  SetOutPath "$INSTDIR\patches"
-  File /r patches/*
-
   SetOutPath "$INSTDIR\bin"
   File /r *.exe
 

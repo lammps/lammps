@@ -59,7 +59,7 @@ class ComputeRHEOKernel : public Compute {
   int corrections_calculated;
   int kernel_style, zmin, dim, Mdim, ncor;
   int nmax_store;
-  double h, hsq, hinv, hsqinv, pre_w, pre_wp;
+  double cut, cutsq, cutinv, cutsqinv, pre_w, pre_wp;
   double ***C;
   double *C0;
 

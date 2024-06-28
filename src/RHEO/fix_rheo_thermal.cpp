@@ -71,6 +71,7 @@ FixRHEOThermal::FixRHEOThermal(LAMMPS *lmp, int narg, char **arg) :
   cut_bond = 0;
   comm_forward = 0;
 
+  // Currently can only have one instance of fix rheo/thermal
   if (igroup != 0)
     error->all(FLERR,"fix rheo/thermal command requires group all");
 
@@ -249,7 +250,7 @@ void FixRHEOThermal::init()
   auto fixes = modify->get_fix_by_style("^rheo$");
   if (fixes.size() == 0) error->all(FLERR, "Need to define fix rheo to use fix rheo/viscosity");
   fix_rheo = dynamic_cast<FixRHEO *>(fixes[0]);
-  cut_kernel = fix_rheo->h;
+  cut_kernel = fix_rheo->cut;
 
   if (cut_bond > cut_kernel)
     error->all(FLERR, "Bonding length exceeds kernel cutoff");
@@ -263,16 +264,16 @@ void FixRHEOThermal::init()
   dth = 0.5 * update->dt;
 
   if (atom->esph_flag != 1)
-    error->all(FLERR,"fix rheo/thermal command requires atom property esph");
+    error->all(FLERR, "fix rheo/thermal command requires atom property esph");
   if (atom->temperature_flag != 1)
-    error->all(FLERR,"fix rheo/thermal command requires atom property temperature");
+    error->all(FLERR, "fix rheo/thermal command requires atom property temperature");
   if (atom->heatflow_flag != 1)
-    error->all(FLERR,"fix rheo/thermal command requires atom property heatflow");
+    error->all(FLERR, "fix rheo/thermal command requires atom property heatflow");
   if (atom->conductivity_flag != 1)
-    error->all(FLERR,"fix rheo/thermal command requires atom property conductivity");
+    error->all(FLERR, "fix rheo/thermal command requires atom property conductivity");
 
   if (cut_bond > 0.0) {
-    if (!force->bond) error->all(FLERR,"Must define a bond style to use reactive bond generation with fix rheo/thermal");
+    if (!force->bond) error->all(FLERR, "Must define a bond style to use reactive bond generation with fix rheo/thermal");
     if (!atom->avec->bonds_allow) error->all(FLERR, "Reactive bond generation in fix rheo/thermal requires atom bonds");
 
     // all special weights must be 1.0 (no special neighbors) or there must be an instance of fix update/special/bonds
@@ -561,7 +562,7 @@ void FixRHEOThermal::break_bonds()
       // Update special unless two owned atoms melt simultaneously then
       //  only update for atom with lower tag
       if (fix_update_special_bonds) {
-        if (i < nlocal && j < nlocal && melti && meltj) {
+        if ((i < nlocal) && (j < nlocal) && melti && meltj) {
           if (tag[i] < tag[j]) {
             fix_update_special_bonds->add_broken_bond(i, j);
           }
@@ -590,7 +591,7 @@ void FixRHEOThermal::break_bonds()
     // Delete bonds for non-melted local atoms (shifting)
     if (i < nlocal && !melti) {
       for (m = 0; m < num_bond[i]; m++) {
-        if (bond_atom[i][m] == tag[j] && bond_type[i][m] == btype) {
+        if ((bond_atom[i][m] == tag[j]) && (bond_type[i][m] == btype)) {
           nmax = num_bond[i] - 1;
           bond_type[i][m] = bond_type[i][nmax];
           bond_atom[i][m] = bond_atom[i][nmax];
@@ -609,7 +610,7 @@ void FixRHEOThermal::break_bonds()
 
     if (j < nlocal && !meltj) {
       for (m = 0; m < num_bond[j]; m++) {
-        if (bond_atom[j][m] == tag[i] && bond_type[j][m] == btype) {
+        if ((bond_atom[j][m] == tag[i]) && (bond_type[j][m] == btype)) {
           nmax = num_bond[j] - 1;
           bond_type[j][m] = bond_type[j][nmax];
           bond_atom[j][m] = bond_atom[j][nmax];
@@ -692,7 +693,7 @@ void FixRHEOThermal::create_bonds()
 
       // Add bonds to owned atoms
       // If newton bond off, add to both, otherwise add to whichever has a smaller tag
-      if (i < nlocal && (!newton_bond || tag[i] < tag[j])) {
+      if ((i < nlocal) && (!newton_bond || (tag[i] < tag[j]))) {
         if (num_bond[i] == atom->bond_per_atom)
           error->one(FLERR,"New bond exceeded bonds per atom in fix rheo/thermal");
         bond_type[i][num_bond[i]] = btype;
@@ -700,7 +701,7 @@ void FixRHEOThermal::create_bonds()
         num_bond[i]++;
       }
 
-      if (j < nlocal && (!newton_bond || tag[j] < tag[i])) {
+      if ((j < nlocal) && (!newton_bond || (tag[j] < tag[i]))) {
         if (num_bond[j] == atom->bond_per_atom)
           error->one(FLERR,"New bond exceeded bonds per atom in fix rheo/thermal");
         bond_type[j][num_bond[j]] = btype;

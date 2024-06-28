@@ -39,7 +39,7 @@ class FixRHEO : public Fix {
   void reset_dt() override;
 
   // Model parameters
-  double h, cut;
+  double cut;
   double *rho0, *csq;
   int self_mass_flag;
   int zmin_kernel, zmin_surface, zmin_splash;

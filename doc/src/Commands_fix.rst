@@ -28,6 +28,7 @@ OPT.
    * :doc:`adapt <fix_adapt>`
    * :doc:`adapt/fep <fix_adapt_fep>`
    * :doc:`addforce <fix_addforce>`
+   * :doc:`add/heat <fix_add_heat>`
    * :doc:`addtorque <fix_addtorque>`
    * :doc:`alchemy <fix_alchemy>`
    * :doc:`amoeba/bitorsion <fix_amoeba_bitorsion>`

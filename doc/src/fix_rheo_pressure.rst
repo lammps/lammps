@@ -1,7 +1,7 @@
 .. index:: fix rheo/pressure
 
 fix rheo/pressure command
-===============
+=========================
 
 Syntax
 """"""
@@ -20,7 +20,7 @@ Syntax
 
        *linear* args = none
        *taitwater* args = none
-       *cubic* args = cubic term prefactor :math:`A_3` (pressure/density\^2)
+       *cubic* args = cubic prefactor :math:`A_3` (pressure/density\^2)
 
 Examples
 """"""""
@@ -36,8 +36,8 @@ Description
 .. versionadded:: TBD
 
 This fix defines a pressure equation of state for RHEO particles. One can
-define different equations of state for different atom types, but an
-equation must be specified for every atom type.
+define different equations of state for different atom types. An equation
+must be specified for every atom type.
 
 One first defines the atom *types*. A wild-card asterisk can be used in place
 of or in conjunction with the *types* argument to set the coefficients for
@@ -74,7 +74,8 @@ Style *taitwater* is Tait's equation of state:
 Restart, fix_modify, output, run start/stop, minimize info
 """""""""""""""""""""""""""""""""""""""""""""""""""""""""""
 
-No information about this fix is written to :doc:`binary restart files <restart>`.  None of the :doc:`fix_modify <fix_modify>` options
+No information about this fix is written to :doc:`binary restart files <restart>`.
+None of the :doc:`fix_modify <fix_modify>` options
 are relevant to this fix.  No global or per-atom quantities are stored
 by this fix for access by various :doc:`output commands <Howto_output>`.
 No parameter of this fix can be used with the *start/stop* keywords of
@@ -89,7 +90,8 @@ conjuction with :doc:`fix rheo <fix_rheo>`. The fix group must be
 set to all. Only one instance of fix rheo/pressure can be defined.
 
 This fix is part of the RHEO package.  It is only enabled if
-LAMMPS was built with that package.  See the :doc:`Build package <Build_package>` page for more info.
+LAMMPS was built with that package.  See the :doc:`Build package <Build_package>`
+page for more info.
 
 Related commands
 """"""""""""""""

@@ -1,7 +1,7 @@
 .. index:: fix rheo/viscosity
 
 fix rheo/viscosity command
-===============
+==========================
 
 Syntax
 """"""
@@ -63,16 +63,16 @@ for the stress :math:`\tau`
 
    \tau = \left(\frac{\tau_0}{\dot{\gamma}} + K \dot{\gamma}^{n - 1}\right) \dot{\gamma}, \tau \ge \tau_0
 
-where :math:`\dot{\gamma}` is the strain rate and :math:`tau_0` is the critical
+where :math:`\dot{\gamma}` is the strain rate and :math:`\tau_0` is the critical
 yield stress, below which :math:`\dot{\gamma} = 0.0`. To avoid divergences, this
 expression is regularized by defining a critical strain rate *gd0*. If the local
 strain rate on a particle falls below this limit, a constant viscosity of *eta*
 is assigned. This implies a value of
 
 .. math::
-   \tau_0 = \eta * \dot{\gamma}_0 - K \dot{\gamma}_0^N
+   \tau_0 = \eta \dot{\gamma}_0 - K \dot{\gamma}_0^N
 
-as further discussed in :ref:`(Palermo) <howto_rheo_palermo>`.
+as further discussed in :ref:`(Palermo) <rheo_palermo2>`.
 
 
 Restart, fix_modify, output, run start/stop, minimize info
@@ -112,6 +112,6 @@ none
 
 ----------
 
-.. _howto_rheo_palermo:
+.. _rheo_palermo2:
 
-**(Palermo)** Palermo, Clemmer, Wolf, O'Connor, in preparation.
+**(Palermo)** Palermo, Wolf, Clemmer, O'Connor, in preparation.

@@ -1,7 +1,7 @@
 .. index:: fix rheo
 
 fix rheo command
-===============
+================
 
 Syntax
 """"""
@@ -38,8 +38,8 @@ Examples
 
 .. code-block:: LAMMPS
 
-   fix 1 all rheo 1.0 quintic thermal density 0.1 speed/sound 10.0
-   fix 1 all rheo 1.0 RK1 shift surface/detection coordination 40
+   fix 1 all rheo 3.0 quintic 0 thermal density 0.1 0.1 speed/sound 10.0 1.0
+   fix 1 all rheo 3.0 RK1 10 shift surface/detection coordination 40
 
 Description
 """""""""""
@@ -48,14 +48,15 @@ Description
 
 Perform time integration for RHEO particles, updating positions, velocities,
 and densities. For a detailed breakdown of the integration timestep and
-numerical details, see :ref:`(Palermo) <howto_rheo_palermo>`. For an
+numerical details, see :ref:`(Palermo) <rheo_palermo>`. For an
 overview of other features available in the RHEO package, see
 :doc:`the RHEO howto <Howto_rheo>`.
 
 The type of kernel is specified using *kstyle* and the cutoff is *cut*. Four
 kernels are currently available. The *quintic* kernel is a standard quintic
 spline function commonly used in SPH. The other options, *RK0*, *RK1*, and
-*RK2*, are zeroth, first, and second order reproducing. To generate a reproducing kernel, a particle must have sufficient neighbors inside the
+*RK2*, are zeroth, first, and second order reproducing. To generate a
+reproducing kernel, a particle must have sufficient neighbors inside the
 kernel cutoff distance (a coordination number) to accurately calculate
 moments. This threshold is set by *zmin*. If reproducing kernels are
 requested but a particle has fewer neighbors, then it will revert to a
@@ -81,28 +82,27 @@ surfaces.
 
 A modified form of Fickian particle shifting can be enabled with the
 *shift* keyword. This effectively shifts particle positions to generate a
-more uniform spatial distribution. Shifting currently does consider the
+more uniform spatial distribution. Shifting currently does not consider the
 type of a particle and therefore may be inappropriate in systems consisting
-of multiple materials.
+of multiple fluid phases.
 
 In systems with free surfaces, the *surface/detection* keyword can be used
 to classify the location of particles as being within the bulk fluid, on a
 free surface, or isolated from other particles in a splash or droplet.
-Shifting is then disabled in the direction away from the free surface to
-prevent it from diffusing particles away from the bulk fluid. Surface
-detection can also be used to control surface-nucleated effects like
-oxidation when used in combination with
-:doc:`fix rheo/oxidation <fix_rheo_oxidation>`. Surface detection is not
+Shifting is then disabled in the normal direction away from the free surface
+to prevent particles from difusing away. Surface detection can also be used
+to control surface-nucleated effects like oxidation when used in combination
+with :doc:`fix rheo/oxidation <fix_rheo_oxidation>`. Surface detection is not
 performed on solid bodies.
 
 The *surface/detection* keyword takes three arguments: *sdstyle*, *limit*,
-and *limi/splash*. The first, *sdstyle*, specifies whether surface particles
+and *limit/splash*. The first, *sdstyle*, specifies whether surface particles
 are identified using a coordination number (*coordination*) or the divergence
 of the local particle positions (*divergence*). The threshold value for a
 surface particle for either of these criteria is set by the numerical value
 of *limit*. Additionally, if a particle's coordination number is too low,
 i.e. if it has separated off from the bulk in a droplet, it is not possible
-to define surfaces and a particle is classified as a splash. The coordination
+to define surfaces and the particle is classified as a splash. The coordination
 threshold for this classification is set by the numerical value of
 *limit/splash*.
 
@@ -112,23 +112,23 @@ a kernel summation of the masses of neighboring particles by specifying the *rho
 keyword.
 
 The *self/mass* keyword modifies the behavior of the density summation in *rho/sum*.
-Typically, the density :math:`\rho` of a particle is calculated as the sum
+Typically, the density :math:`\rho` of a particle is calculated as the sum over neighbors
 
 .. math::
-   \rho_i = \Sum_{j} W_{ij} M_j
+   \rho_i = \sum_{j} W_{ij} M_j
 
-where the summation is over neighbors, :math:`W_{ij}` is the kernel, and :math:`M_j`
-is the mass of particle :math:`j`. The *self/mass* keyword augments this expression
-by replacing :math:`M_j` with :math:`M_i`. This may be useful in simulations of
-multiple fluid phases with large differences in density, :ref:`(Hu) <fix_rheo_hu>`.
+where :math:`W_{ij}` is the kernel, and :math:`M_j` is the mass of particle :math:`j`.
+The *self/mass* keyword augments this expression by replacing :math:`M_j` with
+:math:`M_i`. This may be useful in simulations of multiple fluid phases with large
+differences in density, :ref:`(Hu) <fix_rheo_hu>`.
 
-The *density* keyword is used to specify the equilbrium density of each of the N
-particle types. It must be followed by N numerical values specifying each
-type's equilibrium density *rho0*.
+The *density* keyword is used to specify the equilibrium density of each of the N
+particle types. It must be followed by N numerical values specifying each type's
+equilibrium density *rho0*.
 
 The *speed/sound* keyword is used to specify the speed of sound of each of the
-N particle types. It must be followed by N numerical values specifying each
-type's speed of sound *cs*.
+N particle types. It must be followed by N numerical values specifying each type's
+speed of sound *cs*.
 
 Restart, fix_modify, output, run start/stop, minimize info
 """""""""""""""""""""""""""""""""""""""""""""""""""""""""""
@@ -144,18 +144,16 @@ the :doc:`run <run>` command.  This fix is not invoked during
 Restrictions
 """"""""""""
 
-This fix must be used with atom style rheo or rheo/thermal.
-This fix must be used in conjuction with
-:doc:`fix rheo/pressure <fix_rheo_pressure>`. and
-:doc:`fix rheo/viscosity <fix_rheo_viscosity>`, If the *thermal*
-setting is used, there must also be an instance of
-:doc:`fix rheo/thermal <fix_rheo_thermal>`. The fix group must be
-set to all. Only one instance of fix rheo may be defined and it
-must be defined prior to all other RHEO fixes.
+This fix must be used with atom style rheo or rheo/thermal. This fix must
+be used in conjuction with :doc:`fix rheo/pressure <fix_rheo_pressure>`.
+and :doc:`fix rheo/viscosity <fix_rheo_viscosity>`. If the *thermal* setting
+is used, there must also be an instance of
+:doc:`fix rheo/thermal <fix_rheo_thermal>`. The fix group must be set to all.
+Only one instance of fix rheo may be defined and it  must be defined prior
+to all other RHEO fixes in the input script.
 
-This fix is part of the RHEO package.  It is only enabled if
-LAMMPS was built with that package.  See the
-:doc:`Build package <Build_package>` page for more info.
+This fix is part of the RHEO package.  It is only enabled if LAMMPS was built
+with that package. See the :doc:`Build package <Build_package>` page for more info.
 
 Related commands
 """"""""""""""""
@@ -173,9 +171,9 @@ Default
 
 ----------
 
-.. _howto_rheo_palermo:
+.. _rheo_palermo:
 
-**(Palermo)** Palermo, Clemmer, Wolf, O'Connor, in preparation.
+**(Palermo)** Palermo, Wolf, Clemmer, O'Connor, in preparation.
 
 .. _fix_rheo_hu:
 

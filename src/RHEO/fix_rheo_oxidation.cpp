@@ -99,10 +99,10 @@ void FixRHEOOxidation::init()
   if (fixes.size() == 0) error->all(FLERR, "Need to define fix rheo to use fix rheo/oxidation");
   fix_rheo = dynamic_cast<FixRHEO *>(fixes[0]);
 
-  if (cut > fix_rheo->h)
+  if (cut > fix_rheo->cut)
     error->all(FLERR, "Bonding length exceeds kernel cutoff");
 
-  if (rsurf >= fix_rheo->h)
+  if (rsurf >= fix_rheo->cut)
     error->all(FLERR, "Surface distance must be less than kernel cutoff");
 
   if (!force->bond) error->all(FLERR, "Must define a bond style with fix rheo/oxidation");
@@ -233,7 +233,7 @@ void FixRHEOOxidation::post_integrate()
       // Add bonds to owned atoms
       // If newton bond off, add to both, otherwise add to whichever has a smaller tag
 
-      if (!newton_bond || tagi < tagj) {
+      if (!newton_bond || (tagi < tagj)) {
         if (num_bond[i] == atom->bond_per_atom)
           error->one(FLERR,"New bond exceeded bonds per atom in fix rheo/oxidation for atom {}", tagi);
         bond_type[i][num_bond[i]] = btype;

@@ -46,6 +46,7 @@ FixRHEOViscosity::FixRHEOViscosity(LAMMPS *lmp, int narg, char **arg) :
   constant_flag = 0;
   evolve_flag = 0;
 
+  // Currently can only have one instance of fix rheo/viscosity
   if (igroup != 0)
     error->all(FLERR,"fix rheo/viscosity command requires group all");
 

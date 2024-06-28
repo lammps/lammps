@@ -1,7 +1,7 @@
 .. index:: compute rheo/property/atom
 
 compute rheo/property/atom command
-=============================
+==================================
 
 Syntax
 """"""
@@ -17,11 +17,10 @@ Syntax
   .. parsed-literal::
 
        possible attributes = phase, surface, surface/r,
-                             surface/divr, surface/n/:math:`\alpha`, coordination,
-                             shift/v/:math:`\alpha`, energy, temperature, heatflow,
+                             surface/divr, surface/n/a, coordination,
+                             shift/v/a, energy, temperature, heatflow,
                              conductivity, cv, viscosity, pressure, rho,
-                             grad/v/:math:`\alpha \beta`, stress/v/:math:`\alpha \beta`,
-                             stress/t/:math:`\alpha \beta`, nbond/shell
+                             grad/v/ab, stress/v/ab, stress/t/ab, nbond/shell
 
   .. parsed-literal::
 
@@ -29,9 +28,9 @@ Syntax
            *surface* = atom surface status
            *surface/r* = atom distance from the surface
            *surface/divr* = divergence of position at atom position
-           *surface/n/:math:`\alpha`* = surface normal vector
+           *surface/n/a* = a-component of surface normal vector
            *coordination* = coordination number
-           *shift/v/:math:`\alpha`* = atom shifting velocity
+           *shift/v/a* = a-component of atom shifting velocity
            *energy* = atom energy
            *temperature* = atom temperature
            *heatflow* = atom heat flow
@@ -40,9 +39,9 @@ Syntax
            *viscosity* = atom viscosity
            *pressure* = atom pressure
            *rho* = atom density
-           *grad/v/:math:`\alpha \beta`* = atom velocity gradient
-           *stress/v/:math:`\alpha \beta`* = atom viscous stress
-           *stress/t/:math:`\alpha \beta`* = atom total stress (pressure and viscous)
+           *grad/v/ab* = ab-component of atom velocity gradient tensor
+           *stress/v/ab* = ab-component of atom viscous stress tensor
+           *stress/t/ab* = ab-component of atom total stress tensor (pressure and viscous)
            *nbond/shell* = number of oxide bonds
 
 Examples
@@ -68,12 +67,12 @@ computes as inputs. See for example, the
 :doc:`fix ave/chunk <fix_ave_chunk>`, and
 :doc:`atom-style variable <variable>` commands.
 
-For vector attributes, e.g. *shift/v/:math:`\alpha`*, one must specify
+For vector attributes, e.g. *shift/v/*:math:`\alpha`, one must specify
 :math:`\alpha` as the *x*, *y*, or *z* component, e.g. *shift/v/x*.
 Alternatively, a wild card \* will include all components, *x* and *y* in
 2D or *x*, *y*, and *z* in 3D.
 
-For tensor attributes, e.g. *grad/v/:math:`\alpha \beta`*, one must specify
+For tensor attributes, e.g. *grad/v/*:math:`\alpha \beta`, one must specify
 both :math:`\alpha` and :math:`\beta` as  *x*, *y*, or *z*, e.g. *grad/v/xy*.
 Alternatively, a wild card \* will include all components. In 2D, this
 includes *xx*, *xy*, *yx*, and *yy*. In 3D, this includes *xx*, *xy*, *xz*,
@@ -93,11 +92,11 @@ the *interface/reconstruct* option of :doc:`fix rheo <fix_rheo>`. Bulk
 particles have a value of 0, surface particles have a value of 1, and
 splash particles have a value of 2. The *surface/r* property is the
 distance from the surface, up to the kernel cutoff length. Surface particles
-have a value of 0. The *surface/n* properties are the components of the
-surface normal vector.
+have a value of 0. The *surface/n/*:math:`\alpha` properties are the
+components of the surface normal vector.
 
-The *shift/v/:math:`\alpha`* properties are the components of the shifting velocity
-produced by the *shift* option of :doc:`fix rheo <fix_rheo>`.
+The *shift/v/*:math:`\alpha` properties are the components of the shifting
+velocity produced by the *shift* option of :doc:`fix rheo <fix_rheo>`.
 
 The *nbond/shell* property is the number of shell bonds that have been
 activated from :doc:`bond style rheo/shell <bond_rheo_shell>`.
@@ -110,13 +109,13 @@ Output info
 """""""""""
 
 This compute calculates a per-atom vector or per-atom array depending
-on the number of input values.  If a single input is specified, a
-per-atom vector is produced.  If two or more inputs are specified, a
+on the number of input values.  Generally, if a single input is specified,
+a per-atom vector is produced.  If two or more inputs are specified, a
 per-atom array is produced where the number of columns = the number of
-inputs. If a wild card \* is used for a vector or tensor, then the number
-of inputs is considered to be incremented by the dimensiod or dimension
-squared, respectively. The vector or array can be accessed by any command
-that uses per-atom values from a compute as input.  See the
+inputs. However, if a wild card \* is used for a vector or tensor, then
+the number of inputs is considered to be incremented by the dimension or
+the dimension squared, respectively. The vector or array can be accessed
+by any command that uses per-atom values from a compute as input.  See the
 :doc:`Howto output <Howto_output>` page for an overview of LAMMPS output
 options.
 

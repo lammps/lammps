@@ -36,21 +36,21 @@ for use with bond style :doc:`bond rheo/shell <bond_rheo_shell>`.
 Every timestep, particles check neighbors within a distance of *cut*.
 This distance must be smaller than the kernel length defined in
 :doc:`fix rheo <fix_rheo>`. Bonds of type *btype* are created between
-pairs of particles that satisfy one of two conditions. First, if both
-particles are on the fluid surface, or within a distance of *rsurf*
-from the surface. Secondly, if one particle is on the fluid surface
-and the other bond is solid. This process is further described in
-:ref:`(Clemmer) <howto_rheo_clemmer>`.
+a fluid particle and either a fluid or solid neighbor. The fluid particles
+must also be on the fluid surface, or within a distance of *rsurf* from
+the surface. This process is further described in
+:ref:`(Clemmer) <howto_rheo_clemmer2>`.
 
 If used in conjunction with solid bodies, such as those generated
 by the *react* option of :doc:`fix rheo/thermal <fix_rheo_thermal>`,
-it is recommended that one uses a :doc:`hybrid bond style <bond_hybrid>`
+it is recommended to use a :doc:`hybrid bond style <bond_hybrid>`
 with different bond types for solid and oxide bonds.
 
 Restart, fix_modify, output, run start/stop, minimize info
 """""""""""""""""""""""""""""""""""""""""""""""""""""""""""
 
-No information about this fix is written to :doc:`binary restart files <restart>`.  None of the :doc:`fix_modify <fix_modify>` options
+No information about this fix is written to :doc:`binary restart files <restart>`.
+None of the :doc:`fix_modify <fix_modify>` options
 are relevant to this fix.  No global or per-atom quantities are stored
 by this fix for access by various :doc:`output commands <Howto_output>`.
 No parameter of this fix can be used with the *start/stop* keywords of
@@ -59,11 +59,12 @@ the :doc:`run <run>` command.  This fix is not invoked during :doc:`energy minim
 Restrictions
 """"""""""""
 
-This fix must be used with an bond style :doc:`rheo/shell <bond_rheo_shell>`
+This fix must be used with the bond style :doc:`rheo/shell <bond_rheo_shell>`
 and :doc:`fix rheo <fix_rheo>` with surface detection enabled.
 
 This fix is part of the RHEO package.  It is only enabled if
-LAMMPS was built with that package.  See the :doc:`Build package <Build_package>` page for more info.
+LAMMPS was built with that package.  See the :doc:`Build package <Build_package>`
+page for more info.
 
 Related commands
 """"""""""""""""
@@ -79,6 +80,6 @@ none
 
 ----------
 
-.. _howto_rheo_clemmer:
+.. _howto_rheo_clemmer2:
 
 **(Clemmer)** Clemmer, Pierce, O'Connor, Nevins, Jones, Lechman, Tencer, Appl. Math. Model., 130, 310-326 (2024).

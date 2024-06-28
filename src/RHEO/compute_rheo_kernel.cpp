@@ -57,7 +57,7 @@ ComputeRHEOKernel::ComputeRHEOKernel(LAMMPS *lmp, int narg, char **arg) :
 {
   if (narg != 4) error->all(FLERR,"Illegal compute rheo/kernel command");
 
-  kernel_style = utils::inumeric(FLERR,arg[3],false,lmp);
+  kernel_style = utils::inumeric(FLERR, arg[3], false, lmp);
 
   if (kernel_style == QUINTIC || kernel_style == WENDLANDC4) {
     correction_order = -1;
@@ -110,27 +110,27 @@ void ComputeRHEOKernel::init()
   compute_interface = fix_rheo->compute_interface;
 
   zmin = fix_rheo->zmin_kernel;
-  h = fix_rheo->h;
-  hsq = h * h;
-  hinv = 1.0 / h;
-  hsqinv = hinv * hinv;
+  cut = fix_rheo->cut;
+  cutsq = cut * cut;
+  cutinv = 1.0 / cut;
+  cutsqinv = cutinv * cutinv;
 
 
   if (kernel_style != WENDLANDC4) {
     if (dim == 3) {
-      pre_w = 1.0 / (120.0 * MY_PI) * 27.0 * hsqinv * hinv;
-      pre_wp = pre_w * 3.0 * hinv;
+      pre_w = 1.0 / (120.0 * MY_PI) * 27.0 * cutsqinv * cutinv;
+      pre_wp = pre_w * 3.0 * cutinv;
     } else {
-      pre_w = 7.0 / (478.0 * MY_PI)  * 9 * hsqinv;
-      pre_wp = pre_w * 3.0 * hinv;
+      pre_w = 7.0 / (478.0 * MY_PI)  * 9 * cutsqinv;
+      pre_wp = pre_w * 3.0 * cutinv;
     }
   } else {
     if (dim == 3) {
-      pre_w = 495.0 / (32.0 * MY_PI * hsq * h);
-      pre_wp = pre_w * hinv;
+      pre_w = 495.0 / (32.0 * MY_PI * cutsq * cut);
+      pre_wp = pre_w * cutinv;
     } else {
-      pre_w = 9.0 / (MY_PI * hsq);
-      pre_wp = pre_w * hinv;
+      pre_w = 9.0 / (MY_PI * cutsq);
+      pre_wp = pre_w * cutinv;
     }
   }
 
@@ -193,7 +193,7 @@ double ComputeRHEOKernel::calc_w(int i, int j, double delx, double dely, double 
   int corrections_i, corrections_j, corrections;
 
   if (kernel_style == WENDLANDC4)
-    return calc_w_wendlandc4(i,j,delx,dely,delz,r);
+    return calc_w_wendlandc4(i, j, delx, dely, delz, r);
 
   if (kernel_style != QUINTIC) {
     corrections_i = check_corrections(i);
@@ -203,10 +203,10 @@ double ComputeRHEOKernel::calc_w(int i, int j, double delx, double dely, double 
     corrections = 0;
   }
 
-  if (!corrections) w = calc_w_quintic(i,j,delx,dely,delz,r);
-  else if (kernel_style == RK0) w = calc_w_rk0(i,j,delx,dely,delz,r);
-  else if (kernel_style == RK1) w = calc_w_rk1(i,j,delx,dely,delz,r);
-  else if (kernel_style == RK2) w = calc_w_rk2(i,j,delx,dely,delz,r);
+  if (!corrections) w = calc_w_quintic(i, j, delx, dely, delz, r);
+  else if (kernel_style == RK0) w = calc_w_rk0(i, j, delx, dely, delz, r);
+  else if (kernel_style == RK1) w = calc_w_rk1(i, j, delx, dely, delz, r);
+  else if (kernel_style == RK2) w = calc_w_rk2(i, j, delx, dely, delz, r);
 
   return w;
 }
@@ -219,7 +219,7 @@ double ComputeRHEOKernel::calc_dw(int i, int j, double delx, double dely, double
   int corrections_i, corrections_j;
 
   if (kernel_style == WENDLANDC4)
-    return calc_dw_wendlandc4(i,j,delx,dely,delz,r,dWij,dWji);
+    return calc_dw_wendlandc4(i, j, delx, dely, delz, r, dWij, dWji);
 
   if (kernel_style != QUINTIC) {
     corrections_i = check_corrections(i);
@@ -227,15 +227,15 @@ double ComputeRHEOKernel::calc_dw(int i, int j, double delx, double dely, double
   }
 
   // Calc wp and default dW's, a bit inefficient but can redo later
-  wp = calc_dw_quintic(i,j,delx,dely,delz,r,dWij,dWji);
+  wp = calc_dw_quintic(i, j, delx, dely, delz, r, dWij, dWji);
 
   // Overwrite if there are corrections
   if (kernel_style == RK1) {
-    if (corrections_i) calc_dw_rk1(i,j,delx,dely,delz,r,dWij);
-    if (corrections_j) calc_dw_rk1(j,i,-delx,-dely,-delz,r,dWji);
+    if (corrections_i) calc_dw_rk1(i, j, delx, dely, delz, r, dWij);
+    if (corrections_j) calc_dw_rk1(j, i, -delx, -dely, -delz, r, dWji);
   } else if (kernel_style == RK2) {
-    if (corrections_i) calc_dw_rk2(i,j,delx,dely,delz,r,dWij);
-    if (corrections_j) calc_dw_rk2(j,i,-delx,-dely,-delz,r,dWji);
+    if (corrections_i) calc_dw_rk2(i, j, delx, dely, delz, r, dWij);
+    if (corrections_j) calc_dw_rk2(j, i, -delx, -dely, -delz, r, dWji);
   }
 
   return wp;
@@ -246,7 +246,7 @@ double ComputeRHEOKernel::calc_dw(int i, int j, double delx, double dely, double
 double ComputeRHEOKernel::calc_w_quintic(int i, int j, double delx, double dely, double delz, double r)
 {
   double w, tmp1, tmp2, tmp3, tmp1sq, tmp2sq, tmp3sq, s;
-  s = r * 3.0 * hinv;
+  s = r * 3.0 * cutinv;
 
 	if (s > 3.0) {
 	  w = 0.0;
@@ -284,7 +284,7 @@ double ComputeRHEOKernel::calc_dw_quintic(int i, int j, double delx, double dely
   double *mass = atom->mass;
   int *type = atom->type;
 
-  s = r * 3.0 * hinv;
+  s = r * 3.0 * cutinv;
 
   if (s > 3.0) {
     wp = 0.0;
@@ -323,7 +323,7 @@ double ComputeRHEOKernel::calc_dw_quintic(int i, int j, double delx, double dely
 double ComputeRHEOKernel::calc_w_wendlandc4(int i, int j, double delx, double dely, double delz, double r)
 {
   double w, tmp6, s;
-  s = r * hinv;
+  s = r * cutinv;
 
 	if (s > 1.0) {
 	  w = 0.0;
@@ -349,7 +349,7 @@ double ComputeRHEOKernel::calc_dw_wendlandc4(int i, int j, double delx, double d
   double *mass = atom->mass;
   int *type = atom->type;
 
-  s = r * hinv;
+  s = r * cutinv;
 
 	if (s > 1.0) {
 	  wp = 0.0;
@@ -381,7 +381,7 @@ double ComputeRHEOKernel::calc_w_rk0(int i, int j, double delx, double dely, dou
 {
   double w;
 
-  w = calc_w_quintic(i,j,delx,dely,delz,r);
+  w = calc_w_quintic(i, j, delx, dely, delz, r);
 
   Wij = C0[i] * w;
   Wji = C0[j] * w;
@@ -399,17 +399,17 @@ double ComputeRHEOKernel::calc_w_rk1(int i, int j, double delx, double dely, dou
   dx[0] = delx;
   dx[1] = dely;
   dx[2] = delz;
-  w = calc_w_quintic(i,j,delx,dely,delz,r);
+  w = calc_w_quintic(i, j, delx, dely, delz, r);
 
   if (dim == 2) {
     H[0] = 1.0;
-    H[1] = dx[0] * hinv;
-    H[2] = dx[1] * hinv;
+    H[1] = dx[0] * cutinv;
+    H[2] = dx[1] * cutinv;
   } else {
     H[0] = 1.0;
-    H[1] = dx[0] * hinv;
-    H[2] = dx[1] * hinv;
-    H[3] = dx[2] * hinv;
+    H[1] = dx[0] * cutinv;
+    H[2] = dx[1] * cutinv;
+    H[3] = dx[2] * cutinv;
   }
   Wij = 0;
   for (b = 0; b < Mdim; b++) {
@@ -440,26 +440,26 @@ double ComputeRHEOKernel::calc_w_rk2(int i, int j, double delx, double dely, dou
   dx[0] = delx;
   dx[1] = dely;
   dx[2] = delz;
-  w = calc_w_quintic(i,j,delx,dely,delz,r);
+  w = calc_w_quintic(i, j, delx, dely, delz, r);
 
   if (dim == 2) {
     H[0] = 1.0;
-    H[1] = dx[0] * hinv;
-    H[2] = dx[1] * hinv;
-    H[3] = 0.5 * dx[0] * dx[0] * hsqinv;
-    H[4] = 0.5 * dx[1] * dx[1] * hsqinv;
-    H[5] = dx[0] * dx[1] * hsqinv;
+    H[1] = dx[0] * cutinv;
+    H[2] = dx[1] * cutinv;
+    H[3] = 0.5 * dx[0] * dx[0] * cutsqinv;
+    H[4] = 0.5 * dx[1] * dx[1] * cutsqinv;
+    H[5] = dx[0] * dx[1] * cutsqinv;
   } else {
     H[0] = 1.0;
-    H[1] = dx[0] * hinv;
-    H[2] = dx[1] * hinv;
-    H[3] = dx[2] * hinv;
-    H[4] = 0.5 * dx[0] * dx[0] * hsqinv;
-    H[5] = 0.5 * dx[1] * dx[1] * hsqinv;
-    H[6] = 0.5 * dx[2] * dx[2] * hsqinv;
-    H[7] = dx[0] * dx[1] * hsqinv;
-    H[8] = dx[0] * dx[2] * hsqinv;
-    H[9] = dx[1] * dx[2] * hsqinv;
+    H[1] = dx[0] * cutinv;
+    H[2] = dx[1] * cutinv;
+    H[3] = dx[2] * cutinv;
+    H[4] = 0.5 * dx[0] * dx[0] * cutsqinv;
+    H[5] = 0.5 * dx[1] * dx[1] * cutsqinv;
+    H[6] = 0.5 * dx[2] * dx[2] * cutsqinv;
+    H[7] = dx[0] * dx[1] * cutsqinv;
+    H[8] = dx[0] * dx[2] * cutsqinv;
+    H[9] = dx[1] * dx[2] * cutsqinv;
   }
   Wij = 0;
   for (b = 0; b < Mdim; b++) {
@@ -491,18 +491,18 @@ void ComputeRHEOKernel::calc_dw_rk1(int i, int j, double delx, double dely, doub
   dx[1] = dely;
   dx[2] = delz;
 
-  w = calc_w_quintic(i,j,delx,dely,delz,r);
+  w = calc_w_quintic(i, j, delx, dely, delz, r);
 
   //Populate correction basis
   if (dim == 2) {
     H[0] = 1.0;
-    H[1] = dx[0] * hinv;
-    H[2] = dx[1] * hinv;
+    H[1] = dx[0] * cutinv;
+    H[2] = dx[1] * cutinv;
   } else {
     H[0] = 1.0;
-    H[1] = dx[0] * hinv;
-    H[2] = dx[1] * hinv;
-    H[3] = dx[2] * hinv;
+    H[1] = dx[0] * cutinv;
+    H[2] = dx[1] * cutinv;
+    H[3] = dx[2] * cutinv;
   }
 
   // dWij[] = dWx dWy (dWz)
@@ -528,27 +528,27 @@ void ComputeRHEOKernel::calc_dw_rk2(int i, int j, double delx, double dely, doub
   dx[1] = dely;
   dx[2] = delz;
 
-  w = calc_w_quintic(i,j,delx,dely,delz,r);
+  w = calc_w_quintic(i, j, delx, dely, delz, r);
 
   //Populate correction basis
   if (dim == 2) {
     H[0] = 1.0;
-    H[1] = dx[0] * hinv;
-    H[2] = dx[1] * hinv;
-    H[3] = 0.5 * dx[0] * dx[0] * hsqinv;
-    H[4] = 0.5 * dx[1] * dx[1] * hsqinv;
-    H[5] = dx[0] * dx[1] * hsqinv;
+    H[1] = dx[0] * cutinv;
+    H[2] = dx[1] * cutinv;
+    H[3] = 0.5 * dx[0] * dx[0] * cutsqinv;
+    H[4] = 0.5 * dx[1] * dx[1] * cutsqinv;
+    H[5] = dx[0] * dx[1] * cutsqinv;
   } else {
     H[0] = 1.0;
-    H[1] = dx[0] * hinv;
-    H[2] = dx[1] * hinv;
-    H[3] = dx[2] * hinv;
-    H[4] = 0.5 * dx[0] * dx[0] * hsqinv;
-    H[5] = 0.5 * dx[1] * dx[1] * hsqinv;
-    H[6] = 0.5 * dx[2] * dx[2] * hsqinv;
-    H[7] = dx[0] * dx[1] * hsqinv;
-    H[8] = dx[0] * dx[2] * hsqinv;
-    H[9] = dx[1] * dx[2] * hsqinv;
+    H[1] = dx[0] * cutinv;
+    H[2] = dx[1] * cutinv;
+    H[3] = dx[2] * cutinv;
+    H[4] = 0.5 * dx[0] * dx[0] * cutsqinv;
+    H[5] = 0.5 * dx[1] * dx[1] * cutsqinv;
+    H[6] = 0.5 * dx[2] * dx[2] * cutsqinv;
+    H[7] = dx[0] * dx[1] * cutsqinv;
+    H[8] = dx[0] * dx[2] * cutsqinv;
+    H[9] = dx[1] * dx[2] * cutsqinv;
   }
 
   // dWij[] = dWx dWy (dWz)
@@ -621,7 +621,7 @@ void ComputeRHEOKernel::compute_peratom()
         dx[2] = ztmp - x[j][2];
         rsq = lensq3(dx);
 
-        if (rsq < hsq) {
+        if (rsq < cutsq) {
           r = sqrt(rsq);
           w = calc_w_quintic(i, j, dx[0], dx[1], dx[2], r);
           rhoj = rho[j];
@@ -639,7 +639,7 @@ void ComputeRHEOKernel::compute_peratom()
     }
   } else if (correction_order > 0) {
 
-    // Moment matrix M and polynomial basis vector H (1d for gsl compatibility)
+    // Moment matrix M and polynomial basis vector cut (1d for gsl compatibility)
     double H[Mdim], M[Mdim * Mdim];
 
     for (ii = 0; ii < inum; ii++) {
@@ -652,7 +652,7 @@ void ComputeRHEOKernel::compute_peratom()
       jnum = numneigh[i];
       itype = type[i];
 
-      // Zero upper-triangle M and H (will be symmetric):
+      // Zero upper-triangle M and cut (will be symmetric):
       for (a = 0; a < Mdim; a++) {
         for (b = a; b < Mdim; b++) {
           M[a * Mdim + b] = 0;
@@ -669,7 +669,7 @@ void ComputeRHEOKernel::compute_peratom()
 
         rsq = lensq3(dx);
 
-        if (rsq < hsq) {
+        if (rsq < cutsq) {
           r = sqrt(rsq);
           w = calc_w_quintic(i, j, dx[0], dx[1], dx[2], r);
 
@@ -683,25 +683,25 @@ void ComputeRHEOKernel::compute_peratom()
           //Populate the H-vector of polynomials (2D)
           if (dim == 2) {
             H[0] = 1.0;
-            H[1] = dx[0] * hinv;
-            H[2] = dx[1] * hinv;
+            H[1] = dx[0] * cutinv;
+            H[2] = dx[1] * cutinv;
             if (kernel_style == RK2) {
-              H[3] = 0.5 * dx[0] * dx[0] * hsqinv;
-              H[4] = 0.5 * dx[1] * dx[1] * hsqinv;
-              H[5] = dx[0] * dx[1] * hsqinv;
+              H[3] = 0.5 * dx[0] * dx[0] * cutsqinv;
+              H[4] = 0.5 * dx[1] * dx[1] * cutsqinv;
+              H[5] = dx[0] * dx[1] * cutsqinv;
             }
           } else {
             H[0] = 1.0;
-            H[1] = dx[0] * hinv;
-            H[2] = dx[1] * hinv;
-            H[3] = dx[2] * hinv;
+            H[1] = dx[0] * cutinv;
+            H[2] = dx[1] * cutinv;
+            H[3] = dx[2] * cutinv;
             if (kernel_style == RK2) {
-              H[4] = 0.5 * dx[0] * dx[0] * hsqinv;
-              H[5] = 0.5 * dx[1] * dx[1] * hsqinv;
-              H[6] = 0.5 * dx[2] * dx[2] * hsqinv;
-              H[7] = dx[0] * dx[1] * hsqinv;
-              H[8] = dx[0] * dx[2] * hsqinv;
-              H[9] = dx[1] * dx[2] * hsqinv;
+              H[4] = 0.5 * dx[0] * dx[0] * cutsqinv;
+              H[5] = 0.5 * dx[1] * dx[1] * cutsqinv;
+              H[6] = 0.5 * dx[2] * dx[2] * cutsqinv;
+              H[7] = dx[0] * dx[1] * cutsqinv;
+              H[8] = dx[0] * dx[2] * cutsqinv;
+              H[9] = dx[1] * dx[2] * cutsqinv;
             }
           }
 
@@ -765,12 +765,12 @@ void ComputeRHEOKernel::compute_peratom()
         C[i][0][a] = M[a * Mdim + 0]; // all rows of column 0
         for (b = 0; b < dim; b++) {
           //First derivatives
-          C[i][1 + b][a] = -M[a * Mdim + b + 1] * hinv;
+          C[i][1 + b][a] = -M[a * Mdim + b + 1] * cutinv;
           // columns 1-2 (2D)  or 1-3 (3D)
 
           //Second derivatives
           if (kernel_style == RK2)
-            C[i][1 + dim + b][a] = M[a * Mdim + b + 1 + dim] * hsqinv;
+            C[i][1 + dim + b][a] = M[a * Mdim + b + 1 + dim] * cutsqinv;
             // columns 3-4 (2D) or 4-6 (3D)
         }
       }
@@ -822,7 +822,7 @@ void ComputeRHEOKernel::compute_coordination()
       dx[2] = ztmp - x[j][2];
       rsq = lensq3(dx);
 
-      if (rsq < hsq)
+      if (rsq < cutsq)
         coordination[i] += 1;
     }
   }

@@ -69,7 +69,7 @@ compute            rho all rheo/property/atom rho
 thermo             200
 thermo_style       custom step time ke press
 
-dump               1 all custom 200 atomDump id type x y vx vy fx fy c_rho
+#dump               1 all custom 200 atomDump id type x y vx vy fx fy c_rho
 
 run                20000
 

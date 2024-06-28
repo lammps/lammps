@@ -181,7 +181,7 @@ void ComputeRHEOSurface::compute_peratom()
           gradC[i][a] += dWij[a] * Volj;
         }
 
-        if (j < nlocal || newton) {
+        if ((j < nlocal) || newton) {
           for (a = 0; a < dim; a++){
             divr[j] += dWji[a] * dx[a] * Voli;
             gradC[j][a] += dWji[a] * Voli;
@@ -287,7 +287,7 @@ void ComputeRHEOSurface::compute_peratom()
     }
   }
 
-  // clear normal vectors for non surface particles
+  // clear normal vectors for non-surface particles
 
   for (i = 0; i < nall; i++) {
     if (mask[i] & groupbit) {

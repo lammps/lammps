@@ -30,7 +30,7 @@ ComputeNBondAtom::ComputeNBondAtom(LAMMPS *_lmp, int narg, char **arg) :
   if (narg < 3) utils::missing_cmd_args(FLERR, "compute nbond/atom", error);
 
   if (atom->avec->bonds_allow == 0)
-    error->all(FLERR,"Compute nbond/atom used when bonds are not allowed");
+    error->all(FLERR,"Compute nbond/atom used in system without bonds");
 
   btype = -1;
   int iarg = 3;

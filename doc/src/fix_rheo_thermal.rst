@@ -1,7 +1,7 @@
 .. index:: fix rheo/thermal
 
 fix rheo/thermal command
-===============
+========================
 
 Syntax
 """"""
@@ -50,16 +50,16 @@ Description
 
 .. versionadded:: TBD
 
-This fix performs time integration of temperature evolution for atom style
-rheo/thermal. In addition, it  defines multiple thermal properties of
-particles and handles melting/solidification, if applicable. For more details
-on phase transitions in RHEO, see :doc:`the RHEO howto <Howto_rheo>`.
+This fix performs time integration of temperature for atom style rheo/thermal.
+In addition, it defines multiple thermal properties of particles and handles
+melting/solidification, if applicable. For more details on phase transitions
+in RHEO, see :doc:`the RHEO howto <Howto_rheo>`.
 
 Note that the temperature of a particle is always derived from the energy.
 This implies the *temperature* attribute of :doc:`the set command <set>` does
 not affect particles. Instead, one should use the *sph/e* attribute.
 
-For each atom type, one can define attributes for the *conductivity*,
+For each atom type, one can define expressions for the *conductivity*,
 *specific/heat*, *latent/heat*, and critical temperature (*Tfreeze*).
 The conductivity and specific heat must be defined for all atom types.
 The latent heat and critical temperature are optional. However, a
@@ -88,13 +88,14 @@ types that have a defined value of *Tfreeze*. When a fluid particle's
 temperature drops below *Tfreeze*, bonds of type *btype* are created between
 nearby solid particles within a distance of *cut*. The particle's status also
 swaps to a solid state. When a solid particle's temperature rises above
-*Tfreeze*, all bonds of type *btype* are broken and the particle's tatus swaps
+*Tfreeze*, all bonds of type *btype* are broken and the particle's status swaps
 to a fluid state.
 
 Restart, fix_modify, output, run start/stop, minimize info
 """""""""""""""""""""""""""""""""""""""""""""""""""""""""""
 
-No information about this fix is written to :doc:`binary restart files <restart>`.  None of the :doc:`fix_modify <fix_modify>` options
+No information about this fix is written to :doc:`binary restart files <restart>`.
+None of the :doc:`fix_modify <fix_modify>` options
 are relevant to this fix.  No global or per-atom quantities are stored
 by this fix for access by various :doc:`output commands <Howto_output>`.
 No parameter of this fix can be used with the *start/stop* keywords of
@@ -110,7 +111,8 @@ must be used in conjuction with :doc:`fix rheo <fix_rheo>` with the
 instance of fix rheo/pressure can be defined.
 
 This fix is part of the RHEO package.  It is only enabled if
-LAMMPS was built with that package.  See the :doc:`Build package <Build_package>` page for more info.
+LAMMPS was built with that package.  See the :doc:`Build package <Build_package>`
+page for more info.
 
 Related commands
 """"""""""""""""

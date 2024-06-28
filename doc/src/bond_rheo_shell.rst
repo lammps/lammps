@@ -44,12 +44,11 @@ The *rheo/shell* bond style is designed to work with
 :doc:`fix rheo/oxidation <fix_rheo_oxidation>` which creates candidate
 bonds between eligible surface or near-surface particles. When a bond
 is first created, it computes no forces and starts a timer. Forces are
-not computed until the timer reaches the specified bond formation time
-and the bond is fully enabled. If the two particles move outside of the
-maximum bond distance or move into the bulk before the timer reaches
-the formation time, the bond automatically deletes itself. Not that
-this deletion does not generate any broken bond data saved to a
-*store/local* fix.
+not computed until the timer reaches the specified bond formation time,
+*t/form*, and the bond is enabled and applies forces. If the two particles
+move outside of the maximum bond distance or move into the bulk before
+the timer reaches *t/form*, the bond automatically deletes itself. This
+deletion is not recorded as a broken bond in the optional *store/local* fix.
 
 Before bonds are enabled, they are still treated as regular bonds by
 all other parts of LAMMPS. This means they are written to data files
@@ -60,17 +59,17 @@ To only count enabled bonds, use the *nbond/shell* attribute in
 When enabled, the bond then computes forces based on deviations from
 the initial reference state of the two atoms much like a BPM style
 bond (as further discussed in the :doc:`BPM howto page <Howto_bpm>`).
-The reference state is stored by each bond when it is first enabled
-the setup of a run. Data is then preserved across run commands and is
-written to :doc:`binary restart files <restart>` such that restarting
-the system will not reset the reference state of a bond or the timer.
+The reference state is stored by each bond when it is first enabled.
+Data is then preserved across run commands and is written to
+:doc:`binary restart files <restart>` such that restarting the system
+will not reset the reference state of a bond or the timer.
 
 This bond style is based on a model described in
-:ref:`(Clemmer) <howto_rheo_clemmer>`. The force has a magnitude of
+:ref:`(Clemmer) <rheo_clemmer>`. The force has a magnitude of
 
 .. math::
 
-   F = 2 k (r - r_0) + \frac{2 * k}{r_0^2 \epsilon_c^2} (r - r_0)^3
+   F = 2 k (r - r_0) + \frac{2 k}{r_0^2 \epsilon_c^2} (r - r_0)^3
 
 where :math:`k` is a stiffness, :math:`r` is the current distance
 and :math:`r_0` is the initial distance between the two particles, and
@@ -78,17 +77,15 @@ and :math:`r_0` is the initial distance between the two particles, and
 is done by setting the bond type to 0 such that forces are no longer
 computed.
 
-An additional damping force is applied to the bonded
-particles.  This forces is proportional to the difference in the
-normal velocity of particles using a similar construction as
-dissipative particle dynamics :ref:`(Groot) <Groot4>`:
+A damping force proportional to the difference in the normal velocity
+of particles is also applied to bonded particles:
 
 .. math::
 
    F_D = - \gamma w (\hat{r} \bullet \vec{v})
 
 where :math:`\gamma` is the damping strength, :math:`\hat{r}` is the
-radial normal vector, and :math:`\vec{v}` is the velocity difference
+displacement normal vector, and :math:`\vec{v}` is the velocity difference
 between the two particles.
 
 The following coefficients must be defined for each bond type via the
@@ -103,7 +100,7 @@ the data file or restart files read by the :doc:`read_data
 Unlike other BPM-style bonds, this bond style does not update special
 bond settings when bonds are created or deleted. This bond style also
 does not enforce specific :doc:`special_bonds <special_bonds>` settings.
-This behavior is purposeful such :doc:`RHEO pair forces <pair_rheo>`
+This behavior is purposeful such :doc:`RHEO pair <pair_rheo>` forces
 and heat flows are still calculated.
 
 If the *store/local* keyword is used, an internal fix will track bonds that
@@ -162,10 +159,10 @@ the specified attribute.
 
 The single() function of this bond style returns 0.0 for the energy
 of a bonded interaction, since energy is not conserved in these
-dissipative potentials.  The single() function also calculates an
-extra bond quantity, the initial distance :math:`r_0`. This
-extra quantity can be accessed by the
-:doc:`compute bond/local <compute_bond_local>` command as *b1*\ .
+dissipative potentials.  The single() function also calculates two
+extra bond quantities, the initial distance :math:`r_0` and a time.
+These extra quantities can be accessed by the
+:doc:`compute bond/local <compute_bond_local>` command as *b1* and *b2*\ .
 
 Restrictions
 """"""""""""
@@ -186,10 +183,6 @@ NA
 
 ----------
 
-.. _howto_rheo_clemmer:
+.. _rheo_clemmer:
 
 **(Clemmer)** Clemmer, Pierce, O'Connor, Nevins, Jones, Lechman, Tencer, Appl. Math. Model., 130, 310-326 (2024).
-
-.. _Groot4:
-
-**(Groot)** Groot and Warren, J Chem Phys, 107, 4423-35 (1997).

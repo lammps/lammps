@@ -169,7 +169,7 @@ void FixUpdateSpecialBonds::pre_force(int /*vflag*/)
   tagint *tag = atom->tag;
 
   // In theory could communicate a list of broken bonds to neighboring processors here
-  // to remove restriction that users use Newton bond off
+  // to remove restriction on Newton bond off
 
   for (int ilist = 0; ilist < neighbor->nlist; ilist++) {
     list = neighbor->lists[ilist];

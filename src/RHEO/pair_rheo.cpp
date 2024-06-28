@@ -33,7 +33,6 @@
 #include "modify.h"
 #include "neighbor.h"
 #include "neigh_list.h"
-#include "update.h"
 #include "utils.h"
 
 #include <cmath>
@@ -81,7 +80,7 @@ void PairRHEO::compute(int eflag, int vflag)
   int pair_force_flag, pair_rho_flag, pair_avisc_flag;
   int fluidi, fluidj;
   double xtmp, ytmp, ztmp, w, wp, Ti, Tj, dT, csq_ave, cs_ave;
-  double rhoi, rhoj, rho0i, rho0j, voli, volj, Pi, Pj, etai, etaj, kappai, kappaj, eta_ave, kappa_ave,dT_prefactor;
+  double rhoi, rhoj, rho0i, rho0j, voli, volj, Pi, Pj, etai, etaj, kappai, kappaj, eta_ave, kappa_ave, dT_prefactor;
   double mu, q, fp_prefactor, drho_damp, fmag, psi_ij, Fij;
   double *dWij, *dWji, *dW1ij, *dW1ji;
   double dx[3], du[3], dv[3], fv[3], dfp[3], fsolid[3], ft[3], vi[3], vj[3];
@@ -112,7 +111,6 @@ void PairRHEO::compute(int eflag, int vflag)
   int *type = atom->type;
   int *status = atom->status;
   tagint *tag = atom->tag;
-  double fnorm, ftang[3];
 
   double **fp_store, *chi;
   if (compute_interface) {
@@ -169,7 +167,7 @@ void PairRHEO::compute(int eflag, int vflag)
       rsq = lensq3(dx);
       jtype = type[j];
 
-      if (rsq < hsq) {
+      if (rsq < cutksq) {
         r = sqrt(rsq);
         rinv = 1 / r;
 
@@ -219,16 +217,16 @@ void PairRHEO::compute(int eflag, int vflag)
             rhoj = compute_interface->correct_rho(j, i);
             Pj = fix_pressure->calc_pressure(rhoj, jtype);
 
-            if ((chi[j] > 0.9) && (r < (h * 0.5)))
-              fmag = (chi[j] - 0.9) * (h * 0.5 - r) * rho0j * csq_ave * h * rinv;
+            if ((chi[j] > 0.9) && (r < (cutk * 0.5)))
+              fmag = (chi[j] - 0.9) * (cutk * 0.5 - r) * rho0j * csq_ave * cutk * rinv;
 
           } else if ((!fluidi) && fluidj) {
             compute_interface->correct_v(vi, vj, i, j);
             rhoi = compute_interface->correct_rho(i, j);
             Pi = fix_pressure->calc_pressure(rhoi, itype);
 
-            if (chi[i] > 0.9 && r < (h * 0.5))
-              fmag = (chi[i] - 0.9) * (h * 0.5 - r) * rho0i * csq_ave * h * rinv;
+            if (chi[i] > 0.9 && r < (cutk * 0.5))
+              fmag = (chi[i] - 0.9) * (cutk * 0.5 - r) * rho0i * csq_ave * cutk * rinv;
 
           } else if ((!fluidi) && (!fluidj)) {
             rhoi = rho0i;
@@ -281,8 +279,8 @@ void PairRHEO::compute(int eflag, int vflag)
               for (b = 0; b < dim; b++)
                 du[a] -= 0.5 * (gradv[i][a * dim + b] + gradv[j][a * dim + b]) * dx[b];
 
-            mu = dot3(du, dx) * hinv3;
-            mu /= (rsq * hinv3 * hinv3 + EPSILON);
+            mu = dot3(du, dx) * cutkinv3;
+            mu /= (rsq * cutkinv3 * cutkinv3 + EPSILON);
             mu = MIN(0.0, mu);
             q = av * (-2.0 * cs_ave * mu + mu * mu);
             fp_prefactor += voli * volj * q * (rhoj + rhoi);
@@ -406,17 +404,17 @@ void PairRHEO::settings(int narg, char **arg)
 {
   if (narg < 1) error->all(FLERR, "Illegal pair_style command");
 
-  h = utils::numeric(FLERR, arg[0], false, lmp);
+  cutk = utils::numeric(FLERR, arg[0], false, lmp);
 
   int iarg = 1;
   while (iarg < narg) {
     if (strcmp(arg[iarg], "rho/damp") == 0) {
-      if (iarg + 1 >= narg) error->all(FLERR, "Illegal pair_style command");
+      if (iarg + 1 >= narg) utils::missing_cmd_args(FLERR, "pair rheo rho/damp", error);
       rho_damp_flag = 1;
       rho_damp = utils::numeric(FLERR, arg[iarg + 1], false, lmp);
       iarg++;
     } else if (strcmp(arg[iarg], "artificial/visc") == 0) {
-      if (iarg + 1 >= narg) error->all(FLERR, "Illegal pair_style command");
+      if (iarg + 1 >= narg) utils::missing_cmd_args(FLERR, "pair rheo artificial/visc", error);
       artificial_visc_flag = 1;
       av = utils::numeric(FLERR, arg[iarg + 1], false, lmp);
       iarg++;
@@ -477,12 +475,12 @@ void PairRHEO::setup()
   csq = fix_rheo->csq;
   rho0 = fix_rheo->rho0;
 
-  if (h != fix_rheo->h)
-    error->all(FLERR, "Pair rheo cutoff {} does not agree with fix rheo cutoff {}", h, fix_rheo->h);
+  if (cutk != fix_rheo->cut)
+    error->all(FLERR, "Pair rheo cutoff {} does not agree with fix rheo cutoff {}", cutk, fix_rheo->cut);
 
-  hsq = h * h;
-  hinv = 1.0 / h;
-  hinv3 = hinv * 3.0;
+  cutksq = cutk * cutk;
+  cutkinv = 1.0 / cutk;
+  cutkinv3 = cutkinv * 3.0;
   laplacian_order = -1;
 
   int n = atom->ntypes;
@@ -512,7 +510,7 @@ double PairRHEO::init_one(int i, int j)
   if (setflag[i][j] == 0)
     error->all(FLERR, "All pair rheo coeffs are not set");
 
-  return h;
+  return cutk;
 }
 
 /* ---------------------------------------------------------------------- */

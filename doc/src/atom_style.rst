@@ -194,7 +194,7 @@ the Additional Information section below.
      - :ref:`RHEO <PKG-RHEO>`
      - solid and fluid RHEO particles
    * - *rheo/thermal*
-     - *atomic* + rho, status, temperature
+     - *atomic* + rho, status, energy, temperature
      - :ref:`RHEO <PKG-RHEO>`
      - RHEO particles with temperature
    * - *sph*

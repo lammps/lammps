@@ -250,8 +250,8 @@ void BondRHEOShell::compute(int eflag, int vflag)
       if (t >= tform) {
         bondstore[n][0] = r;
         r0 = r;
-        if (newton_bond || i1 < nlocal) dbond[i1] ++;
-        if (newton_bond || i2 < nlocal) dbond[i2] ++;
+        if (newton_bond || i1 < nlocal) dbond[i1]++;
+        if (newton_bond || i2 < nlocal) dbond[i2]++;
       } else {
         continue;
       }
@@ -261,8 +261,8 @@ void BondRHEOShell::compute(int eflag, int vflag)
     if (fabs(e) > ecrit[type]) {
       bondlist[n][2] = 0;
       process_broken(i1, i2);
-      if (newton_bond || i1 < nlocal) dbond[i1] --;
-      if (newton_bond || i2 < nlocal) dbond[i2] --;
+      if (newton_bond || i1 < nlocal) dbond[i1]--;
+      if (newton_bond || i2 < nlocal) dbond[i2]--;
       continue;
     }
 
@@ -388,9 +388,8 @@ void BondRHEOShell::settings(int narg, char **arg)
   for (std::size_t i = 0; i < leftover_iarg.size(); i++) {
     iarg = leftover_iarg[i];
     if (strcmp(arg[iarg], "t/form") == 0) {
-      if (iarg + 1 > narg) error->all(FLERR, "Illegal bond rheo/shell command, missing option for t/form");
+      if (iarg + 1 > narg) utils::missing_cmd_args(FLERR, "bond rheo/shell t/form", error);
       tform = utils::numeric(FLERR, arg[iarg + 1], false, lmp);
-      if (tform < 0.0) error->all(FLERR, "Illegal bond rheo/shell value for t/form, {}", tform);
       i += 1;
     } else {
       error->all(FLERR, "Illegal bond rheo/shell command, invalid argument {}", arg[iarg]);
@@ -398,7 +397,7 @@ void BondRHEOShell::settings(int narg, char **arg)
   }
 
   if (tform < 0.0)
-    error->all(FLERR, "Illegal bond rheo/shell command, must specify formation time");
+    error->all(FLERR, "Illegal bond rheo/shell command, must specify positive formation time");
 }
 
 

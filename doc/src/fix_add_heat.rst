@@ -16,14 +16,14 @@ Syntax
 
   .. parsed-literal::
 
-       *constant* args = rate
-         rate = rate of heat flow (energy/time units)
-       *linear* args = t_target k
-         t_target = target temperature (temperature units)
-         k = prefactor (energy/(time*temperature) units)
-       *quartic* args = t_target k
-         t_target = target temperature (temperature units)
-         k = prefactor (energy/(time*temperature^4) units)
+       *constant* args = *rate*
+         *rate* = rate of heat flow (energy/time units)
+       *linear* args = :math:`T_{target}` *k*
+         :math:`T_{target}` = target temperature (temperature units)
+         *k* = prefactor (energy/(time*temperature) units)
+       *quartic* args = :math:`T_{target}` *k*
+         :math:`T_{target}` = target temperature (temperature units)
+         *k* = prefactor (energy/(time*temperature^4) units)
 
 * zero or more keyword/value pairs may be appended to args
 * keyword = *overwrite*
@@ -45,7 +45,9 @@ Examples
 Description
 """""""""""
 
-This fix adds heat to particles every timestep.
+This fix adds heat to particles with the temperature attribute every timestep.
+Note that this is an internal temperature of a particle intended for use with
+non-atomistic models like the discrete element method.
 
 For the *constant* style, heat is added at the specified rate. For the *linear* style,
 heat is added at a rate of :math:`k (T_{target} - T)` where :math:`k` is the
@@ -62,22 +64,22 @@ determine the rate of heat added.
 
 Equal-style variables can specify formulas with various mathematical
 functions and include :doc:`thermo_style <thermo_style>` command
-keywords for the simulation box parameters, time step, and elapsed time.
-Thus, it is easy to specify time-dependent heating.
+keywords for the simulation box parameters, time step, and elapsed time
+to specify time-dependent heating.
 
 Atom-style variables can specify the same formulas as equal-style
 variables but can also include per-atom values, such as atom
-coordinates.  Thus, it is easy to specify a spatially-dependent heating
-field with optional time-dependence as well.
+coordinates to specify spatially-dependent heating.
 
-If the *overwrite* keyword is set to *yes*, this fix will effectively set
-the total heat flow on a particle, overwriting contributions from pair
-styles or other fixes.
+If the *overwrite* keyword is set to *yes*, this fix will set the total
+heat flow on a particle every timestep, overwriting contributions from pair
+styles or other fixes. If *overwrite* is *no*, this fix will add heat on
+top of other contributions.
 
 ----------
 
 Restart, fix_modify, output, run start/stop, minimize info
-"""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
+""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
 
 No information about this fix is written to :doc:`binary restart files <restart>`.
 None of the :doc:`fix_modify <fix_modify>` options are relevant to this fix.

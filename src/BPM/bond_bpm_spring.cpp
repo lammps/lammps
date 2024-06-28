@@ -23,8 +23,6 @@
 #include "modify.h"
 #include "neighbor.h"
 
-#include "update.h"
-
 #include <cmath>
 #include <cstring>
 

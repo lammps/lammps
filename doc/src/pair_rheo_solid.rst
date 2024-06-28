@@ -1,7 +1,7 @@
 .. index:: pair_style rheo/solid
 
 pair_style rheo/solid command
-=========================
+=============================
 
 Syntax
 """"""
@@ -44,7 +44,7 @@ normal velocity of particles
    F_D = - \gamma w (\hat{r} \bullet \vec{v})
 
 where :math:`\gamma` is the damping strength, :math:`\hat{r}` is the
-radial normal vector, :math:`\vec{v}` is the velocity difference
+displacement normal vector, :math:`\vec{v}` is the velocity difference
 between the two particles, and :math:`w` is a smoothing factor.
 This smoothing factor is constructed such that damping forces go to zero
 as particles come out of contact to avoid discontinuities. It is
@@ -95,7 +95,7 @@ This pair style can only be used via the *pair* keyword of the
 Restrictions
 """"""""""""
 
-This pair style is part of the BPM package.  It is only enabled if
+This pair style is part of the RHEO package.  It is only enabled if
 LAMMPS was built with that package.  See the :doc:`Build package
 <Build_package>` page for more info.
 

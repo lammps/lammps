@@ -71,5 +71,5 @@ compute         nbond all nbond/atom
 thermo          200
 thermo_style    custom step time ke press atoms
 
-dump            1 all custom 200 atomDump id type x y vx vy fx fy c_phase c_nbond c_rho
+#dump            1 all custom 200 atomDump id type x y vx vy fx fy c_phase c_nbond c_rho
 run             30000

@@ -39,7 +39,12 @@ using namespace RHEO_NS;
 using namespace FixConst;
 
 static const char cite_rheo[] =
-  "TBD\n\n";
+  "@article{PalermoInPrep,\n"
+  " journal = {in prep},\n"
+  " title = {RHEO: A Hybrid Mesh-Free Model Framework for Dynamic Multi-Phase Flows},\n"
+  " year = {2024},\n"
+  " author = {Eric T. Palermo and Ki T. Wolf and Joel T. Clemmer and Thomas C. O'Connor},\n"
+  "}\n\n";
 
 /* ---------------------------------------------------------------------- */
 
@@ -84,10 +89,9 @@ FixRHEO::FixRHEO(LAMMPS *lmp, int narg, char **arg) :
     error->all(FLERR, "fix rheo command requires atom_style with status");
 
   if (narg < 5)
-    error->all(FLERR, "Insufficient arguments for fix rheo command");
+    utils::missing_cmd_args(FLERR, "fix rheo", error);
 
-  h = utils::numeric(FLERR, arg[3], false, lmp);
-  cut = h;
+  cut = utils::numeric(FLERR, arg[3], false, lmp);
   if (strcmp(arg[4], "quintic") == 0) {
       kernel_style = QUINTIC;
   } else if (strcmp(arg[4], "wendland/c4") == 0) {
@@ -109,7 +113,7 @@ FixRHEO::FixRHEO(LAMMPS *lmp, int narg, char **arg) :
       thermal_flag = 1;
     } else if (strcmp(arg[iarg], "surface/detection") == 0) {
       surface_flag = 1;
-      if(iarg + 3 >= narg) error->all(FLERR, "Illegal surface/detection option in fix rheo");
+      if(iarg + 3 >= narg) utils::missing_cmd_args(FLERR, "fix rheo surface/detection", error);
       if (strcmp(arg[iarg + 1], "coordination") == 0) {
         surface_style = COORDINATION;
         zmin_surface = utils::inumeric(FLERR, arg[iarg + 2], false, lmp);
@@ -130,12 +134,12 @@ FixRHEO::FixRHEO(LAMMPS *lmp, int narg, char **arg) :
     } else if (strcmp(arg[iarg], "self/mass") == 0) {
       self_mass_flag = 1;
     } else if (strcmp(arg[iarg], "density") == 0) {
-      if (iarg + n >= narg) error->all(FLERR, "Illegal rho0 option in fix rheo");
+      if (iarg + n >= narg) utils::missing_cmd_args(FLERR, "fix rheo density", error);
       for (i = 1; i <= n; i++)
         rho0[i] = utils::numeric(FLERR, arg[iarg + i], false, lmp);
       iarg += n;
     } else if (strcmp(arg[iarg], "speed/sound") == 0) {
-      if (iarg + n >= narg) error->all(FLERR, "Illegal csq option in fix rheo");
+      if (iarg + n >= narg) utils::missing_cmd_args(FLERR, "fix rheo speed/sound", error);
       for (i = 1; i <= n; i++) {
         csq[i] = utils::numeric(FLERR, arg[iarg + i], false, lmp);
         csq[i] *= csq[i];
@@ -281,7 +285,7 @@ void FixRHEO::setup(int /*vflag*/)
   if (!pressure_fix_defined)
     error->all(FLERR, "Missing fix rheo/pressure");
 
-  if((!thermal_fix_defined) && thermal_flag)
+  if(thermal_flag && !thermal_fix_defined)
     error->all(FLERR, "Missing fix rheo/thermal");
 
   // Reset to zero for future runs
@@ -289,33 +293,6 @@ void FixRHEO::setup(int /*vflag*/)
   viscosity_fix_defined = 0;
   pressure_fix_defined = 0;
   oxidation_fix_defined = 0;
-
-  // Check fixes cover all atoms (may still fail if atoms are created)
-  // FixRHEOPressure currently requires group all
-  auto visc_fixes = modify->get_fix_by_style("rheo/viscosity");
-  auto therm_fixes = modify->get_fix_by_style("rheo/thermal");
-
-  int *mask = atom->mask;
-  int v_coverage_flag = 1;
-  int t_coverage_flag = 1;
-  int covered;
-  for (int i = 0; i < atom->nlocal; i++) {
-    covered = 0;
-    for (auto fix : visc_fixes)
-      if (mask[i] & fix->groupbit) covered = 1;
-    if (!covered) v_coverage_flag = 0;
-    if (thermal_flag) {
-      covered = 0;
-      for (auto fix : therm_fixes)
-        if (mask[i] & fix->groupbit) covered = 1;
-      if (!covered) t_coverage_flag = 0;
-    }
-  }
-
-  if (!v_coverage_flag)
-    error->one(FLERR, "Fix rheo/viscosity does not fully cover all atoms");
-  if (!t_coverage_flag)
-    error->one(FLERR, "Fix rheo/thermal does not fully cover all atoms");
 
   if (rhosum_flag)
     compute_rhosum->compute_peratom();

@@ -54,7 +54,7 @@ Before bonds are enabled, they are still treated as regular bonds by
 all other parts of LAMMPS. This means they are written to data files
 and counted in computes such as :doc:`nbond/atom <compute_nbond_atom>`.
 To only count enabled bonds, use the *nbond/shell* attribute in
-:doc:`compute property/atom/rheo <compute_property_atom_rheo>`.
+:doc:`compute rheo/property/atom <compute_rheo_property_atom>`.
 
 When enabled, the bond then computes forces based on deviations from
 the initial reference state of the two atoms much like a BPM style

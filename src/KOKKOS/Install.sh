@@ -53,6 +53,8 @@ action angle_cosine_kokkos.cpp angle_cosine.cpp
 action angle_cosine_kokkos.h angle_cosine.h
 action angle_harmonic_kokkos.cpp angle_harmonic.cpp
 action angle_harmonic_kokkos.h angle_harmonic.h
+action angle_hybrid_kokkos.cpp angle_hybrid.cpp
+action angle_hybrid_kokkos.h angle_hybrid.h
 action atom_kokkos.cpp
 action atom_kokkos.h
 action atom_map_kokkos.cpp
@@ -116,6 +118,8 @@ action dihedral_harmonic_kokkos.cpp dihedral_harmonic.cpp
 action dihedral_harmonic_kokkos.h dihedral_harmonic.h
 action dihedral_opls_kokkos.cpp dihedral_opls.cpp
 action dihedral_opls_kokkos.h dihedral_opls.h
+action dihedral_hybrid_kokkos.cpp dihedral_hybrid.cpp
+action dihedral_hybrid_kokkos.h dihedral_hybrid.h
 action domain_kokkos.cpp
 action domain_kokkos.h
 action dynamical_matrix_kokkos.cpp dynamical_matrix.cpp
@@ -205,6 +209,8 @@ action improper_class2_kokkos.cpp improper_class2.cpp
 action improper_class2_kokkos.h improper_class2.h
 action improper_harmonic_kokkos.cpp improper_harmonic.cpp
 action improper_harmonic_kokkos.h improper_harmonic.h
+action improper_hybrid_kokkos.cpp improper_hybrid.cpp
+action improper_hybrid_kokkos.h improper_hybrid.h
 action kissfft_kokkos.h kissfft.h
 action kokkos_base_fft.h fft3d.h
 action kokkos_base.h

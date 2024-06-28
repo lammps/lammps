@@ -93,12 +93,15 @@ Section "${PLUMEDPLUGIN}" SecPlumedplugin
 
   SetOutPath "$INSTDIR"
   CreateDirectory "$INSTDIR\patches"
+  CreateDirectory "$INSTDIR\bin"
   File lammps.ico
   File plumedplugin.so
 
   SetOutPath "$INSTDIR\patches"
   File /r patches/*
 
+  SetOutPath "$INSTDIR\bin"
+  File /r *.exe
 
   # Register Application and its uninstaller
   WriteRegStr HKCU "Software\Microsoft\Windows\CurrentVersion\Uninstall\LAMMPS-PLUMED" \
@@ -125,6 +128,8 @@ Section "${PLUMEDPLUGIN}" SecPlumedplugin
 
   # update path variables
   EnVar::SetHKCU
+  # add plumed executable path
+  EnVar::AddValue "PATH" "$INSTDIR\bin"
   # add to LAMMPS plugin search path
   EnVar::AddValue "LAMMPS_PLUGIN_PATH" "$INSTDIR"
   # add plumed2 patch files
@@ -150,12 +155,15 @@ Section "Uninstall"
 
   # update path variables
   EnVar::SetHKCU
+  # remove plumed executable path
+  EnVar::DeleteValue "PATH" "$INSTDIR\bin"
   # remove entry from LAMMPS plugin search path
   EnVar::DeleteValue "LAMMPS_PLUGIN_PATH" "$INSTDIR"
   # remove plumed patch environment
   EnVar::Delete "PLUMED_ROOT"
 
   RMDir /r /REBOOTOK "$INSTDIR\patches"
+  RMDir /r /REBOOTOK "$INSTDIR\bin"
   Delete /REBOOTOK "$INSTDIR\plumedplugin.so"
   Delete /REBOOTOK "$INSTDIR\Uninstall.exe"
   Delete /REBOOTOK "$INSTDIR\lammps.ico"

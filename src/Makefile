@@ -83,6 +83,7 @@ PACKAGE = \
 	fep \
 	gpu \
 	granular \
+	gransurf \
 	h5md \
 	intel \
 	interlayer \
@@ -177,6 +178,7 @@ PACKMOST = \
 	extra-pair \
 	fep \
 	granular \
+	gransurf \
 	interlayer \
 	manybody \
 	mc \

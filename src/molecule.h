@@ -36,6 +36,10 @@ class Molecule : protected Pointers {
   int nbondtypes, nangletypes, ndihedraltypes, nimpropertypes;
   int nibody, ndbody;
 
+  // for surface lines or tris with corner points
+  
+  int npoints,nlines,ntris;
+
   // max bond,angle,etc per atom
 
   int bond_per_atom, angle_per_atom, dihedral_per_atom, improper_per_atom;
@@ -44,6 +48,7 @@ class Molecule : protected Pointers {
   // 1 if attribute defined in file, 0 if not
 
   int xflag, typeflag, moleculeflag, fragmentflag, qflag, radiusflag, muflag, rmassflag;
+  int pointflag, lineflag, triflag;
   int bondflag, angleflag, dihedralflag, improperflag;
   int nspecialflag, specialflag;
   int shakeflag, shakeflagflag, shakeatomflag, shaketypeflag;
@@ -66,6 +71,14 @@ class Molecule : protected Pointers {
   double *radius;      // radius of each atom
   double *rmass;       // mass of each atom
   double **mu;         // dipole vector of each atom
+
+  double **points;     // end/corner pts of lines or tris
+  int **lines;         // list of line indices into points
+  int **tris;          // list of tri indices into points
+  int *molline;        // line and tri attributes
+  int *typeline;
+  int *moltri;
+  int *typetri;
 
   int *num_bond;    // bonds, angles, dihedrals, impropers for each atom
   int **bond_type;
@@ -147,6 +160,9 @@ class Molecule : protected Pointers {
   void diameters(char *);
   void dipoles(char *);
   void masses(char *);
+  void pts(char *);
+  void line_segments(char *);
+  void triangles(char *);
   void bonds(int, char *);
   void angles(int, char *);
   void dihedrals(int, char *);

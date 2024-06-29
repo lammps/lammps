@@ -41,7 +41,11 @@ static constexpr double SINERTIA = 0.4;    // moment of inertia prefactor for sp
 
 Molecule::Molecule(LAMMPS *lmp, int narg, char **arg, int &index) :
     Pointers(lmp), id(nullptr), x(nullptr), type(nullptr), molecule(nullptr), q(nullptr),
-    radius(nullptr), rmass(nullptr), mu(nullptr), num_bond(nullptr), bond_type(nullptr),
+    radius(nullptr), rmass(nullptr), mu(nullptr),
+    points(nullptr), lines(nullptr), tris(nullptr),
+    molline(nullptr), typeline(nullptr), moltri(nullptr), typetri(nullptr),
+
+    num_bond(nullptr), bond_type(nullptr),
     bond_atom(nullptr), num_angle(nullptr), angle_type(nullptr), angle_atom1(nullptr),
     angle_atom2(nullptr), angle_atom3(nullptr), num_dihedral(nullptr), dihedral_type(nullptr),
     dihedral_atom1(nullptr), dihedral_atom2(nullptr), dihedral_atom3(nullptr),
@@ -155,7 +159,7 @@ Molecule::Molecule(LAMMPS *lmp, int narg, char **arg, int &index) :
   // stats
 
   if (title.empty()) title = "(no title)";
-  if (me == 0)
+  if (me == 0) {
     utils::logmesg(lmp,
                    "Read molecule template {}:\n{}\n"
                    "  {} molecules\n"
@@ -167,6 +171,11 @@ Molecule::Molecule(LAMMPS *lmp, int narg, char **arg, int &index) :
                    "  {} impropers with max type {}\n",
                    id, title, nmolecules, nfragments, natoms, ntypes, nbonds, nbondtypes, nangles,
                    nangletypes, ndihedrals, ndihedraltypes, nimpropers, nimpropertypes);
+    if (npoints && nlines)
+      utils::logmesg(lmp,"  {} lines with {} points\n",nlines,npoints);
+    if (npoints && ntris) 
+      utils::logmesg(lmp,"  {} triangles with {} points\n",ntris,npoints);
+  }
 }
 
 /* ---------------------------------------------------------------------- */
@@ -450,6 +459,17 @@ void Molecule::read(int flag)
       if (values.contains("atoms")) {
         natoms = values.next_int();
         nwant = 2;
+
+      } else if (values.contains("points")) {
+        npoints = values.next_int();
+        nwant = 2;
+      } else if (values.contains("lines")) {
+        nlines = values.next_int();
+        nwant = 2;
+      } else if (values.contains("triangles")) {
+        ntris = values.next_int();
+        nwant = 2;
+        
       } else if (values.contains("bonds")) {
         nbonds = values.next_int();
         nwant = 2;
@@ -462,6 +482,7 @@ void Molecule::read(int flag)
       } else if (values.contains("impropers")) {
         nimpropers = values.next_int();
         nwant = 2;
+
       } else if (values.contains("fragments")) {
         nfragments = values.next_int();
         nwant = 2;
@@ -521,16 +542,41 @@ void Molecule::read(int flag)
 
   // error checks
 
-  if (natoms < 1) error->all(FLERR, "No atoms or invalid atom count in molecule file");
+  if (natoms < 0) error->all(FLERR, "No atoms or invalid atom count in molecule file");
+  if (npoints < 0) error->all(FLERR,"Invalid point count in molecule file");
+  if (nlines < 0) error->all(FLERR,"Invalid line count in molecule file");
+  if (ntris < 0) error->all(FLERR,"Invalid triangle count in molecule file");
+
   if (nbonds < 0) error->all(FLERR, "Invalid bond count in molecule file");
   if (nangles < 0) error->all(FLERR, "Invalid angle count in molecule file");
   if (ndihedrals < 0) error->all(FLERR, "Invalid dihedral count in molecule file");
   if (nimpropers < 0) error->all(FLERR, "Invalid improper count in molecule file");
 
-  // count = vector for tallying bonds,angles,etc per atom
+  if (natoms == 0 && npoints == 0) 
+    error->all(FLERR,"Molecule file must define either atoms or points");
+  if (natoms && npoints) 
+    error->all(FLERR,"Molecule file cannot define both atoms and points");
 
-  if (flag == 0) memory->create(count, natoms, "molecule:count");
+  if (npoints && domain->dimension == 2 && nlines == 0)
+    error->all(FLERR,"Molecule file must define lines with points");
+  if (npoints && domain->dimension == 2 && ntris)
+    error->all(FLERR,"Molecule file cannot define triangles for 2d model");
 
+  if (npoints && domain->dimension == 3 && ntris == 0)
+    error->all(FLERR,"Molecule file must define triangles with points");
+  if (npoints && domain->dimension == 3 && nlines)
+    error->all(FLERR,"Molecule file cannot define lines for 3d model");
+
+  // count = vector for tallying values in different sections of file
+  // set length to max of natoms, npoints, nlines, ntris
+
+  if (flag == 0) {
+    int maxcount = MAX(natoms,npoints);
+    maxcount = MAX(maxcount,nlines);
+    maxcount = MAX(maxcount,ntris);
+    memory->create(count, maxcount, "molecule:count");
+  }
+  
   // grab keyword and skip next line
 
   std::string keyword = parse_keyword(0, line);
@@ -589,6 +635,25 @@ void Molecule::read(int flag)
         masses(line);
       else
         skip_lines(natoms, line, keyword);
+
+    } else if (keyword == "Points") {
+      pointflag = 1;
+      if (flag)
+	pts(line);
+      else
+	skip_lines(npoints, line, keyword);
+    } else if (keyword == "Lines") {
+      lineflag = 1;
+      if (flag)
+	line_segments(line);
+      else
+	skip_lines(nlines, line, keyword);
+    } else if (keyword == "Triangles") {
+      triflag = 1;
+      if (flag)
+	triangles(line);
+      else
+	skip_lines(ntris, line, keyword);
 
     } else if (keyword == "Bonds") {
       if (nbonds == 0) error->all(FLERR, "Found Bonds section but no nbonds setting in header");
@@ -960,7 +1025,7 @@ void Molecule::diameters(char *line)
 }
 
 /* ----------------------------------------------------------------------
-   read charges from file
+   read dipoles from file
 ------------------------------------------------------------------------- */
 
 void Molecule::dipoles(char *line)
@@ -1024,6 +1089,143 @@ void Molecule::masses(char *line)
       error->all(FLERR, "Atom {} missing in Masses section of molecule file", i + 1);
     if (rmass[i] <= 0.0)
       error->all(FLERR, "Invalid atom mass {} for atom {} in molecule file", radius[i], i + 1);
+  }
+}
+
+/* ----------------------------------------------------------------------
+   read line/tri points from file
+------------------------------------------------------------------------- */
+
+void Molecule::pts(char *line)
+{
+  for (int i = 0; i < npoints; i++) count[i] = 0;
+  try {
+    for (int i = 0; i < npoints; i++) {
+      readline(line);
+
+      ValueTokenizer values(utils::trim_comment(line));
+      if (values.count() != 4)
+        error->all(FLERR, "Invalid line in Points section of molecule file: {}", line);
+
+      int ipoint = values.next_int() - 1;
+      if (ipoint < 0 || ipoint >= npoints)
+        error->all(FLERR, "Invalid point index in Points section of molecule file");
+      count[ipoint]++;
+      points[ipoint][0] = values.next_double();
+      points[ipoint][1] = values.next_double();
+      points[ipoint][2] = values.next_double();
+
+      // apply geometric operations to each point
+
+      points[ipoint][0] *= sizescale;
+      points[ipoint][1] *= sizescale;
+      points[ipoint][2] *= sizescale;
+    }
+  } catch (TokenizerException &e) {
+    error->all(FLERR, "Invalid line in Points section of molecule file: {}\n{}", e.what(), line);
+  }
+
+  for (int i = 0; i < npoints; i++)
+    if (count[i] == 0)
+      error->all(FLERR, "Point {} missing in Points section of molecule file", i + 1);
+
+  if (domain->dimension == 2) {
+    for (int i = 0; i < npoints; i++)
+      if (points[i][2] != 0.0)
+        error->all(FLERR, "Z coord in molecule file for point {} must be 0.0 for 2d-simulation",
+                   i + 1);
+  }
+}
+
+/* ----------------------------------------------------------------------
+   read line segments from file
+   do NOT subtract one from point indices
+------------------------------------------------------------------------- */
+
+void Molecule::line_segments(char *line)
+{
+  for (int i = 0; i < nlines; i++) count[i] = 0;
+  try {
+    for (int i = 0; i < nlines; i++) {
+      readline(line);
+
+      ValueTokenizer values(utils::trim_comment(line));
+      if (values.count() != 5)
+        error->all(FLERR, "Invalid line in Lines section of molecule file: {}", line);
+
+      int iline = values.next_int() - 1;
+      if (iline < 0 || iline >= nlines)
+        error->all(FLERR, "Invalid line index in Lines section of molecule file");
+      count[iline]++;
+      molline[iline] = values.next_int();
+      typeline[iline] = values.next_int();
+      lines[iline][0] = values.next_int();
+      lines[iline][1] = values.next_int();
+    }
+  } catch (TokenizerException &e) {
+    error->all(FLERR, "Invalid line in Lines section of molecule file: {}\n{}", e.what(), line);
+  }
+  
+  // check all line types and point indices
+  // add toffset to line type
+  
+  for (int i = 0; i < nlines; i++) {
+    if (count[i] == 0)
+      error->all(FLERR, "Line {} missing in Lines section of molecule file", i + 1);
+    if (typeline[i] <= 0)
+      error->all(FLERR,"Invalid line type in molecule file");
+    if (lines[i][0] <= 0 || lines[i][0] > npoints ||
+        lines[i][1] <= 0 || lines[i][1] > npoints)
+      error->all(FLERR,"Invalid point index for line in molecule file");
+
+    typeline[i] += toffset;
+  }
+}
+
+/* ----------------------------------------------------------------------
+   read triangles from file
+   do NOT subtract one from point indices
+------------------------------------------------------------------------- */
+
+void Molecule::triangles(char *line)
+{
+  for (int i = 0; i < ntris; i++) count[i] = 0;
+  try {
+    for (int i = 0; i < ntris; i++) {
+      readline(line);
+
+      ValueTokenizer values(utils::trim_comment(line));
+      if (values.count() != 6)
+        error->all(FLERR, "Invalid triangle in Triangles section of molecule file: {}", line);
+
+      int itri = values.next_int() - 1;
+      if (itri < 0 || itri >= ntris)
+        error->all(FLERR, "Invalid triangle index in Triangles section of molecule file");
+      count[itri]++;
+      moltri[itri] = values.next_int();
+      typetri[itri] = values.next_int();
+      tris[itri][0] = values.next_int();
+      tris[itri][1] = values.next_int();
+      tris[itri][2] = values.next_int();
+    }
+  } catch (TokenizerException &e) {
+    error->all(FLERR, "Invalid tri in Triangles section of molecule file: {}\n{}", e.what(), line);
+  }
+
+  // check all triangle types and point indices
+  // add toffset to triangle type
+  
+  for (int i = 0; i < ntris; i++) {
+    if (count[i] == 0)
+      error->all(FLERR, "Triangle {} missing in Triangles section of molecule file", i + 1);
+    if (typetri[i] <= 0)
+      error->all(FLERR,"Invalid triangle type in molecule file");
+    if (tris[i][0] <= 0 || tris[i][0] > npoints ||
+        tris[i][1] <= 0 || tris[i][1] > npoints ||
+        tris[i][2] <= 0 || tris[i][2] > npoints)
+      error->all(FLERR,"Invalid point index for triangle in molecule file");
+
+    typetri[i] += toffset;
   }
 }
 
@@ -1917,6 +2119,7 @@ void Molecule::initialize()
 {
   title.clear();
   natoms = 0;
+  npoints = nlines = ntris = 0;
   nbonds = nangles = ndihedrals = nimpropers = 0;
   ntypes = 0;
   nmolecules = 1;
@@ -1928,6 +2131,7 @@ void Molecule::initialize()
   maxspecial = 0;
 
   xflag = typeflag = moleculeflag = fragmentflag = qflag = radiusflag = muflag = rmassflag = 0;
+  pointflag = lineflag = triflag = 0;
   bondflag = angleflag = dihedralflag = improperflag = 0;
   nspecialflag = specialflag = 0;
   shakeflag = shakeflagflag = shakeatomflag = shaketypeflag = 0;
@@ -1941,6 +2145,14 @@ void Molecule::initialize()
   q = nullptr;
   radius = nullptr;
   rmass = nullptr;
+
+  points = NULL;
+  lines = NULL;
+  molline = NULL;
+  typeline = NULL;
+  tris = NULL;
+  moltri = NULL;
+  typetri = NULL;
 
   num_bond = nullptr;
   bond_type = nullptr;
@@ -1993,6 +2205,20 @@ void Molecule::allocate()
   if (muflag) memory->create(mu, natoms, 3, "molecule:mu");
   if (radiusflag) memory->create(radius, natoms, "molecule:radius");
   if (rmassflag) memory->create(rmass, natoms, "molecule:rmass");
+
+  // lines or triangles with corner points
+
+  if (pointflag) memory->create(points,npoints,3,"molecule:points");
+  if (lineflag) {
+    memory->create(lines,nlines,2,"molecule:lines");
+    memory->create(molline,nlines,"molecule:molline");
+    memory->create(typeline,nlines,"molecule:typeline");
+  }
+  if (triflag) {
+    memory->create(tris,ntris,3,"molecule:tris");
+    memory->create(moltri,ntris,"molecule:moltri");
+    memory->create(typetri,ntris,"molecule:typetri");
+  }
 
   // always allocate num_bond,num_angle,etc and nspecial
   // even if not in molecule file, initialize to 0
@@ -2068,6 +2294,14 @@ void Molecule::deallocate()
   memory->destroy(fragmentmask);
 
   if (fragmentflag) { fragmentnames.clear(); }
+
+  memory->destroy(points);
+  memory->destroy(lines);
+  memory->destroy(molline);
+  memory->destroy(typeline);
+  memory->destroy(tris);
+  memory->destroy(moltri);
+  memory->destroy(typetri);
 
   memory->destroy(num_bond);
   memory->destroy(bond_type);

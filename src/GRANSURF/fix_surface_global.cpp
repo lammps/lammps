@@ -48,9 +48,6 @@ FixSurfaceGlobal::FixSurfaceGlobal(LAMMPS *lmp, int narg, char **arg) :
 {
   if (narg < 11) error->all(FLERR,"Illegal fix surface/global command");
 
-  if (comm->me == 0 && screen)
-    fprintf(screen,"Converting molecule file to line/tri particles ...\n");
-
   // set interaction style
 
   if (strcmp(arg[4],"hooke") == 0) pairstyle = HOOKE;

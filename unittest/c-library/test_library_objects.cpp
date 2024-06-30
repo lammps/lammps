@@ -71,7 +71,7 @@ TEST_F(LibraryObjects, variables)
     FILE *fp = fopen("test_variable.file", "w");
     fputs("# test file for file style variable\n\n\none\n  two  \n\n"
           "three  # with comment\nfour   ! with non-comment\n"
-          "# comments only\n	five\n#END\n",
+          "# comments only\n    five\n#END\n",
           fp);
     fclose(fp);
 
@@ -169,7 +169,7 @@ TEST_F(LibraryObjects, variables)
     EXPECT_EQ(lammps_extract_variable_datatype(lmp, "ten3"), LMP_VAR_STRING);
     ptr = lammps_extract_variable(lmp, "ten3", NULL);
     EXPECT_THAT((char *)ptr, StrEq("1"));
-    
+
     EXPECT_EQ(lammps_extract_variable_datatype(lmp, "ten4"), LMP_VAR_VECTOR);
     ptr = lammps_extract_variable(lmp, "ten4", (const char *)1);
     double *dptr = (double *)lammps_extract_variable(lmp, "ten4", NULL);
@@ -185,7 +185,7 @@ TEST_F(LibraryObjects, variables)
     lammps_free(ptr);
     EXPECT_EQ(dptr[0], 0.5);
     EXPECT_EQ(dptr[1], 1.25);
-    
+
     EXPECT_EQ(lammps_extract_variable_datatype(lmp, "iswin"), LMP_VAR_EQUAL);
     EXPECT_EQ(lammps_extract_variable_datatype(lmp, "islin"), LMP_VAR_EQUAL);
 #if defined(_WIN32)

@@ -109,19 +109,19 @@ class FixSurfaceGlobal : public Fix {
   // 2d/3d connectivity
 
   struct Connect2d {      // line connectivity
-    tagint neigh_p1;      // ID of line connected to my pt1, 0 if none
-    tagint neigh_p2;      // ditto for my pt2
+    tagint neigh_p1;      // ID of line connected to pt1, 0 if none
+    tagint neigh_p2;      // ditto for pt2
     int flags;            // flags for end pt coupling
                           // NOTE: document what is stored in flags
   };
 
   struct Connect3d {      // tri connectivity
-    tagint neigh_e1;      // ID of tri connected to my 1-2 edge, 0 if none
-    tagint neigh_e2;      // ditto for my 2-3 edge
-    tagint neigh_e3;      // ditto for my 3-1 edge
-    tagint *neigh_c1;     // IDs of tris connected to my 1st corner pt
-    tagint *neigh_c2;     // ditto for my 2nd corner pt
-    tagint *neigh_c3;     // ditto for my 3rd corner pt
+    tagint neigh_e1;      // ID of tri connected to 1-2 edge, 0 if none
+    tagint neigh_e2;      // ditto for 2-3 edge
+    tagint neigh_e3;      // ditto for 3-1 edge
+    tagint *neigh_c1;     // IDs of tris connected to 1st corner pt
+    tagint *neigh_c2;     // ditto for 2nd corner pt
+    tagint *neigh_c3;     // ditto for 3rd corner pt
     int nc1,nc2,nc3;      // # of tris connected to each corner pt
     int flags;            // flags for edge and corner pt coupling
                           // NOTE: document what is stored in flags

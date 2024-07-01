@@ -65,14 +65,13 @@ void ComputeNBondAtom::compute_peratom()
   tagint **bond_atom = atom->bond_atom;
   int **bond_type = atom->bond_type;
 
-  int ntotal = nlocal;
-  if (force->newton) ntotal += atom->nghost;
-
   // set local nbond array
   int i, j, k;
   int *num_bond = atom->num_bond;
   int newton_bond = force->newton_bond;
 
+  int ntotal = nlocal;
+  if (newton_bond) ntotal += atom->nghost;
   for (i = 0; i < ntotal; i++) nbond[i] = 0;
 
   for (i = 0; i < nlocal; i++) {
@@ -88,7 +87,7 @@ void ComputeNBondAtom::compute_peratom()
   }
 
   // communicate ghost nbond between neighbor procs
-  if (force->newton) comm->reverse_comm(this);
+  if (newton_bond) comm->reverse_comm(this);
 
   // zero nbond of atoms not in group
   // only do this after comm since ghost contributions must be included

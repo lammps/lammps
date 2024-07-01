@@ -100,6 +100,7 @@ void FixUpdateSpecialBonds::pre_exchange()
       n1 = nspecial[i][0];
       for (m = 0; m < n1; m++)
         if (slist[m] == tagj) break;
+      if (m == n1) error->one(FLERR, "Special bond {} {} not found", tagi, tagj);
       for (; m < n1 - 1; m++) slist[m] = slist[m + 1];
       nspecial[i][0]--;
       nspecial[i][1] = nspecial[i][2] = nspecial[i][0];
@@ -110,6 +111,7 @@ void FixUpdateSpecialBonds::pre_exchange()
       n1 = nspecial[j][0];
       for (m = 0; m < n1; m++)
         if (slist[m] == tagi) break;
+      if (m == n1) error->one(FLERR, "Special bond {} {} not found", tagi, tagj);
       for (; m < n1 - 1; m++) slist[m] = slist[m + 1];
       nspecial[j][0]--;
       nspecial[j][1] = nspecial[j][2] = nspecial[j][0];

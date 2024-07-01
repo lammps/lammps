@@ -888,6 +888,7 @@ void Input::clear()
   lmp->destroy();
   lmp->create();
   lmp->post_create();
+  variable->clear_in_progress();
 }
 
 /* ---------------------------------------------------------------------- */

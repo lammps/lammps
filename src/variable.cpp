@@ -880,6 +880,17 @@ void Variable::purge_atomfile()
 }
 
 /* ----------------------------------------------------------------------
+   called by "clear" command to reset all "in_progress" state variables
+   to avoid spurious "variable has circular dependency" issues
+------------------------------------------------------------------------- */
+
+void Variable::clear_in_progress()
+{
+  for (int i = 0; i < nvar; ++i)
+    eval_in_progress[i] = 0;
+}
+
+/* ----------------------------------------------------------------------
    called by python command in input script
    simply pass input script line args to Python class
 ------------------------------------------------------------------------- */

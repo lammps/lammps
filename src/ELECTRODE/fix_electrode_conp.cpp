@@ -89,6 +89,9 @@ FixElectrodeConp::FixElectrodeConp(LAMMPS *lmp, int narg, char **arg) :
   extvector = 0;
   extarray = 0;
 
+  virial_global_flag = 1;    // use virials of this fix
+  thermo_virial = 1;         // set vflags for v_tally
+
   bool default_algo = true;
   algo = Algo::MATRIX_INV;
   matrix_algo = true;
@@ -642,13 +645,15 @@ void FixElectrodeConp::setup_post_neighbor()
 
 /* ---------------------------------------------------------------------- */
 
-void FixElectrodeConp::setup_pre_reverse(int eflag, int /*vflag*/)
+void FixElectrodeConp::setup_pre_reverse(int eflag, int vflag)
 {
+  if (pair->did_tally_callback())
+    error->warning(FLERR,
+                   "Computation of Virials in fix electrode is incompatible with TALLY package");
   // correct forces for initial timestep
-  gausscorr(eflag, true);
+  ev_init(eflag, vflag);
+  gausscorr(eflag, vflag, true);
   self_energy(eflag);
-  // potential_energy(eflag); // not always part of the energy, depending on ensemble, therefore
-  // removed
 }
 
 /* ---------------------------------------------------------------------- */
@@ -775,12 +780,11 @@ void FixElectrodeConp::pre_force(int)
 
 /* ---------------------------------------------------------------------- */
 
-void FixElectrodeConp::pre_reverse(int eflag, int /*vflag*/)
+void FixElectrodeConp::pre_reverse(int eflag, int vflag)
 {
-  gausscorr(eflag, true);
+  ev_init(eflag, vflag);
+  gausscorr(eflag, vflag, true);
   self_energy(eflag);
-  //potential_energy(eflag); // not always part of the energy, depending on ensemble, therefore
-  // removed
 }
 
 /* ---------------------------------------------------------------------- */
@@ -1228,11 +1232,10 @@ double FixElectrodeConp::self_energy(int eflag)
 
 /* ---------------------------------------------------------------------- */
 
-double FixElectrodeConp::gausscorr(int eflag, bool fflag)
+double FixElectrodeConp::gausscorr(int eflag, int vflag, bool fflag)
 {
   // correction to short range interaction due to eta
 
-  int evflag = pair->evflag;
   double const qqrd2e = force->qqrd2e;
   int const nlocal = atom->nlocal;
   int *mask = atom->mask;
@@ -1298,13 +1301,11 @@ double FixElectrodeConp::gausscorr(int eflag, bool fflag)
             f[j][2] -= delz * fpair;
           }
         }
-
-        double ecoul = 0.;
-        if (eflag) ecoul = -prefactor * erfc_etar;
-
-        if (evflag) {
-          force->pair->ev_tally(i, j, nlocal, newton_pair, 0., ecoul, fpair, delx, dely, delz);
+        if (eflag) {
+          double ecoul = -prefactor * erfc_etar;
+          force->pair->ev_tally(i, j, nlocal, newton_pair, 0., ecoul, 0., 0., 0., 0.);
         }
+        if (vflag) v_tally(i, j, nlocal, newton_pair, fpair, delx, dely, delz);
       }
     }
   }
@@ -1624,4 +1625,71 @@ void FixElectrodeConp::unpack_forward_comm(int n, int first, double *buf)
 {
   int const last = first + n;
   for (int i = first, m = 0; i < last; i++) atom->q[i] = buf[m++];
+}
+
+/* ----------------------------------------------------------------------
+   Tally virial of pair interactions in pre_reverse. This cannot be done with pair->ev_tally()
+   because compute_fdotr is called before pre_reverse, i.e. Virials need to be tallied even if fdotr
+   is used.
+------------------------------------------------------------------------- */
+
+void FixElectrodeConp::v_tally(int i, int j, int nlocal, int newton_pair, double fpair, double delx,
+                               double dely, double delz)
+{
+  double v[6];
+  if (vflag_either) {
+    v[0] = delx * delx * fpair;
+    v[1] = dely * dely * fpair;
+    v[2] = delz * delz * fpair;
+    v[3] = delx * dely * fpair;
+    v[4] = delx * delz * fpair;
+    v[5] = dely * delz * fpair;
+
+    if (vflag_global) {
+      if (newton_pair) {
+        virial[0] += v[0];
+        virial[1] += v[1];
+        virial[2] += v[2];
+        virial[3] += v[3];
+        virial[4] += v[4];
+        virial[5] += v[5];
+      } else {
+        if (i < nlocal) {
+          virial[0] += 0.5 * v[0];
+          virial[1] += 0.5 * v[1];
+          virial[2] += 0.5 * v[2];
+          virial[3] += 0.5 * v[3];
+          virial[4] += 0.5 * v[4];
+          virial[5] += 0.5 * v[5];
+        }
+        if (j < nlocal) {
+          virial[0] += 0.5 * v[0];
+          virial[1] += 0.5 * v[1];
+          virial[2] += 0.5 * v[2];
+          virial[3] += 0.5 * v[3];
+          virial[4] += 0.5 * v[4];
+          virial[5] += 0.5 * v[5];
+        }
+      }
+    }
+
+    if (vflag_atom) {
+      if (newton_pair || i < nlocal) {
+        vatom[i][0] += 0.5 * v[0];
+        vatom[i][1] += 0.5 * v[1];
+        vatom[i][2] += 0.5 * v[2];
+        vatom[i][3] += 0.5 * v[3];
+        vatom[i][4] += 0.5 * v[4];
+        vatom[i][5] += 0.5 * v[5];
+      }
+      if (newton_pair || j < nlocal) {
+        vatom[j][0] += 0.5 * v[0];
+        vatom[j][1] += 0.5 * v[1];
+        vatom[j][2] += 0.5 * v[2];
+        vatom[j][3] += 0.5 * v[3];
+        vatom[j][4] += 0.5 * v[4];
+        vatom[j][5] += 0.5 * v[5];
+      }
+    }
+  }
 }

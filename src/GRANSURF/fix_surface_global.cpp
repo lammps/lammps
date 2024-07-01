@@ -52,6 +52,9 @@ FixSurfaceGlobal::FixSurfaceGlobal(LAMMPS *lmp, int narg, char **arg) :
 
   if (strcmp(arg[4],"hooke") == 0) pairstyle = HOOKE;
   else if (strcmp(arg[4],"hooke/history") == 0) pairstyle = HOOKE_HISTORY;
+
+  // NOTE: hertz/history not yet supported ?
+  
   else if (strcmp(arg[4],"hertz/history") == 0) pairstyle = HERTZ_HISTORY;
   else error->all(FLERR,"Invalid fix surface/global interaction style");
 
@@ -156,39 +159,6 @@ FixSurfaceGlobal::FixSurfaceGlobal(LAMMPS *lmp, int narg, char **arg) :
   if (dimension == 3) nsurf = ntris;
 
   set_attributes();
-
-  /*
-  for (int i = 0; i < nlines; i++) {
-    printf("Connect %d:\n",i);
-    printf("  points: %d %d flags %d\n",
-           connect3d[i].neigh_p1,
-           connect3d[i].neigh_p2,
-           connect3d[i].flags);
-  }
-  */
-
-  /*
-  for (int i = 0; i < ntris; i++) {
-    printf("Connect %d:\n",i);
-    printf("  edges: %d %d %d flags %d\n",
-           connect3d[i].neigh_e1,
-           connect3d[i].neigh_e2,
-           connect3d[i].neigh_e3,
-           connect3d[i].flags);
-    printf("  corner1: %d:",connect3d[i].nc1);
-    for (int j = 0; j < connect3d[i].nc1; j++)
-      printf(" %d",connect3d[i].neigh_c1[j]);
-    printf("\n");
-    printf("  corner2: %d:",connect3d[i].nc2);
-    for (int j = 0; j < connect3d[i].nc2; j++)
-      printf(" %d",connect3d[i].neigh_c2[j]);
-    printf("\n");
-    printf("  corner3: %d:",connect3d[i].nc3);
-    for (int j = 0; j < connect3d[i].nc3; j++)
-      printf(" %d",connect3d[i].neigh_c3[j]);
-    printf("\n");
-  }
-  */
 }
 
 /* ---------------------------------------------------------------------- */
@@ -1623,26 +1593,11 @@ int FixSurfaceGlobal::corner_neigh_check(int i, int j, int jflag)
 /* ----------------------------------------------------------------------
    extract points,line,surfs from molecule ID for one or more mol files
    concatenate into single list of points,lines,tris
+   each proc owns copy of all points,lines,tris
 ------------------------------------------------------------------------- */
 
 void FixSurfaceGlobal::extract_from_molecules(char *molID)
 {
-  // check that no line/tri particles already exist
-  // no connectivity would be produced for them
-
-  int *surf = atom->line;
-  if (dimension == 3) surf = atom->tri;
-  int nlocal = atom->nlocal;
-
-  int flag = 0;
-  for (int i = 0; i < nlocal; i++)
-    if (surf[i] >= 0) flag = 1;
-  int flagall;
-  MPI_Allreduce(&flag,&flagall,1,MPI_INT,MPI_MAX,world);
-  if (flagall) 
-    error->all(FLERR,"Fix surface local molecule file "
-               "when surfaces already exist");
-
   // populate global point/line/tri data structs
 
   points = NULL;
@@ -1654,8 +1609,12 @@ void FixSurfaceGlobal::extract_from_molecules(char *molID)
   if (imol == -1)
     error->all(FLERR,"Molecule template ID for "
                "fix surface/global does not exist");
+
+  // loop over one or more molecules in mol-ID
+  
   Molecule **onemols = &atom->molecules[imol];
   int nmol = onemols[0]->nset;
+  
   for (int m = 0; m < nmol; m++) {
     if (onemols[m]->pointflag == 0)
       error->all(FLERR,"Fix surface/global molecule must have points");
@@ -1665,13 +1624,6 @@ void FixSurfaceGlobal::extract_from_molecules(char *molID)
     if (dimension == 3)
       if (onemols[m]->triflag == 0)
         error->all(FLERR,"Fix surface/global molecule must have triangles");
-
-    // NOTE: anything else about molfile surf to check?
-    //       e.g. are types within bounds? 
-    //       or did Molecule check at read?
-
-    // NOTE: for nmol = 1, could just set points,lines,tris to pt
-    //       to chunk of 2d data in molfile arrays
 
     int np = onemols[m]->npoints;
     int nl = onemols[m]->nlines;
@@ -1696,7 +1648,8 @@ void FixSurfaceGlobal::extract_from_molecules(char *molID)
       j++;
     }
 
-    // need to offset line/tri index lists by previous npoints & subtract one
+    // offset line/tri index lists by previous npoints
+    // subtract one to give C-style index into points vector
 
     if (dimension == 2) {
       int *molline = onemols[m]->molline;
@@ -1748,7 +1701,7 @@ void FixSurfaceGlobal::connectivity2d_global()
     connect2d[i].flags = 0;
   }
 
-  // create ptflag = pair of flags for each point
+  // create ptflag[2] = pair of flags for each point
   //   1st index:
   //     0 if pt not in line
   //     1 if 1st point in one line, 2 if 2nd point in one line

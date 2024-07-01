@@ -86,13 +86,13 @@ class FixSurfaceGlobal : public Fix {
   };
 
   struct Line {
-    int mol,type;           // molID and type of the element
+    int mol,type;           // molID and type of the line
     int p1,p2;              // indices of points in line segment
                             // rhand rule: Z x (p2-p1) = outward normal
   };
 
   struct Tri {
-    int mol,type;           // modID and type of the element
+    int mol,type;           // modID and type of the triangle
     int p1,p2,p3;           // indices of points in triangle
                             // rhand rule: (p2-p1) x (p3-p1) = outward normal
     double norm[3];         // unit normal to tri plane
@@ -102,7 +102,7 @@ class FixSurfaceGlobal : public Fix {
   Line *lines;                // global list of lines
   Tri *tris;                  // global list of tris
   int npoints,nlines,ntris;   // count of each
-  int nsurf;                  // lines or tris for 2d/3d
+  int nsurf;                  // count of lines or tris for 2d/3d
 
   int **clist;                // ragged 2d array for global corner pt lists
 

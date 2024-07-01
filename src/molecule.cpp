@@ -44,7 +44,6 @@ Molecule::Molecule(LAMMPS *lmp, int narg, char **arg, int &index) :
     radius(nullptr), rmass(nullptr), mu(nullptr),
     points(nullptr), lines(nullptr), tris(nullptr),
     molline(nullptr), typeline(nullptr), moltri(nullptr), typetri(nullptr),
-
     num_bond(nullptr), bond_type(nullptr),
     bond_atom(nullptr), num_angle(nullptr), angle_type(nullptr), angle_atom1(nullptr),
     angle_atom2(nullptr), angle_atom3(nullptr), num_dihedral(nullptr), dihedral_type(nullptr),

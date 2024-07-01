@@ -137,15 +137,6 @@ FixSurfaceGlobal::FixSurfaceGlobal(LAMMPS *lmp, int narg, char **arg) :
 
   firsttime = 1;
 
-  // create FixNeighHistory instance for granular shear history
-
-  if (history) {
-    int size_history = 3;
-    auto cmd = fmt::format("NEIGH_HISTORY_HH" + std::to_string(instance_me) + " all NEIGH_HISTORY {}",size_history);
-    fix_history = dynamic_cast<FixNeighHistory *>(modify->add_fix(cmd));
-  } else
-    fix_history = nullptr;
-
   // setup scale factors for possible fix modify move settings
 
   if (scaleflag) {
@@ -232,6 +223,21 @@ FixSurfaceGlobal::~FixSurfaceGlobal()
 
   memory->destroy(imflag);
   memory->destroy(imdata);
+}
+
+/* ----------------------------------------------------------------------
+   create Fix needed for storing shear history if needed
+   must be done in post_constructor()
+------------------------------------------------------------------------- */
+
+void FixSurfaceGlobal::post_constructor()
+{
+  if (history) {
+    int size_history = 3;
+    auto cmd = fmt::format("NEIGH_HISTORY_HH" + std::to_string(instance_me) + " all NEIGH_HISTORY {}",size_history);
+    fix_history = dynamic_cast<FixNeighHistory *>(modify->add_fix(cmd));
+  } else
+    fix_history = nullptr;
 }
 
 /* ---------------------------------------------------------------------- */

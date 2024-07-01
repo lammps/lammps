@@ -36,6 +36,7 @@ class FixSurfaceGlobal : public Fix {
   FixSurfaceGlobal(class LAMMPS *, int, char **);
   ~FixSurfaceGlobal();
   int setmask() override;
+  void post_constructor() override;
   void init() override;
   void setup_pre_neighbor() override;
   void initial_integrate(int) override;

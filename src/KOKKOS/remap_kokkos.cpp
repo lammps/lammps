@@ -283,7 +283,7 @@ struct remap_plan_3d_kokkos<DeviceType>* RemapKokkos<DeviceType>::remap_3d_creat
   struct remap_plan_3d_kokkos<DeviceType> *plan;
   struct extent_3d *inarray, *outarray;
   struct extent_3d in,out,overlap;
-  int i,j,iproc,nsend,nrecv,ibuf,size,me,nprocs,isend,irecv;
+  int i,iproc,nsend,nrecv,ibuf,size,me,nprocs;
 
   // query MPI info
 
@@ -552,7 +552,7 @@ struct remap_plan_3d_kokkos<DeviceType>* RemapKokkos<DeviceType>::remap_3d_creat
     }
 
     // perform an AllReduce to get the counts from all other processors and build sendcnts list
-  
+
     MPI_Allreduce(local_cnts, global_cnts, 2*nprocs, MPI_INT, MPI_SUM, comm);
 
     // now remove procs that are 0 in send or recv to create minimized sendcnts/recvcnts for AlltoAllv
@@ -569,11 +569,11 @@ struct remap_plan_3d_kokkos<DeviceType>* RemapKokkos<DeviceType>::remap_3d_creat
     }
 
     // resize commringlist to final size
-  
+
     commringlist = (int *) realloc(commringlist, commringlen*sizeof(int));
-  
+
     // set the plan->commringlist
-  
+
     plan->commringlen = commringlen;
     plan->commringlist = commringlist;
 
@@ -655,9 +655,9 @@ struct remap_plan_3d_kokkos<DeviceType>* RemapKokkos<DeviceType>::remap_3d_creat
           plan->rcvcnts == nullptr || plan->rdispls == nullptr ||
           plan->unpackplan == nullptr) return nullptr;
     }
-  
+
     // store send info, with self as last entry
-  
+
     nsend = 0;
     ibuf = 0;
     int total_send_size = 0;
@@ -697,19 +697,19 @@ struct remap_plan_3d_kokkos<DeviceType>* RemapKokkos<DeviceType>::remap_3d_creat
       plan->d_sendbuf = typename FFT_AT::t_FFT_SCALAR_1d("remap3d:sendbuf",total_send_size);
       if (!plan->d_sendbuf.data()) return nullptr;
     }
-  
+
     // store recv info, with self as last entry
-  
+
     ibuf = 0;
     nrecv = 0;
-  
+
     for (i = 0; i < plan->commringlen; i++) {
       iproc = plan->commringlist[i];
       if (iproc == me) {
         plan->selfnrecvloc = nrecv;
       }
       if (remap_3d_collide(&out,&inarray[iproc],&overlap)) {
-  
+
         if (permute == 0) {
           plan->recv_offset[nrecv] = nqty *
             ((overlap.klo-out.klo)*out.jsize*out.isize +
@@ -743,7 +743,7 @@ struct remap_plan_3d_kokkos<DeviceType>* RemapKokkos<DeviceType>::remap_3d_creat
           plan->unpackplan[nrecv].nstride_plane = nqty*out.isize*out.ksize;
           plan->unpackplan[nrecv].nqty = nqty;
         }
-  
+
         plan->recv_size[i] = nqty*overlap.isize*overlap.jsize*overlap.ksize;
         plan->rcvcnts[i] = plan->recv_size[i];
         plan->rdispls[i] = ibuf;
@@ -845,7 +845,7 @@ void RemapKokkos<DeviceType>::remap_3d_destroy_plan_kokkos(struct remap_plan_3d_
       free(plan->unpackplan);
     }
   } else {
- 
+
     // free arrays used in pt2pt communication
 
     if (plan->nsend || plan->self) {

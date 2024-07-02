@@ -590,15 +590,6 @@ void FixSurfaceGlobal::post_force(int vflag)
       rsq = delx*delx + dely*dely + delz*delz;
       radj = radsurf[j];
       radsum = radi + radj;
-      
-      /*
-      if (touch[jj]) {
-        shear = &allshear[3 * jj];
-        printf("PRE step %ld ij %d %d shear %g %g %g\n",
-               update->ntimestep,atom->tag[i],j+1,
-               shear[0],shear[1],shear[2]);
-      }
-      */
 
       if (rsq >= radsum*radsum) {
 
@@ -714,15 +705,6 @@ void FixSurfaceGlobal::post_force(int vflag)
           hooke_history(i,j,radi,meff,delx,dely,delz,rsq,
                         contact,dr,factor_couple,shear);
       }
-
-      /*
-      if (touch[jj]) {
-        shear = &allshear[3 * jj];
-        printf("POST step %ld ij %d %d shear %g %g %g\n",
-               update->ntimestep,atom->tag[i],j+1,
-               shear[0],shear[1],shear[2]);
-      }
-      */
     }
   }
 }
@@ -1564,16 +1546,6 @@ int FixSurfaceGlobal::corner_neigh_check(int i, int j, int jflag)
     kflag = overlap_sphere_tri(i,k,contact,dr,rsq);
     if (kflag > 0) return 1;
     if (kflag == 0) {
-      // DEBUG
-      /*
-      printf("OVERLAP SPHERE i %d %d xyz %g %g %g jflag %d tri %d %d "
-             "n %d k %d %d\n",
-             i,atom->tag[i],
-             atom->x[i][0],
-             atom->x[i][1],
-             atom->x[i][2],
-             jflag,j,tag[j],n,k,tag[k]);
-      */
       error->one(FLERR,"Fix surface/global neighbor tri overlap is invalid");
     }
     if (kflag >= -3) return 1;

@@ -2420,7 +2420,7 @@ use to avoid a memory leak. Example:
 
 .. code-block:: c
 
-   double *dptr = (double *) lammps_extract_variable(handle,name,NULL);
+   double *dptr = (double *) lammps_extract_variable(handle, name, NULL);
    double value = *dptr;
    lammps_free((void *)dptr);
 
@@ -2431,16 +2431,25 @@ content will not be updated in case the variable is re-evaluated.
 To avoid a memory leak, this pointer needs to be freed after use in
 the calling program.
 
-For *vector*\ -style variables, the returned pointer is to actual LAMMPS data.
-The pointer should not be deallocated. Its length depends on the variable,
-compute, or fix data used to construct the *vector*\ -style variable.
-This length can be fetched by calling this function with *group* set to the
-constant "LMP_SIZE_VECTOR", which returns a ``void *`` pointer that can be
-dereferenced to an integer that is the length of the vector. This pointer
-needs to be deallocated when finished with it to avoid memory leaks.
+For *vector*\ -style variables, the returned pointer points to actual
+LAMMPS data and thus it should **not** be deallocated.  Its length
+depends on the variable, compute, or fix data used to construct the
+*vector*\ -style variable.  This length can be fetched by calling this
+function with *group* set to a non-NULL pointer (NULL returns the vector).
+In that case it will return the vector length as an allocated int
+pointer cast to a ``void *`` pointer.  That pointer can be recast and
+dereferenced to an integer yielding the length of the vector. This pointer
+must be deallocated when finished with it to avoid memory leaks. Example:
+
+.. code-block:: c
+
+   double *vectvals = (double *) lammps_extract_variable(handle, name, NULL);
+   int *intptr = (int *) lammps_extract_variable(handle, name, 1);
+   int vectlen = *intptr;
+   lammps_free((void *)intptr);
 
 For other variable styles the returned pointer needs to be cast to
-a char pointer. It should not be deallocated.
+a char pointer and it should **not** be deallocated. Example:
 
 .. code-block:: c
 
@@ -2452,7 +2461,7 @@ a char pointer. It should not be deallocated.
    LAMMPS cannot easily check if it is valid to access the data
    referenced by the variables (e.g., computes, fixes, or thermodynamic
    info), so it may fail with an error.  The caller has to make certain
-   that the data are extracted only when it safe to evaluate the variable
+   that the data is extracted only when it safe to evaluate the variable
    and thus an error or crash are avoided.
 
 \endverbatim
@@ -2487,7 +2496,7 @@ void *lammps_extract_variable(void *handle, const char *name, const char *group)
     } else if (lmp->input->variable->vectorstyle(ivar)) {
       double *values = nullptr;
       int nvector = lmp->input->variable->compute_vector(ivar, &values);
-      if (group != nullptr && strcmp(group,"LMP_SIZE_VECTOR") == 0) {
+      if (group) {
           int* nvecptr = (int *) malloc(sizeof(int));
           *nvecptr = nvector;
           return (void *) nvecptr;

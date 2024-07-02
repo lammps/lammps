@@ -43,12 +43,12 @@ Thumbs.db
 
 #cmake
 /build*
-/CMakeCache.txt
-/CMakeFiles/
-/Testing
+CMakeCache.txt
+CMakeFiles
 /Makefile
-/Testing
-/cmake_install.cmake
+Testing
+Temporary
+cmake_install.cmake
 /lmp
 out/Debug
 out/RelWithDebInfo
@@ -60,3 +60,4 @@ src/Makefile.package.settings-e
 /cmake/build/x64-Debug-Clang
 /install/x64-GUI-MSVC
 /install
+.Rhistory

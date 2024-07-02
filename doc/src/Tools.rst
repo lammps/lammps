@@ -90,7 +90,7 @@ Miscellaneous tools
 
    * :ref:`LAMMPS coding standards <coding_standard>`
    * :ref:`emacs <emacs>`
-   * :ref:`i-pi <ipi>`
+   * :ref:`i-PI <ipi>`
    * :ref:`kate <kate>`
    * :ref:`LAMMPS shell <lammps_shell>`
    * :ref:`LAMMPS GUI <lammps_gui>`
@@ -376,21 +376,40 @@ See README file in the tools/fep directory.
 
 .. _ipi:
 
-i-pi tool
+i-PI tool
 -------------------
 
-The tools/i-pi directory contains a version of the i-PI package, with
-all the LAMMPS-unrelated files removed.  It is provided so that it can
-be used with the :doc:`fix ipi <fix_ipi>` command to perform
-path-integral molecular dynamics (PIMD).
+.. versionchanged:: 27June2024
+
+The tools/i-pi directory used to contain a bundled version of the i-PI
+software package for use with LAMMPS.  This version, however, was
+removed in 06/2024.
 
 The i-PI package was created and is maintained by Michele Ceriotti,
 michele.ceriotti at gmail.com, to interface to a variety of molecular
 dynamics codes.
 
-See the tools/i-pi/manual.pdf file for an overview of i-PI, and the
-:doc:`fix ipi <fix_ipi>` page for further details on running PIMD
-calculations with LAMMPS.
+i-PI is now available via PyPI using the pip package manager at:
+https://pypi.org/project/ipi/
+
+Here are the commands to set up a virtual environment and install
+i-PI into it with all its dependencies.
+
+.. code-block:: sh
+
+   python -m venv ipienv
+   source ipienv/bin/activate
+   pip install --upgrade pip
+   pip install ipi
+
+To install the development version from GitHub, please use:
+
+.. code-block:: sh
+
+   pip install git+https://github.com/i-pi/i-pi.git
+
+For further information, please consult the [i-PI home
+page](https://ipi-code.org).
 
 ----------
 
@@ -709,8 +728,8 @@ CMake is required.
 The LAMMPS GUI has been successfully compiled and tested on:
 
 - Ubuntu Linux 20.04LTS x86_64 using GCC 9, Qt version 5.12
-- Fedora Linux 38 x86\_64 using GCC 13 and Clang 16, Qt version 5.15LTS
-- Fedora Linux 38 x86\_64 using GCC 13, Qt version 6.5LTS
+- Fedora Linux 40 x86\_64 using GCC 14 and Clang 17, Qt version 5.15LTS
+- Fedora Linux 40 x86\_64 using GCC 14, Qt version 6.5LTS
 - Apple macOS 12 (Monterey) and macOS 13 (Ventura) with Xcode on arm64 and x86\_64, Qt version 5.15LTS
 - Windows 10 and 11 x86_64 with Visual Studio 2022 and Visual C++ 14.36, Qt version 5.15LTS
 - Windows 10 and 11 x86_64 with MinGW / GCC 10.0 cross-compiler on Fedora 38, Qt version 5.15LTS
@@ -752,22 +771,23 @@ if necessary.  When both, Qt5 and Qt6 are available, Qt6 will be preferred
 unless ``-D LAMMPS_GUI_USE_QT5=yes`` is set.
 
 It should be possible to build the LAMMPS GUI as a standalone
-compilation (e.g. when LAMMPS has been compiled with traditional make),
-then the CMake configuration needs to be told where to find the LAMMPS
+compilation (e.g. when LAMMPS has been compiled with traditional make).
+Then the CMake configuration needs to be told where to find the LAMMPS
 headers and the LAMMPS library, via ``-D
 LAMMPS_SOURCE_DIR=/path/to/lammps/src``.  CMake will try to guess a
 build folder with the LAMMPS library from that path, but it can also be
 set with ``-D LAMMPS_LIB_DIR=/path/to/lammps/lib``.
 
 Rather than linking to the LAMMPS library during compilation, it is also
-possible to compile the GUI with a plugin loader library that will load
+possible to compile the GUI with a plugin loader that will load
 the LAMMPS library dynamically at runtime during the start of the GUI
 from a shared library; e.g. ``liblammps.so`` or ``liblammps.dylib`` or
 ``liblammps.dll`` (depending on the operating system).  This has the
-advantage that the LAMMPS library can be updated LAMMPS without having
-to recompile the GUI.  The ABI of the LAMMPS C-library interface is very
-stable and generally backward compatible.  This feature is enabled by
-setting ``-D LAMMPS_GUI_USE_PLUGIN=on`` and then ``-D
+advantage that the LAMMPS library can be built from updated or modified
+LAMMPS source without having to recompile the GUI.  The ABI of the
+LAMMPS C-library interface is very stable and generally backward
+compatible.  This feature is enabled by setting
+``-D LAMMPS_GUI_USE_PLUGIN=on`` and then ``-D
 LAMMPS_PLUGINLIB_DIR=/path/to/lammps/plugin/loader``. Typically, this
 would be the ``examples/COUPLE/plugin`` folder of the LAMMPS
 distribution.
@@ -779,8 +799,8 @@ macOS
 """""
 
 When building on macOS, the build procedure will try to manufacture a
-drag-n-drop installer, LAMMPS-macOS-multiarch.dmg, when using the 'dmg'
-target (i.e. ``cmake --build <build dir> --target dmg`` or ``make dmg``.
+drag-n-drop installer, ``LAMMPS-macOS-multiarch.dmg``, when using the
+'dmg' target (i.e. ``cmake --build <build dir> --target dmg`` or ``make dmg``.
 
 To build multi-arch executables that will run on both, arm64 and x86_64
 architectures natively, it is necessary to set the CMake variable ``-D
@@ -819,12 +839,12 @@ and LAMMPS GUI can be launched from anywhere from the command line.
 
 The standard CMake build procedure can be applied and the
 ``mingw-cross.cmake`` preset used. By using ``mingw64-cmake`` the CMake
-command will automatically include a suitable CMake toolset file (the
-regular cmake command can be used after that).  After building the
-libraries and executables, you can build the target 'zip'
-(i.e. ``cmake --build <build dir> --target zip`` or ``make zip``
-to stage all installed files into a LAMMPS_GUI folder and then
-run a script to copy all required dependencies, some other files,
+command will automatically include a suitable CMake toolchain file (the
+regular cmake command can be used after that to modify the configuration
+settings, if needed).  After building the libraries and executables,
+you can build the target 'zip' (i.e. ``cmake --build <build dir> --target zip``
+or ``make zip`` to stage all installed files into a LAMMPS_GUI folder
+and then run a script to copy all required dependencies, some other files,
 and create a zip file from it.
 
 Linux

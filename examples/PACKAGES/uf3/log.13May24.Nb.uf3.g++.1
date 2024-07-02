@@ -1,0 +1,118 @@
+LAMMPS (17 Apr 2024 - Development - patch_17Apr2024-199-g49f20229ad-modified)
+OMP_NUM_THREADS environment is not set. Defaulting to 1 thread. (src/comm.cpp:98)
+  using 1 OpenMP thread(s) per MPI task
+# Demonstrate UF3 W potential
+
+# # ============= Initialize simulation
+
+variable        nsteps index 100
+variable        nrep equal 4
+variable        a equal 3.3005
+units           metal
+
+# generate the box and atom positions using a BCC lattice
+
+variable        nx equal ${nrep}
+variable        nx equal 4
+variable        ny equal ${nrep}
+variable        ny equal 4
+variable        nz equal ${nrep}
+variable        nz equal 4
+
+boundary        p p p
+
+lattice         bcc $a
+lattice         bcc 3.3005
+Lattice spacing in x,y,z = 3.3005 3.3005 3.3005
+region          box block 0 ${nx} 0 ${ny} 0 ${nz}
+region          box block 0 4 0 ${ny} 0 ${nz}
+region          box block 0 4 0 4 0 ${nz}
+region          box block 0 4 0 4 0 4
+create_box      1 box
+Created orthogonal box = (0 0 0) to (13.202 13.202 13.202)
+  1 by 1 by 1 MPI processor grid
+create_atoms    1 box
+Created 128 atoms
+  using lattice units in orthogonal box = (0 0 0) to (13.202 13.202 13.202)
+  create_atoms CPU = 0.000 seconds
+
+mass            1 92.906
+
+# # ============= set pair style
+
+pair_style      uf3 3
+pair_coeff      * * Nb.uf3 Nb
+Reading potential file Nb.uf3 with DATE: 2024-04-02
+
+
+# # ============= Setup output
+
+thermo          10
+thermo_modify   norm yes
+
+# # ============= Set up NVE run
+
+timestep        0.5e-3
+neighbor        1.0 bin
+neigh_modify    once no every 1 delay 0 check yes
+
+# # ============= Run MD
+
+velocity        all create 300.0 2367804 loop geom
+fix             1 all nve
+run             ${nsteps}
+run             100
+Neighbor list info ...
+  update: every = 1 steps, delay = 0 steps, check = yes
+  max neighbors/atom: 2000, page size: 100000
+  master list distance cutoff = 9
+  ghost atom cutoff = 9
+  binsize = 4.5, bins = 3 3 3
+  1 neighbor lists, perpetual/occasional/extra = 1 0 0
+  (1) pair uf3, perpetual
+      attributes: full, newton on
+      pair build: full/bin/atomonly
+      stencil: full/bin/3d
+      bin: standard
+Per MPI rank memory allocation (min/avg/max) = 3.376 | 3.376 | 3.376 Mbytes
+   Step          Temp          E_pair         E_mol          TotEng         Press     
+         0   300           -4.4256832      0             -4.3872081      90756.437    
+        10   294.36659     -4.4249607      0             -4.3872081      91006.427    
+        20   277.9021      -4.422849       0             -4.387208       91716.126    
+        30   251.88303     -4.4195119      0             -4.3872078      92789.12     
+        40   218.42803     -4.4152211      0             -4.3872076      94118.45     
+        50   180.40641     -4.4103445      0             -4.3872073      95579.009    
+        60   141.2326      -4.4053202      0             -4.3872071      97031.816    
+        70   104.54429     -4.4006146      0             -4.3872068      98332.882    
+        80   73.787889     -4.3966699      0             -4.3872066      99351.332    
+        90   51.759956     -4.3938446      0             -4.3872064      99992.934    
+       100   40.209821     -4.3923633      0             -4.3872064      100211.98    
+Loop time of 0.385575 on 1 procs for 100 steps with 128 atoms
+
+Performance: 11.204 ns/day, 2.142 hours/ns, 259.353 timesteps/s, 33.197 katom-step/s
+99.7% CPU use with 1 MPI tasks x 1 OpenMP threads
+
+MPI task timing breakdown:
+Section |  min time  |  avg time  |  max time  |%varavg| %total
+---------------------------------------------------------------
+Pair    | 0.38403    | 0.38403    | 0.38403    |   0.0 | 99.60
+Neigh   | 0          | 0          | 0          |   0.0 |  0.00
+Comm    | 0.00090609 | 0.00090609 | 0.00090609 |   0.0 |  0.23
+Output  | 0.00017626 | 0.00017626 | 0.00017626 |   0.0 |  0.05
+Modify  | 0.00018204 | 0.00018204 | 0.00018204 |   0.0 |  0.05
+Other   |            | 0.0002795  |            |       |  0.07
+
+Nlocal:            128 ave         128 max         128 min
+Histogram: 1 0 0 0 0 0 0 0 0 0
+Nghost:           1601 ave        1601 max        1601 min
+Histogram: 1 0 0 0 0 0 0 0 0 0
+Neighs:              0 ave           0 max           0 min
+Histogram: 1 0 0 0 0 0 0 0 0 0
+FullNghs:        21504 ave       21504 max       21504 min
+Histogram: 1 0 0 0 0 0 0 0 0 0
+
+Total # of neighbors = 21504
+Ave neighs/atom = 168
+Neighbor list builds = 0
+Dangerous builds = 0
+Total wall time: 0:00:00

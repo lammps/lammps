@@ -331,6 +331,32 @@ namespace utils {
   void bounds(const char *file, int line, const std::string &str, bigint nmin, bigint nmax,
               TYPE &nlo, TYPE &nhi, Error *error);
 
+  /*! Same as utils::bounds(), but string may be a typelabel
+   *
+\verbatim embed:rst
+
+.. versionadded:: 27June2024
+
+This functions adds the following case to :cpp:func:`utils::bounds() <LAMMPS_NS::utils::bounds>`:
+
+   - a single type label, typestr: nlo = nhi = label2type(typestr)
+
+\endverbatim
+
+   * \param file     name of source file for error message
+   * \param line     line number in source file for error message
+   * \param str      string to be processed
+   * \param nmin     smallest possible lower bound
+   * \param nmax     largest allowed upper bound
+   * \param nlo      lower bound
+   * \param nhi      upper bound
+   * \param lmp      pointer to top-level LAMMPS class instance
+   * \param mode     select labelmap using constants from Atom class */
+
+  template <typename TYPE>
+  void bounds_typelabel(const char *file, int line, const std::string &str, bigint nmin,
+                        bigint nmax, TYPE &nlo, TYPE &nhi, LAMMPS *lmp, int mode);
+
   /*! Expand list of arguments when containing fix/compute wildcards
    *
    *  This function searches the list of arguments in *arg* for strings
@@ -379,6 +405,12 @@ namespace utils {
 
   char *expand_type(const char *file, int line, const std::string &str, int mode, LAMMPS *lmp);
 
+  /*! Expand type label string into its equivalent integer-valued numeric type
+   *
+   *  This function has the same arguments as expand_type() but returns an integer value */
+
+  int expand_type_int(const char *file, int line, const std::string &str, int mode, LAMMPS *lmp);
+
   /*! Check grid reference for valid Compute or Fix which produces per-grid data
    *
    *  This function checks if a command argument in the input script
@@ -399,8 +431,8 @@ namespace utils {
    * \return index  which column of data is referenced (0 for vec, 1-N for array)
    * \return        ArgINFO::COMPUTE or FIX or UNKNOWN or NONE */
 
-  int check_grid_reference(char *errstr, char *ref, int nevery,
-                           char *&id, int &igrid, int &idata, int &index, LAMMPS *lmp);
+  int check_grid_reference(char *errstr, char *ref, int nevery, char *&id, int &igrid, int &idata,
+                           int &index, LAMMPS *lmp);
 
   /*! Parse grid reference into 3 sub-strings
    *
@@ -482,7 +514,7 @@ or the *-suffix/-sf* command line flag and return correspondingly modified strin
 
   std::string strip_style_suffix(const std::string &style, LAMMPS *lmp);
 
-/*! Check if a string will likely have UTF-8 encoded characters
+  /*! Check if a string will likely have UTF-8 encoded characters
    *
    * UTF-8 uses the 7-bit standard ASCII table for the first 127 characters and
    * all other characters are encoded as multiple bytes.  For the multi-byte

@@ -957,7 +957,7 @@ of points, equally spaced by 1 in their x coordinate: (1,V1), (2,V2),
 length N.  The returned value is the slope of the line.  If the line
 has a single point or is vertical, it returns 1.0e20.
 
-.. versionadded:: TBD
+.. versionadded:: 27June2024
 
 The sort(x) and rsort(x) functions sort the data of the input vector by
 their numeric value: sort(x) sorts in ascending order, rsort(x) sorts

@@ -18,10 +18,12 @@
 
 #include "atom.h"
 #include "comm.h"
+#include "constants_oxdna.h"
 #include "error.h"
 #include "force.h"
 #include "memory.h"
 #include "neighbor.h"
+#include "potential_file_reader.h"
 #include "update.h"
 
 #include "math_extra.h"
@@ -49,7 +51,7 @@ BondOxdnaFene::~BondOxdnaFene()
 void BondOxdnaFene::compute_interaction_sites(double e1[3], double /*e2*/[3], double /*e3*/[3],
                                               double r[3]) const
 {
-  constexpr double d_cs = -0.4;
+  double d_cs = ConstantsOxdna::get_d_cs();
 
   r[0] = d_cs * e1[0];
   r[1] = d_cs * e1[1];
@@ -165,6 +167,7 @@ void BondOxdnaFene::compute(int eflag, int vflag)
   int nlocal = atom->nlocal;
   int newton_bond = force->newton_bond;
 
+  const double rlogarg_min = 0.2;
   ebond = 0.0;
   ev_init(eflag, vflag);
 
@@ -217,24 +220,44 @@ void BondOxdnaFene::compute(int eflag, int vflag)
     Deltasq = Delta[type] * Delta[type];
     rlogarg = 1.0 - rr0sq / Deltasq;
 
-    // if r -> Delta, then rlogarg < 0.0 which is an error
-    // issue a warning and reset rlogarg = epsilon
-    // if r > 2*Delta something serious is wrong, abort
+    // energy
+    if (eflag) {
+      ebond = -0.5 * k[type] * log(rlogarg);
+    }
 
-    if (rlogarg < 0.1) {
+    // switching to capped force for r-r0 -> Delta at
+    // r > r_max = r0 + Delta*sqrt(1-rlogarg) OR
+    // r < r_min = r0 - Delta*sqrt(1-rlogarg)
+    if (rlogarg < rlogarg_min) {
+      // issue warning, reset rlogarg and rr0 to cap force
       error->warning(FLERR, "FENE bond too long: {} {} {} {}", update->ntimestep, atom->tag[a],
                      atom->tag[b], r);
-      rlogarg = 0.1;
+      rlogarg = rlogarg_min;
+
+      // if overstretched F(r)=F(r_max)=F_max, E(r)=E(r_max)+F_max*(r-r_max)
+      if (r > r0[type]) {
+        rr0 =  Delta[type]*sqrt(1.0-rlogarg);
+        // energy
+        if (eflag) {
+          ebond = -0.5 * k[type] * log(rlogarg) + k[type] * sqrt(1.0-rlogarg) / rlogarg / Delta[type] *
+                  (r - r0[type] - Delta[type] * sqrt(1.0-rlogarg));
+        }
+      }
+      // if overcompressed F(r)=F(r_min)=F_max, E(r)=E(r_min)+F_max*(r_min-r)
+      else if (r < r0[type]) {
+        rr0 = -Delta[type]*sqrt(1.0-rlogarg);
+        // energy
+        if (eflag) {
+          ebond = -0.5 * k[type] * log(rlogarg) + k[type] * sqrt(1.0-rlogarg) / rlogarg / Delta[type] *
+                  (r0[type] - Delta[type] * sqrt(1.0-rlogarg) - r);
+        }
+      }
     }
 
     fbond = -k[type] * rr0 / rlogarg / Deltasq / r;
     delf[0] = delr[0] * fbond;
     delf[1] = delr[1] * fbond;
     delf[2] = delr[2] * fbond;
-
-    // energy
-
-    if (eflag) { ebond = -0.5 * k[type] * log(rlogarg); }
 
     // apply force and torque to each of 2 atoms
 
@@ -295,15 +318,51 @@ void BondOxdnaFene::allocate()
 
 void BondOxdnaFene::coeff(int narg, char **arg)
 {
-  if (narg != 4) error->all(FLERR, "Incorrect args for bond coefficients in oxdna/fene");
+  if (narg != 2 && narg != 4) error->all(FLERR, "Incorrect args for bond coefficients in oxdna/fene");
   if (!allocated) allocate();
 
   int ilo, ihi;
   utils::bounds(FLERR, arg[0], 1, atom->nbondtypes, ilo, ihi, error);
 
-  double k_one = utils::numeric(FLERR, arg[1], false, lmp);
-  double Delta_one = utils::numeric(FLERR, arg[2], false, lmp);
-  double r0_one = utils::numeric(FLERR, arg[3], false, lmp);
+  double k_one;
+  double Delta_one;
+  double r0_one;
+
+  if (narg == 4) {
+    k_one = utils::numeric(FLERR, arg[1], false, lmp);
+    Delta_one = utils::numeric(FLERR, arg[2], false, lmp);
+    r0_one = utils::numeric(FLERR, arg[3], false, lmp);
+  } else {
+    if (comm->me == 0) { // read values from potential file
+      PotentialFileReader reader(lmp, arg[1], "oxdna potential", " (fene)");
+      char * line;
+      std::string iloc, potential_name;
+
+      while ((line = reader.next_line())) {
+        try {
+          ValueTokenizer values(line);
+          iloc = values.next_string();
+          potential_name = values.next_string();
+          if (iloc == arg[0] && potential_name == "fene") {
+            k_one = values.next_double();
+            Delta_one = values.next_double();
+            r0_one = values.next_double();
+
+            break;
+          } else continue;
+        } catch (std::exception &e) {
+          error->one(FLERR, "Problem parsing oxDNA potential file: {}", e.what());
+        }
+      }
+      if ((iloc != arg[0]) || (potential_name != "fene"))
+        error->one(FLERR, "No corresponding fene potential found in file {} for bond type {}",
+                   arg[1], arg[0]);
+    }
+
+    MPI_Bcast(&k_one, 1, MPI_DOUBLE, 0, world);
+    MPI_Bcast(&Delta_one, 1, MPI_DOUBLE, 0, world);
+    MPI_Bcast(&r0_one, 1, MPI_DOUBLE, 0, world);
+  }
 
   int count = 0;
 

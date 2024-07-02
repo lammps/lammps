@@ -100,6 +100,7 @@ void AngleHybridKokkos::compute(int eflag, int vflag)
       d_anglelist(m,n,0) = d_anglelist_orig(i,0);
       d_anglelist(m,n,1) = d_anglelist_orig(i,1);
       d_anglelist(m,n,2) = d_anglelist_orig(i,2);
+      d_anglelist(m,n,3) = d_anglelist_orig(i,3);
     });
   }
 

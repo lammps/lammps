@@ -614,7 +614,8 @@ struct remap_plan_3d_kokkos<DeviceType>* RemapKokkos<DeviceType>::remap_3d_creat
         malloc(nsend*sizeof(struct pack_plan_3d));
 
       if (plan->send_offset == nullptr || plan->send_size == nullptr ||
-          plan->send_proc == nullptr || plan->packplan == nullptr) return nullptr;
+          plan->sendcnts == nullptr || plan->sdispls == nullptr ||
+          plan->packplan == nullptr) return nullptr;
 
       // recv space
 
@@ -651,8 +652,8 @@ struct remap_plan_3d_kokkos<DeviceType>* RemapKokkos<DeviceType>::remap_3d_creat
         malloc(nrecv*sizeof(struct pack_plan_3d));
 
       if (plan->recv_offset == nullptr || plan->recv_size == nullptr ||
-          plan->recv_proc == nullptr || plan->recv_bufloc == nullptr ||
-          plan->request == nullptr || plan->unpackplan == nullptr) return nullptr;
+          plan->rcvcnts == nullptr || plan->rdispls == nullptr ||
+          plan->unpackplan == nullptr) return nullptr;
     }
   
     // store send info, with self as last entry
@@ -708,8 +709,6 @@ struct remap_plan_3d_kokkos<DeviceType>* RemapKokkos<DeviceType>::remap_3d_creat
         plan->selfnrecvloc = nrecv;
       }
       if (remap_3d_collide(&out,&inarray[iproc],&overlap)) {
-        //plan->recv_proc[nrecv] = iproc;
-        plan->recv_bufloc[nrecv] = ibuf;
   
         if (permute == 0) {
           plan->recv_offset[nrecv] = nqty *

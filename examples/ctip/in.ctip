@@ -1,0 +1,43 @@
+#CTIP potential for NiO
+#Contributing author: Gabriel Plummer (NASA)
+
+#Initialize
+units		metal
+atom_style	charge
+dimension	3
+boundary	p p p
+
+#Create Structure
+read_data	data.ctip
+
+#Define Charges
+group		type1 type 1
+compute		charge1 type1 property/atom q
+compute		q1 type1 reduce ave c_charge1
+group		type2 type 2
+compute		charge2 type2 property/atom q
+compute		q2 type2 reduce ave c_charge2
+
+#Define Potential
+pair_style	hybrid/overlay eam/fs coul/ctip 0.30 12.0
+pair_coeff	* * eam/fs NiO.eam.fs Ni O
+pair_coeff	* * coul/ctip NiO.ctip Ni O
+fix		qeq all qeq/ctip 1 12.0 1.0e-8 100 coul/ctip cdamp 0.30 maxrepeat 10
+
+#Setup
+timestep	0.001
+thermo		100
+thermo_style	custom step temp pe lx ly lz pxx pyy pzz c_q1 c_q2
+
+#Minimization
+fix		relax all box/relax iso 0
+minimize	1e-10 1e-10 100000 100000
+unfix		relax
+
+#Dynamics
+reset_timestep	0
+variable	T equal 1000
+variable	rnd equal round(random(0,999,${T}))
+velocity	all create ${T} ${rnd} mom yes rot yes
+fix		npt all npt temp ${T} ${T} 0.1 iso 0 0 1
+run		1000

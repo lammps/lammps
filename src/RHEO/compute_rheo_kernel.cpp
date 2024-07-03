@@ -249,25 +249,25 @@ double ComputeRHEOKernel::calc_w_quintic(int i, int j, double delx, double dely,
   double w, tmp1, tmp2, tmp3, tmp1sq, tmp2sq, tmp3sq, s;
   s = r * 3.0 * cutinv;
 
-	if (s > 3.0) {
-	  w = 0.0;
-	}
+        if (s > 3.0) {
+          w = 0.0;
+        }
 
-	if (s <= 3.0) {
-	  tmp3 = 3.0 - s;
-	  tmp3sq = tmp3 * tmp3;
-	  w = tmp3sq * tmp3sq * tmp3;
-	}
-	if (s <= 2.0) {
+        if (s <= 3.0) {
+          tmp3 = 3.0 - s;
+          tmp3sq = tmp3 * tmp3;
+          w = tmp3sq * tmp3sq * tmp3;
+        }
+        if (s <= 2.0) {
       tmp2 = 2.0 - s;
       tmp2sq = tmp2 * tmp2;
       w -= 6.0 * tmp2sq * tmp2sq * tmp2;
-	}
-	if (s <= 1.0) {
-	  tmp1 = 1.0 - s;
-	  tmp1sq = tmp1 * tmp1;
-	  w += 15.0 * tmp1sq * tmp1sq * tmp1;
-	}
+        }
+        if (s <= 1.0) {
+          tmp1 = 1.0 - s;
+          tmp1sq = tmp1 * tmp1;
+          w += 15.0 * tmp1sq * tmp1sq * tmp1;
+        }
 
   w *= pre_w;
 
@@ -326,9 +326,9 @@ double ComputeRHEOKernel::calc_w_wendlandc4(int i, int j, double delx, double de
   double w, tmp6, s;
   s = r * cutinv;
 
-	if (s > 1.0) {
-	  w = 0.0;
-	} else {
+        if (s > 1.0) {
+          w = 0.0;
+        } else {
     tmp6 = (1.0 - s) * (1.0 - s);
     tmp6 *= tmp6 * tmp6;
     w = tmp6 * (1.0 + 6.0 * s + 35.0 * THIRD * s * s);
@@ -352,9 +352,9 @@ double ComputeRHEOKernel::calc_dw_wendlandc4(int i, int j, double delx, double d
 
   s = r * cutinv;
 
-	if (s > 1.0) {
-	  wp = 0.0;
-	} else {
+        if (s > 1.0) {
+          wp = 0.0;
+        } else {
     tmp1 = 1.0 - s;
     tmp5 = tmp1 * tmp1;
     tmp5 = tmp5 * tmp5 * tmp1;

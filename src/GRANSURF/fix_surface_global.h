@@ -46,7 +46,7 @@ class FixSurfaceGlobal : public Fix {
   int modify_param(int, char **x) override;
   void reset_dt() override;
   double memory_usage() override;
-  
+
   void *extract(const char *, int &) override;
   int image(int *&, double **&) override;
 
@@ -139,7 +139,7 @@ class FixSurfaceGlobal : public Fix {
   // private methods
 
   void hooke(int, int, double, double, double, double *, double *, double);
-  void hooke_history(int, int, double, double, double, double, double, double, 
+  void hooke_history(int, int, double, double, double, double, double, double,
                      double *, double *, double, double *);
 
   int overlap_sphere_line(int, int, double *, double *, double &);

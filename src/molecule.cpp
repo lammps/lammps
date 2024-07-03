@@ -172,7 +172,7 @@ Molecule::Molecule(LAMMPS *lmp, int narg, char **arg, int &index) :
                    nangletypes, ndihedrals, ndihedraltypes, nimpropers, nimpropertypes);
     if (npoints && nlines)
       utils::logmesg(lmp,"  {} lines with {} points\n",nlines,npoints);
-    if (npoints && ntris) 
+    if (npoints && ntris)
       utils::logmesg(lmp,"  {} triangles with {} points\n",ntris,npoints);
   }
 }
@@ -468,7 +468,7 @@ void Molecule::read(int flag)
       } else if (values.contains("triangles")) {
         ntris = values.next_int();
         nwant = 2;
-        
+
       } else if (values.contains("bonds")) {
         nbonds = values.next_int();
         nwant = 2;
@@ -551,9 +551,9 @@ void Molecule::read(int flag)
   if (ndihedrals < 0) error->all(FLERR, "Invalid dihedral count in molecule file");
   if (nimpropers < 0) error->all(FLERR, "Invalid improper count in molecule file");
 
-  if (natoms == 0 && npoints == 0) 
+  if (natoms == 0 && npoints == 0)
     error->all(FLERR,"Molecule file must define either atoms or points");
-  if (natoms && npoints) 
+  if (natoms && npoints)
     error->all(FLERR,"Molecule file cannot define both atoms and points");
 
   if (npoints && domain->dimension == 2 && nlines == 0)
@@ -575,7 +575,7 @@ void Molecule::read(int flag)
     maxcount = MAX(maxcount,ntris);
     memory->create(count, maxcount, "molecule:count");
   }
-  
+
   // grab keyword and skip next line
 
   std::string keyword = parse_keyword(0, line);
@@ -638,21 +638,21 @@ void Molecule::read(int flag)
     } else if (keyword == "Points") {
       pointflag = 1;
       if (flag)
-	pts(line);
+        pts(line);
       else
-	skip_lines(npoints, line, keyword);
+        skip_lines(npoints, line, keyword);
     } else if (keyword == "Lines") {
       lineflag = 1;
       if (flag)
-	line_segments(line);
+        line_segments(line);
       else
-	skip_lines(nlines, line, keyword);
+        skip_lines(nlines, line, keyword);
     } else if (keyword == "Triangles") {
       triflag = 1;
       if (flag)
-	triangles(line);
+        triangles(line);
       else
-	skip_lines(ntris, line, keyword);
+        skip_lines(ntris, line, keyword);
 
     } else if (keyword == "Bonds") {
       if (nbonds == 0) error->all(FLERR, "Found Bonds section but no nbonds setting in header");
@@ -1164,10 +1164,10 @@ void Molecule::line_segments(char *line)
   } catch (TokenizerException &e) {
     error->all(FLERR, "Invalid line in Lines section of molecule file: {}\n{}", e.what(), line);
   }
-  
+
   // check all line types and point indices
   // add toffset to line type
-  
+
   for (int i = 0; i < nlines; i++) {
     if (count[i] == 0)
       error->all(FLERR, "Line {} missing in Lines section of molecule file", i + 1);
@@ -1213,7 +1213,7 @@ void Molecule::triangles(char *line)
 
   // check all triangle types and point indices
   // add toffset to triangle type
-  
+
   for (int i = 0; i < ntris; i++) {
     if (count[i] == 0)
       error->all(FLERR, "Triangle {} missing in Triangles section of molecule file", i + 1);

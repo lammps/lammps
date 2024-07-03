@@ -37,7 +37,7 @@ class Molecule : protected Pointers {
   int nibody, ndbody;
 
   // for surface lines or tris with corner points
-  
+
   int npoints,nlines,ntris;
 
   // max bond,angle,etc per atom

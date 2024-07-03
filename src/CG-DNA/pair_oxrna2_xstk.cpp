@@ -19,6 +19,7 @@
 
 #include "atom.h"
 #include "comm.h"
+#include "constants_oxdna.h"
 #include "error.h"
 #include "force.h"
 #include "math_const.h"
@@ -26,6 +27,7 @@
 #include "memory.h"
 #include "mf_oxdna.h"
 #include "neigh_list.h"
+#include "potential_file_reader.h"
 
 #include <cmath>
 #include <cstring>
@@ -40,6 +42,7 @@ PairOxrna2Xstk::PairOxrna2Xstk(LAMMPS *lmp) : Pair(lmp)
 {
   single_enable = 0;
   writedata = 1;
+  trim_flag = 0;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -115,7 +118,7 @@ void PairOxrna2Xstk::compute(int eflag, int vflag)
   double theta8,theta8p,t8dir[3],cost8;
 
   // distance COM-h-bonding site
-  double d_chb=+0.4;
+  double d_chb = ConstantsOxdna::get_d_chb();
   // vectors COM-h-bonding site in lab frame
   double ra_chb[3],rb_chb[3];
 
@@ -580,7 +583,7 @@ void PairOxrna2Xstk::coeff(int narg, char **arg)
 {
   int count;
 
-  if (narg != 22) error->all(FLERR,"Incorrect args for pair coefficients in oxrna2/xstk");
+  if (narg != 3 && narg != 22) error->all(FLERR,"Incorrect args for pair coefficients in oxrna2/xstk");
   if (!allocated) allocate();
 
   int ilo,ihi,jlo,jhi;
@@ -608,32 +611,108 @@ void PairOxrna2Xstk::coeff(int narg, char **arg)
   double a_xst8_one, theta_xst8_0_one, dtheta_xst8_ast_one;
   double b_xst8_one, dtheta_xst8_c_one;
 
-  k_xst_one = utils::numeric(FLERR,arg[2],false,lmp);
-  cut_xst_0_one = utils::numeric(FLERR,arg[3],false,lmp);
-  cut_xst_c_one = utils::numeric(FLERR,arg[4],false,lmp);
-  cut_xst_lo_one = utils::numeric(FLERR,arg[5],false,lmp);
-  cut_xst_hi_one = utils::numeric(FLERR,arg[6],false,lmp);
+  if (narg == 22) {
+    k_xst_one = utils::numeric(FLERR,arg[2],false,lmp);
+    cut_xst_0_one = utils::numeric(FLERR,arg[3],false,lmp);
+    cut_xst_c_one = utils::numeric(FLERR,arg[4],false,lmp);
+    cut_xst_lo_one = utils::numeric(FLERR,arg[5],false,lmp);
+    cut_xst_hi_one = utils::numeric(FLERR,arg[6],false,lmp);
 
-  a_xst1_one = utils::numeric(FLERR,arg[7],false,lmp);
-  theta_xst1_0_one = utils::numeric(FLERR,arg[8],false,lmp);
-  dtheta_xst1_ast_one = utils::numeric(FLERR,arg[9],false,lmp);
+    a_xst1_one = utils::numeric(FLERR,arg[7],false,lmp);
+    theta_xst1_0_one = utils::numeric(FLERR,arg[8],false,lmp);
+    dtheta_xst1_ast_one = utils::numeric(FLERR,arg[9],false,lmp);
 
-  a_xst2_one = utils::numeric(FLERR,arg[10],false,lmp);
-  theta_xst2_0_one = utils::numeric(FLERR,arg[11],false,lmp);
-  dtheta_xst2_ast_one = utils::numeric(FLERR,arg[12],false,lmp);
+    a_xst2_one = utils::numeric(FLERR,arg[10],false,lmp);
+    theta_xst2_0_one = utils::numeric(FLERR,arg[11],false,lmp);
+    dtheta_xst2_ast_one = utils::numeric(FLERR,arg[12],false,lmp);
 
-  a_xst3_one = utils::numeric(FLERR,arg[13],false,lmp);
-  theta_xst3_0_one = utils::numeric(FLERR,arg[14],false,lmp);
-  dtheta_xst3_ast_one = utils::numeric(FLERR,arg[15],false,lmp);
+    a_xst3_one = utils::numeric(FLERR,arg[13],false,lmp);
+    theta_xst3_0_one = utils::numeric(FLERR,arg[14],false,lmp);
+    dtheta_xst3_ast_one = utils::numeric(FLERR,arg[15],false,lmp);
 
-  a_xst7_one = utils::numeric(FLERR,arg[16],false,lmp);
-  theta_xst7_0_one = utils::numeric(FLERR,arg[17],false,lmp);
-  dtheta_xst7_ast_one = utils::numeric(FLERR,arg[18],false,lmp);
+    a_xst7_one = utils::numeric(FLERR,arg[16],false,lmp);
+    theta_xst7_0_one = utils::numeric(FLERR,arg[17],false,lmp);
+    dtheta_xst7_ast_one = utils::numeric(FLERR,arg[18],false,lmp);
 
-  a_xst8_one = utils::numeric(FLERR,arg[19],false,lmp);
-  theta_xst8_0_one = utils::numeric(FLERR,arg[20],false,lmp);
-  dtheta_xst8_ast_one = utils::numeric(FLERR,arg[21],false,lmp);
+    a_xst8_one = utils::numeric(FLERR,arg[19],false,lmp);
+    theta_xst8_0_one = utils::numeric(FLERR,arg[20],false,lmp);
+    dtheta_xst8_ast_one = utils::numeric(FLERR,arg[21],false,lmp);
+  } else {
+    if (comm->me == 0) {
+      PotentialFileReader reader(lmp, arg[2], "oxdna potential", " (xstk)");
+      char * line;
+      std::string iloc, jloc, potential_name;
 
+      while ((line = reader.next_line())) {
+        try {
+          ValueTokenizer values(line);
+          iloc = values.next_string();
+          jloc = values.next_string();
+          potential_name = values.next_string();
+          if (iloc == arg[0] && jloc == arg[1] && potential_name == "xstk") {
+            k_xst_one = values.next_double();
+            cut_xst_0_one = values.next_double();
+            cut_xst_c_one = values.next_double();
+            cut_xst_lo_one = values.next_double();
+            cut_xst_hi_one = values.next_double();
+
+            a_xst1_one = values.next_double();
+            theta_xst1_0_one = values.next_double();
+            dtheta_xst1_ast_one = values.next_double();
+
+            a_xst2_one = values.next_double();
+            theta_xst2_0_one = values.next_double();
+            dtheta_xst2_ast_one = values.next_double();
+
+            a_xst3_one = values.next_double();
+            theta_xst3_0_one = values.next_double();
+            dtheta_xst3_ast_one = values.next_double();
+
+            a_xst7_one = values.next_double();
+            theta_xst7_0_one = values.next_double();
+            dtheta_xst7_ast_one = values.next_double();
+
+            a_xst8_one = values.next_double();
+            theta_xst8_0_one = values.next_double();
+            dtheta_xst8_ast_one = values.next_double();
+
+          break;
+          } else continue;
+        } catch (std::exception &e) {
+          error->one(FLERR, "Problem parsing oxDNA potential file: {}", e.what());
+        }
+      }
+      if ((iloc != arg[0]) || (jloc != arg[1]) || (potential_name != "xstk"))
+        error->one(FLERR, "No corresponding xstk potential found in file {} for pair type {} {}",
+                   arg[2], arg[0], arg[1]);
+    }
+
+    MPI_Bcast(&k_xst_one, 1, MPI_DOUBLE, 0, world);
+    MPI_Bcast(&cut_xst_0_one, 1, MPI_DOUBLE, 0, world);
+    MPI_Bcast(&cut_xst_c_one, 1, MPI_DOUBLE, 0, world);
+    MPI_Bcast(&cut_xst_lo_one, 1, MPI_DOUBLE, 0, world);
+    MPI_Bcast(&cut_xst_hi_one, 1, MPI_DOUBLE, 0, world);
+
+    MPI_Bcast(&a_xst1_one, 1, MPI_DOUBLE, 0, world);
+    MPI_Bcast(&theta_xst1_0_one, 1, MPI_DOUBLE, 0, world);
+    MPI_Bcast(&dtheta_xst1_ast_one, 1, MPI_DOUBLE, 0, world);
+
+    MPI_Bcast(&a_xst2_one, 1, MPI_DOUBLE, 0, world);
+    MPI_Bcast(&theta_xst2_0_one, 1, MPI_DOUBLE, 0, world);
+    MPI_Bcast(&dtheta_xst2_ast_one, 1, MPI_DOUBLE, 0, world);
+
+    MPI_Bcast(&a_xst3_one, 1, MPI_DOUBLE, 0, world);
+    MPI_Bcast(&theta_xst3_0_one, 1, MPI_DOUBLE, 0, world);
+    MPI_Bcast(&dtheta_xst3_ast_one, 1, MPI_DOUBLE, 0, world);
+
+    MPI_Bcast(&a_xst7_one, 1, MPI_DOUBLE, 0, world);
+    MPI_Bcast(&theta_xst7_0_one, 1, MPI_DOUBLE, 0, world);
+    MPI_Bcast(&dtheta_xst7_ast_one, 1, MPI_DOUBLE, 0, world);
+
+    MPI_Bcast(&a_xst8_one, 1, MPI_DOUBLE, 0, world);
+    MPI_Bcast(&theta_xst8_0_one, 1, MPI_DOUBLE, 0, world);
+    MPI_Bcast(&dtheta_xst8_ast_one, 1, MPI_DOUBLE, 0, world);
+  }
 
   b_xst_lo_one = 0.25 * (cut_xst_lo_one - cut_xst_0_one) * (cut_xst_lo_one - cut_xst_0_one)/
         (0.5 * (cut_xst_lo_one - cut_xst_0_one) * (cut_xst_lo_one - cut_xst_0_one) -

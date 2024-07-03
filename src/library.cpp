@@ -1198,14 +1198,31 @@ internally by the :doc:`Fortran interface <Fortran>` and are not likely to be us
    * - triclinic
      - 1 if the the simulation box is triclinic, 0 if orthogonal.
        See :doc:`change_box`.
+
+**Communication status**
+
+.. list-table::
+   :header-rows: 1
+   :widths: auto
+
+   * - Keyword
+     - Description / Return value
    * - universe_rank
      - MPI rank on LAMMPS' universe communicator (0 <= universe_rank < universe_size)
    * - universe_size
      - Number of ranks on LAMMPS' universe communicator (world_size <= universe_size)
    * - world_rank
-     - MPI rank on LAMMPS' world communicator (0 <= world_rank < world_size)
+     - MPI rank on LAMMPS' world communicator (0 <= world_rank < world_size, aka comm->me)
    * - world_size
-     - Number of ranks on LAMMPS' world communicator
+     - Number of ranks on LAMMPS' world communicator (aka comm->nprocs)
+   * - comm_style
+     - communication style (0 = BRICK, 1 = TILED)
+   * - comm_layout
+     - communication layout (0 = LAYOUT_UNIFORM, 1 = LAYOUT_NONUNIFORM, 2 = LAYOUT_TILED)
+   * - comm_mode
+     - communication mode (0 = SINGLE, 1 = MULTI, 2 = MULTIOLD)
+   * - ghost_velocity
+     - whether velocities are communicated for ghost atoms (0 = no, 1 = yes)
 
 .. _extract_system_sizes:
 
@@ -1310,6 +1327,10 @@ int lammps_extract_setting(void *handle, const char *keyword)
   if (strcmp(keyword,"world_rank") == 0) return lmp->comm->me;
   if (strcmp(keyword,"world_size") == 0) return lmp->comm->nprocs;
   if (strcmp(keyword,"nthreads") == 0) return lmp->comm->nthreads;
+  if (strcmp(keyword,"comm_style") == 0) return lmp->comm->style;
+  if (strcmp(keyword,"comm_layout") == 0) return lmp->comm->layout;
+  if (strcmp(keyword,"comm_mode") == 0) return lmp->comm->mode;
+  if (strcmp(keyword,"ghost_velocity") == 0) return lmp->comm->ghost_velocity;
 
   if (strcmp(keyword,"nlocal") == 0) return lmp->atom->nlocal;
   if (strcmp(keyword,"nghost") == 0) return lmp->atom->nghost;
@@ -1386,6 +1407,7 @@ int lammps_extract_global_datatype(void * /*handle*/, const char *name)
   if (strcmp(name,"xy") == 0) return LAMMPS_DOUBLE;
   if (strcmp(name,"xz") == 0) return LAMMPS_DOUBLE;
   if (strcmp(name,"yz") == 0) return LAMMPS_DOUBLE;
+  if (strcmp(name,"procgrid") == 0) return LAMMPS_INT;
 
   if (strcmp(name,"natoms") == 0) return LAMMPS_BIGINT;
   if (strcmp(name,"nbonds") == 0) return LAMMPS_BIGINT;
@@ -1604,6 +1626,10 @@ report the "native" data type.  The following tables are provided:
      - double
      - 1
      - triclinic tilt factor. See :doc:`Howto_triclinic`.
+   * - procgrid
+     - int
+     - 3
+     - processor count assigned to each dimension of 3d grid. See :doc:`processors`.
 
 .. _extract_system_settings:
 
@@ -1861,6 +1887,9 @@ void *lammps_extract_global(void *handle, const char *name)
   if (strcmp(name,"xy") == 0) return (void *) &lmp->domain->xy;
   if (strcmp(name,"xz") == 0) return (void *) &lmp->domain->xz;
   if (strcmp(name,"yz") == 0) return (void *) &lmp->domain->yz;
+  if (((lmp->comm->layout == Comm::LAYOUT_UNIFORM) ||
+       (lmp->comm->layout == Comm::LAYOUT_NONUNIFORM)) && (strcmp(name,"procgrid") == 0))
+    return (void *) &lmp->comm->procgrid;
 
   if (strcmp(name,"natoms") == 0) return (void *) &lmp->atom->natoms;
   if (strcmp(name,"ntypes") == 0) return (void *) &lmp->atom->ntypes;
@@ -1913,7 +1942,7 @@ void *lammps_extract_global(void *handle, const char *name)
  *
 \verbatim embed:rst
 
-.. versionadded:: TBD
+.. versionadded:: 27June2024
 
 This function returns an integer that corresponds to the local atom
 index for an atom with the global atom ID *id*. The atom ID is passed
@@ -2391,7 +2420,7 @@ use to avoid a memory leak. Example:
 
 .. code-block:: c
 
-   double *dptr = (double *) lammps_extract_variable(handle,name,NULL);
+   double *dptr = (double *) lammps_extract_variable(handle, name, NULL);
    double value = *dptr;
    lammps_free((void *)dptr);
 
@@ -2402,16 +2431,25 @@ content will not be updated in case the variable is re-evaluated.
 To avoid a memory leak, this pointer needs to be freed after use in
 the calling program.
 
-For *vector*\ -style variables, the returned pointer is to actual LAMMPS data.
-The pointer should not be deallocated. Its length depends on the variable,
-compute, or fix data used to construct the *vector*\ -style variable.
-This length can be fetched by calling this function with *group* set to the
-constant "LMP_SIZE_VECTOR", which returns a ``void *`` pointer that can be
-dereferenced to an integer that is the length of the vector. This pointer
-needs to be deallocated when finished with it to avoid memory leaks.
+For *vector*\ -style variables, the returned pointer points to actual
+LAMMPS data and thus it should **not** be deallocated.  Its length
+depends on the variable, compute, or fix data used to construct the
+*vector*\ -style variable.  This length can be fetched by calling this
+function with *group* set to a non-NULL pointer (NULL returns the vector).
+In that case it will return the vector length as an allocated int
+pointer cast to a ``void *`` pointer.  That pointer can be recast and
+dereferenced to an integer yielding the length of the vector. This pointer
+must be deallocated when finished with it to avoid memory leaks. Example:
+
+.. code-block:: c
+
+   double *vectvals = (double *) lammps_extract_variable(handle, name, NULL);
+   int *intptr = (int *) lammps_extract_variable(handle, name, 1);
+   int vectlen = *intptr;
+   lammps_free((void *)intptr);
 
 For other variable styles the returned pointer needs to be cast to
-a char pointer. It should not be deallocated.
+a char pointer and it should **not** be deallocated. Example:
 
 .. code-block:: c
 
@@ -2423,7 +2461,7 @@ a char pointer. It should not be deallocated.
    LAMMPS cannot easily check if it is valid to access the data
    referenced by the variables (e.g., computes, fixes, or thermodynamic
    info), so it may fail with an error.  The caller has to make certain
-   that the data are extracted only when it safe to evaluate the variable
+   that the data is extracted only when it safe to evaluate the variable
    and thus an error or crash are avoided.
 
 \endverbatim
@@ -2458,7 +2496,7 @@ void *lammps_extract_variable(void *handle, const char *name, const char *group)
     } else if (lmp->input->variable->vectorstyle(ivar)) {
       double *values = nullptr;
       int nvector = lmp->input->variable->compute_vector(ivar, &values);
-      if (group != nullptr && strcmp(group,"LMP_SIZE_VECTOR") == 0) {
+      if (group) {
           int* nvecptr = (int *) malloc(sizeof(int));
           *nvecptr = nvector;
           return (void *) nvecptr;

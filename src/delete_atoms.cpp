@@ -22,6 +22,7 @@
 #include "comm.h"
 #include "domain.h"
 #include "error.h"
+#include "fix_bond_history.h"
 #include "force.h"
 #include "group.h"
 #include "input.h"
@@ -754,6 +755,10 @@ void DeleteAtoms::bondring(int nbuf, char *cbuf, void *ptr)
 
   int nlocal = daptr->atom->nlocal;
 
+  // find instances of bond history to delete data
+  auto histories = daptr->modify->get_fix_by_style("BOND_HISTORY");
+  int n_histories = histories.size();
+
   // cbuf = list of N deleted atom IDs from other proc, put them in hash
 
   hash->clear();
@@ -771,6 +776,11 @@ void DeleteAtoms::bondring(int nbuf, char *cbuf, void *ptr)
         if (hash->find(bond_atom[i][m]) != hash->end()) {
           bond_type[i][m] = bond_type[i][n - 1];
           bond_atom[i][m] = bond_atom[i][n - 1];
+          if (n_histories > 0)
+            for (auto &ihistory: histories) {
+              dynamic_cast<FixBondHistory *>(ihistory)->shift_history(i,m,n-1);
+              dynamic_cast<FixBondHistory *>(ihistory)->delete_history(i,n-1);
+            }
           n--;
         } else
           m++;

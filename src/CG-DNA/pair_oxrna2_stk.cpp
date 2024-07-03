@@ -19,6 +19,7 @@
 
 #include "atom.h"
 #include "comm.h"
+#include "constants_oxdna.h"
 #include "error.h"
 #include "force.h"
 #include "math_const.h"
@@ -27,6 +28,7 @@
 #include "mf_oxdna.h"
 #include "neighbor.h"
 #include "neigh_list.h"
+#include "potential_file_reader.h"
 
 #include <cmath>
 #include <cstring>
@@ -41,6 +43,7 @@ PairOxrna2Stk::PairOxrna2Stk(LAMMPS *lmp) : Pair(lmp)
 {
   single_enable = 0;
   writedata = 1;
+  trim_flag = 0;
 
   // sequence-specific stacking strength
   // A:0 C:1 G:2 U:3, 3'- [i][j] -5'
@@ -232,9 +235,12 @@ void PairOxrna2Stk::compute(int eflag, int vflag)
   double cosphi1,cosphi2,cosphi1dir[3],cosphi2dir[3];
 
   // distances COM-backbone site, COM-3' and COM-5' stacking site
-  double d_cs_x=-0.4, d_cs_z=+0.2;
-  double d_cst_x_3p=+0.4, d_cst_y_3p=+0.1;
-  double d_cst_x_5p=+0.124906078525, d_cst_y_5p=-0.00866274917473;
+  double d_cs_x = ConstantsOxdna::get_d_cs();
+  double d_cs_z = ConstantsOxdna::get_d_cs_z();
+  double d_cst_x_3p = ConstantsOxdna::get_d_cst_x_3p();
+  double d_cst_y_3p = ConstantsOxdna::get_d_cst_y_3p();
+  double d_cst_x_5p = ConstantsOxdna::get_d_cst_x_5p();
+  double d_cst_y_5p = ConstantsOxdna::get_d_cst_y_5p();
 
   // 3' and p5' auxiliary vectors
   double  d3p_x=-0.462510,d3p_y=-0.528218,d3p_z=+0.712089;
@@ -841,7 +847,7 @@ void PairOxrna2Stk::coeff(int narg, char **arg)
 {
   int count;
 
-  if (narg != 27) error->all(FLERR,"Incorrect args for pair coefficients in oxrna2/stk");
+  if (narg != 7 && narg != 27) error->all(FLERR,"Incorrect args for pair coefficients in oxrna2/stk");
   if (!allocated) allocate();
 
   int ilo,ihi,jlo,jhi;
@@ -881,30 +887,106 @@ void PairOxrna2Stk::coeff(int narg, char **arg)
   kappa_st_one = utils::numeric(FLERR,arg[5],false,lmp);
   epsilon_st_one = stacking_strength(xi_st_one, kappa_st_one, T);
 
-  a_st_one = utils::numeric(FLERR,arg[6],false,lmp);
-  cut_st_0_one = utils::numeric(FLERR,arg[7],false,lmp);
-  cut_st_c_one = utils::numeric(FLERR,arg[8],false,lmp);
-  cut_st_lo_one = utils::numeric(FLERR,arg[9],false,lmp);
-  cut_st_hi_one = utils::numeric(FLERR,arg[10],false,lmp);
+  if (narg == 27) {
+    a_st_one = utils::numeric(FLERR,arg[6],false,lmp);
+    cut_st_0_one = utils::numeric(FLERR,arg[7],false,lmp);
+    cut_st_c_one = utils::numeric(FLERR,arg[8],false,lmp);
+    cut_st_lo_one = utils::numeric(FLERR,arg[9],false,lmp);
+    cut_st_hi_one = utils::numeric(FLERR,arg[10],false,lmp);
 
-  a_st5_one = utils::numeric(FLERR,arg[11],false,lmp);
-  theta_st5_0_one = utils::numeric(FLERR,arg[12],false,lmp);
-  dtheta_st5_ast_one = utils::numeric(FLERR,arg[13],false,lmp);
-  a_st6_one = utils::numeric(FLERR,arg[14],false,lmp);
-  theta_st6_0_one = utils::numeric(FLERR,arg[15],false,lmp);
-  dtheta_st6_ast_one = utils::numeric(FLERR,arg[16],false,lmp);
+    a_st5_one = utils::numeric(FLERR,arg[11],false,lmp);
+    theta_st5_0_one = utils::numeric(FLERR,arg[12],false,lmp);
+    dtheta_st5_ast_one = utils::numeric(FLERR,arg[13],false,lmp);
+    a_st6_one = utils::numeric(FLERR,arg[14],false,lmp);
+    theta_st6_0_one = utils::numeric(FLERR,arg[15],false,lmp);
+    dtheta_st6_ast_one = utils::numeric(FLERR,arg[16],false,lmp);
 
-  a_st9_one = utils::numeric(FLERR,arg[17],false,lmp);
-  theta_st9_0_one = utils::numeric(FLERR,arg[18],false,lmp);
-  dtheta_st9_ast_one = utils::numeric(FLERR,arg[19],false,lmp);
-  a_st10_one = utils::numeric(FLERR,arg[20],false,lmp);
-  theta_st10_0_one = utils::numeric(FLERR,arg[21],false,lmp);
-  dtheta_st10_ast_one = utils::numeric(FLERR,arg[22],false,lmp);
+    a_st9_one = utils::numeric(FLERR,arg[17],false,lmp);
+    theta_st9_0_one = utils::numeric(FLERR,arg[18],false,lmp);
+    dtheta_st9_ast_one = utils::numeric(FLERR,arg[19],false,lmp);
+    a_st10_one = utils::numeric(FLERR,arg[20],false,lmp);
+    theta_st10_0_one = utils::numeric(FLERR,arg[21],false,lmp);
+    dtheta_st10_ast_one = utils::numeric(FLERR,arg[22],false,lmp);
 
-  a_st1_one = utils::numeric(FLERR,arg[23],false,lmp);
-  cosphi_st1_ast_one = utils::numeric(FLERR,arg[24],false,lmp);
-  a_st2_one = utils::numeric(FLERR,arg[25],false,lmp);
-  cosphi_st2_ast_one = utils::numeric(FLERR,arg[26],false,lmp);
+    a_st1_one = utils::numeric(FLERR,arg[23],false,lmp);
+    cosphi_st1_ast_one = utils::numeric(FLERR,arg[24],false,lmp);
+    a_st2_one = utils::numeric(FLERR,arg[25],false,lmp);
+    cosphi_st2_ast_one = utils::numeric(FLERR,arg[26],false,lmp);
+  } else { // read values from potential file
+    if (comm->me == 0) {
+      PotentialFileReader reader(lmp, arg[6], "oxdna potential", " (stk)");
+      char * line;
+      std::string iloc, jloc, potential_name;
+
+      while ((line = reader.next_line())) {
+        try {
+          ValueTokenizer values(line);
+          iloc = values.next_string();
+          jloc = values.next_string();
+          potential_name = values.next_string();
+          if (iloc == arg[0] && jloc == arg[1] && potential_name == "stk") {
+
+            a_st_one = values.next_double();
+            cut_st_0_one = values.next_double();
+            cut_st_c_one = values.next_double();
+            cut_st_lo_one = values.next_double();
+            cut_st_hi_one = values.next_double();
+
+            a_st5_one = values.next_double();
+            theta_st5_0_one = values.next_double();
+            dtheta_st5_ast_one = values.next_double();
+            a_st6_one = values.next_double();
+            theta_st6_0_one = values.next_double();
+            dtheta_st6_ast_one = values.next_double();
+
+            a_st9_one = values.next_double();
+            theta_st9_0_one = values.next_double();
+            dtheta_st9_ast_one = values.next_double();
+            a_st10_one = values.next_double();
+            theta_st10_0_one = values.next_double();
+            dtheta_st10_ast_one = values.next_double();
+
+            a_st1_one = values.next_double();
+            cosphi_st1_ast_one = values.next_double();
+            a_st2_one = values.next_double();
+            cosphi_st2_ast_one = values.next_double();
+
+            break;
+          } else continue;
+        } catch (std::exception &e) {
+          error->one(FLERR, "Problem parsing oxDNA potential file: {}", e.what());
+        }
+      }
+      if ((iloc != arg[0]) || (jloc != arg[1]) || (potential_name != "stk"))
+        error->one(FLERR, "No corresponding stk potential found in file {} for pair type {} {}",
+                   arg[4], arg[0], arg[1]);
+    }
+
+    MPI_Bcast(&a_st_one, 1, MPI_DOUBLE, 0, world);
+    MPI_Bcast(&cut_st_0_one, 1, MPI_DOUBLE, 0, world);
+    MPI_Bcast(&cut_st_c_one, 1, MPI_DOUBLE, 0, world);
+    MPI_Bcast(&cut_st_lo_one, 1, MPI_DOUBLE, 0, world);
+    MPI_Bcast(&cut_st_hi_one, 1, MPI_DOUBLE, 0, world);
+
+    MPI_Bcast(&a_st5_one, 1, MPI_DOUBLE, 0, world);
+    MPI_Bcast(&theta_st5_0_one, 1, MPI_DOUBLE, 0, world);
+    MPI_Bcast(&dtheta_st5_ast_one, 1, MPI_DOUBLE, 0, world);
+    MPI_Bcast(&a_st6_one, 1, MPI_DOUBLE, 0, world);
+    MPI_Bcast(&theta_st6_0_one, 1, MPI_DOUBLE, 0, world);
+    MPI_Bcast(&dtheta_st6_ast_one, 1, MPI_DOUBLE, 0, world);
+
+    MPI_Bcast(&a_st9_one, 1, MPI_DOUBLE, 0, world);
+    MPI_Bcast(&theta_st9_0_one, 1, MPI_DOUBLE, 0, world);
+    MPI_Bcast(&dtheta_st9_ast_one, 1, MPI_DOUBLE, 0, world);
+    MPI_Bcast(&a_st10_one, 1, MPI_DOUBLE, 0, world);
+    MPI_Bcast(&theta_st10_0_one, 1, MPI_DOUBLE, 0, world);
+    MPI_Bcast(&dtheta_st10_ast_one, 1, MPI_DOUBLE, 0, world);
+
+    MPI_Bcast(&a_st1_one, 1, MPI_DOUBLE, 0, world);
+    MPI_Bcast(&cosphi_st1_ast_one, 1, MPI_DOUBLE, 0, world);
+    MPI_Bcast(&a_st2_one, 1, MPI_DOUBLE, 0, world);
+    MPI_Bcast(&cosphi_st2_ast_one, 1, MPI_DOUBLE, 0, world);
+  }
 
   b_st_lo_one = 2*a_st_one*exp(-a_st_one*(cut_st_lo_one-cut_st_0_one))*
         2*a_st_one*exp(-a_st_one*(cut_st_lo_one-cut_st_0_one))*

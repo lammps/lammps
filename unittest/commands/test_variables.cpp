@@ -157,6 +157,7 @@ TEST_F(VariableTest, CreateDelete)
     ASSERT_THAT(variable->retrieve("three"), StrEq("four"));
     ASSERT_THAT(variable->retrieve("four2"), StrEq("2"));
     ASSERT_THAT(variable->retrieve("five1"), StrEq("001"));
+    ASSERT_THAT(variable->retrieve("five2"), StrEq("010"));
     ASSERT_THAT(variable->retrieve("seven"), StrEq(" 2.00"));
     ASSERT_THAT(variable->retrieve("ten"), StrEq("1"));
     ASSERT_THAT(variable->retrieve("eight"), StrEq(""));

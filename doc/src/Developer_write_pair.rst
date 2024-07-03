@@ -50,6 +50,30 @@ We are looking at the following cases:
 - `Case 3: a potential requiring communication`_
 - `Case 4: potentials without a compute() function`_
 
+Package and build system considerations
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+In general, new pair styles should be added to the :ref:`EXTRA-PAIR
+package <PKG-EXTRA-PAIR>` unless they are an accelerated pair style and
+then they should be added to the corresponding accelerator package
+(:ref:`GPU <PKG-GPU>`, :ref:`INTEL <PKG-INTEL>`, :ref:`KOKKOS
+<PKG-KOKKOS>`, :ref:`OPENMP <PKG-OPENMP>`, :ref:`OPT <PKG-OPT>`).  If
+you feel that your contribution should be added to a different package,
+please consult with the LAMMPS developers first.
+
+The contributed code needs to support the :doc:`traditional GNU make
+build process <Build_make>` **and** the :doc:`CMake build process
+<Build_cmake>`.  For the GNU make process and if the package has an
+``Install.sh`` file, most likely that file needs to be updated to
+correctly copy the sources when installing the package and properly
+delete them when uninstalling.  This is particularly important when
+added a new pair style that is a derived class from an existing pair
+style in a package, so that its installation depends on the the
+installation status of the package of the derived class.  For the CMake
+process, it is sometimes necessary to make changes to the package
+specific CMake scripting in ``cmake/Modules/Packages``.
+
+
 ----
 
 Case 1: a pairwise additive model

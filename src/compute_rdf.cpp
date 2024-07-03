@@ -102,10 +102,20 @@ ComputeRDF::ComputeRDF(LAMMPS *lmp, int narg, char **arg) :
   } else {
     iarg = 4;
     for (int ipair = 0; ipair < npairs; ipair++) {
-      utils::bounds(FLERR,arg[iarg],1,atom->ntypes,ilo[ipair],ihi[ipair],error);
-      utils::bounds(FLERR,arg[iarg+1],1,atom->ntypes,jlo[ipair],jhi[ipair],error);
-      if (ilo[ipair] > ihi[ipair] || jlo[ipair] > jhi[ipair])
-        error->all(FLERR,"Illegal compute rdf command");
+      utils::bounds_typelabel(FLERR, arg[iarg], 1, atom->ntypes, ilo[ipair], ihi[ipair], lmp, Atom::ATOM);
+      utils::bounds_typelabel(FLERR, arg[iarg+1], 1, atom->ntypes, jlo[ipair], jhi[ipair], lmp, Atom::ATOM);
+
+      // switch i,j if i > j, if wildcards were not used
+
+      if ( (ilo[ipair] == ihi[ipair]) &&
+           (jlo[ipair] == jhi[ipair]) &&
+           (ilo[ipair] > jlo[ipair]) ) {
+        jlo[ipair] = ihi[ipair];
+        ilo[ipair] = jhi[ipair];
+        ihi[ipair] = ilo[ipair];
+        jhi[ipair] = jlo[ipair];
+      }
+
       iarg += 2;
     }
   }

@@ -56,10 +56,6 @@ if (test $1 = "ASPHERE") then
   depend INTEL
 fi
 
-if (test $1 = "BPM") then
-  depend RHEO
-fi
-
 if (test $1 = "CLASS2") then
   depend GPU
   depend KOKKOS

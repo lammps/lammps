@@ -90,7 +90,7 @@ In systems with free surfaces, the *surface/detection* keyword can be used
 to classify the location of particles as being within the bulk fluid, on a
 free surface, or isolated from other particles in a splash or droplet.
 Shifting is then disabled in the normal direction away from the free surface
-to prevent particles from difusing away. Surface detection can also be used
+to prevent particles from diffusing away. Surface detection can also be used
 to control surface-nucleated effects like oxidation when used in combination
 with :doc:`fix rheo/oxidation <fix_rheo_oxidation>`. Surface detection is not
 performed on solid bodies.
@@ -145,7 +145,7 @@ Restrictions
 """"""""""""
 
 This fix must be used with atom style rheo or rheo/thermal. This fix must
-be used in conjuction with :doc:`fix rheo/pressure <fix_rheo_pressure>`.
+be used in conjunction with :doc:`fix rheo/pressure <fix_rheo_pressure>`.
 and :doc:`fix rheo/viscosity <fix_rheo_viscosity>`. If the *thermal* setting
 is used, there must also be an instance of
 :doc:`fix rheo/thermal <fix_rheo_thermal>`. The fix group must be set to all.

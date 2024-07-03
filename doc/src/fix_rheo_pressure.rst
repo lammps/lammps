@@ -86,7 +86,7 @@ Restrictions
 
 This fix must be used with an atom style that includes density
 such as atom_style rheo or rheo/thermal. This fix must be used in
-conjuction with :doc:`fix rheo <fix_rheo>`. The fix group must be
+conjunction with :doc:`fix rheo <fix_rheo>`. The fix group must be
 set to all. Only one instance of fix rheo/pressure can be defined.
 
 This fix is part of the RHEO package.  It is only enabled if

@@ -105,8 +105,8 @@ Restrictions
 """"""""""""
 
 This fix must be used with an atom style that includes temperature,
-heatflow, and conductivity such as atom_tyle rheo/thermal This fix
-must be used in conjuction with :doc:`fix rheo <fix_rheo>` with the
+heatflow, and conductivity such as atom_style rheo/thermal This fix
+must be used in conjunction with :doc:`fix rheo <fix_rheo>` with the
 *thermal* setting. The fix group must be set to all. Only one
 instance of fix rheo/pressure can be defined.
 

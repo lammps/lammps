@@ -4,7 +4,7 @@ Reproducing hydrodynamics and elastic objects (RHEO)
 The RHEO package is a hybrid implementation of smoothed particle
 hydrodynamics (SPH) for fluid flow, coupled to the :doc:`BPM package <Howto_bpm>`
 to model solid elements. RHEO combines these methods to enable mesh-free modeling
-of multiphase material systems. The SPH solver supports many advanced options
+of multi-phase material systems. The SPH solver supports many advanced options
 including reproducing kernels, particle shifting, free surface identification,
 and solid surface reconstruction. To model fluid-solid systems, the status of
 particles can dynamically change between a fluid and solid state, e.g. during
@@ -30,7 +30,7 @@ of reproducing kernels). In conjunction to fix rheo, one must specify an
 instance of :doc:`fix rheo/pressure <fix_rheo_pressure>` and
 :doc:`fix rheo/viscosity <fix_rheo_viscosity>` to define a pressure equation
 of state and viscosity model, respectively. Optionally, one can model
-a heat equation with :doc:`fix rheo/thermal <fix_rhe0_thermal>`, which also
+a heat equation with :doc:`fix rheo/thermal <fix_rheo_thermal>`, which also
 allows the user to specify equations for a particle's thermal conductivity,
 specific heat, latent heat, and melting temperature. The ordering of these
 fixes in an an input script matters. Fix rheo must be defined prior to all
@@ -44,7 +44,7 @@ conductivity. Note that the temperature is always derived from the energy.
 This implies the *temperature* attribute of :doc:`the set command <set>` does not
 affect particles. Instead, one should use the *sph/e* attribute.
 
-The status variable uses bitmasking to track various properties of a particle
+The status variable uses bit-masking to track various properties of a particle
 such as its current state of matter (fluid or solid) and its location relative
 to a surface. Some of these properties (and others) can be accessed using
 :doc:`compute rheo/property/atom <compute_rheo_property_atom>`. The *status*
@@ -88,8 +88,8 @@ as bonds are created/broken.
 The other option for elastic objects is an elastic shell that is nominally much
 thinner than a particle diameter, e.g. a oxide skin which gradually forms over time
 on the surface of a fluid. Currently, this is implemented using
-:doc:`fix rheo/oxidaton <fix_rheo_oxidation>` and bond style
-:doc:`rheo/shell <bond_rheo_shell>`. Essentially, fix rheo/oxidaton creates candidate
+:doc:`fix rheo/oxidation <fix_rheo_oxidation>` and bond style
+:doc:`rheo/shell <bond_rheo_shell>`. Essentially, fix rheo/oxidation creates candidate
 bonds of a specified type between surface fluid particles within a specified distance.
 a newly created rheo/shell bond will then start a timer. While the timer is counting
 down, the bond will delete itself if particles move too far apart or move away from the

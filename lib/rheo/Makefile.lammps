@@ -4,4 +4,4 @@
 rheo_SYSINC = -I../../lib/rheo/gsl/include/
 
 # change this to -L/path/to/your/lib/gsl/lib/
-rheo_SYSLIB = -L../../lib/rheo/gsl/lib/ -lgslcblas
+rheo_SYSLIB = -L../../lib/rheo/gsl/lib/ -lgsl -lgslcblas

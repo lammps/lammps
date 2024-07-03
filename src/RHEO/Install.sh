@@ -26,51 +26,18 @@ action () {
   fi
 }
 
-# package files without dependencies
-action atom_vec_rheo_thermal.h
-action atom_vec_rheo_thermal.cpp
-action atom_vec_rheo.h
-action atom_vec_rheo.cpp
-action compute_rheo_grad.h
-action compute_rheo_grad.cpp
-action compute_rheo_interface.h
-action compute_rheo_interface.cpp
-action compute_rheo_kernel.h
-action compute_rheo_kernel.cpp
-action compute_rheo_rho_sum.h
-action compute_rheo_rho_sum.cpp
-action compute_rheo_surface.h
-action compute_rheo_surface.cpp
-action compute_rheo_vshift.h
-action compute_rheo_vshift.cpp
-action fix_rheo_oxidation.h
-action fix_rheo_oxidation.cpp
-action fix_rheo_pressure.h
-action fix_rheo_pressure.cpp
-action fix_rheo_viscosity.h
-action fix_rheo_viscosity.cpp
-action fix_rheo.h
-action fix_rheo.cpp
-action pair_rheo.h
-action pair_rheo.cpp
-action pair_rheo_solid.h
-action pair_rheo_solid.cpp
-
-# package files with dependencies
-action bond_rheo_shell.h bond_bpm.h
-action bond_rheo_shell.cpp bond_bpm.h
-action compute_rheo_property_atom.h fix_update_special_bonds.h
-action compute_rheo_property_atom.cpp fix_update_special_bonds.h
-action fix_rheo_thermal.h fix_update_special_bonds.h
-action fix_rheo_thermal.cpp fix_update_special_bonds.h
-
-# Warn that some styles in RHEO have base classes in BPM
+# some styles in RHEO have base classes in BPM
 
 if (test $1 = 1) then
   if (test ! -e ../bond_bpm.cpp) then
-    echo "Must install BPM package to use all features of RHEO package"
+    echo "Must install BPM package with RHEO"
+    exit 1
   fi
 fi
+
+for file in *.cpp *.h; do
+    action ${file}
+done
 
 # edit 2 Makefile.package files to include/exclude package info
 

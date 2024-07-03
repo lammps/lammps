@@ -245,7 +245,8 @@
 /pair_tdpd.cpp
 /pair_tdpd.h
 
-/*rheo*
+/*rheo*.cpp
+/*rheo*.h
 
 /compute_grid.cpp
 /compute_grid.h

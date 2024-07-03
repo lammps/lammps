@@ -81,29 +81,16 @@ bool OpenMP::impl_is_initialized() noexcept {
   return Impl::OpenMPInternal::singleton().is_initialized();
 }
 
-bool OpenMP::in_parallel(OpenMP const &exec_space) noexcept {
-#ifdef KOKKOS_ENABLE_DEPRECATED_CODE_3
-  return (
-      (exec_space.impl_internal_space_instance()->m_level < omp_get_level()) &&
-      (!Impl::t_openmp_instance ||
-       Impl::t_openmp_instance->m_level < omp_get_level()));
-#else
+#ifdef KOKKOS_ENABLE_DEPRECATED_CODE_4
+KOKKOS_DEPRECATED bool OpenMP::in_parallel(OpenMP const &exec_space) noexcept {
   return exec_space.impl_internal_space_instance()->m_level < omp_get_level();
-#endif
 }
+#endif
 
 int OpenMP::impl_thread_pool_size() const noexcept {
-#ifdef KOKKOS_ENABLE_DEPRECATED_CODE_3
-  return OpenMP::in_parallel(*this)
-             ? omp_get_num_threads()
-             : (Impl::t_openmp_instance
-                    ? Impl::t_openmp_instance->m_pool_size
-                    : impl_internal_space_instance()->m_pool_size);
-#else
-  return OpenMP::in_parallel(*this)
+  return (impl_internal_space_instance()->get_level() < omp_get_level())
              ? omp_get_num_threads()
              : impl_internal_space_instance()->m_pool_size;
-#endif
 }
 
 int OpenMP::impl_max_hardware_threads() noexcept {

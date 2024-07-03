@@ -20,7 +20,7 @@ Syntax
 * Nfreq = calculate average bond-order every this many timesteps
 * filename = name of output file
 * zero or more keyword/value pairs may be appended
-* keyword = *cutoff* or *element* or *position* or *delete*
+* keyword = *cutoff* or *element* or *position* or *delete* or *delete_rate_limit*
 
   .. parsed-literal::
 
@@ -110,10 +110,10 @@ all types from 1 to :math:`N`.  A leading asterisk means all types from
 The optional keyword *element* can be used to specify the chemical
 symbol printed for each LAMMPS atom type. The number of symbols must
 match the number of LAMMPS atom types and each symbol must consist of
-1 or 2 alphanumeric characters. Normally, these symbols should be
-chosen to match the chemical identity of each LAMMPS atom type, as
-specified using the :doc:`reaxff pair_coeff <pair_reaxff>` command and
-the ReaxFF force field file.
+1 or 2 alphanumeric characters. By default, these symbols are the same
+as the chemical identity of each LAMMPS atom type, as specified by the
+:doc:`ReaxFF pair_coeff <pair_reaxff>` command and the ReaxFF force
+field file.
 
 The optional keyword *position* writes center-of-mass positions of
 each identified molecules to file *filepos* every *posfreq* timesteps.
@@ -134,36 +134,34 @@ value.  For example, AuO.pos.\* becomes AuO.pos.0, AuO.pos.1000, etc.
 
 .. versionadded:: 3Aug2022
 
-The optional keyword *delete* enables the periodic removal of
-molecules from the system.  Criteria for deletion can be either a list
-of specific chemical formulae or a range of molecular weights.
-Molecules are deleted every *Nfreq* timesteps, and bond connectivity
-is determined using the *Nevery* and *Nrepeat* keywords.  The
-*filedel* argument is the name of the output file that records the
-species that are removed from the system.  The *specieslist* keyword
-permits specific chemical species to be deleted.  The *Nspecies*
-argument specifies how many species are eligible for deletion and is
-followed by a list of chemical formulae, whose strings are compared to
-species identified by this fix.  For example, "specieslist 2 CO CO2"
-deletes molecules that are identified as "CO" and "CO2" in the species
-output file.  When using the *specieslist* keyword, the *filedel* file
-has the following format: the first line lists the chemical formulae
-eligible for deletion, and each additional line contains the timestep
-on which a molecule deletion occurs and the number of each species
-deleted on that timestep.  The *masslimit* keyword permits deletion of
-molecules with molecular weights between *massmin* and *massmax*.
-When using the *masslimit* keyword, each line of the *filedel* file
-contains the timestep on which deletions occurs, followed by how many
-of each species are deleted (with quantities preceding chemical
-formulae).  The *specieslist* and *masslimit* keywords cannot both be
-used in the same *reaxff/species* fix.  The *delete_rate_limit*
-keyword can enforce an upper limit on the overall rate of molecule
-deletion.  The number of deletion occurrences is limited to Nlimit
-within an interval of Nsteps timesteps.   Nlimit can be specified with
-an equal-style :doc:`variable <variable>`.  When using the
-*delete_rate_limit* keyword, no deletions are permitted to occur
-within the first Nsteps timesteps of the first run (after reading a
-either a data or restart file).
+The optional keyword *delete* enables the periodic removal of molecules
+from the system :ref:`(Gissinger) <Delete>`.  Criteria for deletion can
+be either a list of specific chemical formulae or a range of molecular
+weights.  Molecules are deleted every *Nfreq* timesteps, and bond
+connectivity is determined using the *Nevery* and *Nrepeat* keywords.  The
+*filedel* argument is the name of the output file that records the species
+that are removed from the system.  The *specieslist* keyword permits
+specific chemical species to be deleted.  The *Nspecies* argument specifies
+how many species are eligible for deletion and is followed by a list of
+chemical formulae, whose strings are compared to species identified by this
+fix.  For example, "specieslist 2 CO CO2" deletes molecules that are
+identified as "CO" and "CO2" in the species output file.  When using the
+*specieslist* keyword, the *filedel* file has the following format: the
+first line lists the chemical formulae eligible for deletion, and each
+additional line contains the timestep on which a molecule deletion occurs
+and the number of each species deleted on that timestep.  The *masslimit*
+keyword permits deletion of molecules with molecular weights between
+*massmin* and *massmax*.  When using the *masslimit* keyword, each line of
+the *filedel* file contains the timestep on which deletions occurs,
+followed by how many of each species are deleted (with quantities preceding
+chemical formulae).  The *specieslist* and *masslimit* keywords cannot both
+be used in the same *reaxff/species* fix.  The *delete_rate_limit* keyword
+can enforce an upper limit on the overall rate of molecule deletion.  The
+number of deletion occurrences is limited to Nlimit within an interval of
+Nsteps timesteps.  Nlimit can be specified with an equal-style
+:doc:`variable <variable>`.  When using the *delete_rate_limit* keyword, no
+deletions are permitted to occur within the first Nsteps timesteps of the
+first run (after reading a either a data or restart file).
 
 ----------
 
@@ -233,5 +231,9 @@ Default
 """""""
 
 The default values for bond-order cutoffs are 0.3 for all I-J pairs.
-The default element symbols are C, H, O, N.
+The default element symbols are taken from the ReaxFF pair_coeff command.
 Position files are not written by default.
+
+.. _Delete:
+
+**(Gissinger)** Jacob R. Gissinger, Scott R. Zavada, Joseph G. Smith, Josh Kemppainen, Ivan Gallegos, Gregory M. Odegard, Emilie J. Siochi, and Kristopher E. Wise, Carbon, 202, 336-347 (2023).

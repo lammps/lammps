@@ -89,7 +89,7 @@ ComputeStressMop::ComputeStressMop(LAMMPS *lmp, int narg, char **arg) : Compute(
       error->all(FLERR, "Plane for compute stress/mop is out of bounds");
   }
 
-  if (pos < (domain->boxlo[dir] + domain->prd_half[dir])) {
+ if (pos < (domain->boxlo[dir] + domain->prd_half[dir])) {
     pos1 = pos + domain->prd[dir];
   } else {
     pos1 = pos - domain->prd[dir];
@@ -146,13 +146,13 @@ ComputeStressMop::ComputeStressMop(LAMMPS *lmp, int narg, char **arg) : Compute(
 
   // Error checks:
 
-  // 3D only
-
-  if (domain->dimension != 3) error->all(FLERR, "Compute stress/mop requires a 3d system");
-
   // orthogonal simulation box
   if (domain->triclinic != 0)
     error->all(FLERR, "Compute stress/mop is incompatible with triclinic simulation box");
+
+  // 2D and pressure calculation in the Z coordinate
+  if (domain->dimension == 2 && dir == Z)
+    error->all(FLERR, "Compute stress/mop is incompatible with Z in 2d system");
 
   // Initialize some variables
 
@@ -210,10 +210,14 @@ void ComputeStressMop::init()
 
   // Plane area
 
-  area = 1;
-  int i;
-  for (i = 0; i < 3; i++) {
-    if (i != dir) area = area * domain->prd[i];
+  if (domain->dimension == 3) {
+    area = 1;
+    int i;
+    for (i = 0; i < 3; i++) {
+      if (i != dir) area = area * domain->prd[i];
+    }
+  } else {
+    area = (dir == X) ? domain->prd[1] : domain->prd[0];
   }
 
   // Timestep Value
@@ -404,6 +408,7 @@ void ComputeStressMop::compute_pairs()
           xj[0] = atom->x[j][0];
           xj[1] = atom->x[j][1];
           xj[2] = atom->x[j][2];
+
           delx = xi[0] - xj[0];
           dely = xi[1] - xj[1];
           delz = xi[2] - xj[2];
@@ -420,7 +425,7 @@ void ComputeStressMop::compute_pairs()
               values_local[m + 1] += fpair * (xi[1] - xj[1]) / area * nktv2p;
               values_local[m + 2] += fpair * (xi[2] - xj[2]) / area * nktv2p;
             } else if (((xi[dir] < pos) && (xj[dir] > pos)) ||
-                       ((xi[dir] < pos1) && (xj[dir] > pos1))) {
+                        ((xi[dir] < pos1) && (xj[dir] > pos1))) {
               pair->single(i, j, itype, jtype, rsq, factor_coul, factor_lj, fpair);
               values_local[m] -= fpair * (xi[0] - xj[0]) / area * nktv2p;
               values_local[m + 1] -= fpair * (xi[1] - xj[1]) / area * nktv2p;

@@ -53,7 +53,7 @@ void FixDrudeTransform<inverse>::init()
   std::string substyle = "direct";
   if (inverse) substyle = "inverse";
 
-  auto fixes = modify->get_fix_by_style("^drude");
+  auto fixes = modify->get_fix_by_style("^drude$");
   if (fixes.size() > 0) fix_drude = dynamic_cast<FixDrude *>(fixes[0]);
   if (!fix_drude)
     error->all(FLERR, "fix drude/transform/{} requires fix drude", substyle);

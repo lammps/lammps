@@ -63,7 +63,7 @@ irregular(nullptr), set(nullptr)
   int nskip;
   if (utils::strmatch(style, "^deform/pressure")) {
     child_parameters.insert("box");
-    child_styles.insert({{"pressure", 4}, {"pressure/mean", 4}, {"volume", 2}});
+    child_styles.insert({{"pressure", 4}, {"pressure/mean", 4}, {"erate/rescale", 3}, {"volume", 2}});
   }
 
   // set defaults

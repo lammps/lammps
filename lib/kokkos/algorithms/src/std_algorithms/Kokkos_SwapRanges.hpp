@@ -40,7 +40,7 @@ template <typename ExecutionSpace, typename DataType1, typename... Properties1,
           std::enable_if_t<is_execution_space_v<ExecutionSpace>, int> = 0>
 auto swap_ranges(const ExecutionSpace& ex,
                  const ::Kokkos::View<DataType1, Properties1...>& source,
-                 ::Kokkos::View<DataType2, Properties2...>& dest) {
+                 const ::Kokkos::View<DataType2, Properties2...>& dest) {
   Impl::static_assert_is_admissible_to_kokkos_std_algorithms(source);
   Impl::static_assert_is_admissible_to_kokkos_std_algorithms(dest);
 
@@ -64,7 +64,7 @@ template <typename ExecutionSpace, typename DataType1, typename... Properties1,
           std::enable_if_t<is_execution_space_v<ExecutionSpace>, int> = 0>
 auto swap_ranges(const std::string& label, const ExecutionSpace& ex,
                  const ::Kokkos::View<DataType1, Properties1...>& source,
-                 ::Kokkos::View<DataType2, Properties2...>& dest) {
+                 const ::Kokkos::View<DataType2, Properties2...>& dest) {
   Impl::static_assert_is_admissible_to_kokkos_std_algorithms(source);
   Impl::static_assert_is_admissible_to_kokkos_std_algorithms(dest);
 
@@ -94,7 +94,7 @@ template <typename TeamHandleType, typename DataType1, typename... Properties1,
 KOKKOS_FUNCTION auto swap_ranges(
     const TeamHandleType& teamHandle,
     const ::Kokkos::View<DataType1, Properties1...>& source,
-    ::Kokkos::View<DataType2, Properties2...>& dest) {
+    const ::Kokkos::View<DataType2, Properties2...>& dest) {
   Impl::static_assert_is_admissible_to_kokkos_std_algorithms(source);
   Impl::static_assert_is_admissible_to_kokkos_std_algorithms(dest);
 

@@ -29,23 +29,23 @@ _texture_2d( vel_tex,int4);
 
 #if (SHUFFLE_AVAIL == 0)
 
-#define store_dE(dEacc, ii, inum, tid, t_per_atom, offset, dE)              \
+#define store_dE(dEacc, ii, inum, tid, t_per_atom, offset, i, dE)           \
   if (t_per_atom>1) {                                                       \
     simdsync();                                                             \
     simd_reduce_add1(t_per_atom, red_acc, offset, tid, dEacc);              \
   }                                                                         \
   if (offset==0 && ii<inum) {                                               \
-    dE[ii]=dEacc;                                                           \
+    dE[i]=dEacc;                                                            \
   }
 #else
-#define store_drhoE(dEacc, ii, inum, tid, t_per_atom, offset, dE)           \
+#define store_drhoE(dEacc, ii, inum, tid, t_per_atom, offset, i, dE)        \
   if (t_per_atom>1) {                                                       \
     for (unsigned int s=t_per_atom/2; s>0; s>>=1) {                         \
       dEacc += shfl_down(dEacc, s, t_per_atom);                             \
     }                                                                       \
   }                                                                         \
   if (offset==0 && ii<inum) {                                               \
-    dE[ii]=dEacc;                                                           \
+    dE[i]=dEacc;                                                           \
   }
 #endif
 
@@ -66,7 +66,7 @@ __kernel void k_sph_heatconduction(const __global numtyp4 *restrict x_,
                        const int inum, const int nbor_pitch,
                        const __global numtyp4 *restrict v_,
                        const int dimension, const int t_per_atom) {
-  int tid, ii, offset;
+  int tid, ii, offset, i;
   atom_info(t_per_atom,ii,tid,offset);
 
   int n_stride;
@@ -77,7 +77,7 @@ __kernel void k_sph_heatconduction(const __global numtyp4 *restrict x_,
   acctyp dEacc = (acctyp)0;
 
   if (ii<inum) {
-    int i, numj, nbor, nbor_end;
+    int numj, nbor, nbor_end;
     nbor_info(dev_nbor,dev_packed,nbor_pitch,t_per_atom,ii,offset,i,numj,
               n_stride,nbor_end,nbor);
 
@@ -140,7 +140,7 @@ __kernel void k_sph_heatconduction(const __global numtyp4 *restrict x_,
     } // for nbor
   } // if ii
 
-  store_drhoE(dEacc,ii,inum,tid,t_per_atom,offset,dE);
+  store_drhoE(dEacc,ii,inum,tid,t_per_atom,offset,i,dE);
 }
 
 __kernel void k_sph_heatconduction_fast(const __global numtyp4 *restrict x_,
@@ -157,7 +157,7 @@ __kernel void k_sph_heatconduction_fast(const __global numtyp4 *restrict x_,
                             const int inum, const int nbor_pitch,
                             const __global numtyp4 *restrict v_,
                             const int dimension, const int t_per_atom) {
-  int tid, ii, offset;
+  int tid, ii, offset, i;
   atom_info(t_per_atom,ii,tid,offset);
 
   #ifndef ONETYPE
@@ -180,7 +180,7 @@ __kernel void k_sph_heatconduction_fast(const __global numtyp4 *restrict x_,
   acctyp dEacc = (acctyp)0;
 
   if (ii<inum) {
-    int i, numj, nbor, nbor_end;
+    int numj, nbor, nbor_end;
     nbor_info(dev_nbor,dev_packed,nbor_pitch,t_per_atom,ii,offset,i,numj,
               n_stride,nbor_end,nbor);
 
@@ -204,7 +204,7 @@ __kernel void k_sph_heatconduction_fast(const __global numtyp4 *restrict x_,
       #endif
 
       numtyp4 jx; fetch4(jx,j,pos_tex); //x_[j];
-      int jtype = jx.w;
+      int jtype=jx.w;
       #ifndef ONETYPE
       int mtype=itype+jx.w;
       const numtyp cutsq_p=coeff[mtype].z;
@@ -252,6 +252,6 @@ __kernel void k_sph_heatconduction_fast(const __global numtyp4 *restrict x_,
     } // for nbor
   } // if ii
 
-  store_drhoE(dEacc,ii,inum,tid,t_per_atom,offset,dE);
+  store_drhoE(dEacc,ii,inum,tid,t_per_atom,offset,i,dE);
 }
 

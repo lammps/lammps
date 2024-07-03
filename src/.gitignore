@@ -109,6 +109,8 @@
 
 /pair_pod.cpp
 /pair_pod.h
+/eapod.cpp
+/eapod.h
 /fitpod_command.cpp
 /fitpod_command.h
 /mlpod.cpp
@@ -168,6 +170,17 @@
 /pair_rann.h
 /rann_*.cpp
 /rann_*.h
+
+/pair_uf3.cpp
+/pair_uf3.h
+/uf3_bspline_basis2.cpp
+/uf3_bspline_basis2.h
+/uf3_bspline_basis3.cpp
+/uf3_bspline_basis3.h
+/uf3_pair_bspline.cpp
+/uf3_pair_bspline.h
+/uf3_triplet_bspline.cpp
+/uf3_triplet_bspline.h
 
 /compute_test_nbl.cpp
 /compute_test_nbl.h
@@ -236,6 +249,14 @@
 /compute_grid.h
 /compute_grid_local.cpp
 /compute_grid_local.h
+/compute_pod_atom.cpp
+/compute_pod_atom.h
+/compute_pod_global.cpp
+/compute_pod_global.h
+/compute_pod_local.cpp
+/compute_pod_local.h
+/compute_podd_atom.cpp
+/compute_podd_atom.h
 /compute_sna_atom.cpp
 /compute_sna_atom.h
 /compute_snad_atom.cpp
@@ -463,6 +484,8 @@
 /angle_cosine_shift_exp.h
 /angle_cosine_squared.cpp
 /angle_cosine_squared.h
+/angle_cosine_squared_restricted.cpp
+/angle_cosine_squared_restricted.h
 /angle_cross.cpp
 /angle_cross.h
 /angle_dipole.cpp
@@ -675,12 +698,16 @@
 /compute_viscosity_cos.h
 /compute_voronoi_atom.cpp
 /compute_voronoi_atom.h
+/constants_oxdna.cpp
+/constants_oxdna.h
 /dihedral_charmm.cpp
 /dihedral_charmm.h
 /dihedral_class2.cpp
 /dihedral_class2.h
 /dihedral_cosine_shift_exp.cpp
 /dihedral_cosine_shift_exp.h
+/dihedral_cosine_squared_restricted.cpp
+/dihedral_cosine_squared_restricted.h
 /dihedral_fourier.cpp
 /dihedral_fourier.h
 /dihedral_harmonic.cpp
@@ -1357,6 +1384,8 @@
 /pair_oxrna2_*.cpp
 /pair_oxrna2_*.h
 /mf_oxdna.h
+/pair_pedone.cpp
+/pair_pedone.h
 /pair_peri.cpp
 /pair_peri.h
 /pair_peri_eps.cpp
@@ -1698,6 +1727,8 @@
 /pair_dpd.h
 /pair_dpd_tstat.cpp
 /pair_dpd_tstat.h
+/pair_dpd_coul_slater_long.cpp
+/pair_dpd_coul_slater_long.h
 /pair_dpd_ext.cpp
 /pair_dpd_ext.h
 /pair_dpd_ext_tstat.cpp

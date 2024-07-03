@@ -50,6 +50,7 @@ using namespace MathConst;
 
 static constexpr int DELTA = 1;
 static constexpr double EPSILON = 1.0e-6;
+static constexpr double EPS_ZCOORD = 1.0e-12;
 
 /* ----------------------------------------------------------------------
    one instance per AtomVec style in style_atom.h
@@ -1039,12 +1040,13 @@ void Atom::deallocate_topology()
 
 /* ----------------------------------------------------------------------
    unpack N lines from Atom section of data file
-   call style-specific routine to parse line
+   call atom-style specific method to parse each line
+   triclinic_general = 1 if data file defines a general triclinic box
 ------------------------------------------------------------------------- */
 
 void Atom::data_atoms(int n, char *buf, tagint id_offset, tagint mol_offset,
                       int type_offset, int shiftflag, double *shift,
-                      int labelflag, int *ilabel)
+                      int labelflag, int *ilabel, int triclinic_general)
 {
   int xptr,iptr;
   imageint imagedata;
@@ -1055,6 +1057,7 @@ void Atom::data_atoms(int n, char *buf, tagint id_offset, tagint mol_offset,
   auto location = "Atoms section of data file";
 
   // use the first line to detect and validate the number of words/tokens per line
+
   next = strchr(buf,'\n');
   if (!next) error->all(FLERR, "Missing data in {}", location);
   *next = '\0';
@@ -1068,13 +1071,16 @@ void Atom::data_atoms(int n, char *buf, tagint id_offset, tagint mol_offset,
   }
 
   if ((nwords != avec->size_data_atom) && (nwords != avec->size_data_atom + 3))
-    error->all(FLERR,"Incorrect format in {}: {}", location, utils::trim(buf));
+    error->all(FLERR,"Incorrect format in {}: {}{}", location,
+               utils::trim(buf), utils::errorurl(2));
 
   *next = '\n';
+
   // set bounds for my proc
   // if periodic and I am lo/hi proc, adjust bounds by EPSILON
   // ensures all data atoms will be owned even with round-off
 
+  int dimension = domain->dimension;
   int triclinic = domain->triclinic;
 
   double epsilon[3];
@@ -1145,18 +1151,27 @@ void Atom::data_atoms(int n, char *buf, tagint id_offset, tagint mol_offset,
     *next = '\0';
     auto values = Tokenizer(buf).as_vector();
     int nvalues = values.size();
-    if ((nvalues == 0) || (utils::strmatch(values[0],"^#.*")))  {
-      // skip over empty or comment lines
+
+    // skip comment lines
+
+    if ((nvalues == 0) || (utils::strmatch(values[0],"^#.*"))) {
+
+    // check that line has correct # of words
+
     } else if ((nvalues < nwords) ||
                ((nvalues > nwords) && (!utils::strmatch(values[nwords],"^#")))) {
-      error->all(FLERR, "Incorrect format in {}: {}", location, utils::trim(buf));
+      error->all(FLERR, "Incorrect format in {}: {}{}", location,
+                 utils::trim(buf), utils::errorurl(2));
+
+    // extract the atom coords and image flags (if they exist)
+
     } else {
       int imx = 0, imy = 0, imz = 0;
       if (imageflag) {
         imx = utils::inumeric(FLERR,values[iptr],false,lmp);
         imy = utils::inumeric(FLERR,values[iptr+1],false,lmp);
         imz = utils::inumeric(FLERR,values[iptr+2],false,lmp);
-        if ((domain->dimension == 2) && (imz != 0))
+        if ((dimension == 2) && (imz != 0))
           error->all(FLERR,"Z-direction image flag must be 0 for 2d-systems");
         if ((!domain->xperiodic) && (imx != 0)) { reset_image_flag[0] = true; imx = 0; }
         if ((!domain->yperiodic) && (imy != 0)) { reset_image_flag[1] = true; imy = 0; }
@@ -1169,13 +1184,35 @@ void Atom::data_atoms(int n, char *buf, tagint id_offset, tagint mol_offset,
       xdata[0] = utils::numeric(FLERR,values[xptr],false,lmp);
       xdata[1] = utils::numeric(FLERR,values[xptr+1],false,lmp);
       xdata[2] = utils::numeric(FLERR,values[xptr+2],false,lmp);
+
+      // for 2d simulation:
+      // check if z coord is within EPS_ZCOORD of zero and set to zero
+
+      if (dimension == 2) {
+        if (fabs(xdata[2]) > EPS_ZCOORD)
+          error->all(FLERR,"Read_data atom z coord is non-zero for 2d simulation");
+        xdata[2] = 0.0;
+      }
+
+      // convert atom coords from general to restricted triclinic
+      // so can decide which proc owns the atom
+
+      if (triclinic_general) domain->general_to_restricted_coords(xdata);
+
+      // apply shift if requested by read_data command
+
       if (shiftflag) {
         xdata[0] += shift[0];
         xdata[1] += shift[1];
         xdata[2] += shift[2];
       }
 
+      // map atom into simulation box for periodic dimensions
+
       domain->remap(xdata,imagedata);
+
+      // determine if this proc owns the atom
+
       if (triclinic) {
         domain->x2lamda(xdata,lamda);
         coord = lamda;
@@ -1184,6 +1221,9 @@ void Atom::data_atoms(int n, char *buf, tagint id_offset, tagint mol_offset,
       if (coord[0] >= sublo[0] && coord[0] < subhi[0] &&
           coord[1] >= sublo[1] && coord[1] < subhi[1] &&
           coord[2] >= sublo[2] && coord[2] < subhi[2]) {
+
+        // atom-style specific method parses single line
+
         avec->data_atom(xdata,imagedata,values,typestr);
         typestr = utils::utf8_subst(typestr);
         if (id_offset) tag[nlocal-1] += id_offset;
@@ -1223,8 +1263,8 @@ void Atom::data_atoms(int n, char *buf, tagint id_offset, tagint mol_offset,
 /* ----------------------------------------------------------------------
    unpack N lines from Velocity section of data file
    check that atom IDs are > 0 and <= map_tag_max
-   call style-specific routine to parse line
-------------------------------------------------------------------------- */
+   call style-specific routine to parse line-
+------------------------------------------------------------------------ */
 
 void Atom::data_vels(int n, char *buf, tagint id_offset)
 {
@@ -1243,7 +1283,8 @@ void Atom::data_vels(int n, char *buf, tagint id_offset)
     if (values.size() == 0) {
       // skip over empty or comment lines
     } else if ((int)values.size() != avec->size_data_vel) {
-      error->all(FLERR, "Incorrect velocity format in data file: {}", utils::trim(buf));
+      error->all(FLERR, "Incorrect format in Velocities section of data file: {}{}",
+                 utils::trim(buf), utils::errorurl(2));
     } else {
       tagint tagdata = utils::tnumeric(FLERR,values[0],false,lmp) + id_offset;
       if (tagdata <= 0 || tagdata > map_tag_max)
@@ -1287,7 +1328,9 @@ void Atom::data_bonds(int n, char *buf, int *count, tagint id_offset,
     // skip over empty or comment lines
     // Bonds line is: number(ignored), bond type, atomID 1, atomID 2
     if (nwords > 0) {
-      if (nwords != 4) error->all(FLERR, "Incorrect format in {}: {}", location, utils::trim(buf));
+      if (nwords != 4)
+        error->all(FLERR, "Incorrect format in {}: {}{}", location,
+                   utils::trim(buf), utils::errorurl(2));
       typestr = utils::utf8_subst(values[1]);
       atom1 = utils::tnumeric(FLERR, values[2], false, lmp);
       atom2 = utils::tnumeric(FLERR, values[3], false, lmp);
@@ -1378,7 +1421,9 @@ void Atom::data_angles(int n, char *buf, int *count, tagint id_offset,
     // skip over empty or comment lines
     // Angles line is: number(ignored), angle type, atomID 1, atomID 2, atomID 3
     if (nwords > 0) {
-      if (nwords != 5) error->all(FLERR, "Incorrect format in {}: {}", location, utils::trim(buf));
+      if (nwords != 5)
+        error->all(FLERR, "Incorrect format in {}: {}{}", location,
+                   utils::trim(buf), utils::errorurl(2));
       typestr = utils::utf8_subst(values[1]);
       atom1 = utils::tnumeric(FLERR, values[2], false, lmp);
       atom2 = utils::tnumeric(FLERR, values[3], false, lmp);
@@ -1485,7 +1530,9 @@ void Atom::data_dihedrals(int n, char *buf, int *count, tagint id_offset,
     // skip over empty or comment lines
     // Dihedrals line is: number(ignored), bond type, atomID 1, atomID 2, atomID 3, atomID 4
     if (nwords > 0) {
-      if (nwords != 6) error->all(FLERR, "Incorrect format in {}: {}", location, utils::trim(buf));
+      if (nwords != 6)
+        error->all(FLERR, "Incorrect format in {}: {}{}", location,
+                   utils::trim(buf), utils::errorurl(2));
       typestr = utils::utf8_subst(values[1]);
       atom1 = utils::tnumeric(FLERR, values[2], false, lmp);
       atom2 = utils::tnumeric(FLERR, values[3], false, lmp);
@@ -1611,7 +1658,9 @@ void Atom::data_impropers(int n, char *buf, int *count, tagint id_offset,
     // skip over empty or comment lines
     // Impropers line is: number(ignored), bond type, atomID 1, atomID 2, atomID 3, atomID 4
     if (nwords > 0) {
-      if (nwords != 6) error->all(FLERR, "Incorrect format in {}: {}", location, utils::trim(buf));
+      if (nwords != 6)
+        error->all(FLERR, "Incorrect format in {}: {}{}", location,
+                   utils::trim(buf), utils::errorurl(2));
       typestr = utils::utf8_subst(values[1]);
       atom1 = utils::tnumeric(FLERR, values[2], false, lmp);
       atom2 = utils::tnumeric(FLERR, values[3], false, lmp);
@@ -1727,7 +1776,8 @@ void Atom::data_bonus(int n, char *buf, AtomVec *avec_bonus, tagint id_offset)
     if (values.size() == 0) {
       // skip over empty or comment lines
     } else if ((int)values.size() != avec_bonus->size_data_bonus) {
-      error->all(FLERR, "Incorrect bonus data format in data file: {}", utils::trim(buf));
+      error->all(FLERR, "Incorrect format in Bonus section of data file: {}{}",
+                 utils::trim(buf), utils::errorurl(2));
     } else {
       tagint tagdata = utils::tnumeric(FLERR,values[0],false,lmp) + id_offset;
       if (tagdata <= 0 || tagdata > map_tag_max)
@@ -1944,18 +1994,14 @@ void Atom::set_mass(const char *file, int line, int /*narg*/, char **arg)
   if (mass == nullptr)
     error->all(file,line, "Cannot set per-type atom mass for atom style {}", atom_style);
 
-  char *typestr = utils::expand_type(file, line, arg[0], Atom::ATOM, lmp);
-  const std::string str = typestr ? typestr : arg[0];
-  delete[] typestr;
-
   int lo, hi;
-  utils::bounds(file, line, str, 1, ntypes, lo, hi, error);
+  utils::bounds_typelabel(file, line, arg[0], 1, ntypes, lo, hi, lmp, Atom::ATOM);
   if ((lo < 1) || (hi > ntypes))
-    error->all(file, line, "Invalid atom type {} for atom mass", str);
+    error->all(file, line, "Invalid atom type {} for atom mass", arg[0]);
 
   const double value = utils::numeric(FLERR, arg[1], false, lmp);
   if (value <= 0.0)
-    error->all(file, line, "Invalid atom mass value {} for type {}", value, str);
+    error->all(file, line, "Invalid atom mass value {} for type {}", value, arg[0]);
 
   for (int itype = lo; itype <= hi; itype++) {
     mass[itype] = value;

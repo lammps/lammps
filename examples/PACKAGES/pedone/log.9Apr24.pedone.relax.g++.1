@@ -1,0 +1,134 @@
+LAMMPS (7 Feb 2024 - Development - patch_7Feb2024_update1-373-g7ac84e18dd)
+  using 1 OpenMP thread(s) per MPI task
+# Ca-O crystal with Pedone potential
+
+units metal
+atom_style charge
+
+lattice fcc 4.8105  # experimental lattice parameter for fcc-lattice Ca cations
+Lattice spacing in x,y,z = 4.8105 4.8105 4.8105
+
+region box block 0 4 0 4 0 4
+create_box 2 box
+Created orthogonal box = (0 0 0) to (19.242 19.242 19.242)
+  1 by 1 by 1 MPI processor grid
+create_atoms 1 box
+Created 256 atoms
+  using lattice units in orthogonal box = (0 0 0) to (19.242 19.242 19.242)
+  create_atoms CPU = 0.000 seconds
+
+lattice fcc 4.8105 origin 0.5 0.5 0.5 # O anion lattice shifted by half a unit cell
+Lattice spacing in x,y,z = 4.8105 4.8105 4.8105
+create_atoms 2 box
+Created 256 atoms
+  using lattice units in orthogonal box = (0 0 0) to (19.242 19.242 19.242)
+  create_atoms CPU = 0.000 seconds
+
+mass 1 40.078
+mass 2 15.999
+
+displace_atoms all random 0.01 0.01 0.01 9084544
+Displacing atoms ...
+set type 1 charge 1.2
+Setting atom values ...
+  256 settings made for charge
+set type 2 charge -1.2
+Setting atom values ...
+  256 settings made for charge
+
+timestep 0.002
+neigh_modify delay 5 every 1 check yes
+
+pair_style hybrid/overlay pedone 15.0 coul/long 15.0
+kspace_style pppm 1.0e-6
+
+pair_coeff * * coul/long
+pair_coeff 1 2 pedone 0.030211 2.241334 2.923245 5.0
+pair_coeff 2 2 pedone 0.042395 1.379316 3.618701 22.0
+
+variable len equal lx*0.25
+thermo_style custom step v_len lx pe press
+thermo 100
+fix 1 all box/relax iso 0.0
+minimize 0.0 0.0 1000 10000
+Switching to 'neigh_modify every 1 delay 0 check yes' setting during minimization
+PPPM initialization ...
+  using 12-bit tables for long-range coulomb (src/kspace.cpp:342)
+  G vector (1/distance) = 0.23676226
+  grid = 24 24 24
+  stencil order = 5
+  estimated absolute RMS force accuracy = 1.3089053e-05
+  estimated relative force accuracy = 9.089844e-07
+  using double precision FFTW3
+  3d grid and FFT values/proc = 29791 13824
+Generated 0 of 1 mixed pair_coeff terms from geometric mixing rule
+Neighbor list info ...
+  update: every = 1 steps, delay = 0 steps, check = yes
+  max neighbors/atom: 2000, page size: 100000
+  master list distance cutoff = 17
+  ghost atom cutoff = 17
+  binsize = 8.5, bins = 3 3 3
+  2 neighbor lists, perpetual/occasional/extra = 2 0 0
+  (1) pair pedone, perpetual, skip from (2)
+      attributes: half, newton on
+      pair build: skip
+      stencil: none
+      bin: none
+  (2) pair coul/long, perpetual
+      attributes: half, newton on
+      pair build: half/bin/atomonly/newton
+      stencil: half/bin/3d
+      bin: standard
+WARNING: Energy due to 1 extra global DOFs will be included in minimizer energies
+ (src/min.cpp:219)
+Per MPI rank memory allocation (min/avg/max) = 10.33 | 10.33 | 10.33 Mbytes
+   Step         v_len            Lx           PotEng         Press     
+         0   4.8105         19.242        -3765.9116     -21299.914    
+       100   4.7797128      19.118851     -3767.814      -164.13101    
+       200   4.7787507      19.115003     -3769.1366     -373.58797    
+       300   4.7768265      19.107306     -3770.5634      48.944709    
+       400   4.7768265      19.107306     -3770.9879     -258.56116    
+       500   4.7758644      19.103458     -3771.3898      173.91894    
+       600   4.7758644      19.103458     -3771.7586     -91.813678    
+       700   4.7758644      19.103458     -3771.9842     -252.52883    
+       800   4.7749023      19.099609     -3772.3526      216.83318    
+       857   4.7747927      19.099171     -3772.8223      32.586251    
+Loop time of 18.0592 on 1 procs for 857 steps with 512 atoms
+
+99.8% CPU use with 1 MPI tasks x 1 OpenMP threads
+
+Minimization stats:
+  Stopping criterion = linesearch alpha is zero
+  Energy initial, next-to-last, final = 
+     -3765.91161156884  -3772.82226663623  -3772.82226663623
+  Force two-norm initial, final = 284.3967 0.46963871
+  Force max component initial, final = 284.14458 0.42827677
+  Final line search alpha, max atom move = 2.8580337e-08 1.2240294e-08
+  Iterations, force evaluations = 857 894
+
+MPI task timing breakdown:
+Section |  min time  |  avg time  |  max time  |%varavg| %total
+---------------------------------------------------------------
+Pair    | 13.907     | 13.907     | 13.907     |   0.0 | 77.01
+Kspace  | 1.3809     | 1.3809     | 1.3809     |   0.0 |  7.65
+Neigh   | 0          | 0          | 0          |   0.0 |  0.00
+Comm    | 0.045871   | 0.045871   | 0.045871   |   0.0 |  0.25
+Output  | 0.0002809  | 0.0002809  | 0.0002809  |   0.0 |  0.00
+Modify  | 0          | 0          | 0          |   0.0 |  0.00
+Other   |            | 2.726      |            |       | 15.09
+
+Nlocal:            512 ave         512 max         512 min
+Histogram: 1 0 0 0 0 0 0 0 0 0
+Nghost:          11655 ave       11655 max       11655 min
+Histogram: 1 0 0 0 0 0 0 0 0 0
+Neighs:         372155 ave      372155 max      372155 min
+Histogram: 1 0 0 0 0 0 0 0 0 0
+
+Total # of neighbors = 372155
+Ave neighs/atom = 726.86523
+Neighbor list builds = 0
+Dangerous builds = 0
+
+print "Expected lattice parameter: 4.7748,  computed: $(v_len:%6.4f)"
+Expected lattice parameter: 4.7748,  computed: 4.7748
+Total wall time: 0:00:18

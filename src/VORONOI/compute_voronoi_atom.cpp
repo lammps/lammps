@@ -126,6 +126,7 @@ ComputeVoronoi::ComputeVoronoi(LAMMPS *lmp, int narg, char **arg) :
 
   if (maxedge > 0) {
     vector_flag = 1;
+    extvector = 0;
     size_vector = maxedge+1;
     memory->create(edge,maxedge+1,"voronoi/atom:edge");
     memory->create(sendvector,maxedge+1,"voronoi/atom:sendvector");

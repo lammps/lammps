@@ -10,7 +10,7 @@ Syntax
 
    create_atoms type style args keyword values ...
 
-* type = atom type (1-Ntypes) of atoms to create (offset for molecule creation)
+* type = atom type (1-Ntypes or type label) of atoms to create (offset for molecule creation)
 * style = *box* or *region* or *single* or *mesh* or *random*
 
   .. parsed-literal::
@@ -37,7 +37,7 @@ Syntax
          seed = random # seed (positive integer)
        *basis* values = M itype
          M = which basis atom
-         itype = atom type (1-N) to assign to this basis atom
+         itype = atom type (1-Ntypes or type label) to assign to this basis atom
        *ratio* values = frac seed
          frac = fraction of lattice sites (0 to 1) to populate randomly
          seed = random # seed (positive integer)
@@ -74,6 +74,13 @@ Examples
 .. code-block:: LAMMPS
 
    create_atoms 1 box
+
+   labelmap atom 1 Pt
+   create_atoms Pt box
+
+   labelmap atom 1 C 2 Si
+   create_atoms C region regsphere basis Si C
+
    create_atoms 3 region regsphere basis 2 3
    create_atoms 3 region regsphere basis 2 3 ratio 0.5 74637
    create_atoms 3 single 0 0 5
@@ -86,25 +93,46 @@ Description
 """""""""""
 
 This command creates atoms (or molecules) within the simulation box,
-either on a lattice, or a single atom (or molecule), or on a surface
-defined by a triangulated mesh, or a random collection of atoms (or
-molecules).  It is an alternative to reading in atom coordinates
+either on a lattice, or at random points, or on a surface defined by a
+triangulated mesh.  Or it creates a single atom (or molecule) at a
+specified point.  It is an alternative to reading in atom coordinates
 explicitly via a :doc:`read_data <read_data>` or :doc:`read_restart
-<read_restart>` command.  A simulation box must already exist, which is
+<read_restart>` command.
+
+To use this command a simulation box must already exist, which is
 typically created via the :doc:`create_box <create_box>` command.
-Before using this command, a lattice must also be defined using the
-:doc:`lattice <lattice>` command, unless you specify the *single* style
-with units = box or the *random* style.  For the remainder of this doc
-page, a created atom or molecule is referred to as a "particle".
+Before using this command, a lattice must typically also be defined
+using the :doc:`lattice <lattice>` command, unless you specify the
+*single* or *mesh* style with units = box or the *random* style.  To
+create atoms on a lattice for general triclinic boxes, see the
+discussion below.
+
+For the remainder of this doc page, a created atom or molecule is
+referred to as a "particle".
 
 If created particles are individual atoms, they are assigned the
 specified atom *type*, though this can be altered via the *basis*
 keyword as discussed below.  If molecules are being created, the type
-of each atom in the created molecule is specified in the file read by
-the :doc:`molecule <molecule>` command, and those values are added to
-the specified atom *type* (e.g., if *type* = 2 and the file specifies
-atom types 1, 2, and 3, then each created molecule will have atom types
-3, 4, and 5).
+of each atom in the created molecule is specified in a specified file
+read by the :doc:`molecule <molecule>` command, and those values are
+added to the specified atom *type* (e.g., if *type* = 2 and the file
+specifies atom types 1, 2, and 3, then each created molecule will have
+atom types 3, 4, and 5).
+
+.. note::
+
+   You cannot use this command to create atoms that are outside the
+   simulation box; they will just be ignored by LAMMPS.  This is true
+   even if you are using shrink-wrapped box boundaries, as specified
+   by the :doc:`boundary <boundary>` command.  However, you can first
+   use the :doc:`change_box <change_box>` command to temporarily
+   expand the box, then add atoms via create_atoms, then finally use
+   change_box command again if needed to re-shrink-wrap the new atoms.
+   See the :doc:`change_box <change_box>` doc page for an example of
+   how to do this, using the create_atoms *single* style to insert a
+   new atom outside the current simulation box.
+
+----------
 
 For the *box* style, the create_atoms command fills the entire
 simulation box with particles on the lattice.  If your simulation box
@@ -126,10 +154,117 @@ periodic boundaries.  If this is desired, you should either use the
 *box* style, or tweak the region size to get precisely the particles
 you want.
 
+----------
+
+If the simulation box is formulated as a general triclinic box defined
+by arbitrary edge vectors **A**, **B**, **C**, then the *box* and
+*region* styles will create atoms on a lattice commensurate with those
+edge vectors.  See the :doc:`Howto_triclinic <Howto_triclinic>` doc
+page for a detailed explanation of orthogonal, restricted triclinic,
+and general triclinic simulation boxes.  As with the :doc:`create_box
+<create_box>` command, the :doc:`lattice <lattice>` command used by
+this command must be of style *custom* and use its *triclinic/general*
+option.  The *a1, *a2*, *a3* settings of the :doc:`lattice <lattice>`
+command define the edge vectors of a unit cell of the general
+triclinic lattice. The :doc:`create_box <create_box>` command creates
+a simulation box which replicates that unit cell along each of the
+**A**, **B**, **C** edge vectors.
+
+.. note::
+
+   LAMMPS allows specification of general triclinic simulation boxes
+   as a convenience for users who may be converting data from
+   solid-state crystallographic representations or from DFT codes for
+   input to LAMMPS.  However, as explained on the
+   :doc:`Howto_triclinic <Howto_triclinic>` doc page, internally,
+   LAMMPS only uses restricted triclinic simulation boxes.  This means
+   the box created by the :doc:`create_box <create_box>` command as
+   well as the atoms created by this command with their per-atom
+   information (e.g. coordinates, velocities) are converted (rotated)
+   from general to restricted triclinic form when the two commands are
+   invoked.  The <Howto_triclinic>` doc page also discusses other
+   LAMMPS commands which can input/output general triclinic
+   representations of the simulation box and per-atom data.
+
+The *box* style will fill the entire general triclinic box with
+particles on the lattice, as explained above.
+
+.. note::
+
+    The *region* style also operates as explained above, but the check
+    for particles inside the region is performed *after* the particle
+    coordinates have been converted to the restricted triclinic box.
+    This means the region must also be defined with respect to the
+    restricted triclinic box, not the general triclinic box.
+
+If the simulation box is general triclinic, the *single*, *random*,
+and *mesh* styles described next operate on the box *after* it has
+been converted to restricted triclinic.  So all the settings for those
+styles should be made in that context.
+
+----------
+
 For the *single* style, a single particle is added to the system at
 the specified coordinates.  This can be useful for debugging purposes
 or to create a tiny system with a handful of particles at specified
-positions.
+positions.  For a 2d simulation the specified z coordinate must be
+0.0.
+
+.. versionchanged:: 2Jun2022
+
+The *porosity* style has been renamed to *random* with added functionality.
+
+For the *random* style, *N* particles are added to the system at
+randomly generated coordinates, which can be useful for generating an
+amorphous system.  For 2d simulations, the z coordinates of all added
+atoms will be 0.0.
+
+The particles are created one by one using the specified random number
+*seed*, resulting in the same set of particle coordinates, independent
+of how many processors are being used in the simulation.  Unless the
+*overlap* keyword is specified, particles created by the *random*
+style will typically be highly overlapped.  Various additional
+criteria can be used to accept or reject a random particle insertion;
+see the keyword discussion below.  Multiple attempts per particle are
+made (see the *maxtry* keyword) until the insertion is either
+successful or fails.  If this command fails to add all requested *N*
+particles, a warning will be output.
+
+If the *region-ID* argument is specified as NULL, then the randomly
+created particles will be anywhere in the simulation box.  If a
+*region-ID* is specified, a geometric volume is filled that is both
+inside the simulation box and is also consistent with the region
+volume.  See the :doc:`region <region>` command for details.  Note
+that a region can be specified so that its "volume" is either inside
+or outside its geometric boundary.
+
+Note that the create_atoms command adds particles to those that
+already exist.  This means it can be used to add particles to a system
+previously read in from a data or restart file.  Or the create_atoms
+command can be used multiple times, to add multiple sets of particles
+to the simulation.  For example, grain boundaries can be created, by
+interleaving the create_atoms command with :doc:`lattice <lattice>`
+commands specifying different orientations.
+
+When this command is used, care should be taken to ensure the
+resulting system does not contain particles that are highly
+overlapped.  Such overlaps will cause many interatomic potentials to
+compute huge energies and forces, leading to bad dynamics.  There are
+several strategies to avoid this problem:
+
+* Use the :doc:`delete_atoms overlap <delete_atoms>` command after
+  create_atoms.  For example, this strategy can be used to overlay and
+  surround a large protein molecule with a volume of water molecules,
+  then delete water molecules that overlap with the protein atoms.
+
+* For the *random* style, use the optional *overlap* keyword to avoid
+  overlaps when each new particle is created.
+
+* Before running dynamics on an overlapped system, perform an
+  :doc:`energy minimization <minimize>`.  Or run initial dynamics with
+  :doc:`pair_style soft <pair_soft>` or with :doc:`fix nve/limit
+  <fix_nve_limit>` to un-overlap the particles, before running normal
+  dynamics.
 
 .. figure:: img/marble_race.jpg
             :figwidth: 33%
@@ -188,73 +323,6 @@ to the area of that triangle.
    pressure and potential energy due to close contacts, it is usually
    beneficial to exclude computing interactions between the created
    particles using :doc:`neigh_modify exclude <neigh_modify>`.
-
-.. versionchanged:: 2Jun2022
-
-The *porosity* style has been renamed to *random* with added functionality.
-
-For the *random* style, *N* particles are added to the system at
-randomly generated coordinates, which can be useful for generating an
-amorphous system.  The particles are created one by one using the
-specified random number *seed*, resulting in the same set of particle
-coordinates, independent of how many processors are being used in the
-simulation.  Unless the *overlap* keyword is specified, particles
-created by the *random* style will typically be highly overlapped.
-Various additional criteria can be used to accept or reject a random
-particle insertion; see the keyword discussion below.  Multiple
-attempts per particle are made (see the *maxtry* keyword) until the
-insertion is either successful or fails.  If this command fails to add
-all requested *N* particles, a warning will be output.
-
-If the *region-ID* argument is specified as NULL, then the randomly
-created particles will be anywhere in the simulation box.  If a
-*region-ID* is specified, a geometric volume is filled that is both
-inside the simulation box and is also consistent with the region
-volume.  See the :doc:`region <region>` command for details.  Note
-that a region can be specified so that its "volume" is either inside
-or outside its geometric boundary.
-
-Note that the create_atoms command adds particles to those that
-already exist.  This means it can be used to add particles to a system
-previously read in from a data or restart file.  Or the create_atoms
-command can be used multiple times, to add multiple sets of particles
-to the simulation.  For example, grain boundaries can be created, by
-interleaving the create_atoms command with :doc:`lattice <lattice>`
-commands specifying different orientations.
-
-When this command is used, care should be taken to ensure the
-resulting system does not contain particles that are highly
-overlapped.  Such overlaps will cause many interatomic potentials to
-compute huge energies and forces, leading to bad dynamics.  There are
-several strategies to avoid this problem:
-
-* Use the :doc:`delete_atoms overlap <delete_atoms>` command after
-  create_atoms.  For example, this strategy can be used to overlay and
-  surround a large protein molecule with a volume of water molecules,
-  then delete water molecules that overlap with the protein atoms.
-
-* For the *random* style, use the optional *overlap* keyword to avoid
-  overlaps when each new particle is created.
-
-* Before running dynamics on an overlapped system, perform an
-  :doc:`energy minimization <minimize>`.  Or run initial dynamics with
-  :doc:`pair_style soft <pair_soft>` or with :doc:`fix nve/limit
-  <fix_nve_limit>` to un-overlap the particles, before running normal
-  dynamics.
-
-.. note::
-
-   You cannot use any of the styles explained above to create atoms
-   that are outside the simulation box; they will just be ignored by
-   LAMMPS.  This is true even if you are using shrink-wrapped box
-   boundaries, as specified by the :doc:`boundary <boundary>` command.
-   However, you can first use the :doc:`change_box <change_box>`
-   command to temporarily expand the box, then add atoms via
-   create_atoms, then finally use change_box command again if needed
-   to re-shrink-wrap the new atoms.  See the :doc:`change_box
-   <change_box>` doc page for an example of how to do this, using the
-   create_atoms *single* style to insert a new atom outside the
-   current simulation box.
 
 ----------
 
@@ -407,12 +475,13 @@ to.
 
 The *overlap* keyword only applies to the *random* style.  It prevents
 newly created particles from being created closer than the specified
-*Doverlap* distance from any other particle.  When the particles being
-created are molecules, the radius of the molecule (from its geometric
-center) is added to *Doverlap*.  If particles have finite size (see
-:doc:`atom_style sphere <atom_style>` for example) *Doverlap* should
-be specified large enough to include the particle size in the
-non-overlapping criterion.
+*Doverlap* distance from any other particle.  If particles have finite
+size (see :doc:`atom_style sphere <atom_style>` for example) *Doverlap*
+should be specified large enough to include the particle size in the
+non-overlapping criterion.  If molecules are being randomly inserted, then
+an insertion is only accepted if each particle in the molecule meets the
+overlap criterion with respect to other particles (not including particles
+in the molecule itself).
 
 .. note::
 
@@ -469,12 +538,19 @@ on a single CPU core.
 -----
 
 The *units* keyword determines the meaning of the distance units used
-to specify the coordinates of the one particle created by the *single*
-style, or the overlap distance *Doverlap* by the *overlap* keyword.  A
-*box* value selects standard distance units as defined by the
-:doc:`units <units>` command (e.g., :math:`\AA` for
-units = *real* or *metal*\ .  A *lattice* value means the distance units are in
-lattice spacings.
+by parameters for various styles.  A *box* value selects standard
+distance units as defined by the :doc:`units <units>` command (e.g.,
+:math:`\AA` for units = *real* or *metal*\ .  A *lattice* value means
+the distance units are in lattice spacings.  These are affected settings:
+
+* for *single* style: coordinates of the particle created
+* for *random* style: overlap distance *Doverlap* by the *overlap* keyword
+* for *mesh* style: *bisect* threshold value for *meshmode* = *bisect*
+* for *mesh* style: *radthresh* value for *meshmode* = *bisect*
+* for *mesh* style: *density* value for *meshmode* = *qrand*
+
+Since *density* represents an area (distance ^2), the lattice spacing
+factor is also squared.
 
 ----------
 

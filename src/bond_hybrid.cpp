@@ -51,14 +51,7 @@ BondHybrid::~BondHybrid()
 
   delete[] svector;
 
-  if (allocated) {
-    memory->destroy(setflag);
-    memory->destroy(map);
-    delete[] nbondlist;
-    delete[] maxbond;
-    for (int i = 0; i < nstyles; i++) memory->destroy(bondlist[i]);
-    delete[] bondlist;
-  }
+  deallocate();
 }
 
 /* ---------------------------------------------------------------------- */
@@ -166,6 +159,22 @@ void BondHybrid::allocate()
   for (int m = 0; m < nstyles; m++) bondlist[m] = nullptr;
 }
 
+/* ---------------------------------------------------------------------- */
+
+void BondHybrid::deallocate()
+{
+  if (!allocated) return;
+
+  allocated = 0;
+
+  memory->destroy(setflag);
+  memory->destroy(map);
+  delete[] nbondlist;
+  delete[] maxbond;
+  for (int i = 0; i < nstyles; i++) memory->destroy(bondlist[i]);
+  delete[] bondlist;
+}
+
 /* ----------------------------------------------------------------------
    create one bond style for each arg in list
 ------------------------------------------------------------------------- */
@@ -186,15 +195,7 @@ void BondHybrid::settings(int narg, char **arg)
     has_quartic = -1;
   }
 
-  if (allocated) {
-    memory->destroy(setflag);
-    memory->destroy(map);
-    delete[] nbondlist;
-    delete[] maxbond;
-    for (i = 0; i < nstyles; i++) memory->destroy(bondlist[i]);
-    delete[] bondlist;
-  }
-  allocated = 0;
+  deallocate();
 
   // allocate list of sub-styles
 
@@ -305,7 +306,7 @@ void BondHybrid::coeff(int narg, char **arg)
     if (strcmp(arg[1], "none") == 0)
       none = 1;
     else
-      error->all(FLERR, "Bond coeff for hybrid has invalid style");
+      error->all(FLERR, "Expected hybrid sub-style instead of {} in bond_coeff command", arg[1]);
   }
 
   // move 1st arg to 2nd arg
@@ -400,7 +401,7 @@ void BondHybrid::read_restart(FILE *fp)
     keywords[m] = new char[n];
     if (me == 0) utils::sfread(FLERR, keywords[m], sizeof(char), n, fp, nullptr, error);
     MPI_Bcast(keywords[m], n, MPI_CHAR, 0, world);
-    styles[m] = force->new_bond(keywords[m], 0, dummy);
+    styles[m] = force->new_bond(keywords[m], 1, dummy);
     styles[m]->read_restart_settings(fp);
   }
 }

@@ -852,14 +852,19 @@ void LammpsGui::logupdate()
             }
 
             for (int i = 0; i < ncols; ++i) {
-                int datatype = *(int *)lammps.last_thermo("type", i);
+                int datatype = -1;
                 double data  = 0.0;
-                if (datatype == 0) // int
-                    data = *(int *)lammps.last_thermo("data", i);
-                else if (datatype == 2) // double
-                    data = *(double *)lammps.last_thermo("data", i);
-                else if (datatype == 4) // bigint
-                    data = (double)*(int64_t *)lammps.last_thermo("data", i);
+                void *ptr = lammps.last_thermo("type", i);
+                if (ptr) datatype = *(int *)ptr;
+                ptr = lammps.last_thermo("data", i);
+                if (ptr) {
+                    if (datatype == 0) // int
+                        data = *(int *)ptr;
+                    else if (datatype == 2) // double
+                        data = *(double *)ptr;
+                    else if (datatype == 4) // bigint
+                        data = (double)*(int64_t *)ptr;
+                }
                 chartwindow->add_data(step, data, i);
             }
         }

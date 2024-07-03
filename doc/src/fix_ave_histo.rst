@@ -35,7 +35,7 @@ Syntax
        v_name[I] = value calculated by a vector-style variable with name, I can include wildcard (see below)
 
 * zero or more keyword/arg pairs may be appended
-* keyword = *mode* or *kind* or *file* or *ave* or *start* or *beyond* or *overwrite* or *title1* or *title2* or *title3*
+* keyword = *mode* or *kind* or *file* or *append* or *ave* or *start* or *beyond* or *overwrite* or *title1* or *title2* or *title3*
 
   .. parsed-literal::
 
@@ -45,6 +45,8 @@ Syntax
        *kind* arg = *global* or *peratom* or *local*
        *file* arg = filename
          filename = name of file to output histogram(s) to
+       *append* arg = filename
+         filename = name of file to append histogram(s) to
        *ave* args = *one* or *running* or *window*
          one = output a new average value every Nfreq steps
          running = output cumulative average of all previous Nfreq steps
@@ -317,19 +319,25 @@ on.  The default is step 0.  Often input values can be 0.0 at time 0,
 so setting *start* to a larger value can avoid including a 0.0 in
 a running or windowed histogram.
 
-The *file* keyword allows a filename to be specified.  Every *Nfreq*
-steps, one histogram is written to the file.  This includes a leading
-line that contains the timestep, number of bins, the total count of
-values contributing to the histogram, the count of values that were
-not histogrammed (see the *beyond* keyword), the minimum value
-encountered, and the maximum value encountered.  The min/max values
-include values that were not histogrammed.  Following the leading
-line, one line per bin is written into the file.  Each line contains
-the bin #, the coordinate for the center of the bin (between *lo* and
-*hi*\ ), the count of values in the bin, and the normalized count.  The
-normalized count is the bin count divided by the total count (not
-including values not histogrammed), so that the normalized values sum
-to 1.0 across all bins.
+.. versionadded:: 17Apr2024
+   new keyword *append*
+
+The *file* or *append* keywords allow a filename to be specified.  If
+*file* is used, then the filename is overwritten if it already exists.
+If *append* is used, then the filename is appended to if it already
+exists, or created if it does not exist.  Every *Nfreq* steps, one
+histogram is written to the file.  This includes a leading line that
+contains the timestep, number of bins, the total count of values
+contributing to the histogram, the count of values that were not
+histogrammed (see the *beyond* keyword), the minimum value encountered,
+and the maximum value encountered.  The min/max values include values
+that were not histogrammed.  Following the leading line, one line per
+bin is written into the file.  Each line contains the bin #, the
+coordinate for the center of the bin (between *lo* and *hi*\ ), the
+count of values in the bin, and the normalized count.  The normalized
+count is the bin count divided by the total count (not including values
+not histogrammed), so that the normalized values sum to 1.0 across all
+bins.
 
 The *overwrite* keyword will continuously overwrite the output file
 with the latest output, so that it only contains one timestep worth of

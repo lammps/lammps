@@ -479,6 +479,9 @@ void ReadData::command(int narg, char **arg)
   bondflag = angleflag = dihedralflag = improperflag = 0;
   ellipsoidflag = lineflag = triflag = bodyflag = 0;
 
+  xloxhi_flag = yloyhi_flag = zlozhi_flag = tilt_flag = 0;
+  avec_flag = bvec_flag = cvec_flag = abc_origin_flag = 0;
+
   // values in this data file
 
   natoms = 0;
@@ -488,7 +491,15 @@ void ReadData::command(int narg, char **arg)
 
   boxlo[0] = boxlo[1] = boxlo[2] = -0.5;
   boxhi[0] = boxhi[1] = boxhi[2] = 0.5;
-  triclinic = 0;
+  xy = xz = yz = 0.0;
+
+  avec[0] = bvec[1] = cvec[2] = 1.0;
+  avec[1] = avec[2] = 0.0;
+  bvec[0] = bvec[2] = 0.0;
+  cvec[0] = cvec[1] = 0.0;
+  abc_origin[0] = abc_origin[1] = abc_origin[2] = 0.0;
+  if (domain->dimension == 2) abc_origin[2] = -0.5;
+
   keyword[0] = '\0';
 
   nlocal_previous = atom->nlocal;
@@ -507,6 +518,30 @@ void ReadData::command(int narg, char **arg)
     // read header info
 
     header(firstpass);
+
+    // check if simulation box specified consistently
+
+    if (!avec_flag && !bvec_flag && !cvec_flag && !abc_origin_flag) {
+      triclinic = triclinic_general = 0;
+      if (tilt_flag) triclinic = 1;
+    } else {
+      if (xloxhi_flag || yloyhi_flag || zlozhi_flag || tilt_flag)
+        error->all(FLERR,"Read_data header cannot specify simulation box lo/hi/tilt and ABC vectors");
+      triclinic = triclinic_general = 1;
+    }
+
+    // check if simulation box specified correctly for 2d
+
+    if (domain->dimension == 2) {
+      if (triclinic_general == 0) {
+        if (boxlo[2] >= 0.0 || boxhi[2] <= 0.0)
+          error->all(FLERR,"Read_data zlo/zhi for 2d simulation must straddle 0.0");
+      } else if (triclinic_general == 1) {
+        if (cvec[0] != 0.0 || cvec[1] != 0.0 || cvec[2] != 1.0 || abc_origin[2] != -0.5)
+          error->all(FLERR,"Read_data cvec and/or abc_origin is invalid for "
+                     "2d simulation with general triclinic box");
+      }
+    }
 
     // problem setup using info from header
     // only done once, if firstpass and first data file
@@ -536,31 +571,80 @@ void ReadData::command(int narg, char **arg)
       n = static_cast<int>(nbig);
       atom->avec->grow(n);
 
-      domain->boxlo[0] = boxlo[0];
-      domain->boxhi[0] = boxhi[0];
-      domain->boxlo[1] = boxlo[1];
-      domain->boxhi[1] = boxhi[1];
-      domain->boxlo[2] = boxlo[2];
-      domain->boxhi[2] = boxhi[2];
+      // setup simulation box
+      // 3 options: orthogonal, restricted triclinic, general triclinic
 
-      if (triclinic) {
-        domain->triclinic = 1;
-        domain->xy = xy;
-        domain->xz = xz;
-        domain->yz = yz;
+      if (!triclinic_general) {
+
+        // orthogonal or restricted triclinic box
+
+        domain->boxlo[0] = boxlo[0];
+        domain->boxhi[0] = boxhi[0];
+        domain->boxlo[1] = boxlo[1];
+        domain->boxhi[1] = boxhi[1];
+        domain->boxlo[2] = boxlo[2];
+        domain->boxhi[2] = boxhi[2];
+
+        // restricted triclinic box
+
+        if (triclinic) {
+          domain->triclinic = 1;
+          domain->xy = xy;
+          domain->xz = xz;
+          domain->yz = yz;
+        }
+
+      // general triclinic box
+      // define_general_triclinic() converts
+      //   ABC edge vectors + abc_origin to restricted triclinic
+
+      } else if (triclinic_general) {
+        domain->define_general_triclinic(avec,bvec,cvec,abc_origin);
       }
-
-      domain->print_box("  ");
-      domain->set_initial_box();
-      domain->set_global_box();
-      comm->set_proc_grid();
-      domain->set_local_box();
     }
 
     // change simulation box to be union of existing box and new box + shift
     // only done if firstpass and not first data file
 
     if (firstpass && addflag != NONE) {
+
+      // general triclinic
+      // first data file must also be general triclinic
+      // avec,bvec,vec and origin must match first data file
+      // shift not allowed
+
+      if (triclinic_general) {
+        if (!domain->triclinic_general)
+          error->all(FLERR,"Read_data subsequent file cannot switch to general triclinic");
+        int errflag = 0;
+        if (avec[0] != domain->avec[0] || avec[1] != domain->avec[1] || avec[2] != domain->avec[2])
+          errflag = 1;
+        if (bvec[0] != domain->bvec[0] || bvec[1] != domain->bvec[1] || bvec[2] != domain->bvec[2])
+          errflag = 1;
+        if (cvec[0] != domain->cvec[0] || cvec[1] != domain->cvec[1] || cvec[2] != domain->cvec[2])
+          errflag = 1;
+        if (abc_origin[0] != domain->boxlo[0] || abc_origin[1] != domain->boxlo[1] ||
+            abc_origin[2] != domain->boxlo[2])
+          errflag = 1;
+        if (errflag)
+          error->all(FLERR,"Read_data subsequent file ABC vectors must be same as first file");
+        if (shift[0] != 0.0 || shift[1] != 0.0 || shift[2] != 0.0)
+          error->all(FLERR,"Read_data subsequent file with ABC vectors cannot define shift");
+
+      // restricted triclinic
+      // tilt factors must match first data file
+
+      } else if (triclinic) {
+        if (!domain->triclinic || domain->triclinic_general)
+          error->all(FLERR,"Read_data subsequent file cannot switch to restricted triclinic");
+        if (xy != domain->xy || xz != domain->xz || yz != domain->yz)
+          error->all(FLERR,"Read_data subsequent file tilt factors must be same as first file");
+
+      } else {
+        if (domain->triclinic)
+          error->all(FLERR,"Read_data subsequent file cannot switch to orthogonal");
+      }
+
       double oldboxlo[3] = {domain->boxlo[0], domain->boxlo[1], domain->boxlo[2]};
       double oldboxhi[3] = {domain->boxhi[0], domain->boxhi[1], domain->boxhi[2]};
       domain->boxlo[0] = MIN(domain->boxlo[0], boxlo[0] + shift[0]);
@@ -570,7 +654,9 @@ void ReadData::command(int narg, char **arg)
       domain->boxlo[2] = MIN(domain->boxlo[2], boxlo[2] + shift[2]);
       domain->boxhi[2] = MAX(domain->boxhi[2], boxhi[2] + shift[2]);
 
-      // check of box has changed. If yes, warn about non-zero image flags
+      // check if box has changed
+      // if yes, warn about non-zero image flags
+
       if ((oldboxlo[0] != domain->boxlo[0]) || (oldboxlo[1] != domain->boxlo[1]) ||
           (oldboxlo[2] != domain->boxlo[2]) || (oldboxhi[0] != domain->boxhi[0]) ||
           (oldboxhi[1] != domain->boxhi[1]) || (oldboxhi[2] != domain->boxhi[2])) {
@@ -586,20 +672,17 @@ void ReadData::command(int narg, char **arg)
         int flag_all;
         MPI_Allreduce(&iflag, &flag_all, 1, MPI_INT, MPI_SUM, world);
         if ((flag_all > 0) && (comm->me == 0))
-          error->warning(FLERR, "Non-zero image flags with growing box leads to bad coordinates");
+          error->warning(FLERR, "Non-zero image flags with growing box can produce bad coordinates");
       }
-
-      // NOTE: not sure what to do about tilt value in subsequent data files
-      //if (triclinic) {
-      //  domain->xy = xy; domain->xz = xz; domain->yz = yz;
-      // }
-
-      domain->print_box("  ");
-      domain->set_initial_box();
-      domain->set_global_box();
-      comm->set_proc_grid();
-      domain->set_local_box();
     }
+
+    // setup simulation box and paritioning in Domain and Comm classes
+
+    domain->print_box("  ");
+    domain->set_initial_box();
+    domain->set_global_box();
+    comm->set_proc_grid();
+    domain->set_local_box();
 
     // allocate space for type label map
 
@@ -608,8 +691,10 @@ void ReadData::command(int narg, char **arg)
       lmap = new LabelMap(lmp, ntypes, nbondtypes, nangletypes, ndihedraltypes, nimpropertypes);
     }
 
+    // -------------------------------------------------------------------------------------
+    // rest of data file is Sections
+    // read in any order, except where error checks
     // customize for new sections
-    // read rest of file in free format
 
     while (strlen(keyword)) {
 
@@ -980,6 +1065,12 @@ void ReadData::command(int narg, char **arg)
     atom->avec->grow(atom->nmax);
   }
 
+  // if general triclinic, perform general to restricted rotation operation
+  //   on any quantities read from data file which require it
+
+  if (triclinic_general)
+    atom->avec->read_data_general_to_restricted(nlocal_previous, atom->nlocal);
+
   // init per-atom fix/compute/variable values for created atoms
 
   atom->data_fix_compute_variable(nlocal_previous, atom->nlocal);
@@ -1140,7 +1231,8 @@ void ReadData::header(int firstpass)
 
   // initialize type counts by the "extra" numbers so they get counted
   // in case the corresponding "types" line is missing and thus the extra
-  // value will not be processed.
+  // value will not be processed
+
   if (addflag == NONE) {
     atom->ntypes = extra_atom_types;
     atom->nbondtypes = extra_bond_types;
@@ -1156,6 +1248,7 @@ void ReadData::header(int firstpass)
     if (eof == nullptr) error->one(FLERR, "Unexpected end of data file");
 
     // check for units keyword in first line and print warning on mismatch
+
     auto units = Tokenizer(utils::strfind(line, "units = \\w+")).as_vector();
     if (units.size() > 2) {
       if (units[2] != update->unit_style)
@@ -1278,7 +1371,7 @@ void ReadData::header(int firstpass)
       else if (firstpass)
         atom->nimpropers += nimpropers;
 
-      // Atom class type settings are only set by first data file
+    // Atom class type settings are only set by first data file
 
     } else if (utils::strmatch(line, "^\\s*\\d+\\s+atom\\s+types\\s")) {
       ntypes = utils::inumeric(FLERR, words[0], false, lmp);
@@ -1300,11 +1393,10 @@ void ReadData::header(int firstpass)
       nimpropertypes = utils::inumeric(FLERR, words[0], false, lmp);
       if (addflag == NONE) atom->nimpropertypes = nimpropertypes + extra_improper_types;
 
-      // these settings only used by first data file
-      // also, these are obsolescent. we parse them to maintain backward
-      // compatibility, but the recommended way is to set them via keywords
-      // in the LAMMPS input file. In case these flags are set in both,
-      // the input and the data file, we use the larger of the two.
+    // these settings only used by first data file
+    // NOTE: these are now obsolete, we parse them to maintain backward compatibility
+    //   the recommended way is to set them via command keywords in the input script
+    //   if these flags are set both ways, the larger of the two values is used
 
     } else if (strstr(line, "extra bond per atom")) {
       if (addflag == NONE) extra_flag_value = utils::inumeric(FLERR, words[0], false, lmp);
@@ -1322,26 +1414,53 @@ void ReadData::header(int firstpass)
       if (addflag == NONE) extra_flag_value = utils::inumeric(FLERR, words[0], false, lmp);
       force->special_extra = MAX(force->special_extra, extra_flag_value);
 
-      // local copy of box info
-      // so can treat differently for first vs subsequent data files
+    // local copy of box info
+    // so can treat differently for first vs subsequent data files
 
     } else if (utils::strmatch(line, "^\\s*\\f+\\s+\\f+\\s+xlo\\s+xhi\\s")) {
+      xloxhi_flag = 1;
       boxlo[0] = utils::numeric(FLERR, words[0], false, lmp);
       boxhi[0] = utils::numeric(FLERR, words[1], false, lmp);
 
     } else if (utils::strmatch(line, "^\\s*\\f+\\s+\\f+\\s+ylo\\s+yhi\\s")) {
+      yloyhi_flag = 1;
       boxlo[1] = utils::numeric(FLERR, words[0], false, lmp);
       boxhi[1] = utils::numeric(FLERR, words[1], false, lmp);
 
     } else if (utils::strmatch(line, "^\\s*\\f+\\s+\\f+\\s+zlo\\s+zhi\\s")) {
+      zlozhi_flag = 1;
       boxlo[2] = utils::numeric(FLERR, words[0], false, lmp);
       boxhi[2] = utils::numeric(FLERR, words[1], false, lmp);
 
     } else if (utils::strmatch(line, "^\\s*\\f+\\s+\\f+\\s+\\f+\\s+xy\\s+xz\\s+yz\\s")) {
-      triclinic = 1;
+      tilt_flag = 1;
       xy = utils::numeric(FLERR, words[0], false, lmp);
       xz = utils::numeric(FLERR, words[1], false, lmp);
       yz = utils::numeric(FLERR, words[2], false, lmp);
+
+    } else if (utils::strmatch(line, "^\\s*\\f+\\s+\\f+\\s+\\f+\\s+\\avec\\s")) {
+      avec_flag = 1;
+      avec[0] = utils::numeric(FLERR, words[0], false, lmp);
+      avec[1] = utils::numeric(FLERR, words[1], false, lmp);
+      avec[2] = utils::numeric(FLERR, words[2], false, lmp);
+
+    } else if (utils::strmatch(line, "^\\s*\\f+\\s+\\f+\\s+\\f+\\s+\\bvec\\s")) {
+      bvec_flag = 1;
+      bvec[0] = utils::numeric(FLERR, words[0], false, lmp);
+      bvec[1] = utils::numeric(FLERR, words[1], false, lmp);
+      bvec[2] = utils::numeric(FLERR, words[2], false, lmp);
+
+    } else if (utils::strmatch(line, "^\\s*\\f+\\s+\\f+\\s+\\f+\\s+\\cvec\\s")) {
+      cvec_flag = 1;
+      cvec[0] = utils::numeric(FLERR, words[0], false, lmp);
+      cvec[1] = utils::numeric(FLERR, words[1], false, lmp);
+      cvec[2] = utils::numeric(FLERR, words[2], false, lmp);
+
+    } else if (utils::strmatch(line, "^\\s*\\f+\\s+\\f+\\s+\\f+\\s+\\abc\\s+origin\\s")) {
+      abc_origin_flag = 1;
+      abc_origin[0] = utils::numeric(FLERR, words[0], false, lmp);
+      abc_origin[1] = utils::numeric(FLERR, words[1], false, lmp);
+      abc_origin[2] = utils::numeric(FLERR, words[2], false, lmp);
 
     } else
       break;
@@ -1360,7 +1479,8 @@ void ReadData::header(int firstpass)
   // check that exiting string is a valid section keyword
 
   parse_keyword(1);
-  if (!is_data_section(keyword)) error->all(FLERR, "Unknown identifier in data file: {}", keyword);
+  if (!is_data_section(keyword))
+    error->all(FLERR, "Unknown identifier in data file: {}{}", keyword, utils::errorurl(1));
 
   // error checks on header values
   // must be consistent with atom style and other header values
@@ -1407,8 +1527,8 @@ void ReadData::atoms()
     if (eof) error->all(FLERR, "Unexpected end of data file");
     if (tlabelflag && !lmap->is_complete(Atom::ATOM))
       error->all(FLERR, "Label map is incomplete: all types must be assigned a unique type label");
-    atom->data_atoms(nchunk, buffer, id_offset, mol_offset, toffset, shiftflag, shift, tlabelflag,
-                     lmap->lmap2lmap.atom);
+    atom->data_atoms(nchunk, buffer, id_offset, mol_offset, toffset,
+                     shiftflag, shift, tlabelflag, lmap->lmap2lmap.atom, triclinic_general);
     nread += nchunk;
   }
 

@@ -157,6 +157,7 @@ TEST_F(VariableTest, CreateDelete)
     ASSERT_THAT(variable->retrieve("three"), StrEq("four"));
     ASSERT_THAT(variable->retrieve("four2"), StrEq("2"));
     ASSERT_THAT(variable->retrieve("five1"), StrEq("001"));
+    ASSERT_THAT(variable->retrieve("five2"), StrEq("010"));
     ASSERT_THAT(variable->retrieve("seven"), StrEq(" 2.00"));
     ASSERT_THAT(variable->retrieve("ten"), StrEq("1"));
     ASSERT_THAT(variable->retrieve("eight"), StrEq(""));
@@ -216,7 +217,7 @@ TEST_F(VariableTest, CreateDelete)
                  command("variable one internal 2"););
     TEST_FAILURE(".*ERROR: Cannot use atomfile-style variable unless an atom map exists.*",
                  command("variable eleven    atomfile  test_variable.atomfile"););
-    TEST_FAILURE(".*ERROR on proc 0: Cannot open file variable file test_variable.xxx.*",
+    TEST_FAILURE(".*ERROR on proc 0: Cannot open file variable nine1 file test_variable.xxx.*",
                  command("variable nine1  file      test_variable.xxx"););
     TEST_FAILURE(".*ERROR: World variable count doesn't match # of partitions.*",
                  command("variable ten10 world xxx xxx"););
@@ -293,7 +294,7 @@ TEST_F(VariableTest, AtomicSystem)
                  command("variable one atom x"););
     TEST_FAILURE(".*ERROR: Cannot redefine variable as a different style.*",
                  command("variable id vector f_press"););
-    TEST_FAILURE(".*ERROR on proc 0: Cannot open file variable file test_variable.xxx.*",
+    TEST_FAILURE(".*ERROR on proc 0: Cannot open atomfile variable ten1 file test_variable.xxx.*",
                  command("variable ten1   atomfile  test_variable.xxx"););
     TEST_FAILURE(".*ERROR: Variable loop: has a circular dependency.*",
                  variable->compute_equal("v_loop"););
@@ -337,6 +338,13 @@ TEST_F(VariableTest, Expressions)
     command("variable vec1   vector    \"[-2, 0, 1,2 ,3, 5 ,	7\n]\"");
     command("variable vec2   vector    v_vec1*0.5");
     command("variable vec3   equal     v_vec2[3]");
+    command("variable vec4   vector    '[1, 5, 2.5, -10, -5, 20, 120, 4, 3, 3]'");
+    command("variable sort   vector    sort(v_vec4)");
+    command("variable rsrt   vector    rsort(v_vec4)");
+    command("variable max2   equal     sort(v_vec4)[2]");
+    command("variable rmax   equal     rsort(v_vec4)[1]");
+    command("variable xxxl   equal     rsort(v_vec4)[11]");
+    command("variable isrt   vector    sort(v_one)");
     variable->set("dummy  index     1 2");
     END_HIDE_OUTPUT();
 
@@ -366,6 +374,10 @@ TEST_F(VariableTest, Expressions)
     EXPECT_THAT(variable->retrieve("vec1"), StrEq("[-2,0,1,2,3,5,7]"));
     EXPECT_THAT(variable->retrieve("vec2"), StrEq("[-1,0,0.5,1,1.5,2.5,3.5]"));
     ASSERT_DOUBLE_EQ(variable->compute_equal("v_vec3"), 0.5);
+    EXPECT_THAT(variable->retrieve("sort"), StrEq("[-10,-5,1,2.5,3,3,4,5,20,120]"));
+    EXPECT_THAT(variable->retrieve("rsrt"), StrEq("[120,20,5,4,3,3,2.5,1,-5,-10]"));
+    ASSERT_DOUBLE_EQ(variable->compute_equal("v_max2"), -5);
+    ASSERT_DOUBLE_EQ(variable->compute_equal("v_rmax"), 120);
 
     TEST_FAILURE(".*ERROR: Variable six: Invalid thermo keyword 'XXX' in variable formula.*",
                  command("print \"${six}\""););
@@ -377,6 +389,10 @@ TEST_F(VariableTest, Expressions)
                  command("print \"${err2}\""););
     TEST_FAILURE(".*ERROR on proc 0: Variable err3: Invalid power expression in variable formula.*",
                  command("print \"${err3}\""););
+    TEST_FAILURE(".*ERROR: Variable one: Mis-matched special function variable in variable formula.*",
+                 command("print \"${isrt}\""););
+    TEST_FAILURE(".*ERROR: Variable vec4: index 11 exceeds vector size of 10.*",
+                 command("print \"${xxxl}\""););
 }
 
 TEST_F(VariableTest, Functions)

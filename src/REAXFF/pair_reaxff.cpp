@@ -297,14 +297,17 @@ void PairReaxFF::coeff(int nargs, char **args)
   }
 
   int n = atom->ntypes;
+  eletype.resize(n+1);
 
   // pair_coeff element map
-  for (int i = 3; i < nargs; i++)
+  for (int i = 3; i < nargs; i++) {
+    eletype[i-2] = args[i];
     for (int j = 0; j < nreax_types; j++)
       if (utils::lowercase(args[i]) == utils::lowercase(api->system->reax_param.sbp[j].name)) {
         map[i-2] = j;
         itmp ++;
       }
+  }
 
   // error check
   if (itmp != n)
@@ -691,24 +694,28 @@ void *PairReaxFF::extract(const char *str, int &dim)
 {
   dim = 1;
   if (strcmp(str,"chi") == 0 && chi) {
+    chi[0] = 0.0;
     for (int i = 1; i <= atom->ntypes; i++)
       if (map[i] >= 0) chi[i] = api->system->reax_param.sbp[map[i]].chi;
       else chi[i] = 0.0;
     return (void *) chi;
   }
   if (strcmp(str,"eta") == 0 && eta) {
+    eta[0] = 0.0;
     for (int i = 1; i <= atom->ntypes; i++)
       if (map[i] >= 0) eta[i] = api->system->reax_param.sbp[map[i]].eta;
       else eta[i] = 0.0;
     return (void *) eta;
   }
   if (strcmp(str,"gamma") == 0 && gamma) {
+    gamma[0] = 0.0;
     for (int i = 1; i <= atom->ntypes; i++)
       if (map[i] >= 0) gamma[i] = api->system->reax_param.sbp[map[i]].gamma;
       else gamma[i] = 0.0;
     return (void *) gamma;
    }
    if (strcmp(str,"bcut_acks2") == 0 && bcut_acks2) {
+    bcut_acks2[0] = 0.0;
     for (int i = 1; i <= atom->ntypes; i++)
       if (map[i] >= 0) bcut_acks2[i] = api->system->reax_param.sbp[map[i]].bcut_acks2;
       else bcut_acks2[i] = 0.0;

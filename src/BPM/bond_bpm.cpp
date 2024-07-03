@@ -14,6 +14,7 @@
 #include "bond_bpm.h"
 
 #include "atom.h"
+#include "citeme.h"
 #include "comm.h"
 #include "domain.h"
 #include "error.h"
@@ -29,6 +30,19 @@
 #include <cstring>
 
 using namespace LAMMPS_NS;
+
+static const char cite_bpm[] =
+  "BPM bond style: doi:10.1039/D3SM01373A\n\n"
+  "@Article{Clemmer2024,\n"
+  " author =  {Clemmer, Joel T. and Monti, Joseph M. and Lechman, Jeremy B.},\n"
+  " title =   {A soft departure from jamming: the compaction of deformable\n"
+  "            granular matter under high pressures},\n"
+  " journal = {Soft Matter},\n"
+  " year =    2024,\n"
+  " volume =  20,\n"
+  " number =  8,\n"
+  " pages =   {1702--1718}\n"
+  "}\n\n";
 
 /* ---------------------------------------------------------------------- */
 
@@ -55,6 +69,8 @@ BondBPM::BondBPM(LAMMPS *_lmp) :
 
   id_fix_dummy2 = utils::strdup("BPM_DUMMY2");
   modify->add_fix(fmt::format("{} all DUMMY ", id_fix_dummy2));
+
+  if (lmp->citeme) lmp->citeme->add(cite_bpm);
 }
 
 /* ---------------------------------------------------------------------- */
@@ -336,19 +352,32 @@ void BondBPM::process_broken(int i, int j)
 {
   if (!break_flag)
     error->one(FLERR, "BPM bond broke with break no option");
-  if (fix_store_local) {
-    for (int n = 0; n < nvalues; n++) (this->*pack_choice[n])(n, i, j);
 
-    fix_store_local->add_data(output_data, i, j);
+  int nlocal = atom->nlocal;
+  if (fix_store_local) {
+    // If newton off, bond can break on two procs so only record if proc owns lower tag
+    //    (BPM bond styles should sort so i -> atom with lower tag)
+    if (force->newton_bond || (i < nlocal)) {
+      for (int n = 0; n < nvalues; n++) (this->*pack_choice[n])(n, i, j);
+      fix_store_local->add_data(output_data, i, j);
+    }
   }
 
-  if (fix_update_special_bonds) fix_update_special_bonds->add_broken_bond(i, j);
+  if (fix_update_special_bonds) {
+    // If this processor owns two copies of the bond (i.e. if the domain is periodic and 1 proc thick),
+    //   skip instance where larger tag (j) owned
+    int check = 1;
+    if (i >= nlocal) {
+      int imap = atom->map(atom->tag[i]);
+      if (imap < nlocal) check = 0;
+    }
+    if (check) fix_update_special_bonds->add_broken_bond(i, j);
+  }
 
   // Manually search and remove from atom arrays
   // need to remove in case special bonds arrays rebuilt
-  int m, n;
-  int nlocal = atom->nlocal;
 
+  int m, n;
   tagint *tag = atom->tag;
   tagint **bond_atom = atom->bond_atom;
   int **bond_type = atom->bond_type;

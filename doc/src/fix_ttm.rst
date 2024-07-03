@@ -96,11 +96,11 @@ each processor, which is acceptable when the overall grid is reasonably
 small.  For larger grids you should use fix *ttm/grid* instead.
 
 Fix *ttm/mod* adds options to account for external heat sources (e.g. at
-a surface) and for specifying parameters that allow the electronic
-heat capacity to depend strongly on electronic temperature.  It is
-more expensive computationally than fix *ttm* because it treats the
-thermal diffusion equation as non-linear.  More details on fix *ttm/mod*
-are given below.
+a surface) and for specifying parameters that allow the electronic heat
+capacity to depend strongly on electronic temperature.  It is more
+expensive computationally than fix *ttm* because it treats the thermal
+diffusion equation as non-linear.  More details on fix *ttm/mod* are
+given below.
 
 Heat transfer between the electronic and atomic subsystems is carried
 out via an inhomogeneous Langevin thermostat.  Only atoms in the fix
@@ -136,23 +136,23 @@ transfer between the subsystems:
   \bigtriangledown (\kappa_e \bigtriangledown T_e) -
   g_p (T_e - T_a) + g_s T_a'
 
-where C_e is the specific heat, rho_e is the density, kappa_e is the
-thermal conductivity, T is temperature, the "e" and "a" subscripts
-represent electronic and atomic subsystems respectively, g_p is the
-coupling constant for the electron-ion interaction, and g_s is the
-electron stopping coupling parameter.  C_e, rho_e, and kappa_e are
-specified as parameters to the fix.  The other quantities are derived.
-The form of the heat diffusion equation used here is almost the same
-as that in equation 6 of :ref:`(Duffy) <Duffy>`, with the exception that the
-electronic density is explicitly represented, rather than being part
-of the specific heat parameter.
+where :math:`C_e` is the specific heat, :math:`\rho_e` is the density,
+:math:`\kappa_e` is the thermal conductivity, *T* is temperature, the
+"e" and "a" subscripts represent electronic and atomic subsystems
+respectively, :math:`g_p` is the coupling constant for the electron-ion
+interaction, and :math:`g_s` is the electron stopping coupling
+parameter.  :math:`C_e`, :math:`\rho_e`, and :math:`\kappa_e` are
+specified as parameters to the fix *ttm* or *ttm/grid*.  The other
+quantities are derived.  The form of the heat diffusion equation used
+here is almost the same as that in equation 6 of :ref:`(Duffy) <Duffy>`,
+with the exception that the electronic density is explicitly
+represented, rather than being part of the specific heat parameter.
 
 Currently, the TTM fixes assume that none of the user-supplied
-parameters will vary with temperature. Note that :ref:`(Duffy)
-<Duffy>` used a tanh() functional form for the temperature dependence
-of the electronic specific heat, but ignored temperature dependencies
-of any of the other parameters.  See more discussion below for fix
-ttm/mod.
+parameters will vary with temperature. Note that :ref:`(Duffy) <Duffy>`
+used a tanh() functional form for the temperature dependence of the
+electronic specific heat, but ignored temperature dependencies of any of
+the other parameters.  See more discussion below for fix *ttm/mod*.
 
 .. note::
 
@@ -265,27 +265,27 @@ heat sources (e.g. laser heating in ablation simulations):
   \bigtriangledown (\kappa_e \bigtriangledown T_e) -
   g_p (T_e - T_a) + g_s T_a' + \theta (x-x_{surface})I_0 \exp(-x/l_{skin})
 
-where theta is the Heaviside step function, I_0 is the (absorbed)
-laser pulse intensity for ablation simulations, l_skin is the depth
-of skin-layer, and all other designations have the same meaning as in
-the former equation. The duration of the pulse is set by the parameter
-*tau* in the *init_file*.
+where :math:`\theta` is the Heaviside step function, :math:`I_0` is the
+(absorbed) laser pulse intensity for ablation simulations,
+:math:`l_{skin}` is the depth of the skin-layer, and all other
+designations have the same meaning as in the former equation. The
+duration of the pulse is set by the parameter *tau* in the *init_file*.
 
-Fix ttm/mod also allows users to specify the dependencies of C_e and
-kappa_e on the electronic temperature. The specific heat is expressed
-as
+Fix *ttm/mod* also allows users to specify the dependencies of
+:math:`C_e` and :math:`\kappa_e` on the electronic temperature. The
+specific heat is expressed as
 
 .. math::
 
   C_e = C_0 + (a_0 + a_1 X + a_2 X^2 + a_3 X^3 + a_4 X^4) \exp (-(AX)^2)
 
-where *X* = T_e/1000, and the thermal conductivity is defined as
-kappa_e = D_e\*rho_e\*C_e, where D_e is the thermal diffusion
-coefficient.
+where :math:`X = \frac{T_e}{1000}`, and the thermal conductivity is
+defined as :math:`\kappa_e = D_e \cdot rho_e \cdot C_e`, where
+:math:`D_e` is the thermal diffusion coefficient.
 
-Electronic pressure effects are included in the TTM model to account
-for the blast force acting on ions because of electronic pressure
-gradient (see :ref:`(Chen) <Chen>`, :ref:`(Norman) <Norman>`).  The total force
+Electronic pressure effects are included in the TTM model to account for
+the blast force acting on ions because of electronic pressure gradient
+(see :ref:`(Chen) <Chen>`, :ref:`(Norman) <Norman>`).  The total force
 acting on an ion is:
 
 .. math::
@@ -293,25 +293,26 @@ acting on an ion is:
   {\vec F}_i = - \partial U / \partial {\vec r}_i + {\vec
   F}_{langevin} - \nabla P_e/n_{ion}
 
-where F_langevin is a force from Langevin thermostat simulating
-electron-phonon coupling, and nabla P_e/n_ion is the electron blast
-force.
+where :math:`F_{langevin}` is a force from Langevin thermostat
+simulating electron-phonon coupling, and :math:`\nabla P_e/n_{ion}` is
+the electron blast force.
 
-The electronic pressure is taken to be P_e = B\*rho_e\*C_e\*T_e
+The electronic pressure is taken to be :math:`P_e = B \cdot rho_e \cdot
+C_e \cdot T_e`
 
-The current fix ttm/mod implementation allows TTM simulations with a
+The current fix *ttm/mod* implementation allows TTM simulations with a
 vacuum. The vacuum region is defined as the grid cells with zero
 electronic temperature. The numerical scheme does not allow energy
 exchange with such cells. Since the material can expand to previously
-unoccupied region in some simulations, the vacuum border can be
-allowed to move. It is controlled by the *surface_movement* parameter
-in the *init_file*. If it is set to 1, then "vacuum" cells can be
-changed to "electron-filled" cells with the temperature *T_e_min* if
-atoms move into them (currently only implemented for the case of
-1-dimensional motion of flat surface normal to the X axis). The
-initial borders of vacuum can be set in the *init_file* via *lsurface*
-and *rsurface* parameters. In this case, electronic pressure gradient
-is calculated as
+unoccupied region in some simulations, the vacuum border can be allowed
+to move. It is controlled by the *surface_movement* parameter in the
+*init_file*. If it is set to 1, then "vacuum" cells can be changed to
+"electron-filled" cells with the temperature *T_e_min* if atoms move
+into them (currently only implemented for the case of 1-dimensional
+motion of a flat surface normal to the X axis). The initial locations of
+the interfaces of the electron density to the vacuum can be set in the
+*init_file* via *lsurface* and *rsurface* parameters. In this case,
+electronic pressure gradient is calculated as
 
 .. math::
 
@@ -319,10 +320,10 @@ is calculated as
   \frac{x}{x+\lambda}\frac{(C_e{}T_e)_{x+\Delta
   x}-(C_e{}T_e)_{x}}{\Delta x} \right]
 
-where lambda is the electron mean free path (see :ref:`(Norman) <Norman>`,
-:ref:`(Pisarev) <Pisarev>`)
+where :math:`\lambda` is the electron mean free path (see :ref:`(Norman)
+<Norman>`, :ref:`(Pisarev) <Pisarev>`)
 
-The fix ttm/mod parameter file *init_file* has the following syntax.
+The fix *ttm/mod* parameter file *init_file* has the following syntax.
 Every line with an odd number is considered as a comment and
 ignored. The lines with the even numbers are treated as follows:
 

@@ -111,7 +111,7 @@ For the *hertz* model, the normal component of force is given by:
 
    \mathbf{F}_{ne, Hertz} = k_n R_{eff}^{1/2}\delta_{ij}^{3/2} \mathbf{n}
 
-Here, :math:`R_{eff} = \frac{R_i R_j}{R_i + R_j}` is the effective
+Here, :math:`R_{eff} = R = \frac{R_i R_j}{R_i + R_j}` is the effective
 radius, denoted for simplicity as *R* from here on.  For *hertz*, the
 units of the spring constant :math:`k_n` are *force*\ /\ *length*\ \^2, or
 equivalently *pressure*\ .
@@ -120,13 +120,14 @@ For the *hertz/material* model, the force is given by:
 
 .. math::
 
-   \mathbf{F}_{ne, Hertz/material} = \frac{4}{3} E_{eff} R_{eff}^{1/2}\delta_{ij}^{3/2} \mathbf{n}
+   \mathbf{F}_{ne, Hertz/material} = \frac{4}{3} E_{eff} R^{1/2}\delta_{ij}^{3/2} \mathbf{n}
 
-Here, :math:`E_{eff} = E = \left(\frac{1-\nu_i^2}{E_i} + \frac{1-\nu_j^2}{E_j}\right)^{-1}` is the effective Young's
-modulus, with :math:`\nu_i, \nu_j` the Poisson ratios of the particles of
-types *i* and *j*\ . Note that if the elastic modulus and the shear
-modulus of the two particles are the same, the *hertz/material* model
-is equivalent to the *hertz* model with :math:`k_n = 4/3 E_{eff}`
+Here, :math:`E_{eff} = E = \left(\frac{1-\nu_i^2}{E_i} + \frac{1-\nu_j^2}{E_j}\right)^{-1}`
+is the effective Young's modulus, with :math:`\nu_i, \nu_j` the Poisson ratios
+of the particles of types *i* and *j*. :math:`E_{eff}` is denoted as *E* from here on.
+Note that if the elastic modulus and the shear modulus of the two particles are the
+same, the *hertz/material* model is equivalent to the *hertz* model with
+:math:`k_n = 4/3 E`
 
 The *dmt* model corresponds to the
 :ref:`(Derjaguin-Muller-Toporov) <DMT1975>` cohesive model, where the force
@@ -187,6 +188,7 @@ for the damping model currently supported are:
 2. *mass_velocity*
 3. *viscoelastic*
 4. *tsuji*
+5. *coeff_restitution*
 
 If the *damping* keyword is not specified, the *viscoelastic* model is
 used by default.
@@ -247,6 +249,30 @@ according to:
 The dimensionless coefficient of restitution :math:`e` specified as part
 of the normal contact model parameters should be between 0 and 1, but
 no error check is performed on this.
+
+The *coeff_restitution* model is useful when a specific normal coefficient of
+restitution :math:`e` is required. In these models, the normal coefficient of
+restitution :math:`e` is specified as an input. Following the approach of
+:ref:`(Brilliantov et al) <Brill1996>`, when using the *hooke* normal model,
+*coeff_restitution* calculates the damping coefficient as:
+
+.. math::
+
+   \eta_n = \sqrt{\frac{4m_{eff}k_n}{1+\left( \frac{\pi}{\log(e)}\right)^2}} ,
+
+For any other normal model, e.g. the *hertz* and *hertz/material* models, the damping
+coefficient is:
+
+.. math::
+
+   \eta_n = -2\sqrt{\frac{5}{6}}\frac{\log(e)}{\sqrt{\pi^2+(\log(e))^2}}(R_{eff} \delta_{ij})^{\frac{1}{4}}\sqrt{\frac{3}{2}k_n m_{eff}} ,
+
+where :math:`k_n = \frac{4}{3} E_{eff}` for the *hertz/material* model. Since
+*coeff_restitution* accounts for the effective mass, effective radius, and
+pairwise overlaps (except when used with the *hooke* normal model) when calculating
+the damping coefficient, it accurately reproduces the specified coefficient of
+restitution for both monodisperse and polydisperse particle pairs.  This damping
+model is not compatible with cohesive normal models such as *JKR* or *DMT*.
 
 The total normal force is computed as the sum of the elastic and
 damping components:
@@ -417,11 +443,11 @@ discussion above. To match the Mindlin solution, one should set
 
    G_{eff} = \left(\frac{2-\nu_i}{G_i} + \frac{2-\nu_j}{G_j}\right)^{-1}
 
-where :math:`G` is the shear modulus, related to Young's modulus :math:`E`
-and Poisson's ratio :math:`\nu` by :math:`G = E/(2(1+\nu))`. This can also be
-achieved by specifying *NULL* for :math:`k_t`, in which case a
-normal contact model that specifies material parameters :math:`E` and
-:math:`\nu` is required (e.g. *hertz/material*, *dmt* or *jkr*\ ). In this
+where :math:`G_i` is the shear modulus of a particle of type :math:`i`, related to Young's
+modulus :math:`E_i` and Poisson's ratio :math:`\nu_i` by :math:`G_i = E_i/(2(1+\nu_i))`.
+This can also be achieved by specifying *NULL* for :math:`k_t`, in which case a
+normal contact model that specifies material parameters :math:`E_i` and
+:math:`\nu_i` is required (e.g. *hertz/material*, *dmt* or *jkr*\ ). In this
 case, mixing of the shear modulus for different particle types *i* and
 *j* is done according to the formula above.
 
@@ -551,7 +577,7 @@ opposite torque on each particle, according to:
 
 .. math::
 
-   \tau_{roll,i} =  R_{eff} \mathbf{n} \times \mathbf{F}_{roll}
+   \tau_{roll,i} =  R \mathbf{n} \times \mathbf{F}_{roll}
 
 .. math::
 

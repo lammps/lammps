@@ -952,6 +952,8 @@ EV_FLOAT pair_compute_neighlist (PairStyle* fpair, std::enable_if_t<(NEIGHFLAG&P
     static int atoms_per_team = 0;
 
 #if defined(LMP_KOKKOS_GPU)
+    static int teamsize_max_for = 0;
+    static int teamsize_max_reduce = 0;
     static int lastcall = -1;
     if (!vectorsize || lastcall < fpair->lmp->neighbor->lastcall) {
       lastcall = fpair->lmp->update->ntimestep;
@@ -966,7 +968,6 @@ EV_FLOAT pair_compute_neighlist (PairStyle* fpair, std::enable_if_t<(NEIGHFLAG&P
 
       vectorsize = MIN(vectorsize,max_vectorsize);
 
-      int teamsize_max_for,teamsize_max_reduce;
       if (fpair->atom->ntypes > MAX_TYPES_STACKPARAMS) {
         PairComputeFunctor<PairStyle,NEIGHFLAG,false,ZEROFLAG,Specialisation > ff(fpair,list);
         GetMaxTeamSize<typename PairStyle::device_type>(ff, inum, teamsize_max_for, teamsize_max_reduce);
@@ -974,12 +975,12 @@ EV_FLOAT pair_compute_neighlist (PairStyle* fpair, std::enable_if_t<(NEIGHFLAG&P
         PairComputeFunctor<PairStyle,NEIGHFLAG,true,ZEROFLAG,Specialisation > ff(fpair,list);
         GetMaxTeamSize<typename PairStyle::device_type>(ff, inum, teamsize_max_for, teamsize_max_reduce);
       }
-
-      int teamsize_max = teamsize_max_for;
-      if (fpair->eflag || fpair->vflag)
-        teamsize_max = teamsize_max_reduce;
-      atoms_per_team = teamsize_max/vectorsize;
     }
+
+    int teamsize_max = teamsize_max_for;
+    if (fpair->eflag || fpair->vflag)
+      teamsize_max = teamsize_max_reduce;
+    atoms_per_team = teamsize_max/vectorsize;
 #else
     vectorsize = 1;
     atoms_per_team = 1;
@@ -1020,7 +1021,7 @@ template<class PairStyle, class Specialisation = void>
 EV_FLOAT pair_compute (PairStyle* fpair, NeighListKokkos<typename PairStyle::device_type>* list) {
   EV_FLOAT ev;
   if (fpair->neighflag == FULL) {
-    if (utils::strmatch(fpair->lmp->force->pair_style,"^hybrid/overlay")) {
+    if (utils::strmatch(fpair->lmp->force->pair_style,"^hybrid")) {
       fpair->fuse_force_clear_flag = 0;
       ev = pair_compute_neighlist<PairStyle,FULL,0,Specialisation> (fpair,list);
     } else {

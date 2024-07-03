@@ -108,6 +108,7 @@ accelerated styles exist.
 
 * :doc:`none <pair_none>` - turn off pairwise interactions
 * :doc:`hybrid <pair_hybrid>` - multiple styles of pairwise interactions
+* :doc:`hybrid/molecular <pair_hybrid>` - different pair styles for intra- and inter-molecular interactions
 * :doc:`hybrid/overlay <pair_hybrid>` - multiple styles of superposed pairwise interactions
 * :doc:`hybrid/scaled <pair_hybrid>` - multiple styles of scaled superposed pairwise interactions
 * :doc:`zero <pair_zero>` - neighbor list but no interactions
@@ -171,6 +172,7 @@ accelerated styles exist.
 * :doc:`coul/wolf <pair_coul>` - Coulomb via Wolf potential
 * :doc:`coul/wolf/cs <pair_cs>` - Coulomb via Wolf potential with core/shell adjustments
 * :doc:`dpd <pair_dpd>` - dissipative particle dynamics (DPD)
+* :doc:`dpd/coul/slater/long <pair_dpd_coul_slater_long>` - dissipative particle dynamics (DPD) with electrostatic interactions
 * :doc:`dpd/ext <pair_dpd_ext>` - generalized force field for DPD
 * :doc:`dpd/ext/tstat <pair_dpd_ext>` - pairwise DPD thermostatting  with generalized force field
 * :doc:`dpd/fdt <pair_dpd_fdt>` - DPD for constant temperature and pressure
@@ -275,30 +277,30 @@ accelerated styles exist.
 * :doc:`lj/smooth/linear <pair_lj_smooth_linear>` - linear smoothed LJ potential
 * :doc:`lj/switch3/coulgauss/long <pair_lj_switch3_coulgauss_long>` - smoothed LJ vdW potential with Gaussian electrostatics
 * :doc:`lj96/cut <pair_lj96>` - Lennard-Jones 9/6 potential
-* :doc:`local/density <pair_local_density>` - generalized basic local density potential
-* :doc:`lubricate <pair_lubricate>` - hydrodynamic lubrication forces
-* :doc:`lubricate/poly <pair_lubricate>` - hydrodynamic lubrication forces with polydispersity
-* :doc:`lubricateU <pair_lubricateU>` - hydrodynamic lubrication forces for Fast Lubrication Dynamics
-* :doc:`lubricateU/poly <pair_lubricateU>` - hydrodynamic lubrication forces for Fast Lubrication with polydispersity
+* :doc:`local/density <pair_local_density>` - Generalized basic local density potential
+* :doc:`lubricate <pair_lubricate>` - Hydrodynamic lubrication forces
+* :doc:`lubricate/poly <pair_lubricate>` - Hydrodynamic lubrication forces with polydispersity
+* :doc:`lubricateU <pair_lubricateU>` - Hydrodynamic lubrication forces for Fast Lubrication Dynamics
+* :doc:`lubricateU/poly <pair_lubricateU>` - Hydrodynamic lubrication forces for Fast Lubrication with polydispersity
 * :doc:`mdpd <pair_mesodpd>` - mDPD particle interactions
 * :doc:`mdpd/rhosum <pair_mesodpd>` - mDPD particle interactions for mass density
-* :doc:`meam <pair_meam>` - modified embedded atom method (MEAM)
-* :doc:`meam/ms <pair_meam>` - multi-state modified embedded atom method (MS-MEAM)
-* :doc:`meam/spline <pair_meam_spline>` - splined version of MEAM
-* :doc:`meam/sw/spline <pair_meam_sw_spline>` - splined version of MEAM with a Stillinger-Weber term
-* :doc:`mesocnt <pair_mesocnt>` - mesoscopic vdW potential for (carbon) nanotubes
-* :doc:`mesocnt/viscous <pair_mesocnt>` - mesoscopic vdW potential for (carbon) nanotubes with friction
-* :doc:`mgpt <pair_mgpt>` - simplified model generalized pseudopotential theory (MGPT) potential
+* :doc:`meam <pair_meam>` - Modified embedded atom method (MEAM)
+* :doc:`meam/ms <pair_meam>` - Multi-state modified embedded atom method (MS-MEAM)
+* :doc:`meam/spline <pair_meam_spline>` - Splined version of MEAM
+* :doc:`meam/sw/spline <pair_meam_sw_spline>` - Splined version of MEAM with a Stillinger-Weber term
+* :doc:`mesocnt <pair_mesocnt>` - Mesoscopic vdW potential for (carbon) nanotubes
+* :doc:`mesocnt/viscous <pair_mesocnt>` - Mesoscopic vdW potential for (carbon) nanotubes with friction
+* :doc:`mgpt <pair_mgpt>` - Simplified model generalized pseudopotential theory (MGPT) potential
 * :doc:`mie/cut <pair_mie>` - Mie potential
-* :doc:`mm3/switch3/coulgauss/long <pair_lj_switch3_coulgauss_long>` - smoothed MM3 vdW potential with Gaussian electrostatics
+* :doc:`mm3/switch3/coulgauss/long <pair_lj_switch3_coulgauss_long>` - Smoothed MM3 vdW potential with Gaussian electrostatics
 * :doc:`momb <pair_momb>` - Many-Body Metal-Organic (MOMB) force field
 * :doc:`morse <pair_morse>` - Morse potential
-* :doc:`morse/smooth/linear <pair_morse>` - linear smoothed Morse potential
+* :doc:`morse/smooth/linear <pair_morse>` - Linear smoothed Morse potential
 * :doc:`morse/soft <pair_morse>` - Morse potential with a soft core
 * :doc:`multi/lucy <pair_multi_lucy>` - DPD potential with density-dependent force
 * :doc:`multi/lucy/rx <pair_multi_lucy_rx>` - reactive DPD potential with density-dependent force
-* :doc:`nb3b/harmonic <pair_nb3b>` - non-bonded 3-body harmonic potential
-* :doc:`nb3b/screened <pair_nb3b>` - non-bonded 3-body screened harmonic potential
+* :doc:`nb3b/harmonic <pair_nb3b>` - Non-bonded 3-body harmonic potential
+* :doc:`nb3b/screened <pair_nb3b>` - Non-bonded 3-body screened harmonic potential
 * :doc:`nm/cut <pair_nm>` - N-M potential
 * :doc:`nm/cut/coul/cut <pair_nm>` - N-M potential with cutoff Coulomb
 * :doc:`nm/cut/coul/long <pair_nm>` - N-M potential with long-range Coulomb
@@ -322,21 +324,22 @@ accelerated styles exist.
 * :doc:`oxrna2/xstk <pair_oxrna2>` -
 * :doc:`pace <pair_pace>` - Atomic Cluster Expansion (ACE) machine-learning potential
 * :doc:`pace/extrapolation <pair_pace>` - Atomic Cluster Expansion (ACE) machine-learning potential with extrapolation grades
+* :doc:`pedone <pair_pedone>` - Pedone (PMMCS) potential (non-Coulomb part)
 * :doc:`pod <pair_pod>` - Proper orthogonal decomposition (POD) machine-learning potential
-* :doc:`peri/eps <pair_peri>` - peridynamic EPS potential
-* :doc:`peri/lps <pair_peri>` - peridynamic LPS potential
-* :doc:`peri/pmb <pair_peri>` - peridynamic PMB potential
-* :doc:`peri/ves <pair_peri>` - peridynamic VES potential
-* :doc:`polymorphic <pair_polymorphic>` - polymorphic 3-body potential
+* :doc:`peri/eps <pair_peri>` - Peridynamic EPS potential
+* :doc:`peri/lps <pair_peri>` - Peridynamic LPS potential
+* :doc:`peri/pmb <pair_peri>` - Peridynamic PMB potential
+* :doc:`peri/ves <pair_peri>` - Peridynamic VES potential
+* :doc:`polymorphic <pair_polymorphic>` - Polymorphic 3-body potential
 * :doc:`python <pair_python>` -
 * :doc:`quip <pair_quip>` -
 * :doc:`rann <pair_rann>` -
 * :doc:`reaxff <pair_reaxff>` - ReaxFF potential
-* :doc:`rebo <pair_airebo>` - second generation REBO potential of Brenner
+* :doc:`rebo <pair_airebo>` - Second generation REBO potential of Brenner
 * :doc:`rebomos <pair_rebomos>` - REBOMoS potential for MoS2
 * :doc:`resquared <pair_resquared>` - Everaers RE-Squared ellipsoidal potential
-* :doc:`saip/metal <pair_saip_metal>` - interlayer potential for hetero-junctions formed with hexagonal 2D materials and metal surfaces
-* :doc:`sdpd/taitwater/isothermal <pair_sdpd_taitwater_isothermal>` - smoothed dissipative particle dynamics for water at isothermal conditions
+* :doc:`saip/metal <pair_saip_metal>` - Interlayer potential for hetero-junctions formed with hexagonal 2D materials and metal surfaces
+* :doc:`sdpd/taitwater/isothermal <pair_sdpd_taitwater_isothermal>` - Smoothed dissipative particle dynamics for water at isothermal conditions
 * :doc:`smatb <pair_smatb>` - Second Moment Approximation to the Tight Binding
 * :doc:`smatb/single <pair_smatb>` - Second Moment Approximation to the Tight Binding for single-element systems
 * :doc:`smd/hertz <pair_smd_hertz>` -
@@ -381,6 +384,7 @@ accelerated styles exist.
 * :doc:`tracker <pair_tracker>` - monitor information about pairwise interactions
 * :doc:`tri/lj <pair_tri_lj>` - LJ potential between triangles
 * :doc:`ufm <pair_ufm>` -
+* :doc:`uf3 <pair_uf3>` - UF3 machine-learning potential
 * :doc:`vashishta <pair_vashishta>` - Vashishta 2-body and 3-body potential
 * :doc:`vashishta/table <pair_vashishta>` -
 * :doc:`wf/cut <pair_wf_cut>` - Wang-Frenkel Potential for short-ranged interactions

@@ -22,42 +22,42 @@ using ExecutionSpace = TEST_EXECSPACE;
 using MemorySpace    = typename ExecutionSpace::memory_space;
 using DeviceType     = typename ExecutionSpace::device_type;
 
-static_assert(Kokkos::is_execution_space<ExecutionSpace>{}, "");
-static_assert(Kokkos::is_execution_space<ExecutionSpace const>{}, "");
-static_assert(!Kokkos::is_execution_space<ExecutionSpace &>{}, "");
-static_assert(!Kokkos::is_execution_space<ExecutionSpace const &>{}, "");
+static_assert(Kokkos::is_execution_space<ExecutionSpace>{});
+static_assert(Kokkos::is_execution_space<ExecutionSpace const>{});
+static_assert(!Kokkos::is_execution_space<ExecutionSpace &>{});
+static_assert(!Kokkos::is_execution_space<ExecutionSpace const &>{});
 
-static_assert(Kokkos::is_memory_space<MemorySpace>{}, "");
-static_assert(Kokkos::is_memory_space<MemorySpace const>{}, "");
-static_assert(!Kokkos::is_memory_space<MemorySpace &>{}, "");
-static_assert(!Kokkos::is_memory_space<MemorySpace const &>{}, "");
+static_assert(Kokkos::is_memory_space<MemorySpace>{});
+static_assert(Kokkos::is_memory_space<MemorySpace const>{});
+static_assert(!Kokkos::is_memory_space<MemorySpace &>{});
+static_assert(!Kokkos::is_memory_space<MemorySpace const &>{});
 
-static_assert(Kokkos::is_device<DeviceType>{}, "");
-static_assert(Kokkos::is_device<DeviceType const>{}, "");
-static_assert(!Kokkos::is_device<DeviceType &>{}, "");
-static_assert(!Kokkos::is_device<DeviceType const &>{}, "");
+static_assert(Kokkos::is_device<DeviceType>{});
+static_assert(Kokkos::is_device<DeviceType const>{});
+static_assert(!Kokkos::is_device<DeviceType &>{});
+static_assert(!Kokkos::is_device<DeviceType const &>{});
 
-static_assert(!Kokkos::is_device<ExecutionSpace>{}, "");
-static_assert(!Kokkos::is_device<MemorySpace>{}, "");
+static_assert(!Kokkos::is_device<ExecutionSpace>{});
+static_assert(!Kokkos::is_device<MemorySpace>{});
 
-static_assert(Kokkos::is_space<ExecutionSpace>{}, "");
-static_assert(Kokkos::is_space<MemorySpace>{}, "");
-static_assert(Kokkos::is_space<DeviceType>{}, "");
-static_assert(Kokkos::is_space<ExecutionSpace const>{}, "");
-static_assert(Kokkos::is_space<MemorySpace const>{}, "");
-static_assert(Kokkos::is_space<DeviceType const>{}, "");
-static_assert(!Kokkos::is_space<ExecutionSpace &>{}, "");
-static_assert(!Kokkos::is_space<MemorySpace &>{}, "");
-static_assert(!Kokkos::is_space<DeviceType &>{}, "");
+static_assert(Kokkos::is_space<ExecutionSpace>{});
+static_assert(Kokkos::is_space<MemorySpace>{});
+static_assert(Kokkos::is_space<DeviceType>{});
+static_assert(Kokkos::is_space<ExecutionSpace const>{});
+static_assert(Kokkos::is_space<MemorySpace const>{});
+static_assert(Kokkos::is_space<DeviceType const>{});
+static_assert(!Kokkos::is_space<ExecutionSpace &>{});
+static_assert(!Kokkos::is_space<MemorySpace &>{});
+static_assert(!Kokkos::is_space<DeviceType &>{});
 
-static_assert(Kokkos::is_execution_space_v<ExecutionSpace>, "");
-static_assert(!Kokkos::is_execution_space_v<ExecutionSpace &>, "");
+static_assert(Kokkos::is_execution_space_v<ExecutionSpace>);
+static_assert(!Kokkos::is_execution_space_v<ExecutionSpace &>);
 
 static_assert(
-    std::is_same<float, Kokkos::Impl::remove_cvref_t<float const &>>{}, "");
-static_assert(std::is_same<int, Kokkos::Impl::remove_cvref_t<int &>>{}, "");
-static_assert(std::is_same<int, Kokkos::Impl::remove_cvref_t<int const>>{}, "");
-static_assert(std::is_same<float, Kokkos::Impl::remove_cvref_t<float>>{}, "");
+    std::is_same<float, Kokkos::Impl::remove_cvref_t<float const &>>{});
+static_assert(std::is_same<int, Kokkos::Impl::remove_cvref_t<int &>>{});
+static_assert(std::is_same<int, Kokkos::Impl::remove_cvref_t<int const>>{});
+static_assert(std::is_same<float, Kokkos::Impl::remove_cvref_t<float>>{});
 
 /*-------------------------------------------------
   begin test for team_handle concept

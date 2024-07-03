@@ -32,6 +32,7 @@
 
 #include <cmath>
 #include <cstring>
+#include <utility>
 
 using namespace LAMMPS_NS;
 using namespace Granular_NS;
@@ -215,9 +216,15 @@ int GranularModel::define_classic_model(char **arg, int iarg, int narg)
   // manually parse coeffs
   normal_model->coeffs[0] = kn;
   normal_model->coeffs[1] = gamman;
-  tangential_model->coeffs[0] = kt;
-  tangential_model->coeffs[1] = gammat / gamman;
-  tangential_model->coeffs[2] = xmu;
+
+  if (tangential_model->num_coeffs == 2) {
+    tangential_model->coeffs[0] = gammat / gamman;
+    tangential_model->coeffs[1] = xmu;
+  } else {
+    tangential_model->coeffs[0] = kt;
+    tangential_model->coeffs[1] = gammat / gamman;
+    tangential_model->coeffs[2] = xmu;
+  }
 
   normal_model->coeffs_to_local();
   tangential_model->coeffs_to_local();
@@ -333,11 +340,11 @@ void GranularModel::read_restart(FILE *fp)
       utils::sfread(FLERR, &num_char, sizeof(int), 1, fp, nullptr, error);
     MPI_Bcast(&num_char, 1, MPI_INT, 0, world);
 
-    std::string model_name (num_char, ' ');
+    std::string model_name(num_char, ' ');
     if (comm->me == 0)
       utils::sfread(FLERR, const_cast<char*>(model_name.data()), sizeof(char),num_char, fp, nullptr, error);
     MPI_Bcast(const_cast<char*>(model_name.data()), num_char, MPI_CHAR, 0, world);
-    construct_sub_model(model_name, (SubModelType) i);
+    construct_sub_model(std::move(model_name), (SubModelType) i);
 
     if (comm->me == 0)
       utils::sfread(FLERR, &num_coeff, sizeof(int), 1, fp, nullptr, error);

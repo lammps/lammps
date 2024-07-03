@@ -1,7 +1,7 @@
 This folder used to contain a bundled version of [i-PI](https://ipi-code.org)
 but the bundled version was removed in 06/2024.
 
-i-PI is available via PyPi using the pip package manager at:
+i-PI is available via PyPI using the pip package manager at:
 https://pypi.org/project/ipi/
 
 Here are the commands to set up a virtual environment and

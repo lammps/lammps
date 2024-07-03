@@ -109,6 +109,8 @@
 
 /pair_pod.cpp
 /pair_pod.h
+/eapod.cpp
+/eapod.h
 /fitpod_command.cpp
 /fitpod_command.h
 /mlpod.cpp
@@ -249,6 +251,14 @@
 /compute_grid.h
 /compute_grid_local.cpp
 /compute_grid_local.h
+/compute_pod_atom.cpp
+/compute_pod_atom.h
+/compute_pod_global.cpp
+/compute_pod_global.h
+/compute_pod_local.cpp
+/compute_pod_local.h
+/compute_podd_atom.cpp
+/compute_podd_atom.h
 /compute_sna_atom.cpp
 /compute_sna_atom.h
 /compute_snad_atom.cpp

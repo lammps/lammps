@@ -325,13 +325,13 @@ void DumpCustom::init_style()
         pack_choice[n] = &DumpCustom::pack_z;
       else if (pack_choice[n] == &DumpCustom::pack_xu_triclinic_general) {
         if (domain->triclinic) pack_choice[n] = &DumpCustom::pack_xu_triclinic;
-        else pack_choice[n] == &DumpCustom::pack_xu;
+        else pack_choice[n] = &DumpCustom::pack_xu;
       } else if (pack_choice[n] == &DumpCustom::pack_yu_triclinic_general) {
         if (domain->triclinic) pack_choice[n] = &DumpCustom::pack_yu_triclinic;
-        else pack_choice[n] == &DumpCustom::pack_yu;
+        else pack_choice[n] = &DumpCustom::pack_yu;
       } else if (pack_choice[n] == &DumpCustom::pack_zu_triclinic_general) {
         if (domain->triclinic) pack_choice[n] = &DumpCustom::pack_zu_triclinic;
-        else pack_choice[n] == &DumpCustom::pack_zu;
+        else pack_choice[n] = &DumpCustom::pack_zu;
       }
 
       else if (pack_choice[n] == &DumpCustom::pack_vx_triclinic_general)

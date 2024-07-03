@@ -36,7 +36,7 @@ Examples
 Description
 """""""""""
 
-.. versionadded:: TBD
+.. versionadded:: 27June2024
 
 The *uf3* style computes the :ref:`Ultra-Fast Force Fields (UF3)
 <Xie23>` potential, a machine-learning interatomic potential. In UF3,

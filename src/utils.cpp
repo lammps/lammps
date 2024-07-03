@@ -17,6 +17,7 @@
 #include "atom.h"
 #include "comm.h"
 #include "compute.h"
+#include "domain.h"
 #include "error.h"
 #include "fix.h"
 #include "fmt/chrono.h"
@@ -648,30 +649,38 @@ template void utils::bounds<>(const char *, int, const std::string &,
 template void utils::bounds<>(const char *, int, const std::string &,
                               bigint, bigint, long long &, long long &, Error *);
 
+// clang-format on
 /* ----------------------------------------------------------------------
-   wrapper for bounds() that accepts type label input
+   wrapper for utils::bounds() that accepts type label input
 ------------------------------------------------------------------------- */
 
 template <typename TYPE>
 void utils::bounds_typelabel(const char *file, int line, const std::string &str, bigint nmin,
-                             bigint nmax, TYPE &nlo, TYPE &nhi, Error *error, LAMMPS *lmp, int mode)
+                             bigint nmax, TYPE &nlo, TYPE &nhi, LAMMPS *lmp, int mode)
 {
   nlo = nhi = -1;
-  char *typestr;
-  if ( typestr = utils::expand_type(FLERR, str, mode, lmp) )
+
+  // cannot check for typelabels without a LAMMPS instance or a box
+  if (!lmp || !lmp->domain->box_exist)
+    utils::bounds(file, line, str, nmin, nmax, nlo, nhi, nullptr);
+
+  char *typestr = nullptr;
+  if ((typestr = utils::expand_type(FLERR, str, mode, lmp)))
     nlo = nhi = utils::inumeric(FLERR, typestr, false, lmp);
+
   delete[] typestr;
-  if (nlo > -1) return;
-  else utils::bounds(file, line, str, nmin, nmax, nlo, nhi, error);
+  if (nlo > -1)
+    return;
+  else
+    utils::bounds(file, line, str, nmin, nmax, nlo, nhi, lmp->error);
 }
 
-template void utils::bounds_typelabel<>(const char *, int, const std::string &,
-                                        bigint, bigint, int &, int &, Error *, LAMMPS *, int);
-template void utils::bounds_typelabel<>(const char *, int, const std::string &,
-                                        bigint, bigint, long &, long &, Error *, LAMMPS *, int);
-template void utils::bounds_typelabel<>(const char *, int, const std::string &,
-                                        bigint, bigint, long long &, long long &, Error *, LAMMPS *, int);
-// clang-format on
+template void utils::bounds_typelabel<>(const char *, int, const std::string &, bigint, bigint,
+                                        int &, int &, LAMMPS *, int);
+template void utils::bounds_typelabel<>(const char *, int, const std::string &, bigint, bigint,
+                                        long &, long &, LAMMPS *, int);
+template void utils::bounds_typelabel<>(const char *, int, const std::string &, bigint, bigint,
+                                        long long &, long long &, LAMMPS *, int);
 
 /* -------------------------------------------------------------------------
    Expand list of arguments in arg to earg if arg contains wildcards
@@ -945,10 +954,11 @@ char *utils::expand_type(const char *file, int line, const std::string &str, int
    For example, type <= 0 or type > Ntypes is checked in calling routine.
 ------------------------------------------------------------------------- */
 
-int utils::expand_type_int(const char *file, int line, const std::string &str, int mode, LAMMPS *lmp)
+int utils::expand_type_int(const char *file, int line, const std::string &str, int mode,
+                           LAMMPS *lmp)
 {
   char *typestr = expand_type(file, line, str, mode, lmp);
-  int out = inumeric(file, line, typestr?typestr:str, false, lmp);
+  int out = inumeric(file, line, typestr ? typestr : str, false, lmp);
   delete[] typestr;
   return out;
 }
@@ -1667,7 +1677,7 @@ double utils::timespec2seconds(const std::string &timespec)
   try {
     for (i = 0; i < 3; i++) {
       if (!values.has_next()) break;
-      vals[i] = values.next_int();
+      vals[i] = values.next_double();
     }
   } catch (TokenizerException &) {
     return -1.0;

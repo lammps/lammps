@@ -354,7 +354,7 @@ int FixElectrodeConp::modify_param(int narg, char **arg)
     MPI_Allreduce(MPI_IN_PLACE, &in_ele, 1, MPI_INT, MPI_SUM, world);
     if (in_ele == 0) error->all(FLERR, "No atoms of type in electrode");
     MPI_Allreduce(MPI_IN_PLACE, &not_in_ele, 1, MPI_INT, MPI_SUM, world);
-    if (not_in_ele)
+    if (not_in_ele && (comm->me == 0))
       error->warning(FLERR,
                      "Not all atoms of type in electrode; Thomas-Fermi parameters will be ignored "
                      "for electrolyte");
@@ -485,7 +485,7 @@ void FixElectrodeConp::post_constructor()
   input->variable->set(fmt::format("{} equal f_{}[{}]", var_vtop, fixname, 1 + top_group));
   input->variable->set(fmt::format("{} equal (v_{}-v_{})/lz", var_efield, var_vbot, var_vtop));
   // check for other efields and warn if found
-  if (modify->get_fix_by_style("^efield").size() > 0 && comm->me == 0)
+  if ((modify->get_fix_by_style("^efield").size() > 0) && (comm->me == 0))
     error->warning(FLERR, "Other efield fixes found -- please make sure this is intended!");
   // call fix command:
   // fix [varstem]_efield all efield 0.0 0.0 [var_vdiff]/lz
@@ -647,9 +647,8 @@ void FixElectrodeConp::setup_post_neighbor()
 
 void FixElectrodeConp::setup_pre_reverse(int eflag, int vflag)
 {
-  if (pair->did_tally_callback())
-    error->warning(FLERR,
-                   "Computation of Virials in fix electrode is incompatible with TALLY package");
+  if (pair->did_tally_callback() && (comm->me == 0))
+    error->warning(FLERR, "Computation of virials in fix {} is incompatible with TALLY package", style);
   // correct forces for initial timestep
   ev_init(eflag, vflag);
   gausscorr(eflag, vflag, true);
@@ -683,7 +682,7 @@ void FixElectrodeConp::invert()
 void FixElectrodeConp::symmetrize()
 {
   // S matrix to enforce charge neutrality constraint
-  if (read_inv && comm->me == 0)
+  if (read_inv && (comm->me == 0))
     error->warning(FLERR,
                    "Symmetrizing matrix from file. Make sure the provided matrix has not been "
                    "symmetrized yet.");
@@ -764,11 +763,11 @@ void FixElectrodeConp::setup_pre_exchange()    // create_taglist
   // if memory_usage > 0.5 GiB, warn with expected usage
   double mem_needed = memory_usage();
   mem_needed /= (1024 * 1024 * 1024);    // convert to GiB
-  if (mem_needed > 0.5 && comm->me == 0)
+  if ((mem_needed > 0.5) && (comm->me == 0))
     error->warning(FLERR,
-                   "Please ensure there is sufficient memory for fix electrode "
+                   "Please ensure there is sufficient memory for fix {} "
                    "(anticipated usage is at least {:.1f} GiB per proc)",
-                   mem_needed);
+                   style, mem_needed);
 }
 
 /* ---------------------------------------------------------------------- */
@@ -932,7 +931,7 @@ void FixElectrodeConp::update_charges()
       dot_old = dot_new;
     }
     recompute_potential(b, q_local);
-    if (delta > cg_threshold && comm->me == 0) error->warning(FLERR, "CG threshold not reached");
+    if ((delta > cg_threshold) && (comm->me == 0)) error->warning(FLERR, "CG threshold not reached");
   } else {
     error->all(FLERR, "This algorithm is not implemented, yet");
   }

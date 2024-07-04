@@ -373,6 +373,9 @@ void FixIPI::initial_integrate(int /*vflag*/)
   if (domain->triclinic) domain->x2lamda(atom->nlocal);
   domain->pbc();
   domain->reset_box();
+  // move atoms to new processors via irregular()
+  // only needed if migrate_check() says an atom moves to far
+  if (irregular->migrate_check()) irregular->migrate_atoms();
   if (domain->triclinic) domain->lamda2x(atom->nlocal);
 
   // ensures continuity of trajectories relative to the
@@ -394,11 +397,6 @@ void FixIPI::initial_integrate(int /*vflag*/)
       }
     }
   }
-  // move atoms to new processors via irregular()
-  // only needed if migrate_check() says an atom moves to far
-  if (domain->triclinic) domain->x2lamda(atom->nlocal);
-  if (irregular->migrate_check()) irregular->migrate_atoms();
-  if (domain->triclinic) domain->lamda2x(atom->nlocal);
 
   // check if kspace solver is used
   if (reset_flag && kspace_flag) {

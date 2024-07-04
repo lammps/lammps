@@ -31,12 +31,12 @@ TEST_F(DumpXYZCompressTest, compressed_run0)
 {
     if (!COMPRESS_EXECUTABLE) GTEST_SKIP();
 
-    auto base_name         = "run*.melt.xyz";
-    auto base_name_0       = "run0.melt.xyz";
-    auto text_files        = text_dump_filename(base_name);
-    auto compressed_files  = compressed_dump_filename(base_name);
-    auto text_file_0       = text_dump_filename(base_name_0);
-    auto compressed_file_0 = compressed_dump_filename(base_name_0);
+    const auto *base_name   = "run*.melt.xyz";
+    const auto *base_name_0 = "run0.melt.xyz";
+    auto text_files         = text_dump_filename(base_name);
+    auto compressed_files   = compressed_dump_filename(base_name);
+    auto text_file_0        = text_dump_filename(base_name_0);
+    auto compressed_file_0  = compressed_dump_filename(base_name_0);
 
     if (compression_style == "xyz/zstd") {
         generate_text_and_compressed_dump(text_files, compressed_files, "", "", "", "checksum yes",
@@ -63,12 +63,12 @@ TEST_F(DumpXYZCompressTest, compressed_no_buffer_run0)
 {
     if (!COMPRESS_EXECUTABLE) GTEST_SKIP();
 
-    auto base_name         = "no_buffer_run*.melt.xyz";
-    auto base_name_0       = "no_buffer_run0.melt.xyz";
-    auto text_files        = text_dump_filename(base_name);
-    auto compressed_files  = compressed_dump_filename(base_name);
-    auto text_file_0       = text_dump_filename(base_name_0);
-    auto compressed_file_0 = compressed_dump_filename(base_name_0);
+    const auto *base_name   = "no_buffer_run*.melt.xyz";
+    const auto *base_name_0 = "no_buffer_run0.melt.xyz";
+    auto text_files         = text_dump_filename(base_name);
+    auto compressed_files   = compressed_dump_filename(base_name);
+    auto text_file_0        = text_dump_filename(base_name_0);
+    auto compressed_file_0  = compressed_dump_filename(base_name_0);
 
     if (compression_style == "xyz/zstd") {
         generate_text_and_compressed_dump(text_files, compressed_files, "", "", "buffer no",
@@ -95,15 +95,15 @@ TEST_F(DumpXYZCompressTest, compressed_multi_file_run1)
 {
     if (!COMPRESS_EXECUTABLE) GTEST_SKIP();
 
-    auto base_name         = "multi_file_run1_*.melt.xyz";
-    auto base_name_0       = "multi_file_run1_0.melt.xyz";
-    auto base_name_1       = "multi_file_run1_1.melt.xyz";
-    auto text_file         = text_dump_filename(base_name);
-    auto text_file_0       = text_dump_filename(base_name_0);
-    auto text_file_1       = text_dump_filename(base_name_1);
-    auto compressed_file   = compressed_dump_filename(base_name);
-    auto compressed_file_0 = compressed_dump_filename(base_name_0);
-    auto compressed_file_1 = compressed_dump_filename(base_name_1);
+    const auto *base_name   = "multi_file_run1_*.melt.xyz";
+    const auto *base_name_0 = "multi_file_run1_0.melt.xyz";
+    const auto *base_name_1 = "multi_file_run1_1.melt.xyz";
+    auto text_file          = text_dump_filename(base_name);
+    auto text_file_0        = text_dump_filename(base_name_0);
+    auto text_file_1        = text_dump_filename(base_name_1);
+    auto compressed_file    = compressed_dump_filename(base_name);
+    auto compressed_file_0  = compressed_dump_filename(base_name_0);
+    auto compressed_file_1  = compressed_dump_filename(base_name_1);
 
     if (compression_style == "xyz/zstd") {
         generate_text_and_compressed_dump(text_file, compressed_file, "", "", "", "checksum no", 1);
@@ -135,15 +135,15 @@ TEST_F(DumpXYZCompressTest, compressed_multi_file_with_pad_run1)
 {
     if (!COMPRESS_EXECUTABLE) GTEST_SKIP();
 
-    auto base_name         = "multi_file_pad_run1_*.melt.xyz";
-    auto base_name_0       = "multi_file_pad_run1_000.melt.xyz";
-    auto base_name_1       = "multi_file_pad_run1_001.melt.xyz";
-    auto text_file         = text_dump_filename(base_name);
-    auto text_file_0       = text_dump_filename(base_name_0);
-    auto text_file_1       = text_dump_filename(base_name_1);
-    auto compressed_file   = compressed_dump_filename(base_name);
-    auto compressed_file_0 = compressed_dump_filename(base_name_0);
-    auto compressed_file_1 = compressed_dump_filename(base_name_1);
+    const auto *base_name   = "multi_file_pad_run1_*.melt.xyz";
+    const auto *base_name_0 = "multi_file_pad_run1_000.melt.xyz";
+    const auto *base_name_1 = "multi_file_pad_run1_001.melt.xyz";
+    auto text_file          = text_dump_filename(base_name);
+    auto text_file_0        = text_dump_filename(base_name_0);
+    auto text_file_1        = text_dump_filename(base_name_1);
+    auto compressed_file    = compressed_dump_filename(base_name);
+    auto compressed_file_0  = compressed_dump_filename(base_name_0);
+    auto compressed_file_1  = compressed_dump_filename(base_name_1);
 
     generate_text_and_compressed_dump(text_file, compressed_file, "", "pad 3", 1);
 
@@ -176,18 +176,18 @@ TEST_F(DumpXYZCompressTest, compressed_multi_file_with_maxfiles_run1)
 {
     if (!COMPRESS_EXECUTABLE) GTEST_SKIP();
 
-    auto base_name         = "multi_file_maxfiles_run1_*.melt.xyz";
-    auto base_name_0       = "multi_file_maxfiles_run1_0.melt.xyz";
-    auto base_name_1       = "multi_file_maxfiles_run1_1.melt.xyz";
-    auto base_name_2       = "multi_file_maxfiles_run1_2.melt.xyz";
-    auto text_file         = text_dump_filename(base_name);
-    auto text_file_0       = text_dump_filename(base_name_0);
-    auto text_file_1       = text_dump_filename(base_name_1);
-    auto text_file_2       = text_dump_filename(base_name_2);
-    auto compressed_file   = compressed_dump_filename(base_name);
-    auto compressed_file_0 = compressed_dump_filename(base_name_0);
-    auto compressed_file_1 = compressed_dump_filename(base_name_1);
-    auto compressed_file_2 = compressed_dump_filename(base_name_2);
+    const auto *base_name   = "multi_file_maxfiles_run1_*.melt.xyz";
+    const auto *base_name_0 = "multi_file_maxfiles_run1_0.melt.xyz";
+    const auto *base_name_1 = "multi_file_maxfiles_run1_1.melt.xyz";
+    const auto *base_name_2 = "multi_file_maxfiles_run1_2.melt.xyz";
+    auto text_file          = text_dump_filename(base_name);
+    auto text_file_0        = text_dump_filename(base_name_0);
+    auto text_file_1        = text_dump_filename(base_name_1);
+    auto text_file_2        = text_dump_filename(base_name_2);
+    auto compressed_file    = compressed_dump_filename(base_name);
+    auto compressed_file_0  = compressed_dump_filename(base_name_0);
+    auto compressed_file_1  = compressed_dump_filename(base_name_1);
+    auto compressed_file_2  = compressed_dump_filename(base_name_2);
 
     generate_text_and_compressed_dump(text_file, compressed_file, "", "maxfiles 2", 2);
 
@@ -250,9 +250,9 @@ TEST_F(DumpXYZCompressTest, compressed_modify_clevel_run0)
 {
     if (!COMPRESS_EXECUTABLE) GTEST_SKIP();
 
-    auto base_name       = "modify_clevel_run0.melt.xyz";
-    auto text_file       = text_dump_filename(base_name);
-    auto compressed_file = compressed_dump_filename(base_name);
+    const auto *base_name = "modify_clevel_run0.melt.xyz";
+    auto text_file        = text_dump_filename(base_name);
+    auto compressed_file  = compressed_dump_filename(base_name);
 
     generate_text_and_compressed_dump(text_file, compressed_file, "", "", "", "compression_level 3",
                                       0);

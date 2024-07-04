@@ -29,16 +29,14 @@ class Molecule : protected Pointers {
 
   // number of atoms,bonds,etc in molecule
   // nibody,ndbody = # of integer/double fields in body
+  // number of lines or triangles
 
   int natoms;
   int nbonds, nangles, ndihedrals, nimpropers;
   int ntypes, nmolecules, nfragments;
   int nbondtypes, nangletypes, ndihedraltypes, nimpropertypes;
   int nibody, ndbody;
-
-  // for surface lines or tris with corner points
-  
-  int npoints,nlines,ntris;
+  int nlines,ntris;
 
   // max bond,angle,etc per atom
 
@@ -48,11 +46,11 @@ class Molecule : protected Pointers {
   // 1 if attribute defined in file, 0 if not
 
   int xflag, typeflag, moleculeflag, fragmentflag, qflag, radiusflag, muflag, rmassflag;
-  int pointflag, lineflag, triflag;
   int bondflag, angleflag, dihedralflag, improperflag;
   int nspecialflag, specialflag;
   int shakeflag, shakeflagflag, shakeatomflag, shaketypeflag;
   int bodyflag, ibodyflag, dbodyflag;
+  int lineflag, triflag;
 
   // 1 if attribute defined or computed, 0 if not
 
@@ -66,19 +64,18 @@ class Molecule : protected Pointers {
 
   double **x;          // displacement of each atom from origin
   int *type;           // type of each atom
-  tagint *molecule;    // molecule of each atom
+  tagint *molecule;    // molecule-ID of each atom
   double *q;           // charge on each atom
   double *radius;      // radius of each atom
   double *rmass;       // mass of each atom
   double **mu;         // dipole vector of each atom
 
-  double **points;     // end/corner pts of lines or tris
-  int **lines;         // list of line indices into points
-  int **tris;          // list of tri indices into points
-  int *molline;        // line and tri attributes
-  int *typeline;
-  int *moltri;
-  int *typetri;
+  int *molline;        // molecule-ID of each line
+  int *typeline;       // type of each line
+  double **lines;      // line end points
+  int *moltri;         // molecule-ID of each triangles
+  int *typetri;        // type of each triangle
+  double **tris;       // triangle corner points
 
   int *num_bond;    // bonds, angles, dihedrals, impropers for each atom
   int **bond_type;
@@ -160,7 +157,6 @@ class Molecule : protected Pointers {
   void diameters(char *);
   void dipoles(char *);
   void masses(char *);
-  void pts(char *);
   void line_segments(char *);
   void triangles(char *);
   void bonds(int, char *);

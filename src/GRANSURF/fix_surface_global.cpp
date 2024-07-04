@@ -32,6 +32,7 @@
 #include "update.h"
 
 #include <map>
+#include <tuple>
 
 using namespace LAMMPS_NS;
 using namespace FixConst;
@@ -40,6 +41,8 @@ using namespace MathConst;
 enum{HOOKE,HOOKE_HISTORY,HERTZ_HISTORY};
 enum{SPHERE,LINE,TRI};           // also in DumpImage
 enum{NONE,LINEAR,WIGGLE,ROTATE,VARIABLE};
+
+#define DELTAPOINT 1
 
 /* ---------------------------------------------------------------------- */
 
@@ -114,6 +117,8 @@ FixSurfaceGlobal::FixSurfaceGlobal(LAMMPS *lmp, int narg, char **arg) :
 
   connect2d = NULL;
   connect3d = NULL;
+  plist = NULL;
+  elist = NULL;
   clist = NULL;
 
   nmax = 0;
@@ -175,6 +180,8 @@ FixSurfaceGlobal::~FixSurfaceGlobal()
 
   memory->sfree(connect2d);
   memory->sfree(connect3d);
+  memory->destroy(plist);
+  memory->destroy(elist);
   memory->destroy(clist);
 
   memory->destroy(xsurf);
@@ -352,15 +359,18 @@ void FixSurfaceGlobal::initial_integrate(int vflag)
   double dx,dy,dz,rsq;
 
   int triggerflag = 0;
-  for (int i = 0; i < npoints; i++) {
-    pt = points[i].x;
-    dx = pt[0] - points_lastneigh[i][0];
-    dy = pt[1] - points_lastneigh[i][1];
-    dz = pt[2] - points_lastneigh[i][2];
-    rsq = dx*dx + dy*dy + dz*dz;
-    if (rsq > triggersq) {
-      triggerflag = 1;
-      break;
+
+  if (mstyle != NONE) {
+    for (int i = 0; i < npoints; i++) {
+      pt = points[i].x;
+      dx = pt[0] - points_lastneigh[i][0];
+      dy = pt[1] - points_lastneigh[i][1];
+      dz = pt[2] - points_lastneigh[i][2];
+      rsq = dx*dx + dy*dy + dz*dz;
+      if (rsq > triggersq) {
+        triggerflag = 1;
+        break;
+      }
     }
   }
 
@@ -375,8 +385,6 @@ void FixSurfaceGlobal::initial_integrate(int vflag)
 
 void FixSurfaceGlobal::pre_neighbor()
 {
-  //printf("RENEIGH %ld\n",update->ntimestep);
-
   int i,j,m,n,nn,dnum,dnumbytes;
   double xtmp,ytmp,ztmp,delx,dely,delz;
   double radi,rsq,radsum,cutsq;
@@ -1200,39 +1208,54 @@ int FixSurfaceGlobal::overlap_sphere_line(int i, int j, double *pt,
 }
 
 /* ----------------------------------------------------------------------
-   check overlap status of sphere I with line J versus its neighbor line K
+   check overlap status of sphere I with line J versus any neighbor lines K
    I overlaps J at jflag = -1,-2 for two end points
    return 0 if this line J performs computation
-   return 1 if other line K performs computation
+   return 1 if some other line K performs computation
 ------------------------------------------------------------------------- */
 
 int FixSurfaceGlobal::endpt_neigh_check(int i, int j, int jflag)
 {
-  int k;
+  // ncheck = # of neighbor lines to check
+  // neighs = indices of neighbor lines (including self)
+
+  int ncheck;
+  int *neighs;
+
+  if (jflag == -1) {
+    if (connect2d[j].np1 == 0) return 0;
+    ncheck = connect2d[j].np1 + 1;
+    neighs = connect2d[j].neigh_p1;
+  } else if (jflag == -2) {
+    if (connect2d[j].np2 == 0) return 0;
+    ncheck = connect2d[j].np2 + 1;
+    neighs = connect2d[j].neigh_p2;
+  }
+  
+  // check overlap with each neighbor line
+  // if any line has interior overlap, another line computes
+  // if all lines have endpt overlap, line with lowest index computes
+  // kflag = overlap status with neighbor line
+  // kflag = 1, interior overlap
+  // kflag = 0, no overlap, should not be possible
+  // kflag < 0, overlap at endpt
+
+  int k,kflag;
   double rsq;
   double dr[3],contact[3];
 
-  // idconnect = ID of neighbor line
-  // k = index of neighbor line
+  int linemin = j;
 
-  if (jflag == -1) k = connect2d[j].neigh_p1 - 1;
-  else k = connect2d[j].neigh_p2 - 1;
-  if (k < 0) return 0;
+  for (int m = 0; m < ncheck; m++) {
+    k = neighs[m];
+    if (k == j) continue;                               // skip self line
+    kflag = overlap_sphere_line(i,k,contact,dr,rsq);
+    if (kflag > 0) return 1;
+    if (kflag == 0) error->one(FLERR,"Fix surface/global neighbor line overlap is invalid");
+    linemin = MIN(linemin,k);
+  }
 
-  // check overlap with neighbor line
-  // if neighbor has interior overlap, neigh line computes
-  // if neighbor has end pt overlap, line with lowest ID computes
-  // kflag = overlap status with neigh line
-  // kflag = 1, interior overlap
-  // kflag = 0, no overlap, should not be possible
-  // kflag < 0, overlap at end pt
-
-  int kflag = overlap_sphere_line(i,k,contact,dr,rsq);
-  if (kflag > 0) return 1;
-  if (kflag == 0)
-    error->one(FLERR,"Fix surface/global neighbor line overlap is invalid");
-
-  if (j < k) return 0;
+  if (j == linemin) return 0;
   return 1;
 }
 
@@ -1462,92 +1485,111 @@ int FixSurfaceGlobal::nearest_point_line(double *x, double *p1, double *p2,
 }
 
 /* ----------------------------------------------------------------------
-   check overlap status of sphere I with tri J versus its neighbor tri K
+   check overlap status of sphere I with tri J versus any neighbor tris K
    I overlaps J at jflag = -1,-2,-3 for three edges
-   return 0 if this line J performs computation
-   return 1 if other line K performs computation
+   return 0 if this tri J performs computation
+   return 1 if other tri K performs computation
 ------------------------------------------------------------------------- */
 
 int FixSurfaceGlobal::edge_neigh_check(int i, int j, int jflag)
 {
-  int k;
+  // ncheck = # of neighbor tris to check
+  // neighs = indices of neighbor tris (including self)
+
+  int ncheck;
+  int *neighs;
+  
+  if (jflag == -1) {
+    if (connect3d[j].ne1 == 0) return 0;
+    ncheck = connect3d[j].ne1 + 1;
+    neighs = connect3d[j].neigh_e1;
+  } else if (jflag == -2) {
+    if (connect3d[j].ne2 == 0) return 0;
+    ncheck = connect3d[j].ne2 + 1;
+    neighs = connect3d[j].neigh_e2;
+  } else if (jflag == -3) {
+    if (connect3d[j].ne3 == 0) return 0;
+    ncheck = connect3d[j].ne3 + 1;
+    neighs = connect3d[j].neigh_e3;
+  }
+
+  // check overlap with each neighbor tri
+  // if any tri has interior overlap, another tri computes
+  // if all tris have edge overlap, tri with lowest index computes
+  // kflag = overlap status with neighbor tri
+  // kflag = 1, interior overlap
+  // kflag = 0, no overlap, should not be possible
+  // kflag < 0, overlap at edge (overlap at corner pt should not be possible)
+
+  int k,kflag;
   double rsq;
   double dr[3],contact[3];
 
-  // idconnect = ID of neighbor line
-  // k = local index of neighbor line
-  // neigh_e123 indices are stored as 1 to Ntri, 0 = no connection
+  int trimin = j;
 
-  if (jflag == -1) k = connect3d[j].neigh_e1 - 1;
-  else if (jflag == -2) k = connect3d[j].neigh_e2 - 1;
-  else k = connect3d[j].neigh_e3 - 1;
-  if (k < 0) return 0;
+  for (int m = 0; m < ncheck; m++) {
+    k = neighs[m];
+    if (k == j) continue;                               // skip self tri
+    kflag = overlap_sphere_tri(i,k,contact,dr,rsq);
+    if (kflag > 0) return 1;
+    if (kflag == 0) error->one(FLERR,"Fix surface/global neighbor tri overlap is invalid");
+    trimin = MIN(trimin,k);
+  }
 
-  // kflag = overlap status with neighbor tri
-  // kflag = 1, interior overlap, neighbor tri computes
-  // kflag = 0, no overlap, should not be possible
-  // kflag < 0, overlap at end pt, tri with lowest ID computes
-
-  int kflag = overlap_sphere_tri(i,k,contact,dr,rsq);
-  if (kflag > 0) return 1;
-  if (kflag == 0)
-    error->one(FLERR,"Fix surface/global neighbor tri overlap is invalid");
-
-  if (j < k) return 0;
+  if (j == trimin) return 0;
   return 1;
 }
 
 /* ----------------------------------------------------------------------
-   check overlap status of sphere I with tri J versus its neighbor tris K
+   check overlap status of sphere I with tri J versus any neighbor tris K
    I overlaps J at jflag = -4,-5,-6 for three corners
-   return 0 if this line J performs computation
-   return 1 if some other line K performs computation
+   return 0 if this tri J performs computation
+   return 1 if some other tri K performs computation
 ------------------------------------------------------------------------- */
 
 int FixSurfaceGlobal::corner_neigh_check(int i, int j, int jflag)
 {
-  int k,n,kflag;
-  tagint idconnect;
-  double rsq;
-  double dr[3],contact[3];
-  tagint *cneighs;
+  // ncheck = # of neighbor tris to check
+  // neighs = indices of neighbor tris (including self)
 
-  // idconnect = ID of neighbor line
-  // k = local index of neighbor line
+  int ncheck;
+  int *neighs;
 
   if (jflag == -4) {
-    n = connect3d[j].nc1;
-    cneighs = connect3d[j].neigh_c1;
+    if (connect3d[j].nc1 == 0) return 0;
+    ncheck = connect3d[j].nc1 + 1;
+    neighs = connect3d[j].neigh_c1;
   } else if (jflag == -5) {
-    n = connect3d[j].nc2;
-    cneighs = connect3d[j].neigh_c2;
+    if (connect3d[j].nc2 == 0) return 0;
+    ncheck = connect3d[j].nc2 + 1;
+    neighs = connect3d[j].neigh_c2;
   } else if (jflag == -6) {
-    n = connect3d[j].nc3;
-    cneighs = connect3d[j].neigh_c3;
-  } else {
-    printf("JFLAG VALUE %d\n",jflag);
-    error->one(FLERR,"PTGHH invalid jflag");
+    if (connect3d[j].nc3 == 0) return 0;
+    ncheck = connect3d[j].nc3 + 1;
+    neighs = connect3d[j].neigh_c3;
   }
-
+  
   // check overlap with each neighbor tri
-  // if any tri has interior or edge overlap, neigh tri computes
-  // if all tris have corner pt overlap, tri with lowest ID computes
-  // kflag = overlap status with neigh line
+  // if any tri has interior or edge overlap, another tri computes
+  // if all tris have corner pt overlap, tri with lowest index computes
+  // kflag = overlap status with neighbor tri
   // kflag = 1, interior overlap
   // kflag = 0, no overlap, should not be possible
   // kflag = -1/-2/-3, overlap at edge
   // kflag = -4/-5/-6, overlap at corner pt
 
+  int k,kflag;
+  double rsq;
+  double dr[3],contact[3];
+  
   int trimin = j;
 
-  for (int m = 0; m < n; m++) {
-    k = cneighs[m] - 1;           // indices are stored as 1 to Ntri
-    if (k == j) continue;         // skip self tri in neigh_c123 lists
+  for (int m = 0; m < ncheck; m++) {
+    k = neighs[m]; 
+    if (k == j) continue;                               // skip self tri
     kflag = overlap_sphere_tri(i,k,contact,dr,rsq);
     if (kflag > 0) return 1;
-    if (kflag == 0) {
-      error->one(FLERR,"Fix surface/global neighbor tri overlap is invalid");
-    }
+    if (kflag == 0) error->one(FLERR,"Fix surface/global neighbor tri overlap is invalid");
     if (kflag >= -3) return 1;
     trimin = MIN(trimin,k);
   }
@@ -1563,8 +1605,9 @@ int FixSurfaceGlobal::corner_neigh_check(int i, int j, int jflag)
 // ----------------------------------------------------------------------
 
 /* ----------------------------------------------------------------------
-   extract points,line,surfs from molecule ID for one or more mol files
-   concatenate into single list of points,lines,tris
+   extract lines or surfs from molecule ID for one or more mol files
+   concatenate into single list of lines and tris
+   also create list of unique points using hash
    each proc owns copy of all points,lines,tris
 ------------------------------------------------------------------------- */
 
@@ -1576,20 +1619,18 @@ void FixSurfaceGlobal::extract_from_molecules(char *molID)
   lines = NULL;
   tris = NULL;
   npoints = nlines = ntris = 0;
-
+  int maxpoints = 0;
+  
   int imol = atom->find_molecule(molID);
   if (imol == -1)
-    error->all(FLERR,"Molecule template ID for "
-               "fix surface/global does not exist");
-
-  // loop over one or more molecules in mol-ID
+    error->all(FLERR,"Molecule template ID for fix surface/global does not exist");
+  
+  // loop over one or more molecules in molID
   
   Molecule **onemols = &atom->molecules[imol];
   int nmol = onemols[0]->nset;
   
   for (int m = 0; m < nmol; m++) {
-    if (onemols[m]->pointflag == 0)
-      error->all(FLERR,"Fix surface/global molecule must have points");
     if (dimension == 2)
       if (onemols[m]->lineflag == 0)
         error->all(FLERR,"Fix surface/global molecule must have lines");
@@ -1597,58 +1638,125 @@ void FixSurfaceGlobal::extract_from_molecules(char *molID)
       if (onemols[m]->triflag == 0)
         error->all(FLERR,"Fix surface/global molecule must have triangles");
 
-    int np = onemols[m]->npoints;
     int nl = onemols[m]->nlines;
     int nt = onemols[m]->ntris;
 
-    npoints += np;
     nlines += nl;
     ntris += nt;
-    points = (Point *) memory->srealloc(points,npoints*sizeof(Point),
-                                        "surface/global:points");
     lines = (Line *) memory->srealloc(lines,nlines*sizeof(Line),
                                       "surface/global:lines");
     tris = (Tri *) memory->srealloc(tris,ntris*sizeof(Tri),
                                     "surface/global:tris");
 
-    double **pts = onemols[m]->points;
-    int j = npoints - np;
-    for (int i = 0; i < np; i++) {
-      points[j].x[0] = pts[i][0];
-      points[j].x[1] = pts[i][1];
-      points[j].x[2] = pts[i][2];
-      j++;
-    }
+    // create a map
+    // key = xyz coords of a point
+    // value = index into unique points vector
+    
+    std::map<std::tuple<double,double,double>,int> hash;
 
     // offset line/tri index lists by previous npoints
-    // subtract one to give C-style index into points vector
+    // pi,p2,p3 are C-style indices into points vector
 
     if (dimension == 2) {
       int *molline = onemols[m]->molline;
       int *typeline = onemols[m]->typeline;
-      int **epts = onemols[m]->lines;
-      int j = nlines - nl;
+      double **epts = onemols[m]->lines;
+      int iline = nlines - nl;
+
       for (int i = 0; i < nl; i++) {
-        lines[j].mol = molline[i];
-        lines[j].type = typeline[i];
-        lines[j].p1 = epts[i][0] + npoints-np - 1;
-        lines[j].p2 = epts[i][1] + npoints-np - 1;
-        j++;
+        lines[iline].mol = molline[i];
+        lines[iline].type = typeline[i];
+
+        auto key = std::make_tuple(epts[i][0],epts[i][1],0.0);
+        if (hash.find(key) == hash.end()) {
+          if (npoints == maxpoints) {
+            maxpoints += DELTAPOINT;
+            points = (Point *) memory->srealloc(points,maxpoints*sizeof(Point),
+                                                "surface/global:points");
+          }
+          hash[key] = npoints;
+          points[npoints].x[0] = epts[i][0];
+          points[npoints].x[1] = epts[i][1];
+          points[npoints].x[2] = 0.0;
+          lines[iline].p1 = npoints;
+          npoints++;
+        } else lines[iline].p1 = hash[key];
+
+        key = std::make_tuple(epts[i][2],epts[i][3],0.0);
+        if (hash.find(key) == hash.end()) {
+          if (npoints == maxpoints) {
+            maxpoints += DELTAPOINT;
+            points = (Point *) memory->srealloc(points,maxpoints*sizeof(Point),
+                                                "surface/global:points");
+          }
+          hash[key] = npoints;
+          points[npoints].x[0] = epts[i][2];
+          points[npoints].x[1] = epts[i][3];
+          points[npoints].x[2] = 0.0;
+          lines[iline].p2 = npoints;
+          npoints++;
+        } else lines[iline].p2 = hash[key];
+
+        iline++;
       }
     }
 
     if (dimension == 3) {
       int *moltri = onemols[m]->moltri;
       int *typetri = onemols[m]->typetri;
-      int **cpts = onemols[m]->tris;
-      int j = ntris - nt;
+      double **cpts = onemols[m]->tris;
+      int itri = ntris - nt;
+
       for (int i = 0; i < nt; i++) {
-        tris[j].mol = moltri[i];
-        tris[j].type = typetri[i];
-        tris[j].p1 = cpts[i][0] + npoints-np - 1;
-        tris[j].p2 = cpts[i][1] + npoints-np - 1;
-        tris[j].p3 = cpts[i][2] + npoints-np - 1;
-        j++;
+        tris[itri].mol = moltri[i];
+        tris[itri].type = typetri[i];
+
+        auto key = std::make_tuple(cpts[i][0],cpts[i][1],cpts[i][2]);
+        if (hash.find(key) == hash.end()) {
+          if (npoints == maxpoints) {
+            maxpoints += DELTAPOINT;
+            points = (Point *) memory->srealloc(points,maxpoints*sizeof(Point),
+                                                "surface/global:points");
+          }
+          hash[key] = npoints;
+          points[npoints].x[0] = cpts[i][0];
+          points[npoints].x[1] = cpts[i][1];
+          points[npoints].x[2] = cpts[i][2];
+          tris[itri].p1 = npoints;
+          npoints++;
+        } else tris[itri].p1 = hash[key];
+
+        key = std::make_tuple(cpts[i][3],cpts[i][4],cpts[i][5]);
+        if (hash.find(key) == hash.end()) {
+          if (npoints == maxpoints) {
+            maxpoints += DELTAPOINT;
+            points = (Point *) memory->srealloc(points,maxpoints*sizeof(Point),
+                                                "surface/global:points");
+          }
+          hash[key] = npoints;
+          points[npoints].x[0] = cpts[i][3];
+          points[npoints].x[1] = cpts[i][4];
+          points[npoints].x[2] = cpts[i][5];
+          tris[itri].p2 = npoints;
+          npoints++;
+        } else tris[itri].p2 = hash[key];
+
+        key = std::make_tuple(cpts[i][6],cpts[i][7],cpts[i][8]);
+        if (hash.find(key) == hash.end()) {
+          if (npoints == maxpoints) {
+            maxpoints += DELTAPOINT;
+            points = (Point *) memory->srealloc(points,maxpoints*sizeof(Point),
+                                                "surface/global:points");
+          }
+          hash[key] = npoints;
+          points[npoints].x[0] = cpts[i][6];
+          points[npoints].x[1] = cpts[i][7];
+          points[npoints].x[2] = cpts[i][8];
+          tris[itri].p3 = npoints;
+          npoints++;
+        } else tris[itri].p3 = hash[key];
+
+        itri++;
       }
     }
   }
@@ -1660,72 +1768,39 @@ void FixSurfaceGlobal::extract_from_molecules(char *molID)
 
 void FixSurfaceGlobal::connectivity2d_global()
 {
-  int j,p1,p2;
-
-  // allocate and initilize global connectivity list
-  // ilocal will be initialized when assign to procs
-
   connect2d = (Connect2d *) memory->smalloc(nlines*sizeof(Connect2d),
                                             "surface/global:connect2d");
 
-  for (int i = 0; i < nlines; i++) {
-    connect2d[i].neigh_p1 = connect2d[i].neigh_p2 = 0;
-    connect2d[i].flags = 0;
-  }
-
-  // create ptflag[2] = pair of flags for each point
-  //   1st index:
-  //     0 if pt not in line
-  //     1 if 1st point in one line, 2 if 2nd point in one line
-  //    -1 if already in 2 lines
-  //   2nd index: which line it is in (for one line)
-  // as create it, check for errors:
-  //   no point can be part of more than 2 lines
-  //   point that is part of 2 lines must be 1st in one, 2nd in other
-  // as create it, set connections in connect2d
-  //   set neigh_p1,neigh_p2 = 1 to Nlines for now
-  //   will offset by existing particle IDs when assign to procs
-
-  int **ptflag;
-  memory->create(ptflag,npoints,2,"surface/global:ptflag");
-  for (int i = 0; i < npoints; i++) ptflag[i][0] = 0;
+  int *counts;
+  memory->create(counts,npoints,"surface/global:count");
+  
+  for (int i = 0; i < npoints; i++) counts[i] = 0;
 
   for (int i = 0; i < nlines; i++) {
-    p1 = lines[i].p1;
-    p2 = lines[i].p2;
-
-    if (ptflag[p1][0] < 0) 
-      error->all(FLERR,"Fix surface/global point part of more than 2 lines");
-    else if (ptflag[p1][0] == 1)
-      error->all(FLERR,"Fix surface/global pair of lines are misoriented");
-    else if (ptflag[p1][0] == 0) {
-      ptflag[p1][0] = 1;
-      ptflag[p1][1] = i;
-    } else if (ptflag[p1][0] == 2) {
-      ptflag[p1][0] = -1;
-      j = ptflag[p1][1];
-      connect2d[i].neigh_p1 = j+1;
-      connect2d[j].neigh_p2 = i+1;
-    }
-
-    if (ptflag[p2][0] < 0) 
-      error->all(FLERR,"Fix surface/global point part of more than 2 lines");
-    else if (ptflag[p2][0] == 2)
-      error->all(FLERR,"Fix surface/global pair of lines are misoriented");
-    else if (ptflag[p2][0] == 0) {
-      ptflag[p2][0] = 2;
-      ptflag[p2][1] = i;
-    } else if (ptflag[p2][0] == 1) {
-      ptflag[p2][0] = -1;
-      j = ptflag[p2][1];
-      connect2d[i].neigh_p2 = j+1;
-      connect2d[j].neigh_p1 = i+1;
-    }
+    counts[lines[i].p1]++;
+    counts[lines[i].p2]++;
   }
 
-  memory->destroy(ptflag);
+  memory->create_ragged(plist,npoints,counts,"surface/global:plist");
 
-  // NOTE: here is where to set connect2d flags
+  for (int i = 0; i < npoints; i++) counts[i] = 0;
+
+  for (int i = 0; i < nlines; i++) {
+    plist[lines[i].p1][counts[lines[i].p1]++] = i;
+    plist[lines[i].p2][counts[lines[i].p2]++] = i;
+  }
+
+  for (int i = 0; i < nlines; i++) {
+    connect2d[i].np1 = counts[lines[i].p1] - 1;
+    if (connect2d[i].np1 == 0) connect2d[i].neigh_p1 = NULL;
+    else connect2d[i].neigh_p1 = plist[lines[i].p1];
+
+    connect2d[i].np2 = counts[lines[i].p2] - 1;
+    if (connect2d[i].np2 == 0) connect2d[i].neigh_p2 = NULL;
+    else connect2d[i].neigh_p1 = plist[lines[i].p2];
+  }
+
+  memory->destroy(counts);
 }
 
 /* ----------------------------------------------------------------------
@@ -1734,25 +1809,45 @@ void FixSurfaceGlobal::connectivity2d_global()
 
 void FixSurfaceGlobal::connectivity3d_global()
 {
-  int itri,jtri,iedge,jedge;
-  bigint p1,p2,p3;
-
-  // allocate and initilize global connectivity list
-  // ilocal and indexc123 will be initialized when assign to procs
-
   connect3d = (Connect3d *) memory->smalloc(ntris*sizeof(Connect3d),
                                                "surface/global:connect3d");
 
+  // create a map
+  // key = <p1,p2> indices of 2 points
+  // value = index into unique edges vector
+  // points can be in either order
+  
+  std::map<std::tuple<int,int>,int> hash;
+
   for (int i = 0; i < ntris; i++) {
-    connect3d[i].neigh_e1 = connect3d[i].neigh_e2 = 
-      connect3d[i].neigh_e3 = 0;
-    connect3d[i].flags = 0;
+    p1 = tris[i].p1;
+    p2 = tris[i].p2;
+    p3 = tris[i].p3;
+    
+    auto key1 = std::make_tuple(p1,p2);
+    auto key2 = std::make_tuple(p2,p1);
+    
+    if (hash.find(key1) == hash.end() && hash.find(key2) == hash.end()) {
+      if (nedges == maxedges) {
+        maxedges += DELTA;
+        edges = (Point *) memory->srealloc(points,maxpoints*sizeof(Point),
+                                            "surface/global:edges");
+      }
+      hash[key] = nedges;
+      edges[nedges][0] = p1;
+      edges[nedges][1] = p2;
+      nedges++;
+    }
   }
 
+  // NOTE: need to decide what to do next with the hash
+  // this will determine what its values should be ?
+  
   // hash = STL map of ordered edges
   // key = (p1,p2) via bit-shifting by 32-bits into bigint
   // value = (itri,iedge) also bit-shifted, itri = 0 to Ntri-1, iedge = 1,2,3
 
+  /*
   if (sizeof(bigint) != 2*sizeof(int))
     error->all(FLERR,
                "Fix surface/global triangle connections cannot be formed");
@@ -1811,7 +1906,10 @@ void FixSurfaceGlobal::connectivity3d_global()
       }
     }
   }
+  */
 
+
+  
   // setup corner point connectivity lists
   // count # of tris containing each point
   // create ragged 2d array to contain all tri indices, then fill it
@@ -1835,29 +1933,26 @@ void FixSurfaceGlobal::connectivity3d_global()
   for (int i = 0; i < npoints; i++) counts[i] = 0;
 
   for (int i = 0; i < ntris; i++) {
-    clist[tris[i].p1][counts[tris[i].p1]++] = i+1;
-    clist[tris[i].p2][counts[tris[i].p2]++] = i+1;
-    clist[tris[i].p3][counts[tris[i].p3]++] = i+1;
+    clist[tris[i].p1][counts[tris[i].p1]++] = i;
+    clist[tris[i].p2][counts[tris[i].p2]++] = i;
+    clist[tris[i].p3][counts[tris[i].p3]++] = i;
   }
 
-  for (int i = 0; i < ntris; i++)
-    connect3d[i].nc1 = connect3d[i].nc2 = connect3d[i].nc3 = 0;
-
   for (int i = 0; i < ntris; i++) {
-    connect3d[i].nc1 = counts[tris[i].p1] ;
+    connect3d[i].nc1 = counts[tris[i].p1] - 1;
     if (connect3d[i].nc1 == 0) connect3d[i].neigh_c1 = NULL;
     else connect3d[i].neigh_c1 = clist[tris[i].p1];
-    connect3d[i].nc2 = counts[tris[i].p2];
+    
+    connect3d[i].nc2 = counts[tris[i].p2] - 1;
     if (connect3d[i].nc2 == 0) connect3d[i].neigh_c2 = NULL;
     else connect3d[i].neigh_c2 = clist[tris[i].p2];
-    connect3d[i].nc3 = counts[tris[i].p3];
+    
+    connect3d[i].nc3 = counts[tris[i].p3] - 1;
     if (connect3d[i].nc3 == 0) connect3d[i].neigh_c3 = NULL;
     else connect3d[i].neigh_c3 = clist[tris[i].p3];
   }
 
   memory->destroy(counts);
-
-  // NOTE: here is where to set connect3d flags
 }
 
 /* ----------------------------------------------------------------------

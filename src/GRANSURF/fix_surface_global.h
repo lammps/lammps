@@ -27,6 +27,7 @@ namespace LAMMPS_NS {
 
 class FixSurfaceGlobal : public Fix {
  public:
+  
   // neighbor lists for spheres with surfs and shear history
   // accessed by fix shear/history
 
@@ -88,43 +89,44 @@ class FixSurfaceGlobal : public Fix {
   struct Line {
     int mol,type;           // molID and type of the line
     int p1,p2;              // indices of points in line segment
-                            // rhand rule: Z x (p2-p1) = outward normal
+    double norm[3];         // unit normal to line = Z x (p2-p1)
   };
 
   struct Tri {
     int mol,type;           // modID and type of the triangle
     int p1,p2,p3;           // indices of points in triangle
-                            // rhand rule: (p2-p1) x (p3-p1) = outward normal
-    double norm[3];         // unit normal to tri plane
+    double norm[3];         // unit normal to tri plane = (p2-p1) x (p3-p1)
   };
 
-  Point *points;              // global list of points
+  Point *points;              // global list of unique points
   Line *lines;                // global list of lines
   Tri *tris;                  // global list of tris
   int npoints,nlines,ntris;   // count of each
   int nsurf;                  // count of lines or tris for 2d/3d
-
+  
+  int **plist;                // ragged 2d array for global end pt lists
+  int **elist;                // ragged 2d array for global edge lists
   int **clist;                // ragged 2d array for global corner pt lists
 
   // 2d/3d connectivity
 
   struct Connect2d {      // line connectivity
-    tagint neigh_p1;      // ID of line connected to pt1, 0 if none
-    tagint neigh_p2;      // ditto for pt2
-    int flags;            // flags for end pt coupling
-                          // NOTE: document what is stored in flags
+    int np1,np2;          // # of other lines connected to pts 1,2
+    int *neigh_p1;        // indices of other lines connected to pt1
+    int *neigh_p2;        // ditto for pt2
+    int flags;            // future flags for end pt coupling
   };
 
   struct Connect3d {      // tri connectivity
-    tagint neigh_e1;      // ID of tri connected to 1-2 edge, 0 if none
-    tagint neigh_e2;      // ditto for 2-3 edge
-    tagint neigh_e3;      // ditto for 3-1 edge
-    tagint *neigh_c1;     // IDs of tris connected to 1st corner pt
-    tagint *neigh_c2;     // ditto for 2nd corner pt
-    tagint *neigh_c3;     // ditto for 3rd corner pt
-    int nc1,nc2,nc3;      // # of tris connected to each corner pt
-    int flags;            // flags for edge and corner pt coupling
-                          // NOTE: document what is stored in flags
+    int ne1,ne2,ne3;      // # of other tris connected to edges 1,2,3
+    int nc1,nc2,nc3;      // # of tris connected to corner pts 1,2,3
+    int *neigh_e1;        // indices of other tris connected to 1-2 edge
+    int *neigh_e2;        // ditto for 2-3 edge
+    int *neigh_e3;        // ditto for 3-1 edge
+    int *neigh_c1;        // indices of other tris connected to corner pt 1
+    int *neigh_c2;        // ditto for corner pt 2
+    int *neigh_c3;        // ditto for corner pt 3
+    int flags;            // future flags for edge and corner pt coupling
   };
 
   Connect2d *connect2d;             // 2d connection info

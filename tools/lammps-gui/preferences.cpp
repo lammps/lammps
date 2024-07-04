@@ -93,25 +93,25 @@ void Preferences::accept()
 
     // store selected accelerator
     QList<QRadioButton *> allButtons = tabWidget->findChildren<QRadioButton *>();
-    for (int i = 0; i < allButtons.size(); ++i) {
-        if (allButtons[i]->isChecked()) {
-            if (allButtons[i]->objectName() == "none")
+    for (auto & allButton : allButtons) {
+        if (allButton->isChecked()) {
+            if (allButton->objectName() == "none")
                 settings->setValue("accelerator", QString::number(AcceleratorTab::None));
-            if (allButtons[i]->objectName() == "opt")
+            if (allButton->objectName() == "opt")
                 settings->setValue("accelerator", QString::number(AcceleratorTab::Opt));
-            if (allButtons[i]->objectName() == "openmp")
+            if (allButton->objectName() == "openmp")
                 settings->setValue("accelerator", QString::number(AcceleratorTab::OpenMP));
-            if (allButtons[i]->objectName() == "intel")
+            if (allButton->objectName() == "intel")
                 settings->setValue("accelerator", QString::number(AcceleratorTab::Intel));
-            if (allButtons[i]->objectName() == "kokkos")
+            if (allButton->objectName() == "kokkos")
                 settings->setValue("accelerator", QString::number(AcceleratorTab::Kokkos));
-            if (allButtons[i]->objectName() == "gpu")
+            if (allButton->objectName() == "gpu")
                 settings->setValue("accelerator", QString::number(AcceleratorTab::Gpu));
         }
     }
 
     // store number of threads, reset to 1 for "None" and "Opt" settings
-    QLineEdit *field = tabWidget->findChild<QLineEdit *>("nthreads");
+    auto *field = tabWidget->findChild<QLineEdit *>("nthreads");
     if (field) {
         int accel = settings->value("accelerator", AcceleratorTab::None).toInt();
         if ((accel == AcceleratorTab::None) || (accel == AcceleratorTab::Opt))
@@ -132,7 +132,7 @@ void Preferences::accept()
     field = tabWidget->findChild<QLineEdit *>("zoom");
     if (field)
         if (field->hasAcceptableInput()) settings->setValue("zoom", field->text());
-    QCheckBox *box = tabWidget->findChild<QCheckBox *>("anti");
+    auto *box = tabWidget->findChild<QCheckBox *>("anti");
     if (box) settings->setValue("antialias", box->isChecked());
     box = tabWidget->findChild<QCheckBox *>("ssao");
     if (box) settings->setValue("ssao", box->isChecked());
@@ -142,7 +142,7 @@ void Preferences::accept()
     if (box) settings->setValue("axes", box->isChecked());
     box = tabWidget->findChild<QCheckBox *>("vdwstyle");
     if (box) settings->setValue("vdwstyle", box->isChecked());
-    QComboBox *combo = tabWidget->findChild<QComboBox *>("background");
+    auto *combo = tabWidget->findChild<QComboBox *>("background");
     if (combo) settings->setValue("background", combo->currentText());
     combo = tabWidget->findChild<QComboBox *>("boxcolor");
     if (combo) settings->setValue("boxcolor", combo->currentText());
@@ -166,7 +166,7 @@ void Preferences::accept()
     box = tabWidget->findChild<QCheckBox *>("viewslide");
     if (box) settings->setValue("viewslide", box->isChecked());
 
-    auto spin = tabWidget->findChild<QSpinBox *>("updfreq");
+    auto *spin = tabWidget->findChild<QSpinBox *>("updfreq");
     if (spin) settings->setValue("updfreq", spin->value());
 
     if (need_relaunch) {
@@ -324,7 +324,7 @@ void GeneralTab::newtextfont()
 
 void GeneralTab::pluginpath()
 {
-    QLineEdit *field = findChild<QLineEdit *>("pluginedit");
+    auto *field = findChild<QLineEdit *>("pluginedit");
     QString pluginfile =
         QFileDialog::getOpenFileName(this, "Select Shared LAMMPS Library to Load", field->text(),
                                      "Shared Objects (*.so *.dll *.dylib)");

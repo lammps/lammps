@@ -620,7 +620,7 @@ void CodeEditor::dropEvent(QDropEvent *event)
     if (event->mimeData()->hasUrls()) {
         event->accept();
         auto file = event->mimeData()->urls()[0].toLocalFile();
-        auto gui  = dynamic_cast<LammpsGui *>(parent());
+        auto *gui  = dynamic_cast<LammpsGui *>(parent());
         if (gui) {
             moveCursor(QTextCursor::Start, QTextCursor::MoveAnchor);
             gui->open_file(file);
@@ -687,17 +687,17 @@ void CodeEditor::contextMenuEvent(QContextMenuEvent *event)
     auto *menu = createStandardContextMenu();
     menu->addSeparator();
     if (textCursor().hasSelection()) {
-        auto action1 = menu->addAction("Comment out selection");
+        auto *action1 = menu->addAction("Comment out selection");
         action1->setIcon(QIcon(":/icons/expand-text.png"));
         connect(action1, &QAction::triggered, this, &CodeEditor::comment_selection);
-        auto action2 = menu->addAction("Uncomment selection");
+        auto *action2 = menu->addAction("Uncomment selection");
         action2->setIcon(QIcon(":/icons/expand-text.png"));
         connect(action2, &QAction::triggered, this, &CodeEditor::uncomment_selection);
     } else {
-        auto action1 = menu->addAction("Comment out line");
+        auto *action1 = menu->addAction("Comment out line");
         action1->setIcon(QIcon(":/icons/expand-text.png"));
         connect(action1, &QAction::triggered, this, &CodeEditor::comment_line);
-        auto action2 = menu->addAction("Uncomment line");
+        auto *action2 = menu->addAction("Uncomment line");
         action2->setIcon(QIcon(":/icons/expand-text.png"));
         connect(action2, &QAction::triggered, this, &CodeEditor::uncomment_line);
     }
@@ -705,14 +705,14 @@ void CodeEditor::contextMenuEvent(QContextMenuEvent *event)
 
     // print augmented context menu if an entry was found
     if (!help.isEmpty()) {
-        auto action = menu->addAction(QString("Display available completions for '%1'").arg(help));
+        auto *action = menu->addAction(QString("Display available completions for '%1'").arg(help));
         action->setIcon(QIcon(":/icons/expand-text.png"));
         connect(action, &QAction::triggered, this, &CodeEditor::runCompletion);
         menu->addSeparator();
     }
 
     if (!page.isEmpty()) {
-        auto action = menu->addAction(QString("Reformat '%1' command").arg(help));
+        auto *action = menu->addAction(QString("Reformat '%1' command").arg(help));
         action->setIcon(QIcon(":/icons/format-indent-less-3.png"));
         connect(action, &QAction::triggered, this, &CodeEditor::reformatCurrentLine);
 
@@ -728,13 +728,13 @@ void CodeEditor::contextMenuEvent(QContextMenuEvent *event)
             help = words.at(0);
             page = words.at(0);
             page += ".html";
-            auto action2 = menu->addAction(QString("View Documentation for '%1'").arg(help));
+            auto *action2 = menu->addAction(QString("View Documentation for '%1'").arg(help));
             action2->setIcon(QIcon(":/icons/system-help.png"));
             action2->setData(page);
             connect(action2, &QAction::triggered, this, &CodeEditor::open_help);
         }
     }
-    auto action = menu->addAction(QString("LAMMPS Manual"));
+    auto *action = menu->addAction(QString("LAMMPS Manual"));
     action->setIcon(QIcon(":/icons/help-browser.png"));
     action->setData(QString());
     connect(action, &QAction::triggered, this, &CodeEditor::open_help);
@@ -1166,7 +1166,7 @@ void CodeEditor::find_help(QString &page, QString &help)
 
 void CodeEditor::open_help()
 {
-    QAction *act = qobject_cast<QAction *>(sender());
+    auto *act = qobject_cast<QAction *>(sender());
     QDesktopServices::openUrl(
         QUrl(QString("https://docs.lammps.org/%1").arg(act->data().toString())));
 }

@@ -1223,12 +1223,12 @@ int FixSurfaceGlobal::endpt_neigh_check(int i, int j, int jflag)
   int *neighs;
 
   if (jflag == -1) {
-    if (connect2d[j].np1 == 0) return 0;
-    ncheck = connect2d[j].np1 + 1;
+    if (connect2d[j].np1 == 1) return 0;
+    ncheck = connect2d[j].np1;
     neighs = connect2d[j].neigh_p1;
   } else if (jflag == -2) {
-    if (connect2d[j].np2 == 0) return 0;
-    ncheck = connect2d[j].np2 + 1;
+    if (connect2d[j].np2 == 1) return 0;
+    ncheck = connect2d[j].np2;
     neighs = connect2d[j].neigh_p2;
   }
   
@@ -1248,7 +1248,7 @@ int FixSurfaceGlobal::endpt_neigh_check(int i, int j, int jflag)
 
   for (int m = 0; m < ncheck; m++) {
     k = neighs[m];
-    if (k == j) continue;                               // skip self line
+    if (k == j) continue;   // skip self line
     kflag = overlap_sphere_line(i,k,contact,dr,rsq);
     if (kflag > 0) return 1;
     if (kflag == 0) error->one(FLERR,"Fix surface/global neighbor line overlap is invalid");
@@ -1500,16 +1500,16 @@ int FixSurfaceGlobal::edge_neigh_check(int i, int j, int jflag)
   int *neighs;
   
   if (jflag == -1) {
-    if (connect3d[j].ne1 == 0) return 0;
-    ncheck = connect3d[j].ne1 + 1;
+    if (connect3d[j].ne1 == 1) return 0;
+    ncheck = connect3d[j].ne1;
     neighs = connect3d[j].neigh_e1;
   } else if (jflag == -2) {
-    if (connect3d[j].ne2 == 0) return 0;
-    ncheck = connect3d[j].ne2 + 1;
+    if (connect3d[j].ne2 == 1) return 0;
+    ncheck = connect3d[j].ne2;
     neighs = connect3d[j].neigh_e2;
   } else if (jflag == -3) {
-    if (connect3d[j].ne3 == 0) return 0;
-    ncheck = connect3d[j].ne3 + 1;
+    if (connect3d[j].ne3 == 1) return 0;
+    ncheck = connect3d[j].ne3;
     neighs = connect3d[j].neigh_e3;
   }
 
@@ -1529,7 +1529,7 @@ int FixSurfaceGlobal::edge_neigh_check(int i, int j, int jflag)
 
   for (int m = 0; m < ncheck; m++) {
     k = neighs[m];
-    if (k == j) continue;                               // skip self tri
+    if (k == j) continue;   // skip self tri
     kflag = overlap_sphere_tri(i,k,contact,dr,rsq);
     if (kflag > 0) return 1;
     if (kflag == 0) error->one(FLERR,"Fix surface/global neighbor tri overlap is invalid");
@@ -1556,16 +1556,16 @@ int FixSurfaceGlobal::corner_neigh_check(int i, int j, int jflag)
   int *neighs;
 
   if (jflag == -4) {
-    if (connect3d[j].nc1 == 0) return 0;
-    ncheck = connect3d[j].nc1 + 1;
+    if (connect3d[j].nc1 == 1) return 0;
+    ncheck = connect3d[j].nc1;
     neighs = connect3d[j].neigh_c1;
   } else if (jflag == -5) {
-    if (connect3d[j].nc2 == 0) return 0;
-    ncheck = connect3d[j].nc2 + 1;
+    if (connect3d[j].nc2 == 1) return 0;
+    ncheck = connect3d[j].nc2;
     neighs = connect3d[j].neigh_c2;
   } else if (jflag == -6) {
-    if (connect3d[j].nc3 == 0) return 0;
-    ncheck = connect3d[j].nc3 + 1;
+    if (connect3d[j].nc3 == 1) return 0;
+    ncheck = connect3d[j].nc3;
     neighs = connect3d[j].neigh_c3;
   }
   
@@ -1586,7 +1586,7 @@ int FixSurfaceGlobal::corner_neigh_check(int i, int j, int jflag)
 
   for (int m = 0; m < ncheck; m++) {
     k = neighs[m]; 
-    if (k == j) continue;                               // skip self tri
+    if (k == j) continue;   // skip self tri
     kflag = overlap_sphere_tri(i,k,contact,dr,rsq);
     if (kflag > 0) return 1;
     if (kflag == 0) error->one(FLERR,"Fix surface/global neighbor tri overlap is invalid");
@@ -1770,6 +1770,12 @@ void FixSurfaceGlobal::connectivity2d_global()
 {
   connect2d = (Connect2d *) memory->smalloc(nlines*sizeof(Connect2d),
                                             "surface/global:connect2d");
+  
+  // setup end point connectivity lists
+  // count # of lines containing each end point
+  // create ragged 2d array to contain all point indices, then fill it
+  // set neigh_p12 vector ptrs in connect2d to rows of ragged array
+  // np12 counts and vectors include self line
 
   int *counts;
   memory->create(counts,npoints,"surface/global:count");
@@ -1791,12 +1797,12 @@ void FixSurfaceGlobal::connectivity2d_global()
   }
 
   for (int i = 0; i < nlines; i++) {
-    connect2d[i].np1 = counts[lines[i].p1] - 1;
-    if (connect2d[i].np1 == 0) connect2d[i].neigh_p1 = nullptr;
+    connect2d[i].np1 = counts[lines[i].p1];
+    if (connect2d[i].np1 == 1) connect2d[i].neigh_p1 = nullptr;
     else connect2d[i].neigh_p1 = plist[lines[i].p1];
     
-    connect2d[i].np2 = counts[lines[i].p2] - 1;
-    if (connect2d[i].np2 == 0) connect2d[i].neigh_p2 = nullptr;
+    connect2d[i].np2 = counts[lines[i].p2];
+    if (connect2d[i].np2 == 1) connect2d[i].neigh_p2 = nullptr;
     else connect2d[i].neigh_p2 = plist[lines[i].p2];
   }
   
@@ -1864,11 +1870,9 @@ void FixSurfaceGlobal::connectivity3d_global()
 
   // setup tri edge connectivity lists
   // count # of tris containing each edge
-  // create ragged 2d array to contain all tri indices, then fill it
+  // create ragged 2d array to contain all edge indices, then fill it
   // set neigh_e123 vector ptrs in connect3d to rows of ragged array
-  //   ne123 counts do not include self tri
-  //   neigh_e123 vectors do include self
-  //   this is b/c elist is created/stored for edges, not tris
+  // ne123 counts and vectors include self tri
 
   int *counts;
   memory->create(counts,nedges,"surface/global:count");
@@ -1892,16 +1896,16 @@ void FixSurfaceGlobal::connectivity3d_global()
   }
 
   for (int i = 0; i < ntris; i++) {
-    connect3d[i].ne1 = counts[tri2edge[i][0]] - 1;
-    if (connect3d[i].ne1 == 0) connect3d[i].neigh_e1 = nullptr;
+    connect3d[i].ne1 = counts[tri2edge[i][0]];
+    if (connect3d[i].ne1 == 1) connect3d[i].neigh_e1 = nullptr;
     else connect3d[i].neigh_e1 = elist[tri2edge[i][0]];
     
-    connect3d[i].ne2 = counts[tri2edge[i][1]] - 1;
-    if (connect3d[i].ne2 == 0) connect3d[i].neigh_e2 = nullptr;
+    connect3d[i].ne2 = counts[tri2edge[i][1]];
+    if (connect3d[i].ne2 == 1) connect3d[i].neigh_e2 = nullptr;
     else connect3d[i].neigh_e2 = elist[tri2edge[i][1]];
     
-    connect3d[i].ne3 = counts[tri2edge[i][2]] - 1;
-    if (connect3d[i].ne3 == 0) connect3d[i].neigh_e3 = nullptr;
+    connect3d[i].ne3 = counts[tri2edge[i][2]];
+    if (connect3d[i].ne3 == 1) connect3d[i].neigh_e3 = nullptr;
     else connect3d[i].neigh_e3 = elist[tri2edge[i][2]];
   }
 
@@ -1912,9 +1916,7 @@ void FixSurfaceGlobal::connectivity3d_global()
   // count # of tris containing each point
   // create ragged 2d array to contain all tri indices, then fill it
   // set neigh_c123 vector ptrs in connect3d to rows of ragged array
-  //   nc123 counts include self tri
-  //   neigh_c123 vectors also include self
-  //   this is b/c clist is created/stored for points, not tris
+  // nc123 counts and vectors include self tri
 
   memory->create(counts,npoints,"surface/global:count");
   
@@ -1937,16 +1939,16 @@ void FixSurfaceGlobal::connectivity3d_global()
   }
 
   for (int i = 0; i < ntris; i++) {
-    connect3d[i].nc1 = counts[tris[i].p1] - 1;
-    if (connect3d[i].nc1 == 0) connect3d[i].neigh_c1 = nullptr;
+    connect3d[i].nc1 = counts[tris[i].p1];
+    if (connect3d[i].nc1 == 1) connect3d[i].neigh_c1 = nullptr;
     else connect3d[i].neigh_c1 = clist[tris[i].p1];
     
-    connect3d[i].nc2 = counts[tris[i].p2] - 1;
-    if (connect3d[i].nc2 == 0) connect3d[i].neigh_c2 = nullptr;
+    connect3d[i].nc2 = counts[tris[i].p2];
+    if (connect3d[i].nc2 == 1) connect3d[i].neigh_c2 = nullptr;
     else connect3d[i].neigh_c2 = clist[tris[i].p2];
     
-    connect3d[i].nc3 = counts[tris[i].p3] - 1;
-    if (connect3d[i].nc3 == 0) connect3d[i].neigh_c3 = nullptr;
+    connect3d[i].nc3 = counts[tris[i].p3];
+    if (connect3d[i].nc3 == 1) connect3d[i].neigh_c3 = nullptr;
     else connect3d[i].neigh_c3 = clist[tris[i].p3];
   }
 

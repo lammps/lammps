@@ -57,7 +57,7 @@ FixSurfaceGlobal::FixSurfaceGlobal(LAMMPS *lmp, int narg, char **arg) :
   else if (strcmp(arg[4],"hooke/history") == 0) pairstyle = HOOKE_HISTORY;
 
   // NOTE: hertz/history not yet supported ?
-  
+
   else if (strcmp(arg[4],"hertz/history") == 0) pairstyle = HERTZ_HISTORY;
   else error->all(FLERR,"Invalid fix surface/global interaction style");
 
@@ -123,7 +123,7 @@ FixSurfaceGlobal::FixSurfaceGlobal(LAMMPS *lmp, int narg, char **arg) :
 
   nmax = 0;
   mass_rigid = NULL;
-  
+
   fix_rigid = NULL;
   fix_history = NULL;
 
@@ -623,7 +623,7 @@ void FixSurfaceGlobal::post_force(int vflag)
           //   dr = vector from contact pt to sphere center
           //   rsq = squared length of dr
           // NOTE: different for line vs tri
-        
+
           jflag = overlap_sphere_line(i,j,contact,dr,rsq);
 
           if (!jflag) {
@@ -641,14 +641,14 @@ void FixSurfaceGlobal::post_force(int vflag)
           // check overlap status of line adjacent to the end pt
           // otherflag = 0/1 for this/other line performs calculation
           // NOTE: different for line vs tri
-          
+
           if (jflag < 0) {
             otherflag = endpt_neigh_check(i,j,jflag);
             if (otherflag) continue;
           }
 
           // NOTE: add logic to check for coupled contacts and weight them
-        
+
           factor_couple = 1.0;
 
         } else {
@@ -661,7 +661,7 @@ void FixSurfaceGlobal::post_force(int vflag)
           //   contact = nearest point on tri to sphere center
           //   dr = vector from contact pt to sphere center
           //   rsq = squared length of dr
-          
+
           jflag = overlap_sphere_tri(i,j,contact,dr,rsq);
 
           if (!jflag) {
@@ -678,7 +678,7 @@ void FixSurfaceGlobal::post_force(int vflag)
           // if contact = tri edge or corner:
           // check status of the tri(s) adjacent to edge or corner
           // otherflag = 0/1 for this/other tri performs calculation
-          
+
           if (jflag < 0) {
             if (jflag >= -3) {
               otherflag = edge_neigh_check(i,j,jflag);
@@ -688,7 +688,7 @@ void FixSurfaceGlobal::post_force(int vflag)
               if (otherflag) continue;
             }
           }
-          
+
           // NOTE: add logic to check for coupled contacts and weight them
 
           factor_couple = 1.0;
@@ -699,7 +699,7 @@ void FixSurfaceGlobal::post_force(int vflag)
 
         meff = rmass[i];
         if (fix_rigid && mass_rigid[i] > 0.0) meff = mass_rigid[i];
-        
+
         // pairwise interaction between sphere and surface element
 
         if (history) {
@@ -707,7 +707,7 @@ void FixSurfaceGlobal::post_force(int vflag)
           shear = &allshear[3*jj];
         }
 
-        if (pairstyle == HOOKE) 
+        if (pairstyle == HOOKE)
           hooke(i,j,radi,meff,rsq,contact,dr,factor_couple);
         else if (pairstyle == HOOKE_HISTORY)
           hooke_history(i,j,radi,meff,delx,dely,delz,rsq,
@@ -761,7 +761,7 @@ int FixSurfaceGlobal::modify_param(int narg, char **arg)
       omega_rotate = MY_2PI / rperiod;
 
       // runit = unit vector along rotation axis
-      
+
       if (mstyle == ROTATE) {
         double len = MathExtra::len3(raxis);
         if (len == 0.0)
@@ -908,36 +908,36 @@ void FixSurfaceGlobal::hooke(int i, int j, double radi, double meff,
   double *torque = atom->torque[i];
 
   // ds = vector from line center to contact pt
-  
+
   r = sqrt(rsq);
   rinv = 1.0/r;
   rsqinv = 1.0/rsq;
-      
+
   ds[0] = contact[0] - xsurf[j][0];
   ds[1] = contact[1] - xsurf[j][1];
   ds[2] = contact[2] - xsurf[j][2];
-        
+
   // vcontact = velocity of contact pt on surface, translation + rotation
-        
+
   vcontact[0] = vsurf[j][0] + (omegasurf[j][1]*ds[2] - omegasurf[j][2]*ds[1]);
   vcontact[1] = vsurf[j][1] + (omegasurf[j][2]*ds[0] - omegasurf[j][0]*ds[2]);
   vcontact[2] = vsurf[j][2] + (omegasurf[j][0]*ds[1] - omegasurf[j][1]*ds[0]);
-      
+
   // relative translational velocity
-  
+
   vr1 = v[0] - vcontact[0];
   vr2 = v[1] - vcontact[1];
   vr3 = v[2] - vcontact[2];
 
   // normal component
-      
+
   vnnr = vr1*dr[0] + vr2*dr[1] + vr3*dr[2];
   vn1 = dr[0]*vnnr * rsqinv;
   vn2 = dr[1]*vnnr * rsqinv;
   vn3 = dr[2]*vnnr * rsqinv;
 
   // tangential component
-      
+
   vt1 = vr1 - vn1;
   vt2 = vr2 - vn2;
   vt3 = vr3 - vn3;
@@ -947,44 +947,44 @@ void FixSurfaceGlobal::hooke(int i, int j, double radi, double meff,
   wr1 = (radi*omega[0]) * rinv;
   wr2 = (radi*omega[1]) * rinv;
   wr3 = (radi*omega[2]) * rinv;
-      
+
   // normal forces = Hookian contact + normal velocity damping
-  
+
   damp = meff*gamman*vnnr*rsqinv;
   ccel = kn*(radi-r)*rinv - damp;
   ccel *= factor_couple;
-        
+
   // relative velocities
-        
+
   vtr1 = vt1 - (dr[2]*wr2-dr[1]*wr3);
   vtr2 = vt2 - (dr[0]*wr3-dr[2]*wr1);
   vtr3 = vt3 - (dr[1]*wr1-dr[0]*wr2);
   vrel = vtr1*vtr1 + vtr2*vtr2 + vtr3*vtr3;
   vrel = sqrt(vrel);
-        
+
   // force normalization
-  
+
   fn = xmu * fabs(ccel*r);
   fs = meff*gammat*vrel;
   if (vrel != 0.0) ft = MIN(fn,fs) / vrel;
   else ft = 0.0;
-  
+
   // tangential force due to tangential velocity damping
-        
+
   fs1 = -ft*vtr1 * factor_couple;
   fs2 = -ft*vtr2 * factor_couple;
   fs3 = -ft*vtr3 * factor_couple;
-        
+
   // total force and torque on sphere
-        
+
   fx = dr[0]*ccel + fs1;
   fy = dr[1]*ccel + fs2;
   fz = dr[2]*ccel + fs3;
-  
+
   f[0] += fx;
   f[1] += fy;
   f[2] += fz;
-        
+
   tor1 = rinv * (dr[1]*fs3 - dr[2]*fs2);
   tor2 = rinv * (dr[2]*fs1 - dr[0]*fs3);
   tor3 = rinv * (dr[0]*fs2 - dr[1]*fs1);
@@ -1091,13 +1091,13 @@ void FixSurfaceGlobal::hooke_history(int i, int j, double radi, double meff,
   }
 
   // tangential force due to tangential velocity damping
-  
+
   fs1 = - (kt*shear[0] + meff*gammat*vtr1) * factor_couple;;
   fs2 = - (kt*shear[1] + meff*gammat*vtr2) * factor_couple;;
   fs3 = - (kt*shear[2] + meff*gammat*vtr3) * factor_couple;;
 
   // rescale frictional displacements and forces if needed
-  
+
   fs = sqrt(fs1*fs1 + fs2*fs2 + fs3*fs3);
   fn = xmu * fabs(ccel*r);
 
@@ -1114,7 +1114,7 @@ void FixSurfaceGlobal::hooke_history(int i, int j, double radi, double meff,
       fs3 *= fn/fs;
     } else fs1 = fs2 = fs3 = 0.0;
   }
-  
+
   // total force and torque on sphere
 
   fx = dr[0]*ccel + fs1;
@@ -1150,7 +1150,7 @@ void FixSurfaceGlobal::hooke_history(int i, int j, double radi, double meff,
    based on geometry.cpp::distsq_point_line() in SPARTA
 ------------------------------------------------------------------------- */
 
-int FixSurfaceGlobal::overlap_sphere_line(int i, int j, double *pt, 
+int FixSurfaceGlobal::overlap_sphere_line(int i, int j, double *pt,
                                           double *r, double &rsq)
 {
   double a[3],b[3];
@@ -1170,7 +1170,7 @@ int FixSurfaceGlobal::overlap_sphere_line(int i, int j, double *pt,
   // alpha = fraction of distance from P1 to P2 that P is located at
   // P = projected point on infinite line that is nearest to Xsphere center
   // alpha can be any value
- 
+
   double alpha = MathExtra::dot3(a,b) / MathExtra::lensq3(b);
 
   // pt = point on line segment that is nearest to Xsphere center
@@ -1276,7 +1276,7 @@ int FixSurfaceGlobal::endpt_neigh_check(int i, int j, int jflag)
    based on geometry.cpp::distsq_point_tri() in SPARTA
 ------------------------------------------------------------------------- */
 
-int FixSurfaceGlobal::overlap_sphere_tri(int i, int j, double *pt, 
+int FixSurfaceGlobal::overlap_sphere_tri(int i, int j, double *pt,
                                          double *r, double &rsq)
 {
   int e12flag,e23flag,e31flag,o12flag,o23flag,o31flag;
@@ -1441,7 +1441,7 @@ int FixSurfaceGlobal::overlap_sphere_tri(int i, int j, double *pt,
    based on geometry.cpp::distsq_point_line() in SPARTA
 ------------------------------------------------------------------------- */
 
-int FixSurfaceGlobal::nearest_point_line(double *x, double *p1, double *p2, 
+int FixSurfaceGlobal::nearest_point_line(double *x, double *p1, double *p2,
                                          double *pt)
 {
   double a[3],b[3];
@@ -1455,7 +1455,7 @@ int FixSurfaceGlobal::nearest_point_line(double *x, double *p1, double *p2,
   // alpha = fraction of distance from P1 to P2 that P is located at
   // P = projected point on infinite line that is nearest to X
   // alpha can be any value
- 
+
   double alpha = MathExtra::dot3(a,b) / MathExtra::lensq3(b);
 
   // pt = point on line segment that is nearest to X
@@ -1629,7 +1629,7 @@ void FixSurfaceGlobal::extract_from_molecules(char *molID)
   
   Molecule **onemols = &atom->molecules[imol];
   int nmol = onemols[0]->nset;
-  
+
   for (int m = 0; m < nmol; m++) {
     if (dimension == 2)
       if (onemols[m]->lineflag == 0)
@@ -1962,7 +1962,7 @@ void FixSurfaceGlobal::set_attributes()
 {
   double delta[3],p12[3],p13[3];
   double *p1,*p2,*p3;
-  
+
   memory->create(xsurf,nsurf,3,"surface/global:xsurf");
   memory->create(vsurf,nsurf,3,"surface/global:vsurf");
   memory->create(omegasurf,nsurf,3,"surface/global:omegasurf");

@@ -28,8 +28,8 @@ Timer::Timer(LAMMPS *_lmp) : Pointers(_lmp)
 {
   _level = NORMAL;
   _sync = OFF;
-  _timeout = -1;
-  _s_timeout = -1;
+  _timeout = -1.0;
+  _s_timeout = -1.0;
   _checkfreq = 10;
   _nextcheck = -1;
   this->_stamp(RESET);
@@ -251,7 +251,7 @@ void Timer::modify_params(int narg, char **arg)
 
     // format timeout setting
     std::string timeout = "off";
-    if (_timeout >= 0) {
+    if (_timeout >= 0.0) {
       std::tm tv = fmt::gmtime((std::time_t) _timeout);
       timeout = fmt::format("{:02d}:{:%M:%S}", tv.tm_yday * 24 + tv.tm_hour, tv);
     }

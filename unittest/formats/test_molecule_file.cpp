@@ -191,7 +191,7 @@ TEST_F(MoleculeFileTest, badargs)
 
 TEST_F(MoleculeFileTest, noatom)
 {
-    TEST_FAILURE(".*ERROR: No atoms or invalid atom count in molecule file.*",
+    TEST_FAILURE(".*ERROR: Molecule file must define either atoms or points.*",
                  run_mol_cmd(test_name, "",
                              "Comment\n0 atoms\n1 bonds\n\n"
                              " Coords\n\nBonds\n\n 1 1 2\n"););

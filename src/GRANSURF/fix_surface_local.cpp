@@ -1597,6 +1597,8 @@ int FixSurfaceLocal::overlap2bin3d(double *pt, double eps, int *indices)
 
 void FixSurfaceLocal::extract_from_molecules(char *molID)
 {
+  /*
+
   // check that no line/tri particles already exist
   // no connectivity would be produced for them
 
@@ -1697,6 +1699,7 @@ void FixSurfaceLocal::extract_from_molecules(char *molID)
       }
     }
   }
+  */
 }
 
 /* ----------------------------------------------------------------------

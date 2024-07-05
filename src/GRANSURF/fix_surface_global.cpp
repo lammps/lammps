@@ -42,7 +42,7 @@ enum{HOOKE,HOOKE_HISTORY,HERTZ_HISTORY};
 enum{SPHERE,LINE,TRI};           // also in DumpImage
 enum{NONE,LINEAR,WIGGLE,ROTATE,VARIABLE};
 
-#define DELTAPOINT 1
+#define DELTA 1
 
 /* ---------------------------------------------------------------------- */
 
@@ -1670,7 +1670,7 @@ void FixSurfaceGlobal::extract_from_molecules(char *molID)
         auto key = std::make_tuple(epts[i][0],epts[i][1],0.0);
         if (hash.find(key) == hash.end()) {
           if (npoints == maxpoints) {
-            maxpoints += DELTAPOINT;
+            maxpoints += DELTA;
             points = (Point *) memory->srealloc(points,maxpoints*sizeof(Point),
                                                 "surface/global:points");
           }
@@ -1685,7 +1685,7 @@ void FixSurfaceGlobal::extract_from_molecules(char *molID)
         key = std::make_tuple(epts[i][2],epts[i][3],0.0);
         if (hash.find(key) == hash.end()) {
           if (npoints == maxpoints) {
-            maxpoints += DELTAPOINT;
+            maxpoints += DELTA;
             points = (Point *) memory->srealloc(points,maxpoints*sizeof(Point),
                                                 "surface/global:points");
           }
@@ -1714,7 +1714,7 @@ void FixSurfaceGlobal::extract_from_molecules(char *molID)
         auto key = std::make_tuple(cpts[i][0],cpts[i][1],cpts[i][2]);
         if (hash.find(key) == hash.end()) {
           if (npoints == maxpoints) {
-            maxpoints += DELTAPOINT;
+            maxpoints += DELTA;
             points = (Point *) memory->srealloc(points,maxpoints*sizeof(Point),
                                                 "surface/global:points");
           }
@@ -1729,7 +1729,7 @@ void FixSurfaceGlobal::extract_from_molecules(char *molID)
         key = std::make_tuple(cpts[i][3],cpts[i][4],cpts[i][5]);
         if (hash.find(key) == hash.end()) {
           if (npoints == maxpoints) {
-            maxpoints += DELTAPOINT;
+            maxpoints += DELTA;
             points = (Point *) memory->srealloc(points,maxpoints*sizeof(Point),
                                                 "surface/global:points");
           }
@@ -1744,7 +1744,7 @@ void FixSurfaceGlobal::extract_from_molecules(char *molID)
         key = std::make_tuple(cpts[i][6],cpts[i][7],cpts[i][8]);
         if (hash.find(key) == hash.end()) {
           if (npoints == maxpoints) {
-            maxpoints += DELTAPOINT;
+            maxpoints += DELTA;
             points = (Point *) memory->srealloc(points,maxpoints*sizeof(Point),
                                                 "surface/global:points");
           }
@@ -1794,12 +1794,12 @@ void FixSurfaceGlobal::connectivity2d_global()
     connect2d[i].np1 = counts[lines[i].p1] - 1;
     if (connect2d[i].np1 == 0) connect2d[i].neigh_p1 = NULL;
     else connect2d[i].neigh_p1 = plist[lines[i].p1];
-
+    
     connect2d[i].np2 = counts[lines[i].p2] - 1;
     if (connect2d[i].np2 == 0) connect2d[i].neigh_p2 = NULL;
-    else connect2d[i].neigh_p1 = plist[lines[i].p2];
+    else connect2d[i].neigh_p2 = plist[lines[i].p2];
   }
-
+  
   memory->destroy(counts);
 }
 
@@ -1809,16 +1809,20 @@ void FixSurfaceGlobal::connectivity2d_global()
 
 void FixSurfaceGlobal::connectivity3d_global()
 {
+  int p1,p2,p3;
+  
   connect3d = (Connect3d *) memory->smalloc(ntris*sizeof(Connect3d),
-                                               "surface/global:connect3d");
-
+                                            "surface/global:connect3d");
+  int **tri2edge;
+  memory->create(tri2edge,ntris,3,"surfface/global::tri2edge");
+  
   // create a map
-  // key = <p1,p2> indices of 2 points
-  // value = index into unique edges vector
-  // points can be in either order
+  // key = <p1,p2> indices of 2 points, in either order
+  // value = index into count of unique edges
   
   std::map<std::tuple<int,int>,int> hash;
-
+  int nedges = 0;
+                                            
   for (int i = 0; i < ntris; i++) {
     p1 = tris[i].p1;
     p2 = tris[i].p2;
@@ -1828,87 +1832,81 @@ void FixSurfaceGlobal::connectivity3d_global()
     auto key2 = std::make_tuple(p2,p1);
     
     if (hash.find(key1) == hash.end() && hash.find(key2) == hash.end()) {
-      if (nedges == maxedges) {
-        maxedges += DELTA;
-        edges = (Point *) memory->srealloc(points,maxpoints*sizeof(Point),
-                                            "surface/global:edges");
-      }
-      hash[key] = nedges;
-      edges[nedges][0] = p1;
-      edges[nedges][1] = p2;
+      hash[key1] = nedges;
+      tri2edge[i][0] = nedges;
       nedges++;
     }
+    else if (hash.find(key1) != hash.end()) tri2edge[i][0] = hash[key1];
+    else if (hash.find(key2) != hash.end()) tri2edge[i][0] = hash[key2];
+
+    key1 = std::make_tuple(p2,p3);
+    key2 = std::make_tuple(p3,p2);
+    
+    if (hash.find(key1) == hash.end() && hash.find(key2) == hash.end()) {
+      hash[key1] = nedges;
+      tri2edge[i][1] = nedges;
+      nedges++;
+    }
+    else if (hash.find(key1) != hash.end()) tri2edge[i][1] = hash[key1];
+    else if (hash.find(key2) != hash.end()) tri2edge[i][1] = hash[key2];
+
+    key1 = std::make_tuple(p3,p1);
+    key2 = std::make_tuple(p1,p3);
+    
+    if (hash.find(key1) == hash.end() && hash.find(key2) == hash.end()) {
+      hash[key1] = nedges;
+      tri2edge[i][2] = nedges;
+      nedges++;
+    }
+    else if (hash.find(key1) != hash.end()) tri2edge[i][2] = hash[key1];
+    else if (hash.find(key2) != hash.end()) tri2edge[i][2] = hash[key2];
   }
 
-  // NOTE: need to decide what to do next with the hash
-  // this will determine what its values should be ?
-  
-  // hash = STL map of ordered edges
-  // key = (p1,p2) via bit-shifting by 32-bits into bigint
-  // value = (itri,iedge) also bit-shifted, itri = 0 to Ntri-1, iedge = 1,2,3
+  // setup tri edge connectivity lists
+  // count # of tris containing each edge
+  // create ragged 2d array to contain all tri indices, then fill it
+  // set neigh_e123 vector ptrs in connect3d to rows of ragged array
+  //   ne123 counts do not include self tri
+  //   neigh_e123 vectors do include self
+  //   this is b/c elist is created/stored for edges, not tris
 
-  /*
-  if (sizeof(bigint) != 2*sizeof(int))
-    error->all(FLERR,
-               "Fix surface/global triangle connections cannot be formed");
+  int *counts;
+  memory->create(counts,nedges,"surface/global:count");
 
-  bigint key,value;
-  std::map<bigint,bigint> hash;
-  std::map<bigint,bigint>::iterator it;
+  for (int i = 0; i < nedges; i++) counts[i] = 0;
 
   for (int i = 0; i < ntris; i++) {
-    p1 = tris[i].p1;
-    p2 = tris[i].p2;
-    p3 = tris[i].p3;
-
-    key = (p1 << 32) | p2;
-    value = (((bigint) i) << 32) | 1;
-    if (hash.find(key) != hash.end())
-      error->all(FLERR,"Fix surface/global edge is part of more than 2 tris "
-                 "or its triangle is misoriented");
-    else hash[key] = value;
-
-    key = (p2 << 32) | p3;
-    value = (((bigint) i) << 32) | 2;
-    if (hash.find(key) != hash.end())
-      error->all(FLERR,"Fix surface/global edge is part of more than 2 tris "
-                 "or its triangle is misoriented");
-    else hash[key] = value;
-
-    key = (p3 << 32) | p1;
-    value = (((bigint) i) << 32) | 3;
-    if (hash.find(key) != hash.end())
-      error->all(FLERR,"Fix surface/global edge is part of more than 2 tris "
-                 "or its triangle is misoriented");
-    else hash[key] = value;
+    counts[tri2edge[i][0]]++;
+    counts[tri2edge[i][1]]++;
+    counts[tri2edge[i][2]]++;
   }
 
-  // set edge connections via hash
-  // test itri < jtri to avoid resetting (with identical values)
+  memory->create_ragged(elist,nedges,counts,"surface/global:elist");
 
-  for (it = hash.begin(); it != hash.end(); ++it) {
-    p1 = it->first >> 32;
-    p2 = it->first & MAXSMALLINT;
-    key = (p2 << 32) | p1;
-    if (hash.find(key) != hash.end()) {
-      itri = it->second >> 32;
-      iedge = it->second & MAXSMALLINT;
-      value = hash[key];
-      jtri = value >> 32;
-      jedge = value & MAXSMALLINT;
-      if (itri < jtri) {
-        if (iedge == 1) connect3d[itri].neigh_e1 = jtri+1;
-        else if (iedge == 2) connect3d[itri].neigh_e2 = jtri+1;
-        else if (iedge == 3) connect3d[itri].neigh_e3 = jtri+1;
-        if (jedge == 1) connect3d[jtri].neigh_e1 = itri+1;
-        else if (jedge == 2) connect3d[jtri].neigh_e2 = itri+1;
-        else if (jedge == 3) connect3d[jtri].neigh_e3 = itri+1;
-      }
-    }
+  for (int i = 0; i < nedges; i++) counts[i] = 0;
+ 
+  for (int i = 0; i < ntris; i++) {
+    elist[tri2edge[i][0]][counts[tri2edge[i][0]]++] = i;
+    elist[tri2edge[i][1]][counts[tri2edge[i][1]]++] = i;
+    elist[tri2edge[i][2]][counts[tri2edge[i][2]]++] = i;
   }
-  */
 
+  for (int i = 0; i < ntris; i++) {
+    connect3d[i].ne1 = counts[tri2edge[i][0]] - 1;
+    if (connect3d[i].ne1 == 0) connect3d[i].neigh_e1 = NULL;
+    else connect3d[i].neigh_e1 = elist[tri2edge[i][0]];
+    
+    connect3d[i].ne2 = counts[tri2edge[i][1]] - 1;
+    if (connect3d[i].ne2 == 0) connect3d[i].neigh_e2 = NULL;
+    else connect3d[i].neigh_e2 = elist[tri2edge[i][1]];
+    
+    connect3d[i].ne3 = counts[tri2edge[i][2]] - 1;
+    if (connect3d[i].ne3 == 0) connect3d[i].neigh_e3 = NULL;
+    else connect3d[i].neigh_e3 = elist[tri2edge[i][2]];
+  }
 
+  memory->destroy(counts);
+  memory->destroy(tri2edge);
   
   // setup corner point connectivity lists
   // count # of tris containing each point
@@ -1918,8 +1916,8 @@ void FixSurfaceGlobal::connectivity3d_global()
   //   neigh_c123 vectors also include self
   //   this is b/c clist is created/stored for points, not tris
 
-  int *counts;
   memory->create(counts,npoints,"surface/global:count");
+  
   for (int i = 0; i < npoints; i++) counts[i] = 0;
 
   for (int i = 0; i < ntris; i++) {

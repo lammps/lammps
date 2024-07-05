@@ -43,7 +43,7 @@ PairLineGranHookeHistory::PairLineGranHookeHistory(LAMMPS *lmp) : Pair(lmp)
   mass_rigid = nullptr;
 
   emax = 0;
-  endpts = NULL;
+  endpts = nullptr;
 
   // set comm size needed by this Pair if used with fix rigid
 
@@ -540,7 +540,7 @@ void PairLineGranHookeHistory::init_style()
 
   // set ptr to FixSurfaceLocal for surf connectivity info
 
-  fsl = NULL;
+  fsl = nullptr;
   for (int m = 0; m < modify->nfix; m++) {
     if (strcmp(modify->fix[m]->style,"surface/local") == 0) {
       if (fsl) 

@@ -37,13 +37,13 @@ PairTriGranHookeHistory::PairTriGranHookeHistory(LAMMPS *lmp) : Pair(lmp)
 {
   single_enable = 0;
   history = 1;
-  fix_history = NULL;
+  fix_history = nullptr;
 
   nmax = 0;
-  mass_rigid = NULL;
+  mass_rigid = nullptr;
 
   cmax = 0;
-  corners = NULL;
+  corners = nullptr;
 
   // set comm size needed by this Pair, for rigid body mass
 
@@ -529,7 +529,7 @@ void PairTriGranHookeHistory::init_style()
   
   // set ptr to FixSurfaceLocal for surf connectivity info
 
-  fsl = NULL;
+  fsl = nullptr;
   for (int m = 0; m < modify->nfix; m++) {
     if (strcmp(modify->fix[m]->style,"surface/local") == 0) {
       if (fsl) 

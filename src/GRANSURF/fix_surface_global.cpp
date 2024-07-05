@@ -111,21 +111,21 @@ FixSurfaceGlobal::FixSurfaceGlobal(LAMMPS *lmp, int narg, char **arg) :
   dimension = domain->dimension;
 
   mstyle = NONE;
-  points_lastneigh = NULL;
-  points_original = NULL;
-  xsurf_original = NULL;
+  points_lastneigh = nullptr;
+  points_original = nullptr;
+  xsurf_original = nullptr;
 
-  connect2d = NULL;
-  connect3d = NULL;
-  plist = NULL;
-  elist = NULL;
-  clist = NULL;
+  connect2d = nullptr;
+  connect3d = nullptr;
+  plist = nullptr;
+  elist = nullptr;
+  clist = nullptr;
 
   nmax = 0;
-  mass_rigid = NULL;
+  mass_rigid = nullptr;
 
-  fix_rigid = NULL;
-  fix_history = NULL;
+  fix_rigid = nullptr;
+  fix_history = nullptr;
 
   list = new NeighList(lmp);
   if (history) {
@@ -135,13 +135,13 @@ FixSurfaceGlobal::FixSurfaceGlobal(LAMMPS *lmp, int narg, char **arg) :
     zeroes = new double[dnum];
     for (int i = 0; i < dnum; i++) zeroes[i] = 0.0;
   } else {
-    listhistory = NULL;
-    zeroes = NULL;
+    listhistory = nullptr;
+    zeroes = nullptr;
   }
 
   imax = 0;
-  imflag = NULL;
-  imdata = NULL;
+  imflag = nullptr;
+  imdata = nullptr;
 
   firsttime = 1;
 
@@ -815,7 +815,7 @@ void *FixSurfaceGlobal::extract(const char *str, int &dim)
   dim = 0;
   if (strcmp(str,"list") == 0) return list;
   else if (strcmp(str,"listhistory") == 0) return listhistory;
-  return NULL;
+  return nullptr;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -1615,9 +1615,9 @@ void FixSurfaceGlobal::extract_from_molecules(char *molID)
 {
   // populate global point/line/tri data structs
 
-  points = NULL;
-  lines = NULL;
-  tris = NULL;
+  points = nullptr;
+  lines = nullptr;
+  tris = nullptr;
   npoints = nlines = ntris = 0;
   int maxpoints = 0;
   
@@ -1792,11 +1792,11 @@ void FixSurfaceGlobal::connectivity2d_global()
 
   for (int i = 0; i < nlines; i++) {
     connect2d[i].np1 = counts[lines[i].p1] - 1;
-    if (connect2d[i].np1 == 0) connect2d[i].neigh_p1 = NULL;
+    if (connect2d[i].np1 == 0) connect2d[i].neigh_p1 = nullptr;
     else connect2d[i].neigh_p1 = plist[lines[i].p1];
     
     connect2d[i].np2 = counts[lines[i].p2] - 1;
-    if (connect2d[i].np2 == 0) connect2d[i].neigh_p2 = NULL;
+    if (connect2d[i].np2 == 0) connect2d[i].neigh_p2 = nullptr;
     else connect2d[i].neigh_p2 = plist[lines[i].p2];
   }
   
@@ -1893,15 +1893,15 @@ void FixSurfaceGlobal::connectivity3d_global()
 
   for (int i = 0; i < ntris; i++) {
     connect3d[i].ne1 = counts[tri2edge[i][0]] - 1;
-    if (connect3d[i].ne1 == 0) connect3d[i].neigh_e1 = NULL;
+    if (connect3d[i].ne1 == 0) connect3d[i].neigh_e1 = nullptr;
     else connect3d[i].neigh_e1 = elist[tri2edge[i][0]];
     
     connect3d[i].ne2 = counts[tri2edge[i][1]] - 1;
-    if (connect3d[i].ne2 == 0) connect3d[i].neigh_e2 = NULL;
+    if (connect3d[i].ne2 == 0) connect3d[i].neigh_e2 = nullptr;
     else connect3d[i].neigh_e2 = elist[tri2edge[i][1]];
     
     connect3d[i].ne3 = counts[tri2edge[i][2]] - 1;
-    if (connect3d[i].ne3 == 0) connect3d[i].neigh_e3 = NULL;
+    if (connect3d[i].ne3 == 0) connect3d[i].neigh_e3 = nullptr;
     else connect3d[i].neigh_e3 = elist[tri2edge[i][2]];
   }
 
@@ -1938,15 +1938,15 @@ void FixSurfaceGlobal::connectivity3d_global()
 
   for (int i = 0; i < ntris; i++) {
     connect3d[i].nc1 = counts[tris[i].p1] - 1;
-    if (connect3d[i].nc1 == 0) connect3d[i].neigh_c1 = NULL;
+    if (connect3d[i].nc1 == 0) connect3d[i].neigh_c1 = nullptr;
     else connect3d[i].neigh_c1 = clist[tris[i].p1];
     
     connect3d[i].nc2 = counts[tris[i].p2] - 1;
-    if (connect3d[i].nc2 == 0) connect3d[i].neigh_c2 = NULL;
+    if (connect3d[i].nc2 == 0) connect3d[i].neigh_c2 = nullptr;
     else connect3d[i].neigh_c2 = clist[tris[i].p2];
     
     connect3d[i].nc3 = counts[tris[i].p3] - 1;
-    if (connect3d[i].nc3 == 0) connect3d[i].neigh_c3 = NULL;
+    if (connect3d[i].nc3 == 0) connect3d[i].neigh_c3 = nullptr;
     else connect3d[i].neigh_c3 = clist[tris[i].p3];
   }
 
@@ -2055,7 +2055,7 @@ void FixSurfaceGlobal::move_clear()
   memory->destroy(points_lastneigh);
   memory->destroy(points_original);
   memory->destroy(xsurf_original);
-  points_lastneigh = NULL;
-  points_original = NULL;
-  xsurf_original = NULL;
+  points_lastneigh = nullptr;
+  points_original = nullptr;
+  xsurf_original = nullptr;
 }

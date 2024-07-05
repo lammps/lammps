@@ -11,12 +11,12 @@ read_data	data.line
 
 pair_style	hybrid gran/hooke/history 4000.0 NULL 100.0 NULL 0.5 1 &
                 line/gran/hooke 4000.0 NULL 100.0 NULL 0.5 1
-pair_coeff	1 1 none
-pair_coeff	2 2 gran/hooke/history
+pair_coeff	1 1 gran/hooke/history
 pair_coeff	1 2 line/gran/hooke
+pair_coeff	2 2 none
 
-group           line type 1
-group           sphere type 2
+group           sphere type 1
+group           line type 2
 
 fix             fsl all surface/local NULL
 
@@ -34,7 +34,7 @@ fix		3 sphere gravity 1.0 vector 0 -1 0
 #fix             4 sphere viscous 0.2
 
 region          slab block -3 3 -2 2 -0.5 0.5 units box
-fix             ins sphere pour 100 2 4767548 vol 0.4 10 &
+fix             ins sphere pour 100 1 4767548 vol 0.4 10 &
 	        diam one 1.0 region slab
 
 fix		10 all enforce2d

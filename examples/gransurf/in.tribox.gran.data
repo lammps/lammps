@@ -11,12 +11,12 @@ read_data	data.tribox
 
 pair_style	hybrid gran/hooke 4000.0 NULL 100.0 NULL 0.5 1 &
                 tri/gran/hooke 4000.0 NULL 100.0 NULL 0.5 1
-pair_coeff	1 1 none
-pair_coeff	2 2 gran/hooke
+pair_coeff	1 1 gran/hooke
 pair_coeff	1 2 tri/gran/hooke
+pair_coeff	2 2 none
 
-group           tri type 1
-group           sphere type 2
+group           sphere type 1
+group           tri type 2
 
 fix             fsl all surface/local NULL
 
@@ -30,7 +30,7 @@ fix		3 sphere gravity 1.0 vector 0 0 -1
 #fix             4 sphere viscous 0.2
 
 region          slab block -2 2 -2 2 -2 2 units box
-fix             ins sphere pour 100 2 4767548 vol 0.4 10 &
+fix             ins sphere pour 100 1 4767548 vol 0.4 10 &
 	        diam one 1.0 region slab ignore
 
 timestep	0.005
@@ -46,7 +46,7 @@ thermo_style	custom step atoms temp c_1 c_2 press
 thermo_modify   lost ignore
 compute_modify  thermo_temp dynamic yes
 
-dump		2 all image 100 tmp.image.*.jpg type type &
+dump		2 all image 100 tmp.image.*.ppm type type &
 		zoom 1.4 adiam 1.0 tri type 2 0.2
 dump_modify	2 pad 5
 

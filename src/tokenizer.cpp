@@ -100,7 +100,7 @@ void Tokenizer::reset()
 
 /*! Search the text to be processed for a sub-string.
  *
- * This method does a generic substring match.
+ * This method does a generic sub-string match.
  *
  * \param  str  string to be searched for
  * \return      true if string was found, false if not */
@@ -250,7 +250,7 @@ bool ValueTokenizer::has_next() const
 
 /*! Search the text to be processed for a sub-string.
  *
- * This method does a generic substring match.
+ * This method does a generic sub-string match.
  *
  * \param  value  string with value to be searched for
  * \return        true if string was found, false if not */

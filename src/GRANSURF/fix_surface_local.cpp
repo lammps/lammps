@@ -36,6 +36,7 @@ using namespace FixConst;
 #define MAXLINE 256
 #define MAXTRIPOINT 24
 
+#define DELTA 128
 #define DELTA_BONUS 4            // NOTE: make it larger when done testing
 
 enum{DATAFILE,MOLFILE};
@@ -205,9 +206,6 @@ void FixSurfaceLocal::pre_neighbor()
 
   int count1 = 0;
   int count2 = 0;
-
-  // DEBUG
-  //if (comm->me == 0) printf("RENEIGH %ld\n",update->ntimestep);
 
   for (int i = 0; i < n; i++) {
     if (surf[i] < 0) continue;
@@ -1597,10 +1595,8 @@ int FixSurfaceLocal::overlap2bin3d(double *pt, double eps, int *indices)
 
 void FixSurfaceLocal::extract_from_molecules(char *molID)
 {
-  /*
-
   // check that no line/tri particles already exist
-  // no connectivity would be produced for them
+  // b/c no connectivity would be produced for them
 
   int *surf = atom->line;
   if (dimension == 3) surf = atom->tri;
@@ -1612,8 +1608,7 @@ void FixSurfaceLocal::extract_from_molecules(char *molID)
   int flagall;
   MPI_Allreduce(&flag,&flagall,1,MPI_INT,MPI_MAX,world);
   if (flagall) 
-    error->all(FLERR,"Fix surface local molecule file "
-               "when surfaces already exist");
+    error->all(FLERR,"Fix surface/local molecule file when surfaces already exist");
 
   // populate global point/line/tri data structs
 
@@ -1621,16 +1616,18 @@ void FixSurfaceLocal::extract_from_molecules(char *molID)
   lines = NULL;
   tris = NULL;
   npoints = nlines = ntris = 0;
-
+  int maxpoints = 0;
+  
   int imol = atom->find_molecule(molID);
   if (imol == -1)
-    error->all(FLERR,"Molecule template ID for "
-               "fix surface/local does not exist");
+    error->all(FLERR,"Molecule template ID for fix surface/local does not exist");
+  
+  // loop over one or more molecules in molID
+  
   Molecule **onemols = &atom->molecules[imol];
   int nmol = onemols[0]->nset;
+  
   for (int m = 0; m < nmol; m++) {
-    if (onemols[m]->pointflag == 0)
-      error->all(FLERR,"Fix surface/local molecule must have points");
     if (dimension == 2)
       if (onemols[m]->lineflag == 0)
         error->all(FLERR,"Fix surface/local molecule must have lines");
@@ -1638,68 +1635,128 @@ void FixSurfaceLocal::extract_from_molecules(char *molID)
       if (onemols[m]->triflag == 0)
         error->all(FLERR,"Fix surface/local molecule must have triangles");
 
-    // NOTE: anything else about molfile surf to check?
-    //       e.g. are types within bounds? 
-    //       or did Molecule check at read?
-
-    // NOTE: for nmol = 1, could just set points,lines,tris to pt
-    //       to chunk of 2d data in molfile arrays
-
-    int np = onemols[m]->npoints;
     int nl = onemols[m]->nlines;
     int nt = onemols[m]->ntris;
 
-    npoints += np;
     nlines += nl;
     ntris += nt;
-    points = (Point *) memory->srealloc(points,npoints*sizeof(Point),
-                                        "surface/local:points");
     lines = (Line *) memory->srealloc(lines,nlines*sizeof(Line),
-                                      "surface/local:lines");
+                                      "surface/global:lines");
     tris = (Tri *) memory->srealloc(tris,ntris*sizeof(Tri),
-                                    "surface/local:tris");
+                                    "surface/global:tris");
 
-    double **pts = onemols[m]->points;
-    int j = npoints - np;
-    for (int i = 0; i < np; i++) {
-      points[j].x[0] = pts[i][0];
-      points[j].x[1] = pts[i][1];
-      points[j].x[2] = pts[i][2];
-      j++;
-    }
+    // create a map
+    // key = xyz coords of a point
+    // value = index into unique points vector
+    
+    std::map<std::tuple<double,double,double>,int> hash;
 
-    // need to offset line/tri index lists by previous npoints & subtract one
+    // offset line/tri index lists by previous npoints
+    // pi,p2,p3 are C-style indices into points vector
 
     if (dimension == 2) {
       int *molline = onemols[m]->molline;
       int *typeline = onemols[m]->typeline;
-      int **epts = onemols[m]->lines;
-      int j = nlines - nl;
+      double **epts = onemols[m]->lines;
+      int iline = nlines - nl;
+
       for (int i = 0; i < nl; i++) {
-        lines[j].mol = molline[i];
-        lines[j].type = typeline[i];
-        lines[j].p1 = epts[i][0] + npoints-np - 1;
-        lines[j].p2 = epts[i][1] + npoints-np - 1;
-        j++;
+        lines[iline].mol = molline[i];
+        lines[iline].type = typeline[i];
+
+        auto key = std::make_tuple(epts[i][0],epts[i][1],0.0);
+        if (hash.find(key) == hash.end()) {
+          if (npoints == maxpoints) {
+            maxpoints += DELTA;
+            points = (Point *) memory->srealloc(points,maxpoints*sizeof(Point),
+                                                "surface/local:points");
+          }
+          hash[key] = npoints;
+          points[npoints].x[0] = epts[i][0];
+          points[npoints].x[1] = epts[i][1];
+          points[npoints].x[2] = 0.0;
+          lines[iline].p1 = npoints;
+          npoints++;
+        } else lines[iline].p1 = hash[key];
+
+        key = std::make_tuple(epts[i][2],epts[i][3],0.0);
+        if (hash.find(key) == hash.end()) {
+          if (npoints == maxpoints) {
+            maxpoints += DELTA;
+            points = (Point *) memory->srealloc(points,maxpoints*sizeof(Point),
+                                                "surface/local:points");
+          }
+          hash[key] = npoints;
+          points[npoints].x[0] = epts[i][2];
+          points[npoints].x[1] = epts[i][3];
+          points[npoints].x[2] = 0.0;
+          lines[iline].p2 = npoints;
+          npoints++;
+        } else lines[iline].p2 = hash[key];
+
+        iline++;
       }
     }
 
     if (dimension == 3) {
       int *moltri = onemols[m]->moltri;
       int *typetri = onemols[m]->typetri;
-      int **cpts = onemols[m]->tris;
-      int j = ntris - nt;
+      double **cpts = onemols[m]->tris;
+      int itri = ntris - nt;
+
       for (int i = 0; i < nt; i++) {
-        tris[j].mol = moltri[i];
-        tris[j].type = typetri[i];
-        tris[j].p1 = cpts[i][0] + npoints-np - 1;
-        tris[j].p2 = cpts[i][1] + npoints-np - 1;
-        tris[j].p3 = cpts[i][2] + npoints-np - 1;
-        j++;
+        tris[itri].mol = moltri[i];
+        tris[itri].type = typetri[i];
+
+        auto key = std::make_tuple(cpts[i][0],cpts[i][1],cpts[i][2]);
+        if (hash.find(key) == hash.end()) {
+          if (npoints == maxpoints) {
+            maxpoints += DELTA;
+            points = (Point *) memory->srealloc(points,maxpoints*sizeof(Point),
+                                                "surface/local:points");
+          }
+          hash[key] = npoints;
+          points[npoints].x[0] = cpts[i][0];
+          points[npoints].x[1] = cpts[i][1];
+          points[npoints].x[2] = cpts[i][2];
+          tris[itri].p1 = npoints;
+          npoints++;
+        } else tris[itri].p1 = hash[key];
+
+        key = std::make_tuple(cpts[i][3],cpts[i][4],cpts[i][5]);
+        if (hash.find(key) == hash.end()) {
+          if (npoints == maxpoints) {
+            maxpoints += DELTA;
+            points = (Point *) memory->srealloc(points,maxpoints*sizeof(Point),
+                                                "surface/local:points");
+          }
+          hash[key] = npoints;
+          points[npoints].x[0] = cpts[i][3];
+          points[npoints].x[1] = cpts[i][4];
+          points[npoints].x[2] = cpts[i][5];
+          tris[itri].p2 = npoints;
+          npoints++;
+        } else tris[itri].p2 = hash[key];
+
+        key = std::make_tuple(cpts[i][6],cpts[i][7],cpts[i][8]);
+        if (hash.find(key) == hash.end()) {
+          if (npoints == maxpoints) {
+            maxpoints += DELTA;
+            points = (Point *) memory->srealloc(points,maxpoints*sizeof(Point),
+                                                "surface/local:points");
+          }
+          hash[key] = npoints;
+          points[npoints].x[0] = cpts[i][6];
+          points[npoints].x[1] = cpts[i][7];
+          points[npoints].x[2] = cpts[i][8];
+          tris[itri].p3 = npoints;
+          npoints++;
+        } else tris[itri].p3 = hash[key];
+
+        itri++;
       }
     }
   }
-  */
 }
 
 /* ----------------------------------------------------------------------
@@ -1997,7 +2054,7 @@ void FixSurfaceLocal::assign2d()
   char pts[4][32];
   char *values[4];
   for (i = 0; i < 4; i++) values[i] = &pts[i][0];
-  std::vector<std::string> svalues(4);
+  std::vector<std::string> svalues(5);
   
   for (i = 0; i < nlines; i++) {
 
@@ -2045,10 +2102,13 @@ void FixSurfaceLocal::assign2d()
       sprintf(values[2],"%-1.16e",x2[0]);
       sprintf(values[3],"%-1.16e",x2[1]);
 
-      svalues[0] = (const char *) values[0];
-      svalues[1] = (const char *) values[1];
-      svalues[2] = (const char *) values[2];
-      svalues[3] = (const char *) values[3];
+      // svalues[0] is not used here
+      // used when caller of data_atom_bonus() is via read_data command
+      
+      svalues[1] = (const char *) values[0];
+      svalues[2] = (const char *) values[1];
+      svalues[3] = (const char *) values[2];
+      svalues[4] = (const char *) values[3];
       
       avec_line->data_atom_bonus(n,svalues);
 
@@ -2167,7 +2227,7 @@ void FixSurfaceLocal::assign3d()
   char pts[9][32];
   char *values[9];
   for (i = 0; i < 9; i++) values[i] = &pts[i][0];
-  std::vector<std::string> svalues(9);
+  std::vector<std::string> svalues(10);
 
   for (i = 0; i < ntris; i++) {
 
@@ -2221,15 +2281,18 @@ void FixSurfaceLocal::assign3d()
       sprintf(values[7],"%-1.16e",x3[1]);
       sprintf(values[8],"%-1.16e",x3[2]);
 
-      svalues[0] = (const char *) values[0];
-      svalues[1] = (const char *) values[1];
-      svalues[2] = (const char *) values[2];
-      svalues[3] = (const char *) values[3];
-      svalues[4] = (const char *) values[4];
-      svalues[5] = (const char *) values[5];
-      svalues[6] = (const char *) values[6];
-      svalues[7] = (const char *) values[7];
-      svalues[8] = (const char *) values[8];
+      // svalues[0] is not used here
+      // used when caller of data_atom_bonus() is via read_data command
+
+      svalues[1] = (const char *) values[0];
+      svalues[2] = (const char *) values[1];
+      svalues[3] = (const char *) values[2];
+      svalues[4] = (const char *) values[3];
+      svalues[5] = (const char *) values[4];
+      svalues[6] = (const char *) values[5];
+      svalues[7] = (const char *) values[6];
+      svalues[8] = (const char *) values[7];
+      svalues[9] = (const char *) values[8];
 
       avec_tri->data_atom_bonus(n,svalues);
 

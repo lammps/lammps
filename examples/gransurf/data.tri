@@ -1,0 +1,22 @@
+LAMMPS data file for tri box
+
+4 atoms
+4 triangles
+2 atom types
+-7.0 7.0 xlo xhi
+-7.0 7.0 ylo yhi
+0.0 9.0 zlo zhi
+
+Atoms
+
+1 1 1 1 1 0 -4 0
+2 1 1 1 1 4 0 0
+3 1 1 1 1 0 4 0
+4 1 1 1 1 -4 0 0
+
+Triangles
+
+1 -6 -6 0 6 -6 0 0 0 0
+2 6 -6 0 6 6 0 0 0 0
+3 6 6 0 -6 6 0 0 0 0
+4 -6 -6 0 0 0 0 -6 6 0

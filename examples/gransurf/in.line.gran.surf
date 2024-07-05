@@ -1,0 +1,61 @@
+# pouring spheres into box made of line segments
+
+units		lj
+atom_style	line
+atom_modify     map array
+boundary        f f p
+dimension	2
+comm_modify     vel yes
+
+region		box block -15 15 -15 15 -0.5 0.5 units box
+create_box	2 box
+
+molecule        lines surf.line
+fix             20 all surface/local lines
+
+pair_style	hybrid gran/hooke/history 4000.0 NULL 100.0 NULL 0.5 1 &
+                line/gran/hooke 4000.0 NULL 100.0 NULL 0.5 1
+pair_coeff	1 1 none
+pair_coeff	2 2 gran/hooke/history
+pair_coeff	1 2 line/gran/hooke
+
+group           line type 1
+group           sphere type 2
+
+neighbor	0.3 bin
+neigh_modify	delay 0 every 1 check yes
+
+#displace_atoms  all rotate 0 0 0 0 0 1 90
+
+# rotate the box
+
+fix             1 line move rotate 0 0 0 0 0 1 25
+
+fix             2 sphere nve/sphere
+fix		3 sphere gravity 1.0 vector 0 -1 0
+#fix             4 sphere viscous 0.2
+
+region          slab block -3 3 -2 2 -0.5 0.5 units box
+fix             ins sphere pour 100 2 4767548 vol 0.4 10 &
+	        diam one 1.0 region slab
+
+fix		10 all enforce2d
+
+timestep	0.005
+
+compute         1 sphere temp
+compute_modify  1 dynamic yes
+
+compute         2 sphere temp/sphere
+compute_modify  2 dynamic yes
+
+thermo		100
+thermo_style	custom step atoms temp c_1 c_2 press
+thermo_modify   lost ignore
+compute_modify  thermo_temp dynamic yes
+
+dump		2 all image 100 tmp.image.*.ppm type type &
+		zoom 1.6 adiam 1.0 line type 0.5
+dump_modify	2 pad 5
+
+run	       10000

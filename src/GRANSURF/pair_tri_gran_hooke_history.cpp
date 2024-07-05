@@ -29,11 +29,6 @@
 #include "neighbor.h"
 #include "update.h"
 
-#include <math.h>
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
-
 using namespace LAMMPS_NS;
 
 /* ---------------------------------------------------------------------- */
@@ -688,7 +683,8 @@ void PairTriGranHookeHistory::read_restart(FILE *fp)
   int me = comm->me;
   for (i = 1; i <= atom->ntypes; i++)
     for (j = i; j <= atom->ntypes; j++) {
-      if (me == 0) fread(&setflag[i][j],sizeof(int),1,fp);
+      if (me == 0)
+        utils::sfread(FLERR,&setflag[i][j],sizeof(int),1,fp,nullptr,error);
       MPI_Bcast(&setflag[i][j],1,MPI_INT,0,world);
     }
 }
@@ -714,12 +710,12 @@ void PairTriGranHookeHistory::write_restart_settings(FILE *fp)
 void PairTriGranHookeHistory::read_restart_settings(FILE *fp)
 {
   if (comm->me == 0) {
-    fread(&kn,sizeof(double),1,fp);
-    fread(&kt,sizeof(double),1,fp);
-    fread(&gamman,sizeof(double),1,fp);
-    fread(&gammat,sizeof(double),1,fp);
-    fread(&xmu,sizeof(double),1,fp);
-    fread(&dampflag,sizeof(int),1,fp);
+    utils::sfread(FLERR,&kn,sizeof(double),1,fp,nullptr,error);
+    utils::sfread(FLERR,&kt,sizeof(double),1,fp,nullptr,error);
+    utils::sfread(FLERR,&gamman,sizeof(double),1,fp,nullptr,error);
+    utils::sfread(FLERR,&gammat,sizeof(double),1,fp,nullptr,error);
+    utils::sfread(FLERR,&xmu,sizeof(double),1,fp,nullptr,error);
+    utils::sfread(FLERR,&dampflag,sizeof(int),1,fp,nullptr,error);
   }
   MPI_Bcast(&kn,1,MPI_DOUBLE,0,world);
   MPI_Bcast(&kt,1,MPI_DOUBLE,0,world);

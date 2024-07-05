@@ -42,7 +42,7 @@ enum{HOOKE,HOOKE_HISTORY,HERTZ_HISTORY};
 enum{SPHERE,LINE,TRI};           // also in DumpImage
 enum{NONE,LINEAR,WIGGLE,ROTATE,VARIABLE};
 
-#define DELTA 1
+#define DELTA 128
 
 /* ---------------------------------------------------------------------- */
 

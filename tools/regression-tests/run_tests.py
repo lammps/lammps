@@ -353,7 +353,13 @@ def iterate(input_list, config, results, removeAnnotatedInput=False):
     if verbose == True:
       print("Quantities".ljust(width) + "Output".center(width) + "Reference".center(width) + "Abs Diff Check".center(width) +  "Rel Diff Check".center(width))
     
-    # arbitrary for now, can iterate through all num_runs
+    # check if overrides for this input scipt is specified
+    overrides = {}
+    if 'overrides' in config:
+      if input_test in config['overrides']:
+        overrides = config['overrides'][input_test]
+
+    # iterate through all num_runs
 
     num_abs_failed = 0
     num_rel_failed = 0
@@ -386,9 +392,17 @@ def iterate(input_list, config, results, removeAnnotatedInput=False):
         abs_diff_check = "PASSED"
         rel_diff_check = "PASSED"
         
-        if quantity in config['tolerance']:
-          abs_tol = float(config['tolerance'][quantity]['abs'])
-          rel_tol = float(config['tolerance'][quantity]['rel'])
+        if quantity in config['tolerance'] or quantity in overrides:
+
+          if quantity in config['tolerance']:
+            abs_tol = float(config['tolerance'][quantity]['abs'])
+            rel_tol = float(config['tolerance'][quantity]['rel'])
+
+          # overrides the global tolerance values if specified
+          if quantity in overrides:
+            abs_tol = float(overrides[quantity]['abs'])
+            rel_tol = float(overrides[quantity]['rel'])
+
           num_checks = num_checks + 2
           if abs_diff > abs_tol:
             abs_diff_check = "FAILED"
@@ -403,7 +417,7 @@ def iterate(input_list, config, results, removeAnnotatedInput=False):
         else:
           # N/A means that tolerances are not defined in the config file
           abs_diff_check = "N/A"
-          rel_diff_check = "N/A"
+          rel_diff_check = "N/A"          
 
         if verbose == True and abs_diff_check != "N/A"  and rel_diff_check != "N/A":
           print(f"{thermo[irun]['keywords'][i].ljust(width)} {str(val).rjust(20)} {str(ref).rjust(20)} {abs_diff_check.rjust(20)} {rel_diff_check.rjust(20)}")

@@ -21,10 +21,13 @@
 #include "atom_kokkos.h"
 #include "atom_masks.h"
 #include "comm.h"
+#include "error.h"
 #include "force.h"
 #include "math_const.h"
 #include "memory_kokkos.h"
 #include "neighbor_kokkos.h"
+#include "respa.h"
+#include "update.h"
 
 #include "lj_spica_common.h"
 
@@ -197,45 +200,45 @@ void AngleSPICAKokkos<DeviceType>::operator()(TagAngleSPICACompute<NEWTON_BOND,E
     delz3 = x(i1,2) - x(i3,2);
     const F_FLOAT rsq3 = delx3*delx3 + dely3*dely3 + delz3*delz3;
 
-    const int type1 = atom->type[i1];
-    const int type3 = atom->type[i3];
+    const int type1 = d_type[i1];
+    const int type3 = d_type[i3];
 
     f13=0.0;
     e13=0.0;
 
-    if (rsq3 < rminsq[type1][type3]) {
-      const int ljt = lj_type[type1][type3];
+    if (rsq3 < d_rminsq(type1,type3)) {
+      const int ljt = d_lj_type(type1,type3);
       const double r2inv = 1.0/rsq3;
 
       if (ljt == LJ12_4) {
         const double r4inv=r2inv*r2inv;
 
-        f13 = r4inv*(lj1[type1][type3]*r4inv*r4inv - lj2[type1][type3]);
-        if (eflag) e13 = r4inv*(lj3[type1][type3]*r4inv*r4inv - lj4[type1][type3]);
+        f13 = r4inv*(d_lj1(type1,type3)*r4inv*r4inv - d_lj2(type1,type3));
+        if (eflag) e13 = r4inv*(d_lj3(type1,type3)*r4inv*r4inv - d_lj4(type1,type3));
 
       } else if (ljt == LJ9_6) {
         const double r3inv = r2inv*sqrt(r2inv);
         const double r6inv = r3inv*r3inv;
 
-        f13 = r6inv*(lj1[type1][type3]*r3inv - lj2[type1][type3]);
-        if (eflag) e13 = r6inv*(lj3[type1][type3]*r3inv - lj4[type1][type3]);
+        f13 = r6inv*(d_lj1(type1,type3)*r3inv - d_lj2(type1,type3));
+        if (eflag) e13 = r6inv*(d_lj3(type1,type3)*r3inv - d_lj4(type1,type3));
 
       } else if (ljt == LJ12_6) {
         const double r6inv = r2inv*r2inv*r2inv;
 
-        f13 = r6inv*(lj1[type1][type3]*r6inv - lj2[type1][type3]);
-        if (eflag) e13 = r6inv*(lj3[type1][type3]*r6inv - lj4[type1][type3]);
+        f13 = r6inv*(d_lj1(type1,type3)*r6inv - d_lj2(type1,type3));
+        if (eflag) e13 = r6inv*(d_lj3(type1,type3)*r6inv - d_lj4(type1,type3));
 
       } else if (ljt == LJ12_5) {
         const double r5inv = r2inv*r2inv*sqrt(r2inv);
         const double r7inv = r5inv*r2inv;
 
-        f13 = r5inv*(lj1[type1][type3]*r7inv - lj2[type1][type3]);
-        if (eflag) e13 = r5inv*(lj3[type1][type3]*r7inv - lj4[type1][type3]);
+        f13 = r5inv*(d_lj1(type1,type3)*r7inv - d_lj2(type1,type3));
+        if (eflag) e13 = r5inv*(d_lj3(type1,type3)*r7inv - d_lj4(type1,type3));
       }
 
       // make sure energy is 0.0 at the cutoff.
-      if (eflag) e13 -= emin[type1][type3];
+      if (eflag) e13 -= d_emin(type1,type3);
 
       f13 *= r2inv;
     }
@@ -305,16 +308,84 @@ void AngleSPICAKokkos<DeviceType>::allocate()
 {
   AngleSPICA::allocate();
 
-  int n = atom->nangletypes;
-  k_k = typename ArrayTypes<DeviceType>::tdual_ffloat_1d("AngleSPICA::k",n+1);
-  k_theta0 = typename ArrayTypes<DeviceType>::tdual_ffloat_1d("AngleSPICA::theta0",n+1);
-  k_repscale = typename ArrayTypes<DeviceType>::tdual_ffloat_1d("AngleSPICA::repscale",n+1);
-  k_setflag = typename ArrayTypes<DeviceType>::tdual_int_1d("AngleSPICA::setflag",n+1);
+  int nangletypes = atomKK->nangletypes;
+  k_k = typename ArrayTypes<DeviceType>::tdual_ffloat_1d("AngleSPICA::k",nangletypes+1);
+  k_theta0 = typename ArrayTypes<DeviceType>::tdual_ffloat_1d("AngleSPICA::theta0",nangletypes+1);
+  k_repscale = typename ArrayTypes<DeviceType>::tdual_ffloat_1d("AngleSPICA::repscale",nangletypes+1);
+  k_setflag = typename ArrayTypes<DeviceType>::tdual_int_1d("AngleSPICA::setflag",nangletypes+1);
 
   d_k = k_k.template view<DeviceType>();
   d_theta0 = k_theta0.template view<DeviceType>();
   d_repscale = k_repscale.template view<DeviceType>();
   d_setflag = k_setflag.template view<DeviceType>();
+
+  int ntypes = atomKK->ntypes;
+  k_lj_type = typename ArrayTypes<DeviceType>::tdual_int_2d("AngleSPICA::lj_type",ntypes+1,ntypes+1);
+  k_lj1 = typename ArrayTypes<DeviceType>::tdual_ffloat_2d("AngleSPICA::lj1",ntypes+1,ntypes+1);
+  k_lj2 = typename ArrayTypes<DeviceType>::tdual_ffloat_2d("AngleSPICA::lj2",ntypes+1,ntypes+1);
+  k_lj3 = typename ArrayTypes<DeviceType>::tdual_ffloat_2d("AngleSPICA::lj3",ntypes+1,ntypes+1);
+  k_lj4 = typename ArrayTypes<DeviceType>::tdual_ffloat_2d("AngleSPICA::lj4",ntypes+1,ntypes+1);
+  k_rminsq = typename ArrayTypes<DeviceType>::tdual_ffloat_2d("AngleSPICA::rminsq",ntypes+1,ntypes+1);
+  k_emin = typename ArrayTypes<DeviceType>::tdual_ffloat_2d("AngleSPICA::emin",ntypes+1,ntypes+1);
+
+  d_lj_type = k_lj_type.template view<DeviceType>();
+  d_lj1 = k_lj1.template view<DeviceType>();
+  d_lj2 = k_lj2.template view<DeviceType>();
+  d_lj3 = k_lj3.template view<DeviceType>();
+  d_lj4 = k_lj4.template view<DeviceType>();
+  d_rminsq = k_rminsq.template view<DeviceType>();
+  d_emin = k_emin.template view<DeviceType>();
+
+}
+
+/* ----------------------------------------------------------------------
+   init specific to this pair style
+------------------------------------------------------------------------- */
+
+template<class DeviceType>
+void AngleSPICAKokkos<DeviceType>::init_style()
+{
+  AngleSPICA::init_style();
+
+  // error if rRESPA with inner levels
+
+  if (update->whichflag == 1 && utils::strmatch(update->integrate_style,"^respa")) {
+    int respa = 0;
+    if (((Respa *) update->integrate)->level_inner >= 0) respa = 1;
+    if (((Respa *) update->integrate)->level_middle >= 0) respa = 2;
+    if (respa)
+      error->all(FLERR,"Cannot use Kokkos pair style with rRESPA inner/middle");
+  }
+
+  d_type = atomKK->k_type.view<DeviceType>();
+
+  int ntypes = atomKK->ntypes;
+  for (int i = 1; i <= ntypes; i++)
+    for (int j = 1; j <= ntypes; j++) {
+      k_lj_type.h_view(i,j) = lj_type[i][j];
+      k_lj1.h_view(i,j) = lj1[i][j];
+      k_lj2.h_view(i,j) = lj2[i][j];
+      k_lj3.h_view(i,j) = lj3[i][j];
+      k_lj4.h_view(i,j) = lj4[i][j];
+      k_rminsq.h_view(i,j) = rminsq[i][j];
+      k_emin.h_view(i,j) = emin[i][j];
+  }
+
+  k_lj_type.template modify<LMPHostType>();
+  k_lj1.template modify<LMPHostType>();
+  k_lj2.template modify<LMPHostType>();
+  k_lj3.template modify<LMPHostType>();
+  k_lj4.template modify<LMPHostType>();
+  k_rminsq.template modify<LMPHostType>();
+  k_emin.template modify<LMPHostType>();
+
+  k_lj_type.template sync<DeviceType>();
+  k_lj1.template sync<DeviceType>();
+  k_lj2.template sync<DeviceType>();
+  k_lj3.template sync<DeviceType>();
+  k_lj4.template sync<DeviceType>();
+  k_rminsq.template sync<DeviceType>();
+  k_emin.template sync<DeviceType>();
 }
 
 /* ----------------------------------------------------------------------

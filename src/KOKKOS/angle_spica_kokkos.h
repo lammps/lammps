@@ -42,6 +42,7 @@ class AngleSPICAKokkos : public AngleSPICA {
   ~AngleSPICAKokkos() override;
   void compute(int, int) override;
   void coeff(int, char **) override;
+  void init_style() override;
   void read_restart(FILE *) override;
 
   template<int NEWTON_BOND, int EVFLAG>
@@ -80,15 +81,19 @@ class AngleSPICAKokkos : public AngleSPICA {
   int nlocal,newton_bond;
   int eflag,vflag;
 
-  typename ArrayTypes<DeviceType>::tdual_ffloat_1d k_k;
-  typename ArrayTypes<DeviceType>::tdual_ffloat_1d k_theta0;
-  typename ArrayTypes<DeviceType>::tdual_ffloat_1d k_repscale;
-  typename ArrayTypes<DeviceType>::tdual_int_1d k_setflag;
+  typename ArrayTypes<DeviceType>::tdual_ffloat_1d k_k, k_theta0, k_repscale;
+  typename ArrayTypes<DeviceType>::t_ffloat_1d d_k, d_theta0, d_repscale;
 
-  typename ArrayTypes<DeviceType>::t_ffloat_1d d_k;
-  typename ArrayTypes<DeviceType>::t_ffloat_1d d_theta0;
-  typename ArrayTypes<DeviceType>::t_ffloat_1d d_repscale;
+  typename ArrayTypes<DeviceType>::tdual_int_1d k_setflag;
   typename ArrayTypes<DeviceType>::t_int_1d d_setflag;
+
+  typename ArrayTypes<DeviceType>::t_int_1d d_type;
+
+  typename ArrayTypes<DeviceType>::tdual_int_2d k_lj_type;
+  typename ArrayTypes<DeviceType>::t_int_2d d_lj_type;
+
+  typename ArrayTypes<DeviceType>::tdual_ffloat_2d k_lj1, k_lj2, k_lj3, k_lj4, k_rminsq, k_emin;
+  typename ArrayTypes<DeviceType>::t_ffloat_2d d_lj1, d_lj2, d_lj3, d_lj4, d_rminsq, d_emin;
 
   void allocate() override;
 };

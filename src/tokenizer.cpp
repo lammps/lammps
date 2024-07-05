@@ -100,11 +100,27 @@ void Tokenizer::reset()
 
 /*! Search the text to be processed for a sub-string.
  *
+ * This method does a generic substring match.
+ *
  * \param  str  string to be searched for
  * \return      true if string was found, false if not */
 bool Tokenizer::contains(const std::string &str) const
 {
   return text.find(str) != std::string::npos;
+}
+
+/*! Search the text to be processed for regular expression match.
+ *
+\verbatim embed:rst
+This method matches the current string against a regular expression using
+the :cpp:func:`utils::strmatch() <LAMMPS_NS::utils::strmatch>` function.
+\endverbatim
+ *
+ * \param  str  regular expression to be matched against
+ * \return      true if string was found, false if not */
+bool Tokenizer::matches(const std::string &str) const
+{
+  return utils::strmatch(text, str);
 }
 
 /*! Skip over a given number of tokens
@@ -234,11 +250,27 @@ bool ValueTokenizer::has_next() const
 
 /*! Search the text to be processed for a sub-string.
  *
+ * This method does a generic substring match.
+ *
  * \param  value  string with value to be searched for
  * \return        true if string was found, false if not */
 bool ValueTokenizer::contains(const std::string &value) const
 {
   return tokens.contains(value);
+}
+
+/*! Search the text to be processed for regular expression match.
+ *
+\verbatim embed:rst
+This method matches the current string against a regular expression using
+the :cpp:func:`utils::strmatch() <LAMMPS_NS::utils::strmatch>` function.
+\endverbatim
+ *
+ * \param  str  regular expression to be matched against
+ * \return      true if string was found, false if not */
+bool ValueTokenizer::matches(const std::string &str) const
+{
+  return tokens.matches(str);
 }
 
 /*! Retrieve next token

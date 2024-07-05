@@ -173,6 +173,32 @@ TEST(Tokenizer, default_separators)
     ASSERT_EQ(t.count(), 2);
 }
 
+TEST(Tokenizer, contains)
+{
+    Tokenizer values("test word");
+    ASSERT_TRUE(values.contains("test"));
+    ASSERT_TRUE(values.contains("word"));
+}
+
+TEST(Tokenizer, not_contains)
+{
+    Tokenizer values("test word");
+    ASSERT_FALSE(values.contains("test2"));
+}
+
+TEST(Tokenizer, matches)
+{
+    Tokenizer values("test word");
+    ASSERT_TRUE(values.matches("test"));
+    ASSERT_TRUE(values.matches("word"));
+}
+
+TEST(Tokenizer, not_matches)
+{
+    Tokenizer values("test word");
+    ASSERT_FALSE(values.matches("test2"));
+}
+
 TEST(Tokenizer, as_vector1)
 {
     Tokenizer t(" \r\n test \t word \f");
@@ -344,6 +370,19 @@ TEST(ValueTokenizer, not_contains)
 {
     ValueTokenizer values("test word");
     ASSERT_FALSE(values.contains("test2"));
+}
+
+TEST(ValueTokenizer, matches)
+{
+    ValueTokenizer values("test word");
+    ASSERT_TRUE(values.matches("test"));
+    ASSERT_TRUE(values.matches("word"));
+}
+
+TEST(ValueTokenizer, not_matches)
+{
+    ValueTokenizer values("test word");
+    ASSERT_FALSE(values.matches("test2"));
 }
 
 TEST(ValueTokenizer, missing_int)

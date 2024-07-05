@@ -89,7 +89,8 @@ class FixSurfaceGlobal : public Fix {
   struct Line {
     int mol,type;           // molID and type of the line
     int p1,p2;              // indices of points in line segment
-    double norm[3];         // unit normal to line = Z x (p2-p1)
+    //double norm[3];         // unit normal to line = Z x (p2-p1)
+                              // not currently set or used
   };
 
   struct Tri {

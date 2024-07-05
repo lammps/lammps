@@ -14,6 +14,8 @@
 #ifndef LAMMPS_MY_POOL_CHUNK_H
 #define LAMMPS_MY_POOL_CHUNK_H
 
+#include "lmptype.h"
+
 namespace LAMMPS_NS {
 
 template <class T> class MyPoolChunk {

@@ -419,8 +419,8 @@ TEST_F(LibraryProperties, global)
     EXPECT_NE(sametag, nullptr);
 
     auto *tags        = (tagint *)lammps_extract_atom(lmp, "id");
-    tagint sometags[] = {1, 5, 10, 15, 20};
-    for (int &sometag : sometags) {
+    const tagint sometags[] = {1, 5, 10, 15, 20};
+    for (const int &sometag : sometags) {
         int idx = lammps_map_atom(lmp, (const void *)&sometag);
         EXPECT_EQ(sometag, tags[idx]);
         int nextidx = sametag[idx];

@@ -203,7 +203,7 @@ For purposes of this operation, molecules are identified by the current
 bond connectivity in the system, which may or may not be consistent with
 the current molecule IDs.  A molecule in this context is a set of atoms
 connected to each other with explicit bonds.  The specific algorithm
-used is the one of :doc:`compute fragment/atom <compute_cluster_atom>`
+used is the one of :doc:`compute fragment/atom <compute_cluster_atom>`.
 Once the molecules are identified and a new molecule ID computed for
 each, this command will update the current molecule ID for all atoms in
 the group with the new molecule ID.  Note that if the group excludes

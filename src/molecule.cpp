@@ -508,7 +508,7 @@ void Molecule::read(int flag)
         // unknown header keyword
         if (values.matches("^\\s*\\f+\\s+\\S+")) {
           error->one(FLERR, "Unknown keyword or incorrectly formatted header line: {}", line);
-        } else {
+        } else
           break;
       }
       if (nmatch != nwant) error->one(FLERR, "Invalid header line format in molecule file");

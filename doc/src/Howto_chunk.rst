@@ -1,7 +1,7 @@
 Use chunks to calculate system properties
 =========================================
 
-In LAMMS, "chunks" are collections of atoms, as defined by the
+In LAMMPS, "chunks" are collections of atoms, as defined by the
 :doc:`compute chunk/atom <compute_chunk_atom>` command, which assigns
 each atom to a chunk ID (or to no chunk at all).  The number of chunks
 and the assignment of chunk IDs to atoms can be static or change over

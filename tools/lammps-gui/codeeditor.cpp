@@ -582,7 +582,9 @@ void CodeEditor::keyPressEvent(QKeyEvent *event)
             if (line[begin].isSpace()) break;
             --begin;
         }
-        if (((cursor.positionInBlock() - begin) > 2) || (line[begin + 1] == '$')) runCompletion();
+        if (((cursor.positionInBlock() - begin) > 2) ||
+            ((line.length() > begin + 1) && (line[begin + 1] == '$')))
+            runCompletion();
         if (current_comp && current_comp->popup()->isVisible() &&
             ((cursor.positionInBlock() - begin) < 2)) {
             current_comp->popup()->hide();
@@ -620,7 +622,7 @@ void CodeEditor::dropEvent(QDropEvent *event)
     if (event->mimeData()->hasUrls()) {
         event->accept();
         auto file = event->mimeData()->urls()[0].toLocalFile();
-        auto *gui  = dynamic_cast<LammpsGui *>(parent());
+        auto *gui = dynamic_cast<LammpsGui *>(parent());
         if (gui) {
             moveCursor(QTextCursor::Start, QTextCursor::MoveAnchor);
             gui->open_file(file);
@@ -1093,11 +1095,12 @@ void CodeEditor::insertCompletedCommand(const QString &completion)
     // special characters as part of a word.
     auto cursor = textCursor();
     auto line   = cursor.block().text();
-    int begin   = cursor.positionInBlock();
-    do {
+    int begin   = qMin(cursor.positionInBlock(), line.length() - 1);
+
+    while (begin >= 0) {
         if (line[begin].isSpace()) break;
         --begin;
-    } while (begin >= 0);
+    }
 
     int end = begin + 1;
     while (end < line.length()) {

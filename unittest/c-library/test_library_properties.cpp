@@ -420,7 +420,7 @@ TEST_F(LibraryProperties, global)
 
     auto *tags        = (tagint *)lammps_extract_atom(lmp, "id");
     const tagint sometags[] = {1, 5, 10, 15, 20};
-    for (const int &sometag : sometags) {
+    for (const auto &sometag : sometags) {
         int idx = lammps_map_atom(lmp, (const void *)&sometag);
         EXPECT_EQ(sometag, tags[idx]);
         int nextidx = sametag[idx];

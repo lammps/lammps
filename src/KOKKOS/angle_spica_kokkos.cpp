@@ -95,6 +95,7 @@ void AngleSPICAKokkos<DeviceType>::compute(int eflag_in, int vflag_in)
   neighborKK->k_anglelist.template sync<DeviceType>();
   anglelist = neighborKK->k_anglelist.template view<DeviceType>();
   int nanglelist = neighborKK->nanglelist;
+  d_type = atomKK->k_type.view<DeviceType>();
   nlocal = atom->nlocal;
   newton_bond = force->newton_bond;
 
@@ -356,8 +357,6 @@ void AngleSPICAKokkos<DeviceType>::init_style()
     if (respa)
       error->all(FLERR,"Cannot use Kokkos pair style with rRESPA inner/middle");
   }
-
-  d_type = atomKK->k_type.view<DeviceType>();
 
   int ntypes = atomKK->ntypes;
   for (int i = 1; i <= ntypes; i++)

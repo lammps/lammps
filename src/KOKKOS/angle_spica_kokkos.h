@@ -81,10 +81,11 @@ class AngleSPICAKokkos : public AngleSPICA {
   int nlocal,newton_bond;
   int eflag,vflag;
 
-  typename ArrayTypes<DeviceType>::t_int_1d d_type;
-  
-  typename ArrayTypes<DeviceType>::tdual_ffloat_1d k_k, k_theta0;
-  typename ArrayTypes<DeviceType>::t_ffloat_1d d_k, d_theta0;
+  typename ArrayTypes<DeviceType>::tdual_int_1d k_setflag;
+  typename ArrayTypes<DeviceType>::t_int_1d d_setflag, d_type;
+
+  typename ArrayTypes<DeviceType>::tdual_ffloat_1d k_k, k_theta0, k_repscale;
+  typename ArrayTypes<DeviceType>::t_ffloat_1d d_k, d_theta0, d_repscale;
 
   typename ArrayTypes<DeviceType>::tdual_int_2d k_lj_type;
   typename ArrayTypes<DeviceType>::t_int_2d d_lj_type;

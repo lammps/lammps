@@ -87,14 +87,27 @@ void AngleSPICAKokkos<DeviceType>::compute(int eflag_in, int vflag_in)
     d_vatom = k_vatom.template view<DeviceType>();
   }
 
+  atomKK->sync(execution_space,datamask_read);
   k_k.template sync<DeviceType>();
   k_theta0.template sync<DeviceType>();
+  k_repscale.template sync<DeviceType>();
+  k_lj_type.template sync<DeviceType>();
+  k_lj1.template sync<DeviceType>();
+  k_lj2.template sync<DeviceType>();
+  k_lj3.template sync<DeviceType>();
+  k_lj4.template sync<DeviceType>();
+  k_rminsq.template sync<DeviceType>();
+  k_emin.template sync<DeviceType>();
+
+  if (eflag || vflag) atomKK->modified(execution_space,datamask_modify);
+  else atomKK->modified(execution_space,F_MASK);
 
   x = atomKK->k_x.template view<DeviceType>();
   f = atomKK->k_f.template view<DeviceType>();
   neighborKK->k_anglelist.template sync<DeviceType>();
   anglelist = neighborKK->k_anglelist.template view<DeviceType>();
   int nanglelist = neighborKK->nanglelist;
+  atomKK->k_type.template sync<DeviceType>();
   d_type = atomKK->k_type.template view<DeviceType>();
   nlocal = atom->nlocal;
   newton_bond = force->newton_bond;
@@ -312,9 +325,13 @@ void AngleSPICAKokkos<DeviceType>::allocate()
   int nangletypes = atom->nangletypes;
   k_k = typename ArrayTypes<DeviceType>::tdual_ffloat_1d("AngleSPICA::k",nangletypes+1);
   k_theta0 = typename ArrayTypes<DeviceType>::tdual_ffloat_1d("AngleSPICA::theta0",nangletypes+1);
+  k_repscale = typename ArrayTypes<DeviceType>::tdual_ffloat_1d("AngleSPICA::repscale",nangletypes+1);
+  k_setflag = typename ArrayTypes<DeviceType>::tdual_int_1d("AngleSPICA::setflag",nangletypes+1);
 
   d_k = k_k.template view<DeviceType>();
   d_theta0 = k_theta0.template view<DeviceType>();
+  d_repscale = k_repscale.template view<DeviceType>();
+  d_setflag = k_setflag.template view<DeviceType>();
 
   int ntypes = atom->ntypes;
   k_lj_type = typename ArrayTypes<DeviceType>::tdual_int_2d("AngleSPICA::lj_type",ntypes+1,ntypes+1);
@@ -332,7 +349,6 @@ void AngleSPICAKokkos<DeviceType>::allocate()
   d_lj4 = k_lj4.template view<DeviceType>();
   d_rminsq = k_rminsq.template view<DeviceType>();
   d_emin = k_emin.template view<DeviceType>();
-
 }
 
 /* ----------------------------------------------------------------------
@@ -373,14 +389,6 @@ void AngleSPICAKokkos<DeviceType>::init_style()
   k_lj4.template modify<LMPHostType>();
   k_rminsq.template modify<LMPHostType>();
   k_emin.template modify<LMPHostType>();
-
-  k_lj_type.template sync<DeviceType>();
-  k_lj1.template sync<DeviceType>();
-  k_lj2.template sync<DeviceType>();
-  k_lj3.template sync<DeviceType>();
-  k_lj4.template sync<DeviceType>();
-  k_rminsq.template sync<DeviceType>();
-  k_emin.template sync<DeviceType>();
 }
 
 /* ----------------------------------------------------------------------
@@ -396,10 +404,17 @@ void AngleSPICAKokkos<DeviceType>::coeff(int narg, char **arg)
   for (int i = 1; i <= n; i++) {
     k_k.h_view[i] = k[i];
     k_theta0.h_view[i] = theta0[i];
+    k_repscale.h_view[i] = repscale[i];
+    k_setflag.h_view[i] = setflag[i];
   }
 
   k_k.template modify<LMPHostType>();
   k_theta0.template modify<LMPHostType>();
+  k_repscale.template modify<LMPHostType>();
+  k_setflag.template modify<LMPHostType>();
+
+  Kokkos::printf("*** AngleSPICAKokkos<DeviceType>::coeff\n");
+
 }
 
 /* ----------------------------------------------------------------------
@@ -415,10 +430,14 @@ void AngleSPICAKokkos<DeviceType>::read_restart(FILE *fp)
   for (int i = 1; i <= n; i++) {
     k_k.h_view[i] = k[i];
     k_theta0.h_view[i] = theta0[i];
+    k_repscale.h_view[i] = repscale[i];
+    k_setflag.h_view[i] = setflag[i];
   }
 
   k_k.template modify<LMPHostType>();
   k_theta0.template modify<LMPHostType>();
+  k_repscale.template modify<LMPHostType>();
+  k_setflag.template modify<LMPHostType>();
 }
 
 /* ----------------------------------------------------------------------

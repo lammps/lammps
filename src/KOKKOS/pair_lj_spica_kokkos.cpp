@@ -107,6 +107,8 @@ void PairLJSPICAKokkos<DeviceType>::compute(int eflag_in, int vflag_in)
 
   // loop over neighbors of my atoms
 
+  copymode = 1;
+
   EV_FLOAT ev = pair_compute<PairLJSPICAKokkos<DeviceType>,void >(this,(NeighListKokkos<DeviceType>*)list);
 
   if (eflag) eng_vdwl += ev.evdwl;
@@ -131,7 +133,12 @@ void PairLJSPICAKokkos<DeviceType>::compute(int eflag_in, int vflag_in)
 
   if (vflag_fdotr) pair_virial_fdotr_compute(this);
 
+  copymode = 0;
 }
+
+/* ----------------------------------------------------------------------
+   compute pair force between atoms i and j
+   ---------------------------------------------------------------------- */
 
 template<class DeviceType>
 template<bool STACKPARAMS, class Specialisation>
@@ -152,6 +159,10 @@ compute_fpair(const F_FLOAT& rsq, const int& i, const int&j, const int& itype, c
   const F_FLOAT b = ljt==LJ12_4?r4inv:(ljt==LJ9_6?1.0/sqrt(r2inv):(ljt==LJ12_5?r2inv*sqrt(r2inv):r2inv));
   return a* ( lj_1*r6inv*b - lj_2 * r2inv);
 }
+
+/* ----------------------------------------------------------------------
+   compute pair potential energy between atoms i and j
+   ---------------------------------------------------------------------- */
 
 template<class DeviceType>
 template<bool STACKPARAMS, class Specialisation>

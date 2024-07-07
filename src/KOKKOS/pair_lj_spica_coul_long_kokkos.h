@@ -49,12 +49,12 @@ class PairLJSPICACoulLongKokkos : public PairLJSPICACoulLong {
   void init_style() override;
   double init_one(int, int) override;
 
-  struct params_lj_coul{
+  struct params_lj_coul {
     KOKKOS_INLINE_FUNCTION
-    params_lj_coul() {cutsq=0;cut_coulsq=0;cut_lj=0;cut_ljsq=0;lj1=0;lj2=0;lj3=0;lj4=0;offset=0;lj_type=0;};
+    params_lj_coul() {cut_ljsq=0;cut_coulsq=0;lj1=0;lj2=0;lj3=0;lj4=0;offset=0;lj_type=0;};
     KOKKOS_INLINE_FUNCTION
-    params_lj_coul(int /*i*/) {cutsq=0;cut_coulsq=0;cut_lj=0;cut_ljsq=0;lj1=0;lj2=0;lj3=0;lj4=0;offset=0;lj_type=0;};
-    F_FLOAT cutsq,cut_coulsq,cut_lj,cut_ljsq,lj1,lj2,lj3,lj4,offset;
+    params_lj_coul(int /*i*/) {cut_ljsq=0;cut_coulsq=0;lj1=0;lj2=0;lj3=0;lj4=0;offset=0;lj_type=0;};
+    F_FLOAT cut_ljsq,cut_coulsq,lj1,lj2,lj3,lj4,offset;
     int lj_type;
   };
 
@@ -102,8 +102,10 @@ class PairLJSPICACoulLongKokkos : public PairLJSPICACoulLong {
 
   int newton_pair;
 
-  typename AT::tdual_ffloat_2d k_cutsq, k_cut_lj, k_cut_ljsq;
-  typename AT::t_ffloat_2d d_cutsq, d_cut_lj, d_cut_ljsq, d_cut_coulsq;
+  typename AT::tdual_ffloat_2d k_cutsq;
+  typename AT::t_ffloat_2d d_cutsq;
+  typename AT::t_ffloat_2d d_cut_ljsq;
+  typename AT::t_ffloat_2d d_cut_coulsq;
 
   typename AT::t_ffloat_1d_randomread
     d_rtable, d_drtable, d_ftable, d_dftable,

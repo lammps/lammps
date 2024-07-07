@@ -65,8 +65,8 @@ PairLJSPICACoulLongKokkos<DeviceType>::~PairLJSPICACoulLongKokkos()
     memoryKK->destroy_kokkos(k_eatom,eatom);
     memoryKK->destroy_kokkos(k_vatom,vatom);
     memoryKK->destroy_kokkos(k_cutsq,cutsq);
-    memoryKK->destroy_kokkos(k_cut_lj,cut_lj);
-    memoryKK->destroy_kokkos(k_cut_ljsq,cut_ljsq);
+    //memoryKK->destroy_kokkos(k_cut_lj,cut_lj);
+    //memoryKK->destroy_kokkos(k_cut_ljsq,cut_ljsq);
   }
 }
 
@@ -311,9 +311,9 @@ void PairLJSPICACoulLongKokkos<DeviceType>::allocate()
   memoryKK->create_kokkos(k_cutsq,cutsq,n+1,n+1,"pair:cutsq");
   d_cutsq = k_cutsq.template view<DeviceType>();
 
-  d_cut_lj = typename AT::t_ffloat_2d("pair:cut_lj",n+1,n+1);
-  d_cut_ljsq = typename AT::t_ffloat_2d("pair:cut_ljsq",n+1,n+1);
-  d_cut_coulsq = typename AT::t_ffloat_2d("pair:cut_coulsq",n+1,n+1);
+  //d_cut_lj = typename AT::t_ffloat_2d("pair:cut_lj",n+1,n+1);
+  //d_cut_ljsq = typename AT::t_ffloat_2d("pair:cut_ljsq",n+1,n+1);
+  //d_cut_coulsq = typename AT::t_ffloat_2d("pair:cut_coulsq",n+1,n+1);
 
   k_params = Kokkos::DualView<params_lj_coul**,Kokkos::LayoutRight,DeviceType>("PairLJSPICACoulLong::params",n+1,n+1);
   params = k_params.template view<DeviceType>();
@@ -447,6 +447,9 @@ void PairLJSPICACoulLongKokkos<DeviceType>::init_style()
 {
   PairLJSPICACoulLong::init_style();
 
+  //Kokkos::deep_copy(d_cut_ljsq,cut_ljsq);
+  Kokkos::deep_copy(d_cut_coulsq,cut_coulsq);
+
   // error if rRESPA with inner levels
 
   if (update->whichflag == 1 && utils::strmatch(update->integrate_style,"^respa")) {
@@ -481,8 +484,8 @@ double PairLJSPICACoulLongKokkos<DeviceType>::init_one(int i, int j)
   k_params.h_view(i,j).lj3 = lj3[i][j];
   k_params.h_view(i,j).lj4 = lj4[i][j];
   k_params.h_view(i,j).offset = offset[i][j];
-  k_params.h_view(i,j).cutsq = cutone*cutone;
-  k_params.h_view(i,j).cut_lj = cut_lj[i][j];
+  //k_params.h_view(i,j).cutsq = cutone*cutone;
+  //k_params.h_view(i,j).cut_lj = cut_lj[i][j];
   k_params.h_view(i,j).cut_ljsq = cut_ljsq[i][j];
   k_params.h_view(i,j).cut_coulsq = cut_coulsq;
   k_params.h_view(i,j).lj_type = lj_type[i][j];

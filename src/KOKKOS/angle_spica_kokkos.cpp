@@ -380,6 +380,7 @@ void AngleSPICAKokkos<DeviceType>::init_style()
       k_lj4.h_view(i,j) = lj4[i][j];
       k_rminsq.h_view(i,j) = rminsq[i][j];
       k_emin.h_view(i,j) = emin[i][j];
+    }
   }
 
   k_lj_type.template modify<LMPHostType>();

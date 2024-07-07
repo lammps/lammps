@@ -70,7 +70,6 @@ void PairLJSPICAKokkos<DeviceType>::compute(int eflag_in, int vflag_in)
   eflag = eflag_in;
   vflag = vflag_in;
 
-
   if (neighflag == FULL) no_virial_fdotr_compute = 1;
 
   ev_init(eflag,vflag,0);
@@ -272,8 +271,6 @@ double PairLJSPICAKokkos<DeviceType>::init_one(int i, int j)
 
   return cutone;
 }
-
-
 
 namespace LAMMPS_NS {
 template class PairLJSPICAKokkos<LMPDeviceType>;

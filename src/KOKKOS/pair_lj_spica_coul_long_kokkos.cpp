@@ -12,6 +12,10 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
+/* ----------------------------------------------------------------------
+   Contributing author: Mitch Murphy (alphataubio@gmail.com)
+------------------------------------------------------------------------- */
+
 #include "pair_lj_spica_coul_long_kokkos.h"
 
 #include "atom_kokkos.h"
@@ -101,20 +105,21 @@ void PairLJSPICACoulLongKokkos<DeviceType>::compute(int eflag_in, int vflag_in)
   x = atomKK->k_x.view<DeviceType>();
   c_x = atomKK->k_x.view<DeviceType>();
   f = atomKK->k_f.view<DeviceType>();
-  q = atomKK->k_q.view<DeviceType>();
   type = atomKK->k_type.view<DeviceType>();
   nlocal = atom->nlocal;
   nall = atom->nlocal + atom->nghost;
+  newton_pair = force->newton_pair;
   special_lj[0] = force->special_lj[0];
   special_lj[1] = force->special_lj[1];
   special_lj[2] = force->special_lj[2];
   special_lj[3] = force->special_lj[3];
+
+  q = atomKK->k_q.view<DeviceType>();
   special_coul[0] = force->special_coul[0];
   special_coul[1] = force->special_coul[1];
   special_coul[2] = force->special_coul[2];
   special_coul[3] = force->special_coul[3];
   qqrd2e = force->qqrd2e;
-  newton_pair = force->newton_pair;
 
   // loop over neighbors of my atoms
 
@@ -303,7 +308,6 @@ void PairLJSPICACoulLongKokkos<DeviceType>::allocate()
   PairLJSPICACoulLong::allocate();
 
   int n = atom->ntypes;
-
   memory->destroy(cutsq);
   memoryKK->create_kokkos(k_cutsq,cutsq,n+1,n+1,"pair:cutsq");
   d_cutsq = k_cutsq.template view<DeviceType>();

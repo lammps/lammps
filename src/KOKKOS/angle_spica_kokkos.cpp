@@ -371,7 +371,7 @@ void AngleSPICAKokkos<DeviceType>::init_style()
   }
 
   int ntypes = atom->ntypes;
-  for (int i = 1; i <= ntypes; i++)
+  for (int i = 1; i <= ntypes; i++) {
     for (int j = 1; j <= ntypes; j++) {
       k_lj_type.h_view(i,j) = lj_type[i][j];
       k_lj1.h_view(i,j) = lj1[i][j];

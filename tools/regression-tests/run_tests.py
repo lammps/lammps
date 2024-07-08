@@ -199,12 +199,7 @@ def execute(lmp_binary, config, input_file_name, generate_ref_yaml=False):
     print(f"Executing: {cmd_str}")
     p = subprocess.run(cmd_str, shell=True, text=True, capture_output=True)
 
-    #output = p.stdout.split('\n')
-    output = p.stdout
-    # process output to handle failed runs
-
-    return cmd_str, output
-
+    return cmd_str, p.stdout, p.stderr, p.returncode
 
 '''
   attempt to plug in the REG markers before each run command
@@ -309,66 +304,71 @@ def iterate(lmp_binary, input_list, config, results, removeAnnotatedInput=False)
     #      then override the setting for this input script
     saved_nprocs = config['nprocs']
     if max_np != int(config['nprocs']):
-      config['nprocs'] = str(max_np)
+        config['nprocs'] = str(max_np)
 
     if logfile_exist:
-      thermo_ref = extract_data_to_yaml(thermo_ref_file)
-      num_runs_ref = len(thermo_ref)
-    else:
-      print(f"Cannot find reference log file with {pattern}.")
-      # try to read in the thermo yaml output from the working directory
-      thermo_ref_file = 'thermo.' + input + '.yaml'
-      file_exist = os.path.isfile(thermo_ref_file)
-      if file_exist == True:
-        thermo_ref = extract_thermo(thermo_ref_file)
+        thermo_ref = extract_data_to_yaml(thermo_ref_file)
         num_runs_ref = len(thermo_ref)
-      else:
-        print(f"SKIPPED: {thermo_ref_file} does not exist in the working directory.")
-        result.status = "skipped"
-        results.append(result)
-        continue
+    else:
+        print(f"Cannot find reference log file with {pattern}.")
+        # try to read in the thermo yaml output from the working directory
+        thermo_ref_file = 'thermo.' + input + '.yaml'
+        file_exist = os.path.isfile(thermo_ref_file)
+        if file_exist == True:
+            thermo_ref = extract_thermo(thermo_ref_file)
+            num_runs_ref = len(thermo_ref)
+        else:
+            print(f"SKIPPED: {thermo_ref_file} does not exist in the working directory.")
+            result.status = "skipped"
+            results.append(result)
+            continue
 
     # using the LAMMPS python module (for single-proc runs)
     #  lmp = lammps()
     #  lmp.file(input_test)
 
     # or more customizable with config.yaml
-    cmd_str, output = execute(lmp_binary, config, input_test)
+    cmd_str, output, error, returncode = execute(lmp_binary, config, input_test)
 
     # restore the nprocs value in the configuration
     config['nprocs'] = saved_nprocs
 
     # process thermo output
+    if returncode != 0:
+        print(f"ERROR: Failed with {input_test}. Check the log file for the run output.\n")
+        logger.info(f"\n{error}")
+        continue
+
     thermo = extract_data_to_yaml("log.lammps")
 
     num_runs = len(thermo)
     if num_runs == 0:
-      print(f"ERROR: Failed with {input_test}. Check the log file for the run output.\n")
-      #print(f"{output}")
-      logger.info(f"The run terminated with the following output:\n")
-      logger.info(f"\n{output}")
-      result.status = "error"
-      results.append(result)
-      continue 
+        print(f"ERROR: Failed with {input_test}. Check the log file for the run output.\n")
+        #print(f"{output}")
+        logger.info(f"The run terminated with the following output:\n")
+        logger.info(f"\n{output}")
+        result.status = "error"
+        results.append(result)
+        continue 
 
     print(f"Comparing thermo output from log.lammps with the reference log file {thermo_ref_file}")
     if num_runs != num_runs_ref:
-      print(f"ERROR: Number of runs in log.lammps ({num_runs}) is not the same as that in the reference log ({num_runs_ref})")
-      result.status = "error"
-      results.append(result)
-      continue
+        print(f"ERROR: Number of runs in log.lammps ({num_runs}) is not the same as that in the reference log ({num_runs_ref})")
+        result.status = "error"
+        results.append(result)
+        continue
 
     # comparing output vs reference values
     width = 20
     if verbose == True:
-      print("Quantities".ljust(width) + "Output".center(width) + "Reference".center(width) +
+        print("Quantities".ljust(width) + "Output".center(width) + "Reference".center(width) +
             "Abs Diff Check".center(width) +  "Rel Diff Check".center(width))
     
     # check if overrides for this input scipt is specified
     overrides = {}
     if 'overrides' in config:
-      if input_test in config['overrides']:
-        overrides = config['overrides'][input_test]
+        if input_test in config['overrides']:
+            overrides = config['overrides'][input_test]
 
     # iterate through all num_runs
 
@@ -469,9 +469,6 @@ def iterate(lmp_binary, input_list, config, results, removeAnnotatedInput=False)
 '''
 if __name__ == "__main__":
 
-    logger = logging.getLogger(__name__)
-    logging.basicConfig(filename='run.log', level=logging.INFO)
-
     # default values
     lmp_binary = ""
     configFileName = "config.yaml"
@@ -479,18 +476,20 @@ if __name__ == "__main__":
     genref = False
     verbose = False
     output_file = "output.xml"
+    log_file = "run.log"
 
     # parse the arguments
     parser = ArgumentParser()
     parser.add_argument("--lmp-bin", dest="lmp_binary", default="", help="LAMMPS binary")
-    parser.add_argument("--config-file", dest="config_file", default="config.yaml",
+    parser.add_argument("--config-file", dest="config_file", default=configFileName,
                         help="Configuration YAML file")
     parser.add_argument("--example-folders", dest="example_folders", default="", help="Example subfolders")
     parser.add_argument("--gen-ref",dest="genref", action='store_true', default=False,
                         help="Generating reference data")
     parser.add_argument("--verbose",dest="verbose", action='store_true', default=False,
                         help="Verbose output")
-    parser.add_argument("--output",dest="output", default="output.xml", help="Output file")
+    parser.add_argument("--output",dest="output", default=output_file, help="Output file")
+    parser.add_argument("--logfile",dest="logfile", default=log_file, help="Log file")
 
     args = parser.parse_args()
 
@@ -503,6 +502,11 @@ if __name__ == "__main__":
         print(example_subfolders)
     genref = args.genref
     verbose = args.verbose
+    log_file = args.logfile
+
+    # logging
+    logger = logging.getLogger(__name__)
+    logging.basicConfig(filename=log_file, level=logging.INFO, filemode="w")
 
     # read in the configuration of the tests
     with open(configFileName, 'r') as f:
@@ -530,7 +534,7 @@ if __name__ == "__main__":
     inplace_input = True
     test_cases = []
 
-    # if the example folders are not specified from the command-line argument -example-folders
+    # if the example folders are not specified from the command-line argument --example-folders
     if len(example_subfolders) == 0:
         example_subfolders.append("../../examples/melt")
         example_subfolders.append('../../examples/flow')
@@ -594,6 +598,9 @@ if __name__ == "__main__":
 
         if 'RIGID' in packages:
             example_subfolders.append('../../examples/rigid')
+
+        if 'SNAP' in packages:
+            example_subfolders.append('../../examples/snap')
 
         if 'SRD' in packages:
             example_subfolders.append('../../examples/srd')

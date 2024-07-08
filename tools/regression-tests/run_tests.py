@@ -1,5 +1,8 @@
+#!/usr/bin/env python3
 '''
-UPDATE: Feb 8, 2024:
+pip install numpy pyyaml junit_xml
+
+UPDATE: July 5, 2024:
   Launching the LAMMPS binary under testing using a configuration defined in a yaml file (e.g. config.yaml).
   Comparing the output thermo with that in the existing log file (with the same nprocs)
     + data in the log files are extracted and converted into yaml data structure
@@ -8,8 +11,7 @@ UPDATE: Feb 8, 2024:
     + launch tests with mpirun with multiple procs
     + specify what LAMMPS binary version to test (e.g., testing separate builds)
     + simplify the build configuration (no need to build the Python module)
-  NOTE: Need to allow to tolerances specified for invidual input scripts,
-        or each config.yaml is for a set of example folders
+    + specify tolerances for individual quantities for any input script to override the global values
 
   Example usage:
     1) Simple use (using the provided tools/regression-tests/config.yaml and the examples/ folder at the top level)
@@ -28,7 +30,8 @@ import fnmatch
 import subprocess
 from argparse import ArgumentParser
 
-# need "pip install pyyaml numpy"
+import logging
+# need "pip install numpy pyyaml"
 import yaml
 import numpy as np
 
@@ -145,44 +148,44 @@ def extract_data_to_yaml(inputFileName):
     return thermo
 
 '''
-  return the list of installed packages
+    return a tuple of the list of installed packages, OS, GitInfo and compile_flags
 '''
 def get_lammps_build_configuration(lmp_binary):
-  cmd_str = lmp_binary + " -h"
-  p = subprocess.run(cmd_str, shell=True, text=True, capture_output=True)
-  output = p.stdout.split('\n')
-  packages = ""
-  reading = False
-  row = 0
-  for l in output:
-    if l != "":
-      if l == "Installed packages:":
-        reading = True
-        n = row
-      if "List of individual style options" in l:
-        reading = False
-      if reading == True and row > n:
-        packages += l.strip() + " "
+    cmd_str = lmp_binary + " -h"
+    p = subprocess.run(cmd_str, shell=True, text=True, capture_output=True)
+    output = p.stdout.split('\n')
+    packages = ""
+    reading = False
+    row = 0
+    for l in output:
+      if l != "":
+        if l == "Installed packages:":
+          reading = True
+          n = row
+        if "List of individual style options" in l:
+          reading = False
+        if reading == True and row > n:
+          packages += l.strip() + " "
 
-    if "OS:" in l:
-      operating_system = l
-    if "Git info" in l:
-      GitInfo = l
- 
-    row += 1
+      if "OS:" in l:
+        operating_system = l
+      if "Git info" in l:
+        GitInfo = l
+  
+      row += 1
 
-  packages = packages.strip()
+    packages = packages.strip()
 
-  row = 0
-  compile_flags = ""
-  for l in output:
-    if l != "":
-      if "-DLAMMPS" in l:
-        compile_flags += " " + l.strip()
- 
-    row += 1
+    row = 0
+    compile_flags = ""
+    for l in output:
+      if l != "":
+        if "-DLAMMPS" in l:
+          compile_flags += " " + l.strip()
+  
+      row += 1
 
-  return packages.split(" "), operating_system, GitInfo, compile_flags
+    return packages.split(" "), operating_system, GitInfo, compile_flags
 
 '''
   launch LAMMPS using the configuration defined in the dictionary config with an input file
@@ -191,16 +194,16 @@ def get_lammps_build_configuration(lmp_binary):
     - wrap subprocess with try/catch to handle exceptions
 '''
 def execute(lmp_binary, config, input_file_name, generate_ref_yaml=False):
-  cmd_str = config['mpiexec'] + " " + config['mpiexec_numproc_flag'] + " " + config['nprocs'] + " "
-  cmd_str += lmp_binary + " -in " + input_file_name + " " + config['args']
-  print(f"Executing: {cmd_str}")
-  p = subprocess.run(cmd_str, shell=True, text=True, capture_output=True)
+    cmd_str = config['mpiexec'] + " " + config['mpiexec_numproc_flag'] + " " + config['nprocs'] + " "
+    cmd_str += lmp_binary + " -in " + input_file_name + " " + config['args']
+    print(f"Executing: {cmd_str}")
+    p = subprocess.run(cmd_str, shell=True, text=True, capture_output=True)
 
-  #output = p.stdout.split('\n')
-  output = p.stdout
-  # process output to handle failed runs
+    #output = p.stdout.split('\n')
+    output = p.stdout
+    # process output to handle failed runs
 
-  return cmd_str, output
+    return cmd_str, output
 
 
 '''
@@ -210,36 +213,36 @@ def execute(lmp_binary, config, input_file_name, generate_ref_yaml=False):
 '''
 
 def generate_markers(inputFileName, outputFileName):
-  # read in the script
-  with open(inputFileName, 'r') as file:
-    data = file.read()
+    # read in the script
+    with open(inputFileName, 'r') as file:
+        data = file.read()
 
-    lines = data.splitlines()
-    out = []
-    for line in lines:
-      s = line.split()
-      if len(s) > 0:
-        if s[0] == "run":
-          out.append("    #REG:ADD thermo 10")
-          out.append("    #REG:ADD thermo_style yaml")
-      out.append(line)
+        lines = data.splitlines()
+        out = []
+        for line in lines:
+            s = line.split()
+            if len(s) > 0:
+                if s[0] == "run":
+                    out.append("    #REG:ADD thermo 10")
+                    out.append("    #REG:ADD thermo_style yaml")
+            out.append(line)
 
-  # write data to the new script
-  with open(outputFileName, 'w') as file:
-    for line in out:
-      file.write(line + "\n")
+    # write data to the new script
+    with open(outputFileName, 'w') as file:
+        for line in out:
+          file.write(line + "\n")
 
 def has_markers(input):
-  with open(input) as f:
-    if '#REG' in f.read():
-      return True
-  return False
+    with open(input) as f:
+        if '#REG' in f.read():
+          return True
+    return False
 
 '''
-  Iterate over a list of input files using the testing configuration
-  return total number of tests, and the number of tests with failures
+  Iterate over a list of input files using the given lmp_binary, the testing configuration
+  return test results, as a list of TestResult instances
 '''
-def iterate(input_list, config, results, removeAnnotatedInput=False):
+def iterate(lmp_binary, input_list, config, results, removeAnnotatedInput=False):
   EPSILON = np.float64(config['epsilon'])
   nugget = float(config['nugget'])
 
@@ -252,6 +255,11 @@ def iterate(input_list, config, results, removeAnnotatedInput=False):
 
   # iterate over the input scripts
   for input in input_list:
+
+    # skip the input file if listed
+    if 'skip' in config:
+      if input in config['skip']:
+        continue
 
     str_t = "\nRunning " + input + f" ({test_id+1}/{num_tests})"
 
@@ -323,7 +331,7 @@ def iterate(input_list, config, results, removeAnnotatedInput=False):
     # using the LAMMPS python module (for single-proc runs)
     #  lmp = lammps()
     #  lmp.file(input_test)
-    
+
     # or more customizable with config.yaml
     cmd_str, output = execute(lmp_binary, config, input_test)
 
@@ -335,8 +343,10 @@ def iterate(input_list, config, results, removeAnnotatedInput=False):
 
     num_runs = len(thermo)
     if num_runs == 0:
-      print(f"ERROR: Failed with the running with {input_test}. The run terminated with the following output:\n")
-      print(f"{output}")
+      print(f"ERROR: Failed with {input_test}. Check the log file for the run output.\n")
+      #print(f"{output}")
+      logger.info(f"The run terminated with the following output:\n")
+      logger.info(f"\n{output}")
       result.status = "error"
       results.append(result)
       continue 
@@ -351,7 +361,8 @@ def iterate(input_list, config, results, removeAnnotatedInput=False):
     # comparing output vs reference values
     width = 20
     if verbose == True:
-      print("Quantities".ljust(width) + "Output".center(width) + "Reference".center(width) + "Abs Diff Check".center(width) +  "Rel Diff Check".center(width))
+      print("Quantities".ljust(width) + "Output".center(width) + "Reference".center(width) +
+            "Abs Diff Check".center(width) +  "Rel Diff Check".center(width))
     
     # check if overrides for this input scipt is specified
     overrides = {}
@@ -378,64 +389,67 @@ def iterate(input_list, config, results, removeAnnotatedInput=False):
 
       # iterate over the fields
       for i in range(num_fields):
-        quantity = thermo[irun]['keywords'][i]
+          quantity = thermo[irun]['keywords'][i]
 
-        val = thermo[irun]['data'][thermo_step][i]
-        ref = thermo_ref[irun]['data'][thermo_step][i]
-        abs_diff = abs(float(val) - float(ref))
+          val = thermo[irun]['data'][thermo_step][i]
+          ref = thermo_ref[irun]['data'][thermo_step][i]
+          abs_diff = abs(float(val) - float(ref))
 
-        if abs(float(ref)) > EPSILON:
-          rel_diff = abs(float(val) - float(ref))/abs(float(ref))
-        else:
-          rel_diff = abs(float(val) - float(ref))/abs(float(ref)+nugget)
+          if abs(float(ref)) > EPSILON:
+            rel_diff = abs(float(val) - float(ref))/abs(float(ref))
+          else:
+            rel_diff = abs(float(val) - float(ref))/abs(float(ref)+nugget)
 
-        abs_diff_check = "PASSED"
-        rel_diff_check = "PASSED"
-        
-        if quantity in config['tolerance'] or quantity in overrides:
+          abs_diff_check = "PASSED"
+          rel_diff_check = "PASSED"
+          
+          if quantity in config['tolerance'] or quantity in overrides:
 
-          if quantity in config['tolerance']:
-            abs_tol = float(config['tolerance'][quantity]['abs'])
-            rel_tol = float(config['tolerance'][quantity]['rel'])
+              if quantity in config['tolerance']:
+                  abs_tol = float(config['tolerance'][quantity]['abs'])
+                  rel_tol = float(config['tolerance'][quantity]['rel'])
 
-          # overrides the global tolerance values if specified
-          if quantity in overrides:
-            abs_tol = float(overrides[quantity]['abs'])
-            rel_tol = float(overrides[quantity]['rel'])
+              # overrides the global tolerance values if specified
+              if quantity in overrides:
+                  abs_tol = float(overrides[quantity]['abs'])
+                  rel_tol = float(overrides[quantity]['rel'])
 
-          num_checks = num_checks + 2
-          if abs_diff > abs_tol:
-            abs_diff_check = "FAILED"
-            reason = f"Run {irun}: {quantity}: actual ({abs_diff:0.2e}) > expected ({abs_tol:0.2e})"
-            failed_abs_output.append(f"{reason}")
-            num_abs_failed = num_abs_failed + 1
-          if rel_diff > rel_tol:
-            rel_diff_check = "FAILED"
-            reason = f"Run {irun}: {quantity}: actual ({rel_diff:0.2e}) > expected ({rel_tol:0.2e})"
-            failed_rel_output.append(f"{reason}")
-            num_rel_failed = num_rel_failed + 1
-        else:
-          # N/A means that tolerances are not defined in the config file
-          abs_diff_check = "N/A"
-          rel_diff_check = "N/A"          
+              num_checks = num_checks + 2
+              if abs_diff > abs_tol:
+                  abs_diff_check = "FAILED"
+                  reason = f"Run {irun}: {quantity}: actual ({abs_diff:0.2e}) > expected ({abs_tol:0.2e})"
+                  failed_abs_output.append(f"{reason}")
+                  num_abs_failed = num_abs_failed + 1
+              if rel_diff > rel_tol:
+                  rel_diff_check = "FAILED"
+                  reason = f"Run {irun}: {quantity}: actual ({rel_diff:0.2e}) > expected ({rel_tol:0.2e})"
+                  failed_rel_output.append(f"{reason}")
+                  num_rel_failed = num_rel_failed + 1
+          else:
+              # N/A means that tolerances are not defined in the config file
+              abs_diff_check = "N/A"
+              rel_diff_check = "N/A"          
 
-        if verbose == True and abs_diff_check != "N/A"  and rel_diff_check != "N/A":
-          print(f"{thermo[irun]['keywords'][i].ljust(width)} {str(val).rjust(20)} {str(ref).rjust(20)} {abs_diff_check.rjust(20)} {rel_diff_check.rjust(20)}")
+          if verbose == True and abs_diff_check != "N/A"  and rel_diff_check != "N/A":
+              print(f"{thermo[irun]['keywords'][i].ljust(width)} {str(val).rjust(20)} {str(ref).rjust(20)} "
+                  "{abs_diff_check.rjust(20)} {rel_diff_check.rjust(20)}")
 
     if num_abs_failed > 0:
-      print(f"{num_abs_failed} absolute diff checks failed with the specified tolerances.")
-      result.status = "failed"
-      for i in failed_abs_output:
-        print(f"- {i}")
+        print(f"{num_abs_failed} absolute diff checks failed with the specified tolerances.")
+        result.status = "failed"
+        if verbose == True:
+            for i in failed_abs_output:
+              print(f"- {i}")
     if num_rel_failed > 0:
-      print(f"{num_rel_failed} relative diff checks failed with the specified tolerances.")
-      result.status = "failed"
-      for i in failed_rel_output:
-        print(f"- {i}")
+        print(f"{num_rel_failed} relative diff checks failed with the specified tolerances.")
+        result.status = "failed"
+        if verbose == True:
+          for i in failed_rel_output:
+            print(f"- {i}")
     if num_abs_failed == 0 and num_rel_failed == 0:
-      print(f"All {num_checks} checks passed.")
-      result.status = "passed"        
-      num_passed = num_passed + 1
+        print(f"All {num_checks} checks passed.")
+        result.status = "passed"        
+        num_passed = num_passed + 1
 
     results.append(result)
 
@@ -444,8 +458,8 @@ def iterate(input_list, config, results, removeAnnotatedInput=False):
 
     # remove the annotated input script
     if removeAnnotatedInput == True:
-      cmd_str = "rm " + input_test
-      os.system(cmd_str)
+        cmd_str = "rm " + input_test
+        os.system(cmd_str)
 
   return num_passed
 
@@ -455,197 +469,199 @@ def iterate(input_list, config, results, removeAnnotatedInput=False):
 '''
 if __name__ == "__main__":
 
-  # default values
-  lmp_binary = ""
-  configFileName = "config.yaml"
-  example_subfolders = []
-  genref = False
-  verbose = False
-  output_file = "output.xml"
+    logger = logging.getLogger(__name__)
+    logging.basicConfig(filename='run.log', level=logging.INFO)
 
-  # parse the arguments
-  parser = ArgumentParser()
-  parser.add_argument("--lmp-bin", dest="lmp_binary", default="", help="LAMMPS binary")
-  parser.add_argument("--config-file", dest="config_file", default="config.yaml",
-                      help="Configuration YAML file")
-  parser.add_argument("--example-folders", dest="example_folders", default="", help="Example subfolders")
-  parser.add_argument("--gen-ref",dest="genref", action='store_true', default=False,
-                      help="Generating reference data")
-  parser.add_argument("--verbose",dest="verbose", action='store_true', default=False,
-                      help="Verbose output")
-  parser.add_argument("--output",dest="output", default="output.xml", help="Output file")
+    # default values
+    lmp_binary = ""
+    configFileName = "config.yaml"
+    example_subfolders = []
+    genref = False
+    verbose = False
+    output_file = "output.xml"
 
-  args = parser.parse_args()
+    # parse the arguments
+    parser = ArgumentParser()
+    parser.add_argument("--lmp-bin", dest="lmp_binary", default="", help="LAMMPS binary")
+    parser.add_argument("--config-file", dest="config_file", default="config.yaml",
+                        help="Configuration YAML file")
+    parser.add_argument("--example-folders", dest="example_folders", default="", help="Example subfolders")
+    parser.add_argument("--gen-ref",dest="genref", action='store_true', default=False,
+                        help="Generating reference data")
+    parser.add_argument("--verbose",dest="verbose", action='store_true', default=False,
+                        help="Verbose output")
+    parser.add_argument("--output",dest="output", default="output.xml", help="Output file")
 
-  lmp_binary = os.path.abspath(args.lmp_binary)
-  configFileName = args.config_file
-  output_file = args.output
-  if args.example_folders != "":
-    example_subfolders = args.example_folders.split(';')
-    print("Example folders:")
-    print(example_subfolders)
-  genref = args.genref
-  verbose = args.verbose
+    args = parser.parse_args()
 
-  # read in the configuration of the tests
-  with open(configFileName, 'r') as f:
-    config = yaml.load(f, Loader=Loader)
-    absolute_path = os.path.abspath(configFileName)
-    print(f"Regression tests with settings defined in {absolute_path}")
- 
-  # check if lmp_binary is specified in the config yaml
-  if lmp_binary == "":
-    if config['lmp_binary'] == "":
-       print("Needs a valid LAMMPS binary")
-       quit()
-    else:
-       lmp_binary = os.path.abspath(config['lmp_binary'])
+    lmp_binary = os.path.abspath(args.lmp_binary)
+    configFileName = args.config_file
+    output_file = args.output
+    if args.example_folders != "":
+        example_subfolders = args.example_folders.split(';')
+        print("Example folders:")
+        print(example_subfolders)
+    genref = args.genref
+    verbose = args.verbose
 
-  # print out the binary info
-  packages, operating_system, GitInfo, compile_flags = get_lammps_build_configuration(lmp_binary)
-  print("LAMMPS build info:")
-  print(f"- {operating_system}")
-  print(f"- {GitInfo}")
-  print(f"- Active compile flags: {compile_flags}")
-  print(f"- List of installed packages: {packages}")
+    # read in the configuration of the tests
+    with open(configFileName, 'r') as f:
+        config = yaml.load(f, Loader=Loader)
+        absolute_path = os.path.abspath(configFileName)
+        print(f"Regression tests with settings defined in {absolute_path}")
   
-  # Using in place input scripts
-  inplace_input = True
-  test_cases = []
+    # check if lmp_binary is specified in the config yaml
+    if lmp_binary == "":
+        if config['lmp_binary'] == "":
+            print("Needs a valid LAMMPS binary")
+            quit()
+        else:
+            lmp_binary = os.path.abspath(config['lmp_binary'])
 
-  # if the example folders are not specified from the command-line argument -example-folders
-  if len(example_subfolders) == 0:
-    example_subfolders.append("../../examples/melt")
-    example_subfolders.append('../../examples/flow')
-    example_subfolders.append('../../examples/indent')
-    example_subfolders.append('../../examples/shear')
-    example_subfolders.append('../../examples/steinhardt')
-
-    # prd  log file parsing issue
-    # neb  log file parsing issue
-    # snap log files obsolete?
-
-    # append the example subfolders depending on the installed packages
-    if 'ASPHERE' in packages:
-      #example_subfolders.append('../../examples/ASPHERE/ellipsoid')
-      example_subfolders.append('../../examples/ellipse')
-
-    if 'CORESHELL' in packages:
-      example_subfolders.append('../../examples/coreshell')
-
-    if 'MOLECULE' in packages:
-      example_subfolders.append('../../examples/micelle')
-      # peptide thermo_style as multi
-      #example_subfolders.append('../../examples/peptide')
-
-    if 'GRANULAR' in packages:
-      example_subfolders.append('../../examples/granular')
-      example_subfolders.append('../../examples/pour')
-
-    if 'AMOEBA' in packages:
-      example_subfolders.append('../../examples/amoeba')
-
-    if 'BODY' in packages:
-      example_subfolders.append('../../examples/body')
-
-    if 'BPM' in packages:
-      example_subfolders.append('../../examples/bpm/impact')
-      example_subfolders.append('../../examples/bpm/pour')
-
-    if 'COLLOID' in packages:
-      example_subfolders.append('../../examples/colloid')
-
-    if 'CRACK' in packages:
-      example_subfolders.append('../../examples/crack')
-
-    if 'DIELECTRIC' in packages:
-      example_subfolders.append('../../examples/PACKAGES/dielectric')
-
-    if 'DIPOLE' in packages:
-      example_subfolders.append('../../examples/dipole')
-
-
-    if 'DPD-BASIC' in packages:
-      example_subfolders.append('../../examples/PACKAGES/dpd-basic/dpd')
-      example_subfolders.append('../../examples/PACKAGES/dpd-basic/dpdext')
-      example_subfolders.append('../../examples/PACKAGES/dpd-basic/dpd_tstat')
-      example_subfolders.append('../../examples/PACKAGES/dpd-basic/dpdext_tstat')
-
-    if 'MANYBODY' in packages:
-      example_subfolders.append('../../examples/tersoff')
-      example_subfolders.append('../../examples/vashishta')
-      example_subfolders.append('../../examples/threebody')
-
-    if 'RIGID' in packages:
-      example_subfolders.append('../../examples/rigid')
-
-    if 'SRD' in packages:
-      example_subfolders.append('../../examples/srd')
+    # print out the binary info
+    packages, operating_system, GitInfo, compile_flags = get_lammps_build_configuration(lmp_binary)
+    print("LAMMPS build info:")
+    print(f"- {operating_system}")
+    print(f"- {GitInfo}")
+    print(f"- Active compile flags: {compile_flags}")
+    print(f"- List of installed packages: {packages}")
     
-  all_results = []
-  if inplace_input == True:
+    # Using in place input scripts
+    inplace_input = True
+    test_cases = []
 
-    # save current working dir
-    p = subprocess.run("pwd", shell=True, text=True, capture_output=True)
-    pwd = p.stdout.split('\n')[0]
-    pwd = os.path.abspath(pwd)
-    print("Working directory: " + pwd)
+    # if the example folders are not specified from the command-line argument -example-folders
+    if len(example_subfolders) == 0:
+        example_subfolders.append("../../examples/melt")
+        example_subfolders.append('../../examples/flow')
+        example_subfolders.append('../../examples/indent')
+        example_subfolders.append('../../examples/shear')
+        example_subfolders.append('../../examples/steinhardt')
 
-    # change dir to a folder under examples/, need to use os.chdir()
-    # TODO: loop through the subfolders under examples/, depending on the installed packages
+        # prd  log file parsing issue
+        # neb  log file parsing issue
+        # snap log files obsolete?
 
-    total_tests = 0
-    passed_tests = 0
+        # append the example subfolders depending on the installed packages
+        if 'ASPHERE' in packages:
+            #example_subfolders.append('../../examples/ASPHERE/ellipsoid')
+            example_subfolders.append('../../examples/ellipse')
 
-    for directory in example_subfolders:
+        if 'CORESHELL' in packages:
+            example_subfolders.append('../../examples/coreshell')
 
+        if 'MOLECULE' in packages:
+            example_subfolders.append('../../examples/micelle')
+            # peptide thermo_style as multi
+            #example_subfolders.append('../../examples/peptide')
+
+        if 'GRANULAR' in packages:
+            example_subfolders.append('../../examples/granular')
+            example_subfolders.append('../../examples/pour')
+
+        if 'AMOEBA' in packages:
+            example_subfolders.append('../../examples/amoeba')
+
+        if 'BODY' in packages:
+            example_subfolders.append('../../examples/body')
+
+        if 'BPM' in packages:
+            example_subfolders.append('../../examples/bpm/impact')
+            example_subfolders.append('../../examples/bpm/pour')
+
+        if 'COLLOID' in packages:
+            example_subfolders.append('../../examples/colloid')
+
+        if 'CRACK' in packages:
+            example_subfolders.append('../../examples/crack')
+
+        if 'DIELECTRIC' in packages:
+            example_subfolders.append('../../examples/PACKAGES/dielectric')
+
+        if 'DIPOLE' in packages:
+            example_subfolders.append('../../examples/dipole')
+
+        if 'DPD-BASIC' in packages:
+            example_subfolders.append('../../examples/PACKAGES/dpd-basic/dpd')
+            example_subfolders.append('../../examples/PACKAGES/dpd-basic/dpdext')
+            example_subfolders.append('../../examples/PACKAGES/dpd-basic/dpd_tstat')
+            example_subfolders.append('../../examples/PACKAGES/dpd-basic/dpdext_tstat')
+
+        if 'MANYBODY' in packages:
+            example_subfolders.append('../../examples/tersoff')
+            example_subfolders.append('../../examples/vashishta')
+            example_subfolders.append('../../examples/threebody')
+
+        if 'RIGID' in packages:
+            example_subfolders.append('../../examples/rigid')
+
+        if 'SRD' in packages:
+            example_subfolders.append('../../examples/srd')
+      
+    all_results = []
+    if inplace_input == True:
+
+      # save current working dir
       p = subprocess.run("pwd", shell=True, text=True, capture_output=True)
-      print("\nEntering " + directory)
-      os.chdir(directory)
+      pwd = p.stdout.split('\n')[0]
+      pwd = os.path.abspath(pwd)
+      print("Working directory: " + pwd)
 
-      cmd_str = "ls in.*"
-      p = subprocess.run(cmd_str, shell=True, text=True, capture_output=True)
-      input_list = p.stdout.split('\n')
-      input_list.remove('')
+      # change dir to a folder under examples/, need to use os.chdir()
+      # TODO: loop through the subfolders under examples/, depending on the installed packages
 
-      print(f"List of input scripts: {input_list}")
-      total_tests += len(input_list)
+      total_tests = 0
+      passed_tests = 0
 
-      # iterate through the input scripts
-      results = []
-      num_passed = iterate(input_list, config, results)
-      passed_tests += num_passed
+      for directory in example_subfolders:
 
-      all_results.extend(results)
+          p = subprocess.run("pwd", shell=True, text=True, capture_output=True)
+          print("\nEntering " + directory)
+          os.chdir(directory)
 
-      # get back to the working dir
-      os.chdir(pwd)
+          cmd_str = "ls in.*"
+          p = subprocess.run(cmd_str, shell=True, text=True, capture_output=True)
+          input_list = p.stdout.split('\n')
+          input_list.remove('')
 
-  else:
-    # or using the input scripts in the working directory -- for debugging purposes
-    input_list=['in.lj', 'in.rhodo', 'in.eam']
-    total_tests = len(input_list)
-    results = []
-    passed_tests = iterate(input_list, config, results)
+          print(f"List of input scripts: {input_list}")
+          total_tests += len(input_list)
 
-  print("Summary:")
-  print(f" - {passed_tests} passed / {total_tests} tests")
-  print(f" - Details are given in {output_file}.")
+          # iterate through the input scripts
+          results = []
+          num_passed = iterate(lmp_binary, input_list, config, results)
+          passed_tests += num_passed
 
-  # generate a JUnit XML file
-  with open(output_file, 'w') as f:
-    test_cases = [] 
-    for result in all_results:
-      #print(f"{result.name}: {result.status}")
-      case = TestCase(name=result.name, classname=result.name)
-      if result.status == "failed":
-        case.add_failure_info(message="Actual values did not match expected ones.")
-      if result.status == "skipped":
-        case.add_skipped_info(message="Test was skipped.")
-      if result.status == "error":
-        case.add_skipped_info(message="Test run had errors.")
-      test_cases.append(case)
-    
-    current_timestamp = datetime.datetime.now()
-    ts = TestSuite(f"{configFileName}", test_cases, timestamp=current_timestamp)
-    TestSuite.to_file(f, [ts], prettyprint=True)
+          all_results.extend(results)
+
+          # get back to the working dir
+          os.chdir(pwd)
+
+    else:
+        # or using the input scripts in the working directory -- for debugging purposes
+        input_list=['in.lj', 'in.rhodo', 'in.eam']
+        total_tests = len(input_list)
+        results = []
+        passed_tests = iterate(input_list, config, results)
+
+    print("Summary:")
+    print(f" - {passed_tests} passed / {total_tests} tests")
+    print(f" - Details are given in {output_file}.")
+
+    # generate a JUnit XML file
+    with open(output_file, 'w') as f:
+        test_cases = [] 
+        for result in all_results:
+            #print(f"{result.name}: {result.status}")
+            case = TestCase(name=result.name, classname=result.name)
+            if result.status == "failed":
+              case.add_failure_info(message="Actual values did not match expected ones.")
+            if result.status == "skipped":
+              case.add_skipped_info(message="Test was skipped.")
+            if result.status == "error":
+              case.add_skipped_info(message="Test run had errors.")
+            test_cases.append(case)
+
+        current_timestamp = datetime.datetime.now()
+        ts = TestSuite(f"{configFileName}", test_cases, timestamp=current_timestamp)
+        TestSuite.to_file(f, [ts], prettyprint=True)

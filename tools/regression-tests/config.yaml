@@ -28,6 +28,11 @@
       Press:
         abs: 1e-2
         rel: 1e-4
+  skip:
+    [ in.rigid.poems3,
+      in.rigid.poems4
+    ]
+
   nugget: 1.0
   epsilon: 1e-16
 

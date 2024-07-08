@@ -143,6 +143,13 @@ void ImproperHybridKokkos::compute(int eflag, int vflag)
       for (int i = 0; i < n; i++)
         for (int j = 0; j < 6; j++) vatom[i][j] += vatom_substyle[i][j];
     }
+    if (cvflag_atom) {
+      int n = atom->nlocal;
+      if (force->newton_bond) n += atom->nghost;
+      double **cvatom_substyle = styles[m]->cvatom;
+      for (int i = 0; i < n; i++)
+        for (int j = 0; j < 9; j++) cvatom[i][j] += cvatom_substyle[i][j];
+    }
   }
 
   // restore ptrs to original improperlist
@@ -211,7 +218,8 @@ double ImproperHybridKokkos::memory_usage()
 {
   double bytes = (double) maxeatom * sizeof(double);
   bytes += (double) maxvatom * 6 * sizeof(double);
-  for (int m = 0; m < nstyles; m++) bytes += (double) maximproper_all * 3 * sizeof(int);
+  bytes += (double) maxcvatom * 9 * sizeof(double);
+  for (int m = 0; m < nstyles; m++) bytes += (double) maximproper_all * 5 * sizeof(int);
   for (int m = 0; m < nstyles; m++)
     if (styles[m]) bytes += styles[m]->memory_usage();
   return bytes;

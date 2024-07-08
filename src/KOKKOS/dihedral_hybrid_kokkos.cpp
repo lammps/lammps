@@ -155,11 +155,11 @@ void DihedralHybridKokkos::compute(int eflag, int vflag)
 void DihedralHybridKokkos::allocate()
 {
   allocated = 1;
-  int n = atom->ndihedraltypes;
+  int np1 = atom->ndihedraltypes + 1;
 
-  memoryKK->create_kokkos(k_map, map, n + 1, "dihedral:map");
-  memory->create(setflag, n + 1, "dihedral:setflag");
-  for (int i = 1; i <= n; i++) setflag[i] = 0;
+  memoryKK->create_kokkos(k_map, map, np1, "dihedral:map");
+  memory->create(setflag, np1, "dihedral:setflag");
+  for (int i = 1; i <= np1; i++) setflag[i] = 0;
 
   k_ndihedrallist = DAT::tdual_int_1d("dihedral:ndihedrallist", nstyles);
 }

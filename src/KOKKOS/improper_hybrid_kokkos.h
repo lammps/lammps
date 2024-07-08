@@ -13,9 +13,9 @@
 
 #ifdef BOND_CLASS
 // clang-format off
-BondStyle(hybrid/kk,BondHybridKokkos);
-BondStyle(hybrid/kk/device,BondHybridKokkos);
-BondStyle(hybrid/kk/host,BondHybridKokkos);
+ImproperStyle(hybrid/kk,ImproperHybridKokkos);
+ImproperStyle(hybrid/kk/device,ImproperHybridKokkos);
+ImproperStyle(hybrid/kk/host,ImproperHybridKokkos);
 // clang-format on
 #else
 
@@ -23,30 +23,30 @@ BondStyle(hybrid/kk/host,BondHybridKokkos);
 #ifndef LMP_BOND_HYBRID_KOKKOS_H
 #define LMP_BOND_HYBRID_KOKKOS_H
 
-#include "bond_hybrid.h"
+#include "improper_hybrid.h"
 #include "kokkos_type.h"
 
 namespace LAMMPS_NS {
 
-class BondHybridKokkos : public BondHybrid {
+class ImproperHybridKokkos : public ImproperHybrid {
   friend class Force;
 
  public:
-  BondHybridKokkos(class LAMMPS *);
-  ~BondHybridKokkos() override;
+  ImproperHybridKokkos(class LAMMPS *);
+  ~ImproperHybridKokkos() override;
   void compute(int, int) override;
   void coeff(int, char **) override;
   void init_style() override;
   double memory_usage() override;
 
  private:
-  int maxbond_all;
+  int maximproper_all;
 
   class NeighborKokkos *neighborKK;
 
-  DAT::tdual_int_1d k_map;       // which style each bond type points to
-  DAT::tdual_int_1d k_nbondlist; // # of bonds in sub-style bondlists
-  DAT::tdual_int_3d k_bondlist;  // bondlist for each sub-style
+  DAT::tdual_int_1d k_map;       // which style each improper type points to
+  DAT::tdual_int_1d k_nimproperlist; // # of impropers in sub-style improperlists
+  DAT::tdual_int_3d k_improperlist;  // improperlist for each sub-style
 
   void allocate() override;
   void deallocate() override;

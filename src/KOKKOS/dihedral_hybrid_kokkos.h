@@ -23,7 +23,7 @@ DihedralStyle(hybrid/kk/host,DihedralHybridKokkos);
 #ifndef LMP_BOND_HYBRID_KOKKOS_H
 #define LMP_BOND_HYBRID_KOKKOS_H
 
-#include "bond_hybrid.h"
+#include "dihedral_hybrid.h"
 #include "kokkos_type.h"
 
 namespace LAMMPS_NS {

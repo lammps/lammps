@@ -20,13 +20,13 @@ Syntax
        *empty* = no args
        *region* args = region-ID
        *type* or *id* or *molecule*
-         args = list of one or more atom types, atom IDs, or molecule IDs
-           any entry in list can be a sequence formatted as A:B or A:B:C where
+         args = list of one or more atom types (1-Ntypes or type label), atom IDs, or molecule IDs
+           any numeric entry in list can be a sequence formatted as A:B or A:B:C where
            A = starting index, B = ending index,
            C = increment between indices, 1 if not specified
          args = logical value
            logical = "<" or "<=" or ">" or ">=" or "==" or "!="
-           value = an atom type or atom ID or molecule ID (depending on *style*\ )
+           value = an atom type (1-Ntypes or type label) or atom ID or molecule ID (depending on *style*\ )
          args = logical value1 value2
            logical = "<>"
            value1,value2 = atom types or atom IDs or molecule IDs (depending on *style*\ )
@@ -52,6 +52,7 @@ Examples
 
    group edge region regstrip
    group water type 3 4
+   group water type OW HT
    group sub id 10 25 50
    group sub id 10 25 50 500:1000
    group sub id 100:10000:10
@@ -119,7 +120,7 @@ three styles can use arguments specified in one of two formats.
 
 The first format is a list of values (types or IDs).  For example, the
 second command in the examples above puts all atoms of type 3 or 4 into
-the group named *water*\ .  Each entry in the list can be a
+the group named *water*\ .  Each numeric entry in the list can be a
 colon-separated sequence ``A:B`` or ``A:B:C``, as in two of the examples
 above.  A "sequence" generates a sequence of values (types or IDs),
 with an optional increment.  The first example with ``500:1000`` has the
@@ -135,7 +136,8 @@ except ``<>`` take a single argument.  The third example above adds all
 atoms with IDs from 1 to 150 to the group named *sub*\ .  The logical ``<>``
 means "between" and takes 2 arguments.  The fourth example above adds all
 atoms belonging to molecules with IDs from 50 to 250 (inclusive) to
-the group named polyA.
+the group named polyA.  For the *type* style, type labels are converted into
+numeric types before being evaluated.
 
 The *variable* style evaluates a variable to determine which atoms to
 add to the group.  It must be an :doc:`atom-style variable <variable>`

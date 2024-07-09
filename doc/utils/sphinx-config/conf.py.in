@@ -57,6 +57,7 @@ extensions = [
     'table_from_list',
     'tab_or_note',
     'breathe',
+    'sphinx_design'
 ]
 
 images_config = {

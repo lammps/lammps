@@ -16,6 +16,7 @@
 
 #include "atom.h"
 #include "error.h"
+#include "label_map.h"
 #include "memory.h"
 #include "update.h"
 
@@ -120,6 +121,32 @@ int DumpXYZ::modify_param(int narg, char **arg)
     }
 
     return ntypes+1;
+  }
+
+  if (strcmp(arg[0],"types") == 0) {
+    if (narg < 2) error->all(FLERR,"Illegal dump_modify command");
+
+    if (typenames) {
+      for (int i = 1; i <= ntypes; i++)
+        delete [] typenames[i];
+
+      delete [] typenames;
+      typenames = nullptr;
+    }
+
+    if (strcmp(arg[1],"numeric") == 0) {
+      return 2;
+    } else if (strcmp(arg[1],"labels") == 0) {
+      if (!atom->labelmapflag)
+        error->all(FLERR, "Label map must be defined when using 'types labels'");
+    } else error->all(FLERR, "Illegal option for dump_modify 'types' keyword");
+
+    typenames = new char*[ntypes+1];
+    for (int itype = 1; itype <= ntypes; itype++) {
+      typenames[itype] = utils::strdup(atom->lmap->typelabel[itype-1]);
+    }
+
+    return 2;
   }
 
   return 0;

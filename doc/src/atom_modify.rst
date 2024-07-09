@@ -71,11 +71,11 @@ all atoms, e.g. in a data or restart file.
    atom IDs are required, due to how neighbor lists are built.
 
 The *map* keyword determines how atoms with specific IDs are found
-when required.  An example are the bond (angle, etc) methods which
-need to find the local index of an atom with a specific global ID
-which is a bond (angle, etc) partner.  LAMMPS performs this operation
-efficiently by creating a "map", which is either an *array* or *hash*
-table, as described below.
+when required.  For example, the bond (angle, etc) methods need to
+find the local index of an atom with a specific global ID which is a
+bond (angle, etc) partner.  LAMMPS performs this operation efficiently
+by creating a "map", which is either an *array* or *hash* table, as
+described below.
 
 When the *map* keyword is not specified in your input script, LAMMPS
 only creates a map for :doc:`atom_styles <atom_style>` for molecular
@@ -83,34 +83,39 @@ systems which have permanent bonds (angles, etc).  No map is created
 for atomic systems, since it is normally not needed.  However some
 LAMMPS commands require a map, even for atomic systems, and will
 generate an error if one does not exist.  The *map* keyword thus
-allows you to force the creation of a map.  The *yes* value will
-create either an *array* or *hash* style map, as explained in the next
-paragraph.  The *array* and *hash* values create an array-style or
-hash-style map respectively.
+allows you to force the creation of a map.
 
-For an *array*\ -style map, each processor stores a lookup table of
-length N, where N is the largest atom ID in the system.  This is a
-fast, simple method for many simulations, but requires too much memory
-for large simulations.  For a *hash*\ -style map, a hash table is
-created on each processor, which finds an atom ID in constant time
-(independent of the global number of atom IDs).  It can be slightly
-slower than the *array* map, but its memory cost is proportional to
-the number of atoms owned by a processor, i.e. N/P when N is the total
-number of atoms in the system and P is the number of processors.
+Specifying a value of *yes* will create either an array-style or
+hash-style map, depending on the size of the system.  If no atom ID is
+larger than 1 million, then an array-style map is used, otherwise a
+hash-style map is used.  Specifying a value of *array* or *hash*
+creates an array-style or hash-style map respectively, regardless of
+the size of the system.
 
-The *first* keyword allows a :doc:`group <group>` to be specified whose
-atoms will be maintained as the first atoms in each processor's list
-of owned atoms.  This in only useful when the specified group is a
-small fraction of all the atoms, and there are other operations LAMMPS
-is performing that will be sped-up significantly by being able to loop
-over the smaller set of atoms.  Otherwise the reordering required by
-this option will be a net slow-down.  The :doc:`neigh_modify include <neigh_modify>` and :doc:`comm_modify group <comm_modify>`
-commands are two examples of commands that require this setting to
-work efficiently.  Several :doc:`fixes <fix>`, most notably time
-integration fixes like :doc:`fix nve <fix_nve>`, also take advantage of
-this setting if the group they operate on is the group specified by
-this command.  Note that specifying "all" as the group-ID effectively
-turns off the *first* option.
+For an array-style map, each processor stores a lookup table of length
+N, where N is the largest atom ID in the system.  This is a fast,
+simple method for many simulations, but requires too much memory for
+large simulations.  For a hash-style map, a hash table is created on
+each processor, which finds an atom ID in constant time (independent
+of the global number of atom IDs).  It can be slightly slower than the
+*array* map, but its memory cost is proportional to the number of
+atoms owned by a processor, i.e. N/P when N is the total number of
+atoms in the system and P is the number of processors.
+
+The *first* keyword allows a :doc:`group <group>` to be specified
+whose atoms will be maintained as the first atoms in each processor's
+list of owned atoms.  This in only useful when the specified group is
+a small fraction of all the atoms, and there are other operations
+LAMMPS is performing that will be sped-up significantly by being able
+to loop over the smaller set of atoms.  Otherwise the reordering
+required by this option will be a net slow-down.  The
+:doc:`neigh_modify include <neigh_modify>` and :doc:`comm_modify group
+<comm_modify>` commands are two examples of commands that require this
+setting to work efficiently.  Several :doc:`fixes <fix>`, most notably
+time integration fixes like :doc:`fix nve <fix_nve>`, also take
+advantage of this setting if the group they operate on is the group
+specified by this command.  Note that specifying "all" as the group-ID
+effectively turns off the *first* option.
 
 It is OK to use the *first* keyword with a group that has not yet been
 defined, e.g. to use the atom_modify first command at the beginning of
@@ -148,15 +153,16 @@ cache locality will be undermined.
 
 .. note::
 
-   Running a simulation with sorting on versus off should not
-   change the simulation results in a statistical sense.  However, a
-   different ordering will induce round-off differences, which will lead
-   to diverging trajectories over time when comparing two simulations.
-   Various commands, particularly those which use random numbers
-   (e.g. :doc:`velocity create <velocity>`, and :doc:`fix langevin <fix_langevin>`), may generate (statistically identical)
-   results which depend on the order in which atoms are processed.  The
-   order of atoms in a :doc:`dump <dump>` file will also typically change
-   if sorting is enabled.
+   Running a simulation with sorting on versus off should not change
+   the simulation results in a statistical sense.  However, a
+   different ordering will induce round-off differences, which will
+   lead to diverging trajectories over time when comparing two
+   simulations.  Various commands, particularly those which use random
+   numbers (e.g. :doc:`velocity create <velocity>`, and :doc:`fix
+   langevin <fix_langevin>`), may generate (statistically identical)
+   results which depend on the order in which atoms are processed.
+   The order of atoms in a :doc:`dump <dump>` file will also typically
+   change if sorting is enabled.
 
 .. note::
 
@@ -183,12 +189,13 @@ Default
 
 By default, *id* is yes.  By default, atomic systems (no bond topology
 info) do not use a map.  For molecular systems (with bond topology
-info), a map is used.  The default map style is array if no atom ID is
-larger than 1 million, otherwise the default is hash.  By default, a
-"first" group is not defined.  By default, sorting is enabled with a
-frequency of 1000 and a binsize of 0.0, which means the neighbor
-cutoff will be used to set the bin size. If no neighbor cutoff is
-defined, sorting will be turned off.
+info), the default is to use a map of either *array* or *hash* style
+depending on the size of the sustem, as explained above for the *map
+yes* keyword/value option.  By default, a *first* group is not
+defined.  By default, sorting is enabled with a frequency of 1000 and
+a binsize of 0.0, which means the neighbor cutoff will be used to set
+the bin size. If no neighbor cutoff is defined, sorting will be turned
+off.
 
 ----------
 

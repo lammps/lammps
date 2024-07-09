@@ -143,12 +143,13 @@ typedef Kokkos::DefaultExecutionSpace LMPDeviceType;
 typedef Kokkos::HostSpace::execution_space LMPHostType;
 
 
-// Need to use Cuda UVM memory space for Host execution space
+// If unified memory, need to use device memory space for host execution space
 
 template<class DeviceType>
 class KKDevice {
-public:
-#if defined(KOKKOS_ENABLE_CUDA) && defined(KOKKOS_ENABLE_CUDA_UVM)
+ public:
+#if ((defined(KOKKOS_ENABLE_CUDA) && defined(KOKKOS_ENABLE_CUDA_UVM)) || \
+     (defined(KOKKOS_ENABLE_HIP) && defined(KOKKOS_ENABLE_IMPL_HIP_UNIFIED_MEMORY)))
   typedef Kokkos::Device<DeviceType,LMPDeviceType::memory_space> value;
 #else
   typedef Kokkos::Device<DeviceType,typename DeviceType::memory_space> value;
@@ -1407,6 +1408,7 @@ typedef SNAComplex<SNAreal> SNAcomplex;
 #endif
 
 #define LAMMPS_LAMBDA KOKKOS_LAMBDA
+#define LAMMPS_CLASS_LAMBDA KOKKOS_CLASS_LAMBDA
 
 #if defined(KOKKOS_ENABLE_CUDA) || defined(KOKKOS_ENABLE_HIP)
 #define LAMMPS_DEVICE_FUNCTION __device__

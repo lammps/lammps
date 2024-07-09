@@ -23,6 +23,7 @@ project(lammps CXX)
 set(SOVERSION 0)
 get_property(BUILD_IS_MULTI_CONFIG GLOBAL PROPERTY GENERATOR_IS_MULTI_CONFIG)
 
+include(GNUInstallDirs)
 get_filename_component(LAMMPS_DIR ${CMAKE_CURRENT_SOURCE_DIR}/.. ABSOLUTE)
 get_filename_component(LAMMPS_LIB_BINARY_DIR ${CMAKE_BINARY_DIR}/lib ABSOLUTE)
 # collect all executables and shared libs in the top level build folder
@@ -208,7 +209,7 @@ else()
   unset(CMAKE_CXX_CLANG_TIDY CACHE)
 endif()
 
-include(GNUInstallDirs)
+
 file(GLOB ALL_SOURCES CONFIGURE_DEPENDS ${LAMMPS_SOURCE_DIR}/[^.]*.cpp)
 file(GLOB MAIN_SOURCES CONFIGURE_DEPENDS ${LAMMPS_SOURCE_DIR}/main.cpp)
 list(REMOVE_ITEM ALL_SOURCES ${MAIN_SOURCES})
@@ -256,6 +257,7 @@ set(STANDARD_PACKAGES
   DRUDE
   EFF
   ELECTRODE
+  EXTRA-COMMAND
   EXTRA-COMPUTE
   EXTRA-DUMP
   EXTRA-FIX
@@ -281,10 +283,11 @@ set(STANDARD_PACKAGES
   ML-HDNNP
   ML-IAP
   ML-PACE
+  ML-POD
   ML-QUIP
   ML-RANN
   ML-SNAP
-  ML-POD
+  ML-UF3
   MOFFF
   MOLECULE
   MOLFILE
@@ -689,7 +692,7 @@ endif()
 # packages which selectively include variants based on enabled styles
 # e.g. accelerator packages
 ######################################################################
-foreach(PKG_WITH_INCL CORESHELL DPD-SMOOTH MC MISC PHONON QEQ OPENMP KOKKOS OPT INTEL GPU)
+foreach(PKG_WITH_INCL CORESHELL DPD-BASIC DPD-SMOOTH MC MISC PHONON QEQ OPENMP KOKKOS OPT INTEL GPU)
   if(PKG_${PKG_WITH_INCL})
     include(Packages/${PKG_WITH_INCL})
   endif()

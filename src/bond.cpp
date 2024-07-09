@@ -63,8 +63,7 @@ Bond::Bond(LAMMPS *_lmp) : Pointers(_lmp)
   execution_space = Host;
   datamask_read = ALL_MASK;
   datamask_modify = ALL_MASK;
-
-  copymode = 0;
+  copymode = kokkosable = 0;
 }
 
 /* ---------------------------------------------------------------------- */

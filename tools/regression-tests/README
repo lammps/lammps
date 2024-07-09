@@ -1,10 +1,78 @@
-This is a work in progress for enabling regression tests using in-place example scripts.
+The script `run_tests.py` in this folder is used to perform regression tests using in-place example scripts. 
 
-Usage: (to be changed)
-```
-  python3 --lmp-bin=../../build/lmp --config-file=config.yaml
-```
+What this single script does is to launch the selected LAMMPS binary using a testing configuration defined in a `.yaml` file (e.g., `config.yaml`) for the set of input scripts inside the given `examples/` subfolders, and compare the output thermo with that in the existing log file with the same number of procs. If there are multiple log files with the same input script (e.g., `log.melt.*.g++.1` and `log.melt.*.g++.4`), the one with highest number of procs is chosen.
 
-will iterative through the input scripts `in.*` in the working folder
-using the given LAMMPS binary and the configuration defined in `config.yaml`.
+The output includes the number of passed and failed tests and an `output.xml` file in the JUnit XML format for downstream reporting. The output and error of any crashed runs are logged.
 
+A test with an input script is considered passed when the given LAMMPS binary produces thermo output quantities consistent with those in the reference log file within the specified tolerances in the test configuration `.yaml` file.
+
+With the current features, users can:
+
+    + launch tests with `mpirun` with multiple procs
+    + specify which LAMMPS binary version to test (e.g., the version with their new code or those from `lammps-testing`)
+    + specify the examples subfolders (thus the reference log files) seperately (e.g. from other LAMMPS versions or commits)
+    + specify tolerances for individual quantities for any input script to override the global values
+    + skip certain input files if not interested, or no reference log file exists
+    + simplify the main LAMMPS builds, as long as a LAMMPS binary is available
+
+TODO:
+
+    + distribute the input list across multiple processes via multiprocessing to reduce the runtime
+    + be able to be invoked from run_tests in the lammps-testing infrastruture
+
+Example uses:
+
+    1. Simple use with the provided `tools/regression-tests/config.yaml` and the `examples/` folder at the top level:
+
+       python3 run_tests.py --lmp-bin=/path/to/lmp_binary
+       
+    2. Use a custom testing configuration
+
+       python3 run_tests.py --lmp-bin=/path/to/lmp_binary --config-file=/path/to/config/file/config.yaml
+   
+    3. Specify a list of example folders with a modified configuration (e.g. different tolerances)
+
+       python3 run_tests.py --lmp-bin=/path/to/lmp_binary \
+          --example-folders="/path/to/examples/folder1;/path/to/examples/folder2" \
+          --config-file=/path/to/config/file/config.yaml 
+
+An example of the test configuration `config.yaml` is given as below.
+
+  ---
+    lmp_binary: ""
+    nprocs: "4"
+    args: "-cite none"
+    mpiexec: "mpirun"
+    mpiexec_numproc_flag: "-np"
+    tolerance:
+      PotEng:
+        abs: 1e-4
+        rel: 1e-7
+      TotEng:
+        abs: 1e-4
+        rel: 1e-7
+      Press:
+        abs: 1e-4
+        rel: 1e-7
+      Temp:
+        abs: 1e-4
+        rel: 1e-7
+      E_vdwl:
+        abs: 1e-3
+        rel: 1e-7
+    overrides:
+      in.rigid.tnr:
+        Temp:
+          abs: 1e-3
+          rel: 1e-5
+        Press:
+          abs: 1e-2
+          rel: 1e-4
+    skip:
+      [ in.rigid.poems3,
+        in.rigid.poems4,
+        in.rigid.poems5,
+      ]
+
+    nugget: 1.0
+    epsilon: 1e-16

@@ -512,9 +512,10 @@ void PairTriGranHookeHistory::init_style()
   // need a granular neighbor list
 
   if (history)
-    neighbor->add_request(this, NeighConst::REQ_SIZE | NeighConst::REQ_HISTORY);
+    neighbor->add_request(this, NeighConst::REQ_SIZE | NeighConst::REQ_ONESIDED |
+                          NeighConst::REQ_HISTORY);
   else
-    neighbor->add_request(this, NeighConst::REQ_SIZE);
+    neighbor->add_request(this, NeighConst::REQ_SIZE | NeighConst::REQ_ONESIDED);
 
   // if history is stored and first init, create Fix to store history
   // it replaces FixDummy, created in the constructor

@@ -13,6 +13,9 @@ UPDATE: July 5, 2024:
     + simplify the build configuration (no need to build the Python module)
     + specify tolerances for individual quantities for any input script to override the global values
 
+  TODO:
+    + distribute the input list across multiple processes via multiprocessing
+
   Example usage:
     1) Simple use (using the provided tools/regression-tests/config.yaml and the examples/ folder at the top level)
        python3 run_tests.py --lmp-bin=/path/to/lmp_binary
@@ -103,48 +106,48 @@ def extract_thermo(yamlFileName):
   return a YAML data structure as if loaded from a thermo yaml file
 '''
 def extract_data_to_yaml(inputFileName):
-  with open(inputFileName, 'r') as file:
-    data = file.read()
-    lines = data.splitlines()
-    reading = False
-    data = []
-    docs = ""
-    for line in lines:
-      if "Step" in line:
-        line.strip()
-        keywords = line.split()
-        reading = True
-        docs += "---\n"
-        docs += str("keywords: [")
-        for word in enumerate(keywords):
-          docs += "'" + word[1] + "', "
-        docs += "]\n"
-        docs += "data:\n"
-      if "Loop" in line:
+    with open(inputFileName, 'r') as file:
+        data = file.read()
+        lines = data.splitlines()
         reading = False
-        docs += "...\n"
+        data = []
+        docs = ""
+        for line in lines:
+            if "Step" in line:
+                line.strip()
+                keywords = line.split()
+                reading = True
+                docs += "---\n"
+                docs += str("keywords: [")
+                for word in enumerate(keywords):
+                  docs += "'" + word[1] + "', "
+                docs += "]\n"
+                docs += "data:\n"
+            if "Loop" in line:
+                reading = False
+                docs += "...\n"
 
-      if reading == True and "Step" not in line:
-        if  "WARNING" in line:
-          continue
-        data = line.split()
-        docs += " - ["
-        for field in enumerate(data):
-          docs += field[1] + ", "
-        docs += "]\n"
+            if reading == True and "Step" not in line:
+                if  "WARNING" in line:
+                    continue
+                data = line.split()
+                docs += " - ["
+                for field in enumerate(data):
+                    docs += field[1] + ", "
+                docs += "]\n"
 
     # load the docs into a YAML data struture
-    #print(docs)
+
     try:
-       yaml_struct = yaml.load_all(docs, Loader=Loader)
-       thermo = list(yaml_struct)
+        yaml_struct = yaml.load_all(docs, Loader=Loader)
+        thermo = list(yaml_struct)
     except yaml.YAMLError as exc:
-       if hasattr(exc, 'problem_mark'):
-         mark = exc.problem_mark
-         print(f"Error parsing {inputFileName} at line {mark.line}, column {mark.column+1}.")
-       else:
-         print (f"Something went wrong while parsing {inputFileName}.")
-       print(docs)
+        if hasattr(exc, 'problem_mark'):
+            mark = exc.problem_mark
+            print(f"Error parsing {inputFileName} at line {mark.line}, column {mark.column+1}.")
+        else:
+            print (f"Something went wrong while parsing {inputFileName}.")
+            print(docs)
     return thermo
 
 '''
@@ -157,33 +160,33 @@ def get_lammps_build_configuration(lmp_binary):
     packages = ""
     reading = False
     row = 0
-    for l in output:
-      if l != "":
-        if l == "Installed packages:":
-          reading = True
-          n = row
-        if "List of individual style options" in l:
-          reading = False
-        if reading == True and row > n:
-          packages += l.strip() + " "
+    for line in output:
+        if line != "":
+            if line == "Installed packages:":
+                reading = True
+                n = row
+            if "List of individual style options" in line:
+                reading = False
+            if reading == True and row > n:
+                packages += line.strip() + " "
 
-      if "OS:" in l:
-        operating_system = l
-      if "Git info" in l:
-        GitInfo = l
+        if "OS:" in line:
+            operating_system = line
+        if "Git info" in line:
+            GitInfo = line
   
-      row += 1
+        row += 1
 
     packages = packages.strip()
 
     row = 0
     compile_flags = ""
-    for l in output:
-      if l != "":
-        if "-DLAMMPS" in l:
-          compile_flags += " " + l.strip()
+    for line in output:
+        if line != "":
+            if "-DLAMMPS" in line:
+                compile_flags += " " + line.strip()
   
-      row += 1
+        row += 1
 
     return packages.split(" "), operating_system, GitInfo, compile_flags
 
@@ -253,34 +256,34 @@ def iterate(lmp_binary, input_list, config, results, removeAnnotatedInput=False)
 
     # skip the input file if listed
     if 'skip' in config:
-      if input in config['skip']:
-        continue
+        if input in config['skip']:
+            continue
 
     str_t = "\nRunning " + input + f" ({test_id+1}/{num_tests})"
 
     result = TestResult(name=input, output="", time="", status="passed")
 
     if using_markers == True:
-      input_test = 'test.' + input
-      if os.path.isfile(input) == True:
-        if has_markers(input):
-          process_markers(input, input_test)
-      
-        else:
-          print(f"WARNING: {input} does not have REG markers")
-          input_markers = input + '.markers'
-          # if the input file with the REG markers does not exist
-          #   attempt to plug in the REG markers before each run command
-          if os.path.isfile(input_markers) == False:
+        input_test = 'test.' + input
+        if os.path.isfile(input) == True:
+            if has_markers(input):
+                process_markers(input, input_test)
+          
+            else:
+                print(f"WARNING: {input} does not have REG markers")
+                input_markers = input + '.markers'
+                # if the input file with the REG markers does not exist
+                #   attempt to plug in the REG markers before each run command
+                if os.path.isfile(input_markers) == False:
+                  
+                  cmd_str = "cp " + input + " " + input_markers
+                  os.system(cmd_str)
+                  generate_markers(input, input_markers)
+                  process_markers(input_markers, input_test)
             
-            cmd_str = "cp " + input + " " + input_markers
-            os.system(cmd_str)
-            generate_markers(input, input_markers)
-            process_markers(input_markers, input_test)
-      
-            str_t = "\nRunning " + input_test + f" ({test_id+1}/{num_tests})"
+                  str_t = "\nRunning " + input_test + f" ({test_id+1}/{num_tests})"
     else:
-      input_test = input
+        input_test = input
 
     print(str_t)
     print(f"-"*len(str_t))
@@ -293,12 +296,12 @@ def iterate(lmp_binary, input_list, config, results, removeAnnotatedInput=False)
     pattern = f'log.*.{basename}.*'
     max_np = 1
     for file in os.listdir('.'):
-      if fnmatch.fnmatch(file, pattern):
-        p = file.rsplit('.', 1)
-        if max_np < int(p[1]):
-          max_np = int(p[1])
-          logfile_exist = True
-          thermo_ref_file = file
+        if fnmatch.fnmatch(file, pattern):
+            p = file.rsplit('.', 1)
+            if max_np < int(p[1]):
+                max_np = int(p[1])
+                logfile_exist = True
+                thermo_ref_file = file
 
     # if the maximum number of procs is different from the value in the configuration file
     #      then override the setting for this input script
@@ -333,25 +336,25 @@ def iterate(lmp_binary, input_list, config, results, removeAnnotatedInput=False)
     # restore the nprocs value in the configuration
     config['nprocs'] = saved_nprocs
 
-    # process thermo output
+    # process error code from the run
     if returncode != 0:
         print(f"ERROR: Failed with {input_test}. Check the log file for the run output.\n")
         logger.info(f"\n{error}")
         continue
 
+    # process thermo output
     thermo = extract_data_to_yaml("log.lammps")
 
     num_runs = len(thermo)
     if num_runs == 0:
         print(f"ERROR: Failed with {input_test}. Check the log file for the run output.\n")
-        #print(f"{output}")
         logger.info(f"The run terminated with the following output:\n")
         logger.info(f"\n{output}")
         result.status = "error"
         results.append(result)
         continue 
 
-    print(f"Comparing thermo output from log.lammps with the reference log file {thermo_ref_file}")
+    print(f"Comparing thermo output from log.lammps against the reference log file {thermo_ref_file}")
     if num_runs != num_runs_ref:
         print(f"ERROR: Number of runs in log.lammps ({num_runs}) is not the same as that in the reference log ({num_runs_ref})")
         result.status = "error"
@@ -606,43 +609,44 @@ if __name__ == "__main__":
             example_subfolders.append('../../examples/srd')
       
     all_results = []
+    # default setting
     if inplace_input == True:
 
-      # save current working dir
-      p = subprocess.run("pwd", shell=True, text=True, capture_output=True)
-      pwd = p.stdout.split('\n')[0]
-      pwd = os.path.abspath(pwd)
-      print("Working directory: " + pwd)
+        # save current working dir
+        p = subprocess.run("pwd", shell=True, text=True, capture_output=True)
+        pwd = p.stdout.split('\n')[0]
+        pwd = os.path.abspath(pwd)
+        print("Working directory: " + pwd)
 
-      # change dir to a folder under examples/, need to use os.chdir()
-      # TODO: loop through the subfolders under examples/, depending on the installed packages
+        # change dir to a folder under examples/, need to use os.chdir()
+        # TODO: loop through the subfolders under examples/, depending on the installed packages
 
-      total_tests = 0
-      passed_tests = 0
+        total_tests = 0
+        passed_tests = 0
 
-      for directory in example_subfolders:
+        for directory in example_subfolders:
 
-          p = subprocess.run("pwd", shell=True, text=True, capture_output=True)
-          print("\nEntering " + directory)
-          os.chdir(directory)
+            p = subprocess.run("pwd", shell=True, text=True, capture_output=True)
+            print("\nEntering " + directory)
+            os.chdir(directory)
 
-          cmd_str = "ls in.*"
-          p = subprocess.run(cmd_str, shell=True, text=True, capture_output=True)
-          input_list = p.stdout.split('\n')
-          input_list.remove('')
+            cmd_str = "ls in.*"
+            p = subprocess.run(cmd_str, shell=True, text=True, capture_output=True)
+            input_list = p.stdout.split('\n')
+            input_list.remove('')
 
-          print(f"List of input scripts: {input_list}")
-          total_tests += len(input_list)
+            print(f"List of input scripts: {input_list}")
+            total_tests += len(input_list)
 
-          # iterate through the input scripts
-          results = []
-          num_passed = iterate(lmp_binary, input_list, config, results)
-          passed_tests += num_passed
+            # iterate through the input scripts
+            results = []
+            num_passed = iterate(lmp_binary, input_list, config, results)
+            passed_tests += num_passed
 
-          all_results.extend(results)
+            all_results.extend(results)
 
-          # get back to the working dir
-          os.chdir(pwd)
+            # get back to the working dir
+            os.chdir(pwd)
 
     else:
         # or using the input scripts in the working directory -- for debugging purposes

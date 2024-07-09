@@ -110,8 +110,6 @@ class ComputePropertyAtom : public Compute {
   void pack_omegax(int);
   void pack_omegay(int);
   void pack_omegaz(int);
-  void pack_temperature(int);
-  void pack_heatflow(int);
   void pack_angmomx(int);
   void pack_angmomy(int);
   void pack_angmomz(int);
@@ -148,6 +146,9 @@ class ComputePropertyAtom : public Compute {
   void pack_corner3x(int);
   void pack_corner3y(int);
   void pack_corner3z(int);
+
+  void pack_temperature(int);
+  void pack_heatflow(int);
 
   void pack_nbonds(int);
 

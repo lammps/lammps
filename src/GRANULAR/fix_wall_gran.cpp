@@ -313,10 +313,11 @@ void FixWallGran::init()
   // check for compatible heat conduction atom style
 
   if (heat_flag) {
+    error->all(FLERR, "Heat conduction not yet implemented");
     if (!atom->temperature_flag)
-      error->all(FLERR,"Heat conduction in fix wall/gran requires atom style with temperature property");
+      error->all(FLERR, "Heat conduction in fix wall/gran requires atom style with temperature property");
     if (!atom->heatflow_flag)
-      error->all(FLERR,"Heat conduction in fix wall/gran requires atom style with heatflow property");
+      error->all(FLERR, "Heat conduction in fix wall/gran requires atom style with heatflow property");
   }
 
   // check for FixRigid so can extract rigid body masses

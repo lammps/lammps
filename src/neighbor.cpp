@@ -1363,7 +1363,7 @@ void Neighbor::morph_granular()
     // force parent newton off (newton = 2) to enable onesided skip by child
     // set parent granonesided = 0, so it stores all neighs in usual manner
     // set off2on = 1 for all children, since they expect newton on lists
-    //   this is b/c granonesided us currently only set by line/tri gran
+    //   this is b/c granonesided is currently only set by line/tri gran
     //   both of those pair styles require newton on
 
     if (onesided == 2) {

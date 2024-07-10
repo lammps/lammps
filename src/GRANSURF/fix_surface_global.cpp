@@ -1231,7 +1231,7 @@ int FixSurfaceGlobal::endpt_neigh_check(int i, int j, int jflag)
     ncheck = connect2d[j].np2;
     neighs = connect2d[j].neigh_p2;
   }
-  
+
   // check overlap with each neighbor line
   // if any line has interior overlap, another line computes
   // if all lines have endpt overlap, line with lowest index computes
@@ -1498,7 +1498,7 @@ int FixSurfaceGlobal::edge_neigh_check(int i, int j, int jflag)
 
   int ncheck;
   int *neighs;
-  
+
   if (jflag == -1) {
     if (connect3d[j].ne1 == 1) return 0;
     ncheck = connect3d[j].ne1;
@@ -1568,7 +1568,7 @@ int FixSurfaceGlobal::corner_neigh_check(int i, int j, int jflag)
     ncheck = connect3d[j].nc3;
     neighs = connect3d[j].neigh_c3;
   }
-  
+
   // check overlap with each neighbor tri
   // if any tri has interior or edge overlap, another tri computes
   // if all tris have corner pt overlap, tri with lowest index computes
@@ -1581,11 +1581,11 @@ int FixSurfaceGlobal::corner_neigh_check(int i, int j, int jflag)
   int k,kflag;
   double rsq;
   double dr[3],contact[3];
-  
+
   int trimin = j;
 
   for (int m = 0; m < ncheck; m++) {
-    k = neighs[m]; 
+    k = neighs[m];
     if (k == j) continue;   // skip self tri
     kflag = overlap_sphere_tri(i,k,contact,dr,rsq);
     if (kflag > 0) return 1;
@@ -1620,13 +1620,13 @@ void FixSurfaceGlobal::extract_from_molecules(char *molID)
   tris = nullptr;
   npoints = nlines = ntris = 0;
   int maxpoints = 0;
-  
+
   int imol = atom->find_molecule(molID);
   if (imol == -1)
     error->all(FLERR,"Molecule template ID for fix surface/global does not exist");
-  
+
   // loop over one or more molecules in molID
-  
+
   Molecule **onemols = &atom->molecules[imol];
   int nmol = onemols[0]->nset;
 
@@ -1651,7 +1651,7 @@ void FixSurfaceGlobal::extract_from_molecules(char *molID)
     // create a map
     // key = xyz coords of a point
     // value = index into unique points vector
-    
+
     std::map<std::tuple<double,double,double>,int> hash;
 
     // offset line/tri index lists by previous npoints
@@ -1770,7 +1770,7 @@ void FixSurfaceGlobal::connectivity2d_global()
 {
   connect2d = (Connect2d *) memory->smalloc(nlines*sizeof(Connect2d),
                                             "surface/global:connect2d");
-  
+
   // setup end point connectivity lists
   // count # of lines containing each end point
   // create ragged 2d array to contain all point indices, then fill it
@@ -1779,7 +1779,7 @@ void FixSurfaceGlobal::connectivity2d_global()
 
   int *counts;
   memory->create(counts,npoints,"surface/global:count");
-  
+
   for (int i = 0; i < npoints; i++) counts[i] = 0;
 
   for (int i = 0; i < nlines; i++) {
@@ -1800,12 +1800,12 @@ void FixSurfaceGlobal::connectivity2d_global()
     connect2d[i].np1 = counts[lines[i].p1];
     if (connect2d[i].np1 == 1) connect2d[i].neigh_p1 = nullptr;
     else connect2d[i].neigh_p1 = plist[lines[i].p1];
-    
+
     connect2d[i].np2 = counts[lines[i].p2];
     if (connect2d[i].np2 == 1) connect2d[i].neigh_p2 = nullptr;
     else connect2d[i].neigh_p2 = plist[lines[i].p2];
   }
-  
+
   memory->destroy(counts);
 }
 
@@ -1816,27 +1816,27 @@ void FixSurfaceGlobal::connectivity2d_global()
 void FixSurfaceGlobal::connectivity3d_global()
 {
   int p1,p2,p3;
-  
+
   connect3d = (Connect3d *) memory->smalloc(ntris*sizeof(Connect3d),
                                             "surface/global:connect3d");
   int **tri2edge;
   memory->create(tri2edge,ntris,3,"surfface/global::tri2edge");
-  
+
   // create a map
   // key = <p1,p2> indices of 2 points, in either order
   // value = index into count of unique edges
-  
+
   std::map<std::tuple<int,int>,int> hash;
   int nedges = 0;
-                                            
+
   for (int i = 0; i < ntris; i++) {
     p1 = tris[i].p1;
     p2 = tris[i].p2;
     p3 = tris[i].p3;
-    
+
     auto key1 = std::make_tuple(p1,p2);
     auto key2 = std::make_tuple(p2,p1);
-    
+
     if (hash.find(key1) == hash.end() && hash.find(key2) == hash.end()) {
       hash[key1] = nedges;
       tri2edge[i][0] = nedges;
@@ -1847,7 +1847,7 @@ void FixSurfaceGlobal::connectivity3d_global()
 
     key1 = std::make_tuple(p2,p3);
     key2 = std::make_tuple(p3,p2);
-    
+
     if (hash.find(key1) == hash.end() && hash.find(key2) == hash.end()) {
       hash[key1] = nedges;
       tri2edge[i][1] = nedges;
@@ -1858,7 +1858,7 @@ void FixSurfaceGlobal::connectivity3d_global()
 
     key1 = std::make_tuple(p3,p1);
     key2 = std::make_tuple(p1,p3);
-    
+
     if (hash.find(key1) == hash.end() && hash.find(key2) == hash.end()) {
       hash[key1] = nedges;
       tri2edge[i][2] = nedges;
@@ -1888,7 +1888,7 @@ void FixSurfaceGlobal::connectivity3d_global()
   memory->create_ragged(elist,nedges,counts,"surface/global:elist");
 
   for (int i = 0; i < nedges; i++) counts[i] = 0;
- 
+
   for (int i = 0; i < ntris; i++) {
     elist[tri2edge[i][0]][counts[tri2edge[i][0]]++] = i;
     elist[tri2edge[i][1]][counts[tri2edge[i][1]]++] = i;
@@ -1899,11 +1899,11 @@ void FixSurfaceGlobal::connectivity3d_global()
     connect3d[i].ne1 = counts[tri2edge[i][0]];
     if (connect3d[i].ne1 == 1) connect3d[i].neigh_e1 = nullptr;
     else connect3d[i].neigh_e1 = elist[tri2edge[i][0]];
-    
+
     connect3d[i].ne2 = counts[tri2edge[i][1]];
     if (connect3d[i].ne2 == 1) connect3d[i].neigh_e2 = nullptr;
     else connect3d[i].neigh_e2 = elist[tri2edge[i][1]];
-    
+
     connect3d[i].ne3 = counts[tri2edge[i][2]];
     if (connect3d[i].ne3 == 1) connect3d[i].neigh_e3 = nullptr;
     else connect3d[i].neigh_e3 = elist[tri2edge[i][2]];
@@ -1911,7 +1911,7 @@ void FixSurfaceGlobal::connectivity3d_global()
 
   memory->destroy(counts);
   memory->destroy(tri2edge);
-  
+
   // setup corner point connectivity lists
   // count # of tris containing each point
   // create ragged 2d array to contain all tri indices, then fill it
@@ -1919,7 +1919,7 @@ void FixSurfaceGlobal::connectivity3d_global()
   // nc123 counts and vectors include self tri
 
   memory->create(counts,npoints,"surface/global:count");
-  
+
   for (int i = 0; i < npoints; i++) counts[i] = 0;
 
   for (int i = 0; i < ntris; i++) {
@@ -1942,11 +1942,11 @@ void FixSurfaceGlobal::connectivity3d_global()
     connect3d[i].nc1 = counts[tris[i].p1];
     if (connect3d[i].nc1 == 1) connect3d[i].neigh_c1 = nullptr;
     else connect3d[i].neigh_c1 = clist[tris[i].p1];
-    
+
     connect3d[i].nc2 = counts[tris[i].p2];
     if (connect3d[i].nc2 == 1) connect3d[i].neigh_c2 = nullptr;
     else connect3d[i].neigh_c2 = clist[tris[i].p2];
-    
+
     connect3d[i].nc3 = counts[tris[i].p3];
     if (connect3d[i].nc3 == 1) connect3d[i].neigh_c3 = nullptr;
     else connect3d[i].neigh_c3 = clist[tris[i].p3];

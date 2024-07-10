@@ -38,7 +38,7 @@ PairLineGranHookeHistory::PairLineGranHookeHistory(LAMMPS *lmp) : Pair(lmp)
   single_enable = 0;
   history = 1;
   size_history = 3;
-  
+
   nmax = 0;
   mass_rigid = nullptr;
 
@@ -114,7 +114,7 @@ void PairLineGranHookeHistory::compute(int eflag, int vflag)
   // mass_body = mass of each rigid body
   // forward comm mass_rigid so have it for ghost lines
   // also grab current line connectivity info from FixSurfaceLocal
-  
+
   if (neighbor->ago == 0) {
     if (fix_rigid) {
       int tmp;
@@ -128,9 +128,9 @@ void PairLineGranHookeHistory::compute(int eflag, int vflag)
       int nlocal = atom->nlocal;
       for (i = 0; i < nlocal; i++)
         if (body[i] >= 0)
-	  mass_rigid[i] = mass_body[body[i]];
+          mass_rigid[i] = mass_body[body[i]];
         else
-	  mass_rigid[i] = 0.0;
+          mass_rigid[i] = 0.0;
       comm->forward_comm(this);
     }
 
@@ -213,10 +213,10 @@ void PairLineGranHookeHistory::compute(int eflag, int vflag)
         if (line[i] >= 0 || line[j] < 0)
           error->one(FLERR,"Pair line/gran iteraction is invalid");
 
-	// check for overlap of sphere and line segment
+        // check for overlap of sphere and line segment
         // jflag = 0 for no overlap, 1 for interior line pt, -1/-2 for end pts
         // if no overlap, just continue
-	// for overlap, also return:
+        // for overlap, also return:
         //   contact = nearest point on line to sphere center
         //   dr = vector from contact pt to sphere center
         //   rsq = squared length of dr
@@ -257,13 +257,13 @@ void PairLineGranHookeHistory::compute(int eflag, int vflag)
         ds[1] = contact[1] - x[j][1];
         ds[2] = contact[2] - x[j][2];
 
-	// vline = velocity of contact pt on line, translation + rotation
+        // vline = velocity of contact pt on line, translation + rotation
 
         vline[0] = v[j][0] + (omega[j][1]*ds[2] - omega[j][2]*ds[1]);
         vline[1] = v[j][1] + (omega[j][2]*ds[0] - omega[j][0]*ds[2]);
         vline[2] = v[j][2] + (omega[j][0]*ds[1] - omega[j][1]*ds[0]);
 
-	// relative translational velocity
+        // relative translational velocity
 
         vr1 = v[i][0] - vline[0];
         vr2 = v[i][1] - vline[1];
@@ -282,7 +282,7 @@ void PairLineGranHookeHistory::compute(int eflag, int vflag)
         vt2 = vr2 - vn2;
         vt3 = vr3 - vn3;
 
-	// relative rotational velocity
+        // relative rotational velocity
 
         wr1 = (radi*omega[i][0]) * rinv;
         wr2 = (radi*omega[i][1]) * rinv;
@@ -363,11 +363,11 @@ void PairLineGranHookeHistory::compute(int eflag, int vflag)
           } else fs1 = fs2 = fs3 = 0.0;
         }
 
-	// total force on sphere
+        // total force on sphere
 
-	fx = dr[0]*ccel + fs1;
-	fy = dr[1]*ccel + fs2;
-	fz = dr[2]*ccel + fs3;
+        fx = dr[0]*ccel + fs1;
+        fy = dr[1]*ccel + fs2;
+        fz = dr[2]*ccel + fs3;
 
         // sphere force & torque
 
@@ -383,9 +383,9 @@ void PairLineGranHookeHistory::compute(int eflag, int vflag)
         torque[i][2] -= radi*tor3;
 
         // line force & torque
-	// torque applied at contact pt
-        // use total force for torque 
-	//   since opposite force is not norm/tang to line at its end pt
+        // torque applied at contact pt
+        // use total force for torque
+        //   since opposite force is not norm/tang to line at its end pt
 
         f[j][0] -= fx;
         f[j][1] -= fy;
@@ -544,7 +544,7 @@ void PairLineGranHookeHistory::init_style()
   fsl = nullptr;
   for (int m = 0; m < modify->nfix; m++) {
     if (strcmp(modify->fix[m]->style,"surface/local") == 0) {
-      if (fsl) 
+      if (fsl)
         error->all(FLERR,"Pair line/gran requires single fix surface/local");
       fsl = (FixSurfaceLocal *) modify->fix[m];
     }
@@ -564,7 +564,7 @@ void PairLineGranHookeHistory::init_style()
       int nlocal = atom->nlocal;
       int flag = 0;
       for (int i = 0; i < nlocal; i++) {
-	if (line[i] < 0) continue;
+        if (line[i] < 0) continue;
         if (mask[i] & groupbit) flag = 1;
       }
       int any;
@@ -626,7 +626,7 @@ void PairLineGranHookeHistory::init_style()
   int nlocal = atom->nlocal;
 
   for (i = 0; i < nlocal; i++) {
-    if (line[i] >= 0) 
+    if (line[i] >= 0)
       onerad_dynamic[type[i]] = MAX(onerad_dynamic[type[i]],radius[i]);
     else {
       if (mask[i] & freeze_group_bit)
@@ -666,7 +666,7 @@ double PairLineGranHookeHistory::init_one(int i, int j)
   cutoff = MAX(cutoff,maxrad_dynamic[i]+maxrad_frozen[j]);
   return cutoff;
 }
-    
+
 /* ----------------------------------------------------------------------
   proc 0 writes to restart file
 ------------------------------------------------------------------------- */
@@ -761,7 +761,7 @@ int PairLineGranHookeHistory::pack_forward_comm(int n, int *list, double *buf,
 
 /* ---------------------------------------------------------------------- */
 
-void PairLineGranHookeHistory::unpack_forward_comm(int n, int first, 
+void PairLineGranHookeHistory::unpack_forward_comm(int n, int first,
                                                    double *buf)
 {
   int i,m,last;
@@ -840,7 +840,7 @@ void PairLineGranHookeHistory::calculate_endpts()
    based on geometry.cpp::distsq_point_line() in SPARTA
 ------------------------------------------------------------------------- */
 
-int PairLineGranHookeHistory::overlap_sphere_line(int i, int j, double *pt, 
+int PairLineGranHookeHistory::overlap_sphere_line(int i, int j, double *pt,
                                            double *r, double &rsq)
 {
   double p1[3],p2[3];
@@ -867,7 +867,7 @@ int PairLineGranHookeHistory::overlap_sphere_line(int i, int j, double *pt,
   // alpha = fraction of distance from P1 to P2 that P is located at
   // P = projected point on infinite line that is nearest to Xsphere center
   // alpha can be any value
- 
+
   double alpha = MathExtra::dot3(a,b) / MathExtra::lensq3(b);
 
   // pt = point on line segment that is nearest to Xsphere center
@@ -939,7 +939,7 @@ int PairLineGranHookeHistory::endpt_neigh_check(int i, int j, int jflag)
 
   int kflag = overlap_sphere_line(i,k,contact,dr,rsq);
   if (kflag > 0) return 1;
-  if (kflag == 0) 
+  if (kflag == 0)
     error->one(FLERR,"Pair line/gran neighbor line overlap is invalid");
 
   if (tag[j] < tag[k]) return 0;

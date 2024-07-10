@@ -448,7 +448,7 @@ void Molecule::read(int flag)
     if (text.empty()) continue;
 
     // search line for header keywords and set corresponding variable
-    
+
     try {
       ValueTokenizer values(text);
 
@@ -546,7 +546,7 @@ void Molecule::read(int flag)
   if (ndihedrals < 0) error->all(FLERR, "Invalid dihedral count in molecule file");
   if (nimpropers < 0) error->all(FLERR, "Invalid improper count in molecule file");
 
-  if (natoms == 0 && nlines == 0 && ntris == 0) 
+  if (natoms == 0 && nlines == 0 && ntris == 0)
     error->all(FLERR,"Molecule file must define either atoms or lines or triangles");
 
   if (nlines && domain->dimension != 2)
@@ -627,7 +627,7 @@ void Molecule::read(int flag)
       if (flag)
         line_segments(line);
       else
-	skip_lines(nlines, line, keyword);
+        skip_lines(nlines, line, keyword);
     } else if (keyword == "Tris") {
       triflag = 1;
       if (flag)
@@ -1109,7 +1109,7 @@ void Molecule::line_segments(char *line)
   } catch (TokenizerException &e) {
     error->all(FLERR, "Invalid line in Lines section of molecule file: {}\n{}", e.what(), line);
   }
-  
+
   // check all line molecule-IDs and types
   // add toffset to line type
 

@@ -25,7 +25,7 @@ using namespace LAMMPS_NS;
 
 /* ---------------------------------------------------------------------- */
 
-PairLineGranHooke::PairLineGranHooke(LAMMPS *lmp) : 
+PairLineGranHooke::PairLineGranHooke(LAMMPS *lmp) :
   PairLineGranHookeHistory(lmp)
 {
   history = 0;
@@ -131,10 +131,10 @@ void PairLineGranHooke::compute(int eflag, int vflag)
         if (line[i] >= 0 || line[j] < 0)
           error->one(FLERR,"Pair line/gran iteraction is invalid");
 
-	// check for overlap of sphere and line segment
+        // check for overlap of sphere and line segment
         // jflag = 0 for no overlap, 1 for interior line pt, -1/-2 for end pts
         // if no overlap, just continue
-	// for overlap, also return:
+        // for overlap, also return:
         //   contact = nearest point on line to sphere center
         //   dr = vector from contact pt to sphere center
         //   rsq = squared length of dr
@@ -169,13 +169,13 @@ void PairLineGranHooke::compute(int eflag, int vflag)
         ds[1] = contact[1] - x[j][1];
         ds[2] = contact[2] - x[j][2];
 
-	// vline = velocity of contact pt on line, translation + rotation
+        // vline = velocity of contact pt on line, translation + rotation
 
         vline[0] = v[j][0] + (omega[j][1]*ds[2] - omega[j][2]*ds[1]);
         vline[1] = v[j][1] + (omega[j][2]*ds[0] - omega[j][0]*ds[2]);
         vline[2] = v[j][2] + (omega[j][0]*ds[1] - omega[j][1]*ds[0]);
 
-	// relative translational velocity
+        // relative translational velocity
 
         vr1 = v[i][0] - vline[0];
         vr2 = v[i][1] - vline[1];
@@ -194,7 +194,7 @@ void PairLineGranHooke::compute(int eflag, int vflag)
         vt2 = vr2 - vn2;
         vt3 = vr3 - vn3;
 
-	// relative rotational velocity
+        // relative rotational velocity
 
         wr1 = (radi*omega[i][0]) * rinv;
         wr2 = (radi*omega[i][1]) * rinv;
@@ -240,11 +240,11 @@ void PairLineGranHooke::compute(int eflag, int vflag)
         fs2 = -ft*vtr2 * factor_couple;
         fs3 = -ft*vtr3 * factor_couple;
 
-	// total force on sphere
+        // total force on sphere
 
-	fx = dr[0]*ccel + fs1;
-	fy = dr[1]*ccel + fs2;
-	fz = dr[2]*ccel + fs3;
+        fx = dr[0]*ccel + fs1;
+        fy = dr[1]*ccel + fs2;
+        fz = dr[2]*ccel + fs3;
 
         // sphere force & torque
 
@@ -260,9 +260,9 @@ void PairLineGranHooke::compute(int eflag, int vflag)
         torque[i][2] -= radi*tor3;
 
         // line force & torque
-	// torque applied at contact pt
-        // use total force for torque 
-	//   since opposite force is not norm/tang to line at its end pt
+        // torque applied at contact pt
+        // use total force for torque
+        //   since opposite force is not norm/tang to line at its end pt
 
         f[j][0] -= fx;
         f[j][1] -= fy;

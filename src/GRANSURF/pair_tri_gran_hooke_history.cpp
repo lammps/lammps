@@ -128,9 +128,9 @@ void PairTriGranHookeHistory::compute(int eflag, int vflag)
       int nlocal = atom->nlocal;
       for (i = 0; i < nlocal; i++)
         if (body[i] >= 0)
-	  mass_rigid[i] = mass_body[body[i]];
+          mass_rigid[i] = mass_body[body[i]];
         else
-	  mass_rigid[i] = 0.0;
+          mass_rigid[i] = 0.0;
       comm->forward_comm(this);
     }
 
@@ -205,11 +205,11 @@ void PairTriGranHookeHistory::compute(int eflag, int vflag)
         if (tri[i] >= 0 || tri[j] < 0)
           error->one(FLERR,"Pair tri/gran iteraction is invalid");
 
-	// check for overlap of sphere and triangle
+        // check for overlap of sphere and triangle
         // jflag = 0 for no overlap, 1 for interior line pt,
-	//   -1/-2/-3 for 3 edges, -4/-5/-6 for 3 corner pts
+        //   -1/-2/-3 for 3 edges, -4/-5/-6 for 3 corner pts
         // if no overlap, just continue
-	// for overlap, also returns:
+        // for overlap, also returns:
         //   contact = nearest point on tri to sphere center
         //   dr = vector from contact pt to sphere center
         //   rsq = squared length of dr
@@ -255,14 +255,14 @@ void PairTriGranHookeHistory::compute(int eflag, int vflag)
         ds[1] = contact[1] - x[j][1];
         ds[2] = contact[2] - x[j][2];
 
-	// vtri = velocity of contact pt on tri, translation + rotation
-	// omega for tri was set from angmom by calculate_corners()
+        // vtri = velocity of contact pt on tri, translation + rotation
+        // omega for tri was set from angmom by calculate_corners()
 
         vtri[0] = v[j][0] + (omega[j][1]*ds[2] - omega[j][2]*ds[1]);
         vtri[1] = v[j][1] + (omega[j][2]*ds[0] - omega[j][0]*ds[2]);
         vtri[2] = v[j][2] + (omega[j][0]*ds[1] - omega[j][1]*ds[0]);
 
-	// relative translational velocity
+        // relative translational velocity
 
         vr1 = v[i][0] - vtri[0];
         vr2 = v[i][1] - vtri[1];
@@ -281,7 +281,7 @@ void PairTriGranHookeHistory::compute(int eflag, int vflag)
         vt2 = vr2 - vn2;
         vt3 = vr3 - vn3;
 
-	// relative rotational velocity
+        // relative rotational velocity
 
         wr1 = (radi*omega[i][0]) * rinv;
         wr2 = (radi*omega[i][1]) * rinv;
@@ -362,18 +362,18 @@ void PairTriGranHookeHistory::compute(int eflag, int vflag)
           } else fs1 = fs2 = fs3 = 0.0;
         }
 
-	// total force on sphere
+        // total force on sphere
 
-	fx = dr[0]*ccel + fs1;
-	fy = dr[1]*ccel + fs2;
-	fz = dr[2]*ccel + fs3;
+        fx = dr[0]*ccel + fs1;
+        fy = dr[1]*ccel + fs2;
+        fz = dr[2]*ccel + fs3;
 
         // sphere force & torque
 
         f[i][0] += fx;
         f[i][1] += fy;
         f[i][2] += fz;
-        
+
         tor1 = rinv * (dr[1]*fs3 - dr[2]*fs2);
         tor2 = rinv * (dr[2]*fs1 - dr[0]*fs3);
         tor3 = rinv * (dr[0]*fs2 - dr[1]*fs1);
@@ -382,14 +382,14 @@ void PairTriGranHookeHistory::compute(int eflag, int vflag)
         torque[i][2] -= radi*tor3;
 
         // tri force & torque
-	// torque applied at contact pt
-        // use total force for torque 
-	//   since opposite force is not norm/tang to tri at its contact pt
+        // torque applied at contact pt
+        // use total force for torque
+        //   since opposite force is not norm/tang to tri at its contact pt
 
         f[j][0] -= fx;
         f[j][1] -= fy;
         f[j][2] -= fz;
-        
+
         torque[j][0] -= ds[1]*fz - ds[2]*fy;
         torque[j][1] -= ds[2]*fx - ds[0]*fz;
         torque[j][2] -= ds[0]*fy - ds[1]*fx;
@@ -527,13 +527,13 @@ void PairTriGranHookeHistory::init_style()
         modify->replace_fix("NEIGH_HISTORY_HHTRI_DUMMY" + std::to_string(instance_me), cmd, 1));
     fix_history->pair = this;
   }
-  
+
   // set ptr to FixSurfaceLocal for surf connectivity info
 
   fsl = nullptr;
   for (int m = 0; m < modify->nfix; m++) {
     if (strcmp(modify->fix[m]->style,"surface/local") == 0) {
-      if (fsl) 
+      if (fsl)
         error->all(FLERR,"Pair tri/gran requires single fix surface/local");
       fsl = (FixSurfaceLocal *) modify->fix[m];
     }
@@ -616,7 +616,7 @@ void PairTriGranHookeHistory::init_style()
   int nlocal = atom->nlocal;
 
   for (i = 0; i < nlocal; i++) {
-    if (tri[i] >= 0) 
+    if (tri[i] >= 0)
       onerad_dynamic[type[i]] = MAX(onerad_dynamic[type[i]],radius[i]);
     else {
       if (mask[i] & freeze_group_bit)
@@ -656,7 +656,7 @@ double PairTriGranHookeHistory::init_one(int i, int j)
   cutoff = MAX(cutoff,maxrad_dynamic[i]+maxrad_frozen[j]);
   return cutoff;
 }
-    
+
 /* ----------------------------------------------------------------------
   proc 0 writes to restart file
 ------------------------------------------------------------------------- */
@@ -857,7 +857,7 @@ void PairTriGranHookeHistory::corners2norm(double *corners, double *norm)
    based on geometry.cpp::distsq_point_tri() in SPARTA
 ------------------------------------------------------------------------- */
 
-int PairTriGranHookeHistory::overlap_sphere_tri(int i, int j, double *pt, 
+int PairTriGranHookeHistory::overlap_sphere_tri(int i, int j, double *pt,
                                                 double *r, double &rsq)
 {
   int e12flag,e23flag,e31flag,o12flag,o23flag,o31flag;
@@ -1024,8 +1024,8 @@ int PairTriGranHookeHistory::overlap_sphere_tri(int i, int j, double *pt,
    based on geometry.cpp::distsq_point_line() in SPARTA
 ------------------------------------------------------------------------- */
 
-int PairTriGranHookeHistory::nearest_point_line(double *x, 
-                                                double *p1, double *p2, 
+int PairTriGranHookeHistory::nearest_point_line(double *x,
+                                                double *p1, double *p2,
                                                 double *pt)
 {
   double a[3],b[3];
@@ -1039,7 +1039,7 @@ int PairTriGranHookeHistory::nearest_point_line(double *x,
   // alpha = fraction of distance from P1 to P2 that P is located at
   // P = projected point on infinite line that is nearest to X
   // alpha can be any value
- 
+
   double alpha = MathExtra::dot3(a,b) / MathExtra::lensq3(b);
 
   // pt = point on line segment that is nearest to X
@@ -1099,7 +1099,7 @@ int PairTriGranHookeHistory::edge_neigh_check(int i, int j, int jflag)
 
   int kflag = overlap_sphere_tri(i,k,contact,dr,rsq);
   if (kflag > 0) return 1;
-  if (kflag == 0) 
+  if (kflag == 0)
     error->one(FLERR,"Pair tri/gran neighbor tri overlap is invalid");
 
   tagint *tag = atom->tag;

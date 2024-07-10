@@ -27,7 +27,7 @@ namespace LAMMPS_NS {
 
 class FixSurfaceGlobal : public Fix {
  public:
-  
+
   // neighbor lists for spheres with surfs and shear history
   // accessed by fix shear/history
 
@@ -104,7 +104,7 @@ class FixSurfaceGlobal : public Fix {
   Tri *tris;                  // global list of tris
   int npoints,nlines,ntris;   // count of each
   int nsurf;                  // count of lines or tris for 2d/3d
-  
+
   int **plist;                // ragged 2d array for global end pt lists
   int **elist;                // ragged 2d array for global edge lists
   int **clist;                // ragged 2d array for global corner pt lists

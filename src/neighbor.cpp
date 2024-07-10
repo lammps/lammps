@@ -2111,7 +2111,7 @@ int Neighbor::choose_pair(NeighRequest *rq)
 
   for (int i = 0; i < npclass; i++) {
     mask = pairmasks[i];
-    
+
     //printf("  PAIR NAMES i %d %d name %s mask %d\n",i,nrequest,
     //       pairnames[i],pairmasks[i]);
 

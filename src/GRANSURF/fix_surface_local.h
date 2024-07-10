@@ -57,7 +57,7 @@ class FixSurfaceLocal : public Fix {
 
   // size of local/ghost connection info vectors
 
-  int nlocal_connect,nghost_connect,nmax_connect;  
+  int nlocal_connect,nghost_connect,nmax_connect;
 
   FixSurfaceLocal(class LAMMPS *, int, char **);
   virtual ~FixSurfaceLocal();
@@ -137,13 +137,13 @@ class FixSurfaceLocal : public Fix {
 
   double epssq;                // distance tolerance for end pts
                                // from different lines to be connected
-  
+
   int nmatch;                  // # of line connections
   int nmatch1,nmatch2;         // # of tri connections
   int errormatch;              // # of errors with line connectivity
   int errormatch1,errormatch2; // # of errors with tri connectivity
 
-  int vecflag;            // 0/1 whether tri matching should also 
+  int vecflag;            // 0/1 whether tri matching should also
                           // store variable-length vecs of corner connections
 
   // static variable for ring communication callback to access class data

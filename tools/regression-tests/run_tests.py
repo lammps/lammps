@@ -480,12 +480,15 @@ if __name__ == "__main__":
     verbose = False
     output_file = "output.xml"
     log_file = "run.log"
+    dry_run = False
+    example_toplevel = ""
 
     # parse the arguments
     parser = ArgumentParser()
     parser.add_argument("--lmp-bin", dest="lmp_binary", default="", help="LAMMPS binary")
     parser.add_argument("--config-file", dest="config_file", default=configFileName,
                         help="Configuration YAML file")
+    parser.add_argument("--example-top-level", dest="example_toplevel", default="", help="Example top-level")
     parser.add_argument("--example-folders", dest="example_folders", default="", help="Example subfolders")
     parser.add_argument("--gen-ref",dest="genref", action='store_true', default=False,
                         help="Generating reference data")
@@ -493,12 +496,17 @@ if __name__ == "__main__":
                         help="Verbose output")
     parser.add_argument("--output",dest="output", default=output_file, help="Output file")
     parser.add_argument("--logfile",dest="logfile", default=log_file, help="Log file")
+    parser.add_argument("--dry-run",dest="dry_run", action='store_true', default=False,
+                        help="Only report statistics")
 
     args = parser.parse_args()
 
     lmp_binary = os.path.abspath(args.lmp_binary)
     configFileName = args.config_file
     output_file = args.output
+    # example_toplevel is where all the examples subfolders reside
+    if args.example_toplevel != "":
+       example_toplevel = args.example_toplevel
     if args.example_folders != "":
         example_subfolders = args.example_folders.split(';')
         print("Example folders:")
@@ -506,6 +514,7 @@ if __name__ == "__main__":
     genref = args.genref
     verbose = args.verbose
     log_file = args.logfile
+    dry_run = args.dry_run
 
     # logging
     logger = logging.getLogger(__name__)
@@ -531,8 +540,23 @@ if __name__ == "__main__":
     print(f"- {operating_system}")
     print(f"- {GitInfo}")
     print(f"- Active compile flags: {compile_flags}")
-    print(f"- List of installed packages: {packages}")
-    
+    print(f"- List of {len(packages)} installed packages: {packages}")
+
+    num_workers = 4
+    folder_list = []
+    if len(example_toplevel) != 0:
+        # getting the
+        cmd_str = f"find {example_toplevel} -name \"in.*\" "
+        p = subprocess.run(cmd_str, shell=True, text=True, capture_output=True)
+        input_list = p.stdout.split('\n')
+        input_list.remove("")
+        # find out which folder to cd into to run the input script
+        for input in input_list:
+            folder = input.rsplit('/', 1)[0]
+            folder_list.append(folder)
+        
+        print(f"There are {len(input_list)} input scripts in total under the {example_toplevel} folder.")
+
     # Using in place input scripts
     inplace_input = True
     test_cases = []
@@ -607,11 +631,14 @@ if __name__ == "__main__":
 
         if 'SRD' in packages:
             example_subfolders.append('../../examples/srd')
-      
+    
+    # if only statistics, not running anything
+    if dry_run == True:
+        quit()
+
     all_results = []
     # default setting
     if inplace_input == True:
-
         # save current working dir
         p = subprocess.run("pwd", shell=True, text=True, capture_output=True)
         pwd = p.stdout.split('\n')[0]

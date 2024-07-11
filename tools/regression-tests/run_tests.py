@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 '''
+
 pip install numpy pyyaml junit_xml
 
 UPDATE: July 5, 2024:
@@ -32,6 +33,8 @@ import datetime
 import fnmatch
 import subprocess
 from argparse import ArgumentParser
+
+from multiprocessing import Pool
 
 import logging
 # need "pip install numpy pyyaml"
@@ -205,6 +208,19 @@ def execute(lmp_binary, config, input_file_name, generate_ref_yaml=False):
     return cmd_str, p.stdout, p.stderr, p.returncode
 
 '''
+   split a list into a list of N sublists
+'''
+def divide_into_N(original_list, N):
+    size = np.ceil(len(original_list) / N)
+    b = []
+    for i in range(0, N):
+        start = int(i * size)
+        end = int(start + size)
+        l = original_list[start:end]
+        b.append(l)
+    return b
+
+'''
   attempt to plug in the REG markers before each run command
   #REG:ADD thermo 10
   #REG:ADD thermo_style yaml
@@ -239,6 +255,19 @@ def has_markers(input):
 '''
   Iterate over a list of input files using the given lmp_binary, the testing configuration
   return test results, as a list of TestResult instances
+
+  def func(input1, input2, output):
+      # do smth
+      return result
+
+  # args is a list of Ncores tuples, each tuple contains the arguments passed to the function executed by a worker
+  args = []
+  for i in range(num_workers):
+      args.append((input1, input2, output))
+
+  with Pool(num_workers) as pool:   
+      results = pool.starmap(func, args)
+
 '''
 def iterate(lmp_binary, input_list, config, results, removeAnnotatedInput=False):
   EPSILON = np.float64(config['epsilon'])
@@ -338,7 +367,8 @@ def iterate(lmp_binary, input_list, config, results, removeAnnotatedInput=False)
 
     # process error code from the run
     if returncode != 0:
-        print(f"ERROR: Failed with {input_test}. Check the log file for the run output.\n")
+        print(f"ERROR: Failed with {input_test} with return code {returncode}. Check the log file for the run output.\n")
+        logger.info(f"\n{input_test}:")
         logger.info(f"\n{error}")
         continue
 
@@ -482,6 +512,7 @@ if __name__ == "__main__":
     log_file = "run.log"
     dry_run = False
     example_toplevel = ""
+    num_workers = 4
 
     # parse the arguments
     parser = ArgumentParser()
@@ -490,6 +521,7 @@ if __name__ == "__main__":
                         help="Configuration YAML file")
     parser.add_argument("--example-top-level", dest="example_toplevel", default="", help="Example top-level")
     parser.add_argument("--example-folders", dest="example_folders", default="", help="Example subfolders")
+    parser.add_argument("--num-workers", dest="num_workers", default=1, help="Number of workers")
     parser.add_argument("--gen-ref",dest="genref", action='store_true', default=False,
                         help="Generating reference data")
     parser.add_argument("--verbose",dest="verbose", action='store_true', default=False,
@@ -504,6 +536,8 @@ if __name__ == "__main__":
     lmp_binary = os.path.abspath(args.lmp_binary)
     configFileName = args.config_file
     output_file = args.output
+    num_workers = args.num_workers
+
     # example_toplevel is where all the examples subfolders reside
     if args.example_toplevel != "":
        example_toplevel = args.example_toplevel
@@ -542,7 +576,6 @@ if __name__ == "__main__":
     print(f"- Active compile flags: {compile_flags}")
     print(f"- List of {len(packages)} installed packages: {packages}")
 
-    num_workers = 4
     folder_list = []
     if len(example_toplevel) != 0:
         # getting the
@@ -557,12 +590,27 @@ if __name__ == "__main__":
         
         print(f"There are {len(input_list)} input scripts in total under the {example_toplevel} folder.")
 
+        # divide the list of input scripts into num_workers chunks
+        sublists = divide_into_N(input_list, num_workers)
+
+    # if only statistics, not running anything
+    if dry_run == True:
+        quit()
+
     # Using in place input scripts
     inplace_input = True
     test_cases = []
 
     # if the example folders are not specified from the command-line argument --example-folders
     if len(example_subfolders) == 0:
+        example_subfolders.append("../../examples/melt")
+        '''
+        for input in sublists[0]:
+            folder = input.rsplit('/', 1)[0]
+            folder_list.append(folder)
+        example_subfolders = folder_list
+        '''
+        '''
         example_subfolders.append("../../examples/melt")
         example_subfolders.append('../../examples/flow')
         example_subfolders.append('../../examples/indent')
@@ -631,10 +679,7 @@ if __name__ == "__main__":
 
         if 'SRD' in packages:
             example_subfolders.append('../../examples/srd')
-    
-    # if only statistics, not running anything
-    if dry_run == True:
-        quit()
+        '''
 
     all_results = []
     # default setting
@@ -648,8 +693,18 @@ if __name__ == "__main__":
         # change dir to a folder under examples/, need to use os.chdir()
         # TODO: loop through the subfolders under examples/, depending on the installed packages
 
+
+        '''
+        args = []
+        for i in range(num_workers):
+            args.append((input1, input2, output))
+
+        with Pool(num_workers) as pool:   
+            results = pool.starmap(func, args)
+        '''
         total_tests = 0
         passed_tests = 0
+
 
         for directory in example_subfolders:
 

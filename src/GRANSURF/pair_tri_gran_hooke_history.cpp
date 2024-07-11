@@ -1069,112 +1069,122 @@ int PairTriGranHookeHistory::nearest_point_line(double *x,
 }
 
 /* ----------------------------------------------------------------------
-   check overlap status of sphere I with tri J versus its neighbor tri K
+   check overlap status of sphere I with tri J versus any neighbor tris K
    I overlaps J at jflag = -1,-2,-3 for three edges
-   return 0 if this line J performs computation
-   return 1 if other line K performs computation
+   return 0 if this tri J performs computation
+   return 1 if other tri K performs computation
 ------------------------------------------------------------------------- */
 
 int PairTriGranHookeHistory::edge_neigh_check(int i, int j, int jflag)
 {
-  tagint idconnect;
+  // ncheck = # of neighbor tris to check
+  // neighs = indices of neighbor tris (including self)
+
+  int ncheck;
+  int *neighs;
+
+  if (jflag == -1) {
+    if (connect3d[j].ne1 == 1) return 0;
+    ncheck = connect3d[j].ne1;
+    neighs = connect3d[j].neigh_e1;
+  } else if (jflag == -2) {
+    if (connect3d[j].ne2 == 1) return 0;
+    ncheck = connect3d[j].ne2;
+    neighs = connect3d[j].neigh_e2;
+  } else if (jflag == -3) {
+    if (connect3d[j].ne3 == 1) return 0;
+    ncheck = connect3d[j].ne3;
+    neighs = connect3d[j].neigh_e3;
+  }
+
+  // check overlap with each neighbor tri
+  // if any tri has interior overlap, another tri computes
+  // if all tris have edge overlap, tri with lowest ID computes
+  // kflag = overlap status with neighbor tri
+  // kflag = 1, interior overlap
+  // kflag = 0, no overlap, should not be possible
+  // kflag < 0, overlap at edge (overlap at corner pt should not be possible)
+
+  tagint *tag = atom->tag;
+
+  int k,kflag;
   double rsq;
   double dr[3],contact[3];
 
-  // idconnect = ID of neighbor line
-  // k = local index of neighbor line
+  tagint trimin = tag[j];
 
-  int m = atom->tri[j];
-  if (jflag == -1) idconnect = connect3d[m].neigh_e1;
-  else if (jflag == -2) idconnect = connect3d[m].neigh_e2;
-  else idconnect = connect3d[m].neigh_e3;
-  if (idconnect == 0) return 0;
-  int k = atom->map(idconnect);
-  if (k < 0) error->one(FLERR,"Pair tri/gran neighbor tri is missing");
+  for (int m = 0; m < ncheck; m++) {
+    if (neighs[m] == tag[j]) continue;     // skip self tri
+    k = atom->map(neighs[m]);
+    if (k < 0) error->one(FLERR,"Pair tri/gran neighbor tri is missing");
+    k = neighs[m];
+    kflag = overlap_sphere_tri(i,k,contact,dr,rsq);
+    if (kflag > 0) return 1;
+    if (kflag == 0) error->one(FLERR,"Pair tri/gran neighbor tri overlap is invalid");
+    trimin = MIN(trimin,k);
+  }
 
-  // kflag = overlap status with neighbor tri
-  // kflag = 1, interior overlap, neighbor tri computes
-  // kflag = 0, no overlap, should not be possible
-  // kflag < 0, overlap at end pt, tri with lowest ID computes
-
-  int kflag = overlap_sphere_tri(i,k,contact,dr,rsq);
-  if (kflag > 0) return 1;
-  if (kflag == 0)
-    error->one(FLERR,"Pair tri/gran neighbor tri overlap is invalid");
-
-  tagint *tag = atom->tag;
-  if (tag[j] < tag[k]) return 0;
+  if (tag[j] == trimin) return 0;
   return 1;
 }
 
 /* ----------------------------------------------------------------------
-   check overlap status of sphere I with tri J versus its neighbor tris K
+   check overlap status of sphere I with tri J versus any neighbor tris K
    I overlaps J at jflag = -4,-5,-6 for three corners
-   return 0 if this line J performs computation
-   return 1 if some other line K performs computation
+   return 0 if this tri J performs computation
+   return 1 if some other tri K performs computation
 ------------------------------------------------------------------------- */
 
 int PairTriGranHookeHistory::corner_neigh_check(int i, int j, int jflag)
 {
-  int k,n,kflag;
-  tagint idconnect;
-  double rsq;
-  double dr[3],contact[3];
-  tagint *cneighs;
+  // ncheck = # of neighbor tris to check
+  // neighs = indices of neighbor tris (including self)
 
-  tagint *tag = atom->tag;
+  int ncheck;
+  int *neighs;
 
-  // idconnect = ID of neighbor line
-  // k = local index of neighbor line
-
-  int m = atom->tri[j];
   if (jflag == -4) {
-    n = connect3d[m].nc1;
-    cneighs = connect3d[m].neigh_c1;
+    if (connect3d[j].nc1 == 1) return 0;
+    ncheck = connect3d[j].nc1;
+    neighs = connect3d[j].neigh_c1;
   } else if (jflag == -5) {
-    n = connect3d[m].nc2;
-    cneighs = connect3d[m].neigh_c2;
+    if (connect3d[j].nc2 == 1) return 0;
+    ncheck = connect3d[j].nc2;
+    neighs = connect3d[j].neigh_c2;
   } else if (jflag == -6) {
-    n = connect3d[m].nc3;
-    cneighs = connect3d[m].neigh_c3;
-  } else {
-    printf("JFLAG VALUE %d\n",jflag);
-    error->one(FLERR,"PTGHH invalid jflag");
+    if (connect3d[j].nc3 == 1) return 0;
+    ncheck = connect3d[j].nc3;
+    neighs = connect3d[j].neigh_c3;
   }
 
   // check overlap with each neighbor tri
-  // if any tri has interior or edge overlap, neigh tri computes
+  // if any tri has interior or edge overlap, another tri computes
   // if all tris have corner pt overlap, tri with lowest ID computes
-  // kflag = overlap status with neigh line
+  // kflag = overlap status with neighbor tri
   // kflag = 1, interior overlap
   // kflag = 0, no overlap, should not be possible
   // kflag = -1/-2/-3, overlap at edge
   // kflag = -4/-5/-6, overlap at corner pt
 
-  tagint tagmin = tag[j];
+  tagint *tag = atom->tag;
 
-  for (int m = 0; m < n; m++) {
-    k = atom->map(cneighs[m]);
+  int k,kflag;
+  double rsq;
+  double dr[3],contact[3];
+
+  tagint trimin = tag[j];
+
+  for (int m = 0; m < ncheck; m++) {
+    if (neighs[m] == tag[j]) continue;     // skip self tri
+    k = atom->map(neighs[m]);
     if (k < 0) error->one(FLERR,"Pair tri/gran neighbor tri is missing");
     kflag = overlap_sphere_tri(i,k,contact,dr,rsq);
     if (kflag > 0) return 1;
-    if (kflag == 0) {
-      // DEBUG
-      /*
-      printf("OVERLAP SPHERE i %d %d xyz %g %g %g jflag %d tri %d %d "
-             "n %d k %d %d\n",
-             i,atom->tag[i],
-             atom->x[i][0],
-             atom->x[i][1],
-             atom->x[i][2],
-             jflag,j,tag[j],n,k,tag[k]);
-      */
-      error->one(FLERR,"Pair tri/gran neighbor tri overlap is invalid");
-    }
+    if (kflag == 0) error->one(FLERR,"Pair tri/gran neighbor tri overlap is invalid");
     if (kflag >= -3) return 1;
-    tagmin = MIN(tagmin,tag[k]);
+    trimin = MIN(trimin,tag[k]);
   }
 
-  if (tag[j] == tagmin) return 0;
+  if (tag[j] == trimin) return 0;
   return 1;
 }

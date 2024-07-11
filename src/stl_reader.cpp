@@ -40,7 +40,7 @@ STLReader::~STLReader()
 
 /* ---------------------------------------------------------------------- */
 
-int STLReader::read_file(const char *filename, double **caller_tris)
+int STLReader::read_file(const char *filename, double **&caller_tris)
 {
   int me = comm->me;
 
@@ -51,7 +51,7 @@ int STLReader::read_file(const char *filename, double **caller_tris)
     FILE *fp = fopen(filename, "rb");
     if (fp == nullptr) error->one(FLERR, "Cannot open file {}: {}", filename, utils::getsyserror());
 
-    // first try reading the file in ASCII format
+    // try reading the file in ASCII format
 
     TextFileReader reader(fp, "STL mesh");
 
@@ -91,7 +91,7 @@ int STLReader::read_file(const char *filename, double **caller_tris)
 
         if (ntris == maxtris) {
           maxtris += DELTA;
-          memory->grow(tris,maxtris,9,"STLReader:tris");
+          memory->grow(tris,maxtris,9,"stl_reader:tris");
         }
 
         for (int k = 0; k < 3; ++k) {
@@ -104,7 +104,7 @@ int STLReader::read_file(const char *filename, double **caller_tris)
           tris[ntris][3*k+1] = utils::numeric(FLERR, values[2], false, lmp);
           tris[ntris][3*k+2] = utils::numeric(FLERR, values[3], false, lmp);
         }
-
+        
         line = reader.next_line(1);
         if (!line || !utils::strmatch(line, "^ *endloop"))
           throw TokenizerException("Error reading endloop", "");
@@ -115,21 +115,21 @@ int STLReader::read_file(const char *filename, double **caller_tris)
         ntris++;
       }
 
-    } catch (std::exception &e) {
+    // if read as text file failed, try reading as binary file
 
-      // if read of text file failed for the first line, try reading as binary
+    } catch (std::exception &e) {
 
       if (utils::strmatch(e.what(), "^Invalid STL mesh file format")) {
         char title[80];
         float triangle[12];
-        uint32_t ntri;
+        uint32_t untri;
         uint16_t attr;
         size_t count;
 
         rewind(fp);
         count = fread(title, sizeof(char), 80, fp);
         title[79] = '\0';
-        count = fread(&ntri, sizeof(ntri), 1, fp);
+        count = fread(&untri, sizeof(untri), 1, fp);
         if (count <= 0) {
           error->one(FLERR, "Error reading STL file {}: {}", filename, utils::getsyserror());
         } else {
@@ -137,35 +137,53 @@ int STLReader::read_file(const char *filename, double **caller_tris)
                          filename);
         }
 
-        // NOTE: worry about unsigned int versus signed int
+        if (untri > MAXSMALLINT)
+          error->one(FLERR, "Triangle counts in STL file exceed integer limit");
 
-        memory->create(tris,ntris,9,"STLReader:tris");
+        ntris = untri;
+        memory->create(tris,ntris,9,"stl_reader:tris");
 
-        for (uint32_t i = 0U; i < ntri; ++i) {
+        for (int i = 0; i < ntris; ++i) {
           count = fread(triangle, sizeof(float), 12, fp);
           if (count != 12)
             error->one(FLERR, "Error reading STL file {}: {}", filename, utils::getsyserror());
           count = fread(&attr, sizeof(attr), 1, fp);
 
+          // ignore normal
+          
           int m = 0;
           for (int j = 0; j < 3; ++j)
             for (int k = 0; k < 3; ++k)
-              tris[i][m++] = triangle[3 * j + 3 + k];
+              tris[i][m++] = triangle[3*j + k + 3];
         }
 
       } else {
-        error->all(FLERR, "Error reading triangles from file {}: {}", filename, e.what());
+        error->all(FLERR, "Error reading STL file {}: {}", filename, e.what());
       }
     }
 
     if (fp) fclose(fp);
   }
 
-  // MPI Bcast of tri list to all procs
+  // MPI broadcast of triangle vertex coords to all procs
+  // allow for 9*ntris to exceed max-allowed size of MPI_Bcast()
 
   MPI_Bcast(&ntris,1,MPI_INT,0,world);
-  if (me) memory->create(tris,ntris,9,"STLReader:tris");
-  MPI_Bcast(&tris[0][0],9*ntris,MPI_DOUBLE,0,world);
+  if (ntris == 0) error->all(FLERR,"STL file has no triangles");
+  if (me) memory->create(tris,ntris,9,"stl_reader:tris");
+
+  bigint ntotal = (bigint) ntris * 9;
+  if (ntotal < MAXSMALLINT)
+    MPI_Bcast(&tris[0][0],9*ntris,MPI_DOUBLE,0,world);
+  else {
+    double *source = &tris[0][0];
+    bigint n = 0;
+    while (n < ntotal) {
+      int nsize = MIN(MAXSMALLINT,ntotal-n);
+      MPI_Bcast(&source[n],nsize,MPI_DOUBLE,0,world);
+      n += nsize;
+    }
+  }
 
   // return values
 

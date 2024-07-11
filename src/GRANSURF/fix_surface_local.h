@@ -28,24 +28,28 @@ namespace LAMMPS_NS {
 
 class FixSurfaceLocal : public Fix {
  public:
+
+  // 2d/3d connectivity
+
   struct Connect2d {      // line connectivity
-    tagint neigh_p1;      // ID of line connected to my pt1, 0 if none
-    tagint neigh_p2;      // ditto for my pt2
-    int flags;            // flags for end pt coupling
-                          // NOTE: document what is stored in flags
+    int np1,np2;          // # of other lines connected to pts 1,2
+    tagint *neigh_p1;     // IDs of other lines connected to pt1
+    tagint *neigh_p2;     // ditto for pt2
+    int flags;            // future flags for end pt coupling
     int ilocal;           // local index of line particle
   };
 
   struct Connect3d {      // tri connectivity
-    tagint neigh_e1;      // ID of tri connected to my 1-2 edge, 0 if none
-    tagint neigh_e2;      // ditto for my 2-3 edge
-    tagint neigh_e3;      // ditto for my 3-1 edge
-    tagint *neigh_c1;     // IDs of tris connected to my 1st corner pt
-    tagint *neigh_c2;     // ditto for my 2nd corner pt
-    tagint *neigh_c3;     // ditto for my 3rd corner pt
-    int nc1,nc2,nc3;      // # of tris connected to each corner pt
-    int flags;            // flags for edge and corner pt coupling
-                          // NOTE: document what is stored in flags
+    int ne1,ne2,ne3;      // # of other tris connected to edges 1,2,3
+    int nc1,nc2,nc3;      // # of tris connected to corner pts 1,2,3
+    tagint *neigh_e1;     // IDs of other tris connected to 1-2 edge
+    tagint *neigh_e2;     // ditto for 2-3 edge
+    tagint *neigh_e3;     // ditto for 3-1 edge
+    tagint *neigh_c1;     // IDs of other tris connected to corner pt 1
+    tagint *neigh_c2;     // ditto for corner pt 2
+    tagint *neigh_c3;     // ditto for corner pt 3
+    int flags;            // future flags for edge and corner pt coupling
+    int indexe1,indexe2,indexe3;   // pool indices of neigh_e123 chunks
     int indexc1,indexc2,indexc3;   // pool indices of neigh_c123 chunks
     int ilocal;           // local index of triangle particle
   };
@@ -53,7 +57,7 @@ class FixSurfaceLocal : public Fix {
   int *index;                       // per-atom index into connect 2d/3d vecs
   Connect2d *connect2d;             // 2d connection info
   Connect3d *connect3d;             // 3d connection info
-  MyPoolChunk<tagint> *tcp;         // allocator for 3d connectivity
+  MyPoolChunk<tagint> *tcp;         // allocator for 2d or 3d connectivity
 
   // size of local/ghost connection info vectors
 
@@ -62,7 +66,6 @@ class FixSurfaceLocal : public Fix {
   FixSurfaceLocal(class LAMMPS *, int, char **);
   virtual ~FixSurfaceLocal();
   int setmask() override;
-  void post_constructor() override;
   void setup_pre_neighbor() override;
   void pre_neighbor() override;
 
@@ -84,7 +87,6 @@ class FixSurfaceLocal : public Fix {
   char *idmol;
   class AtomVecLine *avec_line;
   class AtomVecTri *avec_tri;
-  int tagintdoubleratio;
 
   // data structs for extracting surfs from molecule files
 

@@ -905,43 +905,56 @@ int PairLineGranHookeHistory::overlap_sphere_line(int i, int j, double *pt,
 }
 
 /* ----------------------------------------------------------------------
-   check overlap status of sphere I with line J versus its neighbor line K
+   check overlap status of sphere I with line J versus any neighbor lines K
    I overlaps J at jflag = -1,-2 for two end points
    return 0 if this line J performs computation
-   return 1 if other line K performs computation
+   return 1 if some other line K performs computation
 ------------------------------------------------------------------------- */
 
 int PairLineGranHookeHistory::endpt_neigh_check(int i, int j, int jflag)
 {
-  tagint idconnect;
-  double rsq;
-  double dr[3],contact[3];
+  // ncheck = # of neighbor lines to check
+  // neighs = indices of neighbor lines (including self)
+
+  int ncheck;
+  int *neighs;
+
+  if (jflag == -1) {
+    if (connect2d[j].np1 == 1) return 0;
+    ncheck = connect2d[j].np1;
+    neighs = connect2d[j].neigh_p1;
+  } else if (jflag == -2) {
+    if (connect2d[j].np2 == 1) return 0;
+    ncheck = connect2d[j].np2;
+    neighs = connect2d[j].neigh_p2;
+  }
+
+  // check overlap with each neighbor line
+  // if any line has interior overlap, another line computes
+  // if all lines have endpt overlap, line with lowest index computes
+  // kflag = overlap status with neighbor line
+  // kflag = 1, interior overlap
+  // kflag = 0, no overlap, should not be possible
+  // kflag < 0, overlap at endpt
 
   tagint *tag = atom->tag;
 
-  // idconnect = ID of neighbor line
-  // k = local index of neighbor line
+  int k,kflag;
+  double rsq;
+  double dr[3],contact[3];
 
-  int m = atom->line[j];
-  if (jflag == -1) idconnect = connect2d[m].neigh_p1;
-  else idconnect = connect2d[m].neigh_p2;
-  if (idconnect == 0) return 0;
-  int k = atom->map(idconnect);
-  if (k < 0) error->one(FLERR,"Pair line/gran neighbor line is missing");
+  int linemin = tag[j];
 
-  // check overlap with neighbor line
-  // if neighbor has interior overlap, neigh line computes
-  // if neighbor has end pt overlap, line with lowest ID computes
-  // kflag = overlap status with neigh line
-  // kflag = 1, interior overlap
-  // kflag = 0, no overlap, should not be possible
-  // kflag < 0, overlap at end pt
+  for (int m = 0; m < ncheck; m++) {
+    if (neighs[m] == tag[j]) continue;     // skip self line
+    k = atom->map(neighs[m]);
+    if (k < 0) error->one(FLERR,"Pair line/gran neighbor line is missing");
+    kflag = overlap_sphere_line(i,k,contact,dr,rsq);
+    if (kflag > 0) return 1;
+    if (kflag == 0) error->one(FLERR,"Fix surface/global neighbor line overlap is invalid");
+    linemin = MIN(linemin,tag[k]);
+  }
 
-  int kflag = overlap_sphere_line(i,k,contact,dr,rsq);
-  if (kflag > 0) return 1;
-  if (kflag == 0)
-    error->one(FLERR,"Pair line/gran neighbor line overlap is invalid");
-
-  if (tag[j] < tag[k]) return 0;
+  if (tag[j] == linemin) return 0;
   return 1;
 }

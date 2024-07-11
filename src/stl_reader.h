@@ -23,7 +23,7 @@ class STLReader : protected Pointers {
  public:
   STLReader(class LAMMPS *);
   ~STLReader();
-  int read_file(const char *, double **);
+  int read_file(const char *, double **&);
 
  private:
   int ntris,maxtris;

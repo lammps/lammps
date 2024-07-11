@@ -313,7 +313,6 @@ void FixWallGran::init()
   // check for compatible heat conduction atom style
 
   if (heat_flag) {
-    error->all(FLERR, "Heat conduction not yet implemented");
     if (!atom->temperature_flag)
       error->all(FLERR, "Heat conduction in fix wall/gran requires atom style with temperature property");
     if (!atom->heatflow_flag)

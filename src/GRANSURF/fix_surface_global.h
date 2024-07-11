@@ -63,6 +63,10 @@ class FixSurfaceGlobal : public Fix {
   class Granular_NS::GranularModel *model;
   int history, size_history, heat_flag;
 
+  double Twall;
+  int tvar;
+  char *tstr;
+
   double **xsurf,**vsurf,**omegasurf,*radsurf;
 
   // motion

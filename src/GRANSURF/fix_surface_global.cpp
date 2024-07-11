@@ -22,6 +22,7 @@
 #include "force.h"
 #include "granular_model.h"
 #include "gran_sub_mod.h"
+#include "input.h"
 #include "lattice.h"
 #include "math_const.h"
 #include "math_extra.h"
@@ -32,6 +33,7 @@
 #include "neigh_list.h"
 #include "neighbor.h"
 #include "update.h"
+#include "variable.h"
 
 #include <map>
 #include <tuple>
@@ -50,7 +52,7 @@ enum{NONE,LINEAR,WIGGLE,ROTATE,VARIABLE};
 /* ---------------------------------------------------------------------- */
 
 FixSurfaceGlobal::FixSurfaceGlobal(LAMMPS *lmp, int narg, char **arg) :
-  Fix(lmp, narg, arg)
+  Fix(lmp, narg, arg), tstr(nullptr)
 {
   if (narg < 11) error->all(FLERR,"Illegal fix surface/global command");
 
@@ -99,7 +101,7 @@ FixSurfaceGlobal::FixSurfaceGlobal(LAMMPS *lmp, int narg, char **arg) :
         model->limit_damping = 1;
         iarg += 1;
       } else {
-        error->all(FLERR, "Unknown fix wall/gran keyword {}", arg[iarg]);
+        break;
       }
     }
   }
@@ -117,6 +119,7 @@ FixSurfaceGlobal::FixSurfaceGlobal(LAMMPS *lmp, int narg, char **arg) :
   // optional args
 
   int scaleflag = 0;
+  int Twall_defined = 0;
 
   while (iarg < narg) {
     if (strcmp(arg[iarg],"units") == 0) {
@@ -125,8 +128,20 @@ FixSurfaceGlobal::FixSurfaceGlobal(LAMMPS *lmp, int narg, char **arg) :
       else if (strcmp(arg[iarg+1],"lattice") == 0) scaleflag = 1;
       else error->all(FLERR,"Illegal fix surface/global command");
       iarg += 2;
+    } else if (strcmp(arg[iarg],"temperature") == 0) {
+      if (iarg+2 > narg) error->all(FLERR,"Illegal fix surface/global  command");
+      if (utils::strmatch(arg[iarg+1], "^v_")) {
+        tstr = utils::strdup(arg[iarg+1] + 2);
+      } else {
+        Twall = utils::numeric(FLERR,arg[iarg+1],false,lmp);
+      }
+      Twall_defined = 1;
+      iarg += 2;
     } else error->all(FLERR,"Illegal fix surface/global command");
   }
+
+  if (heat_flag != Twall_defined)
+    error->all(FLERR, "Must define wall temperature with heat model");
 
   // initializations
 
@@ -214,6 +229,7 @@ FixSurfaceGlobal::~FixSurfaceGlobal()
   delete list;
   delete listhistory;
   delete [] zeroes;
+  delete[] tstr;
 
   if (use_history)
     modify->delete_fix("NEIGH_HISTORY_SURFACE_GLOBAL_" + std::to_string(instance_me));
@@ -287,6 +303,13 @@ void FixSurfaceGlobal::init()
       listhistory->setup_pages(pgsize,oneatom);
       listhistory->grow(atom->nmax,atom->nmax);
     }
+  }
+
+  if (tstr) {
+    tvar = input->variable->find(tstr);
+    if (tvar < 0) error->all(FLERR, "Variable {} for fix surface/global does not exist", tstr);
+    if (! input->variable->equalstyle(tvar))
+      error->all(FLERR, "Variable {} for fix surface/global must be an equal style variable", tstr);
   }
 }
 
@@ -606,6 +629,12 @@ void FixSurfaceGlobal::post_force(int vflag)
   int *mask = atom->mask;
   int nlocal = atom->nlocal;
 
+  if (heat_flag) {
+    if (tstr)
+      Twall = input->variable->compute_equal(tvar);
+    model->Tj = Twall;
+  }
+
   inum = list->inum;
   ilist = list->ilist;
   numneigh = list->numneigh;
@@ -753,10 +782,8 @@ void FixSurfaceGlobal::post_force(int vflag)
       model->vj = vs;
       model->omegaj = omegasurf[j];
 
-      if (heat_flag) {
+      if (heat_flag)
         model->Ti = temperature[i];
-        model->Tj = 0.0; // TO IMPLEMENT
-      }
 
       // pairwise interaction between sphere and surface element
 

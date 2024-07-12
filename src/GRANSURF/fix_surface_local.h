@@ -32,20 +32,21 @@ class FixSurfaceLocal : public Fix {
   // 2d/3d connectivity
 
   struct Connect2d {      // line connectivity
-    int np1,np2;          // # of other lines connected to pts 1,2
-    tagint *neigh_p1;     // IDs of other lines connected to pt1
+    int np1,np2;          // # of lines connected to pts 1,2 (including self)
+    tagint *neigh_p1;     // IDs of all lines connected to pt1 (if np1 > 1)
     tagint *neigh_p2;     // ditto for pt2
     int flags;            // future flags for end pt coupling
+    int indexp1,indexp2;  // pool indices of neigh_p12 chunks
     int ilocal;           // local index of line particle
   };
 
   struct Connect3d {      // tri connectivity
-    int ne1,ne2,ne3;      // # of other tris connected to edges 1,2,3
-    int nc1,nc2,nc3;      // # of tris connected to corner pts 1,2,3
-    tagint *neigh_e1;     // IDs of other tris connected to 1-2 edge
+    int ne1,ne2,ne3;      // # of tris connected to edges 1,2,3 (including self)
+    int nc1,nc2,nc3;      // # of tris connected to corner pts 1,2,3 (including self)
+    tagint *neigh_e1;     // IDs of all tris connected to 1-2 edge (if ne1 > 1)
     tagint *neigh_e2;     // ditto for 2-3 edge
     tagint *neigh_e3;     // ditto for 3-1 edge
-    tagint *neigh_c1;     // IDs of other tris connected to corner pt 1
+    tagint *neigh_c1;     // IDs of all tris connected to corner pt 1 (if nc1 > 1)
     tagint *neigh_c2;     // ditto for corner pt 2
     tagint *neigh_c3;     // ditto for corner pt 3
     int flags;            // future flags for edge and corner pt coupling
@@ -66,6 +67,7 @@ class FixSurfaceLocal : public Fix {
   FixSurfaceLocal(class LAMMPS *, int, char **);
   virtual ~FixSurfaceLocal();
   int setmask() override;
+  void post_constructor() override;
   void setup_pre_neighbor() override;
   void pre_neighbor() override;
 
@@ -84,12 +86,15 @@ class FixSurfaceLocal : public Fix {
 
  private:
   int dimension,mode;
-  char *idmol;
+  char *sourceID;
+  
   class AtomVecLine *avec_line;
   class AtomVecTri *avec_tri;
 
-  // data structs for extracting surfs from molecule files
-
+  // data structs for extracting surfs from molecule template or STL file
+  // these are global data structs for all surfs, including connectivity
+  // only used during setup, then deleted
+  
   struct Point {
     double x[3];
   };
@@ -113,10 +118,14 @@ class FixSurfaceLocal : public Fix {
 
   Connect2d *connect2dall;    // global connectivity info
   Connect3d *connect3dall;
-  int **clist;                // ragged 2d array for global corner pt lists
+
+  int **plist;                // ragged 2d array for global line end pt lists
+  int **elist;                // ragged 2d array for global tri edge lists
+  int **clist;                // ragged 2d array for global tri corner pt lists
 
   // data structs for binning end pts of lines or tris from data file
-  // these are surfs procs already own as line or tri style atoms
+  // these are for local surfs which procs already own as line or tri style atoms
+  // only used during setup, then deleted
 
   double **endpts;         // current end pts of lines I own
                            // Nlocal x 4 array for local atoms
@@ -169,7 +178,9 @@ class FixSurfaceLocal : public Fix {
   int pt2bin3d(double *);
   int overlap2bin3d(double *, double, int *);
 
+  int check_exist();
   void extract_from_molecules(char *);
+  void extract_from_stlfile(char *);
   void connectivity2d_global();
   void connectivity3d_global();
   void assign2d();

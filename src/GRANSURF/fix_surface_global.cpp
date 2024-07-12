@@ -149,6 +149,10 @@ FixSurfaceGlobal::FixSurfaceGlobal(LAMMPS *lmp, int narg, char **arg) :
 
   dimension = domain->dimension;
 
+  points = nullptr;
+  lines = nullptr;
+  tris = nullptr;
+  
   mstyle = NONE;
   points_lastneigh = nullptr;
   points_original = nullptr;
@@ -1466,9 +1470,6 @@ void FixSurfaceGlobal::extract_from_molecules(char *molID)
 {
   // populate global point/line/tri data structs
 
-  points = nullptr;
-  lines = nullptr;
-  tris = nullptr;
   npoints = nlines = ntris = 0;
   int maxpoints = 0;
 
@@ -1632,7 +1633,6 @@ void FixSurfaceGlobal::extract_from_stlfile(char *filename)
 
   // create points and tris data structs
 
-  points = nullptr;
   npoints = 0;
   int maxpoints = 0;
 

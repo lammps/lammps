@@ -13,18 +13,11 @@ create_box      2 box
 Created orthogonal box = (-7 -7 0) to (7 7 9)
   1 by 1 by 1 MPI processor grid
 
-molecule        tris surf.tri
-Read molecule template tris:
-LAMMPS data file for tri plane
-  1 molecules
-  0 fragments
-  0 atoms with max type 0
-  0 bonds with max type 0
-  0 angles with max type 0
-  0 dihedrals with max type 0
-  0 impropers with max type 0
-  4 triangles
-fix             20 all surface/local tris
+fix             20 all surface/local surf.tri.stl
+Reading STL object STL version of surf.tri from text file surf.tri.stl
+set             type 1 type 2
+Setting atom values ...
+  4 settings made for type
 
 pair_style	hybrid gran/hooke/history 4000.0 NULL 100.0 NULL 0.5 1                 tri/gran/hooke 4000.0 NULL 100.0 50.0 0.5 1
 pair_coeff	1 1 gran/hooke/history
@@ -146,20 +139,20 @@ WARNING: Fewer insertions than requested (../fix_pour.cpp:683)
       4800         100   0.00057127674  0.0005953305   0.00078435449  0.006075934  
       4900         100   0.00048538112  0.00050581822  0.00067082262  0.0061360807 
       5000         100   0.00049531306  0.00051616835  0.00070658811  0.0061425578 
-Loop time of 0.232999 on 1 procs for 5000 steps with 100 atoms
+Loop time of 0.239342 on 1 procs for 5000 steps with 100 atoms
 
-Performance: 9270416.385 tau/day, 21459.297 timesteps/s, 2.146 Matom-step/s
-96.8% CPU use with 1 MPI tasks x no OpenMP threads
+Performance: 9024730.054 tau/day, 20890.579 timesteps/s, 2.089 Matom-step/s
+88.6% CPU use with 1 MPI tasks x no OpenMP threads
 
 MPI task timing breakdown:
 Section |  min time  |  avg time  |  max time  |%varavg| %total
 ---------------------------------------------------------------
-Pair    | 0.025378   | 0.025378   | 0.025378   |   0.0 | 10.89
-Neigh   | 0.0083862  | 0.0083862  | 0.0083862  |   0.0 |  3.60
-Comm    | 0.00040258 | 0.00040258 | 0.00040258 |   0.0 |  0.17
-Output  | 0.18672    | 0.18672    | 0.18672    |   0.0 | 80.14
-Modify  | 0.011026   | 0.011026   | 0.011026   |   0.0 |  4.73
-Other   |            | 0.001084   |            |       |  0.47
+Pair    | 0.026886   | 0.026886   | 0.026886   |   0.0 | 11.23
+Neigh   | 0.0086276  | 0.0086276  | 0.0086276  |   0.0 |  3.60
+Comm    | 0.00041811 | 0.00041811 | 0.00041811 |   0.0 |  0.17
+Output  | 0.19004    | 0.19004    | 0.19004    |   0.0 | 79.40
+Modify  | 0.012242   | 0.012242   | 0.012242   |   0.0 |  5.11
+Other   |            | 0.001133   |            |       |  0.47
 
 Nlocal:            100 ave         100 max         100 min
 Histogram: 1 0 0 0 0 0 0 0 0 0
@@ -229,20 +222,20 @@ Per MPI rank memory allocation (min/avg/max) = 14.46 | 14.46 | 14.46 Mbytes
       9800          46   1.1225281      0.048846024    0.052582727    0.030659518  
       9900          46   1.1235541      0.049972117    0.054322137    0.030823675  
      10000          43   1.1964897      0.045828636    0.049253726    0.03048984   
-Loop time of 0.211297 on 1 procs for 5000 steps with 43 atoms
+Loop time of 0.22501 on 1 procs for 5000 steps with 43 atoms
 
-Performance: 10222583.456 tau/day, 23663.388 timesteps/s, 1.018 Matom-step/s
-96.4% CPU use with 1 MPI tasks x no OpenMP threads
+Performance: 9599559.914 tau/day, 22221.204 timesteps/s, 955.512 katom-step/s
+89.5% CPU use with 1 MPI tasks x no OpenMP threads
 
 MPI task timing breakdown:
 Section |  min time  |  avg time  |  max time  |%varavg| %total
 ---------------------------------------------------------------
-Pair    | 0.021317   | 0.021317   | 0.021317   |   0.0 | 10.09
-Neigh   | 0.0047466  | 0.0047466  | 0.0047466  |   0.0 |  2.25
-Comm    | 0.00037942 | 0.00037942 | 0.00037942 |   0.0 |  0.18
-Output  | 0.1732     | 0.1732     | 0.1732     |   0.0 | 81.97
-Modify  | 0.010709   | 0.010709   | 0.010709   |   0.0 |  5.07
-Other   |            | 0.0009465  |            |       |  0.45
+Pair    | 0.023112   | 0.023112   | 0.023112   |   0.0 | 10.27
+Neigh   | 0.0050165  | 0.0050165  | 0.0050165  |   0.0 |  2.23
+Comm    | 0.00039113 | 0.00039113 | 0.00039113 |   0.0 |  0.17
+Output  | 0.18353    | 0.18353    | 0.18353    |   0.0 | 81.56
+Modify  | 0.011974   | 0.011974   | 0.011974   |   0.0 |  5.32
+Other   |            | 0.0009874  |            |       |  0.44
 
 Nlocal:             43 ave          43 max          43 min
 Histogram: 1 0 0 0 0 0 0 0 0 0
@@ -316,20 +309,20 @@ Per MPI rank memory allocation (min/avg/max) = 13.58 | 13.58 | 13.58 Mbytes
      14800          32   0.0057678876   0.0066223895   0.017482798    0.0016956915 
      14900          32   0.0057096482   0.006555522    0.018478553    0.0019276435 
      15000          32   0.0057085079   0.0065542128   0.017574244    0.0021196367 
-Loop time of 0.172151 on 1 procs for 5000 steps with 32 atoms
+Loop time of 0.17974 on 1 procs for 5000 steps with 32 atoms
 
-Performance: 12547152.387 tau/day, 29044.334 timesteps/s, 929.419 katom-step/s
-90.6% CPU use with 1 MPI tasks x no OpenMP threads
+Performance: 12017358.941 tau/day, 27817.961 timesteps/s, 890.175 katom-step/s
+86.7% CPU use with 1 MPI tasks x no OpenMP threads
 
 MPI task timing breakdown:
 Section |  min time  |  avg time  |  max time  |%varavg| %total
 ---------------------------------------------------------------
-Pair    | 0.010881   | 0.010881   | 0.010881   |   0.0 |  6.32
-Neigh   | 0.00081386 | 0.00081386 | 0.00081386 |   0.0 |  0.47
-Comm    | 0.00028458 | 0.00028458 | 0.00028458 |   0.0 |  0.17
-Output  | 0.15425    | 0.15425    | 0.15425    |   0.0 | 89.60
-Modify  | 0.0052213  | 0.0052213  | 0.0052213  |   0.0 |  3.03
-Other   |            | 0.0006992  |            |       |  0.41
+Pair    | 0.011735   | 0.011735   | 0.011735   |   0.0 |  6.53
+Neigh   | 0.00083073 | 0.00083073 | 0.00083073 |   0.0 |  0.46
+Comm    | 0.00027647 | 0.00027647 | 0.00027647 |   0.0 |  0.15
+Output  | 0.1603     | 0.1603     | 0.1603     |   0.0 | 89.19
+Modify  | 0.0058558  | 0.0058558  | 0.0058558  |   0.0 |  3.26
+Other   |            | 0.0007393  |            |       |  0.41
 
 Nlocal:             32 ave          32 max          32 min
 Histogram: 1 0 0 0 0 0 0 0 0 0

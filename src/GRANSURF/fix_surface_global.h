@@ -115,26 +115,26 @@ class FixSurfaceGlobal : public Fix {
   int npoints,nlines,ntris;   // count of each
   int nsurf;                  // count of lines or tris for 2d/3d
 
-  int **plist;                // ragged 2d array for global end pt lists
-  int **elist;                // ragged 2d array for global edge lists
-  int **clist;                // ragged 2d array for global corner pt lists
+  int **plist;                // ragged 2d array for global line end pt lists
+  int **elist;                // ragged 2d array for global tri edge lists
+  int **clist;                // ragged 2d array for global tri corner pt lists
 
   // 2d/3d connectivity
 
   struct Connect2d {      // line connectivity
-    int np1,np2;          // # of other lines connected to pts 1,2
-    int *neigh_p1;        // indices of other lines connected to pt1
+    int np1,np2;          // # of lines connected to pts 1,2 (including self)
+    int *neigh_p1;        // indices of all lines connected to pt1 (if np1 > 1)
     int *neigh_p2;        // ditto for pt2
     int flags;            // future flags for end pt coupling
   };
 
   struct Connect3d {      // tri connectivity
-    int ne1,ne2,ne3;      // # of other tris connected to edges 1,2,3
-    int nc1,nc2,nc3;      // # of tris connected to corner pts 1,2,3
-    int *neigh_e1;        // indices of other tris connected to 1-2 edge
+    int ne1,ne2,ne3;      // # of tris connected to edges 1,2,3 (including self)
+    int nc1,nc2,nc3;      // # of tris connected to corner pts 1,2,3 (including self)
+    int *neigh_e1;        // indices of all tris connected to 1-2 edge (if ne1 > 1)
     int *neigh_e2;        // ditto for 2-3 edge
     int *neigh_e3;        // ditto for 3-1 edge
-    int *neigh_c1;        // indices of other tris connected to corner pt 1
+    int *neigh_c1;        // indices of all tris connected to corner pt 1 (if nc1 > 1)
     int *neigh_c2;        // ditto for corner pt 2
     int *neigh_c3;        // ditto for corner pt 3
     int flags;            // future flags for edge and corner pt coupling

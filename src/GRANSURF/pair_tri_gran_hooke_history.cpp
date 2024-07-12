@@ -1080,21 +1080,24 @@ int PairTriGranHookeHistory::edge_neigh_check(int i, int j, int jflag)
   // ncheck = # of neighbor tris to check
   // neighs = indices of neighbor tris (including self)
 
+  int *index = fsl->index;
+  int jconnect = index[j];
+
   int ncheck;
   int *neighs;
 
   if (jflag == -1) {
-    if (connect3d[j].ne1 == 1) return 0;
-    ncheck = connect3d[j].ne1;
-    neighs = connect3d[j].neigh_e1;
+    if (connect3d[jconnect].ne1 == 1) return 0;
+    ncheck = connect3d[jconnect].ne1;
+    neighs = connect3d[jconnect].neigh_e1;
   } else if (jflag == -2) {
-    if (connect3d[j].ne2 == 1) return 0;
-    ncheck = connect3d[j].ne2;
-    neighs = connect3d[j].neigh_e2;
+    if (connect3d[jconnect].ne2 == 1) return 0;
+    ncheck = connect3d[jconnect].ne2;
+    neighs = connect3d[jconnect].neigh_e2;
   } else if (jflag == -3) {
-    if (connect3d[j].ne3 == 1) return 0;
-    ncheck = connect3d[j].ne3;
-    neighs = connect3d[j].neigh_e3;
+    if (connect3d[jconnect].ne3 == 1) return 0;
+    ncheck = connect3d[jconnect].ne3;
+    neighs = connect3d[jconnect].neigh_e3;
   }
 
   // check overlap with each neighbor tri
@@ -1117,7 +1120,6 @@ int PairTriGranHookeHistory::edge_neigh_check(int i, int j, int jflag)
     if (neighs[m] == tag[j]) continue;     // skip self tri
     k = atom->map(neighs[m]);
     if (k < 0) error->one(FLERR,"Pair tri/gran neighbor tri is missing");
-    k = neighs[m];
     kflag = overlap_sphere_tri(i,k,contact,dr,rsq);
     if (kflag > 0) return 1;
     if (kflag == 0) error->one(FLERR,"Pair tri/gran neighbor tri overlap is invalid");
@@ -1140,21 +1142,24 @@ int PairTriGranHookeHistory::corner_neigh_check(int i, int j, int jflag)
   // ncheck = # of neighbor tris to check
   // neighs = indices of neighbor tris (including self)
 
+  int *index = fsl->index;
+  int jconnect = index[j];
+
   int ncheck;
   int *neighs;
 
   if (jflag == -4) {
-    if (connect3d[j].nc1 == 1) return 0;
-    ncheck = connect3d[j].nc1;
-    neighs = connect3d[j].neigh_c1;
+    if (connect3d[jconnect].nc1 == 1) return 0;
+    ncheck = connect3d[jconnect].nc1;
+    neighs = connect3d[jconnect].neigh_c1;
   } else if (jflag == -5) {
-    if (connect3d[j].nc2 == 1) return 0;
-    ncheck = connect3d[j].nc2;
-    neighs = connect3d[j].neigh_c2;
+    if (connect3d[jconnect].nc2 == 1) return 0;
+    ncheck = connect3d[jconnect].nc2;
+    neighs = connect3d[jconnect].neigh_c2;
   } else if (jflag == -6) {
-    if (connect3d[j].nc3 == 1) return 0;
-    ncheck = connect3d[j].nc3;
-    neighs = connect3d[j].neigh_c3;
+    if (connect3d[jconnect].nc3 == 1) return 0;
+    ncheck = connect3d[jconnect].nc3;
+    neighs = connect3d[jconnect].neigh_c3;
   }
 
   // check overlap with each neighbor tri

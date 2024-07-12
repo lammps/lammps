@@ -415,6 +415,7 @@ void GranularModel::calculate_forces()
 
   // tangential component
   sub3(vr, vn, vt);
+  normalize3(vt, nt);
 
   // relative rotational velocity
   scaleadd3(radi, omegai, radj, omegaj, wr);

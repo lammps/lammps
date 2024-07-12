@@ -136,7 +136,6 @@ void GranSubModTangentialLinearHistory::calculate_forces()
       // sub3(history, temp_array, history); //DRV: This results in unphysical pendular motion
       scale3(rsht, gm->nt, history); //DRV: Modified version
 
-
       // also rescale to preserve magnitude
       prjmag = len3(history);
       if (prjmag > 0)

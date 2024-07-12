@@ -242,6 +242,8 @@ void FixSurfaceGlobal::init()
   dt = update->dt;
   triggersq = 0.25 * neighbor->skin * neighbor->skin;
 
+
+  
   // one-time setup and allocation of neighbor and history list
   // wait until now, so neighbor settings have been made
 
@@ -702,25 +704,58 @@ void FixSurfaceGlobal::post_force(int vflag)
           factor_couple = 1.0;
         }
 
+        // pply new rsq
+        
+        model->rsq = rsq;
+
         // meff = effective mass of sphere
         // if I is part of rigid body, use body mass
 
         meff = rmass[i];
         if (fix_rigid && mass_rigid[i] > 0.0) meff = mass_rigid[i];
 
-        // pairwise interaction between sphere and line/tri
+        // copy additional information and prepare force calculations
+        
+        model->meff = meff;
 
-        if (history) {
+        ds[0] = contact[0] - xsurf[j][0];
+        ds[1] = contact[1] - xsurf[j][1];
+        ds[2] = contact[2] - xsurf[j][2];
+
+        vs[0] = vsurf[j][0] + (omegasurf[j][1] * ds[2] - omegasurf[j][2] * ds[1]);
+        vs[1] = vsurf[j][1] + (omegasurf[j][2] * ds[0] - omegasurf[j][0] * ds[2]);
+        vs[2] = vsurf[j][2] + (omegasurf[j][0] * ds[1] - omegasurf[j][1] * ds[0]);
+
+        model->vj = vs;
+        model->omegaj = omegasurf[j];
+
+        if (heat_flag) model->Ti = temperature[i];
+
+        // pairwise interaction between sphere and surface element
+
+        if (use_history) {
           touch[jj] = 1;
-          shear = &allshear[3*jj];
+          history = &allhistory[3*jj];
+          model->history = history;
         }
 
-        if (pairstyle == HOOKE)
-          hooke(i,j,radi,meff,rsq,contact,dr,factor_couple);
-        else if (pairstyle == HOOKE_HISTORY)
-          hooke_history(i,j,radi,meff,delx,dely,delz,rsq,
-                        contact,dr,factor_couple,shear);
-      }
+        model->dx[0] = dr[0];
+        model->dx[1] = dr[1];
+        model->dx[2] = dr[2];
+        
+        // need to add support for coupled contacts
+        // is this just multiplying forces (+torques?) by factor_couple?
+        
+        model->calculate_forces();
+
+        forces = model->forces;
+        torquesi = model->torquesi;
+
+        // apply forces & torques
+        
+        add3(f[i], forces, f[i]);
+        add3(torque[i], torquesi, torque[i]);
+        if (heat_flag) heatflow[i] += model->dq;
     }
   }
 }

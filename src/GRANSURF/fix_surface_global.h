@@ -25,6 +25,10 @@ FixStyle(surface/global,FixSurfaceGlobal)
 
 namespace LAMMPS_NS {
 
+namespace Granular_NS {
+  class GranularModel;
+}
+
 class FixSurfaceGlobal : public Fix {
  public:
 
@@ -52,13 +56,19 @@ class FixSurfaceGlobal : public Fix {
   int image(int *&, double **&) override;
 
  private:
-  int dimension,firsttime,pairstyle,history;
-  int shearupdate;
-  double kn,kt,gamman,gammat,xmu;
-  double dt;
-  double skin;
+  int dimension,firsttime,use_history;
+  double dt, skin;
 
-  double **xsurf,**vsurf,**omegasurf,*radsurf;;
+  // for granular model choices
+  
+  class Granular_NS::GranularModel *model;
+  int history, size_history, heat_flag;
+
+  double Twall;
+  int tvar;
+  char *tstr;
+
+  double **xsurf,**vsurf,**omegasurf,*radsurf;
 
   // motion
 
@@ -140,10 +150,6 @@ class FixSurfaceGlobal : public Fix {
   int imax;
 
   // private methods
-
-  void hooke(int, int, double, double, double, double *, double *, double);
-  void hooke_history(int, int, double, double, double, double, double, double,
-                     double *, double *, double, double *);
 
   int overlap_sphere_line(int, int, double *, double *, double &);
   int endpt_neigh_check(int, int, int);

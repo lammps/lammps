@@ -20,6 +20,9 @@
 #include "error.h"
 #include "fix_neigh_history.h"
 #include "force.h"
+#include "granular_model.h"
+#include "gran_sub_mod.h"
+#include "input.h"
 #include "lattice.h"
 #include "math_const.h"
 #include "math_extra.h"
@@ -29,17 +32,18 @@
 #include "my_page.h"
 #include "neigh_list.h"
 #include "neighbor.h"
-#include "stl_reader.h"
 #include "update.h"
+#include "variable.h"
 
 #include <map>
 #include <tuple>
 
 using namespace LAMMPS_NS;
 using namespace FixConst;
+using namespace Granular_NS;
 using namespace MathConst;
+using namespace MathExtra;
 
-enum{HOOKE,HOOKE_HISTORY,HERTZ_HISTORY};
 enum{SPHERE,LINE,TRI};           // also in DumpImage
 enum{NONE,LINEAR,WIGGLE,ROTATE,VARIABLE};
 
@@ -48,48 +52,76 @@ enum{NONE,LINEAR,WIGGLE,ROTATE,VARIABLE};
 /* ---------------------------------------------------------------------- */
 
 FixSurfaceGlobal::FixSurfaceGlobal(LAMMPS *lmp, int narg, char **arg) :
-  Fix(lmp, narg, arg)
+  Fix(lmp, narg, arg), tstr(nullptr)
 {
   if (narg < 11) error->all(FLERR,"Illegal fix surface/global command");
 
+  if (!atom->omega_flag) error->all(FLERR,"Fix surface/global requires atom attribute omega");
+  if (!atom->radius_flag) error->all(FLERR,"Fix surface/global requires atom attribute radius");
+
   // set interaction style
+  // disable bonded/history option for now
+  
+  model = new GranularModel(lmp);
+  model->contact_type = SURFGLOBAL;
 
-  if (strcmp(arg[4],"hooke") == 0) pairstyle = HOOKE;
-  else if (strcmp(arg[4],"hooke/history") == 0) pairstyle = HOOKE_HISTORY;
+  heat_flag = 0;
+  int classic_flag = 1;
+  if (strcmp(arg[4], "granular") == 0)  classic_flag = 0;
 
-  // NOTE: hertz/history not yet supported ?
+  // wall/particle coefficients
 
-  else if (strcmp(arg[4],"hertz/history") == 0) pairstyle = HERTZ_HISTORY;
-  else error->all(FLERR,"Invalid fix surface/global interaction style");
+  int iarg;
+  if (classic_flag) {
+    iarg = model->define_classic_model(arg, 4, narg);
 
-  history = 1;
-  if (pairstyle == HOOKE) history = 0;
+    if (iarg < narg) {
+      if (strcmp(arg[iarg],"limit_damping") == 0) {
+        model->limit_damping = 1;
+        iarg += 1;
+      }
+    }
 
-  // particle/surf coefficients
+  } else {
+    iarg = 5;
+    iarg = model->add_sub_model(arg, iarg, narg, NORMAL);
 
-  kn = utils::numeric(FLERR,arg[5],false,lmp);
-  if (strcmp(arg[6],"NULL") == 0) kt = kn * 2.0/7.0;
-  else kt = utils::numeric(FLERR,arg[6],false,lmp);
+    while (iarg < narg) {
+      if (strcmp(arg[iarg], "damping") == 0) {
+        iarg = model->add_sub_model(arg, iarg + 1, narg, DAMPING);
+      } else if (strcmp(arg[iarg], "tangential") == 0) {
+        iarg = model->add_sub_model(arg, iarg + 1, narg, TANGENTIAL);
+      } else if (strcmp(arg[iarg], "rolling") == 0) {
+        iarg = model->add_sub_model(arg, iarg + 1, narg, ROLLING);
+      } else if (strcmp(arg[iarg], "twisting") == 0) {
+        iarg = model->add_sub_model(arg, iarg + 1, narg, TWISTING);
+      } else if (strcmp(arg[iarg], "heat") == 0) {
+        iarg = model->add_sub_model(arg, iarg + 1, narg, HEAT);
+        heat_flag = 1;
+      } else if (strcmp(arg[iarg],"limit_damping") == 0) {
+        model->limit_damping = 1;
+        iarg += 1;
+      } else {
+        break;
+      }
+    }
+  }
 
-  gamman = utils::numeric(FLERR,arg[7],false,lmp);
-  if (strcmp(arg[8],"NULL") == 0) gammat = 0.5 * gamman;
-  else gammat = utils::numeric(FLERR,arg[8],false,lmp);
+  // Define default damping sub model if unspecified, takes no args
+  if (!model->damping_model)
+    model->construct_sub_model("viscoelastic", DAMPING);
+  model->init();
 
-  xmu = utils::numeric(FLERR,arg[9],false,lmp);
-  int dampflag = utils::inumeric(FLERR,arg[10],false,lmp);
-  if (dampflag == 0) gammat = 0.0;
-
-  // NOTE: what about limit_damping flag ?
-
-  if (kn < 0.0 || kt < 0.0 || gamman < 0.0 || gammat < 0.0 ||
-      xmu < 0.0 || xmu > 10000.0 || dampflag < 0 || dampflag > 1)
-    error->all(FLERR,"Illegal fix surface/global command");
+  size_history = model->size_history;
+  if (model->beyond_contact) size_history += 1; //Need to track if particle is touching
+  if (size_history == 0) use_history = 0;
+  else use_history = 1;
 
   // optional args
 
   int scaleflag = 0;
+  int Twall_defined = 0;
 
-  int iarg = 11;
   while (iarg < narg) {
     if (strcmp(arg[iarg],"units") == 0) {
       if (iarg+2 > narg) error->all(FLERR,"Illegal fix surface/global command");
@@ -97,24 +129,25 @@ FixSurfaceGlobal::FixSurfaceGlobal(LAMMPS *lmp, int narg, char **arg) :
       else if (strcmp(arg[iarg+1],"lattice") == 0) scaleflag = 1;
       else error->all(FLERR,"Illegal fix surface/global command");
       iarg += 2;
+    } else if (strcmp(arg[iarg],"temperature") == 0) {
+      if (iarg+2 > narg) error->all(FLERR,"Illegal fix surface/global  command");
+      if (utils::strmatch(arg[iarg+1], "^v_")) {
+        tstr = utils::strdup(arg[iarg+1] + 2);
+      } else {
+        Twall = utils::numeric(FLERR,arg[iarg+1],false,lmp);
+      }
+      Twall_defined = 1;
+      iarg += 2;
     } else error->all(FLERR,"Illegal fix surface/global command");
   }
 
-  // convert Kn and Kt from pressure units to force/distance^2 if Hertzian
-
-  if (pairstyle == HERTZ_HISTORY) {
-    kn /= force->nktv2p;
-    kt /= force->nktv2p;
-  }
+  if (heat_flag != Twall_defined)
+    error->all(FLERR, "Must define wall temperature with heat model");
 
   // initializations
 
   dimension = domain->dimension;
 
-  points = nullptr;
-  lines = nullptr;
-  tris = nullptr;
-  
   mstyle = NONE;
   points_lastneigh = nullptr;
   points_original = nullptr;
@@ -133,12 +166,10 @@ FixSurfaceGlobal::FixSurfaceGlobal(LAMMPS *lmp, int narg, char **arg) :
   fix_history = nullptr;
 
   list = new NeighList(lmp);
-  if (history) {
+  if (use_history) {
     listhistory = new NeighList(lmp);
-    int dnum = 3;
-    //int dnum = listhistory->dnum = 3;
-    zeroes = new double[dnum];
-    for (int i = 0; i < dnum; i++) zeroes[i] = 0.0;
+    zeroes = new double[size_history];
+    for (int i = 0; i < size_history; i++) zeroes[i] = 0.0;
   } else {
     listhistory = nullptr;
     zeroes = nullptr;
@@ -158,12 +189,9 @@ FixSurfaceGlobal::FixSurfaceGlobal(LAMMPS *lmp, int narg, char **arg) :
     double zscale = domain->lattice->zlattice;
   } else xscale = yscale = zscale = 1.0;
 
-  // define points/lines/tris and their connectivity
-  // this can be done from molecule template ID or STL file
-  // STL filename assumed to have a '.' char for a file extension
-  
-  if (strchr(arg[3],'.')) extract_from_stlfile(arg[3]);
-  else extract_from_molecules(arg[3]);
+  // create data structs for points/lines/tris and connectivity
+
+  extract_from_molecules(arg[3]);
 
   if (dimension == 2) connectivity2d_global();
   else connectivity3d_global();
@@ -202,9 +230,10 @@ FixSurfaceGlobal::~FixSurfaceGlobal()
   delete list;
   delete listhistory;
   delete [] zeroes;
+  delete[] tstr;
 
-  if (history)
-    modify->delete_fix("NEIGH_HISTORY_HH" + std::to_string(instance_me));
+  if (use_history)
+    modify->delete_fix("NEIGH_HISTORY_SURFACE_GLOBAL_" + std::to_string(instance_me));
 
   memory->destroy(imflag);
   memory->destroy(imdata);
@@ -217,9 +246,8 @@ FixSurfaceGlobal::~FixSurfaceGlobal()
 
 void FixSurfaceGlobal::post_constructor()
 {
-  if (history) {
-    int size_history = 3;
-    auto cmd = fmt::format("NEIGH_HISTORY_HH" + std::to_string(instance_me) + " all NEIGH_HISTORY {}",size_history);
+  if (use_history) {
+    auto cmd = fmt::format("NEIGH_HISTORY_SURFACE_GLOBAL_" + std::to_string(instance_me) + " all NEIGH_HISTORY {}",size_history);
     fix_history = dynamic_cast<FixNeighHistory *>(modify->add_fix(cmd));
   } else
     fix_history = nullptr;
@@ -242,9 +270,27 @@ void FixSurfaceGlobal::init()
   dt = update->dt;
   triggersq = 0.25 * neighbor->skin * neighbor->skin;
 
+  // check for compatible heat conduction atom style
 
-  
-  // one-time setup and allocation of neighbor and history list
+  if (heat_flag) {
+    if (!atom->temperature_flag)
+      error->all(FLERR, "Heat conduction in fix surface/global requires atom style with temperature property");
+    if (!atom->heatflow_flag)
+      error->all(FLERR, "Heat conduction in fix surface/global requires atom style with heatflow property");
+  }
+
+  // Define history indices
+
+  int next_index = 0;
+  if (model->beyond_contact) //next_index = 1;
+    error->all(FLERR, "Beyond contact models not currenty supported");
+
+  for (int i = 0; i < NSUBMODELS; i++) {
+    model->sub_models[i]->history_index = next_index;
+    next_index += model->sub_models[i]->size_history;
+  }
+
+  // one-time setup and allocation of neighbor list
   // wait until now, so neighbor settings have been made
 
   if (firsttime) {
@@ -254,10 +300,17 @@ void FixSurfaceGlobal::init()
     list->setup_pages(pgsize,oneatom);
     list->grow(atom->nmax,atom->nmax);
 
-    if (history) {
+    if (use_history) {
       listhistory->setup_pages(pgsize,oneatom);
       listhistory->grow(atom->nmax,atom->nmax);
     }
+  }
+
+  if (tstr) {
+    tvar = input->variable->find(tstr);
+    if (tvar < 0) error->all(FLERR, "Variable {} for fix surface/global does not exist", tstr);
+    if (! input->variable->equalstyle(tvar))
+      error->all(FLERR, "Variable {} for fix surface/global must be an equal style variable", tstr);
   }
 }
 
@@ -416,14 +469,14 @@ void FixSurfaceGlobal::pre_neighbor()
   double skin = neighbor->skin;
 
   list->grow(nlocal,nall);
-  if (history) listhistory->grow(nlocal,nall);
+  if (use_history) listhistory->grow(nlocal,nall);
 
   int *ilist = list->ilist;
   int *numneigh = list->numneigh;
   int **firstneigh = list->firstneigh;
   MyPage<int> *ipage = list->ipage;
 
-  if (history) {
+  if (use_history) {
     fix_history->nlocal_neigh = nlocal;
     //npartner = fix_history->npartner;
     //partner = fix_history->partner;
@@ -449,7 +502,7 @@ void FixSurfaceGlobal::pre_neighbor()
 
   int inum = 0;
   ipage->reset();
-  if (history) {
+  if (use_history) {
     ipage_touch->reset();
     dpage_shear->reset();
   }
@@ -457,7 +510,7 @@ void FixSurfaceGlobal::pre_neighbor()
   for (i = 0; i < nlocal; i++) {
     n = 0;
     neighptr = ipage->vget();
-    if (history) {
+    if (use_history) {
       nn = 0;
       touchptr = ipage_touch->vget();
       shearptr = dpage_shear->vget();
@@ -481,7 +534,7 @@ void FixSurfaceGlobal::pre_neighbor()
       if (rsq <= cutsq) {
         neighptr[n] = j;
 
-        if (history) {
+        if (use_history) {
           if (rsq < radsum*radsum) {
             for (m = 0; m < npartner[i]; m++)
               if (partner[i][m] == j) break;
@@ -513,7 +566,7 @@ void FixSurfaceGlobal::pre_neighbor()
       error->one(FLERR,"Fix surface/global neighbor list overflow, "
                  "boost neigh_modify one");
 
-    if (history) {
+    if (use_history) {
       firsttouch[i] = touchptr;
       firstshear[i] = shearptr;
       ipage_touch->vgot(n);
@@ -531,17 +584,15 @@ void FixSurfaceGlobal::pre_neighbor()
 
 void FixSurfaceGlobal::post_force(int vflag)
 {
-  int i,j,ii,jj,inum,jnum,jflag,otherflag;
-  double xtmp,ytmp,ztmp,delx,dely,delz;
-  double radi,radj,radsum,rsq;
+  int i,j,k,ii,jj,inum,jnum,jflag,otherflag;
   double meff,factor_couple;
-  double dr[3],contact[3];
+  double rsq,dr[3],contact[3],ds[3],vs[3],*forces,*torquesi;
   int *ilist,*jlist,*numneigh,**firstneigh;
-  int *touch,**firsttouch;
-  double *shear,*allshear,**firstshear;
+  int *touch,**firsttouch,touch_flag;
+  double *history,*allhistory,**firsthistory;
 
-  shearupdate = 1;
-  if (update->setupflag) shearupdate = 0;
+  model->history_update = 1;
+  if (update->setupflag) model->history_update = 0;
 
   // if just reneighbored:
   // update rigid body masses for owned atoms if using FixRigid
@@ -568,194 +619,195 @@ void FixSurfaceGlobal::post_force(int vflag)
   // I is always sphere, J is always line
 
   double **x = atom->x;
+  double **v = atom->v;
   double **f = atom->f;
   double **omega = atom->omega;
   double **torque = atom->torque;
   double *radius = atom->radius;
+  double *temperature = atom->temperature;
+  double *heatflow = atom->heatflow;
   double *rmass = atom->rmass;
   int *mask = atom->mask;
   int nlocal = atom->nlocal;
+
+  if (heat_flag) {
+    if (tstr)
+      Twall = input->variable->compute_equal(tvar);
+    model->Tj = Twall;
+  }
 
   inum = list->inum;
   ilist = list->ilist;
   numneigh = list->numneigh;
   firstneigh = list->firstneigh;
-  if (history) {
+  if (use_history) {
     firsttouch = fix_history->firstflag;
-    firstshear = fix_history->firstvalue;
+    firsthistory = fix_history->firstvalue;
   }
 
   for (ii = 0; ii < inum; ii++) {
     i = ilist[ii];
     if (!(mask[i] & groupbit)) continue;
-    xtmp = x[i][0];
-    ytmp = x[i][1];
-    ztmp = x[i][2];
-    radi = radius[i];
+    model->xi = x[i];
+    model->radi = radius[i];
+    model->vi = v[i];
+    model->omegai = omega[i];
     jlist = firstneigh[i];
     jnum = numneigh[i];
-    if (history) {
+    if (use_history) {
       touch = firsttouch[i];
-      allshear = firstshear[i];
+      allhistory = firsthistory[i];
     }
 
     for (jj = 0; jj < jnum; jj++) {
       j = jlist[jj];
 
-      delx = xtmp - xsurf[j][0];
-      dely = ytmp - xsurf[j][1];
-      delz = ztmp - xsurf[j][2];
-      rsq = delx*delx + dely*dely + delz*delz;
-      radj = radsurf[j];
-      radsum = radi + radj;
+      // Reset model and copy initial geometric data
+      model->xj = xsurf[j];
+      model->radj = radsurf[j];
+      if (use_history) model->touch = touch[jj];
 
-      if (rsq >= radsum*radsum) {
+      touch_flag = model->check_contact();
 
-        if (history) {
+      if (!touch_flag) {
+        // unset non-touching neighbors
+        if (use_history) {
           touch[jj] = 0;
-          shear = &allshear[3 * jj];
-          shear[0] = 0.0;
-          shear[1] = 0.0;
-          shear[2] = 0.0;
+          history = &allhistory[size_history * jj];
+          for (k = 0; k < size_history; k++) history[k] = 0.0;
         }
+        continue;
+      }
+
+      rsq = model->rsq;
+
+      // contact computation for line or tri
+
+      if (dimension == 2) {
+
+        // check for overlap of sphere and line segment
+        // jflag = 0 for no overlap, 1 for interior line pt, -1/-2 for end pts
+        // if no overlap, just continue
+        // for overlap, also return:
+        //   contact = nearest point on line to sphere center
+        //   dr = vector from contact pt to sphere center
+        //   rsq = squared length of dr
+        // NOTE: different for line vs tri
+
+        jflag = overlap_sphere_line(i,j,contact,dr,rsq);
+
+        if (!jflag) {
+          if (use_history) {
+            touch[jj] = 0;
+            history = &allhistory[size_history * jj];
+            for (k = 0; k < size_history; k++) history[k] = 0.0;
+          }
+          continue;
+        }
+
+        // if contact = line end pt:
+        // check overlap status of line adjacent to the end pt
+        // otherflag = 0/1 for this/other line performs calculation
+        // NOTE: different for line vs tri
+
+        if (jflag < 0) {
+          otherflag = endpt_neigh_check(i,j,jflag);
+          if (otherflag) continue;
+        }
+
+        // NOTE: add logic to check for coupled contacts and weight them
+
+        factor_couple = 1.0;
 
       } else {
 
-        // contact computation for line or tri
+        // check for overlap of sphere and triangle
+        // jflag = 0 for no overlap, 1 for interior line pt,
+        //   -1/-2/-3 for 3 edges, -4/-5/-6 for 3 corner pts
+        // if no overlap, just continue
+        // for overlap, also returns:
+        //   contact = nearest point on tri to sphere center
+        //   dr = vector from contact pt to sphere center
+        //   rsq = squared length of dr
 
-        if (dimension == 2) {
+        jflag = overlap_sphere_tri(i,j,contact,dr,rsq);
 
-          // check for overlap of sphere and line segment
-          // jflag = 0 for no overlap, 1 for interior line pt, -1/-2 for end pts
-          // if no overlap, just continue
-          // for overlap, also return:
-          //   contact = nearest point on line to sphere center
-          //   dr = vector from contact pt to sphere center
-          //   rsq = squared length of dr
-          // NOTE: different for line vs tri
-
-          jflag = overlap_sphere_line(i,j,contact,dr,rsq);
-
-          if (!jflag) {
-            if (history) {
-              touch[jj] = 0;
-              shear = &allshear[3 * jj];
-              shear[0] = 0.0;
-              shear[1] = 0.0;
-              shear[2] = 0.0;
-            }
-            continue;
+        if (!jflag) {
+          if (use_history) {
+            touch[jj] = 0;
+            history = &allhistory[size_history * jj];
+            for (k = 0; k < size_history; k++) history[k] = 0.0;
           }
+          continue;
+        }
 
-          // if contact = line end pt:
-          // check overlap status of line adjacent to the end pt
-          // otherflag = 0/1 for this/other line performs calculation
-          // NOTE: different for line vs tri
+        // if contact = tri edge or corner:
+        // check status of the tri(s) adjacent to edge or corner
+        // otherflag = 0/1 for this/other tri performs calculation
 
-          if (jflag < 0) {
-            otherflag = endpt_neigh_check(i,j,jflag);
+        if (jflag < 0) {
+          if (jflag >= -3) {
+            otherflag = edge_neigh_check(i,j,jflag);
+            if (otherflag) continue;
+          } else {
+            otherflag = corner_neigh_check(i,j,jflag);
             if (otherflag) continue;
           }
-
-          // NOTE: add logic to check for coupled contacts and weight them
-
-          factor_couple = 1.0;
-
-        } else {
-
-          // check for overlap of sphere and triangle
-          // jflag = 0 for no overlap, 1 for interior line pt,
-          //   -1/-2/-3 for 3 edges, -4/-5/-6 for 3 corner pts
-          // if no overlap, just continue
-          // for overlap, also returns:
-          //   contact = nearest point on tri to sphere center
-          //   dr = vector from contact pt to sphere center
-          //   rsq = squared length of dr
-
-          jflag = overlap_sphere_tri(i,j,contact,dr,rsq);
-
-          if (!jflag) {
-            if (history) {
-              touch[jj] = 0;
-              shear = &allshear[3 * jj];
-              shear[0] = 0.0;
-              shear[1] = 0.0;
-              shear[2] = 0.0;
-            }
-            continue;
-          }
-
-          // if contact = tri edge or corner:
-          // check status of the tri(s) adjacent to edge or corner
-          // otherflag = 0/1 for this/other tri performs calculation
-
-          if (jflag < 0) {
-            if (jflag >= -3) {
-              otherflag = edge_neigh_check(i,j,jflag);
-              if (otherflag) continue;
-            } else {
-              otherflag = corner_neigh_check(i,j,jflag);
-              if (otherflag) continue;
-            }
-          }
-
-          // NOTE: add logic to check for coupled contacts and weight them
-
-          factor_couple = 1.0;
         }
 
-        // pply new rsq
-        
-        model->rsq = rsq;
+        // NOTE: add logic to check for coupled contacts and weight them
 
-        // meff = effective mass of sphere
-        // if I is part of rigid body, use body mass
+        factor_couple = 1.0;
+      }
 
-        meff = rmass[i];
-        if (fix_rigid && mass_rigid[i] > 0.0) meff = mass_rigid[i];
+      // Apply new rsq
+      model->rsq = rsq;
 
-        // copy additional information and prepare force calculations
-        
-        model->meff = meff;
+      // meff = effective mass of sphere
+      // if I is part of rigid body, use body mass
 
-        ds[0] = contact[0] - xsurf[j][0];
-        ds[1] = contact[1] - xsurf[j][1];
-        ds[2] = contact[2] - xsurf[j][2];
+      meff = rmass[i];
+      if (fix_rigid && mass_rigid[i] > 0.0) meff = mass_rigid[i];
 
-        vs[0] = vsurf[j][0] + (omegasurf[j][1] * ds[2] - omegasurf[j][2] * ds[1]);
-        vs[1] = vsurf[j][1] + (omegasurf[j][2] * ds[0] - omegasurf[j][0] * ds[2]);
-        vs[2] = vsurf[j][2] + (omegasurf[j][0] * ds[1] - omegasurf[j][1] * ds[0]);
+      // Copy additional information and prepare force calculations
+      model->meff = meff;
 
-        model->vj = vs;
-        model->omegaj = omegasurf[j];
+      ds[0] = contact[0] - xsurf[j][0];
+      ds[1] = contact[1] - xsurf[j][1];
+      ds[2] = contact[2] - xsurf[j][2];
 
-        if (heat_flag) model->Ti = temperature[i];
+      vs[0] = vsurf[j][0] + (omegasurf[j][1] * ds[2] - omegasurf[j][2] * ds[1]);
+      vs[1] = vsurf[j][1] + (omegasurf[j][2] * ds[0] - omegasurf[j][0] * ds[2]);
+      vs[2] = vsurf[j][2] + (omegasurf[j][0] * ds[1] - omegasurf[j][1] * ds[0]);
 
-        // pairwise interaction between sphere and surface element
+      model->vj = vs;
+      model->omegaj = omegasurf[j];
 
-        if (use_history) {
-          touch[jj] = 1;
-          history = &allhistory[3*jj];
-          model->history = history;
-        }
+      if (heat_flag)
+        model->Ti = temperature[i];
 
-        model->dx[0] = dr[0];
-        model->dx[1] = dr[1];
-        model->dx[2] = dr[2];
-        
-        // need to add support for coupled contacts
-        // is this just multiplying forces (+torques?) by factor_couple?
-        
-        model->calculate_forces();
+      // pairwise interaction between sphere and surface element
 
-        forces = model->forces;
-        torquesi = model->torquesi;
+      if (use_history) {
+        touch[jj] = 1;
+        history = &allhistory[3*jj];
+        model->history = history;
+      }
 
-        // apply forces & torques
-        
-        add3(f[i], forces, f[i]);
-        add3(torque[i], torquesi, torque[i]);
-        if (heat_flag) heatflow[i] += model->dq;
+      model->dx[0] = dr[0];
+      model->dx[1] = dr[1];
+      model->dx[2] = dr[2];
+
+      // need to add support coupled contacts, is this just multiplying forces (+torques?) by factor_couple?
+      model->calculate_forces();
+
+      forces = model->forces;
+      torquesi = model->torquesi;
+
+      // apply forces & torques
+      add3(f[i], forces, f[i]);
+      add3(torque[i], torquesi, torque[i]);
+      if (heat_flag) heatflow[i] += model->dq;
     }
   }
 }
@@ -922,258 +974,6 @@ int FixSurfaceGlobal::image(int *&ivec, double **&darray)
   ivec = imflag;
   darray = imdata;
   return n;
-}
-
-// ----------------------------------------------------------------------
-// ----------------------------------------------------------------------
-// particle/wall interaction models
-// ----------------------------------------------------------------------
-// ----------------------------------------------------------------------
-
-/* ---------------------------------------------------------------------- */
-
-void FixSurfaceGlobal::hooke(int i, int j, double radi, double meff,
-                             double rsq, double *contact, double *dr,
-                             double factor_couple)
-{
-  double fx,fy,fz;
-  double r,rinv,rsqinv;
-  double vr1,vr2,vr3,vnnr,vn1,vn2,vn3,vt1,vt2,vt3;
-  double wr1,wr2,wr3;
-  double vtr1,vtr2,vtr3,vrel;
-  double damp,ccel,tor1,tor2,tor3;
-  double fn,fs,ft,fs1,fs2,fs3;
-  double ds[3],vcontact[3];
-
-  double *v = atom->v[i];
-  double *f = atom->f[i];
-  double *omega = atom->omega[i];
-  double *torque = atom->torque[i];
-
-  // ds = vector from line center to contact pt
-
-  r = sqrt(rsq);
-  rinv = 1.0/r;
-  rsqinv = 1.0/rsq;
-
-  ds[0] = contact[0] - xsurf[j][0];
-  ds[1] = contact[1] - xsurf[j][1];
-  ds[2] = contact[2] - xsurf[j][2];
-
-  // vcontact = velocity of contact pt on surface, translation + rotation
-
-  vcontact[0] = vsurf[j][0] + (omegasurf[j][1]*ds[2] - omegasurf[j][2]*ds[1]);
-  vcontact[1] = vsurf[j][1] + (omegasurf[j][2]*ds[0] - omegasurf[j][0]*ds[2]);
-  vcontact[2] = vsurf[j][2] + (omegasurf[j][0]*ds[1] - omegasurf[j][1]*ds[0]);
-
-  // relative translational velocity
-
-  vr1 = v[0] - vcontact[0];
-  vr2 = v[1] - vcontact[1];
-  vr3 = v[2] - vcontact[2];
-
-  // normal component
-
-  vnnr = vr1*dr[0] + vr2*dr[1] + vr3*dr[2];
-  vn1 = dr[0]*vnnr * rsqinv;
-  vn2 = dr[1]*vnnr * rsqinv;
-  vn3 = dr[2]*vnnr * rsqinv;
-
-  // tangential component
-
-  vt1 = vr1 - vn1;
-  vt2 = vr2 - vn2;
-  vt3 = vr3 - vn3;
-
-  // relative rotational velocity
-
-  wr1 = (radi*omega[0]) * rinv;
-  wr2 = (radi*omega[1]) * rinv;
-  wr3 = (radi*omega[2]) * rinv;
-
-  // normal forces = Hookian contact + normal velocity damping
-
-  damp = meff*gamman*vnnr*rsqinv;
-  ccel = kn*(radi-r)*rinv - damp;
-  ccel *= factor_couple;
-
-  // relative velocities
-
-  vtr1 = vt1 - (dr[2]*wr2-dr[1]*wr3);
-  vtr2 = vt2 - (dr[0]*wr3-dr[2]*wr1);
-  vtr3 = vt3 - (dr[1]*wr1-dr[0]*wr2);
-  vrel = vtr1*vtr1 + vtr2*vtr2 + vtr3*vtr3;
-  vrel = sqrt(vrel);
-
-  // force normalization
-
-  fn = xmu * fabs(ccel*r);
-  fs = meff*gammat*vrel;
-  if (vrel != 0.0) ft = MIN(fn,fs) / vrel;
-  else ft = 0.0;
-
-  // tangential force due to tangential velocity damping
-
-  fs1 = -ft*vtr1 * factor_couple;
-  fs2 = -ft*vtr2 * factor_couple;
-  fs3 = -ft*vtr3 * factor_couple;
-
-  // total force and torque on sphere
-
-  fx = dr[0]*ccel + fs1;
-  fy = dr[1]*ccel + fs2;
-  fz = dr[2]*ccel + fs3;
-
-  f[0] += fx;
-  f[1] += fy;
-  f[2] += fz;
-
-  tor1 = rinv * (dr[1]*fs3 - dr[2]*fs2);
-  tor2 = rinv * (dr[2]*fs1 - dr[0]*fs3);
-  tor3 = rinv * (dr[0]*fs2 - dr[1]*fs1);
-  torque[0] -= radi*tor1;
-  torque[1] -= radi*tor2;
-  torque[2] -= radi*tor3;
-}
-
-/* ---------------------------------------------------------------------- */
-
-void FixSurfaceGlobal::hooke_history(int i, int j, double radi, double meff,
-                                     double delx, double dely, double delz,
-                                     double rsq, double *contact, double *dr,
-                                     double factor_couple, double *shear)
-{
-  double fx,fy,fz;
-  double r,rinv,rsqinv;
-  double vr1,vr2,vr3,vnnr,vn1,vn2,vn3,vt1,vt2,vt3;
-  double wr1,wr2,wr3;
-  double vtr1,vtr2,vtr3,vrel;
-  double damp,ccel,tor1,tor2,tor3;
-  double fn,fs,ft,fs1,fs2,fs3;
-  double shrmag,rsht;
-  double ds[3],vcontact[3];
-
-  double *v = atom->v[i];
-  double *f = atom->f[i];
-  double *omega = atom->omega[i];
-  double *torque = atom->torque[i];
-
-  // ds = vector from line center to contact pt
-
-  r = sqrt(rsq);
-  rinv = 1.0/r;
-  rsqinv = 1.0/rsq;
-
-  ds[0] = contact[0] - xsurf[j][0];
-  ds[1] = contact[1] - xsurf[j][1];
-  ds[2] = contact[2] - xsurf[j][2];
-
-  // vcontact = velocity of contact pt on surface, translation + rotation
-
-  vcontact[0] = vsurf[j][0] + (omegasurf[j][1]*ds[2] - omegasurf[j][2]*ds[1]);
-  vcontact[1] = vsurf[j][1] + (omegasurf[j][2]*ds[0] - omegasurf[j][0]*ds[2]);
-  vcontact[2] = vsurf[j][2] + (omegasurf[j][0]*ds[1] - omegasurf[j][1]*ds[0]);
-
-  // relative translational velocity
-
-  vr1 = v[0] - vcontact[0];
-  vr2 = v[1] - vcontact[1];
-  vr3 = v[2] - vcontact[2];
-
-  // normal component
-
-  vnnr = vr1*dr[0] + vr2*dr[1] + vr3*dr[2];
-  vn1 = dr[0]*vnnr * rsqinv;
-  vn2 = dr[1]*vnnr * rsqinv;
-  vn3 = dr[2]*vnnr * rsqinv;
-
-  // tangential component
-
-  vt1 = vr1 - vn1;
-  vt2 = vr2 - vn2;
-  vt3 = vr3 - vn3;
-
-  // relative rotational velocity
-
-  wr1 = (radi*omega[0]) * rinv;
-  wr2 = (radi*omega[1]) * rinv;
-  wr3 = (radi*omega[2]) * rinv;
-
-  // normal forces = Hookian contact + normal velocity damping
-
-  damp = meff*gamman*vnnr*rsqinv;
-  ccel = kn*(radi-r)*rinv - damp;
-  ccel *= factor_couple;
-
-  // relative velocities
-
-  vtr1 = vt1 - (dr[2]*wr2-dr[1]*wr3);
-  vtr2 = vt2 - (dr[0]*wr3-dr[2]*wr1);
-  vtr3 = vt3 - (dr[1]*wr1-dr[0]*wr2);
-  vrel = vtr1*vtr1 + vtr2*vtr2 + vtr3*vtr3;
-  vrel = sqrt(vrel);
-
-  // shear history effects
-
-  if (shearupdate) {
-    shear[0] += vtr1*dt;
-    shear[1] += vtr2*dt;
-    shear[2] += vtr3*dt;
-  }
-  shrmag = sqrt(shear[0]*shear[0] + shear[1]*shear[1] +
-                shear[2]*shear[2]);
-
-  // rotate shear displacements
-
-  rsht = shear[0]*delx + shear[1]*dely + shear[2]*delz;
-  rsht *= rsqinv;
-  if (shearupdate) {
-    shear[0] -= rsht*delx;
-    shear[1] -= rsht*dely;
-    shear[2] -= rsht*delz;
-  }
-
-  // tangential force due to tangential velocity damping
-
-  fs1 = - (kt*shear[0] + meff*gammat*vtr1) * factor_couple;;
-  fs2 = - (kt*shear[1] + meff*gammat*vtr2) * factor_couple;;
-  fs3 = - (kt*shear[2] + meff*gammat*vtr3) * factor_couple;;
-
-  // rescale frictional displacements and forces if needed
-
-  fs = sqrt(fs1*fs1 + fs2*fs2 + fs3*fs3);
-  fn = xmu * fabs(ccel*r);
-
-  if (fs > fn) {
-    if (shrmag != 0.0) {
-      shear[0] = (fn/fs) * (shear[0] + meff*gammat*vtr1/kt) -
-        meff*gammat*vtr1/kt;
-      shear[1] = (fn/fs) * (shear[1] + meff*gammat*vtr2/kt) -
-        meff*gammat*vtr2/kt;
-      shear[2] = (fn/fs) * (shear[2] + meff*gammat*vtr3/kt) -
-        meff*gammat*vtr3/kt;
-      fs1 *= fn/fs;
-      fs2 *= fn/fs;
-      fs3 *= fn/fs;
-    } else fs1 = fs2 = fs3 = 0.0;
-  }
-
-  // total force and torque on sphere
-
-  fx = dr[0]*ccel + fs1;
-  fy = dr[1]*ccel + fs2;
-  fz = dr[2]*ccel + fs3;
-
-  f[0] += fx;
-  f[1] += fy;
-  f[2] += fz;
-
-  tor1 = rinv * (dr[1]*fs3 - dr[2]*fs2);
-  tor2 = rinv * (dr[2]*fs1 - dr[0]*fs3);
-  tor3 = rinv * (dr[0]*fs2 - dr[1]*fs1);
-  torque[0] -= radi*tor1;
-  torque[1] -= radi*tor2;
-  torque[2] -= radi*tor3;
 }
 
 // ----------------------------------------------------------------------
@@ -1648,103 +1448,13 @@ int FixSurfaceGlobal::corner_neigh_check(int i, int j, int jflag)
 // ----------------------------------------------------------------------
 
 /* ----------------------------------------------------------------------
-   extract triangles from an STL file
-   can be text or binary
-   create list of unique points using hash
-------------------------------------------------------------------------- */
-
-void FixSurfaceGlobal::extract_from_stlfile(char *filename)
-{
-  if (dimension == 2)
-    error->all(FLERR,"Fix surface/global cannot use an STL file for 2d simulations");
-
-  // read tris from STL file
-  // stltris = tri coords internal to STL reader
-  
-  STLReader *stl = new STLReader(lmp);
-  double **stltris;
-  ntris = stl->read_file(filename,stltris);
-
-  // create points and tris data structs
-
-  points = nullptr;
-  npoints = 0;
-  int maxpoints = 0;
-
-  tris = (Tri *) memory->smalloc(ntris*sizeof(Tri),"surface/global:tris");
-  
-  // create a map
-  // key = xyz coords of a point
-  // value = index into unique points vector
-  
-  std::map<std::tuple<double,double,double>,int> hash;
-
-  // loop over STL tris
-  // populate points and tris data structs
-  // set molecule and type of tri = 1
-  
-  for (int itri = 0; itri < ntris; itri++) {
-    tris[itri].mol = 1;
-    tris[itri].type = 1;
-
-    auto key = std::make_tuple(stltris[itri][0],stltris[itri][1],stltris[itri][2]);
-    if (hash.find(key) == hash.end()) {
-      if (npoints == maxpoints) {
-        maxpoints += DELTA;
-        points = (Point *) memory->srealloc(points,maxpoints*sizeof(Point),
-                                            "surface/global:points");
-      }
-      hash[key] = npoints;
-      points[npoints].x[0] = stltris[itri][0];
-      points[npoints].x[1] = stltris[itri][1];
-      points[npoints].x[2] = stltris[itri][2];
-      tris[itri].p1 = npoints;
-      npoints++;
-    } else tris[itri].p1 = hash[key];
-
-    key = std::make_tuple(stltris[itri][3],stltris[itri][4],stltris[itri][5]);
-    if (hash.find(key) == hash.end()) {
-      if (npoints == maxpoints) {
-        maxpoints += DELTA;
-        points = (Point *) memory->srealloc(points,maxpoints*sizeof(Point),
-                                            "surface/global:points");
-      }
-      hash[key] = npoints;
-      points[npoints].x[0] = stltris[itri][3];
-      points[npoints].x[1] = stltris[itri][4];
-      points[npoints].x[2] = stltris[itri][5];
-      tris[itri].p2 = npoints;
-      npoints++;
-    } else tris[itri].p2 = hash[key];
-    
-    key = std::make_tuple(stltris[itri][6],stltris[itri][7],stltris[itri][8]);
-    if (hash.find(key) == hash.end()) {
-      if (npoints == maxpoints) {
-        maxpoints += DELTA;
-        points = (Point *) memory->srealloc(points,maxpoints*sizeof(Point),
-                                            "surface/global:points");
-      }
-      hash[key] = npoints;
-      points[npoints].x[0] = stltris[itri][6];
-      points[npoints].x[1] = stltris[itri][7];
-      points[npoints].x[2] = stltris[itri][8];
-      tris[itri].p3 = npoints;
-      npoints++;
-    } else tris[itri].p3 = hash[key];
-  }
-  
-  // delete STL reader
-  
-  delete stl;
-}
-
-/* ----------------------------------------------------------------------
-   extract lines or surfs from molecule template ID for one or more molecules
+   extract lines or surfs from molecule ID for one or more mol files
    concatenate into single list of lines and tris
-   create list of unique points using hash
+   also create list of unique points using hash
+   each proc owns copy of all points,lines,tris
 ------------------------------------------------------------------------- */
 
-void FixSurfaceGlobal::extract_from_molecules(char *templateID)
+void FixSurfaceGlobal::extract_from_molecules(char *molID)
 {
   // populate global point/line/tri data structs
 
@@ -1754,7 +1464,7 @@ void FixSurfaceGlobal::extract_from_molecules(char *templateID)
   npoints = nlines = ntris = 0;
   int maxpoints = 0;
 
-  int imol = atom->find_molecule(templateID);
+  int imol = atom->find_molecule(molID);
   if (imol == -1)
     error->all(FLERR,"Molecule template ID for fix surface/global does not exist");
 

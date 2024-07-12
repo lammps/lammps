@@ -107,9 +107,9 @@ FixSurfaceGlobal::FixSurfaceGlobal(LAMMPS *lmp, int narg, char **arg) :
     }
   }
 
-  // Define default damping sub model if unspecified, takes no args
-  if (!model->damping_model)
-    model->construct_sub_model("viscoelastic", DAMPING);
+  // define default damping sub model if unspecified, takes no args
+  
+  if (!model->damping_model) model->construct_sub_model("viscoelastic", DAMPING);
   model->init();
 
   size_history = model->size_history;
@@ -279,7 +279,7 @@ void FixSurfaceGlobal::init()
       error->all(FLERR, "Heat conduction in fix surface/global requires atom style with heatflow property");
   }
 
-  // Define history indices
+  // define history indices
 
   int next_index = 0;
   if (model->beyond_contact) //next_index = 1;
@@ -760,7 +760,8 @@ void FixSurfaceGlobal::post_force(int vflag)
         factor_couple = 1.0;
       }
 
-      // Apply new rsq
+      // apply new rsq
+      
       model->rsq = rsq;
 
       // meff = effective mass of sphere
@@ -769,7 +770,8 @@ void FixSurfaceGlobal::post_force(int vflag)
       meff = rmass[i];
       if (fix_rigid && mass_rigid[i] > 0.0) meff = mass_rigid[i];
 
-      // Copy additional information and prepare force calculations
+      // copy additional information and prepare force calculations
+      
       model->meff = meff;
 
       ds[0] = contact[0] - xsurf[j][0];
@@ -783,8 +785,7 @@ void FixSurfaceGlobal::post_force(int vflag)
       model->vj = vs;
       model->omegaj = omegasurf[j];
 
-      if (heat_flag)
-        model->Ti = temperature[i];
+      if (heat_flag) model->Ti = temperature[i];
 
       // pairwise interaction between sphere and surface element
 
@@ -798,13 +799,16 @@ void FixSurfaceGlobal::post_force(int vflag)
       model->dx[1] = dr[1];
       model->dx[2] = dr[2];
 
-      // need to add support coupled contacts, is this just multiplying forces (+torques?) by factor_couple?
+      // need to add support coupled contacts
+      // is this just multiplying forces (+torques?) by factor_couple?
+      
       model->calculate_forces();
 
       forces = model->forces;
       torquesi = model->torquesi;
 
       // apply forces & torques
+      
       add3(f[i], forces, f[i]);
       add3(torque[i], torquesi, torque[i]);
       if (heat_flag) heatflow[i] += model->dq;

@@ -158,8 +158,8 @@ class FixSurfaceGlobal : public Fix {
   int edge_neigh_check(int, int, int);
   int corner_neigh_check(int, int, int);
 
-  void extract_from_stlfile(char *);
   void extract_from_molecules(char *);
+  void extract_from_stlfile(char *);
   void connectivity2d_global();
   void connectivity3d_global();
   void surface_attributes();

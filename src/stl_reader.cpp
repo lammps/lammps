@@ -190,4 +190,3 @@ int STLReader::read_file(const char *filename, double **&caller_tris)
   caller_tris = tris;
   return ntris;
 }
-

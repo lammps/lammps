@@ -32,6 +32,7 @@
 #include "my_page.h"
 #include "neigh_list.h"
 #include "neighbor.h"
+#include "stl_reader.h"
 #include "update.h"
 #include "variable.h"
 
@@ -130,7 +131,7 @@ FixSurfaceGlobal::FixSurfaceGlobal(LAMMPS *lmp, int narg, char **arg) :
       else error->all(FLERR,"Illegal fix surface/global command");
       iarg += 2;
     } else if (strcmp(arg[iarg],"temperature") == 0) {
-      if (iarg+2 > narg) error->all(FLERR,"Illegal fix surface/global  command");
+      if (iarg+2 > narg) error->all(FLERR,"Illegal fix surface/global command");
       if (utils::strmatch(arg[iarg+1], "^v_")) {
         tstr = utils::strdup(arg[iarg+1] + 2);
       } else {
@@ -189,9 +190,13 @@ FixSurfaceGlobal::FixSurfaceGlobal(LAMMPS *lmp, int narg, char **arg) :
     double zscale = domain->lattice->zlattice;
   } else xscale = yscale = zscale = 1.0;
 
-  // create data structs for points/lines/tris and connectivity
-
-  extract_from_molecules(arg[3]);
+  // define points/lines/tris and their connectivity
+  // done via molecule template ID or STL file
+  // check if arg = valid molecute template ID, else treat as STL file
+  
+  int imol = atom->find_molecule(arg[3]);
+  if (imol >= 0) extract_from_molecules(arg[3]);
+  else extract_from_stlfile(arg[3]);
 
   if (dimension == 2) connectivity2d_global();
   else connectivity3d_global();
@@ -1452,10 +1457,9 @@ int FixSurfaceGlobal::corner_neigh_check(int i, int j, int jflag)
 // ----------------------------------------------------------------------
 
 /* ----------------------------------------------------------------------
-   extract lines or surfs from molecule ID for one or more mol files
+   extract lines or surfs from molecule template ID for one or more molecules
    concatenate into single list of lines and tris
-   also create list of unique points using hash
-   each proc owns copy of all points,lines,tris
+   create list of unique points using hash
 ------------------------------------------------------------------------- */
 
 void FixSurfaceGlobal::extract_from_molecules(char *molID)
@@ -1607,6 +1611,96 @@ void FixSurfaceGlobal::extract_from_molecules(char *molID)
       }
     }
   }
+}
+
+/* ----------------------------------------------------------------------
+   extract triangles from an STL file, can be text or binary
+   create list of unique points using hash
+------------------------------------------------------------------------- */
+
+void FixSurfaceGlobal::extract_from_stlfile(char *filename)
+{
+  if (dimension == 2)
+    error->all(FLERR,"Fix surface/global cannot use an STL file for 2d simulations");
+
+  // read tris from STL file
+  // stltris = tri coords internal to STL reader
+  
+  STLReader *stl = new STLReader(lmp);
+  double **stltris;
+  ntris = stl->read_file(filename,stltris);
+
+  // create points and tris data structs
+
+  points = nullptr;
+  npoints = 0;
+  int maxpoints = 0;
+
+  tris = (Tri *) memory->smalloc(ntris*sizeof(Tri),"surface/global:tris");
+  
+  // create a map
+  // key = xyz coords of a point
+  // value = index into unique points vector
+  
+  std::map<std::tuple<double,double,double>,int> hash;
+
+  // loop over STL tris
+  // populate points and tris data structs
+  // set molecule and type of tri = 1
+  
+  for (int itri = 0; itri < ntris; itri++) {
+    tris[itri].mol = 1;
+    tris[itri].type = 1;
+
+    auto key = std::make_tuple(stltris[itri][0],stltris[itri][1],stltris[itri][2]);
+    if (hash.find(key) == hash.end()) {
+      if (npoints == maxpoints) {
+        maxpoints += DELTA;
+        points = (Point *) memory->srealloc(points,maxpoints*sizeof(Point),
+                                            "surface/global:points");
+      }
+      hash[key] = npoints;
+      points[npoints].x[0] = stltris[itri][0];
+      points[npoints].x[1] = stltris[itri][1];
+      points[npoints].x[2] = stltris[itri][2];
+      tris[itri].p1 = npoints;
+      npoints++;
+    } else tris[itri].p1 = hash[key];
+
+    key = std::make_tuple(stltris[itri][3],stltris[itri][4],stltris[itri][5]);
+    if (hash.find(key) == hash.end()) {
+      if (npoints == maxpoints) {
+        maxpoints += DELTA;
+        points = (Point *) memory->srealloc(points,maxpoints*sizeof(Point),
+                                            "surface/global:points");
+      }
+      hash[key] = npoints;
+      points[npoints].x[0] = stltris[itri][3];
+      points[npoints].x[1] = stltris[itri][4];
+      points[npoints].x[2] = stltris[itri][5];
+      tris[itri].p2 = npoints;
+      npoints++;
+    } else tris[itri].p2 = hash[key];
+    
+    key = std::make_tuple(stltris[itri][6],stltris[itri][7],stltris[itri][8]);
+    if (hash.find(key) == hash.end()) {
+      if (npoints == maxpoints) {
+        maxpoints += DELTA;
+        points = (Point *) memory->srealloc(points,maxpoints*sizeof(Point),
+                                            "surface/global:points");
+      }
+      hash[key] = npoints;
+      points[npoints].x[0] = stltris[itri][6];
+      points[npoints].x[1] = stltris[itri][7];
+      points[npoints].x[2] = stltris[itri][8];
+      tris[itri].p3 = npoints;
+      npoints++;
+    } else tris[itri].p3 = hash[key];
+  }
+  
+  // delete STL reader
+  
+  delete stl;
 }
 
 /* ----------------------------------------------------------------------

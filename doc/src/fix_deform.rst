@@ -113,6 +113,24 @@ simulation of a continuously extended system (extensional flow) can be
 modeled using the :ref:`UEF package <PKG-UEF>` and its :doc:`fix
 commands <fix_nh_uef>`.
 
+.. admonition:: Inconsistent trajectories due to image flags
+   :class: warning
+
+   When running long simulations while shearing the box or using a high
+   shearing rate, it is possible that the image flags used for storing
+   unwrapped atom positions will "wrap around".  When LAMMPS is compiled
+   with the default settings, case image flags are limited to a range of
+   :math:`-512 \le i \le 511`, which will overflow when atoms starting
+   at zero image flag value have passed through a periodic box dimension
+   more than 512 times.
+
+   Changing the :ref:`size of LAMMPS integer types <size>` to the
+   "bigbig" setting can make this overflow much less likely, since it
+   increases the image flag value range to :math:`- 1,048,576 \le i \le
+   1\,048\,575`
+
+----------
+
 For the *x*, *y*, *z* parameters, the associated dimension cannot be
 shrink-wrapped.  For the *xy*, *yz*, *xz* parameters, the associated
 second dimension cannot be shrink-wrapped.  Dimensions not varied by

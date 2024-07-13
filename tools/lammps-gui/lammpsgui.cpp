@@ -811,8 +811,8 @@ void LammpsGui::logupdate()
             step = (int)*(int64_t *)ptr;
     }
 
-    // extract cached thermo data
-    if (chartwindow) {
+    // extract cached thermo data when LAMMPS is executing a minimize or run command
+    if (chartwindow && lammps.is_running()) {
         // thermo data is not yet valid during setup
         void *ptr = lammps.last_thermo("setup", 0);
         if (ptr && *(int *)ptr) return;

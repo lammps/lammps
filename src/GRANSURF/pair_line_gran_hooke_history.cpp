@@ -916,7 +916,7 @@ int PairLineGranHookeHistory::endpt_neigh_check(int i, int j, int jflag)
   // ncheck = # of neighbor lines to check
   // neighs = indices of neighbor lines (including self)
 
-  int *index = fsl->index;
+  int *index = fsl->cindex;
   int jconnect = index[j];
 
   int ncheck;

@@ -1080,7 +1080,7 @@ int PairTriGranHookeHistory::edge_neigh_check(int i, int j, int jflag)
   // ncheck = # of neighbor tris to check
   // neighs = indices of neighbor tris (including self)
 
-  int *index = fsl->index;
+  int *index = fsl->cindex;
   int jconnect = index[j];
 
   int ncheck;
@@ -1142,7 +1142,7 @@ int PairTriGranHookeHistory::corner_neigh_check(int i, int j, int jflag)
   // ncheck = # of neighbor tris to check
   // neighs = indices of neighbor tris (including self)
 
-  int *index = fsl->index;
+  int *index = fsl->cindex;
   int jconnect = index[j];
 
   int ncheck;

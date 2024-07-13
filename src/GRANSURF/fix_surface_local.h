@@ -55,10 +55,10 @@ class FixSurfaceLocal : public Fix {
     int ilocal;           // local index of triangle particle
   };
 
-  int *index;                       // per-atom index into connect 2d/3d vecs
-  Connect2d *connect2d;             // 2d connection info
-  Connect3d *connect3d;             // 3d connection info
-  MyPoolChunk<tagint> *tcp;         // allocator for 2d or 3d connectivity
+  int *cindex;            // per-atom index into connect 2d/3d vecs, -1 if none
+  Connect2d *connect2d;         // 2d connection info
+  Connect3d *connect3d;         // 3d connection info
+  MyPoolChunk<tagint> *tcp;     // allocator for 2d/3d connectivity vecs
 
   // size of local/ghost connection info vectors
 
@@ -165,8 +165,6 @@ class FixSurfaceLocal : public Fix {
   static void trimatch(int, char *);
 
   // private methods
-
-  void copy_connect(int, int);
 
   void connectivity2d_local();
   void calculate_endpts(int);

@@ -4,9 +4,6 @@
 fix deform command
 ==================
 
-:doc:`fix deform/pressure <fix_deform_pressure>` command
-========================================================
-
 Accelerator Variants: *deform/kk*
 
 Syntax
@@ -14,12 +11,11 @@ Syntax
 
 .. code-block:: LAMMPS
 
-   fix ID group-ID fix_style N parameter style args ... keyword value ...
+   fix ID group-ID deform N parameter style args ... keyword value ...
 
 * ID, group-ID are documented in :doc:`fix <fix>` command
-* fix_style = *deform* or *deform/pressure*
 * N = perform box deformation every this many timesteps
-* one or more parameter/style/args sequences of arguments may be appended
+* one or more parameter/args sequences may be appended
 
   .. parsed-literal::
 
@@ -46,12 +42,6 @@ Syntax
            *variable* values = v_name1 v_name2
              v_name1 = variable with name1 for box length change as function of time
              v_name2 = variable with name2 for change rate as function of time
-           *pressure* values = target gain (ONLY available in :doc:`fix deform/pressure <fix_deform_pressure>` command)
-             target = target pressure (pressure units)
-             gain = proportional gain constant (1/(time * pressure) or 1/time units)
-           *pressure/mean* values = target gain (ONLY available in :doc:`fix deform/pressure <fix_deform_pressure>` command)
-             target = target pressure (pressure units)
-             gain = proportional gain constant (1/(time * pressure) or 1/time units)
 
        *xy*, *xz*, *yz* args = style value
          style = *final* or *delta* or *vel* or *erate* or *trate* or *wiggle* or *variable*
@@ -64,8 +54,6 @@ Syntax
                  effectively an engineering shear strain rate
            *erate* value = R
              R = engineering shear strain rate (1/time units)
-           *erate/rescale* value = R (ONLY available in :doc:`fix deform/pressure <fix_deform_pressure>` command)
-             R = engineering shear strain rate (1/time units)
            *trate* value = R
              R = true shear strain rate (1/time units)
            *wiggle* values = A Tp
@@ -74,9 +62,6 @@ Syntax
            *variable* values = v_name1 v_name2
              v_name1 = variable with name1 for tilt change as function of time
              v_name2 = variable with name2 for change rate as function of time
-           *pressure* values = target gain (ONLY available in :doc:`fix deform/pressure <fix_deform_pressure>` command)
-             target = target pressure (pressure units)
-             gain = proportional gain constant (1/(time * pressure) or 1/time units)
 
 * zero or more keyword/value pairs may be appended
 * keyword = *remap* or *flip* or *units* or *couple* or *vol/balance/p* or *max/rate* or *normalize/pressure*
@@ -92,15 +77,6 @@ Syntax
        *units* value = *lattice* or *box*
          lattice = distances are defined in lattice units
          box = distances are defined in simulation box units
-       *couple* value = *none* or *xyz* or *xy* or *yz* or *xz* (ONLY available in :doc:`fix deform/pressure <fix_deform_pressure>` command)
-         couple pressure values of various dimensions
-       *vol/balance/p* value = *yes* or *no* (ONLY available in :doc:`fix deform/pressure <fix_deform_pressure>` command)
-         Modifies the behavior of the *volume* option to try and balance pressures
-       *max/rate* value = *rate* (ONLY available in :doc:`fix deform/pressure <fix_deform_pressure>` command)
-         rate = maximum strain rate for pressure control
-       *normalize/pressure* value = *yes* or *no* (ONLY available in :doc:`fix deform/pressure <fix_deform_pressure>` command)
-         Modifies pressure controls such that the deviation in pressure is normalized by the target pressure
-
 
 Examples
 """"""""
@@ -112,8 +88,6 @@ Examples
    fix 1 all deform 1 xy erate 0.001 remap v
    fix 1 all deform 10 y delta -0.5 0.5 xz vel 1.0
 
-See examples for :doc:`fix deform/pressure <fix_deform_pressure>` on its doc page
-
 Description
 """""""""""
 
@@ -123,17 +97,13 @@ run.  Orthogonal simulation boxes have 3 adjustable parameters
 adjustable parameters (x,y,z,xy,xz,yz).  Any or all of them can be
 adjusted independently and simultaneously.
 
-The fix deform command allows use of all the arguments listed above,
-except those flagged as available ONLY for the :doc:`fix
-deform/pressure <fix_deform_pressure>` command, which are
-pressure-based controls.  The fix deform/pressure command allows use
-of all the arguments listed above.
-
-The rest of this doc page explains the options common to both
-commands.  The :doc:`fix deform/pressure <fix_deform_pressure>` doc
-page explains the options available ONLY with the fix deform/pressure
-command.  Note that a simulation can define only a single deformation
-command: fix deform or fix deform/pressure.
+The :doc:`fix deform/pressure <fix_deform_pressure>` command extends
+this command with additional keywords and arguments.  The rest of this
+page explains the options common to both commands.  The :doc:`fix
+deform/pressure <fix_deform_pressure>` page explains the options
+available ONLY with the fix deform/pressure command.  Note that a
+simulation can define only a single deformation command: fix deform or
+fix deform/pressure.
 
 Both these fixes can be used to perform non-equilibrium MD (NEMD)
 simulations of a continuously strained system.  See the :doc:`fix

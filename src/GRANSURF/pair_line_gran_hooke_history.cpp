@@ -916,20 +916,18 @@ int PairLineGranHookeHistory::endpt_neigh_check(int i, int j, int jflag)
   // ncheck = # of neighbor lines to check
   // neighs = indices of neighbor lines (including self)
 
-  int *index = fsl->cindex;
-  int jconnect = index[j];
-
   int ncheck;
   int *neighs;
 
+  int jc = atom->line[j];
   if (jflag == -1) {
-    if (connect2d[jconnect].np1 == 1) return 0;
-    ncheck = connect2d[jconnect].np1;
-    neighs = connect2d[jconnect].neigh_p1;
+    if (connect2d[jc].np1 == 1) return 0;
+    ncheck = connect2d[jc].np1;
+    neighs = connect2d[jc].neigh_p1;
   } else if (jflag == -2) {
-    if (connect2d[jconnect].np2 == 1) return 0;
-    ncheck = connect2d[jconnect].np2;
-    neighs = connect2d[jconnect].neigh_p2;
+    if (connect2d[jc].np2 == 1) return 0;
+    ncheck = connect2d[jc].np2;
+    neighs = connect2d[jc].neigh_p2;
   }
 
   // check overlap with each neighbor line

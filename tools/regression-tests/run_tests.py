@@ -29,6 +29,7 @@ UPDATE: July 5, 2024:
 '''
 
 import os
+import sys
 import datetime
 import fnmatch
 import subprocess
@@ -115,10 +116,12 @@ def extract_data_to_yaml(inputFileName):
         reading = False
         data = []
         docs = ""
+        num_thermo_cols = 0
         for line in lines:
             if "Step" in line:
                 line.strip()
                 keywords = line.split()
+                num_thermo_cols = len(keywords)
                 reading = True
                 docs += "---\n"
                 docs += str("keywords: [")
@@ -129,18 +132,20 @@ def extract_data_to_yaml(inputFileName):
             if "Loop" in line:
                 reading = False
                 docs += "...\n"
-
+           
             if reading == True and "Step" not in line:
                 if  "WARNING" in line:
                     continue
                 data = line.split()
+                if len(data) != num_thermo_cols:
+                    continue
                 docs += " - ["
                 for field in enumerate(data):
                     docs += field[1] + ", "
                 docs += "]\n"
 
     # load the docs into a YAML data struture
-
+    #print(docs)
     try:
         yaml_struct = yaml.load_all(docs, Loader=Loader)
         thermo = list(yaml_struct)
@@ -162,6 +167,8 @@ def get_lammps_build_configuration(lmp_binary):
     output = p.stdout.split('\n')
     packages = ""
     reading = False
+    operating_system = ""
+    GitInfo = ""
     row = 0
     for line in output:
         if line != "":
@@ -353,6 +360,7 @@ def iterate(lmp_binary, input_list, config, results, removeAnnotatedInput=False)
             print(f"SKIPPED: {thermo_ref_file} does not exist in the working directory.")
             result.status = "skipped"
             results.append(result)
+            test_id = test_id + 1
             continue
 
     # using the LAMMPS python module (for single-proc runs)
@@ -366,10 +374,11 @@ def iterate(lmp_binary, input_list, config, results, removeAnnotatedInput=False)
     config['nprocs'] = saved_nprocs
 
     # process error code from the run
-    if returncode != 0:
-        print(f"ERROR: Failed with {input_test} with return code {returncode}. Check the log file for the run output.\n")
+    if os.path.isfile("log.lammps") == False:
+        print(f"ERROR: No log.lammps generated with {input_test} with return code {returncode}. Check the log file for the run output.\n")
         logger.info(f"\n{input_test}:")
         logger.info(f"\n{error}")
+        test_id = test_id + 1
         continue
 
     # process thermo output
@@ -377,11 +386,16 @@ def iterate(lmp_binary, input_list, config, results, removeAnnotatedInput=False)
 
     num_runs = len(thermo)
     if num_runs == 0:
-        print(f"ERROR: Failed with {input_test}. Check the log file for the run output.\n")
-        logger.info(f"The run terminated with the following output:\n")
+        
+        logger.info(f"The run terminated with {input_test} gives the following output:\n")
         logger.info(f"\n{output}")
-        result.status = "error"
+        if "Unrecognized" in output:
+            result.status = "unrecognized command"
+        else:
+            result.status = "error"
+        print(f"ERROR: Failed with {input_test} due to {result.status}. Check the log file for the run output.\n")
         results.append(result)
+        test_id = test_id + 1
         continue 
 
     print(f"Comparing thermo output from log.lammps against the reference log file {thermo_ref_file}")
@@ -389,6 +403,7 @@ def iterate(lmp_binary, input_list, config, results, removeAnnotatedInput=False)
         print(f"ERROR: Number of runs in log.lammps ({num_runs}) is not the same as that in the reference log ({num_runs_ref})")
         result.status = "error"
         results.append(result)
+        test_id = test_id + 1
         continue
 
     # comparing output vs reference values
@@ -506,13 +521,15 @@ if __name__ == "__main__":
     lmp_binary = ""
     configFileName = "config.yaml"
     example_subfolders = []
+    example_toplevel = ""
     genref = False
     verbose = False
     output_file = "output.xml"
     log_file = "run.log"
     dry_run = False
-    example_toplevel = ""
-    num_workers = 4
+    
+    # distribute the total number of input scripts over the workers
+    num_workers = 16
 
     # parse the arguments
     parser = ArgumentParser()
@@ -602,14 +619,15 @@ if __name__ == "__main__":
     test_cases = []
 
     # if the example folders are not specified from the command-line argument --example-folders
+    # then use the --example-top-folder
     if len(example_subfolders) == 0:
-        example_subfolders.append("../../examples/melt")
-        '''
+
+                
         for input in sublists[0]:
             folder = input.rsplit('/', 1)[0]
             folder_list.append(folder)
         example_subfolders = folder_list
-        '''
+        
         '''
         example_subfolders.append("../../examples/melt")
         example_subfolders.append('../../examples/flow')
@@ -741,6 +759,7 @@ if __name__ == "__main__":
     print(f" - {passed_tests} passed / {total_tests} tests")
     print(f" - Details are given in {output_file}.")
 
+
     # generate a JUnit XML file
     with open(output_file, 'w') as f:
         test_cases = [] 
@@ -748,11 +767,11 @@ if __name__ == "__main__":
             #print(f"{result.name}: {result.status}")
             case = TestCase(name=result.name, classname=result.name)
             if result.status == "failed":
-              case.add_failure_info(message="Actual values did not match expected ones.")
+                case.add_failure_info(message="Actual values did not match expected ones.")
             if result.status == "skipped":
-              case.add_skipped_info(message="Test was skipped.")
+                case.add_skipped_info(message="Test was skipped.")
             if result.status == "error":
-              case.add_skipped_info(message="Test run had errors.")
+                case.add_skipped_info(message="Test run had errors.")
             test_cases.append(case)
 
         current_timestamp = datetime.datetime.now()

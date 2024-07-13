@@ -1025,7 +1025,7 @@ char *Variable::retrieve(const char *name)
       error->all(FLERR, "Variable {}: format variable {} has incompatible style",
                  names[ivar],data[ivar][0]);
     double answer = compute_equal(jvar);
-    sprintf(data[ivar][2],data[ivar][1],answer);
+    snprintf(data[ivar][2],VALUELENGTH,data[ivar][1],answer);
     str = data[ivar][2];
 
   } else if (style[ivar] == GETENV) {

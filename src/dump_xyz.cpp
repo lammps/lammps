@@ -85,7 +85,7 @@ void DumpXYZ::init_style()
     typenames = new char*[ntypes+1];
     for (int itype = 1; itype <= ntypes; itype++) {
       typenames[itype] = new char[12];
-      sprintf(typenames[itype],"%d",itype);
+      snprintf(typenames[itype],12,"%d",itype);
     }
   }
 
@@ -206,7 +206,7 @@ int DumpXYZ::convert_string(int n, double *mybuf)
       memory->grow(sbuf,maxsbuf,"dump:sbuf");
     }
 
-    offset += sprintf(&sbuf[offset], format, typenames[static_cast<int> (mybuf[m+1])],
+    offset += snprintf(&sbuf[offset], maxsbuf-offset, format, typenames[static_cast<int> (mybuf[m+1])],
                       mybuf[m+2], mybuf[m+3], mybuf[m+4]);
     m += size_one;
   }

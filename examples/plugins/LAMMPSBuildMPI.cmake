@@ -1,12 +1,6 @@
 ################################################################################
-# MPI configuration
-if(NOT CMAKE_CROSSCOMPILING)
-  set(MPI_CXX_SKIP_MPICXX TRUE)
-  find_package(MPI QUIET)
-  option(BUILD_MPI "Build MPI version" ${MPI_FOUND})
-else()
-  option(BUILD_MPI "Build MPI version" OFF)
-endif()
+# MPI Build
+set(LAMMPS_THIRDPARTY_URL "https://download.lammps.org/thirdparty" CACHE STRING "URL for thirdparty package downloads")
 
 if(BUILD_MPI)
   # do not include the (obsolete) MPI C++ bindings which makes

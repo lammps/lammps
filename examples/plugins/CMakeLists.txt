@@ -18,7 +18,9 @@ if(NOT LAMMPS_DIR)
   include(LAMMPSBuildMPI)
 endif()
 
-find_package(LAMMPS REQUIRED)
+if(NOT TARGET LAMMPS::lammps)
+  find_package(LAMMPS REQUIRED)
+endif()
 
 ##########################
 # building the plugins

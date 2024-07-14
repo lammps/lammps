@@ -225,6 +225,7 @@ if(BUILD_SHARED_LIBS AND (CMAKE_SYSTEM_NAME STREQUAL "Windows") AND CMAKE_CROSSC
 endif()
 
 add_executable(lmp ${MAIN_SOURCES})
+add_executable(LAMMPS::lmp ALIAS lmp)
 target_link_libraries(lmp PRIVATE lammps)
 set_target_properties(lmp PROPERTIES OUTPUT_NAME ${LAMMPS_BINARY})
 # re-export all symbols for plugins
@@ -377,6 +378,7 @@ if(BUILD_MPI)
 else()
   target_sources(lammps PRIVATE ${LAMMPS_SOURCE_DIR}/STUBS/mpi.cpp)
   add_library(mpi_stubs INTERFACE)
+  add_library(LAMMPS::mpi_stubs ALIAS mpi_stubs)
   target_include_directories(mpi_stubs INTERFACE $<BUILD_INTERFACE:${LAMMPS_SOURCE_DIR}/STUBS> $<INSTALL_INTERFACE:${CMAKE_INSTALL_INCLUDEDIR}/lammps/STUBS>)
   target_link_libraries(lammps PUBLIC mpi_stubs)
 endif()
@@ -706,7 +708,7 @@ foreach(PKG_WITH_INCL CORESHELL DPD-BASIC DPD-SMOOTH MC MISC PHONON QEQ OPENMP K
 endforeach()
 
 if(PKG_PLUGIN)
-  target_compile_definitions(lammps PRIVATE -DLMP_PLUGIN)
+  target_compile_definitions(lammps PUBLIC -DLMP_PLUGIN)
 endif()
 
 # link with -ldl or equivalent for plugin loading; except on Windows
@@ -817,11 +819,16 @@ if(BUILD_SHARED_LIBS)
   configure_file(pkgconfig/liblammps.pc.in ${CMAKE_CURRENT_BINARY_DIR}/liblammps${LAMMPS_MACHINE}.pc @ONLY)
   install(FILES ${CMAKE_CURRENT_BINARY_DIR}/liblammps${LAMMPS_MACHINE}.pc DESTINATION ${CMAKE_INSTALL_LIBDIR}/pkgconfig)
   install(EXPORT LAMMPS_Targets FILE LAMMPS_Targets.cmake NAMESPACE LAMMPS:: DESTINATION ${CMAKE_INSTALL_LIBDIR}/cmake/LAMMPS)
+  export(EXPORT LAMMPS_Targets FILE LAMMPS_Targets.cmake NAMESPACE LAMMPS::)
   include(CMakePackageConfigHelpers)
   configure_package_config_file(LAMMPSConfig.cmake.in ${CMAKE_CURRENT_BINARY_DIR}/LAMMPSConfig.cmake
     INSTALL_DESTINATION ${CMAKE_INSTALL_LIBDIR}/cmake/LAMMPS)
   write_basic_package_version_file("LAMMPSConfigVersion.cmake" VERSION ${PROJECT_VERSION} COMPATIBILITY ExactVersion)
   install(FILES "${CMAKE_CURRENT_BINARY_DIR}/LAMMPSConfig.cmake" "${CMAKE_CURRENT_BINARY_DIR}/LAMMPSConfigVersion.cmake" DESTINATION ${CMAKE_INSTALL_LIBDIR}/cmake/LAMMPS)
+  if(PKG_PLUGIN)
+    include(Plugin)
+    install(FILES Modules/Plugin.cmake DESTINATION ${CMAKE_INSTALL_LIBDIR}/cmake/LAMMPS)
+  endif()
 endif()
 install(FILES ${LAMMPS_DOC_DIR}/lammps.1 DESTINATION ${CMAKE_INSTALL_MANDIR}/man1 RENAME ${LAMMPS_BINARY}.1)
 

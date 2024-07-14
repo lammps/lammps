@@ -207,4 +207,7 @@ endif()
 get_property(KOKKOS_PKG_SOURCES GLOBAL PROPERTY KOKKOS_PKG_SOURCES)
 
 target_sources(lammps PRIVATE ${KOKKOS_PKG_SOURCES})
-target_include_directories(lammps PUBLIC $<BUILD_INTERFACE:${KOKKOS_PKG_SOURCES_DIR}>)
+target_include_directories(lammps PUBLIC $<BUILD_INTERFACE:${KOKKOS_PKG_SOURCES_DIR}>
+                                         $<INSTALL_INTERFACE:${CMAKE_INSTALL_INCLUDEDIR}/lammps/KOKKOS>)
+install(DIRECTORY ${KOKKOS_SOURCES_DIR} DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}/lammps
+        FILES_MATCHING PATTERN "*.h")

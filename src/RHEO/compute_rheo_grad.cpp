@@ -144,7 +144,7 @@ void ComputeRHEOGrad::compute_peratom()
   double *rho = atom->rho;
   double *energy = atom->esph;
   double *viscosity = atom->viscosity;
-  int *status = atom->status;
+  int *status = atom->rheo_status;
   int *type = atom->type;
   double *mass = atom->mass;
   int newton = force->newton;

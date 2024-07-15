@@ -87,7 +87,6 @@ fix             11 all enforce2d
 compute         surf all rheo/property/atom surface
 compute         rho all rheo/property/atom rho
 compute         phase all rheo/property/atom phase
-compute         status all rheo/property/atom status
 compute         temp all rheo/property/atom temperature
 compute         eng all rheo/property/atom energy
 compute         nbond_shell all rheo/property/atom nbond/shell
@@ -98,6 +97,6 @@ compute         nbond_solid all nbond/atom bond/type 1
 thermo          200
 thermo_style    custom step time ke press atoms
 
-#dump            1 all custom 200 atomDump id type x y vx vy fx fy c_phase c_temp c_eng c_nbond_solid c_nbond_shell c_rho c_surf c_status
+#dump            1 all custom 200 atomDump id type x y vx vy fx fy c_phase c_temp c_eng c_nbond_solid c_nbond_shell c_rho c_surf
 
 run             40000

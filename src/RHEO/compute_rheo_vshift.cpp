@@ -102,7 +102,7 @@ void ComputeRHEOVShift::compute_peratom()
   int inum, *ilist, *numneigh, **firstneigh;
 
   int *type = atom->type;
-  int *status = atom->status;
+  int *status = atom->rheo_status;
   int *mask = atom->mask;
   double **x = atom->x;
   double **v = atom->v;
@@ -231,7 +231,7 @@ void ComputeRHEOVShift::correct_surfaces()
 
   int i, a, b;
 
-  int *status = atom->status;
+  int *status = atom->rheo_status;
   int *mask = atom->mask;
   double **nsurface = compute_surface->nsurface;
 

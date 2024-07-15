@@ -200,7 +200,7 @@ Atom::Atom(LAMMPS *_lmp) : Pointers(_lmp), atom_style(nullptr), avec(nullptr), a
 
   // RHEO package
 
-  status = nullptr;
+  rheo_status = nullptr;
   conductivity = nullptr;
   pressure = nullptr;
   viscosity = nullptr;
@@ -538,7 +538,7 @@ void Atom::peratom_create()
 
   // RHEO package
 
-  add_peratom("status",&status,INT,0);
+  add_peratom("rheo_status",&rheo_status,INT,0);
   add_peratom("conductivity",&conductivity,DOUBLE,0);
   add_peratom("pressure",&pressure,DOUBLE,0);
   add_peratom("viscosity",&viscosity,DOUBLE,0);
@@ -648,7 +648,7 @@ void Atom::set_atomflag_defaults()
   temperature_flag = heatflow_flag = 0;
   vfrac_flag = spin_flag = eradius_flag = ervel_flag = erforce_flag = 0;
   cs_flag = csforce_flag = vforce_flag = ervelforce_flag = etag_flag = 0;
-  status_flag = conductivity_flag = pressure_flag = viscosity_flag = 0;
+  rheo_status_flag = conductivity_flag = pressure_flag = viscosity_flag = 0;
   rho_flag = esph_flag = cv_flag = vest_flag = 0;
   dpd_flag = edpd_flag = tdpd_flag = 0;
   sp_flag = 0;
@@ -3065,7 +3065,7 @@ void *Atom::extract(const char *name)
 
   // RHEO package
 
-  if (strcmp(name,"status") == 0) return (void *) status;
+  if (strcmp(name,"rheo_status") == 0) return (void *) rheo_status;
   if (strcmp(name,"conductivity") == 0) return (void *) conductivity;
   if (strcmp(name,"pressure") == 0) return (void *) pressure;
   if (strcmp(name,"viscosity") == 0) return (void *) viscosity;
@@ -3194,7 +3194,7 @@ int Atom::extract_datatype(const char *name)
 
   // RHEO package
 
-  if (strcmp(name,"status") == 0) return LAMMPS_INT;
+  if (strcmp(name,"rheo_status") == 0) return LAMMPS_INT;
   if (strcmp(name,"conductivity") == 0) return LAMMPS_DOUBLE;
   if (strcmp(name,"pressure") == 0) return LAMMPS_DOUBLE;
   if (strcmp(name,"viscosity") == 0) return LAMMPS_DOUBLE;

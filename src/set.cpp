@@ -526,7 +526,7 @@ void Set::command(int narg, char **arg)
       if (iarg+2 > narg) utils::missing_cmd_args(FLERR, "set rheo/status", error);
       if (utils::strmatch(arg[iarg+1],"^v_")) varparse(arg[iarg+1],1);
       else ivalue = utils::inumeric(FLERR,arg[iarg+1],false,lmp);
-      if (!atom->status_flag)
+      if (!atom->rheo_status_flag)
         error->all(FLERR,"Cannot set attribute {} for atom style {}", arg[iarg], atom->get_style());
       set(RHEO_STATUS);
       iarg += 2;
@@ -901,7 +901,7 @@ void Set::set(int keyword)
     else if (keyword == RHEO_STATUS) {
       if (ivalue != 0 && ivalue != 1)
         error->one(FLERR,"Invalid value {} in set command for rheo/status", ivalue);
-      atom->status[i] = ivalue;
+      atom->rheo_status[i] = ivalue;
     }
 
     else if (keyword == SPH_E) atom->esph[i] = dvalue;

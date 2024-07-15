@@ -92,8 +92,9 @@ ComputeRHEOPropertyAtom::ComputeRHEOPropertyAtom(LAMMPS *lmp, int narg, char **a
   for (int iarg = 3; iarg < narg; iarg++) {
     if (strcmp(arg[iarg], "phase") == 0) {
       pack_choice[i] = &ComputeRHEOPropertyAtom::pack_phase;
-    } else if (strcmp(arg[iarg], "rho") == 0) {
-      pack_choice[i] = &ComputeRHEOPropertyAtom::pack_rho;
+    } else if (strcmp(arg[iarg], "status") == 0) {
+      // Short hand for "rheo_status"
+      pack_choice[i] = &ComputeRHEOPropertyAtom::pack_status;
     } else if (strcmp(arg[iarg], "chi") == 0) {
       interface_flag = 1;
       pack_choice[i] = &ComputeRHEOPropertyAtom::pack_chi;
@@ -111,8 +112,6 @@ ComputeRHEOPropertyAtom::ComputeRHEOPropertyAtom(LAMMPS *lmp, int narg, char **a
     } else if (strcmp(arg[iarg], "pressure") == 0) {
       pressure_flag = 1;
       pack_choice[i] = &ComputeRHEOPropertyAtom::pack_pressure;
-    } else if (strcmp(arg[iarg], "viscosity") == 0) {
-      pack_choice[i] = &ComputeRHEOPropertyAtom::pack_viscosity;
     } else if (strcmp(arg[iarg], "cv") == 0) {
       thermal_flag = 1;
       pack_choice[i] = &ComputeRHEOPropertyAtom::pack_cv;
@@ -265,7 +264,7 @@ double ComputeRHEOPropertyAtom::memory_usage()
 
 void ComputeRHEOPropertyAtom::pack_phase(int n)
 {
-  int *status = atom->status;
+  int *status = atom->rheo_status;
   int *mask = atom->mask;
   int nlocal = atom->nlocal;
 
@@ -278,14 +277,14 @@ void ComputeRHEOPropertyAtom::pack_phase(int n)
 
 /* ---------------------------------------------------------------------- */
 
-void ComputeRHEOPropertyAtom::pack_rho(int n)
+void ComputeRHEOPropertyAtom::pack_status(int n)
 {
-  double *rho = atom->rho;
+  int *status = atom->rheo_status;
   int *mask = atom->mask;
   int nlocal = atom->nlocal;
 
   for (int i = 0; i < nlocal; i++) {
-    if (mask[i] & groupbit) buf[n] = rho[i];
+    if (mask[i] & groupbit) buf[n] = status[i];
     else buf[n] = 0.0;
     n += nvalues;
   }
@@ -310,7 +309,7 @@ void ComputeRHEOPropertyAtom::pack_chi(int n)
 
 void ComputeRHEOPropertyAtom::pack_surface(int n)
 {
-  int *status = atom->status;
+  int *status = atom->rheo_status;
   int *mask = atom->mask;
   int nlocal = atom->nlocal;
 
@@ -413,21 +412,6 @@ void ComputeRHEOPropertyAtom::pack_pressure(int n)
 
   for (int i = 0; i < nlocal; i++) {
     if (mask[i] & groupbit) buf[n] = fix_pressure->calc_pressure(rho[i], type[i]);
-    else buf[n] = 0.0;
-    n += nvalues;
-  }
-}
-
-/* ---------------------------------------------------------------------- */
-
-void ComputeRHEOPropertyAtom::pack_viscosity(int n)
-{
-  int *mask = atom->mask;
-  double *viscosity = atom->viscosity;
-  int nlocal = atom->nlocal;
-
-  for (int i = 0; i < nlocal; i++) {
-    if (mask[i] & groupbit) buf[n] = viscosity[i];
     else buf[n] = 0.0;
     n += nvalues;
   }

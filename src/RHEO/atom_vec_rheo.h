@@ -36,7 +36,7 @@ class AtomVecRHEO : virtual public AtomVec {
   void pack_property_atom(int, double *, int, int) override;
 
  private:
-  int *status;
+  int *rheo_status;
   double *pressure, *rho, *drho, *viscosity;
 };
 

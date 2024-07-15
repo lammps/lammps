@@ -157,7 +157,7 @@ class Atom : protected Pointers {
 
   // RHEO package
 
-  int *status;
+  int *rheo_status;
   double *conductivity;
   double *pressure;
   double *viscosity;
@@ -197,7 +197,7 @@ class Atom : protected Pointers {
   int temperature_flag, heatflow_flag;
   int vfrac_flag, spin_flag, eradius_flag, ervel_flag, erforce_flag;
   int cs_flag, csforce_flag, vforce_flag, ervelforce_flag, etag_flag;
-  int status_flag, conductivity_flag, pressure_flag, viscosity_flag;
+  int rheo_status_flag, conductivity_flag, pressure_flag, viscosity_flag;
   int rho_flag, esph_flag, cv_flag, vest_flag;
   int dpd_flag, edpd_flag, tdpd_flag;
   int mesont_flag;

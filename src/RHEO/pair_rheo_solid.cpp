@@ -74,7 +74,7 @@ void PairRHEOSolid::compute(int eflag, int vflag)
   double **v = atom->v;
   double **f = atom->f;
   int *type = atom->type;
-  int *status = atom->status;
+  int *status = atom->rheo_status;
   int nlocal = atom->nlocal;
   int newton_pair = force->newton_pair;
   double *special_lj = force->special_lj;
@@ -223,7 +223,7 @@ void PairRHEOSolid::init_style()
   if (comm->ghost_velocity == 0)
     error->all(FLERR,"Pair rheo/solid requires ghost atoms store velocity");
 
-  if (!atom->status_flag)
+  if (!atom->rheo_status_flag)
     error->all(FLERR,"Pair rheo/solid requires atom_style rheo");
 
   neighbor->add_request(this);
@@ -328,7 +328,7 @@ double PairRHEOSolid::single(int i, int j, int itype, int jtype, double rsq, dou
 
   if (rsq > cutsq[itype][jtype]) return 0.0;
 
-  int *status = atom->status;
+  int *status = atom->rheo_status;
   if (!(status[i] & STATUS_SOLID)) return 0.0;
   if (!(status[j] & STATUS_SOLID)) return 0.0;
 

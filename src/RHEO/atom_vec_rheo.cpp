@@ -33,7 +33,7 @@ AtomVecRHEO::AtomVecRHEO(LAMMPS *lmp) : AtomVec(lmp)
   mass_type = PER_TYPE;
   forceclearflag = 1;
 
-  atom->status_flag = 1;
+  atom->rheo_status_flag = 1;
   atom->pressure_flag = 1;
   atom->rho_flag = 1;
   atom->viscosity_flag = 1;
@@ -43,17 +43,17 @@ AtomVecRHEO::AtomVecRHEO(LAMMPS *lmp) : AtomVec(lmp)
   // order of fields in a string does not matter
   // except: fields_data_atom & fields_data_vel must match data file
 
-  fields_grow = {"status", "rho", "drho", "pressure", "viscosity"};
-  fields_copy = {"status", "rho", "drho", "pressure", "viscosity"};
-  fields_comm = {"status", "rho"};
-  fields_comm_vel = {"status", "rho"};
+  fields_grow = {"rheo_status", "rho", "drho", "pressure", "viscosity"};
+  fields_copy = {"rheo_status", "rho", "drho", "pressure", "viscosity"};
+  fields_comm = {"rheo_status", "rho"};
+  fields_comm_vel = {"rheo_status", "rho"};
   fields_reverse = {"drho"};
-  fields_border = {"status", "rho"};
-  fields_border_vel = {"status", "rho"};
-  fields_exchange = {"status", "rho"};
-  fields_restart = {"status", "rho"};
-  fields_create = {"status", "rho", "drho", "pressure", "viscosity"};
-  fields_data_atom = {"id", "type", "status", "rho", "x"};
+  fields_border = {"rheo_status", "rho"};
+  fields_border_vel = {"rheo_status", "rho"};
+  fields_exchange = {"rheo_status", "rho"};
+  fields_restart = {"rheo_status", "rho"};
+  fields_create = {"rheo_status", "rho", "drho", "pressure", "viscosity"};
+  fields_data_atom = {"id", "type", "rheo_status", "rho", "x"};
   fields_data_vel = {"id", "v"};
 
   setup_fields();
@@ -66,7 +66,7 @@ AtomVecRHEO::AtomVecRHEO(LAMMPS *lmp) : AtomVec(lmp)
 
 void AtomVecRHEO::grow_pointers()
 {
-  status = atom->status;
+  rheo_status = atom->rheo_status;
   pressure = atom->pressure;
   rho = atom->rho;
   drho = atom->drho;
@@ -111,7 +111,7 @@ void AtomVecRHEO::data_atom_post(int ilocal)
 
 int AtomVecRHEO::property_atom(const std::string &name)
 {
-  if (name == "status") return 0;
+  if (name == "rheo_status") return 0;
   if (name == "pressure") return 1;
   if (name == "rho") return 2;
   if (name == "drho") return 3;
@@ -133,7 +133,7 @@ void AtomVecRHEO::pack_property_atom(int index, double *buf, int nvalues, int gr
   if (index == 0) {
     for (int i = 0; i < nlocal; i++) {
       if (mask[i] & groupbit)
-        buf[n] = status[i];
+        buf[n] = rheo_status[i];
       else
         buf[n] = 0.0;
       n += nvalues;

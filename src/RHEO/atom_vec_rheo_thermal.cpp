@@ -33,7 +33,7 @@ AtomVecRHEOThermal::AtomVecRHEOThermal(LAMMPS *lmp) : AtomVec(lmp)
   mass_type = PER_TYPE;
   forceclearflag = 1;
 
-  atom->status_flag = 1;
+  atom->rheo_status_flag = 1;
   atom->conductivity_flag = 1;
   atom->temperature_flag = 1;
   atom->esph_flag = 1;
@@ -47,17 +47,17 @@ AtomVecRHEOThermal::AtomVecRHEOThermal(LAMMPS *lmp) : AtomVec(lmp)
   // order of fields in a string does not matter
   // except: fields_data_atom & fields_data_vel must match data file
 
-  fields_grow = {"status", "rho", "drho", "temperature", "esph", "heatflow", "conductivity", "pressure", "viscosity"};
-  fields_copy = {"status", "rho", "drho", "temperature", "esph", "heatflow", "conductivity", "pressure", "viscosity"};
-  fields_comm = {"status", "rho", "esph"};
-  fields_comm_vel = {"status", "rho", "esph"};
+  fields_grow = {"rheo_status", "rho", "drho", "temperature", "esph", "heatflow", "conductivity", "pressure", "viscosity"};
+  fields_copy = {"rheo_status", "rho", "drho", "temperature", "esph", "heatflow", "conductivity", "pressure", "viscosity"};
+  fields_comm = {"rheo_status", "rho", "esph"};
+  fields_comm_vel = {"rheo_status", "rho", "esph"};
   fields_reverse = {"drho", "heatflow"};
-  fields_border = {"status", "rho", "esph"};
-  fields_border_vel = {"status", "rho", "esph"};
-  fields_exchange = {"status", "rho", "esph"};
-  fields_restart = {"status", "rho", "esph"};
-  fields_create = {"status", "rho", "drho", "temperature", "esph", "heatflow", "conductivity", "pressure", "viscosity"};
-  fields_data_atom = {"id", "type", "status", "rho", "esph", "x"};
+  fields_border = {"rheo_status", "rho", "esph"};
+  fields_border_vel = {"rheo_status", "rho", "esph"};
+  fields_exchange = {"rheo_status", "rho", "esph"};
+  fields_restart = {"rheo_status", "rho", "esph"};
+  fields_create = {"rheo_status", "rho", "drho", "temperature", "esph", "heatflow", "conductivity", "pressure", "viscosity"};
+  fields_data_atom = {"id", "type", "rheo_status", "rho", "esph", "x"};
   fields_data_vel = {"id", "v"};
 
   setup_fields();
@@ -70,7 +70,7 @@ AtomVecRHEOThermal::AtomVecRHEOThermal(LAMMPS *lmp) : AtomVec(lmp)
 
 void AtomVecRHEOThermal::grow_pointers()
 {
-  status = atom->status;
+  rheo_status = atom->rheo_status;
   conductivity = atom->conductivity;
   temperature = atom->temperature;
   esph = atom->esph;
@@ -123,7 +123,7 @@ void AtomVecRHEOThermal::data_atom_post(int ilocal)
 
 int AtomVecRHEOThermal::property_atom(const std::string &name)
 {
-  if (name == "status") return 0;
+  if (name == "rheo_status") return 0;
   if (name == "rho") return 1;
   if (name == "drho") return 2;
   if (name == "temperature") return 3;
@@ -149,7 +149,7 @@ void AtomVecRHEOThermal::pack_property_atom(int index, double *buf, int nvalues,
   if (index == 0) {
     for (int i = 0; i < nlocal; i++) {
       if (mask[i] & groupbit)
-        buf[n] = status[i];
+        buf[n] = rheo_status[i];
       else
         buf[n] = 0.0;
       n += nvalues;

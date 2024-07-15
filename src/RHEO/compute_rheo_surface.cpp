@@ -106,7 +106,7 @@ void ComputeRHEOSurface::compute_peratom()
   int nlocal = atom->nlocal;
 
   double **x = atom->x;
-  int *status = atom->status;
+  int *status = atom->rheo_status;
   int newton = force->newton;
   int dim = domain->dimension;
   int *mask = atom->mask;
@@ -312,7 +312,7 @@ int ComputeRHEOSurface::pack_reverse_comm(int n, int first, double *buf)
 {
   int i,a,b,k,m,last;
   int dim = domain->dimension;
-  int *status = atom->status;
+  int *status = atom->rheo_status;
 
   m = 0;
   last = first + n;
@@ -336,7 +336,7 @@ void ComputeRHEOSurface::unpack_reverse_comm(int n, int *list, double *buf)
 {
   int i,a,b,k,j,m;
   int dim = domain->dimension;
-  int *status = atom->status;
+  int *status = atom->rheo_status;
   int tmp1;
   double tmp2;
 
@@ -367,7 +367,7 @@ int ComputeRHEOSurface::pack_forward_comm(int n, int *list, double *buf,
                                         int /*pbc_flag*/, int * /*pbc*/)
 {
   int i,j,a,b,k,m;
-  int *status = atom->status;
+  int *status = atom->rheo_status;
   m = 0;
 
   for (i = 0; i < n; i++) {
@@ -387,7 +387,7 @@ int ComputeRHEOSurface::pack_forward_comm(int n, int *list, double *buf,
 void ComputeRHEOSurface::unpack_forward_comm(int n, int first, double *buf)
 {
   int i, k, a, b, m, last;
-  int *status = atom->status;
+  int *status = atom->rheo_status;
 
   m = 0;
   last = first + n;

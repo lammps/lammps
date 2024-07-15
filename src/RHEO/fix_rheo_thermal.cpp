@@ -326,7 +326,7 @@ void FixRHEOThermal::initial_integrate(int /*vflag*/)
   if (!fix_rheo->shift_flag) return;
   int i, a;
 
-  int *status = atom->status;
+  int *status = atom->rheo_status;
   double *energy = atom->esph;
   double **grade = compute_grad->grade;
   double **vshift = compute_vshift->vshift;
@@ -351,7 +351,7 @@ void FixRHEOThermal::post_integrate()
   int i, itype;
   double cvi, Tci, Ti, Li;
 
-  int *status = atom->status;
+  int *status = atom->rheo_status;
   double *energy = atom->esph;
   double *temperature = atom->temperature;
   double *heatflow = atom->heatflow;
@@ -466,7 +466,7 @@ void FixRHEOThermal::pre_force(int /*vflag*/)
   double *energy = atom->esph;
   double *temperature = atom->temperature;
   int *type = atom->type;
-  int *status = atom->status;
+  int *status = atom->rheo_status;
 
   int nlocal = atom->nlocal;
   int nall = nlocal + atom->nghost;
@@ -494,7 +494,7 @@ void FixRHEOThermal::pre_force(int /*vflag*/)
 
 void FixRHEOThermal::final_integrate()
 {
-  int *status = atom->status;
+  int *status = atom->rheo_status;
   double *energy = atom->esph;
   double *heatflow = atom->heatflow;
 
@@ -520,7 +520,7 @@ void FixRHEOThermal::break_bonds()
   int m, n, nmax, i, j, melti, meltj;
 
   tagint *tag = atom->tag;
-  int *status = atom->status;
+  int *status = atom->rheo_status;
   int **bond_type = atom->bond_type;
   tagint **bond_atom = atom->bond_atom;
   int *num_bond = atom->num_bond;
@@ -649,7 +649,7 @@ void FixRHEOThermal::create_bonds()
 
   tagint *tag = atom->tag;
   tagint **bond_atom = atom->bond_atom;
-  int *status = atom->status;
+  int *status = atom->rheo_status;
   int **bond_type = atom->bond_type;
   int *num_bond = atom->num_bond;
   double **x = atom->x;
@@ -754,7 +754,7 @@ int FixRHEOThermal::pack_forward_comm(int n, int *list, double *buf,
                                         int /*pbc_flag*/, int * /*pbc*/)
 {
   int i, j, k, m;
-  int *status = atom->status;
+  int *status = atom->rheo_status;
   double **x = atom->x;
   m = 0;
 
@@ -773,7 +773,7 @@ int FixRHEOThermal::pack_forward_comm(int n, int *list, double *buf,
 void FixRHEOThermal::unpack_forward_comm(int n, int first, double *buf)
 {
   int i, k, m, last;
-  int *status = atom->status;
+  int *status = atom->rheo_status;
   double **x = atom->x;
   m = 0;
   last = first + n;

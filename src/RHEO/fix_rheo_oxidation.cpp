@@ -163,7 +163,7 @@ void FixRHEOOxidation::post_integrate()
   int **bond_type = atom->bond_type;
   int *num_bond = atom->num_bond;
   int *mask = atom->mask;
-  int *status = atom->status;
+  int *status = atom->rheo_status;
   double *rsurface = compute_surface->rsurface;
   double **x = atom->x;
 
@@ -255,7 +255,7 @@ void FixRHEOOxidation::post_integrate()
 
 void FixRHEOOxidation::post_force(int /*vflag*/)
 {
-  int *status = atom->status;
+  int *status = atom->rheo_status;
   int *num_bond = atom->num_bond;
   for (int i = 0; i < atom->nlocal; i++)
     if (num_bond[i] != 0)

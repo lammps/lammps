@@ -182,7 +182,7 @@ void BondRHEOShell::compute(int eflag, int vflag)
   double **v = atom->v;
   double **f = atom->f;
   tagint *tag = atom->tag;
-  int *status = atom->status;
+  int *status = atom->rheo_status;
   int **bondlist = neighbor->bondlist;
   int nbondlist = neighbor->nbondlist;
   int nlocal = atom->nlocal;

@@ -110,7 +110,7 @@ void PairRHEO::compute(int eflag, int vflag)
   double *heatflow = atom->heatflow;
   double *special_lj = force->special_lj;
   int *type = atom->type;
-  int *status = atom->status;
+  int *status = atom->rheo_status;
   tagint *tag = atom->tag;
 
   double **fp_store, *chi;

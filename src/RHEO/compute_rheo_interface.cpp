@@ -120,7 +120,7 @@ void ComputeRHEOInterface::compute_peratom()
   double **x = atom->x;
   int *type = atom->type;
   int newton = force->newton;
-  int *status = atom->status;
+  int *status = atom->rheo_status;
   double *rho = atom->rho;
 
   inum = list->inum;
@@ -290,7 +290,7 @@ void ComputeRHEOInterface::unpack_reverse_comm(int n, int *list, double *buf)
 {
   int i, k, j, m;
   double *rho = atom->rho;
-  int *status = atom->status;
+  int *status = atom->rheo_status;
   m = 0;
   for (i = 0; i < n; i++) {
     j = list[i];

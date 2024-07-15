@@ -45,7 +45,7 @@ class ComputeRHEOPropertyAtom : public Compute {
   FnPtrPack *pack_choice;    // ptrs to pack functions
 
   void pack_phase(int);
-  void pack_rho(int);
+  void pack_status(int);
   void pack_chi(int);
   void pack_surface(int);
   void pack_surface_r(int);
@@ -56,7 +56,6 @@ class ComputeRHEOPropertyAtom : public Compute {
   void pack_shift_v(int);
   void pack_gradv(int);
   void pack_pressure(int);
-  void pack_viscosity(int);
   void pack_viscous_stress(int);
   void pack_total_stress(int);
   void pack_nbond_shell(int);

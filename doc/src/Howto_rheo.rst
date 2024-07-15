@@ -2,25 +2,26 @@ Reproducing hydrodynamics and elastic objects (RHEO)
 ====================================================
 
 The RHEO package is a hybrid implementation of smoothed particle
-hydrodynamics (SPH) for fluid flow, coupled to the :doc:`BPM package <Howto_bpm>`
-to model solid elements. RHEO combines these methods to enable mesh-free modeling
-of multi-phase material systems. The SPH solver supports many advanced options
-including reproducing kernels, particle shifting, free surface identification,
-and solid surface reconstruction. To model fluid-solid systems, the status of
-particles can dynamically change between a fluid and solid state, e.g. during
-melting/solidification, which determines how they interact and their physical
-behavior. The package is designed with modularity in mind, so one can easily
-turn various features on/off, adjust physical details of the system, or
-develop new capabilities. For instance, the numerics associated with
-calculating gradients, reproducing kernels, etc. are separated into distinct
-classes to simplify the development of new integration schemes which can call
-these calculations. Additional numerical details can be found in
+hydrodynamics (SPH) for fluid flow, which can couple to the :doc:`BPM package
+<Howto_bpm>` to model solid elements. RHEO combines these methods to enable
+mesh-free modeling of multi-phase material systems. Its SPH solver supports
+many advanced options including reproducing kernels, particle shifting, free
+surface identification, and solid surface reconstruction. To model fluid-solid
+systems, the status of particles can dynamically change between a fluid and
+solid state, e.g. during melting/solidification, which determines how they
+interact and their physical behavior. The package is designed with modularity
+in mind, so one can easily turn various features on/off, adjust physical
+details of the system, or develop new capabilities. For instance, the numerics
+associated with calculating gradients, reproducing kernels, etc. are separated
+into distinctclasses to simplify the development of new integration schemes
+which can call these calculations. Additional numerical details can be found in
 :ref:`(Palermo) <howto_rheo_palermo>` and
 :ref:`(Clemmer) <howto_rheo_clemmer>`.
 
-Note, if you simply want to run a traditional SPH simulation, the SPH package
-is likely better suited for your application. It has fewer advanced features
-and therefore benefits from improved performance.
+Note, if you simply want to run a traditional SPH simulation, the :ref:`SPH package
+<PKG-SPH>` package is likely better suited for your application. It has fewer advanced
+features and therefore benefits from improved performance. The :ref:`MACHDYN
+<PKG-MACHDYN>` package for solids may also be relevant for fluid-solid problems.
 
 ----------
 

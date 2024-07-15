@@ -86,7 +86,7 @@ FixRHEO::FixRHEO(LAMMPS *lmp, int narg, char **arg) :
     error->all(FLERR, "fix rheo command requires atom_style with density");
   if (atom->viscosity_flag != 1)
     error->all(FLERR, "fix rheo command requires atom_style with viscosity");
-  if (atom->status_flag != 1)
+  if (atom->rheo_status_flag != 1)
     error->all(FLERR, "fix rheo command requires atom_style with status");
 
   if (narg < 5)
@@ -235,7 +235,7 @@ void FixRHEO::init()
   if (modify->get_fix_by_style("^rheo$").size() > 1)
     error->all(FLERR, "Can only specify one instance of fix rheo");
 
-  if (atom->status_flag != 1)
+  if (atom->rheo_status_flag != 1)
     error->all(FLERR,"fix rheo command requires atom property status");
   if (atom->rho_flag != 1)
     error->all(FLERR,"fix rheo command requires atom property rho");
@@ -309,7 +309,7 @@ void FixRHEO::initial_integrate(int /*vflag*/)
 
   int *type = atom->type;
   int *mask = atom->mask;
-  int *status = atom->status;
+  int *status = atom->rheo_status;
   double **x = atom->x;
   double **v = atom->v;
   double **f = atom->f;
@@ -432,7 +432,7 @@ void FixRHEO::pre_force(int /*vflag*/)
 
   // Remove temporary options
   int *mask = atom->mask;
-  int *status = atom->status;
+  int *status = atom->rheo_status;
   int nall = atom->nlocal + atom->nghost;
   for (int i = 0; i < nall; i++)
     if (mask[i] & groupbit)
@@ -467,7 +467,7 @@ void FixRHEO::final_integrate()
   double *rmass = atom->rmass;
   int *type = atom->type;
   int *mask = atom->mask;
-  int *status = atom->status;
+  int *status = atom->rheo_status;
 
   int rmass_flag = atom->rmass_flag;
   int dim = domain->dimension;

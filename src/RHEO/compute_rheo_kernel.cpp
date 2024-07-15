@@ -586,7 +586,7 @@ void ComputeRHEOKernel::compute_peratom()
   int *type = atom->type;
   double *mass = atom->mass;
   double *rho = atom->rho;
-  int *status = atom->status;
+  int *status = atom->rheo_status;
   tagint *tag = atom->tag;
 
   int *ilist, *jlist, *numneigh, **firstneigh;

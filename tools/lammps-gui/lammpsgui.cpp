@@ -239,15 +239,19 @@ LammpsGui::LammpsGui(QWidget *parent, const char *filename) :
     lammpsstatus->setToolTip("LAMMPS instance is active");
     lammpsstatus->hide();
 
+    auto *lammpssave  = new QPushButton(QIcon(":/icons/document-save.png"), "");
     auto *lammpsrun   = new QPushButton(QIcon(":/icons/system-run.png"), "");
     auto *lammpsstop  = new QPushButton(QIcon(":/icons/process-stop.png"), "");
     auto *lammpsimage = new QPushButton(QIcon(":/icons/emblem-photos.png"), "");
+    lammpssave->setToolTip("Save edit buffer to file");
     lammpsrun->setToolTip("Run LAMMPS on input");
     lammpsstop->setToolTip("Stop LAMMPS");
     lammpsimage->setToolTip("Create snapshot image");
+    ui->statusbar->addWidget(lammpssave);
     ui->statusbar->addWidget(lammpsrun);
     ui->statusbar->addWidget(lammpsstop);
     ui->statusbar->addWidget(lammpsimage);
+    connect(lammpssave, &QPushButton::released, this, &LammpsGui::save);
     connect(lammpsrun, &QPushButton::released, this, &LammpsGui::run_buffer);
     connect(lammpsstop, &QPushButton::released, this, &LammpsGui::stop_run);
     connect(lammpsimage, &QPushButton::released, this, &LammpsGui::render_image);
@@ -854,7 +858,7 @@ void LammpsGui::logupdate()
             for (int i = 0; i < ncols; ++i) {
                 int datatype = -1;
                 double data  = 0.0;
-                void *ptr = lammps.last_thermo("type", i);
+                void *ptr    = lammps.last_thermo("type", i);
                 if (ptr) datatype = *(int *)ptr;
                 ptr = lammps.last_thermo("data", i);
                 if (ptr) {
@@ -1243,8 +1247,8 @@ void LammpsGui::about()
     font.setPointSizeF(font.pointSizeF() * 0.75);
     msg.setFont(font);
 
-    auto *minwidth      = new QSpacerItem(700, 0, QSizePolicy::Minimum, QSizePolicy::Expanding);
-    auto *layout = (QGridLayout *)msg.layout();
+    auto *minwidth = new QSpacerItem(700, 0, QSizePolicy::Minimum, QSizePolicy::Expanding);
+    auto *layout   = (QGridLayout *)msg.layout();
     layout->addItem(minwidth, layout->rowCount(), 0, 1, layout->columnCount());
 
     msg.exec();

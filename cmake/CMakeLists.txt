@@ -222,6 +222,7 @@ target_sources(lammps PRIVATE ${ALL_SOURCES})
 # tell CMake to export all symbols to a .dll on Windows with MinGW cross-compilers
 if(BUILD_SHARED_LIBS AND (CMAKE_SYSTEM_NAME STREQUAL "Windows") AND CMAKE_CROSSCOMPILING)
   target_link_options(lammps PUBLIC "-Wl,--export-all-symbols")
+  set_target_properties(lammps PROPERTIES LINK_FLAGS "-Wl,--export-all-symbols")
 endif()
 
 add_executable(lmp ${MAIN_SOURCES})

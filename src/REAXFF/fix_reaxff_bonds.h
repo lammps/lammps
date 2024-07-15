@@ -40,6 +40,7 @@ class FixReaxFFBonds : public Fix {
   tagint **neighid;
   double **abo;
   FILE *fp;
+  bool first_flag;
 
   void allocate();
   void destroy();

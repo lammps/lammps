@@ -50,7 +50,6 @@ class FixReaxFFBonds : public Fix {
   int nint(const double &);
   double memory_usage() override;
 
-  bigint nvalid, nextvalid();
   struct _reax_list *lists;
   class PairReaxFF *reaxff;
   class NeighList *list;

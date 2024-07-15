@@ -35,7 +35,7 @@ LogWindow::LogWindow(const QString &_filename, QWidget *parent) :
     QSettings settings;
     resize(settings.value("logx", 500).toInt(), settings.value("logy", 320).toInt());
 
-    auto action = new QShortcut(QKeySequence(Qt::CTRL | Qt::Key_S), this);
+    auto *action = new QShortcut(QKeySequence(Qt::CTRL | Qt::Key_S), this);
     connect(action, &QShortcut::activated, this, &LogWindow::save_as);
     action = new QShortcut(QKeySequence(Qt::CTRL | Qt::Key_Q), this);
     connect(action, &QShortcut::activated, this, &LogWindow::quit);
@@ -99,7 +99,7 @@ void LogWindow::contextMenuEvent(QContextMenuEvent *event)
     // show augmented context menu
     auto *menu = createStandardContextMenu();
     menu->addSeparator();
-    auto action = menu->addAction(QString("Save Log to File ..."));
+    auto *action = menu->addAction(QString("Save Log to File ..."));
     action->setIcon(QIcon(":/icons/document-save-as.png"));
     action->setShortcut(QKeySequence(Qt::CTRL | Qt::Key_S));
     connect(action, &QAction::triggered, this, &LogWindow::save_as);
@@ -114,7 +114,7 @@ void LogWindow::contextMenuEvent(QContextMenuEvent *event)
 bool LogWindow::eventFilter(QObject *watched, QEvent *event)
 {
     if (event->type() == QEvent::ShortcutOverride) {
-        QKeyEvent *keyEvent = dynamic_cast<QKeyEvent *>(event);
+        auto *keyEvent = dynamic_cast<QKeyEvent *>(event);
         if (!keyEvent) return QWidget::eventFilter(watched, event);
         if (keyEvent->modifiers().testFlag(Qt::ControlModifier) && keyEvent->key() == '/') {
             stop_run();

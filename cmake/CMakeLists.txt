@@ -204,7 +204,7 @@ option(BUILD_LAMMPS_GUI "Build and install the LAMMPS GUI" OFF)
 # Support using clang-tidy for C++ files with selected options
 set(ENABLE_CLANG_TIDY OFF CACHE BOOL "Include clang-tidy processing when compiling")
 if(ENABLE_CLANG_TIDY)
-  set(CMAKE_CXX_CLANG_TIDY "clang-tidy;-checks=-*,performance-trivially-destructible,performance-unnecessary-copy-initialization,performance-unnecessary-value-param,readability-redundant-control-flow,readability-redundant-declaration,readability-redundant-function-ptr-dereference,readability-redundant-member-init,readability-redundant-string-cstr,readability-redundant-string-init,readability-simplify-boolean-expr,readability-static-accessed-through-instance,readability-static-definition-in-anonymous-namespace,modernize-use-override,modernize-use-bool-literals,modernize-use-emplace,modernize-return-braced-init-list,modernize-use-equals-default,modernize-use-equals-delete,modernize-replace-random-shuffle,modernize-deprecated-headers,modernize-use-nullptr,modernize-use-noexcept,modernize-redundant-void-arg;-fix;-header-filter=.*,header-filter=library.h,header-filter=fmt/*.h" CACHE STRING "clang-tidy settings")
+  set(CMAKE_CXX_CLANG_TIDY "clang-tidy;-checks=-*,performance-trivially-destructible,performance-unnecessary-copy-initialization,performance-unnecessary-value-param,readability-redundant-control-flow,readability-redundant-declaration,readability-redundant-function-ptr-dereference,readability-redundant-member-init,readability-redundant-string-cstr,readability-redundant-string-init,readability-simplify-boolean-expr,readability-static-accessed-through-instance,readability-static-definition-in-anonymous-namespace,readability-qualified-auto,misc-unused-parameters,modernize-deprecated-ios-base-aliases,modernize-loop-convert,modernize-shrink-to-fit,modernize-use-auto,modernize-use-using,modernize-use-override,modernize-use-bool-literals,modernize-use-emplace,modernize-return-braced-init-list,modernize-use-equals-default,modernize-use-equals-delete,modernize-replace-random-shuffle,modernize-deprecated-headers,modernize-use-nullptr,modernize-use-noexcept,modernize-redundant-void-arg;-fix;-header-filter=.*,header-filter=library.h,header-filter=fmt/*.h" CACHE STRING "clang-tidy settings")
 else()
   unset(CMAKE_CXX_CLANG_TIDY CACHE)
 endif()
@@ -940,6 +940,7 @@ message(STATUS "<<< Compilers and Flags: >>>
 -- C++ Compiler:     ${CMAKE_CXX_COMPILER}
       Type:          ${CMAKE_CXX_COMPILER_ID}
       Version:       ${CMAKE_CXX_COMPILER_VERSION}
+      C++ Standard:  ${CMAKE_CXX_STANDARD}
       C++ Flags:    ${CMAKE_CXX_FLAGS} ${CMAKE_CXX_FLAGS_${BTYPE}}
       Defines:       ${DEFINES}")
 get_target_property(OPTIONS lammps COMPILE_OPTIONS)

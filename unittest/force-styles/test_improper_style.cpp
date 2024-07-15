@@ -70,7 +70,7 @@ LAMMPS *init_lammps(LAMMPS::argv &args, const TestConfig &cfg, const bool newton
     // check if prerequisite styles are available
     Info *info = new Info(lmp);
     int nfail  = 0;
-    for (auto &prerequisite : cfg.prerequisites) {
+    for (const auto &prerequisite : cfg.prerequisites) {
         std::string style = prerequisite.second;
 
         // this is a test for improper styles, so if the suffixed
@@ -120,7 +120,7 @@ LAMMPS *init_lammps(LAMMPS::argv &args, const TestConfig &cfg, const bool newton
 
     command("variable input_dir index " + INPUT_FOLDER);
 
-    for (auto &pre_command : cfg.pre_commands) {
+    for (const auto &pre_command : cfg.pre_commands) {
         command(pre_command);
     }
 
@@ -129,11 +129,11 @@ LAMMPS *init_lammps(LAMMPS::argv &args, const TestConfig &cfg, const bool newton
 
     command("improper_style " + cfg.improper_style);
 
-    for (auto &improper_coeff : cfg.improper_coeff) {
+    for (const auto &improper_coeff : cfg.improper_coeff) {
         command("improper_coeff " + improper_coeff);
     }
 
-    for (auto &post_command : cfg.post_commands) {
+    for (const auto &post_command : cfg.post_commands) {
         command(post_command);
     }
 
@@ -176,12 +176,12 @@ void restart_lammps(LAMMPS *lmp, const TestConfig &cfg)
     }
 
     if ((cfg.improper_style.substr(0, 6) == "hybrid") || !lmp->force->improper->writedata) {
-        for (auto &improper_coeff : cfg.improper_coeff) {
+        for (const auto &improper_coeff : cfg.improper_coeff) {
             command("improper_coeff " + improper_coeff);
         }
     }
 
-    for (auto &post_command : cfg.post_commands) {
+    for (const auto &post_command : cfg.post_commands) {
         command(post_command);
     }
 
@@ -204,7 +204,7 @@ void data_lammps(LAMMPS *lmp, const TestConfig &cfg)
     command("variable newton_bond delete");
     command("variable newton_bond index on");
 
-    for (auto &pre_command : cfg.pre_commands) {
+    for (const auto &pre_command : cfg.pre_commands) {
         command(pre_command);
     }
 
@@ -214,10 +214,10 @@ void data_lammps(LAMMPS *lmp, const TestConfig &cfg)
     std::string input_file = platform::path_join(INPUT_FOLDER, cfg.input_file);
     parse_input_script(input_file);
 
-    for (auto &improper_coeff : cfg.improper_coeff) {
+    for (const auto &improper_coeff : cfg.improper_coeff) {
         command("improper_coeff " + improper_coeff);
     }
-    for (auto &post_command : cfg.post_commands) {
+    for (const auto &post_command : cfg.post_commands) {
         command(post_command);
     }
     command("run 0 post no");
@@ -234,7 +234,7 @@ void generate_yaml_file(const char *outfile, const TestConfig &config)
     if (!lmp) {
         std::cerr << "One or more prerequisite styles are not available "
                      "in this LAMMPS configuration:\n";
-        for (auto &prerequisite : config.prerequisites) {
+        for (const auto &prerequisite : config.prerequisites) {
             std::cerr << prerequisite.first << "_style " << prerequisite.second << "\n";
         }
         return;
@@ -253,7 +253,7 @@ void generate_yaml_file(const char *outfile, const TestConfig &config)
 
     // improper_coeff
     block.clear();
-    for (auto &improper_coeff : config.improper_coeff) {
+    for (const auto &improper_coeff : config.improper_coeff) {
         block += improper_coeff + "\n";
     }
     writer.emit_block("improper_coeff", block);
@@ -271,14 +271,14 @@ void generate_yaml_file(const char *outfile, const TestConfig &config)
     writer.emit("init_energy", lmp->force->improper->energy);
 
     // init_stress
-    auto stress = lmp->force->improper->virial;
+    auto *stress = lmp->force->improper->virial;
     block = fmt::format("{:23.16e} {:23.16e} {:23.16e} {:23.16e} {:23.16e} {:23.16e}", stress[0],
                         stress[1], stress[2], stress[3], stress[4], stress[5]);
     writer.emit_block("init_stress", block);
 
     // init_forces
     block.clear();
-    auto f = lmp->atom->f;
+    auto *f = lmp->atom->f;
     for (int i = 1; i <= natoms; ++i) {
         const int j = lmp->atom->map(i);
         block += fmt::format("{:3} {:23.16e} {:23.16e} {:23.16e}\n", i, f[j][0], f[j][1], f[j][2]);
@@ -339,7 +339,7 @@ TEST(ImproperStyle, plain)
     double epsilon = test_config.epsilon;
 
     ErrorStats stats;
-    auto improper = lmp->force->improper;
+    auto *improper = lmp->force->improper;
 
     EXPECT_FORCES("init_forces (newton on)", lmp->atom, test_config.init_forces, epsilon);
     EXPECT_STRESS("init_stress (newton on)", improper->virial, test_config.init_stress, epsilon);
@@ -459,7 +459,7 @@ TEST(ImproperStyle, omp)
     double epsilon = 5.0 * test_config.epsilon;
 
     ErrorStats stats;
-    auto improper = lmp->force->improper;
+    auto *improper = lmp->force->improper;
 
     EXPECT_FORCES("init_forces (newton on)", lmp->atom, test_config.init_forces, epsilon);
     EXPECT_STRESS("init_stress (newton on)", improper->virial, test_config.init_stress,

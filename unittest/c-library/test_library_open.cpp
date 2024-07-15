@@ -25,7 +25,7 @@ TEST(lammps_open, null_args)
     int mpi_init = 0;
     MPI_Initialized(&mpi_init);
     EXPECT_GT(mpi_init, 0);
-    LAMMPS_NS::LAMMPS *lmp = (LAMMPS_NS::LAMMPS *)handle;
+    auto *lmp = (LAMMPS_NS::LAMMPS *)handle;
     EXPECT_EQ(lmp->world, MPI_COMM_WORLD);
     EXPECT_EQ(lmp->infile, stdin);
     EXPECT_EQ(lmp->screen, stdout);
@@ -53,7 +53,7 @@ TEST(lammps_open, with_args)
     EXPECT_THAT(output, StartsWith("LAMMPS ("));
     if (verbose) std::cout << output;
     EXPECT_EQ(handle, alt_ptr);
-    LAMMPS_NS::LAMMPS *lmp = (LAMMPS_NS::LAMMPS *)handle;
+    auto *lmp = (LAMMPS_NS::LAMMPS *)handle;
 
     // MPI STUBS uses no real communicators
 #if !defined(MPI_STUBS)
@@ -89,7 +89,7 @@ TEST(lammps_open, with_kokkos)
     EXPECT_THAT(output, StartsWith("LAMMPS ("));
     if (verbose) std::cout << output;
     EXPECT_EQ(handle, alt_ptr);
-    LAMMPS_NS::LAMMPS *lmp = (LAMMPS_NS::LAMMPS *)handle;
+    auto *lmp = (LAMMPS_NS::LAMMPS *)handle;
 
     EXPECT_EQ(lmp->world, MPI_COMM_WORLD);
     EXPECT_EQ(lmp->infile, stdin);
@@ -118,7 +118,7 @@ TEST(lammps_open_no_mpi, no_screen)
     std::string output = ::testing::internal::GetCapturedStdout();
     EXPECT_STREQ(output.c_str(), "");
     EXPECT_EQ(handle, alt_ptr);
-    LAMMPS_NS::LAMMPS *lmp = (LAMMPS_NS::LAMMPS *)handle;
+    auto *lmp = (LAMMPS_NS::LAMMPS *)handle;
 
     EXPECT_EQ(lmp->world, MPI_COMM_WORLD);
     EXPECT_EQ(lmp->infile, stdin);
@@ -138,7 +138,7 @@ TEST(lammps_open_no_mpi, no_screen)
 TEST(lammps_open_no_mpi, with_omp)
 {
     if (!LAMMPS_NS::LAMMPS::is_installed_pkg("OPENMP")) GTEST_SKIP();
-    const char *args[] = {"liblammps", "-pk", "omp",  "2",    "neigh",  "no",
+    const char *args[] = {"liblammps", "-pk", "omp",  "2",    "neigh",   "no",
                           "-sf",       "omp", "-log", "none", "-nocite", nullptr};
     char **argv        = (char **)args;
     int argc           = (sizeof(args) / sizeof(char *)) - 1;
@@ -150,7 +150,7 @@ TEST(lammps_open_no_mpi, with_omp)
     EXPECT_THAT(output, StartsWith("LAMMPS ("));
     if (verbose) std::cout << output;
     EXPECT_EQ(handle, alt_ptr);
-    LAMMPS_NS::LAMMPS *lmp = (LAMMPS_NS::LAMMPS *)handle;
+    auto *lmp = (LAMMPS_NS::LAMMPS *)handle;
 
     EXPECT_EQ(lmp->world, MPI_COMM_WORLD);
     EXPECT_EQ(lmp->infile, stdin);
@@ -179,7 +179,7 @@ TEST(lammps_open_fortran, no_args)
     std::string output = ::testing::internal::GetCapturedStdout();
     EXPECT_THAT(output, StartsWith("LAMMPS ("));
     if (verbose) std::cout << output;
-    LAMMPS_NS::LAMMPS *lmp = (LAMMPS_NS::LAMMPS *)handle;
+    auto *lmp = (LAMMPS_NS::LAMMPS *)handle;
 
     // MPI STUBS uses no real communicators
 #if !defined(MPI_STUBS)
@@ -210,7 +210,7 @@ TEST(lammps_open_no_mpi, lammps_error)
     void *handle       = lammps_open_no_mpi(argc, argv, &alt_ptr);
     std::string output = ::testing::internal::GetCapturedStdout();
     EXPECT_EQ(handle, alt_ptr);
-    LAMMPS_NS::LAMMPS *lmp = (LAMMPS_NS::LAMMPS *)handle;
+    auto *lmp = (LAMMPS_NS::LAMMPS *)handle;
 
     EXPECT_EQ(lmp->world, MPI_COMM_WORLD);
     EXPECT_EQ(lmp->infile, stdin);
@@ -226,4 +226,3 @@ TEST(lammps_open_no_mpi, lammps_error)
     output = ::testing::internal::GetCapturedStdout();
     EXPECT_THAT(output, HasSubstr("WARNING: test_warning"));
 }
-

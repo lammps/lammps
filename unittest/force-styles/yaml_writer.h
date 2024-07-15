@@ -22,9 +22,9 @@ class YamlWriter {
 public:
     YamlWriter(const char *outfile);
     virtual ~YamlWriter();
-    YamlWriter() = delete;
-    YamlWriter(const YamlWriter &) = delete;
-    const YamlWriter & operator=(const YamlWriter &) = delete;
+    YamlWriter()                                    = delete;
+    YamlWriter(const YamlWriter &)                  = delete;
+    const YamlWriter &operator=(const YamlWriter &) = delete;
 
     // emitters
     void emit(const std::string &key, const double value);

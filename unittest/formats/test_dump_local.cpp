@@ -73,7 +73,7 @@ public:
 
 TEST_F(DumpLocalTest, run0)
 {
-    auto dump_file = "dump_local_run0.melt";
+    const auto *dump_file = "dump_local_run0.melt";
     generate_dump(dump_file, "index c_comp[1]", "", 0);
 
     ASSERT_FILE_EXISTS(dump_file);
@@ -98,7 +98,7 @@ TEST_F(DumpLocalTest, run0)
 
 TEST_F(DumpLocalTest, label_run0)
 {
-    auto dump_file = "dump_local_label_run0.melt";
+    const auto *dump_file = "dump_local_label_run0.melt";
     generate_dump(dump_file, "index c_comp[1]", "label ELEMENTS", 0);
 
     ASSERT_FILE_EXISTS(dump_file);
@@ -110,7 +110,7 @@ TEST_F(DumpLocalTest, label_run0)
 
 TEST_F(DumpLocalTest, format_line_run0)
 {
-    auto dump_file = "dump_local_format_line_run0.melt";
+    const auto *dump_file = "dump_local_format_line_run0.melt";
     generate_dump(dump_file, "index c_comp[1]", "format line \"%d %20.8g\"", 0);
 
     ASSERT_FILE_EXISTS(dump_file);
@@ -123,7 +123,7 @@ TEST_F(DumpLocalTest, format_line_run0)
 
 TEST_F(DumpLocalTest, format_int_run0)
 {
-    auto dump_file = "dump_local_format_int_run0.melt";
+    const auto *dump_file = "dump_local_format_int_run0.melt";
     generate_dump(dump_file, "index c_comp[1]", "format int \"%20d\"", 0);
 
     ASSERT_FILE_EXISTS(dump_file);
@@ -136,7 +136,7 @@ TEST_F(DumpLocalTest, format_int_run0)
 
 TEST_F(DumpLocalTest, format_float_run0)
 {
-    auto dump_file = "dump_local_format_float_run0.melt";
+    const auto *dump_file = "dump_local_format_float_run0.melt";
     generate_dump(dump_file, "index c_comp[1]", "format float \"%20.5g\"", 0);
 
     ASSERT_FILE_EXISTS(dump_file);
@@ -149,7 +149,7 @@ TEST_F(DumpLocalTest, format_float_run0)
 
 TEST_F(DumpLocalTest, format_column_run0)
 {
-    auto dump_file = "dump_local_format_column_run0.melt";
+    const auto *dump_file = "dump_local_format_column_run0.melt";
     generate_dump(dump_file, "index c_comp[1]", "format 1 \"%20d\"", 0);
 
     ASSERT_FILE_EXISTS(dump_file);
@@ -162,7 +162,7 @@ TEST_F(DumpLocalTest, format_column_run0)
 
 TEST_F(DumpLocalTest, no_buffer_run0)
 {
-    auto dump_file = "dump_local_format_line_run0.melt";
+    const auto *dump_file = "dump_local_format_line_run0.melt";
     generate_dump(dump_file, "index c_comp[1]", "buffer no", 0);
 
     ASSERT_FILE_EXISTS(dump_file);
@@ -187,7 +187,7 @@ TEST_F(DumpLocalTest, no_buffer_run0)
 
 TEST_F(DumpLocalTest, with_units_run0)
 {
-    auto dump_file = "dump_with_units_run0.melt";
+    const auto *dump_file = "dump_with_units_run0.melt";
     generate_dump(dump_file, "index c_comp[1]", "units yes", 0);
 
     ASSERT_FILE_EXISTS(dump_file);
@@ -206,7 +206,7 @@ TEST_F(DumpLocalTest, with_units_run0)
 
 TEST_F(DumpLocalTest, with_time_run0)
 {
-    auto dump_file = "dump_with_time_run0.melt";
+    const auto *dump_file = "dump_with_time_run0.melt";
     generate_dump(dump_file, "index c_comp[1]", "time yes", 0);
 
     ASSERT_FILE_EXISTS(dump_file);
@@ -225,7 +225,7 @@ TEST_F(DumpLocalTest, with_time_run0)
 
 TEST_F(DumpLocalTest, triclinic_run0)
 {
-    auto dump_file = "dump_local_triclinic_run0.melt";
+    const auto *dump_file = "dump_local_triclinic_run0.melt";
     enable_triclinic();
     generate_dump(dump_file, "index c_comp[1]", "", 0);
 

@@ -260,7 +260,7 @@ GeneralTab::GeneralTab(QSettings *_settings, LammpsWrapper *_lammps, QWidget *pa
     auto *freqval    = new QSpinBox;
     freqval->setRange(1, 1000);
     freqval->setStepType(QAbstractSpinBox::AdaptiveDecimalStepType);
-    freqval->setValue(settings->value("updfreq", "100").toInt());
+    freqval->setValue(settings->value("updfreq", "10").toInt());
     freqval->setObjectName("updfreq");
     freqlayout->addWidget(freqlabel);
     freqlayout->addWidget(freqval);

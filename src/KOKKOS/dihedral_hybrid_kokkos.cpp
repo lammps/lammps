@@ -75,7 +75,7 @@ void DihedralHybridKokkos::compute(int eflag, int vflag)
     auto d_map = k_map.d_view;
 
     Kokkos::parallel_for(ndihedrallist_orig,LAMMPS_LAMBDA(int i) {
-      const int m = d_map[d_dihedrallist_orig(i,2)];
+      const int m = d_map[d_dihedrallist_orig(i,4)];
       if (m >= 0) Kokkos::atomic_increment(&d_ndihedrallist[m]);
     });
 
@@ -94,7 +94,7 @@ void DihedralHybridKokkos::compute(int eflag, int vflag)
     Kokkos::deep_copy(d_ndihedrallist,0);
 
     Kokkos::parallel_for(ndihedrallist_orig,LAMMPS_LAMBDA(int i) {
-      const int m = d_map[d_dihedrallist_orig(i,2)];
+      const int m = d_map[d_dihedrallist_orig(i,4)];
       if (m < 0) return;
       const int n = Kokkos::atomic_fetch_add(&d_ndihedrallist[m],1);
       d_dihedrallist(m,n,0) = d_dihedrallist_orig(i,0);

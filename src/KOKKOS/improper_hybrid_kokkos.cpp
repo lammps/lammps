@@ -76,7 +76,7 @@ void ImproperHybridKokkos::compute(int eflag, int vflag)
     auto d_map = k_map.d_view;
 
     Kokkos::parallel_for(nimproperlist_orig,LAMMPS_LAMBDA(int i) {
-      const int m = d_map[d_improperlist_orig(i,2)];
+      const int m = d_map[d_improperlist_orig(i,4)];
       if (m >= 0) Kokkos::atomic_increment(&d_nimproperlist[m]);
     });
 
@@ -95,7 +95,7 @@ void ImproperHybridKokkos::compute(int eflag, int vflag)
     Kokkos::deep_copy(d_nimproperlist,0);
 
     Kokkos::parallel_for(nimproperlist_orig,LAMMPS_LAMBDA(int i) {
-      const int m = d_map[d_improperlist_orig(i,2)];
+      const int m = d_map[d_improperlist_orig(i,4)];
       if (m < 0) return;
       const int n = Kokkos::atomic_fetch_add(&d_nimproperlist[m],1);
       d_improperlist(m,n,0) = d_improperlist_orig(i,0);

@@ -75,7 +75,7 @@ void AngleHybridKokkos::compute(int eflag, int vflag)
     auto d_map = k_map.d_view;
 
     Kokkos::parallel_for(nanglelist_orig,LAMMPS_LAMBDA(int i) {
-      const int m = d_map[d_anglelist_orig(i,2)];
+      const int m = d_map[d_anglelist_orig(i,3)];
       if (m >= 0) Kokkos::atomic_increment(&d_nanglelist[m]);
     });
 
@@ -94,7 +94,7 @@ void AngleHybridKokkos::compute(int eflag, int vflag)
     Kokkos::deep_copy(d_nanglelist,0);
 
     Kokkos::parallel_for(nanglelist_orig,LAMMPS_LAMBDA(int i) {
-      const int m = d_map[d_anglelist_orig(i,2)];
+      const int m = d_map[d_anglelist_orig(i,3)];
       if (m < 0) return;
       const int n = Kokkos::atomic_fetch_add(&d_nanglelist[m],1);
       d_anglelist(m,n,0) = d_anglelist_orig(i,0);

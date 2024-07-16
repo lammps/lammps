@@ -1028,6 +1028,10 @@
 /fix_srd.h
 /fix_store_kim.cpp
 /fix_store_kim.h
+/fix_surface_global.cpp
+/fix_surface_global.h
+/fix_surface_local.cpp
+/fix_surface_local.h
 /fix_temp_rescale_eff.cpp
 /fix_temp_rescale_eff.h
 /fix_tgnh_drude.cpp
@@ -1247,6 +1251,8 @@
 /pair_gran_hooke.h
 /pair_gran_hooke_history.cpp
 /pair_gran_hooke_history.h
+/pair_surf_granular.cpp
+/pair_surf_granular.h
 /pair_gw.cpp
 /pair_gw.h
 /pair_gw_zbl.cpp

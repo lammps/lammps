@@ -324,20 +324,25 @@ def iterate(lmp_binary, input_list, config, results, removeAnnotatedInput=False)
     print(str_t)
     print(f"-"*len(str_t))
 
-    # check if a log file exists in the current folder: log.[date].basename.[nprocs]
-    basename = input_test.replace('in.','')    
+    # check if a log file exists in the current folder: log.DDMMMYY.basename.[nprocs]
+    basename = input_test.replace('in.','')
     logfile_exist = False
 
     # if there are multiple log files for different number of procs, pick the maximum number
-    pattern = f'log.*.{basename}.*'
+    
     max_np = 1
     for file in os.listdir('.'):
-        if fnmatch.fnmatch(file, pattern):
+        # looks for pattern log.DDMMMYY.basename.[nprocs]
+        # ignore the first 12 characteris log.DDMMMYY.
+        file_name_removed_date = file[12:]
+        pattern = f'{basename}.*'
+        if fnmatch.fnmatch(file_name_removed_date, pattern):
             p = file.rsplit('.', 1)
             if max_np < int(p[1]):
                 max_np = int(p[1])
                 logfile_exist = True
                 thermo_ref_file = file
+
 
     # if the maximum number of procs is different from the value in the configuration file
     #      then override the setting for this input script
@@ -349,7 +354,7 @@ def iterate(lmp_binary, input_list, config, results, removeAnnotatedInput=False)
         thermo_ref = extract_data_to_yaml(thermo_ref_file)
         num_runs_ref = len(thermo_ref)
     else:
-        print(f"Cannot find reference log file with {pattern}.")
+        logger.info(f"Cannot find reference log file with {pattern}.")
         # try to read in the thermo yaml output from the working directory
         thermo_ref_file = 'thermo.' + input + '.yaml'
         file_exist = os.path.isfile(thermo_ref_file)
@@ -357,7 +362,7 @@ def iterate(lmp_binary, input_list, config, results, removeAnnotatedInput=False)
             thermo_ref = extract_thermo(thermo_ref_file)
             num_runs_ref = len(thermo_ref)
         else:
-            print(f"SKIPPED: {thermo_ref_file} does not exist in the working directory.")
+            logger.info(f"SKIPPED: {thermo_ref_file} does not exist in the working directory.")
             result.status = "skipped"
             results.append(result)
             test_id = test_id + 1
@@ -375,7 +380,7 @@ def iterate(lmp_binary, input_list, config, results, removeAnnotatedInput=False)
 
     # process error code from the run
     if os.path.isfile("log.lammps") == False:
-        print(f"ERROR: No log.lammps generated with {input_test} with return code {returncode}. Check the log file for the run output.\n")
+        logger.info(f"ERROR: No log.lammps generated with {input_test} with return code {returncode}. Check the log file for the run output.\n")
         logger.info(f"\n{input_test}:")
         logger.info(f"\n{error}")
         test_id = test_id + 1
@@ -393,14 +398,14 @@ def iterate(lmp_binary, input_list, config, results, removeAnnotatedInput=False)
             result.status = "unrecognized command"
         else:
             result.status = "error"
-        print(f"ERROR: Failed with {input_test} due to {result.status}. Check the log file for the run output.\n")
+        logger.info(f"ERROR: Failed with {input_test} due to {result.status}. Check the log file for the run output.\n")
         results.append(result)
         test_id = test_id + 1
         continue 
 
-    print(f"Comparing thermo output from log.lammps against the reference log file {thermo_ref_file}")
+    logger.info(f"Comparing thermo output from log.lammps against the reference log file {thermo_ref_file}")
     if num_runs != num_runs_ref:
-        print(f"ERROR: Number of runs in log.lammps ({num_runs}) is not the same as that in the reference log ({num_runs_ref})")
+        logger.info(f"ERROR: Number of runs in log.lammps ({num_runs}) is not the same as that in the reference log ({num_runs_ref})")
         result.status = "error"
         results.append(result)
         test_id = test_id + 1
@@ -595,7 +600,7 @@ if __name__ == "__main__":
 
     folder_list = []
     if len(example_toplevel) != 0:
-        # getting the
+        # getting the list of all the input files because there are subfolders (e.g. PACKAGES) under the top level
         cmd_str = f"find {example_toplevel} -name \"in.*\" "
         p = subprocess.run(cmd_str, shell=True, text=True, capture_output=True)
         input_list = p.stdout.split('\n')
@@ -604,11 +609,20 @@ if __name__ == "__main__":
         for input in input_list:
             folder = input.rsplit('/', 1)[0]
             folder_list.append(folder)
-        
         print(f"There are {len(input_list)} input scripts in total under the {example_toplevel} folder.")
-
         # divide the list of input scripts into num_workers chunks
         sublists = divide_into_N(input_list, num_workers)
+        '''
+        # getting the list of all the subfolders
+        cmd_str = f"ls -d {example_toplevel} "
+        p = subprocess.run(cmd_str, shell=True, text=True, capture_output=True)
+        folder_list = p.stdout.split('\n')
+        folder_list.remove("")
+        print(f"There are {len(folder_list)} subfolders in total under the {example_toplevel} folder.")
+
+        # divide the list of subfolders into num_workers chunks
+        sublists = divide_into_N(folder_list, num_workers)
+        '''
 
     # if only statistics, not running anything
     if dry_run == True:
@@ -622,12 +636,19 @@ if __name__ == "__main__":
     # then use the --example-top-folder
     if len(example_subfolders) == 0:
 
-                
+        # input file list
+        folder_list = []
         for input in sublists[0]:
             folder = input.rsplit('/', 1)[0]
-            folder_list.append(folder)
+            # unique folders in the list
+            if folder not in folder_list:
+                folder_list.append(folder)
+
         example_subfolders = folder_list
-        
+
+        '''
+        example_subfolders = sublists[0]
+        '''
         '''
         example_subfolders.append("../../examples/melt")
         example_subfolders.append('../../examples/flow')
@@ -735,7 +756,7 @@ if __name__ == "__main__":
             input_list = p.stdout.split('\n')
             input_list.remove('')
 
-            print(f"List of input scripts: {input_list}")
+            print(f"List of {len(input_list)} input scripts: {input_list}")
             total_tests += len(input_list)
 
             # iterate through the input scripts

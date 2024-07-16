@@ -267,6 +267,9 @@ class lammps(object):
     self.lib.lammps_extract_global.argtypes = [c_void_p, c_char_p]
     self.lib.lammps_extract_global_datatype.argtypes = [c_void_p, c_char_p]
     self.lib.lammps_extract_global_datatype.restype = c_int
+    self.lib.lammps_extract_pair.argtypes = [c_void_p, c_char_p]
+    self.lib.lammps_extract_pair_dimension.argtypes = [c_void_p, c_char_p]
+    self.lib.lammps_extract_pair_dimension.restype = c_int
     self.lib.lammps_extract_compute.argtypes = [c_void_p, c_char_p, c_int, c_int]
 
     self.lib.lammps_map_atom.argtypes = [c_void_p, c_void_p]
@@ -848,7 +851,7 @@ class lammps(object):
     This function returns ``None`` if the keyword is not
     recognized. Otherwise it will return a positive integer value that
     corresponds to one of the :ref:`data type <py_datatype_constants>`
-    constants define in the :py:mod:`lammps` module.
+    constants defined in the :py:mod:`lammps` module.
 
     :param name: name of the property
     :type name:  string
@@ -929,6 +932,96 @@ class lammps(object):
           result.append(target_type(ptr[i]))
         return result
       else: return target_type(ptr[0])
+    return None
+
+  # -------------------------------------------------------------------------
+  # extract pair property dimensionality
+
+  def extract_pair_dimension(self, name):
+    """Retrieve pair style  property dimensionality from LAMMPS
+
+    This is a wrapper around the :cpp:func:`lammps_extract_pair_dimension`
+    function of the C-library interface. The list of supported keywords
+    depends on the pair style. This function returns ``None`` if the keyword
+    is not recognized.
+
+    :param name: name of the property
+    :type name:  string
+    :return: dimensionality of the extractable data (typically 0, 1, or 2)
+    :rtype: int
+    """
+    if name:
+      name = name.encode()
+    else:
+      return None
+    dim = self.lib.lammps_extract_pair_dimension(self.lmp, name)
+
+    if dim < 0:
+      return None
+    else:
+      return dim;
+
+  # -------------------------------------------------------------------------
+  # get access to pair style extractable data
+
+  def extract_pair(self, name):
+    """Extract pair style data from LAMMPS.
+
+    This is a wrapper around the :cpp:func:`lammps_extract_pair` function
+    of the C-library interface.  Since there are no pointers in Python, this
+    method will - unlike the C function - return the value or a list of
+    values.
+    Since Python needs to know the dimensionality to be able to interpret
+    the result, this function will detect the dimensionality by asking the library.
+    This function returns ``None`` if the keyword is not recognized.
+
+    :param name: name of the property
+    :type name:  string
+    :return: value of the property or list of values or None
+    :rtype: float, list of float, list of list of floats, or NoneType
+    """
+
+    if name:
+      name = name.encode()
+    else:
+      return None
+
+    dim = self.extract_pair_dimension(name)
+    if dim == None:
+      return None
+    elif dim == 0:
+      self.lib.lammps_extract_pair.restype = POINTER(c_double)
+    elif dim == 1:
+      self.lib.lammps_extract_pair.restype = POINTER(c_double)
+    elif dim == 2:
+      self.lib.lammps_extract_pair.restype = POINTER(POINTER(c_double))
+    else:
+      return None
+
+    ntypes = self.extract_setting('ntypes')
+    ptr = self.lib.lammps_extract_pair(self.lmp, name)
+    if ptr:
+      if dim == 0:
+        return float(ptr[0])
+      elif dim == 1:
+        result = [0.0]
+        for i in range(1,ntypes+1):
+          result.append(float(ptr[i]))
+        return result
+      elif dim == 2:
+        result = []
+        inner = []
+        for i in range(0,ntypes+1):
+          inner.append(float(0.0))
+        result.append(inner)
+        for i in range(1,ntypes+1):
+          inner = [0.0]
+          for j in range(1,ntypes+1):
+            inner.append(float(ptr[i][j]))
+          result.append(inner)
+        return result
+      else:
+        return None
     return None
 
   # -------------------------------------------------------------------------

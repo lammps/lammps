@@ -62,9 +62,9 @@ FixSurfaceGlobal::FixSurfaceGlobal(LAMMPS *lmp, int narg, char **arg) :
 
   // set interaction style
   // disable bonded/history option for now
-  
+
   model = new GranularModel(lmp);
-  model->contact_type = SURFGLOBAL;
+  model->contact_type = SURFACE;
 
   heat_flag = 0;
   int classic_flag = 1;
@@ -109,7 +109,7 @@ FixSurfaceGlobal::FixSurfaceGlobal(LAMMPS *lmp, int narg, char **arg) :
   }
 
   // define default damping sub model if unspecified, takes no args
-  
+
   if (!model->damping_model) model->construct_sub_model("viscoelastic", DAMPING);
   model->init();
 
@@ -152,7 +152,7 @@ FixSurfaceGlobal::FixSurfaceGlobal(LAMMPS *lmp, int narg, char **arg) :
   points = nullptr;
   lines = nullptr;
   tris = nullptr;
-  
+
   mstyle = NONE;
   points_lastneigh = nullptr;
   points_original = nullptr;
@@ -197,7 +197,7 @@ FixSurfaceGlobal::FixSurfaceGlobal(LAMMPS *lmp, int narg, char **arg) :
   // define points/lines/tris and their connectivity
   // done via molecule template ID or STL file
   // check if arg = valid molecute template ID, else treat as STL file
-  
+
   int imol = atom->find_molecule(arg[3]);
   if (imol >= 0) extract_from_molecules(arg[3]);
   else extract_from_stlfile(arg[3]);
@@ -770,7 +770,7 @@ void FixSurfaceGlobal::post_force(int vflag)
       }
 
       // apply new rsq
-      
+
       model->rsq = rsq;
 
       // meff = effective mass of sphere
@@ -780,7 +780,7 @@ void FixSurfaceGlobal::post_force(int vflag)
       if (fix_rigid && mass_rigid[i] > 0.0) meff = mass_rigid[i];
 
       // copy additional information and prepare force calculations
-      
+
       model->meff = meff;
 
       ds[0] = contact[0] - xsurf[j][0];
@@ -810,14 +810,14 @@ void FixSurfaceGlobal::post_force(int vflag)
 
       // need to add support coupled contacts
       // is this just multiplying forces (+torques?) by factor_couple?
-      
+
       model->calculate_forces();
 
       forces = model->forces;
       torquesi = model->torquesi;
 
       // apply forces & torques
-      
+
       add3(f[i], forces, f[i]);
       add3(torque[i], torquesi, torque[i]);
       if (heat_flag) heatflow[i] += model->dq;
@@ -1626,7 +1626,7 @@ void FixSurfaceGlobal::extract_from_stlfile(char *filename)
 
   // read tris from STL file
   // stltris = tri coords internal to STL reader
-  
+
   STLReader *stl = new STLReader(lmp);
   double **stltris;
   ntris = stl->read_file(filename,stltris);
@@ -1637,17 +1637,17 @@ void FixSurfaceGlobal::extract_from_stlfile(char *filename)
   int maxpoints = 0;
 
   tris = (Tri *) memory->smalloc(ntris*sizeof(Tri),"surface/global:tris");
-  
+
   // create a map
   // key = xyz coords of a point
   // value = index into unique points vector
-  
+
   std::map<std::tuple<double,double,double>,int> hash;
 
   // loop over STL tris
   // populate points and tris data structs
   // set molecule and type of tri = 1
-  
+
   for (int itri = 0; itri < ntris; itri++) {
     tris[itri].mol = 1;
     tris[itri].type = 1;
@@ -1681,7 +1681,7 @@ void FixSurfaceGlobal::extract_from_stlfile(char *filename)
       tris[itri].p2 = npoints;
       npoints++;
     } else tris[itri].p2 = hash[key];
-    
+
     key = std::make_tuple(stltris[itri][6],stltris[itri][7],stltris[itri][8]);
     if (hash.find(key) == hash.end()) {
       if (npoints == maxpoints) {
@@ -1697,9 +1697,9 @@ void FixSurfaceGlobal::extract_from_stlfile(char *filename)
       npoints++;
     } else tris[itri].p3 = hash[key];
   }
-  
+
   // delete STL reader
-  
+
   delete stl;
 }
 

@@ -58,6 +58,8 @@ class PairGranular : public Pair {
 
   class FixDummy *fix_dummy;
   class FixNeighHistory *fix_history;
+  char *id_dummy;
+  char *id_history;
 
   // storage of rigid body masses for use in granular interactions
 
@@ -69,7 +71,6 @@ class PairGranular : public Pair {
   void transfer_history(double *, double *, int, int) override;
   void prune_models();
 
- private:
   int size_history;
   int heat_flag;
 

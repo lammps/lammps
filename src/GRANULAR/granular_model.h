@@ -33,7 +33,7 @@ enum ContactType {
   PAIR = 0,
   WALL = 1,
   WALLREGION = 2,
-  SURFGLOBAL = 3
+  SURFACE = 3
 };
 
 // forward declarations

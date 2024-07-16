@@ -383,10 +383,10 @@ bool GranularModel::check_contact()
     radsum = radi;
     if (radj == 0) Reff = radi;
     else Reff = radi * radj / (radi + radj);
-  } else {
-    // Note that contact type SURFGLOBAL used by fix_surface_global.cpp
-    //   uses different definitions of rsq and radj to do the initial contact
-    //   detection, will overwrite in calculate_forces()
+  } else if (contact_type == SURFACE) {
+    // Used by GRANSURF package
+    //   initial definitions of rsq and radj for contact
+    //   detection distinct from those in calculate_forces()
     sub3(xi, xj, dx);
     rsq = lensq3(dx);
     radsum = radi + radj;
@@ -404,7 +404,7 @@ void GranularModel::calculate_forces()
 {
   // Standard geometric quantities
 
-  if (contact_type == SURFGLOBAL) {
+  if (contact_type == SURFACE) {
     radsum = radi;
     Reff = radi;
   }

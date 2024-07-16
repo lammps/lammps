@@ -96,18 +96,18 @@ class FixSurfaceLocal : public Fix {
   // data structs for calculating global connectivity of line/tri particles
   // only used by Rvous comm during setup
   
-  struct InRvous2d {
+  struct InRvous {
     int proc, ibin, ilocal, ipoint;
     tagint atomID;
-    double x[2];
+    double x[3];
   };
   
-  struct OutRvous2d {
+  struct OutRvous {
     int ilocal, ipoint;
     tagint atomID;
   };
 
-  double bboxlo[3],bboxhi[3];
+  double bboxlo[3],bboxhi[3];    // bounding box around all lines/tris
 
   // data structs for extracting surfs from molecule template or STL file
   // these are global data structs for all surfs, including connectivity
@@ -181,21 +181,16 @@ class FixSurfaceLocal : public Fix {
   static FixSurfaceLocal *fptr;
   static void linematch(int, char *);
   static void trimatch(int, char *);
-  static int point_match_2d(int, char *, int &, int *&, char *&, void *);
+  static int point_match(int, char *, int &, int *&, char *&, void *);
 
   // private methods
 
-  void connectivity2d_local_new();
   void connectivity2d_local();
-  void calculate_endpts(int);
-  int pt2bin2d(double *);
-  int overlap_bins_2d(double *, double, int *);
-
-  void connectivity3d_local_new();
   void connectivity3d_local();
-  void calculate_corners(int);
-  int pt2bin3d(double *);
-  int overlap2bin3d(double *, double, int *);
+  void calculate_endpts();
+  int overlap_bins_2d(double *, double, int *);
+  void calculate_corners();
+  int overlap_bins_3d(double *, double, int *);
 
   int check_exist();
   void extract_from_molecules(char *);

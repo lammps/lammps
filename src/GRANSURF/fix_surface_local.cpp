@@ -35,7 +35,7 @@ using namespace FixConst;
 #define NBIN 100
 #define BIG 1.0e20
 #define MAXLINE 256
-#define MAXTRIPOINT 24          // NOTE: what are these 2 values, what should they be
+#define MAXTRIPOINT 24          // NOTE: what should these 2 max line/tri values be
 
 #define DELTA 128
 #define DELTA_CONNECT 4            // NOTE: make it larger when done testing
@@ -91,29 +91,6 @@ FixSurfaceLocal::FixSurfaceLocal(LAMMPS *lmp, int narg, char **arg) :
     if (imol >= 0) mode = MOLTEMPLATE;
     else mode = STLFILE;
   }
-
-  // set max size for comm of connection info
-  // NOTE: set 2d/3d based on # max of endpt/corner connections (not 12) ??
-  //       possibly use MAXTRIPOINT ?
-  // NOTE: set this at end of post_constructor to precise value ?
-  
-  if (dimension == 2) comm_border = 4 + 2*12;
-  else comm_border = 8 + 6*12;
-  
-  // output total of point matching stats
-
-  /*
-  bigint nmatch_me = nreturn;
-  bigint nmatch;
-  MPI_Allreduce(&nmatch_me,&nmatch,1,MPI_LMP_BIGINT,MPI_SUM,world);
-  
-  if (comm->me == 0) {
-    if (screen)
-      fprintf(screen,"  matched %g line end point pairs\n",0.5*nmatch);
-    if (logfile)
-      fprintf(logfile,"  matched %g line end point pairs\n",0.5*nmatch);
-  }
-  */
 }
 
 /* ---------------------------------------------------------------------- */
@@ -235,6 +212,30 @@ void FixSurfaceLocal::post_constructor()
     memory->destroy(elist);
     memory->destroy(clist);
   }
+
+  // set max size for comm of connection info
+  // NOTE: set 2d/3d based on # max of endpt/corner connections (not 12) ??
+  //       possibly use MAXTRIPOINT ?
+  // NOTE: can now set this to precise value
+  
+  if (dimension == 2) comm_border = 4 + 2*12;
+  else comm_border = 8 + 6*12;
+
+  // output total of point matching stats
+  // NOTE: still need to implement this
+  
+  /*
+  bigint nmatch_me = nreturn;
+  bigint nmatch;
+  MPI_Allreduce(&nmatch_me,&nmatch,1,MPI_LMP_BIGINT,MPI_SUM,world);
+  
+  if (comm->me == 0) {
+    if (screen)
+      fprintf(screen,"  matched %g line end point pairs\n",0.5*nmatch);
+    if (logfile)
+      fprintf(logfile,"  matched %g line end point pairs\n",0.5*nmatch);
+  }
+  */
 }
 
 /* ----------------------------------------------------------------------
@@ -782,7 +783,7 @@ double FixSurfaceLocal::memory_usage()
 
 // ----------------------------------------------------------------------
 // ----------------------------------------------------------------------
-// methods for distributed 2d connectivity build
+// methods for distributed connectivity builds in 2d or 3d
 // ----------------------------------------------------------------------
 // ----------------------------------------------------------------------
 
@@ -801,7 +802,7 @@ void FixSurfaceLocal::connectivity2d_local()
   if (!avec_line)
     error->all(FLERR,"Fix surface/local NULL requires atom style line");
 
-  // epssq = square of EPSILON fraction of min line length across all procs
+  // epssq = square of EPSILON fraction of minimum line length
 
   AtomVecLine::Bonus *bonus = avec_line->bonus;
   int *line = atom->line;
@@ -839,7 +840,7 @@ void FixSurfaceLocal::connectivity2d_local()
   // calculate current endpts of owned lines
 
   memory->create(endpts,nline,4,"surface/local:endpts");
-  calculate_endpts(nlocal);
+  calculate_endpts();
 
   // compute min/max extent of my line endpts
   // MPI_Allreduce for bbox of all lines
@@ -867,29 +868,33 @@ void FixSurfaceLocal::connectivity2d_local()
   MPI_Allreduce(myhi,bboxhi,2,MPI_DOUBLE,MPI_MAX,world);
 
   // if no lines on any proc, just exit
+  // NOTE: should this be an error ?
 
-  if (binlo[0] == BIG) return;
+  if (bboxlo[0] == BIG) return;
 
   // add 2*EPS to all 4 edges of bbox
   
-  binlo[0] -= 2.0*eps;
-  binlo[1] -= 2.0*eps;
-  binhi[0] += 2.0*eps;
-  binhi[1] += 2.0*eps;
+  bboxlo[0] -= 2.0*eps;
+  bboxlo[1] -= 2.0*eps;
+  bboxhi[0] += 2.0*eps;
+  bboxhi[1] += 2.0*eps;
 
   // conceptual binning of bbox by up to NBIN x NBIN bins
   // ensure bin size is not <= 2*EPS so that pt +/- EPS cannot overlap > 4 bins
   // nbin xy = # of bins in each dim
-  
-  nbinx = static_cast<int> ((binhi[0]-binlo[0])/(4.0*eps));
+  // NOTE: total bin count seems too large when small # of surfs
+
+  nbinx = static_cast<int> ((bboxhi[0]-bboxlo[0])/(4.0*eps));
   nbinx = MIN(nbinx,NBIN);
   nbinx = MAX(nbinx,1);
-  nbiny = static_cast<int> ((binhi[1]-binlo[1])/(4.0*eps));
+  nbiny = static_cast<int> ((bboxhi[1]-bboxlo[1])/(4.0*eps));
   nbiny = MIN(nbiny,NBIN);
   nbiny = MAX(nbiny,1);
-
-  invbinx = nbinx / (binhi[0] - binlo[0]);
-  invbiny = nbiny / (binhi[1] - binlo[1]);
+  
+  nbins = nbinx * nbiny;
+  
+  invbinx = nbinx / (bboxhi[0] - bboxlo[0]);
+  invbiny = nbiny / (bboxhi[1] - bboxlo[1]);
 
   // inbuf = list of datums to send to procs in Rvous decomposition of bins
   // every Pth bin is assigned to each proc
@@ -902,14 +907,14 @@ void FixSurfaceLocal::connectivity2d_local()
   tagint *tag = atom->tag;
 
   int *proclist = nullptr;
-  InRvous2d *inbuf = nullptr;
+  InRvous *inbuf = nullptr;
   int ncount = 0;
   int maxcount = 0;
 
   int indices[4];
 
   m = 0;
-  for (i = 0; i < nline; i++) {
+  for (i = 0; i < nlocal; i++) {
     if (line[i] < 0) continue;
 
     for (int ipoint = 0; ipoint < 2; ipoint++) {
@@ -918,7 +923,7 @@ void FixSurfaceLocal::connectivity2d_local()
       if (ncount+n > maxcount) {
         maxcount += DELTA_RVOUS;
         memory->grow(proclist,maxcount,"fix/surface/local:proclist");
-        inbuf = (InRvous2d *) memory->srealloc(inbuf,maxcount*sizeof(InRvous2d),"rigid/small:inbuf");
+        inbuf = (InRvous *) memory->srealloc(inbuf,maxcount*sizeof(InRvous),"surface/local:inbuf");
       }
     
       for (k = 0; k < n; k++) {
@@ -930,6 +935,7 @@ void FixSurfaceLocal::connectivity2d_local()
         inbuf[ncount].atomID = tag[i];
         inbuf[ncount].x[0] = endpts[m][2*ipoint];
         inbuf[ncount].x[1] = endpts[m][2*ipoint+1];
+        inbuf[ncount].x[2] = 0.0;
         ncount++;
       }
     }
@@ -944,11 +950,11 @@ void FixSurfaceLocal::connectivity2d_local()
   // receives all points in those bins
 
   char *buf;
-  int nreturn = comm->rendezvous(RVOUS,ncount,(char *) inbuf,sizeof(InRvous2d),
+  int nreturn = comm->rendezvous(RVOUS,ncount,(char *) inbuf,sizeof(InRvous),
                                  0,proclist,
-                                 point_match_2d,0,buf,sizeof(OutRvous2d),
+                                 point_match,0,buf,sizeof(OutRvous),
                                  (void *) this);
-  auto outbuf = (OutRvous2d *) buf;
+  auto outbuf = (OutRvous *) buf;
 
   memory->destroy(proclist);
   memory->sfree(inbuf);
@@ -957,9 +963,6 @@ void FixSurfaceLocal::connectivity2d_local()
   // count # of connections for each point on my lines
   // datums do not include self connection, so count it as well
 
-  // NOTE: need to avoid double counting of same point or neighbors from multiple bins
-  //       due to ESP overlap
-  
   int ilocal,iline,np1,np2;
   
   for (i = 0; i < nlocal_connect; i++)
@@ -974,14 +977,15 @@ void FixSurfaceLocal::connectivity2d_local()
 
   // allocate neigh_p12 vectors
   // set 1st value of neigh vector to ID of self line
-  // also set flags to 0 for now
+  // set flags to 0 for now
+
+  // NOTE: this will overalloc by potentially 4x ?
   
   for (i = 0; i < nlocal_connect; i++) {
     np1 = connect2d[i].np1;
     if (np1 > 1) {
       connect2d[i].neigh_p1 = tcp->get(np1,connect2d[i].indexp1);
       connect2d[i].neigh_p1[0] = tag[connect2d[i].ilocal];
-      
     } else connect2d[i].neigh_p1 = nullptr;
 
     np2 = connect2d[i].np2;
@@ -1012,7 +1016,7 @@ void FixSurfaceLocal::connectivity2d_local()
       atomID = outbuf[i].atomID;
       np = connect2d[iline].np1;
       neigh = connect2d[iline].neigh_p1;
-      for (j = 0; j < np; j++)
+      for (j = 1; j < np; j++)
         if (neigh[j] == atomID) break;
       if (j == np) {
         neigh[np] = atomID;
@@ -1022,7 +1026,7 @@ void FixSurfaceLocal::connectivity2d_local()
       atomID = outbuf[i].atomID;
       np = connect2d[iline].np2;
       neigh = connect2d[iline].neigh_p2;
-      for (j = 0; j < np; j++)
+      for (j = 1; j < np; j++)
         if (neigh[j] == atomID) break;
       if (j == np) {
         neigh[np] = atomID;
@@ -1030,17 +1034,430 @@ void FixSurfaceLocal::connectivity2d_local()
       }
     }
   }
+
+  memory->sfree(outbuf);
+
+  // NOTE: could now go thru and return all chunks and realloc to correct size ?
+  //       maxchunk for tcp would need to be 4x larger than actual ?
 }
 
 /* ----------------------------------------------------------------------
-   callback from comm->rvous() for 2d
+   create and initialize Connect3d info for all owned tris
+   this must be done with INEXACT point matching
+   b/c once datafile is read, tris have a center point, quaternion,
+     and body-frame corner point displacements
+   thus same point calculated by 2 tris may be epsilon different
 ------------------------------------------------------------------------- */
 
-int FixSurfaceLocal::point_match_2d(int n, char *inbuf,
-                                    int &rflag, int *&proclist, char *&outbuf,
-                                    void *ptr)
+void FixSurfaceLocal::connectivity3d_local()
 {
-  // access class data for epsilon and bin info
+  int i,j,k,m,n;
+
+  avec_tri = (AtomVecTri *) atom->style_match("tri");
+  if (!avec_tri)
+    error->all(FLERR,"Fix surface/local NULL requires atom style tri");
+
+  // epssq = square of EPSILON fraction of minimum tri diameter
+
+  double *radius = atom->radius;
+  int *tri = atom->tri;
+  int nlocal = atom->nlocal;
+
+  double minlen = BIG;
+  for (i = 0; i < nlocal; i++)
+    if (tri[i] >= 0) minlen = MIN(minlen,radius[i]);
+  minlen *= 2.0;
+
+  double eps;
+  MPI_Allreduce(&minlen,&eps,1,MPI_DOUBLE,MPI_MIN,world);
+  eps *= EPSILON;
+  epssq = eps*eps;
+
+  // count owned triangles
+
+  int ntri = 0;
+  for (i = 0; i < nlocal; i++)
+    if (tri[i] >= 0) ntri++;
+  
+  // allocate connection info for owned triangles
+  // initialize cindex for both particles and triangles
+  
+  nlocal_connect = nmax_connect = ntri;
+  nghost_connect = 0;
+  grow_connect();
+
+  for (i = 0; i < nlocal; i++) {
+    cindex[i] = tri[i];
+    if (tri[i] < 0) continue;
+    j = tri[i];
+    connect3d[j].ilocal = i;
+  }
+  
+  // calculate current endpts of owned lines
+
+  memory->create(corners,ntri,9,"surface/local:corners");
+  calculate_corners();
+
+  // compute min/max extent of my line endpts
+  // MPI_Allreduce for bbox of all lines
+
+  double mylo[3],myhi[3];
+  
+  mylo[0] = mylo[1] = mylo[2] = BIG;
+  myhi[0] = myhi[1] = myhi[2] = -BIG;
+
+  m = 0;
+  for (i = 0; i < nlocal; i++) {
+    if (tri[i] < 0) continue;
+    k = 0;
+    for (j = 0; j < 3; j++) {
+      mylo[0] = MIN(mylo[0],corners[m][k]);
+      myhi[0] = MAX(myhi[0],corners[m][k]);
+      mylo[1] = MIN(mylo[1],corners[m][k+1]);
+      myhi[1] = MAX(myhi[1],corners[m][k+1]);
+      mylo[2] = MIN(mylo[2],corners[m][k+2]);
+      myhi[2] = MAX(myhi[2],corners[m][k+2]);
+      k += 3;
+    }
+    m++;
+  }
+
+  MPI_Allreduce(mylo,bboxlo,3,MPI_DOUBLE,MPI_MIN,world);
+  MPI_Allreduce(myhi,bboxhi,3,MPI_DOUBLE,MPI_MAX,world);
+
+  // if no tris on any proc, just exit
+  // NOTE: should this be an error ?
+  
+  if (bboxlo[0] == BIG) return;
+
+  // add 2*EPS to all 4 edges of bbox
+  
+  bboxlo[0] -= 2.0*eps;
+  bboxlo[1] -= 2.0*eps;
+  bboxlo[2] -= 2.0*eps;
+  bboxhi[0] += 2.0*eps;
+  bboxhi[1] += 2.0*eps;
+  bboxhi[1] += 2.0*eps;
+
+  // conceptual binning of bbox by up to NBIN x NBIN x NBIN bins
+  // ensure bin size is not <= 2*EPS so that pt +/- EPS cannot overlap > 8 bins
+  // nbin xyz = # of bins in each dim
+  // NOTE: total bin count seems too large when small # of surfs
+
+  nbinx = static_cast<int> ((bboxhi[0]-bboxlo[0])/(4.0*eps));
+  nbinx = MIN(nbinx,NBIN);
+  nbinx = MAX(nbinx,1);
+  nbiny = static_cast<int> ((bboxhi[1]-bboxlo[1])/(4.0*eps));
+  nbiny = MIN(nbiny,NBIN);
+  nbiny = MAX(nbiny,1);
+  nbinz = static_cast<int> ((bboxhi[2]-bboxlo[2])/(4.0*eps));
+  nbinz = MIN(nbinz,NBIN);
+  nbinz = MAX(nbinz,1);
+  
+  nbins = nbinx * nbiny;
+  
+  invbinx = nbinx / (bboxhi[0] - bboxlo[0]);
+  invbiny = nbiny / (bboxhi[1] - bboxlo[1]);
+  invbinz = nbinz / (bboxhi[2] - bboxlo[2]);
+
+  // inbuf = list of datums to send to procs in Rvous decomposition of bins
+  // every Pth bin is assigned to each proc
+  // use overlap_bins_3d() to find all bins a tri corner pt overlaps within EPS
+  // allows for matching pts in Rvous decomp which are up to EPS apart
+
+  int me = comm->me;
+  int nprocs = comm->nprocs;
+
+  tagint *tag = atom->tag;
+
+  int *proclist = nullptr;
+  InRvous *inbuf = nullptr;
+  int ncount = 0;
+  int maxcount = 0;
+
+  int indices[8];
+
+  m = 0;
+  for (i = 0; i < nlocal; i++) {
+    if (tri[i] < 0) continue;
+
+    for (int ipoint = 0; ipoint < 3; ipoint++) {
+      n = overlap_bins_2d(&corners[m][3*ipoint],eps,indices);
+      
+      if (ncount+n > maxcount) {
+        maxcount += DELTA_RVOUS;
+        memory->grow(proclist,maxcount,"fix/surface/local:proclist");
+        inbuf = (InRvous *) memory->srealloc(inbuf,maxcount*sizeof(InRvous),"surface/local:inbuf");
+      }
+    
+      for (k = 0; k < n; k++) {
+        proclist[ncount] = indices[k] % nprocs;
+        inbuf[ncount].proc = me;
+        inbuf[ncount].ibin = indices[k];
+        inbuf[ncount].ilocal = i;
+        inbuf[ncount].ipoint = ipoint;
+        inbuf[ncount].atomID = tag[i];
+        inbuf[ncount].x[0] = corners[m][3*ipoint];
+        inbuf[ncount].x[1] = corners[m][3*ipoint+1];
+        inbuf[ncount].x[2] = corners[m][3*ipoint+2];
+        ncount++;
+      }
+    }
+    
+    m++;
+  }
+
+  memory->destroy(corners);
+
+  // perform rendezvous operation
+  // each proc owns every Pth bin
+  // receives all points in those bins
+
+  char *buf;
+  int nreturn = comm->rendezvous(RVOUS,ncount,(char *) inbuf,sizeof(InRvous),
+                                 0,proclist,
+                                 point_match,0,buf,sizeof(OutRvous),
+                                 (void *) this);
+  auto outbuf = (OutRvous *) buf;
+
+  memory->destroy(proclist);
+  memory->sfree(inbuf);
+
+  // loop over received Rvous datums
+  // count # of connections for each point on my triangles
+  // datums do not include self connection, so count it as well
+
+  int ilocal,itri,nc1,nc2,nc3;
+  
+  for (i = 0; i < nlocal_connect; i++)
+    connect3d[i].nc1 = connect3d[i].nc2 = connect3d[i].nc3 = 1;
+
+  for (i = 0; i < nreturn; i++) {
+    ilocal = outbuf[i].ilocal;
+    itri = tri[ilocal];
+    if (outbuf[i].ipoint == 0) connect3d[itri].nc1++;
+    else if (outbuf[i].ipoint == 1) connect3d[itri].nc2++;
+    else connect3d[itri].nc3++;
+  }
+
+  // allocate neigh_c123 vectors
+  // set 1st value of neigh vector to ID of self tri
+  // set flags to 0 for now
+
+  // NOTE: this will overalloc by potentially 8x ?
+  
+  for (i = 0; i < nlocal_connect; i++) {
+    nc1 = connect3d[i].nc1;
+    if (nc1 > 1) {
+      connect3d[i].neigh_c1 = tcp->get(nc1,connect3d[i].indexc1);
+      connect3d[i].neigh_c1[0] = tag[connect3d[i].ilocal];
+    } else connect3d[i].neigh_c1 = nullptr;
+
+    nc2 = connect3d[i].nc2;
+    if (nc2 > 1) {
+      connect3d[i].neigh_c2 = tcp->get(nc2,connect3d[i].indexc2);
+      connect3d[i].neigh_c2[0] = tag[connect3d[i].ilocal];
+    } else connect3d[i].neigh_c2 = nullptr;
+
+    nc3 = connect3d[i].nc3;
+    if (nc3 > 1) {
+      connect3d[i].neigh_c3 = tcp->get(nc3,connect3d[i].indexc3);
+      connect3d[i].neigh_c3[0] = tag[connect3d[i].ilocal];
+    } else connect3d[i].neigh_c3 = nullptr;
+
+    connect3d[i].flags = 0;
+  }
+
+  // loop over received Rvous datums
+  // use each one to set a neigh_c123 vector value
+  // only add it to neigh_c123 if not already added
+  //   b/c point pairs within EPS of bin boundaries may be recvd up to 8x
+
+  for (i = 0; i < nlocal_connect; i++)
+    connect3d[i].nc1 = connect3d[i].nc2 = connect3d[i].nc3 = 1;
+
+  tagint atomID;
+  int nc;
+  tagint *neigh;
+  
+  for (i = 0; i < nreturn; i++) {
+    ilocal = outbuf[i].ilocal;
+    itri = tri[ilocal];
+    if (outbuf[i].ipoint == 0) {
+      atomID = outbuf[i].atomID;
+      nc = connect3d[itri].nc1;
+      neigh = connect3d[itri].neigh_c1;
+      for (j = 1; j < nc; j++)
+        if (neigh[j] == atomID) break;
+      if (j == nc) {
+        neigh[nc] = atomID;
+        connect3d[itri].nc1++;
+      }
+    } else if (outbuf[i].ipoint == 1) {
+      atomID = outbuf[i].atomID;
+      nc = connect3d[itri].nc2;
+      neigh = connect3d[itri].neigh_c2;
+      for (j = 1; j < nc; j++)
+        if (neigh[j] == atomID) break;
+      if (j == nc) {
+        neigh[nc] = atomID;
+        connect3d[itri].nc2++;
+      }
+    } else {
+      atomID = outbuf[i].atomID;
+      nc = connect3d[itri].nc3;
+      neigh = connect3d[itri].neigh_c3;
+      for (j = 1; j < nc; j++)
+        if (neigh[j] == atomID) break;
+      if (j == nc) {
+        neigh[nc] = atomID;
+        connect3d[itri].nc3++;
+      }
+    }
+  }
+
+  memory->sfree(outbuf);
+
+  // NOTE: could now go thru and return all chunks and realloc to correct size ?
+  //       maxchunk for tcp would need to be 4x larger than actual ?
+
+  // use corner point connectivity to infer edge connectivity
+  // a common edge between 2 tris exists if both of the edge corner pts
+  //   in triangle I have the same triangle J in their corner connectivity list
+
+  // tally counts for each of 3 edges in each tri
+  // edge between corner points 1-2, points 2-3, points 3-1
+
+  int n1,n2;
+  tagint *neigh1,*neigh2;
+  
+  for (i = 0; i < nlocal_connect; i++)
+    connect3d[i].ne1 = connect3d[i].ne2 = connect3d[i].ne3 = 1;
+
+  for (i = 0; i < nlocal_connect; i++) {
+    n1 = connect3d[i].nc1;
+    n2 = connect3d[i].nc2;
+    neigh1 = connect3d[i].neigh_c1;
+    neigh2 = connect3d[i].neigh_c2;
+    for (j = 1; j < n1; j++) {
+      for (k = 1; k < n2; k++) {
+        if (neigh2[k] == neigh1[j]) {
+          connect3d[i].ne1++;
+          break;
+        }
+      }
+    }
+
+    n1 = connect3d[i].nc2;
+    n2 = connect3d[i].nc3;
+    neigh1 = connect3d[i].neigh_c2;
+    neigh2 = connect3d[i].neigh_c3;
+    for (j = 1; j < n1; j++) {
+      for (k = 1; k < n2; k++) {
+        if (neigh2[k] == neigh1[j]) {
+          connect3d[i].ne2++;
+          break;
+        }
+      }
+    }
+
+    n1 = connect3d[i].nc3;
+    n2 = connect3d[i].nc1;
+    neigh1 = connect3d[i].neigh_c3;
+    neigh2 = connect3d[i].neigh_c1;
+    for (j = 1; j < n1; j++) {
+      for (k = 1; k < n2; k++) {
+        if (neigh2[k] == neigh1[j]) {
+          connect3d[i].ne3++;
+          break;
+        }
+      }
+    }
+  }
+
+  // allocate neigh_e123 vectors
+  // set 1st value of neigh vector to ID of self tri
+  // no over-allocation here since corner point connections have no duplications
+
+  int ne1,ne2,ne3;
+  
+  for (i = 0; i < nlocal_connect; i++) {
+    ne1 = connect3d[i].ne1;
+    if (ne1 > 1) {
+      connect3d[i].neigh_e1 = tcp->get(ne1,connect3d[i].indexe1);
+      connect3d[i].neigh_e1[0] = tag[connect3d[i].ilocal];
+    } else connect3d[i].neigh_e1 = nullptr;
+
+    ne2 = connect3d[i].ne2;
+    if (ne2 > 1) {
+      connect3d[i].neigh_e2 = tcp->get(ne2,connect3d[i].indexe2);
+      connect3d[i].neigh_e2[0] = tag[connect3d[i].ilocal];
+    } else connect3d[i].neigh_e2 = nullptr;
+
+    ne3 = connect3d[i].ne3;
+    if (ne3 > 1) {
+      connect3d[i].neigh_e3 = tcp->get(ne3,connect3d[i].indexe3);
+      connect3d[i].neigh_e3[0] = tag[connect3d[i].ilocal];
+    } else connect3d[i].neigh_e3 = nullptr;
+  }
+
+  // set the neigh_e123 vector values
+  // edge between corner points 1-2, points 2-3, points 3-1
+
+  for (i = 0; i < nlocal_connect; i++)
+    connect3d[i].ne1 = connect3d[i].ne2 = connect3d[i].ne3 = 1;
+
+  for (i = 0; i < nlocal_connect; i++) {
+    n1 = connect3d[i].nc1;
+    n2 = connect3d[i].nc2;
+    neigh1 = connect3d[i].neigh_c1;
+    neigh2 = connect3d[i].neigh_c2;
+    for (j = 1; j < n1; j++) {
+      for (k = 1; k < n2; k++) {
+        if (neigh2[k] == neigh1[j]) {
+          connect3d[i].neigh_e1[connect3d[i].ne1++] = neigh1[j];
+          break;
+        }
+      }
+    }
+
+    n1 = connect3d[i].nc2;
+    n2 = connect3d[i].nc3;
+    neigh1 = connect3d[i].neigh_c2;
+    neigh2 = connect3d[i].neigh_c3;
+    for (j = 1; j < n1; j++) {
+      for (k = 1; k < n2; k++) {
+        if (neigh2[k] == neigh1[j]) {
+          connect3d[i].neigh_e2[connect3d[i].ne2++] = neigh1[j];
+          break;
+        }
+      }
+    }
+
+    n1 = connect3d[i].nc3;
+    n2 = connect3d[i].nc1;
+    neigh1 = connect3d[i].neigh_c3;
+    neigh2 = connect3d[i].neigh_c1;
+    for (j = 1; j < n1; j++) {
+      for (k = 1; k < n2; k++) {
+        if (neigh2[k] == neigh1[j]) {
+          connect3d[i].neigh_e3[connect3d[i].ne3++] = neigh1[j];
+          break;
+        }
+      }
+    }
+  }
+}
+
+/* ----------------------------------------------------------------------
+   callback from comm->rvous() for 2d or 3d
+------------------------------------------------------------------------- */
+
+int FixSurfaceLocal::point_match(int n, char *inbuf,
+                                 int &rflag, int *&proclist, char *&outbuf,
+                                 void *ptr)
+{
+  // access class data for epsilon and bin count
 
   auto fslptr = (FixSurfaceLocal *) ptr;
   Memory *memory = fslptr->memory;
@@ -1057,7 +1474,7 @@ int FixSurfaceLocal::point_match_2d(int n, char *inbuf,
   // next[n] = index to next datum in each bin
 
   int nmine = nbins / nprocs;
-  if (nbins % nprocs > me) nmine++;
+  if (me < nbins % nprocs) nmine++;
 
   // NOTE: num is just for debugging
   
@@ -1069,11 +1486,11 @@ int FixSurfaceLocal::point_match_2d(int n, char *inbuf,
   for (int i = 0; i < nmine; i++) num[i] = 0;
   for (int i = 0; i < nmine; i++) first[i] = -1;
 
-  auto in = (InRvous2d *) inbuf;
+  auto in = (InRvous *) inbuf;
 
   int i,j,ibin,whichbin;
 
-  for (int i = n=1; i >= 0; i--) {
+  for (int i = n-1; i >= 0; i--) {
     ibin = in[i].ibin;
     whichbin = ibin / nprocs;
     if (first[whichbin] < 0) next[i] = -1;
@@ -1081,34 +1498,35 @@ int FixSurfaceLocal::point_match_2d(int n, char *inbuf,
     first[whichbin] = i;
     num[whichbin]++;
   }
-  
+
   // double loop over datums in each bin to to identify point matches
   // match = 2 points within EPS distance of each other
   // add each match to outbuf
 
   proclist = nullptr;
-  OutRvous2d *out = nullptr;
+  OutRvous *out = nullptr;
   int ncount = 0;
   int maxcount = 0;
 
-  double dx,dy,rsq;
+  double dx,dy,dz,rsq;
 
-  for (int ibin = 0; ibin < nbins; ibin++) {
+  for (int ibin = 0; ibin < nmine; ibin++) {
     i = first[ibin];
 
     while (i >= 0) {
       j = first[ibin];
       while (j >= 0) {
-        if (j == i) continue;
+        if (j == i) break;
         dx = in[i].x[0] - in[j].x[0];
         dy = in[i].x[1] - in[j].x[1];
-        rsq = dx*dx + dy*dy;
+        dz = in[i].x[2] - in[j].x[2];
+        rsq = dx*dx + dy*dy + dz*dz;
         if (rsq < epssq) {
           if (ncount == maxcount) {
             maxcount += DELTA_RVOUS;
             memory->grow(proclist,maxcount,"surface/local:proclist");
-            out = (OutRvous2d *)
-              memory->srealloc(out,maxcount*sizeof(OutRvous2d),"surface/local:outbuf");
+            out = (OutRvous *)
+              memory->srealloc(out,maxcount*sizeof(OutRvous),"surface/local:outbuf");
           }
           proclist[ncount] = in[i].proc;
           out[ncount].ilocal = in[i].ilocal;
@@ -1129,117 +1547,27 @@ int FixSurfaceLocal::point_match_2d(int n, char *inbuf,
   memory->destroy(next);
   
   // return values
-  
+
+  rflag = 2;
   outbuf = (char *) out;
   return ncount;
-}
-
-/* ----------------------------------------------------------------------
-   callback from comm->ring() for 2d
-------------------------------------------------------------------------- */
-
-void FixSurfaceLocal::linematch(int n, char *cbuf)
-{
-  int i,j,m,ibin,npt,jfirst,jlast,iatom,iconnect,ptwhich,optwhich;
-  tagint tagother;
-  double ptx,pty,dx,dy,rsq;
-  double *pt,*opt;
-
-  double *buf = (double *) cbuf;
-
-  // access class data for neighbors and bins
-
-  Connect2d *connect2d = fptr->connect2d;
-  double **endpts = fptr->endpts;
-
-  OnePt *pts = fptr->pts;
-  int *bincount = fptr->bincount;
-  int *binfirst = fptr->binfirst;
-
-  double epssq = fptr->epssq;
-  int *nmatch = &fptr->nmatch;
-  int *errormatch = &fptr->errormatch;
-
-  tagint *tag = fptr->atom->tag;
-
-  // loop over each entry in buf
-  // buf = end pts for each line owned by another proc (including self)
-  // 0 = ID of line, 1/2 = 1st end pt, 3/4 = 2nd end pt
-
-  m = 0;
-  for (i = 0; i < n; i++) {
-    tagother = (tagint) ubuf(buf[m]).i;
-
-    // loop over 2 pts in buf line, owned by another proc (or me)
-    // search for matching owned line pt in ibin
-    // same owned pt may appear many times in bins as part of multiple lines
-
-    for (optwhich = 1; optwhich <= 2; optwhich++) {
-      if (optwhich == 1) opt = &buf[m+1];
-      else opt = &buf[m+3];
-
-      ibin = fptr->pt2bin2d(opt);
-
-      if (ibin >= 0) {
-        jfirst = binfirst[ibin];
-        jlast = jfirst + bincount[ibin];
-
-        // loop over all line end pts in bins[jfirst:jlast], owned by me
-        // skip bin pt if from same line ID as buf pt is from
-
-        for (j = jfirst; j < jlast; j++) {
-          iatom = pts[j].iatom;
-          iconnect = pts[j].iconnect;
-          ptwhich = pts[j].ptwhich;
-
-          if (tagother == tag[iatom]) continue;
-
-          if (ptwhich == 1) pt = &endpts[iconnect][0];
-          else pt = &endpts[iconnect][2];
-
-          dx = pt[0] - opt[0];
-          dy = pt[1] - opt[1];
-          rsq = dx*dx + dy*dy;
-
-          // two points are close enough to match
-          // set neigh1 or neigh2 of my line = tagother, based on ptwhich
-          // error if this point is already common to 2 lines
-
-          if (rsq < epssq) {
-            (*nmatch)++;
-
-            /*
-            if (ptwhich == 1) {
-              if (connect2d[iconnect].neigh_p1 > 0) (*errormatch)++;
-              else connect2d[iconnect].neigh_p1 = tagother;
-            } else if (ptwhich == 2) {
-              if (connect2d[iconnect].neigh_p2 > 0) (*errormatch)++;
-              else connect2d[iconnect].neigh_p2 = tagother;
-            }
-            */
-          }
-        }
-      }
-    }
-
-    m += 5;
-  }
 }
 
 /* ----------------------------------------------------------------------
    compute current end points of my owned lines
 ------------------------------------------------------------------------- */
 
-void FixSurfaceLocal::calculate_endpts(int n)
+void FixSurfaceLocal::calculate_endpts()
 {
   double length,theta,dx,dy;
 
   AtomVecLine::Bonus *bonus = avec_line->bonus;
   double **x = atom->x;
   int *line = atom->line;
+  int nlocal = atom->nlocal;
 
   int m = 0;
-  for (int i = 0; i < n; i++) {
+  for (int i = 0; i < nlocal; i++) {
     if (line[i] < 0) continue;
     length = bonus[line[i]].length;
     theta = bonus[line[i]].theta;
@@ -1251,27 +1579,6 @@ void FixSurfaceLocal::calculate_endpts(int n)
     endpts[m][3] = x[i][1] + dy;
     m++;
   }
-}
-
-/* ----------------------------------------------------------------------
-   map point pt to a bin
-   return ibin from 0 to Nbins-1
-   return -1 if outside bin bounds
-------------------------------------------------------------------------- */
-
-int FixSurfaceLocal::pt2bin2d(double *pt)
-{
-  if (pt[0] < binlo[0] || pt[0] >= binhi[0] ||
-      pt[1] < binlo[1] || pt[1] >= binhi[1])
-    return -1;
-
-  int ix = static_cast<int> ((pt[0]-binlo[0]) * invbinx);
-  ix = MIN(ix,nbinx-1);
-  int iy = static_cast<int> ((pt[1]-binlo[1]) * invbiny);
-  iy = MIN(iy,nbiny-1);
-
-  int ibin = iy*nbinx + ix;
-  return ibin;
 }
 
 /* ----------------------------------------------------------------------
@@ -1305,513 +1612,11 @@ int FixSurfaceLocal::overlap_bins_2d(double *pt, double eps, int *indices)
   return n;
 }
 
-// ----------------------------------------------------------------------
-// ----------------------------------------------------------------------
-// methods for distributed 3d connectivity build
-// ----------------------------------------------------------------------
-// ----------------------------------------------------------------------
-
 /* ----------------------------------------------------------------------
-   create and initialize Connect3d info for all owned tris
-   this must be done with INEXACT point matching
-   b/c once datafile is read, tris have a center point, quaterition,
-     and body-frame corner point displacements
-   thus same point calculated by 2 tris may be epsilon different
+   compute current corner points of my owned triangles
 ------------------------------------------------------------------------- */
 
-void FixSurfaceLocal::connectivity3d_local()
-{
-  int i,j,k,m,n,ibin;
-
-  avec_tri = (AtomVecTri *) atom->style_match("tri");
-  if (!avec_tri)
-    error->all(FLERR,"Fix surface/local NULL requires atom style tri");
-
-  // error check
-
-  avec_tri = (AtomVecTri *) atom->style_match("tri");
-  if (!avec_tri)
-    error->all(FLERR,"Fix surface/local requires atom style tri");
-
-  // calculate current corner pts of owned triangles
-
-  int nlocal = atom->nlocal;
-  memory->create(corners,nlocal,9,"surface/local:corners");
-  calculate_corners(nlocal);
-
-  // ntri = # of triangles I own
-  // maxtri = max of ntri across all procs
-  // tbuf = array of per-tri values to circulate to all procs
-
-  int *tri = atom->tri;
-
-  int ntri = 0;
-  for (i = 0; i < nlocal; i++)
-    if (tri[i] >= 0) ntri++;
-
-  int maxtri;
-  MPI_Allreduce(&ntri,&maxtri,1,MPI_INT,MPI_MAX,world);
-
-  // initialize tbuf for tris I own
-  // 10 values = id, 3 corner pt coords (x,y,z)
-
-  double **tbuf;
-  memory->create(tbuf,maxtri,10,"surface/local:tbuf");
-
-  AtomVecTri::Bonus *bonus = avec_tri->bonus;
-  double **x = atom->x;
-  tagint *tag = atom->tag;
-
-  ntri = 0;
-  for (i = 0; i < nlocal; i++) {
-    if (tri[i] < 0) continue;
-    tbuf[ntri][0] = ubuf(tag[i]).d;
-    memcpy(&tbuf[ntri][1],corners[i],9*sizeof(double));
-    ntri++;
-  }
-
-  // epssq = square of EPSILON fraction of min tri diameter across all procs
-
-  double *radius = atom->radius;
-
-  double minlen = BIG;
-  for (i = 0; i < nlocal; i++)
-    if (tri[i] >= 0) minlen = MIN(minlen,radius[i]);
-  minlen *= 2.0;
-
-  double eps;
-  MPI_Allreduce(&minlen,&eps,1,MPI_DOUBLE,MPI_MIN,world);
-  eps *= EPSILON;
-  epssq = eps*eps;
-
-  // compute bbox for my tri corner pts, add 2*EPS to all 6 bounds
-  // set bbox size to 0.0 +/- EPS if no tris on this proc
-
-  binlo[0] = binlo[1] = binlo[2] = BIG;
-  binhi[0] = binhi[1] = binhi[2] = -BIG;
-
-  for (i = 0; i < nlocal; i++) {
-    if (tri[i] < 0) continue;
-    m = 0;
-    for (j = 0; j < 3; j++) {
-      binlo[0] = MIN(binlo[0],corners[i][m]);
-      binhi[0] = MAX(binhi[0],corners[i][m]);
-      binlo[1] = MIN(binlo[1],corners[i][m+1]);
-      binhi[1] = MAX(binhi[1],corners[i][m+1]);
-      binlo[2] = MIN(binlo[2],corners[i][m+2]);
-      binhi[2] = MAX(binhi[2],corners[i][m+2]);
-      m += 3;
-    }
-  }
-
-  if (binlo[0] > binhi[0]) {
-    binlo[0] = binhi[0] = 0.0;
-    binlo[1] = binhi[1] = 0.0;
-    binlo[2] = binhi[2] = 0.0;
-  }
-
-  binlo[0] -= 2.0*eps;
-  binlo[1] -= 2.0*eps;
-  binlo[2] -= 2.0*eps;
-  binhi[0] += 2.0*eps;
-  binhi[1] += 2.0*eps;
-  binhi[2] += 2.0*eps;
-
-  // create upto NBIN x NBIN x NBIN bins that tile bbox
-  // insure bin size is not <= 2*EPS so that pt +/- EPS cannot overlap > 8 bins
-
-  nbinx = static_cast<int> ((binhi[0]-binlo[0])/(4.0*eps));
-  nbinx = MIN(nbinx,NBIN);
-  nbinx = MAX(nbinx,1);
-  nbiny = static_cast<int> ((binhi[1]-binlo[1])/(4.0*eps));
-  nbiny = MIN(nbiny,NBIN);
-  nbiny = MAX(nbiny,1);
-  nbinz = static_cast<int> ((binhi[2]-binlo[2])/(4.0*eps));
-  nbinz = MIN(nbinz,NBIN);
-  nbinz = MAX(nbinz,1);
-
-  invbinx = nbinx / (binhi[0] - binlo[0]);
-  invbiny = nbiny / (binhi[1] - binlo[1]);
-  invbinz = nbinz / (binhi[2] - binlo[2]);
-
-  nbins = nbinx*nbiny*nbinz;
-  memory->create(bincount,nbins,"surface/local:bincount");
-  memory->create(binfirst,nbins,"surface/local:binfirst");
-
-  // count # of corner pts in each bin, including overlaps by eps
-
-  int indices[8];
-  memset(bincount,0,nbins*sizeof(int));
-
-  for (i = 0; i < nlocal; i++) {
-    if (tri[i] < 0) continue;
-    n = overlap2bin3d(&corners[i][0],eps,indices);
-    for (m = 0; m < n; m++) bincount[indices[m]]++;
-    n = overlap2bin3d(&corners[i][3],eps,indices);
-    for (m = 0; m < n; m++) bincount[indices[m]]++;
-    n = overlap2bin3d(&corners[i][6],eps,indices);
-    for (m = 0; m < n; m++) bincount[indices[m]]++;
-  }
-
-  // setup binfirst = index to first point in bin
-  // allocate pts = list of pts in all bins
-
-  binfirst[0] = 0;
-  for (m = 1; m < nbins; m++)
-    binfirst[m] = binfirst[m-1] + bincount[m-1];
-  int ntotal = binfirst[nbins-1] + bincount[nbins-1];
-
-  pts = (OnePt *) memory->smalloc(ntotal*sizeof(OnePt),"surface/local:bins");
-
-  // add each of my tri corners to bins, including overlaps by eps
-
-  memset(bincount,0,nbins*sizeof(int));
-
-  for (i = 0; i < nlocal; i++) {
-    if (tri[i] < 0) continue;
-    for (j = 0; j < 3; j++) {
-      if (j == 0) n = overlap2bin3d(&corners[i][0],eps,indices);
-      else if (j == 1) n = overlap2bin3d(&corners[i][3],eps,indices);
-      else n = overlap2bin3d(&corners[i][6],eps,indices);
-      for (m = 0; m < n; m++) {
-        ibin = indices[m];
-        k = binfirst[ibin] + bincount[ibin];
-        pts[k].iatom = i;
-        pts[k].iconnect = tri[i];
-        pts[k].ptwhich = j+1;
-        bincount[ibin]++;
-      }
-    }
-  }
-
-  // allocate connection info for my owned triangles
-  // initialize cindex for all my particles, including triangles
-  // comm->ring() operations will populate connection info
-  // do this twice:
-  //   first time to accumulate corner counts
-  //   allocate corner connection lists
-  //   second time to fill lists (and redo everything else)
-
-  nlocal_connect = nmax_connect = ntri;
-  nghost_connect = 0;
-  grow_connect();
-
-  for (i = 0; i < nlocal; i++) {
-    cindex[i] = tri[i];
-    if (tri[i] < 0) continue;
-    j = tri[i];
-    connect3d[j].flags = 0;
-  }
-
-  // NOTE: have to initialize rest of values in Connect3d for each tri I own
-
-  fptr = this;
-  nmatch1 = nmatch2 = errormatch1 = errormatch2 = 0;
-  vecflag = 0;
-
-  /*
-  if (tbuf)
-    comm->ring(ntri,10*sizeof(double),(void *) &tbuf[0][0],0,trimatch,nullptr);
-  else
-    comm->ring(ntri,10*sizeof(double),nullptr,0,trimatch,nullptr);
-  */
-
-  for (i = 0; i < nlocal; i++) {
-    if (tri[i] < 0) continue;
-    j = tri[i];
-    connect3d[j].indexc1 = connect3d[j].indexc2 = connect3d[j].indexc3 = -1;
-    if (connect3d[j].nc1)
-      connect3d[j].neigh_c1 = tcp->get(connect3d[j].nc1,connect3d[j].indexc1);
-    else connect3d[j].neigh_c1 = nullptr;
-    if (connect3d[j].nc2)
-      connect3d[j].neigh_c2 = tcp->get(connect3d[j].nc2,connect3d[j].indexc2);
-    else connect3d[j].neigh_c2 = nullptr;
-    if (connect3d[j].nc3)
-      connect3d[j].neigh_c3 = tcp->get(connect3d[j].nc3,connect3d[j].indexc3);
-    else connect3d[j].neigh_c3 = nullptr;
-    connect3d[j].neigh_e1 = connect3d[j].neigh_e2 = connect3d[j].neigh_e3 = 0;
-    connect3d[j].nc1 = connect3d[j].nc2 = connect3d[j].nc3 = 0;
-    connect3d[j].flags = 0;
-    connect3d[j].ilocal = i;
-  }
-
-  fptr = this;
-  nmatch1 = nmatch2 = errormatch1 = errormatch2 = 0;
-  vecflag = 1;
-
-  /*
-  if (tbuf)
-    comm->ring(ntri,10*sizeof(double),(void *) &tbuf[0][0],0,trimatch,nullptr);
-  else
-    comm->ring(ntri,10*sizeof(double),nullptr,0,trimatch,nullptr);
-  */
-
-  // check for errors = matches with misaligned or more than 2 edges
-  // print stats on # of matches
-
-  int all = 0;
-  MPI_Allreduce(&errormatch1,&all,1,MPI_INT,MPI_SUM,world);
-  if (all) {
-    char str[128];
-    sprintf(str,"Fix surface/local found %g matching edges in same direction",
-            0.5*all);
-    error->all(FLERR,str);
-  }
-
-  all = 0;
-  MPI_Allreduce(&errormatch2,&all,1,MPI_INT,MPI_SUM,world);
-  if (all) {
-    char str[128];
-    sprintf(str,"Fix surface/local found %g matching edges "
-            "with more than 2 tris",0.5*all);
-    error->all(FLERR,str);
-  }
-
-  MPI_Allreduce(&nmatch1,&all,1,MPI_INT,MPI_SUM,world);
-  if (comm->me == 0) {
-    if (screen)
-      fprintf(screen,
-              "  matched %g tri edge pairs in fix surface/local\n",0.5*all);
-    if (logfile)
-      fprintf(logfile,
-              "  matched %g tri edge pairs in fix surface/local\n",0.5*all);
-  }
-
-  MPI_Allreduce(&nmatch2,&all,1,MPI_INT,MPI_SUM,world);
-  if (comm->me == 0) {
-    if (screen)
-      fprintf(screen,
-              "  matched %g tri corners in fix surface/local\n",0.5*all);
-    if (logfile)
-      fprintf(logfile,
-              "  matched %g tri corners in fix surface/local\n",0.5*all);
-  }
-
-  // clean-up
-
-  memory->destroy(tbuf);
-  memory->destroy(bincount);
-  memory->destroy(binfirst);
-  memory->destroy(pts);
-  memory->destroy(corners);
-}
-
-/* ----------------------------------------------------------------------
-   callback from comm->ring() for 3d
-------------------------------------------------------------------------- */
-
-void FixSurfaceLocal::trimatch(int n, char *cbuf)
-{
-  int i,j,m,ibin,npt,ipoint,jfirst,jlast,iatom,iconnect;
-  int ptwhich,optwhich,match;
-  tagint tagother;
-  double ptx,pty,dx,dy,dz,rsq,rsq11,rsq12,rsq21,rsq22;
-  double *pt,*ptnext1,*ptnext2,*opt,*optnext1,*optnext2;
-  double *cornersother;
-
-  double *buf = (double *) cbuf;
-
-  // access class data for neighbors and bins
-
-  Connect3d *connect3d = fptr->connect3d;
-  double **corners = fptr->corners;
-
-  OnePt *pts = fptr->pts;
-  int *bincount = fptr->bincount;
-  int *binfirst = fptr->binfirst;
-
-  double epssq = fptr->epssq;
-  int *nmatch1 = &fptr->nmatch1;
-  int *nmatch2 = &fptr->nmatch2;
-  int *errormatch1 = &fptr->errormatch1;
-  int *errormatch2 = &fptr->errormatch2;
-
-  tagint *tag = fptr->atom->tag;
-  int vecflag = fptr->vecflag;
-
-  // loop over each entry in buf
-  // buf = corner pts for each tri owned by another proc (including self)
-  // 0 = ID of tri, 1-9 = 3 corner pts
-
-  m = 0;
-  for (i = 0; i < n; i++) {
-    tagother = (tagint) ubuf(buf[m]).i;
-    cornersother = &buf[m+1];
-
-    // loop over 3 pts in buf tri, owned by another proc (or me)
-    // search for matching owned tri pt in ibin
-    // same owned pt may appear many times in bins as part of multiple tris
-    // opnext 1/2 are next points in order around tri perimeter
-
-    for (optwhich = 1; optwhich <= 3; optwhich++) {
-      if (optwhich == 1) {
-        opt = &cornersother[0];
-        optnext1 = &cornersother[3];
-        optnext2 = &cornersother[6];
-      } else if (optwhich == 2) {
-        opt = &cornersother[3];
-        optnext1 = &cornersother[6];
-        optnext2 = &cornersother[0];
-      } else {
-        opt = &cornersother[6];
-        optnext1 = &cornersother[0];
-        optnext2 = &cornersother[3];
-      }
-
-      ibin = fptr->pt2bin3d(opt);
-
-      if (ibin >= 0) {
-        jfirst = binfirst[ibin];
-        jlast = jfirst + bincount[ibin];
-
-        // loop over all tri corner pts in bins[jfirst:jlast], owned by me
-        // skip bin pt if from same tri ID as buf pt is from
-
-        for (j = jfirst; j < jlast; j++) {
-          iatom = pts[j].iatom;
-          iconnect = pts[j].iconnect;
-          ptwhich = pts[j].ptwhich;
-
-          if (tagother == tag[iatom]) continue;
-
-          if (ptwhich == 1) {
-            pt = &corners[iconnect][0];
-            ptnext1 = &corners[iconnect][3];
-            ptnext2 = &corners[iconnect][6];
-          } else if (ptwhich == 2) {
-            pt = &corners[iconnect][3];
-            ptnext1 = &corners[iconnect][6];
-            ptnext2 = &corners[iconnect][0];
-          } else {
-            pt = &corners[iconnect][6];
-            ptnext1 = &corners[iconnect][0];
-            ptnext2 = &corners[iconnect][3];
-          }
-
-          dx = pt[0] - opt[0];
-          dy = pt[1] - opt[1];
-          dz = pt[2] - opt[2];
-          rsq = dx*dx + dy*dy + dz*dz;
-
-          // two points are close enough to match
-          // use ptnext 1/2 and optnext 1/2 to determine if edge vs corner match
-          // NOTE: this is where to set coupling flags
-
-          if (rsq < epssq) {
-            dx = ptnext1[0] - optnext1[0];
-            dy = ptnext1[1] - optnext1[1];
-            dz = ptnext1[2] - optnext1[2];
-            rsq11 = dx*dx + dy*dy + dz*dz;
-            dx = ptnext1[0] - optnext2[0];
-            dy = ptnext1[1] - optnext2[1];
-            dz = ptnext1[2] - optnext2[2];
-            rsq12 = dx*dx + dy*dy + dz*dz;
-            dx = ptnext2[0] - optnext1[0];
-            dy = ptnext2[1] - optnext1[1];
-            dz = ptnext2[2] - optnext1[2];
-            rsq21 = dx*dx + dy*dy + dz*dz;
-            dx = ptnext2[0] - optnext2[0];
-            dy = ptnext2[1] - optnext2[1];
-            dz = ptnext2[2] - optnext2[2];
-            rsq22 = dx*dx + dy*dy + dz*dz;
-
-            // edge match in same direction, should never happen
-
-            if (rsq11 < epssq || rsq22 < epssq) {
-              (*errormatch2)++;
-
-            // edge match at first endpt, error if already marked
-            // also add tagother to two corner pt lists
-
-            } else if (rsq12 < epssq) {
-              (*nmatch1)++;
-              /*
-              if (ptwhich == 1) {
-                if (connect3d[iconnect].neigh_e1 > 0) (*errormatch1)++;
-                else {
-                  connect3d[iconnect].neigh_e1 = tagother;
-                  if (vecflag) {
-                    connect3d[iconnect].neigh_c1[connect3d[iconnect].nc1] =
-                      tagother;
-                    connect3d[iconnect].neigh_c2[connect3d[iconnect].nc2] =
-                      tagother;
-                  }
-                  connect3d[iconnect].nc1++;
-                  connect3d[iconnect].nc2++;
-                }
-              } else if (ptwhich == 2) {
-                if (connect3d[iconnect].neigh_e2 > 0) (*errormatch1)++;
-                else {
-                  connect3d[iconnect].neigh_e2 = tagother;
-                  if (vecflag) {
-                    connect3d[iconnect].neigh_c2[connect3d[iconnect].nc2] =
-                      tagother;
-                    connect3d[iconnect].neigh_c3[connect3d[iconnect].nc3] =
-                      tagother;
-                  }
-                  connect3d[iconnect].nc2++;
-                  connect3d[iconnect].nc3++;
-                }
-              } else if (ptwhich == 3) {
-                if (connect3d[iconnect].neigh_e3 > 0) (*errormatch1)++;
-                else {
-                  connect3d[iconnect].neigh_e3 = tagother;
-                  if (vecflag) {
-                    connect3d[iconnect].neigh_c3[connect3d[iconnect].nc3] =
-                      tagother;
-                    connect3d[iconnect].neigh_c1[connect3d[iconnect].nc1] =
-                      tagother;
-                  }
-                  connect3d[iconnect].nc3++;
-                  connect3d[iconnect].nc1++;
-                }
-              }
-              */
-              
-            // edge match at second endpt, other endpt will mark it
-
-            } else if (rsq21 < epssq) {
-              continue;
-
-            // match at corner pt
-
-            } else {
-              (*nmatch2)++;
-              if (ptwhich == 1) {
-                if (vecflag) {
-                  connect3d[iconnect].neigh_c1[connect3d[iconnect].nc1] =
-                    tagother;
-                }
-                connect3d[iconnect].nc1++;
-              } else if (ptwhich == 2) {
-                if (vecflag) {
-                  connect3d[iconnect].neigh_c2[connect3d[iconnect].nc2] =
-                    tagother;
-                }
-                connect3d[iconnect].nc2++;
-              } else if (ptwhich == 3) {
-                if (vecflag) {
-                  connect3d[iconnect].neigh_c3[connect3d[iconnect].nc3] =
-                    tagother;
-                }
-                connect3d[iconnect].nc3++;
-              }
-            }
-          }
-        }
-      }
-    }
-
-    m += 10;
-  }
-}
-
-/* ----------------------------------------------------------------------
-   compute current corner points of N triangles
-   nothing computed for particles that are not tris
-------------------------------------------------------------------------- */
-
-void FixSurfaceLocal::calculate_corners(int n)
+void FixSurfaceLocal::calculate_corners()
 {
   int ibonus;
   double p[3][3];
@@ -1820,11 +1625,13 @@ void FixSurfaceLocal::calculate_corners(int n)
   AtomVecTri::Bonus *bonus = avec_tri->bonus;
   double **x = atom->x;
   int *tri = atom->tri;
-
-  for (int i = 0; i < n; i++) {
+  int nlocal = atom->nlocal;
+    
+  int m = 0;
+  for (int i = 0; i < nlocal; i++) {
     if (tri[i] < 0) continue;
     ibonus = tri[i];
-    corner = corners[i];
+    corner = corners[m];
     MathExtra::quat_to_mat(bonus[ibonus].quat,p);
     MathExtra::matvec(p,bonus[ibonus].c1,&corner[0]);
     MathExtra::add3(x[i],&corner[0],&corner[0]);
@@ -1832,31 +1639,8 @@ void FixSurfaceLocal::calculate_corners(int n)
     MathExtra::add3(x[i],&corner[3],&corner[3]);
     MathExtra::matvec(p,bonus[ibonus].c3,&corner[6]);
     MathExtra::add3(x[i],&corner[6],&corner[6]);
+    m++;
   }
-}
-
-/* ----------------------------------------------------------------------
-   map point pt to a bin
-   return ibin from 0 to Nbins-1
-   return -1 if outside bin bounds
-------------------------------------------------------------------------- */
-
-int FixSurfaceLocal::pt2bin3d(double *pt)
-{
-  if (pt[0] < binlo[0] || pt[0] >= binhi[0] ||
-      pt[1] < binlo[1] || pt[1] >= binhi[1] ||
-      pt[2] < binlo[2] || pt[2] >= binhi[2])
-    return -1;
-
-  int ix = static_cast<int> ((pt[0]-binlo[0]) * invbinx);
-  ix = MIN(ix,nbinx-1);
-  int iy = static_cast<int> ((pt[1]-binlo[1]) * invbiny);
-  iy = MIN(iy,nbiny-1);
-  int iz = static_cast<int> ((pt[2]-binlo[2]) * invbinz);
-  iz = MIN(iz,nbinz-1);
-
-  int ibin = iz*nbiny*nbinx + iy*nbinx + ix;
-  return ibin;
 }
 
 /* ----------------------------------------------------------------------
@@ -1865,14 +1649,14 @@ int FixSurfaceLocal::pt2bin3d(double *pt)
    return indices = list of bin IDs, each from 0 to Nbins-1
 ------------------------------------------------------------------------- */
 
-int FixSurfaceLocal::overlap2bin3d(double *pt, double eps, int *indices)
+int FixSurfaceLocal::overlap_bins_3d(double *pt, double eps, int *indices)
 {
-  int ilo = static_cast<int> ((pt[0]-eps-binlo[0]) * invbinx);
-  int ihi = static_cast<int> ((pt[0]+eps-binlo[0]) * invbinx);
-  int jlo = static_cast<int> ((pt[1]-eps-binlo[1]) * invbiny);
-  int jhi = static_cast<int> ((pt[1]+eps-binlo[1]) * invbiny);
-  int klo = static_cast<int> ((pt[2]-eps-binlo[2]) * invbinz);
-  int khi = static_cast<int> ((pt[2]+eps-binlo[2]) * invbinz);
+  int ilo = static_cast<int> ((pt[0]-eps-bboxlo[0]) * invbinx);
+  int ihi = static_cast<int> ((pt[0]+eps-bboxlo[0]) * invbinx);
+  int jlo = static_cast<int> ((pt[1]-eps-bboxlo[1]) * invbiny);
+  int jhi = static_cast<int> ((pt[1]+eps-bboxlo[1]) * invbiny);
+  int klo = static_cast<int> ((pt[2]-eps-bboxlo[2]) * invbinz);
+  int khi = static_cast<int> ((pt[2]+eps-bboxlo[2]) * invbinz);
 
   ilo = MAX(ilo,0);
   ihi = MIN(ihi,nbinx-1);

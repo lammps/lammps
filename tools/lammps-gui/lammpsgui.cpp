@@ -169,7 +169,7 @@ LammpsGui::LammpsGui(QWidget *parent, const char *filename) :
     ui->textEdit->setMinimumSize(600, 400);
 
     varwindow = new QLabel(QString());
-    varwindow->setWindowTitle("LAMMPS-GUI - Current Variables:");
+    varwindow->setWindowTitle(QString("LAMMPS-GUI - Current Variables - " + current_file));
     varwindow->setWindowIcon(QIcon(":/icons/lammps-icon-128x128.png"));
     varwindow->setMinimumSize(100, 50);
     varwindow->setText("(none)");
@@ -272,7 +272,7 @@ LammpsGui::LammpsGui(QWidget *parent, const char *filename) :
     if (filename) {
         open_file(filename);
     } else {
-        setWindowTitle(QString("LAMMPS-GUI - *unknown*"));
+        setWindowTitle("LAMMPS-GUI - Editor - *unknown*");
     }
     resize(settings.value("mainx", "500").toInt(), settings.value("mainy", "320").toInt());
 
@@ -384,7 +384,7 @@ void LammpsGui::new_document()
     }
     lammps.close();
     lammpsstatus->hide();
-    setWindowTitle(QString("LAMMPS-GUI - *unknown*"));
+    setWindowTitle("LAMMPS-GUI - Editor - *unknown*");
     run_counter = 0;
 }
 
@@ -609,7 +609,7 @@ void LammpsGui::open_file(const QString &fileName)
         ui->textEdit->moveCursor(QTextCursor::Start, QTextCursor::MoveAnchor);
         file.close();
     }
-    setWindowTitle(QString("LAMMPS-GUI - " + current_file));
+    setWindowTitle(QString("LAMMPS-GUI - Editor - " + current_file));
     run_counter = 0;
     ui->textEdit->document()->setModified(false);
     ui->textEdit->setGroupList();
@@ -653,7 +653,7 @@ void LammpsGui::write_file(const QString &fileName)
         QMessageBox::warning(this, "Warning", "Cannot save file: " + file.errorString());
         return;
     }
-    setWindowTitle(QString("LAMMPS-GUI - " + current_file));
+    setWindowTitle(QString("LAMMPS-GUI - Editor - " + current_file));
     QDir::setCurrent(current_dir);
 
     update_recents(path.absoluteFilePath());
@@ -886,7 +886,7 @@ void LammpsGui::logupdate()
                 slideshow->hide();
         } else {
             slideshow->setWindowTitle(
-                QString("LAMMPS-GUI - Slide Show: %1 - Run %2").arg(current_file).arg(run_counter));
+                QString("LAMMPS-GUI - Slide Show - %1 - Run %2").arg(current_file).arg(run_counter));
             if (QSettings().value("viewslide", true).toBool()) slideshow->show();
         }
         slideshow->add_image(imagefile);
@@ -1046,10 +1046,7 @@ void LammpsGui::do_run(bool use_buffer)
     logwindow->setCenterOnScroll(true);
     logwindow->moveCursor(QTextCursor::End);
     logwindow->setWindowTitle(
-        QString("LAMMPS-GUI - Output from running LAMMPS on %1 - %2 - Run  %3")
-            .arg(use_buffer ? "buffer" : "file")
-            .arg(current_file)
-            .arg(run_counter));
+        QString("LAMMPS-GUI - Output - %2 - Run %3").arg(current_file).arg(run_counter));
     logwindow->setWindowIcon(QIcon(":/icons/lammps-icon-128x128.png"));
     QFont text_font;
     text_font.fromString(settings.value("textfont", text_font.toString()).toString());
@@ -1069,10 +1066,7 @@ void LammpsGui::do_run(bool use_buffer)
     if (settings.value("chartreplace", true).toBool()) delete chartwindow;
     chartwindow = new ChartWindow(current_file);
     chartwindow->setWindowTitle(
-        QString("LAMMPS-GUI - Thermo charts from running LAMMPS on %1 - %2 - Run  %3")
-            .arg(use_buffer ? "buffer" : "file")
-            .arg(current_file)
-            .arg(run_counter));
+        QString("LAMMPS-GUI - Charts - %2 - Run %3").arg(current_file).arg(run_counter));
     chartwindow->setWindowIcon(QIcon(":/icons/lammps-icon-128x128.png"));
     chartwindow->setMinimumSize(400, 300);
     shortcut = new QShortcut(QKeySequence(Qt::CTRL | Qt::Key_W), chartwindow);
@@ -1085,7 +1079,7 @@ void LammpsGui::do_run(bool use_buffer)
         chartwindow->hide();
 
     if (slideshow) {
-        slideshow->setWindowTitle("LAMMPS-GUI - Slide Show");
+        slideshow->setWindowTitle(QString("LAMMPS-GUI - Slide Show - " + current_file));
         slideshow->clear();
         slideshow->hide();
     }

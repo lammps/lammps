@@ -16,15 +16,22 @@
 #include "gran_sub_mod_normal.h"
 #include "granular_model.h"
 #include "math_special.h"
+#include "math_const.h"
+
+#include <cmath>
 
 #include <cmath>
 
 using namespace LAMMPS_NS;
 using namespace Granular_NS;
+using namespace MathConst;
 
 using MathSpecial::cube;
 using MathSpecial::powint;
 using MathSpecial::square;
+
+static constexpr double TWOROOTFIVEBYSIX = 1.82574185835055380345;      // 2/sqrt(5/6)
+static constexpr double ROOTTHREEBYTWO = 1.22474487139158894067;        // sqrt(3/2)
 
 /* ----------------------------------------------------------------------
    Default damping model
@@ -131,6 +138,41 @@ void GranSubModDampingTsuji::init()
 /* ---------------------------------------------------------------------- */
 
 double GranSubModDampingTsuji::calculate_forces()
+{
+  // in case argument <= 0 due to precision issues
+  double sqrt1;
+  if (gm->delta > 0.0)
+    sqrt1 = MAX(0.0, gm->meff * gm->Fnormal / gm->delta);
+  else
+    sqrt1 = 0.0;
+  damp_prefactor = damp * sqrt(sqrt1);
+  return -damp_prefactor * gm->vnnr;
+}
+
+/* ----------------------------------------------------------------------
+   Coefficient of restitution damping
+------------------------------------------------------------------------- */
+
+GranSubModDampingCoeffRestitution::GranSubModDampingCoeffRestitution(GranularModel *gm, LAMMPS *lmp) :
+    GranSubModDamping(gm, lmp)
+{
+  allow_cohesion = 0;
+}
+
+void GranSubModDampingCoeffRestitution::init()
+{
+  // Calculate prefactor, assume Hertzian as default
+  double cor = gm->normal_model->get_damp();
+  double logcor = log(cor);
+  if (gm->normal_model->name == "hooke") {
+    damp = -2 * logcor / sqrt(MY_PI * MY_PI + logcor * logcor);
+  } else {
+    damp = -ROOTTHREEBYTWO * TWOROOTFIVEBYSIX * logcor;
+    damp /= sqrt(MY_PI * MY_PI + logcor * logcor);
+  }
+}
+
+double GranSubModDampingCoeffRestitution::calculate_forces()
 {
   // in case argument <= 0 due to precision issues
   double sqrt1;

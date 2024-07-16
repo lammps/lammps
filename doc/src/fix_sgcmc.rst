@@ -15,7 +15,7 @@ Syntax
 * every_nsteps = number of MD steps between MC cycles
 * swap_fraction = fraction of a full MC cycle carried out at each call (a value of 1.0 will perform as many trial moves as there are atoms)
 * temperature = temperature that enters Boltzmann factor in Metropolis criterion (usually the same as MD temperature)
-* deltamu = chemical potential difference(s) (`N-1` values must be provided, with `N` being the number of elements)
+* deltamu = `N-1` chemical potential differences :math:`\mu_1-\mu_2, \ldots, \mu_1-\mu_N` (`N` is the number of atom types)
 * Zero or more keyword/value pairs may be appended to fix definition line:
 
   .. parsed-literal::
@@ -23,7 +23,7 @@ Syntax
      keyword = *variance* or *randseed* or *window_moves* or *window_size*
        *variance* kappa conc1 [conc2] ... [concN]
          kappa = variance constraint parameter
-         conc1,conc2,...  = target concentration(s) in the range 0.0-1.0 (*N-1* values must be provided, with *N* being the number of elements)
+         `c_2`, `c_3`,..., `c_N` = `N-1` target concentration fractions
        *randseed* N
          N = seed for pseudo random number generator
        *window_moves* N
@@ -90,11 +90,10 @@ the simulation, e.g., to speed up equilibration at low temperatures.
 
 ------------
 
-The parameter *deltamu* is used to set the chemical potential difference
-in the SGC MC algorithm (see Eq. 16 in :ref:`Sadigh1 <Sadigh1>`). By
-convention it is the difference of the chemical potentials of elements
-`B`, `C` ..., with respect to element A. When the simulation includes
-`N` elements, `N-1` values must be specified.
+The parameter *deltamu* is used to set the chemical potential differences
+in the SGC MC algorithm (see Eq. 16 in :ref:`Sadigh1 <Sadigh1>`).
+The `N-1` differences are defined as :math:`\mu_1-\mu_2, \ldots, \mu_1-\mu_N`,
+where `N` is the number of atom types.
 
 ------------
 
@@ -104,12 +103,12 @@ the effective average constraint in the parallel VC-SGC MC algorithm
 (parameter :math:`\delta\mu_0` in Eq. (20) of :ref:`Sadigh1
 <Sadigh1>`). The parameter *kappa* specifies the variance constraint
 (see Eqs. (20-21) in :ref:`Sadigh1 <Sadigh1>`).
-
-The parameter *conc* sets the target concentration (parameter
-:math:`c_0` in Eqs.  (20-21) of :ref:`Sadigh1 <Sadigh1>`). The atomic
-concentrations refer to components `B`, `C` ..., with `A` being set
-automatically. When the simulation includes `N` elements, `N-1`
-concentration values must be specified.
+The parameter *conc* sets the `N-1` target atomic concentration
+fractions (parameter :math:`c_0` in Eqs.  (20-21) of :ref:`Sadigh1 <Sadigh1>`)
+:math:`0 \le c_2, \ldots, c_N \le 1`, with
+:math:`c_1 = 1 - \Sigma_{i=2}^N c_i`.
+When the simulation includes `N` atom types (elements),
+`N-1` concentration values must be specified.
 
 ------------
 
@@ -143,10 +142,12 @@ components of the vector represent the following quantities:
 
 * 1 = The absolute number of accepted trial swaps during the last MC step
 * 2 = The absolute number of rejected trial swaps during the last MC step
-* 3 = The current global concentration of species *A* (= number of atoms of type 1 / total number of atoms)
-* 4 = The current global concentration of species *B* (= number of atoms of type 2 / total number of atoms)
+* 3 = Current global concentration `c_1` (= number of atoms of type 1 / total number of atoms)
+* 4 = Current global concentration `c_2` (= number of atoms of type 2 / total number of atoms)
 * ...
-* N+2: The current global concentration of species *X* (= number of atoms of type *N* / total number of atoms)
+* N+2: Current global concentration `c_N` (= number of atoms of type *N* / total number of atoms)
+
+The vector values calculated by this fix are "intensive".
 
 Restrictions
 """"""""""""

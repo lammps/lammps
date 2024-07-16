@@ -8,7 +8,7 @@ Syntax
 
 .. parsed-literal::
 
-   fix ID group nonaffine/displacement style args reference/style nstep
+   fix ID group nonaffine/displacement style args reference/style nstep keyword values
 
 * ID, group are documented in :doc:`fix <fix>` command
 * nonaffine/displacement = style name of this fix command
@@ -31,6 +31,13 @@ Syntax
        *fixed* = use a fixed reference frame at *nstep*
        *update* = update the reference frame every *nstep* timesteps
        *offset* = update the reference frame *nstep* timesteps before calculating the nonaffine displacement
+
+* zero or more keyword/value pairs may be appended
+
+  .. parsed-literal::
+
+       *z/min* values = zmin
+         zmin = minimum coordination number to calculate D2min
 
 Examples
 """"""""
@@ -75,6 +82,12 @@ and a strain tensor is calculated :math:`E = F F^{T} - I` where :math:`I`
 is the identity tensor. This calculation is only performed on timesteps that
 are a multiple of *nevery* (including timestep zero). Data accessed before
 this occurs will simply be zeroed.
+
+For particles with low coordination numbers, calculations of :math:`D^2_\mathrm{min}`
+may not be accurate. An optional minimum coordination number can be defined using
+the *z/min* keyword. If any particle has fewer than the specified number of particles
+in the cutoff distance or in contact, the above calculations will be skipped and the
+corresponding peratom array entries will be zero.
 
 The *integrated* style simply integrates the velocity of particles
 every timestep to calculate a displacement. This style only works if

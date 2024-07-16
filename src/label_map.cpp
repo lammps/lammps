@@ -14,6 +14,7 @@
 #include "label_map.h"
 
 #include "atom.h"
+#include "citeme.h"
 #include "comm.h"
 #include "error.h"
 #include "force.h"
@@ -21,6 +22,19 @@
 #include <cstring>
 
 using namespace LAMMPS_NS;
+
+static const char cite_type_label_framework[] =
+    "Type Label Framework: https://doi.org/10.1021/acs.jpcb.3c08419\n\n"
+    "@Article{Gissinger24,\n"
+    " author = {Jacob R. Gissinger, Ilia Nikiforov, Yaser Afshar, Brendon Waters, Moon-ki Choi,"
+    " Daniel S. Karls, Alexander Stukowski, Wonpil Im, Hendrik Heinz, Axel Kohlmeyer, and Ellad B. Tadmor},\n"
+    " title = {Type Label Framework for Bonded Force Fields in LAMMPS},\n"
+    " journal = {J. Phys. Chem. B},\n"
+    " year =    2024,\n"
+    " volume =  128,\n"
+    " number =  13,\n"
+    " pages =   {3282–-3297}\n"
+    "}\n\n";
 
 /* ---------------------------------------------------------------------- */
 
@@ -30,6 +44,8 @@ LabelMap::LabelMap(LAMMPS *_lmp, int _natomtypes, int _nbondtypes, int _nanglety
     natomtypes(_natomtypes), nbondtypes(_nbondtypes), nangletypes(_nangletypes),
     ndihedraltypes(_ndihedraltypes), nimpropertypes(_nimpropertypes)
 {
+  if (lmp->citeme) lmp->citeme->add(cite_type_label_framework);
+
   lmap2lmap.atom = lmap2lmap.bond = lmap2lmap.angle = lmap2lmap.dihedral = lmap2lmap.improper =
       nullptr;
   reset_type_labels();

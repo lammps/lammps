@@ -43,6 +43,8 @@ fi
 
 # list of files with dependcies
 
+action  constants_oxdna.cpp
+action  constants_oxdna.h
 action  atom_vec_oxdna.cpp
 action  atom_vec_oxdna.h
 action  bond_oxdna_fene.cpp bond_fene.h

@@ -19,11 +19,13 @@
 
 #include "atom.h"
 #include "comm.h"
+#include "constants_oxdna.h"
 #include "error.h"
 #include "force.h"
 #include "math_extra.h"
 #include "memory.h"
 #include "neigh_list.h"
+#include "potential_file_reader.h"
 
 #include <cmath>
 #include <cstring>
@@ -36,6 +38,7 @@ PairOxdna2Dh::PairOxdna2Dh(LAMMPS *lmp) : Pair(lmp)
 {
   single_enable = 0;
   writedata = 1;
+  trim_flag = 0;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -65,7 +68,8 @@ PairOxdna2Dh::~PairOxdna2Dh()
 void PairOxdna2Dh::compute_interaction_sites(double e1[3],
   double e2[3], double /*e3*/[3], double r[3])
 {
-  double d_cs_x=-0.34, d_cs_y=+0.3408;
+  double d_cs_x = ConstantsOxdna::get_d_cs_x();
+  double d_cs_y = ConstantsOxdna::get_d_cs_y();
 
   r[0] = d_cs_x*e1[0] + d_cs_y*e2[0];
   r[1] = d_cs_x*e1[1] + d_cs_y*e2[1];
@@ -302,7 +306,32 @@ void PairOxdna2Dh::coeff(int narg, char **arg)
 
   T = utils::numeric(FLERR,arg[2],false,lmp);
   rhos_dh_one = utils::numeric(FLERR,arg[3],false,lmp);
-  qeff_dh_one  = utils::numeric(FLERR,arg[4],false,lmp);
+
+  if (utils::strmatch(arg[4], "^[a-zA-Z0-9_]*\\.cgdna$")) { // if last arg is a potential file
+    if (comm->me == 0) { // read value from potential file
+      PotentialFileReader reader(lmp, arg[4], "oxdna potential", " (dh)");
+      char * line;
+      std::string iloc, jloc, potential_name;
+      while ((line = reader.next_line())) {
+        try {
+          ValueTokenizer values(line);
+          iloc = values.next_string();
+          jloc = values.next_string();
+          potential_name = values.next_string();
+          if (iloc == arg[0] && jloc == arg[1] && potential_name == "dh") {
+            qeff_dh_one = values.next_double();
+            break;
+          } else continue;
+        } catch (std::exception &e) {
+          error->one(FLERR, "Problem parsing oxDNA2 potential file: {}", e.what());
+        }
+      }
+      if ((iloc != arg[0]) || (jloc != arg[1]) || (potential_name != "dh"))
+        error->one(FLERR, "No corresponding dh potential found in file {} for pair type {} {}",
+                   arg[4], arg[0], arg[1]);
+    }
+    MPI_Bcast(&qeff_dh_one, 1, MPI_DOUBLE, 0, world);
+  } else qeff_dh_one = utils::numeric(FLERR,arg[4],false,lmp); // else, it is effective charge
 
   double lambda_dh_one, kappa_dh_one, qeff_dh_pf_one;
   double b_dh_one, cut_dh_ast_one, cut_dh_c_one;
@@ -314,7 +343,8 @@ void PairOxdna2Dh::coeff(int narg, char **arg)
     The numerical factor is the Debye length in s.u.
     lambda(T = 300 K = 0.1) =
     sqrt(eps_0 * eps_r * k_B * T/(2 * N_A * e^2 * 1000 mol/m^3))
-          * 1/oxDNA_energy_unit
+          * 1/oxDNA_length_unit for LJ units, or;
+          * [(8.518 * sqrt(k_B / 4.142e-20))/oxDNA_length_unit] for real units
     (see B. Snodin et al., J. Chem. Phys. 142, 234901 (2015).)
 
   We use
@@ -327,7 +357,7 @@ void PairOxdna2Dh::coeff(int narg, char **arg)
     oxDNA_length_unit = 8.518e-10 m
   */
 
-  lambda_dh_one = 0.3616455075438555*sqrt(T/0.1/rhos_dh_one);
+  lambda_dh_one = ConstantsOxdna::get_lambda_dh_one_prefactor()*sqrt(T/0.1/rhos_dh_one);
   kappa_dh_one = 1.0/lambda_dh_one;
 
   // prefactor in DH interaction containing qeff^2
@@ -336,14 +366,15 @@ void PairOxdna2Dh::coeff(int narg, char **arg)
     NOTE:
       The numerical factor is
       qeff_dh_pf = e^2/(4 * pi * eps_0 * eps_r)
-                    * 1/(oxDNA_energy_unit * oxDNA_length_unit)
+                    * 1/(oxDNA_energy_unit * oxDNA_length_unit) for LJ units, or;
+                    * [(~5.96169* 8.518)/(oxDNA_energy_unit * oxDNA_length_unit)] for real units
       (see B. Snodin et al., J. Chem. Phys. 142, 234901 (2015).)
 
     In addition to the above units we use
       oxDNA_energy_unit = 4.142e-20 J
   */
 
-  qeff_dh_pf_one = 0.08173808693529228*qeff_dh_one*qeff_dh_one;
+  qeff_dh_pf_one = ConstantsOxdna::get_qeff_dh_pf_one_prefactor()*qeff_dh_one*qeff_dh_one;
 
   // smoothing parameters - determined through continuity and differentiability
 

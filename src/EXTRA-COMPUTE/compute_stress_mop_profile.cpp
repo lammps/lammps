@@ -133,8 +133,8 @@ ComputeStressMopProfile::ComputeStressMopProfile(LAMMPS *lmp, int narg, char **a
 
   // 3D only
 
-  if (domain->dimension < 3)
-    error->all(FLERR, "Compute stress/mop/profile incompatible with simulation dimension");
+  if (domain->dimension == 2 && dir == Z)
+    error->all(FLERR, "Compute stress/mop/profile incompatible with Z in 2d system");
 
   // orthogonal simulation box
 
@@ -198,11 +198,14 @@ void ComputeStressMopProfile::init()
   ftm2v = force->ftm2v;
 
   // plane area
-
-  area = 1;
-  int i;
-  for (i = 0; i < 3; i++) {
-    if (i != dir) area = area * domain->prd[i];
+  if (domain->dimension == 3) {
+    area = 1;
+    int i;
+    for (i = 0; i < 3; i++) {
+      if (i != dir) area = area * domain->prd[i];
+    }
+  } else {
+    area = (dir == X) ? domain->prd[1] : domain->prd[0];
   }
 
   // timestep Value

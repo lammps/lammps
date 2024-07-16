@@ -17,7 +17,7 @@ Syntax
 * one or more keyword/value pairs may be appended
 
 * these keywords apply to various dump styles
-* keyword = *append* or *at* or *balance* or *buffer* or *colname* or *delay* or *element* or *every* or *every/time* or *fileper* or *first* or *flush* or *format* or *header* or *image* or *label* or *maxfiles* or *nfile* or *pad* or *pbc* or *precision* or *region* or *refresh* or *scale* or *sfactor* or *skip* or *sort* or *tfactor* or *thermo* or *thresh* or *time* or *triclinic/general* or *units* or *unwrap*
+* keyword = *append* or *at* or *balance* or *buffer* or *colname* or *delay* or *element* or *every* or *every/time* or *fileper* or *first* or *flush* or *format* or *header* or *image* or *label* or *maxfiles* or *nfile* or *pad* or *pbc* or *precision* or *region* or *refresh* or *scale* or *sfactor* or *skip* or *sort* or *tfactor* or *thermo* or *thresh* or *time* or *triclinic/general* or *types* or *units* or *unwrap*
 
   .. parsed-literal::
 
@@ -81,6 +81,7 @@ Syntax
          these 3 args can be replaced by the word "none" to turn off thresholding
        *time* arg = *yes* or *no*
        *triclinic/general* arg = *yes* or *no*
+       *types* value = *numeric* or *labels*
        *units* arg = *yes* or *no*
        *unwrap* arg = *yes* or *no*
 
@@ -849,6 +850,13 @@ The default setting is *no*\ .
 
 ----------
 
+The *types* keyword applies only to the dump xyz style. If this keyword is
+used with a value of *numeric*, then numeric atom types are printed in the
+xyz file (default). If the value *labels* is specified, then
+:doc:`type labels <Howto_type_labels>` are printed for atom types.
+
+----------
+
 The *triclinic/general* keyword only applies to the dump *atom* and
 *custom* styles.  It can only be used with a value of *yes* if the
 simulation box was created as a general triclinic box.  See the
@@ -960,11 +968,11 @@ The option defaults are
 * sort = id for dump styles *dcd*, *xtc*, and *xyz*
 * thresh = none
 * time = no
-* triclinic/general no
+* triclinic/general = no
+* types = numeric
 * units = no
 * unwrap = no
 
 * compression_level = 9 (gz variants)
 * compression_level = 0 (zstd variants)
 * checksum = yes (zstd variants)
-

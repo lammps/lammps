@@ -105,6 +105,13 @@ void FixPythonInvoke::end_of_step()
 
 /* ---------------------------------------------------------------------- */
 
+void FixPythonInvoke::setup(int vflag)
+{
+  if (selected_callback == POST_FORCE) post_force(vflag);
+}
+
+/* ---------------------------------------------------------------------- */
+
 void FixPythonInvoke::post_force(int vflag)
 {
   if (update->ntimestep % nevery != 0) return;

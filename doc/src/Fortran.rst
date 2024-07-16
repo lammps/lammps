@@ -305,6 +305,8 @@ of the contents of the :f:mod:`LIBLAMMPS` Fortran interface to LAMMPS.
    :ftype extract_setting: function
    :f extract_global: :f:func:`extract_global`
    :ftype extract_global: function
+   :f map_atom: :f:func:`map_atom`
+   :ftype map_atom: function
    :f extract_atom: :f:func:`extract_atom`
    :ftype extract_atom: function
    :f extract_compute: :f:func:`extract_compute`

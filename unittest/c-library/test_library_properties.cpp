@@ -1,7 +1,9 @@
 // unit tests for checking and changing simulation properties through the library interface
 
-#include "lammps.h"
 #include "library.h"
+
+#include "atom.h"
+#include "lammps.h"
 #include "lmptype.h"
 #include "platform.h"
 #include <string>
@@ -14,6 +16,7 @@
 #define STRINGIFY(val) XSTR(val)
 #define XSTR(val) #val
 
+using ::LAMMPS_NS::Atom;
 using ::LAMMPS_NS::bigint;
 using ::LAMMPS_NS::tagint;
 using ::LAMMPS_NS::platform::path_join;
@@ -373,18 +376,18 @@ TEST_F(LibraryProperties, global)
     EXPECT_EQ((*i_ptr), 2);
 #else
     EXPECT_EQ(lammps_extract_global_datatype(lmp, "ntimestep"), LAMMPS_INT64);
-    int64_t *b_ptr = (int64_t *)lammps_extract_global(lmp, "ntimestep");
+    auto *b_ptr = (int64_t *)lammps_extract_global(lmp, "ntimestep");
     EXPECT_EQ((*b_ptr), 2);
 #endif
 
     EXPECT_EQ(lammps_extract_global_datatype(lmp, "dt"), LAMMPS_DOUBLE);
-    double *d_ptr = (double *)lammps_extract_global(lmp, "dt");
+    auto *d_ptr = (double *)lammps_extract_global(lmp, "dt");
     EXPECT_DOUBLE_EQ((*d_ptr), 0.1);
 
     EXPECT_EQ(lammps_extract_global_datatype(lmp, "special_lj"), LAMMPS_DOUBLE);
     EXPECT_EQ(lammps_extract_global_datatype(lmp, "special_coul"), LAMMPS_DOUBLE);
-    double *special_lj   = (double *)lammps_extract_global(lmp, "special_lj");
-    double *special_coul = (double *)lammps_extract_global(lmp, "special_coul");
+    auto *special_lj   = (double *)lammps_extract_global(lmp, "special_lj");
+    auto *special_coul = (double *)lammps_extract_global(lmp, "special_coul");
     EXPECT_DOUBLE_EQ(special_lj[0], 1.0);
     EXPECT_DOUBLE_EQ(special_lj[1], 0.0);
     EXPECT_DOUBLE_EQ(special_lj[2], 0.5);
@@ -400,6 +403,68 @@ TEST_F(LibraryProperties, global)
     EXPECT_DOUBLE_EQ(special_coul[1], 1.0);
     EXPECT_DOUBLE_EQ(special_coul[2], 1.0);
     EXPECT_DOUBLE_EQ(special_coul[3], 1.0);
+
+    EXPECT_EQ(lammps_extract_global_datatype(lmp, "map_style"), LAMMPS_INT);
+#if defined(LAMMPS_BIGBIG)
+    EXPECT_EQ(lammps_extract_global_datatype(lmp, "map_tag_max"), LAMMPS_BIGINT);
+#else
+    EXPECT_EQ(lammps_extract_global_datatype(lmp, "map_tag_max"), LAMMPS_INT);
+#endif
+    EXPECT_EQ(lammps_extract_global_datatype(lmp, "sametag"), LAMMPS_INT);
+    EXPECT_EQ(lammps_extract_global_datatype(lmp, "sortfreq"), LAMMPS_INT);
+    EXPECT_EQ(lammps_extract_global_datatype(lmp, "nextsort"), LAMMPS_BIGINT);
+    int *sametag  = (int *)lammps_extract_global(lmp, "sametag");
+    int map_style = *(int *)lammps_extract_global(lmp, "map_style");
+    EXPECT_EQ(map_style, Atom::MAP_ARRAY);
+    EXPECT_NE(sametag, nullptr);
+
+    auto *tags        = (tagint *)lammps_extract_atom(lmp, "id");
+    const tagint sometags[] = {1, 5, 10, 15, 20};
+    for (const auto &sometag : sometags) {
+        int idx = lammps_map_atom(lmp, (const void *)&sometag);
+        EXPECT_EQ(sometag, tags[idx]);
+        int nextidx = sametag[idx];
+        if (nextidx >= 0) {
+            EXPECT_EQ(sometag, tags[nextidx]);
+        }
+    }
+
+    if (!verbose) ::testing::internal::CaptureStdout();
+    lammps_command(lmp, "clear");
+    if (!verbose) ::testing::internal::GetCapturedStdout();
+    map_style = *(int *)lammps_extract_global(lmp, "map_style");
+    EXPECT_EQ(map_style, Atom::MAP_NONE);
+    sametag = (int *)lammps_extract_global(lmp, "sametag");
+    EXPECT_EQ(sametag, nullptr);
+    if (!verbose) ::testing::internal::CaptureStdout();
+    lammps_command(lmp, "atom_modify map yes");
+    lammps_command(lmp, "region box block 0 1 0 1 0 1");
+    lammps_command(lmp, "create_box 1 box");
+    lammps_command(lmp, "mass 1 1.0");
+    lammps_command(lmp, "run 0 post no");
+    if (!verbose) ::testing::internal::GetCapturedStdout();
+    map_style = *(int *)lammps_extract_global(lmp, "map_style");
+    EXPECT_EQ(map_style, Atom::MAP_YES);
+    if (!verbose) ::testing::internal::CaptureStdout();
+    lammps_command(lmp, "clear");
+    lammps_command(lmp, "atom_modify map hash");
+    lammps_command(lmp, "region box block 0 1 0 1 0 1");
+    lammps_command(lmp, "create_box 1 box");
+    lammps_command(lmp, "mass 1 1.0");
+    lammps_command(lmp, "run 0 post no");
+    if (!verbose) ::testing::internal::GetCapturedStdout();
+    map_style = *(int *)lammps_extract_global(lmp, "map_style");
+    EXPECT_EQ(map_style, Atom::MAP_HASH);
+    if (!verbose) ::testing::internal::CaptureStdout();
+    lammps_command(lmp, "clear");
+    lammps_command(lmp, "atom_modify map array");
+    lammps_command(lmp, "region box block 0 1 0 1 0 1");
+    lammps_command(lmp, "create_box 1 box");
+    lammps_command(lmp, "mass 1 1.0");
+    lammps_command(lmp, "run 0 post no");
+    if (!verbose) ::testing::internal::GetCapturedStdout();
+    map_style = *(int *)lammps_extract_global(lmp, "map_style");
+    EXPECT_EQ(map_style, Atom::MAP_ARRAY);
 };
 
 TEST_F(LibraryProperties, neighlist)
@@ -590,7 +655,7 @@ TEST_F(AtomProperties, invalid)
 TEST_F(AtomProperties, mass)
 {
     EXPECT_EQ(lammps_extract_atom_datatype(lmp, "mass"), LAMMPS_DOUBLE);
-    double *mass = (double *)lammps_extract_atom(lmp, "mass");
+    auto *mass = (double *)lammps_extract_atom(lmp, "mass");
     ASSERT_NE(mass, nullptr);
     ASSERT_DOUBLE_EQ(mass[1], 3.0);
 }
@@ -598,7 +663,7 @@ TEST_F(AtomProperties, mass)
 TEST_F(AtomProperties, id)
 {
     EXPECT_EQ(lammps_extract_atom_datatype(lmp, "id"), LAMMPS_TAGINT);
-    tagint *id = (tagint *)lammps_extract_atom(lmp, "id");
+    auto *id = (tagint *)lammps_extract_atom(lmp, "id");
     ASSERT_NE(id, nullptr);
     ASSERT_EQ(id[0], 1);
     ASSERT_EQ(id[1], 2);
@@ -616,7 +681,7 @@ TEST_F(AtomProperties, type)
 TEST_F(AtomProperties, position)
 {
     EXPECT_EQ(lammps_extract_atom_datatype(lmp, "x"), LAMMPS_DOUBLE_2D);
-    double **x = (double **)lammps_extract_atom(lmp, "x");
+    auto **x = (double **)lammps_extract_atom(lmp, "x");
     ASSERT_NE(x, nullptr);
     EXPECT_DOUBLE_EQ(x[0][0], 1.0);
     EXPECT_DOUBLE_EQ(x[0][1], 1.0);

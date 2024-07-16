@@ -136,8 +136,8 @@ TEST_F(LAMMPS_configuration, has_package)
     };
     // clang-format on
 
-    for (std::size_t i = 0; i < pkg_name.size(); i++)
-        EXPECT_EQ(f_lammps_has_package(pkg_name[i].c_str()), Info::has_package(pkg_name[i]));
+    for (const auto &i : pkg_name)
+        EXPECT_EQ(f_lammps_has_package(i.c_str()), Info::has_package(i));
 }
 
 TEST_F(LAMMPS_configuration, package_count)

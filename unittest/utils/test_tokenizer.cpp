@@ -173,6 +173,49 @@ TEST(Tokenizer, default_separators)
     ASSERT_EQ(t.count(), 2);
 }
 
+TEST(Tokenizer, contains)
+{
+    Tokenizer values("test word");
+    ASSERT_TRUE(values.contains("test"));
+    ASSERT_TRUE(values.contains("word"));
+    values = Tokenizer("Triangles");
+    ASSERT_TRUE(values.contains("angles"));
+    ASSERT_TRUE(values.contains("Triangles"));
+}
+
+TEST(Tokenizer, not_contains)
+{
+    Tokenizer values("test word");
+    ASSERT_FALSE(values.contains("test2"));
+}
+
+TEST(Tokenizer, matches)
+{
+    Tokenizer values("test word");
+    ASSERT_TRUE(values.matches("test"));
+    ASSERT_TRUE(values.matches("^test"));
+    ASSERT_TRUE(values.matches("word"));
+    ASSERT_TRUE(values.matches("word$"));
+    ASSERT_TRUE(values.matches("^\\s*\\S+\\s+word"));
+    values = Tokenizer("Triangles");
+    ASSERT_TRUE(values.matches("^\\s*Triangles\\s*$"));
+    values = Tokenizer("\t20\tatoms");
+    ASSERT_TRUE(values.matches("^\\s*\\d+\\s+atoms\\s*$"));
+}
+
+TEST(Tokenizer, not_matches)
+{
+    Tokenizer values("test word");
+    ASSERT_FALSE(values.matches("test2"));
+    ASSERT_FALSE(values.matches("^word"));
+    ASSERT_FALSE(values.matches("^ "));
+    ASSERT_FALSE(values.matches(" $"));
+    values = Tokenizer("Triangles");
+    ASSERT_FALSE(values.matches("^\\s*\\S+\\s+angles"));
+    values = Tokenizer("\t0x20\tatoms");
+    ASSERT_FALSE(values.matches("^\\s*\\d+\\s+atoms\\s*$"));
+}
+
 TEST(Tokenizer, as_vector1)
 {
     Tokenizer t(" \r\n test \t word \f");
@@ -338,12 +381,42 @@ TEST(ValueTokenizer, contains)
     ValueTokenizer values("test word");
     ASSERT_TRUE(values.contains("test"));
     ASSERT_TRUE(values.contains("word"));
+    values = ValueTokenizer("Triangles");
+    ASSERT_TRUE(values.contains("angles"));
+    ASSERT_TRUE(values.contains("Triangles"));
 }
 
 TEST(ValueTokenizer, not_contains)
 {
     ValueTokenizer values("test word");
     ASSERT_FALSE(values.contains("test2"));
+}
+
+TEST(ValueTokenizer, matches)
+{
+    ValueTokenizer values("test word");
+    ASSERT_TRUE(values.matches("test"));
+    ASSERT_TRUE(values.matches("^test"));
+    ASSERT_TRUE(values.matches("word"));
+    ASSERT_TRUE(values.matches("word$"));
+    ASSERT_TRUE(values.matches("^\\s*\\S+\\s+word"));
+    values = ValueTokenizer("Triangles");
+    ASSERT_TRUE(values.matches("^\\s*Triangles\\s*$"));
+    values = ValueTokenizer("\t20\tatoms");
+    ASSERT_TRUE(values.matches("^\\s*\\d+\\s+atoms\\s*$"));
+}
+
+TEST(ValueTokenizer, not_matches)
+{
+    ValueTokenizer values("test word");
+    ASSERT_FALSE(values.matches("test2"));
+    ASSERT_FALSE(values.matches("^word"));
+    ASSERT_FALSE(values.matches("^ "));
+    ASSERT_FALSE(values.matches(" $"));
+    values = ValueTokenizer("Triangles");
+    ASSERT_FALSE(values.matches("^\\s*\\S+\\s+angles"));
+    values = ValueTokenizer("\t0x20\tatoms");
+    ASSERT_FALSE(values.matches("^\\s*\\d+\\s+atoms\\s*$"));
 }
 
 TEST(ValueTokenizer, missing_int)

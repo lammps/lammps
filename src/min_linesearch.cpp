@@ -686,7 +686,7 @@ int MinLineSearch::linemin_forcezero(double eoriginal, double &alpha)
   // choosing the initial alpha that we'll use
   // rough estimate that'll decrease energy to 1/10
 
-  alpha_init = 0.1*fabs(eoriginal)/fdothall;
+  alpha_init = MAX(EPS_QUAD, 0.1*fabs(eoriginal)/fdothall);
 
   // initialize aplha to 0.0
 

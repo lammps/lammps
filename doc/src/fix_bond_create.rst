@@ -17,9 +17,9 @@ Syntax
 * ID, group-ID are documented in :doc:`fix <fix>` command
 * bond/create = style name of this fix command
 * Nevery = attempt bond creation every this many steps
-* itype,jtype = atoms of itype can bond to atoms of jtype
+* itype,jtype = atoms of itype can bond to atoms of jtype (1-Ntypes or type label)
 * Rmin = 2 atoms separated by less than Rmin can bond (distance units)
-* bondtype = type of created bonds
+* bondtype = type of created bonds (integer or type label)
 * zero or more keyword/value pairs may be appended to args
 * keyword = *iparam* or *jparam* or *prob* or *atype* or *dtype* or *itype* or *aconstrain*
 
@@ -27,19 +27,19 @@ Syntax
 
        *iparam* values = maxbond, newtype
          maxbond = max # of bonds of bondtype the itype atom can have
-         newtype = change the itype atom to this type when maxbonds exist
+         newtype = change the itype atom to this type when maxbonds exist (1-Ntypes or type label)
        *jparam* values = maxbond, newtype
          maxbond = max # of bonds of bondtype the jtype atom can have
-         newtype = change the jtype atom to this type when maxbonds exist
+         newtype = change the jtype atom to this type when maxbonds exist (1-Ntypes or type label)
        *prob* values = fraction seed
          fraction = create a bond with this probability if otherwise eligible
          seed = random number seed (positive integer)
        *atype* value = angletype
-         angletype = type of created angles
+         angletype = type of created angles (integer or type label)
        *dtype* value = dihedraltype
-         dihedraltype = type of created dihedrals
+         dihedraltype = type of created dihedrals (integer or type label)
        *itype* value = impropertype
-         impropertype = type of created impropers
+         impropertype = type of created impropers (integer or type label)
        *aconstrain* value = amin amax
          amin = minimal angle at which new bonds can be created
          amax = maximal angle at which new bonds can be created
@@ -53,6 +53,10 @@ Examples
    fix 5 all bond/create 1 3 3 0.8 1 prob 0.5 85784 iparam 2 3
    fix 5 all bond/create 1 3 3 0.8 1 prob 0.5 85784 iparam 2 3 atype 1 dtype 2
    fix 5 all bond/create/angle 10 1 2 1.122 1 aconstrain 120 180 prob 1 4928459 iparam 2 1 jparam 2 2
+
+   labelmap atom 1 c1 2 n2
+   labelmap bond 1 c1-n2
+   fix 5 all bond/create 10 c1 n2 0.8 c1-n2
 
 Description
 """""""""""

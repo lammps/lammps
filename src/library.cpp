@@ -1939,7 +1939,7 @@ void *lammps_extract_global(void *handle, const char *name)
 
 /* ---------------------------------------------------------------------- */
 
-/** Get data dimension of pair style data accesible via Pair::extract().
+/** Get data dimension of pair style data accessible via Pair::extract().
  *
 \verbatim embed:rst
 
@@ -1972,7 +1972,7 @@ int lammps_extract_pair_dimension(void * handle, const char *name)
 
 /* ---------------------------------------------------------------------- */
 
-/** Get extract pair style data accesible via Pair::extract().
+/** Get extract pair style data accessible via Pair::extract().
  *
 \verbatim embed:rst
 

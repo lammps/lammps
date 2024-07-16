@@ -1,7 +1,7 @@
 Using the LAMMPS GUI
 ====================
 
-This document describes **LAMMPS GUI version 1.5**.
+This document describes **LAMMPS GUI version 1.6**.
 
 -----
 

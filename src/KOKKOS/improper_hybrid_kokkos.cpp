@@ -89,7 +89,7 @@ void ImproperHybridKokkos::compute(int eflag, int vflag)
         maximproper_all = h_nimproperlist[m] + EXTRA;
 
     if (k_improperlist.d_view.extent(1) < maximproper_all)
-      MemKK::realloc_kokkos(k_improperlist, "improper_hybrid:improperlist", nstyles, maximproper_all, 3);
+      MemKK::realloc_kokkos(k_improperlist, "improper_hybrid:improperlist", nstyles, maximproper_all, 5);
     auto d_improperlist = k_improperlist.d_view;
 
     Kokkos::deep_copy(d_nimproperlist,0);

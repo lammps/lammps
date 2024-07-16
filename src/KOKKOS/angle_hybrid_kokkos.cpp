@@ -88,7 +88,7 @@ void AngleHybridKokkos::compute(int eflag, int vflag)
         maxangle_all = h_nanglelist[m] + EXTRA;
 
     if (k_anglelist.d_view.extent(1) < maxangle_all)
-      MemKK::realloc_kokkos(k_anglelist, "angle_hybrid:anglelist", nstyles, maxangle_all, 3);
+      MemKK::realloc_kokkos(k_anglelist, "angle_hybrid:anglelist", nstyles, maxangle_all, 4);
     auto d_anglelist = k_anglelist.d_view;
 
     Kokkos::deep_copy(d_nanglelist,0);

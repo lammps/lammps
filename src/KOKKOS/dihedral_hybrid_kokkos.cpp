@@ -88,7 +88,7 @@ void DihedralHybridKokkos::compute(int eflag, int vflag)
         maxdihedral_all = h_ndihedrallist[m] + EXTRA;
 
     if (k_dihedrallist.d_view.extent(1) < maxdihedral_all)
-      MemKK::realloc_kokkos(k_dihedrallist, "dihedral_hybrid:dihedrallist", nstyles, maxdihedral_all, 3);
+      MemKK::realloc_kokkos(k_dihedrallist, "dihedral_hybrid:dihedrallist", nstyles, maxdihedral_all, 5);
     auto d_dihedrallist = k_dihedrallist.d_view;
 
     Kokkos::deep_copy(d_ndihedrallist,0);

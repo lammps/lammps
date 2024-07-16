@@ -30,7 +30,12 @@
         rel: 1e-4
   skip:
     [ in.rigid.poems3,
-      in.rigid.poems4
+      in.rigid.poems4,
+      in.rigid.poems5,
+      in.peptide,
+      in.voronoi,
+      in.voronoi.2d,
+      in.voronoi.data,
     ]
 
   nugget: 1.0

@@ -293,6 +293,8 @@ def iterate(lmp_binary, input_list, config, results, removeAnnotatedInput=False)
     # skip the input file if listed
     if 'skip' in config:
         if input in config['skip']:
+            logger.info(f"SKIPPED: {input} as specified in the configuration file {configFileName}")
+            test_id = test_id + 1
             continue
 
     str_t = "\nRunning " + input + f" ({test_id+1}/{num_tests})"
@@ -320,29 +322,33 @@ def iterate(lmp_binary, input_list, config, results, removeAnnotatedInput=False)
                   str_t = "\nRunning " + input_test + f" ({test_id+1}/{num_tests})"
     else:
         input_test = input
-
     print(str_t)
     print(f"-"*len(str_t))
+    logger.info(str_t)
+    logger.info(f"-"*len(str_t))
 
     # check if a log file exists in the current folder: log.DDMMMYY.basename.[nprocs]
     basename = input_test.replace('in.','')
     logfile_exist = False
 
     # if there are multiple log files for different number of procs, pick the maximum number
-    
+    cmd_str = "ls log.*"
+    p = subprocess.run(cmd_str, shell=True, text=True, capture_output=True)
+    logfile_list = p.stdout.split('\n')
+    logfile_list.remove('')
+
     max_np = 1
-    for file in os.listdir('.'):
-        # looks for pattern log.DDMMMYY.basename.[nprocs]
-        # ignore the first 12 characteris log.DDMMMYY.
-        file_name_removed_date = file[12:]
-        pattern = f'{basename}.*'
-        if fnmatch.fnmatch(file_name_removed_date, pattern):
+    for file in logfile_list:
+        # looks for pattern log.{date}.{basename}.g++.{nprocs}
+        # get the date from the log files
+        date = file.split('.',2)[1]
+        pattern = f'log.{date}.{basename}.*'
+        if fnmatch.fnmatch(file, pattern):
             p = file.rsplit('.', 1)
             if max_np < int(p[1]):
                 max_np = int(p[1])
                 logfile_exist = True
                 thermo_ref_file = file
-
 
     # if the maximum number of procs is different from the value in the configuration file
     #      then override the setting for this input script
@@ -363,7 +369,7 @@ def iterate(lmp_binary, input_list, config, results, removeAnnotatedInput=False)
             num_runs_ref = len(thermo_ref)
         else:
             logger.info(f"SKIPPED: {thermo_ref_file} does not exist in the working directory.")
-            result.status = "skipped"
+            result.status = "skipped due to missing the log file"
             results.append(result)
             test_id = test_id + 1
             continue
@@ -380,7 +386,7 @@ def iterate(lmp_binary, input_list, config, results, removeAnnotatedInput=False)
 
     # process error code from the run
     if os.path.isfile("log.lammps") == False:
-        logger.info(f"ERROR: No log.lammps generated with {input_test} with return code {returncode}. Check the log file for the run output.\n")
+        logger.info(f"ERROR: No log.lammps generated with {input_test} with return code {returncode}. Check the {log_file} for the run output.\n")
         logger.info(f"\n{input_test}:")
         logger.info(f"\n{error}")
         test_id = test_id + 1
@@ -398,12 +404,12 @@ def iterate(lmp_binary, input_list, config, results, removeAnnotatedInput=False)
             result.status = "unrecognized command"
         else:
             result.status = "error"
-        logger.info(f"ERROR: Failed with {input_test} due to {result.status}. Check the log file for the run output.\n")
+        logger.info(f"ERROR: Failed with {input_test} due to {result.status}.\n")
         results.append(result)
         test_id = test_id + 1
-        continue 
+        continue
 
-    logger.info(f"Comparing thermo output from log.lammps against the reference log file {thermo_ref_file}")
+    print(f"Comparing thermo output from log.lammps against the reference log file {thermo_ref_file}")
     if num_runs != num_runs_ref:
         logger.info(f"ERROR: Number of runs in log.lammps ({num_runs}) is not the same as that in the reference log ({num_runs_ref})")
         result.status = "error"
@@ -506,6 +512,8 @@ def iterate(lmp_binary, input_list, config, results, removeAnnotatedInput=False)
 
     results.append(result)
 
+    str_t = f"Finished " + input_test
+    print(str_t)
     print("-"*(5*width+4))
     test_id = test_id + 1
 
@@ -534,7 +542,7 @@ if __name__ == "__main__":
     dry_run = False
     
     # distribute the total number of input scripts over the workers
-    num_workers = 16
+    num_workers = 1
 
     # parse the arguments
     parser = ArgumentParser()
@@ -565,8 +573,7 @@ if __name__ == "__main__":
        example_toplevel = args.example_toplevel
     if args.example_folders != "":
         example_subfolders = args.example_folders.split(';')
-        print("Example folders:")
-        print(example_subfolders)
+       
     genref = args.genref
     verbose = args.verbose
     log_file = args.logfile
@@ -580,7 +587,7 @@ if __name__ == "__main__":
     with open(configFileName, 'r') as f:
         config = yaml.load(f, Loader=Loader)
         absolute_path = os.path.abspath(configFileName)
-        print(f"Regression tests with settings defined in {absolute_path}")
+        print(f"Regression tests with settings defined in the configuration file {absolute_path}")
   
     # check if lmp_binary is specified in the config yaml
     if lmp_binary == "":
@@ -597,6 +604,13 @@ if __name__ == "__main__":
     print(f"- {GitInfo}")
     print(f"- Active compile flags: {compile_flags}")
     print(f"- List of {len(packages)} installed packages: {packages}")
+
+    if len(example_subfolders) > 0:
+        print("- Example folders to test:")
+        print(example_subfolders)
+    if example_toplevel != "":
+        print("- Top-level example folder:")
+        print(example_toplevel)
 
     folder_list = []
     if len(example_toplevel) != 0:
@@ -777,7 +791,7 @@ if __name__ == "__main__":
         passed_tests = iterate(input_list, config, results)
 
     print("Summary:")
-    print(f" - {passed_tests} passed / {total_tests} tests")
+    print(f" - {passed_tests} numerical tests passed / {total_tests} tests")
     print(f" - Details are given in {output_file}.")
 
 

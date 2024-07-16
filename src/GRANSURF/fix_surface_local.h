@@ -55,6 +55,8 @@ class FixSurfaceLocal : public Fix {
     int ilocal;           // local index of triangle particle
   };
 
+  // NOTE: can some of these be private ?
+
   int *cindex;            // per-atom index into connect 2d/3d vecs, -1 if none
   Connect2d *connect2d;         // 2d connection info
   Connect3d *connect3d;         // 3d connection info
@@ -87,9 +89,25 @@ class FixSurfaceLocal : public Fix {
  private:
   int dimension,mode;
   char *sourceID;
-  
+
   class AtomVecLine *avec_line;
   class AtomVecTri *avec_tri;
+
+  // data structs for calculating global connectivity of line/tri particles
+  // only used by Rvous comm during setup
+  
+  struct InRvous2d {
+    int proc, ibin, ilocal, ipoint;
+    tagint atomID;
+    double x[2];
+  };
+  
+  struct OutRvous2d {
+    int ilocal, ipoint;
+    tagint atomID;
+  };
+
+  double bboxlo[3],bboxhi[3];
 
   // data structs for extracting surfs from molecule template or STL file
   // these are global data structs for all surfs, including connectivity
@@ -163,14 +181,17 @@ class FixSurfaceLocal : public Fix {
   static FixSurfaceLocal *fptr;
   static void linematch(int, char *);
   static void trimatch(int, char *);
+  static int point_match_2d(int, char *, int &, int *&, char *&, void *);
 
   // private methods
 
+  void connectivity2d_local_new();
   void connectivity2d_local();
   void calculate_endpts(int);
   int pt2bin2d(double *);
-  int overlap2bin2d(double *, double, int *);
+  int overlap_bins_2d(double *, double, int *);
 
+  void connectivity3d_local_new();
   void connectivity3d_local();
   void calculate_corners(int);
   int pt2bin3d(double *);

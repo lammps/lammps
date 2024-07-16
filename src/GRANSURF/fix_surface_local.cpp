@@ -29,16 +29,19 @@
 using namespace LAMMPS_NS;
 using namespace FixConst;
 
-// NOTE: epsilon should be defined as fraction of max surf size
+// NOTE: epsilon should be defined as fraction of max surf size ?
 
 #define EPSILON 0.001
 #define NBIN 100
 #define BIG 1.0e20
 #define MAXLINE 256
-#define MAXTRIPOINT 24
+#define MAXTRIPOINT 24          // NOTE: what are these 2 values, what should they be
 
 #define DELTA 128
 #define DELTA_CONNECT 4            // NOTE: make it larger when done testing
+#define DELTA_RVOUS 8              // must be >= 8, make it bigger when done testing
+
+static constexpr int RVOUS = 1;   // 0 for irregular, 1 for all2all
 
 enum{DATAFILE,MOLTEMPLATE,STLFILE};
 enum{LAYOUT_UNIFORM,LAYOUT_NONUNIFORM,LAYOUT_TILED};    // several files
@@ -67,11 +70,15 @@ FixSurfaceLocal::FixSurfaceLocal(LAMMPS *lmp, int narg, char **arg) :
   connect2d = nullptr;
   connect3d = nullptr;
 
-  // NOTE: what is optimal way to initialize MyPoolChunk?
+  // NOTE: is this an optimal way to initialize MyPoolChunk?
+  //       how to set and limit MAXTRIPOINT ?
 
   tcp = new MyPoolChunk<tagint>(1,MAXTRIPOINT,6);
 
-  // process args
+  // 3 possible sources of lines/tris
+  // (1) mode = DATAFILE, lines/tris were already read from data file
+  // (2) mode = MOLTEMPLATE, lines/tris are in molecule template ID
+  // {3} mode = STLFILE, tris are in an STL file
 
   sourceID = nullptr;
   
@@ -84,6 +91,29 @@ FixSurfaceLocal::FixSurfaceLocal(LAMMPS *lmp, int narg, char **arg) :
     if (imol >= 0) mode = MOLTEMPLATE;
     else mode = STLFILE;
   }
+
+  // set max size for comm of connection info
+  // NOTE: set 2d/3d based on # max of endpt/corner connections (not 12) ??
+  //       possibly use MAXTRIPOINT ?
+  // NOTE: set this at end of post_constructor to precise value ?
+  
+  if (dimension == 2) comm_border = 4 + 2*12;
+  else comm_border = 8 + 6*12;
+  
+  // output total of point matching stats
+
+  /*
+  bigint nmatch_me = nreturn;
+  bigint nmatch;
+  MPI_Allreduce(&nmatch_me,&nmatch,1,MPI_LMP_BIGINT,MPI_SUM,world);
+  
+  if (comm->me == 0) {
+    if (screen)
+      fprintf(screen,"  matched %g line end point pairs\n",0.5*nmatch);
+    if (logfile)
+      fprintf(logfile,"  matched %g line end point pairs\n",0.5*nmatch);
+  }
+  */
 }
 
 /* ---------------------------------------------------------------------- */
@@ -127,45 +157,36 @@ FixSurfaceLocal::~FixSurfaceLocal()
 int FixSurfaceLocal::setmask()
 {
   int mask = 0;
-  mask |= PRE_NEIGHBOR;     // NOTE: just for debugging
+  mask |= PRE_NEIGHBOR;    // only needed for DEBUG tests
   return mask;
 }
 
 /* ----------------------------------------------------------------------
-   define distributed lines/tris and their connectivity in one of 3 ways
-   (1) mode = DATAFILE, lines/tris were already read from data file
-   (2) mode = MOLTEMPLATE, lines/tris are in molecule template ID
-   {3} mode = STLFILE, tris are in an STL file
-   must be done in post_constructor() b/c MOLTEMPLATE and STLFILE
-     add owned lines/tris to AtomVec class
+   one-time setup of distributed lines/tri and their connectivity 
+   must be done in post_constructor() for MOLTEMPLATE and STLFILE
+     they add owned lines/tris to AtomVec class
      its grow() method makes a callback to grow_arrays() in this fix
      callback can't be invoked unless fix is fully instantiated
 ------------------------------------------------------------------------- */
 
 void FixSurfaceLocal::post_constructor()
 {
-  // for DATAFILE:
-  // lines or tri are already distributed across procs
-  // task is to infer line/tri connectivity in distributed manner
+  // for mode == DATAFILE
+  // initialize connectivity of already existing lines/tris
 
   if (mode == DATAFILE) {
     if (comm->me == 0 && screen)
       fprintf(screen,"Connecting line/tri particles ...\n");
-
+    
     if (dimension == 2) connectivity2d_local();
     else connectivity3d_local();
   }
 
-  // for MOLTEMPLATE or STLFILE
-  // error check that no line/tri particles already exist
-  //   b/c no connectivity would be produced for them
-  // read in lines/tris from appropriate sourrce
-  // each proc builds global data structs of points/lines/tris
-  // each proc infers global connectivity from global data structs
-  // distribute lines/surfs across procs, based on center pt coords
-  // delete global data structs
-  
   if (mode == MOLTEMPLATE || mode == STLFILE) {
+
+    // error check that no line/tri particles already exist
+    //   b/c no connectivity would be produced for them
+
     if (check_exist())
       error->all(FLERR,"Fix surface/local with non-NULL source when lines/tris already exist");
     
@@ -184,8 +205,14 @@ void FixSurfaceLocal::post_constructor()
     elist = nullptr;
     clist = nullptr;
     
+    // read in lines/tris from appropriate sourrce
+    // each proc builds global data structs of points/lines/tris
+
     if (mode == MOLTEMPLATE) extract_from_molecules(sourceID);
     if (mode == STLFILE) extract_from_stlfile(sourceID);
+
+    // each proc infers global connectivity from global data structs
+    // distribute lines/surfs across procs, based on center pt coords
 
     if (dimension == 2) {
       connectivity2d_global();
@@ -198,6 +225,8 @@ void FixSurfaceLocal::post_constructor()
     bigint nblocal = atom->nlocal;
     MPI_Allreduce(&nblocal, &atom->natoms, 1, MPI_LMP_BIGINT, MPI_SUM, world);
 
+    // delete global data structs
+
     memory->sfree(points);
     memory->sfree(lines);
     memory->sfree(tris);
@@ -206,12 +235,6 @@ void FixSurfaceLocal::post_constructor()
     memory->destroy(elist);
     memory->destroy(clist);
   }
-  
-  // set max size of connection info
-  // NOTE: set 2d/3d based on # max of endpt/corner connections (not 12) ??
-  
-  if (dimension == 2) comm_border = 4 + 2*12;
-  else comm_border = 8 + 6*12;
 }
 
 /* ----------------------------------------------------------------------
@@ -223,9 +246,7 @@ void FixSurfaceLocal::grow_arrays(int nmax)
   memory->grow(cindex,nmax,"surface/local:cindex");
 }
 
-/* ----------------------------------------------------------------------
-   DEBUG: see pre_neighbor
-------------------------------------------------------------------------- */
+/* ---------------------------------------------------------------------- */
 
 void FixSurfaceLocal::setup_pre_neighbor()
 {
@@ -233,7 +254,8 @@ void FixSurfaceLocal::setup_pre_neighbor()
 }
 
 /* ----------------------------------------------------------------------
-   DEBUG: check that index vector is identical to line/tri
+   only for DEBUGGING
+   check that index vector is identical to line/tri
    check that index vector is consistent with connect->ilocal
 ------------------------------------------------------------------------- */
 
@@ -766,57 +788,25 @@ double FixSurfaceLocal::memory_usage()
 
 /* ----------------------------------------------------------------------
    create and initialize Connect2d info for owned lines
+   this must be done with INEXACT point matching
+   b/c once datafile is read, lines have a center point, length, and theta
+   thus same point calculated by 2 lines may be epsilon different
 ------------------------------------------------------------------------- */
 
 void FixSurfaceLocal::connectivity2d_local()
 {
-  int i,j,k,m,n,ibin;
-
-  // error check
+  int i,j,k,m,n;
 
   avec_line = (AtomVecLine *) atom->style_match("line");
   if (!avec_line)
-    error->all(FLERR,"Fix surface/local requires atom style line");
-
-  // calculate current endpts of owned lines
-
-  int nlocal = atom->nlocal;
-  memory->create(endpts,nlocal,4,"surface/local:endpts");
-  calculate_endpts(nlocal);
-
-  // nline = # of line segments I own
-  // maxline = max of nline across all procs
-  // ebuf = array of per-line values to circulate to all procs
-
-  int *line = atom->line;
-
-  int nline = 0;
-  for (i = 0; i < nlocal; i++)
-    if (line[i] >= 0) nline++;
-
-  int maxline;
-  MPI_Allreduce(&nline,&maxline,1,MPI_INT,MPI_MAX,world);
-
-  // initialize ebuf for lines I own
-  // 5 values = id, 2 end pt coords (x,y)
-
-  double **ebuf;
-  memory->create(ebuf,maxline,5,"surface/local:ebuf");
-
-  AtomVecLine::Bonus *bonus = avec_line->bonus;
-  double **x = atom->x;
-  tagint *tag = atom->tag;
-
-  nline = 0;
-  for (i = 0; i < nlocal; i++) {
-    if (line[i] < 0) continue;
-    ebuf[nline][0] = ubuf(tag[i]).d;
-    memcpy(&ebuf[nline][1],endpts[i],4*sizeof(double));
-    nline++;
-  }
+    error->all(FLERR,"Fix surface/local NULL requires atom style line");
 
   // epssq = square of EPSILON fraction of min line length across all procs
 
+  AtomVecLine::Bonus *bonus = avec_line->bonus;
+  int *line = atom->line;
+  int nlocal = atom->nlocal;
+  
   double minlen = BIG;
   for (i = 0; i < nlocal; i++)
     if (line[i] >= 0) minlen = MIN(minlen,bonus[line[i]].length);
@@ -826,97 +816,14 @@ void FixSurfaceLocal::connectivity2d_local()
   eps *= EPSILON;
   epssq = eps*eps;
 
-  // compute bbox for my line endpts, add 2*EPS to all 4 bounds
-  // set bbox size to 0.0 +/- EPS if no lines on this proc
+  // count owned lines
 
-  binlo[0] = binlo[1] = BIG;
-  binhi[0] = binhi[1] = -BIG;
-
-  for (i = 0; i < nlocal; i++) {
-    if (line[i] < 0) continue;
-    binlo[0] = MIN(binlo[0],endpts[i][0]);
-    binhi[0] = MAX(binhi[0],endpts[i][0]);
-    binlo[1] = MIN(binlo[1],endpts[i][1]);
-    binhi[1] = MAX(binhi[1],endpts[i][1]);
-    binlo[0] = MIN(binlo[0],endpts[i][2]);
-    binhi[0] = MAX(binhi[0],endpts[i][2]);
-    binlo[1] = MIN(binlo[1],endpts[i][3]);
-    binhi[1] = MAX(binhi[1],endpts[i][3]);
-  }
-
-  if (binlo[0] > binhi[0]) {
-    binlo[0] = binhi[0] = 0.0;
-    binlo[1] = binhi[1] = 0.0;
-  }
-
-  binlo[0] -= 2.0*eps;
-  binlo[1] -= 2.0*eps;
-  binhi[0] += 2.0*eps;
-  binhi[1] += 2.0*eps;
-
-  // create upto NBIN x NBIN bins that tile bbox
-  // insure bin size is not <= 2*EPS so that pt +/- EPS cannot overlap > 4 bins
-
-  nbinx = static_cast<int> ((binhi[0]-binlo[0])/(4.0*eps));
-  nbinx = MIN(nbinx,NBIN);
-  nbinx = MAX(nbinx,1);
-  nbiny = static_cast<int> ((binhi[1]-binlo[1])/(4.0*eps));
-  nbiny = MIN(nbiny,NBIN);
-  nbiny = MAX(nbiny,1);
-
-  invbinx = nbinx / (binhi[0] - binlo[0]);
-  invbiny = nbiny / (binhi[1] - binlo[1]);
-
-  nbins = nbinx*nbiny;
-  memory->create(bincount,nbins,"surface/local:bincount");
-  memory->create(binfirst,nbins,"surface/local:binfirst");
-
-  // count # of end pts in each bin, including overlaps by eps
-
-  int indices[4];
-  memset(bincount,0,nbins*sizeof(int));
-
-  for (i = 0; i < nlocal; i++) {
-    if (line[i] < 0) continue;
-    n = overlap2bin2d(&endpts[i][0],eps,indices);
-    for (m = 0; m < n; m++) bincount[indices[m]]++;
-    n = overlap2bin2d(&endpts[i][2],eps,indices);
-    for (m = 0; m < n; m++) bincount[indices[m]]++;
-  }
-
-  // setup binfirst = index to first point in bin
-  // allocate pts = list of pts in all bins
-
-  binfirst[0] = 0;
-  for (m = 1; m < nbins; m++)
-    binfirst[m] = binfirst[m-1] + bincount[m-1];
-  int ntotal = binfirst[nbins-1] + bincount[nbins-1];
-
-  pts = (OnePt *) memory->smalloc(ntotal*sizeof(OnePt),"surface/local:bins");
-
-  // add each of my line endpts to bins, including overlaps by eps
-
-  memset(bincount,0,nbins*sizeof(int));
-
-  for (i = 0; i < nlocal; i++) {
-    if (line[i] < 0) continue;
-    for (j = 0; j < 2; j++) {
-      if (j == 0) n = overlap2bin2d(&endpts[i][0],eps,indices);
-      else n = overlap2bin2d(&endpts[i][2],eps,indices);
-      for (m = 0; m < n; m++) {
-        ibin = indices[m];
-        k = binfirst[ibin] + bincount[ibin];
-        pts[k].iatom = i;
-        pts[k].iconnect = line[i];
-        pts[k].ptwhich = j+1;
-        bincount[ibin]++;
-      }
-    }
-  }
-
-  // allocate connection info for my owned lines
-  // initialize cindex for all my particles, including lines
-  // comm->ring() operation will populate connection info
+  int nline = 0;
+  for (i = 0; i < nlocal; i++)
+    if (line[i] >= 0) nline++;
+  
+  // allocate connection info for owned lines
+  // initialize cindex for both particles and lines
   
   nlocal_connect = nmax_connect = nline;
   nghost_connect = 0;
@@ -928,49 +835,303 @@ void FixSurfaceLocal::connectivity2d_local()
     j = line[i];
     connect2d[j].ilocal = i;
   }
-
-  // NOTE: have to initialize rest of values in Connect2d for each line I own
   
-  // circulate my line info to all other procs, including self
+  // calculate current endpts of owned lines
 
-  fptr = this;
-  nmatch = errormatch = 0;
+  memory->create(endpts,nline,4,"surface/local:endpts");
+  calculate_endpts(nlocal);
 
-  /*
-  if (ebuf)
-    comm->ring(nline,5*sizeof(double),(void *) &ebuf[0][0],0,linematch,nullptr);
-  else
-    comm->ring(nline,5*sizeof(double),nullptr,0,linematch,nullptr);
-  */
+  // compute min/max extent of my line endpts
+  // MPI_Allreduce for bbox of all lines
 
-  // check for errors = matches with more than 2 points
-  // print stats on # of matches
+  double mylo[2],myhi[2];
+  
+  mylo[0] = mylo[1] = BIG;
+  myhi[0] = myhi[1] = -BIG;
 
-  int all = 0;
-  MPI_Allreduce(&errormatch,&all,1,MPI_INT,MPI_SUM,world);
-  if (all) {
-    char str[128];
-    sprintf(str,"Fix surface/local found %g matching end pts "
-            "with more than 2 lines",0.5*all);
-    error->all(FLERR,str);
+  m = 0;
+  for (i = 0; i < nlocal; i++) {
+    if (line[i] < 0) continue;
+    mylo[0] = MIN(mylo[0],endpts[m][0]);
+    myhi[0] = MAX(myhi[0],endpts[m][0]);
+    mylo[1] = MIN(mylo[1],endpts[m][1]);
+    myhi[1] = MAX(myhi[1],endpts[m][1]);
+    mylo[0] = MIN(mylo[0],endpts[m][2]);
+    myhi[0] = MAX(myhi[0],endpts[m][2]);
+    mylo[1] = MIN(mylo[1],endpts[m][3]);
+    myhi[1] = MAX(myhi[1],endpts[m][3]);
+    m++;
   }
 
-  MPI_Allreduce(&nmatch,&all,1,MPI_INT,MPI_SUM,world);
+  MPI_Allreduce(mylo,bboxlo,2,MPI_DOUBLE,MPI_MIN,world);
+  MPI_Allreduce(myhi,bboxhi,2,MPI_DOUBLE,MPI_MAX,world);
 
-  if (comm->me == 0) {
-    if (screen)
-      fprintf(screen,"  matched %g line end point pairs\n",0.5*all);
-    if (logfile)
-      fprintf(logfile,"  matched %g line end point pairs\n",0.5*all);
+  // if no lines on any proc, just exit
+
+  if (binlo[0] == BIG) return;
+
+  // add 2*EPS to all 4 edges of bbox
+  
+  binlo[0] -= 2.0*eps;
+  binlo[1] -= 2.0*eps;
+  binhi[0] += 2.0*eps;
+  binhi[1] += 2.0*eps;
+
+  // conceptual binning of bbox by up to NBIN x NBIN bins
+  // ensure bin size is not <= 2*EPS so that pt +/- EPS cannot overlap > 4 bins
+  // nbin xy = # of bins in each dim
+  
+  nbinx = static_cast<int> ((binhi[0]-binlo[0])/(4.0*eps));
+  nbinx = MIN(nbinx,NBIN);
+  nbinx = MAX(nbinx,1);
+  nbiny = static_cast<int> ((binhi[1]-binlo[1])/(4.0*eps));
+  nbiny = MIN(nbiny,NBIN);
+  nbiny = MAX(nbiny,1);
+
+  invbinx = nbinx / (binhi[0] - binlo[0]);
+  invbiny = nbiny / (binhi[1] - binlo[1]);
+
+  // inbuf = list of datums to send to procs in Rvous decomposition of bins
+  // every Pth bin is assigned to each proc
+  // use overlap_bins_2d() to find all bins a line endpt overlaps within EPS
+  // allows for matching pts in Rvous decomp which are up to EPS apart
+
+  int me = comm->me;
+  int nprocs = comm->nprocs;
+
+  tagint *tag = atom->tag;
+
+  int *proclist = nullptr;
+  InRvous2d *inbuf = nullptr;
+  int ncount = 0;
+  int maxcount = 0;
+
+  int indices[4];
+
+  m = 0;
+  for (i = 0; i < nline; i++) {
+    if (line[i] < 0) continue;
+
+    for (int ipoint = 0; ipoint < 2; ipoint++) {
+      n = overlap_bins_2d(&endpts[m][2*ipoint],eps,indices);
+      
+      if (ncount+n > maxcount) {
+        maxcount += DELTA_RVOUS;
+        memory->grow(proclist,maxcount,"fix/surface/local:proclist");
+        inbuf = (InRvous2d *) memory->srealloc(inbuf,maxcount*sizeof(InRvous2d),"rigid/small:inbuf");
+      }
+    
+      for (k = 0; k < n; k++) {
+        proclist[ncount] = indices[k] % nprocs;
+        inbuf[ncount].proc = me;
+        inbuf[ncount].ibin = indices[k];
+        inbuf[ncount].ilocal = i;
+        inbuf[ncount].ipoint = ipoint;
+        inbuf[ncount].atomID = tag[i];
+        inbuf[ncount].x[0] = endpts[m][2*ipoint];
+        inbuf[ncount].x[1] = endpts[m][2*ipoint+1];
+        ncount++;
+      }
+    }
+    
+    m++;
   }
 
-  // clean-up
-
-  memory->destroy(ebuf);
-  memory->destroy(bincount);
-  memory->destroy(binfirst);
-  memory->destroy(pts);
   memory->destroy(endpts);
+
+  // perform rendezvous operation
+  // each proc owns every Pth bin
+  // receives all points in those bins
+
+  char *buf;
+  int nreturn = comm->rendezvous(RVOUS,ncount,(char *) inbuf,sizeof(InRvous2d),
+                                 0,proclist,
+                                 point_match_2d,0,buf,sizeof(OutRvous2d),
+                                 (void *) this);
+  auto outbuf = (OutRvous2d *) buf;
+
+  memory->destroy(proclist);
+  memory->sfree(inbuf);
+
+  // loop over received Rvous datums
+  // count # of connections for each point on my lines
+  // datums do not include self connection, so count it as well
+
+  // NOTE: need to avoid double counting of same point or neighbors from multiple bins
+  //       due to ESP overlap
+  
+  int ilocal,iline,np1,np2;
+  
+  for (i = 0; i < nlocal_connect; i++)
+    connect2d[i].np1 = connect2d[i].np2 = 1;
+
+  for (i = 0; i < nreturn; i++) {
+    ilocal = outbuf[i].ilocal;
+    iline = line[ilocal];
+    if (outbuf[i].ipoint == 0) connect2d[iline].np1++;
+    else connect2d[iline].np2++;
+  }
+
+  // allocate neigh_p12 vectors
+  // set 1st value of neigh vector to ID of self line
+  // also set flags to 0 for now
+  
+  for (i = 0; i < nlocal_connect; i++) {
+    np1 = connect2d[i].np1;
+    if (np1 > 1) {
+      connect2d[i].neigh_p1 = tcp->get(np1,connect2d[i].indexp1);
+      connect2d[i].neigh_p1[0] = tag[connect2d[i].ilocal];
+      
+    } else connect2d[i].neigh_p1 = nullptr;
+
+    np2 = connect2d[i].np2;
+    if (np2 > 1) {
+      connect2d[i].neigh_p2 = tcp->get(np1,connect2d[i].indexp2);
+      connect2d[i].neigh_p2[0] = tag[connect2d[i].ilocal];
+    } else connect2d[i].neigh_p2 = nullptr;
+
+    connect2d[i].flags = 0;
+  }
+
+  // loop over received Rvous datums
+  // use each one to set a neigh_p12 vector value
+  // only add it to neigh_p12 if not already added
+  //   b/c point pairs within EPS of bin boundaries may be recvd up to 4x
+
+  for (i = 0; i < nlocal_connect; i++)
+    connect2d[i].np1 = connect2d[i].np2 = 1;
+
+  tagint atomID;
+  int np;
+  tagint *neigh;
+  
+  for (i = 0; i < nreturn; i++) {
+    ilocal = outbuf[i].ilocal;
+    iline = line[ilocal];
+    if (outbuf[i].ipoint == 0) {
+      atomID = outbuf[i].atomID;
+      np = connect2d[iline].np1;
+      neigh = connect2d[iline].neigh_p1;
+      for (j = 0; j < np; j++)
+        if (neigh[j] == atomID) break;
+      if (j == np) {
+        neigh[np] = atomID;
+        connect2d[iline].np1++;
+      }
+    } else {
+      atomID = outbuf[i].atomID;
+      np = connect2d[iline].np2;
+      neigh = connect2d[iline].neigh_p2;
+      for (j = 0; j < np; j++)
+        if (neigh[j] == atomID) break;
+      if (j == np) {
+        neigh[np] = atomID;
+        connect2d[iline].np2++;
+      }
+    }
+  }
+}
+
+/* ----------------------------------------------------------------------
+   callback from comm->rvous() for 2d
+------------------------------------------------------------------------- */
+
+int FixSurfaceLocal::point_match_2d(int n, char *inbuf,
+                                    int &rflag, int *&proclist, char *&outbuf,
+                                    void *ptr)
+{
+  // access class data for epsilon and bin info
+
+  auto fslptr = (FixSurfaceLocal *) ptr;
+  Memory *memory = fslptr->memory;
+  Comm *comm = fslptr->comm;
+  
+  double epssq = fslptr->epssq;
+  int nbins = fslptr->nbins;
+  int nprocs = comm->nprocs;
+  int me = comm->me;
+  
+  // nmine = # of bins I own
+  // num[nmine] = count of datums in each bin
+  // first[nmine] = index of 1st datum in each bin
+  // next[n] = index to next datum in each bin
+
+  int nmine = nbins / nprocs;
+  if (nbins % nprocs > me) nmine++;
+
+  // NOTE: num is just for debugging
+  
+  int *num,*first,*next;
+  memory->create(num,nmine,"surface/local:num");
+  memory->create(first,nmine,"surface/local:first");
+  memory->create(next,n,"surface/local:next");
+
+  for (int i = 0; i < nmine; i++) num[i] = 0;
+  for (int i = 0; i < nmine; i++) first[i] = -1;
+
+  auto in = (InRvous2d *) inbuf;
+
+  int i,j,ibin,whichbin;
+
+  for (int i = n=1; i >= 0; i--) {
+    ibin = in[i].ibin;
+    whichbin = ibin / nprocs;
+    if (first[whichbin] < 0) next[i] = -1;
+    else next[i] = first[whichbin];
+    first[whichbin] = i;
+    num[whichbin]++;
+  }
+  
+  // double loop over datums in each bin to to identify point matches
+  // match = 2 points within EPS distance of each other
+  // add each match to outbuf
+
+  proclist = nullptr;
+  OutRvous2d *out = nullptr;
+  int ncount = 0;
+  int maxcount = 0;
+
+  double dx,dy,rsq;
+
+  for (int ibin = 0; ibin < nbins; ibin++) {
+    i = first[ibin];
+
+    while (i >= 0) {
+      j = first[ibin];
+      while (j >= 0) {
+        if (j == i) continue;
+        dx = in[i].x[0] - in[j].x[0];
+        dy = in[i].x[1] - in[j].x[1];
+        rsq = dx*dx + dy*dy;
+        if (rsq < epssq) {
+          if (ncount == maxcount) {
+            maxcount += DELTA_RVOUS;
+            memory->grow(proclist,maxcount,"surface/local:proclist");
+            out = (OutRvous2d *)
+              memory->srealloc(out,maxcount*sizeof(OutRvous2d),"surface/local:outbuf");
+          }
+          proclist[ncount] = in[i].proc;
+          out[ncount].ilocal = in[i].ilocal;
+          out[ncount].ipoint = in[i].ipoint;
+          out[ncount].atomID = in[j].atomID;
+          ncount++;
+        }
+        j = next[j];
+      }
+      i = next[i];
+    }
+  }
+
+  // clean up
+
+  memory->destroy(num);
+  memory->destroy(first);
+  memory->destroy(next);
+  
+  // return values
+  
+  outbuf = (char *) out;
+  return ncount;
 }
 
 /* ----------------------------------------------------------------------
@@ -1066,30 +1227,29 @@ void FixSurfaceLocal::linematch(int n, char *cbuf)
 }
 
 /* ----------------------------------------------------------------------
-   compute current end points of N lines
-   nothing computed for particles that are not lines
+   compute current end points of my owned lines
 ------------------------------------------------------------------------- */
 
 void FixSurfaceLocal::calculate_endpts(int n)
 {
   double length,theta,dx,dy;
-  double *endpt;
 
   AtomVecLine::Bonus *bonus = avec_line->bonus;
   double **x = atom->x;
   int *line = atom->line;
 
+  int m = 0;
   for (int i = 0; i < n; i++) {
     if (line[i] < 0) continue;
-    endpt = endpts[i];
     length = bonus[line[i]].length;
     theta = bonus[line[i]].theta;
     dx = 0.5*length*cos(theta);
     dy = 0.5*length*sin(theta);
-    endpt[0] = x[i][0] - dx;
-    endpt[1] = x[i][1] - dy;
-    endpt[2] = x[i][0] + dx;
-    endpt[3] = x[i][1] + dy;
+    endpts[m][0] = x[i][0] - dx;
+    endpts[m][1] = x[i][1] - dy;
+    endpts[m][2] = x[i][0] + dx;
+    endpts[m][3] = x[i][1] + dy;
+    m++;
   }
 }
 
@@ -1115,17 +1275,17 @@ int FixSurfaceLocal::pt2bin2d(double *pt)
 }
 
 /* ----------------------------------------------------------------------
-   map point +/ EPS in both dims to all bins it overlaps with
+   calculate all bins which pt +/- EPS overlaps with
    return N = # of overlapped bins
-   return indices = list of bin IDs, each from 0 to Nbins-1
+   return indices = list of bin IDs (0 to Nbins-1)
 ------------------------------------------------------------------------- */
 
-int FixSurfaceLocal::overlap2bin2d(double *pt, double eps, int *indices)
+int FixSurfaceLocal::overlap_bins_2d(double *pt, double eps, int *indices)
 {
-  int ilo = static_cast<int> ((pt[0]-eps-binlo[0]) * invbinx);
-  int ihi = static_cast<int> ((pt[0]+eps-binlo[0]) * invbinx);
-  int jlo = static_cast<int> ((pt[1]-eps-binlo[1]) * invbiny);
-  int jhi = static_cast<int> ((pt[1]+eps-binlo[1]) * invbiny);
+  int ilo = static_cast<int> ((pt[0]-eps-bboxlo[0]) * invbinx);
+  int ihi = static_cast<int> ((pt[0]+eps-bboxlo[0]) * invbinx);
+  int jlo = static_cast<int> ((pt[1]-eps-bboxlo[1]) * invbiny);
+  int jhi = static_cast<int> ((pt[1]+eps-bboxlo[1]) * invbiny);
 
   ilo = MAX(ilo,0);
   ihi = MIN(ihi,nbinx-1);
@@ -1153,11 +1313,19 @@ int FixSurfaceLocal::overlap2bin2d(double *pt, double eps, int *indices)
 
 /* ----------------------------------------------------------------------
    create and initialize Connect3d info for all owned tris
+   this must be done with INEXACT point matching
+   b/c once datafile is read, tris have a center point, quaterition,
+     and body-frame corner point displacements
+   thus same point calculated by 2 tris may be epsilon different
 ------------------------------------------------------------------------- */
 
 void FixSurfaceLocal::connectivity3d_local()
 {
   int i,j,k,m,n,ibin;
+
+  avec_tri = (AtomVecTri *) atom->style_match("tri");
+  if (!avec_tri)
+    error->all(FLERR,"Fix surface/local NULL requires atom style tri");
 
   // error check
 
@@ -1999,7 +2167,10 @@ void FixSurfaceLocal::extract_from_stlfile(char *filename)
 
 /* ----------------------------------------------------------------------
    create and initialize Connect2d info for all lines
-   stored in connect2dall
+   this can be done with EXACT point matching
+     since global points were inferred from molecule or STL files
+     and all procs store a copy of all global points
+   info stored in connect2dall
 ------------------------------------------------------------------------- */
 
 void FixSurfaceLocal::connectivity2d_global()
@@ -2053,6 +2224,9 @@ void FixSurfaceLocal::connectivity2d_global()
 
 /* ----------------------------------------------------------------------
    create and initialize Connect3d info for all triangles
+   this can be done with EXACT point matching
+     since global points were inferred from molecule or STL files
+     and all procs store a copy of all global points
    stored in connect3dall
 ------------------------------------------------------------------------- */
 

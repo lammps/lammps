@@ -81,6 +81,7 @@ Fix::Fix(LAMMPS *lmp, int /*narg*/, char **arg) :
   diam_flag = 0;
 
   scalar_flag = vector_flag = array_flag = 0;
+  extscalar = extvector = extarray = -1;
   peratom_flag = local_flag = pergrid_flag = 0;
   global_freq = local_freq = peratom_freq = pergrid_freq = -1;
   size_vector_variable = size_array_rows_variable = 0;
@@ -119,11 +120,26 @@ Fix::~Fix()
 {
   if (copymode) return;
 
-  delete [] id;
-  delete [] style;
+  delete[] id;
+  delete[] style;
   memory->destroy(eatom);
   memory->destroy(vatom);
   memory->destroy(cvatom);
+}
+
+/* ---------------------------------------------------------------------- */
+
+void Fix::init_flags()
+{
+   if (scalar_flag && (extscalar < 0))
+    error->all(FLERR, "Must set 'extscalar' when setting 'scalar_flag' for fix {}.  "
+               "Contact the developer.", style);
+  if (vector_flag && (extvector < 0) && !extlist)
+    error->all(FLERR, "Must set 'extvector' or 'extlist' when setting 'vector_flag' for fix {}.  "
+               "Contact the developer.", style);
+  if (array_flag && (extarray < 0))
+    error->all(FLERR, "Must set 'extarray' when setting 'array_flag' for fix {}.  "
+               "Contact the developer.", style);
 }
 
 /* ----------------------------------------------------------------------
@@ -133,36 +149,37 @@ Fix::~Fix()
 
 void Fix::modify_params(int narg, char **arg)
 {
-  if (narg == 0) error->all(FLERR,"Illegal fix_modify command");
+  if (narg == 0) utils::missing_cmd_args(FLERR, "fix_modify", error);
 
   int iarg = 0;
   while (iarg < narg) {
     if (strcmp(arg[iarg],"dynamic/dof") == 0) {
-      if (iarg+2 > narg) error->all(FLERR,"Illegal fix_modify command");
+      if (iarg+2 > narg) utils::missing_cmd_args(FLERR, "fix_modify dynamic/dof", error);
       dynamic = utils::logical(FLERR,arg[iarg+1],false,lmp);
       iarg += 2;
     } else if (strcmp(arg[iarg],"energy") == 0) {
-      if (iarg+2 > narg) error->all(FLERR,"Illegal fix_modify command");
+      if (iarg+2 > narg) utils::missing_cmd_args(FLERR, "fix_modify energy", error);
       thermo_energy = utils::logical(FLERR,arg[iarg+1],false,lmp);
       if (thermo_energy && !energy_global_flag && !energy_peratom_flag)
         error->all(FLERR,"Fix {} {} does not support fix_modify energy command", id, style);
       iarg += 2;
     } else if (strcmp(arg[iarg],"virial") == 0) {
-      if (iarg+2 > narg) error->all(FLERR,"Illegal fix_modify command");
+      if (iarg+2 > narg) utils::missing_cmd_args(FLERR, "fix_modify virial", error);
       thermo_virial = utils::logical(FLERR,arg[iarg+1],false,lmp);
       if (thermo_virial && !virial_global_flag && !virial_peratom_flag)
         error->all(FLERR,"Fix {} {} does not support fix_modify virial command", id, style);
       iarg += 2;
     } else if (strcmp(arg[iarg],"respa") == 0) {
-      if (iarg+2 > narg) error->all(FLERR,"Illegal fix_modify command");
-      if (!respa_level_support) error->all(FLERR,"Illegal fix_modify command");
+      if (iarg+2 > narg) utils::missing_cmd_args(FLERR, "fix_modify respa", error);
+      if (!respa_level_support) error->all(FLERR,"Illegal fix_modify respa command");
       int lvl = utils::inumeric(FLERR,arg[iarg+1],false,lmp);
-      if (lvl < 0) error->all(FLERR,"Illegal fix_modify command");
+      if (lvl < 0) error->all(FLERR,"Illegal fix_modify respa command");
       respa_level = lvl-1;
       iarg += 2;
     } else {
       int n = modify_param(narg-iarg,&arg[iarg]);
-      if (n == 0) error->all(FLERR,"Illegal fix_modify command");
+      if (n == 0)
+        error->all(FLERR,"Fix {} {} does not support fix_modify {} command", id, style, arg[iarg]);
       iarg += n;
     }
   }

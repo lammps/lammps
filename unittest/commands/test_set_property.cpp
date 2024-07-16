@@ -85,7 +85,7 @@ TEST_F(SetTest, NoBoxNoAtoms)
     command("create_atoms 1 single 0.5 0.5 0.5");
     command("compute 0 all property/atom proc");
     END_HIDE_OUTPUT();
-    auto compute = lmp->modify->get_compute_by_id("0");
+    auto *compute = lmp->modify->get_compute_by_id("0");
     compute->compute_peratom();
     ASSERT_EQ(compute->vector_atom[0], 0);
 
@@ -119,7 +119,7 @@ TEST_F(SetTest, StylesTypes)
     command("compute 1 all property/atom id type mol");
     END_HIDE_OUTPUT();
 
-    auto compute = lmp->modify->get_compute_by_id("1");
+    auto *compute = lmp->modify->get_compute_by_id("1");
     ASSERT_NE(compute, nullptr);
     compute->compute_peratom();
 
@@ -409,7 +409,7 @@ TEST_F(SetTest, EffPackage)
     command("compute 2 all property/atom espin eradius");
     END_HIDE_OUTPUT();
 
-    auto compute = lmp->modify->get_compute_by_id("2");
+    auto *compute = lmp->modify->get_compute_by_id("2");
     ASSERT_NE(compute, nullptr);
     compute->compute_peratom();
 

@@ -115,6 +115,18 @@ friction and twisting friction supported by the :doc:`pair_style granular <pair_
 supported for walls. These are discussed in greater detail on the doc
 page for :doc:`pair_style granular <pair_granular>`.
 
+.. note::
+   When *fstyle* *granular* is specified, the associated *fstyle_params* are taken as
+   those for a wall/particle interaction. For example, for the *hertz/material* normal
+   contact model with :math:`E = 960` and :math:`\nu = 0.2`, the effective Young's
+   modulus for a wall/particle interaction is computed as
+   :math:`E_{eff} = \frac{960}{2(1-0.2^2)} = 500`. Any pair coefficients defined by
+   :doc:`pair_style granular <pair_granular>` are not taken into consideration. To
+   model different wall/particle interactions for particles of different material
+   types, the user may define multiple fix wall/gran commands operating on separate
+   groups (e.g. based on particle type) each with a different wall/particle effective
+   Young's modulus.
+
 Note that you can choose a different force styles and/or different
 values for the wall/particle coefficients than for particle/particle
 interactions.  E.g. if you wish to model the wall as a different

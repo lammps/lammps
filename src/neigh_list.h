@@ -46,6 +46,7 @@ class NeighList : protected Pointers {
   int kk2cpu;         // 1 if this list is copied from Kokkos to CPU
   int copymode;       // 1 if this is a Kokkos on-device copy
   int id;             // copied from neighbor list request
+  int molskip;        // 1/2 if this is an intra-/inter-molecular skip list
 
   // data structs to store neighbor pairs I,J and associated values
 

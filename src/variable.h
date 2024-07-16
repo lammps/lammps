@@ -35,6 +35,7 @@ class Variable : protected Pointers {
   void set_arrays(int);
   void python_command(int, char **);
   void purge_atomfile();
+  void clear_in_progress();
 
   int equalstyle(int);
   int atomstyle(int);
@@ -56,7 +57,7 @@ class Variable : protected Pointers {
   int nvar;        // # of defined variables
   char **names;    // name of each variable
 
-  // must match "varstyles" array in info.cpp
+  // must match "varstyles" array in variables.cpp, UNKNOWN must be last.
   enum {
     INDEX,
     LOOP,
@@ -73,9 +74,11 @@ class Variable : protected Pointers {
     VECTOR,
     PYTHON,
     TIMER,
-    INTERNAL
+    INTERNAL,
+    UNKNOWN
   };
   static constexpr int VALUELENGTH = 64;
+  static const std::vector<std::string> varstyles;
 
  private:
   int me;
@@ -141,7 +144,8 @@ class Variable : protected Pointers {
   int math_function(char *, char *, Tree **, Tree **, int &, double *, int &, int);
   int group_function(char *, char *, Tree **, Tree **, int &, double *, int &, int);
   Region *region_function(char *, int);
-  int special_function(char *, char *, Tree **, Tree **, int &, double *, int &, int);
+  int special_function(const std::string &, char *, Tree **, Tree **, int &, double *, int &,
+                       int, char *, int &, char *&);
   int feature_function(char *, char *, Tree **, Tree **, int &, double *, int &, int);
   void peratom2global(int, char *, double *, int, tagint, Tree **, Tree **, int &, double *, int &);
   void custom2global(int *, double *, int, tagint, Tree **, Tree **, int &, double *, int &);

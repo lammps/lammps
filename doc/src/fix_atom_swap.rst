@@ -21,7 +21,7 @@ Syntax
 
   .. parsed-literal::
 
-       *types* values = two or more atom types
+       *types* values = two or more atom types (1-Ntypes or type label)
        *mu* values = chemical potential of swap types (energy units)
        *ke* value = *no* or *yes*
          *no* = no conservation of kinetic energy after atom swaps
@@ -168,7 +168,7 @@ the following global cumulative quantities:
 * 1 = swap attempts
 * 2 = swap accepts
 
-The vector values calculated by this fix are "extensive".
+The vector values calculated by this fix are "intensive".
 
 No parameter of this fix can be used with the *start/stop* keywords of
 the :doc:`run <run>` command.  This fix is not invoked during

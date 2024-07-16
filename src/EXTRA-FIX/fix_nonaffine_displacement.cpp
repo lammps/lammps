@@ -46,6 +46,8 @@ enum { TYPE, RADIUS, CUSTOM };
 enum { INTEGRATED, D2MIN };
 enum { FIXED, OFFSET, UPDATE };
 
+static constexpr double EPSILON = 1.0e-15;
+
 static const char cite_nonaffine_d2min[] =
   "@article{PhysRevE.57.7192,\n"
   " title = {Dynamics of viscoplastic deformation in amorphous solids},\n"
@@ -66,7 +68,7 @@ static const char cite_nonaffine_d2min[] =
 
 FixNonaffineDisplacement::FixNonaffineDisplacement(LAMMPS *lmp, int narg, char **arg) :
   Fix(lmp, narg, arg), id_fix(nullptr), fix(nullptr), D2min(nullptr), X(nullptr), Y(nullptr),
-  F(nullptr), norm(nullptr)
+  F(nullptr), norm(nullptr), singular(nullptr)
 {
   if (narg < 4) utils::missing_cmd_args(FLERR,"fix nonaffine/displacement", error);
 
@@ -74,6 +76,8 @@ FixNonaffineDisplacement::FixNonaffineDisplacement(LAMMPS *lmp, int narg, char *
   if (nevery <= 0) error->all(FLERR,"Illegal nevery value {} in fix nonaffine/displacement", nevery);
 
   reference_timestep = update_timestep = offset_timestep = -1;
+  z_min = 0;
+
   int iarg = 4;
   if (strcmp(arg[iarg], "integrated") == 0) {
     nad_style = INTEGRATED;
@@ -117,6 +121,16 @@ FixNonaffineDisplacement::FixNonaffineDisplacement(LAMMPS *lmp, int narg, char *
     if ((offset_timestep <= 0) || (offset_timestep > nevery))
       error->all(FLERR, "Illegal offset timestep {} in fix nonaffine/displacement", arg[iarg + 1]);
   } else error->all(FLERR,"Illegal reference style {} in fix nonaffine/displacement", arg[iarg]);
+  iarg += 2;
+
+  while (iarg < narg) {
+    if (strcmp(arg[iarg], "z/min") == 0) {
+      if (iarg + 2 > narg) utils::missing_cmd_args(FLERR,"fix nonaffine/displacement", error);
+      z_min = utils::inumeric(FLERR, arg[iarg + 1], false, lmp);
+      if (z_min < 0) error->all(FLERR, "Minimum coordination must be positive");
+      iarg += 2;
+    } else error->all(FLERR,"Illegal keyword {} in fix nonaffine/displacement", arg[iarg]);
+  }
 
   if (nad_style == D2MIN)
     if (cut_style == RADIUS && (!atom->radius_flag))
@@ -151,6 +165,7 @@ FixNonaffineDisplacement::~FixNonaffineDisplacement()
     memory->destroy(Y);
     memory->destroy(F);
     memory->destroy(norm);
+    memory->destroy(singular);
     memory->destroy(D2min);
   }
 
@@ -395,6 +410,7 @@ void FixNonaffineDisplacement::calculate_D2Min()
       }
     }
     norm[i] = 0;
+    singular[i] = 0;
     D2min[i] = 0;
   }
 
@@ -471,14 +487,29 @@ void FixNonaffineDisplacement::calculate_D2Min()
     }
 
     if (dim == 3) {
-      invert3(Y_tmp, Y_inv);
+      denom = det3(Y_tmp);
+      if (fabs(denom) < EPSILON) {
+        singular[i] = 1;
+        for (j = 0; j < 3; j++)
+          for (k = 0; k < 3; k++)
+            Y_inv[j][k] = 0.0;
+      } else {
+        invert3(Y_tmp, Y_inv);
+      }
     } else {
       denom = Y_tmp[0][0] * Y_tmp[1][1] - Y_tmp[0][1] * Y_tmp[1][0];
-      if (denom != 0.0) denom = 1.0 / denom;
-      Y_inv[0][0] = Y_tmp[1][1] * denom;
-      Y_inv[0][1] = -Y_tmp[0][1] * denom;
-      Y_inv[1][0] = -Y_tmp[1][0] * denom;
-      Y_inv[1][1] = Y_tmp[0][0] * denom;
+      if (fabs(denom) < EPSILON) {
+        singular[i] = 1;
+        for (j = 0; j < 2; j++)
+          for (k = 0; k < 2; k++)
+            Y_inv[j][k] = 0.0;
+      } else {
+        denom = 1.0 / denom;
+        Y_inv[0][0] = Y_tmp[1][1] * denom;
+        Y_inv[0][1] = -Y_tmp[0][1] * denom;
+        Y_inv[1][0] = -Y_tmp[1][0] * denom;
+        Y_inv[1][1] = Y_tmp[0][0] * denom;
+      }
     }
 
     times3(X_tmp, Y_inv, F_tmp);
@@ -559,10 +590,16 @@ void FixNonaffineDisplacement::calculate_D2Min()
   for (i = 0; i < nlocal; i++) {
     if (!(mask[i] & groupbit)) continue;
 
-    if (norm[i] != 0)
-      D2min[i] /= norm[i];
-    else
-      D2min[i] = 0.0;
+    if (norm[i] < z_min || singular[i] == 1) {
+      if (norm[i] >= z_min)
+        error->warning(FLERR, "Singular matrix detected for atom {}, defaulting output to zero", atom->tag[i]);
+      array_atom[i][0] = 0.0;
+      array_atom[i][1] = 0.0;
+      array_atom[i][2] = 0.0;
+      continue;
+    }
+
+    D2min[i] /= norm[i];
 
     for (j = 0; j < 3; j++)
       for (k = 0; k < 3; k++)
@@ -743,10 +780,12 @@ void FixNonaffineDisplacement::grow_arrays(int nmax_new)
     memory->destroy(F);
     memory->destroy(D2min);
     memory->destroy(norm);
+    memory->destroy(singular);
     memory->create(X, nmax, 3, 3, "fix_nonaffine_displacement:X");
     memory->create(Y, nmax, 3, 3, "fix_nonaffine_displacement:Y");
     memory->create(F, nmax, 3, 3, "fix_nonaffine_displacement:F");
     memory->create(D2min, nmax, "fix_nonaffine_displacement:D2min");
     memory->create(norm, nmax, "fix_nonaffine_displacement:norm");
+    memory->create(singular, nmax, "fix_nonaffine_displacement:singular");
   }
 }

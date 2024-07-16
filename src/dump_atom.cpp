@@ -166,11 +166,12 @@ int DumpAtom::modify_param(int narg, char **arg)
   }
 
   if (strcmp(arg[0],"triclinic/general") == 0) {
-    triclinic_general = 1;
+    if (narg < 2) error->all(FLERR,"Illegal dump_modify command");
+    triclinic_general = utils::logical(FLERR,arg[1],false,lmp);
     if (triclinic_general && !domain->triclinic_general)
       error->all(FLERR,"Dump_modify triclinic/general cannot be used "
                  "if simulation box is not general triclinic");
-    return 1;
+    return 2;
   }
 
   return 0;
@@ -673,7 +674,9 @@ int DumpAtom::convert_image(int n, double *mybuf)
       memory->grow(sbuf,maxsbuf,"dump:sbuf");
     }
 
-    offset += sprintf(&sbuf[offset],format,
+    offset += snprintf(&sbuf[offset],
+                      maxsbuf - offset,
+                      format,
                       static_cast<tagint> (mybuf[m]),
                       static_cast<int> (mybuf[m+1]),
                       mybuf[m+2],mybuf[m+3],mybuf[m+4],
@@ -699,7 +702,9 @@ int DumpAtom::convert_noimage(int n, double *mybuf)
       memory->grow(sbuf,maxsbuf,"dump:sbuf");
     }
 
-    offset += sprintf(&sbuf[offset],format,
+    offset += snprintf(&sbuf[offset],
+                      maxsbuf - offset,
+                      format,
                       static_cast<tagint> (mybuf[m]),
                       static_cast<int> (mybuf[m+1]),
                       mybuf[m+2],mybuf[m+3],mybuf[m+4]);

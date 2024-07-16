@@ -63,6 +63,7 @@ FixShake::FixShake(LAMMPS *lmp, int narg, char **arg) :
   create_attribute = 1;
   dof_flag = 1;
   scalar_flag = 1;
+  extscalar = 1;
   stores_ids = 1;
   centroidstressflag = CENTROID_AVAIL;
   next_output = -1;
@@ -371,7 +372,9 @@ void FixShake::init()
   // if rRESPA, find associated fix that must exist
   // could have changed locations in fix list since created
   // set ptrs to rRESPA variables
+  // set respa to 0 if verlet is used and to 1 otherwise
 
+  respa = 0;
   fix_respa = nullptr;
   if (utils::strmatch(update->integrate_style,"^respa")) {
     if (update->whichflag > 0) {
@@ -379,10 +382,12 @@ void FixShake::init()
       if (fixes.size() > 0) fix_respa = dynamic_cast<FixRespa *>(fixes.front());
       else error->all(FLERR,"Run style respa did not create fix RESPA");
     }
-    auto respa_style = dynamic_cast<Respa *>(update->integrate);
-    nlevels_respa = respa_style->nlevels;
-    loop_respa = respa_style->loop;
-    step_respa = respa_style->step;
+    auto respa_ptr = dynamic_cast<Respa *>(update->integrate);
+    if (!respa_ptr) error->all(FLERR, "Failure to access Respa style {}", update->integrate_style);
+    respa = 1;
+    nlevels_respa = respa_ptr->nlevels;
+    loop_respa = respa_ptr->loop;
+    step_respa = respa_ptr->step;
   }
 
   // set equilibrium bond distances
@@ -473,18 +478,22 @@ void FixShake::setup(int vflag)
       next_output = (ntimestep/output_every)*output_every + output_every;
   } else next_output = -1;
 
-  // set respa to 0 if verlet is used and to 1 otherwise
-
-  if (utils::strmatch(update->integrate_style,"^verlet"))
-    respa = 0;
-  else
-    respa = 1;
-
   if (!respa) {
     dtv     = update->dt;
     dtfsq   = 0.5 * update->dt * update->dt * force->ftm2v;
     if (!rattle) dtfsq = update->dt * update->dt * force->ftm2v;
   } else {
+    auto respa_ptr = dynamic_cast<Respa *>(update->integrate);
+    if (!respa_ptr) error->all(FLERR, "Failure to access Respa style {}", update->integrate_style);
+    if (update->whichflag > 0) {
+      auto fixes = modify->get_fix_by_style("^RESPA");
+      if (fixes.size() > 0) fix_respa = dynamic_cast<FixRespa *>(fixes.front());
+      else error->all(FLERR,"Run style respa did not create fix RESPA");
+    }
+    respa = 1;
+    nlevels_respa = respa_ptr->nlevels;
+    loop_respa = respa_ptr->loop;
+    step_respa = respa_ptr->step;
     dtv = step_respa[0];
     dtf_innerhalf = 0.5 * step_respa[0] * force->ftm2v;
     dtf_inner = dtf_innerhalf;
@@ -3123,7 +3132,14 @@ void FixShake::reset_dt()
     dtv = update->dt;
     if (rattle) dtfsq   = 0.5 * update->dt * update->dt * force->ftm2v;
     else dtfsq = update->dt * update->dt * force->ftm2v;
+    respa = 0;
   } else {
+    auto respa_ptr = dynamic_cast<Respa *>(update->integrate);
+    if (!respa_ptr) error->all(FLERR, "Failure to access Respa style {}", update->integrate_style);
+    respa = 1;
+    nlevels_respa = respa_ptr->nlevels;
+    loop_respa = respa_ptr->loop;
+    step_respa = respa_ptr->step;
     dtv = step_respa[0];
     dtf_innerhalf = 0.5 * step_respa[0] * force->ftm2v;
     if (rattle) dtf_inner = dtf_innerhalf;

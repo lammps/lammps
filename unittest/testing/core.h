@@ -107,7 +107,7 @@ public:
 
 protected:
     std::string testbinary = "LAMMPSTest";
-    LAMMPS::argv args = {"-log", "none", "-echo", "screen", "-nocite"};
+    LAMMPS::argv args      = {"-log", "none", "-echo", "screen", "-nocite"};
     LAMMPS *lmp;
     Info *info;
 

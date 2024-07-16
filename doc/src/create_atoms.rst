@@ -10,7 +10,7 @@ Syntax
 
    create_atoms type style args keyword values ...
 
-* type = atom type (1-Ntypes) of atoms to create (offset for molecule creation)
+* type = atom type (1-Ntypes or type label) of atoms to create (offset for molecule creation)
 * style = *box* or *region* or *single* or *mesh* or *random*
 
   .. parsed-literal::
@@ -37,7 +37,7 @@ Syntax
          seed = random # seed (positive integer)
        *basis* values = M itype
          M = which basis atom
-         itype = atom type (1-N) to assign to this basis atom
+         itype = atom type (1-Ntypes or type label) to assign to this basis atom
        *ratio* values = frac seed
          frac = fraction of lattice sites (0 to 1) to populate randomly
          seed = random # seed (positive integer)
@@ -74,6 +74,13 @@ Examples
 .. code-block:: LAMMPS
 
    create_atoms 1 box
+
+   labelmap atom 1 Pt
+   create_atoms Pt box
+
+   labelmap atom 1 C 2 Si
+   create_atoms C region regsphere basis Si C
+
    create_atoms 3 region regsphere basis 2 3
    create_atoms 3 region regsphere basis 2 3 ratio 0.5 74637
    create_atoms 3 single 0 0 5
@@ -468,12 +475,13 @@ to.
 
 The *overlap* keyword only applies to the *random* style.  It prevents
 newly created particles from being created closer than the specified
-*Doverlap* distance from any other particle.  When the particles being
-created are molecules, the radius of the molecule (from its geometric
-center) is added to *Doverlap*.  If particles have finite size (see
-:doc:`atom_style sphere <atom_style>` for example) *Doverlap* should
-be specified large enough to include the particle size in the
-non-overlapping criterion.
+*Doverlap* distance from any other particle.  If particles have finite
+size (see :doc:`atom_style sphere <atom_style>` for example) *Doverlap*
+should be specified large enough to include the particle size in the
+non-overlapping criterion.  If molecules are being randomly inserted, then
+an insertion is only accepted if each particle in the molecule meets the
+overlap criterion with respect to other particles (not including particles
+in the molecule itself).
 
 .. note::
 

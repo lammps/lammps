@@ -14,7 +14,7 @@ Syntax
 * widom = style name of this fix command
 * N = invoke this fix every N steps
 * M = number of Widom insertions to attempt every N steps
-* type = atom type for inserted atoms (must be 0 if mol keyword used)
+* type = atom type (1-Ntypes or type label) for inserted atoms (must be 0 if mol keyword used)
 * seed = random # seed (positive integer)
 * T = temperature of the system (temperature units)
 * zero or more keyword/value pairs may be appended to args
@@ -37,6 +37,9 @@ Examples
 
    fix 2 gas widom 1 50000 1 19494 2.0
    fix 3 water widom 1000 100 0 29494 300.0 mol h2omol full_energy
+
+   labelmap atom 1 Li
+   fix 2 ion widom 1 50000 Li 19494 2.0
 
 Description
 """""""""""
@@ -179,7 +182,7 @@ the following global cumulative quantities:
 * 2 = average difference in potential energy on each timestep
 * 3 = volume of the insertion region
 
-The vector values calculated by this fix are "extensive".
+The vector values calculated by this fix are "intensive".
 
 No parameter of this fix can be used with the *start/stop* keywords of
 the :doc:`run <run>` command.  This fix is not invoked during

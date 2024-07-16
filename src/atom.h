@@ -327,7 +327,7 @@ class Atom : protected Pointers {
 
   int parse_data(const char *);
 
-  void deallocate_topology();
+  virtual void deallocate_topology();
 
   void data_atoms(int, char *, tagint, tagint, int, int, double *, int, int *, int);
   void data_vels(int, char *, tagint);

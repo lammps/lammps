@@ -97,8 +97,8 @@ FixChargeRegulation::FixChargeRegulation(LAMMPS *lmp, int narg, char **arg) :
   energy_stored = 0;
 
   // necessary to specify the free ion types
-  cation_type = utils::inumeric(FLERR, arg[3], false, lmp);
-  anion_type = utils::inumeric(FLERR, arg[4], false, lmp);
+  cation_type = utils::expand_type_int(FLERR, arg[3], Atom::ATOM, lmp);
+  anion_type = utils::expand_type_int(FLERR, arg[4], Atom::ATOM, lmp);
 
   // set defaults and read optional arguments
   options(narg - 5, &arg[5]);
@@ -1398,11 +1398,11 @@ void FixChargeRegulation::options(int narg, char **arg) {
       iarg += 2;
     } else if (strcmp(arg[iarg], "acid_type") == 0) {
       if (iarg + 2 > narg) error->all(FLERR, "Illegal fix charge/regulation command");
-      acid_type = utils::inumeric(FLERR, arg[iarg + 1], false, lmp);
+      acid_type = utils::expand_type_int(FLERR, arg[iarg + 1], Atom::ATOM, lmp);
       iarg += 2;
     } else if (strcmp(arg[iarg], "base_type") == 0) {
       if (iarg + 2 > narg) error->all(FLERR, "Illegal fix charge/regulation command");
-      base_type = utils::inumeric(FLERR, arg[iarg + 1], false, lmp);
+      base_type = utils::expand_type_int(FLERR, arg[iarg + 1], Atom::ATOM, lmp);
       iarg += 2;
     } else if (strcmp(arg[iarg], "pH") == 0) {
       if (iarg + 2 > narg) error->all(FLERR, "Illegal fix charge/regulation command");

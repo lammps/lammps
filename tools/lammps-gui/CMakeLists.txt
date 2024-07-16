@@ -1,6 +1,6 @@
 cmake_minimum_required(VERSION 3.16)
 
-project(lammps-gui VERSION 1.5.11 LANGUAGES CXX)
+project(lammps-gui VERSION 1.5.12 LANGUAGES CXX)
 
 set(CMAKE_AUTOUIC ON)
 set(CMAKE_AUTOMOC ON)
@@ -207,30 +207,34 @@ if(APPLE)
   )
   # additional targets to populate the bundle tree and create the .dmg image file
   set(APP_CONTENTS ${CMAKE_BINARY_DIR}/lammps-gui.app/Contents)
-  add_custom_target(complete-bundle
-    ${CMAKE_COMMAND} -E make_directory ${APP_CONTENTS}/bin
-    COMMAND ${CMAKE_COMMAND} -E copy_if_different ${CMAKE_BINARY_DIR}/lmp ${APP_CONTENTS}/bin/
-    COMMAND ${CMAKE_COMMAND} -E copy_if_different ${CMAKE_BINARY_DIR}/msi2lmp ${APP_CONTENTS}/bin/
-    COMMAND ${CMAKE_COMMAND} -E copy_if_different ${CMAKE_BINARY_DIR}/binary2txt ${APP_CONTENTS}/bin/
-    COMMAND ${CMAKE_COMMAND} -E copy_if_different ${CMAKE_BINARY_DIR}/stl_bin2txt ${APP_CONTENTS}/bin/
-    COMMAND ${CMAKE_COMMAND} -E copy_if_different ${CMAKE_BINARY_DIR}/phana ${APP_CONTENTS}/bin/
-    COMMAND ${CMAKE_COMMAND} -E create_symlink ../MacOS/lammps-gui ${APP_CONTENTS}/bin/lammps-gui
-    COMMAND ${CMAKE_COMMAND} -E make_directory ${APP_CONTENTS}/Resources
-    COMMAND ${CMAKE_COMMAND} -E copy_if_different ${LAMMPS_DIR}/cmake/packaging/README.macos ${APP_CONTENTS}/Resources/README.txt
-    COMMAND ${CMAKE_COMMAND} -E copy_if_different ${LAMMPS_DIR}/cmake/packaging/lammps.icns ${APP_CONTENTS}/Resources
-    COMMAND ${CMAKE_COMMAND} -E copy_if_different ${LAMMPS_DIR}/cmake/packaging/LAMMPS_DMG_Background.png ${APP_CONTENTS}/Resources
-    COMMAND ${CMAKE_COMMAND} -E make_directory ${APP_CONTENTS}/share/lammps
-    COMMAND ${CMAKE_COMMAND} -E make_directory ${APP_CONTENTS}/share/lammps/man/man1
-    COMMAND ${CMAKE_COMMAND} -E copy_directory ${LAMMPS_DIR}/potentials ${APP_CONTENTS}/share/lammps/potentials
-    COMMAND ${CMAKE_COMMAND} -E copy_directory ${LAMMPS_DIR}/bench ${APP_CONTENTS}/share/lammps/bench
-    COMMAND ${CMAKE_COMMAND} -E copy_directory ${LAMMPS_DIR}/tools/msi2lmp/frc_files ${APP_CONTENTS}/share/lammps/frc_files
-    COMMAND ${CMAKE_COMMAND} -E copy_if_different ${LAMMPS_DIR}/doc/lammps.1 ${APP_CONTENTS}/share/lammps/man/man1/
-    COMMAND ${CMAKE_COMMAND} -E create_symlink lammps.1 ${APP_CONTENTS}/share/lammps/man/man1/lmp.1
-    COMMAND ${CMAKE_COMMAND} -E copy_if_different ${LAMMPS_DIR}/doc/msi2lmp.1 ${APP_CONTENTS}/share/lammps/man/man1
-    DEPENDS lammps-gui lammps lmp binary2txt stl_bin2txt msi2lmp phana
-    COMMENT "Copying additional files into macOS app bundle tree"
-    WORKING_DIRECTORY ${CMAKE_BINARY_DIR}
-  )
+  if(BUILD_TOOLS)
+    add_custom_target(complete-bundle
+      ${CMAKE_COMMAND} -E make_directory ${APP_CONTENTS}/bin
+      COMMAND ${CMAKE_COMMAND} -E copy_if_different ${CMAKE_BINARY_DIR}/lmp ${APP_CONTENTS}/bin/
+      COMMAND ${CMAKE_COMMAND} -E copy_if_different ${CMAKE_BINARY_DIR}/msi2lmp ${APP_CONTENTS}/bin/
+      COMMAND ${CMAKE_COMMAND} -E copy_if_different ${CMAKE_BINARY_DIR}/binary2txt ${APP_CONTENTS}/bin/
+      COMMAND ${CMAKE_COMMAND} -E copy_if_different ${CMAKE_BINARY_DIR}/stl_bin2txt ${APP_CONTENTS}/bin/
+      COMMAND ${CMAKE_COMMAND} -E copy_if_different ${CMAKE_BINARY_DIR}/phana ${APP_CONTENTS}/bin/
+      COMMAND ${CMAKE_COMMAND} -E create_symlink ../MacOS/lammps-gui ${APP_CONTENTS}/bin/lammps-gui
+      COMMAND ${CMAKE_COMMAND} -E make_directory ${APP_CONTENTS}/Resources
+      COMMAND ${CMAKE_COMMAND} -E copy_if_different ${LAMMPS_DIR}/cmake/packaging/README.macos ${APP_CONTENTS}/Resources/README.txt
+      COMMAND ${CMAKE_COMMAND} -E copy_if_different ${LAMMPS_DIR}/cmake/packaging/lammps.icns ${APP_CONTENTS}/Resources
+      COMMAND ${CMAKE_COMMAND} -E copy_if_different ${LAMMPS_DIR}/cmake/packaging/LAMMPS_DMG_Background.png ${APP_CONTENTS}/Resources
+      COMMAND ${CMAKE_COMMAND} -E make_directory ${APP_CONTENTS}/share/lammps
+      COMMAND ${CMAKE_COMMAND} -E make_directory ${APP_CONTENTS}/share/lammps/man/man1
+      COMMAND ${CMAKE_COMMAND} -E copy_directory ${LAMMPS_DIR}/potentials ${APP_CONTENTS}/share/lammps/potentials
+      COMMAND ${CMAKE_COMMAND} -E copy_directory ${LAMMPS_DIR}/bench ${APP_CONTENTS}/share/lammps/bench
+      COMMAND ${CMAKE_COMMAND} -E copy_directory ${LAMMPS_DIR}/tools/msi2lmp/frc_files ${APP_CONTENTS}/share/lammps/frc_files
+      COMMAND ${CMAKE_COMMAND} -E copy_if_different ${LAMMPS_DIR}/doc/lammps.1 ${APP_CONTENTS}/share/lammps/man/man1/
+      COMMAND ${CMAKE_COMMAND} -E create_symlink lammps.1 ${APP_CONTENTS}/share/lammps/man/man1/lmp.1
+      COMMAND ${CMAKE_COMMAND} -E copy_if_different ${LAMMPS_DIR}/doc/msi2lmp.1 ${APP_CONTENTS}/share/lammps/man/man1
+      DEPENDS lammps-gui lammps lmp binary2txt stl_bin2txt msi2lmp phana
+      COMMENT "Copying additional files into macOS app bundle tree"
+      WORKING_DIRECTORY ${CMAKE_BINARY_DIR}
+    )
+  else()
+    message(FATAL_ERROR "Must use -D BUILD_TOOLS=yes for building app bundle")
+  endif()
   if(FFMPEG_EXECUTABLE)
     add_custom_target(copy-ffmpeg
       COMMAND ${CMAKE_COMMAND} -E copy_if_different ${FFMPEG_EXECUTABLE} ${APP_CONTENTS}/bin/
@@ -250,7 +254,9 @@ if(APPLE)
 elseif(MSVC)
   install(TARGETS lammps-gui DESTINATION ${CMAKE_INSTALL_BINDIR})
   install(FILES $<TARGET_RUNTIME_DLLS:lammps-gui> TYPE BIN)
-  install(FILES $<TARGET_RUNTIME_DLLS:lammps> TYPE BIN)
+  if(BUILD_SHARED_LIBS)
+    install(FILES $<TARGET_RUNTIME_DLLS:lammps> TYPE BIN)
+  endif()
   install(FILES $<TARGET_RUNTIME_DLLS:lmp> TYPE BIN)
   # find path to VC++ init batch file
   get_filename_component(VC_COMPILER_DIR "${CMAKE_CXX_COMPILER}" DIRECTORY)
@@ -262,7 +268,9 @@ elseif(MSVC)
 elseif((CMAKE_SYSTEM_NAME STREQUAL "Windows") AND CMAKE_CROSSCOMPILING)
   install(TARGETS lammps-gui DESTINATION ${CMAKE_INSTALL_BINDIR})
   install(FILES $<TARGET_RUNTIME_DLLS:lammps-gui> TYPE BIN)
-  install(FILES $<TARGET_RUNTIME_DLLS:lammps> TYPE BIN)
+  if(BUILD_SHARED_LIBS)
+    install(FILES $<TARGET_RUNTIME_DLLS:lammps> TYPE BIN)
+  endif()
   install(FILES $<TARGET_RUNTIME_DLLS:lmp> TYPE BIN)
   add_custom_target(zip
     COMMAND sh -vx ${LAMMPS_DIR}/cmake/packaging/build_windows_cross_zip.sh ${CMAKE_INSTALL_PREFIX}

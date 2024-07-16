@@ -65,6 +65,18 @@ class HIPSpace {
   ~HIPSpace()                              = default;
 
   /**\brief  Allocate untracked memory in the hip space */
+#ifdef KOKKOS_ENABLE_IMPL_HIP_UNIFIED_MEMORY
+  template <typename ExecutionSpace>
+  void* allocate(const ExecutionSpace&, const size_t arg_alloc_size) const {
+    return allocate(arg_alloc_size);
+  }
+  template <typename ExecutionSpace>
+  void* allocate(const ExecutionSpace&, const char* arg_label,
+                 const size_t arg_alloc_size,
+                 const size_t arg_logical_size = 0) const {
+    return allocate(arg_label, arg_alloc_size, arg_logical_size);
+  }
+#else
   // FIXME_HIP Use execution space instance
   void* allocate(const HIP&, const size_t arg_alloc_size) const {
     return allocate(arg_alloc_size);
@@ -74,6 +86,7 @@ class HIPSpace {
                  const size_t arg_logical_size = 0) const {
     return allocate(arg_label, arg_alloc_size, arg_logical_size);
   }
+#endif
   void* allocate(const size_t arg_alloc_size) const;
   void* allocate(const char* arg_label, const size_t arg_alloc_size,
                  const size_t arg_logical_size = 0) const;
@@ -267,7 +280,11 @@ static_assert(Kokkos::Impl::MemorySpaceAccess<HIPSpace, HIPSpace>::assignable);
 template <>
 struct MemorySpaceAccess<HostSpace, HIPSpace> {
   enum : bool { assignable = false };
-  enum : bool { accessible = false };
+#if !defined(KOKKOS_ENABLE_IMPL_HIP_UNIFIED_MEMORY)
+  enum : bool{accessible = false};
+#else
+  enum : bool { accessible = true };
+#endif
   enum : bool { deepcopy = true };
 };
 

@@ -281,7 +281,7 @@ void SlideShow::play()
     }
 
     // reset push button state. use findChild() if not triggered from button.
-    QPushButton *button = qobject_cast<QPushButton *>(sender());
+    auto *button = qobject_cast<QPushButton *>(sender());
     if (!button) button = findChild<QPushButton *>("play");
     if (button) button->setChecked(playtimer);
 }
@@ -315,7 +315,7 @@ void SlideShow::prev()
 
 void SlideShow::loop()
 {
-    QPushButton *button = qobject_cast<QPushButton *>(sender());
+    auto *button = qobject_cast<QPushButton *>(sender());
     do_loop             = !do_loop;
     button->setChecked(do_loop);
 }

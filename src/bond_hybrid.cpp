@@ -142,8 +142,10 @@ void BondHybrid::compute(int eflag, int vflag)
     }
   }
 
-  // if bond type can be set to zero and deleted, update bondlist_orig
-  tagint *tag = atom->tag;
+  // If bond style can be deleted by setting type to zero (BPM or quartic), update bondlist_orig
+  //   Otherwise, bond type could be restored back to its original value during reneighboring
+  //   Use orig_map to propagate changes from temporary bondlist array back to original array
+
   if (partial_flag) {
     for (m = 0; m < nstyles; m++) {
       for (i = 0; i < nbondlist[m]; i++) {

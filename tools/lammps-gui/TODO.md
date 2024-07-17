@@ -2,7 +2,6 @@ LAMMPS-GUI TODO list:
 
 # Short term goals (v1.x)
 
-- add "delete image files" option to Slide Show, plus pushbutton
 - add "export YAML data" to Output viewer, if YAML thermo data is detected.
 - add "export to YAML" to chart viewer.
 

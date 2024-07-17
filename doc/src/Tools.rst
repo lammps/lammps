@@ -93,7 +93,7 @@ Miscellaneous tools
    * :ref:`i-PI <ipi>`
    * :ref:`kate <kate>`
    * :ref:`LAMMPS shell <lammps_shell>`
-   * :ref:`LAMMPS GUI <lammps_gui>`
+   * :ref:`LAMMPS-GUI <lammps_gui>`
    * :ref:`LAMMPS magic patterns for file(1) <magic>`
    * :ref:`Offline build tool <offline>`
    * :ref:`singularity/apptainer <singularity_tool>`
@@ -656,7 +656,7 @@ you first need to use the :doc:`clear` command.
 
 .. _lammps_gui:
 
-LAMMPS GUI
+LAMMPS-GUI
 ----------
 
 .. versionadded:: 2Aug2023
@@ -664,7 +664,7 @@ LAMMPS GUI
 Overview
 ^^^^^^^^
 
-LAMMPS GUI is a graphical text editor customized for editing LAMMPS
+LAMMPS-GUI is a graphical text editor customized for editing LAMMPS
 input files that is linked to the :ref:`LAMMPS C-library <lammps_c_api>`
 and thus can run LAMMPS directly using the contents of the editor's text
 buffer as input.  It can retrieve and display information from LAMMPS
@@ -693,7 +693,7 @@ Features
 A detailed discussion and explanation of all features and functionality
 are in the :doc:`Howto_lammps_gui` tutorial Howto page.
 
-Here are a few highlights of LAMMPS GUI
+Here are a few highlights of LAMMPS-GUI
 
 - Text editor with syntax highlighting customized for LAMMPS
 - Text editor features command completion for known commands and styles
@@ -717,19 +717,19 @@ Parallelization
 ^^^^^^^^^^^^^^^
 
 Due to its nature as a graphical application, it is not possible to use
-the LAMMPS GUI in parallel with MPI, but OpenMP multi-threading and GPU
+the LAMMPS-GUI in parallel with MPI, but OpenMP multi-threading and GPU
 acceleration is available and enabled by default.
 
 Prerequisites and portability
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-LAMMPS GUI is programmed in C++ based on the C++11 standard and using
+LAMMPS-GUI is programmed in C++ based on the C++11 standard and using
 the `Qt GUI framework <https://www.qt.io/product/framework>`_.
 Currently, Qt version 5.12 or later is required; Qt 5.15LTS is
 recommended; support for Qt version 6.x is available.  Building LAMMPS
 with CMake is required.
 
-The LAMMPS GUI has been successfully compiled and tested on:
+The LAMMPS-GUI has been successfully compiled and tested on:
 
 - Ubuntu Linux 20.04LTS x86_64 using GCC 9, Qt version 5.12
 - Fedora Linux 40 x86\_64 using GCC 14 and Clang 17, Qt version 5.15LTS
@@ -749,20 +749,20 @@ available from https://download.lammps.org/static or
 https://github.com/lammps/lammps/releases.  You can unpack the archives
 (or mount the macOS disk image) and run the GUI directly in place. The
 folder may also be moved around and added to the ``PATH`` environment
-variable so the executables will be found automatically.  The LAMMPS GUI
+variable so the executables will be found automatically.  The LAMMPS-GUI
 executable is called ``lammps-gui`` and either takes no arguments or
 attempts to load the first argument as LAMMPS input file.
 
 Compilation
 ^^^^^^^^^^^
 
-The source for the LAMMPS GUI is included with the LAMMPS source code
+The source for the LAMMPS-GUI is included with the LAMMPS source code
 distribution in the folder ``tools/lammps-gui`` and thus it can be can
 be built as part of a regular LAMMPS compilation.  :doc:`Using CMake
 <Howto_cmake>` is required.  To enable its compilation, the CMake
 variable ``-D BUILD_LAMMPS_GUI=on`` must be set when creating the CMake
 configuration.  All other settings (compiler, flags, compile type) for
-LAMMPS GUI are then inherited from the regular LAMMPS build.  If the Qt
+LAMMPS-GUI are then inherited from the regular LAMMPS build.  If the Qt
 library is packaged for Linux distributions, then its location is
 typically auto-detected since the required CMake configuration files are
 stored in a location where CMake can find them without additional help.
@@ -775,7 +775,7 @@ Qt6_DIR=/path/to/qt6/lib/cmake/Qt6``, if necessary.  When both, Qt5 and
 Qt6 are available, Qt6 will be preferred unless ``-D
 LAMMPS_GUI_USE_QT5=yes`` is set.
 
-It is possible to build the LAMMPS GUI as a standalone compilation
+It is possible to build the LAMMPS-GUI as a standalone compilation
 (e.g. when LAMMPS has been compiled with traditional make).  Then the
 CMake configuration needs to be told where to find the LAMMPS headers
 and the LAMMPS library, via ``-D LAMMPS_SOURCE_DIR=/path/to/lammps/src``.
@@ -831,13 +831,13 @@ There is a custom `x64-GUI-MSVC` build configuration provided in the
 compilation settings for project.  Choosing this configuration will
 activate building the `lammps-gui.exe` executable in addition to LAMMPS
 through importing package selection from the ``windows.cmake`` preset
-file and enabling building the LAMMPS GUI and disabling building with MPI.
+file and enabling building the LAMMPS-GUI and disabling building with MPI.
 When requesting an installation from the `Build` menu in Visual Studio,
 it will create a compressed ``LAMMPS-Win10-amd64.zip`` zip file with the
 executables and required dependent .dll files.  This zip file can be
 uncompressed and ``lammps-gui.exe`` run directly from there.  The
 uncompressed folder can be added to the ``PATH`` environment and LAMMPS
-and LAMMPS GUI can be launched from anywhere from the command line.
+and LAMMPS-GUI can be launched from anywhere from the command line.
 
 **MinGW64 Cross-compiler**
 

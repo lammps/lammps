@@ -1,11 +1,11 @@
-Using the LAMMPS GUI
+Using the LAMMPS-GUI
 ====================
 
-This document describes **LAMMPS GUI version 1.6**.
+This document describes **LAMMPS-GUI version 1.6**.
 
 -----
 
-LAMMPS GUI is a graphical text editor customized for editing LAMMPS
+LAMMPS-GUI is a graphical text editor customized for editing LAMMPS
 input files that is linked to the :ref:`LAMMPS library <lammps_c_api>`
 and thus can run LAMMPS directly using the contents of the editor's text
 buffer as input.  It can retrieve and display information from LAMMPS
@@ -16,17 +16,17 @@ to the online LAMMPS documentation for known LAMMPS commands and styles.
 
 .. note::
 
-   Pre-compiled, ready-to-use LAMMPS GUI executables for Linux (Ubuntu
+   Pre-compiled, ready-to-use LAMMPS-GUI executables for Linux (Ubuntu
    20.04LTS or later and compatible), macOS (version 11 aka Big Sur or
    later), and Windows (version 10 or later) :ref:`are available
    <lammps_gui_install>` for download.  None-MPI LAMMPS executables of
    the same LAMMPS version are included in these packages as well.  The
-   source code for the LAMMPS GUI is included in the LAMMPS source code
+   source code for the LAMMPS-GUI is included in the LAMMPS source code
    distribution and can be found in the ``tools/lammps-gui`` folder.  It
    can be compiled alongside LAMMPS when :doc:`compiling with CMake
    <Build_cmake>`.
 
-LAMMPS GUI tries to provide an experience similar to what people
+LAMMPS-GUI tries to provide an experience similar to what people
 traditionally would do to run LAMMPS using a command line window
 but just rolled into a single executable:
 
@@ -42,13 +42,13 @@ that they are most comfortable with.  It is often *required* to adopt
 this workflow when running LAMMPS simulations on high-performance
 computing facilities.
 
-The main benefit of using the LAMMPS GUI application instead is that
+The main benefit of using the LAMMPS-GUI application instead is that
 many basic tasks can be done directly from the GUI without switching to
 a text console window or using external programs, let alone writing
 scripts to extract data from the generated output.  It also integrates
 well with graphical desktop environments.
 
-LAMMPS GUI thus makes it easier for beginners to get started running
+LAMMPS-GUI thus makes it easier for beginners to get started running
 simple LAMMPS simulations.  It is very suitable for tutorials on LAMMPS
 since you only need to learn how to use a single program for most tasks
 and thus time can be saved and people can focus on learning LAMMPS.  It
@@ -58,7 +58,7 @@ visualization and analysis tools, and run LAMMPS from the command line
 or a batch script.
 
 The following text provides a detailed tour of the features and
-functionality of the LAMMPS GUI.  Suggestions for new features and
+functionality of the LAMMPS-GUI.  Suggestions for new features and
 reports of bugs are always welcome.  You can use the :doc:`the same
 channels as for LAMMPS itself <Errors_bugs>` for that purpose.
 
@@ -67,7 +67,7 @@ channels as for LAMMPS itself <Errors_bugs>` for that purpose.
 Main window
 -----------
 
-When LAMMPS GUI starts, it will show a main window, the editor, with
+When LAMMPS-GUI starts, it will show a main window, the editor, with
 either an empty buffer or the contents of a loaded file. In the latter
 case it may look like the following:
 
@@ -88,9 +88,9 @@ window will be stored when exiting and restored when starting again.
 Opening Files
 ^^^^^^^^^^^^^
 
-The LAMMPS GUI application will try to open the first command line
+The LAMMPS-GUI application will try to open the first command line
 argument as a LAMMPS input script, further arguments are ignored.
-When no argument is given, LAMMPS GUI will start with an empty buffer.
+When no argument is given, LAMMPS-GUI will start with an empty buffer.
 Files can also be opened via the ``File`` menu or by drag-and-drop of
 a file from a graphical file manager into the editor window.  Only one
 file can be edited at a time, so opening a new file with a filled buffer
@@ -103,7 +103,7 @@ or by clicking on the "Save" button at the very left in the status bar.
 Running LAMMPS
 ^^^^^^^^^^^^^^
 
-From within the LAMMPS GUI main window LAMMPS can be started either from
+From within the LAMMPS-GUI main window LAMMPS can be started either from
 the ``Run`` menu using the ``Run LAMMPS from Editor Buffer`` entry, by
 the keyboard shortcut `Ctrl-Enter` (`Command-Enter` on macOS), or by
 clicking on the green "Run" button in the status bar.  All of these
@@ -182,7 +182,7 @@ would normally be seen in the command line window, as shown below.
    :align: center
    :scale: 50%
 
-LAMMPS GUI captures the screen output from LAMMPS as it is generated and
+LAMMPS-GUI captures the screen output from LAMMPS as it is generated and
 updates the *Output* window regularly during a run.
 
 By default, the *Output* window will be replaced each time a run is started.
@@ -205,7 +205,7 @@ right mouse button into the *Output* window text area.
    :scale: 50%
 
 .. versionadded:: 1.6
-           
+
 Should the *Output* window contain embedded YAML format text (see above for a
 demonstration), for example from using :doc:`thermo_style yaml
 <thermo_style>` or :doc:`thermo_modify line yaml <thermo_modify>`, the
@@ -213,7 +213,7 @@ keyboard shortcut `Ctrl-Y` (`Command-Y` on macOS) is available to save
 only the YAML parts to a file.  This option is also available from a
 context menu by clicking with the right mouse button into the *Output* window
 text area.
-           
+
 Charts Window
 -------------
 
@@ -282,7 +282,7 @@ below.
    :align: center
    :scale: 75%
 
-Like the *Output* and *Charts* windows, its content is continuously
+Like for the *Output* and *Charts* windows, its content is continuously
 updated during a run.  It will show "(none)" if there are no variables
 defined.  Note that it is also possible to *set* :doc:`index style
 variables <variable>`, that would normally be set via command line
@@ -396,7 +396,7 @@ Context Specific Help
    :align: center
    :scale: 50%
 
-A unique feature of the LAMMPS GUI is the option to look up the
+A unique feature of the LAMMPS-GUI is the option to look up the
 documentation for the command in the current line.  This can be done by
 either clicking the right mouse button or by using the `Ctrl-?` keyboard
 shortcut.  When clicking the mouse there are additional entries in the
@@ -426,7 +426,7 @@ The ``File`` menu offers the usual options:
   a dialog will open to select a new file name
 - ``Save As`` will open a dialog to select and new file name and save
   the buffer to it
-- ``Quit`` will exit LAMMPS GUI. If there are unsaved changes, a dialog
+- ``Quit`` will exit LAMMPS-GUI. If there are unsaved changes, a dialog
   will appear to either cancel the operation, or to save or not save the
   edited file.
 
@@ -447,7 +447,7 @@ Run
 
 The ``Run`` menu has options to start and stop a LAMMPS process.
 Rather than calling the LAMMPS executable as a separate executable,
-the LAMMPS GUI is linked to the LAMMPS library and thus can run LAMMPS
+the LAMMPS-GUI is linked to the LAMMPS library and thus can run LAMMPS
 internally through the :ref:`LAMMPS C-library interface
 <lammps_c_api>`.
 
@@ -491,12 +491,12 @@ in an ``Image Viewer`` window.
 
 The ``View in OVITO`` entry will launch `OVITO <https://ovito.org>`_
 with a :doc:`data file <write_data>` containing the current state of
-the system.  This option is only available if the LAMMPS GUI can find
+the system.  This option is only available if the LAMMPS-GUI can find
 the OVITO executable in the system path.
 
 The ``View in VMD`` entry will launch VMD with a :doc:`data file
 <write_data>` containing the current state of the system.  This option
-is only available if the LAMMPS GUI can find the VMD executable in the
+is only available if the LAMMPS-GUI can find the VMD executable in the
 system path.
 
 View
@@ -514,8 +514,8 @@ The ``About`` menu finally offers a couple of dialog windows and an
 option to launch the LAMMPS online documentation in a web browser.
 The ``About LAMMPS`` entry displays a dialog with a summary of the
 configuration settings of the LAMMPS library in use and the version
-number of LAMMPS GUI itself.  The ``Quick Help`` displays a dialog
-with a minimal description of LAMMPS GUI.  The ``LAMMPS GUI Howto``
+number of LAMMPS-GUI itself.  The ``Quick Help`` displays a dialog
+with a minimal description of LAMMPS-GUI.  The ``LAMMPS-GUI Howto``
 entry will open this documentation page from the online documentation
 in a web browser window.  The ``LAMMPS Manual`` entry will open the
 main page of the LAMMPS documentation in the web browser.
@@ -526,7 +526,7 @@ Preferences
 -----------
 
 The ``Preferences`` dialog allows customization of the behavior and
-look of the LAMMPS GUI application.  The settings are grouped and each
+look of the LAMMPS-GUI application.  The settings are grouped and each
 group is displayed within a tab.
 
 .. |guiprefs1| image:: JPG/lammps-gui-prefs-general.png
@@ -547,9 +547,9 @@ General Settings:
 ^^^^^^^^^^^^^^^^^
 
 - *Echo input to log:* when checked, all input commands, including
-  variable expansions, will be echoed to the log window. This is
+  variable expansions, will be echoed to the *Output* window. This is
   equivalent to using `-echo screen` at the command line.  There is no
-  log *file* produced by default, since LAMMPS GUI uses `-log none`.
+  log *file* produced by default, since LAMMPS-GUI uses `-log none`.
 - *Include citation details:* when checked full citation info will be
   included to the log window.  This is equivalent to using `-cite
   screen` on the command line.
@@ -571,12 +571,12 @@ General Settings:
   chart window will be replaced when a new snapshot image is requested,
   otherwise each command will create a new image window.
 - *Path to LAMMPS Shared Library File:* this option is only visible
-  when LAMMPS GUI was compiled to load the LAMMPS library at run time
+  when LAMMPS-GUI was compiled to load the LAMMPS library at run time
   instead of being linked to it directly.  With the ``Browse..`` button
   or by changing the text, a different shared library file with a
   different compilation of LAMMPS with different settings or from a
   different version can be loaded.  After this setting was changed,
-  LAMMPS GUI needs to be re-launched.
+  LAMMPS-GUI needs to be re-launched.
 - *Select Default Font:* Opens a font selection dialog where the type
   and size for the default font (used for everything but the editor and
   log) of the application can be set.
@@ -691,7 +691,7 @@ available (On macOS use the Command key instead of Ctrl/Control).
      - Ctrl+Shift+H
      - Quick Help
      - Ctrl+Shift+G
-     - LAMMPS GUI Howto
+     - LAMMPS-GUI Howto
    * - Ctrl+Shift+M
      - LAMMPS Manual
      - Ctrl+?

@@ -59,5 +59,6 @@
     <file>icons/vmd.png</file>
     <file>icons/window-close.png</file>
     <file>icons/x-office-drawing.png</file>
+    <file>icons/yaml-file-icon.png</file>
   </qresource>
 </RCC>

@@ -24,6 +24,7 @@
 #include <QKeySequence>
 #include <QMenu>
 #include <QMessageBox>
+#include <QRegularExpression>
 #include <QSettings>
 #include <QShortcut>
 #include <QString>
@@ -37,6 +38,8 @@ LogWindow::LogWindow(const QString &_filename, QWidget *parent) :
 
     auto *action = new QShortcut(QKeySequence(Qt::CTRL | Qt::Key_S), this);
     connect(action, &QShortcut::activated, this, &LogWindow::save_as);
+    action = new QShortcut(QKeySequence(Qt::CTRL | Qt::Key_Y), this);
+    connect(action, &QShortcut::activated, this, &LogWindow::extract_yaml);
     action = new QShortcut(QKeySequence(Qt::CTRL | Qt::Key_Q), this);
     connect(action, &QShortcut::activated, this, &LogWindow::quit);
     action = new QShortcut(QKeySequence(Qt::CTRL | Qt::Key_Slash), this);
@@ -94,6 +97,31 @@ void LogWindow::save_as()
     file.close();
 }
 
+void LogWindow::extract_yaml()
+{
+    QString defaultname = filename + ".yaml";
+    if (filename.isEmpty()) defaultname = "lammps.yaml";
+    QString yamlFileName = QFileDialog::getSaveFileName(this, "Save YAML data to File", defaultname,
+                                                        "YAML files (*.yaml *.yml)");
+    if (yamlFileName.isEmpty()) return;
+
+    QFileInfo path(yamlFileName);
+    QFile file(path.absoluteFilePath());
+
+    if (!file.open(QIODevice::WriteOnly | QFile::Text)) {
+        QMessageBox::warning(this, "Warning", "Cannot save file: " + file.errorString());
+        return;
+    }
+
+    QRegularExpression is_yaml("^(keywords:.*$|data:$|---$|\\.\\.\\.$|  - \\[.*\\]$)");
+    QTextStream out(&file);
+    QStringList lines = toPlainText().split('\n');
+    for (const auto &line : lines) {
+        if (is_yaml.match(line).hasMatch()) out << line << '\n';
+    }
+    file.close();
+}
+
 void LogWindow::contextMenuEvent(QContextMenuEvent *event)
 {
     // show augmented context menu
@@ -103,6 +131,10 @@ void LogWindow::contextMenuEvent(QContextMenuEvent *event)
     action->setIcon(QIcon(":/icons/document-save-as.png"));
     action->setShortcut(QKeySequence(Qt::CTRL | Qt::Key_S));
     connect(action, &QAction::triggered, this, &LogWindow::save_as);
+    action = menu->addAction(QString("&Export YAML Data to File ..."));
+    action->setIcon(QIcon(":/icons/yaml-file-icon.png"));
+    action->setShortcut(QKeySequence(Qt::CTRL | Qt::Key_Y));
+    connect(action, &QAction::triggered, this, &LogWindow::extract_yaml);
     action = menu->addAction("&Close Window", this, &QWidget::close);
     action->setIcon(QIcon(":/icons/window-close.png"));
     action->setShortcut(QKeySequence(Qt::CTRL | Qt::Key_W));

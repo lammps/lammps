@@ -23,6 +23,7 @@ public:
     LogWindow(const QString &filename, QWidget *parent = nullptr);
 
 private slots:
+    void extract_yaml();
     void quit();
     void save_as();
     void stop_run();

@@ -264,9 +264,17 @@ displays the images created by LAMMPS as they are written.
 The various buttons at the bottom right of the window allow single
 stepping through the sequence of images or playing an animation (as a
 continuous loop or once from first to last).  It is also possible to
-zoom in or zoom out of the displayed images, and to export the slide
-show animation to a movie file, if `ffmpeg <https://ffmpeg.org/>`_ is
-installed.
+zoom in or zoom out of the displayed images. The button on the very
+left triggers an export of the slide show animation to a movie file,
+provided the `FFmpeg program <https://ffmpeg.org/>`_ is installed.
+
+.. versionadded:: 1.6
+
+When clicking on the "garbage can" icon, all image files used for the
+slide show will be deleted.  Since their number can be large for long
+simulations, this allows to safely clean up clutter in the working
+directory.
+
 
 Variable Info
 -------------
@@ -298,26 +306,37 @@ record a log for each run attempt by using the command
 at the beginning of an input file. That would record logs to files
 ``logfile-1.txt``, ``logfile-2.txt``, and so on for successive runs.
 
-Viewing Snapshot Images
------------------------
+Snapshot Image Viewer
+---------------------
 
 By selecting the ``Create Image`` entry in the ``Run`` menu, or by
 hitting the `Ctrl-I` (`Command-I` on macOS) keyboard shortcut, or by
-clicking on the "palette" button in the status bar, LAMMPS GUI will send
-a custom :doc:`write_dump image <dump_image>` command to LAMMPS and read
-the resulting snapshot image with the current state of the system into
-an image viewer window.  This functionality is not available *during* an
-ongoing run.  When LAMMPS is not yet initialized, LAMMPS GUI will try to
-identify the line with the first run or minimize command and execute all
-command up to that line from the input buffer and then add a "run 0"
-command.  This will initialize the system so an image of the initial
-state of the system can be rendered.  If there was an error, the
-snapshot image viewer will not appear.
+clicking on the "palette" button in the status bar of the *Editor*
+window, LAMMPS-GUI will send a custom :doc:`write_dump image
+<dump_image>` command to LAMMPS and read the resulting snapshot image
+with the current state of the system into an image viewer window.  This
+functionality is *not* available *during* an ongoing run since it is
+sending commands to LAMMPS.  When LAMMPS is not yet initialized,
+LAMMPS-GUI will try to identify the line with the first run or minimize
+command and execute all commands up to that line from the input buffer
+and then add a "run 0" command.  This will initialize the system so an
+image of the initial state of the system can be rendered.  If there was
+an error, the snapshot image viewer will not appear.
 
-When possible, LAMMPS GUI will try to detect which elements the atoms
-correspond to (via their mass) and then colorize them in the image
-accordingly.  Otherwise the default predefined sequence of colors is
-assigned to the different atom types.
+.. versionadded: 1.6
+
+   Assignment of atom diameters from Lennard-Jones *sigma* values
+
+When possible, LAMMPS-GUI will try to detect which elements the atoms
+correspond to (via their mass) and then colorize them in the image and
+set their atom diameters accordingly.  If this is not possible, for
+instance when using reduced (= 'lj') :doc:`units <units>`, then
+LAMMPS-GUI will check the current pair style and if it is a
+Lennard-Jones potential from which it will extract the *sigma* parameter
+for each atom type and assign atom diamaters from those numbers.
+
+Otherwise the default predefined sequence of colors is assigned to the
+different atom types and the diameters are all the same.
 
 .. image:: JPG/lammps-gui-image.png
    :align: center
@@ -339,21 +358,21 @@ may take several seconds.  From the ``File`` menu of the image window,
 the current image can be saved to a file or copied into the
 cut-n-paste buffer for pasting into another application.
 
-Editor Functions
-----------------
+Editor Window
+-------------
 
-The editor has most of the usual functionality that similar programs
-have: text selection via mouse or with cursor moves while holding the
-Shift key, Cut (`Ctrl-X`), Copy (`Ctrl-C`), Paste (`Ctrl-V`), Undo
-(`Ctrl-Z`), Redo (`Ctrl-Shift-Z`), Select All (`Ctrl-A`).  When trying
-to exit the editor with a modified buffer, a dialog will pop up asking
-whether to cancel the exit operation, or to save or not save the buffer
-contents to a file.
+The *Editor* window of LAMMPS-GUI has most of the usual functionality
+that similar programs have: text selection via mouse or with cursor
+moves while holding the Shift key, Cut (`Ctrl-X`), Copy (`Ctrl-C`),
+Paste (`Ctrl-V`), Undo (`Ctrl-Z`), Redo (`Ctrl-Shift-Z`), Select All
+(`Ctrl-A`).  When trying to exit the editor with a modified buffer, a
+dialog will pop up asking whether to cancel the exit operation, or to
+save or not save the buffer contents to a file.
 
 Context Specific Word Completion
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-By default, LAMMPS GUI will display a small pop-up frame with possible
+By default, LAMMPS-GUI will display a small pop-up frame with possible
 choices for LAMMPS input script commands or styles after 2 characters of
 a word have been typed.
 

@@ -264,7 +264,7 @@ ImageViewer::ImageViewer(const QString &fileName, LammpsWrapper *_lammps, QWidge
     mainLayout->addLayout(menuLayout);
     mainLayout->addWidget(scrollArea);
     setWindowIcon(QIcon(":/icons/lammps-icon-128x128.png"));
-    setWindowTitle(QString("Image Viewer: ") + QFileInfo(fileName).fileName());
+    setWindowTitle(QString("LAMMPS-GUI - Image Viewer - ") + QFileInfo(fileName).fileName());
     createActions();
 
     reset_view();

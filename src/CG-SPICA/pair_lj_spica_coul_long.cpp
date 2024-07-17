@@ -358,7 +358,7 @@ void PairLJSPICACoulLong::coeff(int narg, char **arg)
 
 void PairLJSPICACoulLong::init_style()
 {
-  if (!atom->q_flag) error->all(FLERR, "Pair style lj/cut/coul/long requires atom attribute q");
+  if (!atom->q_flag) error->all(FLERR, "Pair style lj/spica/coul/long requires atom attribute q");
 
   neighbor->add_request(this);
 

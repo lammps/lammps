@@ -169,7 +169,7 @@ LammpsGui::LammpsGui(QWidget *parent, const char *filename) :
     ui->textEdit->setMinimumSize(600, 400);
 
     varwindow = new QLabel(QString());
-    varwindow->setWindowTitle(QString("LAMMPS-GUI - Current Variables - " + current_file));
+    varwindow->setWindowTitle(QString("LAMMPS-GUI - Current Variables"));
     varwindow->setWindowIcon(QIcon(":/icons/lammps-icon-128x128.png"));
     varwindow->setMinimumSize(100, 50);
     varwindow->setText("(none)");
@@ -1264,7 +1264,7 @@ void LammpsGui::help()
                            "LAMMPS specific syntax highlighting. When typing <b>Ctrl-Enter</b> "
                            "or clicking on 'Run LAMMMPS' in the 'Run' menu, LAMMPS will be run "
                            "with the contents of editor buffer as input. The output of the LAMMPS "
-                           "run is captured and displayed in a log window. The thermodynamic data "
+                           "run is captured and displayed in an Output window. The thermodynamic data "
                            "is displayed in a chart window. Both are updated regularly during the "
                            "run, as is a progress bar in the main window. The running simulation "
                            "can be stopped cleanly by typing <b>Ctrl-/</b> or by clicking on "

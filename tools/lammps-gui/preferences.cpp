@@ -211,23 +211,23 @@ GeneralTab::GeneralTab(QSettings *_settings, LammpsWrapper *_lammps, QWidget *pa
     auto *cite = new QCheckBox("Include citation details");
     cite->setObjectName("cite");
     cite->setCheckState(settings->value("cite", false).toBool() ? Qt::Checked : Qt::Unchecked);
-    auto *logv = new QCheckBox("Show log window by default");
+    auto *logv = new QCheckBox("Show Output window by default");
     logv->setObjectName("viewlog");
     logv->setCheckState(settings->value("viewlog", true).toBool() ? Qt::Checked : Qt::Unchecked);
-    auto *pltv = new QCheckBox("Show chart window by default");
+    auto *pltv = new QCheckBox("Show Charts window by default");
     pltv->setObjectName("viewchart");
     pltv->setCheckState(settings->value("viewchart", true).toBool() ? Qt::Checked : Qt::Unchecked);
-    auto *sldv = new QCheckBox("Show slide show window by default");
+    auto *sldv = new QCheckBox("Show Slide Show window by default");
     sldv->setObjectName("viewslide");
     sldv->setCheckState(settings->value("viewslide", true).toBool() ? Qt::Checked : Qt::Unchecked);
-    auto *logr = new QCheckBox("Replace log window on new run");
+    auto *logr = new QCheckBox("Replace Output window on new run");
     logr->setObjectName("logreplace");
     logr->setCheckState(settings->value("logreplace", true).toBool() ? Qt::Checked : Qt::Unchecked);
-    auto *imgr = new QCheckBox("Replace image window on new render");
+    auto *imgr = new QCheckBox("Replace Image window on new render");
     imgr->setObjectName("imagereplace");
     imgr->setCheckState(settings->value("imagereplace", true).toBool() ? Qt::Checked
                                                                        : Qt::Unchecked);
-    auto *pltr = new QCheckBox("Replace chart window on new run");
+    auto *pltr = new QCheckBox("Replace Charts window on new run");
     pltr->setObjectName("chartreplace");
     pltr->setCheckState(settings->value("chartreplace", true).toBool() ? Qt::Checked
                                                                        : Qt::Unchecked);

@@ -336,7 +336,7 @@
     <iconset theme=":/icons/utilities-terminal.png"/>
    </property>
    <property name="text">
-    <string>&amp;Log Window</string>
+    <string>&amp;Output Window</string>
    </property>
    <property name="shortcut">
     <string>Ctrl+Shift+L</string>
@@ -347,7 +347,7 @@
     <iconset theme=":/icons/x-office-drawing.png"/>
    </property>
    <property name="text">
-    <string>&amp;Chart Window</string>
+    <string>&amp;Charts Window</string>
    </property>
    <property name="shortcut">
     <string>Ctrl+Shift+C</string>

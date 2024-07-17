@@ -300,14 +300,14 @@ LammpsGui::LammpsGui(QWidget *parent, const char *filename) :
     const char *varstyles[] = {"delete",   "atomfile", "file",   "format", "getenv", "index",
                                "internal", "loop",     "python", "string", "timer",  "uloop",
                                "universe", "world",    "equal",  "vector", "atom"};
-    for (const auto var : varstyles)
+    for (const auto *const var : varstyles)
         style_list << var;
     style_list.sort();
     ui->textEdit->setVariableList(style_list);
 
     style_list.clear();
     const char *unitstyles[] = {"lj", "real", "metal", "si", "cgs", "electron", "micro", "nano"};
-    for (const auto unit : unitstyles)
+    for (const auto *const unit : unitstyles)
         style_list << unit;
     style_list.sort();
     ui->textEdit->setUnitsList(style_list);
@@ -392,14 +392,14 @@ void LammpsGui::open()
 
 void LammpsGui::open_recent()
 {
-    QAction *act = qobject_cast<QAction *>(sender());
+    auto *act = qobject_cast<QAction *>(sender());
     if (act) open_file(act->data().toString());
 }
 
 void LammpsGui::start_exe()
 {
     if (!lammps.extract_setting("box_exists")) return;
-    QAction *act = qobject_cast<QAction *>(sender());
+    auto *act = qobject_cast<QAction *>(sender());
     if (act) {
         auto exe        = act->data().toString();
         QString datacmd = "write_data '";
@@ -811,8 +811,8 @@ void LammpsGui::logupdate()
             step = (int)*(int64_t *)ptr;
     }
 
-    // extract cached thermo data
-    if (chartwindow) {
+    // extract cached thermo data when LAMMPS is executing a minimize or run command
+    if (chartwindow && lammps.is_running()) {
         // thermo data is not yet valid during setup
         void *ptr = lammps.last_thermo("setup", 0);
         if (ptr && *(int *)ptr) return;
@@ -1052,7 +1052,7 @@ void LammpsGui::do_run(bool use_buffer)
     logwindow->document()->setDefaultFont(text_font);
     logwindow->setLineWrapMode(LogWindow::NoWrap);
     logwindow->setMinimumSize(400, 300);
-    QShortcut *shortcut = new QShortcut(QKeySequence(Qt::CTRL | Qt::Key_W), logwindow);
+    auto *shortcut = new QShortcut(QKeySequence(Qt::CTRL | Qt::Key_W), logwindow);
     QObject::connect(shortcut, &QShortcut::activated, logwindow, &LogWindow::close);
     shortcut = new QShortcut(QKeySequence(Qt::CTRL | Qt::Key_Slash), logwindow);
     QObject::connect(shortcut, &QShortcut::activated, this, &LammpsGui::stop_run);
@@ -1088,7 +1088,7 @@ void LammpsGui::do_run(bool use_buffer)
 
     logupdater = new QTimer(this);
     connect(logupdater, &QTimer::timeout, this, &LammpsGui::logupdate);
-    logupdater->start(settings.value("updfreq", "100").toInt());
+    logupdater->start(settings.value("updfreq", "10").toInt());
 }
 
 void LammpsGui::render_image()
@@ -1244,7 +1244,7 @@ void LammpsGui::about()
     msg.setFont(font);
 
     auto *minwidth      = new QSpacerItem(700, 0, QSizePolicy::Minimum, QSizePolicy::Expanding);
-    QGridLayout *layout = (QGridLayout *)msg.layout();
+    auto *layout = (QGridLayout *)msg.layout();
     layout->addItem(minwidth, layout->rowCount(), 0, 1, layout->columnCount());
 
     msg.exec();

@@ -190,7 +190,7 @@ Default
 By default, *id* is yes.  By default, atomic systems (no bond topology
 info) do not use a map.  For molecular systems (with bond topology
 info), the default is to use a map of either *array* or *hash* style
-depending on the size of the sustem, as explained above for the *map
+depending on the size of the system, as explained above for the *map
 yes* keyword/value option.  By default, a *first* group is not
 defined.  By default, sorting is enabled with a frequency of 1000 and
 a binsize of 0.0, which means the neighbor cutoff will be used to set

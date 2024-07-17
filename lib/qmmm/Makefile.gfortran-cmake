@@ -46,8 +46,8 @@ QELIBS +=  -lgfortran -lmpi_mpifh
 
 # part 3: add-on libraries and main library for LAMMPS
 sinclude ../../src/Makefile.package
-LAMMPSFLAGS = $(shell pkgconf liblammps --cflags)
-LAMMPSLIB   = $(shell pkgconf liblammps --libs)
+LAMMPSFLAGS = $(shell pkg-config --cflags liblammps)
+LAMMPSLIB   = $(shell pkg-config --libs liblammps)
 
 # part 4: local QM/MM library and progams
 SRC=pwqmmm.c libqmmm.c

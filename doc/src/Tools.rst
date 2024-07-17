@@ -1329,7 +1329,7 @@ for Tcl with:
 .. code-block:: bash
 
    swig -tcl -module tcllammps lammps.i
-   gcc -fPIC -shared $(pkgconf --cflags tcl) -o tcllammps.so \
+   gcc -fPIC -shared $(pkg-config tcl --cflags) -o tcllammps.so \
                lammps_wrap.c -L ../src/ -llammps
    tclsh
 
@@ -1340,8 +1340,8 @@ functions included with:
 
    swig -tcl -module tcllmps lammps_shell.i
    gcc -o tcllmpsh lammps_wrap.c -Xlinker -export-dynamic \
-            -DHAVE_CONFIG_H $(pkgconf --cflags tcl) \
-            $(pkgconf --libs tcl) -L ../src -llammps
+            -DHAVE_CONFIG_H $(pkg-config tcl --cflags) \
+            $(pkg-config tcl --libs) -L ../src -llammps
 
 In both cases it is assumed that the LAMMPS library was compiled
 as a shared library in the ``src`` folder. Otherwise the last

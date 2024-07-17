@@ -1323,18 +1323,19 @@ KSPACE package
 
 **Contents:**
 
-A variety of long-range Coulombic solvers, as well as pair styles
-which compute the corresponding short-range pairwise Coulombic
-interactions.  These include Ewald, particle-particle particle-mesh
-(PPPM), and multilevel summation method (MSM) solvers.
+A variety of long-range Coulombic solvers, as well as pair styles which
+compute the corresponding short-range pairwise Coulombic interactions.
+These include Ewald, particle-particle particle-mesh (PPPM), and
+multilevel summation method (MSM) solvers.
 
 **Install:**
 
-Building with this package requires a 1d FFT library be present on
-your system for use by the PPPM solvers.  This can be the KISS FFT
-library provided with LAMMPS, third party libraries like FFTW, or a
-vendor-supplied FFT library.  See the :doc:`Build settings <Build_settings>` page for details on how to select
-different FFT options for your LAMPMS build.
+Building with this package requires a 1d FFT library be present on your
+system for use by the PPPM solvers.  This can be the KISS FFT library
+provided with LAMMPS, third party libraries like FFTW, or a
+vendor-supplied FFT library.  See the :doc:`Build settings
+<Build_settings>` page for details on how to select different FFT
+options for your LAMMPS build.
 
 **Supporting info:**
 

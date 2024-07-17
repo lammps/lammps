@@ -1,4 +1,5 @@
-LAMMPS (3 Nov 2022)
+LAMMPS (7 Feb 2024 - Development - patch_7Feb2024_update1-217-g1909233c69-modified)
+  using 1 OpenMP thread(s) per MPI task
 # The intention is to find the average position of one wall at atmospheric
 # pressure.  The output is the wall position over time which can be used to
 # find the average position for a run with fixed wall position.
@@ -14,14 +15,13 @@ pair_style    lj/cut/coul/long 8 8
 bond_style    harmonic
 angle_style   harmonic
 if "$(extract_setting(world_size) % 2) == 0" then "processors * * 2"
-processors * * 2
 
 # ----------------- Atom Definition Section -----------------
 
 read_data "data.piston"
 Reading data file ...
   orthogonal box = (0 0 0) to (17.6494 20.3798 26)
-  1 by 2 by 2 MPI processor grid
+  1 by 1 by 1 MPI processor grid
   reading atoms ...
   726 atoms
   reading velocities ...
@@ -41,8 +41,8 @@ Finding 1-2 1-3 1-4 neighbors ...
      1 = max # of 1-3 neighbors
      1 = max # of 1-4 neighbors
      2 = max # of special neighbors
-  special bonds CPU = 0.001 seconds
-  read_data CPU = 0.017 seconds
+  special bonds CPU = 0.000 seconds
+  read_data CPU = 0.012 seconds
 
 # ----------------- Settings Section -----------------
 
@@ -66,7 +66,7 @@ Finding SHAKE clusters ...
        0 = # of size 3 clusters
        0 = # of size 4 clusters
      210 = # of frozen angles
-  find clusters CPU = 0.002 seconds
+  find clusters CPU = 0.000 seconds
 pair_modify mix arithmetic
 
 # ----------------- Run Section -----------------
@@ -78,7 +78,13 @@ fix fxforce_au gold setforce 0.0 0.0 0.0
 
 # equilibrate z-coordinate of upper electrode while keeping the electrode rigid
 fix fxforce_wa wall setforce 0.0 0.0 NULL
-fix fxpressure wall aveforce 0 0 -0.005246 # atomspheric pressure: area/force->nktv2p
+variable atm equal 1/68568.415 # 1/force->nktv2p
+variable area equal (xhi-xlo)*(yhi-ylo)
+variable wall_force equal -v_atm*v_area/count(wall)
+print "Wall force per atom: ${wall_force}"
+Wall force per atom: -0.000109285996244287
+fix fxpressure wall aveforce 0 0 ${wall_force} # atomspheric pressure: area/force->nktv2p
+fix fxpressure wall aveforce 0 0 -0.000109285996244287 
 fix fxdrag     wall viscous 100
 fix fxrigid    wall rigid/nve single
   1 rigid bodies with 48 atoms
@@ -135,8 +141,8 @@ PPPM/electrode initialization ...
   stencil order = 5
   estimated absolute RMS force accuracy = 0.02930901
   estimated relative force accuracy = 8.8263214e-05
-  using double precision MKL FFT
-  3d grid and FFT values/proc = 8512 2880
+  using double precision FFTW3
+  3d grid and FFT values/proc = 15884 6480
 Generated 6 of 6 mixed pair_coeff terms from arithmetic mixing rule
 Neighbor list info ...
   update: every = 1 steps, delay = 0 steps, check = yes
@@ -155,57 +161,57 @@ Neighbor list info ...
       pair build: copy
       stencil: none
       bin: none
-Per MPI rank memory allocation (min/avg/max) = 10.06 | 10.22 | 10.41 Mbytes
+Per MPI rank memory allocation (min/avg/max) = 11.7 | 11.7 | 11.7 Mbytes
    Step     c_temp_mobile      c_qwa          c_qau        v_top_wall  
          0   303.38967     -0.042963484    0.042963484    21.4018      
-      5000   292.03027     -0.19040435     0.19040435     24.581338    
-     10000   309.52764     -0.48308301     0.48308301     23.776985    
-     15000   295.00243     -0.16591109     0.16591109     23.672038    
-     20000   293.5536      -0.086669084    0.086669084    23.426455    
-     25000   303.0079      -0.16488112     0.16488112     23.862966    
-     30000   306.31463     -0.23192653     0.23192653     23.819882    
-     35000   303.66268     -0.2317907      0.2317907      23.495344    
-     40000   301.39435     -0.34661329     0.34661329     23.657835    
-     45000   291.61205     -0.30539427     0.30539427     23.437303    
-     50000   298.65319     -0.096107034    0.096107034    23.57809     
-     55000   282.65069     -0.14943539     0.14943539     23.823728    
-     60000   310.64182     -0.17418813     0.17418813     23.286959    
-     65000   308.47141     -0.02075662     0.02075662     23.91313     
-     70000   292.5186      -0.080163162    0.080163162    23.96283     
-     75000   270.13928     -0.029528648    0.029528648    23.488972    
-     80000   322.10914      0.030761045   -0.030761045    23.47592     
-     85000   310.60347     -0.24069996     0.24069996     23.987091    
-     90000   294.35695     -0.070458235    0.070458235    23.397929    
-     95000   308.69043     -0.2652581      0.2652581      23.473813    
-    100000   318.71883      0.024035956   -0.024035956    23.449863    
-Loop time of 590.232 on 4 procs for 100000 steps with 726 atoms
+      5000   311.85363      0.03543775    -0.03543775     24.79665     
+     10000   285.91321     -0.16873703     0.16873703     23.103088    
+     15000   295.39476     -0.44424612     0.44424612     23.767107    
+     20000   296.12969     -0.14120993     0.14120993     23.96361     
+     25000   306.59629     -0.29333182     0.29333182     23.884488    
+     30000   297.98559     -0.10749684     0.10749684     23.73316     
+     35000   297.98503     -0.11809975     0.11809975     23.984669    
+     40000   300.26292     -0.32784184     0.32784184     23.462748    
+     45000   295.68441     -0.25940165     0.25940165     23.516403    
+     50000   315.12883     -0.36037614     0.36037614     23.627879    
+     55000   290.55151     -0.0032838106   0.0032838106   23.684931    
+     60000   316.4625      -0.17245368     0.17245368     24.126883    
+     65000   296.79343     -0.054061851    0.054061851    23.695094    
+     70000   305.99923     -0.11363801     0.11363801     23.55476     
+     75000   297.40131     -0.27054153     0.27054153     23.928994    
+     80000   306.54811     -0.25409719     0.25409719     23.869448    
+     85000   303.95231     -0.17895561     0.17895561     23.658833    
+     90000   313.43739     -0.059036514    0.059036514    23.36056     
+     95000   290.3077      -0.31394478     0.31394478     23.885538    
+    100000   297.5156      -0.30730083     0.30730083     23.511674    
+Loop time of 1586.06 on 1 procs for 100000 steps with 726 atoms
 
-Performance: 29.277 ns/day, 0.820 hours/ns, 169.425 timesteps/s, 123.003 katom-step/s
-72.5% CPU use with 4 MPI tasks x no OpenMP threads
+Performance: 10.895 ns/day, 2.203 hours/ns, 63.049 timesteps/s, 45.774 katom-step/s
+99.6% CPU use with 1 MPI tasks x 1 OpenMP threads
 
 MPI task timing breakdown:
 Section |  min time  |  avg time  |  max time  |%varavg| %total
 ---------------------------------------------------------------
-Pair    | 57.391     | 75.867     | 96.292     | 212.1 | 12.85
-Bond    | 0.10177    | 0.11042    | 0.12415    |   2.7 |  0.02
-Kspace  | 102.79     | 123.16     | 141.5      | 165.7 | 20.87
-Neigh   | 12.808     | 12.895     | 12.982     |   2.3 |  2.18
-Comm    | 18.885     | 19.973     | 21.064     |  24.0 |  3.38
-Output  | 0.0022573  | 0.0022749  | 0.0023225  |   0.1 |  0.00
-Modify  | 355.89     | 356.74     | 357.61     |   4.2 | 60.44
-Other   |            | 1.478      |            |       |  0.25
+Pair    | 460.91     | 460.91     | 460.91     |   0.0 | 29.06
+Bond    | 0.047873   | 0.047873   | 0.047873   |   0.0 |  0.00
+Kspace  | 341.4      | 341.4      | 341.4      |   0.0 | 21.53
+Neigh   | 52.868     | 52.868     | 52.868     |   0.0 |  3.33
+Comm    | 5.2321     | 5.2321     | 5.2321     |   0.0 |  0.33
+Output  | 0.00099102 | 0.00099102 | 0.00099102 |   0.0 |  0.00
+Modify  | 724.63     | 724.63     | 724.63     |   0.0 | 45.69
+Other   |            | 0.9741     |            |       |  0.06
 
-Nlocal:          181.5 ave         207 max         169 min
-Histogram: 2 0 1 0 0 0 0 0 0 1
-Nghost:         1961.5 ave        1984 max        1926 min
-Histogram: 1 0 0 0 0 0 1 0 1 1
-Neighs:          30051 ave       41646 max       20775 min
-Histogram: 1 1 0 0 0 0 1 0 0 1
+Nlocal:            726 ave         726 max         726 min
+Histogram: 1 0 0 0 0 0 0 0 0 0
+Nghost:           2336 ave        2336 max        2336 min
+Histogram: 1 0 0 0 0 0 0 0 0 0
+Neighs:         120321 ave      120321 max      120321 min
+Histogram: 1 0 0 0 0 0 0 0 0 0
 
-Total # of neighbors = 120204
-Ave neighs/atom = 165.57025
+Total # of neighbors = 120321
+Ave neighs/atom = 165.7314
 Ave special neighs/atom = 1.7355372
-Neighbor list builds = 7663
+Neighbor list builds = 7670
 Dangerous builds = 0
 write_data "data.piston.final"
 System init for write_data ...
@@ -214,11 +220,11 @@ PPPM/electrode initialization ...
   G vector (1/distance) = 0.32814871
   grid = 12 15 36
   stencil order = 5
-  estimated absolute RMS force accuracy = 0.029311028
-  estimated relative force accuracy = 8.8269289e-05
-  using double precision MKL FFT
-  3d grid and FFT values/proc = 8512 2880
+  estimated absolute RMS force accuracy = 0.029311329
+  estimated relative force accuracy = 8.8270197e-05
+  using double precision FFTW3
+  3d grid and FFT values/proc = 15884 6480
 Generated 6 of 6 mixed pair_coeff terms from arithmetic mixing rule
 
-Average conjugate gradient steps: 1.982
-Total wall time: 0:09:50
+Average conjugate gradient steps: 1.981
+Total wall time: 0:26:26

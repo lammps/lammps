@@ -30,6 +30,8 @@
 #include <QString>
 #include <QTextStream>
 
+const QString LogWindow::yaml_regex = QStringLiteral("^(keywords:.*$|data:$|---$|\\.\\.\\.$|  - \\[.*\\]$)");
+
 LogWindow::LogWindow(const QString &_filename, QWidget *parent) :
     QPlainTextEdit(parent), filename(_filename)
 {
@@ -97,23 +99,35 @@ void LogWindow::save_as()
     file.close();
 }
 
+bool LogWindow::check_yaml()
+{
+    QRegularExpression is_yaml(yaml_regex);
+    QStringList lines = toPlainText().split('\n');
+    for (const auto &line : lines)
+        if (is_yaml.match(line).hasMatch()) return true;
+    return false;
+}
+
 void LogWindow::extract_yaml()
 {
+    // ignore if no YAML format lines in buffer
+    if (!check_yaml()) return;
+
     QString defaultname = filename + ".yaml";
     if (filename.isEmpty()) defaultname = "lammps.yaml";
     QString yamlFileName = QFileDialog::getSaveFileName(this, "Save YAML data to File", defaultname,
                                                         "YAML files (*.yaml *.yml)");
+    // cannot save without filename
     if (yamlFileName.isEmpty()) return;
 
     QFileInfo path(yamlFileName);
     QFile file(path.absoluteFilePath());
-
     if (!file.open(QIODevice::WriteOnly | QFile::Text)) {
         QMessageBox::warning(this, "Warning", "Cannot save file: " + file.errorString());
         return;
     }
 
-    QRegularExpression is_yaml("^(keywords:.*$|data:$|---$|\\.\\.\\.$|  - \\[.*\\]$)");
+    QRegularExpression is_yaml(yaml_regex);
     QTextStream out(&file);
     QStringList lines = toPlainText().split('\n');
     for (const auto &line : lines) {
@@ -131,10 +145,13 @@ void LogWindow::contextMenuEvent(QContextMenuEvent *event)
     action->setIcon(QIcon(":/icons/document-save-as.png"));
     action->setShortcut(QKeySequence(Qt::CTRL | Qt::Key_S));
     connect(action, &QAction::triggered, this, &LogWindow::save_as);
-    action = menu->addAction(QString("&Export YAML Data to File ..."));
-    action->setIcon(QIcon(":/icons/yaml-file-icon.png"));
-    action->setShortcut(QKeySequence(Qt::CTRL | Qt::Key_Y));
-    connect(action, &QAction::triggered, this, &LogWindow::extract_yaml);
+    // only show export-to-yaml entry if there is YAML format content.
+    if (check_yaml()) {
+        action = menu->addAction(QString("&Export YAML Data to File ..."));
+        action->setIcon(QIcon(":/icons/yaml-file-icon.png"));
+        action->setShortcut(QKeySequence(Qt::CTRL | Qt::Key_Y));
+        connect(action, &QAction::triggered, this, &LogWindow::extract_yaml);
+    }
     action = menu->addAction("&Close Window", this, &QWidget::close);
     action->setIcon(QIcon(":/icons/window-close.png"));
     action->setShortcut(QKeySequence(Qt::CTRL | Qt::Key_W));

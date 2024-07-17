@@ -1,7 +1,14 @@
-Granular models
-===============
+Granular surfaces
+=================
 
-Granular systems are composed of spherical particles with a diameter,
+Needs to be written
+
+Make ref in Howto Granular models page
+
+
+
+
+Granular system are composed of spherical particles with a diameter,
 as opposed to point particles.  This means they have an angular
 velocity and torque can be imparted to them to cause them to rotate.
 

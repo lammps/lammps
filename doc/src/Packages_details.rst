@@ -61,6 +61,7 @@ page gives those details.
    * :ref:`FEP <PKG-FEP>`
    * :ref:`GPU <PKG-GPU>`
    * :ref:`GRANULAR <PKG-GRANULAR>`
+   * :ref:`GRANSURF <PKG-GRANSURF>`
    * :ref:`H5MD <PKG-H5MD>`
    * :ref:`INTEL <PKG-INTEL>`
    * :ref:`INTERLAYER <PKG-INTERLAYER>`
@@ -1093,6 +1094,31 @@ potentials.
 * https://www.lammps.org/movies.html#dem
 * https://www.lammps.org/movies.html#brazil
 * https://www.lammps.org/movies.html#granregion
+
+----------
+
+.. _PKG-GRANSURF:
+
+GRANSURF package
+----------------
+
+**Contents:**
+
+Granular surfaces consisting of triangles (3d) or line segments (2d).
+These interact with finite-size granular particles as static or moving
+boundary conditions and support the same kind of interaction models as
+granular pair styles do for particle/particle interactions.  The
+collection of triangles or lines can be "global" with each processor
+storing all of them.  Or it can be "local" where the triangles/lines
+are distributed across processors.
+
+**Supporting info:**
+
+* src/GRANSURF: filenames -> commands
+* :doc:`Howto granular surfaces <Howto_granular_surfaces>`
+* :doc:`fix surface/global <fix_surface_global>`
+* :doc:`fix surface_local <fix_surface_local>`
+* examples/gransurf
 
 ----------
 

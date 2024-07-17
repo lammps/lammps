@@ -23,7 +23,6 @@ General howto
    Howto_library
    Howto_couple
    Howto_mdi
-   Howto_broken_bonds
 
 Settings howto
 ==============
@@ -49,6 +48,7 @@ Analysis howto
    :maxdepth: 1
 
    Howto_output
+   Howto_structured_data
    Howto_chunk
    Howto_grid
    Howto_temperature
@@ -56,7 +56,6 @@ Analysis howto
    Howto_kappa
    Howto_viscosity
    Howto_diffusion
-   Howto_structured_data
 
 Force fields howto
 ==================
@@ -65,6 +64,7 @@ Force fields howto
    :name: force_howto
    :maxdepth: 1
 
+   Howto_broken_bonds
    Howto_bioFF
    Howto_amoeba
    Howto_tip3p
@@ -81,6 +81,7 @@ Packages howto
 
    Howto_spherical
    Howto_granular
+   Howto_granular_surfaces
    Howto_body
    Howto_bpm
    Howto_polarizable
@@ -90,7 +91,7 @@ Packages howto
    Howto_peri
    Howto_manifold
    Howto_spins
-
+   
 Tutorials howto
 ===============
 

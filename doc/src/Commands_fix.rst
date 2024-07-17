@@ -239,6 +239,8 @@ OPT.
    * :doc:`srd <fix_srd>`
    * :doc:`store/force <fix_store_force>`
    * :doc:`store/state <fix_store_state>`
+   * :doc:`surface/global <fix_surface_global>`
+   * :doc:`surface/local <fix_surface_local>`
    * :doc:`tdpd/source <fix_dpd_source>`
    * :doc:`temp/berendsen (k) <fix_temp_berendsen>`
    * :doc:`temp/csld <fix_temp_csvr>`

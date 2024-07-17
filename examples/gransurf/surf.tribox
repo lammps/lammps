@@ -2,7 +2,7 @@ LAMMPS data file for tri box
 
 24 triangles
 
-Tris
+Triangles
 
 1 1 2   0.0 0.0 -6.0 6.0 6.0 -6.0 6.0 -6.0 -6.0
 2 1 2   0.0 0.0 6.0 6.0 -6.0 6.0 6.0 6.0 6.0

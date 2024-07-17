@@ -2,7 +2,7 @@ LAMMPS data file for tri plane
 
 4 triangles
 
-Tris
+Triangles
 
 1 1 2 -6 -6 0 6 -6 0 0 0 0
 2 1 2 6 -6 0 6 6 0 0 0 0

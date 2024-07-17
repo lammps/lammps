@@ -626,7 +626,7 @@ void Molecule::read(int flag)
         line_segments(line);
       else
         skip_lines(nlines, line, keyword);
-    } else if (keyword == "Tris") {
+    } else if (keyword == "Triangles") {
       triflag = 1;
       if (flag)
         triangles(line);

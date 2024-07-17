@@ -19,25 +19,28 @@ to the online LAMMPS documentation for known LAMMPS commands and styles.
    Pre-compiled, ready-to-use LAMMPS GUI executables for Linux (Ubuntu
    20.04LTS or later and compatible), macOS (version 11 aka Big Sur or
    later), and Windows (version 10 or later) :ref:`are available
-   <lammps_gui_install>` for download.  They may be linked to a
-   development version of LAMMPS in case they need features not yet
-   available in a released version. Serial LAMMPS executables of the
-   same LAMMPS version are included as well.  The source code for the
-   LAMMPS GUI is included in the LAMMPS source code and can be found in
-   the ``tools/lammps-gui`` folder.  It can be compiled alongside LAMMPS
-   when :doc:`compiling with CMake <Build_cmake>`.
+   <lammps_gui_install>` for download.  None-MPI LAMMPS executables of
+   the same LAMMPS version are included in these packages as well.  The
+   source code for the LAMMPS GUI is included in the LAMMPS source code
+   distribution and can be found in the ``tools/lammps-gui`` folder.  It
+   can be compiled alongside LAMMPS when :doc:`compiling with CMake
+   <Build_cmake>`.
 
 LAMMPS GUI tries to provide an experience similar to what people
-traditionally would do to run LAMMPS using a command line window:
+traditionally would do to run LAMMPS using a command line window
+but just rolled into a single executable:
 
-- editing inputs with a text editor
-- run LAMMPS on the input with selected command line flags
-- and then use or extract data from the created files and visualize it
+- editing LAMMPS input files with a text editor
+- run LAMMPS on those input file with selected command line flags
+- use or extract data from the created files and visualize it with
+  either a molecular visualization program or a plotting program
+
 
 That procedure is quite effective for people proficient in using the
 command line, as that allows them to use tools for the individual steps
-which they are most comfortable with.  It is often required when running
-LAMMPS on high-performance computing facilities.
+that they are most comfortable with.  It is often *required* to adopt
+this workflow when running LAMMPS simulations on high-performance
+computing facilities.
 
 The main benefit of using the LAMMPS GUI application instead is that
 many basic tasks can be done directly from the GUI without switching to
@@ -51,23 +54,22 @@ since you only need to learn how to use a single program for most tasks
 and thus time can be saved and people can focus on learning LAMMPS.  It
 is also designed to keep the barrier low when you decide to switch to a
 full featured, standalone programming editor and more sophisticated
-visualization and analysis tools and run LAMMPS from a command line.
+visualization and analysis tools, and run LAMMPS from the command line
+or a batch script.
 
 The following text provides a detailed tour of the features and
-functionality of the LAMMPS GUI.
-
-Suggestions for new features and reports of bugs are always welcome.
-You can use the :doc:`the same channels as for LAMMPS itself
-<Errors_bugs>` for that purpose.
+functionality of the LAMMPS GUI.  Suggestions for new features and
+reports of bugs are always welcome.  You can use the :doc:`the same
+channels as for LAMMPS itself <Errors_bugs>` for that purpose.
 
 -----
 
 Main window
 -----------
 
-When LAMMPS GUI starts, it will show a main window with either an
-empty buffer or the contents of a loaded file. In the latter case it
-may look like the following:
+When LAMMPS GUI starts, it will show a main window, the editor, with
+either an empty buffer or the contents of a loaded file. In the latter
+case it may look like the following:
 
 .. image:: JPG/lammps-gui-main.png
    :align: center
@@ -91,10 +93,12 @@ argument as a LAMMPS input script, further arguments are ignored.
 When no argument is given, LAMMPS GUI will start with an empty buffer.
 Files can also be opened via the ``File`` menu or by drag-and-drop of
 a file from a graphical file manager into the editor window.  Only one
-file can be open at a time, so opening a new file with a filled buffer
-will close the buffer.  If the buffer has unsaved modifications, you
+file can be edited at a time, so opening a new file with a filled buffer
+will close that buffer.  If the buffer has unsaved modifications, you
 will be asked to either cancel the operation, discard the changes, or
-save them.
+save them.  A buffer with modifications can be saved any time from the
+"File" menu, by the keyboard shortcut `Ctrl-S` (`Command-S` on macOS),
+or by clicking on the "Save" button at the very left in the status bar.
 
 Running LAMMPS
 ^^^^^^^^^^^^^^
@@ -103,9 +107,9 @@ From within the LAMMPS GUI main window LAMMPS can be started either from
 the ``Run`` menu using the ``Run LAMMPS from Editor Buffer`` entry, by
 the keyboard shortcut `Ctrl-Enter` (`Command-Enter` on macOS), or by
 clicking on the green "Run" button in the status bar.  All of these
-operations will cause LAMMPS to process the entire input script, which
-may contain multiple :doc:`run <run>` or :doc:`minimize <minimize>`
-commands.
+operations will cause LAMMPS to process the entire input script in the
+editor buffer, which may contain multiple :doc:`run <run>` or
+:doc:`minimize <minimize>` commands.
 
 LAMMPS runs in a separate thread, so the GUI stays responsive and is
 able to interact with the running calculation and access data it
@@ -131,14 +135,10 @@ the left side there is a text indicating that LAMMPS is running, which
 will also show the number of active threads, if thread-parallel
 acceleration was selected in the ``Preferences`` dialog.  On the right
 side, a progress bar is shown that displays the estimated progress for
-the current :doc:`run command <run>`.
+the current :doc:`run <run>` or :doc:`minimize <minimize>` command.
 
 Also, the line number of the currently executed command will be
 highlighted in green.
-
-.. image:: JPG/lammps-gui-run-highlight.png
-   :align: center
-   :scale: 75%
 
 If an error occurs (in the example below the command :doc:`label
 <label>` was incorrectly capitalized as "Label"), an error message
@@ -152,9 +152,9 @@ be set to "Failed." instead of "Ready."
 
 Up to three additional windows will open during a run:
 
-- a log window with the captured screen output
-- a chart window with a line graph created from the thermodynamic output of the run
-- a slide show window with images created by a :doc:`dump image command <dump_image>`
+- an *Output* window with the captured screen output
+- a *Charts* window with a line graph created from the thermodynamic output of the run
+- a *Slide Show* window with images created by a :doc:`dump image command <dump_image>`
 
 More information on those windows and how to adjust their behavior and
 contents is given below.
@@ -171,45 +171,59 @@ This is equivalent to the input script command :doc:`timer timeout 0
 interface.  Please see the corresponding documentation pages to
 understand the implications of this operation.
 
-Log Window
-----------
+Output Window
+-------------
 
-By default, when starting a run, a "Log Window" will open that displays
-the current screen output of the LAMMPS calculation, that would normally
-be seen in the command line window, as shown below.
+By default, when starting a run, an *Output* window will open that
+displays the screen output of the running LAMMPS calculation.  This text
+would normally be seen in the command line window, as shown below.
 
 .. image:: JPG/lammps-gui-log.png
    :align: center
    :scale: 50%
 
-LAMMPS GUI captures the screen output as it is generated and updates
-the log window regularly during a run.
+LAMMPS GUI captures the screen output from LAMMPS as it is generated and
+updates the *Output* window regularly during a run.
 
-By default, the log window will be replaced each time a run is started.
+By default, the *Output* window will be replaced each time a run is started.
 The runs are counted and the run number for the current run is displayed
 in the window title.  It is possible to change the behavior of LAMMPS
-GUI in the preferences dialog to create a *new* log window for every run
-or to not show the current log window.  It is also possible to show or
-hide the *current* log window from the ``View`` menu.
+GUI in the preferences dialog to create a *new* *Output* window for every run
+or to not show the current *Output* window.  It is also possible to show or
+hide the *current* *Output* window from the ``View`` menu.
 
-The text in the log window is read-only and cannot be modified, but
+The text in the *Output* window is read-only and cannot be modified, but
 keyboard shortcuts to select and copy all or parts of the text can be
 used to transfer text to another program. Also, the keyboard shortcut
-`Ctrl-S` (`Command-S` on macOS) is available to save the log buffer to a
+`Ctrl-S` (`Command-S` on macOS) is available to save the *Output* buffer to a
 file.  The "Select All" and "Copy" functions, as well as a "Save Log to
 File" option are also available from a context menu by clicking with the
-right mouse button into the log window text area.
+right mouse button into the *Output* window text area.
 
-Chart Window
-------------
+.. image:: JPG/lammps-gui-yaml.png
+   :align: center
+   :scale: 50%
 
-By default, when starting a run, a "Chart Window" will open that
+.. versionadded:: 1.6
+           
+Should the *Output* window contain embedded YAML format text (see above for a
+demonstration), for example from using :doc:`thermo_style yaml
+<thermo_style>` or :doc:`thermo_modify line yaml <thermo_modify>`, the
+keyboard shortcut `Ctrl-Y` (`Command-Y` on macOS) is available to save
+only the YAML parts to a file.  This option is also available from a
+context menu by clicking with the right mouse button into the *Output* window
+text area.
+           
+Charts Window
+-------------
+
+By default, when starting a run, a *Charts* window will open that
 displays a plot of thermodynamic output of the LAMMPS calculation as
 shown below.
 
 .. image:: JPG/lammps-gui-chart.png
    :align: center
-   :scale: 50%
+   :scale: 33%
 
 The drop down menu on the top right allows selection of different
 properties that are computed and written to thermo output.  Only one
@@ -217,7 +231,7 @@ property can be shown at a time.  The plots will be updated with new
 data as the run progresses, so they can be used to visually monitor the
 evolution of available properties.  The window title will show the
 current run number that this chart window corresponds to.  Same as
-explained for the log window above, by default, the chart window will
+explained for the *Output* window above, by default, the chart window will
 be replaced on each new run, but the behavior can be changed in the
 preferences dialog.
 
@@ -268,15 +282,14 @@ below.
    :align: center
    :scale: 75%
 
-Like the log and chart windows, its content is continuously updated
-during a run.  It will show "(none)" if there are no variables
+Like the *Output* and *Charts* windows, its content is continuously
+updated during a run.  It will show "(none)" if there are no variables
 defined.  Note that it is also possible to *set* :doc:`index style
 variables <variable>`, that would normally be set via command line
-flags, via the "Set Variables..." dialog from the ``Run`` menu.
-LAMMPS GUI will automatically set the variable "gui_run" to the
-current value of the run counter.  That way it would be possible
-to automatically record a log for each run attempt by using the
-command
+flags, via the "Set Variables..." dialog from the ``Run`` menu.  LAMMPS
+GUI will automatically set the variable "gui_run" to the current value
+of the run counter.  That way it would be possible to automatically
+record a log for each run attempt by using the command
 
 .. code-block:: LAMMPS
 

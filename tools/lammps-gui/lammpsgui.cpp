@@ -88,7 +88,7 @@ LammpsGui::LammpsGui(QWidget *parent, const char *filename) :
 #define myxstr(x) #x
     QCoreApplication::setOrganizationName("The LAMMPS Developers");
     QCoreApplication::setOrganizationDomain("lammps.org");
-    QCoreApplication::setApplicationName("LAMMPS GUI - QT" stringify(QT_VERSION_MAJOR));
+    QCoreApplication::setApplicationName("LAMMPS-GUI - QT" stringify(QT_VERSION_MAJOR));
 #undef stringify
 #undef myxstr
 
@@ -975,7 +975,7 @@ void LammpsGui::run_done()
 void LammpsGui::do_run(bool use_buffer)
 {
     if (lammps.is_running()) {
-        QMessageBox::warning(this, "LAMMPS GUI Error",
+        QMessageBox::warning(this, "LAMMPS-GUI Error",
                              "Must stop current run before starting a new run");
         return;
     }
@@ -1231,7 +1231,7 @@ void LammpsGui::about()
     info += "(Note: this text has been copied to the clipboard)\n";
 
     QMessageBox msg;
-    msg.setWindowTitle("About LAMMPS");
+    msg.setWindowTitle("About LAMMPS-GUI");
     msg.setWindowIcon(QIcon(":/icons/lammps-icon-128x128.png"));
     msg.setText(version.c_str());
     msg.setInformativeText(info.c_str());
@@ -1254,13 +1254,13 @@ void LammpsGui::help()
     msg.setWindowTitle("LAMMPS-GUI Quick Help");
     msg.setWindowIcon(QIcon(":/icons/lammps-icon-128x128.png"));
     msg.setText("<div>This is LAMMPS-GUI version " LAMMPS_GUI_VERSION "</div>");
-    msg.setInformativeText("<p>LAMMPS GUI is a graphical text editor that is customized for "
+    msg.setInformativeText("<p>LAMMPS-GUI is a graphical text editor that is customized for "
                            "editing LAMMPS input files and linked to the LAMMPS "
                            "library and thus can run LAMMPS directly using the contents of the "
                            "text buffer as input. It can retrieve and display information from "
                            "LAMMPS while it is running and  display visualizations created "
                            "with the dump image command.</p>"
-                           "<p>The main window of the LAMMPS GUI is a text editor window with "
+                           "<p>The main window of the LAMMPS-GUI is a text editor window with "
                            "LAMMPS specific syntax highlighting. When typing <b>Ctrl-Enter</b> "
                            "or clicking on 'Run LAMMMPS' in the 'Run' menu, LAMMPS will be run "
                            "with the contents of editor buffer as input. The output of the LAMMPS "
@@ -1273,7 +1273,7 @@ void LammpsGui::help()
                            "viewer window by typing <b>Ctrl-i</b> or by clicking on 'View Image' "
                            "in the 'Run' menu. Multiple image settings can be changed through the "
                            "buttons in the menu bar and the image will be re-renderd.  In case "
-                           "an input file contains a dump image command, LAMMPS GUI will load "
+                           "an input file contains a dump image command, LAMMPS-GUI will load "
                            "the images as they are created and display them in a slide show. </p>"
                            "<p>When opening a file, the editor will determine the directory "
                            "where the input file resides and switch its current working directory "
@@ -1291,13 +1291,13 @@ void LammpsGui::help()
                            "entry in the context menu, available by right-clicking the mouse. "
                            "Log, chart, slide show, and image windows can be closed with "
                            "<b>Ctrl-W</b> and the application terminated with <b>Ctrl-Q</b>.</p>"
-                           "<p>The 'About LAMMPS' dialog will show the LAMMPS version and the "
-                           "features included into the LAMMPS library linked to the LAMMPS GUI. "
+                           "<p>The 'About LAMMPS-GUI' dialog will show the LAMMPS version and the "
+                           "features included into the LAMMPS library linked to the LAMMPS-GUI. "
                            "A number of settings can be adjusted in the 'Preferences' dialog (in "
                            "the 'Edit' menu or from <b>Ctrl-P</b>) which includes selecting "
                            "accelerator packages and number of OpenMP threads. Due to its nature "
                            "as a graphical application, it is <b>not</b> possible to use the "
-                           "LAMMPS GUI in parallel with MPI.</p>");
+                           "LAMMPS-GUI in parallel with MPI.</p>");
     msg.setIconPixmap(QPixmap(":/icons/lammps-icon-128x128.png").scaled(64, 64));
     msg.setStandardButtons(QMessageBox::Close);
     msg.exec();

@@ -28,7 +28,7 @@ LammpsWrapper::LammpsWrapper() : lammps_handle(nullptr)
 
 void LammpsWrapper::open(int narg, char **args)
 {
-    // since there may only be one LAMMPS instance in LAMMPS GUI we don't open a second
+    // since there may only be one LAMMPS instance in LAMMPS-GUI we don't open a second one
     if (lammps_handle) return;
 #if defined(LAMMPS_GUI_USE_PLUGIN)
     lammps_handle = ((liblammpsplugin_t *)plugin_handle)->open_no_mpi(narg, args, nullptr);

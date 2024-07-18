@@ -419,7 +419,7 @@ void CodeEditor::setVarNameList()
 {
     QStringList vars;
 
-    // variable "gui_run" is always defined by LAMMPS GUI
+    // variable "gui_run" is always defined by LAMMPS-GUI
     vars << QString("${gui_run}");
     vars << QString("v_gui_run");
 

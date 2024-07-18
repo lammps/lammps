@@ -306,7 +306,7 @@
     <iconset theme=":/icons/document-revert.png"/>
    </property>
    <property name="text">
-    <string>Reset to &amp;Defaults</string>
+    <string>Reset Preferences to &amp;Defaults</string>
    </property>
   </action>
   <action name="actionView_in_OVITO">
@@ -442,7 +442,7 @@
     <iconset theme=":/icons/system-help.png"/>
    </property>
    <property name="text">
-    <string>LAMMPS GUI Howto</string>
+    <string>LAMMPS-GUI Howto</string>
    </property>
    <property name="shortcut">
     <string>Ctrl+Shift+G</string>

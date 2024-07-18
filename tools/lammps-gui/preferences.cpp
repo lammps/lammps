@@ -93,7 +93,7 @@ void Preferences::accept()
 
     // store selected accelerator
     QList<QRadioButton *> allButtons = tabWidget->findChildren<QRadioButton *>();
-    for (auto & allButton : allButtons) {
+    for (auto &allButton : allButtons) {
         if (allButton->isChecked()) {
             if (allButton->objectName() == "none")
                 settings->setValue("accelerator", QString::number(AcceleratorTab::None));
@@ -411,13 +411,13 @@ AcceleratorTab::AcceleratorTab(QSettings *_settings, LammpsWrapper *_lammps, QWi
     auto *choices      = new QFrame;
     auto *choiceLayout = new QVBoxLayout;
 #if defined(_OPENMP)
-    auto *ntlabel      = new QLabel(QString("Number of threads (max %1):").arg(maxthreads));
-    auto *ntchoice     = new QLineEdit(settings->value("nthreads", maxthreads).toString());
+    auto *ntlabel  = new QLabel(QString("Number of threads (max %1):").arg(maxthreads));
+    auto *ntchoice = new QLineEdit(settings->value("nthreads", maxthreads).toString());
 #else
-    auto *ntlabel      = new QLabel(QString("Number of threads (OpenMP not available):"));
-    auto *ntchoice     = new QLineEdit("1");
+    auto *ntlabel  = new QLabel(QString("Number of threads (OpenMP not available):"));
+    auto *ntchoice = new QLineEdit("1");
 #endif
-    auto *intval       = new QIntValidator(1, maxthreads, this);
+    auto *intval = new QIntValidator(1, maxthreads, this);
     ntchoice->setValidator(intval);
     ntchoice->setObjectName("nthreads");
 #if !defined(_OPENMP)

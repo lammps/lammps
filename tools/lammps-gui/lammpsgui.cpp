@@ -885,8 +885,9 @@ void LammpsGui::logupdate()
             else
                 slideshow->hide();
         } else {
-            slideshow->setWindowTitle(
-                QString("LAMMPS-GUI - Slide Show - %1 - Run %2").arg(current_file).arg(run_counter));
+            slideshow->setWindowTitle(QString("LAMMPS-GUI - Slide Show - %1 - Run %2")
+                                          .arg(current_file)
+                                          .arg(run_counter));
             if (QSettings().value("viewslide", true).toBool()) slideshow->show();
         }
         slideshow->add_image(imagefile);
@@ -1254,50 +1255,51 @@ void LammpsGui::help()
     msg.setWindowTitle("LAMMPS-GUI Quick Help");
     msg.setWindowIcon(QIcon(":/icons/lammps-icon-128x128.png"));
     msg.setText("<div>This is LAMMPS-GUI version " LAMMPS_GUI_VERSION "</div>");
-    msg.setInformativeText("<p>LAMMPS-GUI is a graphical text editor that is customized for "
-                           "editing LAMMPS input files and linked to the LAMMPS "
-                           "library and thus can run LAMMPS directly using the contents of the "
-                           "text buffer as input. It can retrieve and display information from "
-                           "LAMMPS while it is running and  display visualizations created "
-                           "with the dump image command.</p>"
-                           "<p>The main window of the LAMMPS-GUI is a text editor window with "
-                           "LAMMPS specific syntax highlighting. When typing <b>Ctrl-Enter</b> "
-                           "or clicking on 'Run LAMMMPS' in the 'Run' menu, LAMMPS will be run "
-                           "with the contents of editor buffer as input. The output of the LAMMPS "
-                           "run is captured and displayed in an Output window. The thermodynamic data "
-                           "is displayed in a chart window. Both are updated regularly during the "
-                           "run, as is a progress bar in the main window. The running simulation "
-                           "can be stopped cleanly by typing <b>Ctrl-/</b> or by clicking on "
-                           "'Stop LAMMPS' in the 'Run' menu. While LAMMPS is not running, "
-                           "an image of the simulated system can be created and shown in an image "
-                           "viewer window by typing <b>Ctrl-i</b> or by clicking on 'View Image' "
-                           "in the 'Run' menu. Multiple image settings can be changed through the "
-                           "buttons in the menu bar and the image will be re-renderd.  In case "
-                           "an input file contains a dump image command, LAMMPS-GUI will load "
-                           "the images as they are created and display them in a slide show. </p>"
-                           "<p>When opening a file, the editor will determine the directory "
-                           "where the input file resides and switch its current working directory "
-                           "to that same folder and thus enabling the run to read other files in "
-                           "that folder, e.g. a data file. The GUI will show its current working "
-                           "directory in the status bar. In addition to using the menu, the "
-                           "editor window can also receive files as the first command line "
-                           "argument or via drag-n-drop from a graphical file manager or a "
-                           "desktop environment.</p>"
-                           "<p>Almost all commands are accessible via keyboard shortcuts. Which "
-                           "those shortcuts are, is typically shown next to their entries in the "
-                           "menus. "
-                           "In addition, the documentation for the command in the current line "
-                           "can be viewed by typing <b>Ctrl-?</b> or by choosing the respective "
-                           "entry in the context menu, available by right-clicking the mouse. "
-                           "Log, chart, slide show, and image windows can be closed with "
-                           "<b>Ctrl-W</b> and the application terminated with <b>Ctrl-Q</b>.</p>"
-                           "<p>The 'About LAMMPS-GUI' dialog will show the LAMMPS version and the "
-                           "features included into the LAMMPS library linked to the LAMMPS-GUI. "
-                           "A number of settings can be adjusted in the 'Preferences' dialog (in "
-                           "the 'Edit' menu or from <b>Ctrl-P</b>) which includes selecting "
-                           "accelerator packages and number of OpenMP threads. Due to its nature "
-                           "as a graphical application, it is <b>not</b> possible to use the "
-                           "LAMMPS-GUI in parallel with MPI.</p>");
+    msg.setInformativeText(
+        "<p>LAMMPS-GUI is a graphical text editor that is customized for "
+        "editing LAMMPS input files and linked to the LAMMPS "
+        "library and thus can run LAMMPS directly using the contents of the "
+        "text buffer as input. It can retrieve and display information from "
+        "LAMMPS while it is running and  display visualizations created "
+        "with the dump image command.</p>"
+        "<p>The main window of the LAMMPS-GUI is a text editor window with "
+        "LAMMPS specific syntax highlighting. When typing <b>Ctrl-Enter</b> "
+        "or clicking on 'Run LAMMMPS' in the 'Run' menu, LAMMPS will be run "
+        "with the contents of editor buffer as input. The output of the LAMMPS "
+        "run is captured and displayed in an Output window. The thermodynamic data "
+        "is displayed in a chart window. Both are updated regularly during the "
+        "run, as is a progress bar in the main window. The running simulation "
+        "can be stopped cleanly by typing <b>Ctrl-/</b> or by clicking on "
+        "'Stop LAMMPS' in the 'Run' menu. While LAMMPS is not running, "
+        "an image of the simulated system can be created and shown in an image "
+        "viewer window by typing <b>Ctrl-i</b> or by clicking on 'View Image' "
+        "in the 'Run' menu. Multiple image settings can be changed through the "
+        "buttons in the menu bar and the image will be re-renderd.  In case "
+        "an input file contains a dump image command, LAMMPS-GUI will load "
+        "the images as they are created and display them in a slide show. </p>"
+        "<p>When opening a file, the editor will determine the directory "
+        "where the input file resides and switch its current working directory "
+        "to that same folder and thus enabling the run to read other files in "
+        "that folder, e.g. a data file. The GUI will show its current working "
+        "directory in the status bar. In addition to using the menu, the "
+        "editor window can also receive files as the first command line "
+        "argument or via drag-n-drop from a graphical file manager or a "
+        "desktop environment.</p>"
+        "<p>Almost all commands are accessible via keyboard shortcuts. Which "
+        "those shortcuts are, is typically shown next to their entries in the "
+        "menus. "
+        "In addition, the documentation for the command in the current line "
+        "can be viewed by typing <b>Ctrl-?</b> or by choosing the respective "
+        "entry in the context menu, available by right-clicking the mouse. "
+        "Log, chart, slide show, and image windows can be closed with "
+        "<b>Ctrl-W</b> and the application terminated with <b>Ctrl-Q</b>.</p>"
+        "<p>The 'About LAMMPS-GUI' dialog will show the LAMMPS version and the "
+        "features included into the LAMMPS library linked to the LAMMPS-GUI. "
+        "A number of settings can be adjusted in the 'Preferences' dialog (in "
+        "the 'Edit' menu or from <b>Ctrl-P</b>) which includes selecting "
+        "accelerator packages and number of OpenMP threads. Due to its nature "
+        "as a graphical application, it is <b>not</b> possible to use the "
+        "LAMMPS-GUI in parallel with MPI.</p>");
     msg.setIconPixmap(QPixmap(":/icons/lammps-icon-128x128.png").scaled(64, 64));
     msg.setStandardButtons(QMessageBox::Close);
     msg.exec();

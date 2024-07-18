@@ -30,7 +30,8 @@
 #include <QString>
 #include <QTextStream>
 
-const QString LogWindow::yaml_regex = QStringLiteral("^(keywords:.*$|data:$|---$|\\.\\.\\.$|  - \\[.*\\]$)");
+const QString LogWindow::yaml_regex =
+    QStringLiteral("^(keywords:.*$|data:$|---$|\\.\\.\\.$|  - \\[.*\\]$)");
 
 LogWindow::LogWindow(const QString &_filename, QWidget *parent) :
     QPlainTextEdit(parent), filename(_filename)

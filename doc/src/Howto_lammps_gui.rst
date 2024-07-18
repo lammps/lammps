@@ -364,7 +364,7 @@ From the ``File`` menu it is also possible to copy the current
 commands to the clipboard so they can be pasted into a LAMMPS input file
 so that the visualization settings of the snapshot image can be repeated
 for the entire simulation (and thus be repeated in the slide show
-viewer). This feature has the keyboard shortcut `Ctrl-D`. 
+viewer). This feature has the keyboard shortcut `Ctrl-D`.
 
 Editor Window
 -------------

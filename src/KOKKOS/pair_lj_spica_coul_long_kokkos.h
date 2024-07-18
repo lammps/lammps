@@ -48,11 +48,11 @@ class PairLJSPICACoulLongKokkos : public PairLJSPICACoulLong {
   void init_style() override;
   double init_one(int, int) override;
 
-  struct params_lj_coul {
+  struct params_lj_spica_coul {
     KOKKOS_INLINE_FUNCTION
-    params_lj_coul() {cut_ljsq=0;cut_coulsq=0;lj1=0;lj2=0;lj3=0;lj4=0;offset=0;lj_type=0;};
+    params_lj_spica_coul() {cut_ljsq=0;cut_coulsq=0;lj1=0;lj2=0;lj3=0;lj4=0;offset=0;lj_type=0;};
     KOKKOS_INLINE_FUNCTION
-    params_lj_coul(int /*i*/) {cut_ljsq=0;cut_coulsq=0;lj1=0;lj2=0;lj3=0;lj4=0;offset=0;lj_type=0;};
+    params_lj_spica_coul(int /*i*/) {cut_ljsq=0;cut_coulsq=0;lj1=0;lj2=0;lj3=0;lj4=0;offset=0;lj_type=0;};
     F_FLOAT cut_ljsq,cut_coulsq,lj1,lj2,lj3,lj4,offset;
     int lj_type;
   };
@@ -76,9 +76,9 @@ class PairLJSPICACoulLongKokkos : public PairLJSPICACoulLong {
   F_FLOAT compute_ecoul(const F_FLOAT& rsq, const int& i, const int& j, const int& itype,
                         const int& jtype, const F_FLOAT& factor_coul, const F_FLOAT& qtmp) const;
 
-  Kokkos::DualView<params_lj_coul**,Kokkos::LayoutRight,DeviceType> k_params;
-  typename Kokkos::DualView<params_lj_coul**,Kokkos::LayoutRight,DeviceType>::t_dev_const_um params;
-  params_lj_coul m_params[MAX_TYPES_STACKPARAMS+1][MAX_TYPES_STACKPARAMS+1];  // hardwired to space for 12 atom types
+  Kokkos::DualView<params_lj_spica_coul**,Kokkos::LayoutRight,DeviceType> k_params;
+  typename Kokkos::DualView<params_lj_spica_coul**,Kokkos::LayoutRight,DeviceType>::t_dev_const_um params;
+  params_lj_spica_coul m_params[MAX_TYPES_STACKPARAMS+1][MAX_TYPES_STACKPARAMS+1];  // hardwired to space for 12 atom types
   F_FLOAT m_cutsq[MAX_TYPES_STACKPARAMS+1][MAX_TYPES_STACKPARAMS+1];
   F_FLOAT m_cut_ljsq[MAX_TYPES_STACKPARAMS+1][MAX_TYPES_STACKPARAMS+1];
   F_FLOAT m_cut_coulsq[MAX_TYPES_STACKPARAMS+1][MAX_TYPES_STACKPARAMS+1];

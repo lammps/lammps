@@ -417,9 +417,6 @@ void AngleSPICAKokkos<DeviceType>::coeff(int narg, char **arg)
   k_theta0.template modify<LMPHostType>();
   k_repscale.template modify<LMPHostType>();
   k_setflag.template modify<LMPHostType>();
-
-  Kokkos::printf("*** AngleSPICAKokkos<DeviceType>::coeff\n");
-
 }
 
 /* ----------------------------------------------------------------------

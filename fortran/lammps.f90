@@ -1370,6 +1370,7 @@ CONTAINS
     TYPE(lammps_data) :: pair_data
     INTEGER(c_int) :: dim
     TYPE(c_ptr) :: Cname, Cptr
+    TYPE(c_ptr), DIMENSION(:), POINTER :: Carrayptr
     INTEGER(c_size_t) :: length
 
     ! Determine extracted arrays length and dimension
@@ -1391,10 +1392,13 @@ CONTAINS
         CALL C_F_POINTER(Cptr, pair_data%r64_vec, [length])
       CASE (2)
         pair_data%datatype = DATA_DOUBLE_2D
-        CALL C_F_POINTER(Cptr, pair_data%r64_mat, [length, length])
-      CASE (-1)
+        ! First, we dereference the void** pointer to point to the void*
+        CALL C_F_POINTER(Cptr, Carrayptr, [length])
+        ! Catomptr(1) now points to the first element of the array
+        CALL C_F_POINTER(Carrayptr(1), pair_data%r64_mat, [length, length])
+      CASE DEFAULT
         CALL lmp_error(self, LMP_ERROR_ALL + LMP_ERROR_WORLD, &
-          'Unknown property ' // name // ' in extract_pair')
+          'Unsupported dimension or unknown property name in extract_pair')
     END SELECT
   END FUNCTION
 

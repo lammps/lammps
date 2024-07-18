@@ -44,7 +44,6 @@ class PairLJSPICACoulLongKokkos : public PairLJSPICACoulLong {
 
   void compute(int, int) override;
 
-  void settings(int, char **) override;
   void init_tables(double cut_coul, double *cut_respa) override;
   void init_style() override;
   double init_one(int, int) override;
@@ -61,32 +60,26 @@ class PairLJSPICACoulLongKokkos : public PairLJSPICACoulLong {
  protected:
   template<bool STACKPARAMS, class Specialisation>
   KOKKOS_INLINE_FUNCTION
-  F_FLOAT compute_fpair(const F_FLOAT& rsq, const int& i, const int&j, const int& itype, const int& jtype) const;
+  F_FLOAT compute_fpair(const F_FLOAT& rsq, const int& i, const int& j, const int& itype, const int& jtype) const;
 
   template<bool STACKPARAMS, class Specialisation>
   KOKKOS_INLINE_FUNCTION
-  F_FLOAT compute_evdwl(const F_FLOAT& rsq, const int& i, const int&j, const int& itype, const int& jtype) const;
-
-  //template<bool STACKPARAMS, class Specialisation>
-  //KOKKOS_INLINE_FUNCTION
-  //F_FLOAT compute_ecoul(const F_FLOAT& /*rsq*/, const int& /*i*/, const int& /*j*/,
-  //                      const int& /*itype*/, const int& /*jtype*/) const { return 0; }
+  F_FLOAT compute_evdwl(const F_FLOAT& rsq, const int& i, const int& j, const int& itype, const int& jtype) const;
 
   template<bool STACKPARAMS, class Specialisation>
   KOKKOS_INLINE_FUNCTION
-  F_FLOAT compute_fcoul(const F_FLOAT& rsq, const int& i, const int&j, const int& itype,
+  F_FLOAT compute_fcoul(const F_FLOAT& rsq, const int& i, const int& j, const int& itype,
                         const int& jtype, const F_FLOAT& factor_coul, const F_FLOAT& qtmp) const;
 
   template<bool STACKPARAMS, class Specialisation>
   KOKKOS_INLINE_FUNCTION
-  F_FLOAT compute_ecoul(const F_FLOAT& rsq, const int& i, const int&j,
-                        const int& itype, const int& jtype, const F_FLOAT& factor_coul, const F_FLOAT& qtmp) const;
+  F_FLOAT compute_ecoul(const F_FLOAT& rsq, const int& i, const int& j, const int& itype,
+                        const int& jtype, const F_FLOAT& factor_coul, const F_FLOAT& qtmp) const;
 
   Kokkos::DualView<params_lj_coul**,Kokkos::LayoutRight,DeviceType> k_params;
   typename Kokkos::DualView<params_lj_coul**,Kokkos::LayoutRight,DeviceType>::t_dev_const_um params;
   params_lj_coul m_params[MAX_TYPES_STACKPARAMS+1][MAX_TYPES_STACKPARAMS+1];  // hardwired to space for 12 atom types
   F_FLOAT m_cutsq[MAX_TYPES_STACKPARAMS+1][MAX_TYPES_STACKPARAMS+1];
-  F_FLOAT m_cut_lj[MAX_TYPES_STACKPARAMS+1][MAX_TYPES_STACKPARAMS+1];
   F_FLOAT m_cut_ljsq[MAX_TYPES_STACKPARAMS+1][MAX_TYPES_STACKPARAMS+1];
   F_FLOAT m_cut_coulsq[MAX_TYPES_STACKPARAMS+1][MAX_TYPES_STACKPARAMS+1];
   typename AT::t_x_array_randomread x;

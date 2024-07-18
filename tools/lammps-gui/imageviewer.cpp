@@ -213,8 +213,6 @@ ImageViewer::ImageViewer(const QString &fileName, LammpsWrapper *_lammps, QWidge
     rotdown->setToolTip("Rotate down by 15 degrees");
     auto *reset = new QPushButton(QIcon(":/icons/gtk-zoom-fit.png"), "");
     reset->setToolTip("Reset view to defaults");
-    auto *copycmd = new QPushButton(QIcon(":/icons/file-clipboard.png"), "");
-    copycmd->setToolTip("Copy current dump image command line to clipboard");
     auto *combo = new QComboBox;
     combo->setObjectName("group");
     combo->setToolTip("Select group to display");
@@ -248,7 +246,6 @@ ImageViewer::ImageViewer(const QString &fileName, LammpsWrapper *_lammps, QWidge
     menuLayout->addWidget(rotup);
     menuLayout->addWidget(rotdown);
     menuLayout->addWidget(reset);
-    menuLayout->addWidget(copycmd);
     menuLayout->addWidget(new QLabel(" Group: "));
     menuLayout->addWidget(combo);
 
@@ -264,7 +261,6 @@ ImageViewer::ImageViewer(const QString &fileName, LammpsWrapper *_lammps, QWidge
     connect(rotup, &QPushButton::released, this, &ImageViewer::do_rot_up);
     connect(rotdown, &QPushButton::released, this, &ImageViewer::do_rot_down);
     connect(reset, &QPushButton::released, this, &ImageViewer::reset_view);
-    connect(copycmd, &QPushButton::released, this, &ImageViewer::cmd_to_clipboard);
     connect(combo, SIGNAL(currentIndexChanged(int)), this, SLOT(change_group(int)));
 
     mainLayout->addLayout(menuLayout);

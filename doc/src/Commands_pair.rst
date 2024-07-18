@@ -264,6 +264,8 @@ OPT.
    * :doc:`rebo (io) <pair_airebo>`
    * :doc:`rebomos (o) <pair_rebomos>`
    * :doc:`resquared (go) <pair_resquared>`
+   * :doc:`rheo <pair_rheo>`
+   * :doc:`rheo/solid <pair_rheo_solid>`
    * :doc:`saip/metal (t) <pair_saip_metal>`
    * :doc:`sdpd/taitwater/isothermal <pair_sdpd_taitwater_isothermal>`
    * :doc:`smatb <pair_smatb>`

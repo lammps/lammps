@@ -193,6 +193,7 @@ accelerated styles exist.
 * :doc:`adapt <fix_adapt>` - change a simulation parameter over time
 * :doc:`adapt/fep <fix_adapt_fep>` - enhanced version of fix adapt
 * :doc:`addforce <fix_addforce>` - add a force to each atom
+* :doc:`add/heat <fix_add_heat>` - add a heat flux to each atom
 * :doc:`addtorque <fix_addtorque>` - add a torque to a group of atoms
 * :doc:`alchemy <fix_alchemy>` - perform an "alchemical transformation" between two partitions
 * :doc:`amoeba/bitorsion <fix_amoeba_bitorsion>` - torsion/torsion terms in AMOEBA force field
@@ -369,6 +370,11 @@ accelerated styles exist.
 * :doc:`reaxff/species <fix_reaxff_species>` - write out ReaxFF molecule information
 * :doc:`recenter <fix_recenter>` - constrain the center-of-mass position of a group of atoms
 * :doc:`restrain <fix_restrain>` - constrain a bond, angle, dihedral
+* :doc:`rheo <fix_rheo>` - integrator for the RHEO package
+* :doc:`rheo/thermal <fix_rheo_thermal>` - thermal integrator for the RHEO package
+* :doc:`rheo/oxidation <fix_rheo_oxidation>` - create oxidation bonds for the RHEO package
+* :doc:`rheo/pressure <fix_rheo_pressure>` - pressure calculation for the RHEO package
+* :doc:`rheo/viscosity <fix_rheo_pressure>` - viscosity calculation for the RHEO package
 * :doc:`rhok <fix_rhok>` - add bias potential for long-range ordered systems
 * :doc:`rigid <fix_rigid>` - constrain one or more clusters of atoms to move as a rigid body with NVE integration
 * :doc:`rigid/meso <fix_rigid_meso>` - constrain clusters of mesoscopic SPH/SDPD particles to move as a rigid body

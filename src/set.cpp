@@ -49,7 +49,7 @@ enum{TYPE,TYPE_FRACTION,TYPE_RATIO,TYPE_SUBSET,
      DIPOLE,DIPOLE_RANDOM,SPIN_ATOM,SPIN_RANDOM,SPIN_ELECTRON,RADIUS_ELECTRON,
      QUAT,QUAT_RANDOM,THETA,THETA_RANDOM,ANGMOM,OMEGA,TEMPERATURE,
      DIAMETER,RADIUS_ATOM,DENSITY,VOLUME,IMAGE,BOND,ANGLE,DIHEDRAL,IMPROPER,
-     SPH_E,SPH_CV,SPH_RHO,EDPD_TEMP,EDPD_CV,CC,SMD_MASS_DENSITY,
+     RHEO_STATUS,SPH_E,SPH_CV,SPH_RHO,EDPD_TEMP,EDPD_CV,CC,SMD_MASS_DENSITY,
      SMD_CONTACT_RADIUS,DPDTHETA,EPSILON,IVEC,DVEC,IARRAY,DARRAY};
 
 /* ---------------------------------------------------------------------- */
@@ -513,6 +513,24 @@ void Set::command(int narg, char **arg)
       topology(IMPROPER);
       iarg += 2;
 
+    } else if (strcmp(arg[iarg],"rheo/rho") == 0) {
+      if (iarg+2 > narg) utils::missing_cmd_args(FLERR, "set rheo/rho", error);
+      if (utils::strmatch(arg[iarg+1],"^v_")) varparse(arg[iarg+1],1);
+      else dvalue = utils::numeric(FLERR,arg[iarg+1],false,lmp);
+      if (!atom->rho_flag)
+        error->all(FLERR,"Cannot set attribute {} for atom style {}", arg[iarg], atom->get_style());
+      set(SPH_RHO);
+      iarg += 2;
+
+    } else if (strcmp(arg[iarg],"rheo/status") == 0) {
+      if (iarg+2 > narg) utils::missing_cmd_args(FLERR, "set rheo/status", error);
+      if (utils::strmatch(arg[iarg+1],"^v_")) varparse(arg[iarg+1],1);
+      else ivalue = utils::inumeric(FLERR,arg[iarg+1],false,lmp);
+      if (!atom->rheo_status_flag)
+        error->all(FLERR,"Cannot set attribute {} for atom style {}", arg[iarg], atom->get_style());
+      set(RHEO_STATUS);
+      iarg += 2;
+
     } else if (strcmp(arg[iarg],"sph/e") == 0) {
       if (iarg+2 > narg) utils::missing_cmd_args(FLERR, "set sph/e", error);
       if (utils::strmatch(arg[iarg+1],"^v_")) varparse(arg[iarg+1],1);
@@ -879,6 +897,13 @@ void Set::set(int keyword)
       if (dvalue <= 0.0) error->one(FLERR,"Invalid volume in set command");
       atom->vfrac[i] = dvalue;
     }
+
+    else if (keyword == RHEO_STATUS) {
+      if (ivalue != 0 && ivalue != 1)
+        error->one(FLERR,"Invalid value {} in set command for rheo/status", ivalue);
+      atom->rheo_status[i] = ivalue;
+    }
+
     else if (keyword == SPH_E) atom->esph[i] = dvalue;
     else if (keyword == SPH_CV) atom->cv[i] = dvalue;
     else if (keyword == SPH_RHO) atom->rho[i] = dvalue;

@@ -171,7 +171,6 @@ will have no effect on the motion of the rigid bodies if they are
 specified in the input script after the fix rigid command.  LAMMPS
 will give a warning if that is the case.
 
-
 The *colname* keyword can be used to change the default header keywords
 in output files of fix styles that support it: currently only :doc:`fix
 ave/time <fix_ave_time>` is supported.  The setting for *ID string*

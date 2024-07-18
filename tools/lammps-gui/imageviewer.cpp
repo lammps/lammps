@@ -423,7 +423,7 @@ void ImageViewer::do_rot_up()
 
 void ImageViewer::cmd_to_clipboard()
 {
-    auto words    = last_dump_cmd.split(" ", Qt::SkipEmptyParts);
+    auto words    = last_dump_cmd.split(" ");
     QString blank = QStringLiteral(" ");
     int modidx    = words.indexOf("modify");
     int maxidx    = words.size();

@@ -65,6 +65,8 @@ PairLJSPICACoulLongKokkos<DeviceType>::~PairLJSPICACoulLongKokkos()
     memoryKK->destroy_kokkos(k_eatom,eatom);
     memoryKK->destroy_kokkos(k_vatom,vatom);
     memoryKK->destroy_kokkos(k_cutsq,cutsq);
+    memoryKK->destroy_kokkos(k_cut_ljsq,cut_ljsq);
+    memoryKK->destroy_kokkos(k_cut_coulsq);
   }
 }
 
@@ -95,6 +97,8 @@ void PairLJSPICACoulLongKokkos<DeviceType>::compute(int eflag_in, int vflag_in)
 
   atomKK->sync(execution_space,datamask_read);
   k_cutsq.template sync<DeviceType>();
+  k_cut_ljsq.template sync<DeviceType>();
+  k_cut_coulsq.template sync<DeviceType>();
   k_params.template sync<DeviceType>();
   if (eflag || vflag) atomKK->modified(execution_space,datamask_modify);
   else atomKK->modified(execution_space,F_MASK);
@@ -305,9 +309,17 @@ void PairLJSPICACoulLongKokkos<DeviceType>::allocate()
   PairLJSPICACoulLong::allocate();
 
   int n = atom->ntypes;
+
   memory->destroy(cutsq);
+  memory->destroy(cut_ljsq);
+
   memoryKK->create_kokkos(k_cutsq,cutsq,n+1,n+1,"pair:cutsq");
+  memoryKK->create_kokkos(k_cut_ljsq,cut_ljsq,n+1,n+1,"pair:cut_ljsq");
+  memoryKK->create_kokkos(k_cut_coulsq,n+1,n+1,"pair:cut_coulsq");
+
   d_cutsq = k_cutsq.template view<DeviceType>();
+  d_cut_ljsq = k_cut_ljsq.template view<DeviceType>();
+  d_cut_coulsq = k_cut_coulsq.template view<DeviceType>();
 
   k_params = Kokkos::DualView<params_lj_spica_coul**,Kokkos::LayoutRight,DeviceType>("PairLJSPICACoulLong::params",n+1,n+1);
   params = k_params.template view<DeviceType>();
@@ -467,7 +479,7 @@ double PairLJSPICACoulLongKokkos<DeviceType>::init_one(int i, int j)
   k_params.h_view(i,j).cut_coulsq = cut_coulsq;
   k_params.h_view(i,j).lj_type = lj_type[i][j];
   k_params.h_view(j,i) = k_params.h_view(i,j);
-  
+
   if (i<MAX_TYPES_STACKPARAMS+1 && j<MAX_TYPES_STACKPARAMS+1) {
     m_params[i][j] = m_params[j][i] = k_params.h_view(i,j);
     m_cutsq[j][i] = m_cutsq[i][j] = cutone*cutone;
@@ -476,7 +488,12 @@ double PairLJSPICACoulLongKokkos<DeviceType>::init_one(int i, int j)
   }
 
   k_cutsq.h_view(i,j) = k_cutsq.h_view(j,i) = cutone*cutone;
+  k_cut_ljsq.h_view(i,j) = k_cut_ljsq.h_view(j,i) = cut_ljsq[i][j];
+  k_cut_coulsq.h_view(i,j) = k_cut_coulsq.h_view(j,i) = cut_coulsq;
+
   k_cutsq.template modify<LMPHostType>();
+  k_cut_ljsq.template modify<LMPHostType>();
+  k_cut_coulsq.template modify<LMPHostType>();
   k_params.template modify<LMPHostType>();
 
   return cutone;

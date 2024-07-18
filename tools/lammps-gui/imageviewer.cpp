@@ -18,6 +18,7 @@
 
 #include <QAction>
 #include <QApplication>
+#include <QClipboard>
 #include <QDir>
 #include <QFileDialog>
 #include <QGuiApplication>
@@ -132,8 +133,9 @@ static const QString blank(" ");
 
 ImageViewer::ImageViewer(const QString &fileName, LammpsWrapper *_lammps, QWidget *parent) :
     QDialog(parent), menuBar(new QMenuBar), imageLabel(new QLabel), scrollArea(new QScrollArea),
-    lammps(_lammps), group("all"), filename(fileName), useelements(false), usediameter(false),
-    usesigma(false)
+    saveAsAct(nullptr), copyAct(nullptr), cmdAct(nullptr), zoomInAct(nullptr), zoomOutAct(nullptr),
+    normalSizeAct(nullptr), lammps(_lammps), group("all"), filename(fileName), useelements(false),
+    usediameter(false), usesigma(false)
 {
     imageLabel->setBackgroundRole(QPalette::Base);
     imageLabel->setSizePolicy(QSizePolicy::Ignored, QSizePolicy::Ignored);
@@ -211,6 +213,8 @@ ImageViewer::ImageViewer(const QString &fileName, LammpsWrapper *_lammps, QWidge
     rotdown->setToolTip("Rotate down by 15 degrees");
     auto *reset = new QPushButton(QIcon(":/icons/gtk-zoom-fit.png"), "");
     reset->setToolTip("Reset view to defaults");
+    auto *copycmd = new QPushButton(QIcon(":/icons/file-clipboard.png"), "");
+    copycmd->setToolTip("Copy current dump image command line to clipboard");
     auto *combo = new QComboBox;
     combo->setObjectName("group");
     combo->setToolTip("Select group to display");
@@ -244,6 +248,7 @@ ImageViewer::ImageViewer(const QString &fileName, LammpsWrapper *_lammps, QWidge
     menuLayout->addWidget(rotup);
     menuLayout->addWidget(rotdown);
     menuLayout->addWidget(reset);
+    menuLayout->addWidget(copycmd);
     menuLayout->addWidget(new QLabel(" Group: "));
     menuLayout->addWidget(combo);
 
@@ -259,6 +264,7 @@ ImageViewer::ImageViewer(const QString &fileName, LammpsWrapper *_lammps, QWidge
     connect(rotup, &QPushButton::released, this, &ImageViewer::do_rot_up);
     connect(rotdown, &QPushButton::released, this, &ImageViewer::do_rot_down);
     connect(reset, &QPushButton::released, this, &ImageViewer::reset_view);
+    connect(copycmd, &QPushButton::released, this, &ImageViewer::cmd_to_clipboard);
     connect(combo, SIGNAL(currentIndexChanged(int)), this, SLOT(change_group(int)));
 
     mainLayout->addLayout(menuLayout);
@@ -419,6 +425,26 @@ void ImageViewer::do_rot_up()
     createImage();
 }
 
+void ImageViewer::cmd_to_clipboard()
+{
+    auto words    = last_dump_cmd.split(" ", Qt::SkipEmptyParts);
+    QString blank = QStringLiteral(" ");
+    int modidx    = words.indexOf("modify");
+    int maxidx    = words.size();
+
+    QString dumpcmd = "dump viz ";
+    dumpcmd += words[1] + " image 100 myimage-*.ppm";
+    for (int i = 4; i < modidx; ++i)
+        dumpcmd += blank + words[i];
+    dumpcmd += '\n';
+
+    dumpcmd += "dump_modify viz pad 9";
+    for (int i = modidx + 1; i < maxidx; ++i)
+        dumpcmd += blank + words[i];
+    dumpcmd += '\n';
+    QGuiApplication::clipboard()->setText(dumpcmd);
+}
+
 void ImageViewer::change_group(int)
 {
     auto *box = findChild<QComboBox *>("group");
@@ -460,10 +486,10 @@ void ImageViewer::createImage()
     }
     usediameter = lammps->extract_setting("radius_flag") != 0;
     // use Lennard-Jones sigma for radius, if available
-    usesigma = false;
+    usesigma               = false;
     const char *pair_style = (const char *)lammps->extract_global("pair_style");
     if (!useelements && pair_style && (strncmp(pair_style, "lj/", 3) == 0)) {
-        double **sigma = (double **) lammps->extract_pair("sigma");
+        double **sigma = (double **)lammps->extract_pair("sigma");
         if (sigma) {
             usesigma = true;
             for (int i = 1; i <= ntypes; ++i)
@@ -518,6 +544,7 @@ void ImageViewer::createImage()
     if (usesigma) dumpcmd += blank + adiams + blank;
     settings.endGroup();
 
+    last_dump_cmd = dumpcmd;
     lammps->command(dumpcmd.toLocal8Bit());
 
     QImageReader reader(dumpfile.fileName());
@@ -566,10 +593,13 @@ void ImageViewer::createActions()
     saveAsAct->setIcon(QIcon(":/icons/document-save-as.png"));
     saveAsAct->setEnabled(false);
     fileMenu->addSeparator();
-    copyAct = fileMenu->addAction("&Copy", this, &ImageViewer::copy);
+    copyAct = fileMenu->addAction("&Copy Image", this, &ImageViewer::copy);
     copyAct->setIcon(QIcon(":/icons/edit-copy.png"));
     copyAct->setShortcut(QKeySequence::Copy);
     copyAct->setEnabled(false);
+    cmdAct = fileMenu->addAction("Copy &dump image command", this, &ImageViewer::cmd_to_clipboard);
+    cmdAct->setIcon(QIcon(":/icons/file-clipboard.png"));
+    cmdAct->setShortcut(QKeySequence(Qt::CTRL | Qt::Key_D));
     fileMenu->addSeparator();
     QAction *exitAct = fileMenu->addAction("&Close", this, &QWidget::close);
     exitAct->setIcon(QIcon(":/icons/window-close.png"));

@@ -859,6 +859,10 @@ of analysis.
      - atom-ID molecule-ID atom-type x y z
    * - peri
      - atom-ID atom-type volume density x y z
+   * - rheo
+     - atom-ID atom-type status rho x y z
+   * - rheo/thermal
+     - atom-ID atom-type status rho energy x y z
    * - smd
      - atom-ID atom-type molecule volume mass kradius cradius x0 y0 z0 x y z
    * - sph

@@ -679,9 +679,9 @@ all rolled into a single application: that is, using a text editor,
 plotting program, and a visualization program to edit the input, run
 LAMMPS, process the output into graphs and visualizations from a command
 line window.  This similarity is a design goal. While making it easy for
-beginners to start with LAMMPS, it is also the expectation that LAMMPS
-GUI users will eventuall transition to workflows that most experienced
-LAMMPS users employ.
+beginners to start with LAMMPS, it is also the expectation that
+LAMMPS-GUI users will eventually transition to workflows that most
+experienced LAMMPS users employ.
 
 All features have been extensively exposed to keyboard shortcuts, so
 that there is also appeal for experienced LAMMPS users for prototyping

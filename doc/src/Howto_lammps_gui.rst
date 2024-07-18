@@ -64,12 +64,12 @@ channels as for LAMMPS itself <Errors_bugs>` for that purpose.
 
 -----
 
-Main window
------------
+Starting LAMMPS-GUI
+-------------------
 
-When LAMMPS-GUI starts, it will show a main window, the editor, with
-either an empty buffer or the contents of a loaded file. In the latter
-case it may look like the following:
+When LAMMPS-GUI starts, it shows the main window, labeled *Editor*, with
+either an empty buffer or the contents of the file used as argument. In
+the latter case it may look like the following:
 
 .. image:: JPG/lammps-gui-main.png
    :align: center
@@ -82,23 +82,23 @@ the LAMMPS input file syntax.  The status bar shows the status of
 LAMMPS execution on the left (e.g. "Ready." when idle) and the current
 working directory on the right.  The name of the current file in the
 buffer is shown in the window title; the word `*modified*` is added if
-the buffer edits have not yet saved to a file.  The size of the main
-window will be stored when exiting and restored when starting again.
+the buffer edits have not yet saved to a file.  The geometry of the main
+window is stored when exiting and restored when starting again.
 
 Opening Files
 ^^^^^^^^^^^^^
 
-The LAMMPS-GUI application will try to open the first command line
-argument as a LAMMPS input script, further arguments are ignored.
-When no argument is given, LAMMPS-GUI will start with an empty buffer.
-Files can also be opened via the ``File`` menu or by drag-and-drop of
-a file from a graphical file manager into the editor window.  Only one
-file can be edited at a time, so opening a new file with a filled buffer
-will close that buffer.  If the buffer has unsaved modifications, you
-will be asked to either cancel the operation, discard the changes, or
-save them.  A buffer with modifications can be saved any time from the
-"File" menu, by the keyboard shortcut `Ctrl-S` (`Command-S` on macOS),
-or by clicking on the "Save" button at the very left in the status bar.
+The LAMMPS-GUI application tries to open the first command line argument
+as a LAMMPS input script, further arguments are ignored.  When no
+argument is given, LAMMPS-GUI starts with an empty buffer.  Files can
+also be opened via the ``File`` menu or by drag-and-drop of a file from
+a graphical file manager into the editor window.  Only one file can be
+edited at a time, so opening a new file with a filled buffer closes that
+buffer.  If the buffer has unsaved modifications, you are asked to
+either cancel the operation, discard the changes, or save them.  A
+buffer with modifications can be saved any time from the "File" menu, by
+the keyboard shortcut `Ctrl-S` (`Command-S` on macOS), or by clicking on
+the "Save" button at the very left in the status bar.
 
 Running LAMMPS
 ^^^^^^^^^^^^^^
@@ -107,7 +107,7 @@ From within the LAMMPS-GUI main window LAMMPS can be started either from
 the ``Run`` menu using the ``Run LAMMPS from Editor Buffer`` entry, by
 the keyboard shortcut `Ctrl-Enter` (`Command-Enter` on macOS), or by
 clicking on the green "Run" button in the status bar.  All of these
-operations will cause LAMMPS to process the entire input script in the
+operations causes LAMMPS to process the entire input script in the
 editor buffer, which may contain multiple :doc:`run <run>` or
 :doc:`minimize <minimize>` commands.
 
@@ -132,29 +132,30 @@ before LAMMPS can be run from a file.
 
 While LAMMPS is running, the contents of the status bar change.  On
 the left side there is a text indicating that LAMMPS is running, which
-will also show the number of active threads, if thread-parallel
+also indicates the number of active threads, when thread-parallel
 acceleration was selected in the ``Preferences`` dialog.  On the right
 side, a progress bar is shown that displays the estimated progress for
 the current :doc:`run <run>` or :doc:`minimize <minimize>` command.
 
-Also, the line number of the currently executed command will be
-highlighted in green.
+Also, the line number of the currently executed command is highlighted
+in green.
 
 If an error occurs (in the example below the command :doc:`label
 <label>` was incorrectly capitalized as "Label"), an error message
-dialog will be shown and the line of the input which triggered the
-error will be highlighted.  The state of LAMMPS in the status bar will
-be set to "Failed." instead of "Ready."
+dialog is shown and the line of the input which triggered the error is
+highlighted.  The state of LAMMPS in the status bar is set to "Failed."
+instead of "Ready."
 
 .. image:: JPG/lammps-gui-run-error.png
    :align: center
    :scale: 75%
 
-Up to three additional windows will open during a run:
+Up to three additional windows may open during a run:
 
-- an *Output* window with the captured screen output
-- a *Charts* window with a line graph created from the thermodynamic output of the run
+- an *Output* window with the captured screen output from LAMMPS
+- a *Charts* window with a line graph created from thermodynamic output of the run
 - a *Slide Show* window with images created by a :doc:`dump image command <dump_image>`
+  in the input
 
 More information on those windows and how to adjust their behavior and
 contents is given below.
@@ -174,9 +175,9 @@ understand the implications of this operation.
 Output Window
 -------------
 
-By default, when starting a run, an *Output* window will open that
-displays the screen output of the running LAMMPS calculation.  This text
-would normally be seen in the command line window, as shown below.
+By default, when starting a run, an *Output* window opens that displays
+the screen output of the running LAMMPS calculation, as shown below.
+This text would normally be seen in the command line window.
 
 .. image:: JPG/lammps-gui-log.png
    :align: center
@@ -185,12 +186,13 @@ would normally be seen in the command line window, as shown below.
 LAMMPS-GUI captures the screen output from LAMMPS as it is generated and
 updates the *Output* window regularly during a run.
 
-By default, the *Output* window will be replaced each time a run is started.
+By default, the *Output* window is replaced each time a run is started.
 The runs are counted and the run number for the current run is displayed
-in the window title.  It is possible to change the behavior of LAMMPS
-GUI in the preferences dialog to create a *new* *Output* window for every run
-or to not show the current *Output* window.  It is also possible to show or
-hide the *current* *Output* window from the ``View`` menu.
+in the window title.  It is possible to change the behavior of
+LAMMPS-GUI in the preferences dialog to create a *new* *Output* window
+for every run or to not show the current *Output* window.  It is also
+possible to show or hide the *current* *Output* window from the ``View``
+menu.
 
 The text in the *Output* window is read-only and cannot be modified, but
 keyboard shortcuts to select and copy all or parts of the text can be
@@ -217,9 +219,8 @@ text area.
 Charts Window
 -------------
 
-By default, when starting a run, a *Charts* window will open that
-displays a plot of thermodynamic output of the LAMMPS calculation as
-shown below.
+By default, when starting a run, a *Charts* window opens that displays a
+plot of thermodynamic output of the LAMMPS calculation as shown below.
 
 .. image:: JPG/lammps-gui-chart.png
    :align: center
@@ -227,13 +228,12 @@ shown below.
 
 The drop down menu on the top right allows selection of different
 properties that are computed and written to thermo output.  Only one
-property can be shown at a time.  The plots will be updated with new
-data as the run progresses, so they can be used to visually monitor the
-evolution of available properties.  The window title will show the
-current run number that this chart window corresponds to.  Same as
-explained for the *Output* window above, by default, the chart window will
-be replaced on each new run, but the behavior can be changed in the
-preferences dialog.
+property can be shown at a time.  The plots are updated with new data as
+the run progresses, so they can be used to visually monitor the
+evolution of available properties.  The window title shows the current
+run number that this chart window corresponds to.  Same as for the
+*Output* window, the chart window is replaced on each new run, but the
+behavior can be changed in the preferences dialog.
 
 From the ``File`` menu on the top left, it is possible to save an image
 of the currently displayed plot or export the data in either plain text
@@ -243,19 +243,20 @@ columns (for use by plotting tools like `gnuplot
 be imported for further processing with Microsoft Excel or `pandas
 <https://pandas.pydata.org/>`_
 
-Thermo output data from successive run commands in the input script will
-be combined into a single data set unless the format, number, or names
-of output columns are changed with a :doc:`thermo_style <thermo_style>`
-or a :doc:`thermo_modify <thermo_modify>` command, or the current time
-step is reset with :doc:`reset_timestep <reset_timestep>`, or if a
+Thermo output data from successive run commands in the input script is
+combined into a single data set unless the format, number, or names of
+output columns are changed with a :doc:`thermo_style <thermo_style>` or
+a :doc:`thermo_modify <thermo_modify>` command, or the current time step
+is reset with :doc:`reset_timestep <reset_timestep>`, or if a
 :doc:`clear <clear>` command is issued.
 
 Image Slide Show
 ----------------
 
 By default, if the LAMMPS input contains a :doc:`dump image
-<dump_image>` command, a "Slide Show" window will open which loads and
-displays the images created by LAMMPS as they are written.
+<dump_image>` command, a "Slide Show" window opens which loads and
+displays the images created by LAMMPS as they are written.  This is a
+convenient way to visually monitor the progress of the simulation.
 
 .. image:: JPG/lammps-gui-slideshow.png
    :align: center
@@ -270,11 +271,11 @@ provided the `FFmpeg program <https://ffmpeg.org/>`_ is installed.
 
 .. versionadded:: 1.6
 
-When clicking on the "garbage can" icon, all image files used for the
-slide show will be deleted.  Since their number can be large for long
-simulations, this allows to safely clean up clutter in the working
-directory.
-
+When clicking on the "garbage can" icon, all image files of the slide
+show will be deleted.  Since their number can be large for long
+simulations, this option enables to safely and quickly clean up the
+clutter caused in the working directory by those image files without
+risk of deleting other files by accident when using wildcards.
 
 Variable Info
 -------------
@@ -282,8 +283,8 @@ Variable Info
 During a run, it may be of interest to monitor the value of input script
 variables, for example to monitor the progress of loops.  This can be
 done by enabling the "Variables Window" in the ``View`` menu or by using
-the `Ctrl-Shift-W` keyboard shortcut.  This will show info similar to
-the :doc:`info variables <info>` command in a separate window as shown
+the `Ctrl-Shift-W` keyboard shortcut.  This shows info similar to the
+:doc:`info variables <info>` command in a separate window as shown
 below.
 
 .. image:: JPG/lammps-gui-variable-info.png
@@ -294,10 +295,10 @@ Like for the *Output* and *Charts* windows, its content is continuously
 updated during a run.  It will show "(none)" if there are no variables
 defined.  Note that it is also possible to *set* :doc:`index style
 variables <variable>`, that would normally be set via command line
-flags, via the "Set Variables..." dialog from the ``Run`` menu.  LAMMPS
-GUI will automatically set the variable "gui_run" to the current value
-of the run counter.  That way it would be possible to automatically
-record a log for each run attempt by using the command
+flags, via the "Set Variables..." dialog from the ``Run`` menu.
+LAMMPS-GUI automatically defines the variable "gui_run" to the current
+value of the run counter.  That way it is possible to automatically
+record a separate log for each run attempt by using the command
 
 .. code-block:: LAMMPS
 
@@ -312,31 +313,28 @@ Snapshot Image Viewer
 By selecting the ``Create Image`` entry in the ``Run`` menu, or by
 hitting the `Ctrl-I` (`Command-I` on macOS) keyboard shortcut, or by
 clicking on the "palette" button in the status bar of the *Editor*
-window, LAMMPS-GUI will send a custom :doc:`write_dump image
-<dump_image>` command to LAMMPS and read the resulting snapshot image
-with the current state of the system into an image viewer window.  This
-functionality is *not* available *during* an ongoing run since it is
-sending commands to LAMMPS.  When LAMMPS is not yet initialized,
-LAMMPS-GUI will try to identify the line with the first run or minimize
-command and execute all commands up to that line from the input buffer
-and then add a "run 0" command.  This will initialize the system so an
-image of the initial state of the system can be rendered.  If there was
-an error, the snapshot image viewer will not appear.
+window, LAMMPS-GUI sends a custom :doc:`write_dump image <dump_image>`
+command to LAMMPS and reads back the resulting snapshot image with the
+current state of the system into an image viewer.  This functionality is
+*not* available *during* an ongoing run.  In case LAMMPS is not yet
+initialized, LAMMPS-GUI tries to identify the line with the first run or
+minimize command and execute all commands from the input buffer up to
+that line, and then executes a "run 0" command.  This initializes the
+system so an image of the initial state of the system can be rendered.
+If there was an error in that process, the snapshot image viewer does
+not appear.
 
-.. versionadded: 1.6
-
-   Assignment of atom diameters from Lennard-Jones *sigma* values
-
-When possible, LAMMPS-GUI will try to detect which elements the atoms
+When possible, LAMMPS-GUI tries to detect which elements the atoms
 correspond to (via their mass) and then colorize them in the image and
 set their atom diameters accordingly.  If this is not possible, for
 instance when using reduced (= 'lj') :doc:`units <units>`, then
 LAMMPS-GUI will check the current pair style and if it is a
-Lennard-Jones potential from which it will extract the *sigma* parameter
-for each atom type and assign atom diamaters from those numbers.
+Lennard-Jones type potential, it will extract the *sigma* parameter
+for each atom type and assign atom diameters from those numbers.
 
-Otherwise the default predefined sequence of colors is assigned to the
-different atom types and the diameters are all the same.
+Otherwise the default sequence of colors of the :doc:`dump image
+<dump_image>` command is assigned to the different atom types and the
+diameters are all the same.
 
 .. image:: JPG/lammps-gui-image.png
    :align: center
@@ -346,17 +344,27 @@ The default image size, some default image quality settings, the view
 style and some colors can be changed in the ``Preferences`` dialog
 window.  From the image viewer window further adjustments can be made:
 actual image size, high-quality (SSAO) rendering, anti-aliasing, view
-style, display of box or axes, zoom factor.  The view of the system
-can be rotated horizontally and vertically.  It is also possible to
-only display the atoms within a group defined in the input script
-(default is "all").  After each change, the image is rendered again
-and the display updated.  The small palette icon on the top left will
-be colored while LAMMPS is running to render the new image; it will be
-grayed out when it is finished.  When there are many atoms to render
-and high quality images with anti-aliasing are requested, re-rendering
-may take several seconds.  From the ``File`` menu of the image window,
-the current image can be saved to a file or copied into the
-cut-n-paste buffer for pasting into another application.
+style, display of box or axes, zoom factor.  The view of the system can
+be rotated horizontally and vertically.  It is also possible to only
+display the atoms within a group defined in the input script (default is
+"all").  After each change, the image is rendered again and the display
+updated.  The small palette icon on the top left is colored while LAMMPS
+is running to render the new image; it is grayed out when LAMMPS is
+finished.  When there are many atoms to render and high quality images
+with anti-aliasing are requested, re-rendering may take several seconds.
+From the ``File`` menu of the image window, the current image can be
+saved to a file (keyboard shortcut `Ctrl-S`) or copied to the clipboard
+(keyboard shortcut `Ctrl-C`) for pasting the image into another
+application.
+
+.. versionadded:: 1.6
+
+From the ``File`` menu it is also possible to copy the current
+:doc:`dump image <dump_image>` and :doc:`dump_modify <dump_image>`
+commands to the clipboard so they can be pasted into a LAMMPS input file
+so that the visualization settings of the snapshot image can be repeated
+for the entire simulation (and thus be repeated in the slide show
+viewer). This feature has the keyboard shortcut `Ctrl-D`. 
 
 Editor Window
 -------------
@@ -372,7 +380,7 @@ save or not save the buffer contents to a file.
 Context Specific Word Completion
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-By default, LAMMPS-GUI will display a small pop-up frame with possible
+By default, LAMMPS-GUI displays a small pop-up frame with possible
 choices for LAMMPS input script commands or styles after 2 characters of
 a word have been typed.
 
@@ -386,10 +394,10 @@ by clicking on the entry with the mouse.  The automatic completion
 pop-up can be disabled in the ``Preferences`` dialog, but the completion
 can still be requested manually by either hitting the 'Shift-TAB' key or
 by right-clicking with the mouse and selecting the option from the
-context menu.  Most of the completion information is taken from the
-LAMMPS instance and thus it will be adjusted to only show available
-options that have been enabled while compiling LAMMPS. That, however,
-excludes accelerated styles and commands; for improved clarity, only the
+context menu.  Most of the completion information is retrieved from the
+active LAMMPS instance and thus it shows only available options that
+have been enabled when compiling LAMMPS. That list, however, excludes
+accelerated styles and commands; for improved clarity, only the
 non-suffix version of styles are shown.
 
 Line Reformatting
@@ -401,8 +409,8 @@ whitespace padding to commands, type specifiers, IDs and names.  This
 reformatting is performed by default when hitting the 'Enter' key to
 start a new line.  This feature can be turned on or off in the
 ``Preferences`` dialog, but it can still be manually performed by
-hitting the 'TAB' key.  The amount of padding can also be changed in the
-``Preferences`` dialog.
+hitting the 'TAB' key.  The amount of padding can be adjusted in the
+``Preferences`` dialog for the *Editor*.
 
 Internally this functionality is achieved by splitting the line into
 "words" and then putting it back together with padding added where the
@@ -418,10 +426,10 @@ Context Specific Help
 A unique feature of the LAMMPS-GUI is the option to look up the
 documentation for the command in the current line.  This can be done by
 either clicking the right mouse button or by using the `Ctrl-?` keyboard
-shortcut.  When clicking the mouse there are additional entries in the
-context menu that will open the corresponding documentation page in the
-online LAMMPS documentation.  When using the keyboard, the first of
-those entries will be chosen directly.
+shortcut.  When using the mouse, there are additional entries in the
+context menu that open the corresponding documentation page in the
+online LAMMPS documentation in a web browser window.  When using the
+keyboard, the first of those entries is chosen.
 
 Menu
 ----
@@ -429,9 +437,9 @@ Menu
 The menu bar has entries ``File``, ``Edit``, ``Run``, ``View``, and
 ``About``.  Instead of using the mouse to click on them, the individual
 menus can also be activated by hitting the `Alt` key together with the
-corresponding underlined letter, that is `Alt-F` will activate the
+corresponding underlined letter, that is `Alt-F` activates the
 ``File`` menu.  For the corresponding activated sub-menus, the key
-corresponding the underlined letters can again be used to select entries
+corresponding the underlined letters can be used to select entries
 instead of using the mouse.
 
 File
@@ -439,19 +447,21 @@ File
 
 The ``File`` menu offers the usual options:
 
-- ``New`` will clear the current buffer and reset the file name to ``*unknown*``
-- ``Open`` will open a dialog to select a new file
-- ``Save`` will save the current file; if the file name is ``*unknown*``
+- ``New`` clears the current buffer and resets the file name to ``*unknown*``
+- ``Open`` opens a dialog to select a new file for editing
+- ``Save`` saves the current file; if the file name is ``*unknown*``
   a dialog will open to select a new file name
-- ``Save As`` will open a dialog to select and new file name and save
-  the buffer to it
-- ``Quit`` will exit LAMMPS-GUI. If there are unsaved changes, a dialog
-  will appear to either cancel the operation, or to save or not save the
-  edited file.
+- ``Save As`` opens a dialog to select and new file name (and folder, if
+  desired) and saves the buffer to it.  Writing the buffer to a
+  different folder will also switch the current working directory to
+  that folder.
+- ``Quit`` exits LAMMPS-GUI. If there are unsaved changes, a dialog will
+  appear to either cancel the operation, or to save, or to not save the
+  modified buffer.
 
-In addition, up to 5 recent file names will be listed after the
-``Open`` entry that allows re-opening recent files.  This list is
-stored when quitting and recovered when starting again.
+In addition, up to 5 recent file names will be listed after the ``Open``
+entry that allows re-opening recently opened files.  This list is stored
+when quitting and recovered when starting again.
 
 Edit
 ^^^^
@@ -459,19 +469,20 @@ Edit
 The ``Edit`` menu offers the usual editor functions like ``Undo``,
 ``Redo``, ``Cut``, ``Copy``, ``Paste``.  It can also open a
 ``Preferences`` dialog (keyboard shortcut `Ctrl-P`) and allows deletion
-of all stored preferences so they will be reset to default values.
+of all stored preferences and settings, so they are reset to their
+default values.
 
 Run
 ^^^
 
-The ``Run`` menu has options to start and stop a LAMMPS process.
-Rather than calling the LAMMPS executable as a separate executable,
-the LAMMPS-GUI is linked to the LAMMPS library and thus can run LAMMPS
-internally through the :ref:`LAMMPS C-library interface
-<lammps_c_api>`.
+The ``Run`` menu has options to start and stop a LAMMPS process.  Rather
+than calling the LAMMPS executable as a separate executable, the
+LAMMPS-GUI is linked to the LAMMPS library and thus can run LAMMPS
+internally through the :ref:`LAMMPS C-library interface <lammps_c_api>`
+in a separate thread.
 
 Specifically, a LAMMPS instance will be created by calling
-:cpp:func:`lammps_open_no_mpi`.  The buffer contents then executed by
+:cpp:func:`lammps_open_no_mpi`.  The buffer contents are then executed by
 calling :cpp:func:`lammps_commands_string`.  Certain commands and
 features are only available after a LAMMPS instance is created.  Its
 presence is indicated by a small LAMMPS ``L`` logo in the status bar
@@ -481,16 +492,16 @@ reading the file.  This is mainly provided as a fallback option in
 case the input uses some feature that is not available when running
 from a string buffer.
 
-The LAMMPS calculation will be run in a concurrent thread so that the
-GUI can stay responsive and be updated during the run.  This can be
-used to tell the running LAMMPS instance to stop at the next timestep.
-The ``Stop LAMMPS`` entry will do this by calling
-:cpp:func:`lammps_force_timeout`, which is equivalent to a :doc:`timer
-timeout 0 <timer>` command.
+The LAMMPS calculations are run in a concurrent thread so that the GUI
+can stay responsive and be updated during the run.  The GUI can retrieve
+data from the running LAMMPS instance and tell it to stop at the next
+timestep.  The ``Stop LAMMPS`` entry will do this by calling the
+:cpp:func:`lammps_force_timeout` library function, which is equivalent
+to a :doc:`timer timeout 0 <timer>` command.
 
-The ``Set Variables...`` entry will open a dialog box where
+The ``Set Variables...`` entry opens a dialog box where
 :doc:`index style variables <variable>` can be set. Those variables
-will be passed to the LAMMPS instance when it is created and are thus
+are passed to the LAMMPS instance when it is created and are thus
 set *before* a run is started.
 
 .. image:: JPG/lammps-gui-variables.png
@@ -530,14 +541,14 @@ About
 ^^^^^
 
 The ``About`` menu finally offers a couple of dialog windows and an
-option to launch the LAMMPS online documentation in a web browser.
-The ``About LAMMPS`` entry displays a dialog with a summary of the
+option to launch the LAMMPS online documentation in a web browser.  The
+``About LAMMPS-GUI`` entry displays a dialog with a summary of the
 configuration settings of the LAMMPS library in use and the version
-number of LAMMPS-GUI itself.  The ``Quick Help`` displays a dialog
-with a minimal description of LAMMPS-GUI.  The ``LAMMPS-GUI Howto``
-entry will open this documentation page from the online documentation
-in a web browser window.  The ``LAMMPS Manual`` entry will open the
-main page of the LAMMPS documentation in the web browser.
+number of LAMMPS-GUI itself.  The ``Quick Help`` displays a dialog with
+a minimal description of LAMMPS-GUI.  The ``LAMMPS-GUI Howto`` entry
+will open this documentation page from the online documentation in a web
+browser window.  The ``LAMMPS Manual`` entry will open the main page of
+the LAMMPS online documentation in a web browser window.
 
 -----
 
@@ -566,7 +577,7 @@ General Settings:
 ^^^^^^^^^^^^^^^^^
 
 - *Echo input to log:* when checked, all input commands, including
-  variable expansions, will be echoed to the *Output* window. This is
+  variable expansions, are echoed to the *Output* window. This is
   equivalent to using `-echo screen` at the command line.  There is no
   log *file* produced by default, since LAMMPS-GUI uses `-log none`.
 - *Include citation details:* when checked full citation info will be

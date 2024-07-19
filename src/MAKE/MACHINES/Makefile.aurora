@@ -7,22 +7,20 @@ SHELL = /bin/sh
 # specify flags and libraries needed for your compiler
 
 CC =		mpicxx
-CCFLAGS =	-g -O3 -DNDEBUG
-CCFLAGS +=      -fsycl-device-code-split=per_kernel
+OPTFLAGS =      -DSHAKEATOMIC -DCOMMPARA  -xSAPPHIRERAPIDS -O2 -ffp-model=fast -qoverride-limits -qopt-zmm-usage=high
+CCFLAGS =	-qopenmp -DLMP_INTEL_USELRT -DLMP_USE_MKL_RNG $(OPTFLAGS)
+CCFLAGS +=      -I$(MKLROOT)/include
 SHFLAGS =	-fPIC
 DEPFLAGS =	-M
 
 LINK =		mpicxx
-LINKFLAGS =	-g -O3
-LINKFLAGS +=    -flink-huge-device-code -fsycl-max-parallel-link-jobs=64
-LIB = 
+LINKFLAGS =	-qopenmp $(OPTFLAGS)
+LIB =           -ltbbmalloc -lmkl_intel_ilp64 -lmkl_sequential -lmkl_core
 SIZE =		size
 
 ARCHIVE =	ar
 ARFLAGS =	-rc
 SHLIBFLAGS =	-shared
-KOKKOS_DEVICES = SYCL
-KOKKOS_ARCH = PVC,SPR
 
 # ---------------------------------------------------------------------
 # LAMMPS-specific settings, all OPTIONAL
@@ -54,7 +52,7 @@ MPI_LIB =
 # PATH = path for FFT library
 # LIB = name of FFT library
 
-FFT_INC =
+FFT_INC =  -DFFT_MKL -DFFT_SINGLE
 FFT_PATH =
 FFT_LIB =
 

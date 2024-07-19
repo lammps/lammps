@@ -733,7 +733,7 @@ LAMMPS whether the normal direction matters or not.
 * line syntax: ID molecule-ID type x1 y1 z1 x2 y2 z2 x3 y3 z3
 * molecule-ID = molecule-ID assigned triangle
 * type = type assigned to triangle
-* x1,y1,z1,x2,y2,z2,x3,y3,z3 = coords of three corner points triangle
+* x1,y1,z1,x2,y2,z2,x3,y3,z3 = coords of three corner points of triangle
 
 Each triangle is assigned a molecule-ID and type, similar to an atom
 type.  This allows a collection of triangles to represent multiple 3d

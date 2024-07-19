@@ -160,7 +160,7 @@ As an example:
 
 .. code-block:: LAMMPS
 
-fix_modify 1 move rotate 0 0 0 0 0 1 25
+   fix_modify 1 move rotate 0 0 0 0 0 1 25
 
 No global or per-atom quantities are stored by this fix for access by
 various :doc:`output commands <Howto_output>`.  No parameter of this

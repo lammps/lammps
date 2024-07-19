@@ -55,29 +55,53 @@ void FixQEqShielded::init()
 
   neighbor->add_request(this, NeighConst::REQ_FULL);
 
-  int ntypes = atom->ntypes;
+  const int ntypes = atom->ntypes;
   memory->create(shld, ntypes + 1, ntypes + 1, "qeq:shielding");
 
   init_shielding();
 
-  int i;
-  for (i = 1; i <= ntypes; i++) {
-    if (gamma[i] == 0.0) error->all(FLERR, "Invalid param file for fix qeq/shielded");
+  // check if valid parameters for all atom types in the fix group are provided
+  const int *type = atom->type;
+  const int *mask = atom->mask;
+  int tmp = 0, tmp_all = 0;
+  for (int i = 0; i < nlocal; ++i) {
+    if (mask[i] & groupbit) {
+      if (gamma[type[i]] == 0.0)
+        tmp = type[i];
+    }
   }
+  MPI_Allreduce(&tmp, &tmp_all, 1, MPI_INT, MPI_MAX, world);
+  if (tmp_all)
+    error->all(FLERR, "Invalid QEq parameters for atom type {} provided", tmp_all);
 }
 
 /* ---------------------------------------------------------------------- */
 
 void FixQEqShielded::extract_reax()
 {
-  Pair *pair = force->pair_match("^reax..", 0);
-  if (pair == nullptr) error->all(FLERR, "No pair reaxff for fix qeq/shielded");
-  int tmp;
+  const int nlocal = atom->nlocal;
+  const int *mask = atom->mask;
+  const int *type = atom->type;
+
+  Pair *pair = force->pair_match("^reaxff", 0);
+  if (pair == nullptr) error->all(FLERR, "No reaxff pair style for fix qeq/shielded");
+  int tmp, tmp_all;
   chi = (double *) pair->extract("chi", tmp);
   eta = (double *) pair->extract("eta", tmp);
   gamma = (double *) pair->extract("gamma", tmp);
-  if (chi == nullptr || eta == nullptr || gamma == nullptr)
-    error->all(FLERR, "Fix qeq/shielded could not extract params from pair reaxff");
+  if ((chi == nullptr) || (eta == nullptr) || (gamma == nullptr))
+    error->all(FLERR, "Fix qeq/shielded could not extract all QEq parameters from pair reaxff");
+
+  tmp = tmp_all = 0;
+  for (int i = 0; i < nlocal; ++i) {
+    if (mask[i] & groupbit) {
+      if ((chi[type[i]] == 0.0) && (eta[type[i]] == 0.0) && (gamma[type[i]] == 0.0))
+        tmp = type[i];
+    }
+  }
+  MPI_Allreduce(&tmp, &tmp_all, 1, MPI_INT, MPI_MAX, world);
+  if (tmp_all)
+    error->all(FLERR, "No QEq parameters for atom type {} provided by pair reaxff", tmp_all);
 }
 
 // clang-format off

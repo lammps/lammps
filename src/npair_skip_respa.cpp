@@ -18,6 +18,7 @@
 #include "error.h"
 #include "my_page.h"
 #include "neigh_list.h"
+#include "neigh_request.h"
 
 using namespace LAMMPS_NS;
 
@@ -39,11 +40,13 @@ void NPairSkipRespaTemp<TRIM>::build(NeighList *list)
   int *neighptr, *jlist, *neighptr_inner, *neighptr_middle;
 
   int *type = atom->type;
+  tagint *molecule = atom->molecule;
 
   int *ilist = list->ilist;
   int *numneigh = list->numneigh;
   int **firstneigh = list->firstneigh;
   MyPage<int> *ipage = list->ipage;
+  int molskip = list->molskip;
 
   int *ilist_skip = list->listskip->ilist;
   int *numneigh_skip = list->listskip->numneigh;
@@ -90,7 +93,7 @@ void NPairSkipRespaTemp<TRIM>::build(NeighList *list)
   for (ii = 0; ii < inum_skip; ii++) {
     i = ilist_skip[ii];
     itype = type[i];
-    if (iskip[itype]) continue;
+    if (!molskip && iskip[itype]) continue;
 
     if (TRIM) {
       xtmp = x[i][0];
@@ -114,7 +117,9 @@ void NPairSkipRespaTemp<TRIM>::build(NeighList *list)
     for (jj = 0; jj < jnum; jj++) {
       joriginal = jlist[jj];
       j = joriginal & NEIGHMASK;
-      if (ijskip[itype][type[j]]) continue;
+      if (!molskip && ijskip[itype][type[j]]) continue;
+      if ((molskip == NeighRequest::INTRA) && (molecule[i] != molecule[j])) continue;
+      if ((molskip == NeighRequest::INTER) && (molecule[i] == molecule[j])) continue;
 
       if (TRIM) {
         delx = xtmp - x[j][0];
@@ -135,7 +140,9 @@ void NPairSkipRespaTemp<TRIM>::build(NeighList *list)
     for (jj = 0; jj < jnum; jj++) {
       joriginal = jlist[jj];
       j = joriginal & NEIGHMASK;
-      if (ijskip[itype][type[j]]) continue;
+      if (!molskip && ijskip[itype][type[j]]) continue;
+      if ((molskip == NeighRequest::INTRA) && (molecule[i] != molecule[j])) continue;
+      if ((molskip == NeighRequest::INTER) && (molecule[i] == molecule[j])) continue;
 
       if (TRIM) {
         delx = xtmp - x[j][0];
@@ -157,7 +164,9 @@ void NPairSkipRespaTemp<TRIM>::build(NeighList *list)
       for (jj = 0; jj < jnum; jj++) {
         joriginal = jlist[jj];
         j = joriginal & NEIGHMASK;
-        if (ijskip[itype][type[j]]) continue;
+        if (!molskip && ijskip[itype][type[j]]) continue;
+        if ((molskip == NeighRequest::INTRA) && (molecule[i] != molecule[j])) continue;
+        if ((molskip == NeighRequest::INTER) && (molecule[i] == molecule[j])) continue;
 
         if (TRIM) {
           delx = xtmp - x[j][0];

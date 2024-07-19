@@ -59,12 +59,14 @@ done
 
 echo "Set up wrapper script"
 MYDIR=$(dirname "$0")
+cp ${MYDIR}/xdg-open ${DESTDIR}/bin
 cp ${MYDIR}/linux_wrapper.sh ${DESTDIR}/bin
 for s in ${DESTDIR}/bin/*
 do \
         EXE=$(basename $s)
         test ${EXE} = linux_wrapper.sh && continue
         test ${EXE} = qt.conf && continue
+        test ${EXE} = xdg-open && continue
         ln -s bin/linux_wrapper.sh ${DESTDIR}/${EXE}
 done
 

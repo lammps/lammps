@@ -38,6 +38,7 @@ src/ML-HDNNP/*        @singraber
 src/ML-IAP/*          @athomps
 src/ML-PACE/*         @yury-lysogorskiy
 src/ML-POD/*          @exapde
+src/ML-UF3/*          @monk-04
 src/MOFFF/*           @hheenen
 src/MOLFILE/*         @akohlmey
 src/NETCDF/*          @pastewka
@@ -58,7 +59,8 @@ src/VTK/*             @rbberger
 
 # individual files in packages
 src/GPU/pair_vashishta_gpu.*        @andeplane
-src/KOKKOS/pair_vashishta_kokkos.*  @andeplane
+src/KOKKOS/pair_vashishta_kokkos.*  @andeplane @stanmoore1
+src/KOSSOS/pair_pod_kokkos.*        @exapde @stanmoore1
 src/MANYBODY/pair_vashishta_table.* @andeplane
 src/MANYBODY/pair_atm.*             @sergeylishchuk
 src/MANYBODY/pair_nb3b_screened.*   @flodesani
@@ -72,6 +74,8 @@ src/MC/fix_sgcmc.*                  @athomps
 src/REAXFF/compute_reaxff_atom.*    @rbberger
 src/KOKKOS/compute_reaxff_atom_kokkos.*    @rbberger
 src/REPLICA/fix_pimd_langevin.*     @Yi-FanLi
+src/DPD-BASIC/pair_dpd_coul_slater_long.* @Eddy-Barraud
+src/GPU/pair_dpd_coul_slater_long.* @Eddy-Barraud
 
 # core LAMMPS classes
 src/lammps.*              @sjplimp

@@ -13,29 +13,66 @@ Syntax
 * ID, group-ID are documented in :doc:`fix <fix>` command
 * deform/pressure = style name of this fix command
 * N = perform box deformation every this many timesteps
-* one or more parameter/arg sequences may be appended
+* one or more parameter/args sequences may be appended
 
   .. parsed-literal::
 
      parameter = *x* or *y* or *z* or *xy* or *xz* or *yz* or *box*
        *x*, *y*, *z* args = style value(s)
          style = *final* or *delta* or *scale* or *vel* or *erate* or *trate* or *volume* or *wiggle* or *variable* or *pressure* or *pressure/mean*
+           *final* values = lo hi
+             lo hi = box boundaries at end of run (distance units)
+           *delta* values = dlo dhi
+             dlo dhi = change in box boundaries at end of run (distance units)
+           *scale* values = factor
+             factor = multiplicative factor for change in box length at end of run
+           *vel* value = V
+             V = change box length at this velocity (distance/time units),
+                 effectively an engineering strain rate
+           *erate* value = R
+             R = engineering strain rate (1/time units)
+           *trate* value = R
+             R = true strain rate (1/time units)
+           *volume* value = none = adjust this dim to preserve volume of system
+           *wiggle* values = A Tp
+             A = amplitude of oscillation (distance units)
+             Tp = period of oscillation (time units)
+           *variable* values = v_name1 v_name2
+             v_name1 = variable with name1 for box length change as function of time
+             v_name2 = variable with name2 for change rate as function of time
            *pressure* values = target gain
              target = target pressure (pressure units)
              gain = proportional gain constant (1/(time * pressure) or 1/time units)
            *pressure/mean* values = target gain
              target = target pressure (pressure units)
              gain = proportional gain constant (1/(time * pressure) or 1/time units)
-           NOTE: All other styles are documented by the :doc:`fix deform <fix_deform>` command
 
        *xy*, *xz*, *yz* args = style value
          style = *final* or *delta* or *vel* or *erate* or *trate* or *wiggle* or *variable* or *pressure* or *erate/rescale*
+           *final* value = tilt
+             tilt = tilt factor at end of run (distance units)
+           *delta* value = dtilt
+             dtilt = change in tilt factor at end of run (distance units)
+           *vel* value = V
+             V = change tilt factor at this velocity (distance/time units),
+                 effectively an engineering shear strain rate
+           *erate* value = R
+             R = engineering shear strain rate (1/time units)
+           *erate/rescale* value = R
+             R = engineering shear strain rate (1/time units)
+           *trate* value = R
+             R = true shear strain rate (1/time units)
+           *wiggle* values = A Tp
+             A = amplitude of oscillation (distance units)
+             Tp = period of oscillation (time units)
+           *variable* values = v_name1 v_name2
+             v_name1 = variable with name1 for tilt change as function of time
+             v_name2 = variable with name2 for change rate as function of time
            *pressure* values = target gain
              target = target pressure (pressure units)
              gain = proportional gain constant (1/(time * pressure) or 1/time units)
            *erate/rescale* value = R
              R = engineering shear strain rate (1/time units)
-           NOTE: All other styles are documented by the :doc:`fix deform <fix_deform>` command
 
        *box* = style value
          style = *volume* or *pressure*
@@ -49,6 +86,15 @@ Syntax
 
   .. parsed-literal::
 
+       *remap* value = *x* or *v* or *none*
+         x = remap coords of atoms in group into deforming box
+         v = remap velocities of atoms in group when they cross periodic boundaries
+         none = no remapping of x or v
+       *flip* value = *yes* or *no*
+         allow or disallow box flips when it becomes highly skewed
+       *units* value = *lattice* or *box*
+         lattice = distances are defined in lattice units
+         box = distances are defined in simulation box units
        *couple* value = *none* or *xyz* or *xy* or *yz* or *xz*
          couple pressure values of various dimensions
        *vol/balance/p* value = *yes* or *no*
@@ -57,7 +103,6 @@ Syntax
          rate = maximum strain rate for pressure control
        *normalize/pressure* value = *yes* or *no*
          Modifies pressure controls such that the deviation in pressure is normalized by the target pressure
-       NOTE: All other keywords are documented by the :doc:`fix deform <fix_deform>` command
 
 Examples
 """"""""
@@ -79,9 +124,25 @@ pressure-based controls implemented by this command.
 
 All arguments described on the :doc:`fix deform <fix_deform>` doc page
 also apply to this fix unless otherwise noted below.  The rest of this
-doc page explains the arguments specific to this fix.  Note that a
+page explains the arguments specific to this fix only.  Note that a
 simulation can define only a single deformation command: fix deform or
 fix deform/pressure.
+
+.. admonition:: Inconsistent trajectories due to image flags
+   :class: warning
+
+   When running long simulations while shearing the box or using a high
+   shearing rate, it is possible that the image flags used for storing
+   unwrapped atom positions will "wrap around".  When LAMMPS is compiled
+   with the default settings, case image flags are limited to a range of
+   :math:`-512 \le i \le 511`, which will overflow when atoms starting
+   at zero image flag value have passed through a periodic box dimension
+   more than 512 times.
+
+   Changing the :ref:`size of LAMMPS integer types <size>` to the
+   "bigbig" setting can make this overflow much less likely, since it
+   increases the image flag value range to :math:`- 1,048,576 \le i \le
+   1\,048\,575`
 
 ----------
 

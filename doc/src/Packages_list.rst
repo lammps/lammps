@@ -158,6 +158,11 @@ whether an extra library is needed to build and use the package:
      - :doc:`fix electrode/conp <fix_electrode>`
      - PACKAGES/electrode
      - no
+   * - :ref:`EXTRA-COMMAND <PKG-EXTRA-COMMAND>`
+     - additional command styles
+     - :doc:`general commands <Commands_all>`
+     - n/a
+     - no
    * - :ref:`EXTRA-COMPUTE <PKG-EXTRA-COMPUTE>`
      - additional compute styles
      - :doc:`compute <compute>`
@@ -318,6 +323,11 @@ whether an extra library is needed to build and use the package:
      - :doc:`pair_style snap <pair_snap>`
      - snap
      - no
+   * - :ref:`ML-UF3 <PKG-ML-UF3>`
+     - quantum-fitted ultra fast potentials
+     - :doc:`pair_style uf3 <pair_uf3>`
+     - PACKAGES/uf3
+     - no
    * - :ref:`MOFFF <PKG-MOFFF>`
      - styles for `MOF-FF <MOFplus_>`_ force field
      - :doc:`pair_style buck6d/coul/gauss <pair_buck6d_coul_gauss>`
@@ -402,6 +412,11 @@ whether an extra library is needed to build and use the package:
      - quantum nuclear effects
      - :doc:`fix qtb <fix_qtb>` :doc:`fix qbmsst <fix_qbmsst>`
      - qtb
+     - no
+   * - :ref:`RHEO <PKG-RHEO>`
+     - reproducing hydrodynamics and elastic objects
+     - :doc:`Howto rheo <Howto_rheo>`
+     - rheo
      - no
    * - :ref:`REACTION <PKG-REACTION>`
      - chemical reactions in classical MD

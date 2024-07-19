@@ -1,0 +1,155 @@
+LAMMPS (17 Apr 2024 - Development - patch_17Apr2024-177-g86abf4f680-modified)
+OMP_NUM_THREADS environment is not set. Defaulting to 1 thread. (src/comm.cpp:98)
+  using 1 OpenMP thread(s) per MPI task
+# Demonstrate POD Ta potential
+
+# Initialize simulation
+
+variable nsteps index 100
+variable nrep equal 4
+variable a equal 3.316
+units           metal
+
+# generate the box and atom positions using a BCC lattice
+
+variable nx equal ${nrep}
+variable nx equal 4
+variable ny equal ${nrep}
+variable ny equal 4
+variable nz equal ${nrep}
+variable nz equal 4
+
+boundary        p p p
+
+lattice         bcc $a
+lattice         bcc 3.316
+Lattice spacing in x,y,z = 3.316 3.316 3.316
+region          box block 0 ${nx} 0 ${ny} 0 ${nz}
+region          box block 0 4 0 ${ny} 0 ${nz}
+region          box block 0 4 0 4 0 ${nz}
+region          box block 0 4 0 4 0 4
+create_box      1 box
+Created orthogonal box = (0 0 0) to (13.264 13.264 13.264)
+  1 by 2 by 2 MPI processor grid
+create_atoms    1 box
+Created 128 atoms
+  using lattice units in orthogonal box = (0 0 0) to (13.264 13.264 13.264)
+  create_atoms CPU = 0.001 seconds
+
+mass 1 180.88
+
+
+# POD potential
+pair_style pod
+pair_coeff * * Ta_param.pod Ta_coeff.pod Ta
+**************** Begin of POD Potentials ****************
+species: Ta 
+periodic boundary conditions: 1 1 1
+number of environment clusters: 1
+number of principal compoments: 2
+inner cut-off radius: 1
+outer cut-off radius: 5
+bessel polynomial degree: 3
+inverse polynomial degree: 6
+one-body potential: 1
+two-body radial basis functions: 6
+three-body radial basis functions: 5
+three-body angular degree: 4
+four-body radial basis functions: 0
+four-body angular degree: 0
+five-body radial basis functions: 0
+five-body angular degree: 0
+six-body radial basis functions: 0
+six-body angular degree: 0
+seven-body radial basis functions: 0
+seven-body angular degree: 0
+number of local descriptors per element for one-body potential: 1
+number of local descriptors per element for two-body potential: 6
+number of local descriptors per element for three-body potential: 25
+number of local descriptors per element for four-body potential: 0
+number of local descriptors per element for five-body potential: 0
+number of local descriptors per element for six-body potential: 0
+number of local descriptors per element for seven-body potential: 0
+number of local descriptors per element for all potentials: 32
+number of global descriptors: 32
+**************** End of POD Potentials ****************
+
+**************** Begin of Model Coefficients ****************
+total number of coefficients for POD potential: 32
+total number of elements for PCA projection matrix: 0
+total number of elements for PCA centroids: 0
+**************** End of Model Coefficients ****************
+
+
+# Setup output
+
+thermo          10
+thermo_modify norm yes
+
+# Set up NVE run
+
+timestep 0.5e-3
+neighbor 1.0 bin
+neigh_modify once no every 1 delay 0 check yes
+
+# Run MD
+
+velocity all create 300.0 4928459 loop geom
+fix 1 all nve
+run             ${nsteps}
+run             100
+Neighbor list info ...
+  update: every = 1 steps, delay = 0 steps, check = yes
+  max neighbors/atom: 2000, page size: 100000
+  master list distance cutoff = 6
+  ghost atom cutoff = 6
+  binsize = 3, bins = 5 5 5
+  1 neighbor lists, perpetual/occasional/extra = 1 0 0
+  (1) pair pod, perpetual
+      attributes: full, newton on
+      pair build: full/bin/atomonly
+      stencil: full/bin/3d
+      bin: standard
+Per MPI rank memory allocation (min/avg/max) = 3.187 | 3.187 | 3.187 Mbytes
+   Step          Temp          E_pair         E_mol          TotEng         Press     
+         0   300           -11.842971      0             -11.804496     -24843.054    
+        10   296.87227     -11.84257       0             -11.804496     -24609.859    
+        20   287.65971     -11.841388      0             -11.804496     -23926.722    
+        30   272.87511     -11.839492      0             -11.804496     -22841.672    
+        40   253.34724     -11.836988      0             -11.804496     -21429.268    
+        50   230.17169     -11.834015      0             -11.804496     -19782.77     
+        60   204.64408     -11.830741      0             -11.804496     -18004.755    
+        70   178.17888     -11.827347      0             -11.804495     -16197.482    
+        80   152.21769     -11.824017      0             -11.804495     -14454.425    
+        90   128.13189     -11.820928      0             -11.804495     -12854.075    
+       100   107.12666     -11.818234      0             -11.804495     -11456.437    
+Loop time of 0.153961 on 4 procs for 100 steps with 128 atoms
+
+Performance: 28.059 ns/day, 0.855 hours/ns, 649.516 timesteps/s, 83.138 katom-step/s
+96.2% CPU use with 4 MPI tasks x 1 OpenMP threads
+
+MPI task timing breakdown:
+Section |  min time  |  avg time  |  max time  |%varavg| %total
+---------------------------------------------------------------
+Pair    | 0.1281     | 0.12977    | 0.1312     |   0.3 | 84.29
+Neigh   | 0          | 0          | 0          |   0.0 |  0.00
+Comm    | 0.01967    | 0.021169   | 0.022796   |   0.8 | 13.75
+Output  | 0.00045049 | 0.00053796 | 0.00078459 |   0.0 |  0.35
+Modify  | 0.00039544 | 0.0004393  | 0.00048043 |   0.0 |  0.29
+Other   |            | 0.002049   |            |       |  1.33
+
+Nlocal:             32 ave          32 max          32 min
+Histogram: 4 0 0 0 0 0 0 0 0 0
+Nghost:            431 ave         431 max         431 min
+Histogram: 4 0 0 0 0 0 0 0 0 0
+Neighs:              0 ave           0 max           0 min
+Histogram: 4 0 0 0 0 0 0 0 0 0
+FullNghs:         1856 ave        1856 max        1856 min
+Histogram: 4 0 0 0 0 0 0 0 0 0
+
+Total # of neighbors = 7424
+Ave neighs/atom = 58
+Neighbor list builds = 0
+Dangerous builds = 0
+
+Total wall time: 0:00:00

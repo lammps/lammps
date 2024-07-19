@@ -27,7 +27,7 @@ OPT.
 
    * :doc:`none <bond_none>`
    * :doc:`zero <bond_zero>`
-   * :doc:`hybrid <bond_hybrid>`
+   * :doc:`hybrid (k) <bond_hybrid>`
    *
    *
    *
@@ -54,6 +54,7 @@ OPT.
    * :doc:`oxdna2/fene <bond_oxdna>`
    * :doc:`oxrna2/fene <bond_oxdna>`
    * :doc:`quartic (o) <bond_quartic>`
+   * :doc:`rheo/shell <bond_rheo_shell>`
    * :doc:`special <bond_special>`
    * :doc:`table (o) <bond_table>`
 
@@ -72,7 +73,7 @@ OPT.
 
    * :doc:`none <angle_none>`
    * :doc:`zero <angle_zero>`
-   * :doc:`hybrid (k) <angle_hybrid>`
+   * :doc:`hybrid <angle_hybrid>`
    *
    *
    *

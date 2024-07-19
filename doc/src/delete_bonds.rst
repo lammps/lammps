@@ -43,6 +43,9 @@ Examples
    delete_bonds all bond 0*3 special
    delete_bonds all stats
 
+   labelmap atom 4 hc
+   delete_bonds all atom hc special
+
 Description
 """""""""""
 
@@ -59,19 +62,20 @@ For all styles, by default, an interaction is only turned off (or on)
 if all the atoms involved are in the specified group.  See the *any*
 keyword to change the behavior.
 
-Several of the styles (\ *atom*, *bond*, *angle*, *dihedral*,
-*improper*\ ) take a *type* as an argument.  The specified *type* should
-be an integer from 0 to :math:`N`, where :math:`N` is the number of relevant
+Several of the styles (\ *atom*, *bond*, *angle*, *dihedral*, *improper*\ )
+take a *type* as an argument.  The specified *type* can be a
+:doc:`type label <Howto_type_labels>`.  Otherwise, the type should be an
+integer from 0 to :math:`N`, where :math:`N` is the number of relevant
 types (atom types, bond types, etc.).  A value of 0 is only relevant for
-style *bond*\ ; see details below.  In all cases, a wildcard asterisk
+style *bond*\ ; see details below.  For numeric types, a wildcard asterisk
 can be used in place of or in conjunction with the *type* argument to
 specify a range of types.  This takes the form "\*" or "\*n" or "m\*" or
-"m\*n".  If :math:`N` is the number of types, then an asterisk with no numeric
-values means all types from 0 to :math:`N`.  A leading asterisk means all
-types from 0 to n (inclusive).  A trailing asterisk means all types
-from m to N (inclusive).  A middle asterisk means all types from m to
-n (inclusive).  Note that it is fine to include a type of 0 for
-non-bond styles; it will simply be ignored.
+"m\*n".  If :math:`N` is the number of types, then an asterisk with no
+numeric values means all types from 0 to :math:`N`.  A leading asterisk
+means all types from 0 to n (inclusive).  A trailing asterisk means all
+types from m to N (inclusive).  A middle asterisk means all types from m to
+n (inclusive).  Note that it is fine to include a type of 0 for non-bond
+styles; it will simply be ignored.
 
 For style *multi* all bond, angle, dihedral, and improper interactions
 of any type, involving atoms in the group, are turned off.

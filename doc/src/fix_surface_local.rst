@@ -31,15 +31,22 @@ Description
 """""""""""
 
 Enable granular surfaces to be used as boundary conditions on
-particles in a granular simulation.  Granular surfaces are defined by
+particles in a granular simulation.  Granular surfaces are defined as
 a set of triangles (for 3d models) or a set of line segments (for 2d
 models).
 
 The :doc:`Howto granular surfaces <Howto_granular_surfaces>` doc page
 gives an overview of granular surfaces of two types, *global* and
-*local*.  This command must be used for models with *local* surfaces.
+*local*, and gives guidelines for how they should be defined.
+
+This command must be used for models with *local* surfaces.
 The :doc:`fix surface/global <fix_surface_global>` command must be
-used for models with *global* surfaces.
+used for models with *global* surfaces.  As explained on the
+:doc:`Howto granular surfaces <Howto_granular_surfaces>` doc page,
+*local* surfaces should typically use triangles/lines whose size is no
+more than a few times larger than the spherical particles used in a
+granular model.  There can be as many of them as needed to describe
+the physical surfaces at high resolution.
 
 *Local* triangles or line segments are distributed across processors
 in the same manner as particles, based on which processor's sub-domain
@@ -59,10 +66,11 @@ If triangles/lines were previously read in by the :doc:`molecule
 <molecule>` command, then the *source* argument is specified as the
 molecule template ID used with the :doc:`molecule <molecule>` command.
 
-STL (stereolithography) files define a set of triangles.  For this use
-case, the *source* argument is specified as the name of the STL file.
-The file can be in text or binary format; this command auto-detects
-the format.  Note that STL files cannot be used for 2d simulations.
+STL (stereolithography) files define a set of triangles.  For use with
+this command, the *source* argument is specified as the name of the
+STL file.  The file can be in text or binary format; this command
+auto-detects the format.  Note that STL files cannot be used for 2d
+simulations.
 
 This `Wikepedia page
 <https://en.wikipedia.org/wiki/STL_(file_format)>`_ describes the
@@ -93,11 +101,6 @@ segments are "connected" if the they have the same end point in
 common.  More technical details on connectivity and its significance
 for granular simulations with surfaces is given on :doc:`Howto
 granular surfaces <Howto_granular_surfaces>` doc page.
-
-This fix also communicates the per-triangle or per-line connectivity
-information when particles migrate to new processors, as well as when
-ghost triangle/line particles are created at each re-neighboring.
-
 
 Restart, fix_modify, output, run start/stop, minimize info
 """""""""""""""""""""""""""""""""""""""""""""""""""""""""""

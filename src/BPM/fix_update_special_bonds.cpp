@@ -244,6 +244,14 @@ void FixUpdateSpecialBonds::pre_force(int /*vflag*/)
   new_created_pairs.clear();
 }
 
+
+/* ---------------------------------------------------------------------- */
+
+void FixUpdateSpecialBonds::post_run()
+{
+  pre_exchange();
+}
+
 /* ---------------------------------------------------------------------- */
 
 void FixUpdateSpecialBonds::add_broken_bond(int i, int j)

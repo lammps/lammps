@@ -22,8 +22,11 @@
 #include "arg_info.h"
 #include "atom.h"
 #include "domain.h"
-#include "memory.h"
 #include "error.h"
+#include "label_map.h"
+#include "memory.h"
+
+#include "fmt/printf.h"
 
 #include <cstring>
 
@@ -152,78 +155,69 @@ void DumpCFG::write_header(bigint n)
 
 int DumpCFG::convert_string(int n, double *mybuf)
 {
-  int i,j;
-
-  int offset = 0;
+  std::string formatted;
   int m = 0;
 
   if (unwrapflag == 0) {
-    for (i = 0; i < n; i++) {
-      if (offset + size_one*ONEFIELD > maxsbuf) {
-        if ((bigint) maxsbuf + DELTA > MAXSMALLINT) return -1;
-        maxsbuf += DELTA;
-        memory->grow(sbuf,maxsbuf,"dump:sbuf");
-      }
-
-      for (j = 0; j < size_one; j++) {
-        const auto maxsize = maxsbuf - offset;
+    for (int i = 0; i < n; i++) {
+      for (int j = 0; j < size_one; j++) {
         if (j == 0) {
-          offset += snprintf(&sbuf[offset],maxsize,"%f \n",mybuf[m]);
+          formatted += fmt::sprintf("%f \n",mybuf[m]);
         } else if (j == 1) {
-          offset += snprintf(&sbuf[offset],maxsize,"%s \n",typenames[(int) mybuf[m]]);
+          formatted += fmt::sprintf("%s \n",typenames[(int) mybuf[m]]);
         } else if (j >= 2) {
           if (vtype[j] == Dump::INT)
-            offset += snprintf(&sbuf[offset],maxsize,vformat[j],static_cast<int> (mybuf[m]));
+            formatted += fmt::sprintf(vformat[j], static_cast<int>(mybuf[m]));
           else if (vtype[j] == Dump::DOUBLE)
-            offset += snprintf(&sbuf[offset],maxsize,vformat[j],mybuf[m]);
+            formatted += fmt::sprintf(vformat[j], mybuf[m]);
           else if (vtype[j] == Dump::STRING)
-            offset += snprintf(&sbuf[offset],maxsize,vformat[j],typenames[(int) mybuf[m]]);
+            formatted += fmt::sprintf(vformat[j], typenames[(int) mybuf[m]]);
+          else if (vtype[j] == Dump::STRING2)
+            formatted += fmt::sprintf(vformat[j], atom->lmap->typelabel[(int) mybuf[m]-1].c_str());
           else if (vtype[j] == Dump::BIGINT)
-            offset += snprintf(&sbuf[offset],maxsize,vformat[j],static_cast<bigint> (mybuf[m]));
+            formatted += fmt::sprintf(vformat[j], static_cast<bigint>(mybuf[m]));
         }
         m++;
       }
-      offset += snprintf(&sbuf[offset],maxsbuf-offset,"\n");
+      formatted += '\n';
     }
 
   } else if (unwrapflag == 1) {
     double unwrap_coord;
-    for (i = 0; i < n; i++) {
-      if (offset + size_one*ONEFIELD > maxsbuf) {
-        if ((bigint) maxsbuf + DELTA > MAXSMALLINT) return -1;
-        maxsbuf += DELTA;
-        memory->grow(sbuf,maxsbuf,"dump:sbuf");
-      }
-
-      for (j = 0; j < size_one; j++) {
-        const auto maxsize = maxsbuf - offset;
+    for (int i = 0; i < n; i++) {
+      for (int j = 0; j < size_one; j++) {
         if (j == 0) {
-          offset += snprintf(&sbuf[offset],maxsize,"%f \n",mybuf[m]);
+          formatted += fmt::sprintf("%f \n",mybuf[m]);
         } else if (j == 1) {
-          offset += snprintf(&sbuf[offset],maxsize,"%s \n",typenames[(int) mybuf[m]]);
+          formatted += fmt::sprintf("%s \n",typenames[(int) mybuf[m]]);
         } else if (j >= 2 && j <= 4) {
           unwrap_coord = (mybuf[m] - 0.5)/UNWRAPEXPAND + 0.5;
-          offset += snprintf(&sbuf[offset],maxsize,vformat[j],unwrap_coord);
+          formatted += fmt::sprintf(vformat[j], unwrap_coord);
         } else if (j >= 5) {
           if (vtype[j] == Dump::INT)
-            offset +=
-              snprintf(&sbuf[offset],maxsize,vformat[j],static_cast<int> (mybuf[m]));
+            formatted += fmt::sprintf(vformat[j], static_cast<int>(mybuf[m]));
           else if (vtype[j] == Dump::DOUBLE)
-            offset += snprintf(&sbuf[offset],maxsize,vformat[j],mybuf[m]);
+            formatted += fmt::sprintf(vformat[j], mybuf[m]);
           else if (vtype[j] == Dump::STRING)
-            offset +=
-              snprintf(&sbuf[offset],maxsize,vformat[j],typenames[(int) mybuf[m]]);
+            formatted += fmt::sprintf(vformat[j], typenames[(int) mybuf[m]]);
+          else if (vtype[j] == Dump::STRING2)
+            formatted += fmt::sprintf(vformat[j], atom->lmap->typelabel[(int) mybuf[m]-1].c_str());
           else if (vtype[j] == Dump::BIGINT)
-            offset +=
-              snprintf(&sbuf[offset],maxsize,vformat[j],static_cast<bigint> (mybuf[m]));
+            formatted += fmt::sprintf(vformat[j], static_cast<bigint>(mybuf[m]));
         }
         m++;
       }
-      offset += snprintf(&sbuf[offset],maxsbuf - offset,"\n");
+      formatted += '\n';
     }
   }
-
-  return offset;
+  bigint mysize = formatted.size();
+  if (mysize > MAXSMALLINT) return -1;
+  if ((int) mysize > maxsbuf) {
+    maxsbuf = (int)mysize;
+    memory->grow(sbuf,maxsbuf,"dump:sbuf");
+  }
+  strncpy(sbuf, formatted.c_str(), (int)mysize);
+  return mysize;
 }
 
 /* ---------------------------------------------------------------------- */

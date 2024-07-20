@@ -23,6 +23,8 @@
 #include "modify.h"
 #include "update.h"
 
+#include "fmt/printf.h"
+
 #include <cstring>
 
 using namespace LAMMPS_NS;
@@ -375,33 +377,30 @@ void DumpLocal::pack(tagint * /*dummy*/)
 
 int DumpLocal::convert_string(int n, double *mybuf)
 {
-  int i,j;
-
-  int offset = 0;
+  std::string formatted;
   int m = 0;
-  for (i = 0; i < n; i++) {
-    if (offset + size_one*ONEFIELD > maxsbuf) {
-      if ((bigint) maxsbuf + DELTA > MAXSMALLINT) return -1;
-      maxsbuf += DELTA;
-      memory->grow(sbuf,maxsbuf,"dump:sbuf");
-    }
 
-    for (j = 0; j < size_one; j++) {
-      const auto maxsize = maxsbuf - offset;
+  for (int i = 0; i < n; i++) {
+    for (int j = 0; j < size_one; j++) {
       if (vtype[j] == Dump::INT)
-        offset += snprintf(&sbuf[offset],maxsize,vformat[j],static_cast<int> (mybuf[m]));
+        formatted += fmt::sprintf(vformat[j], static_cast<int>(mybuf[m]));
       else if (vtype[j] == Dump::DOUBLE)
-        offset += snprintf(&sbuf[offset],maxsize,vformat[j],mybuf[m]);
+        formatted += fmt::sprintf(vformat[j], mybuf[m]);
       else if (vtype[j] == Dump::BIGINT)
-        offset += snprintf(&sbuf[offset],maxsize,vformat[j],static_cast<bigint> (mybuf[m]));
-      else
-        offset += snprintf(&sbuf[offset],maxsize,vformat[j],mybuf[m]);
+        formatted += fmt::sprintf(vformat[j], static_cast<bigint>(mybuf[m]));
       m++;
     }
-    offset += snprintf(&sbuf[offset],maxsbuf-offset,"\n");
+    formatted += '\n';
   }
 
-  return offset;
+  bigint mysize = formatted.size();
+  if (mysize > MAXSMALLINT) return -1;
+  if ((int) mysize > maxsbuf) {
+    maxsbuf = (int)mysize;
+    memory->grow(sbuf,maxsbuf,"dump:sbuf");
+  }
+  strncpy(sbuf, formatted.c_str(), (int)mysize);
+  return mysize;
 }
 
 /* ---------------------------------------------------------------------- */

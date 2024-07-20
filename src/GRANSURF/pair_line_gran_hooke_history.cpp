@@ -533,7 +533,7 @@ void PairLineGranHookeHistory::init_style()
   // this is so its order in the fix list is preserved
 
   if (history && (fix_history == nullptr)) {
-    auto cmd = fmt::format("NEIGH_HISTORY_HHLINE{} all NEIGH_HISTORY {}", instance_me, size_history);
+    auto cmd = fmt::format("NEIGH_HISTORY_HHLINE{} all NEIGH_HISTORY {} onesided", instance_me, size_history);
     fix_history = dynamic_cast<FixNeighHistory *>(
         modify->replace_fix("NEIGH_HISTORY_HHLINE_DUMMY" + std::to_string(instance_me), cmd, 1));
     fix_history->pair = this;

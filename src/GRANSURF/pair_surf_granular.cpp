@@ -430,7 +430,7 @@ void PairSurfGranular::init_style()
   // this is so its order in the fix list is preserved
 
   if (use_history && fix_history == nullptr) {
-    fix_history = dynamic_cast<FixNeighHistory *>(modify->replace_fix(id_dummy, fmt::format("{} all NEIGH_HISTORY {}", id_history, size_history),1));
+    fix_history = dynamic_cast<FixNeighHistory *>(modify->replace_fix(id_dummy, fmt::format("{} all NEIGH_HISTORY {} onesided", id_history, size_history),1));
     fix_history->pair = this;
   } else if (use_history) {
     fix_history = dynamic_cast<FixNeighHistory *>(modify->get_fix_by_id(id_history));

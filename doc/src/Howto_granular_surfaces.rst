@@ -73,7 +73,7 @@ distributed along with any particles the data file includes.
 Atom styles for granular surfaces
 """""""""""""""""""""""""""""""""
 
-For all 3 three was of defining *local* surfaces, the triangles/lines
+For all three ways of defining *local* surfaces, the triangles/lines
 are stored internally in LAMMPS as triangle-style or line-style
 particles.  This means you must use a hybrid atom style which includes
 one of these two sub-styles (for 3d or 2d):

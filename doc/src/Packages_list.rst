@@ -413,6 +413,11 @@ whether an extra library is needed to build and use the package:
      - :doc:`fix qtb <fix_qtb>` :doc:`fix qbmsst <fix_qbmsst>`
      - qtb
      - no
+   * - :ref:`RHEO <PKG-RHEO>`
+     - reproducing hydrodynamics and elastic objects
+     - :doc:`Howto rheo <Howto_rheo>`
+     - rheo
+     - no
    * - :ref:`REACTION <PKG-REACTION>`
      - chemical reactions in classical MD
      - :doc:`fix bond/react <fix_bond_react>`

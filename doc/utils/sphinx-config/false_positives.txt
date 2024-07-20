@@ -393,6 +393,7 @@ buf
 builtin
 Bulacu
 Bulatov
+Bulkley
 Bureekaew
 burlywood
 Bussi
@@ -564,6 +565,7 @@ cond
 conda
 Conda
 Condens
+conductivities
 conf
 config
 configfile
@@ -1440,6 +1442,7 @@ henrich
 Henrich
 Hermitian
 Herrmann
+Hershchel
 Hertizian
 hertzian
 Hertzsch
@@ -1831,6 +1834,7 @@ Kspace
 KSpace
 KSpaceStyle
 Kspring
+kstyle
 kT
 kTequil
 kth
@@ -2271,6 +2275,7 @@ modelled
 modelling
 Modelling
 Modine
+modularity
 moduli
 mofff
 MOFFF
@@ -2488,6 +2493,7 @@ Neumann
 Nevent
 nevery
 Nevery
+Nevins
 newfile
 Newns
 newtype
@@ -3067,6 +3073,7 @@ quatw
 queryargs
 Queteschiner
 quickmin
+quintic
 qw
 qx
 qy
@@ -3078,6 +3085,7 @@ radialscreenedspin
 radialspin
 radian
 radians
+radiative
 radj
 Rafferty
 rahman
@@ -3181,6 +3189,7 @@ rg
 Rg
 Rhaphson
 Rhe
+rheo
 rheological
 rheology
 rhodo
@@ -3268,6 +3277,7 @@ rsort
 rsq
 rst
 rstyle
+rsurf
 Rubensson
 Rubia
 Rud
@@ -3651,6 +3661,7 @@ Telsa
 tempCorrCoeff
 templated
 Templeton
+Tencer
 Tequil
 ters
 tersoff
@@ -3997,6 +4008,7 @@ Vries
 Vsevolod
 Vsmall
 Vstream
+vstyle
 vtarget
 vtk
 VTK

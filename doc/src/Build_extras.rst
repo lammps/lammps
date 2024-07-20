@@ -59,6 +59,7 @@ This is the list of packages that may require additional steps.
    * :ref:`POEMS <poems>`
    * :ref:`PYTHON <python>`
    * :ref:`QMMM <qmmm>`
+   * :ref:`RHEO <rheo>`
    * :ref:`SCAFACOS <scafacos>`
    * :ref:`VORONOI <voronoi>`
    * :ref:`VTK <vtk>`
@@ -1566,10 +1567,11 @@ LAMMPS build.
    .. tab:: CMake build
 
       When the ``-D PKG_PLUMED=yes`` flag is included in the cmake
-      command you must ensure that GSL is installed in locations that
-      are specified in your environment.  There are then two additional
-      variables that control the manner in which PLUMED is obtained and
-      linked into LAMMPS.
+      command you must ensure that `the GNU Scientific Library (GSL)
+      <https://www.gnu.org/software/gsl/>` is installed in locations
+      that are accessible in your environment.  There are then two
+      additional variables that control the manner in which PLUMED is
+      obtained and linked into LAMMPS.
 
       .. code-block:: bash
 
@@ -2037,6 +2039,36 @@ verified to work in February 2020 with Quantum Espresso versions 6.3 to
       back to the ``lib/qmmm`` folder and follow the instructions in the
       README file to build the combined LAMMPS/QE QM/MM executable
       (pwqmmm.x) in the lib/qmmm folder.
+
+----------
+
+.. _rheo:
+
+RHEO package
+------------
+
+To build with this package you must have the `GNU Scientific Library
+(GSL) <https://www.gnu.org/software/gsl/>` installed in locations that
+are accessible in your environment.  The GSL library should be at least
+version 2.7.
+
+.. tabs::
+
+   .. tab:: CMake build
+
+      If CMake cannot find the GSL library or include files, you can set:
+
+      .. code-block:: bash
+
+         -D GSL_ROOT_DIR=path    # path to root of GSL installation
+
+   .. tab:: Traditional make
+
+      LAMMPS will try to auto-detect the GSL compiler and linker flags
+      from the corresponding ``pkg-config`` file (``gsl.pc``), otherwise
+      you can edit the file ``lib/rheo/Makefile.lammps``
+      to specify the paths and library names where indicated by comments.
+      This must be done **before** the package is installed.
 
 ----------
 

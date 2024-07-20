@@ -265,7 +265,7 @@ below).
 A molecule file can only contain either the *atoms*, *lines*, or
 *triangles* keyword.  All of the other keywords can only relevant for
 a molecule file containing the *atoms* keyword.
-          
+
 For *mass*, *com*, and *inertia*, the default is for LAMMPS to calculate
 this quantity itself if needed, assuming the molecules consist of a set
 of point particles or finite-size particles (with a non-zero diameter)

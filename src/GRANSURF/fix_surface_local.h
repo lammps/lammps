@@ -95,13 +95,13 @@ class FixSurfaceLocal : public Fix {
 
   // data structs for calculating global connectivity of line/tri particles
   // only used by Rvous comm during setup
-  
+
   struct InRvous {
     int proc, ibin, ilocal, ipoint;
     tagint atomID;
     double x[3];
   };
-  
+
   struct OutRvous {
     int ilocal, ipoint;
     tagint atomID;
@@ -112,7 +112,7 @@ class FixSurfaceLocal : public Fix {
   // data structs for extracting surfs from molecule template or STL file
   // these are global data structs for all surfs, including connectivity
   // only used during setup, then deleted
-  
+
   struct Point {
     double x[3];
   };
@@ -205,7 +205,3 @@ class FixSurfaceLocal : public Fix {
 
 #endif
 #endif
-
-/* ERROR/WARNING messages:
-
-*/

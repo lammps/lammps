@@ -13,7 +13,7 @@ Syntax
 * ID, group-ID are documented in :doc:`fix <fix>` command
 * surface/local = style name of this fix command
 * source = NULL or molecule template ID or STL filename
-  
+
 Examples
 """"""""
 
@@ -24,7 +24,7 @@ Examples
 
    molecule tris surf.tri
    fix 1 all surface/local tris
-   
+
    fix 1 all surface/local surf.tri.stl
 
 Description

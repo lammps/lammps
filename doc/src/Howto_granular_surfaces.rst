@@ -90,7 +90,7 @@ Note that for molecule or STL file input, the :doc:`fix surface/local
 each surface to creat a single new triangle or line particle.  For
 data file input, the triangle/line particles are created when the data
 file is read.
-  
+
 For granular simluations with *global* surfaces, a hybrid atom style
 which defines triangle-style or line-style particles should NOT be
 used.  The triangles/lines are stored by the :doc:`fix surface/global

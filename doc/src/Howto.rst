@@ -91,7 +91,7 @@ Packages howto
    Howto_peri
    Howto_manifold
    Howto_spins
-   
+
 Tutorials howto
 ===============
 

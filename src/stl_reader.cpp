@@ -104,7 +104,7 @@ int STLReader::read_file(const char *filename, double **&caller_tris)
           tris[ntris][3*k+1] = utils::numeric(FLERR, values[2], false, lmp);
           tris[ntris][3*k+2] = utils::numeric(FLERR, values[3], false, lmp);
         }
-        
+
         line = reader.next_line(1);
         if (!line || !utils::strmatch(line, "^ *endloop"))
           throw TokenizerException("Error reading endloop", "");
@@ -150,7 +150,7 @@ int STLReader::read_file(const char *filename, double **&caller_tris)
           count = fread(&attr, sizeof(attr), 1, fp);
 
           // ignore normal
-          
+
           int m = 0;
           for (int j = 0; j < 3; ++j)
             for (int k = 0; k < 3; ++k)

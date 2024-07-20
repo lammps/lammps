@@ -945,7 +945,7 @@ int PairLineGranHookeHistory::endpt_neigh_check(int i, int j, int jflag)
   double dr[3],contact[3];
 
   int linemin = tag[j];
-    
+
   for (int m = 0; m < ncheck; m++) {
     if (neighs[m] == tag[j]) continue;     // skip self line
     k = atom->map(neighs[m]);

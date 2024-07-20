@@ -60,7 +60,7 @@ class FixSurfaceGlobal : public Fix {
   double dt, skin;
 
   // for granular model choices
-  
+
   class Granular_NS::GranularModel *model;
   int history, size_history, heat_flag;
 

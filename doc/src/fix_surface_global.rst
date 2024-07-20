@@ -36,7 +36,7 @@ Syntax
 
        For *granular*, *fstyle_params* are set using the same syntax as for the *pair_coeff* command of :doc:`pair_style granular <pair_granular>`
 
-  
+
 Examples
 """"""""
 

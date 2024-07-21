@@ -1,23 +1,37 @@
 #!/usr/bin/env python3
 '''
-
-pip install numpy pyyaml junit_xml
-
-UPDATE: July 5, 2024:
+UPDATE: July 21, 2024:
   Launching the LAMMPS binary under testing using a configuration defined in a yaml file (e.g. config.yaml).
   Comparing the output thermo with that in the existing log file (with the same nprocs)
     + data in the log files are extracted and converted into yaml data structure
     + using the in place input scripts, no need to add REG markers to the input scripts
-  This way we can:
-    + launch tests with mpirun with multiple procs
-    + specify what LAMMPS binary version to test (e.g., testing separate builds)
-    + simplify the build configuration (no need to build the Python module)
+
+With the current features, users can:
+    + specify which LAMMPS binary version to test (e.g., the version from a commit, or those from `lammps-testing`)
+    + specify the examples subfolders (thus the reference log files) seperately (e.g. from other LAMMPS versions or commits)
     + specify tolerances for individual quantities for any input script to override the global values
+    + launch tests with `mpirun` with all supported command line features (multiple procs, multiple paritions, and suffices)
+    + skip certain input files if not interested, or no reference log file exists
+    + simplify the main LAMMPS builds, as long as a LAMMPS binary is available
 
-  TODO:
-    + distribute the input list across multiple processes via multiprocessing
+Limitations:
+    - input scripts use thermo style multi (e.g., examples/peptide) do not work with the expected thermo output format
+    - input scripts that require partition runs (e.g. examples/neb) need a separate config file, e.g. "args: --partition 2x1"
+    - testing accelerator packages (GPU, INTEL, KOKKOS, OPENMP) need separate config files, "args: -sf omp -pk omp 4"
 
-  Example usage:
+TODO:
+    + keep track of the testing progress to resume the testing from the last checkpoint
+    + distribute the input list across multiple processes via multiprocessing, or
+      split the list of input scripts into separate runs (there are 800+ input script under the top-level examples)
+    + be able to be invoked from run_tests in the lammps-testing infrastruture
+
+The following Python packages need to be installed into an activated environment:
+    
+    python3 -m venv testing-env
+    source testing-env/bin/activate
+    pip install numpy pyyaml junit_xml
+
+Example usage:
     1) Simple use (using the provided tools/regression-tests/config.yaml and the examples/ folder at the top level)
        python3 run_tests.py --lmp-bin=/path/to/lmp_binary
     2) Use a custom testing configuration
@@ -26,6 +40,8 @@ UPDATE: July 5, 2024:
        python3 run_tests.py --lmp-bin=/path/to/lmp_binary \
           --example-folders="/path/to/examples/folder1;/path/to/examples/folder2" \
           --config-file=/path/to/config/file/config.yaml 
+    4) Test a LAMMPS binary with the whole top-level /examples folder in a LAMMPS source tree
+       python3 run_tests.py --lmp-bin=/path/to/lmp_binary --example-top-level=/path/to/lammps/examples
 '''
 
 import os
@@ -39,8 +55,8 @@ from multiprocessing import Pool
 
 import logging
 # need "pip install numpy pyyaml"
-import yaml
 import numpy as np
+import yaml
 
 # need "pip install junit_xml"
 from junit_xml import TestSuite, TestCase
@@ -60,27 +76,29 @@ class TestResult:
 
 
 '''
+  get the thermo output from a log file with thermo style yaml
+
   yamlFileName: input YAML file with thermo structured
-    as described in https://docs.lammps.org/Howto_structured_data.html
+      as described in https://docs.lammps.org/Howto_structured_data.html
   return: thermo, which is a list containing a dictionary for each run
-    where the tag "keywords" maps to the list of thermo header strings
-    and the tag “data” has a list of lists where the outer list represents the lines
-    of output and the inner list the values of the columns matching the header keywords for that step.
+      where the tag "keywords" maps to the list of thermo header strings
+      and the tag data has a list of lists where the outer list represents the lines
+      of output and the inner list the values of the columns matching the header keywords for that step.
 '''
 def extract_thermo(yamlFileName):
-  docs = ""  
-  with open(yamlFileName) as f:
-    for line in f:
-        m = re.search(r"^(keywords:.*$|data:$|---$|\.\.\.$|  - \[.*\]$)", line)
-        if m: docs += m.group(0) + '\n'
-    thermo = list(yaml.load_all(docs, Loader=Loader))
-    return thermo
+    docs = ""  
+    with open(yamlFileName) as f:
+        for line in f:
+            m = re.search(r"^(keywords:.*$|data:$|---$|\.\.\.$|  - \[.*\]$)", line)
+            if m: docs += m.group(0) + '\n'
+        thermo = list(yaml.load_all(docs, Loader=Loader))
+        return thermo
 
 
 '''
-  Convert an existing log.lammps file into a thermo yaml style log
-  inputFileName = a provided log file in an examples folder (e.g. examples/melt/log.8Apr21.melt.g++.4)
-  return a YAML data structure as if loaded from a thermo yaml file
+    Convert an existing log file into a thermo yaml style log
+    inputFileName = a provided log file in an examples folder (e.g. examples/melt/log.8Apr21.melt.g++.4)
+    return a YAML data structure as if loaded from a thermo yaml file
 '''
 def extract_data_to_yaml(inputFileName):
     with open(inputFileName, 'r') as file:
@@ -174,10 +192,10 @@ def get_lammps_build_configuration(lmp_binary):
     return packages.split(" "), operating_system, GitInfo, compile_flags
 
 '''
-  launch LAMMPS using the configuration defined in the dictionary config with an input file
-  TODO:
-    - generate new reference values if needed
-    - wrap subprocess with try/catch to handle exceptions
+    launch LAMMPS using the configuration defined in the dictionary config with an input file
+    TODO:
+        - generate new reference values if needed
+        - wrap subprocess with try/catch to handle exceptions
 '''
 def execute(lmp_binary, config, input_file_name, generate_ref_yaml=False):
     cmd_str = config['mpiexec'] + " " + config['mpiexec_numproc_flag'] + " " + config['nprocs'] + " "
@@ -188,7 +206,7 @@ def execute(lmp_binary, config, input_file_name, generate_ref_yaml=False):
     return cmd_str, p.stdout, p.stderr, p.returncode
 
 '''
-   split a list into a list of N sublists
+    split a list into a list of N sublists
 '''
 def divide_into_N(original_list, N):
     size = np.ceil(len(original_list) / N)
@@ -200,10 +218,11 @@ def divide_into_N(original_list, N):
         b.append(l)
     return b
 
-
 '''
-  inputFileName:  LAMMPS input file with comments #REG:ADD and #REG:SUB as markers
-  outputFileName: modified input file ready for testing
+    process the #REG markers in an input script, add/replace with what follows each marker
+
+    inputFileName:  LAMMPS input file with comments #REG:ADD and #REG:SUB as markers
+    outputFileName: modified input file ready for testing
 '''
 def process_markers(inputFileName, outputFileName):
   # read in the script
@@ -231,12 +250,12 @@ def process_markers(inputFileName, outputFileName):
 
 
 '''
-  attempt to insert the #REG markers before each run command
-  #REG:ADD thermo 10
-  #REG:ADD thermo_style yaml
+    attempt to insert the #REG markers before each run command
+    #REG:ADD thermo 10
+    #REG:ADD thermo_style yaml
 
-  inputFileName:  provided LAMMPS input file
-  outputFileName: modified input file ready for testing
+    inputFileName:  provided LAMMPS input file
+    outputFileName: modified input file ready for testing
 '''
 def generate_markers(inputFileName, outputFileName):
     # read in the script
@@ -268,273 +287,272 @@ def has_markers(inputFileName):
     return False
 
 '''
-  Iterate over a list of input files using the given lmp_binary, the testing configuration
-  return test results, as a list of TestResult instances
+    Iterate over a list of input files using the given lmp_binary, the testing configuration
+    return test results, as a list of TestResult instances
 
-  def func(input1, input2, output):
-      # do smth
-      return result
+    To map a function to individual workers:
 
-  # args is a list of Ncores tuples, each tuple contains the arguments passed to the function executed by a worker
-  args = []
-  for i in range(num_workers):
-      args.append((input1, input2, output))
+    def func(input1, input2, output):
+        # do smth
+        return result
 
-  with Pool(num_workers) as pool:   
-      results = pool.starmap(func, args)
+    # args is a list of num_workers tuples, each tuple contains the arguments passed to the function executed by a worker
+    args = []
+    for i in range(num_workers):
+        args.append((input1, input2, output))
+
+    with Pool(num_workers) as pool:   
+        results = pool.starmap(func, args)
 
 '''
-def iterate(lmp_binary, input_list, config, results, removeAnnotatedInput=False):
-  EPSILON = np.float64(config['epsilon'])
-  nugget = float(config['nugget'])
+def iterate(lmp_binary, input_list, config, results, removeAnnotatedInput=False, output=None):
+    EPSILON = np.float64(config['epsilon'])
+    nugget = float(config['nugget'])
 
-  num_tests = len(input_list)
-  num_passed = 0
-  test_id = 0
+    num_tests = len(input_list)
+    num_passed = 0
+    test_id = 0
 
-  # using REG-commented input scripts
-  using_markers = False
+    # using REG-commented input scripts, now turned off (False)
+    using_markers = False
 
-  # iterate over the input scripts
-  for input in input_list:
+    # iterate over the input scripts
+    for input in input_list:
 
-    # skip the input file if listed
-    if 'skip' in config:
-        if input in config['skip']:
-            logger.info(f"SKIPPED: {input} as specified in the configuration file {configFileName}")
+        # skip the input file if listed
+        if 'skip' in config:
+            if input in config['skip']:
+                logger.info(f"SKIPPED: {input} as specified in the configuration file {configFileName}")
+                test_id = test_id + 1
+                continue
+
+        str_t = "\nRunning " + input + f" ({test_id+1}/{num_tests})"
+
+        result = TestResult(name=input, output="", time="", status="passed")
+
+        if using_markers == True:
+            input_test = 'test.' + input
+            if os.path.isfile(input) == True:
+                if has_markers(input):
+                    process_markers(input, input_test)
+            
+                else:
+                    print(f"WARNING: {input} does not have REG markers")
+                    input_markers = input + '.markers'
+                    # if the input file with the REG markers does not exist
+                    #   attempt to plug in the REG markers before each run command
+                    if os.path.isfile(input_markers) == False:
+                    
+                        cmd_str = "cp " + input + " " + input_markers
+                        os.system(cmd_str)
+                        generate_markers(input, input_markers)
+                        process_markers(input_markers, input_test)
+                
+                str_t = "\nRunning " + input_test + f" ({test_id+1}/{num_tests})"
+        else:
+            input_test = input
+
+        print(str_t)
+        print(f"-"*len(str_t))
+        logger.info(str_t)
+        logger.info(f"-"*len(str_t))
+
+        # check if a log file exists in the current folder: log.DDMMMYY.basename.[nprocs]
+        basename = input_test.replace('in.','')
+        logfile_exist = False
+
+        # if there are multiple log files for different number of procs, pick the maximum number
+        cmd_str = "ls log.*"
+        p = subprocess.run(cmd_str, shell=True, text=True, capture_output=True)
+        logfile_list = p.stdout.split('\n')
+        logfile_list.remove('')
+
+        max_np = 1
+        for file in logfile_list:
+            # looks for pattern log.{date}.{basename}.g++.{nprocs}
+            # get the date from the log files
+            date = file.split('.',2)[1]
+            pattern = f'log.{date}.{basename}.*'
+            if fnmatch.fnmatch(file, pattern):
+                p = file.rsplit('.', 1)
+                if max_np < int(p[1]):
+                    max_np = int(p[1])
+                    logfile_exist = True
+                    thermo_ref_file = file
+
+        # if the maximum number of procs is different from the value in the configuration file
+        #      then override the setting for this input script
+        saved_nprocs = config['nprocs']
+        if max_np != int(config['nprocs']):
+            config['nprocs'] = str(max_np)
+
+        if logfile_exist:
+            thermo_ref = extract_data_to_yaml(thermo_ref_file)
+            num_runs_ref = len(thermo_ref)
+        else:
+            logger.info(f"Cannot find a reference log file {thermo_ref_file} for {input_test}.")
+            # try to read in the thermo yaml output from the working directory
+            thermo_ref_file = 'thermo.' + input + '.yaml'
+            file_exist = os.path.isfile(thermo_ref_file)
+            if file_exist == True:
+                thermo_ref = extract_thermo(thermo_ref_file)
+                num_runs_ref = len(thermo_ref)
+            else:
+                logger.info(f"SKIPPED: {thermo_ref_file} does not exist in the working directory.")
+                result.status = "skipped due to missing the log file"
+                results.append(result)
+                test_id = test_id + 1
+                continue
+
+        # or more customizable with config.yaml
+        cmd_str, output, error, returncode = execute(lmp_binary, config, input_test)
+
+        # restore the nprocs value in the configuration
+        config['nprocs'] = saved_nprocs
+
+        # process error code from the run
+        if os.path.isfile("log.lammps") == False:
+            logger.info(f"ERROR: No log.lammps generated with {input_test} with return code {returncode}. Check the {log_file} for the run output.\n")
+            logger.info(f"\n{input_test}:")
+            logger.info(f"\n{error}")
             test_id = test_id + 1
             continue
 
-    str_t = "\nRunning " + input + f" ({test_id+1}/{num_tests})"
+        # process thermo output from the run
+        thermo = extract_data_to_yaml("log.lammps")
 
-    result = TestResult(name=input, output="", time="", status="passed")
-
-    if using_markers == True:
-        input_test = 'test.' + input
-        if os.path.isfile(input) == True:
-            if has_markers(input):
-                process_markers(input, input_test)
-          
+        num_runs = len(thermo)
+        if num_runs == 0:
+            logger.info(f"The run terminated with {input_test} gives the following output:\n")
+            logger.info(f"\n{output}")
+            if "Unrecognized" in output:
+                result.status = "unrecognized command"
             else:
-                print(f"WARNING: {input} does not have REG markers")
-                input_markers = input + '.markers'
-                # if the input file with the REG markers does not exist
-                #   attempt to plug in the REG markers before each run command
-                if os.path.isfile(input_markers) == False:
-                  
-                  cmd_str = "cp " + input + " " + input_markers
-                  os.system(cmd_str)
-                  generate_markers(input, input_markers)
-                  process_markers(input_markers, input_test)
-            
-                  str_t = "\nRunning " + input_test + f" ({test_id+1}/{num_tests})"
-    else:
-        input_test = input
-    print(str_t)
-    print(f"-"*len(str_t))
-    logger.info(str_t)
-    logger.info(f"-"*len(str_t))
+                result.status = "error"
+                logger.info(f"ERROR: Failed with {input_test} due to {result.status}.\n")
+                results.append(result)
+                test_id = test_id + 1
+                continue
 
-    # check if a log file exists in the current folder: log.DDMMMYY.basename.[nprocs]
-    basename = input_test.replace('in.','')
-    logfile_exist = False
-
-    # if there are multiple log files for different number of procs, pick the maximum number
-    cmd_str = "ls log.*"
-    p = subprocess.run(cmd_str, shell=True, text=True, capture_output=True)
-    logfile_list = p.stdout.split('\n')
-    logfile_list.remove('')
-
-    max_np = 1
-    for file in logfile_list:
-        # looks for pattern log.{date}.{basename}.g++.{nprocs}
-        # get the date from the log files
-        date = file.split('.',2)[1]
-        pattern = f'log.{date}.{basename}.*'
-        if fnmatch.fnmatch(file, pattern):
-            p = file.rsplit('.', 1)
-            if max_np < int(p[1]):
-                max_np = int(p[1])
-                logfile_exist = True
-                thermo_ref_file = file
-
-    # if the maximum number of procs is different from the value in the configuration file
-    #      then override the setting for this input script
-    saved_nprocs = config['nprocs']
-    if max_np != int(config['nprocs']):
-        config['nprocs'] = str(max_np)
-
-    if logfile_exist:
-        thermo_ref = extract_data_to_yaml(thermo_ref_file)
-        num_runs_ref = len(thermo_ref)
-    else:
-        logger.info(f"Cannot find reference log file with {pattern}.")
-        # try to read in the thermo yaml output from the working directory
-        thermo_ref_file = 'thermo.' + input + '.yaml'
-        file_exist = os.path.isfile(thermo_ref_file)
-        if file_exist == True:
-            thermo_ref = extract_thermo(thermo_ref_file)
-            num_runs_ref = len(thermo_ref)
-        else:
-            logger.info(f"SKIPPED: {thermo_ref_file} does not exist in the working directory.")
-            result.status = "skipped due to missing the log file"
+        print(f"Comparing thermo output from log.lammps against the reference log file {thermo_ref_file}")
+        if num_runs != num_runs_ref:
+            logger.info(f"ERROR: Number of runs in log.lammps ({num_runs}) is not the same as that in the reference log ({num_runs_ref})")
+            result.status = "error"
             results.append(result)
             test_id = test_id + 1
             continue
 
-    # using the LAMMPS python module (for single-proc runs)
-    #  lmp = lammps()
-    #  lmp.file(input_test)
-
-    # or more customizable with config.yaml
-    cmd_str, output, error, returncode = execute(lmp_binary, config, input_test)
-
-    # restore the nprocs value in the configuration
-    config['nprocs'] = saved_nprocs
-
-    # process error code from the run
-    if os.path.isfile("log.lammps") == False:
-        logger.info(f"ERROR: No log.lammps generated with {input_test} with return code {returncode}. Check the {log_file} for the run output.\n")
-        logger.info(f"\n{input_test}:")
-        logger.info(f"\n{error}")
-        test_id = test_id + 1
-        continue
-
-    # process thermo output
-    thermo = extract_data_to_yaml("log.lammps")
-
-    num_runs = len(thermo)
-    if num_runs == 0:
+        # comparing output vs reference values
+        width = 20
+        if verbose == True:
+            print("Quantities".ljust(width) + "Output".center(width) + "Reference".center(width) +
+                "Abs Diff Check".center(width) +  "Rel Diff Check".center(width))
         
-        logger.info(f"The run terminated with {input_test} gives the following output:\n")
-        logger.info(f"\n{output}")
-        if "Unrecognized" in output:
-            result.status = "unrecognized command"
-        else:
-            result.status = "error"
-        logger.info(f"ERROR: Failed with {input_test} due to {result.status}.\n")
+        # check if overrides for this input scipt is specified
+        overrides = {}
+        if 'overrides' in config:
+            if input_test in config['overrides']:
+                overrides = config['overrides'][input_test]
+
+        # iterate through all num_runs
+
+        num_abs_failed = 0
+        num_rel_failed = 0
+        failed_abs_output = []
+        failed_rel_output = []
+        num_checks = 0
+
+        for irun in range(num_runs):
+            num_fields = len(thermo[irun]['keywords'])
+
+        # get the total number of the thermo output lines
+        nthermo_steps = len(thermo[irun]['data'])
+
+        # get the output at the last timestep
+        thermo_step = nthermo_steps - 1
+
+        # iterate over the fields
+        for i in range(num_fields):
+            quantity = thermo[irun]['keywords'][i]
+
+            val = thermo[irun]['data'][thermo_step][i]
+            ref = thermo_ref[irun]['data'][thermo_step][i]
+            abs_diff = abs(float(val) - float(ref))
+
+            if abs(float(ref)) > EPSILON:
+                rel_diff = abs(float(val) - float(ref))/abs(float(ref))
+            else:
+                rel_diff = abs(float(val) - float(ref))/abs(float(ref)+nugget)
+
+            abs_diff_check = "PASSED"
+            rel_diff_check = "PASSED"
+            
+            if quantity in config['tolerance'] or quantity in overrides:
+
+                if quantity in config['tolerance']:
+                    abs_tol = float(config['tolerance'][quantity]['abs'])
+                    rel_tol = float(config['tolerance'][quantity]['rel'])
+
+                # overrides the global tolerance values if specified
+                if quantity in overrides:
+                    abs_tol = float(overrides[quantity]['abs'])
+                    rel_tol = float(overrides[quantity]['rel'])
+
+                num_checks = num_checks + 2
+                if abs_diff > abs_tol:
+                    abs_diff_check = "FAILED"
+                    reason = f"Run {irun}: {quantity}: actual ({abs_diff:0.2e}) > expected ({abs_tol:0.2e})"
+                    failed_abs_output.append(f"{reason}")
+                    num_abs_failed = num_abs_failed + 1
+                if rel_diff > rel_tol:
+                    rel_diff_check = "FAILED"
+                    reason = f"Run {irun}: {quantity}: actual ({rel_diff:0.2e}) > expected ({rel_tol:0.2e})"
+                    failed_rel_output.append(f"{reason}")
+                    num_rel_failed = num_rel_failed + 1
+            else:
+                # N/A means that tolerances are not defined in the config file
+                abs_diff_check = "N/A"
+                rel_diff_check = "N/A"          
+
+            if verbose == True and abs_diff_check != "N/A"  and rel_diff_check != "N/A":
+                print(f"{thermo[irun]['keywords'][i].ljust(width)} {str(val).rjust(20)} {str(ref).rjust(20)} "
+                    "{abs_diff_check.rjust(20)} {rel_diff_check.rjust(20)}")
+
+        if num_abs_failed > 0:
+            print(f"{num_abs_failed} absolute diff checks failed with the specified tolerances.")
+            result.status = "failed"
+            if verbose == True:
+                for i in failed_abs_output:
+                    print(f"- {i}")
+        if num_rel_failed > 0:
+            print(f"{num_rel_failed} relative diff checks failed with the specified tolerances.")
+            result.status = "failed"
+            if verbose == True:
+                for i in failed_rel_output:
+                    print(f"- {i}")
+        if num_abs_failed == 0 and num_rel_failed == 0:
+            print(f"All {num_checks} checks passed.")
+            result.status = "passed"        
+            num_passed = num_passed + 1
+
         results.append(result)
+
+        str_t = f"Finished " + input_test
+        print(str_t)
+        print("-"*(5*width+4))
         test_id = test_id + 1
-        continue
 
-    print(f"Comparing thermo output from log.lammps against the reference log file {thermo_ref_file}")
-    if num_runs != num_runs_ref:
-        logger.info(f"ERROR: Number of runs in log.lammps ({num_runs}) is not the same as that in the reference log ({num_runs_ref})")
-        result.status = "error"
-        results.append(result)
-        test_id = test_id + 1
-        continue
+        # remove the annotated input script
+        if removeAnnotatedInput == True:
+            cmd_str = "rm " + input_test
+            os.system(cmd_str)
 
-    # comparing output vs reference values
-    width = 20
-    if verbose == True:
-        print("Quantities".ljust(width) + "Output".center(width) + "Reference".center(width) +
-            "Abs Diff Check".center(width) +  "Rel Diff Check".center(width))
-    
-    # check if overrides for this input scipt is specified
-    overrides = {}
-    if 'overrides' in config:
-        if input_test in config['overrides']:
-            overrides = config['overrides'][input_test]
-
-    # iterate through all num_runs
-
-    num_abs_failed = 0
-    num_rel_failed = 0
-    failed_abs_output = []
-    failed_rel_output = []
-    num_checks = 0
-
-    for irun in range(num_runs):
-      num_fields = len(thermo[irun]['keywords'])
-
-      # get the total number of the thermo output lines
-      nthermo_steps = len(thermo[irun]['data'])
-
-      # get the output at the last timestep
-      thermo_step = nthermo_steps - 1
-
-      # iterate over the fields
-      for i in range(num_fields):
-          quantity = thermo[irun]['keywords'][i]
-
-          val = thermo[irun]['data'][thermo_step][i]
-          ref = thermo_ref[irun]['data'][thermo_step][i]
-          abs_diff = abs(float(val) - float(ref))
-
-          if abs(float(ref)) > EPSILON:
-            rel_diff = abs(float(val) - float(ref))/abs(float(ref))
-          else:
-            rel_diff = abs(float(val) - float(ref))/abs(float(ref)+nugget)
-
-          abs_diff_check = "PASSED"
-          rel_diff_check = "PASSED"
-          
-          if quantity in config['tolerance'] or quantity in overrides:
-
-              if quantity in config['tolerance']:
-                  abs_tol = float(config['tolerance'][quantity]['abs'])
-                  rel_tol = float(config['tolerance'][quantity]['rel'])
-
-              # overrides the global tolerance values if specified
-              if quantity in overrides:
-                  abs_tol = float(overrides[quantity]['abs'])
-                  rel_tol = float(overrides[quantity]['rel'])
-
-              num_checks = num_checks + 2
-              if abs_diff > abs_tol:
-                  abs_diff_check = "FAILED"
-                  reason = f"Run {irun}: {quantity}: actual ({abs_diff:0.2e}) > expected ({abs_tol:0.2e})"
-                  failed_abs_output.append(f"{reason}")
-                  num_abs_failed = num_abs_failed + 1
-              if rel_diff > rel_tol:
-                  rel_diff_check = "FAILED"
-                  reason = f"Run {irun}: {quantity}: actual ({rel_diff:0.2e}) > expected ({rel_tol:0.2e})"
-                  failed_rel_output.append(f"{reason}")
-                  num_rel_failed = num_rel_failed + 1
-          else:
-              # N/A means that tolerances are not defined in the config file
-              abs_diff_check = "N/A"
-              rel_diff_check = "N/A"          
-
-          if verbose == True and abs_diff_check != "N/A"  and rel_diff_check != "N/A":
-              print(f"{thermo[irun]['keywords'][i].ljust(width)} {str(val).rjust(20)} {str(ref).rjust(20)} "
-                  "{abs_diff_check.rjust(20)} {rel_diff_check.rjust(20)}")
-
-    if num_abs_failed > 0:
-        print(f"{num_abs_failed} absolute diff checks failed with the specified tolerances.")
-        result.status = "failed"
-        if verbose == True:
-            for i in failed_abs_output:
-              print(f"- {i}")
-    if num_rel_failed > 0:
-        print(f"{num_rel_failed} relative diff checks failed with the specified tolerances.")
-        result.status = "failed"
-        if verbose == True:
-          for i in failed_rel_output:
-            print(f"- {i}")
-    if num_abs_failed == 0 and num_rel_failed == 0:
-        print(f"All {num_checks} checks passed.")
-        result.status = "passed"        
-        num_passed = num_passed + 1
-
-    results.append(result)
-
-    str_t = f"Finished " + input_test
-    print(str_t)
-    print("-"*(5*width+4))
-    test_id = test_id + 1
-
-    # remove the annotated input script
-    if removeAnnotatedInput == True:
-        cmd_str = "rm " + input_test
-        os.system(cmd_str)
-
-  return num_passed
+    return num_passed
 
 '''
   TODO:
-    - automate annotating the example input scripts if thermo style is multi (e.g. examples/peptide)
+
+
 '''
 if __name__ == "__main__":
 
@@ -627,24 +645,15 @@ if __name__ == "__main__":
         p = subprocess.run(cmd_str, shell=True, text=True, capture_output=True)
         input_list = p.stdout.split('\n')
         input_list.remove("")
+
         # find out which folder to cd into to run the input script
         for input in input_list:
             folder = input.rsplit('/', 1)[0]
             folder_list.append(folder)
         print(f"There are {len(input_list)} input scripts in total under the {example_toplevel} folder.")
+
         # divide the list of input scripts into num_workers chunks
         sublists = divide_into_N(input_list, num_workers)
-        '''
-        # getting the list of all the subfolders
-        cmd_str = f"ls -d {example_toplevel} "
-        p = subprocess.run(cmd_str, shell=True, text=True, capture_output=True)
-        folder_list = p.stdout.split('\n')
-        folder_list.remove("")
-        print(f"There are {len(folder_list)} subfolders in total under the {example_toplevel} folder.")
-
-        # divide the list of subfolders into num_workers chunks
-        sublists = divide_into_N(folder_list, num_workers)
-        '''
 
     # if only statistics, not running anything
     if dry_run == True:
@@ -655,10 +664,12 @@ if __name__ == "__main__":
     test_cases = []
 
     # if the example folders are not specified from the command-line argument --example-folders
-    # then use the --example-top-folder
+    # then use the path from --example-top-folder
     if len(example_subfolders) == 0:
 
-        # input file list
+        # get the input file list, for now the first in the sublist
+        # TODO: generate a list of tuples, each tuple contains a folder list for a worker,
+        #       then use multiprocessing.Pool starmap()
         folder_list = []
         for input in sublists[0]:
             folder = input.rsplit('/', 1)[0]
@@ -668,82 +679,9 @@ if __name__ == "__main__":
 
         example_subfolders = folder_list
 
-        '''
-        example_subfolders = sublists[0]
-        '''
-        '''
-        example_subfolders.append("../../examples/melt")
-        example_subfolders.append('../../examples/flow')
-        example_subfolders.append('../../examples/indent')
-        example_subfolders.append('../../examples/shear')
-        example_subfolders.append('../../examples/steinhardt')
-
-        # prd  log file parsing issue
-        # neb  log file parsing issue
-        # snap log files obsolete?
-
-        # append the example subfolders depending on the installed packages
-        if 'ASPHERE' in packages:
-            #example_subfolders.append('../../examples/ASPHERE/ellipsoid')
-            example_subfolders.append('../../examples/ellipse')
-
-        if 'CORESHELL' in packages:
-            example_subfolders.append('../../examples/coreshell')
-
-        if 'MOLECULE' in packages:
-            example_subfolders.append('../../examples/micelle')
-            # peptide thermo_style as multi
-            #example_subfolders.append('../../examples/peptide')
-
-        if 'GRANULAR' in packages:
-            example_subfolders.append('../../examples/granular')
-            example_subfolders.append('../../examples/pour')
-
-        if 'AMOEBA' in packages:
-            example_subfolders.append('../../examples/amoeba')
-
-        if 'BODY' in packages:
-            example_subfolders.append('../../examples/body')
-
-        if 'BPM' in packages:
-            example_subfolders.append('../../examples/bpm/impact')
-            example_subfolders.append('../../examples/bpm/pour')
-
-        if 'COLLOID' in packages:
-            example_subfolders.append('../../examples/colloid')
-
-        if 'CRACK' in packages:
-            example_subfolders.append('../../examples/crack')
-
-        if 'DIELECTRIC' in packages:
-            example_subfolders.append('../../examples/PACKAGES/dielectric')
-
-        if 'DIPOLE' in packages:
-            example_subfolders.append('../../examples/dipole')
-
-        if 'DPD-BASIC' in packages:
-            example_subfolders.append('../../examples/PACKAGES/dpd-basic/dpd')
-            example_subfolders.append('../../examples/PACKAGES/dpd-basic/dpdext')
-            example_subfolders.append('../../examples/PACKAGES/dpd-basic/dpd_tstat')
-            example_subfolders.append('../../examples/PACKAGES/dpd-basic/dpdext_tstat')
-
-        if 'MANYBODY' in packages:
-            example_subfolders.append('../../examples/tersoff')
-            example_subfolders.append('../../examples/vashishta')
-            example_subfolders.append('../../examples/threebody')
-
-        if 'RIGID' in packages:
-            example_subfolders.append('../../examples/rigid')
-
-        if 'SNAP' in packages:
-            example_subfolders.append('../../examples/snap')
-
-        if 'SRD' in packages:
-            example_subfolders.append('../../examples/srd')
-        '''
-
     all_results = []
-    # default setting
+
+    # default setting is to use inplace_input
     if inplace_input == True:
         # save current working dir
         p = subprocess.run("pwd", shell=True, text=True, capture_output=True)
@@ -753,7 +691,6 @@ if __name__ == "__main__":
 
         # change dir to a folder under examples/, need to use os.chdir()
         # TODO: loop through the subfolders under examples/, depending on the installed packages
-
 
         '''
         args = []
@@ -765,7 +702,6 @@ if __name__ == "__main__":
         '''
         total_tests = 0
         passed_tests = 0
-
 
         for directory in example_subfolders:
 
@@ -786,6 +722,7 @@ if __name__ == "__main__":
             num_passed = iterate(lmp_binary, input_list, config, results)
             passed_tests += num_passed
 
+            # append the results to the all_results list
             all_results.extend(results)
 
             # get back to the working dir
@@ -798,12 +735,15 @@ if __name__ == "__main__":
         results = []
         passed_tests = iterate(input_list, config, results)
 
+        all_results.extend(results)
+
+    # print out summary
     print("Summary:")
     print(f" - {passed_tests} numerical tests passed / {total_tests} tests")
     print(f" - Details are given in {output_file}.")
 
-
-    # generate a JUnit XML file
+    # optional: need to check if junit_xml packaged is already installed in the env
+    #   generate a JUnit XML file 
     with open(output_file, 'w') as f:
         test_cases = [] 
         for result in all_results:

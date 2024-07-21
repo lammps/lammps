@@ -135,6 +135,8 @@ set(PROJECT_SOURCES
   linenumberarea.h
   logwindow.cpp
   logwindow.h
+  fileviewer.cpp
+  fileviewer.h
   preferences.cpp
   preferences.h
   setvariables.cpp

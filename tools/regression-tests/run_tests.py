@@ -305,7 +305,7 @@ def has_markers(inputFileName):
         results = pool.starmap(func, args)
 
 '''
-def iterate(lmp_binary, input_list, config, results, working_dir, removeAnnotatedInput=False, output=None):
+def iterate(lmp_binary, input_list, config, results, progress_file, removeAnnotatedInput=False, output=None):
     EPSILON = np.float64(config['epsilon'])
     nugget = float(config['nugget'])
 
@@ -316,15 +316,12 @@ def iterate(lmp_binary, input_list, config, results, working_dir, removeAnnotate
     # using REG-commented input scripts, now turned off (False)
     using_markers = False
 
-    progress_file = working_dir + "/progress.txt"
-    progress = None
-
     # iterate over the input scripts
     for input in input_list:
 
         if os.path.isfile(progress_file) == True:
             progress = open(progress_file, "a")
-        else:    
+        else:
             progress = open(progress_file, "w")
 
         # skip the input file if listed
@@ -598,6 +595,8 @@ if __name__ == "__main__":
                         help="Generating reference data")
     parser.add_argument("--verbose",dest="verbose", action='store_true', default=False,
                         help="Verbose output")
+    parser.add_argument("--resume",dest="resume", action='store_true', default=False,
+                        help="Resume the test run")
     parser.add_argument("--output",dest="output", default=output_file, help="Output file")
     parser.add_argument("--logfile",dest="logfile", default=log_file, help="Log file")
     parser.add_argument("--dry-run",dest="dry_run", action='store_true', default=False,
@@ -620,6 +619,7 @@ if __name__ == "__main__":
     verbose = args.verbose
     log_file = args.logfile
     dry_run = args.dry_run
+    resume = args.resume
 
     # logging
     logger = logging.getLogger(__name__)
@@ -709,6 +709,11 @@ if __name__ == "__main__":
     pwd = os.path.abspath(pwd)
     print("\nWorking directory: " + pwd)
     
+    progress_file = pwd + "/progress.txt"
+    if resume == False:
+        progress = open(progress_file, "w")
+        progress.close()
+
     # default setting is to use inplace_input
     if inplace_input == True:
 
@@ -742,7 +747,7 @@ if __name__ == "__main__":
 
             # iterate through the input scripts
             results = []
-            num_passed = iterate(lmp_binary, input_list, config, results, pwd)
+            num_passed = iterate(lmp_binary, input_list, config, results, progress_file)
             passed_tests += num_passed
 
             # append the results to the all_results list
@@ -756,7 +761,7 @@ if __name__ == "__main__":
         input_list=['in.lj']
         total_tests = len(input_list)
         results = []
-        passed_tests = iterate(lmp_binary, input_list, config, results, pwd)
+        passed_tests = iterate(lmp_binary, input_list, config, results, progress_file)
 
         all_results.extend(results)
 

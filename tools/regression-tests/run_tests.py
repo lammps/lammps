@@ -649,7 +649,7 @@ if __name__ == "__main__":
     with open(configFileName, 'r') as f:
         config = yaml.load(f, Loader=Loader)
         absolute_path = os.path.abspath(configFileName)
-        print(f"\nRegression tests with settings defined in the configuration file:\n  {absolute_path}")
+        print(f"\nRegression tests with the settings defined in the configuration file:\n  {absolute_path}")
         f.close()
   
     # check if lmp_binary is specified in the config yaml
@@ -666,13 +666,17 @@ if __name__ == "__main__":
     print(f"  - {operating_system}")
     print(f"  - {GitInfo}")
     print(f"  - Active compile flags: {compile_flags}")
-    print(f"  - List of {len(packages)} installed packages: {packages}")
-
+    print(f"  - List of {len(packages)} installed packages:")
+    all_pkgs = ""
+    for p in packages:
+        all_pkgs += p + " "
+    print(all_pkgs)
+    
     if len(example_subfolders) > 0:
-        print("  - Example folders to test:")
+        print("\nExample folders to test:")
         print(example_subfolders)
     if example_toplevel != "":
-        print("  - Top-level example folder:")
+        print("\nTop-level example folder:")
         print(example_toplevel)
 
     folder_list = []
@@ -743,6 +747,7 @@ if __name__ == "__main__":
         except Exception:
             print(f"Cannot open progress file {progress_file} to resume, rerun all the tests")
 
+    print("\nStart..")
     # default setting is to use inplace_input
     if inplace_input == True:
 
@@ -797,7 +802,8 @@ if __name__ == "__main__":
     # print out summary
     print("\nSummary:")
     print(f" - {passed_tests} numerical tests passed / {total_tests} tests")
-    print(f" - Details are given in {output_file}.\n")
+    print(f" - Test results in JUnit XML format are given in {output_file}.")
+    print(f" - Progress is given in {progress_file}.\n")
 
     # optional: need to check if junit_xml packaged is already installed in the env
     #   generate a JUnit XML file 

@@ -305,7 +305,7 @@ def has_markers(inputFileName):
         results = pool.starmap(func, args)
 
 '''
-def iterate(lmp_binary, input_list, config, results, removeAnnotatedInput=False, output=None):
+def iterate(lmp_binary, input_list, config, results, working_dir, removeAnnotatedInput=False, output=None):
     EPSILON = np.float64(config['epsilon'])
     nugget = float(config['nugget'])
 
@@ -316,13 +316,23 @@ def iterate(lmp_binary, input_list, config, results, removeAnnotatedInput=False,
     # using REG-commented input scripts, now turned off (False)
     using_markers = False
 
+    progress_file = working_dir + "/progress.txt"
+    progress = None
+
     # iterate over the input scripts
     for input in input_list:
+
+        if os.path.isfile(progress_file) == True:
+            progress = open(progress_file, "a")
+        else:    
+            progress = open(progress_file, "w")
 
         # skip the input file if listed
         if 'skip' in config:
             if input in config['skip']:
                 logger.info(f"SKIPPED: {input} as specified in the configuration file {configFileName}")
+                progress.write(f"{input}: skipped\n")
+                progress.close()
                 test_id = test_id + 1
                 continue
 
@@ -401,6 +411,8 @@ def iterate(lmp_binary, input_list, config, results, removeAnnotatedInput=False,
                 logger.info(f"SKIPPED: {thermo_ref_file} does not exist in the working directory.")
                 result.status = "skipped due to missing the log file"
                 results.append(result)
+                progress.write(f"{input}: skipped\n")
+                progress.close()
                 test_id = test_id + 1
                 continue
 
@@ -415,6 +427,8 @@ def iterate(lmp_binary, input_list, config, results, removeAnnotatedInput=False,
             logger.info(f"ERROR: No log.lammps generated with {input_test} with return code {returncode}. Check the {log_file} for the run output.\n")
             logger.info(f"\n{input_test}:")
             logger.info(f"\n{error}")
+            progress.write(f"{input}: error\n")
+            progress.close()
             test_id = test_id + 1
             continue
 
@@ -431,6 +445,8 @@ def iterate(lmp_binary, input_list, config, results, removeAnnotatedInput=False,
                 result.status = "error"
                 logger.info(f"ERROR: Failed with {input_test} due to {result.status}.\n")
                 results.append(result)
+                progress.write(f"{input}: error\n")
+                progress.close()
                 test_id = test_id + 1
                 continue
 
@@ -439,6 +455,8 @@ def iterate(lmp_binary, input_list, config, results, removeAnnotatedInput=False,
             logger.info(f"ERROR: Number of runs in log.lammps ({num_runs}) is not the same as that in the reference log ({num_runs_ref})")
             result.status = "error"
             results.append(result)
+            progress.write(f"{input}: error\n")
+            progress.close()
             test_id = test_id + 1
             continue
 
@@ -537,7 +555,10 @@ def iterate(lmp_binary, input_list, config, results, removeAnnotatedInput=False,
 
         results.append(result)
 
-        str_t = f"Finished " + input_test
+        progress.write(f"{input}: completed\n")
+        progress.close()
+
+        str_t = f"Completed " + input_test
         print(str_t)
         print("-"*(5*width+4))
         test_id = test_id + 1
@@ -682,13 +703,14 @@ if __name__ == "__main__":
 
     all_results = []
 
+    # save current working dir
+    p = subprocess.run("pwd", shell=True, text=True, capture_output=True)
+    pwd = p.stdout.split('\n')[0]
+    pwd = os.path.abspath(pwd)
+    print("\nWorking directory: " + pwd)
+    
     # default setting is to use inplace_input
     if inplace_input == True:
-        # save current working dir
-        p = subprocess.run("pwd", shell=True, text=True, capture_output=True)
-        pwd = p.stdout.split('\n')[0]
-        pwd = os.path.abspath(pwd)
-        print("\nWorking directory: " + pwd)
 
         # change dir to a folder under examples/, need to use os.chdir()
         # TODO: loop through the subfolders under examples/, depending on the installed packages
@@ -706,7 +728,7 @@ if __name__ == "__main__":
 
         for directory in example_subfolders:
 
-            p = subprocess.run("pwd", shell=True, text=True, capture_output=True)
+            # change to the directory where the input script and data files are located
             print("\nEntering " + directory)
             os.chdir(directory)
 
@@ -720,7 +742,7 @@ if __name__ == "__main__":
 
             # iterate through the input scripts
             results = []
-            num_passed = iterate(lmp_binary, input_list, config, results)
+            num_passed = iterate(lmp_binary, input_list, config, results, pwd)
             passed_tests += num_passed
 
             # append the results to the all_results list
@@ -734,7 +756,7 @@ if __name__ == "__main__":
         input_list=['in.lj']
         total_tests = len(input_list)
         results = []
-        passed_tests = iterate(lmp_binary, input_list, config, results)
+        passed_tests = iterate(lmp_binary, input_list, config, results, pwd)
 
         all_results.extend(results)
 

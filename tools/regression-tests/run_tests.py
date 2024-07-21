@@ -290,6 +290,15 @@ def has_markers(inputFileName):
     Iterate over a list of input files using the given lmp_binary, the testing configuration
     return test results, as a list of TestResult instances
 
+    lmp_binary   : full path to the LAMMPS binary 
+    input_folder : the absolute path to the input files
+    input_list   : list of the input scripts under the input_folder
+    config       : the dict that contains the test configuration
+    results      : the list of TestResult objects
+    progress_file: yaml file that stores the tested input script and status
+    last_progress: the dict that show the status of the last tests
+
+    NOTE:
     To map a function to individual workers:
 
     def func(input1, input2, output):
@@ -305,7 +314,7 @@ def has_markers(inputFileName):
         results = pool.starmap(func, args)
 
 '''
-def iterate(lmp_binary, input_list, config, results, progress_file, removeAnnotatedInput=False, output=None):
+def iterate(lmp_binary, input_folder, input_list, config, results, progress_file, last_progress=None, removeAnnotatedInput=False, output=None):
     EPSILON = np.float64(config['epsilon'])
     nugget = float(config['nugget'])
 
@@ -328,11 +337,22 @@ def iterate(lmp_binary, input_list, config, results, progress_file, removeAnnota
         if 'skip' in config:
             if input in config['skip']:
                 logger.info(f"SKIPPED: {input} as specified in the configuration file {configFileName}")
-                progress.write(f"{input}: skipped\n")
+                progress.write(f"{input}: {{ folder: {input_folder}, status: skipped }}\n")
                 progress.close()
                 test_id = test_id + 1
                 continue
 
+        # also skip if the test already completed
+        if input in last_progress:
+            status = last_progress[input]['status']
+            if status == 'completed':
+                logger.info(f"SKIPPED: {input} marked as completed in the progress file {progress_file}")
+                print(f"SKIPPED: {input} marked as completed in the progress file {progress_file}")
+                progress.close()
+                test_id = test_id + 1
+              
+                continue
+    
         str_t = "\nRunning " + input + f" ({test_id+1}/{num_tests})"
 
         result = TestResult(name=input, output="", time="", status="passed")
@@ -408,7 +428,7 @@ def iterate(lmp_binary, input_list, config, results, progress_file, removeAnnota
                 logger.info(f"SKIPPED: {thermo_ref_file} does not exist in the working directory.")
                 result.status = "skipped due to missing the log file"
                 results.append(result)
-                progress.write(f"{input}: skipped\n")
+                progress.write(f"{input}: {{ folder: {input_folder}, status: skipped }}\n")
                 progress.close()
                 test_id = test_id + 1
                 continue
@@ -424,7 +444,7 @@ def iterate(lmp_binary, input_list, config, results, progress_file, removeAnnota
             logger.info(f"ERROR: No log.lammps generated with {input_test} with return code {returncode}. Check the {log_file} for the run output.\n")
             logger.info(f"\n{input_test}:")
             logger.info(f"\n{error}")
-            progress.write(f"{input}: error\n")
+            progress.write(f"{input}: {{ folder: {input_folder}, status: error }}\n")
             progress.close()
             test_id = test_id + 1
             continue
@@ -442,7 +462,7 @@ def iterate(lmp_binary, input_list, config, results, progress_file, removeAnnota
                 result.status = "error"
                 logger.info(f"ERROR: Failed with {input_test} due to {result.status}.\n")
                 results.append(result)
-                progress.write(f"{input}: error\n")
+                progress.write(f"{input}: {{ folder: {input_folder}, status: error }}\n")
                 progress.close()
                 test_id = test_id + 1
                 continue
@@ -452,7 +472,7 @@ def iterate(lmp_binary, input_list, config, results, progress_file, removeAnnota
             logger.info(f"ERROR: Number of runs in log.lammps ({num_runs}) is not the same as that in the reference log ({num_runs_ref})")
             result.status = "error"
             results.append(result)
-            progress.write(f"{input}: error\n")
+            progress.write(f"{input}: {{ folder: {input_folder}, status: error }}\n")
             progress.close()
             test_id = test_id + 1
             continue
@@ -552,7 +572,7 @@ def iterate(lmp_binary, input_list, config, results, progress_file, removeAnnota
 
         results.append(result)
 
-        progress.write(f"{input}: completed\n")
+        progress.write(f"{input}: {{ folder: {input_folder}, status: completed }}\n")
         progress.close()
 
         str_t = f"Completed " + input_test
@@ -630,6 +650,7 @@ if __name__ == "__main__":
         config = yaml.load(f, Loader=Loader)
         absolute_path = os.path.abspath(configFileName)
         print(f"\nRegression tests with settings defined in the configuration file:\n  {absolute_path}")
+        f.close()
   
     # check if lmp_binary is specified in the config yaml
     if lmp_binary == "":
@@ -709,10 +730,18 @@ if __name__ == "__main__":
     pwd = os.path.abspath(pwd)
     print("\nWorking directory: " + pwd)
     
-    progress_file = pwd + "/progress.txt"
+    progress_file = pwd + "/progress.yaml"
+    last_progress = {}
     if resume == False:
         progress = open(progress_file, "w")
         progress.close()
+    else:
+        try:
+            progress = open(progress_file, "r")
+            last_progress = yaml.load(progress, Loader=Loader)
+            progress.close()
+        except Exception:
+            print(f"Cannot open progress file {progress_file} to resume, rerun all the tests")
 
     # default setting is to use inplace_input
     if inplace_input == True:
@@ -747,7 +776,7 @@ if __name__ == "__main__":
 
             # iterate through the input scripts
             results = []
-            num_passed = iterate(lmp_binary, input_list, config, results, progress_file)
+            num_passed = iterate(lmp_binary, directory, input_list, config, results, progress_file, last_progress)
             passed_tests += num_passed
 
             # append the results to the all_results list
@@ -761,7 +790,7 @@ if __name__ == "__main__":
         input_list=['in.lj']
         total_tests = len(input_list)
         results = []
-        passed_tests = iterate(lmp_binary, input_list, config, results, progress_file)
+        passed_tests = iterate(lmp_binary, pwd, input_list, config, results, progress_file)
 
         all_results.extend(results)
 

@@ -14,6 +14,7 @@
 #include "lammpsgui.h"
 
 #include "chartviewer.h"
+#include "fileviewer.h"
 #include "helpers.h"
 #include "highlighter.h"
 #include "imageviewer.h"
@@ -193,6 +194,7 @@ LammpsGui::LammpsGui(QWidget *parent, const char *filename) :
     connect(ui->actionOpen, &QAction::triggered, this, &LammpsGui::open);
     connect(ui->actionSave, &QAction::triggered, this, &LammpsGui::save);
     connect(ui->actionSave_As, &QAction::triggered, this, &LammpsGui::save_as);
+    connect(ui->actionView, &QAction::triggered, this, &LammpsGui::view);
     connect(ui->actionQuit, &QAction::triggered, this, &LammpsGui::quit);
     connect(ui->actionCopy, &QAction::triggered, this, &LammpsGui::copy);
     connect(ui->actionCut, &QAction::triggered, this, &LammpsGui::cut);
@@ -392,6 +394,12 @@ void LammpsGui::open()
 {
     QString fileName = QFileDialog::getOpenFileName(this, "Open the file");
     open_file(fileName);
+}
+
+void LammpsGui::view()
+{
+    QString fileName = QFileDialog::getOpenFileName(this, "Open the file");
+    view_file(fileName);
 }
 
 void LammpsGui::open_recent()
@@ -638,6 +646,20 @@ void LammpsGui::open_file(const QString &fileName)
     }
     update_variables();
     lammps.close();
+}
+
+// open file in read-only mode for viewing in separate window
+void LammpsGui::view_file(const QString &fileName)
+{
+    QFile file(fileName);
+    if (!file.open(QIODevice::ReadOnly | QFile::Text)) {
+        QMessageBox::warning(this, "Warning",
+                             "Cannot open file " + fileName + ": " + file.errorString() + ".\n");
+    } else {
+        file.close();
+        auto *viewer = new FileViewer(fileName);
+        viewer->show();
+    }
 }
 
 // write file and update CWD to its folder

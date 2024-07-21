@@ -61,6 +61,7 @@ public:
 
 protected:
     void open_file(const QString &filename);
+    void view_file(const QString &filename);
     void write_file(const QString &filename);
     void update_recents(const QString &filename = "");
     void update_variables();
@@ -75,6 +76,7 @@ public slots:
 private slots:
     void new_document();
     void open();
+    void view();
     void open_recent();
     void start_exe();
     void save();

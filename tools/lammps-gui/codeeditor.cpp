@@ -12,6 +12,7 @@
 ------------------------------------------------------------------------- */
 
 #include "codeeditor.h"
+#include "fileviewer.h"
 #include "lammpsgui.h"
 #include "linenumberarea.h"
 
@@ -33,6 +34,7 @@
 #include <QSettings>
 #include <QShortcut>
 #include <QStringListModel>
+#include <QStringRef>
 #include <QTextBlock>
 #include <QTextDocumentFragment>
 #include <QUrl>
@@ -574,7 +576,7 @@ void CodeEditor::keyPressEvent(QKeyEvent *event)
         auto line   = cursor.block().text();
         if (line.isEmpty()) return;
 
-        // QTextCursor::WordUnderCursor is unusable here since recognizes '/' as word boundary.
+        // QTextCursor::WordUnderCursor is unusable here since it recognizes '/' as word boundary.
         // Work around it by manually searching for the location of the beginning of the word.
         int begin = qMin(cursor.positionInBlock(), line.length() - 1);
 
@@ -736,6 +738,38 @@ void CodeEditor::contextMenuEvent(QContextMenuEvent *event)
             connect(action2, &QAction::triggered, this, &CodeEditor::open_help);
         }
     }
+
+    // check if word under cursor is file
+    {
+        auto cursor = textCursor();
+        auto line   = cursor.block().text();
+        if (!line.isEmpty()) {
+            // QTextCursor::WordUnderCursor is unusable here since it recognizes '/' as word
+            // boundary. Work around it by manually searching for the location of the beginning of
+            // the word.
+            int begin = qMin(cursor.positionInBlock(), line.length() - 1);
+
+            while (begin >= 0) {
+                if (line[begin].isSpace()) break;
+                --begin;
+            }
+            int end = begin + 1;
+            while (end < line.length()) {
+                if (line[end].isSpace()) break;
+                ++end;
+            }
+
+            QString word = line.mid(begin, end - begin).trimmed();
+            QFileInfo fi(word);
+            if (fi.exists() && fi.isFile()) {
+                auto *action = menu->addAction(QString("View file '%1'").arg(word));
+                action->setIcon(QIcon(":/icons/document-open.png"));
+                action->setData(word);
+                connect(action, &QAction::triggered, this, &CodeEditor::view_file);
+            }
+        }
+    }
+
     auto *action = menu->addAction(QString("LAMMPS Manual"));
     action->setIcon(QIcon(":/icons/help-browser.png"));
     action->setData(QString());
@@ -1091,7 +1125,7 @@ void CodeEditor::insertCompletedCommand(const QString &completion)
     if (completer->widget() != this) return;
 
     // select the entire word (non-space text) under the cursor
-    // we need to do it in this compicated way, since QTextCursor does not recognize
+    // we need to do it in this complicated way, since QTextCursor does not recognize
     // special characters as part of a word.
     auto cursor = textCursor();
     auto line   = cursor.block().text();
@@ -1172,6 +1206,13 @@ void CodeEditor::open_help()
     auto *act = qobject_cast<QAction *>(sender());
     QDesktopServices::openUrl(
         QUrl(QString("https://docs.lammps.org/%1").arg(act->data().toString())));
+}
+
+void CodeEditor::view_file()
+{
+    auto *act    = qobject_cast<QAction *>(sender());
+    auto *viewer = new FileViewer(act->data().toString());
+    viewer->show();
 }
 
 // Local Variables:

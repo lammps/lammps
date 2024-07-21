@@ -20,6 +20,8 @@
 #include "memory.h"
 #include "update.h"
 
+#include "fmt/printf.h"
+
 #include <cstring>
 
 using namespace LAMMPS_NS;
@@ -665,53 +667,53 @@ void DumpAtom::pack_noscale_noimage_triclinic_general(tagint *ids)
 
 int DumpAtom::convert_image(int n, double *mybuf)
 {
-  int offset = 0;
+  std::string formatted;
   int m = 0;
-  for (int i = 0; i < n; i++) {
-    if (offset + ONELINE > maxsbuf) {
-      if ((bigint) maxsbuf + DELTA > MAXSMALLINT) return -1;
-      maxsbuf += DELTA;
-      memory->grow(sbuf,maxsbuf,"dump:sbuf");
-    }
 
-    offset += snprintf(&sbuf[offset],
-                      maxsbuf - offset,
-                      format,
-                      static_cast<tagint> (mybuf[m]),
-                      static_cast<int> (mybuf[m+1]),
-                      mybuf[m+2],mybuf[m+3],mybuf[m+4],
-                      static_cast<int> (mybuf[m+5]),
-                      static_cast<int> (mybuf[m+6]),
-                      static_cast<int> (mybuf[m+7]));
+  for (int i = 0; i < n; i++) {
+    formatted += fmt::sprintf(format,
+                              static_cast<tagint> (mybuf[m]),
+                              static_cast<int> (mybuf[m+1]),
+                              mybuf[m+2], mybuf[m+3], mybuf[m+4],
+                              static_cast<int> (mybuf[m+5]),
+                              static_cast<int> (mybuf[m+6]),
+                              static_cast<int> (mybuf[m+7]));
     m += size_one;
   }
 
-  return offset;
+  bigint mysize = formatted.size();
+  if (mysize > MAXSMALLINT) return -1;
+  if ((int) mysize > maxsbuf) {
+    maxsbuf = (int)mysize;
+    memory->grow(sbuf,maxsbuf,"dump:sbuf");
+  }
+  strncpy(sbuf, formatted.c_str(), (int)mysize);
+  return mysize;
 }
 
 /* ---------------------------------------------------------------------- */
 
 int DumpAtom::convert_noimage(int n, double *mybuf)
 {
-  int offset = 0;
+  std::string formatted;
   int m = 0;
-  for (int i = 0; i < n; i++) {
-    if (offset + ONELINE > maxsbuf) {
-      if ((bigint) maxsbuf + DELTA > MAXSMALLINT) return -1;
-      maxsbuf += DELTA;
-      memory->grow(sbuf,maxsbuf,"dump:sbuf");
-    }
 
-    offset += snprintf(&sbuf[offset],
-                      maxsbuf - offset,
-                      format,
-                      static_cast<tagint> (mybuf[m]),
-                      static_cast<int> (mybuf[m+1]),
-                      mybuf[m+2],mybuf[m+3],mybuf[m+4]);
+  for (int i = 0; i < n; i++) {
+    formatted += fmt::sprintf(format,
+                              static_cast<tagint> (mybuf[m]),
+                              static_cast<int> (mybuf[m+1]),
+                              mybuf[m+2], mybuf[m+3], mybuf[m+4]);
     m += size_one;
   }
 
-  return offset;
+  bigint mysize = formatted.size();
+  if (mysize > MAXSMALLINT) return -1;
+  if ((int) mysize > maxsbuf) {
+    maxsbuf = (int)mysize;
+    memory->grow(sbuf,maxsbuf,"dump:sbuf");
+  }
+  strncpy(sbuf, formatted.c_str(), (int)mysize);
+  return mysize;
 }
 
 /* ---------------------------------------------------------------------- */

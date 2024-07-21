@@ -419,9 +419,13 @@ context can be detected; otherwise a single space is used between words.
 Context Specific Help
 ^^^^^^^^^^^^^^^^^^^^^
 
-.. image:: JPG/lammps-gui-popup-help.png
-   :align: center
-   :scale: 50%
+.. |gui-popup1| image:: JPG/lammps-gui-popup-help.png
+   :width: 48%
+
+.. |gui-popup2| image:: JPG/lammps-gui-popup-view.png
+   :width: 48%
+
+|gui-popup1|  |gui-popup2|
 
 A unique feature of the LAMMPS-GUI is the option to look up the
 documentation for the command in the current line.  This can be done by
@@ -430,6 +434,11 @@ shortcut.  When using the mouse, there are additional entries in the
 context menu that open the corresponding documentation page in the
 online LAMMPS documentation in a web browser window.  When using the
 keyboard, the first of those entries is chosen.
+
+If the word under the cursor is a file, then additionally the context
+menu has an entry to open the file in a read-only text viewer window.
+This is a convenient way to view the contents of files that are
+referenced in the input.
 
 Menu
 ----
@@ -448,7 +457,8 @@ File
 The ``File`` menu offers the usual options:
 
 - ``New`` clears the current buffer and resets the file name to ``*unknown*``
-- ``Open`` opens a dialog to select a new file for editing
+- ``Open`` opens a dialog to select a new file for editing in the *Editor*
+- ``View`` opens a dialog to select a file for viewing in a *separate* window (read-only)
 - ``Save`` saves the current file; if the file name is ``*unknown*``
   a dialog will open to select a new file name
 - ``Save As`` opens a dialog to select and new file name (and folder, if
@@ -692,48 +702,54 @@ available (On macOS use the Command key instead of Ctrl/Control).
      - Redo edit
      - Ctrl+/
      - Stop Active Run
-   * - Ctrl+S
-     - Save File
+   * - Ctrl+Shift+F
+     - View File
      - Ctrl+C
      - Copy text
      - Ctrl+Shift+V
      - Set Variables
-   * - Ctrl+Shift+S
-     - Save File As
+   * - Ctrl+S
+     - Save File
      - Ctrl+X
      - Cut text
      - Ctrl+I
      - Snapshot Image
-   * - Ctrl+Q
-     - Quit Application
+   * - Ctrl+Shift+S
+     - Save File As
      - Ctrl+V
      - Paste text
      - Ctrl+L
      - Slide Show
-   * - Ctrl+W
-     - Close Window
+   * - Ctrl+Q
+     - Quit Application
      - Ctrl+A
      - Select All
      - Ctrl+P
      - Preferences
-   * - Ctrl+Shift+A
-     - About LAMMPS
+   * - Ctrl+W
+     - Close Window
      - Ctrl+Shift+H
      - Quick Help
      - Ctrl+Shift+G
      - LAMMPS-GUI Howto
-   * - Ctrl+Shift+M
-     - LAMMPS Manual
+   * - Ctrl+Shift+A
+     - About LAMMPS
      - Ctrl+?
      - Context Help
      - Ctrl+Shift+W
      - Show Variables
-   * - Ctrl+Shift+Enter
-     - Run File
+   * - Ctrl+Shift+M
+     - LAMMPS Manual
      - TAB
      - Reformat line
      - Shift+TAB
      - Show Completions
+   * - Ctrl+Shift+Enter
+     - Run File
+     -
+     -
+     -
+     -
 
 Further editing keybindings `are documented with the Qt documentation
 <https://doc.qt.io/qt-5/qplaintextedit.html#editing-key-bindings>`_.  In

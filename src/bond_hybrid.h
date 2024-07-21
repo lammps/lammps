@@ -50,6 +50,7 @@ class BondHybrid : public Bond {
   int *nbondlist;     // # of bonds in sub-style bondlists
   int *maxbond;       // max # of bonds sub-style lists can store
   int ***bondlist;    // bondlist for each sub-style
+  int **orig_map;     // location of substyle bond in original bondlist
 
   virtual void allocate();
   virtual void deallocate();

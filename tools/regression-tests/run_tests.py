@@ -58,33 +58,6 @@ class TestResult:
     self.checks = 0
     self.status = status
 
-'''
-  inputFileName:  input file with comments #REG:ADD and #REG:SUB as markers
-  outputFileName: modified input file ready for testing
-'''
-def process_markers(inputFileName, outputFileName):
-  # read in the script
-  with open(inputFileName, 'r') as file:
-    data = file.read()
-
-    # replace #REG:ADD with empty string (i.e. adding the text at the end of the line)
-    data = data.replace("#REG:ADD", "")
-
-    # replace the line contaning #REG:SUB with a line with the text that follows this marker 
-    data = data.splitlines()
-    separator="#REG:SUB"
-    out = []
-    for line in data:
-      s = line.split(separator)
-      if len(s) < 2:
-        out.append(line)
-      else:
-        out.append(s[1])
-
-  # write data to the new script
-  with open(outputFileName, 'w') as file:
-    for line in out:
-      file.write(line + "\n")
 
 '''
   yamlFileName: input YAML file with thermo structured
@@ -227,12 +200,44 @@ def divide_into_N(original_list, N):
         b.append(l)
     return b
 
+
 '''
-  attempt to plug in the REG markers before each run command
+  inputFileName:  LAMMPS input file with comments #REG:ADD and #REG:SUB as markers
+  outputFileName: modified input file ready for testing
+'''
+def process_markers(inputFileName, outputFileName):
+  # read in the script
+  with open(inputFileName, 'r') as file:
+    data = file.read()
+
+    # replace #REG:ADD with empty string (i.e. adding the text at the end of the line)
+    data = data.replace("#REG:ADD", "")
+
+    # replace the line contaning #REG:SUB with a line with the text that follows this marker 
+    data = data.splitlines()
+    separator="#REG:SUB"
+    out = []
+    for line in data:
+      s = line.split(separator)
+      if len(s) < 2:
+        out.append(line)
+      else:
+        out.append(s[1])
+
+  # write data to the new script
+  with open(outputFileName, 'w') as file:
+    for line in out:
+      file.write(line + "\n")
+
+
+'''
+  attempt to insert the #REG markers before each run command
   #REG:ADD thermo 10
   #REG:ADD thermo_style yaml
-'''
 
+  inputFileName:  provided LAMMPS input file
+  outputFileName: modified input file ready for testing
+'''
 def generate_markers(inputFileName, outputFileName):
     # read in the script
     with open(inputFileName, 'r') as file:
@@ -253,8 +258,11 @@ def generate_markers(inputFileName, outputFileName):
         for line in out:
           file.write(line + "\n")
 
-def has_markers(input):
-    with open(input) as f:
+'''
+    check if any input script has any #REG markers
+'''
+def has_markers(inputFileName):
+    with open(inputFileName) as f:
         if '#REG' in f.read():
           return True
     return False

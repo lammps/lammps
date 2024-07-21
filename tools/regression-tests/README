@@ -17,7 +17,9 @@ With the current features, users can:
 
 TODO:
 
-    + distribute the input list across multiple processes via multiprocessing to reduce the runtime
+    + keep track of the testing progress to resume the testing from the last checkpoint
+    + distribute the input list across multiple processes via multiprocessing, or 
+      split the list of input scripts into separate runs (there are 800+ input script under the top-level examples)
     + be able to be invoked from run_tests in the lammps-testing infrastruture
 
 Example uses:

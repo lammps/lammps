@@ -45,9 +45,9 @@ Example usage:
 '''
 
 import os
-import sys
 import datetime
 import fnmatch
+import re
 import subprocess
 from argparse import ArgumentParser
 
@@ -390,7 +390,7 @@ def iterate(lmp_binary, input_list, config, results, removeAnnotatedInput=False,
             thermo_ref = extract_data_to_yaml(thermo_ref_file)
             num_runs_ref = len(thermo_ref)
         else:
-            logger.info(f"Cannot find a reference log file {thermo_ref_file} for {input_test}.")
+            logger.info(f"Cannot find a reference log file for {input_test}.")
             # try to read in the thermo yaml output from the working directory
             thermo_ref_file = 'thermo.' + input + '.yaml'
             file_exist = os.path.isfile(thermo_ref_file)
@@ -549,11 +549,6 @@ def iterate(lmp_binary, input_list, config, results, removeAnnotatedInput=False,
 
     return num_passed
 
-'''
-  TODO:
-
-
-'''
 if __name__ == "__main__":
 
     # default values
@@ -613,7 +608,7 @@ if __name__ == "__main__":
     with open(configFileName, 'r') as f:
         config = yaml.load(f, Loader=Loader)
         absolute_path = os.path.abspath(configFileName)
-        print(f"Regression tests with settings defined in the configuration file {absolute_path}")
+        print(f"\nRegression tests with settings defined in the configuration file:\n  {absolute_path}")
   
     # check if lmp_binary is specified in the config yaml
     if lmp_binary == "":
@@ -625,17 +620,17 @@ if __name__ == "__main__":
 
     # print out the binary info
     packages, operating_system, GitInfo, compile_flags = get_lammps_build_configuration(lmp_binary)
-    print("LAMMPS build info:")
-    print(f"- {operating_system}")
-    print(f"- {GitInfo}")
-    print(f"- Active compile flags: {compile_flags}")
-    print(f"- List of {len(packages)} installed packages: {packages}")
+    print("\nLAMMPS build info:")
+    print(f"  - {operating_system}")
+    print(f"  - {GitInfo}")
+    print(f"  - Active compile flags: {compile_flags}")
+    print(f"  - List of {len(packages)} installed packages: {packages}")
 
     if len(example_subfolders) > 0:
-        print("- Example folders to test:")
+        print("  - Example folders to test:")
         print(example_subfolders)
     if example_toplevel != "":
-        print("- Top-level example folder:")
+        print("  - Top-level example folder:")
         print(example_toplevel)
 
     folder_list = []
@@ -667,17 +662,23 @@ if __name__ == "__main__":
     # then use the path from --example-top-folder
     if len(example_subfolders) == 0:
 
-        # get the input file list, for now the first in the sublist
-        # TODO: generate a list of tuples, each tuple contains a folder list for a worker,
-        #       then use multiprocessing.Pool starmap()
-        folder_list = []
-        for input in sublists[0]:
-            folder = input.rsplit('/', 1)[0]
-            # unique folders in the list
-            if folder not in folder_list:
-                folder_list.append(folder)
+        # need top level specified
+        if len(example_toplevel) != 0:
+            # get the input file list, for now the first in the sublist
+            # TODO: generate a list of tuples, each tuple contains a folder list for a worker,
+            #       then use multiprocessing.Pool starmap()
+            folder_list = []
+            for input in sublists[0]:
+                folder = input.rsplit('/', 1)[0]
+                # unique folders in the list
+                if folder not in folder_list:
+                    folder_list.append(folder)
 
-        example_subfolders = folder_list
+            example_subfolders = folder_list
+
+        else:
+            inplace_input = False   
+
 
     all_results = []
 
@@ -687,7 +688,7 @@ if __name__ == "__main__":
         p = subprocess.run("pwd", shell=True, text=True, capture_output=True)
         pwd = p.stdout.split('\n')[0]
         pwd = os.path.abspath(pwd)
-        print("Working directory: " + pwd)
+        print("\nWorking directory: " + pwd)
 
         # change dir to a folder under examples/, need to use os.chdir()
         # TODO: loop through the subfolders under examples/, depending on the installed packages
@@ -733,14 +734,14 @@ if __name__ == "__main__":
         input_list=['in.lj']
         total_tests = len(input_list)
         results = []
-        passed_tests = iterate(input_list, config, results)
+        passed_tests = iterate(lmp_binary, input_list, config, results)
 
         all_results.extend(results)
 
     # print out summary
-    print("Summary:")
+    print("\nSummary:")
     print(f" - {passed_tests} numerical tests passed / {total_tests} tests")
-    print(f" - Details are given in {output_file}.")
+    print(f" - Details are given in {output_file}.\n")
 
     # optional: need to check if junit_xml packaged is already installed in the env
     #   generate a JUnit XML file 

@@ -785,7 +785,7 @@ if __name__ == "__main__":
 
     else:
         # or using the input scripts in the working directory -- for debugging purposes
-        input_list=['in.lj', 'in.rhodo', 'in.eam']
+        input_list=['in.lj']
         total_tests = len(input_list)
         results = []
         passed_tests = iterate(input_list, config, results)

@@ -20,12 +20,12 @@
 
 #include "atom_kokkos.h"
 #include "atom_masks.h"
-#include "comm.h"
 #include "error.h"
 #include "ewald_const.h"
 #include "force.h"
 #include "kokkos.h"
 #include "memory_kokkos.h"
+#include "neigh_list.h"
 #include "neigh_request.h"
 #include "neighbor.h"
 #include "respa.h"
@@ -66,7 +66,6 @@ PairLJSPICACoulLongKokkos<DeviceType>::~PairLJSPICACoulLongKokkos()
     memoryKK->destroy_kokkos(k_vatom,vatom);
     memoryKK->destroy_kokkos(k_cutsq,cutsq);
     memoryKK->destroy_kokkos(k_cut_ljsq,cut_ljsq);
-    memoryKK->destroy_kokkos(k_cut_coulsq);
   }
 }
 
@@ -98,7 +97,6 @@ void PairLJSPICACoulLongKokkos<DeviceType>::compute(int eflag_in, int vflag_in)
   atomKK->sync(execution_space,datamask_read);
   k_cutsq.template sync<DeviceType>();
   k_cut_ljsq.template sync<DeviceType>();
-  k_cut_coulsq.template sync<DeviceType>();
   k_params.template sync<DeviceType>();
   if (eflag || vflag) atomKK->modified(execution_space,datamask_modify);
   else atomKK->modified(execution_space,F_MASK);
@@ -106,21 +104,20 @@ void PairLJSPICACoulLongKokkos<DeviceType>::compute(int eflag_in, int vflag_in)
   x = atomKK->k_x.view<DeviceType>();
   c_x = atomKK->k_x.view<DeviceType>();
   f = atomKK->k_f.view<DeviceType>();
+  q = atomKK->k_q.view<DeviceType>();
   type = atomKK->k_type.view<DeviceType>();
   nlocal = atom->nlocal;
   nall = atom->nlocal + atom->nghost;
-  newton_pair = force->newton_pair;
   special_lj[0] = force->special_lj[0];
   special_lj[1] = force->special_lj[1];
   special_lj[2] = force->special_lj[2];
   special_lj[3] = force->special_lj[3];
-
-  q = atomKK->k_q.view<DeviceType>();
   special_coul[0] = force->special_coul[0];
   special_coul[1] = force->special_coul[1];
   special_coul[2] = force->special_coul[2];
   special_coul[3] = force->special_coul[3];
   qqrd2e = force->qqrd2e;
+  newton_pair = force->newton_pair;
 
   // loop over neighbors of my atoms
 
@@ -134,7 +131,7 @@ void PairLJSPICACoulLongKokkos<DeviceType>::compute(int eflag_in, int vflag_in)
     ev = pair_compute<PairLJSPICACoulLongKokkos<DeviceType>,CoulLongTable<0> >
       (this,(NeighListKokkos<DeviceType>*)list);
 
-  if (eflag_global) {
+  if (eflag) {
     eng_vdwl += ev.evdwl;
     eng_coul += ev.ecoul;
   }
@@ -309,17 +306,15 @@ void PairLJSPICACoulLongKokkos<DeviceType>::allocate()
   PairLJSPICACoulLong::allocate();
 
   int n = atom->ntypes;
-
   memory->destroy(cutsq);
-  memory->destroy(cut_ljsq);
-
   memoryKK->create_kokkos(k_cutsq,cutsq,n+1,n+1,"pair:cutsq");
-  memoryKK->create_kokkos(k_cut_ljsq,cut_ljsq,n+1,n+1,"pair:cut_ljsq");
-  memoryKK->create_kokkos(k_cut_coulsq,n+1,n+1,"pair:cut_coulsq");
-
   d_cutsq = k_cutsq.template view<DeviceType>();
+
+  memory->destroy(cut_ljsq);
+  memoryKK->create_kokkos(k_cut_ljsq,cut_ljsq,n+1,n+1,"pair:cut_ljsq");
   d_cut_ljsq = k_cut_ljsq.template view<DeviceType>();
-  d_cut_coulsq = k_cut_coulsq.template view<DeviceType>();
+
+  d_cut_coulsq = typename AT::t_ffloat_2d("pair:cut_coulsq",n+1,n+1);
 
   k_params = Kokkos::DualView<params_lj_spica_coul**,Kokkos::LayoutRight,DeviceType>("PairLJSPICACoulLong::params",n+1,n+1);
   params = k_params.template view<DeviceType>();
@@ -441,6 +436,8 @@ void PairLJSPICACoulLongKokkos<DeviceType>::init_style()
 {
   PairLJSPICACoulLong::init_style();
 
+  Kokkos::deep_copy(d_cut_coulsq,cut_coulsq);
+
   // error if rRESPA with inner levels
 
   if (update->whichflag == 1 && utils::strmatch(update->integrate_style,"^respa")) {
@@ -489,11 +486,9 @@ double PairLJSPICACoulLongKokkos<DeviceType>::init_one(int i, int j)
 
   k_cutsq.h_view(i,j) = k_cutsq.h_view(j,i) = cutone*cutone;
   k_cut_ljsq.h_view(i,j) = k_cut_ljsq.h_view(j,i) = cut_ljsq[i][j];
-  k_cut_coulsq.h_view(i,j) = k_cut_coulsq.h_view(j,i) = cut_coulsq;
 
   k_cutsq.template modify<LMPHostType>();
   k_cut_ljsq.template modify<LMPHostType>();
-  k_cut_coulsq.template modify<LMPHostType>();
   k_params.template modify<LMPHostType>();
 
   return cutone;

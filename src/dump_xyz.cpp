@@ -20,6 +20,8 @@
 #include "memory.h"
 #include "update.h"
 
+#include "fmt/printf.h"
+
 #include <cstring>
 
 using namespace LAMMPS_NS;
@@ -59,8 +61,8 @@ DumpXYZ::~DumpXYZ()
 
   if (typenames) {
     for (int i = 1; i <= ntypes; i++)
-      delete [] typenames[i];
-    delete [] typenames;
+      delete[] typenames[i];
+    delete[] typenames;
     typenames = nullptr;
   }
 }
@@ -71,7 +73,7 @@ void DumpXYZ::init_style()
 {
   // format = copy of default or user-specified line format
 
-  delete [] format;
+  delete[] format;
 
   if (format_line_user)
     format = utils::strdup(fmt::format("{}\n", format_line_user));
@@ -109,9 +111,9 @@ int DumpXYZ::modify_param(int narg, char **arg)
 
     if (typenames) {
       for (int i = 1; i <= ntypes; i++)
-        delete [] typenames[i];
+        delete[] typenames[i];
 
-      delete [] typenames;
+      delete[] typenames;
       typenames = nullptr;
     }
 
@@ -128,9 +130,9 @@ int DumpXYZ::modify_param(int narg, char **arg)
 
     if (typenames) {
       for (int i = 1; i <= ntypes; i++)
-        delete [] typenames[i];
+        delete[] typenames[i];
 
-      delete [] typenames;
+      delete[] typenames;
       typenames = nullptr;
     }
 
@@ -197,21 +199,24 @@ void DumpXYZ::pack(tagint *ids)
 
 int DumpXYZ::convert_string(int n, double *mybuf)
 {
-  int offset = 0;
+  std::string formatted;
   int m = 0;
-  for (int i = 0; i < n; i++) {
-    if (offset + ONELINE > maxsbuf) {
-      if ((bigint) maxsbuf + DELTA > MAXSMALLINT) return -1;
-      maxsbuf += DELTA;
-      memory->grow(sbuf,maxsbuf,"dump:sbuf");
-    }
 
-    offset += snprintf(&sbuf[offset], maxsbuf-offset, format, typenames[static_cast<int> (mybuf[m+1])],
-                      mybuf[m+2], mybuf[m+3], mybuf[m+4]);
+  for (int i = 0; i < n; i++) {
+    formatted += fmt::sprintf(format,
+                              typenames[static_cast<tagint>(mybuf[m+1])],
+                              mybuf[m+2], mybuf[m+3], mybuf[m+4]);
     m += size_one;
   }
 
-  return offset;
+  bigint mysize = formatted.size();
+  if (mysize > MAXSMALLINT) return -1;
+  if ((int) mysize > maxsbuf) {
+    maxsbuf = (int)mysize;
+    memory->grow(sbuf,maxsbuf,"dump:sbuf");
+  }
+  strncpy(sbuf, formatted.c_str(), (int)mysize);
+  return mysize;
 }
 
 /* ---------------------------------------------------------------------- */

@@ -678,7 +678,7 @@ int DumpGrid::parse_fields(int narg, char **arg)
       field2source[iarg] = FIX;
     }
 
-    delete [] id;
+    delete[] id;
     argindex[iarg] = index;
     vtype[iarg] = Dump::DOUBLE;
     field2grid[iarg] = igrid;

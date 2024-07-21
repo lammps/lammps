@@ -48,9 +48,9 @@ class FixPIMDLangevin : public Fix {
   double inverse_np;                       // 1.0/np
   double temp;                             // temperature
   double hbar;                             // Planck's constant
-  double lj_epsilon, lj_sigma, lj_mass;    // LJ unit energy, length, and mass scales
-  double other_planck;
-  double other_mvv2e;
+  double lj_epsilon = 1, lj_sigma = 1, lj_mass = 1;    // LJ unit energy, length, and mass scales
+  double other_planck = 1;
+  double other_mvv2e = 1;
   double kt;               // k_B * temp
   double beta, beta_np;    // beta = 1./kBT beta_np = 1./kBT/np
   int thermostat;          // NHC or PILE_L

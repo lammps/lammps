@@ -705,7 +705,7 @@ int PairSurfGranular::endpt_neigh_check(int i, int j, int jflag)
 
   // check overlap with each neighbor line
   // if any line has interior overlap, another line computes
-  // if all lines have endpt overlap, line with lowest index computes
+  // if all lines have endpt overlap, line with lowest ID computes
   // kflag = overlap status with neighbor line
   // kflag = 1, interior overlap
   // kflag = 0, no overlap, should not be possible
@@ -1075,7 +1075,7 @@ int PairSurfGranular::edge_neigh_check(int i, int j, int jflag)
     kflag = overlap_sphere_tri(i,k,contact,dr,rsq);
     if (kflag > 0) return 1;
     if (kflag == 0) error->one(FLERR,"Pair surf/granular neighbor tri overlap is invalid");
-    trimin = MIN(trimin,k);
+    trimin = MIN(trimin,tag[k]);
   }
 
   if (tag[j] == trimin) return 0;

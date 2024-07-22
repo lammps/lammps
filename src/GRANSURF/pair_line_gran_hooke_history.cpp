@@ -932,7 +932,7 @@ int PairLineGranHookeHistory::endpt_neigh_check(int i, int j, int jflag)
 
   // check overlap with each neighbor line
   // if any line has interior overlap, another line computes
-  // if all lines have endpt overlap, line with lowest index computes
+  // if all lines have endpt overlap, line with lowest ID computes
   // kflag = overlap status with neighbor line
   // kflag = 1, interior overlap
   // kflag = 0, no overlap, should not be possible

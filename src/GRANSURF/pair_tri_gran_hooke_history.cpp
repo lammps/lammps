@@ -1121,7 +1121,7 @@ int PairTriGranHookeHistory::edge_neigh_check(int i, int j, int jflag)
     kflag = overlap_sphere_tri(i,k,contact,dr,rsq);
     if (kflag > 0) return 1;
     if (kflag == 0) error->one(FLERR,"Pair tri/gran neighbor tri overlap is invalid");
-    trimin = MIN(trimin,k);
+    trimin = MIN(trimin,tag[k]);
   }
 
   if (tag[j] == trimin) return 0;

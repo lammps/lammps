@@ -166,7 +166,7 @@ void DihedralHybridKokkos::allocate()
 
   memoryKK->create_kokkos(k_map, map, np1, "dihedral:map");
   memory->create(setflag, np1, "dihedral:setflag");
-  for (int i = 1; i <= np1; i++) setflag[i] = 0;
+  for (int i = 1; i < np1; i++) setflag[i] = 0;
 
   k_ndihedrallist = DAT::tdual_int_1d("dihedral:ndihedrallist", nstyles);
 }

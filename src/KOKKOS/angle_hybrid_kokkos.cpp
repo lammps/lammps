@@ -165,7 +165,7 @@ void AngleHybridKokkos::allocate()
 
   memoryKK->create_kokkos(k_map, map, np1, "angle:map");
   memory->create(setflag, np1, "angle:setflag");
-  for (int i = 1; i <= np1; i++) setflag[i] = 0;
+  for (int i = 1; i < np1; i++) setflag[i] = 0;
 
   k_nanglelist = DAT::tdual_int_1d("angle:nanglelist", nstyles);
 }

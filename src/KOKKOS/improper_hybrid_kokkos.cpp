@@ -167,7 +167,7 @@ void ImproperHybridKokkos::allocate()
 
   memoryKK->create_kokkos(k_map, map, np1, "improper:map");
   memory->create(setflag, np1, "improper:setflag");
-  for (int i = 1; i <= np1; i++) setflag[i] = 0;
+  for (int i = 1; i < np1; i++) setflag[i] = 0;
 
   k_nimproperlist = DAT::tdual_int_1d("improper:nimproperlist", nstyles);
 }

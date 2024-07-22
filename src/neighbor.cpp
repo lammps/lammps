@@ -1,4 +1,4 @@
-// clang-format off
+ // clang-format off
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    https://www.lammps.org/, Sandia National Laboratories
@@ -1077,7 +1077,7 @@ int Neighbor::init_pair()
   for (i = 0; i < nlist; i++) {
     if (lists[i]->occasional == 0 && lists[i]->pair_method)
       plist[npair_perpetual++] = i;
-    if (lists[i]->occasional)
+    if (lists[i]->occasional && lists[i]->pair_method)
       olist[npair_occasional++] = i;
  }
 

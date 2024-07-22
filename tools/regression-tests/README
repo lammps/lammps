@@ -48,15 +48,15 @@ The following Python packages need to be installed into an activated environment
 
 Example uses:
 
-    1. Simple use with the provided `tools/regression-tests/config.yaml` and the `examples/` folder at the top level:
+    1) Simple use with the provided `tools/regression-tests/config.yaml` and the `examples/` folder at the top level:
 
        python3 run_tests.py --lmp-bin=/path/to/lmp_binary
        
-    2. Use a custom testing configuration
+    2) Use a custom testing configuration
 
        python3 run_tests.py --lmp-bin=/path/to/lmp_binary --config-file=/path/to/config/file/config.yaml
    
-    3. Specify a list of example folders with a modified configuration (e.g. different tolerances)
+    3) Specify a list of example folders with a modified configuration (e.g. different tolerances)
 
        python3 run_tests.py --lmp-bin=/path/to/lmp_binary \
           --example-folders="/path/to/examples/folder1;/path/to/examples/folder2" \
@@ -65,6 +65,15 @@ Example uses:
     4) Test a LAMMPS binary with the whole top-level /examples folder in a LAMMPS source tree
 
        python3 run_tests.py --lmp-bin=/path/to/lmp_binary --example-top-level=/path/to/lammps/examples          
+
+    5) Specify a list of example folders from a text file to test, writing the results to output1.xml and
+       logging to run1.log
+
+       python3 run_tests.py --lmp-bin=/path/to/lmp_binary --list-input=list_subfolders1.txt \
+          --output=output1.xml --logfile=run1.log
+
+       This is used for splitting the subfolders into separate input lists and launching
+       different instances of run_tests.py simultaneously.
 
 An example of the test configuration `config.yaml` is given as below.
 
@@ -106,3 +115,10 @@ An example of the test configuration `config.yaml` is given as below.
 
     nugget: 1.0
     epsilon: 1e-16
+
+An example of the list of input scripts in a text file `list_subfolders1.txt`
+
+/home/codes/lammps/examples/melt
+/home/codes/lammps/examples/body
+/home/codes/lammps/examples/PACKAGES/dielectric
+/home/codes/lammps/examples/PACKAGES/tally

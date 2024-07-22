@@ -598,6 +598,7 @@ if __name__ == "__main__":
     verbose = False
     output_file = "output.xml"
     log_file = "run.log"
+    list_input = ""
     dry_run = False
     
     # distribute the total number of input scripts over the workers
@@ -610,6 +611,7 @@ if __name__ == "__main__":
                         help="Configuration YAML file")
     parser.add_argument("--example-top-level", dest="example_toplevel", default="", help="Example top-level")
     parser.add_argument("--example-folders", dest="example_folders", default="", help="Example subfolders")
+    parser.add_argument("--list-input", dest="list_input", default="", help="File that lists the subfolders")
     parser.add_argument("--num-workers", dest="num_workers", default=1, help="Number of workers")
     parser.add_argument("--gen-ref",dest="genref", action='store_true', default=False,
                         help="Generating reference data")
@@ -620,7 +622,7 @@ if __name__ == "__main__":
     parser.add_argument("--output",dest="output", default=output_file, help="Output file")
     parser.add_argument("--logfile",dest="logfile", default=log_file, help="Log file")
     parser.add_argument("--dry-run",dest="dry_run", action='store_true', default=False,
-                        help="Only report statistics")
+                        help="Only report statistics, not running the tests")
 
     args = parser.parse_args()
 
@@ -628,13 +630,14 @@ if __name__ == "__main__":
     configFileName = args.config_file
     output_file = args.output
     num_workers = args.num_workers
+    list_input = args.list_input
 
     # example_toplevel is where all the examples subfolders reside
     if args.example_toplevel != "":
        example_toplevel = args.example_toplevel
     if args.example_folders != "":
         example_subfolders = args.example_folders.split(';')
-       
+   
     genref = args.genref
     verbose = args.verbose
     log_file = args.logfile
@@ -671,30 +674,13 @@ if __name__ == "__main__":
     for p in packages:
         all_pkgs += p + " "
     print(all_pkgs)
-    
+
     if len(example_subfolders) > 0:
         print("\nExample folders to test:")
         print(example_subfolders)
     if example_toplevel != "":
         print("\nTop-level example folder:")
         print(example_toplevel)
-
-    folder_list = []
-    if len(example_toplevel) != 0:
-        # getting the list of all the input files because there are subfolders (e.g. PACKAGES) under the top level
-        cmd_str = f"find {example_toplevel} -name \"in.*\" "
-        p = subprocess.run(cmd_str, shell=True, text=True, capture_output=True)
-        input_list = p.stdout.split('\n')
-        input_list.remove("")
-
-        # find out which folder to cd into to run the input script
-        for input in input_list:
-            folder = input.rsplit('/', 1)[0]
-            folder_list.append(folder)
-        print(f"There are {len(input_list)} input scripts in total under the {example_toplevel} folder.")
-
-        # divide the list of input scripts into num_workers chunks
-        sublists = divide_into_N(input_list, num_workers)
 
     # if only statistics, not running anything
     if dry_run == True:
@@ -705,11 +691,26 @@ if __name__ == "__main__":
     test_cases = []
 
     # if the example folders are not specified from the command-line argument --example-folders
-    # then use the path from --example-top-folder
+    # then use the path from --example-top-folder, or from the input-list read from a text file
     if len(example_subfolders) == 0:
 
         # need top level specified
         if len(example_toplevel) != 0:
+            # getting the list of all the input files because there are subfolders (e.g. PACKAGES) under the top level
+            cmd_str = f"find {example_toplevel} -name \"in.*\" "
+            p = subprocess.run(cmd_str, shell=True, text=True, capture_output=True)
+            input_list = p.stdout.split('\n')
+            input_list.remove("")
+
+            # find out which folder to cd into to run the input script
+            for input in input_list:
+                folder = input.rsplit('/', 1)[0]
+                example_subfolders.append(folder)
+            print(f"There are {len(input_list)} input scripts in total under the {example_toplevel} folder.")
+
+            # divide the list of input scripts into num_workers chunks
+            sublists = divide_into_N(input_list, num_workers)
+
             # get the input file list, for now the first in the sublist
             # TODO: generate a list of tuples, each tuple contains a folder list for a worker,
             #       then use multiprocessing.Pool starmap()
@@ -722,8 +723,18 @@ if __name__ == "__main__":
 
             example_subfolders = folder_list
 
+        # if a list of input files are provided
+        elif len(list_input) != 0:
+            print(f"List folders from file: {list_input} {len(list_input)}")
+            with open(list_input, "r") as f:
+                all_subfolders = f.read().splitlines()
+                f.close()
+                for folder in all_subfolders:
+                    if len(folder) > 0:
+                        example_subfolders.append(folder)
+                
         else:
-            inplace_input = False   
+            inplace_input = False
 
 
     all_results = []

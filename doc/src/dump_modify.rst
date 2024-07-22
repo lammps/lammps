@@ -107,6 +107,13 @@ Syntax
 
        *checksum* args = *yes* or *no* (add checksum at end of zst file)
 
+* these keywords apply only to the vtk* dump style
+* keyword = *binary*
+
+  .. parsed-literal::
+
+       *binary* args = *yes* or *no* (select between binary and text mode VTK files)
+
 Examples
 """"""""
 
@@ -907,11 +914,11 @@ box size stored with the snapshot.
 
 ----------
 
-The COMPRESS package offers both GZ and Zstd compression variants of
-styles atom, custom, local, cfg, and xyz. When using these styles the
-compression level can be controlled by the :code:`compression_level`
-keyword. File names with these styles have to end in either
-:code:`.gz` or :code:`.zst`.
+The :ref:`COMPRESS package <PKG-COMPRESS>` offers both GZ and Zstd
+compression variants of styles atom, custom, local, cfg, and xyz. When
+using these styles the compression level can be controlled by the
+:code:`compression_level` keyword. File names with these styles have to
+end in either :code:`.gz` or :code:`.zst`.
 
 GZ supports compression levels from :math:`-1` (default), 0 (no compression),
 and 1 to 9, 9 being the best compression. The COMPRESS :code:`/gz` styles use 9
@@ -927,6 +934,17 @@ similar compression ratios. For more details see
 In addition, Zstd compressed files can include a checksum of the
 entire contents. The Zstd enabled dump styles enable this feature by
 default and it can be disabled with the :code:`checksum` keyword.
+
+----------
+
+The :ref:`VTK package <PKG-VTK>` offers writing dump files in `VTK file
+formats <https://www.vtk.org/>`_ that can be read by a variety of
+visualization tools based on the VTK library.  These VTK files follow
+naming conventions that collide with the LAMMPS convention to append
+".bin" to a file name in order to switch to a binary output.  Thus for
+:doc:`vtk style dumps <dump_vtk>` the dump_modify command supports the
+keyword *binary* which selects between generating text mode and binary
+style VTK files.
 
 ----------
 

@@ -629,7 +629,8 @@ if __name__ == "__main__":
     lmp_binary = os.path.abspath(args.lmp_binary)
     configFileName = args.config_file
     output_file = args.output
-    num_workers = args.num_workers
+    if int(args.num_workers) > 0:
+        num_workers = int(args.num_workers)
     list_input = args.list_input
 
     # example_toplevel is where all the examples subfolders reside
@@ -701,31 +702,37 @@ if __name__ == "__main__":
             p = subprocess.run(cmd_str, shell=True, text=True, capture_output=True)
             input_list = p.stdout.split('\n')
             input_list.remove("")
-
-            # find out which folder to cd into to run the input script
-            for input in input_list:
-                folder = input.rsplit('/', 1)[0]
-                example_subfolders.append(folder)
             print(f"There are {len(input_list)} input scripts in total under the {example_toplevel} folder.")
 
-            # divide the list of input scripts into num_workers chunks
-            sublists = divide_into_N(input_list, num_workers)
-
-            # get the input file list, for now the first in the sublist
+            # get the input file list
             # TODO: generate a list of tuples, each tuple contains a folder list for a worker,
             #       then use multiprocessing.Pool starmap()
             folder_list = []
-            for input in sublists[0]:
+            for input in input_list:
                 folder = input.rsplit('/', 1)[0]
                 # unique folders in the list
                 if folder not in folder_list:
                     folder_list.append(folder)
 
+            # divide the list of folders into num_workers chunks
+            sublists = divide_into_N(folder_list, num_workers)
+
+            # write each chunk to a file
+            idx = 0
+            for list_input in sublists:
+                filename = f"input-list-{idx}.txt"
+                with open(filename, "w") as f:
+                    for folder in list_input:
+                        f.write(folder + '\n')
+                    f.close()
+                idx = idx + 1
+
+            # working on all the folders for now
             example_subfolders = folder_list
 
-        # if a list of input files are provided
+        # if a list of subfolders are provided from a text file (list_input from the command-line argument)
         elif len(list_input) != 0:
-            print(f"List folders from file: {list_input} {len(list_input)}")
+            print(f"List of folders from {list_input}: {len(list_input)} folders")
             with open(list_input, "r") as f:
                 all_subfolders = f.read().splitlines()
                 f.close()

@@ -200,7 +200,7 @@ def get_lammps_build_configuration(lmp_binary):
 def execute(lmp_binary, config, input_file_name, generate_ref_yaml=False):
     cmd_str = config['mpiexec'] + " " + config['mpiexec_numproc_flag'] + " " + config['nprocs'] + " "
     cmd_str += lmp_binary + " -in " + input_file_name + " " + config['args']
-    print(f"Executing: {cmd_str}")
+    logger.info(f"Executing: {cmd_str}")
     p = subprocess.run(cmd_str, shell=True, text=True, capture_output=True)
 
     return cmd_str, p.stdout, p.stderr, p.returncode
@@ -353,7 +353,7 @@ def iterate(lmp_binary, input_folder, input_list, config, results, progress_file
               
                 continue
     
-        str_t = "\nRunning " + input + f" ({test_id+1}/{num_tests})"
+        str_t = "  + " + input + f" ({test_id+1}/{num_tests})"
 
         result = TestResult(name=input, output="", time="", status="passed")
 
@@ -375,12 +375,12 @@ def iterate(lmp_binary, input_folder, input_list, config, results, progress_file
                         generate_markers(input, input_markers)
                         process_markers(input_markers, input_test)
                 
-                str_t = "\nRunning " + input_test + f" ({test_id+1}/{num_tests})"
+                str_t = "\n   + " + input_test + f" ({test_id+1}/{num_tests})"
         else:
             input_test = input
 
         print(str_t)
-        print(f"-"*len(str_t))
+        #print(f"-"*len(str_t))
         logger.info(str_t)
         logger.info(f"-"*len(str_t))
 
@@ -467,7 +467,7 @@ def iterate(lmp_binary, input_folder, input_list, config, results, progress_file
                 test_id = test_id + 1
                 continue
 
-        print(f"Comparing thermo output from log.lammps against the reference log file {thermo_ref_file}")
+        logger.info(f"Comparing thermo output from log.lammps against the reference log file {thermo_ref_file}")
         if num_runs != num_runs_ref:
             logger.info(f"ERROR: Number of runs in log.lammps ({num_runs}) is not the same as that in the reference log ({num_runs_ref})")
             result.status = "error"
@@ -554,19 +554,25 @@ def iterate(lmp_binary, input_folder, input_list, config, results, progress_file
                     "{abs_diff_check.rjust(20)} {rel_diff_check.rjust(20)}")
 
         if num_abs_failed > 0:
-            print(f"{num_abs_failed} absolute diff checks failed with the specified tolerances.")
+            msg = f"      {num_abs_failed} abs diff checks failed."
+            print(msg)
+            logger.info(msg)
             result.status = "failed"
             if verbose == True:
                 for i in failed_abs_output:
                     print(f"- {i}")
         if num_rel_failed > 0:
-            print(f"{num_rel_failed} relative diff checks failed with the specified tolerances.")
+            msg = f"      {num_rel_failed} rel diff checks failed."
+            print(msg)
+            logger.info(msg)
             result.status = "failed"
             if verbose == True:
                 for i in failed_rel_output:
                     print(f"- {i}")
         if num_abs_failed == 0 and num_rel_failed == 0:
-            print(f"All {num_checks} checks passed.")
+            msg = f"      all {num_checks} checks passed."
+            print(msg)
+            logger.info(msg)
             result.status = "passed"        
             num_passed = num_passed + 1
 
@@ -575,9 +581,9 @@ def iterate(lmp_binary, input_folder, input_list, config, results, progress_file
         progress.write(f"{input}: {{ folder: {input_folder}, status: completed }}\n")
         progress.close()
 
-        str_t = f"Completed " + input_test
-        print(str_t)
-        print("-"*(5*width+4))
+        #str_t = f"Completed " + input_test
+        #print(str_t)
+        #print("-"*(5*width+4))
         test_id = test_id + 1
 
         # remove the annotated input script
@@ -678,10 +684,10 @@ if __name__ == "__main__":
 
     if len(example_subfolders) > 0:
         print("\nExample folders to test:")
-        print(example_subfolders)
+        print(*example_subfolders, sep='\n')
     if example_toplevel != "":
         print("\nTop-level example folder:")
-        print(example_toplevel)
+        print(f"  {example_toplevel}")
 
     # Using in place input scripts
     inplace_input = True
@@ -764,7 +770,6 @@ if __name__ == "__main__":
         except Exception:
             print(f"Cannot open progress file {progress_file} to resume, rerun all the tests")
 
-    print("\nStart..")
     # default setting is to use inplace_input
     if inplace_input == True:
 
@@ -785,7 +790,8 @@ if __name__ == "__main__":
         for directory in example_subfolders:
 
             # change to the directory where the input script and data files are located
-            print("\nEntering " + directory)
+            print("-"*80)
+            print("Entering " + directory)
             os.chdir(directory)
 
             cmd_str = "ls in.*"
@@ -793,7 +799,7 @@ if __name__ == "__main__":
             input_list = p.stdout.split('\n')
             input_list.remove('')
 
-            print(f"List of {len(input_list)} input scripts: {input_list}")
+            print(f"{len(input_list)} input script(s): {input_list}")
             total_tests += len(input_list)
 
             # iterate through the input scripts

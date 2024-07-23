@@ -683,10 +683,6 @@ if __name__ == "__main__":
         print("\nTop-level example folder:")
         print(example_toplevel)
 
-    # if only statistics, not running anything
-    if dry_run == True:
-        quit()
-
     # Using in place input scripts
     inplace_input = True
     test_cases = []
@@ -732,7 +728,7 @@ if __name__ == "__main__":
 
         # if a list of subfolders are provided from a text file (list_input from the command-line argument)
         elif len(list_input) != 0:
-            print(f"List of folders from {list_input}: {len(list_input)} folders")
+            print(f"There are {len(list_input)} folders listed in {list_input}.")
             with open(list_input, "r") as f:
                 all_subfolders = f.read().splitlines()
                 f.close()
@@ -743,6 +739,9 @@ if __name__ == "__main__":
         else:
             inplace_input = False
 
+    # if only statistics, not running any test
+    if dry_run == True:
+        quit()
 
     all_results = []
 

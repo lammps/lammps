@@ -1687,7 +1687,7 @@ void AtomVec::data_atom(double *coord, imageint imagetmp, const std::vector<std:
           ivalue += cols;
           continue;
         }
-        for (m = 0; m < cols; m++)                                      \
+        for (m = 0; m < cols; m++)
           array[nlocal][m] = utils::numeric(FLERR, values[ivalue++], true, lmp);
       }
     } else if (datatype == Atom::INT) {

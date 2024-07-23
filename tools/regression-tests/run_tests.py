@@ -16,7 +16,7 @@ With the current features, users can:
 
 Limitations:
     - input scripts use thermo style multi (e.g., examples/peptide) do not work with the expected thermo output format
-    - input scripts that require partition runs (e.g. examples/neb) need a separate config file, e.g. "args: --partition 2x1"
+    - input scripts that require partition runs (e.g. examples/neb) need a separate config file, e.g. "args: --partition 3x1"
     - testing accelerator packages (GPU, INTEL, KOKKOS, OPENMP) need separate config files, "args: -sf omp -pk omp 4"
 
 TODO:
@@ -32,16 +32,32 @@ The following Python packages need to be installed into an activated environment
     pip install numpy pyyaml junit_xml
 
 Example usage:
+
     1) Simple use (using the provided tools/regression-tests/config.yaml and the examples/ folder at the top level)
-       python3 run_tests.py --lmp-bin=/path/to/lmp_binary
+           python3 run_tests.py --lmp-bin=/path/to/lmp_binary
+
     2) Use a custom testing configuration
-       python3 run_tests.py --lmp-bin=/path/to/lmp_binary --config-file=/path/to/config/file/config.yaml
-    3) Specify a list of example folders with a modifed configuration (e.g. different tolerances)
-       python3 run_tests.py --lmp-bin=/path/to/lmp_binary \
-          --example-folders="/path/to/examples/folder1;/path/to/examples/folder2" \
-          --config-file=/path/to/config/file/config.yaml 
+           python3 run_tests.py --lmp-bin=/path/to/lmp_binary --config-file=/path/to/config/file/config.yaml
+
+    3) Specify a list of example folders
+           python3 run_tests.py --lmp-bin=/path/to/lmp_binary --config-file=/path/to/config/file/config.yaml \
+                --example-folders="/path/to/examples/folder1;/path/to/examples/folder2"
+
+       The example folders can also be loaded from a text file list_subfolders1.txt:
+           python3 run_tests.py --lmp-bin=/path/to/lmp_binary --config-file=/path/to/config/file/config.yaml \
+                --list-input=list_subfolders1.txt --output-file=output1.txt --progress-file=progress1.yaml \
+                --log-file=run1.log
+          
     4) Test a LAMMPS binary with the whole top-level /examples folder in a LAMMPS source tree
-       python3 run_tests.py --lmp-bin=/path/to/lmp_binary --example-top-level=/path/to/lammps/examples
+           python3 run_tests.py --lmp-bin=/path/to/lmp_binary --example-top-level=/path/to/lammps/examples
+
+    5) Analyze (dry run) the LAMMPS binary annd whole top-level /examples folder in a LAMMPS source tree 
+       and generate separate input lists for 8 workers:
+           python3 run_tests.py --lmp-bin=/path/to/lmp_binary --example-top-level=/path/to/lammps/examples \
+                --dry-run --num-workers=8
+
+       This is used for splitting the subfolders into separate input lists and launching different instances
+       of run_tests.py simultaneously.
 '''
 
 import os
@@ -603,6 +619,7 @@ if __name__ == "__main__":
     genref = False
     verbose = False
     output_file = "output.xml"
+    progress_file = "progress.yaml"
     log_file = "run.log"
     list_input = ""
     dry_run = False
@@ -625,8 +642,9 @@ if __name__ == "__main__":
                         help="Verbose output")
     parser.add_argument("--resume",dest="resume", action='store_true', default=False,
                         help="Resume the test run")
-    parser.add_argument("--output",dest="output", default=output_file, help="Output file")
-    parser.add_argument("--logfile",dest="logfile", default=log_file, help="Log file")
+    parser.add_argument("--output-file",dest="output", default=output_file, help="Output file")
+    parser.add_argument("--log-file",dest="logfile", default=log_file, help="Log file")
+    parser.add_argument("--progress-file",dest="progress_file", default=progress_file, help="Progress file")
     parser.add_argument("--dry-run",dest="dry_run", action='store_true', default=False,
                         help="Only report statistics, not running the tests")
 
@@ -650,6 +668,7 @@ if __name__ == "__main__":
     log_file = args.logfile
     dry_run = args.dry_run
     resume = args.resume
+    progress_file = args.progress_file
 
     # logging
     logger = logging.getLogger(__name__)
@@ -757,18 +776,18 @@ if __name__ == "__main__":
     pwd = os.path.abspath(pwd)
     print("\nWorking directory: " + pwd)
     
-    progress_file = pwd + "/progress.yaml"
+    progress_file_abs = pwd + "/" + progress_file
     last_progress = {}
     if resume == False:
-        progress = open(progress_file, "w")
+        progress = open(progress_file_abs, "w")
         progress.close()
     else:
         try:
-            progress = open(progress_file, "r")
+            progress = open(progress_file_abs, "r")
             last_progress = yaml.load(progress, Loader=Loader)
             progress.close()
         except Exception:
-            print(f"Cannot open progress file {progress_file} to resume, rerun all the tests")
+            print(f"Cannot open progress file {progress_file_abs} to resume, rerun all the tests")
 
     # default setting is to use inplace_input
     if inplace_input == True:
@@ -804,7 +823,7 @@ if __name__ == "__main__":
 
             # iterate through the input scripts
             results = []
-            num_passed = iterate(lmp_binary, directory, input_list, config, results, progress_file, last_progress)
+            num_passed = iterate(lmp_binary, directory, input_list, config, results, progress_file_abs, last_progress)
             passed_tests += num_passed
 
             # append the results to the all_results list
@@ -818,13 +837,13 @@ if __name__ == "__main__":
         input_list=['in.lj']
         total_tests = len(input_list)
         results = []
-        passed_tests = iterate(lmp_binary, pwd, input_list, config, results, progress_file)
+        passed_tests = iterate(lmp_binary, pwd, input_list, config, results, progress_file_abs)
 
         all_results.extend(results)
 
     # print out summary
     print("\nSummary:")
-    print(f" - {passed_tests} numerical tests passed / {total_tests} tests")
+    print(f" - {passed_tests} numerical tests passed / {total_tests} tests run")
     print(f" - Test results in JUnit XML format are given in {output_file}.")
     print(f" - Progress is given in {progress_file}.\n")
 

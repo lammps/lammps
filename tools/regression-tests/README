@@ -14,7 +14,7 @@ The output and error of any crashed runs are logged.
 
 A test with an input script is considered passed when the given LAMMPS binary produces
 thermo output quantities consistent with those in the reference log file
-within the specified tolerances in the test configuration `.yaml` file.
+within the specified tolerances in the test configuration `config.yaml` file.
 
 With the current features, users can:
 
@@ -48,32 +48,31 @@ The following Python packages need to be installed into an activated environment
 
 Example uses:
 
-    1) Simple use with the provided `tools/regression-tests/config.yaml` and the `examples/` folder at the top level:
+    1) Simple use (using the provided tools/regression-tests/config.yaml and the examples/ folder at the top level)
+           python3 run_tests.py --lmp-bin=/path/to/lmp_binary
 
-       python3 run_tests.py --lmp-bin=/path/to/lmp_binary
-       
     2) Use a custom testing configuration
+           python3 run_tests.py --lmp-bin=/path/to/lmp_binary --config-file=/path/to/config/file/config.yaml
 
-       python3 run_tests.py --lmp-bin=/path/to/lmp_binary --config-file=/path/to/config/file/config.yaml
-   
-    3) Specify a list of example folders with a modified configuration (e.g. different tolerances)
+    3) Specify a list of example folders
+           python3 run_tests.py --lmp-bin=/path/to/lmp_binary --config-file=/path/to/config/file/config.yaml \
+                --example-folders="/path/to/examples/folder1;/path/to/examples/folder2"
 
-       python3 run_tests.py --lmp-bin=/path/to/lmp_binary \
-          --example-folders="/path/to/examples/folder1;/path/to/examples/folder2" \
-          --config-file=/path/to/config/file/config.yaml 
-
+       The example folders can also be loaded from a text file list_subfolders1.txt:
+           python3 run_tests.py --lmp-bin=/path/to/lmp_binary --config-file=/path/to/config/file/config.yaml \
+                --list-input=list_subfolders1.txt --output-file=output1.txt --progress-file=progress1.yaml \
+                --log-file=run1.log
+          
     4) Test a LAMMPS binary with the whole top-level /examples folder in a LAMMPS source tree
+           python3 run_tests.py --lmp-bin=/path/to/lmp_binary --example-top-level=/path/to/lammps/examples
 
-       python3 run_tests.py --lmp-bin=/path/to/lmp_binary --example-top-level=/path/to/lammps/examples          
+    5) Analyze (dry run) the LAMMPS binary annd whole top-level /examples folder in a LAMMPS source tree 
+       and generate separate input lists for 8 workers:
+           python3 run_tests.py --lmp-bin=/path/to/lmp_binary --example-top-level=/path/to/lammps/examples \
+                --dry-run --num-workers=8
 
-    5) Specify a list of example folders from a text file to test, writing the results to output1.xml and
-       logging to run1.log
-
-       python3 run_tests.py --lmp-bin=/path/to/lmp_binary --list-input=list_subfolders1.txt \
-          --output=output1.xml --logfile=run1.log
-
-       This is used for splitting the subfolders into separate input lists and launching
-       different instances of run_tests.py simultaneously.
+       This is used for splitting the subfolders into separate input lists and launching different instances
+       of run_tests.py simultaneously.
 
 An example of the test configuration `config.yaml` is given as below.
 

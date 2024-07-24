@@ -21,7 +21,7 @@
 // duplicate string, STL version
 char *mystrdup(const std::string &text)
 {
-    auto tmp = new char[text.size() + 1];
+    auto *tmp = new char[text.size() + 1];
     memcpy(tmp, text.c_str(), text.size() + 1);
     return tmp;
 }

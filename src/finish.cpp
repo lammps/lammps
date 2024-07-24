@@ -62,7 +62,8 @@ Finish::Finish(LAMMPS *lmp) : Pointers(lmp) {}
 
 void Finish::end(int flag)
 {
-  int i,nneigh,nneighfull;
+  int i;
+  bigint nneigh,nneighfull;
   int histo[10];
   int minflag,prdflag,tadflag,hyperflag;
   int timeflag,fftflag,histoflag,neighflag;

@@ -291,8 +291,7 @@ void ComputeHMA::compute_vector()
       double *special_coul = force->special_coul;
       int newton_pair = force->newton_pair;
 
-      if (update->firststep == update->ntimestep) neighbor->build_one(list,1);
-      else neighbor->build_one(list);
+      neighbor->build_one(list);
       int inum = list->inum;
       int *ilist = list->ilist;
       int *numneigh = list->numneigh;

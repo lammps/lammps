@@ -14,6 +14,7 @@
 #include "lammpsgui.h"
 
 #include "chartviewer.h"
+#include "fileviewer.h"
 #include "helpers.h"
 #include "highlighter.h"
 #include "imageviewer.h"
@@ -88,7 +89,7 @@ LammpsGui::LammpsGui(QWidget *parent, const char *filename) :
 #define myxstr(x) #x
     QCoreApplication::setOrganizationName("The LAMMPS Developers");
     QCoreApplication::setOrganizationDomain("lammps.org");
-    QCoreApplication::setApplicationName("LAMMPS GUI - QT" stringify(QT_VERSION_MAJOR));
+    QCoreApplication::setApplicationName("LAMMPS-GUI - QT" stringify(QT_VERSION_MAJOR));
 #undef stringify
 #undef myxstr
 
@@ -169,7 +170,7 @@ LammpsGui::LammpsGui(QWidget *parent, const char *filename) :
     ui->textEdit->setMinimumSize(600, 400);
 
     varwindow = new QLabel(QString());
-    varwindow->setWindowTitle("LAMMPS-GUI - Current Variables:");
+    varwindow->setWindowTitle(QString("LAMMPS-GUI - Current Variables"));
     varwindow->setWindowIcon(QIcon(":/icons/lammps-icon-128x128.png"));
     varwindow->setMinimumSize(100, 50);
     varwindow->setText("(none)");
@@ -193,6 +194,7 @@ LammpsGui::LammpsGui(QWidget *parent, const char *filename) :
     connect(ui->actionOpen, &QAction::triggered, this, &LammpsGui::open);
     connect(ui->actionSave, &QAction::triggered, this, &LammpsGui::save);
     connect(ui->actionSave_As, &QAction::triggered, this, &LammpsGui::save_as);
+    connect(ui->actionView, &QAction::triggered, this, &LammpsGui::view);
     connect(ui->actionQuit, &QAction::triggered, this, &LammpsGui::quit);
     connect(ui->actionCopy, &QAction::triggered, this, &LammpsGui::copy);
     connect(ui->actionCut, &QAction::triggered, this, &LammpsGui::cut);
@@ -239,15 +241,19 @@ LammpsGui::LammpsGui(QWidget *parent, const char *filename) :
     lammpsstatus->setToolTip("LAMMPS instance is active");
     lammpsstatus->hide();
 
+    auto *lammpssave  = new QPushButton(QIcon(":/icons/document-save.png"), "");
     auto *lammpsrun   = new QPushButton(QIcon(":/icons/system-run.png"), "");
     auto *lammpsstop  = new QPushButton(QIcon(":/icons/process-stop.png"), "");
     auto *lammpsimage = new QPushButton(QIcon(":/icons/emblem-photos.png"), "");
+    lammpssave->setToolTip("Save edit buffer to file");
     lammpsrun->setToolTip("Run LAMMPS on input");
     lammpsstop->setToolTip("Stop LAMMPS");
     lammpsimage->setToolTip("Create snapshot image");
+    ui->statusbar->addWidget(lammpssave);
     ui->statusbar->addWidget(lammpsrun);
     ui->statusbar->addWidget(lammpsstop);
     ui->statusbar->addWidget(lammpsimage);
+    connect(lammpssave, &QPushButton::released, this, &LammpsGui::save);
     connect(lammpsrun, &QPushButton::released, this, &LammpsGui::run_buffer);
     connect(lammpsstop, &QPushButton::released, this, &LammpsGui::stop_run);
     connect(lammpsimage, &QPushButton::released, this, &LammpsGui::render_image);
@@ -268,7 +274,7 @@ LammpsGui::LammpsGui(QWidget *parent, const char *filename) :
     if (filename) {
         open_file(filename);
     } else {
-        setWindowTitle(QString("LAMMPS-GUI - *unknown*"));
+        setWindowTitle("LAMMPS-GUI - Editor - *unknown*");
     }
     resize(settings.value("mainx", "500").toInt(), settings.value("mainy", "320").toInt());
 
@@ -300,14 +306,14 @@ LammpsGui::LammpsGui(QWidget *parent, const char *filename) :
     const char *varstyles[] = {"delete",   "atomfile", "file",   "format", "getenv", "index",
                                "internal", "loop",     "python", "string", "timer",  "uloop",
                                "universe", "world",    "equal",  "vector", "atom"};
-    for (const auto var : varstyles)
+    for (const auto *const var : varstyles)
         style_list << var;
     style_list.sort();
     ui->textEdit->setVariableList(style_list);
 
     style_list.clear();
     const char *unitstyles[] = {"lj", "real", "metal", "si", "cgs", "electron", "micro", "nano"};
-    for (const auto unit : unitstyles)
+    for (const auto *const unit : unitstyles)
         style_list << unit;
     style_list.sort();
     ui->textEdit->setUnitsList(style_list);
@@ -380,7 +386,7 @@ void LammpsGui::new_document()
     }
     lammps.close();
     lammpsstatus->hide();
-    setWindowTitle(QString("LAMMPS-GUI - *unknown*"));
+    setWindowTitle("LAMMPS-GUI - Editor - *unknown*");
     run_counter = 0;
 }
 
@@ -390,16 +396,22 @@ void LammpsGui::open()
     open_file(fileName);
 }
 
+void LammpsGui::view()
+{
+    QString fileName = QFileDialog::getOpenFileName(this, "Open the file");
+    view_file(fileName);
+}
+
 void LammpsGui::open_recent()
 {
-    QAction *act = qobject_cast<QAction *>(sender());
+    auto *act = qobject_cast<QAction *>(sender());
     if (act) open_file(act->data().toString());
 }
 
 void LammpsGui::start_exe()
 {
     if (!lammps.extract_setting("box_exists")) return;
-    QAction *act = qobject_cast<QAction *>(sender());
+    auto *act = qobject_cast<QAction *>(sender());
     if (act) {
         auto exe        = act->data().toString();
         QString datacmd = "write_data '";
@@ -605,7 +617,7 @@ void LammpsGui::open_file(const QString &fileName)
         ui->textEdit->moveCursor(QTextCursor::Start, QTextCursor::MoveAnchor);
         file.close();
     }
-    setWindowTitle(QString("LAMMPS-GUI - " + current_file));
+    setWindowTitle(QString("LAMMPS-GUI - Editor - " + current_file));
     run_counter = 0;
     ui->textEdit->document()->setModified(false);
     ui->textEdit->setGroupList();
@@ -636,6 +648,20 @@ void LammpsGui::open_file(const QString &fileName)
     lammps.close();
 }
 
+// open file in read-only mode for viewing in separate window
+void LammpsGui::view_file(const QString &fileName)
+{
+    QFile file(fileName);
+    if (!file.open(QIODevice::ReadOnly | QFile::Text)) {
+        QMessageBox::warning(this, "Warning",
+                             "Cannot open file " + fileName + ": " + file.errorString() + ".\n");
+    } else {
+        file.close();
+        auto *viewer = new FileViewer(fileName);
+        viewer->show();
+    }
+}
+
 // write file and update CWD to its folder
 
 void LammpsGui::write_file(const QString &fileName)
@@ -649,7 +675,7 @@ void LammpsGui::write_file(const QString &fileName)
         QMessageBox::warning(this, "Warning", "Cannot save file: " + file.errorString());
         return;
     }
-    setWindowTitle(QString("LAMMPS-GUI - " + current_file));
+    setWindowTitle(QString("LAMMPS-GUI - Editor - " + current_file));
     QDir::setCurrent(current_dir);
 
     update_recents(path.absoluteFilePath());
@@ -811,8 +837,8 @@ void LammpsGui::logupdate()
             step = (int)*(int64_t *)ptr;
     }
 
-    // extract cached thermo data
-    if (chartwindow) {
+    // extract cached thermo data when LAMMPS is executing a minimize or run command
+    if (chartwindow && lammps.is_running()) {
         // thermo data is not yet valid during setup
         void *ptr = lammps.last_thermo("setup", 0);
         if (ptr && *(int *)ptr) return;
@@ -854,7 +880,7 @@ void LammpsGui::logupdate()
             for (int i = 0; i < ncols; ++i) {
                 int datatype = -1;
                 double data  = 0.0;
-                void *ptr = lammps.last_thermo("type", i);
+                void *ptr    = lammps.last_thermo("type", i);
                 if (ptr) datatype = *(int *)ptr;
                 ptr = lammps.last_thermo("data", i);
                 if (ptr) {
@@ -881,8 +907,9 @@ void LammpsGui::logupdate()
             else
                 slideshow->hide();
         } else {
-            slideshow->setWindowTitle(
-                QString("LAMMPS-GUI - Slide Show: %1 - Run %2").arg(current_file).arg(run_counter));
+            slideshow->setWindowTitle(QString("LAMMPS-GUI - Slide Show - %1 - Run %2")
+                                          .arg(current_file)
+                                          .arg(run_counter));
             if (QSettings().value("viewslide", true).toBool()) slideshow->show();
         }
         slideshow->add_image(imagefile);
@@ -971,7 +998,7 @@ void LammpsGui::run_done()
 void LammpsGui::do_run(bool use_buffer)
 {
     if (lammps.is_running()) {
-        QMessageBox::warning(this, "LAMMPS GUI Error",
+        QMessageBox::warning(this, "LAMMPS-GUI Error",
                              "Must stop current run before starting a new run");
         return;
     }
@@ -1042,17 +1069,14 @@ void LammpsGui::do_run(bool use_buffer)
     logwindow->setCenterOnScroll(true);
     logwindow->moveCursor(QTextCursor::End);
     logwindow->setWindowTitle(
-        QString("LAMMPS-GUI - Output from running LAMMPS on %1 - %2 - Run  %3")
-            .arg(use_buffer ? "buffer" : "file")
-            .arg(current_file)
-            .arg(run_counter));
+        QString("LAMMPS-GUI - Output - %2 - Run %3").arg(current_file).arg(run_counter));
     logwindow->setWindowIcon(QIcon(":/icons/lammps-icon-128x128.png"));
     QFont text_font;
     text_font.fromString(settings.value("textfont", text_font.toString()).toString());
     logwindow->document()->setDefaultFont(text_font);
     logwindow->setLineWrapMode(LogWindow::NoWrap);
     logwindow->setMinimumSize(400, 300);
-    QShortcut *shortcut = new QShortcut(QKeySequence(Qt::CTRL | Qt::Key_W), logwindow);
+    auto *shortcut = new QShortcut(QKeySequence(Qt::CTRL | Qt::Key_W), logwindow);
     QObject::connect(shortcut, &QShortcut::activated, logwindow, &LogWindow::close);
     shortcut = new QShortcut(QKeySequence(Qt::CTRL | Qt::Key_Slash), logwindow);
     QObject::connect(shortcut, &QShortcut::activated, this, &LammpsGui::stop_run);
@@ -1065,10 +1089,7 @@ void LammpsGui::do_run(bool use_buffer)
     if (settings.value("chartreplace", true).toBool()) delete chartwindow;
     chartwindow = new ChartWindow(current_file);
     chartwindow->setWindowTitle(
-        QString("LAMMPS-GUI - Thermo charts from running LAMMPS on %1 - %2 - Run  %3")
-            .arg(use_buffer ? "buffer" : "file")
-            .arg(current_file)
-            .arg(run_counter));
+        QString("LAMMPS-GUI - Charts - %2 - Run %3").arg(current_file).arg(run_counter));
     chartwindow->setWindowIcon(QIcon(":/icons/lammps-icon-128x128.png"));
     chartwindow->setMinimumSize(400, 300);
     shortcut = new QShortcut(QKeySequence(Qt::CTRL | Qt::Key_W), chartwindow);
@@ -1081,14 +1102,14 @@ void LammpsGui::do_run(bool use_buffer)
         chartwindow->hide();
 
     if (slideshow) {
-        slideshow->setWindowTitle("LAMMPS-GUI - Slide Show");
+        slideshow->setWindowTitle(QString("LAMMPS-GUI - Slide Show - " + current_file));
         slideshow->clear();
         slideshow->hide();
     }
 
     logupdater = new QTimer(this);
     connect(logupdater, &QTimer::timeout, this, &LammpsGui::logupdate);
-    logupdater->start(settings.value("updfreq", "100").toInt());
+    logupdater->start(settings.value("updfreq", "10").toInt());
 }
 
 void LammpsGui::render_image()
@@ -1233,7 +1254,7 @@ void LammpsGui::about()
     info += "(Note: this text has been copied to the clipboard)\n";
 
     QMessageBox msg;
-    msg.setWindowTitle("About LAMMPS");
+    msg.setWindowTitle("About LAMMPS-GUI");
     msg.setWindowIcon(QIcon(":/icons/lammps-icon-128x128.png"));
     msg.setText(version.c_str());
     msg.setInformativeText(info.c_str());
@@ -1243,8 +1264,8 @@ void LammpsGui::about()
     font.setPointSizeF(font.pointSizeF() * 0.75);
     msg.setFont(font);
 
-    auto *minwidth      = new QSpacerItem(700, 0, QSizePolicy::Minimum, QSizePolicy::Expanding);
-    QGridLayout *layout = (QGridLayout *)msg.layout();
+    auto *minwidth = new QSpacerItem(700, 0, QSizePolicy::Minimum, QSizePolicy::Expanding);
+    auto *layout   = (QGridLayout *)msg.layout();
     layout->addItem(minwidth, layout->rowCount(), 0, 1, layout->columnCount());
 
     msg.exec();
@@ -1256,50 +1277,51 @@ void LammpsGui::help()
     msg.setWindowTitle("LAMMPS-GUI Quick Help");
     msg.setWindowIcon(QIcon(":/icons/lammps-icon-128x128.png"));
     msg.setText("<div>This is LAMMPS-GUI version " LAMMPS_GUI_VERSION "</div>");
-    msg.setInformativeText("<p>LAMMPS GUI is a graphical text editor that is customized for "
-                           "editing LAMMPS input files and linked to the LAMMPS "
-                           "library and thus can run LAMMPS directly using the contents of the "
-                           "text buffer as input. It can retrieve and display information from "
-                           "LAMMPS while it is running and  display visualizations created "
-                           "with the dump image command.</p>"
-                           "<p>The main window of the LAMMPS GUI is a text editor window with "
-                           "LAMMPS specific syntax highlighting. When typing <b>Ctrl-Enter</b> "
-                           "or clicking on 'Run LAMMMPS' in the 'Run' menu, LAMMPS will be run "
-                           "with the contents of editor buffer as input. The output of the LAMMPS "
-                           "run is captured and displayed in a log window. The thermodynamic data "
-                           "is displayed in a chart window. Both are updated regularly during the "
-                           "run, as is a progress bar in the main window. The running simulation "
-                           "can be stopped cleanly by typing <b>Ctrl-/</b> or by clicking on "
-                           "'Stop LAMMPS' in the 'Run' menu. While LAMMPS is not running, "
-                           "an image of the simulated system can be created and shown in an image "
-                           "viewer window by typing <b>Ctrl-i</b> or by clicking on 'View Image' "
-                           "in the 'Run' menu. Multiple image settings can be changed through the "
-                           "buttons in the menu bar and the image will be re-renderd.  In case "
-                           "an input file contains a dump image command, LAMMPS GUI will load "
-                           "the images as they are created and display them in a slide show. </p>"
-                           "<p>When opening a file, the editor will determine the directory "
-                           "where the input file resides and switch its current working directory "
-                           "to that same folder and thus enabling the run to read other files in "
-                           "that folder, e.g. a data file. The GUI will show its current working "
-                           "directory in the status bar. In addition to using the menu, the "
-                           "editor window can also receive files as the first command line "
-                           "argument or via drag-n-drop from a graphical file manager or a "
-                           "desktop environment.</p>"
-                           "<p>Almost all commands are accessible via keyboard shortcuts. Which "
-                           "those shortcuts are, is typically shown next to their entries in the "
-                           "menus. "
-                           "In addition, the documentation for the command in the current line "
-                           "can be viewed by typing <b>Ctrl-?</b> or by choosing the respective "
-                           "entry in the context menu, available by right-clicking the mouse. "
-                           "Log, chart, slide show, and image windows can be closed with "
-                           "<b>Ctrl-W</b> and the application terminated with <b>Ctrl-Q</b>.</p>"
-                           "<p>The 'About LAMMPS' dialog will show the LAMMPS version and the "
-                           "features included into the LAMMPS library linked to the LAMMPS GUI. "
-                           "A number of settings can be adjusted in the 'Preferences' dialog (in "
-                           "the 'Edit' menu or from <b>Ctrl-P</b>) which includes selecting "
-                           "accelerator packages and number of OpenMP threads. Due to its nature "
-                           "as a graphical application, it is <b>not</b> possible to use the "
-                           "LAMMPS GUI in parallel with MPI.</p>");
+    msg.setInformativeText(
+        "<p>LAMMPS-GUI is a graphical text editor that is customized for "
+        "editing LAMMPS input files and linked to the LAMMPS "
+        "library and thus can run LAMMPS directly using the contents of the "
+        "text buffer as input. It can retrieve and display information from "
+        "LAMMPS while it is running and  display visualizations created "
+        "with the dump image command.</p>"
+        "<p>The main window of the LAMMPS-GUI is a text editor window with "
+        "LAMMPS specific syntax highlighting. When typing <b>Ctrl-Enter</b> "
+        "or clicking on 'Run LAMMMPS' in the 'Run' menu, LAMMPS will be run "
+        "with the contents of editor buffer as input. The output of the LAMMPS "
+        "run is captured and displayed in an Output window. The thermodynamic data "
+        "is displayed in a chart window. Both are updated regularly during the "
+        "run, as is a progress bar in the main window. The running simulation "
+        "can be stopped cleanly by typing <b>Ctrl-/</b> or by clicking on "
+        "'Stop LAMMPS' in the 'Run' menu. While LAMMPS is not running, "
+        "an image of the simulated system can be created and shown in an image "
+        "viewer window by typing <b>Ctrl-i</b> or by clicking on 'View Image' "
+        "in the 'Run' menu. Multiple image settings can be changed through the "
+        "buttons in the menu bar and the image will be re-renderd.  In case "
+        "an input file contains a dump image command, LAMMPS-GUI will load "
+        "the images as they are created and display them in a slide show. </p>"
+        "<p>When opening a file, the editor will determine the directory "
+        "where the input file resides and switch its current working directory "
+        "to that same folder and thus enabling the run to read other files in "
+        "that folder, e.g. a data file. The GUI will show its current working "
+        "directory in the status bar. In addition to using the menu, the "
+        "editor window can also receive files as the first command line "
+        "argument or via drag-n-drop from a graphical file manager or a "
+        "desktop environment.</p>"
+        "<p>Almost all commands are accessible via keyboard shortcuts. Which "
+        "those shortcuts are, is typically shown next to their entries in the "
+        "menus. "
+        "In addition, the documentation for the command in the current line "
+        "can be viewed by typing <b>Ctrl-?</b> or by choosing the respective "
+        "entry in the context menu, available by right-clicking the mouse. "
+        "Log, chart, slide show, and image windows can be closed with "
+        "<b>Ctrl-W</b> and the application terminated with <b>Ctrl-Q</b>.</p>"
+        "<p>The 'About LAMMPS-GUI' dialog will show the LAMMPS version and the "
+        "features included into the LAMMPS library linked to the LAMMPS-GUI. "
+        "A number of settings can be adjusted in the 'Preferences' dialog (in "
+        "the 'Edit' menu or from <b>Ctrl-P</b>) which includes selecting "
+        "accelerator packages and number of OpenMP threads. Due to its nature "
+        "as a graphical application, it is <b>not</b> possible to use the "
+        "LAMMPS-GUI in parallel with MPI.</p>");
     msg.setIconPixmap(QPixmap(":/icons/lammps-icon-128x128.png").scaled(64, 64));
     msg.setStandardButtons(QMessageBox::Close);
     msg.exec();

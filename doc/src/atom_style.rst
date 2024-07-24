@@ -189,6 +189,14 @@ the Additional Information section below.
      - *atomic* + molecule, radius, rmass + "smd data"
      - :ref:`MACHDYN <PKG-MACHDYN>`
      - Smooth Mach Dynamics models
+   * - *rheo*
+     - *atomic* + rho, status
+     - :ref:`RHEO <PKG-RHEO>`
+     - solid and fluid RHEO particles
+   * - *rheo/thermal*
+     - *atomic* + rho, status, energy, temperature
+     - :ref:`RHEO <PKG-RHEO>`
+     - RHEO particles with temperature
    * - *sph*
      - *atomic* + "sph data"
      - :ref:`SPH <PKG-SPH>`

@@ -8,10 +8,17 @@ Syntax
 
 .. code-block:: LAMMPS
 
-   compute ID group-ID nbond/atom
+   compute ID group-ID nbond/atom keyword value
 
 * ID, group-ID are documented in :doc:`compute <compute>` command
 * nbond/atom = style name of this compute command
+* zero or more keyword/value pairs may be appended
+* keyword = *bond/type*
+
+  .. parsed-literal::
+
+       *bond/type* value = *btype*
+         *btype* = bond type included in count
 
 Examples
 """"""""
@@ -19,6 +26,7 @@ Examples
 .. code-block:: LAMMPS
 
    compute 1 all nbond/atom
+   compute 1 all nbond/atom bond/type 2
 
 Description
 """""""""""
@@ -30,6 +38,9 @@ part of.  Bonds which are broken are not counted in the tally.  See
 the :doc:`Howto broken bonds <Howto_bpm>` page for more information.
 The number of bonds will be zero for atoms not in the specified
 compute group. This compute does not depend on Newton bond settings.
+
+If the keyword *bond/type* is specified, only bonds of *btype* are
+counted.
 
 Output info
 """""""""""

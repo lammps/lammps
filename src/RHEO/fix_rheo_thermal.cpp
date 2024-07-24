@@ -654,7 +654,7 @@ void FixRHEOThermal::create_bonds()
   int *num_bond = atom->num_bond;
   double **x = atom->x;
 
-  neighbor->build_one(list, 1);
+  neighbor->build_one(list);
 
   inum = list->inum;
   ilist = list->ilist;

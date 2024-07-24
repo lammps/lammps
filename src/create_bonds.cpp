@@ -228,7 +228,7 @@ void CreateBonds::many()
   // build neighbor list this command needs based on earlier request
 
   auto list = neighbor->find_list(this);
-  neighbor->build_one(list, 1);
+  neighbor->build_one(list);
 
   // loop over all neighs of each atom
   // compute distance between two atoms consistently on both procs

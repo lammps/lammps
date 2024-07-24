@@ -197,7 +197,7 @@ class Atom(object):
     mass (AKA 'rmass') depending on what is available with
     preference for the per-atom mass.
 
-    .. versionchanged:: TBD
+    .. versionchanged:: 2Aug2023_update_4
 
        Support both per-type and per-atom masses. With
        per-type return "mass[type[i]]" else return "rmass[i]".

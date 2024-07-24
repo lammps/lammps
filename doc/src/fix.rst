@@ -248,6 +248,7 @@ accelerated styles exist.
 * :doc:`eos/cv <fix_eos_cv>` - applies a mesoparticle equation of state to relate the particle internal energy to the particle internal temperature
 * :doc:`eos/table <fix_eos_table>` - applies a tabulated mesoparticle equation of state to relate the particle internal energy to the particle internal temperature
 * :doc:`eos/table/rx <fix_eos_table_rx>` - applies a tabulated mesoparticle equation of state to relate the concentration-dependent particle internal energy to the particle internal temperature
+* :doc:`epot/lepton <fix_epot_lepton>` - apply electric potential on system using Lepton expression
 * :doc:`evaporate <fix_evaporate>` - remove atoms from simulation periodically
 * :doc:`external <fix_external>` - callback to an external driver program
 * :doc:`ffl <fix_ffl>` - apply a Fast-Forward Langevin equation thermostat

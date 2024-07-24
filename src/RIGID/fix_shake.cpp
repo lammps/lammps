@@ -124,19 +124,19 @@ FixShake::FixShake(LAMMPS *lmp, int narg, char **arg) :
   int next = 6;
   while (next < narg) {
     if ((strcmp(arg[next],"b") == 0) && (next+1 < narg)) {
-      int i = utils::expand_type_int(FLERR,arg[next+1],1,lmp);
+      int i = utils::expand_type_int(FLERR,arg[next+1],Atom::BOND,lmp);
       if (i < 1 || i > atom->nbondtypes)
         error->all(FLERR,"Invalid bond type {} for {}", arg[next+1], mystyle);
       bond_flag[i] = 1;
       ++next;
     } else if ((strcmp(arg[next],"a") == 0)  && (next+1 < narg)) {
-      int i = utils::expand_type_int(FLERR,arg[next+1],2,lmp);
+      int i = utils::expand_type_int(FLERR,arg[next+1],Atom::ANGLE,lmp);
       if (i < 1 || i > atom->nangletypes)
         error->all(FLERR,"Invalid angle type {} for {}", arg[next+1], mystyle);
       angle_flag[i] = 1;
       ++next;
     } else if ((strcmp(arg[next],"t") == 0) && (next+1 < narg)) {
-      int i = utils::expand_type_int(FLERR,arg[next+1],0,lmp);
+      int i = utils::expand_type_int(FLERR,arg[next+1],Atom::ATOM,lmp);
       if (i < 1 || i > atom->ntypes)
         error->all(FLERR,"Invalid atom type {} for {}", arg[next+1], mystyle);
       type_flag[i] = 1;

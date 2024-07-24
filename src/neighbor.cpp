@@ -2705,8 +2705,8 @@ void Neighbor::modify_params(int narg, char **arg)
           memory->grow(ex1_type,maxex_type,"neigh:ex1_type");
           memory->grow(ex2_type,maxex_type,"neigh:ex2_type");
         }
-        ex1_type[nex_type] = utils::expand_type_int(FLERR, arg[iarg+2], 0, lmp);
-        ex2_type[nex_type] = utils::expand_type_int(FLERR, arg[iarg+3], 0, lmp);
+        ex1_type[nex_type] = utils::expand_type_int(FLERR, arg[iarg+2], Atom::ATOM, lmp);
+        ex2_type[nex_type] = utils::expand_type_int(FLERR, arg[iarg+3], Atom::ATOM, lmp);
         nex_type++;
         iarg += 4;
       } else if (strcmp(arg[iarg+1],"group") == 0) {

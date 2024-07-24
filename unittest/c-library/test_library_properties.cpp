@@ -418,7 +418,7 @@ TEST_F(LibraryProperties, global)
     EXPECT_EQ(map_style, Atom::MAP_ARRAY);
     EXPECT_NE(sametag, nullptr);
 
-    auto *tags        = (tagint *)lammps_extract_atom(lmp, "id");
+    auto *tags              = (tagint *)lammps_extract_atom(lmp, "id");
     const tagint sometags[] = {1, 5, 10, 15, 20};
     for (const auto &sometag : sometags) {
         int idx = lammps_map_atom(lmp, (const void *)&sometag);
@@ -465,6 +465,54 @@ TEST_F(LibraryProperties, global)
     if (!verbose) ::testing::internal::GetCapturedStdout();
     map_style = *(int *)lammps_extract_global(lmp, "map_style");
     EXPECT_EQ(map_style, Atom::MAP_ARRAY);
+};
+
+TEST_F(LibraryProperties, pair1)
+{
+    if (!verbose) ::testing::internal::CaptureStdout();
+    lammps_command(lmp, "region box block 0 1 0 1 0 1");
+    lammps_command(lmp, "create_box 3 box");
+    lammps_command(lmp, "mass * 1.0");
+    lammps_command(lmp, "pair_style lj/cut 3.0");
+    lammps_command(lmp, "pair_coeff 1 1 1.0 1.0");
+    lammps_command(lmp, "pair_coeff 2 2 1.5 2.0");
+    lammps_command(lmp, "pair_coeff 3 3 1.0 3.0");
+    lammps_command(lmp, "run 0 post no");
+    if (!verbose) ::testing::internal::GetCapturedStdout();
+    EXPECT_EQ(lammps_extract_pair_dimension(lmp, "epsilon"), 2);
+    EXPECT_EQ(lammps_extract_pair_dimension(lmp, "sigma"), 2);
+    EXPECT_EQ(lammps_extract_pair_dimension(lmp, "cut_coul"), -1);
+    auto **sigma = (double **)lammps_extract_pair(lmp, "sigma");
+    EXPECT_DOUBLE_EQ(sigma[1][1], 1.0);
+    EXPECT_DOUBLE_EQ(sigma[2][2], 2.0);
+    EXPECT_DOUBLE_EQ(sigma[3][3], 3.0);
+    EXPECT_DOUBLE_EQ(sigma[1][2], sqrt(2.0));
+};
+
+TEST_F(LibraryProperties, pair2)
+{
+    if (!lammps_has_style(lmp, "pair", "coul/streitz")) GTEST_SKIP();
+    if (!verbose) ::testing::internal::CaptureStdout();
+    lammps_command(lmp, "units metal");
+    lammps_command(lmp, "atom_style charge");
+    lammps_command(lmp, "region box block 0 1 0 1 0 1");
+    lammps_command(lmp, "create_box 2 box");
+    lammps_command(lmp, "mass * 1.0");
+    lammps_command(lmp, "pair_style coul/streitz 12.0 wolf 0.31");
+    lammps_command(lmp, "pair_coeff * * AlO.streitz Al O");
+    lammps_command(lmp, "run 0 post no");
+    if (!verbose) ::testing::internal::GetCapturedStdout();
+    EXPECT_EQ(lammps_extract_pair_dimension(lmp, "chi"), 1);
+    EXPECT_EQ(lammps_extract_pair_dimension(lmp, "scale"), 2);
+    EXPECT_EQ(lammps_extract_pair_dimension(lmp, "cut_coul"), 0);
+    EXPECT_DOUBLE_EQ(*((double *)lammps_extract_pair(lmp, "cut_coul")), 12.0);
+    auto *chi = (double *)lammps_extract_pair(lmp, "chi");
+    EXPECT_DOUBLE_EQ(chi[1], 0.0);
+    EXPECT_FLOAT_EQ(chi[2], 5.484763);
+    auto **scale = (double **)lammps_extract_pair(lmp, "scale");
+    EXPECT_DOUBLE_EQ(scale[1][1], 1.0);
+    EXPECT_DOUBLE_EQ(scale[1][2], 1.0);
+    EXPECT_DOUBLE_EQ(scale[2][2], 1.0);
 };
 
 TEST_F(LibraryProperties, neighlist)

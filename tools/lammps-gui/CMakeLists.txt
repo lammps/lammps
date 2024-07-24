@@ -1,6 +1,6 @@
 cmake_minimum_required(VERSION 3.16)
 
-project(lammps-gui VERSION 1.5.12 LANGUAGES CXX)
+project(lammps-gui VERSION 1.6.3 LANGUAGES CXX)
 
 set(CMAKE_AUTOUIC ON)
 set(CMAKE_AUTOMOC ON)
@@ -88,11 +88,6 @@ else()
   endif()
 endif()
 
-#get_lammps_version(${LAMMPS_SOURCE_DIR}/version.h LAMMPS_VERSION)
-#if (LAMMPS_VERSION LESS_EQUAL 20230802)
-#  message(FATAL_ERROR "LAMMPS GUI v${PROJECT_VERSION} is incompatible with LAMMPS 2 August 2023 or older")
-#endif()
-
 set(LAMMPS_PLUGINLIB_DIR ${LAMMPS_DIR}/examples/COUPLE/plugin)
 if(LAMMPS_GUI_USE_PLUGIN)
   if(APPLE)
@@ -118,7 +113,7 @@ if(NOT Qt6_FOUND)
 else()
   set(QT_VERSION_MAJOR 6)
 endif()
-message(STATUS "Using Qt version ${Qt${QT_VERSION_MAJOR}_VERSION} for LAMMPS GUI")
+message(STATUS "Using Qt version ${Qt${QT_VERSION_MAJOR}_VERSION} for LAMMPS-GUI")
 
 set(PROJECT_SOURCES
   main.cpp
@@ -140,6 +135,8 @@ set(PROJECT_SOURCES
   linenumberarea.h
   logwindow.cpp
   logwindow.h
+  fileviewer.cpp
+  fileviewer.h
   preferences.cpp
   preferences.h
   setvariables.cpp

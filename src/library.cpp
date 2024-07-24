@@ -42,6 +42,7 @@
 #include "neigh_list.h"
 #include "neighbor.h"
 #include "output.h"
+#include "pair.h"
 #if defined(LMP_PLUGIN)
 #include "plugin.h"
 #endif
@@ -1934,6 +1935,69 @@ void *lammps_extract_global(void *handle, const char *name)
   if (strcmp(name,"qelectron") == 0) return (void *) &lmp->force->qelectron;
 
   return nullptr;
+}
+
+/* ---------------------------------------------------------------------- */
+
+/** Get data dimension of pair style data accessible via Pair::extract().
+ *
+\verbatim embed:rst
+
+.. versionadded:: TBD
+
+This function returns an integer that specified the dimensionality of
+the data that can be extracted from the current pair style with ``Pair::extract()``.
+Callers of :cpp:func:`lammps_extract_pair` can use this information
+to then decide how to cast the ``void *`` pointer and access the data.
+
+\endverbatim
+ *
+ * \param  handle   pointer to a previously created LAMMPS instance
+ * \param  name     string with the name of the extracted property
+ * \return          integer constant encoding the dimensionality of the
+                    extractable pair style property or -1 if not found. */
+
+int lammps_extract_pair_dimension(void * handle, const char *name)
+{
+  auto lmp = (LAMMPS *) handle;
+  if (!lmp) return -1;
+  auto pair = lmp->force->pair;
+  if (!pair) return -1;
+
+  int dim = -1;
+  if (lmp->force->pair->extract(name, dim)) return dim;
+
+  return -1;
+}
+
+/* ---------------------------------------------------------------------- */
+
+/** Get extract pair style data accessible via Pair::extract().
+ *
+\verbatim embed:rst
+
+.. versionadded:: TBD
+
+This function returns a pointer to data available from the current pair
+style with ``Pair::extract()``. The dimensionality of the returned
+pointer can be determined with :cpp:func:`lammps_extract_pair_dimension`.
+
+\endverbatim
+ *
+ * \param  handle   pointer to a previously created LAMMPS instance
+ * \param  name     string with the name of the extracted property
+ * \return          pointer (cast to ``void *``) to the location of the
+                    requested property. NULL if name is not known. */
+
+void *lammps_extract_pair(void * handle, const char *name)
+{
+  auto lmp = (LAMMPS *) handle;
+  if (!lmp) return nullptr;
+  auto pair = lmp->force->pair;
+  if (!pair) return nullptr;
+
+  int dim = -1;
+  return lmp->force->pair->extract(name, dim);
 }
 
 /* ---------------------------------------------------------------------- */

@@ -138,8 +138,7 @@ void ChartWindow::quit()
 void ChartWindow::reset_zoom()
 {
     int choice = columns->currentData().toInt();
-    if ((choice >= 0) && (choice < charts.size()))
-        charts[choice]->reset_zoom();
+    if ((choice >= 0) && (choice < charts.size())) charts[choice]->reset_zoom();
 }
 
 void ChartWindow::stop_run()

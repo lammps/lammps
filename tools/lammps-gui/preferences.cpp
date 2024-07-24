@@ -93,7 +93,7 @@ void Preferences::accept()
 
     // store selected accelerator
     QList<QRadioButton *> allButtons = tabWidget->findChildren<QRadioButton *>();
-    for (auto & allButton : allButtons) {
+    for (auto &allButton : allButtons) {
         if (allButton->isChecked()) {
             if (allButton->objectName() == "none")
                 settings->setValue("accelerator", QString::number(AcceleratorTab::None));
@@ -211,23 +211,23 @@ GeneralTab::GeneralTab(QSettings *_settings, LammpsWrapper *_lammps, QWidget *pa
     auto *cite = new QCheckBox("Include citation details");
     cite->setObjectName("cite");
     cite->setCheckState(settings->value("cite", false).toBool() ? Qt::Checked : Qt::Unchecked);
-    auto *logv = new QCheckBox("Show log window by default");
+    auto *logv = new QCheckBox("Show Output window by default");
     logv->setObjectName("viewlog");
     logv->setCheckState(settings->value("viewlog", true).toBool() ? Qt::Checked : Qt::Unchecked);
-    auto *pltv = new QCheckBox("Show chart window by default");
+    auto *pltv = new QCheckBox("Show Charts window by default");
     pltv->setObjectName("viewchart");
     pltv->setCheckState(settings->value("viewchart", true).toBool() ? Qt::Checked : Qt::Unchecked);
-    auto *sldv = new QCheckBox("Show slide show window by default");
+    auto *sldv = new QCheckBox("Show Slide Show window by default");
     sldv->setObjectName("viewslide");
     sldv->setCheckState(settings->value("viewslide", true).toBool() ? Qt::Checked : Qt::Unchecked);
-    auto *logr = new QCheckBox("Replace log window on new run");
+    auto *logr = new QCheckBox("Replace Output window on new run");
     logr->setObjectName("logreplace");
     logr->setCheckState(settings->value("logreplace", true).toBool() ? Qt::Checked : Qt::Unchecked);
-    auto *imgr = new QCheckBox("Replace image window on new render");
+    auto *imgr = new QCheckBox("Replace Image window on new render");
     imgr->setObjectName("imagereplace");
     imgr->setCheckState(settings->value("imagereplace", true).toBool() ? Qt::Checked
                                                                        : Qt::Unchecked);
-    auto *pltr = new QCheckBox("Replace chart window on new run");
+    auto *pltr = new QCheckBox("Replace Charts window on new run");
     pltr->setObjectName("chartreplace");
     pltr->setCheckState(settings->value("chartreplace", true).toBool() ? Qt::Checked
                                                                        : Qt::Unchecked);
@@ -411,13 +411,13 @@ AcceleratorTab::AcceleratorTab(QSettings *_settings, LammpsWrapper *_lammps, QWi
     auto *choices      = new QFrame;
     auto *choiceLayout = new QVBoxLayout;
 #if defined(_OPENMP)
-    auto *ntlabel      = new QLabel(QString("Number of threads (max %1):").arg(maxthreads));
-    auto *ntchoice     = new QLineEdit(settings->value("nthreads", maxthreads).toString());
+    auto *ntlabel  = new QLabel(QString("Number of threads (max %1):").arg(maxthreads));
+    auto *ntchoice = new QLineEdit(settings->value("nthreads", maxthreads).toString());
 #else
-    auto *ntlabel      = new QLabel(QString("Number of threads (OpenMP not available):"));
-    auto *ntchoice     = new QLineEdit("1");
+    auto *ntlabel  = new QLabel(QString("Number of threads (OpenMP not available):"));
+    auto *ntchoice = new QLineEdit("1");
 #endif
-    auto *intval       = new QIntValidator(1, maxthreads, this);
+    auto *intval = new QIntValidator(1, maxthreads, this);
     ntchoice->setValidator(intval);
     ntchoice->setObjectName("nthreads");
 #if !defined(_OPENMP)

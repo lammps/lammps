@@ -189,9 +189,9 @@ class Neighbor : protected Pointers {
   int triclinic;      // 0 if domain is orthog, 1 if triclinic
   int newton_pair;    // 0 if newton off for pairwise, 1 if on
 
-  int must_check;       // 1 if must check other classes to reneigh
-  int restart_check;    // 1 if restart enabled, 0 if no
-  std::vector<Fix *>fixchecklist;    // which fixes to check
+  int must_check;                     // 1 if must check other classes to reneigh
+  int restart_check;                  // 1 if restart enabled, 0 if no
+  std::vector<Fix *> fixchecklist;    // which fixes to check
 
   double triggersq;    // trigger = build when atom moves this dist
 

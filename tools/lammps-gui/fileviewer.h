@@ -11,33 +11,29 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
-#ifdef FIX_CLASS
-// clang-format off
-FixStyle(nvt/sllod,FixNVTSllod);
-// clang-format on
-#else
+#ifndef FILEVIEWER_H
+#define FILEVIEWER_H
 
-#ifndef LMP_FIX_NVT_SLLOD_H
-#define LMP_FIX_NVT_SLLOD_H
+#include <QPlainTextEdit>
 
-#include "fix_nh.h"
+class FileViewer : public QPlainTextEdit {
+    Q_OBJECT
 
-namespace LAMMPS_NS {
+public:
+    FileViewer(const QString &filename, QWidget *parent = nullptr);
 
-class FixNVTSllod : public FixNH {
- public:
-  FixNVTSllod(class LAMMPS *, int, char **);
+private slots:
+    void quit();
+    void stop_run();
 
-  void init() override;
+protected:
+    bool eventFilter(QObject *watched, QEvent *event) override;
 
- private:
-  int nondeformbias;
-  int psllod_flag;    // 0 for SLLOD, 1 for p-SLLOD
-
-  void nh_v_temp() override;
+private:
+    QString fileName;
 };
 
-}    // namespace LAMMPS_NS
-
 #endif
-#endif
+// Local Variables:
+// c-basic-offset: 4
+// End:

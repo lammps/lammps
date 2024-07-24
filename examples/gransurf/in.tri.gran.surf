@@ -61,6 +61,6 @@ fix             1 tri move rotate 0 0 0 0 0 1 25
 run	        5000
 
 unfix           1
-set             type 1 angmom 0.0 0.0 0.0
+set             group tri angmom 0.0 0.0 0.0
 velocity        tri set 0.0 0.0 0.0
 run             5000

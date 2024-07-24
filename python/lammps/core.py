@@ -992,7 +992,7 @@ class lammps(object):
       return None
 
     dim = self.extract_pair_dimension(name)
-    if dim == None:
+    if dim is None:
       return None
     elif dim == 0:
       self.lib.lammps_extract_pair.restype = POINTER(c_double)

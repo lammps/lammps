@@ -763,7 +763,9 @@ if __name__ == "__main__":
             p = subprocess.run(cmd_str, shell=True, text=True, capture_output=True)
             input_list = p.stdout.split('\n')
             input_list.remove("")
-            print(f"There are {len(input_list)} input scripts in total under the {example_toplevel} folder.")
+            msg = f"\nThere are {len(input_list)} input scripts in total under the {example_toplevel} folder."
+            print(msg)
+            logger.info(msg)
 
             # get the input file list
             # TODO: generate a list of tuples, each tuple contains a folder list for a worker,
@@ -784,7 +786,11 @@ if __name__ == "__main__":
                 filename = f"input-list-{idx}.txt"
                 with open(filename, "w") as f:
                     for folder in list_input:
-                        f.write(folder + '\n')
+                        # count the number of input scripts in each folder
+                        cmd_str = f"ls {folder}/in.* | wc -l"
+                        p = subprocess.run(cmd_str, shell=True, text=True, capture_output=True)
+                        num_input = p.stdout.split('\n')[0]
+                        f.write(folder + ' ' + num_input + '\n')
                     f.close()
                 idx = idx + 1
 
@@ -793,14 +799,18 @@ if __name__ == "__main__":
 
         # if a list of subfolders are provided from a text file (list_input from the command-line argument)
         elif len(list_input) != 0:
-            print(f"There are {len(list_input)} folders listed in {list_input}.")
+            num_inputscripts = 0
             with open(list_input, "r") as f:
                 all_subfolders = f.read().splitlines()
                 f.close()
-                for folder in all_subfolders:
-                    if len(folder) > 0:
+                for line in all_subfolders:
+                    if len(line) > 0:
+                        folder = line.split()[0]
                         example_subfolders.append(folder)
-                
+                        num_inputscripts += int(line.split()[1])
+            msg = f"\nThere are {len(example_subfolders)} folders with {num_inputscripts} input scripts in total listed in {list_input}."
+            print(msg)
+            logger.info(msg)
         else:
             inplace_input = False
 

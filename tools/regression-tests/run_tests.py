@@ -343,7 +343,10 @@ def iterate(lmp_binary, input_folder, input_list, config, results, progress_file
     nugget = float(config['nugget'])
 
     num_tests = len(input_list)
+    num_completed = 0
     num_passed = 0
+    num_error = 0
+    num_memleak = 0
     test_id = 0
 
     # using REG-commented input scripts, now turned off (False)
@@ -430,10 +433,11 @@ def iterate(lmp_binary, input_folder, input_list, config, results, progress_file
             pattern = f'log.{date}.{basename}.*'
             if fnmatch.fnmatch(file, pattern):
                 p = file.rsplit('.', 1)
-                if max_np < int(p[1]):
-                    max_np = int(p[1])
-                    logfile_exist = True
-                    thermo_ref_file = file
+                if p[1].isnumeric():
+                    if max_np < int(p[1]):
+                        max_np = int(p[1])
+                        logfile_exist = True
+                        thermo_ref_file = file
 
         # if the maximum number of procs is different from the value in the configuration file
         #      then override the setting for this input script
@@ -441,48 +445,20 @@ def iterate(lmp_binary, input_folder, input_list, config, results, progress_file
         if max_np != int(config['nprocs']):
             config['nprocs'] = str(max_np)
 
-        if logfile_exist:
-            thermo_ref = extract_data_to_yaml(thermo_ref_file)
-            if thermo_ref:
-                num_runs_ref = len(thermo_ref)
-            else:
-                logger.info(f"SKIPPED: Error parsing {thermo_ref_file}.")
-                result.status = "skipped due to parsing the log file"
-                results.append(result)
-                progress.write(f"{input}: {{ folder: {input_folder}, status: skipped, unsupported log file format}}\n")
-                progress.close()
-                test_id = test_id + 1
-                continue
-        else:
-            logger.info(f"    Cannot find a reference log file for {input_test}.")
-            # try to read in the thermo yaml output from the working directory
-            thermo_ref_file = 'thermo.' + input + '.yaml'
-            file_exist = os.path.isfile(thermo_ref_file)
-            if file_exist == True:
-                thermo_ref = extract_thermo(thermo_ref_file)
-                num_runs_ref = len(thermo_ref)
-            else:
-                logger.info(f"    SKIPPED: {thermo_ref_file} does not exist in the working directory.")
-                result.status = "skipped due to missing the log file"
-                results.append(result)
-                progress.write(f"{input}: {{ folder: {input_folder}, status: skipped, missing log file }}\n")
-                progress.close()
-                test_id = test_id + 1
-                continue
-
         # or more customizable with config.yaml
         cmd_str, output, error, returncode = execute(lmp_binary, config, input_test)
 
         # restore the nprocs value in the configuration
         config['nprocs'] = saved_nprocs
 
-        # process error code from the run
+        # check if a log.lammps file exists in the current folder
         if os.path.isfile("log.lammps") == False:
             logger.info(f"    ERROR: No log.lammps generated with {input_test} with return code {returncode}. Check the {log_file} for the run output.\n")
             logger.info(f"\n{input_test}:")
             logger.info(f"\n{error}")
             progress.write(f"{input}: {{ folder: {input_folder}, status: error, no log.lammps }}\n")
             progress.close()
+            num_error = num_error + 1
             test_id = test_id + 1
             continue
 
@@ -494,15 +470,16 @@ def iterate(lmp_binary, input_folder, input_list, config, results, progress_file
             logger.info(f"The run terminated with {input_test} gives the following output:\n")
             logger.info(f"\n{output}")
             if "Unrecognized" in output:
-                result.status = "error, unrecognized command"
+                result.status = "error, unrecognized command, package not installed"
             elif "Unknown" in output:
-                result.status = "error, unknown command"
+                result.status = "error, unknown command, package not installed"
             else:
                 result.status = "error, other reason"
                 logger.info(f"ERROR: Failed with {input_test} due to {result.status}.\n")
             results.append(result)
             progress.write(f"{input}: {{ folder: {input_folder}, status: {result.status} }}\n")
             progress.close()
+            num_error = num_error + 1
             test_id = test_id + 1
             continue
 
@@ -513,9 +490,41 @@ def iterate(lmp_binary, input_folder, input_list, config, results, progress_file
             results.append(result)
             progress.write(f"{input}: {{ folder: {input_folder}, status: {result.status} }}\n")
             progress.close()
+            num_error = num_error + 1
             test_id = test_id + 1
             continue
 
+        # At this point, the run completed without trivial errors
+        # check if there is a reference log file for this input
+        if logfile_exist:
+            thermo_ref = extract_data_to_yaml(thermo_ref_file)
+            if thermo_ref:
+                num_runs_ref = len(thermo_ref)
+            else:
+                logger.info(f"ERROR: Error parsing {thermo_ref_file}.")
+                result.status = "skipped numerical checks due to parsing the log file"
+                results.append(result)
+                progress.write(f"{input}: {{ folder: {input_folder}, status: numerical checks skipped, unsupported log file format}}\n")
+                progress.close()
+                test_id = test_id + 1
+                continue
+        else:
+            logger.info(f"    Cannot find the reference log file for {input_test} with the expected format log.[date].{basename}.[nprocs]")
+            # try to read in the thermo yaml output from the working directory
+            thermo_ref_file = 'thermo.' + input + '.yaml'
+            file_exist = os.path.isfile(thermo_ref_file)
+            if file_exist == True:
+                thermo_ref = extract_thermo(thermo_ref_file)
+                num_runs_ref = len(thermo_ref)
+            else:
+                logger.info(f"    ERROR: {thermo_ref_file} does not exist in the working directory.")
+                result.status = "skipped due to missing the reference log file"
+                results.append(result)
+                progress.write(f"{input}: {{ folder: {input_folder}, status: numerical checks skipped, missing the reference log file }}\n")
+                progress.close()
+                test_id = test_id + 1
+                continue
+        
         # comparing output vs reference values
         width = 20
         if verbose == True:
@@ -617,18 +626,19 @@ def iterate(lmp_binary, input_folder, input_list, config, results, progress_file
 
         results.append(result)
 
+        # check if memleak detects from valgrind run (need to replace "mpirun" -> valgrind --leak-check=yes mpirun")
         msg = "completed"
         if "All heap blocks were free" in error:
            msg += ", no memory leak"
         else:
            msg += ", memory leaks detected"
+           num_memleak = num_memleak + 1
 
         progress.write(f"{input}: {{ folder: {input_folder}, status: {msg} }}\n")
         progress.close()
 
-        #str_t = f"Completed " + input_test
-        #print(str_t)
-        #print("-"*(5*width+4))
+        # count the number of completed runs
+        num_completed = num_completed + 1
         test_id = test_id + 1
 
         # remove the annotated input script
@@ -636,7 +646,7 @@ def iterate(lmp_binary, input_folder, input_list, config, results, progress_file
             cmd_str = "rm " + input_test
             os.system(cmd_str)
 
-    return num_passed
+    return num_completed, num_passed, num_error, num_memleak
 
 if __name__ == "__main__":
 
@@ -818,6 +828,13 @@ if __name__ == "__main__":
         except Exception:
             print(f"    Cannot open progress file {progress_file_abs} to resume, rerun all the tests")
 
+    # initialize all the counters
+    total_tests = 0
+    completed_tests = 0
+    passed_tests = 0
+    error_tests = 0
+    memleak_tests = 0
+
     # default setting is to use inplace_input
     if inplace_input == True:
 
@@ -832,8 +849,7 @@ if __name__ == "__main__":
         with Pool(num_workers) as pool:   
             results = pool.starmap(func, args)
         '''
-        total_tests = 0
-        passed_tests = 0
+        
 
         for directory in example_subfolders:
 
@@ -853,8 +869,12 @@ if __name__ == "__main__":
 
             # iterate through the input scripts
             results = []
-            num_passed = iterate(lmp_binary, directory, input_list, config, results, progress_file_abs, last_progress)
+            num_completed, num_passed, num_error, num_memleak = iterate(lmp_binary, directory, input_list, config, results, progress_file_abs, last_progress)
+
+            completed_tests += num_completed
             passed_tests += num_passed
+            error_tests += num_error
+            memleak_tests += num_memleak
 
             # append the results to the all_results list
             all_results.extend(results)
@@ -867,15 +887,23 @@ if __name__ == "__main__":
         input_list=['in.lj']
         total_tests = len(input_list)
         results = []
-        passed_tests = iterate(lmp_binary, pwd, input_list, config, results, progress_file_abs)
+        completed_tests, passed_tests, error_tests, memleak_tests = iterate(lmp_binary, pwd, input_list, config, results, progress_file_abs)
 
         all_results.extend(results)
 
     # print out summary
-    print("\nSummary:")
-    print(f" - {passed_tests} numerical tests passed / {total_tests} tests run")
-    print(f" - Test results in JUnit XML format are given in {output_file}.")
-    print(f" - Progress is given in {progress_file}.\n")
+    msg = "\nSummary:\n"
+    msg += f"  Total {total_tests} runs\n"
+    msg += f"  - {completed_tests} runs completed\n"
+    msg += f"  - {error_tests} runs failed with error\n"
+    msg += f"  - {memleak_tests} runs with memory leak detected\n"
+    msg += f"  - {passed_tests} numerical tests passed\n\n"
+    msg = "\nOutput:\n"
+    msg += f"  - Test results in JUnit XML format: {output_file}\n"
+    msg += f"  - Progress with the input list    : {progress_file}\n"
+    msg += f"  - Running log                     : {log_file}"
+    print(msg)
+
 
     # optional: need to check if junit_xml packaged is already installed in the env
     #   generate a JUnit XML file 

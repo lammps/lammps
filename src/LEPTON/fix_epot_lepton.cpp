@@ -70,6 +70,9 @@ FixEpotLepton::FixEpotLepton(LAMMPS *lmp, int narg, char **arg) :
   } catch (std::exception &e) {
     error->all(FLERR, e.what());
   }
+
+  force_flag = 0;
+  fsum[0] = fsum[1] = fsum[2] = fsum[3] = 0.0;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -141,6 +144,9 @@ void FixEpotLepton::min_setup(int vflag)
 void FixEpotLepton::post_force(int vflag)
 {
   double **f = atom->f;
+  double **x = atom->x;
+  double *q = nullptr;
+  double **mu = nullptr, **t = nullptr;
   int *mask = atom->mask;
   imageint *image = atom->image;
   int nlocal = atom->nlocal;
@@ -149,20 +155,44 @@ void FixEpotLepton::post_force(int vflag)
   const double qqr2e = force->qqr2e;
 
   auto parsed = Lepton::Parser::parse(LeptonUtils::substitute(expr, lmp)).optimize();
-  auto phi = parsed.createCompiledExpression();
-  auto dphi_x = parsed.differentiate("x").createCompiledExpression();
-  auto dphi_y = parsed.differentiate("y").createCompiledExpression();
-  auto dphi_z = parsed.differentiate("z").createCompiledExpression();
-  auto dphi_xx = parsed.differentiate("x").differentiate("x").createCompiledExpression();
-  auto dphi_xy = parsed.differentiate("x").differentiate("y").createCompiledExpression();
-  auto dphi_xz = parsed.differentiate("x").differentiate("z").createCompiledExpression();
-  auto dphi_yy = parsed.differentiate("y").differentiate("y").createCompiledExpression();
-  auto dphi_yz = parsed.differentiate("y").differentiate("z").createCompiledExpression();
-  auto dphi_zz = parsed.differentiate("z").differentiate("z").createCompiledExpression();
+  Lepton::CompiledExpression phi, dphi_x, dphi_y, dphi_z, dphi_xx, dphi_xy, dphi_xz, dphi_yy, dphi_yz, dphi_zz; 
 
-  std::vector<Lepton::CompiledExpression *> cexprs = {
-      &phi, &dphi_x, &dphi_y, &dphi_z, &dphi_xx, &dphi_xy, &dphi_xz, &dphi_yy, &dphi_yz, &dphi_zz};
+  dphi_x = parsed.differentiate("x").createCompiledExpression();
+  dphi_y = parsed.differentiate("y").createCompiledExpression();
+  dphi_z = parsed.differentiate("z").createCompiledExpression();
 
+  std::vector<Lepton::CompiledExpression*> cexprs = {&dphi_x, &dphi_y, &dphi_z};
+
+  if (atom->q_flag) {
+    q = atom->q;
+    phi = parsed.createCompiledExpression();
+    cexprs.push_back(&phi);
+  }
+  if (atom->mu_flag) {
+    mu = atom->mu; t = atom->torque;
+    dphi_xx = parsed.differentiate("x").differentiate("x").createCompiledExpression();
+    dphi_xy = parsed.differentiate("x").differentiate("y").createCompiledExpression();
+    dphi_xz = parsed.differentiate("x").differentiate("z").createCompiledExpression();
+    dphi_yy = parsed.differentiate("y").differentiate("y").createCompiledExpression();
+    dphi_yz = parsed.differentiate("y").differentiate("z").createCompiledExpression();
+    dphi_zz = parsed.differentiate("z").differentiate("z").createCompiledExpression();
+    cexprs.insert(cexprs.end(), {&dphi_xx, &dphi_xy, &dphi_xz, &dphi_yy, &dphi_yz, &dphi_zz}); 
+  }
+
+  // Substitute x, y, z if they exist
+  const std::array<std::string, 3> variableNames = {"x", "y", "z"}; 
+  std::vector<std::array<bool, 3>> has_ref;     
+  for (auto &cexpr : cexprs) {
+    has_ref.push_back({true, true, true});
+    for (size_t i = 0; i < variableNames.size(); i++) {
+      try { 
+        (*cexpr).getVariableReference(variableNames[i]);
+      }
+      catch (Lepton::Exception &) {
+        has_ref.back()[i] = false;
+      }
+    }
+  }
   // virial setup
   v_init(vflag);
 
@@ -174,16 +204,6 @@ void FixEpotLepton::post_force(int vflag)
   fsum[0] = fsum[1] = fsum[2] = fsum[3] = 0.0;
   force_flag = 0;
 
-  double *q = nullptr;
-  if (atom->q_flag) q = atom->q;
-
-  double **mu = nullptr, **t = nullptr;
-  if (atom->mu_flag) {
-    mu = atom->mu;
-    t = atom->torque;
-  }
-
-  double **x = atom->x;
   double fx, fy, fz;
   double v[6], unwrap[3];
 
@@ -191,24 +211,12 @@ void FixEpotLepton::post_force(int vflag)
     if (mask[i] & groupbit) {
       if (region && !region->match(x[i][0], x[i][1], x[i][2])) continue;
       domain->unmap(x[i], image[i], unwrap);
-
-      // Substitute x, y, z if they exist
-      for (auto &cexpr : cexprs) {
-        try {
-          (*cexpr).getVariableReference("x") = unwrap[0];
-        } catch (Lepton::Exception &) {
-          // ignore
-        }
-        try {
-          (*cexpr).getVariableReference("y") = unwrap[1];
-        } catch (Lepton::Exception &) {
-          // ignore
-        }
-        try {
-          (*cexpr).getVariableReference("z") = unwrap[2];
-        } catch (Lepton::Exception &) {
-          // ignore
-        }
+      
+      // Substitute x, y, z if they exist           
+      for (size_t j = 0; j< cexprs.size(); j++) {
+        if (has_ref[j][0]) (*cexprs[j]).getVariableReference("x") = unwrap[0];
+        if (has_ref[j][1]) (*cexprs[j]).getVariableReference("y") = unwrap[1];
+        if (has_ref[j][2]) (*cexprs[j]).getVariableReference("z") = unwrap[2];
       }
 
       // charges

@@ -94,7 +94,7 @@ void FixRigidMeso::setup (int vflag) {
   }
 
   // Cannot use vremap since its effects aren't propagated to vest
-  //   see RHEO or SPH packages for examples patches
+  //   see RHEO or SPH packages for examples of patches
   if (domain->deform_vremap)
     error->all(FLERR, "Fix rigid/meso cannot be used with velocity remapping");
 }

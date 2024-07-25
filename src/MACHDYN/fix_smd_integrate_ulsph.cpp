@@ -145,8 +145,8 @@ void FixSMDIntegrateUlsph::init() {
         dtf = 0.5 * update->dt * force->ftm2v;
         vlimitsq = vlimit * vlimit;
 
-        // Cannot use vremap since its effects aren't       propagated to vest
-        //   see RHEO or SPH packages for examples patches
+        // Cannot use vremap since its effects aren't propagated to vest
+        //   see RHEO or SPH packages for examples of patches
         if (domain->deform_vremap)
           error->all(FLERR, "Fix smd/integrate_ulsph cannot be used with velocity remapping");
 }

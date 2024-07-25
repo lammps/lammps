@@ -66,7 +66,7 @@ void FixMvvDPD::init()
     error->all(FLERR,"Fix mvv/dpd requires atom attribute vest e.g. from atom style mdpd");
 
   // Cannot use vremap since its effects aren't propagated to vest
-  //   see RHEO or SPH packages for examples patches
+  //   see RHEO or SPH packages for examples of patches
   if (domain->deform_vremap)
     error->all(FLERR, "Fix mvv/dpd cannot be used with velocity remapping");
 

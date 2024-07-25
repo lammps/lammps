@@ -74,7 +74,7 @@ void FixMvvEDPD::init()
   if (!atom->edpd_flag) error->all(FLERR,"Fix mvv/edpd requires atom style edpd");
 
   // Cannot use vremap since its effects aren't propagated to vest
-  //   see RHEO or SPH packages for examples patches
+  //   see RHEO or SPH packages for examples of patches
   if (domain->deform_vremap)
     error->all(FLERR, "Fix mvv/edpd cannot be used with velocity remapping");
 

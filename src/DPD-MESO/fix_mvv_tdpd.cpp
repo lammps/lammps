@@ -72,7 +72,7 @@ void FixMvvTDPD::init()
   if (!atom->tdpd_flag) error->all(FLERR,"Fix mvv/tdpd requires atom style tdpd");
 
   // Cannot use vremap since its effects aren't propagated to vest
-  //   see RHEO or SPH packages for examples patches
+  //   see RHEO or SPH packages for examples of patches
   if (domain->deform_vremap)
     error->all(FLERR, "Fix mvv/tdpd cannot be used with velocity remapping");
 

@@ -674,7 +674,9 @@ int DumpAtom::convert_image(int n, double *mybuf)
       memory->grow(sbuf,maxsbuf,"dump:sbuf");
     }
 
-    offset += sprintf(&sbuf[offset],format,
+    offset += snprintf(&sbuf[offset],
+                      maxsbuf - offset,
+                      format,
                       static_cast<tagint> (mybuf[m]),
                       static_cast<int> (mybuf[m+1]),
                       mybuf[m+2],mybuf[m+3],mybuf[m+4],
@@ -700,7 +702,9 @@ int DumpAtom::convert_noimage(int n, double *mybuf)
       memory->grow(sbuf,maxsbuf,"dump:sbuf");
     }
 
-    offset += sprintf(&sbuf[offset],format,
+    offset += snprintf(&sbuf[offset],
+                      maxsbuf - offset,
+                      format,
                       static_cast<tagint> (mybuf[m]),
                       static_cast<int> (mybuf[m+1]),
                       mybuf[m+2],mybuf[m+3],mybuf[m+4]);

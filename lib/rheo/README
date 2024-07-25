@@ -1,0 +1,7 @@
+This directory has a Makefile.lammps file with settings that allows LAMMPS to
+dynamically link to the GSL library.  This is required to use the RHEO package
+in a LAMMPS input script.  If you have the pkg-config command available, it
+will automatically import the GSL settings. Otherwise they will have to be
+added manually.
+
+See the header of Makefile.lammps for more info.

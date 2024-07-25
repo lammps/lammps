@@ -32,6 +32,7 @@ public:
     int version();
     int extract_setting(const char *keyword);
     void *extract_global(const char *keyword);
+    void *extract_pair(const char *keyword);
     void *extract_atom(const char *keyword);
 
     int id_count(const char *idtype);

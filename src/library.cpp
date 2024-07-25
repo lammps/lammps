@@ -42,6 +42,7 @@
 #include "neigh_list.h"
 #include "neighbor.h"
 #include "output.h"
+#include "pair.h"
 #if defined(LMP_PLUGIN)
 #include "plugin.h"
 #endif
@@ -1938,11 +1939,74 @@ void *lammps_extract_global(void *handle, const char *name)
 
 /* ---------------------------------------------------------------------- */
 
-/** Map global atom ID to local atom index
+/** Get data dimension of pair style data accessible via Pair::extract().
  *
 \verbatim embed:rst
 
 .. versionadded:: TBD
+
+This function returns an integer that specified the dimensionality of
+the data that can be extracted from the current pair style with ``Pair::extract()``.
+Callers of :cpp:func:`lammps_extract_pair` can use this information
+to then decide how to cast the ``void *`` pointer and access the data.
+
+\endverbatim
+ *
+ * \param  handle   pointer to a previously created LAMMPS instance
+ * \param  name     string with the name of the extracted property
+ * \return          integer constant encoding the dimensionality of the
+                    extractable pair style property or -1 if not found. */
+
+int lammps_extract_pair_dimension(void * handle, const char *name)
+{
+  auto lmp = (LAMMPS *) handle;
+  if (!lmp) return -1;
+  auto pair = lmp->force->pair;
+  if (!pair) return -1;
+
+  int dim = -1;
+  if (lmp->force->pair->extract(name, dim)) return dim;
+
+  return -1;
+}
+
+/* ---------------------------------------------------------------------- */
+
+/** Get extract pair style data accessible via Pair::extract().
+ *
+\verbatim embed:rst
+
+.. versionadded:: TBD
+
+This function returns a pointer to data available from the current pair
+style with ``Pair::extract()``. The dimensionality of the returned
+pointer can be determined with :cpp:func:`lammps_extract_pair_dimension`.
+
+\endverbatim
+ *
+ * \param  handle   pointer to a previously created LAMMPS instance
+ * \param  name     string with the name of the extracted property
+ * \return          pointer (cast to ``void *``) to the location of the
+                    requested property. NULL if name is not known. */
+
+void *lammps_extract_pair(void * handle, const char *name)
+{
+  auto lmp = (LAMMPS *) handle;
+  if (!lmp) return nullptr;
+  auto pair = lmp->force->pair;
+  if (!pair) return nullptr;
+
+  int dim = -1;
+  return lmp->force->pair->extract(name, dim);
+}
+
+/* ---------------------------------------------------------------------- */
+
+/** Map global atom ID to local atom index
+ *
+\verbatim embed:rst
+
+.. versionadded:: 27June2024
 
 This function returns an integer that corresponds to the local atom
 index for an atom with the global atom ID *id*. The atom ID is passed
@@ -2420,7 +2484,7 @@ use to avoid a memory leak. Example:
 
 .. code-block:: c
 
-   double *dptr = (double *) lammps_extract_variable(handle,name,NULL);
+   double *dptr = (double *) lammps_extract_variable(handle, name, NULL);
    double value = *dptr;
    lammps_free((void *)dptr);
 
@@ -2431,16 +2495,25 @@ content will not be updated in case the variable is re-evaluated.
 To avoid a memory leak, this pointer needs to be freed after use in
 the calling program.
 
-For *vector*\ -style variables, the returned pointer is to actual LAMMPS data.
-The pointer should not be deallocated. Its length depends on the variable,
-compute, or fix data used to construct the *vector*\ -style variable.
-This length can be fetched by calling this function with *group* set to the
-constant "LMP_SIZE_VECTOR", which returns a ``void *`` pointer that can be
-dereferenced to an integer that is the length of the vector. This pointer
-needs to be deallocated when finished with it to avoid memory leaks.
+For *vector*\ -style variables, the returned pointer points to actual
+LAMMPS data and thus it should **not** be deallocated.  Its length
+depends on the variable, compute, or fix data used to construct the
+*vector*\ -style variable.  This length can be fetched by calling this
+function with *group* set to a non-NULL pointer (NULL returns the vector).
+In that case it will return the vector length as an allocated int
+pointer cast to a ``void *`` pointer.  That pointer can be recast and
+dereferenced to an integer yielding the length of the vector. This pointer
+must be deallocated when finished with it to avoid memory leaks. Example:
+
+.. code-block:: c
+
+   double *vectvals = (double *) lammps_extract_variable(handle, name, NULL);
+   int *intptr = (int *) lammps_extract_variable(handle, name, 1);
+   int vectlen = *intptr;
+   lammps_free((void *)intptr);
 
 For other variable styles the returned pointer needs to be cast to
-a char pointer. It should not be deallocated.
+a char pointer and it should **not** be deallocated. Example:
 
 .. code-block:: c
 
@@ -2452,7 +2525,7 @@ a char pointer. It should not be deallocated.
    LAMMPS cannot easily check if it is valid to access the data
    referenced by the variables (e.g., computes, fixes, or thermodynamic
    info), so it may fail with an error.  The caller has to make certain
-   that the data are extracted only when it safe to evaluate the variable
+   that the data is extracted only when it safe to evaluate the variable
    and thus an error or crash are avoided.
 
 \endverbatim
@@ -2487,7 +2560,7 @@ void *lammps_extract_variable(void *handle, const char *name, const char *group)
     } else if (lmp->input->variable->vectorstyle(ivar)) {
       double *values = nullptr;
       int nvector = lmp->input->variable->compute_vector(ivar, &values);
-      if (group != nullptr && strcmp(group,"LMP_SIZE_VECTOR") == 0) {
+      if (group) {
           int* nvecptr = (int *) malloc(sizeof(int));
           *nvecptr = nvector;
           return (void *) nvecptr;
@@ -5774,7 +5847,7 @@ error status can then be checked by calling
 can be retrieved via :cpp:func:`lammps_get_last_error_message`.
 This can allow to restart a calculation or delete and recreate
 the LAMMPS instance when C++ exceptions are enabled.  One application
-of using exceptions this way is the :ref:`lammps_shell`.  If C++
+of using exceptions this way is the :ref:`lammps_gui`.  If C++
 exceptions are disabled and an error happens during a call to
 LAMMPS, the application will terminate.
 \endverbatim

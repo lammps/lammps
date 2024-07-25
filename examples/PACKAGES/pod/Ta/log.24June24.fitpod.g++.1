@@ -1,0 +1,119 @@
+LAMMPS (17 Apr 2024 - Development - patch_17Apr2024-179-g353121c942-modified)
+OMP_NUM_THREADS environment is not set. Defaulting to 1 thread. (src/comm.cpp:98)
+  using 1 OpenMP thread(s) per MPI task
+fitpod Ta_param.pod Ta_data.pod
+**************** Begin of POD Potentials ****************
+species: Ta 
+periodic boundary conditions: 1 1 1
+number of environment clusters: 1
+number of principal compoments: 2
+inner cut-off radius: 1
+outer cut-off radius: 5
+bessel polynomial degree: 3
+inverse polynomial degree: 6
+one-body potential: 1
+two-body radial basis functions: 6
+three-body radial basis functions: 5
+three-body angular degree: 4
+four-body radial basis functions: 0
+four-body angular degree: 0
+five-body radial basis functions: 0
+five-body angular degree: 0
+six-body radial basis functions: 0
+six-body angular degree: 0
+seven-body radial basis functions: 0
+seven-body angular degree: 0
+number of local descriptors per element for one-body potential: 1
+number of local descriptors per element for two-body potential: 6
+number of local descriptors per element for three-body potential: 25
+number of local descriptors per element for four-body potential: 0
+number of local descriptors per element for five-body potential: 0
+number of local descriptors per element for six-body potential: 0
+number of local descriptors per element for seven-body potential: 0
+number of local descriptors per element for all potentials: 32
+number of global descriptors: 32
+**************** End of POD Potentials ****************
+
+**************** Begin of Data File ****************
+file format: extxyz
+file extension: xyz
+path to training data set: XYZ
+path to test data set: XYZ
+path to environment configuration set: XYZ
+basename for output files: Ta
+training fraction: 1
+test fraction: 1
+randomize training data set: 1
+randomize test data set: 1
+error analysis for training data set: 1
+error analysis for test data set: 0
+energy/force calculation for training data set: 0
+energy/force calculation for test data set: 0
+fitting weight for energy: 100
+fitting weight for force: 1
+fitting weight for stress: 0
+save pod descriptors: 0
+compute pod descriptors: 0
+**************** End of Data File ****************
+**************** Begin of Training Data Set ****************
+---------------------------------------------------------------
+     data file     | number of configurations | number of atoms
+---------------------------------------------------------------
+ Displaced_A15.xyz |                 9        |         576
+ Displaced_BCC.xyz |                 9        |         486
+ Displaced_FCC.xyz |                 9        |         432
+ Elastic_BCC.xyz   |               100        |         200
+ Elastic_FCC.xyz   |               100        |         400
+ GSF_110.xyz       |                22        |         528
+ GSF_112.xyz       |                22        |         660
+ Liquid.xyz        |                 3        |         300
+ Surface.xyz       |                 7        |         236
+ Volume_A15.xyz    |                30        |         240
+ Volume_BCC.xyz    |                21        |          42
+ Volume_FCC.xyz    |                31        |         124
+---------------------------------------------------------------
+number of files: 12
+number of configurations in all files: 363
+number of atoms in all files: 4224
+minimum number of atoms: 2
+maximum number of atoms: 100
+**************** End of Training Data Set ****************
+**************** Begin of Memory Allocation ****************
+maximum number of atoms in periodic domain: 100
+maximum number of atoms in extended domain: 2700
+maximum number of neighbors in extended domain: 270000
+size of double memory: 232128
+size of descriptor matrix: 32 x 32
+**************** End of Memory Allocation ****************
+**************** Begin of Least-Squares Fitting ****************
+Configuration: # 1
+Configuration: # 101
+Configuration: # 201
+Configuration: # 301
+**************** Begin of Error Calculation ****************
+Configuration: # 1
+Configuration: # 101
+Configuration: # 201
+Configuration: # 301
+**************** End of Error Calculation ****************
+**************** Begin of Error Analysis for the Training Data Set ****************
+---------------------------------------------------------------------------------------------------
+        File         | # configs |  # atoms  | MAE energy  | RMSE energy | MAE force  | RMSE force
+---------------------------------------------------------------------------------------------------
+Displaced_A15.xyz            9         576     0.015324      0.015365      0.140594      0.184797  
+Displaced_BCC.xyz            9         486     0.009486      0.011643      0.249983      0.320375  
+Displaced_FCC.xyz            9         432     0.000686      0.000880      0.091420      0.113585  
+Elastic_BCC.xyz            100         200     0.003796      0.004379      0.000015      0.000020  
+Elastic_FCC.xyz            100         400     0.003332      0.003372      0.000122      0.000178  
+GSF_110.xyz                 22         528     0.007027      0.007797      0.057637      0.115638  
+GSF_112.xyz                 22         660     0.010396      0.011347      0.125237      0.198553  
+Liquid.xyz                   3         300     0.017584      0.023822      0.504354      0.660300  
+Surface.xyz                  7         236     0.025511      0.034302      0.107190      0.285034  
+Volume_A15.xyz              30         240     0.038624      0.048355      0.000000      0.000000  
+Volume_BCC.xyz              21          42     0.044423      0.061685      0.000000      0.000000  
+Volume_FCC.xyz              31         124     0.030062      0.041271      0.000000      0.000000  
+---------------------------------------------------------------------------------------------------
+All files                  363        4224     0.012618      0.024806      0.125879      0.247229  
+---------------------------------------------------------------------------------------------------
+**************** End of Error Analysis for the Training Data Set ****************
+Total wall time: 0:00:00

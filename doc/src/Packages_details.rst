@@ -8,12 +8,12 @@ info on how to download or build any extra library it requires.  It also
 gives links to documentation, example scripts, and pictures/movies (if
 available) that illustrate use of the package.
 
-The majority of packages can be included in a LAMMPS build with a
-single setting (``-D PKG_<NAME>=on`` for CMake) or command
-(``make yes-<name>`` for make).  See the :doc:`Build package <Build_package>`
-page for more info.  A few packages may require additional steps;
-this is indicated in the descriptions below.  The :doc:`Build extras <Build_extras>`
-page gives those details.
+The majority of packages can be included in a LAMMPS build with a single
+setting (``-D PKG_<NAME>=on`` for CMake) or command (``make yes-<name>``
+for make).  See the :doc:`Build package <Build_package>` page for more
+info.  A few packages may require additional steps; this is indicated in
+the descriptions below.  The :doc:`Build extras <Build_extras>` page
+gives those details.
 
 .. note::
 
@@ -103,6 +103,7 @@ page gives those details.
    * :ref:`QEQ <PKG-QEQ>`
    * :ref:`QMMM <PKG-QMMM>`
    * :ref:`QTB <PKG-QTB>`
+   * :ref:`RHEO <PKG-RHEO>`
    * :ref:`REACTION <PKG-REACTION>`
    * :ref:`REAXFF <PKG-REAXFF>`
    * :ref:`REPLICA <PKG-REPLICA>`
@@ -1323,18 +1324,19 @@ KSPACE package
 
 **Contents:**
 
-A variety of long-range Coulombic solvers, as well as pair styles
-which compute the corresponding short-range pairwise Coulombic
-interactions.  These include Ewald, particle-particle particle-mesh
-(PPPM), and multilevel summation method (MSM) solvers.
+A variety of long-range Coulombic solvers, as well as pair styles which
+compute the corresponding short-range pairwise Coulombic interactions.
+These include Ewald, particle-particle particle-mesh (PPPM), and
+multilevel summation method (MSM) solvers.
 
 **Install:**
 
-Building with this package requires a 1d FFT library be present on
-your system for use by the PPPM solvers.  This can be the KISS FFT
-library provided with LAMMPS, third party libraries like FFTW, or a
-vendor-supplied FFT library.  See the :doc:`Build settings <Build_settings>` page for details on how to select
-different FFT options for your LAMPMS build.
+Building with this package requires a 1d FFT library be present on your
+system for use by the PPPM solvers.  This can be the KISS FFT library
+provided with LAMMPS, third party libraries like FFTW, or a
+vendor-supplied FFT library.  See the :doc:`Build settings
+<Build_settings>` page for details on how to select different FFT
+options for your LAMMPS build.
 
 **Supporting info:**
 
@@ -2618,6 +2620,45 @@ another set.
 * examples/prd
 * examples/tad
 * examples/PACKAGES/grem
+
+----------
+
+.. _PKG-RHEO:
+
+RHEO package
+------------
+
+**Contents:**
+
+Pair styles, bond styles, fixes, and computes for reproducing
+hydrodynamics and elastic objects. See the :doc:`Howto rheo
+<Howto_rheo>` page for an overview.
+
+**Install:**
+
+This package has :ref:`specific installation instructions <rheo>` on the :doc:`Build extras <Build_extras>` page.
+
+**Authors:** Joel T. Clemmer (Sandia National Labs),
+Thomas C. O'Connor (Carnegie Mellon University)
+
+.. versionadded:: TBD
+
+**Supporting info:**
+
+* src/RHEO filenames -> commands
+* :doc:`Howto_rheo <Howto_rheo>`
+* :doc:`atom_style rheo <atom_style>`
+* :doc:`atom_style rheo/thermal <atom_style>`
+* :doc:`bond_style rheo/shell <bond_rheo_shell>`
+* :doc:`compute rheo/property/atom <compute_rheo_property_atom>`
+* :doc:`fix rheo <fix_rheo>`
+* :doc:`fix rheo/oxidation <fix_rheo_oxidation>`
+* :doc:`fix rheo/pressure <fix_rheo_pressure>`
+* :doc:`fix rheo/thermal <fix_rheo_thermal>`
+* :doc:`fix rheo/viscosity <fix_rheo_viscosity>`
+* :doc:`pair_style rheo <pair_rheo>`
+* :doc:`pair_style rheo/solid <pair_rheo_solid>`
+* examples/rheo
 
 ----------
 

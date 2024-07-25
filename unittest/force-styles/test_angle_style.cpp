@@ -70,7 +70,7 @@ LAMMPS *init_lammps(LAMMPS::argv &args, const TestConfig &cfg, const bool newton
     // check if prerequisite styles are available
     Info *info = new Info(lmp);
     int nfail  = 0;
-    for (auto &prerequisite : cfg.prerequisites) {
+    for (const auto &prerequisite : cfg.prerequisites) {
         std::string style = prerequisite.second;
 
         // this is a test for angle styles, so if the suffixed
@@ -120,7 +120,7 @@ LAMMPS *init_lammps(LAMMPS::argv &args, const TestConfig &cfg, const bool newton
 
     command("variable input_dir index " + INPUT_FOLDER);
 
-    for (auto &pre_command : cfg.pre_commands) {
+    for (const auto &pre_command : cfg.pre_commands) {
         command(pre_command);
     }
 
@@ -129,11 +129,11 @@ LAMMPS *init_lammps(LAMMPS::argv &args, const TestConfig &cfg, const bool newton
 
     command("angle_style " + cfg.angle_style);
 
-    for (auto &angle_coeff : cfg.angle_coeff) {
+    for (const auto &angle_coeff : cfg.angle_coeff) {
         command("angle_coeff " + angle_coeff);
     }
 
-    for (auto &post_command : cfg.post_commands) {
+    for (const auto &post_command : cfg.post_commands) {
         command(post_command);
     }
 
@@ -176,12 +176,12 @@ void restart_lammps(LAMMPS *lmp, const TestConfig &cfg)
     }
 
     if ((cfg.angle_style.substr(0, 6) == "hybrid") || !lmp->force->angle->writedata) {
-        for (auto &angle_coeff : cfg.angle_coeff) {
+        for (const auto &angle_coeff : cfg.angle_coeff) {
             command("angle_coeff " + angle_coeff);
         }
     }
 
-    for (auto &post_command : cfg.post_commands) {
+    for (const auto &post_command : cfg.post_commands) {
         command(post_command);
     }
 
@@ -204,7 +204,7 @@ void data_lammps(LAMMPS *lmp, const TestConfig &cfg)
     command("variable newton_bond delete");
     command("variable newton_bond index on");
 
-    for (auto &pre_command : cfg.pre_commands) {
+    for (const auto &pre_command : cfg.pre_commands) {
         command(pre_command);
     }
 
@@ -214,10 +214,10 @@ void data_lammps(LAMMPS *lmp, const TestConfig &cfg)
     std::string input_file = platform::path_join(INPUT_FOLDER, cfg.input_file);
     parse_input_script(input_file);
 
-    for (auto &angle_coeff : cfg.angle_coeff) {
+    for (const auto &angle_coeff : cfg.angle_coeff) {
         command("angle_coeff " + angle_coeff);
     }
-    for (auto &post_command : cfg.post_commands) {
+    for (const auto &post_command : cfg.post_commands) {
         command(post_command);
     }
     command("run 0 post no");
@@ -234,7 +234,7 @@ void generate_yaml_file(const char *outfile, const TestConfig &config)
     if (!lmp) {
         std::cerr << "One or more prerequisite styles are not available "
                      "in this LAMMPS configuration:\n";
-        for (auto &prerequisite : config.prerequisites) {
+        for (const auto &prerequisite : config.prerequisites) {
             std::cerr << prerequisite.first << "_style " << prerequisite.second << "\n";
         }
         return;
@@ -253,7 +253,7 @@ void generate_yaml_file(const char *outfile, const TestConfig &config)
 
     // angle_coeff
     block.clear();
-    for (auto &angle_coeff : config.angle_coeff) {
+    for (const auto &angle_coeff : config.angle_coeff) {
         block += angle_coeff + "\n";
     }
     writer.emit_block("angle_coeff", block);
@@ -277,14 +277,14 @@ void generate_yaml_file(const char *outfile, const TestConfig &config)
     writer.emit("init_energy", lmp->force->angle->energy);
 
     // init_stress
-    auto stress = lmp->force->angle->virial;
+    auto *stress = lmp->force->angle->virial;
     block = fmt::format("{:23.16e} {:23.16e} {:23.16e} {:23.16e} {:23.16e} {:23.16e}", stress[0],
                         stress[1], stress[2], stress[3], stress[4], stress[5]);
     writer.emit_block("init_stress", block);
 
     // init_forces
     block.clear();
-    auto f = lmp->atom->f;
+    auto *f = lmp->atom->f;
     for (int i = 1; i <= natoms; ++i) {
         const int j = lmp->atom->map(i);
         block += fmt::format("{:3} {:23.16e} {:23.16e} {:23.16e}\n", i, f[j][0], f[j][1], f[j][2]);
@@ -345,7 +345,7 @@ TEST(AngleStyle, plain)
     double epsilon = test_config.epsilon;
 
     ErrorStats stats;
-    auto angle = lmp->force->angle;
+    auto *angle = lmp->force->angle;
 
     EXPECT_FORCES("init_forces (newton on)", lmp->atom, test_config.init_forces, epsilon);
     EXPECT_STRESS("init_stress (newton on)", angle->virial, test_config.init_stress, epsilon);
@@ -463,7 +463,7 @@ TEST(AngleStyle, omp)
     double epsilon = 5.0 * test_config.epsilon;
 
     ErrorStats stats;
-    auto angle = lmp->force->angle;
+    auto *angle = lmp->force->angle;
 
     EXPECT_FORCES("init_forces (newton on)", lmp->atom, test_config.init_forces, epsilon);
     EXPECT_STRESS("init_stress (newton on)", angle->virial, test_config.init_stress, 10 * epsilon);
@@ -751,9 +751,9 @@ TEST(AngleStyle, extract)
         GTEST_SKIP();
     }
 
-    auto angle = lmp->force->angle;
-    void *ptr  = nullptr;
-    int dim    = 0;
+    auto *angle = lmp->force->angle;
+    void *ptr   = nullptr;
+    int dim     = 0;
     for (auto extract : test_config.extract) {
         ptr = angle->extract(extract.first.c_str(), dim);
         EXPECT_NE(ptr, nullptr);

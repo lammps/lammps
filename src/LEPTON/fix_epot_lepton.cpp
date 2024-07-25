@@ -36,11 +36,11 @@ using namespace FixConst;
 
 /* ---------------------------------------------------------------------- */
 
-FixEpotLepton::FixEpotLepton(LAMMPS *lmp, int narg, char **arg) : Fix(lmp, narg, arg), 
+FixEpotLepton::FixEpotLepton(LAMMPS *lmp, int narg, char **arg) : Fix(lmp, narg, arg),
     idregion(nullptr), region(nullptr)
 {
   if (narg < 4) utils::missing_cmd_args(FLERR, std::string("fix ") + style, error);
-  
+
   scalar_flag = 1;
   global_freq = 1;
   extscalar = 1;
@@ -132,8 +132,8 @@ void FixEpotLepton::min_setup(int vflag)
 
 /* ----------------------------------------------------------------------
   Apply F = qE,
-        F = (mu . D) E, 
-        T = mu x E 
+        F = (mu . D) E,
+        T = mu x E
 ------------------------------------------------------------------------- */
 
 void FixEpotLepton::post_force(int vflag)
@@ -158,8 +158,8 @@ void FixEpotLepton::post_force(int vflag)
   auto dphi_yz = parsed.differentiate("y").differentiate("z").createCompiledExpression();
   auto dphi_zz = parsed.differentiate("z").differentiate("z").createCompiledExpression();
 
-  std::vector<Lepton::CompiledExpression*> cexprs = {&phi, &dphi_x, &dphi_y, &dphi_z, &dphi_xx, &dphi_xy, &dphi_xz, &dphi_yy, &dphi_yz, &dphi_zz}; 
-  
+  std::vector<Lepton::CompiledExpression*> cexprs = {&phi, &dphi_x, &dphi_y, &dphi_z, &dphi_xx, &dphi_xy, &dphi_xz, &dphi_yy, &dphi_yz, &dphi_zz};
+
   // virial setup
   v_init(vflag);
 
@@ -173,7 +173,7 @@ void FixEpotLepton::post_force(int vflag)
 
   double *q = nullptr;
   if (atom->q_flag) q = atom->q;
-  
+
   double **mu = nullptr, **t = nullptr;
   if (atom->mu_flag) {mu = atom->mu; t = atom->torque;}
 
@@ -185,22 +185,22 @@ void FixEpotLepton::post_force(int vflag)
     if (mask[i] & groupbit) {
       if (region && !region->match(x[i][0], x[i][1], x[i][2])) continue;
       domain->unmap(x[i], image[i], unwrap);
-      
-      // Substitute x, y, z if they exist           
+
+      // Substitute x, y, z if they exist
       for (auto &cexpr : cexprs) {
-        try { 
+        try {
           (*cexpr).getVariableReference("x") = unwrap[0];
         }
         catch (Lepton::Exception &) {
           // ignore
         }
-        try { 
+        try {
           (*cexpr).getVariableReference("y") = unwrap[1];
         }
         catch (Lepton::Exception &) {
           // ignore
         }
-        try { 
+        try {
           (*cexpr).getVariableReference("z") = unwrap[2];
         }
         catch (Lepton::Exception &) {
@@ -251,7 +251,7 @@ void FixEpotLepton::post_force(int vflag)
         fx = - qe2f * ( mu[i][0] * dphi_xx.evaluate() + mu[i][1] * dphi_xy.evaluate() + mu[i][2] * dphi_xz.evaluate() );
         fy = - qe2f * ( mu[i][0] * dphi_xy.evaluate() + mu[i][1] * dphi_yy.evaluate() + mu[i][2] * dphi_yz.evaluate() );
         fz = - qe2f * ( mu[i][0] * dphi_xz.evaluate() + mu[i][1] * dphi_yz.evaluate() + mu[i][2] * dphi_zz.evaluate() );
-        
+
         f[i][0] += fx;
         f[i][1] += fy;
         f[i][2] += fz;

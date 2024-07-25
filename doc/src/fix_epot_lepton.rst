@@ -51,7 +51,7 @@ representation of :math:`V` and its first- and second-order derivatives.
 
 The Lepton expression must be either enclosed in quotes or must not
 contain any whitespace so that LAMMPS recognizes it as a single keyword.
-More on valid Lepton expressions below. 
+More on valid Lepton expressions below.
 
 ----------
 
@@ -59,14 +59,14 @@ More on valid Lepton expressions below.
 
 ----------
 
-If the *region* keyword is used, the atom must also be in the specified 
+If the *region* keyword is used, the atom must also be in the specified
 geometric :doc:`region <region>` in order to be affected by the potential.
 
 ----------
 
-For dynamics via the "run" command and energy minimization via the "minimize" command, 
-the energies :math:`U_{q} = q V` and :math:`U_{p} = - \vec{p} \cdot \vec{E}`  can be optionally 
-added to the system's potential energy for thermodynamic output (see below).  
+For dynamics via the "run" command and energy minimization via the "minimize" command,
+the energies :math:`U_{q} = q V` and :math:`U_{p} = - \vec{p} \cdot \vec{E}`  can be optionally
+added to the system's potential energy for thermodynamic output (see below).
 
 ----------
 
@@ -77,13 +77,13 @@ No information about this fix is written to :doc:`binary restart files
 <restart>`.
 
 The :doc:`fix_modify <fix_modify>` *energy* option is supported by this
-fix to add the potential energy defined above to the global potential energy 
-of the system as part of :doc:`thermodynamic output <thermo_style>`. 
-The default setting for this fix is :doc:`fix_modify energy no <fix_modify>`.  
+fix to add the potential energy defined above to the global potential energy
+of the system as part of :doc:`thermodynamic output <thermo_style>`.
+The default setting for this fix is :doc:`fix_modify energy no <fix_modify>`.
 
 The :doc:`fix_modify <fix_modify>` *virial* option is supported by this
-fix to add the contribution due to the added forces on point-charges 
-to both the global pressure and per-atom stress of the system via the 
+fix to add the contribution due to the added forces on point-charges
+to both the global pressure and per-atom stress of the system via the
 :doc:`compute pressure <compute_pressure>` and :doc:`compute stress/atom
 <compute_stress_atom>` commands. The former can be accessed by
 :doc:`thermodynamic output <thermo_style>`.  The default setting for
@@ -110,15 +110,15 @@ the iteration count during the minimization.
 
 .. note::
 
-   If you want the electric potential energy to be included in the 
-   total potential energy of the system (the quantity being minimized), 
+   If you want the electric potential energy to be included in the
+   total potential energy of the system (the quantity being minimized),
    you MUST enable the :doc:`fix_modify <fix_modify>` *energy* option for this fix.
 
 .. note::
 
    The potential :math:`V` can only depend on the spatial coordinates :math:`x, y, z`.
-   It will not be updated with periodic boundary conditions and the :doc:`fix deform <fix_deform>` command. 
-   
+   It will not be updated with periodic boundary conditions and the :doc:`fix deform <fix_deform>` command.
+
 ----------
 
 Restrictions

@@ -61,6 +61,10 @@ void FixSPH::init()
 
 void FixSPH::setup_pre_force(int /*vflag*/)
 {
+  remap_v_flag = domain->deform_vremap;
+  if (remap_v_flag && (!comm->ghost_velocity))
+    error->all(FLERR, "Fix sph requires ghost atoms store velocity when deforming with remap v");
+
   // set vest equal to v
   double **v = atom->v;
   double **vest = atom->vest;
@@ -119,9 +123,16 @@ void FixSPH::initial_integrate(int /*vflag*/)
       rho[i] += dtf * drho[i]; // ... and density
 
       // extrapolate velocity for use with velocity-dependent potentials, e.g. SPH
-      vest[i][0] = v[i][0] + 2.0 * dtfm * f[i][0];
-      vest[i][1] = v[i][1] + 2.0 * dtfm * f[i][1];
-      vest[i][2] = v[i][2] + 2.0 * dtfm * f[i][2];
+      // if velocities are remapped, perform this extrapolation after communication
+      if (remap_v_flag) {
+        vest[i][0] = dtfm * f[i][0];
+        vest[i][1] = dtfm * f[i][1];
+        vest[i][2] = dtfm * f[i][2];
+      } else {
+        vest[i][0] = v[i][0] + 2.0 * dtfm * f[i][0];
+        vest[i][1] = v[i][1] + 2.0 * dtfm * f[i][1];
+        vest[i][2] = v[i][2] + 2.0 * dtfm * f[i][2];
+      }
 
       v[i][0] += dtfm * f[i][0];
       v[i][1] += dtfm * f[i][1];
@@ -130,6 +141,31 @@ void FixSPH::initial_integrate(int /*vflag*/)
       x[i][0] += dtv * v[i][0];
       x[i][1] += dtv * v[i][1];
       x[i][2] += dtv * v[i][2];
+    }
+  }
+}
+
+/* ---------------------------------------------------------------------- */
+
+void FixSPH::pre_force(int /*vflag*/)
+{
+  // if velocities are remapped, calculate estimates here
+  // note that vest currently stores dtfm * force
+  if (!remap_v_flag) return;
+
+  double **v = atom->v;
+  double **vest = atom->vest;
+  int *mask = atom->mask;
+  int nlocal = atom->nlocal;
+  if (igroup == atom->firstgroup)
+    nlocal = atom->nfirst;
+
+  int nall = nlocal + atom->nghost;
+  for (int i = 0; i < nall; i++) {
+    if (mask[i] & groupbit) {
+      vest[i][0] += v[i][0];
+      vest[i][1] += v[i][1];
+      vest[i][2] += v[i][2];
     }
   }
 }

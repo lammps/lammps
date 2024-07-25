@@ -38,7 +38,7 @@ Examples
 Description
 """""""""""
 
-.. versionadded:: 27Jun2024
+.. versionadded:: TBD
 
 Add an electric potential :math:`V` that applies to a group of charged atoms a force
 :math:`\vec{F} = q \vec{E}` and to dipoles a force :math:`\vec{F} = (\vec{p} \cdot \nabla) \vec{E}`

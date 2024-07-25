@@ -160,13 +160,13 @@ def extract_data_to_yaml(inputFileName):
     except yaml.YAMLError as exc:
         if hasattr(exc, 'problem_mark'):
             mark = exc.problem_mark
-            msg = f"Error parsing {inputFileName} at line {mark.line}, column {mark.column+1}."
+            msg = f"    Error parsing {inputFileName} at line {mark.line}, column {mark.column+1}."
             print(msg)
             logger.info(msg)
             logger.info(docs)
             return thermo
         else:
-            msg = f"Something went wrong while parsing {inputFileName}."
+            msg = f"    Something went wrong while parsing {inputFileName}."
             print(msg)
             logger.info(msg)
             logger.info(docs)
@@ -375,6 +375,7 @@ def iterate(lmp_binary, input_folder, input_list, config, results, progress_file
                 msg = f"COMPLETED: {input} marked as completed in the progress file {progress_file}"
                 logger.info(msg)
                 print(msg)
+                progress.write(msg)
                 progress.close()
                 test_id = test_id + 1
                 continue
@@ -451,6 +452,7 @@ def iterate(lmp_binary, input_folder, input_list, config, results, progress_file
                 progress.write(f"{input}: {{ folder: {input_folder}, status: skipped, unsupported log file format}}\n")
                 progress.close()
                 test_id = test_id + 1
+                continue
         else:
             logger.info(f"    Cannot find a reference log file for {input_test}.")
             # try to read in the thermo yaml output from the working directory
@@ -460,7 +462,7 @@ def iterate(lmp_binary, input_folder, input_list, config, results, progress_file
                 thermo_ref = extract_thermo(thermo_ref_file)
                 num_runs_ref = len(thermo_ref)
             else:
-                logger.info(f"SKIPPED: {thermo_ref_file} does not exist in the working directory.")
+                logger.info(f"    SKIPPED: {thermo_ref_file} does not exist in the working directory.")
                 result.status = "skipped due to missing the log file"
                 results.append(result)
                 progress.write(f"{input}: {{ folder: {input_folder}, status: skipped, missing log file }}\n")
@@ -476,7 +478,7 @@ def iterate(lmp_binary, input_folder, input_list, config, results, progress_file
 
         # process error code from the run
         if os.path.isfile("log.lammps") == False:
-            logger.info(f"ERROR: No log.lammps generated with {input_test} with return code {returncode}. Check the {log_file} for the run output.\n")
+            logger.info(f"    ERROR: No log.lammps generated with {input_test} with return code {returncode}. Check the {log_file} for the run output.\n")
             logger.info(f"\n{input_test}:")
             logger.info(f"\n{error}")
             progress.write(f"{input}: {{ folder: {input_folder}, status: error, no log.lammps }}\n")
@@ -498,11 +500,11 @@ def iterate(lmp_binary, input_folder, input_list, config, results, progress_file
             else:
                 result.status = "error, other reason"
                 logger.info(f"ERROR: Failed with {input_test} due to {result.status}.\n")
-                results.append(result)
-                progress.write(f"{input}: {{ folder: {input_folder}, status: {result.status} }}\n")
-                progress.close()
-                test_id = test_id + 1
-                continue
+            results.append(result)
+            progress.write(f"{input}: {{ folder: {input_folder}, status: {result.status} }}\n")
+            progress.close()
+            test_id = test_id + 1
+            continue
 
         logger.info(f"    Comparing thermo output from log.lammps against the reference log file {thermo_ref_file}")
         if num_runs != num_runs_ref:

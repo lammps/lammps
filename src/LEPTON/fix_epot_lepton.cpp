@@ -36,8 +36,8 @@ using namespace FixConst;
 
 /* ---------------------------------------------------------------------- */
 
-FixEpotLepton::FixEpotLepton(LAMMPS *lmp, int narg, char **arg) : Fix(lmp, narg, arg),
-    idregion(nullptr), region(nullptr)
+FixEpotLepton::FixEpotLepton(LAMMPS *lmp, int narg, char **arg) :
+    Fix(lmp, narg, arg), idregion(nullptr), region(nullptr)
 {
   if (narg < 4) utils::missing_cmd_args(FLERR, std::string("fix ") + style, error);
 
@@ -52,8 +52,7 @@ FixEpotLepton::FixEpotLepton(LAMMPS *lmp, int narg, char **arg) : Fix(lmp, narg,
   // optional region keyword
   if (narg > 4) {
     if (strcmp(arg[4], "region") == 0) {
-      if (narg != 6)
-        utils::missing_cmd_args(FLERR, std::string("fix ") + style + " region", error);
+      if (narg != 6) utils::missing_cmd_args(FLERR, std::string("fix ") + style + " region", error);
       region = domain->get_region_by_id(arg[5]);
       if (!region) error->all(FLERR, "Region {} for fix epot/lepton does not exist.", arg[5]);
       idregion = utils::strdup(arg[5]);
@@ -94,8 +93,10 @@ int FixEpotLepton::setmask()
 
 void FixEpotLepton::init()
 {
-  if (!atom->q_flag && !atom->mu_flag) error->all(FLERR, "Fix {} requires atom attribute q or mu", style);
-  if (atom->mu_flag && !atom->torque_flag) error->all(FLERR, "Dipoles must be finite-sized to rotate", style);
+  if (!atom->q_flag && !atom->mu_flag)
+    error->all(FLERR, "Fix {} requires atom attribute q or mu", style);
+  if (atom->mu_flag && !atom->torque_flag)
+    error->all(FLERR, "Dipoles must be finite-sized to rotate", style);
 
   // set index and check validity of region
   if (idregion) {
@@ -158,7 +159,8 @@ void FixEpotLepton::post_force(int vflag)
   auto dphi_yz = parsed.differentiate("y").differentiate("z").createCompiledExpression();
   auto dphi_zz = parsed.differentiate("z").differentiate("z").createCompiledExpression();
 
-  std::vector<Lepton::CompiledExpression*> cexprs = {&phi, &dphi_x, &dphi_y, &dphi_z, &dphi_xx, &dphi_xy, &dphi_xz, &dphi_yy, &dphi_yz, &dphi_zz};
+  std::vector<Lepton::CompiledExpression *> cexprs = {
+      &phi, &dphi_x, &dphi_y, &dphi_z, &dphi_xx, &dphi_xy, &dphi_xz, &dphi_yy, &dphi_yz, &dphi_zz};
 
   // virial setup
   v_init(vflag);
@@ -175,7 +177,10 @@ void FixEpotLepton::post_force(int vflag)
   if (atom->q_flag) q = atom->q;
 
   double **mu = nullptr, **t = nullptr;
-  if (atom->mu_flag) {mu = atom->mu; t = atom->torque;}
+  if (atom->mu_flag) {
+    mu = atom->mu;
+    t = atom->torque;
+  }
 
   double **x = atom->x;
   double fx, fy, fz;
@@ -190,20 +195,17 @@ void FixEpotLepton::post_force(int vflag)
       for (auto &cexpr : cexprs) {
         try {
           (*cexpr).getVariableReference("x") = unwrap[0];
-        }
-        catch (Lepton::Exception &) {
+        } catch (Lepton::Exception &) {
           // ignore
         }
         try {
           (*cexpr).getVariableReference("y") = unwrap[1];
-        }
-        catch (Lepton::Exception &) {
+        } catch (Lepton::Exception &) {
           // ignore
         }
         try {
           (*cexpr).getVariableReference("z") = unwrap[2];
-        }
-        catch (Lepton::Exception &) {
+        } catch (Lepton::Exception &) {
           // ignore
         }
       }
@@ -211,9 +213,9 @@ void FixEpotLepton::post_force(int vflag)
       // charges
       // force = q E, potential energy = q phi
       if (atom->q_flag) {
-        fx = - qe2f * q[i] * dphi_x.evaluate();
-        fy = - qe2f * q[i] * dphi_y.evaluate();
-        fz = - qe2f * q[i] * dphi_z.evaluate();
+        fx = -qe2f * q[i] * dphi_x.evaluate();
+        fy = -qe2f * q[i] * dphi_y.evaluate();
+        fz = -qe2f * q[i] * dphi_z.evaluate();
         f[i][0] += fx;
         f[i][1] += fy;
         f[i][2] += fz;
@@ -237,9 +239,9 @@ void FixEpotLepton::post_force(int vflag)
       // force = (mu dot D) E, torque = mu cross E, potential energy = - mu dot E
       if (atom->mu_flag) {
         double tx, ty, tz;
-        auto ex = - dphi_x.evaluate();
-        auto ey = - dphi_y.evaluate();
-        auto ez = - dphi_z.evaluate();
+        auto ex = -dphi_x.evaluate();
+        auto ey = -dphi_y.evaluate();
+        auto ez = -dphi_z.evaluate();
         tx = ez * mu[i][1] - ey * mu[i][2];
         ty = ex * mu[i][2] - ez * mu[i][0];
         tz = ey * mu[i][0] - ex * mu[i][1];
@@ -248,9 +250,15 @@ void FixEpotLepton::post_force(int vflag)
         t[i][2] += qqr2e * tz;
         fsum[0] -= qqr2e * (mu[i][0] * ex + mu[i][1] * ey + mu[i][2] * ez);
 
-        fx = - qe2f * ( mu[i][0] * dphi_xx.evaluate() + mu[i][1] * dphi_xy.evaluate() + mu[i][2] * dphi_xz.evaluate() );
-        fy = - qe2f * ( mu[i][0] * dphi_xy.evaluate() + mu[i][1] * dphi_yy.evaluate() + mu[i][2] * dphi_yz.evaluate() );
-        fz = - qe2f * ( mu[i][0] * dphi_xz.evaluate() + mu[i][1] * dphi_yz.evaluate() + mu[i][2] * dphi_zz.evaluate() );
+        fx = -qe2f *
+            (mu[i][0] * dphi_xx.evaluate() + mu[i][1] * dphi_xy.evaluate() +
+             mu[i][2] * dphi_xz.evaluate());
+        fy = -qe2f *
+            (mu[i][0] * dphi_xy.evaluate() + mu[i][1] * dphi_yy.evaluate() +
+             mu[i][2] * dphi_yz.evaluate());
+        fz = -qe2f *
+            (mu[i][0] * dphi_xz.evaluate() + mu[i][1] * dphi_yz.evaluate() +
+             mu[i][2] * dphi_zz.evaluate());
 
         f[i][0] += fx;
         f[i][1] += fy;

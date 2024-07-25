@@ -590,14 +590,14 @@ void Molecule::read(int flag)
     } else if (keyword == "Dihedrals") {
       if (ndihedrals == 0)
         error->all(FLERR,
-                   "Found Dihedrals section"
+                   "Found Dihedrals section "
                    "but no ndihedrals setting in header");
       dihedralflag = tag_require = 1;
       dihedrals(flag, line);
     } else if (keyword == "Impropers") {
       if (nimpropers == 0)
         error->all(FLERR,
-                   "Found Impropers section"
+                   "Found Impropers section "
                    "but no nimpropers setting in header");
       improperflag = tag_require = 1;
       impropers(flag, line);

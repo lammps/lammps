@@ -21,6 +21,7 @@
 #include "comm.h"
 #include "domain.h"
 #include "error.h"
+#include "label_map.h"
 #include "fix_respa.h"
 #include "force.h"
 #include "group.h"
@@ -105,6 +106,21 @@ FixShake::FixShake(LAMMPS *lmp, int narg, char **arg) :
   tolerance = utils::numeric(FLERR, arg[3], false, lmp);
   max_iter = utils::inumeric(FLERR, arg[4], false, lmp);
   output_every = utils::inumeric(FLERR, arg[5], false, lmp);
+
+  // check if any typelabels conflict with fix shake arguments.
+
+  bool allow_typelabels = (atom->labelmapflag != 0);
+  if (allow_typelabels) {
+    for (int i = Atom::ATOM; i < Atom::DIHEDRAL; ++i) {
+      if ((atom->lmap->find("b", i) < 0) ||
+          (atom->lmap->find("a", i) < 0) ||
+          (atom->lmap->find("t", i) < 0) ||
+          (atom->lmap->find("m", i) < 0)) allow_typelabels = false;
+    }
+    if (!allow_typelabels && (comm->me == 0))
+      error->warning(FLERR, "At least one typelabel conflicts with a fix shake option: "
+                     "support for typelabels is disabled.");
+  }
 
   // parse SHAKE args for bond and angle types
   // will be used by find_clusters

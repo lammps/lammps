@@ -32,7 +32,6 @@ class PairSPHIdealGas : public Pair {
   void settings(int, char **) override;
   void coeff(int, char **) override;
   double init_one(int, int) override;
-  double single(int, int, int, int, double, double, double, double &) override;
 
  protected:
   double **cut, **viscosity;

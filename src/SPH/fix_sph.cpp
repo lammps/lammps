@@ -13,10 +13,13 @@
  ------------------------------------------------------------------------- */
 
 #include "fix_sph.h"
+
 #include "atom.h"
+#include "comm.h"
+#include "domain.h"
+#include "error.h"
 #include "force.h"
 #include "update.h"
-#include "error.h"
 
 using namespace LAMMPS_NS;
 using namespace FixConst;
@@ -24,11 +27,10 @@ using namespace FixConst;
 /* ---------------------------------------------------------------------- */
 
 FixSPH::FixSPH(LAMMPS *lmp, int narg, char **arg) :
-  Fix(lmp, narg, arg) {
-
-  if ((atom->esph_flag != 1) || (atom->rho_flag != 1))
-    error->all(FLERR,
-        "Fix sph command requires atom_style with both energy and density");
+  Fix(lmp, narg, arg)
+{
+  if ((atom->esph_flag != 1) || (atom->rho_flag != 1) || (atom->vest_flag != 1))
+    error->all(FLERR, "Fix sph requires atom attributes energy, density, and velocity estimates, e.g. in atom_style sph");
 
   if (narg != 3)
     error->all(FLERR,"Illegal number of arguments for fix sph command");
@@ -38,7 +40,8 @@ FixSPH::FixSPH(LAMMPS *lmp, int narg, char **arg) :
 
 /* ---------------------------------------------------------------------- */
 
-int FixSPH::setmask() {
+int FixSPH::setmask()
+{
   int mask = 0;
   mask |= INITIAL_INTEGRATE;
   mask |= FINAL_INTEGRATE;
@@ -48,10 +51,13 @@ int FixSPH::setmask() {
 
 /* ---------------------------------------------------------------------- */
 
-void FixSPH::init() {
+void FixSPH::init()
+{
   dtv = update->dt;
   dtf = 0.5 * update->dt * force->ftm2v;
 }
+
+/* ---------------------------------------------------------------------- */
 
 void FixSPH::setup_pre_force(int /*vflag*/)
 {
@@ -76,7 +82,8 @@ void FixSPH::setup_pre_force(int /*vflag*/)
  allow for both per-type and per-atom mass
  ------------------------------------------------------------------------- */
 
-void FixSPH::initial_integrate(int /*vflag*/) {
+void FixSPH::initial_integrate(int /*vflag*/)
+{
   // update v and x and rho and e of atoms in group
 
   double **x = atom->x;
@@ -129,8 +136,8 @@ void FixSPH::initial_integrate(int /*vflag*/) {
 
 /* ---------------------------------------------------------------------- */
 
-void FixSPH::final_integrate() {
-
+void FixSPH::final_integrate()
+{
   // update v, rho, and e of atoms in group
 
   double **v = atom->v;
@@ -169,7 +176,8 @@ void FixSPH::final_integrate() {
 
 /* ---------------------------------------------------------------------- */
 
-void FixSPH::reset_dt() {
+void FixSPH::reset_dt()
+{
   dtv = update->dt;
   dtf = 0.5 * update->dt * force->ftm2v;
 }

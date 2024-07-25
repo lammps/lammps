@@ -17,6 +17,7 @@
 ------------------------------------------------------------------------- */
 
 #include "fix_epot_lepton.h"
+
 #include "atom.h"
 #include "comm.h"
 #include "domain.h"

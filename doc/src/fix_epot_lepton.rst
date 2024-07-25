@@ -1,7 +1,7 @@
 .. index:: fix epot/lepton
 
 fix epot/lepton command
-==================
+=======================
 
 Syntax
 """"""

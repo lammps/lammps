@@ -483,17 +483,6 @@ def iterate(lmp_binary, input_folder, input_list, config, results, progress_file
             test_id = test_id + 1
             continue
 
-        logger.info(f"    Comparing thermo output from log.lammps against the reference log file {thermo_ref_file}")
-        if num_runs != num_runs_ref:
-            logger.info(f"ERROR: Number of runs in log.lammps ({num_runs}) is not the same as that in the reference log ({num_runs_ref})")
-            result.status = "error, incomplete runs"
-            results.append(result)
-            progress.write(f"{input}: {{ folder: {input_folder}, status: {result.status} }}\n")
-            progress.close()
-            num_error = num_error + 1
-            test_id = test_id + 1
-            continue
-
         # At this point, the run completed without trivial errors
         # check if there is a reference log file for this input
         if logfile_exist:
@@ -524,7 +513,19 @@ def iterate(lmp_binary, input_folder, input_list, config, results, progress_file
                 progress.close()
                 test_id = test_id + 1
                 continue
-        
+
+        logger.info(f"    Comparing thermo output from log.lammps against the reference log file {thermo_ref_file}")
+        # check if the number of runs matches with that in the reference log file
+        if num_runs != num_runs_ref:
+            logger.info(f"ERROR: Number of runs in log.lammps ({num_runs}) is not the same as that in the reference log ({num_runs_ref})")
+            result.status = "error, incomplete runs"
+            results.append(result)
+            progress.write(f"{input}: {{ folder: {input_folder}, status: {result.status} }}\n")
+            progress.close()
+            num_error = num_error + 1
+            test_id = test_id + 1
+            continue
+
         # comparing output vs reference values
         width = 20
         if verbose == True:

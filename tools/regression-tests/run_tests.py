@@ -49,11 +49,11 @@ Example usage:
                 --log-file=run1.log
           
     4) Test a LAMMPS binary with the whole top-level /examples folder in a LAMMPS source tree
-           python3 run_tests.py --lmp-bin=/path/to/lmp_binary --example-top-level=/path/to/lammps/examples
+           python3 run_tests.py --lmp-bin=/path/to/lmp_binary --examples-top-level=/path/to/lammps/examples
 
     5) Analyze (dry run) the LAMMPS binary annd whole top-level /examples folder in a LAMMPS source tree 
        and generate separate input lists for 8 workers:
-           python3 run_tests.py --lmp-bin=/path/to/lmp_binary --example-top-level=/path/to/lammps/examples \
+           python3 run_tests.py --lmp-bin=/path/to/lmp_binary --examples-top-level=/path/to/lammps/examples \
                 --dry-run --num-workers=8
 
        This is used for splitting the subfolders into separate input lists and launching different instances
@@ -153,16 +153,24 @@ def extract_data_to_yaml(inputFileName):
 
     # load the docs into a YAML data struture
     #print(docs)
+    thermo = {}
     try:
         yaml_struct = yaml.load_all(docs, Loader=Loader)
         thermo = list(yaml_struct)
     except yaml.YAMLError as exc:
         if hasattr(exc, 'problem_mark'):
             mark = exc.problem_mark
-            print(f"Error parsing {inputFileName} at line {mark.line}, column {mark.column+1}.")
+            msg = f"Error parsing {inputFileName} at line {mark.line}, column {mark.column+1}."
+            print(msg)
+            logger.info(msg)
+            logger.info(docs)
+            return thermo
         else:
-            print (f"Something went wrong while parsing {inputFileName}.")
-            print(docs)
+            msg = f"Something went wrong while parsing {inputFileName}."
+            print(msg)
+            logger.info(msg)
+            logger.info(docs)
+            return thermo
     return thermo
 
 '''
@@ -216,7 +224,7 @@ def get_lammps_build_configuration(lmp_binary):
 def execute(lmp_binary, config, input_file_name, generate_ref_yaml=False):
     cmd_str = config['mpiexec'] + " " + config['mpiexec_numproc_flag'] + " " + config['nprocs'] + " "
     cmd_str += lmp_binary + " -in " + input_file_name + " " + config['args']
-    logger.info(f"Executing: {cmd_str}")
+    logger.info(f"    Executing: {cmd_str}")
     p = subprocess.run(cmd_str, shell=True, text=True, capture_output=True)
 
     return cmd_str, p.stdout, p.stderr, p.returncode
@@ -352,7 +360,9 @@ def iterate(lmp_binary, input_folder, input_list, config, results, progress_file
         # skip the input file if listed
         if 'skip' in config:
             if input in config['skip']:
-                logger.info(f"SKIPPED: {input} as specified in the configuration file {configFileName}")
+                msg = f"SKIPPED: {input} as specified in the configuration file {configFileName}"
+                print(msg)
+                logger.info(msg)
                 progress.write(f"{input}: {{ folder: {input_folder}, status: skipped }}\n")
                 progress.close()
                 test_id = test_id + 1
@@ -362,11 +372,11 @@ def iterate(lmp_binary, input_folder, input_list, config, results, progress_file
         if input in last_progress:
             status = last_progress[input]['status']
             if status == 'completed':
-                logger.info(f"SKIPPED: {input} marked as completed in the progress file {progress_file}")
-                print(f"SKIPPED: {input} marked as completed in the progress file {progress_file}")
+                msg = f"COMPLETED: {input} marked as completed in the progress file {progress_file}"
+                logger.info(msg)
+                print(msg)
                 progress.close()
                 test_id = test_id + 1
-              
                 continue
     
         str_t = "  + " + input + f" ({test_id+1}/{num_tests})"
@@ -395,10 +405,11 @@ def iterate(lmp_binary, input_folder, input_list, config, results, progress_file
         else:
             input_test = input
 
-        print(str_t)
+        #logger.info(f"-"*len(str_t))
         #print(f"-"*len(str_t))
         logger.info(str_t)
-        logger.info(f"-"*len(str_t))
+        print(str_t)
+        
 
         # check if a log file exists in the current folder: log.DDMMMYY.basename.[nprocs]
         basename = input_test.replace('in.','')
@@ -431,9 +442,17 @@ def iterate(lmp_binary, input_folder, input_list, config, results, progress_file
 
         if logfile_exist:
             thermo_ref = extract_data_to_yaml(thermo_ref_file)
-            num_runs_ref = len(thermo_ref)
+            if thermo_ref:
+                num_runs_ref = len(thermo_ref)
+            else:
+                logger.info(f"SKIPPED: Error parsing {thermo_ref_file}.")
+                result.status = "skipped due to parsing the log file"
+                results.append(result)
+                progress.write(f"{input}: {{ folder: {input_folder}, status: skipped, unsupported log file format}}\n")
+                progress.close()
+                test_id = test_id + 1
         else:
-            logger.info(f"Cannot find a reference log file for {input_test}.")
+            logger.info(f"    Cannot find a reference log file for {input_test}.")
             # try to read in the thermo yaml output from the working directory
             thermo_ref_file = 'thermo.' + input + '.yaml'
             file_exist = os.path.isfile(thermo_ref_file)
@@ -444,7 +463,7 @@ def iterate(lmp_binary, input_folder, input_list, config, results, progress_file
                 logger.info(f"SKIPPED: {thermo_ref_file} does not exist in the working directory.")
                 result.status = "skipped due to missing the log file"
                 results.append(result)
-                progress.write(f"{input}: {{ folder: {input_folder}, status: skipped }}\n")
+                progress.write(f"{input}: {{ folder: {input_folder}, status: skipped, missing log file }}\n")
                 progress.close()
                 test_id = test_id + 1
                 continue
@@ -460,7 +479,7 @@ def iterate(lmp_binary, input_folder, input_list, config, results, progress_file
             logger.info(f"ERROR: No log.lammps generated with {input_test} with return code {returncode}. Check the {log_file} for the run output.\n")
             logger.info(f"\n{input_test}:")
             logger.info(f"\n{error}")
-            progress.write(f"{input}: {{ folder: {input_folder}, status: error }}\n")
+            progress.write(f"{input}: {{ folder: {input_folder}, status: error, no log.lammps }}\n")
             progress.close()
             test_id = test_id + 1
             continue
@@ -473,22 +492,24 @@ def iterate(lmp_binary, input_folder, input_list, config, results, progress_file
             logger.info(f"The run terminated with {input_test} gives the following output:\n")
             logger.info(f"\n{output}")
             if "Unrecognized" in output:
-                result.status = "unrecognized command"
+                result.status = "error, unrecognized command"
+            elif "Unknown" in output:
+                result.status = "error, unknown command"
             else:
-                result.status = "error"
+                result.status = "error, other reason"
                 logger.info(f"ERROR: Failed with {input_test} due to {result.status}.\n")
                 results.append(result)
-                progress.write(f"{input}: {{ folder: {input_folder}, status: error }}\n")
+                progress.write(f"{input}: {{ folder: {input_folder}, status: {result.status} }}\n")
                 progress.close()
                 test_id = test_id + 1
                 continue
 
-        logger.info(f"Comparing thermo output from log.lammps against the reference log file {thermo_ref_file}")
+        logger.info(f"    Comparing thermo output from log.lammps against the reference log file {thermo_ref_file}")
         if num_runs != num_runs_ref:
             logger.info(f"ERROR: Number of runs in log.lammps ({num_runs}) is not the same as that in the reference log ({num_runs_ref})")
-            result.status = "error"
+            result.status = "error, incomplete runs"
             results.append(result)
-            progress.write(f"{input}: {{ folder: {input_folder}, status: error }}\n")
+            progress.write(f"{input}: {{ folder: {input_folder}, status: {result.status} }}\n")
             progress.close()
             test_id = test_id + 1
             continue
@@ -594,7 +615,13 @@ def iterate(lmp_binary, input_folder, input_list, config, results, progress_file
 
         results.append(result)
 
-        progress.write(f"{input}: {{ folder: {input_folder}, status: completed }}\n")
+        msg = "completed"
+        if "All heap blocks were free" in error:
+           msg += ", no memory leak"
+        else:
+           msg += ", memory leaks detected"
+
+        progress.write(f"{input}: {{ folder: {input_folder}, status: {msg} }}\n")
         progress.close()
 
         #str_t = f"Completed " + input_test
@@ -623,7 +650,7 @@ if __name__ == "__main__":
     log_file = "run.log"
     list_input = ""
     dry_run = False
-    
+
     # distribute the total number of input scripts over the workers
     num_workers = 1
 
@@ -632,7 +659,7 @@ if __name__ == "__main__":
     parser.add_argument("--lmp-bin", dest="lmp_binary", default="", help="LAMMPS binary")
     parser.add_argument("--config-file", dest="config_file", default=configFileName,
                         help="Configuration YAML file")
-    parser.add_argument("--example-top-level", dest="example_toplevel", default="", help="Example top-level")
+    parser.add_argument("--examples-top-level", dest="example_toplevel", default="", help="Examples top-level")
     parser.add_argument("--example-folders", dest="example_folders", default="", help="Example subfolders")
     parser.add_argument("--list-input", dest="list_input", default="", help="File that lists the subfolders")
     parser.add_argument("--num-workers", dest="num_workers", default=1, help="Number of workers")
@@ -787,7 +814,7 @@ if __name__ == "__main__":
             last_progress = yaml.load(progress, Loader=Loader)
             progress.close()
         except Exception:
-            print(f"Cannot open progress file {progress_file_abs} to resume, rerun all the tests")
+            print(f"    Cannot open progress file {progress_file_abs} to resume, rerun all the tests")
 
     # default setting is to use inplace_input
     if inplace_input == True:
@@ -811,6 +838,7 @@ if __name__ == "__main__":
             # change to the directory where the input script and data files are located
             print("-"*80)
             print("Entering " + directory)
+            logger.info("Entering " + directory)
             os.chdir(directory)
 
             cmd_str = "ls in.*"

@@ -64,11 +64,11 @@ Example uses:
                 --log-file=run1.log
           
     4) Test a LAMMPS binary with the whole top-level /examples folder in a LAMMPS source tree
-           python3 run_tests.py --lmp-bin=/path/to/lmp_binary --example-top-level=/path/to/lammps/examples
+           python3 run_tests.py --lmp-bin=/path/to/lmp_binary --examples-top-level=/path/to/lammps/examples
 
     5) Analyze (dry run) the LAMMPS binary annd whole top-level /examples folder in a LAMMPS source tree 
        and generate separate input lists for 8 workers:
-           python3 run_tests.py --lmp-bin=/path/to/lmp_binary --example-top-level=/path/to/lammps/examples \
+           python3 run_tests.py --lmp-bin=/path/to/lmp_binary --examples-top-level=/path/to/lammps/examples \
                 --dry-run --num-workers=8
 
        This is used for splitting the subfolders into separate input lists and launching different instances

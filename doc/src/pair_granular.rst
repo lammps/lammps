@@ -406,7 +406,7 @@ This may result in unphysical pendular motion in polydisperse frictional granula
 
 .. math::
 
-   \mathbf{\xi} = (\mathbf{\xi}'\cdot\hat{\mathbf{t}})\hat{\mathbf{t}}\frac{\|\mathbf{\xi}'\|}{\|\mathbf{\xi}'\cdot\hat{\mathbf{t}}\|}.
+   \mathbf{\xi} = (\mathbf{\xi}'\cdot{\mathbf{t}}){\mathbf{t}}\frac{\|\mathbf{\xi}'\|}{\|\mathbf{\xi}'\cdot{\mathbf{t}}\|}.
 
 Furthermore, when the tangential force exceeds the critical force, the
 tangential displacement is re-scaled to match the value for the

@@ -2,8 +2,7 @@ LAMMPS-GUI TODO list:
 
 # Short term goals (v1.x)
 
-- add a "file viewer", also view file option in editor context menu if word under cursor is a file
-- add "export to YAML" to chart viewer.
+- bundle LAMMPS tutorial input files
 
 - implement indenting regions for (nested) loops?
 - implement data file manager GUI with the following features:

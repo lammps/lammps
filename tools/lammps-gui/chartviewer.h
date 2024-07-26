@@ -50,6 +50,7 @@ private slots:
     void saveAs();
     void exportDat();
     void exportCsv();
+    void exportYaml();
 
     void change_chart(int index);
 
@@ -61,7 +62,7 @@ private:
     QMenuBar *menu;
     QMenu *file;
     QComboBox *columns;
-    QAction *saveAsAct, *exportCsvAct, *exportDatAct;
+    QAction *saveAsAct, *exportCsvAct, *exportDatAct, *exportYamlAct;
     QAction *closeAct, *stopAct, *quitAct;
 
     QString filename;

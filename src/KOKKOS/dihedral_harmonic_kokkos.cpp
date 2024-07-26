@@ -37,6 +37,7 @@ static constexpr double TOLERANCE = 0.05;
 template<class DeviceType>
 DihedralHarmonicKokkos<DeviceType>::DihedralHarmonicKokkos(LAMMPS *lmp) : DihedralHarmonic(lmp)
 {
+  kokkosable = 1;
   atomKK = (AtomKokkos *) atom;
   neighborKK = (NeighborKokkos *) neighbor;
   execution_space = ExecutionSpaceFromDevice<DeviceType>::space;
@@ -74,14 +75,18 @@ void DihedralHarmonicKokkos<DeviceType>::compute(int eflag_in, int vflag_in)
   // reallocate per-atom arrays if necessary
 
   if (eflag_atom) {
+    if(k_eatom.extent(0) < maxeatom) {
     memoryKK->destroy_kokkos(k_eatom,eatom);
     memoryKK->create_kokkos(k_eatom,eatom,maxeatom,"dihedral:eatom");
     d_eatom = k_eatom.view<DeviceType>();
+    } else Kokkos::deep_copy(d_eatom,0.0);
   }
   if (vflag_atom) {
+    if(k_vatom.extent(0) < maxvatom) {
     memoryKK->destroy_kokkos(k_vatom,vatom);
     memoryKK->create_kokkos(k_vatom,vatom,maxvatom,"dihedral:vatom");
     d_vatom = k_vatom.view<DeviceType>();
+    } else Kokkos::deep_copy(d_vatom,0.0);
   }
 
   k_k.template sync<DeviceType>();
@@ -99,7 +104,7 @@ void DihedralHarmonicKokkos<DeviceType>::compute(int eflag_in, int vflag_in)
   newton_bond = force->newton_bond;
 
   h_warning_flag() = 0;
-  k_warning_flag.template modify<LMPHostType>();
+  k_warning_flag.modify_host();
   k_warning_flag.template sync<DeviceType>();
 
   copymode = 1;
@@ -125,7 +130,7 @@ void DihedralHarmonicKokkos<DeviceType>::compute(int eflag_in, int vflag_in)
   // error check
 
   k_warning_flag.template modify<DeviceType>();
-  k_warning_flag.template sync<LMPHostType>();
+  k_warning_flag.sync_host();
   if (h_warning_flag())
     error->warning(FLERR,"Dihedral problem");
 
@@ -141,12 +146,12 @@ void DihedralHarmonicKokkos<DeviceType>::compute(int eflag_in, int vflag_in)
 
   if (eflag_atom) {
     k_eatom.template modify<DeviceType>();
-    k_eatom.template sync<LMPHostType>();
+    k_eatom.sync_host();
   }
 
   if (vflag_atom) {
     k_vatom.template modify<DeviceType>();
-    k_vatom.template sync<LMPHostType>();
+    k_vatom.sync_host();
   }
 
   copymode = 0;
@@ -362,11 +367,11 @@ void DihedralHarmonicKokkos<DeviceType>::coeff(int narg, char **arg)
     k_multiplicity.h_view[i] = multiplicity[i];
   }
 
-  k_k.template modify<LMPHostType>();
-  k_cos_shift.template modify<LMPHostType>();
-  k_sin_shift.template modify<LMPHostType>();
-  k_sign.template modify<LMPHostType>();
-  k_multiplicity.template modify<LMPHostType>();
+  k_k.modify_host();
+  k_cos_shift.modify_host();
+  k_sin_shift.modify_host();
+  k_sign.modify_host();
+  k_multiplicity.modify_host();
 }
 
 /* ----------------------------------------------------------------------
@@ -387,11 +392,11 @@ void DihedralHarmonicKokkos<DeviceType>::read_restart(FILE *fp)
     k_multiplicity.h_view[i] = multiplicity[i];
   }
 
-  k_k.template modify<LMPHostType>();
-  k_cos_shift.template modify<LMPHostType>();
-  k_sin_shift.template modify<LMPHostType>();
-  k_sign.template modify<LMPHostType>();
-  k_multiplicity.template modify<LMPHostType>();
+  k_k.modify_host();
+  k_cos_shift.modify_host();
+  k_sin_shift.modify_host();
+  k_sign.modify_host();
+  k_multiplicity.modify_host();
 }
 
 /* ----------------------------------------------------------------------

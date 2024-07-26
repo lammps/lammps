@@ -1,7 +1,10 @@
 .. index:: angle_style hybrid
+.. index:: angle_style hybrid/kk
 
 angle_style hybrid command
 ==========================
+
+Accelerator Variants: *hybrid/kk*
 
 Syntax
 """"""

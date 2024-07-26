@@ -99,6 +99,7 @@ private slots:
     void about();
     void help();
     void manual();
+    void tutorial();
     void howto();
     void logupdate();
     void modified();

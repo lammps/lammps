@@ -78,6 +78,7 @@ private slots:
     void get_help();
     void find_help(QString &page, QString &help);
     void open_help();
+    void open_url();
     void view_file();
     void reformatCurrentLine();
     void runCompletion();

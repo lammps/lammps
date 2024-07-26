@@ -559,6 +559,9 @@ a minimal description of LAMMPS-GUI.  The ``LAMMPS-GUI Howto`` entry
 will open this documentation page from the online documentation in a web
 browser window.  The ``LAMMPS Manual`` entry will open the main page of
 the LAMMPS online documentation in a web browser window.
+The ``LAMMPS Tutorial`` entry will open the main page of the set of
+LAMMPS tutorials authored and maintained by Simon Gravelle at
+https://lammpstutorials.github.io/ in a web browser window.
 
 -----
 
@@ -744,10 +747,10 @@ available (On macOS use the Command key instead of Ctrl/Control).
      - Reformat line
      - Shift+TAB
      - Show Completions
-   * - Ctrl+Shift+Enter
+   * - Ctrl+Shift+T
+     - LAMMPS Tutorial
+     - Ctrl+Shift+Enter
      - Run File
-     -
-     -
      -
      -
 

@@ -235,20 +235,30 @@ run number that this chart window corresponds to.  Same as for the
 *Output* window, the chart window is replaced on each new run, but the
 behavior can be changed in the preferences dialog.
 
+.. versionadded:: 1.6
+
+   Support for YAML export added
+
 From the ``File`` menu on the top left, it is possible to save an image
 of the currently displayed plot or export the data in either plain text
 columns (for use by plotting tools like `gnuplot
 <http://www.gnuplot.info/>`_ or `grace
-<https://plasma-gate.weizmann.ac.il/Grace/>`_), or as CSV data which can
-be imported for further processing with Microsoft Excel or `pandas
-<https://pandas.pydata.org/>`_
+<https://plasma-gate.weizmann.ac.il/Grace/>`_), as CSV data which can be
+imported for further processing with Microsoft Excel `LibreOffice Calc
+<https://www.libreoffice.org/>`_ or with Python via `pandas
+<https://pandas.pydata.org/>`_, or as YAML which can be imported into
+Python with `PyYAML <https://pyyaml.org/>`_ or pandas.
 
 Thermo output data from successive run commands in the input script is
 combined into a single data set unless the format, number, or names of
 output columns are changed with a :doc:`thermo_style <thermo_style>` or
 a :doc:`thermo_modify <thermo_modify>` command, or the current time step
 is reset with :doc:`reset_timestep <reset_timestep>`, or if a
-:doc:`clear <clear>` command is issued.
+:doc:`clear <clear>` command is issued.  This is where the YAML export
+from the *Charts* window differs from that of the *Output* window:
+here you get the compounded data set starting with the last change of
+output fields or timestep setting, while the export from the log will
+contain *all* YAML output but *segmented* into individual runs.
 
 Image Slide Show
 ----------------

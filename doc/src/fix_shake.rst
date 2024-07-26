@@ -27,9 +27,9 @@ Syntax
 
   .. parsed-literal::
 
-       *b* values = one or more bond types
-       *a* values = one or more angle types
-       *t* values = one or more atom types
+       *b* values = one or more bond types (may use typelabels)
+       *a* values = one or more angle types  (may use typelabels)
+       *t* values = one or more atom types (may use typelabels)
        *m* value = one or more mass values
 
 * zero or more keyword/value pairs may be appended
@@ -136,6 +136,13 @@ constrained (within a fudge factor of MASSDELTA specified in
 ``src/RIGID/fix_shake.cpp``).  The *a* constraint lists angle types.  If
 both bonds in the angle are constrained then the angle will also be
 constrained if its type is in the list.
+
+.. versionchanged:: TBD
+
+The types may be given as typelabels for as long as none of the
+typelabels are called *b*, *a*, *t*, or *m*.  In those cases the type
+arguments would be ambiguous and thus support for typelabels will be
+disabled instead.
 
 For all constraints, a particular bond is only constrained if both
 atoms in the bond are in the group specified with the SHAKE fix.

@@ -29,6 +29,7 @@
 #include "fix_mvv_tdpd.h"
 
 #include "atom.h"
+#include "domain.h"
 #include "error.h"
 #include "force.h"
 #include "update.h"

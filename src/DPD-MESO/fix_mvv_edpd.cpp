@@ -33,6 +33,7 @@
 #include "fix_mvv_edpd.h"
 
 #include "atom.h"
+#include "domain.h"
 #include "error.h"
 #include "force.h"
 #include "update.h"

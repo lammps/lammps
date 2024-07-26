@@ -29,11 +29,12 @@
 ------------------------------------------------------------------------- */
 
 #include "fix_rigid_meso.h"
+
 #include "math_extra.h"
 #include "atom.h"
 #include "domain.h"
-#include "memory.h"
 #include "error.h"
+#include "memory.h"
 
 using namespace LAMMPS_NS;
 using namespace FixConst;

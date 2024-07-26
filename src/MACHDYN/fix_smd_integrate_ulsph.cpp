@@ -24,15 +24,18 @@
  ------------------------------------------------------------------------- */
 
 #include "fix_smd_integrate_ulsph.h"
+
+#include "atom.h"
+#include "comm.h"
+#include "domain.h"
+#include "error.h"
+#include "force.h"
+#include "pair.h"
+#include "update.h"
+
 #include <cmath>
 #include <cstring>
 #include <Eigen/Eigen>
-#include "atom.h"
-#include "comm.h"
-#include "force.h"
-#include "update.h"
-#include "error.h"
-#include "pair.h"
 
 using namespace Eigen;
 using namespace LAMMPS_NS;

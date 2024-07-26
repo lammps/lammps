@@ -24,6 +24,7 @@
 #include "fix_mvv_dpd.h"
 
 #include "atom.h"
+#include "domain.h"
 #include "error.h"
 #include "force.h"
 #include "update.h"

@@ -1,0 +1,38 @@
+# newton off
+units	        si
+atom_style	    sphere
+newton off
+
+variable        en equal 0.5
+variable 	    mu equal 0.9
+variable 	    kn equal 10000
+variable 	    kt equal 0.8235e4
+variable 	    dt equal 1e-6
+
+variable        t equal 0.3
+variable        Nsteps equal round(${t}/${dt})
+variable        wfreq equal  round(${Nsteps}/20)
+
+boundary   	    p p f
+read_data       particles.dat 
+
+group           my_ps type 1
+group           my_fines type 2
+
+pair_style granular
+pair_coeff * * hooke ${kn} ${en} tangential linear_history  ${kt} 0 ${mu} damping coeff_restitution 
+timestep        ${dt}
+
+fix             5 my_ps freeze 
+fix             gravid my_fines gravity 9.81 vector 0 0 -1
+fix             1 my_fines nve/sphere
+
+dump            1 all custom ${wfreq} op.dump id x y z vx vy vz type diameter 
+dump_modify     1 pad 10
+
+comm_modify     vel yes
+
+thermo          ${wfreq}
+thermo_style    custom step ke
+run_style       verlet
+run             ${Nsteps}

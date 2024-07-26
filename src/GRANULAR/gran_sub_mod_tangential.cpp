@@ -123,18 +123,29 @@ void GranSubModTangentialLinearHistory::calculate_forces()
 
   // rotate and update displacements / force.
   // see e.g. eq. 17 of Luding, Gran. Matter 2008, v10,p235
+
+  // int newapproach = 0; //DRV: Original Method results in unphysical pendular motion
+  int newapproach = 1; //DRV: New Method
+
   if (gm->history_update) {
-    // rsht = dot3(history, gm->nx); //DRV: This results in unphysical pendular motion
+    if(newapproach == 0){
+      rsht = dot3(history, gm->nx); 
+    }
+    else{
     rsht = dot3(history, gm->nt); //DRV: Modified version
+    }
     frame_update = (fabs(rsht) * k) > (EPSILON * Fscrit);
 
     if (frame_update) {
       shrmag = len3(history);
-
       // projection
-      // scale3(rsht, gm->nx, temp_array); //DRV: This results in unphysical pendular motion
-      // sub3(history, temp_array, history); //DRV: This results in unphysical pendular motion
-      scale3(rsht, gm->nt, history); //DRV: Modified version
+      if(newapproach == 0){
+        scale3(rsht, gm->nx, temp_array); 
+        sub3(history, temp_array, history); 
+      }
+      else{
+        scale3(rsht, gm->nt, history); 
+      }
 
       // also rescale to preserve magnitude
       prjmag = len3(history);

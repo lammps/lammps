@@ -25,13 +25,13 @@ fix_modify      cmap energy yes
 read_data       data.charmmfsw.gz fix cmap crossterm CMAP
 
 neighbor        2 bin
-neigh_modify    delay 5 every 1
+neigh_modify    delay 2 every 1
 
-fix             1 all shake 1e-6 500 0 m 1.008 a 142
-fix             2 all npt temp 303.15 303.15 100.0 iso 0.9869233 0.9869233 1000 couple xyz mtk no pchain 0
+fix             1 all shake 1e-6 100 100 m 1.008 a 142
+fix             2 all nvt temp 303.15 303.15 100.0
 
-thermo          100
-thermo_style    custom step time spcpu cpuremain etotal evdwl ecoul elong edihed pe ke temp press vol
+thermo          10
+thermo_style    custom step etotal evdwl ecoul elong edihed pe ke temp press
 
-run             1000
+run             100
 

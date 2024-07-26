@@ -73,7 +73,7 @@ OPT.
 
    * :doc:`none <angle_none>`
    * :doc:`zero <angle_zero>`
-   * :doc:`hybrid <angle_hybrid>`
+   * :doc:`hybrid (k) <angle_hybrid>`
    *
    *
    *
@@ -119,7 +119,7 @@ OPT.
 
    * :doc:`none <dihedral_none>`
    * :doc:`zero <dihedral_zero>`
-   * :doc:`hybrid <dihedral_hybrid>`
+   * :doc:`hybrid (k) <dihedral_hybrid>`
    *
    *
    *
@@ -157,7 +157,7 @@ OPT.
 
    * :doc:`none <improper_none>`
    * :doc:`zero <improper_zero>`
-   * :doc:`hybrid <improper_hybrid>`
+   * :doc:`hybrid (k) <improper_hybrid>`
    *
    *
    *

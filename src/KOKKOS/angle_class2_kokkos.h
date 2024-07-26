@@ -36,8 +36,8 @@ class AngleClass2Kokkos : public AngleClass2 {
 
  public:
   typedef DeviceType device_type;
-  typedef ArrayTypes<DeviceType> AT;
   typedef EV_FLOAT value_type;
+  typedef ArrayTypes<DeviceType> AT;
 
   AngleClass2Kokkos(class LAMMPS *);
   ~AngleClass2Kokkos() override;
@@ -60,6 +60,9 @@ class AngleClass2Kokkos : public AngleClass2 {
                      const F_FLOAT &delx1, const F_FLOAT &dely1, const F_FLOAT &delz1,
                      const F_FLOAT &delx2, const F_FLOAT &dely2, const F_FLOAT &delz2) const;
 
+  typename AT::tdual_efloat_1d k_eatom;
+  typename AT::tdual_virial_array k_vatom;
+
  protected:
 
   class NeighborKokkos *neighborKK;
@@ -67,9 +70,6 @@ class AngleClass2Kokkos : public AngleClass2 {
   typename AT::t_x_array_randomread x;
   typename AT::t_f_array f;
   typename AT::t_int_2d anglelist;
-
-  typename AT::tdual_efloat_1d k_eatom;
-  typename AT::tdual_virial_array k_vatom;
   typename AT::t_efloat_1d d_eatom;
   typename AT::t_virial_array d_vatom;
 

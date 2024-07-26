@@ -2,6 +2,8 @@
 .. index:: pair_style coul/cut/gpu
 .. index:: pair_style coul/cut/kk
 .. index:: pair_style coul/cut/omp
+.. index:: pair_style coul/cut/global
+.. index:: pair_style coul/cut/global/omp
 .. index:: pair_style coul/debye
 .. index:: pair_style coul/debye/gpu
 .. index:: pair_style coul/debye/kk
@@ -11,8 +13,6 @@
 .. index:: pair_style coul/dsf/kk
 .. index:: pair_style coul/dsf/omp
 .. index:: pair_style coul/exclude
-.. index:: pair_style coul/cut/global
-.. index:: pair_style coul/cut/global/omp
 .. index:: pair_style coul/long
 .. index:: pair_style coul/long/omp
 .. index:: pair_style coul/long/kk
@@ -33,6 +33,11 @@ pair_style coul/cut command
 
 Accelerator Variants: *coul/cut/gpu*, *coul/cut/kk*, *coul/cut/omp*
 
+pair_style coul/cut/global command
+==================================
+
+Accelerator Variants: *coul/cut/omp*
+
 pair_style coul/debye command
 =============================
 
@@ -45,11 +50,6 @@ Accelerator Variants: *coul/dsf/gpu*, *coul/dsf/kk*, *coul/dsf/omp*
 
 pair_style coul/exclude command
 ===============================
-
-pair_style coul/cut/global command
-==================================
-
-Accelerator Variants: *coul/cut/omp*
 
 pair_style coul/long command
 ============================
@@ -79,16 +79,17 @@ pair_style tip4p/long command
 
 Accelerator Variants: *tip4p/long/omp*
 
+
 Syntax
 """"""
 
 .. code-block:: LAMMPS
 
    pair_style coul/cut cutoff
+   pair_style coul/cut/global cutoff
    pair_style coul/debye kappa cutoff
    pair_style coul/dsf alpha cutoff
    pair_style coul/exclude cutoff
-   pair_style coul/cut/global cutoff
    pair_style coul/long cutoff
    pair_style coul/wolf alpha cutoff
    pair_style coul/streitz cutoff keyword alpha
@@ -151,6 +152,11 @@ where C is an energy-conversion constant, Qi and Qj are the charges on
 the 2 atoms, and :math:`\epsilon` is the dielectric constant which can be set
 by the :doc:`dielectric <dielectric>` command.  The cutoff :math:`r_c` truncates
 the interaction distance.
+
+Pair style *coul/cut/global* computes the same Coulombic interactions
+as style *coul/cut* except that it allows only a single global cutoff
+and thus makes it compatible for use in combination with long-range
+coulomb styles in :doc:`hybrid pair styles <pair_hybrid>`.
 
 ----------
 
@@ -261,11 +267,6 @@ hybrid/overlay mode.  To do this, you would need to provide a
 Streitz-Mintmire parameterization for the material being modeled.
 
 ----------
-
-Pair style *coul/cut/global* computes the same Coulombic interactions
-as style *coul/cut* except that it allows only a single global cutoff
-and thus makes it compatible for use in combination with long-range
-coulomb styles in :doc:`hybrid pair styles <pair_hybrid>`.
 
 Pair style *coul/exclude* computes Coulombic interactions like *coul/cut*
 but **only** applies them to excluded pairs using a scaling factor

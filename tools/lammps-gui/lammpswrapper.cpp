@@ -28,7 +28,7 @@ LammpsWrapper::LammpsWrapper() : lammps_handle(nullptr)
 
 void LammpsWrapper::open(int narg, char **args)
 {
-    // since there may only be one LAMMPS instance in LAMMPS GUI we don't open a second
+    // since there may only be one LAMMPS instance in LAMMPS-GUI we don't open a second one
     if (lammps_handle) return;
 #if defined(LAMMPS_GUI_USE_PLUGIN)
     lammps_handle = ((liblammpsplugin_t *)plugin_handle)->open_no_mpi(narg, args, nullptr);
@@ -71,6 +71,19 @@ void *LammpsWrapper::extract_global(const char *keyword)
         val = ((liblammpsplugin_t *)plugin_handle)->extract_global(lammps_handle, keyword);
 #else
         val = lammps_extract_global(lammps_handle, keyword);
+#endif
+    }
+    return val;
+}
+
+void *LammpsWrapper::extract_pair(const char *keyword)
+{
+    void *val = nullptr;
+    if (lammps_handle) {
+#if defined(LAMMPS_GUI_USE_PLUGIN)
+        val = ((liblammpsplugin_t *)plugin_handle)->extract_pair(lammps_handle, keyword);
+#else
+        val = lammps_extract_pair(lammps_handle, keyword);
 #endif
     }
     return val;

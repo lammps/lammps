@@ -18,6 +18,7 @@
 
 #include <QAction>
 #include <QApplication>
+#include <QClipboard>
 #include <QDir>
 #include <QFileDialog>
 #include <QGuiApplication>
@@ -132,7 +133,9 @@ static const QString blank(" ");
 
 ImageViewer::ImageViewer(const QString &fileName, LammpsWrapper *_lammps, QWidget *parent) :
     QDialog(parent), menuBar(new QMenuBar), imageLabel(new QLabel), scrollArea(new QScrollArea),
-    lammps(_lammps), group("all"), filename(fileName), useelements(false), usediameter(false)
+    saveAsAct(nullptr), copyAct(nullptr), cmdAct(nullptr), zoomInAct(nullptr), zoomOutAct(nullptr),
+    normalSizeAct(nullptr), lammps(_lammps), group("all"), filename(fileName), useelements(false),
+    usediameter(false), usesigma(false)
 {
     imageLabel->setBackgroundRole(QPalette::Base);
     imageLabel->setSizePolicy(QSizePolicy::Ignored, QSizePolicy::Ignored);
@@ -143,7 +146,7 @@ ImageViewer::ImageViewer(const QString &fileName, LammpsWrapper *_lammps, QWidge
     scrollArea->setWidget(imageLabel);
     scrollArea->setVisible(false);
 
-    QVBoxLayout *mainLayout = new QVBoxLayout;
+    auto *mainLayout = new QVBoxLayout;
 
     QSettings settings;
 
@@ -214,7 +217,7 @@ ImageViewer::ImageViewer(const QString &fileName, LammpsWrapper *_lammps, QWidge
     combo->setObjectName("group");
     combo->setToolTip("Select group to display");
     combo->setObjectName("group");
-    int ngroup = lammps->id_count("group");
+    int ngroup           = lammps->id_count("group");
     constexpr int BUFLEN = 256;
     char gname[BUFLEN];
     for (int i = 0; i < ngroup; ++i) {
@@ -223,7 +226,7 @@ ImageViewer::ImageViewer(const QString &fileName, LammpsWrapper *_lammps, QWidge
         combo->addItem(gname);
     }
 
-    QHBoxLayout *menuLayout = new QHBoxLayout;
+    auto *menuLayout = new QHBoxLayout;
     menuLayout->addWidget(menuBar);
     menuLayout->addWidget(renderstatus);
     menuLayout->addWidget(new QLabel(" Width: "));
@@ -263,7 +266,7 @@ ImageViewer::ImageViewer(const QString &fileName, LammpsWrapper *_lammps, QWidge
     mainLayout->addLayout(menuLayout);
     mainLayout->addWidget(scrollArea);
     setWindowIcon(QIcon(":/icons/lammps-icon-128x128.png"));
-    setWindowTitle(QString("Image Viewer: ") + QFileInfo(fileName).fileName());
+    setWindowTitle(QString("LAMMPS-GUI - Image Viewer - ") + QFileInfo(fileName).fileName());
     createActions();
 
     reset_view();
@@ -271,7 +274,7 @@ ImageViewer::ImageViewer(const QString &fileName, LammpsWrapper *_lammps, QWidge
     // properties directly since lookup in reset_view() will have failed
     dobox->setChecked(showbox);
     dovdw->setChecked(vdwfactor > 1.0);
-    dovdw->setEnabled(useelements || usediameter);
+    dovdw->setEnabled(useelements || usediameter || usesigma);
     doaxes->setChecked(showaxes);
     dossao->setChecked(usessao);
     doanti->setChecked(antialias);
@@ -324,7 +327,7 @@ void ImageViewer::reset_view()
 
 void ImageViewer::edit_size()
 {
-    QSpinBox *field = qobject_cast<QSpinBox *>(sender());
+    auto *field = qobject_cast<QSpinBox *>(sender());
     if (field->objectName() == "xsize") {
         xsize = field->value();
     } else if (field->objectName() == "ysize") {
@@ -335,23 +338,23 @@ void ImageViewer::edit_size()
 
 void ImageViewer::toggle_ssao()
 {
-    QPushButton *button = qobject_cast<QPushButton *>(sender());
-    usessao             = !usessao;
+    auto *button = qobject_cast<QPushButton *>(sender());
+    usessao      = !usessao;
     button->setChecked(usessao);
     createImage();
 }
 
 void ImageViewer::toggle_anti()
 {
-    QPushButton *button = qobject_cast<QPushButton *>(sender());
-    antialias           = !antialias;
+    auto *button = qobject_cast<QPushButton *>(sender());
+    antialias    = !antialias;
     button->setChecked(antialias);
     createImage();
 }
 
 void ImageViewer::toggle_vdw()
 {
-    QPushButton *button = qobject_cast<QPushButton *>(sender());
+    auto *button = qobject_cast<QPushButton *>(sender());
     if (vdwfactor > 1.0)
         vdwfactor = 0.5;
     else
@@ -362,16 +365,16 @@ void ImageViewer::toggle_vdw()
 
 void ImageViewer::toggle_box()
 {
-    QPushButton *button = qobject_cast<QPushButton *>(sender());
-    showbox             = !showbox;
+    auto *button = qobject_cast<QPushButton *>(sender());
+    showbox      = !showbox;
     button->setChecked(showbox);
     createImage();
 }
 
 void ImageViewer::toggle_axes()
 {
-    QPushButton *button = qobject_cast<QPushButton *>(sender());
-    showaxes            = !showaxes;
+    auto *button = qobject_cast<QPushButton *>(sender());
+    showaxes     = !showaxes;
     button->setChecked(showaxes);
     createImage();
 }
@@ -418,16 +421,36 @@ void ImageViewer::do_rot_up()
     createImage();
 }
 
+void ImageViewer::cmd_to_clipboard()
+{
+    auto words    = last_dump_cmd.split(" ");
+    QString blank = QStringLiteral(" ");
+    int modidx    = words.indexOf("modify");
+    int maxidx    = words.size();
+
+    QString dumpcmd = "dump viz ";
+    dumpcmd += words[1] + " image 100 myimage-*.ppm";
+    for (int i = 4; i < modidx; ++i)
+        dumpcmd += blank + words[i];
+    dumpcmd += '\n';
+
+    dumpcmd += "dump_modify viz pad 9";
+    for (int i = modidx + 1; i < maxidx; ++i)
+        dumpcmd += blank + words[i];
+    dumpcmd += '\n';
+    QGuiApplication::clipboard()->setText(dumpcmd);
+}
+
 void ImageViewer::change_group(int)
 {
-    QComboBox *box = findChild<QComboBox *>("group");
+    auto *box = findChild<QComboBox *>("group");
     if (box) group = box->currentText();
     createImage();
 }
 
 void ImageViewer::createImage()
 {
-    QLabel *renderstatus = findChild<QLabel *>("renderstatus");
+    auto *renderstatus = findChild<QLabel *>("renderstatus");
     if (renderstatus) renderstatus->setEnabled(true);
     repaint();
 
@@ -443,7 +466,7 @@ void ImageViewer::createImage()
     // determine elements from masses and set their covalent radii
     int ntypes       = lammps->extract_setting("ntypes");
     int nbondtypes   = lammps->extract_setting("nbondtypes");
-    double *masses   = (double *)lammps->extract_atom("mass");
+    auto *masses     = (double *)lammps->extract_atom("mass");
     QString units    = (const char *)lammps->extract_global("units");
     QString elements = "element ";
     QString adiams;
@@ -458,9 +481,19 @@ void ImageViewer::createImage()
         }
     }
     usediameter = lammps->extract_setting("radius_flag") != 0;
-
+    // use Lennard-Jones sigma for radius, if available
+    usesigma               = false;
+    const char *pair_style = (const char *)lammps->extract_global("pair_style");
+    if (!useelements && pair_style && (strncmp(pair_style, "lj/", 3) == 0)) {
+        double **sigma = (double **)lammps->extract_pair("sigma");
+        if (sigma) {
+            usesigma = true;
+            for (int i = 1; i <= ntypes; ++i)
+                adiams += QString("adiam %1 %2 ").arg(i).arg(vdwfactor * sigma[i][i]);
+        }
+    }
     // adjust pushbutton state and clear adiams string to disable VDW display, if needed
-    if (useelements || usediameter) {
+    if (useelements || usediameter || usesigma) {
         auto *button = findChild<QPushButton *>("vdw");
         if (button) button->setEnabled(true);
     } else {
@@ -469,7 +502,7 @@ void ImageViewer::createImage()
         if (button) button->setEnabled(false);
     }
 
-    if (!adiams.isEmpty())
+    if (useelements)
         dumpcmd += blank + "element";
     else
         dumpcmd += blank + settings.value("color", "type").toString();
@@ -503,9 +536,11 @@ void ImageViewer::createImage()
 
     dumpcmd += " modify boxcolor " + settings.value("boxcolor", "yellow").toString();
     dumpcmd += " backcolor " + settings.value("background", "black").toString();
-    if (!adiams.isEmpty()) dumpcmd += blank + elements + blank + adiams + blank;
+    if (useelements) dumpcmd += blank + elements + blank + adiams + blank;
+    if (usesigma) dumpcmd += blank + adiams + blank;
     settings.endGroup();
 
+    last_dump_cmd = dumpcmd;
     lammps->command(dumpcmd.toLocal8Bit());
 
     QImageReader reader(dumpfile.fileName());
@@ -554,10 +589,13 @@ void ImageViewer::createActions()
     saveAsAct->setIcon(QIcon(":/icons/document-save-as.png"));
     saveAsAct->setEnabled(false);
     fileMenu->addSeparator();
-    copyAct = fileMenu->addAction("&Copy", this, &ImageViewer::copy);
+    copyAct = fileMenu->addAction("&Copy Image", this, &ImageViewer::copy);
     copyAct->setIcon(QIcon(":/icons/edit-copy.png"));
     copyAct->setShortcut(QKeySequence::Copy);
     copyAct->setEnabled(false);
+    cmdAct = fileMenu->addAction("Copy &dump image command", this, &ImageViewer::cmd_to_clipboard);
+    cmdAct->setIcon(QIcon(":/icons/file-clipboard.png"));
+    cmdAct->setShortcut(QKeySequence(Qt::CTRL | Qt::Key_D));
     fileMenu->addSeparator();
     QAction *exitAct = fileMenu->addAction("&Close", this, &QWidget::close);
     exitAct->setIcon(QIcon(":/icons/window-close.png"));

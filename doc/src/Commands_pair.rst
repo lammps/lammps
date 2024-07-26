@@ -35,6 +35,10 @@ OPT.
    *
    *
    *
+   *
+   *
+   *
+   *
    * :doc:`adp (ko) <pair_adp>`
    * :doc:`agni (o) <pair_agni>`
    * :doc:`aip/water/2dm (t) <pair_aip_water_2dm>`
@@ -260,6 +264,8 @@ OPT.
    * :doc:`rebo (io) <pair_airebo>`
    * :doc:`rebomos (o) <pair_rebomos>`
    * :doc:`resquared (go) <pair_resquared>`
+   * :doc:`rheo <pair_rheo>`
+   * :doc:`rheo/solid <pair_rheo_solid>`
    * :doc:`saip/metal (t) <pair_saip_metal>`
    * :doc:`sdpd/taitwater/isothermal <pair_sdpd_taitwater_isothermal>`
    * :doc:`smatb <pair_smatb>`

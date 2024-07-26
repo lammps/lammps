@@ -189,9 +189,9 @@ void TextFileReader::next_dvector(double *list, int n)
     char *ptr = next_line();
 
     if (ptr == nullptr) {
-      if (i == 0) { // EOF without any records
+      if (i == 0) {    // EOF without any records
         throw EOFException("EOF reached");
-      } else if (i < n) { // EOF with incomplete data
+      } else if (i < n) {    // EOF with incomplete data
         throw FileReaderException(
             fmt::format("Incorrect format in {} file! {}/{} values", filetype, i, n));
       }

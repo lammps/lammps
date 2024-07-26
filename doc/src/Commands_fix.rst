@@ -28,6 +28,7 @@ OPT.
    * :doc:`adapt <fix_adapt>`
    * :doc:`adapt/fep <fix_adapt_fep>`
    * :doc:`addforce <fix_addforce>`
+   * :doc:`add/heat <fix_add_heat>`
    * :doc:`addtorque <fix_addtorque>`
    * :doc:`alchemy <fix_alchemy>`
    * :doc:`amoeba/bitorsion <fix_amoeba_bitorsion>`
@@ -204,6 +205,11 @@ OPT.
    * :doc:`reaxff/species (k) <fix_reaxff_species>`
    * :doc:`recenter <fix_recenter>`
    * :doc:`restrain <fix_restrain>`
+   * :doc:`rheo <fix_rheo>`
+   * :doc:`rheo/oxidation <fix_rheo_oxidation>`
+   * :doc:`rheo/pressure <fix_rheo_pressure>`
+   * :doc:`rheo/thermal <fix_rheo_thermal>`
+   * :doc:`rheo/viscosity <fix_rheo_viscosity>`
    * :doc:`rhok <fix_rhok>`
    * :doc:`rigid (o) <fix_rigid>`
    * :doc:`rigid/meso <fix_rigid_meso>`

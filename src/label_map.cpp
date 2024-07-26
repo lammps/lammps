@@ -40,8 +40,7 @@ static const char cite_type_label_framework[] =
 
 LabelMap::LabelMap(LAMMPS *_lmp, int _natomtypes, int _nbondtypes, int _nangletypes,
                    int _ndihedraltypes, int _nimpropertypes) :
-    Pointers(_lmp),
-    natomtypes(_natomtypes), nbondtypes(_nbondtypes), nangletypes(_nangletypes),
+    Pointers(_lmp), natomtypes(_natomtypes), nbondtypes(_nbondtypes), nangletypes(_nangletypes),
     ndihedraltypes(_ndihedraltypes), nimpropertypes(_nimpropertypes)
 {
   if (lmp->citeme) lmp->citeme->add(cite_type_label_framework);

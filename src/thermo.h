@@ -57,7 +57,7 @@ class Thermo : protected Pointers {
  private:
   int nfield, nfield_initial;
   int *vtype;
-  int triclinic_general;   // set by thermo_modify
+  int triclinic_general;    // set by thermo_modify
 
   std::string line;
   std::vector<std::string> keyword, format, format_column_user, keyword_user;
@@ -237,7 +237,6 @@ class Thermo : protected Pointers {
 
   void compute_nbuild();
   void compute_ndanger();
-
 };
 
 }    // namespace LAMMPS_NS

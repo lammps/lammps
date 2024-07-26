@@ -47,8 +47,7 @@ using namespace LAMMPS_NS;
 PotentialFileReader::PotentialFileReader(LAMMPS *lmp, const std::string &filename,
                                          const std::string &potential_name,
                                          const std::string &name_suffix, const int auto_convert) :
-    Pointers(lmp),
-    reader(nullptr), filename(filename), filetype(potential_name + name_suffix),
+    Pointers(lmp), reader(nullptr), filename(filename), filetype(potential_name + name_suffix),
     unit_convert(auto_convert)
 {
   if (comm->me != 0) { error->one(FLERR, "FileReader should only be called by proc 0!"); }

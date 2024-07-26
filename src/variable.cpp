@@ -34,6 +34,7 @@
 #include "random_mars.h"
 #include "region.h"
 #include "thermo.h"
+#include "timer.h"
 #include "tokenizer.h"
 #include "universe.h"
 #include "update.h"
@@ -1024,7 +1025,7 @@ char *Variable::retrieve(const char *name)
       error->all(FLERR, "Variable {}: format variable {} has incompatible style",
                  names[ivar],data[ivar][0]);
     double answer = compute_equal(jvar);
-    sprintf(data[ivar][2],data[ivar][1],answer);
+    snprintf(data[ivar][2],VALUELENGTH,data[ivar][1],answer);
     str = data[ivar][2];
 
   } else if (style[ivar] == GETENV) {
@@ -4276,8 +4277,9 @@ Region *Variable::region_function(char *id, int ivar)
    return 0 if not a match, 1 if successfully processed
    customize by adding a special function:
      sum(x),min(x),max(x),ave(x),trap(x),slope(x),
-     gmask(x),rmask(x),grmask(x,y),next(x),is_file(x),is_ox(x),
-     extract_setting(x),label2type(x,y),is_typelabel(x,y)
+     gmask(x),rmask(x),grmask(x,y),next(x),is_file(x),is_os(x),
+     extract_setting(x),label2type(x,y),is_tpelabel(x,y)
+     is_timeout()
 ------------------------------------------------------------------------- */
 
 // to simplify finding matches and assigning constants for functions operating on vectors
@@ -4286,7 +4288,7 @@ static const std::unordered_map<std::string,int> special_function_map = {
   {"sum", SUM}, {"min", XMIN}, {"max", XMAX}, {"ave", AVE}, {"trap", TRAP}, {"slope", SLOPE},
   {"sort", SORT}, {"rsort", RSORT}, {"gmask", NOVECTOR}, {"rmask", NOVECTOR}, {"grmask", NOVECTOR},
   {"next", NOVECTOR}, {"is_file", NOVECTOR}, {"is_os", NOVECTOR}, {"extract_setting", NOVECTOR},
-  {"label2type", NOVECTOR}, {"is_typelabel", NOVECTOR} };
+  {"label2type", NOVECTOR}, {"is_typelabel", NOVECTOR}, {"is_timeout", NOVECTOR} };
 
 int Variable::special_function(const std::string &word, char *contents, Tree **tree,
                                Tree **treestack, int &ntreestack, double *argstack,
@@ -4765,6 +4767,21 @@ int Variable::special_function(const std::string &word, char *contents, Tree **t
       newtree->value = value;
       treestack[ntreestack++] = newtree;
     } else argstack[nargstack++] = value;
+
+  } else if (word == "is_timeout") {
+    if ((narg != 1) || (std::string(args[0]).size() != 0))
+      print_var_error(FLERR,"Invalid is_timeout() function in variable formula",ivar);
+    value = timer->is_timeout() ? 1.0 : 0.0;
+
+    // save value in tree or on argstack
+
+    if (tree) {
+      auto newtree = new Tree();
+      newtree->type = VALUE;
+      newtree->value = value;
+      treestack[ntreestack++] = newtree;
+    } else argstack[nargstack++] = value;
+
   }
 
   // delete stored args

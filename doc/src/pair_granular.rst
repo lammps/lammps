@@ -402,6 +402,12 @@ of motion described above (rotations about :math:`\mathbf{n}`) are not
 currently implemented, but are expected to be minor for most
 simulations.
 
+This may result in unphysical pendular motion in polydisperse frictional granular collisions involving size ratios more than three. An alternative approach is to project the history term in the direction of the instantaneous relative tangential velocity. 
+
+.. math::
+
+   \mathbf{\xi} = (\mathbf{\xi}'\cdot\hat{\mathbf{t}})\hat{\mathbf{t}}\frac{\|\mathbf{\xi}'\|}{\|\mathbf{\xi}'\cdot\hat{\mathbf{t}}\|}.
+
 Furthermore, when the tangential force exceeds the critical force, the
 tangential displacement is re-scaled to match the value for the
 critical force (see :ref:`Luding <Luding2008>`, equation 20 and related

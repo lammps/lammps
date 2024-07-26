@@ -51,10 +51,10 @@ Example usage:
     4) Test a LAMMPS binary with the whole top-level /examples folder in a LAMMPS source tree
            python3 run_tests.py --lmp-bin=/path/to/lmp_binary --examples-top-level=/path/to/lammps/examples
 
-    5) Analyze (dry run) the LAMMPS binary annd whole top-level /examples folder in a LAMMPS source tree 
+    5) Analyze the LAMMPS binary annd whole top-level /examples folder in a LAMMPS source tree 
        and generate separate input lists for 8 workers:
            python3 run_tests.py --lmp-bin=/path/to/lmp_binary --examples-top-level=/path/to/lammps/examples \
-                --dry-run --num-workers=8
+                --analyze --num-workers=8
 
        This is used for splitting the subfolders into separate input lists and launching different instances
        of run_tests.py simultaneously.
@@ -363,24 +363,25 @@ def iterate(lmp_binary, input_folder, input_list, config, results, progress_file
         # skip the input file if listed
         if 'skip' in config:
             if input in config['skip']:
-                msg = f"SKIPPED: {input} as specified in the configuration file {configFileName}"
+                msg = "  + " + input + f" ({test_id+1}/{num_tests}): skipped as specified in {configFileName}"
                 print(msg)
                 logger.info(msg)
                 progress.write(f"{input}: {{ folder: {input_folder}, status: skipped }}\n")
                 progress.close()
-                test_id = test_id + 1
+                #test_id = test_id + 1
                 continue
 
         # also skip if the test already completed
         if input in last_progress:
             status = last_progress[input]['status']
             if status == 'completed':
-                msg = f"COMPLETED: {input} marked as completed in the progress file {progress_file}"
+                #msg = f"    COMPLETED: {input} marked as completed in the progress file {progress_file}"
+                msg = "  + " + input + f" ({test_id+1}/{num_tests}): marked as completed in the progress file {progress_file}"
                 logger.info(msg)
                 print(msg)
                 progress.write(msg)
                 progress.close()
-                test_id = test_id + 1
+                #test_id = test_id + 1
                 continue
     
         str_t = "  + " + input + f" ({test_id+1}/{num_tests})"
@@ -467,7 +468,7 @@ def iterate(lmp_binary, input_folder, input_list, config, results, progress_file
 
         num_runs = len(thermo)
         if num_runs == 0:
-            logger.info(f"The run terminated with {input_test} gives the following output:\n")
+            logger.info(f"The run terminated with {input_test} gives the following output:")
             logger.info(f"\n{output}")
             if "Unrecognized" in output:
                 result.status = "error, unrecognized command, package not installed"
@@ -515,10 +516,28 @@ def iterate(lmp_binary, input_folder, input_list, config, results, progress_file
                 continue
 
         logger.info(f"    Comparing thermo output from log.lammps against the reference log file {thermo_ref_file}")
+
         # check if the number of runs matches with that in the reference log file
         if num_runs != num_runs_ref:
-            logger.info(f"ERROR: Number of runs in log.lammps ({num_runs}) is not the same as that in the reference log ({num_runs_ref})")
+            logger.info(f"    ERROR: Number of runs in log.lammps ({num_runs}) is "
+                        "different from that in the reference log ({num_runs_ref})."
+                        "Check README in the folder, possibly due to the mpirun command.")
             result.status = "error, incomplete runs"
+            results.append(result)
+            progress.write(f"{input}: {{ folder: {input_folder}, status: {result.status} }}\n")
+            progress.close()
+            num_error = num_error + 1
+            test_id = test_id + 1
+            continue
+
+        # check if the number of fields match with that in the reference log file in the first run for early exit
+        num_fields = len(thermo[0]['keywords'])
+        num_fields_ref = len(thermo_ref[0]['keywords'])
+        if num_fields != num_fields_ref:
+            logger.info(f"    ERROR: Number of thermo colums in log.lammps ({num_fields}) is "
+                             "different from that in the reference log ({num_fields_ref}) in run {irun}. "
+                             "Check README in the folder, possibly due to the mpirun command.")
+            result.status = "error, mismatched columns in the log files"
             results.append(result)
             progress.write(f"{input}: {{ folder: {input_folder}, status: {result.status} }}\n")
             progress.close()
@@ -538,69 +557,84 @@ def iterate(lmp_binary, input_folder, input_list, config, results, progress_file
             if input_test in config['overrides']:
                 overrides = config['overrides'][input_test]
 
-        # iterate through all num_runs
+        # iterate through num_runs
 
         num_abs_failed = 0
         num_rel_failed = 0
         failed_abs_output = []
         failed_rel_output = []
         num_checks = 0
+        mismatched_columns = False
 
         for irun in range(num_runs):
             num_fields = len(thermo[irun]['keywords'])
+            num_fields_ref = len(thermo_ref[irun]['keywords'])
+            if num_fields != num_fields_ref:
+                logger.info(f"    ERROR: Number of thermo columns in log.lammps ({num_fields}) is "
+                             "different from that in the reference log ({num_fields_ref}) in run {irun}. "
+                             "Check README in the example folder, possibly due to the mpirun command.")
+                mismatched_columns = True
+                continue
 
-        # get the total number of the thermo output lines
-        nthermo_steps = len(thermo[irun]['data'])
+            # get the total number of the thermo output lines
+            nthermo_steps = len(thermo[irun]['data'])
 
-        # get the output at the last timestep
-        thermo_step = nthermo_steps - 1
+            # get the output at the last timestep
+            thermo_step = nthermo_steps - 1
 
-        # iterate over the fields
-        for i in range(num_fields):
-            quantity = thermo[irun]['keywords'][i]
+            # iterate over the fields
+            for i in range(num_fields):
+                quantity = thermo[irun]['keywords'][i]
 
-            val = thermo[irun]['data'][thermo_step][i]
-            ref = thermo_ref[irun]['data'][thermo_step][i]
-            abs_diff = abs(float(val) - float(ref))
+                val = thermo[irun]['data'][thermo_step][i]
+                ref = thermo_ref[irun]['data'][thermo_step][i]
+                abs_diff = abs(float(val) - float(ref))
 
-            if abs(float(ref)) > EPSILON:
-                rel_diff = abs(float(val) - float(ref))/abs(float(ref))
-            else:
-                rel_diff = abs(float(val) - float(ref))/abs(float(ref)+nugget)
+                if abs(float(ref)) > EPSILON:
+                    rel_diff = abs(float(val) - float(ref))/abs(float(ref))
+                else:
+                    rel_diff = abs(float(val) - float(ref))/abs(float(ref)+nugget)
 
-            abs_diff_check = "PASSED"
-            rel_diff_check = "PASSED"
-            
-            if quantity in config['tolerance'] or quantity in overrides:
+                abs_diff_check = "PASSED"
+                rel_diff_check = "PASSED"
+                
+                if quantity in config['tolerance'] or quantity in overrides:
 
-                if quantity in config['tolerance']:
-                    abs_tol = float(config['tolerance'][quantity]['abs'])
-                    rel_tol = float(config['tolerance'][quantity]['rel'])
+                    if quantity in config['tolerance']:
+                        abs_tol = float(config['tolerance'][quantity]['abs'])
+                        rel_tol = float(config['tolerance'][quantity]['rel'])
 
-                # overrides the global tolerance values if specified
-                if quantity in overrides:
-                    abs_tol = float(overrides[quantity]['abs'])
-                    rel_tol = float(overrides[quantity]['rel'])
+                    # overrides the global tolerance values if specified
+                    if quantity in overrides:
+                        abs_tol = float(overrides[quantity]['abs'])
+                        rel_tol = float(overrides[quantity]['rel'])
 
-                num_checks = num_checks + 2
-                if abs_diff > abs_tol:
-                    abs_diff_check = "FAILED"
-                    reason = f"Run {irun}: {quantity}: actual ({abs_diff:0.2e}) > expected ({abs_tol:0.2e})"
-                    failed_abs_output.append(f"{reason}")
-                    num_abs_failed = num_abs_failed + 1
-                if rel_diff > rel_tol:
-                    rel_diff_check = "FAILED"
-                    reason = f"Run {irun}: {quantity}: actual ({rel_diff:0.2e}) > expected ({rel_tol:0.2e})"
-                    failed_rel_output.append(f"{reason}")
-                    num_rel_failed = num_rel_failed + 1
-            else:
-                # N/A means that tolerances are not defined in the config file
-                abs_diff_check = "N/A"
-                rel_diff_check = "N/A"          
+                    num_checks = num_checks + 2
+                    if abs_diff > abs_tol:
+                        abs_diff_check = "FAILED"
+                        reason = f"Run {irun}: {quantity}: actual ({abs_diff:0.2e}) > expected ({abs_tol:0.2e})"
+                        failed_abs_output.append(f"{reason}")
+                        num_abs_failed = num_abs_failed + 1
+                    if rel_diff > rel_tol:
+                        rel_diff_check = "FAILED"
+                        reason = f"Run {irun}: {quantity}: actual ({rel_diff:0.2e}) > expected ({rel_tol:0.2e})"
+                        failed_rel_output.append(f"{reason}")
+                        num_rel_failed = num_rel_failed + 1
+                else:
+                    # N/A means that tolerances are not defined in the config file
+                    abs_diff_check = "N/A"
+                    rel_diff_check = "N/A"          
 
-            if verbose == True and abs_diff_check != "N/A"  and rel_diff_check != "N/A":
-                print(f"{thermo[irun]['keywords'][i].ljust(width)} {str(val).rjust(20)} {str(ref).rjust(20)} "
-                    "{abs_diff_check.rjust(20)} {rel_diff_check.rjust(20)}")
+                if verbose == True and abs_diff_check != "N/A"  and rel_diff_check != "N/A":
+                    print(f"{thermo[irun]['keywords'][i].ljust(width)} {str(val).rjust(20)} {str(ref).rjust(20)} "
+                        "{abs_diff_check.rjust(20)} {rel_diff_check.rjust(20)}")
+
+        # after all runs completed, or are interrupted in one of the runs (mismatched_columns = True)
+        if mismatched_columns == True:
+            msg = f"      mismatched log file."
+            print(msg)
+            logger.info(msg)
+            result.status = "failed"
 
         if num_abs_failed > 0:
             msg = f"      {num_abs_failed} abs diff checks failed."
@@ -662,7 +696,7 @@ if __name__ == "__main__":
     progress_file = "progress.yaml"
     log_file = "run.log"
     list_input = ""
-    dry_run = False
+    analyze = False
 
     # distribute the total number of input scripts over the workers
     num_workers = 1
@@ -685,8 +719,8 @@ if __name__ == "__main__":
     parser.add_argument("--output-file",dest="output", default=output_file, help="Output file")
     parser.add_argument("--log-file",dest="logfile", default=log_file, help="Log file")
     parser.add_argument("--progress-file",dest="progress_file", default=progress_file, help="Progress file")
-    parser.add_argument("--dry-run",dest="dry_run", action='store_true', default=False,
-                        help="Only report statistics, not running the tests")
+    parser.add_argument("--analyze",dest="analyze", action='store_true', default=False,
+                        help="Analyze and report statistics, not running the tests")
 
     args = parser.parse_args()
 
@@ -706,7 +740,7 @@ if __name__ == "__main__":
     genref = args.genref
     verbose = args.verbose
     log_file = args.logfile
-    dry_run = args.dry_run
+    analyze = args.analyze
     resume = args.resume
     progress_file = args.progress_file
 
@@ -814,8 +848,8 @@ if __name__ == "__main__":
         else:
             inplace_input = False
 
-    # if only statistics, not running any test
-    if dry_run == True:
+    # if analyze the example folders (and split into separate lists for top-level examples), not running any test
+    if analyze == True:
         quit()
 
     all_results = []
@@ -904,17 +938,19 @@ if __name__ == "__main__":
 
     # print out summary
     msg = "\nSummary:\n"
-    msg += f"  Total {total_tests} runs\n"
-    msg += f"  - {completed_tests} runs completed\n"
-    msg += f"  - {error_tests} runs failed with error\n"
-    msg += f"  - {memleak_tests} runs with memory leak detected\n"
-    msg += f"  - {passed_tests} numerical tests passed\n\n"
-    msg = "\nOutput:\n"
-    msg += f"  - Test results in JUnit XML format: {output_file}\n"
-    msg += f"  - Progress with the input list    : {progress_file}\n"
-    msg += f"  - Running log                     : {log_file}"
-    print(msg)
+    msg += f"  Total tests: {total_tests}\n"
+    msg += f"  - Failed   : {error_tests}\n"
+    msg += f"  - Completed: {completed_tests}\n"
+    if memleak_tests < completed_tests:
+        msg += f"    - memory leak detected  : {memleak_tests}\n"
+    if passed_tests < completed_tests:
+        msg += f"    - numerical tests passed: {passed_tests}\n"
+    msg += "\nOutput:\n"
+    msg += f"  - Running log with screen output: {log_file}\n"
+    msg += f"  - Progress with the input list  : {progress_file}\n"
+    msg += f"  - Regression test results       : {output_file}\n"
 
+    print(msg)
 
     # optional: need to check if junit_xml packaged is already installed in the env
     #   generate a JUnit XML file 

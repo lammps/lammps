@@ -16,6 +16,9 @@
 AngleStyle(spica/kk,AngleSPICAKokkos<LMPDeviceType>);
 AngleStyle(spica/kk/device,AngleSPICAKokkos<LMPDeviceType>);
 AngleStyle(spica/kk/host,AngleSPICAKokkos<LMPHostType>);
+AngleStyle(sdk/kk,AngleSPICAKokkos<LMPDeviceType>);
+AngleStyle(sdk/kk/device,AngleSPICAKokkos<LMPDeviceType>);
+AngleStyle(sdk/kk/host,AngleSPICAKokkos<LMPHostType>);
 // clang-format on
 #else
 

@@ -1,7 +1,10 @@
 .. index:: improper_style hybrid
+.. index:: improper_style hybrid/kk
 
 improper_style hybrid command
 =============================
+
+Accelerator Variants: *hybrid/kk*
 
 Syntax
 """"""

@@ -36,6 +36,7 @@ static constexpr double SMALL =     0.001;
 template<class DeviceType>
 ImproperHarmonicKokkos<DeviceType>::ImproperHarmonicKokkos(LAMMPS *lmp) : ImproperHarmonic(lmp)
 {
+  kokkosable = 1;
   atomKK = (AtomKokkos *) atom;
   neighborKK = (NeighborKokkos *) neighbor;
   execution_space = ExecutionSpaceFromDevice<DeviceType>::space;
@@ -73,18 +74,18 @@ void ImproperHarmonicKokkos<DeviceType>::compute(int eflag_in, int vflag_in)
   // reallocate per-atom arrays if necessary
 
   if (eflag_atom) {
-    //if(k_eatom.extent(0)<maxeatom) { // won't work without adding zero functor
+    if(k_eatom.extent(0) < maxeatom) {
       memoryKK->destroy_kokkos(k_eatom,eatom);
       memoryKK->create_kokkos(k_eatom,eatom,maxeatom,"improper:eatom");
       d_eatom = k_eatom.template view<KKDeviceType>();
-    //}
+    } else Kokkos::deep_copy(d_eatom,0.0);
   }
   if (vflag_atom) {
-    //if(k_vatom.extent(0)<maxvatom) { // won't work without adding zero functor
+    if(k_vatom.extent(0) < maxvatom) {
       memoryKK->destroy_kokkos(k_vatom,vatom);
       memoryKK->create_kokkos(k_vatom,vatom,maxvatom,"improper:vatom");
       d_vatom = k_vatom.template view<KKDeviceType>();
-    //}
+    } else Kokkos::deep_copy(d_vatom,0.0);
   }
 
   //atomKK->sync(execution_space,datamask_read);
@@ -102,7 +103,7 @@ void ImproperHarmonicKokkos<DeviceType>::compute(int eflag_in, int vflag_in)
   newton_bond = force->newton_bond;
 
   h_warning_flag() = 0;
-  k_warning_flag.template modify<LMPHostType>();
+  k_warning_flag.modify_host();
   k_warning_flag.template sync<DeviceType>();
 
   copymode = 1;
@@ -128,7 +129,7 @@ void ImproperHarmonicKokkos<DeviceType>::compute(int eflag_in, int vflag_in)
   // error check
 
   k_warning_flag.template modify<DeviceType>();
-  k_warning_flag.template sync<LMPHostType>();
+  k_warning_flag.sync_host();
   if (h_warning_flag())
     error->warning(FLERR,"Dihedral problem");
 
@@ -144,12 +145,12 @@ void ImproperHarmonicKokkos<DeviceType>::compute(int eflag_in, int vflag_in)
 
   if (eflag_atom) {
     k_eatom.template modify<DeviceType>();
-    k_eatom.template sync<LMPHostType>();
+    k_eatom.sync_host();
   }
 
   if (vflag_atom) {
     k_vatom.template modify<DeviceType>();
-    k_vatom.template sync<LMPHostType>();
+    k_vatom.sync_host();
   }
 
   copymode = 0;
@@ -324,8 +325,8 @@ void ImproperHarmonicKokkos<DeviceType>::coeff(int narg, char **arg)
     k_chi.h_view[i] = chi[i];
   }
 
-  k_k.template modify<LMPHostType>();
-  k_chi.template modify<LMPHostType>();
+  k_k.modify_host();
+  k_chi.modify_host();
 }
 
 /* ----------------------------------------------------------------------
@@ -343,8 +344,8 @@ void ImproperHarmonicKokkos<DeviceType>::read_restart(FILE *fp)
     k_chi.h_view[i] = chi[i];
   }
 
-  k_k.template modify<LMPHostType>();
-  k_chi.template modify<LMPHostType>();
+  k_k.modify_host();
+  k_chi.modify_host();
 }
 
 /* ----------------------------------------------------------------------

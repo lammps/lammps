@@ -11,45 +11,45 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
-#ifdef ANGLE_CLASS
+#ifdef BOND_CLASS
 // clang-format off
-AngleStyle(hybrid,AngleHybrid);
+ImproperStyle(hybrid/kk,ImproperHybridKokkos);
+ImproperStyle(hybrid/kk/device,ImproperHybridKokkos);
+ImproperStyle(hybrid/kk/host,ImproperHybridKokkos);
 // clang-format on
 #else
 
-#ifndef LMP_ANGLE_HYBRID_H
-#define LMP_ANGLE_HYBRID_H
+// clang-format off
+#ifndef LMP_BOND_HYBRID_KOKKOS_H
+#define LMP_BOND_HYBRID_KOKKOS_H
 
-#include "angle.h"
+#include "improper_hybrid.h"
+#include "kokkos_type.h"
 
 namespace LAMMPS_NS {
 
-class AngleHybrid : public Angle {
- public:
-  int nstyles;        // # of different angle styles
-  Angle **styles;     // class list for each Angle style
-  char **keywords;    // keyword for each Angle style
+class ImproperHybridKokkos : public ImproperHybrid {
+  friend class Force;
 
-  AngleHybrid(class LAMMPS *);
-  ~AngleHybrid() override;
+ public:
+  ImproperHybridKokkos(class LAMMPS *);
+  ~ImproperHybridKokkos() override;
   void compute(int, int) override;
-  void settings(int, char **) override;
   void coeff(int, char **) override;
   void init_style() override;
-  double equilibrium_angle(int) override;
-  void write_restart(FILE *) override;
-  void read_restart(FILE *) override;
-  double single(int, int, int, int) override;
   double memory_usage() override;
 
- protected:
-  int *map;    // which style each angle type points to
-  int *nanglelist;     // # of angles in sub-style anglelists
-  int *maxangle;       // max # of angles sub-style lists can store
-  int ***anglelist;    // anglelist for each sub-style
+ private:
+  int maximproper_all;
 
-  virtual void allocate();
-  virtual void deallocate();
+  class NeighborKokkos *neighborKK;
+
+  DAT::tdual_int_1d k_map;       // which style each improper type points to
+  DAT::tdual_int_1d k_nimproperlist; // # of impropers in sub-style improperlists
+  DAT::tdual_int_3d k_improperlist;  // improperlist for each sub-style
+
+  void allocate() override;
+  void deallocate() override;
 };
 
 }    // namespace LAMMPS_NS

@@ -27,9 +27,9 @@ Syntax
 
   .. parsed-literal::
 
-       *b* values = one or more bond types (may use typelabels)
-       *a* values = one or more angle types  (may use typelabels)
-       *t* values = one or more atom types (may use typelabels)
+       *b* values = one or more bond types (may use type labels)
+       *a* values = one or more angle types  (may use type labels)
+       *t* values = one or more atom types (may use type labels)
        *m* value = one or more mass values
 
 * zero or more keyword/value pairs may be appended
@@ -139,12 +139,15 @@ constrained if its type is in the list.
 
 .. versionchanged:: TBD
 
-The types may be given as typelabels for as long as none of the
-typelabels are called *b*, *a*, *t*, or *m*.  In those cases the type
-arguments would be ambiguous and thus support for typelabels will be
-disabled instead.
+The types may be given as type labels *only* if there is no atom, bond,
+or angle type label named *b*, *a*, *t*, or *m* defined in the
+simulation.  In that is the case, type labels cannot be used as
+constraint type index with these two fixes because the type labels would
+be incorrectly treated as a new type of constraint instead.  Thus,
+LAMMPS will print a warning and type label handling is disabled and
+numeric types must be used.
 
-For all constraints, a particular bond is only constrained if both
+For all constraints, a particular bond is only constrained if *both*
 atoms in the bond are in the group specified with the SHAKE fix.
 
 The degrees-of-freedom removed by SHAKE bonds and angles are accounted

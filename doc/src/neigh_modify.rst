@@ -32,7 +32,7 @@ Syntax
          group-ID = only build pair neighbor lists for atoms in this group
        *exclude* values:
          *type* M N
-           M,N = exclude if one atom in pair is type M, other is type N (M and N may be typelabels)
+           M,N = exclude if one atom in pair is type M, other is type N (M and N may be type labels)
          *group* group1-ID group2-ID
            group1-ID,group2-ID = exclude if one atom is in 1st group, other in 2nd
          *molecule/intra* group-ID
@@ -161,7 +161,7 @@ sample scenarios where this is useful:
 
 .. versionchanged:: TBD
 
-   Support for typelabels was added.
+   Support for type labels was added.
 
 The *exclude type* option turns off the pairwise interaction if one atom
 is of type M and the other of type N.  M can equal N.  The *exclude

@@ -112,10 +112,10 @@ FixShake::FixShake(LAMMPS *lmp, int narg, char **arg) :
   bool allow_typelabels = (atom->labelmapflag != 0);
   if (allow_typelabels) {
     for (int i = Atom::ATOM; i < Atom::DIHEDRAL; ++i) {
-      if ((atom->lmap->find("b", i) < 0) ||
-          (atom->lmap->find("a", i) < 0) ||
-          (atom->lmap->find("t", i) < 0) ||
-          (atom->lmap->find("m", i) < 0)) allow_typelabels = false;
+      if ((atom->lmap->find("b", i) >= 0) ||
+          (atom->lmap->find("a", i) >= 0) ||
+          (atom->lmap->find("t", i) >= 0) ||
+          (atom->lmap->find("m", i) >= 0)) allow_typelabels = false;
     }
     if (!allow_typelabels && (comm->me == 0))
       error->warning(FLERR, "At least one typelabel conflicts with a fix shake option: "

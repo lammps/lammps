@@ -256,7 +256,10 @@ def iterate(lmp_binary, input_folder, input_list, config, results, progress_file
             p = subprocess.run(cmd_str, shell=True, text=True, capture_output=True)
             error_line = p.stdout.split('\n')[0]
             logger.info(f"     The run terminated with {input_test} gives the following output:")
-            logger.info(f"     {error_line}")
+            if len(error_line) > 0:
+                logger.info(f"     {error_line}")
+            else:
+                logger.info(f"     {output}")
             if "Unrecognized" in output:
                 result.status = "error, unrecognized command, package not installed"
             elif "Unknown" in output:
@@ -310,7 +313,7 @@ def iterate(lmp_binary, input_folder, input_list, config, results, progress_file
 
         # check if the number of runs matches with that in the reference log file
         if num_runs != num_runs_ref:
-            logger.info(f"    ERROR: Number of runs in log.lammps ({num_runs}) is different from that in the reference log ({num_runs_ref})."
+            logger.info(f"     ERROR: Number of runs in log.lammps ({num_runs}) is different from that in the reference log ({num_runs_ref})."
                         "Check README in the folder, possibly due to the mpirun command.")
             result.status = "error, incomplete runs"
             results.append(result)
@@ -324,8 +327,8 @@ def iterate(lmp_binary, input_folder, input_list, config, results, progress_file
         num_fields = len(thermo[0]['keywords'])
         num_fields_ref = len(thermo_ref[0]['keywords'])
         if num_fields != num_fields_ref:
-            logger.info(f"    ERROR: Number of thermo colums in log.lammps ({num_fields}) is different from that in the reference log ({num_fields_ref}) in run {irun}. "
-                             "Check README in the folder, possibly due to the mpirun command.")
+            logger.info(f"     ERROR: Number of thermo colums in log.lammps ({num_fields}) is different from that in the reference log ({num_fields_ref}) in run {irun}.")
+            logger.info(f"     Check README in the folder for the proper mpirun command")
             result.status = "error, mismatched columns in the log files"
             results.append(result)
             progress.write(f"{input}: {{ folder: {input_folder}, status: {result.status} }}\n")
@@ -359,9 +362,8 @@ def iterate(lmp_binary, input_folder, input_list, config, results, progress_file
             num_fields = len(thermo[irun]['keywords'])
             num_fields_ref = len(thermo_ref[irun]['keywords'])
             if num_fields != num_fields_ref:
-                logger.info(f"    ERROR: Number of thermo columns in log.lammps ({num_fields}) is "
-                             "different from that in the reference log ({num_fields_ref}) in run {irun}. "
-                             "Check README in the example folder, possibly due to the mpirun command.")
+                logger.info(f"     ERROR: Number of thermo columns in log.lammps ({num_fields}) is different from that in the reference log ({num_fields_ref}) in run {irun}.")
+                logger.info(f"     Check README in the folder for the proper mpirun command")
                 mismatched_columns = True
                 continue
 

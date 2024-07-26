@@ -141,11 +141,11 @@ constrained if its type is in the list.
 
 The types may be given as type labels *only* if there is no atom, bond,
 or angle type label named *b*, *a*, *t*, or *m* defined in the
-simulation.  In that is the case, type labels cannot be used as
-constraint type index with these two fixes because the type labels would
-be incorrectly treated as a new type of constraint instead.  Thus,
-LAMMPS will print a warning and type label handling is disabled and
-numeric types must be used.
+simulation.  If that is the case, type labels cannot be used as
+constraint type index with these two fixes, because the type labels
+would be incorrectly treated as a new type of constraint instead.
+Thus, LAMMPS will print a warning and type label handling is disabled
+and numeric types must be used.
 
 For all constraints, a particular bond is only constrained if *both*
 atoms in the bond are in the group specified with the SHAKE fix.

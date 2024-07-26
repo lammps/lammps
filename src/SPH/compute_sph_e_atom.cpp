@@ -33,7 +33,7 @@ ComputeSPHEAtom::ComputeSPHEAtom(LAMMPS *lmp, int narg, char **arg) :
   if (narg != 3)
     error->all(FLERR,"Number of arguments for compute sph/e/atom command != 3");
   if (atom->esph_flag != 1)
-    error->all(FLERR,"Compute sph/e/atom requires atom attribut energy, e.g. in atom_style sph");
+    error->all(FLERR,"Compute sph/e/atom requires atom attribute energy, e.g. in atom_style sph");
 
   peratom_flag = 1;
   size_peratom_cols = 0;

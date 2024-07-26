@@ -82,6 +82,10 @@ for specific angle types.
 
 ----------
 
+.. include:: accel_styles.rst
+
+----------
+
 Restrictions
 """"""""""""
 

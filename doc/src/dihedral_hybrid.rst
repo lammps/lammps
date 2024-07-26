@@ -83,6 +83,10 @@ for specific dihedral types.
 
 ----------
 
+.. include:: accel_styles.rst
+
+----------
+
 Restrictions
 """"""""""""
 

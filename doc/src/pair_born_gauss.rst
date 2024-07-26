@@ -19,7 +19,7 @@ Examples
 .. code-block:: LAMMPS
 
    pair_style born/gauss 10.0
-   pair_coeff 1 1 1 1 8.2464e13 12.48 0.042644277 0.44 3.56
+   pair_coeff 1 1 8.2464e13 12.48 0.042644277 0.44 3.56
 
 Description
 """""""""""

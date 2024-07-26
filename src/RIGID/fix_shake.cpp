@@ -99,6 +99,7 @@ FixShake::FixShake(LAMMPS *lmp, int narg, char **arg) :
   comm_forward = 3;
 
   // parse SHAKE args
+
   auto mystyle = fmt::format("fix {}", style);
 
   if (narg < 8) utils::missing_cmd_args(FLERR, mystyle, error);
@@ -140,6 +141,7 @@ FixShake::FixShake(LAMMPS *lmp, int narg, char **arg) :
   char mode = '\0';
   int next = 6;
   while (next < narg) {
+    int i = -1;
     if (strcmp(arg[next],"b") == 0) mode = 'b';
     else if (strcmp(arg[next],"a") == 0) mode = 'a';
     else if (strcmp(arg[next],"t") == 0) mode = 't';
@@ -147,33 +149,40 @@ FixShake::FixShake(LAMMPS *lmp, int narg, char **arg) :
       mode = 'm';
       atom->check_mass(FLERR);
 
-    // break if keyword that is not b,a,t,m
+    // break if known optional keyword
 
-    } else if (isalpha(arg[next][0])) break;
+    } else if ((strcmp(arg[next], "mol") == 0) || (strcmp(arg[next], "kbond") == 0)) {
+      break;
 
-    // read numeric args of b,a,t,m
+    // get numeric types for b, a, t, or m keywords.
 
-    else if (mode == 'b') {
-      int i = utils::inumeric(FLERR,arg[next],false,lmp);
+    } else if (mode == 'b') {
+      if (allow_typelabels) i = utils::expand_type_int(FLERR, arg[next], Atom::BOND, lmp);
+      else i = utils::inumeric(FLERR, arg[next], false, lmp);
+
       if (i < 1 || i > atom->nbondtypes)
-        error->all(FLERR,"Invalid bond type index for {}", mystyle);
+        error->all(FLERR,"Invalid bond type {} index for {}", arg[next], mystyle);
       bond_flag[i] = 1;
 
     } else if (mode == 'a') {
-      int i = utils::inumeric(FLERR,arg[next],false,lmp);
+      if (allow_typelabels) i = utils::expand_type_int(FLERR, arg[next], Atom::ANGLE, lmp);
+      else i = utils::inumeric(FLERR, arg[next], false, lmp);
+
       if (i < 1 || i > atom->nangletypes)
-        error->all(FLERR,"Invalid angle type index for {}", mystyle);
+        error->all(FLERR,"Invalid angle type {} for {}", arg[next], mystyle);
       angle_flag[i] = 1;
 
     } else if (mode == 't') {
-      int i = utils::inumeric(FLERR,arg[next],false,lmp);
+      if (allow_typelabels) i = utils::expand_type_int(FLERR, arg[next], Atom::ATOM, lmp);
+      else i = utils::inumeric(FLERR, arg[next], false, lmp);
+
       if (i < 1 || i > atom->ntypes)
-        error->all(FLERR,"Invalid atom type index for {}", mystyle);
+        error->all(FLERR,"Invalid atom type {} for {}", arg[next], mystyle);
       type_flag[i] = 1;
 
     } else if (mode == 'm') {
-      double massone = utils::numeric(FLERR,arg[next],false,lmp);
-      if (massone == 0.0) error->all(FLERR,"Invalid atom mass for {}", mystyle);
+      double massone = utils::numeric(FLERR, arg[next], false, lmp);
+      if (massone == 0.0) error->all(FLERR,"Invalid atom mass {} for {}", arg[next], mystyle);
       if (nmass == atom->ntypes)
         error->all(FLERR,"Too many masses for {}", mystyle);
       mass_list[nmass++] = massone;

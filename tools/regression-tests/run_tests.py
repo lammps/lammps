@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 '''
-UPDATE: July 21, 2024:
+UPDATE: July 26, 2024:
   Launching the LAMMPS binary under testing using a configuration defined in a yaml file (e.g. config.yaml).
   Comparing the output thermo with that in the existing log file (with the same nprocs)
     + data in the log files are extracted and converted into yaml data structure
@@ -90,7 +90,391 @@ class TestResult:
     self.checks = 0
     self.status = status
 
+'''
+    Iterate over a list of input folders and scripts using the given lmp_binary and the testing configuration
 
+    lmp_binary   : full path to the LAMMPS binary 
+    input_folder : the absolute path to the input files
+    input_list   : list of the input scripts under the input_folder
+    config       : the dict that contains the test configuration
+    
+    output_buf: placeholder for storing the output of a given worker
+
+    return
+       results   : a list of TestResult objects
+       stat      : a dictionary that lists the number of passed, skipped, failed tests
+       progress_file: yaml file that stores the tested input script and status
+       last_progress: the dictionary that shows the status of the last tests
+
+    NOTE:
+    To map a function to individual workers:
+
+    def func(input1, input2, output_buf):
+        # do smth
+        return result
+
+    # args is a list of num_workers tuples, each tuple contains the arguments passed to the function executed by a worker
+    args = []
+    for i in range(num_workers):
+        args.append((input1, input2, output_buf))
+
+    with Pool(num_workers) as pool:   
+        results = pool.starmap(func, args)
+
+'''
+def iterate(lmp_binary, input_folder, input_list, config, results, progress_file, last_progress=None, output_buf=None):
+
+    EPSILON = np.float64(config['epsilon'])
+    nugget = float(config['nugget'])
+
+    num_tests = len(input_list)
+    num_completed = 0
+    num_passed = 0
+    num_skipped = 0
+    num_error = 0
+    num_memleak = 0
+    test_id = 0
+
+    # using REG-commented input scripts, now turned off (False)
+    using_markers = False
+
+    # iterate over the input scripts
+    for input in input_list:
+
+        # check if the progress file exists to append or create a new one
+        if os.path.isfile(progress_file) == True:
+            progress = open(progress_file, "a")
+        else:
+            progress = open(progress_file, "w")
+
+        # skip the input file if listed in the config file
+        if 'skip' in config:
+            if input in config['skip']:
+                msg = "   + " + input + f" ({test_id+1}/{num_tests}): skipped as specified in {configFileName}"
+                print(msg)
+                logger.info(msg)
+                progress.write(f"{input}: {{ folder: {input_folder}, status: skipped }}\n")
+                progress.close()
+                num_skipped = num_skipped + 1
+                test_id = test_id + 1
+                continue
+
+        # also skip if the test already completed as marked in the progress file
+        if input in last_progress:
+            status = last_progress[input]['status']
+            if status == 'completed':
+                msg = "  + " + input + f" ({test_id+1}/{num_tests}): marked as completed in the progress file {progress_file}"
+                logger.info(msg)
+                print(msg)
+                progress.write(msg)
+                progress.close()
+                num_skipped = num_skipped + 1
+                test_id = test_id + 1
+                continue
+    
+        # if annotating input scripts with REG markers is True
+        if using_markers == True:
+            input_test = 'test.' + input
+            if os.path.isfile(input) == True:
+                if has_markers(input):
+                    process_markers(input, input_test)
+            
+                else:
+                    print(f"WARNING: {input} does not have REG markers")
+                    input_markers = input + '.markers'
+                    # if the input file with the REG markers does not exist
+                    #   attempt to plug in the REG markers before each run command
+                    if os.path.isfile(input_markers) == False:
+                        cmd_str = "cp " + input + " " + input_markers
+                        os.system(cmd_str)
+                        generate_markers(input, input_markers)
+                        process_markers(input_markers, input_test)
+                
+        else:
+            # else the same file name for testing
+            input_test = input
+
+        str_t = "   + " + input_test + f" ({test_id+1}/{num_tests})"
+        logger.info(str_t)
+        print(str_t)
+        
+        # check if a log file exists in the current folder: log.DDMMMYY.basename.[nprocs]
+        basename = input_test.replace('in.','')
+        logfile_exist = False
+
+        # if there are multiple log files for different number of procs, pick the maximum number
+        cmd_str = "ls log.*"
+        p = subprocess.run(cmd_str, shell=True, text=True, capture_output=True)
+        logfile_list = p.stdout.split('\n')
+        logfile_list.remove('')
+
+        max_np = 1
+        for file in logfile_list:
+            # looks for pattern log.{date}.{basename}.g++.{nprocs}
+            # get the date from the log files
+            date = file.split('.',2)[1]
+            pattern = f'log.{date}.{basename}.*'
+            if fnmatch.fnmatch(file, pattern):
+                p = file.rsplit('.', 1)
+                if p[1].isnumeric():
+                    if max_np < int(p[1]):
+                        max_np = int(p[1])
+                        logfile_exist = True
+                        thermo_ref_file = file
+
+        # if the maximum number of procs is different from the value in the configuration file
+        #      then override the setting for this input script
+        saved_nprocs = config['nprocs']
+        if max_np != int(config['nprocs']):
+            config['nprocs'] = str(max_np)
+
+        result = TestResult(name=input, output="", time="", status="passed")
+
+        # run the LAMMPS binary with the input script
+        cmd_str, output, error, returncode = execute(lmp_binary, config, input_test)
+
+        # restore the nprocs value in the configuration
+        config['nprocs'] = saved_nprocs
+
+        # check if a log.lammps file exists in the current folder
+        if os.path.isfile("log.lammps") == False:
+            logger.info(f"    ERROR: No log.lammps generated with {input_test} with return code {returncode}. Check the {log_file} for the run output.\n")
+            logger.info(f"\n{input_test}:")
+            logger.info(f"\n{error}")
+            progress.write(f"{input}: {{ folder: {input_folder}, status: error, no log.lammps }}\n")
+            progress.close()
+            num_error = num_error + 1
+            test_id = test_id + 1
+            continue
+
+        # process thermo output from the run
+        thermo = extract_data_to_yaml("log.lammps")
+        num_runs = len(thermo)
+
+        if "ERROR" in output or num_runs == 0:
+            cmd_str = "grep ERROR log.lammps"
+            p = subprocess.run(cmd_str, shell=True, text=True, capture_output=True)
+            error_line = p.stdout.split('\n')[0]
+            logger.info(f"     The run terminated with {input_test} gives the following output:")
+            logger.info(f"     {error_line}")
+            if "Unrecognized" in output:
+                result.status = "error, unrecognized command, package not installed"
+            elif "Unknown" in output:
+                result.status = "error, unknown command, package not installed"
+            else:
+                result.status = f"error, due to {error_line}."
+            logger.info(f"     Failed with {input_test}.\n")
+            results.append(result)
+            progress.write(f"{input}: {{ folder: {input_folder}, status: {result.status} }}\n")
+            progress.close()
+            num_error = num_error + 1
+            test_id = test_id + 1
+            continue
+
+        # At this point, the run completed without trivial errors
+        # check if there is a reference log file for this input
+        if logfile_exist:
+            thermo_ref = extract_data_to_yaml(thermo_ref_file)
+            if thermo_ref:
+                num_runs_ref = len(thermo_ref)
+            else:
+                logger.info(f"    ERROR: Error parsing {thermo_ref_file}.")
+                result.status = "skipped numerical checks due to parsing the log file"
+                results.append(result)
+                progress.write(f"{input}: {{ folder: {input_folder}, status: numerical checks skipped, unsupported log file format}}\n")
+                progress.close()
+                num_error = num_error + 1
+                test_id = test_id + 1
+                continue
+        else:
+            msg = f"       Cannot find the reference log file for {input_test} with the expected format log.[date].{basename}.*.[nprocs]"
+            logger.info(msg)
+            print(msg)
+            # try to read in the thermo yaml output from the working directory
+            thermo_ref_file = 'thermo.' + input + '.yaml'
+            file_exist = os.path.isfile(thermo_ref_file)
+            if file_exist == True:
+                thermo_ref = extract_thermo(thermo_ref_file)
+                num_runs_ref = len(thermo_ref)
+            else:
+                logger.info(f"       {thermo_ref_file} also does not exist in the working directory.")
+                result.status = "skipped due to missing the reference log file"
+                results.append(result)
+                progress.write(f"{input}: {{ folder: {input_folder}, status: numerical checks skipped, missing the reference log file }}\n")
+                progress.close()
+                num_error = num_error + 1
+                test_id = test_id + 1
+                continue
+
+        logger.info(f"     Comparing thermo output from log.lammps against the reference log file {thermo_ref_file}")
+
+        # check if the number of runs matches with that in the reference log file
+        if num_runs != num_runs_ref:
+            logger.info(f"    ERROR: Number of runs in log.lammps ({num_runs}) is different from that in the reference log ({num_runs_ref})."
+                        "Check README in the folder, possibly due to the mpirun command.")
+            result.status = "error, incomplete runs"
+            results.append(result)
+            progress.write(f"{input}: {{ folder: {input_folder}, status: {result.status} }}\n")
+            progress.close()
+            num_error = num_error + 1
+            test_id = test_id + 1
+            continue
+
+        # check if the number of fields match with that in the reference log file in the first run for early exit
+        num_fields = len(thermo[0]['keywords'])
+        num_fields_ref = len(thermo_ref[0]['keywords'])
+        if num_fields != num_fields_ref:
+            logger.info(f"    ERROR: Number of thermo colums in log.lammps ({num_fields}) is different from that in the reference log ({num_fields_ref}) in run {irun}. "
+                             "Check README in the folder, possibly due to the mpirun command.")
+            result.status = "error, mismatched columns in the log files"
+            results.append(result)
+            progress.write(f"{input}: {{ folder: {input_folder}, status: {result.status} }}\n")
+            progress.close()
+            num_error = num_error + 1
+            test_id = test_id + 1
+            continue
+
+        # comparing output vs reference values
+        width = 20
+        if verbose == True:
+            print("Quantities".ljust(width) + "Output".center(width) + "Reference".center(width) +
+                "Abs Diff Check".center(width) +  "Rel Diff Check".center(width))
+        
+        # check if overrides for this input scipt is specified
+        overrides = {}
+        if 'overrides' in config:
+            if input_test in config['overrides']:
+                overrides = config['overrides'][input_test]
+
+        # iterate through num_runs
+
+        num_abs_failed = 0
+        num_rel_failed = 0
+        failed_abs_output = []
+        failed_rel_output = []
+        num_checks = 0
+        mismatched_columns = False
+
+        for irun in range(num_runs):
+            num_fields = len(thermo[irun]['keywords'])
+            num_fields_ref = len(thermo_ref[irun]['keywords'])
+            if num_fields != num_fields_ref:
+                logger.info(f"    ERROR: Number of thermo columns in log.lammps ({num_fields}) is "
+                             "different from that in the reference log ({num_fields_ref}) in run {irun}. "
+                             "Check README in the example folder, possibly due to the mpirun command.")
+                mismatched_columns = True
+                continue
+
+            # get the total number of the thermo output lines
+            nthermo_steps = len(thermo[irun]['data'])
+
+            # get the output at the last timestep
+            thermo_step = nthermo_steps - 1
+
+            # iterate over the fields
+            for i in range(num_fields):
+                quantity = thermo[irun]['keywords'][i]
+
+                val = thermo[irun]['data'][thermo_step][i]
+                ref = thermo_ref[irun]['data'][thermo_step][i]
+                abs_diff = abs(float(val) - float(ref))
+
+                if abs(float(ref)) > EPSILON:
+                    rel_diff = abs(float(val) - float(ref))/abs(float(ref))
+                else:
+                    rel_diff = abs(float(val) - float(ref))/abs(float(ref)+nugget)
+
+                abs_diff_check = "PASSED"
+                rel_diff_check = "PASSED"
+                
+                if quantity in config['tolerance'] or quantity in overrides:
+
+                    if quantity in config['tolerance']:
+                        abs_tol = float(config['tolerance'][quantity]['abs'])
+                        rel_tol = float(config['tolerance'][quantity]['rel'])
+
+                    # overrides the global tolerance values if specified
+                    if quantity in overrides:
+                        abs_tol = float(overrides[quantity]['abs'])
+                        rel_tol = float(overrides[quantity]['rel'])
+
+                    num_checks = num_checks + 2
+                    if abs_diff > abs_tol:
+                        abs_diff_check = "FAILED"
+                        reason = f"Run {irun}: {quantity}: actual ({abs_diff:0.2e}) > expected ({abs_tol:0.2e})"
+                        failed_abs_output.append(f"{reason}")
+                        num_abs_failed = num_abs_failed + 1
+                    if rel_diff > rel_tol:
+                        rel_diff_check = "FAILED"
+                        reason = f"Run {irun}: {quantity}: actual ({rel_diff:0.2e}) > expected ({rel_tol:0.2e})"
+                        failed_rel_output.append(f"{reason}")
+                        num_rel_failed = num_rel_failed + 1
+                else:
+                    # N/A means that tolerances are not defined in the config file
+                    abs_diff_check = "N/A"
+                    rel_diff_check = "N/A"          
+
+                if verbose == True and abs_diff_check != "N/A"  and rel_diff_check != "N/A":
+                    print(f"{thermo[irun]['keywords'][i].ljust(width)} {str(val).rjust(20)} {str(ref).rjust(20)} "
+                        "{abs_diff_check.rjust(20)} {rel_diff_check.rjust(20)}")
+
+        # after all runs completed, or are interrupted in one of the runs (mismatched_columns = True)
+        if mismatched_columns == True:
+            msg = f"       mismatched log file."
+            print(msg)
+            logger.info(msg)
+            result.status = "failed"
+
+        if num_abs_failed > 0:
+            msg = f"       {num_abs_failed} abs diff thermo checks failed."
+            print(msg)
+            logger.info(msg)
+            result.status = "failed"
+            if verbose == True:
+                for i in failed_abs_output:
+                    print(f"- {i}")
+        if num_rel_failed > 0:
+            msg = f"       {num_rel_failed} rel diff thermo checks failed."
+            print(msg)
+            logger.info(msg)
+            result.status = "failed"
+            if verbose == True:
+                for i in failed_rel_output:
+                    print(f"- {i}")
+        if num_abs_failed == 0 and num_rel_failed == 0:
+            msg = f"       all {num_checks} thermo checks passed."
+            print(msg)
+            logger.info(msg)
+            result.status = "passed"        
+            num_passed = num_passed + 1
+
+        results.append(result)
+
+        # check if memleak detects from valgrind run (need to replace "mpirun" -> valgrind --leak-check=yes mpirun")
+        msg = "completed"
+        if 'valgrind' in config['mpiexec']:
+            if "All heap blocks were free" in error:
+                msg += ", no memory leak"
+            else:
+                msg += ", memory leaks detected"
+                num_memleak = num_memleak + 1
+
+        progress.write(f"{input}: {{ folder: {input_folder}, status: {msg} }}\n")
+        progress.close()
+
+        # count the number of completed runs
+        num_completed = num_completed + 1
+        test_id = test_id + 1
+
+    stat = { 'num_completed': num_completed,
+             'num_passed': num_passed,
+             'num_skipped': num_skipped,
+             'num_error': num_error,
+             'num_memleak':  num_memleak,
+           }
+    return stat
+
+# HELPER FUNCTIONS
 '''
   get the thermo output from a log file with thermo style yaml
 
@@ -310,396 +694,10 @@ def has_markers(inputFileName):
           return True
     return False
 
-'''
-    Iterate over a list of input files using the given lmp_binary, the testing configuration
-
-    lmp_binary   : full path to the LAMMPS binary 
-    input_folder : the absolute path to the input files
-    input_list   : list of the input scripts under the input_folder
-    config       : the dict that contains the test configuration
-    
-    removeAnnotatedInput: True if the annotated input script will be removed
-    output_buf: placeholder for storing the output of a given worker
-
-    return
-       results   : a list of TestResult objects
-       stat      : a dictionary that lists the number of passed, skipped, failed tests
-       progress_file: yaml file that stores the tested input script and status
-       last_progress: the dictionary that shows the status of the last tests
-
-    NOTE:
-    To map a function to individual workers:
-
-    def func(input1, input2, output_buf):
-        # do smth
-        return result
-
-    # args is a list of num_workers tuples, each tuple contains the arguments passed to the function executed by a worker
-    args = []
-    for i in range(num_workers):
-        args.append((input1, input2, output_buf))
-
-    with Pool(num_workers) as pool:   
-        results = pool.starmap(func, args)
 
 '''
-def iterate(lmp_binary, input_folder, input_list, config, results, progress_file, last_progress=None, output_buf=None, removeAnnotatedInput=False):
-    EPSILON = np.float64(config['epsilon'])
-    nugget = float(config['nugget'])
-
-    num_tests = len(input_list)
-    num_completed = 0
-    num_passed = 0
-    num_skipped = 0
-    num_error = 0
-    num_memleak = 0
-    test_id = 0
-
-    # using REG-commented input scripts, now turned off (False)
-    using_markers = False
-
-    # iterate over the input scripts
-    for input in input_list:
-
-        if os.path.isfile(progress_file) == True:
-            progress = open(progress_file, "a")
-        else:
-            progress = open(progress_file, "w")
-
-        # skip the input file if listed
-        if 'skip' in config:
-            if input in config['skip']:
-                msg = "   + " + input + f" ({test_id+1}/{num_tests}): skipped as specified in {configFileName}"
-                print(msg)
-                logger.info(msg)
-                progress.write(f"{input}: {{ folder: {input_folder}, status: skipped }}\n")
-                progress.close()
-                num_skipped = num_skipped + 1
-                test_id = test_id + 1
-                continue
-
-        # also skip if the test already completed
-        if input in last_progress:
-            status = last_progress[input]['status']
-            if status == 'completed':
-                msg = "  + " + input + f" ({test_id+1}/{num_tests}): marked as completed in the progress file {progress_file}"
-                logger.info(msg)
-                print(msg)
-                progress.write(msg)
-                progress.close()
-                num_skipped = num_skipped + 1
-                test_id = test_id + 1
-                continue
-    
-        result = TestResult(name=input, output="", time="", status="passed")
-
-        # if annotating input scripts with REG markers is True
-        if using_markers == True:
-            input_test = 'test.' + input
-            if os.path.isfile(input) == True:
-                if has_markers(input):
-                    process_markers(input, input_test)
-            
-                else:
-                    print(f"WARNING: {input} does not have REG markers")
-                    input_markers = input + '.markers'
-                    # if the input file with the REG markers does not exist
-                    #   attempt to plug in the REG markers before each run command
-                    if os.path.isfile(input_markers) == False:
-                        cmd_str = "cp " + input + " " + input_markers
-                        os.system(cmd_str)
-                        generate_markers(input, input_markers)
-                        process_markers(input_markers, input_test)
-                
-        else:
-            # else the same file name for testing
-            input_test = input
-
-        str_t = "   + " + input_test + f" ({test_id+1}/{num_tests})"
-        #logger.info(f"-"*len(str_t))
-        #print(f"-"*len(str_t))
-        logger.info(str_t)
-        print(str_t)
-        
-
-        # check if a log file exists in the current folder: log.DDMMMYY.basename.[nprocs]
-        basename = input_test.replace('in.','')
-        logfile_exist = False
-
-        # if there are multiple log files for different number of procs, pick the maximum number
-        cmd_str = "ls log.*"
-        p = subprocess.run(cmd_str, shell=True, text=True, capture_output=True)
-        logfile_list = p.stdout.split('\n')
-        logfile_list.remove('')
-
-        max_np = 1
-        for file in logfile_list:
-            # looks for pattern log.{date}.{basename}.g++.{nprocs}
-            # get the date from the log files
-            date = file.split('.',2)[1]
-            pattern = f'log.{date}.{basename}.*'
-            if fnmatch.fnmatch(file, pattern):
-                p = file.rsplit('.', 1)
-                if p[1].isnumeric():
-                    if max_np < int(p[1]):
-                        max_np = int(p[1])
-                        logfile_exist = True
-                        thermo_ref_file = file
-
-        # if the maximum number of procs is different from the value in the configuration file
-        #      then override the setting for this input script
-        saved_nprocs = config['nprocs']
-        if max_np != int(config['nprocs']):
-            config['nprocs'] = str(max_np)
-
-        # or more customizable with config.yaml
-        cmd_str, output, error, returncode = execute(lmp_binary, config, input_test)
-
-        # restore the nprocs value in the configuration
-        config['nprocs'] = saved_nprocs
-
-        # check if a log.lammps file exists in the current folder
-        if os.path.isfile("log.lammps") == False:
-            logger.info(f"    ERROR: No log.lammps generated with {input_test} with return code {returncode}. Check the {log_file} for the run output.\n")
-            logger.info(f"\n{input_test}:")
-            logger.info(f"\n{error}")
-            progress.write(f"{input}: {{ folder: {input_folder}, status: error, no log.lammps }}\n")
-            progress.close()
-            num_error = num_error + 1
-            test_id = test_id + 1
-            continue
-
-        # process thermo output from the run
-        thermo = extract_data_to_yaml("log.lammps")
-
-        num_runs = len(thermo)
-        if num_runs == 0:
-            logger.info(f"The run terminated with {input_test} gives the following output:")
-            logger.info(f"\n{output}")
-            if "Unrecognized" in output:
-                result.status = "error, unrecognized command, package not installed"
-            elif "Unknown" in output:
-                result.status = "error, unknown command, package not installed"
-            else:
-                result.status = "error, due to other reason. Check the {logfile} for more details."
-                logger.info(f"ERROR: Failed with {input_test} due to {result.status}.\n")
-            results.append(result)
-            progress.write(f"{input}: {{ folder: {input_folder}, status: {result.status} }}\n")
-            progress.close()
-            num_error = num_error + 1
-            test_id = test_id + 1
-            continue
-
-        # At this point, the run completed without trivial errors
-        # check if there is a reference log file for this input
-        if logfile_exist:
-            thermo_ref = extract_data_to_yaml(thermo_ref_file)
-            if thermo_ref:
-                num_runs_ref = len(thermo_ref)
-            else:
-                logger.info(f"    ERROR: Error parsing {thermo_ref_file}.")
-                result.status = "skipped numerical checks due to parsing the log file"
-                results.append(result)
-                progress.write(f"{input}: {{ folder: {input_folder}, status: numerical checks skipped, unsupported log file format}}\n")
-                progress.close()
-                num_error = num_error + 1
-                test_id = test_id + 1
-                continue
-        else:
-            msg = f"       Cannot find the reference log file for {input_test} with the expected format log.[date].{basename}.*.[nprocs]"
-            logger.info(msg)
-            print(msg)
-            # try to read in the thermo yaml output from the working directory
-            thermo_ref_file = 'thermo.' + input + '.yaml'
-            file_exist = os.path.isfile(thermo_ref_file)
-            if file_exist == True:
-                thermo_ref = extract_thermo(thermo_ref_file)
-                num_runs_ref = len(thermo_ref)
-            else:
-                logger.info(f"    {thermo_ref_file} also does not exist in the working directory.")
-                result.status = "skipped due to missing the reference log file"
-                results.append(result)
-                progress.write(f"{input}: {{ folder: {input_folder}, status: numerical checks skipped, missing the reference log file }}\n")
-                progress.close()
-                num_error = num_error + 1
-                test_id = test_id + 1
-                continue
-
-        logger.info(f"     Comparing thermo output from log.lammps against the reference log file {thermo_ref_file}")
-
-        # check if the number of runs matches with that in the reference log file
-        if num_runs != num_runs_ref:
-            logger.info(f"    ERROR: Number of runs in log.lammps ({num_runs}) is "
-                        "different from that in the reference log ({num_runs_ref})."
-                        "Check README in the folder, possibly due to the mpirun command.")
-            result.status = "error, incomplete runs"
-            results.append(result)
-            progress.write(f"{input}: {{ folder: {input_folder}, status: {result.status} }}\n")
-            progress.close()
-            num_error = num_error + 1
-            test_id = test_id + 1
-            continue
-
-        # check if the number of fields match with that in the reference log file in the first run for early exit
-        num_fields = len(thermo[0]['keywords'])
-        num_fields_ref = len(thermo_ref[0]['keywords'])
-        if num_fields != num_fields_ref:
-            logger.info(f"    ERROR: Number of thermo colums in log.lammps ({num_fields}) is "
-                             "different from that in the reference log ({num_fields_ref}) in run {irun}. "
-                             "Check README in the folder, possibly due to the mpirun command.")
-            result.status = "error, mismatched columns in the log files"
-            results.append(result)
-            progress.write(f"{input}: {{ folder: {input_folder}, status: {result.status} }}\n")
-            progress.close()
-            num_error = num_error + 1
-            test_id = test_id + 1
-            continue
-
-        # comparing output vs reference values
-        width = 20
-        if verbose == True:
-            print("Quantities".ljust(width) + "Output".center(width) + "Reference".center(width) +
-                "Abs Diff Check".center(width) +  "Rel Diff Check".center(width))
-        
-        # check if overrides for this input scipt is specified
-        overrides = {}
-        if 'overrides' in config:
-            if input_test in config['overrides']:
-                overrides = config['overrides'][input_test]
-
-        # iterate through num_runs
-
-        num_abs_failed = 0
-        num_rel_failed = 0
-        failed_abs_output = []
-        failed_rel_output = []
-        num_checks = 0
-        mismatched_columns = False
-
-        for irun in range(num_runs):
-            num_fields = len(thermo[irun]['keywords'])
-            num_fields_ref = len(thermo_ref[irun]['keywords'])
-            if num_fields != num_fields_ref:
-                logger.info(f"    ERROR: Number of thermo columns in log.lammps ({num_fields}) is "
-                             "different from that in the reference log ({num_fields_ref}) in run {irun}. "
-                             "Check README in the example folder, possibly due to the mpirun command.")
-                mismatched_columns = True
-                continue
-
-            # get the total number of the thermo output lines
-            nthermo_steps = len(thermo[irun]['data'])
-
-            # get the output at the last timestep
-            thermo_step = nthermo_steps - 1
-
-            # iterate over the fields
-            for i in range(num_fields):
-                quantity = thermo[irun]['keywords'][i]
-
-                val = thermo[irun]['data'][thermo_step][i]
-                ref = thermo_ref[irun]['data'][thermo_step][i]
-                abs_diff = abs(float(val) - float(ref))
-
-                if abs(float(ref)) > EPSILON:
-                    rel_diff = abs(float(val) - float(ref))/abs(float(ref))
-                else:
-                    rel_diff = abs(float(val) - float(ref))/abs(float(ref)+nugget)
-
-                abs_diff_check = "PASSED"
-                rel_diff_check = "PASSED"
-                
-                if quantity in config['tolerance'] or quantity in overrides:
-
-                    if quantity in config['tolerance']:
-                        abs_tol = float(config['tolerance'][quantity]['abs'])
-                        rel_tol = float(config['tolerance'][quantity]['rel'])
-
-                    # overrides the global tolerance values if specified
-                    if quantity in overrides:
-                        abs_tol = float(overrides[quantity]['abs'])
-                        rel_tol = float(overrides[quantity]['rel'])
-
-                    num_checks = num_checks + 2
-                    if abs_diff > abs_tol:
-                        abs_diff_check = "FAILED"
-                        reason = f"Run {irun}: {quantity}: actual ({abs_diff:0.2e}) > expected ({abs_tol:0.2e})"
-                        failed_abs_output.append(f"{reason}")
-                        num_abs_failed = num_abs_failed + 1
-                    if rel_diff > rel_tol:
-                        rel_diff_check = "FAILED"
-                        reason = f"Run {irun}: {quantity}: actual ({rel_diff:0.2e}) > expected ({rel_tol:0.2e})"
-                        failed_rel_output.append(f"{reason}")
-                        num_rel_failed = num_rel_failed + 1
-                else:
-                    # N/A means that tolerances are not defined in the config file
-                    abs_diff_check = "N/A"
-                    rel_diff_check = "N/A"          
-
-                if verbose == True and abs_diff_check != "N/A"  and rel_diff_check != "N/A":
-                    print(f"{thermo[irun]['keywords'][i].ljust(width)} {str(val).rjust(20)} {str(ref).rjust(20)} "
-                        "{abs_diff_check.rjust(20)} {rel_diff_check.rjust(20)}")
-
-        # after all runs completed, or are interrupted in one of the runs (mismatched_columns = True)
-        if mismatched_columns == True:
-            msg = f"       mismatched log file."
-            print(msg)
-            logger.info(msg)
-            result.status = "failed"
-
-        if num_abs_failed > 0:
-            msg = f"       {num_abs_failed} abs diff thermo checks failed."
-            print(msg)
-            logger.info(msg)
-            result.status = "failed"
-            if verbose == True:
-                for i in failed_abs_output:
-                    print(f"- {i}")
-        if num_rel_failed > 0:
-            msg = f"       {num_rel_failed} rel diff thermo checks failed."
-            print(msg)
-            logger.info(msg)
-            result.status = "failed"
-            if verbose == True:
-                for i in failed_rel_output:
-                    print(f"- {i}")
-        if num_abs_failed == 0 and num_rel_failed == 0:
-            msg = f"       all {num_checks} thermo checks passed."
-            print(msg)
-            logger.info(msg)
-            result.status = "passed"        
-            num_passed = num_passed + 1
-
-        results.append(result)
-
-        # check if memleak detects from valgrind run (need to replace "mpirun" -> valgrind --leak-check=yes mpirun")
-        msg = "completed"
-        if 'valgrind' in config['mpiexec']:
-            if "All heap blocks were free" in error:
-                msg += ", no memory leak"
-            else:
-                msg += ", memory leaks detected"
-                num_memleak = num_memleak + 1
-
-        progress.write(f"{input}: {{ folder: {input_folder}, status: {msg} }}\n")
-        progress.close()
-
-        # count the number of completed runs
-        num_completed = num_completed + 1
-        test_id = test_id + 1
-
-        # remove the annotated input script
-        if removeAnnotatedInput == True and inplace_input == False:
-            cmd_str = "rm " + input_test
-            os.system(cmd_str)
-
-    stat = { 'num_completed': num_completed,
-             'num_passed': num_passed,
-             'num_skipped': num_skipped,
-             'num_error': num_error,
-             'num_memleak':  num_memleak
-           }
-    return stat
-
+    Main entry
+'''
 if __name__ == "__main__":
 
     # default values
@@ -737,7 +735,7 @@ if __name__ == "__main__":
     parser.add_argument("--log-file",dest="logfile", default=log_file, help="Log file")
     parser.add_argument("--progress-file",dest="progress_file", default=progress_file, help="Progress file")
     parser.add_argument("--analyze",dest="analyze", action='store_true', default=False,
-                        help="Analyze and report statistics, not running the tests")
+                        help="Analyze the testing folders and report statistics, not running the tests")
 
     args = parser.parse_args()
 
@@ -901,7 +899,7 @@ if __name__ == "__main__":
     # default setting is to use inplace_input
     if inplace_input == True:
 
-        # change dir to a folder under examples/, need to use os.chdir()
+        # change dir to a folder under examples/
         # TODO: loop through the subfolders under examples/, depending on the installed packages
 
         '''

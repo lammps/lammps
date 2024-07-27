@@ -124,9 +124,6 @@ class TestResult:
 '''
 def iterate(lmp_binary, input_folder, input_list, config, results, progress_file, last_progress=None, output_buf=None):
 
-    EPSILON = np.float64(config['epsilon'])
-    nugget = float(config['nugget'])
-
     num_tests = len(input_list)
     num_completed = 0
     num_passed = 0
@@ -137,6 +134,8 @@ def iterate(lmp_binary, input_folder, input_list, config, results, progress_file
 
     # using REG-commented input scripts, now turned off (False)
     using_markers = False
+    EPSILON = np.float64(config['epsilon'])
+    nugget = float(config['nugget'])
 
     # iterate over the input scripts
     for input in input_list:
@@ -147,9 +146,26 @@ def iterate(lmp_binary, input_folder, input_list, config, results, progress_file
         else:
             progress = open(progress_file, "w")
 
-        # skip the input file if listed in the config file
+        # skip the input file if listed in the config file or matched with a pattern
         if 'skip' in config:
             if input in config['skip']:
+                msg = "   + " + input + f" ({test_id+1}/{num_tests}): skipped as specified in {configFileName}"
+                print(msg)
+                logger.info(msg)
+                progress.write(f"{input}: {{ folder: {input_folder}, status: skipped }}\n")
+                progress.close()
+                num_skipped = num_skipped + 1
+                test_id = test_id + 1
+                continue
+
+            matched_pattern = False
+            for skipped_files in config['skip']:
+                if '*' in skipped_files:
+                    if fnmatch.fnmatch(input, skipped_files):
+                        matched_pattern = True
+                        break
+
+            if matched_pattern == True:
                 msg = "   + " + input + f" ({test_id+1}/{num_tests}): skipped as specified in {configFileName}"
                 print(msg)
                 logger.info(msg)
@@ -247,31 +263,47 @@ def iterate(lmp_binary, input_folder, input_list, config, results, progress_file
             test_id = test_id + 1
             continue
 
-        # process thermo output from the run
-        thermo = extract_data_to_yaml("log.lammps")
-        num_runs = len(thermo)
-        
-        if "ERROR" in output or num_runs == 0:
+        # check if the output contains ERROR
+        if "ERROR" in output:
             cmd_str = "grep ERROR log.lammps"
             p = subprocess.run(cmd_str, shell=True, text=True, capture_output=True)
             error_line = p.stdout.split('\n')[0]
-            
             logger.info(f"     The run terminated with {input_test} gives the following output:")
-            if len(error_line) > 0:
-                logger.info(f"     {error_line}")
-            else:
-                logger.info(f"     {output}")
+            logger.info(f"     {error_line}")             
             if "Unrecognized" in output:
                 result.status = "error, unrecognized command, package not installed"
             elif "Unknown" in output:
                 result.status = "error, unknown command, package not installed"
+            elif num_runs == 0:
+                result.status = f"num runs being {num_runs}."
             else:
-                result.status = f"error, due to {error_line}."
+                result.status = f"error, due to num runs being {num_runs}."
+
+            logger.info(f"     {output}")
             logger.info(f"     Failed with {input_test}.\n")
+            num_error = num_error + 1
+
             results.append(result)
             progress.write(f"{input}: {{ folder: {input_folder}, status: {result.status} }}\n")
             progress.close()
-            num_error = num_error + 1
+
+            test_id = test_id + 1
+            continue
+
+        # process thermo output in log.lammps from the run
+        thermo = extract_data_to_yaml("log.lammps")
+        num_runs = len(thermo)
+
+        # the run completed normally but log.lammps is not friendly for parsing into YAML format
+        if num_runs == 0:
+            logger.info(f"     The run terminated with {input_test} gives the following output:")
+            logger.info(f"     {output}")
+            result.status = "completed, error parsing log.lammps into YAML"
+            results.append(result)
+            progress.write(f"{input}: {{ folder: {input_folder}, status: {result.status} }}\n")
+            progress.close()
+
+            num_completed = num_completed + 1
             test_id = test_id + 1
             continue
 

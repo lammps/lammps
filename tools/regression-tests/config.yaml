@@ -36,6 +36,8 @@
       in.voronoi,
       in.voronoi.2d,
       in.voronoi.data,
+      in.*_imd*,
+      in.bucky-plus-cnt*,
     ]
 
   nugget: 1.0

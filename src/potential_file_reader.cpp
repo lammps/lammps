@@ -177,8 +177,7 @@ ValueTokenizer PotentialFileReader::next_values(int nparams, const std::string &
 double PotentialFileReader::next_double()
 {
   try {
-    char *line = reader->next_line(1);
-    return ValueTokenizer(line).next_double();
+    return reader->next_double();
   } catch (FileReaderException &e) {
     error->one(FLERR, e.what());
   }
@@ -192,8 +191,7 @@ double PotentialFileReader::next_double()
 int PotentialFileReader::next_int()
 {
   try {
-    char *line = reader->next_line(1);
-    return ValueTokenizer(line).next_int();
+    return reader->next_int();
   } catch (FileReaderException &e) {
     error->one(FLERR, e.what());
   }
@@ -207,8 +205,7 @@ int PotentialFileReader::next_int()
 tagint PotentialFileReader::next_tagint()
 {
   try {
-    char *line = reader->next_line(1);
-    return ValueTokenizer(line).next_tagint();
+    return reader->next_tagint();
   } catch (FileReaderException &e) {
     error->one(FLERR, e.what());
   }
@@ -222,8 +219,7 @@ tagint PotentialFileReader::next_tagint()
 bigint PotentialFileReader::next_bigint()
 {
   try {
-    char *line = reader->next_line(1);
-    return ValueTokenizer(line).next_bigint();
+    return reader->next_bigint();
   } catch (FileReaderException &e) {
     error->one(FLERR, e.what());
   }
@@ -237,8 +233,7 @@ bigint PotentialFileReader::next_bigint()
 std::string PotentialFileReader::next_string()
 {
   try {
-    char *line = reader->next_line(1);
-    return ValueTokenizer(line).next_string();
+    return reader->next_string();
   } catch (FileReaderException &e) {
     error->one(FLERR, e.what());
   }

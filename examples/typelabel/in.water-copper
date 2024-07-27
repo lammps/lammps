@@ -1,0 +1,80 @@
+units metal
+atom_style full
+boundary p p f
+
+lattice fcc 3.615
+region box block -10.0 10.0 -10.0 10.0 -4.0 20.0
+create_box 3 box bond/types 1 angle/types 1 &
+           extra/bond/per/atom 2 extra/angle/per/atom 1 extra/special/per/atom 2
+
+labelmap        atom 1 OW 2 HW 3 CU
+labelmap        bond 1 OW-HW
+labelmap        angle 1 HW-OW-HW
+
+mass            HW   1.008
+mass            OW   15.9994
+mass            CU   63.550
+
+pair_style      hybrid eam lj/cut/coul/long 12.0
+pair_coeff      CU   CU   eam Cu_u3.eam
+pair_coeff      OW   OW   lj/cut/coul/long $(0.1553/23.060549) 3.166
+pair_coeff      OW   CU   lj/cut/coul/long $(0.25*0.06387) 2.71272
+pair_coeff      OW   HW   lj/cut/coul/long 0.0 1.0
+pair_coeff      HW   CU   lj/cut/coul/long 0.0 1.0
+pair_coeff      HW   HW   lj/cut/coul/long 0.0 1.0
+
+kspace_style pppm 1.0e-4
+kspace_modify slab 3.0
+neighbor 2.0 bin
+# neigh_modify is not yet supported
+# neigh_modify exclude type CU CU exclude type OW CU every 1 delay 1 check yes
+neigh_modify exclude type 3 3 exclude type 2 3 every 1 delay 1 check yes
+
+bond_style zero
+bond_coeff OW-HW 1.0
+
+angle_style zero
+angle_coeff HW-OW-HW 109.47
+
+region slab block EDGE EDGE EDGE EDGE -2.1 0.1
+create_atoms CU region slab
+
+molecule spce spce_water.molecule
+region drop sphere 0.0 0.0 9.5 7.0 
+create_atoms 0 random 500 63454 drop mol spce 8234 overlap 1.0
+
+run             0 post no
+timestep        0.002
+
+group           water type OW HW
+group           slab type CU
+fix             0        water    addforce 0.0 0.0 -0.0005
+# Fix shake is not yet supported
+# fix             1        water    shake 1.0e-5 20 1000 b OW-HW a HW-OW-HW
+fix             1        water    shake 1.0e-5 20 1000 b 1 a 1
+fix             2        water    nvt temp 100.0 300.0 1.0
+fix             3        slab     setforce 0.0 0.0 0.0
+compute         t_water  water    temp/com
+fix_modify      2 temp t_water
+#thermo_style    yaml
+thermo_modify   temp t_water
+thermo 100
+minimize        0.0 0.0 1000 10000
+reset_timestep 0
+
+# visualization for LAMMPS-GUI
+# dump            2        all      image 250 image.*.png element type view 75 20 size 800 800 zoom 1.5 fsaa yes
+# dump_modify 2 element O H Cu adiam 1 3.5 adiam 2 2.5 adiam 3 4.0
+
+dump            3        all      custom 250 water-copper.lammpstrj typelabel type element x y z
+dump_modify 3 element O H Cu
+run             7500 post no
+unfix           0
+fix             2        water    nvt temp 300.0 300.0 1.0
+fix_modify      2 temp t_water
+run             2500 post no 
+
+fix             0        water    addforce 0.0 0.0005 0.0
+#fix             0        water    aveforce 0.0 0.0025 0.0
+#fix             0       water smd cvel 100.0 0.1 tether 0.0 -10.0 NULL 0.0
+run             100000 post no

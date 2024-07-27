@@ -54,7 +54,7 @@ AngleSPICA::AngleSPICA(LAMMPS *lmp) :
 
 AngleSPICA::~AngleSPICA()
 {
-  if (allocated) {
+  if (allocated && !copymode) {
     memory->destroy(setflag);
     memory->destroy(k);
     memory->destroy(theta0);

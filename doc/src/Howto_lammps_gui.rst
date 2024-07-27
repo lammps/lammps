@@ -16,21 +16,23 @@ to the online LAMMPS documentation for known LAMMPS commands and styles.
 
 .. note::
 
-   Pre-compiled, ready-to-use LAMMPS-GUI executables for Linux (Ubuntu
-   20.04LTS or later and compatible), macOS (version 11 aka Big Sur or
-   later), and Windows (version 10 or later) :ref:`are available
-   <lammps_gui_install>` for download.  None-MPI LAMMPS executables of
-   the same LAMMPS version are included in these packages as well.  The
-   source code for LAMMPS-GUI is included in the LAMMPS source code
+   Pre-compiled, ready-to-use LAMMPS-GUI executables for Linux x86\_64
+   (Ubuntu 20.04LTS or later and compatible), macOS (version 11 aka Big
+   Sur or later), and Windows (version 10 or later) :ref:`are available
+   <lammps_gui_install>` for download.  None-MPI LAMMPS executables for
+   running LAMMPS from the command line and :doc:`some LAMMPS tools <Tools>`
+   are also included.
+
+   The source code for LAMMPS-GUI is included in the LAMMPS source code
    distribution and can be found in the ``tools/lammps-gui`` folder.  It
    can be compiled alongside LAMMPS when :doc:`compiling with CMake
    <Build_cmake>`.
 
 LAMMPS-GUI tries to provide an experience similar to what people
-traditionally would do to run LAMMPS using a command line window
-but just rolled into a single executable:
+traditionally would have running LAMMPS using a command line window
+and the console LAMMPS executable but just rolled into a single executable:
 
-- editing LAMMPS input files with a text editor
+- writing & editing LAMMPS input files with a text editor
 - run LAMMPS on those input file with selected command line flags
 - use or extract data from the created files and visualize it with
   either a molecular visualization program or a plotting program
@@ -42,19 +44,25 @@ this workflow when running LAMMPS simulations on high-performance
 computing facilities.
 
 The main benefit of using LAMMPS-GUI is that many basic tasks can be
-done directly from the GUI without switching to a text console window
-or using external programs, let alone writing scripts to extract data
-from the generated output.  It also integrates well with graphical
-desktop environments.
+done directly from the GUI without switching to a text console window or
+using external programs, let alone writing scripts to extract data from
+the generated output.  It also integrates well with graphical desktop
+environments where the `.lmp` filename extension can be registered with
+LAMMPS-GUI as the executable to launch when double clicking on such
+files.  Also, LAMMPS-GUI has support for drag-n-drop, i.e.  an input
+file can be selected and then moved and dropped on the LAMMPS-GUI
+executable, and LAMMPS-GUI will launch and read the file into its
+buffer.
 
 LAMMPS-GUI thus makes it easier for beginners to get started running
 simple LAMMPS simulations.  It is very suitable for tutorials on LAMMPS
 since you only need to learn how to use a single program for most tasks
-and thus time can be saved and people can focus on learning LAMMPS.  It
-is also designed to keep the barrier low when you decide to switch to a
-full featured, standalone programming editor and more sophisticated
-visualization and analysis tools, and run LAMMPS from the command line
-or a batch script.
+and thus time can be saved and people can focus on learning LAMMPS.
+The tutorials at https://lammpstutorials.github.io/ were specifically
+updated for use with LAMMPS-GUI.
+
+Another design goal is to keep the barrier low when replacing part of
+the functionality of LAMMPS-GUI with external tools.
 
 The following text provides a detailed tour of the features and
 functionality of LAMMPS-GUI.  Suggestions for new features and
@@ -87,17 +95,27 @@ window is stored when exiting and restored when starting again.
 Opening Files
 ^^^^^^^^^^^^^
 
-The LAMMPS-GUI application tries to open the first command line argument
-as a LAMMPS input script, further arguments are ignored.  When no
-argument is given, LAMMPS-GUI starts with an empty buffer.  Files can
-also be opened via the ``File`` menu or by drag-and-drop of a file from
-a graphical file manager into the editor window.  Only one file can be
-edited at a time, so opening a new file with a filled buffer closes that
-buffer.  If the buffer has unsaved modifications, you are asked to
-either cancel the operation, discard the changes, or save them.  A
-buffer with modifications can be saved any time from the "File" menu, by
-the keyboard shortcut `Ctrl-S` (`Command-S` on macOS), or by clicking on
-the "Save" button at the very left in the status bar.
+The LAMMPS-GUI application can be launched without command line arguments
+and then starts with an empty buffer in the *Editor* window.  If arguments
+are given LAMMPS will use first command line argument as the file name for
+the *Editor* buffer and reads its contents into the buffer, if the file
+exists.  All further arguments are ignored.  Files can also be opened via
+the ``File`` menu, the `Ctrl-O` (`Command-O` on macOS) keyboard shortcut
+or by drag-and-drop of a file from a graphical file manager into the editor
+window.  If a file extension (e.g. ``.lmp``) has been registered with the
+graphical environment to launch LAMMPS-GUI, an existing input file can
+be launched with LAMMPS-GUI through double clicking.  For the pre-compiled
+macOS and Windows packages, this is enabled, for Linux the bundled
+``lammps-gui.desktop`` file and the ``lammps-input.xml`` file need to be
+registered with the graphical desktop.
+
+Only one file can be edited at a time, so opening a new file with a
+filled buffer closes that buffer.  If the buffer has unsaved
+modifications, you are asked to either cancel the operation, discard the
+changes, or save them.  A buffer with modifications can be saved any
+time from the "File" menu, by the keyboard shortcut `Ctrl-S`
+(`Command-S` on macOS), or by clicking on the "Save" button at the very
+left in the status bar.
 
 Running LAMMPS
 ^^^^^^^^^^^^^^

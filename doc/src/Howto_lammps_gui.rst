@@ -1,5 +1,5 @@
-Using the LAMMPS-GUI
-====================
+Using LAMMPS-GUI
+================
 
 This document describes **LAMMPS-GUI version 1.6**.
 
@@ -21,7 +21,7 @@ to the online LAMMPS documentation for known LAMMPS commands and styles.
    later), and Windows (version 10 or later) :ref:`are available
    <lammps_gui_install>` for download.  None-MPI LAMMPS executables of
    the same LAMMPS version are included in these packages as well.  The
-   source code for the LAMMPS-GUI is included in the LAMMPS source code
+   source code for LAMMPS-GUI is included in the LAMMPS source code
    distribution and can be found in the ``tools/lammps-gui`` folder.  It
    can be compiled alongside LAMMPS when :doc:`compiling with CMake
    <Build_cmake>`.
@@ -35,18 +35,17 @@ but just rolled into a single executable:
 - use or extract data from the created files and visualize it with
   either a molecular visualization program or a plotting program
 
-
 That procedure is quite effective for people proficient in using the
 command line, as that allows them to use tools for the individual steps
 that they are most comfortable with.  It is often *required* to adopt
 this workflow when running LAMMPS simulations on high-performance
 computing facilities.
 
-The main benefit of using the LAMMPS-GUI application instead is that
-many basic tasks can be done directly from the GUI without switching to
-a text console window or using external programs, let alone writing
-scripts to extract data from the generated output.  It also integrates
-well with graphical desktop environments.
+The main benefit of using LAMMPS-GUI is that many basic tasks can be
+done directly from the GUI without switching to a text console window
+or using external programs, let alone writing scripts to extract data
+from the generated output.  It also integrates well with graphical
+desktop environments.
 
 LAMMPS-GUI thus makes it easier for beginners to get started running
 simple LAMMPS simulations.  It is very suitable for tutorials on LAMMPS
@@ -58,7 +57,7 @@ visualization and analysis tools, and run LAMMPS from the command line
 or a batch script.
 
 The following text provides a detailed tour of the features and
-functionality of the LAMMPS-GUI.  Suggestions for new features and
+functionality of LAMMPS-GUI.  Suggestions for new features and
 reports of bugs are always welcome.  You can use the :doc:`the same
 channels as for LAMMPS itself <Errors_bugs>` for that purpose.
 
@@ -437,7 +436,7 @@ Context Specific Help
 
 |gui-popup1|  |gui-popup2|
 
-A unique feature of the LAMMPS-GUI is the option to look up the
+A unique feature of LAMMPS-GUI is the option to look up the LAMMPS
 documentation for the command in the current line.  This can be done by
 either clicking the right mouse button or by using the `Ctrl-?` keyboard
 shortcut.  When using the mouse, there are additional entries in the
@@ -541,12 +540,12 @@ in an ``Image Viewer`` window.
 
 The ``View in OVITO`` entry will launch `OVITO <https://ovito.org>`_
 with a :doc:`data file <write_data>` containing the current state of
-the system.  This option is only available if the LAMMPS-GUI can find
+the system.  This option is only available if LAMMPS-GUI can find
 the OVITO executable in the system path.
 
 The ``View in VMD`` entry will launch VMD with a :doc:`data file
 <write_data>` containing the current state of the system.  This option
-is only available if the LAMMPS-GUI can find the VMD executable in the
+is only available if LAMMPS-GUI can find the VMD executable in the
 system path.
 
 View
@@ -579,8 +578,8 @@ Preferences
 -----------
 
 The ``Preferences`` dialog allows customization of the behavior and
-look of the LAMMPS-GUI application.  The settings are grouped and each
-group is displayed within a tab.
+look of LAMMPS-GUI.  The settings are grouped and each group is
+displayed within a tab.
 
 .. |guiprefs1| image:: JPG/lammps-gui-prefs-general.png
    :width: 24%

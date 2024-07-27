@@ -30,7 +30,10 @@ class ReadPsf : public Command {
   void command(int, char **) override;
 
  private:
-  int **atom_iarray_psf;
+  int compressed, **atom_iarray_psf;
+  FILE *fp;
+  
+  void open(const std::string &);
 
 };
 

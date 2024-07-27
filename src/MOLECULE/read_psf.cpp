@@ -24,6 +24,7 @@
 #include "error.h"
 #include "label_map.h"
 #include "memory.h"
+#include "platform.h"
 #include "reader.h"
 #include "text_file_reader.h"
 
@@ -66,7 +67,8 @@ void ReadPsf::command(int narg, char **arg)
 
   if (comm->me == 0) {
     try {
-      TextFileReader reader(arg[0], "Protein Structure Format (PSF)");
+      open(arg[0]);
+      TextFileReader reader(fp, "Protein Structure Format (PSF)");
       reader.skip_line();
       reader.skip_line();
       int ntitle = reader.next_int();
@@ -118,5 +120,35 @@ void ReadPsf::command(int narg, char **arg)
   }
 
   memory->destroy(lmap_arg);
+
+  // close file
+
+  if (me == 0) {
+    if (compressed)
+      platform::pclose(fp);
+    else
+      fclose(fp);
+    fp = nullptr;
+  }
+
 }
+
+/* ----------------------------------------------------------------------
+   proc 0 opens data file
+   test if compressed
+------------------------------------------------------------------------- */
+
+void ReadPsf::open(const std::string &file)
+{
+  if (platform::has_compress_extension(file)) {
+    compressed = 1;
+    fp = platform::compressed_read(file);
+    if (!fp) error->one(FLERR, "Cannot open compressed file {}", file);
+  } else {
+    compressed = 0;
+    fp = fopen(file.c_str(), "r");
+    if (!fp) error->one(FLERR, "Cannot open file {}: {}", file, utils::getsyserror());
+  }
+}
+
 

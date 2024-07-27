@@ -124,27 +124,26 @@ void GranSubModTangentialLinearHistory::calculate_forces()
   // rotate and update displacements / force.
   // see e.g. eq. 17 of Luding, Gran. Matter 2008, v10,p235
 
+  // This conditional code is temporary.
   // int newapproach = 0; //DRV: Original Method results in unphysical pendular motion
   int newapproach = 1; //DRV: New Method
 
   if (gm->history_update) {
-    if(newapproach == 0){
+    if (newapproach == 0) {
       rsht = dot3(history, gm->nx); 
-    }
-    else{
-    rsht = dot3(history, gm->nt); //DRV: Modified version
+    } else {
+      rsht = dot3(history, gm->nt); //DRV: Modified version
     }
     frame_update = (fabs(rsht) * k) > (EPSILON * Fscrit);
 
     if (frame_update) {
       shrmag = len3(history);
       // projection
-      if(newapproach == 0){
+      if (newapproach == 0) {
         scale3(rsht, gm->nx, temp_array); 
         sub3(history, temp_array, history); 
-      }
-      else{
-        scale3(rsht, gm->nt, history); 
+      } else {
+        scale3(rsht, gm->nt, history); //DRV: Modified version
       }
 
       // also rescale to preserve magnitude
@@ -332,8 +331,17 @@ void GranSubModTangentialMindlin::calculate_forces()
 
   // rotate and update displacements / force.
   // see e.g. eq. 17 of Luding, Gran. Matter 2008, v10,p235
+
+  // This conditional code is temporary.
+  // int newapproach = 0; //DRV: Original Method results in unphysical pendular motion
+  int newapproach = 1; //DRV: New Method
+
   if (gm->history_update) {
-    rsht = dot3(history, gm->nx);
+    if (newapproach == 0) {
+      rsht = dot3(history, gm->nx); 
+    } else {
+      rsht = dot3(history, gm->nt); //DRV: Modified version
+    }
     if (mindlin_force) {
       frame_update = fabs(rsht) > (EPSILON * Fscrit);
     } else {
@@ -343,8 +351,12 @@ void GranSubModTangentialMindlin::calculate_forces()
     if (frame_update) {
       shrmag = len3(history);
       // projection
-      scale3(rsht, gm->nx, temp_array);
-      sub3(history, temp_array, history);
+      if (newapproach == 0) {
+        scale3(rsht, gm->nx, temp_array); 
+        sub3(history, temp_array, history); 
+      } else {
+        scale3(rsht, gm->nt, history); //DRV: Modified version
+      }
       // also rescale to preserve magnitude
       prjmag = len3(history);
       if (prjmag > 0)

@@ -250,11 +250,12 @@ def iterate(lmp_binary, input_folder, input_list, config, results, progress_file
         # process thermo output from the run
         thermo = extract_data_to_yaml("log.lammps")
         num_runs = len(thermo)
-
+        
         if "ERROR" in output or num_runs == 0:
             cmd_str = "grep ERROR log.lammps"
             p = subprocess.run(cmd_str, shell=True, text=True, capture_output=True)
             error_line = p.stdout.split('\n')[0]
+            
             logger.info(f"     The run terminated with {input_test} gives the following output:")
             if len(error_line) > 0:
                 logger.info(f"     {error_line}")
@@ -327,8 +328,8 @@ def iterate(lmp_binary, input_folder, input_list, config, results, progress_file
         num_fields = len(thermo[0]['keywords'])
         num_fields_ref = len(thermo_ref[0]['keywords'])
         if num_fields != num_fields_ref:
-            logger.info(f"     ERROR: Number of thermo colums in log.lammps ({num_fields}) is different from that in the reference log ({num_fields_ref}) in run {irun}.")
-            logger.info(f"     Check README in the folder for the proper mpirun command")
+            logger.info(f"     ERROR: Number of thermo colums in log.lammps ({num_fields}) is different from that in the reference log ({num_fields_ref}) in the first run.")
+            logger.info(f"     Check both log files for more details.")
             result.status = "error, mismatched columns in the log files"
             results.append(result)
             progress.write(f"{input}: {{ folder: {input_folder}, status: {result.status} }}\n")
@@ -363,7 +364,6 @@ def iterate(lmp_binary, input_folder, input_list, config, results, progress_file
             num_fields_ref = len(thermo_ref[irun]['keywords'])
             if num_fields != num_fields_ref:
                 logger.info(f"     ERROR: Number of thermo columns in log.lammps ({num_fields}) is different from that in the reference log ({num_fields_ref}) in run {irun}.")
-                logger.info(f"     Check README in the folder for the proper mpirun command")
                 mismatched_columns = True
                 continue
 
@@ -422,7 +422,7 @@ def iterate(lmp_binary, input_folder, input_list, config, results, progress_file
 
         # after all runs completed, or are interrupted in one of the runs (mismatched_columns = True)
         if mismatched_columns == True:
-            msg = f"       mismatched log file."
+            msg = f"       mismatched log files after the first run. Check both log files for more details."
             print(msg)
             logger.info(msg)
             result.status = "failed"

@@ -136,7 +136,6 @@ void MLIAPDescriptorACE::compute_descriptors(class MLIAPData *data)
   int nei = 0;
   int jtmp = 0;
   for (int iitmp = 0; iitmp < data->nlistatoms; iitmp++) {
-    int itmp = data->iatoms[iitmp];
     jtmp = data->numneighs[iitmp];
     nei = nei + jtmp;
     if (jtmp > max_jnum) { max_jnum = jtmp; }
@@ -144,7 +143,6 @@ void MLIAPDescriptorACE::compute_descriptors(class MLIAPData *data)
 
   for (int ii = 0; ii < data->nlistatoms; ii++) {
     const int i = data->iatoms[ii];
-    const int ielemx = data->ielems[ii];
     const int jnum = data->numneighs[ii];
 
     delete acemlimpl->ace;
@@ -184,7 +182,6 @@ void MLIAPDescriptorACE::compute_forces(class MLIAPData *data)
   int nei = 0;
   int jtmp = 0;
   for (int iitmp = 0; iitmp < data->nlistatoms; iitmp++) {
-    int itmp = data->iatoms[iitmp];
     jtmp = data->numneighs[iitmp];
     nei = nei + jtmp;
     if (jtmp > max_jnum) { max_jnum = jtmp; }
@@ -193,7 +190,6 @@ void MLIAPDescriptorACE::compute_forces(class MLIAPData *data)
   // BEGIN force loop
   for (int ii = 0; ii < data->nlistatoms; ii++) {
     const int i = data->iatoms[ii];
-    const int ielem = data->ielems[ii];
     delete acemlimpl->ace;
     acemlimpl->ace = new ACECTildeEvaluator(*acemlimpl->basis_set);
     acemlimpl->ace->compute_projections = 1;
@@ -268,7 +264,6 @@ void MLIAPDescriptorACE::compute_force_gradients(class MLIAPData *data)
   int nei = 0;
   int jtmp = 0;
   for (int iitmp = 0; iitmp < data->nlistatoms; iitmp++) {
-    int itmp = data->iatoms[iitmp];
     jtmp = data->numneighs[iitmp];
     nei = nei + jtmp;
     if (jtmp > max_jnum) { max_jnum = jtmp; }
@@ -276,7 +271,6 @@ void MLIAPDescriptorACE::compute_force_gradients(class MLIAPData *data)
 
   for (int ii = 0; ii < data->nlistatoms; ii++) {
     const int i = data->iatoms[ii];
-    const int ielem = data->ielems[ii];
     delete acemlimpl->ace;
     acemlimpl->ace = new ACECTildeEvaluator(*acemlimpl->basis_set);
     acemlimpl->ace->compute_projections = 1;
@@ -327,14 +321,12 @@ void MLIAPDescriptorACE::compute_descriptor_gradients(class MLIAPData *data)
   int nei = 0;
   int jtmp = 0;
   for (int iitmp = 0; iitmp < data->nlistatoms; iitmp++) {
-    int itmp = data->iatoms[iitmp];
     jtmp = data->numneighs[iitmp];
     nei = nei + jtmp;
     if (jtmp > max_jnum) { max_jnum = jtmp; }
   }
   for (int ii = 0; ii < data->nlistatoms; ii++) {
     const int i = data->iatoms[ii];
-    const int ielem = data->ielems[ii];
     delete acemlimpl->ace;
     acemlimpl->ace = new ACECTildeEvaluator(*acemlimpl->basis_set);
     acemlimpl->ace->compute_projections = 1;
@@ -349,7 +341,6 @@ void MLIAPDescriptorACE::compute_descriptor_gradients(class MLIAPData *data)
       }
     }
 
-    const int *const jlist = data->lmp_firstneigh[ii];
     const int jnum = data->numneighs[ii];
     acemlimpl->ace->resize_neighbours_cache(jnum);
     acemlimpl->ace->compute_atom(i, atom->x, atom->type, data->numneighs[ii],
@@ -363,11 +354,6 @@ void MLIAPDescriptorACE::compute_descriptor_gradients(class MLIAPData *data)
 
     ij = ij0;
     for (int jj = 0; jj < data->numneighs[ii]; jj++) {
-      const int jt = data->jatoms[ij];
-
-      const int j = jlist[jj];
-      int yoffset = ndescriptors;
-      int zoffset = ndescriptors * 2;
       for (int iicoeff = 0; iicoeff < ndescriptors; iicoeff++) {
         DOUBLE_TYPE fx_dB = acemlimpl->ace->neighbours_dB(iicoeff, jj, 0);
         DOUBLE_TYPE fy_dB = acemlimpl->ace->neighbours_dB(iicoeff, jj, 1);

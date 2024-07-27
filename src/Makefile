@@ -74,6 +74,7 @@ PACKAGE = \
 	dpd-smooth \
 	drude \
 	eff \
+	extra-command \
 	extra-compute \
 	extra-dump \
 	extra-fix \
@@ -104,6 +105,7 @@ PACKAGE = \
 	ml-quip \
 	ml-rann \
 	ml-snap \
+	ml-uf3 \
 	mofff \
 	molfile \
 	netcdf \
@@ -122,6 +124,7 @@ PACKAGE = \
 	reaction \
 	reaxff \
 	replica \
+	rheo \
 	rigid \
 	scafacos \
 	shock \
@@ -167,6 +170,7 @@ PACKMOST = \
 	dpd-smooth \
 	drude \
 	eff \
+	extra-command \
 	extra-compute \
 	extra-dump \
 	extra-fix \
@@ -230,6 +234,7 @@ PACKLIB = \
 	plumed \
 	qmmm \
 	ml-quip \
+	rheo \
 	scafacos \
 	machdyn \
 	vtk \
@@ -251,6 +256,7 @@ PACKEXT = \
 	netcdf \
 	plumed \
 	qmmm \
+	rheo \
 	scafacos \
 	voronoi \
 	vtk \

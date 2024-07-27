@@ -94,22 +94,22 @@ FixGCMC::FixGCMC(LAMMPS *lmp, int narg, char **arg) :
 
   // required args
 
-  nevery = utils::inumeric(FLERR,arg[3],false,lmp);
-  nexchanges = utils::inumeric(FLERR,arg[4],false,lmp);
-  nmcmoves = utils::inumeric(FLERR,arg[5],false,lmp);
-  ngcmc_type = utils::inumeric(FLERR,arg[6],false,lmp);
-  seed = utils::inumeric(FLERR,arg[7],false,lmp);
-  reservoir_temperature = utils::numeric(FLERR,arg[8],false,lmp);
-  chemical_potential = utils::numeric(FLERR,arg[9],false,lmp);
-  displace = utils::numeric(FLERR,arg[10],false,lmp);
+  nevery = utils::inumeric(FLERR, arg[3], false, lmp);
+  nexchanges = utils::inumeric(FLERR, arg[4], false, lmp);
+  nmcmoves = utils::inumeric(FLERR, arg[5], false, lmp);
+  ngcmc_type = utils::expand_type_int(FLERR, arg[6], Atom::ATOM, lmp);
+  seed = utils::inumeric(FLERR, arg[7], false, lmp);
+  reservoir_temperature = utils::numeric(FLERR, arg[8], false, lmp);
+  chemical_potential = utils::numeric(FLERR, arg[9], false, lmp);
+  displace = utils::numeric(FLERR, arg[10], false, lmp);
 
-  if (nevery <= 0) error->all(FLERR,"Illegal fix gcmc command");
-  if (nexchanges < 0) error->all(FLERR,"Illegal fix gcmc command");
-  if (nmcmoves < 0) error->all(FLERR,"Illegal fix gcmc command");
-  if (seed <= 0) error->all(FLERR,"Illegal fix gcmc command");
+  if (nevery <= 0) error->all(FLERR, "Illegal fix gcmc command");
+  if (nexchanges < 0) error->all(FLERR, "Illegal fix gcmc command");
+  if (nmcmoves < 0) error->all(FLERR, "Illegal fix gcmc command");
+  if (seed <= 0) error->all(FLERR, "Illegal fix gcmc command");
   if (reservoir_temperature < 0.0)
-    error->all(FLERR,"Illegal fix gcmc command");
-  if (displace < 0.0) error->all(FLERR,"Illegal fix gcmc command");
+    error->all(FLERR, "Illegal fix gcmc command");
+  if (displace < 0.0) error->all(FLERR, "Illegal fix gcmc command");
 
   // read options from end of input line
 
@@ -359,7 +359,7 @@ void FixGCMC::options(int narg, char **arg)
                            ngrouptypesmax*sizeof(char *),
                            "fix_gcmc:grouptypestrings");
       }
-      grouptypes[ngrouptypes] = utils::inumeric(FLERR,arg[iarg+1],false,lmp);
+      grouptypes[ngrouptypes] = utils::expand_type_int(FLERR, arg[iarg+1], Atom::ATOM, lmp);
       grouptypestrings[ngrouptypes] = utils::strdup(arg[iarg+2]);
       ngrouptypes++;
       iarg += 3;
@@ -2233,7 +2233,8 @@ void FixGCMC::attempt_molecule_insertion_full()
 }
 
 /* ----------------------------------------------------------------------
-   compute particle's interaction energy with the rest of the system
+   compute particle's interaction energy with the rest of the system by
+   looping over all atoms in the sub-domain including ghosts.
 ------------------------------------------------------------------------- */
 
 double FixGCMC::energy(int i, int itype, tagint imolecule, double *coord)

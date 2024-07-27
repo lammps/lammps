@@ -121,7 +121,7 @@ TEST_F(LAMMPS_extract_variable, loop_pad)
     char str[10];
     char *fstr;
     for (i = 1; i <= 10; i++) {
-        std::sprintf(str, "%02d", i);
+        std::snprintf(str, 10, "%02d", i);
         fstr = f_lammps_extract_variable_loop_pad();
         EXPECT_STREQ(fstr, str);
         std::free(fstr);
@@ -170,7 +170,7 @@ TEST_F(LAMMPS_extract_variable, format)
     char str[16];
     char *fstr;
     for (i = 1; i <= 10; i++) {
-        std::sprintf(str, "%.6G", std::exp(i));
+        std::snprintf(str, 16, "%.6G", std::exp(i));
         fstr = f_lammps_extract_variable_format();
         EXPECT_STREQ(fstr, str);
         std::free(fstr);
@@ -185,7 +185,7 @@ TEST_F(LAMMPS_extract_variable, format_pad)
     char str[16];
     char *fstr;
     for (i = 1; i <= 10; i++) {
-        std::sprintf(str, "%08.6G", std::exp(i));
+        std::snprintf(str, 16, "%08.6G", std::exp(i));
         fstr = f_lammps_extract_variable_format_pad();
         EXPECT_STREQ(fstr, str);
         std::free(fstr);

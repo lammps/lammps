@@ -61,6 +61,7 @@ FixIndent::FixIndent(LAMMPS *lmp, int narg, char **arg) :
 
   // read geometry of indenter and optional args
 
+  istyle = NONE;
   int iarg = geometry(narg - 4, &arg[4]) + 4;
   options(narg - iarg, &arg[iarg]);
 
@@ -474,14 +475,12 @@ int FixIndent::geometry(int narg, char **arg)
 {
   if (narg < 0) utils::missing_cmd_args(FLERR, "fix indent", error);
 
-  istyle = NONE;
   xstr = ystr = zstr = rstr = pstr = nullptr;
   xvalue = yvalue = zvalue = rvalue = pvalue = 0.0;
 
   // sphere
 
   if (strcmp(arg[0], "sphere") == 0) {
-    if (istyle != NONE) error->all(FLERR, "Fix indent requires a single geometry keyword");
     if (5 > narg) utils::missing_cmd_args(FLERR, "fix indent sphere", error);
 
     if (utils::strmatch(arg[1], "^v_")) {
@@ -508,7 +507,6 @@ int FixIndent::geometry(int narg, char **arg)
   // cylinder
 
   if (strcmp(arg[0], "cylinder") == 0) {
-    if (istyle != NONE) error->all(FLERR, "Fix indent requires a single geometry keyword");
     if (5 > narg) utils::missing_cmd_args(FLERR, "fix indent cylinder", error);
 
     if (strcmp(arg[1], "x") == 0) {
@@ -556,7 +554,6 @@ int FixIndent::geometry(int narg, char **arg)
   // cone
 
   if (strcmp(arg[0], "cone") == 0) {
-    if (istyle != NONE) error->all(FLERR, "Fix indent requires a single geometry keyword");
     if (8 > narg) utils::missing_cmd_args(FLERR, "fix indent cone", error);
 
     if (strcmp(arg[1], "x") == 0) {
@@ -619,7 +616,6 @@ int FixIndent::geometry(int narg, char **arg)
   // plane
 
   if (strcmp(arg[0], "plane") == 0) {
-    if (istyle != NONE) error->all(FLERR, "Fix indent requires a single geometry keyword");
     if (4 > narg) utils::missing_cmd_args(FLERR, "fix indent plane", error);
     if (strcmp(arg[1], "x") == 0)
       cdim = 0;
@@ -647,7 +643,7 @@ int FixIndent::geometry(int narg, char **arg)
 
   // invalid istyle arg
 
-  error->all(FLERR, "Unknown fix indent argument: {}", arg[0]);
+  error->all(FLERR, "Unknown fix indent geometry: {}", arg[0]);
 
   return 0;
 }

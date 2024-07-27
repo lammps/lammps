@@ -189,6 +189,7 @@ void NPair::build_setup()
   if (ns) copy_stencil_info();
 
   // set here, since build_setup() always called before build()
+
   last_build = update->ntimestep;
 }
 

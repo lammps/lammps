@@ -45,8 +45,8 @@ executable code from the library is copied into the calling executable.
 
       .. code-block:: bash
 
-         mpicc -c -O $(pkgconf liblammps --cflags) caller.c
-         mpicxx -o caller caller.o -$(pkgconf liblammps --libs)
+         mpicc -c -O $(pkg-config --cflags liblammps) caller.c
+         mpicxx -o caller caller.o -$(pkg-config --libs liblammps)
 
    .. tab:: Traditional make
 
@@ -155,8 +155,8 @@ POEMS package installed becomes:
 
       .. code-block:: bash
 
-         mpicc -c -O $(pkgconf liblammps --cflags) caller.c
-         mpicxx -o caller caller.o -$(pkgconf --libs)
+         mpicc -c -O $(pkg-config --cflags liblammps) caller.c
+         mpicxx -o caller caller.o -$(pkg-config --libs liblammps)
 
    .. tab:: Traditional make
 

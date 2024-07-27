@@ -17,7 +17,7 @@ Syntax
 * one or more keyword/value pairs may be appended
 
 * these keywords apply to various dump styles
-* keyword = *append* or *at* or *balance* or *buffer* or *colname* or *delay* or *element* or *every* or *every/time* or *fileper* or *first* or *flush* or *format* or *header* or *image* or *label* or *maxfiles* or *nfile* or *pad* or *pbc* or *precision* or *region* or *refresh* or *scale* or *sfactor* or *skip* or *sort* or *tfactor* or *thermo* or *thresh* or *time* or *triclinic/general* or *units* or *unwrap*
+* keyword = *append* or *at* or *balance* or *buffer* or *colname* or *delay* or *element* or *every* or *every/time* or *fileper* or *first* or *flush* or *format* or *header* or *image* or *label* or *maxfiles* or *nfile* or *pad* or *pbc* or *precision* or *region* or *refresh* or *scale* or *sfactor* or *skip* or *sort* or *tfactor* or *thermo* or *thresh* or *time* or *triclinic/general* or *types* or *units* or *unwrap*
 
   .. parsed-literal::
 
@@ -81,6 +81,7 @@ Syntax
          these 3 args can be replaced by the word "none" to turn off thresholding
        *time* arg = *yes* or *no*
        *triclinic/general* arg = *yes* or *no*
+       *types* value = *numeric* or *labels*
        *units* arg = *yes* or *no*
        *unwrap* arg = *yes* or *no*
 
@@ -105,6 +106,13 @@ Syntax
   .. parsed-literal::
 
        *checksum* args = *yes* or *no* (add checksum at end of zst file)
+
+* these keywords apply only to the vtk* dump style
+* keyword = *binary*
+
+  .. parsed-literal::
+
+       *binary* args = *yes* or *no* (select between binary and text mode VTK files)
 
 Examples
 """"""""
@@ -849,6 +857,13 @@ The default setting is *no*\ .
 
 ----------
 
+The *types* keyword applies only to the dump xyz style. If this keyword is
+used with a value of *numeric*, then numeric atom types are printed in the
+xyz file (default). If the value *labels* is specified, then
+:doc:`type labels <Howto_type_labels>` are printed for atom types.
+
+----------
+
 The *triclinic/general* keyword only applies to the dump *atom* and
 *custom* styles.  It can only be used with a value of *yes* if the
 simulation box was created as a general triclinic box.  See the
@@ -899,11 +914,11 @@ box size stored with the snapshot.
 
 ----------
 
-The COMPRESS package offers both GZ and Zstd compression variants of
-styles atom, custom, local, cfg, and xyz. When using these styles the
-compression level can be controlled by the :code:`compression_level`
-keyword. File names with these styles have to end in either
-:code:`.gz` or :code:`.zst`.
+The :ref:`COMPRESS package <PKG-COMPRESS>` offers both GZ and Zstd
+compression variants of styles atom, custom, local, cfg, and xyz. When
+using these styles the compression level can be controlled by the
+:code:`compression_level` keyword. File names with these styles have to
+end in either :code:`.gz` or :code:`.zst`.
 
 GZ supports compression levels from :math:`-1` (default), 0 (no compression),
 and 1 to 9, 9 being the best compression. The COMPRESS :code:`/gz` styles use 9
@@ -919,6 +934,17 @@ similar compression ratios. For more details see
 In addition, Zstd compressed files can include a checksum of the
 entire contents. The Zstd enabled dump styles enable this feature by
 default and it can be disabled with the :code:`checksum` keyword.
+
+----------
+
+The :ref:`VTK package <PKG-VTK>` offers writing dump files in `VTK file
+formats <https://www.vtk.org/>`_ that can be read by a variety of
+visualization tools based on the VTK library.  These VTK files follow
+naming conventions that collide with the LAMMPS convention to append
+".bin" to a file name in order to switch to a binary output.  Thus for
+:doc:`vtk style dumps <dump_vtk>` the dump_modify command supports the
+keyword *binary* which selects between generating text mode and binary
+style VTK files.
 
 ----------
 
@@ -960,11 +986,11 @@ The option defaults are
 * sort = id for dump styles *dcd*, *xtc*, and *xyz*
 * thresh = none
 * time = no
-* triclinic/general no
+* triclinic/general = no
+* types = numeric
 * units = no
 * unwrap = no
 
 * compression_level = 9 (gz variants)
 * compression_level = 0 (zstd variants)
 * checksum = yes (zstd variants)
-

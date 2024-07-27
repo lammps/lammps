@@ -111,7 +111,7 @@ public:
 TEST_F(DumpCustomTest, run1)
 {
     auto dump_file = dump_filename("run1");
-    auto fields =
+    const auto *fields =
         "id type proc procp1 mass x y z ix iy iz xs ys zs xu yu zu xsu ysu zsu vx vy vz fx fy fz";
 
     generate_dump(dump_file, fields, "units yes", 1);
@@ -128,8 +128,8 @@ TEST_F(DumpCustomTest, run1)
 
 TEST_F(DumpCustomTest, thresh_run0)
 {
-    auto dump_file = dump_filename("thresh_run0");
-    auto fields    = "id type x y z";
+    auto dump_file     = dump_filename("thresh_run0");
+    const auto *fields = "id type x y z";
 
     generate_dump(dump_file, fields, "units yes thresh x < 1 thresh y < 1 thresh z < 1", 0);
 
@@ -149,8 +149,8 @@ TEST_F(DumpCustomTest, compute_run0)
     command("compute comp all property/atom x y z");
     END_HIDE_OUTPUT();
 
-    auto dump_file = dump_filename("compute_run0");
-    auto fields    = "id type x y z c_comp[1] c_comp[2] c_comp[3]";
+    auto dump_file     = dump_filename("compute_run0");
+    const auto *fields = "id type x y z c_comp[1] c_comp[2] c_comp[3]";
 
     generate_dump(dump_file, fields, "units yes", 0);
 
@@ -172,8 +172,8 @@ TEST_F(DumpCustomTest, fix_run0)
     command("fix numdiff all numdiff 1 0.0001");
     END_HIDE_OUTPUT();
 
-    auto dump_file = dump_filename("fix_run0");
-    auto fields    = "id x y z f_numdiff[1] f_numdiff[2] f_numdiff[3]";
+    auto dump_file     = dump_filename("fix_run0");
+    const auto *fields = "id x y z f_numdiff[1] f_numdiff[2] f_numdiff[3]";
 
     generate_dump(dump_file, fields, "units yes", 0);
 
@@ -194,8 +194,8 @@ TEST_F(DumpCustomTest, custom_run0)
     command("compute 1 all property/atom i_flag1 d_flag2");
     END_HIDE_OUTPUT();
 
-    auto dump_file = dump_filename("custom_run0");
-    auto fields    = "id x y z i_flag1 d_flag2";
+    auto dump_file     = dump_filename("custom_run0");
+    const auto *fields = "id x y z i_flag1 d_flag2";
 
     generate_dump(dump_file, fields, "units yes", 0);
 
@@ -215,7 +215,8 @@ TEST_F(DumpCustomTest, binary_run1)
 
     auto text_file   = text_dump_filename("run1");
     auto binary_file = binary_dump_filename("run1");
-    auto fields = "id type proc x y z ix iy iz xs ys zs xu yu zu xsu ysu zsu vx vy vz fx fy fz";
+    const auto *fields =
+        "id type proc x y z ix iy iz xs ys zs xu yu zu xsu ysu zsu vx vy vz fx fy fz";
 
     generate_text_and_binary_dump(text_file, binary_file, fields, "units yes", 1);
 
@@ -234,7 +235,8 @@ TEST_F(DumpCustomTest, binary_run1)
 TEST_F(DumpCustomTest, triclinic_run1)
 {
     auto dump_file = dump_filename("tri_run1");
-    auto fields    = "id type proc x y z ix iy iz xs ys zs xu yu zu xsu ysu zsu vx vy vz fx fy fz";
+    const auto *fields =
+        "id type proc x y z ix iy iz xs ys zs xu yu zu xsu ysu zsu vx vy vz fx fy fz";
 
     enable_triclinic();
 
@@ -254,9 +256,9 @@ TEST_F(DumpCustomTest, binary_triclinic_run1)
 {
     if (!BINARY2TXT_EXECUTABLE) GTEST_SKIP();
 
-    auto text_file   = text_dump_filename("tri_run1");
-    auto binary_file = binary_dump_filename("tri_run1");
-    auto fields      = "id type proc x y z xs ys zs xsu ysu zsu vx vy vz fx fy fz";
+    auto text_file     = text_dump_filename("tri_run1");
+    auto binary_file   = binary_dump_filename("tri_run1");
+    const auto *fields = "id type proc x y z xs ys zs xsu ysu zsu vx vy vz fx fy fz";
 
     enable_triclinic();
 
@@ -281,8 +283,8 @@ TEST_F(DumpCustomTest, with_variable_run1)
     command("variable        p atom (c_1%10)+1");
     END_HIDE_OUTPUT();
 
-    auto dump_file = dump_filename("with_variable_run1");
-    auto fields    = "id type x y z v_p";
+    auto dump_file     = dump_filename("with_variable_run1");
+    const auto *fields = "id type x y z v_p";
 
     generate_dump(dump_file, fields, "units yes", 1);
 
@@ -298,8 +300,8 @@ TEST_F(DumpCustomTest, with_variable_run1)
 
 TEST_F(DumpCustomTest, run1plus1)
 {
-    auto dump_file = dump_filename("run1plus1");
-    auto fields    = "id type x y z";
+    auto dump_file     = dump_filename("run1plus1");
+    const auto *fields = "id type x y z";
 
     generate_dump(dump_file, fields, "units yes", 1);
 
@@ -315,8 +317,8 @@ TEST_F(DumpCustomTest, run1plus1)
 
 TEST_F(DumpCustomTest, run2)
 {
-    auto dump_file = dump_filename("run2");
-    auto fields    = "id type x y z";
+    auto dump_file     = dump_filename("run2");
+    const auto *fields = "id type x y z";
     generate_dump(dump_file, fields, "", 2);
 
     ASSERT_FILE_EXISTS(dump_file);
@@ -326,8 +328,8 @@ TEST_F(DumpCustomTest, run2)
 
 TEST_F(DumpCustomTest, rerun)
 {
-    auto dump_file = dump_filename("rerun");
-    auto fields    = "id type xs ys zs";
+    auto dump_file     = dump_filename("rerun");
+    const auto *fields = "id type xs ys zs";
 
     HIDE_OUTPUT([&] {
         command("fix 1 all nve");
@@ -358,8 +360,8 @@ TEST_F(DumpCustomTest, rerun)
 
 TEST_F(DumpCustomTest, rerun_bin)
 {
-    auto dump_file = binary_dump_filename("rerun");
-    auto fields    = "id type xs ys zs";
+    auto dump_file     = binary_dump_filename("rerun");
+    const auto *fields = "id type xs ys zs";
 
     HIDE_OUTPUT([&] {
         command("fix 1 all nve");

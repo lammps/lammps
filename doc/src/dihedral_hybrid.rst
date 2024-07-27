@@ -1,7 +1,10 @@
 .. index:: dihedral_style hybrid
+.. index:: dihedral_style hybrid/kk
 
 dihedral_style hybrid command
 =============================
+
+Accelerator Variants: *hybrid/kk*
 
 Syntax
 """"""

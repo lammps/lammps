@@ -39,7 +39,6 @@ using namespace EwaldConst;
 PairCoulSlaterLong::PairCoulSlaterLong(LAMMPS *lmp) : Pair(lmp)
 {
   ewaldflag = pppmflag = 1;
-  qdist = 0.0;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -232,7 +231,7 @@ void PairCoulSlaterLong::init_style()
 double PairCoulSlaterLong::init_one(int i, int j)
 {
   scale[j][i] = scale[i][j];
-  return cut_coul+2.0*qdist;
+  return cut_coul;
 }
 
 /* ----------------------------------------------------------------------

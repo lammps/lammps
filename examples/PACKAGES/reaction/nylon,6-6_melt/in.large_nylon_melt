@@ -38,6 +38,7 @@ molecule mol4 rxn1_stp2_reacted.molecule_template
 thermo 50
 
 # dump 1 all xyz 100 test_vis.xyz
+# dump_modify 1 types labels
 
 fix myrxns all bond/react stabilization yes statted_grp .03 &
   react rxn1 all 1 0.0 2.9 mol1 mol2 rxn1_stp1_map &

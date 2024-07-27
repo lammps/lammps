@@ -96,7 +96,7 @@ public:
         restart_vel.clear();
         global_vector.clear();
     }
-    TestConfig(const TestConfig &) = delete;
+    TestConfig(const TestConfig &)            = delete;
     TestConfig &operator=(const TestConfig &) = delete;
 
     std::string tags_line() const

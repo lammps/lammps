@@ -48,6 +48,7 @@ LabelMap::LabelMap(LAMMPS *_lmp, int _natomtypes, int _nbondtypes, int _nanglety
 {
   lmap2lmap.atom = lmap2lmap.bond = lmap2lmap.angle = lmap2lmap.dihedral = lmap2lmap.improper =
       nullptr;
+  nsegmenttypes = nresiduetypes = nnametypes = 0;
   reset_type_labels();
 }
 

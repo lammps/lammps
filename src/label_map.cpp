@@ -47,6 +47,7 @@ LabelMap::LabelMap(LAMMPS *_lmp, int _natomtypes, int _nbondtypes, int _nanglety
 
   lmap2lmap.atom = lmap2lmap.bond = lmap2lmap.angle = lmap2lmap.dihedral = lmap2lmap.improper =
       nullptr;
+  nsegmenttypes = nresiduetypes = nnametypes = 0;
   reset_type_labels();
 }
 
@@ -284,6 +285,70 @@ int LabelMap::find(const std::string &mylabel, int mode) const
       break;
     default:
       return -1;
+  }
+}
+
+/* ----------------------------------------------------------------------
+   find type label with name or add type if it doesn't exist
+   return numeric type
+------------------------------------------------------------------------- */
+
+int LabelMap::find_or_add_psf(const std::string &mylabel, int mode)
+{
+
+  int index = find(mylabel,mode);
+
+  if( index >= 0 )
+    return index;
+
+  switch (mode) {
+    case Atom::SEGMENT:
+      nsegmenttypes++;
+      stypelabel_map.insert({mylabel,nsegmenttypes});
+      stypelabel.push_back(mylabel);
+      return nsegmenttypes;
+      break;
+    case Atom::RESIDUE:
+      nresiduetypes++;
+      rtypelabel_map.insert({mylabel,nresiduetypes});
+      rtypelabel.push_back(mylabel);
+      return nresiduetypes;
+      break;
+    case Atom::NAME:
+      nnametypes++;
+      ntypelabel_map.insert({mylabel,nnametypes});
+      ntypelabel.push_back(mylabel);
+      return nnametypes;
+      break;
+    default:
+      return -1;
+  }
+
+  return -1;
+}
+
+/* ----------------------------------------------------------------------
+   return a type label given a numeric type
+   return NULL if type not yet defined
+------------------------------------------------------------------------- */
+
+std::string LabelMap::label(int type, int mode) const
+{
+  switch (mode) {
+    case Atom::ATOM:
+      return typelabel[type-1];
+      break;
+    case Atom::SEGMENT:
+      return stypelabel[type-1];
+      break;
+    case Atom::RESIDUE:
+      return rtypelabel[type-1];
+      break;
+    case Atom::NAME:
+      return ntypelabel[type-1];
+      break;
+    default:
+      return NULL;
   }
 }
 

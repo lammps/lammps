@@ -80,6 +80,7 @@ Commands
    quit
    read_data
    read_dump
+   read_psf
    read_restart
    region
    region2vmd
@@ -113,4 +114,5 @@ Commands
    write_coeff
    write_data
    write_dump
+   write_psf
    write_restart

@@ -123,7 +123,7 @@ void ReadPsf::command(int narg, char **arg)
 
   // close file
 
-  if (me == 0) {
+  if (comm->me == 0) {
     if (compressed)
       platform::pclose(fp);
     else

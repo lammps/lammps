@@ -24,6 +24,11 @@ fix             cmap all cmap charmmff.cmap
 fix_modify      cmap energy yes
 read_data       data.charmmfsw.gz fix cmap crossterm CMAP
 
+read_psf        1hvn.psf.gz
+group           solv type OT HT
+group           protein_dna_ions subtract all solv
+write_psf       protein_dna_ions 1hvn-protein_dna_ions.psf
+
 neighbor        2 bin
 neigh_modify    delay 2 every 1
 

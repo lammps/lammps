@@ -88,6 +88,7 @@ Commands
    quit
    read_data
    read_dump
+   read_psf
    read_restart
    region
    replicate
@@ -120,4 +121,5 @@ Commands
    write_coeff
    write_data
    write_dump
+   write_psf
    write_restart

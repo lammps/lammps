@@ -71,6 +71,46 @@ channels as for LAMMPS itself <Errors_bugs>` for that purpose.
 
 -----
 
+Installing Pre-compiled LAMMPS-GUI Packages
+-------------------------------------------
+
+LAMMPS-GUI is available as pre-compiled binary packages for Linux
+x86\_64, macOS 11 and later, and Windows 10 and later.  Alternately, it
+can be compiled from source.
+
+Windows 10 and later
+^^^^^^^^^^^^^^^^^^^^
+
+After downloading the ``LAMMPS-Win10-64bit-GUI-<version>.exe`` installer
+package, you need to execute it, and start the installation process.
+Since those packages are currently unsigned, you have to enable "Developer Mode"
+in the Windows System Settings to run the installer.
+
+MacOS 11 and later
+^^^^^^^^^^^^^^^^^^
+
+After downloading the ``LAMMPS-macOS-multiarch-GUI-<version>.dmg``
+installer package, you need to double-click it and then, in the window
+that opens, drag the app bundle as indicated into the "Applications"
+folder.  The follow the instructions in the "README.txt" file to
+get access to the other included executables.
+
+Linux on x86\_64
+^^^^^^^^^^^^^^^^
+
+After downloading and unpacking the
+``LAMMPS-Linux-x86_64-GUI-<version>.tar.gz`` package.  You can switch
+into the "LAMMPS_GUI" folder and execute "./lammps-gui" directly.
+
+Compiling from Source
+^^^^^^^^^^^^^^^^^^^^^
+
+There also are instructions for :ref:`compiling LAMMPS-GUI from source
+code <lammps_gui_compilation>` avilable elsewhere in the manual.
+Compilation from source *requires* using CMake.
+
+-----
+
 Starting LAMMPS-GUI
 -------------------
 
@@ -104,10 +144,7 @@ the ``File`` menu, the `Ctrl-O` (`Command-O` on macOS) keyboard shortcut
 or by drag-and-drop of a file from a graphical file manager into the editor
 window.  If a file extension (e.g. ``.lmp``) has been registered with the
 graphical environment to launch LAMMPS-GUI, an existing input file can
-be launched with LAMMPS-GUI through double clicking.  For the pre-compiled
-macOS and Windows packages, this is enabled, for Linux the bundled
-``lammps-gui.desktop`` file and the ``lammps-input.xml`` file need to be
-registered with the graphical desktop.
+be launched with LAMMPS-GUI through double clicking.
 
 Only one file can be edited at a time, so opening a new file with a
 filled buffer closes that buffer.  If the buffer has unsaved

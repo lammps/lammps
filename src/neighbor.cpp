@@ -2979,6 +2979,14 @@ bigint Neighbor::get_nneigh_half()
 }
 
 /* ----------------------------------------------------------------------
+ return the pointer containing the last positions stored by the NL builder
+------------------------------------------------------------------------- */
+double **Neighbor::get_xhold()
+{
+  return xhold;
+}
+
+/* ----------------------------------------------------------------------
    add pair of atoms to bondlist array
    will only persist until the next neighbor build
 ------------------------------------------------------------------------- */

@@ -15,6 +15,14 @@ LAMMPS data file via write_data, version 5 May 2020, timestep = 0
  -7.692866 7.307134  ylo yhi
  -8.086924 6.913076  zlo zhi
 
+Atom Type Labels
+
+1 C
+2 HE
+3 N
+4 OA
+5 OB
+
 Masses
 
 1 12.0107

@@ -2273,8 +2273,6 @@ void Atom::add_molecule_atom(Molecule *onemol, int iatom, int ilocal, tagint off
 
 void Atom::add_label_map()
 {
-  if (lmp->kokkos)
-    error->all(FLERR, "Label maps are currently not supported with Kokkos");
   labelmapflag = 1;
   lmap = new LabelMap(lmp,ntypes,nbondtypes,nangletypes,ndihedraltypes,nimpropertypes);
 }

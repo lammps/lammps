@@ -26,7 +26,6 @@
 #include "memory.h"
 #include "reader.h"
 #include "text_file_reader.h"
-#include "potential_file_reader.h"
 
 #include <cstring>
 
@@ -67,7 +66,7 @@ void ReadPsf::command(int narg, char **arg)
 
   if (comm->me == 0) {
     try {
-      PotentialFileReader reader(lmp, arg[0], "Protein Structure Format (PSF)");
+      TextFileReader reader(arg[0], "Protein Structure Format (PSF)");
       reader.skip_line();
       reader.skip_line();
       int ntitle = reader.next_int();

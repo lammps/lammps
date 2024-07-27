@@ -29,6 +29,8 @@
 #include "respa.h"
 #include "update.h"
 
+#include <array>
+
 #include "Lepton.h"
 #include "lepton_utils.h"
 
@@ -179,12 +181,12 @@ void FixEpotLepton::post_force(int vflag)
     cexprs.insert(cexprs.end(), {&dphi_xx, &dphi_xy, &dphi_xz, &dphi_yy, &dphi_yz, &dphi_zz}); 
   }
 
-  // Substitute x, y, z if they exist
+  // check if reference to x, y, z exist
   const std::array<std::string, 3> variableNames = {"x", "y", "z"}; 
-  std::vector<std::array<bool, 3>> has_ref;     
+  std::vector<std::array<bool, 3>> has_ref;
   for (auto &cexpr : cexprs) {
     has_ref.push_back({true, true, true});
-    for (size_t i = 0; i < variableNames.size(); i++) {
+    for (size_t i = 0; i < 3; i++) {
       try { 
         (*cexpr).getVariableReference(variableNames[i]);
       }
@@ -212,7 +214,7 @@ void FixEpotLepton::post_force(int vflag)
       if (region && !region->match(x[i][0], x[i][1], x[i][2])) continue;
       domain->unmap(x[i], image[i], unwrap);
       
-      // Substitute x, y, z if they exist           
+      // substitute x, y, z if they exist           
       for (size_t j = 0; j< cexprs.size(); j++) {
         if (has_ref[j][0]) (*cexprs[j]).getVariableReference("x") = unwrap[0];
         if (has_ref[j][1]) (*cexprs[j]).getVariableReference("y") = unwrap[1];

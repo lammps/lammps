@@ -76,7 +76,6 @@ void PairLJCutCoulLongKokkos<DeviceType>::compute(int eflag_in, int vflag_in)
 
   ev_init(eflag,vflag,0);
 
-
   // reallocate per-atom arrays if necessary
 
   if (eflag_atom) {
@@ -125,11 +124,11 @@ void PairLJCutCoulLongKokkos<DeviceType>::compute(int eflag_in, int vflag_in)
     ev = pair_compute<PairLJCutCoulLongKokkos<DeviceType>,CoulLongTable<0> >
       (this,(NeighListKokkos<DeviceType>*)list);
 
-
   if (eflag) {
     eng_vdwl += ev.evdwl;
     eng_coul += ev.ecoul;
   }
+
   if (vflag_global) {
     virial[0] += ev.v[0];
     virial[1] += ev.v[1];

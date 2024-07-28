@@ -32,9 +32,8 @@ class ReadPsf : public Command {
  private:
   int compressed, **atom_iarray_psf;
   FILE *fp;
-  
-  void open(const std::string &);
 
+  void open(const std::string &);
 };
 
 }    // namespace LAMMPS_NS

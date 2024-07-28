@@ -63,7 +63,7 @@ amoeba:   small water and bio models with AMOEBA and HIPPO potentials
 atm:      Axilrod-Teller-Muto potential
 balance:  dynamic load balancing, 2d system
 body:     body particles, 2d system
-cmap:     CMAP 5-body contributions to CHARMM force field
+charmm:   CHARMM force field
 colloid:  big colloid particles in a small particle solvent, 2d system
 comb:     models using the COMB potential
 coreshell: adiabatic core/shell model
@@ -97,7 +97,6 @@ neb:      nudged elastic band (NEB) calculation for barrier finding
 nemd:     non-equilibrium MD of 2d sheared system
 numdiff:  numerical difference computation of forces, virial, and Born matrix
 obstacle: flow around two voids in a 2d channel
-peptide:  dynamics of a small solvated peptide chain (5-mer)
 peri:     Peridynamic model of cylinder impacted by indenter
 pour:     pouring of granular particles into a 3d box, then chute flow
 prd:      parallel replica dynamics of vacancy diffusion in bulk Si

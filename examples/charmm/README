@@ -1,0 +1,9 @@
+Example simulations for CHARMM force field
+==========================================
+
+* cmap:       CMAP 5-body contributions to CHARMM force field
+
+* charmmfsw:  minimal PDB example (1HVN) with at least one protein and one ssDNA, solvated in TIP3 water, also demonstrates read_psf and write_psf commands.
+
+* peptide:    dynamics of a small solvated peptide chain (5-mer)
+

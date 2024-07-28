@@ -274,10 +274,8 @@ def iterate(lmp_binary, input_folder, input_list, config, results, progress_file
                 result.status = "error, unrecognized command, package not installed"
             elif "Unknown" in output:
                 result.status = "error, unknown command, package not installed"
-            elif num_runs == 0:
-                result.status = f"num runs being {num_runs}."
             else:
-                result.status = f"error, due to num runs being {num_runs}."
+                result.status = f"error, see output."
 
             logger.info(f"     {output}")
             logger.info(f"     Failed with {input_test}.\n")

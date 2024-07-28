@@ -22,6 +22,7 @@
 // clang-format off
 PairStyle(uf3/kk,PairUF3Kokkos<LMPDeviceType>)
 PairStyle(uf3/kk/device,PairUF3Kokkos<LMPDeviceType>)
+PairStyle(uf3/kk/host,PairUF3Kokkos<LMPHostType>)
 // clang-format on
 #else
 

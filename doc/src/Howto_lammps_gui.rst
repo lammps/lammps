@@ -106,7 +106,7 @@ Compiling from Source
 ^^^^^^^^^^^^^^^^^^^^^
 
 There also are instructions for :ref:`compiling LAMMPS-GUI from source
-code <lammps_gui_compilation>` avilable elsewhere in the manual.
+code <lammps_gui_compilation>` available elsewhere in the manual.
 Compilation from source *requires* using CMake.
 
 -----

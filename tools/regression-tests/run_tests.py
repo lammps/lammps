@@ -178,11 +178,21 @@ def iterate(lmp_binary, input_folder, input_list, config, results, progress_file
         # also skip if the test already completed as marked in the progress file
         if input in last_progress:
             status = last_progress[input]['status']
-            if status == 'completed':
-                msg = "  + " + input + f" ({test_id+1}/{num_tests}): marked as completed in the progress file {progress_file}"
+            if 'completed' in status or 'numerical checks skipped' in status:
+                msg = "  + " + input + f" ({test_id+1}/{num_tests}): marked as completed or numerical checks skipped (see {progress_file})"
                 logger.info(msg)
                 print(msg)
                 # No need to write to progress again that the run is completed
+                progress.close()
+                num_skipped = num_skipped + 1
+                test_id = test_id + 1
+                continue
+    
+            if 'packaged not installed' in status:
+                msg = "  + " + input + f" ({test_id+1}/{num_tests}): due to package not installed (see {progress_file})"
+                logger.info(msg)
+                print(msg)
+                # No need to write to progress again that the run gets error due to missing packages
                 progress.close()
                 num_skipped = num_skipped + 1
                 test_id = test_id + 1
@@ -315,7 +325,7 @@ def iterate(lmp_binary, input_folder, input_list, config, results, progress_file
                 logger.info(f"    ERROR: Error parsing {thermo_ref_file}.")
                 result.status = "skipped numerical checks due to parsing the log file"
                 results.append(result)
-                progress.write(f"{input}: {{ folder: {input_folder}, status: numerical checks skipped, unsupported log file format}}\n")
+                progress.write(f"{input}: {{ folder: {input_folder}, status: completed, numerical checks skipped, unsupported log file format}}\n")
                 progress.close()
                 num_error = num_error + 1
                 test_id = test_id + 1
@@ -334,7 +344,7 @@ def iterate(lmp_binary, input_folder, input_list, config, results, progress_file
                 logger.info(f"       {thermo_ref_file} also does not exist in the working directory.")
                 result.status = "skipped due to missing the reference log file"
                 results.append(result)
-                progress.write(f"{input}: {{ folder: {input_folder}, status: numerical checks skipped, missing the reference log file }}\n")
+                progress.write(f"{input}: {{ folder: {input_folder}, status: completed, numerical checks skipped, missing the reference log file }}\n")
                 progress.close()
                 num_error = num_error + 1
                 test_id = test_id + 1

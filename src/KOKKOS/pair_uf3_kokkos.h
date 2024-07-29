@@ -22,6 +22,7 @@
 // clang-format off
 PairStyle(uf3/kk,PairUF3Kokkos<LMPDeviceType>)
 PairStyle(uf3/kk/device,PairUF3Kokkos<LMPDeviceType>)
+PairStyle(uf3/kk/host,PairUF3Kokkos<LMPHostType>)
 // clang-format on
 #else
 
@@ -117,9 +118,11 @@ template <class DeviceType> class PairUF3Kokkos : public PairUF3 {
   std::vector<F_FLOAT> get_dncoefficients(const double *knots, const double coefficient) const;
 
   template <int EVFLAG>
+  KOKKOS_INLINE_FUNCTION
   void twobody(const int itype, const int jtype, const F_FLOAT r, F_FLOAT &evdwl,
                F_FLOAT &fpair) const;
   template <int EVFLAG>
+  KOKKOS_INLINE_FUNCTION
   void threebody(const int itype, const int jtype, const int ktype, const F_FLOAT value_rij,
                  const F_FLOAT value_rik, const F_FLOAT value_rjk, F_FLOAT &evdwl3,
                  F_FLOAT (&fforce)[3]) const;

@@ -152,6 +152,7 @@ ImageViewer::ImageViewer(const QString &fileName, LammpsWrapper *_lammps, QWidge
 
     vdwfactor = 0.5;
     auto pix  = QPixmap(":/icons/emblem-photos.png");
+    xcenter = ycenter = zcenter = 0.5;
 
     auto *renderstatus = new QLabel(QString());
     renderstatus->setPixmap(pix.scaled(22, 22, Qt::KeepAspectRatio));
@@ -211,6 +212,8 @@ ImageViewer::ImageViewer(const QString &fileName, LammpsWrapper *_lammps, QWidge
     rotup->setToolTip("Rotate up by 15 degrees");
     auto *rotdown = new QPushButton(QIcon(":/icons/gtk-go-down.png"), "");
     rotdown->setToolTip("Rotate down by 15 degrees");
+    auto *recenter = new QPushButton(QIcon(":/icons/move-recenter.png"), "");
+    recenter->setToolTip("Recenter on group");
     auto *reset = new QPushButton(QIcon(":/icons/gtk-zoom-fit.png"), "");
     reset->setToolTip("Reset view to defaults");
     auto *combo = new QComboBox;
@@ -245,6 +248,7 @@ ImageViewer::ImageViewer(const QString &fileName, LammpsWrapper *_lammps, QWidge
     menuLayout->addWidget(rotright);
     menuLayout->addWidget(rotup);
     menuLayout->addWidget(rotdown);
+    menuLayout->addWidget(recenter);
     menuLayout->addWidget(reset);
     menuLayout->addWidget(new QLabel(" Group: "));
     menuLayout->addWidget(combo);
@@ -260,6 +264,7 @@ ImageViewer::ImageViewer(const QString &fileName, LammpsWrapper *_lammps, QWidge
     connect(rotright, &QPushButton::released, this, &ImageViewer::do_rot_right);
     connect(rotup, &QPushButton::released, this, &ImageViewer::do_rot_up);
     connect(rotdown, &QPushButton::released, this, &ImageViewer::do_rot_down);
+    connect(recenter, &QPushButton::released, this, &ImageViewer::do_recenter);
     connect(reset, &QPushButton::released, this, &ImageViewer::reset_view);
     connect(combo, SIGNAL(currentIndexChanged(int)), this, SLOT(change_group(int)));
 
@@ -301,6 +306,7 @@ void ImageViewer::reset_view()
     showaxes  = settings.value("axes", false).toBool();
     usessao   = settings.value("ssao", false).toBool();
     antialias = settings.value("antialias", false).toBool();
+    xcenter = ycenter = zcenter = 0.5;
     settings.endGroup();
 
     // reset state of checkable push buttons and combo box (if accessible)
@@ -421,6 +427,24 @@ void ImageViewer::do_rot_up()
     createImage();
 }
 
+void ImageViewer::do_recenter()
+{
+    QString commands = QString("variable LAMMPSGUI_CX delete\n"
+                               "variable LAMMPSGUI_CY delete\n"
+                               "variable LAMMPSGUI_CZ delete\n"
+                               "variable LAMMPSGUI_CX equal (xcm(%1,x)-xlo)/lx\n"
+                               "variable LAMMPSGUI_CY equal (xcm(%1,y)-ylo)/ly\n"
+                               "variable LAMMPSGUI_CZ equal (xcm(%1,z)-zlo)/lz\n").arg(group);
+    lammps->commands_string(commands.toLocal8Bit());
+    xcenter = lammps->extract_variable("LAMMPSGUI_CX");
+    ycenter = lammps->extract_variable("LAMMPSGUI_CZ");
+    zcenter = lammps->extract_variable("LAMMPSGUI_CZ");
+    lammps->commands_string("variable LAMMPSGUI_CX delete\n"
+                            "variable LAMMPSGUI_CY delete\n"
+                            "variable LAMMPSGUI_CZ delete\n");
+    createImage();
+}
+
 void ImageViewer::cmd_to_clipboard()
 {
     auto words    = last_dump_cmd.split(" ");
@@ -534,6 +558,7 @@ void ImageViewer::createImage()
     else
         dumpcmd += " axes no 0.0 0.0";
 
+    dumpcmd += QString(" center s %1 %2 %3").arg(xcenter).arg(ycenter).arg(zcenter);
     dumpcmd += " modify boxcolor " + settings.value("boxcolor", "yellow").toString();
     dumpcmd += " backcolor " + settings.value("background", "black").toString();
     if (useelements) dumpcmd += blank + elements + blank + adiams + blank;

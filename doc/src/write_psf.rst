@@ -55,6 +55,11 @@ before the data file is written.  This means that your system must be
 ready to perform a simulation before using this command (force fields
 setup, atom masses initialized, etc).
 
+This command can only be used if LAMMPS was built with the
+MOLECULE package.  See the :doc:`Build package <Build_package>` doc page
+for more info.
+
+
 Related commands
 """"""""""""""""
 

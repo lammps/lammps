@@ -338,6 +338,18 @@ std::string LabelMap::label(int type, int mode) const
     case Atom::ATOM:
       return typelabel[type-1];
       break;
+    case Atom::BOND:
+      return btypelabel[type-1];
+      break;
+    case Atom::ANGLE:
+      return atypelabel[type-1];
+      break;
+    case Atom::DIHEDRAL:
+      return dtypelabel[type-1];
+      break;
+    case Atom::IMPROPER:
+      return itypelabel[type-1];
+      break;
     case Atom::SEGMENT:
       return stypelabel[type-1];
       break;

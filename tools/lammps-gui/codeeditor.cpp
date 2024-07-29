@@ -34,7 +34,6 @@
 #include <QSettings>
 #include <QShortcut>
 #include <QStringListModel>
-#include <QStringRef>
 #include <QTextBlock>
 #include <QTextDocumentFragment>
 #include <QUrl>

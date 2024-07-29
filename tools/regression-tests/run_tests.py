@@ -182,7 +182,7 @@ def iterate(lmp_binary, input_folder, input_list, config, results, progress_file
                 msg = "  + " + input + f" ({test_id+1}/{num_tests}): marked as completed in the progress file {progress_file}"
                 logger.info(msg)
                 print(msg)
-                progress.write(msg)
+                # No need to write to progress again that the run is completed
                 progress.close()
                 num_skipped = num_skipped + 1
                 test_id = test_id + 1
@@ -541,7 +541,7 @@ def extract_data_to_yaml(inputFileName):
         docs = ""
         num_thermo_cols = 0
         for line in lines:
-            if "Step" in line:
+            if "Step" in line and line[0] != '#':
                 line.strip()
                 keywords = line.split()
                 num_thermo_cols = len(keywords)

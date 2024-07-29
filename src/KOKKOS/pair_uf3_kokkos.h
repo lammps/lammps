@@ -45,7 +45,7 @@ template <class DeviceType> class PairUF3Kokkos : public PairUF3 {
   void compute(int, int) override;
   void settings(int, char **) override;
   void coeff(int, char **) override;
-  void allocate();
+  void allocate() override;
   void init_style() override;
   void init_list(int, class NeighList *) override;    // needed for ptr to full neigh list
   double init_one(int, int) override;                 // needed for cutoff radius for neighbour list

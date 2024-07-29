@@ -411,15 +411,16 @@ actual image size, high-quality (SSAO) rendering, anti-aliasing, view
 style, display of box or axes, zoom factor.  The view of the system can
 be rotated horizontally and vertically.  It is also possible to only
 display the atoms within a group defined in the input script (default is
-"all").  After each change, the image is rendered again and the display
-updated.  The small palette icon on the top left is colored while LAMMPS
-is running to render the new image; it is grayed out when LAMMPS is
-finished.  When there are many atoms to render and high quality images
-with anti-aliasing are requested, re-rendering may take several seconds.
-From the ``File`` menu of the image window, the current image can be
-saved to a file (keyboard shortcut `Ctrl-S`) or copied to the clipboard
-(keyboard shortcut `Ctrl-C`) for pasting the image into another
-application.
+"all").  The image can also be re-centered on the center of mass of the
+selected group.  After each change, the image is rendered again and the
+display updated.  The small palette icon on the top left is colored
+while LAMMPS is running to render the new image; it is grayed out when
+LAMMPS is finished.  When there are many atoms to render and high
+quality images with anti-aliasing are requested, re-rendering may take
+several seconds.  From the ``File`` menu of the image window, the
+current image can be saved to a file (keyboard shortcut `Ctrl-S`) or
+copied to the clipboard (keyboard shortcut `Ctrl-C`) for pasting the
+image into another application.
 
 .. versionadded:: 1.6
 

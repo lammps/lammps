@@ -288,7 +288,14 @@ int ValueTokenizer::next_int()
 {
   std::string current = tokens.next();
   if (!utils::is_integer(current)) { throw InvalidIntegerException(current); }
-  return atoi(current.c_str());
+  const char *str = current.c_str();
+  char *end = nullptr;
+  auto val = std::strtoll(str, &end, 10);
+  // only partially converted
+  if ((str + current.size()) != end) { throw InvalidIntegerException(current); }
+  // out of range
+  if ((val < -MAXSMALLINT) || (val > MAXSMALLINT)) { throw InvalidIntegerException(current); }
+  return (int) val;
 }
 
 /*! Retrieve next token and convert to bigint
@@ -298,7 +305,14 @@ bigint ValueTokenizer::next_bigint()
 {
   std::string current = tokens.next();
   if (!utils::is_integer(current)) { throw InvalidIntegerException(current); }
-  return ATOBIGINT(current.c_str());
+  const char *str = current.c_str();
+  char *end = nullptr;
+  auto val = std::strtoll(str, &end, 10);
+  // only partially converted
+  if ((str + current.size()) != end) { throw InvalidIntegerException(current); }
+  // out of range
+  if ((val < -MAXBIGINT) || (val > MAXBIGINT)) { throw InvalidIntegerException(current); }
+  return (bigint) val;
 }
 
 /*! Retrieve next token and convert to tagint
@@ -308,7 +322,14 @@ tagint ValueTokenizer::next_tagint()
 {
   std::string current = tokens.next();
   if (!utils::is_integer(current)) { throw InvalidIntegerException(current); }
-  return ATOTAGINT(current.c_str());
+  const char *str = current.c_str();
+  char *end = nullptr;
+  auto val = std::strtoll(str, &end, 10);
+  // only partially converted
+  if ((str + current.size()) != end) { throw InvalidIntegerException(current); }
+  // out of range
+  if ((val < -MAXTAGINT) || (val > MAXTAGINT)) { throw InvalidIntegerException(current); }
+  return (tagint) val;
 }
 
 /*! Retrieve next token and convert to double
@@ -318,7 +339,12 @@ double ValueTokenizer::next_double()
 {
   std::string current = tokens.next();
   if (!utils::is_double(current)) { throw InvalidFloatException(current); }
-  return atof(current.c_str());
+  const char *str = current.c_str();
+  char *end = nullptr;
+  double val = std::strtod(str, &end);
+  // only partially converted
+  if ((str + current.size()) != end) { throw InvalidFloatException(current); }
+  return val;
 }
 
 /*! Skip over a given number of tokens

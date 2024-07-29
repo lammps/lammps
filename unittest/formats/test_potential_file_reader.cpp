@@ -278,6 +278,18 @@ TEST_F(PotentialFileReaderTest, convenience_functions)
     PotentialFileReader reader(lmp, "potential_reader.file", "test");
     END_HIDE_OUTPUT();
 
+    utils::logmesg(lmp,"*** {}\n", reader.next_string());
+    utils::logmesg(lmp,"*** {}\n", reader.next_string());
+    utils::logmesg(lmp,"*** {}\n", reader.next_string());
+    utils::logmesg(lmp,"*** {}\n", reader.next_string());
+    utils::logmesg(lmp,"*** {}\n", reader.next_string());
+    utils::logmesg(lmp,"*** {}\n", reader.next_string());
+    utils::logmesg(lmp,"*** {}\n", reader.next_string());
+    utils::logmesg(lmp,"*** {}\n", reader.next_string());
+    utils::logmesg(lmp,"*** {}\n", reader.next_string());
+    utils::logmesg(lmp,"*** {}\n", reader.next_string());
+    reader.rewind();
+
     ASSERT_DOUBLE_EQ( reader.next_double(), 123 );
     ASSERT_DOUBLE_EQ( reader.next_double(), -123.45 );
     ASSERT_DOUBLE_EQ( reader.next_double(), DBL_MIN );

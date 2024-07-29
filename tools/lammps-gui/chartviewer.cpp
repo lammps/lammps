@@ -33,18 +33,18 @@
 #include <QSettings>
 #include <QSpacerItem>
 #include <QTextStream>
+#include <QVBoxLayout>
 #include <QValueAxis>
 #include <QVariant>
-#include <QVBoxLayout>
 
 #include <cmath>
 
 using namespace QtCharts;
 
 ChartWindow::ChartWindow(const QString &_filename, QWidget *parent) :
-    QWidget(parent), menu(new QMenuBar), file(new QMenu("&File")),
-    saveAsAct(nullptr), exportCsvAct(nullptr), exportDatAct(nullptr), exportYamlAct(nullptr),
-    closeAct(nullptr), stopAct(nullptr), quitAct(nullptr), filename(_filename)
+    QWidget(parent), menu(new QMenuBar), file(new QMenu("&File")), saveAsAct(nullptr),
+    exportCsvAct(nullptr), exportDatAct(nullptr), exportYamlAct(nullptr), closeAct(nullptr),
+    stopAct(nullptr), quitAct(nullptr), filename(_filename)
 {
     auto *top = new QHBoxLayout;
     menu->addMenu(file);

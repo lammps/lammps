@@ -39,8 +39,8 @@
 #include <QSettings>
 #include <QSizePolicy>
 #include <QSpinBox>
-#include <QVariant>
 #include <QVBoxLayout>
+#include <QVariant>
 
 #include <cmath>
 

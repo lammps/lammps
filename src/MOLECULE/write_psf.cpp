@@ -583,11 +583,14 @@ void WritePsf::atoms()
         // (I10,1X,A8,1X,A8,1X,A8,1X,A8,1X,A4,1X,2G14.6,I8)
 
         std::string label;
+        auto atom_tag = ubuf(buf[i][0]).i;
+        int atom_type = ubuf(buf[i][2]).i;
+        // utils::logmesg(lmp, "write_psf... atom_tag={} atom_type={}\n", atom_tag, atom_type);
 
-        fmt::print(fp, "{:10} ", ubuf(buf[i][0]).i );
+        fmt::print(fp, "{:10} ", atom_tag );
 
         // atom segment
-        int segment_type = atom_iarray_psf[i][0];
+        int segment_type = atom_iarray_psf[atom_tag-1][0];
         label = atom->lmap->label(segment_type, Atom::SEGMENT);
         fmt::print(fp, "{0:<8} ", label );
 
@@ -595,17 +598,16 @@ void WritePsf::atoms()
         fmt::print(fp, "{0:<8} ", ubuf(buf[i][1]).i );
 
         // atom residue
-        int residue_type = atom_iarray_psf[i][1];
+        int residue_type = atom_iarray_psf[atom_tag-1][1];
         label = atom->lmap->label(residue_type, Atom::RESIDUE);
         fmt::print(fp, "{0:<8} ", label );
 
         // atom name
-        int name_type = atom_iarray_psf[i][2];
+        int name_type = atom_iarray_psf[atom_tag-1][2];
         label = atom->lmap->label(name_type, Atom::NAME);
         fmt::print(fp, "{0:<8} ", label );
 
         // atom type
-        int atom_type = ubuf(buf[i][2]).i;
         label = atom->lmap->label(atom_type, Atom::ATOM);
         fmt::print(fp, "{0:<4} ", label );
 

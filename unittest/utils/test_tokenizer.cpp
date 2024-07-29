@@ -11,10 +11,13 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
+#include "fmt/format.h"
 #include "lmptype.h"
 #include "tokenizer.h"
 #include "gmock/gmock.h"
 #include "gtest/gtest.h"
+
+#include <cstdint>
 
 using namespace LAMMPS_NS;
 using ::testing::Eq;
@@ -348,32 +351,47 @@ TEST(ValueTokenizer, bad_double)
 
 TEST(ValueTokenizer, valid_int)
 {
-    ValueTokenizer values("10");
+    ValueTokenizer values(fmt::format("10 -{} {}", MAXSMALLINT, MAXSMALLINT));
     ASSERT_EQ(values.next_int(), 10);
+    ASSERT_EQ(values.next_int(), -MAXSMALLINT);
+    ASSERT_EQ(values.next_int(), MAXSMALLINT);
 }
 
 TEST(ValueTokenizer, valid_tagint)
 {
-    ValueTokenizer values("42");
+    ValueTokenizer values(fmt::format("42 -{} {} -{} {}", MAXSMALLINT, MAXSMALLINT, MAXTAGINT, MAXTAGINT));
     ASSERT_EQ(values.next_tagint(), 42);
+    ASSERT_EQ(values.next_tagint(), -MAXSMALLINT);
+    ASSERT_EQ(values.next_tagint(), MAXSMALLINT);
+    ASSERT_EQ(values.next_tagint(), -MAXTAGINT);
+    ASSERT_EQ(values.next_tagint(), MAXTAGINT);
 }
 
 TEST(ValueTokenizer, valid_bigint)
 {
-    ValueTokenizer values("42");
+    ValueTokenizer values(fmt::format("42 -{} {} -{} {}", MAXSMALLINT, MAXSMALLINT, MAXBIGINT, MAXBIGINT));
     ASSERT_EQ(values.next_bigint(), 42);
+    ASSERT_EQ(values.next_bigint(), -MAXSMALLINT);
+    ASSERT_EQ(values.next_bigint(), MAXSMALLINT);
+    ASSERT_EQ(values.next_bigint(), -MAXBIGINT);
+    ASSERT_EQ(values.next_bigint(), MAXBIGINT);
 }
 
 TEST(ValueTokenizer, valid_double)
 {
-    ValueTokenizer values("3.14");
+    ValueTokenizer values("3.14 -0.00002 .1 " + std::to_string(MAXBIGINT));
     ASSERT_DOUBLE_EQ(values.next_double(), 3.14);
+    ASSERT_DOUBLE_EQ(values.next_double(), -0.00002);
+    ASSERT_DOUBLE_EQ(values.next_double(), 0.1);
+    ASSERT_DOUBLE_EQ(values.next_double(), MAXBIGINT);
 }
 
 TEST(ValueTokenizer, valid_double_with_exponential)
 {
-    ValueTokenizer values("3.14e22");
+    ValueTokenizer values(fmt::format("3.14e22 {} {}", DBL_MAX, DBL_MIN));
     ASSERT_DOUBLE_EQ(values.next_double(), 3.14e22);
+    ASSERT_DOUBLE_EQ(values.next_double(), DBL_MAX);
+    ASSERT_DOUBLE_EQ(values.next_double(), DBL_MIN);
 }
 
 TEST(ValueTokenizer, contains)

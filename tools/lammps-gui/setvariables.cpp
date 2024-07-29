@@ -19,6 +19,7 @@
 #include <QLineEdit>
 #include <QPushButton>
 #include <QSizePolicy>
+#include <QVBoxLayout>
 
 SetVariables::SetVariables(QList<QPair<QString, QString>> &_vars, QWidget *parent) :
     QDialog(parent), vars(_vars), layout(new QVBoxLayout)

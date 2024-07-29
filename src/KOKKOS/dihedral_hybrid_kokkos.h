@@ -11,7 +11,7 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
-#ifdef BOND_CLASS
+#ifdef DIHEDRAL_CLASS
 // clang-format off
 DihedralStyle(hybrid/kk,DihedralHybridKokkos);
 DihedralStyle(hybrid/kk/device,DihedralHybridKokkos);
@@ -20,8 +20,8 @@ DihedralStyle(hybrid/kk/host,DihedralHybridKokkos);
 #else
 
 // clang-format off
-#ifndef LMP_BOND_HYBRID_KOKKOS_H
-#define LMP_BOND_HYBRID_KOKKOS_H
+#ifndef LMP_DIHEDRAL_HYBRID_KOKKOS_H
+#define LMP_DIHEDRAL_HYBRID_KOKKOS_H
 
 #include "dihedral_hybrid.h"
 #include "kokkos_type.h"
@@ -40,13 +40,13 @@ class DihedralHybridKokkos : public DihedralHybrid {
   double memory_usage() override;
 
  private:
-  int maxbond_all;
+  int maxdihedral_all;
 
   class NeighborKokkos *neighborKK;
 
   DAT::tdual_int_1d k_map;       // which style each bond type points to
-  DAT::tdual_int_1d k_nbondlist; // # of bonds in sub-style bondlists
-  DAT::tdual_int_3d k_bondlist;  // bondlist for each sub-style
+  DAT::tdual_int_1d k_ndihedrallist; // # of bonds in sub-style bondlists
+  DAT::tdual_int_3d k_dihedrallist;  // bondlist for each sub-style
 
   void allocate() override;
   void deallocate() override;

@@ -2,6 +2,8 @@ LAMMPS-GUI TODO list:
 
 # Short term goals (v1.x)
 
+- figure out how widgets can be resized to fraction of available screen size.
+- figure out stacking order of frames and whether it can be more flexible
 - bundle LAMMPS tutorial input files
 
 - implement indenting regions for (nested) loops?

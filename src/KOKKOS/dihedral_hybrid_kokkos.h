@@ -44,9 +44,9 @@ class DihedralHybridKokkos : public DihedralHybrid {
 
   class NeighborKokkos *neighborKK;
 
-  DAT::tdual_int_1d k_map;       // which style each bond type points to
-  DAT::tdual_int_1d k_ndihedrallist; // # of bonds in sub-style bondlists
-  DAT::tdual_int_3d k_dihedrallist;  // bondlist for each sub-style
+  DAT::tdual_int_1d k_map;       // which style each dihedral type points to
+  DAT::tdual_int_1d k_ndihedrallist; // # of dihedrals in sub-style dihedrallists
+  DAT::tdual_int_3d k_dihedrallist;  // dihedrallist for each sub-style
 
   void allocate() override;
   void deallocate() override;

@@ -76,7 +76,6 @@ void ReadPsf::command(int narg, char **arg)
       for( int i=0; i<ntitle ; i++)
         reader.skip_line();
 
-      // FIXME: check same number of atoms in psf file as in lammps
       int natom = reader.next_int();
 
       for( int i=0; i<natom ; i++) {
@@ -89,7 +88,7 @@ void ReadPsf::command(int narg, char **arg)
         // atom segment
         std::string segment = values.next_string();
         int segment_type = atom->lmap->find_or_add_psf(segment, Atom::SEGMENT);
-        atom_iarray_psf[i][0] = segment_type;
+        atom_iarray_psf[atom_tag-1][0] = segment_type;
 
         // skip molecule id
         values.skip(1);
@@ -97,15 +96,17 @@ void ReadPsf::command(int narg, char **arg)
         // atom residue
         std::string residue = values.next_string();
         int residue_type = atom->lmap->find_or_add_psf(residue, Atom::RESIDUE);
-        atom_iarray_psf[i][1] = residue_type;
+        atom_iarray_psf[atom_tag-1][1] = residue_type;
 
         // atom name
         std::string name = values.next_string();
         int name_type = atom->lmap->find_or_add_psf(name, Atom::NAME);
-        atom_iarray_psf[i][2] = name_type;
+        atom_iarray_psf[atom_tag-1][2] = name_type;
 
         // atom type
-        int atom_type = atom->type[atom_tag-1];
+        int atom_type = atom->type[lmp->atom->map(atom_tag)];
+        //utils::logmesg(lmp, "read_psf... atom_tag={} atom_type={}\n", atom_tag, atom_type);
+
         strcpy(lmap_arg[0], "atom");
         strcpy(lmap_arg[1],std::to_string(atom_type).c_str());
         strcpy(lmap_arg[2],values.next_string().c_str());

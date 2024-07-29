@@ -44,6 +44,13 @@ Read a file in `Protein Structure Format (psf) <https://www.charmm-gui.org/?doc=
 
 ----------
 
+Restrictions
+""""""""""""
+
+This command can only be used if LAMMPS was built with the
+MOLECULE package.  See the :doc:`Build package <Build_package>` doc page
+for more info.
+
 Related commands
 """"""""""""""""
 

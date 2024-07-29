@@ -74,6 +74,7 @@ void WritePsf::command(int narg, char **arg)
   if (narg < 2) utils::missing_cmd_args(FLERR, "write_psf", error);
 
   igroup = group->find(arg[0]);
+  if (igroup == -1) error->all(FLERR,"Could not find group ID {}", arg[0]);
   groupbit = group->bitmask[igroup];
 
   // if filename contains a "*", replace with current timestep
@@ -212,11 +213,8 @@ void WritePsf::write(const std::string &file)
   }
 
   // per atom info in Atoms and Velocities sections
-
-  if (natoms) {
-    //sort();
-    atoms();
-  }
+  
+  if (natoms) atoms();
 
   // molecular topology info if defined
   // do not write molecular topology for atom_style template
@@ -545,16 +543,13 @@ void WritePsf::atoms()
   else memory->create(buf,MAX(1,sendrow),ncol,"write_psf:buf");
 
   // pack my atom data into buf
-
   atom->avec->pack_data(buf);
-  //sort();
 
   // write one chunk of atoms per proc to file
   // proc 0 pings each proc, receives its chunk, writes to file
   // all other procs wait for ping, send their chunk to proc 0
 
   int tmp,recvrow;
-
 
   if (me == 0) {
     MPI_Status status;
@@ -572,8 +567,6 @@ void WritePsf::atoms()
       } else recvrow = sendrow;
 
       for (int i = 0; i < atom->natoms; i++) {
-
-        // FIXME: right now it assumes atom tags sorted
 
         // skip if not in group
         if (igroup && !((atom->mask)[i] & groupbit))
@@ -625,116 +618,3 @@ void WritePsf::atoms()
 
   memory->destroy(buf);
 }
-
-/* ----------------------------------------------------------------------
-   parallel sort of buf across all procs
-   changes nme, reorders datums in buf, grows buf if necessary
-------------------------------------------------------------------------- */
-
-void WritePsf::sort()
-{
-  int i,iproc;
-  double value;
-
-  //int sortcol = 0; //always sort by atom id
-
-  // if single proc, swap ptrs to buf,ids <-> bufsort,idsort
-
-  nme = atom->nlocal;
-
-  if (nprocs == 1) {
-    if (nme > maxsort) {
-      maxsort = nme;
-      memory->destroy(bufsort);
-      memory->create(bufsort,maxsort*size_one,"write_psf:bufsort");
-      memory->destroy(index);
-      memory->create(index,maxsort,"write_psf:index");
-
-      memory->destroy(ids);
-      memory->create(ids,maxsort,"write_psf:ids");
-      memory->destroy(idsort);
-      memory->create(idsort,maxsort,"write_psf:idsort");
-    }
-
-    double *dptr = buf;
-    buf = bufsort;
-    bufsort = dptr;
-
-    tagint *iptr = ids;
-    ids = idsort;
-    idsort = iptr;
-
-  // if multiple procs, exchange datums between procs via irregular
-
-  } else {
-
-    // SEE DUMP.CPP
-
-  }
-
-  if (!reorderflag) {
-    utils::logmesg(lmp,"write_psf ... merge_sort() ... nme={}, maxsort={}\n", nme,maxsort );
-
-    tagint *tag = atom->tag;
-
-    for (i = 0; i < nme; i++) {
-      //utils::logmesg(lmp,"tag[{}]={} \n", i, tag[i] );
-      index[i] = i;
-      idsort[i] = tag[i];
-    }
-
-    utils::logmesg(lmp,"ok 1a\n" );
-
-    utils::merge_sort(index,nme,(void *)this,idcompare);
-    utils::logmesg(lmp,"ok 1c\n" );
-  }
-
-
-  // reset buf size and maxbuf to largest of any post-sort nme values
-  // this ensures proc 0 can receive everyone's info
-
-    utils::logmesg(lmp,"ok 1\n" );
-
-  int nmax;
-  MPI_Allreduce(&nme,&nmax,1,MPI_INT,MPI_MAX,world);
-
-    utils::logmesg(lmp,"ok 2 ... nmax={}, size_one={}\n", nmax, size_one );
-
-  if (nmax*size_one > maxbuf) {
-    maxbuf = nmax * size_one;
-    memory->destroy(buf);
-    memory->create(buf,maxbuf,"write_psf:buf");
-    utils::logmesg(lmp,"ok 3 ... maxbuf={}\n", maxbuf );
-  }
-
-    utils::logmesg(lmp,"ok 4 ... {} {} {}\n", index[0], index[1], index[2] );
-
-  // copy data from bufsort to buf using index
-
-  int nbytes = size_one*sizeof(double);
-  for (i = 0; i < nme; i++)
-    //memcpy(&buf[i*size_one],&bufsort[index[i]*size_one],nbytes);
-    memcpy(&bufsort[i*size_one],&bufsort[index[i]*size_one],nbytes);
-
-  utils::logmesg(lmp,"ok 5 \n" );
-
-}
-
-
-/* ----------------------------------------------------------------------
-   compare two atom IDs
-   called via merge_sort() in sort() method
-------------------------------------------------------------------------- */
-
-int WritePsf::idcompare(const int i, const int j, void *ptr)
-{
-  //fmt::print(stderr, "ok 1b\n");
-
-  tagint *idsort = ((WritePsf *)ptr)->idsort;
-  //fmt::print(stderr, "WritePsf::idcompare ... idsort[{}]={}, idsort[{}]={}\n", i, idsort[i], j, idsort[j]);
-  if (idsort[i] < idsort[j]) return -1;
-  else if (idsort[i] > idsort[j]) return 1;
-  else return 0;
-}
-
-

@@ -75,8 +75,8 @@ private:
 
 #include <QChartView>
 #include <QLineSeries>
+#include <QValueAxis>
 class QChart;
-class QValueAxis;
 
 namespace QtCharts {
 class ChartViewer : public QChartView {

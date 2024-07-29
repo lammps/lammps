@@ -17,7 +17,6 @@
 
 #include <QAction>
 #include <QApplication>
-#include <QDir>
 #include <QFile>
 #include <QFileDialog>
 #include <QIcon>

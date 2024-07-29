@@ -20,6 +20,8 @@
 #include <QWidget>
 
 class QAction;
+class QCloseEvent;
+class QEvent;
 class QMenuBar;
 class QMenu;
 namespace QtCharts {
@@ -71,10 +73,10 @@ private:
 
 /* -------------------------------------------------------------------- */
 
-#include <QChart>
 #include <QChartView>
 #include <QLineSeries>
-#include <QValueAxis>
+class QChart;
+class QValueAxis;
 
 namespace QtCharts {
 class ChartViewer : public QChartView {

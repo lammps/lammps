@@ -24,20 +24,27 @@
 #include <QDragEnterEvent>
 #include <QDropEvent>
 #include <QFileInfo>
+#include <QFont>
 #include <QIcon>
 #include <QKeySequence>
 #include <QMenu>
 #include <QMimeData>
 #include <QPainter>
+#include <QRect>
 #include <QRegularExpression>
 #include <QScrollBar>
 #include <QSettings>
 #include <QShortcut>
 #include <QStringListModel>
 #include <QTextBlock>
+#include <QTextCursor>
 #include <QTextDocumentFragment>
 #include <QUrl>
+#include <QVariant>
+#include <QWidget>
 
+#include <cstdlib>
+#include <cstring>
 #include <string>
 #include <vector>
 

@@ -32,7 +32,6 @@
 #include <QProcess>
 #include <QPushButton>
 #include <QScreen>
-#include <QSettings>
 #include <QShortcut>
 #include <QSpacerItem>
 #include <QTemporaryFile>

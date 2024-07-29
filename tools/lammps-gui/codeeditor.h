@@ -14,15 +14,23 @@
 #ifndef CODEEDITOR_H
 #define CODEEDITOR_H
 
-#include <QFont>
 #include <QMap>
 #include <QPlainTextEdit>
 #include <QString>
 #include <QStringList>
 
 class QCompleter;
-class QStringListModel;
+class QContextMenuEvent;
+class QDragEnterEvent;
+class QDropEvent;
+class QFont;
+class QKeyEvent;
+class QMimeData;
+class QPaintEvent;
+class QRect;
+class QResizeEvent;
 class QShortcut;
+class QWidget;
 
 class CodeEditor : public QPlainTextEdit {
     Q_OBJECT

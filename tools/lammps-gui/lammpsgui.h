@@ -21,6 +21,7 @@
 #include <QPair>
 #include <QSpacerItem>
 #include <QString>
+#include <string>
 #include <vector>
 
 #include "lammpswrapper.h"

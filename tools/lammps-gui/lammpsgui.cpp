@@ -36,8 +36,6 @@
 #include <QLabel>
 #include <QLocale>
 #include <QMessageBox>
-#include <QMetaType>
-#include <QPlainTextEdit>
 #include <QProcess>
 #include <QProgressBar>
 #include <QPushButton>
@@ -46,15 +44,15 @@
 #include <QStatusBar>
 #include <QStringList>
 #include <QTextStream>
-#include <QThread>
 #include <QTimer>
 #include <QUrl>
 
+#include <cstdint>
+#include <cstdlib>
 #include <cstring>
 #include <string>
 
 #if defined(_OPENMP)
-#include <cstdlib>
 #include <omp.h>
 #endif
 

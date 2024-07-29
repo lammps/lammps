@@ -23,7 +23,6 @@
 #include <QComboBox>
 #include <QCoreApplication>
 #include <QDialogButtonBox>
-#include <QDir>
 #include <QDoubleValidator>
 #include <QFileDialog>
 #include <QFontDialog>
@@ -40,7 +39,9 @@
 #include <QSpacerItem>
 #include <QSpinBox>
 #include <QTabWidget>
+#if defined(_OPENMP)
 #include <QThread>
+#endif
 #include <QVBoxLayout>
 
 #if defined(_OPENMP)

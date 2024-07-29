@@ -20,27 +20,27 @@
 #include <QApplication>
 #include <QClipboard>
 #include <QDir>
+#include <QFile>
 #include <QFileDialog>
+#include <QFileInfo>
 #include <QGuiApplication>
+#include <QIcon>
 #include <QImage>
 #include <QImageReader>
 #include <QKeySequence>
 #include <QLabel>
-#include <QLineEdit>
+#include <QMenu>
 #include <QMenuBar>
-#include <QMessageBox>
 #include <QPalette>
-#include <QPoint>
+#include <QPixmap>
 #include <QPushButton>
-#include <QScreen>
 #include <QScrollArea>
 #include <QScrollBar>
 #include <QSettings>
+#include <QSizePolicy>
 #include <QSpinBox>
-#include <QStatusBar>
+#include <QVariant>
 #include <QVBoxLayout>
-#include <QWheelEvent>
-#include <QWidgetAction>
 
 #include <cmath>
 

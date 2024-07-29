@@ -14,7 +14,6 @@
 #include "setvariables.h"
 
 #include <QDialogButtonBox>
-#include <QGridLayout>
 #include <QIcon>
 #include <QLabel>
 #include <QLineEdit>

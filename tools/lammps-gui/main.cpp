@@ -13,8 +13,8 @@
 
 #include "lammpsgui.h"
 
+#include <qconfig-64.h>
 #include <QApplication>
-#include <QFileInfo>
 
 #include <cstdio>
 #include <cstring>

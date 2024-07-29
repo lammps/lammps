@@ -17,6 +17,10 @@
 
 #include <QAction>
 #include <QApplication>
+#include <QChart>
+#include <QCloseEvent>
+#include <QComboBox>
+#include <QEvent>
 #include <QFileDialog>
 #include <QHBoxLayout>
 #include <QKeySequence>
@@ -29,6 +33,8 @@
 #include <QSettings>
 #include <QSpacerItem>
 #include <QTextStream>
+#include <QValueAxis>
+#include <QVariant>
 #include <QVBoxLayout>
 
 #include <cmath>

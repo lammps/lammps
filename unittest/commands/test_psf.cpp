@@ -31,6 +31,7 @@
 #include <mpi.h>
 
 using ::testing::Eq;
+using testing::HasSubstr;
 
 // whether to print verbose output (i.e. not capturing LAMMPS screen output).
 bool verbose = false;
@@ -103,9 +104,9 @@ protected:
 
   void TearDown() override
   {
-    //platform::unlink("fourmol.psf");
-    //platform::unlink("fourmol-all.psf");
-    //platform::unlink("fourmol-subset.psf");
+    platform::unlink("fourmol.psf");
+    platform::unlink("fourmol-all.psf");
+    platform::unlink("fourmol-oxygen.psf");
   }
 
 };
@@ -140,7 +141,7 @@ TEST_F(PsfTest, ReadWritePsfGroupSubset)
     ASSERT_THAT(lines[9], Eq("        6 !NATOM"));
 
     for( int i=10 ; i<=15 ; i++ )
-        ASSERT_THAT(lines[i], ContainsRegex("OA|OB"));
+        ASSERT_THAT(lines[i], AnyOf(HasSubstr("OA"),HasSubstr("OB")));
 }
 
 } // namespace LAMMPS_NS

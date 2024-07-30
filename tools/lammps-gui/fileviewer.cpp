@@ -49,7 +49,7 @@ FileViewer::FileViewer(const QString &_filename, QWidget *parent) :
 
     // match suffix with decompression program
     if (finfo.suffix() == "gz") {
-        command    = "gizp";
+        command    = "gzip";
         compressed = true;
     } else if (finfo.suffix() == "bz2") {
         command    = "bzip2";

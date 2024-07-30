@@ -74,10 +74,8 @@ namespace LAMMPS_NS {
 
 #ifdef LAMMPS_LONGLONG_TO_LONG
 #define MPI_LL MPI_LONG
-#define ATOLL atoll
 #else
 #define MPI_LL MPI_LONG_LONG
-#define ATOLL atol
 #endif
 
 // for atomic problems that exceed 2 billion (2^31) atoms

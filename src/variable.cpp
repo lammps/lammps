@@ -3570,8 +3570,8 @@ tagint Variable::int_between_brackets(char *&ptr, int varallow)
 
   *ptr = '\0';
 
-  // evaluate index as floating point variable or as tagint via strtoll()
-  
+  // evaluate index as floating point variable or as tagint via stoll()
+
   try {
     if (varflag) {
       char *id = start+2;

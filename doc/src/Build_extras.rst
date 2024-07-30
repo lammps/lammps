@@ -639,6 +639,9 @@ They must be specified in uppercase.
    *  - AMD_GFX1100
       - GPU
       - AMD GPU RX7900XTX
+   *  - AMD_GFX1103
+      - GPU
+      - AMD Phoenix APU with Radeon 740M/760M/780M/880M/890M
    *  - INTEL_GEN
       - GPU
       - SPIR64-based devices, e.g. Intel GPUs, using JIT

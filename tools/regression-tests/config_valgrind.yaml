@@ -1,8 +1,8 @@
 ---
   lmp_binary: ""
-  nprocs: "4"
+  nprocs: "1"
   args: "-cite none"
-  mpiexec: "valgrind --leak-check=full mpirun"
+  mpiexec: "mpirun valgrind --leak-check=full --show-leak-kinds=all --track-origin=yes"
   mpiexec_numproc_flag: "-np"
   tolerance:
     PotEng:
@@ -28,15 +28,6 @@
       Press:
         abs: 1e-2
         rel: 1e-4
-  skip:
-    [ in.rigid.poems3,
-      in.rigid.poems4,
-      in.rigid.poems5,
-      in.peptide,
-      in.voronoi,
-      in.voronoi.2d,
-      in.voronoi.data,
-    ]
 
   nugget: 1.0
   epsilon: 1e-16

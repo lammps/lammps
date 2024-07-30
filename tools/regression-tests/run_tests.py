@@ -252,7 +252,14 @@ def iterate(lmp_binary, input_folder, input_list, config, results, progress_file
         #      then override the setting for this input script
         saved_nprocs = config['nprocs']
         if max_np != int(config['nprocs']):
-            config['nprocs'] = str(max_np)
+            config['nprocs'] = "str(max_np)"
+
+        # if valgrind is used for mem check, the run command will be
+        #   mpirun valgrind --leak-check=full --show-leak-kinds=all --track-origin=yes /path/to/lmp_binary -in in.txt
+        # so both mpiexec_numproc_flag and nprocs are empty
+        if 'valgrind' in config['mpiexec']:
+            config['nprocs'] = ""
+            config['mpiexec_numproc_flag'] = ""
 
         result = TestResult(name=input, output="", time="", status="passed")
 

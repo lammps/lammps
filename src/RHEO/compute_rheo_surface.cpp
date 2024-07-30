@@ -43,8 +43,9 @@ static constexpr double EPSILON = 1e-10;
 /* ---------------------------------------------------------------------- */
 
 ComputeRHEOSurface::ComputeRHEOSurface(LAMMPS *lmp, int narg, char **arg) :
-  Compute(lmp, narg, arg), fix_rheo(nullptr), list(nullptr), rho0(nullptr), compute_kernel(nullptr), compute_interface(nullptr),
-  B(nullptr), gradC(nullptr), nsurface(nullptr), divr(nullptr), rsurface(nullptr)
+  Compute(lmp, narg, arg), nsurface(nullptr), rsurface(nullptr), divr(nullptr), fix_rheo(nullptr),
+  rho0(nullptr), B(nullptr), gradC(nullptr), list(nullptr), compute_kernel(nullptr),
+  compute_interface(nullptr)
 {
   if (narg != 3) error->all(FLERR,"Illegal compute RHEO/SURFACE command");
 
@@ -98,8 +99,8 @@ void ComputeRHEOSurface::init_list(int /*id*/, NeighList *ptr)
 
 void ComputeRHEOSurface::compute_peratom()
 {
-  int i, j, ii, jj, inum, jnum, a, b, itype, jtype, fluidi, fluidj;
-  double xtmp, ytmp, ztmp, rsq, Voli, Volj, rhoi, rhoj, wp;
+  int i, j, ii, jj, inum, jnum, a, itype, jtype, fluidi, fluidj;
+  double xtmp, ytmp, ztmp, rsq, Voli, Volj, rhoi, rhoj;
   double dWij[3], dWji[3], dx[3];
   int *ilist, *jlist, *numneigh, **firstneigh;
 
@@ -175,7 +176,7 @@ void ComputeRHEOSurface::compute_peratom()
         Voli = mass[itype] / rhoi;
         Volj = mass[jtype] / rhoj;
 
-        wp = compute_kernel->calc_dw_quintic(i, j, dx[0], dx[1], dx[2], sqrt(rsq), dWij, dWji);
+        compute_kernel->calc_dw_quintic(i, j, dx[0], dx[1], dx[2], sqrt(rsq), dWij, dWji);
 
         for (a = 0; a < dim; a++) {
           divr[i] -= dWij[a] * dx[a] * Volj;
@@ -310,17 +311,15 @@ void ComputeRHEOSurface::compute_peratom()
 
 int ComputeRHEOSurface::pack_reverse_comm(int n, int first, double *buf)
 {
-  int i,a,b,k,m,last;
   int dim = domain->dimension;
   int *status = atom->rheo_status;
-
-  m = 0;
-  last = first + n;
-  for (i = first; i < last; i++) {
+  int m = 0;
+  int last = first + n;
+  for (int i = first; i < last; i++) {
     if (comm_stage == 0) {
       buf[m++] = divr[i];
-      for (a = 0; a < dim; a ++ )
-        for (b = 0; b < dim; b ++)
+      for (int a = 0; a < dim; a ++ )
+        for (int b = 0; b < dim; b ++)
           buf[m++] = gradC[i][a * dim + b];
     } else if (comm_stage == 1) {
       buf[m++] = (double) status[i];
@@ -334,27 +333,23 @@ int ComputeRHEOSurface::pack_reverse_comm(int n, int first, double *buf)
 
 void ComputeRHEOSurface::unpack_reverse_comm(int n, int *list, double *buf)
 {
-  int i,a,b,k,j,m;
   int dim = domain->dimension;
   int *status = atom->rheo_status;
-  int tmp1;
-  double tmp2;
-
-  m = 0;
-  for (i = 0; i < n; i++) {
-    j = list[i];
+  int m = 0;
+  for (int i = 0; i < n; i++) {
+    int j = list[i];
     if (comm_stage == 0) {
       divr[j] += buf[m++];
-      for (a = 0; a < dim; a ++ )
-        for (b = 0; b < dim; b ++)
+      for (int a = 0; a < dim; a ++ )
+        for (int b = 0; b < dim; b ++)
           gradC[j][a * dim + b] += buf[m++];
     } else if (comm_stage == 1) {
-      tmp1 = (int) buf[m++];
+      auto tmp1 = (int) buf[m++];
       if ((status[j] & STATUS_BULK) && (tmp1 & STATUS_LAYER)) {
         status[j] &= SURFACEMASK;
         status[j] |= STATUS_LAYER;
       }
-      tmp2 = buf[m++];
+      auto tmp2 = buf[m++];
       rsurface[j] = MIN(rsurface[j], tmp2);
     }
   }
@@ -366,12 +361,10 @@ void ComputeRHEOSurface::unpack_reverse_comm(int n, int *list, double *buf)
 int ComputeRHEOSurface::pack_forward_comm(int n, int *list, double *buf,
                                         int /*pbc_flag*/, int * /*pbc*/)
 {
-  int i,j,a,b,k,m;
   int *status = atom->rheo_status;
-  m = 0;
-
-  for (i = 0; i < n; i++) {
-    j = list[i];
+  int m = 0;
+  for (int i = 0; i < n; i++) {
+    int j = list[i];
     if (comm_stage == 0) {
       buf[m++] = divr[j];
     } else if (comm_stage == 1) {
@@ -386,12 +379,10 @@ int ComputeRHEOSurface::pack_forward_comm(int n, int *list, double *buf,
 
 void ComputeRHEOSurface::unpack_forward_comm(int n, int first, double *buf)
 {
-  int i, k, a, b, m, last;
   int *status = atom->rheo_status;
-
-  m = 0;
-  last = first + n;
-  for (i = first; i < last; i++) {
+  int m = 0;
+  int last = first + n;
+  for (int i = first; i < last; i++) {
     if (comm_stage == 0) {
       divr[i] = buf[m++];
     } else if (comm_stage == 1) {

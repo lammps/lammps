@@ -41,8 +41,8 @@ using namespace RHEO_NS;
 /* ---------------------------------------------------------------------- */
 
 ComputeRHEOVShift::ComputeRHEOVShift(LAMMPS *lmp, int narg, char **arg) :
-  Compute(lmp, narg, arg), list(nullptr), vshift(nullptr), fix_rheo(nullptr),
-  compute_kernel(nullptr), compute_interface(nullptr), compute_surface(nullptr)
+  Compute(lmp, narg, arg), vshift(nullptr), fix_rheo(nullptr), rho0(nullptr), list(nullptr),
+  compute_interface(nullptr), compute_kernel(nullptr), compute_surface(nullptr)
 {
   if (narg != 3) error->all(FLERR,"Illegal compute RHEO/VShift command");
 
@@ -90,7 +90,7 @@ void ComputeRHEOVShift::init_list(int /*id*/, NeighList *ptr)
 
 void ComputeRHEOVShift::compute_peratom()
 {
-  int i, j, a, b, ii, jj, jnum, itype, jtype;
+  int i, j, a, ii, jj, jnum, itype, jtype;
   int fluidi, fluidj;
   double xtmp, ytmp, ztmp, rsq, r, rinv;
   double w, wp, dr, w0, w4, vmag, prefactor;
@@ -229,8 +229,6 @@ void ComputeRHEOVShift::correct_surfaces()
 {
   if (!surface_flag) return;
 
-  int i, a, b;
-
   int *status = atom->rheo_status;
   int *mask = atom->mask;
   double **nsurface = compute_surface->nsurface;
@@ -239,7 +237,7 @@ void ComputeRHEOVShift::correct_surfaces()
   int dim = domain->dimension;
 
   double nx, ny, nz, vx, vy, vz, dot;
-  for (i = 0; i < nlocal; i++) {
+  for (int i = 0; i < nlocal; i++) {
     if (mask[i] & groupbit) {
 
       if (status[i] & PHASECHECK) continue;
@@ -283,11 +281,11 @@ void ComputeRHEOVShift::correct_surfaces()
 
 int ComputeRHEOVShift::pack_reverse_comm(int n, int first, double *buf)
 {
-  int i,m,last;
+  int m, last;
 
   m = 0;
   last = first + n;
-  for (i = first; i < last; i++) {
+  for (int i = first; i < last; i++) {
     buf[m++] = vshift[i][0];
     buf[m++] = vshift[i][1];
     buf[m++] = vshift[i][2];

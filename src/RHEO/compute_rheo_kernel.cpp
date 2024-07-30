@@ -53,8 +53,8 @@ static constexpr int DELTA = 2000;
 /* ---------------------------------------------------------------------- */
 
 ComputeRHEOKernel::ComputeRHEOKernel(LAMMPS *lmp, int narg, char **arg) :
-  Compute(lmp, narg, arg),
-  list(nullptr), C(nullptr), C0(nullptr), coordination(nullptr), compute_interface(nullptr)
+  Compute(lmp, narg, arg), coordination(nullptr), fix_rheo(nullptr), C(nullptr), C0(nullptr),
+  list(nullptr), compute_interface(nullptr)
 {
   if (narg != 4) error->all(FLERR,"Illegal compute rheo/kernel command");
 
@@ -190,7 +190,7 @@ double ComputeRHEOKernel::calc_w_self(int i, int j)
 
 double ComputeRHEOKernel::calc_w(int i, int j, double delx, double dely, double delz, double r)
 {
-  double w;
+  double w = 0.0;
   int corrections_i, corrections_j, corrections;
 
   if (kernel_style == WENDLANDC4)
@@ -282,8 +282,6 @@ double ComputeRHEOKernel::calc_w_quintic(int i, int j, double delx, double dely,
 double ComputeRHEOKernel::calc_dw_quintic(int i, int j, double delx, double dely, double delz, double r, double *dW1, double *dW2)
 {
   double wp, tmp1, tmp2, tmp3, tmp1sq, tmp2sq, tmp3sq, s, wprinv;
-  double *mass = atom->mass;
-  int *type = atom->type;
 
   s = r * 3.0 * cutinv;
 
@@ -326,9 +324,9 @@ double ComputeRHEOKernel::calc_w_wendlandc4(int i, int j, double delx, double de
   double w, tmp6, s;
   s = r * cutinv;
 
-        if (s > 1.0) {
-          w = 0.0;
-        } else {
+  if (s > 1.0) {
+    w = 0.0;
+  } else {
     tmp6 = (1.0 - s) * (1.0 - s);
     tmp6 *= tmp6 * tmp6;
     w = tmp6 * (1.0 + 6.0 * s + 35.0 * THIRD * s * s);
@@ -347,14 +345,12 @@ double ComputeRHEOKernel::calc_w_wendlandc4(int i, int j, double delx, double de
 double ComputeRHEOKernel::calc_dw_wendlandc4(int i, int j, double delx, double dely, double delz, double r, double *dW1, double *dW2)
 {
   double wp, tmp1, tmp5, tmp6, s, wprinv;
-  double *mass = atom->mass;
-  int *type = atom->type;
 
   s = r * cutinv;
 
-        if (s > 1.0) {
-          wp = 0.0;
-        } else {
+  if (s > 1.0) {
+    wp = 0.0;
+  } else {
     tmp1 = 1.0 - s;
     tmp5 = tmp1 * tmp1;
     tmp5 = tmp5 * tmp5 * tmp1;
@@ -395,7 +391,7 @@ double ComputeRHEOKernel::calc_w_rk0(int i, int j, double delx, double dely, dou
 double ComputeRHEOKernel::calc_w_rk1(int i, int j, double delx, double dely, double delz, double r)
 {
   int b;
-  double w, wR, dx[3], H[Mdim];
+  double w, dx[3], H[Mdim];
 
   dx[0] = delx;
   dx[1] = dely;
@@ -437,7 +433,7 @@ double ComputeRHEOKernel::calc_w_rk1(int i, int j, double delx, double dely, dou
 double ComputeRHEOKernel::calc_w_rk2(int i, int j, double delx, double dely, double delz, double r)
 {
   int b;
-  double w, wR, dx[3], H[Mdim];
+  double w, dx[3], H[Mdim];
   dx[0] = delx;
   dx[1] = dely;
   dx[2] = delz;
@@ -574,7 +570,7 @@ void ComputeRHEOKernel::compute_peratom()
   if (kernel_style == QUINTIC) return;
   corrections_calculated = 1;
 
-  int i, j, ii, jj, inum, jnum, itype, g, a, b, gsl_error;
+  int i, j, ii, jj, inum, jnum, a, b, gsl_error;
   double xtmp, ytmp, ztmp, r, rsq, w, vj, rhoj;
   double dx[3];
   gsl_matrix_view gM;
@@ -854,19 +850,17 @@ void ComputeRHEOKernel::grow_arrays(int nmax)
 int ComputeRHEOKernel::pack_forward_comm(int n, int *list, double *buf,
                                         int /*pbc_flag*/, int * /*pbc*/)
 {
-  int i,j,k,m,a,b;
-  m = 0;
-
-  for (i = 0; i < n; i++) {
-    j = list[i];
+  int m = 0;
+  for (int i = 0; i < n; i++) {
+    int j = list[i];
     if (comm_stage == 0) {
       buf[m++] = coordination[j];
     } else {
       if (kernel_style == RK0) {
         buf[m++] = C0[j];
       } else {
-        for (a = 0; a < ncor; a++)
-          for (b = 0; b < Mdim; b++)
+        for (int a = 0; a < ncor; a++)
+          for (int b = 0; b < Mdim; b++)
             buf[m++] = C[j][a][b];
       }
     }
@@ -878,19 +872,17 @@ int ComputeRHEOKernel::pack_forward_comm(int n, int *list, double *buf,
 
 void ComputeRHEOKernel::unpack_forward_comm(int n, int first, double *buf)
 {
-  int i, k, m, last,a,b;
-  m = 0;
-  last = first + n;
-
-  for (i = first; i < last; i++) {
+  int m = 0;
+  int last = first + n;
+  for (int i = first; i < last; i++) {
     if (comm_stage == 0) {
       coordination[i] = buf[m++];
     } else {
       if (kernel_style == RK0) {
         C0[i] = buf[m++];
       } else {
-        for (a = 0; a < ncor; a++)
-          for (b = 0; b < Mdim; b++)
+        for (int a = 0; a < ncor; a++)
+          for (int b = 0; b < Mdim; b++)
             C[i][a][b] = buf[m++];
       }
     }

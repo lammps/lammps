@@ -46,9 +46,10 @@ using namespace RHEO_NS;
 /* ---------------------------------------------------------------------- */
 
 ComputeRHEOPropertyAtom::ComputeRHEOPropertyAtom(LAMMPS *lmp, int narg, char **arg) :
-  Compute(lmp, narg, arg), fix_rheo(nullptr), fix_pressure(nullptr), fix_thermal(nullptr),  compute_interface(nullptr),
-  compute_kernel(nullptr), compute_surface(nullptr), compute_vshift(nullptr), compute_grad(nullptr),
-  avec_index(nullptr), pack_choice(nullptr), col_index(nullptr)
+  Compute(lmp, narg, arg), avec_index(nullptr), col_index(nullptr), col_t_index(nullptr),
+  buf(nullptr), pack_choice(nullptr), fix_rheo(nullptr), fix_pressure(nullptr),
+  fix_thermal(nullptr),  compute_interface(nullptr), compute_kernel(nullptr),
+  compute_surface(nullptr), compute_vshift(nullptr), compute_grad(nullptr)
 {
   if (narg < 4)  utils::missing_cmd_args(FLERR, "compute property/atom", error);
 
@@ -88,7 +89,6 @@ ComputeRHEOPropertyAtom::ComputeRHEOPropertyAtom(LAMMPS *lmp, int narg, char **a
   col_t_index = new int[nvalues];
 
   int i = 0;
-  int index, a, b;
   for (int iarg = 3; iarg < narg; iarg++) {
     if (strcmp(arg[iarg], "phase") == 0) {
       pack_choice[i] = &ComputeRHEOPropertyAtom::pack_phase;
@@ -536,7 +536,7 @@ int ComputeRHEOPropertyAtom::add_tensor_component(char* option, int i, FnPtrPack
     }
     shift = dim * dim;
   } else {
-    int index;
+    int index = -1;
     int dim_error = 0;
 
     if (utils::strmatch(option, "xx$")) {
@@ -592,7 +592,7 @@ int ComputeRHEOPropertyAtom::add_vector_component(char* option, int i, FnPtrPack
     }
     shift = dim;
   } else {
-    int index;
+    int index = -1;
     if (utils::strmatch(option, "x$")) {
       index = 0;
     } else if (utils::strmatch(option, "y$")) {

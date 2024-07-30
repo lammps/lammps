@@ -37,9 +37,6 @@ template<class DeviceType>
 FixRecenterKokkos<DeviceType>::FixRecenterKokkos(LAMMPS *lmp, int narg, char **arg) :
   FixRecenter(lmp, narg, arg)
 {
-
-  utils::logmesg(lmp, "************ FixRecenterKokkos constructor ************\n");
-
   kokkosable = 1;
   atomKK = (AtomKokkos *)atom;
   execution_space = ExecutionSpaceFromDevice<DeviceType>::space;
@@ -57,25 +54,15 @@ void FixRecenterKokkos<DeviceType>::initial_integrate(int /*vflag*/)
   atomKK->sync(execution_space,datamask_read);
   atomKK->modified(execution_space,datamask_modify);
 
-  x = atomKK->k_x.view<DeviceType>();
-  mask = atomKK->k_mask.view<DeviceType>();
+  d_x = atomKK->k_x.view<DeviceType>();
+  d_mask = atomKK->k_mask.view<DeviceType>();
   int nlocal = atomKK->nlocal;
   if (igroup == atomKK->firstgroup) nlocal = atomKK->nfirst;
 
-  // FIX RECENTER
   // target COM
   // bounding box around domain works for both orthogonal and triclinic
 
-  double xtarget = xinit;
-  double ytarget = yinit;
-  double ztarget = zinit;
-
-  xflag=yflag=zflag=1;
-
-  // FIXME: only supported in KOKKOS...
-  // fix ID group-ID recenter INIT INIT INIT shift all
-
-  /*
+  double xtarget,ytarget,ztarget;
   double *bboxlo,*bboxhi;
 
   if (scaleflag == FRACTION) {
@@ -103,8 +90,6 @@ void FixRecenterKokkos<DeviceType>::initial_integrate(int /*vflag*/)
     ztarget = bboxlo[2] + zcom*(bboxhi[2] - bboxlo[2]);
   else ztarget = zcom;
 
-  */
-
   // current COM
 
   // FIXME: make Group kokkos-aware
@@ -127,24 +112,19 @@ void FixRecenterKokkos<DeviceType>::initial_integrate(int /*vflag*/)
   shift[2] = zflag ? (ztarget - xcm[2]) : 0.0;
   distance = sqrt(shift[0]*shift[0] + shift[1]*shift[1] + shift[2]*shift[2]);
 
-  // ----
-
   copymode = 1;
-
-  //auto group2bit_copy = group2bit;
 
   Kokkos::parallel_for(Kokkos::RangePolicy<DeviceType>(0,nlocal),
     LAMMPS_LAMBDA(int i) {
-      if (mask[i] & group2bit) {
-        x(i,0) += shift[0];
-        x(i,1) += shift[1];
-        x(i,2) += shift[2];
+      if (d_mask[i] & group2bit) {
+        d_x(i,0) += shift[0];
+        d_x(i,1) += shift[1];
+        d_x(i,2) += shift[2];
       }
     });
 
   copymode = 0;
 }
-
 
 
 namespace LAMMPS_NS {

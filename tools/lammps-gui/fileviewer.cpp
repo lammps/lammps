@@ -17,11 +17,14 @@
 
 #include <QApplication>
 #include <QFile>
+#include <QFileInfo>
 #include <QIcon>
 #include <QKeySequence>
+#include <QProcess>
 #include <QSettings>
 #include <QShortcut>
 #include <QString>
+#include <QStringList>
 #include <QTextCursor>
 #include <QTextStream>
 
@@ -37,24 +40,65 @@ FileViewer::FileViewer(const QString &_filename, QWidget *parent) :
 
     // open and read file. Set editor to read-only.
     QFile file(fileName);
-    if (file.open(QIODevice::Text | QIODevice::ReadOnly)) {
-        QTextStream in(&file);
-        QString content = in.readAll();
-        file.close();
+    QFileInfo finfo(file);
+    QString command;
+    QString content;
+    QProcess decomp;
+    QStringList args = {"-cdf", fileName};
+    bool compressed  = false;
 
-        QFont text_font;
-        QSettings settings;
-        text_font.fromString(settings.value("textfont", text_font.toString()).toString());
-        document()->setDefaultFont(text_font);
-
-        document()->setPlainText(content);
-        moveCursor(QTextCursor::Start, QTextCursor::MoveAnchor);
-        setReadOnly(true);
-        setLineWrapMode(NoWrap);
-        setMinimumSize(800, 500);
-        setWindowIcon(QIcon(":/icons/lammps-icon-128x128.png"));
-        setWindowTitle("LAMMPS-GUI - Viewer - " + fileName);
+    // match suffix with decompression program
+    if (finfo.suffix() == "gz") {
+        command    = "gizp";
+        compressed = true;
+    } else if (finfo.suffix() == "bz2") {
+        command    = "bzip2";
+        compressed = true;
+    } else if (finfo.suffix() == "zst") {
+        command    = "zstd";
+        compressed = true;
+    } else if (finfo.suffix() == "xz") {
+        command    = "xz";
+        compressed = true;
+    } else if (finfo.suffix() == "lzma") {
+        command = "xz";
+        args.insert(1, "--format=lzma");
+        compressed = true;
+    } else if (finfo.suffix() == "lz4") {
+        command    = "lz4";
+        compressed = true;
     }
+
+    // read compressed file from pipe
+    if (compressed) {
+        decomp.start(command, args, QIODevice::ReadOnly);
+        if (decomp.waitForStarted()) {
+            while (decomp.waitForReadyRead())
+                content += decomp.readAll();
+        } else {
+            content = "\nCould not open compressed file %1 with decompression program %2\n";
+            content = content.arg(fileName).arg(command);
+        }
+        decomp.close();
+    } else if (file.open(QIODevice::Text | QIODevice::ReadOnly)) {
+        // read plain text
+        QTextStream in(&file);
+        content = in.readAll();
+        file.close();
+    }
+
+    QFont text_font;
+    QSettings settings;
+    text_font.fromString(settings.value("textfont", text_font.toString()).toString());
+    document()->setDefaultFont(text_font);
+
+    document()->setPlainText(content);
+    moveCursor(QTextCursor::Start, QTextCursor::MoveAnchor);
+    setReadOnly(true);
+    setLineWrapMode(NoWrap);
+    setMinimumSize(800, 500);
+    setWindowIcon(QIcon(":/icons/lammps-icon-128x128.png"));
+    setWindowTitle("LAMMPS-GUI - Viewer - " + fileName);
 }
 
 void FileViewer::quit()

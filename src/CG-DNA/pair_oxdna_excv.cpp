@@ -20,12 +20,14 @@
 #include "atom.h"
 #include "atom_vec_ellipsoid.h"
 #include "comm.h"
+#include "constants_oxdna.h"
 #include "error.h"
 #include "force.h"
 #include "math_extra.h"
 #include "memory.h"
 #include "mf_oxdna.h"
 #include "neigh_list.h"
+#include "potential_file_reader.h"
 
 #include <cmath>
 #include <cstring>
@@ -42,6 +44,7 @@ PairOxdnaExcv::PairOxdnaExcv(LAMMPS *lmp) : Pair(lmp)
 
   // set comm size needed by this Pair
   comm_forward = 9;
+  trim_flag = 0;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -96,7 +99,8 @@ PairOxdnaExcv::~PairOxdnaExcv()
 void PairOxdnaExcv::compute_interaction_sites(double e1[3], double /*e2*/[3],
     double /*e3*/[3], double rs[3], double rb[3])
 {
-  double d_cs=-0.4, d_cb=+0.4;
+  double d_cs = ConstantsOxdna::get_d_cs();
+  double d_cb = ConstantsOxdna::get_d_cb();
 
   rs[0] = d_cs*e1[0];
   rs[1] = d_cs*e1[1];
@@ -499,7 +503,7 @@ void PairOxdnaExcv::coeff(int narg, char **arg)
 {
   int count;
 
-  if (narg != 11) error->all(FLERR,"Incorrect args for pair coefficients in oxdna/excv");
+  if (narg != 3 && narg != 11) error->all(FLERR,"Incorrect args for pair coefficients in oxdna/excv");
   if (!allocated) allocate();
 
   int ilo,ihi,jlo,jhi;
@@ -517,11 +521,74 @@ void PairOxdnaExcv::coeff(int narg, char **arg)
   double epsilon_bb_one, sigma_bb_one;
   double cut_bb_ast_one, cut_bb_c_one, b_bb_one;
 
-  // Excluded volume interaction
-  // LJ parameters
-  epsilon_ss_one = utils::numeric(FLERR,arg[2],false,lmp);
-  sigma_ss_one = utils::numeric(FLERR,arg[3],false,lmp);
-  cut_ss_ast_one = utils::numeric(FLERR,arg[4],false,lmp);
+  if (narg == 11) {
+    // Excluded volume interaction
+    // LJ parameters
+    epsilon_ss_one = utils::numeric(FLERR,arg[2],false,lmp);
+    sigma_ss_one = utils::numeric(FLERR,arg[3],false,lmp);
+    cut_ss_ast_one = utils::numeric(FLERR,arg[4],false,lmp);
+
+    // LJ parameters
+    epsilon_sb_one = utils::numeric(FLERR,arg[5],false,lmp);
+    sigma_sb_one = utils::numeric(FLERR,arg[6],false,lmp);
+    cut_sb_ast_one = utils::numeric(FLERR,arg[7],false,lmp);
+
+    // LJ parameters
+    epsilon_bb_one = utils::numeric(FLERR,arg[8],false,lmp);
+    sigma_bb_one = utils::numeric(FLERR,arg[9],false,lmp);
+    cut_bb_ast_one = utils::numeric(FLERR,arg[10],false,lmp);
+  } else {
+    if (comm->me == 0) {
+      PotentialFileReader reader(lmp, arg[2], "oxdna potential", " (excv)");
+      char * line;
+      std::string iloc, jloc, potential_name;
+
+      while ((line = reader.next_line())) {
+        try {
+          ValueTokenizer values(line);
+          iloc = values.next_string();
+          jloc = values.next_string();
+          potential_name = values.next_string();
+          if (iloc == arg[0] && jloc == arg[1] && potential_name == "excv") {
+            // Excluded volume interaction
+            // LJ parameters
+            epsilon_ss_one = values.next_double();
+            sigma_ss_one = values.next_double();
+            cut_ss_ast_one = values.next_double();
+
+            // LJ parameters
+            epsilon_sb_one = values.next_double();
+            sigma_sb_one = values.next_double();
+            cut_sb_ast_one = values.next_double();
+
+            // LJ parameters
+            epsilon_bb_one = values.next_double();
+            sigma_bb_one = values.next_double();
+            cut_bb_ast_one = values.next_double();
+
+            break;
+          } else continue;
+        } catch (std::exception &e) {
+          error->one(FLERR, "Problem parsing oxDNA potential file: {}", e.what());
+        }
+      }
+      if ((iloc != arg[0]) || (jloc != arg[1]) || (potential_name != "excv"))
+        error->one(FLERR, "No corresponding excv potential found in file {} for pair type {} {}",
+                   arg[2], arg[0], arg[1]);
+    }
+
+    MPI_Bcast(&epsilon_ss_one, 1, MPI_DOUBLE, 0, world);
+    MPI_Bcast(&sigma_ss_one, 1, MPI_DOUBLE, 0, world);
+    MPI_Bcast(&cut_ss_ast_one, 1, MPI_DOUBLE, 0, world);
+
+    MPI_Bcast(&epsilon_sb_one, 1, MPI_DOUBLE, 0, world);
+    MPI_Bcast(&sigma_sb_one, 1, MPI_DOUBLE, 0, world);
+    MPI_Bcast(&cut_sb_ast_one, 1, MPI_DOUBLE, 0, world);
+
+    MPI_Bcast(&epsilon_bb_one, 1, MPI_DOUBLE, 0, world);
+    MPI_Bcast(&sigma_bb_one, 1, MPI_DOUBLE, 0, world);
+    MPI_Bcast(&cut_bb_ast_one, 1, MPI_DOUBLE, 0, world);
+  }
 
   // smoothing - determined through continuity and differentiability
   b_ss_one = 4.0/sigma_ss_one
@@ -549,11 +616,6 @@ void PairOxdnaExcv::coeff(int narg, char **arg)
 
   count = 0;
 
-  // LJ parameters
-  epsilon_sb_one = utils::numeric(FLERR,arg[5],false,lmp);
-  sigma_sb_one = utils::numeric(FLERR,arg[6],false,lmp);
-  cut_sb_ast_one = utils::numeric(FLERR,arg[7],false,lmp);
-
   // smoothing - determined through continuity and differentiability
   b_sb_one = 4.0/sigma_sb_one
       *(6.0*pow(sigma_sb_one/cut_sb_ast_one,7)-12.0*pow(sigma_sb_one/cut_sb_ast_one,13))
@@ -579,11 +641,6 @@ void PairOxdnaExcv::coeff(int narg, char **arg)
   if (count == 0) error->all(FLERR,"Incorrect args for pair coefficients in oxdna/excv");
 
   count = 0;
-
-  // LJ parameters
-  epsilon_bb_one = utils::numeric(FLERR,arg[8],false,lmp);
-  sigma_bb_one = utils::numeric(FLERR,arg[9],false,lmp);
-  cut_bb_ast_one = utils::numeric(FLERR,arg[10],false,lmp);
 
   // smoothing - determined through continuity and differentiability
   b_bb_one = 4.0/sigma_bb_one

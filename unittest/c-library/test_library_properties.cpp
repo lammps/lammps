@@ -376,18 +376,18 @@ TEST_F(LibraryProperties, global)
     EXPECT_EQ((*i_ptr), 2);
 #else
     EXPECT_EQ(lammps_extract_global_datatype(lmp, "ntimestep"), LAMMPS_INT64);
-    int64_t *b_ptr = (int64_t *)lammps_extract_global(lmp, "ntimestep");
+    auto *b_ptr = (int64_t *)lammps_extract_global(lmp, "ntimestep");
     EXPECT_EQ((*b_ptr), 2);
 #endif
 
     EXPECT_EQ(lammps_extract_global_datatype(lmp, "dt"), LAMMPS_DOUBLE);
-    double *d_ptr = (double *)lammps_extract_global(lmp, "dt");
+    auto *d_ptr = (double *)lammps_extract_global(lmp, "dt");
     EXPECT_DOUBLE_EQ((*d_ptr), 0.1);
 
     EXPECT_EQ(lammps_extract_global_datatype(lmp, "special_lj"), LAMMPS_DOUBLE);
     EXPECT_EQ(lammps_extract_global_datatype(lmp, "special_coul"), LAMMPS_DOUBLE);
-    double *special_lj   = (double *)lammps_extract_global(lmp, "special_lj");
-    double *special_coul = (double *)lammps_extract_global(lmp, "special_coul");
+    auto *special_lj   = (double *)lammps_extract_global(lmp, "special_lj");
+    auto *special_coul = (double *)lammps_extract_global(lmp, "special_coul");
     EXPECT_DOUBLE_EQ(special_lj[0], 1.0);
     EXPECT_DOUBLE_EQ(special_lj[1], 0.0);
     EXPECT_DOUBLE_EQ(special_lj[2], 0.5);
@@ -418,14 +418,14 @@ TEST_F(LibraryProperties, global)
     EXPECT_EQ(map_style, Atom::MAP_ARRAY);
     EXPECT_NE(sametag, nullptr);
 
-    tagint *tags      = (tagint *)lammps_extract_atom(lmp, "id");
-    tagint sometags[] = {1, 5, 10, 15, 20};
-    for (int i = 0; i < 5; ++i) {
-        int idx = lammps_map_atom(lmp, (const void *)&sometags[i]);
-        EXPECT_EQ(sometags[i], tags[idx]);
+    auto *tags              = (tagint *)lammps_extract_atom(lmp, "id");
+    const tagint sometags[] = {1, 5, 10, 15, 20};
+    for (const auto &sometag : sometags) {
+        int idx = lammps_map_atom(lmp, (const void *)&sometag);
+        EXPECT_EQ(sometag, tags[idx]);
         int nextidx = sametag[idx];
         if (nextidx >= 0) {
-            EXPECT_EQ(sometags[i], tags[nextidx]);
+            EXPECT_EQ(sometag, tags[nextidx]);
         }
     }
 
@@ -465,6 +465,54 @@ TEST_F(LibraryProperties, global)
     if (!verbose) ::testing::internal::GetCapturedStdout();
     map_style = *(int *)lammps_extract_global(lmp, "map_style");
     EXPECT_EQ(map_style, Atom::MAP_ARRAY);
+};
+
+TEST_F(LibraryProperties, pair1)
+{
+    if (!verbose) ::testing::internal::CaptureStdout();
+    lammps_command(lmp, "region box block 0 1 0 1 0 1");
+    lammps_command(lmp, "create_box 3 box");
+    lammps_command(lmp, "mass * 1.0");
+    lammps_command(lmp, "pair_style lj/cut 3.0");
+    lammps_command(lmp, "pair_coeff 1 1 1.0 1.0");
+    lammps_command(lmp, "pair_coeff 2 2 1.5 2.0");
+    lammps_command(lmp, "pair_coeff 3 3 1.0 3.0");
+    lammps_command(lmp, "run 0 post no");
+    if (!verbose) ::testing::internal::GetCapturedStdout();
+    EXPECT_EQ(lammps_extract_pair_dimension(lmp, "epsilon"), 2);
+    EXPECT_EQ(lammps_extract_pair_dimension(lmp, "sigma"), 2);
+    EXPECT_EQ(lammps_extract_pair_dimension(lmp, "cut_coul"), -1);
+    auto **sigma = (double **)lammps_extract_pair(lmp, "sigma");
+    EXPECT_DOUBLE_EQ(sigma[1][1], 1.0);
+    EXPECT_DOUBLE_EQ(sigma[2][2], 2.0);
+    EXPECT_DOUBLE_EQ(sigma[3][3], 3.0);
+    EXPECT_DOUBLE_EQ(sigma[1][2], sqrt(2.0));
+};
+
+TEST_F(LibraryProperties, pair2)
+{
+    if (!lammps_has_style(lmp, "pair", "coul/streitz")) GTEST_SKIP();
+    if (!verbose) ::testing::internal::CaptureStdout();
+    lammps_command(lmp, "units metal");
+    lammps_command(lmp, "atom_style charge");
+    lammps_command(lmp, "region box block 0 1 0 1 0 1");
+    lammps_command(lmp, "create_box 2 box");
+    lammps_command(lmp, "mass * 1.0");
+    lammps_command(lmp, "pair_style coul/streitz 12.0 wolf 0.31");
+    lammps_command(lmp, "pair_coeff * * AlO.streitz Al O");
+    lammps_command(lmp, "run 0 post no");
+    if (!verbose) ::testing::internal::GetCapturedStdout();
+    EXPECT_EQ(lammps_extract_pair_dimension(lmp, "chi"), 1);
+    EXPECT_EQ(lammps_extract_pair_dimension(lmp, "scale"), 2);
+    EXPECT_EQ(lammps_extract_pair_dimension(lmp, "cut_coul"), 0);
+    EXPECT_DOUBLE_EQ(*((double *)lammps_extract_pair(lmp, "cut_coul")), 12.0);
+    auto *chi = (double *)lammps_extract_pair(lmp, "chi");
+    EXPECT_DOUBLE_EQ(chi[1], 0.0);
+    EXPECT_FLOAT_EQ(chi[2], 5.484763);
+    auto **scale = (double **)lammps_extract_pair(lmp, "scale");
+    EXPECT_DOUBLE_EQ(scale[1][1], 1.0);
+    EXPECT_DOUBLE_EQ(scale[1][2], 1.0);
+    EXPECT_DOUBLE_EQ(scale[2][2], 1.0);
 };
 
 TEST_F(LibraryProperties, neighlist)
@@ -655,7 +703,7 @@ TEST_F(AtomProperties, invalid)
 TEST_F(AtomProperties, mass)
 {
     EXPECT_EQ(lammps_extract_atom_datatype(lmp, "mass"), LAMMPS_DOUBLE);
-    double *mass = (double *)lammps_extract_atom(lmp, "mass");
+    auto *mass = (double *)lammps_extract_atom(lmp, "mass");
     ASSERT_NE(mass, nullptr);
     ASSERT_DOUBLE_EQ(mass[1], 3.0);
 }
@@ -663,7 +711,7 @@ TEST_F(AtomProperties, mass)
 TEST_F(AtomProperties, id)
 {
     EXPECT_EQ(lammps_extract_atom_datatype(lmp, "id"), LAMMPS_TAGINT);
-    tagint *id = (tagint *)lammps_extract_atom(lmp, "id");
+    auto *id = (tagint *)lammps_extract_atom(lmp, "id");
     ASSERT_NE(id, nullptr);
     ASSERT_EQ(id[0], 1);
     ASSERT_EQ(id[1], 2);
@@ -681,7 +729,7 @@ TEST_F(AtomProperties, type)
 TEST_F(AtomProperties, position)
 {
     EXPECT_EQ(lammps_extract_atom_datatype(lmp, "x"), LAMMPS_DOUBLE_2D);
-    double **x = (double **)lammps_extract_atom(lmp, "x");
+    auto **x = (double **)lammps_extract_atom(lmp, "x");
     ASSERT_NE(x, nullptr);
     EXPECT_DOUBLE_EQ(x[0][0], 1.0);
     EXPECT_DOUBLE_EQ(x[0][1], 1.0);

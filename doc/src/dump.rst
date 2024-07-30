@@ -114,6 +114,7 @@ Syntax
            proc = ID of processor that owns atom
            procp1 = ID+1 of processor that owns atom
            type = atom type
+           typelabel = atom :doc:`type label <Howto_type_labels>`
            element = name of atom element, as defined by :doc:`dump_modify <dump_modify>` command
            mass = atom mass
            x,y,z = unscaled atom coordinates
@@ -470,8 +471,9 @@ followed by one line per atom with the atom type and the :math:`x`-,
 :math:`y`-, and :math:`z`-coordinate of that atom.  You can use the
 :doc:`dump_modify element <dump_modify>` option to change the output
 from using the (numerical) atom type to an element name (or some other
-label). This will help many visualization programs to guess bonds and
-colors.
+label). This option will help many visualization programs to guess bonds
+and colors. You can use the :doc:`dump_modify types labels <dump_modify>`
+option to replace numeric atom types with :doc:`type labels <Howto_type_labels>`.
 
 .. versionadded:: 22Dec2022
 
@@ -774,21 +776,21 @@ command creates a per-atom array with six columns:
 
 Per-atom attributes used as arguments to the *custom* and *cfg* styles:
 
-The *id*, *mol*, *proc*, *procp1*, *type*, *element*, *mass*, *vx*,
-*vy*, *vz*, *fx*, *fy*, *fz*, *q* attributes are self-explanatory.
+The *id*, *mol*, *proc*, *procp1*, *type*, *typelabel*, *element*, *mass*,
+*vx*, *vy*, *vz*, *fx*, *fy*, *fz*, *q* attributes are self-explanatory.
 
-*Id* is the atom ID.  *Mol* is the molecule ID, included in the data
-file for molecular systems.  *Proc* is the ID of the processor (0 to
+*Id* is the atom ID.  *Mol* is the molecule ID, included in the data file
+for molecular systems.  *Proc* is the ID of the processor (0 to
 :math:`N_\text{procs}-1`) that currently owns the atom.  *Procp1* is the
 proc ID+1, which can be convenient in place of a *type* attribute (1 to
 :math:`N_\text{types}`) for coloring atoms in a visualization program.
-*Type* is the atom type (1 to :math:`N_\text{types}`).  *Element* is
-typically the chemical name of an element, which you must assign to each
-type via the :doc:`dump_modify element <dump_modify>` command.  More
-generally, it can be any string you wish to associated with an atom
-type.  *Mass* is the atom mass. The quantities *vx*, *vy*, *vz*, *fx*,
-*fy*, *fz*, and *q* are components of atom velocity and force and atomic
-charge.
+*Type* is the atom type (1 to :math:`N_\text{types}`).  *Typelabel* is the
+atom :doc:`type label <Howto_type_labels>`.  *Element* is typically the
+chemical name of an element, which you must assign to each type via the
+:doc:`dump_modify element <dump_modify>` command.  More generally, it can
+be any string you wish to associated with an atom type.  *Mass* is the atom
+mass.  The quantities *vx*, *vy*, *vz*, *fx*, *fy*, *fz*, and *q* are
+components of atom velocity and force and atomic charge.
 
 There are several options for outputting atom coordinates.  The *x*,
 *y*, and *z* attributes write atom coordinates "unscaled", in the

@@ -19,6 +19,7 @@
 
 #include <cstdlib>
 #include <mpi.h>
+#include <new>
 
 #if defined(LAMMPS_TRAP_FPE) && defined(_GNU_SOURCE)
 #include <fenv.h>
@@ -86,6 +87,11 @@ int main(int argc, char **argv)
     exit(1);
   } catch (fmt::format_error &fe) {
     fprintf(stderr, "fmt::format_error: %s\n", fe.what());
+    finalize();
+    MPI_Abort(MPI_COMM_WORLD, 1);
+    exit(1);
+  } catch (std::bad_alloc &ae) {
+    fprintf(stderr, "C++ memory allocation failed: %s\n", ae.what());
     finalize();
     MPI_Abort(MPI_COMM_WORLD, 1);
     exit(1);

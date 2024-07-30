@@ -42,6 +42,7 @@ class FixIPI : public Fix {
   long bsize;
   int kspace_flag;
   int reset_flag;
+  int firsttime;
 
  private:
   class Irregular *irregular;

@@ -88,8 +88,8 @@ on recording all commands required to do the compilation.
 
 .. _sanitizer:
 
-Address, Undefined Behavior, and Thread Sanitizer Support (CMake only)
-----------------------------------------------------------------------
+Address, Leak, Undefined Behavior, and Thread Sanitizer Support (CMake only)
+----------------------------------------------------------------------------
 
 Compilers such as GCC and Clang support generating instrumented binaries
 which use different sanitizer libraries to detect problems in the code
@@ -110,6 +110,7 @@ compilation and linking stages.  This is done through setting the
 
    -D ENABLE_SANITIZER=none       # no sanitizer active (default)
    -D ENABLE_SANITIZER=address    # enable address sanitizer / memory leak checker
+   -D ENABLE_SANITIZER=hwaddress  # enable hardware assisted address sanitizer / memory leak checker
    -D ENABLE_SANITIZER=leak       # enable memory leak checker (only)
    -D ENABLE_SANITIZER=undefined  # enable undefined behavior sanitizer
    -D ENABLE_SANITIZER=thread     # enable thread sanitizer

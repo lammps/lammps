@@ -37,6 +37,7 @@
     <addaction name="actionNew"/>
     <addaction name="separator"/>
     <addaction name="actionOpen"/>
+    <addaction name="actionView"/>
     <addaction name="separator"/>
     <addaction name="action_1"/>
     <addaction name="action_2"/>
@@ -123,6 +124,17 @@
    </property>
    <property name="shortcut">
     <string>Ctrl+O</string>
+   </property>
+  </action>
+  <action name="actionView">
+   <property name="icon">
+    <iconset theme=":/icons/document-open.png"/>
+   </property>
+   <property name="text">
+    <string>&amp;View</string>
+   </property>
+   <property name="shortcut">
+    <string>Ctrl+Shift+F</string>
    </property>
   </action>
   <action name="actionSave">
@@ -262,7 +274,7 @@
     <iconset theme=":/icons/help-about.png"/>
    </property>
    <property name="text">
-    <string>&amp;About LAMMPS</string>
+    <string>&amp;About LAMMPS-GUI</string>
    </property>
    <property name="shortcut">
     <string>Ctrl+Shift+A</string>
@@ -306,7 +318,7 @@
     <iconset theme=":/icons/document-revert.png"/>
    </property>
    <property name="text">
-    <string>Reset to &amp;Defaults</string>
+    <string>Reset Preferences to &amp;Defaults</string>
    </property>
   </action>
   <action name="actionView_in_OVITO">
@@ -336,7 +348,7 @@
     <iconset theme=":/icons/utilities-terminal.png"/>
    </property>
    <property name="text">
-    <string>&amp;Log Window</string>
+    <string>&amp;Output Window</string>
    </property>
    <property name="shortcut">
     <string>Ctrl+Shift+L</string>
@@ -347,7 +359,7 @@
     <iconset theme=":/icons/x-office-drawing.png"/>
    </property>
    <property name="text">
-    <string>&amp;Chart Window</string>
+    <string>&amp;Charts Window</string>
    </property>
    <property name="shortcut">
     <string>Ctrl+Shift+C</string>
@@ -442,7 +454,7 @@
     <iconset theme=":/icons/system-help.png"/>
    </property>
    <property name="text">
-    <string>LAMMPS GUI Howto</string>
+    <string>LAMMPS-GUI Howto</string>
    </property>
    <property name="shortcut">
     <string>Ctrl+Shift+G</string>

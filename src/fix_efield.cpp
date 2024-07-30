@@ -40,8 +40,8 @@ using namespace FixConst;
 /* ---------------------------------------------------------------------- */
 
 FixEfield::FixEfield(LAMMPS *lmp, int narg, char **arg) :
-    Fix(lmp, narg, arg), xstr(nullptr), ystr(nullptr), zstr(nullptr), estr(nullptr),
-    pstr(nullptr), idregion(nullptr), region(nullptr), efield(nullptr)
+    Fix(lmp, narg, arg), xstr(nullptr), ystr(nullptr), zstr(nullptr), estr(nullptr), pstr(nullptr),
+    idregion(nullptr), region(nullptr), efield(nullptr)
 {
   if (narg < 6) utils::missing_cmd_args(FLERR, std::string("fix ") + style, error);
 

@@ -484,7 +484,7 @@ void ReaderNative::read_atoms(int n, int nfield, double **fields)
       // convert selected fields to floats
 
       for (int m = 0; m < nfield; m++)
-        fields[i][m] = atof(words[fieldindex[m]].c_str());
+        fields[i][m] = std::stod(words[fieldindex[m]]);
     }
   }
 }

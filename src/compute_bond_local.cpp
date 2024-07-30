@@ -13,21 +13,23 @@
 ------------------------------------------------------------------------- */
 
 #include "compute_bond_local.h"
-#include <cmath>
-#include <cstring>
+
 #include "atom.h"
 #include "atom_vec.h"
-#include "molecule.h"
-#include "update.h"
-#include "domain.h"
-#include "force.h"
 #include "bond.h"
 #include "comm.h"
+#include "domain.h"
+#include "error.h"
+#include "force.h"
 #include "input.h"
-#include "variable.h"
 #include "math_extra.h"
 #include "memory.h"
-#include "error.h"
+#include "molecule.h"
+#include "update.h"
+#include "variable.h"
+
+#include <cmath>
+#include <cstring>
 
 using namespace LAMMPS_NS;
 
@@ -81,7 +83,7 @@ ComputeBondLocal::ComputeBondLocal(LAMMPS *lmp, int narg, char **arg) :
       vstr[nvar] = utils::strdup(&arg[iarg][2]);
       nvar++;
     } else if (arg[iarg][0] == 'b') {
-      int n = atoi(&arg[iarg][1]);
+      int n = std::stoi(&arg[iarg][1]);
       if (n <= 0) error->all(FLERR, "Invalid keyword {} in compute bond/local command", arg[iarg]);
       bstyle[nvalues] = BN;
       bindex[nvalues++] = n - 1;

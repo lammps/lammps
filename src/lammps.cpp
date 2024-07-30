@@ -191,7 +191,7 @@ LAMMPS::LAMMPS(int narg, char **arg, MPI_Comm communicator) :
     int me,nprocs;
     MPI_Comm_rank(communicator,&me);
     MPI_Comm_size(communicator,&nprocs);
-    int color = atoi(arg[iarg+1]);
+    int color = std::stoi(arg[iarg+1]);
     MPI_Comm subcomm;
     MPI_Comm_split(communicator,color,me,&subcomm);
     external_comm = communicator;

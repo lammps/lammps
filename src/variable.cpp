@@ -1465,9 +1465,9 @@ double Variable::evaluate(char *str, Tree **tree, int ivar)
       if (tree) {
         auto newtree = new Tree();
         newtree->type = VALUE;
-        newtree->value = atof(number);
+        newtree->value = std::stod(number);
         treestack[ntreestack++] = newtree;
-      } else argstack[nargstack++] = atof(number);
+      } else argstack[nargstack++] = std::stod(number);
 
       delete[] number;
 
@@ -2070,9 +2070,9 @@ double Variable::evaluate(char *str, Tree **tree, int ivar)
             if (tree) {
               auto newtree = new Tree();
               newtree->type = VALUE;
-              newtree->value = atof(var);
+              newtree->value = std::stod(var);
               treestack[ntreestack++] = newtree;
-            } else argstack[nargstack++] = atof(var);
+            } else argstack[nargstack++] = std::stod(var);
 
           // vector from vector-style variable
           // evaluate the vector-style variable, put result in newtree
@@ -4691,7 +4691,7 @@ int Variable::special_function(const std::string &word, char *contents, Tree **t
     // save value in tree or on argstack
 
     if (style[ivar] == SCALARFILE) {
-      double value = atof(data[ivar][0]);
+      double value = std::stod(data[ivar][0]);
       int done = reader[ivar]->read_scalar(data[ivar][0]);
       if (done) remove(ivar);
 
@@ -5284,7 +5284,7 @@ double Variable::evaluate_boolean(char *str)
 
       onechar = str[i];
       str[i] = '\0';
-      argstack[nargstack].value = atof(&str[istart]);
+      argstack[nargstack].value = std::stod(&str[istart]);
       str[i] = onechar;
 
       argstack[nargstack++].flag = 0;

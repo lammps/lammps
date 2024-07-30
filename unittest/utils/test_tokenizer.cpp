@@ -337,52 +337,64 @@ TEST(ValueTokenizer, move_assignment)
 
 TEST(ValueTokenizer, bad_integer)
 {
-    ValueTokenizer values("f10 f11 f12");
+    ValueTokenizer values("f10 f11 f12 0xff 109951162777 "
+                          "36893488147419103232 36893488147419103232");
     ASSERT_THROW(values.next_int(), InvalidIntegerException);
     ASSERT_THROW(values.next_bigint(), InvalidIntegerException);
     ASSERT_THROW(values.next_tagint(), InvalidIntegerException);
+    ASSERT_THROW(values.next_int(), InvalidIntegerException);
+    ASSERT_THROW(values.next_int(), InvalidIntegerException);
+    ASSERT_THROW(values.next_tagint(), InvalidIntegerException);
+    ASSERT_THROW(values.next_bigint(), InvalidIntegerException);
 }
 
 TEST(ValueTokenizer, bad_double)
 {
-    ValueTokenizer values("1a.0");
+    ValueTokenizer values("1a.0 --2.0 2.4d3 -1e20000 1.0e-1.0");
+    ASSERT_THROW(values.next_double(), InvalidFloatException);
+    ASSERT_THROW(values.next_double(), InvalidFloatException);
+    ASSERT_THROW(values.next_double(), InvalidFloatException);
+    ASSERT_THROW(values.next_double(), InvalidFloatException);
     ASSERT_THROW(values.next_double(), InvalidFloatException);
 }
 
 TEST(ValueTokenizer, valid_int)
 {
-    ValueTokenizer values(fmt::format("10 -{} {}", MAXSMALLINT, MAXSMALLINT));
+    ValueTokenizer values(fmt::format("10 {} {}", -MAXSMALLINT - 1, MAXSMALLINT));
     ASSERT_EQ(values.next_int(), 10);
-    ASSERT_EQ(values.next_int(), -MAXSMALLINT);
+    ASSERT_EQ(values.next_int(), -MAXSMALLINT - 1);
     ASSERT_EQ(values.next_int(), MAXSMALLINT);
 }
 
 TEST(ValueTokenizer, valid_tagint)
 {
-    ValueTokenizer values(fmt::format("42 -{} {} -{} {}", MAXSMALLINT, MAXSMALLINT, MAXTAGINT, MAXTAGINT));
+    ValueTokenizer values(
+        fmt::format("42 {} {} {} {}", -MAXSMALLINT - 1, MAXSMALLINT, -MAXTAGINT - 1, MAXTAGINT));
     ASSERT_EQ(values.next_tagint(), 42);
-    ASSERT_EQ(values.next_tagint(), -MAXSMALLINT);
+    ASSERT_EQ(values.next_tagint(), -MAXSMALLINT - 1);
     ASSERT_EQ(values.next_tagint(), MAXSMALLINT);
-    ASSERT_EQ(values.next_tagint(), -MAXTAGINT);
+    ASSERT_EQ(values.next_tagint(), -MAXTAGINT - 1);
     ASSERT_EQ(values.next_tagint(), MAXTAGINT);
 }
 
 TEST(ValueTokenizer, valid_bigint)
 {
-    ValueTokenizer values(fmt::format("42 -{} {} -{} {}", MAXSMALLINT, MAXSMALLINT, MAXBIGINT, MAXBIGINT));
+    ValueTokenizer values(
+        fmt::format("42 {} {} {} {}", -MAXSMALLINT - 1, MAXSMALLINT, -MAXBIGINT - 1, MAXBIGINT));
     ASSERT_EQ(values.next_bigint(), 42);
-    ASSERT_EQ(values.next_bigint(), -MAXSMALLINT);
+    ASSERT_EQ(values.next_bigint(), -MAXSMALLINT - 1);
     ASSERT_EQ(values.next_bigint(), MAXSMALLINT);
-    ASSERT_EQ(values.next_bigint(), -MAXBIGINT);
+    ASSERT_EQ(values.next_bigint(), -MAXBIGINT - 1);
     ASSERT_EQ(values.next_bigint(), MAXBIGINT);
 }
 
 TEST(ValueTokenizer, valid_double)
 {
-    ValueTokenizer values("3.14 -0.00002 .1 " + std::to_string(MAXBIGINT));
+    ValueTokenizer values("3.14 -0.00002 .1 0xff " + std::to_string(MAXBIGINT));
     ASSERT_DOUBLE_EQ(values.next_double(), 3.14);
     ASSERT_DOUBLE_EQ(values.next_double(), -0.00002);
     ASSERT_DOUBLE_EQ(values.next_double(), 0.1);
+    ASSERT_DOUBLE_EQ(values.next_double(), 255);
     ASSERT_DOUBLE_EQ(values.next_double(), MAXBIGINT);
 }
 

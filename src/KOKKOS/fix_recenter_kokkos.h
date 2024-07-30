@@ -13,36 +13,36 @@
 
 #ifdef FIX_CLASS
 // clang-format off
-FixStyle(recenter,FixRecenter);
+FixStyle(recenter/kk,FixRecenterKokkos<LMPDeviceType>);
+FixStyle(recenter/kk/device,FixRecenterKokkos<LMPDeviceType>);
+FixStyle(recenter/kk/host,FixRecenterKokkos<LMPHostType>);
 // clang-format on
 #else
 
-#ifndef LMP_FIX_RECENTER_H
-#define LMP_FIX_RECENTER_H
+// clang-format off
+#ifndef LMP_FIX_RECENTER_KOKKOS_H
+#define LMP_FIX_RECENTER_KOKKOS_H
 
-#include "fix.h"
+#include "fix_recenter.h"
+#include "kokkos_type.h"
 
 namespace LAMMPS_NS {
 
-class FixRecenter : public Fix {
- public:
-  FixRecenter(class LAMMPS *, int, char **);
-  int setmask() override;
-  void init() override;
-  void initial_integrate(int) override;
-  void initial_integrate_respa(int, int, int) override;
-  double compute_scalar() override;
-  double compute_vector(int) override;
+//struct TagFixRecenter {};
 
- protected:
-  int group2bit, scaleflag;
-  int xflag, yflag, zflag;
-  int xinitflag, yinitflag, zinitflag;
-  int nlevels_respa;
-  double xcom, ycom, zcom, xinit, yinit, zinit, masstotal, distance, shift[3];
+template<class DeviceType>
+class FixRecenterKokkos : public FixRecenter {
+  public:
+    FixRecenterKokkos(class LAMMPS *, int, char **);
+
+    void initial_integrate(int) override;
+
+  private:
+    typename ArrayTypes<DeviceType>::t_x_array x;
+    typename ArrayTypes<DeviceType>::t_int_1d mask;
 };
 
-}    // namespace LAMMPS_NS
+} // namespace LAMMPS_NS
 
-#endif
-#endif
+#endif // LMP_FIX_RECENTER_KOKKOS_H
+#endif // FIX_CLASS

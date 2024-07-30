@@ -500,10 +500,16 @@ context menu that open the corresponding documentation page in the
 online LAMMPS documentation in a web browser window.  When using the
 keyboard, the first of those entries is chosen.
 
+.. versionadded:: 1.6
+
 If the word under the cursor is a file, then additionally the context
 menu has an entry to open the file in a read-only text viewer window.
 This is a convenient way to view the contents of files that are
-referenced in the input.
+referenced in the input.  The file viewer also supports on-the-fly
+decompression based on the file name suffix in a :ref:`similar fashion
+as available with LAMMPS <gzip>`.  If the necessary decompression
+program is missing or the file cannot be decompressed, the viewer window
+will contain a corresponding message.
 
 Menu
 ----
@@ -523,7 +529,7 @@ The ``File`` menu offers the usual options:
 
 - ``New`` clears the current buffer and resets the file name to ``*unknown*``
 - ``Open`` opens a dialog to select a new file for editing in the *Editor*
-- ``View`` opens a dialog to select a file for viewing in a *separate* window (read-only)
+- ``View`` opens a dialog to select a file for viewing in a *separate* window (read-only) with support for on-the-fly decompression as explained above.
 - ``Save`` saves the current file; if the file name is ``*unknown*``
   a dialog will open to select a new file name
 - ``Save As`` opens a dialog to select and new file name (and folder, if

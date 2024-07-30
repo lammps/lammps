@@ -799,8 +799,8 @@ int Variable::next(int narg, char **arg)
         fclose(fp);
 
         if (strlen(buf) > 0) {
-           nextindex = atoi(buf);
-           break;
+          nextindex = std::stoi(buf);
+          break;
         }
         delay = (int) (1000000*random->uniform());
         platform::usleep(delay);
@@ -1115,7 +1115,11 @@ double Variable::compute_equal(int ivar)
     if (ifunc < 0)
       print_var_error(FLERR,fmt::format("cannot find python function {}",data[ivar][0]),ivar);
     python->invoke_function(ifunc,data[ivar][1]);
-    value = atof(data[ivar][1]);
+    try {
+      value = std::stod(data[ivar][1]);
+    } catch (std::exception &e) {
+      print_var_error(FLERR,"has an invalid value", ivar);
+    }
   }
 
   eval_in_progress[ivar] = 0;
@@ -3555,7 +3559,7 @@ tagint Variable::int_between_brackets(char *&ptr, int varallow)
   } else {
     varflag = 0;
     while (*ptr && *ptr != ']') {
-      if (!isdigit(*ptr))
+      if (!(isdigit(*ptr) || (*ptr == '-') || (*ptr == '+') || (*ptr == '*') || (*ptr == '/')))
         error->all(FLERR,"Non digit character between brackets in variable");
       ptr++;
     }
@@ -3566,21 +3570,23 @@ tagint Variable::int_between_brackets(char *&ptr, int varallow)
 
   *ptr = '\0';
 
-  // evaluate index as floating point variable or as tagint via ATOTAGINT()
+  // evaluate index as floating point variable or as tagint via strtoll()
+  
+  try {
+    if (varflag) {
+      char *id = start+2;
+      int ivar = find(id);
+      if (ivar < 0)
+        error->all(FLERR,"Invalid variable name {} in variable formula", id);
 
-  if (varflag) {
-    char *id = start+2;
-    int ivar = find(id);
-    if (ivar < 0)
-      error->all(FLERR,"Invalid variable name {} in variable formula", id);
-
-    char *var = retrieve(id);
-    if (var == nullptr)
-      error->all(FLERR,"Invalid variable evaluation for variable {} in variable formula", id);
-    index = static_cast<tagint> (atof(var));
-
-  } else index = ATOTAGINT(start);
-
+      char *var = retrieve(id);
+      if (var == nullptr)
+        error->all(FLERR,"Invalid variable evaluation for variable {} in variable formula", id);
+      index = static_cast<tagint>(std::stod(var));
+    } else index = static_cast<tagint>(std::stoll(start));
+  } catch (std::exception &e) {
+    error->all(FLERR,"Illegal value in brackets: {}({})", e.what(), start);
+  }
   *ptr = ']';
 
   if (index <= 0)

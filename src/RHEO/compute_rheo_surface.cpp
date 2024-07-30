@@ -113,6 +113,7 @@ void ComputeRHEOSurface::compute_peratom()
   int *mask = atom->mask;
   int *type = atom->type;
   double *mass = atom->mass;
+  double *rmass = atom->rmass;
   double *rho = atom->rho;
   int *coordination = compute_kernel->coordination;
 
@@ -173,9 +174,13 @@ void ComputeRHEOSurface::compute_peratom()
           }
         }
 
-        Voli = mass[itype] / rhoi;
-        Volj = mass[jtype] / rhoj;
-
+        if (rmass) {
+          Voli = rmass[i] / rhoi;
+          Volj = rmass[j] / rhoj;
+        } else {
+          Voli = mass[itype] / rhoi;
+          Volj = mass[jtype] / rhoj;
+        }
         compute_kernel->calc_dw_quintic(i, j, dx[0], dx[1], dx[2], sqrt(rsq), dWij, dWji);
 
         for (a = 0; a < dim; a++) {

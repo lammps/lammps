@@ -335,6 +335,7 @@ void ComputeRHEOInterface::store_forces()
   int *type = atom->type;
   int *mask = atom->mask;
   double *mass = atom->mass;
+  double *rmass = atom->rmass;
   double **f = atom->f;
 
   // When this is called, fp_store stores the pressure force
@@ -346,7 +347,8 @@ void ComputeRHEOInterface::store_forces()
   if (fixlist.size() != 0) {
     for (const auto &fix : fixlist) {
       for (int i = 0; i < atom->nlocal; i++) {
-        minv = 1.0 / mass[type[i]];
+        if (rmass) minv = 1.0 / rmass[i];
+        else minv = 1.0 / mass[type[i]];
         if (mask[i] & fix->groupbit)
           for (int a = 0; a < 3; a++)
             fp_store[i][a] = f[i][a] * minv;
@@ -356,10 +358,18 @@ void ComputeRHEOInterface::store_forces()
       }
     }
   } else {
-    for (int i = 0; i < atom->nlocal; i++) {
-      minv = 1.0 / mass[type[i]];
-      for (int a = 0; a < 3; a++)
-        fp_store[i][a] = (f[i][a] - fp_store[i][a]) * minv;
+    if (rmass) {
+      for (int i = 0; i < atom->nlocal; i++) {
+        minv = 1.0 / rmass[i];
+        for (int a = 0; a < 3; a++)
+          fp_store[i][a] = (f[i][a] - fp_store[i][a]) * minv;
+      }
+    } else {
+      for (int i = 0; i < atom->nlocal; i++) {
+        minv = 1.0 / mass[type[i]];
+        for (int a = 0; a < 3; a++)
+          fp_store[i][a] = (f[i][a] - fp_store[i][a]) * minv;
+      }
     }
   }
 

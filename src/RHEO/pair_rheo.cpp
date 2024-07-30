@@ -103,6 +103,7 @@ void PairRHEO::compute(int eflag, int vflag)
   double **f = atom->f;
   double *rho = atom->rho;
   double *mass = atom->mass;
+  double *rmass = atom->rmass;
   double *drho = atom->drho;
   double *pressure = atom->pressure;
   double *viscosity = atom->viscosity;
@@ -149,7 +150,8 @@ void PairRHEO::compute(int eflag, int vflag)
     itype = type[i];
     jlist = firstneigh[i];
     jnum = numneigh[i];
-    imass = mass[itype];
+    if (rmass) imass = rmass[i];
+    else imass = mass[itype];
     etai = viscosity[i];
     fluidi = !(status[i] & PHASECHECK);
     if (thermal_flag) {
@@ -171,7 +173,8 @@ void PairRHEO::compute(int eflag, int vflag)
         r = sqrt(rsq);
         rinv = 1 / r;
 
-        jmass = mass[jtype];
+        if (rmass) jmass = rmass[i];
+        else jmass = mass[jtype];
         etaj = viscosity[j];
         fluidj = !(status[j] & PHASECHECK);
         if (thermal_flag) {

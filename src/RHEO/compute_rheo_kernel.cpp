@@ -48,8 +48,6 @@ using namespace RHEO_NS;
 using namespace MathConst;
 using namespace MathExtra;
 
-static constexpr int DELTA = 2000;
-
 /* ---------------------------------------------------------------------- */
 
 ComputeRHEOKernel::ComputeRHEOKernel(LAMMPS *lmp, int narg, char **arg) :
@@ -581,6 +579,7 @@ void ComputeRHEOKernel::compute_peratom()
   double **x = atom->x;
   int *type = atom->type;
   double *mass = atom->mass;
+  double *rmass = atom->rmass;
   double *rho = atom->rho;
   int *status = atom->rheo_status;
   tagint *tag = atom->tag;
@@ -626,7 +625,8 @@ void ComputeRHEOKernel::compute_peratom()
             if (status[j] & PHASECHECK)
               rhoj = compute_interface->correct_rho(j, i);
 
-          vj = mass[type[j]] / rhoj;
+          if (rmass) vj = rmass[j] / rhoj;
+          else vj = mass[type[j]] / rhoj;
           M += w * vj;
         }
       }
@@ -647,7 +647,6 @@ void ComputeRHEOKernel::compute_peratom()
 
       jlist = firstneigh[i];
       jnum = numneigh[i];
-      itype = type[i];
 
       // Zero upper-triangle M and cut (will be symmetric):
       for (a = 0; a < Mdim; a++) {
@@ -675,7 +674,8 @@ void ComputeRHEOKernel::compute_peratom()
             if (status[j] & PHASECHECK)
               rhoj = compute_interface->correct_rho(j, i);
 
-          vj = mass[type[j]] / rhoj;
+          if (rmass) vj = rmass[j] / rhoj;
+          else vj = mass[type[j]] / rhoj;
 
           //Populate the H-vector of polynomials (2D)
           if (dim == 2) {

@@ -147,6 +147,7 @@ void ComputeRHEOGrad::compute_peratom()
   int *status = atom->rheo_status;
   int *type = atom->type;
   double *mass = atom->mass;
+  double *rmass = atom->rmass;
   int newton = force->newton;
   int dim = domain->dimension;
 
@@ -225,8 +226,13 @@ void ComputeRHEOGrad::compute_peratom()
           }
         }
 
-        Voli = mass[itype] / rhoi;
-        Volj = mass[jtype] / rhoj;
+        if (rmass) {
+          Voli = rmass[i] / rhoi;
+          Volj = rmass[j] / rhoj;
+        } else {
+          Voli = mass[itype] / rhoi;
+          Volj = mass[jtype] / rhoj;
+        }
 
         vij[0] = vi[0] - vj[0];
         vij[1] = vi[1] - vj[1];

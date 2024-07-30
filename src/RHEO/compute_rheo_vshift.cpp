@@ -108,6 +108,7 @@ void ComputeRHEOVShift::compute_peratom()
   double **v = atom->v;
   double *rho = atom->rho;
   double *mass = atom->mass;
+  double *rmass = atom->rmass;
 
   int nlocal = atom->nlocal;
   int nall = nlocal + atom->nghost;
@@ -140,7 +141,8 @@ void ComputeRHEOVShift::compute_peratom()
     itype = type[i];
     jlist = firstneigh[i];
     jnum = numneigh[i];
-    imass = mass[itype];
+    if (rmass) imass = rmass[i];
+    else imass = mass[itype];
     fluidi = !(status[i] & PHASECHECK);
 
     for (jj = 0; jj < jnum; jj++) {
@@ -160,7 +162,8 @@ void ComputeRHEOVShift::compute_peratom()
 
       if (rsq < cutsq) {
         jtype = type[j];
-        jmass = mass[jtype];
+        if (rmass) jmass = rmass[j];
+        else jmass = mass[jtype];
 
         r = sqrt(rsq);
         rinv = 1 / r;

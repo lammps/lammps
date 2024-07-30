@@ -469,7 +469,6 @@ void FixRHEO::final_integrate()
   int *mask = atom->mask;
   int *status = atom->rheo_status;
 
-  int rmass_flag = atom->rmass_flag;
   int dim = domain->dimension;
 
   // Update velocity
@@ -477,7 +476,7 @@ void FixRHEO::final_integrate()
     if (mask[i] & groupbit) {
       if (status[i] & STATUS_NO_INTEGRATION) continue;
 
-      if (rmass_flag) {
+      if (rmass) {
         dtfm = dtf / rmass[i];
       } else {
         dtfm = dtf / mass[type[i]];

@@ -353,7 +353,7 @@ defined by the :doc:`atom_style sph <atom_style>` command.
 
 All particles in the group must be mesoscopic SPH/SDPD particles.
 
-versionchanged:: TBD
+.. versionchanged:: TBD
 
 This fix is incompatible with deformation controls that remap velocity,
 for instance the *remap v* option of :doc:`fix deform <fix_deform>`.

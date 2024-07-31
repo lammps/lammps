@@ -38,8 +38,8 @@ enum {NONE, CONSTANT, POWER};
 /* ---------------------------------------------------------------------- */
 
 FixRHEOViscosity::FixRHEOViscosity(LAMMPS *lmp, int narg, char **arg) :
-  Fix(lmp, narg, arg), fix_rheo(nullptr), compute_grad(nullptr), eta(nullptr),
-  npow(nullptr), K(nullptr), gd0(nullptr), tau0(nullptr), viscosity_style(nullptr)
+  Fix(lmp, narg, arg), eta(nullptr), npow(nullptr), K(nullptr), gd0(nullptr), tau0(nullptr),
+  viscosity_style(nullptr), fix_rheo(nullptr), compute_grad(nullptr)
 {
   if (narg < 4) error->all(FLERR, "Illegal fix command");
 
@@ -225,12 +225,10 @@ void FixRHEOViscosity::pre_force(int /*vflag*/)
 int FixRHEOViscosity::pack_forward_comm(int n, int *list, double *buf,
                                         int /*pbc_flag*/, int * /*pbc*/)
 {
-  int i, j, k, m;
   double *viscosity = atom->viscosity;
-  m = 0;
-
-  for (i = 0; i < n; i++) {
-    j = list[i];
+  int m = 0;
+  for (int i = 0; i < n; i++) {
+    int j = list[i];
     buf[m++] = viscosity[j];
   }
   return m;
@@ -240,12 +238,10 @@ int FixRHEOViscosity::pack_forward_comm(int n, int *list, double *buf,
 
 void FixRHEOViscosity::unpack_forward_comm(int n, int first, double *buf)
 {
-  int i, k, m, last;
   double *viscosity = atom->viscosity;
-
-  m = 0;
-  last = first + n;
-  for (i = first; i < last; i++) {
+  int m = 0;
+  int last = first + n;
+  for (int i = first; i < last; i++) {
     viscosity[i] = buf[m++];
   }
 }

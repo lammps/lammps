@@ -380,16 +380,17 @@ void DihedralCharmmfswKokkos<DeviceType>::operator()(TagDihedralCharmmfswCompute
     const F_FLOAT dely = x(i1,1) - x(i4,1);
     const F_FLOAT delz = x(i1,2) - x(i4,2);
     const F_FLOAT rsq = delx*delx + dely*dely + delz*delz;
+    const F_FLOAT r = sqrt(rsq);
     const F_FLOAT r2inv = 1.0/rsq;
     const F_FLOAT r6inv = r2inv*r2inv*r2inv;
 
     F_FLOAT forcecoul;
     if (implicit) forcecoul = qqrd2e * q[i1]*q[i4]*r2inv;
-    else forcecoul = qqrd2e * q[i1]*q[i4]*sqrt(r2inv);
+    else if (dihedflag) forcecoul = qqrd2e * q[i1]*q[i4]*sqrt(r2inv);
+    else forcecoul = qqrd2e * q[i1]*q[i4]*(sqrt(r2inv) - r*cut_coulinv14*cut_coulinv14);
     const F_FLOAT forcelj = r6inv * (d_lj14_1(itype,jtype)*r6inv - d_lj14_2(itype,jtype));
     const F_FLOAT fpair = d_weight[type] * (forcelj+forcecoul)*r2inv;
 
-    const F_FLOAT r = sqrt(rsq);
     F_FLOAT ecoul = 0.0;
     F_FLOAT evdwl = 0.0;
     F_FLOAT evdwl14_12, evdwl14_6;

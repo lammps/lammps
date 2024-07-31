@@ -155,4 +155,4 @@ and tstat = NULL.
 
 .. _Fiorin:
 
-**(Fiorin)** Fiorin, Klein, Henin, Mol. Phys., DOI:10.1080/00268976.2013.813594
+**(Fiorin)** Fiorin, Klein, Henin, Mol. Phys., https://doi.org/10.1080/00268976.2013.813594

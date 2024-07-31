@@ -240,11 +240,11 @@ documentation for the formula it computes.
 
 .. _Typelabel2:
 
-**(Gissinger)** J. R. Gissinger, I. Nikiforov, Y. Afshar, B. Waters, M. Choi, D. S. Karls, A. Stukowski, W. Im, H. Heinz, A. Kohlmeyer, and E. B. Tadmor, J Phys Chem B, 128, 3282-3297 (2024).
+**(Gissinger)** J. R. Gissinger, I. Nikiforov, Y. Afshar, B. Waters, M. Choi, D. S. Karls, A. Stukowski, W. Im, H. Heinz, A. Kohlmeyer, and E. B. Tadmor, J Phys Chem B, 128, 3282-3297 (2024). https://doi.org/10.1021/acs.jpcb.3c08419
 
 .. _howto-MacKerell:
 
-**(MacKerell)** MacKerell, Bashford, Bellott, Dunbrack, Evanseck, Field, Fischer, Gao, Guo, Ha, et al (1998).  J Phys Chem, 102, 3586 . https://doi.org/10.1021/jp973084f
+**(MacKerell)** MacKerell, Bashford, Bellott, Dunbrack, Evanseck, Field, Fischer, Gao, Guo, Ha, et al (1998).  J Phys Chem, 102, 3586. https://doi.org/10.1021/jp973084f
 
 .. _howto-Cornell:
 
@@ -256,7 +256,7 @@ documentation for the formula it computes.
 
 .. _howto-Brooks:
 
-**(Brooks)** Brooks, et al (2009). J Comput Chem, 30, 1545. https://onlinelibrary.wiley.com/doi/10.1002/jcc.21287
+**(Brooks)** Brooks, et al (2009). J Comput Chem, 30, 1545. https://doi.org/10.1002/jcc.21287
 
 .. _howto-Sun:
 

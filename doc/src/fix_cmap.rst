@@ -171,4 +171,4 @@ none
 
 .. _Brooks2:
 
-**(Brooks)** Brooks, Brooks, MacKerell Jr., J Comput Chem, 30, 1545 (2009).
+**(Brooks)** Brooks, Brooks, MacKerell Jr., J Comput Chem, 30, 1545 (2009). https://doi.org/10.1002/jcc.21287

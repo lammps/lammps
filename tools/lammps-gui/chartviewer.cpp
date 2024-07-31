@@ -17,6 +17,10 @@
 
 #include <QAction>
 #include <QApplication>
+#include <QChart>
+#include <QCloseEvent>
+#include <QComboBox>
+#include <QEvent>
 #include <QFileDialog>
 #include <QHBoxLayout>
 #include <QKeySequence>
@@ -30,13 +34,17 @@
 #include <QSpacerItem>
 #include <QTextStream>
 #include <QVBoxLayout>
+#include <QValueAxis>
+#include <QVariant>
 
 #include <cmath>
 
 using namespace QtCharts;
 
 ChartWindow::ChartWindow(const QString &_filename, QWidget *parent) :
-    QWidget(parent), menu(new QMenuBar), file(new QMenu("&File")), filename(_filename)
+    QWidget(parent), menu(new QMenuBar), file(new QMenu("&File")), saveAsAct(nullptr),
+    exportCsvAct(nullptr), exportDatAct(nullptr), exportYamlAct(nullptr), closeAct(nullptr),
+    stopAct(nullptr), quitAct(nullptr), filename(_filename)
 {
     auto *top = new QHBoxLayout;
     menu->addMenu(file);
@@ -61,6 +69,8 @@ ChartWindow::ChartWindow(const QString &_filename, QWidget *parent) :
     exportCsvAct->setIcon(QIcon(":/icons/application-calc.png"));
     exportDatAct = file->addAction("Export data to &Gnuplot...", this, &ChartWindow::exportDat);
     exportDatAct->setIcon(QIcon(":/icons/application-plot.png"));
+    exportYamlAct = file->addAction("Export data to &YAML...", this, &ChartWindow::exportYaml);
+    exportYamlAct->setIcon(QIcon(":/icons/yaml-file-icon.png"));
     file->addSeparator();
     stopAct = file->addAction("Stop &Run", this, &ChartWindow::stop_run);
     stopAct->setIcon(QIcon(":/icons/process-stop.png"));
@@ -138,7 +148,7 @@ void ChartWindow::quit()
 void ChartWindow::reset_zoom()
 {
     int choice = columns->currentData().toInt();
-    charts[choice]->reset_zoom();
+    if ((choice >= 0) && (choice < charts.size())) charts[choice]->reset_zoom();
 }
 
 void ChartWindow::stop_run()
@@ -227,6 +237,40 @@ void ChartWindow::exportCsv()
         }
     }
 }
+void ChartWindow::exportYaml()
+{
+    if (charts.empty()) return;
+    QString defaultname = filename + ".yaml";
+    if (filename.isEmpty()) defaultname = "lammpsdata.yaml";
+    QString fileName = QFileDialog::getSaveFileName(this, "Save Chart as YAML data", defaultname,
+                                                    "Image Files (*.yaml, *.yml)");
+    if (!fileName.isEmpty()) {
+        QFile file(fileName);
+        if (file.open(QIODevice::WriteOnly | QIODevice::Text)) {
+            QTextStream out(&file);
+            out.setRealNumberPrecision(8);
+            out << "---\n";
+
+            out << "keywords: ['Step'";
+            for (auto &c : charts)
+                out << ", " << c->get_title();
+            out << "]\n";
+
+            out << "data: \n";
+            int lines = charts[0]->get_count();
+            for (int i = 0; i < lines; ++i) {
+                // timestep
+                out << "  - [" << charts[0]->get_step(i);
+                // data
+                for (auto &c : charts)
+                    out << ", " << c->get_data(i);
+                out << "]\n";
+            }
+            out << "...\n";
+            file.close();
+        }
+    }
+}
 
 void ChartWindow::change_chart(int)
 {
@@ -253,7 +297,7 @@ void ChartWindow::closeEvent(QCloseEvent *event)
 bool ChartWindow::eventFilter(QObject *watched, QEvent *event)
 {
     if (event->type() == QEvent::ShortcutOverride) {
-        QKeyEvent *keyEvent = dynamic_cast<QKeyEvent *>(event);
+        auto *keyEvent = dynamic_cast<QKeyEvent *>(event);
         if (!keyEvent) return QWidget::eventFilter(watched, event);
         if (keyEvent->modifiers().testFlag(Qt::ControlModifier) && keyEvent->key() == '/') {
             stop_run();

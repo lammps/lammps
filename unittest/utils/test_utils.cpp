@@ -1061,6 +1061,16 @@ TEST(Utils, timespec2seconds_hhmmss)
     ASSERT_DOUBLE_EQ(utils::timespec2seconds("2:10:45"), 7845.0);
 }
 
+TEST(Utils, timespec2seconds_ssfraction)
+{
+    ASSERT_DOUBLE_EQ(utils::timespec2seconds("5.2"), 5.2);
+}
+
+TEST(Utils, timespec2seconds_mmfraction)
+{
+    ASSERT_DOUBLE_EQ(utils::timespec2seconds("2.5:10"), 160.0);
+}
+
 TEST(Utils, timespec2seconds_invalid)
 {
     ASSERT_DOUBLE_EQ(utils::timespec2seconds("2:aa:45"), -1.0);

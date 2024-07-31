@@ -920,7 +920,7 @@ void FixBondReact::post_integrate()
   tagint *tag = atom->tag;
   int *type = atom->type;
 
-  neighbor->build_one(list,1);
+  neighbor->build_one(list);
 
   // here we define a full special list
   // may need correction for unusual special bond settings

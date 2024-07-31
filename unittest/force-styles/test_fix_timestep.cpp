@@ -71,7 +71,7 @@ LAMMPS *init_lammps(LAMMPS::argv &args, const TestConfig &cfg, const bool use_re
     // check if prerequisite styles are available
     Info *info = new Info(lmp);
     int nfail  = 0;
-    for (auto &prerequisite : cfg.prerequisites) {
+    for (const auto &prerequisite : cfg.prerequisites) {
         std::string style = prerequisite.second;
 
         // this is a test for fix styles, so if the suffixed
@@ -97,7 +97,7 @@ LAMMPS *init_lammps(LAMMPS::argv &args, const TestConfig &cfg, const bool use_re
     };
 
     command("variable input_dir index " + INPUT_FOLDER);
-    for (auto &pre_command : cfg.pre_commands)
+    for (const auto &pre_command : cfg.pre_commands)
         command(pre_command);
 
     std::string input_file = platform::path_join(INPUT_FOLDER, cfg.input_file);
@@ -128,7 +128,7 @@ LAMMPS *init_lammps(LAMMPS::argv &args, const TestConfig &cfg, const bool use_re
     command("group solute  molecule 1:2");
     command("group solvent molecule 3:5");
 
-    for (auto &post_command : cfg.post_commands)
+    for (const auto &post_command : cfg.post_commands)
         command(post_command);
 
     command("timestep 0.25");
@@ -158,10 +158,10 @@ void restart_lammps(LAMMPS *lmp, const TestConfig &cfg, bool use_rmass, bool use
 
     if (use_respa) command("run_style respa 2 1 bond 1 pair 2");
 
-    for (auto &post_command : cfg.post_commands)
+    for (const auto &post_command : cfg.post_commands)
         command(post_command);
 
-    auto ifix = lmp->modify->get_fix_by_id("test");
+    auto *ifix = lmp->modify->get_fix_by_id("test");
     if (ifix && !utils::strmatch(ifix->style, "^move")) {
         // must be set to trigger calling Fix::reset_dt() with timestep
         lmp->update->first_update = 1;
@@ -198,16 +198,16 @@ void generate_yaml_file(const char *outfile, const TestConfig &config)
     // natoms
     writer.emit("natoms", natoms);
 
-    auto ifix = lmp->modify->get_fix_by_id("test");
+    auto *ifix = lmp->modify->get_fix_by_id("test");
     if (!ifix) {
         std::cerr << "ERROR: no fix defined with fix ID 'test'\n";
         exit(1);
     } else {
         // run_stress, if enabled
         if (ifix->thermo_virial) {
-            auto stress = ifix->virial;
-            block       = fmt::format("{:23.16e} {:23.16e} {:23.16e} {:23.16e} {:23.16e} {:23.16e}",
-                                      stress[0], stress[1], stress[2], stress[3], stress[4], stress[5]);
+            auto *stress = ifix->virial;
+            block = fmt::format("{:23.16e} {:23.16e} {:23.16e} {:23.16e} {:23.16e} {:23.16e}",
+                                stress[0], stress[1], stress[2], stress[3], stress[4], stress[5]);
             writer.emit_block("run_stress", block);
         }
 
@@ -229,7 +229,7 @@ void generate_yaml_file(const char *outfile, const TestConfig &config)
 
     // run_pos
     block.clear();
-    auto x = lmp->atom->x;
+    auto *x = lmp->atom->x;
     for (int i = 1; i <= natoms; ++i) {
         const int j = lmp->atom->map(i);
         block += fmt::format("{:3} {:23.16e} {:23.16e} {:23.16e}\n", i, x[j][0], x[j][1], x[j][2]);
@@ -238,7 +238,7 @@ void generate_yaml_file(const char *outfile, const TestConfig &config)
 
     // run_vel
     block.clear();
-    auto v = lmp->atom->v;
+    auto *v = lmp->atom->v;
     for (int i = 1; i <= natoms; ++i) {
         const int j = lmp->atom->map(i);
         block += fmt::format("{:3} {:23.16e} {:23.16e} {:23.16e}\n", i, v[j][0], v[j][1], v[j][2]);
@@ -289,7 +289,7 @@ TEST(FixTimestep, plain)
     EXPECT_POSITIONS("run_pos (normal run, verlet)", lmp->atom, test_config.run_pos, epsilon);
     EXPECT_VELOCITIES("run_vel (normal run, verlet)", lmp->atom, test_config.run_vel, epsilon);
 
-    auto ifix = lmp->modify->get_fix_by_id("test");
+    auto *ifix = lmp->modify->get_fix_by_id("test");
     if (!ifix) {
         FAIL() << "ERROR: no fix defined with fix ID 'test'\n";
     } else {
@@ -317,8 +317,8 @@ TEST(FixTimestep, plain)
 
         // check t_target for thermostats
 
-        int dim     = -1;
-        double *ptr = (double *)ifix->extract("t_target", dim);
+        int dim   = -1;
+        auto *ptr = (double *)ifix->extract("t_target", dim);
         if ((ptr != nullptr) && (dim == 0)) {
             int ivar = lmp->input->variable->find("t_target");
             if (ivar >= 0) {
@@ -583,7 +583,7 @@ TEST(FixTimestep, omp)
     EXPECT_POSITIONS("run_pos (normal run, verlet)", lmp->atom, test_config.run_pos, epsilon);
     EXPECT_VELOCITIES("run_vel (normal run, verlet)", lmp->atom, test_config.run_vel, epsilon);
 
-    auto ifix = lmp->modify->get_fix_by_id("test");
+    auto *ifix = lmp->modify->get_fix_by_id("test");
     if (!ifix) {
         FAIL() << "ERROR: no fix defined with fix ID 'test'\n";
     } else {
@@ -611,8 +611,8 @@ TEST(FixTimestep, omp)
 
         // check t_target for thermostats
 
-        int dim     = -1;
-        double *ptr = (double *)ifix->extract("t_target", dim);
+        int dim   = -1;
+        auto *ptr = (double *)ifix->extract("t_target", dim);
         if ((ptr != nullptr) && (dim == 0)) {
             int ivar = lmp->input->variable->find("t_target");
             if (ivar >= 0) {

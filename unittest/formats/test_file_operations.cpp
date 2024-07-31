@@ -511,10 +511,10 @@ TEST_F(FileOperationsTest, read_data_fix)
     lmp->atom->molecule[1] = 6;
     lmp->atom->molecule[2] = 5;
     lmp->atom->molecule[3] = 6;
-    lmp->atom->tag[0] = 9;
-    lmp->atom->tag[1] = 6;
-    lmp->atom->tag[2] = 7;
-    lmp->atom->tag[3] = 8;
+    lmp->atom->tag[0]      = 9;
+    lmp->atom->tag[1]      = 6;
+    lmp->atom->tag[2]      = 7;
+    lmp->atom->tag[3]      = 8;
     lmp->atom->map_init(1);
     lmp->atom->map_set();
     command("write_data test_mol_id_merge.data");

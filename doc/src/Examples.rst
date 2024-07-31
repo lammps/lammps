@@ -134,6 +134,8 @@ Lowercase directories
 +-------------+------------------------------------------------------------------+
 | rerun       | use of rerun and read_dump commands                              |
 +-------------+------------------------------------------------------------------+
+| rheo        | RHEO simulations of fluid flows and phase transitions            |
++-------------+------------------------------------------------------------------+
 | rigid       | rigid bodies modeled as independent or coupled                   |
 +-------------+------------------------------------------------------------------+
 | shear       | sideways shear applied to 2d solid, with and without a void      |

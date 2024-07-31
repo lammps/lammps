@@ -54,6 +54,7 @@ OPT.
    * :doc:`oxdna2/fene <bond_oxdna>`
    * :doc:`oxrna2/fene <bond_oxdna>`
    * :doc:`quartic (o) <bond_quartic>`
+   * :doc:`rheo/shell <bond_rheo_shell>`
    * :doc:`special <bond_special>`
    * :doc:`table (o) <bond_table>`
 
@@ -72,7 +73,7 @@ OPT.
 
    * :doc:`none <angle_none>`
    * :doc:`zero <angle_zero>`
-   * :doc:`hybrid <angle_hybrid>`
+   * :doc:`hybrid (k) <angle_hybrid>`
    *
    *
    *
@@ -100,7 +101,7 @@ OPT.
    * :doc:`mesocnt <angle_mesocnt>`
    * :doc:`mm3 <angle_mm3>`
    * :doc:`quartic (o) <angle_quartic>`
-   * :doc:`spica (o) <angle_spica>`
+   * :doc:`spica (ko) <angle_spica>`
    * :doc:`table (o) <angle_table>`
 
 .. _dihedral:
@@ -118,7 +119,7 @@ OPT.
 
    * :doc:`none <dihedral_none>`
    * :doc:`zero <dihedral_zero>`
-   * :doc:`hybrid <dihedral_hybrid>`
+   * :doc:`hybrid (k) <dihedral_hybrid>`
    *
    *
    *
@@ -156,7 +157,7 @@ OPT.
 
    * :doc:`none <improper_none>`
    * :doc:`zero <improper_zero>`
-   * :doc:`hybrid <improper_hybrid>`
+   * :doc:`hybrid (k) <improper_hybrid>`
    *
    *
    *

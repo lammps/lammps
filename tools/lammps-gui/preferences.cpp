@@ -23,7 +23,6 @@
 #include <QComboBox>
 #include <QCoreApplication>
 #include <QDialogButtonBox>
-#include <QDir>
 #include <QDoubleValidator>
 #include <QFileDialog>
 #include <QFontDialog>
@@ -40,7 +39,9 @@
 #include <QSpacerItem>
 #include <QSpinBox>
 #include <QTabWidget>
+#if defined(_OPENMP)
 #include <QThread>
+#endif
 #include <QVBoxLayout>
 
 #if defined(_OPENMP)
@@ -93,25 +94,25 @@ void Preferences::accept()
 
     // store selected accelerator
     QList<QRadioButton *> allButtons = tabWidget->findChildren<QRadioButton *>();
-    for (int i = 0; i < allButtons.size(); ++i) {
-        if (allButtons[i]->isChecked()) {
-            if (allButtons[i]->objectName() == "none")
+    for (auto &allButton : allButtons) {
+        if (allButton->isChecked()) {
+            if (allButton->objectName() == "none")
                 settings->setValue("accelerator", QString::number(AcceleratorTab::None));
-            if (allButtons[i]->objectName() == "opt")
+            if (allButton->objectName() == "opt")
                 settings->setValue("accelerator", QString::number(AcceleratorTab::Opt));
-            if (allButtons[i]->objectName() == "openmp")
+            if (allButton->objectName() == "openmp")
                 settings->setValue("accelerator", QString::number(AcceleratorTab::OpenMP));
-            if (allButtons[i]->objectName() == "intel")
+            if (allButton->objectName() == "intel")
                 settings->setValue("accelerator", QString::number(AcceleratorTab::Intel));
-            if (allButtons[i]->objectName() == "kokkos")
+            if (allButton->objectName() == "kokkos")
                 settings->setValue("accelerator", QString::number(AcceleratorTab::Kokkos));
-            if (allButtons[i]->objectName() == "gpu")
+            if (allButton->objectName() == "gpu")
                 settings->setValue("accelerator", QString::number(AcceleratorTab::Gpu));
         }
     }
 
     // store number of threads, reset to 1 for "None" and "Opt" settings
-    QLineEdit *field = tabWidget->findChild<QLineEdit *>("nthreads");
+    auto *field = tabWidget->findChild<QLineEdit *>("nthreads");
     if (field) {
         int accel = settings->value("accelerator", AcceleratorTab::None).toInt();
         if ((accel == AcceleratorTab::None) || (accel == AcceleratorTab::Opt))
@@ -132,7 +133,7 @@ void Preferences::accept()
     field = tabWidget->findChild<QLineEdit *>("zoom");
     if (field)
         if (field->hasAcceptableInput()) settings->setValue("zoom", field->text());
-    QCheckBox *box = tabWidget->findChild<QCheckBox *>("anti");
+    auto *box = tabWidget->findChild<QCheckBox *>("anti");
     if (box) settings->setValue("antialias", box->isChecked());
     box = tabWidget->findChild<QCheckBox *>("ssao");
     if (box) settings->setValue("ssao", box->isChecked());
@@ -142,7 +143,7 @@ void Preferences::accept()
     if (box) settings->setValue("axes", box->isChecked());
     box = tabWidget->findChild<QCheckBox *>("vdwstyle");
     if (box) settings->setValue("vdwstyle", box->isChecked());
-    QComboBox *combo = tabWidget->findChild<QComboBox *>("background");
+    auto *combo = tabWidget->findChild<QComboBox *>("background");
     if (combo) settings->setValue("background", combo->currentText());
     combo = tabWidget->findChild<QComboBox *>("boxcolor");
     if (combo) settings->setValue("boxcolor", combo->currentText());
@@ -166,7 +167,7 @@ void Preferences::accept()
     box = tabWidget->findChild<QCheckBox *>("viewslide");
     if (box) settings->setValue("viewslide", box->isChecked());
 
-    auto spin = tabWidget->findChild<QSpinBox *>("updfreq");
+    auto *spin = tabWidget->findChild<QSpinBox *>("updfreq");
     if (spin) settings->setValue("updfreq", spin->value());
 
     if (need_relaunch) {
@@ -211,23 +212,23 @@ GeneralTab::GeneralTab(QSettings *_settings, LammpsWrapper *_lammps, QWidget *pa
     auto *cite = new QCheckBox("Include citation details");
     cite->setObjectName("cite");
     cite->setCheckState(settings->value("cite", false).toBool() ? Qt::Checked : Qt::Unchecked);
-    auto *logv = new QCheckBox("Show log window by default");
+    auto *logv = new QCheckBox("Show Output window by default");
     logv->setObjectName("viewlog");
     logv->setCheckState(settings->value("viewlog", true).toBool() ? Qt::Checked : Qt::Unchecked);
-    auto *pltv = new QCheckBox("Show chart window by default");
+    auto *pltv = new QCheckBox("Show Charts window by default");
     pltv->setObjectName("viewchart");
     pltv->setCheckState(settings->value("viewchart", true).toBool() ? Qt::Checked : Qt::Unchecked);
-    auto *sldv = new QCheckBox("Show slide show window by default");
+    auto *sldv = new QCheckBox("Show Slide Show window by default");
     sldv->setObjectName("viewslide");
     sldv->setCheckState(settings->value("viewslide", true).toBool() ? Qt::Checked : Qt::Unchecked);
-    auto *logr = new QCheckBox("Replace log window on new run");
+    auto *logr = new QCheckBox("Replace Output window on new run");
     logr->setObjectName("logreplace");
     logr->setCheckState(settings->value("logreplace", true).toBool() ? Qt::Checked : Qt::Unchecked);
-    auto *imgr = new QCheckBox("Replace image window on new render");
+    auto *imgr = new QCheckBox("Replace Image window on new render");
     imgr->setObjectName("imagereplace");
     imgr->setCheckState(settings->value("imagereplace", true).toBool() ? Qt::Checked
                                                                        : Qt::Unchecked);
-    auto *pltr = new QCheckBox("Replace chart window on new run");
+    auto *pltr = new QCheckBox("Replace Charts window on new run");
     pltr->setObjectName("chartreplace");
     pltr->setCheckState(settings->value("chartreplace", true).toBool() ? Qt::Checked
                                                                        : Qt::Unchecked);
@@ -260,7 +261,7 @@ GeneralTab::GeneralTab(QSettings *_settings, LammpsWrapper *_lammps, QWidget *pa
     auto *freqval    = new QSpinBox;
     freqval->setRange(1, 1000);
     freqval->setStepType(QAbstractSpinBox::AdaptiveDecimalStepType);
-    freqval->setValue(settings->value("updfreq", "100").toInt());
+    freqval->setValue(settings->value("updfreq", "10").toInt());
     freqval->setObjectName("updfreq");
     freqlayout->addWidget(freqlabel);
     freqlayout->addWidget(freqval);
@@ -324,7 +325,7 @@ void GeneralTab::newtextfont()
 
 void GeneralTab::pluginpath()
 {
-    QLineEdit *field = findChild<QLineEdit *>("pluginedit");
+    auto *field = findChild<QLineEdit *>("pluginedit");
     QString pluginfile =
         QFileDialog::getOpenFileName(this, "Select Shared LAMMPS Library to Load", field->text(),
                                      "Shared Objects (*.so *.dll *.dylib)");
@@ -411,13 +412,13 @@ AcceleratorTab::AcceleratorTab(QSettings *_settings, LammpsWrapper *_lammps, QWi
     auto *choices      = new QFrame;
     auto *choiceLayout = new QVBoxLayout;
 #if defined(_OPENMP)
-    auto *ntlabel      = new QLabel(QString("Number of threads (max %1):").arg(maxthreads));
-    auto *ntchoice     = new QLineEdit(settings->value("nthreads", maxthreads).toString());
+    auto *ntlabel  = new QLabel(QString("Number of threads (max %1):").arg(maxthreads));
+    auto *ntchoice = new QLineEdit(settings->value("nthreads", maxthreads).toString());
 #else
-    auto *ntlabel      = new QLabel(QString("Number of threads (OpenMP not available):"));
-    auto *ntchoice     = new QLineEdit("1");
+    auto *ntlabel  = new QLabel(QString("Number of threads (OpenMP not available):"));
+    auto *ntchoice = new QLineEdit("1");
 #endif
-    auto *intval       = new QIntValidator(1, maxthreads, this);
+    auto *intval = new QIntValidator(1, maxthreads, this);
     ntchoice->setValidator(intval);
     ntchoice->setObjectName("nthreads");
 #if !defined(_OPENMP)

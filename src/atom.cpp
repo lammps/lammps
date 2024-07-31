@@ -198,6 +198,13 @@ Atom::Atom(LAMMPS *_lmp) : Pointers(_lmp), atom_style(nullptr), avec(nullptr), a
   eff_plastic_strain_rate = nullptr;
   damage = nullptr;
 
+  // RHEO package
+
+  rheo_status = nullptr;
+  conductivity = nullptr;
+  pressure = nullptr;
+  viscosity = nullptr;
+
   // SPH package
 
   rho = drho = esph = desph = cv = nullptr;
@@ -529,6 +536,13 @@ void Atom::peratom_create()
   add_peratom("cc",&cc,DOUBLE,1);
   add_peratom("cc_flux",&cc_flux,DOUBLE,1,1);         // set per-thread flag
 
+  // RHEO package
+
+  add_peratom("rheo_status",&rheo_status,INT,0);
+  add_peratom("conductivity",&conductivity,DOUBLE,0);
+  add_peratom("pressure",&pressure,DOUBLE,0);
+  add_peratom("viscosity",&viscosity,DOUBLE,0);
+
   // SPH package
 
   add_peratom("rho",&rho,DOUBLE,0);
@@ -634,6 +648,7 @@ void Atom::set_atomflag_defaults()
   temperature_flag = heatflow_flag = 0;
   vfrac_flag = spin_flag = eradius_flag = ervel_flag = erforce_flag = 0;
   cs_flag = csforce_flag = vforce_flag = ervelforce_flag = etag_flag = 0;
+  rheo_status_flag = conductivity_flag = pressure_flag = viscosity_flag = 0;
   rho_flag = esph_flag = cv_flag = vest_flag = 0;
   dpd_flag = edpd_flag = tdpd_flag = 0;
   sp_flag = 0;
@@ -3048,7 +3063,15 @@ void *Atom::extract(const char *name)
   if (strcmp(name,"vforce") == 0) return (void *) vforce;
   if (strcmp(name,"etag") == 0) return (void *) etag;
 
+  // RHEO package
+
+  if (strcmp(name,"rheo_status") == 0) return (void *) rheo_status;
+  if (strcmp(name,"conductivity") == 0) return (void *) conductivity;
+  if (strcmp(name,"pressure") == 0) return (void *) pressure;
+  if (strcmp(name,"viscosity") == 0) return (void *) viscosity;
+
   // SPH package
+
   if (strcmp(name,"rho") == 0) return (void *) rho;
   if (strcmp(name,"drho") == 0) return (void *) drho;
   if (strcmp(name,"esph") == 0) return (void *) esph;
@@ -3168,6 +3191,15 @@ int Atom::extract_datatype(const char *name)
   if (strcmp(name,"csforce") == 0) return LAMMPS_DOUBLE_2D;
   if (strcmp(name,"vforce") == 0) return LAMMPS_DOUBLE_2D;
   if (strcmp(name,"etag") == 0) return LAMMPS_INT;
+
+  // RHEO package
+
+  if (strcmp(name,"rheo_status") == 0) return LAMMPS_INT;
+  if (strcmp(name,"conductivity") == 0) return LAMMPS_DOUBLE;
+  if (strcmp(name,"pressure") == 0) return LAMMPS_DOUBLE;
+  if (strcmp(name,"viscosity") == 0) return LAMMPS_DOUBLE;
+
+  // SPH package
 
   if (strcmp(name,"rho") == 0) return LAMMPS_DOUBLE;
   if (strcmp(name,"drho") == 0) return LAMMPS_DOUBLE;

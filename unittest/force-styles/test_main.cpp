@@ -130,7 +130,7 @@ void write_yaml_header(YamlWriter *writer, TestConfig *cfg, const char *version)
 
     // skip tests
     block.clear();
-    for (auto &skip : cfg->skip_tests) {
+    for (const auto &skip : cfg->skip_tests) {
         if (block.empty())
             block = skip;
         else

@@ -55,6 +55,8 @@ private slots:
     void do_rot_right();
     void do_rot_up();
     void do_rot_down();
+    void do_recenter();
+    void cmd_to_clipboard();
     void change_group(int);
 
 public:
@@ -77,18 +79,20 @@ private:
 
     QAction *saveAsAct;
     QAction *copyAct;
+    QAction *cmdAct;
     QAction *zoomInAct;
     QAction *zoomOutAct;
     QAction *normalSizeAct;
-    QAction *fitToWindowAct;
 
     LammpsWrapper *lammps;
     QString group;
     QString filename;
+    QString last_dump_cmd;
     int xsize, ysize;
     int hrot, vrot;
     double zoom, vdwfactor;
-    bool showbox, showaxes, antialias, usessao, useelements, usediameter;
+    double xcenter, ycenter, zcenter;
+    bool showbox, showaxes, antialias, usessao, useelements, usediameter, usesigma;
 };
 #endif
 

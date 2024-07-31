@@ -34,6 +34,7 @@ static constexpr double SMALL =     0.001;
 template<class DeviceType>
 ImproperClass2Kokkos<DeviceType>::ImproperClass2Kokkos(LAMMPS *lmp) : ImproperClass2(lmp)
 {
+  kokkosable = 1;
   atomKK = (AtomKokkos *) atom;
   neighborKK = (NeighborKokkos *) neighbor;
   execution_space = ExecutionSpaceFromDevice<DeviceType>::space;
@@ -110,7 +111,7 @@ void ImproperClass2Kokkos<DeviceType>::compute(int eflag_in, int vflag_in)
   newton_bond = force->newton_bond;
 
   h_warning_flag() = 0;
-  k_warning_flag.template modify<LMPHostType>();
+  k_warning_flag.modify_host();
   k_warning_flag.template sync<DeviceType>();
 
   copymode = 1;
@@ -139,7 +140,7 @@ void ImproperClass2Kokkos<DeviceType>::compute(int eflag_in, int vflag_in)
   // error check
 
   k_warning_flag.template modify<DeviceType>();
-  k_warning_flag.template sync<LMPHostType>();
+  k_warning_flag.sync_host();
   if (h_warning_flag())
     error->warning(FLERR,"Improper problem");
 
@@ -171,12 +172,12 @@ void ImproperClass2Kokkos<DeviceType>::compute(int eflag_in, int vflag_in)
 
   if (eflag_atom) {
     k_eatom.template modify<DeviceType>();
-    k_eatom.template sync<LMPHostType>();
+    k_eatom.sync_host();
   }
 
   if (vflag_atom) {
     k_vatom.template modify<DeviceType>();
-    k_vatom.template sync<LMPHostType>();
+    k_vatom.sync_host();
   }
 
   copymode = 0;
@@ -918,17 +919,17 @@ void ImproperClass2Kokkos<DeviceType>::coeff(int narg, char **arg)
     k_setflag_aa.h_view[i] = setflag_aa[i];
   }
 
-  k_k0.template modify<LMPHostType>();
-  k_chi0.template modify<LMPHostType>();
-  k_aa_k1.template modify<LMPHostType>();
-  k_aa_k2.template modify<LMPHostType>();
-  k_aa_k3.template modify<LMPHostType>();
-  k_aa_theta0_1.template modify<LMPHostType>();
-  k_aa_theta0_2.template modify<LMPHostType>();
-  k_aa_theta0_3 .template modify<LMPHostType>();
-  k_setflag.template modify<LMPHostType>();
-  k_setflag_i.template modify<LMPHostType>();
-  k_setflag_aa.template modify<LMPHostType>();
+  k_k0.modify_host();
+  k_chi0.modify_host();
+  k_aa_k1.modify_host();
+  k_aa_k2.modify_host();
+  k_aa_k3.modify_host();
+  k_aa_theta0_1.modify_host();
+  k_aa_theta0_2.modify_host();
+  k_aa_theta0_3 .modify_host();
+  k_setflag.modify_host();
+  k_setflag_i.modify_host();
+  k_setflag_aa.modify_host();
 }
 
 /* ----------------------------------------------------------------------
@@ -979,17 +980,17 @@ void ImproperClass2Kokkos<DeviceType>::read_restart(FILE *fp)
     k_setflag_aa.h_view[i] = setflag_aa[i];
   }
 
-  k_k0.template modify<LMPHostType>();
-  k_chi0.template modify<LMPHostType>();
-  k_aa_k1.template modify<LMPHostType>();
-  k_aa_k2.template modify<LMPHostType>();
-  k_aa_k3.template modify<LMPHostType>();
-  k_aa_theta0_1.template modify<LMPHostType>();
-  k_aa_theta0_2.template modify<LMPHostType>();
-  k_aa_theta0_3 .template modify<LMPHostType>();
-  k_setflag.template modify<LMPHostType>();
-  k_setflag_i.template modify<LMPHostType>();
-  k_setflag_aa.template modify<LMPHostType>();
+  k_k0.modify_host();
+  k_chi0.modify_host();
+  k_aa_k1.modify_host();
+  k_aa_k2.modify_host();
+  k_aa_k3.modify_host();
+  k_aa_theta0_1.modify_host();
+  k_aa_theta0_2.modify_host();
+  k_aa_theta0_3 .modify_host();
+  k_setflag.modify_host();
+  k_setflag_i.modify_host();
+  k_setflag_aa.modify_host();
 }
 
 /* ----------------------------------------------------------------------

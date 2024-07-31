@@ -47,8 +47,9 @@ static constexpr double EPSILON = 1e-2;
 /* ---------------------------------------------------------------------- */
 
 PairRHEO::PairRHEO(LAMMPS *lmp) :
-  Pair(lmp), compute_kernel(nullptr), compute_grad(nullptr), compute_interface(nullptr), fix_rheo(nullptr),
-  fix_pressure(nullptr), rho0(nullptr), csq(nullptr), cs(nullptr)
+  Pair(lmp), csq(nullptr), rho0(nullptr), cs(nullptr), compute_kernel(nullptr),
+  compute_grad(nullptr), compute_interface(nullptr), fix_rheo(nullptr),
+  fix_pressure(nullptr)
 {
   restartinfo = 0;
   single_enable = 0;
@@ -80,10 +81,10 @@ void PairRHEO::compute(int eflag, int vflag)
   int i, j, a, b, ii, jj, inum, jnum, itype, jtype;
   int pair_force_flag, pair_rho_flag, pair_avisc_flag;
   int fluidi, fluidj;
-  double xtmp, ytmp, ztmp, w, wp, Ti, Tj, dT, csq_ave, cs_ave;
+  double xtmp, ytmp, ztmp, wp, Ti, Tj, dT, csq_ave, cs_ave;
   double rhoi, rhoj, rho0i, rho0j, voli, volj, Pi, Pj, etai, etaj, kappai, kappaj, eta_ave, kappa_ave, dT_prefactor;
   double mu, q, fp_prefactor, drho_damp, fmag, psi_ij, Fij;
-  double *dWij, *dWji, *dW1ij, *dW1ji;
+  double *dWij, *dWji;
   double dx[3], du[3], dv[3], fv[3], dfp[3], fsolid[3], ft[3], vi[3], vj[3];
 
   int *ilist, *jlist, *numneigh, **firstneigh;
@@ -102,16 +103,15 @@ void PairRHEO::compute(int eflag, int vflag)
   double **f = atom->f;
   double *rho = atom->rho;
   double *mass = atom->mass;
+  double *rmass = atom->rmass;
   double *drho = atom->drho;
   double *pressure = atom->pressure;
   double *viscosity = atom->viscosity;
   double *conductivity = atom->conductivity;
   double *temperature = atom->temperature;
   double *heatflow = atom->heatflow;
-  double *special_lj = force->special_lj;
   int *type = atom->type;
   int *status = atom->rheo_status;
-  tagint *tag = atom->tag;
 
   double **fp_store, *chi;
   if (compute_interface) {
@@ -150,7 +150,8 @@ void PairRHEO::compute(int eflag, int vflag)
     itype = type[i];
     jlist = firstneigh[i];
     jnum = numneigh[i];
-    imass = mass[itype];
+    if (rmass) imass = rmass[i];
+    else imass = mass[itype];
     etai = viscosity[i];
     fluidi = !(status[i] & PHASECHECK);
     if (thermal_flag) {
@@ -172,7 +173,8 @@ void PairRHEO::compute(int eflag, int vflag)
         r = sqrt(rsq);
         rinv = 1 / r;
 
-        jmass = mass[jtype];
+        if (rmass) jmass = rmass[i];
+        else jmass = mass[jtype];
         etaj = viscosity[j];
         fluidj = !(status[j] & PHASECHECK);
         if (thermal_flag) {
@@ -461,11 +463,13 @@ void PairRHEO::setup()
 {
   auto fixes = modify->get_fix_by_style("rheo");
   if (fixes.size() == 0) error->all(FLERR, "Need to define fix rheo to use pair rheo");
+  if (fixes.size() > 1) error->all(FLERR, "Must have only one fix rheo defined");
   fix_rheo = dynamic_cast<FixRHEO *>(fixes[0]);
 
   // Currently only allow one instance of fix rheo/pressure
   fixes = modify->get_fix_by_style("rheo/pressure");
   if (fixes.size() == 0) error->all(FLERR, "Need to define fix rheo/pressure to use pair rheo");
+  if (fixes.size() > 1) error->all(FLERR, "Must have only one fix rheo/pressure defined");
   fix_pressure = dynamic_cast<FixRHEOPressure *>(fixes[0]);
 
   compute_kernel = fix_rheo->compute_kernel;
@@ -518,12 +522,10 @@ double PairRHEO::init_one(int i, int j)
 
 int PairRHEO::pack_reverse_comm(int n, int first, double *buf)
 {
-  int i, k, m, last;
   double **fp_store = compute_interface->fp_store;
-
-  m = 0;
-  last = first + n;
-  for (i = first; i < last; i++) {
+  int m = 0;
+  int last = first + n;
+  for (int i = first; i < last; i++) {
     buf[m++] = fp_store[i][0];
     buf[m++] = fp_store[i][1];
     buf[m++] = fp_store[i][2];
@@ -536,12 +538,10 @@ int PairRHEO::pack_reverse_comm(int n, int first, double *buf)
 
 void PairRHEO::unpack_reverse_comm(int n, int *list, double *buf)
 {
-  int i, j, k, m;
   double **fp_store = compute_interface->fp_store;
-
-  m = 0;
-  for (i = 0; i < n; i++) {
-    j = list[i];
+  int m = 0;
+  for (int i = 0; i < n; i++) {
+    int j = list[i];
     fp_store[j][0] += buf[m++];
     fp_store[j][1] += buf[m++];
     fp_store[j][2] += buf[m++];

@@ -53,6 +53,10 @@ action angle_cosine_kokkos.cpp angle_cosine.cpp
 action angle_cosine_kokkos.h angle_cosine.h
 action angle_harmonic_kokkos.cpp angle_harmonic.cpp
 action angle_harmonic_kokkos.h angle_harmonic.h
+action angle_hybrid_kokkos.cpp angle_hybrid.cpp
+action angle_hybrid_kokkos.h angle_hybrid.h
+action angle_spica_kokkos.cpp angle_spica.cpp
+action angle_spica_kokkos.h angle_spica.h
 action atom_kokkos.cpp
 action atom_kokkos.h
 action atom_map_kokkos.cpp
@@ -116,6 +120,8 @@ action dihedral_harmonic_kokkos.cpp dihedral_harmonic.cpp
 action dihedral_harmonic_kokkos.h dihedral_harmonic.h
 action dihedral_opls_kokkos.cpp dihedral_opls.cpp
 action dihedral_opls_kokkos.h dihedral_opls.h
+action dihedral_hybrid_kokkos.cpp dihedral_hybrid.cpp
+action dihedral_hybrid_kokkos.h dihedral_hybrid.h
 action domain_kokkos.cpp
 action domain_kokkos.h
 action dynamical_matrix_kokkos.cpp dynamical_matrix.cpp
@@ -205,6 +211,8 @@ action improper_class2_kokkos.cpp improper_class2.cpp
 action improper_class2_kokkos.h improper_class2.h
 action improper_harmonic_kokkos.cpp improper_harmonic.cpp
 action improper_harmonic_kokkos.h improper_harmonic.h
+action improper_hybrid_kokkos.cpp improper_hybrid.cpp
+action improper_hybrid_kokkos.h improper_hybrid.h
 action kissfft_kokkos.h kissfft.h
 action kokkos_base_fft.h fft3d.h
 action kokkos_base.h
@@ -344,6 +352,8 @@ action pair_lj_gromacs_coul_gromacs_kokkos.cpp pair_lj_gromacs_coul_gromacs.cpp
 action pair_lj_gromacs_coul_gromacs_kokkos.h pair_lj_gromacs_coul_gromacs.h
 action pair_lj_gromacs_kokkos.cpp pair_lj_gromacs.cpp
 action pair_lj_gromacs_kokkos.h pair_lj_gromacs.h
+action pair_lj_spica_coul_long_kokkos.cpp pair_lj_spica_coul_long.cpp
+action pair_lj_spica_coul_long_kokkos.h pair_lj_spica_coul_long.h
 action pair_lj_spica_kokkos.cpp pair_lj_spica.cpp
 action pair_lj_spica_kokkos.h pair_lj_spica.h
 action pair_meam_kokkos.cpp pair_meam.cpp
@@ -381,6 +391,8 @@ action pair_tersoff_mod_kokkos.cpp pair_tersoff_mod.cpp
 action pair_tersoff_mod_kokkos.h pair_tersoff_mod.h
 action pair_tersoff_zbl_kokkos.cpp pair_tersoff_zbl.cpp
 action pair_tersoff_zbl_kokkos.h pair_tersoff_zbl.h
+action pair_uf3_kokkos.cpp pair_uf3.cpp
+action pair_uf3_kokkos.h pair_uf3.h
 action pair_vashishta_kokkos.cpp pair_vashishta.cpp
 action pair_vashishta_kokkos.h pair_vashishta.h
 action pair_yukawa_kokkos.cpp

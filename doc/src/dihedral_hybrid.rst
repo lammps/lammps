@@ -1,7 +1,10 @@
 .. index:: dihedral_style hybrid
+.. index:: dihedral_style hybrid/kk
 
 dihedral_style hybrid command
 =============================
+
+Accelerator Variants: *hybrid/kk*
 
 Syntax
 """"""
@@ -80,6 +83,10 @@ for specific dihedral types.
 
 ----------
 
+.. include:: accel_styles.rst
+
+----------
+
 Restrictions
 """"""""""""
 
@@ -88,8 +95,10 @@ MOLECULE package.  See the :doc:`Build package <Build_package>` doc page
 for more info.
 
 Unlike other dihedral styles, the hybrid dihedral style does not store
-dihedral coefficient info for individual sub-styles in a :doc:`binary restart files <restart>`.  Thus when restarting a simulation from a
-restart file, you need to re-specify dihedral_coeff commands.
+dihedral coefficient info for individual sub-styles in :doc:`binary
+restart files <restart>` or :doc:`data files <write_data>`.  Thus when
+restarting a simulation, you need to re-specify the dihedral_coeff
+commands.
 
 Related commands
 """"""""""""""""

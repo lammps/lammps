@@ -52,7 +52,7 @@ class AngleSPICA : public Angle {
 
   void ev_tally13(int, int, int, int, double, double, double, double, double);
 
-  void allocate();
+  virtual void allocate();
 };
 
 }    // namespace LAMMPS_NS

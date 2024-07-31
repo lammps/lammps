@@ -45,7 +45,8 @@ using namespace RHEO_NS;
 /* ---------------------------------------------------------------------- */
 
 BondRHEOShell::BondRHEOShell(LAMMPS *_lmp) :
-    BondBPM(_lmp), compute_surface(nullptr), k(nullptr), ecrit(nullptr), gamma(nullptr)
+  BondBPM(_lmp), k(nullptr), ecrit(nullptr), gamma(nullptr), dbond(nullptr), nbond(nullptr),
+  id_fix(nullptr), compute_surface(nullptr)
 {
   partial_flag = 1;
   comm_reverse = 1;

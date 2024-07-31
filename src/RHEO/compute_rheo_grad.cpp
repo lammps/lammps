@@ -42,8 +42,9 @@ enum{COMMGRAD, COMMFIELD};
 /* ---------------------------------------------------------------------- */
 
 ComputeRHEOGrad::ComputeRHEOGrad(LAMMPS *lmp, int narg, char **arg) :
-  Compute(lmp, narg, arg), fix_rheo(nullptr), list(nullptr), rho0(nullptr), compute_interface(nullptr), compute_kernel(nullptr),
-  gradv(nullptr), gradr(nullptr), grade(nullptr), gradn(nullptr)
+  Compute(lmp, narg, arg), gradv(nullptr), gradr(nullptr), grade(nullptr), gradn(nullptr),
+  fix_rheo(nullptr), rho0(nullptr), compute_kernel(nullptr), compute_interface(nullptr),
+  list(nullptr)
 {
   if (narg < 4) error->all(FLERR,"Illegal compute rheo/grad command");
 
@@ -130,10 +131,9 @@ void ComputeRHEOGrad::compute_peratom()
 {
   int i, j, k, ii, jj, jnum, itype, jtype, a, b, fluidi, fluidj;
   double xtmp, ytmp, ztmp, delx, dely, delz;
-  double rsq, imass, jmass;
-  double rhoi, rhoj, Voli, Volj, drho, de, deta;
+  double rsq, rhoi, rhoj, Voli, Volj, drho, de, deta;
   double vi[3], vj[3], vij[3];
-  double wp, *dWij, *dWji;
+  double *dWij, *dWji;
 
   int inum, *ilist, *numneigh, **firstneigh;
   int *jlist;
@@ -147,6 +147,7 @@ void ComputeRHEOGrad::compute_peratom()
   int *status = atom->rheo_status;
   int *type = atom->type;
   double *mass = atom->mass;
+  double *rmass = atom->rmass;
   int newton = force->newton;
   int dim = domain->dimension;
 
@@ -225,8 +226,13 @@ void ComputeRHEOGrad::compute_peratom()
           }
         }
 
-        Voli = mass[itype] / rhoi;
-        Volj = mass[jtype] / rhoj;
+        if (rmass) {
+          Voli = rmass[i] / rhoi;
+          Volj = rmass[j] / rhoj;
+        } else {
+          Voli = mass[itype] / rhoi;
+          Volj = mass[jtype] / rhoj;
+        }
 
         vij[0] = vi[0] - vj[0];
         vij[1] = vi[1] - vj[1];
@@ -236,7 +242,7 @@ void ComputeRHEOGrad::compute_peratom()
         if (energy_flag) de = energy[i] - energy[j];
         if (eta_flag) deta = viscosity[i] - viscosity[j];
 
-        wp = compute_kernel->calc_dw(i, j, delx, dely, delz, sqrt(rsq));
+        compute_kernel->calc_dw(i, j, delx, dely, delz, sqrt(rsq));
         dWij = compute_kernel->dWij;
         dWji = compute_kernel->dWji;
 

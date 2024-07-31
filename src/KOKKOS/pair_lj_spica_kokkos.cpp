@@ -70,7 +70,6 @@ void PairLJSPICAKokkos<DeviceType>::compute(int eflag_in, int vflag_in)
   eflag = eflag_in;
   vflag = vflag_in;
 
-
   if (neighflag == FULL) no_virial_fdotr_compute = 1;
 
   ev_init(eflag,vflag,0);
@@ -108,6 +107,8 @@ void PairLJSPICAKokkos<DeviceType>::compute(int eflag_in, int vflag_in)
 
   // loop over neighbors of my atoms
 
+  copymode = 1;
+
   EV_FLOAT ev = pair_compute<PairLJSPICAKokkos<DeviceType>,void >(this,(NeighListKokkos<DeviceType>*)list);
 
   if (eflag) eng_vdwl += ev.evdwl;
@@ -132,7 +133,12 @@ void PairLJSPICAKokkos<DeviceType>::compute(int eflag_in, int vflag_in)
 
   if (vflag_fdotr) pair_virial_fdotr_compute(this);
 
+  copymode = 0;
 }
+
+/* ----------------------------------------------------------------------
+   compute pair force between atoms i and j
+   ---------------------------------------------------------------------- */
 
 template<class DeviceType>
 template<bool STACKPARAMS, class Specialisation>
@@ -152,6 +158,10 @@ compute_fpair(const F_FLOAT &rsq, const int &, const int &, const int &itype, co
   return a* ( lj_1*r6inv*b - lj_2 * r2inv);
 }
 
+/* ----------------------------------------------------------------------
+   compute pair potential energy between atoms i and j
+   ---------------------------------------------------------------------- */
+
 template<class DeviceType>
 template<bool STACKPARAMS, class Specialisation>
 KOKKOS_INLINE_FUNCTION
@@ -166,18 +176,14 @@ compute_evdwl(const F_FLOAT &rsq, const int &, const int &, const int &itype, co
 
   if (ljt == LJ12_4) {
     const F_FLOAT r4inv=r2inv*r2inv;
-
     return r4inv*(lj_3*r4inv*r4inv - lj_4) - offset;
-
   } else if (ljt == LJ9_6) {
     const F_FLOAT r3inv = r2inv*sqrt(r2inv);
     const F_FLOAT r6inv = r3inv*r3inv;
     return r6inv*(lj_3*r3inv - lj_4) - offset;
-
   } else if (ljt == LJ12_6) {
     const double r6inv = r2inv*r2inv*r2inv;
     return r6inv*(lj_3*r6inv - lj_4) - offset;
-
   } else if (ljt == LJ12_5) {
     const F_FLOAT r5inv = r2inv*r2inv*sqrt(r2inv);
     const F_FLOAT r7inv = r5inv*r2inv;
@@ -272,8 +278,6 @@ double PairLJSPICAKokkos<DeviceType>::init_one(int i, int j)
 
   return cutone;
 }
-
-
 
 namespace LAMMPS_NS {
 template class PairLJSPICAKokkos<LMPDeviceType>;

@@ -65,8 +65,8 @@ void NPairBinOmp<HALF, NEWTON, TRI, SIZE, PAIRWISE, ATOMONLY>::build(NeighList *
   NPAIR_OMP_SETUP(nlocal);
 
   int i, j, jh, k, n, itype, jtype, ibin, bin_start, which, imol, iatom;
-  tagint itag, jtag, tagprev;
-  double xtmp, ytmp, ztmp, delx, dely, delz, rsq, radsum, cut, cutsq;
+  tagint itag, jtag, tagprev, neigh_check;
+  double xtmp, ytmp, ztmp, rtmp, delx, dely, delz, rsq, radsum, cut, cutsq;
   int *neighptr;
 
   double **x = atom->x;
@@ -104,6 +104,7 @@ void NPairBinOmp<HALF, NEWTON, TRI, SIZE, PAIRWISE, ATOMONLY>::build(NeighList *
     xtmp = x[i][0];
     ytmp = x[i][1];
     ztmp = x[i][2];
+
     if (!ATOMONLY) {
       if (moltemplate) {
         imol = molindex[i];
@@ -111,6 +112,9 @@ void NPairBinOmp<HALF, NEWTON, TRI, SIZE, PAIRWISE, ATOMONLY>::build(NeighList *
         tagprev = tag[i] - iatom - 1;
       }
     }
+
+    if (SIZE)
+      rtmp = radius[i];
 
     // loop over all atoms in surrounding bins in stencil including self
     // skip i = j
@@ -187,69 +191,47 @@ void NPairBinOmp<HALF, NEWTON, TRI, SIZE, PAIRWISE, ATOMONLY>::build(NeighList *
         delz = ztmp - x[j][2];
         rsq = delx * delx + dely * dely + delz * delz;
 
-        if (SIZE || PAIRWISE) {
 
-          if (PAIRWISE) {
-            cut = pair->pair2cut(i, j);
-            cut += skin;
-          } else {
-            radsum = radius[i] + radius[j];
-            cut = radsum + skin;
-          }
+        if (PAIRWISE) {
+          neigh_check = pair->neigh_check(i, j, skin, rsq);
+        } else if (SIZE) {
+          radsum = rtmp + radius[j];
+          cut = radsum + skin;
           cutsq = cut * cut;
-
-          if (ATOMONLY) {
-            if (rsq <= cutsq) {
-              jh = j;
-              if (history && rsq < radsum * radsum)
-                jh = jh ^ mask_history;
-              neighptr[n++] = jh;
-            }
-          } else {
-            if (rsq <= cutsq) {
-              jh = j;
-              if (history && rsq < radsum * radsum)
-                jh = jh ^ mask_history;
-
-              if (molecular != Atom::ATOMIC) {
-                if (!moltemplate)
-                  which = find_special(special[i], nspecial[i], tag[j]);
-                else if (imol >= 0)
-                  which = find_special(onemols[imol]->special[iatom], onemols[imol]  ->nspecial[iatom],
-                                       tag[j] - tagprev);
-                else
-                  which = 0;
-                if (which == 0)
-                  neighptr[n++] = jh;
-                else if (domain->minimum_image_check(delx, dely, delz))
-                  neighptr[n++] = jh;
-                else if (which > 0)
-                  neighptr[n++] = jh ^ (which << SBBITS);
-              } else
-                neighptr[n++] = jh;
-            }
-          }
+          neigh_check = rsq <= cutsq;
         } else {
-          if (ATOMONLY) {
-            if (rsq <= cutneighsq[itype][jtype]) neighptr[n++] = j;
+          neigh_check = rsq <= cutneighsq[itype][jtype];
+        }
+
+        if (!neigh_check) continue;
+
+        if (ATOMONLY) {
+          if (SIZE && history && (rsq < (radsum * radsum)))
+            j = j ^ mask_history;
+          neighptr[n++] = j;
+        } else {
+          if (molecular != Atom::ATOMIC) {
+            if (!moltemplate)
+              which = find_special(special[i], nspecial[i], tag[j]);
+            else if (imol >= 0)
+              which = find_special(onemols[imol]->special[iatom], onemols[imol]->nspecial[iatom],
+                                   tag[j] - tagprev);
+            else
+              which = 0;
+
+            if (SIZE && history && (rsq < (radsum * radsum)))
+              j = j ^ mask_history;
+
+            if (which == 0)
+              neighptr[n++] = j;
+            else if (domain->minimum_image_check(delx, dely, delz))
+              neighptr[n++] = j;
+            else if (which > 0)
+              neighptr[n++] = j ^ (which << SBBITS);
           } else {
-            if (rsq <= cutneighsq[itype][jtype]) {
-              if (molecular != Atom::ATOMIC) {
-                if (!moltemplate)
-                  which = find_special(special[i], nspecial[i], tag[j]);
-                else if (imol >= 0)
-                  which = find_special(onemols[imol]->special[iatom], onemols[imol]->nspecial[iatom],
-                                       tag[j] - tagprev);
-                else which = 0;
-                if (which == 0)
-                  neighptr[n++] = j;
-                else if (domain->minimum_image_check(delx, dely, delz))
-                  neighptr[n++] = j;
-                else if (which > 0)
-                  neighptr[n++] = j ^ (which << SBBITS);
-              } else
-                neighptr[n++] = j;
-            }
+            if (SIZE && history && (rsq < (radsum * radsum)))
+              j = j ^ mask_history;
+            neighptr[n++] = j;
           }
         }
       }

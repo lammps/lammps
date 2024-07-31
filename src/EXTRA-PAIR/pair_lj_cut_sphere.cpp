@@ -180,7 +180,7 @@ void PairLJCutSphere::settings(int narg, char **arg)
   }
 
   if (narg == 2) {
-    if (strcmp(arg[1], "pairwise/nlist/cutoff")) pairwisecutflag = 1;
+    if (strcmp(arg[1], "custom/neigh")) customneighcheck = 1;
     else error->all(FLERR, "Invalid pair lj/cut/sphere argument: {}", arg[1]);
   }
 }
@@ -221,7 +221,7 @@ void PairLJCutSphere::coeff(int narg, char **arg)
 
 void PairLJCutSphere::init_style()
 {
-  if (pairwisecutflag) neighbor->add_request(this, NeighConst::REQ_PAIRWISECUT);
+  if (customneighcheck) neighbor->add_request(this, NeighConst::REQ_CUSTOMCHECK);
   else Pair::init_style();
 
   if (!atom->radius_flag)
@@ -316,7 +316,7 @@ void PairLJCutSphere::write_restart_settings(FILE *fp)
   fwrite(&cut_global, sizeof(double), 1, fp);
   fwrite(&offset_flag, sizeof(int), 1, fp);
   fwrite(&mix_flag, sizeof(int), 1, fp);
-  fwrite(&pairwisecutflag, sizeof(int), 1, fp);
+  fwrite(&customneighcheck, sizeof(int), 1, fp);
 }
 
 /* ----------------------------------------------------------------------
@@ -330,12 +330,12 @@ void PairLJCutSphere::read_restart_settings(FILE *fp)
     utils::sfread(FLERR, &cut_global, sizeof(double), 1, fp, nullptr, error);
     utils::sfread(FLERR, &offset_flag, sizeof(int), 1, fp, nullptr, error);
     utils::sfread(FLERR, &mix_flag, sizeof(int), 1, fp, nullptr, error);
-    utils::sfread(FLERR, &pairwisecutflag, sizeof(int), 1, fp, nullptr, error);
+    utils::sfread(FLERR, &customneighcheck, sizeof(int), 1, fp, nullptr, error);
   }
   MPI_Bcast(&cut_global, 1, MPI_DOUBLE, 0, world);
   MPI_Bcast(&offset_flag, 1, MPI_INT, 0, world);
   MPI_Bcast(&mix_flag, 1, MPI_INT, 0, world);
-  MPI_Bcast(&pairwisecutflag, 1, MPI_INT, 0, world);
+  MPI_Bcast(&customneighcheck, 1, MPI_INT, 0, world);
 }
 
 /* ----------------------------------------------------------------------
@@ -400,10 +400,11 @@ double PairLJCutSphere::atom2cut(const int i)
 
 /* ---------------------------------------------------------------------- */
 
-double PairLJCutSphere::pair2cut(const int i, const int j)
+int PairLJCutSphere::neigh_check(const int i, const int j, const double skin, const double rsq)
 {
   double *radius = atom->radius;
   int *type = atom->type;
+  double tmp = (radius[i] + radius[j] + skin) * cut[type[i]][type[j]];
 
-  return (radius[i] + radius[j]) * cut[type[i]][type[j]];
+  return (tmp * tmp) <= rsq;
 }

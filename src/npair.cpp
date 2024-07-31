@@ -55,7 +55,7 @@ void NPair::post_constructor(NeighRequest *nrq)
 {
   cutoff_custom = 0.0;
   if (nrq->cut) cutoff_custom = nrq->cutoff;
-  if (nrq->pairwisecut) {
+  if (nrq->customcheck) {
     if (!nrq->pair) error->all(FLERR, "Invalid neighbor request");
     pair = (Pair *) nrq->requestor;
   }

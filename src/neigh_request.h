@@ -71,7 +71,7 @@ class NeighRequest : protected Pointers {
 
   int ghost;           // 1 if includes ghost atom neighbors
   int size;            // 1 if pair cutoff set by particle radius
-  int pairwisecut;     // 1 if pair cutoff set by custom pair-specific criterion
+  int customcheck;     // 1 if pair has custom neighbor criterion
   int history;         // 1 if there is also neigh history info (FixNeighHist)
   int granonesided;    // 1 if one-sided granular list for
                        //   sphere/surf interactions

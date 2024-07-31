@@ -55,26 +55,26 @@ NPairStyle(half/size/bin/newton/tri,
            NPairHalfSizeBinNewtonTri,
            NP_HALF | NP_SIZE | NP_BIN | NP_MOLONLY | NP_NEWTON | NP_TRI);
 
-typedef NPairBin<0, 1, 0, 0, 1, 0> NPairFullPairwiseCutBin;
-NPairStyle(full/pairwise/cut/bin,
-           NPairFullPairwiseCutBin,
-           NP_FULL | NP_PAIRWISECUT | NP_BIN | NP_MOLONLY |
+typedef NPairBin<0, 1, 0, 0, 1, 0> NPairFullCustomCheckCutBin;
+NPairStyle(full/customcheck/cut/bin,
+           NPairFullCustomCheckCutBin,
+           NP_FULL | NP_CUSTOMCHECK | NP_BIN | NP_MOLONLY |
            NP_NEWTON | NP_NEWTOFF | NP_ORTHO | NP_TRI);
 
-typedef NPairBin<1, 0, 0, 0, 1, 0> NPairHalfPairwiseCutBinNewtoff;
-NPairStyle(half/pairwise/cut/bin/newtoff,
-           NPairHalfPairwiseCutBinNewtoff,
-           NP_HALF | NP_PAIRWISECUT | NP_BIN | NP_MOLONLY | NP_NEWTOFF | NP_ORTHO | NP_TRI);
+typedef NPairBin<1, 0, 0, 0, 1, 0> NPairHalfCustomCheckCutBinNewtoff;
+NPairStyle(half/customcheck/cut/bin/newtoff,
+           NPairHalfCustomCheckCutBinNewtoff,
+           NP_HALF | NP_CUSTOMCHECK | NP_BIN | NP_MOLONLY | NP_NEWTOFF | NP_ORTHO | NP_TRI);
 
-typedef NPairBin<1, 1, 0, 0, 1, 0> NPairHalfPairwiseCutBinNewton;
-NPairStyle(half/pairwise/cut/bin/newton,
-           NPairHalfPairwiseCutBinNewton,
-           NP_HALF | NP_PAIRWISECUT | NP_BIN | NP_MOLONLY | NP_NEWTON | NP_ORTHO);
+typedef NPairBin<1, 1, 0, 0, 1, 0> NPairHalfCustomCheckCutBinNewton;
+NPairStyle(half/customcheck/cut/bin/newton,
+           NPairHalfCustomCheckCutBinNewton,
+           NP_HALF | NP_CUSTOMCHECK | NP_BIN | NP_MOLONLY | NP_NEWTON | NP_ORTHO);
 
-typedef NPairBin<1, 1, 1, 0, 1, 0> NPairHalfPairwiseCutBinNewtonTri;
-NPairStyle(half/pairwise/cut/bin/newton/tri,
-           NPairHalfPairwiseCutBinNewtonTri,
-           NP_HALF | NP_PAIRWISECUT | NP_BIN | NP_MOLONLY | NP_NEWTON | NP_TRI);
+typedef NPairBin<1, 1, 1, 0, 1, 0> NPairHalfCustomCheckCutBinNewtonTri;
+NPairStyle(half/customcheck/cut/bin/newton/tri,
+           NPairHalfCustomCheckCutBinNewtonTri,
+           NP_HALF | NP_CUSTOMCHECK | NP_BIN | NP_MOLONLY | NP_NEWTON | NP_TRI);
 
 typedef NPairBin<0, 1, 0, 0, 0, 1> NPairFullBinAtomonly;
 NPairStyle(full/bin/atomonly,
@@ -118,26 +118,26 @@ NPairStyle(half/size/bin/atomonly/newton/tri,
            NPairHalfSizeBinAtomonlyNewtonTri,
            NP_HALF | NP_SIZE | NP_BIN | NP_ATOMONLY | NP_NEWTON | NP_TRI);
 
-typedef NPairBin<0, 1, 0, 0, 1, 1> NPairFullPairwiseCutBinAtomonly;
-NPairStyle(full/pairwise/cut/bin/atomonly,
-           NPairFullPairwiseCutBinAtomonly,
-           NP_FULL | NP_PAIRWISECUT | NP_BIN | NP_ATOMONLY |
+typedef NPairBin<0, 1, 0, 0, 1, 1> NPairFullCustomCheckCutBinAtomonly;
+NPairStyle(full/customcheck/cut/bin/atomonly,
+           NPairFullCustomCheckCutBinAtomonly,
+           NP_FULL | NP_CUSTOMCHECK | NP_BIN | NP_ATOMONLY |
            NP_NEWTON | NP_NEWTOFF | NP_ORTHO | NP_TRI);
 
-typedef NPairBin<1, 0, 0, 0, 1, 1> NPairHalfPairwiseCutBinAtomonlyNewtoff;
-NPairStyle(half/pairwise/cut/bin/atomonly/newtoff,
-           NPairHalfPairwiseCutBinAtomonlyNewtoff,
-           NP_HALF | NP_PAIRWISECUT | NP_BIN | NP_ATOMONLY | NP_NEWTOFF | NP_ORTHO | NP_TRI);
+typedef NPairBin<1, 0, 0, 0, 1, 1> NPairHalfCustomCheckCutBinAtomonlyNewtoff;
+NPairStyle(half/customcheck/cut/bin/atomonly/newtoff,
+           NPairHalfCustomCheckCutBinAtomonlyNewtoff,
+           NP_HALF | NP_CUSTOMCHECK | NP_BIN | NP_ATOMONLY | NP_NEWTOFF | NP_ORTHO | NP_TRI);
 
-typedef NPairBin<1, 1, 0, 0, 1, 1> NPairHalfPairwiseCutBinAtomonlyNewton;
-NPairStyle(half/pairwise/cut/bin/atomonly/newton,
-           NPairHalfPairwiseCutBinAtomonlyNewton,
-           NP_HALF | NP_PAIRWISECUT | NP_BIN | NP_ATOMONLY | NP_NEWTON | NP_ORTHO);
+typedef NPairBin<1, 1, 0, 0, 1, 1> NPairHalfCustomCheckCutBinAtomonlyNewton;
+NPairStyle(half/customcheck/cut/bin/atomonly/newton,
+           NPairHalfCustomCheckCutBinAtomonlyNewton,
+           NP_HALF | NP_CUSTOMCHECK | NP_BIN | NP_ATOMONLY | NP_NEWTON | NP_ORTHO);
 
-typedef NPairBin<1, 1, 1, 0, 1, 1> NPairHalfPairwiseCutBinAtomonlyNewtonTri;
-NPairStyle(half/pairwise/cut/bin/atomonly/newton/tri,
-           NPairHalfPairwiseCutBinAtomonlyNewtonTri,
-           NP_HALF | NP_PAIRWISECUT | NP_BIN | NP_ATOMONLY | NP_NEWTON | NP_TRI);
+typedef NPairBin<1, 1, 1, 0, 1, 1> NPairHalfCustomCheckCutBinAtomonlyNewtonTri;
+NPairStyle(half/customcheck/cut/bin/atomonly/newton/tri,
+           NPairHalfCustomCheckCutBinAtomonlyNewtonTri,
+           NP_HALF | NP_CUSTOMCHECK | NP_BIN | NP_ATOMONLY | NP_NEWTON | NP_TRI);
 // clang-format on
 #else
 
@@ -148,7 +148,7 @@ NPairStyle(half/pairwise/cut/bin/atomonly/newton/tri,
 
 namespace LAMMPS_NS {
 
-template<int HALF, int NEWTON, int TRI, int SIZE, int PAIRWISE, int ATOMONLY>
+template<int HALF, int NEWTON, int TRI, int SIZE, int CUSTOMCHECK, int ATOMONLY>
 class NPairBin : public NPair {
  public:
   NPairBin(class LAMMPS *);

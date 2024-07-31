@@ -31,8 +31,8 @@ using namespace NeighConst;
 
 /* ---------------------------------------------------------------------- */
 
-template<int HALF, int NEWTON, int TRI, int SIZE, int PAIRWISE, int ATOMONLY>
-NPairBin<HALF, NEWTON, TRI, SIZE, PAIRWISE, ATOMONLY>::NPairBin(LAMMPS *lmp) : NPair(lmp) {}
+template<int HALF, int NEWTON, int TRI, int SIZE, int CUSTOMCHECK, int ATOMONLY>
+NPairBin<HALF, NEWTON, TRI, SIZE, CUSTOMCHECK, ATOMONLY>::NPairBin(LAMMPS *lmp) : NPair(lmp) {}
 
 /* ----------------------------------------------------------------------
    Full:
@@ -49,12 +49,12 @@ NPairBin<HALF, NEWTON, TRI, SIZE, PAIRWISE, ATOMONLY>::NPairBin(LAMMPS *lmp) : N
      every pair stored exactly once by some processor
 ------------------------------------------------------------------------- */
 
-template<int HALF, int NEWTON, int TRI, int SIZE, int PAIRWISE, int ATOMONLY>
-void NPairBin<HALF, NEWTON, TRI, SIZE, PAIRWISE, ATOMONLY>::build(NeighList *list)
+template<int HALF, int NEWTON, int TRI, int SIZE, int CUSTOMCHECK, int ATOMONLY>
+void NPairBin<HALF, NEWTON, TRI, SIZE, CUSTOMCHECK, ATOMONLY>::build(NeighList *list)
 {
   int i, j, jh, k, n, itype, jtype, ibin, bin_start, which, imol, iatom, moltemplate;
-  tagint itag, jtag, tagprev;
-  double xtmp, ytmp, ztmp, delx, dely, delz, rsq, radsum, cut, cutsq;
+  tagint itag, jtag, tagprev, neigh_check;
+  double xtmp, ytmp, ztmp, rtmp, delx, dely, delz, rsq, radsum, cut, cutsq;
   int *neighptr;
 
   const double delta = 0.01 * force->angstrom;
@@ -100,6 +100,7 @@ void NPairBin<HALF, NEWTON, TRI, SIZE, PAIRWISE, ATOMONLY>::build(NeighList *lis
     xtmp = x[i][0];
     ytmp = x[i][1];
     ztmp = x[i][2];
+
     if (!ATOMONLY) {
       if (moltemplate) {
         imol = molindex[i];
@@ -107,6 +108,9 @@ void NPairBin<HALF, NEWTON, TRI, SIZE, PAIRWISE, ATOMONLY>::build(NeighList *lis
         tagprev = tag[i] - iatom - 1;
       }
     }
+
+    if (SIZE)
+      rtmp = radius[i];
 
     ibin = atom2bin[i];
 
@@ -179,70 +183,46 @@ void NPairBin<HALF, NEWTON, TRI, SIZE, PAIRWISE, ATOMONLY>::build(NeighList *lis
         delz = ztmp - x[j][2];
         rsq = delx * delx + dely * dely + delz * delz;
 
-        if (SIZE || PAIRWISE) {
-
-          if (PAIRWISE) {
-            cut = pair->pair2cut(i, j);
-            cut += skin;
-          } else {
-            radsum = radius[i] + radius[j];
-            cut = radsum + skin;
-          }
+        if (CUSTOMCHECK) {
+          neigh_check = pair->neigh_check(i, j, skin, rsq);
+        } else if (SIZE) {
+          radsum = rtmp + radius[j];
+          cut = radsum + skin;
           cutsq = cut * cut;
-
-          if (ATOMONLY) {
-            if (rsq <= cutsq) {
-              jh = j;
-              if (history && rsq < (radsum * radsum))
-                jh = jh ^ mask_history;
-              neighptr[n++] = jh;
-            }
-          } else {
-            if (rsq <= cutsq) {
-              jh = j;
-              if (history && rsq < (radsum * radsum))
-                jh = jh ^ mask_history;
-
-              if (molecular != Atom::ATOMIC) {
-                if (!moltemplate)
-                  which = find_special(special[i], nspecial[i], tag[j]);
-                else if (imol >= 0)
-                  which = find_special(onemols[imol]->special[iatom], onemols[imol]->nspecial[iatom],
-                                       tag[j] - tagprev);
-                else
-                  which = 0;
-                if (which == 0)
-                  neighptr[n++] = jh;
-                else if (domain->minimum_image_check(delx, dely, delz))
-                  neighptr[n++] = jh;
-                else if (which > 0)
-                  neighptr[n++] = jh ^ (which << SBBITS);
-              } else
-                neighptr[n++] = jh;
-            }
-          }
+          neigh_check = rsq <= cutsq;
         } else {
-          if (ATOMONLY) {
-            if (rsq <= cutneighsq[itype][jtype]) neighptr[n++] = j;
+          neigh_check = rsq <= cutneighsq[itype][jtype];
+        }
+
+        if (!neigh_check) continue;
+
+        if (ATOMONLY) {
+          if (SIZE && history && (rsq < (radsum * radsum)))
+            j = j ^ mask_history;
+          neighptr[n++] = j;
+        } else {
+          if (molecular != Atom::ATOMIC) {
+            if (!moltemplate)
+              which = find_special(special[i], nspecial[i], tag[j]);
+            else if (imol >= 0)
+              which = find_special(onemols[imol]->special[iatom], onemols[imol]->nspecial[iatom],
+                                   tag[j] - tagprev);
+            else
+              which = 0;
+
+            if (SIZE && history && (rsq < (radsum * radsum)))
+              j = j ^ mask_history;
+
+            if (which == 0)
+              neighptr[n++] = j;
+            else if (domain->minimum_image_check(delx, dely, delz))
+              neighptr[n++] = j;
+            else if (which > 0)
+              neighptr[n++] = j ^ (which << SBBITS);
           } else {
-            if (rsq <= cutneighsq[itype][jtype]) {
-              if (molecular != Atom::ATOMIC) {
-                if (!moltemplate)
-                  which = find_special(special[i], nspecial[i], tag[j]);
-                else if (imol >= 0)
-                  which = find_special(onemols[imol]->special[iatom], onemols[imol]->nspecial[iatom],
-                                       tag[j] - tagprev);
-                else
-                  which = 0;
-                if (which == 0)
-                  neighptr[n++] = j;
-                else if (domain->minimum_image_check(delx, dely, delz))
-                  neighptr[n++] = j;
-                else if (which > 0)
-                  neighptr[n++] = j ^ (which << SBBITS);
-              } else
-                neighptr[n++] = j;
-            }
+            if (SIZE && history && (rsq < (radsum * radsum)))
+              j = j ^ mask_history;
+            neighptr[n++] = j;
           }
         }
       }

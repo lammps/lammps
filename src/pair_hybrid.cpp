@@ -433,7 +433,7 @@ void PairHybrid::flags()
     if (styles[m]->dispersionflag) dispersionflag = 1;
     if (styles[m]->tip4pflag) tip4pflag = 1;
     if (styles[m]->compute_flag) compute_flag = 1;
-    if (styles[m]->pairwisecutflag) pairwisecutflag = 1;
+    if (styles[m]->customneighcheck) customneighcheck = 1;
     if (styles[m]->finitecutflag) finitecutflag = 1;
   }
   single_enable = (single_enable == nstyles) ? 1 : 0;
@@ -1188,7 +1188,7 @@ double PairHybrid::atom2cut(int i)
 
   cut = 0.0;
   for (int m = 0; m < nstyles; m++) {
-    if (styles[m]->pairwisecutflag) {
+    if (styles[m]->customneighcheck) {
       temp = styles[m]->atom2cut(i);
       if (temp > cut) cut = temp;
     }
@@ -1197,21 +1197,18 @@ double PairHybrid::atom2cut(int i)
 }
 
 /* ----------------------------------------------------------------------
-   check if substyles calculate maximum interaction range for two particles
+   check if substyles have custom neighbor criterion
 ------------------------------------------------------------------------- */
 
-double PairHybrid::pair2cut(int i, int j)
+int PairHybrid::neigh_check(int i, int j, double skin, double rsq)
 {
-  double temp, cut;
-
- cut = 0.0;
+  int test = 0;
   for (int m = 0; m < nstyles; m++) {
-    if (styles[m]->pairwisecutflag) {
-      temp = styles[m]->pair2cut(i, j);
-      if (temp > cut) cut = temp;
+    if (styles[m]->customneighcheck) {
+      test = MAX(test, styles[m]->neigh_check(i, j, skin, rsq));
     }
   }
-  return cut;
+  return test;
 }
 
 /* ----------------------------------------------------------------------

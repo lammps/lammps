@@ -42,7 +42,7 @@ class PairLJCutSphere : public Pair {
   double single(int, int, int, int, double, double, double, double &) override;
   void *extract(const char *, int &) override;
   double atom2cut(int) override;
-  double pair2cut(int, int) override;
+  int neigh_check(int, int, double, double) override;
 
  protected:
   double cut_global;

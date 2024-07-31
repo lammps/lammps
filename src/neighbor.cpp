@@ -64,7 +64,7 @@ static constexpr int DELTA_PERATOM = 64;
 static constexpr double BIG = 1.0e20;
 
 enum{NONE,ALL,PARTIAL,TEMPLATE};
-enum{TYPE,RADIUS,PAIRWISE};
+enum{TYPE,RADIUS,CUSTOMCHECK};
 
 static const char cite_neigh_multi_old[] =
   "neighbor multi/old command: doi:10.1016/j.cpc.2008.03.005\n\n"
@@ -435,8 +435,8 @@ void Neighbor::init()
       if (!force->pair)
         error->all(FLERR, "Cannot use collection/interval command without defining a pairstyle");
 
-      if (force->pair->pairwisecutflag)
-        cut_style = PAIRWISE;
+      if (force->pair->customneighcheck)
+        cut_style = CUSTOMCHECK;
       else if (force->pair->finitecutflag)
         cut_style = RADIUS;
       else
@@ -1292,7 +1292,7 @@ void Neighbor::morph_skip()
 
       if (irq->ghost != jrq->ghost) continue;
       if (irq->size != jrq->size) continue;
-      if (irq->pairwisecut != jrq->pairwisecut) continue;
+      if (irq->customcheck != jrq->customcheck) continue;
       if (irq->history != jrq->history) continue;
       if (irq->bond != jrq->bond) continue;
       if (irq->omp != jrq->omp) continue;
@@ -1456,7 +1456,7 @@ void Neighbor::morph_halffull()
 
       if (irq->ghost != jrq->ghost) continue;
       if (irq->size != jrq->size) continue;
-      if (irq->pairwisecut != jrq->pairwisecut) continue;
+      if (irq->customcheck != jrq->customcheck) continue;
       if (irq->history != jrq->history) continue;
       if (irq->bond != jrq->bond) continue;
       if (irq->omp != jrq->omp) continue;
@@ -1567,7 +1567,7 @@ void Neighbor::morph_copy_trim()
       // NOTE: need check for 2 Kokkos flags?
 
       if (irq->size != jrq->size) continue;
-      if (irq->pairwisecut != jrq->pairwisecut) continue;
+      if (irq->customcheck != jrq->customcheck) continue;
       if (irq->history != jrq->history) continue;
       if (irq->bond != jrq->bond) continue;
       if (irq->intel != jrq->intel) continue;
@@ -1849,7 +1849,7 @@ void Neighbor::print_pairwise_info()
 
     if (rq->ghost) out += ", ghost";
     if (rq->size) out += ", size";
-    if (rq->pairwisecut) out += ", pairwise/cut";
+    if (rq->customcheck) out += ", custom/check";
     if (rq->history) out += ", history";
     if (rq->granonesided) out += ", onesided";
     if (rq->respamiddle) out += ", respa outer/middle/inner";
@@ -2181,7 +2181,7 @@ int Neighbor::choose_pair(NeighRequest *rq)
 
     if (!rq->ghost != !(mask & NP_GHOST)) continue;
     if (!rq->size != !(mask & NP_SIZE)) continue;
-    if (!rq->pairwisecut != !(mask & NP_PAIRWISECUT)) continue;
+    if (!rq->customcheck != !(mask & NP_CUSTOMCHECK)) continue;
     if (!rq->respaouter != !(mask & NP_RESPA)) continue;
     if (!rq->granonesided != !(mask & NP_ONESIDE)) continue;
     if (!rq->respaouter != !(mask & NP_RESPA)) continue;
@@ -2935,7 +2935,7 @@ void Neighbor::build_collection(int istart)
     memory->grow(collection, nmax_collection, "neigh:collection");
   }
 
-  if (cut_style == PAIRWISE) {
+  if (cut_style == CUSTOMCHECK) {
     double cut;
     int icollection;
     for (int i = istart; i < nmax; i++){

@@ -18,9 +18,9 @@ Syntax
 
 .. parsed-literal::
 
-     *lj/cut/sphere* args = cutoff [pairwise/nlist/cutoff]
+     *lj/cut/sphere* args = cutoff [custom/neigh]
        cutoff = global cutoff ratio for Lennard Jones interactions (unitless)
-       pairwise/nlist/criteria = separately calculate neighbor list cutoffs for each pair of atoms (optional)
+       custom/neigh = separately calculate neighbor list cutoffs for each pair of atoms (optional)
 
 Examples
 """"""""
@@ -28,7 +28,7 @@ Examples
 .. code-block:: LAMMPS
 
    pair_style lj/cut/sphere 2.5
-   pair_style lj/cut/sphere 2.5 pairwise/nlist/cutoff
+   pair_style lj/cut/sphere 2.5 custom/neigh
    pair_coeff * * 1.0
    pair_coeff 1 1 1.1 2.8
 
@@ -122,7 +122,7 @@ is at :math:`2^{\frac{1}{6}} \sigma_{ij}`.
    build causes an additional speedup of about 20 percent.
 
    Rather than assigning different atom types, an alternate solution is to
-   use the optional *pairwise/nlist/cutoff* setting. When combined with
+   use the optional *custom/neigh* setting. When combined with
    :doc:`collection intervals <neigh_modify>`, LAMMPS automatically
    calculates appropriate cutoffs based on particle radii when building the
    neighbor list. This introduces additional overhead in the neighbor list

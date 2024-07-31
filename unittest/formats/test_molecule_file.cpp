@@ -32,7 +32,7 @@ using testing::StrEq;
 
 using utils::split_words;
 
-const double EPSILON = 5.0e-14;
+static constexpr double EPSILON = 5.0e-14;
 
 #define test_name test_info_->name()
 

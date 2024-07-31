@@ -29,17 +29,18 @@ _texture_2d( vel_tex,int4);
 
 #if (SHUFFLE_AVAIL == 0)
 
-#define store_drhoE(drhoEacc, ii, inum, tid, t_per_atom, offset, drhoE)      \
-  if (t_per_atom>1) {                                                        \
-    simdsync();                                                              \
-    simd_reduce_add2(t_per_atom, red_acc, offset, tid,                       \
-                     drhoEacc.x, drhoEacc.y);                                \
-  }                                                                          \
-  if (offset==0 && ii<inum) {                                                \
-    drhoE[ii]=drhoEacc;                                                      \
+#define store_drhoE(drhoEacc, ii, inum, tid, t_per_atom, offset, i, drhoE)  \
+  if (t_per_atom>1) {                                                       \
+    simdsync();                                                             \
+    simd_reduce_add2(t_per_atom, red_acc, offset, tid,                      \
+                     drhoEacc.x, drhoEacc.y);                               \
+  }                                                                         \
+  if (offset==0 && ii<inum) {                                               \
+    drhoE[i]=drhoEacc.x;                                                    \
+    drhoE[i+inum]=drhoEacc.y;                                               \
   }
 #else
-#define store_drhoE(drhoEacc, ii, inum, tid, t_per_atom, offset, drhoE)     \
+#define store_drhoE(drhoEacc, ii, inum, tid, t_per_atom, offset, i, drhoE)  \
   if (t_per_atom>1) {                                                       \
     for (unsigned int s=t_per_atom/2; s>0; s>>=1) {                         \
       drhoEacc.x += shfl_down(drhoEacc.x, s, t_per_atom);                   \
@@ -47,7 +48,8 @@ _texture_2d( vel_tex,int4);
     }                                                                       \
   }                                                                         \
   if (offset==0 && ii<inum) {                                               \
-    drhoE[ii]=drhoEacc;                                                     \
+    drhoE[i]=drhoEacc.x;                                                    \
+    drhoE[i+inum]=drhoEacc.y;                                               \
   }
 #endif
 
@@ -105,12 +107,12 @@ __kernel void k_sph_lj(const __global numtyp4 *restrict x_,
                        const __global int * dev_packed,
                        __global acctyp3 *restrict ans,
                        __global acctyp *restrict engv,
-                       __global acctyp2 *restrict drhoE,
+                       __global acctyp *restrict drhoE,
                        const int eflag, const int vflag,
                        const int inum, const int nbor_pitch,
                        const __global numtyp4 *restrict v_,
                        const int dimension, const int t_per_atom) {
-  int tid, ii, offset;
+  int tid, ii, offset, i;
   atom_info(t_per_atom,ii,tid,offset);
 
   int n_stride;
@@ -124,10 +126,10 @@ __kernel void k_sph_lj(const __global numtyp4 *restrict x_,
     for (int i=0; i<6; i++) virial[i]=(acctyp)0;
   }
   acctyp2 drhoEacc;
-  drhoEacc.x = drhoEacc.x = (acctyp)0;
+  drhoEacc.x = drhoEacc.y = (acctyp)0;
 
   if (ii<inum) {
-    int i, numj, nbor, nbor_end;
+    int numj, nbor, nbor_end;
     nbor_info(dev_nbor,dev_packed,nbor_pitch,t_per_atom,ii,offset,i,numj,
               n_stride,nbor_end,nbor);
 
@@ -246,7 +248,7 @@ __kernel void k_sph_lj(const __global numtyp4 *restrict x_,
   } // if ii
   store_answers(f,energy,virial,ii,inum,tid,t_per_atom,offset,eflag,vflag,
                 ans,engv);
-  store_drhoE(drhoEacc,ii,inum,tid,t_per_atom,offset,drhoE);
+  store_drhoE(drhoEacc,ii,inum,tid,t_per_atom,offset,i,drhoE);
 }
 
 __kernel void k_sph_lj_fast(const __global numtyp4 *restrict x_,
@@ -258,12 +260,12 @@ __kernel void k_sph_lj_fast(const __global numtyp4 *restrict x_,
                             const __global int * dev_packed,
                             __global acctyp3 *restrict ans,
                             __global acctyp *restrict engv,
-                            __global acctyp2 *restrict drhoE,
+                            __global acctyp *restrict drhoE,
                             const int eflag, const int vflag,
                             const int inum, const int nbor_pitch,
                             const __global numtyp4 *restrict v_,
                             const int dimension, const int t_per_atom) {
-  int tid, ii, offset;
+  int tid, ii, offset, i;
   atom_info(t_per_atom,ii,tid,offset);
 
   #ifndef ONETYPE
@@ -289,10 +291,10 @@ __kernel void k_sph_lj_fast(const __global numtyp4 *restrict x_,
     for (int i=0; i<6; i++) virial[i]=(acctyp)0;
   }
   acctyp2 drhoEacc;
-  drhoEacc.x = drhoEacc.x = (acctyp)0;
+  drhoEacc.x = drhoEacc.y = (acctyp)0;
 
   if (ii<inum) {
-    int i, numj, nbor, nbor_end;
+    int numj, nbor, nbor_end;
     nbor_info(dev_nbor,dev_packed,nbor_pitch,t_per_atom,ii,offset,i,numj,
               n_stride,nbor_end,nbor);
 
@@ -325,7 +327,7 @@ __kernel void k_sph_lj_fast(const __global numtyp4 *restrict x_,
       #endif
 
       numtyp4 jx; fetch4(jx,j,pos_tex); //x_[j];
-      int jtype = jx.w;
+      int jtype=jx.w;
       #ifndef ONETYPE
       int mtype=itype+jx.w;
       const numtyp cutsq_p=coeff[mtype].z; // cutsq[itype][jtype];
@@ -415,12 +417,11 @@ __kernel void k_sph_lj_fast(const __global numtyp4 *restrict x_,
           virial[4] += delx*delz*force;
           virial[5] += dely*delz*force;
         }
-
       }
     } // for nbor
   } // if ii
 
   store_answers(f,energy,virial,ii,inum,tid,t_per_atom,offset,eflag,vflag, ans,engv);
-  store_drhoE(drhoEacc,ii,inum,tid,t_per_atom,offset,drhoE);
+  store_drhoE(drhoEacc,ii,inum,tid,t_per_atom,offset,i,drhoE);
 }
 

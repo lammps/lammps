@@ -246,7 +246,6 @@ void LAMMPS_NS::update_pair_energy(MLIAPData *data, double *eij)
 {
   double e_total = 0.0;
   const auto nlistatoms = data->nlistatoms;
-  const auto nlocal = data->nlocal;
   for (int ii = 0; ii < nlistatoms; ii++) data->eatoms[ii] = 0;
 
   for (int ii = 0; ii < data->npairs; ii++) {
@@ -254,8 +253,10 @@ void LAMMPS_NS::update_pair_energy(MLIAPData *data, double *eij)
     double e = 0.5 * eij[ii];
 
     // must not count any contribution where i is not a local atom
-    data->eatoms[i] += e;
-    e_total += e;
+    if (i < data->nlocal) {
+      data->eatoms[i] += e;
+      e_total += e;
+    }
   }
   data->energy = e_total;
 }
@@ -268,7 +269,6 @@ void LAMMPS_NS::update_pair_forces(MLIAPData *data, double *fij)
 {
   //Bugfix: need to account for Null atoms in local atoms
   //const auto nlistatoms = data->nlistatoms;
-  const auto nlocal = data->nlocal;
   double **f = data->f;
   for (int ii = 0; ii < data->npairs; ii++) {
     int ii3 = ii * 3;

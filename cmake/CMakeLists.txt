@@ -23,6 +23,7 @@ project(lammps CXX)
 set(SOVERSION 0)
 get_property(BUILD_IS_MULTI_CONFIG GLOBAL PROPERTY GENERATOR_IS_MULTI_CONFIG)
 
+include(GNUInstallDirs)
 get_filename_component(LAMMPS_DIR ${CMAKE_CURRENT_SOURCE_DIR}/.. ABSOLUTE)
 get_filename_component(LAMMPS_LIB_BINARY_DIR ${CMAKE_BINARY_DIR}/lib ABSOLUTE)
 # collect all executables and shared libs in the top level build folder
@@ -163,6 +164,22 @@ if(MSVC)
   add_compile_definitions(_CRT_SECURE_NO_WARNINGS)
 endif()
 
+# warn about potentially problematic GCC compiler versions
+if(CMAKE_CXX_COMPILER_ID STREQUAL "GNU")
+  if (CMAKE_CXX_STANDARD GREATER_EQUAL 17)
+    if (CMAKE_CXX_COMPILER_VERSION VERSION_LESS 9.0)
+      message(WARNING "Using ${CMAKE_CXX_COMPILER_ID} compiler version ${CMAKE_CXX_COMPILER_VERSION} "
+        "with C++17 is not recommended. Please use ${CMAKE_CXX_COMPILER_ID} compiler version 9.x or later")
+    endif()
+  endif()
+  if (CMAKE_CXX_STANDARD GREATER_EQUAL 11)
+    if (CMAKE_CXX_COMPILER_VERSION VERSION_LESS 5.0)
+      message(WARNING "Using ${CMAKE_CXX_COMPILER_ID} compiler version ${CMAKE_CXX_COMPILER_VERSION} "
+        "with C++11 is not recommended. Please use ${CMAKE_CXX_COMPILER_ID} compiler version 5.x or later")
+    endif()
+  endif()
+endif()
+
 # export all symbols when building a .dll file on windows
 if((CMAKE_SYSTEM_NAME STREQUAL "Windows") AND BUILD_SHARED_LIBS)
   set(CMAKE_WINDOWS_EXPORT_ALL_SYMBOLS ON)
@@ -197,18 +214,17 @@ set(LAMMPS_BINARY lmp${LAMMPS_MACHINE})
 option(BUILD_SHARED_LIBS "Build shared library" OFF)
 option(CMAKE_POSITION_INDEPENDENT_CODE "Create object compatible with shared libraries" ON)
 option(BUILD_TOOLS "Build and install LAMMPS tools (msi2lmp, binary2txt, chain)" OFF)
-option(BUILD_LAMMPS_SHELL "Build and install the LAMMPS shell" OFF)
 option(BUILD_LAMMPS_GUI "Build and install the LAMMPS GUI" OFF)
 
 # Support using clang-tidy for C++ files with selected options
 set(ENABLE_CLANG_TIDY OFF CACHE BOOL "Include clang-tidy processing when compiling")
 if(ENABLE_CLANG_TIDY)
-  set(CMAKE_CXX_CLANG_TIDY "clang-tidy;-checks=-*,performance-trivially-destructible,performance-unnecessary-copy-initialization,performance-unnecessary-value-param,readability-redundant-control-flow,readability-redundant-declaration,readability-redundant-function-ptr-dereference,readability-redundant-member-init,readability-redundant-string-cstr,readability-redundant-string-init,readability-simplify-boolean-expr,readability-static-accessed-through-instance,readability-static-definition-in-anonymous-namespace,modernize-use-override,modernize-use-bool-literals,modernize-use-emplace,modernize-return-braced-init-list,modernize-use-equals-default,modernize-use-equals-delete,modernize-replace-random-shuffle,modernize-deprecated-headers,modernize-use-nullptr,modernize-use-noexcept,modernize-redundant-void-arg;-fix;-header-filter=.*,header-filter=library.h,header-filter=fmt/*.h" CACHE STRING "clang-tidy settings")
+  set(CMAKE_CXX_CLANG_TIDY "clang-tidy;-checks=-*,performance-trivially-destructible,performance-unnecessary-copy-initialization,performance-unnecessary-value-param,readability-redundant-control-flow,readability-redundant-declaration,readability-redundant-function-ptr-dereference,readability-redundant-member-init,readability-redundant-string-cstr,readability-redundant-string-init,readability-simplify-boolean-expr,readability-static-accessed-through-instance,readability-static-definition-in-anonymous-namespace,readability-qualified-auto,misc-unused-parameters,modernize-deprecated-ios-base-aliases,modernize-loop-convert,modernize-shrink-to-fit,modernize-use-auto,modernize-use-using,modernize-use-override,modernize-use-bool-literals,modernize-use-emplace,modernize-return-braced-init-list,modernize-use-equals-default,modernize-use-equals-delete,modernize-replace-random-shuffle,modernize-deprecated-headers,modernize-use-nullptr,modernize-use-noexcept,modernize-redundant-void-arg;-fix;-header-filter=.*,header-filter=library.h,header-filter=fmt/*.h" CACHE STRING "clang-tidy settings")
 else()
   unset(CMAKE_CXX_CLANG_TIDY CACHE)
 endif()
 
-include(GNUInstallDirs)
+
 file(GLOB ALL_SOURCES CONFIGURE_DEPENDS ${LAMMPS_SOURCE_DIR}/[^.]*.cpp)
 file(GLOB MAIN_SOURCES CONFIGURE_DEPENDS ${LAMMPS_SOURCE_DIR}/main.cpp)
 list(REMOVE_ITEM ALL_SOURCES ${MAIN_SOURCES})
@@ -256,6 +272,7 @@ set(STANDARD_PACKAGES
   DRUDE
   EFF
   ELECTRODE
+  EXTRA-COMMAND
   EXTRA-COMPUTE
   EXTRA-DUMP
   EXTRA-FIX
@@ -281,10 +298,11 @@ set(STANDARD_PACKAGES
   ML-HDNNP
   ML-IAP
   ML-PACE
+  ML-POD
   ML-QUIP
   ML-RANN
   ML-SNAP
-  ML-POD
+  ML-UF3
   MOFFF
   MOLECULE
   MOLFILE
@@ -303,6 +321,7 @@ set(STANDARD_PACKAGES
   REACTION
   REAXFF
   REPLICA
+  RHEO
   RIGID
   SCAFACOS
   SHOCK
@@ -407,6 +426,7 @@ pkg_depends(CG-DNA ASPHERE)
 pkg_depends(ELECTRODE KSPACE)
 pkg_depends(EXTRA-MOLECULE MOLECULE)
 pkg_depends(MESONT MOLECULE)
+pkg_depends(RHEO BPM)
 
 # detect if we may enable OpenMP support by default
 set(BUILD_OMP_DEFAULT OFF)
@@ -547,7 +567,7 @@ else()
 endif()
 
 foreach(PKG_WITH_INCL KSPACE PYTHON ML-IAP VORONOI COLVARS ML-HDNNP MDI MOLFILE NETCDF
-        PLUMED QMMM ML-QUIP SCAFACOS MACHDYN VTK KIM COMPRESS ML-PACE LEPTON)
+        PLUMED QMMM ML-QUIP SCAFACOS MACHDYN VTK KIM COMPRESS ML-PACE LEPTON RHEO)
   if(PKG_${PKG_WITH_INCL})
     include(Packages/${PKG_WITH_INCL})
   endif()
@@ -689,7 +709,7 @@ endif()
 # packages which selectively include variants based on enabled styles
 # e.g. accelerator packages
 ######################################################################
-foreach(PKG_WITH_INCL CORESHELL DPD-SMOOTH MC MISC PHONON QEQ OPENMP KOKKOS OPT INTEL GPU)
+foreach(PKG_WITH_INCL CORESHELL DPD-BASIC DPD-SMOOTH MC MISC PHONON QEQ OPENMP KOKKOS OPT INTEL GPU)
   if(PKG_${PKG_WITH_INCL})
     include(Packages/${PKG_WITH_INCL})
   endif()
@@ -937,6 +957,7 @@ message(STATUS "<<< Compilers and Flags: >>>
 -- C++ Compiler:     ${CMAKE_CXX_COMPILER}
       Type:          ${CMAKE_CXX_COMPILER_ID}
       Version:       ${CMAKE_CXX_COMPILER_VERSION}
+      C++ Standard:  ${CMAKE_CXX_STANDARD}
       C++ Flags:    ${CMAKE_CXX_FLAGS} ${CMAKE_CXX_FLAGS_${BTYPE}}
       Defines:       ${DEFINES}")
 get_target_property(OPTIONS lammps COMPILE_OPTIONS)
@@ -1042,9 +1063,6 @@ if(BUILD_DOC)
 endif()
 if(BUILD_TOOLS)
   message(STATUS "<<< Building Tools >>>")
-endif()
-if(BUILD_LAMMPS_SHELL)
-  message(STATUS "<<< Building LAMMPS Shell >>>")
 endif()
 if(BUILD_LAMMPS_GUI)
   message(STATUS "<<< Building LAMMPS GUI >>>")

@@ -14,7 +14,6 @@
 #include "lammpsgui.h"
 
 #include <QApplication>
-#include <QFileInfo>
 
 #include <cstdio>
 #include <cstring>

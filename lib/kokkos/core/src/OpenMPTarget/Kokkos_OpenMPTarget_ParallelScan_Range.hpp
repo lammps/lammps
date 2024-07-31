@@ -143,7 +143,7 @@ class ParallelScan<FunctorType, Kokkos::RangePolicy<Traits...>,
             local_offset_value = element_values(team_id, i - 1);
             // FIXME_OPENMPTARGET We seem to access memory illegaly on AMD GPUs
 #if defined(KOKKOS_ARCH_AMD_GPU) && !defined(KOKKOS_ARCH_AMD_GFX1030) && \
-    !defined(KOKKOS_ARCH_AMD_GFX1100)
+    !defined(KOKKOS_ARCH_AMD_GFX1100) && !defined(KOKKOS_ARCH_AMD_GFX1103)
             if constexpr (Analysis::Reducer::has_join_member_function()) {
               if constexpr (std::is_void_v<WorkTag>)
                 a_functor_reducer.get_functor().join(local_offset_value,
@@ -238,8 +238,10 @@ class ParallelScanWithTotal<FunctorType, Kokkos::RangePolicy<Traits...>,
 
       if (!base_t::m_result_ptr_device_accessible) {
         const int size = base_t::m_functor_reducer.get_reducer().value_size();
-        DeepCopy<HostSpace, Kokkos::Experimental::OpenMPTargetSpace>(
-            base_t::m_result_ptr, chunk_values.data() + (n_chunks - 1), size);
+        DeepCopy<HostSpace, Kokkos::Experimental::OpenMPTargetSpace,
+                 Kokkos::Experimental::OpenMPTarget>(
+            base_t::m_policy.space(), base_t::m_result_ptr,
+            chunk_values.data() + (n_chunks - 1), size);
       }
     } else if (!base_t::m_result_ptr_device_accessible) {
       base_t::m_functor_reducer.get_reducer().init(base_t::m_result_ptr);

@@ -18,6 +18,9 @@
 
 #include <Kokkos_Core.hpp>
 
+#include <regex>
+#include <limits>
+
 namespace {
 
 TEST(TEST_CATEGORY, range_policy_runtime_parameters) {
@@ -68,6 +71,129 @@ TEST(TEST_CATEGORY, range_policy_runtime_parameters) {
     ASSERT_EQ(p1.end(), p2.end());
     ASSERT_EQ(p1.chunk_size(), p2.chunk_size());
   }
+}
+
+TEST(TEST_CATEGORY_DEATH, range_policy_invalid_bounds) {
+  using Policy    = Kokkos::RangePolicy<TEST_EXECSPACE>;
+  using ChunkSize = Kokkos::ChunkSize;
+
+  std::string msg =
+      "Kokkos::RangePolicy bounds error: The lower bound (100) is greater than "
+      "the upper bound (90).\n";
+#ifndef KOKKOS_ENABLE_DEPRECATED_CODE_4
+  // escape the parentheses in the regex to match the error message
+  msg = std::regex_replace(msg, std::regex("\\(|\\)"), "\\$&");
+  ASSERT_DEATH({ (void)Policy(100, 90); }, msg);
+
+  ASSERT_DEATH({ (void)Policy(TEST_EXECSPACE(), 100, 90, ChunkSize(10)); },
+               msg);
+#else
+
+  if (!Kokkos::show_warnings()) {
+    GTEST_SKIP() << "Kokkos warning messages are disabled";
+  }
+
+  {
+    ::testing::internal::CaptureStderr();
+    Policy policy(100, 90);
+    ASSERT_EQ((int)policy.begin(), 0);
+    ASSERT_EQ((int)policy.end(), 0);
+#ifdef KOKKOS_ENABLE_DEPRECATION_WARNINGS
+    ASSERT_EQ(::testing::internal::GetCapturedStderr(), msg);
+#else
+    ASSERT_TRUE(::testing::internal::GetCapturedStderr().empty());
+    (void)msg;
+#endif
+  }
+
+  {
+    ::testing::internal::CaptureStderr();
+    Policy policy(TEST_EXECSPACE(), 100, 90, ChunkSize(10));
+    ASSERT_EQ((int)policy.begin(), 0);
+    ASSERT_EQ((int)policy.end(), 0);
+#ifdef KOKKOS_ENABLE_DEPRECATION_WARNINGS
+    ASSERT_EQ(::testing::internal::GetCapturedStderr(), msg);
+#else
+    ASSERT_TRUE(::testing::internal::GetCapturedStderr().empty());
+    (void)msg;
+#endif
+  }
+
+#endif
+}
+
+TEST(TEST_CATEGORY_DEATH, range_policy_implicitly_converted_bounds) {
+  using UIntIndexType = Kokkos::IndexType<unsigned>;
+  using IntIndexType  = Kokkos::IndexType<int>;
+  using UIntPolicy    = Kokkos::RangePolicy<TEST_EXECSPACE, UIntIndexType>;
+  using IntPolicy     = Kokkos::RangePolicy<TEST_EXECSPACE, IntIndexType>;
+
+  std::string msg =
+      "Kokkos::RangePolicy bound type error: an unsafe implicit conversion is "
+      "performed on a bound (), which may not preserve its original value.\n";
+
+  auto get_error_msg = [](auto str, auto val) {
+    return str.insert(str.find("(") + 1, std::to_string(val).c_str());
+  };
+#ifndef KOKKOS_ENABLE_DEPRECATED_CODE_4
+  std::string expected = std::regex_replace(msg, std::regex("\\(|\\)"), "\\$&");
+  {
+    int test_val = -1;
+    ASSERT_DEATH({ (void)UIntPolicy(test_val, 10); },
+                 get_error_msg(expected, test_val));
+  }
+  {
+    unsigned test_val = std::numeric_limits<unsigned>::max();
+    ASSERT_DEATH({ (void)IntPolicy(0u, test_val); },
+                 get_error_msg(expected, test_val));
+  }
+  {
+    long long test_val = std::numeric_limits<long long>::max();
+    ASSERT_DEATH({ (void)IntPolicy(0LL, test_val); },
+                 get_error_msg(expected, test_val));
+  }
+  {
+    int test_val = -1;
+    ASSERT_DEATH({ (void)UIntPolicy(test_val, 10, Kokkos::ChunkSize(2)); },
+                 get_error_msg(expected, test_val));
+  }
+
+#else
+  {
+    ::testing::internal::CaptureStderr();
+    int test_val = -1;
+    UIntPolicy policy(test_val, 10);
+    ASSERT_EQ(policy.begin(), 0u);
+    ASSERT_EQ(policy.end(), 0u);
+#ifdef KOKKOS_ENABLE_DEPRECATION_WARNINGS
+    if (Kokkos::show_warnings()) {
+      auto s = std::string(::testing::internal::GetCapturedStderr());
+      ASSERT_EQ(s.substr(0, s.find("\n") + 1), get_error_msg(msg, test_val));
+    }
+#else
+    ASSERT_TRUE(::testing::internal::GetCapturedStderr().empty());
+    (void)msg;
+    (void)get_error_msg;
+#endif
+  }
+  {
+    ::testing::internal::CaptureStderr();
+    unsigned test_val = std::numeric_limits<unsigned>::max();
+    IntPolicy policy(0u, test_val);
+    ASSERT_EQ(policy.begin(), 0);
+    ASSERT_EQ(policy.end(), 0);
+#ifdef KOKKOS_ENABLE_DEPRECATION_WARNINGS
+    if (Kokkos::show_warnings()) {
+      auto s = std::string(::testing::internal::GetCapturedStderr());
+      ASSERT_EQ(s.substr(0, s.find("\n") + 1), get_error_msg(msg, test_val));
+    }
+#else
+    ASSERT_TRUE(::testing::internal::GetCapturedStderr().empty());
+    (void)msg;
+    (void)get_error_msg;
+#endif
+  }
+#endif
 }
 
 }  // namespace

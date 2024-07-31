@@ -489,8 +489,7 @@ using CMake or Make.
       .. code-block:: bash
 
          -D BUILD_TOOLS=value         # yes or no (default). Build binary2txt, chain.x, micelle2d.x, msi2lmp, phana, stl_bin2txt
-         -D BUILD_LAMMPS_SHELL=value  # yes or no (default). Build lammps-shell
-         -D BUILD_LAMMPS_GUI=value    # yes or no (default). Build lammps-gui
+         -D BUILD_LAMMPS_GUI=value    # yes or no (default). Build LAMMPS-GUI
 
       The generated binaries will also become part of the LAMMPS installation
       (see below).
@@ -505,8 +504,9 @@ using CMake or Make.
          make chain            # build only chain tool
          make micelle2d        # build only micelle2d tool
 
-         cd lammps/tools/lammps-shell
-         make                  # build LAMMPS shell
+      .. note::
+
+         Building the LAMMPS-GUI *requires* building LAMMPS with CMake.
 
 ----------
 

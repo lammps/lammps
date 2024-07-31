@@ -28,7 +28,6 @@
 #include <Cuda/Kokkos_Cuda_KernelLaunch.hpp>
 #include <Cuda/Kokkos_Cuda_ReduceScan.hpp>
 #include <Cuda/Kokkos_Cuda_BlockSize_Deduction.hpp>
-#include <Kokkos_MinMaxClamp.hpp>
 
 #include <impl/Kokkos_Tools.hpp>
 #include <typeinfo>
@@ -42,8 +41,8 @@ namespace Impl {
 template <typename ParallelType, typename Policy, typename LaunchBounds>
 int max_tile_size_product_helper(const Policy& pol, const LaunchBounds&) {
   cudaFuncAttributes attr =
-      CudaParallelLaunch<ParallelType,
-                         LaunchBounds>::get_cuda_func_attributes();
+      CudaParallelLaunch<ParallelType, LaunchBounds>::get_cuda_func_attributes(
+          pol.space().cuda_device());
   auto const& prop = pol.space().cuda_device_prop();
 
   // Limits due to registers/SM, MDRange doesn't have
@@ -96,7 +95,7 @@ class ParallelFor<FunctorType, Kokkos::MDRangePolicy<Traits...>, Kokkos::Cuda> {
 
   inline void execute() const {
     if (m_rp.m_num_tiles == 0) return;
-    const auto maxblocks = cuda_internal_maximum_grid_count();
+    const auto maxblocks = m_rp.space().cuda_device_prop().maxGridSize;
     if (RP::rank == 2) {
       const dim3 block(m_rp.m_tile[0], m_rp.m_tile[1], 1);
       KOKKOS_ASSERT(block.x > 0);
@@ -325,19 +324,18 @@ class ParallelReduce<CombinedFunctorReducerType,
   // Determine block size constrained by shared memory:
   inline unsigned local_block_size(const FunctorType& f) {
     unsigned n = CudaTraits::WarpSize * 8;
+    int const maxShmemPerBlock =
+        m_policy.space().cuda_device_prop().sharedMemPerBlock;
     int shmem_size =
         cuda_single_inter_block_reduce_scan_shmem<false, WorkTag, value_type>(
             f, n);
     using closure_type =
         Impl::ParallelReduce<CombinedFunctorReducer<FunctorType, ReducerType>,
                              Policy, Kokkos::Cuda>;
-    cudaFuncAttributes attr =
-        CudaParallelLaunch<closure_type,
-                           LaunchBounds>::get_cuda_func_attributes();
+    cudaFuncAttributes attr = CudaParallelLaunch<closure_type, LaunchBounds>::
+        get_cuda_func_attributes(m_policy.space().cuda_device());
     while (
-        (n &&
-         (m_policy.space().impl_internal_space_instance()->m_maxShmemPerBlock <
-          shmem_size)) ||
+        (n && (maxShmemPerBlock < shmem_size)) ||
         (n >
          static_cast<unsigned>(
              Kokkos::Impl::cuda_get_max_block_size<FunctorType, LaunchBounds>(

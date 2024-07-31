@@ -35,7 +35,8 @@ struct HIPTraits {
   static constexpr int WarpSize       = 64;
   static constexpr int WarpIndexMask  = 0x003f; /* hexadecimal for 63 */
   static constexpr int WarpIndexShift = 6;      /* WarpSize == 1 << WarpShift*/
-#elif defined(KOKKOS_ARCH_AMD_GFX1030) || defined(KOKKOS_ARCH_AMD_GFX1100)
+#elif defined(KOKKOS_ARCH_AMD_GFX1030) || defined(KOKKOS_ARCH_AMD_GFX1100) || \
+    defined(KOKKOS_ARCH_AMD_GFX1103)
   static constexpr int WarpSize       = 32;
   static constexpr int WarpIndexMask  = 0x001f; /* hexadecimal for 31 */
   static constexpr int WarpIndexShift = 5;      /* WarpSize == 1 << WarpShift*/
@@ -98,7 +99,6 @@ class HIPInternal {
   uint32_t m_instance_id =
       Kokkos::Tools::Experimental::Impl::idForInstance<HIP>(
           reinterpret_cast<uintptr_t>(this));
-  bool m_manage_stream = false;
 
   // Team Scratch Level 1 Space
   int m_n_team_scratch                            = 10;
@@ -124,7 +124,7 @@ class HIPInternal {
     return nullptr != m_scratchSpace && nullptr != m_scratchFlags;
   }
 
-  void initialize(hipStream_t stream, bool manage_stream);
+  void initialize(hipStream_t stream);
   void finalize();
 
   void print_configuration(std::ostream &) const;

@@ -15,7 +15,7 @@ Syntax
 * N = invoke this fix every N steps
 * X = average number of GCMC exchanges to attempt every N steps
 * M = average number of MC moves to attempt every N steps
-* type = atom type for inserted atoms (must be 0 if mol keyword used)
+* type = atom type (1-Ntypes or type label) for inserted atoms (must be 0 if mol keyword used)
 * seed = random # seed (positive integer)
 * T = temperature of the ideal gas reservoir (temperature units)
 * mu = chemical potential of the ideal gas reservoir (energy units)
@@ -45,7 +45,7 @@ Syntax
        *group* value = group-ID
          group-ID = group-ID for inserted atoms (string)
        *grouptype* values = type group-ID
-         type = atom type (int)
+         type = atom type (1-Ntypes or type label)
          group-ID = group-ID for inserted atoms (string)
        *intra_energy* value = intramolecular energy (energy units)
        *tfac_insert* value = scale up/down temperature of inserted atoms (unitless)
@@ -62,52 +62,47 @@ Examples
    fix 3 water gcmc 10 100 100 0 3456543 3.0 -2.5 0.1 mol my_one_water maxangle 180 full_energy
    fix 4 my_gas gcmc 1 10 10 1 123456543 300.0 -12.5 1.0 region disk
 
+   labelmap atom 1 Li
+   fix 2 ion gcmc 10 1000 1000 Li 29494 298.0 -0.5 0.01
+
 Description
 """""""""""
 
-This fix performs grand canonical Monte Carlo (GCMC) exchanges of
-atoms or molecules with an imaginary ideal gas
-reservoir at the specified T and chemical potential (mu) as discussed
-in :ref:`(Frenkel) <Frenkel2>`. It also
-attempts  Monte Carlo (MC) moves (translations and molecule
-rotations) within the simulation cell or
-region. If used with the :doc:`fix nvt <fix_nh>`
+This fix performs grand canonical Monte Carlo (GCMC) exchanges of atoms or
+molecules with an imaginary ideal gas reservoir at the specified T and
+chemical potential (mu) as discussed in :ref:`(Frenkel) <Frenkel2>`.  It
+also attempts Monte Carlo (MC) moves (translations and molecule rotations)
+within the simulation cell or region.  If used with the :doc:`fix nvt <fix_nh>`
 command, simulations in the grand canonical ensemble (muVT, constant
 chemical potential, constant volume, and constant temperature) can be
 performed.  Specific uses include computing isotherms in microporous
 materials, or computing vapor-liquid coexistence curves.
 
-Every N timesteps the fix attempts both GCMC exchanges
-(insertions or deletions) and MC moves of gas atoms or molecules.
-On those timesteps, the average number of attempted GCMC exchanges is X,
-while the average number of attempted MC moves is M.
-For GCMC exchanges of either molecular or atomic gasses,
-these exchanges can be either deletions or insertions,
-with equal probability.
+Every N timesteps the fix attempts both GCMC exchanges (insertions or
+deletions) and MC moves of gas atoms or molecules.  On those timesteps, the
+average number of attempted GCMC exchanges is X, while the average number
+of attempted MC moves is M.  For GCMC exchanges of either molecular or
+atomic gasses, these exchanges can be either deletions or insertions, with
+equal probability.
 
-The possible choices for MC moves are translation of an atom,
-translation of a molecule, and rotation of a molecule.
-The relative amounts of each are determined by the optional
-*mcmoves* keyword (see below).
-The default behavior is as follows.
-If the *mol* keyword is used, only molecule translations
-and molecule rotations are performed with equal probability.
-Conversely, if the *mol* keyword is not used, only atom
-translations are performed.
-M should typically be
-chosen to be approximately equal to the expected number of gas atoms
-or molecules of the given type within the simulation cell or region,
-which will result in roughly one MC move per atom or molecule
-per MC cycle.
+The possible choices for MC moves are translation of an atom, translation
+of a molecule, and rotation of a molecule.  The relative amounts of each are
+determined by the optional *mcmoves* keyword (see below).  The default
+behavior is as follows. If the *mol* keyword is used, only molecule
+translations and molecule rotations are performed with equal probability.
+Conversely, if the *mol* keyword is not used, only atom translations are
+performed.  M should typically be chosen to be approximately equal to the
+expected number of gas atoms or molecules of the given type within the
+simulation cell or region, which will result in roughly one MC move per
+atom or molecule per MC cycle.
 
-All inserted particles are always added to two groups: the default
-group "all" and the fix group specified in the fix command.
-In addition, particles are also added to any groups
-specified by the *group* and *grouptype* keywords.  If inserted
-particles are individual atoms, they are assigned the atom type given
-by the type argument.  If they are molecules, the type argument has no
-effect and must be set to zero. Instead, the type of each atom in the
-inserted molecule is specified in the file read by the
+All inserted particles are always added to two groups: the default group
+"all" and the fix group specified in the fix command.  In addition,
+particles are also added to any groups specified by the *group* and
+*grouptype* keywords.  If inserted particles are individual atoms, they are
+assigned the atom type given by the type argument.  If they are molecules,
+the type argument has no effect and must be set to zero. Instead, the type
+of each atom in the inserted molecule is specified in the file read by the
 :doc:`molecule <molecule>` command.
 
 .. note::
@@ -427,7 +422,7 @@ the following global cumulative quantities:
 * 7 = rotation attempts
 * 8 = rotation successes
 
-The vector values calculated by this fix are "extensive".
+The vector values calculated by this fix are "intensive".
 
 No parameter of this fix can be used with the *start/stop* keywords of
 the :doc:`run <run>` command.  This fix is not invoked during

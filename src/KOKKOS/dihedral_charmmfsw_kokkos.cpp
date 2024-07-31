@@ -47,6 +47,7 @@ static constexpr double TOLERANCE = 0.05;
 template<class DeviceType>
 DihedralCharmmfswKokkos<DeviceType>::DihedralCharmmfswKokkos(LAMMPS *lmp) : DihedralCharmmfsw(lmp)
 {
+  kokkosable = 1;
   atomKK = (AtomKokkos *) atom;
   neighborKK = (NeighborKokkos *) neighbor;
   execution_space = ExecutionSpaceFromDevice<DeviceType>::space;
@@ -122,7 +123,7 @@ void DihedralCharmmfswKokkos<DeviceType>::compute(int eflag_in, int vflag_in)
   qqrd2e = force->qqrd2e;
 
   h_warning_flag() = 0;
-  k_warning_flag.template modify<LMPHostType>();
+  k_warning_flag.modify_host();
   k_warning_flag.template sync<DeviceType>();
 
   copymode = 1;
@@ -148,7 +149,7 @@ void DihedralCharmmfswKokkos<DeviceType>::compute(int eflag_in, int vflag_in)
   // error check
 
   k_warning_flag.template modify<DeviceType>();
-  k_warning_flag.template sync<LMPHostType>();
+  k_warning_flag.sync_host();
   if (h_warning_flag())
     error->warning(FLERR,"Dihedral problem");
 
@@ -181,20 +182,20 @@ void DihedralCharmmfswKokkos<DeviceType>::compute(int eflag_in, int vflag_in)
 
   if (eflag_atom) {
     k_eatom.template modify<DeviceType>();
-    k_eatom.template sync<LMPHostType>();
+    k_eatom.sync_host();
 
     k_eatom_pair.template modify<DeviceType>();
-    k_eatom_pair.template sync<LMPHostType>();
+    k_eatom_pair.sync_host();
     for (int i = 0; i < n; i++)
       force->pair->eatom[i] += k_eatom_pair.h_view(i);
   }
 
   if (vflag_atom) {
     k_vatom.template modify<DeviceType>();
-    k_vatom.template sync<LMPHostType>();
+    k_vatom.sync_host();
 
     k_vatom_pair.template modify<DeviceType>();
-    k_vatom_pair.template sync<LMPHostType>();
+    k_vatom_pair.sync_host();
     for (int i = 0; i < n; i++) {
       force->pair->vatom[i][0] += k_vatom_pair.h_view(i,0);
       force->pair->vatom[i][1] += k_vatom_pair.h_view(i,1);
@@ -379,16 +380,17 @@ void DihedralCharmmfswKokkos<DeviceType>::operator()(TagDihedralCharmmfswCompute
     const F_FLOAT dely = x(i1,1) - x(i4,1);
     const F_FLOAT delz = x(i1,2) - x(i4,2);
     const F_FLOAT rsq = delx*delx + dely*dely + delz*delz;
+    const F_FLOAT r = sqrt(rsq);
     const F_FLOAT r2inv = 1.0/rsq;
     const F_FLOAT r6inv = r2inv*r2inv*r2inv;
 
     F_FLOAT forcecoul;
     if (implicit) forcecoul = qqrd2e * q[i1]*q[i4]*r2inv;
-    else forcecoul = qqrd2e * q[i1]*q[i4]*sqrt(r2inv);
+    else if (dihedflag) forcecoul = qqrd2e * q[i1]*q[i4]*sqrt(r2inv);
+    else forcecoul = qqrd2e * q[i1]*q[i4]*(sqrt(r2inv) - r*cut_coulinv14*cut_coulinv14);
     const F_FLOAT forcelj = r6inv * (d_lj14_1(itype,jtype)*r6inv - d_lj14_2(itype,jtype));
     const F_FLOAT fpair = d_weight[type] * (forcelj+forcecoul)*r2inv;
 
-    const F_FLOAT r = sqrt(rsq);
     F_FLOAT ecoul = 0.0;
     F_FLOAT evdwl = 0.0;
     F_FLOAT evdwl14_12, evdwl14_6;
@@ -471,12 +473,12 @@ void DihedralCharmmfswKokkos<DeviceType>::coeff(int narg, char **arg)
     k_weight.h_view[i] = weight[i];
   }
 
-  k_k.template modify<LMPHostType>();
-  k_multiplicity.template modify<LMPHostType>();
-  k_shift.template modify<LMPHostType>();
-  k_cos_shift.template modify<LMPHostType>();
-  k_sin_shift.template modify<LMPHostType>();
-  k_weight.template modify<LMPHostType>();
+  k_k.modify_host();
+  k_multiplicity.modify_host();
+  k_shift.modify_host();
+  k_cos_shift.modify_host();
+  k_sin_shift.modify_host();
+  k_weight.modify_host();
 
   k_k.template sync<DeviceType>();
   k_multiplicity.template sync<DeviceType>();
@@ -519,10 +521,10 @@ void DihedralCharmmfswKokkos<DeviceType>::init_style()
     }
   }
 
-  k_lj14_1.template modify<LMPHostType>();
-  k_lj14_2.template modify<LMPHostType>();
-  k_lj14_3.template modify<LMPHostType>();
-  k_lj14_4.template modify<LMPHostType>();
+  k_lj14_1.modify_host();
+  k_lj14_2.modify_host();
+  k_lj14_3.modify_host();
+  k_lj14_4.modify_host();
 
   k_lj14_1.template sync<DeviceType>();
   k_lj14_2.template sync<DeviceType>();
@@ -564,12 +566,12 @@ void DihedralCharmmfswKokkos<DeviceType>::read_restart(FILE *fp)
     k_weight.h_view[i] = weight[i];
   }
 
-  k_k.template modify<LMPHostType>();
-  k_multiplicity.template modify<LMPHostType>();
-  k_shift.template modify<LMPHostType>();
-  k_cos_shift.template modify<LMPHostType>();
-  k_sin_shift.template modify<LMPHostType>();
-  k_weight.template modify<LMPHostType>();
+  k_k.modify_host();
+  k_multiplicity.modify_host();
+  k_shift.modify_host();
+  k_cos_shift.modify_host();
+  k_sin_shift.modify_host();
+  k_weight.modify_host();
 
   k_k.template sync<DeviceType>();
   k_multiplicity.template sync<DeviceType>();

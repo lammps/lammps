@@ -164,18 +164,16 @@ display_help_text() {
       echo "                 AMD_GFX942      = AMD GPU MI300 GFX942"
       echo "                 AMD_GFX1030     = AMD GPU V620/W6800 GFX1030"
       echo "                 AMD_GFX1100     = AMD GPU RX 7900 XT(X) GFX1100"
+      echo "                 AMD_GFX1103     = AMD APU Radeon 740M/760M/780M/880M/890M GFX1103"
       echo "               [ARM]"
       echo "                 ARMV80          = ARMv8.0 Compatible CPU"
       echo "                 ARMV81          = ARMv8.1 Compatible CPU"
       echo "                 ARMV8_THUNDERX  = ARMv8 Cavium ThunderX CPU"
       echo "                 ARMV8_THUNDERX2 = ARMv8 Cavium ThunderX2 CPU"
       echo "               [IBM]"
-      echo "                 BGQ             = IBM Blue Gene Q"
-      echo "                 Power7          = IBM POWER7 and POWER7+ CPUs"
       echo "                 Power8          = IBM POWER8 CPUs"
       echo "                 Power9          = IBM POWER9 CPUs"
       echo "               [Intel]"
-      echo "                 WSM             = Intel Westmere CPUs"
       echo "                 SNB             = Intel Sandy/Ivy Bridge CPUs"
       echo "                 HSW             = Intel Haswell CPUs"
       echo "                 BDW             = Intel Broadwell Xeon E-class CPUs"
@@ -226,7 +224,6 @@ display_help_text() {
       echo "--with-gtest=/Path/To/Gtest:  Set path to gtest.  (Used in unit and performance"
       echo "                                tests.)"
       echo "--with-hwloc=/Path/To/Hwloc:  Set path to hwloc library."
-      echo "--with-memkind=/Path/To/MemKind:  Set path to memkind library."
       echo "--with-options=[OPT]:         Additional options to Kokkos:"
       echo "                                compiler_warnings"
       echo "                                aggressive_vectorization = add ivdep on loops"
@@ -342,10 +339,6 @@ do
       KOKKOS_HWLOC=ON
       HWLOC_PATH="${key#*=}"
       ;;
-    --with-memkind*)
-      KOKKOS_MEMKIND=ON
-      MEMKIND_PATH="${key#*=}"
-      ;;
     --arch*)
       KOKKOS_ARCH="${key#*=}"
       ;;
@@ -452,15 +445,6 @@ else
     KOKKOS_HWLOC_CMD=
 fi
 
-if [ "$KOKKOS_MEMKIND" == "ON" ]; then
-    KOKKOS_MEMKIND_CMD=-DKokkos_ENABLE_MEMKIND=ON
-    if [ "$MEMKIND_PATH" != "" ]; then
-      KOKKOS_MEMKIND_PATH_CMD=-DMEMKIND_ROOT=$MEMKIND_PATH
-    fi
-else
-    KOKKOS_MEMKIND_CMD=
-fi
-
 if [ ! -e ${KOKKOS_PATH}/CMakeLists.txt ]; then
    if [ "${KOKKOS_PATH}" == "" ]; then
       CM_SCRIPT=$0
@@ -506,5 +490,5 @@ if [[ ${COMPILER} == *clang* ]]; then
    fi
 fi
 
-echo cmake $COMPILER_CMD  -DCMAKE_CXX_FLAGS="${KOKKOS_CXXFLAGS}" -DCMAKE_EXE_LINKER_FLAGS="${KOKKOS_LDFLAGS}" -DCMAKE_INSTALL_PREFIX=${PREFIX} ${KOKKOS_DEVICE_CMD} ${KOKKOS_ARCH_CMD} -DKokkos_ENABLE_TESTS=${KOKKOS_DO_TESTS} -DKokkos_ENABLE_EXAMPLES=${KOKKOS_DO_EXAMPLES} ${KOKKOS_OPTION_CMD} ${KOKKOS_CUDA_OPTION_CMD} ${KOKKOS_HIP_OPTION_CMD} -DCMAKE_VERBOSE_MAKEFILE=ON -DCMAKE_CXX_EXTENSIONS=OFF ${STANDARD_CMD} ${KOKKOS_DEBUG_CMD} ${KOKKOS_BC_CMD} ${KOKKOS_HWLOC_CMD} ${KOKKOS_HWLOC_PATH_CMD} ${KOKKOS_MEMKIND_CMD} ${KOKKOS_MEMKIND_PATH_CMD} -DKokkos_ENABLE_DEPRECATION_WARNINGS=${KOKKOS_DEPRECATED_CODE_WARNINGS} -DKokkos_ENABLE_DEPRECATED_CODE_4=${KOKKOS_DEPRECATED_CODE} ${KOKKOS_PATH}
-cmake $COMPILER_CMD  -DCMAKE_CXX_FLAGS="${KOKKOS_CXXFLAGS//\"}" -DCMAKE_EXE_LINKER_FLAGS="${KOKKOS_LDFLAGS//\"}" -DCMAKE_INSTALL_PREFIX=${PREFIX} ${KOKKOS_DEVICE_CMD} ${KOKKOS_ARCH_CMD} -DKokkos_ENABLE_TESTS=${KOKKOS_DO_TESTS} -DKokkos_ENABLE_EXAMPLES=${KOKKOS_DO_EXAMPLES} ${KOKKOS_OPTION_CMD} ${KOKKOS_CUDA_OPTION_CMD} ${KOKKOS_HIP_OPTION_CMD} -DCMAKE_VERBOSE_MAKEFILE=ON -DCMAKE_CXX_EXTENSIONS=OFF ${STANDARD_CMD} ${KOKKOS_DEBUG_CMD} ${KOKKOS_BC_CMD} ${KOKKOS_HWLOC_CMD} ${KOKKOS_HWLOC_PATH_CMD} ${KOKKOS_MEMKIND_CMD} ${KOKKOS_MEMKIND_PATH_CMD} ${PASSTHRU_CMAKE_FLAGS} -DKokkos_ENABLE_DEPRECATION_WARNINGS=${KOKKOS_DEPRECATED_CODE_WARNINGS} -DKokkos_ENABLE_DEPRECATED_CODE_4=${KOKKOS_DEPRECATED_CODE} ${KOKKOS_PATH}
+echo cmake $COMPILER_CMD  -DCMAKE_CXX_FLAGS="${KOKKOS_CXXFLAGS}" -DCMAKE_EXE_LINKER_FLAGS="${KOKKOS_LDFLAGS}" -DCMAKE_INSTALL_PREFIX=${PREFIX} ${KOKKOS_DEVICE_CMD} ${KOKKOS_ARCH_CMD} -DKokkos_ENABLE_TESTS=${KOKKOS_DO_TESTS} -DKokkos_ENABLE_EXAMPLES=${KOKKOS_DO_EXAMPLES} ${KOKKOS_OPTION_CMD} ${KOKKOS_CUDA_OPTION_CMD} ${KOKKOS_HIP_OPTION_CMD} -DCMAKE_VERBOSE_MAKEFILE=ON -DCMAKE_CXX_EXTENSIONS=OFF ${STANDARD_CMD} ${KOKKOS_DEBUG_CMD} ${KOKKOS_BC_CMD} ${KOKKOS_HWLOC_CMD} ${KOKKOS_HWLOC_PATH_CMD} -DKokkos_ENABLE_DEPRECATION_WARNINGS=${KOKKOS_DEPRECATED_CODE_WARNINGS} -DKokkos_ENABLE_DEPRECATED_CODE_4=${KOKKOS_DEPRECATED_CODE} ${KOKKOS_PATH}
+cmake $COMPILER_CMD  -DCMAKE_CXX_FLAGS="${KOKKOS_CXXFLAGS//\"}" -DCMAKE_EXE_LINKER_FLAGS="${KOKKOS_LDFLAGS//\"}" -DCMAKE_INSTALL_PREFIX=${PREFIX} ${KOKKOS_DEVICE_CMD} ${KOKKOS_ARCH_CMD} -DKokkos_ENABLE_TESTS=${KOKKOS_DO_TESTS} -DKokkos_ENABLE_EXAMPLES=${KOKKOS_DO_EXAMPLES} ${KOKKOS_OPTION_CMD} ${KOKKOS_CUDA_OPTION_CMD} ${KOKKOS_HIP_OPTION_CMD} -DCMAKE_VERBOSE_MAKEFILE=ON -DCMAKE_CXX_EXTENSIONS=OFF ${STANDARD_CMD} ${KOKKOS_DEBUG_CMD} ${KOKKOS_BC_CMD} ${KOKKOS_HWLOC_CMD} ${KOKKOS_HWLOC_PATH_CMD} ${PASSTHRU_CMAKE_FLAGS} -DKokkos_ENABLE_DEPRECATION_WARNINGS=${KOKKOS_DEPRECATED_CODE_WARNINGS} -DKokkos_ENABLE_DEPRECATED_CODE_4=${KOKKOS_DEPRECATED_CODE} ${KOKKOS_PATH}

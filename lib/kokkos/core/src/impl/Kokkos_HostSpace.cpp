@@ -20,22 +20,10 @@
 
 #include <Kokkos_Macros.hpp>
 
+#include <Kokkos_Atomic.hpp>
+#include <Kokkos_HostSpace.hpp>
 #include <impl/Kokkos_Error.hpp>
-#include <impl/Kokkos_MemorySpace.hpp>
 #include <impl/Kokkos_Tools.hpp>
-
-/*--------------------------------------------------------------------------*/
-
-#if (defined(KOKKOS_COMPILER_INTEL) || defined(KOKKOS_COMPILER_INTEL_LLVM)) && \
-    !defined(KOKKOS_ENABLE_CUDA)
-
-// Intel specialized allocator does not interoperate with CUDA memory allocation
-
-#define KOKKOS_ENABLE_INTEL_MM_ALLOC
-
-#endif
-
-/*--------------------------------------------------------------------------*/
 
 #include <cstddef>
 #include <cstdlib>
@@ -49,10 +37,6 @@
 #ifdef KOKKOS_COMPILER_INTEL
 #include <aligned_new>
 #endif
-
-#include <Kokkos_HostSpace.hpp>
-#include <impl/Kokkos_Error.hpp>
-#include <Kokkos_Atomic.hpp>
 
 //----------------------------------------------------------------------------
 //----------------------------------------------------------------------------
@@ -150,84 +134,6 @@ void HostSpace::impl_deallocate(
 
 }  // namespace Kokkos
 
-//----------------------------------------------------------------------------
-//----------------------------------------------------------------------------
-
-namespace Kokkos {
-namespace Impl {
-
-#ifdef KOKKOS_ENABLE_DEBUG
-SharedAllocationRecord<void, void>
-    SharedAllocationRecord<Kokkos::HostSpace, void>::s_root_record;
-#endif
-
-SharedAllocationRecord<Kokkos::HostSpace, void>::~SharedAllocationRecord() {
-  m_space.deallocate(m_label.c_str(),
-                     SharedAllocationRecord<void, void>::m_alloc_ptr,
-                     SharedAllocationRecord<void, void>::m_alloc_size,
-                     (SharedAllocationRecord<void, void>::m_alloc_size -
-                      sizeof(SharedAllocationHeader)));
-}
-
-SharedAllocationHeader *_do_allocation(Kokkos::HostSpace const &space,
-                                       std::string const &label,
-                                       size_t alloc_size) {
-  try {
-    return reinterpret_cast<SharedAllocationHeader *>(
-        space.allocate(alloc_size));
-  } catch (Experimental::RawMemoryAllocationFailure const &failure) {
-    if (failure.failure_mode() == Experimental::RawMemoryAllocationFailure::
-                                      FailureMode::AllocationNotAligned) {
-      // TODO: delete the misaligned memory
-    }
-
-    std::cerr << "Kokkos failed to allocate memory for label \"" << label
-              << "\".  Allocation using MemorySpace named \"" << space.name()
-              << " failed with the following error:  ";
-    failure.print_error_message(std::cerr);
-    std::cerr.flush();
-    Kokkos::Impl::throw_runtime_exception("Memory allocation failure");
-  }
-  return nullptr;  // unreachable
-}
-
-SharedAllocationRecord<Kokkos::HostSpace, void>::SharedAllocationRecord(
-    const Kokkos::HostSpace &arg_space, const std::string &arg_label,
-    const size_t arg_alloc_size,
-    const SharedAllocationRecord<void, void>::function_type arg_dealloc)
-    // Pass through allocated [ SharedAllocationHeader , user_memory ]
-    // Pass through deallocation function
-    : base_t(
-#ifdef KOKKOS_ENABLE_DEBUG
-          &SharedAllocationRecord<Kokkos::HostSpace, void>::s_root_record,
-#endif
-          Impl::checked_allocation_with_header(arg_space, arg_label,
-                                               arg_alloc_size),
-          sizeof(SharedAllocationHeader) + arg_alloc_size, arg_dealloc,
-          arg_label),
-      m_space(arg_space) {
-  this->base_t::_fill_host_accessible_header_info(*RecordBase::m_alloc_ptr,
-                                                  arg_label);
-}
-
-}  // namespace Impl
-}  // namespace Kokkos
-
-//==============================================================================
-// <editor-fold desc="Explicit instantiations of CRTP Base classes"> {{{1
-
 #include <impl/Kokkos_SharedAlloc_timpl.hpp>
 
-namespace Kokkos {
-namespace Impl {
-
-// To avoid additional compilation cost for something that's (mostly?) not
-// performance sensitive, we explicity instantiate these CRTP base classes here,
-// where we have access to the associated *_timpl.hpp header files.
-template class SharedAllocationRecordCommon<Kokkos::HostSpace>;
-
-}  // end namespace Impl
-}  // end namespace Kokkos
-
-// </editor-fold> end Explicit instantiations of CRTP Base classes }}}1
-//==============================================================================
+KOKKOS_IMPL_SHARED_ALLOCATION_RECORD_EXPLICIT_INSTANTIATION(Kokkos::HostSpace);

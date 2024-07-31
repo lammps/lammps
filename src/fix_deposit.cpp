@@ -54,15 +54,16 @@ FixDeposit::FixDeposit(LAMMPS *lmp, int narg, char **arg) :
   if (narg < 7) error->all(FLERR,"Illegal fix deposit command");
 
   scalar_flag = 1;
+  extscalar = 0;
   restart_global = 1;
   time_depend = 1;
 
   // required args
 
-  ninsert = utils::inumeric(FLERR,arg[3],false,lmp);
-  ntype = utils::inumeric(FLERR,arg[4],false,lmp);
-  nfreq = utils::inumeric(FLERR,arg[5],false,lmp);
-  seed = utils::inumeric(FLERR,arg[6],false,lmp);
+  ninsert = utils::inumeric(FLERR, arg[3], false, lmp);
+  ntype = utils::expand_type_int(FLERR, arg[4], Atom::ATOM, lmp);
+  nfreq = utils::inumeric(FLERR, arg[5], false, lmp);
+  seed = utils::inumeric(FLERR, arg[6], false, lmp);
 
   if (seed <= 0) error->all(FLERR,"Illegal fix deposit command");
 
@@ -629,7 +630,7 @@ void FixDeposit::pre_exchange()
   // rebuild atom map
 
   if (atom->map_style != Atom::MAP_NONE) {
-    if (success) atom->map_init();
+    atom->map_init();
     atom->map_set();
   }
 

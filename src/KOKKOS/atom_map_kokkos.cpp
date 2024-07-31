@@ -190,128 +190,64 @@ void AtomKokkos::map_set_device()
 
   atomKK->sync(Device, TAG_MASK);
 
+  int map_style_array = (map_style == MAP_ARRAY);
+
   auto d_tag = atomKK->k_tag.d_view;
   auto d_sametag = k_sametag.d_view;
 
-  // sort by tag
-
   int nmax = atom->nmax;
 
-  int realloc_flag = 0;
-  if (!d_tag_sorted.data() || (int)d_tag_sorted.extent(0) < nmax) {
-    MemKK::realloc_kokkos(d_tag_sorted,"atom:tag_sorted",nmax);
-    MemKK::realloc_kokkos(d_i_sorted,"atom:i_sorted",nmax);
-    realloc_flag = 1;
-  }
+  // sort by tag then local id
 
-  h_tag_min() = MAXTAGINT;
-  h_tag_max() = 0;
+  if (!d_sorted.data() || (int)d_sorted.extent(0) < nmax)
+    MemKK::realloc_kokkos(d_sorted,"atom:sorted",nmax);
 
-  Kokkos::deep_copy(d_tag_min_max,h_tag_min_max);
-
-  auto l_tag_sorted = d_tag_sorted;
-  auto l_i_sorted = d_i_sorted;
-  auto l_tag_min = d_tag_min;
-  auto l_tag_max = d_tag_max;
-  int map_style_array = (map_style == MAP_ARRAY);
+  auto l_sorted = Kokkos::subview(d_sorted,std::make_pair(0,nall));
 
   Kokkos::parallel_for(nall, LAMMPS_LAMBDA(int i) {
-    l_i_sorted(i) = i;
-    tagint tag_i = d_tag(i);
-    l_tag_sorted(i) = tag_i;
-    Kokkos::atomic_min(&l_tag_min(),tag_i);
-    Kokkos::atomic_max(&l_tag_max(),tag_i);
+    l_sorted(i).i = i;
+    l_sorted(i).tag = d_tag(i);
   });
 
-  Kokkos::deep_copy(h_tag_min_max,d_tag_min_max);
-
-  tagint min = h_tag_min();
-  tagint max = h_tag_max();
-
-  using MapKeyViewType = decltype(d_tag_sorted);
-  using BinOpMap = Kokkos::BinOp1D<MapKeyViewType>;
-
-  mapBinner = BinOpMap(nall, min, max);
-
-  if (realloc_flag) {
-    mapSorter = Kokkos::BinSort<MapKeyViewType, BinOpMap>(d_tag_sorted, 0, nall, mapBinner, true);
-    MemKK::realloc_kokkos(mapSorter.bin_count_atomic,"Kokkos::SortImpl::BinSortFunctor::bin_count",nmax+1);
-    Kokkos::deep_copy(mapSorter.bin_count_atomic,0);
-    mapSorter.bin_count_const = mapSorter.bin_count_atomic;
-    MemKK::realloc_kokkos(mapSorter.bin_offsets,"Kokkos::SortImpl::BinSortFunctor::bin_offsets",nmax+1);
-    MemKK::realloc_kokkos(mapSorter.sort_order,"Kokkos::SortImpl::BinSortFunctor::sort_order",nmax);
-  } else {
-    Kokkos::deep_copy(mapSorter.bin_count_atomic,0);
-    mapSorter.bin_op = mapBinner;
-    mapSorter.range_begin = 0;
-    mapSorter.range_end = nall;
-  }
-
-  mapSorter.create_permute_vector(LMPDeviceType());
-  mapSorter.sort(LMPDeviceType(), d_tag_sorted, 0, nall);
-  mapSorter.sort(LMPDeviceType(), d_i_sorted, 0, nall);
+  Kokkos::sort(LMPDeviceType(),l_sorted,MyComp{});
 
   auto d_map_array = k_map_array.d_view;
   auto d_map_hash = k_map_hash.d_view;
-  d_map_hash.clear();
+  if (!map_style_array)
+    d_map_hash.clear();
 
   auto d_error_flag = k_error_flag.d_view;
   Kokkos::deep_copy(d_error_flag,0);
 
-  // for each tag find:
-  //  neighboring atoms with closest local id for sametag
   //  atom with smallest local id for atom map
 
   Kokkos::parallel_for(nall, LAMMPS_LAMBDA(int ii) {
-    const int i = l_i_sorted(ii);
-    const tagint tag_i = l_tag_sorted(ii);
 
-    int i_min = i;
-    int i_closest = MAXSMALLINT;
+    const int i = l_sorted(ii).i;
+    const tagint tag_i = l_sorted(ii).tag;
 
-    // search atoms with same tag in the forward direction
+    // sametag
 
+    tagint tag_j = -1;
     int jj = ii+1;
-    int closest_flag = 0;
+    if (jj < nall) tag_j = l_sorted(jj).tag;
 
-    while (jj < nall) {
-      const tagint tag_j = l_tag_sorted(jj);
-      if (tag_j != tag_i) break;
-      const int j = l_i_sorted(jj);
-      i_min = MIN(i_min,j);
-      if (j > i) {
-        i_closest = MIN(i_closest,j);
-        closest_flag = 1;
-      }
-      jj++;
-    }
+    if (tag_j == tag_i)
+      d_sametag(i) = l_sorted(jj).i;
+    else
+      d_sametag(i) = -1;
 
-    // search atoms with same tag in the reverse direction
+    // atom map
 
+    tag_j = -1;
     jj = ii-1;
+    if (jj >= 0) tag_j = l_sorted(jj).tag;
 
-    while (jj >= 0) {
-      const tagint tag_j = l_tag_sorted(jj);
-      if (tag_j != tag_i) break;
-      const int j = l_i_sorted(jj);
-      i_min = MIN(i_min,j);
-      if (j > i) {
-        i_closest = MIN(i_closest,j);
-        closest_flag = 1;
-      }
-      jj--;
-    }
-
-    if (!closest_flag)
-      i_closest = -1;
-
-    d_sametag(i) = i_closest;
-
-    if (i == i_min) {
+    if (tag_j != tag_i) {
       if (map_style_array)
-        d_map_array(tag_i) = i_min;
+        d_map_array(tag_i) = i;
       else {
-        auto insert_result = d_map_hash.insert(tag_i, i_min);
+        auto insert_result = d_map_hash.insert(tag_i, i);
         if (insert_result.failed()) d_error_flag() = 1;
       }
     }

@@ -98,6 +98,16 @@ class OpenMPTargetSpace {
   ~OpenMPTargetSpace()                                   = default;
 
   /**\brief  Allocate untracked memory in the space */
+  // FIXME_OPENMPTARGET Use execution space instance
+  void* allocate(const OpenMPTarget&, const size_t arg_alloc_size) const {
+    return allocate(arg_alloc_size);
+  }
+  // FIXME_OPENMPTARGET Use execution space instance
+  void* allocate(const OpenMPTarget&, const char* arg_label,
+                 const size_t arg_alloc_size,
+                 const size_t arg_logical_size = 0) const {
+    return allocate(arg_label, arg_alloc_size, arg_logical_size);
+  }
   void* allocate(const size_t arg_alloc_size) const;
   void* allocate(const char* arg_label, const size_t arg_alloc_size,
                  const size_t arg_logical_size = 0) const;
@@ -121,9 +131,6 @@ class OpenMPTargetSpace {
                        const size_t arg_logical_size = 0,
                        const Kokkos::Tools::SpaceHandle =
                            Kokkos::Tools::make_space_handle(name())) const;
-
-  friend class Kokkos::Impl::SharedAllocationRecord<
-      Kokkos::Experimental::OpenMPTargetSpace, void>;
 };
 }  // namespace Experimental
 }  // namespace Kokkos
@@ -131,64 +138,8 @@ class OpenMPTargetSpace {
 //----------------------------------------------------------------------------
 //----------------------------------------------------------------------------
 
-namespace Kokkos {
-namespace Impl {
-
-template <>
-class SharedAllocationRecord<Kokkos::Experimental::OpenMPTargetSpace, void>
-    : public HostInaccessibleSharedAllocationRecordCommon<
-          Kokkos::Experimental::OpenMPTargetSpace> {
- private:
-  friend class HostInaccessibleSharedAllocationRecordCommon<
-      Kokkos::Experimental::OpenMPTargetSpace>;
-  friend class SharedAllocationRecordCommon<
-      Kokkos::Experimental::OpenMPTargetSpace>;
-  friend Kokkos::Experimental::OpenMPTargetSpace;
-
-  using base_t = HostInaccessibleSharedAllocationRecordCommon<
-      Kokkos::Experimental::OpenMPTargetSpace>;
-  using RecordBase = SharedAllocationRecord<void, void>;
-
-  SharedAllocationRecord(const SharedAllocationRecord&) = delete;
-  SharedAllocationRecord& operator=(const SharedAllocationRecord&) = delete;
-
-  /**\brief  Root record for tracked allocations from this OpenMPTargetSpace
-   * instance */
-  static RecordBase s_root_record;
-
-  const Kokkos::Experimental::OpenMPTargetSpace m_space;
-
- protected:
-  ~SharedAllocationRecord();
-  SharedAllocationRecord() = default;
-
-  template <typename ExecutionSpace>
-  SharedAllocationRecord(
-      const ExecutionSpace& /*exec_space*/,
-      const Kokkos::Experimental::OpenMPTargetSpace& arg_space,
-      const std::string& arg_label, const size_t arg_alloc_size,
-      const RecordBase::function_type arg_dealloc = &deallocate)
-      : SharedAllocationRecord(arg_space, arg_label, arg_alloc_size,
-                               arg_dealloc) {}
-
-  SharedAllocationRecord(
-      const Kokkos::Experimental::OpenMPTargetSpace& arg_space,
-      const std::string& arg_label, const size_t arg_alloc_size,
-      const RecordBase::function_type arg_dealloc = &deallocate);
-
- public:
-  KOKKOS_INLINE_FUNCTION static SharedAllocationRecord* allocate(
-      const Kokkos::Experimental::OpenMPTargetSpace& arg_space,
-      const std::string& arg_label, const size_t arg_alloc) {
-    KOKKOS_IF_ON_HOST(
-        (return new SharedAllocationRecord(arg_space, arg_label, arg_alloc);))
-    KOKKOS_IF_ON_DEVICE(
-        ((void)arg_space; (void)arg_label; (void)arg_alloc; return nullptr;))
-  }
-};
-
-}  // namespace Impl
-}  // namespace Kokkos
+KOKKOS_IMPL_HOST_INACCESSIBLE_SHARED_ALLOCATION_SPECIALIZATION(
+    Kokkos::Experimental::OpenMPTargetSpace);
 
 //----------------------------------------------------------------------------
 //----------------------------------------------------------------------------

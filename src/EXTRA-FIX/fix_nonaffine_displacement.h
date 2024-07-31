@@ -48,15 +48,14 @@ class FixNonaffineDisplacement : public Fix {
   int nmax, comm_flag;
   int nad_style, cut_style;
   int reference_style, offset_timestep, reference_timestep, update_timestep;
-  int reference_saved;
+  int reference_saved, z_min;
   double cutoff_custom, cutsq_custom, mycutneigh;
   double xprd0, yprd0, zprd0, xprd0_half, yprd0_half, zprd0_half, xy0, xz0, yz0;
 
   double *D2min, ***X, ***Y, ***F;
-  int *norm;
+  int *norm, *singular;
 
   class NeighList *list;    // half neighbor list
-
 
   void integrate_velocity();
   void calculate_D2Min();

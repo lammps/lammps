@@ -314,7 +314,7 @@ TEST_F(GroupTest, Dynamic)
                  command("group ramp variable grow"););
 }
 
-constexpr double EPSILON = 1.0e-13;
+static constexpr double EPSILON = 1.0e-13;
 
 TEST_F(GroupTest, VariableFunctions)
 {
@@ -341,9 +341,9 @@ TEST_F(GroupTest, VariableFunctions)
     int three = group->find("three");
     int four  = group->find("four");
 
-    auto right = domain->get_region_by_id("right");
-    auto left  = domain->get_region_by_id("left");
-    auto top   = domain->get_region_by_id("top");
+    auto *right = domain->get_region_by_id("right");
+    auto *left  = domain->get_region_by_id("left");
+    auto *top   = domain->get_region_by_id("top");
 
     EXPECT_EQ(group->count_all(), 64);
     EXPECT_EQ(group->count(one), 16);

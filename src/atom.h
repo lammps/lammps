@@ -155,6 +155,13 @@ class Atom : protected Pointers {
   double *eff_plastic_strain_rate;
   double *damage;
 
+  // RHEO package
+
+  int *rheo_status;
+  double *conductivity;
+  double *pressure;
+  double *viscosity;
+
   // SPH package
 
   double *rho, *drho, *esph, *desph, *cv;
@@ -190,6 +197,7 @@ class Atom : protected Pointers {
   int temperature_flag, heatflow_flag;
   int vfrac_flag, spin_flag, eradius_flag, ervel_flag, erforce_flag;
   int cs_flag, csforce_flag, vforce_flag, ervelforce_flag, etag_flag;
+  int rheo_status_flag, conductivity_flag, pressure_flag, viscosity_flag;
   int rho_flag, esph_flag, cv_flag, vest_flag;
   int dpd_flag, edpd_flag, tdpd_flag;
   int mesont_flag;
@@ -327,9 +335,9 @@ class Atom : protected Pointers {
 
   int parse_data(const char *);
 
-  void deallocate_topology();
+  virtual void deallocate_topology();
 
-  void data_atoms(int, char *, tagint, tagint, int, int, double *, int, int *);
+  void data_atoms(int, char *, tagint, tagint, int, int, double *, int, int *, int);
   void data_vels(int, char *, tagint);
   void data_bonds(int, char *, int *, tagint, int, int, int *);
   void data_angles(int, char *, int *, tagint, int, int, int *);

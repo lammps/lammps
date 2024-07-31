@@ -84,11 +84,12 @@
 
 //----------------------------------------------------------------------------
 
-#if !defined(KOKKOS_ENABLE_THREADS) && !defined(KOKKOS_ENABLE_CUDA) &&     \
-    !defined(KOKKOS_ENABLE_OPENMP) && !defined(KOKKOS_ENABLE_HPX) &&       \
-    !defined(KOKKOS_ENABLE_OPENMPTARGET) && !defined(KOKKOS_ENABLE_HIP) && \
-    !defined(KOKKOS_ENABLE_SYCL)
-#define KOKKOS_INTERNAL_NOT_PARALLEL
+#if defined(KOKKOS_ENABLE_ATOMICS_BYPASS) &&                              \
+    (defined(KOKKOS_ENABLE_THREADS) || defined(KOKKOS_ENABLE_CUDA) ||     \
+     defined(KOKKOS_ENABLE_OPENMP) || defined(KOKKOS_ENABLE_HPX) ||       \
+     defined(KOKKOS_ENABLE_OPENMPTARGET) || defined(KOKKOS_ENABLE_HIP) || \
+     defined(KOKKOS_ENABLE_SYCL) || defined(KOKKOS_ENABLE_OPENACC))
+#error Atomics may only be disabled if neither a host parallel nor a device backend is enabled
 #endif
 
 #define KOKKOS_ENABLE_CXX11_DISPATCH_LAMBDA
@@ -339,12 +340,6 @@
 #define KOKKOS_IMPL_DEVICE_FUNCTION
 #endif
 
-// Temporary solution for SYCL not supporting printf in kernels.
-// Might disappear at any point once we have found another solution.
-#if !defined(KOKKOS_IMPL_DO_NOT_USE_PRINTF)
-#define KOKKOS_IMPL_DO_NOT_USE_PRINTF(...) ::printf(__VA_ARGS__)
-#endif
-
 //----------------------------------------------------------------------------
 // Define final version of functions. This is so that clang tidy can find these
 // macros more easily
@@ -433,22 +428,6 @@
 #define KOKKOS_ENABLE_DEFAULT_DEVICE_TYPE_SERIAL
 #endif
 
-//----------------------------------------------------------------------------
-// Determine for what space the code is being compiled:
-#if defined(KOKKOS_ENABLE_DEPRECATED_CODE_3)
-
-#if defined(__CUDACC__) && defined(__CUDA_ARCH__) && defined(KOKKOS_ENABLE_CUDA)
-#define KOKKOS_ACTIVE_EXECUTION_MEMORY_SPACE_CUDA
-#elif defined(__SYCL_DEVICE_ONLY__) && defined(KOKKOS_ENABLE_SYCL)
-#define KOKKOS_ACTIVE_EXECUTION_MEMORY_SPACE_SYCL
-#elif defined(__HIPCC__) && defined(__HIP_DEVICE_COMPILE__) && \
-    defined(KOKKOS_ENABLE_HIP)
-#define KOKKOS_ACTIVE_EXECUTION_MEMORY_SPACE_HIP_GPU
-#else
-#define KOKKOS_ACTIVE_EXECUTION_MEMORY_SPACE_HOST
-#endif
-
-#endif
 //----------------------------------------------------------------------------
 
 // Remove surrounding parentheses if present

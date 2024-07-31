@@ -8,12 +8,12 @@ info on how to download or build any extra library it requires.  It also
 gives links to documentation, example scripts, and pictures/movies (if
 available) that illustrate use of the package.
 
-The majority of packages can be included in a LAMMPS build with a
-single setting (``-D PKG_<NAME>=on`` for CMake) or command
-(``make yes-<name>`` for make).  See the :doc:`Build package <Build_package>`
-page for more info.  A few packages may require additional steps;
-this is indicated in the descriptions below.  The :doc:`Build extras <Build_extras>`
-page gives those details.
+The majority of packages can be included in a LAMMPS build with a single
+setting (``-D PKG_<NAME>=on`` for CMake) or command (``make yes-<name>``
+for make).  See the :doc:`Build package <Build_package>` page for more
+info.  A few packages may require additional steps; this is indicated in
+the descriptions below.  The :doc:`Build extras <Build_extras>` page
+gives those details.
 
 .. note::
 
@@ -52,6 +52,7 @@ page gives those details.
    * :ref:`DRUDE <PKG-DRUDE>`
    * :ref:`EFF <PKG-EFF>`
    * :ref:`ELECTRODE <PKG-ELECTRODE>`
+   * :ref:`EXTRA-COMMAND <PKG-EXTRA-COMMAND>`
    * :ref:`EXTRA-COMPUTE <PKG-EXTRA-COMPUTE>`
    * :ref:`EXTRA-DUMP <PKG-EXTRA-DUMP>`
    * :ref:`EXTRA-FIX <PKG-EXTRA-FIX>`
@@ -84,6 +85,7 @@ page gives those details.
    * :ref:`ML-QUIP <PKG-ML-QUIP>`
    * :ref:`ML-RANN <PKG-ML-RANN>`
    * :ref:`ML-SNAP <PKG-ML-SNAP>`
+   * :ref:`ML-UF3 <PKG-ML-UF3>`
    * :ref:`MOFFF <PKG-MOFFF>`
    * :ref:`MOLECULE <PKG-MOLECULE>`
    * :ref:`MOLFILE <PKG-MOLFILE>`
@@ -101,6 +103,7 @@ page gives those details.
    * :ref:`QEQ <PKG-QEQ>`
    * :ref:`QMMM <PKG-QMMM>`
    * :ref:`QTB <PKG-QTB>`
+   * :ref:`RHEO <PKG-RHEO>`
    * :ref:`REACTION <PKG-REACTION>`
    * :ref:`REAXFF <PKG-REAXFF>`
    * :ref:`REPLICA <PKG-REPLICA>`
@@ -403,6 +406,7 @@ and :ref:`ASPHERE <PKG-ASPHERE>` packages are installed.
 * :doc:`bond_style oxdna2/\* <bond_oxdna>`
 * :doc:`bond_style oxrna2/\* <bond_oxdna>`
 * :doc:`fix nve/dotc/langevin <fix_nve_dotc_langevin>`
+* examples/PACKAGES/cgdna
 
 ----------
 
@@ -676,7 +680,12 @@ DPD-BASIC package
 Pair styles for the basic dissipative particle dynamics (DPD) method
 and DPD thermostatting.
 
-**Author:** Kurt Smith (U Pittsburgh), Martin Svoboda, Martin Lisal (ICPF and UJEP)
+Pair style :doc:`dpd/coul/slater/long <pair_dpd_coul_slater_long>` also
+includes smeared charges for coulomb interactions and thus requires the
+:ref:`KSPACE <PKG-KSPACE>` package to be installed to handle the long-range
+Coulomb part of the interactions.
+
+**Authors:** Kurt Smith (U Pittsburgh), Martin Svoboda, Martin Lisal (ICPF and UJEP), Eddy Barraud (IFPEN)
 
 **Supporting info:**
 
@@ -685,6 +694,7 @@ and DPD thermostatting.
 * :doc:`pair_style dpd/tstat <pair_dpd>`
 * :doc:`pair_style dpd/ext <pair_dpd_ext>`
 * :doc:`pair_style dpd/ext/tstat <pair_dpd_ext>`
+* :doc:`pair_style dpd/coul/slater/long <pair_dpd_coul_slater_long>`
 * examples/PACKAGES/dpd-basic
 
 ----------
@@ -883,6 +893,22 @@ This package has :ref:`specific installation instructions <electrode>` on the
 * :doc:`fix electrode/conp <fix_electrode>`
 * :doc:`fix electrode/conq <fix_electrode>`
 * :doc:`fix electrode/thermo <fix_electrode>`
+
+----------
+
+.. _PKG-EXTRA-COMMAND:
+
+EXTRA-COMMAND package
+---------------------
+
+**Contents:**
+
+Additional command styles that are less commonly used.
+
+**Supporting info:**
+
+* src/EXTRA-COMMAND: filenames -> commands
+* :doc:`general commands <Commands_all>`
 
 ----------
 
@@ -1298,18 +1324,19 @@ KSPACE package
 
 **Contents:**
 
-A variety of long-range Coulombic solvers, as well as pair styles
-which compute the corresponding short-range pairwise Coulombic
-interactions.  These include Ewald, particle-particle particle-mesh
-(PPPM), and multilevel summation method (MSM) solvers.
+A variety of long-range Coulombic solvers, as well as pair styles which
+compute the corresponding short-range pairwise Coulombic interactions.
+These include Ewald, particle-particle particle-mesh (PPPM), and
+multilevel summation method (MSM) solvers.
 
 **Install:**
 
-Building with this package requires a 1d FFT library be present on
-your system for use by the PPPM solvers.  This can be the KISS FFT
-library provided with LAMMPS, third party libraries like FFTW, or a
-vendor-supplied FFT library.  See the :doc:`Build settings <Build_settings>` page for details on how to select
-different FFT options for your LAMPMS build.
+Building with this package requires a 1d FFT library be present on your
+system for use by the PPPM solvers.  This can be the KISS FFT library
+provided with LAMMPS, third party libraries like FFTW, or a
+vendor-supplied FFT library.  See the :doc:`Build settings
+<Build_settings>` page for details on how to select different FFT
+options for your LAMMPS build.
 
 **Supporting info:**
 
@@ -1924,6 +1951,31 @@ computes which analyze attributes of the potential.
 * examples/snap
 
 ----------
+
+.. _PKG-ML-UF3:
+
+ML-UF3 package
+--------------
+
+**Contents:**
+
+A pair style for the ultra-fast force field potentials (UF3). UF3 is a
+methodology for deriving a highly accurate classical potential which is
+fast to evaluate and is fitted to a large archives of quantum mechanical
+(DFT) data.  The use of b-spline basis set in UF3 enables the rapid
+evaluation of 2-body and 3-body interactions.
+
+**Authors:** Ajinkya C Hire (University of Florida),
+Hendrik Krass (University of Constance),
+Matthias Rupp (Luxembourg Institute of Science and Technology),
+Richard Hennig (University of Florida)
+
+**Supporting info:**
+
+* src/ML-UF3: filenames -> commands
+* :doc:`pair_style uf3 <pair_uf3>`
+* examples/uf3
+* https://github.com/uf3/uf3
 
 .. _PKG-MOFFF:
 
@@ -2568,6 +2620,45 @@ another set.
 * examples/prd
 * examples/tad
 * examples/PACKAGES/grem
+
+----------
+
+.. _PKG-RHEO:
+
+RHEO package
+------------
+
+**Contents:**
+
+Pair styles, bond styles, fixes, and computes for reproducing
+hydrodynamics and elastic objects. See the :doc:`Howto rheo
+<Howto_rheo>` page for an overview.
+
+**Install:**
+
+This package has :ref:`specific installation instructions <rheo>` on the :doc:`Build extras <Build_extras>` page.
+
+**Authors:** Joel T. Clemmer (Sandia National Labs),
+Thomas C. O'Connor (Carnegie Mellon University)
+
+.. versionadded:: TBD
+
+**Supporting info:**
+
+* src/RHEO filenames -> commands
+* :doc:`Howto_rheo <Howto_rheo>`
+* :doc:`atom_style rheo <atom_style>`
+* :doc:`atom_style rheo/thermal <atom_style>`
+* :doc:`bond_style rheo/shell <bond_rheo_shell>`
+* :doc:`compute rheo/property/atom <compute_rheo_property_atom>`
+* :doc:`fix rheo <fix_rheo>`
+* :doc:`fix rheo/oxidation <fix_rheo_oxidation>`
+* :doc:`fix rheo/pressure <fix_rheo_pressure>`
+* :doc:`fix rheo/thermal <fix_rheo_thermal>`
+* :doc:`fix rheo/viscosity <fix_rheo_viscosity>`
+* :doc:`pair_style rheo <pair_rheo>`
+* :doc:`pair_style rheo/solid <pair_rheo_solid>`
+* examples/rheo
 
 ----------
 

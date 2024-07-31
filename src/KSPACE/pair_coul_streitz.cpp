@@ -690,6 +690,7 @@ void *PairCoulStreitz::extract(const char *str, int &dim)
   }
   if (strcmp(str,"chi") == 0 && qeq_x) {
     dim = 1;
+    qeq_x[0] = 0.0;
     for (int i = 1; i <= atom->ntypes; i++)
       if (map[i] >= 0) qeq_x[i] = params[map[i]].chi;
       else qeq_x[i] = 0.0;
@@ -697,6 +698,7 @@ void *PairCoulStreitz::extract(const char *str, int &dim)
   }
   if (strcmp(str,"eta") == 0 && qeq_j) {
     dim = 1;
+    qeq_j[0] = 0.0;
     for (int i = 1; i <= atom->ntypes; i++)
       if (map[i] >= 0) qeq_j[i] = params[map[i]].eta;
       else qeq_j[i] = 0.0;
@@ -704,6 +706,7 @@ void *PairCoulStreitz::extract(const char *str, int &dim)
   }
   if (strcmp(str,"gamma") == 0 && qeq_g) {
     dim = 1;
+    qeq_g[0] = 0.0;
     for (int i = 1; i <= atom->ntypes; i++)
       if (map[i] >= 0) qeq_g[i] = params[map[i]].gamma;
       else qeq_g[i] = 0.0;
@@ -711,6 +714,7 @@ void *PairCoulStreitz::extract(const char *str, int &dim)
   }
   if (strcmp(str,"zeta") == 0 && qeq_z) {
     dim = 1;
+    qeq_z[0] = 0.0;
     for (int i = 1; i <= atom->ntypes; i++)
       if (map[i] >= 0) qeq_z[i] = params[map[i]].zeta;
       else qeq_z[i] = 0.0;
@@ -718,6 +722,7 @@ void *PairCoulStreitz::extract(const char *str, int &dim)
   }
   if (strcmp(str,"zcore") == 0 && qeq_c) {
     dim = 1;
+    qeq_c[0] = 0.0;
     for (int i = 1; i <= atom->ntypes; i++)
       if (map[i] >= 0) qeq_c[i] = params[map[i]].zcore;
       else qeq_c[i] = 0.0;

@@ -48,7 +48,6 @@ KOKKOS_ENABLE_OPTION(CUDA_LAMBDA ${CUDA_LAMBDA_DEFAULT} "Whether to allow lambda
 # resolved but we keep the option around a bit longer to be safe.
 KOKKOS_ENABLE_OPTION(IMPL_CUDA_MALLOC_ASYNC ON  "Whether to enable CudaMallocAsync (requires CUDA Toolkit 11.2)")
 KOKKOS_ENABLE_OPTION(IMPL_NVHPC_AS_DEVICE_COMPILER OFF "Whether to allow nvc++ as Cuda device compiler")
-KOKKOS_ENABLE_OPTION(DEPRECATED_CODE_3    OFF "Whether code deprecated in major release 3 is available" )
 KOKKOS_ENABLE_OPTION(DEPRECATED_CODE_4    ON "Whether code deprecated in major release 4 is available" )
 KOKKOS_ENABLE_OPTION(DEPRECATION_WARNINGS ON "Whether to emit deprecation warnings" )
 KOKKOS_ENABLE_OPTION(HIP_RELOCATABLE_DEVICE_CODE  OFF "Whether to enable relocatable device code (RDC) for HIP")
@@ -71,9 +70,11 @@ KOKKOS_ENABLE_OPTION(TUNING               OFF "Whether to create bindings for tu
 KOKKOS_ENABLE_OPTION(AGGRESSIVE_VECTORIZATION OFF "Whether to aggressively vectorize loops")
 KOKKOS_ENABLE_OPTION(COMPILE_AS_CMAKE_LANGUAGE OFF "Whether to use native cmake language support")
 KOKKOS_ENABLE_OPTION(HIP_MULTIPLE_KERNEL_INSTANTIATIONS OFF "Whether multiple kernels are instantiated at compile time - improve performance but increase compile time")
+KOKKOS_ENABLE_OPTION(IMPL_HIP_UNIFIED_MEMORY OFF "Whether to leverage unified memory architectures for HIP")
 
 # This option will go away eventually, but allows fallback to old implementation when needed.
 KOKKOS_ENABLE_OPTION(DESUL_ATOMICS_EXTERNAL OFF "Whether to use an external desul installation")
+KOKKOS_ENABLE_OPTION(ATOMICS_BYPASS OFF "**NOT RECOMMENDED** Whether to make atomics non-atomic for non-threaded MPI-only use cases")
 
 KOKKOS_ENABLE_OPTION(IMPL_MDSPAN OFF "Whether to enable experimental mdspan support")
 KOKKOS_ENABLE_OPTION(MDSPAN_EXTERNAL OFF BOOL "Whether to use an external version of mdspan")

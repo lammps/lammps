@@ -406,5 +406,5 @@ int PairLJCutSphere::neigh_check(const int i, const int j, const double skin, co
   int *type = atom->type;
   double tmp = (radius[i] + radius[j] + skin) * cut[type[i]][type[j]];
 
-  return (tmp * tmp) <= rsq;
+  return rsq <= (tmp * tmp);
 }

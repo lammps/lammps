@@ -882,7 +882,7 @@ int PairGranular::neigh_check(int i, int j, double skin, double rsq)
     cut += model->pulloff_distance(ri, rj);
 
   cut += skin;
-  return (cut * cut) <= rsq;
+  return rsq <= (cut * cut);
 }
 
 /* ----------------------------------------------------------------------

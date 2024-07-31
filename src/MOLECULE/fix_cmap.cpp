@@ -46,18 +46,17 @@
 #include <cstring>
 #include <exception>
 
+// FIXME: remove after debugging done
+#include <iostream>
+
 using namespace LAMMPS_NS;
 using namespace FixConst;
 using namespace MathConst;
 
-static constexpr int LISTDELTA = 10000;
-static constexpr double LB_FACTOR = 1.5;
+//static constexpr int LISTDELTA = 10000;
+//static constexpr double LB_FACTOR = 1.5;
 
-static constexpr int CMAPMAX = 6;   // max # of CMAP terms stored by one atom
-static constexpr int CMAPDIM = 24;  // grid map dimension is 24 x 24
-static constexpr double CMAPXMIN = -360.0;
-static constexpr double CMAPXMIN2 = -180.0;
-static constexpr double CMAPDX = 15.0; // 360/CMAPDIM
+
 
 /* ---------------------------------------------------------------------- */
 
@@ -127,6 +126,9 @@ FixCMAP::FixCMAP(LAMMPS *lmp, int narg, char **arg) :
 
 FixCMAP::~FixCMAP()
 {
+
+  if (copymode) return;
+
   // unregister callbacks to this fix from Atom class
 
   atom->delete_callback(id,Atom::GROW);
@@ -179,7 +181,7 @@ void FixCMAP::init()
 
   // pre-compute the derivatives of the maps
 
-  for (i = 0; i < 6; i++)
+  for (i = 0; i < CMAPMAX; i++)
     set_map_derivatives(cmapgrid[i],d1cmapgrid[i],d2cmapgrid[i],d12cmapgrid[i]);
 
   if (utils::strmatch(update->integrate_style,"^respa")) {
@@ -242,7 +244,7 @@ void FixCMAP::pre_neighbor()
   if (maxcrossterm == 0) {
     if (nprocs == 1) maxcrossterm = ncmap;
     else maxcrossterm = static_cast<int> (LB_FACTOR*ncmap/nprocs);
-    memory->create(crosstermlist,maxcrossterm,6,"cmap:crosstermlist");
+    memory->create(crosstermlist,maxcrossterm,CMAPMAX,"cmap:crosstermlist");
   }
 
   int nlocal = atom->nlocal;
@@ -274,7 +276,7 @@ void FixCMAP::pre_neighbor()
           i <= atom4 && i <= atom5) {
         if (ncrosstermlist == maxcrossterm) {
           maxcrossterm += LISTDELTA;
-          memory->grow(crosstermlist,maxcrossterm,6,"cmap:crosstermlist");
+          memory->grow(crosstermlist,maxcrossterm,CMAPMAX,"cmap:crosstermlist");
         }
         crosstermlist[ncrosstermlist][0] = atom1;
         crosstermlist[ncrosstermlist][1] = atom2;
@@ -314,7 +316,7 @@ void FixCMAP::post_force(int vflag)
   double dpr32r43,dpr45r43,r43,vb12x,vb12y,vb12z,vb54x,vb54y,vb54z;
   // cross-term dihedral angles
   double phi,psi,phi1,psi1;
-  double f1[3],f2[3],f3[3],f4[3],f5[3],vcmap[6];
+  double f1[3],f2[3],f3[3],f4[3],f5[3],vcmap[CMAPMAX];
   double gs[4],d1gs[4],d2gs[4],d12gs[4];
   double engfraction;
   // vectors needed for the gradient/force calculation
@@ -348,6 +350,9 @@ void FixCMAP::post_force(int vflag)
     i5 = crosstermlist[n][4];
 
     type = crosstermlist[n][5];
+
+    //std::cerr << fmt::format("******** n={} i=[{},{},{},{},{}], type={}\n",n,i1,i2,i3,i4,i5,type);
+
     if (type == 0) continue;
 
     // calculate bond vectors for both dihedrals
@@ -426,6 +431,8 @@ void FixCMAP::post_force(int vflag)
       phi = dihedral_angle_atan2(vb21x,vb21y,vb21z,a1x,a1y,a1z,b1x,b1y,b1z,r32);
       psi = dihedral_angle_atan2(vb32x,vb32y,vb32z,a2x,a2y,a2z,b2x,b2y,b2z,r43);
 
+      std::cerr << fmt::format("******** n={} phi={}, psi={}\n", n, phi, psi);
+
       if (phi == 180.0) phi= -180.0;
       if (psi == 180.0) psi= -180.0;
 
@@ -473,9 +480,18 @@ void FixCMAP::post_force(int vflag)
       d12gs[2] = d12cmapgrid[t1][mli11][mli21];
       d12gs[3] = d12cmapgrid[t1][mli1][mli21];
 
+      std::cerr << fmt::format("******** n={} gs=[{},{},{},{}]\n", n, gs[0],gs[1],gs[2],gs[3]);
+      std::cerr << fmt::format("******** n={} d1gs=[{},{},{},{}]\n", n, d1gs[0],d1gs[1],d1gs[2],d1gs[3]);
+      std::cerr << fmt::format("******** n={} d2gs=[{},{},{},{}]\n", n, d2gs[0],d2gs[1],d2gs[2],d2gs[3]);
+      std::cerr << fmt::format("******** n={} d12gs=[{},{},{},{}]\n", n, d12gs[0],d12gs[1],d12gs[2],d12gs[3]);
+
+
       // calculate the cmap energy and the gradient (dE/dphi,dE/dpsi)
 
       bc_interpol(phi,psi,li3,li4,gs,d1gs,d2gs,d12gs);
+
+      std::cerr << fmt::format("******** n={} dEdPhi={}, dEdPsi={}\n", n, dEdPhi, dEdPsi);
+
 
       // sum up cmap energy contributions
 
@@ -543,6 +559,8 @@ void FixCMAP::post_force(int vflag)
       f5[1] = -dEdPsi*dpsidr4y;
       f5[2] = -dEdPsi*dpsidr4z;
 
+      std::cerr << fmt::format("******** n={} f1=[{},{},{}]\n",n,f1[0],f1[1],f1[2]);
+
       // apply force to each of the 5 atoms
 
       if (i1 < nlocal) {
@@ -595,7 +613,12 @@ void FixCMAP::post_force(int vflag)
         ev_tally(nlist,list,5.0,E,vcmap);
         //ev_tally(5,list,nlocal,newton_bond,E,vcmap);
       }
+
+      utils::logmesg(lmp, "post_force (n={})\n", n);
+
   }
+
+
 }
 
 /* ---------------------------------------------------------------------- */
@@ -620,6 +643,7 @@ double FixCMAP::compute_scalar()
 {
   double all;
   MPI_Allreduce(&ecmap,&all,1,MPI_DOUBLE,MPI_SUM,world);
+  utils::logmesg(lmp, "compute_scalar = {}\n", all);
   return all;
 }
 
@@ -654,7 +678,7 @@ void FixCMAP::read_grid_map(char *cmapfile)
     }
   }
 
-  MPI_Bcast(&cmapgrid[0][0][0],6*CMAPDIM*CMAPDIM,MPI_DOUBLE,0,world);
+  MPI_Bcast(&cmapgrid[0][0][0],CMAPMAX*CMAPDIM*CMAPDIM,MPI_DOUBLE,0,world);
 }
 
 /* ---------------------------------------------------------------------- */
@@ -907,6 +931,7 @@ void FixCMAP::bc_interpol(double x1, double x2, int low1, int low2, double *gs,
     E = t*E + ((cij[i][3]*u+cij[i][2])*u+cij[i][1])*u+cij[i][0];
     dEdPhi = u*dEdPhi + (3.0*cij[3][i]*t+2.0*cij[2][i])*t+cij[1][i];
     dEdPsi = t*dEdPsi + (3.0*cij[i][3]*u+2.0*cij[i][2])*u+cij[i][1];
+    std::cerr << fmt::format("******** cij[{}]=[{},{},{},{}]\n", i,cij[i][0],cij[i][1],cij[i][2],cij[i][3]);
   }
 
   dEdPhi *= (180.0/MY_PI/CMAPDX);

@@ -1,5 +1,5 @@
-Using the LAMMPS-GUI
-====================
+Using LAMMPS-GUI
+================
 
 This document describes **LAMMPS-GUI version 1.6**.
 
@@ -16,25 +16,26 @@ to the online LAMMPS documentation for known LAMMPS commands and styles.
 
 .. note::
 
-   Pre-compiled, ready-to-use LAMMPS-GUI executables for Linux (Ubuntu
-   20.04LTS or later and compatible), macOS (version 11 aka Big Sur or
-   later), and Windows (version 10 or later) :ref:`are available
-   <lammps_gui_install>` for download.  None-MPI LAMMPS executables of
-   the same LAMMPS version are included in these packages as well.  The
-   source code for the LAMMPS-GUI is included in the LAMMPS source code
+   Pre-compiled, ready-to-use LAMMPS-GUI executables for Linux x86\_64
+   (Ubuntu 20.04LTS or later and compatible), macOS (version 11 aka Big
+   Sur or later), and Windows (version 10 or later) :ref:`are available
+   <lammps_gui_install>` for download.  None-MPI LAMMPS executables for
+   running LAMMPS from the command line and :doc:`some LAMMPS tools <Tools>`
+   are also included.
+
+   The source code for LAMMPS-GUI is included in the LAMMPS source code
    distribution and can be found in the ``tools/lammps-gui`` folder.  It
    can be compiled alongside LAMMPS when :doc:`compiling with CMake
    <Build_cmake>`.
 
 LAMMPS-GUI tries to provide an experience similar to what people
-traditionally would do to run LAMMPS using a command line window
-but just rolled into a single executable:
+traditionally would have running LAMMPS using a command line window
+and the console LAMMPS executable but just rolled into a single executable:
 
-- editing LAMMPS input files with a text editor
+- writing & editing LAMMPS input files with a text editor
 - run LAMMPS on those input file with selected command line flags
 - use or extract data from the created files and visualize it with
   either a molecular visualization program or a plotting program
-
 
 That procedure is quite effective for people proficient in using the
 command line, as that allows them to use tools for the individual steps
@@ -42,25 +43,71 @@ that they are most comfortable with.  It is often *required* to adopt
 this workflow when running LAMMPS simulations on high-performance
 computing facilities.
 
-The main benefit of using the LAMMPS-GUI application instead is that
-many basic tasks can be done directly from the GUI without switching to
-a text console window or using external programs, let alone writing
-scripts to extract data from the generated output.  It also integrates
-well with graphical desktop environments.
+The main benefit of using LAMMPS-GUI is that many basic tasks can be
+done directly from the GUI without switching to a text console window or
+using external programs, let alone writing scripts to extract data from
+the generated output.  It also integrates well with graphical desktop
+environments where the `.lmp` filename extension can be registered with
+LAMMPS-GUI as the executable to launch when double clicking on such
+files.  Also, LAMMPS-GUI has support for drag-n-drop, i.e.  an input
+file can be selected and then moved and dropped on the LAMMPS-GUI
+executable, and LAMMPS-GUI will launch and read the file into its
+buffer.
 
 LAMMPS-GUI thus makes it easier for beginners to get started running
 simple LAMMPS simulations.  It is very suitable for tutorials on LAMMPS
 since you only need to learn how to use a single program for most tasks
-and thus time can be saved and people can focus on learning LAMMPS.  It
-is also designed to keep the barrier low when you decide to switch to a
-full featured, standalone programming editor and more sophisticated
-visualization and analysis tools, and run LAMMPS from the command line
-or a batch script.
+and thus time can be saved and people can focus on learning LAMMPS.
+The tutorials at https://lammpstutorials.github.io/ were specifically
+updated for use with LAMMPS-GUI.
+
+Another design goal is to keep the barrier low when replacing part of
+the functionality of LAMMPS-GUI with external tools.
 
 The following text provides a detailed tour of the features and
-functionality of the LAMMPS-GUI.  Suggestions for new features and
+functionality of LAMMPS-GUI.  Suggestions for new features and
 reports of bugs are always welcome.  You can use the :doc:`the same
 channels as for LAMMPS itself <Errors_bugs>` for that purpose.
+
+-----
+
+Installing Pre-compiled LAMMPS-GUI Packages
+-------------------------------------------
+
+LAMMPS-GUI is available as pre-compiled binary packages for Linux
+x86\_64, macOS 11 and later, and Windows 10 and later.  Alternately, it
+can be compiled from source.
+
+Windows 10 and later
+^^^^^^^^^^^^^^^^^^^^
+
+After downloading the ``LAMMPS-Win10-64bit-GUI-<version>.exe`` installer
+package, you need to execute it, and start the installation process.
+Since those packages are currently unsigned, you have to enable "Developer Mode"
+in the Windows System Settings to run the installer.
+
+MacOS 11 and later
+^^^^^^^^^^^^^^^^^^
+
+After downloading the ``LAMMPS-macOS-multiarch-GUI-<version>.dmg``
+installer package, you need to double-click it and then, in the window
+that opens, drag the app bundle as indicated into the "Applications"
+folder.  The follow the instructions in the "README.txt" file to
+get access to the other included executables.
+
+Linux on x86\_64
+^^^^^^^^^^^^^^^^
+
+After downloading and unpacking the
+``LAMMPS-Linux-x86_64-GUI-<version>.tar.gz`` package.  You can switch
+into the "LAMMPS_GUI" folder and execute "./lammps-gui" directly.
+
+Compiling from Source
+^^^^^^^^^^^^^^^^^^^^^
+
+There also are instructions for :ref:`compiling LAMMPS-GUI from source
+code <lammps_gui_compilation>` available elsewhere in the manual.
+Compilation from source *requires* using CMake.
 
 -----
 
@@ -88,17 +135,24 @@ window is stored when exiting and restored when starting again.
 Opening Files
 ^^^^^^^^^^^^^
 
-The LAMMPS-GUI application tries to open the first command line argument
-as a LAMMPS input script, further arguments are ignored.  When no
-argument is given, LAMMPS-GUI starts with an empty buffer.  Files can
-also be opened via the ``File`` menu or by drag-and-drop of a file from
-a graphical file manager into the editor window.  Only one file can be
-edited at a time, so opening a new file with a filled buffer closes that
-buffer.  If the buffer has unsaved modifications, you are asked to
-either cancel the operation, discard the changes, or save them.  A
-buffer with modifications can be saved any time from the "File" menu, by
-the keyboard shortcut `Ctrl-S` (`Command-S` on macOS), or by clicking on
-the "Save" button at the very left in the status bar.
+The LAMMPS-GUI application can be launched without command line arguments
+and then starts with an empty buffer in the *Editor* window.  If arguments
+are given LAMMPS will use first command line argument as the file name for
+the *Editor* buffer and reads its contents into the buffer, if the file
+exists.  All further arguments are ignored.  Files can also be opened via
+the ``File`` menu, the `Ctrl-O` (`Command-O` on macOS) keyboard shortcut
+or by drag-and-drop of a file from a graphical file manager into the editor
+window.  If a file extension (e.g. ``.lmp``) has been registered with the
+graphical environment to launch LAMMPS-GUI, an existing input file can
+be launched with LAMMPS-GUI through double clicking.
+
+Only one file can be edited at a time, so opening a new file with a
+filled buffer closes that buffer.  If the buffer has unsaved
+modifications, you are asked to either cancel the operation, discard the
+changes, or save them.  A buffer with modifications can be saved any
+time from the "File" menu, by the keyboard shortcut `Ctrl-S`
+(`Command-S` on macOS), or by clicking on the "Save" button at the very
+left in the status bar.
 
 Running LAMMPS
 ^^^^^^^^^^^^^^
@@ -235,20 +289,30 @@ run number that this chart window corresponds to.  Same as for the
 *Output* window, the chart window is replaced on each new run, but the
 behavior can be changed in the preferences dialog.
 
+.. versionadded:: 1.6
+
+   Support for YAML export added
+
 From the ``File`` menu on the top left, it is possible to save an image
 of the currently displayed plot or export the data in either plain text
 columns (for use by plotting tools like `gnuplot
 <http://www.gnuplot.info/>`_ or `grace
-<https://plasma-gate.weizmann.ac.il/Grace/>`_), or as CSV data which can
-be imported for further processing with Microsoft Excel or `pandas
-<https://pandas.pydata.org/>`_
+<https://plasma-gate.weizmann.ac.il/Grace/>`_), as CSV data which can be
+imported for further processing with Microsoft Excel `LibreOffice Calc
+<https://www.libreoffice.org/>`_ or with Python via `pandas
+<https://pandas.pydata.org/>`_, or as YAML which can be imported into
+Python with `PyYAML <https://pyyaml.org/>`_ or pandas.
 
 Thermo output data from successive run commands in the input script is
 combined into a single data set unless the format, number, or names of
 output columns are changed with a :doc:`thermo_style <thermo_style>` or
 a :doc:`thermo_modify <thermo_modify>` command, or the current time step
 is reset with :doc:`reset_timestep <reset_timestep>`, or if a
-:doc:`clear <clear>` command is issued.
+:doc:`clear <clear>` command is issued.  This is where the YAML export
+from the *Charts* window differs from that of the *Output* window:
+here you get the compounded data set starting with the last change of
+output fields or timestep setting, while the export from the log will
+contain *all* YAML output but *segmented* into individual runs.
 
 Image Slide Show
 ----------------
@@ -347,15 +411,16 @@ actual image size, high-quality (SSAO) rendering, anti-aliasing, view
 style, display of box or axes, zoom factor.  The view of the system can
 be rotated horizontally and vertically.  It is also possible to only
 display the atoms within a group defined in the input script (default is
-"all").  After each change, the image is rendered again and the display
-updated.  The small palette icon on the top left is colored while LAMMPS
-is running to render the new image; it is grayed out when LAMMPS is
-finished.  When there are many atoms to render and high quality images
-with anti-aliasing are requested, re-rendering may take several seconds.
-From the ``File`` menu of the image window, the current image can be
-saved to a file (keyboard shortcut `Ctrl-S`) or copied to the clipboard
-(keyboard shortcut `Ctrl-C`) for pasting the image into another
-application.
+"all").  The image can also be re-centered on the center of mass of the
+selected group.  After each change, the image is rendered again and the
+display updated.  The small palette icon on the top left is colored
+while LAMMPS is running to render the new image; it is grayed out when
+LAMMPS is finished.  When there are many atoms to render and high
+quality images with anti-aliasing are requested, re-rendering may take
+several seconds.  From the ``File`` menu of the image window, the
+current image can be saved to a file (keyboard shortcut `Ctrl-S`) or
+copied to the clipboard (keyboard shortcut `Ctrl-C`) for pasting the
+image into another application.
 
 .. versionadded:: 1.6
 
@@ -427,7 +492,7 @@ Context Specific Help
 
 |gui-popup1|  |gui-popup2|
 
-A unique feature of the LAMMPS-GUI is the option to look up the
+A unique feature of LAMMPS-GUI is the option to look up the LAMMPS
 documentation for the command in the current line.  This can be done by
 either clicking the right mouse button or by using the `Ctrl-?` keyboard
 shortcut.  When using the mouse, there are additional entries in the
@@ -435,10 +500,16 @@ context menu that open the corresponding documentation page in the
 online LAMMPS documentation in a web browser window.  When using the
 keyboard, the first of those entries is chosen.
 
+.. versionadded:: 1.6
+
 If the word under the cursor is a file, then additionally the context
 menu has an entry to open the file in a read-only text viewer window.
 This is a convenient way to view the contents of files that are
-referenced in the input.
+referenced in the input.  The file viewer also supports on-the-fly
+decompression based on the file name suffix in a :ref:`similar fashion
+as available with LAMMPS <gzip>`.  If the necessary decompression
+program is missing or the file cannot be decompressed, the viewer window
+will contain a corresponding message.
 
 Menu
 ----
@@ -458,7 +529,7 @@ The ``File`` menu offers the usual options:
 
 - ``New`` clears the current buffer and resets the file name to ``*unknown*``
 - ``Open`` opens a dialog to select a new file for editing in the *Editor*
-- ``View`` opens a dialog to select a file for viewing in a *separate* window (read-only)
+- ``View`` opens a dialog to select a file for viewing in a *separate* window (read-only) with support for on-the-fly decompression as explained above.
 - ``Save`` saves the current file; if the file name is ``*unknown*``
   a dialog will open to select a new file name
 - ``Save As`` opens a dialog to select and new file name (and folder, if
@@ -531,12 +602,12 @@ in an ``Image Viewer`` window.
 
 The ``View in OVITO`` entry will launch `OVITO <https://ovito.org>`_
 with a :doc:`data file <write_data>` containing the current state of
-the system.  This option is only available if the LAMMPS-GUI can find
+the system.  This option is only available if LAMMPS-GUI can find
 the OVITO executable in the system path.
 
 The ``View in VMD`` entry will launch VMD with a :doc:`data file
 <write_data>` containing the current state of the system.  This option
-is only available if the LAMMPS-GUI can find the VMD executable in the
+is only available if LAMMPS-GUI can find the VMD executable in the
 system path.
 
 View
@@ -559,6 +630,9 @@ a minimal description of LAMMPS-GUI.  The ``LAMMPS-GUI Howto`` entry
 will open this documentation page from the online documentation in a web
 browser window.  The ``LAMMPS Manual`` entry will open the main page of
 the LAMMPS online documentation in a web browser window.
+The ``LAMMPS Tutorial`` entry will open the main page of the set of
+LAMMPS tutorials authored and maintained by Simon Gravelle at
+https://lammpstutorials.github.io/ in a web browser window.
 
 -----
 
@@ -566,8 +640,8 @@ Preferences
 -----------
 
 The ``Preferences`` dialog allows customization of the behavior and
-look of the LAMMPS-GUI application.  The settings are grouped and each
-group is displayed within a tab.
+look of LAMMPS-GUI.  The settings are grouped and each group is
+displayed within a tab.
 
 .. |guiprefs1| image:: JPG/lammps-gui-prefs-general.png
    :width: 24%
@@ -744,10 +818,10 @@ available (On macOS use the Command key instead of Ctrl/Control).
      - Reformat line
      - Shift+TAB
      - Show Completions
-   * - Ctrl+Shift+Enter
+   * - Ctrl+Shift+T
+     - LAMMPS Tutorial
+     - Ctrl+Shift+Enter
      - Run File
-     -
-     -
      -
      -
 

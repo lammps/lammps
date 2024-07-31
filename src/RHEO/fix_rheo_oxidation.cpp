@@ -155,7 +155,6 @@ void FixRHEOOxidation::post_integrate()
   double delx, dely, delz, rsq;
   tagint tagi, tagj;
 
-  int nlocal = atom->nlocal;
   int newton_bond = force->newton_bond;
 
   tagint *tag = atom->tag;
@@ -267,7 +266,7 @@ void FixRHEOOxidation::post_force(int /*vflag*/)
 int FixRHEOOxidation::pack_forward_comm(int n, int *list, double *buf,
                                         int /*pbc_flag*/, int * /*pbc*/)
 {
-  int i, j, k, m;
+  int i, j, m;
   double **x = atom->x;
   m = 0;
 
@@ -284,7 +283,7 @@ int FixRHEOOxidation::pack_forward_comm(int n, int *list, double *buf,
 
 void FixRHEOOxidation::unpack_forward_comm(int n, int first, double *buf)
 {
-  int i, k, m, last;
+  int i, m, last;
   double **x = atom->x;
   m = 0;
   last = first + n;

@@ -21,6 +21,7 @@
 #include <QPair>
 #include <QSpacerItem>
 #include <QString>
+#include <string>
 #include <vector>
 
 #include "lammpswrapper.h"
@@ -99,6 +100,7 @@ private slots:
     void about();
     void help();
     void manual();
+    void tutorial();
     void howto();
     void logupdate();
     void modified();

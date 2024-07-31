@@ -72,7 +72,7 @@ void ComputeRHEORhoSum::init_list(int /*id*/, NeighList *ptr)
 
 void ComputeRHEORhoSum::compute_peratom()
 {
-  int i, j, ii, jj, inum, jnum, itype, jtype;
+  int i, j, ii, jj, inum, jnum;
   double xtmp, ytmp, ztmp, delx, dely, delz;
   int *ilist, *jlist, *numneigh, **firstneigh;
   double rsq, w;
@@ -81,11 +81,10 @@ void ComputeRHEORhoSum::compute_peratom()
 
   double **x = atom->x;
   double *rho = atom->rho;
-  int *type = atom->type;
   double *mass = atom->mass;
+  double *rmass = atom->rmass;
+  int *type = atom->type;
   int newton = force->newton;
-
-  double jmass;
 
   inum = list->inum;
   ilist = list->ilist;
@@ -96,7 +95,8 @@ void ComputeRHEORhoSum::compute_peratom()
   // initialize arrays, local with quintic self-contribution, ghosts are zeroed
   for (i = 0; i < nlocal; i++) {
     w = compute_kernel->calc_w_self(i, i);
-    rho[i] = w * mass[type[i]];
+    if (rmass) rho[i] = w * rmass[i];
+    else rho[i] = w * mass[type[i]];
   }
 
   for (i = nlocal; i < nall; i++) rho[i] = 0.0;
@@ -106,7 +106,6 @@ void ComputeRHEORhoSum::compute_peratom()
     xtmp = x[i][0];
     ytmp = x[i][1];
     ztmp = x[i][2];
-    itype = type[i];
     jlist = firstneigh[i];
     jnum = numneigh[i];
 
@@ -121,14 +120,26 @@ void ComputeRHEORhoSum::compute_peratom()
       if (rsq < cutsq) {
         w = compute_kernel->calc_w(i, j, delx, dely, delz, sqrt(rsq));
 
-        if (self_mass_flag) {
-          rho[i] += w * mass[type[i]];
-          if (newton || j < nlocal)
-            rho[j] += w * mass[type[j]];
+        if (rmass) {
+          if (self_mass_flag) {
+            rho[i] += w * rmass[i];
+            if (newton || j < nlocal)
+              rho[j] += w * rmass[j];
+          } else {
+            rho[i] += w * rmass[j];
+            if (newton || j < nlocal)
+              rho[j] += w * rmass[i];
+          }
         } else {
-          rho[i] += w * mass[type[j]];
-          if (newton || j < nlocal)
-            rho[j] += w * mass[type[i]];
+          if (self_mass_flag) {
+            rho[i] += w * mass[type[i]];
+            if (newton || j < nlocal)
+              rho[j] += w * mass[type[j]];
+          } else {
+            rho[i] += w * mass[type[j]];
+            if (newton || j < nlocal)
+              rho[j] += w * mass[type[i]];
+          }
         }
       }
     }
@@ -143,7 +154,7 @@ void ComputeRHEORhoSum::compute_peratom()
 int ComputeRHEORhoSum::pack_forward_comm(int n, int *list, double *buf,
                                         int /*pbc_flag*/, int * /*pbc*/)
 {
-  int i, j, k, m;
+  int i, j, m;
   double *rho = atom->rho;
   m = 0;
 
@@ -157,7 +168,7 @@ int ComputeRHEORhoSum::pack_forward_comm(int n, int *list, double *buf,
 /* ---------------------------------------------------------------------- */
 void ComputeRHEORhoSum::unpack_forward_comm(int n, int first, double *buf)
 {
-  int i, k, m, last;
+  int i, m, last;
   double *rho = atom->rho;
 
   m = 0;
@@ -171,7 +182,7 @@ void ComputeRHEORhoSum::unpack_forward_comm(int n, int first, double *buf)
 
 int ComputeRHEORhoSum::pack_reverse_comm(int n, int first, double *buf)
 {
-  int i, k, m, last;
+  int i, m, last;
   double *rho = atom->rho;
 
   m = 0;
@@ -186,7 +197,7 @@ int ComputeRHEORhoSum::pack_reverse_comm(int n, int first, double *buf)
 
 void ComputeRHEORhoSum::unpack_reverse_comm(int n, int *list, double *buf)
 {
-  int i, k, j, m;
+  int i, j, m;
   double *rho = atom->rho;
 
   m = 0;

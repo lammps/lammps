@@ -7,6 +7,7 @@
 #include "lmptype.h"
 #include "platform.h"
 #include <string>
+#include <vector>
 
 #include "gmock/gmock.h"
 #include "gtest/gtest.h"
@@ -742,14 +743,45 @@ TEST_F(AtomProperties, position)
 TEST(SystemSettings, kokkos)
 {
     if (!lammps_config_has_package("KOKKOS")) GTEST_SKIP();
-    if (!lammps_config_accelerator("KOKKOS", "api", "openmp")) GTEST_SKIP();
+    std::vector<char *> args = {(char *)"lammps", (char *)"-log",   (char *)"none",
+                                (char *)"-echo",  (char *)"screen", (char *)"-nocite",
+                                (char *)"-sf",    (char *)"kk"};
 
-    // clang-format off
-    const char *args[] = {"SystemSettings", "-log", "none", "-echo", "screen", "-nocite",
-                          "-k", "on", "t", "4", "-sf", "kk", nullptr};
-    // clang-format on
-    char **argv = (char **)args;
-    int argc    = (sizeof(args) / sizeof(char *)) - 1;
+    char *one  = (char *)"1";
+    char *four = (char *)"4";
+    char *tee  = (char *)"t";
+    char *gee  = (char *)"g";
+    char *kay  = (char *)"-k";
+    char *yes  = (char *)"on";
+
+    args.push_back(kay);
+    args.push_back(yes);
+
+    bool has_gpu     = false;
+    bool has_threads = false;
+
+    // when GPU support is enabled in KOKKOS, it *must* be used
+    if (lammps_config_accelerator("KOKKOS", "api", "hip") ||
+        lammps_config_accelerator("KOKKOS", "api", "cuda") ||
+        lammps_config_accelerator("KOKKOS", "api", "sycl")) {
+        has_gpu = true;
+        args.push_back(gee);
+        args.push_back(one);
+    }
+
+    // use threads or serial
+    args.push_back(tee);
+    if (lammps_config_accelerator("KOKKOS", "api", "openmp")) {
+        has_threads = true;
+        args.push_back(four);
+    } else if (lammps_config_accelerator("KOKKOS", "api", "pthreads")) {
+        has_threads = true;
+        args.push_back(four);
+    } else {
+        args.push_back(one);
+    }
+    int argc    = args.size();
+    char **argv = args.data();
 
     ::testing::internal::CaptureStdout();
     void *lmp          = lammps_open_no_mpi(argc, argv, nullptr);
@@ -758,7 +790,13 @@ TEST(SystemSettings, kokkos)
     EXPECT_THAT(output, StartsWith("LAMMPS ("));
 
     EXPECT_EQ(lammps_extract_setting(lmp, "kokkos_active"), 1);
-    EXPECT_EQ(lammps_extract_setting(lmp, "kokkos_nthreads"), 4);
-    EXPECT_EQ(lammps_extract_setting(lmp, "kokkos_ngpus"), 0);
+    if (has_threads)
+        EXPECT_EQ(lammps_extract_setting(lmp, "kokkos_nthreads"), 4);
+    else
+        EXPECT_EQ(lammps_extract_setting(lmp, "kokkos_nthreads"), 1);
+    if (has_gpu)
+        EXPECT_EQ(lammps_extract_setting(lmp, "kokkos_ngpus"), 1);
+    else
+        EXPECT_EQ(lammps_extract_setting(lmp, "kokkos_ngpus"), 0);
     lammps_close(lmp);
 }

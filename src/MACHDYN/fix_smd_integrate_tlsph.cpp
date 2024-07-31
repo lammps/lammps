@@ -24,15 +24,18 @@
  ------------------------------------------------------------------------- */
 
 #include "fix_smd_integrate_tlsph.h"
+
+#include "atom.h"
+#include "comm.h"
+#include "domain.h"
+#include "error.h"
+#include "force.h"
+#include "pair.h"
+#include "update.h"
+
 #include <cmath>
 #include <cstring>
 #include <Eigen/Eigen>
-#include "atom.h"
-#include "force.h"
-#include "update.h"
-#include "error.h"
-#include "pair.h"
-#include "comm.h"
 
 using namespace Eigen;
 using namespace LAMMPS_NS;
@@ -115,6 +118,11 @@ void FixSMDIntegrateTlsph::init() {
         dtv = update->dt;
         dtf = 0.5 * update->dt * force->ftm2v;
         vlimitsq = vlimit * vlimit;
+
+        // Cannot use vremap since its effects aren't propagated to vest
+        //   see RHEO or SPH packages for examples of patches
+        if (domain->deform_vremap)
+          error->all(FLERR, "Fix smd/integrate_tlsph cannot be used with velocity remapping");
 }
 
 /* ----------------------------------------------------------------------

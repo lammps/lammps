@@ -213,7 +213,7 @@ void WritePsf::write(const std::string &file)
   }
 
   // per atom info in Atoms and Velocities sections
-  
+
   if (natoms) atoms();
 
   // molecular topology info if defined

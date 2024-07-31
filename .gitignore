@@ -20,7 +20,7 @@ Obj_*
 log.lammps
 log.cite
 *.bz2
-*.gz
+*.gz3
 *.tar
 .*.swp
 *.orig

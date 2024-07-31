@@ -1,5 +1,8 @@
 # Find clang-format
 find_program(ClangFormat_EXECUTABLE NAMES clang-format
+                                          clang-format-20.0
+                                          clang-format-19.0
+                                          clang-format-18.0
                                           clang-format-17.0
                                           clang-format-16.0
                                           clang-format-15.0

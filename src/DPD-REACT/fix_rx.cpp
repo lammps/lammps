@@ -863,7 +863,7 @@ void FixRX::read_file(char *file)
 
     word = strtok(line," \t\n\r\f");
     while (word != nullptr) {
-      tmpStoich = atof(word);
+      tmpStoich = std::stod(word);
       word = strtok(nullptr, " \t\n\r\f");
       for (ispecies = 0; ispecies < nspecies; ispecies++) {
         if (strcmp(word,&atom->dvname[ispecies][0]) == 0) {
@@ -886,13 +886,13 @@ void FixRX::read_file(char *file)
       if (strcmp(word,"=") == 0) sign = 1.0;
       if (strcmp(word,"+") != 0 && strcmp(word,"=") != 0) {
         if (word==nullptr) error->all(FLERR,"Missing parameters in reaction kinetic equation");
-        Arr[nreactions] = atof(word);
+        Arr[nreactions] = std::stod(word);
         word = strtok(nullptr, " \t\n\r\f");
         if (word==nullptr) error->all(FLERR,"Missing parameters in reaction kinetic equation");
-        nArr[nreactions]  = atof(word);
+        nArr[nreactions]  = std::stod(word);
         word = strtok(nullptr, " \t\n\r\f");
         if (word==nullptr) error->all(FLERR,"Missing parameters in reaction kinetic equation");
-        Ea[nreactions]  = atof(word);
+        Ea[nreactions]  = std::stod(word);
         sign = -1.0;
         break;
       }

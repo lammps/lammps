@@ -531,7 +531,7 @@ void potdata::readpot(const char *parmin_file,const char *potin_file,const doubl
 
 /*
 int main(int argc,char *argv[]) {
-  double vol = atof(argv[3]);
+  double vol = std::stod(argv[3]);
   int n = 25,i;
 
   printf("%% parmin = %s\n%% potin = %s\n%% vol = %15.5e\n",

@@ -213,7 +213,7 @@ void NPairMulti<HALF, NEWTON, TRI, SIZE, CUSTOMCHECK, ATOMONLY>::build(NeighList
           delz = ztmp - x[j][2];
           rsq = delx * delx + dely * dely + delz * delz;
 
-          if (neigh_check) {
+          if (CUSTOMCHECK) {
             neigh_check = pair->neigh_check(i, j, skin, rsq);
           } else if (SIZE) {
             radsum = rtmp + radius[j];

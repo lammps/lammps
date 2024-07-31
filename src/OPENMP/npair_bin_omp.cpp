@@ -32,8 +32,8 @@ using namespace LAMMPS_NS;
 
 /* ---------------------------------------------------------------------- */
 
-template<int HALF, int NEWTON, int TRI, int SIZE, int PAIRWISE, int ATOMONLY>
-NPairBinOmp<HALF, NEWTON, TRI, SIZE, PAIRWISE, ATOMONLY>::NPairBinOmp(LAMMPS *lmp) : NPair(lmp) {}
+template<int HALF, int NEWTON, int TRI, int SIZE, int CUSTOMCHECK, int ATOMONLY>
+NPairBinOmp<HALF, NEWTON, TRI, SIZE, CUSTOMCHECK, ATOMONLY>::NPairBinOmp(LAMMPS *lmp) : NPair(lmp) {}
 
 /* ----------------------------------------------------------------------
    Full:
@@ -50,8 +50,8 @@ NPairBinOmp<HALF, NEWTON, TRI, SIZE, PAIRWISE, ATOMONLY>::NPairBinOmp(LAMMPS *lm
      every pair stored exactly once by some processor
 ------------------------------------------------------------------------- */
 
-template<int HALF, int NEWTON, int TRI, int SIZE, int PAIRWISE, int ATOMONLY>
-void NPairBinOmp<HALF, NEWTON, TRI, SIZE, PAIRWISE, ATOMONLY>::build(NeighList *list)
+template<int HALF, int NEWTON, int TRI, int SIZE, int CUSTOMCHECK, int ATOMONLY>
+void NPairBinOmp<HALF, NEWTON, TRI, SIZE, CUSTOMCHECK, ATOMONLY>::build(NeighList *list)
 {
   const int nlocal = (includegroup) ? atom->nfirst : atom->nlocal;
   const int molecular = atom->molecular;
@@ -192,7 +192,7 @@ void NPairBinOmp<HALF, NEWTON, TRI, SIZE, PAIRWISE, ATOMONLY>::build(NeighList *
         rsq = delx * delx + dely * dely + delz * delz;
 
 
-        if (PAIRWISE) {
+        if (CUSTOMCHECK) {
           neigh_check = pair->neigh_check(i, j, skin, rsq);
         } else if (SIZE) {
           radsum = rtmp + radius[j];

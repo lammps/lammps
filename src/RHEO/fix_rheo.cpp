@@ -50,8 +50,9 @@ static const char cite_rheo[] =
 /* ---------------------------------------------------------------------- */
 
 FixRHEO::FixRHEO(LAMMPS *lmp, int narg, char **arg) :
-  Fix(lmp, narg, arg), compute_grad(nullptr), compute_kernel(nullptr), compute_surface(nullptr),
-  compute_interface(nullptr), compute_rhosum(nullptr), compute_vshift(nullptr), rho0(nullptr), csq(nullptr)
+  Fix(lmp, narg, arg), rho0(nullptr), csq(nullptr), compute_grad(nullptr), compute_kernel(nullptr),
+  compute_interface(nullptr), compute_surface(nullptr), compute_rhosum(nullptr),
+  compute_vshift(nullptr)
 {
   time_integrate = 1;
 
@@ -457,7 +458,6 @@ void FixRHEO::final_integrate()
   double dtfm, divu;
   int i, a;
 
-  double **x = atom->x;
   double **v = atom->v;
   double **f = atom->f;
   double **gradv = compute_grad->gradv;
@@ -469,7 +469,6 @@ void FixRHEO::final_integrate()
   int *mask = atom->mask;
   int *status = atom->rheo_status;
 
-  int rmass_flag = atom->rmass_flag;
   int dim = domain->dimension;
 
   // Update velocity
@@ -477,7 +476,7 @@ void FixRHEO::final_integrate()
     if (mask[i] & groupbit) {
       if (status[i] & STATUS_NO_INTEGRATION) continue;
 
-      if (rmass_flag) {
+      if (rmass) {
         dtfm = dtf / rmass[i];
       } else {
         dtfm = dtf / mass[type[i]];

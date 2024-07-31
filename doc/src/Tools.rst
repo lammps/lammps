@@ -484,23 +484,22 @@ are in the :doc:`Howto_lammps_gui` tutorial Howto page.
 
 Here are a few highlights of LAMMPS-GUI
 
-- Text editor with syntax highlighting customized for LAMMPS
-- Text editor features command completion for known commands and styles
-- Text editor will switch working directory to folder of file in buffer
-- Text editor will remember up to 5 recent files
+- Text editor with line numbers and syntax highlighting customized for LAMMPS
+- Text editor features command completion and auto-indentation for known commands and styles
+- Text editor will switch its working directory to folder of file in buffer
+- Many adjustable settings and preferences that are persistent including the 5 most recent files
 - Context specific LAMMPS command help via online documentation
 - LAMMPS is running in a concurrent thread, so the GUI remains responsive
-- Support for most accelerator packages
 - Progress bar indicates how far a run command is completed
-- LAMMPS can be started and stopped with a hotkey
-- Screen output is captured in a Log Window
-- Thermodynamic output is captured and displayed as line graph in a Chart Window
+- LAMMPS can be started and stopped with a mouse click or a hotkey
+- Screen output is captured in an *Output* Window
+- Thermodynamic output is captured and displayed as line graph in a *Chart* Window
 - Indicator for currently executed command
 - Indicator for line that caused an error
 - Visualization of current state in Image Viewer (via calling :doc:`write_dump image <dump_image>`)
 - Capture of images created via :doc:`dump image <dump_image>` in Slide show window
-- Many adjustable settings and preferences that are persistent
 - Dialog to set variables, similar to the LAMMPS command line flag '-v' / '-var'
+- Support for GPU, INTEL, KOKKOS/OpenMP, OPENMAP, and OPT and accelerator packages
 
 Parallelization
 ^^^^^^^^^^^^^^^
@@ -541,6 +540,8 @@ folder may also be moved around and added to the ``PATH`` environment
 variable so the executables will be found automatically.  The LAMMPS-GUI
 executable is called ``lammps-gui`` and either takes no arguments or
 attempts to load the first argument as LAMMPS input file.
+
+.. _lammps_gui_compilation:
 
 Compilation
 ^^^^^^^^^^^

@@ -463,13 +463,19 @@ class PyLammps(object):
         self.lmp = lammps(name=name,cmdargs=cmdargs,ptr=ptr,comm=comm)
     else:
       self.lmp = lammps(name=name,cmdargs=cmdargs,ptr=None,comm=comm)
-    print("LAMMPS output is captured by PyLammps wrapper")
+    self.comm_nprocs = self.lmp.extract_setting("world_size")
+    self.comm_me = self.lmp.extract_setting("world_rank")
+    if self.comm_me == 0:
+      print("LAMMPS output is captured by PyLammps wrapper")
+      if self.comm_nprocs > 1:
+        print("WARNING: Using PyLammps with multiple MPI ranks is experimental. Not all functionality is supported.")
     self._cmd_history = []
     self._enable_cmd_history = False
     self.runs = []
 
     if not self.lmp.has_package("PYTHON"):
-      print("WARNING: run thermo data not captured since PYTHON LAMMPS package is not enabled")
+      if self.comm_me == 0:
+        print("WARNING: run thermo data not captured since PYTHON LAMMPS package is not enabled")
 
   def __enter__(self):
     return self
@@ -727,7 +733,15 @@ class PyLammps(object):
 
   def eval(self, expr):
     """
-    Evaluate expression
+    Evaluate LAMMPS input file expression.
+
+    This is equivalent to using immediate variable expressions in the format "$(...)"
+    in the LAMMPS input and will return the result of that expression.
+
+    .. warning::
+
+       This function is only supported on MPI rank 0.  Calling it from a different
+       MPI rank will raise an exception.
 
     :param expr: the expression string that should be evaluated inside of LAMMPS
     :type expr: string
@@ -735,6 +749,9 @@ class PyLammps(object):
     :return: the value of the evaluated expression
     :rtype: float if numeric, string otherwise
     """
+    if self.comm_me > 0:
+      raise Exception("PyLammps.eval() may only be used on MPI rank 0")
+
     value = self.lmp_print('"$(%s)"' % expr).strip()
     try:
       return float(value)

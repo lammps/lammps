@@ -11,7 +11,7 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
-#ifdef BOND_CLASS
+#ifdef IMPROPER_CLASS
 // clang-format off
 ImproperStyle(hybrid/kk,ImproperHybridKokkos);
 ImproperStyle(hybrid/kk/device,ImproperHybridKokkos);
@@ -20,8 +20,8 @@ ImproperStyle(hybrid/kk/host,ImproperHybridKokkos);
 #else
 
 // clang-format off
-#ifndef LMP_BOND_HYBRID_KOKKOS_H
-#define LMP_BOND_HYBRID_KOKKOS_H
+#ifndef LMP_IMPROPER_HYBRID_KOKKOS_H
+#define LMP_IMPROPER_HYBRID_KOKKOS_H
 
 #include "improper_hybrid.h"
 #include "kokkos_type.h"

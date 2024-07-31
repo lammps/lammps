@@ -256,3 +256,4 @@ Related commands
 .. _Colvars_LAMMPS_doc:
 
 https://colvars.github.io/colvars-refman-lammps/colvars-refman-lammps.html
+

@@ -179,16 +179,16 @@ none
 
 .. _Shinoda3:
 
-**(Shinoda)** Shinoda, DeVane, Klein, Mol Sim, 33, 27-36 (2007).
+**(Shinoda)** Shinoda, DeVane, Klein, Mol Sim, 33, 27-36 (2007). https:///doi.org/10.1080/08927020601054050
 
 .. _DeVane:
 
-**(DeVane)**  Shinoda, DeVane, Klein, Soft Matter, 4, 2453-2462 (2008).
+**(DeVane)**  Shinoda, DeVane, Klein, Soft Matter, 4, 2453-2462 (2008). https://doi.org/10.1039/B808701F
 
 .. _Seo:
 
-**(Seo)**  Seo, Shinoda, J Chem Theory Comput, 15, 762-774 (2019).
+**(Seo)**  Seo, Shinoda, J Chem Theory Comput, 15, 762-774 (2019). https://doi.org/10.1021/acs.jctc.8b00987
 
 .. _Miyazaki:
 
-**(Miyazaki)**  Miyazaki, Okazaki, Shinoda, J Chem Theory Comput, 16, 782-793 (2020).
+**(Miyazaki)**  Miyazaki, Okazaki, Shinoda, J Chem Theory Comput, 16, 782-793 (2020). https://doi.org/10.1021/acs.jctc.9b00946

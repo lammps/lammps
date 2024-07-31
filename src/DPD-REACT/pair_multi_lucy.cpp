@@ -481,7 +481,7 @@ void PairMultiLucy::param_extract(Table *tb, char *line)
   while (word) {
     if (strcmp(word,"N") == 0) {
       word = strtok(nullptr," \t\n\r\f");
-      tb->ninput = atoi(word);
+      tb->ninput = std::stoi(word);
     } else if (strcmp(word,"R") == 0 || strcmp(word,"RSQ") == 0) {
       if (strcmp(word,"R") == 0) tb->rflag = RLINEAR;
       else if (strcmp(word,"RSQ") == 0) tb->rflag = RSQ;

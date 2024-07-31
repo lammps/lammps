@@ -574,7 +574,7 @@ void FixEOStableRX::param_extract(Table *tb, char *line)
   char *word = strtok(line," \t\n\r\f");
   if (strcmp(word,"N") == 0) {
     word = strtok(nullptr," \t\n\r\f");
-    tb->ninput = atoi(word);
+    tb->ninput = std::stoi(word);
   } else
     error->one(FLERR,"Invalid keyword in fix eos/table/rx parameters");
   word = strtok(nullptr," \t\n\r\f");

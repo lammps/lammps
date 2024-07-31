@@ -867,7 +867,7 @@ double PairGranular::atom2cut(int i)
 }
 
 /* ----------------------------------------------------------------------
-   interaction range for two particles for beyond contact
+   neighbor check for two particles for beyond contact
 ------------------------------------------------------------------------- */
 
 int PairGranular::neigh_check(int i, int j, double skin, double rsq)

@@ -292,6 +292,35 @@ TEST_F(LabelMapTest, Topology)
     TEST_FAILURE(".*ERROR: Improper type string XX not found in labelmap.*",
                  utils::expand_type(FLERR, "XX", Atom::IMPROPER, lmp););
 }
+
+TEST_F(LabelMapTest, RestartAtoms)
+{
+    BEGIN_HIDE_OUTPUT();
+    command("region box block 0 2 0 2 0 2");
+    command("create_box 4 box");
+    command("labelmap atom 2 N1");
+    command("labelmap atom 3 O1 4 H1");
+    command("mass * 1.0");
+    command("mass O1 3.0");
+    command("mass N1 2.0");
+    command("mass H1 4.0");
+    command("pair_style none");
+    command("create_atoms 1 single 0.0 0.0 0.0");
+    command("create_atoms N1 single 1.0 1.0 1.0");
+    command("write_data labelmap_test_incomplete.data nocoeff");
+    command("write_restart labelmap_test_incomplete.restart");
+    END_HIDE_OUTPUT();
+    EXPECT_EQ(atom->labelmapflag, 1);
+    ASSERT_NE(atom->lmap, nullptr);
+    EXPECT_FALSE(atom->lmap->is_complete(Atom::ATOM));
+    BEGIN_HIDE_OUTPUT();
+    command("labelmap atom 1 C1");
+    command("write_data labelmap_test_complete.data nocoeff");
+    command("write_restart labelmap_test_complete.restart");
+    END_HIDE_OUTPUT();
+    EXPECT_TRUE(atom->lmap->is_complete(Atom::ATOM));
+//    command("write_restart labelmap_test.restart");
+}
 } // namespace LAMMPS_NS
 
 int main(int argc, char **argv)

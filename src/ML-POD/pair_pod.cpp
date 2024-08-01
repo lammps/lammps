@@ -890,7 +890,7 @@ void PairPOD::angularbasis(double *tm, double *tmu, double *tmv, double *tmw, in
       double tmvm = abfy[mj];
       double tmwm = abfz[mj];
 
-      double tmn, tmun, tmvn, tmwn;
+      double tmn = 0.0, tmun = 0.0, tmvn = 0.0, tmwn = 0.0;
       // Calculate angular basis function and its derivatives using recursion relation
       if (d==1) {
         tmn = tmm*u;

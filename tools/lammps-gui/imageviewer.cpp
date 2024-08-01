@@ -508,12 +508,14 @@ void ImageViewer::createImage()
     // use Lennard-Jones sigma for radius, if available
     usesigma               = false;
     const char *pair_style = (const char *)lammps->extract_global("pair_style");
-    if (!useelements && pair_style && (strncmp(pair_style, "lj/", 3) == 0)) {
+    if (!useelements && !usediameter && pair_style && (strncmp(pair_style, "lj/", 3) == 0)) {
         double **sigma = (double **)lammps->extract_pair("sigma");
         if (sigma) {
             usesigma = true;
-            for (int i = 1; i <= ntypes; ++i)
-                adiams += QString("adiam %1 %2 ").arg(i).arg(vdwfactor * sigma[i][i]);
+            for (int i = 1; i <= ntypes; ++i) {
+                if (sigma[i][i] > 0.0)
+                    adiams += QString("adiam %1 %2 ").arg(i).arg(vdwfactor * sigma[i][i]);
+            }
         }
     }
     // adjust pushbutton state and clear adiams string to disable VDW display, if needed
@@ -526,10 +528,13 @@ void ImageViewer::createImage()
         if (button) button->setEnabled(false);
     }
 
+    // color
     if (useelements)
         dumpcmd += blank + "element";
     else
         dumpcmd += blank + settings.value("color", "type").toString();
+
+    // diameter
     if (usediameter && (vdwfactor > 1.0))
         dumpcmd += blank + "diameter";
     else

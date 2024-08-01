@@ -654,6 +654,16 @@ TEST_F(VariableTest, LabelMapAtomic)
     ASSERT_DOUBLE_EQ(variable->compute_equal("is_typelabel(atom,O)"), 0.0);
     ASSERT_DOUBLE_EQ(variable->compute_equal("is_typelabel(atom,H1)"), 1.0);
 
+    // make labelmap incomplete
+    BEGIN_HIDE_OUTPUT();
+    command("labelmap atom 2 NULL");
+    END_HIDE_OUTPUT();
+    ASSERT_DOUBLE_EQ(variable->compute_equal("is_typelabel(atom,N1)"), 0.0);
+
+    ASSERT_THROW(ASSERT_THAT(variable->retrieve("t2"), StrEq("2"));, LAMMPSException);
+    ASSERT_THROW(ASSERT_DOUBLE_EQ(variable->compute_equal("label2type(atom,N1)"), 2.0);
+                 , LAMMPSException);
+
     TEST_FAILURE(".*ERROR: Variable t1: Invalid atom type label C1 in label2type.. in variable.*",
                  command("print \"${t1}\""););
     TEST_FAILURE(".*ERROR: Invalid kind xxx in label2type.. in variable.*",

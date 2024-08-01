@@ -20,6 +20,7 @@
 #include "label_map.h"
 #include "math_const.h"
 #include "modify.h"
+#include "platform.h"
 
 #include "../testing/core.h"
 #include "gmock/gmock.h"
@@ -50,6 +51,15 @@ protected:
     }
 
     void TearDown() override { LAMMPSTest::TearDown(); }
+
+    void clear()
+    {
+        BEGIN_HIDE_OUTPUT();
+        command("clear");
+        END_HIDE_OUTPUT();
+        atom   = lmp->atom;
+        domain = lmp->domain;
+    }
 };
 
 TEST_F(LabelMapTest, Atoms)
@@ -98,6 +108,25 @@ TEST_F(LabelMapTest, Atoms)
     EXPECT_EQ(atom->lmap->find("H", Atom::ATOM), 4);
     EXPECT_EQ(atom->lmap->find("X", Atom::ATOM), -1);
     EXPECT_DOUBLE_EQ(atom->mass[3], 10.0);
+
+    // delete single entry and restore it
+    BEGIN_HIDE_OUTPUT();
+    command("labelmap atom 1 NULL");
+    END_HIDE_OUTPUT();
+    EXPECT_EQ(atom->lmap->find("C1", Atom::ATOM), -1);
+    EXPECT_EQ(atom->lmap->find("N2", Atom::ATOM), 2);
+    EXPECT_EQ(atom->lmap->find("NULL", Atom::ATOM), -1);
+    EXPECT_EQ(atom->lmap->find("", Atom::ATOM), -1);
+    EXPECT_FALSE(atom->lmap->is_complete(Atom::ATOM));
+    // it is not an error to delete the same type lable multiple times ...
+    BEGIN_HIDE_OUTPUT();
+    command("labelmap atom 1 NULL");
+    END_HIDE_OUTPUT();
+    // ... or set the same type label multiple times
+    BEGIN_HIDE_OUTPUT();
+    command("labelmap atom 1 CX");
+    command("labelmap atom 1 C1");
+    END_HIDE_OUTPUT();
 
     EXPECT_EQ(utils::expand_type(FLERR, "1", Atom::ATOM, lmp), nullptr);
     EXPECT_EQ(utils::expand_type(FLERR, "*3", Atom::ATOM, lmp), nullptr);
@@ -307,19 +336,276 @@ TEST_F(LabelMapTest, RestartAtoms)
     command("pair_style none");
     command("create_atoms 1 single 0.0 0.0 0.0");
     command("create_atoms N1 single 1.0 1.0 1.0");
-    command("write_data labelmap_test_incomplete.data nocoeff");
-    command("write_restart labelmap_test_incomplete.restart");
+    command("write_data labelmap_atom_incomplete.data nocoeff types numeric");
+    command("write_data labelmap_atom_type_incomplete.data nocoeff types labels");
+    command("write_restart labelmap_atom_incomplete.restart");
     END_HIDE_OUTPUT();
     EXPECT_EQ(atom->labelmapflag, 1);
     ASSERT_NE(atom->lmap, nullptr);
     EXPECT_FALSE(atom->lmap->is_complete(Atom::ATOM));
     BEGIN_HIDE_OUTPUT();
     command("labelmap atom 1 C1");
-    command("write_data labelmap_test_complete.data nocoeff");
-    command("write_restart labelmap_test_complete.restart");
+    command("write_data labelmap_atom_complete.data nocoeff types numeric");
+    command("write_data labelmap_atom_type_complete.data nocoeff types labels");
+    command("write_restart labelmap_atom_complete.restart");
     END_HIDE_OUTPUT();
     EXPECT_TRUE(atom->lmap->is_complete(Atom::ATOM));
-//    command("write_restart labelmap_test.restart");
+
+    clear();
+    EXPECT_EQ(atom->labelmapflag, 0);
+    EXPECT_EQ(atom->lmap, nullptr);
+    BEGIN_HIDE_OUTPUT();
+    command("pair_style none");
+    command("read_data labelmap_atom_complete.data");
+    END_HIDE_OUTPUT();
+    EXPECT_EQ(atom->labelmapflag, 1);
+    EXPECT_NE(atom->lmap, nullptr);
+    EXPECT_TRUE(atom->lmap->is_complete(Atom::ATOM));
+
+    clear();
+    EXPECT_EQ(atom->labelmapflag, 0);
+    EXPECT_EQ(atom->lmap, nullptr);
+    BEGIN_HIDE_OUTPUT();
+    command("pair_style none");
+    command("read_data labelmap_atom_type_complete.data");
+    END_HIDE_OUTPUT();
+    EXPECT_EQ(atom->labelmapflag, 1);
+    EXPECT_NE(atom->lmap, nullptr);
+    EXPECT_TRUE(atom->lmap->is_complete(Atom::ATOM));
+
+    clear();
+    EXPECT_EQ(atom->labelmapflag, 0);
+    EXPECT_EQ(atom->lmap, nullptr);
+    BEGIN_HIDE_OUTPUT();
+    command("pair_style none");
+    command("read_data labelmap_atom_incomplete.data");
+    END_HIDE_OUTPUT();
+    EXPECT_EQ(atom->labelmapflag, 1);
+    EXPECT_NE(atom->lmap, nullptr);
+    EXPECT_FALSE(atom->lmap->is_complete(Atom::ATOM));
+
+    clear();
+    EXPECT_EQ(atom->labelmapflag, 0);
+    EXPECT_EQ(atom->lmap, nullptr);
+    BEGIN_HIDE_OUTPUT();
+    command("pair_style none");
+    command("read_data labelmap_atom_type_incomplete.data");
+    END_HIDE_OUTPUT();
+    EXPECT_EQ(atom->labelmapflag, 1);
+    EXPECT_NE(atom->lmap, nullptr);
+    EXPECT_FALSE(atom->lmap->is_complete(Atom::ATOM));
+
+    clear();
+    EXPECT_EQ(atom->labelmapflag, 0);
+    EXPECT_EQ(atom->lmap, nullptr);
+    BEGIN_HIDE_OUTPUT();
+    command("pair_style none");
+    command("read_restart labelmap_atom_complete.restart");
+    END_HIDE_OUTPUT();
+    EXPECT_EQ(atom->labelmapflag, 1);
+    EXPECT_NE(atom->lmap, nullptr);
+    EXPECT_TRUE(atom->lmap->is_complete(Atom::ATOM));
+
+    clear();
+    EXPECT_EQ(atom->labelmapflag, 0);
+    EXPECT_EQ(atom->lmap, nullptr);
+    BEGIN_HIDE_OUTPUT();
+    command("read_restart labelmap_atom_incomplete.restart");
+    END_HIDE_OUTPUT();
+    EXPECT_EQ(atom->labelmapflag, 1);
+    EXPECT_NE(atom->lmap, nullptr);
+    EXPECT_FALSE(atom->lmap->is_complete(Atom::ATOM));
+    platform::unlink("labelmap_atom_complete.data");
+    platform::unlink("labelmap_atom_types_complete.data");
+    platform::unlink("labelmap_atom_complete.restart");
+    platform::unlink("labelmap_atom_incomplete.data");
+    platform::unlink("labelmap_atom_types_incomplete.data");
+    platform::unlink("labelmap_atom_incomplete.restart");
+}
+
+TEST_F(LabelMapTest, RestartFull)
+{
+    if (!info->has_style("atom", "full")) GTEST_SKIP();
+
+    BEGIN_HIDE_OUTPUT();
+    command("atom_style full");
+    command("region box block 0 2 0 2 0 2");
+    command("create_box 2 box bond/types 3 angle/types 2 dihedral/types 2 improper/types 2 "
+            "extra/bond/per/atom 3 extra/angle/per/atom 2 extra/dihedral/per/atom 2 "
+            "extra/improper/per/atom 2 extra/special/per/atom 4");
+    command("labelmap atom 1 C1");
+    command("mass * 1.0");
+    command("mass C1 12.0");
+    command("pair_style zero 1.0");
+    command("bond_style zero");
+    command("angle_style zero");
+    command("dihedral_style zero");
+    command("improper_style zero");
+    command("pair_coeff * *");
+    command("bond_coeff * 1.0");
+    command("angle_coeff * 120.0");
+    command("dihedral_coeff *");
+    command("improper_coeff *");
+
+    command("create_atoms C1 single 0.0 0.0 0.0");
+    command("create_atoms 2 single 1.0 1.0 1.0");
+    command("create_atoms C1 single 0.5 0.5 0.0");
+    command("create_atoms 2 single 1.5 1.5 1.0");
+
+    command("create_bonds single/bond 1 1 2");
+    command("create_bonds single/bond 2 3 4");
+    command("create_bonds single/angle 1 1 2 3");
+    command("create_bonds single/angle 2 2 3 4");
+    command("create_bonds single/dihedral 1 1 2 3 4");
+    command("create_bonds single/dihedral 2 1 2 3 4");
+    command("create_bonds single/improper 1 1 2 3 4");
+    command("create_bonds single/improper 2 1 2 3 4");
+
+    command("labelmap bond 1 C1-H2 3 N2=N2");
+    command("labelmap angle 1 C1-N2-C1 2 NULL");
+    command("labelmap dihedral 1 'C1-N2-C1-N2' 2 'NULL'");
+    command("labelmap improper 1 \"NULL\" 2 \"C1-N2-C1-N2\"");
+    command("write_data labelmap_full_incomplete.data types numeric");
+    command("write_data labelmap_full_types_incomplete.data types labels");
+    command("write_restart labelmap_full_incomplete.restart");
+    END_HIDE_OUTPUT();
+    EXPECT_EQ(atom->labelmapflag, 1);
+    ASSERT_NE(atom->lmap, nullptr);
+    EXPECT_FALSE(atom->lmap->is_complete(Atom::ATOM));
+    EXPECT_FALSE(atom->lmap->is_complete(Atom::BOND));
+    EXPECT_FALSE(atom->lmap->is_complete(Atom::ANGLE));
+    EXPECT_FALSE(atom->lmap->is_complete(Atom::DIHEDRAL));
+    EXPECT_FALSE(atom->lmap->is_complete(Atom::IMPROPER));
+    BEGIN_HIDE_OUTPUT();
+    command("labelmap atom 2 H2");
+    command("labelmap bond 2 H2-H2 3 N3-N3");
+    command("labelmap angle 2 H2-C1-H2");
+    command("labelmap dihedral 2 some_dihedral");
+    command("labelmap improper 1 twisted");
+    command("write_data labelmap_full_complete.data types numeric");
+    command("write_data labelmap_full_types_complete.data types labels");
+    command("write_restart labelmap_full_complete.restart");
+    END_HIDE_OUTPUT();
+    EXPECT_TRUE(atom->lmap->is_complete(Atom::ATOM));
+    EXPECT_TRUE(atom->lmap->is_complete(Atom::BOND));
+    EXPECT_TRUE(atom->lmap->is_complete(Atom::ANGLE));
+    EXPECT_TRUE(atom->lmap->is_complete(Atom::DIHEDRAL));
+    EXPECT_TRUE(atom->lmap->is_complete(Atom::IMPROPER));
+
+    clear();
+    EXPECT_EQ(atom->labelmapflag, 0);
+    EXPECT_EQ(atom->lmap, nullptr);
+    BEGIN_HIDE_OUTPUT();
+    command("atom_style full");
+    command("pair_style zero 1.0");
+    command("bond_style zero");
+    command("angle_style zero");
+    command("dihedral_style zero");
+    command("improper_style zero");
+    command("read_data labelmap_full_complete.data");
+    END_HIDE_OUTPUT();
+    EXPECT_EQ(atom->labelmapflag, 1);
+    EXPECT_NE(atom->lmap, nullptr);
+    EXPECT_TRUE(atom->lmap->is_complete(Atom::ATOM));
+    EXPECT_TRUE(atom->lmap->is_complete(Atom::BOND));
+    EXPECT_TRUE(atom->lmap->is_complete(Atom::ANGLE));
+    EXPECT_TRUE(atom->lmap->is_complete(Atom::DIHEDRAL));
+    EXPECT_TRUE(atom->lmap->is_complete(Atom::IMPROPER));
+
+    clear();
+    EXPECT_EQ(atom->labelmapflag, 0);
+    EXPECT_EQ(atom->lmap, nullptr);
+    BEGIN_HIDE_OUTPUT();
+    command("atom_style full");
+    command("pair_style zero 1.0");
+    command("bond_style zero");
+    command("angle_style zero");
+    command("dihedral_style zero");
+    command("improper_style zero");
+    command("read_data labelmap_full_types_complete.data");
+    END_HIDE_OUTPUT();
+    EXPECT_EQ(atom->labelmapflag, 1);
+    EXPECT_NE(atom->lmap, nullptr);
+    EXPECT_TRUE(atom->lmap->is_complete(Atom::ATOM));
+    EXPECT_TRUE(atom->lmap->is_complete(Atom::BOND));
+    EXPECT_TRUE(atom->lmap->is_complete(Atom::ANGLE));
+    EXPECT_TRUE(atom->lmap->is_complete(Atom::DIHEDRAL));
+    EXPECT_TRUE(atom->lmap->is_complete(Atom::IMPROPER));
+
+    clear();
+    EXPECT_EQ(atom->labelmapflag, 0);
+    EXPECT_EQ(atom->lmap, nullptr);
+    BEGIN_HIDE_OUTPUT();
+    command("atom_style full");
+    command("pair_style zero 1.0");
+    command("bond_style zero");
+    command("angle_style zero");
+    command("dihedral_style zero");
+    command("improper_style zero");
+    command("read_data labelmap_full_incomplete.data");
+    END_HIDE_OUTPUT();
+    EXPECT_EQ(atom->labelmapflag, 1);
+    EXPECT_NE(atom->lmap, nullptr);
+    EXPECT_FALSE(atom->lmap->is_complete(Atom::ATOM));
+    EXPECT_FALSE(atom->lmap->is_complete(Atom::BOND));
+    EXPECT_FALSE(atom->lmap->is_complete(Atom::ANGLE));
+    EXPECT_FALSE(atom->lmap->is_complete(Atom::DIHEDRAL));
+    EXPECT_FALSE(atom->lmap->is_complete(Atom::IMPROPER));
+
+    clear();
+    EXPECT_EQ(atom->labelmapflag, 0);
+    EXPECT_EQ(atom->lmap, nullptr);
+    BEGIN_HIDE_OUTPUT();
+    command("atom_style full");
+    command("pair_style zero 1.0");
+    command("bond_style zero");
+    command("angle_style zero");
+    command("dihedral_style zero");
+    command("improper_style zero");
+    command("read_data labelmap_full_types_incomplete.data");
+    END_HIDE_OUTPUT();
+    EXPECT_EQ(atom->labelmapflag, 1);
+    EXPECT_NE(atom->lmap, nullptr);
+    EXPECT_FALSE(atom->lmap->is_complete(Atom::ATOM));
+    EXPECT_FALSE(atom->lmap->is_complete(Atom::BOND));
+    EXPECT_FALSE(atom->lmap->is_complete(Atom::ANGLE));
+    EXPECT_FALSE(atom->lmap->is_complete(Atom::DIHEDRAL));
+    EXPECT_FALSE(atom->lmap->is_complete(Atom::IMPROPER));
+
+    clear();
+    EXPECT_EQ(atom->labelmapflag, 0);
+    EXPECT_EQ(atom->lmap, nullptr);
+    BEGIN_HIDE_OUTPUT();
+    command("read_restart labelmap_full_complete.restart");
+    END_HIDE_OUTPUT();
+    EXPECT_EQ(atom->labelmapflag, 1);
+    EXPECT_NE(atom->lmap, nullptr);
+    EXPECT_TRUE(atom->lmap->is_complete(Atom::ATOM));
+    EXPECT_TRUE(atom->lmap->is_complete(Atom::BOND));
+    EXPECT_TRUE(atom->lmap->is_complete(Atom::ANGLE));
+    EXPECT_TRUE(atom->lmap->is_complete(Atom::DIHEDRAL));
+    EXPECT_TRUE(atom->lmap->is_complete(Atom::IMPROPER));
+
+    clear();
+    EXPECT_EQ(atom->labelmapflag, 0);
+    EXPECT_EQ(atom->lmap, nullptr);
+    BEGIN_HIDE_OUTPUT();
+    command("read_restart labelmap_full_incomplete.restart");
+    END_HIDE_OUTPUT();
+    EXPECT_EQ(atom->labelmapflag, 1);
+    EXPECT_NE(atom->lmap, nullptr);
+    EXPECT_FALSE(atom->lmap->is_complete(Atom::ATOM));
+    EXPECT_FALSE(atom->lmap->is_complete(Atom::BOND));
+    EXPECT_FALSE(atom->lmap->is_complete(Atom::ANGLE));
+    EXPECT_FALSE(atom->lmap->is_complete(Atom::DIHEDRAL));
+    EXPECT_FALSE(atom->lmap->is_complete(Atom::IMPROPER));
+
+    platform::unlink("labelmap_full_complete.data");
+    platform::unlink("labelmap_full_types_complete.data");
+    platform::unlink("labelmap_full_complete.restart");
+    platform::unlink("labelmap_full_incomplete.data");
+    platform::unlink("labelmap_full_types_incomplete.data");
+    platform::unlink("labelmap_full_incomplete.restart");
 }
 } // namespace LAMMPS_NS
 

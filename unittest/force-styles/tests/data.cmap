@@ -10,7 +10,7 @@ LAMMPS data file via write_data, version 5 May 2020, timestep = 0
 5 dihedral types
 2 impropers
 2 improper types
-2 crossterms
+5 crossterms
 
  -6.024572 8.975428  xlo xhi
  -7.692866 7.307134  ylo yhi
@@ -226,4 +226,7 @@ Impropers
 CMAP
 
 1       1       8      10      12      18      20
-2       5      18      20      22      25      27
+2       2      18      20      22      25      27
+3       3      2      4      5      6      7
+4       4      10      11      12      13      14
+5       5      5      10      15      20      25

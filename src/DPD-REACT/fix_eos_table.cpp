@@ -307,8 +307,8 @@ void FixEOStable::param_extract(Table *tb, Table *tb2, char *line)
   while (word) {
     if (strcmp(word,"N") == 0) {
       word = strtok(nullptr," \t\n\r\f");
-      tb->ninput = atoi(word);
-      tb2->ninput = atoi(word);
+      tb->ninput = std::stoi(word);
+      tb2->ninput = std::stoi(word);
     } else {
       error->one(FLERR,"Invalid keyword in fix eos/table parameters");
     }

@@ -97,7 +97,7 @@ These fixes are part of the DPD-MESO package. They are only enabled if
 LAMMPS was built with that package. See the :doc:`Build package
 <Build_package>` page for more info.
 
-versionchanged:: TBD
+.. versionchanged:: TBD
 
 This fix is incompatible with deformation controls that remap velocity,
 for instance the *remap v* option of :doc:`fix deform <fix_deform>`.

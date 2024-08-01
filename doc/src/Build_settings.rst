@@ -414,8 +414,8 @@ Read or write compressed files
 If this option is enabled, large files can be read or written with
 compression by ``gzip`` or similar tools by several LAMMPS commands,
 including :doc:`read_data <read_data>`, :doc:`rerun <rerun>`, and
-:doc:`dump <dump>`.  Supported compression tools are currently
-``gzip``, ``bzip2``, ``zstd``, and ``lzma``.
+:doc:`dump <dump>`.  Supported compression tools and algorithms are currently
+``gzip``, ``bzip2``, ``zstd``, ``xz``, ``lz4``, and ``lzma`` (via xz).
 
 .. tabs::
 

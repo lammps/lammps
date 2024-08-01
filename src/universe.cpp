@@ -181,10 +181,10 @@ void Universe::add_world(char *str)
       if ((found == 0) || (found == (part.size() - 1))) {
         valid = false;
       } else if (found == std::string::npos) {
-        nper = atoi(part.c_str());
+        nper = std::stoi(part);
       } else {
-        n = atoi(part.substr(0,found).c_str());
-        nper = atoi(part.substr(found+1).c_str());
+        n = std::stoi(part.substr(0,found));
+        nper = std::stoi(part.substr(found+1));
       }
     }
 
@@ -193,8 +193,7 @@ void Universe::add_world(char *str)
     if (n < 1 || nper < 1) valid = false;
 
     if (!valid)
-      error->universe_all(FLERR,fmt::format("Invalid partition string '{}'",
-                                            str));
+      error->universe_all(FLERR, fmt::format("Invalid partition string '{}'", str));
   } else nper = nprocs;
 
   memory->grow(procs_per_world,nworlds+n,"universe:procs_per_world");

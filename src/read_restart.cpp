@@ -527,7 +527,8 @@ std::string ReadRestart::file_search(const std::string &inpfile)
   loc = pattern.find('*');
   if (loc != std::string::npos) {
     // the regex matcher in utils::strmatch() only checks the first 256 characters.
-    if (loc > 256)
+    // a 64-bit integer timestep will consume 20 characters, so 236 chars is the cutoff.
+    if (loc > 236)
       error->one(FLERR, "Filename part before '*' is too long to find restart with largest step");
 
     // convert pattern to equivalent regexp
@@ -538,7 +539,7 @@ std::string ReadRestart::file_search(const std::string &inpfile)
 
     for (const auto &candidate : platform::list_directory(dirname)) {
       if (utils::strmatch(candidate,pattern)) {
-        bigint num = ATOBIGINT(utils::strfind(candidate.substr(loc),"\\d+").c_str());
+        auto num = (bigint) std::stoll(utils::strfind(candidate.substr(loc),"\\d+"));
         if (num > maxnum) maxnum = num;
       }
     }

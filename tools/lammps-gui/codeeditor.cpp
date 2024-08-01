@@ -24,21 +24,27 @@
 #include <QDragEnterEvent>
 #include <QDropEvent>
 #include <QFileInfo>
+#include <QFont>
 #include <QIcon>
 #include <QKeySequence>
 #include <QMenu>
 #include <QMimeData>
 #include <QPainter>
+#include <QRect>
 #include <QRegularExpression>
 #include <QScrollBar>
 #include <QSettings>
 #include <QShortcut>
 #include <QStringListModel>
-#include <QStringRef>
 #include <QTextBlock>
+#include <QTextCursor>
 #include <QTextDocumentFragment>
 #include <QUrl>
+#include <QVariant>
+#include <QWidget>
 
+#include <cstdlib>
+#include <cstring>
 #include <string>
 #include <vector>
 
@@ -775,6 +781,11 @@ void CodeEditor::contextMenuEvent(QContextMenuEvent *event)
     action->setData(QString());
     connect(action, &QAction::triggered, this, &CodeEditor::open_help);
 
+    action = menu->addAction(QString("LAMMPS Tutorial"));
+    action->setIcon(QIcon(":/icons/help-tutorial.png"));
+    action->setData(QString("https://lammpstutorials.github.io/"));
+    connect(action, &QAction::triggered, this, &CodeEditor::open_url);
+
     menu->exec(event->globalPos());
     delete menu;
 }
@@ -1206,6 +1217,12 @@ void CodeEditor::open_help()
     auto *act = qobject_cast<QAction *>(sender());
     QDesktopServices::openUrl(
         QUrl(QString("https://docs.lammps.org/%1").arg(act->data().toString())));
+}
+
+void CodeEditor::open_url()
+{
+    auto *act = qobject_cast<QAction *>(sender());
+    QDesktopServices::openUrl(QUrl(act->data().toString()));
 }
 
 void CodeEditor::view_file()

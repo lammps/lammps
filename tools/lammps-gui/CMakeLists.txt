@@ -1,6 +1,6 @@
 cmake_minimum_required(VERSION 3.16)
 
-project(lammps-gui VERSION 1.6.3 LANGUAGES CXX)
+project(lammps-gui VERSION 1.6.5 LANGUAGES CXX)
 
 set(CMAKE_AUTOUIC ON)
 set(CMAKE_AUTOMOC ON)
@@ -22,7 +22,13 @@ function(check_omp_h_include)
     set(CMAKE_REQUIRED_INCLUDES ${OpenMP_CXX_INCLUDE_DIRS})
     set(CMAKE_REQUIRED_LINK_OPTIONS ${OpenMP_CXX_FLAGS})
     set(CMAKE_REQUIRED_LIBRARIES ${OpenMP_CXX_LIBRARIES})
-    check_include_file_cxx(omp.h _have_omp_h)
+    # there are all kinds of problems with finding omp.h
+    # for Clang and derived compilers so we pretend it is there.
+    if(CMAKE_CXX_COMPILER_ID STREQUAL "Clang")
+      set(_have_omp_h TRUE)
+    else()
+      check_include_file_cxx(omp.h _have_omp_h)
+    endif()
   else()
     set(_have_omp_h FALSE)
   endif()
@@ -199,7 +205,7 @@ if(APPLE)
     MACOSX_BUNDLE_BUNDLE_VERSION ${PROJECT_VERSION}
     MACOSX_BUNDLE_SHORT_VERSION_STRING ${PROJECT_VERSION_MAJOR}.${PROJECT_VERSION_MINOR}
     MACOSX_BUNDLE_ICON_FILE lammps.icns
-    MACOSX_BUNDLE_COPYRIGHT "(c) 2003 - 2023, The LAMMPS Developers"
+    MACOSX_BUNDLE_COPYRIGHT "(c) 2003 - 2024, The LAMMPS Developers"
     MACOSX_BUNDLE TRUE
   )
   # additional targets to populate the bundle tree and create the .dmg image file

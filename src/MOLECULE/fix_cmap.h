@@ -89,7 +89,6 @@ class FixCMAP : public Fix {
   tagint **crossterm_atom4, **crossterm_atom5;
 
   double ecmap;
-  //double fcmap[4]; FIXME: remove ? unused variable
   double *g_axis;
 
   // CMAP grid points obtained from external file
@@ -120,7 +119,7 @@ class FixCMAP : public Fix {
   // calculate dihedral angles
 
   double dihedral_angle_atan2(double, double, double, double, double, double, double, double,
-                              double, double);
+                              double, double) const;
 
   // calculate bicubic interpolation coefficient matrix c_ij
 

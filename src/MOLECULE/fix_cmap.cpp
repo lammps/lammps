@@ -350,9 +350,6 @@ void FixCMAP::post_force(int vflag)
     i5 = crosstermlist[n][4];
 
     type = crosstermlist[n][5];
-
-    //std::cerr << fmt::format("******** n={} i=[{},{},{},{},{}], type={}\n",n,i1,i2,i3,i4,i5,type);
-
     if (type == 0) continue;
 
     // calculate bond vectors for both dihedrals
@@ -431,8 +428,6 @@ void FixCMAP::post_force(int vflag)
       phi = dihedral_angle_atan2(vb21x,vb21y,vb21z,a1x,a1y,a1z,b1x,b1y,b1z,r32);
       psi = dihedral_angle_atan2(vb32x,vb32y,vb32z,a2x,a2y,a2z,b2x,b2y,b2z,r43);
 
-      std::cerr << fmt::format("******** n={} phi={}, psi={}\n", n, phi, psi);
-
       if (phi == 180.0) phi= -180.0;
       if (psi == 180.0) psi= -180.0;
 
@@ -480,17 +475,9 @@ void FixCMAP::post_force(int vflag)
       d12gs[2] = d12cmapgrid[t1][mli11][mli21];
       d12gs[3] = d12cmapgrid[t1][mli1][mli21];
 
-      std::cerr << fmt::format("******** n={} gs=[{},{},{},{}]\n", n, gs[0],gs[1],gs[2],gs[3]);
-      std::cerr << fmt::format("******** n={} d1gs=[{},{},{},{}]\n", n, d1gs[0],d1gs[1],d1gs[2],d1gs[3]);
-      std::cerr << fmt::format("******** n={} d2gs=[{},{},{},{}]\n", n, d2gs[0],d2gs[1],d2gs[2],d2gs[3]);
-      std::cerr << fmt::format("******** n={} d12gs=[{},{},{},{}]\n", n, d12gs[0],d12gs[1],d12gs[2],d12gs[3]);
-
-
       // calculate the cmap energy and the gradient (dE/dphi,dE/dpsi)
 
       bc_interpol(phi,psi,li3,li4,gs,d1gs,d2gs,d12gs);
-
-      std::cerr << fmt::format("******** n={} dEdPhi={}, dEdPsi={}\n", n, dEdPhi, dEdPsi);
 
 
       // sum up cmap energy contributions
@@ -559,8 +546,6 @@ void FixCMAP::post_force(int vflag)
       f5[1] = -dEdPsi*dpsidr4y;
       f5[2] = -dEdPsi*dpsidr4z;
 
-      std::cerr << fmt::format("******** n={} f1=[{},{},{}]\n",n,f1[0],f1[1],f1[2]);
-
       // apply force to each of the 5 atoms
 
       if (i1 < nlocal) {
@@ -613,11 +598,7 @@ void FixCMAP::post_force(int vflag)
         ev_tally(nlist,list,5.0,E,vcmap);
         //ev_tally(5,list,nlocal,newton_bond,E,vcmap);
       }
-
-      utils::logmesg(lmp, "post_force (n={})\n", n);
-
   }
-
 
 }
 
@@ -838,7 +819,7 @@ void FixCMAP::set_map_derivatives(double **map, double **d1yo, double **d2yo,
 double FixCMAP::dihedral_angle_atan2(double fx, double fy, double fz,
                                       double ax, double ay, double az,
                                       double bx, double by, double bz,
-                                      double absg)
+                                      double absg) const
 {
   // calculate the dihedral angle
 
@@ -931,7 +912,6 @@ void FixCMAP::bc_interpol(double x1, double x2, int low1, int low2, double *gs,
     E = t*E + ((cij[i][3]*u+cij[i][2])*u+cij[i][1])*u+cij[i][0];
     dEdPhi = u*dEdPhi + (3.0*cij[3][i]*t+2.0*cij[2][i])*t+cij[1][i];
     dEdPsi = t*dEdPsi + (3.0*cij[i][3]*u+2.0*cij[i][2])*u+cij[i][1];
-    std::cerr << fmt::format("******** cij[{}]=[{},{},{},{}]\n", i,cij[i][0],cij[i][1],cij[i][2],cij[i][3]);
   }
 
   dEdPhi *= (180.0/MY_PI/CMAPDX);

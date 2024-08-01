@@ -41,8 +41,7 @@ class FixCMAPKokkos : public FixCMAP {
     void post_force(int) override;
 
     KOKKOS_INLINE_FUNCTION
-    //void operator()(const int) const;
-    void operator()(const int);
+    void operator()(const int) const;
 
     void grow_arrays(int) override;
     void copy_arrays(int, int, int) override;
@@ -78,14 +77,10 @@ class FixCMAPKokkos : public FixCMAP {
     DAT::tdual_float_3d k_cmapgrid, k_d1cmapgrid, k_d2cmapgrid, k_d12cmapgrid;
     typename AT::t_float_3d d_cmapgrid, d_d1cmapgrid, d_d2cmapgrid, d_d12cmapgrid;
 
-    // calculate bicubic interpolation coefficient matrix c_ij
-    KOKKOS_INLINE_FUNCTION
-    void bc_coeff(double *, double *, double *, double *, double **);
-
     // perform bicubic interpolation at point of interest
     KOKKOS_INLINE_FUNCTION
     void bc_interpol(double, double, int, int, double *, double *, double *, double *,
-      double &, double &, double &);
+      double &, double &, double &) const;
 
     // copied from Domain
     KOKKOS_INLINE_FUNCTION

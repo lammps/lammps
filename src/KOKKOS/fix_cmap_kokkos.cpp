@@ -49,7 +49,6 @@ FixCMAPKokkos<DeviceType>::FixCMAPKokkos(LAMMPS *lmp, int narg, char **arg) :
   datamask_modify = F_MASK;
 
   // allocate memory for CMAP data
-
   memoryKK->create_kokkos(k_g_axis,g_axis,CMAPDIM,"cmap:g_axis");
   memoryKK->create_kokkos(k_cmapgrid,cmapgrid,CMAPMAX,CMAPDIM,CMAPDIM,"cmap:grid");
   memoryKK->create_kokkos(k_d1cmapgrid,d1cmapgrid,CMAPMAX,CMAPDIM,CMAPDIM,"cmap:d1grid");
@@ -62,7 +61,51 @@ FixCMAPKokkos<DeviceType>::FixCMAPKokkos(LAMMPS *lmp, int narg, char **arg) :
   d_d2cmapgrid = k_d2cmapgrid.template view<DeviceType>();
   d_d12cmapgrid = k_d12cmapgrid.template view<DeviceType>();
 
+  // read and setup CMAP data
+  read_grid_map(arg[3]);
+
+  int i = 0;
+  double angle = -180.0;
+
+  while (angle < 180.0) {
+    g_axis[i] = angle;
+    angle += CMAPDX;
+    i++;
+  }
+
   FixCMAPKokkos::grow_arrays(atom->nmax);
+
+  for( int i=0 ; i<CMAPDIM ; i++ )
+    k_g_axis.h_view(i) = g_axis[i];
+
+  for( int i=0 ; i<CMAPMAX ; i++ ) {
+
+    // pre-compute the derivatives of the maps
+    set_map_derivatives(cmapgrid[i],d1cmapgrid[i],d2cmapgrid[i],d12cmapgrid[i]);
+
+    for( int j=0 ; j<CMAPDIM ; j++ ) {
+      for( int k=0 ; k<CMAPDIM ; k++ ) {
+        k_cmapgrid.h_view(i,j,k) = cmapgrid[i][j][k];
+        k_d1cmapgrid.h_view(i,j,k) = d1cmapgrid[i][j][k];
+        k_d2cmapgrid.h_view(i,j,k) = d2cmapgrid[i][j][k];
+        k_d12cmapgrid.h_view(i,j,k) = d12cmapgrid[i][j][k];
+
+      }
+    }
+  }
+
+  k_g_axis.modify_host();
+  k_cmapgrid.modify_host();
+  k_d1cmapgrid.modify_host();
+  k_d2cmapgrid.modify_host();
+  k_d12cmapgrid.modify_host();
+
+  k_g_axis.template sync<DeviceType>();
+  k_cmapgrid.template sync<DeviceType>();
+  k_d1cmapgrid.template sync<DeviceType>();
+  k_d2cmapgrid.template sync<DeviceType>();
+  k_d12cmapgrid.template sync<DeviceType>();
+
 }
 
 /* ---------------------------------------------------------------------- */
@@ -95,38 +138,8 @@ FixCMAPKokkos<DeviceType>::~FixCMAPKokkos()
 template<class DeviceType>
 void FixCMAPKokkos<DeviceType>::init()
 {
-  FixCMAP::init();
-
   if (utils::strmatch(update->integrate_style,"^respa"))
     error->all(FLERR,"Cannot yet use respa with Kokkos");
-
-  for( int i=0 ; i<CMAPDIM ; i++ )
-    k_g_axis.h_view(i) = g_axis[i];
-
-  for( int i=0 ; i<CMAPMAX ; i++ ) {
-    for( int j=0 ; j<CMAPDIM ; j++ ) {
-      for( int k=0 ; k<CMAPDIM ; k++ ) {
-        k_cmapgrid.h_view(i,j,k) = cmapgrid[i][j][k];
-        k_d1cmapgrid.h_view(i,j,k) = d1cmapgrid[i][j][k];
-        k_d2cmapgrid.h_view(i,j,k) = d2cmapgrid[i][j][k];
-        k_d12cmapgrid.h_view(i,j,k) = d12cmapgrid[i][j][k];
-
-        std::cerr << fmt::format("******** cmapgrids[{}][{}][{}]=[{},{},{},{}]\n", i,j,k,cmapgrid[i][j][k],d1cmapgrid[i][j][k],d2cmapgrid[i][j][k],d12cmapgrid[i][j][k]);
-      }
-    }
-  }
-
-  k_g_axis.modify_host();
-  k_cmapgrid.modify_host();
-  k_d1cmapgrid.modify_host();
-  k_d2cmapgrid.modify_host();
-  k_d12cmapgrid.modify_host();
-
-  k_g_axis.template sync<DeviceType>();
-  k_cmapgrid.template sync<DeviceType>();
-  k_d1cmapgrid.template sync<DeviceType>();
-  k_d2cmapgrid.template sync<DeviceType>();
-  k_d12cmapgrid.template sync<DeviceType>();
 }
 
 /* ----------------------------------------------------------------------
@@ -148,7 +161,6 @@ void FixCMAPKokkos<DeviceType>::pre_neighbor()
     if (nprocs == 1) maxcrossterm = ncmap;
     else maxcrossterm = static_cast<int> (LB_FACTOR*ncmap/nprocs);
     memoryKK->create_kokkos(k_crosstermlist,crosstermlist,maxcrossterm,CMAPMAX,"cmap:crosstermlist");
-
     d_crosstermlist = k_crosstermlist.template view<DeviceType>();
   }
 
@@ -217,38 +229,13 @@ void FixCMAPKokkos<DeviceType>::pre_neighbor()
    compute CMAP terms as if newton_bond = OFF, even if actually ON
 ------------------------------------------------------------------------- */
 
-/*
-template<class DeviceType>
-void FixCMAPKokkos<DeviceType>::post_force(int vflag)
-{
-
-  atomKK->sync(execution_space,datamask_read);
-  atomKK->modified(execution_space,datamask_modify);
-
-  d_x = atomKK->k_x.view<DeviceType>();
-  d_f = atomKK->k_f.view<DeviceType>();
-  d_type = atomKK->k_type.view<DeviceType>();
-  d_mask = atomKK->k_mask.view<DeviceType>();
-  int nlocal = atomKK->nlocal;
-  if (igroup == atomKK->firstgroup) nlocal = atomKK->nfirst;
-
-  copymode = 1;
-
-  Kokkos::parallel_for(nlocal, *this);
-
-  copymode = 0;
-
-}
-*/
-
 template<class DeviceType>
 void FixCMAPKokkos<DeviceType>::post_force(int vflag)
 {
 
   d_x = atomKK->k_x.template view<DeviceType>();
   d_f = atomKK->k_f.template view<DeviceType>();
-  //atomKK->sync(execution_space,X_MASK|F_MASK);
-  atomKK->sync(execution_space,ALL_MASK);
+  atomKK->sync(execution_space,X_MASK|F_MASK);
   k_crosstermlist.template sync<DeviceType>();
 
   ecmap = 0.0;
@@ -256,29 +243,18 @@ void FixCMAPKokkos<DeviceType>::post_force(int vflag)
   ev_init(eflag,vflag);
 
   copymode = 1;
-  //Kokkos::parallel_for(ncrosstermlist, *this);
-
-  for ( int n = 0; n < ncrosstermlist; n++)
-    operator()(n);
-
+  Kokkos::parallel_for(ncrosstermlist, *this);
   copymode = 0;
-
-  //atomKK->modified(execution_space,F_MASK);
-  atomKK->modified(execution_space,ALL_MASK);
+  atomKK->modified(execution_space,F_MASK);
 }
 
 
 /* ---------------------------------------------------------------------- */
 
-
-
 template<class DeviceType>
 KOKKOS_INLINE_FUNCTION
-//void FixCMAPKokkos<DeviceType>::operator()(const int n) const
-void FixCMAPKokkos<DeviceType>::operator()(const int n)
+void FixCMAPKokkos<DeviceType>::operator()(const int n) const
 {
-
-  //std::cerr << "post_force (n=" << n << ")\n";
 
   int i1,i2,i3,i4,i5,type,nlist;
   int li1, li2, mli1,mli2,mli11,mli21,t1,li3,li4,mli3,mli4,mli31,mli41;
@@ -293,7 +269,7 @@ void FixCMAPKokkos<DeviceType>::operator()(const int n)
   double phi,psi,phi1,psi1;
   double f1[3],f2[3],f3[3],f4[3],f5[3],vcmap[CMAPMAX];
   double gs[4],d1gs[4],d2gs[4],d12gs[4];
-  double engfraction;
+
   // vectors needed for the gradient/force calculation
   double dphidr1x,dphidr1y,dphidr1z,dphidr2x,dphidr2y,dphidr2z;
   double dphidr3x,dphidr3y,dphidr3z,dphidr4x,dphidr4y,dphidr4z;
@@ -317,10 +293,6 @@ void FixCMAPKokkos<DeviceType>::operator()(const int n)
     i4 = d_crosstermlist(n,3);
     i5 = d_crosstermlist(n,4);
     type = d_crosstermlist(n,5);
-
-    //std::cerr << fmt::format("******** n={} i=[{},{},{},{},{}], type={}\n", n,i1,i2,i3,i4,i5,type);
-
-
     if (type == 0) return;
 
     // calculate bond vectors for both dihedrals
@@ -399,8 +371,6 @@ void FixCMAPKokkos<DeviceType>::operator()(const int n)
       phi = FixCMAP::dihedral_angle_atan2(vb21x,vb21y,vb21z,a1x,a1y,a1z,b1x,b1y,b1z,r32);
       psi = FixCMAP::dihedral_angle_atan2(vb32x,vb32y,vb32z,a2x,a2y,a2z,b2x,b2y,b2z,r43);
 
-      std::cerr << fmt::format("******** n={} phi={}, psi={}\n", n, phi, psi);
-
       if (phi == 180.0) phi= -180.0;
       if (psi == 180.0) psi= -180.0;
 
@@ -446,27 +416,21 @@ void FixCMAPKokkos<DeviceType>::operator()(const int n)
       d12gs[2] = d_d12cmapgrid(t1,mli11,mli21);
       d12gs[3] = d_d12cmapgrid(t1,mli1,mli21);
 
-      std::cerr << fmt::format("******** n={} gs=[{},{},{},{}]\n", n, gs[0],gs[1],gs[2],gs[3]);
-      std::cerr << fmt::format("******** n={} d1gs=[{},{},{},{}]\n", n, d1gs[0],d1gs[1],d1gs[2],d1gs[3]);
-      std::cerr << fmt::format("******** n={} d2gs=[{},{},{},{}]\n", n, d2gs[0],d2gs[1],d2gs[2],d2gs[3]);
-      std::cerr << fmt::format("******** n={} d12gs=[{},{},{},{}]\n", n, d12gs[0],d12gs[1],d12gs[2],d12gs[3]);
-
       // calculate the cmap energy and the gradient (dE/dphi,dE/dpsi)
 
       double E, dEdPhi, dEdPsi;
       bc_interpol(phi,psi,li3,li4,gs,d1gs,d2gs,d12gs,E,dEdPhi,dEdPsi);
 
-      std::cerr << fmt::format("******** n={} dEdPhi={}, dEdPsi={}\n", n, dEdPhi, dEdPsi);
-
       // sum up cmap energy contributions
 
-      engfraction = 0.2 * E;
+/* FIXME: needed for compute_scalar()
+      double engfraction = 0.2 * E;
       if (i1 < nlocal) ecmap += engfraction;
       if (i2 < nlocal) ecmap += engfraction;
       if (i3 < nlocal) ecmap += engfraction;
       if (i4 < nlocal) ecmap += engfraction;
       if (i5 < nlocal) ecmap += engfraction;
-
+*/
       // calculate the derivatives dphi/dr_i
 
       dphidr1x = 1.0*r32/a1sq*a1x;
@@ -524,8 +488,6 @@ void FixCMAPKokkos<DeviceType>::operator()(const int n)
       f5[1] = -dEdPsi*dpsidr4y;
       f5[2] = -dEdPsi*dpsidr4z;
 
-      std::cerr << fmt::format("******** n={} f1=[{},{},{}]\n",n,f1[0],f1[1],f1[2]);
-
       // apply force to each of the 5 atoms
 
       if (i1 < nlocal) {
@@ -556,6 +518,7 @@ void FixCMAPKokkos<DeviceType>::operator()(const int n)
 
       // tally energy and/or virial
 
+/*
       if (evflag) {
         //std::cerr << "******** tally energy and/or virial\n";
         nlist = 0;
@@ -579,8 +542,7 @@ void FixCMAPKokkos<DeviceType>::operator()(const int n)
         ev_tally(nlist,list,5.0,E,vcmap);
         //ev_tally(5,list,nlocal,newton_bond,E,vcmap);
       }
-
-      //utils::logmesg(lmp, "post_force (n={})\n", n);
+*/
 
   }
 
@@ -740,7 +702,7 @@ template<class DeviceType>
 KOKKOS_INLINE_FUNCTION
 void FixCMAPKokkos<DeviceType>::bc_interpol(double x1, double x2, int low1, int low2, double *gs,
                            double *d1gs, double *d2gs, double *d12gs,
-                           double &E, double &dEdPhi, double &dEdPsi )
+                           double &E, double &dEdPhi, double &dEdPsi ) const
 {
 
   // FUSE bc_coeff() and bc_interpol() inline functions for kokkos version
@@ -807,9 +769,6 @@ void FixCMAPKokkos<DeviceType>::bc_interpol(double x1, double x2, int low1, int 
     E = t*E + ((cij[i][3]*u+cij[i][2])*u+cij[i][1])*u+cij[i][0];
     dEdPhi = u*dEdPhi + (3.0*cij[3][i]*t+2.0*cij[2][i])*t+cij[1][i];
     dEdPsi = t*dEdPsi + (3.0*cij[i][3]*u+2.0*cij[i][2])*u+cij[i][1];
-
-    std::cerr << fmt::format("******** cij[{}]=[{},{},{},{}]\n", i,cij[i][0],cij[i][1],cij[i][2],cij[i][3]);
-
   }
 
   dEdPhi *= (180.0/MY_PI/CMAPDX);

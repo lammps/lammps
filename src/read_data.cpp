@@ -535,7 +535,7 @@ void ReadData::command(int narg, char **arg)
     if (domain->dimension == 2) {
       if (triclinic_general == 0) {
         if (boxlo[2] >= 0.0 || boxhi[2] <= 0.0)
-          error->all(FLERR,"Read_data zlo/zhi for 2d simulation must straddle 0.0");
+          error->all(FLERR, "Read_data zlo/zhi for 2d simulation must straddle 0.0");
       } else if (triclinic_general == 1) {
         if (cvec[0] != 0.0 || cvec[1] != 0.0 || cvec[2] != 1.0 || abc_origin[2] != -0.5)
           error->all(FLERR,"Read_data cvec and/or abc_origin is invalid for "
@@ -594,12 +594,12 @@ void ReadData::command(int narg, char **arg)
           domain->yz = yz;
         }
 
-      // general triclinic box
-      // define_general_triclinic() converts
-      //   ABC edge vectors + abc_origin to restricted triclinic
+        // general triclinic box
+        // define_general_triclinic() converts
+        //   ABC edge vectors + abc_origin to restricted triclinic
 
       } else if (triclinic_general) {
-        domain->define_general_triclinic(avec,bvec,cvec,abc_origin);
+        domain->define_general_triclinic(avec, bvec, cvec, abc_origin);
       }
     }
 
@@ -615,7 +615,7 @@ void ReadData::command(int narg, char **arg)
 
       if (triclinic_general) {
         if (!domain->triclinic_general)
-          error->all(FLERR,"Read_data subsequent file cannot switch to general triclinic");
+          error->all(FLERR, "Read_data subsequent file cannot switch to general triclinic");
         int errflag = 0;
         if (avec[0] != domain->avec[0] || avec[1] != domain->avec[1] || avec[2] != domain->avec[2])
           errflag = 1;
@@ -627,22 +627,22 @@ void ReadData::command(int narg, char **arg)
             abc_origin[2] != domain->boxlo[2])
           errflag = 1;
         if (errflag)
-          error->all(FLERR,"Read_data subsequent file ABC vectors must be same as first file");
+          error->all(FLERR, "Read_data subsequent file ABC vectors must be same as first file");
         if (shift[0] != 0.0 || shift[1] != 0.0 || shift[2] != 0.0)
-          error->all(FLERR,"Read_data subsequent file with ABC vectors cannot define shift");
+          error->all(FLERR, "Read_data subsequent file with ABC vectors cannot define shift");
 
-      // restricted triclinic
-      // tilt factors must match first data file
+        // restricted triclinic
+        // tilt factors must match first data file
 
       } else if (triclinic) {
         if (!domain->triclinic || domain->triclinic_general)
-          error->all(FLERR,"Read_data subsequent file cannot switch to restricted triclinic");
+          error->all(FLERR, "Read_data subsequent file cannot switch to restricted triclinic");
         if (xy != domain->xy || xz != domain->xz || yz != domain->yz)
-          error->all(FLERR,"Read_data subsequent file tilt factors must be same as first file");
+          error->all(FLERR, "Read_data subsequent file tilt factors must be same as first file");
 
       } else {
         if (domain->triclinic)
-          error->all(FLERR,"Read_data subsequent file cannot switch to orthogonal");
+          error->all(FLERR, "Read_data subsequent file cannot switch to orthogonal");
       }
 
       double oldboxlo[3] = {domain->boxlo[0], domain->boxlo[1], domain->boxlo[2]};
@@ -1068,8 +1068,7 @@ void ReadData::command(int narg, char **arg)
   // if general triclinic, perform general to restricted rotation operation
   //   on any quantities read from data file which require it
 
-  if (triclinic_general)
-    atom->avec->read_data_general_to_restricted(nlocal_previous, atom->nlocal);
+  if (triclinic_general) atom->avec->read_data_general_to_restricted(nlocal_previous, atom->nlocal);
 
   // init per-atom fix/compute/variable values for created atoms
 
@@ -1371,7 +1370,7 @@ void ReadData::header(int firstpass)
       else if (firstpass)
         atom->nimpropers += nimpropers;
 
-    // Atom class type settings are only set by first data file
+      // Atom class type settings are only set by first data file
 
     } else if (utils::strmatch(line, "^\\s*\\d+\\s+atom\\s+types\\s")) {
       ntypes = utils::inumeric(FLERR, words[0], false, lmp);
@@ -1393,10 +1392,10 @@ void ReadData::header(int firstpass)
       nimpropertypes = utils::inumeric(FLERR, words[0], false, lmp);
       if (addflag == NONE) atom->nimpropertypes = nimpropertypes + extra_improper_types;
 
-    // these settings only used by first data file
-    // NOTE: these are now obsolete, we parse them to maintain backward compatibility
-    //   the recommended way is to set them via command keywords in the input script
-    //   if these flags are set both ways, the larger of the two values is used
+      // these settings only used by first data file
+      // NOTE: these are now obsolete, we parse them to maintain backward compatibility
+      //   the recommended way is to set them via command keywords in the input script
+      //   if these flags are set both ways, the larger of the two values is used
 
     } else if (strstr(line, "extra bond per atom")) {
       if (addflag == NONE) extra_flag_value = utils::inumeric(FLERR, words[0], false, lmp);
@@ -1414,8 +1413,8 @@ void ReadData::header(int firstpass)
       if (addflag == NONE) extra_flag_value = utils::inumeric(FLERR, words[0], false, lmp);
       force->special_extra = MAX(force->special_extra, extra_flag_value);
 
-    // local copy of box info
-    // so can treat differently for first vs subsequent data files
+      // local copy of box info
+      // so can treat differently for first vs subsequent data files
 
     } else if (utils::strmatch(line, "^\\s*\\f+\\s+\\f+\\s+xlo\\s+xhi\\s")) {
       xloxhi_flag = 1;
@@ -1527,8 +1526,8 @@ void ReadData::atoms()
     if (eof) error->all(FLERR, "Unexpected end of data file");
     if (tlabelflag && !lmap->is_complete(Atom::ATOM))
       error->all(FLERR, "Label map is incomplete: all types must be assigned a unique type label");
-    atom->data_atoms(nchunk, buffer, id_offset, mol_offset, toffset,
-                     shiftflag, shift, tlabelflag, lmap->lmap2lmap.atom, triclinic_general);
+    atom->data_atoms(nchunk, buffer, id_offset, mol_offset, toffset, shiftflag, shift, tlabelflag,
+                     lmap->lmap2lmap.atom, triclinic_general);
     nread += nchunk;
   }
 

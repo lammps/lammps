@@ -164,6 +164,7 @@ display_help_text() {
       echo "                 AMD_GFX942      = AMD GPU MI300 GFX942"
       echo "                 AMD_GFX1030     = AMD GPU V620/W6800 GFX1030"
       echo "                 AMD_GFX1100     = AMD GPU RX 7900 XT(X) GFX1100"
+      echo "                 AMD_GFX1103     = AMD APU Radeon 740M/760M/780M/880M/890M GFX1103"
       echo "               [ARM]"
       echo "                 ARMV80          = ARMv8.0 Compatible CPU"
       echo "                 ARMV81          = ARMv8.1 Compatible CPU"

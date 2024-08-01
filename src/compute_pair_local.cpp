@@ -66,15 +66,13 @@ ComputePairLocal::ComputePairLocal(LAMMPS *lmp, int narg, char **arg) :
       pstyle[nvalues++] = DY;
     else if (strcmp(arg[iarg], "dz") == 0)
       pstyle[nvalues++] = DZ;
-    else if (arg[iarg][0] == 'p') {
-      int n = atoi(&arg[iarg][1]);
+    else if (utils::strmatch(arg[iarg], "^p\\d+$")) {    // p1, p2, p3, ... pN
+      int n = std::stoi(&arg[iarg][1]);
       if (n <= 0) error->all(FLERR, "Invalid keyword {} in compute pair/local command", arg[iarg]);
       pstyle[nvalues] = PN;
       pindex[nvalues++] = n - 1;
-
     } else
       break;
-
     iarg++;
   }
 
@@ -84,22 +82,22 @@ ComputePairLocal::ComputePairLocal(LAMMPS *lmp, int narg, char **arg) :
 
   while (iarg < narg) {
     if (strcmp(arg[iarg], "cutoff") == 0) {
-      if (iarg + 2 > narg) error->all(FLERR, "Illegal compute pair/local command");
+      if (iarg + 2 > narg) utils::missing_cmd_args(FLERR, "compute pair/local cutoff", error);
       if (strcmp(arg[iarg + 1], "type") == 0)
         cutstyle = TYPE;
       else if (strcmp(arg[iarg + 1], "radius") == 0)
         cutstyle = RADIUS;
       else
-        error->all(FLERR, "Illegal compute pair/local command");
+        error->all(FLERR, "Unknown compute pair/local cutoff keyword: {}", arg[iarg + 1]);
       iarg += 2;
     } else
-      error->all(FLERR, "Illegal compute pair/local command");
+      error->all(FLERR, "Unknown compute pair/local keyword: {}", arg[iarg]);
   }
 
   // error check
 
   if (cutstyle == RADIUS && !atom->radius_flag)
-    error->all(FLERR, "Compute pair/local requires atom attribute radius");
+    error->all(FLERR, "This compute pair/local requires atom attribute radius");
 
   // set singleflag if need to call pair->single()
 

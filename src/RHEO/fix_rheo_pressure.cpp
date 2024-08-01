@@ -39,7 +39,9 @@ static constexpr double SEVENTH = 1.0 / 7.0;
 /* ---------------------------------------------------------------------- */
 
 FixRHEOPressure::FixRHEOPressure(LAMMPS *lmp, int narg, char **arg) :
-  Fix(lmp, narg, arg), fix_rheo(nullptr), rho0(nullptr), csq(nullptr), rho0inv(nullptr), csqinv(nullptr), c_cubic(nullptr), tpower(nullptr), pbackground(nullptr), pressure_style(nullptr)
+  Fix(lmp, narg, arg), c_cubic(nullptr), csq(nullptr), csqinv(nullptr), rho0(nullptr),
+  rho0inv(nullptr), tpower(nullptr), pbackground(nullptr), pressure_style(nullptr),
+  fix_rheo(nullptr)
 {
   if (narg < 4) error->all(FLERR,"Illegal fix command");
 
@@ -160,9 +162,6 @@ void FixRHEOPressure::setup_pre_force(int /*vflag*/)
 
 void FixRHEOPressure::pre_force(int /*vflag*/)
 {
-  int i;
-  double dr, rr3, rho_ratio;
-
   int *mask = atom->mask;
   int *type = atom->type;
   double *rho = atom->rho;
@@ -170,7 +169,7 @@ void FixRHEOPressure::pre_force(int /*vflag*/)
 
   int nlocal = atom->nlocal;
 
-  for (i = 0; i < nlocal; i++)
+  for (int i = 0; i < nlocal; i++)
     if (mask[i] & groupbit)
       pressure[i] = calc_pressure(rho[i], type[i]);
 
@@ -182,12 +181,10 @@ void FixRHEOPressure::pre_force(int /*vflag*/)
 int FixRHEOPressure::pack_forward_comm(int n, int *list, double *buf,
                                         int /*pbc_flag*/, int * /*pbc*/)
 {
-  int i,j,k,m;
   double *pressure = atom->pressure;
-  m = 0;
-
-  for (i = 0; i < n; i++) {
-    j = list[i];
+  int m = 0;
+  for (int i = 0; i < n; i++) {
+    int j = list[i];
     buf[m++] = pressure[j];
   }
   return m;
@@ -197,12 +194,10 @@ int FixRHEOPressure::pack_forward_comm(int n, int *list, double *buf,
 
 void FixRHEOPressure::unpack_forward_comm(int n, int first, double *buf)
 {
-  int i, k, m, last;
   double *pressure = atom->pressure;
-
-  m = 0;
-  last = first + n;
-  for (i = first; i < last; i++) {
+  int m = 0;
+  int last = first + n;
+  for (int i = first; i < last; i++) {
     pressure[i] = buf[m++];
   }
 }
@@ -211,7 +206,8 @@ void FixRHEOPressure::unpack_forward_comm(int n, int first, double *buf)
 
 double FixRHEOPressure::calc_pressure(double rho, int type)
 {
-  double p, dr, rr3, rho_ratio;
+  double p = 0.0;
+  double dr, rr3, rho_ratio;
 
   if (pressure_style[type] == LINEAR) {
     p = csq[type] * (rho - rho0[type]);
@@ -234,7 +230,7 @@ double FixRHEOPressure::calc_pressure(double rho, int type)
 
 double FixRHEOPressure::calc_rho(double p, int type)
 {
-  double rho, dr, rr3, rho_ratio;
+  double rho = 0.0;
 
   if (pressure_style[type] == LINEAR) {
     rho = csqinv[type] * p + rho0[type];

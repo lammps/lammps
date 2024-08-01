@@ -9,6 +9,7 @@
     <file>icons/application-calc.png</file>
     <file>icons/application-exit.png</file>
     <file>icons/application-plot.png</file>
+    <file>icons/application-yaml.png</file>
     <file>icons/axes-img.png</file>
     <file>icons/document-new.png</file>
     <file>icons/document-open-recent.png</file>
@@ -40,9 +41,11 @@
     <file>icons/help-about.png</file>
     <file>icons/help-browser.png</file>
     <file>icons/help-faq.png</file>
+    <file>icons/help-tutorial.png</file>
     <file>icons/image-x-generic.png</file>
     <file>icons/media-playback-start-2.png</file>
     <file>icons/media-playlist-repeat.png</file>
+    <file>icons/move-recenter.png</file>
     <file>icons/object-rotate-left.png</file>
     <file>icons/object-rotate-right.png</file>
     <file>icons/ovito.png</file>

@@ -188,6 +188,7 @@ FixIPI::FixIPI(LAMMPS *lmp, int narg, char **arg) : Fix(lmp, narg, arg), irregul
   master = (comm->me == 0) ? 1 : 0;
   inet = 1;
   reset_flag = 0;
+  firsttime = 1;
 
   int iarg = 5;
   while (iarg < narg) {
@@ -253,6 +254,7 @@ void FixIPI::init()
     ipisock = 0;
   // TODO: should check for success in socket opening,
   // but the current open_socket routine dies brutally if unsuccessful
+
   // tell lammps we have assigned a socket
   socketflag = 1;
 
@@ -373,13 +375,20 @@ void FixIPI::initial_integrate(int /*vflag*/)
   if (domain->triclinic) domain->x2lamda(atom->nlocal);
   domain->pbc();
   domain->reset_box();
+  // move atoms to new processors via irregular()
+  // only needed if migrate_check() says an atom moves to far
+  if (irregular->migrate_check()) irregular->migrate_atoms();
   if (domain->triclinic) domain->lamda2x(atom->nlocal);
 
   // ensures continuity of trajectories relative to the
   // snapshot at neighbor list creation, minimizing the
   // number of neighbor list updates
   auto xhold = neighbor->get_xhold();
-  if (xhold != NULL) { // don't wrap if xhold is not used in the NL
+  if (xhold != NULL && !firsttime) {
+    // don't wrap if xhold is not used in the NL, or the
+    // first call (because the NL is initialized from the
+    // data file that might have nothing to do with the
+    // current structure
     for (int i = 0; i < nlocal; i++) {
       if (mask[i] & groupbit) {
         auto delx = x[i][0] - xhold[i][0];
@@ -394,11 +403,7 @@ void FixIPI::initial_integrate(int /*vflag*/)
       }
     }
   }
-  // move atoms to new processors via irregular()
-  // only needed if migrate_check() says an atom moves to far
-  if (domain->triclinic) domain->x2lamda(atom->nlocal);
-  if (irregular->migrate_check()) irregular->migrate_atoms();
-  if (domain->triclinic) domain->lamda2x(atom->nlocal);
+  firsttime = 0;
 
   // check if kspace solver is used
   if (reset_flag && kspace_flag) {

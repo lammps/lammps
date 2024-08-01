@@ -50,6 +50,7 @@ src/PTM/*             @pmla
 src/QMMM/*            @akohlmey
 src/REACTION/*        @jrgissing
 src/REAXFF/*          @hasanmetin @stanmoore1
+src/RHEO/*            @jtclemm
 src/SCAFACOS/*        @rhalver
 src/SNAP/*            @athomps
 src/SPIN/*            @julient31

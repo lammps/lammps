@@ -931,7 +931,8 @@ void FixElectrodeConp::update_charges()
       dot_old = dot_new;
     }
     recompute_potential(std::move(b), q_local);
-    if ((delta > cg_threshold) && (comm->me == 0)) error->warning(FLERR, "CG threshold not reached");
+    if ((delta > cg_threshold) && (comm->me == 0))
+      error->warning(FLERR, "CG threshold not reached");
   } else {
     error->all(FLERR, "This algorithm is not implemented, yet");
   }

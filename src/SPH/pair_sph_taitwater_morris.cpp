@@ -13,15 +13,16 @@
  ------------------------------------------------------------------------- */
 
 #include "pair_sph_taitwater_morris.h"
-#include <cmath>
-#include "atom.h"
-#include "force.h"
-#include "comm.h"
-#include "neigh_list.h"
-#include "memory.h"
-#include "error.h"
-#include "domain.h"
 
+#include "atom.h"
+#include "comm.h"
+#include "domain.h"
+#include "error.h"
+#include "force.h"
+#include "memory.h"
+#include "neigh_list.h"
+
+#include <cmath>
 
 using namespace LAMMPS_NS;
 
@@ -29,6 +30,9 @@ using namespace LAMMPS_NS;
 
 PairSPHTaitwaterMorris::PairSPHTaitwaterMorris(LAMMPS *lmp) : Pair(lmp)
 {
+  if ((atom->esph_flag != 1) || (atom->rho_flag != 1) || (atom->vest_flag != 1))
+    error->all(FLERR, "Pair sph/taitwater/morris requires atom attributes energy, density, and velocity estimates, e.g. in atom_style sph");
+
   restartinfo = 0;
   first = 1;
   single_enable = 0;
@@ -36,7 +40,8 @@ PairSPHTaitwaterMorris::PairSPHTaitwaterMorris(LAMMPS *lmp) : Pair(lmp)
 
 /* ---------------------------------------------------------------------- */
 
-PairSPHTaitwaterMorris::~PairSPHTaitwaterMorris() {
+PairSPHTaitwaterMorris::~PairSPHTaitwaterMorris()
+{
   if (allocated) {
     memory->destroy(setflag);
     memory->destroy(cutsq);
@@ -51,7 +56,8 @@ PairSPHTaitwaterMorris::~PairSPHTaitwaterMorris() {
 
 /* ---------------------------------------------------------------------- */
 
-void PairSPHTaitwaterMorris::compute(int eflag, int vflag) {
+void PairSPHTaitwaterMorris::compute(int eflag, int vflag)
+{
   int i, j, ii, jj, inum, jnum, itype, jtype;
   double xtmp, ytmp, ztmp, delx, dely, delz, fpair;
 
@@ -71,25 +77,6 @@ void PairSPHTaitwaterMorris::compute(int eflag, int vflag) {
   int *type = atom->type;
   int nlocal = atom->nlocal;
   int newton_pair = force->newton_pair;
-
-  // check consistency of pair coefficients
-
-  if (first) {
-    for (i = 1; i <= atom->ntypes; i++) {
-      for (j = 1; i <= atom->ntypes; i++) {
-        if (cutsq[i][j] > 1.e-32) {
-          if (!setflag[i][i] || !setflag[j][j]) {
-            if (comm->me == 0) {
-              printf(
-                  "SPH particle types %d and %d interact with cutoff=%g, but not all of their single particle properties are set.\n",
-                  i, j, sqrt(cutsq[i][j]));
-            }
-          }
-        }
-      }
-    }
-    first = 0;
-  }
 
   inum = list->inum;
   ilist = list->ilist;
@@ -152,9 +139,9 @@ void PairSPHTaitwaterMorris::compute(int eflag, int vflag) {
         fj = tmp * tmp * tmp;
         fj = B[jtype] * (fj * fj * tmp - 1.0) / (rho[j] * rho[j]);
 
-        velx=vxtmp - v[j][0];
-        vely=vytmp - v[j][1];
-        velz=vztmp - v[j][2];
+        velx = vxtmp - v[j][0];
+        vely = vytmp - v[j][1];
+        velz = vztmp - v[j][2];
 
         // dot product of velocity delta and distance vector
         delVdotDelR = delx * velx + dely * vely + delz * velz;
@@ -168,8 +155,6 @@ void PairSPHTaitwaterMorris::compute(int eflag, int vflag) {
         // total pair force & thermal energy increment
         fpair = -imass * jmass * (fi + fj) * wfd;
         deltaE = -0.5 *(fpair * delVdotDelR + fvisc * (velx*velx + vely*vely + velz*velz));
-
-       // printf("testvar= %f, %f \n", delx, dely);
 
         f[i][0] += delx * fpair + velx * fvisc;
         f[i][1] += dely * fpair + vely * fvisc;
@@ -189,6 +174,7 @@ void PairSPHTaitwaterMorris::compute(int eflag, int vflag) {
           drho[j] += imass * delVdotDelR * wfd;
         }
 
+        // viscous forces do not contribute to virial
         if (evflag)
           ev_tally(i, j, nlocal, newton_pair, 0.0, 0.0, fpair, delx, dely, delz);
       }
@@ -202,7 +188,8 @@ void PairSPHTaitwaterMorris::compute(int eflag, int vflag) {
  allocate all arrays
  ------------------------------------------------------------------------- */
 
-void PairSPHTaitwaterMorris::allocate() {
+void PairSPHTaitwaterMorris::allocate()
+{
   allocated = 1;
   int n = atom->ntypes;
 
@@ -224,7 +211,8 @@ void PairSPHTaitwaterMorris::allocate() {
  global settings
  ------------------------------------------------------------------------- */
 
-void PairSPHTaitwaterMorris::settings(int narg, char **/*arg*/) {
+void PairSPHTaitwaterMorris::settings(int narg, char **/*arg*/)
+{
   if (narg != 0)
     error->all(FLERR,
         "Illegal number of arguments for pair_style sph/taitwater/morris");
@@ -234,7 +222,8 @@ void PairSPHTaitwaterMorris::settings(int narg, char **/*arg*/) {
  set coeffs for one or more type pairs
  ------------------------------------------------------------------------- */
 
-void PairSPHTaitwaterMorris::coeff(int narg, char **arg) {
+void PairSPHTaitwaterMorris::coeff(int narg, char **arg)
+{
   if (narg != 6)
     error->all(FLERR,
         "Incorrect args for pair_style sph/taitwater/morris coefficients");
@@ -258,7 +247,6 @@ void PairSPHTaitwaterMorris::coeff(int narg, char **arg) {
     B[i] = B_one;
     for (int j = MAX(jlo,i); j <= jhi; j++) {
       viscosity[i][j] = viscosity_one;
-      //printf("setting cut[%d][%d] = %f\n", i, j, cut_one);
       cut[i][j] = cut_one;
 
       setflag[i][j] = 1;
@@ -274,8 +262,8 @@ void PairSPHTaitwaterMorris::coeff(int narg, char **arg) {
  init for one type pair i,j and corresponding j,i
  ------------------------------------------------------------------------- */
 
-double PairSPHTaitwaterMorris::init_one(int i, int j) {
-
+double PairSPHTaitwaterMorris::init_one(int i, int j)
+{
   if (setflag[i][j] == 0) {
     error->all(FLERR,"All pair sph/taitwater/morris coeffs are not set");
   }

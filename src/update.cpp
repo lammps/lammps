@@ -404,7 +404,6 @@ void Update::create_minimize(int narg, char **arg, int trysuffix)
   minimize_style = utils::strdup(arg[0]);
   minimize = nullptr;
 
-
   int sflag;
   new_minimize(arg[0], narg - 1, &arg[1], trysuffix, sflag);
 

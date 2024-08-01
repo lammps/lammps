@@ -180,7 +180,7 @@ void PairLJCutSphere::settings(int narg, char **arg)
   }
 
   if (narg == 2) {
-    if (strcmp(arg[1], "custom/neigh")) customneighcheck = 1;
+    if (strcmp(arg[1], "custom/neigh") == 0) customneighcheck = 1;
     else error->all(FLERR, "Invalid pair lj/cut/sphere argument: {}", arg[1]);
   }
 }

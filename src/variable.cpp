@@ -46,6 +46,7 @@
 #include <cmath>
 #include <cstring>
 #include <functional>
+#include <limits>
 #include <unordered_map>
 
 using namespace LAMMPS_NS;
@@ -1013,6 +1014,8 @@ char *Variable::retrieve(const char *name)
 
   } else if (style[ivar] == EQUAL) {
     double answer = evaluate(data[ivar][0],nullptr,ivar);
+    // round to zero on underflow
+    if (fabs(answer) < std::numeric_limits<double>::min()) answer = 0.0;
     delete[] data[ivar][1];
     data[ivar][1] = utils::strdup(fmt::format("{:.15g}",answer));
     str = data[ivar][1];
@@ -1122,6 +1125,8 @@ double Variable::compute_equal(int ivar)
     }
   }
 
+  // round to zero on underflow
+  if (fabs(value) < std::numeric_limits<double>::min()) value = 0.0;
   eval_in_progress[ivar] = 0;
   return value;
 }
@@ -1136,6 +1141,7 @@ double Variable::compute_equal(const std::string &str)
 {
   char *ptr = utils::strdup(str);
   double val = evaluate(ptr,nullptr,-1);
+  if (fabs(val) < std::numeric_limits<double>::min()) val = 0.0;
   delete[] ptr;
   return val;
 }

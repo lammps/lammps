@@ -156,16 +156,23 @@ void LabelMap::modify_lmap(int narg, char **arg)
     if ((itype < 1) || (itype > ntypes))
       error->all(FLERR, "Labelmap {} type {} must be within 1-{}", tlabel, itype, ntypes);
     std::string slabel = utils::utf8_subst(utils::trim(arg[iarg++]));
-    if (utils::is_type(slabel) != 1)
-      error->all(FLERR, "Type label string {} for {} type {} is invalid", slabel, tlabel, itype);
-    int found = search(slabel, (*labels_map));
-    if ((found != -1) && (found != itype))
-      error->all(FLERR, "The {} type label {} is already in use for type {}", tlabel, slabel,
-                 (*labels_map)[slabel]);
-    std::string &str = (*labels)[itype - 1];
-    if (!str.empty()) (*labels_map).erase(str);
-    str = slabel;
-    (*labels_map)[slabel] = itype;
+    // type label NULL means, delete entry. Otherwise add or overwrite
+    if (slabel == "NULL") {
+      std::string &str = (*labels)[itype - 1];
+      if (!str.empty()) (*labels_map).erase(str);
+      str = "";
+    } else {
+      if (utils::is_type(slabel) != 1)
+        error->all(FLERR, "Type label string {} for {} type {} is invalid", slabel, tlabel, itype);
+      int found = search(slabel, (*labels_map));
+      if ((found != -1) && (found != itype))
+        error->all(FLERR, "The {} type label {} is already in use for type {}", tlabel, slabel,
+                   (*labels_map)[slabel]);
+      std::string &str = (*labels)[itype - 1];
+      if (!str.empty()) (*labels_map).erase(str);
+      str = slabel;
+      (*labels_map)[slabel] = itype;
+    }
   }
 }
 
@@ -179,19 +186,24 @@ void LabelMap::merge_lmap(LabelMap *lmap2, int mode)
 {
   switch (mode) {
     case Atom::ATOM:
-      for (auto &it : lmap2->typelabel) find_or_create(it, typelabel, typelabel_map);
+      for (auto &it : lmap2->typelabel)
+        if (!it.empty()) find_or_create(it, typelabel, typelabel_map);
       break;
     case Atom::BOND:
-      for (auto &it : lmap2->btypelabel) find_or_create(it, btypelabel, btypelabel_map);
+      for (auto &it : lmap2->btypelabel)
+        if (!it.empty()) find_or_create(it, btypelabel, btypelabel_map);
       break;
     case Atom::ANGLE:
-      for (auto &it : lmap2->atypelabel) find_or_create(it, atypelabel, atypelabel_map);
+      for (auto &it : lmap2->atypelabel)
+        if (!it.empty()) find_or_create(it, atypelabel, atypelabel_map);
       break;
     case Atom::DIHEDRAL:
-      for (auto &it : lmap2->dtypelabel) find_or_create(it, dtypelabel, dtypelabel_map);
+      for (auto &it : lmap2->dtypelabel)
+        if (!it.empty()) find_or_create(it, dtypelabel, dtypelabel_map);
       break;
     case Atom::IMPROPER:
-      for (auto &it : lmap2->itypelabel) find_or_create(it, itypelabel, itypelabel_map);
+      for (auto &it : lmap2->itypelabel)
+        if (!it.empty()) find_or_create(it, itypelabel, itypelabel_map);
       break;
   }
 }
@@ -235,6 +247,7 @@ void LabelMap::create_lmap2lmap(LabelMap *lmap2, int mode)
 int LabelMap::find_or_create(const std::string &mylabel, std::vector<std::string> &labels,
                              std::unordered_map<std::string, int> &labels_map)
 {
+  if (mylabel.empty()) return -1;
   auto search = labels_map.find(mylabel);
   if (search != labels_map.end()) return search->second;
 
@@ -261,7 +274,7 @@ int LabelMap::find_or_create(const std::string &mylabel, std::vector<std::string
 
 /* ----------------------------------------------------------------------
    return numeric type given a type label
-   return -1 if type not yet defined
+   return -1 if type not yet defined or given label is empty (checked in search())
 ------------------------------------------------------------------------- */
 
 int LabelMap::find(const std::string &mylabel, int mode) const
@@ -289,12 +302,13 @@ int LabelMap::find(const std::string &mylabel, int mode) const
 
 /* ----------------------------------------------------------------------
    get type given type labels map
-   return -1 if type not yet defined
+   return -1 if type not yet defined or given label is empty string
 ------------------------------------------------------------------------- */
 
 int LabelMap::search(const std::string &mylabel,
                      const std::unordered_map<std::string, int> &labels_map) const
 {
+  if (mylabel.empty()) return -1;
   auto search = labels_map.find(mylabel);
   if (search == labels_map.end()) return -1;
   return search->second;
@@ -332,29 +346,32 @@ bool LabelMap::is_complete(int mode) const
 
 void LabelMap::write_data(FILE *fp)
 {
-  if (is_complete(Atom::ATOM)) {
-    fmt::print(fp, "\nAtom Type Labels\n\n");
-    for (int i = 0; i < natomtypes; i++) fmt::print(fp, "{} {}\n", i + 1, typelabel[i]);
-  }
+  fmt::print(fp, "\nAtom Type Labels\n\n");
+  for (int i = 0; i < natomtypes; i++)
+    fmt::print(fp, "{} {}\n", i + 1, typelabel[i].empty() ? "NULL" : typelabel[i]);
 
-  if (force->bond && is_complete(Atom::BOND)) {
+  if (force->bond) {
     fmt::print(fp, "\nBond Type Labels\n\n");
-    for (int i = 0; i < nbondtypes; i++) fmt::print(fp, "{} {}\n", i + 1, btypelabel[i]);
+    for (int i = 0; i < nbondtypes; i++)
+      fmt::print(fp, "{} {}\n", i + 1, btypelabel[i].empty() ? "NULL" : btypelabel[i]);
   }
 
-  if (force->angle && is_complete(Atom::ANGLE)) {
+  if (force->angle) {
     fmt::print(fp, "\nAngle Type Labels\n\n");
-    for (int i = 0; i < nangletypes; i++) fmt::print(fp, "{} {}\n", i + 1, atypelabel[i]);
+    for (int i = 0; i < nangletypes; i++)
+      fmt::print(fp, "{} {}\n", i + 1, atypelabel[i].empty() ? "NULL" : atypelabel[i]);
   }
 
-  if (force->dihedral && is_complete(Atom::DIHEDRAL)) {
+  if (force->dihedral) {
     fmt::print(fp, "\nDihedral Type Labels\n\n");
-    for (int i = 0; i < ndihedraltypes; i++) fmt::print(fp, "{} {}\n", i + 1, dtypelabel[i]);
+    for (int i = 0; i < ndihedraltypes; i++)
+      fmt::print(fp, "{} {}\n", i + 1, dtypelabel[i].empty() ? "NULL" : dtypelabel[i]);
   }
 
-  if (force->improper && is_complete(Atom::IMPROPER)) {
+  if (force->improper) {
     fmt::print(fp, "\nImproper Type Labels\n\n");
-    for (int i = 0; i < nimpropertypes; i++) fmt::print(fp, "{} {}\n", i + 1, itypelabel[i]);
+    for (int i = 0; i < nimpropertypes; i++)
+      fmt::print(fp, "{} {}\n", i + 1, itypelabel[i].empty() ? "NULL" : itypelabel[i]);
   }
 }
 

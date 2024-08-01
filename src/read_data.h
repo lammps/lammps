@@ -94,7 +94,7 @@ class ReadData : public Command {
   void header(int);
   void parse_keyword(int);
   void skip_lines(bigint);
-  void parse_coeffs(char *, const char *, int, int, int, int, int *);
+  void parse_coeffs(char *, const char *, int, int, int, int *);
   int style_match(const char *, const char *);
 
   void atoms();

@@ -246,11 +246,11 @@ Atom::Atom(LAMMPS *_lmp) : Pointers(_lmp), atom_style(nullptr), avec(nullptr), a
 
   // initialize atom style and array existence flags
 
-  set_atomflag_defaults();
+  Atom::set_atomflag_defaults();
 
   // initialize peratom data structure
 
-  peratom_create();
+  Atom::peratom_create();
 
   // ntype-length arrays
 
@@ -1059,9 +1059,8 @@ void Atom::deallocate_topology()
    triclinic_general = 1 if data file defines a general triclinic box
 ------------------------------------------------------------------------- */
 
-void Atom::data_atoms(int n, char *buf, tagint id_offset, tagint mol_offset,
-                      int type_offset, int shiftflag, double *shift,
-                      int labelflag, int *ilabel, int triclinic_general)
+void Atom::data_atoms(int n, char *buf, tagint id_offset, tagint mol_offset, int type_offset,
+                      int shiftflag, double *shift, int *ilabel, int triclinic_general)
 {
   int xptr,iptr;
   imageint imagedata;
@@ -1251,7 +1250,6 @@ void Atom::data_atoms(int n, char *buf, tagint id_offset, tagint mol_offset,
               error->one(FLERR, "Invalid atom type {} in {}: {}", itype, location,
                          utils::trim(buf));
             type[nlocal - 1] = itype;
-            if (labelflag) type[nlocal - 1] = ilabel[itype - 1];
             break;
           }
           case 1: {    // type label
@@ -1317,8 +1315,7 @@ void Atom::data_vels(int n, char *buf, tagint id_offset)
    check that atom IDs are > 0 and <= map_tag_max
 ------------------------------------------------------------------------- */
 
-void Atom::data_bonds(int n, char *buf, int *count, tagint id_offset,
-                      int type_offset, int labelflag, int *ilabel)
+void Atom::data_bonds(int n, char *buf, int *count, tagint id_offset, int type_offset, int *ilabel)
 {
   int m,itype;
   tagint atom1,atom2;
@@ -1359,7 +1356,6 @@ void Atom::data_bonds(int n, char *buf, int *count, tagint id_offset,
           itype = utils::inumeric(FLERR, typestr, false, lmp) + type_offset;
           if ((itype < 1) || (itype > nbondtypes))
             error->all(FLERR, "Invalid bond type {} in {}: {}", itype, location, utils::trim(buf));
-          if (labelflag) itype = ilabel[itype - 1];
           break;
         }
         case 1: {    // type label
@@ -1410,8 +1406,7 @@ void Atom::data_bonds(int n, char *buf, int *count, tagint id_offset,
    check that atom IDs are > 0 and <= map_tag_max
 ------------------------------------------------------------------------- */
 
-void Atom::data_angles(int n, char *buf, int *count, tagint id_offset,
-                       int type_offset, int labelflag, int *ilabel)
+void Atom::data_angles(int n, char *buf, int *count, tagint id_offset, int type_offset, int *ilabel)
 {
   int m,itype;
   tagint atom1,atom2,atom3;
@@ -1454,7 +1449,6 @@ void Atom::data_angles(int n, char *buf, int *count, tagint id_offset,
           itype = utils::inumeric(FLERR, typestr, false, lmp) + type_offset;
           if ((itype < 1) || (itype > nangletypes))
             error->all(FLERR, "Invalid angle type {} in {}: {}", itype, location, utils::trim(buf));
-          if (labelflag) itype = ilabel[itype - 1];
           break;
         }
         case 1: {    // type label
@@ -1519,8 +1513,8 @@ void Atom::data_angles(int n, char *buf, int *count, tagint id_offset,
    check that atom IDs are > 0 and <= map_tag_max
 ------------------------------------------------------------------------- */
 
-void Atom::data_dihedrals(int n, char *buf, int *count, tagint id_offset,
-                          int type_offset, int labelflag, int *ilabel)
+void Atom::data_dihedrals(int n, char *buf, int *count, tagint id_offset, int type_offset,
+                          int *ilabel)
 {
   int m,itype;
   tagint atom1,atom2,atom3,atom4;
@@ -1566,7 +1560,6 @@ void Atom::data_dihedrals(int n, char *buf, int *count, tagint id_offset,
           if ((itype < 1) || (itype > ndihedraltypes))
             error->all(FLERR, "Invalid dihedral type {} in {}: {}", itype, location,
                        utils::trim(buf));
-          if (labelflag) itype = ilabel[itype - 1];
           break;
         }
         case 1: {    // type label
@@ -1647,8 +1640,8 @@ void Atom::data_dihedrals(int n, char *buf, int *count, tagint id_offset,
    check that atom IDs are > 0 and <= map_tag_max
 ------------------------------------------------------------------------- */
 
-void Atom::data_impropers(int n, char *buf, int *count, tagint id_offset,
-                          int type_offset, int labelflag, int *ilabel)
+void Atom::data_impropers(int n, char *buf, int *count, tagint id_offset, int type_offset,
+                          int *ilabel)
 {
   int m,itype;
   tagint atom1,atom2,atom3,atom4;
@@ -1694,7 +1687,6 @@ void Atom::data_impropers(int n, char *buf, int *count, tagint id_offset,
           if ((itype < 1) || (itype > nimpropertypes))
             error->all(FLERR, "Invalid improper type {} in {}: {}", itype, location,
                        utils::trim(buf));
-          if (labelflag) itype = ilabel[itype - 1];
           break;
         }
         case 1: {    // type label
@@ -1922,8 +1914,7 @@ void Atom::allocate_type_arrays()
 ------------------------------------------------------------------------- */
 // clang-format on
 
-void Atom::set_mass(const char *file, int line, const char *str, int type_offset, int labelflag,
-                    int *ilabel)
+void Atom::set_mass(const char *file, int line, const char *str, int type_offset, int *ilabel)
 {
   if (mass == nullptr) error->all(file, line, "Cannot set mass for atom style {}", atom_style);
 
@@ -1947,7 +1938,6 @@ void Atom::set_mass(const char *file, int line, const char *str, int type_offset
       itype = utils::inumeric(file, line, typestr, false, lmp);
       if ((itype < 1) || (itype > ntypes))
         error->all(file, line, "Invalid atom type {} in {}: {}", itype, location, utils::trim(str));
-      if (labelflag) itype = ilabel[itype - 1];
       break;
     }
 
@@ -1956,8 +1946,7 @@ void Atom::set_mass(const char *file, int line, const char *str, int type_offset
         error->all(file, line, "Invalid atom type in {}: {}", location, utils::trim(str));
       itype = lmap->find(typestr, Atom::ATOM);
       if (itype == -1)
-        error->all(file, line, "Unknown atom type {} in {}: {}", typestr, location,
-                   utils::trim(str));
+        error->all(file, line, "Unknown atom type {} in {}: {}", typestr, location, utils::trim(str));
       break;
     }
 

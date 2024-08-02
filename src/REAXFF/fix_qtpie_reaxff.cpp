@@ -42,6 +42,7 @@
 #include <cmath>
 #include <cstring>
 #include <exception>
+#include <iostream>
 
 using namespace LAMMPS_NS;
 using namespace FixConst;
@@ -66,7 +67,7 @@ static const char cite_fix_qtpie_reaxff[] =
 /* ---------------------------------------------------------------------- */
 
 FixQtpieReaxFF::FixQtpieReaxFF(LAMMPS *lmp, int narg, char **arg) :
-  Fix(lmp, narg, arg), matvecs(0), pertype_option(nullptr)
+  Fix(lmp, narg, arg), matvecs(0), pertype_option(nullptr), gauss_file(nullptr)
 {
   scalar_flag = 1;
   extscalar = 0;
@@ -82,6 +83,7 @@ FixQtpieReaxFF::FixQtpieReaxFF(LAMMPS *lmp, int narg, char **arg) :
   swb = utils::numeric(FLERR,arg[5],false,lmp);
   tolerance = utils::numeric(FLERR,arg[6],false,lmp);
   pertype_option = utils::strdup(arg[7]);
+  gauss_file = utils::strdup(arg[8]);
 
   // dual CG support only available for OPENMP variant
   // check for compatibility is in Fix::post_constructor()
@@ -153,6 +155,7 @@ FixQtpieReaxFF::~FixQtpieReaxFF()
   if (copymode) return;
 
   delete[] pertype_option;
+  delete[] gauss_file;
 
   // unregister callbacks to this fix from Atom class
 
@@ -166,6 +169,7 @@ FixQtpieReaxFF::~FixQtpieReaxFF()
 
   memory->destroy(shld);
 
+  memory->destroy(gauss_exp);
   if (!reaxflag) {
     memory->destroy(chi);
     memory->destroy(eta);
@@ -207,18 +211,52 @@ void FixQtpieReaxFF::pertype_parameters(char *arg)
   const int nlocal = atom->nlocal;
   const int *mask = atom->mask;
   const int *type = atom->type;
+  const int ntypes = atom->ntypes;
+
+  // read gaussian exponents
+  memory->create(gauss_exp,ntypes+1,"qtpie/reaxff:gauss_exp");
+  if (comm->me == 0) {
+    gauss_exp[0] = 0.0;
+    try {
+      TextFileReader reader(gauss_file,"qtpie/reaxff gaussian exponents");
+      reader.ignore_comments = false;
+      for (int i = 1; i <= ntypes; i++) {
+        const char *line = reader.next_line();
+	std::cout << line;
+        if (!line)
+          throw TokenizerException("Fix qtpie/reaxff: Invalid param file format","");
+        ValueTokenizer values(line);
+
+        if (values.count() != 2)
+          throw TokenizerException("Fix qtpie/reaxff: Incorrect format of param file","");
+
+        int itype = values.next_int();
+        if ((itype < 1) || (itype > ntypes))
+          throw TokenizerException("Fix qtpie/reaxff: Invalid atom type in param file",
+                                   std::to_string(itype));
+
+        gauss_exp[itype] = values.next_double();
+      }
+    } catch (std::exception &e) {
+      error->one(FLERR,e.what());
+    }
+  }
+
+  MPI_Bcast(gauss_exp,ntypes+1,MPI_DOUBLE,0,world);
+
+  // read chi, eta and gamma
 
   if (utils::strmatch(arg,"^reaxff")) {
     reaxflag = 1;
     Pair *pair = force->pair_match("^reaxff",0);
-    if (!pair) error->all(FLERR,"No reaxff pair style for fix qeq/reaxff");
+    if (!pair) error->all(FLERR,"No reaxff pair style for fix qtpie/reaxff");
 
     int tmp, tmp_all;
     chi = (double *) pair->extract("chi",tmp);
     eta = (double *) pair->extract("eta",tmp);
     gamma = (double *) pair->extract("gamma",tmp);
     if ((chi == nullptr) || (eta == nullptr) || (gamma == nullptr))
-      error->all(FLERR, "Fix qeq/reaxff could not extract all Qtpie parameters from pair reaxff");
+      error->all(FLERR, "Fix qtpie/reaxff could not extract qtpie parameters from pair reaxff");
     tmp = tmp_all = 0;
     for (int i = 0; i < nlocal; ++i) {
       if (mask[i] & groupbit) {
@@ -228,19 +266,18 @@ void FixQtpieReaxFF::pertype_parameters(char *arg)
     }
     MPI_Allreduce(&tmp, &tmp_all, 1, MPI_INT, MPI_MAX, world);
     if (tmp_all)
-      error->all(FLERR, "No Qtpie parameters for atom type {} provided by pair reaxff", tmp_all);
+      error->all(FLERR, "No qtpie parameters for atom type {} provided by pair reaxff", tmp_all);
     return;
   } else if (utils::strmatch(arg,"^reax/c")) {
-    error->all(FLERR, "Fix qeq/reaxff keyword 'reax/c' is obsolete; please use 'reaxff'");
+    error->all(FLERR, "Fix qtpie/reaxff keyword 'reax/c' is obsolete; please use 'reaxff'");
   } else if (platform::file_is_readable(arg)) {
     ; // arg is readable file. will read below
   } else {
-    error->all(FLERR, "Unknown fix qeq/reaxff keyword {}", arg);
+    error->all(FLERR, "Unknown fix qtpie/reaxff keyword {}", arg);
   }
 
   reaxflag = 0;
 
-  const int ntypes = atom->ntypes;
   memory->create(chi,ntypes+1,"qeq/reaxff:chi");
   memory->create(eta,ntypes+1,"qeq/reaxff:eta");
   memory->create(gamma,ntypes+1,"qeq/reaxff:gamma");
@@ -261,7 +298,7 @@ void FixQtpieReaxFF::pertype_parameters(char *arg)
 
         int itype = values.next_int();
         if ((itype < 1) || (itype > ntypes))
-          throw TokenizerException("Fix qeq/reaxff: invalid atom type in param file",
+          throw TokenizerException("Fix qeq/reaxff: Invalid atom type in param file",
                                    std::to_string(itype));
 
         chi[itype] = values.next_double();

@@ -198,6 +198,23 @@ if(BUILD_OMP)
   target_link_libraries(lammps-gui PRIVATE OpenMP::OpenMP_CXX)
 endif()
 
+# build LAMMPS-GUI and LAMMPS as flatpak, if tools are installed
+find_program(FLATPAK_COMMAND flatpak DOC "Path to flatpak command")
+find_program(FLATPAK_BUILDER flatpak-builder DOC "Path to flatpak-builder command")
+if(FLATPAK_COMMAND AND FLATPAK_BUILDER)
+  add_custom_target(flatpak
+    COMMAND ${FLATPAK_BUILDER} --force-clean --verbose --ccache --repo=repo --user --install-deps-from=flathub flatpak-build ${LAMMPS_DIR}/tools/lammps-gui/org.lammps.lammps-gui.yml
+    COMMAND ${FLATPAK_COMMAND} build-bundle --runtime-repo=https://flathub.org/repo/flathub.flatpakrepo --verbose
+                                                                  repo LAMMPS_GUI-Linux-amd64.flatpak org.lammps.lammps-gui
+    COMMENT "Create Flatpak bundle file of LAMMPS-GUI and LAMMPS"
+    BYPRODUCT LAMMPS-Linux-amd64.flatpak
+    WORKING_DIRECTORY ${CMAKE_BINARY_DIR}
+  )
+else()
+  add_custom_target(flatpak
+    COMMAND ${CMAKE_COMMAND} -E echo "The flatpak and flatpak-builder commands required to build a LAMMPS-GUI flatpak bundle were not found. Skipping.")
+endif()
+
 # when compiling on macOS, create an "app bundle"
 if(APPLE)
   set_target_properties(lammps-gui PROPERTIES
@@ -308,10 +325,11 @@ elseif((CMAKE_SYSTEM_NAME STREQUAL "Linux") AND NOT LAMMPS_GUI_USE_PLUGIN)
       message(WARNING "Unresolved dependencies detected: ${_u_deps}")
     endif() ]]
   )
+
   add_custom_target(tgz
     COMMAND ${LAMMPS_DIR}/cmake/packaging/build_linux_tgz.sh
     DEPENDS lammps-gui
-    COMMENT "Create compressed tar file of LAMMPS with dependent libraries and wrapper"
+    COMMENT "Create compressed tar file of LAMMPS-GUI with dependent libraries and wrapper"
     BYPRODUCT LAMMPS-Linux-amd64.tar.gz
     WORKING_DIRECTORY ${CMAKE_BINARY_DIR}
   )

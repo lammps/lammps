@@ -1,5 +1,4 @@
 id: org.lammps.lammps-gui
-default-branch: 1.6.6
 runtime: org.kde.Platform
 runtime-version: "5.15-23.08"
 sdk: org.kde.Sdk
@@ -55,6 +54,8 @@ modules:
       - -D PKG_EXTRA-PAIR=yes
       - -D PKG_FEP=yes
       - -D PKG_GRANULAR=yes
+      - -D PKG_GPU=yes
+      - -D GPU_API=opencl
       - -D PKG_INTERLAYER=yes
       - -D PKG_KSPACE=yes
       - -D PKG_LEPTON=yes
@@ -104,6 +105,7 @@ modules:
       - -D CMAKE_Fortran_COMPILER=gfortran
       - -D CMAKE_BUILD_TYPE=Release
       - -D DOWNLOAD_POTENTIALS=no
+      - -D BUILD_TOOLS=yes
     sources:
       - type: git
         url: https://github.com/akohlmey/lammps.git

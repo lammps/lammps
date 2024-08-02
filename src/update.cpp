@@ -61,6 +61,7 @@ Update::Update(LAMMPS *lmp) : Pointers(lmp)
   restrict_output = 0;
   setupflag = 0;
   multireplica = 0;
+  nsteps = 0;
 
   eflag_global = vflag_global = -1;
   eflag_atom = vflag_atom = 0;

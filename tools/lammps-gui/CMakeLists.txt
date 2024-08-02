@@ -202,8 +202,10 @@ endif()
 find_program(FLATPAK_COMMAND flatpak DOC "Path to flatpak command")
 find_program(FLATPAK_BUILDER flatpak-builder DOC "Path to flatpak-builder command")
 if(FLATPAK_COMMAND AND FLATPAK_BUILDER)
+  file(STRINGS ${LAMMPS_DIR}/src/version.h line REGEX LAMMPS_VERSION)
+  string(REGEX REPLACE "#define LAMMPS_VERSION \"([0-9]+) ([A-Za-z][A-Za-z][A-Za-z])[A-Za-z]* ([0-9]+)\"" "\\1\\2\\3" LAMMPS_RELEASE "${line}")
   add_custom_target(flatpak
-    COMMAND ${FLATPAK_BUILDER} --force-clean --verbose --ccache --repo=repo --user --install-deps-from=flathub flatpak-build ${LAMMPS_DIR}/tools/lammps-gui/org.lammps.lammps-gui.yml
+    COMMAND ${FLATPAK_BUILDER} --force-clean --default-branch=${LAMMPS_RELEASE} --verbose --ccache --repo=repo --user --install-deps-from=flathub flatpak-build ${LAMMPS_DIR}/tools/lammps-gui/org.lammps.lammps-gui.yml
     COMMAND ${FLATPAK_COMMAND} build-bundle --runtime-repo=https://flathub.org/repo/flathub.flatpakrepo --verbose
                                                                   repo LAMMPS_GUI-Linux-amd64.flatpak org.lammps.lammps-gui
     COMMENT "Create Flatpak bundle file of LAMMPS-GUI and LAMMPS"

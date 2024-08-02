@@ -546,10 +546,15 @@ will be found automatically.  2) you can download the `Flatpak file
 <https://www.flatpak.org/>`_ and then install it locally with the
 *flatpak* command: ``flatpak install --user
 LAMMPS-Linux-x86_64-GUI-<version>.flatpak`` and run it with ``flatpak
-run org.lammps.lammps-gui``.  The flatpak version should also appear in
-the applications menu of standard desktop environments.  The LAMMPS-GUI
-executable is called ``lammps-gui`` and either takes no arguments or
-attempts to load the first argument as LAMMPS input file.
+run org.lammps.lammps-gui``.  The flatpak bundle also includes the
+command line version of LAMMPS and some LAMMPS tools like msi2lmp.  The
+can be launched by using the ``--command`` flag. For example to run
+LAMMPS directly on the ``in.lj`` benchmark input you would type in the
+``bench`` folder: ``flatpak run --command=lmp -in in.lj`` The flatpak
+version should also appear in the applications menu of standard desktop
+environments.  The LAMMPS-GUI executable is called ``lammps-gui`` and
+either takes no arguments or attempts to load the first argument as
+LAMMPS input file.
 
 .. _lammps_gui_compilation:
 

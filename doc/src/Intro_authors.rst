@@ -1,17 +1,73 @@
 Authors of LAMMPS
 -----------------
 
-The primary LAMMPS developers are at Sandia National Labs and Temple
-University:
+The current core LAMMPS developers are listed here (sorted alphabetically by
+last name). You can email an individual developer with a question, or send an
+email to all of them at this address: "developers at lammps.org".
 
-* `Steve Plimpton <sjp_>`_, sjplimp at gmail.com
-* Aidan Thompson, athomps at sandia.gov
-* Stan Moore, stamoor at sandia.gov
-* `Axel Kohlmeyer <https://sites.google.com/site/akohlmey/>`_, akohlmey at gmail.com
-* Richard Berger, richard.berger at outlook.com
+.. list-table::
+   :widths: 20 20 20 40
+   :header-rows: 1
 
+   * - Name
+     - Affiliation
+     - Email
+     - Areas of expertise
+   * - `Richard Berger <rb_>`_
+     - Los Alamos National Lab
+     - richard.berger at outlook.com
+     - Python, HPC, DevOps
+   * - `Germain Clavier <gc_>`_
+     - Laboratoire CIMAP
+     - germain.clavier at unicaen.fr
+     - organic molecules and polymers, mechanical properties, surfaces, integrators, coarse-graining
+   * - Joel Clemmer
+     - Sandia National Labs
+     - jtclemm at sandia.gov	granular systems
+     - fluid/solid mechanics
+   * - `Jake Gissinger <jg_>`_
+     - Stevens Institute of Technology
+     - jgissing at stevens.edu
+     - reactive molecular dynamics, macromolecular systems, type labels
+   * - James Goff
+     - Sandia National Labs
+     - jmgoff at sandia.gov
+     - machine learned potentials, QEq solvers, Python
+   * - `Axel Kohlmeyer <ak_>`_
+     - Temple University
+     - akohlmey at gmail.com
+     - OpenMP, library interface, LAMMPS-GUI, GitHub, MatSci forum, code maintenance, testing, and releases
+   * - Megan McCarthy
+     - Sandia National Labs
+     - megmcca at sandia.gov
+     - metal alloys, microstucture, machine learned potentials
+   * - Stan Moore
+     - Sandia National Labs
+     - stamoor at sandia.gov
+     - Kokkos, KSpace solvers, ReaxFF
+   * - `Trung Nguyen <tn_>`_
+     - University of Chicago
+     - ndactrung at gmail.com
+     - soft matter, GPU package
+   * - `Steve Plimpton <sjp_>`_
+     - Sandia National Labs (retired)
+     - sjplimp at gmail.com
+     - MD kernels, parallel algorithms & scalability, code structure and design
+   * - `Aidan Thompson <at_>`_
+     - Sandia National Labs
+     - athomps at sandia.gov
+     - manybody potentials, machine learned potentials, materials science, statistical mechanics
+
+.. _rb:  https://rbberger.github.io/
+.. _gc:  https://enthalpiste.fr/
+.. _jg:  https://www.nanocipher.org/
+.. _ak:  https://sites.google.com/site/akohlmey/
+.. _tn:  https://sites.google.com/site/ndtrung8/
+.. _at:  https://www2.sandia.gov/~athomps/
 .. _sjp: https://sjplimp.github.io
 .. _lws: https://www.lammps.org
+
+----------
 
 Past developers include Paul Crozier and Mark Stevens, both at Sandia,
 and Ray Shan, now at Materials Design.

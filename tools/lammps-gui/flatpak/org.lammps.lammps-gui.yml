@@ -4,7 +4,6 @@ runtime: org.kde.Platform
 runtime-version: "5.15-23.08"
 sdk: org.kde.Sdk
 command: lammps-gui
-metadata: lammps-gui.appdata.xml
 finish-args:
   - --share=ipc
   - --socket=fallback-x11

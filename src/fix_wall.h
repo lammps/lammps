@@ -20,6 +20,7 @@ namespace LAMMPS_NS {
 
 class FixWall : public Fix {
  public:
+  enum { XLO = 0, XHI = 1, YLO = 2, YHI = 3, ZLO = 4, ZHI = 5 };
   int nwall;
   int wallwhich[6];
   double coord0[6];
@@ -47,7 +48,7 @@ class FixWall : public Fix {
 
  protected:
   double epsilon[6], sigma[6], alpha[6], cutoff[6];
-  double ewall[7], ewall_all[7];
+  double *ewall, ewall_all[7]; // need ewall double*, not double[] for kokkos dual view
   double xscale, yscale, zscale;
   int estyle[6], sstyle[6], astyle[6], wstyle[6];
   int eindex[6], sindex[6];

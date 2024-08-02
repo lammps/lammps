@@ -27,8 +27,6 @@
 using namespace LAMMPS_NS;
 using namespace FixConst;
 
-enum { XLO = 0, XHI = 1, YLO = 2, YHI = 3, ZLO = 4, ZHI = 5 };
-
 static const char *wallpos[] = {"xlo", "xhi", "ylo", "yhi", "zlo", "zhi"};
 
 /* ---------------------------------------------------------------------- */
@@ -44,6 +42,7 @@ FixWall::FixWall(LAMMPS *lmp, int narg, char **arg) : Fix(lmp, narg, arg), nwall
   virial_global_flag = virial_peratom_flag = 1;
   respa_level_support = 1;
   ilevel_respa = 0;
+  ewall = new double[7];
 
   // parse args
 

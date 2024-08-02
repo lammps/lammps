@@ -36,8 +36,11 @@ class FixWallLJ93Kokkos : public FixWallLJ93 {
   typedef double value_type[];
 
   FixWallLJ93Kokkos(class LAMMPS *, int, char **);
+  ~FixWallLJ93Kokkos() override;
+  void precompute(int) override;
+  void post_force(int) override;
   void wall_particle(int, int, double) override;
-
+  
   int m;
 
   KOKKOS_INLINE_FUNCTION
@@ -47,9 +50,18 @@ class FixWallLJ93Kokkos : public FixWallLJ93 {
   int dim,side;
   double coord;
 
-  typename AT::t_x_array x;
-  typename AT::t_f_array f;
-  typename AT::t_int_1d mask;
+  typename AT::t_x_array d_x;
+  typename AT::t_f_array d_f;
+  typename AT::t_int_1d d_mask;
+
+  typename AT::tdual_ffloat_1d k_epsilon,k_sigma,k_cutoff;
+  typename AT::t_ffloat_1d d_epsilon,d_sigma,d_cutoff;
+
+  typename AT::t_ffloat_1d d_coeff1,d_coeff2,d_coeff3,d_coeff4,d_offset;
+
+  typename AT::tdual_ffloat_1d k_ewall;
+  typename AT::t_ffloat_1d d_ewall;
+
 };
 
 template <class DeviceType>
@@ -60,12 +72,15 @@ struct FixWallLJ93KokkosFunctor  {
 
   FixWallLJ93Kokkos<DeviceType> c;
   FixWallLJ93KokkosFunctor(FixWallLJ93Kokkos<DeviceType>* c_ptr):
-    value_count(c_ptr->m+1), c(*c_ptr) {}
+    //value_count(c_ptr->m+1), c(*c_ptr) {}
+    value_count(7), c(*c_ptr) {}
+
   KOKKOS_INLINE_FUNCTION
   void operator()(const int i, value_type ewall) const {
     c.wall_particle_item(i,ewall);
   }
 };
+
 
 }
 

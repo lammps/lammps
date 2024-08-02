@@ -1,8 +1,10 @@
 id: org.lammps.lammps-gui
+default-branch: 1.6.6
 runtime: org.kde.Platform
 runtime-version: "5.15-23.08"
 sdk: org.kde.Sdk
 command: lammps-gui
+metadata: lammps-gui.appdata.xml
 finish-args:
   - --share=ipc
   - --socket=fallback-x11
@@ -12,9 +14,9 @@ finish-args:
 build-options:
   build-args:
     - --share=network
-rename-desktop-file: lammps-gui.desktop
-rename-appdata-file: lammps.org.appdata.xml
 rename-icon: lammps
+rename-desktop-file: lammps-gui.desktop
+rename-appdata-file: lammps-gui.appdata.xml
 rename-mime-file: lammps-input.xml
 modules:
   - name: lammps-gui

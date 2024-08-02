@@ -4,7 +4,9 @@
   <metadata_license>CC-BY-3.0</metadata_license>
   <project_license>GPL-2.0</project_license>
   <name>LAMMPS-GUI</name>
-  <summary>Graphical interface to edit, run, plot, and visualize simulations with the LAMMPS MD code</summary>
+  <summary>
+    Graphical interface to edit, run, plot, and visualize simulations with the LAMMPS MD code
+  </summary>
 
   <description>
     <p>LAMMPS-GUI is an editor customized for editing input files for the LAMMPS MD simulation software.  It also includes LAMMPS and thus can run it directly from the GUI.  Furthermore it has facilities to create or view and animate snapshot images, monitor and plot thermodynamic properties and show the console output of the running simulation.</p>
@@ -31,11 +33,12 @@
       <caption>LAMMPS-GUI snapshot image window</caption>
     </screenshot>
   </screenshots>
+
   <url type="homepage">https://www.lammps.org/</url>
   <url type="bugtracker">https://github.com/lammps/lammps/issues</url>
   <url type="help">https://docs.lammps.org/stable/</url>
 
-  <update_contact>packages@lammps.org</update>
+  <update_contact>packages@lammps.org</update_contact>
   <developer_name>Axel Kohlmeyer</developer_name>
   <project_group>LAMMPS</project_group>
   <keywords>

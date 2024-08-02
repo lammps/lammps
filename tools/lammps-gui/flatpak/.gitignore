@@ -1,2 +1,4 @@
 /builddir
 /.flatpak-builder
+/repo
+lammps-gui*.flatpak

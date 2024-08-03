@@ -7,7 +7,6 @@ finish-args:
   - --share=ipc
   - --socket=fallback-x11
   - --socket=wayland
-  - --filesystem=xdg-documents
   - --filesystem=host
 build-options:
   build-args:

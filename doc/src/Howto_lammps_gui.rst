@@ -471,11 +471,12 @@ Line Reformatting
 The editor supports reformatting lines according to the syntax in order
 to have consistently aligned lines.  This primarily means adding
 whitespace padding to commands, type specifiers, IDs and names.  This
-reformatting is performed by default when hitting the 'Enter' key to
-start a new line.  This feature can be turned on or off in the
-``Preferences`` dialog, but it can still be manually performed by
-hitting the 'TAB' key.  The amount of padding can be adjusted in the
-``Preferences`` dialog for the *Editor*.
+reformatting is performed manually by hitting the 'Tab' key.  It is
+also possible to have this done automatically when hitting the 'Enter'
+key to start a new line.  This feature can be turned on or off in the
+``Preferences`` dialog for ``Editor Settings`` with the
+"Reformat with 'Enter'" checkbox. The amount of padding for multiple
+categories can be adjusted in the same dialog.
 
 Internally this functionality is achieved by splitting the line into
 "words" and then putting it back together with padding added where the

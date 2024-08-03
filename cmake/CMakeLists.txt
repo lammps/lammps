@@ -892,7 +892,7 @@ endif()
 include(Testing)
 include(CodeCoverage)
 include(CodingStandard)
-find_package(ClangFormat 8.0)
+find_package(ClangFormat 11.0)
 
 if(ClangFormat_FOUND)
   add_custom_target(format-src

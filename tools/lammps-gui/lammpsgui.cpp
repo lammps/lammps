@@ -47,6 +47,7 @@
 #include <QTimer>
 #include <QUrl>
 
+#include <algorithm>
 #include <cstdint>
 #include <cstdlib>
 #include <cstring>
@@ -355,7 +356,7 @@ LammpsGui::LammpsGui(QWidget *parent, const char *filename) :
 #undef ADD_STYLES
 
     settings.beginGroup("reformat");
-    ui->textEdit->setReformatOnReturn(settings.value("return", true).toBool());
+    ui->textEdit->setReformatOnReturn(settings.value("return", false).toBool());
     ui->textEdit->setAutoComplete(settings.value("automatic", true).toBool());
     settings.endGroup();
 }
@@ -1395,7 +1396,7 @@ void LammpsGui::preferences()
         }
         if (imagewindow) imagewindow->createImage();
         settings.beginGroup("reformat");
-        ui->textEdit->setReformatOnReturn(settings.value("return", true).toBool());
+        ui->textEdit->setReformatOnReturn(settings.value("return", false).toBool());
         ui->textEdit->setAutoComplete(settings.value("automatic", true).toBool());
         settings.endGroup();
     }

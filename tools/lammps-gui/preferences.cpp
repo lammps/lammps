@@ -554,7 +554,7 @@ EditorTab::EditorTab(QSettings *_settings, QWidget *parent) : QWidget(parent), s
     nameval->setRange(1, 32);
     nameval->setValue(settings->value("name", "8").toInt());
     nameval->setObjectName("nameval");
-    retval->setCheckState(settings->value("return", true).toBool() ? Qt::Checked : Qt::Unchecked);
+    retval->setCheckState(settings->value("return", false).toBool() ? Qt::Checked : Qt::Unchecked);
     retval->setObjectName("retval");
     autoval->setCheckState(settings->value("automatic", true).toBool() ? Qt::Checked
                                                                        : Qt::Unchecked);

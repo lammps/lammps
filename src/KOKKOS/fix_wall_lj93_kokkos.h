@@ -28,6 +28,7 @@ FixStyle(wall/lj93/kk/host,FixWallLJ93Kokkos<LMPHostType>);
 
 namespace LAMMPS_NS {
 
+
 template <class DeviceType>
 class FixWallLJ93Kokkos : public FixWallLJ93 {
  public:
@@ -54,6 +55,9 @@ class FixWallLJ93Kokkos : public FixWallLJ93 {
   typename AT::t_f_array d_f;
   typename AT::t_int_1d d_mask;
 
+  DAT::tdual_virial_array k_vatom;
+  typename AT::t_virial_array d_vatom;
+
   typename AT::tdual_ffloat_1d k_epsilon,k_sigma,k_cutoff;
   typename AT::t_ffloat_1d d_epsilon,d_sigma,d_cutoff;
 
@@ -62,25 +66,34 @@ class FixWallLJ93Kokkos : public FixWallLJ93 {
   typename AT::tdual_ffloat_1d k_ewall;
   typename AT::t_ffloat_1d d_ewall;
 
+  KOKKOS_INLINE_FUNCTION
+  void v_tally(value_type, int, int, double) const;
+
+
 };
+
 
 template <class DeviceType>
-struct FixWallLJ93KokkosFunctor  {
-  typedef DeviceType device_type ;
+struct FixWallLJ93KokkosFunctor {
+  typedef DeviceType device_type;
   typedef double value_type[];
   const int value_count;
-
   FixWallLJ93Kokkos<DeviceType> c;
+
   FixWallLJ93KokkosFunctor(FixWallLJ93Kokkos<DeviceType>* c_ptr):
-    //value_count(c_ptr->m+1), c(*c_ptr) {}
-    value_count(7), c(*c_ptr) {}
+    value_count(13), c(*c_ptr) {}
 
   KOKKOS_INLINE_FUNCTION
-  void operator()(const int i, value_type ewall) const {
-    c.wall_particle_item(i,ewall);
+  void init(value_type result) const {
+    for (int i=0 ; i<13 ; i++ ) result[i] = 0.0;
   }
-};
 
+  KOKKOS_INLINE_FUNCTION
+  void operator()(const int i, value_type result) const {
+    c.wall_particle_item(i,result);
+  }
+
+};
 
 }
 

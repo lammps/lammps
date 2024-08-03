@@ -28,8 +28,6 @@
 #include "variable.h"
 #include "update.h"
 
-#include <iostream>
-
 using namespace LAMMPS_NS;
 using MathSpecial::powint;
 
@@ -44,7 +42,6 @@ FixWallLJ93Kokkos<DeviceType>::FixWallLJ93Kokkos(LAMMPS *lmp, int narg, char **a
   execution_space = ExecutionSpaceFromDevice<DeviceType>::space;
   datamask_read = X_MASK | V_MASK | MASK_MASK;
   datamask_modify = F_MASK;
-  virial_global_flag = virial_peratom_flag = 0;
 
   memoryKK->create_kokkos(k_epsilon,6,"wall_lj93:epsilon");
   memoryKK->create_kokkos(k_sigma,6,"wall_lj93:sigma");
@@ -94,7 +91,7 @@ FixWallLJ93Kokkos<DeviceType>::~FixWallLJ93Kokkos()
   memoryKK->destroy_kokkos(d_coeff4);
   memoryKK->destroy_kokkos(d_offset);
 
-    //std::cerr << "ok 2\n";
+  memoryKK->destroy_kokkos(k_vatom,vatom);
 
 }
 
@@ -120,9 +117,6 @@ void FixWallLJ93Kokkos<DeviceType>::precompute(int m)
 template <class DeviceType>
 void FixWallLJ93Kokkos<DeviceType>::post_force(int vflag)
 {
-
-  //std::cerr << "post_force DeviceType=" << DeviceType << "\n";
-
   atomKK->sync(execution_space,datamask_read);
   atomKK->modified(execution_space,datamask_modify);
 
@@ -130,12 +124,19 @@ void FixWallLJ93Kokkos<DeviceType>::post_force(int vflag)
 
   v_init(vflag);
 
+  // reallocate per-atom arrays if necessary
+
+  if (vflag_atom) {
+    memoryKK->destroy_kokkos(k_vatom,vatom);
+    memoryKK->create_kokkos(k_vatom,vatom,maxvatom,"wall_lj93:vatom");
+    d_vatom = k_vatom.template view<DeviceType>();
+  }
+
   // energy intialize.
   // eflag is used to track whether wall energies have been communicated.
 
   eflag = 0;
-  //for (int m = 0; m <= nwall; m++) d_ewall(m) = 0.0;
-  for (int m = 0; m <= nwall; m++) k_ewall.d_view(m) = 0.0;
+  for (int m = 0; m <= nwall; m++) d_ewall(m) = 0.0;
 
   // coord = current position of wall
   // evaluate variables if necessary, wrap with clear/add
@@ -144,6 +145,7 @@ void FixWallLJ93Kokkos<DeviceType>::post_force(int vflag)
   if (varflag) modify->clearstep_compute();
 
   double coord;
+
   for (int m = 0; m < nwall; m++) {
     if (xstyle[m] == VARIABLE) {
       coord = input->variable->compute_equal(xindex[m]);
@@ -168,12 +170,22 @@ void FixWallLJ93Kokkos<DeviceType>::post_force(int vflag)
     }
 
     wall_particle(m, wallwhich[m], coord);
+
   }
 
   k_ewall.template modify<DeviceType>();
   k_ewall.template sync<LMPHostType>();
 
   if (varflag) modify->addstep_compute(update->ntimestep + 1);
+
+  atomKK->modified(execution_space,F_MASK);
+
+  if (vflag_atom) {
+    k_vatom.template modify<DeviceType>();
+    k_vatom.template sync<LMPHostType>();
+  }
+
+
 }
 
 
@@ -194,31 +206,35 @@ void FixWallLJ93Kokkos<DeviceType>::wall_particle(int m_in, int which, double co
   d_f = atomKK->k_f.template view<DeviceType>();
   d_mask = atomKK->k_mask.template view<DeviceType>();
   int nlocal = atomKK->nlocal;
-  double tmp[7];
 
   dim = which / 2;
   side = which % 2;
   if (side == 0) side = -1;
 
+  double result[13];
+
   copymode = 1;
-  FixWallLJ93KokkosFunctor<DeviceType> wp_functor(this);
-  Kokkos::parallel_reduce(nlocal,wp_functor,tmp);
+  FixWallLJ93KokkosFunctor<DeviceType> functor(this);
+  Kokkos::parallel_reduce(nlocal,functor,result);
   copymode = 0;
 
-  //std::cerr << fmt::format("tmp[0]={} tmp[{}]={} \n",tmp[0],m+1,tmp[m+1]);
+  Kokkos::atomic_add(&(d_ewall[0]),result[0]);
+  Kokkos::atomic_add(&(d_ewall[m+1]),result[m+1]);
 
-
-  Kokkos::atomic_add(&(d_ewall[0]),tmp[0]);
-  Kokkos::atomic_add(&(d_ewall[m+1]),tmp[m+1]);
-
-  //std::cerr << fmt::format("k_ewall.d_view[0]={} k_ewall.d_view[{}]={} \n",k_ewall.d_view[0],m+1,k_ewall.d_view[m+1]);
-
+  if (vflag_global) {
+    virial[0] += result[7];
+    virial[1] += result[8];
+    virial[2] += result[9];
+    virial[3] += result[10];
+    virial[4] += result[11];
+    virial[5] += result[12];
+  }
 
 }
 
 template <class DeviceType>
 KOKKOS_INLINE_FUNCTION
-void FixWallLJ93Kokkos<DeviceType>::wall_particle_item(int i, value_type ewall) const {
+void FixWallLJ93Kokkos<DeviceType>::wall_particle_item(int i, value_type result) const {
   if (d_mask(i) & groupbit) {
     double delta;
     if (side < 0) delta = d_x(i,dim) - coord;
@@ -232,37 +248,46 @@ void FixWallLJ93Kokkos<DeviceType>::wall_particle_item(int i, value_type ewall) 
     double r10inv = r4inv*r4inv*r2inv;
     double fwall = side * (d_coeff1(m)*r10inv - d_coeff2(m)*r4inv);
     d_f(i,dim) -= fwall;
-    ewall[0] += d_coeff3(m)*r4inv*r4inv*rinv - d_coeff4(m)*r2inv*rinv - d_offset(m);
-    ewall[m+1] += fwall;
+    result[0] += d_coeff3(m)*r4inv*r4inv*rinv - d_coeff4(m)*r2inv*rinv - d_offset(m);
+    result[m+1] += fwall;
+
+    if (evflag) {
+      double vn;
+      if (side < 0)
+        vn = -fwall * delta;
+      else
+        vn = fwall * delta;
+      v_tally(result, dim, i, vn);
+    }
+
   }
 
 }
 
 /* ----------------------------------------------------------------------
-   energy of wall interaction
+   tally virial component into global and per-atom accumulators
+   n = index of virial component (0-5)
+   i = local index of atom
+   vn = nth component of virial for the interaction
+   increment nth component of global virial by vn
+   increment nth component of per-atom virial by vn
+   this method can be used when fix computes forces in post_force()
+   and the force depends on a distance to some external object
+     e.g. fix wall/lj93: compute virial only on owned atoms
 ------------------------------------------------------------------------- */
 
-/*
 template <class DeviceType>
-double FixWallLJ93Kokkos<DeviceType>::compute_scalar()
+KOKKOS_INLINE_FUNCTION
+void FixWallLJ93Kokkos<DeviceType>::v_tally(value_type result, int n, int i, double vn) const
 {
-  // only sum across procs one time
 
-  //std::cerr << fmt::format("k_ewall[0] = {} d_ewall[0] = {}\n", k_ewall.h_view[0], k_ewall.d_view[0] );
+  if (vflag_global)
+    result[n+7] += vn;
 
-    k_ewall.template sync<DeviceType>();
-
-  if (eflag == 0) {
-    MPI_Allreduce(k_ewall.h_view.data(), ewall_all, 7, MPI_DOUBLE, MPI_SUM, world);
-    eflag = 1;
-  }
-
-  std::cerr << fmt::format("compute_scalar() = {}\n", ewall_all[0]);
-  return ewall_all[0];
+  if (vflag_atom)
+    Kokkos::atomic_add(&(d_vatom(i,n)),vn);
 
 }
-*/
-
 
 namespace LAMMPS_NS {
 template class FixWallLJ93Kokkos<LMPDeviceType>;

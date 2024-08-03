@@ -137,8 +137,8 @@ LammpsGui::LammpsGui(QWidget *parent, const char *filename) :
     // check and initialize nthreads setting. Default is to use max if there
     // is no preference but do not override OMP_NUM_THREADS
 #if defined(_OPENMP)
-    // use maximum number of available threads unless OMP_NUM_THREADS was set
-    int nthreads = settings.value("nthreads", omp_get_max_threads()).toInt();
+    // use up to 16 available threads unless OMP_NUM_THREADS was set
+    int nthreads = settings.value("nthreads", std::min(omp_get_max_threads(), 16)).toInt();
     if (!qEnvironmentVariableIsSet("OMP_NUM_THREADS")) {
         qputenv("OMP_NUM_THREADS", std::to_string(nthreads).c_str());
     }

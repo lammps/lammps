@@ -69,6 +69,7 @@ protected:
     void do_run(bool use_buffer);
     void start_lammps();
     void run_done();
+    void setDocver();
 
 public slots:
     void quit();
@@ -132,6 +133,7 @@ private:
 
     LammpsWrapper lammps;
     LammpsRunner *runner;
+    QString docver;
     std::string plugin_path;
     bool is_running;
     int run_counter;

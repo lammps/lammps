@@ -4,6 +4,7 @@ LAMMPS-GUI TODO list:
 
 - figure out how widgets can be resized to fraction of available screen size.
 - figure out stacking order of frames and whether it can be more flexible
+- figure out how to avoid corrupted cached thermo data while reading it.
 - bundle LAMMPS tutorial input files
 
 - implement indenting regions for (nested) loops?

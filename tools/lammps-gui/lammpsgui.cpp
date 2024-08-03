@@ -75,6 +75,7 @@ LammpsGui::LammpsGui(QWidget *parent, const char *filename) :
     qRegisterMetaTypeStreamOperators<QList<QString>>("QList<QString>");
 #endif
 
+    docver = "";
     ui->setupUi(this);
     this->setCentralWidget(ui->textEdit);
     highlighter = new Highlighter(ui->textEdit->document());
@@ -1218,6 +1219,18 @@ void LammpsGui::view_variables()
     }
 }
 
+void LammpsGui::setDocver()
+{
+    QString git_branch = (const char *)lammps.extract_global("git_branch");
+    if ((git_branch == "stable") || (git_branch == "maintenance")) {
+        docver = "/stable/";
+    } else if (git_branch == "release") {
+        docver = "/";
+    } else {
+        docver = "/latest/";
+    }
+}
+
 void LammpsGui::about()
 {
     std::string version = "This is LAMMPS-GUI version " LAMMPS_GUI_VERSION;
@@ -1329,7 +1342,8 @@ void LammpsGui::help()
 
 void LammpsGui::manual()
 {
-    QDesktopServices::openUrl(QUrl("https://docs.lammps.org/"));
+    if (docver.isEmpty()) setDocver();
+    QDesktopServices::openUrl(QUrl(QString("https://docs.lammps.org%1").arg(docver)));
 }
 
 void LammpsGui::tutorial()
@@ -1339,7 +1353,9 @@ void LammpsGui::tutorial()
 
 void LammpsGui::howto()
 {
-    QDesktopServices::openUrl(QUrl("https://docs.lammps.org/Howto_lammps_gui.html"));
+    if (docver.isEmpty()) setDocver();
+    QDesktopServices::openUrl(
+        QUrl(QString("https://docs.lammps.org%1Howto_lammps_gui.html").arg(docver)));
 }
 
 void LammpsGui::defaults()

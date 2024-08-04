@@ -449,13 +449,6 @@ void FixNHKokkos<DeviceType>::remap()
 
   // convert pertinent atoms and rigid bodies back to box coords
 
-  //domainKK->lamda2x(nlocal);
-  //if (allremap) domainKK->lamda2x(nlocal);
-  //else {
-  //  for (i = 0; i < nlocal; i++)
-  //    if (mask[i] & dilate_group_bit)
-  //      domain->lamda2x(x[i],x[i]);
-  //}
   if (allremap) domainKK->lamda2x(nlocal);
   else {
     for ( int i = 0; i < nlocal; i++)

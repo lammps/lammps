@@ -50,6 +50,7 @@ template<class DeviceType>
 FixNHKokkos<DeviceType>::FixNHKokkos(LAMMPS *lmp, int narg, char **arg) : FixNH(lmp, narg, arg)
 {
   kokkosable = 1;
+  atomKK = (AtomKokkos *)atom;
   domainKK = (DomainKokkos *) domain;
   execution_space = ExecutionSpaceFromDevice<DeviceType>::space;
 
@@ -289,7 +290,7 @@ void FixNHKokkos<DeviceType>::remap()
   double oldlo,oldhi;
   double expfac;
 
-  int nlocal = atom->nlocal;
+  int nlocal = atomKK->nlocal;
   double *h = domain->h;
 
   // omega is not used, except for book-keeping
@@ -298,13 +299,15 @@ void FixNHKokkos<DeviceType>::remap()
 
   // convert pertinent atoms and rigid bodies to lamda coords
 
-  domainKK->x2lamda(nlocal);
-  //if (allremap) domainKK->x2lamda(nlocal);
-  //else {
-  //  for (i = 0; i < nlocal; i++)
-  //    if (mask[i] & dilate_group_bit)
-  //      domain->x2lamda(x[i],x[i]);
-  //}
+  x = atomKK->k_x.template view<DeviceType>();
+
+  if (allremap) domainKK->x2lamda(nlocal);
+  else {
+    for ( int i = 0; i < nlocal; i++)
+      if (mask[i] & dilate_group_bit)
+        domainKK->x2lamda(&x(i,0), &x(i,0));
+  }
+  
 
   if (rfix.size() > 0)
     error->all(FLERR,"Cannot (yet) use rigid bodies with fix nh and Kokkos");
@@ -446,13 +449,19 @@ void FixNHKokkos<DeviceType>::remap()
 
   // convert pertinent atoms and rigid bodies back to box coords
 
-  domainKK->lamda2x(nlocal);
+  //domainKK->lamda2x(nlocal);
   //if (allremap) domainKK->lamda2x(nlocal);
   //else {
   //  for (i = 0; i < nlocal; i++)
   //    if (mask[i] & dilate_group_bit)
   //      domain->lamda2x(x[i],x[i]);
   //}
+  if (allremap) domainKK->lamda2x(nlocal);
+  else {
+    for ( int i = 0; i < nlocal; i++)
+      if (mask[i] & dilate_group_bit)
+        domainKK->lamda2x(&x(i,0), &x(i,0));
+  }
 
   // for (auto &ifix : rfix) ifix->deform(1);
 }

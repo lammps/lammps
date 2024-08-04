@@ -29,6 +29,7 @@
 #include <QClipboard>
 #include <QCoreApplication>
 #include <QDesktopServices>
+#include <QEvent>
 #include <QFileDialog>
 #include <QFileInfo>
 #include <QFont>
@@ -153,6 +154,8 @@ LammpsGui::LammpsGui(QWidget *parent, const char *filename) :
     lammps_args.push_back(mystrdup("LAMMPS-GUI"));
     lammps_args.push_back(mystrdup("-log"));
     lammps_args.push_back(mystrdup("none"));
+
+    installEventFilter(this);
 
     setWindowIcon(QIcon(":/icons/lammps-icon-128x128.png"));
 
@@ -715,6 +718,7 @@ void LammpsGui::quit()
     lammpsstatus->hide();
     lammps.finalize();
 
+    autoSave();
     if (ui->textEdit->document()->isModified()) {
         QMessageBox msg;
         msg.setWindowTitle("Unsaved Changes");
@@ -1004,6 +1008,7 @@ void LammpsGui::do_run(bool use_buffer)
         return;
     }
 
+    autoSave();
     if (!use_buffer && ui->textEdit->document()->isModified()) {
         QMessageBox msg;
         msg.setWindowTitle("Unsaved Changes");
@@ -1229,6 +1234,23 @@ void LammpsGui::setDocver()
     } else {
         docver = "/latest/";
     }
+}
+
+void LammpsGui::autoSave()
+{
+    // no need to auto-save, if the document has no name or is not modified.
+    QString fileName = current_file;
+    if (fileName.isEmpty()) return;
+    if (!ui->textEdit->document()->isModified()) return;
+
+    // check preference
+    bool autosave = false;
+    QSettings settings;
+    settings.beginGroup("reformat");
+    autosave = settings.value("autosave", false).toBool();
+    settings.endGroup();
+
+    if (autosave) write_file(fileName);
 }
 
 void LammpsGui::about()
@@ -1505,6 +1527,13 @@ void LammpsGui::start_lammps()
     }
 }
 
+bool LammpsGui::eventFilter(QObject *watched, QEvent *event)
+{
+    if (event->type() == QEvent::Close) {
+        autoSave();
+    }
+    return QWidget::eventFilter(watched, event);
+}
 // Local Variables:
 // c-basic-offset: 4
 // End:

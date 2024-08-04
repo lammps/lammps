@@ -196,6 +196,8 @@ void Preferences::accept()
     if (box) settings->setValue("return", box->isChecked());
     box = tabWidget->findChild<QCheckBox *>("autoval");
     if (box) settings->setValue("automatic", box->isChecked());
+    box = tabWidget->findChild<QCheckBox *>("savval");
+    if (box) settings->setValue("autosave", box->isChecked());
     settings->endGroup();
 
     QDialog::accept();
@@ -536,29 +538,34 @@ EditorTab::EditorTab(QSettings *_settings, QWidget *parent) : QWidget(parent), s
     auto *namelbl  = new QLabel("Name width:");
     auto *retlbl   = new QLabel("Reformat with 'Enter':");
     auto *autolbl  = new QLabel("Automatic completion:");
+    auto *savlbl   = new QLabel("Auto-save on 'Run' and 'Quit':");
     auto *cmdval   = new QSpinBox;
     auto *typeval  = new QSpinBox;
     auto *idval    = new QSpinBox;
     auto *nameval  = new QSpinBox;
     auto *retval   = new QCheckBox;
     auto *autoval  = new QCheckBox;
+    auto *savval   = new QCheckBox;
+    cmdval->setObjectName("cmdval");
     cmdval->setRange(1, 32);
     cmdval->setValue(settings->value("command", "16").toInt());
-    cmdval->setObjectName("cmdval");
+    typeval->setObjectName("typeval");
     typeval->setRange(1, 32);
     typeval->setValue(settings->value("type", "4").toInt());
-    typeval->setObjectName("typeval");
+    idval->setObjectName("idval");
     idval->setRange(1, 32);
     idval->setValue(settings->value("id", "8").toInt());
-    idval->setObjectName("idval");
+    nameval->setObjectName("nameval");
     nameval->setRange(1, 32);
     nameval->setValue(settings->value("name", "8").toInt());
-    nameval->setObjectName("nameval");
-    retval->setCheckState(settings->value("return", false).toBool() ? Qt::Checked : Qt::Unchecked);
     retval->setObjectName("retval");
+    retval->setCheckState(settings->value("return", false).toBool() ? Qt::Checked : Qt::Unchecked);
+    autoval->setObjectName("autoval");
     autoval->setCheckState(settings->value("automatic", true).toBool() ? Qt::Checked
                                                                        : Qt::Unchecked);
-    autoval->setObjectName("autoval");
+    savval->setObjectName("savval");
+    savval->setCheckState(settings->value("autosave", false).toBool() ? Qt::Checked
+                                                                      : Qt::Unchecked);
     settings->endGroup();
 
     int i = 0;
@@ -575,6 +582,8 @@ EditorTab::EditorTab(QSettings *_settings, QWidget *parent) : QWidget(parent), s
     grid->addWidget(retval, i++, 1, Qt::AlignVCenter);
     grid->addWidget(autolbl, i, 0, Qt::AlignTop);
     grid->addWidget(autoval, i++, 1, Qt::AlignVCenter);
+    grid->addWidget(savlbl, i, 0, Qt::AlignTop);
+    grid->addWidget(savval, i++, 1, Qt::AlignVCenter);
 
     grid->addItem(new QSpacerItem(100, 100, QSizePolicy::Minimum, QSizePolicy::Expanding), i, 0);
     grid->addItem(new QSpacerItem(100, 100, QSizePolicy::Minimum, QSizePolicy::Expanding), i, 1);

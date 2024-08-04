@@ -16,6 +16,7 @@
 
 #include <QMainWindow>
 
+#include <QEvent>
 #include <QGridLayout>
 #include <QList>
 #include <QPair>
@@ -70,6 +71,8 @@ protected:
     void start_lammps();
     void run_done();
     void setDocver();
+    void autoSave();
+    bool eventFilter(QObject *watched, QEvent *event) override;
 
 public slots:
     void quit();

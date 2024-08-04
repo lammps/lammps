@@ -137,6 +137,8 @@ void Preferences::accept()
     if (box) settings->setValue("antialias", box->isChecked());
     box = tabWidget->findChild<QCheckBox *>("ssao");
     if (box) settings->setValue("ssao", box->isChecked());
+    box = tabWidget->findChild<QCheckBox *>("shiny");
+    if (box) settings->setValue("shinystyle", box->isChecked());
     box = tabWidget->findChild<QCheckBox *>("box");
     if (box) settings->setValue("box", box->isChecked());
     box = tabWidget->findChild<QCheckBox *>("axes");
@@ -446,6 +448,7 @@ SnapshotTab::SnapshotTab(QSettings *_settings, QWidget *parent) :
     auto *zoom  = new QLabel("Zoom factor:");
     auto *anti  = new QLabel("Antialias:");
     auto *ssao  = new QLabel("HQ Image mode:");
+    auto *shiny = new QLabel("Shiny Image mode:");
     auto *bbox  = new QLabel("Show Box:");
     auto *axes  = new QLabel("Show Axes:");
     auto *vdw   = new QLabel("VDW Style:");
@@ -457,6 +460,7 @@ SnapshotTab::SnapshotTab(QSettings *_settings, QWidget *parent) :
     auto *zval = new QLineEdit(settings->value("zoom", "1.0").toString());
     auto *aval = new QCheckBox;
     auto *sval = new QCheckBox;
+    auto *hval = new QCheckBox;
     auto *bval = new QCheckBox;
     auto *eval = new QCheckBox;
     auto *vval = new QCheckBox;
@@ -464,6 +468,8 @@ SnapshotTab::SnapshotTab(QSettings *_settings, QWidget *parent) :
     sval->setObjectName("ssao");
     aval->setCheckState(settings->value("antialias", false).toBool() ? Qt::Checked : Qt::Unchecked);
     aval->setObjectName("anti");
+    hval->setCheckState(settings->value("shinystyle", true).toBool() ? Qt::Checked : Qt::Unchecked);
+    hval->setObjectName("shiny");
     bval->setCheckState(settings->value("box", true).toBool() ? Qt::Checked : Qt::Unchecked);
     bval->setObjectName("box");
     eval->setCheckState(settings->value("axes", false).toBool() ? Qt::Checked : Qt::Unchecked);
@@ -510,6 +516,8 @@ SnapshotTab::SnapshotTab(QSettings *_settings, QWidget *parent) :
     grid->addWidget(aval, i++, 1, Qt::AlignTop);
     grid->addWidget(ssao, i, 0, Qt::AlignTop);
     grid->addWidget(sval, i++, 1, Qt::AlignVCenter);
+    grid->addWidget(shiny, i, 0, Qt::AlignTop);
+    grid->addWidget(hval, i++, 1, Qt::AlignVCenter);
     grid->addWidget(bbox, i, 0, Qt::AlignTop);
     grid->addWidget(bval, i++, 1, Qt::AlignVCenter);
     grid->addWidget(axes, i, 0, Qt::AlignTop);

@@ -111,10 +111,10 @@ Syntax
   .. parsed-literal::
 
        *acolor* args = type color
-         type = atom type or range of types (see below)
+         type = atom type (numeric or type label) or range of numeric types (see below)
          color = name of color or color1/color2/...
        *adiam* args = type diam
-         type = atom type or range of types (see below)
+         type = atom type (numeric or type label) or range of numeric types (see below)
          diam = diameter of atoms of that type (distance units)
        *amap* args = lo hi style delta N entry1 entry2 ... entryN
          lo = number or *min* = lower bound of range of color map
@@ -739,15 +739,15 @@ The *acolor* keyword can be used with the dump image command, when its
 atom color setting is *type*, to set the color that atoms of each type
 will be drawn in the image.
 
-The specified *type* should be an integer from 1 to Ntypes = the
-number of atom types.  A wildcard asterisk can be used in place of or
-in conjunction with the *type* argument to specify a range of atom
-types.  This takes the form "\*" or "\*n" or "n\*" or "m\*n".  If N =
-the number of atom types, then an asterisk with no numeric values
-means all types from 1 to N.  A leading asterisk means all types from
-1 to n (inclusive).  A trailing asterisk means all types from n to N
-(inclusive).  A middle asterisk means all types from m to n
-(inclusive).
+The specified *type* should be a type label or integer from 1 to Ntypes
+= the number of atom types.  For numeric types, a wildcard asterisk can
+be used in place of or in conjunction with the *type* argument to
+specify a range of atom types.  This takes the form "\*" or "\*n" or
+"n\*" or "m\*n". If N = the number of atom types, then an asterisk with
+no numeric values means all types from 1 to N.  A leading asterisk
+means all types from 1 to n (inclusive).  A trailing asterisk means all
+types from n to N (inclusive).  A middle asterisk means all types from
+m to n (inclusive).
 
 The specified *color* can be a single color which is any of the 140
 pre-defined colors (see below) or a color name defined by the
@@ -761,11 +761,12 @@ fashion to each of the specified atom types.
 
 The *adiam* keyword can be used with the dump image command, when its
 atom diameter setting is *type*, to set the size that atoms of each
-type will be drawn in the image.  The specified *type* should be an
-integer from 1 to Ntypes.  As with the *acolor* keyword, a wildcard
-asterisk can be used as part of the *type* argument to specify a range
-of atom types.  The specified *diam* is the size in whatever distance
-:doc:`units <units>` the input script is using, e.g. Angstroms.
+type will be drawn in the image.  The specified *type* should be a type
+label or integer from 1 to Ntypes.  As with the *acolor* keyword, a
+wildcard asterisk can be used as part of the *type* argument to specify
+a range of numeric atom types.  The specified *diam* is the size in
+whatever distance :doc:`units <units>` the input script is using, e.g.
+Angstroms.
 
 ----------
 

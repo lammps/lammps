@@ -98,9 +98,25 @@ get access to the other included executables.
 Linux on x86\_64
 ^^^^^^^^^^^^^^^^
 
-After downloading and unpacking the
+For Linux with x86\_64 CPU there are currently two variants. The first
+is compiled on Ubuntu 20.04LTS, is using some wrapper scripts, and
+should be compatible with more recent Linux distributions.  After
+downloading and unpacking the
 ``LAMMPS-Linux-x86_64-GUI-<version>.tar.gz`` package.  You can switch
 into the "LAMMPS_GUI" folder and execute "./lammps-gui" directly.
+
+The second variant uses `flatpak <https://www.flatpak.org>`_ and
+requires the flatpak management and runtime software to be installed.
+After downloading the ``LAMMPS-GUI-Linux-x86_64-GUI-<version>.tar.gz``
+flatpak bundle, you can install it with ``flatpak install --user
+LAMMPS-GUI-Linux-x86_64-GUI-<version>.tar.gz``.  After installation,
+LAMMPS-GUI should be integrated into your desktop environment under
+"Applications > Science" but also can be launched from the console with
+``flatpak run org.lammps.lammps-gui``.  The flatpak bundle also includes
+the console LAMMPS executable ``lmp`` which can be launched to run
+simulations with, for example: ``flatpak run --command=lmp
+org.lammps.lammps-gui -in in.melt``.
+
 
 Compiling from Source
 ^^^^^^^^^^^^^^^^^^^^^

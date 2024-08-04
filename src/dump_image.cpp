@@ -1536,7 +1536,7 @@ int DumpImage::modify_param(int narg, char **arg)
   if (strcmp(arg[0],"acolor") == 0) {
     if (narg < 3) error->all(FLERR,"Illegal dump_modify command");
     int nlo,nhi;
-    utils::bounds(FLERR,arg[1],1,atom->ntypes,nlo,nhi,error);
+    utils::bounds_typelabel(FLERR,arg[1],1,atom->ntypes,nlo,nhi,lmp,Atom::ATOM);
 
     // get list of colors
     // assign colors in round-robin fashion to types
@@ -1557,7 +1557,7 @@ int DumpImage::modify_param(int narg, char **arg)
   if (strcmp(arg[0],"adiam") == 0) {
     if (narg < 3) error->all(FLERR,"Illegal dump_modify command");
     int nlo,nhi;
-    utils::bounds(FLERR,arg[1],1,atom->ntypes,nlo,nhi,error);
+    utils::bounds_typelabel(FLERR,arg[1],1,atom->ntypes,nlo,nhi,lmp,Atom::ATOM);
     double diam = utils::numeric(FLERR,arg[2],false,lmp);
     if (diam <= 0.0) error->all(FLERR,"Illegal dump_modify command");
     for (int i = nlo; i <= nhi; i++) diamtype[i] = diam;

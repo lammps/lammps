@@ -640,7 +640,7 @@ void PairExTeP::read_file(char *file)
         if (!utils::is_integer(kname))
           continue;
 
-        int Ni  = atoi(kname.c_str());
+        int Ni  = std::stoi(kname);
         int Nj  = values.next_int();
         double spline_val = values.next_double();
         double spline_derx = values.next_double();

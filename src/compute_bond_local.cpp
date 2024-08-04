@@ -13,21 +13,23 @@
 ------------------------------------------------------------------------- */
 
 #include "compute_bond_local.h"
-#include <cmath>
-#include <cstring>
+
 #include "atom.h"
 #include "atom_vec.h"
-#include "molecule.h"
-#include "update.h"
-#include "domain.h"
-#include "force.h"
 #include "bond.h"
 #include "comm.h"
+#include "domain.h"
+#include "error.h"
+#include "force.h"
 #include "input.h"
-#include "variable.h"
 #include "math_extra.h"
 #include "memory.h"
-#include "error.h"
+#include "molecule.h"
+#include "update.h"
+#include "variable.h"
+
+#include <cmath>
+#include <cstring>
 
 using namespace LAMMPS_NS;
 
@@ -80,8 +82,8 @@ ComputeBondLocal::ComputeBondLocal(LAMMPS *lmp, int narg, char **arg) :
       bstyle[nvalues++] = VARIABLE;
       vstr[nvar] = utils::strdup(&arg[iarg][2]);
       nvar++;
-    } else if (arg[iarg][0] == 'b') {
-      int n = atoi(&arg[iarg][1]);
+    } else if (utils::strmatch(arg[iarg], "^b\\d+$")) {  // b1, b2, b3, ... bN
+      int n = std::stoi(&arg[iarg][1]);
       if (n <= 0) error->all(FLERR, "Invalid keyword {} in compute bond/local command", arg[iarg]);
       bstyle[nvalues] = BN;
       bindex[nvalues++] = n - 1;
@@ -96,13 +98,13 @@ ComputeBondLocal::ComputeBondLocal(LAMMPS *lmp, int narg, char **arg) :
   while (iarg < narg) {
     if (strcmp(arg[iarg],"set") == 0) {
       setflag = 1;
-      if (iarg+3 > narg) error->all(FLERR,"Illegal compute bond/local command");
+      if (iarg+3 > narg) utils::missing_cmd_args(FLERR,"compute bond/local set", error);
       if (strcmp(arg[iarg+1],"dist") == 0) {
         delete [] dstr;
         dstr = utils::strdup(arg[iarg+2]);
-      } else error->all(FLERR,"Illegal compute bond/local command");
+      } else error->all(FLERR,"Unknown compute bond/local set keyword: {}", arg[iarg+2]);
       iarg += 3;
-    } else error->all(FLERR,"Illegal compute bond/local command");
+    } else error->all(FLERR,"Unknown compute bond/local keyword: {}", arg[iarg]);
   }
 
   // error check
@@ -113,9 +115,9 @@ ComputeBondLocal::ComputeBondLocal(LAMMPS *lmp, int narg, char **arg) :
     for (int i = 0; i < nvar; i++) {
       vvar[i] = input->variable->find(vstr[i]);
       if (vvar[i] < 0)
-        error->all(FLERR,"Variable name for copute bond/local does not exist");
+        error->all(FLERR,"Variable name {} for copute bond/local does not exist", vstr[i]);
       if (!input->variable->equalstyle(vvar[i]))
-        error->all(FLERR,"Variable for compute bond/local is invalid style");
+        error->all(FLERR,"Variable {} for compute bond/local is invalid style", vstr[i]);
     }
 
     if (dstr) {
@@ -126,7 +128,7 @@ ComputeBondLocal::ComputeBondLocal(LAMMPS *lmp, int narg, char **arg) :
         error->all(FLERR,"Variable for compute bond/local is invalid style");
     }
   } else if (setflag)
-    error->all(FLERR,"Compute bond/local set with no variable");
+    error->all(FLERR,"Compute bond/local set used with without a variable");
 
 
   // set singleflag if need to call bond->single()

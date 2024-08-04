@@ -139,10 +139,10 @@ Syntax
        *backcolor* arg = color
          color = name of color for background
        *bcolor* args = type color
-         type = bond type or range of types (see below)
+         type = bond type (numeric or type label) or range of numeric types (see below)
          color = name of color or color1/color2/...
        *bdiam* args = type diam
-         type = bond type or range of types (see below)
+         type = bond type (numeric or type label) or range of numeric types (see below)
          diam = diameter of bonds of that type (distance units)
        *bitrate* arg = rate
          rate = target bitrate for movie in kbps
@@ -909,14 +909,15 @@ The *bcolor* keyword can be used with the dump image command, with its
 *bond* keyword, when its color setting is *type*, to set the color
 that bonds of each type will be drawn in the image.
 
-The specified *type* should be an integer from 1 to :math:`N`, where :math:`N`
-is the number of bond types.  A wildcard asterisk can be used in place of or
-in conjunction with the *type* argument to specify a range of bond
-types.  This takes the form "\*" or "\*n" or "m\*" or "m\*n".  If :math:`N`
-is the number of bond types, then an asterisk with no numerical values
-means all types from 1 to :math:`N`.  A leading asterisk means all types from
-1 to n (inclusive).  A trailing asterisk means all types from m to :math:`N`
-(inclusive).  A middle asterisk means all types from m to n
+The specified *type* should be a type label or integer from 1 to
+:math:`N`, where :math:`N` is the number of bond types.  For numeric
+types, a wildcard asterisk can be used in place of or in conjunction
+with the *type* argument to specify a range of bond types.  This takes
+the form "\*" or "\*n" or "m\*" or "m\*n".  If :math:`N` is the number
+of bond types, then an asterisk with no numerical values means all
+types from 1 to :math:`N`.  A leading asterisk means all types from 1
+to n (inclusive).  A trailing asterisk means all types from m to
+:math:`N` (inclusive).  A middle asterisk means all types from m to n
 (inclusive).
 
 The specified *color* can be a single color which is any of the 140
@@ -932,11 +933,11 @@ of the specified bond types.
 The *bdiam* keyword can be used with the dump image command, with its
 *bond* keyword, when its *diam* setting is *type*, to set the diameter
 that bonds of each type will be drawn in the image.  The specified
-*type* should be an integer from 1 to Nbondtypes.  As with the
-*bcolor* keyword, a wildcard asterisk can be used as part of the
-*type* argument to specify a range of bond types.  The specified
-*diam* is the size in whatever distance :doc:`units <units>` you are
-using (e.g., Angstroms).
+*type* should be a type label or integer from 1 to Nbondtypes.  As with
+the *bcolor* keyword, a wildcard asterisk can be used as part of the
+*type* argument to specify a range of numeric bond types.  The
+specified *diam* is the size in whatever distance :doc:`units <units>`
+you are using (e.g., Angstroms).
 
 ----------
 

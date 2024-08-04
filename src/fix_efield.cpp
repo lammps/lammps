@@ -56,6 +56,7 @@ FixEfield::FixEfield(LAMMPS *lmp, int narg, char **arg) :
   ilevel_respa = 0;
   energy_global_flag = 1;
   virial_global_flag = virial_peratom_flag = 1;
+  fsum = new double[4];
 
   qe2f = force->qe2f;
   xstyle = ystyle = zstyle = estyle = pstyle = NONE;
@@ -311,7 +312,6 @@ void FixEfield::post_force(int vflag)
   double **x = atom->x;
   double fx, fy, fz;
   double v[6], unwrap[3];
-  ;
 
   // constant efield
 
@@ -508,4 +508,6 @@ void FixEfield::update_efield_variables()
   else if (estyle == ATOM) input->variable->compute_atom(evar, igroup, &efield[0][3], 4, 0);
 
   modify->addstep_compute(update->ntimestep + 1);
+
 }
+

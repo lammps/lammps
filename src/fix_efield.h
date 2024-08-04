@@ -59,7 +59,7 @@ class FixEfield : public Fix {
   double **efield;
 
   int force_flag;
-  double fsum[4], fsum_all[4];
+  double *fsum, fsum_all[4]; // need fsum double*, not double[] for kokkos dual view
   void update_efield_variables();
 };
 }    // namespace LAMMPS_NS

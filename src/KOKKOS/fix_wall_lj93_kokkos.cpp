@@ -92,6 +92,7 @@ FixWallLJ93Kokkos<DeviceType>::~FixWallLJ93Kokkos()
   memoryKK->destroy_kokkos(d_offset);
 
   memoryKK->destroy_kokkos(k_vatom,vatom);
+  memoryKK->destroy_kokkos(k_ewall,ewall);
 
 }
 

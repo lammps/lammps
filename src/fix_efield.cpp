@@ -132,6 +132,7 @@ FixEfield::~FixEfield()
 {
   if (copymode) return;
 
+  delete[] fsum;
   delete[] xstr;
   delete[] ystr;
   delete[] zstr;

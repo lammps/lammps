@@ -224,7 +224,7 @@ def iterate(lmp_binary, input_folder, input_list, config, results, progress_file
         logger.info(str_t)
         print(str_t)
         
-        # check if a log file exists in the current folder: log.DDMMMYY.basename.[nprocs]
+        # check if a reference log file exists in the current folder: log.DDMMMYY.basename.[nprocs]
         basename = input_test.replace('in.','')
         logfile_exist = False
 
@@ -243,16 +243,25 @@ def iterate(lmp_binary, input_folder, input_list, config, results, progress_file
             if fnmatch.fnmatch(file, pattern):
                 p = file.rsplit('.', 1)
                 if p[1].isnumeric():
-                    if max_np < int(p[1]):
-                        max_np = int(p[1])
-                        logfile_exist = True
-                        thermo_ref_file = file
+                    if 'valgrind' in config['mpiexec']:
+                        if int(p[1]) == 1:
+                            max_np = int(p[1])
+                            logfile_exist = True
+                            thermo_ref_file = file
+                            break
+                    else:
+                        if max_np < int(p[1]):
+                            max_np = int(p[1])
+                            logfile_exist = True
+                            thermo_ref_file = file
+
+        nprocs = max_np
 
         # if the maximum number of procs is different from the value in the configuration file
         #      then override the setting for this input script
         saved_nprocs = config['nprocs']
         if max_np != int(config['nprocs']):
-            config['nprocs'] = "str(max_np)"
+            config['nprocs'] = str(max_np)
 
         # if valgrind is used for mem check, the run command will be
         #   mpirun valgrind --leak-check=full --show-leak-kinds=all --track-origin=yes /path/to/lmp_binary -in in.txt
@@ -260,6 +269,7 @@ def iterate(lmp_binary, input_folder, input_list, config, results, progress_file
         if 'valgrind' in config['mpiexec']:
             config['nprocs'] = ""
             config['mpiexec_numproc_flag'] = ""
+            nprocs = 1
 
         result = TestResult(name=input, output="", time="", status="passed")
 
@@ -279,6 +289,10 @@ def iterate(lmp_binary, input_folder, input_list, config, results, progress_file
             num_error = num_error + 1
             test_id = test_id + 1
             continue
+        else:
+            # save a copy of the log file
+            cmd_str = f"cp log.lammps log.{basename}.{nprocs}"
+            p = subprocess.run(cmd_str, shell=True, text=True, capture_output=True)
 
         # check if the output contains ERROR
         if "ERROR" in output:
@@ -309,11 +323,20 @@ def iterate(lmp_binary, input_folder, input_list, config, results, progress_file
         thermo = extract_data_to_yaml("log.lammps")
         num_runs = len(thermo)
 
-        # the run completed normally but log.lammps is not friendly for parsing into YAML format
+        # the run completed normally but log.lammps may not be friendly for parsing into YAML format
         if num_runs == 0:
             logger.info(f"     The run terminated with {input_test} gives the following output:")
             logger.info(f"     {output}")
-            result.status = "completed, error parsing log.lammps into YAML"
+
+            msg = "completed"
+            if 'valgrind' in config['mpiexec']:
+                if "All heap blocks were free" in error:
+                    msg += ", no memory leak"
+                else:
+                    msg += ", memory leaks detected"
+                    num_memleak = num_memleak + 1
+
+            result.status = msg + ", error parsing log.lammps into YAML"
             results.append(result)
             progress.write(f"{input}: {{ folder: {input_folder}, status: \"{result.status}\" }}\n")
             progress.close()
@@ -322,15 +345,15 @@ def iterate(lmp_binary, input_folder, input_list, config, results, progress_file
             test_id = test_id + 1
             continue
 
-        # At this point, the run completed without trivial errors
+        # At this point, the run completed without trivial errors, proceed with numerical checks
         # check if there is a reference log file for this input
         if logfile_exist:
             thermo_ref = extract_data_to_yaml(thermo_ref_file)
             if thermo_ref:
                 num_runs_ref = len(thermo_ref)
             else:
-                logger.info(f"    ERROR: Error parsing {thermo_ref_file}.")
-                result.status = "skipped numerical checks due to parsing the log file"
+                logger.info(f"    ERROR: Error parsing the reference log file {thermo_ref_file}.")
+                result.status = "skipped numerical checks due to parsing the reference log file"
                 results.append(result)
                 progress.write(f"{input}: {{ folder: {input_folder}, status: \"completed, numerical checks skipped, unsupported log file format\" }}\n")
                 progress.close()

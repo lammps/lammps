@@ -2,7 +2,7 @@
   lmp_binary: ""
   nprocs: "1"
   args: "-cite none"
-  mpiexec: "mpirun valgrind --leak-check=full --show-leak-kinds=all --track-origin=yes"
+  mpiexec: "mpirun valgrind --leak-check=full --show-leak-kinds=all --track-origins=yes"
   mpiexec_numproc_flag: "-np"
   tolerance:
     PotEng:

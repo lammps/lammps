@@ -9,78 +9,42 @@
 // Colvars repository at GitHub.
 
 
-#include "colvarproxy_lammps.h"
+#include <mpi.h>
+#include <sys/stat.h>
+#include <cerrno>
+#include <cstring>
+#include <iostream>
+#include <memory>
+#include <string>
 
 #include "lammps.h"
 #include "error.h"
-#include "output.h"
+#include "utils.h"
 #include "random_park.h"
 
 #include "colvarmodule.h"
 #include "colvarproxy.h"
-
-#include <sstream>
+#include "colvarproxy_lammps.h"
+#include "colvarscript.h"
 
 #define HASH_FAIL  -1
 
 
-colvarproxy_lammps::colvarproxy_lammps(LAMMPS_NS::LAMMPS *lmp,
-                                       const char *inp_name,
-                                       const char *out_name,
-                                       const int seed,
-                                       const double temp,
-                                       MPI_Comm root2root)
-  : _lmp(lmp), inter_comm(root2root)
+colvarproxy_lammps::colvarproxy_lammps(LAMMPS_NS::LAMMPS *lmp)
+  : _lmp(lmp)
 {
-  if (cvm::debug())
-    log("Initializing the colvars proxy object.\n");
+  _random = nullptr;
 
-  _random = new LAMMPS_NS::RanPark(lmp,seed);
+  engine_name_ = "LAMMPS";
 
-  first_timestep=true;
-  previous_step=-1;
-  do_exit=false;
+  first_timestep = true;
+  previous_step = -1;
+  do_exit = false;
+
+  inter_me = 0;
+  inter_num = 1;
 
   engine_ready_ = false;
-
-  // set input restart name and strip the extension, if present
-  input_prefix_str = std::string(inp_name ? inp_name : "");
-  if (input_prefix_str.rfind(".colvars.state") != std::string::npos)
-    input_prefix_str.erase(input_prefix_str.rfind(".colvars.state"),
-                            std::string(".colvars.state").size());
-
-  // output prefix is always given
-  output_prefix_str = std::string(out_name);
-  // not so for restarts
-  restart_output_prefix_str = std::string("rest");
-
-  // check if it is possible to save output configuration
-  if ((!output_prefix_str.size()) && (!restart_output_prefix_str.size())) {
-    error("Error: neither the final output state file or "
-          "the output restart file could be defined, exiting.\n");
-  }
-
-  // try to extract a restart prefix from a potential restart command.
-  LAMMPS_NS::Output *outp = _lmp->output;
-  if ((outp->restart_every_single > 0) && (outp->restart1 != nullptr)) {
-    restart_frequency_engine = outp->restart_every_single;
-    restart_output_prefix_str = std::string(outp->restart1);
-  } else if  ((outp->restart_every_double > 0) && (outp->restart2a != nullptr)) {
-    restart_frequency_engine = outp->restart_every_double;
-    restart_output_prefix_str = std::string(outp->restart2a);
-  }
-  // trim off unwanted stuff from the restart prefix
-  if (restart_output_prefix_str.rfind(".*") != std::string::npos)
-    restart_output_prefix_str.erase(restart_output_prefix_str.rfind(".*"),2);
-
-  // initialize multi-replica support, if available
-  if (replica_enabled() == COLVARS_OK) {
-    MPI_Comm_rank(inter_comm, &inter_me);
-    MPI_Comm_size(inter_comm, &inter_num);
-  }
-
-  if (cvm::debug())
-    log("Done initializing the colvars proxy object.\n");
 }
 
 
@@ -91,63 +55,58 @@ void colvarproxy_lammps::init()
   // create the colvarmodule instance
   colvars = new colvarmodule(this);
 
+  // Create instance of scripting interface
+  script = new colvarscript(this, colvars);
+
   cvm::log("Using LAMMPS interface, version "+
            cvm::to_str(COLVARPROXY_VERSION)+".\n");
 
   colvars->cite_feature("LAMMPS engine");
   colvars->cite_feature("Colvars-LAMMPS interface");
 
-  my_angstrom  = _lmp->force->angstrom;
-  // Front-end unit is the same as back-end
-  angstrom_value_ = my_angstrom;
-
-  // my_kcal_mol  = _lmp->force->qe2f / 23.060549;
-  // force->qe2f is 1eV expressed in LAMMPS' energy unit (1 if unit is eV, 23 if kcal/mol)
+  angstrom_value_ = _lmp->force->angstrom;
   boltzmann_ = _lmp->force->boltz;
-  my_timestep  = _lmp->update->dt * _lmp->force->femtosecond;
+  set_integration_timestep(_lmp->update->dt * _lmp->force->femtosecond);
 
   if (_lmp->update->ntimestep != 0) {
-    cvm::log("Setting initial step number from LAMMPS: "+
-             cvm::to_str(_lmp->update->ntimestep)+"\n");
-    colvarmodule::it = colvarmodule::it_restart =
-      static_cast<cvm::step_number>(_lmp->update->ntimestep);
-  }
-
-  if (cvm::debug()) {
-    cvm::log("atoms_ids = "+cvm::to_str(atoms_ids)+"\n");
-    cvm::log("atoms_refcount = "+cvm::to_str(atoms_refcount)+"\n");
-    cvm::log("atoms_positions = "+cvm::to_str(atoms_positions)+"\n");
-    cvm::log(cvm::line_marker);
-    cvm::log("Info: done initializing the colvars proxy object.\n");
+    colvars->set_initial_step(static_cast<cvm::step_number>(_lmp->update->ntimestep));
   }
 }
 
-int colvarproxy_lammps::add_config_file(const char *conf_file)
-{
-  return colvars->read_config_file(conf_file);
-}
-
-int colvarproxy_lammps::add_config_string(const std::string &conf)
-{
-  return colvars->read_config_string(conf);
-}
-
-int colvarproxy_lammps::read_state_file(char const *state_filename)
-{
-  input_prefix() = std::string(state_filename);
-  return colvars->setup_input();
-}
 
 colvarproxy_lammps::~colvarproxy_lammps()
 {
-  delete _random;
+  if (_random) {
+    delete _random;
+  }
 }
+
+
+void colvarproxy_lammps::set_random_seed(int seed)
+{
+  if (_random) {
+    delete _random;
+  }
+  _random = new LAMMPS_NS::RanPark(_lmp, seed);
+}
+
+
+void colvarproxy_lammps::set_replicas_communicator(MPI_Comm root2root)
+{
+  inter_comm = root2root;
+  // initialize multi-replica support, if available
+  if (replica_enabled() == COLVARS_OK) {
+    MPI_Comm_rank(inter_comm, &inter_me);
+    MPI_Comm_size(inter_comm, &inter_num);
+  }
+}
+
 
 // re-initialize data where needed
 int colvarproxy_lammps::setup()
 {
   int error_code = colvarproxy::setup();
-  my_timestep  = _lmp->update->dt * _lmp->force->femtosecond;
+  set_integration_timestep(_lmp->update->dt * _lmp->force->femtosecond);
   error_code |= colvars->update_engine_parameters();
   error_code |= colvars->setup_input();
   error_code |= colvars->setup_output();
@@ -238,26 +197,6 @@ double colvarproxy_lammps::compute()
   return bias_energy;
 }
 
-void colvarproxy_lammps::serialize_status(std::string &rst)
-{
-  std::ostringstream os;
-  colvars->write_restart(os);
-  rst = os.str();
-}
-
-// set status from string
-bool colvarproxy_lammps::deserialize_status(std::string &rst)
-{
-  std::istringstream is;
-  is.str(rst);
-
-  if (!colvars->read_restart(is)) {
-    return false;
-  } else {
-    return true;
-  }
-}
-
 
 cvm::rvector colvarproxy_lammps::position_distance(cvm::atom_pos const &pos1,
                                                    cvm::atom_pos const &pos2)
@@ -290,6 +229,24 @@ void colvarproxy_lammps::error(std::string const &message)
   _lmp->error->one(FLERR,
                    "Fatal error in the collective variables module.\n");
 }
+
+
+char const *colvarproxy_lammps::script_obj_to_str(unsigned char *obj)
+{
+  // For now we assume that all objects passed by FixColvars are strings
+  return reinterpret_cast<char *>(obj);
+}
+
+
+std::vector<std::string> colvarproxy_lammps::script_obj_to_str_vector(unsigned char *obj)
+{
+  if (cvm::debug()) {
+    cvm::log("Called colvarproxy_lammps::script_obj_to_str_vector().\n");
+  }
+  std::string const input(reinterpret_cast<char *>(obj));
+  return LAMMPS_NS::utils::split_words(input); // :-)))
+}
+
 
 
 int colvarproxy_lammps::set_unit_system(std::string const &units_in, bool /*check_only*/)

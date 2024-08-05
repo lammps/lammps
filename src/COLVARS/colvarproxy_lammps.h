@@ -33,9 +33,8 @@ class colvarproxy_lammps : public colvarproxy {
   LAMMPS_NS::RanPark *_random;
 
   // state of LAMMPS properties
-  double my_timestep, my_angstrom;
   double bias_energy;
-  int previous_step;
+  cvm::step_number previous_step;
 
   bool first_timestep;
   bool do_exit;
@@ -47,10 +46,19 @@ class colvarproxy_lammps : public colvarproxy {
 
  public:
   friend class cvm::atom;
-  colvarproxy_lammps(LAMMPS_NS::LAMMPS *lmp, const char *, const char *, const int, const double,
-                     MPI_Comm);
+
+  colvarproxy_lammps(LAMMPS_NS::LAMMPS *lmp);
+
   ~colvarproxy_lammps() override;
+
   void init();
+
+  /// Set the internal seed used by \link rand_gaussian() \endlink
+  void set_random_seed(int seed);
+
+  /// Set the multiple replicas communicator
+  void set_replicas_communicator(MPI_Comm root2root);
+
   int setup() override;
 
   // disable default and copy constructor
@@ -68,28 +76,14 @@ class colvarproxy_lammps : public colvarproxy {
   // perform colvars computation. returns biasing energy
   double compute();
 
-  // dump status to string
-  void serialize_status(std::string &);
-
-  // set status from string
-  bool deserialize_status(std::string &);
-
-  // read additional config from file
-  int add_config_file(char const *config_filename);
-
-  // read additional config from string
-  int add_config_string(const std::string &config);
-
-  // load a state file
-  int read_state_file(char const *state_filename);
-
   // Request to set the units used internally by Colvars
   int set_unit_system(std::string const &units_in, bool check_only) override;
 
-  inline cvm::real dt() override
-  {
-    return my_timestep;
-  };    // return _lmp->update->dt * _lmp->force->femtosecond; };
+  /// Convert a command-line argument to string
+  char const *script_obj_to_str(unsigned char *obj);
+
+  /// Convert a command-line argument to a vector of strings
+  std::vector<std::string> script_obj_to_str_vector(unsigned char *obj);
 
   void add_energy(cvm::real energy) override { bias_energy += energy; };
   void request_total_force(bool yesno) override { total_force_requested = yesno; };

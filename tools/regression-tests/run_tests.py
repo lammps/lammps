@@ -926,6 +926,8 @@ if __name__ == "__main__":
                 f.close()
                 for line in all_subfolders:
                     if len(line) > 0:
+                        if line[0] == '#':
+                            continue
                         folder = line.split()[0]
                         example_subfolders.append(folder)
                         num_inputscripts += int(line.split()[1])

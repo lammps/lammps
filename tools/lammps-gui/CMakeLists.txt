@@ -204,14 +204,19 @@ find_program(FLATPAK_BUILDER flatpak-builder DOC "Path to flatpak-builder comman
 if(FLATPAK_COMMAND AND FLATPAK_BUILDER)
   file(STRINGS ${LAMMPS_DIR}/src/version.h line REGEX LAMMPS_VERSION)
   string(REGEX REPLACE "#define LAMMPS_VERSION \"([0-9]+) ([A-Za-z][A-Za-z][A-Za-z])[A-Za-z]* ([0-9]+)\""
-                       "\\1\\2\\3" LAMMPS_RELEASE "${line}")
+                        "\\1\\2\\3" LAMMPS_RELEASE "${line}")
+  set(FLATPAK_BUNDLE "LAMMPS_GUI-Linux-amd64-${LAMMPS_RELEASE}.flatpak")
   add_custom_target(flatpak
-    COMMAND ${FLATPAK_BUILDER} --force-clean --verbose --ccache --repo=repo --user --default-branch=${LAMMPS_RELEASE}
-                   --install-deps-from=flathub flatpak-build ${LAMMPS_DIR}/tools/lammps-gui/org.lammps.lammps-gui.yml
+    COMMAND ${FLATPAK_COMMAND} --user remote-add --if-not-exists flathub https://dl.flathub.org/repo/flathub.flatpakrepo
+    COMMAND ${FLATPAK_BUILDER} --force-clean --verbose --repo=${CMAKE_CURRENT_BINARY_DIR}/flatpak-repo
+                               --install-deps-from=flathub --state-dir=${CMAKE_CURRENT_BINARY_DIR}
+                               --user --ccache --default-branch=${LAMMPS_RELEASE}
+                               flatpak-build ${LAMMPS_DIR}/tools/lammps-gui/org.lammps.lammps-gui.yml
     COMMAND ${FLATPAK_COMMAND} build-bundle --runtime-repo=https://flathub.org/repo/flathub.flatpakrepo --verbose
-                                      repo LAMMPS_GUI-Linux-amd64.flatpak org.lammps.lammps-gui ${LAMMPS_RELEASE}
+                               ${CMAKE_CURRENT_BINARY_DIR}/flatpak-repo
+                               ${FLATPAK_BUNDLE} org.lammps.lammps-gui ${LAMMPS_RELEASE}
     COMMENT "Create Flatpak bundle file of LAMMPS-GUI and LAMMPS"
-    BYPRODUCT LAMMPS-Linux-amd64.flatpak
+    BYPRODUCT ${FLATPAK_BUNDLE}
     WORKING_DIRECTORY ${CMAKE_BINARY_DIR}
   )
 else()

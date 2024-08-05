@@ -41,7 +41,7 @@ class FixWallLJ93Kokkos : public FixWallLJ93 {
   void precompute(int) override;
   void post_force(int) override;
   void wall_particle(int, int, double) override;
-  
+
   int m;
 
   KOKKOS_INLINE_FUNCTION

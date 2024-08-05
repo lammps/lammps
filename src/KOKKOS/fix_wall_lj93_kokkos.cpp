@@ -64,7 +64,7 @@ FixWallLJ93Kokkos<DeviceType>::FixWallLJ93Kokkos(LAMMPS *lmp, int narg, char **a
   k_epsilon.template sync<DeviceType>();
   k_sigma.template sync<DeviceType>();
   k_cutoff.template sync<DeviceType>();
-  
+
   memoryKK->create_kokkos(d_coeff1,6,"wall_lj93:coeff1");
   memoryKK->create_kokkos(d_coeff2,6,"wall_lj93:coeff2");
   memoryKK->create_kokkos(d_coeff3,6,"wall_lj93:coeff3");

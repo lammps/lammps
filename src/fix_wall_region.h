@@ -38,12 +38,12 @@ class FixWallRegion : public Fix {
   double compute_scalar() override;
   double compute_vector(int) override;
 
- private:
+ protected:
   int style;
   double epsilon, sigma, cutoff;
   double alpha;
   int eflag;
-  double ewall[4], ewall_all[4];
+  double *ewall, ewall_all[4]; // need ewall double*, not double[] for kokkos dual view
   int ilevel_respa;
   char *idregion;
   class Region *region;

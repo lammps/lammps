@@ -50,7 +50,8 @@ FixWallRegion::FixWallRegion(LAMMPS *lmp, int narg, char **arg) :
   virial_global_flag = virial_peratom_flag = 1;
   respa_level_support = 1;
   ilevel_respa = 0;
-
+  ewall = new double[4];
+  
   // parse args
 
   region = domain->get_region_by_id(arg[3]);
@@ -100,7 +101,9 @@ FixWallRegion::FixWallRegion(LAMMPS *lmp, int narg, char **arg) :
 
 FixWallRegion::~FixWallRegion()
 {
+  if (copymode) return;
   delete[] idregion;
+  delete[] ewall;
 }
 
 /* ---------------------------------------------------------------------- */

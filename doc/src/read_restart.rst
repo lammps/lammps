@@ -130,7 +130,7 @@ these settings after the restart file is read.
 * :doc:`newton bond <newton>` (see discussion of newton command below)
 * :doc:`atom style <atom_style>` and :doc:`atom_modify <atom_modify>` settings id, map, sort
 * :doc:`comm style <comm_style>` and :doc:`comm_modify <comm_modify>` settings mode, cutoff, vel
-* :doc:`timestep <timestep>`
+* :doc:`timestep size <timestep>` and :doc:`timestep number <reset_timestep>`
 * simulation box size and shape and :doc:`boundary <boundary>` settings
 * atom :doc:`group <group>` definitions
 * per-type atom settings such as :doc:`mass <mass>`

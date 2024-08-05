@@ -169,6 +169,9 @@ Examples
 
    dump_modify 1 amap min max cf 0.0 3 min green 0.5 yellow max blue boxcolor red
 
+   labelmap atom 1 C 2 H 3 O 4 N
+   dump_modify 1 acolor C gray acolor H white acolor O red acolor N blue
+
 Description
 """""""""""
 

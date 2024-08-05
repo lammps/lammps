@@ -244,6 +244,19 @@ void generate_yaml_file(const char *outfile, const TestConfig &config)
         block += fmt::format("{:3} {:23.16e} {:23.16e} {:23.16e}\n", i, v[j][0], v[j][1], v[j][2]);
     }
     writer.emit_block("run_vel", block);
+
+    // run_torque
+
+    if(lmp->atom->torque_flag) {
+      block.clear();
+      auto *t = lmp->atom->torque;
+      for (int i = 1; i <= natoms; ++i) {
+          const int j = lmp->atom->map(i);
+          block += fmt::format("{:3} {:23.16e} {:23.16e} {:23.16e}\n", i, t[j][0], t[j][1], t[j][2]);
+      }
+      writer.emit_block("run_torque", block);
+    }
+
     cleanup_lammps(lmp, config);
 }
 

@@ -382,8 +382,7 @@ LAMMPS::LAMMPS(int narg, char **arg, MPI_Comm communicator) :
       if (iarg+3 > narg)
         error->universe_all(FLERR,"Invalid command-line argument");
       if (restart2dump)
-        error->universe_all(FLERR,
-                            "Cannot use both -restart2data and -restart2dump");
+        error->universe_all(FLERR, "Cannot use both -restart2data and -restart2dump");
       restart2data = 1;
       restartfile = arg[iarg+1];
       inflag = -1;               // skip inflag check
@@ -405,8 +404,7 @@ LAMMPS::LAMMPS(int narg, char **arg, MPI_Comm communicator) :
       if (iarg+3 > narg)
         error->universe_all(FLERR,"Invalid command-line argument");
       if (restart2data)
-        error->universe_all(FLERR,
-                            "Cannot use both -restart2data and -restart2dump");
+        error->universe_all(FLERR, "Cannot use both -restart2data and -restart2dump");
       restart2dump = 1;
       restartfile = arg[iarg+1];
       inflag = -1;               // skip inflag check
@@ -728,7 +726,6 @@ LAMMPS::LAMMPS(int narg, char **arg, MPI_Comm communicator) :
   // if either restart conversion option was used, invoke 2 commands and quit
   // add args between wfirst and wlast to write_data or write_data command
   // add "noinit" to write_data to prevent a system init
-  // write_dump will just give a warning message about no init
 
   if (restart2data || restart2dump) {
     std::string cmd = fmt::format("read_restart {}",restartfile);
@@ -738,7 +735,7 @@ LAMMPS::LAMMPS(int narg, char **arg, MPI_Comm communicator) :
     else cmd = "write_dump";
     for (iarg = wfirst; iarg < wlast; iarg++)
        cmd += fmt::format(" {}", arg[iarg]);
-    if (restart2data) cmd += " noinit";
+    cmd += " noinit";
     input->one(cmd);
     error->done(0);
   }

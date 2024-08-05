@@ -28,7 +28,10 @@ FixStyle(efield/kk/host,FixEfieldKokkos<LMPHostType>);
 
 namespace LAMMPS_NS {
 
+template<int QFLAG, int MUFLAG>
 struct TagFixEfieldConstant{};
+
+template<int QFLAG, int MUFLAG>
 struct TagFixEfieldNonConstant{};
 
 template<class DeviceType>
@@ -43,11 +46,13 @@ class FixEfieldKokkos : public FixEfield {
   void init() override;
   void post_force(int) override;
 
+  template<int QFLAG, int MUFLAG>
   KOKKOS_INLINE_FUNCTION
-  void operator()(TagFixEfieldConstant, const int&, value_type) const;
+  void operator()(TagFixEfieldConstant<QFLAG,MUFLAG>, const int&, value_type) const;
 
+  template<int QFLAG, int MUFLAG>
   KOKKOS_INLINE_FUNCTION
-  void operator()(TagFixEfieldNonConstant, const int&, value_type) const;
+  void operator()(TagFixEfieldNonConstant<QFLAG,MUFLAG>, const int&, value_type) const;
 
   const int value_count = 10;
 
@@ -60,7 +65,9 @@ class FixEfieldKokkos : public FixEfield {
 
   typename AT::t_x_array_randomread d_x;
   typename AT::t_float_1d_randomread d_q;
+  typename AT::t_mu_array_randomread d_mu;
   typename AT::t_f_array d_f;
+  typename AT::t_f_array d_torque;
   typename AT::t_imageint_1d_randomread d_image;
   typename AT::t_int_1d_randomread d_mask;
 

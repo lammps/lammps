@@ -46,8 +46,8 @@ FixEfieldKokkos<DeviceType>::FixEfieldKokkos(LAMMPS *lmp, int narg, char **arg) 
   atomKK = (AtomKokkos *) atom;
   domainKK = (DomainKokkos *) domain;
   execution_space = ExecutionSpaceFromDevice<DeviceType>::space;
-  datamask_read = EMPTY_MASK;
-  datamask_modify = EMPTY_MASK;
+  datamask_read = X_MASK | F_MASK | TORQUE_MASK | Q_MASK | MU_MASK | IMAGE_MASK | MASK_MASK;
+  datamask_modify = F_MASK | TORQUE_MASK;
 
   memory->destroy(efield);
   memoryKK->create_kokkos(k_efield,efield,maxatom,4,"efield:efield");
@@ -87,11 +87,13 @@ template<class DeviceType>
 void FixEfieldKokkos<DeviceType>::post_force(int vflag)
 {
 
-  atomKK->sync(execution_space, X_MASK | F_MASK | Q_MASK | IMAGE_MASK | MASK_MASK);
+  atomKK->sync(execution_space, datamask_read);
 
   d_x = atomKK->k_x.template view<DeviceType>();
   d_f = atomKK->k_f.template view<DeviceType>();
   d_q = atomKK->k_q.template view<DeviceType>();
+  d_mu = atomKK->k_mu.template view<DeviceType>();
+  d_torque = atomKK->k_torque.template view<DeviceType>();
   d_image = atomKK->k_image.template view<DeviceType>();
   d_mask = atomKK->k_mask.template view<DeviceType>();
   int nlocal = atomKK->nlocal;
@@ -145,7 +147,16 @@ void FixEfieldKokkos<DeviceType>::post_force(int vflag)
     // [alphataubio (2024/08)]
 
     copymode = 1;
-    Kokkos::parallel_reduce(Kokkos::RangePolicy<DeviceType, TagFixEfieldConstant>(0,nlocal),*this,result);
+
+    if(qflag && muflag)
+      Kokkos::parallel_reduce(Kokkos::RangePolicy<DeviceType, TagFixEfieldConstant<1,1> >(0,nlocal),*this,result);
+    else if(qflag && !muflag)
+      Kokkos::parallel_reduce(Kokkos::RangePolicy<DeviceType, TagFixEfieldConstant<1,0> >(0,nlocal),*this,result);
+    else if(!qflag && muflag)
+      Kokkos::parallel_reduce(Kokkos::RangePolicy<DeviceType, TagFixEfieldConstant<0,1> >(0,nlocal),*this,result);
+    else
+      Kokkos::parallel_reduce(Kokkos::RangePolicy<DeviceType, TagFixEfieldConstant<0,0> >(0,nlocal),*this,result);
+
     copymode = 0;
 
   // variable force, wrap with clear/add
@@ -169,13 +180,22 @@ void FixEfieldKokkos<DeviceType>::post_force(int vflag)
     // [alphataubio (2024/08)]
 
     copymode = 1;
-    Kokkos::parallel_reduce(Kokkos::RangePolicy<DeviceType, TagFixEfieldNonConstant>(0,nlocal),*this,result);
+
+    if(qflag && muflag)
+      Kokkos::parallel_reduce(Kokkos::RangePolicy<DeviceType, TagFixEfieldNonConstant<1,1> >(0,nlocal),*this,result);
+    else if(qflag && !muflag)
+      Kokkos::parallel_reduce(Kokkos::RangePolicy<DeviceType, TagFixEfieldNonConstant<1,0> >(0,nlocal),*this,result);
+    else if(!qflag && muflag)
+      Kokkos::parallel_reduce(Kokkos::RangePolicy<DeviceType, TagFixEfieldNonConstant<0,1> >(0,nlocal),*this,result);
+    else
+      Kokkos::parallel_reduce(Kokkos::RangePolicy<DeviceType, TagFixEfieldNonConstant<0,0> >(0,nlocal),*this,result);
+
     copymode = 0;
 
   }
 
 
-  atomKK->modified(execution_space, F_MASK);
+  atomKK->modified(execution_space, datamask_modify);
 
   Kokkos::atomic_store(&(d_fsum[0]),result[0]);
   Kokkos::atomic_store(&(d_fsum[1]),result[1]);
@@ -202,9 +222,10 @@ void FixEfieldKokkos<DeviceType>::post_force(int vflag)
 }
 
 template<class DeviceType>
+template<int QFLAG, int MUFLAG>
 KOKKOS_INLINE_FUNCTION
-void FixEfieldKokkos<DeviceType>::operator()(TagFixEfieldConstant, const int &i, value_type result) const {
-  if (d_mask(i) & groupbit) {
+void FixEfieldKokkos<DeviceType>::operator()(TagFixEfieldConstant<QFLAG,MUFLAG>, const int &i, value_type result) const {
+  if ( QFLAG && (d_mask(i) & groupbit)) {
     if (region && !d_match[i]) return;
 
     Few<double,3> x_i;
@@ -240,12 +261,21 @@ void FixEfieldKokkos<DeviceType>::operator()(TagFixEfieldConstant, const int &i,
     }
 
   }
+
+  if (MUFLAG && (d_mask(i) & groupbit)) {
+    if (region && !d_match[i]) return;
+    d_torque(i,0) += ez * d_mu(i,1) - ey * d_mu(i,2);
+    d_torque(i,1) += ex * d_mu(i,2) - ez * d_mu(i,0);
+    d_torque(i,2) += ey * d_mu(i,0) - ex * d_mu(i,1);
+    result[0] -= d_mu(i,0) * ex + d_mu(i,1) * ey + d_mu(i,2) * ez;
+  }
 }
 
 template<class DeviceType>
+template<int QFLAG, int MUFLAG>
 KOKKOS_INLINE_FUNCTION
-void FixEfieldKokkos<DeviceType>::operator()(TagFixEfieldNonConstant, const int &i, value_type result) const {
-  if (d_mask(i) & groupbit) {
+void FixEfieldKokkos<DeviceType>::operator()(TagFixEfieldNonConstant<QFLAG,MUFLAG>, const int &i, value_type result) const {
+  if ( QFLAG && (d_mask(i) & groupbit)) {
     if (region && !d_match[i]) return;
 
     F_FLOAT fx, fy, fz;
@@ -267,6 +297,14 @@ void FixEfieldKokkos<DeviceType>::operator()(TagFixEfieldNonConstant, const int 
 
     if (pstyle == ATOM) result[0] += qe2f * d_q(i) * d_efield(i,3);
     else if (estyle == ATOM) result[0] += d_efield(i,3);
+  }
+
+  if (MUFLAG && (d_mask(i) & groupbit)) {
+    if (region && !d_match[i]) return;
+    d_torque(i,0) += ez * d_mu(i,1) - ey * d_mu(i,2);
+    d_torque(i,1) += ex * d_mu(i,2) - ez * d_mu(i,0);
+    d_torque(i,2) += ey * d_mu(i,0) - ex * d_mu(i,1);
+
   }
 }
 

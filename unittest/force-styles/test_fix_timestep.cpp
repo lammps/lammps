@@ -301,6 +301,9 @@ TEST(FixTimestep, plain)
 
     EXPECT_POSITIONS("run_pos (normal run, verlet)", lmp->atom, test_config.run_pos, epsilon);
     EXPECT_VELOCITIES("run_vel (normal run, verlet)", lmp->atom, test_config.run_vel, epsilon);
+    if(lmp->atom->torque_flag)
+        EXPECT_TORQUES("run_torques (normal run, verlet)", lmp->atom, test_config.run_torque, epsilon);
+
 
     auto *ifix = lmp->modify->get_fix_by_id("test");
     if (!ifix) {
@@ -350,6 +353,8 @@ TEST(FixTimestep, plain)
 
     EXPECT_POSITIONS("run_pos (restart, verlet)", lmp->atom, test_config.run_pos, epsilon);
     EXPECT_VELOCITIES("run_vel (restart, verlet)", lmp->atom, test_config.run_vel, epsilon);
+    if(lmp->atom->torque_flag)
+        EXPECT_TORQUES("run_torque (restart, verlet)", lmp->atom, test_config.run_torque, epsilon);
 
     ifix = lmp->modify->get_fix_by_id("test");
     if (!ifix) {
@@ -887,6 +892,8 @@ TEST(FixTimestep, kokkos_omp)
 
     EXPECT_POSITIONS("run_pos (normal run, verlet)", lmp->atom, test_config.run_pos, epsilon);
     EXPECT_VELOCITIES("run_vel (normal run, verlet)", lmp->atom, test_config.run_vel, epsilon);
+    if(lmp->atom->torque_flag)
+        EXPECT_TORQUES("run_torque (normal run, verlet)", lmp->atom, test_config.run_torque, epsilon);
 
     auto *ifix = lmp->modify->get_fix_by_id("test");
 
@@ -938,6 +945,8 @@ TEST(FixTimestep, kokkos_omp)
 
     EXPECT_POSITIONS("run_pos (restart, verlet)", lmp->atom, test_config.run_pos, epsilon);
     EXPECT_VELOCITIES("run_vel (restart, verlet)", lmp->atom, test_config.run_vel, epsilon);
+    if(lmp->atom->torque_flag)
+        EXPECT_TORQUES("run_torque (restart, verlet)", lmp->atom, test_config.run_torque, epsilon);
 
     ifix = lmp->modify->get_fix_by_id("test");
     if (!ifix) {

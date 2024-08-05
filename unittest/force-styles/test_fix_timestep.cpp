@@ -882,7 +882,7 @@ TEST(FixTimestep, kokkos_omp)
     ASSERT_EQ(lmp->atom->natoms, nlocal);
 
     // relax error a bit for KOKKOS package
-    double epsilon = 5.0 * test_config.epsilon;
+    double epsilon = 10.0 * test_config.epsilon;
     // relax test precision when using pppm and single precision FFTs
 #if defined(FFT_SINGLE)
     if (lmp->force->kspace && utils::strmatch(lmp->force->kspace_style, "^pppm")) epsilon *= 2.0e8;

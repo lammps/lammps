@@ -472,6 +472,8 @@ void Info::command(int narg, char **arg)
     } else {
       fputs("\nBox has not yet been created\n",out);
     }
+    fmt::print(out,"\nCurrent timestep number = {}\n", update->ntimestep);
+    fmt::print(out,"Current timestep size = {}\n", update->dt);
   }
 
   if (domain->box_exist && (flags & COEFFS)) {

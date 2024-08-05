@@ -425,15 +425,15 @@ void PairLJCutTIP4PLong::settings(int narg, char **arg)
 {
   if (narg < 6 || narg > 7) error->all(FLERR,"Illegal pair_style command");
 
-  typeO = utils::inumeric(FLERR,arg[0],false,lmp);
-  typeH = utils::inumeric(FLERR,arg[1],false,lmp);
-  typeB = utils::inumeric(FLERR,arg[2],false,lmp);
-  typeA = utils::inumeric(FLERR,arg[3],false,lmp);
-  qdist = utils::numeric(FLERR,arg[4],false,lmp);
+  typeO = utils::expand_type_int(FLERR, arg[0], Atom::ATOM, lmp);
+  typeH = utils::expand_type_int(FLERR, arg[1], Atom::ATOM, lmp);
+  typeB = utils::expand_type_int(FLERR, arg[2], Atom::BOND, lmp);
+  typeA = utils::expand_type_int(FLERR, arg[3], Atom::ANGLE, lmp);
+  qdist = utils::numeric(FLERR, arg[4], false, lmp);
 
-  cut_lj_global = utils::numeric(FLERR,arg[5],false,lmp);
+  cut_lj_global = utils::numeric(FLERR, arg[5], false, lmp);
   if (narg == 6) cut_coul = cut_lj_global;
-  else cut_coul = utils::numeric(FLERR,arg[6],false,lmp);
+  else cut_coul = utils::numeric(FLERR, arg[6], false, lmp);
 
   // reset cutoffs that have been explicitly set
 

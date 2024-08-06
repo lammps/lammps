@@ -106,7 +106,6 @@ FixColvars::FixColvars(LAMMPS *lmp, int narg, char **arg) :
   restart_global = 1;
   energy_global_flag = 1;
 
-  me = comm->me;
   root2root = MPI_COMM_NULL;
   proxy = nullptr;
 
@@ -139,7 +138,7 @@ FixColvars::FixColvars(LAMMPS *lmp, int narg, char **arg) :
 
   if (!out_name) out_name = utils::strdup("out");
 
-  if (me == 0) {
+  if (comm->me == 0) {
 #ifdef LAMMPS_BIGBIG
     utils::logmesg(lmp, "colvars: Warning: cannot handle atom ids > 2147483647\n");
 #endif
@@ -181,7 +180,7 @@ int FixColvars::parse_fix_arguments(int narg, char **arg, bool fix_constructor)
       is_fix_keyword = true;
     } else if (0 == strcmp(arg[iarg], "tstat")) {
       tfix_name = utils::strdup(arg[iarg+1]);
-      if (me == 0) set_thermostat_temperature();
+      if (comm->me == 0) set_thermostat_temperature();
       is_fix_keyword = true;
     }
 
@@ -263,6 +262,7 @@ int FixColvars::setmask()
 
 void FixColvars::init()
 {
+  const auto me = comm->me;
   if (atom->tag_enable == 0)
     error->all(FLERR, "Cannot use fix colvars without atom IDs");
 
@@ -294,7 +294,7 @@ void FixColvars::init()
 
 void FixColvars::set_thermostat_temperature()
 {
-  if (me == 0) {
+  if (comm->me == 0) {
     if (tfix_name) {
       if (strcmp(tfix_name, "NULL") != 0) {
         Fix *tstat_fix = modify->get_fix_by_id(tfix_name);
@@ -319,6 +319,7 @@ void FixColvars::set_thermostat_temperature()
 void FixColvars::init_taglist()
 {
   int new_taglist_size = -1;
+  const auto me = comm->me;
 
   if (me == 0) {
 
@@ -389,7 +390,7 @@ int FixColvars::modify_param(int narg, char **arg)
   }
 
   // Any unknown arguments will go through the Colvars scripting interface
-  if (me == 0) {
+  if (comm->me == 0) {
     int error_code = COLVARSCRIPT_OK;
     colvarscript *script = proxy->script;
     script->set_cmdline_main_cmd("fix_modify " + std::string(id));
@@ -437,7 +438,7 @@ int FixColvars::modify_param(int narg, char **arg)
 
 void FixColvars::setup_io()
 {
-  if (me == 0) {
+  if (comm->me == 0) {
     proxy->set_input_prefix(std::string(inp_name ? inp_name : ""));
     if (proxy->input_prefix().size() > 0) {
       proxy->log("Will read input state from file \""+
@@ -469,7 +470,8 @@ void FixColvars::setup(int vflag)
   const tagint * const tag  = atom->tag;
   const int * const type = atom->type;
   int i,nme,tmp,ndata;
-  int nlocal = atom->nlocal;
+  const auto nlocal = atom->nlocal;
+  const auto me = comm->me;
 
   MPI_Status status;
   MPI_Request request;
@@ -636,6 +638,8 @@ void FixColvars::setup(int vflag)
  * Send coodinates and add colvar forces to atoms. */
 void FixColvars::post_force(int /*vflag*/)
 {
+  const auto me = comm->me;
+
   // some housekeeping: update status of the proxy as needed.
   if (me == 0) {
     if (proxy->want_exit())
@@ -825,7 +829,7 @@ void FixColvars::end_of_step()
     MPI_Request request;
     int tmp, ndata;
 
-    if (me == 0) {
+    if (comm->me == 0) {
 
       // store old force data
       std::vector<cvm::rvector> &of = *(proxy->modify_atom_total_forces());
@@ -886,7 +890,7 @@ void FixColvars::end_of_step()
 
 void FixColvars::write_restart(FILE *fp)
 {
-  if (me == 0) {
+  if (comm->me == 0) {
     cvm::memory_stream ms;
     if (proxy->colvars->write_state(ms)) {
       int len_cv_state = ms.length();
@@ -905,7 +909,7 @@ void FixColvars::write_restart(FILE *fp)
 
 void FixColvars::restart(char *buf)
 {
-  if (me == 0) {
+  if (comm->me == 0) {
     // Read the buffer's length, then load it into Colvars starting right past that location
     int length = *(reinterpret_cast<int *>(buf));
     unsigned char *colvars_state_buffer = reinterpret_cast<unsigned char *>(buf + sizeof(int));
@@ -919,7 +923,7 @@ void FixColvars::restart(char *buf)
 
 void FixColvars::post_run()
 {
-  if (me == 0) {
+  if (comm->me == 0) {
     proxy->post_run();
     if (lmp->citeme) {
       lmp->citeme->add(proxy->colvars->feature_report(1));

@@ -38,7 +38,7 @@ FixStyle(colvars,FixColvars);
 
 // Forward declarations
 namespace IntHash_NS {
-  class inthash_t;
+class inthash_t;
 }
 class colvarproxy_lammps;
 
@@ -76,7 +76,6 @@ class FixColvars : public Fix {
   double t_target = 0.0;        // thermostat target temperature
   double energy;                // biasing energy of the fix
 
-  int me;             // my MPI rank in this "world".
   int num_coords;     // total number of atoms controlled by this fix
   tagint *taglist;    // list of all atom IDs referenced by colvars.
 
@@ -88,7 +87,7 @@ class FixColvars : public Fix {
   /// Arguments passed from fix_modify to the Colvars script interface
   unsigned char *script_args[100];
 
-  IntHash_NS::inthash_t *idmap; // hash for mapping atom indices to consistent order.
+  IntHash_NS::inthash_t *idmap;    // hash for mapping atom indices to consistent order.
 
   int nlevels_respa;       // flag to determine respa levels.
   int store_forces;        // flag to determine whether to store total forces
@@ -98,7 +97,7 @@ class FixColvars : public Fix {
                            // only supports one instance at a time
   MPI_Comm root2root;      // inter-root communicator for multi-replica support
 
-  void init_taglist();     // initialize list of atom tags and hash table
+  void init_taglist();    // initialize list of atom tags and hash table
 
   /// Share with Colvars the thermostat fix named by tfix_name
   void set_thermostat_temperature();

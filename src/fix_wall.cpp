@@ -42,7 +42,6 @@ FixWall::FixWall(LAMMPS *lmp, int narg, char **arg) : Fix(lmp, narg, arg), nwall
   virial_global_flag = virial_peratom_flag = 1;
   respa_level_support = 1;
   ilevel_respa = 0;
-  ewall = new double[7];
 
   // parse args
 
@@ -249,8 +248,6 @@ FixWall::~FixWall()
     delete[] fstr[m];
     delete[] kstr[m];
   }
-
-  delete[] ewall;
 }
 
 /* ---------------------------------------------------------------------- */

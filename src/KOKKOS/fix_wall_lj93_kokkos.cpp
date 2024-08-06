@@ -22,14 +22,11 @@
 #include "atom_kokkos.h"
 #include "error.h"
 #include "input.h"
-#include "math_special.h"
 #include "memory_kokkos.h"
-#include "modify_kokkos.h"
-#include "variable.h"
-#include "update.h"
+
+#include <iostream>
 
 using namespace LAMMPS_NS;
-using MathSpecial::powint;
 
 /* ---------------------------------------------------------------------- */
 
@@ -43,37 +40,19 @@ FixWallLJ93Kokkos<DeviceType>::FixWallLJ93Kokkos(LAMMPS *lmp, int narg, char **a
   datamask_read = X_MASK | V_MASK | MASK_MASK;
   datamask_modify = F_MASK;
 
-  memoryKK->create_kokkos(k_epsilon,6,"wall_lj93:epsilon");
-  memoryKK->create_kokkos(k_sigma,6,"wall_lj93:sigma");
   memoryKK->create_kokkos(k_cutoff,6,"wall_lj93:cutoff");
+  memoryKK->create_kokkos(k_coeff1,6,"wall_lj93:coeff1");
+  memoryKK->create_kokkos(k_coeff2,6,"wall_lj93:coeff2");
+  memoryKK->create_kokkos(k_coeff3,6,"wall_lj93:coeff3");
+  memoryKK->create_kokkos(k_coeff4,6,"wall_lj93:coeff4");
+  memoryKK->create_kokkos(k_offset,6,"wall_lj93:offset");
 
-  d_epsilon = k_epsilon.template view<DeviceType>();
-  d_sigma = k_sigma.template view<DeviceType>();
   d_cutoff = k_cutoff.template view<DeviceType>();
-
-  for( int i=0 ; i<6 ; i++ ) {
-    k_epsilon.h_view(i) = epsilon[i];
-    k_sigma.h_view(i) = sigma[i];
-    k_cutoff.h_view(i) = cutoff[i];
-  }
-
-  k_epsilon.template modify<LMPHostType>();
-  k_sigma.template modify<LMPHostType>();
-  k_cutoff.template modify<LMPHostType>();
-
-  k_epsilon.template sync<DeviceType>();
-  k_sigma.template sync<DeviceType>();
-  k_cutoff.template sync<DeviceType>();
-
-  memoryKK->create_kokkos(d_coeff1,6,"wall_lj93:coeff1");
-  memoryKK->create_kokkos(d_coeff2,6,"wall_lj93:coeff2");
-  memoryKK->create_kokkos(d_coeff3,6,"wall_lj93:coeff3");
-  memoryKK->create_kokkos(d_coeff4,6,"wall_lj93:coeff4");
-  memoryKK->create_kokkos(d_offset,6,"wall_lj93:offset");
-
-  memoryKK->create_kokkos(k_ewall,ewall,7,"wall_lj93:ewall");
-  d_ewall = k_ewall.template view<DeviceType>();
-
+  d_coeff1 = k_coeff1.template view<DeviceType>();
+  d_coeff2 = k_coeff2.template view<DeviceType>();
+  d_coeff3 = k_coeff3.template view<DeviceType>();
+  d_coeff4 = k_coeff4.template view<DeviceType>();
+  d_offset = k_offset.template view<DeviceType>();
 }
 
 template<class DeviceType>
@@ -81,19 +60,13 @@ FixWallLJ93Kokkos<DeviceType>::~FixWallLJ93Kokkos()
 {
   if (copymode) return;
 
-  memoryKK->destroy_kokkos(k_epsilon);
-  memoryKK->destroy_kokkos(k_sigma);
   memoryKK->destroy_kokkos(k_cutoff);
-
-  memoryKK->destroy_kokkos(d_coeff1);
-  memoryKK->destroy_kokkos(d_coeff2);
-  memoryKK->destroy_kokkos(d_coeff3);
-  memoryKK->destroy_kokkos(d_coeff4);
-  memoryKK->destroy_kokkos(d_offset);
-
+  memoryKK->destroy_kokkos(k_coeff1);
+  memoryKK->destroy_kokkos(k_coeff2);
+  memoryKK->destroy_kokkos(k_coeff3);
+  memoryKK->destroy_kokkos(k_coeff4);
+  memoryKK->destroy_kokkos(k_offset);
   memoryKK->destroy_kokkos(k_vatom,vatom);
-  memoryKK->destroy_kokkos(k_ewall,ewall);
-
 }
 
 /* ---------------------------------------------------------------------- */
@@ -101,15 +74,31 @@ FixWallLJ93Kokkos<DeviceType>::~FixWallLJ93Kokkos()
 template <class DeviceType>
 void FixWallLJ93Kokkos<DeviceType>::precompute(int m)
 {
-  d_coeff1[m] = 6.0 / 5.0 * d_epsilon[m] * powint(d_sigma[m], 9);
-  d_coeff2[m] = 3.0 * d_epsilon[m] * powint(d_sigma[m], 3);
-  d_coeff3[m] = 2.0 / 15.0 * d_epsilon[m] * powint(d_sigma[m], 9);
-  d_coeff4[m] = d_epsilon[m] * powint(d_sigma[m], 3);
+  FixWallLJ93::precompute(m);
 
-  double rinv = 1.0 / d_cutoff[m];
-  double r2inv = rinv * rinv;
-  double r4inv = r2inv * r2inv;
-  d_offset[m] = d_coeff3[m] * r4inv * r4inv * rinv - d_coeff4[m] * r2inv * rinv;
+  for( int i=0 ; i<6 ; i++ ) {
+    k_cutoff.h_view(i) = cutoff[i];
+    k_coeff1.h_view(i) = coeff1[i];
+    k_coeff2.h_view(i) = coeff2[i];
+    k_coeff3.h_view(i) = coeff3[i];
+    k_coeff4.h_view(i) = coeff4[i];
+    k_offset.h_view(i) = offset[i];
+  }
+
+  k_cutoff.template modify<LMPHostType>();
+  k_coeff1.template modify<LMPHostType>();
+  k_coeff2.template modify<LMPHostType>();
+  k_coeff3.template modify<LMPHostType>();
+  k_coeff4.template modify<LMPHostType>();
+  k_offset.template modify<LMPHostType>();
+
+  k_cutoff.template sync<DeviceType>();
+  k_coeff1.template sync<DeviceType>();
+  k_coeff2.template sync<DeviceType>();
+  k_coeff3.template sync<DeviceType>();
+  k_coeff4.template sync<DeviceType>();
+  k_offset.template sync<DeviceType>();
+
 }
 
 
@@ -118,12 +107,6 @@ void FixWallLJ93Kokkos<DeviceType>::precompute(int m)
 template <class DeviceType>
 void FixWallLJ93Kokkos<DeviceType>::post_force(int vflag)
 {
-  atomKK->sync(execution_space,datamask_read);
-  atomKK->modified(execution_space,datamask_modify);
-
-  // virial setup
-
-  v_init(vflag);
 
   // reallocate per-atom arrays if necessary
 
@@ -133,62 +116,13 @@ void FixWallLJ93Kokkos<DeviceType>::post_force(int vflag)
     d_vatom = k_vatom.template view<DeviceType>();
   }
 
-  // energy intialize.
-  // eflag is used to track whether wall energies have been communicated.
-
-  eflag = 0;
-  for (int m = 0; m <= nwall; m++) d_ewall(m) = 0.0;
-
-  // coord = current position of wall
-  // evaluate variables if necessary, wrap with clear/add
-  // for epsilon/sigma variables need to re-invoke precompute()
-
-  if (varflag) modify->clearstep_compute();
-
-  double coord;
-
-  for (int m = 0; m < nwall; m++) {
-    if (xstyle[m] == VARIABLE) {
-      coord = input->variable->compute_equal(xindex[m]);
-      if (wallwhich[m] < YLO)
-        coord *= xscale;
-      else if (wallwhich[m] < ZLO)
-        coord *= yscale;
-      else
-        coord *= zscale;
-    } else
-      coord = coord0[m];
-    if (wstyle[m] == VARIABLE) {
-      if (estyle[m] == VARIABLE) {
-        d_epsilon[m] = input->variable->compute_equal(eindex[m]);
-        if (d_epsilon[m] < 0.0) error->all(FLERR, "Variable evaluation in fix wall gave bad value");
-      }
-      if (sstyle[m] == VARIABLE) {
-        d_sigma[m] = input->variable->compute_equal(sindex[m]);
-        if (d_sigma[m] < 0.0) error->all(FLERR, "Variable evaluation in fix wall gave bad value");
-      }
-      precompute(m);
-    }
-
-    wall_particle(m, wallwhich[m], coord);
-
-  }
-
-  k_ewall.template modify<DeviceType>();
-  k_ewall.template sync<LMPHostType>();
-
-  if (varflag) modify->addstep_compute(update->ntimestep + 1);
-
-  atomKK->modified(execution_space,F_MASK);
+  FixWallLJ93::post_force(vflag);
 
   if (vflag_atom) {
     k_vatom.template modify<DeviceType>();
     k_vatom.template sync<LMPHostType>();
   }
-
-
 }
-
 
 /* ----------------------------------------------------------------------
    interaction of all particles in group with a wall
@@ -203,6 +137,8 @@ void FixWallLJ93Kokkos<DeviceType>::wall_particle(int m_in, int which, double co
 {
   m = m_in;
   coord = coord_in;
+
+  atomKK->sync(execution_space,datamask_read);
   d_x = atomKK->k_x.template view<DeviceType>();
   d_f = atomKK->k_f.template view<DeviceType>();
   d_mask = atomKK->k_mask.template view<DeviceType>();
@@ -212,15 +148,15 @@ void FixWallLJ93Kokkos<DeviceType>::wall_particle(int m_in, int which, double co
   side = which % 2;
   if (side == 0) side = -1;
 
-  double result[13];
+  double result[13] = {0.0};
 
   copymode = 1;
-  FixWallLJ93KokkosFunctor<DeviceType> functor(this);
-  Kokkos::parallel_reduce(nlocal,functor,result);
+  Kokkos::parallel_reduce(nlocal,*this,result);
   copymode = 0;
 
-  Kokkos::atomic_add(&(d_ewall[0]),result[0]);
-  Kokkos::atomic_add(&(d_ewall[m+1]),result[m+1]);
+  ewall[0] += result[0];
+  ewall[m+1] += result[m+1];
+  atomKK->modified(execution_space,datamask_modify);
 
   if (vflag_global) {
     virial[0] += result[7];
@@ -230,12 +166,11 @@ void FixWallLJ93Kokkos<DeviceType>::wall_particle(int m_in, int which, double co
     virial[4] += result[11];
     virial[5] += result[12];
   }
-
 }
 
 template <class DeviceType>
 KOKKOS_INLINE_FUNCTION
-void FixWallLJ93Kokkos<DeviceType>::wall_particle_item(int i, value_type result) const {
+void FixWallLJ93Kokkos<DeviceType>::operator()(const int &i, value_type result) const {
   if (d_mask(i) & groupbit) {
     double delta;
     if (side < 0) delta = d_x(i,dim) - coord;
@@ -260,9 +195,7 @@ void FixWallLJ93Kokkos<DeviceType>::wall_particle_item(int i, value_type result)
         vn = fwall * delta;
       v_tally(result, dim, i, vn);
     }
-
   }
-
 }
 
 /* ----------------------------------------------------------------------
@@ -281,13 +214,11 @@ template <class DeviceType>
 KOKKOS_INLINE_FUNCTION
 void FixWallLJ93Kokkos<DeviceType>::v_tally(value_type result, int n, int i, double vn) const
 {
-
   if (vflag_global)
     result[n+7] += vn;
 
-  if (vflag_atom)
-    Kokkos::atomic_add(&(d_vatom(i,n)),vn);
-
+  //if (vflag_atom)
+    //Kokkos::atomic_add(&(d_vatom(i,n)),vn);
 }
 
 namespace LAMMPS_NS {

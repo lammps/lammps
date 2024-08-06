@@ -701,7 +701,7 @@ void LammpsGui::inspect_file(const QString &fileName)
         lammps.command("clear");
         lammps.command(QString("read_restart %1").arg(fileName).toLocal8Bit());
         capturer->BeginCapture();
-        lammps.command("info system comm group compute fix");
+        lammps.command("info system group compute fix");
         capturer->EndCapture();
         auto info    = capturer->GetCapture();
         auto infolog = QString("%1.info.log").arg(fileName);

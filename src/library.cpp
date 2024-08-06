@@ -54,6 +54,7 @@
 #include "universe.h"
 #include "update.h"
 #include "variable.h"
+#include "version.h"
 
 #include <cstring>
 
@@ -1391,6 +1392,11 @@ int lammps_extract_global_datatype(void * /*handle*/, const char *name)
   if (strcmp(name,"respa_levels") == 0) return LAMMPS_INT;
   if (strcmp(name,"respa_dt") == 0) return LAMMPS_DOUBLE;
 
+  if (strcmp(name,"git_commit") == 0) return LAMMPS_STRING;
+  if (strcmp(name,"git_branch") == 0) return LAMMPS_STRING;
+  if (strcmp(name,"git_descriptor") == 0) return LAMMPS_STRING;
+  if (strcmp(name,"lammps_version") == 0) return LAMMPS_STRING;
+
   if (strcmp(name,"boxlo") == 0) return LAMMPS_DOUBLE;
   if (strcmp(name,"boxhi") == 0) return LAMMPS_DOUBLE;
   if (strcmp(name,"sublo") == 0) return LAMMPS_DOUBLE;
@@ -1547,6 +1553,56 @@ report the "native" data type.  The following tables are provided:
 
 .. _extract_box_settings:
 
+**Timestep settings**
+
+.. list-table::
+   :header-rows: 1
+   :widths: auto
+
+   * - Name
+     - Type
+     - Length
+     - Description
+   * - dt
+     - double
+     - 1
+     - length of the time step. See :doc:`timestep`.
+   * - ntimestep
+     - bigint
+     - 1
+     - current time step number. See :doc:`reset_timestep`.
+   * - atime
+     - double
+     - 1
+     - accumulated simulation time in time units.
+
+**Git revision and version settings**
+
+.. list-table::
+   :header-rows: 1
+   :widths: auto
+
+   * - Name
+     - Type
+     - Length
+     - Description
+   * - git_commit
+     - const char \*
+     - 1
+     - Git commit hash for the LAMMPS version.
+   * - git_branch
+     - const char \*
+     - 1
+     - Git branch for the LAMMPS version.
+   * - git_descriptor
+     - const char \*
+     - 1
+     - Combined descriptor for the git revision
+   * - lammps_version
+     - const char \*
+     - 1
+     - LAMMPS version string.
+
 **Simulation box settings**
 
 .. list-table::
@@ -1557,18 +1613,6 @@ report the "native" data type.  The following tables are provided:
      - Type
      - Length
      - Description
-   * - boxlo
-     - double
-     - 3
-     - lower box boundaries. See :doc:`create_box`.
-   * - boxhi
-     - double
-     - 3
-     - upper box boundaries. See :doc:`create_box`.
-   * - boxxlo
-     - double
-     - 1
-     - lower box boundary in x-direction. See :doc:`create_box`.
    * - boxxhi
      - double
      - 1
@@ -1866,6 +1910,12 @@ void *lammps_extract_global(void *handle, const char *name)
     if (strcmp(name,"respa_levels") == 0) return (void *) &respa->nlevels;
     if (strcmp(name,"respa_dt") == 0) return (void *) respa->step;
   }
+
+  if (strcmp(name,"git_commit") == 0) return (void *)LAMMPS::git_commit;
+  if (strcmp(name,"git_branch") == 0) return (void  *)LAMMPS::git_branch;
+  if (strcmp(name,"git_descriptor") == 0) return (void *)LAMMPS::git_descriptor;
+  if (strcmp(name,"lammps_version") == 0) return (void *)LAMMPS_VERSION;
+
   if (strcmp(name,"boxlo") == 0) return (void *) lmp->domain->boxlo;
   if (strcmp(name,"boxhi") == 0) return (void *) lmp->domain->boxhi;
   if (strcmp(name,"sublo") == 0) return (void *) lmp->domain->sublo;
@@ -1877,6 +1927,7 @@ void *lammps_extract_global(void *handle, const char *name)
     if (strcmp(name,"subhi_lambda") == 0)
       return (void *) lmp->domain->subhi_lamda;
   }
+
   if (strcmp(name,"boxxlo") == 0) return (void *) &lmp->domain->boxlo[0];
   if (strcmp(name,"boxxhi") == 0) return (void *) &lmp->domain->boxhi[0];
   if (strcmp(name,"boxylo") == 0) return (void *) &lmp->domain->boxlo[1];

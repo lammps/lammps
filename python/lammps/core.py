@@ -342,8 +342,8 @@ class lammps(object):
     if self.has_mpi_support:
       try:
         from mpi4py import __version__ as mpi4py_version
-        # tested to work with mpi4py versions 2 and 3
-        self.has_mpi4py = mpi4py_version.split('.')[0] in ['2','3']
+        # tested to work with mpi4py versions 2, 3, and 4
+        self.has_mpi4py = mpi4py_version.split('.')[0] in ['2','3','4']
       except ImportError:
         # ignore failing import
         pass
@@ -369,7 +369,7 @@ class lammps(object):
         if not self.has_mpi_support:
           raise Exception('LAMMPS not compiled with real MPI library')
         if not self.has_mpi4py:
-          raise Exception('Python mpi4py version is not 2 or 3')
+          raise Exception('Python mpi4py version is not 2, 3, or 4')
         if self.MPI._sizeof(self.MPI.Comm) == sizeof(c_int):
           MPI_Comm = c_int
         else:

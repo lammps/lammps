@@ -29,6 +29,7 @@
 #include <QClipboard>
 #include <QCoreApplication>
 #include <QDesktopServices>
+#include <QEvent>
 #include <QFileDialog>
 #include <QFileInfo>
 #include <QFont>
@@ -47,6 +48,7 @@
 #include <QTimer>
 #include <QUrl>
 
+#include <algorithm>
 #include <cstdint>
 #include <cstdlib>
 #include <cstring>
@@ -74,6 +76,7 @@ LammpsGui::LammpsGui(QWidget *parent, const char *filename) :
     qRegisterMetaTypeStreamOperators<QList<QString>>("QList<QString>");
 #endif
 
+    docver = "";
     ui->setupUi(this);
     this->setCentralWidget(ui->textEdit);
     highlighter = new Highlighter(ui->textEdit->document());
@@ -137,8 +140,8 @@ LammpsGui::LammpsGui(QWidget *parent, const char *filename) :
     // check and initialize nthreads setting. Default is to use max if there
     // is no preference but do not override OMP_NUM_THREADS
 #if defined(_OPENMP)
-    // use maximum number of available threads unless OMP_NUM_THREADS was set
-    int nthreads = settings.value("nthreads", omp_get_max_threads()).toInt();
+    // use up to 16 available threads unless OMP_NUM_THREADS was set
+    int nthreads = settings.value("nthreads", std::min(omp_get_max_threads(), 16)).toInt();
     if (!qEnvironmentVariableIsSet("OMP_NUM_THREADS")) {
         qputenv("OMP_NUM_THREADS", std::to_string(nthreads).c_str());
     }
@@ -151,6 +154,8 @@ LammpsGui::LammpsGui(QWidget *parent, const char *filename) :
     lammps_args.push_back(mystrdup("LAMMPS-GUI"));
     lammps_args.push_back(mystrdup("-log"));
     lammps_args.push_back(mystrdup("none"));
+
+    installEventFilter(this);
 
     setWindowIcon(QIcon(":/icons/lammps-icon-128x128.png"));
 
@@ -355,7 +360,7 @@ LammpsGui::LammpsGui(QWidget *parent, const char *filename) :
 #undef ADD_STYLES
 
     settings.beginGroup("reformat");
-    ui->textEdit->setReformatOnReturn(settings.value("return", true).toBool());
+    ui->textEdit->setReformatOnReturn(settings.value("return", false).toBool());
     ui->textEdit->setAutoComplete(settings.value("automatic", true).toBool());
     settings.endGroup();
 }
@@ -713,6 +718,7 @@ void LammpsGui::quit()
     lammpsstatus->hide();
     lammps.finalize();
 
+    autoSave();
     if (ui->textEdit->document()->isModified()) {
         QMessageBox msg;
         msg.setWindowTitle("Unsaved Changes");
@@ -1002,6 +1008,7 @@ void LammpsGui::do_run(bool use_buffer)
         return;
     }
 
+    autoSave();
     if (!use_buffer && ui->textEdit->document()->isModified()) {
         QMessageBox msg;
         msg.setWindowTitle("Unsaved Changes");
@@ -1217,6 +1224,35 @@ void LammpsGui::view_variables()
     }
 }
 
+void LammpsGui::setDocver()
+{
+    QString git_branch = (const char *)lammps.extract_global("git_branch");
+    if ((git_branch == "stable") || (git_branch == "maintenance")) {
+        docver = "/stable/";
+    } else if (git_branch == "release") {
+        docver = "/";
+    } else {
+        docver = "/latest/";
+    }
+}
+
+void LammpsGui::autoSave()
+{
+    // no need to auto-save, if the document has no name or is not modified.
+    QString fileName = current_file;
+    if (fileName.isEmpty()) return;
+    if (!ui->textEdit->document()->isModified()) return;
+
+    // check preference
+    bool autosave = false;
+    QSettings settings;
+    settings.beginGroup("reformat");
+    autosave = settings.value("autosave", false).toBool();
+    settings.endGroup();
+
+    if (autosave) write_file(fileName);
+}
+
 void LammpsGui::about()
 {
     std::string version = "This is LAMMPS-GUI version " LAMMPS_GUI_VERSION;
@@ -1328,7 +1364,8 @@ void LammpsGui::help()
 
 void LammpsGui::manual()
 {
-    QDesktopServices::openUrl(QUrl("https://docs.lammps.org/"));
+    if (docver.isEmpty()) setDocver();
+    QDesktopServices::openUrl(QUrl(QString("https://docs.lammps.org%1").arg(docver)));
 }
 
 void LammpsGui::tutorial()
@@ -1338,7 +1375,9 @@ void LammpsGui::tutorial()
 
 void LammpsGui::howto()
 {
-    QDesktopServices::openUrl(QUrl("https://docs.lammps.org/Howto_lammps_gui.html"));
+    if (docver.isEmpty()) setDocver();
+    QDesktopServices::openUrl(
+        QUrl(QString("https://docs.lammps.org%1Howto_lammps_gui.html").arg(docver)));
 }
 
 void LammpsGui::defaults()
@@ -1395,7 +1434,7 @@ void LammpsGui::preferences()
         }
         if (imagewindow) imagewindow->createImage();
         settings.beginGroup("reformat");
-        ui->textEdit->setReformatOnReturn(settings.value("return", true).toBool());
+        ui->textEdit->setReformatOnReturn(settings.value("return", false).toBool());
         ui->textEdit->setAutoComplete(settings.value("automatic", true).toBool());
         settings.endGroup();
     }
@@ -1488,6 +1527,13 @@ void LammpsGui::start_lammps()
     }
 }
 
+bool LammpsGui::eventFilter(QObject *watched, QEvent *event)
+{
+    if (event->type() == QEvent::Close) {
+        autoSave();
+    }
+    return QWidget::eventFilter(watched, event);
+}
 // Local Variables:
 // c-basic-offset: 4
 // End:

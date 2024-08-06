@@ -79,6 +79,7 @@ protected:
     void dropEvent(QDropEvent *event) override;
     void contextMenuEvent(QContextMenuEvent *event) override;
     void keyPressEvent(QKeyEvent *event) override;
+    void setDocver();
 
 private slots:
     void updateLineNumberAreaWidth(int newBlockCount);
@@ -107,6 +108,7 @@ private:
     int highlight;
     bool reformat_on_return;
     bool automatic_completion;
+    QString docver;
 
     QMap<QString, QString> cmd_map;
     QMap<QString, QString> fix_map;

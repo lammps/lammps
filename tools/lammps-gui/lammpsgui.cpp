@@ -715,7 +715,7 @@ void LammpsGui::inspect_file(const QString &fileName)
                 new FileViewer(infolog, QString("LAMMPS-GUI: restart info for %1").arg(shortName));
             infoviewer->show();
             dumpinfo.remove();
-            lammps.command(QString("write_data %1 noinit").arg(infodata).toLocal8Bit());
+            lammps.command(QString("write_data %1 pair ij noinit").arg(infodata).toLocal8Bit());
             auto *dataviewer =
                 new FileViewer(infodata, QString("LAMMPS-GUI: data file for %1").arg(shortName));
             dataviewer->show();

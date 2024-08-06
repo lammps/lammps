@@ -375,12 +375,12 @@ void PairTIP4PCut::settings(int narg, char **arg)
 {
   if (narg != 6) error->all(FLERR,"Illegal pair_style command");
 
-  typeO = utils::inumeric(FLERR,arg[0],false,lmp);
-  typeH = utils::inumeric(FLERR,arg[1],false,lmp);
-  typeB = utils::inumeric(FLERR,arg[2],false,lmp);
-  typeA = utils::inumeric(FLERR,arg[3],false,lmp);
-  qdist = utils::numeric(FLERR,arg[4],false,lmp);
-  cut_coul = utils::numeric(FLERR,arg[5],false,lmp);
+  typeO = utils::expand_type_int(FLERR, arg[0], Atom::ATOM, lmp);
+  typeH = utils::expand_type_int(FLERR, arg[1], Atom::ATOM, lmp);
+  typeB = utils::expand_type_int(FLERR, arg[2], Atom::BOND, lmp);
+  typeA = utils::expand_type_int(FLERR, arg[3], Atom::ANGLE, lmp);
+  qdist = utils::numeric(FLERR, arg[4], false, lmp);
+  cut_coul = utils::numeric(FLERR, arg[5], false, lmp);
 
   cut_coulsq = cut_coul * cut_coul;
   cut_coulsqplus = (cut_coul + 2.0*qdist) * (cut_coul + 2.0*qdist);

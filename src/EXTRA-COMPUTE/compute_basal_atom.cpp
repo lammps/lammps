@@ -227,7 +227,7 @@ void ComputeBasalAtom::compute_peratom()
       }
       // for atoms that have 2 or 3 ~180 bond angles:
       if (2 == chi[0] || 3 == chi[0]) {
-          count = value = 0;
+          count = 0;
           if (chi[0] == 2) {
             k2[0] = 0;
             j1[0] = 1;
@@ -321,7 +321,7 @@ void ComputeBasalAtom::compute_peratom()
       else if (chi[0] > 3) {
           double x44[3], y44[3], z44[3], S0;
           int l, m;
-          count = value = 0;
+          count = 0;
           S0 = 100000;
           k2[0] = 0;
           k2[1] = 0;

@@ -16,11 +16,15 @@
 #include "colvarproxy.h"
 #include "colvartypes.h"
 
-#include "domain.h"    // IWYU pragma: keep
-#include "force.h"     // IWYU pragma: keep
-#include "lammps.h"    // IWYU pragma: keep
+#include <mpi.h>
+
 #include "random_park.h"
-#include "update.h"    // IWYU pragma: keep
+
+// forward declarations
+
+namespace LAMMPS_NS {
+class LAMMPS;
+}    // namespace LAMMPS_NS
 
 /// \brief Communication between colvars and LAMMPS
 /// (implementation of \link colvarproxy \endlink)
@@ -48,7 +52,6 @@ class colvarproxy_lammps : public colvarproxy {
   friend class cvm::atom;
 
   colvarproxy_lammps(LAMMPS_NS::LAMMPS *lmp);
-
   ~colvarproxy_lammps() override;
 
   void init();
@@ -63,12 +66,11 @@ class colvarproxy_lammps : public colvarproxy {
 
   // disable default and copy constructor
  private:
-  colvarproxy_lammps(){};
-  colvarproxy_lammps(const colvarproxy_lammps &){};
+  colvarproxy_lammps() {};
+  colvarproxy_lammps(const colvarproxy_lammps &) {};
 
   // methods for lammps to move data or trigger actions in the proxy
  public:
-
   bool total_forces_enabled() const override { return total_force_requested; };
   bool total_forces_same_step() const override { return true; };
   bool want_exit() const { return do_exit; };
@@ -91,7 +93,8 @@ class colvarproxy_lammps : public colvarproxy {
   void log(std::string const &message) override;
   void error(std::string const &message) override;
 
-  cvm::rvector position_distance(cvm::atom_pos const &pos1, cvm::atom_pos const &pos2) const override;
+  cvm::rvector position_distance(cvm::atom_pos const &pos1,
+                                 cvm::atom_pos const &pos2) const override;
 
   cvm::real rand_gaussian(void) override { return _random->gaussian(); };
 

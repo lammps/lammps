@@ -48,7 +48,7 @@ class FixWallLJ93Kokkos : public FixWallLJ93 {
   KOKKOS_INLINE_FUNCTION
   void operator()(const int&, value_type) const;
 
- public:
+ private:
   int dim,side;
   double coord;
 

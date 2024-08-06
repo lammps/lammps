@@ -47,6 +47,12 @@ Restart files are saved in binary format to enable exact restarts,
 meaning that the trajectories of a restarted run will precisely match
 those produced by the original run had it continued on.
 
+Some information about a restart file can be gathered directly from the
+command line when using LAMMPS with the :ref:`-restart2info
+<restart2info>` command line flag.  On Unix-like operating systems (like
+Linux or macOS), one can also :ref:`configure the "file" command line
+program <magic>` to display basic information about a restart file
+
 The binary restart file format was not designed with backward, forward,
 or cross-platform compatibility in mind, so the files are only expected
 to be read correctly by the same LAMMPS executable on the same platform.

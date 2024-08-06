@@ -210,6 +210,7 @@ LAMMPS::LAMMPS(int narg, char **arg, MPI_Comm communicator) :
   int kokkosflag = 0;
   int restart2data = 0;
   int restart2dump = 0;
+  int restart2info = 0;
   int restartremap = 0;
   int citeflag = 1;
   int citescreen = CiteMe::TERSE;
@@ -383,6 +384,8 @@ LAMMPS::LAMMPS(int narg, char **arg, MPI_Comm communicator) :
         error->universe_all(FLERR,"Invalid command-line argument");
       if (restart2dump)
         error->universe_all(FLERR, "Cannot use both -restart2data and -restart2dump");
+      if (restart2info)
+        error->universe_all(FLERR, "Cannot use both -restart2data and -restart2info");
       restart2data = 1;
       restartfile = arg[iarg+1];
       inflag = -1;               // skip inflag check
@@ -405,6 +408,8 @@ LAMMPS::LAMMPS(int narg, char **arg, MPI_Comm communicator) :
         error->universe_all(FLERR,"Invalid command-line argument");
       if (restart2data)
         error->universe_all(FLERR, "Cannot use both -restart2data and -restart2dump");
+      if (restart2info)
+        error->universe_all(FLERR, "Cannot use both -restart2dump and -restart2info");
       restart2dump = 1;
       restartfile = arg[iarg+1];
       inflag = -1;               // skip inflag check
@@ -417,6 +422,23 @@ LAMMPS::LAMMPS(int narg, char **arg, MPI_Comm communicator) :
       }
       iarg += 2;
       // delimit args for the write_dump command
+      wfirst = iarg;
+      while (iarg < narg && arg[iarg][0] != '-') iarg++;
+      wlast = iarg;
+
+    } else if (strcmp(arg[iarg],"-restart2info") == 0 ||
+               strcmp(arg[iarg],"-r2info") == 0) {
+      if (iarg+2 > narg)
+        error->universe_all(FLERR,"Invalid command-line argument");
+      if (restart2data)
+        error->universe_all(FLERR, "Cannot use both -restart2data and -restart2info");
+      if (restart2dump)
+        error->universe_all(FLERR, "Cannot use both -restart2dump and -restart2info");
+      restart2info = 1;
+      restartfile = arg[iarg+1];
+      inflag = -1;               // skip inflag check
+      iarg += 2;
+      // delimit args for the write_data command
       wfirst = iarg;
       while (iarg < narg && arg[iarg][0] != '-') iarg++;
       wlast = iarg;
@@ -727,15 +749,17 @@ LAMMPS::LAMMPS(int narg, char **arg, MPI_Comm communicator) :
   // add args between wfirst and wlast to write_data or write_data command
   // add "noinit" to write_data to prevent a system init
 
-  if (restart2data || restart2dump) {
+  if (restart2data || restart2dump || restart2info) {
     std::string cmd = fmt::format("read_restart {}",restartfile);
     if (restartremap) cmd += " remap\n";
     input->one(cmd);
     if (restart2data) cmd = "write_data ";
-    else cmd = "write_dump";
+    else if (restart2dump) cmd = "write_dump";
+    else cmd = "info system group compute fix";
     for (iarg = wfirst; iarg < wlast; iarg++)
        cmd += fmt::format(" {}", arg[iarg]);
-    cmd += " noinit";
+    if (restart2data || restart2dump)
+      cmd += " noinit";
     input->one(cmd);
     error->done(0);
   }
@@ -1260,6 +1284,7 @@ void _noopt LAMMPS::help()
           "-restart2data rfile dfile ... : convert restart to data file (-r2data)\n"
           "-restart2dump rfile dgroup dstyle dfile ... \n"
           "                            : convert restart to dump file (-r2dump)\n"
+          "-restart2info rfile         : print info about restart rfile (-r2info)\n"
           "-reorder topology-specs     : processor reordering (-r)\n"
           "-screen none/filename       : where to send screen output (-sc)\n"
           "-skiprun                    : skip loops in run and minimize (-sr)\n"

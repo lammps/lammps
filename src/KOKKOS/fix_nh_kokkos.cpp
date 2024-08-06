@@ -295,7 +295,7 @@ void FixNHKokkos<DeviceType>::remap()
   double oldlo,oldhi;
   double expfac;
 
-  int nlocal = atomKK->nlocal;
+  int nlocal = atom->nlocal;
   double *h = domain->h;
 
   // omega is not used, except for book-keeping

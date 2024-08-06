@@ -32,7 +32,7 @@ void write_yaml_header(class YamlWriter *writer, TestConfig *cfg, const char *ve
     do {                                                        \
         const double diff = fabs(val1 - val2);                  \
         const double div  = std::min(fabs(val1), fabs(val2));   \
-        const double err = (div<DBL_EPSILON) ? diff : diff/div; \
+        const double err = (div==0.0) ? diff : diff/div; \
         stats.add(err);                                         \
         EXPECT_PRED_FORMAT2(::testing::DoubleLE, err, eps);     \
     } while (0);

@@ -69,7 +69,7 @@ Examples
    labelmap atom 1 OW 2 HW
    labelmap bond 1 HW-OW
    labelmap angle 1 HW-OW-HW
-   pair_style lj/cut/tip4p/long OW HW HW-OW HW-OW-HW 0.15 12.0
+   pair_style lj/long/tip4p/long long long OW HW HW-OW HW-OW-HW 0.15 12.0
 
 Description
 """""""""""

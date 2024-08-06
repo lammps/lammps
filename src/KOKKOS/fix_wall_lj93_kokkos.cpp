@@ -217,8 +217,8 @@ void FixWallLJ93Kokkos<DeviceType>::v_tally(value_type result, int n, int i, dou
   if (vflag_global)
     result[n+7] += vn;
 
-  //if (vflag_atom)
-    //Kokkos::atomic_add(&(d_vatom(i,n)),vn);
+  if (vflag_atom)
+    Kokkos::atomic_add(&(d_vatom(i,n)),vn);
 }
 
 namespace LAMMPS_NS {

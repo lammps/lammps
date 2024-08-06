@@ -90,15 +90,10 @@ bool verbose = false;
 
 static const double EPSILON = 5.0e-14;
 
-
 namespace LAMMPS_NS {
 using ::testing::Eq;
-using ::testing::TestWithParam;
-using ::testing::Values;
 
-enum ACCELERATOR { PLAIN, KOKKOS_OMP };
-
-class AtomStyleTest : public LAMMPSTest, public ::testing::WithParamInterface<ACCELERATOR>  {
+class AtomStyleTest : public LAMMPSTest {
 protected:
     static void SetUpTestSuite() { create_molecule_files("h2o.mol", "co2.mol"); }
 
@@ -110,18 +105,15 @@ protected:
 
     void SetUp() override
     {
-        if( GetParam() == KOKKOS_OMP )
-          args = {"-k","on","t","4","-sf","kk"};
-
         testbinary = "AtomStyleTest";
         LAMMPSTest::SetUp();
         ASSERT_NE(lmp, nullptr);
-        //BEGIN_HIDE_OUTPUT();
+        BEGIN_HIDE_OUTPUT();
         command("units real");
         command("dimension 3");
         command("pair_style zero 4.0");
         command("region box block -4 4 -4 4 -4 4");
-        //END_HIDE_OUTPUT();
+        END_HIDE_OUTPUT();
     }
 
     void TearDown() override
@@ -269,12 +261,7 @@ struct AtomState {
 
 void ASSERT_ATOM_STATE_EQ(Atom *atom, const AtomState &expected)
 {
-    std::string suffix = "/kk";
-
-    if( GetParam() == KOKKOS_OMP )
-      ASSERT_THAT(std::string(atom->atom_style), Eq(expected.atom_style.append(suffix)));
-    else
-      ASSERT_THAT(std::string(atom->atom_style), Eq(expected.atom_style));
+    ASSERT_THAT(std::string(atom->atom_style), Eq(expected.atom_style));
 
     ASSERT_NE(atom->avec, nullptr);
     ASSERT_EQ(atom->natoms, expected.natoms);
@@ -479,7 +466,7 @@ void ASSERT_ATOM_STATE_EQ(Atom *atom, const AtomState &expected)
     ASSERT_EQ(atom->map_tag_max, expected.map_tag_max);
 }
 
-TEST_P(AtomStyleTest, atomic_is_default)
+TEST_F(AtomStyleTest, atomic_is_default)
 {
     AtomState expected;
     expected.atom_style = "atomic";
@@ -495,7 +482,7 @@ TEST_P(AtomStyleTest, atomic_is_default)
     ASSERT_ATOM_STATE_EQ(lmp->atom, expected);
 }
 
-TEST_P(AtomStyleTest, atomic_after_charge)
+TEST_F(AtomStyleTest, atomic_after_charge)
 {
     AtomState expected;
     expected.atom_style = "atomic";
@@ -516,7 +503,7 @@ TEST_P(AtomStyleTest, atomic_after_charge)
     ASSERT_ATOM_STATE_EQ(lmp->atom, expected);
 }
 
-TEST_P(AtomStyleTest, atomic)
+TEST_F(AtomStyleTest, atomic)
 {
     BEGIN_HIDE_OUTPUT();
     command("atom_modify map hash");
@@ -706,9 +693,7 @@ TEST_P(AtomStyleTest, atomic)
     EXPECT_NEAR(x[GETIDX(16)][2], 7.9, EPSILON);
 }
 
-/*
-
-TEST_P(AtomStyleTest, no_tags)
+TEST_F(AtomStyleTest, no_tags)
 {
     BEGIN_HIDE_OUTPUT();
     command("atom_modify id no");
@@ -5391,13 +5376,7 @@ TEST_F(AtomStyleTest, oxdna)
     END_HIDE_OUTPUT();
 }
 
-*/
-
-INSTANTIATE_TEST_SUITE_P( TestSuite, AtomStyleTest,
-    ::testing::Values(PLAIN, KOKKOS_OMP) );
-
 } // namespace LAMMPS_NS
-
 
 int main(int argc, char **argv)
 {
@@ -5419,5 +5398,3 @@ int main(int argc, char **argv)
     MPI_Finalize();
     return rv;
 }
-
-

@@ -22,8 +22,23 @@
 #include "atom_kokkos.h"
 #include "atom_masks.h"
 #include "domain_kokkos.h"
+#include "force.h"
+#include "input.h"
+#include "irregular.h"
+#include "kspace.h"
+#include "math_const.h"
+#include "modify.h"
+#include "update.h"
+#include "variable.h"
+
+#include <cmath>
 
 using namespace LAMMPS_NS;
+using namespace FixConst;
+using namespace MathConst;
+
+enum{NONE=0,FINAL,DELTA,SCALE,VEL,ERATE,TRATE,VOLUME,WIGGLE,VARIABLE};
+enum{ONE_FROM_ONE,ONE_FROM_TWO,TWO_FROM_ONE};
 
 /* ---------------------------------------------------------------------- */
 

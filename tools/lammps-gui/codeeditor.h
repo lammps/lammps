@@ -89,6 +89,7 @@ private slots:
     void open_help();
     void open_url();
     void view_file();
+    void inspect_file();
     void reformatCurrentLine();
     void runCompletion();
     void insertCompletedCommand(const QString &completion);

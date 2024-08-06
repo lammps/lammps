@@ -770,10 +770,22 @@ void CodeEditor::contextMenuEvent(QContextMenuEvent *event)
             QString word = line.mid(begin, end - begin).trimmed();
             QFileInfo fi(word);
             if (fi.exists() && fi.isFile()) {
-                auto *action = menu->addAction(QString("View file '%1'").arg(word));
-                action->setIcon(QIcon(":/icons/document-open.png"));
-                action->setData(word);
-                connect(action, &QAction::triggered, this, &CodeEditor::view_file);
+                // check if file is a LAMMPS restart
+                char magic[16] = "               ";
+                QFile file(word);
+                QDataStream in(&file);
+                in.readRawData(magic, 16);
+                if (strcmp(magic, LAMMPS_MAGIC) != 0) {
+                    auto *action = menu->addAction(QString("Inspect restart file '%1'").arg(word));
+                    action->setIcon(QIcon(":/icons/document-open.png"));
+                    action->setData(word);
+                    connect(action, &QAction::triggered, this, &CodeEditor::inspect_file);
+                } else {
+                    auto *action = menu->addAction(QString("View file '%1'").arg(word));
+                    action->setIcon(QIcon(":/icons/document-open.png"));
+                    action->setData(word);
+                    connect(action, &QAction::triggered, this, &CodeEditor::view_file);
+                }
             }
         }
     }
@@ -1246,11 +1258,20 @@ void CodeEditor::open_url()
     QDesktopServices::openUrl(QUrl(act->data().toString()));
 }
 
+// forward requests to view or inspect files to the corresponding LammpsGui methods
+
 void CodeEditor::view_file()
 {
     auto *act    = qobject_cast<QAction *>(sender());
-    auto *viewer = new FileViewer(act->data().toString());
-    viewer->show();
+    auto *guimain = qobject_cast<LammpsGui *>(parent());
+    guimain->view_file(act->data().toString());
+}
+
+void CodeEditor::inspect_file()
+{
+    auto *act    = qobject_cast<QAction *>(sender());
+    auto *guimain = qobject_cast<LammpsGui *>(parent());
+    guimain->inspect_file(act->data().toString());
 }
 
 // Local Variables:

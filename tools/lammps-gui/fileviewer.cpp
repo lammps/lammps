@@ -29,7 +29,7 @@
 #include <QTextCursor>
 #include <QTextStream>
 
-FileViewer::FileViewer(const QString &_filename, QWidget *parent) :
+FileViewer::FileViewer(const QString &_filename, QString title, QWidget *parent) :
     QPlainTextEdit(parent), fileName(_filename)
 {
     auto *action = new QShortcut(QKeySequence(Qt::CTRL | Qt::Key_Q), this);
@@ -99,7 +99,10 @@ FileViewer::FileViewer(const QString &_filename, QWidget *parent) :
     setLineWrapMode(NoWrap);
     setMinimumSize(800, 500);
     setWindowIcon(QIcon(":/icons/lammps-icon-128x128.png"));
-    setWindowTitle("LAMMPS-GUI - Viewer - " + fileName);
+    if (title.isEmpty())
+        setWindowTitle("LAMMPS-GUI - Viewer - " + fileName);
+    else
+        setWindowTitle(title);
 }
 
 void FileViewer::quit()

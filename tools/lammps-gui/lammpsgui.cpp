@@ -26,8 +26,10 @@
 #include "stdcapture.h"
 #include "ui_lammpsgui.h"
 
+#include <QByteArray>
 #include <QClipboard>
 #include <QCoreApplication>
+#include <QDataStream>
 #include <QDesktopServices>
 #include <QEvent>
 #include <QFileDialog>
@@ -198,6 +200,7 @@ LammpsGui::LammpsGui(QWidget *parent, const char *filename) :
     connect(ui->actionSave, &QAction::triggered, this, &LammpsGui::save);
     connect(ui->actionSave_As, &QAction::triggered, this, &LammpsGui::save_as);
     connect(ui->actionView, &QAction::triggered, this, &LammpsGui::view);
+    connect(ui->actionInspect, &QAction::triggered, this, &LammpsGui::inspect);
     connect(ui->actionQuit, &QAction::triggered, this, &LammpsGui::quit);
     connect(ui->actionCopy, &QAction::triggered, this, &LammpsGui::copy);
     connect(ui->actionCut, &QAction::triggered, this, &LammpsGui::cut);
@@ -404,6 +407,12 @@ void LammpsGui::view()
 {
     QString fileName = QFileDialog::getOpenFileName(this, "Open the file");
     view_file(fileName);
+}
+
+void LammpsGui::inspect()
+{
+    QString fileName = QFileDialog::getOpenFileName(this, "Open the restart file");
+    inspect_file(fileName);
 }
 
 void LammpsGui::open_recent()
@@ -663,6 +672,58 @@ void LammpsGui::view_file(const QString &fileName)
         file.close();
         auto *viewer = new FileViewer(fileName);
         viewer->show();
+    }
+}
+
+// read restart file into LAMMPS instance and launch image viewer
+void LammpsGui::inspect_file(const QString &fileName)
+{
+    QFile file(fileName);
+    if (!file.open(QIODevice::ReadOnly)) {
+        QMessageBox::warning(this, "Warning",
+                             "Cannot open file " + fileName + ": " + file.errorString() + ".\n");
+        return;
+    }
+
+    char magic[16] = "               ";
+    QDataStream in(&file);
+    in.readRawData(magic, 16);
+    file.close();
+    if (strcmp(magic, LAMMPS_MAGIC) != 0) {
+        QMessageBox::warning(this, "Warning",
+                             "File " + fileName + " is not a LAMMPS restart file.\n");
+        return;
+    }
+
+    // LAMMPS is not re-entrant, so we can only query LAMMPS when it is not running a simulation
+    if (!lammps.is_running()) {
+        start_lammps();
+        lammps.command("clear");
+        lammps.command(QString("read_restart %1").arg(fileName).toLocal8Bit());
+        capturer->BeginCapture();
+        lammps.command("info system comm group compute fix");
+        capturer->EndCapture();
+        auto info    = capturer->GetCapture();
+        auto infolog = QString("%1.info.log").arg(fileName);
+        QFile dumpinfo(infolog);
+        if (dumpinfo.open(QIODevice::WriteOnly)) {
+            auto shortName = QFileInfo(fileName).fileName();
+            auto infodata  = QString("%1.tmp.data").arg(fileName);
+            dumpinfo.write(info.c_str(), info.size());
+            dumpinfo.close();
+            auto *infoviewer =
+                new FileViewer(infolog, QString("LAMMPS-GUI: restart info for %1").arg(shortName));
+            infoviewer->show();
+            dumpinfo.remove();
+            lammps.command(QString("write_data %1 noinit").arg(infodata).toLocal8Bit());
+            auto *dataviewer =
+                new FileViewer(infodata, QString("LAMMPS-GUI: data file for %1").arg(shortName));
+            dataviewer->show();
+            QFile(infodata).remove();
+            auto *inspect_image = new ImageViewer(
+                fileName, &lammps, QString("LAMMPS-GUI: Image for %1").arg(shortName));
+            inspect_image->show();
+        }
     }
 }
 

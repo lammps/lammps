@@ -38,6 +38,7 @@
     <addaction name="separator"/>
     <addaction name="actionOpen"/>
     <addaction name="actionView"/>
+    <addaction name="actionInspect"/>
     <addaction name="separator"/>
     <addaction name="action_1"/>
     <addaction name="action_2"/>
@@ -136,6 +137,17 @@
    </property>
    <property name="shortcut">
     <string>Ctrl+Shift+F</string>
+   </property>
+  </action>
+  <action name="actionInspect">
+   <property name="icon">
+    <iconset theme=":/icons/document-open.png"/>
+   </property>
+   <property name="text">
+    <string>Inspect &amp;Restart</string>
+   </property>
+   <property name="shortcut">
+    <string>Ctrl+Shift+R</string>
    </property>
   </action>
   <action name="actionSave">

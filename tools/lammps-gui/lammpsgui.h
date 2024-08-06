@@ -27,6 +27,11 @@
 
 #include "lammpswrapper.h"
 
+// identifier for LAMMPS restart files
+#if !defined(LAMMPS_MAGIC)
+#define LAMMPS_MAGIC "LammpS RestartT"
+#endif
+
 // forward declarations
 
 class GeneralTab;
@@ -64,6 +69,7 @@ public:
 protected:
     void open_file(const QString &filename);
     void view_file(const QString &filename);
+    void inspect_file(const QString &filename);
     void write_file(const QString &filename);
     void update_recents(const QString &filename = "");
     void update_variables();
@@ -82,6 +88,7 @@ private slots:
     void new_document();
     void open();
     void view();
+    void inspect();
     void open_recent();
     void start_exe();
     void save();

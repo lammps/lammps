@@ -773,9 +773,12 @@ void CodeEditor::contextMenuEvent(QContextMenuEvent *event)
                 // check if file is a LAMMPS restart
                 char magic[16] = "               ";
                 QFile file(word);
-                QDataStream in(&file);
-                in.readRawData(magic, 16);
-                if (strcmp(magic, LAMMPS_MAGIC) != 0) {
+                if (file.open(QIODevice::ReadOnly)) {
+                    QDataStream in(&file);
+                    in.readRawData(magic, 16);
+                    file.close();
+                }
+                if (strcmp(magic, LAMMPS_MAGIC) == 0) {
                     auto *action = menu->addAction(QString("Inspect restart file '%1'").arg(word));
                     action->setIcon(QIcon(":/icons/document-open.png"));
                     action->setData(word);

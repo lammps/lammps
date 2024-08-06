@@ -14,6 +14,7 @@
 #include "codeeditor.h"
 #include "fileviewer.h"
 #include "lammpsgui.h"
+#include "lammpswrapper.h"
 #include "linenumberarea.h"
 
 #include <QAbstractItemView>
@@ -146,6 +147,7 @@ CodeEditor::CodeEditor(QWidget *parent) :
 {
     help_action = new QShortcut(QKeySequence::fromString("Ctrl+?"), parent);
     connect(help_action, &QShortcut::activated, this, &CodeEditor::get_help);
+    docver = "";
 
     // set up completer class (without a model currently)
 #define COMPLETER_SETUP(completer)                                                            \
@@ -1159,12 +1161,30 @@ void CodeEditor::insertCompletedCommand(const QString &completion)
     setTextCursor(cursor);
 }
 
+void CodeEditor::setDocver()
+{
+    LammpsWrapper *lammps = &qobject_cast<LammpsGui *>(parent())->lammps;
+    docver                = "/";
+    if (lammps) {
+        QString git_branch = (const char *)lammps->extract_global("git_branch");
+        if ((git_branch == "stable") || (git_branch == "maintenance")) {
+            docver = "/stable/";
+        } else if (git_branch == "release") {
+            docver = "/";
+        } else {
+            docver = "/latest/";
+        }
+    }
+}
+
 void CodeEditor::get_help()
 {
     QString page, help;
     find_help(page, help);
+    if (docver.isEmpty()) setDocver();
     if (!page.isEmpty())
-        QDesktopServices::openUrl(QUrl(QString("https://docs.lammps.org/%1").arg(page)));
+        QDesktopServices::openUrl(
+            QUrl(QString("https://docs.lammps.org%1%2").arg(docver).arg(page)));
 }
 
 void CodeEditor::find_help(QString &page, QString &help)
@@ -1215,8 +1235,9 @@ void CodeEditor::find_help(QString &page, QString &help)
 void CodeEditor::open_help()
 {
     auto *act = qobject_cast<QAction *>(sender());
+    if (docver.isEmpty()) setDocver();
     QDesktopServices::openUrl(
-        QUrl(QString("https://docs.lammps.org/%1").arg(act->data().toString())));
+        QUrl(QString("https://docs.lammps.org%1%2").arg(docver).arg(act->data().toString())));
 }
 
 void CodeEditor::open_url()

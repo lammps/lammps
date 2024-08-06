@@ -44,8 +44,8 @@ Syntax
        flag_coul = *long* or *off*
          *long* = use Kspace long-range summation for Coulombic 1/r term
          *off* = omit Coulombic term
-       otype,htype = atom types for TIP4P O and H
-       btype,atype = bond and angle types for TIP4P waters
+       otype,htype = atom types (numeric or type label) for TIP4P O and H
+       btype,atype = bond and angle types (numeric or type label) for TIP4P waters
        qdist = distance from O atom to massless charge (distance units)
        cutoff = global cutoff for LJ (and Coulombic if only 1 arg) (distance units)
        cutoff2 = global cutoff for Coulombic (optional) (distance units)
@@ -65,6 +65,11 @@ Examples
    pair_style lj/long/tip4p/long long long 1 2 7 8 0.15 12.0 10.0
    pair_coeff * * 100.0 3.0
    pair_coeff 1 1 100.0 3.5 9.0
+
+   labelmap atom 1 OW 2 HW
+   labelmap bond 1 HW-OW
+   labelmap angle 1 HW-OW-HW
+   pair_style lj/cut/tip4p/long OW HW HW-OW HW-OW-HW 0.15 12.0
 
 Description
 """""""""""

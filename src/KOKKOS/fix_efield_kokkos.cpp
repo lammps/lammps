@@ -44,7 +44,6 @@ FixEfieldKokkos<DeviceType>::FixEfieldKokkos(LAMMPS *lmp, int narg, char **arg) 
 {
   kokkosable = 1;
   atomKK = (AtomKokkos *) atom;
-  domainKK = (DomainKokkos *) domain;
   execution_space = ExecutionSpaceFromDevice<DeviceType>::space;
   datamask_read = X_MASK | F_MASK | TORQUE_MASK | Q_MASK | MU_MASK | IMAGE_MASK | MASK_MASK;
   datamask_modify = F_MASK | TORQUE_MASK;
@@ -52,9 +51,6 @@ FixEfieldKokkos<DeviceType>::FixEfieldKokkos(LAMMPS *lmp, int narg, char **arg) 
   memory->destroy(efield);
   memoryKK->create_kokkos(k_efield,efield,maxatom,4,"efield:efield");
   d_efield = k_efield.template view<DeviceType>();
-
-  memoryKK->create_kokkos(k_fsum,fsum,4,"efield:fsum");
-  d_fsum = k_fsum.template view<DeviceType>();
 }
 
 /* ---------------------------------------------------------------------- */
@@ -66,7 +62,6 @@ FixEfieldKokkos<DeviceType>::~FixEfieldKokkos()
 
   memoryKK->destroy_kokkos(k_efield,efield);
   memoryKK->destroy_kokkos(k_vatom,vatom);
-  memoryKK->destroy_kokkos(k_fsum,fsum);
 }
 
 /* ---------------------------------------------------------------------- */
@@ -74,7 +69,6 @@ FixEfieldKokkos<DeviceType>::~FixEfieldKokkos()
 template<class DeviceType>
 void FixEfieldKokkos<DeviceType>::init()
 {
-
   FixEfield::init();
 
   if (utils::strmatch(update->integrate_style,"^respa"))
@@ -86,7 +80,6 @@ void FixEfieldKokkos<DeviceType>::init()
 template<class DeviceType>
 void FixEfieldKokkos<DeviceType>::post_force(int vflag)
 {
-
   atomKK->sync(execution_space, datamask_read);
 
   d_x = atomKK->k_x.template view<DeviceType>();
@@ -132,19 +125,10 @@ void FixEfieldKokkos<DeviceType>::post_force(int vflag)
     d_efield = k_efield.view<DeviceType>();
   }
 
-
   force_flag = 0;
-  double result[10] = {0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0};
-
+  double result[10] = {0.0};
 
   if (varflag == CONSTANT) {
-
-    // It would be more concise to use the operators below, but there is still an issue with unwrap (TODO below) [ndtrung81 (2023/08)]
-
-    // i tested it on kokkos-omp and it works, might have been
-    // a bug in DomainKokkos that's been fixed since.
-    // FIXME: test on kokkos-gpu
-    // [alphataubio (2024/08)]
 
     copymode = 1;
 
@@ -172,13 +156,6 @@ void FixEfieldKokkos<DeviceType>::post_force(int vflag)
       k_efield.sync<DeviceType>();
     }
 
-    // It would be more concise to use the operators below, but there is still an issue with unwrap (TODO below) [ndtrung81 (2023/08)]
-
-    // i tested it on kokkos-omp and it works, might have been
-    // a bug in DomainKokkos that's been fixed since.
-    // FIXME: test on kokkos-gpu
-    // [alphataubio (2024/08)]
-
     copymode = 1;
 
     if(qflag && muflag)
@@ -194,15 +171,12 @@ void FixEfieldKokkos<DeviceType>::post_force(int vflag)
 
   }
 
-
   atomKK->modified(execution_space, datamask_modify);
 
-  Kokkos::atomic_store(&(d_fsum[0]),result[0]);
-  Kokkos::atomic_store(&(d_fsum[1]),result[1]);
-  Kokkos::atomic_store(&(d_fsum[2]),result[2]);
-  Kokkos::atomic_store(&(d_fsum[3]),result[3]);
-  k_fsum.template modify<DeviceType>();
-  k_fsum.template sync<LMPHostType>();
+  fsum[0]=result[0];
+  fsum[1]=result[1];
+  fsum[2]=result[2];
+  fsum[3]=result[3];
 
   if (vflag_global) {
     virial[0] += result[4];
@@ -217,8 +191,6 @@ void FixEfieldKokkos<DeviceType>::post_force(int vflag)
     k_vatom.template modify<DeviceType>();
     k_vatom.template sync<LMPHostType>();
   }
-
-
 }
 
 template<class DeviceType>
@@ -232,18 +204,13 @@ void FixEfieldKokkos<DeviceType>::operator()(TagFixEfieldConstant<QFLAG,MUFLAG>,
     x_i[0] = d_x(i,0);
     x_i[1] = d_x(i,1);
     x_i[2] = d_x(i,2);
-    auto unwrapKK = DomainKokkos::unmap(domainKK->prd,domainKK->h,
-      domainKK->triclinic,x_i,d_image(i));
+    auto unwrapKK = DomainKokkos::unmap(domain->prd,domain->h,domain->triclinic,x_i,d_image(i));
     const F_FLOAT fx = d_q(i) * ex;
     const F_FLOAT fy = d_q(i) * ey;
     const F_FLOAT fz = d_q(i) * ez;
     d_f(i,0) += fx;
     d_f(i,1) += fy;
     d_f(i,2) += fz;
-    // TODO: access to unwrap below crashes [ndtrung81 (2023/08)]
-    // tested, works on kokkos-omp [alphataubio (2024/08)]
-    // changed to unwrapKK to avoid possible clash with base class unwrap
-    // FIXME: test on kokkos-gpu
     result[0] -= fx * unwrapKK[0] + fy * unwrapKK[1] + fz * unwrapKK[2];
     result[1] += fx;
     result[2] += fy;
@@ -290,7 +257,6 @@ void FixEfieldKokkos<DeviceType>::operator()(TagFixEfieldNonConstant<QFLAG,MUFLA
     d_f(i,0) += fx;
     d_f(i,1) += fy;
     d_f(i,2) += fz;
-
     result[1] += fx;
     result[2] += fy;
     result[3] += fz;
@@ -323,7 +289,6 @@ template <class DeviceType>
 KOKKOS_INLINE_FUNCTION
 void FixEfieldKokkos<DeviceType>::v_tally(value_type result, int i, double *v) const
 {
-
   if (vflag_global) {
     result[4] += v[0];
     result[5] += v[1];
@@ -341,9 +306,7 @@ void FixEfieldKokkos<DeviceType>::v_tally(value_type result, int i, double *v) c
     Kokkos::atomic_add(&(d_vatom(i,4)),v[4]);
     Kokkos::atomic_add(&(d_vatom(i,5)),v[5]);
   }
-
 }
-
 
 namespace LAMMPS_NS {
 template class FixEfieldKokkos<LMPDeviceType>;
@@ -351,4 +314,3 @@ template class FixEfieldKokkos<LMPDeviceType>;
 template class FixEfieldKokkos<LMPHostType>;
 #endif
 }
-

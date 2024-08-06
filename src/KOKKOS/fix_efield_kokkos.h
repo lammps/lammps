@@ -38,13 +38,15 @@ template<class DeviceType>
 class FixEfieldKokkos : public FixEfield {
  public:
   typedef DeviceType device_type;
-  typedef double value_type[];
   typedef ArrayTypes<DeviceType> AT;
 
   FixEfieldKokkos(class LAMMPS *, int, char **);
   ~FixEfieldKokkos() override;
   void init() override;
   void post_force(int) override;
+
+  typedef double value_type[];
+  const int value_count = 10;
 
   template<int QFLAG, int MUFLAG>
   KOKKOS_INLINE_FUNCTION
@@ -54,10 +56,7 @@ class FixEfieldKokkos : public FixEfield {
   KOKKOS_INLINE_FUNCTION
   void operator()(TagFixEfieldNonConstant<QFLAG,MUFLAG>, const int&, value_type) const;
 
-  const int value_count = 10;
-
  private:
-  class DomainKokkos *domainKK;
 
   DAT::tdual_ffloat_2d k_efield;
   typename AT::t_ffloat_2d_randomread d_efield;
@@ -73,9 +72,6 @@ class FixEfieldKokkos : public FixEfield {
 
   DAT::tdual_virial_array k_vatom;
   typename AT::t_virial_array d_vatom;
-
-  typename AT::tdual_ffloat_1d k_fsum;
-  typename AT::t_ffloat_1d d_fsum;
 
   KOKKOS_INLINE_FUNCTION
   void v_tally(value_type, int, double*) const;

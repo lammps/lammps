@@ -48,7 +48,7 @@ class FixWall : public Fix {
 
  protected:
   double epsilon[6], sigma[6], alpha[6], cutoff[6];
-  double ewall[7], ewall_all[7]; 
+  double ewall[7], ewall_all[7];
   double xscale, yscale, zscale;
   int estyle[6], sstyle[6], astyle[6], wstyle[6];
   int eindex[6], sindex[6];

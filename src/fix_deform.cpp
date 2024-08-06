@@ -649,7 +649,7 @@ void FixDeform::pre_exchange()
 
   domain->image_flip(flipxy, flipxz, flipyz);
   domain->remap_all();
-  
+
   domain->x2lamda(atom->nlocal);
   irregular->migrate_atoms();
   domain->lamda2x(atom->nlocal);

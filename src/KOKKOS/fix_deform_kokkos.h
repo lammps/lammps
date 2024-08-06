@@ -33,11 +33,10 @@ class FixDeformKokkos : public FixDeform {
 
   void pre_exchange() override;
   void end_of_step() override;
-  
+
 };
 
 }
 
 #endif
 #endif
-

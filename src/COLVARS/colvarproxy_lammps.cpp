@@ -212,14 +212,9 @@ cvm::rvector colvarproxy_lammps::position_distance(cvm::atom_pos const &pos1,
 
 void colvarproxy_lammps::log(std::string const &message)
 {
-  std::istringstream is(message);
-  std::string line;
-  while (std::getline(is, line)) {
-    if (_lmp->screen)
-      fprintf(_lmp->screen,"colvars: %s\n",line.c_str());
-    if (_lmp->logfile)
-      fprintf(_lmp->logfile,"colvars: %s\n",line.c_str());
-  }
+  auto lines = LAMMPS_NS::utils::split_lines(message);
+  for (const auto &line : lines)
+    LAMMPS_NS::utils::logmesg(_lmp, message);
 }
 
 

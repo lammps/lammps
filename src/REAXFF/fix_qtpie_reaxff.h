@@ -48,7 +48,7 @@ class FixQtpieReaxFF : public Fix {
  protected:
   int nevery, reaxflag;
   int matvecs;
-  int nn, m_fill;
+  int nn, ng, m_fill;
   int n_cap, nmax, m_cap;
   int pack_flag;
   int nlevels_respa;
@@ -90,16 +90,11 @@ class FixQtpieReaxFF : public Fix {
 
   char *pertype_option;    // argument to determine how per-type info is obtained
 			   
-  // Params from Kritikos - could rename or move to protected later
   char *gauss_file; // input file for gaussian exponents for each type of REAXFF file
-  double cutghost; // ghost atoms cutoff (used for check)
-  int nn_prev; // number of local atoms; needed for memory reallocation of chi_eff (when multiprocessing)
+  double ghost_cutoff; // ghost atoms cutoff
   double *gauss_exp; // array of gaussian exponents
   double *chi_eff; // array of effective electronegativities
-  double *chi_eff_init; // array of effective electronegativities for FixQEqReax::init_storage()
 
-  // void calculate_chi_eff(LAMMPS_NS::Atom *atom, reax_system *system, double *chi,
-  //                        int ni, int nj, double *lchi_eff);
   virtual void pertype_parameters(char *);
   void init_shielding();
   void init_taper();
@@ -109,6 +104,11 @@ class FixQtpieReaxFF : public Fix {
   virtual void allocate_matrix();
   virtual void deallocate_matrix();
   void reallocate_matrix();
+
+  void calc_chi_eff();
+  double find_min(double*, int);
+  double distance(double*, double*);
+  double efield_potential(double*);
 
   virtual void init_matvec();
   void init_H();

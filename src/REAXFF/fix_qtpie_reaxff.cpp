@@ -104,7 +104,7 @@ FixQtpieReaxFF::FixQtpieReaxFF(LAMMPS *lmp, int narg, char **arg) :
   }
   shld = nullptr;
 
-  nn = n_cap = 0;
+  nn = ng = n_cap = 0;
   nmax = 0;
   m_fill = m_cap = 0;
   pack_flag = 0;
@@ -115,6 +115,7 @@ FixQtpieReaxFF::FixQtpieReaxFF(LAMMPS *lmp, int narg, char **arg) :
   Hdia_inv = nullptr;
   b_s = nullptr;
   chi_field = nullptr;
+  chi_eff = nullptr;
   b_t = nullptr;
   b_prc = nullptr;
   b_prm = nullptr;
@@ -327,6 +328,7 @@ void FixQtpieReaxFF::allocate_storage()
   memory->create(Hdia_inv,nmax,"qeq:Hdia_inv");
   memory->create(b_s,nmax,"qeq:b_s");
   memory->create(chi_field,nmax,"qeq:chi_field");
+  memory->create(chi_eff,nmax,"qtpie:chi_eff");
   memory->create(b_t,nmax,"qeq:b_t");
   memory->create(b_prc,nmax,"qeq:b_prc");
   memory->create(b_prm,nmax,"qeq:b_prm");
@@ -354,6 +356,7 @@ void FixQtpieReaxFF::deallocate_storage()
   memory->destroy(b_prc);
   memory->destroy(b_prm);
   memory->destroy(chi_field);
+  memory->destroy(chi_eff);
 
   memory->destroy(p);
   memory->destroy(q);
@@ -553,11 +556,13 @@ void FixQtpieReaxFF::setup_pre_force(int vflag)
 {
   if (reaxff) {
     nn = reaxff->list->inum;
+    ng = reaxff->list->inum + reaxff->list->gnum;
     ilist = reaxff->list->ilist;
     numneigh = reaxff->list->numneigh;
     firstneigh = reaxff->list->firstneigh;
   } else {
     nn = list->inum;
+    ng = list->inum + list->gnum;
     ilist = list->ilist;
     numneigh = list->numneigh;
     firstneigh = list->firstneigh;
@@ -593,14 +598,15 @@ void FixQtpieReaxFF::min_setup_pre_force(int vflag)
 
 void FixQtpieReaxFF::init_storage()
 {
-  if (efield) get_chi_field();
+  // if (efield) get_chi_field();
+  calc_chi_eff();
 
   for (int ii = 0; ii < nn; ii++) {
     int i = ilist[ii];
     if (atom->mask[i] & groupbit) {
       Hdia_inv[i] = 1. / eta[atom->type[i]];
-      b_s[i] = -chi[atom->type[i]];
-      if (efield) b_s[i] -= chi_field[i];
+      b_s[i] = -chi_eff[i];
+      // if (efield) b_s[i] -= chi_field[i];
       b_t[i] = -1.0;
       b_prc[i] = 0;
       b_prm[i] = 0;
@@ -619,11 +625,13 @@ void FixQtpieReaxFF::pre_force(int /*vflag*/)
 
   if (reaxff) {
     nn = reaxff->list->inum;
+    ng = reaxff->list->inum + reaxff->list->gnum;
     ilist = reaxff->list->ilist;
     numneigh = reaxff->list->numneigh;
     firstneigh = reaxff->list->firstneigh;
   } else {
     nn = list->inum;
+    ng = list->inum + list->gnum;
     ilist = list->ilist;
     numneigh = list->numneigh;
     firstneigh = list->firstneigh;
@@ -636,7 +644,8 @@ void FixQtpieReaxFF::pre_force(int /*vflag*/)
   if (n > n_cap*DANGER_ZONE || m_fill > m_cap*DANGER_ZONE)
     reallocate_matrix();
 
-  if (efield) get_chi_field();
+  // if (efield) get_chi_field();
+  calc_chi_eff();
 
   init_matvec();
 
@@ -676,8 +685,8 @@ void FixQtpieReaxFF::init_matvec()
 
       /* init pre-conditioner for H and init solution vectors */
       Hdia_inv[i] = 1. / eta[atom->type[i]];
-      b_s[i]      = -chi[atom->type[i]];
-      if (efield) b_s[i] -= chi_field[i];
+      b_s[i]      = -chi_eff[i];
+      // if (efield) b_s[i] -= chi_field[i];
       b_t[i]      = -1.0;
 
       /* quadratic extrapolation for s & t from previous solutions */
@@ -1194,4 +1203,123 @@ void FixQtpieReaxFF::get_chi_field()
       }
     }
   }
+}
+
+void FixQtpieReaxFF::calc_chi_eff()
+{
+  memset(&chi_eff[0],0,atom->nmax*sizeof(double));
+  const int KSCREEN = 10;
+  const double ZERONAME = 1.0e-50;
+  const double ANG_TO_BOHRRAD = 1.8897259886;  // 1 Ang = 1.8897259886 Bohr radius
+
+  double R,a_min,OvIntMaxR,voltage,overlap,nominator,denominator;
+  double ea,eb,chia,chib,p,m;
+  double phia,phib;
+  int i,j;
+  const int ntypes = atom->ntypes;
+  const int *type = atom->type;
+  // const auto x = (const double * const *)atom->x;
+  double **x = atom->x;
+
+  // Use integral pre-screening for overlap calculations
+  a_min = find_min(gauss_exp,ntypes+1);
+  OvIntMaxR = sqrt(pow(a_min,-1.)*log(pow(M_PI/(2.*a_min),3.)*pow(10.,2.*KSCREEN)));
+
+  ghost_cutoff = MAX(neighbor->cutneighmax,comm->cutghostuser);
+  if(ghost_cutoff < OvIntMaxR/ANG_TO_BOHRRAD) {
+    error->all(FLERR,"ghost cutoff error");
+    // char errmsg[256];
+    // snprintf(errmsg, 256,"qtpie/reaxff: limit distance for overlap integral: %f "
+	   //   "Angstrom > ghost cutoff: %f Angstrom. Increase the ghost atom cutoff "
+	   //   "with comm_modify.",OvIntMaxR/ANG_TO_BOHRRAD,ghost_cutoff);
+    // // system->error_ptr->all(FLERR,errmsg);
+    // error->all(FLERR,errmsg);
+  }
+
+  for (i = 0; i < nn; i++) {
+
+    // type_i = type[i];
+    ea = gauss_exp[type[i]];
+    chia = chi[type[i]];
+
+    nominator = denominator = 0.0;
+
+    for (j = 0; j < ng; j++) {
+
+      R = distance(x[i],x[j])*ANG_TO_BOHRRAD;
+      overlap = voltage = 0.0;
+
+      if (R < OvIntMaxR)
+      {
+        // type_j = type[j];
+        eb = gauss_exp[type[j]];
+        chib = chi[type[j]];
+
+        // The expressions below are in atomic units
+        // Implementation from Chen Jiahao, Theory and applications of fluctuating-charge models, 2009 (with normalization constants added)
+        p = ea + eb;
+        m = ea * eb / p;
+        overlap = pow((4. * m / p), 0.75) * exp(-m * R * R);
+
+        // Implementation from T. Halgaker et al., Molecular electronic-structure theory, 2000
+//        p = ea + eb;
+//        m = ea * eb / p;
+//        Overlap = pow((M_PI / p), 1.5) * exp(-m * R * R);
+
+        if (efield) {
+          phib = efield_potential(x[j]);
+          voltage = chia - chib + phib;
+        } else {
+          voltage = chia - chib;
+        }
+        nominator += voltage * overlap;
+        denominator += overlap;
+      }
+    }
+    if (denominator != 0.0 && nominator != 0.0)
+      chi_eff[i] = nominator / denominator;
+    else
+      chi_eff[i] = ZERONAME;
+
+    if (efield) {
+      phia = efield_potential(x[i]);
+      chi_eff[i] -= phia;
+    }
+  }
+}
+
+/* ---------------------------------------------------------------------- */
+
+double FixQtpieReaxFF::find_min(double *array, int array_length)
+{
+  // since types start from 1, gaussian exponents start from 1
+  double smallest = array[1];
+  for (int i = 1; i < array_length; i++)
+  {
+    if (array[i] < smallest) 
+      smallest = array[i];
+  }
+  return smallest;
+}
+
+/* ---------------------------------------------------------------------- */
+
+double FixQtpieReaxFF::distance(double *loc1, double *loc2)
+{
+  double distx, disty, distz;
+  distx = loc2[0] - loc1[0];
+  disty = loc2[1] - loc1[1];
+  distz = loc2[2] - loc1[2];
+  return sqrt(distx*distx + disty*disty + distz*distz);
+}
+
+/* ---------------------------------------------------------------------- */
+
+double FixQtpieReaxFF::efield_potential(double *x)
+{
+  double x_efcomp, y_efcomp, z_efcomp;
+  x_efcomp = x[0] * efield->ex;
+  y_efcomp = x[1] * efield->ey;
+  z_efcomp = x[2] * efield->ez;
+  return x_efcomp + y_efcomp + z_efcomp;
 }

@@ -93,12 +93,19 @@ Syntax
    pair_style coul/long cutoff
    pair_style coul/wolf alpha cutoff
    pair_style coul/streitz cutoff keyword alpha
+
+   * cutoff = global cutoff for Coulombic interactions
+   * kappa = Debye length (inverse distance units)
+   * alpha = damping parameter (inverse distance units)
+
+.. code-block:: LAMMPS
+
    pair_style tip4p/cut otype htype btype atype qdist cutoff
    pair_style tip4p/long otype htype btype atype qdist cutoff
 
-* cutoff = global cutoff for Coulombic interactions
-* kappa = Debye length (inverse distance units)
-* alpha = damping parameter (inverse distance units)
+   * otype,htype = atom types (numeric or type label) for TIP4P O and H
+   * btype,atype = bond and angle types (numeric or type label) for TIP4P waters
+   * qdist = distance from O atom to massless charge (distance units)
 
 Examples
 """"""""
@@ -136,6 +143,12 @@ Examples
    pair_coeff * *
 
    pair_style tip4p/long 1 2 7 8 0.15 10.0
+   pair_coeff * *
+
+   labelmap atom 1 OW 2 HW
+   labelmap bond 1 HW-OW
+   labelmap angle 1 HW-OW-HW
+   pair_style tip4p/cut OW HW HW-OW HW-OW-HW 0.15 12.0
    pair_coeff * *
 
 Description

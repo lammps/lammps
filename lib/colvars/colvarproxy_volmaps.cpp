@@ -21,7 +21,7 @@ colvarproxy_volmaps::colvarproxy_volmaps()
 colvarproxy_volmaps::~colvarproxy_volmaps() {}
 
 
-int colvarproxy_volmaps::volmaps_available()
+int colvarproxy_volmaps::check_volmaps_available()
 {
   return COLVARS_NOT_IMPLEMENTED;
 }

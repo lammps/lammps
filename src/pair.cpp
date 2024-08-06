@@ -53,14 +53,15 @@ int Pair::instance_total = 0;
 /* ---------------------------------------------------------------------- */
 
 Pair::Pair(LAMMPS *lmp) :
-    Pointers(lmp), eatom(nullptr), vatom(nullptr), cvatom(nullptr), cutsq(nullptr),
-    setflag(nullptr), cutghost(nullptr), rtable(nullptr), drtable(nullptr), ftable(nullptr),
-    dftable(nullptr), ctable(nullptr), dctable(nullptr), etable(nullptr), detable(nullptr),
-    ptable(nullptr), dptable(nullptr), vtable(nullptr), dvtable(nullptr), rdisptable(nullptr),
-    drdisptable(nullptr), fdisptable(nullptr), dfdisptable(nullptr), edisptable(nullptr),
-    dedisptable(nullptr), pvector(nullptr), svector(nullptr), list(nullptr), listhalf(nullptr),
-    listfull(nullptr), list_tally_compute(nullptr), elements(nullptr), elem1param(nullptr),
-    elem2param(nullptr), elem3param(nullptr), map(nullptr)
+    Pointers(lmp), virial{0.0, 0.0, 0.0, 0.0, 0.0, 0.0}, eatom(nullptr), vatom(nullptr),
+    cvatom(nullptr), cutsq(nullptr), setflag(nullptr), cutghost(nullptr), rtable(nullptr),
+    drtable(nullptr), ftable(nullptr), dftable(nullptr), ctable(nullptr), dctable(nullptr),
+    etable(nullptr), detable(nullptr), ptable(nullptr), dptable(nullptr), vtable(nullptr),
+    dvtable(nullptr), rdisptable(nullptr), drdisptable(nullptr), fdisptable(nullptr),
+    dfdisptable(nullptr), edisptable(nullptr), dedisptable(nullptr), pvector(nullptr),
+    svector(nullptr), list(nullptr), listhalf(nullptr), listfull(nullptr),
+    list_tally_compute(nullptr), elements(nullptr), elem1param(nullptr), elem2param(nullptr),
+    elem3param(nullptr), map(nullptr)
 {
   instance_me = instance_total++;
 

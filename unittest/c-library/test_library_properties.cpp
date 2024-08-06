@@ -547,13 +547,22 @@ TEST_F(LibraryProperties, neighlist)
     lammps_command(lmp, "run 0 post no");
     if (!verbose) ::testing::internal::GetCapturedStdout();
 
-    int nhisto =
-        *(double *)lammps_extract_fix(lmp, "dist", LMP_STYLE_GLOBAL, LMP_TYPE_VECTOR, 0, 0);
-    int nskip = *(double *)lammps_extract_fix(lmp, "dist", LMP_STYLE_GLOBAL, LMP_TYPE_VECTOR, 1, 0);
-    double minval =
-        *(double *)lammps_extract_fix(lmp, "dist", LMP_STYLE_GLOBAL, LMP_TYPE_VECTOR, 2, 0);
-    double maxval =
-        *(double *)lammps_extract_fix(lmp, "dist", LMP_STYLE_GLOBAL, LMP_TYPE_VECTOR, 3, 0);
+    void *ptr  = lammps_extract_fix(lmp, "dist", LMP_STYLE_GLOBAL, LMP_TYPE_VECTOR, 0, 0);
+    int nhisto = *(double *)ptr;
+    lammps_free(ptr);
+
+    ptr       = lammps_extract_fix(lmp, "dist", LMP_STYLE_GLOBAL, LMP_TYPE_VECTOR, 1, 0);
+    int nskip = *(double *)ptr;
+    lammps_free(ptr);
+
+    ptr           = lammps_extract_fix(lmp, "dist", LMP_STYLE_GLOBAL, LMP_TYPE_VECTOR, 2, 0);
+    double minval = *(double *)ptr;
+    lammps_free(ptr);
+
+    ptr           = lammps_extract_fix(lmp, "dist", LMP_STYLE_GLOBAL, LMP_TYPE_VECTOR, 3, 0);
+    double maxval = *(double *)ptr;
+    lammps_free(ptr);
+
     // 21 pair distances counted, none skipped, smallest 1.0, largest 2.1
     EXPECT_EQ(nhisto, 21);
     EXPECT_EQ(nskip, 0);

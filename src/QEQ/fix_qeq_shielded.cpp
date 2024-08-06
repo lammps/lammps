@@ -56,6 +56,7 @@ void FixQEqShielded::init()
   neighbor->add_request(this, NeighConst::REQ_FULL);
 
   const int ntypes = atom->ntypes;
+  memory->destroy(shld);
   memory->create(shld, ntypes + 1, ntypes + 1, "qeq:shielding");
 
   init_shielding();

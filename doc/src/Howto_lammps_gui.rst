@@ -98,9 +98,25 @@ get access to the other included executables.
 Linux on x86\_64
 ^^^^^^^^^^^^^^^^
 
-After downloading and unpacking the
+For Linux with x86\_64 CPU there are currently two variants. The first
+is compiled on Ubuntu 20.04LTS, is using some wrapper scripts, and
+should be compatible with more recent Linux distributions.  After
+downloading and unpacking the
 ``LAMMPS-Linux-x86_64-GUI-<version>.tar.gz`` package.  You can switch
 into the "LAMMPS_GUI" folder and execute "./lammps-gui" directly.
+
+The second variant uses `flatpak <https://www.flatpak.org>`_ and
+requires the flatpak management and runtime software to be installed.
+After downloading the ``LAMMPS-GUI-Linux-x86_64-GUI-<version>.tar.gz``
+flatpak bundle, you can install it with ``flatpak install --user
+LAMMPS-GUI-Linux-x86_64-GUI-<version>.tar.gz``.  After installation,
+LAMMPS-GUI should be integrated into your desktop environment under
+"Applications > Science" but also can be launched from the console with
+``flatpak run org.lammps.lammps-gui``.  The flatpak bundle also includes
+the console LAMMPS executable ``lmp`` which can be launched to run
+simulations with, for example: ``flatpak run --command=lmp
+org.lammps.lammps-gui -in in.melt``.
+
 
 Compiling from Source
 ^^^^^^^^^^^^^^^^^^^^^
@@ -400,9 +416,15 @@ Otherwise the default sequence of colors of the :doc:`dump image
 <dump_image>` command is assigned to the different atom types and the
 diameters are all the same.
 
-.. image:: JPG/lammps-gui-image.png
+.. figure:: JPG/lammps-gui-image.png
    :align: center
    :scale: 50%
+
+   Visualization of LAMMPS "peptide" example
+
+.. versionchanged:: 1.6
+
+   Buttons for toggling shininess and re-centering were added.
 
 The default image size, some default image quality settings, the view
 style and some colors can be changed in the ``Preferences`` dialog
@@ -442,6 +464,12 @@ Paste (`Ctrl-V`), Undo (`Ctrl-Z`), Redo (`Ctrl-Shift-Z`), Select All
 dialog will pop up asking whether to cancel the exit operation, or to
 save or not save the buffer contents to a file.
 
+.. versionadded:: 1.6
+
+The editor has an auto-save mode that can be enabled or disabled in the
+``Preferences`` dialog.  In auto-save mode, the editor buffer is
+automatically saved before running LAMMPS or before exiting LAMMPS-GUI.
+
 Context Specific Word Completion
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
@@ -471,11 +499,12 @@ Line Reformatting
 The editor supports reformatting lines according to the syntax in order
 to have consistently aligned lines.  This primarily means adding
 whitespace padding to commands, type specifiers, IDs and names.  This
-reformatting is performed by default when hitting the 'Enter' key to
-start a new line.  This feature can be turned on or off in the
-``Preferences`` dialog, but it can still be manually performed by
-hitting the 'TAB' key.  The amount of padding can be adjusted in the
-``Preferences`` dialog for the *Editor*.
+reformatting is performed manually by hitting the 'Tab' key.  It is
+also possible to have this done automatically when hitting the 'Enter'
+key to start a new line.  This feature can be turned on or off in the
+``Preferences`` dialog for ``Editor Settings`` with the
+"Reformat with 'Enter'" checkbox. The amount of padding for multiple
+categories can be adjusted in the same dialog.
 
 Internally this functionality is achieved by splitting the line into
 "words" and then putting it back together with padding added where the
@@ -696,13 +725,15 @@ General Settings:
   log) of the application can be set.
 - *Select Text Font:* Opens a font selection dialog where the type and
   size for the text editor and log font of the application can be set.
-- *GUI update interval:* Allows to set the time interval between GUI
-  and data updates during a LAMMPS run in milliseconds. The default is
-  to update the GUI every 10 milliseconds. This is good for most cases.
-  For LAMMPS runs that run *very* fast, however, data may be missed and
-  through lowering this interval, this can be corrected. However, this
-  will make the GUI use more resources, which may be a problem on some
-  computers with slower CPUs and a small number of CPU cores. This
+- *GUI update interval:* Allows to set the time interval between GUI and
+  data updates during a LAMMPS run in milliseconds. The default is to
+  update the GUI every 10 milliseconds. This is good for many cases.
+  Set this to 100 milliseconds or more if LAMMPS-GUI consumes too many
+  resources during a run.  For LAMMPS runs that run *very* fast (for
+  example in tutorial examples), however, data may be missed and through
+  lowering this interval, this can be corrected.  However, this will
+  make the GUI use more resources, which may be a problem on some
+  computers with slower CPUs and a small number of CPU cores.  This
   setting may be changed to a value between 1 and 1000 milliseconds.
 
 Accelerators:
@@ -719,18 +750,23 @@ Snapshot Image:
 ^^^^^^^^^^^^^^^
 
 This tab allows setting defaults for the snapshot images displayed in
-the ``Image Viewer`` window, such as its dimensions and the zoom
-factor applied.  The *Antialias* switch will render images with twice
-the number of pixels for width and height and then smoothly scale the
-image back to the requested size.  This produces higher quality images
-with smoother edges at the expense of requiring more CPU time to
-render the image.  The *HQ Image mode* option turns on screen space
-ambient occlusion (SSAO) mode when rendering images.  This is also
-more time consuming, but produces a more 'spatial' representation of
-the system shading of atoms by their depth.  The *VDW Style* checkbox
-selects whether atoms are represented by space filling spheres when
-checked or by smaller spheres and sticks.  Finally there are a couple
-of drop down lists to select the background and box colors.
+the ``Image Viewer`` window, such as its dimensions and the zoom factor
+applied.  The *Antialias* switch will render images with twice the
+number of pixels for width and height and then smoothly scale the image
+back to the requested size.  This produces higher quality images with
+smoother edges at the expense of requiring more CPU time to render the
+image.  The *HQ Image mode* option turns on screen space ambient
+occlusion (SSAO) mode when rendering images.  This is also more time
+consuming, but produces a more 'spatial' representation of the system
+shading of atoms by their depth.  The *Shiny Image mode* option will
+render objects with a shiny surface when enabled.  Otherwise the
+surfaces will be matted.  The *Show Box* option selects whether the
+system box is drawn as a colored set of sticks.  Similarly, the *Show
+Axes* option selects whether a representation of the three system axes
+will be drawn as colored sticks. The *VDW Style* checkbox selects
+whether atoms are represented by space filling spheres when checked or
+by smaller spheres and sticks.  Finally there are a couple of drop down
+lists to select the background and box colors.
 
 Editor Settings:
 ^^^^^^^^^^^^^^^^
@@ -741,9 +777,11 @@ ranges, IDs (e.g. for fixes), and names (e.g. for groups).  The value
 set is the minimum width for the text element and it can be chosen in
 the range between 1 and 32.
 
-The two settings which follow enable or disable the automatic
-reformatting when hitting the 'Enter' key and the automatic display of
-the completion pop-up window.
+The three settings which follow enable or disable the automatic
+reformatting when hitting the 'Enter' key, the automatic display of
+the completion pop-up window, and whether auto-save mode is enabled.
+In auto-save mode the editor buffer is saved before a run or before
+exiting LAMMPS-GUI.
 
 -----------
 

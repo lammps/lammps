@@ -16,6 +16,7 @@
 #include "lammpsgui.h"
 
 #include <QApplication>
+#include <QEvent>
 #include <QFile>
 #include <QFileInfo>
 #include <QIcon>

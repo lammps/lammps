@@ -1186,6 +1186,7 @@ flaglog
 flagN
 flagVF
 flang
+flatpak
 fld
 floralwhite
 Florez

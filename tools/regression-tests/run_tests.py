@@ -279,20 +279,15 @@ def iterate(lmp_binary, input_folder, input_list, config, results, progress_file
         # restore the nprocs value in the configuration
         config['nprocs'] = saved_nprocs
 
-        # check if a log.lammps file exists in the current folder
-        if os.path.isfile("log.lammps") == False:
-            logger.info(f"    ERROR: No log.lammps generated with {input_test} with return code {returncode}. Check the {log_file} for the run output.\n")
+        if "Step" not in output or "Loop" not in output:
+            logger.info(f"    ERROR: no Step nor Loop in the output failed. Check the {log_file} for the run output.\n")
             logger.info(f"\n{input_test}:")
             logger.info(f"\n{error}")
-            progress.write(f"{input}: {{ folder: {input_folder}, status: \"error, no log.lammps\" }}\n")
+            progress.write(f"{input}: {{ folder: {input_folder}, status: \"error, no Step nor Loop in the output.\" }}\n")
             progress.close()
             num_error = num_error + 1
             test_id = test_id + 1
             continue
-        else:
-            # save a copy of the log file
-            cmd_str = f"cp log.lammps log.{basename}.{nprocs}"
-            p = subprocess.run(cmd_str, shell=True, text=True, capture_output=True)
 
         # check if the output contains ERROR
         if "ERROR" in output:
@@ -318,6 +313,21 @@ def iterate(lmp_binary, input_folder, input_list, config, results, progress_file
 
             test_id = test_id + 1
             continue
+
+        # check if a log.lammps file exists in the current folder
+        if os.path.isfile("log.lammps") == False:
+            logger.info(f"    ERROR: No log.lammps generated with {input_test} with return code {returncode}. Check the {log_file} for the run output.\n")
+            logger.info(f"\n{input_test}:")
+            logger.info(f"\n{error}")
+            progress.write(f"{input}: {{ folder: {input_folder}, status: \"error, no log.lammps\" }}\n")
+            progress.close()
+            num_error = num_error + 1
+            test_id = test_id + 1
+            continue
+        else:
+            # save a copy of the log file
+            cmd_str = f"cp log.lammps log.{basename}.{nprocs}"
+            p = subprocess.run(cmd_str, shell=True, text=True, capture_output=True)
 
         # process thermo output in log.lammps from the run
         thermo = extract_data_to_yaml("log.lammps")

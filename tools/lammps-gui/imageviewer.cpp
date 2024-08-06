@@ -167,7 +167,7 @@ ImageViewer::ImageViewer(const QString &fileName, LammpsWrapper *_lammps, QStrin
     auto *xval = new QSpinBox;
     xval->setRange(100, 10000);
     xval->setStepType(QAbstractSpinBox::AdaptiveDecimalStepType);
-    xval->setValue(settings.value("xsize", "800").toInt());
+    xval->setValue(settings.value("xsize", "600").toInt());
     xval->setObjectName("xsize");
     xval->setToolTip("Set rendered image width");
     xval->setMinimumSize(bsize);
@@ -318,7 +318,7 @@ void ImageViewer::reset_view()
 {
     QSettings settings;
     settings.beginGroup("snapshot");
-    xsize       = settings.value("xsize", "800").toInt();
+    xsize       = settings.value("xsize", "600").toInt();
     ysize       = settings.value("ysize", "600").toInt();
     zoom        = settings.value("zoom", 1.0).toDouble();
     hrot        = settings.value("hrot", 60).toInt();

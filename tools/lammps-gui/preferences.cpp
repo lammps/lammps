@@ -455,7 +455,7 @@ SnapshotTab::SnapshotTab(QSettings *_settings, QWidget *parent) :
     auto *cback = new QLabel("Background Color:");
     auto *cbox  = new QLabel("Box Color:");
     settings->beginGroup("snapshot");
-    auto *xval = new QLineEdit(settings->value("xsize", "800").toString());
+    auto *xval = new QLineEdit(settings->value("xsize", "600").toString());
     auto *yval = new QLineEdit(settings->value("ysize", "600").toString());
     auto *zval = new QLineEdit(settings->value("zoom", "1.0").toString());
     auto *aval = new QCheckBox;

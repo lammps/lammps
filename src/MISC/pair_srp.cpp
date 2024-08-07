@@ -348,12 +348,12 @@ void PairSRP::settings(int narg, char **arg)
   if (atom->tag_enable == 0)
     error->all(FLERR,"Pair_style srp requires atom IDs");
 
-  cut_global = utils::numeric(FLERR,arg[0],false,lmp);
+  cut_global = utils::numeric(FLERR, arg[0], false, lmp);
   // wildcard
   if (strcmp(arg[1],"*") == 0) {
     btype = 0;
   } else {
-    btype = utils::inumeric(FLERR,arg[1],false,lmp);
+    btype = utils::expand_type_int(FLERR, arg[1], Atom::BOND, lmp);
     if ((btype > atom->nbondtypes) || (btype <= 0))
       error->all(FLERR,"Illegal pair_style command");
   }
@@ -383,7 +383,7 @@ void PairSRP::settings(int narg, char **arg)
       iarg += 2;
     } else if (strcmp(arg[iarg],"bptype") == 0) {
       if (iarg+2 > narg) error->all(FLERR,"Illegal pair srp command");
-      bptype = utils::inumeric(FLERR,arg[iarg+1],false,lmp);
+      bptype = utils::inumeric(FLERR, arg[iarg+1], false, lmp);
       if ((bptype < 1) || (bptype > atom->ntypes))
         error->all(FLERR,"Illegal bond particle type for srp");
       iarg += 2;

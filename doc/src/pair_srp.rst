@@ -15,7 +15,7 @@ Syntax
    pair_style srp/react cutoff btype dist react-id keyword value ...
 
 * cutoff = global cutoff for SRP interactions (distance units)
-* btype = bond type to apply SRP interactions to (can be wildcard, see below)
+* btype = bond type (numeric, type label, or wildcard) to apply SRP interactions to
 * distance = *min* or *mid*
 * react-id = id of either fix bond/break or fix bond/create
 * zero or more keyword/value pairs may be appended
@@ -51,6 +51,10 @@ Examples
    pair_coeff 1 1 none
    pair_coeff 1 2 none
    pair_coeff 2 2 srp 100.0 0.8
+
+   labelmap bond 1 C-C
+   pair_style hybrid srp 0.8 C-C mid
+
 
 Description
 
@@ -207,4 +211,3 @@ Chem Phys, 136 (13) 134903, 2012.
 .. _Palkar:
 
 **(Palkar)** Palkar V, Kuksenok O, J. Phys. Chem. B, 126 (1), 336-346, 2022
-

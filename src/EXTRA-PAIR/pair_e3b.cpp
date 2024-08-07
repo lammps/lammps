@@ -373,7 +373,7 @@ void PairE3B::allocateE3B()
 void PairE3B::settings(int narg, char **arg)
 {
   if (narg != 1) error->all(FLERR, "Illegal pair_style command");
-  typeO = utils::inumeric(FLERR, arg[0], false, lmp);
+  typeO = utils::expand_type_int(FLERR, arg[0], Atom::ATOM, lmp);
 }
 
 /* ----------------------------------------------------------------------

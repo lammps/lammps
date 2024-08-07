@@ -10,7 +10,7 @@ Syntax
 
    pair_style e3b Otype
 
-* Otype = atom type for oxygen
+* Otype = atom type (numeric or type label) for oxygen
 
 .. code-block:: LAMMPS
 
@@ -49,6 +49,9 @@ Examples
 
    pair_style hybrid/overlay e3b 1 lj/cut/tip4p/long 1 2 1 1 0.15 8.5
    pair_coeff * * e3b preset 2011
+
+   labelmap atom 1 C 2 H 3 O 4 N 5 OW 6 HW
+   pair_style e3b OW
 
 Used in example input script:
 

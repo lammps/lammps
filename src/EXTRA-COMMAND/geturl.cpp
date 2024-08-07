@@ -91,6 +91,7 @@ void GetURL::command(int narg, char **arg)
     curl_easy_setopt(curl, CURLOPT_WRITEDATA, (void *) out);
     curl_easy_setopt(curl, CURLOPT_FILETIME, 1L);
     curl_easy_setopt(curl, CURLOPT_FAILONERROR, 1L);
+    curl_easy_setopt(curl, CURLOPT_VERBOSE, 1L);
 
     if (!verify) {
       curl_easy_setopt(curl, CURLOPT_SSL_VERIFYPEER, 0L);

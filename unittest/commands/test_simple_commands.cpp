@@ -36,7 +36,7 @@
 #include <mpi.h>
 
 // whether to print verbose output (i.e. not capturing LAMMPS screen output).
-bool verbose = false;
+bool verbose = true;
 
 namespace LAMMPS_NS {
 using ::testing::ContainsRegex;

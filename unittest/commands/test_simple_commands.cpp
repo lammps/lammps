@@ -565,6 +565,7 @@ TEST_F(SimpleCommandsTest, Geturl)
     platform::unlink("myindex.html");
     if (Info::has_curl_support()) {
         BEGIN_CAPTURE_OUTPUT();
+        command("shell curl -v -o myindex.html https://www.lammps.org/index.html");
         command("geturl https://www.lammps.org/index.html");
         command("geturl https://www.lammps.org/index.html output myindex.html");
         END_CAPTURE_OUTPUT();

@@ -36,6 +36,7 @@ void GetURL::command(int narg, char **arg)
   if (narg < 1) utils::missing_cmd_args(FLERR, "geturl", error);
   int verify = 1;
   int overwrite = 1;
+  int verbose = 0;
 
   // process arguments
 
@@ -62,6 +63,10 @@ void GetURL::command(int narg, char **arg)
     } else if (strcmp(arg[iarg], "verify") == 0) {
       if (iarg + 2 > narg) utils::missing_cmd_args(FLERR, "geturl verify", error);
       verify = utils::logical(FLERR, arg[iarg + 1], false, lmp);
+      ++iarg;
+    } else if (strcmp(arg[iarg], "verbose") == 0) {
+      if (iarg + 2 > narg) utils::missing_cmd_args(FLERR, "geturl verbose", error);
+      verbose = utils::logical(FLERR, arg[iarg + 1], false, lmp);
       ++iarg;
     } else {
       error->all(FLERR, "Unknown geturl keyword: {}", arg[iarg]);
@@ -91,8 +96,10 @@ void GetURL::command(int narg, char **arg)
     curl_easy_setopt(curl, CURLOPT_WRITEDATA, (void *) out);
     curl_easy_setopt(curl, CURLOPT_FILETIME, 1L);
     curl_easy_setopt(curl, CURLOPT_FAILONERROR, 1L);
-    curl_easy_setopt(curl, CURLOPT_VERBOSE, 1L);
-
+    if (verbose && screen) {
+      curl_easy_setopt(curl, CURLOPT_VERBOSE, 1L);
+      curl_easy_setopt(curl, CURLOPT_STDERR, (void *) screen);
+    }
     if (!verify) {
       curl_easy_setopt(curl, CURLOPT_SSL_VERIFYPEER, 0L);
       curl_easy_setopt(curl, CURLOPT_SSL_VERIFYHOST, 0L);

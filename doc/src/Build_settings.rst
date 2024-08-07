@@ -458,6 +458,8 @@ during a run.
 Support for downloading files
 -----------------------------
 
+.. versionadded:: TBD
+
 The :doc:`geturl command <geturl>` command uses the `the libcurl library
 <https://curl.se/libcurl/>`_ to download files.  This requires that
 LAMMPS is compiled accordingly which needs the following settings:

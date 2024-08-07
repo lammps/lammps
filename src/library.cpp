@@ -5880,6 +5880,9 @@ int lammps_config_has_ffmpeg_support() {
 /** Check if the LAMMPS library supports downloading files via libcurl
 
 \verbatim embed:rst
+
+.. versionadded::TBD
+
 The LAMMPS :doc:`geturl command <geturl>` supports downloading files
 through using `the libcurl library <https://curl.se/libcurl/>`_.
 This function checks whether this feature was :ref:`enabled at compile

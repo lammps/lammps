@@ -31,6 +31,8 @@ Examples
 Description
 """""""""""
 
+.. versionadded:: TBD
+
 Download a file from an URL to the local disk. This is implemented with
 the `libcurl library <https:://curl.se/libcurl/>`_ which supports a
 large variety of protocols including "http", "https", "ftp", "scp",

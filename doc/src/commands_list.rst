@@ -45,6 +45,7 @@ Commands
    fix
    fix_modify
    fitpod_command
+   geturl
    group
    group2ndx
    hyper

@@ -679,6 +679,33 @@ void LammpsGui::view_file(const QString &fileName)
 void LammpsGui::inspect_file(const QString &fileName)
 {
     QFile file(fileName);
+    auto shortName = QFileInfo(fileName).fileName();
+
+    if (file.size() > 262144000L) {
+        QMessageBox msg;
+        msg.setWindowTitle("  Warning:  Large Restart File  ");
+        msg.setWindowIcon(windowIcon());
+        msg.setText(QString("<center>The restart file ") + shortName + " is large</center>");
+        QString details = "Inspecting the restart file %1 with LAMMPS-GUI may need an additional "
+                          "%2 GB of free RAM (or more) to proceed";
+        msg.setDetailedText(details.arg(shortName).arg(file.size() / 134217728.0));
+        msg.setInformativeText("Do you want to continue?");
+        msg.setIcon(QMessageBox::Question);
+        msg.setStandardButtons(QMessageBox::Yes | QMessageBox::No);
+        msg.setDefaultButton(QMessageBox::No);
+        msg.setEscapeButton(QMessageBox::No);
+        int rv = msg.exec();
+        switch (rv) {
+            case QMessageBox::No:
+                return;
+                break;
+            case QMessageBox::Yes: // fallthrough
+            default:
+                // do nothing
+                break;
+        }
+    }
+
     if (!file.open(QIODevice::ReadOnly)) {
         QMessageBox::warning(this, "Warning",
                              "Cannot open file " + fileName + ": " + file.errorString() + ".\n");
@@ -707,8 +734,7 @@ void LammpsGui::inspect_file(const QString &fileName)
         auto infolog = QString("%1.info.log").arg(fileName);
         QFile dumpinfo(infolog);
         if (dumpinfo.open(QIODevice::WriteOnly)) {
-            auto shortName = QFileInfo(fileName).fileName();
-            auto infodata  = QString("%1.tmp.data").arg(fileName);
+            auto infodata = QString("%1.tmp.data").arg(fileName);
             dumpinfo.write(info.c_str(), info.size());
             dumpinfo.close();
             auto *infoviewer =

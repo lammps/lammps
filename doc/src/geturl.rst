@@ -12,13 +12,14 @@ Syntax
 
 * url = URL of the file to download
 * zero or more keyword argument pairs may be provided
-* keyword = *output* or *verify* or *overwrite*
+* keyword = *output* or *verify* or *overwrite* or *verbose*
 
   .. parsed-literal::
 
      *output* filename = write to *filename* instead of inferring the name from the URL
      *verify* yes/no = verify SSL certificate and hostname if *yes*, do not if *no*
      *overwrite* yes/no = if *yes* overwrite the output file in case it exists, do not if *no*
+     *verbose* yes/no = if *yes* write verbose debug output from libcurl to screen, do not if *no*
 
 Examples
 """"""""
@@ -49,6 +50,13 @@ SSL certificate.
 The *overwrite* keyword determines whether a file should be overwritten if it
 already exists.  If the argument is *no*, then the download will be skipped
 if the file exists.
+
+The *verbose* keyword determines whether a detailed protocol of the steps
+performed by libcurl is written to the screen.  Using the argument *yes*
+can be used to debug connection issues when the *geturl* command does not
+behave as expected.  If the argument is *no*, geturl will operate silently
+and only report the error status number provided by libcurl, in case of a
+failure.
 
 ----------
 

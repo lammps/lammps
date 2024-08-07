@@ -87,6 +87,7 @@ LammpsGui::LammpsGui(QWidget *parent, const char *filename) :
     current_dir = QDir(".").absolutePath();
     // use $HOME if we get dropped to "/" like on macOS
     if (current_dir == "/") current_dir = QDir::homePath();
+    inspectList.clear();
 
 #define stringify(x) myxstr(x)
 #define myxstr(x) #x
@@ -585,6 +586,7 @@ void LammpsGui::update_variables()
 // open file and switch CWD to path of file
 void LammpsGui::open_file(const QString &fileName)
 {
+    purge_inspect_list();
     if (ui->textEdit->document()->isModified()) {
         QMessageBox msg;
         msg.setWindowTitle("Unsaved Changes");
@@ -675,11 +677,43 @@ void LammpsGui::view_file(const QString &fileName)
     }
 }
 
+void LammpsGui::purge_inspect_list()
+{
+    for (auto item : inspectList) {
+        if (item->info) {
+            if (!item->info->isVisible()) {
+                delete item->info;
+                item->info = nullptr;
+            }
+        }
+        if (item->data) {
+            if (!item->data->isVisible()) {
+                delete item->data;
+                item->data = nullptr;
+            }
+        }
+        if (item->image) {
+            if (!item->image->isVisible()) {
+                delete item->image;
+                item->image = nullptr;
+            }
+        }
+        if (!item->image && !item->data && !item->info) inspectList.removeOne(item);
+    }
+}
+
 // read restart file into LAMMPS instance and launch image viewer
 void LammpsGui::inspect_file(const QString &fileName)
 {
     QFile file(fileName);
     auto shortName = QFileInfo(fileName).fileName();
+
+    purge_inspect_list();
+    auto ilist   = new InspectData;
+    ilist->info  = nullptr;
+    ilist->data  = nullptr;
+    ilist->image = nullptr;
+    inspectList.append(ilist);
 
     if (file.size() > 262144000L) {
         QMessageBox msg;
@@ -724,6 +758,7 @@ void LammpsGui::inspect_file(const QString &fileName)
 
     // LAMMPS is not re-entrant, so we can only query LAMMPS when it is not running a simulation
     if (!lammps.is_running()) {
+
         start_lammps();
         lammps.command("clear");
         lammps.command(QString("read_restart %1").arg(fileName).toLocal8Bit());
@@ -740,15 +775,18 @@ void LammpsGui::inspect_file(const QString &fileName)
             auto *infoviewer =
                 new FileViewer(infolog, QString("LAMMPS-GUI: restart info for %1").arg(shortName));
             infoviewer->show();
+            ilist->info = infoviewer;
             dumpinfo.remove();
             lammps.command(QString("write_data %1 pair ij noinit").arg(infodata).toLocal8Bit());
             auto *dataviewer =
                 new FileViewer(infodata, QString("LAMMPS-GUI: data file for %1").arg(shortName));
             dataviewer->show();
+            ilist->data = dataviewer;
             QFile(infodata).remove();
             auto *inspect_image = new ImageViewer(
                 fileName, &lammps, QString("LAMMPS-GUI: Image for %1").arg(shortName));
             inspect_image->show();
+            ilist->image = inspect_image;
         }
     }
 }
@@ -782,6 +820,7 @@ void LammpsGui::write_file(const QString &fileName)
 
 void LammpsGui::save()
 {
+    purge_inspect_list();
     QString fileName = current_file;
     // If we don't have a filename from before, get one.
     if (fileName.isEmpty()) fileName = QFileDialog::getSaveFileName(this, "Save");
@@ -1095,6 +1134,7 @@ void LammpsGui::do_run(bool use_buffer)
         return;
     }
 
+    purge_inspect_list();
     autoSave();
     if (!use_buffer && ui->textEdit->document()->isModified()) {
         QMessageBox msg;

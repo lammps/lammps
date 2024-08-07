@@ -48,6 +48,7 @@ class QLabel;
 class QPlainTextEdit;
 class QProgressBar;
 class QTimer;
+class QWidget;
 
 class Highlighter;
 class StdCapture;
@@ -78,6 +79,7 @@ protected:
     void run_done();
     void setDocver();
     void autoSave();
+    void purge_inspect_list();
     bool eventFilter(QObject *watched, QEvent *event) override;
 
 public slots:
@@ -135,6 +137,13 @@ private:
     Preferences *prefdialog;
     QLabel *lammpsstatus;
     QLabel *varwindow;
+
+    struct InspectData {
+        QWidget *info;
+        QWidget *data;
+        QWidget *image;
+    };
+    QList<InspectData *> inspectList;
 
     QString current_file;
     QString current_dir;

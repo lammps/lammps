@@ -11,93 +11,82 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
+/* ----------------------------------------------------------------------
+   Contributing Author:      Jacob Gissinger (jgissing@stevens.edu)
+   KOKKOS version (2024/08): Mitch Murphy (alphataubio@gmail.com)
+------------------------------------------------------------------------- */
+
 #ifdef FIX_CLASS
 // clang-format off
-FixStyle(bond/react,FixBondReact);
+FixStyle(bond/react/kk,FixBondReactKokkos<LMPDeviceType>);
+FixStyle(bond/react/kk/device,FixBondReactKokkos<LMPDeviceType>);
+FixStyle(bond/react/kk/host,FixBondReactKokkos<LMPHostType>);
 // clang-format on
 #else
 
-#ifndef LMP_FIX_BOND_REACT_H
-#define LMP_FIX_BOND_REACT_H
+// clang-format off
+#ifndef LMP_FIX_BOND_REACT_KOKKOS_H
+#define LMP_FIX_BOND_REACT_KOKKOS_H
 
-#include "fix.h"
+#include "fix_bond_react.h"
+#include "kokkos_type.h"
 
 #include <map>
 #include <set>
 
 namespace LAMMPS_NS {
 
-class FixBondReact : public Fix {
+template<class DeviceType>
+class FixBondReactKokkos : public FixBondReact {
  public:
-  enum { MAXLINE = 1024 };   // max length of line read from files
-  enum { MAXNAME = 256 };    // max character length of react-ID
-  enum { MAXCONIDS = 4 };    // max # of IDs used by any constraint
-  enum { MAXCONPAR = 5 };    // max # of constraint parameters
 
-  FixBondReact(class LAMMPS *, int, char **);
-  ~FixBondReact() override;
-  int setmask() override;
+  FixBondReactKokkos(class LAMMPS *, int, char **);
+  ~FixBondReactKokkos() override;
+  //int setmask() override;
   void post_constructor() override;
   void init() override;
   void init_list(int, class NeighList *) override;
   void post_integrate() override;
-  void post_integrate_respa(int, int) override;
+  //void post_integrate_respa(int, int) override;
 
   int pack_forward_comm(int, int *, double *, int, int *) override;
   void unpack_forward_comm(int, int, double *) override;
   int pack_reverse_comm(int, int, double *) override;
   void unpack_reverse_comm(int, int *, double *) override;
   double compute_vector(int) override;
-  double memory_usage() override;
+  //double memory_usage() override;
 
- protected:
-  int newton_bond;
-  int nreacts;
+ private:
+
   int *nevery;
   FILE *fp;
   int *iatomtype, *jatomtype;
   int *seed;
   double **cutsq, *fraction;
   int *max_rxn, *nlocalskips, *nghostlyskips;
-  tagint lastcheck;
-  int stabilization_flag;
-  int reset_mol_ids_flag;
-  int custom_exclude_flag;
   int **rate_limit;
   int **store_rxn_count;
   int *stabilize_steps_flag;
   int *custom_charges_fragid;
   int *rescale_charges_flag;   // if nonzero, indicates number of atoms whose charges are updated
-  int rescale_charges_anyflag; // indicates if any reactions do charge rescaling
   double *mol_total_charge;    // sum of charges of post-reaction atoms whose charges are updated
   int *create_atoms_flag;
   int *modify_create_fragid;
   double *overlapsq;
   int *molecule_keyword;
-  int maxnconstraints;
   int *nconstraints;
   char **constraintstr;
-  int nrxnfunction;
   std::vector<std::string> rxnfunclist;     // lists current special rxn function
   std::vector<int> peratomflag; // 1 if special rxn function uses per-atom variable (vs. per-bond)
-  int atoms2bondflag;           // 1 if atoms2bond map has been populated on this timestep
-  int narrhenius;
   int **var_flag, **var_id;     // for keyword values with variable inputs
-  int status;
   int *groupbits;
 
-  int rxnID;          // integer ID for identifying current bond/react
   char **rxn_name;    // name of reaction
   int *reaction_count;
   int *reaction_count_total;
-  int nmax;          // max num local atoms
-  int max_natoms;    // max natoms in a molecule template
-  int max_rate_limit_steps;    // max rate limit interval
   tagint *partner, *finalpartner;
   double **distsq;
   int *nattempt;
-  int maxattempt;
-  int allnattempt;
   tagint ***attempt;
 
   class Molecule *onemol;      // pre-reacted molecule template
@@ -120,9 +109,6 @@ class FixBondReact : public Fix {
   char *statted_id;        // name of 'stabilization group' per-atom property
   char *master_group;      // group containing relaxing atoms from all fix rxns
   char *exclude_group;     // group for system-wide thermostat
-
-  int countflag, commflag;
-  int nlevels_respa;
 
   void superimpose_algorithm();    // main function of the superimpose algorithm
 

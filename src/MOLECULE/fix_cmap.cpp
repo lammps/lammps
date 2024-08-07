@@ -53,9 +53,14 @@ using namespace LAMMPS_NS;
 using namespace FixConst;
 using namespace MathConst;
 
-//static constexpr int LISTDELTA = 10000;
-//static constexpr double LB_FACTOR = 1.5;
+static constexpr int LISTDELTA = 10000;
+static constexpr double LB_FACTOR = 1.5;
 
+static constexpr int CMAPMAX = 6;   // max # of CMAP terms stored by one atom
+static constexpr int CMAPDIM = 24;  // grid map dimension is 24 x 24
+static constexpr double CMAPXMIN = -360.0;
+static constexpr double CMAPXMIN2 = -180.0;
+static constexpr double CMAPDX = 15.0; // 360/CMAPDIM
 
 
 /* ---------------------------------------------------------------------- */
@@ -70,6 +75,8 @@ FixCMAP::FixCMAP(LAMMPS *lmp, int narg, char **arg) :
 {
   if (narg != 4) error->all(FLERR,"Illegal fix cmap command");
 
+
+  std::cerr << "*** FixCMAP constructor\n";
   restart_global = 1;
   restart_peratom = 1;
   energy_global_flag = energy_peratom_flag = 1;
@@ -305,7 +312,7 @@ void FixCMAP::pre_reverse(int eflag, int /*vflag*/)
 
 void FixCMAP::post_force(int vflag)
 {
-  int n,i1,i2,i3,i4,i5,type,nlist;
+  int i1,i2,i3,i4,i5,type,nlist;
   int li1, li2, mli1,mli2,mli11,mli21,t1,li3,li4,mli3,mli4,mli31,mli41;
   int list[5];
   // vectors needed to calculate the cross-term dihedral angles
@@ -338,11 +345,11 @@ void FixCMAP::post_force(int vflag)
   double **f = atom->f;
   int nlocal = atom->nlocal;
 
-  ecmap = 0.0;
+  //if( ncrosstermlist>0 ) ecmap = 0.0;
   int eflag = eflag_caller;
   ev_init(eflag,vflag);
 
-  for (n = 0; n < ncrosstermlist; n++) {
+  for (int n = 0; n < ncrosstermlist; n++) {
     i1 = crosstermlist[n][0];
     i2 = crosstermlist[n][1];
     i3 = crosstermlist[n][2];
@@ -489,6 +496,9 @@ void FixCMAP::post_force(int vflag)
       if (i4 < nlocal) ecmap += engfraction;
       if (i5 < nlocal) ecmap += engfraction;
 
+      //std::cerr << fmt::format("*** i {} {} {} {} {} nlocal {} E {} ecmap {}\n",
+        //i1,i2,i3,i4,i5,nlocal,E,ecmap);
+
       // calculate the derivatives dphi/dr_i
 
       dphidr1x = 1.0*r32/a1sq*a1x;
@@ -598,7 +608,12 @@ void FixCMAP::post_force(int vflag)
         ev_tally(nlist,list,5.0,E,vcmap);
         //ev_tally(5,list,nlocal,newton_bond,E,vcmap);
       }
+
+     std::cerr << fmt::format("*** n {} ecmap {}\n",n,ecmap);
+
   }
+
+     std::cerr << fmt::format("*** post_force eflag {} eflag_caller {} evflag {} thermo_energy {} ncrosstermlist {} vflag {} ecmap {}\n",eflag,eflag_caller,evflag,thermo_energy,ncrosstermlist,vflag,ecmap);
 
 }
 
@@ -607,6 +622,7 @@ void FixCMAP::post_force(int vflag)
 void FixCMAP::post_force_respa(int vflag, int ilevel, int /*iloop*/)
 {
   if (ilevel == ilevel_respa) post_force(vflag);
+     std::cerr << fmt::format("*** post_force_respa ecmap {}\n",ecmap);
 }
 
 /* ---------------------------------------------------------------------- */
@@ -614,6 +630,7 @@ void FixCMAP::post_force_respa(int vflag, int ilevel, int /*iloop*/)
 void FixCMAP::min_post_force(int vflag)
 {
   post_force(vflag);
+     std::cerr << fmt::format("*** min_post_force vflag {} ecmap {}\n",vflag,ecmap);
 }
 
 /* ----------------------------------------------------------------------
@@ -623,8 +640,10 @@ void FixCMAP::min_post_force(int vflag)
 double FixCMAP::compute_scalar()
 {
   double all;
+
+
   MPI_Allreduce(&ecmap,&all,1,MPI_DOUBLE,MPI_SUM,world);
-  utils::logmesg(lmp, "compute_scalar = {}\n", all);
+  utils::logmesg(lmp, "compute_scalar: ecmap {} all {}\n", ecmap, all);
   return all;
 }
 

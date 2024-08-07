@@ -35,6 +35,16 @@
 using namespace LAMMPS_NS;
 using namespace MathConst;
 
+static constexpr int LISTDELTA = 10000;
+static constexpr double LB_FACTOR = 1.5;
+
+static constexpr int CMAPMAX = 6;   // max # of CMAP terms stored by one atom
+static constexpr int CMAPDIM = 24;  // grid map dimension is 24 x 24
+static constexpr double CMAPXMIN = -360.0;
+static constexpr double CMAPXMIN2 = -180.0;
+static constexpr double CMAPDX = 15.0; // 360/CMAPDIM
+
+
 /* ---------------------------------------------------------------------- */
 
 template<class DeviceType>
@@ -246,6 +256,9 @@ void FixCMAPKokkos<DeviceType>::post_force(int vflag)
   Kokkos::parallel_for(ncrosstermlist, *this);
   copymode = 0;
   atomKK->modified(execution_space,F_MASK);
+
+       std::cerr << fmt::format("*** post_force ncrosstermlist {} vflag {} ecmap {}\n",ncrosstermlist,vflag,ecmap);
+
 }
 
 
@@ -423,14 +436,19 @@ void FixCMAPKokkos<DeviceType>::operator()(const int n) const
 
       // sum up cmap energy contributions
 
-/* FIXME: needed for compute_scalar()
+      double ecmapKK = 0.0;
+
+// FIXME: needed for compute_scalar()
       double engfraction = 0.2 * E;
-      if (i1 < nlocal) ecmap += engfraction;
-      if (i2 < nlocal) ecmap += engfraction;
-      if (i3 < nlocal) ecmap += engfraction;
-      if (i4 < nlocal) ecmap += engfraction;
-      if (i5 < nlocal) ecmap += engfraction;
-*/
+      if (i1 < nlocal) ecmapKK += engfraction;
+      if (i2 < nlocal) ecmapKK += engfraction;
+      if (i3 < nlocal) ecmapKK += engfraction;
+      if (i4 < nlocal) ecmapKK += engfraction;
+      if (i5 < nlocal) ecmapKK += engfraction;
+
+      //std::cerr << fmt::format("*** i {} {} {} {} {} nlocal {} E {} ecmapKK {}\n",
+        //i1,i2,i3,i4,i5,nlocal,E,ecmapKK);
+
       // calculate the derivatives dphi/dr_i
 
       dphidr1x = 1.0*r32/a1sq*a1x;
@@ -705,7 +723,8 @@ void FixCMAPKokkos<DeviceType>::bc_interpol(double x1, double x2, int low1, int 
                            double &E, double &dEdPhi, double &dEdPsi ) const
 {
 
-  // FUSE bc_coeff() and bc_interpol() inline functions for kokkos version
+  // FUSE bc_coeff() and bc_interpol() inline functions for
+  // KOKKOS version to avoid passing cij[][] array back and forth
 
   // calculate the bicubic interpolation coefficients c_ij
 

@@ -24,14 +24,6 @@ FixStyle(cmap,FixCMAP);
 
 namespace LAMMPS_NS {
 
-#define CMAPMAX     6       // max # of CMAP terms stored by one atom
-#define CMAPDIM     24      // grid map dimension is 24 x 24
-#define CMAPXMIN    -360.0
-#define CMAPXMIN2   -180.0
-#define CMAPDX      15.0    // 360/CMAPDIM
-#define LB_FACTOR   1.5
-#define LISTDELTA   10000
-
 class FixCMAP : public Fix {
  public:
   FixCMAP(class LAMMPS *, int, char **);
@@ -73,6 +65,8 @@ class FixCMAP : public Fix {
 
   double memory_usage() override;
 
+  double ecmap;
+
  protected:
   int eflag_caller;
   int ctype, ilevel_respa;
@@ -88,7 +82,6 @@ class FixCMAP : public Fix {
   tagint **crossterm_atom1, **crossterm_atom2, **crossterm_atom3;
   tagint **crossterm_atom4, **crossterm_atom5;
 
-  double ecmap;
   double *g_axis;
 
   // CMAP grid points obtained from external file

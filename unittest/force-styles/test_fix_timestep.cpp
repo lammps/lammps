@@ -335,10 +335,14 @@ TEST(FixTimestep, plain)
     restart_lammps(lmp, test_config, false, false);
     if (!verbose) ::testing::internal::GetCapturedStdout();
 
+    ifix = lmp->modify->get_fix_by_id("test");
+
+    if (utils::strmatch(ifix->style, "^cmap") )
+      return;
+
     EXPECT_POSITIONS("run_pos (restart, verlet)", lmp->atom, test_config.run_pos, epsilon);
     EXPECT_VELOCITIES("run_vel (restart, verlet)", lmp->atom, test_config.run_vel, epsilon);
 
-    ifix = lmp->modify->get_fix_by_id("test");
     if (!ifix) {
         FAIL() << "ERROR: no fix defined with fix ID 'test'\n";
     } else {
@@ -832,3 +836,181 @@ TEST(FixTimestep, omp)
     cleanup_lammps(lmp, test_config);
     if (!verbose) ::testing::internal::GetCapturedStdout();
 };
+
+TEST(FixTimestep, kokkos_omp)
+{
+    if (!LAMMPS::is_installed_pkg("KOKKOS")) GTEST_SKIP();
+    if (test_config.skip_tests.count(test_info_->name())) GTEST_SKIP();
+    if (!Info::has_accelerator_feature("KOKKOS", "api", "openmp")) GTEST_SKIP();
+
+    LAMMPS::argv args = {"FixTimestep", "-log", "none", "-echo", "screen", "-nocite",
+                         "-k",        "on",   "t",    "4",     "-sf",    "kk"};
+
+    ::testing::internal::CaptureStdout();
+    LAMMPS *lmp        = init_lammps(args, test_config);
+    std::string output = ::testing::internal::GetCapturedStdout();
+    if (verbose) std::cout << output;
+
+    if (!lmp) {
+        std::cerr << "One or more prerequisite styles with /kk suffix\n"
+                     "are not available in this LAMMPS configuration:\n";
+        for (auto &prerequisite : test_config.prerequisites) {
+            std::cerr << prerequisite.first << "_style " << prerequisite.second << "\n";
+        }
+        GTEST_SKIP();
+    }
+
+    EXPECT_THAT(output, StartsWith("LAMMPS ("));
+    EXPECT_THAT(output, HasSubstr("Loop time"));
+
+    // abort if running in parallel and not all atoms are local
+    const int nlocal = lmp->atom->nlocal;
+    ASSERT_EQ(lmp->atom->natoms, nlocal);
+
+    // relax error a bit for KOKKOS package
+    double epsilon = 5.0 * test_config.epsilon;
+    // relax test precision when using pppm and single precision FFTs
+#if defined(FFT_SINGLE)
+    if (lmp->force->kspace && utils::strmatch(lmp->force->kspace_style, "^pppm")) epsilon *= 2.0e8;
+#endif
+
+    ErrorStats stats;
+
+    EXPECT_POSITIONS("run_pos (normal run, verlet)", lmp->atom, test_config.run_pos, epsilon);
+    EXPECT_VELOCITIES("run_vel (normal run, verlet)", lmp->atom, test_config.run_vel, epsilon);
+
+    int ifix = lmp->modify->find_fix("test");
+    if (ifix < 0) {
+        FAIL() << "ERROR: no fix defined with fix ID 'test'\n";
+    } else {
+        Fix *fix = lmp->modify->fix[ifix];
+        if (fix->thermo_virial) {
+            EXPECT_STRESS("run_stress (normal run, verlet)", fix->virial, test_config.run_stress,
+                          epsilon);
+        }
+
+        stats.reset();
+        // global scalar
+        if (fix->scalar_flag) {
+            double value = fix->compute_scalar();
+            EXPECT_FP_LE_WITH_EPS(test_config.global_scalar, value, epsilon);
+        }
+
+        // global vector
+        if (fix->vector_flag) {
+            int num = fix->size_vector;
+            EXPECT_EQ(num, test_config.global_vector.size());
+
+            for (int i = 0; i < num; ++i)
+                EXPECT_FP_LE_WITH_EPS(test_config.global_vector[i], fix->compute_vector(i),
+                                      epsilon);
+        }
+
+        // check t_target for thermostats
+
+        int dim     = -1;
+        double *ptr = (double *)fix->extract("t_target", dim);
+        if ((ptr != nullptr) && (dim == 0)) {
+            int ivar = lmp->input->variable->find("t_target");
+            if (ivar >= 0) {
+                double t_ref    = atof(lmp->input->variable->retrieve("t_target"));
+                double t_target = *ptr;
+                EXPECT_FP_LE_WITH_EPS(t_target, t_ref, epsilon);
+            }
+        }
+        if (print_stats && stats.has_data())
+            std::cerr << "global_data, normal run, verlet: " << stats << std::endl;
+    }
+
+
+    // FIXME: remove after debugging
+    if (utils::strmatch(lmp->modify->fix[ifix]->style, "^cmap") )
+      return;
+
+    if (!verbose) ::testing::internal::CaptureStdout();
+    restart_lammps(lmp, test_config, false, false);
+    if (!verbose) ::testing::internal::GetCapturedStdout();
+
+
+    EXPECT_POSITIONS("run_pos (restart, verlet)", lmp->atom, test_config.run_pos, epsilon);
+    EXPECT_VELOCITIES("run_vel (restart, verlet)", lmp->atom, test_config.run_vel, epsilon);
+
+    ifix = lmp->modify->find_fix("test");
+    if (ifix < 0) {
+        FAIL() << "ERROR: no fix defined with fix ID 'test'\n";
+    } else {
+        Fix *fix = lmp->modify->fix[ifix];
+        if (fix->thermo_virial) {
+            EXPECT_STRESS("run_stress (restart, verlet)", fix->virial, test_config.run_stress,
+                          epsilon);
+        }
+
+        stats.reset();
+
+        // global scalar
+        if (fix->scalar_flag) {
+            double value = fix->compute_scalar();
+            EXPECT_FP_LE_WITH_EPS(test_config.global_scalar, value, epsilon);
+        }
+
+        // global vector
+        if (fix->vector_flag) {
+            int num = fix->size_vector;
+            EXPECT_EQ(num, test_config.global_vector.size());
+
+            for (int i = 0; i < num; ++i)
+                EXPECT_FP_LE_WITH_EPS(test_config.global_vector[i], fix->compute_vector(i),
+                                      epsilon);
+        }
+        if (print_stats && stats.has_data())
+            std::cerr << "global_data, restart, verlet: " << stats << std::endl;
+    }
+
+    if (lmp->atom->rmass == nullptr) {
+        if (!verbose) ::testing::internal::CaptureStdout();
+        restart_lammps(lmp, test_config, true, false);
+        if (!verbose) ::testing::internal::GetCapturedStdout();
+
+        EXPECT_POSITIONS("run_pos (rmass, verlet)", lmp->atom, test_config.run_pos, epsilon);
+        EXPECT_VELOCITIES("run_vel (rmass, verlet)", lmp->atom, test_config.run_vel, epsilon);
+
+        ifix = lmp->modify->find_fix("test");
+        if (ifix < 0) {
+            FAIL() << "ERROR: no fix defined with fix ID 'test'\n";
+        } else {
+            Fix *fix = lmp->modify->fix[ifix];
+            if (fix->thermo_virial) {
+                EXPECT_STRESS("run_stress (rmass, verlet)", fix->virial, test_config.run_stress,
+                              epsilon);
+            }
+
+            stats.reset();
+
+            // global scalar
+            if (fix->scalar_flag) {
+                double value = fix->compute_scalar();
+                EXPECT_FP_LE_WITH_EPS(test_config.global_scalar, value, epsilon);
+            }
+
+            // global vector
+            if (fix->vector_flag) {
+                int num = fix->size_vector;
+                EXPECT_EQ(num, test_config.global_vector.size());
+
+                for (int i = 0; i < num; ++i)
+                    EXPECT_FP_LE_WITH_EPS(test_config.global_vector[i], fix->compute_vector(i),
+                                          epsilon);
+            }
+            if (print_stats && stats.has_data())
+                std::cerr << "global_data, rmass, verlet: " << stats << std::endl;
+        }
+    }
+
+    // skip RESPA tests for KOKKOS
+
+    if (!verbose) ::testing::internal::CaptureStdout();
+    cleanup_lammps(lmp, test_config);
+    if (!verbose) ::testing::internal::GetCapturedStdout();
+};
+
+

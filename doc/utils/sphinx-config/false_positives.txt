@@ -2903,6 +2903,7 @@ plumedfile
 pmb
 pmcmoves
 pme
+pmf
 Pmolrotate
 Pmoltrans
 pN

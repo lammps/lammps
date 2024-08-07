@@ -69,10 +69,11 @@ source tree.
 ----------
 
 The only required argument to the fix is the name of the Colvars
-configuration file.  The contents of this file are independent from the MD
-engine in which the Colvars library has been integrated, save for the units
-that are specific to each engine.  In LAMMPS, the units used by Colvars are
-consistent with those specificed by the :doc:`units <units>` command.
+configuration file.  The contents of this file are independent from the
+MD engine in which the Colvars library has been integrated, save for the
+units that are specific to each engine.  In LAMMPS, the units used by
+Colvars are consistent with those specified by the :doc:`units <units>`
+command.
 
 .. versionadded:: Colvars_2023-06-04 The special value "*none*"
                   (lowercase) initializes an empty Colvars module, which
@@ -153,6 +154,8 @@ For this reason, the "output" keyword is required for fix colvars.
 Controlling Colvars via `fix_modify`
 """"""""""""""""""""""""""""""""""""
 
+.. versionadded:: Colvars_2023-06-04
+
 The :doc:`fix_modify <fix_modify>` command may be used on "fix colvars" in
 either one of two ways:
 
@@ -177,10 +180,9 @@ either one of two ways:
       fix_modify Colvars output equil2
 
 
-(2) .. versionadded:: Colvars_2023-06-04 Call one of the scripting
-    functions provided by the Colvars module itself (a full list is available
-    in the Colvars doc).  The arguments to these functions are provided as
-    strings and passed to Colvars.
+(2) Call one of the scripting functions provided by the Colvars module
+    itself (a full list is available in the Colvars doc).  The arguments
+    to these functions are provided as strings and passed to Colvars.
 
     LAMMPS variables referenced by their string representation
     "${variable}" will be expanded immediately.  Note also that this
@@ -229,7 +231,9 @@ Related commands
 ----------
 
 .. _Fiorin:
+
 **(Fiorin)** Fiorin, Klein, Henin, Mol. Phys. 111, 3345 (2013) https://doi.org/10.1080/00268976.2013.813594
 
 .. _Colvars_LAMMPS_doc:
+
 https://colvars.github.io/colvars-refman-lammps/colvars-refman-lammps.html

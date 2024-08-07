@@ -561,6 +561,14 @@ generated with a :doc:`write_data command <write_data>`.  The third
 window is a :ref:`Snapshot Image Viewer <snapshot_viewer>` containing a
 visualization of the system in the restart.
 
+If the restart file is larger than 250 MBytes, a dialog will ask
+for confirmation before continuing, since large restart files
+may require large amounts of RAM since the entire system must
+be read into RAM.  Thus restart file for large simulations that
+have been run on an HPC cluster may overload a laptop or local
+workstation. The ``Show Details...`` button will display a rough
+estimate of the additional memory required.
+
 Menu
 ----
 

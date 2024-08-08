@@ -54,6 +54,7 @@ table above.
    * :doc:`echo <echo>`
    * :doc:`fix <fix>`
    * :doc:`fix_modify <fix_modify>`
+   * :doc:`geturl <geturl>`
    * :doc:`group <group>`
    * :doc:`if <if>`
    * :doc:`improper_coeff <improper_coeff>`

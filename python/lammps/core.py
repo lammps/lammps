@@ -1969,6 +1969,21 @@ class lammps(object):
 
   # -------------------------------------------------------------------------
 
+  @property
+  def has_curl_support(self):
+    """ Report whether the LAMMPS shared library was compiled with support
+    for downloading files through libcurl.
+
+    This is a wrapper around the :cpp:func:`lammps_config_has_curl_support`
+    function of the library interface.
+
+    :return: state of CURL support
+    :rtype: bool
+    """
+    return self.lib.lammps_config_has_curl_support() != 0
+
+  # -------------------------------------------------------------------------
+
   def has_package(self, name):
     """ Report if the named package has been enabled in the LAMMPS shared library.
 

@@ -203,6 +203,7 @@ struct _liblammpsplugin {
   int (*config_has_png_support)();
   int (*config_has_jpeg_support)();
   int (*config_has_ffmpeg_support)();
+  int (*config_has_curl_support)();
   int (*config_has_exceptions)();
 
   int (*config_has_package)(const char *);

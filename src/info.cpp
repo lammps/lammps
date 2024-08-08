@@ -296,6 +296,7 @@ void Info::command(int narg, char **arg)
     if (has_png_support()) fputs("-DLAMMPS_PNG\n",out);
     if (has_jpeg_support()) fputs("-DLAMMPS_JPEG\n",out);
     if (has_ffmpeg_support()) fputs("-DLAMMPS_FFMPEG\n",out);
+    if (has_curl_support()) fputs("-DLAMMPS_CURL\n",out);
     if (has_fft_single_support()) fputs("-DFFT_SINGLE\n",out);
 
 #if defined(LAMMPS_BIGBIG)
@@ -857,6 +858,8 @@ bool Info::is_available(const char *category, const char *name)
       return has_jpeg_support();
     } else if (strcmp(name,"ffmpeg") == 0) {
       return has_ffmpeg_support();
+    } else if (strcmp(name,"curl") == 0) {
+      return has_curl_support();
     } else if (strcmp(name,"fft_single") == 0) {
       return has_fft_single_support();
     } else if (strcmp(name,"exceptions") == 0) {
@@ -1071,6 +1074,14 @@ bool Info::has_jpeg_support() {
 
 bool Info::has_ffmpeg_support() {
 #ifdef LAMMPS_FFMPEG
+  return true;
+#else
+  return false;
+#endif
+}
+
+bool Info::has_curl_support() {
+#ifdef LAMMPS_CURL
   return true;
 #else
   return false;

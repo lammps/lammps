@@ -392,13 +392,29 @@ void PairTIP4PLong::settings(int narg, char **arg)
 {
   if (narg != 6) error->all(FLERR,"Illegal pair_style command");
 
-  typeO = utils::expand_type_int(FLERR, arg[0], Atom::ATOM, lmp);
-  typeH = utils::expand_type_int(FLERR, arg[1], Atom::ATOM, lmp);
-  typeB = utils::expand_type_int(FLERR, arg[2], Atom::BOND, lmp);
-  typeA = utils::expand_type_int(FLERR, arg[3], Atom::ANGLE, lmp);
+  typeO_str = arg[0];
+  typeH_str = arg[1];
+  typeB_str = arg[2];
+  typeA_str = arg[3];
   qdist = utils::numeric(FLERR, arg[4], false, lmp);
 
   cut_coul = utils::numeric(FLERR, arg[5], false, lmp);
+}
+
+/* ----------------------------------------------------------------------
+   set coeffs for one or more type pairs
+------------------------------------------------------------------------- */
+
+void PairTIP4PLong::coeff(int narg, char **arg)
+{
+  // set atom types from pair_style command
+
+  typeO = utils::expand_type_int(FLERR, typeO_str, Atom::ATOM, lmp);
+  typeH = utils::expand_type_int(FLERR, typeH_str, Atom::ATOM, lmp);
+  typeB = utils::expand_type_int(FLERR, typeB_str, Atom::BOND, lmp);
+  typeA = utils::expand_type_int(FLERR, typeA_str, Atom::ANGLE, lmp);
+
+  PairCoulLong::coeff(narg, arg);
 }
 
 /* ----------------------------------------------------------------------

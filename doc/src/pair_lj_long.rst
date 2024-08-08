@@ -66,10 +66,12 @@ Examples
    pair_coeff * * 100.0 3.0
    pair_coeff 1 1 100.0 3.5 9.0
 
+   pair_style lj/long/tip4p/long long long OW HW HW-OW HW-OW-HW 0.15 12.0
    labelmap atom 1 OW 2 HW
    labelmap bond 1 HW-OW
    labelmap angle 1 HW-OW-HW
-   pair_style lj/long/tip4p/long long long OW HW HW-OW HW-OW-HW 0.15 12.0
+   pair_coeff * * 100.0 3.0
+   pair_coeff OW OW 100.0 3.5 9.0
 
 Description
 """""""""""
@@ -117,6 +119,11 @@ massless charge site are specified as pair_style arguments.
    is to enable LAMMPS to "find" the 2 H atoms associated with each O
    atom.  For example, if the atom ID of an O atom in a TIP4P water
    molecule is 500, then its 2 H atoms must have IDs 501 and 502.
+
+.. note::
+
+   If using type labels, the type labels must be defined before calling
+   the :doc:`pair_coeff <pair_coeff>` command.
 
 See the :doc:`Howto tip4p <Howto_tip4p>` page for more
 information on how to use the TIP4P pair style.  Note that the

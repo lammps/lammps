@@ -161,10 +161,12 @@ Examples
    pair_coeff * * 0.155 3.1536 1.0
    pair_coeff 1 1 0.155 3.1536 1.0 9.5
 
+   pair_style lj/cut/tip4p/long/soft OW HW HW-OW HW-OW-HW 0.15 2.0 0.5 10.0 9.8
    labelmap atom 1 OW 2 HW
    labelmap bond 1 HW-OW
    labelmap angle 1 HW-OW-HW
-   pair_style lj/cut/tip4p/long/soft OW HW HW-OW HW-OW-HW 0.15 2.0 0.5 10.0 9.8
+   pair_coeff * * 0.155 3.1536 1.0
+   pair_coeff OW OW 0.155 3.1536 1.0 9.5
 
    pair_style lj/charmm/coul/long 2.0 0.5 10.0 8.0 10.0
    pair_style lj/charmm/coul/long 2.0 0.5 10.0 8.0 10.0 9.0
@@ -279,6 +281,11 @@ model. The usage of the TIP4P pair style is documented in the :doc:`pair_lj
 TIP4P water model and before the cutoffs. The activation parameter lambda is
 supplied as an argument of the :doc:`pair_coeff <pair_coeff>` command, after
 epsilon and sigma and before the optional cutoffs.
+
+.. note::
+
+   If using type labels, the type labels must be defined before calling
+   the :doc:`pair_coeff <pair_coeff>` command.
 
 Style *lj/charmm/coul/long/soft* implements a soft-core version of the modified
 12-6 LJ potential used in CHARMM and documented in the :doc:`pair_style

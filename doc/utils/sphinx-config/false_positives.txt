@@ -1298,6 +1298,7 @@ Gershgorin
 getrusage
 getter
 gettimeofday
+geturl
 gewald
 Gezelter
 Gflop
@@ -1492,6 +1493,8 @@ hplanck
 Hs
 hstyle
 html
+http
+https
 hTST
 https
 hu
@@ -3350,6 +3353,7 @@ Schunk
 Schuring
 Schwen
 Sci
+scp
 screenshot
 screenshots
 Scripps
@@ -3390,6 +3394,7 @@ setvel
 sevenbody
 sfftw
 sfree
+sftp
 Sg
 sgcmc
 Shan
@@ -3904,6 +3909,7 @@ upenn
 upto
 Urbakh
 Urbana
+url
 UreyBradley
 Usabiaga
 usec

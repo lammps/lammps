@@ -510,6 +510,14 @@ if(PKG_ATC OR PKG_AWPMD OR PKG_ML-QUIP OR PKG_ML-POD OR PKG_ELECTRODE OR BUILD_T
   endif()
 endif()
 
+find_package(CURL QUIET COMPONENTS HTTP HTTPS)
+option(WITH_CURL "Enable libcurl support" ${CURL_FOUND})
+if(WITH_CURL)
+  find_package(CURL REQUIRED COMPONENTS HTTP HTTPS)
+  target_compile_definitions(lammps PRIVATE -DLAMMPS_CURL)
+  target_link_libraries(lammps PRIVATE CURL::libcurl)
+endif()
+
 # tweak jpeg library names to avoid linker errors with MinGW cross-compilation
 set(JPEG_NAMES libjpeg libjpeg-62)
 find_package(JPEG QUIET)

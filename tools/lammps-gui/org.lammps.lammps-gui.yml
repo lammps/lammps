@@ -108,4 +108,4 @@ modules:
     sources:
       - type: git
         url: https://github.com/akohlmey/lammps.git
-        branch: collected-small-changes
+        branch: collected-small-fixes

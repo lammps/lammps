@@ -23,7 +23,7 @@ Syntax
 
   .. parsed-literal::
 
-       *bptype* value = atom type for bond particles
+       *bptype* value = atom type (numeric or type label) for bond particles
        *exclude* value = *yes* or *no*
 
 Examples
@@ -120,6 +120,11 @@ is used.
    Because bonds interact only with other bonds, :doc:`pair_style hybrid <pair_hybrid>` should be used to turn off interactions
    between atom type *bptype* and all other types of atoms.  An error
    will be flagged if :doc:`pair_style hybrid <pair_hybrid>` is not used.
+
+.. note::
+
+   If using type labels, the type labels must be defined before calling
+   the :doc:`pair_coeff <pair_coeff>` command.
 
 The optional *exclude* keyword determines if forces are computed
 between first neighbor (directly connected) bonds.  For a setting of

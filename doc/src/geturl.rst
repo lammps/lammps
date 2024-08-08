@@ -42,10 +42,10 @@ large variety of protocols including "http", "https", "ftp", "scp",
 The *output* keyword can be used to set the filename. By default, the last part
 of the URL is used.
 
-The *verify* keyword allows to turn on or off whether ``libcurl`` will validate
-the SSL certificate and hostname for encrypted connections.  Turning this off
-may be required when using a proxy or connecting to a server with a self-signed
-SSL certificate.
+The *verify* keyword determines whether ``libcurl`` will validate the
+SSL certificate and hostname for encrypted connections.  Turning this
+off may be required when using a proxy or connecting to a server with a
+self-signed SSL certificate.
 
 The *overwrite* keyword determines whether a file should be overwritten if it
 already exists.  If the argument is *no*, then the download will be skipped

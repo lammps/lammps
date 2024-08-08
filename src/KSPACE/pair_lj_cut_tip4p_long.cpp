@@ -425,10 +425,10 @@ void PairLJCutTIP4PLong::settings(int narg, char **arg)
 {
   if (narg < 6 || narg > 7) error->all(FLERR,"Illegal pair_style command");
 
-  typeO = utils::expand_type_int(FLERR, arg[0], Atom::ATOM, lmp);
-  typeH = utils::expand_type_int(FLERR, arg[1], Atom::ATOM, lmp);
-  typeB = utils::expand_type_int(FLERR, arg[2], Atom::BOND, lmp);
-  typeA = utils::expand_type_int(FLERR, arg[3], Atom::ANGLE, lmp);
+  typeO_str = arg[0];
+  typeH_str = arg[1];
+  typeB_str = arg[2];
+  typeA_str = arg[3];
   qdist = utils::numeric(FLERR, arg[4], false, lmp);
 
   cut_lj_global = utils::numeric(FLERR, arg[5], false, lmp);
@@ -443,6 +443,22 @@ void PairLJCutTIP4PLong::settings(int narg, char **arg)
       for (j = i; j <= atom->ntypes; j++)
         if (setflag[i][j]) cut_lj[i][j] = cut_lj_global;
   }
+}
+
+/* ----------------------------------------------------------------------
+   set coeffs for one or more type pairs
+------------------------------------------------------------------------- */
+
+void PairLJCutTIP4PLong::coeff(int narg, char **arg)
+{
+  // set atom types from pair_style command
+
+  typeO = utils::expand_type_int(FLERR, typeO_str, Atom::ATOM, lmp);
+  typeH = utils::expand_type_int(FLERR, typeH_str, Atom::ATOM, lmp);
+  typeB = utils::expand_type_int(FLERR, typeB_str, Atom::BOND, lmp);
+  typeA = utils::expand_type_int(FLERR, typeA_str, Atom::ANGLE, lmp);
+
+  PairLJCutCoulLong::coeff(narg, arg);
 }
 
 /* ----------------------------------------------------------------------

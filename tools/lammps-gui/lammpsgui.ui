@@ -79,6 +79,16 @@
     <addaction name="actionView_in_OVITO"/>
     <addaction name="actionView_in_VMD"/>
    </widget>
+   <widget class="QMenu" name="menu_Tutorial">
+    <property name="title">
+     <string>&amp;Tutorials</string>
+    </property>
+    <addaction name="actionLAMMPS_Tutorial"/>
+    <addaction name="separator"/>
+    <addaction name="actionTutorial1"/>
+    <addaction name="actionTutorial2"/>
+    <addaction name="separator"/>
+   </widget>
    <widget class="QMenu" name="menuAbout">
     <property name="title">
      <string>&amp;About</string>
@@ -103,6 +113,7 @@
    <addaction name="menuEdit"/>
    <addaction name="menu_Run"/>
    <addaction name="menu_View"/>
+   <addaction name="menu_Tutorial"/>
    <addaction name="menuAbout"/>
   </widget>
   <widget class="QStatusBar" name="statusbar"/>
@@ -320,7 +331,7 @@
     <iconset theme=":/icons/help-browser.png"/>
    </property>
    <property name="text">
-    <string>LAMMPS &amp;Manual</string>
+    <string>LAMMPS Online &amp;Manual</string>
    </property>
    <property name="shortcut">
     <string>Ctrl+Shift+M</string>
@@ -331,7 +342,7 @@
     <iconset theme=":/icons/help-tutorial.png"/>
    </property>
    <property name="text">
-    <string>LAMMPS &amp;Tutorial</string>
+    <string>LAMMPS &amp;Tutorial Website</string>
    </property>
    <property name="shortcut">
     <string>Ctrl+Shift+T</string>
@@ -471,6 +482,22 @@
    </property>
    <property name="shortcut">
     <string>Ctrl+Shift+W</string>
+   </property>
+  </action>
+  <action name="actionTutorial1">
+   <property name="icon">
+    <iconset theme=":/icons/document-new.png"/>
+   </property>
+   <property name="text">
+    <string>Start LAMMPS Tutorial &amp;1</string>
+   </property>
+  </action>
+  <action name="actionTutorial2">
+   <property name="icon">
+    <iconset theme=":/icons/document-new.png"/>
+   </property>
+   <property name="text">
+    <string>Start LAMMPS Tutorial &amp;2</string>
    </property>
   </action>
   <action name="actionLAMMPS_GUI_Howto">

@@ -37,6 +37,7 @@
 #include <QFont>
 #include <QGuiApplication>
 #include <QLabel>
+#include <QLineEdit>
 #include <QLocale>
 #include <QMessageBox>
 #include <QProcess>
@@ -49,6 +50,8 @@
 #include <QTextStream>
 #include <QTimer>
 #include <QUrl>
+#include <QWizard>
+#include <QWizardPage>
 
 #include <algorithm>
 #include <cstdint>
@@ -67,8 +70,8 @@ LammpsGui::LammpsGui(QWidget *parent, const char *filename) :
     QMainWindow(parent), ui(new Ui::LammpsGui), highlighter(nullptr), capturer(nullptr),
     status(nullptr), logwindow(nullptr), imagewindow(nullptr), chartwindow(nullptr),
     slideshow(nullptr), logupdater(nullptr), dirstatus(nullptr), progress(nullptr),
-    prefdialog(nullptr), lammpsstatus(nullptr), varwindow(nullptr), runner(nullptr),
-    is_running(false), run_counter(0)
+    prefdialog(nullptr), lammpsstatus(nullptr), varwindow(nullptr), wizard(nullptr),
+    runner(nullptr), is_running(false), run_counter(0)
 {
     // enforce using the plain ASCII C locale within the GUI.
     QLocale::setDefault(QLocale("C"));
@@ -213,11 +216,13 @@ LammpsGui::LammpsGui(QWidget *parent, const char *filename) :
     connect(ui->actionStop_LAMMPS, &QAction::triggered, this, &LammpsGui::stop_run);
     connect(ui->actionSet_Variables, &QAction::triggered, this, &LammpsGui::edit_variables);
     connect(ui->actionImage, &QAction::triggered, this, &LammpsGui::render_image);
+    connect(ui->actionLAMMPS_Tutorial, &QAction::triggered, this, &LammpsGui::tutorial_web);
+    connect(ui->actionTutorial1, &QAction::triggered, this, &LammpsGui::start_tutorial1);
+    connect(ui->actionTutorial2, &QAction::triggered, this, &LammpsGui::start_tutorial2);
     connect(ui->actionAbout_LAMMPS_GUI, &QAction::triggered, this, &LammpsGui::about);
     connect(ui->action_Help, &QAction::triggered, this, &LammpsGui::help);
     connect(ui->actionLAMMPS_GUI_Howto, &QAction::triggered, this, &LammpsGui::howto);
     connect(ui->actionLAMMPS_Manual, &QAction::triggered, this, &LammpsGui::manual);
-    connect(ui->actionLAMMPS_Tutorial, &QAction::triggered, this, &LammpsGui::tutorial);
     connect(ui->actionPreferences, &QAction::triggered, this, &LammpsGui::preferences);
     connect(ui->actionDefaults, &QAction::triggered, this, &LammpsGui::defaults);
     connect(ui->actionView_in_OVITO, &QAction::triggered, this, &LammpsGui::start_exe);
@@ -1495,9 +1500,111 @@ void LammpsGui::manual()
     QDesktopServices::openUrl(QUrl(QString("https://docs.lammps.org%1").arg(docver)));
 }
 
-void LammpsGui::tutorial()
+void LammpsGui::tutorial_web()
 {
     QDesktopServices::openUrl(QUrl("https://lammpstutorials.github.io/"));
+}
+
+void LammpsGui::start_tutorial1()
+{
+    if (wizard) delete wizard;
+    wizard = new QWizard;
+    wizard->addPage(tutorial1_intro());
+    wizard->addPage(tutorial1_directory());
+    wizard->setWindowTitle("Tutorial 1 Setup Wizard");
+    wizard->show();
+}
+
+QWizardPage *LammpsGui::tutorial1_intro()
+{
+    auto *page = new QWizardPage;
+    page->setTitle("Getting Started With Tutorial 1");
+    auto *logo = new QLabel;
+    logo->setPixmap(QPixmap(":/icons/tutorial1-logo.png"));
+    logo->setFrameStyle(QFrame::Panel);
+    logo->setLineWidth(2);
+    auto *label = new QLabel("<p>This wizard will help you to select and populate a folder "
+                             "with the materials to work through Tutorial 1 from the LAMMPS "
+                             "tutorials by Simon Gravelle at <b>lammpstutorials.github.io</b>.</p>"
+                             "Please click on \"Next\" to begin.");
+    label->setWordWrap(true);
+    label->setMargin(10);
+    label->setFrameStyle(QFrame::Panel | QFrame::Sunken);
+    label->setLineWidth(2);
+    auto *main = new QHBoxLayout;
+    main->addWidget(logo);
+    main->addWidget(label);
+    main->setStretch(0, 0);
+    main->setStretch(1, 100);
+
+    auto *layout = new QVBoxLayout;
+    layout->addLayout(main);
+    page->setLayout(layout);
+    return page;
+}
+
+QWizardPage *LammpsGui::tutorial1_directory()
+{
+    auto *page = new QWizardPage;
+    page->setTitle("Select Directory for Tutorial 1");
+    auto *logo = new QLabel;
+    logo->setPixmap(QPixmap(":/icons/tutorial1-logo.png"));
+    logo->setFrameStyle(QFrame::Panel);
+    logo->setLineWidth(2);
+    auto *label = new QLabel("Please select a directory to store the files for Tutorial 1");
+    label->setWordWrap(true);
+    label->setMargin(10);
+    label->setFrameStyle(QFrame::Panel | QFrame::Sunken);
+    label->setLineWidth(2);
+    auto *main = new QHBoxLayout;
+    main->addWidget(logo);
+    main->addWidget(label);
+    main->setStretch(0, 0);
+    main->setStretch(1, 100);
+
+    auto *directory = new QLineEdit(current_dir + "/" + "my-first-input");
+    auto *layout    = new QVBoxLayout;
+    layout->addLayout(main);
+    layout->addWidget(directory);
+    page->setLayout(layout);
+    return page;
+}
+
+void LammpsGui::start_tutorial2()
+{
+    if (wizard) delete wizard;
+    wizard = new QWizard;
+    wizard->addPage(tutorial2_intro());
+    wizard->addPage(tutorial2_directory());
+    wizard->setWindowTitle("Tutorial 2 Setup Wizard");
+    wizard->show();
+}
+
+QWizardPage *LammpsGui::tutorial2_intro()
+{
+    auto *page = new QWizardPage;
+    page->setTitle("Starting Tutorial 2");
+    auto *label = new QLabel("This wizard will guide you to get set up for working "
+                             "through the Tutorial 2 from lammpstutorials.github.io.");
+    label->setWordWrap(true);
+
+    auto *layout = new QVBoxLayout;
+    layout->addWidget(label);
+    page->setLayout(layout);
+    return page;
+}
+
+QWizardPage *LammpsGui::tutorial2_directory()
+{
+    auto *page = new QWizardPage;
+    page->setTitle("Select Directory for Tutorial 2");
+    auto *label = new QLabel("Please select a directory to store the files for tutorial 2");
+    label->setWordWrap(true);
+
+    auto *layout = new QVBoxLayout;
+    layout->addWidget(label);
+    page->setLayout(layout);
+    return page;
 }
 
 void LammpsGui::howto()

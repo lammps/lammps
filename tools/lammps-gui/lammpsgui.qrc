@@ -2,6 +2,7 @@
 <RCC>
   <qresource prefix="/">
     <file>icons/lammps-icon-128x128.png</file>
+    <file>icons/tutorial1-logo.png</file>
     <file>help_index.table</file>
     <!-- This file is updated with: grep 'mycmd ==' ../../src/input.cpp | sed -e 's/^.*mycmd == "\(.*\)".*$/\1/' > lammps_internal_commands.txt -->
     <file>lammps_internal_commands.txt</file>

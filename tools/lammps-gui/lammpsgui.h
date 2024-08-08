@@ -34,9 +34,13 @@
 
 // forward declarations
 
-class GeneralTab;
-class LammpsRunner;
-class LogWindow;
+class QLabel;
+class QPlainTextEdit;
+class QProgressBar;
+class QTimer;
+class QWidget;
+class QWizard;
+class QWizardPage;
 
 QT_BEGIN_NAMESPACE
 namespace Ui {
@@ -44,18 +48,15 @@ class LammpsGui;
 }
 QT_END_NAMESPACE
 
-class QLabel;
-class QPlainTextEdit;
-class QProgressBar;
-class QTimer;
-class QWidget;
-
-class Highlighter;
-class StdCapture;
-class Preferences;
-class ImageViewer;
 class ChartWindow;
+class GeneralTab;
+class Highlighter;
+class ImageViewer;
+class LammpsRunner;
+class LogWindow;
+class Preferences;
 class SlideShow;
+class StdCapture;
 
 class LammpsGui : public QMainWindow {
     Q_OBJECT
@@ -79,6 +80,10 @@ protected:
     void run_done();
     void setDocver();
     void autoSave();
+    QWizardPage *tutorial1_intro();
+    QWizardPage *tutorial1_directory();
+    QWizardPage *tutorial2_intro();
+    QWizardPage *tutorial2_directory();
     void purge_inspect_list();
     bool eventFilter(QObject *watched, QEvent *event) override;
 
@@ -113,7 +118,9 @@ private slots:
     void about();
     void help();
     void manual();
-    void tutorial();
+    void tutorial_web();
+    void start_tutorial1();
+    void start_tutorial2();
     void howto();
     void logupdate();
     void modified();
@@ -137,6 +144,7 @@ private:
     Preferences *prefdialog;
     QLabel *lammpsstatus;
     QLabel *varwindow;
+    QWizard *wizard;
 
     struct InspectData {
         QWidget *info;

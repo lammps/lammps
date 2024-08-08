@@ -510,14 +510,14 @@ e.g. the *nfile* and *fileper* keywords.  See the
 
 .. versionadded:: TBD
 
-Write out some info about the restart file and and immediately exit.  This
-is the same operation as if the following 2-line input script were
+Write out some info about the restart file and and immediately exit.
+This is the same operation as if the following 2-line input script were
 run:
 
 .. code-block:: LAMMPS
 
    read_restart restartfile
-   info system group compute fix keyword ...
+   info system group compute fix
 
 The specified restartfile name may contain the wild-card character "\*".
 The restartfile name may also contain the wild-card character "%".  The
@@ -527,10 +527,11 @@ restart file can be read.  Note that a filename such as file.\* may need
 to be enclosed in quotes or the "\*" character prefixed with a backslash
 ("\") to avoid shell expansion of the "\*" character.
 
-The :doc:`info command <info>` is already followed by the most useful
-keywords, but additional keywords like *coeffs* or *comm* may be
-appended to write out more details about the information stored in the
-restart file.
+Optional keywords may follow the restartfile.  Those would have to be
+valid keywords for the :doc:`info command <info>`.  The most useful
+ones - system, group, compute, and fix - are already applied.  Appending
+keywords like *coeffs* or *comm* may provide additional useful
+information stored in the restart file.
 
 ----------
 

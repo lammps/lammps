@@ -491,7 +491,7 @@ void ImageViewer::cmd_to_clipboard()
     QString dumpcmd = "dump viz ";
     dumpcmd += words[1] + " image 100 myimage-*.ppm";
     for (int i = 4; i < modidx; ++i)
-        dumpcmd += blank + words[i];
+        if (words[i] != "noinit") dumpcmd += blank + words[i];
     dumpcmd += '\n';
 
     dumpcmd += "dump_modify viz pad 9";

@@ -224,8 +224,10 @@ def iterate(lmp_binary, input_folder, input_list, config, results, progress_file
         logger.info(str_t)
         print(str_t)
         
-        # check if a reference log file exists in the current folder: log.DDMMMYY.basename.[nprocs]
-        basename = input_test.replace('in.','')
+        # check if a reference log file exists in the current folder: log.DDMMMYY.basename.g++.[nprocs]
+        #basename = input_test.replace('in.','')
+        # assuming that input file names start with "in."
+        basename = input_test[3:]
         logfile_exist = False
 
         # if there are multiple log files for different number of procs, pick the maximum number
@@ -236,10 +238,10 @@ def iterate(lmp_binary, input_folder, input_list, config, results, progress_file
 
         max_np = 1
         for file in logfile_list:
-            # looks for pattern log.{date}.{basename}.g++.{nprocs}
+            # looks for pattern log.{date}.{basename}.g++.{nprocs}: log.[date].min.box.g++.* vs log.[date].min.g++.*
             # get the date from the log files
             date = file.split('.',2)[1]
-            pattern = f'log.{date}.{basename}.*'
+            pattern = f'log.{date}.{basename}.g++.*'
             if fnmatch.fnmatch(file, pattern):
                 p = file.rsplit('.', 1)
                 if p[1].isnumeric():
@@ -395,7 +397,7 @@ def iterate(lmp_binary, input_folder, input_list, config, results, progress_file
         # check if the number of runs matches with that in the reference log file
         if num_runs != num_runs_ref:
             logger.info(f"     ERROR: Number of runs in log.lammps ({num_runs}) is different from that in the reference log ({num_runs_ref})."
-                        "Check README in the folder, possibly due to the mpirun command.")
+                        " Check README in the folder, possibly due to using mpirun with partitions or parsing the wrong reference log file.")
             result.status = "error, incomplete runs"
             results.append(result)
             progress.write(f"{input}: {{ folder: {input_folder}, status: \"{result.status}\" }}\n")

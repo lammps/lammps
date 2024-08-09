@@ -17,9 +17,6 @@
 #include "error.h"
 #include "memory.h"
 
-// DEBUG
-#include "update.h"
-
 #include <cstring>
 
 using namespace LAMMPS_NS;

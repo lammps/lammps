@@ -594,7 +594,7 @@ void PairMEAM::read_user_meam_file(const std::string &userfile)
     } catch (std::exception &e) {
       error->all(FLERR, "Error parsing MEAM parameter file {}:{}: {}", userfile, lineno, e.what());
     }
-    
+
     // map lattce_meam value to an integer
     if (which == 4) {
       std::string lattice_type = values.next_string();

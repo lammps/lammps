@@ -57,15 +57,16 @@ void WriteDump::command(int narg, char **arg)
   dumpargs[2] = arg[1];                                     // dump style
   dumpargs[3] = utils::strdup(std::to_string(dumpfreq));    // dump frequency
 
-  // delete existing dump with same ID to avoid re-use of dump-ID error
+  auto *dump = output->add_dump(modindex + 2, dumpargs);
 
-  auto *dump = output->get_dump_by_id(dump_id);
-  if (dump) output->delete_dump(dump_id);
-
-  for (int i = 2; i < modindex; ++i) dumpargs[i + 2] = arg[i];
-
-  dump = output->add_dump(modindex + 2, dumpargs);
-  if (modindex < narg) dump->modify_params(narg - modindex - 1, &arg[modindex + 1]);
+  try {
+    if (modindex < narg) dump->modify_params(narg - modindex - 1, &arg[modindex + 1]);
+  } catch (LAMMPSException &e) {
+    // delete dump after error and then rethrow the exception to avoid re-use of dump-ID error
+    dump = output->get_dump_by_id(dump_id);
+    if (dump) output->delete_dump(dump_id);
+    throw e;
+  }
 
   // write out one frame and then delete the dump again
   // set multifile_override for DumpImage so that filename needs no "*"

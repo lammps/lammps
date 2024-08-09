@@ -21,7 +21,6 @@
 #include "error.h"
 #include "input.h"
 #include "memory.h"
-#include "update.h"
 #include "variable.h"
 
 using namespace LAMMPS_NS;
@@ -125,7 +124,6 @@ void FixAddHeat::post_force(int /*vflag*/)
   int *mask = atom->mask;
   double *heatflow = atom->heatflow;
   double *temperature = atom->temperature;
-  double dtinv = 1.0 / update->dt;
 
   if (vstyle == ATOM) {
     if (atom->nmax > maxatom) {
@@ -142,7 +140,7 @@ void FixAddHeat::post_force(int /*vflag*/)
       if (mask[i] & groupbit)
         heatflow[i] = 0.0;
 
-  double vtmp, dt;
+  double vtmp;
   if (vstyle == CONSTANT) vtmp = value;
   if (vstyle == EQUAL) vtmp = input->variable->compute_equal(var);
   for (int i = 0; i < atom->nlocal; i++) {
@@ -150,11 +148,11 @@ void FixAddHeat::post_force(int /*vflag*/)
       if (vstyle == ATOM) vtmp = vatom[i];
 
       if (style == ADD) {
-        heatflow[i] += dtinv * vtmp;
+        heatflow[i] += vtmp;
       } else if (style == LINEAR) {
-        heatflow[i] += dtinv * prefactor * (vtmp - temperature[i]);
+        heatflow[i] += prefactor * (vtmp - temperature[i]);
       } else if (style == QUARTIC) {
-        heatflow[i] += dtinv * prefactor * (pow(vtmp, 4.0) - pow(temperature[i], 4.0));
+        heatflow[i] += prefactor * (pow(vtmp, 4.0) - pow(temperature[i], 4.0));
       }
     }
   }

@@ -607,6 +607,8 @@ FixBondReact::FixBondReact(LAMMPS *lmp, int narg, char **arg) :
 
 FixBondReact::~FixBondReact()
 {
+  if (copymode) return; // needed for KOKKOS [alphataubio,2024/08]
+
   for (int i = 0; i < narrhenius; i++) {
     delete rrhandom[i];
   }

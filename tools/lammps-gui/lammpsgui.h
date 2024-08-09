@@ -22,6 +22,7 @@
 #include <QPair>
 #include <QSpacerItem>
 #include <QString>
+#include <QWizard>
 #include <string>
 #include <vector>
 
@@ -39,7 +40,6 @@ class QPlainTextEdit;
 class QProgressBar;
 class QTimer;
 class QWidget;
-class QWizard;
 class QWizardPage;
 
 QT_BEGIN_NAMESPACE
@@ -63,6 +63,7 @@ class LammpsGui : public QMainWindow {
 
     friend class CodeEditor;
     friend class GeneralTab;
+    friend class Tutorial1Wizard;
 
 public:
     LammpsGui(QWidget *parent = nullptr, const char *filename = nullptr);
@@ -82,6 +83,7 @@ protected:
     void autoSave();
     QWizardPage *tutorial1_intro();
     QWizardPage *tutorial1_directory();
+    QWizardPage *tutorial1_finish();
     QWizardPage *tutorial2_intro();
     QWizardPage *tutorial2_directory();
     void purge_inspect_list();
@@ -97,6 +99,7 @@ private slots:
     void view();
     void inspect();
     void open_recent();
+    void get_directory();
     void start_exe();
     void save();
     void save_as();
@@ -166,6 +169,16 @@ private:
     int run_counter;
     std::vector<char *> lammps_args;
 };
+
+class Tutorial1Wizard : public QWizard {
+    Q_OBJECT
+
+public:
+    Tutorial1Wizard(QWidget *parent = nullptr) : QWizard(parent) {}
+
+    void accept() override;
+};
+
 #endif // LAMMPSGUI_H
 
 // Local Variables:

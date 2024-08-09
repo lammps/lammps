@@ -1,4 +1,5 @@
 # DATE: 2024-08-08 UNITS: metal CONTRIBUTOR: Axel Kohlmeyer, akohlmey@gmail.com CITATION: Wang, J., Kwon, H., Kim, H.S. et al. A neural network model for high entropy alloy design. npj Comput Mater 9, 60 (2023). https://doi.org/10.1038/s41524-023-01010-x
+# Use with library_2nn.meam like this: pair_coeff * * library_2nn Mo Co Ni V Fe Al Cr MoCoNiVFeAlCr_2nn.meam <Element of atom type 1> <Element of atom type 2> ...
 rc = 4.8
 delr = 0.1
 augt1 = 0

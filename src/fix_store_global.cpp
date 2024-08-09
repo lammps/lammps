@@ -17,6 +17,9 @@
 #include "error.h"
 #include "memory.h"
 
+// DEBUG
+#include "update.h"
+
 #include <cstring>
 
 using namespace LAMMPS_NS;
@@ -152,7 +155,8 @@ void FixStoreGlobal::restart(char *buf)
   //   means the restart file is setting size of vec or array and doing init
   //   because caller did not know size at time this fix was instantiated
   // reallocate vstore or astore accordingly
-
+  // also reset nrow,ncol to values from restart file
+  
   if (n1 != n1_restart || n2 != n2_restart) {
     memory->destroy(vstore);
     memory->destroy(astore);
@@ -165,8 +169,8 @@ void FixStoreGlobal::restart(char *buf)
       vecflag = 1;
     else
       arrayflag = 1;
-    n1 = n1_restart;
-    n2 = n2_restart;
+    nrow = n1 = n1_restart;
+    ncol = n2 = n2_restart;
     if (vecflag)
       memory->create(vstore, n1, "fix/store:vstore");
     else if (arrayflag)

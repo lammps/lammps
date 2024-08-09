@@ -1075,6 +1075,8 @@
 /fix_wall_srd.h
 /fix_widom.cpp
 /fix_widom.h
+/geturl.cpp
+/geturl.h
 /gpu_extra.h
 /group_ndx.cpp
 /group_ndx.h

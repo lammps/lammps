@@ -2327,7 +2327,7 @@ Procedures Bound to the :f:type:`lammps` Derived Type
    retrieved via :f:func:`get_last_error_message`.  This allows to
    restart a calculation or delete and recreate the LAMMPS instance when
    a C++ exception occurs.  One application of using exceptions this way
-   is the :ref:`lammps_shell`.
+   is the :ref:`lammps_gui`.
 
    :to: :cpp:func:`lammps_config_has_exceptions`
    :r has_exceptions:

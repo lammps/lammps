@@ -573,7 +573,7 @@ void FixElectrodeConp::setup_post_neighbor()
     if (read_mat)
       read_from_file(input_file_mat, elastance, "elastance");
     else if (!read_inv) {
-      if (etypes_neighlists) neighbor->build_one(mat_neighlist, 0);
+      if (etypes_neighlists) neighbor->build_one(mat_neighlist);
       auto array_compute = std::unique_ptr<ElectrodeMatrix>(new ElectrodeMatrix(lmp, igroup, eta));
       array_compute->setup(tag_to_iele, pair, mat_neighlist);
       if (etaflag) array_compute->setup_eta(eta_index);
@@ -931,7 +931,8 @@ void FixElectrodeConp::update_charges()
       dot_old = dot_new;
     }
     recompute_potential(std::move(b), q_local);
-    if ((delta > cg_threshold) && (comm->me == 0)) error->warning(FLERR, "CG threshold not reached");
+    if ((delta > cg_threshold) && (comm->me == 0))
+      error->warning(FLERR, "CG threshold not reached");
   } else {
     error->all(FLERR, "This algorithm is not implemented, yet");
   }

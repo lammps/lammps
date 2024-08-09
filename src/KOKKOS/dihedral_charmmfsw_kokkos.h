@@ -67,6 +67,10 @@ class DihedralCharmmfswKokkos : public DihedralCharmmfsw {
         const F_FLOAT &evdwl, const F_FLOAT &ecoul, const F_FLOAT &fpair, const F_FLOAT &delx,
                 const F_FLOAT &dely, const F_FLOAT &delz) const;
 
+  typedef typename KKDevice<DeviceType>::value KKDeviceType;
+  Kokkos::DualView<E_FLOAT*,Kokkos::LayoutRight,KKDeviceType> k_eatom;
+  Kokkos::DualView<F_FLOAT*[6],Kokkos::LayoutRight,KKDeviceType> k_vatom;
+
  protected:
 
   class NeighborKokkos *neighborKK;
@@ -76,10 +80,6 @@ class DihedralCharmmfswKokkos : public DihedralCharmmfsw {
   typename AT::t_ffloat_1d_randomread q;
   typename AT::t_f_array f;
   typename AT::t_int_2d dihedrallist;
-
-  typedef typename KKDevice<DeviceType>::value KKDeviceType;
-  Kokkos::DualView<E_FLOAT*,Kokkos::LayoutRight,KKDeviceType> k_eatom;
-  Kokkos::DualView<F_FLOAT*[6],Kokkos::LayoutRight,KKDeviceType> k_vatom;
   Kokkos::View<E_FLOAT*,Kokkos::LayoutRight,KKDeviceType,Kokkos::MemoryTraits<Kokkos::Atomic> > d_eatom;
   Kokkos::View<F_FLOAT*[6],Kokkos::LayoutRight,KKDeviceType,Kokkos::MemoryTraits<Kokkos::Atomic> > d_vatom;
 

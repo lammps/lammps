@@ -140,7 +140,7 @@ void FixAddHeat::post_force(int /*vflag*/)
       if (mask[i] & groupbit)
         heatflow[i] = 0.0;
 
-  double vtmp;
+  double vtmp = 0.0;
   if (vstyle == CONSTANT) vtmp = value;
   if (vstyle == EQUAL) vtmp = input->variable->compute_equal(var);
   for (int i = 0; i < atom->nlocal; i++) {

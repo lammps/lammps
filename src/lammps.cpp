@@ -191,7 +191,7 @@ LAMMPS::LAMMPS(int narg, char **arg, MPI_Comm communicator) :
     int me,nprocs;
     MPI_Comm_rank(communicator,&me);
     MPI_Comm_size(communicator,&nprocs);
-    int color = atoi(arg[iarg+1]);
+    int color = std::stoi(arg[iarg+1]);
     MPI_Comm subcomm;
     MPI_Comm_split(communicator,color,me,&subcomm);
     external_comm = communicator;
@@ -1454,6 +1454,7 @@ void LAMMPS::print_config(FILE *fp)
   if (Info::has_png_support()) fputs("-DLAMMPS_PNG\n",fp);
   if (Info::has_jpeg_support()) fputs("-DLAMMPS_JPEG\n",fp);
   if (Info::has_ffmpeg_support()) fputs("-DLAMMPS_FFMPEG\n",fp);
+  if (Info::has_curl_support()) fputs("-DLAMMPS_CURL\n",fp);
   if (Info::has_fft_single_support()) fputs("-DFFT_SINGLE\n",fp);
 #if defined(LAMMPS_BIGBIG)
   fputs("-DLAMMPS_BIGBIG\n",fp);

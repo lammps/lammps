@@ -16,11 +16,13 @@
 
 #include <QMainWindow>
 
+#include <QEvent>
 #include <QGridLayout>
 #include <QList>
 #include <QPair>
 #include <QSpacerItem>
 #include <QString>
+#include <string>
 #include <vector>
 
 #include "lammpswrapper.h"
@@ -61,12 +63,16 @@ public:
 
 protected:
     void open_file(const QString &filename);
+    void view_file(const QString &filename);
     void write_file(const QString &filename);
     void update_recents(const QString &filename = "");
     void update_variables();
     void do_run(bool use_buffer);
     void start_lammps();
     void run_done();
+    void setDocver();
+    void autoSave();
+    bool eventFilter(QObject *watched, QEvent *event) override;
 
 public slots:
     void quit();
@@ -75,6 +81,7 @@ public slots:
 private slots:
     void new_document();
     void open();
+    void view();
     void open_recent();
     void start_exe();
     void save();
@@ -97,6 +104,7 @@ private slots:
     void about();
     void help();
     void manual();
+    void tutorial();
     void howto();
     void logupdate();
     void modified();
@@ -128,6 +136,7 @@ private:
 
     LammpsWrapper lammps;
     LammpsRunner *runner;
+    QString docver;
     std::string plugin_path;
     bool is_running;
     int run_counter;

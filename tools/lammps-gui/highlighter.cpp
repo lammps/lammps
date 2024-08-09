@@ -23,7 +23,7 @@ Highlighter::Highlighter(QTextDocument *parent) :
                              "thermo|print|thermo_style|"
                              "timer|pair_write|bond_write|angle_write|dihedral_write)\\s+(\\S+)")),
     isOutput2(QStringLiteral("^\\s*(write_dump|shell|thermo_modify)\\s+(\\S+)\\s+(\\S+)")),
-    isRead(QStringLiteral("^\\s*(include|read_restart|read_data|read_dump|molecule)")),
+    isRead(QStringLiteral("^\\s*(include|read_restart|read_data|read_dump|molecule|geturl)\\s+(\\S+)")),
     isStyle(QStringLiteral("^\\s*(fix|compute|dump)\\s+(\\S+)\\s+(\\S+)\\s+(\\S+)")),
     isForce(QStringLiteral(
         "^\\s*(pair_style|bond_style|angle_style|dihedral_style|improper_style|kspace_style|pair_"

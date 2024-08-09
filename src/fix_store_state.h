@@ -55,12 +55,12 @@ class FixStoreState : public Fix {
       int d;
       int i;
     } val;
-    void (FixStoreState::* pack_choice)(int);    // ptr to pack function
+    void (FixStoreState::*pack_choice)(int);    // ptr to pack function
   };
   std::vector<value_t> values;
 
   double **avalues;    // archived atom properties
-  double *vbuf;       // 1d ptr to values
+  double *vbuf;        // 1d ptr to values
 
   int comflag;
   double cm[3];    // center of mass

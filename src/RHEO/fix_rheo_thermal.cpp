@@ -60,10 +60,9 @@ static const char cite_rheo_oxide[] =
 /* ---------------------------------------------------------------------- */
 
 FixRHEOThermal::FixRHEOThermal(LAMMPS *lmp, int narg, char **arg) :
-  Fix(lmp, narg, arg), fix_rheo(nullptr), compute_grad(nullptr), compute_vshift(nullptr),
-  Tc(nullptr), kappa(nullptr), cv(nullptr), L(nullptr),
-  Tc_style(nullptr), kappa_style(nullptr), cv_style(nullptr), L_style(nullptr),
-  fix_update_special_bonds(nullptr)
+  Fix(lmp, narg, arg), cv(nullptr), Tc(nullptr), kappa(nullptr), L(nullptr), cv_style(nullptr),
+  Tc_style(nullptr), kappa_style(nullptr),  L_style(nullptr), list(nullptr), fix_rheo(nullptr),
+  compute_grad(nullptr), compute_vshift(nullptr), fix_update_special_bonds(nullptr)
 {
   if (narg < 4) error->all(FLERR,"Illegal fix command");
 
@@ -189,13 +188,14 @@ FixRHEOThermal::FixRHEOThermal(LAMMPS *lmp, int narg, char **arg) :
       cut_bond = utils::numeric(FLERR, arg[iarg + 1], false, lmp);
       btype = utils::numeric(FLERR, arg[iarg + 2], false, lmp);
       comm_forward = 4;
-      if (cut_bond <= 0.0) error->all(FLERR, "Illegal max bond length must be greater than zero");\
-      if (btype < 1 || btype > atom->nbondtypes) error->all(FLERR, "Illegal value for bond type");
+      if (cut_bond <= 0.0) error->all(FLERR, "Illegal max bond length must be greater than zero");
+      if ((btype < 1) || (btype > atom->nbondtypes))
+        error->all(FLERR, "Illegal value {} for bond type", btype);
 
       cutsq_bond = cut_bond * cut_bond;
       iarg += 3;
     } else {
-      error->all(FLERR,"Illegal fix command, {}", arg[iarg]);
+      error->all(FLERR,"Unknown fix rheo/thermal keyword: {}", arg[iarg]);
     }
   }
 
@@ -460,20 +460,16 @@ void FixRHEOThermal::post_neighbor()
 
 void FixRHEOThermal::pre_force(int /*vflag*/)
 {
-  int i, itype;
   double cvi, Tci, Ti, Li;
 
   double *energy = atom->esph;
   double *temperature = atom->temperature;
   int *type = atom->type;
-  int *status = atom->rheo_status;
-
-  int nlocal = atom->nlocal;
-  int nall = nlocal + atom->nghost;
+  int nall = atom->nlocal + atom->nghost;
 
   // Calculate temperature
-  for (i = 0; i < nall; i++) {
-    itype = type[i];
+  for (int i = 0; i < nall; i++) {
+    int itype = type[i];
     cvi = calc_cv(i, itype);
     temperature[i] = energy[i] / cvi;
 
@@ -529,7 +525,6 @@ void FixRHEOThermal::break_bonds()
   int nbondlist = neighbor->nbondlist;
 
   int nlocal = atom->nlocal;
-  int nall = nlocal + atom->nghost;
 
   // Delete all bonds for local atoms that melt of a given type
   for (int i = 0; i < nlocal; i++) {
@@ -654,7 +649,7 @@ void FixRHEOThermal::create_bonds()
   int *num_bond = atom->num_bond;
   double **x = atom->x;
 
-  neighbor->build_one(list, 1);
+  neighbor->build_one(list);
 
   inum = list->inum;
   ilist = list->ilist;
@@ -753,13 +748,11 @@ double FixRHEOThermal::calc_L(int i, int itype)
 int FixRHEOThermal::pack_forward_comm(int n, int *list, double *buf,
                                         int /*pbc_flag*/, int * /*pbc*/)
 {
-  int i, j, k, m;
   int *status = atom->rheo_status;
   double **x = atom->x;
-  m = 0;
-
-  for (i = 0; i < n; i++) {
-    j = list[i];
+  int m = 0;
+  for (int i = 0; i < n; i++) {
+    int j = list[i];
     buf[m++] = ubuf(status[j]).d;
     buf[m++] = x[j][0];
     buf[m++] = x[j][1];
@@ -772,12 +765,11 @@ int FixRHEOThermal::pack_forward_comm(int n, int *list, double *buf,
 
 void FixRHEOThermal::unpack_forward_comm(int n, int first, double *buf)
 {
-  int i, k, m, last;
   int *status = atom->rheo_status;
   double **x = atom->x;
-  m = 0;
-  last = first + n;
-  for (i = first; i < last; i++) {
+  int m = 0;
+  int last = first + n;
+  for (int i = first; i < last; i++) {
     status[i] = (int) ubuf(buf[m++]).i;
     x[i][0] = buf[m++];
     x[i][1] = buf[m++];

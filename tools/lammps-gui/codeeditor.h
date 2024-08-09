@@ -14,15 +14,23 @@
 #ifndef CODEEDITOR_H
 #define CODEEDITOR_H
 
-#include <QFont>
 #include <QMap>
 #include <QPlainTextEdit>
 #include <QString>
 #include <QStringList>
 
 class QCompleter;
-class QStringListModel;
+class QContextMenuEvent;
+class QDragEnterEvent;
+class QDropEvent;
+class QFont;
+class QKeyEvent;
+class QMimeData;
+class QPaintEvent;
+class QRect;
+class QResizeEvent;
 class QShortcut;
+class QWidget;
 
 class CodeEditor : public QPlainTextEdit {
     Q_OBJECT
@@ -71,6 +79,7 @@ protected:
     void dropEvent(QDropEvent *event) override;
     void contextMenuEvent(QContextMenuEvent *event) override;
     void keyPressEvent(QKeyEvent *event) override;
+    void setDocver();
 
 private slots:
     void updateLineNumberAreaWidth(int newBlockCount);
@@ -78,6 +87,8 @@ private slots:
     void get_help();
     void find_help(QString &page, QString &help);
     void open_help();
+    void open_url();
+    void view_file();
     void reformatCurrentLine();
     void runCompletion();
     void insertCompletedCommand(const QString &completion);
@@ -97,6 +108,7 @@ private:
     int highlight;
     bool reformat_on_return;
     bool automatic_completion;
+    QString docver;
 
     QMap<QString, QString> cmd_map;
     QMap<QString, QString> fix_map;

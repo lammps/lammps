@@ -8,7 +8,8 @@ explains how to do this for building both with CMake and make.
 * `FFT library`_ for use with the :doc:`kspace_style pppm <kspace_style>` command
 * `Size of LAMMPS integer types and size limits`_
 * `Read or write compressed files`_
-* `Output of JPG, PNG, and move files` via the :doc:`dump image <dump_image>` or :doc:`dump movie <dump_image>` commands
+* `Output of JPEG, PNG, and movie files`_ via the :doc:`dump image <dump_image>` or :doc:`dump movie <dump_image>` commands
+* `Support for downloading files`_
 * `Memory allocation alignment`_
 * `Workaround for long long integers`_
 * `Exception handling when using LAMMPS as a library`_ to capture errors
@@ -19,7 +20,7 @@ explains how to do this for building both with CMake and make.
 .. _cxx11:
 
 C++11 standard compliance
-------------------------------------------
+-------------------------
 
 A C++11 standard compatible compiler is a requirement for compiling LAMMPS.
 LAMMPS version 3 March 2020 is the last version compatible with the previous
@@ -31,12 +32,16 @@ flags to enable C++11 compliance.  Example for GNU c++ 4.8.x:
 
    CCFLAGS = -g -O3 -std=c++11
 
+Individual packages may require compliance with a later C++ standard
+like C++14 or C++17.  These requirements will be documented with the
+:doc:`individual packages <Packages_details>`.
+
 ----------
 
 .. _fft:
 
 FFT library
----------------------
+-----------
 
 When the KSPACE package is included in a LAMMPS build, the
 :doc:`kspace_style pppm <kspace_style>` command performs 3d FFTs which
@@ -341,8 +346,8 @@ in whichever ``lib/gpu/Makefile`` is used must be the same as above.
 
 .. _graphics:
 
-Output of JPG, PNG, and movie files
---------------------------------------------------
+Output of JPEG, PNG, and movie files
+------------------------------------
 
 The :doc:`dump image <dump_image>` command has options to output JPEG or
 PNG image files.  Likewise, the :doc:`dump movie <dump_image>` command
@@ -356,9 +361,9 @@ requires the following settings:
       .. code-block:: bash
 
          -D WITH_JPEG=value      # yes or no
-                                 # default = yes if CMake finds JPEG files, else no
+                                 # default = yes if CMake finds JPEG development files, else no
          -D WITH_PNG=value       # yes or no
-                                 # default = yes if CMake finds PNG and ZLIB files, else no
+                                 # default = yes if CMake finds PNG and ZLIB development files, else no
          -D WITH_FFMPEG=value    # yes or no
                                  # default = yes if CMake can find ffmpeg, else no
 
@@ -414,8 +419,8 @@ Read or write compressed files
 If this option is enabled, large files can be read or written with
 compression by ``gzip`` or similar tools by several LAMMPS commands,
 including :doc:`read_data <read_data>`, :doc:`rerun <rerun>`, and
-:doc:`dump <dump>`.  Supported compression tools are currently
-``gzip``, ``bzip2``, ``zstd``, and ``lzma``.
+:doc:`dump <dump>`.  Supported compression tools and algorithms are currently
+``gzip``, ``bzip2``, ``zstd``, ``xz``, ``lz4``, and ``lzma`` (via xz).
 
 .. tabs::
 
@@ -446,12 +451,58 @@ during a run.
    available using a compression library instead, which is what the
    :ref:`COMPRESS package <PKG-COMPRESS>` enables.
 
+--------------------------------------------------
+
+.. _libcurl:
+
+Support for downloading files
+-----------------------------
+
+.. versionadded:: TBD
+
+The :doc:`geturl command <geturl>` command uses the `the libcurl library
+<https://curl.se/libcurl/>`_ to download files.  This requires that
+LAMMPS is compiled accordingly which needs the following settings:
+
+.. tabs::
+
+   .. tab:: CMake build
+
+      .. code-block:: bash
+
+         -D WITH_CURL=value      # yes or no
+                                 # default = yes if CMake finds CURL development files, else no
+
+      Usually these settings are all that is needed.  If CMake cannot
+      find the graphics header, library, executable files, you can set
+      these variables:
+
+      .. code-block:: bash
+
+         -D CURL_INCLUDE_DIR=path    # path to folder which contains curl.h header file
+         -D CURL_LIBRARY=path        # path to libcurls.a (.so) file
+
+   .. tab:: Traditional make
+
+      .. code-block:: make
+
+         LMP_INC = -DLAMMPS_CURL  <other LMP_INC settings>
+
+         CURL_INC = -I/usr/local/include   # path to curl folder with curl.h
+         CURL_PATH = -L/usr/lib            # paths to libcurl.a(.so) if make cannot find it
+         CURL_LIB = -lcurl                 # library names
+
+      As with CMake, you do not need to set ``CURL_INC`` or ``CURL_PATH``,
+      if make can find the libcurl header and library files in their
+      default system locations.  You must specify ``CURL_LIB`` with a
+      paths or linker flags to link to libcurl.
+
 ----------
 
 .. _align:
 
 Memory allocation alignment
----------------------------------------
+---------------------------
 
 This setting enables the use of the "posix_memalign()" call instead of
 "malloc()" when LAMMPS allocates large chunks of memory.  Vector

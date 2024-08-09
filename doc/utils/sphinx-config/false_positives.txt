@@ -1101,6 +1101,7 @@ excv
 exe
 executables
 extep
+extractable
 extrema
 extxyz
 exy
@@ -1185,6 +1186,7 @@ flaglog
 flagN
 flagVF
 flang
+flatpak
 fld
 floralwhite
 Florez
@@ -1296,6 +1298,7 @@ Gershgorin
 getrusage
 getter
 gettimeofday
+geturl
 gewald
 Gezelter
 Gflop
@@ -1354,6 +1357,7 @@ Grama
 grana
 granregion
 graphene
+Gravelle
 Greathouse
 greenyellow
 Greffet
@@ -1489,6 +1493,8 @@ hplanck
 Hs
 hstyle
 html
+http
+https
 hTST
 https
 hu
@@ -3079,6 +3085,7 @@ qx
 qy
 qz
 Rackers
+Radeon
 radi
 radialscreened
 radialscreenedspin
@@ -3345,6 +3352,7 @@ Schunk
 Schuring
 Schwen
 Sci
+scp
 screenshot
 screenshots
 Scripps
@@ -3385,6 +3393,7 @@ setvel
 sevenbody
 sfftw
 sfree
+sftp
 Sg
 sgcmc
 Shan
@@ -3899,6 +3908,7 @@ upenn
 upto
 Urbakh
 Urbana
+url
 UreyBradley
 Usabiaga
 usec

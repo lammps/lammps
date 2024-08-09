@@ -1,6 +1,6 @@
 cmake_minimum_required(VERSION 3.16)
 
-project(lammps-gui VERSION 1.5.12 LANGUAGES CXX)
+project(lammps-gui VERSION 1.6.6 LANGUAGES CXX)
 
 set(CMAKE_AUTOUIC ON)
 set(CMAKE_AUTOMOC ON)
@@ -22,7 +22,13 @@ function(check_omp_h_include)
     set(CMAKE_REQUIRED_INCLUDES ${OpenMP_CXX_INCLUDE_DIRS})
     set(CMAKE_REQUIRED_LINK_OPTIONS ${OpenMP_CXX_FLAGS})
     set(CMAKE_REQUIRED_LIBRARIES ${OpenMP_CXX_LIBRARIES})
-    check_include_file_cxx(omp.h _have_omp_h)
+    # there are all kinds of problems with finding omp.h
+    # for Clang and derived compilers so we pretend it is there.
+    if(CMAKE_CXX_COMPILER_ID STREQUAL "Clang")
+      set(_have_omp_h TRUE)
+    else()
+      check_include_file_cxx(omp.h _have_omp_h)
+    endif()
   else()
     set(_have_omp_h FALSE)
   endif()
@@ -88,11 +94,6 @@ else()
   endif()
 endif()
 
-#get_lammps_version(${LAMMPS_SOURCE_DIR}/version.h LAMMPS_VERSION)
-#if (LAMMPS_VERSION LESS_EQUAL 20230802)
-#  message(FATAL_ERROR "LAMMPS GUI v${PROJECT_VERSION} is incompatible with LAMMPS 2 August 2023 or older")
-#endif()
-
 set(LAMMPS_PLUGINLIB_DIR ${LAMMPS_DIR}/examples/COUPLE/plugin)
 if(LAMMPS_GUI_USE_PLUGIN)
   if(APPLE)
@@ -118,7 +119,7 @@ if(NOT Qt6_FOUND)
 else()
   set(QT_VERSION_MAJOR 6)
 endif()
-message(STATUS "Using Qt version ${Qt${QT_VERSION_MAJOR}_VERSION} for LAMMPS GUI")
+message(STATUS "Using Qt version ${Qt${QT_VERSION_MAJOR}_VERSION} for LAMMPS-GUI")
 
 set(PROJECT_SOURCES
   main.cpp
@@ -140,6 +141,8 @@ set(PROJECT_SOURCES
   linenumberarea.h
   logwindow.cpp
   logwindow.h
+  fileviewer.cpp
+  fileviewer.h
   preferences.cpp
   preferences.h
   setvariables.cpp
@@ -195,6 +198,27 @@ if(BUILD_OMP)
   target_link_libraries(lammps-gui PRIVATE OpenMP::OpenMP_CXX)
 endif()
 
+# build LAMMPS-GUI and LAMMPS as flatpak, if tools are installed
+find_program(FLATPAK_COMMAND flatpak DOC "Path to flatpak command")
+find_program(FLATPAK_BUILDER flatpak-builder DOC "Path to flatpak-builder command")
+if(FLATPAK_COMMAND AND FLATPAK_BUILDER)
+  file(STRINGS ${LAMMPS_DIR}/src/version.h line REGEX LAMMPS_VERSION)
+  string(REGEX REPLACE "#define LAMMPS_VERSION \"([0-9]+) ([A-Za-z][A-Za-z][A-Za-z])[A-Za-z]* ([0-9]+)\""
+                       "\\1\\2\\3" LAMMPS_RELEASE "${line}")
+  add_custom_target(flatpak
+    COMMAND ${FLATPAK_BUILDER} --force-clean --verbose --ccache --repo=repo --user --default-branch=${LAMMPS_RELEASE}
+                   --install-deps-from=flathub flatpak-build ${LAMMPS_DIR}/tools/lammps-gui/org.lammps.lammps-gui.yml
+    COMMAND ${FLATPAK_COMMAND} build-bundle --runtime-repo=https://flathub.org/repo/flathub.flatpakrepo --verbose
+                                      repo LAMMPS_GUI-Linux-amd64.flatpak org.lammps.lammps-gui ${LAMMPS_RELEASE}
+    COMMENT "Create Flatpak bundle file of LAMMPS-GUI and LAMMPS"
+    BYPRODUCT LAMMPS-Linux-amd64.flatpak
+    WORKING_DIRECTORY ${CMAKE_BINARY_DIR}
+  )
+else()
+  add_custom_target(flatpak
+    COMMAND ${CMAKE_COMMAND} -E echo "The flatpak and flatpak-builder commands required to build a LAMMPS-GUI flatpak bundle were not found. Skipping.")
+endif()
+
 # when compiling on macOS, create an "app bundle"
 if(APPLE)
   set_target_properties(lammps-gui PROPERTIES
@@ -202,7 +226,7 @@ if(APPLE)
     MACOSX_BUNDLE_BUNDLE_VERSION ${PROJECT_VERSION}
     MACOSX_BUNDLE_SHORT_VERSION_STRING ${PROJECT_VERSION_MAJOR}.${PROJECT_VERSION_MINOR}
     MACOSX_BUNDLE_ICON_FILE lammps.icns
-    MACOSX_BUNDLE_COPYRIGHT "(c) 2003 - 2023, The LAMMPS Developers"
+    MACOSX_BUNDLE_COPYRIGHT "(c) 2003 - 2024, The LAMMPS Developers"
     MACOSX_BUNDLE TRUE
   )
   # additional targets to populate the bundle tree and create the .dmg image file
@@ -281,6 +305,7 @@ elseif((CMAKE_SYSTEM_NAME STREQUAL "Windows") AND CMAKE_CROSSCOMPILING)
 elseif((CMAKE_SYSTEM_NAME STREQUAL "Linux") AND NOT LAMMPS_GUI_USE_PLUGIN)
   install(TARGETS lammps-gui DESTINATION ${CMAKE_INSTALL_BINDIR})
   install(FILES ${CMAKE_CURRENT_SOURCE_DIR}/lammps-gui.desktop DESTINATION ${CMAKE_INSTALL_DATADIR}/applications/)
+  install(FILES ${CMAKE_CURRENT_SOURCE_DIR}/lammps-gui.appdata.xml DESTINATION ${CMAKE_INSTALL_DATADIR}/appdata/)
   install(FILES ${CMAKE_CURRENT_SOURCE_DIR}/lammps-input.xml DESTINATION ${CMAKE_INSTALL_DATADIR}/mime/packages/)
   install(FILES ${CMAKE_CURRENT_SOURCE_DIR}/lammps-input.xml DESTINATION ${CMAKE_INSTALL_DATADIR}/mime/text/x-application-lammps.xml)
   install(DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/icons/hicolor DESTINATION ${CMAKE_INSTALL_DATADIR}/icons/)
@@ -304,10 +329,11 @@ elseif((CMAKE_SYSTEM_NAME STREQUAL "Linux") AND NOT LAMMPS_GUI_USE_PLUGIN)
       message(WARNING "Unresolved dependencies detected: ${_u_deps}")
     endif() ]]
   )
+
   add_custom_target(tgz
     COMMAND ${LAMMPS_DIR}/cmake/packaging/build_linux_tgz.sh
     DEPENDS lammps-gui
-    COMMENT "Create compressed tar file of LAMMPS with dependent libraries and wrapper"
+    COMMENT "Create compressed tar file of LAMMPS-GUI with dependent libraries and wrapper"
     BYPRODUCT LAMMPS-Linux-amd64.tar.gz
     WORKING_DIRECTORY ${CMAKE_BINARY_DIR}
   )

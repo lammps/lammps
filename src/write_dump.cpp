@@ -58,6 +58,7 @@ void WriteDump::command(int narg, char **arg)
   dumpargs[3] = utils::strdup(std::to_string(dumpfreq));    // dump frequency
 
   // copy arguments up to modify, but skip over "noinit" if present
+
   int noinitwarn = 0;
   for (int i = 2; i < modindex; ++i) {
     if (strcmp(arg[i], "noinit") == 0) {

@@ -1532,6 +1532,7 @@ void LammpsGui::start_tutorial1()
     wizard->addPage(tutorial1_directory());
     wizard->addPage(tutorial1_finish());
     wizard->setWindowTitle("Tutorial 1 Setup Wizard");
+    wizard->setWizardStyle(QWizard::ModernStyle);
     wizard->show();
 }
 

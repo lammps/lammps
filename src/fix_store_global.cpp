@@ -153,7 +153,7 @@ void FixStoreGlobal::restart(char *buf)
   //   because caller did not know size at time this fix was instantiated
   // reallocate vstore or astore accordingly
   // also reset nrow,ncol to values from restart file
-  
+
   if (n1 != n1_restart || n2 != n2_restart) {
     memory->destroy(vstore);
     memory->destroy(astore);

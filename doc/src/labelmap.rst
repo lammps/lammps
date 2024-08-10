@@ -28,6 +28,7 @@ Examples
    labelmap atom 3 carbon 4 'c3"' 5 "c1'" 6 "c#"
    labelmap atom $(label2type(atom,carbon)) C  # change type label from 'carbon' to 'C'
    labelmap clear
+   labelmap atom 2 NULL                        # delete type label for atom type 2
    labelmap write mymap.include
    labelmap bond 1 carbonyl 2 nitrile 3 """ c1'-c2" """
 
@@ -47,19 +48,27 @@ Bond Type Labels, etc.  See the :doc:`Howto type labels
 labels can be used.  See :ref:`(Gissinger) <Typelabel1>` for a
 discussion of the type label implementation in LAMMPS and its uses.
 
+.. versionchanged:: TBD
+
+   Using the type label NULL will delete the entry from the map.
+
 Valid type labels can contain any alphanumeric character, but must not
 start with a number, a '#', or a '*' character.  They can contain other
 standard ASCII characters such as angular or square brackets '<' and '>'
 or '[' and ']', parenthesis '(' and ')', dash '-', underscore '_', plus
 '+' and equals '=' signs and more.  They must not contain blanks or any
-other whitespace.  Note that type labels must be put in single or double
-quotation marks if they contain the '#' character or if they contain a
-double (") or single quotation mark (').  If the label contains both
-a single and a double quotation mark, then triple quotation (""") must
-be used.  When enclosing a type label with quotation marks, the
-LAMMPS input parser may require adding leading or trailing blanks
-around the type label so it can identify the enclosing quotation
-marks.  Those blanks will be removed when defining the label.
+other whitespace.  The type label NULL has a special meaning: it
+indicates that **no** label should be assigned to the numeric type.
+This can be used to selectively delete individual type labels.
+
+Note that type labels must be put in single or double quotation marks if
+they contain the '#' character or if they contain a double (") or single
+quotation mark (').  If the label contains both a single and a double
+quotation mark, then triple quotation (""") must be used.  When
+enclosing a type label with quotation marks, the LAMMPS input parser may
+require adding leading or trailing blanks around the type label so it
+can identify the enclosing quotation marks.  Those blanks will be
+removed when defining the label.
 
 A *labelmap* command can only modify the label map for one type-kind
 (atom types, bond types, etc).  Any number of numeric-type/type-label
@@ -71,13 +80,18 @@ there is a label defined for *every* numeric type within a given
 type-kind in order to write out the type label section for that
 type-kind.
 
-The *clear* option resets the label map and thus discards all previous
-settings.
+The *clear* option resets the *entire* label map for *all* type-kinds
+and thus discards all previous settings.  Use the NULL label to delete
+individual entries (see above).
 
 The *write* option takes a filename as argument and writes the current
-label mappings to a file as a sequence of *labelmap* commands, so the
-file can be copied into a new LAMMPS input file or read in using the
-:doc:`include <include>` command.
+existing label mappings to a file as a sequence of *labelmap* commands,
+so the file can be copied into a new LAMMPS input file or read in using
+the :doc:`include <include>` command.  Since the *labelmap* command is
+cumulative, it will **not** write out entries for types without type
+labels.  Thus, if you want to restore the type label maps to a previous
+state, you need to first use the labelmap command with the *clear*
+option before including the file with the stored label maps.
 
 ----------
 
@@ -87,8 +101,6 @@ Restrictions
 This command must come after the simulation box is defined by a
 :doc:`read_data <read_data>`, :doc:`read_restart <read_restart>`, or
 :doc:`create_box <create_box>` command.
-
-Label maps are currently not supported when using the KOKKOS package.
 
 Related commands
 """"""""""""""""

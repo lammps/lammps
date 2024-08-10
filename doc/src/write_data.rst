@@ -113,19 +113,26 @@ sections for user-created per-atom properties from :doc:`fix
 property/atom <fix_property_atom>`.
 
 The *nolabelmap* and *types* keywords refer to type labels that may be
-defined for numeric atom types, bond types, angle types, etc.  The
-label map can be defined in two ways, either by the :doc:`labelmap
-<labelmap>` command or in data files read by the :doc:`read_data
-<read_data>` command which have sections for Atom Type Labels, Bond
-Type Labels, Angle Type Labels, etc.  See the :doc:`Howto type labels
-<Howto_type_labels>` doc page for the allowed syntax of type labels
-and a general discussion of how type labels can be used.
+defined for numeric atom types, bond types, angle types, etc.  The label
+map can be defined in two ways, either by the :doc:`labelmap <labelmap>`
+command or in data files read by the :doc:`read_data <read_data>`
+command which have sections for Atom Type Labels, Bond Type Labels,
+Angle Type Labels, etc.  See the :doc:`Howto type labels
+<Howto_type_labels>` doc page for a more detailed discussion of the
+syntax of type labels and a general discussion of how type labels can be
+used.
 
 Use of the *nolabelmap* keyword means that even if type labels exist
 for a given type-kind (Atoms, Bonds, Angles, etc.), type labels are
 not written to the data file.  By default, they are written if they
-exist.  A type label must be defined for every numeric type (within a
-given type-kind) to be written to the data file.
+exist.  If only a subset of types have a label defined, the string
+NULL type is written types without a label.
+
+The *types* keyword selects whether numeric types (argument *numeric*)
+should be written in the various sections of the data file of if type
+labels should be written (argument *labels*), where available.  If no
+type label is available for a given type, its numerical value is written
+to the data file.
 
 Use of the *triclinic/general* keyword will output a data file which
 specifies a general triclinic simulation box as well as per-atom

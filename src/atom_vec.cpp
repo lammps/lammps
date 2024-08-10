@@ -1813,7 +1813,12 @@ void AtomVec::write_data(FILE *fp, int n, double **buf)
         if (cols == 0) {
           if (atom->types_style == Atom::LABELS &&
               atom->peratom[mdata_atom.index[nn]].name == "type") {
-            fmt::print(fp, " {}", atom->lmap->typelabel[ubuf(buf[i][j++]).i - 1]);
+            int itype = ubuf(buf[i][j++]).i;
+            auto &str = atom->lmap->typelabel[itype - 1];
+            if (str.empty()) // write out numeric type if no type label exists
+              fmt::print(fp, " {}", itype);
+            else
+              fmt::print(fp, " {}", str);
           } else
             fmt::print(fp, " {}", ubuf(buf[i][j++]).i);
         } else {
@@ -2025,7 +2030,8 @@ void AtomVec::write_bond(FILE *fp, int n, tagint **buf, int index)
   std::string typestr;
   for (int i = 0; i < n; i++) {
     typestr = std::to_string(buf[i][0]);
-    if (atom->types_style == Atom::LABELS) typestr = atom->lmap->btypelabel[buf[i][0] - 1];
+    if ((atom->types_style == Atom::LABELS) && !atom->lmap->btypelabel[buf[i][0] - 1].empty())
+      typestr = atom->lmap->btypelabel[buf[i][0] - 1];
     fmt::print(fp, "{} {} {} {}\n", index, typestr, buf[i][1], buf[i][2]);
     index++;
   }
@@ -2090,7 +2096,8 @@ void AtomVec::write_angle(FILE *fp, int n, tagint **buf, int index)
   std::string typestr;
   for (int i = 0; i < n; i++) {
     typestr = std::to_string(buf[i][0]);
-    if (atom->types_style == Atom::LABELS) typestr = atom->lmap->atypelabel[buf[i][0] - 1];
+    if ((atom->types_style == Atom::LABELS) && !atom->lmap->atypelabel[buf[i][0] - 1].empty())
+      typestr = atom->lmap->atypelabel[buf[i][0] - 1];
     fmt::print(fp, "{} {} {} {} {}\n", index, typestr, buf[i][1], buf[i][2], buf[i][3]);
     index++;
   }
@@ -2153,7 +2160,8 @@ void AtomVec::write_dihedral(FILE *fp, int n, tagint **buf, int index)
   std::string typestr;
   for (int i = 0; i < n; i++) {
     typestr = std::to_string(buf[i][0]);
-    if (atom->types_style == Atom::LABELS) typestr = atom->lmap->dtypelabel[buf[i][0] - 1];
+    if ((atom->types_style == Atom::LABELS) && !atom->lmap->dtypelabel[buf[i][0] - 1].empty())
+      typestr = atom->lmap->dtypelabel[buf[i][0] - 1];
     fmt::print(fp, "{} {} {} {} {} {}\n", index, typestr, buf[i][1], buf[i][2], buf[i][3],
                buf[i][4]);
     index++;
@@ -2217,7 +2225,8 @@ void AtomVec::write_improper(FILE *fp, int n, tagint **buf, int index)
   std::string typestr;
   for (int i = 0; i < n; i++) {
     typestr = std::to_string(buf[i][0]);
-    if (atom->types_style == Atom::LABELS) typestr = atom->lmap->itypelabel[buf[i][0] - 1];
+    if ((atom->types_style == Atom::LABELS) && !atom->lmap->itypelabel[buf[i][0] - 1].empty())
+      typestr = atom->lmap->itypelabel[buf[i][0] - 1];
     fmt::print(fp, "{} {} {} {} {} {}\n", index, typestr, buf[i][1], buf[i][2], buf[i][3],
                buf[i][4]);
     index++;

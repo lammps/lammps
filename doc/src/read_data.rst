@@ -701,7 +701,8 @@ input script.
 
 Define alphanumeric type labels for each numeric angle type.  These
 can be used in the Angles section in place of a numeric type, but only
-if the this section appears before the Angles section.
+if the this section appears before the Angles section.  A type label
+of NULL means to skip assigning a label to the numeric angle type.
 
 See the :doc:`Howto type labels <Howto_type_labels>` doc page for the
 allowed syntax of type labels and a general discussion of how type
@@ -787,9 +788,10 @@ and a general discussion of how type labels can be used.
        ID = numeric atom type (1-N)
        label = alphanumeric type label
 
-Define alphanumeric type labels for each numeric atom type.  These
-can be used in the Atoms section in place of a numeric type, but only
-if the Atom Type Labels section appears before the Atoms section.
+Define alphanumeric type labels for each numeric atom type.  These can
+be used in the Atoms section in place of a numeric type, but only if the
+Atom Type Labels section appears before the Atoms section.  A type label
+of NULL means to skip assigning a label to the numeric atom type.
 
 See the :doc:`Howto type labels <Howto_type_labels>` doc page for the
 allowed syntax of type labels and a general discussion of how type
@@ -955,8 +957,8 @@ The atom-type can be a numeric value or an alphanumeric label.  The
 latter is only allowed if the type label has been defined by the
 :doc:`labelmap <labelmap>` command or an Atom Type Labels section
 earlier in the data file.  See the :doc:`Howto type labels
-<Howto_type_labels>` doc page for the allowed syntax of type labels
-and a general discussion of how type labels can be used.
+<Howto_type_labels>` doc page for the allowed syntax of type labels and
+a general discussion of how type labels can be used.
 
 The molecule ID is a second identifier attached to an atom.  Normally, it
 is a number from 1 to N, identifying which molecule the atom belongs
@@ -1179,8 +1181,9 @@ script.
        label = alphanumeric type label
 
 Define alphanumeric type labels for each numeric bond type.  These can
-be used in the Bonds section in place of a numeric type, but only if
-the this section appears before the Angles section.
+be used in the Bonds section in place of a numeric type, but only if the
+this section appears before the Angles section.  A type label of NULL
+means to skip assigning a label to the numeric bond type.
 
 See the :doc:`Howto type labels <Howto_type_labels>` doc page for the
 allowed syntax of type labels and a general discussion of how type
@@ -1289,7 +1292,9 @@ Coefficients can also be set via the
 
 Define alphanumeric type labels for each numeric dihedral type.  These
 can be used in the Dihedrals section in place of a numeric type, but
-only if the this section appears before the Dihedrals section.
+only if the this section appears before the Dihedrals section.  A type
+label of NULL means to skip assigning a label to the numeric dihedral
+type.
 
 See the :doc:`Howto type labels <Howto_type_labels>` doc page for the
 allowed syntax of type labels and a general discussion of how type
@@ -1423,7 +1428,8 @@ Coefficients can also be set via the
 
 Define alphanumeric type labels for each numeric improper type.  These
 can be used in the Impropers section in place of a numeric type, but
-only if the this section appears before the Impropers section.
+only if the this section appears before the Impropers section.  A type label
+of NULL means to skip assigning a label to the numeric improper type.
 
 See the :doc:`Howto type labels <Howto_type_labels>` doc page for the
 allowed syntax of type labels and a general discussion of how type

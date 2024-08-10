@@ -1524,9 +1524,7 @@ void ReadData::atoms()
     nchunk = MIN(natoms - nread, CHUNK);
     eof = utils::read_lines_from_file(fp, nchunk, MAXLINE, buffer, me, world);
     if (eof) error->all(FLERR, "Unexpected end of data file");
-    if (tlabelflag && !lmap->is_complete(Atom::ATOM))
-      error->all(FLERR, "Label map is incomplete: all types must be assigned a unique type label");
-    atom->data_atoms(nchunk, buffer, id_offset, mol_offset, toffset, shiftflag, shift, tlabelflag,
+    atom->data_atoms(nchunk, buffer, id_offset, mol_offset, toffset, shiftflag, shift,
                      lmap->lmap2lmap.atom, triclinic_general);
     nread += nchunk;
   }
@@ -1658,11 +1656,7 @@ void ReadData::bonds(int firstpass)
     nchunk = MIN(nbonds - nread, CHUNK);
     eof = utils::read_lines_from_file(fp, nchunk, MAXLINE, buffer, me, world);
     if (eof) error->all(FLERR, "Unexpected end of data file");
-    if (blabelflag && !lmap->is_complete(Atom::BOND))
-      error->all(FLERR,
-                 "Label map is incomplete: "
-                 "all types must be assigned a unique type label");
-    atom->data_bonds(nchunk, buffer, count, id_offset, boffset, blabelflag, lmap->lmap2lmap.bond);
+    atom->data_bonds(nchunk, buffer, count, id_offset, boffset, lmap->lmap2lmap.bond);
     nread += nchunk;
   }
 
@@ -1737,11 +1731,7 @@ void ReadData::angles(int firstpass)
     nchunk = MIN(nangles - nread, CHUNK);
     eof = utils::read_lines_from_file(fp, nchunk, MAXLINE, buffer, me, world);
     if (eof) error->all(FLERR, "Unexpected end of data file");
-    if (alabelflag && !lmap->is_complete(Atom::ANGLE))
-      error->all(FLERR,
-                 "Label map is incomplete: "
-                 "all types must be assigned a unique type label");
-    atom->data_angles(nchunk, buffer, count, id_offset, aoffset, alabelflag, lmap->lmap2lmap.angle);
+    atom->data_angles(nchunk, buffer, count, id_offset, aoffset, lmap->lmap2lmap.angle);
     nread += nchunk;
   }
 
@@ -1816,12 +1806,7 @@ void ReadData::dihedrals(int firstpass)
     nchunk = MIN(ndihedrals - nread, CHUNK);
     eof = utils::read_lines_from_file(fp, nchunk, MAXLINE, buffer, me, world);
     if (eof) error->all(FLERR, "Unexpected end of data file");
-    if (dlabelflag && !lmap->is_complete(Atom::DIHEDRAL))
-      error->all(FLERR,
-                 "Label map is incomplete: "
-                 "all types must be assigned a unique type label");
-    atom->data_dihedrals(nchunk, buffer, count, id_offset, doffset, dlabelflag,
-                         lmap->lmap2lmap.dihedral);
+    atom->data_dihedrals(nchunk, buffer, count, id_offset, doffset, lmap->lmap2lmap.dihedral);
     nread += nchunk;
   }
 
@@ -1896,12 +1881,7 @@ void ReadData::impropers(int firstpass)
     nchunk = MIN(nimpropers - nread, CHUNK);
     eof = utils::read_lines_from_file(fp, nchunk, MAXLINE, buffer, me, world);
     if (eof) error->all(FLERR, "Unexpected end of data file");
-    if (ilabelflag && !lmap->is_complete(Atom::IMPROPER))
-      error->all(FLERR,
-                 "Label map is incomplete: "
-                 "all types must be assigned a unique type label");
-    atom->data_impropers(nchunk, buffer, count, id_offset, ioffset, ilabelflag,
-                         lmap->lmap2lmap.improper);
+    atom->data_impropers(nchunk, buffer, count, id_offset, ioffset, lmap->lmap2lmap.improper);
     nread += nchunk;
   }
 
@@ -2100,14 +2080,12 @@ void ReadData::mass()
 
   int eof = utils::read_lines_from_file(fp, ntypes, MAXLINE, buf, me, world);
   if (eof) error->all(FLERR, "Unexpected end of data file");
-  if (tlabelflag && !lmap->is_complete(Atom::ATOM))
-    error->all(FLERR, "Label map is incomplete: all types must be assigned a unique type label");
 
   char *original = buf;
   for (int i = 0; i < ntypes; i++) {
     next = strchr(buf, '\n');
     *next = '\0';
-    atom->set_mass(FLERR, buf, toffset, tlabelflag, lmap->lmap2lmap.atom);
+    atom->set_mass(FLERR, buf, toffset, lmap->lmap2lmap.atom);
     buf = next + 1;
   }
   delete[] original;
@@ -2123,14 +2101,11 @@ void ReadData::paircoeffs()
   int eof = utils::read_lines_from_file(fp, ntypes, MAXLINE, buf, me, world);
   if (eof) error->all(FLERR, "Unexpected end of data file");
 
-  if (tlabelflag && !lmap->is_complete(Atom::ATOM))
-    error->all(FLERR, "Label map is incomplete: all types must be assigned a unique type label");
-
   char *original = buf;
   for (int i = 0; i < ntypes; i++) {
     next = strchr(buf, '\n');
     *next = '\0';
-    parse_coeffs(buf, nullptr, 1, 2, toffset, tlabelflag, lmap->lmap2lmap.atom);
+    parse_coeffs(buf, nullptr, 1, 2, toffset, lmap->lmap2lmap.atom);
     if (ncoeffarg == 0)
       error->all(FLERR, "Unexpected empty line in PairCoeffs section. Expected {} lines.", ntypes);
     force->pair->coeff(ncoeffarg, coeffarg);
@@ -2152,15 +2127,12 @@ void ReadData::pairIJcoeffs()
   int eof = utils::read_lines_from_file(fp, nsq, MAXLINE, buf, me, world);
   if (eof) error->all(FLERR, "Unexpected end of data file");
 
-  if (tlabelflag && !lmap->is_complete(Atom::ATOM))
-    error->all(FLERR, "Label map is incomplete: all types must be assigned a unique type label");
-
   char *original = buf;
   for (i = 0; i < ntypes; i++)
     for (j = i; j < ntypes; j++) {
       next = strchr(buf, '\n');
       *next = '\0';
-      parse_coeffs(buf, nullptr, 0, 2, toffset, tlabelflag, lmap->lmap2lmap.atom);
+      parse_coeffs(buf, nullptr, 0, 2, toffset, lmap->lmap2lmap.atom);
       if (ncoeffarg == 0)
         error->all(FLERR, "Unexpected empty line in PairIJCoeffs section. Expected {} lines.", nsq);
       force->pair->coeff(ncoeffarg, coeffarg);
@@ -2181,14 +2153,11 @@ void ReadData::bondcoeffs()
   int eof = utils::read_lines_from_file(fp, nbondtypes, MAXLINE, buf, me, world);
   if (eof) error->all(FLERR, "Unexpected end of data file");
 
-  if (blabelflag && !lmap->is_complete(Atom::BOND))
-    error->all(FLERR, "Label map is incomplete: all types must be assigned a unique type label");
-
   char *original = buf;
   for (int i = 0; i < nbondtypes; i++) {
     next = strchr(buf, '\n');
     *next = '\0';
-    parse_coeffs(buf, nullptr, 0, 1, boffset, blabelflag, lmap->lmap2lmap.bond);
+    parse_coeffs(buf, nullptr, 0, 1, boffset, lmap->lmap2lmap.bond);
     if (ncoeffarg == 0)
       error->all(FLERR, "Unexpected empty line in BondCoeffs section. Expected {} lines.",
                  nbondtypes);
@@ -2210,21 +2179,18 @@ void ReadData::anglecoeffs(int which)
   int eof = utils::read_lines_from_file(fp, nangletypes, MAXLINE, buf, me, world);
   if (eof) error->all(FLERR, "Unexpected end of data file");
 
-  if (alabelflag && !lmap->is_complete(Atom::ANGLE))
-    error->all(FLERR, "Label map is incomplete: all types must be assigned a unique type label");
-
   char *original = buf;
   for (int i = 0; i < nangletypes; i++) {
     next = strchr(buf, '\n');
     *next = '\0';
     if (which == 0)
-      parse_coeffs(buf, nullptr, 0, 1, aoffset, alabelflag, lmap->lmap2lmap.angle);
+      parse_coeffs(buf, nullptr, 0, 1, aoffset, lmap->lmap2lmap.angle);
     else if (which == 1)
-      parse_coeffs(buf, "bb", 0, 1, aoffset, alabelflag, lmap->lmap2lmap.angle);
+      parse_coeffs(buf, "bb", 0, 1, aoffset, lmap->lmap2lmap.angle);
     else if (which == 2)
-      parse_coeffs(buf, "ba", 0, 1, aoffset, alabelflag, lmap->lmap2lmap.angle);
+      parse_coeffs(buf, "ba", 0, 1, aoffset, lmap->lmap2lmap.angle);
     else if (which == 3)
-      parse_coeffs(buf, "ub", 0, 1, aoffset, alabelflag, lmap->lmap2lmap.angle);
+      parse_coeffs(buf, "ub", 0, 1, aoffset, lmap->lmap2lmap.angle);
     if (ncoeffarg == 0) error->all(FLERR, "Unexpected empty line in AngleCoeffs section");
     force->angle->coeff(ncoeffarg, coeffarg);
     buf = next + 1;
@@ -2244,25 +2210,22 @@ void ReadData::dihedralcoeffs(int which)
   int eof = utils::read_lines_from_file(fp, ndihedraltypes, MAXLINE, buf, me, world);
   if (eof) error->all(FLERR, "Unexpected end of data file");
 
-  if (dlabelflag && !lmap->is_complete(Atom::DIHEDRAL))
-    error->all(FLERR, "Label map is incomplete: all types must be assigned a unique type label");
-
   char *original = buf;
   for (int i = 0; i < ndihedraltypes; i++) {
     next = strchr(buf, '\n');
     *next = '\0';
     if (which == 0)
-      parse_coeffs(buf, nullptr, 0, 1, doffset, dlabelflag, lmap->lmap2lmap.dihedral);
+      parse_coeffs(buf, nullptr, 0, 1, doffset, lmap->lmap2lmap.dihedral);
     else if (which == 1)
-      parse_coeffs(buf, "mbt", 0, 1, doffset, dlabelflag, lmap->lmap2lmap.dihedral);
+      parse_coeffs(buf, "mbt", 0, 1, doffset, lmap->lmap2lmap.dihedral);
     else if (which == 2)
-      parse_coeffs(buf, "ebt", 0, 1, doffset, dlabelflag, lmap->lmap2lmap.dihedral);
+      parse_coeffs(buf, "ebt", 0, 1, doffset, lmap->lmap2lmap.dihedral);
     else if (which == 3)
-      parse_coeffs(buf, "at", 0, 1, doffset, dlabelflag, lmap->lmap2lmap.dihedral);
+      parse_coeffs(buf, "at", 0, 1, doffset, lmap->lmap2lmap.dihedral);
     else if (which == 4)
-      parse_coeffs(buf, "aat", 0, 1, doffset, dlabelflag, lmap->lmap2lmap.dihedral);
+      parse_coeffs(buf, "aat", 0, 1, doffset, lmap->lmap2lmap.dihedral);
     else if (which == 5)
-      parse_coeffs(buf, "bb13", 0, 1, doffset, dlabelflag, lmap->lmap2lmap.dihedral);
+      parse_coeffs(buf, "bb13", 0, 1, doffset, lmap->lmap2lmap.dihedral);
     if (ncoeffarg == 0) error->all(FLERR, "Unexpected empty line in DihedralCoeffs section");
     force->dihedral->coeff(ncoeffarg, coeffarg);
     buf = next + 1;
@@ -2282,19 +2245,14 @@ void ReadData::impropercoeffs(int which)
   int eof = utils::read_lines_from_file(fp, nimpropertypes, MAXLINE, buf, me, world);
   if (eof) error->all(FLERR, "Unexpected end of data file");
 
-  if (ilabelflag && !lmap->is_complete(Atom::IMPROPER))
-    error->all(FLERR,
-               "Label map is incomplete: "
-               "all types must be assigned a unique type label");
-
   char *original = buf;
   for (int i = 0; i < nimpropertypes; i++) {
     next = strchr(buf, '\n');
     *next = '\0';
     if (which == 0)
-      parse_coeffs(buf, nullptr, 0, 1, ioffset, ilabelflag, lmap->lmap2lmap.improper);
+      parse_coeffs(buf, nullptr, 0, 1, ioffset, lmap->lmap2lmap.improper);
     else if (which == 1)
-      parse_coeffs(buf, "aa", 0, 1, ioffset, ilabelflag, lmap->lmap2lmap.improper);
+      parse_coeffs(buf, "aa", 0, 1, ioffset, lmap->lmap2lmap.improper);
     if (ncoeffarg == 0) error->all(FLERR, "Unexpected empty line in ImproperCoeffs section");
     force->improper->coeff(ncoeffarg, coeffarg);
     buf = next + 1;
@@ -2343,7 +2301,6 @@ void ReadData::typelabels(int mode)
   }
 
   if (lntypes == 0) return;
-
   if (!atom->labelmapflag) atom->add_label_map();
 
   char *buf = new char[lntypes * MAXLINE];
@@ -2371,18 +2328,19 @@ void ReadData::typelabels(int mode)
     if ((itype < 1) || (itype > lntypes))
       error->all(FLERR, "Invalid type {} in section: {} Type Labels: {}", labeltypes[mode], buf);
 
-    (*labels)[itype - 1] = values[1];
-    (*labels_map)[values[1]] = itype;
+    // NULL label means delete label
+    if (values[1] == "NULL") {
+      std::string &str = (*labels)[itype - 1];
+      if (!str.empty()) (*labels_map).erase(str);
+      str = "";
+    } else {
+      (*labels)[itype - 1] = values[1];
+      (*labels_map)[values[1]] = itype;
+    }
+    lmap->is_complete(Atom::ATOM);
     buf = next + 1;
   }
   delete[] original;
-
-  for (int i = 0; i < lntypes; ++i) {
-    if ((*labels)[i].empty())
-      error->all(FLERR, "{} Type Labels map is incomplete", labeltypes[mode]);
-  }
-  if ((int) (*labels_map).size() != lntypes)
-    error->all(FLERR, "{} Type Labels map is incomplete", labeltypes[mode]);
 
   // merge this read_data label map to atom class
   // determine mapping to let labels override numeric types
@@ -2546,7 +2504,7 @@ void ReadData::skip_lines(bigint n)
 ------------------------------------------------------------------------- */
 
 void ReadData::parse_coeffs(char *line, const char *addstr, int dupflag, int noffset, int offset,
-                            int labelmode, int *ilabel)
+                            int *ilabel)
 {
   settypeflag = 1;
   char *ptr;
@@ -2578,12 +2536,10 @@ void ReadData::parse_coeffs(char *line, const char *addstr, int dupflag, int nof
 
   if (noffset) {
     int value = utils::inumeric(FLERR, coeffarg[0], false, lmp);
-    if (labelmode) value = ilabel[value - 1];
     argoffset1 = std::to_string(value + offset);
     coeffarg[0] = (char *) argoffset1.c_str();
     if (noffset == 2) {
       value = utils::inumeric(FLERR, coeffarg[1], false, lmp);
-      if (labelmode) value = ilabel[value - 1];
       argoffset2 = std::to_string(value + offset);
       coeffarg[1] = (char *) argoffset2.c_str();
     }

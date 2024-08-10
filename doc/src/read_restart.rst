@@ -128,17 +128,26 @@ these settings after the restart file is read.
 
 * :doc:`units <units>`
 * :doc:`newton bond <newton>` (see discussion of newton command below)
-* :doc:`atom style <atom_style>` and :doc:`atom_modify <atom_modify>` settings id, map, sort
-* :doc:`comm style <comm_style>` and :doc:`comm_modify <comm_modify>` settings mode, cutoff, vel
+* :doc:`atom style <atom_style>` and :doc:`atom_modify <atom_modify>`
+  settings id, map, sort
+* :doc:`comm style <comm_style>` and :doc:`comm_modify <comm_modify>`
+  settings mode, cutoff, vel
 * :doc:`timestep <timestep>`
 * simulation box size and shape and :doc:`boundary <boundary>` settings
 * atom :doc:`group <group>` definitions
 * per-type atom settings such as :doc:`mass <mass>`
-* per-atom attributes including their group assignments and molecular topology attributes (bonds, angles, etc)
-* force field styles (:doc:`pair <pair_style>`, :doc:`bond <bond_style>`, :doc:`angle <angle_style>`, etc)
-* force field coefficients (:doc:`pair <pair_coeff>`, :doc:`bond <bond_coeff>`, :doc:`angle <angle_coeff>`, etc) in some cases (see below)
-* :doc:`pair_modify <pair_modify>` settings, except the compute option
+* per-atom attributes including their group assignments and molecular
+  topology attributes (bonds, angles, etc)
+* force field styles (:doc:`pair <pair_style>`, :doc:`bond
+  <bond_style>`, :doc:`angle <angle_style>`, etc)
+* force field coefficients (:doc:`pair <pair_coeff>`, :doc:`bond
+  <bond_coeff>`, :doc:`angle <angle_coeff>`, etc) in some cases (see
+  below)
+* :doc:`pair_modify <pair_modify>` settings, except the pair_modify
+  compute option
 * :doc:`special_bonds <special_bonds>` settings
+* type label settings, either created with the :doc:`labelmap command
+  <labelmap>` or read from a :doc:`data file <read_data>`
 
 Here is a list of information not stored in a restart file, which
 means you must re-issue these commands in your input script, after
@@ -149,9 +158,12 @@ reading the restart file.
 * :doc:`compute <compute>` commands (see below)
 * :doc:`variable <variable>` commands
 * :doc:`region <region>` commands
-* :doc:`neighbor list <neighbor>` criteria including :doc:`neigh_modify <neigh_modify>` settings
-* :doc:`kspace_style <kspace_style>` and :doc:`kspace_modify <kspace_modify>` settings
-* info for :doc:`thermodynamic <thermo_style>`, :doc:`dump <dump>`, or :doc:`restart <restart>` output
+* :doc:`neighbor list <neighbor>` criteria including :doc:`neigh_modify
+  <neigh_modify>` settings
+* :doc:`kspace_style <kspace_style>` and :doc:`kspace_modify
+  <kspace_modify>` settings
+* info for :doc:`thermodynamic <thermo_style>`, :doc:`dump <dump>`, or
+  :doc:`restart <restart>` output
 
 The :doc:`newton <newton>` command has two settings, one for pairwise
 interactions, the other for bonded.  Both settings are stored in the
@@ -160,8 +172,8 @@ overwrite the current value (at the time the read_restart command is
 issued) and warn if the two values are not the same and the current
 value is not the default.  For the pair setting, the value in the file
 will not overwrite the current value (so that you can override the
-previous run's value), but a warning is issued if the two values are
-not the same and the current value is not the default.
+previous run's value), but a warning is issued if the two values are not
+the same and the current value is not the default.
 
 Note that some force field styles (pair, bond, angle, etc) do not
 store their coefficient info in restart files.  Typically these are

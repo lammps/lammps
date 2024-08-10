@@ -337,18 +337,18 @@ class Atom : protected Pointers {
 
   virtual void deallocate_topology();
 
-  void data_atoms(int, char *, tagint, tagint, int, int, double *, int, int *, int);
+  void data_atoms(int, char *, tagint, tagint, int, int, double *, int *, int);
   void data_vels(int, char *, tagint);
-  void data_bonds(int, char *, int *, tagint, int, int, int *);
-  void data_angles(int, char *, int *, tagint, int, int, int *);
-  void data_dihedrals(int, char *, int *, tagint, int, int, int *);
-  void data_impropers(int, char *, int *, tagint, int, int, int *);
+  void data_bonds(int, char *, int *, tagint, int, int *);
+  void data_angles(int, char *, int *, tagint, int, int *);
+  void data_dihedrals(int, char *, int *, tagint, int, int *);
+  void data_impropers(int, char *, int *, tagint, int, int *);
   void data_bonus(int, char *, AtomVec *, tagint);
   void data_bodies(int, char *, AtomVec *, tagint);
   void data_fix_compute_variable(int, int);
 
   virtual void allocate_type_arrays();
-  void set_mass(const char *, int, const char *, int, int, int *);
+  void set_mass(const char *, int, const char *, int, int *);
   void set_mass(const char *, int, int, double);
   void set_mass(const char *, int, int, char **);
   void set_mass(double *);

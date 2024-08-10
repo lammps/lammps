@@ -22,6 +22,7 @@
 #include "dump_cfg.h"
 #include "dump_image.h"
 #include "error.h"
+#include "exceptions.h"
 #include "output.h"
 #include "update.h"
 

@@ -283,9 +283,10 @@ def iterate(lmp_binary, input_folder, input_list, config, results, progress_file
         config['nprocs'] = saved_nprocs
 
         if "Step" not in output or "Loop" not in output:
-            logger.info(f"    ERROR: no Step nor Loop in the output failed. Check the {log_file} for the run output.\n")
+            logger.info(f"    ERROR: no Step nor Loop in the output.\n")
             logger.info(f"\n{input_test}:")
-            logger.info(f"\n{error}")
+            logger.info(f"\n    Output:\n{output}")
+            logger.info(f"\n    Error:\n{error}")
             progress.write(f"{input}: {{ folder: {input_folder}, status: \"error, no Step nor Loop in the output.\" }}\n")
             progress.close()
             num_error = num_error + 1
@@ -306,6 +307,7 @@ def iterate(lmp_binary, input_folder, input_list, config, results, progress_file
             else:
                 result.status = f"error, see output."
 
+            logger.info(f"     Output:")
             logger.info(f"     {output}")
             logger.info(f"     Failed with {input_test}.\n")
             num_error = num_error + 1
@@ -319,9 +321,10 @@ def iterate(lmp_binary, input_folder, input_list, config, results, progress_file
 
         # check if a log.lammps file exists in the current folder
         if os.path.isfile("log.lammps") == False:
-            logger.info(f"    ERROR: No log.lammps generated with {input_test} with return code {returncode}. Check the {log_file} for the run output.\n")
-            logger.info(f"\n{input_test}:")
-            logger.info(f"\n{error}")
+            logger.info(f"    ERROR: No log.lammps generated with {input_test} with return code {returncode}.\n")
+            logger.info(f"    Output:")
+            logger.info(f"    {output}")
+            logger.info(f"    Error:\n{error}")
             progress.write(f"{input}: {{ folder: {input_folder}, status: \"error, no log.lammps\" }}\n")
             progress.close()
             num_error = num_error + 1
@@ -446,7 +449,8 @@ def iterate(lmp_binary, input_folder, input_list, config, results, progress_file
             num_fields = len(thermo[irun]['keywords'])
             num_fields_ref = len(thermo_ref[irun]['keywords'])
             if num_fields != num_fields_ref:
-                logger.info(f"     ERROR: Number of thermo columns in log.lammps ({num_fields}) is different from that in the reference log ({num_fields_ref}) in run {irun}.")
+                logger.info(f"     ERROR: Number of thermo columns in log.lammps ({num_fields})")
+                logger.info(f"     is different from that in the reference log ({num_fields_ref}) in run {irun}.")
                 mismatched_columns = True
                 continue
 

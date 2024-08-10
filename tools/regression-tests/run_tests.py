@@ -238,10 +238,11 @@ def iterate(lmp_binary, input_folder, input_list, config, results, progress_file
 
         max_np = 1
         for file in logfile_list:
-            # looks for pattern log.{date}.{basename}.g++.{nprocs}: log.[date].min.box.g++.* vs log.[date].min.g++.*
+            # looks for pattern log.{date}.{basename}.{compiler}.{nprocs}: log.[date].min.box.[compiler]].* vs log.[date].min.[compiler].*
             # get the date from the log files
             date = file.split('.',2)[1]
-            pattern = f'log.{date}.{basename}.g++.*'
+            compiler = file.rsplit('.',2)[1]
+            pattern = f'log.{date}.{basename}.{compiler}.*'
             if fnmatch.fnmatch(file, pattern):
                 p = file.rsplit('.', 1)
                 if p[1].isnumeric():

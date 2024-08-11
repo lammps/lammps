@@ -54,6 +54,11 @@
   </provides>
 
   <releases>
+    <release version="1.6.7" timestamp="1723394796">
+      <description>
+        Add wizards for setting up LAMMPS tutorials
+      </description>
+    </release>
     <release version="1.6.6" timestamp="1722581799">
       <description>
         First version packaged in flatpak format

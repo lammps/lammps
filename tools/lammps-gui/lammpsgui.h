@@ -86,6 +86,7 @@ protected:
     QWizardPage *tutorial1_finish();
     QWizardPage *tutorial2_intro();
     QWizardPage *tutorial2_directory();
+    void setup_tutorial(int tutno, const QString &dir, bool purgedir, bool getsolution);
     void purge_inspect_list();
     bool eventFilter(QObject *watched, QEvent *event) override;
 

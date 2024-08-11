@@ -1581,10 +1581,10 @@ QWizardPage *LammpsGui::tutorial1_directory()
     auto *dirlayout = new QHBoxLayout;
 
     auto *directory = new QLineEdit;
-    if (current_dir.endsWith("my-first-input"))
+    if (current_dir.endsWith("tutorial1"))
         directory->setText(current_dir);
     else
-        directory->setText(current_dir + "/" + "my-first-input");
+        directory->setText(current_dir + "/" + "tutorial1");
     auto *dirbutton = new QPushButton("&Choose");
     dirlayout->addWidget(directory);
     dirlayout->addWidget(dirbutton);
@@ -1835,6 +1835,51 @@ bool LammpsGui::eventFilter(QObject *watched, QEvent *event)
     return QWidget::eventFilter(watched, event);
 }
 
+// current location of the input and solution files on the web
+static const QString geturl = "geturl https://raw.githubusercontent.com/"
+                              "akohlmey/lammps-tutorials-inputs/main/tutorial%1/%2 output %2";
+
+void LammpsGui::setup_tutorial(int tutno, const QString &dir, bool purgedir, bool getsolution)
+{
+    QDir directory(dir);
+    directory.cd(dir);
+
+    if (purgedir) purge_directory(dir);
+    if (getsolution) directory.mkpath("solution");
+
+    start_lammps();
+    lammps.command("clear");
+    lammps.command(QString("shell cd " + dir).toLocal8Bit());
+
+    // read and process manifest
+    lammps.command(geturl.arg(1).arg(".manifest").toLocal8Bit());
+    QFile manifest(".manifest");
+    QString line, first;
+    if (manifest.open(QIODevice::ReadOnly)) {
+        while (!manifest.atEnd()) {
+            line = (const char *)manifest.readLine();
+            line = line.trimmed();
+
+            // skip empty and comment lines
+            if (line.isEmpty() || line.startsWith('#')) continue;
+
+            // file in subfolder
+            if (line.contains('/')) {
+                if (getsolution && line.startsWith("solution")) {
+                    lammps.command(geturl.arg(1).arg(line).toLocal8Bit());
+                }
+            } else {
+                // first file is the initial template
+                if (first.isEmpty()) first = line;
+                lammps.command(geturl.arg(1).arg(line).toLocal8Bit());
+            }
+        }
+        manifest.close();
+        manifest.remove();
+    }
+    open_file(first);
+}
+
 // actions to perform when the wizard for tutorial 1 is complete
 // and the user has clicked on "Finish"
 
@@ -1848,43 +1893,23 @@ void Tutorial1Wizard::accept()
     // create and populate directory.
     if (dirname) {
         QDir directory;
-        auto curdir = dirname->text();
+        auto curdir = dirname->text().trimmed();
         if (!directory.mkpath(curdir)) {
             QMessageBox::warning(this, "Warning",
                                  "Cannot create tutorial 1 working directory " + curdir +
                                      ".\n\nGoing back to directory selection.");
-
             back();
             return;
         }
-        directory.setPath(curdir);
 
-        // purge files and folders from directory, if requested.
-        if (dirpurge && (dirpurge->checkState() == Qt::Checked)) purge_directory(curdir);
+        bool purgedir    = dirpurge && (dirpurge->checkState() == Qt::Checked);
+        bool getsolution = getsol && (getsol->checkState() == Qt::Checked);
 
-        // download solution in local folder
-        if (getsol && (getsol->checkState() == Qt::Checked)) {
-            directory.mkpath(curdir + "/solution");
-            fprintf(stderr, "TODO: Download solution\n");
-        }
-
-        // create initial input
-        QFile input(curdir + "/initial.lmp");
-        input.open(QIODevice::WriteOnly | QIODevice::Text);
-        QTextStream inp(&input);
-        inp << "# PART A - ENERGY MINIMIZATION\n";
-        inp << "# 1) Initialization\n";
-        inp << "# 2) System definition\n";
-        inp << "# 3) Settings\n";
-        inp << "# 4) Visualization\n";
-        inp << "# 5) Run\n";
-        input.close();
-
-        // load input template into editor window
+        // get hold of LAMMPS-GUI main widget
         LammpsGui *main = nullptr;
         for (QWidget *widget : QApplication::topLevelWidgets())
             if (widget->objectName() == "LammpsGui") main = dynamic_cast<LammpsGui *>(widget);
-        if (main) main->open_file(input.fileName());
+        if (main) main->setup_tutorial(1, curdir, purgedir, getsolution);
     }
     QDialog::accept();
 }

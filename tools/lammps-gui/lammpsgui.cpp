@@ -1530,6 +1530,7 @@ void LammpsGui::start_tutorial1()
     if (wizard) delete wizard;
     wizard = new Tutorial1Wizard;
     wizard->addPage(tutorial1_intro());
+    wizard->addPage(tutorial1_info());
     wizard->addPage(tutorial1_directory());
     wizard->addPage(tutorial1_finish());
     wizard->setWindowTitle("Tutorial 1 Setup Wizard");
@@ -1554,6 +1555,27 @@ QWizardPage *LammpsGui::tutorial1_intro()
                    "github.com/lammpstutorials/lammpstutorials-article</a></b></p><br>\n"
                    "<hr width=\"33%\"\\>\n"
                    "<p align=\"center\">Click on the \"Next\" button to begin.</p>");
+    label->setWordWrap(true);
+
+    auto *layout = new QVBoxLayout;
+    layout->addWidget(label);
+    page->setLayout(layout);
+    return page;
+}
+
+QWizardPage *LammpsGui::tutorial1_info()
+{
+    auto *page = new QWizardPage;
+    page->setTitle("Contents of Tutorial 1");
+    page->setPixmap(QWizard::WatermarkPixmap, QPixmap(":/icons/tutorial1-logo.png"));
+
+    auto *label =
+        new QLabel("<p>In tutorial 1 you will learn about LAMMPS input files, their syntax and "
+                   " structure, how to create and set up models and their interactions, how to "
+                   "run a minimization and a molecular dynamics trajectory, how to plot "
+                   "thermodynamic data and how to create visualizations of your system</p>"
+                   "<hr width=\"33%\"\\>\n"
+                   "<p align=\"center\">Click on the \"Next\" button to select a folder.</p>");
     label->setWordWrap(true);
 
     auto *layout = new QVBoxLayout;

@@ -82,6 +82,7 @@ protected:
     void setDocver();
     void autoSave();
     QWizardPage *tutorial1_intro();
+    QWizardPage *tutorial1_info();
     QWizardPage *tutorial1_directory();
     QWizardPage *tutorial1_finish();
     QWizardPage *tutorial2_intro();

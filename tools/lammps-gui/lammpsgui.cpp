@@ -1842,9 +1842,9 @@ bool LammpsGui::eventFilter(QObject *watched, QEvent *event)
     return QWidget::eventFilter(watched, event);
 }
 
-// current location of the input and solution files on the web
-static const QString geturl = "geturl https://raw.githubusercontent.com/"
-                              "akohlmey/lammps-tutorials-inputs/main/tutorial%1/%2 output %2";
+// LAMMPS geturl command with current location of the input and solution files on the web
+static const QString geturl = "geturl https://raw.githubusercontent.com/akohlmey/"
+                              "lammps-tutorials-inputs/main/tutorial%1/%2 output %2 verify no";
 
 void LammpsGui::setup_tutorial(int tutno, const QString &dir, bool purgedir, bool getsolution)
 {

@@ -47,6 +47,7 @@
 #include <QPushButton>
 #include <QSettings>
 #include <QShortcut>
+#include <QStandardPaths>
 #include <QStatusBar>
 #include <QStringList>
 #include <QTextStream>
@@ -1579,12 +1580,18 @@ QWizardPage *LammpsGui::tutorial1_directory()
     label->setWordWrap(true);
 
     auto *dirlayout = new QHBoxLayout;
-
     auto *directory = new QLineEdit;
-    if (current_dir.endsWith("tutorial1"))
-        directory->setText(current_dir);
-    else
-        directory->setText(current_dir + "/" + "tutorial1");
+    // if we are already in the tutorial folder, stay there
+    if (!current_dir.endsWith("tutorial1")) {
+        // if current dir is home, or application folder, switch to desktop path
+        if ((current_dir == QDir::homePath()) || current_dir.contains("AppData") ||
+            current_dir.contains("Program Files")) {
+            current_dir = QStandardPaths::writableLocation(QStandardPaths::DesktopLocation);
+        }
+        current_dir += "/tutorial1";
+    }
+    directory->setText(current_dir);
+
     auto *dirbutton = new QPushButton("&Choose");
     dirlayout->addWidget(directory);
     dirlayout->addWidget(dirbutton);

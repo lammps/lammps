@@ -1880,6 +1880,11 @@ void LammpsGui::setup_tutorial(int tutno, const QString &dir, bool purgedir, boo
     open_file(first);
 }
 
+Tutorial1Wizard::Tutorial1Wizard(QWidget *parent) : QWizard(parent)
+{
+    setWindowIcon(QIcon(":/icons/tutorial-logo.png"));
+}
+
 // actions to perform when the wizard for tutorial 1 is complete
 // and the user has clicked on "Finish"
 

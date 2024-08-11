@@ -175,8 +175,7 @@ class Tutorial1Wizard : public QWizard {
     Q_OBJECT
 
 public:
-    Tutorial1Wizard(QWidget *parent = nullptr) : QWizard(parent) {}
-
+    Tutorial1Wizard(QWidget *parent = nullptr);
     void accept() override;
 };
 

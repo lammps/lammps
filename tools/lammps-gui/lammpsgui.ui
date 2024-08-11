@@ -483,7 +483,7 @@
   </action>
   <action name="actionTutorial1">
    <property name="icon">
-    <iconset theme=":/icons/document-new.png"/>
+    <iconset theme=":/icons/tutorial-logo.png"/>
    </property>
    <property name="text">
     <string>Start LAMMPS Tutorial &amp;1</string>
@@ -491,7 +491,7 @@
   </action>
   <action name="actionTutorial2">
    <property name="icon">
-    <iconset theme=":/icons/document-new.png"/>
+    <iconset theme=":/icons/tutorial-logo.png"/>
    </property>
    <property name="text">
     <string>Start LAMMPS Tutorial &amp;2</string>

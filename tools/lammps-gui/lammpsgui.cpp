@@ -1983,10 +1983,10 @@ void LammpsGui::setup_tutorial(int tutno, const QString &dir, bool purgedir, boo
 
     start_lammps();
     lammps.command("clear");
-    lammps.command(QString("shell cd " + dir).toLocal8Bit());
+    lammps.command(QString("shell cd " + dir).toStdString().c_str());
 
     // read and process manifest
-    lammps.command(geturl.arg(tutno).arg(".manifest").toLocal8Bit());
+    lammps.command(geturl.arg(tutno).arg(".manifest").toStdString().c_str());
     QFile manifest(".manifest");
     QString line, first;
     if (manifest.open(QIODevice::ReadOnly)) {
@@ -2000,12 +2000,12 @@ void LammpsGui::setup_tutorial(int tutno, const QString &dir, bool purgedir, boo
             // file in subfolder
             if (line.contains('/')) {
                 if (getsolution && line.startsWith("solution")) {
-                    lammps.command(geturl.arg(tutno).arg(line).toLocal8Bit());
+                    lammps.command(geturl.arg(tutno).arg(line).toStdString().c_str());
                 }
             } else {
                 // first file is the initial template
                 if (first.isEmpty()) first = line;
-                lammps.command(geturl.arg(tutno).arg(line).toLocal8Bit());
+                lammps.command(geturl.arg(tutno).arg(line).toStdString().c_str());
             }
         }
         manifest.close();

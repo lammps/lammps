@@ -11,8 +11,11 @@ With the current features, users can:
     + specify the examples subfolders (thus the reference log files) seperately (e.g. from other LAMMPS versions or commits)
     + specify tolerances for individual quantities for any input script to override the global values
     + launch tests with `mpirun` with all supported command line features (multiple procs, multiple paritions, and suffices)
-    + skip certain input files if not interested, or no reference log file exists
+    + skip certain input files (whose names match specified patterns) if not interested, or packaged not installed, or no reference log file exists
     + simplify the main LAMMPS builds, as long as a LAMMPS binary is available
+    + keep track of the testing progress to resume the testing from the last checkpoint (skipping completed runs)
+    + distribute the input list across multiple processes via multiprocessing, or
+      split the list of input scripts into separate runs (there are 800+ input script under the top-level examples)
 
 Limitations:
     - input scripts use thermo style multi (e.g., examples/peptide) do not work with the expected thermo output format
@@ -20,9 +23,6 @@ Limitations:
     - testing accelerator packages (GPU, INTEL, KOKKOS, OPENMP) need separate config files, "args: -sf omp -pk omp 4"
 
 TODO:
-    + keep track of the testing progress to resume the testing from the last checkpoint
-    + distribute the input list across multiple processes via multiprocessing, or
-      split the list of input scripts into separate runs (there are 800+ input script under the top-level examples)
     + be able to be invoked from run_tests in the lammps-testing infrastruture
 
 The following Python packages need to be installed into an activated environment:
@@ -282,17 +282,6 @@ def iterate(lmp_binary, input_folder, input_list, config, results, progress_file
         # restore the nprocs value in the configuration
         config['nprocs'] = saved_nprocs
 
-        if "Step" not in output or "Loop" not in output:
-            logger.info(f"    ERROR: no Step nor Loop in the output.\n")
-            logger.info(f"\n{input_test}:")
-            logger.info(f"\n    Output:\n{output}")
-            logger.info(f"\n    Error:\n{error}")
-            progress.write(f"{input}: {{ folder: {input_folder}, status: \"error, no Step nor Loop in the output.\" }}\n")
-            progress.close()
-            num_error = num_error + 1
-            test_id = test_id + 1
-            continue
-
         # check if the output contains ERROR
         if "ERROR" in output:
             cmd_str = "grep ERROR log.lammps"
@@ -316,6 +305,18 @@ def iterate(lmp_binary, input_folder, input_list, config, results, progress_file
             progress.write(f"{input}: {{ folder: {input_folder}, status: \"{result.status}\" }}\n")
             progress.close()
 
+            test_id = test_id + 1
+            continue
+
+        # if there is no ERROR in the output, then there is something irregular in the run
+        if "Step" not in output or "Loop" not in output:
+            logger.info(f"    ERROR: no Step nor Loop in the output.\n")
+            logger.info(f"\n{input_test}:")
+            logger.info(f"\n    Output:\n{output}")
+            logger.info(f"\n    Error:\n{error}")
+            progress.write(f"{input}: {{ folder: {input_folder}, status: \"error, no Step nor Loop in the output.\" }}\n")
+            progress.close()
+            num_error = num_error + 1
             test_id = test_id + 1
             continue
 

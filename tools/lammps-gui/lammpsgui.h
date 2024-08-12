@@ -64,6 +64,7 @@ class LammpsGui : public QMainWindow {
     friend class CodeEditor;
     friend class GeneralTab;
     friend class Tutorial1Wizard;
+    friend class Tutorial2Wizard;
 
 public:
     LammpsGui(QWidget *parent = nullptr, const char *filename = nullptr);
@@ -86,7 +87,9 @@ protected:
     QWizardPage *tutorial1_directory();
     QWizardPage *tutorial1_finish();
     QWizardPage *tutorial2_intro();
+    QWizardPage *tutorial2_info();
     QWizardPage *tutorial2_directory();
+    QWizardPage *tutorial2_finish();
     void setup_tutorial(int tutno, const QString &dir, bool purgedir, bool getsolution);
     void purge_inspect_list();
     bool eventFilter(QObject *watched, QEvent *event) override;
@@ -180,6 +183,13 @@ public:
     void accept() override;
 };
 
+class Tutorial2Wizard : public QWizard {
+    Q_OBJECT
+
+public:
+    Tutorial2Wizard(QWidget *parent = nullptr);
+    void accept() override;
+};
 #endif // LAMMPSGUI_H
 
 // Local Variables:

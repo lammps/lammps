@@ -334,6 +334,16 @@ LammpsGui::LammpsGui(QWidget *parent, const char *filename) :
     style_list.sort();
     ui->textEdit->setUnitsList(style_list);
 
+    style_list.clear();
+    const char *extraargs[] = {"extra/atom/types",        "extra/bond/types",
+                               "extra/angle/types",       "extra/dihedral/types",
+                               "extra/improper/types",    "extra/bond/per/atom",
+                               "extra/angle/per/atom",    "extra/dihedral/per/atom",
+                               "extra/improper/per/atom", "extra/special/per/atom"};
+    for (const auto *const extra : extraargs)
+        style_list << extra;
+    ui->textEdit->setExtraList(style_list);
+
     ui->textEdit->setFileList();
 
 #define ADD_STYLES(keyword, Type)                                                              \

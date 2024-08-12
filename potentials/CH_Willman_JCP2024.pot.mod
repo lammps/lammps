@@ -2,5 +2,5 @@
 
 #STANDARD PACE
 pair_style pace product chunksize 4096	
-pair_coeff              * *  ./CH_ace_potential.yace C H 
+pair_coeff              * *  ./CH_Willman_JCP2024.yace C H 
 

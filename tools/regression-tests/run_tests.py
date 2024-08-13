@@ -122,6 +122,9 @@ def iterate(lmp_binary, input_folder, input_list, config, results, progress_file
     using_markers = False
     EPSILON = np.float64(config['epsilon'])
     nugget = float(config['nugget'])
+    use_valgrind = False
+    if 'valgrind' in config['mpiexec']:
+        use_valgrind = True
 
     # iterate over the input scripts
     for input in input_list:
@@ -211,10 +214,9 @@ def iterate(lmp_binary, input_folder, input_list, config, results, progress_file
         print(str_t)
         
         # check if a reference log file exists in the current folder: log.DDMMMYY.basename.g++.[nprocs]
-        #basename = input_test.replace('in.','')
-        # assuming that input file names start with "in."
+        # assuming that input file names start with "in." (except in.disp, in.disp2 and in.dos in phonon/)
         basename = input_test[3:]
-        logfile_exist = False
+        ref_logfile_exist = False
 
         # if there are multiple log files for different number of procs, pick the maximum number
         cmd_str = "ls log.*"
@@ -232,30 +234,35 @@ def iterate(lmp_binary, input_folder, input_list, config, results, progress_file
             if fnmatch.fnmatch(file, pattern):
                 p = file.rsplit('.', 1)
                 if p[1].isnumeric():
-                    if 'valgrind' in config['mpiexec']:
+                    if use_valgrind == True:
                         if int(p[1]) == 1:
                             max_np = int(p[1])
-                            logfile_exist = True
+                            ref_logfile_exist = True
                             thermo_ref_file = file
                             break
                     else:
-                        if max_np < int(p[1]):
+                        if max_np <= int(p[1]):
                             max_np = int(p[1])
-                            logfile_exist = True
+                            ref_logfile_exist = True
                             thermo_ref_file = file
 
-        nprocs = max_np
-
+        # if there is no ref log file and not running with valgrind
+        if ref_logfile_exist == False and use_valgrind == False:
+            max_np = 4
+    
         # if the maximum number of procs is different from the value in the configuration file
         #      then override the setting for this input script
         saved_nprocs = config['nprocs']
         if max_np != int(config['nprocs']):
             config['nprocs'] = str(max_np)
 
+        # store the value of nprocs 
+        nprocs = int(config['nprocs'])
+
         # if valgrind is used for mem check, the run command will be
-        #   mpirun valgrind --leak-check=full --show-leak-kinds=all --track-origin=yes /path/to/lmp_binary -in in.txt
+        #   mpirun -np 1 valgrind --leak-check=full --show-leak-kinds=all --track-origins=yes /path/to/lmp_binary -in in.txt
         # so both mpiexec_numproc_flag and nprocs are empty
-        if 'valgrind' in config['mpiexec']:
+        if use_valgrind == True:
             config['nprocs'] = ""
             config['mpiexec_numproc_flag'] = ""
             nprocs = 1
@@ -269,20 +276,21 @@ def iterate(lmp_binary, input_folder, input_list, config, results, progress_file
         config['nprocs'] = saved_nprocs
 
         # check if the output contains ERROR
+        #   there might not be a log.lammps generated at this point, or only log.lammps contains only the date line
         if "ERROR" in output:
             error_line = ""
-            for line in output:
+            for line in output.split('\n'):
                 if "ERROR" in line:
                     error_line = line
                     break
             logger.info(f"     The run terminated with {input_test} gives the following output:")
             logger.info(f"       {error_line}")             
             if "Unrecognized" in output:
-                result.status = "error, unrecognized command, package not installed"
+                result.status = f"error, unrecognized command, package not installed, {error_line}"
             elif "Unknown" in output:
-                result.status = "error, unknown command, package not installed"
+                result.status = f"error, unknown command, package not installed, {error_line}"
             else:
-                result.status = f"error, see output."
+                result.status = f"error, {error_line}."
 
             logger.info(f"     Output:")
             logger.info(f"     {output}")
@@ -296,7 +304,7 @@ def iterate(lmp_binary, input_folder, input_list, config, results, progress_file
             test_id = test_id + 1
             continue
 
-        # if there is no ERROR in the output, then there is something irregular in the run
+        # if there is no ERROR in the output, but there is no Total wall time printed out
         if "Total wall time" not in output:
             logger.info(f"    ERROR: no Total wall time in the output.\n")
             logger.info(f"\n{input_test}:")
@@ -308,6 +316,7 @@ def iterate(lmp_binary, input_folder, input_list, config, results, progress_file
             test_id = test_id + 1
             continue
 
+        # if there is no Step or no Loop printed out
         if "Step" not in output or "Loop" not in output:
             logger.info(f"    ERROR: no Step nor Loop in the output.\n")
             logger.info(f"\n{input_test}:")
@@ -363,7 +372,7 @@ def iterate(lmp_binary, input_folder, input_list, config, results, progress_file
 
         # At this point, the run completed without trivial errors, proceed with numerical checks
         # check if there is a reference log file for this input
-        if logfile_exist:
+        if ref_logfile_exist:
             # parse the thermo output in reference log file
             thermo_ref = extract_data_to_yaml(thermo_ref_file)
             if thermo_ref:
@@ -547,7 +556,7 @@ def iterate(lmp_binary, input_folder, input_list, config, results, progress_file
 
         # check if memleak detects from valgrind run (need to replace "mpirun" -> valgrind --leak-check=yes mpirun")
         msg = "completed"
-        if 'valgrind' in config['mpiexec']:
+        if use_valgrind == True:
             if "All heap blocks were freed" in error:
                 msg += ", no memory leak"
             else:

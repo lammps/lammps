@@ -397,7 +397,8 @@ void PairSRP::coeff(int narg, char **arg)
     error->all(FLERR,"PairSRP: Incorrect args for pair coeff");
   if (!allocated) allocate();
 
-  btype = utils::expand_type_int(FLERR, btype_str, Atom::BOND, lmp);
+  if (btype_str.size() > 0)
+    btype = utils::expand_type_int(FLERR, btype_str, Atom::BOND, lmp);
   if ((btype > atom->nbondtypes) || (btype <= 0))
     error->all(FLERR,"Illegal pair_style command");
 

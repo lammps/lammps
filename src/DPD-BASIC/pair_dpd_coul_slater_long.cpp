@@ -42,12 +42,14 @@ static constexpr double EPSILON = 1.0e-10;
 /* ---------------------------------------------------------------------- */
 
 PairDPDCoulSlaterLong::PairDPDCoulSlaterLong(LAMMPS *lmp) :
-    Pair(lmp), cut_dpd(nullptr), cut_dpdsq(nullptr), cut_slatersq(nullptr),
+  Pair(lmp), cut(nullptr), cut_dpd(nullptr), cut_dpdsq(nullptr), cut_slatersq(nullptr),
     a0(nullptr), gamma(nullptr), sigma(nullptr), random(nullptr)
 {
   writedata = 1;
   ewaldflag = pppmflag = 1;
   respa_enable = 0;
+
+  cut_global = cut_coul = temperature = 0.0;
 }
 
 /* ---------------------------------------------------------------------- */

@@ -11,19 +11,23 @@
 
 #include "colvarmodule.h"
 #include "colvarvalue.h"
-#include "colvarparse.h"
 #include "colvar.h"
 #include "colvarcomp.h"
 
 
-colvar::alpha_angles::alpha_angles(std::string const &conf)
-  : cvc(conf)
+colvar::alpha_angles::alpha_angles()
 {
   set_function_type("alpha");
   enable(f_cvc_explicit_gradient);
   x.type(colvarvalue::type_scalar);
-
   colvarproxy *proxy = cvm::main()->proxy;
+  r0 = proxy->angstrom_to_internal(3.3);
+}
+
+
+int colvar::alpha_angles::init(std::string const &conf)
+{
+  int error_code = cvc::init(conf);
 
   std::string segment_id;
   get_keyval(conf, "psfSegID", segment_id, std::string("MAIN"));
@@ -44,29 +48,29 @@ colvar::alpha_angles::alpha_angles(std::string const &conf)
         }
       }
     } else {
-      cvm::error("Error: no residues defined in \"residueRange\".\n");
-      return;
+      error_code |=
+          cvm::error("Error: no residues defined in \"residueRange\".\n", COLVARS_INPUT_ERROR);
     }
   }
 
   if (residues.size() < 5) {
-    cvm::error("Error: not enough residues defined in \"residueRange\".\n");
-    return;
+    error_code |= cvm::error("Error: not enough residues defined in \"residueRange\".\n",
+                             COLVARS_INPUT_ERROR);
   }
 
   std::string const &sid    = segment_id;
   std::vector<int> const &r = residues;
 
 
-  get_keyval(conf, "hBondCoeff", hb_coeff, 0.5);
-  if ( (hb_coeff < 0.0) || (hb_coeff > 1.0) ) {
-    cvm::error("Error: hBondCoeff must be defined between 0 and 1.\n");
-    return;
+  get_keyval(conf, "hBondCoeff", hb_coeff, hb_coeff);
+  if ((hb_coeff < 0.0) || (hb_coeff > 1.0)) {
+    error_code |=
+        cvm::error("Error: hBondCoeff must be defined between 0 and 1.\n", COLVARS_INPUT_ERROR);
   }
 
 
-  get_keyval(conf, "angleRef", theta_ref, 88.0);
-  get_keyval(conf, "angleTol", theta_tol, 15.0);
+  get_keyval(conf, "angleRef", theta_ref, theta_ref);
+  get_keyval(conf, "angleTol", theta_tol, theta_tol);
 
   if (hb_coeff < 1.0) {
 
@@ -84,11 +88,9 @@ colvar::alpha_angles::alpha_angles(std::string const &conf)
   }
 
   {
-    cvm::real r0;
-    size_t en, ed;
-    get_keyval(conf, "hBondCutoff",   r0, proxy->angstrom_to_internal(3.3));
-    get_keyval(conf, "hBondExpNumer", en, 6);
-    get_keyval(conf, "hBondExpDenom", ed, 8);
+    get_keyval(conf, "hBondCutoff",   r0, r0);
+    get_keyval(conf, "hBondExpNumer", en, en);
+    get_keyval(conf, "hBondExpDenom", ed, ed);
 
     if (hb_coeff > 0.0) {
 
@@ -103,15 +105,8 @@ colvar::alpha_angles::alpha_angles(std::string const &conf)
       cvm::log("The hBondCoeff specified will disable the hydrogen bond terms.\n");
     }
   }
-}
 
-
-colvar::alpha_angles::alpha_angles()
-  : cvc()
-{
-  set_function_type("alphaAngles");
-  enable(f_cvc_explicit_gradient);
-  x.type(colvarvalue::type_scalar);
+  return error_code;
 }
 
 
@@ -273,24 +268,27 @@ void colvar::alpha_angles::apply_force(colvarvalue const &force)
 }
 
 
-simple_scalar_dist_functions(alpha_angles)
-
 
 
 //////////////////////////////////////////////////////////////////////
 // dihedral principal component
 //////////////////////////////////////////////////////////////////////
 
-colvar::dihedPC::dihedPC(std::string const &conf)
-  : cvc(conf)
+colvar::dihedPC::dihedPC()
 {
-  if (cvm::debug())
-    cvm::log("Initializing dihedral PC object.\n");
-
   set_function_type("dihedPC");
   // Supported through references to atom groups of children cvcs
   enable(f_cvc_explicit_gradient);
   x.type(colvarvalue::type_scalar);
+}
+
+
+int colvar::dihedPC::init(std::string const &conf)
+{
+  int error_code = cvc::init(conf);
+
+  if (cvm::debug())
+    cvm::log("Initializing dihedral PC object.\n");
 
   std::string segment_id;
   get_keyval(conf, "psfSegID", segment_id, std::string("MAIN"));
@@ -311,14 +309,14 @@ colvar::dihedPC::dihedPC(std::string const &conf)
         }
       }
     } else {
-      cvm::error("Error: no residues defined in \"residueRange\".\n");
-      return;
+      error_code |=
+          cvm::error("Error: no residues defined in \"residueRange\".\n", COLVARS_INPUT_ERROR);
     }
   }
 
   if (residues.size() < 2) {
-    cvm::error("Error: dihedralPC requires at least two residues.\n");
-    return;
+    error_code |=
+        cvm::error("Error: dihedralPC requires at least two residues.\n", COLVARS_INPUT_ERROR);
   }
 
   std::string const &sid    = segment_id;
@@ -329,15 +327,15 @@ colvar::dihedPC::dihedPC(std::string const &conf)
   if (get_keyval(conf, "vectorFile", vecFileName, vecFileName)) {
     get_keyval(conf, "vectorNumber", vecNumber, 0);
     if (vecNumber < 1) {
-      cvm::error("A positive value of vectorNumber is required.");
-      return;
+      error_code |=
+          cvm::error("A positive value of vectorNumber is required.", COLVARS_INPUT_ERROR);
     }
 
     std::istream &vecFile =
       cvm::main()->proxy->input_stream(vecFileName,
                                        "dihedral PCA vector file");
     if (!vecFile) {
-      return;
+      return COLVARS_INPUT_ERROR;
     }
 
     // TODO: adapt to different formats by setting this flag
@@ -383,11 +381,10 @@ colvar::dihedPC::dihedPC(std::string const &conf)
   }
 
   if ( coeffs.size() != 4 * (residues.size() - 1)) {
-    cvm::error("Error: wrong number of coefficients: " +
-        cvm::to_str(coeffs.size()) + ". Expected " +
-        cvm::to_str(4 * (residues.size() - 1)) +
-        " (4 coeffs per residue, minus one residue).\n");
-    return;
+    error_code |= cvm::error("Error: wrong number of coefficients: " + cvm::to_str(coeffs.size()) +
+                             ". Expected " + cvm::to_str(4 * (residues.size() - 1)) +
+                             " (4 coeffs per residue, minus one residue).\n",
+                             COLVARS_INPUT_ERROR);
   }
 
   for (size_t i = 0; i < residues.size()-1; i++) {
@@ -413,16 +410,8 @@ colvar::dihedPC::dihedPC(std::string const &conf)
 
   if (cvm::debug())
     cvm::log("Done initializing dihedPC object.\n");
-}
 
-
-colvar::dihedPC::dihedPC()
-  : cvc()
-{
-  set_function_type("dihedPC");
-  // Supported through references to atom groups of children cvcs
-  enable(f_cvc_explicit_gradient);
-  x.type(colvarvalue::type_scalar);
+  return error_code;
 }
 
 
@@ -491,6 +480,3 @@ void colvar::dihedPC::apply_force(colvarvalue const &force)
                            coeffs[2*i+1] * dsindt) * force);
   }
 }
-
-
-simple_scalar_dist_functions(dihedPC)

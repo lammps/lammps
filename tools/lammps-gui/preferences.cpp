@@ -137,6 +137,8 @@ void Preferences::accept()
     if (box) settings->setValue("antialias", box->isChecked());
     box = tabWidget->findChild<QCheckBox *>("ssao");
     if (box) settings->setValue("ssao", box->isChecked());
+    box = tabWidget->findChild<QCheckBox *>("shiny");
+    if (box) settings->setValue("shinystyle", box->isChecked());
     box = tabWidget->findChild<QCheckBox *>("box");
     if (box) settings->setValue("box", box->isChecked());
     box = tabWidget->findChild<QCheckBox *>("axes");
@@ -196,6 +198,8 @@ void Preferences::accept()
     if (box) settings->setValue("return", box->isChecked());
     box = tabWidget->findChild<QCheckBox *>("autoval");
     if (box) settings->setValue("automatic", box->isChecked());
+    box = tabWidget->findChild<QCheckBox *>("savval");
+    if (box) settings->setValue("autosave", box->isChecked());
     settings->endGroup();
 
     QDialog::accept();
@@ -291,16 +295,24 @@ void GeneralTab::updatefonts(const QFont &all, const QFont &text)
     for (QWidget *widget : QApplication::topLevelWidgets())
         if (widget->objectName() == "LammpsGui") main = dynamic_cast<LammpsGui *>(widget);
 
-    QApplication::setFont(all);
-    if (main) main->ui->textEdit->document()->setDefaultFont(text);
+    if (main) {
+        main->setFont(all);
+        main->ui->textEdit->document()->setDefaultFont(text);
+        if (main->wizard) main->wizard->setFont(all);
+    }
+
+    Preferences *prefs = nullptr;
+    for (QWidget *widget : QApplication::topLevelWidgets())
+        if (widget->objectName() == "preferences") prefs = dynamic_cast<Preferences *>(widget);
+    if (prefs) prefs->setFont(all);
 }
 
 void GeneralTab::newallfont()
 {
     QSettings settings;
     QFont all, text;
-    all.fromString(settings.value("allfont", "").toString());
-    text.fromString(settings.value("textfont", "").toString());
+    all.fromString(settings.value("allfont", QFont("Arial", -1).toString()).toString());
+    text.fromString(settings.value("textfont", QFont("Monospace", -1).toString()).toString());
 
     bool ok    = false;
     QFont font = QFontDialog::getFont(&ok, all, this, QString("Select Default Font"));
@@ -313,8 +325,8 @@ void GeneralTab::newtextfont()
 {
     QSettings settings;
     QFont all, text;
-    all.fromString(settings.value("allfont", "").toString());
-    text.fromString(settings.value("textfont", "").toString());
+    all.fromString(settings.value("allfont", QFont("Arial", -1).toString()).toString());
+    text.fromString(settings.value("textfont", QFont("Monospace", -1).toString()).toString());
 
     bool ok    = false;
     QFont font = QFontDialog::getFont(&ok, text, this, QString("Select Text Font"));
@@ -444,17 +456,19 @@ SnapshotTab::SnapshotTab(QSettings *_settings, QWidget *parent) :
     auto *zoom  = new QLabel("Zoom factor:");
     auto *anti  = new QLabel("Antialias:");
     auto *ssao  = new QLabel("HQ Image mode:");
+    auto *shiny = new QLabel("Shiny Image mode:");
     auto *bbox  = new QLabel("Show Box:");
     auto *axes  = new QLabel("Show Axes:");
     auto *vdw   = new QLabel("VDW Style:");
     auto *cback = new QLabel("Background Color:");
     auto *cbox  = new QLabel("Box Color:");
     settings->beginGroup("snapshot");
-    auto *xval = new QLineEdit(settings->value("xsize", "800").toString());
+    auto *xval = new QLineEdit(settings->value("xsize", "600").toString());
     auto *yval = new QLineEdit(settings->value("ysize", "600").toString());
     auto *zval = new QLineEdit(settings->value("zoom", "1.0").toString());
     auto *aval = new QCheckBox;
     auto *sval = new QCheckBox;
+    auto *hval = new QCheckBox;
     auto *bval = new QCheckBox;
     auto *eval = new QCheckBox;
     auto *vval = new QCheckBox;
@@ -462,6 +476,8 @@ SnapshotTab::SnapshotTab(QSettings *_settings, QWidget *parent) :
     sval->setObjectName("ssao");
     aval->setCheckState(settings->value("antialias", false).toBool() ? Qt::Checked : Qt::Unchecked);
     aval->setObjectName("anti");
+    hval->setCheckState(settings->value("shinystyle", true).toBool() ? Qt::Checked : Qt::Unchecked);
+    hval->setObjectName("shiny");
     bval->setCheckState(settings->value("box", true).toBool() ? Qt::Checked : Qt::Unchecked);
     bval->setObjectName("box");
     eval->setCheckState(settings->value("axes", false).toBool() ? Qt::Checked : Qt::Unchecked);
@@ -508,6 +524,8 @@ SnapshotTab::SnapshotTab(QSettings *_settings, QWidget *parent) :
     grid->addWidget(aval, i++, 1, Qt::AlignTop);
     grid->addWidget(ssao, i, 0, Qt::AlignTop);
     grid->addWidget(sval, i++, 1, Qt::AlignVCenter);
+    grid->addWidget(shiny, i, 0, Qt::AlignTop);
+    grid->addWidget(hval, i++, 1, Qt::AlignVCenter);
     grid->addWidget(bbox, i, 0, Qt::AlignTop);
     grid->addWidget(bval, i++, 1, Qt::AlignVCenter);
     grid->addWidget(axes, i, 0, Qt::AlignTop);
@@ -536,29 +554,34 @@ EditorTab::EditorTab(QSettings *_settings, QWidget *parent) : QWidget(parent), s
     auto *namelbl  = new QLabel("Name width:");
     auto *retlbl   = new QLabel("Reformat with 'Enter':");
     auto *autolbl  = new QLabel("Automatic completion:");
+    auto *savlbl   = new QLabel("Auto-save on 'Run' and 'Quit':");
     auto *cmdval   = new QSpinBox;
     auto *typeval  = new QSpinBox;
     auto *idval    = new QSpinBox;
     auto *nameval  = new QSpinBox;
     auto *retval   = new QCheckBox;
     auto *autoval  = new QCheckBox;
+    auto *savval   = new QCheckBox;
+    cmdval->setObjectName("cmdval");
     cmdval->setRange(1, 32);
     cmdval->setValue(settings->value("command", "16").toInt());
-    cmdval->setObjectName("cmdval");
+    typeval->setObjectName("typeval");
     typeval->setRange(1, 32);
     typeval->setValue(settings->value("type", "4").toInt());
-    typeval->setObjectName("typeval");
+    idval->setObjectName("idval");
     idval->setRange(1, 32);
     idval->setValue(settings->value("id", "8").toInt());
-    idval->setObjectName("idval");
+    nameval->setObjectName("nameval");
     nameval->setRange(1, 32);
     nameval->setValue(settings->value("name", "8").toInt());
-    nameval->setObjectName("nameval");
-    retval->setCheckState(settings->value("return", true).toBool() ? Qt::Checked : Qt::Unchecked);
     retval->setObjectName("retval");
+    retval->setCheckState(settings->value("return", false).toBool() ? Qt::Checked : Qt::Unchecked);
+    autoval->setObjectName("autoval");
     autoval->setCheckState(settings->value("automatic", true).toBool() ? Qt::Checked
                                                                        : Qt::Unchecked);
-    autoval->setObjectName("autoval");
+    savval->setObjectName("savval");
+    savval->setCheckState(settings->value("autosave", false).toBool() ? Qt::Checked
+                                                                      : Qt::Unchecked);
     settings->endGroup();
 
     int i = 0;
@@ -575,6 +598,8 @@ EditorTab::EditorTab(QSettings *_settings, QWidget *parent) : QWidget(parent), s
     grid->addWidget(retval, i++, 1, Qt::AlignVCenter);
     grid->addWidget(autolbl, i, 0, Qt::AlignTop);
     grid->addWidget(autoval, i++, 1, Qt::AlignVCenter);
+    grid->addWidget(savlbl, i, 0, Qt::AlignTop);
+    grid->addWidget(savval, i++, 1, Qt::AlignVCenter);
 
     grid->addItem(new QSpacerItem(100, 100, QSizePolicy::Minimum, QSizePolicy::Expanding), i, 0);
     grid->addItem(new QSpacerItem(100, 100, QSizePolicy::Minimum, QSizePolicy::Expanding), i, 1);

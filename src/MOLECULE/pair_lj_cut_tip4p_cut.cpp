@@ -38,14 +38,18 @@ using namespace MathConst;
 
 /* ---------------------------------------------------------------------- */
 
-PairLJCutTIP4PCut::PairLJCutTIP4PCut(LAMMPS *lmp) : Pair(lmp)
+PairLJCutTIP4PCut::PairLJCutTIP4PCut(LAMMPS *lmp) :
+    Pair(lmp), cut_lj(nullptr), cut_ljsq(nullptr), epsilon(nullptr), sigma(nullptr), lj1(nullptr),
+    lj2(nullptr), lj3(nullptr), lj4(nullptr), offset(nullptr), hneigh(nullptr), newsite(nullptr)
+
 {
   single_enable = 0;
   writedata = 1;
 
   nmax = 0;
-  hneigh = nullptr;
-  newsite = nullptr;
+
+  typeH = typeO = typeA = typeB = -1;
+  alpha = qdist = 0.0;
 
   // TIP4P cannot compute virial as F dot r
   // due to finding bonded H atoms which are not near O atom

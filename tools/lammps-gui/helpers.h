@@ -25,6 +25,9 @@ extern char *mystrdup(const QString &text);
 // find if executable is in path
 extern bool has_exe(const QString &exe);
 
+// recursively purge a directory
+extern void purge_directory(const QString &dir);
+
 #endif
 // Local Variables:
 // c-basic-offset: 4

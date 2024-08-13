@@ -22,6 +22,7 @@ letter abbreviation can be used:
 * :ref:`-ro or -reorder <reorder>`
 * :ref:`-r2data or -restart2data <restart2data>`
 * :ref:`-r2dump or -restart2dump <restart2dump>`
+* :ref:`-r2info or -restart2info <restart2info>`
 * :ref:`-sc or -screen <screen>`
 * :ref:`-sr or skiprun <skiprun>`
 * :ref:`-sf or -suffix <suffix>`
@@ -500,6 +501,37 @@ per-atom fields are written to the dump file and optional dump_modify
 settings, including ones that affect how parallel dump files are written,
 e.g. the *nfile* and *fileper* keywords.  See the
 :doc:`dump_modify <dump_modify>` page for details.
+
+----------
+
+.. _restart2info:
+
+**-restart2info restartfile keyword ...**
+
+.. versionadded:: TBD
+
+Write out some info about the restart file and and immediately exit.
+This is the same operation as if the following 2-line input script were
+run:
+
+.. code-block:: LAMMPS
+
+   read_restart restartfile
+   info system group computes fixes
+
+The specified restartfile name may contain the wild-card character "\*".
+The restartfile name may also contain the wild-card character "%".  The
+meaning of these characters is explained on the :doc:`read_restart
+<read_restart>` documentation.  The use of "%" means that a parallel
+restart file can be read.  Note that a filename such as file.\* may need
+to be enclosed in quotes or the "\*" character prefixed with a backslash
+("\") to avoid shell expansion of the "\*" character.
+
+Optional keywords may follow the restartfile argument.  These must be
+valid keywords for the :doc:`info command <info>`.  The most useful
+ones - *system*, *group*, *computes*, and *fixes* - are already applied.
+Appending keywords like *coeffs* or *communication* may provide
+additional useful information stored in the restart file.
 
 ----------
 

@@ -2,6 +2,8 @@
 <RCC>
   <qresource prefix="/">
     <file>icons/lammps-icon-128x128.png</file>
+    <file>icons/tutorial1-logo.png</file>
+    <file>icons/tutorial2-logo.png</file>
     <file>help_index.table</file>
     <!-- This file is updated with: grep 'mycmd ==' ../../src/input.cpp | sed -e 's/^.*mycmd == "\(.*\)".*$/\1/' > lammps_internal_commands.txt -->
     <file>lammps_internal_commands.txt</file>
@@ -42,6 +44,7 @@
     <file>icons/help-browser.png</file>
     <file>icons/help-faq.png</file>
     <file>icons/help-tutorial.png</file>
+    <file>icons/image-shiny.png</file>
     <file>icons/image-x-generic.png</file>
     <file>icons/media-playback-start-2.png</file>
     <file>icons/media-playlist-repeat.png</file>
@@ -58,6 +61,7 @@
     <file>icons/system-help.png</file>
     <file>icons/system-run.png</file>
     <file>icons/trash.png</file>
+    <file>icons/tutorial-logo.png</file>
     <file>icons/utilities-terminal.png</file>
     <file>icons/vdw-style.png</file>
     <file>icons/vmd.png</file>

@@ -633,6 +633,7 @@ void LammpsGui::open_file(const QString &fileName)
         msg.setInformativeText("Do you want to save the file before opening a new file?");
         msg.setIcon(QMessageBox::Question);
         msg.setStandardButtons(QMessageBox::Yes | QMessageBox::No | QMessageBox::Cancel);
+        msg.setFont(font());
         int rv = msg.exec();
         switch (rv) {
             case QMessageBox::Yes:
@@ -766,6 +767,7 @@ void LammpsGui::inspect_file(const QString &fileName)
         msg.setStandardButtons(QMessageBox::Yes | QMessageBox::No);
         msg.setDefaultButton(QMessageBox::No);
         msg.setEscapeButton(QMessageBox::No);
+        msg.setFont(font());
         int rv = msg.exec();
         switch (rv) {
             case QMessageBox::No:
@@ -892,6 +894,7 @@ void LammpsGui::quit()
         msg.setInformativeText("Do you want to save the file before exiting?");
         msg.setIcon(QMessageBox::Question);
         msg.setStandardButtons(QMessageBox::Yes | QMessageBox::No | QMessageBox::Cancel);
+        msg.setFont(font());
         int rv = msg.exec();
         switch (rv) {
             case QMessageBox::Yes:
@@ -1183,6 +1186,7 @@ void LammpsGui::do_run(bool use_buffer)
         msg.setInformativeText("Do you want to save the buffer before running LAMMPS?");
         msg.setIcon(QMessageBox::Question);
         msg.setStandardButtons(QMessageBox::Yes | QMessageBox::Cancel);
+        msg.setFont(font());
         int rv = msg.exec();
         switch (rv) {
             case QMessageBox::Yes:

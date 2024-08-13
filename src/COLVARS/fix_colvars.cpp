@@ -42,9 +42,6 @@
 #include "universe.h"
 #include "update.h"
 
-#include <iostream>
-#include <vector>
-
 #include "colvarmodule.h"
 #include "colvarproxy.h"
 #include "colvarproxy_lammps.h"
@@ -56,12 +53,6 @@ struct LAMMPS_NS::commdata {
   int tag, type;
   double x, y, z, m, q;
 };
-
-inline std::ostream &operator<<(std::ostream &out, const LAMMPS_NS::commdata &cd)
-{
-  out << " (" << cd.tag << "/" << cd.type << ": " << cd.x << ", " << cd.y << ", " << cd.z << ") ";
-  return out;
-}
 
 /***************************************************************/
 
@@ -130,7 +121,7 @@ FixColvars::FixColvars(LAMMPS *lmp, int narg, char **arg) :
   force_buf = nullptr;
   idmap = nullptr;
 
-  script_args[0] = reinterpret_cast<unsigned char *>(strdup("fix_modify"));
+  script_args[0] = reinterpret_cast<unsigned char *>(utils::strdup("fix_modify"));
 
   parse_fix_arguments(narg, arg, true);
 
@@ -227,12 +218,11 @@ FixColvars::~FixColvars()
   delete[] inp_name;
   delete[] out_name;
   delete[] tfix_name;
-  memory->sfree(comm_buf);
-  memory->sfree(script_args[0]);
+  delete[] script_args[0];
 
-  if (proxy) {
-    delete proxy;
-  }
+  memory->sfree(comm_buf);
+
+  if (proxy) delete proxy;
 
   if (idmap) {
     inthash_destroy(idmap);

@@ -517,7 +517,7 @@ run:
 .. code-block:: LAMMPS
 
    read_restart restartfile
-   info system group compute fix
+   info system group computes fixes
 
 The specified restartfile name may contain the wild-card character "\*".
 The restartfile name may also contain the wild-card character "%".  The
@@ -527,9 +527,9 @@ restart file can be read.  Note that a filename such as file.\* may need
 to be enclosed in quotes or the "\*" character prefixed with a backslash
 ("\") to avoid shell expansion of the "\*" character.
 
-Optional keywords may follow the restartfile argument.  Those would
-have to be valid keywords for the :doc:`info command <info>`.  The most
-useful ones - system, group, computes, and fixes - are already applied.
+Optional keywords may follow the restartfile argument.  These must be
+valid keywords for the :doc:`info command <info>`.  The most useful
+ones - *system*, *group*, *computes*, and *fixes* - are already applied.
 Appending keywords like *coeffs* or *communication* may provide
 additional useful information stored in the restart file.
 

@@ -398,14 +398,15 @@ int FixColvars::modify_param(int narg, char **arg)
     for (int i = 0; i < narg; i++) {
 
       // Substitute LAMMPS variables
-      // See https://github.com/lammps/lammps/commit/f9be11ac8ab460edff3709d66734d3fc2cd806dd
+
       char *new_arg = arg[i];
       int ncopy = strlen(new_arg) + 1;
-      char *copy = utils::strdup(new_arg);
-      char *work = new char[ncopy];
       int nwork = ncopy;
+      auto *copy = (char *) memory->smalloc(ncopy * sizeof(char), "fix/colvar:copy");
+      auto *work = (char *) memory->smalloc(ncopy * sizeof(char), "fix/colvar:work");
+      strncpy(copy, new_arg, ncopy);
       lmp->input->substitute(copy,work,ncopy,nwork,0);
-      delete[] work;
+      memory->sfree(work);
       new_arg = copy;
 
       script_args[i+1] = reinterpret_cast<unsigned char *>(new_arg);
@@ -415,15 +416,10 @@ int FixColvars::modify_param(int narg, char **arg)
     error_code |= script->run(narg+1, script_args);
 
     std::string const result = proxy->get_error_msgs() + script->str_result();
-    if (result.size()) {
-      std::istringstream is(result);
-      std::string line;
-      while (std::getline(is, line)) {
-        if (lmp->screen) fprintf(lmp->screen, "%s\n", line.c_str());
-        if (lmp->logfile) fprintf(lmp->logfile, "%s\n", line.c_str());
-      }
-    }
+    if (result.size()) utils::logmesg(lmp, result);
 
+    // free allocated memory
+    for (int i = 0; i < narg; i++) memory->sfree(script_args[i+1]);
     return (error_code == COLVARSCRIPT_OK) ? narg : 0;
 
   } else {

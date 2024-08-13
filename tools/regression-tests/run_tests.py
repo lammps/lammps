@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 '''
-UPDATE: July 26, 2024:
+UPDATE: August 13, 2024:
   Launching the LAMMPS binary under testing using a configuration defined in a yaml file (e.g. config.yaml).
   Comparing the output thermo with that in the existing log file (with the same nprocs)
     + data in the log files are extracted and converted into yaml data structure
@@ -19,7 +19,7 @@ With the current features, users can:
 
 Limitations:
     - input scripts use thermo style multi (e.g., examples/peptide) do not work with the expected thermo output format
-    - input scripts that require partition runs (e.g. examples/neb) need a separate config file, e.g. "args: --partition 3x1"
+    - input scripts that require partition runs (e.g. examples/neb) need a separate config file, e.g. args: "--partition 3x1"
     - testing accelerator packages (GPU, INTEL, KOKKOS, OPENMP) need separate config files, "args: -sf omp -pk omp 4"
 
 TODO:
@@ -60,16 +60,15 @@ Example usage:
        of run_tests.py simultaneously.
 '''
 
-import os
+from argparse import ArgumentParser
 import datetime
 import fnmatch
+import logging
+import os
 import re
 import subprocess
-from argparse import ArgumentParser
+#from multiprocessing import Pool
 
-from multiprocessing import Pool
-
-import logging
 # need "pip install numpy pyyaml"
 import numpy as np
 import yaml
@@ -82,6 +81,9 @@ try:
 except ImportError:
     from yaml import SafeLoader as Loader
 
+'''
+   data structure to store the test result
+'''
 class TestResult:
   def __init__(self, name, output=None, time=None, checks=0, status=None):
     self.name = name
@@ -105,22 +107,6 @@ class TestResult:
        stat      : a dictionary that lists the number of passed, skipped, failed tests
        progress_file: yaml file that stores the tested input script and status
        last_progress: the dictionary that shows the status of the last tests
-
-    NOTE:
-    To map a function to individual workers:
-
-    def func(input1, input2, output_buf):
-        # do smth
-        return result
-
-    # args is a list of num_workers tuples, each tuple contains the arguments passed to the function executed by a worker
-    args = []
-    for i in range(num_workers):
-        args.append((input1, input2, output_buf))
-
-    with Pool(num_workers) as pool:   
-        results = pool.starmap(func, args)
-
 '''
 def iterate(lmp_binary, input_folder, input_list, config, results, progress_file, last_progress=None, output_buf=None):
 
@@ -284,11 +270,13 @@ def iterate(lmp_binary, input_folder, input_list, config, results, progress_file
 
         # check if the output contains ERROR
         if "ERROR" in output:
-            cmd_str = "grep ERROR log.lammps"
-            p = subprocess.run(cmd_str, shell=True, text=True, capture_output=True)
-            error_line = p.stdout.split('\n')[0]
+            error_line = ""
+            for line in output:
+                if "ERROR" in line:
+                    error_line = line
+                    break
             logger.info(f"     The run terminated with {input_test} gives the following output:")
-            logger.info(f"     {error_line}")             
+            logger.info(f"       {error_line}")             
             if "Unrecognized" in output:
                 result.status = "error, unrecognized command, package not installed"
             elif "Unknown" in output:
@@ -309,6 +297,17 @@ def iterate(lmp_binary, input_folder, input_list, config, results, progress_file
             continue
 
         # if there is no ERROR in the output, then there is something irregular in the run
+        if "Total wall time" not in output:
+            logger.info(f"    ERROR: no Total wall time in the output.\n")
+            logger.info(f"\n{input_test}:")
+            logger.info(f"\n    Output:\n{output}")
+            logger.info(f"\n    Error:\n{error}")
+            progress.write(f"{input}: {{ folder: {input_folder}, status: \"error, no Total wall time in the output.\" }}\n")
+            progress.close()
+            num_error = num_error + 1
+            test_id = test_id + 1
+            continue
+
         if "Step" not in output or "Loop" not in output:
             logger.info(f"    ERROR: no Step nor Loop in the output.\n")
             logger.info(f"\n{input_test}:")
@@ -332,11 +331,11 @@ def iterate(lmp_binary, input_folder, input_list, config, results, progress_file
             test_id = test_id + 1
             continue
         else:
-            # save a copy of the log file
+            # save a copy of the log file for further inspection
             cmd_str = f"cp log.lammps log.{basename}.{nprocs}"
             p = subprocess.run(cmd_str, shell=True, text=True, capture_output=True)
 
-        # process thermo output in log.lammps from the run
+        # parse thermo output in log.lammps from the run
         thermo = extract_data_to_yaml("log.lammps")
         num_runs = len(thermo)
 
@@ -365,10 +364,12 @@ def iterate(lmp_binary, input_folder, input_list, config, results, progress_file
         # At this point, the run completed without trivial errors, proceed with numerical checks
         # check if there is a reference log file for this input
         if logfile_exist:
+            # parse the thermo output in reference log file
             thermo_ref = extract_data_to_yaml(thermo_ref_file)
             if thermo_ref:
                 num_runs_ref = len(thermo_ref)
             else:
+                # dictionary is empty
                 logger.info(f"    ERROR: Error parsing the reference log file {thermo_ref_file}.")
                 result.status = "skipped numerical checks due to parsing the reference log file"
                 results.append(result)
@@ -381,13 +382,14 @@ def iterate(lmp_binary, input_folder, input_list, config, results, progress_file
             msg = f"       Cannot find the reference log file for {input_test} with the expected format log.[date].{basename}.*.[nprocs]"
             logger.info(msg)
             print(msg)
-            # try to read in the thermo yaml output from the working directory
+            # attempt to read in the thermo yaml output from the working directory (the following section will be deprecated)
             thermo_ref_file = 'thermo.' + input + '.yaml'
             file_exist = os.path.isfile(thermo_ref_file)
             if file_exist == True:
                 thermo_ref = extract_thermo(thermo_ref_file)
                 num_runs_ref = len(thermo_ref)
             else:
+                # mostly will come to here if the reference log file does not exist
                 logger.info(f"       {thermo_ref_file} also does not exist in the working directory.")
                 result.status = "skipped due to missing the reference log file"
                 results.append(result)
@@ -400,6 +402,7 @@ def iterate(lmp_binary, input_folder, input_list, config, results, progress_file
         logger.info(f"     Comparing thermo output from log.lammps against the reference log file {thermo_ref_file}")
 
         # check if the number of runs matches with that in the reference log file
+        # maybe due to some changes to the input where the ref log file is not updated yet
         if num_runs != num_runs_ref:
             logger.info(f"     ERROR: Number of runs in log.lammps ({num_runs}) is different from that in the reference log ({num_runs_ref})."
                         " Check README in the folder, possibly due to using mpirun with partitions or parsing the wrong reference log file.")
@@ -411,7 +414,9 @@ def iterate(lmp_binary, input_folder, input_list, config, results, progress_file
             test_id = test_id + 1
             continue
 
-        # check if the number of fields match with that in the reference log file in the first run for early exit
+        # check if the number of fields match with that in the reference log file in the first run
+        # due to some changes to the input where the ref log file is not updated yet
+        # for early exit
         num_fields = len(thermo[0]['keywords'])
         num_fields_ref = len(thermo_ref[0]['keywords'])
         if num_fields != num_fields_ref:
@@ -543,7 +548,7 @@ def iterate(lmp_binary, input_folder, input_list, config, results, progress_file
         # check if memleak detects from valgrind run (need to replace "mpirun" -> valgrind --leak-check=yes mpirun")
         msg = "completed"
         if 'valgrind' in config['mpiexec']:
-            if "All heap blocks were free" in error:
+            if "All heap blocks were freed" in error:
                 msg += ", no memory leak"
             else:
                 msg += ", memory leaks detected"
@@ -705,6 +710,21 @@ def execute(lmp_binary, config, input_file_name, generate_ref_yaml=False):
 
 '''
     split a list into a list of N sublists
+
+    NOTE:
+    To map a function to individual workers with multiprocessing.Pool:
+
+    def func(input1, input2, output_buf):
+        # do smth
+        return result
+
+    # args is a list of num_workers tuples, each tuple contains the arguments passed to the function executed by a worker
+    args = []
+    for i in range(num_workers):
+        args.append((input1, input2, output_buf))
+
+    with Pool(num_workers) as pool:   
+        results = pool.starmap(func, args)
 '''
 def divide_into_N(original_list, N):
     size = np.ceil(len(original_list) / N)
@@ -1002,7 +1022,6 @@ if __name__ == "__main__":
         with Pool(num_workers) as pool:   
             results = pool.starmap(func, args)
         '''
-        
 
         for directory in example_subfolders:
 

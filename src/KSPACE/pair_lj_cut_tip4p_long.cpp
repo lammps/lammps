@@ -451,12 +451,15 @@ void PairLJCutTIP4PLong::settings(int narg, char **arg)
 
 void PairLJCutTIP4PLong::coeff(int narg, char **arg)
 {
-  // set atom types from pair_style command
+  // set atom types from pair_style command unless we were restarted
+  // and the types are already set and the strings are empty.
 
-  typeO = utils::expand_type_int(FLERR, typeO_str, Atom::ATOM, lmp);
-  typeH = utils::expand_type_int(FLERR, typeH_str, Atom::ATOM, lmp);
-  typeB = utils::expand_type_int(FLERR, typeB_str, Atom::BOND, lmp);
-  typeA = utils::expand_type_int(FLERR, typeA_str, Atom::ANGLE, lmp);
+  if (typeO_str.size() > 0) {
+    typeO = utils::expand_type_int(FLERR, typeO_str, Atom::ATOM, lmp);
+    typeH = utils::expand_type_int(FLERR, typeH_str, Atom::ATOM, lmp);
+    typeB = utils::expand_type_int(FLERR, typeB_str, Atom::BOND, lmp);
+    typeA = utils::expand_type_int(FLERR, typeA_str, Atom::ANGLE, lmp);
+  }
 
   PairLJCutCoulLong::coeff(narg, arg);
 }

@@ -2067,7 +2067,7 @@ class lammps(object):
     """ List of the names of enabled packages in the LAMMPS shared library
 
     This is a wrapper around the functions :cpp:func:`lammps_config_package_count`
-    and :cpp:func`lammps_config_package_name` of the library interface.
+    and :cpp:func:`lammps_config_package_name` of the library interface.
 
     :return
     """

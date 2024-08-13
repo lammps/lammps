@@ -1995,8 +1995,18 @@ void LammpsGui::setup_tutorial(int tutno, const QString &dir, bool purgedir, boo
     lammps.command("clear");
     lammps.command(QString("shell cd " + dir).toStdString().c_str());
 
-    // read and process manifest
+    // download and process manifest for selected tutorial
+    // must check for error after download, e.g. when there is no network.
+
     lammps.command(geturl.arg(tutno).arg(".manifest").toStdString().c_str());
+    if (lammps.has_error()) {
+        constexpr int BUFLEN = 1024;
+        char errorbuf[BUFLEN];
+        lammps.get_last_error_message(errorbuf, BUFLEN);
+        QMessageBox::critical(this, "LAMMPS-GUI download error", QString(errorbuf));
+        return;
+    }
+
     QFile manifest(".manifest");
     QString line, first;
     if (manifest.open(QIODevice::ReadOnly)) {
@@ -2021,7 +2031,7 @@ void LammpsGui::setup_tutorial(int tutno, const QString &dir, bool purgedir, boo
         manifest.close();
         manifest.remove();
     }
-    open_file(first);
+    if (!first.isEmpty()) open_file(first);
 }
 
 Tutorial1Wizard::Tutorial1Wizard(QWidget *parent) : QWizard(parent)

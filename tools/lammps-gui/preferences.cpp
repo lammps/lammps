@@ -295,16 +295,24 @@ void GeneralTab::updatefonts(const QFont &all, const QFont &text)
     for (QWidget *widget : QApplication::topLevelWidgets())
         if (widget->objectName() == "LammpsGui") main = dynamic_cast<LammpsGui *>(widget);
 
-    QApplication::setFont(all);
-    if (main) main->ui->textEdit->document()->setDefaultFont(text);
+    if (main) {
+        main->setFont(all);
+        main->ui->textEdit->document()->setDefaultFont(text);
+        if (main->wizard) main->wizard->setFont(all);
+    }
+
+    Preferences *prefs = nullptr;
+    for (QWidget *widget : QApplication::topLevelWidgets())
+        if (widget->objectName() == "preferences") prefs = dynamic_cast<Preferences *>(widget);
+    if (prefs) prefs->setFont(all);
 }
 
 void GeneralTab::newallfont()
 {
     QSettings settings;
     QFont all, text;
-    all.fromString(settings.value("allfont", "").toString());
-    text.fromString(settings.value("textfont", "").toString());
+    all.fromString(settings.value("allfont", QFont("Arial", -1).toString()).toString());
+    text.fromString(settings.value("textfont", QFont("Monospace", -1).toString()).toString());
 
     bool ok    = false;
     QFont font = QFontDialog::getFont(&ok, all, this, QString("Select Default Font"));
@@ -317,8 +325,8 @@ void GeneralTab::newtextfont()
 {
     QSettings settings;
     QFont all, text;
-    all.fromString(settings.value("allfont", "").toString());
-    text.fromString(settings.value("textfont", "").toString());
+    all.fromString(settings.value("allfont", QFont("Arial", -1).toString()).toString());
+    text.fromString(settings.value("textfont", QFont("Monospace", -1).toString()).toString());
 
     bool ok    = false;
     QFont font = QFontDialog::getFont(&ok, text, this, QString("Select Text Font"));

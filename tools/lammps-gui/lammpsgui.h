@@ -35,6 +35,7 @@
 
 // forward declarations
 
+class QFont;
 class QLabel;
 class QPlainTextEdit;
 class QProgressBar;
@@ -82,6 +83,7 @@ protected:
     void run_done();
     void setDocver();
     void autoSave();
+    void setFont(const QFont &newfont);
     QWizardPage *tutorial1_intro();
     QWizardPage *tutorial1_info();
     QWizardPage *tutorial1_directory();

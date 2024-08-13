@@ -168,17 +168,20 @@ LammpsGui::LammpsGui(QWidget *parent, const char *filename) :
 
     setWindowIcon(QIcon(":/icons/lammps-icon-128x128.png"));
 
-    QFont all_font("Arial", -1);
+    QFont all_font;
+    all_font.fromString(settings.value("allfont", QFont("Arial", -1).toString()).toString());
     all_font.setStyleHint(QFont::SansSerif, QFont::PreferOutline);
-    all_font.fromString(settings.value("allfont", all_font.toString()).toString());
     settings.setValue("allfont", all_font.toString());
-    QApplication::setFont(all_font);
+    setFont(all_font);
 
-    QFont text_font("Monospace", -1);
+    QFont text_font;
+    text_font.fromString(settings.value("textfont", QFont("Monospace", -1).toString()).toString());
     text_font.setStyleHint(QFont::Monospace, QFont::PreferOutline);
-    text_font.fromString(settings.value("textfont", text_font.toString()).toString());
+    text_font.setFixedPitch(true);
+
     settings.setValue("textfont", text_font.toString());
     ui->textEdit->setFont(text_font);
+    ui->textEdit->document()->setDefaultFont(text_font);
     ui->textEdit->setMinimumSize(600, 400);
 
     varwindow = new QLabel(QString());
@@ -820,6 +823,7 @@ void LammpsGui::inspect_file(const QString &fileName)
             QFile(infodata).remove();
             auto *inspect_image = new ImageViewer(
                 fileName, &lammps, QString("LAMMPS-GUI: Image for %1").arg(shortName));
+            inspect_image->setFont(font());
             inspect_image->show();
             ilist->image = inspect_image;
         }
@@ -1415,6 +1419,21 @@ void LammpsGui::autoSave()
     if (autosave) write_file(fileName);
 }
 
+void LammpsGui::setFont(const QFont &newfont)
+{
+    QMainWindow::setFont(newfont);
+    if (ui) {
+        ui->textEdit->setFont(newfont);
+        ui->menubar->setFont(newfont);
+        ui->menuFile->setFont(newfont);
+        ui->menuEdit->setFont(newfont);
+        ui->menu_Run->setFont(newfont);
+        ui->menu_Tutorial->setFont(newfont);
+        ui->menuAbout->setFont(newfont);
+        ui->menu_View->setFont(newfont);
+    }
+}
+
 void LammpsGui::about()
 {
     std::string version = "This is LAMMPS-GUI version " LAMMPS_GUI_VERSION;
@@ -1457,9 +1476,9 @@ void LammpsGui::about()
     msg.setInformativeText(info.c_str());
     msg.setIconPixmap(QPixmap(":/icons/lammps-icon-128x128.png").scaled(64, 64));
     msg.setStandardButtons(QMessageBox::Close);
-    QFont font;
-    font.setPointSizeF(font.pointSizeF() * 0.75);
-    msg.setFont(font);
+    QFont myfont(font());
+    myfont.setPointSize(myfont.pointSizeF() * 0.8);
+    msg.setFont(myfont);
 
     auto *minwidth = new QSpacerItem(700, 0, QSizePolicy::Minimum, QSizePolicy::Expanding);
     auto *layout   = (QGridLayout *)msg.layout();
@@ -1521,6 +1540,7 @@ void LammpsGui::help()
         "LAMMPS-GUI in parallel with MPI.</p>");
     msg.setIconPixmap(QPixmap(":/icons/lammps-icon-128x128.png").scaled(64, 64));
     msg.setStandardButtons(QMessageBox::Close);
+    msg.setFont(font());
     msg.exec();
 }
 
@@ -1539,6 +1559,7 @@ void LammpsGui::start_tutorial1()
 {
     if (wizard) delete wizard;
     wizard = new Tutorial1Wizard;
+    wizard->setFont(font());
     wizard->addPage(tutorial1_intro());
     wizard->addPage(tutorial1_info());
     wizard->addPage(tutorial1_directory());
@@ -1835,6 +1856,7 @@ void LammpsGui::edit_variables()
 {
     QList<QPair<QString, QString>> newvars = variables;
     SetVariables vars(newvars);
+    vars.setFont(font());
     if (vars.exec() == QDialog::Accepted) {
         variables = newvars;
         if (lammps.is_running()) {
@@ -1856,6 +1878,8 @@ void LammpsGui::preferences()
     bool oldcite   = settings.value("cite", false).toBool();
 
     Preferences prefs(&lammps);
+    prefs.setFont(font());
+    prefs.setObjectName("preferences");
     if (prefs.exec() == QDialog::Accepted) {
         // must delete LAMMPS instance after preferences have changed that require
         // using different command line flags when creating the LAMMPS instance like

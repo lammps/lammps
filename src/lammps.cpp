@@ -438,7 +438,7 @@ LAMMPS::LAMMPS(int narg, char **arg, MPI_Comm communicator) :
       restartfile = arg[iarg+1];
       inflag = -1;               // skip inflag check
       iarg += 2;
-      // delimit args for the write_data command
+      // delimit args for the info command
       wfirst = iarg;
       while (iarg < narg && arg[iarg][0] != '-') iarg++;
       wlast = iarg;

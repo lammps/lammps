@@ -48,20 +48,18 @@
 #include "colvarmodule.h"
 #include "colvarproxy.h"
 #include "colvarproxy_lammps.h"
-#include "colvarscript.h"
 #include "colvars_memstream.h"
-
+#include "colvarscript.h"
 
 /* struct for packed data communication of coordinates and forces. */
 struct LAMMPS_NS::commdata {
-  int tag,type;
-  double x,y,z,m,q;
+  int tag, type;
+  double x, y, z, m, q;
 };
 
-inline std::ostream & operator<< (std::ostream &out, const LAMMPS_NS::commdata &cd)
+inline std::ostream &operator<<(std::ostream &out, const LAMMPS_NS::commdata &cd)
 {
-  out << " (" << cd.tag << "/" << cd.type << ": "
-      << cd.x << ", " << cd.y << ", " << cd.z << ") ";
+  out << " (" << cd.tag << "/" << cd.type << ": " << cd.x << ", " << cd.y << ", " << cd.z << ") ";
   return out;
 }
 
@@ -72,7 +70,7 @@ using namespace FixConst;
 using namespace IntHash_NS;
 
 // initialize static class members
-int FixColvars::instances=0;
+int FixColvars::instances = 0;
 
 /***************************************************************
  create class and parse arguments in LAMMPS script. Syntax:
@@ -303,8 +301,7 @@ void FixColvars::set_thermostat_temperature()
           error->one(FLERR, "Could not find thermostat fix ID {}", tfix_name);
         }
         int tmp = 0;
-        double *tt = reinterpret_cast<double *>(tstat_fix->extract("t_target",
-                                                                   tmp));
+        double *tt = reinterpret_cast<double *>(tstat_fix->extract("t_target", tmp));
         if (tt) {
           t_target = *tt;
         } else {

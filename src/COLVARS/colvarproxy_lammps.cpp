@@ -35,8 +35,10 @@ colvarproxy_lammps::colvarproxy_lammps(LAMMPS_NS::LAMMPS *lmp)  : _lmp(lmp), _ra
 
   inter_me = 0;
   inter_num = 1;
+  bias_energy = 0.0;
 
   engine_ready_ = false;
+  inter_comm = MPI_COMM_NULL;
 }
 
 /* ---------------------------------------------------------------------- */

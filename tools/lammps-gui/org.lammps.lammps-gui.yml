@@ -8,6 +8,7 @@ finish-args:
   - --socket=fallback-x11
   - --socket=wayland
   - --filesystem=host
+  - --share=network
 build-options:
   build-args:
     - --share=network
@@ -108,4 +109,4 @@ modules:
     sources:
       - type: git
         url: https://github.com/akohlmey/lammps.git
-        branch: collected-small-changes
+        branch: collected-small-fixes

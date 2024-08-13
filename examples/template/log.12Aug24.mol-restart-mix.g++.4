@@ -1,0 +1,303 @@
+LAMMPS (27 Jun 2024)
+OMP_NUM_THREADS environment is not set. Defaulting to 1 thread. (src/comm.cpp:98)
+  using 1 OpenMP thread(s) per MPI task
+# demo for atom style template simulating a cyclohexane methane mixture
+# part 3: continuing from restart file
+
+# run the first part and write out restart
+include in.molecular-mix
+# demo for atom style template simulating a cyclohexane methane mixture
+
+units real
+boundary p p p
+molecule cychex cyclohexane.mol
+Read molecule template cychex:
+LAMMPS molecule file. Cyclohexane(UA)
+  1 molecules
+  0 fragments
+  6 atoms with max type 1
+  6 bonds with max type 1
+  6 angles with max type 1
+  6 dihedrals with max type 1
+  0 impropers with max type 0
+atom_style molecular
+
+pair_style lj/cut 12.0
+pair_modify mix geometric tail yes
+bond_style harmonic
+angle_style harmonic
+dihedral_style harmonic
+
+lattice sc 6.0
+Lattice spacing in x,y,z = 6 6 6
+variable boxlen index 4.0
+region box block -${boxlen} ${boxlen} -${boxlen} ${boxlen} -${boxlen} ${boxlen} units lattice
+region box block -4.0 ${boxlen} -${boxlen} ${boxlen} -${boxlen} ${boxlen} units lattice
+region box block -4.0 4.0 -${boxlen} ${boxlen} -${boxlen} ${boxlen} units lattice
+region box block -4.0 4.0 -4.0 ${boxlen} -${boxlen} ${boxlen} units lattice
+region box block -4.0 4.0 -4.0 4.0 -${boxlen} ${boxlen} units lattice
+region box block -4.0 4.0 -4.0 4.0 -4.0 ${boxlen} units lattice
+region box block -4.0 4.0 -4.0 4.0 -4.0 4.0 units lattice
+create_box 2 box bond/types 1 angle/types 1 dihedral/types 1 extra/special/per/atom 6                  extra/bond/per/atom 2 extra/angle/per/atom 2 extra/dihedral/per/atom 2
+Created orthogonal box = (-24 -24 -24) to (24 24 24)
+  1 by 2 by 2 MPI processor grid
+
+create_atoms 0 box mol cychex 734594
+Created 3072 atoms
+  using lattice units in orthogonal box = (-24 -24 -24) to (24 24 24)
+  create_atoms CPU = 0.002 seconds
+create_atoms 2 random 800 495437 box
+Created 800 atoms
+  using lattice units in orthogonal box = (-24 -24 -24) to (24 24 24)
+  create_atoms CPU = 0.000 seconds
+
+mass 1 14.027
+mass 2 16.043
+
+pair_coeff 1 1  0.1180  3.905
+pair_coeff 2 2  0.2940  3.730
+
+bond_coeff      1  260.00 1.5260
+angle_coeff     1  63.0   112.40
+dihedral_coeff  1  2.0 1 3
+
+thermo 100
+minimize 0.001 0.001 500 1000
+Generated 1 of 1 mixed pair_coeff terms from geometric mixing rule
+Neighbor list info ...
+  update: every = 1 steps, delay = 0 steps, check = yes
+  max neighbors/atom: 2000, page size: 100000
+  master list distance cutoff = 14
+  ghost atom cutoff = 14
+  binsize = 7, bins = 7 7 7
+  1 neighbor lists, perpetual/occasional/extra = 1 0 0
+  (1) pair lj/cut, perpetual
+      attributes: half, newton on
+      pair build: half/bin/newton
+      stencil: half/bin/3d
+      bin: standard
+Per MPI rank memory allocation (min/avg/max) = 9.623 | 9.719 | 10.01 Mbytes
+   Step          Temp          E_pair         E_mol          TotEng         Press     
+         0   0              7.5430044e+16  341.92144      7.5430044e+16  1.8707026e+17
+       100   0             -3410.6986      572.28283     -2838.4158      14603.831    
+       200   0             -6109.2306      483.67771     -5625.5529      5069.1821    
+       204   0             -6137.0238      483.1464      -5653.8774      4952.4083    
+Loop time of 0.719327 on 4 procs for 204 steps with 3872 atoms
+
+99.5% CPU use with 4 MPI tasks x 1 OpenMP threads
+
+Minimization stats:
+  Stopping criterion = energy tolerance
+  Energy initial, next-to-last, final = 
+    7.54300441078755e+16  -5648.75822666276  -5653.87742467986
+  Force two-norm initial, final = 8.7430661e+18 74.636836
+  Force max component initial, final = 4.1468626e+18 8.680078
+  Final line search alpha, max atom move = 0.0032186724 0.027938327
+  Iterations, force evaluations = 204 328
+
+MPI task timing breakdown:
+Section |  min time  |  avg time  |  max time  |%varavg| %total
+---------------------------------------------------------------
+Pair    | 0.60273    | 0.60882    | 0.61181    |   0.5 | 84.64
+Bond    | 0.018965   | 0.019154   | 0.019363   |   0.1 |  2.66
+Neigh   | 0.054004   | 0.054008   | 0.054012   |   0.0 |  7.51
+Comm    | 0.022945   | 0.026108   | 0.032071   |   2.2 |  3.63
+Output  | 3.4085e-05 | 3.6968e-05 | 4.5055e-05 |   0.0 |  0.01
+Modify  | 0          | 0          | 0          |   0.0 |  0.00
+Other   |            | 0.0112     |            |       |  1.56
+
+Nlocal:            968 ave         980 max         954 min
+Histogram: 1 0 1 0 0 0 0 0 1 1
+Nghost:           6630 ave        6644 max        6616 min
+Histogram: 1 0 1 0 0 0 0 1 0 1
+Neighs:         193550 ave      195957 max      191376 min
+Histogram: 2 0 0 0 0 0 0 0 1 1
+
+Total # of neighbors = 774200
+Ave neighs/atom = 199.94835
+Ave special neighs/atom = 3.9669421
+Neighbor list builds = 14
+Dangerous builds = 0
+reset_timestep 0
+
+velocity all create 100.0 6234235
+fix 1 all nvt temp 100.0 300.0 1.0
+# dump 1 all custom 100 cychex-methane.lammpstrj id xu yu zu
+run 2500
+Generated 1 of 1 mixed pair_coeff terms from geometric mixing rule
+Per MPI rank memory allocation (min/avg/max) = 8.498 | 8.785 | 8.881 Mbytes
+   Step          Temp          E_pair         E_mol          TotEng         Press     
+         0   100           -6137.0238      483.1464      -4500.0059      5429.3515    
+       100   107.18608     -5623.5468      925.13787     -3461.6193      5640.5922    
+       200   119.37771     -5671.054       1050.9081     -3242.6804      7494.8576    
+       300   127.21216     -5646.3171      1053.2825     -3125.1696      5661.5841    
+       400   133.87894     -5674.4359      1139.3079     -2990.337       7202.7       
+       500   138.76354     -5679.3297      1234.4508     -2843.7258      6745.1519    
+       600   150.51628     -5665.2143      1210.3078     -2718.142       6301.1312    
+       700   152.13291     -5680.6166      979.71444     -2945.4837      8424.0062    
+       800   161.60449     -5579.521       1209.1388     -2505.674       5226.3319    
+       900   177.80597     -5626.7406      1125.8767     -2449.2113      9035.9218    
+      1000   181.98782     -5509.1736      924.24027     -2485.0276      5775.8317    
+      1100   189.93412     -5534.8176      1169.5911     -2173.6307      8072.3434    
+      1200   194.04459     -5508.0919      1169.0571     -2100.0095      7766.2625    
+      1300   203.40621     -5400.0439      1229.5897     -1823.4077      6533.8169    
+      1400   211.36099     -5362.2808      1318.5794     -1604.867       9789.8496    
+      1500   221.24251     -5263.1861      1410.6972     -1299.6344      6407.5052    
+      1600   234.83277     -5316.3854      1299.4287     -1307.2882      10199.28     
+      1700   233.61193     -5187.0022      1246.0158     -1245.4048      7482.5096    
+      1800   247.00713     -5193.2051      1451.1363     -891.92372      9836.6864    
+      1900   250.10386     -5165.7314      1259.876      -1019.978       8648.7513    
+      2000   257.7022      -5083.7142      1486.9813     -623.18058      9076.3674    
+      2100   273.9293      -5061.7945      1463.3978     -437.60445      10039.49     
+      2200   276.40166     -4948.9281      1538.5962     -221.01165      9013.3961    
+      2300   287.28669     -5039.6841      1535.7768     -188.98782      10739.853    
+      2400   290.35344     -4947.2095      1615.8983      18.994602      8326.4501    
+      2500   305.29351     -4925.5822      1669.8823      266.99522      11465.135    
+Loop time of 4.32954 on 4 procs for 2500 steps with 3872 atoms
+
+Performance: 49.890 ns/day, 0.481 hours/ns, 577.429 timesteps/s, 2.236 Matom-step/s
+99.5% CPU use with 4 MPI tasks x 1 OpenMP threads
+
+MPI task timing breakdown:
+Section |  min time  |  avg time  |  max time  |%varavg| %total
+---------------------------------------------------------------
+Pair    | 3.8113     | 3.8529     | 3.8893     |   1.7 | 88.99
+Bond    | 0.13153    | 0.13433    | 0.13718    |   0.7 |  3.10
+Neigh   | 0.13036    | 0.13039    | 0.13042    |   0.0 |  3.01
+Comm    | 0.13688    | 0.1751     | 0.21857    |   8.4 |  4.04
+Output  | 0.00032606 | 0.00035873 | 0.00045009 |   0.0 |  0.01
+Modify  | 0.027754   | 0.028116   | 0.028735   |   0.2 |  0.65
+Other   |            | 0.008382   |            |       |  0.19
+
+Nlocal:            968 ave         986 max         944 min
+Histogram: 1 0 0 1 0 0 0 0 0 2
+Nghost:        6379.75 ave        6407 max        6352 min
+Histogram: 1 0 1 0 0 0 0 1 0 1
+Neighs:         192584 ave      196718 max      188693 min
+Histogram: 1 1 0 0 0 0 0 1 0 1
+
+Total # of neighbors = 770338
+Ave neighs/atom = 198.95093
+Ave special neighs/atom = 3.9669421
+Neighbor list builds = 34
+Dangerous builds = 0
+#write_data molecular-mix.data
+#write_restart molecular-mix.restart
+write_restart molecular-mix.restart
+System init for write_restart ...
+Generated 1 of 1 mixed pair_coeff terms from geometric mixing rule
+
+# now restart
+clear
+OMP_NUM_THREADS environment is not set. Defaulting to 1 thread. (src/comm.cpp:98)
+  using 1 OpenMP thread(s) per MPI task
+molecule cychex cyclohexane.mol
+Read molecule template cychex:
+LAMMPS molecule file. Cyclohexane(UA)
+  1 molecules
+  0 fragments
+  6 atoms with max type 1
+  6 bonds with max type 1
+  6 angles with max type 1
+  6 dihedrals with max type 1
+  0 impropers with max type 0
+read_restart molecular-mix.restart
+Reading restart file ...
+  restart file = 27 Jun 2024, LAMMPS = 27 Jun 2024
+  restoring atom style molecular from restart
+  orthogonal box = (-24 -24 -24) to (24 24 24)
+  1 by 2 by 2 MPI processor grid
+  restoring pair style lj/cut from restart
+  restoring bond style harmonic from restart
+  restoring angle style harmonic from restart
+  restoring dihedral style harmonic from restart
+  3872 atoms
+  3072 bonds
+  3072 angles
+  3072 dihedrals
+Finding 1-2 1-3 1-4 neighbors ...
+  special bond factors lj:    0        0        0       
+  special bond factors coul:  0        0        0       
+     2 = max # of 1-2 neighbors
+     2 = max # of 1-3 neighbors
+     4 = max # of 1-4 neighbors
+     7 = max # of special neighbors
+  special bonds CPU = 0.000 seconds
+  read_restart CPU = 0.004 seconds
+
+thermo 100
+
+fix 1 all nvt temp 300.0 300.0 1.0
+Resetting global fix info from restart file:
+  fix style: nvt, fix ID: 1
+# dump 1 all custom 100 custom template-mix.lammpstrj id xu yu zu
+run 2000
+Generated 1 of 1 mixed pair_coeff terms from geometric mixing rule
+All restart file global fix info was re-assigned
+Neighbor list info ...
+  update: every = 1 steps, delay = 0 steps, check = yes
+  max neighbors/atom: 2000, page size: 100000
+  master list distance cutoff = 14
+  ghost atom cutoff = 14
+  binsize = 7, bins = 7 7 7
+  1 neighbor lists, perpetual/occasional/extra = 1 0 0
+  (1) pair lj/cut, perpetual
+      attributes: half, newton on
+      pair build: half/bin/newton
+      stencil: half/bin/3d
+      bin: standard
+Per MPI rank memory allocation (min/avg/max) = 8.475 | 8.571 | 8.857 Mbytes
+   Step          Temp          E_pair         E_mol          TotEng         Press     
+      2500   305.29351     -4925.5822      1669.8823      266.99522      11465.135    
+      2600   296.63161     -4937.8377      1616.2295      101.13964      8654.8533    
+      2700   303.79396     -4951.8442      1732.7298      286.27771      11140.127    
+      2800   297.39677     -4879.1242      1642.1355      194.58806      8993.2494    
+      2900   299.13542     -4888.1435      1660.1105      223.60558      10716.3      
+      3000   298.07888     -4928.2353      1650.6616      161.87369      10088.459    
+      3100   304.09536     -4901.4853      1614.3116      221.69625      9505.2057    
+      3200   301.51357     -4930.5129      1628.4386      177.00496      11411.933    
+      3300   297.45744     -4923.6217      1700.537       209.19205      8189.571     
+      3400   298.52831     -5012.7313      1736.6929      168.59495      11673.119    
+      3500   295.66767     -4947.4296      1700.0072      164.20283      8222.3067    
+      3600   296.7267      -5112.3707      1727.4319      38.906285      10608.481    
+      3700   302.92855     -4994.4012      1789.7274      290.73255      8829.4479    
+      3800   296.77191     -5034.2589      1657.2635      47.371248      9968.3521    
+      3900   299.86962     -4972.7385      1744.2808      231.65266      10076.37     
+      4000   304.89527     -5011.2464      1664.6779      171.53137      8926.0386    
+      4100   296.81738     -5013.2169      1727.5801      139.25455      10898.733    
+      4200   300.67532     -4988.3547      1782.1574      263.20975      8164.1158    
+      4300   297.74901     -5023.3433      1784.7361      197.03396      11344.862    
+      4400   302.0571      -5033.3547      1723.2662      175.26243      8016.975     
+      4500   305.31958     -5062.5597      1767.0048      227.44095      10827.294    
+Loop time of 3.58588 on 4 procs for 2000 steps with 3872 atoms
+
+Performance: 48.189 ns/day, 0.498 hours/ns, 557.743 timesteps/s, 2.160 Matom-step/s
+99.4% CPU use with 4 MPI tasks x 1 OpenMP threads
+
+MPI task timing breakdown:
+Section |  min time  |  avg time  |  max time  |%varavg| %total
+---------------------------------------------------------------
+Pair    | 3.0873     | 3.1383     | 3.2136     |   2.7 | 87.52
+Bond    | 0.10381    | 0.10769    | 0.11168    |   0.9 |  3.00
+Neigh   | 0.13651    | 0.13652    | 0.13654    |   0.0 |  3.81
+Comm    | 0.094882   | 0.1741     | 0.22894    |  12.3 |  4.86
+Output  | 0.00024683 | 0.00028387 | 0.00038642 |   0.0 |  0.01
+Modify  | 0.021974   | 0.022331   | 0.022623   |   0.2 |  0.62
+Other   |            | 0.006685   |            |       |  0.19
+
+Nlocal:            968 ave         984 max         948 min
+Histogram: 1 0 0 1 0 0 0 0 1 1
+Nghost:         6349.5 ave        6370 max        6330 min
+Histogram: 1 0 1 0 0 0 0 1 0 1
+Neighs:         192457 ave      196654 max      187154 min
+Histogram: 1 0 0 0 1 0 0 0 1 1
+
+Total # of neighbors = 769828
+Ave neighs/atom = 198.81921
+Ave special neighs/atom = 3.9669421
+Neighbor list builds = 35
+Dangerous builds = 0
+
+# clean up
+shell rm molecular-mix.restart
+Total wall time: 0:00:08

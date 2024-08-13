@@ -90,7 +90,7 @@ public:
 
     int get_index() const { return index; };
     int get_count() const { return series->count(); }
-    const char *get_title() const { return series->name().toLocal8Bit(); }
+    QString get_title() const { return series->name(); }
     double get_step(int index) const { return (index < 0) ? 0.0 : series->at(index).x(); }
     double get_data(int index) const { return (index < 0) ? 0.0 : series->at(index).y(); }
 

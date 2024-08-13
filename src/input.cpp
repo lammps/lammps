@@ -884,7 +884,7 @@ int Input::execute_command()
 void Input::clear()
 {
   if (narg > 0) error->all(FLERR,"Illegal clear command: unexpected arguments but found {}", narg);
-  output->thermo->set_line(-1);
+  if (output->thermo) output->thermo->set_line(-1);
   lmp->destroy();
   lmp->create();
   lmp->post_create();

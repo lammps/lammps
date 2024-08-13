@@ -387,6 +387,8 @@ record a separate log for each run attempt by using the command
 at the beginning of an input file. That would record logs to files
 ``logfile-1.txt``, ``logfile-2.txt``, and so on for successive runs.
 
+.. _snapshot_viewer:
+
 Snapshot Image Viewer
 ---------------------
 
@@ -533,12 +535,39 @@ keyboard, the first of those entries is chosen.
 
 If the word under the cursor is a file, then additionally the context
 menu has an entry to open the file in a read-only text viewer window.
-This is a convenient way to view the contents of files that are
-referenced in the input.  The file viewer also supports on-the-fly
+If the file is a LAMMPS restart file, instead the menu entry offers to
+:ref:`inspect the restart <inspect_restart>`.
+
+The text viewer is a convenient way to view the contents of files that
+are referenced in the input.  The file viewer also supports on-the-fly
 decompression based on the file name suffix in a :ref:`similar fashion
 as available with LAMMPS <gzip>`.  If the necessary decompression
 program is missing or the file cannot be decompressed, the viewer window
 will contain a corresponding message.
+
+.. _inspect_restart:
+
+Inspecting a Restart file
+^^^^^^^^^^^^^^^^^^^^^^^^^
+
+.. versionadded:: 1.6
+
+When LAMMPS-GUI is asked to "Inspect a Restart", it will read the
+restart file into a LAMMPS instance and then open three different
+windows.  The first window is a text viewer with the output of an
+:doc:`info command <info>` with system information stored in the
+restart.  The second window is text viewer containing a data file
+generated with a :doc:`write_data command <write_data>`.  The third
+window is a :ref:`Snapshot Image Viewer <snapshot_viewer>` containing a
+visualization of the system in the restart.
+
+If the restart file is larger than 250 MBytes, a dialog will ask
+for confirmation before continuing, since large restart files
+may require large amounts of RAM since the entire system must
+be read into RAM.  Thus restart file for large simulations that
+have been run on an HPC cluster may overload a laptop or local
+workstation. The ``Show Details...`` button will display a rough
+estimate of the additional memory required.
 
 Menu
 ----
@@ -559,6 +588,7 @@ The ``File`` menu offers the usual options:
 - ``New`` clears the current buffer and resets the file name to ``*unknown*``
 - ``Open`` opens a dialog to select a new file for editing in the *Editor*
 - ``View`` opens a dialog to select a file for viewing in a *separate* window (read-only) with support for on-the-fly decompression as explained above.
+- ``Inspect restart`` opens a dialog to select a file.  If that file is a :doc:`LAMMPS restart <write_restart>` three windows with :ref:`information about the file are opened <inspect_restart>`.
 - ``Save`` saves the current file; if the file name is ``*unknown*``
   a dialog will open to select a new file name
 - ``Save As`` opens a dialog to select and new file name (and folder, if

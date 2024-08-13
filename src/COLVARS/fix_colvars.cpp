@@ -364,7 +364,7 @@ void FixColvars::init_taglist()
 
 int FixColvars::modify_param(int narg, char **arg)
 {
-  if (narg > 100) {
+  if (narg >= 100) {
     error->one(FLERR, "Too many arguments for fix_modify command");
     return 2;
   }

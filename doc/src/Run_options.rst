@@ -527,11 +527,11 @@ restart file can be read.  Note that a filename such as file.\* may need
 to be enclosed in quotes or the "\*" character prefixed with a backslash
 ("\") to avoid shell expansion of the "\*" character.
 
-Optional keywords may follow the restartfile.  Those would have to be
-valid keywords for the :doc:`info command <info>`.  The most useful
-ones - system, group, compute, and fix - are already applied.  Appending
-keywords like *coeffs* or *comm* may provide additional useful
-information stored in the restart file.
+Optional keywords may follow the restartfile argument.  Those would
+have to be valid keywords for the :doc:`info command <info>`.  The most
+useful ones - system, group, computes, and fixes - are already applied.
+Appending keywords like *coeffs* or *communication* may provide
+additional useful information stored in the restart file.
 
 ----------
 

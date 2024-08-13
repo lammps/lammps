@@ -230,6 +230,7 @@ FixColvars::~FixColvars()
   delete[] out_name;
   delete[] tfix_name;
   memory->sfree(comm_buf);
+  memory->sfree(script_args[0]);
 
   if (proxy) {
     delete proxy;

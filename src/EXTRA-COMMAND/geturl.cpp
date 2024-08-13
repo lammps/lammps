@@ -92,17 +92,17 @@ void GetURL::command(int narg, char **arg)
   curl_global_init(CURL_GLOBAL_DEFAULT);
   curl = curl_easy_init();
   if (curl) {
-    curl_easy_setopt(curl, CURLOPT_URL, url.c_str());
-    curl_easy_setopt(curl, CURLOPT_WRITEDATA, (void *) out);
-    curl_easy_setopt(curl, CURLOPT_FILETIME, 1L);
-    curl_easy_setopt(curl, CURLOPT_FAILONERROR, 1L);
+    (void) curl_easy_setopt(curl, CURLOPT_URL, url.c_str());
+    (void) curl_easy_setopt(curl, CURLOPT_WRITEDATA, (void *) out);
+    (void) curl_easy_setopt(curl, CURLOPT_FILETIME, 1L);
+    (void) curl_easy_setopt(curl, CURLOPT_FAILONERROR, 1L);
     if (verbose && screen) {
-      curl_easy_setopt(curl, CURLOPT_VERBOSE, 1L);
-      curl_easy_setopt(curl, CURLOPT_STDERR, (void *) screen);
+      (void) curl_easy_setopt(curl, CURLOPT_VERBOSE, 1L);
+      (void) curl_easy_setopt(curl, CURLOPT_STDERR, (void *) screen);
     }
     if (!verify) {
-      curl_easy_setopt(curl, CURLOPT_SSL_VERIFYPEER, 0L);
-      curl_easy_setopt(curl, CURLOPT_SSL_VERIFYHOST, 0L);
+      (void) curl_easy_setopt(curl, CURLOPT_SSL_VERIFYPEER, 0L);
+      (void) curl_easy_setopt(curl, CURLOPT_SSL_VERIFYHOST, 0L);
     }
     auto res = curl_easy_perform(curl);
     if (res != CURLE_OK) {

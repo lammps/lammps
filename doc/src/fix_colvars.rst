@@ -165,14 +165,14 @@ The :doc:`fix_modify <fix_modify>` command may be used on "fix colvars"
 in either one of two ways:
 
 (1) Provide updated values for the fix parameters, such as *output*,
-   *input*, *unwrap*, *tstat* and *seed*.  Additionally, the
-   :doc:`fix_modify <fix_modify>` *energy* keyword is supported by this fix
-   to add the energy change from the biasing force added by Colvars to the
-   global potential energy of the system as part of :doc:`thermodynamic
-   output <thermo_style>` (the default is :doc:`fix_modify energy no
-   <fix_modify>`).  For example, in a multi-step LAMMPS script involving
-   multiple thermostats (e.g. fix nvt followed by fix npt), Colvars can
-   read a new thermostat's target temperature like this:
+    *input*, *unwrap*, *tstat* and *seed*.  Additionally, the
+    :doc:`fix_modify <fix_modify>` *energy* keyword is supported by this fix
+    to add the energy change from the biasing force added by Colvars to the
+    global potential energy of the system as part of :doc:`thermodynamic
+    output <thermo_style>` (the default is :doc:`fix_modify energy no
+    <fix_modify>`).  For example, in a multi-step LAMMPS script involving
+    multiple thermostats (e.g. fix nvt followed by fix npt), Colvars can
+    read a new thermostat's target temperature like this:
 
    .. code-block:: LAMMPS
 

@@ -297,6 +297,7 @@ latex_elements = {
 \setcounter{tocdepth}{2}
 \renewcommand{\sfdefault}{ptm}  % Use Times New Roman font for \textrm
 \renewcommand{\sfdefault}{phv}  % Use Helvetica font for \textsf
+\usepackage[columns=1]{idxlayout} % create index with only one column
 % Set up math fonts to match text fonts
 \DeclareSymbolFont{operators}   {OT1}{ptm}{m}{n}
 \DeclareSymbolFont{bold}        {OT1}{ptm}{bx}{n}

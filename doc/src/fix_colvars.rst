@@ -47,9 +47,9 @@ Description
 
 This fix interfaces LAMMPS to the collective variables `Colvars
 <https://colvars.github.io>`_ library, which allows to accelerate
-sampling of rare events and the computation of freeenergy surfaces and
-potentials of mean force (PMFs) for any set of collective variables
-using a variety of sampling methods (e.g. umbrella-sampling,
+sampling of rare events and the computation of free energy surfaces
+and potentials of mean force (PMFs) for any set of collective
+variables using a variety of sampling methods (e.g. umbrella-sampling,
 metadynamics, ABF...).
 
 This documentation describes only the "fix colvars" command itself in a

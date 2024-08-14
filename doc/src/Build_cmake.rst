@@ -144,7 +144,7 @@ once, as the settings from the preset files are stored in the
 by adding one or more ``-D`` flags to the CMake command line.
 
 Generating files for alternate build tools (e.g. Ninja) and project files
-for IDEs like Eclipse, CodeBlocks, or Kate can be selected using the *-G*
+for IDEs like Eclipse, CodeBlocks, or Kate can be selected using the ``-G``
 command line flag.  A list of available generator settings for your
 specific CMake version is given when running ``cmake --help``.
 

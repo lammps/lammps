@@ -1,3 +1,7 @@
+.. raw:: latex
+
+    \clearpage
+
 Optional build settings
 =======================
 
@@ -54,7 +58,7 @@ LAMMPS can use them if they are available on your system.
 Alternatively, LAMMPS can use the `heFFTe
 <https://icl-utk-edu.github.io/heffte/>`_ library for the MPI
 communication algorithms, which comes with many optimizations for
-special cases, e.g. leveraging available 2D and 3D FFTs in the back end
+special cases, e.g. leveraging available 2D and 3D FFTs in the backend
 libraries and better pipelining for packing and communication.
 
 .. tabs::
@@ -74,11 +78,11 @@ libraries and better pipelining for packing and communication.
       .. note::
 
          When the Kokkos variant of a package is compiled and selected at run time,
-         the FFT library selected by the FFT_KOKKOS variable applies. Otherwise,
+         the FFT library selected by the ``FFT_KOKKOS`` variable applies. Otherwise,
          the FFT library selected by the FFT variable applies.
-         The same FFT settings apply to both. FFT_KOKKOS must be compatible with the
-         Kokkos back end - for example, when using the CUDA back end of Kokkos,
-         you must use either CUFFT or KISS.
+         The same FFT settings apply to both. ``FFT_KOKKOS`` must be compatible with the
+         Kokkos backend - for example, when using the CUDA backend of Kokkos,
+         you must use either ``CUFFT`` or ``KISS``.
 
       Usually these settings are all that is needed.  If FFTW3 is
       selected, then CMake will try to detect, if threaded FFTW
@@ -102,7 +106,7 @@ libraries and better pipelining for packing and communication.
 
       .. note::
 
-         heFFTe comes with a builtin (= stock) back end for FFTs, i.e. a
+         heFFTe comes with a builtin (= stock) backend for FFTs, i.e. a
          default internal FFT implementation; however, this stock back
          end is intended for testing purposes only and is not optimized
          for production runs.
@@ -116,32 +120,50 @@ libraries and better pipelining for packing and communication.
 
       .. code-block:: make
 
-         FFT_INC = -DFFT_FFTW3         # -DFFT_FFTW3, -DFFT_FFTW (same as -DFFT_FFTW3),
-                                       # -DFFT_MKL, or -DFFT_KISS
-                                       # default is KISS if not specified
-         FFT_INC = -DFFT_KOKKOS_CUFFT  # -DFFT_KOKKOS_{FFTW,FFTW3,MKL,CUFFT,HIPFFT,KISS}
-                                       # default is KISS if not specified
-         FFT_INC = -DFFT_SINGLE        # do not specify for double precision
-         FFT_INC = -DFFT_FFTW_THREADS  # enable using threaded FFTW3 libraries
-         FFT_INC = -DFFT_MKL_THREADS   # enable using threaded FFTs with MKL libraries
-         FFT_INC = -DFFT_PACK_ARRAY    # or -DFFT_PACK_POINTER or -DFFT_PACK_MEMCPY
-                                       # default is FFT_PACK_ARRAY if not specified
+         FFT_INC = -DFFT_<NAME>        # where <NAME> is KISS (default), FFTW3,
+                                       # FFTW (same as FFTW3), or MKL
+         FFT_INC = -DFFT_KOKKOS_<NAME> # where <NAME> is KISS (default), FFTW3,
+                                       # FFTW (same as FFTW3), MKL, CUFFT, or HIPFFT
+         FFT_INC = -DFFT_SINGLE       # do not specify for double precision
+         FFT_INC = -DFFT_FFTW_THREADS # enable using threaded FFTW3 libraries
+         FFT_INC = -DFFT_MKL_THREADS  # enable using threaded FFTs with MKL libraries
+         FFT_INC = -DFFT_PACK_ARRAY   # or -DFFT_PACK_POINTER or -DFFT_PACK_MEMCPY
+                                      # default is FFT_PACK_ARRAY if not specified
 
       .. code-block:: make
 
          FFT_INC =  -I/usr/local/include
          FFT_PATH = -L/usr/local/lib
-         FFT_LIB =  -lhipfft            # hipFFT either precision
-         FFT_LIB =  -lcufft             # cuFFT either precision
-         FFT_LIB =  -lfftw3             # FFTW3 double precision
-         FFT_LIB =  -lfftw3 -lfftw3_omp # FFTW3 double precision with threads
-                                        # (needs -DFFT_FFTW_THREADS)
-         FFT_LIB =  -lfftw3 -lfftw3f    # FFTW3 single precision
-         FFT_LIB =  -lmkl_intel_lp64 -lmkl_sequential -lmkl_core   # serial MKL with Intel compiler,
-         FFT_LIB =  -lmkl_gf_lp64 -lmkl_sequential -lmkl_core      # serial MKL with GNU compiler,
-         FFT_LIB =  -lmkl_intel_lp64 -lmkl_intel_thread -lmkl_core # threaded MKL with Intel compiler
-         FFT_LIB =  -lmkl_gf_lp64 -lmkl_gnu_thread -lmkl_core      # threaded MKL with GNU compiler
-         FFT_LIB =  -lmkl_rt            # MKL with automatic runtime selection of interface libs
+
+         # hipFFT either precision
+         FFT_LIB =  -lhipfft
+
+         # cuFFT either precision
+         FFT_LIB =  -lcufft
+
+         # FFTW3 double precision
+         FFT_LIB =  -lfftw3
+
+         # FFTW3 double precision with threads (needs -DFFT_FFTW_THREADS)
+         FFT_LIB =  -lfftw3 -lfftw3_omp
+
+         # FFTW3 single precision
+         FFT_LIB =  -lfftw3 -lfftw3f
+
+         # serial MKL with Intel compiler
+         FFT_LIB =  -lmkl_intel_lp64 -lmkl_sequential -lmkl_core
+
+         # serial MKL with GNU compiler
+         FFT_LIB =  -lmkl_gf_lp64 -lmkl_sequential -lmkl_core
+
+         # threaded MKL with Intel compiler
+         FFT_LIB =  -lmkl_intel_lp64 -lmkl_intel_thread -lmkl_core
+
+         # threaded MKL with GNU compiler
+         FFT_LIB =  -lmkl_gf_lp64 -lmkl_gnu_thread -lmkl_core
+
+         # MKL with automatic runtime selection of interface libs
+         FFT_LIB =  -lmkl_rt
 
       As with CMake, you do not need to set paths in ``FFT_INC`` or
       ``FFT_PATH``, if the compiler can find the FFT header and library
@@ -198,7 +220,7 @@ above).
 
 The cuFFT and hipFFT FFT libraries are packaged with NVIDIA's CUDA and
 AMD's HIP installations, respectively. These FFT libraries require the
-Kokkos acceleration package to be enabled and the Kokkos back end to be
+Kokkos acceleration package to be enabled and the Kokkos backend to be
 GPU-resident (i.e., HIP or CUDA).
 
 Performing 3d FFTs in parallel can be time-consuming due to data access
@@ -233,7 +255,7 @@ ARRAY mode.
 When using ``-DFFT_HEFFTE`` CMake will first look for an existing
 install with hints provided by ``-DHeffte_ROOT``, as recommended by the
 CMake standard and note that the name is case sensitive. If CMake cannot
-find a heFFTe installation with the correct back end (e.g., FFTW or
+find a heFFTe installation with the correct backend (e.g., FFTW or
 MKL), it will attempt to download and build the library automatically.
 In this case, LAMMPS CMake will also accept all heFFTe specific
 variables listed in the `heFFTe documentation
@@ -241,6 +263,10 @@ variables listed in the `heFFTe documentation
 and those variables will be passed into the heFFTe build.
 
 ----------
+
+.. raw:: latex
+
+    \clearpage
 
 .. _size:
 
@@ -512,11 +538,11 @@ LAMMPS is compiled accordingly which needs the following settings:
 Memory allocation alignment
 ---------------------------
 
-This setting enables the use of the "posix_memalign()" call instead of
-"malloc()" when LAMMPS allocates large chunks of memory.  Vector
+This setting enables the use of the ``posix_memalign()`` call instead of
+``malloc()`` when LAMMPS allocates large chunks of memory.  Vector
 instructions on CPUs may become more efficient, if dynamically allocated
 memory is aligned on larger-than-default byte boundaries.  On most
-current operating systems, the "malloc()" implementation returns
+current operating systems, the ``malloc()`` implementation returns
 pointers that are aligned to 16-byte boundaries. Using SSE vector
 instructions efficiently, however, requires memory blocks being aligned
 on 64-byte boundaries.
@@ -530,9 +556,9 @@ on 64-byte boundaries.
          -D LAMMPS_MEMALIGN=value            # 0, 8, 16, 32, 64 (default)
 
       Use a ``LAMMPS_MEMALIGN`` value of 0 to disable using
-      "posix_memalign()" and revert to using the "malloc()" C-library
+      ``posix_memalign()`` and revert to using the ``malloc()`` C-library
       function instead.  When compiling LAMMPS for Windows systems,
-      "malloc()" will always be used and this setting is ignored.
+      ``malloc()`` will always be used and this setting is ignored.
 
    .. tab:: Traditional make
 
@@ -541,7 +567,7 @@ on 64-byte boundaries.
          LMP_INC = -DLAMMPS_MEMALIGN=value   # 8, 16, 32, 64
 
       Do not set ``-DLAMMPS_MEMALIGN``, if you want to have memory
-      allocated with the "malloc()" function call
+      allocated with the ``malloc()`` function call
       instead. ``-DLAMMPS_MEMALIGN`` **cannot** be used on Windows, as
       Windows different function calls with different semantics for
       allocating aligned memory, that are not compatible with how LAMMPS

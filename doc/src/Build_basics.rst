@@ -38,8 +38,8 @@ standard. A more detailed discussion of that is below.
       .. code-block:: bash
 
          -D BUILD_MPI=value        # yes or no, default is yes if CMake finds MPI
-         -D BUILD_OMP=value        # yes or no, default is yes if a compatible compiler
-                                   # is detected
+         -D BUILD_OMP=value        # yes or no, default is yes if a compatible
+                                   # compiler is detected
          -D LAMMPS_MACHINE=name    # name = mpi, serial, mybox, titan, laptop, etc
                                    # no default value
 
@@ -268,7 +268,7 @@ LAMMPS.
          When the cmake command completes, it prints a summary to the
          screen which compilers it is using and what flags and settings
          will be used for the compilation.  Note that if the top-level
-         compiler is mpicxx, it is simply a wrapper on a real compiler.
+         compiler is ``mpicxx``, it is simply a wrapper on a real compiler.
          The underlying compiler info is what CMake will try to
          determine and report.  You should check to confirm you are
          using the compiler and optimization flags you want.
@@ -287,19 +287,19 @@ LAMMPS.
 
       .. code-block:: make
 
-         CC =            mpicxx
-         CCFLAGS =       -g -O3
-         LINK =          mpicxx
-         LINKFLAGS =     -g -O
+         CC =        mpicxx
+         CCFLAGS =   -g -O3
+         LINK =      mpicxx
+         LINKFLAGS = -g -O
 
       Serial build with GNU gcc (see ``src/MAKE/Makefile.serial``):
 
       .. code-block:: make
 
-         CC =            g++
-         CCFLAGS =       -g -O3
-         LINK =          g++
-         LINKFLAGS =     -g -O
+         CC =        g++
+         CCFLAGS =   -g -O3
+         LINK =      g++
+         LINKFLAGS = -g -O
 
       .. note::
 
@@ -325,10 +325,10 @@ LAMMPS.
          there may be specific compiler or linker flags that are either
          required or recommended to enable required features and to
          achieve optimal performance.  You need to include these in the
-         CCFLAGS and LINKFLAGS settings above.  For details, see the
+         ``CCFLAGS`` and ``LINKFLAGS`` settings above.  For details, see the
          documentation for the individual packages listed on the
          :doc:`Speed_packages` page.  Or examine these files in the
-         src/MAKE/OPTIONS directory.  They correspond to each of the 5
+         ``src/MAKE/OPTIONS`` directory.  They correspond to each of the 5
          accelerator packages and their hardware variants:
 
          .. code-block:: bash
@@ -498,8 +498,9 @@ using CMake or Make.
 
       .. code-block:: bash
 
-         -D BUILD_TOOLS=value         # yes or no (default). Build binary2txt, chain.x,
-                                      # micelle2d.x, msi2lmp, phana, stl_bin2txt
+         -D BUILD_TOOLS=value         # yes or no (default). Build binary2txt,
+                                      # chain.x, micelle2d.x, msi2lmp, phana,
+                                      # stl_bin2txt
          -D BUILD_LAMMPS_GUI=value    # yes or no (default). Build LAMMPS-GUI
 
       The generated binaries will also become part of the LAMMPS installation

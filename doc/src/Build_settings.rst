@@ -63,8 +63,10 @@ libraries and better pipelining for packing and communication.
 
       .. code-block:: bash
 
-         -D FFT=value              # FFTW3 or MKL or KISS, default is FFTW3 if found, else KISS
-         -D FFT_KOKKOS=value       # FFTW3 or MKL or KISS or CUFFT or HIPFFT, default is KISS
+         -D FFT=value              # FFTW3 or MKL or KISS, default is FFTW3 if found,
+                                   # else KISS
+         -D FFT_KOKKOS=value       # FFTW3 or MKL or KISS or CUFFT or HIPFFT,
+                                   # default is KISS
          -D FFT_SINGLE=value       # yes or no (default), no = double precision
          -D FFT_PACK=value         # array (default) or pointer or memcpy
          -D FFT_USE_HEFFTE=value   # yes or no (default), yes links to heFFTe
@@ -94,7 +96,8 @@ libraries and better pipelining for packing and communication.
          -D MKL_INCLUDE_DIR=path     # ditto for Intel MKL library
          -D FFT_MKL_THREADS=on       # enable using threaded FFTs with MKL libraries
          -D MKL_LIBRARY=path         # path to MKL libraries
-         -D FFT_HEFFTE_BACKEND=value # FFTW or MKL or empty/undefined for the stock heFFTe back end
+         -D FFT_HEFFTE_BACKEND=value # FFTW or MKL or empty/undefined for the stock
+                                     # heFFTe backend
          -D Heffte_ROOT=path         # path to an existing heFFTe installation
 
       .. note::
@@ -113,7 +116,8 @@ libraries and better pipelining for packing and communication.
 
       .. code-block:: make
 
-         FFT_INC = -DFFT_FFTW3         # -DFFT_FFTW3, -DFFT_FFTW (same as -DFFT_FFTW3), -DFFT_MKL, or -DFFT_KISS
+         FFT_INC = -DFFT_FFTW3         # -DFFT_FFTW3, -DFFT_FFTW (same as -DFFT_FFTW3),
+                                       # -DFFT_MKL, or -DFFT_KISS
                                        # default is KISS if not specified
          FFT_INC = -DFFT_KOKKOS_CUFFT  # -DFFT_KOKKOS_{FFTW,FFTW3,MKL,CUFFT,HIPFFT,KISS}
                                        # default is KISS if not specified
@@ -125,18 +129,19 @@ libraries and better pipelining for packing and communication.
 
       .. code-block:: make
 
-         FFT_INC =       -I/usr/local/include
-         FFT_PATH =      -L/usr/local/lib
-         FFT_LIB =       -lhipfft            # hipFFT either precision
-         FFT_LIB =       -lcufft             # cuFFT either precision
-         FFT_LIB =       -lfftw3             # FFTW3 double precision
-         FFT_LIB =       -lfftw3 -lfftw3_omp # FFTW3 double precision with threads (needs -DFFT_FFTW_THREADS)
-         FFT_LIB =       -lfftw3 -lfftw3f    # FFTW3 single precision
-         FFT_LIB =       -lmkl_intel_lp64 -lmkl_sequential -lmkl_core   # MKL with Intel compiler, serial interface
-         FFT_LIB =       -lmkl_gf_lp64 -lmkl_sequential -lmkl_core      # MKL with GNU compiler, serial interface
-         FFT_LIB =       -lmkl_intel_lp64 -lmkl_intel_thread -lmkl_core # MKL with Intel compiler, threaded interface
-         FFT_LIB =       -lmkl_gf_lp64 -lmkl_gnu_thread -lmkl_core      # MKL with GNU compiler, threaded interface
-         FFT_LIB =       -lmkl_rt            # MKL with automatic runtime selection of interface libs
+         FFT_INC =  -I/usr/local/include
+         FFT_PATH = -L/usr/local/lib
+         FFT_LIB =  -lhipfft            # hipFFT either precision
+         FFT_LIB =  -lcufft             # cuFFT either precision
+         FFT_LIB =  -lfftw3             # FFTW3 double precision
+         FFT_LIB =  -lfftw3 -lfftw3_omp # FFTW3 double precision with threads
+                                        # (needs -DFFT_FFTW_THREADS)
+         FFT_LIB =  -lfftw3 -lfftw3f    # FFTW3 single precision
+         FFT_LIB =  -lmkl_intel_lp64 -lmkl_sequential -lmkl_core   # serial MKL with Intel compiler,
+         FFT_LIB =  -lmkl_gf_lp64 -lmkl_sequential -lmkl_core      # serial MKL with GNU compiler,
+         FFT_LIB =  -lmkl_intel_lp64 -lmkl_intel_thread -lmkl_core # threaded MKL with Intel compiler
+         FFT_LIB =  -lmkl_gf_lp64 -lmkl_gnu_thread -lmkl_core      # threaded MKL with GNU compiler
+         FFT_LIB =  -lmkl_rt            # MKL with automatic runtime selection of interface libs
 
       As with CMake, you do not need to set paths in ``FFT_INC`` or
       ``FFT_PATH``, if the compiler can find the FFT header and library
@@ -152,13 +157,13 @@ libraries and better pipelining for packing and communication.
          FFT_PATH =
          FFT_LIB = $(heffte_link) $(heffte_libs)
 
-      The heFFTe install path will contain `HeffteMakefile.in`.
-      which will define the `heffte_` include variables needed to link to heFFTe from
+      The heFFTe install path will contain ``HeffteMakefile.in``.
+      which will define the ``heffte_`` include variables needed to link to heFFTe from
       an external project using traditional make.
-      The `-DFFT_HEFFTE` is required to switch to using heFFTe, while the optional `-DFFT_HEFFTE_FFTW`
-      selects the desired heFFTe back end, e.g., `-DFFT_HEFFTE_FFTW` or `-DFFT_HEFFTE_MKL`,
-      omitting the variable will default to the `stock` back end.
-      The heFFTe `stock` back end is intended to be used for testing and debugging,
+      The ``-DFFT_HEFFTE`` is required to switch to using heFFTe, while the optional ``-DFFT_HEFFTE_FFTW``
+      selects the desired heFFTe backend, e.g., ``-DFFT_HEFFTE_FFTW`` or ``-DFFT_HEFFTE_MKL``,
+      omitting the variable will default to the `stock` backend.
+      The heFFTe `stock` backend is intended to be used for testing and debugging,
       but is not performance optimized for large scale production runs.
 
 The `KISS FFT library <https://github.com/mborgerding/kissfft>`_ is
@@ -184,7 +189,7 @@ it from `www.fftw.org <https://www.fftw.org>`_.  LAMMPS requires version
 Building FFTW for your box should be as simple as ``./configure; make;
 make install``.  The install command typically requires root privileges
 (e.g. invoke it via sudo), unless you specify a local directory with
-the "--prefix" option of configure.  Type ``./configure --help`` to see
+the ``--prefix`` option of configure.  Type ``./configure --help`` to see
 various options.
 
 The Intel MKL math library is part of the Intel compiler suite.  It
@@ -360,12 +365,13 @@ requires the following settings:
 
       .. code-block:: bash
 
-         -D WITH_JPEG=value      # yes or no
-                                 # default = yes if CMake finds JPEG development files, else no
-         -D WITH_PNG=value       # yes or no
-                                 # default = yes if CMake finds PNG and ZLIB development files, else no
-         -D WITH_FFMPEG=value    # yes or no
-                                 # default = yes if CMake can find ffmpeg, else no
+         -D WITH_JPEG=value    # yes or no
+                               # default = yes if CMake finds JPEG development files, else no
+         -D WITH_PNG=value     # yes or no
+                               # default = yes if CMake finds PNG and ZLIB development files,
+                               # else no
+         -D WITH_FFMPEG=value  # yes or no
+                               # default = yes if CMake can find ffmpeg, else no
 
       Usually these settings are all that is needed.  If CMake cannot
       find the graphics header, library, executable files, you can set
@@ -387,8 +393,10 @@ requires the following settings:
 
          LMP_INC = -DLAMMPS_JPEG -DLAMMPS_PNG -DLAMMPS_FFMPEG  <other LMP_INC settings>
 
-         JPG_INC = -I/usr/local/include   # path to jpeglib.h, png.h, zlib.h header files if make cannot find them
-         JPG_PATH = -L/usr/lib            # paths to libjpeg.a, libpng.a, libz.a (.so) files if make cannot find them
+         JPG_INC = -I/usr/local/include   # path to jpeglib.h, png.h, zlib.h headers
+                                          # if make cannot find them
+         JPG_PATH = -L/usr/lib            # paths to libjpeg.a, libpng.a, libz.a (.so)
+                                          # files if make cannot find them
          JPG_LIB = -ljpeg -lpng -lz       # library names
 
       As with CMake, you do not need to set ``JPG_INC`` or ``JPG_PATH``,
@@ -428,8 +436,8 @@ including :doc:`read_data <read_data>`, :doc:`rerun <rerun>`, and
 
       .. code-block:: bash
 
-         -D WITH_GZIP=value       # yes or no
-                                  # default is yes if CMake can find the gzip program, else no
+         -D WITH_GZIP=value  # yes or no
+                             # default is yes if CMake can find the gzip program
 
    .. tab:: Traditional make
 

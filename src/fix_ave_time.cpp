@@ -302,12 +302,12 @@ FixAveTime::FixAveTime(LAMMPS *lmp, int narg, char **arg) :
     vector_total = new double[nvalues];
     if (ave == WINDOW) memory->create(vector_list,nwindow,nvalues,"ave/time:vector_list");
     if (variance) {
-        varmold = new double[nvalues];
-        varmnew = new double[nvalues];
-        varsold = new double[nvalues];
-        varsnew = new double[nvalues];
-        variance_total = new double[nvalues];
-        if (ave == WINDOW) memory->create(variance_list,nwindow,nvalues,"ave/time:variance_list");
+      varmold = new double[nvalues];
+      varmnew = new double[nvalues];
+      varsold = new double[nvalues];
+      varsnew = new double[nvalues];
+      variance_total = new double[nvalues];
+      if (ave == WINDOW) memory->create(variance_list,nwindow,nvalues,"ave/time:variance_list");
     }
   } else allocate_arrays();
 
@@ -427,6 +427,7 @@ FixAveTime::FixAveTime(LAMMPS *lmp, int narg, char **arg) :
         varmnew[i] = 0.0;
         varsold[i] = 0.0;
         varsnew[i] = 0.0;
+        varrepeat = 0;
       }
     }
   }
@@ -570,8 +571,11 @@ void FixAveTime::invoke_scalar(bigint ntimestep)
       modify->addstep_compute(ntimestep+nfreq);
     }
     for (int i = 0; i < nvalues; i++) {
-        vector[i] = 0.0;
-        if (variance) varmold[i] = varmnew[i] = varsold[i] = varsnew[i] = 0.0;
+      vector[i] = 0.0;
+      if (variance && ave == ONE) {
+        varmold[i] = varmnew[i] = varsold[i] = varsnew[i] = 0.0;
+        varrepeat = 0;
+      }
     }
   }
 
@@ -634,16 +638,18 @@ void FixAveTime::invoke_scalar(bigint ntimestep)
 
     // If Welford's variance is to be computed, it has to be done here
     // because you need to account for all the values.
-    // Assuming independance, the average of the variances converges to the
-    // average variance.
+
+    // if (variance && !val.offcol) {
+    //   update_variance_scalar(i, scalar);
+    // }
 
     if (variance && !val.offcol) {
-      if (!irepeat) {
+      if (varrepeat==0) {
         varmnew[i] = scalar;
       } else {
         varmold[i] = varmnew[i];
         varsold[i] = varsnew[i];
-        varmnew[i] = varmold[i] + (scalar - varmold[i])/(irepeat+1);
+        varmnew[i] = varmold[i] + (scalar - varmold[i])/(varrepeat+1);
         varsnew[i] = varsold[i] + (scalar - varmold[i])*(scalar - varmnew[i]);
       }
     }
@@ -652,6 +658,8 @@ void FixAveTime::invoke_scalar(bigint ntimestep)
 
   // done if irepeat < nrepeat
   // else reset irepeat and nvalid
+
+  if (variance) ++varrepeat;
 
   irepeat++;
   if (irepeat < nrepeat) {
@@ -669,7 +677,6 @@ void FixAveTime::invoke_scalar(bigint ntimestep)
   double repeat = nrepeat;
   for (i = 0; i < nvalues; i++) {
     if (values[i].offcol == 0) vector[i] /= repeat;
-    if (variance) varsnew[i] /= repeat;
   }
 
   // if ave = ONE, only single Nfreq timestep value is needed
@@ -679,14 +686,14 @@ void FixAveTime::invoke_scalar(bigint ntimestep)
   if (ave == ONE) {
     for (i = 0; i < nvalues; i++) {
       vector_total[i] = vector[i];
-      if (variance) variance_total[i] = varsnew[i];
+      if (variance) variance_total[i] = varsnew[i]/varrepeat;
     }
     norm = 1;
 
   } else if (ave == RUNNING) {
     for (i = 0; i < nvalues; i++) {
       vector_total[i] += vector[i];
-      if (variance) variance_total[i] += varsnew[i];
+      if (variance) variance_total[i] = varsnew[i]/varrepeat;
     }
     norm++;
 
@@ -734,14 +741,14 @@ void FixAveTime::invoke_scalar(bigint ntimestep)
       fmt::print(fp, "  - [{}, ", ntimestep);
       for (i = 0; i < nvalues; i++) {
           fmt::print(fp,"{}, ",vector_total[i]/norm);
-          if (variance) fmt::print(fp,"{}, ",variance_total[i]/norm);
+          if (variance) fmt::print(fp,"{}, ",variance_total[i]);
       }
       fputs("]\n", fp);
     } else {
       fmt::print(fp,"{}",ntimestep);
       for (i = 0; i < nvalues; i++) {
           fprintf(fp,format,vector_total[i]/norm);
-          if (variance) fprintf(fp,format,variance_total[i]/norm);
+          if (variance) fprintf(fp,format,variance_total[i]);
       }
       fprintf(fp,"\n");
       if (ferror(fp)) error->one(FLERR,"Error writing out time averaged data");
@@ -994,7 +1001,7 @@ void FixAveTime::invoke_vector(bigint ntimestep)
         fputs("  - [", fp);
         for (int j = 0; j < nvalues; j++) {
           fmt::print(fp,"{}, ",array_total[i][j]/norm);
-          if (variance) fmt::print(fp,"{}, ",variance_array[i][j]/norm);
+          if (variance) fmt::print(fp,"{}, ",variance_array[i][j]);
         }
         fputs("]\n", fp);
       }
@@ -1004,7 +1011,7 @@ void FixAveTime::invoke_vector(bigint ntimestep)
         fprintf(fp,"%d",i+1);
         for (int j = 0; j < nvalues; j++) {
           fprintf(fp,format,array_total[i][j]/norm);
-          if (variance) fprintf(fp,format,variance_array[i][j]/norm);
+          if (variance) fprintf(fp,format,variance_array[i][j]);
         }
         fprintf(fp,"\n");
       }
@@ -1113,6 +1120,22 @@ double FixAveTime::compute_array(int i, int j)
   return 0.0;
 }
 
+void FixAveTime::update_variance_scalar(int i, double scalar)
+{
+  // TODO: Make the RUNNING style. Watch out for the varlen in vector case?
+  if (ave == RUNNING) {
+      continue
+  } else {
+    if (varrepeat==0) {
+      varmnew[i] = scalar;
+    } else {
+      varmold[i] = varmnew[i];
+      varsold[i] = varsnew[i];
+      varmnew[i] = varmold[i] + (scalar - varmold[i])/(varrepeat+1);
+      varsnew[i] = varsold[i] + (scalar - varmold[i])*(scalar - varmnew[i]);
+    }
+  }
+}
 /* ----------------------------------------------------------------------
    modify settings
 ------------------------------------------------------------------------- */

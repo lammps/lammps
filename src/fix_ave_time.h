@@ -84,7 +84,8 @@ class FixAveTime : public Fix {
   double **array_total;
   double ***array_list;
 
-  // Variance vectors and arrays
+  // Variance vectors, arrays and methods
+  int varrepeat;
   double *varmold, *varmnew, *varsold, *varsnew;
   double *variance_total;
   double **variance_list;
@@ -92,6 +93,7 @@ class FixAveTime : public Fix {
   double **varmold_array, **varmnew_array;
   double **varsold_array, **varsnew_array;
   double ***variance_array_list;
+  void update_variance_scalar(int, double);
 
   int column_length(int);
   void invoke_scalar(bigint);

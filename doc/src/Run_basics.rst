@@ -2,8 +2,8 @@ Basics of running LAMMPS
 ========================
 
 LAMMPS is run from the command line, reading commands from a file via
-the -in command line flag, or from standard input.  Using the "-in
-in.file" variant is recommended (see note below).  The name of the
+the ``-in`` command line flag, or from standard input.  Using the ``-in
+in.file`` variant is recommended (see note below).  The name of the
 LAMMPS executable is either ``lmp`` or ``lmp_<machine>`` with
 `<machine>` being the machine string used when compiling LAMMPS.  This
 is required when compiling LAMMPS with the traditional build system
@@ -35,7 +35,7 @@ executable itself can be placed elsewhere.
    form is required.
 
 As LAMMPS runs it prints info to the screen and a logfile named
-*log.lammps*\ .  More info about output is given on the :doc:`screen and
+``log.lammps``.  More info about output is given on the :doc:`screen and
 logfile output <Run_output>` page.
 
 If LAMMPS encounters errors in the input script or while running a
@@ -69,12 +69,12 @@ defaults are often adequate.
 For example, it is often important to bind MPI tasks (processes) to
 physical cores (processor affinity), so that the operating system does
 not migrate them during a simulation.  If this is not the default
-behavior on your machine, the mpirun option "--bind-to core" (OpenMPI)
-or "-bind-to core" (MPICH) can be used.
+behavior on your machine, the mpirun option ``--bind-to core`` (OpenMPI)
+or ``-bind-to core`` (MPICH) can be used.
 
 If the LAMMPS command(s) you are using support multi-threading, you
 can set the number of threads per MPI task via the environment
-variable OMP_NUM_THREADS, before you launch LAMMPS:
+variable ``OMP_NUM_THREADS``, before you launch LAMMPS:
 
 .. code-block:: bash
 
@@ -91,7 +91,7 @@ packages and which commands support multi-threading.
 
 You can experiment with running LAMMPS using any of the input scripts
 provided in the examples or bench directory.  Input scripts are named
-in.\* and sample outputs are named log.\*.P where P is the number of
+``in.*`` and sample outputs are named ``log.*.P`` where P is the number of
 processors it was run on.
 
 Some of the examples or benchmarks require LAMMPS to be built with

@@ -1932,7 +1932,7 @@ Doc page with :doc:`WARNING messages <Errors_warnings>`
    Self-explanatory.
 
 *Compute chunk/atom fix array is accessed out-of-range*
-   the index for the array is out of bounds.
+   The index for the array is out of bounds.
 
 *Compute chunk/atom fix does not calculate a per-atom array*
    Self-explanatory.
@@ -6073,9 +6073,9 @@ Doc page with :doc:`WARNING messages <Errors_warnings>`
 *New atom IDs exceed maximum allowed ID*
    See the setting for tagint in the src/lmptype.h file.
 
-*New bond exceeded bonds per atom in create_bonds*
-See the read_data command for info on using the "extra/bond/per/atom"
-keyword to allow for additional bonds to be formed
+*New bond exceeded bonds per atom in create\_bonds*
+   See the read_data command for info on using the "extra/bond/per/atom"
+   keyword to allow for additional bonds to be formed
 
 *New bond exceeded bonds per atom in fix bond/create*
    See the read_data command for info on using the "extra/bond/per/atom"

@@ -111,7 +111,7 @@ Tool descriptions
 amber2lmp tool
 --------------------------
 
-The amber2lmp subdirectory contains two Python scripts for converting
+The amber2lmp subdirectory contains three Python scripts for converting
 files back-and-forth between the AMBER MD code and LAMMPS.  See the
 README file in amber2lmp for more information.
 

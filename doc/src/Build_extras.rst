@@ -264,10 +264,17 @@ script with the specified args:
 
 .. code-block:: bash
 
-  make lib-gpu               # print help message
-  make lib-gpu args="-b"     # build GPU library with default Makefile.linux
-  make lib-gpu args="-m xk7 -p single -o xk7.single"  # create new Makefile.xk7.single, altered for single-precision
-  make lib-gpu args="-m mpi -a sm_60 -p mixed -b" # build GPU library with mixed precision and P100 using other settings in Makefile.mpi
+  # print help message
+  make lib-gpu
+
+  # build GPU library with default Makefile.linux
+  make lib-gpu args="-b"
+
+  # create new Makefile.xk7.single, altered for single-precision
+  make lib-gpu args="-m xk7 -p single -o xk7.single"
+
+  # build GPU library with mixed precision and P100 using other settings in Makefile.mpi
+  make lib-gpu args="-m mpi -a sm_60 -p mixed -b"
 
 Note that this procedure starts with a Makefile.machine in lib/gpu, as
 specified by the ``-m`` switch.  For your convenience, machine makefiles
@@ -391,7 +398,7 @@ minutes to hours) to build.  Of course you only need to do that once.)
          make lib-kim
 
          # (re-)install KIM API lib with only example models
-         make lib-kim args="-b "
+         make lib-kim args="-b"
 
          # ditto plus one model
          make lib-kim args="-b -a Glue_Ercolessi_Adams_Al__MO_324507536345_001"
@@ -408,7 +415,7 @@ minutes to hours) to build.  Of course you only need to do that once.)
          # ditto but add one model or driver
          make lib-kim args="-p <prefix> -a EAM_Dynamo_Ackland_W__MO_141627196590_002"
 
-      When using the ``-b `` option, the KIM library is built using its native
+      When using the ``-b`` option, the KIM library is built using its native
       cmake build system.  The ``lib/kim/Install.py`` script supports a
       ``CMAKE`` environment variable if the cmake executable is named other
       than ``cmake`` on your system.  Additional environment variables may be
@@ -420,7 +427,7 @@ minutes to hours) to build.  Of course you only need to do that once.)
 
          # (re-)install KIM API lib using cmake3 and gnu v11 compilers
          # with only example models
-         CMAKE=cmake3 CXX=g++-11 CC=gcc-11 FC=gfortran-11 make lib-kim args="-b "
+         CMAKE=cmake3 CXX=g++-11 CC=gcc-11 FC=gfortran-11 make lib-kim args="-b"
 
       Settings for debugging OpenKIM web queries discussed below need to
       be applied by adding them to the ``LMP_INC`` variable through
@@ -476,9 +483,11 @@ Enabling the extra unit tests have some requirements,
   Conda. More detailed information is available at:
   `kim-property installation <https://github.com/openkim/kim-property#installing-kim-property>`_.
 * It is also necessary to install the following KIM models:
-  - ``EAM_Dynamo_MendelevAckland_2007v3_Zr__MO_004835508849_000``
-  - ``EAM_Dynamo_ErcolessiAdams_1994_Al__MO_123629422045_005``
-  - ``LennardJones612_UniversalShifted__MO_959249795837_003``
+
+  * ``EAM_Dynamo_MendelevAckland_2007v3_Zr__MO_004835508849_000``
+  * ``EAM_Dynamo_ErcolessiAdams_1994_Al__MO_123629422045_005``
+  * ``LennardJones612_UniversalShifted__MO_959249795837_003``
+
   See `Obtaining KIM Models <https://openkim.org/doc/usage/obtaining-models>`_
   to learn how to install a pre-built binary of the OpenKIM Repository of
   Models or see

@@ -247,7 +247,7 @@ produce the additional libraries ``libfftw3f.a`` and/or ``libfftw3f.so``\ .
 
 Performing 3d FFTs requires communication to transpose the 3d FFT
 grid.  The data packing/unpacking for this can be done in one of 3
-modes (ARRAY, POINTER, MEMCPY) as set by the FFT_PACK syntax above.
+modes (ARRAY, POINTER, MEMCPY) as set by the ``FFT_PACK`` syntax above.
 Depending on the machine, the size of the FFT grid, the number of
 processors used, one option may be slightly faster.  The default is
 ARRAY mode.

@@ -145,6 +145,15 @@ Bibliography
 **(Bitzek)**
    Bitzek, Koskinen, Gahler, Moseler, Gumbsch, Phys Rev Lett, 97, 170201 (2006).
 
+**(Bolintineanu1)**
+   Bolintineanu, Lechman, Plimpton, Grest, Phys Rev E, 86, 066703 (2012).
+
+**(Bolintineanu2)**
+  Bolintineanu, Grest, Lechman, Pierce, Plimpton, Schunk, Comp Particle Mechanics, 1, 321-356 (2014).
+
+**(Bomont)**
+   Bomont, Bretonnet, J. Chem. Phys. 124, 054504 (2006).
+
 **(Bond)**
    Bond and Leimkuhler, SIAM J Sci Comput, 30, p 134 (2007).
 
@@ -152,7 +161,7 @@ Bibliography
    Boone, Babaei, Wilmer, J Chem Theory Comput, 15, 5579--5587 (2019).
 
 **(BoreschKarplus)**
-   Boresch and Karplus, J Phys Chem A, 103, 103 (1999)
+   Boresch and Karplus, J Phys Chem A, 103, 103 (1999).
 
 **(Botu1)**
    V.\  Botu and R. Ramprasad, Int. J. Quant. Chem., 115(16), 1074 (2015).
@@ -187,8 +196,11 @@ Bibliography
 **(Buck)**
    Buck, Bouguet-Bonnet, Pastor, MacKerell Jr., Biophys J, 90, L36 (2006).
 
+**(Bulacu)**
+   Bulacu, Goga, Zhao, Rossi, Monticelli, Periole, Tieleman, Marrink, J Chem Theory Comput, 9, 3282-3292
+
 **(Bussi)**
-   G.\  Bussi, M. Parrinello, Phs. Rev. E 75, 056707 (2007)
+   G. Bussi, T. Zykova-Timan, M. Parrinello, J Chem Phys, 130, 074101 (2009).
 
 **(Bussi1)**
    Bussi, Donadio and Parrinello, J. Chem. Phys. 126, 014101(2007)
@@ -196,20 +208,20 @@ Bibliography
 **(Bussi2)**
    Bussi and Parrinello, Phys. Rev. E 75, 056707 (2007)
 
-**(COMB)**
+**(COMB_1)**
+   J.\  Yu, S. B. Sinnott, S. R. Phillpot, Phys Rev B, 75, 085311 (2007),
+
+**(COMB_2)**
    T.-R. Shan, B. D. Devine, T. W. Kemper, S. B. Sinnott, and S. R. Phillpot, Phys. Rev. B 81, 125328 (2010)
 
 **(COMB3)**
    T.\  Liang, T.-R. Shan, Y.-T. Cheng, B. D. Devine, M. Noordhoek, Y. Li, Z. Lu, S. R. Phillpot, and S. B. Sinnott, Mat. Sci. & Eng: R 74, 255-279 (2013).
 
-**(COMB_1)**
-   J.\  Yu, S. B. Sinnott, S. R. Phillpot, Phys Rev B, 75, 085311 (2007),
-
 **(Calhoun)**
    A.\  Calhoun, M. Pavese, G. Voth, Chem Phys Letters, 262, 415 (1996).
 
 **(Campana)**
-   C.\  Campana and M. H. Muser, *Practical Green's function approach to the simulation of elastic semi-infinite solids*, `Phys. Rev. B [74], 075420 (2006) <https://doi.org/10.1103/PhysRevB.74.075420>`_
+   C.\  Campana and M. H. Muser, Phys. Rev. B [74], 075420 (2006).
 
 **(Cao1)**
    J.\  Cao and B. Berne, J Chem Phys, 99, 2902 (1993).
@@ -233,6 +245,9 @@ Bibliography
    Cerda, Ballenegger, Lenz, Holm, J Chem Phys 129, 234104 (2008)
 
 **(Ceriotti)**
+   M. Ceriotti, M. Parrinello, T. Markland, D. Manolopoulos, J. Chem. Phys. 133, 124104 (2010).
+
+**(Ceriotti1)**
    Ceriotti, Bussi and Parrinello, J Chem Theory Comput 6, 1170-80 (2010)
 
 **(Ceriotti2)**
@@ -250,6 +265,18 @@ Bibliography
 **(Clarke)**
    Clarke and Smith, J Chem Phys, 84, 2290 (1986).
 
+**(Clavier)**
+   G. Clavier, N. Desbiens, E. Bourasseau, V. Lachet, N. Brusselle-Dupend and B. Rousseau, Mol Sim, 43, 1413 (2017).
+
+**(Clemmer)**
+   Clemmer and Robbins, Phys. Rev. Lett. (2022).
+
+**(Clemmer1)**
+   Clemmer, Monti, Lechman, Soft Matter, 20, 1702 (2024).
+
+**(Clemmer2)**
+   Clemmer, Pierce, O'Connor, Nevins, Jones, Lechman, Tencer, Appl. Math. Model., 130, 310-326 (2024).
+
 **(Coleman)**
    Coleman, Spearot, Capolungo, MSMSE, 21, 055020 (2013).
 
@@ -262,8 +289,17 @@ Bibliography
 **(Cornell)**
    Cornell, Cieplak, Bayly, Gould, Merz, Ferguson, Spellmeyer, Fox, Caldwell, Kollman, JACS 117, 5179-5197 (1995).
 
+**(Cundall, 1987)**
+   Cundall, P. A. Distinct Element Models of Rock and Soil
+
+**(Curk1)**
+   T. Curk, J. Yuan, and E. Luijten, JCP 156 (2022).
+
+**(Curk2)**
+   T. Curk and E. Luijten, PRL 126 (2021)
+
 **(Cusentino)**
-   Cusentino, Wood, and Thompson, J Phys Chem A, xxx, xxxxx, (2020)
+   Cusentino, Wood, Thompson, J Phys Chem A, 124, 5456, (2020)
 
 **(Daivis and Todd)**
    Daivis and Todd, J Chem Phys, 124, 194103 (2006).
@@ -286,6 +322,15 @@ Bibliography
 **(Daw2)**
    M.\  S. Daw, and M. I. Baskes, Phys. Rev. B, 29, 6443 (1984).
 
+**(de Buyl)**
+   de Buyl, Colberg and Hofling, Comp. Phys. Comm. 185(6), 1546-1553 (2014) -
+
+**(Deissenbeck)**
+   Deissenbeck *et al.*, Phys. Rev. Letters 126, 136803 (2021).
+
+**(de Koning)**
+   de Koning and Antonelli, Phys Rev E, 53, 465 (1996).
+
 **(DeVane)**
    Shinoda, DeVane, Klein, Soft Matter, 4, 2453-2462 (2008).
 
@@ -295,11 +340,23 @@ Bibliography
 **(Destree)**
    M.\  Destree, F. Laupretre, A. Lyulin, and J.-P.  Ryckaert, J Chem Phys, 112, 9632 (2000).
 
+**(Dickel)**
+   Dickel, Francis, and Barrett, Computational Materials Science 171 (2020): 109157.
+
+**(Dietz)**
+   Dietz and Hoy, J. Chem Phys, 156, 014103 (2022).
+
 **(Dobson)**
    Dobson, J Chem Phys, 141, 184103 (2014).
 
+**(Drautz)**
+   Drautz, Phys Rev B, 99, 014104 (2019).
+
 **(Duffy)**
    D M Duffy and A M Rutherford, J. Phys.: Condens. Matter, 19, 016207-016218 (2007).
+
+**(Dufils)**
+   Dufils *et al.*, Phys. Rev. Letters 123, 195501 (2019).
 
 **(Dullweber)**
    Dullweber, Leimkuhler and McLachlan, J Chem Phys, 107, 5840 (1997).
@@ -313,6 +370,9 @@ Bibliography
 **(Dunweg)**
    Dunweg and Paul, Int J of Modern Physics C, 2, 817-27 (1991).
 
+**(EcheverriRestrepo)**
+  Echeverri Restrepo, Andric, Comput Mater Sci, 218, 111978 (2023).
+
 **(EDIP)**
    J F Justo et al, Phys Rev B 58, 2539 (1998).
 
@@ -321,6 +381,12 @@ Bibliography
 
 **(Elliott)**
    Elliott, Tadmor and Bernstein, `https://openkim.org/kim-api <https://openkim.org/kim-api>`_ (2011) doi: `https://doi.org/10.25950/FF8F563A <https://doi.org/10.25950/FF8F563A>`_
+
+**(Ellis)**
+   Ellis, Fiedler, Popoola, Modine, Stephens, Thompson, Cangi, Rajamanickam,  Phys Rev B, 104, 035120, (2021)
+
+**(Emmrich)**
+   Emmrich, Weckner, Commun. Math. Sci., 5, 851-864 (2007),
 
 **(Elstner)**
    M.\  Elstner, D. Poresag, G. Jungnickel, J. Elsner, M. Haugk, T. Frauenheim, S. Suhai, and G. Seifert, Phys. Rev. B, 58, 7260 (1998).
@@ -349,8 +415,17 @@ Bibliography
 **(Faken)**
    Faken, Jonsson, Comput Mater Sci, 2, 279 (1994).
 
+**(Falk)**
+   Falk and Langer PRE, 57, 7192 (1998).
+
 **(Fath)**
    Fath, Hochbruck, Singh, J Comp Phys, 333, 180-198 (2017).
+
+**(Feng1)**
+   Z. Feng, ..., and W. Ouyang, J. Phys. Chem. C. 127(18), 8704-8713 (2023).
+
+**(Feng2)**
+   Z. Feng, ..., and W. Ouyang, Langmuir 39(50), 18198-18207 (2023).
 
 **(Fennell)**
    C.\  J. Fennell, J. D. Gezelter, J Chem Phys, 124, 234104 (2006).
@@ -1407,12 +1482,6 @@ D Pavlov, V Galigerov, D Kolotinskii, V Nikolskiy, V Stegailov, International Jo
 
 **(Zimmerman2010)**
    Zimmerman, JA; Jones, RE; Templeton, JA, "A material frame approach for evaluating continuum variables in atomistic simulations." Journal of Computational Physics (2010), 229:2364.
-
-**(de Buyl)**
-   de Buyl, Colberg and Hofling, H5MD: A structured, efficient, and portable file format for molecular data, Comp. Phys. Comm. 185(6), 1546-1553 (2014) -
-
-**(de Koning)**
-   de Koning and Antonelli, Phys Rev E, 53, 465 (1996).
 
 **(electronic stopping)**
    Wikipedia - Electronic Stopping Power: https://en.wikipedia.org/wiki/Stopping_power_%28particle_radiation%29

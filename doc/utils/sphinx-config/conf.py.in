@@ -344,7 +344,8 @@ latex_elements = {
 
 # copy custom style file for tweaking index layout
 latex_additional_files = [
-    'idxlayout.sty',
+    'latex/idxlayout.sty', 'latex/ellipse.sty',
+    'latex/pict2e.sty', 'latex/p2e-pdftex.def',
 ]
 # Grouping the document tree into LaTeX files. List of tuples
 # (source start file, target name, title,

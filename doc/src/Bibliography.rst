@@ -1,6 +1,12 @@
 Bibliography
 ************
 
+**(Abascal1)**
+   Abascal, Sanz, Fernandez, Vega, J Chem Phys, 122, 234511 (2005)
+
+**(Abascal2)**
+   Abascal, J Chem Phys, 123, 234505 (2005)
+
 **(Ackland)**
    Ackland, Jones, Phys Rev B, 73, 054104 (2006).
 
@@ -22,20 +28,23 @@ Bibliography
 **(Agnolin and Roux 2007)**
    Agnolin, I. & Roux, J-N. (2007). Internal states of model isotropic granular packings. I. Assembling process, geometry, and contact networks. Phys. Rev. E, 76, 061302.
 
+**(Ahrens-Iwers2022)**
+   Ahrens-Iwers *et al.*, J. Chem. Phys. 157, 084801 (2022).
+
+**(Ahrens-Iwers)**
+   Ahrens-Iwers and Meissner, J. Chem. Phys. 155, 104104 (2021).
+
 **(Aktulga)**
    Aktulga, Fogarty, Pandit, Grama, Parallel Computing, 38, 245-259 (2012).
 
 **(Albe)**
    J.\  Nord, K. Albe, P. Erhart, and K. Nordlund, J. Phys.: Condens. Matter, 15, 5649(2003).
 
-**(Albe)**
+**(Albe1)**
    K.\  Albe, K. Nordlund, J. Nord, and A. Kuronen, Phys. Rev. B, 66, 035205 (2002).
 
 **(Allen)**
    Allen and Germano, Mol Phys 104, 3225-3235 (2006).
-
-**(Allen)**
-   Allen and Tildesley, Computer Simulation of Liquids, Clarendon Press, Oxford, 1987.
 
 **(AllenTildesley)**
    Allen and Tildesley, Computer Simulation of Liquids, Oxford University Press (1987)
@@ -49,6 +58,9 @@ Bibliography
 **(Anderson)**
    Anderson, Mukherjee, Critchley, Ziegler, and Lipton "POEMS: Parallelizable Open-source Efficient Multibody Software ", Engineering With Computers (2006).
 
+**(Appshaw)**
+   Appshaw, Seddon, Hanna, Soft. Matter,18, 1747(2022).
+
 **(Avendano)**
    C.\  Avendano, T. Lafitte, A. Galindo, C. S. Adjiman, G. Jackson, E. Muller, J Phys Chem B, 115, 11154 (2011).
 
@@ -58,7 +70,7 @@ Bibliography
 **(Babadi)**
    Babadi, Ejtehadi, Everaers, J Comp Phys, 219, 770-779 (2006).
 
-**(Babadi)**
+**(Babadi2)**
    Babadi and Ejtehadi, EPL, 77 (2007) 23002.
 
 **(Baczewski)**
@@ -73,14 +85,14 @@ Bibliography
 **(Ballenegger)**
    Ballenegger, Arnold, Cerda, J Chem Phys, 131, 094107 (2009).
 
-**(Banna)**
-   Volkov, Banna, Comp. Mater. Sci. 176, 109410 (2020).
-
 **(Barrat)**
    Barrat and Rodney, J. Stat. Phys, 144, 679 (2011).
 
 **(Barrett)**
    Barrett, Tschopp, El Kadiri, Scripta Mat. 66, p.666 (2012).
+
+**(Barros)**
+   Barros, Sinkovits, Luijten, J. Chem. Phys, 140, 064903 (2014)
 
 **(Bartok)**
    Bartok, Payne, Risi, Csanyi, Phys Rev Lett, 104, 136403 (2010).
@@ -88,8 +100,8 @@ Bibliography
 **(Bartok2010)**
    Bartok, Payne, Risi, Csanyi, Phys Rev Lett, 104, 136403 (2010).
 
-**(Bartok_2010)**
-   AP Bartok, MC Payne, R Kondor, and G Csanyi, Physical Review Letters 104, 136403 (2010).
+**(Bartok2013)**
+   Bartok, Kondor, Csanyi, Phys Rev B, 87, 184115 (2013).
 
 **(Bartok_PhD)**
    A Bartok-Partay, PhD Thesis, University of Cambridge, (2010).
@@ -97,8 +109,17 @@ Bibliography
 **(Baskes)**
    Baskes, Phys Rev B, 46, 2727-2742 (1992).
 
+**(Baskes2)**
+   Baskes, Phys Rev B, 75, 094113 (2007).
+
 **(Beck)**
    Beck, Molecular Physics, 14, 311 (1968).
+
+**(Becton)**
+   Becton, Averett, Wang, Biomech. Model. Mechanobiology, 18, 425-433(2019).
+
+**(Behler and Parrinello 2007)**
+   Behler, J.; Parrinello, M. Phys. Rev. Lett.  2007, 98 (14), 146401.
 
 **(Bennet)**
    Bennet, J Comput Phys, 22, 245 (1976)
@@ -107,19 +128,16 @@ Bibliography
    Berardi, Fava, Zannoni, Chem Phys Lett, 297, 8-14 (1998). Berardi, Muccioli, Zannoni, J Chem Phys, 128, 024905 (2008).
 
 **(Berendsen)**
-   Berendsen, Grigera, Straatsma, J Phys Chem, 91, 6269-6271 (1987).
-
-**(Berendsen)**
    Berendsen, Postma, van Gunsteren, DiNola, Haak, J Chem Phys, 81, 3684 (1984).
+
+**(Berendsen2)**
+   Berendsen, Grigera, Straatsma, J Phys Chem, 91, 6269-6271 (1987).
 
 **(Bessarab)**
    Bessarab, Uzdin, Jonsson, Comp Phys Comm, 196, 335-347 (2015).
 
 **(Beutler)**
    Beutler, Mark, van Schaik, Gerber, van Gunsteren, Chem Phys Lett, 222, 529 (1994).
-
-**(Bialke)**
-   J.\  Bialke, T. Speck, and H Loewen, Phys. Rev. Lett. 108, 168301, 2012.
 
 **(Bird)**
    G.\  A. Bird, "Molecular Gas Dynamics and the Direct Simulation of Gas Flows" (1994).
@@ -309,6 +327,9 @@ Bibliography
 
 **(Erdmann)**
    U.\  Erdmann , W. Ebeling, L. Schimansky-Geier, and F. Schweitzer, Eur. Phys. J. B 15, 105-113, 2000.
+
+**(Eshelby)**
+  J.D. Eshelby, Philos. Trans. Royal Soc. London A, Math. Phys. Sci., Vol. 244, No. 877 (1951) pp. 87-112; J. Elasticity, Vol. 5, Nos. 3-4 (1975) pp. 321-335]
 
 **(Espanol and Revenga)**
    Espanol, Revenga, Physical Review E, 67, 026705 (2003).

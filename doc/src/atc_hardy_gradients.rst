@@ -32,7 +32,7 @@ Syntax
   - internal_energy : total internal energy (potential + thermal) per unit volume
   - energy : total energy (potential + kinetic) per unit volume
   - number_density : number of atoms per unit volume
-  - eshelby_stress : configurational stress (energy-momentum) tensor defined by [Eshelby]_
+  - eshelby_stress : configurational stress (energy-momentum) tensor defined by :ref:`(Eshelby) <Eshelby3>`
   - vacancy_concentration : volume fraction of vacancy content
   - type_concentration : volume fraction of a specific atom type
 
@@ -72,3 +72,10 @@ Default
 """""""
 
 None.
+
+References
+""""""""""
+
+.. _Eshelby3:
+
+**(Eshelby)** J.D. Eshelby, Philos. Trans. Royal Soc. London A, Math. Phys. Sci., Vol. 244, No. 877 (1951) pp. 87-112; J. Elasticity, Vol. 5, Nos. 3-4 (1975) pp. 321-335]

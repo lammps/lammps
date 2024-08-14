@@ -33,7 +33,7 @@ the partial charge assignments change:
 | O charge = -0.8476
 | H charge = 0.4238
 
-See the :ref:`(Berendsen) <howto-Berendsen>` reference for more details on both
+See the :ref:`(Berendsen2) <howto-Berendsen>` reference for more details on both
 the SPC and SPC/E models.
 
 Below is the code for a LAMMPS input file and a molecule file
@@ -149,4 +149,4 @@ Wikipedia also has a nice article on `water models <https://en.wikipedia.org/wik
 
 .. _howto-Berendsen:
 
-**(Berendsen)** Berendsen, Grigera, Straatsma, J Phys Chem, 91, 6269-6271 (1987).
+**(Berendsen2)** Berendsen, Grigera, Straatsma, J Phys Chem, 91, 6269-6271 (1987).

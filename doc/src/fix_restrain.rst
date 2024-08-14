@@ -246,9 +246,9 @@ The scalar is the total potential energy for *all* the restraints as
 discussed above. The vector values are the sum of contributions to the
 following individual categories:
 
-* 1 = bond energy
-* 2 = angle energy
-* 3 = dihedral energy
+  #. bond energy
+  #. angle energy
+  #. dihedral energy
 
 The scalar and vector values calculated by this fix are "extensive".
 

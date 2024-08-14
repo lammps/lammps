@@ -215,20 +215,20 @@ which can be accessed by various :doc:`output commands
 (energy units) applied on the current timestep.  The vector stores the
 following quantities:
 
-* 1 = boost factor on this step (unitless)
-* 2 = max strain :math:`E_{ij}` of any bond on this step (absolute value, unitless)
-* 3 = ID of first atom in the max-strain bond
-* 4 = ID of second atom in the max-strain bond
-* 5 = average # of bonds/atom on this step
+  #. boost factor on this step (unitless)
+  #. max strain :math:`E_{ij}` of any bond on this step (absolute value, unitless)
+  #. ID of first atom in the max-strain bond
+  #. ID of second atom in the max-strain bond
+  #. average # of bonds/atom on this step
 
-* 6 = fraction of timesteps where the biased bond has bias = 0.0 during this run
-* 7 = fraction of timesteps where the biased bond has negative strain during this run
-* 8 = max drift distance of any atom during this run (distance units)
-* 9 = max bond length during this run (distance units)
+  #. fraction of timesteps where the biased bond has bias = 0.0 during this run
+  #. fraction of timesteps where the biased bond has negative strain during this run
+  #. max drift distance of any atom during this run (distance units)
+  #. max bond length during this run (distance units)
 
-* 10 = cumulative hyper time since fix was defined (time units)
-* 11 = cumulative count of event timesteps since fix was defined
-* 12 = cumulative count of atoms in events since fix was defined
+  #. cumulative hyper time since fix was defined (time units)
+  #. cumulative count of event timesteps since fix was defined
+  #. cumulative count of atoms in events since fix was defined
 
 The first 5 quantities are for the current timestep.  Quantities 6-9
 are for the current hyper run.  They are reset each time a new hyper

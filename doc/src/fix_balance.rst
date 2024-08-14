@@ -393,9 +393,9 @@ after the most recent re-balance and a global vector of length 3 with
 additional information about the most recent re-balancing.  The three
 values in the vector are as follows:
 
-* 1 = max # of particles per processor
-* 2 = total # iterations performed in last re-balance
-* 3 = imbalance factor right before the last re-balance was performed
+  #. max # of particles per processor
+  #. total # iterations performed in last re-balance
+  #. imbalance factor right before the last re-balance was performed
 
 As explained above, the imbalance factor is the ratio of the maximum
 number of particles (or total weight) on any processor to the average

@@ -233,7 +233,7 @@ Doc page with :doc:`ERROR messages <Errors_messages>`
    style.
 
 *Fix langevin gjf using random gaussians is not implemented with kokkos*
-This will most likely cause errors in kinetic fluctuations.
+   This will most likely cause errors in kinetic fluctuations.
 
 *Fix property/atom mol or charge w/out ghost communication*
    A model typically needs these properties defined for ghost atoms.

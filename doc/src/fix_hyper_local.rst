@@ -135,9 +135,9 @@ to this fix.
 
    To run an LHD simulation, the input script must also use the
    :doc:`fix langevin <fix_langevin>` command to thermostat the atoms at
-   the same *Tequil* as specified by this fix, so that the system is
-   running constant-temperature (NVT) dynamics.  LAMMPS does not check
-   that this is done.
+   the same :math:`T_{equil}` as specified by this fix, so that the
+   system is running constant-temperature (NVT) dynamics.  LAMMPS does
+   not check that this is done.
 
 Note that if *ij*\ == *kl*, then bond *ij* is a biased bond on that
 timestep, otherwise it is not.  But regardless, the boost factor
@@ -219,10 +219,11 @@ guarantee an accelerated time-accurate trajectory of the system.
    as for GHD), so that the :math:`C_{ij}` remain near unity.
 
 The *Tequil* argument is the temperature at which the system is
-simulated; see the comment above about the :doc:`fix langevin <fix_langevin>` thermostatting.  It is also part of the
-beta term in the exponential factor that determines how much boost is
-achieved as a function of the bias potential.  See the discussion of
-the *Btarget* argument below.
+simulated; see the comment above about the :doc:`fix langevin
+<fix_langevin>` thermostatting.  It is also part of the beta term in the
+exponential factor that determines how much boost is achieved as a
+function of the bias potential.  See the discussion of the *Btarget*
+argument below.
 
 As discussed above, the *Dcut* argument is the distance required
 between two locally maxstrain bonds for them to both be selected as

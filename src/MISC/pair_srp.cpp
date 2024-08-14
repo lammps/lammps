@@ -400,11 +400,12 @@ void PairSRP::coeff(int narg, char **arg)
   if (btype_str.size() > 0)
     btype = utils::expand_type_int(FLERR, btype_str, Atom::BOND, lmp);
   if ((btype > atom->nbondtypes) || (btype <= 0))
-    error->all(FLERR,"Illegal pair_style command");
+    error->all(FLERR,"Invalid bond type {} for pair style srp", btype);
 
-  bptype = utils::expand_type_int(FLERR, bptype_str, Atom::ATOM, lmp);
+  if (bptype_str.size() > 0)
+    bptype = utils::expand_type_int(FLERR, bptype_str, Atom::ATOM, lmp);
   if ((bptype < 1) || (bptype > atom->ntypes))
-    error->all(FLERR,"Illegal bond particle type for srp");
+    error->all(FLERR,"Invalid bond particle type {} for pair style srp", bptype);
 
   // reset cutoffs if explicitly set
   if (allocated) {

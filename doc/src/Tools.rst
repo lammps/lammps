@@ -97,6 +97,7 @@ Miscellaneous tools
    * :ref:`Offline build tool <offline>`
    * :ref:`singularity/apptainer <singularity_tool>`
    * :ref:`SWIG interface <swig>`
+   * :ref:`valgrind <valgrind>`
    * :ref:`vim <vim>`
 
 ----------
@@ -1207,6 +1208,19 @@ The ``tabulate`` folder contains Python scripts scripts to generate tabulated
 potential files for LAMMPS.  The bulk of the code is in the ``tabulate`` module
 in the ``tabulate.py`` file.  Some example files demonstrating its use are
 included.  See the README file for more information.
+
+----------
+
+.. _valgrind:
+
+valgrind tool
+-------------
+
+The ``valgrind`` folder contains additional suppressions fur LAMMPS when using
+valgrind's memcheck tool to search for memory access violation and memory
+leaks. These suppressions are automatically invoked when running tests through
+CMake "ctest -T memcheck". See the provided README file to add these
+suppressions when running LAMMPS.
 
 ----------
 

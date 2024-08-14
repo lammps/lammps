@@ -29,7 +29,7 @@ from GitHub:
 `https://github.com/libAtoms/QUIP <https://github.com/libAtoms/QUIP>`_. The
 interface is chiefly intended to be used to run Gaussian Approximation
 Potentials (GAP), which are described in the following publications:
-:ref:`(Bartok et al) <Bartok2010>` and :ref:`(PhD thesis of Bartok) <Bartok_PhD>`.
+:ref:`(Bartok et al) <Bartok_2010>` and :ref:`(PhD thesis of Bartok) <Bartok_PhD>`.
 
 Only a single pair_coeff command is used with the *quip* style that
 specifies a QUIP potential file containing the parameters of the

@@ -383,6 +383,12 @@ man_pages = [
 #man_show_urls = False
 
 
+# strip off LAMMPS_NS:: from index entries
+cpp_index_common_prefix = [
+    'LAMMPS_NS::',
+    '_LMP_STYLE_CONST::', '_LMP_TYPE_CONST::', '_LMP_VAR_CONST::',
+]
+
 # -- Options for Texinfo output -------------------------------------------
 
 # Grouping the document tree into Texinfo files. List of tuples

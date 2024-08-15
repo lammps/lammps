@@ -4011,6 +4011,13 @@ void FixBondReact::read_map_file(int myrxn)
   }
 
   // error check
+  for (int i = 0; i < onemol->natoms; i++) {
+    int my_equiv = reverse_equiv[i][1][myrxn];
+    if (create_atoms[my_equiv-1][myrxn] == 1)
+      error->all(FLERR,"Fix bond/react: Created atoms cannot also be listed in Equivalences section\n");
+  }
+
+  // error check
   if (bondflag == 0 || equivflag == 0)
     error->all(FLERR,"Fix bond/react: Map file missing InitiatorIDs or Equivalences section\n");
 }

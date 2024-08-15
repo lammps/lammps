@@ -13,7 +13,7 @@
 ------------------------------------------------------------------------- */
 
 /* ----------------------------------------------------------------------
-   Contributing author: Navraj S Lalli & Efstratios Kritikos (Imperial College London)
+   Contributing author: Navraj S Lalli & Efstratios M Kritikos (Imperial College London)
 ------------------------------------------------------------------------- */
 
 #include "fix_qtpie_reaxff.h"
@@ -1209,10 +1209,10 @@ void FixQtpieReaxFF::calc_chi_eff()
 {
   memset(&chi_eff[0],0,atom->nmax*sizeof(double));
   const int KSCREEN = 10;
-  const double ZERONAME = 1.0e-50;
+  // const double ZERONAME = 1.0e-50;
   const double ANG_TO_BOHRRAD = 1.8897259886;  // 1 Ang = 1.8897259886 Bohr radius
 
-  double R,a_min,OvIntMaxR,voltage,overlap,nominator,denominator;
+  double R,a_min,OvIntMaxR,overlap,sum_n,sum_d;
   double ea,eb,chia,chib,p,m;
   double phia,phib;
   int i,j;
@@ -1224,8 +1224,15 @@ void FixQtpieReaxFF::calc_chi_eff()
   // Use integral pre-screening for overlap calculations
   a_min = find_min(gauss_exp,ntypes+1);
   OvIntMaxR = sqrt(pow(a_min,-1.)*log(pow(M_PI/(2.*a_min),3.)*pow(10.,2.*KSCREEN)));
+  // OvIntMaxR = 0.5;
+  // if (comm->me == 0) {
+  //     std::cout << "OvIntMaxR is " << OvIntMaxR/ANG_TO_BOHRRAD;
+  // }
 
   ghost_cutoff = MAX(neighbor->cutneighmax,comm->cutghostuser);
+  // if (comm->me == 0) {
+  //   std::cout << "ghost_cutoff is " << ghost_cutoff;
+  // }
   if(ghost_cutoff < OvIntMaxR/ANG_TO_BOHRRAD) {
     error->all(FLERR,"ghost cutoff error");
     // char errmsg[256];
@@ -1242,12 +1249,14 @@ void FixQtpieReaxFF::calc_chi_eff()
     ea = gauss_exp[type[i]];
     chia = chi[type[i]];
 
-    nominator = denominator = 0.0;
+    // nominator = denominator = 0.0;
+    sum_n = 0.0;
+    sum_d = 0.0;
 
     for (j = 0; j < ng; j++) {
 
-      R = distance(x[i],x[j])*ANG_TO_BOHRRAD;
-      overlap = voltage = 0.0;
+      R = distance(x[i],x[j])*ANG_TO_BOHRRAD; // Distance between atoms as a multiple of Bohr radius
+      // overlap = voltage = 0.0;
 
       if (R < OvIntMaxR)
       {
@@ -1268,18 +1277,26 @@ void FixQtpieReaxFF::calc_chi_eff()
 
         if (efield) {
           phib = efield_potential(x[j]);
-          voltage = chia - chib + phib;
+	  sum_n += (chia - chib + phib) * overlap;
+          // voltage = chia - chib + phib;
         } else {
-          voltage = chia - chib;
+	  sum_n += (chia - chib) * overlap;
+          // voltage = chia - chib;
         }
-        nominator += voltage * overlap;
-        denominator += overlap;
+	sum_d += overlap;
+        // nominator += voltage * overlap;
+        // denominator += overlap;
       }
     }
-    if (denominator != 0.0 && nominator != 0.0)
-      chi_eff[i] = nominator / denominator;
+
+    if (fabs(sum_n) < SMALL && fabs(sum_d) < SMALL)
+      chi_eff[i] = 0.0; // SMALL;
     else
-      chi_eff[i] = ZERONAME;
+      chi_eff[i] = sum_n / sum_d;
+    // if (denominator != 0.0 && nominator != 0.0)
+    //   chi_eff[i] = nominator / denominator;
+    // else
+    //   chi_eff[i] = ZERONAME;
 
     if (efield) {
       phia = efield_potential(x[i]);

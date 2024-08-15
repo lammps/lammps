@@ -1171,7 +1171,7 @@ bool LAMMPS::is_installed_pkg(const char *pkg)
 /** \brief Return name of package that a specific style belongs to
  *
  * This function checks the given name against all list of styles
- * for all type of styles and if the name and the style match, it
+ * for all types of styles and if the name and the style match, it
  * returns which package this style belongs to.
  *
  * \param style Type of style (e.g. atom, pair, fix, etc.)

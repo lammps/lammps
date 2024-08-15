@@ -716,6 +716,7 @@ int FixBondReact::setmask()
   int mask = 0;
   mask |= POST_INTEGRATE;
   mask |= POST_INTEGRATE_RESPA;
+  mask |= POST_FORCE;
   return mask;
 }
 
@@ -3620,10 +3621,6 @@ void FixBondReact::update_everything()
 
   atom->natoms -= ndel;
   // done deleting atoms
-
-  // reset mol ids
-  if (reset_mol_ids_flag) reset_mol_ids->reset();
-
   // something to think about: this could done much more concisely if
   // all atom-level info (bond,angles, etc...) were kinda inherited from a common data struct --JG
 
@@ -4071,6 +4068,8 @@ void FixBondReact::CreateAtoms(char *line, int myrxn)
     readline(line);
     rv = sscanf(line,"%d",&tmp);
     if (rv != 1) error->one(FLERR, "CreateIDs section is incorrectly formatted");
+    if (tmp > twomol->natoms)
+      error->one(FLERR,"Fix bond/react: Invalid atom ID in CreateIDs section of map file");
     create_atoms[tmp-1][myrxn] = 1;
   }
   if (twomol->xflag == 0)
@@ -4327,6 +4326,13 @@ double FixBondReact::compute_vector(int n)
 void FixBondReact::post_integrate_respa(int ilevel, int /*iloop*/)
 {
   if (ilevel == nlevels_respa-1) post_integrate();
+}
+
+/* ---------------------------------------------------------------------- */
+
+void FixBondReact::post_force(int /*vflag*/)
+{
+  if (reset_mol_ids_flag) reset_mol_ids->reset();
 }
 
 /* ---------------------------------------------------------------------- */

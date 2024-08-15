@@ -46,6 +46,7 @@ class FixBondReact : public Fix {
   void init_list(int, class NeighList *) override;
   void post_integrate() override;
   void post_integrate_respa(int, int) override;
+  void post_force(int) override;
 
   int pack_forward_comm(int, int *, double *, int, int *) override;
   void unpack_forward_comm(int, int, double *) override;

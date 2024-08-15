@@ -188,7 +188,7 @@ specified for this style means that pairwise interactions within this
 distance are computed directly; interactions outside that distance are
 computed in reciprocal space.
 
-Style *coul/wolf* adds a Coulombic pairwise interaction via the Wolf
+Style *lj/cut/coul/wolf* adds a Coulombic pairwise interaction via the Wolf
 summation method, described in :ref:`Wolf <Wolf3>`, given by:
 
 .. math::

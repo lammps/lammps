@@ -5428,7 +5428,7 @@ The function returns the number of atoms created or -1 on failure (e.g.,
 when called before as box has been created).
 
 Coordinates and velocities have to be given in a 1d-array in the order
-X(1),Y(1),Z(1),X(2),Y(2),Z(2),...,X(N),Y(N),Z(N).
+X(1), Y(1), Z(1), X(2), Y(2), Z(2), ..., X(N), Y(N), Z(N).
 
 \endverbatim
  *

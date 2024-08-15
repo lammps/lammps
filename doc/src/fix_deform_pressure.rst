@@ -397,5 +397,4 @@ The option defaults are normalize/pressure = no.
 
 .. _Huang2014:
 
-**(Huang2014)** X. Huang, "Exploring critical-state behavior using DEM",
-Doctoral dissertation, Imperial College. (2014). https://doi.org/10.25560/25316
+**(Huang2014)** X. Huang, "Exploring critical-state behavior using DEM", Doctoral dissertation, Imperial College. (2014). https://doi.org/10.25560/25316

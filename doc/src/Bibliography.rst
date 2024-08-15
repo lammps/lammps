@@ -463,17 +463,35 @@ Bibliography
 **(Frenkel)**
    Frenkel and Smit, Understanding Molecular Simulation, Academic Press, London, 2002.
 
-**(GLE4MD)**
-   `https://gle4md.org/ <https://gle4md.org/>`_
+**(Fu)**
+   Fu, Peng, Yuan, Kfoury, Young, Comput. Phys. Commun, 210, 193-203(2017).
 
 **(Gao)**
    Gao and Weber, Nuclear Instruments and Methods in Physics Research B 191 (2012) 504.
 
+**(Gingrich)**
+   Gingrich, `MSc thesis` <https://gingrich.chem.northwestern.edu/papers/ThesiswCorrections.pdf>` (2010).
+
+**(Gissinger2017)**
+   Gissinger, Jensen and Wise, Polymer, 128, 211-217 (2017).
+
+**(Gissinger2020)**
+   Gissinger, Jensen and Wise, Macromolecules, 53, 22, 9953-9961 (2020).
+
 **(Gissinger)**
-   Gissinger, Jensen and Wise, Polymer, 128, 211 (2017).
+   Jacob R. Gissinger, Scott R. Zavada, Joseph G. Smith, Josh Kemppainen, Ivan Gallegos, Gregory M. Odegard, Emilie J. Siochi, and Kristopher E. Wise, Carbon, 202, 336-347 (2023).
+
+**(Gissinger2024)**
+   J. R. Gissinger, I. Nikiforov, Y. Afshar, B. Waters, M. Choi, D. S. Karls, A. Stukowski, W. Im, H. Heinz, A. Kohlmeyer, and E. B. Tadmor, J Phys Chem B, 128, 3282-3297 (2024).
+
+**(Gloor)**
+   Gloor, J Chem Phys, 123, 134703 (2005)
 
 **(Glosli)**
    Glosli, unpublished, 2005. Streitz, Glosli, Patel, Chan, Yates, de Supinski, Sexton and Gunnels, Journal of Physics: Conference Series, 46, 254 (2006).
+
+**(Goff)**
+   Goff, Zhang, Negre, Rohskopf, Niklasson, Journal of Chemical Theory and Computation 19, no. 13 (2023).
 
 **(Goldman1)**
    Goldman, Reed and Fried, J. Chem. Phys. 131, 204103 (2009)
@@ -508,6 +526,9 @@ Bibliography
 **(Guo)**
    Guo and Thirumalai, Journal of Molecular Biology, 263, 323-43 (1996).
 
+**(Gupta)**
+   Gupta ,Phys Rev. B, 23, 6265-6270 (1981).
+
 **(Hardy)**
    David Hardy thesis: Multilevel Summation for the Fast Evaluation of Forces for the Simulation of Biomolecules, University of Illinois at Urbana-Champaign, (2006).
 
@@ -528,6 +549,9 @@ Bibliography
 
 **(Henrich)**
    O.\  Henrich, Y. A. Gutierrez-Fosado, T. Curk, T. E. Ouldridge, Eur. Phys. J. E 41, 57 (2018).
+
+**(Herman)**
+   M. F. Herman, E. J. Bruskin, B. J. Berne, J Chem Phys, 76, 5150 (1982).
 
 **(Hess)**
    Hess, B. The Journal of Chemical Physics 2002, 116 (1), 209-217.
@@ -550,23 +574,41 @@ Bibliography
 **(Hoover)**
    Hoover, Phys Rev A, 31, 1695 (1985).
 
+**(Huang)**
+   Huang, Zhang, Yuan, Gao, Zhang, Nano Lett. 13, 4546(2013).
+
+**(Huang2014)**
+   X. Huang, "Exploring critical-state behavior using DEM", Doctoral dissertation, Imperial College. (2014). https://doi.org/10.25560/25316
+
+**(Hu)**
+   Hu, and Adams J. Comp. Physics, 213, 844-861 (2006).
+
+**(Hu)**
+   Hu, J. Chem. Theory Comput. 10, 5254 (2014).
+
 **(Hummer)**
    Hummer, Gronbech-Jensen, Neumann, J Chem Phys, 109, 2791 (1998)
 
 **(Hunt)**
    Hunt, Mol Simul, 42, 347 (2016).
 
+**(Ikeshoji)**
+   Ikeshoji and Hafskjold, Molecular Physics, 81, 251-261 (1994).
+
+**(Ikeshoji2)**
+   Ikeshoji, Hafskjold, Furuholt, Mol Sim, 29, 101-109, (2003).
+
+**(Ilie)**
+   Ilie, Briels, den Otter, Journal of Chemical Physics, 142, 114103 (2015).
+
+**(In 't Veld)**
+   In 't Veld, Ismail, Grest, J Chem Phys (accepted) (2007).
+
 **(IPI)**
    `https://ipi-code.org/ <https://ipi-code.org/>`
 
 **(IPI-CPC)**
    Ceriotti, More and Manolopoulos, Comp Phys Comm, 185, 1019-1026 (2014).
-
-**(Ikeshoji)**
-   Ikeshoji and Hafskjold, Molecular Physics, 81, 251-261 (1994).
-
-**(In 't Veld)**
-   In 't Veld, Ismail, Grest, J Chem Phys (accepted) (2007).
 
 **(Isele-Holder)**
    Isele-Holder, Mitchell, Ismail, J Chem Phys, 137, 174107 (2012).
@@ -586,6 +628,9 @@ Bibliography
 **(Izvekov)**
    Izvekov, Voth, J Chem Phys 123, 134105 (2005).
 
+**(Jadhao)**
+   Jadhao, Solis, Olvera de la Cruz, J Chem Phys, 138, 054119 (2013)
+
 **(Janssens)**
    Janssens, Olmsted, Holm, Foiles, Plimpton, Derlet, Nature Materials, 5, 124-127 (2006).
 
@@ -597,6 +642,15 @@ Bibliography
 
 **(Jiang)**
    Jiang, Hardy, Phillips, MacKerell, Schulten, and Roux,  J Phys Chem Lett, 2, 87-92 (2011).
+
+**(Jiang1)**
+   Jiang, Hardy, Phillips, MacKerell, Schulten, and Roux, J Phys Chem Lett, 2, 87-92 (2011).
+
+**(Jiang2)**
+   J.-W. Jiang, Nanotechnology 26, 315706 (2015).
+
+**(Jiang3)**
+   J.-W. Jiang, Acta Mech. Solida. Sin 32, 17 (2019).
 
 **(Johnson et al, 1971)**
    Johnson, K. L., Kendall, K., & Roberts, A. D. (1971).  Surface energy and the contact of elastic solids. Proc. R. Soc. Lond. A, 324(1558), 301-313.
@@ -670,6 +724,9 @@ Bibliography
 **(Larentzos)**
    J.P. Larentzos, J.K. Brennan, J.D. Moore, and W.D. Mattson, "LAMMPS Implementation of Constant Energy Dissipative Particle Dynamics (DPD-E)", ARL-TR-6863, U.S. Army Research
 
+**(Landsgesell)**
+   J. Landsgesell, P. Hebbeker, O. Rud, R. Lunkad, P. Kosovan, and C. Holm, Macromolecules 53, 3007-3020 (2020).
+
 **(Larentzos1)**
    J.P. Larentzos, J.K. Brennan, J.D. Moore, M. Lisal and W.D. Mattson, "Parallel Implementation of Isothermal and Isoenergetic Dissipative Particle Dynamics Using Shardlow-Like Splitting
 
@@ -679,8 +736,11 @@ Bibliography
 **(Larsen)**
    Larsen, Schmidt, Schiotz, Modelling Simul Mater Sci Eng, 24, 055007 (2016).
 
-**(Lebedeva et al.)**
+**(Lebedeva1)**
    I.\  V. Lebedeva, A. A. Knizhnik, A. M. Popov, Y. E. Lozovik, B. V. Potapkin, Phys. Rev. B, 84, 245437 (2011)
+
+**(Lebedeva2)**
+  I. V. Lebedeva, A. A. Knizhnik, A. M. Popov, Y. E. Lozovik, B. V. Potapkin, Physica E: 44, 949-954 (2012)
 
 **(Lechman)**
    Lechman, et al, in preparation (2010).
@@ -690,6 +750,9 @@ Bibliography
 
 **(Lee2)**
    Lee, Baskes, Kim, Cho.  Phys. Rev. B, 64, 184102 (2001).
+
+**(Lee2020)**
+   C.W. Lee, et al. (2020) Physical Review B, 102(2), 024107.
 
 **(Lenart)**
    Lenart , Jusufi, and Panagiotopoulos, J Chem Phys, 126, 044509 (2007).
@@ -714,6 +777,9 @@ Bibliography
 
 **(Li2015_JCP)**
    Li, Yazdani, Tartakovsky, Karniadakis, J Chem Phys, 143: 014101 (2015).  DOI:10.1063/1.4923254.
+
+**(Liang)**
+   Liang, Phillpot, Sinnott Phys. Rev. B79 245110, (2009), Erratum: Phys. Rev. B85 199903(E), (2012)
 
 **(Lisal)**
    M.\  Lisal, J.K. Brennan, J. Bonet Avalos, "Dissipative particle dynamics at isothermal, isobaric, isoenergetic, and isoenthalpic conditions using Shardlow-like splitting algorithms.",

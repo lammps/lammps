@@ -1486,9 +1486,6 @@ the function again, unless a :doc:`clear` command is issued which wipes
 out and recreates the contents of the :cpp:class:`LAMMPS
 <LAMMPS_NS::LAMMPS>` class.
 
-Please also see :cpp:func:`lammps_extract_setting`,
-:cpp:func:`lammps_get_thermo`, and :cpp:func:`lammps_extract_box`.
-
 .. warning::
 
    Modifying the data in the location pointed to by the returned pointer
@@ -1498,6 +1495,9 @@ Please also see :cpp:func:`lammps_extract_setting`,
    Those will take care of all side effects and necessary updates of
    settings derived from such settings.  Where possible, a reference to
    such a command or a relevant section of the manual is given below.
+
+Please also see :cpp:func:`lammps_extract_setting`,
+:cpp:func:`lammps_get_thermo`, and :cpp:func:`lammps_extract_box`.
 
 The following tables list the supported names, their data types, length
 of the data area, and a short description.  The data type can also be
@@ -1510,6 +1510,7 @@ The function :cpp:func:`lammps_extract_global_datatype` will directly
 report the "native" data type.  The following tables are provided:
 
 * :ref:`Timestep settings <extract_timestep_settings>`
+* :ref:`Git revision and version settings <extract_git_settings>`
 * :ref:`Simulation box settings <extract_box_settings>`
 * :ref:`System property settings <extract_system_settings>`
 * :ref:`Unit settings <extract_unit_settings>`
@@ -1520,7 +1521,7 @@ report the "native" data type.  The following tables are provided:
 
 .. list-table::
    :header-rows: 1
-   :widths: auto
+   :widths: 14 10 10 66
 
    * - Name
      - Type
@@ -1551,36 +1552,13 @@ report the "native" data type.  The following tables are provided:
      - :math:`N_{respa}`
      - length of the time steps with r-RESPA. See :doc:`run_style`.
 
-.. _extract_box_settings:
-
-**Timestep settings**
-
-.. list-table::
-   :header-rows: 1
-   :widths: auto
-
-   * - Name
-     - Type
-     - Length
-     - Description
-   * - dt
-     - double
-     - 1
-     - length of the time step. See :doc:`timestep`.
-   * - ntimestep
-     - bigint
-     - 1
-     - current time step number. See :doc:`reset_timestep`.
-   * - atime
-     - double
-     - 1
-     - accumulated simulation time in time units.
+.. _extract_git_settings:
 
 **Git revision and version settings**
 
 .. list-table::
    :header-rows: 1
-   :widths: auto
+   :widths: 16 14 10 60
 
    * - Name
      - Type
@@ -1603,11 +1581,13 @@ report the "native" data type.  The following tables are provided:
      - 1
      - LAMMPS version string.
 
+.. _extract_box_settings:
+
 **Simulation box settings**
 
 .. list-table::
    :header-rows: 1
-   :widths: auto
+   :widths: 16 10 10 64
 
    * - Name
      - Type
@@ -1680,7 +1660,7 @@ report the "native" data type.  The following tables are provided:
 
 .. list-table::
    :header-rows: 1
-   :widths: auto
+   :widths: 18 12 12 58
 
    * - Name
      - Type
@@ -1735,12 +1715,12 @@ report the "native" data type.  The following tables are provided:
      - 1
      - :doc:`atom map setting <atom_modify>`: 0 = none, 1 = array, 2 = hash, 3 = yes
    * - map_tag_max
-     - bigint or int
+     - int/bigint
      - 1
-     - largest atom ID that can be mapped to a local index (bigint only with -DLAMMPS_BIGBIG)
+     - largest atom ID that can be mapped to a local index (bigint with -DLAMMPS_BIGBIG)
    * - sametag
      - int
-     - nlocal+nghost
+     - variable
      - index of next local atom with the same ID in ascending order. -1 signals end.
    * - sortfreq
      - int
@@ -1789,7 +1769,7 @@ report the "native" data type.  The following tables are provided:
 
 .. list-table::
    :header-rows: 1
-   :widths: auto
+   :widths: 16 12 10 62
 
    * - Name
      - Type

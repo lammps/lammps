@@ -486,10 +486,6 @@ FixBondReact::FixBondReact(LAMMPS *lmp, int narg, char **arg) :
     get_molxspecials();
     read_map_file(i);
     fclose(fp);
-    if (ncreate == 0 && onemol->natoms != twomol->natoms)
-      error->all(FLERR,"Fix bond/react: Reaction templates must contain the same number of atoms");
-    else if (ncreate > 0 && onemol->natoms + ncreate != twomol->natoms)
-      error->all(FLERR,"Fix bond/react: Incorrect number of created atoms");
     iatomtype[i] = onemol->type[ibonding[i]-1];
     jatomtype[i] = onemol->type[jbonding[i]-1];
     find_landlocked_atoms(i);
@@ -3966,6 +3962,11 @@ void FixBondReact::read_map_file(int myrxn)
       constraints.resize(maxnconstraints, std::vector<Constraint>(nreacts));
     } else break;
   }
+
+  if (ncreate == 0 && onemol->natoms != twomol->natoms)
+    error->all(FLERR,"Fix bond/react: Reaction templates must contain the same number of atoms");
+  else if (ncreate > 0 && onemol->natoms + ncreate != twomol->natoms)
+    error->all(FLERR,"Fix bond/react: Incorrect number of created atoms");
 
   // grab keyword and skip next line
 

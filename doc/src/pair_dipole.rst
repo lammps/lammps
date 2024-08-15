@@ -129,7 +129,7 @@ torques do not act symmetrically.  These formulas are discussed in
 Also note, that in the code, all of these terms (except Elj) have a
 :math:`C/\epsilon` prefactor, the same as the Coulombic term in the
 LJ + Coulombic pair styles discussed :doc:`here <pair_lj>`.  C is an
-energy-conversion constant and epsilon is the dielectric constant
+energy-conversion constant and :math:`\epsilon` is the dielectric constant
 which can be set by the :doc:`dielectric <dielectric>` command.  The
 same is true of the equations that follow for other dipole pair
 styles.

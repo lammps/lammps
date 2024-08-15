@@ -1545,10 +1545,10 @@ report the "native" data type.  The following tables are provided:
    * - respa_levels
      - int
      - 1
-     - number of r-RESPA levels. See :doc:`run_style`.
+     - :math:`N_{respa}` = number of r-RESPA levels. See :doc:`run_style`.
    * - respa_dt
      - double
-     - number of r-RESPA levels
+     - :math:`N_{respa}`
      - length of the time steps with r-RESPA. See :doc:`run_style`.
 
 .. _extract_box_settings:
@@ -1616,23 +1616,23 @@ report the "native" data type.  The following tables are provided:
    * - boxxhi
      - double
      - 1
-     - upper box boundary in x-direction. See :doc:`create_box`.
+     - upper box boundary in x-direction; see :doc:`create_box`.
    * - boxylo
      - double
      - 1
-     - lower box boundary in y-direction. See :doc:`create_box`.
+     - lower box boundary in y-direction; see :doc:`create_box`.
    * - boxyhi
      - double
      - 1
-     - upper box boundary in y-direction. See :doc:`create_box`.
+     - upper box boundary in y-direction; see :doc:`create_box`.
    * - boxzlo
      - double
      - 1
-     - lower box boundary in z-direction. See :doc:`create_box`.
+     - lower box boundary in z-direction; see :doc:`create_box`.
    * - boxzhi
      - double
      - 1
-     - upper box boundary in z-direction. See :doc:`create_box`.
+     - upper box boundary in z-direction; see :doc:`create_box`.
    * - sublo
      - double
      - 3
@@ -1652,29 +1652,27 @@ report the "native" data type.  The following tables are provided:
    * - periodicity
      - int
      - 3
-     - 0 if non-periodic, 1 if periodic for x, y, and z;
-       See :doc:`boundary`.
+     - 0 if non-periodic, 1 if periodic for x, y, and z; see :doc:`boundary`.
    * - triclinic
      - int
      - 1
-     - 1 if the the simulation box is triclinic, 0 if orthogonal;
-       See :doc:`change_box`.
+     - 1 if box is triclinic, 0 if orthogonal; see :doc:`change_box`.
    * - xy
      - double
      - 1
-     - triclinic tilt factor. See :doc:`Howto_triclinic`.
+     - triclinic tilt factor; see :doc:`Howto_triclinic`.
    * - yz
      - double
      - 1
-     - triclinic tilt factor. See :doc:`Howto_triclinic`.
+     - triclinic tilt factor; see :doc:`Howto_triclinic`.
    * - xz
      - double
      - 1
-     - triclinic tilt factor. See :doc:`Howto_triclinic`.
+     - triclinic tilt factor; see :doc:`Howto_triclinic`.
    * - procgrid
      - int
      - 3
-     - processor count assigned to each dimension of 3d grid. See :doc:`processors`.
+     - processor count in x-, y-, and z- direction; see :doc:`processors`.
 
 .. _extract_system_settings:
 

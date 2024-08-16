@@ -1355,7 +1355,7 @@ Bibliography
 
 **(Singraber et al 2019)**
    Singraber, A.; Morawietz, T.; Behler, J.; Dellago, C., J. Chem. Theory Comput.  2019, 15 (5), 3075-3092.
-   
+
 **(Sirk1)**
    Sirk TW, Sliozberg YR, Brennan JK, Lisal M, Andzelm JW, J Chem Phys, 136 (13) 134903, 2012.
 
@@ -1625,7 +1625,7 @@ Bibliography
 
 **(Winkler)**
    Winkler, Wysocki, and Gompper, Soft Matter, 11, 6680 (2015).
-   
+
 **(Wirnsberger)**
    Wirnsberger, Frenkel, and Dellago, J Chem Phys, 143, 124104 (2015).
 

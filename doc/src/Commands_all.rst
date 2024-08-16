@@ -1,23 +1,27 @@
-.. table_from_list::
-   :columns: 3
+.. only:: html
 
-   * :doc:`General commands <Commands_all>`
-   * :doc:`Fix styles <Commands_fix>`
-   * :doc:`Compute styles <Commands_compute>`
-   * :doc:`Pair styles <Commands_pair>`
-   * :ref:`Bond styles <bond>`
-   * :ref:`Angle styles <angle>`
-   * :ref:`Dihedral styles <dihedral>`
-   * :ref:`Improper styles <improper>`
-   * :doc:`KSpace styles <Commands_kspace>`
-   * :doc:`Dump styles <Commands_dump>`
+   .. table_from_list::
+      :columns: 3
+   
+      * :doc:`General commands <Commands_all>`
+      * :doc:`Fix styles <Commands_fix>`
+      * :doc:`Compute styles <Commands_compute>`
+      * :doc:`Pair styles <Commands_pair>`
+      * :ref:`Bond styles <bond>`
+      * :ref:`Angle styles <angle>`
+      * :ref:`Dihedral styles <dihedral>`
+      * :ref:`Improper styles <improper>`
+      * :doc:`KSpace styles <Commands_kspace>`
+      * :doc:`Dump styles <Commands_dump>`
+   
+.. raw:: latex
+
+   \clearpage
 
 General commands
 ================
 
-An alphabetic list of general LAMMPS commands.  Note that style
-commands with many variants, can be more easily accessed via the small
-table above.
+An alphabetic list of general LAMMPS commands.
 
 .. table_from_list::
    :columns: 5

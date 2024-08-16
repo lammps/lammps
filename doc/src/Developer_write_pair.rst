@@ -588,10 +588,11 @@ loop atoms are also initialized.
        jnum = numneigh[i];
 
 The inner loop (index *j*) processes the neighbor lists.  The neighbor
-list code encodes extra information using the upper 3 bits. The 2 highest
-bits encode whether a pair is a regular pair of neighbor (= 0) or a pair
-of 1-2 (= 1), 1-3 (= 2), or 1-4 (= 3) :doc:`"special" neighbor <special_bonds>`. The next highest bit encodes whether the pair stores
-data in :doc:`fix neigh/history <fix_neigh_history`. The ``sbmask()``
+list code encodes extra information using the upper 3 bits. The 2
+highest bits encode whether a pair is a regular pair of neighbor (= 0)
+or a pair of 1-2 (= 1), 1-3 (= 2), or 1-4 (= 3) :doc:`"special" neighbor
+<special_bonds>`.  The next highest bit encodes whether the pair stores
+data in :doc:`fix neigh/history <fix_neigh_history>`.  The ``sbmask()``
 inline function extracts those bits and converts them into a number.
 This number is used to look up the corresponding scaling factor for the
 non-bonded interaction from the ``force->special_lj`` array and stores
@@ -599,7 +600,8 @@ it in the `factor_lj` variable.  Due to the additional bits, the value
 of *j* would be out of range when accessing data from per-atom arrays,
 so we apply the NEIGHMASK constant with a bit-wise and operation to mask
 them out.  This step *must* be done, even if a pair style does not use
-special bond scaling of forces and energies to avoid segmentation faults.
+special bond scaling of forces and energies to avoid segmentation
+faults.
 
 With the corrected *j* index, it is now possible to compute the distance
 of the pair.  For efficiency reasons, the square root is only taken

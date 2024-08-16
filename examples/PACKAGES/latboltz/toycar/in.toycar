@@ -474,7 +474,7 @@ reset_timestep 0
 #variable node_force equal "v_total_force / 178"
 #fix drag all addforce 0.0 0.0 0.0
 
-velocity all set 0.0 -7.5.0 0.0 units box
+velocity all set 0.0 -7.5 0.0 units box
 
 # viscosity of air is 0.0001847
 

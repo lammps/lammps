@@ -220,9 +220,11 @@ FixLbFluid::FixLbFluid(LAMMPS *lmp, int narg, char **arg) :
 
   // Flags for fix references (i.e. quantities accessible via f_ID[n]
   vector_flag = 1;
+  extvector = 0;
   size_vector = 5;
 
   scalar_flag = 1;
+  extscalar = 0;
 
   int iarg = 6;
   while (iarg < narg) {

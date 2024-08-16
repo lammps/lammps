@@ -26,11 +26,13 @@ parenthesis: g = GPU, i = INTEL, k = KOKKOS, o = OPENMP, t =
 OPT.
 
 .. table_from_list::
-   :columns: 4
+   :columns: 5
 
    * :doc:`none <bond_none>`
    * :doc:`zero <bond_zero>`
    * :doc:`hybrid (k) <bond_hybrid>`
+   *
+   *
    *
    *
    *
@@ -72,11 +74,13 @@ parenthesis: g = GPU, i = INTEL, k = KOKKOS, o = OPENMP, t =
 OPT.
 
 .. table_from_list::
-   :columns: 4
+   :columns: 5
 
    * :doc:`none <angle_none>`
    * :doc:`zero <angle_zero>`
    * :doc:`hybrid (k) <angle_hybrid>`
+   *
+   *
    *
    *
    *
@@ -118,11 +122,13 @@ parenthesis: g = GPU, i = INTEL, k = KOKKOS, o = OPENMP, t =
 OPT.
 
 .. table_from_list::
-   :columns: 4
+   :columns: 5
 
    * :doc:`none <dihedral_none>`
    * :doc:`zero <dihedral_zero>`
    * :doc:`hybrid (k) <dihedral_hybrid>`
+   *
+   *
    *
    *
    *
@@ -156,11 +162,13 @@ parenthesis: g = GPU, i = INTEL, k = KOKKOS, o = OPENMP, t =
 OPT.
 
 .. table_from_list::
-   :columns: 4
+   :columns: 5
 
    * :doc:`none <improper_none>`
    * :doc:`zero <improper_zero>`
    * :doc:`hybrid (k) <improper_hybrid>`
+   *
+   *
    *
    *
    *

@@ -23,7 +23,7 @@ commands with many variants, can be more easily accessed via the small
 table above.
 
 .. table_from_list::
-   :columns: 5
+   :columns: 6
 
    * :doc:`angle_coeff <angle_coeff>`
    * :doc:`angle_style <angle_style>`
@@ -125,7 +125,7 @@ commands have accelerated versions.  This is indicated by an
 additional letter in parenthesis: k = KOKKOS.
 
 .. table_from_list::
-   :columns: 5
+   :columns: 6
 
    * :doc:`dynamical_matrix (k) <dynamical_matrix>`
    * :doc:`group2ndx <group2ndx>`

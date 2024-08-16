@@ -24,7 +24,7 @@ parenthesis: g = GPU, i = INTEL, k = KOKKOS, o = OPENMP, t =
 OPT.
 
 .. table_from_list::
-   :columns: 4
+   :columns: 5
 
    * :doc:`ewald (o) <kspace_style>`
    * :doc:`ewald/disp <kspace_style>`

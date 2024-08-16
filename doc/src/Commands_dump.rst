@@ -21,7 +21,7 @@ Dump commands
 An alphabetic list of all LAMMPS :doc:`dump <dump>` commands.
 
 .. table_from_list::
-   :columns: 5
+   :columns: 6
 
    * :doc:`atom <dump>`
    * :doc:`atom/adios <dump_adios>`

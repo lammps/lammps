@@ -801,10 +801,10 @@ double lammps_get_thermo(void *handle, const char *keyword)
 .. versionadded:: 15Jun2023
 
 This function provides access to cached data from the last thermo output.
-This differs from :cpp:func:`lammps_get_thermo` in that it does not trigger
-an evaluation.  Instead it provides direct access to a read-only location
-of the last thermo output data and the corresponding keyword strings.
-The how to handle the return value depends on the value of the *what*
+This differs from :cpp:func:`lammps_get_thermo` in that it does **not**
+trigger an evaluation.  Instead it provides direct access to a read-only
+location of the last thermo output data and the corresponding keyword
+strings.  How to handle the return value depends on the value of the *what*
 argument string.
 
 .. note::
@@ -816,7 +816,7 @@ argument string.
 
 .. list-table::
    :header-rows: 1
-   :widths: auto
+   :widths: 14 51 25 10
 
    * - Value of *what*
      - Description of return value
@@ -1131,7 +1131,7 @@ be called without a valid LAMMPS object handle (it is ignored).
 
 .. list-table::
    :header-rows: 1
-   :widths: auto
+   :widths: 17 83
 
    * - Keyword
      - Description / Return value
@@ -1154,7 +1154,7 @@ internally by the :doc:`Fortran interface <Fortran>` and are not likely to be us
 
 .. list-table::
    :header-rows: 1
-   :widths: auto
+   :widths: 17 83
 
    * - Keyword
      - Description / Return value
@@ -1173,7 +1173,7 @@ internally by the :doc:`Fortran interface <Fortran>` and are not likely to be us
 
 .. list-table::
    :header-rows: 1
-   :widths: auto
+   :widths: 17 83
 
    * - Keyword
      - Description / Return value
@@ -1205,7 +1205,7 @@ internally by the :doc:`Fortran interface <Fortran>` and are not likely to be us
 
 .. list-table::
    :header-rows: 1
-   :widths: auto
+   :widths: 15 85
 
    * - Keyword
      - Description / Return value
@@ -1214,7 +1214,7 @@ internally by the :doc:`Fortran interface <Fortran>` and are not likely to be us
    * - universe_size
      - Number of ranks on LAMMPS' universe communicator (world_size <= universe_size)
    * - world_rank
-     - MPI rank on LAMMPS' world communicator (0 <= world_rank < world_size, aka comm->me)
+     - MPI rank on LAMMPS' world communicator (0 <= world_rank < world_size, = comm->me)
    * - world_size
      - Number of ranks on LAMMPS' world communicator (aka comm->nprocs)
    * - comm_style
@@ -1232,7 +1232,7 @@ internally by the :doc:`Fortran interface <Fortran>` and are not likely to be us
 
 .. list-table::
    :header-rows: 1
-   :widths: auto
+   :widths: 17 83
 
    * - Keyword
      - Description / Return value
@@ -1269,7 +1269,7 @@ internally by the :doc:`Fortran interface <Fortran>` and are not likely to be us
 
 .. list-table::
    :header-rows: 1
-   :widths: auto
+   :widths: 15 85
 
    * - Keyword
      - Description / Return value
@@ -2143,7 +2143,7 @@ lists the available options.
 
 .. list-table::
    :header-rows: 1
-   :widths: auto
+   :widths: 25 24 14 37
 
    * - Style (see :cpp:enum:`_LMP_STYLE_CONST`)
      - Type (see :cpp:enum:`_LMP_TYPE_CONST`)
@@ -2196,7 +2196,7 @@ lists the available options.
    * - LMP_STYLE_LOCAL
      - LMP_SIZE_VECTOR
      - ``int *``
-     - Alias for using LMP_SIZE_ROWS
+     - Alias for LMP_SIZE_ROWS
    * - LMP_STYLE_LOCAL
      - LMP_SIZE_ROWS
      - ``int *``
@@ -2334,7 +2334,7 @@ The following table lists the available options.
 
 .. list-table::
    :header-rows: 1
-   :widths: auto
+   :widths: 25 24 14 37
 
    * - Style (see :cpp:enum:`_LMP_STYLE_CONST`)
      - Type (see :cpp:enum:`_LMP_TYPE_CONST`)

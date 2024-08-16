@@ -206,9 +206,11 @@ void NPairBinOmp<HALF, NEWTON, TRI, SIZE, CUSTOMCHECK, ATOMONLY>::build(NeighLis
         if (!neigh_check) continue;
 
         if (ATOMONLY) {
-          if (SIZE && history && (rsq < (radsum * radsum)))
-            j = j ^ mask_history;
-          neighptr[n++] = j;
+          if (SIZE && history && (rsq < (radsum * radsum))) {
+            neighptr[n++] = j ^ mask_history;
+          } else {
+            neighptr[n++] = j;
+          }
         } else {
           if (molecular != Atom::ATOMIC) {
             if (!moltemplate)

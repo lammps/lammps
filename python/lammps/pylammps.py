@@ -358,6 +358,7 @@ class Atom2D(Atom):
   @property
   def velocity(self):
     """Access to velocity of an atom
+
     :getter: Return velocity of atom
     :setter: Set velocity of atom
     :type: numpy.array (float, float)
@@ -372,6 +373,7 @@ class Atom2D(Atom):
   @property
   def force(self):
     """Access to force of an atom
+
     :getter: Return force of atom
     :setter: Set force of atom
     :type: numpy.array (float, float)
@@ -418,7 +420,7 @@ class PyLammps(object):
   """
   This is a Python wrapper class around the lower-level
   :py:class:`lammps` class, exposing a more Python-like,
-  object-oriented interface for prototyping system inside of IPython and
+  object-oriented interface for prototyping systems inside of IPython and
   Jupyter notebooks.
 
   It either creates its own instance of :py:class:`lammps` or can be
@@ -556,7 +558,7 @@ class PyLammps(object):
     Commands will be added to the command history but not executed.
 
     Add `commands` only to the command history, but do not execute them, so that you can
-    conveniently create Lammps input files, using
+    conveniently create LAMMPS input files, using
     :py:meth:`PyLammps.write_script()`.
     """
     self._cmd_history.append(cmd)
@@ -908,7 +910,7 @@ class PyLammps(object):
 
 class IPyLammps(PyLammps):
   """
-  IPython wrapper for LAMMPS which adds embedded graphics capabilities to PyLammmps interface
+  IPython wrapper for LAMMPS which adds embedded graphics capabilities to PyLammps interface
 
   It either creates its own instance of :py:class:`lammps` or can be
   initialized with an existing instance. The arguments are the same of the

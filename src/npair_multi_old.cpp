@@ -208,19 +208,27 @@ void NPairMultiOld<HALF, NEWTON, TRI, SIZE>::build(NeighList *list)
           else
             which = 0;
 
-          if (SIZE && history && (rsq < (radsum * radsum)))
-            j = j ^ mask_history;
-
-          if (which == 0)
-            neighptr[n++] = j;
-          else if (domain->minimum_image_check(delx, dely, delz))
-            neighptr[n++] = j;
-          else if (which > 0)
-            neighptr[n++] = j ^ (which << SBBITS);
+          if (SIZE && history && (rsq < (radsum * radsum))) {
+            if (which == 0)
+              neighptr[n++] = j ^ mask_history;
+            else if (domain->minimum_image_check(delx, dely, delz))
+              neighptr[n++] = j ^ mask_history;
+            else if (which > 0)
+              neighptr[n++] = (j ^ mask_history) ^ (which << SBBITS);
+          } else {
+            if (which == 0)
+              neighptr[n++] = j;
+            else if (domain->minimum_image_check(delx, dely, delz))
+              neighptr[n++] = j;
+            else if (which > 0)
+              neighptr[n++] = j ^ (which << SBBITS);
+          }
         } else {
-          if (SIZE && history && (rsq < (radsum * radsum)))
-            j = j ^ mask_history;
-          neighptr[n++] = j;
+          if (SIZE && history && (rsq < (radsum * radsum))) {
+            neighptr[n++] = j ^ mask_history;
+          } else {
+            neighptr[n++] = j;
+          }
         }
       }
     }

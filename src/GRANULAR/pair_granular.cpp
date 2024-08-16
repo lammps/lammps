@@ -422,6 +422,7 @@ void PairGranular::init_style()
     if (model->beyond_contact) {
       beyond_contact = 1;
       customneighcheck = 1;
+      single_enable = 0; // Classes that use single() not set up to create nlists with custom checks, e.g. compute pair/local
       use_history = 1; // Need to track if in contact
     }
     if (model->size_history != 0) use_history = 1;

@@ -230,9 +230,11 @@ void NPairMultiOmp<HALF, NEWTON, TRI, SIZE, CUSTOMCHECK, ATOMONLY>::build(NeighL
           if (!neigh_check) continue;
 
           if (ATOMONLY) {
-            if (SIZE && history && (rsq < (radsum * radsum)))
-              j = j ^ mask_history;
-            neighptr[n++] = j;
+            if (SIZE && history && (rsq < (radsum * radsum))) {
+              neighptr[n++] = j ^ mask_history;
+            } else {
+              neighptr[n++] = j;
+            }
           } else {
             if (molecular != Atom::ATOMIC) {
               if (!moltemplate)
@@ -243,19 +245,27 @@ void NPairMultiOmp<HALF, NEWTON, TRI, SIZE, CUSTOMCHECK, ATOMONLY>::build(NeighL
               else
                 which = 0;
 
-              if (SIZE && history && (rsq < (radsum * radsum)))
-                j = j ^ mask_history;
-
-              if (which == 0)
-                neighptr[n++] = j;
-              else if (domain->minimum_image_check(delx, dely, delz))
-                neighptr[n++] = j;
-              else if (which > 0)
-                neighptr[n++] = j ^ (which << SBBITS);
+              if (SIZE && history && (rsq < (radsum * radsum))) {
+                if (which == 0)
+                  neighptr[n++] = j ^ mask_history;
+                else if (domain->minimum_image_check(delx, dely, delz))
+                  neighptr[n++] = j ^ mask_history;
+                else if (which > 0)
+                  neighptr[n++] = (j ^ mask_history) ^ (which <<   SBBITS);
+              } else {
+                if (which == 0)
+                  neighptr[n++] = j;
+                else if (domain->minimum_image_check(delx, dely, delz))
+                  neighptr[n++] = j;
+                else if (which > 0)
+                  neighptr[n++] = j ^ (which << SBBITS);
+              }
             } else {
-              if (SIZE && history && (rsq < (radsum * radsum)))
-                j = j ^ mask_history;
-              neighptr[n++] = j;
+              if (SIZE && history && (rsq < (radsum * radsum))) {
+                neighptr[n++] = j ^ mask_history;
+              } else {
+                neighptr[n++] = j;
+              }
             }
           }
         }

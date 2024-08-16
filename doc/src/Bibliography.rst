@@ -721,17 +721,14 @@ Bibliography
 **(Lamoureux)**
    Lamoureux and Roux, J Chem Phys, 119, 3025-3039 (2003).
 
-**(Larentzos)**
-   J.P. Larentzos, J.K. Brennan, J.D. Moore, and W.D. Mattson, "LAMMPS Implementation of Constant Energy Dissipative Particle Dynamics (DPD-E)", ARL-TR-6863, U.S. Army Research
-
 **(Landsgesell)**
    J. Landsgesell, P. Hebbeker, O. Rud, R. Lunkad, P. Kosovan, and C. Holm, Macromolecules 53, 3007-3020 (2020).
 
 **(Larentzos1)**
-   J.P. Larentzos, J.K. Brennan, J.D. Moore, M. Lisal and W.D. Mattson, "Parallel Implementation of Isothermal and Isoenergetic Dissipative Particle Dynamics Using Shardlow-Like Splitting
+   J.P. Larentzos, J.K. Brennan, J.D. Moore, M. Lisal and W.D. Mattson, Comput. Phys. Commun., 185, 1987-1998 (2014).
 
 **(Larentzos2)**
-   J.P. Larentzos, J.K. Brennan, J.D. Moore, and W.D. Mattson, "LAMMPS Implementation of Constant Energy Dissipative Particle Dynamics (DPD-E)", ARL-TR-6863, U.S. Army Research
+   J.P. Larentzos, J.K. Brennan, J.D. Moore, and W.D. Mattson, ARL-TR-6863, U.S. Army Research Laboratory, Aberdeen Proving Ground, MD (2014).
 
 **(Larsen)**
    Larsen, Schmidt, Schiotz, Modelling Simul Mater Sci Eng, 24, 055007 (2016).
@@ -782,7 +779,7 @@ Bibliography
    Liang, Phillpot, Sinnott Phys. Rev. B79 245110, (2009), Erratum: Phys. Rev. B85 199903(E), (2012)
 
 **(Lisal)**
-   M.\  Lisal, J.K. Brennan, J. Bonet Avalos, "Dissipative particle dynamics at isothermal, isobaric, isoenergetic, and isoenthalpic conditions using Shardlow-like splitting algorithms.",
+   M.\  Lisal, J.K. Brennan, J. Bonet Avalos, J. Chem. Phys., 135, 204105 (2011).
 
 **(Liu1)**
    L.\  Liu, Y. Liu, S. V. Zybin, H. Sun and W. A. Goddard, Journal of Physical Chemistry A, 115, 11016-11022 (2011).
@@ -798,6 +795,15 @@ Bibliography
 
 **(Luding, 2008)**
    Luding, S. (2008). Cohesive, frictional powders: contact models for tension. Granular matter, 10(4), 235.
+
+**(Lysogorskiy)**
+   Lysogorskiy, van der Oord, Bochkarev, Menon, Rinaldi, Hammerschmidt, Mrovec, Thompson, Csanyi, Ortner, Drautz, npj Comp Mat, 7, 97 (2021).
+
+**(Lysogorskiy21)**
+   Lysogorskiy, van der Oord, Bochkarev, Menon, Rinaldi, Hammerschmidt, Mrovec, Thompson, Csanyi, Ortner, Drautz, npj Comp Mat, 7, 97 (2021).
+
+**(Lysogorskiy23)**
+   Lysogorskiy, Bochkarev, Mrovec, Drautz, Phys Rev Mater, 7, 043801 (2023) / arXiv:2212.08716 (2022).
 
 **(Maaravi)**
    T.\  Maaravi et al, J. Phys. Chem. C 121, 22826-22835 (2017).
@@ -817,11 +823,17 @@ Bibliography
 **(Maginn)**
    Kelkar, Rafferty, Maginn, Siepmann, Fluid Phase Equilibria, 260, 218-231 (2007).
 
+**(Mahoney)**
+   Mahoney, Jorgensen, J Chem Phys 112, 8910 (2000)
+
 **(Malolepsza)**
    Malolepsza, Secor, Keyes, J Phys Chem B 119 (42), 13379-13384 (2015).
 
 **(Mandadapu)**
    Mandadapu, KK; Templeton, JA; Lee, JW, "Polarization as a field variable from molecular dynamics simulations." Journal of Chemical Physics (2013), 139:054115.  Please refer to the standard finite element (FE) texts, e.g. T.J.R Hughes " The finite element method ", Dover 2003, for the basics of FE simulation.
+
+**(Mandelli_1)**
+   D. Mandelli, W. Ouyang, M. Urbakh, and O. Hod, ACS Nano 13(7), 7603-7609 (2019).
 
 **(Maras)**
    Maras, Trushin, Stukowski, Ala-Nissila, Jonsson, Comp Phys Comm, 205, 13-21 (2016).
@@ -837,6 +849,9 @@ Bibliography
 
 **(Martyna1994)**
    Martyna, Tobias and Klein, J Chem Phys, 101, 4177 (1994).
+
+**(Martyna2)**
+  G. Martyna, A. Hughes, M. Tuckerman, J. Chem. Phys. 110, 3275 (1999).
 
 **(Mason)**
    J.\  K. Mason, Acta Cryst A65, 259 (2009).
@@ -877,6 +892,9 @@ Bibliography
 **(Mie)**
    G.\  Mie, Ann Phys, 316, 657 (1903).
 
+**(Milano)**
+   G. Milano, S. Goudeau, F. Mueller-Plathe, J. Polym. Sci. B Polym. Phys. 43, 871 (2005).
+
 **(Miller1)**
    T.\  F. Miller III, M. Eleftheriou, P. Pattnaik, A. Ndirango, G. J. Martyna, J. Chem. Phys., 116, 8649-8659 (2002).
 
@@ -907,11 +925,17 @@ Bibliography
 **(Mitchell2011a)**
    Mitchell. A Nonlocal, Ordinary, State-Based Plasticity Model for Peridynamics. Sandia National Lab Report, 3166:1-34 (2011).
 
+**(Miyazaki)**
+   Miyazaki, Okazaki, Shinoda, J Chem Theory Comput, 16, 782-793 (2020).
+
 **(Mniszewski)**
    S.\  M. Mniszewski, M. J. Cawkwell, M. E. Wall, J. Mohd-Yusof, N. Bock, T. C.  Germann, and A. M. N. Niklasson, J. Chem. Theory Comput., 11, 4644 (2015).
 
 **(Monaghan)**
    Monaghan and Gingold, Journal of Computational Physics, 52, 374-389 (1983).
+
+**(Monti)**
+   Monti, Clemmer, Srivastava, Silbert, Grest, and Lechman, Phys. Rev. E, (2022).
 
 **(Moore)**
    Moore, J Chem Phys, 144, 104501 (2016).
@@ -932,7 +956,7 @@ Bibliography
    Morris, Fox, Zhu, J Comp Physics, 136, 214-226 (1997).
 
 **(Moustafa)**
-   Sabry G. Moustafa, Andrew J. Schultz, and David A. Kofke, *Very fast averaging of thermal properties of crystals by molecular simulation*, `Phys. Rev. E [92], 043303 (2015) <https://link.aps.org/doi/10.1103/PhysRevE.92.043303>`_
+   Sabry G. Moustafa, Andrew J. Schultz, and David A. Kofke, `Phys. Rev. E [92], 043303 (2015) <https://link.aps.org/doi/10.1103/PhysRevE.92.043303>`_
 
 **(Muller-Plathe1)**
    Muller-Plathe, J Chem Phys, 106, 6082 (1997).
@@ -952,9 +976,6 @@ Bibliography
 **(Neelov)**
    Neelov, Holm, J Chem Phys 132, 234103 (2010)
 
-**(Negre2016)**
-   C.\  F. A. Negre, S. M. Mniszewski, M. J. Cawkwell, N. Bock, M. E. Wall, and A. M. N. Niklasson, J. Chem. Theory Comp., 12, 3063 (2016).
-
 **(Nelson)**
    Nelson, Halperin, Phys Rev B, 19, 2457 (1979).
 
@@ -964,11 +985,23 @@ Bibliography
 **(Neyts)**
    E.\  C. Neyts and A. Bogaerts, Theor. Chem. Acc. 132, 1320 (2013).
 
+**(Nguyen2023)**
+   Nguyen, Physical Review B, 107(14), 144103, (2023).
+
+**(Nguyen2024)**
+   Nguyen, Journal of Computational Physics, 113102, (2024).
+
+**(Nguyen and Rohskopf)**
+  Nguyen and Rohskopf,  Journal of Computational Physics, 480, 112030, (2023).
+
+**(Nguyen and Sema)**
+   Nguyen and Sema, https://arxiv.org/abs/2405.00306, (2024).
+
+**(NguyenTD)**
+   Nguyen, Li, Bagchi, Solis, Olvera de la Cruz, Comput Phys Commun 241, 80-19 (2019)
+
 **(Nicholson and Rutledge)**
    Nicholson and Rutledge, J Chem Phys, 145, 244903 (2016).
-
-**(Nicklas)**
-   The spline-based MEAM+SW format was first devised and used to develop potentials for bcc transition metals by Jeremy Nicklas, Michael Fellinger,
 
 **(Niklasson2002)**
    A.\  M. N. Niklasson, Phys. Rev. B, 66, 155115 (2002).
@@ -981,6 +1014,9 @@ Bibliography
 
 **(Niklasson2017)**
    A.\  M. N. Niklasson, J. Chem. Phys., 147, 054103 (2017).
+
+**(Nitol)**
+   Nitol, Dickel, and Barrett, Computational Materials Science 188 (2021): 110207.
 
 **(Noid)**
    Noid, Chu, Ayton, Krishna, Izvekov, Voth, Das, Andersen, J Chem Phys 128, 134105 (2008).
@@ -1003,6 +1039,9 @@ Bibliography
 **(O'Connor)**
    O'Connor et al., J. Chem. Phys. 142, 024903 (2015).
 
+**(O'Hearn)**
+   O'Hearn, Alperen, Aktulga, SIAM J. Sci. Comput., 42(1), C1--C22 (2020).
+
 **(Okabe)**
    T.\  Okabe, M. Kawata, Y. Okamoto, M. Masuhiro, Chem. Phys. Lett., 335, 435-439 (2001).
 
@@ -1011,6 +1050,8 @@ Bibliography
 
 **(Omelyan)**
    Omelyan, Mryglod, and Folk. Phys. Rev. Lett. 86(5), 898. (2001).
+
+**(OPLS-AA96)**  Jorgensen, Maxwell, Tirado-Rives, J Am Chem Soc, 118(45), 11225-11236 (1996).
 
 **(Oppelstrup)**
    Oppelstrup, unpublished, 2015. Oppelstrup and Moriarty, to be published.
@@ -1033,14 +1074,17 @@ Bibliography
 **(Ouyang2)**
    W.\  Ouyang et al., J. Chem. Theory Comput. 16(1), 666-676 (2020).
 
-**(PASS)**
-   PASS webpage: https://www.sdu.dk/en/DPASS
+**(Ouyang_1)**
+   W. Ouyang et al., J. Chem. Theory Comput. 16(1), 666-676 (2020).
 
-**(PLUMED)**
-   G.A. Tribello, M. Bonomi, D. Branduardi, C. Camilloni and G. Bussi, Comp. Phys. Comm 185, 604 (2014)
+**(Ouyang6)**
+   W. Ouyang, O. Hod, and R. Guerra, J. Chem. Theory Comput. 17, 7215 (2021).
 
-**(Pavlov)**
-D Pavlov, V Galigerov, D Kolotinskii, V Nikolskiy, V Stegailov, International Journal of High Performance Computing Applications, 38, 34-49 (2024).
+**(Ouyang7)**
+   W. Ouyang, et al., J. Chem. Theory Comput. 17, 7237 (2021).
+
+**(Palkar)**
+   Palkar V, Kuksenok O, J. Phys. Chem. B, 126 (1), 336-346, 2022
 
 **(Paquay)**
    Paquay and Kusters, Biophys. J., 110, 6, (2016). preprint available at `arXiv:1411.3019 <https://arxiv.org/abs/1411.3019/>`_.
@@ -1051,8 +1095,11 @@ D Pavlov, V Galigerov, D Kolotinskii, V Nikolskiy, V Stegailov, International Jo
 **(Parks)**
    Parks, Lehoucq, Plimpton, Silling, Comp Phys Comm, 179(11), 777-783 (2008).
 
-**(Parrinello1981)**
+**(Parrinello)**
    Parrinello and Rahman, J Appl Phys, 52, 7182 (1981).
+
+**(PASS)**
+   PASS webpage: https://www.sdu.dk/en/DPASS
 
 **(Paula Leite2016)**
    Paula Leite , Freitas, Azevedo, and de Koning, J Chem Phys, 126, 044509 (2016).
@@ -1060,11 +1107,20 @@ D Pavlov, V Galigerov, D Kolotinskii, V Nikolskiy, V Stegailov, International Jo
 **(Paula Leite2017)**
    Paula Leite, Santos-Florez, and de Koning, Phys Rev E, 96, 32115 (2017).
 
+**(Pavlov1)**
+   D Pavlov, V Galigerov, D Kolotinskii, V Nikolskiy, V Stegailov, International Journal of High Performance Computing Applications, 38, 34-49 (2024).
+
+**(Pavlov2)**
+   Pavlov, Galigerov, Kolotinskii, Nikolskiy, Stegailov, "GPU-based Molecular Dynamics of Fluid Flows: Reaching for Turbulence", Int. J. High Perf. Comp. Appl., (2024)
+
 **(Pearlman)**
    Pearlman, J Chem Phys, 98, 1487 (1994)
 
 **(Pedersen)**
    Pedersen, J. Chem. Phys., 139, 104102 (2013).
+
+**(Pedone)**
+   A. Pedone, G. Malavasi, M. C. Menziani, A. N. Cormack, and U. Segre, J. Phys. Chem. B, 110, 11780 (2006)
 
 **(Peng)**
    Peng, Ren, Dudarev, Whelan, Acta Crystallogr. A, 52, 257-76 (1996).
@@ -1087,6 +1143,9 @@ D Pavlov, V Galigerov, D Kolotinskii, V Nikolskiy, V Stegailov, International Jo
 **(Pettifor_3)**
    D.G. Pettifor and I.I. Oleinik, Phys. Rev. B, 65, 172103 (2002).
 
+**(PFC)**
+   PFC Particle Flow Code 6.0 Documentation. Itasca Consulting Group.
+
 **(Phillips)**
    C.\  L. Phillips, J. A. Anderson, S. C. Glotzer, Comput Phys Comm, 230, 7191-7201 (2011).
 
@@ -1096,8 +1155,20 @@ D Pavlov, V Galigerov, D Kolotinskii, V Nikolskiy, V Stegailov, International Jo
 **(Pisarev)**
    V V Pisarev and S V Starikov, J. Phys.: Condens. Matter, 26, 475401 (2014).
 
+**(Plimpton)**
+   Plimpton and Knight, JPDC, 147, 184-195 (2021).
+
+**(PLUMED)**
+   G.A. Tribello, M. Bonomi, D. Branduardi, C. Camilloni and G. Bussi, Comp. Phys. Comm 185, 604 (2014)
+
 **(Pollock)**
    Pollock and Glosli, Comp Phys Comm, 95, 93 (1996).
+
+**(Ponder)**
+   Ponder, Wu, Ren, Pande, Chodera, Schnieders, Haque,  Mobley, Lambrecht, DiStasio Jr, M. Head-Gordon, Clark,  Johnson, T. Head-Gordon, J Phys Chem B, 114, 2549-2564 (2010).
+
+**(Popov1)**
+   A.M. Popov, I. V. Lebedeva, A. A. Knizhnik, Y. E. Lozovik and B. V. Potapkin, Chem. Phys. Lett. 536, 82-86 (2012).
 
 **(Price1)**
    Price and Brooks, J Chem Phys, 121, 10096 (2004).
@@ -1138,6 +1209,12 @@ D Pavlov, V Galigerov, D Kolotinskii, V Nikolskiy, V Stegailov, International Jo
 **(Rick)**
    S.\  W. Rick, S. J. Stuart, B. J. Berne, J Chem Phys 101, 16141 (1994).
 
+**(Rick2)**
+   S. W. Rick, S. J. Stuart, B. J. Berne, J Chem Phys 101, 6141
+
+**(Roberts)**
+   R. Roberts (2019) "Evenly Distributing Points in a Triangle." Extreme Learning.  `<http://extremelearning.com.au/evenly-distributing-points-in-a-triangle/>`_
+
 **(Rohart)**
    Rohart and Thiaville, Physical Review B, 88(18), 184422. (2013).
 
@@ -1174,8 +1251,17 @@ D Pavlov, V Galigerov, D Kolotinskii, V Nikolskiy, V Stegailov, International Jo
 **(Sadigh)**
    B Sadigh, P Erhart, A Stukowski, A Caro, E Martinez, and L Zepeda-Ruiz, Phys. Rev. B, 85, 184203 (2012).
 
+**(Sadigh1)**
+   B. Sadigh, P. Erhart, A. Stukowski, A. Caro, E. Martinez, and L. Zepeda-Ruiz, Phys. Rev. B **85**, 184203 (2012)
+
+**(Sadigh2)**
+  B. Sadigh and P. Erhart, Phys. Rev. B **86**, 134204 (2012)
+
 **(Safran)**
    Safran, Statistical Thermodynamics of Surfaces, Interfaces, And Membranes, Westview Press, ISBN: 978-0813340791 (2003).
+
+**(Salanne)**
+   Salanne, Rotenberg, Jahn, Vuilleumier, Simon, Christian and Madden, Theor Chem Acc, 131, 1143 (2012).
 
 **(Salerno)**
    Salerno, Bernstein, J Chem Theory Comput, --, ---- (2018).
@@ -1186,8 +1272,17 @@ D Pavlov, V Galigerov, D Kolotinskii, V Nikolskiy, V Stegailov, International Jo
 **(Sanyal2)**
    Sanyal and Shell, Journal of Physical Chemistry B, 122 (21), 5678-5693.
 
+**(Scalfi)**
+   Scalfi *et al.*, J. Chem. Phys., 153, 174704 (2020).
+
 **(Schelling)**
    Patrick K. Schelling, Comp. Mat. Science, 44, 274 (2008).
+
+**(Scherer1)**
+   C. Scherer and D. Andrienko, Phys. Chem. Chem. Phys. 20, 22387-22394 (2018).
+
+**(Scherer2)**
+   C. Scherer, R. Scheid, D. Andrienko, and T. Bereau, J. Chem. Theor. Comp. 16, 3194-3204 (2020).
 
 **(Schlitter1)**
    Schlitter, Swegat, Mulders, "Distance-type reaction coordinates for modelling activated processes", J Molecular Modeling, 7, 171-177 (2001).
@@ -1207,11 +1302,20 @@ D Pavlov, V Galigerov, D Kolotinskii, V Nikolskiy, V Stegailov, International Jo
 **(Schroeder)**
    Schroeder and Steinhauser, J Chem Phys, 133, 154511 (2010).
 
+**(Seleson 2010)**
+   Seleson, Parks, Int J Mult Comp Eng 9(6), pp. 689-706, 2011.
+
 **(Semaev)**
    Semaev, Cryptography and Lattices, 181 (2001).
 
+**(Seo)**
+   Seo, Shinoda, J Chem Theory Comput, 15, 762-774 (2019).
+
 **(Sheppard)**
    Sheppard, Terrell, Henkelman, J Chem Phys, 128, 134106 (2008).  See ref 1 in this paper for original reference to Qmin in Jonsson, Mills, Jacobsen.
+
+**(Shi)**
+   Shi, Xia, Zhang, Best, Wu, Ponder, Ren, J Chem Theory Comp, 9, 4046, 2013.
 
 **(Shinoda)**
    Shinoda, DeVane, Klein, Mol Sim, 33, 27 (2007).
@@ -1219,8 +1323,14 @@ D Pavlov, V Galigerov, D Kolotinskii, V Nikolskiy, V Stegailov, International Jo
 **(Shinoda)**
    Shinoda, Shiga, and Mikami, Phys Rev B, 69, 134103 (2004).
 
+**(Shire)**
+   Shire, Hanley and Stratford, Comp. Part. Mech., (2020).
+
 **(Sides)**
    Sides, Grest, Stevens, Plimpton, J Polymer Science B, 42, 199-208 (2004).
+
+**(Siepmann)**
+   Siepmann and Sprik, J. Chem. Phys. 102, 511 (1995).
 
 **(Silbert)**
    Silbert, Ertas, Grest, Halsey, Levine, Plimpton, Phys Rev E, 64, p 051302 (2001).
@@ -1231,12 +1341,21 @@ D Pavlov, V Galigerov, D Kolotinskii, V Nikolskiy, V Stegailov, International Jo
 **(Silling 2000)**
    Silling, J Mech Phys Solids, 48, 175-209 (2000).
 
+**(Silling 2005)**
+   Silling Askari, Computer and Structures, 83, 1526-1535 (2005).
+
 **(Silling 2007)**
    Silling, Epton, Weckner, Xu, Askari, J Elasticity, 88, 151-184 (2007).
 
 **(Singh)**
    Singh and Warner, Acta Mater, 58, 5797-5805 (2010),
 
+**(Singraber, Behler and Dellago 2019)**
+   Singraber, A.; Behler, J.; Dellago, C. J., Chem.  Theory Comput. 2019, 15 (3), 1827-1840
+
+**(Singraber et al 2019)**
+   Singraber, A.; Morawietz, T.; Behler, J.; Dellago, C., J. Chem. Theory Comput.  2019, 15 (5), 3075-3092.
+   
 **(Sirk1)**
    Sirk TW, Sliozberg YR, Brennan JK, Lisal M, Andzelm JW, J Chem Phys, 136 (13) 134903, 2012.
 
@@ -1249,6 +1368,9 @@ D Pavlov, V Galigerov, D Kolotinskii, V Nikolskiy, V Stegailov, International Jo
 **(Snodin)**
    B.E. Snodin, F. Randisi, M. Mosayebi, et al., J. Chem. Phys. 142, 234901 (2015).
 
+**(Son)**
+   Son, McDaniel, Cui and Yethiraj, J Phys Chem Lett, 10, 7523 (2019).
+
 **(Srivastava)**
    Zhigilei, Wei, Srivastava, Phys. Rev. B 71, 165417 (2005).
 
@@ -1257,6 +1379,12 @@ D Pavlov, V Galigerov, D Kolotinskii, V Nikolskiy, V Stegailov, International Jo
 
 **(Steinhardt)**
    P.\  Steinhardt, D. Nelson, and M. Ronchetti, Phys. Rev. B 28, 784 (1983).
+
+**(Steward)**
+   Stewart, Spearot, Modelling Simul. Mater. Sci. Eng. 21, 045003, (2013).
+
+**(Stewart2018)**
+   J.A. Stewart, et al. (2018) Journal of Applied Physics, 123(16), 165902.
 
 **(Stiles)**
    Stiles , Hubbard, and Kayser, J Chem Phys, 77, 6189 (1982).
@@ -1315,11 +1443,20 @@ D Pavlov, V Galigerov, D Kolotinskii, V Nikolskiy, V Stegailov, International Jo
 **(Tainter 2015)**
    Tainter, Shi, and Skinner, 11, 2268 (2015)
 
+**(Tang and Toennies)**
+   J Chem Phys, 80, 3726 (1984).
+
+**(Tee)**
+   Tee and Searles, J. Chem. Phys. 156, 184101 (2022).
+
 **(Templeton2010)**
    Templeton, JA; Jones, RE; Wagner, GJ, "Application of a field-based method to spatially varying thermal transport problems in molecular dynamics." Modelling and Simulation in Materials Science and Engineering (2010), 18:085007.
 
 **(Templeton2011)**
    Templeton, JA; Jones, RE; Lee, JW; Zimmerman, JA; Wong, BM, "A long-range electric field solver for molecular dynamics based on atomistic-to-continuum modeling." Journal of Chemical Theory and Computation (2011), 7:1736.
+
+**(tenWolde)**
+   P.\  R. ten Wolde, M. J. Ruiz-Montero, D. Frenkel, J. Chem. Phys. 104, 9932 (1996).
 
 **(Tersoff_1)**
    J.\  Tersoff, Phys Rev B, 37, 6991 (1988).
@@ -1363,6 +1500,9 @@ D Pavlov, V Galigerov, D Kolotinskii, V Nikolskiy, V Stegailov, International Jo
 **(Tranchida)**
    Tranchida, Plimpton, Thibaudeau and Thompson, Journal of Computational Physics, 372, 406-425, (2018).
 
+**(Tribello)**
+   G.A. Tribello, M. Bonomi, D. Branduardi, C. Camilloni and G. Bussi, Comp. Phys. Comm 185, 604 (2014)
+
 **(Tsuji et al, 1992)**
    Tsuji, Y., Tanaka, T., & Ishida, T. (1992). Lagrangian numerical simulation of plug flow of cohesionless particles in a horizontal pipe. Powder technology, 71(3),
 
@@ -1381,6 +1521,9 @@ D Pavlov, V Galigerov, D Kolotinskii, V Nikolskiy, V Stegailov, International Jo
 **(Tuckerman4)**
    Tuckerman, Mundy, Balasubramanian, Klein, J Chem Phys, 106, 5615 (1997).
 
+**(Tyagi)**
+   Tyagi, Suzen, Sega, Barbosa, Kantorovich, Holm, J Chem Phys, 132, 154112 (2010)
+
 **(Ulomek)**
    Ulomek, Brien, Foiles, Mohles, Modelling Simul. Mater. Sci. Eng. 23 (2015) 025007
 
@@ -1389,6 +1532,15 @@ D Pavlov, V Galigerov, D Kolotinskii, V Nikolskiy, V Stegailov, International Jo
 
 **(Valone)**
    Valone, Baskes, Martin, Phys. Rev. B, 73, 214209 (2006).
+
+**(vanWijk)**
+   M. M. van Wijk, A. Schuring, M. I. Katsnelson, and A. Fasolino, Physical Review Letters, 113, 135504 (2014)
+
+**(Van Workum)**
+   K. Van Workum et al., J. Chem. Phys. 125 144506 (2006)
+
+**(Vargas and McCarthy 2001)**
+   Vargas, W.L. and McCarthy, J.J. (2001).
 
 **(Varshalovich)**
    Varshalovich, Moskalev, Khersonskii, Quantum Theory of Angular Momentum, World Scientific, Singapore (1987).
@@ -1401,6 +1553,9 @@ D Pavlov, V Galigerov, D Kolotinskii, V Nikolskiy, V Stegailov, International Jo
 
 **(Veld)**
    In 't Veld, Ismail, Grest, J Chem Phys, 127, 144711 (2007).
+
+**(Verstraelen)**
+   Verstraelen, Ayers, Speybroeck, Waroquier, J. Chem. Phys. 138, 074108 (2013).
 
 **(Volkov1)**
    Volkov and Zhigilei, J Phys Chem C, 114, 5513 (2010).
@@ -1425,6 +1580,9 @@ D Pavlov, V Galigerov, D Kolotinskii, V Nikolskiy, V Stegailov, International Jo
 
 **(Wang et al, 2015)**
    Wang, Y., Alonso-Marroquin, F., & Guo, W. W. (2015).  Rolling and sliding in 3-D discrete element models. Particuology, 23, 49-55.
+
+**(Wang2020)**
+   X. Wang, S. Ramirez-Hinestrosa, J. Dobnikar, and D. Frenkel, Phys. Chem. Chem. Phys. 22, 10624 (2020).
 
 **(Wang1)**
    J.\  Wang, H. S. Yu, P. A. Langston, F. Y. Fraige, Granular Matter, 13, 1 (2011).
@@ -1465,6 +1623,9 @@ D Pavlov, V Galigerov, D Kolotinskii, V Nikolskiy, V Stegailov, International Jo
 **(Wicaksono2)**
    Wicaksono, figshare, https://doi.org/10.6084/m9.figshare.1488628.v1 (2015).
 
+**(Winkler)**
+   Winkler, Wysocki, and Gompper, Soft Matter, 11, 6680 (2015).
+   
 **(Wirnsberger)**
    Wirnsberger, Frenkel, and Dellago, J Chem Phys, 143, 124104 (2015).
 
@@ -1477,8 +1638,26 @@ D Pavlov, V Galigerov, D Kolotinskii, V Nikolskiy, V Stegailov, International Jo
 **(Wood)**
    Wood and Thompson, J Chem Phys, 148, 241721, (2018)
 
+**(Xie23)**
+   Xie, S.R., Rupp, M. & Hennig, R.G. Ultra-fast interpretable machine-learning potentials. npj Comput Mater 9, 162 (2023). https://doi.org/10.1038/s41524-023-01092-7
+
+**(Yade-DEM)**
+   V. Smilauer et al. (2021), Yade Documentation 3rd ed.
+
+**(Yanxon2020)**
+   Yanxon, Zagaceta, Tang, Matteson, Zhu, Mach. Learn.: Sci. Technol. 2, 027001 (2020).
+
 **(Yeh)**
    Yeh and Berkowitz, J Chem Phys, 111, 3155 (1999).
+
+**(Yuan2010a)**
+   Yuan, Huang, Li, Lykotrafitis, Zhang, Phys. Rev. E, 82, 011905(2010).
+
+**(Yuan2010b)**
+   Yuan, Huang, Zhang, Soft. Matter, 6, 4571(2010).
+
+**(Zagaceta2020)**
+   Zagaceta, Yanxon, Zhu, J Appl Phys, 128, 045113 (2020).
 
 **(ZBL)**
    J.F. Ziegler, J.P. Biersack, U. Littmark, 'Stopping and Ranges of Ions in Matter' Vol 1, 1985, Pergamon Press.
@@ -1552,8 +1731,3 @@ D Pavlov, V Galigerov, D Kolotinskii, V Nikolskiy, V Stegailov, International Jo
 **(electronic stopping)**
    Wikipedia - Electronic Stopping Power: https://en.wikipedia.org/wiki/Stopping_power_%28particle_radiation%29
 
-**(tenWolde)**
-   P.\  R. ten Wolde, M. J. Ruiz-Montero, D. Frenkel, J. Chem. Phys. 104, 9932 (1996).
-
-**(vanWijk)**
-   M.\  M. van Wijk, A. Schuring, M. I. Katsnelson, and A. Fasolino, Physical Review Letters, 113, 135504 (2014)

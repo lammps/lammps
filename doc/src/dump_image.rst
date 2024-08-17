@@ -389,7 +389,7 @@ cylinders with that diameter, e.g. 1.0, which is in whatever distance
 
 If *atom* is specified for the *width* value, then each bond
 will be drawn with a width corresponding to the minimum diameter
-of the 2 atoms in the bond.
+of the two atoms in the bond.
 
 If *type* is specified for the *width* value then the diameter of each
 bond is determined by its bond type.  By default all types have

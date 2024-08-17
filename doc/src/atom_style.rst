@@ -419,7 +419,7 @@ showing the use of the *template* atom style versus *molecular*.
    <molecule>` that contains multiple molecules, you should ensure the
    atom types, bond types, angle_types, etc in all the molecules are
    consistent.  E.g. if one molecule represents H2O and another CO2,
-   then you probably do not want each molecule file to define 2 atom
+   then you probably do not want each molecule file to define two atom
    types and a single bond type, because they will conflict with each
    other when a mixture system of H2O and CO2 molecules is defined,
    e.g. by the :doc:`read_data <read_data>` command.  Rather the H2O

@@ -18,6 +18,7 @@
 #include <QList>
 #include <QString>
 #include <QWidget>
+#include <QTime>
 
 class QAction;
 class QCloseEvent;
@@ -100,6 +101,7 @@ private:
     QLineSeries *series;
     QValueAxis *xaxis;
     QValueAxis *yaxis;
+    QTime last_update;
 };
 } // namespace QtCharts
 #endif

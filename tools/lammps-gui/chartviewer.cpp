@@ -33,6 +33,7 @@
 #include <QSettings>
 #include <QSpacerItem>
 #include <QTextStream>
+#include <QTime>
 #include <QVBoxLayout>
 #include <QValueAxis>
 #include <QVariant>
@@ -337,16 +338,24 @@ ChartViewer::ChartViewer(const QString &title, int _index, QWidget *parent) :
     setRenderHint(QPainter::Antialiasing);
     setChart(chart);
     setRubberBand(QChartView::RectangleRubberBand);
+    last_update = QTime::currentTime();
 }
 
 /* -------------------------------------------------------------------- */
 
 void ChartViewer::add_data(int step, double data)
 {
+    QSettings settings;
+    auto updchart = settings.value("updchart", "500").toInt();
+
     if (last_step < step) {
         last_step = step;
+
         series->append(step, data);
-        reset_zoom();
+        if (last_update.msecsTo(QTime::currentTime()) > updchart) {
+            last_update = QTime::currentTime();
+            reset_zoom();
+        }
     }
 }
 

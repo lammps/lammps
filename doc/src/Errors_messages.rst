@@ -96,13 +96,13 @@ Doc page with :doc:`WARNING messages <Errors_warnings>`
    are too far apart to make a valid angle.
 
 *Angle atoms %d %d %d missing on proc %d at step %ld*
-   One or more of 3 atoms needed to compute a particular angle are
+   One or more of three atoms needed to compute a particular angle are
    missing on this processor.  Typically this is because the pairwise
    cutoff is set too short or the angle has blown apart and an atom is
    too far away.
 
 *Angle atoms missing on proc %d at step %ld*
-   One or more of 3 atoms needed to compute a particular angle are
+   One or more of three atoms needed to compute a particular angle are
    missing on this processor.  Typically this is because the pairwise
    cutoff is set too short or the angle has blown apart and an atom is
    too far away.
@@ -7310,12 +7310,12 @@ Doc page with :doc:`WARNING messages <Errors_warnings>`
    atom has moved too far.
 
 *Restrain atoms %d %d %d missing on proc %d at step %ld*
-   The 3 atoms in a restrain angle specified by the fix restrain
+   The three atoms in a restrain angle specified by the fix restrain
    command are not all accessible to a processor.  This probably means an
    atom has moved too far.
 
 *Restrain atoms %d %d missing on proc %d at step %ld*
-   The 2 atoms in a restrain bond specified by the fix restrain
+   The two atoms in a restrain bond specified by the fix restrain
    command are not all accessible to a processor.  This probably means an
    atom has moved too far.
 
@@ -7406,7 +7406,7 @@ Doc page with :doc:`WARNING messages <Errors_warnings>`
 *Shake angles have different bond types*
    All 3-atom angle-constrained SHAKE clusters specified by the fix shake
    command that are the same angle type, must also have the same bond
-   types for the 2 bonds in the angle.
+   types for the two bonds in the angle.
 
 *Shake atoms %d %d %d %d missing on proc %d at step %ld*
    The 4 atoms in a single shake cluster specified by the fix shake
@@ -7414,12 +7414,12 @@ Doc page with :doc:`WARNING messages <Errors_warnings>`
    an atom has moved too far.
 
 *Shake atoms %d %d %d missing on proc %d at step %ld*
-   The 3 atoms in a single shake cluster specified by the fix shake
+   The three atoms in a single shake cluster specified by the fix shake
    command are not all accessible to a processor.  This probably means
    an atom has moved too far.
 
 *Shake atoms %d %d missing on proc %d at step %ld*
-   The 2 atoms in a single shake cluster specified by the fix shake
+   The two atoms in a single shake cluster specified by the fix shake
    command are not all accessible to a processor.  This probably means
    an atom has moved too far.
 

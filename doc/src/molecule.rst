@@ -426,7 +426,7 @@ from 1 to Natoms, where Natoms = # of atoms in the molecule.
 * atom1,atom2,atom3 = IDs of atoms in angle
 
 The IDs for the three atoms in each angle should be values from 1 to
-Natoms, where Natoms = # of atoms in the molecule.  The 3 atoms are
+Natoms, where Natoms = # of atoms in the molecule.  The three atoms are
 ordered linearly within the angle.  Thus the central atom (around
 which the angle is computed) is the atom2 in the list.
 
@@ -586,10 +586,10 @@ the central atom and the first non-central atom (value b in the Shake
 Atoms section), b = bondtype of the bond between the central atom and
 the second non-central atom (value c in the Shake Atoms section), and c
 = the angle type (1 to Nangletypes, or angle type label) of the angle
-between the 3 atoms.
+between the three atoms.
 
 If flag = 2, only a is listed, where a = bondtype of the bond between
-the 2 atoms in the cluster.
+the two atoms in the cluster.
 
 If flag = 3, a,b are listed, where a = bondtype of the bond between
 the central atom and the first non-central atom (value b in the Shake

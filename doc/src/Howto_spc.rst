@@ -2,7 +2,7 @@ SPC water model
 ===============
 
 The SPC water model specifies a 3-site rigid water molecule with
-charges and Lennard-Jones parameters assigned to each of the 3 atoms.
+charges and Lennard-Jones parameters assigned to each of the three atoms.
 In LAMMPS the :doc:`fix shake <fix_shake>` command can be used to hold
 the two O-H bonds and the H-O-H angle rigid.  A bond style of
 *harmonic* and an angle style of *harmonic* or *charmm* should also be

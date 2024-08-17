@@ -3,7 +3,7 @@ TIP3P water model
 
 The TIP3P water model as implemented in CHARMM :ref:`(MacKerell)
 <howto-tip3p>` specifies a 3-site rigid water molecule with charges and
-Lennard-Jones parameters assigned to each of the 3 atoms.
+Lennard-Jones parameters assigned to each of the three atoms.
 
 A suitable pair style with cutoff Coulomb would be:
 

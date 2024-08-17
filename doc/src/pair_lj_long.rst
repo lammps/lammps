@@ -85,7 +85,7 @@ potential parameters, plus the Coulomb potential, given by:
    E = \frac{C q_i q_j}{\epsilon  r} \qquad r < r_c
 
 where C is an energy-conversion constant, :math:`q_i` and :math:`q_j` are the charges on
-the 2 atoms, :math:`\epsilon` is the dielectric constant which can be set by
+the two atoms, :math:`\epsilon` is the dielectric constant which can be set by
 the :doc:`dielectric <dielectric>` command, and :math:`r_c` is the cutoff.  If
 one cutoff is specified in the pair_style command, it is used for both
 the LJ and Coulombic terms.  If two cutoffs are specified, they are

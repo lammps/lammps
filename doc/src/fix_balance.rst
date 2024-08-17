@@ -15,6 +15,7 @@ Syntax
 * Nfreq = perform dynamic load balancing every this many steps
 * thresh = imbalance threshold that must be exceeded to perform a re-balance
 * style = *shift* or *rcb* or *report*
+
   .. parsed-literal::
 
        *shift* args = dimstr Niter stopthresh

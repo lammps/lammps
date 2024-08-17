@@ -365,6 +365,19 @@ void ChartViewer::reset_zoom()
 {
     auto points = series->points();
 
+    // normalize outlier data from data corruption when polling thermo data
+    for (int i = 1; i < points.size() - 1; ++i) {
+        double avg = (points[i - 1].y() + points[i + 1].y()) / 2.0;
+        double val = points[i].y();
+
+        if (fabs(avg) > 0.0) {
+            if (val == 0.0)
+                series->replace(i, points[i].x(), avg);
+            else if (((val - avg) / avg) > 100.0)
+                series->replace(i, points[i].x(), val);
+        }
+    }
+
     qreal xmin = 1.0e100;
     qreal xmax = -1.0e100;
     qreal ymin = 1.0e100;

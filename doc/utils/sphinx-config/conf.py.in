@@ -299,6 +299,8 @@ latex_elements = {
 
 # Additional stuff for the LaTeX preamble.
 'preamble': r'''
+\usepackage{afterpage}
+\usepackage{xcolor}
 \setcounter{tocdepth}{2}
 \renewcommand{\sfdefault}{ptm}  % Use Times New Roman font for \textrm
 \renewcommand{\sfdefault}{phv}  % Use Helvetica font for \textsf
@@ -343,7 +345,13 @@ latex_elements = {
   \renewcommand*\l@subsection{\@dottedtocline{2}{4.6em}{4.5em}}
 }
 \makeatother
-'''
+''',
+'maketitle': r'''
+\pagecolor{black}
+\color{white}
+\afterpage{\nopagecolor\color{black}}
+\sphinxmaketitle
+''',
 }
 
 # Grouping the document tree into LaTeX files. List of tuples

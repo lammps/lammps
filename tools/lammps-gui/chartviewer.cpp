@@ -110,8 +110,8 @@ ChartWindow::ChartWindow(const QString &_filename, QWidget *parent) :
     connect(smooth, &QPushButton::released, this, &ChartWindow::update_smooth);
     connect(window, &QAbstractSpinBox::editingFinished, this, &ChartWindow::update_smooth);
     connect(order, &QAbstractSpinBox::editingFinished, this, &ChartWindow::update_smooth);
-    connect(window, &QSpinBox::valueChanged, this, &ChartWindow::update_smooth);
-    connect(order, &QSpinBox::valueChanged, this, &ChartWindow::update_smooth);
+    connect(window, QOverload<int>::of(&QSpinBox::valueChanged), this, &ChartWindow::update_smooth);
+    connect(order, QOverload<int>::of(&QSpinBox::valueChanged), this, &ChartWindow::update_smooth);
     connect(normal, &QPushButton::released, this, &ChartWindow::reset_zoom);
     connect(columns, SIGNAL(currentIndexChanged(int)), this, SLOT(change_chart(int)));
     installEventFilter(this);

@@ -154,7 +154,7 @@ FixElectrodeConp::FixElectrodeConp(LAMMPS *lmp, int narg, char **arg) :
     } else if ((strcmp(arg[iarg], "algo") == 0)) {
       if (!default_algo) error->one(FLERR, "Algorithm can be set only once");
       default_algo = false;
-      if (iarg + 2 > narg) error->all(FLERR, "Need one argument after algo command");
+      if (iarg + 2 > narg) error->all(FLERR, "Need at least one argument after algo command");
       char *algo_arg = arg[++iarg];
       bool cg_algo = false;
       if ((strcmp(algo_arg, "mat_inv") == 0)) {
@@ -172,7 +172,7 @@ FixElectrodeConp::FixElectrodeConp(LAMMPS *lmp, int narg, char **arg) :
         error->all(FLERR, "Unknown algo keyword {}", algo_arg);
       }
       if (cg_algo) {
-        if (iarg + 2 > narg) error->all(FLERR, "Need one argument after algo *cg command");
+        if (iarg + 2 > narg) error->all(FLERR, "Need one argument after algo cg command");
         cg_threshold = utils::numeric(FLERR, arg[++iarg], false, lmp);
       }
     } else if ((strncmp(arg[iarg], "write", 5) == 0)) {
@@ -413,33 +413,30 @@ void FixElectrodeConp::init()
   if (pair == nullptr) error->all(FLERR, "Fix electrode couldn't find a Coulombic pair style");
 
   // error if more than one fix electrode/*
-  int count = 0;
-  for (int i = 0; i < modify->nfix; i++)
-    if (strncmp(modify->fix[i]->style, "electrode", 9) == 0) count++;
-  if (count > 1) error->all(FLERR, "More than one fix electrode");
+  if (modify->get_fix_by_style("^electrode").size() > 1)
+    error->all(FLERR, "More than one fix electrode");
 
   // make sure electrode atoms are not integrated if a matrix is used for electrode-electrode interaction
   int const nlocal = atom->nlocal;
   int *mask = atom->mask;
-  Fix **fix = modify->fix;
   if (matrix_algo) {
-    std::vector<char *> integrate_ids = std::vector<char *>();
-    for (int i = 0; i < modify->nfix; i++) {
-      if (fix[i]->time_integrate == 0) continue;
+    std::vector<Fix *> integrate_fixes;
+    for (auto fix : modify->get_fix_list()) {
+      if (fix->time_integrate == 0) continue;
       int electrode_mover = 0;
-      int fix_groupbit = fix[i]->groupbit;
+      int fix_groupbit = fix->groupbit;
       for (int j = 0; j < nlocal; j++)
         if ((mask[j] & fix_groupbit) && (mask[j] & groupbit)) electrode_mover = 1;
       MPI_Allreduce(MPI_IN_PLACE, &electrode_mover, 1, MPI_INT, MPI_SUM, world);
-      if (electrode_mover && comm->me == 0) integrate_ids.push_back(fix[i]->id);
+      if (electrode_mover && comm->me == 0) integrate_fixes.push_back(fix);
     }
     if (comm->me == 0)
-      for (char *fix_id : integrate_ids)
+      for (const auto fix : integrate_fixes)
         error->warning(FLERR,
-                       "Electrode atoms are integrated by fix {}, but fix electrode is using a "
+                       "Electrode atoms are integrated by fix {} {}, but fix electrode is using a "
                        "matrix method. For mobile electrodes use the conjugate gradient algorithm "
                        "without matrix ('algo cg').",
-                       fix_id);
+                       fix->id, fix->style);
   }
 
   // check for package intel

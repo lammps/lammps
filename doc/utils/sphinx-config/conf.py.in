@@ -275,11 +275,16 @@ else:
 mathjax_path = 'mathjax/es5/tex-mml-chtml.js'
 
 # hack to enable use of \AA in :math:
+# add :lammps: role for inline LAMMPS code highlight
 rst_prolog = r"""
 
 .. only:: html
 
    :math:`\renewcommand{\AA}{\text{Å}}`
+
+.. role:: lammps(code)
+    :language: LAMMPS
+    :class: highlight
 
 """
 

@@ -5,21 +5,21 @@ namespace IntHash_NS {
 
   /* re-usable integer hash table code. */
 
+  /** hash table node data structure */
+  struct inthash_node_t {
+    int data;                           /* data in hash node */
+    int key;                            /* key for hash lookup */
+    inthash_node_t *next;        /* next node in hash chain */
+  };
+
   /** hash table top level data structure */
-  typedef struct inthash_t {
-    struct inthash_node_t **bucket;        /* array of hash nodes */
+  struct inthash_t {
+    inthash_node_t **bucket;        /* array of hash nodes */
     int size;                           /* size of the array */
     int entries;                        /* number of entries in table */
     int downshift;                      /* shift cound, used in hash function */
     int mask;                           /* used to select bits for hashing */
-  } inthash_t;
-
-  /** hash table node data structure */
-  typedef struct inthash_node_t {
-    int data;                           /* data in hash node */
-    int key;                            /* key for hash lookup */
-    struct inthash_node_t *next;        /* next node in hash chain */
-  } inthash_node_t;
+  };
 
 #define HASH_FAIL  -1
 #define HASH_LIMIT  0.5

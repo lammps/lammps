@@ -260,8 +260,8 @@ GeneralTab::GeneralTab(QSettings *_settings, LammpsWrapper *_lammps, QWidget *pa
     connect(getallfont, &QPushButton::released, this, &GeneralTab::newallfont);
     connect(gettextfont, &QPushButton::released, this, &GeneralTab::newtextfont);
 
-    auto *freqlabel  = new QLabel("Data update interval (ms)");
-    auto *freqval    = new QSpinBox;
+    auto *freqlabel = new QLabel("Data update interval (ms)");
+    auto *freqval   = new QSpinBox;
     freqval->setRange(1, 1000);
     freqval->setStepType(QAbstractSpinBox::AdaptiveDecimalStepType);
     freqval->setValue(settings->value("updfreq", "10").toInt());

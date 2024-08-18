@@ -4,7 +4,7 @@ Calculate elastic constants
 Elastic constants characterize the stiffness of a material. The formal
 definition is provided by the linear relation that holds between the
 stress and strain tensors in the limit of infinitesimal deformation.
-In tensor notation, this is expressed as 
+In tensor notation, this is expressed as
 
 .. math::
 

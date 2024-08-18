@@ -515,7 +515,7 @@ The images below illustrate how the data is presented.
 .. only:: not latex
 
    .. list-table::
-   
+
          * - .. figure:: JPG/coverage-overview-top.png
                 :scale: 25%
 

@@ -1,4 +1,3 @@
-
 .. only:: html
 
    .. table_from_list::
@@ -15,8 +14,8 @@
       * :doc:`KSpace styles <Commands_kspace>`
       * :doc:`Dump styles <Commands_dump>`
 
-KSpace solvers
-==============
+KSpace styles
+=============
 
 All LAMMPS :doc:`kspace_style <kspace_style>` solvers.  Some styles have
 accelerated versions.  This is indicated by additional letters in

@@ -1,4 +1,3 @@
-
 .. only:: html
 
    .. table_from_list::
@@ -15,8 +14,8 @@
       * :doc:`KSpace styles <Commands_kspace>`
       * :doc:`Dump styles <Commands_dump>`
 
-Compute commands
-================
+Compute styles
+==============
 
 An alphabetic list of all LAMMPS :doc:`compute <compute>` commands.
 Some styles have accelerated versions.  This is indicated by

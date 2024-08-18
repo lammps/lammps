@@ -275,11 +275,16 @@ else:
 mathjax_path = 'mathjax/es5/tex-mml-chtml.js'
 
 # hack to enable use of \AA in :math:
+# add :lammps: role for inline LAMMPS code highlight
 rst_prolog = r"""
 
 .. only:: html
 
    :math:`\renewcommand{\AA}{\text{Å}}`
+
+.. role:: lammps(code)
+    :language: LAMMPS
+    :class: highlight
 
 """
 
@@ -294,6 +299,8 @@ latex_elements = {
 
 # Additional stuff for the LaTeX preamble.
 'preamble': r'''
+\usepackage{afterpage}
+\usepackage{xcolor}
 \setcounter{tocdepth}{2}
 \renewcommand{\sfdefault}{ptm}  % Use Times New Roman font for \textrm
 \renewcommand{\sfdefault}{phv}  % Use Helvetica font for \textsf
@@ -339,7 +346,13 @@ latex_elements = {
   \renewcommand*\l@subsection{\@dottedtocline{2}{4.6em}{4.5em}}
 }
 \makeatother
-'''
+''',
+'maketitle': r'''
+\pagecolor{black}
+\color{white}
+\afterpage{\nopagecolor\color{black}}
+\sphinxmaketitle
+''',
 }
 
 # copy custom style file for tweaking index layout

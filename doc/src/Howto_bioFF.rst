@@ -73,7 +73,7 @@ with additional switching or shifting functions that ramp the energy
 and/or force smoothly to zero between an inner :math:`(a)` and outer
 :math:`(b)` cutoff. The older styles with *charmm* (not *charmmfsw* or
 *charmmfsh*\ ) in their name compute the LJ and Coulombic interactions
-with an energy switching function (esw) S(r) which ramps the energy
+with an energy switching function (esw) :math:`S(r)` which ramps the energy
 smoothly to zero between the inner and outer cutoff. This can cause
 irregularities in pairwise forces (due to the discontinuous second
 derivative of energy at the boundaries of the switching region), which

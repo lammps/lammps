@@ -1,4 +1,3 @@
-
 .. only:: html
 
    .. table_from_list::
@@ -17,8 +16,8 @@
 
 .. _bond:
 
-Bond_style potentials
-=====================
+Bond styles
+===========
 
 All LAMMPS :doc:`bond_style <bond_style>` commands.  Some styles have
 accelerated versions.  This is indicated by additional letters in
@@ -65,8 +64,8 @@ OPT.
 
 .. _angle:
 
-Angle_style potentials
-======================
+Angle styles
+============
 
 All LAMMPS :doc:`angle_style <angle_style>` commands.  Some styles have
 accelerated versions.  This is indicated by additional letters in
@@ -113,8 +112,8 @@ OPT.
 
 .. _dihedral:
 
-Dihedral_style potentials
-=========================
+Dihedral styles
+===============
 
 All LAMMPS :doc:`dihedral_style <dihedral_style>` commands.  Some styles
 have accelerated versions.  This is indicated by additional letters in
@@ -153,8 +152,8 @@ OPT.
 
 .. _improper:
 
-Improper_style potentials
-=========================
+Improper styles
+===============
 
 All LAMMPS :doc:`improper_style <improper_style>` commands.  Some styles
 have accelerated versions.  This is indicated by additional letters in

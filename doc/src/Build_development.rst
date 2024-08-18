@@ -181,24 +181,24 @@ The output of this command will be looking something like this:
     $ ctest
     Test project /home/akohlmey/compile/lammps/build-testing
          Start   1: RunLammps
-   1/563 Test   #1: RunLammps ..........................................   Passed    0.28 sec
+   1/563 Test   #1: RunLammps ..................................   Passed    0.28 sec
          Start   2: HelpMessage
-   2/563 Test   #2: HelpMessage ........................................   Passed    0.06 sec
+   2/563 Test   #2: HelpMessage ................................   Passed    0.06 sec
          Start   3: InvalidFlag
-   3/563 Test   #3: InvalidFlag ........................................   Passed    0.06 sec
+   3/563 Test   #3: InvalidFlag ................................   Passed    0.06 sec
          Start   4: Tokenizer
-   4/563 Test   #4: Tokenizer ..........................................   Passed    0.05 sec
+   4/563 Test   #4: Tokenizer ..................................   Passed    0.05 sec
          Start   5: MemPool
-   5/563 Test   #5: MemPool ............................................   Passed    0.05 sec
+   5/563 Test   #5: MemPool ....................................   Passed    0.05 sec
          Start   6: ArgUtils
-   6/563 Test   #6: ArgUtils ...........................................   Passed    0.05 sec
+   6/563 Test   #6: ArgUtils ...................................   Passed    0.05 sec
        [...]
          Start 561: ImproperStyle:zero
- 561/563 Test #561: ImproperStyle:zero .................................   Passed    0.07 sec
+ 561/563 Test #561: ImproperStyle:zero .........................   Passed    0.07 sec
          Start 562: TestMliapPyUnified
- 562/563 Test #562: TestMliapPyUnified .................................   Passed    0.16 sec
+ 562/563 Test #562: TestMliapPyUnified .........................   Passed    0.16 sec
          Start 563: TestPairList
- 563/563 Test #563: TestPairList .......................................   Passed    0.06 sec
+ 563/563 Test #563: TestPairList ...............................   Passed    0.06 sec
 
  100% tests passed, 0 tests failed out of 563
 
@@ -216,21 +216,21 @@ The ``ctest`` command has many options, the most important ones are:
 
    * - Option
      - Function
-   * - -V
+   * - ``-V``
      - verbose output: display output of individual test runs
-   * - -j <num>
+   * - ``-j <num>``
      - parallel run: run <num> tests in parallel
-   * - -R <regex>
+   * - ``-R <regex>``
      - run subset of tests matching the regular expression <regex>
-   * - -E <regex>
+   * - ``-E <regex>``
      - exclude subset of tests matching the regular expression <regex>
-   * - -L <regex>
+   * - ``-L <regex>``
      - run subset of tests with a label matching the regular expression <regex>
-   * - -LE <regex>
+   * - ``-LE <regex>``
      - exclude subset of tests with a label matching the regular expression <regex>
-   * - -N
+   * - ``-N``
      - dry-run: display list of tests without running them
-   * - -T memcheck
+   * - ``-T memcheck``
      - run tests with valgrind memory checker (if available)
 
 In its full implementation, the unit test framework will consist of multiple
@@ -339,13 +339,13 @@ The force style test programs have a common set of options:
 
    * - Option
      - Function
-   * - -g <newfile>
+   * - ``-g <newfile>``
      - regenerate reference data in new YAML file
-   * - -u
+   * - ``-u``
      - update reference data in the original YAML file
-   * - -s
+   * - ``-s``
      - print error statistics for each group of comparisons
-   * - -v
+   * - ``-v``
      - verbose output: also print the executed LAMMPS commands
 
 The ``ctest`` tool has no mechanism to directly pass flags to the individual
@@ -359,10 +359,10 @@ set in an environment variable ``TEST_ARGS``. Example:
 To add a test for a style that is not yet covered, it is usually best
 to copy a YAML file for a similar style to a new file, edit the details
 of the style (how to call it, how to set its coefficients) and then
-run test command with either the *-g* and the replace the initial
-test file with the regenerated one or the *-u* option.  The *-u* option
+run test command with either the ``-g`` and the replace the initial
+test file with the regenerated one or the ``-u`` option.  The ``-u`` option
 will destroy the original file, if the generation run does not complete,
-so using *-g* is recommended unless the YAML file is fully tested
+so using ``-g`` is recommended unless the YAML file is fully tested
 and working.
 
 Some of the force style tests are rather slow to run and some are very
@@ -512,27 +512,51 @@ After post-processing with ``gen_coverage_html`` the results are in
 a folder ``coverage_html`` and can be viewed with a web browser.
 The images below illustrate how the data is presented.
 
-.. list-table::
+.. only:: not latex
 
-      * - .. figure:: JPG/coverage-overview-top.png
-             :scale: 25%
+   .. list-table::
+   
+         * - .. figure:: JPG/coverage-overview-top.png
+                :scale: 25%
 
-          Top of the overview page
+             Top of the overview page
 
-        - .. figure:: JPG/coverage-overview-manybody.png
-             :scale: 25%
+           - .. figure:: JPG/coverage-overview-manybody.png
+                :scale: 25%
 
-          Styles with good coverage
+             Styles with good coverage
 
-        - .. figure:: JPG/coverage-file-top.png
-             :scale: 25%
+           - .. figure:: JPG/coverage-file-top.png
+                :scale: 25%
 
-          Top of individual source page
+             Top of individual source page
 
-        - .. figure:: JPG/coverage-file-branches.png
-             :scale: 25%
+           - .. figure:: JPG/coverage-file-branches.png
+                :scale: 25%
 
-          Source page with branches
+             Source page with branches
+
+.. only:: latex
+
+   .. figure:: JPG/coverage-overview-top.png
+      :width: 60%
+
+      Top of the overview page
+
+   .. figure:: JPG/coverage-overview-manybody.png
+      :width: 60%
+
+      Styles with good coverage
+
+   .. figure:: JPG/coverage-file-top.png
+      :width: 60%
+
+      Top of individual source page
+
+   .. figure:: JPG/coverage-file-branches.png
+      :width: 60%
+
+      Source page with branches
 
 Coding style utilities
 ----------------------

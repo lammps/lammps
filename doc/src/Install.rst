@@ -35,35 +35,35 @@ you **must** build LAMMPS from the source code.
 
 These are the files and subdirectories in the LAMMPS distribution:
 
-+------------+---------------------------------------------+
-| README     | Short description of the LAMMPS package     |
-+------------+---------------------------------------------+
-| LICENSE    | GNU General Public License (GPL)            |
-+------------+---------------------------------------------+
-| SECURITY.md| Security policy for the LAMMPS package      |
-+------------+---------------------------------------------+
-| bench      | benchmark inputs                            |
-+------------+---------------------------------------------+
-| cmake      | CMake build files                           |
-+------------+---------------------------------------------+
-| doc        | documentation and tools to build the manual |
-+------------+---------------------------------------------+
-| examples   | example input files                         |
-+------------+---------------------------------------------+
-| fortran    | Fortran module for LAMMPS library interface |
-+------------+---------------------------------------------+
-| lib        | additional provided or external libraries   |
-+------------+---------------------------------------------+
-| potentials | selected interatomic potential files        |
-+------------+---------------------------------------------+
-| python     | Python module for LAMMPS library interface  |
-+------------+---------------------------------------------+
-| src        | LAMMPS source files                         |
-+------------+---------------------------------------------+
-| tools      | pre- and post-processing tools              |
-+------------+---------------------------------------------+
-| unittest   | source code and inputs for testing LAMMPS   |
-+------------+---------------------------------------------+
++-----------------+---------------------------------------------+
+| ``README``      | Short description of the LAMMPS package     |
++-----------------+---------------------------------------------+
+| ``LICENSE``     | GNU General Public License (GPL)            |
++-----------------+---------------------------------------------+
+| ``SECURITY.md`` | Security policy for the LAMMPS package      |
++-----------------+---------------------------------------------+
+| ``bench``       | benchmark inputs                            |
++-----------------+---------------------------------------------+
+| ``cmake``       | CMake build files                           |
++-----------------+---------------------------------------------+
+| ``doc``         | documentation and tools to build the manual |
++-----------------+---------------------------------------------+
+| ``examples``    | example input files                         |
++-----------------+---------------------------------------------+
+| ``fortran``     | Fortran module for LAMMPS library interface |
++-----------------+---------------------------------------------+
+| ``lib``         | additional provided or external libraries   |
++-----------------+---------------------------------------------+
+| ``potentials``  | selected interatomic potential files        |
++-----------------+---------------------------------------------+
+| ``python``      | Python module for LAMMPS library interface  |
++-----------------+---------------------------------------------+
+| ``src``         | LAMMPS source files                         |
++-----------------+---------------------------------------------+
+| ``tools``       | pre- and post-processing tools              |
++-----------------+---------------------------------------------+
+| ``unittest``    | source code and inputs for testing LAMMPS   |
++-----------------+---------------------------------------------+
 
 You will have all of these if you downloaded the LAMMPS source code.
 You will have only some of them if you downloaded executables, as

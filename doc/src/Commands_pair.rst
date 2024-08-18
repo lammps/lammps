@@ -1,4 +1,3 @@
-
 .. only:: html
 
    .. table_from_list::
@@ -15,8 +14,8 @@
       * :doc:`KSpace styles <Commands_kspace>`
       * :doc:`Dump styles <Commands_dump>`
 
-Pair_style potentials
-======================
+Pair styles
+===========
 
 All LAMMPS :doc:`pair_style <pair_style>` commands.  Some styles have
 accelerated versions.  This is indicated by additional letters in
@@ -35,10 +34,6 @@ OPT.
    * :doc:`kim <pair_kim>`
    * :doc:`list <pair_list>`
    * :doc:`tracker <pair_tracker>`
-   *
-   *
-   *
-   *
    *
    *
    *

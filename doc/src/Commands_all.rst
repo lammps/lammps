@@ -1,4 +1,3 @@
-
 .. only:: html
 
    .. table_from_list::
@@ -15,12 +14,14 @@
       * :doc:`KSpace styles <Commands_kspace>`
       * :doc:`Dump styles <Commands_dump>`
 
+.. raw:: latex
+
+   \clearpage
+
 General commands
 ================
 
-An alphabetic list of general LAMMPS commands.  Note that style
-commands with many variants, can be more easily accessed via the small
-table above.
+An alphabetic list of general LAMMPS commands.
 
 .. table_from_list::
    :columns: 6

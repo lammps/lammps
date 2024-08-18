@@ -1,4 +1,3 @@
-
 .. only:: html
 
    .. table_from_list::
@@ -15,8 +14,8 @@
       * :doc:`KSpace styles <Commands_kspace>`
       * :doc:`Dump styles <Commands_dump>`
 
-Dump commands
-=============
+Dump styles
+===========
 
 An alphabetic list of all LAMMPS :doc:`dump <dump>` commands.
 

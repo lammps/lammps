@@ -343,7 +343,7 @@ mode, the *norm* keyword setting is ignored.  The output grid value on
 an :math:`N_\text{freq}` timestep is the sum of the grid values in each of the
 :math:`N_\text{repeat}` samples, divided by :math:`N_\text{repeat}`.
 
-In per-atom mode, the *norm* keywod affects how averaging is done for
+In per-atom mode, the *norm* keyword affects how averaging is done for
 the per-grid values that are output on an :math:`N_\text{freq}` timestep. :math:`N_\text{repeat}`
 samples contribute to the output.  The *norm* keyword has 3 possible
 settings: *all* or *sample* or *none*.  *All* is the default.

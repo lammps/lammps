@@ -1,4 +1,3 @@
-// clang-format off
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    https://www.lammps.org/, Sandia National Laboratories
@@ -21,11 +20,11 @@
 
 #include "atom.h"
 #include "atom_vec.h"
+#include "compute_rheo_grad.h"
 #include "compute_rheo_interface.h"
 #include "compute_rheo_kernel.h"
 #include "compute_rheo_surface.h"
 #include "compute_rheo_vshift.h"
-#include "compute_rheo_grad.h"
 #include "domain.h"
 #include "error.h"
 #include "fix_rheo.h"
@@ -46,12 +45,12 @@ using namespace RHEO_NS;
 /* ---------------------------------------------------------------------- */
 
 ComputeRHEOPropertyAtom::ComputeRHEOPropertyAtom(LAMMPS *lmp, int narg, char **arg) :
-  Compute(lmp, narg, arg), avec_index(nullptr), col_index(nullptr), col_t_index(nullptr),
-  buf(nullptr), pack_choice(nullptr), fix_rheo(nullptr), fix_pressure(nullptr),
-  fix_thermal(nullptr),  compute_interface(nullptr), compute_kernel(nullptr),
-  compute_surface(nullptr), compute_vshift(nullptr), compute_grad(nullptr)
+    Compute(lmp, narg, arg), avec_index(nullptr), col_index(nullptr), col_t_index(nullptr),
+    buf(nullptr), pack_choice(nullptr), fix_rheo(nullptr), fix_pressure(nullptr),
+    fix_thermal(nullptr), compute_interface(nullptr), compute_kernel(nullptr),
+    compute_surface(nullptr), compute_vshift(nullptr), compute_grad(nullptr)
 {
-  if (narg < 4)  utils::missing_cmd_args(FLERR, "compute property/atom", error);
+  if (narg < 4) utils::missing_cmd_args(FLERR, "compute property/atom", error);
 
   peratom_flag = 1;
   int dim = domain->dimension;
@@ -74,8 +73,10 @@ ComputeRHEOPropertyAtom::ComputeRHEOPropertyAtom(LAMMPS *lmp, int narg, char **a
     }
   }
 
-  if (nvalues == 1) size_peratom_cols = 0;
-  else size_peratom_cols = nvalues;
+  if (nvalues == 1)
+    size_peratom_cols = 0;
+  else
+    size_peratom_cols = nvalues;
 
   pressure_flag = thermal_flag = interface_flag = 0;
   surface_flag = shift_flag = shell_flag = 0;
@@ -173,15 +174,19 @@ ComputeRHEOPropertyAtom::~ComputeRHEOPropertyAtom()
 void ComputeRHEOPropertyAtom::init()
 {
   auto fixes = modify->get_fix_by_style("^rheo$");
-  if (fixes.size() == 0) error->all(FLERR, "Need to define fix rheo to use compute rheo/property/atom");
+  if (fixes.size() == 0)
+    error->all(FLERR, "Need to define fix rheo to use compute rheo/property/atom");
   fix_rheo = dynamic_cast<FixRHEO *>(fixes[0]);
 
   if (interface_flag && !(fix_rheo->interface_flag))
-    error->all(FLERR, "Cannot request interfacial property without corresponding option in fix rheo");
+    error->all(FLERR,
+               "Cannot request interfacial property without corresponding option in fix rheo");
   if (surface_flag && !(fix_rheo->surface_flag))
     error->all(FLERR, "Cannot request surface property without corresponding option in fix rheo");
   if (shift_flag && !(fix_rheo->shift_flag))
-    error->all(FLERR, "Cannot request velocity shifting property without corresponding option in fix rheo");
+    error->all(
+        FLERR,
+        "Cannot request velocity shifting property without corresponding option in fix rheo");
   if (thermal_flag && !(fix_rheo->thermal_flag))
     error->all(FLERR, "Cannot request thermal property without fix rheo/thermal");
 
@@ -237,10 +242,11 @@ void ComputeRHEOPropertyAtom::compute_peratom()
     buf = vector_atom;
     (this->*pack_choice[0])(0);
   } else {
-    if (nmax) buf = &array_atom[0][0];
-    else buf = nullptr;
-    for (int n = 0; n < nvalues; n++)
-      (this->*pack_choice[n])(n);
+    if (nmax)
+      buf = &array_atom[0][0];
+    else
+      buf = nullptr;
+    for (int n = 0; n < nvalues; n++) (this->*pack_choice[n])(n);
   }
 }
 
@@ -250,7 +256,7 @@ void ComputeRHEOPropertyAtom::compute_peratom()
 
 double ComputeRHEOPropertyAtom::memory_usage()
 {
-  double bytes = (double)nmax * nvalues * sizeof(double);
+  double bytes = (double) nmax * nvalues * sizeof(double);
   return bytes;
 }
 
@@ -269,8 +275,10 @@ void ComputeRHEOPropertyAtom::pack_phase(int n)
   int nlocal = atom->nlocal;
 
   for (int i = 0; i < nlocal; i++) {
-    if (mask[i] & groupbit) buf[n] = (status[i] & PHASECHECK);
-    else buf[n] = 0.0;
+    if (mask[i] & groupbit)
+      buf[n] = (status[i] & PHASECHECK);
+    else
+      buf[n] = 0.0;
     n += nvalues;
   }
 }
@@ -284,8 +292,10 @@ void ComputeRHEOPropertyAtom::pack_status(int n)
   int nlocal = atom->nlocal;
 
   for (int i = 0; i < nlocal; i++) {
-    if (mask[i] & groupbit) buf[n] = status[i];
-    else buf[n] = 0.0;
+    if (mask[i] & groupbit)
+      buf[n] = status[i];
+    else
+      buf[n] = 0.0;
     n += nvalues;
   }
 }
@@ -299,8 +309,10 @@ void ComputeRHEOPropertyAtom::pack_chi(int n)
   int nlocal = atom->nlocal;
 
   for (int i = 0; i < nlocal; i++) {
-    if (mask[i] & groupbit) buf[n] = chi[i];
-    else buf[n] = 0.0;
+    if (mask[i] & groupbit)
+      buf[n] = chi[i];
+    else
+      buf[n] = 0.0;
     n += nvalues;
   }
 }
@@ -334,8 +346,10 @@ void ComputeRHEOPropertyAtom::pack_surface_r(int n)
   int nlocal = atom->nlocal;
 
   for (int i = 0; i < nlocal; i++) {
-    if (mask[i] & groupbit) buf[n] = rsurface[i];
-    else buf[n] = 0.0;
+    if (mask[i] & groupbit)
+      buf[n] = rsurface[i];
+    else
+      buf[n] = 0.0;
     n += nvalues;
   }
 }
@@ -349,8 +363,10 @@ void ComputeRHEOPropertyAtom::pack_surface_divr(int n)
   int nlocal = atom->nlocal;
 
   for (int i = 0; i < nlocal; i++) {
-    if (mask[i] & groupbit) buf[n] = divr[i];
-    else buf[n] = 0.0;
+    if (mask[i] & groupbit)
+      buf[n] = divr[i];
+    else
+      buf[n] = 0.0;
     n += nvalues;
   }
 }
@@ -365,8 +381,10 @@ void ComputeRHEOPropertyAtom::pack_surface_n(int n)
   int index = col_index[n];
 
   for (int i = 0; i < nlocal; i++) {
-    if (mask[i] & groupbit) buf[n] = nsurface[i][index];
-    else buf[n] = 0.0;
+    if (mask[i] & groupbit)
+      buf[n] = nsurface[i][index];
+    else
+      buf[n] = 0.0;
     n += nvalues;
   }
 }
@@ -380,8 +398,10 @@ void ComputeRHEOPropertyAtom::pack_coordination(int n)
   int nlocal = atom->nlocal;
 
   for (int i = 0; i < nlocal; i++) {
-    if (mask[i] & groupbit) buf[n] = coordination[i];
-    else buf[n] = 0.0;
+    if (mask[i] & groupbit)
+      buf[n] = coordination[i];
+    else
+      buf[n] = 0.0;
     n += nvalues;
   }
 }
@@ -395,8 +415,10 @@ void ComputeRHEOPropertyAtom::pack_cv(int n)
   int nlocal = atom->nlocal;
 
   for (int i = 0; i < nlocal; i++) {
-    if (mask[i] & groupbit) buf[n] = fix_thermal->calc_cv(i, type[i]);
-    else buf[n] = 0.0;
+    if (mask[i] & groupbit)
+      buf[n] = fix_thermal->calc_cv(type[i]);
+    else
+      buf[n] = 0.0;
     n += nvalues;
   }
 }
@@ -411,8 +433,10 @@ void ComputeRHEOPropertyAtom::pack_pressure(int n)
   int nlocal = atom->nlocal;
 
   for (int i = 0; i < nlocal; i++) {
-    if (mask[i] & groupbit) buf[n] = fix_pressure->calc_pressure(rho[i], type[i]);
-    else buf[n] = 0.0;
+    if (mask[i] & groupbit)
+      buf[n] = fix_pressure->calc_pressure(rho[i], type[i]);
+    else
+      buf[n] = 0.0;
     n += nvalues;
   }
 }
@@ -432,8 +456,10 @@ void ComputeRHEOPropertyAtom::pack_viscous_stress(int n)
   int index_transpose = b * dim + a;
 
   for (int i = 0; i < nlocal; i++) {
-    if (mask[i] & groupbit) buf[n] = viscosity[i] * (gradv[i][index] + gradv[i][index_transpose]);
-    else buf[n] = 0.0;
+    if (mask[i] & groupbit)
+      buf[n] = viscosity[i] * (gradv[i][index] + gradv[i][index_transpose]);
+    else
+      buf[n] = 0.0;
     n += nvalues;
   }
 }
@@ -462,7 +488,8 @@ void ComputeRHEOPropertyAtom::pack_total_stress(int n)
       else
         p = 0.0;
       buf[n] = viscosity[i] * (gradv[i][index] + gradv[i][index_transpose]) + p;
-    } else buf[n] = 0.0;
+    } else
+      buf[n] = 0.0;
     n += nvalues;
   }
 }
@@ -476,8 +503,10 @@ void ComputeRHEOPropertyAtom::pack_nbond_shell(int n)
   int nlocal = atom->nlocal;
 
   for (int i = 0; i < nlocal; i++) {
-    if (mask[i] & groupbit) buf[n] = nbond[i];
-    else buf[n] = 0.0;
+    if (mask[i] & groupbit)
+      buf[n] = nbond[i];
+    else
+      buf[n] = 0.0;
     n += nvalues;
   }
 }
@@ -492,8 +521,10 @@ void ComputeRHEOPropertyAtom::pack_shift_v(int n)
   int index = col_index[n];
 
   for (int i = 0; i < nlocal; i++) {
-    if (mask[i] & groupbit) buf[n] = vshift[i][index];
-    else buf[n] = 0.0;
+    if (mask[i] & groupbit)
+      buf[n] = vshift[i][index];
+    else
+      buf[n] = 0.0;
     n += nvalues;
   }
 }
@@ -508,8 +539,10 @@ void ComputeRHEOPropertyAtom::pack_gradv(int n)
   int index = col_index[n];
 
   for (int i = 0; i < nlocal; i++) {
-    if (mask[i] & groupbit) buf[n] = gradv[i][index];
-    else buf[n] = 0.0;
+    if (mask[i] & groupbit)
+      buf[n] = gradv[i][index];
+    else
+      buf[n] = 0.0;
     n += nvalues;
   }
 }
@@ -523,7 +556,7 @@ void ComputeRHEOPropertyAtom::pack_atom_style(int n)
 
 /* ---------------------------------------------------------------------- */
 
-int ComputeRHEOPropertyAtom::add_tensor_component(char* option, int i, FnPtrPack pack_function)
+int ComputeRHEOPropertyAtom::add_tensor_component(char *option, int i, FnPtrPack pack_function)
 {
   int shift;
   int dim = domain->dimension;
@@ -547,11 +580,15 @@ int ComputeRHEOPropertyAtom::add_tensor_component(char* option, int i, FnPtrPack
       index = 2;
       if (dim == 2) dim_error = 1;
     } else if (utils::strmatch(option, "yx$")) {
-      if (dim == 2) index = 2;
-      else index = 3;
+      if (dim == 2)
+        index = 2;
+      else
+        index = 3;
     } else if (utils::strmatch(option, "yy$")) {
-      if (dim == 2) index = 3;
-      else index = 4;
+      if (dim == 2)
+        index = 3;
+      else
+        index = 4;
     } else if (utils::strmatch(option, "yz$")) {
       index = 5;
       if (dim == 2) dim_error = 1;
@@ -581,7 +618,7 @@ int ComputeRHEOPropertyAtom::add_tensor_component(char* option, int i, FnPtrPack
 
 /* ---------------------------------------------------------------------- */
 
-int ComputeRHEOPropertyAtom::add_vector_component(char* option, int i, FnPtrPack pack_function)
+int ComputeRHEOPropertyAtom::add_vector_component(char *option, int i, FnPtrPack pack_function)
 {
   int shift;
   int dim = domain->dimension;

@@ -1,4 +1,3 @@
-// clang-format off
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    https://www.lammps.org/, Sandia National Laboratories
@@ -21,9 +20,9 @@
 
 #include "atom.h"
 #include "comm.h"
-#include "compute_rheo_kernel.h"
 #include "compute_rheo_grad.h"
 #include "compute_rheo_interface.h"
+#include "compute_rheo_kernel.h"
 #include "domain.h"
 #include "error.h"
 #include "fix_rheo.h"
@@ -32,8 +31,8 @@
 #include "math_extra.h"
 #include "memory.h"
 #include "modify.h"
-#include "neighbor.h"
 #include "neigh_list.h"
+#include "neighbor.h"
 #include "utils.h"
 
 #include <cmath>
@@ -47,9 +46,8 @@ static constexpr double EPSILON = 1e-2;
 /* ---------------------------------------------------------------------- */
 
 PairRHEO::PairRHEO(LAMMPS *lmp) :
-  Pair(lmp), csq(nullptr), rho0(nullptr), cs(nullptr), compute_kernel(nullptr),
-  compute_grad(nullptr), compute_interface(nullptr), fix_rheo(nullptr),
-  fix_pressure(nullptr)
+    Pair(lmp), csq(nullptr), rho0(nullptr), cs(nullptr), compute_kernel(nullptr),
+    compute_grad(nullptr), compute_interface(nullptr), fix_rheo(nullptr), fix_pressure(nullptr)
 {
   restartinfo = 0;
   single_enable = 0;
@@ -82,7 +80,8 @@ void PairRHEO::compute(int eflag, int vflag)
   int pair_force_flag, pair_rho_flag, pair_avisc_flag;
   int fluidi, fluidj;
   double xtmp, ytmp, ztmp, wp, Ti, Tj, dT, csq_ave, cs_ave;
-  double rhoi, rhoj, rho0i, rho0j, voli, volj, Pi, Pj, etai, etaj, kappai, kappaj, eta_ave, kappa_ave, dT_prefactor;
+  double rhoi, rhoj, rho0i, rho0j, voli, volj, Pi, Pj, etai, etaj, kappai, kappaj, eta_ave,
+      kappa_ave, dT_prefactor;
   double mu, q, fp_prefactor, drho_damp, fmag, psi_ij, Fij;
   double *dWij, *dWji;
   double dx[3], du[3], dv[3], fv[3], dfp[3], fsolid[3], ft[3], vi[3], vj[3];
@@ -150,8 +149,10 @@ void PairRHEO::compute(int eflag, int vflag)
     itype = type[i];
     jlist = firstneigh[i];
     jnum = numneigh[i];
-    if (rmass) imass = rmass[i];
-    else imass = mass[itype];
+    if (rmass)
+      imass = rmass[i];
+    else
+      imass = mass[itype];
     etai = viscosity[i];
     fluidi = !(status[i] & PHASECHECK);
     if (thermal_flag) {
@@ -173,8 +174,10 @@ void PairRHEO::compute(int eflag, int vflag)
         r = sqrt(rsq);
         rinv = 1 / r;
 
-        if (rmass) jmass = rmass[i];
-        else jmass = mass[jtype];
+        if (rmass)
+          jmass = rmass[i];
+        else
+          jmass = mass[jtype];
         etaj = viscosity[j];
         fluidj = !(status[j] & PHASECHECK);
         if (thermal_flag) {
@@ -217,7 +220,7 @@ void PairRHEO::compute(int eflag, int vflag)
         if (interface_flag) {
           if (fluidi && (!fluidj)) {
             compute_interface->correct_v(vj, vi, j, i);
-            rhoj = compute_interface->correct_rho(j, i);
+            rhoj = compute_interface->correct_rho(j);
             Pj = fix_pressure->calc_pressure(rhoj, jtype);
 
             if ((chi[j] > 0.9) && (r < (cutk * 0.5)))
@@ -225,7 +228,7 @@ void PairRHEO::compute(int eflag, int vflag)
 
           } else if ((!fluidi) && fluidj) {
             compute_interface->correct_v(vi, vj, i, j);
-            rhoi = compute_interface->correct_rho(i, j);
+            rhoi = compute_interface->correct_rho(i);
             Pi = fix_pressure->calc_pressure(rhoi, itype);
 
             if (chi[i] > 0.9 && r < (cutk * 0.5))
@@ -251,7 +254,8 @@ void PairRHEO::compute(int eflag, int vflag)
           } else {
             kappa_ave = 0.5 * (kappai + kappaj);
           }
-          dT_prefactor = 2.0 * kappa_ave * (Ti - Tj) * rinv * rinv * voli * volj * 2.0 / (rhoi + rhoj);
+          dT_prefactor =
+              2.0 * kappa_ave * (Ti - Tj) * rinv * rinv * voli * volj * 2.0 / (rhoi + rhoj);
 
           dT = dot3(dx, dWij);
           heatflow[i] += dT * dT_prefactor;
@@ -295,8 +299,7 @@ void PairRHEO::compute(int eflag, int vflag)
           // Now compute viscous eta*Lap[v] terms
           for (a = 0; a < dim; a++) {
             fv[a] = 0.0;
-            for (b = 0; b < dim; b++)
-              fv[a] += dv[a] * dx[b] * dWij[b];
+            for (b = 0; b < dim; b++) fv[a] += dv[a] * dx[b] * dWij[b];
             fv[a] *= 2.0 * eta_ave * voli * volj * rinv * rinv;
           }
 
@@ -309,13 +312,13 @@ void PairRHEO::compute(int eflag, int vflag)
 
           // Note the virial's definition is hazy, e.g. viscous contributions will depend on rotation
           if (evflag)
-            ev_tally_xyz(i, j, nlocal, newton_pair, 0.0, 0.0, ft[0], ft[1], ft[2], dx[0], dx[1], dx[2]);
+            ev_tally_xyz(i, j, nlocal, newton_pair, 0.0, 0.0, ft[0], ft[1], ft[2], dx[0], dx[1],
+                         dx[2]);
 
           if (newton_pair || j < nlocal) {
-            for (a = 0; a < dim; a ++) {
+            for (a = 0; a < dim; a++) {
               fv[a] = 0.0;
-              for (b = 0; b < dim; b++)
-                fv[a] += (vi[a] - vj[a]) * dx[b] * dWji[b];
+              for (b = 0; b < dim; b++) fv[a] += (vi[a] - vj[a]) * dx[b] * dWji[b];
               fv[a] *= -2.0 * eta_ave * voli * volj * rinv * rinv;
               // flip sign here b/c -= at accummulator
             }
@@ -329,7 +332,8 @@ void PairRHEO::compute(int eflag, int vflag)
             f[j][2] -= ft[2];
 
             if (evflag)
-              ev_tally_xyz(i, j, nlocal, newton_pair, 0.0, 0.0, ft[0], ft[1], ft[2], -dx[0], -dx[1], -dx[2]);
+              ev_tally_xyz(i, j, nlocal, newton_pair, 0.0, 0.0, ft[0], ft[1], ft[2], -dx[0], -dx[1],
+                           -dx[2]);
           }
 
           if (compute_interface) {
@@ -352,8 +356,7 @@ void PairRHEO::compute(int eflag, int vflag)
           if (laplacian_order >= 1) {
             psi_ij = rhoj - rhoi;
             Fij = -rinv * rinv * dot3(dx, dWij);
-            for (a = 0; a < dim; a++)
-              psi_ij += 0.5 * (gradr[i][a] + gradr[j][a]) * dx[a];
+            for (a = 0; a < dim; a++) psi_ij += 0.5 * (gradr[i][a] + gradr[j][a]) * dx[a];
             drho[i] += 2 * rho_damp * psi_ij * Fij * volj;
           } else {
             drho_damp = 2 * rho_damp * ((rhoj - rho0[jtype]) - (rhoi - rho0[itype])) * rinv * wp;
@@ -393,8 +396,7 @@ void PairRHEO::allocate()
 
   memory->create(setflag, n + 1, n + 1, "pair:setflag");
   for (int i = 1; i <= n; i++)
-    for (int j = i; j <= n; j++)
-      setflag[i][j] = 0;
+    for (int j = i; j <= n; j++) setflag[i][j] = 0;
 
   memory->create(cutsq, n + 1, n + 1, "pair:cutsq");
 }
@@ -423,7 +425,8 @@ void PairRHEO::settings(int narg, char **arg)
       iarg++;
     } else if (strcmp(arg[iarg], "harmonic/means") == 0) {
       harmonic_means_flag = 1;
-    } else error->all(FLERR, "Illegal pair_style command, {}", arg[iarg]);
+    } else
+      error->all(FLERR, "Illegal pair_style command, {}", arg[iarg]);
     iarg++;
   }
 }
@@ -434,10 +437,8 @@ void PairRHEO::settings(int narg, char **arg)
 
 void PairRHEO::coeff(int narg, char **arg)
 {
-  if (narg != 2)
-    error->all(FLERR, "Incorrect number of args for pair_style rheo coefficients");
-  if (!allocated)
-    allocate();
+  if (narg != 2) error->all(FLERR, "Incorrect number of args for pair_style rheo coefficients");
+  if (!allocated) allocate();
 
   int ilo, ihi, jlo, jhi;
   utils::bounds(FLERR, arg[0], 1, atom->ntypes, ilo, ihi, error);
@@ -451,8 +452,7 @@ void PairRHEO::coeff(int narg, char **arg)
     }
   }
 
-  if (count == 0)
-    error->all(FLERR, "Incorrect args for pair rheo coefficients");
+  if (count == 0) error->all(FLERR, "Incorrect args for pair rheo coefficients");
 }
 
 /* ----------------------------------------------------------------------
@@ -481,7 +481,8 @@ void PairRHEO::setup()
   rho0 = fix_rheo->rho0;
 
   if (cutk != fix_rheo->cut)
-    error->all(FLERR, "Pair rheo cutoff {} does not agree with fix rheo cutoff {}", cutk, fix_rheo->cut);
+    error->all(FLERR, "Pair rheo cutoff {} does not agree with fix rheo cutoff {}", cutk,
+               fix_rheo->cut);
 
   cutksq = cutk * cutk;
   cutkinv = 1.0 / cutk;
@@ -490,11 +491,9 @@ void PairRHEO::setup()
 
   int n = atom->ntypes;
   memory->create(cs, n + 1, "rheo:cs");
-  for (int i = 1; i <= n; i++)
-    cs[i] = sqrt(csq[i]);
+  for (int i = 1; i <= n; i++) cs[i] = sqrt(csq[i]);
 
-  if (comm->ghost_velocity == 0)
-    error->all(FLERR, "Pair RHEO requires ghost atoms store velocity");
+  if (comm->ghost_velocity == 0) error->all(FLERR, "Pair RHEO requires ghost atoms store velocity");
 
   if (laplacian_order == -1) {
     if (fix_rheo->kernel_style == RK2)
@@ -512,8 +511,7 @@ void PairRHEO::setup()
 
 double PairRHEO::init_one(int i, int j)
 {
-  if (setflag[i][j] == 0)
-    error->all(FLERR, "All pair rheo coeffs are not set");
+  if (setflag[i][j] == 0) error->all(FLERR, "All pair rheo coeffs are not set");
 
   return cutk;
 }

@@ -37,7 +37,7 @@ class PairRHEO : public Pair {
   void unpack_reverse_comm(int, int *, double *) override;
 
  protected:
-  double cutk, *csq, *rho0;        // From fix RHEO
+  double cutk, *csq, *rho0;    // From fix RHEO
   double *cs, cutksq, cutkinv, cutkinv3, av, rho_damp;
 
   int laplacian_order;

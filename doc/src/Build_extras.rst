@@ -1079,7 +1079,7 @@ POEMS package
          # build with default MPI C++ compiler (settings as with "make mpi")
          make lib-poems args="-m mpi"
 
-         # build with Intel icc compiler
+         # build with Intel Classic compiler
          make lib-poems args="-m icc"
 
       The build should produce two files: ``lib/poems/libpoems.a`` and
@@ -1264,7 +1264,7 @@ The ATC package requires the MANYBODY package also be installed.
          # build with default MPI compiler (settings as with "make mpi")
          make lib-atc args="-m mpi"
 
-         # build with Intel icc compiler
+         # build with Intel Classic compiler
          make lib-atc args="-m icc"
 
       The build should produce two files: ``lib/atc/libatc.a`` and
@@ -1329,7 +1329,7 @@ AWPMD package
          # build with default MPI compiler (settings as with "make mpi")
          make lib-awpmd args="-m mpi"
 
-         # build with Intel icc compiler
+         # build with Intel Classic compiler
          make lib-awpmd args="-m icc"
 
       The build should produce two files: ``lib/awpmd/libawpmd.a`` and

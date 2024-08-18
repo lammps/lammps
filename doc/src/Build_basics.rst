@@ -234,7 +234,7 @@ LAMMPS.
          # Building with GNU Compilers:
          cmake -DCMAKE_C_COMPILER=gcc -DCMAKE_CXX_COMPILER=g++ \
                -DCMAKE_Fortran_COMPILER=gfortran ../cmake
-         # Building with Intel Compilers:
+         # Building with Intel Classic Compilers:
          cmake -DCMAKE_C_COMPILER=icc -DCMAKE_CXX_COMPILER=icpc \
                -DCMAKE_Fortran_COMPILER=ifort ../cmake
          # Building with Intel oneAPI Compilers:

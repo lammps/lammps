@@ -23,7 +23,7 @@ additional letters in parenthesis: g = GPU, i = INTEL, k =
 KOKKOS, o = OPENMP, t = OPT.
 
 .. table_from_list::
-   :columns: 5
+   :columns: 4
 
    * :doc:`ackland/atom <compute_ackland_atom>`
    * :doc:`adf <compute_adf>`

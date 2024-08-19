@@ -23,7 +23,7 @@ parenthesis: g = GPU, i = INTEL, k = KOKKOS, o = OPENMP, t =
 OPT.
 
 .. table_from_list::
-   :columns: 5
+   :columns: 4
 
    * :doc:`accelerate/cos <fix_accelerate_cos>`
    * :doc:`acks2/reaxff (k) <fix_acks2_reaxff>`

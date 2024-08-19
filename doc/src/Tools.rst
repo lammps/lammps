@@ -96,7 +96,7 @@ Miscellaneous tools
    * :ref:`LAMMPS GUI <lammps_gui>`
    * :ref:`LAMMPS magic patterns for file(1) <magic>`
    * :ref:`Offline build tool <offline>`
-   * :ref:`Regression tests <regression>`
+   * :ref:`regression tests <regression>`
    * :ref:`singularity/apptainer <singularity_tool>`
    * :ref:`SWIG interface <swig>`
    * :ref:`vim <vim>`
@@ -1183,7 +1183,7 @@ README for more info on Pizza.py and how to use these scripts.
 
 .. _regression:
 
-Regression tests tool
+regression tests tool
 --------------------------
 
 The regression-tests subdirectory contains a tool for performing regression

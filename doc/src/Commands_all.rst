@@ -1,7 +1,7 @@
 .. only:: html
 
    .. table_from_list::
-      :columns: 3
+      :columns: 5
 
       * :doc:`General commands <Commands_all>`
       * :doc:`Fix styles <Commands_fix>`

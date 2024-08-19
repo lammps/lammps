@@ -409,7 +409,7 @@ This functions adds the following case to :cpp:func:`utils::bounds() <LAMMPS_NS:
    *
    *  This function has the same arguments as expand_type() but returns an integer value */
 
-  int expand_type_int(const char *file, int line, const std::string &str, int mode, LAMMPS *lmp);
+  int expand_type_int(const char *file, int line, const std::string &str, int mode, LAMMPS *lmp, int verify = 0);
 
   /*! Check grid reference for valid Compute or Fix which produces per-grid data
    *
@@ -425,6 +425,7 @@ This functions adds the following case to :cpp:func:`utils::bounds() <LAMMPS_NS:
    * \param nevery  frequency at which caller will access fix for per-grid info,
    *                ignored when reference is to a compute
    * \param lmp     pointer to top-level LAMMPS class instance
+   * \param verify  check bounds for interaction type
    * \return id     ID of Compute or Fix
    * \return igrid  which grid is referenced (0 to N-1)
    * \return idata  which data on grid is referenced (0 to N-1)

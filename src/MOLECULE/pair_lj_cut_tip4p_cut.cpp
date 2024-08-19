@@ -465,10 +465,10 @@ void PairLJCutTIP4PCut::coeff(int narg, char **arg)
   // and the types are already set and the strings are empty.
 
   if (typeO_str.size() > 0) {
-    typeO = utils::expand_type_int(FLERR, typeO_str, Atom::ATOM, lmp);
-    typeH = utils::expand_type_int(FLERR, typeH_str, Atom::ATOM, lmp);
-    typeB = utils::expand_type_int(FLERR, typeB_str, Atom::BOND, lmp);
-    typeA = utils::expand_type_int(FLERR, typeA_str, Atom::ANGLE, lmp);
+    typeO = utils::expand_type_int(FLERR, typeO_str, Atom::ATOM, lmp, 1);
+    typeH = utils::expand_type_int(FLERR, typeH_str, Atom::ATOM, lmp, 1);
+    typeB = utils::expand_type_int(FLERR, typeB_str, Atom::BOND, lmp, 1);
+    typeA = utils::expand_type_int(FLERR, typeA_str, Atom::ANGLE, lmp, 1);
   }
 
   int ilo,ihi,jlo,jhi;

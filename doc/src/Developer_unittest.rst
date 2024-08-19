@@ -44,7 +44,7 @@ available:
 
 .. list-table::
    :header-rows: 1
-   :widths: auto
+   :widths: 32 18 50
    :align: left
 
    * - File name:

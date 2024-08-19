@@ -53,7 +53,7 @@ Members of ``lammpsplugin_t``
 
 .. list-table::
    :header-rows: 1
-   :widths: auto
+   :widths: 15 85
 
    * - Member
      - Description

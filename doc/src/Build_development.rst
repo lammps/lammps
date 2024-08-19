@@ -213,6 +213,7 @@ The output of this command will be looking something like this:
 The ``ctest`` command has many options, the most important ones are:
 
 .. list-table::
+   :widths: 20 80
 
    * - Option
      - Function
@@ -336,6 +337,7 @@ paths in the individual source files.
 The force style test programs have a common set of options:
 
 .. list-table::
+   :widths: 25 75
 
    * - Option
      - Function

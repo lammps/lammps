@@ -308,7 +308,7 @@ LAMMPS system size restrictions
 
 .. list-table::
    :header-rows: 1
-   :widths: auto
+   :widths: 18 27 28 27
    :align: center
 
    * -

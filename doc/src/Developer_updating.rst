@@ -245,36 +245,38 @@ to use scoped enumerators instead.
 
 .. list-table::
    :header-rows: 1
-   :widths: auto
+   :widths: 23 10 23 10 23 10
 
    * - Symbolic Constant
      - Value
      - Symbolic Constant
      - Value
+     - Symbolic Constant
+     - Value
    * - Atom::GROW
+     - 0
+     - Atom::ATOMIC
      - 0
      - Atom::MAP_NONE
      - 0
    * - Atom::RESTART
      - 1
+     - Atom::MOLECULAR
+     - 1
      - Atom::MAP_ARRAY
      - 1
    * - Atom::BORDER
      - 2
+     - Atom::TEMPLATE
+     - 2
      - Atom::MAP_HASH
      - 2
-   * - Atom::ATOMIC
+   * - AtomVec::PER_ATOM
      - 0
-     - Atom::MAP_YES
-     - 3
-   * - Atom::MOLECULAR
-     - 1
-     - AtomVec::PER_ATOM
-     - 0
-   * - Atom::TEMPLATE
-     - 2
      - AtomVec::PER_TYPE
      - 1
+     - Atom::MAP_YES
+     - 3
 
 Old:
 

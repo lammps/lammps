@@ -70,9 +70,9 @@ parameters adjusted for use with a long-range Coulombic solver
 OM distance is specified in the :doc:`pair_style <pair_style>` command,
 not as part of the pair coefficients.
 
-   .. list-table::
+.. list-table::
       :header-rows: 1
-      :widths: auto
+      :widths: 36 19 13 15 17
 
       * - Parameter
         - TIP4P (original)

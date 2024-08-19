@@ -37,6 +37,7 @@ includes several public variables that describe the geometry/dynamics of the
 contact such as
 
 .. list-table::
+   :widths: 25 75
 
    * - ``xi`` and ``xj``
      - Positions of the two contacting bodies
@@ -64,6 +65,7 @@ GranSubMod classes. All GranSubMod classes share several general methods which m
 need to be defined
 
 .. list-table::
+   :widths: 25 75
 
    * - ``mix_coeff()``
      - Optional method to define how coefficients are mixed for different atom types. By default, coefficients are mixed using a geometric mean.
@@ -78,6 +80,7 @@ Correspondingly, the Heat sub-model has a ``calculate_heat()`` method. Lastly,
 the Normal sub-model has a few extra optional methods:
 
 .. list-table::
+   :widths: 25 75
 
    * - ``touch()``
      - Tests whether particles are in contact. By default, when particles overlap.
@@ -116,7 +119,6 @@ set of files ``gran_sub_mod_custom.h``:
       protected:
        double k1, k2, delta_switch;
      };
-
    }    // namespace Granular_NS
    }    // namespace LAMMPS_NS
 

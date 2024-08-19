@@ -103,7 +103,7 @@ the Additional Information section below.
 
 .. list-table::
    :header-rows: 1
-   :widths: auto
+   :widths: 12 28 18 32
 
    * - Atom style
      - Attributes

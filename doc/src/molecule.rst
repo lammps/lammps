@@ -194,9 +194,9 @@ appear if the value(s) are different than the default, except when
 defining a *body* particle, which requires setting the number of
 *atoms* to 1, and setting the *inertia* in a specific section (see below).
 
-   .. list-table::
+.. list-table::
       :header-rows: 1
-      :widths: auto
+      :widths: 20 13 42 15
 
       * - Number(s)
         - Keyword

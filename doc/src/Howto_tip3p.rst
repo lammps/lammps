@@ -32,9 +32,9 @@ optimized for a long-range Coulomb solver (e.g. Ewald or PPPM in LAMMPS)
 model (without fix shake) is desired, for rigid bonds/angles they are
 ignored.
 
-   .. list-table::
+.. list-table::
       :header-rows: 1
-      :widths: auto
+      :widths: 38 22 20 20
 
       * - Parameter
         - TIP3P-CHARMM

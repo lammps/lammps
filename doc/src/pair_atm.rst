@@ -56,7 +56,7 @@ potential using the :doc:`pair_style hybrid/overlay <pair_hybrid>`
 command as in the example above.
 
 The potential for a triplet of atom is calculated only if all 3 distances
-:math:`r_{12}`, :math:`r_{23}`, :math:`r_{31}` between the 3 atoms satisfy
+:math:`r_{12}`, :math:`r_{23}`, :math:`r_{31}` between the three atoms satisfy
 :math:`r_{IJ} < \text{cutoff}`.  In addition, the product of the 3 distances
 :math:`r_{12} r_{23} r_{31}` < cutoff_triple :math:`^3` is required, which
 excludes from calculation the triplets with small contribution to the

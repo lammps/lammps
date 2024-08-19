@@ -42,8 +42,8 @@
 #include "update.h"
 #include "variable.h"
 
-#include <cmath>
 #include <cctype>
+#include <cmath>
 #include <cstring>
 
 using namespace LAMMPS_NS;
@@ -51,22 +51,23 @@ using MathConst::DEG2RAD;
 
 static constexpr double BIG = 1.0e20;
 
-enum{NUMERIC,ATOM,TYPE,ELEMENT,ATTRIBUTE};
-enum{SPHERE,LINE,TRI};           // also in some Body and Fix child classes
-enum{STATIC,DYNAMIC};
-enum{NO=0,YES=1};
+enum { NUMERIC, ATOM, TYPE, ELEMENT, ATTRIBUTE };
+enum { SPHERE, LINE, TRI };    // also in some Body and Fix child classes
+enum { STATIC, DYNAMIC };
+enum { NO = 0, YES = 1 };
 
 /* ---------------------------------------------------------------------- */
 
 DumpImage::DumpImage(LAMMPS *lmp, int narg, char **arg) :
-  DumpCustom(lmp, narg, arg), thetastr(nullptr), phistr(nullptr), cxstr(nullptr),
-  cystr(nullptr), czstr(nullptr), upxstr(nullptr), upystr(nullptr), upzstr(nullptr),
-  zoomstr(nullptr), diamtype(nullptr), diamelement(nullptr),
-  bdiamtype(nullptr), colortype(nullptr), colorelement(nullptr), bcolortype(nullptr),
-  avec_line(nullptr), avec_tri(nullptr), avec_body(nullptr), fixptr(nullptr), image(nullptr),
-  chooseghost(nullptr), bufcopy(nullptr)
+    DumpCustom(lmp, narg, arg), thetastr(nullptr), phistr(nullptr), cxstr(nullptr), cystr(nullptr),
+    czstr(nullptr), upxstr(nullptr), upystr(nullptr), upzstr(nullptr), zoomstr(nullptr),
+    diamtype(nullptr), diamelement(nullptr), bdiamtype(nullptr), colortype(nullptr),
+    colorelement(nullptr), bcolortype(nullptr), grid2d(nullptr), grid3d(nullptr),
+    id_grid_compute(nullptr), id_grid_fix(nullptr), grid_compute(nullptr), grid_fix(nullptr),
+    gbuf(nullptr), avec_line(nullptr), avec_tri(nullptr), avec_body(nullptr), fixptr(nullptr),
+    image(nullptr), chooseghost(nullptr), bufcopy(nullptr)
 {
-  if (binary || multiproc) error->all(FLERR,"Invalid dump image filename");
+  if (binary || multiproc) error->all(FLERR, "Invalid dump image filename");
 
   // force binary flag on to avoid corrupted output on Windows
 

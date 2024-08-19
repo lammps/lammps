@@ -149,7 +149,7 @@ potential given by
    E = \frac{C q_i q_j}{\epsilon  r} \qquad r < r_c
 
 where C is an energy-conversion constant, Qi and Qj are the charges on
-the 2 atoms, and :math:`\epsilon` is the dielectric constant which can be set
+the two atoms, and :math:`\epsilon` is the dielectric constant which can be set
 by the :doc:`dielectric <dielectric>` command.  The cutoff :math:`r_c` truncates
 the interaction distance.
 

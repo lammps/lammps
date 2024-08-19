@@ -23,7 +23,7 @@ Doc page with :doc:`ERROR messages <Errors_messages>`
    adjusted to match the user-specified accuracy.
 
 *Angle atoms missing at step %ld*
-   One or more of 3 atoms needed to compute a particular angle are
+   One or more of three atoms needed to compute a particular angle are
    missing on this processor.  Typically this is because the pairwise
    cutoff is set too short or the angle has blown apart and an atom is
    too far away.
@@ -233,7 +233,7 @@ Doc page with :doc:`ERROR messages <Errors_messages>`
    style.
 
 *Fix langevin gjf using random gaussians is not implemented with kokkos*
-This will most likely cause errors in kinetic fluctuations.
+   This will most likely cause errors in kinetic fluctuations.
 
 *Fix property/atom mol or charge w/out ghost communication*
    A model typically needs these properties defined for ghost atoms.
@@ -324,7 +324,7 @@ This will most likely cause errors in kinetic fluctuations.
    Specifically they are further apart than half a periodic box length.
    Or they are more than a box length apart in a non-periodic dimension.
    This is usually due to the initial data file not having correct image
-   flags for the 2 atoms in a bond that straddles a periodic boundary.
+   flags for the two atoms in a bond that straddles a periodic boundary.
    They should be different by 1 in that case.  This is a warning because
    inconsistent image flags will not cause problems for dynamics or most
    LAMMPS simulations.  However they can cause problems when such atoms

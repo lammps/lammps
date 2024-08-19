@@ -96,7 +96,7 @@ ordered :math:`xx`, :math:`yy`, :math:`zz`, :math:`xy`, :math:`xz`, :math:`yz`.
 The number of atoms contributing to the temperature is assumed to be
 constant for the duration of the run; use the *dynamic* option of the
 :doc:`compute_modify <compute_modify>` command if this is not the case.
-However, in order to get meaningful result, the group ID of this compute should
+However, in order to get meaningful results, the group ID of this compute should
 be all.
 
 The removal of the cosine-shaped velocity component by this command is
@@ -145,7 +145,10 @@ The seventh element of vector value will be in velocity :doc:`units <units>`.
 Restrictions
 """"""""""""
 
-This command is only available when LAMMPS was built with the MISC package.
+This compute is part of the MISC package.  It is only enabled if LAMMPS
+was built with that package.  See the :doc:`Build package
+<Build_package>` page for more info.
+
 Since this compute depends on :doc:`fix accelerate/cos <fix_accelerate_cos>`
 which can only work for 3d systems, it cannot be used for 2d systems.
 

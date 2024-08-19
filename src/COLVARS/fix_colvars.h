@@ -38,7 +38,7 @@ FixStyle(colvars,FixColvars);
 
 // Forward declarations
 namespace IntHash_NS {
-class inthash_t;
+struct inthash_t;
 }
 class colvarproxy_lammps;
 

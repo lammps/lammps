@@ -36,7 +36,7 @@ the context of your application.
    steps, invoke the command, etc.
 
    In this scenario, the other code can be called as a library, as in
-   1., or it could be a stand-alone code, invoked by a system() call
+   1., or it could be a stand-alone code, invoked by a ``system()`` call
    made by the command (assuming your parallel machine allows one or
    more processors to start up another program).  In the latter case the
    stand-alone code could communicate with LAMMPS through files that the

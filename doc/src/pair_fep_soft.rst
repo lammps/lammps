@@ -221,7 +221,7 @@ Coulomb interactions can also be damped with a soft core at short distance,
    (1-\lambda)^2 + r^2 \right]^{1/2}} \qquad r < r_c
 
 In the Coulomb part :math:`C` is an energy-conversion constant, :math:`q_i` and
-:math:`q_j` are the charges on the 2 atoms, and epsilon is the dielectric
+:math:`q_j` are the charges on the two atoms, and epsilon is the dielectric
 constant which can be set by the :doc:`dielectric <dielectric>` command.
 
 The coefficient lambda is an activation parameter. When :math:`\lambda = 1` the

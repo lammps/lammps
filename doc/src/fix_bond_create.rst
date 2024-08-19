@@ -18,7 +18,7 @@ Syntax
 * style = *bond/create* or *bond/create/angle*
 * Nevery = attempt bond creation every this many steps
 * itype,jtype = atoms of itype can bond to atoms of jtype (1-Ntypes or type label)
-* Rmin = 2 atoms separated by less than Rmin can bond (distance units)
+* Rmin = two atoms separated by less than Rmin can bond (distance units)
 * bondtype = type of created bonds (integer or type label)
 * zero or more keyword/value pairs may be appended to args
 * keyword = *iparam* or *jparam* or *prob* or *atype* or *dtype* or *itype* or *aconstrain*

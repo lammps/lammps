@@ -10,14 +10,14 @@ for any commands that may be processed later. Commands may set an
 internal variable, read in a file, or run a simulation.  These actions
 can be grouped into three categories:
 
-a) commands that change a global setting (examples: timestep, newton,
-   echo, log, thermo, restart),
+a) commands that change a global setting (examples: :doc:`timestep <timestep>`, :doc:`newton <newton>`,
+   :doc:`echo <echo>`, :doc:`log <log>`, :doc:`thermo <thermo>`, :doc:`restart <restart>`),
 b) commands that add, modify, remove, or replace "styles" that are
-   executed during a "run" (examples: pair_style, fix, compute, dump,
-   thermo_style, pair_modify), and
+   executed during a "run" (examples: :doc:`pair_style <pair_style>`, :doc:`fix <fix>`, :doc:`compute <compute>`, :doc:`dump <dump>`,
+   :doc:`thermo_style <thermo_style>`, :doc:`pair_modify <pair_modify>`), and
 c) commands that execute a "run" or perform some other computation or
-   operation (examples: print, run, minimize, temper, write_dump, rerun,
-   read_data, read_restart)
+   operation (examples: :doc:`print <print>`, :doc:`run <run>`, :doc:`minimize <minimize>`, :doc:`temper <temper>`, :doc:`write_dump <write_dump>`, :doc:`rerun <rerun>`,
+   :doc:`read_data <read_data>`, :doc:`read_restart <read_restart>`)
 
 Commands in category a) have default settings, which means you only
 need to use the command if you wish to change the defaults.
@@ -61,7 +61,7 @@ between commands in the c) category. The following rules apply:
     <read_data>` command initializes the system by setting up the
     simulation box and assigning atoms to processors.  If default values
     are not desired, the :doc:`processors <processors>` and
-    :doc:`boundary <boundary>` commands need to be used before read_data
+    :doc:`boundary <boundary>` commands need to be used before ``read_data``
     to tell LAMMPS how to map processors to the simulation box.
 
 Many input script errors are detected by LAMMPS and an ERROR or
@@ -70,6 +70,6 @@ more information on what errors mean.  The documentation for each
 command lists restrictions on how the command can be used.
 
 You can use the :ref:`-skiprun <skiprun>` command line flag
-to have LAMMPS skip the execution of any "run", "minimize", or similar
+to have LAMMPS skip the execution of any ``run``, ``minimize``, or similar
 commands to check the entire input for correct syntax to avoid crashes
 on typos or syntax errors in long runs.

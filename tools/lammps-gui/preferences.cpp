@@ -250,26 +250,33 @@ GeneralTab::GeneralTab(QSettings *_settings, LammpsWrapper *_lammps, QWidget *pa
     connect(pluginbrowse, &QPushButton::released, this, &GeneralTab::pluginpath);
 #endif
 
-    auto *fontlayout = new QHBoxLayout;
+    auto *gridlayout = new QGridLayout;
     auto *getallfont =
         new QPushButton(QIcon(":/icons/preferences-desktop-font.png"), "Select Default Font...");
     auto *gettextfont =
         new QPushButton(QIcon(":/icons/preferences-desktop-font.png"), "Select Text Font...");
-    fontlayout->addWidget(getallfont);
-    fontlayout->addWidget(gettextfont);
+    gridlayout->addWidget(getallfont, 0, 0);
+    gridlayout->addWidget(gettextfont, 0, 1);
     connect(getallfont, &QPushButton::released, this, &GeneralTab::newallfont);
     connect(gettextfont, &QPushButton::released, this, &GeneralTab::newtextfont);
 
-    auto *freqlayout = new QHBoxLayout;
-    auto *freqlabel  = new QLabel("GUI update interval (ms)");
-    auto *freqval    = new QSpinBox;
+    auto *freqlabel = new QLabel("Data update interval (ms)");
+    auto *freqval   = new QSpinBox;
     freqval->setRange(1, 1000);
     freqval->setStepType(QAbstractSpinBox::AdaptiveDecimalStepType);
     freqval->setValue(settings->value("updfreq", "10").toInt());
     freqval->setObjectName("updfreq");
-    freqlayout->addWidget(freqlabel);
-    freqlayout->addWidget(freqval);
-    freqlayout->addStretch(1);
+    gridlayout->addWidget(freqlabel, 1, 0);
+    gridlayout->addWidget(freqval, 1, 1);
+
+    auto *chartlabel = new QLabel("Charts update interval (ms)");
+    auto *chartval   = new QSpinBox;
+    chartval->setRange(1, 5000);
+    chartval->setStepType(QAbstractSpinBox::AdaptiveDecimalStepType);
+    chartval->setValue(settings->value("updchart", "500").toInt());
+    chartval->setObjectName("updchart");
+    gridlayout->addWidget(chartlabel, 2, 0);
+    gridlayout->addWidget(chartval, 2, 1);
 
     layout->addWidget(echo);
     layout->addWidget(cite);
@@ -283,8 +290,7 @@ GeneralTab::GeneralTab(QSettings *_settings, LammpsWrapper *_lammps, QWidget *pa
     layout->addWidget(pluginlabel);
     layout->addLayout(pluginlayout);
 #endif
-    layout->addLayout(fontlayout);
-    layout->addLayout(freqlayout);
+    layout->addLayout(gridlayout);
     layout->addStretch(1);
     setLayout(layout);
 }

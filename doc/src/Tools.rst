@@ -96,6 +96,7 @@ Miscellaneous tools
    * :ref:`LAMMPS GUI <lammps_gui>`
    * :ref:`LAMMPS magic patterns for file(1) <magic>`
    * :ref:`Offline build tool <offline>`
+   * :ref:`Regression tests <regression>`
    * :ref:`singularity/apptainer <singularity_tool>`
    * :ref:`SWIG interface <swig>`
    * :ref:`vim <vim>`
@@ -1177,6 +1178,29 @@ that perform common LAMMPS post-processing tasks, such as:
 
 These are simple scripts built on `Pizza.py <pizza_>`_ modules.  See the
 README for more info on Pizza.py and how to use these scripts.
+
+----------
+
+.. _regression:
+
+Regression tests tool
+--------------------------
+
+The regression-tests subdirectory contains a tool for performing regression
+tests with a given LAMMPS binary.  The tool launches the LAMMPS binary with
+any given input script under one of the `examples` subfolders, and compares
+the thermo output in the generated log file with those in the provided log file
+with the same number of processors ub the same subfolder. If the differences
+between the actual and reference values are within specified tolerances,
+the test is considered passed.  For each test batch, that is, a set of example
+input scripts, the mpirun command, the LAMMPS command line arguments,
+and the tolerances for individual thermo quantites can be specified
+in a configuration file in YAML format.
+
+The tool also reports if and how the run fails, and if a reference log file
+is missing.  See the README file for more information.
+
+This tool was written by Trung Nguyen at U of Chicago (ndactrung at gmail.com).
 
 ----------
 

@@ -82,7 +82,7 @@ Here are suggestions on how to perform these tasks:
   command and pass them to an external program, `FFmpeg
   <https://ffmpeg.org/>`_, to generate movies from them.  The
   :ref:`LAMMPS-GUI tool <lammps_gui>` has an *Snapshot Image Viewer*
-  which uses :doc:`dump image <dump_image>` and alows to modify the
+  which uses :doc:`dump image <dump_image>` and allows to modify the
   visualization settings interactively.  It also has a *Slide Show*
   feature where images created by :doc:`dump image <dump_image>` are
   collected during a simulation and can be animated interactively or

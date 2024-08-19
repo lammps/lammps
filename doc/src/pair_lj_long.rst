@@ -44,8 +44,8 @@ Syntax
        flag_coul = *long* or *off*
          *long* = use Kspace long-range summation for Coulombic 1/r term
          *off* = omit Coulombic term
-       otype,htype = atom types for TIP4P O and H
-       btype,atype = bond and angle types for TIP4P waters
+       otype,htype = atom types (numeric or type label) for TIP4P O and H
+       btype,atype = bond and angle types (numeric or type label) for TIP4P waters
        qdist = distance from O atom to massless charge (distance units)
        cutoff = global cutoff for LJ (and Coulombic if only 1 arg) (distance units)
        cutoff2 = global cutoff for Coulombic (optional) (distance units)
@@ -65,6 +65,13 @@ Examples
    pair_style lj/long/tip4p/long long long 1 2 7 8 0.15 12.0 10.0
    pair_coeff * * 100.0 3.0
    pair_coeff 1 1 100.0 3.5 9.0
+
+   pair_style lj/long/tip4p/long long long OW HW HW-OW HW-OW-HW 0.15 12.0
+   labelmap atom 1 OW 2 HW
+   labelmap bond 1 HW-OW
+   labelmap angle 1 HW-OW-HW
+   pair_coeff * * 100.0 3.0
+   pair_coeff OW OW 100.0 3.5 9.0
 
 Description
 """""""""""
@@ -112,6 +119,11 @@ massless charge site are specified as pair_style arguments.
    is to enable LAMMPS to "find" the 2 H atoms associated with each O
    atom.  For example, if the atom ID of an O atom in a TIP4P water
    molecule is 500, then its 2 H atoms must have IDs 501 and 502.
+
+.. note::
+
+   If using type labels, the type labels must be defined before calling
+   the :doc:`pair_coeff <pair_coeff>` command.
 
 See the :doc:`Howto tip4p <Howto_tip4p>` page for more
 information on how to use the TIP4P pair style.  Note that the

@@ -1000,7 +1000,7 @@ char *utils::expand_type(const char *file, int line, const std::string &str, int
 ------------------------------------------------------------------------- */
 
 int utils::expand_type_int(const char *file, int line, const std::string &str, int mode,
-                           LAMMPS *lmp, int verify)
+                           LAMMPS *lmp, bool verify)
 {
   char *typestr = expand_type(file, line, str, mode, lmp);
   int type = inumeric(file, line, typestr ? typestr : str, false, lmp);

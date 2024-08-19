@@ -388,7 +388,7 @@ void PairE3B::coeff(int narg, char **arg)
   if (narg < 4) error->all(FLERR, "There must be at least one keyword given to pair_coeff");
 
   if (typeO_str.size() > 0)
-    typeO = utils::expand_type_int(FLERR, typeO_str, Atom::ATOM, lmp, 1);
+    typeO = utils::expand_type_int(FLERR, typeO_str, Atom::ATOM, lmp, true);
 
   // clear setflag since coeff() called once with I,J = * *
   int n = atom->ntypes;

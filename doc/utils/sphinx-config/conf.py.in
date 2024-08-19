@@ -301,6 +301,7 @@ latex_elements = {
 'preamble': r'''
 \usepackage{xcolor}
 \setcounter{tocdepth}{2}
+\setcounter{part}{-1}
 \renewcommand{\sfdefault}{ptm}  % Use Times New Roman font for \textrm
 \renewcommand{\sfdefault}{phv}  % Use Helvetica font for \textsf
 \usepackage[columns=1]{idxlayout} % create index with only one column
@@ -339,6 +340,7 @@ latex_elements = {
 % Make ToC number fields wider to accommodate sections with >= 100 subsections
 %   or >= 10 subsections with >= 10 subsubsections
 \makeatletter
+% reset chapter counter for each part
 \@addtoreset{chapter}{part}
 \renewcommand*{\sphinxtableofcontentshook}{%
   \renewcommand*\l@section{\@dottedtocline{1}{1.5em}{3.1em}}

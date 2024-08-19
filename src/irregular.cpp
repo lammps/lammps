@@ -339,8 +339,8 @@ int Irregular::create_atom(int n, int *sizes, int *proclist, int sortflag)
 
   proc_recv = new int[nrecv_proc];
   length_recv = new int[nrecv_proc];
-  request = new MPI_Request[nrecv_proc];
-  status = new MPI_Status[nrecv_proc];
+  memory->create(request, nrecv_proc, "irregular:request");
+  memory->create(status, nrecv_proc, "irregular:status");
 
   // nsend_proc = # of messages I send
 
@@ -558,15 +558,15 @@ void Irregular::exchange_atom(double *sendbuf, int *sizes, double *recvbuf)
 
 void Irregular::destroy_atom()
 {
-  delete [] proc_send;
-  delete [] length_send;
-  delete [] num_send;
-  delete [] index_send;
-  delete [] offset_send;
-  delete [] proc_recv;
-  delete [] length_recv;
-  delete [] request;
-  delete [] status;
+  delete[] proc_send;
+  delete[] length_send;
+  delete[] num_send;
+  delete[] index_send;
+  delete[] offset_send;
+  delete[] proc_recv;
+  delete[] length_recv;
+  memory->destroy(request);
+  memory->destroy(status);
 }
 
 /* ----------------------------------------------------------------------
@@ -612,8 +612,8 @@ int Irregular::create_data(int n, int *proclist, int sortflag)
 
   proc_recv = new int[nrecv_proc];
   num_recv = new int[nrecv_proc];
-  request = new MPI_Request[nrecv_proc];
-  status = new MPI_Status[nrecv_proc];
+  memory->create(request, nrecv_proc, "irregular:request");
+  memory->create(status, nrecv_proc, "irregular:status");
 
   // work1 = # of datums I send to each proc, including self
   // nsend_proc = # of procs I send messages to, not including self
@@ -981,14 +981,14 @@ void Irregular::exchange_data(char *sendbuf, int nbytes, char *recvbuf)
 
 void Irregular::destroy_data()
 {
-  delete [] proc_send;
-  delete [] num_send;
-  delete [] index_send;
-  delete [] proc_recv;
-  delete [] num_recv;
-  delete [] index_self;
-  delete [] request;
-  delete [] status;
+  delete[] proc_send;
+  delete[] num_send;
+  delete[] index_send;
+  delete[] proc_recv;
+  delete[] num_recv;
+  delete[] index_self;
+  memory->destroy(request);
+  memory->destroy(status);
 }
 
 /* ----------------------------------------------------------------------

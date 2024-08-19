@@ -1,3 +1,7 @@
+.. raw:: latex
+
+   \clearpage
+
 Commands by category
 ====================
 
@@ -6,8 +10,8 @@ This page lists most of the LAMMPS commands, grouped by category.  The
 alphabetically.  Style options for entries like fix, compute, pair etc.
 have their own pages where they are listed alphabetically.
 
-Initialization:
-------------------------------
+Initialization
+--------------
 
 .. table_from_list::
    :columns: 5
@@ -18,8 +22,8 @@ Initialization:
    * :doc:`suffix <suffix>`
    * :doc:`units <units>`
 
-Setup simulation box:
-------------------------------
+Setup simulation box
+--------------------
 
 .. table_from_list::
    :columns: 4
@@ -31,8 +35,8 @@ Setup simulation box:
    * :doc:`lattice <lattice>`
    * :doc:`region <region>`
 
-Setup atoms:
-------------------------------
+Setup atoms
+-----------
 
 .. table_from_list::
    :columns: 4
@@ -55,8 +59,8 @@ Setup atoms:
    * :doc:`set <set>`
    * :doc:`velocity <velocity>`
 
-Force fields:
-------------------------------
+Force fields
+------------
 
 .. table_from_list::
    :columns: 4
@@ -79,8 +83,8 @@ Force fields:
    * :doc:`pair_write <pair_write>`
    * :doc:`special_bonds <special_bonds>`
 
-Settings:
-------------------------------
+Settings
+--------
 
 .. table_from_list::
    :columns: 4
@@ -98,8 +102,8 @@ Settings:
    * :doc:`timer <timer>`
    * :doc:`timestep <timestep>`
 
-Operations within timestepping (fixes) and diagnostics (computes):
-------------------------------------------------------------------------------------------
+Operations within timestepping (fixes) and diagnostics (computes)
+-----------------------------------------------------------------
 
 .. table_from_list::
    :columns: 4
@@ -111,8 +115,8 @@ Operations within timestepping (fixes) and diagnostics (computes):
    * :doc:`uncompute <uncompute>`
    * :doc:`unfix <unfix>`
 
-Output:
-------------------------------
+Output
+------
 
 .. table_from_list::
    :columns: 4
@@ -131,8 +135,8 @@ Output:
    * :doc:`write_dump <write_dump>`
    * :doc:`write_restart <write_restart>`
 
-Actions:
-------------------------------
+Actions
+-------
 
 .. table_from_list::
    :columns: 6
@@ -146,8 +150,8 @@ Actions:
    * :doc:`tad <tad>`
    * :doc:`temper <temper>`
 
-Input script control:
-------------------------------
+Input script control
+--------------------
 
 .. table_from_list::
    :columns: 7

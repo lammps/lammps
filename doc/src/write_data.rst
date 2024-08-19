@@ -51,10 +51,12 @@ value.
 
    The write_data command may not always write all coefficient settings
    to the corresponding Coeff sections of the data file.  This can have
-   one of multiple reasons. 1) A few styles may be missing the code that
-   would write those sections (if you come across one, please notify
-   the LAMMPS developers). 2) Some pair styles require a single pair_coeff
-   statement and those are not compatible with data files. 3) The
+   one of multiple reasons.  1) The style may be a hybrid style. In that
+   case *no* coeff information is written.  2) A few styles may be
+   missing the code that would write those sections (This is rare these
+   days, but if you come across one, please notify the LAMMPS
+   developers).  3) Some pair styles require a single pair_coeff
+   statement and those are not compatible with data files.  4) The
    default for write_data is to write a PairCoeff section, which has
    only entries for atom types i == j. The remaining coefficients would
    be inferred through the currently selected mixing rule.  If there has

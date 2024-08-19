@@ -42,6 +42,7 @@
 #include "neigh_list.h"
 #include "neighbor.h"
 #include "output.h"
+#include "pair.h"
 #if defined(LMP_PLUGIN)
 #include "plugin.h"
 #endif
@@ -53,6 +54,7 @@
 #include "universe.h"
 #include "update.h"
 #include "variable.h"
+#include "version.h"
 
 #include <cstring>
 
@@ -799,10 +801,10 @@ double lammps_get_thermo(void *handle, const char *keyword)
 .. versionadded:: 15Jun2023
 
 This function provides access to cached data from the last thermo output.
-This differs from :cpp:func:`lammps_get_thermo` in that it does not trigger
-an evaluation.  Instead it provides direct access to a read-only location
-of the last thermo output data and the corresponding keyword strings.
-The how to handle the return value depends on the value of the *what*
+This differs from :cpp:func:`lammps_get_thermo` in that it does **not**
+trigger an evaluation.  Instead it provides direct access to a read-only
+location of the last thermo output data and the corresponding keyword
+strings.  How to handle the return value depends on the value of the *what*
 argument string.
 
 .. note::
@@ -814,7 +816,7 @@ argument string.
 
 .. list-table::
    :header-rows: 1
-   :widths: auto
+   :widths: 14 51 25 10
 
    * - Value of *what*
      - Description of return value
@@ -1129,7 +1131,7 @@ be called without a valid LAMMPS object handle (it is ignored).
 
 .. list-table::
    :header-rows: 1
-   :widths: auto
+   :widths: 17 83
 
    * - Keyword
      - Description / Return value
@@ -1152,7 +1154,7 @@ internally by the :doc:`Fortran interface <Fortran>` and are not likely to be us
 
 .. list-table::
    :header-rows: 1
-   :widths: auto
+   :widths: 17 83
 
    * - Keyword
      - Description / Return value
@@ -1171,7 +1173,7 @@ internally by the :doc:`Fortran interface <Fortran>` and are not likely to be us
 
 .. list-table::
    :header-rows: 1
-   :widths: auto
+   :widths: 17 83
 
    * - Keyword
      - Description / Return value
@@ -1203,7 +1205,7 @@ internally by the :doc:`Fortran interface <Fortran>` and are not likely to be us
 
 .. list-table::
    :header-rows: 1
-   :widths: auto
+   :widths: 15 85
 
    * - Keyword
      - Description / Return value
@@ -1212,7 +1214,7 @@ internally by the :doc:`Fortran interface <Fortran>` and are not likely to be us
    * - universe_size
      - Number of ranks on LAMMPS' universe communicator (world_size <= universe_size)
    * - world_rank
-     - MPI rank on LAMMPS' world communicator (0 <= world_rank < world_size, aka comm->me)
+     - MPI rank on LAMMPS' world communicator (0 <= world_rank < world_size, = comm->me)
    * - world_size
      - Number of ranks on LAMMPS' world communicator (aka comm->nprocs)
    * - comm_style
@@ -1230,7 +1232,7 @@ internally by the :doc:`Fortran interface <Fortran>` and are not likely to be us
 
 .. list-table::
    :header-rows: 1
-   :widths: auto
+   :widths: 17 83
 
    * - Keyword
      - Description / Return value
@@ -1267,7 +1269,7 @@ internally by the :doc:`Fortran interface <Fortran>` and are not likely to be us
 
 .. list-table::
    :header-rows: 1
-   :widths: auto
+   :widths: 15 85
 
    * - Keyword
      - Description / Return value
@@ -1390,6 +1392,11 @@ int lammps_extract_global_datatype(void * /*handle*/, const char *name)
   if (strcmp(name,"respa_levels") == 0) return LAMMPS_INT;
   if (strcmp(name,"respa_dt") == 0) return LAMMPS_DOUBLE;
 
+  if (strcmp(name,"git_commit") == 0) return LAMMPS_STRING;
+  if (strcmp(name,"git_branch") == 0) return LAMMPS_STRING;
+  if (strcmp(name,"git_descriptor") == 0) return LAMMPS_STRING;
+  if (strcmp(name,"lammps_version") == 0) return LAMMPS_STRING;
+
   if (strcmp(name,"boxlo") == 0) return LAMMPS_DOUBLE;
   if (strcmp(name,"boxhi") == 0) return LAMMPS_DOUBLE;
   if (strcmp(name,"sublo") == 0) return LAMMPS_DOUBLE;
@@ -1479,9 +1486,6 @@ the function again, unless a :doc:`clear` command is issued which wipes
 out and recreates the contents of the :cpp:class:`LAMMPS
 <LAMMPS_NS::LAMMPS>` class.
 
-Please also see :cpp:func:`lammps_extract_setting`,
-:cpp:func:`lammps_get_thermo`, and :cpp:func:`lammps_extract_box`.
-
 .. warning::
 
    Modifying the data in the location pointed to by the returned pointer
@@ -1491,6 +1495,9 @@ Please also see :cpp:func:`lammps_extract_setting`,
    Those will take care of all side effects and necessary updates of
    settings derived from such settings.  Where possible, a reference to
    such a command or a relevant section of the manual is given below.
+
+Please also see :cpp:func:`lammps_extract_setting`,
+:cpp:func:`lammps_get_thermo`, and :cpp:func:`lammps_extract_box`.
 
 The following tables list the supported names, their data types, length
 of the data area, and a short description.  The data type can also be
@@ -1503,6 +1510,7 @@ The function :cpp:func:`lammps_extract_global_datatype` will directly
 report the "native" data type.  The following tables are provided:
 
 * :ref:`Timestep settings <extract_timestep_settings>`
+* :ref:`Git revision and version settings <extract_git_settings>`
 * :ref:`Simulation box settings <extract_box_settings>`
 * :ref:`System property settings <extract_system_settings>`
 * :ref:`Unit settings <extract_unit_settings>`
@@ -1513,7 +1521,7 @@ report the "native" data type.  The following tables are provided:
 
 .. list-table::
    :header-rows: 1
-   :widths: auto
+   :widths: 14 10 10 66
 
    * - Name
      - Type
@@ -1538,11 +1546,40 @@ report the "native" data type.  The following tables are provided:
    * - respa_levels
      - int
      - 1
-     - number of r-RESPA levels. See :doc:`run_style`.
+     - :math:`N_{respa}` = number of r-RESPA levels. See :doc:`run_style`.
    * - respa_dt
      - double
-     - number of r-RESPA levels
+     - :math:`N_{respa}`
      - length of the time steps with r-RESPA. See :doc:`run_style`.
+
+.. _extract_git_settings:
+
+**Git revision and version settings**
+
+.. list-table::
+   :header-rows: 1
+   :widths: 16 14 10 60
+
+   * - Name
+     - Type
+     - Length
+     - Description
+   * - git_commit
+     - const char \*
+     - 1
+     - Git commit hash for the LAMMPS version.
+   * - git_branch
+     - const char \*
+     - 1
+     - Git branch for the LAMMPS version.
+   * - git_descriptor
+     - const char \*
+     - 1
+     - Combined descriptor for the git revision
+   * - lammps_version
+     - const char \*
+     - 1
+     - LAMMPS version string.
 
 .. _extract_box_settings:
 
@@ -1550,44 +1587,32 @@ report the "native" data type.  The following tables are provided:
 
 .. list-table::
    :header-rows: 1
-   :widths: auto
+   :widths: 16 10 10 64
 
    * - Name
      - Type
      - Length
      - Description
-   * - boxlo
-     - double
-     - 3
-     - lower box boundaries. See :doc:`create_box`.
-   * - boxhi
-     - double
-     - 3
-     - upper box boundaries. See :doc:`create_box`.
-   * - boxxlo
-     - double
-     - 1
-     - lower box boundary in x-direction. See :doc:`create_box`.
    * - boxxhi
      - double
      - 1
-     - upper box boundary in x-direction. See :doc:`create_box`.
+     - upper box boundary in x-direction; see :doc:`create_box`.
    * - boxylo
      - double
      - 1
-     - lower box boundary in y-direction. See :doc:`create_box`.
+     - lower box boundary in y-direction; see :doc:`create_box`.
    * - boxyhi
      - double
      - 1
-     - upper box boundary in y-direction. See :doc:`create_box`.
+     - upper box boundary in y-direction; see :doc:`create_box`.
    * - boxzlo
      - double
      - 1
-     - lower box boundary in z-direction. See :doc:`create_box`.
+     - lower box boundary in z-direction; see :doc:`create_box`.
    * - boxzhi
      - double
      - 1
-     - upper box boundary in z-direction. See :doc:`create_box`.
+     - upper box boundary in z-direction; see :doc:`create_box`.
    * - sublo
      - double
      - 3
@@ -1607,29 +1632,27 @@ report the "native" data type.  The following tables are provided:
    * - periodicity
      - int
      - 3
-     - 0 if non-periodic, 1 if periodic for x, y, and z;
-       See :doc:`boundary`.
+     - 0 if non-periodic, 1 if periodic for x, y, and z; see :doc:`boundary`.
    * - triclinic
      - int
      - 1
-     - 1 if the the simulation box is triclinic, 0 if orthogonal;
-       See :doc:`change_box`.
+     - 1 if box is triclinic, 0 if orthogonal; see :doc:`change_box`.
    * - xy
      - double
      - 1
-     - triclinic tilt factor. See :doc:`Howto_triclinic`.
+     - triclinic tilt factor; see :doc:`Howto_triclinic`.
    * - yz
      - double
      - 1
-     - triclinic tilt factor. See :doc:`Howto_triclinic`.
+     - triclinic tilt factor; see :doc:`Howto_triclinic`.
    * - xz
      - double
      - 1
-     - triclinic tilt factor. See :doc:`Howto_triclinic`.
+     - triclinic tilt factor; see :doc:`Howto_triclinic`.
    * - procgrid
      - int
      - 3
-     - processor count assigned to each dimension of 3d grid. See :doc:`processors`.
+     - processor count in x-, y-, and z- direction; see :doc:`processors`.
 
 .. _extract_system_settings:
 
@@ -1637,7 +1660,7 @@ report the "native" data type.  The following tables are provided:
 
 .. list-table::
    :header-rows: 1
-   :widths: auto
+   :widths: 18 12 12 58
 
    * - Name
      - Type
@@ -1692,12 +1715,12 @@ report the "native" data type.  The following tables are provided:
      - 1
      - :doc:`atom map setting <atom_modify>`: 0 = none, 1 = array, 2 = hash, 3 = yes
    * - map_tag_max
-     - bigint or int
+     - int/bigint
      - 1
-     - largest atom ID that can be mapped to a local index (bigint only with -DLAMMPS_BIGBIG)
+     - largest atom ID that can be mapped to a local index (bigint with -DLAMMPS_BIGBIG)
    * - sametag
      - int
-     - nlocal+nghost
+     - variable
      - index of next local atom with the same ID in ascending order. -1 signals end.
    * - sortfreq
      - int
@@ -1746,7 +1769,7 @@ report the "native" data type.  The following tables are provided:
 
 .. list-table::
    :header-rows: 1
-   :widths: auto
+   :widths: 16 12 10 62
 
    * - Name
      - Type
@@ -1865,6 +1888,12 @@ void *lammps_extract_global(void *handle, const char *name)
     if (strcmp(name,"respa_levels") == 0) return (void *) &respa->nlevels;
     if (strcmp(name,"respa_dt") == 0) return (void *) respa->step;
   }
+
+  if (strcmp(name,"git_commit") == 0) return (void *)LAMMPS::git_commit;
+  if (strcmp(name,"git_branch") == 0) return (void  *)LAMMPS::git_branch;
+  if (strcmp(name,"git_descriptor") == 0) return (void *)LAMMPS::git_descriptor;
+  if (strcmp(name,"lammps_version") == 0) return (void *)LAMMPS_VERSION;
+
   if (strcmp(name,"boxlo") == 0) return (void *) lmp->domain->boxlo;
   if (strcmp(name,"boxhi") == 0) return (void *) lmp->domain->boxhi;
   if (strcmp(name,"sublo") == 0) return (void *) lmp->domain->sublo;
@@ -1876,6 +1905,7 @@ void *lammps_extract_global(void *handle, const char *name)
     if (strcmp(name,"subhi_lambda") == 0)
       return (void *) lmp->domain->subhi_lamda;
   }
+
   if (strcmp(name,"boxxlo") == 0) return (void *) &lmp->domain->boxlo[0];
   if (strcmp(name,"boxxhi") == 0) return (void *) &lmp->domain->boxhi[0];
   if (strcmp(name,"boxylo") == 0) return (void *) &lmp->domain->boxlo[1];
@@ -1934,6 +1964,69 @@ void *lammps_extract_global(void *handle, const char *name)
   if (strcmp(name,"qelectron") == 0) return (void *) &lmp->force->qelectron;
 
   return nullptr;
+}
+
+/* ---------------------------------------------------------------------- */
+
+/** Get data dimension of pair style data accessible via Pair::extract().
+ *
+\verbatim embed:rst
+
+.. versionadded:: TBD
+
+This function returns an integer that specified the dimensionality of
+the data that can be extracted from the current pair style with ``Pair::extract()``.
+Callers of :cpp:func:`lammps_extract_pair` can use this information
+to then decide how to cast the ``void *`` pointer and access the data.
+
+\endverbatim
+ *
+ * \param  handle   pointer to a previously created LAMMPS instance
+ * \param  name     string with the name of the extracted property
+ * \return          integer constant encoding the dimensionality of the
+                    extractable pair style property or -1 if not found. */
+
+int lammps_extract_pair_dimension(void * handle, const char *name)
+{
+  auto lmp = (LAMMPS *) handle;
+  if (!lmp) return -1;
+  auto pair = lmp->force->pair;
+  if (!pair) return -1;
+
+  int dim = -1;
+  if (lmp->force->pair->extract(name, dim)) return dim;
+
+  return -1;
+}
+
+/* ---------------------------------------------------------------------- */
+
+/** Get extract pair style data accessible via Pair::extract().
+ *
+\verbatim embed:rst
+
+.. versionadded:: TBD
+
+This function returns a pointer to data available from the current pair
+style with ``Pair::extract()``. The dimensionality of the returned
+pointer can be determined with :cpp:func:`lammps_extract_pair_dimension`.
+
+\endverbatim
+ *
+ * \param  handle   pointer to a previously created LAMMPS instance
+ * \param  name     string with the name of the extracted property
+ * \return          pointer (cast to ``void *``) to the location of the
+                    requested property. NULL if name is not known. */
+
+void *lammps_extract_pair(void * handle, const char *name)
+{
+  auto lmp = (LAMMPS *) handle;
+  if (!lmp) return nullptr;
+  auto pair = lmp->force->pair;
+  if (!pair) return nullptr;
+
+  int dim = -1;
+  return lmp->force->pair->extract(name, dim);
 }
 
 /* ---------------------------------------------------------------------- */
@@ -2050,7 +2143,7 @@ lists the available options.
 
 .. list-table::
    :header-rows: 1
-   :widths: auto
+   :widths: 25 24 14 37
 
    * - Style (see :cpp:enum:`_LMP_STYLE_CONST`)
      - Type (see :cpp:enum:`_LMP_TYPE_CONST`)
@@ -2103,7 +2196,7 @@ lists the available options.
    * - LMP_STYLE_LOCAL
      - LMP_SIZE_VECTOR
      - ``int *``
-     - Alias for using LMP_SIZE_ROWS
+     - Alias for LMP_SIZE_ROWS
    * - LMP_STYLE_LOCAL
      - LMP_SIZE_ROWS
      - ``int *``
@@ -2241,7 +2334,7 @@ The following table lists the available options.
 
 .. list-table::
    :header-rows: 1
-   :widths: auto
+   :widths: 25 24 14 37
 
    * - Style (see :cpp:enum:`_LMP_STYLE_CONST`)
      - Type (see :cpp:enum:`_LMP_TYPE_CONST`)
@@ -2468,7 +2561,7 @@ a char pointer and it should **not** be deallocated. Example:
  *
  * \param  handle  pointer to a previously created LAMMPS instance
  * \param  name    name of the variable
- * \param  group   group-ID for atom style variable or ``NULL``
+ * \param  group   group-ID for atom style variable or ``NULL`` or non-NULL to get vector length
  * \return         pointer (cast to ``void *``) to the location of the
  *                 requested data or ``NULL`` if not found. */
 
@@ -5335,7 +5428,7 @@ The function returns the number of atoms created or -1 on failure (e.g.,
 when called before as box has been created).
 
 Coordinates and velocities have to be given in a 1d-array in the order
-X(1),Y(1),Z(1),X(2),Y(2),Z(2),...,X(N),Y(N),Z(N).
+X(1), Y(1), Z(1), X(2), Y(2), Z(2), ..., X(N), Y(N), Z(N).
 
 \endverbatim
  *
@@ -5762,6 +5855,26 @@ int lammps_config_has_ffmpeg_support() {
 
 /* ---------------------------------------------------------------------- */
 
+/** Check if the LAMMPS library supports downloading files via libcurl
+
+\verbatim embed:rst
+
+.. versionadded::TBD
+
+The LAMMPS :doc:`geturl command <geturl>` supports downloading files
+through using `the libcurl library <https://curl.se/libcurl/>`_.
+This function checks whether this feature was :ref:`enabled at compile
+time <libcurl>` and LAMMPS linked to the libcurl library.
+\endverbatim
+ *
+ * \return 1 if yes, otherwise 0
+ */
+int lammps_config_has_curl_support() {
+  return Info::has_curl_support() ? 1 : 0;
+}
+
+/* ---------------------------------------------------------------------- */
+
 /** Check whether LAMMPS errors will throw C++ exceptions.
  *
 \verbatim embed:rst
@@ -5783,7 +5896,7 @@ error status can then be checked by calling
 can be retrieved via :cpp:func:`lammps_get_last_error_message`.
 This can allow to restart a calculation or delete and recreate
 the LAMMPS instance when C++ exceptions are enabled.  One application
-of using exceptions this way is the :ref:`lammps_shell`.  If C++
+of using exceptions this way is the :ref:`lammps_gui`.  If C++
 exceptions are disabled and an error happens during a call to
 LAMMPS, the application will terminate.
 \endverbatim

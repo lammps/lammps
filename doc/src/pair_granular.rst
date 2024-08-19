@@ -328,7 +328,7 @@ keyword also affects the tangential damping.  The parameter
 literature use :math:`x_{\gamma,t} = 1` (:ref:`Marshall <Marshall2009>`,
 :ref:`Tsuji et al <Tsuji1992>`, :ref:`Silbert et al <Silbert2001>`).  The relative
 tangential velocity at the point of contact is given by
-:math:`\mathbf{v}_{t, rel} = \mathbf{v}_{t} - (R_i\mathbf{\Omega}_i + R_j\mathbf{\Omega}_j) \times \mathbf{n}`, where :math:`\mathbf{v}_{t} = \mathbf{v}_r - \mathbf{v}_r\cdot\mathbf{n}\ \mathbf{n}`,
+:math:`\mathbf{v}_{t, rel} = \mathbf{v}_{t} - (R_i\boldsymbol{\Omega}_i + R_j\boldsymbol{\Omega}_j) \times \mathbf{n}`, where :math:`\mathbf{v}_{t} = \mathbf{v}_r - \mathbf{v}_r\cdot\mathbf{n}\ \mathbf{n}`,
 :math:`\mathbf{v}_r = \mathbf{v}_j - \mathbf{v}_i` .
 The direction of the applied force is :math:`\mathbf{t} = \mathbf{v_{t,rel}}/\|\mathbf{v_{t,rel}}\|` .
 
@@ -548,7 +548,7 @@ the tangential force:
 
    \mathbf{F}_{roll,0} =  k_{roll} \mathbf{\xi}_{roll}  - \gamma_{roll} \mathbf{v}_{roll}
 
-Here, :math:`\mathbf{v}_{roll} = -R(\mathbf{\Omega}_i - \mathbf{\Omega}_j) \times \mathbf{n}` is the relative rolling
+Here, :math:`\mathbf{v}_{roll} = -R(\boldsymbol{\Omega}_i - \boldsymbol{\Omega}_j) \times \mathbf{n}` is the relative rolling
 velocity, as given in :ref:`Wang et al <Wang2015>` and
 :ref:`Luding <Luding2008>`. This differs from the expressions given by :ref:`Kuhn and Bagi <Kuhn2004>` and used in :ref:`Marshall <Marshall2009>`; see :ref:`Wang et al <Wang2015>` for details. The rolling displacement is given by:
 

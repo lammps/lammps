@@ -120,7 +120,6 @@ void PairUF3::settings(int narg, char **arg)
                "Invalid number of arguments for pair_style uf3"
                "  Are you using a 2-body or 2 & 3-body UF potential?");
   nbody_flag = utils::numeric(FLERR, arg[0], true, lmp);
-  const int num_of_elements = atom->ntypes;
   if (nbody_flag == 2) {
     pot_3b = false;
     manybody_flag = 0;

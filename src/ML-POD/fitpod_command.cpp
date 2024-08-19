@@ -1492,8 +1492,6 @@ void FitPOD::environment_cluster_calculation(const datastruct &data)
           &beta, A, &Mdesc);
     MPI_Allreduce(MPI_IN_PLACE, A, Mdesc * Mdesc, MPI_DOUBLE, MPI_SUM, world);
 
-    //if (comm->me == 0) print_matrix("A", Mdesc, Mdesc, A, Mdesc);
-
     if ((comm->me == 0) && (save == 1))
       savematrix2binfile(data.filenametag + "_covariance_matrix_elem" + std::to_string(elem + 1) +
                              ".bin",

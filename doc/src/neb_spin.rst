@@ -56,7 +56,7 @@ of the energy barrier associated with a transition state, e.g.
 spins to perform a collective rotation from one energy basin to
 another.
 The implementation in LAMMPS follows the discussion in the
-following paper: :ref:`(BessarabA) <BessarabA>`.
+following paper: :ref:`(Bessarab) <BessarabA>`.
 
 Each replica runs on a partition of one or more processors.  Processor
 partitions are defined at run-time using the :doc:`-partition command-line switch <Run_options>`.  Note that if you have MPI installed, you
@@ -129,7 +129,7 @@ is assigned to be a fraction of the angular distance.
 
    The "angular distance" between the starting and final point is
    evaluated in the geodesic sense, as described in
-   :ref:`(BessarabA) <BessarabA>`.
+   :ref:`(Bessarab) <BessarabA>`.
 
 .. note::
 
@@ -224,7 +224,7 @@ For intermediate replicas, it is the cumulative angular distance
 (normalized by the total cumulative angular distance) between adjacent
 replicas, where "distance" is defined as the length of the 3N-vector of
 the geodesic distances in spin coordinates, with N the number of
-GNEB spins involved (see equation (13) in :ref:`(BessarabA) <BessarabA>`).
+GNEB spins involved (see equation (13) in :ref:`(Bessarab) <BessarabA>`).
 These outputs allow you to monitor NEB's progress in
 finding a good energy barrier.  *N1* and *N2* must both be multiples
 of *Nevery*\ .
@@ -243,7 +243,7 @@ In the second stage of GNEB, the replica with the highest energy is
 selected and the inter-replica forces on it are converted to a force
 that drives its spin coordinates to the top or saddle point of the
 barrier, via the barrier-climbing calculation described in
-:ref:`(BessarabA) <BessarabA>`.  As before, the other replicas rearrange
+:ref:`(Bessarab) <BessarabA>`.  As before, the other replicas rearrange
 themselves along the MEP so as to be roughly equally spaced.
 
 When both stages are complete, if the GNEB calculation was successful,
@@ -321,11 +321,11 @@ maximum torque component of any atom in any replica.  The potential
 gradients are the two-norm of the 3N-length magnetic precession vector
 solely due to the interaction potential i.e. without adding in
 inter-replica forces, and projected along the path tangent (as detailed
-in Appendix D of :ref:`(BessarabA) <BessarabA>`).
+in Appendix D of :ref:`(Bessarab) <BessarabA>`).
 
 The "reaction coordinate" (RD) for each replica is the two-norm of the
 3N-length vector of geodesic distances between its spins and the preceding
-replica's spins (see equation (13) of :ref:`(BessarabA) <BessarabA>`), added to
+replica's spins (see equation (13) of :ref:`(Bessarab) <BessarabA>`), added to
 the RD of the preceding replica. The RD of the first replica RD1 = 0.0;
 the RD of the final replica RDN = RDT, the total reaction coordinate.
 The normalized RDs are divided by RDT, so that they form a monotonically
@@ -340,9 +340,9 @@ screen and master log.lammps file by adding the *verbose* keyword. This
 information include the following.
 The "GradVidottan" are the projections of the potential gradient for
 the replica i on its tangent vector (as detailed in Appendix D of
-:ref:`(BessarabA) <BessarabA>`).
+:ref:`(Bessarab) <BessarabA>`).
 The "DNi" are the non normalized geodesic distances (see equation (13)
-of :ref:`(BessarabA) <BessarabA>`), between a replica i and the next replica
+of :ref:`(Bessarab) <BessarabA>`), between a replica i and the next replica
 i+1. For the last replica, this distance is not defined and a "NAN"
 value is the corresponding output.
 
@@ -372,7 +372,7 @@ parameters.
 A c file script in provided in the tool/spin/interpolate_gneb
 directory, that interpolates the MEP given the information provided
 by the *verbose* output option (as detailed in Appendix D of
-:ref:`(BessarabA) <BessarabA>`).
+:ref:`(Bessarab) <BessarabA>`).
 
 ----------
 
@@ -403,5 +403,5 @@ none
 
 .. _BessarabA:
 
-**(BessarabA)** Bessarab, Uzdin, Jonsson, Comp Phys Comm, 196,
+**(Bessarab)** Bessarab, Uzdin, Jonsson, Comp Phys Comm, 196,
 335-347 (2015).

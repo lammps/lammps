@@ -164,6 +164,22 @@ if(MSVC)
   add_compile_definitions(_CRT_SECURE_NO_WARNINGS)
 endif()
 
+# warn about potentially problematic GCC compiler versions
+if(CMAKE_CXX_COMPILER_ID STREQUAL "GNU")
+  if (CMAKE_CXX_STANDARD GREATER_EQUAL 17)
+    if (CMAKE_CXX_COMPILER_VERSION VERSION_LESS 9.0)
+      message(WARNING "Using ${CMAKE_CXX_COMPILER_ID} compiler version ${CMAKE_CXX_COMPILER_VERSION} "
+        "with C++17 is not recommended. Please use ${CMAKE_CXX_COMPILER_ID} compiler version 9.x or later")
+    endif()
+  endif()
+  if (CMAKE_CXX_STANDARD GREATER_EQUAL 11)
+    if (CMAKE_CXX_COMPILER_VERSION VERSION_LESS 5.0)
+      message(WARNING "Using ${CMAKE_CXX_COMPILER_ID} compiler version ${CMAKE_CXX_COMPILER_VERSION} "
+        "with C++11 is not recommended. Please use ${CMAKE_CXX_COMPILER_ID} compiler version 5.x or later")
+    endif()
+  endif()
+endif()
+
 # export all symbols when building a .dll file on windows
 if((CMAKE_SYSTEM_NAME STREQUAL "Windows") AND BUILD_SHARED_LIBS)
   set(CMAKE_WINDOWS_EXPORT_ALL_SYMBOLS ON)
@@ -198,7 +214,6 @@ set(LAMMPS_BINARY lmp${LAMMPS_MACHINE})
 option(BUILD_SHARED_LIBS "Build shared library" OFF)
 option(CMAKE_POSITION_INDEPENDENT_CODE "Create object compatible with shared libraries" ON)
 option(BUILD_TOOLS "Build and install LAMMPS tools (msi2lmp, binary2txt, chain)" OFF)
-option(BUILD_LAMMPS_SHELL "Build and install the LAMMPS shell" OFF)
 option(BUILD_LAMMPS_GUI "Build and install the LAMMPS GUI" OFF)
 
 # Support using clang-tidy for C++ files with selected options
@@ -493,6 +508,14 @@ if(PKG_ATC OR PKG_AWPMD OR PKG_ML-QUIP OR PKG_ML-POD OR PKG_ELECTRODE OR BUILD_T
   else()
     list(APPEND LAPACK_LIBRARIES ${BLAS_LIBRARIES})
   endif()
+endif()
+
+find_package(CURL QUIET COMPONENTS HTTP HTTPS)
+option(WITH_CURL "Enable libcurl support" ${CURL_FOUND})
+if(WITH_CURL)
+  find_package(CURL REQUIRED COMPONENTS HTTP HTTPS)
+  target_compile_definitions(lammps PRIVATE -DLAMMPS_CURL)
+  target_link_libraries(lammps PRIVATE CURL::libcurl)
 endif()
 
 # tweak jpeg library names to avoid linker errors with MinGW cross-compilation
@@ -872,7 +895,7 @@ endif()
 include(Testing)
 include(CodeCoverage)
 include(CodingStandard)
-find_package(ClangFormat 8.0)
+find_package(ClangFormat 11.0)
 
 if(ClangFormat_FOUND)
   add_custom_target(format-src
@@ -1048,9 +1071,6 @@ if(BUILD_DOC)
 endif()
 if(BUILD_TOOLS)
   message(STATUS "<<< Building Tools >>>")
-endif()
-if(BUILD_LAMMPS_SHELL)
-  message(STATUS "<<< Building LAMMPS Shell >>>")
 endif()
 if(BUILD_LAMMPS_GUI)
   message(STATUS "<<< Building LAMMPS GUI >>>")

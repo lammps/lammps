@@ -44,8 +44,8 @@ static constexpr double SMALL = 0.001;
 /* ---------------------------------------------------------------------- */
 
 AngleSPICA::AngleSPICA(LAMMPS *lmp) :
-    Angle(lmp), k(nullptr), theta0(nullptr), lj_type(nullptr), lj1(nullptr), lj2(nullptr),
-    lj3(nullptr), lj4(nullptr), rminsq(nullptr), emin(nullptr)
+    Angle(lmp), k(nullptr), theta0(nullptr), repscale(nullptr), lj_type(nullptr), lj1(nullptr),
+    lj2(nullptr), lj3(nullptr), lj4(nullptr), rminsq(nullptr), emin(nullptr)
 {
   repflag = 0;
 }
@@ -54,7 +54,7 @@ AngleSPICA::AngleSPICA(LAMMPS *lmp) :
 
 AngleSPICA::~AngleSPICA()
 {
-  if (allocated) {
+  if (allocated && !copymode) {
     memory->destroy(setflag);
     memory->destroy(k);
     memory->destroy(theta0);

@@ -275,11 +275,16 @@ else:
 mathjax_path = 'mathjax/es5/tex-mml-chtml.js'
 
 # hack to enable use of \AA in :math:
+# add :lammps: role for inline LAMMPS code highlight
 rst_prolog = r"""
 
 .. only:: html
 
    :math:`\renewcommand{\AA}{\text{Å}}`
+
+.. role:: lammps(code)
+    :language: LAMMPS
+    :class: highlight
 
 """
 
@@ -297,6 +302,7 @@ latex_elements = {
 \setcounter{tocdepth}{2}
 \renewcommand{\sfdefault}{ptm}  % Use Times New Roman font for \textrm
 \renewcommand{\sfdefault}{phv}  % Use Helvetica font for \textsf
+\usepackage[columns=1]{idxlayout} % create index with only one column
 % Set up math fonts to match text fonts
 \DeclareSymbolFont{operators}   {OT1}{ptm}{m}{n}
 \DeclareSymbolFont{bold}        {OT1}{ptm}{bx}{n}
@@ -338,9 +344,14 @@ latex_elements = {
   \renewcommand*\l@subsection{\@dottedtocline{2}{4.6em}{4.5em}}
 }
 \makeatother
-'''
+''',
 }
 
+# copy custom style file for tweaking index layout
+latex_additional_files = [
+    'latex/idxlayout.sty', 'latex/ellipse.sty',
+    'latex/pict2e.sty', 'latex/p2e-pdftex.def',
+]
 # Grouping the document tree into LaTeX files. List of tuples
 # (source start file, target name, title,
 #  author, documentclass [howto, manual, or own class]).
@@ -361,13 +372,14 @@ latex_toplevel_sectioning = 'part'
 #latex_show_pagerefs = False
 
 # If true, show URL addresses after external links.
-#latex_show_urls = False
+latex_show_urls = 'no'
+# latex_show_urls = 'footnote'
 
 # Documents to append as an appendix to all manuals.
 #latex_appendices = []
 
 # If false, no module index is generated.
-#latex_domain_indices = True
+latex_domain_indices = False
 
 
 # -- Options for manual page output ---------------------------------------
@@ -382,6 +394,12 @@ man_pages = [
 # If true, show URL addresses after external links.
 #man_show_urls = False
 
+
+# strip off LAMMPS_NS:: from index entries
+cpp_index_common_prefix = [
+    'LAMMPS_NS::',
+    '_LMP_STYLE_CONST::', '_LMP_TYPE_CONST::', '_LMP_VAR_CONST::',
+]
 
 # -- Options for Texinfo output -------------------------------------------
 

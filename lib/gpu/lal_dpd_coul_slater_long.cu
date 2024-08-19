@@ -186,15 +186,13 @@ __kernel void k_dpd_coul_slater_long(const __global numtyp4 *restrict x_,
   atom_info(t_per_atom,ii,tid,offset);
 
   __local numtyp sp_cl[4];
-  ///local_allocate_store_charge();
-
   sp_cl[0]=sp_cl_in[0];
   sp_cl[1]=sp_cl_in[1];
   sp_cl[2]=sp_cl_in[2];
   sp_cl[3]=sp_cl_in[3];
 
   int n_stride;
-  local_allocate_store_pair();
+  local_allocate_store_charge();
 
   acctyp3 f;
   f.x=(acctyp)0; f.y=(acctyp)0; f.z=(acctyp)0;
@@ -332,8 +330,7 @@ __kernel void k_dpd_coul_slater_long(const __global numtyp4 *restrict x_,
 
     } // for nbor
   } // if ii
-  store_answers_q(f,energy,e_coul,virial,ii,inum,tid,t_per_atom,offset,eflag,vflag,
-                ans,engv);
+  store_answers_q(f,energy,e_coul,virial,ii,inum,tid,t_per_atom,offset,eflag,vflag,ans,engv);
 }
 
 __kernel void k_dpd_coul_slater_long_fast(const __global numtyp4 *restrict x_,
@@ -378,7 +375,7 @@ __kernel void k_dpd_coul_slater_long_fast(const __global numtyp4 *restrict x_,
   
 
   int n_stride;
-  local_allocate_store_pair();
+  local_allocate_store_charge();
 
   acctyp3 f;
   f.x=(acctyp)0; f.y=(acctyp)0; f.z=(acctyp)0;
@@ -517,7 +514,6 @@ __kernel void k_dpd_coul_slater_long_fast(const __global numtyp4 *restrict x_,
 
     } // for nbor
   } // if ii
-  store_answers_q(f,energy,e_coul,virial,ii,inum,tid,t_per_atom,offset,eflag,vflag,
-                ans,engv);
+  store_answers_q(f,energy,e_coul,virial,ii,inum,tid,t_per_atom,offset,eflag,vflag,ans,engv);
 }
 

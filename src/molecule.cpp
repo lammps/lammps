@@ -958,7 +958,7 @@ void Molecule::diameters(char *line)
 }
 
 /* ----------------------------------------------------------------------
-   read charges from file
+   read dipoles from file
 ------------------------------------------------------------------------- */
 
 void Molecule::dipoles(char *line)

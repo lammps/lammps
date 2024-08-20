@@ -732,22 +732,36 @@ void FixAveGrid::atom2grid()
       iy = static_cast<int> ((x[i][1]-boxlo[1])*dyinv + OFFSET) - OFFSET;
 
       if (ix < nxlo_out || ix > nxhi_out) {
-        if (periodicity[0]) flag = 1;
-        else if (discardflag == KEEP) {
+        if (periodicity[0]) {
+          flag = 1;
+          continue;
+        } else if (discardflag == KEEP) {
           if (ix < nxlo_out && nxlo_out == 0) ix = 0;
           else if (ix > nxhi_out && nxhi_out == nxgrid-1) ix = nxgrid-1;
-          else flag = 1;
-        } else skip[i] = 1;
-        continue;
+          else {
+            flag = 1;
+            continue;
+          }
+        } else {
+          skip[i] = 1;
+          continue;
+        }
       }
       if (iy < nylo_out || iy > nyhi_out) {
-        if (periodicity[1]) flag = 1;
-        else if (discardflag == KEEP) {
+        if (periodicity[1]) {
+          flag = 1;
+          continue;
+        } else if (discardflag == KEEP) {
           if (iy < nylo_out && nylo_out == 0) iy = 0;
           else if (iy > nyhi_out && nyhi_out == nygrid-1) iy = nygrid-1;
-          else flag = 1;
-        } else skip[i] = 1;
-        continue;
+          else {
+            flag = 1;
+            continue;
+          }
+        } else {
+          skip[i] = 1;
+          continue;
+        }
       }
 
       skip[i] = 0;

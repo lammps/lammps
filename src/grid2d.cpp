@@ -593,6 +593,9 @@ void Grid2d::extract_comm_info()
     else if (rcbone.dim == 1) rcbone.cut = inylo;
     MPI_Allgather(&rcbone,sizeof(RCBinfo),MPI_CHAR,
                   rcbinfo,sizeof(RCBinfo),MPI_CHAR,gridcomm);
+    printf("G2D ExtractCommInfo: 0 dim/cut: %d %d, 1 dim/cut: %d %d\n",
+           rcbinfo[0].dim,rcbinfo[0].cut,
+           rcbinfo[1].dim,rcbinfo[1].cut);
   }
 }
 
@@ -1713,7 +1716,7 @@ void Grid2d::clean_overlap()
 /* ----------------------------------------------------------------------
    recursively split a box until it doesn't overlap any periodic boundaries
    box = 4 integers = (xlo,xhi,ylo,yhi)
-     each lo/hi value may extend beyonw 0 to N-1 into another periodic image
+     each lo/hi value may extend beyond 0 to N-1 into another periodic image
    pbc = flags in each dim of which periodic image the caller box was in
    when a box straddles a periodic bounadry, split it in two
    when a box does not straddle, drop it down RCB tree
@@ -1800,6 +1803,7 @@ void Grid2d::box_drop_grid(int *box, int proclower, int procupper,
 
   if (proclower == procupper) {
     plist[np++] = proclower;
+    printf("  proc %d plist np %d plist %d\n",comm->me,np,plist[np-1]);
     return;
   }
 
@@ -1811,9 +1815,13 @@ void Grid2d::box_drop_grid(int *box, int proclower, int procupper,
   // dim = 0,1,2 dimension of cut
 
   int procmid = proclower + (procupper - proclower) / 2 + 1;
+
+  printf("G2D BoxDropGrid: proc %d proc lum: %d %d %d np %d\n",comm->me,proclower,procupper,procmid,np);
+  //printf("  dim %d cut %d\n",rcbinfo[procmid].dim,rcbinfo[procmid].cut);
+
   int dim = rcbinfo[procmid].dim;
   int cut = rcbinfo[procmid].cut;
-
+  
   if (box[2*dim] < cut) box_drop_grid(box,proclower,procmid-1,np,plist);
   if (box[2*dim+1] >= cut) box_drop_grid(box,procmid,procupper,np,plist);
 }

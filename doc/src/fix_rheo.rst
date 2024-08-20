@@ -47,10 +47,8 @@ Description
 .. versionadded:: TBD
 
 Perform time integration for RHEO particles, updating positions, velocities,
-and densities. For a detailed breakdown of the integration timestep and
-numerical details, see :ref:`(Palermo) <rheo_palermo>`. For an
-overview of other features available in the RHEO package, see
-:doc:`the RHEO howto <Howto_rheo>`.
+and densities. For an overview of other features available in the RHEO package,
+see :doc:`the RHEO howto <Howto_rheo>`.
 
 The type of kernel is specified using *kstyle* and the cutoff is *cut*. Four
 kernels are currently available. The *quintic* kernel is a standard quintic
@@ -73,12 +71,7 @@ and velocity of solid particles are alternatively reconstructed for every
 fluid-solid interaction to ensure no-slip and pressure-balanced boundaries.
 This is done by estimating the location of the fluid-solid interface and
 extrapolating fluid particle properties across the interface to calculate a
-temporary apparent density and velocity for a solid particle. The numerical
-details are the same as those described in
-:ref:`(Palermo) <howto_rheo_palermo>` except there is an additional
-restriction that the reconstructed solid density cannot be less than the
-equilibrium density. This prevents fluid particles from sticking to solid
-surfaces.
+temporary apparent density and velocity for a solid particle.
 
 A modified form of Fickian particle shifting can be enabled with the
 *shift* keyword. This effectively shifts particle positions to generate a
@@ -170,10 +163,6 @@ Default
 *rho0* and *cs* are set to 1.0 for all atom types.
 
 ----------
-
-.. _rheo_palermo:
-
-**(Palermo)** Palermo, Wolf, Clemmer, O'Connor, in preparation.
 
 .. _fix_rheo_hu:
 

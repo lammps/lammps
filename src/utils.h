@@ -87,7 +87,7 @@ namespace utils {
 
   /*! Return text redirecting the user to a specific paragraph in the manual
    *
-   * The LAMMPS manual contains detailed detailed explanations for errors and
+   * The LAMMPS manual contains detailed explanations for errors and
    * warnings where a simple error message may not be sufficient.  These can
    * be reached through URLs with a numeric code.  This function creates the
    * corresponding text to be included into the error message that redirects
@@ -391,7 +391,7 @@ This functions adds the following case to :cpp:func:`utils::bounds() <LAMMPS_NS:
    *
    *  This function checks if a given string may be a type label and
    *  then searches the labelmap type indicated by the *mode* argument
-   *  for the corresponding numeric type.  If this is found a copy of
+   *  for the corresponding numeric type.  If this is found, a copy of
    *  the numeric type string is made and returned. Otherwise a null
    *  pointer is returned.
    *  If a string is returned, the calling code must free it with delete[].
@@ -409,7 +409,7 @@ This functions adds the following case to :cpp:func:`utils::bounds() <LAMMPS_NS:
    *
    *  This function has the same arguments as expand_type() but returns an integer value */
 
-  int expand_type_int(const char *file, int line, const std::string &str, int mode, LAMMPS *lmp);
+  int expand_type_int(const char *file, int line, const std::string &str, int mode, LAMMPS *lmp, bool verify = false);
 
   /*! Check grid reference for valid Compute or Fix which produces per-grid data
    *
@@ -425,6 +425,7 @@ This functions adds the following case to :cpp:func:`utils::bounds() <LAMMPS_NS:
    * \param nevery  frequency at which caller will access fix for per-grid info,
    *                ignored when reference is to a compute
    * \param lmp     pointer to top-level LAMMPS class instance
+   * \param verify  check bounds for interaction type
    * \return id     ID of Compute or Fix
    * \return igrid  which grid is referenced (0 to N-1)
    * \return idata  which data on grid is referenced (0 to N-1)
@@ -436,8 +437,8 @@ This functions adds the following case to :cpp:func:`utils::bounds() <LAMMPS_NS:
 
   /*! Parse grid reference into 3 sub-strings
    *
-   * Format of grid ID reference = id:gname:dname
-   * Return vector with the 3 sub-strings
+   * Format of grid ID reference = id:gname:dname.
+   * Return vector with the 3 sub-strings.
    *
    * \param name = complete grid ID
    * \return std::vector<std::string> containing the 3 sub-strings  */

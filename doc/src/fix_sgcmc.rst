@@ -145,7 +145,7 @@ components of the vector represent the following quantities:
 * 3 = Current global concentration `c_1` (= number of atoms of type 1 / total number of atoms)
 * 4 = Current global concentration `c_2` (= number of atoms of type 2 / total number of atoms)
 * ...
-* N+2: Current global concentration `c_N` (= number of atoms of type *N* / total number of atoms)
+* N+2 = Current global concentration `c_N` (= number of atoms of type *N* / total number of atoms)
 
 The vector values calculated by this fix are "intensive".
 

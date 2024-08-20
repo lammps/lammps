@@ -196,6 +196,7 @@ MODULE LIBLAMMPS
     PROCEDURE, NOPASS :: config_has_jpeg_support => lmp_config_has_jpeg_support
     PROCEDURE, NOPASS :: config_has_ffmpeg_support &
                                         => lmp_config_has_ffmpeg_support
+    PROCEDURE, NOPASS :: config_has_curl_support => lmp_config_has_curl_support
     PROCEDURE, NOPASS :: config_has_exceptions => lmp_config_has_exceptions
     PROCEDURE, NOPASS :: config_has_package => lmp_config_has_package
     PROCEDURE, NOPASS :: config_package_count => lammps_config_package_count
@@ -792,6 +793,12 @@ MODULE LIBLAMMPS
       IMPLICIT NONE
       INTEGER(c_int) :: lammps_config_has_ffmpeg_support
     END FUNCTION lammps_config_has_ffmpeg_support
+
+    FUNCTION lammps_config_has_curl_support() BIND(C)
+      IMPORT :: c_int
+      IMPLICIT NONE
+      INTEGER(c_int) :: lammps_config_has_curl_support
+    END FUNCTION lammps_config_has_curl_support
 
     FUNCTION lammps_config_has_exceptions() BIND(C)
       IMPORT :: c_int
@@ -2880,6 +2887,14 @@ CONTAINS
     has_ffmpeg_support = lammps_config_has_ffmpeg_support()
     lmp_config_has_ffmpeg_support = (has_ffmpeg_support /= 0_c_int)
   END FUNCTION lmp_config_has_ffmpeg_support
+
+  ! equivalent function to lammps_config_has_curl_support
+  LOGICAL FUNCTION lmp_config_has_curl_support()
+    INTEGER(c_int) :: has_curl_support
+
+    has_curl_support = lammps_config_has_curl_support()
+    lmp_config_has_curl_support = (has_curl_support /= 0_c_int)
+  END FUNCTION lmp_config_has_curl_support
 
   ! equivalent function to lammps_config_has_exceptions
   LOGICAL FUNCTION lmp_config_has_exceptions()

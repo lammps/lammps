@@ -779,8 +779,7 @@ void RegCone::shape_update()
   if (lostyle == VARIABLE) lo = input->variable->compute_equal(lovar);
   if (histyle == VARIABLE) hi = input->variable->compute_equal(hivar);
 
-  if (radiuslo == 0.0 && radiushi == 0.0)
-    error->all(FLERR, "dtion in region gave bad value");
+  if (radiuslo == 0.0 && radiushi == 0.0) error->all(FLERR, "dtion in region gave bad value");
 
   if (axis == 'x') {
     if (c1style == VARIABLE) c1 *= yscale;

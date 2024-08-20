@@ -124,12 +124,12 @@ and the vector r = Ri - Rj is the separation vector between the two
 particles.  Note that Eqq and Fqq are simply Coulombic energy and
 force, Fij = -Fji as symmetric forces, and Tij != -Tji since the
 torques do not act symmetrically.  These formulas are discussed in
-:ref:`(Allen) <Allen2>` and in :ref:`(Toukmaji) <Toukmaji2>`.
+:ref:`(AllenTildesley) <Allen2>` and in :ref:`(Toukmaji) <Toukmaji2>`.
 
 Also note, that in the code, all of these terms (except Elj) have a
 :math:`C/\epsilon` prefactor, the same as the Coulombic term in the
 LJ + Coulombic pair styles discussed :doc:`here <pair_lj>`.  C is an
-energy-conversion constant and epsilon is the dielectric constant
+energy-conversion constant and :math:`\epsilon` is the dielectric constant
 which can be set by the :doc:`dielectric <dielectric>` command.  The
 same is true of the equations that follow for other dipole pair
 styles.
@@ -140,7 +140,7 @@ moment. In general, a shifted-force potential is a (slightly) modified
 potential containing extra terms that make both the energy and its
 derivative go to zero at the cutoff distance; this removes
 (cutoff-related) problems in energy conservation and any numerical
-instability in the equations of motion :ref:`(Allen)
+instability in the equations of motion :ref:`(AllenTildesley)
 <Allen2>`. Shifted-force interactions for the Lennard-Jones (E_LJ),
 charge-charge (Eqq), charge-dipole (Eqp), dipole-charge (Epq) and
 dipole-dipole (Epp) potentials are computed by these formulas for the
@@ -221,10 +221,10 @@ shifted-force formula for the Lennard-Jones potential is reported in
 :ref:`(Stoddard) <Stoddard>`.  The original (non-shifted) formulas for
 the electrostatic potentials, forces and torques can be found in
 :ref:`(Price) <Price2>`. The shifted-force electrostatic potentials
-have been obtained by applying equation 5.13 of :ref:`(Allen)
+have been obtained by applying equation 5.13 of :ref:`(AllenTildesley)
 <Allen2>`. The formulas for the corresponding forces and torques have
 been obtained by applying the 'chain rule' as in appendix C.3 of
-:ref:`(Allen) <Allen2>`.
+:ref:`(AllenTildesley) <Allen2>`.
 
 If one cutoff is specified in the pair_style command, it is used for
 both the LJ and Coulombic (q,p) terms.  If two cutoffs are specified,
@@ -378,7 +378,7 @@ none
 
 .. _Allen2:
 
-**(Allen)** Allen and Tildesley, Computer Simulation of Liquids,
+**(AllenTildesley)** Allen and Tildesley, Computer Simulation of Liquids,
 Clarendon Press, Oxford, 1987.
 
 .. _Toukmaji2:

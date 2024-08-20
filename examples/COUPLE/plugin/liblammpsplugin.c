@@ -150,6 +150,7 @@ liblammpsplugin_t *liblammpsplugin_load(const char *lib)
   ADDSYM(config_has_png_support);
   ADDSYM(config_has_jpeg_support);
   ADDSYM(config_has_ffmpeg_support);
+  ADDSYM(config_has_curl_support);
   ADDSYM(config_has_exceptions);
 
   ADDSYM(config_has_package);

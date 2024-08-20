@@ -178,7 +178,7 @@ the pairs.  This can be done by using the *bias* keyword of the
 To maintain the correct polarizability of the core/shell pairs, the
 kinetic energy of the internal motion shall remain nearly constant.
 Therefore the choice of spring force and mass ratio need to ensure
-much faster relative motion of the 2 atoms within the core/shell pair
+much faster relative motion of the two atoms within the core/shell pair
 than their center-of-mass velocity. This allows the shells to
 effectively react instantaneously to the electrostatic environment and
 limits energy transfer to or from the core/shell oscillators.

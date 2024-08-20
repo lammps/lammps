@@ -39,3 +39,45 @@
    fun:PMPI_Init
    fun:main
 }
+{
+   MPICH_MPI_init4
+   Memcheck:Leak
+   match-leak-kinds: reachable
+   fun:calloc
+   fun:psmx3_recv_generic
+   ...
+   obj:*
+   ...
+   fun:MPIDI_Init.constprop.0
+   ...
+   fun:PMPI_Init
+   fun:main
+}
+{
+   MPICH_MPI_init5
+   Memcheck:Leak
+   match-leak-kinds: reachable
+   fun:calloc
+   obj:*
+   ...
+   fun: usdf_getinfo.lto_priv.0
+   ...
+   fun:MPID_Init.constprop.0
+   ...
+   fun:PMPI_Init
+   fun:main
+}
+{
+   MPICH_MPI_init6
+   Memcheck:Leak
+   match-leak-kinds: reachable
+   fun:malloc
+   fun:strdup
+   obj:*
+   ...
+   fun:MPID_Init.constprop.0
+   ...
+   obj:*
+   fun:PMPI_Init
+   fun:main
+}

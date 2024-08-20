@@ -243,6 +243,7 @@ int lammps_config_has_gzip_support();
 int lammps_config_has_png_support();
 int lammps_config_has_jpeg_support();
 int lammps_config_has_ffmpeg_support();
+int lammps_config_has_curl_support();
 int lammps_config_has_exceptions();
 
 int lammps_config_has_package(const char *);

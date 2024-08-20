@@ -34,7 +34,7 @@ class ImageViewer : public QDialog {
     Q_OBJECT
 
 public:
-    explicit ImageViewer(const QString &fileName, LammpsWrapper *_lammps,
+    explicit ImageViewer(const QString &fileName, LammpsWrapper *_lammps, QString title = "",
                          QWidget *parent = nullptr);
 
 private slots:
@@ -46,6 +46,7 @@ private slots:
     void reset_view();
     void toggle_ssao();
     void toggle_anti();
+    void toggle_shiny();
     void toggle_vdw();
     void toggle_box();
     void toggle_axes();
@@ -90,7 +91,7 @@ private:
     QString last_dump_cmd;
     int xsize, ysize;
     int hrot, vrot;
-    double zoom, vdwfactor;
+    double zoom, vdwfactor, shinyfactor;
     double xcenter, ycenter, zcenter;
     bool showbox, showaxes, antialias, usessao, useelements, usediameter, usesigma;
 };

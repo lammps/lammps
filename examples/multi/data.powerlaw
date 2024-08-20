@@ -5,7 +5,7 @@ LAMMPS data file via write_data, version 24 Dec 2020, timestep = 400000
 
 9.95143358025075 331.8139610404791 xlo xhi
 9.95143358025075 331.8139610404791 ylo yhi
-0 1 zlo zhi
+-0.5 0.5 zlo zhi
 0 0 0 xy xz yz
 
 Atoms # sphere

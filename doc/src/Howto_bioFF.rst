@@ -43,7 +43,7 @@ have potential energy function of the form
       }} \!\!\!\!\!\!\!\!+ \!\!\sum_{special}\! E_s + \!\!\!\!\sum_{residues} \!\!\!{\scriptstyle\mathrm{CMAP}(\phi,\psi)}
 
 
-The terms are computed by bond styles (relationship between 2 atoms),
+The terms are computed by bond styles (relationship between two atoms),
 angle styles (between 3 atoms) , dihedral/improper styles (between 4
 atoms), pair styles (non-covalently bonded pair interactions) and
 special bonds. The CMAP term (see :doc:`fix cmap <fix_cmap>` command for
@@ -73,7 +73,7 @@ with additional switching or shifting functions that ramp the energy
 and/or force smoothly to zero between an inner :math:`(a)` and outer
 :math:`(b)` cutoff. The older styles with *charmm* (not *charmmfsw* or
 *charmmfsh*\ ) in their name compute the LJ and Coulombic interactions
-with an energy switching function (esw) S(r) which ramps the energy
+with an energy switching function (esw) :math:`S(r)` which ramps the energy
 smoothly to zero between the inner and outer cutoff. This can cause
 irregularities in pairwise forces (due to the discontinuous second
 derivative of energy at the boundaries of the switching region), which

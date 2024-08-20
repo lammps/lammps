@@ -26,6 +26,7 @@
 #include "fix.h"
 #include "fix_deform.h"
 #include "fix_wall.h"
+#include "fix_wall_region.h"
 #include "force.h"
 #include "input.h"
 #include "math_const.h"
@@ -153,6 +154,7 @@ void PairLubricate::compute(int eflag, int vflag)
   double dims[3], wallcoord;
   if (flagVF) // Flag for volume fraction corrections
     if (flagdeform || flagwall == 2) { // Possible changes in volume fraction
+      double vol_T;
       if (flagdeform && !flagwall)
         for (j = 0; j < 3; j++)
           dims[j] = domain->prd[j];
@@ -174,8 +176,21 @@ void PairLubricate::compute(int eflag, int vflag)
          }
          for (int j = 0; j < 3; j++)
            dims[j] = wallhi[j] - walllo[j];
+        vol_T = dims[0]*dims[1]*dims[2];
       }
-      double vol_T = dims[0]*dims[1]*dims[2];
+      else if (flagwall == 3) //Volume fraction corrections in case of fix/wall/region
+      {
+        double wallhi[3], walllo[3], reg_vol;
+        for (int j = 0; j < 3; j++) {
+          wallhi[j] = domain->prd[j];
+          walllo[j] = 0;
+        }
+        reg_vol = regwallfix->compute_volume();
+        if (reg_vol == -1) error->all(FLERR, "Region calculate error in fix_wall_region.cpp"); //Debug errors, should be removed before final push
+        else if (reg_vol == -2) error->all(FLERR, "Region calculate error in fix_wall_region.cpp"); 
+        vol_T = (wallhi[0] - walllo[0]) * (wallhi[1] - walllo[1]) *
+          (wallhi[2] - walllo[2]) - reg_vol; //Calculates entire domain volume and subtracts region volume
+      }
       double vol_f = vol_P/vol_T;
       if (flaglog == 0) {
         R0  = 6*MY_PI*mu*rad*(1.0 + 2.16*vol_f);
@@ -558,21 +573,25 @@ void PairLubricate::init_style()
   // are re-calculated at every step.
 
   shearing = flagdeform = flagwall = 0;
-  for (int i = 0; i < modify->nfix; i++) {
-    if (strcmp(modify->fix[i]->style,"deform") == 0) {
-      shearing = flagdeform = 1;
-      if ((dynamic_cast<FixDeform *>(modify->fix[i]))->remapflag != Domain::V_REMAP)
-        error->all(FLERR,"Using pair lubricate with inconsistent "
-                   "fix deform remap option");
-    }
-    if (strstr(modify->fix[i]->style,"wall") != nullptr) {
-      if (flagwall)
-        error->all(FLERR,
-                   "Cannot use multiple fix wall commands with pair lubricate");
-      flagwall = 1; // Walls exist
-      wallfix = dynamic_cast<FixWall *>(modify->fix[i]);
-      if (wallfix->xflag) flagwall = 2; // Moving walls exist
-    }
+
+  auto fixes = modify->get_fix_by_style("^deform");
+  if (fixes.size() > 0) {
+    shearing = flagdeform = 1;
+    auto *myfix = dynamic_cast<FixDeform *>(fixes[0]);
+    if (myfix && (myfix->remapflag != Domain::V_REMAP))
+      error->all(FLERR,"Using pair lubricate with inconsistent fix deform remap option");
+  }
+  fixes = modify->get_fix_by_style("^wall");
+  if (fixes.size() > 1)
+    error->all(FLERR, "Cannot use multiple fix wall commands with pair lubricate");
+  else if (fixes.size() == 1) {
+    wallfix = dynamic_cast<FixWall *>(fixes[0]);
+    regwallfix = dynamic_cast<FixWallRegion *>(fixes[0]);
+    if (!wallfix && !regwallfix)
+      error->all(FLERR, "Fix {} is not compatible with pair lubricate", fixes[0]->style);
+    flagwall = 1;
+    if (wallfix && wallfix->xflag) flagwall = 2; // Moving walls exist
+    if (regwallfix->dynflag) flagwall = 3; //Dynamic region wall exists
   }
 
   // set the isotropic constants that depend on the volume fraction
@@ -581,7 +600,7 @@ void PairLubricate::init_style()
   double vol_T;
   double wallcoord;
   if (!flagwall) vol_T = domain->xprd*domain->yprd*domain->zprd;
-  else {
+  else if (flagwall && wallfix) {
     double wallhi[3], walllo[3];
     for (int j = 0; j < 3; j++) {
       wallhi[j] = domain->prd[j];
@@ -604,6 +623,19 @@ void PairLubricate::init_style()
     }
     vol_T = (wallhi[0] - walllo[0]) * (wallhi[1] - walllo[1]) *
       (wallhi[2] - walllo[2]);
+  }
+  else if (flagwall && regwallfix)
+  {
+    double wallhi[3], walllo[3], reg_vol;
+    for (int j = 0; j < 3; j++) {
+      wallhi[j] = domain->prd[j];
+      walllo[j] = 0;
+    }
+    reg_vol = regwallfix->compute_volume();
+    if (reg_vol == -1) error->all(FLERR, "Region calculate error in fix_wall_region.cpp");
+    else if (reg_vol == -2) error->all(FLERR, "Region calculate error in fix_wall_region.cpp");
+    vol_T = (wallhi[0] - walllo[0]) * (wallhi[1] - walllo[1]) *
+      (wallhi[2] - walllo[2]) - reg_vol; //Calculates entire domain volume and subtracts region volume
   }
 
   // vol_P = volume of particles, assuming monodispersity

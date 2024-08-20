@@ -28,6 +28,7 @@ class Region : protected Pointers {
   double extent_xlo, extent_xhi;    // bounding box on region
   double extent_ylo, extent_yhi;
   double extent_zlo, extent_zhi;
+  // double region_vol;                //For use in volume fraction corrections
   int bboxflag;                // 1 if bounding box is computable
   int varshape;                // 1 if region shape changes over time
   int dynamic;                 // 1 if position/orient changes over time
@@ -78,6 +79,7 @@ class Region : protected Pointers {
   void prematch();
   int match(double, double, double);
   int surface(double, double, double, double);
+  double volume_calc();
 
   virtual void set_velocity();
   void velocity_contact(double *, double *, int);

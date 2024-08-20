@@ -336,6 +336,41 @@ latex_elements = {
 \DeclareMathSymbol{\Psi}{\mathalpha}{extraops}{"09}
 \DeclareMathSymbol{\Omega}{\mathalpha}{extraops}{"0A}
 
+% customized titlepage
+\newcommand{\custommaketitle}{%
+  \hypersetup{pageanchor=false}% avoid duplicate destination warnings
+  \begin{titlepage}%
+    \let\footnotesize\small
+    \let\footnoterule\relax
+    \noindent\rule{\textwidth}{1pt}\par
+      \begingroup % for PDF information dictionary
+       \def\endgraf{ }\def\and{\& }%
+       \pdfstringdefDisableCommands{\def\\{, }}% overwrite hyperref setup
+       \hypersetup{pdfauthor={\@author}, pdftitle={\@title}}%
+      \endgroup
+    \begin{center}%
+      \sphinxlogo
+      \vfill
+      {\Huge LAMMPS Documentation \par}
+      {\LARGE Release 27Jun2024 \par}
+      \vfill\vfill
+      {\LARGE
+        \begin{tabular}[t]{c}
+          The LAMMPS Developers\\
+\\
+          \Large{developers@lammps.org}$^*$\\
+        \end{tabular}\kern-\tabcolsep
+        \par}
+    \end{center}%\par
+    \begin{center}
+\normalsize{${}^*$ see \hyperref[https://www.lammps.org/authors.html]{https://www.lammps.org/authors.html} for details}
+\end{center}
+ \end{titlepage}%
+  \setcounter{footnote}{0}%
+  \clearpage
+}
+
+
 \renewcommand{\AA}{\mbox{\textrm{\r{A}}}}
 % Make ToC number fields wider to accommodate sections with >= 100 subsections
 %   or >= 10 subsections with >= 10 subsubsections
@@ -349,11 +384,7 @@ latex_elements = {
 \makeatother
 ''',
 'maketitle': r'''
-\pagecolor{black}
-\color{white}
-\sphinxmaketitle
-\nopagecolor
-\color{black}
+\custommaketitle
 ''',
 }
 

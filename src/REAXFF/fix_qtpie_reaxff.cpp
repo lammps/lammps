@@ -114,7 +114,6 @@ FixQtpieReaxFF::FixQtpieReaxFF(LAMMPS *lmp, int narg, char **arg) :
 
   Hdia_inv = nullptr;
   b_s = nullptr;
-  chi_field = nullptr;
   chi_eff = nullptr;
   b_t = nullptr;
   b_prc = nullptr;
@@ -327,7 +326,6 @@ void FixQtpieReaxFF::allocate_storage()
 
   memory->create(Hdia_inv,nmax,"qeq:Hdia_inv");
   memory->create(b_s,nmax,"qeq:b_s");
-  memory->create(chi_field,nmax,"qeq:chi_field");
   memory->create(chi_eff,nmax,"qtpie:chi_eff");
   memory->create(b_t,nmax,"qeq:b_t");
   memory->create(b_prc,nmax,"qeq:b_prc");
@@ -355,7 +353,6 @@ void FixQtpieReaxFF::deallocate_storage()
   memory->destroy(b_t);
   memory->destroy(b_prc);
   memory->destroy(b_prm);
-  memory->destroy(chi_field);
   memory->destroy(chi_eff);
 
   memory->destroy(p);
@@ -604,7 +601,6 @@ void FixQtpieReaxFF::min_setup_pre_force(int vflag)
 
 void FixQtpieReaxFF::init_storage()
 {
-  // if (efield) get_chi_field();
   calc_chi_eff();
 
   for (int ii = 0; ii < nn; ii++) {
@@ -612,7 +608,6 @@ void FixQtpieReaxFF::init_storage()
     if (atom->mask[i] & groupbit) {
       Hdia_inv[i] = 1. / eta[atom->type[i]];
       b_s[i] = -chi_eff[i];
-      // if (efield) b_s[i] -= chi_field[i];
       b_t[i] = -1.0;
       b_prc[i] = 0;
       b_prm[i] = 0;
@@ -650,7 +645,6 @@ void FixQtpieReaxFF::pre_force(int /*vflag*/)
   if (n > n_cap*DANGER_ZONE || m_fill > m_cap*DANGER_ZONE)
     reallocate_matrix();
 
-  // if (efield) get_chi_field();
   calc_chi_eff();
 
   init_matvec();
@@ -692,7 +686,6 @@ void FixQtpieReaxFF::init_matvec()
       /* init pre-conditioner for H and init solution vectors */
       Hdia_inv[i] = 1. / eta[atom->type[i]];
       b_s[i]      = -chi_eff[i];
-      // if (efield) b_s[i] -= chi_field[i];
       b_t[i]      = -1.0;
 
       /* quadratic extrapolation for s & t from previous solutions */
@@ -1157,59 +1150,6 @@ void FixQtpieReaxFF::vector_add(double* dest, double c, double* v, int k)
 }
 
 /* ---------------------------------------------------------------------- */
-
-void FixQtpieReaxFF::get_chi_field()
-{
-  memset(&chi_field[0],0,atom->nmax*sizeof(double));
-  if (!efield) return;
-
-  const auto x = (const double * const *)atom->x;
-  const int *mask = atom->mask;
-  const imageint *image = atom->image;
-  const int nlocal = atom->nlocal;
-
-
-  // update electric field region if necessary
-
-  Region *region = efield->region;
-  if (region) region->prematch();
-
-  // efield energy is in real units of kcal/mol/angstrom, need to convert to eV
-
-  const double qe2f = force->qe2f;
-  const double factor = -1.0/qe2f;
-
-
-  if (efield->varflag != FixEfield::CONSTANT)
-    efield->update_efield_variables();
-
-  // atom selection is for the group of fix efield
-
-  double unwrap[3];
-  const double ex = efield->ex;
-  const double ey = efield->ey;
-  const double ez = efield->ez;
-  const int efgroupbit = efield->groupbit;
-
-    // charge interactions
-    // force = qE, potential energy = F dot x in unwrapped coords
-  if (efield->varflag != FixEfield::ATOM) {
-    for (int i = 0; i < nlocal; i++) {
-      if (mask[i] & efgroupbit) {
-        if (region && !region->match(x[i][0],x[i][1],x[i][2])) continue;
-        domain->unmap(x[i],image[i],unwrap);
-        chi_field[i] = factor*(ex*unwrap[0] + ey*unwrap[1] + ez*unwrap[2]);
-      }
-    }
-  } else { // must use atom-style potential from FixEfield
-    for (int i = 0; i < nlocal; i++) {
-      if (mask[i] & efgroupbit) {
-        if (region && !region->match(x[i][0],x[i][1],x[i][2])) continue;
-        chi_field[i] = -efield->efield[i][3];
-      }
-    }
-  }
-}
 
 void FixQtpieReaxFF::calc_chi_eff()
 {

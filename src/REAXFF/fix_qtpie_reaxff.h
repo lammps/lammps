@@ -82,17 +82,15 @@ class FixQtpieReaxFF : public Fix {
   double *Hdia_inv;
   double *b_s, *b_t;
   double *b_prc, *b_prm;
-  double *chi_field;
+  double *chi_eff; // array of effective electronegativities
 
   //CG storage
   double *p, *q, *r, *d;
   int imax, maxwarn;
 
   char *pertype_option;    // argument to determine how per-type info is obtained
-			   
-  char *gauss_file; // input file for gaussian exponents for each type of REAXFF file
+  char *gauss_file; // input file for gaussian exponents
   double *gauss_exp; // array of gaussian exponents
-  double *chi_eff; // array of effective electronegativities
 
   virtual void pertype_parameters(char *);
   void init_shielding();
@@ -103,10 +101,6 @@ class FixQtpieReaxFF : public Fix {
   virtual void allocate_matrix();
   virtual void deallocate_matrix();
   void reallocate_matrix();
-
-  void calc_chi_eff();
-  double find_min(double*, int);
-  double distance(const double*, const double*);
 
   virtual void init_matvec();
   void init_H();
@@ -134,7 +128,10 @@ class FixQtpieReaxFF : public Fix {
   virtual void vector_sum(double *, double, double *, double, double *, int);
   virtual void vector_add(double *, double, double *, int);
 
-  virtual void get_chi_field();
+  void calc_chi_eff();
+  double find_min(double*, int);
+  double distance(const double*, const double*);
+
 
   // dual CG support
   int dual_enabled;            // 0: Original, separate s & t optimization; 1: dual optimization

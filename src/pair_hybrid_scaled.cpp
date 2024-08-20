@@ -276,6 +276,7 @@ void PairHybridScaled::settings(int narg, char **arg)
   // allocate list of sub-styles as big as possibly needed if no extra args
 
   styles = new Pair *[narg];
+  delete[] cutmax_style;
   cutmax_style = new double[narg];
   memset(cutmax_style, 0.0, narg * sizeof(double));
   keywords = new char *[narg];

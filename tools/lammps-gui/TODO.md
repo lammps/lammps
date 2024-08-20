@@ -4,7 +4,11 @@ LAMMPS-GUI TODO list:
 
 - figure out how widgets can be resized to fraction of available screen size.
 - figure out stacking order of frames and whether it can be more flexible
-- bundle LAMMPS tutorial input files
+- figure out how to avoid corrupted cached thermo data while reading it.
+- implement a timed "Auto-Save" feature that saves after some idle time.  set timeout in Editor preferences.
+- add a "Colors" menu to the image viewer to adjust color settings for the
+  current image (unlike the defaults in the perferences). Support color by
+  property (e.g. scan computes or fixes with per-atom data), define colormaps etc.
 
 - implement indenting regions for (nested) loops?
 - implement data file manager GUI with the following features:

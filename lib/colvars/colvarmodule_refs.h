@@ -14,6 +14,22 @@
     "  url = {https://doi.org/10.1016/j.softx.2015.06.001}\n"
     "}\n";
 
+  paper_count_[std::string("BouRabee2010")] = 0;
+  paper_url_[std::string("BouRabee2010")] = "https://doi.org/10.1137/090758842";
+  paper_bibtex_[std::string("BouRabee2010")] =
+    "\n"
+    "@article{BouRabee2010,\n"
+    "  doi = {10.1137/090758842},\n"
+    "  url = {https://doi.org/10.1137/090758842},\n"
+    "  year = {2010},\n"
+    "  volume = {48},\n"
+    "  number = {1},\n"
+    "  pages = {278--297},\n"
+    "  author = {Nawaf Bou-Rabee and Houman Owhadi},\n"
+    "  title = {Long-Run Accuracy of Variational Integrators in the Stochastic Context},\n"
+    "  journal = {{SIAM} Journal on Numerical Analysis}\n"
+    "}\n";
+
   paper_count_[std::string("Chen2021")] = 0;
   paper_url_[std::string("Chen2021")] = "https://doi.org/10.1021/acs.jctc.1c00103";
   paper_bibtex_[std::string("Chen2021")] =
@@ -182,6 +198,19 @@
     "  url = {https://doi.org/10.1021/ct9004432}\n"
     "}\n";
 
+  paper_count_[std::string("Henin2021")] = 0;
+  paper_url_[std::string("Henin2021")] = "https://doi.org/10.1021/acs.jctc.1c00593";
+  paper_bibtex_[std::string("Henin2021")] =
+    "\n"
+    "@Article{Henin2021,\n"
+    "  author  = {H\\'enin, J.},\n"
+    "  journal = {J. Chem. Theory Comput.},\n"
+    "  title   = {Fast and accurate multidimensional free energy integration},\n"
+    "  year    = {2021},\n"
+    "  doi     = {10.1021/acs.jctc.1c00593},\n"
+    "  url     = {https://doi.org/10.1021/acs.jctc.1c00593},\n"
+    "}\n";
+
   paper_count_[std::string("Humphrey1996")] = 0;
   paper_url_[std::string("Humphrey1996")] = "https://doi.org/10.1016/0263-7855(96)00018-5";
   paper_bibtex_[std::string("Humphrey1996")] =
@@ -213,19 +242,6 @@
     "  doi = {10.1021/acs.jpcb.6b10055},\n"
     "  pmid = {27959559},\n"
     "  url = {https://doi.org/10.1021/acs.jpcb.6b10055}\n"
-    "}\n";
-
-  paper_count_[std::string("Henin2021")] = 0;
-  paper_url_[std::string("Henin2021")] = "https://doi.org/10.1021/acs.jctc.1c00593";
-  paper_bibtex_[std::string("Henin2021")] =
-    "\n"
-    "@Article{Henin2021,\n"
-    "  author  = {H\\'enin, J.},\n"
-    "  journal = {J. Chem. Theory Comput.},\n"
-    "  title   = {Fast and accurate multidimensional free energy integration},\n"
-    "  year    = {2021},\n"
-    "  doi     = {10.1021/acs.jctc.1c00593},\n"
-    "  url     = {https://doi.org/10.1021/acs.jctc.1c00593},\n"
     "}\n";
 
   paper_count_[std::string("Marinelli2015")] = 0;
@@ -335,6 +351,9 @@
   feature_count_[std::string("GROMACS engine")] = 0;
   feature_paper_map_[std::string("GROMACS engine")] = "Abraham2015";
 
+  feature_count_[std::string("BAOA integrator")] = 0;
+  feature_paper_map_[std::string("BAOA integrator")] = "BouRabee2010";
+
   feature_count_[std::string("reweightaMD colvar bias implementation (NAMD)")] = 0;
   feature_paper_map_[std::string("reweightaMD colvar bias implementation (NAMD)")] = "Chen2021";
 
@@ -422,14 +441,14 @@
   feature_count_[std::string("orientationAngle colvar component (derived from orientation)")] = 0;
   feature_paper_map_[std::string("orientationAngle colvar component (derived from orientation)")] = "Fiorin2013";
 
-  feature_count_[std::string("orientationProj colvar component (derived from orientation)")] = 0;
-  feature_paper_map_[std::string("orientationProj colvar component (derived from orientation)")] = "Fiorin2013";
+  feature_count_[std::string("orientationProj colvar component (derived from orientationAngle)")] = 0;
+  feature_paper_map_[std::string("orientationProj colvar component (derived from orientationAngle)")] = "Fiorin2013";
 
-  feature_count_[std::string("spinAngle colvar component (derived from orientation)")] = 0;
-  feature_paper_map_[std::string("spinAngle colvar component (derived from orientation)")] = "Fiorin2013";
+  feature_count_[std::string("spinAngle colvar component (derived from tilt)")] = 0;
+  feature_paper_map_[std::string("spinAngle colvar component (derived from tilt)")] = "Fiorin2013";
 
-  feature_count_[std::string("tilt colvar component (derived from orientation)")] = 0;
-  feature_paper_map_[std::string("tilt colvar component (derived from orientation)")] = "Fiorin2013";
+  feature_count_[std::string("tilt colvar component (derived from orientationProj)")] = 0;
+  feature_paper_map_[std::string("tilt colvar component (derived from orientationProj)")] = "Fiorin2013";
 
   feature_count_[std::string("alpha colvar component")] = 0;
   feature_paper_map_[std::string("alpha colvar component")] = "Fiorin2013";
@@ -479,14 +498,14 @@
   feature_count_[std::string("polarPhi colvar component")] = 0;
   feature_paper_map_[std::string("polarPhi colvar component")] = "Fu2017";
 
-  feature_count_[std::string("eulerPhi colvar component (derived from orientation)")] = 0;
-  feature_paper_map_[std::string("eulerPhi colvar component (derived from orientation)")] = "Fu2017";
+  feature_count_[std::string("eulerPhi colvar component (derived from orientation_angle)")] = 0;
+  feature_paper_map_[std::string("eulerPhi colvar component (derived from orientation_angle)")] = "Fu2017";
 
-  feature_count_[std::string("eulerTheta colvar component (derived from orientation)")] = 0;
-  feature_paper_map_[std::string("eulerTheta colvar component (derived from orientation)")] = "Fu2017";
+  feature_count_[std::string("eulerTheta colvar component (derived from orientation_angle)")] = 0;
+  feature_paper_map_[std::string("eulerTheta colvar component (derived from orientation_angle)")] = "Fu2017";
 
-  feature_count_[std::string("eulerPsi colvar component (derived from orientation)")] = 0;
-  feature_paper_map_[std::string("eulerPsi colvar component (derived from orientation)")] = "Fu2017";
+  feature_count_[std::string("eulerPsi colvar component (derived from orientation_angle)")] = 0;
+  feature_paper_map_[std::string("eulerPsi colvar component (derived from orientation_angle)")] = "Fu2017";
 
   feature_count_[std::string("dipoleAngle colvar component")] = 0;
   feature_paper_map_[std::string("dipoleAngle colvar component")] = "Garate2019";
@@ -500,6 +519,9 @@
   feature_count_[std::string("Internal-forces free energy estimator")] = 0;
   feature_paper_map_[std::string("Internal-forces free energy estimator")] = "Henin2010";
 
+  feature_count_[std::string("Poisson integration of 2D/3D free energy surfaces")] = 0;
+  feature_paper_map_[std::string("Poisson integration of 2D/3D free energy surfaces")] = "Henin2021";
+
   feature_count_[std::string("VMD engine")] = 0;
   feature_paper_map_[std::string("VMD engine")] = "Humphrey1996";
 
@@ -508,9 +530,6 @@
 
   feature_count_[std::string("CZAR eABF estimator")] = 0;
   feature_paper_map_[std::string("CZAR eABF estimator")] = "Lesage2017";
-
-  feature_count_[std::string("Poisson integration of 2D/3D free energy surfaces")] = 0;
-  feature_paper_map_[std::string("Poisson integration of 2D/3D free energy surfaces")] = "Henin2021";
 
   feature_count_[std::string("Ensemble-biased metadynamics (ebMetaD)")] = 0;
   feature_paper_map_[std::string("Ensemble-biased metadynamics (ebMetaD)")] = "Marinelli2015";
@@ -538,9 +557,6 @@
 
   feature_count_[std::string("Colvars-GROMACS interface")] = 0;
   feature_paper_map_[std::string("Colvars-GROMACS interface")] = "n/a";
-
-  feature_count_[std::string("Colvars Dashboard (Colvars-VMD graphical user interface)")] = 0;
-  feature_paper_map_[std::string("Colvars Dashboard (Colvars-VMD graphical user interface)")] = "n/a";
 
   feature_count_[std::string("gspath colvar component")] = 0;
   feature_paper_map_[std::string("gspath colvar component")] = "n/a";
@@ -571,3 +587,6 @@
 
   feature_count_[std::string("Scripted functions (Tcl)")] = 0;
   feature_paper_map_[std::string("Scripted functions (Tcl)")] = "n/a";
+
+  feature_count_[std::string("ABMD bias")] = 0;
+  feature_paper_map_[std::string("ABMD bias")] = "n/a";

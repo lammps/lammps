@@ -15,7 +15,7 @@ Syntax
    pair_style srp/react cutoff btype dist react-id keyword value ...
 
 * cutoff = global cutoff for SRP interactions (distance units)
-* btype = bond type to apply SRP interactions to (can be wildcard, see below)
+* btype = bond type (numeric, type label, or wildcard) to apply SRP interactions to
 * distance = *min* or *mid*
 * react-id = id of either fix bond/break or fix bond/create
 * zero or more keyword/value pairs may be appended
@@ -23,7 +23,7 @@ Syntax
 
   .. parsed-literal::
 
-       *bptype* value = atom type for bond particles
+       *bptype* value = atom type (numeric or type label) for bond particles
        *exclude* value = *yes* or *no*
 
 Examples
@@ -51,6 +51,10 @@ Examples
    pair_coeff 1 1 none
    pair_coeff 1 2 none
    pair_coeff 2 2 srp 100.0 0.8
+
+   labelmap bond 1 C-C
+   pair_style hybrid srp 0.8 C-C mid
+
 
 Description
 
@@ -116,6 +120,11 @@ is used.
    Because bonds interact only with other bonds, :doc:`pair_style hybrid <pair_hybrid>` should be used to turn off interactions
    between atom type *bptype* and all other types of atoms.  An error
    will be flagged if :doc:`pair_style hybrid <pair_hybrid>` is not used.
+
+.. note::
+
+   If using type labels, the type labels must be defined before calling
+   the :doc:`pair_coeff <pair_coeff>` command.
 
 The optional *exclude* keyword determines if forces are computed
 between first neighbor (directly connected) bonds.  For a setting of
@@ -207,4 +216,3 @@ Chem Phys, 136 (13) 134903, 2012.
 .. _Palkar:
 
 **(Palkar)** Palkar V, Kuksenok O, J. Phys. Chem. B, 126 (1), 336-346, 2022
-

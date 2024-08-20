@@ -342,8 +342,8 @@ class lammps(object):
     if self.has_mpi_support:
       try:
         from mpi4py import __version__ as mpi4py_version
-        # tested to work with mpi4py versions 2 and 3
-        self.has_mpi4py = mpi4py_version.split('.')[0] in ['2','3']
+        # tested to work with mpi4py versions 2, 3, and 4
+        self.has_mpi4py = mpi4py_version.split('.')[0] in ['2','3','4']
       except ImportError:
         # ignore failing import
         pass
@@ -369,7 +369,7 @@ class lammps(object):
         if not self.has_mpi_support:
           raise Exception('LAMMPS not compiled with real MPI library')
         if not self.has_mpi4py:
-          raise Exception('Python mpi4py version is not 2 or 3')
+          raise Exception('Python mpi4py version is not 2, 3, or 4')
         if self.MPI._sizeof(self.MPI.Comm) == sizeof(c_int):
           MPI_Comm = c_int
         else:
@@ -1969,6 +1969,21 @@ class lammps(object):
 
   # -------------------------------------------------------------------------
 
+  @property
+  def has_curl_support(self):
+    """ Report whether the LAMMPS shared library was compiled with support
+    for downloading files through libcurl.
+
+    This is a wrapper around the :cpp:func:`lammps_config_has_curl_support`
+    function of the library interface.
+
+    :return: state of CURL support
+    :rtype: bool
+    """
+    return self.lib.lammps_config_has_curl_support() != 0
+
+  # -------------------------------------------------------------------------
+
   def has_package(self, name):
     """ Report if the named package has been enabled in the LAMMPS shared library.
 
@@ -2052,7 +2067,7 @@ class lammps(object):
     """ List of the names of enabled packages in the LAMMPS shared library
 
     This is a wrapper around the functions :cpp:func:`lammps_config_package_count`
-    and :cpp:func`lammps_config_package_name` of the library interface.
+    and :cpp:func:`lammps_config_package_name` of the library interface.
 
     :return
     """

@@ -59,10 +59,10 @@ coefficients need to be re-specified.
    When both a bond and pair style is defined, the
    :doc:`special_bonds <special_bonds>` command often needs to be used to
    turn off (or weight) the pairwise interaction that would otherwise
-   exist between 2 bonded atoms.
+   exist between two bonded atoms.
 
 In the formulas listed for each bond style, *r* is the distance
-between the 2 atoms in the bond.
+between the two atoms in the bond.
 
 ----------
 

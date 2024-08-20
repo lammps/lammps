@@ -17,6 +17,7 @@
 #include <QComboBox>
 #include <QList>
 #include <QString>
+#include <QTime>
 #include <QWidget>
 
 class QAction;
@@ -24,6 +25,8 @@ class QCloseEvent;
 class QEvent;
 class QMenuBar;
 class QMenu;
+class QCheckBox;
+class QSpinBox;
 namespace QtCharts {
 class ChartViewer;
 }
@@ -48,6 +51,7 @@ private slots:
     void quit();
     void reset_zoom();
     void stop_run();
+    void update_smooth();
 
     void saveAs();
     void exportDat();
@@ -66,6 +70,8 @@ private:
     QComboBox *columns;
     QAction *saveAsAct, *exportCsvAct, *exportDatAct, *exportYamlAct;
     QAction *closeAct, *stopAct, *quitAct;
+    QCheckBox *smooth;
+    QSpinBox *window, *order;
 
     QString filename;
     QList<QtCharts::ChartViewer *> charts;
@@ -84,22 +90,28 @@ class ChartViewer : public QChartView {
 
 public:
     explicit ChartViewer(const QString &title, int index, QWidget *parent = nullptr);
+    ~ChartViewer();
 
     void add_data(int step, double data);
     void reset_zoom();
+    void smooth_param(bool _do_smooth, int _window, int _order);
+    void update_smooth();
 
     int get_index() const { return index; };
     int get_count() const { return series->count(); }
-    const char *get_title() const { return series->name().toLocal8Bit(); }
+    QString get_title() const { return series->name(); }
     double get_step(int index) const { return (index < 0) ? 0.0 : series->at(index).x(); }
     double get_data(int index) const { return (index < 0) ? 0.0 : series->at(index).y(); }
 
 private:
     int last_step, index;
+    int window, order;
     QChart *chart;
-    QLineSeries *series;
+    QLineSeries *series, *smooth;
     QValueAxis *xaxis;
     QValueAxis *yaxis;
+    QTime last_update;
+    bool do_smooth;
 };
 } // namespace QtCharts
 #endif

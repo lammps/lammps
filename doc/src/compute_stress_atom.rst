@@ -69,9 +69,9 @@ In case of compute *stress/atom*, the virial contribution is:
 
 The first term is a pairwise energy contribution where :math:`n` loops
 over the :math:`N_p` neighbors of atom :math:`I`, :math:`\mathbf{r}_1`
-and :math:`\mathbf{r}_2` are the positions of the 2 atoms in the
+and :math:`\mathbf{r}_2` are the positions of the two atoms in the
 pairwise interaction, and :math:`\mathbf{F}_1` and
-:math:`\mathbf{F}_2` are the forces on the 2 atoms resulting from the
+:math:`\mathbf{F}_2` are the forces on the two atoms resulting from the
 pairwise interaction.  The second term is a bond contribution of
 similar form for the :math:`N_b` bonds which atom :math:`I` is part
 of.  There are similar terms for the :math:`N_a` angle, :math:`N_d`

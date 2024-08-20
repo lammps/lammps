@@ -763,11 +763,12 @@ void FixQEq::read_file(char *file)
       chi[n] = eta[n] = gamma[n] = zeta[n] = zcore[n] = 0.0;
     }
 
+    FILE *fp = nullptr;
     try {
       int nlo,nhi;
       double val;
 
-      FILE *fp = utils::open_potential(file,lmp,nullptr);
+      fp = utils::open_potential(file,lmp,nullptr);
       if (fp == nullptr)
         throw qeq_parser_error(fmt::format("Cannot open fix qeq parameter file {}: {}",
                                            file,utils::getsyserror()));
@@ -798,7 +799,7 @@ void FixQEq::read_file(char *file)
         for (int n=nlo; n <= nhi; ++n) setflag[n] = 1;
       }
     } catch (EOFException &) {
-      ; // catch and ignore to exit loop
+      fclose(fp);
     } catch (std::exception &e) {
       error->one(FLERR,e.what());
     }

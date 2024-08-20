@@ -24,6 +24,7 @@ FixStyle(nve/limit/kk/host,FixNVELimitKokkos<LMPHostType>);
 #define LMP_FIX_NVE_LIMIT_KOKKOS_H
 
 #include "fix_nve_limit.h"
+#include "kokkos_type.h"
 
 namespace LAMMPS_NS {
 

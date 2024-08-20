@@ -25,7 +25,6 @@
 #include <cmath>
 
 using namespace LAMMPS_NS;
-using namespace FixConst;
 
 /* ---------------------------------------------------------------------- */
 
@@ -34,8 +33,14 @@ FixNVELimitKokkos<DeviceType>::FixNVELimitKokkos(LAMMPS *lmp, int narg, char **a
   FixNVELimit(lmp, narg, arg)
 {
   kokkosable = 1;
+
+  //FIXME: unit test fails when i turn this on
+  //fuse_integrate_flag = 1;
+
   execution_space = ExecutionSpaceFromDevice<DeviceType>::space;
   atomKK = (AtomKokkos *) atom;
+  datamask_read = EMPTY_MASK;
+  datamask_modify = EMPTY_MASK;
 }
 
 /* ----------------------------------------------------------------------
@@ -52,6 +57,8 @@ void FixNVELimitKokkos<DeviceType>::initial_integrate(int /*vflag*/)
   auto d_v = atomKK->k_v.template view<DeviceType>();
   auto d_f = atomKK->k_f.template view<DeviceType>();
   auto d_mask = atomKK->k_mask.template view<DeviceType>();
+
+  int d_ncount;
 
   if (atomKK->rmass) {
 
@@ -79,7 +86,7 @@ void FixNVELimitKokkos<DeviceType>::initial_integrate(int /*vflag*/)
         d_x(i,1) += dtv * d_v(i,1);
         d_x(i,2) += dtv * d_v(i,2);
       }
-    }, ncount);
+    }, d_ncount);
 
   } else {
 
@@ -107,9 +114,10 @@ void FixNVELimitKokkos<DeviceType>::initial_integrate(int /*vflag*/)
         d_x(i,1) += dtv * d_v(i,1);
         d_x(i,2) += dtv * d_v(i,2);
       }
-    }, ncount);
+    }, d_ncount);
   }
 
+  ncount += d_ncount;
   atomKK->modified(execution_space, X_MASK | V_MASK );
 
 }
@@ -126,6 +134,8 @@ void FixNVELimitKokkos<DeviceType>::final_integrate()
   auto d_v = atomKK->k_v.template view<DeviceType>();
   auto d_f = atomKK->k_f.template view<DeviceType>();
   auto d_mask = atomKK->k_mask.template view<DeviceType>();
+
+  int d_ncount;
 
   if (atomKK->rmass) {
 
@@ -148,7 +158,7 @@ void FixNVELimitKokkos<DeviceType>::final_integrate()
           d_v(i,2) *= scale;
         }
       }
-    }, ncount);
+    }, d_ncount);
 
   } else {
 
@@ -172,9 +182,10 @@ void FixNVELimitKokkos<DeviceType>::final_integrate()
           d_v(i,2) *= scale;
         }
       }
-    }, ncount);
+    }, d_ncount);
   }
 
+  ncount += d_ncount;
   atomKK->modified(execution_space, V_MASK );
 
 }

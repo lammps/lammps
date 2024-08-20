@@ -1,4 +1,3 @@
-// clang-format off
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    https://www.lammps.org/, Sandia National Laboratories
@@ -29,9 +28,9 @@
 #include "fix_rheo.h"
 #include "force.h"
 #include "memory.h"
-#include "neighbor.h"
 #include "neigh_list.h"
 #include "neigh_request.h"
+#include "neighbor.h"
 
 #include "update.h"
 
@@ -41,10 +40,10 @@ using namespace RHEO_NS;
 /* ---------------------------------------------------------------------- */
 
 ComputeRHEOVShift::ComputeRHEOVShift(LAMMPS *lmp, int narg, char **arg) :
-  Compute(lmp, narg, arg), vshift(nullptr), fix_rheo(nullptr), rho0(nullptr), list(nullptr),
-  compute_interface(nullptr), compute_kernel(nullptr), compute_surface(nullptr)
+    Compute(lmp, narg, arg), vshift(nullptr), fix_rheo(nullptr), rho0(nullptr), list(nullptr),
+    compute_interface(nullptr), compute_kernel(nullptr), compute_surface(nullptr)
 {
-  if (narg != 3) error->all(FLERR,"Illegal compute RHEO/VShift command");
+  if (narg != 3) error->all(FLERR, "Illegal compute RHEO/VShift command");
 
   comm_reverse = 3;
   surface_flag = 0;
@@ -125,8 +124,7 @@ void ComputeRHEOVShift::compute_peratom()
   }
 
   for (i = 0; i < nall; i++)
-    for (a = 0; a < dim; a++)
-      vshift[i][a] = 0.0;
+    for (a = 0; a < dim; a++) vshift[i][a] = 0.0;
 
   for (a = 0; a < 3; a++) {
     vi[a] = 0.0;
@@ -141,8 +139,10 @@ void ComputeRHEOVShift::compute_peratom()
     itype = type[i];
     jlist = firstneigh[i];
     jnum = numneigh[i];
-    if (rmass) imass = rmass[i];
-    else imass = mass[itype];
+    if (rmass)
+      imass = rmass[i];
+    else
+      imass = mass[itype];
     fluidi = !(status[i] & PHASECHECK);
 
     for (jj = 0; jj < jnum; jj++) {
@@ -162,8 +162,10 @@ void ComputeRHEOVShift::compute_peratom()
 
       if (rsq < cutsq) {
         jtype = type[j];
-        if (rmass) jmass = rmass[j];
-        else jmass = mass[jtype];
+        if (rmass)
+          jmass = rmass[j];
+        else
+          jmass = mass[jtype];
 
         r = sqrt(rsq);
         rinv = 1 / r;
@@ -180,10 +182,10 @@ void ComputeRHEOVShift::compute_peratom()
         if (interface_flag) {
           if (fluidi && (!fluidj)) {
             compute_interface->correct_v(vj, vi, j, i);
-            rhoj = compute_interface->correct_rho(j, i);
+            rhoj = compute_interface->correct_rho(j);
           } else if ((!fluidi) && fluidj) {
             compute_interface->correct_v(vi, vj, i, j);
-            rhoi = compute_interface->correct_rho(i, j);
+            rhoi = compute_interface->correct_rho(i);
           } else if ((!fluidi) && (!fluidj)) {
             rhoi = rho0[itype];
             rhoj = rho0[jtype];
@@ -195,7 +197,7 @@ void ComputeRHEOVShift::compute_peratom()
 
         wp = compute_kernel->calc_dw(i, j, dx[0], dx[1], dx[2], r);
         w = compute_kernel->calc_w(i, j, dx[0], dx[1], dx[2], r);
-        w0 = compute_kernel->calc_w(i, j, 0, 0, 0, cutthird); // dx, dy, dz irrelevant
+        w0 = compute_kernel->calc_w(i, j, 0, 0, 0, cutthird);    // dx, dy, dz irrelevant
         w4 = w * w * w * w / (w0 * w0 * w0 * w0);
         dr = -2 * cutthird * (1 + 0.2 * w4) * wp * rinv;
 
@@ -224,7 +226,6 @@ void ComputeRHEOVShift::compute_peratom()
 
   if (newton_pair) comm->reverse_comm(this);
 }
-
 
 /* ---------------------------------------------------------------------- */
 
@@ -300,7 +301,7 @@ int ComputeRHEOVShift::pack_reverse_comm(int n, int first, double *buf)
 
 void ComputeRHEOVShift::unpack_reverse_comm(int n, int *list, double *buf)
 {
-  int i,j,m;
+  int i, j, m;
 
   m = 0;
   for (i = 0; i < n; i++) {

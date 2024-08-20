@@ -542,7 +542,7 @@ void ReaderNative::skip_buf(size_t size)
 {
   bigint pos = platform::ftell(fp);
   pos += size;
-  platform::fseek(fp,pos);
+  (void) platform::fseek(fp,pos);
 }
 
 bool ReaderNative::is_known_magic_str() const

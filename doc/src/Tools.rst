@@ -58,6 +58,7 @@ Pre-processing tools
    * :ref:`polybond <polybond>`
    * :ref:`stl_bin2txt <stlconvert>`
    * :ref:`tabulate <tabulate>`
+   * :ref:`tinker <tinker>`
 
 Post-processing tools
 =====================
@@ -97,6 +98,7 @@ Miscellaneous tools
    * :ref:`Offline build tool <offline>`
    * :ref:`singularity/apptainer <singularity_tool>`
    * :ref:`SWIG interface <swig>`
+   * :ref:`valgrind <valgrind>`
    * :ref:`vim <vim>`
 
 ----------
@@ -109,7 +111,7 @@ Tool descriptions
 amber2lmp tool
 --------------------------
 
-The amber2lmp subdirectory contains two Python scripts for converting
+The amber2lmp subdirectory contains three Python scripts for converting
 files back-and-forth between the AMBER MD code and LAMMPS.  See the
 README file in amber2lmp for more information.
 
@@ -302,7 +304,7 @@ The parameters for Cr were taken from:
 Lin Z B, Johnson R A and Zhigilei L V, Phys. Rev. B 77 214108 (2008).
 
 The Python version of the tool was authored  by Germain Clavier
-(TU Eindhoven) g.m.g.c.clavier at tue.nl or germain.clavier at gmail.com
+(Unicaen) germain.clavier at unicaen.fr
 
 .. note::
 
@@ -1207,6 +1209,33 @@ The ``tabulate`` folder contains Python scripts scripts to generate tabulated
 potential files for LAMMPS.  The bulk of the code is in the ``tabulate`` module
 in the ``tabulate.py`` file.  Some example files demonstrating its use are
 included.  See the README file for more information.
+
+----------
+
+.. _tinker:
+
+tinker tool
+--------------
+
+The ``tinker`` folder contains Python scripts scripts to convert Tinker input
+files to LAMMPS.
+
+See the README file for more information.
+
+Those scripts were written by Steve Plimpton sjplimp at gmail.com
+
+----------
+
+.. _valgrind:
+
+valgrind tool
+-------------
+
+The ``valgrind`` folder contains additional suppressions fur LAMMPS when using
+valgrind's memcheck tool to search for memory access violation and memory
+leaks. These suppressions are automatically invoked when running tests through
+CMake "ctest -T memcheck". See the provided README file to add these
+suppressions when running LAMMPS.
 
 ----------
 

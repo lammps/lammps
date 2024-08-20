@@ -15,7 +15,7 @@ Syntax
 * inner,outer = inner and outer bond length (distance units)
 * file = name of file to write values to
 * keyword = section name in file for this set of tabulated values
-* itype,jtype = 2 atom types (optional)
+* itype,jtype = two atom types (optional)
 
 Examples
 """"""""
@@ -39,7 +39,7 @@ of the file to allow multiple tables of energy and force to be included
 in one file.  The individual sections may be identified by the *keyword*.
 
 The energy and force values are computed at distances from *inner* to
-*outer* for 2 interacting atoms forming a bond of type *btype*, using
+*outer* for two interacting atoms forming a bond of type *btype*, using
 the appropriate :doc:`bond_coeff <bond_coeff>` coefficients. N evenly
 spaced distances are used.
 

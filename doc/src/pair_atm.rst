@@ -56,7 +56,7 @@ potential using the :doc:`pair_style hybrid/overlay <pair_hybrid>`
 command as in the example above.
 
 The potential for a triplet of atom is calculated only if all 3 distances
-:math:`r_{12}`, :math:`r_{23}`, :math:`r_{31}` between the 3 atoms satisfy
+:math:`r_{12}`, :math:`r_{23}`, :math:`r_{31}` between the three atoms satisfy
 :math:`r_{IJ} < \text{cutoff}`.  In addition, the product of the 3 distances
 :math:`r_{12} r_{23} r_{31}` < cutoff_triple :math:`^3` is required, which
 excludes from calculation the triplets with small contribution to the
@@ -70,8 +70,8 @@ above, or in the restart files read by the
 * :math:`K` = atom type of the third atom (1 to :math:`N_{\text{types}}`)
 * :math:`\nu` = prefactor (energy/distance\^9 units)
 
-:math:`K` can be specified in one of two ways.  An explicit numeric value can
-be used, as in the second example above.  :math:`J \leq K` is required.  LAMMPS
+:math:`K` can be specified in one of two ways.  An explicit numeric value
+or type label can be used, as in the second example above.   LAMMPS
 sets the coefficients for the other 5 symmetric interactions to the same
 values.  E.g. if :math:`I = 1`, :math:`J = 2`, :math:`K = 3`, then these 6
 values are set to the specified :math:`\nu`: :math:`\nu_{123}`,

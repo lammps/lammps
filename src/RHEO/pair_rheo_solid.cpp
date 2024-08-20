@@ -1,4 +1,3 @@
-// clang-format off
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    https://www.lammps.org/, Sandia National Laboratories
@@ -221,14 +220,12 @@ void PairRHEOSolid::coeff(int narg, char **arg)
 void PairRHEOSolid::init_style()
 {
   if (comm->ghost_velocity == 0)
-    error->all(FLERR,"Pair rheo/solid requires ghost atoms store velocity");
+    error->all(FLERR, "Pair rheo/solid requires ghost atoms store velocity");
 
-  if (!atom->rheo_status_flag)
-    error->all(FLERR,"Pair rheo/solid requires atom_style rheo");
+  if (!atom->rheo_status_flag) error->all(FLERR, "Pair rheo/solid requires atom_style rheo");
 
   neighbor->add_request(this);
 }
-
 
 /* ----------------------------------------------------------------------
    init for one type pair i,j and corresponding j,i

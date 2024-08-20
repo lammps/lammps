@@ -367,5 +367,4 @@ And execute the simulation with the following:
 
 .. _OPLSAA96:
 
-**(OPLS-AA)**  Jorgensen, Maxwell, Tirado-Rives, J Am Chem Soc,
-118(45), 11225-11236 (1996).
+**(OPLS-AA)**  Jorgensen, Maxwell, Tirado-Rives, J Am Chem Soc, 118(45), 11225-11236 (1996).

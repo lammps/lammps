@@ -250,26 +250,33 @@ GeneralTab::GeneralTab(QSettings *_settings, LammpsWrapper *_lammps, QWidget *pa
     connect(pluginbrowse, &QPushButton::released, this, &GeneralTab::pluginpath);
 #endif
 
-    auto *fontlayout = new QHBoxLayout;
+    auto *gridlayout = new QGridLayout;
     auto *getallfont =
         new QPushButton(QIcon(":/icons/preferences-desktop-font.png"), "Select Default Font...");
     auto *gettextfont =
         new QPushButton(QIcon(":/icons/preferences-desktop-font.png"), "Select Text Font...");
-    fontlayout->addWidget(getallfont);
-    fontlayout->addWidget(gettextfont);
+    gridlayout->addWidget(getallfont, 0, 0);
+    gridlayout->addWidget(gettextfont, 0, 1);
     connect(getallfont, &QPushButton::released, this, &GeneralTab::newallfont);
     connect(gettextfont, &QPushButton::released, this, &GeneralTab::newtextfont);
 
-    auto *freqlayout = new QHBoxLayout;
-    auto *freqlabel  = new QLabel("GUI update interval (ms)");
-    auto *freqval    = new QSpinBox;
+    auto *freqlabel = new QLabel("Data update interval (ms)");
+    auto *freqval   = new QSpinBox;
     freqval->setRange(1, 1000);
     freqval->setStepType(QAbstractSpinBox::AdaptiveDecimalStepType);
     freqval->setValue(settings->value("updfreq", "10").toInt());
     freqval->setObjectName("updfreq");
-    freqlayout->addWidget(freqlabel);
-    freqlayout->addWidget(freqval);
-    freqlayout->addStretch(1);
+    gridlayout->addWidget(freqlabel, 1, 0);
+    gridlayout->addWidget(freqval, 1, 1);
+
+    auto *chartlabel = new QLabel("Charts update interval (ms)");
+    auto *chartval   = new QSpinBox;
+    chartval->setRange(1, 5000);
+    chartval->setStepType(QAbstractSpinBox::AdaptiveDecimalStepType);
+    chartval->setValue(settings->value("updchart", "500").toInt());
+    chartval->setObjectName("updchart");
+    gridlayout->addWidget(chartlabel, 2, 0);
+    gridlayout->addWidget(chartval, 2, 1);
 
     layout->addWidget(echo);
     layout->addWidget(cite);
@@ -283,8 +290,7 @@ GeneralTab::GeneralTab(QSettings *_settings, LammpsWrapper *_lammps, QWidget *pa
     layout->addWidget(pluginlabel);
     layout->addLayout(pluginlayout);
 #endif
-    layout->addLayout(fontlayout);
-    layout->addLayout(freqlayout);
+    layout->addLayout(gridlayout);
     layout->addStretch(1);
     setLayout(layout);
 }
@@ -295,16 +301,24 @@ void GeneralTab::updatefonts(const QFont &all, const QFont &text)
     for (QWidget *widget : QApplication::topLevelWidgets())
         if (widget->objectName() == "LammpsGui") main = dynamic_cast<LammpsGui *>(widget);
 
-    QApplication::setFont(all);
-    if (main) main->ui->textEdit->document()->setDefaultFont(text);
+    if (main) {
+        main->setFont(all);
+        main->ui->textEdit->document()->setDefaultFont(text);
+        if (main->wizard) main->wizard->setFont(all);
+    }
+
+    Preferences *prefs = nullptr;
+    for (QWidget *widget : QApplication::topLevelWidgets())
+        if (widget->objectName() == "preferences") prefs = dynamic_cast<Preferences *>(widget);
+    if (prefs) prefs->setFont(all);
 }
 
 void GeneralTab::newallfont()
 {
     QSettings settings;
     QFont all, text;
-    all.fromString(settings.value("allfont", "").toString());
-    text.fromString(settings.value("textfont", "").toString());
+    all.fromString(settings.value("allfont", QFont("Arial", -1).toString()).toString());
+    text.fromString(settings.value("textfont", QFont("Monospace", -1).toString()).toString());
 
     bool ok    = false;
     QFont font = QFontDialog::getFont(&ok, all, this, QString("Select Default Font"));
@@ -317,8 +331,8 @@ void GeneralTab::newtextfont()
 {
     QSettings settings;
     QFont all, text;
-    all.fromString(settings.value("allfont", "").toString());
-    text.fromString(settings.value("textfont", "").toString());
+    all.fromString(settings.value("allfont", QFont("Arial", -1).toString()).toString());
+    text.fromString(settings.value("textfont", QFont("Monospace", -1).toString()).toString());
 
     bool ok    = false;
     QFont font = QFontDialog::getFont(&ok, text, this, QString("Select Text Font"));
@@ -455,7 +469,7 @@ SnapshotTab::SnapshotTab(QSettings *_settings, QWidget *parent) :
     auto *cback = new QLabel("Background Color:");
     auto *cbox  = new QLabel("Box Color:");
     settings->beginGroup("snapshot");
-    auto *xval = new QLineEdit(settings->value("xsize", "800").toString());
+    auto *xval = new QLineEdit(settings->value("xsize", "600").toString());
     auto *yval = new QLineEdit(settings->value("ysize", "600").toString());
     auto *zval = new QLineEdit(settings->value("zoom", "1.0").toString());
     auto *aval = new QCheckBox;

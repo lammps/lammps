@@ -640,7 +640,7 @@ void FixAveTime::invoke_scalar(bigint ntimestep)
 
   if (fp && comm->me == 0) {
     clearerr(fp);
-    if (overwrite) platform::fseek(fp,filepos);
+    if (overwrite) (void) platform::fseek(fp,filepos);
     if (yaml_flag) {
       if (!yaml_header || overwrite) {
         yaml_header = true;

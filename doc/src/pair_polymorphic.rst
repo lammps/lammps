@@ -75,7 +75,7 @@ instance, the potential reduces to a Stillinger-Weber potential
    G_{JIK}\left(\cos\theta\right) & = \left(\cos\theta+\frac{1}{3}\right)^2
 
 The potential reduces to a Tersoff potential (:ref:`Tersoff <Tersoff>`
-or :ref:`Albe <poly-Albe>`) if we set
+or :ref:`Albe1 <poly-Albe>`) if we set
 
 .. math::
 
@@ -351,7 +351,7 @@ Related commands
 
 .. _poly-Albe:
 
-**(Albe)** K. Albe, K. Nordlund, J. Nord, and A. Kuronen, Phys. Rev. B, 66, 035205 (2002).
+**(Albe1)** K. Albe, K. Nordlund, J. Nord, and A. Kuronen, Phys. Rev. B, 66, 035205 (2002).
 
 .. _Wang3:
 

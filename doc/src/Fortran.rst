@@ -1077,7 +1077,7 @@ Procedures Bound to the :f:type:`lammps` Derived Type
 
    .. list-table::
       :header-rows: 1
-      :widths: auto
+      :widths: 21 20 40 19
 
       * - Style
         - Type
@@ -1167,7 +1167,7 @@ Procedures Bound to the :f:type:`lammps` Derived Type
 
    .. list-table::
       :header-rows: 1
-      :widths: auto
+      :widths: 20 19 11 11 21 18
 
       * - Style
         - Type

@@ -13,34 +13,27 @@
 
 #ifdef FIX_CLASS
 // clang-format off
-FixStyle(nve/limit,FixNVELimit);
+FixStyle(nve/limit/kk,FixNVELimitKokkos<LMPDeviceType>);
+FixStyle(nve/limit/kk/device,FixNVELimitKokkos<LMPDeviceType>);
+FixStyle(nve/limit/kk/host,FixNVELimitKokkos<LMPHostType>);
+
 // clang-format on
 #else
 
-#ifndef LMP_FIX_NVE_LIMIT_H
-#define LMP_FIX_NVE_LIMIT_H
+#ifndef LMP_FIX_NVE_LIMIT_KOKKOS_H
+#define LMP_FIX_NVE_LIMIT_KOKKOS_H
 
-#include "fix.h"
+#include "fix_nve_limit.h"
 
 namespace LAMMPS_NS {
 
-class FixNVELimit : public Fix {
+template<class DeviceType>
+class FixNVELimitKokkos : public FixNVELimit {
  public:
-  FixNVELimit(class LAMMPS *, int, char **);
-  int setmask() override;
-  void init() override;
+  FixNVELimitKokkos(class LAMMPS *, int, char **);
   void initial_integrate(int) override;
   void final_integrate() override;
-  void initial_integrate_respa(int, int, int) override;
-  void final_integrate_respa(int, int) override;
-  void reset_dt() override;
-  double compute_scalar() override;
 
- protected:
-  double dtv, dtf;
-  double *step_respa;
-  int ncount;
-  double xlimit, vlimitsq;
 };
 
 }    // namespace LAMMPS_NS

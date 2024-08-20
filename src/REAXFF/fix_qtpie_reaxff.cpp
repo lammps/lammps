@@ -278,27 +278,27 @@ void FixQtpieReaxFF::pertype_parameters(char *arg)
 
   reaxflag = 0;
 
-  memory->create(chi,ntypes+1,"qeq/reaxff:chi");
-  memory->create(eta,ntypes+1,"qeq/reaxff:eta");
-  memory->create(gamma,ntypes+1,"qeq/reaxff:gamma");
+  memory->create(chi,ntypes+1,"qtpie/reaxff:chi");
+  memory->create(eta,ntypes+1,"qtpie/reaxff:eta");
+  memory->create(gamma,ntypes+1,"qtpie/reaxff:gamma");
 
   if (comm->me == 0) {
     chi[0] = eta[0] = gamma[0] = 0.0;
     try {
-      TextFileReader reader(arg,"qeq/reaxff parameter");
+      TextFileReader reader(arg,"qtpie/reaxff parameter");
       reader.ignore_comments = false;
       for (int i = 1; i <= ntypes; i++) {
         const char *line = reader.next_line();
         if (!line)
-          throw TokenizerException("Fix qeq/reaxff: Invalid param file format","");
+          throw TokenizerException("Fix qtpie/reaxff: Invalid param file format","");
         ValueTokenizer values(line);
 
         if (values.count() != 4)
-          throw TokenizerException("Fix qeq/reaxff: Incorrect format of param file","");
+          throw TokenizerException("Fix qtpie/reaxff: Incorrect format of param file","");
 
         int itype = values.next_int();
         if ((itype < 1) || (itype > ntypes))
-          throw TokenizerException("Fix qeq/reaxff: Invalid atom type in param file",
+          throw TokenizerException("Fix qtpie/reaxff: Invalid atom type in param file",
                                    std::to_string(itype));
 
         chi[itype] = values.next_double();
@@ -321,24 +321,24 @@ void FixQtpieReaxFF::allocate_storage()
 {
   nmax = atom->nmax;
 
-  memory->create(s,nmax,"qeq:s");
-  memory->create(t,nmax,"qeq:t");
+  memory->create(s,nmax,"qtpie:s");
+  memory->create(t,nmax,"qtpie:t");
 
-  memory->create(Hdia_inv,nmax,"qeq:Hdia_inv");
-  memory->create(b_s,nmax,"qeq:b_s");
+  memory->create(Hdia_inv,nmax,"qtpie:Hdia_inv");
+  memory->create(b_s,nmax,"qtpie:b_s");
   memory->create(chi_eff,nmax,"qtpie:chi_eff");
-  memory->create(b_t,nmax,"qeq:b_t");
-  memory->create(b_prc,nmax,"qeq:b_prc");
-  memory->create(b_prm,nmax,"qeq:b_prm");
+  memory->create(b_t,nmax,"qtpie:b_t");
+  memory->create(b_prc,nmax,"qtpie:b_prc");
+  memory->create(b_prm,nmax,"qtpie:b_prm");
 
   // dual CG support
   int size = nmax;
   if (dual_enabled) size*= 2;
 
-  memory->create(p,size,"qeq:p");
-  memory->create(q,size,"qeq:q");
-  memory->create(r,size,"qeq:r");
-  memory->create(d,size,"qeq:d");
+  memory->create(p,size,"qtpie:p");
+  memory->create(q,size,"qtpie:q");
+  memory->create(r,size,"qtpie:r");
+  memory->create(d,size,"qtpie:d");
 }
 
 /* ---------------------------------------------------------------------- */
@@ -400,10 +400,10 @@ void FixQtpieReaxFF::allocate_matrix()
 
   H.n = n_cap;
   H.m = m_cap;
-  memory->create(H.firstnbr,n_cap,"qeq:H.firstnbr");
-  memory->create(H.numnbrs,n_cap,"qeq:H.numnbrs");
-  memory->create(H.jlist,m_cap,"qeq:H.jlist");
-  memory->create(H.val,m_cap,"qeq:H.val");
+  memory->create(H.firstnbr,n_cap,"qtpie:H.firstnbr");
+  memory->create(H.numnbrs,n_cap,"qtpie:H.numnbrs");
+  memory->create(H.jlist,m_cap,"qtpie:H.jlist");
+  memory->create(H.val,m_cap,"qtpie:H.val");
 }
 
 /* ---------------------------------------------------------------------- */
@@ -516,7 +516,7 @@ void FixQtpieReaxFF::init_shielding()
 
   ntypes = atom->ntypes;
   if (shld == nullptr)
-    memory->create(shld,ntypes+1,ntypes+1,"qeq:shielding");
+    memory->create(shld,ntypes+1,ntypes+1,"qtpie:shielding");
 
   for (i = 1; i <= ntypes; ++i)
     for (j = 1; j <= ntypes; ++j)
@@ -530,11 +530,11 @@ void FixQtpieReaxFF::init_taper()
   double d7, swa2, swa3, swb2, swb3;
 
   if (fabs(swa) > 0.01 && comm->me == 0)
-    error->warning(FLERR,"Fix qeq/reaxff has non-zero lower Taper radius cutoff");
+    error->warning(FLERR,"Fix qtpie/reaxff has non-zero lower Taper radius cutoff");
   if (swb < 0)
-    error->all(FLERR, "Fix qeq/reaxff has negative upper Taper radius cutoff");
+    error->all(FLERR, "Fix qtpie/reaxff has negative upper Taper radius cutoff");
   else if (swb < 5 && comm->me == 0)
-    error->warning(FLERR,"Fix qeq/reaxff has very low Taper radius cutoff");
+    error->warning(FLERR,"Fix qtpie/reaxff has very low Taper radius cutoff");
 
   d7 = pow(swb - swa, 7);
   swa2 = SQR(swa);
@@ -760,7 +760,7 @@ void FixQtpieReaxFF::compute_H()
   }
 
   if (m_fill >= H.m)
-    error->all(FLERR,"Fix qeq/reaxff H matrix size has been exceeded: m_fill={} H.m={}\n",
+    error->all(FLERR,"Fix qtpie/reaxff H matrix size has been exceeded: m_fill={} H.m={}\n",
                m_fill, H.m);
 }
 
@@ -835,7 +835,7 @@ int FixQtpieReaxFF::CG(double *b, double *x)
   }
 
   if ((i >= imax) && maxwarn && (comm->me == 0))
-    error->warning(FLERR, "Fix qeq/reaxff CG convergence failed after {} iterations at step {}",
+    error->warning(FLERR, "Fix qtpie/reaxff CG convergence failed after {} iterations at step {}",
                    i,update->ntimestep);
   return i;
 }
@@ -1018,8 +1018,8 @@ double FixQtpieReaxFF::memory_usage()
 
 void FixQtpieReaxFF::grow_arrays(int nmax)
 {
-  memory->grow(s_hist,nmax,nprev,"qeq:s_hist");
-  memory->grow(t_hist,nmax,nprev,"qeq:t_hist");
+  memory->grow(s_hist,nmax,nprev,"qtpie:s_hist");
+  memory->grow(t_hist,nmax,nprev,"qtpie:t_hist");
 }
 
 /* ----------------------------------------------------------------------

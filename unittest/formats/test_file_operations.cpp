@@ -232,6 +232,7 @@ TEST_F(FileOperationsTest, read_lines_from_file)
     rv = utils::read_lines_from_file(fp, 2, MAX_BUF_SIZE / 2, buf, me, world);
     ASSERT_EQ(rv, 1);
     delete[] buf;
+    if (me == 0) fclose(fp);
 }
 
 TEST_F(FileOperationsTest, logmesg)

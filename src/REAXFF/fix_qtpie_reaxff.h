@@ -91,7 +91,6 @@ class FixQtpieReaxFF : public Fix {
   char *pertype_option;    // argument to determine how per-type info is obtained
 			   
   char *gauss_file; // input file for gaussian exponents for each type of REAXFF file
-  double ghost_cutoff; // ghost atoms cutoff
   double *gauss_exp; // array of gaussian exponents
   double *chi_eff; // array of effective electronegativities
 
@@ -107,8 +106,7 @@ class FixQtpieReaxFF : public Fix {
 
   void calc_chi_eff();
   double find_min(double*, int);
-  double distance(double*, double*);
-  double efield_potential(double*);
+  double distance(const double*, const double*);
 
   virtual void init_matvec();
   void init_H();

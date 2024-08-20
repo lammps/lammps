@@ -223,7 +223,7 @@ void FixQtpieReaxFF::pertype_parameters(char *arg)
       reader.ignore_comments = false;
       for (int i = 1; i <= ntypes; i++) {
         const char *line = reader.next_line();
-	std::cout << line;
+	std::cout << "Orbital exponent " << line;
         if (!line)
           throw TokenizerException("Fix qtpie/reaxff: Invalid param file format","");
         ValueTokenizer values(line);
@@ -438,7 +438,6 @@ void FixQtpieReaxFF::init()
     error->all(FLERR,"Fix {} group has no atoms", style);
 
   // compute net charge and print warning if too large
-
   double qsum_local = 0.0, qsum = 0.0;
   for (int i = 0; i < atom->nlocal; i++) {
     if (atom->mask[i] & groupbit)
@@ -450,7 +449,6 @@ void FixQtpieReaxFF::init()
     error->warning(FLERR,"Fix {} group is not charge neutral, net charge = {:.8}", style, qsum);
 
   // get pointer to fix efield if present. there may be at most one instance of fix efield in use.
-
   efield = nullptr;
   auto fixes = modify->get_fix_by_style("^efield");
   if (fixes.size() == 1) efield = dynamic_cast<FixEfield *>(fixes.front());
@@ -463,19 +461,27 @@ void FixQtpieReaxFF::init()
     if (strcmp(update->unit_style,"real") != 0)
       error->all(FLERR,"Must use unit_style real with fix {} and external fields", style);
 
+    if (efield->groupbit != 1){ // if efield is not applied to all atoms
+      error->all(FLERR,"Must use group id all for fix efield when using fix {}", style);
+    }
+
+    if (efield->region){ // if efield is not applied to all atoms
+      error->all(FLERR,"Keyword region not supported for fix efield when using fix {}", style);
+    }
+
     if (efield->varflag == FixEfield::ATOM && efield->pstyle != FixEfield::ATOM)
       error->all(FLERR,"Atom-style external electric field requires atom-style "
                        "potential variable when used with fix {}", style);
-    if (((efield->xstyle != FixEfield::CONSTANT) && domain->xperiodic) ||
-         ((efield->ystyle != FixEfield::CONSTANT) && domain->yperiodic) ||
-         ((efield->zstyle != FixEfield::CONSTANT) && domain->zperiodic))
-      error->all(FLERR,"Must not have electric field component in direction of periodic "
-                       "boundary when using charge equilibration with ReaxFF.");
-    if (((fabs(efield->ex) > SMALL) && domain->xperiodic) ||
-         ((fabs(efield->ey) > SMALL) && domain->yperiodic) ||
-         ((fabs(efield->ez) > SMALL) && domain->zperiodic))
-      error->all(FLERR,"Must not have electric field component in direction of periodic "
-                       "boundary when using charge equilibration with ReaxFF.");
+    // if (((efield->xstyle != FixEfield::CONSTANT) && domain->xperiodic) ||
+    //      ((efield->ystyle != FixEfield::CONSTANT) && domain->yperiodic) ||
+    //      ((efield->zstyle != FixEfield::CONSTANT) && domain->zperiodic))
+    //   error->all(FLERR,"Must not have electric field component in direction of periodic "
+    //                    "boundary when using charge equilibration with ReaxFF.");
+    // if (((fabs(efield->ex) > SMALL) && domain->xperiodic) ||
+    //      ((fabs(efield->ey) > SMALL) && domain->yperiodic) ||
+    //      ((fabs(efield->ez) > SMALL) && domain->zperiodic))
+    //   error->all(FLERR,"Must not have electric field component in direction of periodic "
+    //                    "boundary when using charge equilibration with ReaxFF.");
   }
 
   // we need a half neighbor list w/ Newton off
@@ -1208,59 +1214,55 @@ void FixQtpieReaxFF::get_chi_field()
 void FixQtpieReaxFF::calc_chi_eff()
 {
   memset(&chi_eff[0],0,atom->nmax*sizeof(double));
-  const int KSCREEN = 10;
-  // const double ZERONAME = 1.0e-50;
-  const double ANG_TO_BOHRRAD = 1.8897259886;  // 1 Ang = 1.8897259886 Bohr radius
 
-  double R,a_min,OvIntMaxR,overlap,sum_n,sum_d;
-  double ea,eb,chia,chib,p,m;
-  double phia,phib;
-  int i,j;
+  const int KSCREEN = 10;
+  const double ANG_TO_BOHRRAD = 1.8897259886;  // 1 Ang = 1.8897259886 Bohr radius
+  const auto x = (const double * const *)atom->x;
   const int ntypes = atom->ntypes;
   const int *type = atom->type;
-  // const auto x = (const double * const *)atom->x;
-  double **x = atom->x;
 
-  // Use integral pre-screening for overlap calculations
-  a_min = find_min(gauss_exp,ntypes+1);
-  OvIntMaxR = sqrt(pow(a_min,-1.)*log(pow(M_PI/(2.*a_min),3.)*pow(10.,2.*KSCREEN)));
-  // OvIntMaxR = 0.5;
-  // if (comm->me == 0) {
-  //     std::cout << "OvIntMaxR is " << OvIntMaxR/ANG_TO_BOHRRAD;
-  // }
+  double dist,overlap,sum_n,sum_d,ea,eb,chia,chib,phia,phib,p,m;
+  int i,j;
 
-  ghost_cutoff = MAX(neighbor->cutneighmax,comm->cutghostuser);
-  // if (comm->me == 0) {
-  //   std::cout << "ghost_cutoff is " << ghost_cutoff;
-  // }
-  if(ghost_cutoff < OvIntMaxR/ANG_TO_BOHRRAD) {
-    error->all(FLERR,"ghost cutoff error");
-    // char errmsg[256];
-    // snprintf(errmsg, 256,"qtpie/reaxff: limit distance for overlap integral: %f "
-	   //   "Angstrom > ghost cutoff: %f Angstrom. Increase the ghost atom cutoff "
-	   //   "with comm_modify.",OvIntMaxR/ANG_TO_BOHRRAD,ghost_cutoff);
-    // // system->error_ptr->all(FLERR,errmsg);
-    // error->all(FLERR,errmsg);
+  // efield energy is in real units of kcal/mol, factor needed for conversion to eV
+  const double qe2f = force->qe2f;
+  const double factor = 1.0/qe2f;
+  
+  if (efield) {
+    if (efield->varflag != FixEfield::CONSTANT)
+      efield->update_efield_variables();
   }
 
-  for (i = 0; i < nn; i++) {
+  // use integral pre-screening for overlap calculations
+  const double emin = find_min(gauss_exp,ntypes+1);
+  const double dist_cutoff = sqrt(pow(emin,-1.)*log(pow(M_PI/(2.*emin),3.)*pow(10.,2.*KSCREEN)));
 
-    // type_i = type[i];
+  const double comm_cutoff = MAX(neighbor->cutneighmax,comm->cutghostuser);
+  if(comm_cutoff < dist_cutoff/ANG_TO_BOHRRAD) {
+    error->all(FLERR,"comm cutoff = {} Angstrom is smaller than distance cutoff = {} Angstrom "
+	       "for overlap integral in {}. Increase comm cutoff with comm_modify",
+	       comm_cutoff, dist_cutoff/ANG_TO_BOHRRAD, style);
+  }
+
+  // compute chi_eff for each local atom
+  for (i = 0; i < nn; i++) {
     ea = gauss_exp[type[i]];
     chia = chi[type[i]];
+    if (efield) {
+      if (efield->varflag != FixEfield::ATOM) {
+	phia = factor*(x[i][0]*efield->ex  + x[i][1]*efield->ey + x[i][2]*efield->ez);
+      } else { // atom-style potential from FixEfield
+	phia = efield->efield[i][3];
+      }
+    }
 
-    // nominator = denominator = 0.0;
     sum_n = 0.0;
     sum_d = 0.0;
 
     for (j = 0; j < ng; j++) {
+      dist = distance(x[i],x[j])*ANG_TO_BOHRRAD; // distance between atoms as a multiple of Bohr radius
 
-      R = distance(x[i],x[j])*ANG_TO_BOHRRAD; // Distance between atoms as a multiple of Bohr radius
-      // overlap = voltage = 0.0;
-
-      if (R < OvIntMaxR)
-      {
-        // type_j = type[j];
+      if (dist < dist_cutoff) {
         eb = gauss_exp[type[j]];
         chib = chi[type[j]];
 
@@ -1268,7 +1270,7 @@ void FixQtpieReaxFF::calc_chi_eff()
         // Implementation from Chen Jiahao, Theory and applications of fluctuating-charge models, 2009 (with normalization constants added)
         p = ea + eb;
         m = ea * eb / p;
-        overlap = pow((4. * m / p), 0.75) * exp(-m * R * R);
+        overlap = pow((4.0*m/p),0.75) * exp(-m*dist*dist);
 
         // Implementation from T. Halgaker et al., Molecular electronic-structure theory, 2000
 //        p = ea + eb;
@@ -1276,32 +1278,25 @@ void FixQtpieReaxFF::calc_chi_eff()
 //        Overlap = pow((M_PI / p), 1.5) * exp(-m * R * R);
 
         if (efield) {
-          phib = efield_potential(x[j]);
-	  sum_n += (chia - chib + phib) * overlap;
-          // voltage = chia - chib + phib;
+	  if (efield->varflag != FixEfield::ATOM) {
+	    phib = factor*(x[j][0]*efield->ex  + x[j][1]*efield->ey + x[j][2]*efield->ez);
+	  } else { // atom-style potential from FixEfield
+	    phib = efield->efield[j][3];
+	  }
+	  sum_n += (chia - chib + phib - phia) * overlap;
         } else {
 	  sum_n += (chia - chib) * overlap;
-          // voltage = chia - chib;
         }
 	sum_d += overlap;
-        // nominator += voltage * overlap;
-        // denominator += overlap;
       }
     }
 
-    if (fabs(sum_n) < SMALL && fabs(sum_d) < SMALL)
-      chi_eff[i] = 0.0; // SMALL;
-    else
-      chi_eff[i] = sum_n / sum_d;
-    // if (denominator != 0.0 && nominator != 0.0)
-    //   chi_eff[i] = nominator / denominator;
-    // else
-    //   chi_eff[i] = ZERONAME;
+    chi_eff[i] = sum_n / sum_d;
 
-    if (efield) {
-      phia = efield_potential(x[i]);
-      chi_eff[i] -= phia;
-    }
+    if (fabs(sum_n) < SMALL && fabs(sum_d) < SMALL)
+      error->all(FLERR,"Unexpected value: fabs(sum_d) is {}", fabs(sum_d));
+    if (fabs(sum_d) < 1.0)
+      error->all(FLERR,"Unexpected value: fabs(sum_d) is {}", fabs(sum_d));
   }
 }
 
@@ -1321,22 +1316,11 @@ double FixQtpieReaxFF::find_min(double *array, int array_length)
 
 /* ---------------------------------------------------------------------- */
 
-double FixQtpieReaxFF::distance(double *loc1, double *loc2)
+double FixQtpieReaxFF::distance(const double *posa, const double *posb)
 {
-  double distx, disty, distz;
-  distx = loc2[0] - loc1[0];
-  disty = loc2[1] - loc1[1];
-  distz = loc2[2] - loc1[2];
-  return sqrt(distx*distx + disty*disty + distz*distz);
-}
-
-/* ---------------------------------------------------------------------- */
-
-double FixQtpieReaxFF::efield_potential(double *x)
-{
-  double x_efcomp, y_efcomp, z_efcomp;
-  x_efcomp = x[0] * efield->ex;
-  y_efcomp = x[1] * efield->ey;
-  z_efcomp = x[2] * efield->ez;
-  return x_efcomp + y_efcomp + z_efcomp;
+  double dx, dy, dz;
+  dx = posb[0] - posa[0];
+  dy = posb[1] - posa[1];
+  dz = posb[2] - posa[2];
+  return sqrt(dx*dx + dy*dy + dz*dz);
 }

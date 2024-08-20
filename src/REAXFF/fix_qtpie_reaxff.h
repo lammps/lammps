@@ -132,9 +132,6 @@ class FixQtpieReaxFF : public Fix {
   double find_min(double*, int);
   double distance(const double*, const double*);
 
-
-  // dual CG support
-  int dual_enabled;            // 0: Original, separate s & t optimization; 1: dual optimization
   int matvecs_s, matvecs_t;    // Iteration count for each system
 };
 

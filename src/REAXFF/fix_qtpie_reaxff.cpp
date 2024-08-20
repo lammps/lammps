@@ -74,7 +74,7 @@ FixQtpieReaxFF::FixQtpieReaxFF(LAMMPS *lmp, int narg, char **arg) :
   imax = 200;
   maxwarn = 1;
 
-  if ((narg < 9) || (narg > 13)) error->all(FLERR,"Illegal fix {} command", style);
+  if ((narg < 9) || (narg > 12)) error->all(FLERR,"Illegal fix {} command", style);
 
   nevery = utils::inumeric(FLERR,arg[3],false,lmp);
   if (nevery <= 0) error->all(FLERR,"Illegal fix {} command", style);
@@ -85,15 +85,9 @@ FixQtpieReaxFF::FixQtpieReaxFF(LAMMPS *lmp, int narg, char **arg) :
   pertype_option = utils::strdup(arg[7]);
   gauss_file = utils::strdup(arg[8]);
 
-  // dual CG support only available for OPENMP variant
-  // check for compatibility is in Fix::post_constructor()
-
-  dual_enabled = 0;
-
   int iarg = 9;
   while (iarg < narg) {
-    if (strcmp(arg[iarg],"dual") == 0) dual_enabled = 1;
-    else if (strcmp(arg[iarg],"nowarn") == 0) maxwarn = 0;
+    if (strcmp(arg[iarg],"nowarn") == 0) maxwarn = 0;
     else if (strcmp(arg[iarg],"maxiter") == 0) {
       if (iarg+1 > narg-1)
         error->all(FLERR,"Illegal fix {} command", style);
@@ -133,11 +127,7 @@ FixQtpieReaxFF::FixQtpieReaxFF(LAMMPS *lmp, int narg, char **arg) :
   H.jlist = nullptr;
   H.val = nullptr;
 
-  // dual CG support
-  // Update comm sizes for this fix
-
-  if (dual_enabled) comm_forward = comm_reverse = 2;
-  else comm_forward = comm_reverse = 1;
+  comm_forward = comm_reverse = 1;
 
   // perform initial allocation of atom-based arrays
   // register with Atom class
@@ -189,8 +179,6 @@ void FixQtpieReaxFF::post_constructor()
       s_hist[i][j] = t_hist[i][j] = 0;
 
   pertype_parameters(pertype_option);
-  if (dual_enabled)
-    error->all(FLERR,"Dual keyword only supported with fix qeq/reaxff/omp");
 }
 
 /* ---------------------------------------------------------------------- */
@@ -331,9 +319,7 @@ void FixQtpieReaxFF::allocate_storage()
   memory->create(b_prc,nmax,"qtpie:b_prc");
   memory->create(b_prm,nmax,"qtpie:b_prm");
 
-  // dual CG support
   int size = nmax;
-  if (dual_enabled) size*= 2;
 
   memory->create(p,size,"qtpie:p");
   memory->create(q,size,"qtpie:q");
@@ -1005,9 +991,6 @@ double FixQtpieReaxFF::memory_usage()
   bytes += (double)n_cap*2 * sizeof(int); // matrix...
   bytes += (double)m_cap * sizeof(int);
   bytes += (double)m_cap * sizeof(double);
-
-  if (dual_enabled)
-    bytes += (double)atom->nmax*4 * sizeof(double); // double size for q, d, r, and p
 
   return bytes;
 }

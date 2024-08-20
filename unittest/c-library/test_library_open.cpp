@@ -256,4 +256,5 @@ TEST(lammps_open_no_mpi, lammps_error)
     lammps_error(handle, 0, "test_warning");
     output = ::testing::internal::GetCapturedStdout();
     EXPECT_THAT(output, HasSubstr("WARNING: test_warning"));
+    lammps_close(handle);
 }

@@ -29,20 +29,21 @@ AtomVecTemplate::AtomVecTemplate(LAMMPS *lmp) : AtomVec(lmp)
   atom->molecule_flag = 1;
   atom->molindex_flag = 1;
   atom->molatom_flag = 1;
+  atom->q_flag = 1;
 
   // strings with peratom variables to include in each AtomVec method
   // strings cannot contain fields in corresponding AtomVec default strings
   // order of fields in the string does not matter
   //   except fields_data_atom and fields_data_vel which must match data file
 
-  fields_grow = {"molecule", "molindex", "molatom"};
-  fields_copy = {"molecule", "molindex", "molatom"};
-  fields_border = {"molecule", "molindex", "molatom"};
-  fields_border_vel = {"molecule", "molindex", "molatom"};
-  fields_exchange = {"molecule", "molindex", "molatom"};
-  fields_restart = {"molecule", "molindex", "molatom"};
-  fields_create = {"molecule", "molindex", "molatom"};
-  fields_data_atom = {"id", "molecule", "molindex", "molatom", "type", "x"};
+  fields_grow = {"q","molecule", "molindex", "molatom"};
+  fields_copy = {"q","molecule", "molindex", "molatom"};
+  fields_border = {"q","molecule", "molindex", "molatom"};
+  fields_border_vel = {"q","molecule", "molindex", "molatom"};
+  fields_exchange = {"q","molecule", "molindex", "molatom"};
+  fields_restart = {"q","molecule", "molindex", "molatom"};
+  fields_create = {"q","molecule", "molindex", "molatom"};
+  fields_data_atom = {"id", "molecule", "type", "q", "x", "molindex", "molatom"};
   fields_data_vel = {"id", "v"};
 
   setup_fields();

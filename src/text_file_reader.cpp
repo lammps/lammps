@@ -86,7 +86,10 @@ TextFileReader::TextFileReader(FILE *fp, std::string filetype) :
 
 TextFileReader::~TextFileReader()
 {
-  if (closefp) fclose(fp);
+  if (closefp) {
+    if (fp) fclose(fp);
+    fp = nullptr;
+  }
   delete[] line;
 }
 
@@ -97,6 +100,10 @@ void TextFileReader::set_bufsize(int newsize)
   if (newsize < 100) {
     delete[] line;
     line = nullptr;
+    if (closefp) {
+      fclose(fp);
+      fp = nullptr;
+    }
     throw FileReaderException(
         fmt::format("line buffer size {} for {} file too small, must be > 100", newsize, filetype));
   }
@@ -116,11 +123,16 @@ void TextFileReader::rewind()
 
 void TextFileReader::skip_line()
 {
+  if (!line) return;
   char *ptr = fgets(line, bufsize, fp);
   if (ptr == nullptr) {
     // EOF
     delete[] line;
     line = nullptr;
+    if (closefp) {
+      fclose(fp);
+      fp = nullptr;
+    }
     throw EOFException(fmt::format("Missing line in {} file!", filetype));
   }
 }
@@ -145,6 +157,7 @@ char *TextFileReader::next_line(int nparams)
   int n = 0;
   int nwords = 0;
 
+  if (!line) return nullptr;
   char *ptr = fgets(line, bufsize, fp);
 
   if (ptr == nullptr) {

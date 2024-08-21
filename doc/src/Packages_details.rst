@@ -350,6 +350,7 @@ models for mesoscale simulations of solids and fracture.  See the
 * :doc:`compute nbond/atom <compute_nbond_atom>`
 * :doc:`fix nve/bpm/sphere <fix_nve_bpm_sphere>`
 * :doc:`pair_style bpm/spring <pair_bpm_spring>`
+* https://www.lammps.org/movies.html#bpmpackage
 * ``examples/bpm``
 
 ----------
@@ -2658,6 +2659,7 @@ Thomas C. O'Connor (Carnegie Mellon University)
 * :doc:`fix rheo/viscosity <fix_rheo_viscosity>`
 * :doc:`pair_style rheo <pair_rheo>`
 * :doc:`pair_style rheo/solid <pair_rheo_solid>`
+* https://www.lammps.org/movies.html#rheopackage
 * ``examples/rheo``
 
 ----------

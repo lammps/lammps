@@ -48,6 +48,7 @@ TextFileReader::TextFileReader(const std::string &filename, const std::string &f
   fp = fopen(filename.c_str(), "r");
 
   if (fp == nullptr) {
+    delete[] line;
     throw FileReaderException(
         fmt::format("cannot open {} file {}: {}", filetype, filename, utils::getsyserror()));
   }
@@ -74,14 +75,21 @@ TextFileReader::TextFileReader(FILE *fp, std::string filetype) :
     filetype(std::move(filetype)), closefp(false), line(nullptr), fp(fp), ignore_comments(true)
 {
   set_bufsize(1024);
-  if (fp == nullptr) throw FileReaderException("Invalid file descriptor");
+  if (fp == nullptr) {
+    delete[] line;
+    line = nullptr;
+    throw FileReaderException("Invalid file descriptor");
+  }
 }
 
 /** Closes the file */
 
 TextFileReader::~TextFileReader()
 {
-  if (closefp) fclose(fp);
+  if (closefp) {
+    if (fp) fclose(fp);
+    fp = nullptr;
+  }
   delete[] line;
 }
 
@@ -90,6 +98,12 @@ TextFileReader::~TextFileReader()
 void TextFileReader::set_bufsize(int newsize)
 {
   if (newsize < 100) {
+    delete[] line;
+    line = nullptr;
+    if (closefp) {
+      fclose(fp);
+      fp = nullptr;
+    }
     throw FileReaderException(
         fmt::format("line buffer size {} for {} file too small, must be > 100", newsize, filetype));
   }
@@ -109,9 +123,16 @@ void TextFileReader::rewind()
 
 void TextFileReader::skip_line()
 {
+  if (!line) return;
   char *ptr = fgets(line, bufsize, fp);
   if (ptr == nullptr) {
     // EOF
+    delete[] line;
+    line = nullptr;
+    if (closefp) {
+      fclose(fp);
+      fp = nullptr;
+    }
     throw EOFException(fmt::format("Missing line in {} file!", filetype));
   }
 }
@@ -136,6 +157,7 @@ char *TextFileReader::next_line(int nparams)
   int n = 0;
   int nwords = 0;
 
+  if (!line) return nullptr;
   char *ptr = fgets(line, bufsize, fp);
 
   if (ptr == nullptr) {

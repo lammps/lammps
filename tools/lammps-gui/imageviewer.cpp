@@ -133,7 +133,7 @@ static int get_pte_from_mass(double mass)
 
 static const QString blank(" ");
 
-ImageViewer::ImageViewer(const QString &fileName, LammpsWrapper *_lammps, QString title, QWidget *parent) :
+ImageViewer::ImageViewer(const QString &fileName, LammpsWrapper *_lammps, QWidget *parent) :
     QDialog(parent), menuBar(new QMenuBar), imageLabel(new QLabel), scrollArea(new QScrollArea),
     saveAsAct(nullptr), copyAct(nullptr), cmdAct(nullptr), zoomInAct(nullptr), zoomOutAct(nullptr),
     normalSizeAct(nullptr), lammps(_lammps), group("all"), filename(fileName), useelements(false),

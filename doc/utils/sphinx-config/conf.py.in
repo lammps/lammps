@@ -107,10 +107,10 @@ def get_git_info():
     try:
         gitinfo = subprocess.run(['git','describe'],stdout=subprocess.PIPE,stderr=subprocess.PIPE)
         if gitinfo.returncode == 0:
-            git_n_date = gitinfo.stdout.decode().replace('_',' ').replace('patch ','')
+            git_n_date = gitinfo.stdout.decode().replace('_',' ').replace('patch ','').replace('stable ','')
     except:
         pass
-    return git_n_date
+    return git_n_date.strip()
 
 def get_git_commit():
     import subprocess,time
@@ -302,8 +302,11 @@ rst_prolog = r"""
 
 latex_engine = 'pdflatex'
 if (get_lammps_update() == 'Development') or (get_lammps_update() == 'Maintenance'):
-    lammpsversion =  format("\\newcommand{\\lammpsversion}{Git: %s}\n" \
-                        % (get_git_info()))
+    if get_git_info() == '':
+       lammpsversion =  format("\\newcommand{\\lammpsversion}{Development %s %s}\n" \
+                        % (get_lammps_version(), get_lammps_update()))
+   else:
+       lammpsversion =  format("\\newcommand{\\lammpsversion}{Git: %s}\n" % (get_git_info()))
 else:
     lammpsversion =  format("\\newcommand{\\lammpsversion}{Release %s %s}\n" \
                         % (get_lammps_version(), get_lammps_update()))

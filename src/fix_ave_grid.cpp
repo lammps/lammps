@@ -684,11 +684,13 @@ void FixAveGrid::atom2grid()
   double ***vec3d = grid_sample->vec3d;
   double ****array3d = grid_sample->array3d;
 
+  // scan my owned atoms before tallying to bins
   // bin[i][dim] = indices of bin each atom is in
+  // count[][] or count[][][] = count of atoms contributing to each bin
+  // error check if any atom is out of bounds for my local+ghost grid cells
   // skip atom if group mask does not match
-  // check if any atom is out of bounds for my local grid
-  // for nonperiodic dim, remap atom to first/last bin if out of bounds
-  // count atoms contributing to each bin
+  // skip atom if out of bounds for a nonperiodic dim and discardflag = DISCARD
+  // if out of bounds for a nonperiodic dim and discardflag = KEEP, remap atom to first/last bin
 
   double *boxlo,*prd;
   int *periodicity = domain->periodicity;
@@ -719,6 +721,7 @@ void FixAveGrid::atom2grid()
 
   if (triclinic) domain->x2lamda(nlocal);
 
+  // set to 1
   int flag = 0;
 
   if (dimension == 2) {
@@ -782,32 +785,54 @@ void FixAveGrid::atom2grid()
       iz = static_cast<int> ((x[i][2]-boxlo[2])*dzinv + OFFSET) - OFFSET;
 
       if (ix < nxlo_out || ix > nxhi_out) {
-        if (periodicity[0]) flag = 1;
-        else if (discardflag == KEEP) {
+        if (periodicity[0]) {
+          flag = 1;
+          continue;
+        } else if (discardflag == KEEP) {
           if (ix < nxlo_out && nxlo_out == 0) ix = 0;
           else if (ix > nxhi_out && nxhi_out == nxgrid-1) ix = nxgrid-1;
-          else flag = 1;
-        } else skip[i] = 1;
+          else {
+            flag = 1;
+            continue;
+          }
+        } else {
+          skip[i] = 1;
+          continue;
+        }
       }
 
       if (iy < nylo_out || iy > nyhi_out) {
-        if (periodicity[1]) flag = 1;
-        else if (discardflag == KEEP) {
+        if (periodicity[1]) {
+          flag = 1;
+          continue;
+        } else if (discardflag == KEEP) {
           if (iy < nylo_out && nylo_out == 0) iy = 0;
           else if (iy > nyhi_out && nyhi_out == nygrid-1) iy = nygrid-1;
-          else flag = 1;
-        } else skip[i] = 1;
-        continue;
+          else {
+            flag = 1;
+            continue;
+          }
+        } else {
+          skip[i] = 1;
+          continue;
+        }
       }
 
       if (iz < nzlo_out || iz > nzhi_out) {
-        if (periodicity[2]) flag = 1;
-        else if (discardflag == KEEP) {
+        if (periodicity[2]) {
+          flag = 1;
+          continue;
+        } else if (discardflag == KEEP) {
           if (iz < nzlo_out && nzlo_out == 0) iz = 0;
           else if (iz > nzhi_out && nzhi_out == nzgrid-1) iz = nzgrid-1;
-          else flag = 1;
-        } else skip[i] = 1;
-        continue;
+          else {
+            flag = 1;
+            continue;
+          }
+        } else {
+          skip[i] = 1;
+          continue;
+        }
       }
 
       skip[i] = 0;

@@ -229,7 +229,8 @@ void VerletSplit::init()
   if (force->kspace->dipoleflag) errflag = 1;
   if (force->kspace->spinflag) errflag = 1;
 
-  if (errflag) error->all(FLERR,"Verlet/split cannot (yet) be used with this KSpace method");
+  if (errflag)
+    error->all(FLERR,"Verlet/split cannot (yet) be used with kpace style {}", force->kspace_style);
 
   // partial support for TIP4P, see where this flag is used below
 

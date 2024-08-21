@@ -823,8 +823,7 @@ void LammpsGui::inspect_file(const QString &fileName)
             dataviewer->show();
             ilist->data = dataviewer;
             QFile(infodata).remove();
-            auto *inspect_image = new ImageViewer(
-                fileName, &lammps, QString("LAMMPS-GUI: Image for %1").arg(shortName));
+            auto *inspect_image = new ImageViewer(fileName, &lammps);
             inspect_image->setFont(font());
             inspect_image->show();
             ilist->image = inspect_image;

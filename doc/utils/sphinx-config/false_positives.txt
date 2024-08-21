@@ -2472,6 +2472,7 @@ ncol
 ncorr
 ncount
 nd
+ndactrung
 ndescriptors
 ndihedrals
 Ndihedraltype

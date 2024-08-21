@@ -59,11 +59,12 @@ may also contribute to the virial term.
 
 A symmetric pressure tensor, stored as a 6-element vector, is also
 calculated by this compute.  The six components of the vector are
-ordered :math:`xx,` :math:`yy,` :math:`zz,` :math:`xy,` :math:`xz,` :math:`yz.`
-The equation for the :math:`(I,J)` components (where :math:`I` and :math:`J`
-are :math:`x`, :math:`y`, or :math:`z`) is similar to the above formula,
-except that the first term uses components of the kinetic energy tensor and the
-second term uses components of the virial tensor:
+ordered :math:`xx,` :math:`yy,` :math:`zz,` :math:`xy,` :math:`xz,`
+:math:`yz.` The equation for the :math:`(I,J)` components (where
+:math:`I` and :math:`J` are :math:`x`, :math:`y`, or :math:`z`) is
+similar to the above formula, except that the first term uses
+components derived from the kinetic energy tensor and the second term
+uses components of the virial tensor:
 
 .. math::
 
@@ -86,9 +87,15 @@ system, including for many-body potentials and accounting for the
 effects of periodic boundary conditions are discussed in
 :ref:`(Thompson) <Thompson1>`.
 
-The temperature and kinetic energy tensor is not calculated by this
+The temperature and kinetic energy tensor are not calculated by this
 compute, but rather by the temperature compute specified with the
-command.  If the kinetic energy is not included in the pressure, than
+command.  See the doc pages for individual compute temp variants for
+an explation of how they calculate temperature and a symmetric tensor
+(6-element vector) whose components are twice that of the traditional
+KE tensor.  That tensor is what appears in the pressure tensor formula
+above.
+
+If the kinetic energy is not included in the pressure, than
 the temperature compute is not used and can be specified as NULL.
 Normally the temperature compute used by compute pressure should
 calculate the temperature of all atoms for consistency with the virial
@@ -98,14 +105,13 @@ term, but any compute style that calculates temperature can be used
 Note that if desired the specified temperature compute can be one that
 subtracts off a bias to calculate a temperature using only the thermal
 velocity of the atoms (e.g., by subtracting a background streaming
-velocity).
-See the doc pages for individual :doc:`compute commands <compute>` to determine
-which ones include a bias.
+velocity).  See the doc pages for individual :doc:`compute commands
+<compute>` to determine which ones include a bias.
 
 Also note that the :math:`N` in the first formula above is really
-degrees-of-freedom divided by :math:`d` = dimensionality, where the DOF value
-is calculated by the temperature compute.
-See the various :doc:`compute temperature <compute>` styles for details.
+degrees-of-freedom divided by :math:`d` = dimensionality, where the
+DOF value is calculated by the temperature compute.  See the various
+:doc:`compute temperature <compute>` styles for details.
 
 A compute of this style with the ID of thermo_press is created when
 LAMMPS starts up, as if this command were in the input script:

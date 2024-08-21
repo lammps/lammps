@@ -1,62 +1,73 @@
 Authors of LAMMPS
 -----------------
 
-The current core LAMMPS developers are listed here (sorted alphabetically by
-last name). You can email an individual developer with a question, or send an
-email to all of them at this address: "developers at lammps.org".
+The current core LAMMPS developers are listed here (grouped by seniority
+and sorted alphabetically by last name). You can email an individual
+developer with code related questions for their area of expertise, or
+send an email to all of them at this address: "developers at
+lammps.org".  General questions about LAMMPS should be posted in the
+`LAMMPS forum on MatSci <https://matsci.org/lammps/>`_.
+
+.. raw:: latex
+
+   \small
 
 .. list-table::
-   :widths: 20 20 20 40
+   :widths: 17 15 25 43
    :header-rows: 1
 
    * - Name
      - Affiliation
      - Email
      - Areas of expertise
+   * - `Axel Kohlmeyer <ak_>`_
+     - Temple U
+     - akohlmey at gmail.com
+     - OpenMP, library interfaces, LAMMPS-GUI, GitHub, MatSci forum, code maintenance, testing, releases
+   * - `Steve Plimpton <sjp_>`_
+     - SNL (retired)
+     - sjplimp at gmail.com
+     - MD kernels, parallel algorithms & scalability, code structure and design
+   * - `Aidan Thompson <at_>`_
+     - SNL
+     - athomps at sandia.gov
+     - manybody potentials, machine learned potentials, materials science, statistical mechanics
+   * -
+     -
+     -
+     -
    * - `Richard Berger <rb_>`_
-     - Los Alamos National Lab
+     - LANL
      - richard.berger at outlook.com
      - Python, HPC, DevOps
    * - `Germain Clavier <gc_>`_
-     - Laboratoire CIMAP
+     - U Caen
      - germain.clavier at unicaen.fr
-     - organic molecules and polymers, mechanical properties, surfaces, integrators, coarse-graining
+     - organic molecules, polymers, mechanical properties, surfaces, integrators, coarse-graining
    * - Joel Clemmer
-     - Sandia National Labs
-     - jtclemm at sandia.gov	granular systems
-     - fluid/solid mechanics
-   * - `Jake Gissinger <jg_>`_
+     - SNL
+     - jtclemm at sandia.gov
+     -  granular systems fluid/solid mechanics
+   * - `Jacob R. Gissinger <jg_>`_
      - Stevens Institute of Technology
      - jgissing at stevens.edu
      - reactive molecular dynamics, macromolecular systems, type labels
    * - James Goff
-     - Sandia National Labs
+     - SNL
      - jmgoff at sandia.gov
      - machine learned potentials, QEq solvers, Python
-   * - `Axel Kohlmeyer <ak_>`_
-     - Temple University
-     - akohlmey at gmail.com
-     - OpenMP, library interface, LAMMPS-GUI, GitHub, MatSci forum, code maintenance, testing, and releases
    * - Megan McCarthy
-     - Sandia National Labs
+     - SNL
      - megmcca at sandia.gov
-     - metal alloys, microstucture, machine learned potentials
+     - alloys, microstucture, machine learned potentials
    * - Stan Moore
-     - Sandia National Labs
+     - SNL
      - stamoor at sandia.gov
      - Kokkos, KSpace solvers, ReaxFF
    * - `Trung Nguyen <tn_>`_
-     - University of Chicago
+     - U Chicago
      - ndactrung at gmail.com
      - soft matter, GPU package
-   * - `Steve Plimpton <sjp_>`_
-     - Sandia National Labs (retired)
-     - sjplimp at gmail.com
-     - MD kernels, parallel algorithms & scalability, code structure and design
-   * - `Aidan Thompson <at_>`_
-     - Sandia National Labs
-     - athomps at sandia.gov
-     - manybody potentials, machine learned potentials, materials science, statistical mechanics
 
 .. _rb:  https://rbberger.github.io/
 .. _gc:  https://enthalpiste.fr/
@@ -67,9 +78,11 @@ email to all of them at this address: "developers at lammps.org".
 .. _sjp: https://sjplimp.github.io
 .. _lws: https://www.lammps.org
 
-----------
+.. raw:: latex
 
-Past developers include Paul Crozier and Mark Stevens, both at Sandia,
+   \normalsize
+
+Past developers include Paul Crozier and Mark Stevens, both at SNL,
 and Ray Shan, now at Materials Design.
 
 ----------

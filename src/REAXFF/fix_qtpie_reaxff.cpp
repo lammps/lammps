@@ -13,7 +13,9 @@
 ------------------------------------------------------------------------- */
 
 /* ----------------------------------------------------------------------
-   Contributing author: Navraj S Lalli & Efstratios M Kritikos (Imperial College London)
+   Contributing authors: 
+      Navraj S Lalli (Imperial College London)
+      Efstratios M Kritikos (California Institute of Technology)
 ------------------------------------------------------------------------- */
 
 #include "fix_qtpie_reaxff.h"
@@ -1158,7 +1160,7 @@ void FixQtpieReaxFF::calc_chi_eff()
 
   // use integral pre-screening for overlap calculations
   const double emin = find_min(gauss_exp,ntypes+1);
-  const double dist_cutoff = sqrt(pow(emin,-1.)*log(pow(M_PI/(2.*emin),3.)*pow(10.,2.*KSCREEN)));
+  const double dist_cutoff = sqrt(pow(emin,-1.0)*log(pow(M_PI/(2.0*emin),3.0)*pow(10.0,2.0*KSCREEN)));
 
   const double comm_cutoff = MAX(neighbor->cutneighmax,comm->cutghostuser);
   if(comm_cutoff < dist_cutoff/ANG_TO_BOHRRAD) {

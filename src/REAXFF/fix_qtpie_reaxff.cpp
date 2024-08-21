@@ -28,7 +28,6 @@
 #include "fix_efield.h"
 #include "force.h"
 #include "group.h"
-#include "memory.h"
 #include "modify.h"
 #include "neigh_list.h"
 #include "neighbor.h"

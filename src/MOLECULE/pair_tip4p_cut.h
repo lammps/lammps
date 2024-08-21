@@ -45,6 +45,7 @@ class PairTIP4PCut : public Pair {
   double cut_coul, cut_coulsq;
   double cut_coulsqplus;    // extended value for cut_coulsq
 
+  std::string typeH_str, typeO_str, typeA_str, typeB_str;
   int typeH, typeO;    // atom types of TIP4P water H and O atoms
   int typeA, typeB;    // angle and bond types of TIP4P water
   double alpha;        // geometric constraint parameter for TIP4P

@@ -134,7 +134,7 @@ char *PotentialFileReader::next_line(int nparams)
  *
  * This reads lines from the file using the next_line() function,
  * and splits them into floating-point numbers using the
- * ValueTokenizer class and stores the number is the provided list.
+ * ValueTokenizer class and stores the number in the provided list.
  *
  * \param  list  Pointer to array with suitable storage for *n* doubles
  * \param  n     Number of doubles to be read */
@@ -154,7 +154,7 @@ void PotentialFileReader::next_dvector(double *list, int n)
  *
  * This reads lines from the file using the next_line() function,
  * and splits them into floating-point numbers using the
- * ValueTokenizer class and stores the number is the provided list.
+ * ValueTokenizer class and stores the number in the provided list.
  *
  * \param   nparams     Number of words to be read
  * \param   separators  String with list of separators.

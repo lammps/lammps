@@ -1,4 +1,3 @@
-// clang-format off
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    https://www.lammps.org/, Sandia National Laboratories
@@ -28,34 +27,35 @@
 #include "fix_rheo.h"
 #include "force.h"
 #include "modify.h"
-#include "neighbor.h"
 #include "neigh_list.h"
 #include "neigh_request.h"
+#include "neighbor.h"
 #include "update.h"
 
 using namespace LAMMPS_NS;
 using namespace RHEO_NS;
 using namespace FixConst;
-enum {NONE, CONSTANT};
+enum { NONE, CONSTANT };
 
 static const char cite_rheo_oxide[] =
-  "@article{ApplMathModel.130.310,\n"
-  " title = {A hybrid smoothed-particle hydrodynamics model of oxide skins on molten aluminum},\n"
-  " journal = {Applied Mathematical Modelling},\n"
-  " volume = {130},\n"
-  " pages = {310-326},\n"
-  " year = {2024},\n"
-  " issn = {0307-904X},\n"
-  " doi = {https://doi.org/10.1016/j.apm.2024.02.027},\n"
-  " author = {Joel T. Clemmer and Flint Pierce and Thomas C. O'Connor and Thomas D. Nevins and Elizabeth M.C. Jones and Jeremy B. Lechman and John Tencer},\n"
-  "}\n\n";
+    "@article{ApplMathModel.130.310,\n"
+    " title = {A hybrid smoothed-particle hydrodynamics model of oxide skins on molten aluminum},\n"
+    " journal = {Applied Mathematical Modelling},\n"
+    " volume = {130},\n"
+    " pages = {310-326},\n"
+    " year = {2024},\n"
+    " issn = {0307-904X},\n"
+    " doi = {https://doi.org/10.1016/j.apm.2024.02.027},\n"
+    " author = {Joel T. Clemmer and Flint Pierce and Thomas C. O'Connor and Thomas D. Nevins and "
+    "Elizabeth M.C. Jones and Jeremy B. Lechman and John Tencer},\n"
+    "}\n\n";
 
 /* ---------------------------------------------------------------------- */
 
 FixRHEOOxidation::FixRHEOOxidation(LAMMPS *lmp, int narg, char **arg) :
-  Fix(lmp, narg, arg), compute_surface(nullptr), fix_rheo(nullptr)
+    Fix(lmp, narg, arg), compute_surface(nullptr), fix_rheo(nullptr)
 {
-  if (narg != 6) error->all(FLERR,"Illegal fix command");
+  if (narg != 6) error->all(FLERR, "Illegal fix command");
 
   force_reneighbor = 1;
   next_reneighbor = -1;
@@ -65,7 +65,8 @@ FixRHEOOxidation::FixRHEOOxidation(LAMMPS *lmp, int narg, char **arg) :
   if (cut <= 0.0) error->all(FLERR, "Illegal bond cutoff {} in fix rheo/oxidation", cut);
 
   btype = utils::inumeric(FLERR, arg[4], false, lmp);
-  if (btype < 1 || btype > atom->nbondtypes) error->all(FLERR, "Illegal value {} for bond type in fix rheo/oxidation", btype);
+  if (btype < 1 || btype > atom->nbondtypes)
+    error->all(FLERR, "Illegal value {} for bond type in fix rheo/oxidation", btype);
 
   rsurf = utils::numeric(FLERR, arg[5], false, lmp);
   if (rsurf <= 0.0) error->all(FLERR, "Illegal surface distance {} in fix rheo/oxidation", cut);
@@ -77,9 +78,7 @@ FixRHEOOxidation::FixRHEOOxidation(LAMMPS *lmp, int narg, char **arg) :
 
 /* ---------------------------------------------------------------------- */
 
-FixRHEOOxidation::~FixRHEOOxidation()
-{
-}
+FixRHEOOxidation::~FixRHEOOxidation() {}
 
 /* ---------------------------------------------------------------------- */
 
@@ -100,19 +99,16 @@ void FixRHEOOxidation::init()
   if (fixes.size() == 0) error->all(FLERR, "Need to define fix rheo to use fix rheo/oxidation");
   fix_rheo = dynamic_cast<FixRHEO *>(fixes[0]);
 
-  if (cut > fix_rheo->cut)
-    error->all(FLERR, "Bonding length exceeds kernel cutoff");
+  if (cut > fix_rheo->cut) error->all(FLERR, "Bonding length exceeds kernel cutoff");
 
-  if (rsurf >= fix_rheo->cut)
-    error->all(FLERR, "Surface distance must be less than kernel cutoff");
+  if (rsurf >= fix_rheo->cut) error->all(FLERR, "Surface distance must be less than kernel cutoff");
 
   if (!force->bond) error->all(FLERR, "Must define a bond style with fix rheo/oxidation");
   if (!atom->avec->bonds_allow) error->all(FLERR, "Fix rheo/oxidation requires atom bonds");
 
   int tmp1, tmp2;
   index_nb = atom->find_custom("shell_nbond", tmp1, tmp2);
-  if (index_nb == -1)
-    error->all(FLERR, "Must use bond style rheo/shell to use fix rheo/oxidation");
+  if (index_nb == -1) error->all(FLERR, "Must use bond style rheo/shell to use fix rheo/oxidation");
   nbond = atom->ivector[index_nb];
 
   // need a half neighbor list
@@ -135,16 +131,14 @@ void FixRHEOOxidation::setup_pre_force(int /*vflag*/)
   // but enforce to be consistent with other RHEO fixes
   fix_rheo->oxidation_fix_defined = 1;
 
-  if (!fix_rheo->surface_flag) error->all(FLERR,
-      "fix rheo/oxidation requires surface calculation in fix rheo");
+  if (!fix_rheo->surface_flag)
+    error->all(FLERR, "fix rheo/oxidation requires surface calculation in fix rheo");
   compute_surface = fix_rheo->compute_surface;
 }
 
 /* ---------------------------------------------------------------------- */
 
-void FixRHEOOxidation::pre_force(int /*vflag*/)
-{
-}
+void FixRHEOOxidation::pre_force(int /*vflag*/) {}
 
 /* ---------------------------------------------------------------------- */
 
@@ -235,7 +229,8 @@ void FixRHEOOxidation::post_integrate()
 
       if (!newton_bond || (tagi < tagj)) {
         if (num_bond[i] == atom->bond_per_atom)
-          error->one(FLERR,"New bond exceeded bonds per atom in fix rheo/oxidation for atom {}", tagi);
+          error->one(FLERR, "New bond exceeded bonds per atom in fix rheo/oxidation for atom {}",
+                     tagi);
         bond_type[i][num_bond[i]] = btype;
         bond_atom[i][num_bond[i]] = tagj;
         num_bond[i]++;
@@ -246,8 +241,7 @@ void FixRHEOOxidation::post_integrate()
   int added_bonds_all;
   MPI_Allreduce(&added_bonds, &added_bonds_all, 1, MPI_INT, MPI_SUM, world);
 
-  if (added_bonds_all > 0)
-    next_reneighbor = update->ntimestep;
+  if (added_bonds_all > 0) next_reneighbor = update->ntimestep;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -257,14 +251,13 @@ void FixRHEOOxidation::post_force(int /*vflag*/)
   int *status = atom->rheo_status;
   int *num_bond = atom->num_bond;
   for (int i = 0; i < atom->nlocal; i++)
-    if (num_bond[i] != 0)
-      status[i] |= STATUS_NO_SHIFT;
+    if (num_bond[i] != 0) status[i] |= STATUS_NO_SHIFT;
 }
 
 /* ---------------------------------------------------------------------- */
 
-int FixRHEOOxidation::pack_forward_comm(int n, int *list, double *buf,
-                                        int /*pbc_flag*/, int * /*pbc*/)
+int FixRHEOOxidation::pack_forward_comm(int n, int *list, double *buf, int /*pbc_flag*/,
+                                        int * /*pbc*/)
 {
   int i, j, m;
   double **x = atom->x;

@@ -1795,8 +1795,8 @@ void Pair::write_file(int narg, char **arg)
 
   // parse arguments
 
-  int itype = utils::inumeric(FLERR,arg[0],false,lmp);
-  int jtype = utils::inumeric(FLERR,arg[1],false,lmp);
+  int itype = utils::expand_type_int(FLERR, arg[0], Atom::ATOM, lmp);
+  int jtype = utils::expand_type_int(FLERR, arg[1], Atom::ATOM, lmp);
   if (itype < 1 || itype > atom->ntypes || jtype < 1 || jtype > atom->ntypes)
     error->all(FLERR,"Invalid atom types in pair_write command");
 
@@ -1810,8 +1810,8 @@ void Pair::write_file(int narg, char **arg)
 
   if (n < 2) error->all(FLERR, "Must have at least 2 table values");
 
-  double inner = utils::numeric(FLERR,arg[4],false,lmp);
-  double outer = utils::numeric(FLERR,arg[5],false,lmp);
+  double inner = utils::numeric(FLERR, arg[4], false, lmp);
+  double outer = utils::numeric(FLERR, arg[5], false, lmp);
   if (inner <= 0.0 || inner >= outer)
     error->all(FLERR,"Invalid cutoffs in pair_write command");
 
@@ -1829,13 +1829,13 @@ void Pair::write_file(int narg, char **arg)
     // - if the file already exists, print a message about appending
     //   while printing the date and check that units are consistent.
     if (platform::file_is_readable(table_file)) {
-      std::string units = utils::get_potential_units(table_file,"table");
+      std::string units = utils::get_potential_units(table_file, "table");
       if (!units.empty() && (units != update->unit_style)) {
         error->one(FLERR,"Trying to append to a table file "
                                      "with UNITS: {} while units are {}",
                                      units, update->unit_style);
       }
-      std::string date = utils::get_potential_date(table_file,"table");
+      std::string date = utils::get_potential_date(table_file, "table");
       utils::logmesg(lmp,"Appending to table file {} with DATE: {}\n", table_file, date);
       fp = fopen(table_file.c_str(),"a");
     } else {
@@ -1847,12 +1847,12 @@ void Pair::write_file(int narg, char **arg)
     }
     if (fp == nullptr)
       error->one(FLERR,"Cannot open pair_write file {}: {}",table_file, utils::getsyserror());
-    fprintf(fp,"# Pair potential %s for atom types %d %d: i,r,energy,force\n",
-            force->pair_style,itype,jtype);
+    fprintf(fp, "# Pair potential %s for atom types %d %d: i,r,energy,force\n",
+            force->pair_style, itype, jtype);
     if (style == RLINEAR)
-      fprintf(fp,"\n%s\nN %d R %.15g %.15g\n\n",arg[7],n,inner,outer);
+      fprintf(fp, "\n%s\nN %d R %.15g %.15g\n\n", arg[7], n, inner, outer);
     if (style == RSQ)
-      fprintf(fp,"\n%s\nN %d RSQ %.15g %.15g\n\n",arg[7],n,inner,outer);
+      fprintf(fp, "\n%s\nN %d RSQ %.15g %.15g\n\n", arg[7], n, inner, outer);
   }
 
   // initialize potentials before evaluating pair potential
@@ -1870,7 +1870,7 @@ void Pair::write_file(int narg, char **arg)
   double *eamfp_hold;
 
   Pair *epair = force->pair_match("^eam",0);
-  if (epair) epair->swap_eam(eamfp,&eamfp_hold);
+  if (epair) epair->swap_eam(eamfp, &eamfp_hold);
   if ((comm->me == 0) && (epair))
     error->warning(FLERR,"EAM pair style. Table will not include embedding term");
 
@@ -1879,8 +1879,8 @@ void Pair::write_file(int narg, char **arg)
   double q[2];
   q[0] = q[1] = 1.0;
   if (narg == 10) {
-    q[0] = utils::numeric(FLERR,arg[8],false,lmp);
-    q[1] = utils::numeric(FLERR,arg[9],false,lmp);
+    q[0] = utils::numeric(FLERR, arg[8], false, lmp);
+    q[1] = utils::numeric(FLERR, arg[9], false, lmp);
   }
   double *q_hold;
 
@@ -1893,10 +1893,10 @@ void Pair::write_file(int narg, char **arg)
 
   int masklo,maskhi,nmask,nshiftbits;
   if (style == BMP) {
-    init_bitmap(inner,outer,n,masklo,maskhi,nmask,nshiftbits);
+    init_bitmap(inner, outer, n, masklo, maskhi, nmask, nshiftbits);
     int ntable = 1 << n;
     if (comm->me == 0)
-      fprintf(fp,"\n%s\nN %d BITMAP %.15g %.15g\n\n",arg[7],ntable,inner,outer);
+      fprintf(fp, "\n%s\nN %d BITMAP %.15g %.15g\n\n", arg[7], ntable, inner, outer);
     n = ntable;
   }
 
@@ -1922,7 +1922,7 @@ void Pair::write_file(int narg, char **arg)
     }
 
     if (rsq < cutsq[itype][jtype]) {
-      e = single(0,1,itype,jtype,rsq,1.0,1.0,f);
+      e = single(0, 1, itype, jtype, rsq, 1.0, 1.0, f);
       f *= r;
     } else e = f = 0.0;
     if (comm->me == 0) fprintf(fp,"%8d %- 22.15g %- 22.15g %- 22.15g\n",i+1,r,e,f);
@@ -1931,7 +1931,7 @@ void Pair::write_file(int narg, char **arg)
   // restore original vecs that were swapped in for
 
   double *tmp;
-  if (epair) epair->swap_eam(eamfp_hold,&tmp);
+  if (epair) epair->swap_eam(eamfp_hold, &tmp);
   if (atom->q) atom->q = q_hold;
 
   if (comm->me == 0) fclose(fp);
@@ -2010,4 +2010,3 @@ double Pair::memory_usage()
   bytes += (double)comm->nthreads*maxcvatom*9 * sizeof(double);
   return bytes;
 }
-

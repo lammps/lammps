@@ -64,6 +64,7 @@ public:
     void setMinimizeList(const QStringList &words);
     void setVariableList(const QStringList &words);
     void setUnitsList(const QStringList &words);
+    void setExtraList(const QStringList &words);
     void setGroupList();
     void setVarNameList();
     void setComputeIDList();
@@ -89,6 +90,7 @@ private slots:
     void open_help();
     void open_url();
     void view_file();
+    void inspect_file();
     void reformatCurrentLine();
     void runCompletion();
     void insertCompletedCommand(const QString &completion);
@@ -103,7 +105,7 @@ private:
     QCompleter *current_comp, *command_comp, *fix_comp, *compute_comp, *dump_comp, *atom_comp,
         *pair_comp, *bond_comp, *angle_comp, *dihedral_comp, *improper_comp, *kspace_comp,
         *region_comp, *integrate_comp, *minimize_comp, *variable_comp, *units_comp, *group_comp,
-        *varname_comp, *fixid_comp, *compid_comp, *file_comp;
+        *varname_comp, *fixid_comp, *compid_comp, *file_comp, *extra_comp;
 
     int highlight;
     bool reformat_on_return;

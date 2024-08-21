@@ -451,10 +451,10 @@ void FixAveGrid::init()
   // check that grid sizes for all fields match grid size for this fix
 
   if (modegrid) {
-    Compute *compute;
-    Fix *fix;
-    Grid2d *grid2d;
-    Grid3d *grid3d;
+    Compute *compute = nullptr;
+    Fix *fix = nullptr;
+    Grid2d *grid2d = nullptr;
+    Grid3d *grid3d = nullptr;
 
     int nxtmp,nytmp,nztmp;
 

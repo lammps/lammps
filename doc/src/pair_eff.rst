@@ -122,14 +122,6 @@ distance.  The recommended cutoff for this pair style should follow
 the minimum image criterion, i.e. half of the minimum unit cell
 length.
 
-Style *eff/long* (not yet available) computes the same interactions as
-style *eff/cut* except that an additional damping factor is applied so
-it can be used in conjunction with the
-:doc:`kspace_style <kspace_style>` command and its *ewald* or *pppm*
-option.  The Coulombic cutoff specified for this style means that
-pairwise interactions within this distance are computed directly;
-interactions outside that distance are computed in reciprocal space.
-
 This potential is designed to be used with :doc:`atom_style electron <atom_style>` definitions, in order to handle the
 description of systems with interacting nuclei and explicit electrons.
 
@@ -144,11 +136,6 @@ commands, or by mixing as described below:
 For *eff/cut*, the cutoff coefficient is optional.  If it is not used
 (as in some of the examples above), the default global value specified
 in the pair_style command is used.
-
-For *eff/long* (not yet available) no cutoff will be specified for an
-individual I,J type pair via the :doc:`pair_coeff <pair_coeff>` command.
-All type pairs use the same global cutoff specified in the pair_style
-command.
 
 ----------
 
@@ -190,7 +177,7 @@ representations, after the "ecp" keyword.
 
 .. note::
 
-   there are two different pressures that can be reported for eFF
+   There are two different pressures that can be reported for eFF
    when defining this pair_style, one (default) that considers electrons
    do not contribute radial virial components (i.e. electrons treated as
    incompressible 'rigid' spheres) and one that does.  The radial

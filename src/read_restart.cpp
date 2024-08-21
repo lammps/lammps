@@ -1030,11 +1030,11 @@ void ReadRestart::check_eof_magic()
 
   if (me == 0) {
     bigint curpos = platform::ftell(fp);
-    platform::fseek(fp,platform::END_OF_FILE);
+    (void) platform::fseek(fp,platform::END_OF_FILE);
     bigint offset = platform::ftell(fp) - n;
-    platform::fseek(fp,offset);
+    (void) platform::fseek(fp,offset);
     utils::sfread(FLERR,str,sizeof(char),n,fp,nullptr,error);
-    platform::fseek(fp,curpos);
+    (void) platform::fseek(fp,curpos);
   }
 
   MPI_Bcast(str,n,MPI_CHAR,0,world);

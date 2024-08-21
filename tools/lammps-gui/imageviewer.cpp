@@ -133,7 +133,7 @@ static int get_pte_from_mass(double mass)
 
 static const QString blank(" ");
 
-ImageViewer::ImageViewer(const QString &fileName, LammpsWrapper *_lammps, QWidget *parent) :
+ImageViewer::ImageViewer(const QString &fileName, LammpsWrapper *_lammps, QString title, QWidget *parent) :
     QDialog(parent), menuBar(new QMenuBar), imageLabel(new QLabel), scrollArea(new QScrollArea),
     saveAsAct(nullptr), copyAct(nullptr), cmdAct(nullptr), zoomInAct(nullptr), zoomOutAct(nullptr),
     normalSizeAct(nullptr), lammps(_lammps), group("all"), filename(fileName), useelements(false),
@@ -167,7 +167,7 @@ ImageViewer::ImageViewer(const QString &fileName, LammpsWrapper *_lammps, QWidge
     auto *xval = new QSpinBox;
     xval->setRange(100, 10000);
     xval->setStepType(QAbstractSpinBox::AdaptiveDecimalStepType);
-    xval->setValue(settings.value("xsize", "800").toInt());
+    xval->setValue(settings.value("xsize", "600").toInt());
     xval->setObjectName("xsize");
     xval->setToolTip("Set rendered image width");
     xval->setMinimumSize(bsize);
@@ -318,7 +318,7 @@ void ImageViewer::reset_view()
 {
     QSettings settings;
     settings.beginGroup("snapshot");
-    xsize       = settings.value("xsize", "800").toInt();
+    xsize       = settings.value("xsize", "600").toInt();
     ysize       = settings.value("ysize", "600").toInt();
     zoom        = settings.value("zoom", 1.0).toDouble();
     hrot        = settings.value("hrot", 60).toInt();
@@ -491,7 +491,7 @@ void ImageViewer::cmd_to_clipboard()
     QString dumpcmd = "dump viz ";
     dumpcmd += words[1] + " image 100 myimage-*.ppm";
     for (int i = 4; i < modidx; ++i)
-        dumpcmd += blank + words[i];
+        if (words[i] != "noinit") dumpcmd += blank + words[i];
     dumpcmd += '\n';
 
     dumpcmd += "dump_modify viz pad 9";
@@ -600,6 +600,7 @@ void ImageViewer::createImage()
         dumpcmd += " axes no 0.0 0.0";
 
     dumpcmd += QString(" center s %1 %2 %3").arg(xcenter).arg(ycenter).arg(zcenter);
+    dumpcmd += " noinit";
     dumpcmd += " modify boxcolor " + settings.value("boxcolor", "yellow").toString();
     dumpcmd += " backcolor " + settings.value("background", "black").toString();
     if (useelements) dumpcmd += blank + elements + blank + adiams + blank;

@@ -30,7 +30,7 @@ using namespace LAMMPS_NS;
 
 /* ---------------------------------------------------------------------- */
 
-BondHarmonicRestrain::BondHarmonicRestrain(LAMMPS *_lmp) : Bond(_lmp), initial(nullptr)
+BondHarmonicRestrain::BondHarmonicRestrain(LAMMPS *_lmp) : Bond(_lmp), k(nullptr), initial(nullptr)
 {
   writedata = 0;
   natoms = -1;

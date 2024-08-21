@@ -42,28 +42,17 @@
 #include "universe.h"
 #include "update.h"
 
-#include <iostream>
-#include <vector>
-
 #include "colvarmodule.h"
 #include "colvarproxy.h"
 #include "colvarproxy_lammps.h"
-#include "colvarscript.h"
 #include "colvars_memstream.h"
-
+#include "colvarscript.h"
 
 /* struct for packed data communication of coordinates and forces. */
 struct LAMMPS_NS::commdata {
-  int tag,type;
-  double x,y,z,m,q;
+  int tag, type;
+  double x, y, z, m, q;
 };
-
-inline std::ostream & operator<< (std::ostream &out, const LAMMPS_NS::commdata &cd)
-{
-  out << " (" << cd.tag << "/" << cd.type << ": "
-      << cd.x << ", " << cd.y << ", " << cd.z << ") ";
-  return out;
-}
 
 /***************************************************************/
 
@@ -72,7 +61,7 @@ using namespace FixConst;
 using namespace IntHash_NS;
 
 // initialize static class members
-int FixColvars::instances=0;
+int FixColvars::instances = 0;
 
 /***************************************************************
  create class and parse arguments in LAMMPS script. Syntax:
@@ -132,7 +121,7 @@ FixColvars::FixColvars(LAMMPS *lmp, int narg, char **arg) :
   force_buf = nullptr;
   idmap = nullptr;
 
-  script_args[0] = reinterpret_cast<unsigned char *>(strdup("fix_modify"));
+  script_args[0] = reinterpret_cast<unsigned char *>(utils::strdup("fix_modify"));
 
   parse_fix_arguments(narg, arg, true);
 
@@ -229,11 +218,11 @@ FixColvars::~FixColvars()
   delete[] inp_name;
   delete[] out_name;
   delete[] tfix_name;
+  delete[] script_args[0];
+
   memory->sfree(comm_buf);
 
-  if (proxy) {
-    delete proxy;
-  }
+  if (proxy) delete proxy;
 
   if (idmap) {
     inthash_destroy(idmap);
@@ -302,8 +291,7 @@ void FixColvars::set_thermostat_temperature()
           error->one(FLERR, "Could not find thermostat fix ID {}", tfix_name);
         }
         int tmp = 0;
-        double *tt = reinterpret_cast<double *>(tstat_fix->extract("t_target",
-                                                                   tmp));
+        double *tt = reinterpret_cast<double *>(tstat_fix->extract("t_target", tmp));
         if (tt) {
           t_target = *tt;
         } else {
@@ -376,7 +364,7 @@ void FixColvars::init_taglist()
 
 int FixColvars::modify_param(int narg, char **arg)
 {
-  if (narg > 100) {
+  if (narg >= 100) {
     error->one(FLERR, "Too many arguments for fix_modify command");
     return 2;
   }
@@ -398,14 +386,15 @@ int FixColvars::modify_param(int narg, char **arg)
     for (int i = 0; i < narg; i++) {
 
       // Substitute LAMMPS variables
-      // See https://github.com/lammps/lammps/commit/f9be11ac8ab460edff3709d66734d3fc2cd806dd
+
       char *new_arg = arg[i];
       int ncopy = strlen(new_arg) + 1;
-      char *copy = utils::strdup(new_arg);
-      char *work = new char[ncopy];
       int nwork = ncopy;
+      auto *copy = (char *) memory->smalloc(ncopy * sizeof(char), "fix/colvar:copy");
+      auto *work = (char *) memory->smalloc(ncopy * sizeof(char), "fix/colvar:work");
+      strncpy(copy, new_arg, ncopy);
       lmp->input->substitute(copy,work,ncopy,nwork,0);
-      delete[] work;
+      memory->sfree(work);
       new_arg = copy;
 
       script_args[i+1] = reinterpret_cast<unsigned char *>(new_arg);
@@ -415,15 +404,10 @@ int FixColvars::modify_param(int narg, char **arg)
     error_code |= script->run(narg+1, script_args);
 
     std::string const result = proxy->get_error_msgs() + script->str_result();
-    if (result.size()) {
-      std::istringstream is(result);
-      std::string line;
-      while (std::getline(is, line)) {
-        if (lmp->screen) fprintf(lmp->screen, "%s\n", line.c_str());
-        if (lmp->logfile) fprintf(lmp->logfile, "%s\n", line.c_str());
-      }
-    }
+    if (result.size()) utils::logmesg(lmp, result);
 
+    // free allocated memory
+    for (int i = 0; i < narg; i++) memory->sfree(script_args[i+1]);
     return (error_code == COLVARSCRIPT_OK) ? narg : 0;
 
   } else {

@@ -57,9 +57,18 @@ void WriteDump::command(int narg, char **arg)
   dumpargs[2] = arg[1];                                     // dump style
   dumpargs[3] = utils::strdup(std::to_string(dumpfreq));    // dump frequency
 
-  for (int i = 2; i < modindex; ++i) dumpargs[i + 2] = arg[i];
+  // copy arguments up to modify, but skip over "noinit" if present
 
-  auto *dump = output->add_dump(modindex + 2, dumpargs);
+  int noinitwarn = 0;
+  for (int i = 2; i < modindex; ++i) {
+    if (strcmp(arg[i], "noinit") == 0) {
+      noinitwarn = 1;
+    } else {
+      dumpargs[i + 2 - noinitwarn] = arg[i];
+    }
+  }
+
+  auto *dump = output->add_dump(modindex + 2 - noinitwarn, dumpargs);
 
   try {
     if (modindex < narg) dump->modify_params(narg - modindex - 1, &arg[modindex + 1]);
@@ -75,7 +84,7 @@ void WriteDump::command(int narg, char **arg)
 
   if (strcmp(arg[1], "image") == 0) (dynamic_cast<DumpImage *>(dump))->multifile_override = 1;
   if (strcmp(arg[1], "cfg") == 0) (dynamic_cast<DumpCFG *>(dump))->multifile_override = 1;
-  if ((update->first_update == 0) && (comm->me == 0))
+  if ((update->first_update == 0) && (comm->me == 0) && (noinitwarn == 0))
     error->warning(FLERR, "Calling write_dump before a full system init.");
 
   dump->init();

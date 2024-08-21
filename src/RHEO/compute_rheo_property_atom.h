@@ -61,8 +61,8 @@ class ComputeRHEOPropertyAtom : public Compute {
   void pack_nbond_shell(int);
   void pack_atom_style(int);
 
-  int add_vector_component(char*, int, FnPtrPack);
-  int add_tensor_component(char*, int, FnPtrPack);
+  int add_vector_component(char *, int, FnPtrPack);
+  int add_tensor_component(char *, int, FnPtrPack);
 
   class FixRHEO *fix_rheo;
   class FixRHEOPressure *fix_pressure;
@@ -73,11 +73,9 @@ class ComputeRHEOPropertyAtom : public Compute {
   class ComputeRHEOSurface *compute_surface;
   class ComputeRHEOVShift *compute_vshift;
   class ComputeRHEOGrad *compute_grad;
-
 };
 
 }    // namespace LAMMPS_NS
 
 #endif
 #endif
-

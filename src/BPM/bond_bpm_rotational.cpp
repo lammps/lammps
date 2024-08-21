@@ -280,10 +280,8 @@ double BondBPMRotational::elastic_forces(int i1, int i2, int type, double r_mag,
 
   temp = sqrt(q21[0] * q21[0] + q21[3] * q21[3]);
   if (temp != 0.0) {
-    c = q21[0] / temp;
-    psi = 2.0 * acos_limit(c);
+    psi = 2.0 * acos_limit(q21[0] / temp);
   } else {
-    c = 0.0;
     psi = 0.0;
   }
 

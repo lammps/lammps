@@ -48,7 +48,7 @@ class FixQtpieReaxFF : public Fix {
  protected:
   int nevery, reaxflag;
   int matvecs;
-  int nn, ng, m_fill;
+  int nn, nt, m_fill;
   int n_cap, nmax, m_cap;
   int pack_flag;
   int nlevels_respa;

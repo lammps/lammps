@@ -99,7 +99,7 @@ FixQtpieReaxFF::FixQtpieReaxFF(LAMMPS *lmp, int narg, char **arg) :
   }
   shld = nullptr;
 
-  nn = ng = n_cap = 0;
+  nn = nt = n_cap = 0;
   nmax = 0;
   m_fill = m_cap = 0;
   pack_flag = 0;
@@ -546,13 +546,13 @@ void FixQtpieReaxFF::setup_pre_force(int vflag)
 {
   if (reaxff) {
     nn = reaxff->list->inum;
-    ng = reaxff->list->inum + reaxff->list->gnum;
+    nt = reaxff->list->inum + reaxff->list->gnum;
     ilist = reaxff->list->ilist;
     numneigh = reaxff->list->numneigh;
     firstneigh = reaxff->list->firstneigh;
   } else {
     nn = list->inum;
-    ng = list->inum + list->gnum;
+    nt = list->inum + list->gnum;
     ilist = list->ilist;
     numneigh = list->numneigh;
     firstneigh = list->firstneigh;
@@ -613,13 +613,13 @@ void FixQtpieReaxFF::pre_force(int /*vflag*/)
 
   if (reaxff) {
     nn = reaxff->list->inum;
-    ng = reaxff->list->inum + reaxff->list->gnum;
+    nt = reaxff->list->inum + reaxff->list->gnum;
     ilist = reaxff->list->ilist;
     numneigh = reaxff->list->numneigh;
     firstneigh = reaxff->list->firstneigh;
   } else {
     nn = list->inum;
-    ng = list->inum + list->gnum;
+    nt = list->inum + list->gnum;
     ilist = list->ilist;
     numneigh = list->numneigh;
     firstneigh = list->firstneigh;
@@ -1183,7 +1183,7 @@ void FixQtpieReaxFF::calc_chi_eff()
     sum_n = 0.0;
     sum_d = 0.0;
 
-    for (j = 0; j < ng; j++) {
+    for (j = 0; j < nt; j++) {
       dist = distance(x[i],x[j])*ANG_TO_BOHRRAD; // distance between atoms as a multiple of Bohr radius
 
       if (dist < dist_cutoff) {

@@ -63,7 +63,7 @@ ordered :math:`xx,` :math:`yy,` :math:`zz,` :math:`xy,` :math:`xz,`
 :math:`yz.` The equation for the :math:`(I,J)` components (where
 :math:`I` and :math:`J` are :math:`x`, :math:`y`, or :math:`z`) is
 similar to the above formula, except that the first term uses
-components derived from the kinetic energy tensor and the second term
+components related to the kinetic energy tensor and the second term
 uses components of the virial tensor:
 
 .. math::

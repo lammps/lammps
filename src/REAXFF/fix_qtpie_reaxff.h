@@ -33,7 +33,7 @@ class FixQtpieReaxFF : public Fix {
   void post_constructor() override;
   void init() override;
   void init_list(int, class NeighList *) override;
-  virtual void init_storage();
+  void init_storage();
   void setup_pre_force(int) override;
   void pre_force(int) override;
 
@@ -89,27 +89,27 @@ class FixQtpieReaxFF : public Fix {
   int imax, maxwarn;
 
   char *pertype_option;    // argument to determine how per-type info is obtained
-  char *gauss_file; // input file for gaussian exponents
-  double *gauss_exp; // array of gaussian exponents
+  char *gauss_file; 	   // input file for gaussian exponents
+  double *gauss_exp; 	   // array of gaussian exponents
 
-  virtual void pertype_parameters(char *);
+  void pertype_parameters(char *);
   void init_shielding();
   void init_taper();
-  virtual void allocate_storage();
-  virtual void deallocate_storage();
+  void allocate_storage();
+  void deallocate_storage();
   void reallocate_storage();
-  virtual void allocate_matrix();
-  virtual void deallocate_matrix();
+  void allocate_matrix();
+  void deallocate_matrix();
   void reallocate_matrix();
 
-  virtual void init_matvec();
+  void init_matvec();
   void init_H();
-  virtual void compute_H();
+  void compute_H();
   double calculate_H(double, double);
-  virtual void calculate_Q();
+  void calculate_Q();
 
-  virtual int CG(double *, double *);
-  virtual void sparse_matvec(sparse_matrix *, double *, double *);
+  int CG(double *, double *);
+  void sparse_matvec(sparse_matrix *, double *, double *);
 
   int pack_forward_comm(int, int *, double *, int, int *) override;
   void unpack_forward_comm(int, int, double *) override;
@@ -121,12 +121,12 @@ class FixQtpieReaxFF : public Fix {
   int pack_exchange(int, double *) override;
   int unpack_exchange(int, double *) override;
 
-  virtual double parallel_norm(double *, int);
-  virtual double parallel_dot(double *, double *, int);
-  virtual double parallel_vector_acc(double *, int);
+  double parallel_norm(double *, int);
+  double parallel_dot(double *, double *, int);
+  double parallel_vector_acc(double *, int);
 
-  virtual void vector_sum(double *, double, double *, double, double *, int);
-  virtual void vector_add(double *, double, double *, int);
+  void vector_sum(double *, double, double *, double, double *, int);
+  void vector_add(double *, double, double *, int);
 
   void calc_chi_eff();
   double find_min(double*, int);

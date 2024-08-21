@@ -303,8 +303,8 @@ rst_prolog = r"""
 latex_engine = 'pdflatex'
 if (get_lammps_update() == 'Development') or (get_lammps_update() == 'Maintenance'):
     if get_git_info() == '':
-       lammpsversion =  format("\\newcommand{\\lammpsversion}{Development %s %s}\n" \
-                        % (get_lammps_version(), get_lammps_update()))
+       lammpsversion =  format("\\newcommand{\\lammpsversion}{%s %s}\n" \
+                        % (get_lammps_update(), get_lammps_version()))
     else:
        lammpsversion =  format("\\newcommand{\\lammpsversion}{Git: %s}\n" % (get_git_info()))
 else:

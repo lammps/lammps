@@ -48,7 +48,7 @@
 using namespace LAMMPS_NS;
 using namespace FixConst;
 
-static constexpr double EV_TO_KCAL_PER_MOL = 14.4;
+static constexpr double CONV_TO_EV = 14.4;
 static constexpr double SMALL = 1.0e-14;
 static constexpr double QSUMSMALL = 0.00001;
 
@@ -768,7 +768,7 @@ double FixQtpieReaxFF::calculate_H(double r, double gamma)
   denom = r * r * r + gamma;
   denom = pow(denom,1.0/3.0);
 
-  return Taper * EV_TO_KCAL_PER_MOL / denom;
+  return Taper * CONV_TO_EV / denom;
 }
 
 /* ---------------------------------------------------------------------- */

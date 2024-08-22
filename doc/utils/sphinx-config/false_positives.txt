@@ -407,6 +407,7 @@ Bybee
 bz
 Cadarache
 cadetblue
+Caen
 Cagin
 calc
 calibrationfunctions
@@ -1705,6 +1706,7 @@ jec
 Jeffers
 jewett
 Jewett
+jgissing
 ji
 Jiang
 Jiao
@@ -3550,6 +3552,7 @@ Steinhauser
 Stepaniants
 stepwise
 Stesmans
+stevens
 stiffnesses
 Stillinger
 stk

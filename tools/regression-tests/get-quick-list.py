@@ -258,10 +258,9 @@ if __name__ == "__main__":
     regex = make_regex(styles)
     if regex:
         inputs = get_examples_using_styles(regex, os.path.join(LAMMPS_DIR,'examples'))
-
-    print("Suggested inputs for testing:")
-    for inp in inputs:
-        print(inp)
+        print("Suggested inputs for testing:")
+        for inp in inputs:
+            print(inp)
 
     print(type(make_regex(styles)))
     print("Found changes to the following styles:")

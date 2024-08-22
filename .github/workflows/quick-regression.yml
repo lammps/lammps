@@ -24,7 +24,6 @@ jobs:
     - name: Checkout repository
       uses: actions/checkout@v4
       with:
-        ref: ${{ github.event.pull_request.head.sha }}
         fetch-depth: 0
         show-progress: false
 
@@ -69,4 +68,7 @@ jobs:
     - name: Run Selected Regression Tests
       shell: bash
       run: |
+        git branch
+        git branch -r
+        git diff origin/develop..HEAD
         python3 tools/regression-tests/get-quick-list.py

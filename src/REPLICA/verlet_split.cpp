@@ -237,7 +237,7 @@ void VerletSplit::init()
   tip4pflag = force->kspace->tip4pflag;
 
   // invoke parent Verlet init
-  
+
   Verlet::init();
 }
 

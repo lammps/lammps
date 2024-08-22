@@ -1,5 +1,5 @@
-# GitHub action to build LAMMPS on Windows with Visual C++
-name: "Native Windows Compilation and Unit Tests"
+# GitHub action to build LAMMPS on Windows with Visual C++ and run unit tests
+name: "Native Windows Unit Tests"
 
 on:
   push:

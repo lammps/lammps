@@ -67,5 +67,4 @@ jobs:
     - name: Run Selected Regression Tests
       shell: bash
       run: |
-        echo 'Linux binary is here:'
-        ls -lh build/lmp
+        python3 tools/regression-tests/get-quick-list.py

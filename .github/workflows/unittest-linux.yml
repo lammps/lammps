@@ -1,5 +1,5 @@
 # GitHub action to build LAMMPS on Linux and run standard unit tests
-name: "Linux Unit Test"
+name: "Unittest for Linux"
 
 on:
   push:

@@ -27,7 +27,7 @@ jobs:
         fetch-depth: 2
 
     - name: Install ccache
-      run: apt install ccache
+      run: sudo apt-get install -y ccache
 
     - name: Create Build Environment
       run: mkdir build

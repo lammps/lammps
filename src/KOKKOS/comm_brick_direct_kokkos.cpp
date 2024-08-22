@@ -81,6 +81,7 @@ void CommBrickDirectKokkos::setup()
   MemKK::realloc_kokkos(k_swap2list,"comm_direct:swap2list",ndirect);
   MemKK::realloc_kokkos(k_pbc_flag_direct,"comm_direct:pbc_flag",ndirect);
   MemKK::realloc_kokkos(k_pbc_direct,"comm_direct:pbc",ndirect,6);
+  MemKK::realloc_kokkos(k_self_flags,"comm_direct:pbc",ndirect);
 
   for (int iswap = 0; iswap < ndirect; iswap++) {
     k_swap2list.h_view[iswap] = swap2list[iswap];
@@ -91,11 +92,13 @@ void CommBrickDirectKokkos::setup()
     k_pbc_direct.h_view(iswap,3) = pbc_direct[iswap][3];
     k_pbc_direct.h_view(iswap,4) = pbc_direct[iswap][4];
     k_pbc_direct.h_view(iswap,5) = pbc_direct[iswap][5];
+    k_self_flags.h_view(iswap) = proc_direct[iswap]==me;
   }
 
   k_swap2list.modify_host();
   k_pbc_flag_direct.modify_host();
   k_pbc_direct.modify_host();
+  k_self_flags.modify_host();
 }
 
 /* ----------------------------------------------------------------------
@@ -107,6 +110,7 @@ void CommBrickDirectKokkos::setup()
 
 void CommBrickDirectKokkos::forward_comm(int dummy)
 {
+  error->all(FLERR, "cbdk: forward_comm\n");
   int forward_comm_classic = 0;
   int forward_comm_on_host = 0;
 
@@ -114,8 +118,8 @@ void CommBrickDirectKokkos::forward_comm(int dummy)
     if (forward_comm_on_host) forward_comm_device<LMPHostType>();
     else forward_comm_device<LMPDeviceType>();
     return;
-  } 
-  
+  }
+
   if (comm_x_only) {
     atomKK->sync(Host,X_MASK);
     atomKK->modified(Host,X_MASK);
@@ -125,8 +129,8 @@ void CommBrickDirectKokkos::forward_comm(int dummy)
   } else {
     atomKK->sync(Host,ALL_MASK);
     atomKK->modified(Host,ALL_MASK);
-  } 
-  
+  }
+
   CommBrickDirect::forward_comm(dummy);
 }
 
@@ -164,6 +168,7 @@ void CommBrickDirectKokkos::forward_comm_device()
   k_swap2list.sync<DeviceType>();
   k_pbc_flag_direct.sync<DeviceType>();
   k_pbc_direct.sync<DeviceType>();
+  k_self_flags.sync<DeviceType>();
 
   if (ghost_velocity) {
     //atomKK->avecKK->pack_comm_vel_direct(totalsend,k_sendatoms_list,
@@ -173,7 +178,7 @@ void CommBrickDirectKokkos::forward_comm_device()
     atomKK->avecKK->pack_comm_direct(totalsend,k_sendatoms_list,
                         k_sendnum_scan_direct,k_firstrecv_direct,
                         k_pbc_flag_direct,k_pbc_direct,
-                        k_swap2list,k_buf_send_direct);
+                        k_swap2list,k_buf_send_direct,k_self_flags);
   }
 
   // send all owned atoms to receiving procs
@@ -237,7 +242,7 @@ void CommBrickDirectKokkos::borders()
   for (int ilist = 0; ilist < maxlist; ilist++) {
     const int nsend = sendnum_list[ilist];
     for (int i = 0; i < nsend; i++)
-      k_sendatoms_list.h_view(ilist,i) = sendatoms_list[ilist][i];  
+      k_sendatoms_list.h_view(ilist,i) = sendatoms_list[ilist][i];
   }
 
   int scan = 0;

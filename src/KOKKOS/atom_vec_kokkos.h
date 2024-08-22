@@ -18,7 +18,7 @@
 #include "atom_vec.h"           //  IWYU pragma: export
 
 #include "kokkos_type.h"
-#include <type_traits>
+// #include <type_traits>
 
 #include <Kokkos_Sort.hpp>
 
@@ -75,7 +75,8 @@ class AtomVecKokkos : virtual public AtomVec {
                      const DAT::tdual_int_1d &pbc_flag,
                      const DAT::tdual_int_2d &pbc,
                      const DAT::tdual_int_1d &swap2llist,
-                     const DAT::tdual_xfloat_2d &buf);
+                     const DAT::tdual_xfloat_2d &buf,
+                     const DAT::tdual_int_1d &k_self_flags);
 
   virtual void
     unpack_comm_kokkos(const int &n, const int &nfirst,

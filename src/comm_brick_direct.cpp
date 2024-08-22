@@ -665,7 +665,7 @@ void CommBrickDirect::reverse_comm()
 
   if (npost == 0) return;
 
-  for (int i; i < npost; i++) {
+  for (int i = 0; i < npost; i++) {
     MPI_Waitany(npost,requests,&irecv,MPI_STATUS_IGNORE);
     iswap = send_indices_direct[irecv];
     offset = recv_offset_reverse_direct[iswap];

@@ -31,7 +31,7 @@ def changed_files_from_git(branch='develop'):
     # get list of changed files relative to the develop branch from git
     output = None
     try:
-        output = subprocess.run('git diff --diff-filter=MA --name-status develop',
+        output = subprocess.run('git diff --diff-filter=MA --name-status ' + branch,
                                 shell=True, capture_output=True)
     except:
         pass

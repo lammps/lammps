@@ -68,7 +68,4 @@ jobs:
     - name: Run Selected Regression Tests
       shell: bash
       run: |
-        git branch
-        git branch -r
-        git diff origin/develop..HEAD
         python3 tools/regression-tests/get-quick-list.py

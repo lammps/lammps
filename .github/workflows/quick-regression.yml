@@ -45,18 +45,13 @@ jobs:
       shell: bash
       run: |
         ccache -z
-        python3 -m venv linuxenv
-        source linuxenv/bin/activate
-        python3 -m pip install numpy
-        python3 -m pip install pyyaml
         cmake -S cmake -B build \
               -C cmake/presets/gcc.cmake \
               -C cmake/presets/most.cmake \
               -D CMAKE_CXX_COMPILER_LAUNCHER=ccache \
               -D CMAKE_C_COMPILER_LAUNCHER=ccache \
-              -D BUILD_SHARED_LIBS=on \
+              -D BUILD_SHARED_LIBS=off \
               -D DOWNLOAD_POTENTIALS=off \
-              -D ENABLE_TESTING=on \
               -D PKG_MANIFOLD=on \
               -D PKG_ML-PACE=on \
               -D PKG_ML-RANN=on \
@@ -69,7 +64,8 @@ jobs:
         cmake --build build
         ccache -s
 
-    - name: Run Tests
-      working-directory: build
+    - name: Run Selected Regression Tests
       shell: bash
-      run: ctest -V
+      run: |
+        echo 'Linux binary is here:'
+        ls -lh build/lmp

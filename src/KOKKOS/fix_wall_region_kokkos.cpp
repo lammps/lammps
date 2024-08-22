@@ -13,7 +13,7 @@
 ------------------------------------------------------------------------- */
 
 /* ----------------------------------------------------------------------
-   Contributing author: Mitch Murphy (alphataubio@gmail.com)
+   Contributing author: Mitch Murphy (alphataubio at gmail.com)
 ------------------------------------------------------------------------- */
 
 #include "fix_wall_region_kokkos.h"
@@ -83,7 +83,7 @@ void FixWallRegionKokkos<DeviceType>::post_force(int vflag)
   int nlocal = atomKK->nlocal;
 
   region->prematch();
-  DAT::tdual_int_1d k_match = DAT::tdual_int_1d("efield:k_match",nlocal);
+  DAT::tdual_int_1d k_match = DAT::tdual_int_1d("wall_region:k_match",nlocal);
   KokkosBase* regionKKBase = dynamic_cast<KokkosBase*>(region);
   regionKKBase->match_all_kokkos(groupbit,k_match);
   k_match.template sync<DeviceType>();

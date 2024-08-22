@@ -1,0 +1,69 @@
+# GitHub action to build LAMMPS on Linux and run regression tests
+name: "Full Regression Test"
+
+on:
+  push:
+    branches:
+      - develop
+      - quick-regression
+
+  workflow_dispatch:
+
+jobs:
+  build:
+    name: Full Regression Test
+    # restrict to official LAMMPS repository
+    if: ${{ github.repository == 'lammps/lammps' }}
+    runs-on: ubuntu-latest
+    env:
+      CCACHE_DIR: ${{ github.workspace }}/.ccache
+
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v4
+      with:
+        fetch-depth: 2
+
+    - name: Install extra packages
+      run: |
+        sudo apt-get install -y ccache ninja-build
+        sudo apt-get install -y libeigen3-dev libgsl-dev libcurl4-openssl-dev python3-dev
+
+    - name: Create Build Environment
+      run: mkdir build
+
+    - name: Set up ccache
+      uses: actions/cache@v4
+      with:
+        path: ${{ env.CCACHE_DIR }}
+        key: linux-ccache-${{ github.sha }}
+        restore-keys: linux-ccache-
+
+    - name: Building LAMMPS via CMake
+      shell: bash
+      run: |
+        ccache -z
+        cmake -S cmake -B build \
+              -C cmake/presets/gcc.cmake \
+              -C cmake/presets/most.cmake \
+              -D CMAKE_CXX_COMPILER_LAUNCHER=ccache \
+              -D CMAKE_C_COMPILER_LAUNCHER=ccache \
+              -D BUILD_SHARED_LIBS=off \
+              -D DOWNLOAD_POTENTIALS=off \
+              -D PKG_MANIFOLD=on \
+              -D PKG_ML-PACE=on \
+              -D PKG_ML-RANN=on \
+              -D PKG_RHEO=on \
+              -D PKG_PTM=on \
+              -D PKG_PYTHON=on \
+              -D PKG_QTB=on \
+              -D PKG_SMTBQ=on \
+              -G Ninja
+        cmake --build build
+        ccache -s
+
+    - name: Run Regression Tests
+      shell: bash
+      run: |
+        echo 'Linux binary is here:'
+        ls -lh build/lmp

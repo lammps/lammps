@@ -253,8 +253,7 @@ def get_examples_using_styles(regex, examples='examples'):
 
 if __name__ == "__main__":
 
-    headers = changed_files_from_git('develop')
-    print("headers\n", headers)
+    headers = changed_files_from_git('origin/develop')
     styles = get_command_from_header(headers, LAMMPS_DIR)
     regex = make_regex(styles)
     if regex:

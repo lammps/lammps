@@ -1,0 +1,66 @@
+# GitHub action to build LAMMPS on Linux and run selected regression tests
+name: "Quick Regression Test"
+
+on:
+  push:
+    branches:
+      - develop
+      - quick-regression
+  pull_request:
+    branches:
+      - develop
+
+  workflow_dispatch:
+
+jobs:
+  build:
+    name: Quick Regression Test
+    if: ${{ github.repository == 'lammps/lammps' }}
+    runs-on: ubuntu-latest
+    env:
+      CCACHE_DIR: ${{ github.workspace }}/.ccache
+
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v4
+      with:
+        fetch-depth: 2
+
+    - name: Install ccache
+      run: apt install ccache
+
+    - name: Create Build Environment
+      run: mkdir build
+
+    - name: Set up ccache
+      uses: actions/cache@v4
+      with:
+        path: ${{ env.CCACHE_DIR }}
+        key: linux-ccache-${{ github.sha }}
+        restore-keys: linux-ccache-
+
+    - name: Building LAMMPS via CMake
+      shell: bash
+      working-directory: build
+      run: |
+        ccache -z
+        python3 -m venv linuxenv
+        source linuxenv/bin/activate
+        python3 -m pip install numpy
+        python3 -m pip install pyyaml
+        cmake -C ../cmake/presets/gcc.cmake \
+              -C ../cmake/presets/most.cmake \
+              -D DOWNLOAD_POTENTIALS=off \
+              -D CMAKE_CXX_COMPILER_LAUNCHER=ccache \
+              -D CMAKE_C_COMPILER_LAUNCHER=ccache \
+              -D ENABLE_TESTING=on \
+              -D BUILD_SHARED_LIBS=on \
+              -D LAMMPS_EXCEPTIONS=on \
+              ../cmake
+        cmake --build . --parallel 2
+        ccache -s
+
+    - name: Run Tests
+      working-directory: build
+      shell: bash
+      run: ctest -V

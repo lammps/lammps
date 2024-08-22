@@ -238,6 +238,7 @@ def get_examples_using_styles(regex, examples='examples'):
     rtype: list of strings
     """
 
+    print("type ", type(regex))
     commands = re.compile(regex)
     inputs = []
     for filename in Path(examples).rglob('in.*'):
@@ -252,14 +253,20 @@ def get_examples_using_styles(regex, examples='examples'):
 # ----------------------------------------------------------------------
 
 if __name__ == "__main__":
+
     headers = changed_files_from_git('develop')
+    print("headers\n", headers)
     styles = get_command_from_header(headers, LAMMPS_DIR)
-    inputs = get_examples_using_styles(make_regex(styles), os.path.join(LAMMPS_DIR,'examples'))
+    print("styles\n", styles)
+    regex = make_regex(styles)
+    print("regex: ", regex)
+    inputs = get_examples_using_styles(regex, os.path.join(LAMMPS_DIR,'examples'))
 
     print("Suggested inputs for testing:")
     for inp in inputs:
         print(inp)
 
+    print(type(make_regex(styles)))
     print("Found changes to the following styles:")
     print("Commands: ", styles['command'])
     print("Atom styles: ", styles['atom'])

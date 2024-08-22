@@ -242,10 +242,11 @@ def get_examples_using_styles(regex, examples='examples'):
     for filename in Path(examples).rglob('in.*'):
         with open(filename) as f:
             for line in f:
-                matches = regex.match(line)
-                if matches:
-                    inputs.append(filename)
-                    break
+                if line:
+                    matches = regex.match(line)
+                    if matches:
+                        inputs.append(filename)
+                        break
     return inputs
 
 # ----------------------------------------------------------------------

@@ -289,6 +289,10 @@ text area.
 Charts Window
 -------------
 
+.. versionadded:: 1.6
+
+   Plot smoothing support
+
 By default, when starting a run, a *Charts* window opens that displays a
 plot of thermodynamic output of the LAMMPS calculation as shown below.
 

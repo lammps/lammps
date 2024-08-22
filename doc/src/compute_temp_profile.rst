@@ -210,10 +210,10 @@ will be for most thermostats.
 Related commands
 """"""""""""""""
 
-:doc:`compute temp <compute_temp>`, :doc:`compute temp/ramp
-     <compute_temp_ramp>`, :doc:`compute temp/deform
-     <compute_temp_deform>`, :doc:`compute pressure
-     <compute_pressure>`
+:doc:`compute temp <compute_temp>`,
+:doc:`compute temp/ramp <compute_temp_ramp>`,
+:doc:`compute temp/deform <compute_temp_deform>`,
+:doc:`compute pressure <compute_pressure>`
 
 Default
 """""""

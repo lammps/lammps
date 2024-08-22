@@ -76,8 +76,8 @@ calculated.  This includes a kinetic energy (temperature) term and the
 virial as the sum of pair, bond, angle, dihedral, improper, kspace
 (long-range), and fix contributions to the force on each atom.  If any
 extra keywords are listed, then only those components are summed to
-compute temperature or ke and/or the virial.  The *virial* keyword
-means include all terms except the kinetic energy *ke*\ .
+compute temperature or ke and/or the virial.  The *virial* keyword means
+include all terms except the kinetic energy *ke*\ .
 
 The *pair/hybrid* keyword means to only include contribution
 from a sub-style in a *hybrid* or *hybrid/overlay* pair style.
@@ -89,18 +89,18 @@ effects of periodic boundary conditions are discussed in
 
 The temperature and kinetic energy tensor are not calculated by this
 compute, but rather by the temperature compute specified with the
-command.  See the doc pages for individual compute temp variants for
-an explation of how they calculate temperature and a symmetric tensor
-(6-element vector) whose components are twice that of the traditional
-KE tensor.  That tensor is what appears in the pressure tensor formula
+command.  See the doc pages for individual compute temp variants for an
+explanation of how they calculate temperature and a symmetric tensor
+(6-element vector) whose components are twice that of the traditional KE
+tensor.  That tensor is what appears in the pressure tensor formula
 above.
 
-If the kinetic energy is not included in the pressure, than
-the temperature compute is not used and can be specified as NULL.
-Normally the temperature compute used by compute pressure should
-calculate the temperature of all atoms for consistency with the virial
-term, but any compute style that calculates temperature can be used
-(e.g., one that excludes frozen atoms or other degrees of freedom).
+If the kinetic energy is not included in the pressure, than the
+temperature compute is not used and can be specified as NULL.  Normally
+the temperature compute used by compute pressure should calculate the
+temperature of all atoms for consistency with the virial term, but any
+compute style that calculates temperature can be used (e.g., one that
+excludes frozen atoms or other degrees of freedom).
 
 Note that if desired the specified temperature compute can be one that
 subtracts off a bias to calculate a temperature using only the thermal
@@ -142,9 +142,8 @@ The ordering of values in the symmetric pressure tensor is as follows:
 :math:`p_{xx},` :math:`p_{yy},` :math:`p_{zz},` :math:`p_{xy},`
 :math:`p_{xz},` :math:`p_{yz}.`
 
-The scalar and vector values calculated by this compute are
-"intensive".  The scalar and vector values will be in pressure
-:doc:`units <units>`.
+The scalar and vector values calculated by this compute are "intensive".
+The scalar and vector values will be in pressure :doc:`units <units>`.
 
 Restrictions
 """"""""""""

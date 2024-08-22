@@ -38,7 +38,7 @@ contributions, as discussed by the :doc:`compute temp/eff
 <compute_temp_eff>` command.
 
 Output info
-""""""""""
+"""""""""""
 
 This compute calculates a global scalar (the temperature) and a global
 vector of length 6 (symmetric tensor), which can be accessed by

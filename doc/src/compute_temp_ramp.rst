@@ -124,10 +124,10 @@ Restrictions
 Related commands
 """"""""""""""""
 
-:doc:`compute temp <compute_temp>`, :doc:`compute temp/profie
-     <compute_temp_profile>`, :doc:`compute temp/deform
-     <compute_temp_deform>`, :doc:`compute pressure
-     <compute_pressure>`
+:doc:`compute temp <compute_temp>`,
+:doc:`compute temp/profile <compute_temp_profile>`,
+:doc:`compute temp/deform <compute_temp_deform>`,
+:doc:`compute pressure <compute_pressure>`
 
 Default
 """""""

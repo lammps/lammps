@@ -262,7 +262,6 @@ if __name__ == "__main__":
         for inp in inputs:
             print(inp)
 
-    print(type(make_regex(styles)))
     print("Found changes to the following styles:")
     print("Commands: ", styles['command'])
     print("Atom styles: ", styles['atom'])

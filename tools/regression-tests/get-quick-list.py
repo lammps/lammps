@@ -10,7 +10,7 @@ from pathlib import Path
 if sys.version_info < (3,5):
     raise BaseException("Must use at least Python 3.5")
 
-# infer top level LAMMPS dir
+# infer top level LAMMPS dir from filename
 LAMMPS_DIR = os.path.realpath(os.path.join(os.path.dirname(__file__), '..', '..'))
 
 # ----------------------------------------------------------------------
@@ -178,8 +178,8 @@ def make_regex(styles):
 
     param styles: dictionary with style names
     type styles: dict
-    return: compiled regular expression
-    rtype: regex
+    return: combined regular expression string
+    rtype: string
     """
 
     restring = "^\\s*("
@@ -217,9 +217,9 @@ def make_regex(styles):
     # replace last (pipe) character with closing parenthesis
     length = len(restring)
     restring = restring[:length-1] + ')'
-    # return compiled regex or None
+    # return combined regex string
     if length > 5:
-        return re.compile(restring)
+        return restring
     else:
         return None
 
@@ -230,7 +230,7 @@ def get_examples_using_styles(regex, examples='examples'):
     Loop through LAMMPS examples tree and find all files staring with 'in.'
     that have at least one line matching the regex.
 
-    param regex: pattern matching LAMMPS commands
+    param regex: string pattern matching LAMMPS commands
     type regex: compiled regex
     param example: path where to start looking for examples recursively
     type example: string
@@ -238,15 +238,14 @@ def get_examples_using_styles(regex, examples='examples'):
     rtype: list of strings
     """
 
+    commands = re.compile(regex)
     inputs = []
     for filename in Path(examples).rglob('in.*'):
         with open(filename) as f:
             for line in f:
-                if line:
-                    matches = regex.match(line)
-                    if matches:
-                        inputs.append(filename)
-                        break
+                if commands.match(line):
+                    inputs.append(filename)
+                    break
     return inputs
 
 # ----------------------------------------------------------------------

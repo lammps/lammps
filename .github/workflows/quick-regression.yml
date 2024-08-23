@@ -71,7 +71,6 @@ jobs:
         ccache -s
 
     - name: Run Selected Regression Tests
-      uses: actions/download-artifact@v4
       shell: bash
       run: |
         source linuxenv/bin/activate
@@ -81,7 +80,11 @@ jobs:
                --config-file=tools/regression-tests/config.yaml \
                --list-input=folder_list.txt
         tar -cvf quick-regression-test.tar run.log progress.yaml
+
+    - name: Download artifacts
+      uses: actions/download-artifact@v4
       with:
         name: quick-regression-test-artifact
         path: quick-regression-test.tar
+        retention-days: 5
 

@@ -73,6 +73,7 @@ jobs:
     - name: Run Selected Regression Tests
       shell: bash
       run: |
+        source linuxenv/bin/activate
         python3 tools/regression-tests/get-quick-list.py
         python3 tools/regression-tests/run_tests.py \
                --lmp-bin=build/lmp \

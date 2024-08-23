@@ -17,6 +17,9 @@ jobs:
     runs-on: ubuntu-latest
     env:
       CCACHE_DIR: ${{ github.workspace }}/.ccache
+    strategy:
+      matrix:
+        idx: [ 0, 1, 2, 3, 4, 5, 6, 7 ]
 
     steps:
     - name: Checkout repository
@@ -67,7 +70,6 @@ jobs:
         cmake --build build
         ccache -s
 
-  run_regression_tests:
     - name: Analyze top-level examples folder, split into 8 seperate subfolder lists
       shell: bash
       run: |
@@ -77,9 +79,6 @@ jobs:
                --examples-top-level=examples --analyze --num-workers=8
 
     - name: Run regression tests with 8 workers each processing a list of subfolders
-      strategy:
-        matrix:
-          idx: [ 0, 1, 2, 3, 4, 5, 6, 7 ]
       run: |
         source linuxenv/bin/activate
         python3 tools/regression-tests/run_tests.py \

@@ -209,23 +209,27 @@ void FixQtpieReaxFF::pertype_parameters(char *arg)
     gauss_exp[0] = 0.0;
     try {
       TextFileReader reader(gauss_file,"qtpie/reaxff gaussian exponents");
-      reader.ignore_comments = false;
+      reader.ignore_comments = true;
       for (int i = 1; i <= ntypes; i++) {
         const char *line = reader.next_line();
-	std::cout << "Orbital exponent " << line;
         if (!line)
-          throw TokenizerException("Fix qtpie/reaxff: Invalid param file format","");
+          throw TokenizerException("Fix qtpie/reaxff: Incorrect number of atom types in gauss file","");
         ValueTokenizer values(line);
 
         if (values.count() != 2)
-          throw TokenizerException("Fix qtpie/reaxff: Incorrect format of param file","");
+          throw TokenizerException("Fix qtpie/reaxff: Incorrect number of values per line "
+				   "in gauss file",std::to_string(values.count()));
 
         int itype = values.next_int();
         if ((itype < 1) || (itype > ntypes))
-          throw TokenizerException("Fix qtpie/reaxff: Invalid atom type in param file",
+          throw TokenizerException("Fix qtpie/reaxff: Invalid atom type in gauss file",
                                    std::to_string(itype));
 
-        gauss_exp[itype] = values.next_double();
+	double expo = values.next_double();
+	if (expo < 0)
+          throw TokenizerException("Fix qtpie/reaxff: Invalid orbital exponent in gauss file",
+                                   std::to_string(expo));
+        gauss_exp[itype] = expo;
       }
     } catch (std::exception &e) {
       error->one(FLERR,e.what());

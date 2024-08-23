@@ -51,18 +51,19 @@ using namespace FixConst;
 static constexpr double CONV_TO_EV = 14.4;
 static constexpr double SMALL = 1.0e-14;
 static constexpr double QSUMSMALL = 0.00001;
+static constexpr double ANGSTROM_TO_BOHRRADIUS = 1.8897261259;
 
 static const char cite_fix_qtpie_reaxff[] =
-  "fix qtpie/reaxff command: doi:https://doi.org/10.1016/j.cplett.2007.02.065\n\n"
-  "@article{chen2007qtpie,\n"
-  "title={QTPIE: Charge transfer with polarization current equalization. A fluctuating charge model with correct asymptotics},\n"
-  "author={Chen, Jiahao and Martinez, Todd J},\n"
-  "journal={Chemical physics letters},\n"
-  "volume={438},\n"
-  "number={4-6},\n"
-  "pages={315--320},\n"
-  "year={2007},\n"
-  "publisher={Elsevier}\n"
+  "fix qtpie/reaxff command: doi\n\n"
+  "@article{,\n"
+  "title={},\n"
+  "author={},\n"
+  "journal={},\n"
+  "volume={},\n"
+  "number={},\n"
+  "pages={},\n"
+  "year={},\n"
+  "publisher={}\n"
   "}\n\n";
 
 /* ---------------------------------------------------------------------- */
@@ -232,6 +233,12 @@ void FixQtpieReaxFF::pertype_parameters(char *arg)
   }
 
   MPI_Bcast(gauss_exp,ntypes+1,MPI_DOUBLE,0,world);
+
+  // define a cutoff distance (in atomic units) beyond which overlap integrals are neglected
+  // in calc_chi_eff()
+  const double emin = find_min(gauss_exp,ntypes+1);
+  const int olap_cut = 10; // overlap integrals are neglected if less than pow(10,-olap_cut)
+  dist_cutoff = sqrt(1/emin*log(pow(10.0,2.0*olap_cut)));
 
   // read chi, eta and gamma
 
@@ -1139,14 +1146,20 @@ void FixQtpieReaxFF::calc_chi_eff()
 {
   memset(&chi_eff[0],0,atom->nmax*sizeof(double));
 
-  const int KSCREEN = 10;
-  const double ANG_TO_BOHRRAD = 1.8897259886;  // 1 Ang = 1.8897259886 Bohr radius
   const auto x = (const double * const *)atom->x;
   const int ntypes = atom->ntypes;
   const int *type = atom->type;
 
   double dist,overlap,sum_n,sum_d,ea,eb,chia,chib,phia,phib,p,m;
   int i,j;
+
+  // check ghost atoms are stored up to the distance cutoff for overlap integrals
+  const double comm_cutoff = MAX(neighbor->cutneighmax,comm->cutghostuser);
+  if(comm_cutoff < dist_cutoff/ANGSTROM_TO_BOHRRADIUS) {
+    error->all(FLERR,"comm cutoff = {} Angstrom is smaller than distance cutoff = {} Angstrom "
+	       "for overlap integrals in {}. Increase comm cutoff with comm_modify",
+	       comm_cutoff, dist_cutoff/ANGSTROM_TO_BOHRRADIUS, style);
+  }
 
   // efield energy is in real units of kcal/mol, factor needed for conversion to eV
   const double qe2f = force->qe2f;
@@ -1155,17 +1168,6 @@ void FixQtpieReaxFF::calc_chi_eff()
   if (efield) {
     if (efield->varflag != FixEfield::CONSTANT)
       efield->update_efield_variables();
-  }
-
-  // use integral pre-screening for overlap calculations
-  const double emin = find_min(gauss_exp,ntypes+1);
-  const double dist_cutoff = sqrt(pow(emin,-1.0)*log(pow(M_PI/(2.0*emin),3.0)*pow(10.0,2.0*KSCREEN)));
-
-  const double comm_cutoff = MAX(neighbor->cutneighmax,comm->cutghostuser);
-  if(comm_cutoff < dist_cutoff/ANG_TO_BOHRRAD) {
-    error->all(FLERR,"comm cutoff = {} Angstrom is smaller than distance cutoff = {} Angstrom "
-	       "for overlap integral in {}. Increase comm cutoff with comm_modify",
-	       comm_cutoff, dist_cutoff/ANG_TO_BOHRRAD, style);
   }
 
   // compute chi_eff for each local atom
@@ -1184,22 +1186,16 @@ void FixQtpieReaxFF::calc_chi_eff()
     sum_d = 0.0;
 
     for (j = 0; j < nt; j++) {
-      dist = distance(x[i],x[j])*ANG_TO_BOHRRAD; // distance between atoms as a multiple of Bohr radius
+      dist = distance(x[i],x[j])*ANGSTROM_TO_BOHRRADIUS; // in atomic units
 
       if (dist < dist_cutoff) {
         eb = gauss_exp[type[j]];
         chib = chi[type[j]];
 
-        // The expressions below are in atomic units
-        // Implementation from Chen Jiahao, Theory and applications of fluctuating-charge models, 2009 (with normalization constants added)
+	// overlap integral of two normalised 1s Gaussian type orbitals 
         p = ea + eb;
         m = ea * eb / p;
         overlap = pow((4.0*m/p),0.75) * exp(-m*dist*dist);
-
-        // Implementation from T. Halgaker et al., Molecular electronic-structure theory, 2000
-//        p = ea + eb;
-//        m = ea * eb / p;
-//        Overlap = pow((M_PI / p), 1.5) * exp(-m * R * R);
 
         if (efield) {
 	  if (efield->varflag != FixEfield::ATOM) {
@@ -1226,11 +1222,11 @@ void FixQtpieReaxFF::calc_chi_eff()
 
 /* ---------------------------------------------------------------------- */
 
-double FixQtpieReaxFF::find_min(double *array, int array_length)
+double FixQtpieReaxFF::find_min(const double *array, const int array_length)
 {
-  // since types start from 1, gaussian exponents start from 1
+  // index of first gaussian orbital exponent is 1
   double smallest = array[1];
-  for (int i = 1; i < array_length; i++)
+  for (int i = 2; i < array_length; i++)
   {
     if (array[i] < smallest) 
       smallest = array[i];

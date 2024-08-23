@@ -82,15 +82,16 @@ class FixQtpieReaxFF : public Fix {
   double *Hdia_inv;
   double *b_s, *b_t;
   double *b_prc, *b_prm;
-  double *chi_eff; // array of effective electronegativities
+  double *chi_eff; 	   // array of effective electronegativities
 
   //CG storage
   double *p, *q, *r, *d;
   int imax, maxwarn;
 
   char *pertype_option;    // argument to determine how per-type info is obtained
-  char *gauss_file; 	   // input file for gaussian exponents
-  double *gauss_exp; 	   // array of gaussian exponents
+  char *gauss_file; 	   // input file for gaussian orbital exponents
+  double *gauss_exp; 	   // array of gaussian orbital exponents for each atom type
+  double dist_cutoff;	   // separation distance beyond which to neglect overlap integrals
 
   void pertype_parameters(char *);
   void init_shielding();
@@ -129,7 +130,7 @@ class FixQtpieReaxFF : public Fix {
   void vector_add(double *, double, double *, int);
 
   void calc_chi_eff();
-  double find_min(double*, int);
+  double find_min(const double*, const int);
   double distance(const double*, const double*);
 
   int matvecs_s, matvecs_t;    // Iteration count for each system

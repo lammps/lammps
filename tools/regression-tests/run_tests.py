@@ -710,7 +710,9 @@ def get_lammps_build_configuration(lmp_binary):
         - wrap subprocess with try/catch to handle exceptions
 '''
 def execute(lmp_binary, config, input_file_name, generate_ref_yaml=False):
-    cmd_str = config['mpiexec'] + " " + config['mpiexec_numproc_flag'] + " " + config['nprocs'] + " "
+    cmd_str = ""
+    if config['mpiexec']:
+        cmd_str += config['mpiexec'] + " " + config['mpiexec_numproc_flag'] + " " + config['nprocs'] + " "
     cmd_str += lmp_binary + " -in " + input_file_name + " " + config['args']
     logger.info(f"     Executing: {cmd_str}")
     p = subprocess.run(cmd_str, shell=True, text=True, capture_output=True)

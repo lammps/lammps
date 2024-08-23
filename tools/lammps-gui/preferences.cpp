@@ -171,6 +171,8 @@ void Preferences::accept()
 
     auto *spin = tabWidget->findChild<QSpinBox *>("updfreq");
     if (spin) settings->setValue("updfreq", spin->value());
+    spin = tabWidget->findChild<QSpinBox *>("updchart");
+    if (spin) settings->setValue("updchart", spin->value());
 
     if (need_relaunch) {
         QMessageBox msg(QMessageBox::Information, QString("Relaunching LAMMPS-GUI"),

@@ -11,15 +11,12 @@ on:
 
 jobs:
   build:
-    name: Full Regression Test
+    name: Build
     # restrict to official LAMMPS repository
     if: ${{ github.repository == 'lammps/lammps' }}
     runs-on: ubuntu-latest
     env:
       CCACHE_DIR: ${{ github.workspace }}/.ccache
-    strategy:
-      matrix:
-        idx: [ 0, 1, 2, 3, 4, 5, 6, 7 ]
 
     steps:
     - name: Checkout repository
@@ -79,6 +76,19 @@ jobs:
                --config-file=tools/regression-tests/config_serial.yaml \
                --examples-top-level=examples --analyze --num-workers=8
 
+  run_tests:
+    name: Full Regression Test
+    # restrict to official LAMMPS repository
+    if: ${{ github.repository == 'lammps/lammps' }}
+    runs-on: ubuntu-latest
+    env:
+      CCACHE_DIR: ${{ github.workspace }}/.ccache
+    strategy:
+      max-parallel: 2
+      matrix:
+        idx: [ 0, 1, 2, 3, 4, 5, 6, 7 ]
+
+    steps:
     - name: Run regression tests with 8 workers each processing a list of subfolders
       run: |
         source linuxenv/bin/activate

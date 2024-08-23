@@ -29,13 +29,10 @@
         abs: 1e-2
         rel: 1e-4
   skip:
-    [ in.rigid.poems3,
-      in.rigid.poems4,
-      in.rigid.poems5,
-      in.peptide,
-      in.voronoi,
-      in.voronoi.2d,
-      in.voronoi.data,
+    [
+      in.displ,
+      in.displ2,
+      in.dos,
       in.*_imd*,
       in.bucky-plus-cnt*,
     ]

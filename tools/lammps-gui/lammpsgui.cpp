@@ -904,9 +904,6 @@ void LammpsGui::quit()
         settings.setValue("mainy", height());
     }
     settings.sync();
-#if QT_CONFIG(clipboard)
-    QGuiApplication::clipboard()->setText("");
-#endif
     QCoreApplication::quit();
 }
 

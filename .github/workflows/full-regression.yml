@@ -76,6 +76,7 @@ jobs:
         source linuxenv/bin/activate
         python3 tools/regression-tests/run_tests.py \
                --lmp-bin=build/lmp \
+               --config-file=tools/regression-tests/config_serial.yaml \
                --examples-top-level=examples --analyze --num-workers=8
 
     - name: Run regression tests with 8 workers each processing a list of subfolders

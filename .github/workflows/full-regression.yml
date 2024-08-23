@@ -43,6 +43,11 @@ jobs:
       shell: bash
       run: |
         ccache -z
+        python3 -m venv linuxenv
+        source linuxenv/bin/activate
+        python3 -m pip install numpy
+        python3 -m pip install pyyaml
+        python3 -m pip install junit_xml
         cmake -S cmake -B build \
               -C cmake/presets/gcc.cmake \
               -C cmake/presets/most.cmake \
@@ -62,8 +67,32 @@ jobs:
         cmake --build build
         ccache -s
 
-    - name: Run Regression Tests
+  run_regression_tests:
+    - name: Analyze top-level examples folder, split into 8 seperate subfolder lists
       shell: bash
       run: |
-        echo 'Linux binary is here:'
-        ls -lh build/lmp
+        source linuxenv/bin/activate
+        python3 tools/regression-tests/run_tests.py \
+               --lmp-bin=build/lmp \
+               --examples-top-level=examples --analyze --num-workers=8
+
+    - name: Run regression tests with 8 workers each processing a list of subfolders
+      strategy:
+        matrix:
+          idx: [ 0, 1, 2, 3, 4, 5, 6, 7 ]
+      run: |
+        source linuxenv/bin/activate
+        python3 tools/regression-tests/run_tests.py \
+               --lmp-bin=build/lmp \
+               --config-file=tools/regression-tests/config_serial.yaml \
+               --list-input=input-list-${{ matrix.idx }}.txt \
+               --output-file=output-${{ matrix.idx }}.xml \
+               --progress-file=progress-${{ matrix.idx }}.yaml \
+               --log-file=run-${{ matrix.idx }}.log > screen-${{ matrix.idx }}.txt
+        tar -cvf full-regression-test.tar run*.log progress* output* screen*.txt
+
+    - name: Upload artifacts
+      uses: actions/upload-artifact@v4
+      with:
+        name: full-regression-test-artifact
+        path: full-regression-test.tar

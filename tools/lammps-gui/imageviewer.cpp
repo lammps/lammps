@@ -498,7 +498,9 @@ void ImageViewer::cmd_to_clipboard()
     for (int i = modidx + 1; i < maxidx; ++i)
         dumpcmd += blank + words[i];
     dumpcmd += '\n';
+#if QT_CONFIG(clipboard)
     QGuiApplication::clipboard()->setText(dumpcmd);
+#endif
 }
 
 void ImageViewer::change_group(int)

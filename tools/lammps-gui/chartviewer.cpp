@@ -82,6 +82,7 @@ ChartWindow::ChartWindow(const QString &_filename, QWidget *parent) :
     top->addWidget(menu);
     top->addSpacerItem(new QSpacerItem(1, 1, QSizePolicy::Expanding, QSizePolicy::Minimum));
     top->addWidget(dummy);
+    top->addWidget(new QLabel("Plot:"));
     top->addWidget(smooth);
     top->addWidget(new QLabel(" Smooth:"));
     top->addWidget(window);

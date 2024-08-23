@@ -40,7 +40,6 @@
 #include <QGuiApplication>
 #include <QLabel>
 #include <QLineEdit>
-#include <QLocale>
 #include <QMessageBox>
 #include <QProcess>
 #include <QProgressBar>
@@ -76,9 +75,6 @@ LammpsGui::LammpsGui(QWidget *parent, const char *filename) :
     prefdialog(nullptr), lammpsstatus(nullptr), varwindow(nullptr), wizard(nullptr),
     runner(nullptr), is_running(false), run_counter(0)
 {
-    // enforce using the plain ASCII C locale within the GUI.
-    QLocale::setDefault(QLocale("C"));
-
 #if QT_VERSION < QT_VERSION_CHECK(6, 0, 0)
     // register QList<QString> only needed for Qt5
     qRegisterMetaTypeStreamOperators<QList<QString>>("QList<QString>");
@@ -94,14 +90,6 @@ LammpsGui::LammpsGui(QWidget *parent, const char *filename) :
     // use $HOME if we get dropped to "/" like on macOS
     if (current_dir == "/") current_dir = QDir::homePath();
     inspectList.clear();
-
-#define stringify(x) myxstr(x)
-#define myxstr(x) #x
-    QCoreApplication::setOrganizationName("The LAMMPS Developers");
-    QCoreApplication::setOrganizationDomain("lammps.org");
-    QCoreApplication::setApplicationName("LAMMPS-GUI - QT" stringify(QT_VERSION_MAJOR));
-#undef stringify
-#undef myxstr
 
     // restore and initialize settings
     QSettings settings;

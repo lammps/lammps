@@ -46,6 +46,11 @@ jobs:
       shell: bash
       run: |
         ccache -z
+        python3 -m venv linuxenv
+        source linuxenv/bin/activate
+        python3 -m pip install numpy
+        python3 -m pip install pyyaml
+        python3 -m pip install junit_xml
         cmake -S cmake -B build \
               -C cmake/presets/gcc.cmake \
               -C cmake/presets/most.cmake \
@@ -69,3 +74,7 @@ jobs:
       shell: bash
       run: |
         python3 tools/regression-tests/get-quick-list.py
+        python3 tools/regression-tests/run_tests.py \
+               --lmp-bin=build/lmp \
+               --config-file=tools/regression-tests/config.yaml \
+               --list-input=folder_list.txt

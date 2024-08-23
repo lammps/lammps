@@ -258,9 +258,29 @@ if __name__ == "__main__":
     regex = make_regex(styles)
     if regex:
         inputs = get_examples_using_styles(regex, os.path.join(LAMMPS_DIR,'examples'))
+
+        # TODO: modify the regression tester tool to process the raw list of input scripts
+        folder_list = []
         print("Suggested inputs for testing:")
         for inp in inputs:
             print(inp)
+
+            # get the folder that contains the input script
+            full_path = str(inp)
+            folder = full_path.rsplit('/', 1)[0]
+            # add unique folders in the list
+            if folder not in folder_list:
+                folder_list.append(folder)
+
+        # input_list.txt is used for the regression tester tool
+        # that lists the individual subfolders and the number of input scripts therein
+        with open('folder_list.txt', 'w') as f:
+            for folder in folder_list:
+                cmd_str = f"ls {folder}/in.* | wc -l"
+                p = subprocess.run(cmd_str, shell=True, text=True, capture_output=True)
+                num_input = p.stdout.split('\n')[0]
+                f.write(folder + ' ' + num_input + '\n')
+
 
     print("Found changes to the following styles:")
     print("Commands: ", styles['command'])

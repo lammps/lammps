@@ -50,6 +50,9 @@ FFT3dKokkos<DeviceType>::FFT3dKokkos(LAMMPS *lmp, MPI_Comm comm, int nfast, int 
 #elif defined(FFT_KOKKOS_FFTW3)
   if (ngpus > 0 && execution_space == Device)
     lmp->error->all(FLERR,"Cannot use the FFTW library with Kokkos on GPUs");
+#elif defined(FFT_KOKKOS_NVPL)
+  if (ngpus > 0 && execution_space == Device)
+    lmp->error->all(FLERR,"Cannot use the NVPL FFT library with Kokkos on GPUs");
 #elif defined(FFT_KOKKOS_CUFFT)
   if (ngpus > 0 && execution_space == Host)
     lmp->error->all(FLERR,"Cannot use the cuFFT library with Kokkos on the host CPUs");
@@ -151,7 +154,7 @@ public:
 
   KOKKOS_INLINE_FUNCTION
   void operator() (const int &i) const {
-#if defined(FFT_KOKKOS_FFTW3) || defined(FFT_KOKKOS_CUFFT) || defined(FFT_KOKKOS_HIPFFT)
+#if defined(FFT_KOKKOS_FFTW3) || defined(FFT_KOKKOS_CUFFT) || defined(FFT_KOKKOS_HIPFFT) || defined(FFT_KOKKOS_NVPL)
     FFT_SCALAR* out_ptr = (FFT_SCALAR *)(d_out.data()+i);
     *(out_ptr++) *= norm;
     *(out_ptr++) *= norm;
@@ -226,7 +229,7 @@ void FFT3dKokkos<DeviceType>::fft_3d_kokkos(typename FFT_AT::t_FFT_DATA_1d d_in,
       DftiComputeForward(plan->handle_fast,d_data.data());
     else
       DftiComputeBackward(plan->handle_fast,d_data.data());
-  #elif defined(FFT_KOKKOS_FFTW3)
+  #elif defined(FFT_KOKKOS_FFTW3) || defined(FFT_KOKKOS_NVPL)
     if (flag == 1)
       FFTW_API(execute_dft)(plan->plan_fast_forward,(FFT_KOKKOS_DATA*)d_data.data(),(FFT_KOKKOS_DATA*)d_data.data());
     else
@@ -272,7 +275,7 @@ void FFT3dKokkos<DeviceType>::fft_3d_kokkos(typename FFT_AT::t_FFT_DATA_1d d_in,
       DftiComputeForward(plan->handle_mid,d_data.data());
     else
       DftiComputeBackward(plan->handle_mid,d_data.data());
-  #elif defined(FFT_KOKKOS_FFTW3)
+  #elif defined(FFT_KOKKOS_FFTW3) || defined(FFT_KOKKOS_NVPL)
     if (flag == 1)
       FFTW_API(execute_dft)(plan->plan_mid_forward,(FFT_KOKKOS_DATA*)d_data.data(),(FFT_KOKKOS_DATA*)d_data.data());
     else
@@ -316,7 +319,7 @@ void FFT3dKokkos<DeviceType>::fft_3d_kokkos(typename FFT_AT::t_FFT_DATA_1d d_in,
       DftiComputeForward(plan->handle_slow,d_data.data());
     else
       DftiComputeBackward(plan->handle_slow,d_data.data());
-  #elif defined(FFT_KOKKOS_FFTW3)
+  #elif defined(FFT_KOKKOS_FFTW3) || defined(FFT_KOKKOS_NVPL)
     if (flag == 1)
       FFTW_API(execute_dft)(plan->plan_slow_forward,(FFT_KOKKOS_DATA*)d_data.data(),(FFT_KOKKOS_DATA*)d_data.data());
     else
@@ -647,7 +650,7 @@ struct fft_plan_3d_kokkos<DeviceType>* FFT3dKokkos<DeviceType>::fft_3d_create_pl
 #endif
   DftiCommitDescriptor(plan->handle_slow);
 
-#elif defined(FFT_KOKKOS_FFTW3)
+#elif defined(FFT_KOKKOS_FFTW3) || defined(FFT_KOKKOS_NVPL)
 
 #if defined (FFT_KOKKOS_FFTW_THREADS)
   if (nthreads > 1) {
@@ -786,7 +789,7 @@ void FFT3dKokkos<DeviceType>::fft_3d_destroy_plan_kokkos(struct fft_plan_3d_kokk
   DftiFreeDescriptor(&(plan->handle_fast));
   DftiFreeDescriptor(&(plan->handle_mid));
   DftiFreeDescriptor(&(plan->handle_slow));
-#elif defined(FFT_KOKKOS_FFTW3)
+#elif defined(FFT_KOKKOS_FFTW3) || defined(FFT_KOKKOS_NVPL)
   FFTW_API(destroy_plan)(plan->plan_slow_forward);
   FFTW_API(destroy_plan)(plan->plan_slow_backward);
   FFTW_API(destroy_plan)(plan->plan_mid_forward);
@@ -857,7 +860,7 @@ void FFT3dKokkos<DeviceType>::fft_3d_1d_only_kokkos(typename FFT_AT::t_FFT_DATA_
   // fftw3 and Dfti in MKL encode the number of transforms
   // into the plan, so we cannot operate on a smaller data set
 
-#if defined(FFT_KOKKOS_MKL) || defined(FFT_KOKKOS_FFTW3)
+#if defined(FFT_KOKKOS_MKL) || defined(FFT_KOKKOS_FFTW3) || defined(FFT_KOKKOS_NVPL)
   if ((total1 > nsize) || (total2 > nsize) || (total3 > nsize))
     return;
 #endif
@@ -878,7 +881,7 @@ void FFT3dKokkos<DeviceType>::fft_3d_1d_only_kokkos(typename FFT_AT::t_FFT_DATA_
     DftiComputeBackward(plan->handle_mid,d_data.data());
     DftiComputeBackward(plan->handle_slow,d_data.data());
   }
-#elif defined(FFT_KOKKOS_FFTW3)
+#elif defined(FFT_KOKKOS_FFTW3) || defined(FFT_KOKKOS_NVPL)
   if (flag == -1) {
     FFTW_API(execute_dft)(plan->plan_fast_forward,(FFT_KOKKOS_DATA*)d_data.data(),(FFT_KOKKOS_DATA*)d_data.data());
     FFTW_API(execute_dft)(plan->plan_mid_forward,(FFT_KOKKOS_DATA*)d_data.data(),(FFT_KOKKOS_DATA*)d_data.data());

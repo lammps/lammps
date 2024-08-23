@@ -904,6 +904,9 @@ void LammpsGui::quit()
         settings.setValue("mainy", height());
     }
     settings.sync();
+#if QT_CONFIG(clipboard)
+    QGuiApplication::clipboard()->setText("");
+#endif
     QCoreApplication::quit();
 }
 
@@ -1457,8 +1460,10 @@ void LammpsGui::about()
     }
 
     to_clipboard += info.c_str();
+#if QT_CONFIG(clipboard)
     QGuiApplication::clipboard()->setText(to_clipboard);
     info += "(Note: this text has been copied to the clipboard)\n";
+#endif
 
     QMessageBox msg;
     msg.setWindowTitle("About LAMMPS-GUI");

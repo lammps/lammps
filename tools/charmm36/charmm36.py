@@ -88,8 +88,18 @@ for prm in prms:
       improper.update( {"{}-{}-{}-{}".format(match.group(1),match.group(2),match.group(3),match.group(4)) :
       "{} {}".format(match.group(5),match.group(6))} )
 
-  file.close()
+    match = re.search(r"^(\w+)\s+0.0+\s+-(\d+.\d+)\s+(\d+.\d+).*", line)
+    if( match != None ):
+      pair.update( {match.group(1) :
+      "{} {:.15} {} {:.15}".format(match.group(2),float(match.group(3))*1.7817974362806774,match.group(2),float(match.group(3))*1.7817974362806774)} )
 
+    match = re.search(r"^(\w+)\s+0.0+\s+-(\d+.\d+)\s+(\d+.\d+)\s+0.0\s+-(\d+.\d+)\s+(\d+.\d+).*", line)
+    if( match != None ):
+      pair.update( {match.group(1) :
+      "{} {:.15} {} {:.15}".format(match.group(2),float(match.group(3))*1.7817974362806774,match.group(4),float(match.group(5))*1.7817974362806774)} )
+
+
+  file.close()
 
 #44 atoms
 #11 atom types
@@ -182,7 +192,10 @@ for v in improper.values():
   print("  ", i, v)
   i+=1
 
-
-
-
 # -------- Pair Coeffs --------
+print( "\nPair Coeffs\n" )
+i=1
+for k in mass.keys():
+  print("  ", i, pair[k])
+  i+=1
+

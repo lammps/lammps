@@ -629,9 +629,10 @@ Edit
 ^^^^
 
 The *Edit* menu offers the usual editor functions like *Undo*, *Redo*,
-*Cut*, *Copy*, *Paste*.  It can also open a *Preferences* dialog
-(keyboard shortcut `Ctrl-P`) and allows deleting all stored preferences
-and settings, so they are reset to their default values.
+*Cut*, *Copy*, *Paste*, and a *Find and Replace* dialog (keyboard
+shortcut `Ctrl-F`).  It can also open a *Preferences* dialog (keyboard
+shortcut `Ctrl-P`) and allows deleting all stored preferences and
+settings, so they are reset to their default values.
 
 Run
 ^^^
@@ -715,6 +716,44 @@ LAMMPS tutorials authored and maintained by Simon Gravelle at
 https://lammpstutorials.github.io/ in a web browser window.
 
 -----
+
+Find and Replace
+----------------
+
+.. versionadded:: 1.6
+
+The *Find and Replace* dialog allows searching for and replacing
+text in the *Editor* window.
+
+.. image:: JPG/lammps-gui-find.png
+   :align: center
+   :scale: 50%
+
+The dialog can be opened either from the *Edit* menu or with the
+keyboard shortcut `Ctrl-F`. You can enter the text to search for.
+Through three check-boxes the search behavior can be adjusted:
+
+- If checked, "Match case" does a case sensitive search.
+
+- If checked, "Wrap around" starts searching from the start of the
+  document, if there is no match found from the current cursor position
+  until the end of the document.
+
+- If checked, the "Whole word" setting only finds full word matches
+  (white space and special characters are word boundaries).
+
+Clicking on the *Next* button will search for the next occurrence of the
+search text and select / highlight it. Clicking on the *Replace* button
+will replace an already highlighted search text and find the next one.
+If no text is selected, or the selected text does not match the
+selection string, then the first click on the *Replace* button will
+only search and highlight the next occurrence of the search string.
+Clicking on the *Replace All* button will replace all occurrences from
+the cursor position to the end of the file; if the *Wrap around* box is
+checked, then it will replace **all** occurrences in the **entire**
+document.  Clicking on the *Done* button will dismiss the dialog.
+
+------
 
 Preferences
 -----------

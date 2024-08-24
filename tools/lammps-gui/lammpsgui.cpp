@@ -90,6 +90,7 @@ LammpsGui::LammpsGui(QWidget *parent, const char *filename) :
     // use $HOME if we get dropped to "/" like on macOS
     if (current_dir == "/") current_dir = QDir::homePath();
     inspectList.clear();
+    setAutoFillBackground(true);
 
     // restore and initialize settings
     QSettings settings;

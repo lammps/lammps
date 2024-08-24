@@ -218,7 +218,10 @@ CodeEditor::CodeEditor(QWidget *parent) :
         help_index.close();
     }
 
+    setBackgroundRole(QPalette::Light);
     lineNumberArea = new LineNumberArea(this);
+    lineNumberArea->setBackgroundRole(QPalette::Dark);
+    lineNumberArea->setAutoFillBackground(true);
     connect(this, &CodeEditor::blockCountChanged, this, &CodeEditor::updateLineNumberAreaWidth);
     connect(this, &CodeEditor::updateRequest, this, &CodeEditor::updateLineNumberArea);
     updateLineNumberAreaWidth(0);

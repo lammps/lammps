@@ -273,7 +273,6 @@ int AtomVecKokkos::pack_comm_direct(const int &n, const DAT::tdual_int_2d &list,
                                       const DAT::tdual_xfloat_2d &buf,
                                       const DAT::tdual_int_1d &k_self_flags)
 {
-  error->all(FLERR, "KOKKOS: pack_comm_direct called\n");
   if (lmp->kokkos->forward_comm_on_host) {
     atomKK->sync(Host,X_MASK);
     if (domain->triclinic) {

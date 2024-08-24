@@ -110,7 +110,6 @@ void CommBrickDirectKokkos::setup()
 
 void CommBrickDirectKokkos::forward_comm(int dummy)
 {
-  error->all(FLERR, "cbdk: forward_comm\n");
   int forward_comm_classic = 0;
   int forward_comm_on_host = 0;
 
@@ -184,11 +183,13 @@ void CommBrickDirectKokkos::forward_comm_device()
   // send all owned atoms to receiving procs
   // except for self copies
 
+  offset = 0;
   for (int iswap = 0; iswap < ndirect; iswap++) {
     if (proc_direct[iswap] == me) continue;
     if (sendnum_direct[iswap]) {
       int n = sendnum_direct[iswap]*atomKK->avecKK->size_forward;
       MPI_Send(k_buf_send_direct.view<DeviceType>().data() + offset,n,MPI_DOUBLE,proc_direct[iswap],sendtag[iswap],world);
+      offset += n; // TODO: check
     }
   }
 
@@ -238,6 +239,11 @@ void CommBrickDirectKokkos::borders()
 
   if (k_sendatoms_list.d_view.extent(1) < maxsend)
     MemKK::realloc_kokkos(k_sendatoms_list,"comm_direct:sendatoms_list",maxlist,maxsend);
+
+  if(k_sendnum_scan_direct.extent(0) < nswap) {
+    MemKK::realloc_kokkos(k_sendnum_scan_direct,"comm_direct:sendnum_scan",nswap);
+    MemKK::realloc_kokkos(k_firstrecv_direct,"comm_direct:firstrecv",nswap);
+  }
 
   for (int ilist = 0; ilist < maxlist; ilist++) {
     const int nsend = sendnum_list[ilist];

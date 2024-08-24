@@ -848,7 +848,7 @@ available (On macOS use the Command key instead of Ctrl/Control).
 
 .. list-table::
    :header-rows: 1
-   :widths: auto
+   :widths: 16 19 13 16 13 22
 
    * - Shortcut
      - Function
@@ -890,32 +890,32 @@ available (On macOS use the Command key instead of Ctrl/Control).
      - Quit Application
      - Ctrl+A
      - Select All
-     - Ctrl+P
-     - Preferences
+     - Ctrl+F
+     - Find and Replace
    * - Ctrl+W
      - Close Window
-     - Ctrl+Shift+H
-     - Quick Help
-     - Ctrl+Shift+G
-     - LAMMPS-GUI Howto
-   * - Ctrl+Shift+A
-     - About LAMMPS
-     - Ctrl+?
-     - Context Help
-     - Ctrl+Shift+W
-     - Show Variables
-   * - Ctrl+Shift+M
-     - LAMMPS Manual
      - TAB
      - Reformat line
      - Shift+TAB
      - Show Completions
-   * - Ctrl+Shift+T
-     - LAMMPS Tutorial
-     - Ctrl+Shift+Enter
+   * - Ctrl+Shift+Enter
      - Run File
-     -
-     -
+     - Ctrl+Shift+W
+     - Show Variables
+     - Ctrl+P
+     - Preferences
+   * - Ctrl+Shift+A
+     - About LAMMPS
+     - Ctrl+Shift+H
+     - Quick Help
+     - Ctrl+Shift+G
+     - LAMMPS-GUI Howto
+   * - Ctrl+Shift+M
+     - LAMMPS Manual
+     - Ctrl+?
+     - Context Help
+     - Ctrl+Shift+T
+     - LAMMPS Tutorial
 
 Further editing keybindings `are documented with the Qt documentation
 <https://doc.qt.io/qt-5/qplaintextedit.html#editing-key-bindings>`_.  In

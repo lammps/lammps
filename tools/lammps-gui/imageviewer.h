@@ -34,7 +34,8 @@ class ImageViewer : public QDialog {
     Q_OBJECT
 
 public:
-    explicit ImageViewer(const QString &fileName, LammpsWrapper *_lammps, QWidget *parent = nullptr);
+    explicit ImageViewer(const QString &fileName, LammpsWrapper *_lammps,
+                         QWidget *parent = nullptr);
 
 private slots:
     void saveAs();

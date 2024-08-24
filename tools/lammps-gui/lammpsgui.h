@@ -115,6 +115,7 @@ private slots:
     void paste();
     void undo();
     void redo();
+    void findandreplace();
     void run_buffer() { do_run(true); }
     void run_file() { do_run(false); }
 

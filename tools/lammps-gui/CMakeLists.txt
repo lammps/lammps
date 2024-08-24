@@ -130,6 +130,8 @@ set(PROJECT_SOURCES
   chartviewer.h
   codeeditor.cpp
   codeeditor.h
+  findandreplace.cpp
+  findandreplace.h
   helpers.cpp
   highlighter.cpp
   highlighter.h

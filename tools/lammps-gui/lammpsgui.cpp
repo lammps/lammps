@@ -15,6 +15,7 @@
 
 #include "chartviewer.h"
 #include "fileviewer.h"
+#include "findandreplace.h"
 #include "helpers.h"
 #include "highlighter.h"
 #include "imageviewer.h"
@@ -206,6 +207,7 @@ LammpsGui::LammpsGui(QWidget *parent, const char *filename) :
     connect(ui->actionPaste, &QAction::triggered, this, &LammpsGui::paste);
     connect(ui->actionUndo, &QAction::triggered, this, &LammpsGui::undo);
     connect(ui->actionRedo, &QAction::triggered, this, &LammpsGui::redo);
+    connect(ui->actionSearchAndReplace, &QAction::triggered, this, &LammpsGui::findandreplace);
     connect(ui->actionRun_Buffer, &QAction::triggered, this, &LammpsGui::run_buffer);
     connect(ui->actionRun_File, &QAction::triggered, this, &LammpsGui::run_file);
     connect(ui->actionStop_LAMMPS, &QAction::triggered, this, &LammpsGui::stop_run);
@@ -1861,6 +1863,14 @@ void LammpsGui::edit_variables()
         lammps.close();
         lammpsstatus->hide();
     }
+}
+
+void LammpsGui::findandreplace()
+{
+    FindAndReplace find(ui->textEdit, this);
+    find.setFont(font());
+    find.setObjectName("find");
+    find.exec();
 }
 
 void LammpsGui::preferences()

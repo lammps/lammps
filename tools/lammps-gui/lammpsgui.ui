@@ -62,6 +62,8 @@
     <addaction name="actionCut"/>
     <addaction name="actionPaste"/>
     <addaction name="separator"/>
+    <addaction name="actionSearchAndReplace"/>
+    <addaction name="separator"/>
     <addaction name="actionPreferences"/>
     <addaction name="actionDefaults"/>
    </widget>
@@ -312,12 +314,23 @@
     <string>Ctrl+Shift+H</string>
    </property>
   </action>
+  <action name="actionSearchAndReplace">
+   <property name="icon">
+    <iconset theme=":/icons/search.png"/>
+   </property>
+   <property name="text">
+    <string>&amp;Find and Replace...</string>
+   </property>
+   <property name="shortcut">
+    <string>Ctrl+F</string>
+   </property>
+  </action>
   <action name="actionPreferences">
    <property name="icon">
     <iconset theme=":/icons/preferences-desktop.png"/>
    </property>
    <property name="text">
-    <string>Pre&amp;ferences...</string>
+    <string>P&amp;references...</string>
    </property>
    <property name="shortcut">
     <string>Ctrl+P</string>

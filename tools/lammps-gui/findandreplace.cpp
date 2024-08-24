@@ -41,10 +41,10 @@ FindAndReplace::FindAndReplace(CodeEditor *_editor, QWidget *parent) :
     withcase      = new QCheckBox("Match case");
     wrap          = new QCheckBox("Wrap around");
     whole         = new QCheckBox("Whole word");
-    auto *next    = new QPushButton("Next");
-    auto *replone = new QPushButton("Replace");
-    auto *replall = new QPushButton("Replace All");
-    auto *done    = new QPushButton("Done");
+    auto *next    = new QPushButton("&Next");
+    auto *replone = new QPushButton("&Replace");
+    auto *replall = new QPushButton("Replace &All");
+    auto *done    = new QPushButton("&Done");
 
     layout->addWidget(new QLabel("Find:"), 0, 0, Qt::AlignRight);
     layout->addWidget(search, 0, 1, 1, 2, Qt::AlignLeft);

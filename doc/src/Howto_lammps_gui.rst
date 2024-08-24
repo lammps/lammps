@@ -391,7 +391,7 @@ below.
 
 .. image:: JPG/lammps-gui-variable-info.png
    :align: center
-   :scale: 75%
+   :scale: 50%
 
 Like for the *Output* and *Charts* windows, its content is continuously
 updated during a run.  It will show "(none)" if there are no variables
@@ -668,7 +668,7 @@ set *before* a run is started.
 
 .. image:: JPG/lammps-gui-variables.png
    :align: center
-   :scale: 75%
+   :scale: 50%
 
 The *Set Variables* dialog will be pre-populated with entries that
 are set as index variables in the input and any variables that are
@@ -722,22 +722,23 @@ Find and Replace
 
 .. versionadded:: 1.6
 
-The *Find and Replace* dialog allows searching for and replacing
-text in the *Editor* window.
-
 .. image:: JPG/lammps-gui-find.png
    :align: center
-   :scale: 50%
+   :scale: 33%
+
+The *Find and Replace* dialog allows searching for and replacing
+text in the *Editor* window.
 
 The dialog can be opened either from the *Edit* menu or with the
 keyboard shortcut `Ctrl-F`. You can enter the text to search for.
 Through three check-boxes the search behavior can be adjusted:
 
-- If checked, "Match case" does a case sensitive search.
+- If checked, "Match case" does a case sensitive search; otherwise
+  the search is case insensitive.
 
 - If checked, "Wrap around" starts searching from the start of the
   document, if there is no match found from the current cursor position
-  until the end of the document.
+  until the end of the document; otherwise the search will stop.
 
 - If checked, the "Whole word" setting only finds full word matches
   (white space and special characters are word boundaries).

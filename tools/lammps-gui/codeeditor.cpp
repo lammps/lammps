@@ -672,7 +672,7 @@ void CodeEditor::lineNumberAreaPaintEvent(QPaintEvent *event)
         if (block.isVisible() && bottom >= event->rect().top()) {
             QString number = QString::number(blockNumber + 1) + " ";
             if ((highlight == NO_HIGHLIGHT) || (blockNumber != std::abs(highlight))) {
-                painter.setPen(Qt::black);
+                painter.setPen(palette().color(QPalette::WindowText));
             } else {
                 number = QString(">") + QString::number(blockNumber + 1) + "<";
                 if (highlight < 0)

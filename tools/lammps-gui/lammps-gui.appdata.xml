@@ -56,6 +56,9 @@
   <releases>
     <release version="1.6.9" timestamp="1724308872">
       <description>
+        Added search and replace functionality.
+        Converged command line argument parsing using Qt facilities
+        Dark mode compatible
       </description>
     </release>
     <release version="1.6.8" timestamp="1723581926">

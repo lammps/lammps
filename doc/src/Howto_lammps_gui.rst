@@ -437,16 +437,21 @@ instance when using reduced (= 'lj') :doc:`units <units>`, then
 LAMMPS-GUI will check the current pair style and if it is a
 Lennard-Jones type potential, it will extract the *sigma* parameter
 for each atom type and assign atom diameters from those numbers.
+For cases where atom diameters are not auto-detected, the *Atom size* field
+can be edited and a suitable value set manually. The default value
+is inferred from the x-direction lattice spacing.
 
-Otherwise the default sequence of colors of the :doc:`dump image
-<dump_image>` command is assigned to the different atom types and the
-diameters are all the same.
+If elements cannot be detected the default sequence of colors of the
+:doc:`dump image <dump_image>` command is assigned to the different atom
+types.
 
-.. figure:: JPG/lammps-gui-image.png
-   :align: center
-   :scale: 50%
+.. |gui-image1| image:: JPG/lammps-gui-image.png
+   :width: 48%
 
-   Visualization of LAMMPS "peptide" example
+.. |gui-image2| image:: JPG/lammps-gui-funnel.png
+   :width: 48%
+
+|gui-image1|  |gui-image2|
 
 The default image size, some default image quality settings, the view
 style and some colors can be changed in the *Preferences* dialog

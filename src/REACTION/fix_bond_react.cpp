@@ -58,7 +58,7 @@ using namespace MathConst;
 
 static const char cite_fix_bond_react[] =
     "fix bond/react: reacter.org doi:10.1016/j.polymer.2017.09.038, "
-    "doi:10.1021/acs.macromol.0c02012\n\n"
+    "doi:10.1021/acs.macromol.0c02012, doi:10.1016/j.cpc.2024.109287\n\n"
     "@Article{Gissinger17,\n"
     " author = {J. R. Gissinger and B. D. Jensen and K. E. Wise},\n"
     " title = {Modeling Chemical Reactions in Classical Molecular Dynamics Simulations},\n"
@@ -75,6 +75,14 @@ static const char cite_fix_bond_react[] =
     " volume =  53,\n"
     " number =  22,\n"
     " pages =   {9953--9961}\n"
+    "}\n\n"
+    "@Article{Gissinger24,\n"
+    " author = {J. R. Gissinger, B. D. Jensen, K. E. Wise},\n"
+    " title = {Molecular Modeling of Reactive Systems with REACTER},\n"
+    " journal = {Computer Physics Communications},\n"
+    " year =    2024,\n"
+    " volume =  304,\n"
+    " number =  109287\n"
     "}\n\n";
 
 static constexpr double BIG = 1.0e20;

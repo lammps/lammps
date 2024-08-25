@@ -170,7 +170,9 @@ ImageViewer::ImageViewer(const QString &fileName, LammpsWrapper *_lammps, QWidge
     auto *valid = new QDoubleValidator(1.0e-10, 1.0e10, 10, asize);
     asize->setValidator(valid);
     asize->setObjectName("atomSize");
+    asize->setToolTip("Set Atom size");
     asize->setEnabled(false);
+    asize->hide();
     settings.beginGroup("snapshot");
     auto *xval = new QSpinBox;
     xval->setRange(100, 10000);
@@ -260,6 +262,9 @@ ImageViewer::ImageViewer(const QString &fileName, LammpsWrapper *_lammps, QWidge
     menuLayout->addWidget(renderstatus);
     menuLayout->addWidget(new QLabel(" Atom Size: "));
     menuLayout->addWidget(asize);
+    // hide item initially
+    menuLayout->itemAt(2)->widget()->setObjectName("AtomLabel");
+    menuLayout->itemAt(2)->widget()->hide();
     menuLayout->addWidget(new QLabel(" Width: "));
     menuLayout->addWidget(xval);
     menuLayout->addWidget(new QLabel(" Height: "));
@@ -579,15 +584,31 @@ void ImageViewer::createImage()
         auto *button = findChild<QPushButton *>("vdw");
         if (button) button->setEnabled(true);
         auto *edit = findChild<QLineEdit *>("atomSize");
-        if (edit) edit->setEnabled(false);
+        if (edit) {
+            edit->setEnabled(false);
+            edit->hide();
+        }
+        auto *label = findChild<QLabel *>("AtomLabel");
+        if (label) {
+            label->setEnabled(false);
+            label->hide();
+        }
+
     } else {
         adiams.clear();
         auto *button = findChild<QPushButton *>("vdw");
         if (button) button->setEnabled(false);
+
+        auto *label = findChild<QLabel *>("AtomLabel");
+        if (label) {
+            label->setEnabled(true);
+            label->show();
+        }
         auto *edit = findChild<QLineEdit *>("atomSize");
         if (edit) {
             if (!edit->isEnabled()) {
                 edit->setEnabled(true);
+                edit->show();
                 // initialize with lattice spacing
                 auto *xlattice = (const double *)lammps->extract_global("xlattice");
                 if (xlattice) atomSize = *xlattice;

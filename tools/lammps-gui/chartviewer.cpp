@@ -442,7 +442,7 @@ void ChartViewer::add_data(int step, double data)
             const double num   = count - first;
             const double avg   = ysum / num;
             const double avgsq = ysumsq / num;
-            if (fabs(data - avg) > (4.0 * sqrt(avgsq - (avg * avg)))) return;
+            if (fabs(data - avg) > (5.0 * sqrt(avgsq - (avg * avg)))) return;
         }
         series->append(step, data);
 

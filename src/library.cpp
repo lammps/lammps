@@ -35,6 +35,7 @@
 #include "group.h"
 #include "info.h"
 #include "input.h"
+#include "lattice.h"
 #include "lmppython.h"
 #include "memory.h"
 #include "modify.h"
@@ -1414,6 +1415,9 @@ int lammps_extract_global_datatype(void * /*handle*/, const char *name)
   if (strcmp(name,"xy") == 0) return LAMMPS_DOUBLE;
   if (strcmp(name,"xz") == 0) return LAMMPS_DOUBLE;
   if (strcmp(name,"yz") == 0) return LAMMPS_DOUBLE;
+  if (strcmp(name,"xlattice") == 0) return LAMMPS_DOUBLE;
+  if (strcmp(name,"ylattice") == 0) return LAMMPS_DOUBLE;
+  if (strcmp(name,"zlattice") == 0) return LAMMPS_DOUBLE;
   if (strcmp(name,"procgrid") == 0) return LAMMPS_INT;
 
   if (strcmp(name,"natoms") == 0) return LAMMPS_BIGINT;
@@ -1649,6 +1653,18 @@ report the "native" data type.  The following tables are provided:
      - double
      - 1
      - triclinic tilt factor; see :doc:`Howto_triclinic`.
+   * - xlattice
+     - double
+     - 1
+     - lattice spacing in x-direction; see :doc:`lattice <lattice>`.
+   * - ylattice
+     - double
+     - 1
+     - lattice spacing in y-direction; see :doc:`lattice <lattice>`.
+   * - zlattice
+     - double
+     - 1
+     - lattice spacing in z-direction; see :doc:`lattice <lattice>`.
    * - procgrid
      - int
      - 3
@@ -1917,6 +1933,9 @@ void *lammps_extract_global(void *handle, const char *name)
   if (strcmp(name,"xy") == 0) return (void *) &lmp->domain->xy;
   if (strcmp(name,"xz") == 0) return (void *) &lmp->domain->xz;
   if (strcmp(name,"yz") == 0) return (void *) &lmp->domain->yz;
+  if (strcmp(name,"xlattice") == 0) return (void *) &lmp->domain->lattice->xlattice;
+  if (strcmp(name,"ylattice") == 0) return (void *) &lmp->domain->lattice->ylattice;
+  if (strcmp(name,"zlattice") == 0) return (void *) &lmp->domain->lattice->zlattice;
   if (((lmp->comm->layout == Comm::LAYOUT_UNIFORM) ||
        (lmp->comm->layout == Comm::LAYOUT_NONUNIFORM)) && (strcmp(name,"procgrid") == 0))
     return (void *) &lmp->comm->procgrid;

@@ -2962,6 +2962,8 @@ void FixBondReact::update_everything()
   int *type = atom->type;
   int **nspecial = atom->nspecial;
   tagint **special = atom->special;
+  tagint *tag = atom->tag;
+  AtomVec *avec = atom->avec;
 
   int **bond_type = atom->bond_type;
   tagint **bond_atom = atom->bond_atom;
@@ -2974,12 +2976,15 @@ void FixBondReact::update_everything()
   memory->create(mark,nmark,"bond/react:mark");
   for (int i = 0; i < nmark; i++) mark[i] = 0;
 
+  // used when creating atoms
+  addatomtag = 0;
+  for (int i = 0; i < nlocal; i++) addatomtag = MAX(addatomtag,tag[i]);
+  MPI_Allreduce(MPI_IN_PLACE,&addatomtag,1,MPI_LMP_TAGINT,MPI_MAX,world);
+  addatoms.clear();
+
   // flag used to delete special interactions
   int *delflag;
   memory->create(delflag,atom->maxspecial,"bond/react:delflag");
-
-  tagint *tag = atom->tag;
-  AtomVec *avec = atom->avec;
 
   // used when creating atoms
   int inserted_atoms_flag = 0;
@@ -3029,6 +3034,7 @@ void FixBondReact::update_everything()
       for (int i = 0; i < local_num_mega; i++) {
         rxnID = (int) local_mega_glove[0][i];
         // reactions already shuffled from dedup procedure, so can skip first N
+        // wait, this check needs to be after add atoms, because they can also be 'skipped' due to overlap
         if (iskip[rxnID]++ < nlocalskips[rxnID]) continue;
 
         // this will be overwritten if reaction skipped by create_atoms below
@@ -3040,7 +3046,7 @@ void FixBondReact::update_everything()
         if (create_atoms_flag[rxnID] == 1) {
           onemol = atom->molecules[unreacted_mol[rxnID]];
           twomol = atom->molecules[reacted_mol[rxnID]];
-          if (insert_atoms(update_mega_glove,update_num_mega)) {
+          if (insert_atoms_setup(update_mega_glove,update_num_mega)) {
             inserted_atoms_flag = 1;
           } else { // create aborted
             reaction_count_total[rxnID]--;
@@ -3068,7 +3074,7 @@ void FixBondReact::update_everything()
         if (create_atoms_flag[rxnID] == 1) {
           onemol = atom->molecules[unreacted_mol[rxnID]];
           twomol = atom->molecules[reacted_mol[rxnID]];
-          if (insert_atoms(update_mega_glove,update_num_mega)) {
+          if (insert_atoms_setup(update_mega_glove,update_num_mega)) {
             inserted_atoms_flag = 1;
           } else { // create aborted
             reaction_count_total[rxnID]--;
@@ -3084,13 +3090,31 @@ void FixBondReact::update_everything()
 
     if (update_num_mega == 0) continue;
 
-    // if inserted atoms and global map exists, reset map now instead
-    //   of waiting for comm since other pre-exchange fixes may use it
-    // invoke map_init() b/c atom count has grown
-    // do this once after all atom insertions
-    if (inserted_atoms_flag == 1 && atom->map_style != Atom::MAP_NONE) {
-      atom->map_init();
-      atom->map_set();
+    // insert all atoms for all rxns here
+    if (inserted_atoms_flag == 1) {
+      // clear to-be-overwritten ghost info
+      atom->nghost = 0;
+      atom->avec->clear_bonus();
+
+      for (auto & myaddatom : addatoms) {
+        atom->avec->create_atom(myaddatom.type,myaddatom.x);
+        int n = atom->nlocal - 1;
+        atom->tag[n] = myaddatom.tag;
+        atom->molecule[n] = myaddatom.molecule;
+        atom->mask[n] = myaddatom.mask;
+        atom->image[n] = myaddatom.image;
+        atom->v[n][0] = myaddatom.v[0];
+        atom->v[n][1] = myaddatom.v[1];
+        atom->v[n][2] = myaddatom.v[2];
+        if (atom->rmass) atom->rmass[n]= myaddatom.rmass;
+        modify->create_attribute(n);
+      }
+
+      // reset atom->map
+      if (atom->map_style != Atom::MAP_NONE) {
+        atom->map_init();
+        atom->map_set();
+      }
     }
 
     // mark to-delete atoms
@@ -3644,10 +3668,11 @@ void FixBondReact::update_everything()
 }
 
 /* ----------------------------------------------------------------------
-insert created atoms
+setup for inserting created atoms
+atoms for all rxns are actually created all at once in update_everything
 ------------------------------------------------------------------------- */
 
-int FixBondReact::insert_atoms(tagint **my_update_mega_glove, int iupdate)
+int FixBondReact::insert_atoms_setup(tagint **my_update_mega_glove, int iupdate)
 {
   // inserting atoms based off fix_deposit->pre_exchange
   int flag;
@@ -3675,14 +3700,9 @@ int FixBondReact::insert_atoms(tagint **my_update_mega_glove, int iupdate)
   tagint *molecule = atom->molecule;
   int nlocal = atom->nlocal;
 
-  tagint maxtag_all,maxmol_all;
-  tagint max = 0;
-  for (int i = 0; i < nlocal; i++) max = MAX(max,tag[i]);
-  MPI_Allreduce(&max,&maxtag_all,1,MPI_LMP_TAGINT,MPI_MAX,world);
-
-  max = 0;
-  for (int i = 0; i < nlocal; i++) max = MAX(max,molecule[i]);
-  MPI_Allreduce(&max,&maxmol_all,1,MPI_LMP_TAGINT,MPI_MAX,world);
+  tagint maxmol_all;
+  for (int i = 0; i < nlocal; i++) maxmol_all = MAX(maxmol_all,molecule[i]);
+  MPI_Allreduce(MPI_IN_PLACE,&maxmol_all,1,MPI_LMP_TAGINT,MPI_MAX,world);
 
   int dimension = domain->dimension;
 
@@ -3776,6 +3796,7 @@ int FixBondReact::insert_atoms(tagint **my_update_mega_glove, int iupdate)
             break;
           }
         }
+        // !! need to add check against soon-to-added atoms
         if (abortflag) break;
       }
     }
@@ -3786,12 +3807,6 @@ int FixBondReact::insert_atoms(tagint **my_update_mega_glove, int iupdate)
       return 0;
     }
   }
-
-  // clear ghost count and any ghost bonus data internal to AtomVec
-  // same logic as beginning of Comm::exchange()
-  // do it now b/c inserting atoms will overwrite ghost atoms
-  atom->nghost = 0;
-  atom->avec->clear_bonus();
 
   // check if new atoms are in my sub-box or above it if I am highest proc
   // if so, add atom to my list via create_atom()
@@ -3835,40 +3850,46 @@ int FixBondReact::insert_atoms(tagint **my_update_mega_glove, int iupdate)
       }
 
       int root = 0;
+      addatomtag++;
       if (flag) {
+        struct AddAtom myaddatom;
         root = comm->me;
 
-        atom->avec->create_atom(twomol->type[m],coords[m]);
-        int n = atom->nlocal - 1;
-        atom->tag[n] = maxtag_all + add_count;
+        myaddatom.type = twomol->type[m];
+        myaddatom.x[0] = coords[m][0];
+        myaddatom.x[1] = coords[m][1];
+        myaddatom.x[2] = coords[m][2];
+        myaddatom.tag = addatomtag;
 
         // locally update mega_glove
-        my_update_mega_glove[preID][iupdate] = atom->tag[n];
+        my_update_mega_glove[preID][iupdate] = myaddatom.tag;
 
+        // could do better job choosing mol ID for added atoms
         if (atom->molecule_flag) {
           if (twomol->moleculeflag) {
-            atom->molecule[n] = maxmol_all + twomol->molecule[m];
+            myaddatom.molecule = maxmol_all + twomol->molecule[m];
           } else {
-            atom->molecule[n] = maxmol_all + 1;
+            myaddatom.molecule = maxmol_all + 1;
           }
         }
 
-        atom->mask[n] = 1 | groupbit;
-        atom->image[n] = imageflags[m];
+        myaddatom.mask = 1 | groupbit;
+        myaddatom.image = imageflags[m];
 
         // guess a somewhat reasonable initial velocity based on reaction site
         // further control is possible using bond_react_MASTER_group
         // compute |velocity| corresponding to a given temperature t, using specific atom's mass
-        double mymass = atom->rmass ? atom->rmass[n] : atom->mass[twomol->type[m]];
-        double vtnorm = sqrt(t / (force->mvv2e / (dimension * force->boltz)) / mymass);
-        v[n][0] = random[rxnID]->uniform();
-        v[n][1] = random[rxnID]->uniform();
-        v[n][2] = random[rxnID]->uniform();
-        double vnorm = sqrt(v[n][0]*v[n][0] + v[n][1]*v[n][1] + v[n][2]*v[n][2]);
-        v[n][0] = v[n][0]/vnorm*vtnorm;
-        v[n][1] = v[n][1]/vnorm*vtnorm;
-        v[n][2] = v[n][2]/vnorm*vtnorm;
-        modify->create_attribute(n);
+        myaddatom.rmass = atom->rmass ? twomol->rmass[m] : atom->mass[twomol->type[m]];
+        double vtnorm = sqrt(t / (force->mvv2e / (dimension * force->boltz)) / myaddatom.rmass);
+        double myv[3];
+        myv[0] = random[rxnID]->uniform();
+        myv[1] = random[rxnID]->uniform();
+        myv[2] = random[rxnID]->uniform();
+        double vnorm = sqrt(myv[0]*myv[0] + myv[1]*myv[1] + myv[2]*myv[2]);
+        myaddatom.v[0] = myv[0]/vnorm*vtnorm;
+        myaddatom.v[1] = myv[1]/vnorm*vtnorm;
+        myaddatom.v[2] = myv[2]/vnorm*vtnorm;
+        addatoms.push_back(myaddatom);
       }
       // globally update mega_glove and equivalences
       MPI_Allreduce(MPI_IN_PLACE,&root,1,MPI_INT,MPI_SUM,world);
@@ -3881,12 +3902,11 @@ int FixBondReact::insert_atoms(tagint **my_update_mega_glove, int iupdate)
   }
 
   // reset global natoms here
-  // reset atom map elsewhere, after all calls to 'insert_atoms'
+  // reset atom map elsewhere, after all calls to 'insert_atoms_setup'
   atom->natoms += add_count;
   if (atom->natoms < 0)
     error->all(FLERR,"Too many total atoms");
-  maxtag_all += add_count;
-  if (maxtag_all >= MAXTAGINT)
+  if (addatomtag >= MAXTAGINT)
     error->all(FLERR,"New atom IDs exceed maximum allowed ID");
   // atom creation successful
   memory->destroy(coords);

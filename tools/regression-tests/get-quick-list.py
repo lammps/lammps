@@ -264,7 +264,7 @@ if __name__ == "__main__":
         with open('input_list.txt', 'w') as f:
             for inp in inputs:
                 print(inp)
-                f.write(inp + '\n')
+                f.write(str(inp) + '\n')
 
     print("Found changes to the following styles:")
     print("Commands: ", styles['command'])

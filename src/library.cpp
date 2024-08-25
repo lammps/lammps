@@ -1514,9 +1514,9 @@ The function :cpp:func:`lammps_extract_global_datatype` will directly
 report the "native" data type.  The following tables are provided:
 
 * :ref:`Timestep settings <extract_timestep_settings>`
-* :ref:`Git revision and version settings <extract_git_settings>`
 * :ref:`Simulation box settings <extract_box_settings>`
 * :ref:`System property settings <extract_system_settings>`
+* :ref:`Git revision and version settings <extract_git_settings>`
 * :ref:`Unit settings <extract_unit_settings>`
 
 .. _extract_timestep_settings:
@@ -1555,35 +1555,6 @@ report the "native" data type.  The following tables are provided:
      - double
      - :math:`N_{respa}`
      - length of the time steps with r-RESPA. See :doc:`run_style`.
-
-.. _extract_git_settings:
-
-**Git revision and version settings**
-
-.. list-table::
-   :header-rows: 1
-   :widths: 16 14 10 60
-
-   * - Name
-     - Type
-     - Length
-     - Description
-   * - git_commit
-     - const char \*
-     - 1
-     - Git commit hash for the LAMMPS version.
-   * - git_branch
-     - const char \*
-     - 1
-     - Git branch for the LAMMPS version.
-   * - git_descriptor
-     - const char \*
-     - 1
-     - Combined descriptor for the git revision
-   * - lammps_version
-     - const char \*
-     - 1
-     - LAMMPS version string.
 
 .. _extract_box_settings:
 
@@ -1656,15 +1627,15 @@ report the "native" data type.  The following tables are provided:
    * - xlattice
      - double
      - 1
-     - lattice spacing in x-direction; see :doc:`lattice <lattice>`.
+     - lattice spacing in x-direction; see :doc:`lattice command <lattice>`.
    * - ylattice
      - double
      - 1
-     - lattice spacing in y-direction; see :doc:`lattice <lattice>`.
+     - lattice spacing in y-direction; see :doc:`lattice command <lattice>`.
    * - zlattice
      - double
      - 1
-     - lattice spacing in z-direction; see :doc:`lattice <lattice>`.
+     - lattice spacing in z-direction; see :doc:`lattice command <lattice>`.
    * - procgrid
      - int
      - 3
@@ -1778,6 +1749,35 @@ report the "native" data type.  The following tables are provided:
      - char \*
      - 1
      - string with the current KSpace style.
+
+.. _extract_git_settings:
+
+**Git revision and version settings**
+
+.. list-table::
+   :header-rows: 1
+   :widths: 16 14 10 60
+
+   * - Name
+     - Type
+     - Length
+     - Description
+   * - git_commit
+     - const char \*
+     - 1
+     - Git commit hash for the LAMMPS version.
+   * - git_branch
+     - const char \*
+     - 1
+     - Git branch for the LAMMPS version.
+   * - git_descriptor
+     - const char \*
+     - 1
+     - Combined descriptor for the git revision
+   * - lammps_version
+     - const char \*
+     - 1
+     - LAMMPS version string.
 
 .. _extract_unit_settings:
 

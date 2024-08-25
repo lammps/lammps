@@ -12,6 +12,9 @@ process.  For clarity, most of the following illustrations show the 2d
 simulation case. The underlying algorithms in those cases, however,
 apply to both 2d and 3d cases equally well.
 
+..  youtube:: fhNhZ6ilTOU
+  :align: center
+
 .. note::
 
    The text and most of the figures in this chapter were adapted

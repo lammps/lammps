@@ -319,7 +319,7 @@ def iterate(lmp_binary, input_folder, input_list, config, results, progress_file
 
         # if there is no ERROR in the output, but there is no Total wall time printed out
         if "Total wall time" not in output:
-            logger.info(f"    ERROR: no Total wall time in the output.\n")
+            logger.info(f"     ERROR: no Total wall time in the output.\n")
             logger.info(f"\n{input_test}:")
             logger.info(f"\n    Output:\n{output}")
             logger.info(f"\n    Error:\n{error}")
@@ -720,7 +720,6 @@ def get_lammps_build_configuration(lmp_binary):
     launch LAMMPS using the configuration defined in the dictionary config with an input file
     TODO:
         - generate new reference values if needed
-        - wrap subprocess with try/catch to handle exceptions
 '''
 def execute(lmp_binary, config, input_file_name, generate_ref_yaml=False):
     cmd_str = ""
@@ -728,9 +727,22 @@ def execute(lmp_binary, config, input_file_name, generate_ref_yaml=False):
         cmd_str += config['mpiexec'] + " " + config['mpiexec_numproc_flag'] + " " + config['nprocs'] + " "
     cmd_str += lmp_binary + " -in " + input_file_name + " " + config['args']
     logger.info(f"     Executing: {cmd_str}")
-    p = subprocess.run(cmd_str, shell=True, text=True, capture_output=True)
+    # set a timeout (in seconds) for each run
+    timeout = 60
+    if 'timeout' in config:
+        if config['timeout'] != "":
+            timeout = int(config['timeout'])
 
-    return cmd_str, p.stdout, p.stderr, p.returncode
+    try:
+        p = subprocess.run(cmd_str, shell=True, text=True, capture_output=True, timeout=timeout)
+        return cmd_str, p.stdout, p.stderr, p.returncode
+
+    except subprocess.TimeoutExpired:
+        msg = f"     Timeout for {cmd_str} ({timeout} s) expired"
+        logger.info(msg)
+        print(msg)
+
+    return cmd_str, "", "", -1
 
 '''
     split a list into a list of N sublists

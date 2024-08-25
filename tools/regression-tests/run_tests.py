@@ -9,6 +9,7 @@ UPDATE: August 13, 2024:
 With the current features, users can:
     + specify which LAMMPS binary version to test (e.g., the version from a commit, or those from `lammps-testing`)
     + specify the examples subfolders (thus the reference log files) seperately (e.g. from other LAMMPS versions or commits)
+    + specify the list of examples input scripts to test
     + specify tolerances for individual quantities for any input script to override the global values
     + launch tests with `mpirun` with all supported command line features (multiple procs, multiple paritions, and suffices)
     + skip certain input files (whose names match specified patterns) if not interested, or packaged not installed, or no reference log file exists
@@ -43,21 +44,33 @@ Example usage:
            python3 run_tests.py --lmp-bin=/path/to/lmp_binary --config-file=/path/to/config/file/config.yaml \
                 --example-folders="/path/to/examples/folder1;/path/to/examples/folder2"
 
-       The example folders can also be loaded from a text file list_subfolders1.txt:
+       The example subfolders can also be loaded from a text file list_subfolders1.txt:
            python3 run_tests.py --lmp-bin=/path/to/lmp_binary --config-file=/path/to/config/file/config.yaml \
-                --list-input=list_subfolders1.txt --output-file=output1.txt --progress-file=progress1.yaml \
+                --list-subfolders=list_subfolders1.txt --output-file=output1.txt --progress-file=progress1.yaml \
+                --log-file=run1.log
+
+    4) Specify a list of example input scripts
+            python3 run_tests.py --lmp-bin=/path/to/lmp_binary --config-file=/path/to/config/file/config.yaml \
+                --list-input=input-list-1.txt --output-file=output1.txt --progress-file=progress1.yaml \
+                --log-file=run1.log
+
+       The example subfolders can also be loaded from a text file list_subfolders1.txt:
+           python3 run_tests.py --lmp-bin=/path/to/lmp_binary --config-file=/path/to/config/file/config.yaml \
+                --list-subfolders=list_subfolders1.txt --output-file=output1.txt --progress-file=progress1.yaml \
                 --log-file=run1.log
           
-    4) Test a LAMMPS binary with the whole top-level /examples folder in a LAMMPS source tree
+    5) Test a LAMMPS binary with the whole top-level /examples folder in a LAMMPS source tree
            python3 run_tests.py --lmp-bin=/path/to/lmp_binary --examples-top-level=/path/to/lammps/examples
 
-    5) Analyze the LAMMPS binary annd whole top-level /examples folder in a LAMMPS source tree 
+    6) Analyze the LAMMPS binary annd whole top-level /examples folder in a LAMMPS source tree 
        and generate separate input lists for 8 workers:
            python3 run_tests.py --lmp-bin=/path/to/lmp_binary --examples-top-level=/path/to/lammps/examples \
                 --analyze --num-workers=8
 
-       This is used for splitting the subfolders into separate input lists and launching different instances
-       of run_tests.py simultaneously.
+       The output of this run is 8 files folder-list-[0-7].txt that lists the subfolders 
+       and 8 files input-list-[0-7].txt that lists the input scripts under the top-level example folders.
+       With these lists, one can launch multiple instances of run_tests.py simultaneously
+       each with a list of example subfolders (Case 3), or with a list of input scripts (Case 4).
 '''
 
 from argparse import ArgumentParser
@@ -825,6 +838,7 @@ if __name__ == "__main__":
     lmp_binary = ""
     configFileName = "config.yaml"
     example_subfolders = []
+    example_inputs = []
     example_toplevel = ""
     genref = False
     verbose = False
@@ -832,6 +846,7 @@ if __name__ == "__main__":
     progress_file = "progress.yaml"
     log_file = "run.log"
     list_input = ""
+    list_subfolders = ""
     analyze = False
 
     # distribute the total number of input scripts over the workers
@@ -844,7 +859,8 @@ if __name__ == "__main__":
                         help="Configuration YAML file")
     parser.add_argument("--examples-top-level", dest="example_toplevel", default="", help="Examples top-level")
     parser.add_argument("--example-folders", dest="example_folders", default="", help="Example subfolders")
-    parser.add_argument("--list-input", dest="list_input", default="", help="File that lists the subfolders")
+    parser.add_argument("--list-input", dest="list_input", default="", help="File that lists the input scripts")
+    parser.add_argument("--list-subfolders", dest="list_subfolders", default="", help="File that lists the subfolders")
     parser.add_argument("--num-workers", dest="num_workers", default=1, help="Number of workers")
     parser.add_argument("--gen-ref",dest="genref", action='store_true', default=False,
                         help="Generating reference data")
@@ -866,6 +882,7 @@ if __name__ == "__main__":
     if int(args.num_workers) > 0:
         num_workers = int(args.num_workers)
     list_input = args.list_input
+    list_subfolders = args.list_subfolders
 
     # example_toplevel is where all the examples subfolders reside
     if args.example_toplevel != "":
@@ -884,33 +901,6 @@ if __name__ == "__main__":
     logger = logging.getLogger(__name__)
     logging.basicConfig(filename=log_file, level=logging.INFO, filemode="w")
 
-    # read in the configuration of the tests
-    with open(configFileName, 'r') as f:
-        config = yaml.load(f, Loader=Loader)
-        absolute_path = os.path.abspath(configFileName)
-        print(f"\nRegression tests with the settings defined in the configuration file:\n  {absolute_path}")
-        f.close()
-  
-    # check if lmp_binary is specified in the config yaml
-    if lmp_binary == "":
-        if config['lmp_binary'] == "":
-            print("Needs a valid LAMMPS binary")
-            quit()
-        else:
-            lmp_binary = os.path.abspath(config['lmp_binary'])
-
-    # print out the binary info
-    packages, operating_system, GitInfo, compile_flags = get_lammps_build_configuration(lmp_binary)
-    print("\nLAMMPS build info:")
-    print(f"  - {operating_system}")
-    print(f"  - {GitInfo}")
-    print(f"  - Active compile flags: {compile_flags}")
-    print(f"  - List of {len(packages)} installed packages:")
-    all_pkgs = ""
-    for p in packages:
-        all_pkgs += p + " "
-    print(all_pkgs)
-
     if len(example_subfolders) > 0:
         print("\nExample folders to test:")
         print(*example_subfolders, sep='\n')
@@ -926,7 +916,7 @@ if __name__ == "__main__":
     # then use the path from --example-top-folder, or from the input-list read from a text file
     if len(example_subfolders) == 0:
 
-        # need top level specified
+        # if the top level is specified
         if len(example_toplevel) != 0:
             # getting the list of all the input files because there are subfolders (e.g. PACKAGES) under the top level
             cmd_str = f"find {example_toplevel} -name \"in.*\" "
@@ -953,7 +943,7 @@ if __name__ == "__main__":
             # write each chunk to a file
             idx = 0
             for list_input in sublists:
-                filename = f"input-list-{idx}.txt"
+                filename = f"folder-list-{idx}.txt"
                 with open(filename, "w") as f:
                     for folder in list_input:
                         # count the number of input scripts in each folder
@@ -967,14 +957,28 @@ if __name__ == "__main__":
             # working on all the folders for now
             example_subfolders = folder_list
 
-        # if a list of subfolders are provided from a text file (list_input from the command-line argument)
-        elif len(list_input) != 0:
+            # divide the list of input scripts into num_workers chunks
+            sublists = divide_into_N(input_list, num_workers)
+
+            # write each chunk to a file
+            idx = 0
+            for list_input in sublists:
+                filename = f"input-list-{idx}.txt"
+                with open(filename, "w") as f:
+                    for inp in list_input:
+                        f.write(inp + '\n')
+                    f.close()
+                idx = idx + 1
+
+        # if a list of subfolders is provided from a text file (list_subfolders from the command-line argument)
+        elif len(list_subfolders) != 0:
             num_inputscripts = 0
-            with open(list_input, "r") as f:
+            with open(list_subfolders, "r") as f:
                 all_subfolders = f.read().splitlines()
                 f.close()
                 for line in all_subfolders:
                     if len(line) > 0:
+                        # skip subfolders
                         if line[0] == '#':
                             continue
                         folder = line.split()[0]
@@ -983,12 +987,66 @@ if __name__ == "__main__":
             msg = f"\nThere are {len(example_subfolders)} folders with {num_inputscripts} input scripts in total listed in {list_input}."
             print(msg)
             logger.info(msg)
+
+        # if a list of input scripts is provided from a text file (list_input from the command-line argument)
+        elif len(list_input) != 0:
+            num_inputscripts = 0
+            folder_list = []
+            with open(list_input, "r") as f:
+                all_inputs = f.read().splitlines()
+                f.close()
+
+                for line in all_inputs:
+                    if len(line) > 0:
+                        # skip input scripts 
+                        if line[0] == '#':
+                            continue
+                        input = line.split()[0]
+                        folder = input.rsplit('/', 1)[0]
+                        # unique folders in the list
+                        if folder not in folder_list:
+                            folder_list.append(folder)
+                        example_inputs.append(input)
+                        num_inputscripts += 1
+
+            example_subfolders = folder_list
+            msg = f"\nThere are {num_inputscripts} input scripts listed in {list_input}."
+            print(msg)
+            logger.info(msg)
+
         else:
             inplace_input = False
 
     # if analyze the example folders (and split into separate lists for top-level examples), not running any test
     if analyze == True:
         quit()
+
+    # read in the configuration of the tests
+    with open(configFileName, 'r') as f:
+        config = yaml.load(f, Loader=Loader)
+        absolute_path = os.path.abspath(configFileName)
+        print(f"\nRegression test configuration file:\n  {absolute_path}")
+        f.close()
+  
+    # check if lmp_binary is specified in the config yaml
+    if lmp_binary == "":
+        if config['lmp_binary'] == "":
+            print("Needs a valid LAMMPS binary")
+            quit()
+        else:
+            lmp_binary = os.path.abspath(config['lmp_binary'])
+
+    # print out the binary info
+    packages, operating_system, GitInfo, compile_flags = get_lammps_build_configuration(lmp_binary)
+    print("\nLAMMPS build info:")
+    print(f"  - {operating_system}")
+    print(f"  - {GitInfo}")
+    print(f"  - Active compile flags: {compile_flags}")
+    print(f"  - List of {len(packages)} installed packages:")
+    all_pkgs = ""
+    for p in packages:
+        all_pkgs += p + " "
+    print(all_pkgs)
 
     all_results = []
 
@@ -1044,10 +1102,21 @@ if __name__ == "__main__":
 
             cmd_str = "ls in.*"
             p = subprocess.run(cmd_str, shell=True, text=True, capture_output=True)
-            input_list = p.stdout.split('\n')
-            input_list.remove('')
+            all_input_list = p.stdout.split('\n')
+            all_input_list.remove('')
 
-            print(f"{len(input_list)} input script(s): {input_list}")
+            # if the list of example input scripts is provided
+            #   if an input script is not in the list, then remove it from input_list
+            input_list = []
+            if len(example_inputs) > 0:
+                for inp in all_input_list:
+                    full_path = directory + "/" + inp
+                    if full_path in example_inputs:
+                        input_list.append(inp)
+            else:
+                input_list = all_input_list
+
+            print(f"{len(input_list)} input script(s) to be tested: {input_list}")
             total_tests += len(input_list)
 
             # iterate through the input scripts

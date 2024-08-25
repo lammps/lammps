@@ -78,7 +78,7 @@ jobs:
         python3 tools/regression-tests/run_tests.py \
                --lmp-bin=build/lmp \
                --config-file=tools/regression-tests/config_serial.yaml \
-               --list-input=folder_list.txt
+               --list-input=input_list.txt
         tar -cvf quick-regression-test.tar run.log progress.yaml
 
     - name: Upload artifacts

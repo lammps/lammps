@@ -4130,6 +4130,7 @@ Xiaowang
 Xie
 xk
 xlat
+xlattice
 xlo
 xmax
 Xmax
@@ -4181,6 +4182,7 @@ yflag
 yhi
 yi
 ylat
+ylattice
 ylo
 ylz
 ymax
@@ -4229,6 +4231,7 @@ Ziegenhain
 zincblende
 zj
 Zj
+zlattice
 zlim
 zlo
 Zm

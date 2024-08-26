@@ -59,7 +59,7 @@ factor, these tensor components are twice those of the traditional
 kinetic energy tensor.  The six components of the vector are ordered
 :math:`xx`, :math:`yy`, :math:`zz`, :math:`xy`, :math:`xz`,
 :math:`yz`.
-      
+
 The number of atoms contributing to the temperature is assumed to be
 constant for the duration of the run; use the *dynamic* option of the
 :doc:`compute_modify <compute_modify>` command if this is not the case.

@@ -11,27 +11,36 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
-#ifndef HELPERS_H
-#define HELPERS_H
+#ifndef FIND_AND_REPLACE_H
+#define FIND_AND_REPLACE_H
 
-#include <QString>
-#include <string>
+#include "codeeditor.h"
+#include <QDialog>
 
-// duplicate string
-extern char *mystrdup(const std::string &text);
-extern char *mystrdup(const char *text);
-extern char *mystrdup(const QString &text);
+class QLineEdit;
+class QCheckBox;
 
-// find if executable is in path
-extern bool has_exe(const QString &exe);
+class FindAndReplace : public QDialog {
+    Q_OBJECT
 
-// recursively purge a directory
-extern void purge_directory(const QString &dir);
+public:
+    explicit FindAndReplace(CodeEditor *_editor, QWidget *parent = nullptr);
+    ~FindAndReplace() = default;
 
-// flag if light or dark theme
-extern bool is_light_theme();
+private slots:
+    void find_next();
+    void replace_next();
+    void replace_all();
+    void quit();
+
+private:
+    CodeEditor *editor;
+    QLineEdit *search, *replace;
+    QCheckBox *withcase, *wrap, *whole;
+};
 
 #endif
+
 // Local Variables:
 // c-basic-offset: 4
 // End:

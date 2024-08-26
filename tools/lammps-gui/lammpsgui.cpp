@@ -15,6 +15,7 @@
 
 #include "chartviewer.h"
 #include "fileviewer.h"
+#include "findandreplace.h"
 #include "helpers.h"
 #include "highlighter.h"
 #include "imageviewer.h"
@@ -90,6 +91,7 @@ LammpsGui::LammpsGui(QWidget *parent, const char *filename) :
     // use $HOME if we get dropped to "/" like on macOS
     if (current_dir == "/") current_dir = QDir::homePath();
     inspectList.clear();
+    setAutoFillBackground(true);
 
     // restore and initialize settings
     QSettings settings;
@@ -205,6 +207,7 @@ LammpsGui::LammpsGui(QWidget *parent, const char *filename) :
     connect(ui->actionPaste, &QAction::triggered, this, &LammpsGui::paste);
     connect(ui->actionUndo, &QAction::triggered, this, &LammpsGui::undo);
     connect(ui->actionRedo, &QAction::triggered, this, &LammpsGui::redo);
+    connect(ui->actionSearchAndReplace, &QAction::triggered, this, &LammpsGui::findandreplace);
     connect(ui->actionRun_Buffer, &QAction::triggered, this, &LammpsGui::run_buffer);
     connect(ui->actionRun_File, &QAction::triggered, this, &LammpsGui::run_file);
     connect(ui->actionStop_LAMMPS, &QAction::triggered, this, &LammpsGui::stop_run);
@@ -1428,7 +1431,11 @@ void LammpsGui::setFont(const QFont &newfont)
 void LammpsGui::about()
 {
     std::string version = "This is LAMMPS-GUI version " LAMMPS_GUI_VERSION;
-    version += " using Qt version " QT_VERSION_STR "\n";
+    version += " using Qt version " QT_VERSION_STR;
+    if (is_light_theme())
+        version += " using light theme\n";
+    else
+        version += " using dark theme\n";
     if (lammps.has_plugin()) {
         version += "LAMMPS library loaded as plugin";
         if (!plugin_path.empty()) {
@@ -1860,6 +1867,14 @@ void LammpsGui::edit_variables()
         lammps.close();
         lammpsstatus->hide();
     }
+}
+
+void LammpsGui::findandreplace()
+{
+    FindAndReplace find(ui->textEdit, this);
+    find.setFont(font());
+    find.setObjectName("find");
+    find.exec();
 }
 
 void LammpsGui::preferences()

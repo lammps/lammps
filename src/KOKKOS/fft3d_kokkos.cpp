@@ -43,7 +43,6 @@ FFT3dKokkos<DeviceType>::FFT3dKokkos(LAMMPS *lmp, MPI_Comm comm, int nfast, int 
 #if defined(LMP_KOKKOS_GPU)
   int ngpus = lmp->kokkos->ngpus;
   ExecutionSpace execution_space = ExecutionSpaceFromDevice<DeviceType>::space;
-#endif
 
 #if defined(FFT_KOKKOS_MKL)
   if (ngpus > 0 && execution_space == Device)
@@ -69,6 +68,8 @@ FFT3dKokkos<DeviceType>::FFT3dKokkos(LAMMPS *lmp, MPI_Comm comm, int nfast, int 
     if (stack_size < 2048)
       cudaDeviceSetLimit(cudaLimitStackSize,2048);
   #endif
+#endif
+
 #endif
 
   plan = fft_3d_create_plan_kokkos(comm,nfast,nmid,nslow,

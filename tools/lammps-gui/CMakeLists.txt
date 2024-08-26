@@ -1,6 +1,6 @@
 cmake_minimum_required(VERSION 3.16)
 
-project(lammps-gui VERSION 1.6.9 LANGUAGES CXX)
+project(lammps-gui VERSION 1.6.10 LANGUAGES CXX)
 
 set(CMAKE_AUTOUIC ON)
 set(CMAKE_AUTOMOC ON)
@@ -130,6 +130,8 @@ set(PROJECT_SOURCES
   chartviewer.h
   codeeditor.cpp
   codeeditor.h
+  findandreplace.cpp
+  findandreplace.h
   helpers.cpp
   highlighter.cpp
   highlighter.h

@@ -3090,7 +3090,7 @@ void *Atom::extract(const char *name)
     return (void *) eff_plastic_strain_rate;
   if (strcmp(name, "damage") == 0) return (void *) damage;
 
-  // DPD-REACT pakage
+  // DPD-REACT package
 
   if (strcmp(name,"dpdTheta") == 0) return (void *) dpdTheta;
 

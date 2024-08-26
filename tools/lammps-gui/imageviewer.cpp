@@ -133,7 +133,7 @@ static int get_pte_from_mass(double mass)
 
 static const QString blank(" ");
 
-ImageViewer::ImageViewer(const QString &fileName, LammpsWrapper *_lammps, QString title, QWidget *parent) :
+ImageViewer::ImageViewer(const QString &fileName, LammpsWrapper *_lammps, QWidget *parent) :
     QDialog(parent), menuBar(new QMenuBar), imageLabel(new QLabel), scrollArea(new QScrollArea),
     saveAsAct(nullptr), copyAct(nullptr), cmdAct(nullptr), zoomInAct(nullptr), zoomOutAct(nullptr),
     normalSizeAct(nullptr), lammps(_lammps), group("all"), filename(fileName), useelements(false),
@@ -498,7 +498,9 @@ void ImageViewer::cmd_to_clipboard()
     for (int i = modidx + 1; i < maxidx; ++i)
         dumpcmd += blank + words[i];
     dumpcmd += '\n';
+#if QT_CONFIG(clipboard)
     QGuiApplication::clipboard()->setText(dumpcmd);
+#endif
 }
 
 void ImageViewer::change_group(int)

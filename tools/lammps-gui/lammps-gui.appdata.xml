@@ -54,8 +54,13 @@
   </provides>
 
   <releases>
+    <release version="1.6.9" timestamp="1724308872">
+      <description>
+      </description>
+    </release>
     <release version="1.6.8" timestamp="1723581926">
       <description>
+        Support plotting raw and smoothed data
       </description>
     </release>
     <release version="1.6.7" timestamp="1723394796">

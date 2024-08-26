@@ -25,7 +25,6 @@ class QCloseEvent;
 class QEvent;
 class QMenuBar;
 class QMenu;
-class QCheckBox;
 class QSpinBox;
 namespace QtCharts {
 class ChartViewer;
@@ -51,6 +50,7 @@ private slots:
     void quit();
     void reset_zoom();
     void stop_run();
+    void select_smooth(int selection);
     void update_smooth();
 
     void saveAs();
@@ -65,12 +65,13 @@ protected:
     bool eventFilter(QObject *watched, QEvent *event) override;
 
 private:
+    bool do_raw, do_smooth;
     QMenuBar *menu;
     QMenu *file;
     QComboBox *columns;
     QAction *saveAsAct, *exportCsvAct, *exportDatAct, *exportYamlAct;
     QAction *closeAct, *stopAct, *quitAct;
-    QCheckBox *smooth;
+    QComboBox *smooth;
     QSpinBox *window, *order;
 
     QString filename;
@@ -94,7 +95,7 @@ public:
 
     void add_data(int step, double data);
     void reset_zoom();
-    void smooth_param(bool _do_smooth, int _window, int _order);
+    void smooth_param(bool _do_raw, bool _do_smooth, int _window, int _order);
     void update_smooth();
 
     int get_index() const { return index; };
@@ -111,7 +112,7 @@ private:
     QValueAxis *xaxis;
     QValueAxis *yaxis;
     QTime last_update;
-    bool do_smooth;
+    bool do_raw, do_smooth;
 };
 } // namespace QtCharts
 #endif

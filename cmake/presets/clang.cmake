@@ -1,10 +1,10 @@
 # preset that will enable clang/clang++ with support for MPI and OpenMP (on Linux boxes)
 
 # prefer flang over gfortran, if available
-find_program(CLANG_FORTRAN NAMES flang gfortran f95)
+find_program(CLANG_FORTRAN NAMES flang-new flang gfortran f95)
 set(ENV{OMPI_FC} ${CLANG_FORTRAN})
 get_filename_component(_tmp_fc ${CLANG_FORTRAN} NAME)
-if (_tmp_fc STREQUAL "flang")
+if ((_tmp_fc STREQUAL "flang") OR (_tmp_fc STREQUAL "flang-new"))
   set(FC_STD_VERSION "-std=f2018")
   set(BUILD_MPI OFF)
 else()

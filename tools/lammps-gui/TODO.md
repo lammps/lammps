@@ -4,7 +4,6 @@ LAMMPS-GUI TODO list:
 
 - figure out how widgets can be resized to fraction of available screen size.
 - figure out stacking order of frames and whether it can be more flexible
-- figure out how to avoid corrupted cached thermo data while reading it.
 - implement a timed "Auto-Save" feature that saves after some idle time.  set timeout in Editor preferences.
 - add a "Colors" menu to the image viewer to adjust color settings for the
   current image (unlike the defaults in the perferences). Support color by
@@ -28,6 +27,7 @@ LAMMPS-GUI TODO list:
    - call to LAMMPS to create geometries from lattices (with/without molecule files) and STL files
    - call to LAMMPS to generate visualizations of geometries
    - edit force field parameters, e.g. apply charmm
+   - edit / manage labelmap
 
 # Long term ideas (v2.x)
 - rewrite entire application to build the App and its layout manually

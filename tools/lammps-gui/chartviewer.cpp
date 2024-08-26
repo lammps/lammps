@@ -18,7 +18,6 @@
 #include <QAction>
 #include <QApplication>
 #include <QChart>
-#include <QCheckBox>
 #include <QCloseEvent>
 #include <QComboBox>
 #include <QEvent>
@@ -57,17 +56,23 @@ ChartWindow::ChartWindow(const QString &_filename, QWidget *parent) :
     auto *dummy = new QPushButton(QIcon(), "");
     dummy->hide();
 
-    smooth = new QCheckBox("Show smooth graph");
-    smooth->setCheckState(Qt::Unchecked);
+    do_raw    = true;
+    do_smooth = true;
+    smooth    = new QComboBox;
+    smooth->addItem("Raw");
+    smooth->addItem("Smooth");
+    smooth->addItem("Both");
+    smooth->setCurrentIndex(2);
+    smooth->show();
     window = new QSpinBox;
-    window->setRange(5, 100);
+    window->setRange(5, 999);
     window->setValue(10);
-    window->setEnabled(false);
+    window->setEnabled(true);
     window->setToolTip("Smoothing Window Size");
     order = new QSpinBox;
-    order->setRange(1, 10);
+    order->setRange(1, 20);
     order->setValue(4);
-    order->setEnabled(false);
+    order->setEnabled(true);
     order->setToolTip("Smoothing Order");
 
     auto *normal = new QPushButton(QIcon(":/icons/gtk-zoom-fit.png"), "");
@@ -77,13 +82,14 @@ ChartWindow::ChartWindow(const QString &_filename, QWidget *parent) :
     top->addWidget(menu);
     top->addSpacerItem(new QSpacerItem(1, 1, QSizePolicy::Expanding, QSizePolicy::Minimum));
     top->addWidget(dummy);
+    top->addWidget(new QLabel("Plot:"));
     top->addWidget(smooth);
+    top->addWidget(new QLabel(" Smooth:"));
     top->addWidget(window);
     top->addWidget(order);
-    top->addWidget(new QLabel("   "));
+    top->addWidget(new QLabel(" "));
     top->addWidget(normal);
-    top->addWidget(new QLabel("   "));
-    top->addWidget(new QLabel("Select data:"));
+    top->addWidget(new QLabel(" Data:"));
     top->addWidget(columns);
     saveAsAct = file->addAction("&Save Graph As...", this, &ChartWindow::saveAs);
     saveAsAct->setIcon(QIcon(":/icons/document-save-as.png"));
@@ -107,7 +113,7 @@ ChartWindow::ChartWindow(const QString &_filename, QWidget *parent) :
     layout->addLayout(top);
     setLayout(layout);
 
-    connect(smooth, &QPushButton::released, this, &ChartWindow::update_smooth);
+    connect(smooth, SIGNAL(currentIndexChanged(int)), this, SLOT(select_smooth(int)));
     connect(window, &QAbstractSpinBox::editingFinished, this, &ChartWindow::update_smooth);
     connect(order, &QAbstractSpinBox::editingFinished, this, &ChartWindow::update_smooth);
     connect(window, QOverload<int>::of(&QSpinBox::valueChanged), this, &ChartWindow::update_smooth);
@@ -174,8 +180,11 @@ void ChartWindow::quit()
 
 void ChartWindow::reset_zoom()
 {
-    int choice = columns->currentData().toInt() - 1;
-    if ((choice >= 0) && (choice < charts.size())) charts[choice]->reset_zoom();
+    int choice = columns->currentData().toInt();
+    if ((choice >= 0) && (choice < charts.size())) {
+        charts[choice]->update_smooth();
+        charts[choice]->reset_zoom();
+    }
 }
 
 void ChartWindow::stop_run()
@@ -186,17 +195,35 @@ void ChartWindow::stop_run()
     if (main) main->stop_run();
 }
 
-void ChartWindow::update_smooth()
+void ChartWindow::select_smooth(int)
 {
-    bool do_smooth = smooth->isChecked();
+    switch (smooth->currentIndex()) {
+        case 0:
+            do_raw    = true;
+            do_smooth = false;
+            break;
+        case 1:
+            do_raw    = false;
+            do_smooth = true;
+            break;
+        case 2: // fallthrough
+        default:
+            do_raw    = true;
+            do_smooth = true;
+            break;
+    }
     window->setEnabled(do_smooth);
     order->setEnabled(do_smooth);
+    update_smooth();
+}
 
+void ChartWindow::update_smooth()
+{
     int wval = window->value();
     int oval = order->value();
 
     for (auto &c : charts)
-        c->smooth_param(do_smooth, wval, oval);
+        c->smooth_param(do_raw, do_smooth, wval, oval);
 }
 
 void ChartWindow::saveAs()
@@ -358,14 +385,11 @@ bool ChartWindow::eventFilter(QObject *watched, QEvent *event)
 ChartViewer::ChartViewer(const QString &title, int _index, QWidget *parent) :
     QChartView(parent), last_step(-1), index(_index), window(10), order(4), chart(new QChart),
     series(new QLineSeries), smooth(nullptr), xaxis(new QValueAxis), yaxis(new QValueAxis),
-    do_smooth(false)
+    do_raw(true), do_smooth(true)
 {
     chart->legend()->hide();
     chart->addAxis(xaxis, Qt::AlignBottom);
     chart->addAxis(yaxis, Qt::AlignLeft);
-    chart->addSeries(series);
-    series->attachAxis(xaxis);
-    series->attachAxis(yaxis);
     xaxis->setTitleText("Time step");
     xaxis->setTickCount(5);
     xaxis->setLabelFormat("%d");
@@ -379,6 +403,7 @@ ChartViewer::ChartViewer(const QString &title, int _index, QWidget *parent) :
     setChart(chart);
     setRubberBand(QChartView::RectangleRubberBand);
     last_update = QTime::currentTime();
+    update_smooth();
 }
 
 /* -------------------------------------------------------------------- */
@@ -425,8 +450,8 @@ void ChartViewer::add_data(int step, double data)
         // update the chart display only after at least updchart milliseconds have passed
         if (last_update.msecsTo(QTime::currentTime()) > settings.value("updchart", "500").toInt()) {
             last_update = QTime::currentTime();
-            reset_zoom();
             update_smooth();
+            reset_zoom();
         }
     }
 }
@@ -489,8 +514,12 @@ void ChartViewer::reset_zoom()
 
 /* -------------------------------------------------------------------- */
 
-void ChartViewer::smooth_param(bool _do_smooth, int _window, int _order)
+void ChartViewer::smooth_param(bool _do_raw, bool _do_smooth, int _window, int _order)
 {
+    // turn off raw plot
+    if (!_do_raw) {
+        if (do_raw) chart->removeSeries(series);
+    }
     // turn off smooth plot
     if (!_do_smooth) {
         if (smooth) {
@@ -499,6 +528,7 @@ void ChartViewer::smooth_param(bool _do_smooth, int _window, int _order)
             smooth = nullptr;
         }
     }
+    do_raw    = _do_raw;
     do_smooth = _do_smooth;
     window    = _window;
     order     = _order;
@@ -513,10 +543,22 @@ static QList<QPointF> calc_sgsmooth(const QList<QPointF> &input, const int windo
 
 void ChartViewer::update_smooth()
 {
+    auto allseries = chart->series();
+    if (do_raw) {
+        // add raw data if not in chart
+        if (!allseries.contains(series)) {
+            series->setPen(QPen(QBrush(QColor(100, 150, 255)), 3, Qt::SolidLine, Qt::RoundCap));
+            chart->addSeries(series);
+            series->attachAxis(xaxis);
+            series->attachAxis(yaxis);
+        }
+    }
+
     if (do_smooth) {
         if (series->count() > (2 * window)) {
             if (!smooth) {
                 smooth = new QLineSeries;
+                smooth->setPen(QPen(QBrush(QColor(255, 125, 125)), 3, Qt::SolidLine, Qt::RoundCap));
                 chart->addSeries(smooth);
                 smooth->attachAxis(xaxis);
                 smooth->attachAxis(yaxis);

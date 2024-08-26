@@ -271,6 +271,8 @@ The value of the *page* setting must be at least 10x larger than the
 *one* setting.  This ensures neighbor pages are not mostly empty
 space.
 
+The *exclude group* setting is currently not compatible with dynamic groups.
+
 Related commands
 """"""""""""""""
 

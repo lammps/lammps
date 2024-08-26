@@ -63,7 +63,7 @@ class FixBondReact : public Fix {
   int *iatomtype, *jatomtype;
   int *seed;
   double **cutsq, *fraction;
-  int *max_rxn, *nlocalskips, *nghostlyskips;
+  int *max_rxn, *nlocalkeep, *nghostlykeep;
   tagint lastcheck;
   int stabilization_flag;
   int reset_mol_ids_flag;

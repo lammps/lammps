@@ -233,8 +233,8 @@ FixBondReact::FixBondReact(LAMMPS *lmp, int narg, char **arg) :
   memory->create(reacted_mol,nreacts,"bond/react:reacted_mol");
   memory->create(fraction,nreacts,"bond/react:fraction");
   memory->create(max_rxn,nreacts,"bond/react:max_rxn");
-  memory->create(nlocalskips,nreacts,"bond/react:nlocalskips");
-  memory->create(nghostlyskips,nreacts,"bond/react:nghostlyskips");
+  memory->create(nlocalkeep,nreacts,"bond/react:nlocalkeep");
+  memory->create(nghostlykeep,nreacts,"bond/react:nghostlykeep");
   memory->create(seed,nreacts,"bond/react:seed");
   memory->create(limit_duration,nreacts,"bond/react:limit_duration");
   memory->create(rate_limit,3,nreacts,"bond/react:rate_limit");
@@ -648,8 +648,8 @@ FixBondReact::~FixBondReact()
   memory->destroy(fraction);
   memory->destroy(seed);
   memory->destroy(max_rxn);
-  memory->destroy(nlocalskips);
-  memory->destroy(nghostlyskips);
+  memory->destroy(nlocalkeep);
+  memory->destroy(nghostlykeep);
   memory->destroy(limit_duration);
   memory->destroy(var_flag);
   memory->destroy(var_id);
@@ -877,8 +877,8 @@ void FixBondReact::post_integrate()
     reaction_count[i] = 0;
     local_rxn_count[i] = 0;
     ghostly_rxn_count[i] = 0;
-    nlocalskips[i] = 0;
-    nghostlyskips[i] = 0;
+    nlocalkeep[i] = INT_MAX;
+    nghostlykeep[i] = INT_MAX;
     // update reaction probability
     if (var_flag[PROB][i])
       fraction[i] = input->variable->compute_equal(var_id[PROB][i]);
@@ -1429,10 +1429,13 @@ void FixBondReact::superimpose_algorithm()
   MPI_Allreduce(&local_rxn_count[0],&reaction_count[0],nreacts,MPI_INT,MPI_SUM,world);
 
   int rxnflag = 0;
+  int *delta_rxn;
+  memory->create(delta_rxn,nreacts,"bond/react:delta_rxn");
   if (comm->me == 0)
     for (int i = 0; i < nreacts; i++) {
-      reaction_count_total[i] += reaction_count[i] + ghostly_rxn_count[i];
-      rxnflag += reaction_count[i] + ghostly_rxn_count[i];
+      delta_rxn[i] = reaction_count[i] + ghostly_rxn_count[i];
+      reaction_count_total[i] += delta_rxn[i];
+      rxnflag += delta_rxn[i];
     }
 
   MPI_Bcast(&reaction_count_total[0], nreacts, MPI_INT, 0, world);
@@ -1465,42 +1468,43 @@ void FixBondReact::superimpose_algorithm()
     if (overstep > 0) {
       // let's randomly choose rxns to skip, unbiasedly from local and ghostly
       int *local_rxncounts;
-      int *all_localskips;
+      int *all_localkeep;
       memory->create(local_rxncounts,nprocs,"bond/react:local_rxncounts");
-      memory->create(all_localskips,nprocs,"bond/react:all_localskips");
+      memory->create(all_localkeep,nprocs,"bond/react:all_localkeep");
       MPI_Gather(&local_rxn_count[i],1,MPI_INT,local_rxncounts,1,MPI_INT,0,world);
       if (comm->me == 0) {
-        int delta_rxn = reaction_count[i] + ghostly_rxn_count[i];
         // when using variable input for rate_limit, rate_limit_overstep could be > delta_rxn (below)
         // we need to limit overstep to the number of reactions on this timestep
         // essentially skipping all reactions, would be more efficient to use a skip_all flag
-        if (overstep > delta_rxn) overstep = delta_rxn;
+        if (overstep > delta_rxn[i]) overstep = delta_rxn[i];
+        int nkeep = delta_rxn[i] - overstep;
         int *rxn_by_proc;
-        memory->create(rxn_by_proc,delta_rxn,"bond/react:rxn_by_proc");
-        for (int j = 0; j < delta_rxn; j++)
+        memory->create(rxn_by_proc,delta_rxn[i],"bond/react:rxn_by_proc");
+        for (int j = 0; j < delta_rxn[i]; j++)
           rxn_by_proc[j] = -1; // corresponds to ghostly
         int itemp = 0;
         for (int j = 0; j < nprocs; j++)
           for (int k = 0; k < local_rxncounts[j]; k++)
             rxn_by_proc[itemp++] = j;
-        std::shuffle(&rxn_by_proc[0],&rxn_by_proc[delta_rxn], park_rng);
+        std::shuffle(&rxn_by_proc[0],&rxn_by_proc[delta_rxn[i]], park_rng);
         for (int j = 0; j < nprocs; j++)
-          all_localskips[j] = 0;
-        nghostlyskips[i] = 0;
-        for (int j = 0; j < overstep; j++) {
-          if (rxn_by_proc[j] == -1) nghostlyskips[i]++;
-          else all_localskips[rxn_by_proc[j]]++;
+          all_localkeep[j] = 0;
+        nghostlykeep[i] = 0;
+        for (int j = 0; j < nkeep; j++) {
+          if (rxn_by_proc[j] == -1) nghostlykeep[i]++;
+          else all_localkeep[rxn_by_proc[j]]++;
         }
         memory->destroy(rxn_by_proc);
         reaction_count_total[i] -= overstep;
       }
-      MPI_Scatter(&all_localskips[0],1,MPI_INT,&nlocalskips[i],1,MPI_INT,0,world);
-      MPI_Bcast(&nghostlyskips[i],1,MPI_INT,0,world);
+      MPI_Scatter(&all_localkeep[0],1,MPI_INT,&nlocalkeep[i],1,MPI_INT,0,world);
+      MPI_Bcast(&nghostlykeep[i],1,MPI_INT,0,world);
       memory->destroy(local_rxncounts);
-      memory->destroy(all_localskips);
+      memory->destroy(all_localkeep);
     }
   }
   MPI_Bcast(&reaction_count_total[0], nreacts, MPI_INT, 0, world);
+  memory->destroy(delta_rxn);
 
   // this updates topology next step
   next_reneighbor = update->ntimestep;
@@ -3036,14 +3040,14 @@ void FixBondReact::update_everything()
 
   for (int pass = 0; pass < 2; pass++) {
     update_num_mega = 0;
-    int *iskip = new int[nreacts];
-    for (int i = 0; i < nreacts; i++) iskip[i] = 0;
+    int *noccur = new int[nreacts];
+    for (int i = 0; i < nreacts; i++) noccur[i] = 0;
     if (pass == 0) {
       for (int i = 0; i < local_num_mega; i++) {
         rxnID = (int) local_mega_glove[0][i];
         // reactions already shuffled from dedup procedure, so can skip first N
         // wait, this check needs to be after add atoms, because they can also be 'skipped' due to overlap
-        if (iskip[rxnID]++ < nlocalskips[rxnID]) continue;
+        if (noccur[rxnID] >= nlocalkeep[rxnID]) continue;
 
         // this will be overwritten if reaction skipped by create_atoms below
         update_mega_glove[0][update_num_mega] = (tagint) local_mega_glove[0][i];
@@ -3061,6 +3065,7 @@ void FixBondReact::update_everything()
             continue;
           }
         }
+        noccur[rxnID]++;
 
         if (rescale_charges_flag[rxnID]) sim_total_charges[update_num_mega] = local_mega_glove[1][i];
         update_num_mega++;
@@ -3069,7 +3074,7 @@ void FixBondReact::update_everything()
       for (int i = 0; i < global_megasize; i++) {
         rxnID = (int) global_mega_glove[0][i];
         // reactions already shuffled from dedup procedure, so can skip first N
-        if (iskip[rxnID]++ < nghostlyskips[rxnID]) continue;
+        if (noccur[rxnID] >= nghostlykeep[rxnID]) continue;
 
         // this will be overwritten if reaction skipped by create_atoms below
         update_mega_glove[0][update_num_mega] = (tagint) global_mega_glove[0][i];
@@ -3089,12 +3094,13 @@ void FixBondReact::update_everything()
             continue;
           }
         }
+        noccur[rxnID]++;
 
         if (rescale_charges_flag[rxnID]) sim_total_charges[update_num_mega] = global_mega_glove[1][i];
         update_num_mega++;
       }
     }
-    delete [] iskip;
+    delete [] noccur;
 
     if (update_num_mega == 0) continue;
 
@@ -3804,10 +3810,29 @@ int FixBondReact::insert_atoms_setup(tagint **my_update_mega_glove, int iupdate)
             break;
           }
         }
-        // !! need to add check against soon-to-added atoms
         if (abortflag) break;
       }
     }
+    // also check against previous to-be-added atoms
+    if (!abortflag) {
+      for (auto & myaddatom : addatoms) {
+        for (int m = 0; m < twomol->natoms; m++) {
+          if (create_atoms[m][rxnID] == 1) {
+            delx = coords[m][0] - myaddatom.x[0];
+            dely = coords[m][1] - myaddatom.x[1];
+            delz = coords[m][2] - myaddatom.x[2];
+            domain->minimum_image(delx,dely,delz);
+            rsq = delx*delx + dely*dely + delz*delz;
+            if (rsq < overlapsq[rxnID]) {
+              abortflag = 1;
+              break;
+            }
+          }
+        }
+        if (abortflag) break;
+      }
+    }
+
     MPI_Allreduce(MPI_IN_PLACE,&abortflag,1,MPI_INT,MPI_MAX,world);
     if (abortflag) {
       memory->destroy(coords);
@@ -3872,7 +3897,7 @@ int FixBondReact::insert_atoms_setup(tagint **my_update_mega_glove, int iupdate)
         // locally update mega_glove
         my_update_mega_glove[preID][iupdate] = myaddatom.tag;
 
-        // could do better job choosing mol ID for added atoms
+        // !! could do better job choosing mol ID for added atoms
         if (atom->molecule_flag) {
           if (twomol->moleculeflag) {
             myaddatom.molecule = maxmol_all + twomol->molecule[m];

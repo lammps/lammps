@@ -163,6 +163,7 @@ def iterate(lmp_binary, input_folder, input_list, config, results, progress_file
             matched_pattern = False
             for skipped_files in config['skip']:
                 if '*' in skipped_files:
+                    # check input script name e.g. in.*_imd*
                     if fnmatch.fnmatch(input, skipped_files):
                         matched_pattern = True
                         break

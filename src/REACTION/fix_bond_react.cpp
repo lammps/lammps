@@ -3714,7 +3714,7 @@ int FixBondReact::insert_atoms_setup(tagint **my_update_mega_glove, int iupdate)
   tagint *molecule = atom->molecule;
   int nlocal = atom->nlocal;
 
-  tagint maxmol_all;
+  tagint maxmol_all = 0;;
   for (int i = 0; i < nlocal; i++) maxmol_all = MAX(maxmol_all,molecule[i]);
   MPI_Allreduce(MPI_IN_PLACE,&maxmol_all,1,MPI_LMP_TAGINT,MPI_MAX,world);
 

@@ -97,21 +97,26 @@ LammpsGui::LammpsGui(QWidget *parent, const QString &filename) :
     QSettings settings;
 
 #if defined(LAMMPS_GUI_USE_PLUGIN)
-    plugin_path.clear();
-    QString deffile = settings.value("plugin_path", "liblammps.so").toString();
-    for (const char *libfile : {deffile.toStdString().c_str(), "./liblammps.so", "liblammps.dylib",
-                                "./liblammps.dylib", "liblammps.dll"}) {
-        if (lammps.load_lib(libfile)) {
-            plugin_path = QFileInfo(libfile).canonicalFilePath();
-            settings.setValue("plugin_path", plugin_path);
-            break;
+    plugin_path = settings.value("plugin_path", "liblammps.so").toString();
+    if (!lammps.load_lib(plugin_path.toStdString().c_str())) {
+        // fall back to defaults
+        for (const char *libfile :
+             {"./liblammps.so", "liblammps.dylib", "./liblammps.dylib", "liblammps.dll"}) {
+            if (lammps.load_lib(libfile)) {
+                plugin_path = QFileInfo(libfile).canonicalFilePath();
+                settings.setValue("plugin_path", plugin_path);
+                break;
+            } else {
+                plugin_path.clear();
+            }
         }
     }
 
     if (plugin_path.isEmpty()) {
         // none of the plugin paths could load, remove key
         settings.remove("plugin_path");
-        QMessageBox::critical(this, "Error", "Cannot open LAMMPS shared library file.\n"
+        QMessageBox::critical(this, "Error",
+                              "Cannot open LAMMPS shared library file.\n"
                               "Use -p command line flag to specify a path to the library.");
         exit(1);
     }
@@ -505,8 +510,7 @@ void LammpsGui::start_exe()
 void LammpsGui::update_recents(const QString &filename)
 {
     QSettings settings;
-    if (settings.contains("recent"))
-        recent = settings.value("recent").value<QList<QString>>();
+    if (settings.contains("recent")) recent = settings.value("recent").value<QList<QString>>();
 
     for (int i = 0; i < recent.size(); ++i) {
         QFileInfo fi(recent[i]);
@@ -518,8 +522,10 @@ void LammpsGui::update_recents(const QString &filename)
 
     if (!filename.isEmpty() && !recent.contains(filename)) recent.prepend(filename);
     if (recent.size() > 5) recent.removeLast();
-    if (recent.size() > 0) settings.setValue("recent", QVariant::fromValue(recent));
-    else settings.remove("recent");
+    if (recent.size() > 0)
+        settings.setValue("recent", QVariant::fromValue(recent));
+    else
+        settings.remove("recent");
 
     ui->action_1->setVisible(false);
     if ((recent.size() > 0) && !recent[0].isEmpty()) {

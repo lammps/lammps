@@ -53,19 +53,22 @@ int main(int argc, char *argv[])
     parser.addHelpOption();
     parser.addVersionOption();
     parser.addPositionalArgument("file", "The LAMMPS input file to open (optional).");
-    parser.process(app); // this removes known arguments
+    parser.process(app);
 
 #if defined(LAMMPS_GUI_USE_PLUGIN)
     if (parser.isSet(plugindir)) {
-        QString pluginpath = parser.value(plugindir);
-        QSettings settings;
-        settings.setValue("plugin_path", pluginpath);
-        settings.sync();
+        QStringList pluginpath = parser.values(plugindir);
+        if (pluginpath.length() > 0) {
+            QSettings settings;
+            settings.setValue("plugin_path", QString(pluginpath.at(0)));
+            settings.sync();
+        }
     }
 #endif
 
-    const char *infile = nullptr;
-    if (argc > 1) infile = argv[1];
+    QString infile;
+    QStringList args = parser.positionalArguments();
+    if (args.size() > 0) infile = args[0];
     LammpsGui w(nullptr, infile);
     w.show();
     return app.exec();

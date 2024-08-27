@@ -41,7 +41,6 @@
 
 #include <stdlib.h>
 
-
 liblammpsplugin_t *liblammpsplugin_load(const char *lib)
 {
   liblammpsplugin_t *lmp;

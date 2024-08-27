@@ -97,7 +97,8 @@ LammpsGui::LammpsGui(QWidget *parent, const QString &filename) :
     QSettings settings;
 
 #if defined(LAMMPS_GUI_USE_PLUGIN)
-    plugin_path = settings.value("plugin_path", "liblammps.so").toString();
+    plugin_path =
+        QFileInfo(settings.value("plugin_path", "liblammps.so").toString()).canonicalFilePath();
     if (!lammps.load_lib(plugin_path.toStdString().c_str())) {
         // fall back to defaults
         for (const char *libfile :

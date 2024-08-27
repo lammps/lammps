@@ -190,6 +190,9 @@ liblammpsplugin_t *liblammpsplugin_load(const char *lib)
   ADDSYM(is_running);
   ADDSYM(force_timeout);
 
+  // symbol not present
+  if (!lmp->config_has_exceptions) return NULL;
+
   lmp->has_exceptions = lmp->config_has_exceptions();
   if (lmp->has_exceptions) {
     ADDSYM(has_error);

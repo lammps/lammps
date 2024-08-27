@@ -17,6 +17,9 @@
 #include <QCommandLineOption>
 #include <QCommandLineParser>
 #include <QLocale>
+#include <QSettings>
+#include <QString>
+#include <QStringList>
 
 #include <cstdio>
 #include <cstring>
@@ -40,10 +43,26 @@ int main(int argc, char *argv[])
         "\nA graphical editor for LAMMPS input files with syntax highlighting and\n"
         "auto-completion that can run LAMMPS directly. It has built-in capabilities\n"
         "for monitoring, visualization, plotting, and capturing console output.");
+#if defined(LAMMPS_GUI_USE_PLUGIN)
+    QCommandLineOption plugindir(QStringList() << "p"
+                                               << "pluginpath",
+                                 "Path to LAMMPS shared library", "path");
+    parser.addOption(plugindir);
+#endif
+
     parser.addHelpOption();
     parser.addVersionOption();
     parser.addPositionalArgument("file", "The LAMMPS input file to open (optional).");
     parser.process(app); // this removes known arguments
+
+#if defined(LAMMPS_GUI_USE_PLUGIN)
+    if (parser.isSet(plugindir)) {
+        QString pluginpath = parser.value(plugindir);
+        QSettings settings;
+        settings.setValue("plugin_path", pluginpath);
+        settings.sync();
+    }
+#endif
 
     const char *infile = nullptr;
     if (argc > 1) infile = argv[1];

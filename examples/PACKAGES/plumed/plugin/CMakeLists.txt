@@ -40,17 +40,17 @@ elseif(CMAKE_SYSTEM_NAME STREQUAL "Windows")
     if(BUILD_MPI)
       if(USE_MSMPI)
         add_custom_target(package ${MAKENSIS_PATH} -V1 -DVERSION=${LAMMPS_VERSION}-MSMPI plumedplugin.nsis
-          DEPENDS plumedplugin
+          DEPENDS plumedplugin plumed_copy lammps.ico lammps-text-logo-wide.bmp plumedplugin.nsis
           BYPRODUCTS LAMMPS-PLUMED-plugin-${LAMMPS_VERSION}-MSMPI.exe)
       else()
         add_custom_target(package ${MAKENSIS_PATH} -V1 -DVERSION=${LAMMPS_VERSION}-MPI plumedplugin.nsis
-          DEPENDS plumedplugin
+          DEPENDS plumedplugin plumed_copy lammps.ico lammps-text-logo-wide.bmp plumedplugin.nsis
           BYPRODUCTS LAMMPS-PLUMED-plugin-${LAMMPS_VERSION}-MPI.exe)
       endif()
     else()
       add_custom_target(package ${MAKENSIS_PATH} -V1 -DVERSION=${LAMMPS_VERSION} plumedplugin.nsis
         COMMAND ${CMAKE_COMMAND} -E echo ${PWD}
-        DEPENDS plumedplugin lammps.ico lammps-text-logo-wide.bmp plumedplugin.nsis
+        DEPENDS plumedplugin plumed_copy lammps.ico lammps-text-logo-wide.bmp plumedplugin.nsis
         BYPRODUCTS LAMMPS-PLUMED-plugin-${LAMMPS_VERSION}.exe)
     endif()
   endif()

@@ -259,7 +259,7 @@ bigint ReaderNative::read_header(double box[3][3], int &boxinfo, int &triclinic,
     triclinic = 0;
     box[0][2] = box[1][2] = box[2][2] = 0.0;
     read_lines(1);
-    if (line[strlen("ITEM: BOX BOUNDS ")] == 'x') triclinic = 1;
+    if (utils::strmatch(line,"ITEM: BOX BOUNDS.*xy\\s+xz\\s+yz")) triclinic = 1;
 
     try {
       read_lines(1);

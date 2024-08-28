@@ -44,6 +44,7 @@ FixReaxFFBonds::FixReaxFFBonds(LAMMPS *lmp, int narg, char **arg) :
   ntypes = atom->ntypes;
   nmax = atom->nmax;
   compressed = 0;
+  first_flag = true;
 
   nevery = utils::inumeric(FLERR,arg[3],false,lmp);
 
@@ -94,7 +95,10 @@ int FixReaxFFBonds::setmask()
 
 void FixReaxFFBonds::setup(int /*vflag*/)
 {
-  end_of_step();
+  // only print output during setup() at the very beginning
+  // to avoid duplicate outputs when using multiple run statements
+  if (first_flag) end_of_step();
+  first_flag = false;
 }
 
 /* ---------------------------------------------------------------------- */

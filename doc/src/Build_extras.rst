@@ -1450,6 +1450,11 @@ in lib/pace or somewhere else, which must be done before building
 LAMMPS with this package. The code for the library can be found
 at: `https://github.com/ICAMS/lammps-user-pace/ <https://github.com/ICAMS/lammps-user-pace/>`_
 
+Instead of including the ML-PACE package directly into LAMMPS, it
+is also possible to skip this step and build the ML-PACE package as
+a plugin using the CMake script files in the ``examples/PACKAGE/pace/plugin``
+folder and then load this plugin at runtime with the :doc:`plugin command <plugin>`.
+
 .. tabs::
 
    .. tab:: CMake build
@@ -1613,6 +1618,11 @@ operating system and compiler environment. If one mode does not work,
 try a different one, switch to a different build system, consider a
 global PLUMED installation or consider downloading PLUMED during the
 LAMMPS build.
+
+Instead of including the PLUMED package directly into LAMMPS, it
+is also possible to skip this step and build the PLUMED package as
+a plugin using the CMake script files in the ``examples/PACKAGE/plumed/plugin``
+folder and then load this plugin at runtime with the :doc:`plugin command <plugin>`.
 
 .. tabs::
 

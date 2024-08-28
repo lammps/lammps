@@ -15,7 +15,7 @@ jobs:
   build:
     name: MacOS Unit Test
     if: ${{ github.repository == 'lammps/lammps' }}
-    runs-on: macos-latest
+    runs-on: macos-13
     env:
       CCACHE_DIR: ${{ github.workspace }}/.ccache
 
@@ -43,6 +43,8 @@ jobs:
       working-directory: build
       run: |
         ccache -z
+        python3 -m venv macosenv
+        source macosenv/bin/activate
         python3 -m pip install numpy
         python3 -m pip install pyyaml
         cmake -C ../cmake/presets/clang.cmake \

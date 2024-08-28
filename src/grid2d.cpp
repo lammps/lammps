@@ -23,6 +23,8 @@
 #include "memory.h"
 #include "pair.h"
 
+#include <cstring>
+
 using namespace LAMMPS_NS;
 
 #define DELTA 16
@@ -69,6 +71,11 @@ Grid2d::Grid2d(LAMMPS *lmp, MPI_Comm gcomm, int gnx, int gny) :
   shift_atom_lo = shift_atom_hi = 0.0;
   yextra = 0;
   yfactor = 1.0;
+
+  // layout_grid = how this grid instance is distributed across procs
+  // depends on comm->layout at time this Grid2d instance is created
+
+  layout_grid = comm->layout;
 }
 
 /* ----------------------------------------------------------------------
@@ -110,6 +117,11 @@ Grid2d::Grid2d(LAMMPS *lmp, MPI_Comm gcomm, int gnx, int gny, int ixlo, int ixhi
   outxhi = oxhi;
   outylo = oylo;
   outyhi = oyhi;
+
+  // layout_grid = how this grid instance is distributed across procs
+  // depends on comm->layout at time this Grid2d instance is created
+
+  layout_grid = comm->layout;
 
   // additional intialization
   // other constructor invokes this from setup_grid()
@@ -337,7 +349,7 @@ void Grid2d::setup_grid(int &ixlo, int &ixhi, int &iylo, int &iyhi, int &oxlo, i
 
   double fraclo, frachi;
 
-  if (comm->layout != Comm::LAYOUT_TILED) {
+  if (layout_grid != Comm::LAYOUT_TILED) {
     fraclo = comm->xsplit[comm->myloc[0]];
     frachi = comm->xsplit[comm->myloc[0] + 1];
     partition_grid(nx, fraclo, frachi, shift_grid, 0, inxlo, inxhi);
@@ -416,8 +428,8 @@ void Grid2d::initialize()
   recv_remap = nullptr;
 
   // store info about Comm decomposition needed for remap operation
-  // two Grid instances will exist for duration of remap
-  // each must know Comm decomp at time Grid instance was created
+  //   two Grid instances will exist for duration of remap
+  //   new Grid instance will then replace old one
 
   extract_comm_info();
 }
@@ -522,7 +534,7 @@ void Grid2d::ghost_grid()
   // also ensure no other procs use ghost cells beyond +y limit
 
   if (yextra) {
-    if (comm->layout != Comm::LAYOUT_TILED) {
+    if (layout_grid != Comm::LAYOUT_TILED) {
       if (comm->myloc[1] == comm->procgrid[1]-1) inyhi = outyhi = ny - 1;
     } else {
       if (comm->mysplit[1][1] == 1.0) inyhi = outyhi = ny - 1;
@@ -559,7 +571,7 @@ void Grid2d::extract_comm_info()
   // xyz split = copy of 1d vectors in Comm
   // grid2proc = copy of 3d array in Comm
 
-  if (comm->layout != Comm::LAYOUT_TILED) {
+  if (layout_grid != Comm::LAYOUT_TILED) {
     procxlo = comm->procneigh[0][0];
     procxhi = comm->procneigh[0][1];
     procylo = comm->procneigh[1][0];
@@ -583,7 +595,7 @@ void Grid2d::extract_comm_info()
   // RCBinfo.cut = this proc's inlo in that dim
   // Allgather creates the tree of dims and cuts
 
-  if (comm->layout == Comm::LAYOUT_TILED) {
+  if (layout_grid == Comm::LAYOUT_TILED) {
     rcbinfo = (RCBinfo *)
       memory->smalloc(nprocs*sizeof(RCBinfo),"grid3d:rcbinfo");
     RCBinfo rcbone;
@@ -613,7 +625,7 @@ void Grid2d::extract_comm_info()
 
 void Grid2d::setup_comm(int &nbuf1, int &nbuf2)
 {
-  if (comm->layout != Comm::LAYOUT_TILED) setup_comm_brick(nbuf1,nbuf2);
+  if (layout_grid != Comm::LAYOUT_TILED) setup_comm_brick(nbuf1,nbuf2);
   else setup_comm_tiled(nbuf1,nbuf2);
 }
 
@@ -1037,7 +1049,7 @@ void Grid2d::setup_comm_tiled(int &nbuf1, int &nbuf2)
 
 int Grid2d::ghost_adjacent()
 {
-  if (comm->layout != Comm::LAYOUT_TILED) return ghost_adjacent_brick();
+  if (layout_grid != Comm::LAYOUT_TILED) return ghost_adjacent_brick();
   return ghost_adjacent_tiled();
 }
 
@@ -1083,7 +1095,7 @@ int Grid2d::ghost_adjacent_tiled()
 void Grid2d::forward_comm(int caller, void *ptr, int which, int nper, int nbyte,
                           void *buf1, void *buf2, MPI_Datatype datatype)
 {
-  if (comm->layout != Comm::LAYOUT_TILED) {
+  if (layout_grid != Comm::LAYOUT_TILED) {
     if (caller == KSPACE)
       forward_comm_brick<KSpace>((KSpace *) ptr,which,nper,nbyte,
                                  buf1,buf2,datatype);
@@ -1188,7 +1200,7 @@ forward_comm_tiled(T *ptr, int which, int nper, int nbyte,
 void Grid2d::reverse_comm(int caller, void *ptr, int which, int nper, int nbyte,
                           void *buf1, void *buf2, MPI_Datatype datatype)
 {
-  if (comm->layout != Comm::LAYOUT_TILED) {
+  if (layout_grid != Comm::LAYOUT_TILED) {
     if (caller == KSPACE)
       reverse_comm_brick<KSpace>((KSpace *) ptr,which,nper,nbyte,
                                  buf1,buf2,datatype);
@@ -1648,7 +1660,7 @@ int Grid2d::compute_overlap(int ghostflag, int *box, int *pbc, Overlap *&overlap
 
   // test obox against appropriate layout
 
-  if (comm->layout != Comm::LAYOUT_TILED) {
+  if (layout_grid != Comm::LAYOUT_TILED) {
 
     // find comm->procgrid indices in each dim for box bounds
 
@@ -1712,7 +1724,7 @@ void Grid2d::clean_overlap()
 /* ----------------------------------------------------------------------
    recursively split a box until it doesn't overlap any periodic boundaries
    box = 4 integers = (xlo,xhi,ylo,yhi)
-     each lo/hi value may extend beyonw 0 to N-1 into another periodic image
+     each lo/hi value may extend beyond 0 to N-1 into another periodic image
    pbc = flags in each dim of which periodic image the caller box was in
    when a box straddles a periodic bounadry, split it in two
    when a box does not straddle, drop it down RCB tree

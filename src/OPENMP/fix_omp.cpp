@@ -167,6 +167,10 @@ void FixOMP::init()
   // adjust number of data objects when the number of OpenMP
   // threads has been changed somehow
   const int nthreads = comm->nthreads;
+#if defined(_OPENMP)
+  // make certain threads are initialized correctly. avoids segfaults with LAMMPS-GUI
+  if (nthreads != omp_get_max_threads()) omp_set_num_threads(nthreads);
+#endif
   if (_nthr != nthreads) {
     if (comm->me == 0)
       utils::logmesg(lmp,"Re-init OPENMP for {} OpenMP thread(s)\n", nthreads);
@@ -226,7 +230,8 @@ void FixOMP::init()
   check_hybrid = 0;                                                     \
   if (force->name) {                                                    \
     if ( (strcmp(force->name ## _style,"hybrid") == 0) ||               \
-         (strcmp(force->name ## _style,"hybrid/overlay") == 0) )        \
+         (strcmp(force->name ## _style,"hybrid/overlay") == 0) ||       \
+         (strcmp(force->name ## _style,"hybrid/scaled") == 0) )         \
       check_hybrid=1;                                                   \
     if (force->name->suffix_flag & Suffix::OMP) {                       \
       last_force_name = (const char *) #name;                           \

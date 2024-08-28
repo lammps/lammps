@@ -1,5 +1,10 @@
 # Plumed2 support for PLUMED package
 
+# set policy to silence warnings about timestamps of downloaded files. review occasionally if it may be set to NEW
+if(POLICY CMP0135)
+  cmake_policy(SET CMP0135 OLD)
+endif()
+
 if(BUILD_MPI)
   set(PLUMED_CONFIG_MPI "--enable-mpi")
   set(PLUMED_CONFIG_CC  ${CMAKE_MPI_C_COMPILER})
@@ -21,9 +26,11 @@ else()
   set(PLUMED_CONFIG_OMP "--disable-openmp")
 endif()
 
-set(PLUMED_URL "https://github.com/plumed/plumed2/releases/download/v2.8.2/plumed-src-2.8.2.tgz"
+# Note: must also adjust check for supported API versions in
+# fix_plumed.cpp when version changes from v2.n.x to v2.n+1.y
+set(PLUMED_URL "https://github.com/plumed/plumed2/releases/download/v2.9.1/plumed-src-2.9.1.tgz"
   CACHE STRING "URL for PLUMED tarball")
-set(PLUMED_MD5 "599092b6a0aa6fff992612537ad98994" CACHE STRING "MD5 checksum of PLUMED tarball")
+set(PLUMED_MD5 "c3b2d31479c1e9ce211719d40e9efbd7" CACHE STRING "MD5 checksum of PLUMED tarball")
 
 mark_as_advanced(PLUMED_URL)
 mark_as_advanced(PLUMED_MD5)
@@ -75,6 +82,9 @@ if((CMAKE_SYSTEM_NAME STREQUAL "Windows") AND (CMAKE_CROSSCOMPILING))
     DEPENDS plumed_build
     COMMENT "Copying Plumed files"
   )
+  if(CMAKE_PROJECT_NAME STREQUAL "lammps")
+    target_link_libraries(lammps INTERFACE LAMMPS::PLUMED)
+  endif()
 
 else()
 
@@ -149,6 +159,9 @@ else()
     endif()
     set_target_properties(LAMMPS::PLUMED PROPERTIES INTERFACE_INCLUDE_DIRECTORIES ${INSTALL_DIR}/include)
     file(MAKE_DIRECTORY ${INSTALL_DIR}/include)
+    if(CMAKE_PROJECT_NAME STREQUAL "lammps")
+      target_link_libraries(lammps PRIVATE LAMMPS::PLUMED)
+    endif()
   else()
     find_package(PkgConfig REQUIRED)
     pkg_check_modules(PLUMED REQUIRED plumed)
@@ -163,7 +176,9 @@ else()
     endif()
     set_target_properties(LAMMPS::PLUMED PROPERTIES INTERFACE_LINK_LIBRARIES "${PLUMED_LOAD}")
     set_target_properties(LAMMPS::PLUMED PROPERTIES INTERFACE_INCLUDE_DIRECTORIES "${PLUMED_INCLUDE_DIRS}")
+    if(CMAKE_PROJECT_NAME STREQUAL "lammps")
+      target_link_libraries(lammps PUBLIC LAMMPS::PLUMED)
+    endif()
   endif()
 endif()
 
-target_link_libraries(lammps PRIVATE LAMMPS::PLUMED)

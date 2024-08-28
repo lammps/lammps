@@ -869,6 +869,17 @@ void Variable::purge_atomfile()
 }
 
 /* ----------------------------------------------------------------------
+   called by "clear" command to reset all "in_progress" state variables
+   to avoid spurious "variable has circular dependency" issues
+------------------------------------------------------------------------- */
+
+void Variable::clear_in_progress()
+{
+  for (int i = 0; i < nvar; ++i)
+    eval_in_progress[i] = 0;
+}
+
+/* ----------------------------------------------------------------------
    called by python command in input script
    simply pass input script line args to Python class
 ------------------------------------------------------------------------- */
@@ -1606,8 +1617,6 @@ double Variable::evaluate(char *str, Tree **tree, int ivar)
             print_var_error(FLERR,"Compute global vector in equal-style variable formula",ivar);
           if (treetype == ATOM)
             print_var_error(FLERR,"Compute global vector in atom-style variable formula",ivar);
-          if (compute->size_array_rows == 0)
-            print_var_error(FLERR,"Variable formula compute array is zero length",ivar);
           if (!compute->is_initialized())
             print_var_error(FLERR,"Variable formula compute cannot be invoked before "
                             "initialization by a run",ivar);
@@ -1615,6 +1624,10 @@ double Variable::evaluate(char *str, Tree **tree, int ivar)
             compute->compute_array();
             compute->invoked_flag |= Compute::INVOKED_ARRAY;
           }
+          // wait until after compute invocation to check size_array_rows
+          // b/c may be zero until after initial invocation
+          if (compute->size_array_rows == 0)
+            print_var_error(FLERR,"Variable formula compute array is zero length",ivar);
 
           auto newtree = new Tree();
           newtree->type = VECTORARRAY;

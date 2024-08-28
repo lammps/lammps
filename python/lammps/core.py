@@ -334,8 +334,8 @@ class lammps(object):
     if self.has_mpi_support:
       try:
         from mpi4py import __version__ as mpi4py_version
-        # tested to work with mpi4py versions 2 and 3
-        self.has_mpi4py = mpi4py_version.split('.')[0] in ['2','3']
+        # tested to work with mpi4py versions 2, 3, and 4
+        self.has_mpi4py = mpi4py_version.split('.')[0] in ['2','3','4']
       except ImportError:
         # ignore failing import
         pass
@@ -361,7 +361,7 @@ class lammps(object):
         if not self.has_mpi_support:
           raise Exception('LAMMPS not compiled with real MPI library')
         if not self.has_mpi4py:
-          raise Exception('Python mpi4py version is not 2 or 3')
+          raise Exception('Python mpi4py version is not 2, 3, or 4')
         if self.MPI._sizeof(self.MPI.Comm) == sizeof(c_int):
           MPI_Comm = c_int
         else:
@@ -374,12 +374,16 @@ class lammps(object):
         narg = 0
         cargs = None
         if cmdargs is not None:
-          cmdargs.insert(0,"lammps")
-          narg = len(cmdargs)
-          for i in range(narg):
-            if type(cmdargs[i]) is str:
-              cmdargs[i] = cmdargs[i].encode()
-          cargs = (c_char_p*(narg+1))(*cmdargs)
+          myargs = ["lammps".encode()]
+          narg = len(cmdargs) + 1
+          for arg in cmdargs:
+            if type(arg) is str:
+              myargs.append(arg.encode())
+            elif type(arg) is bytes:
+              myargs.append(arg)
+            else:
+              raise TypeError('Unsupported cmdargs type ', type(arg))
+          cargs = (c_char_p*(narg+1))(*myargs)
           cargs[narg] = None
           self.lib.lammps_open.argtypes = [c_int, c_char_p*(narg+1), MPI_Comm, c_void_p]
         else:
@@ -395,12 +399,16 @@ class lammps(object):
           self.comm = self.MPI.COMM_WORLD
         self.opened = 1
         if cmdargs is not None:
-          cmdargs.insert(0,"lammps")
-          narg = len(cmdargs)
-          for i in range(narg):
-            if type(cmdargs[i]) is str:
-              cmdargs[i] = cmdargs[i].encode()
-          cargs = (c_char_p*(narg+1))(*cmdargs)
+          myargs = ["lammps".encode()]
+          narg = len(cmdargs) + 1
+          for arg in cmdargs:
+            if type(arg) is str:
+              myargs.append(arg.encode())
+            elif type(arg) is bytes:
+              myargs.append(arg)
+            else:
+              raise TypeError('Unsupported cmdargs type ', type(arg))
+          cargs = (c_char_p*(narg+1))(*myargs)
           cargs[narg] = None
           self.lib.lammps_open_no_mpi.argtypes = [c_int, c_char_p*(narg+1), c_void_p]
           self.lmp = c_void_p(self.lib.lammps_open_no_mpi(narg,cargs,None))

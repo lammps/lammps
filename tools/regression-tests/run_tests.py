@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 '''
-UPDATE: August 13, 2024:
+UPDATE: August 28, 2024:
   Launching the LAMMPS binary under testing using a configuration defined in a yaml file (e.g. config.yaml).
   Comparing the output thermo with that in the existing log file (with the same nprocs)
     + data in the log files are extracted and converted into yaml data structure
@@ -13,6 +13,8 @@ With the current features, users can:
     + specify tolerances for individual quantities for any input script to override the global values
     + launch tests with `mpirun` with all supported command line features (multiple procs, multiple paritions, and suffices)
     + skip certain input files (whose names match specified patterns) if not interested, or packaged not installed, or no reference log file exists
+    + set a timeout for every input script run if they may take too long
+    + skip numerical checks if the goal is just to check if the runs do not fail
     + simplify the main LAMMPS builds, as long as a LAMMPS binary is available
     + keep track of the testing progress to resume the testing from the last checkpoint (skipping completed runs)
     + distribute the input list across multiple processes via multiprocessing, or
@@ -49,16 +51,10 @@ Example usage:
                 --list-subfolders=list_subfolders1.txt --output-file=output1.txt --progress-file=progress1.yaml \
                 --log-file=run1.log
 
-    4) Specify a list of example input scripts
+    4) Specify a list of example input scripts (e.g. obtained from running tools/regression-tests/get-quick-list.py)
             python3 run_tests.py --lmp-bin=/path/to/lmp_binary --config-file=/path/to/config/file/config.yaml \
-                --list-input=input-list-1.txt --output-file=output1.txt --progress-file=progress1.yaml \
-                --log-file=run1.log
-
-       The example subfolders can also be loaded from a text file list_subfolders1.txt:
-           python3 run_tests.py --lmp-bin=/path/to/lmp_binary --config-file=/path/to/config/file/config.yaml \
-                --list-subfolders=list_subfolders1.txt --output-file=output1.txt --progress-file=progress1.yaml \
-                --log-file=run1.log
-          
+                --list-input=input_list.txt
+        
     5) Test a LAMMPS binary with the whole top-level /examples folder in a LAMMPS source tree
            python3 run_tests.py --lmp-bin=/path/to/lmp_binary --examples-top-level=/path/to/lammps/examples
 
@@ -248,7 +244,8 @@ def iterate(lmp_binary, input_folder, input_list, config, results, progress_file
             if fnmatch.fnmatch(file, pattern):
                 p = file.rsplit('.', 1)
                 if p[1].isnumeric():
-                    if use_valgrind == True:
+                    # if using valgrind or running in serial, then use the log file with 1 proc
+                    if use_valgrind == True or config['mpiexec'] == "":
                         if int(p[1]) == 1:
                             max_np = int(p[1])
                             ref_logfile_exist = True
@@ -263,10 +260,11 @@ def iterate(lmp_binary, input_folder, input_list, config, results, progress_file
         # if there is no ref log file and not running with valgrind
         if ref_logfile_exist == False and use_valgrind == False:
             max_np = 4
-    
-        # if the maximum number of procs is different from the value in the configuration file
-        #      then override the setting for this input script
+     
         saved_nprocs = config['nprocs']
+        
+        # if the maximum number of procs is different from the value in the configuration file
+        #      then override the setting for this particular input script
         if max_np != int(config['nprocs']):
             config['nprocs'] = str(max_np)
 
@@ -318,6 +316,41 @@ def iterate(lmp_binary, input_folder, input_list, config, results, progress_file
             test_id = test_id + 1
             continue
 
+        # check if a log.lammps file exists in the current folder
+        if os.path.isfile("log.lammps") == False:
+            logger.info(f"    ERROR: No log.lammps generated with {input_test} with return code {returncode}.\n")
+            logger.info(f"    Output:")
+            logger.info(f"    {output}")
+            logger.info(f"    Error:\n{error}")
+            progress.write(f"{input}: {{ folder: {input_folder}, status: \"error, no log.lammps\" }}\n")
+            progress.close()
+            num_error = num_error + 1
+            test_id = test_id + 1
+            continue
+        else:
+            # save a copy of the log file for further inspection
+            cmd_str = f"cp log.lammps log.{basename}.{nprocs}"
+            p = subprocess.run(cmd_str, shell=True, text=True, capture_output=True)
+
+        # if skip numerical checks, then skip the rest
+        if skip_numerical_check == True:
+            msg = "completed, skipping numerical checks"           
+            if use_valgrind == True:
+                if "All heap blocks were freed" in error:
+                    msg += ", no memory leak"
+                else:
+                    msg += ", memory leaks detected"
+                    num_memleak = num_memleak + 1
+            result.status = msg
+            results.append(result)
+            progress.write(f"{input}: {{ folder: {input_folder}, status: \"{msg}\" }}\n")
+            progress.close()
+
+            # count the number of completed runs
+            num_completed = num_completed + 1
+            test_id = test_id + 1
+            continue
+
         # if there is no ERROR in the output, but there is no Total wall time printed out
         if "Total wall time" not in output:
             logger.info(f"     ERROR: no Total wall time in the output.\n")
@@ -341,22 +374,6 @@ def iterate(lmp_binary, input_folder, input_list, config, results, progress_file
             num_error = num_error + 1
             test_id = test_id + 1
             continue
-
-        # check if a log.lammps file exists in the current folder
-        if os.path.isfile("log.lammps") == False:
-            logger.info(f"    ERROR: No log.lammps generated with {input_test} with return code {returncode}.\n")
-            logger.info(f"    Output:")
-            logger.info(f"    {output}")
-            logger.info(f"    Error:\n{error}")
-            progress.write(f"{input}: {{ folder: {input_folder}, status: \"error, no log.lammps\" }}\n")
-            progress.close()
-            num_error = num_error + 1
-            test_id = test_id + 1
-            continue
-        else:
-            # save a copy of the log file for further inspection
-            cmd_str = f"cp log.lammps log.{basename}.{nprocs}"
-            p = subprocess.run(cmd_str, shell=True, text=True, capture_output=True)
 
         # parse thermo output in log.lammps from the run
         thermo = extract_data_to_yaml("log.lammps")
@@ -724,9 +741,12 @@ def get_lammps_build_configuration(lmp_binary):
 '''
 def execute(lmp_binary, config, input_file_name, generate_ref_yaml=False):
     cmd_str = ""
+    # check if mpiexec/mpirun is used
     if config['mpiexec']:
         cmd_str += config['mpiexec'] + " " + config['mpiexec_numproc_flag'] + " " + config['nprocs'] + " "
+
     cmd_str += lmp_binary + " -in " + input_file_name + " " + config['args']
+
     logger.info(f"     Executing: {cmd_str}")
     # set a timeout (in seconds) for each run
     timeout = 60
@@ -739,7 +759,7 @@ def execute(lmp_binary, config, input_file_name, generate_ref_yaml=False):
         return cmd_str, p.stdout, p.stderr, p.returncode
 
     except subprocess.TimeoutExpired:
-        msg = f"     Timeout for {cmd_str} ({timeout} s) expired"
+        msg = f"     Timeout for: {cmd_str} ({timeout}s expired)"
         logger.info(msg)
         print(msg)
 
@@ -886,6 +906,8 @@ if __name__ == "__main__":
     parser.add_argument("--progress-file",dest="progress_file", default=progress_file, help="Progress file")
     parser.add_argument("--analyze",dest="analyze", action='store_true', default=False,
                         help="Analyze the testing folders and report statistics, not running the tests")
+    parser.add_argument("--skip-numerical-check",dest="skip_numerical_check", action='store_true', default=False,
+                        help="Generating reference data")
 
     args = parser.parse_args()
 
@@ -907,6 +929,7 @@ if __name__ == "__main__":
     verbose = args.verbose
     log_file = args.logfile
     analyze = args.analyze
+    skip_numerical_check = args.skip_numerical_check
     resume = args.resume
     progress_file = args.progress_file
 

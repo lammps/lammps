@@ -93,7 +93,7 @@ jobs:
     - name: Upload artifacts
       uses: actions/upload-artifact@v4
       with:
-        name: full-regression-test-artifact
+        name: full-regression-test-artifact-${{ matrix.idx }}
         path: full-regression-test-${{ matrix.idx }}.tar
 
   merge:

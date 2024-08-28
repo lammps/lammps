@@ -95,5 +95,14 @@ jobs:
       with:
         name: full-regression-test-artifact
         path: full-regression-test-${{ matrix.idx }}.tar
-    
+
+  merge:
+    runs-on: ubuntu-latest
+    needs: build
+    steps:
+      - name: Merge Artifacts
+        uses: actions/upload-artifact/merge@v4
+        with:
+          name: merged-full-regresssion-artifact
+          pattern: full-regression-test-*.tar
 

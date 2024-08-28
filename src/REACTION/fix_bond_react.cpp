@@ -3693,7 +3693,6 @@ int FixBondReact::insert_atoms_setup(tagint **my_update_mega_glove, int iupdate)
   imageint *imageflags;
   double **coords,lamda[3],rotmat[3][3];
   double *newcoord;
-  double **v = atom->v;
   double t,delx,dely,delz,rsq;
 
   memory->create(coords,twomol->natoms,3,"bond/react:coords");
@@ -3709,12 +3708,11 @@ int FixBondReact::insert_atoms_setup(tagint **my_update_mega_glove, int iupdate)
   }
 
   // find current max atom and molecule IDs
-  tagint *tag = atom->tag;
   double **x = atom->x;
   tagint *molecule = atom->molecule;
   int nlocal = atom->nlocal;
 
-  tagint maxmol_all;
+  tagint maxmol_all = 0;;
   for (int i = 0; i < nlocal; i++) maxmol_all = MAX(maxmol_all,molecule[i]);
   MPI_Allreduce(MPI_IN_PLACE,&maxmol_all,1,MPI_LMP_TAGINT,MPI_MAX,world);
 

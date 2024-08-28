@@ -20,6 +20,7 @@
 #include <QApplication>
 #include <QClipboard>
 #include <QDir>
+#include <QDoubleValidator>
 #include <QFile>
 #include <QFileDialog>
 #include <QFileInfo>
@@ -31,6 +32,7 @@
 #include <QImageReader>
 #include <QKeySequence>
 #include <QLabel>
+#include <QLineEdit>
 #include <QMenu>
 #include <QMenuBar>
 #include <QPalette>
@@ -135,9 +137,10 @@ static const QString blank(" ");
 
 ImageViewer::ImageViewer(const QString &fileName, LammpsWrapper *_lammps, QWidget *parent) :
     QDialog(parent), menuBar(new QMenuBar), imageLabel(new QLabel), scrollArea(new QScrollArea),
-    saveAsAct(nullptr), copyAct(nullptr), cmdAct(nullptr), zoomInAct(nullptr), zoomOutAct(nullptr),
-    normalSizeAct(nullptr), lammps(_lammps), group("all"), filename(fileName), useelements(false),
-    usediameter(false), usesigma(false)
+    buttonBox(nullptr), scaleFactor(1.0), atomSize(1.0), saveAsAct(nullptr), copyAct(nullptr),
+    cmdAct(nullptr), zoomInAct(nullptr), zoomOutAct(nullptr), normalSizeAct(nullptr),
+    lammps(_lammps), group("all"), filename(fileName), useelements(false), usediameter(false),
+    usesigma(false)
 {
     imageLabel->setBackgroundRole(QPalette::Base);
     imageLabel->setSizePolicy(QSizePolicy::Ignored, QSizePolicy::Ignored);
@@ -163,6 +166,13 @@ ImageViewer::ImageViewer(const QString &fileName, LammpsWrapper *_lammps, QWidge
     renderstatus->setEnabled(false);
     renderstatus->setToolTip("Render status");
     renderstatus->setObjectName("renderstatus");
+    auto *asize = new QLineEdit(QString::number(atomSize));
+    auto *valid = new QDoubleValidator(1.0e-10, 1.0e10, 10, asize);
+    asize->setValidator(valid);
+    asize->setObjectName("atomSize");
+    asize->setToolTip("Set Atom size");
+    asize->setEnabled(false);
+    asize->hide();
     settings.beginGroup("snapshot");
     auto *xval = new QSpinBox;
     xval->setRange(100, 10000);
@@ -179,6 +189,7 @@ ImageViewer::ImageViewer(const QString &fileName, LammpsWrapper *_lammps, QWidge
     yval->setToolTip("Set rendered image height");
     yval->setMinimumSize(bsize);
     settings.endGroup();
+    connect(asize, &QLineEdit::editingFinished, this, &ImageViewer::set_atom_size);
     connect(xval, &QAbstractSpinBox::editingFinished, this, &ImageViewer::edit_size);
     connect(yval, &QAbstractSpinBox::editingFinished, this, &ImageViewer::edit_size);
 
@@ -249,6 +260,11 @@ ImageViewer::ImageViewer(const QString &fileName, LammpsWrapper *_lammps, QWidge
 
     menuLayout->addWidget(menuBar);
     menuLayout->addWidget(renderstatus);
+    menuLayout->addWidget(new QLabel(" Atom Size: "));
+    menuLayout->addWidget(asize);
+    // hide item initially
+    menuLayout->itemAt(2)->widget()->setObjectName("AtomLabel");
+    menuLayout->itemAt(2)->widget()->hide();
     menuLayout->addWidget(new QLabel(" Width: "));
     menuLayout->addWidget(xval);
     menuLayout->addWidget(new QLabel(" Height: "));
@@ -307,7 +323,7 @@ ImageViewer::ImageViewer(const QString &fileName, LammpsWrapper *_lammps, QWidge
     doanti->setChecked(antialias);
 
     scaleFactor = 1.0;
-    resize(image.width() + 20, image.height() + 75);
+    resize(image.width() + 25, image.height() + 80);
 
     scrollArea->setVisible(true);
     updateActions();
@@ -353,6 +369,13 @@ void ImageViewer::reset_view()
     if (button) button->setChecked(showaxes);
     auto *cb = findChild<QComboBox *>("combo");
     if (cb) cb->setCurrentText("all");
+    createImage();
+}
+
+void ImageViewer::set_atom_size()
+{
+    auto *field = qobject_cast<QLineEdit *>(sender());
+    atomSize    = field->text().toDouble();
     createImage();
 }
 
@@ -560,10 +583,43 @@ void ImageViewer::createImage()
     if (useelements || usediameter || usesigma) {
         auto *button = findChild<QPushButton *>("vdw");
         if (button) button->setEnabled(true);
+        auto *edit = findChild<QLineEdit *>("atomSize");
+        if (edit) {
+            edit->setEnabled(false);
+            edit->hide();
+        }
+        auto *label = findChild<QLabel *>("AtomLabel");
+        if (label) {
+            label->setEnabled(false);
+            label->hide();
+        }
+
     } else {
         adiams.clear();
         auto *button = findChild<QPushButton *>("vdw");
         if (button) button->setEnabled(false);
+
+        auto *label = findChild<QLabel *>("AtomLabel");
+        if (label) {
+            label->setEnabled(true);
+            label->show();
+        }
+        auto *edit = findChild<QLineEdit *>("atomSize");
+        if (edit) {
+            if (!edit->isEnabled()) {
+                edit->setEnabled(true);
+                edit->show();
+                // initialize with lattice spacing
+                auto *xlattice = (const double *)lammps->extract_global("xlattice");
+                if (xlattice) atomSize = *xlattice;
+                edit->setText(QString::number(atomSize));
+            }
+            atomSize = edit->text().toDouble();
+        }
+        if (atomSize != 1.0) {
+            for (int i = 1; i <= ntypes; ++i)
+                adiams += QString("adiam %1 %2 ").arg(i).arg(atomSize);
+        }
     }
 
     // color
@@ -607,6 +663,7 @@ void ImageViewer::createImage()
     dumpcmd += " backcolor " + settings.value("background", "black").toString();
     if (useelements) dumpcmd += blank + elements + blank + adiams + blank;
     if (usesigma) dumpcmd += blank + adiams + blank;
+    if (!useelements && !usesigma && (atomSize != 1.0)) dumpcmd += blank + adiams + blank;
     settings.endGroup();
 
     last_dump_cmd = dumpcmd;
@@ -617,10 +674,10 @@ void ImageViewer::createImage()
     const QImage newImage = reader.read();
     dumpfile.remove();
 
-    // read of new image failed. Don't try to scale and load it.
+    // read of new image failed. nothing left to do.
     if (newImage.isNull()) return;
 
-    // scale back to achieve antialiasing
+    // show show image
     image = newImage;
     imageLabel->setPixmap(QPixmap::fromImage(image));
     imageLabel->adjustSize();

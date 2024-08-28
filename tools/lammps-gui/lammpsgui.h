@@ -68,7 +68,7 @@ class LammpsGui : public QMainWindow {
     friend class Tutorial2Wizard;
 
 public:
-    LammpsGui(QWidget *parent = nullptr, const char *filename = nullptr);
+    LammpsGui(QWidget *parent = nullptr, const QString &filename = QString());
     ~LammpsGui() override;
 
 protected:
@@ -115,6 +115,7 @@ private slots:
     void paste();
     void undo();
     void redo();
+    void findandreplace();
     void run_buffer() { do_run(true); }
     void run_file() { do_run(false); }
 
@@ -171,7 +172,7 @@ private:
     LammpsWrapper lammps;
     LammpsRunner *runner;
     QString docver;
-    std::string plugin_path;
+    QString plugin_path;
     bool is_running;
     int run_counter;
     std::vector<char *> lammps_args;

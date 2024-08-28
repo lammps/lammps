@@ -92,6 +92,8 @@ jobs:
 
     - name: Upload artifacts
       uses: actions/upload-artifact@v4
-
+      with:
+        name: full-regression-test-artifact
+        path: full-regression-test-*.tar
     
 

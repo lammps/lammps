@@ -76,11 +76,6 @@ LammpsGui::LammpsGui(QWidget *parent, const QString &filename) :
     prefdialog(nullptr), lammpsstatus(nullptr), varwindow(nullptr), wizard(nullptr),
     runner(nullptr), is_running(false), run_counter(0)
 {
-#if QT_VERSION < QT_VERSION_CHECK(6, 0, 0)
-    // register QList<QString> only needed for Qt5
-    qRegisterMetaTypeStreamOperators<QList<QString>>("QList<QString>");
-#endif
-
     docver = "";
     ui->setupUi(this);
     this->setCentralWidget(ui->textEdit);

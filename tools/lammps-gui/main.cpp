@@ -30,6 +30,11 @@
 int main(int argc, char *argv[])
 {
     Q_INIT_RESOURCE(lammpsgui);
+#if QT_VERSION < QT_VERSION_CHECK(6, 0, 0)
+    // register QList<QString> only needed for Qt5
+    qRegisterMetaTypeStreamOperators<QList<QString>>("QList<QString>");
+#endif
+
     QApplication app(argc, argv);
     // enforce using the plain ASCII C locale within the GUI.
     QLocale::setDefault(QLocale::c());

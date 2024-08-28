@@ -88,8 +88,13 @@ jobs:
                --progress-file=progress-${{ matrix.idx }}.yaml \
                --log-file=run-${{ matrix.idx }}.log
 
+        tar -cvf full-regression-test.tar run*.log progress*.yaml output*.xml
+
     - name: Upload artifacts
       uses: actions/upload-artifact@v4
+      with:
+        name: full-regression-test-artifact
+        path: full-regression-test.tar
 
     
 

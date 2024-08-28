@@ -34,10 +34,11 @@ Syntax
        *ellipsoid* args = x y z a b c
          x,y,z = center of ellipsoid (distance units)
          a,b,c = half the length of the principal axes of the ellipsoid (distance units)
-           x,y,z,a,b and c can be a variable (see below)
+         x,y,z,a,b and c can be a variable (see below)
        *plane* args = px py pz nx ny nz
          px,py,pz = point on the plane (distance units)
          nx,ny,nz = direction normal to plane (distance units)
+         px,py,pz can be a variable
        *prism* args = xlo xhi ylo yhi zlo zhi xy xz yz
          xlo,xhi,ylo,yhi,zlo,zhi = bounds of untilted prism (distance units)
          xy = distance to tilt y in x direction (distance units)
@@ -46,7 +47,7 @@ Syntax
        *sphere* args = x y z radius
          x,y,z = center of sphere (distance units)
          radius = radius of sphere (distance units)
-           x,y,z, and radius can be a variable (see below)
+         x,y,z, and radius can be a variable (see below)
        *union* args = N reg-ID1 reg-ID2 ...
          N = # of regions to follow, must be 2 or greater
          reg-ID1,reg-ID2, ... = IDs of regions to join together
@@ -203,12 +204,13 @@ and with radius as its radius.
 
 The *radius* value for styles *sphere* and *cylinder*, and the
 parameters a,b,c for style *ellipsoid*, can each be specified as an
-equal-style :doc:`variable <variable>`.  Likewise, for style *sphere*
+equal-style :doc:`variable <variable>`. Likewise, for style *sphere*
 and *ellipsoid* the x-, y-, and z- coordinates of the center of the
-sphere/ellipsoid can be specified as an equal-style variable.  And for
+sphere/ellipsoid can be specified as an equal-style variable. And for
 style *cylinder* the two center positions c1 and c2 for the location
 of the cylinder axes can be specified as a equal-style variable. For style *cone*
-all properties can be defined via equal-style variables.
+all properties can be defined via equal-style variables. For style *plane* 
+the point can be defined via equal-style variables.
 
 If the value is a variable, it should be specified as v_name, where
 name is the variable name.  In this case, the variable will be

@@ -104,5 +104,5 @@ jobs:
         uses: actions/upload-artifact/merge@v4
         with:
           name: merged-full-regresssion-artifact
-          pattern: full-regression-test-*.tar
+          pattern: full-regression-test-artifact-*
 

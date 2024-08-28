@@ -98,7 +98,7 @@ Section "${PLUMEDPLUGIN}" SecPlumedplugin
   File plumedplugin.so
 
   SetOutPath "$INSTDIR\bin"
-  File /r *.exe
+  File plumed.exe
 
   # Register Application and its uninstaller
   WriteRegStr HKCU "Software\Microsoft\Windows\CurrentVersion\Uninstall\LAMMPS-PLUMED" \

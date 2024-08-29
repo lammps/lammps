@@ -638,10 +638,10 @@ void KokkosLMP::accelerator(int narg, char **arg)
    called by Finish
 ------------------------------------------------------------------------- */
 
-int KokkosLMP::neigh_count(int m)
+bigint KokkosLMP::neigh_count(int m)
 {
   int inum = 0;
-  int nneigh = 0;
+  bigint nneigh = 0;
 
   ArrayTypes<LMPHostType>::t_int_1d h_ilist;
   ArrayTypes<LMPHostType>::t_int_1d h_numneigh;

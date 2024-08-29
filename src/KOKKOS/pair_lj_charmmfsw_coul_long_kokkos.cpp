@@ -13,7 +13,7 @@
 ------------------------------------------------------------------------- */
 
 /* ----------------------------------------------------------------------
-   Contributing author: Mitch Murphy (alphataubio)
+   Contributing author: Mitch Murphy (alphataubio@gmail.com)
 
    Based on serial kspace lj-fsw sections (force-switched) provided by
    Robert Meissner and Lucio Colombi Ciacchi of Bremen University, Germany,
@@ -463,7 +463,6 @@ double PairLJCharmmfswCoulLongKokkos<DeviceType>::init_one(int i, int j)
   k_params.h_view(i,j).lj2 = lj2[i][j];
   k_params.h_view(i,j).lj3 = lj3[i][j];
   k_params.h_view(i,j).lj4 = lj4[i][j];
-  //k_params.h_view(i,j).offset = offset[i][j];
   k_params.h_view(i,j).cut_ljsq = cut_ljsq;
   k_params.h_view(i,j).cut_coulsq = cut_coulsq;
 

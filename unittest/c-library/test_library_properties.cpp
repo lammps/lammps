@@ -7,6 +7,7 @@
 #include "lmptype.h"
 #include "platform.h"
 #include <string>
+#include <vector>
 
 #include "gmock/gmock.h"
 #include "gtest/gtest.h"
@@ -418,7 +419,7 @@ TEST_F(LibraryProperties, global)
     EXPECT_EQ(map_style, Atom::MAP_ARRAY);
     EXPECT_NE(sametag, nullptr);
 
-    auto *tags        = (tagint *)lammps_extract_atom(lmp, "id");
+    auto *tags              = (tagint *)lammps_extract_atom(lmp, "id");
     const tagint sometags[] = {1, 5, 10, 15, 20};
     for (const auto &sometag : sometags) {
         int idx = lammps_map_atom(lmp, (const void *)&sometag);
@@ -465,6 +466,81 @@ TEST_F(LibraryProperties, global)
     if (!verbose) ::testing::internal::GetCapturedStdout();
     map_style = *(int *)lammps_extract_global(lmp, "map_style");
     EXPECT_EQ(map_style, Atom::MAP_ARRAY);
+
+    EXPECT_EQ(lammps_extract_global_datatype(lmp, "xlattice"), LAMMPS_DOUBLE);
+    EXPECT_EQ(lammps_extract_global_datatype(lmp, "ylattice"), LAMMPS_DOUBLE);
+    EXPECT_EQ(lammps_extract_global_datatype(lmp, "zlattice"), LAMMPS_DOUBLE);
+    auto *xlattice   = (double *)lammps_extract_global(lmp, "xlattice");
+    auto *ylattice   = (double *)lammps_extract_global(lmp, "ylattice");
+    auto *zlattice   = (double *)lammps_extract_global(lmp, "zlattice");
+    EXPECT_NE(xlattice, nullptr);
+    EXPECT_NE(ylattice, nullptr);
+    EXPECT_NE(zlattice, nullptr);
+    EXPECT_DOUBLE_EQ(*xlattice, 1.0);
+    EXPECT_DOUBLE_EQ(*ylattice, 1.0);
+    EXPECT_DOUBLE_EQ(*zlattice, 1.0);
+    if (!verbose) ::testing::internal::CaptureStdout();
+    lammps_command(lmp, "clear");
+    lammps_command(lmp, "units real");
+    lammps_command(lmp, "lattice fcc 2.0");
+    if (!verbose) ::testing::internal::GetCapturedStdout();
+    xlattice   = (double *)lammps_extract_global(lmp, "xlattice");
+    ylattice   = (double *)lammps_extract_global(lmp, "ylattice");
+    zlattice   = (double *)lammps_extract_global(lmp, "zlattice");
+    EXPECT_NE(xlattice, nullptr);
+    EXPECT_NE(ylattice, nullptr);
+    EXPECT_NE(zlattice, nullptr);
+    EXPECT_DOUBLE_EQ(*xlattice, 2.0);
+    EXPECT_DOUBLE_EQ(*ylattice, 2.0);
+    EXPECT_DOUBLE_EQ(*zlattice, 2.0);
+};
+
+TEST_F(LibraryProperties, pair1)
+{
+    if (!verbose) ::testing::internal::CaptureStdout();
+    lammps_command(lmp, "region box block 0 1 0 1 0 1");
+    lammps_command(lmp, "create_box 3 box");
+    lammps_command(lmp, "mass * 1.0");
+    lammps_command(lmp, "pair_style lj/cut 3.0");
+    lammps_command(lmp, "pair_coeff 1 1 1.0 1.0");
+    lammps_command(lmp, "pair_coeff 2 2 1.5 2.0");
+    lammps_command(lmp, "pair_coeff 3 3 1.0 3.0");
+    lammps_command(lmp, "run 0 post no");
+    if (!verbose) ::testing::internal::GetCapturedStdout();
+    EXPECT_EQ(lammps_extract_pair_dimension(lmp, "epsilon"), 2);
+    EXPECT_EQ(lammps_extract_pair_dimension(lmp, "sigma"), 2);
+    EXPECT_EQ(lammps_extract_pair_dimension(lmp, "cut_coul"), -1);
+    auto **sigma = (double **)lammps_extract_pair(lmp, "sigma");
+    EXPECT_DOUBLE_EQ(sigma[1][1], 1.0);
+    EXPECT_DOUBLE_EQ(sigma[2][2], 2.0);
+    EXPECT_DOUBLE_EQ(sigma[3][3], 3.0);
+    EXPECT_DOUBLE_EQ(sigma[1][2], sqrt(2.0));
+};
+
+TEST_F(LibraryProperties, pair2)
+{
+    if (!lammps_has_style(lmp, "pair", "coul/streitz")) GTEST_SKIP();
+    if (!verbose) ::testing::internal::CaptureStdout();
+    lammps_command(lmp, "units metal");
+    lammps_command(lmp, "atom_style charge");
+    lammps_command(lmp, "region box block 0 1 0 1 0 1");
+    lammps_command(lmp, "create_box 2 box");
+    lammps_command(lmp, "mass * 1.0");
+    lammps_command(lmp, "pair_style coul/streitz 12.0 wolf 0.31");
+    lammps_command(lmp, "pair_coeff * * AlO.streitz Al O");
+    lammps_command(lmp, "run 0 post no");
+    if (!verbose) ::testing::internal::GetCapturedStdout();
+    EXPECT_EQ(lammps_extract_pair_dimension(lmp, "chi"), 1);
+    EXPECT_EQ(lammps_extract_pair_dimension(lmp, "scale"), 2);
+    EXPECT_EQ(lammps_extract_pair_dimension(lmp, "cut_coul"), 0);
+    EXPECT_DOUBLE_EQ(*((double *)lammps_extract_pair(lmp, "cut_coul")), 12.0);
+    auto *chi = (double *)lammps_extract_pair(lmp, "chi");
+    EXPECT_DOUBLE_EQ(chi[1], 0.0);
+    EXPECT_FLOAT_EQ(chi[2], 5.484763);
+    auto **scale = (double **)lammps_extract_pair(lmp, "scale");
+    EXPECT_DOUBLE_EQ(scale[1][1], 1.0);
+    EXPECT_DOUBLE_EQ(scale[1][2], 1.0);
+    EXPECT_DOUBLE_EQ(scale[2][2], 1.0);
 };
 
 TEST_F(LibraryProperties, neighlist)
@@ -498,13 +574,22 @@ TEST_F(LibraryProperties, neighlist)
     lammps_command(lmp, "run 0 post no");
     if (!verbose) ::testing::internal::GetCapturedStdout();
 
-    int nhisto =
-        *(double *)lammps_extract_fix(lmp, "dist", LMP_STYLE_GLOBAL, LMP_TYPE_VECTOR, 0, 0);
-    int nskip = *(double *)lammps_extract_fix(lmp, "dist", LMP_STYLE_GLOBAL, LMP_TYPE_VECTOR, 1, 0);
-    double minval =
-        *(double *)lammps_extract_fix(lmp, "dist", LMP_STYLE_GLOBAL, LMP_TYPE_VECTOR, 2, 0);
-    double maxval =
-        *(double *)lammps_extract_fix(lmp, "dist", LMP_STYLE_GLOBAL, LMP_TYPE_VECTOR, 3, 0);
+    void *ptr  = lammps_extract_fix(lmp, "dist", LMP_STYLE_GLOBAL, LMP_TYPE_VECTOR, 0, 0);
+    int nhisto = *(double *)ptr;
+    lammps_free(ptr);
+
+    ptr       = lammps_extract_fix(lmp, "dist", LMP_STYLE_GLOBAL, LMP_TYPE_VECTOR, 1, 0);
+    int nskip = *(double *)ptr;
+    lammps_free(ptr);
+
+    ptr           = lammps_extract_fix(lmp, "dist", LMP_STYLE_GLOBAL, LMP_TYPE_VECTOR, 2, 0);
+    double minval = *(double *)ptr;
+    lammps_free(ptr);
+
+    ptr           = lammps_extract_fix(lmp, "dist", LMP_STYLE_GLOBAL, LMP_TYPE_VECTOR, 3, 0);
+    double maxval = *(double *)ptr;
+    lammps_free(ptr);
+
     // 21 pair distances counted, none skipped, smallest 1.0, largest 2.1
     EXPECT_EQ(nhisto, 21);
     EXPECT_EQ(nskip, 0);
@@ -694,14 +779,45 @@ TEST_F(AtomProperties, position)
 TEST(SystemSettings, kokkos)
 {
     if (!lammps_config_has_package("KOKKOS")) GTEST_SKIP();
-    if (!lammps_config_accelerator("KOKKOS", "api", "openmp")) GTEST_SKIP();
+    std::vector<char *> args = {(char *)"lammps", (char *)"-log",   (char *)"none",
+                                (char *)"-echo",  (char *)"screen", (char *)"-nocite",
+                                (char *)"-sf",    (char *)"kk"};
 
-    // clang-format off
-    const char *args[] = {"SystemSettings", "-log", "none", "-echo", "screen", "-nocite",
-                          "-k", "on", "t", "4", "-sf", "kk", nullptr};
-    // clang-format on
-    char **argv = (char **)args;
-    int argc    = (sizeof(args) / sizeof(char *)) - 1;
+    char *one  = (char *)"1";
+    char *four = (char *)"4";
+    char *tee  = (char *)"t";
+    char *gee  = (char *)"g";
+    char *kay  = (char *)"-k";
+    char *yes  = (char *)"on";
+
+    args.push_back(kay);
+    args.push_back(yes);
+
+    bool has_gpu     = false;
+    bool has_threads = false;
+
+    // when GPU support is enabled in KOKKOS, it *must* be used
+    if (lammps_config_accelerator("KOKKOS", "api", "hip") ||
+        lammps_config_accelerator("KOKKOS", "api", "cuda") ||
+        lammps_config_accelerator("KOKKOS", "api", "sycl")) {
+        has_gpu = true;
+        args.push_back(gee);
+        args.push_back(one);
+    }
+
+    // use threads or serial
+    args.push_back(tee);
+    if (lammps_config_accelerator("KOKKOS", "api", "openmp")) {
+        has_threads = true;
+        args.push_back(four);
+    } else if (lammps_config_accelerator("KOKKOS", "api", "pthreads")) {
+        has_threads = true;
+        args.push_back(four);
+    } else {
+        args.push_back(one);
+    }
+    int argc    = args.size();
+    char **argv = args.data();
 
     ::testing::internal::CaptureStdout();
     void *lmp          = lammps_open_no_mpi(argc, argv, nullptr);
@@ -710,7 +826,13 @@ TEST(SystemSettings, kokkos)
     EXPECT_THAT(output, StartsWith("LAMMPS ("));
 
     EXPECT_EQ(lammps_extract_setting(lmp, "kokkos_active"), 1);
-    EXPECT_EQ(lammps_extract_setting(lmp, "kokkos_nthreads"), 4);
-    EXPECT_EQ(lammps_extract_setting(lmp, "kokkos_ngpus"), 0);
+    if (has_threads)
+        EXPECT_EQ(lammps_extract_setting(lmp, "kokkos_nthreads"), 4);
+    else
+        EXPECT_EQ(lammps_extract_setting(lmp, "kokkos_nthreads"), 1);
+    if (has_gpu)
+        EXPECT_EQ(lammps_extract_setting(lmp, "kokkos_ngpus"), 1);
+    else
+        EXPECT_EQ(lammps_extract_setting(lmp, "kokkos_ngpus"), 0);
     lammps_close(lmp);
 }

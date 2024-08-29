@@ -33,7 +33,8 @@ static constexpr int DELTA = 8192;
 /* ---------------------------------------------------------------------- */
 
 FixBondHistory::FixBondHistory(LAMMPS *lmp, int narg, char **arg) :
-    Fix(lmp, narg, arg), bondstore(nullptr), bondtype_orig(nullptr), bondstore_comp(nullptr), bondstore_orig(nullptr), id_fix(nullptr), id_array(nullptr)
+    Fix(lmp, narg, arg), bondstore(nullptr), bondtype_orig(nullptr), bondstore_comp(nullptr),
+    bondstore_orig(nullptr), id_fix(nullptr), id_array(nullptr)
 
 {
   if (narg != 5) error->all(FLERR, "Illegal fix bond/history command");
@@ -259,8 +260,7 @@ void FixBondHistory::post_neighbor()
 
   if (hybrid_flag) {
     nbondlist_orig = nbondlist;
-    for (n = 0; n < nbondlist; n++)
-      bondtype_orig[n] = bondlist[n][2];
+    for (n = 0; n < nbondlist; n++) bondtype_orig[n] = bondlist[n][2];
   }
 
   updated_bond_flag = 1;
@@ -328,8 +328,7 @@ void FixBondHistory::compress_history()
       if (type <= 0) continue;
       if (!setflag[type]) continue;
 
-      for (int m = 0; m < ndata; m++)
-        bondstore_comp[ncomp][m] = bondstore[n][m];
+      for (int m = 0; m < ndata; m++) bondstore_comp[ncomp][m] = bondstore[n][m];
       ncomp += 1;
     }
   }
@@ -352,8 +351,7 @@ void FixBondHistory::uncompress_history()
       if (type <= 0) continue;
       if (!setflag[type]) continue;
 
-      for (int m = 0; m < ndata; m++)
-        bondstore_orig[n][m] = bondstore[ncomp][m];
+      for (int m = 0; m < ndata; m++) bondstore_orig[n][m] = bondstore[ncomp][m];
       ncomp += 1;
     }
   }

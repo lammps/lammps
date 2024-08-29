@@ -1440,16 +1440,16 @@ void PairLJLongTIP4PLong::settings(int narg, char **arg)
   if (!((ewald_order^ewald_off)&(1<<1)))
     error->all(FLERR,
                "Coulomb cut not supported in pair_style lj/long/tip4p/long");
-  typeO = utils::inumeric(FLERR,arg[1],false,lmp);
-  typeH = utils::inumeric(FLERR,arg[2],false,lmp);
-  typeB = utils::inumeric(FLERR,arg[3],false,lmp);
-  typeA = utils::inumeric(FLERR,arg[4],false,lmp);
-  qdist = utils::numeric(FLERR,arg[5],false,lmp);
+  typeO_str = arg[1];
+  typeH_str = arg[2];
+  typeB_str = arg[3];
+  typeA_str = arg[4];
+  qdist = utils::numeric(FLERR, arg[5], false, lmp);
 
 
-  cut_lj_global = utils::numeric(FLERR,arg[6],false,lmp);
+  cut_lj_global = utils::numeric(FLERR, arg[6], false, lmp);
   if (narg == 8) cut_coul = cut_lj_global;
-  else cut_coul = utils::numeric(FLERR,arg[7],false,lmp);
+  else cut_coul = utils::numeric(FLERR, arg[7], false, lmp);
 
 
   // reset cutoffs that have been explicitly set
@@ -1460,6 +1460,25 @@ void PairLJLongTIP4PLong::settings(int narg, char **arg)
       for (j = i; j <= atom->ntypes; j++)
         if (setflag[i][j]) cut_lj[i][j] = cut_lj_global;
   }
+}
+
+/* ----------------------------------------------------------------------
+   set coeffs for one or more type pairs
+------------------------------------------------------------------------- */
+
+void PairLJLongTIP4PLong::coeff(int narg, char **arg)
+{
+  // set atom types from pair_style command unless we were restarted
+  // and the types are already set and the strings are empty.
+
+  if (typeO_str.size() > 0) {
+    typeO = utils::expand_type_int(FLERR, typeO_str, Atom::ATOM, lmp, true);
+    typeH = utils::expand_type_int(FLERR, typeH_str, Atom::ATOM, lmp, true);
+    typeB = utils::expand_type_int(FLERR, typeB_str, Atom::BOND, lmp, true);
+    typeA = utils::expand_type_int(FLERR, typeA_str, Atom::ANGLE, lmp, true);
+  }
+
+  PairLJLongCoulLong::coeff(narg, arg);
 }
 
 /* ----------------------------------------------------------------------

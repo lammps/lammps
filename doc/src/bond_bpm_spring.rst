@@ -19,10 +19,10 @@ Syntax
           * N = prepare data for output every this many timesteps
           * attributes = zero or more of the below attributes may be appended
 
-            *id1, id2* = IDs of 2 atoms in the bond
+            *id1, id2* = IDs of two atoms in the bond
             *time* = the timestep the bond broke
-            *x, y, z* = the center of mass position of the 2 atoms when the bond broke (distance units)
-            *x/ref, y/ref, z/ref* = the initial center of mass position of the 2 atoms (distance units)
+            *x, y, z* = the center of mass position of the two atoms when the bond broke (distance units)
+            *x/ref, y/ref, z/ref* = the initial center of mass position of the two atoms (distance units)
 
        *overlay/pair* value = *yes* or *no*
           bonded particles will still interact with pair forces

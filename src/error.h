@@ -14,8 +14,8 @@
 #ifndef LMP_ERROR_H
 #define LMP_ERROR_H
 
-#include "pointers.h"
 #include "exceptions.h"
+#include "pointers.h"
 
 namespace LAMMPS_NS {
 

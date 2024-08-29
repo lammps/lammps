@@ -398,17 +398,23 @@ double utils::numeric(const char *file, int line, const std::string &str, bool d
   }
 
   double rv = 0;
+  auto msg = fmt::format("Floating point number {} in input script or data file is invalid", buf);
   try {
-    rv = stod(buf);
+    std::size_t endpos;
+    rv = std::stod(buf, &endpos);
+    if (buf.size() != endpos) {
+      if (do_abort)
+        lmp->error->one(file, line, msg);
+      else
+        lmp->error->all(file, line, msg);
+    }
   } catch (std::invalid_argument const &) {
-    auto msg = fmt::format("Floating point number {} in input script or data file is invalid", buf);
     if (do_abort)
       lmp->error->one(file, line, msg);
     else
       lmp->error->all(file, line, msg);
   } catch (std::out_of_range const &) {
-    auto msg =
-        fmt::format("Floating point number {} in input script or data file is out of range", buf);
+    msg = fmt::format("Floating point number {} in input script or data file is out of range", buf);
     if (do_abort)
       lmp->error->one(file, line, msg);
     else
@@ -459,10 +465,23 @@ int utils::inumeric(const char *file, int line, const std::string &str, bool do_
   }
 
   int rv = 0;
+  auto msg = fmt::format("Integer {} in input script or data file is invalid", buf);
   try {
-    rv = stoi(buf);
+    std::size_t endpos;
+    rv = std::stoi(buf, &endpos);
+    if (buf.size() != endpos) {
+      if (do_abort)
+        lmp->error->one(file, line, msg);
+      else
+        lmp->error->all(file, line, msg);
+    }
+  } catch (std::invalid_argument const &) {
+    if (do_abort)
+      lmp->error->one(file, line, msg);
+    else
+      lmp->error->all(file, line, msg);
   } catch (std::out_of_range const &) {
-    auto msg = fmt::format("Integer {} in input script or data file is out of range", buf);
+    msg = fmt::format("Integer {} in input script or data file is out of range", buf);
     if (do_abort)
       lmp->error->one(file, line, msg);
     else
@@ -514,9 +533,22 @@ bigint utils::bnumeric(const char *file, int line, const std::string &str, bool 
   }
 
   long long rv = 0;
+  auto msg = fmt::format("Integer {} in input script or data file is invalid", buf);
   try {
-    rv = stoll(buf);
-    if (rv > MAXBIGINT) throw std::out_of_range("64-bit");
+    std::size_t endpos;
+    rv = std::stoll(buf, &endpos);
+    if (buf.size() != endpos) {
+      if (do_abort)
+        lmp->error->one(file, line, msg);
+      else
+        lmp->error->all(file, line, msg);
+    }
+    if ((rv < (-MAXBIGINT - 1) || (rv > MAXBIGINT))) throw std::out_of_range("bigint");
+  } catch (std::invalid_argument const &) {
+    if (do_abort)
+      lmp->error->one(file, line, msg);
+    else
+      lmp->error->all(file, line, msg);
   } catch (std::out_of_range const &) {
     auto msg = fmt::format("Integer {} in input script or data file is out of range", buf);
     if (do_abort)
@@ -570,9 +602,22 @@ tagint utils::tnumeric(const char *file, int line, const std::string &str, bool 
   }
 
   long long rv = 0;
+  auto msg = fmt::format("Integer {} in input script or data file is invalid", buf);
   try {
-    rv = stoll(buf);
-    if (rv > MAXTAGINT) throw std::out_of_range("64-bit");
+    std::size_t endpos;
+    rv = std::stoll(buf, &endpos);
+    if (buf.size() != endpos) {
+      if (do_abort)
+        lmp->error->one(file, line, msg);
+      else
+        lmp->error->all(file, line, msg);
+    }
+    if ((rv < (-MAXTAGINT - 1) || (rv > MAXTAGINT))) throw std::out_of_range("tagint");
+  } catch (std::invalid_argument const &) {
+    if (do_abort)
+      lmp->error->one(file, line, msg);
+    else
+      lmp->error->all(file, line, msg);
   } catch (std::out_of_range const &) {
     auto msg = fmt::format("Integer {} in input script or data file is out of range", buf);
     if (do_abort)
@@ -614,19 +659,19 @@ void utils::bounds(const char *file, int line, const std::string &str,
 
   found = str.find_first_of('*');
   if (found == std::string::npos) {    // contains no '*'
-    nlo = nhi = strtol(str.c_str(), nullptr, 10);
+    nlo = nhi = std::stol(str, nullptr, 10);
   } else if (str.size() == 1) {    // is only '*'
     nlo = nmin;
     nhi = nmax;
   } else if (found == 0) {    // is '*j'
     nlo = nmin;
-    nhi = strtol(str.substr(1).c_str(), nullptr, 10);
+    nhi = std::stol(str.substr(1), nullptr, 10);
   } else if (str.size() == found + 1) {    // is 'i*'
-    nlo = strtol(str.c_str(), nullptr, 10);
+    nlo = std::stol(str, nullptr, 10);
     nhi = nmax;
   } else {    // is 'i*j'
-    nlo = strtol(str.c_str(), nullptr, 10);
-    nhi = strtol(str.substr(found + 1).c_str(), nullptr, 10);
+    nlo = std::stol(str, nullptr, 10);
+    nhi = std::stol(str.substr(found + 1), nullptr, 10);
   }
 
   if (error) {
@@ -950,17 +995,42 @@ char *utils::expand_type(const char *file, int line, const std::string &str, int
 
 /* -------------------------------------------------------------------------
    Expand type string to integer-valued numeric type from labelmap.
-   Not guaranteed to return a valid type.
-   For example, type <= 0 or type > Ntypes is checked in calling routine.
+   Not guaranteed to return a valid type if param verify = 0 (default)
+   In this case, type <= 0 or type > Ntypes should be checked in calling routine.
 ------------------------------------------------------------------------- */
 
 int utils::expand_type_int(const char *file, int line, const std::string &str, int mode,
-                           LAMMPS *lmp)
+                           LAMMPS *lmp, bool verify)
 {
   char *typestr = expand_type(file, line, str, mode, lmp);
-  int out = inumeric(file, line, typestr ? typestr : str, false, lmp);
+  int type = inumeric(file, line, typestr ? typestr : str, false, lmp);
+  if (verify) {
+    int nmax;
+    switch (mode) {
+      case Atom::ATOM:
+        nmax = lmp->atom->ntypes;
+        break;
+      case Atom::BOND:
+        nmax = lmp->atom->nbondtypes;
+        break;
+      case Atom::ANGLE:
+        nmax = lmp->atom->nangletypes;
+        break;
+      case Atom::DIHEDRAL:
+        nmax = lmp->atom->ndihedraltypes;
+        break;
+      case Atom::IMPROPER:
+        nmax = lmp->atom->nimpropertypes;
+        break;
+      default:
+        nmax = 0;
+    }
+    if ((type <= 0) || (type > nmax))
+      lmp->error->all(file, line, "{} type {} is out of bounds ({}-{})", labeltypes[mode], type, 1,
+                      nmax);
+  }
   delete[] typestr;
-  return out;
+  return type;
 }
 
 /* ----------------------------------------------------------------------
@@ -1697,10 +1767,10 @@ double utils::timespec2seconds(const std::string &timespec)
 int utils::date2num(const std::string &date)
 {
   std::size_t found = date.find_first_not_of("0123456789 ");
-  int num = strtol(date.substr(0, found).c_str(), nullptr, 10);
+  int num = std::stol(date.substr(0, found), nullptr, 10);
   auto month = date.substr(found);
   found = month.find_first_of("0123456789 ");
-  num += strtol(month.substr(found).c_str(), nullptr, 10) * 10000;
+  num += std::stol(month.substr(found), nullptr, 10) * 10000;
   if (num < 1000000) num += 20000000;
 
   if (strmatch(month, "^Jan"))

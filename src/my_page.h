@@ -62,7 +62,7 @@ template <class T> class MyPage {
   /** Mark *N* items as used of the chunk reserved with a preceding call to vget().
    *
    * This will advance the internal pointer inside the current memory page.
-   * It is not necessary to call this function for *N* = 0, that is the reserved
+   * It is not necessary to call this function for *N* = 0, implying the reserved
    * storage was not used.  A following call to vget() will then reserve the
    * same location again.  It is an error if *N* > *maxchunk*.
    *

@@ -72,8 +72,6 @@ is assigned. This implies a value of
 .. math::
    \tau_0 = \eta \dot{\gamma}_0 - K \dot{\gamma}_0^N
 
-as further discussed in :ref:`(Palermo) <rheo_palermo2>`.
-
 
 Restart, fix_modify, output, run start/stop, minimize info
 """""""""""""""""""""""""""""""""""""""""""""""""""""""""""
@@ -110,8 +108,3 @@ Default
 
 none
 
-----------
-
-.. _rheo_palermo2:
-
-**(Palermo)** Palermo, Wolf, Clemmer, O'Connor, in preparation.

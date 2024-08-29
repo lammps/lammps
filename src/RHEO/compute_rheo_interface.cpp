@@ -1,4 +1,3 @@
-// clang-format off
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    https://www.lammps.org/, Sandia National Laboratories
@@ -21,18 +20,18 @@
 
 #include "atom.h"
 #include "comm.h"
-#include "domain.h"
 #include "compute_rheo_kernel.h"
+#include "domain.h"
 #include "error.h"
-#include "force.h"
 #include "fix_rheo.h"
 #include "fix_rheo_pressure.h"
+#include "force.h"
 #include "math_extra.h"
 #include "memory.h"
 #include "modify.h"
-#include "neighbor.h"
 #include "neigh_list.h"
 #include "neigh_request.h"
+#include "neighbor.h"
 
 #include <cmath>
 
@@ -45,10 +44,12 @@ static constexpr double EPSILON = 1e-1;
 /* ---------------------------------------------------------------------- */
 
 ComputeRHEOInterface::ComputeRHEOInterface(LAMMPS *lmp, int narg, char **arg) :
-  Compute(lmp, narg, arg), fix_rheo(nullptr), compute_kernel(nullptr), fp_store(nullptr),
-  rho0(nullptr), norm(nullptr), normwf(nullptr), chi(nullptr), id_fix_pa(nullptr)
+    Compute(lmp, narg, arg), chi(nullptr), fp_store(nullptr), fix_rheo(nullptr), rho0(nullptr),
+    norm(nullptr), normwf(nullptr), id_fix_pa(nullptr), list(nullptr), compute_kernel(nullptr),
+    fix_pressure(nullptr)
+
 {
-  if (narg != 3) error->all(FLERR,"Illegal compute rheo/interface command");
+  if (narg != 3) error->all(FLERR, "Illegal compute rheo/interface command");
 
   comm_forward = 3;
   comm_reverse = 4;
@@ -164,20 +165,18 @@ void ComputeRHEOInterface::compute_peratom()
       if (rsq < cutsq) {
         jtype = type[j];
         fluidj = !(status[j] & PHASECHECK);
-        w = compute_kernel->calc_w_quintic(i, j, dx[0], dx[1], dx[2], sqrt(rsq));
+        w = compute_kernel->calc_w_quintic(sqrt(rsq));
 
         norm[i] += w;
 
         status_match = 0;
-        if ((fluidi && fluidj) || ((!fluidi) && (!fluidj)))
-          status_match = 1;
+        if ((fluidi && fluidj) || ((!fluidi) && (!fluidj))) status_match = 1;
         if (status_match) {
           chi[i] += w;
         } else {
           if (!fluidi) {
             dot = 0;
-            for (a = 0; a < 3; a++)
-              dot += (-fp_store[j][a] + fp_store[i][a]) * dx[a];
+            for (a = 0; a < 3; a++) dot += (-fp_store[j][a] + fp_store[i][a]) * dx[a];
 
             rho[i] += w * (fix_pressure->calc_pressure(rho[j], jtype) - rho[j] * dot);
             normwf[i] += w;
@@ -191,8 +190,7 @@ void ComputeRHEOInterface::compute_peratom()
           } else {
             if (!fluidj) {
               dot = 0;
-              for (a = 0; a < 3; a++)
-                dot += (-fp_store[i][a] + fp_store[j][a]) * dx[a];
+              for (a = 0; a < 3; a++) dot += (-fp_store[i][a] + fp_store[j][a]) * dx[a];
 
               rho[j] += w * (fix_pressure->calc_pressure(rho[i], itype) + rho[i] * dot);
               normwf[j] += w;
@@ -226,14 +224,14 @@ void ComputeRHEOInterface::compute_peratom()
 
 /* ---------------------------------------------------------------------- */
 
-int ComputeRHEOInterface::pack_forward_comm(int n, int *list, double *buf, int /*pbc_flag*/, int * /*pbc*/)
+int ComputeRHEOInterface::pack_forward_comm(int n, int *list, double *buf, int /*pbc_flag*/,
+                                            int * /*pbc*/)
 {
-  int i, j, k, m;
-  m = 0;
+  int m = 0;
   double *rho = atom->rho;
 
-  for (i = 0; i < n; i++) {
-    j = list[i];
+  for (int i = 0; i < n; i++) {
+    int j = list[i];
     if (comm_stage == 0) {
       buf[m++] = fp_store[j][0];
       buf[m++] = fp_store[j][1];
@@ -250,11 +248,10 @@ int ComputeRHEOInterface::pack_forward_comm(int n, int *list, double *buf, int /
 
 void ComputeRHEOInterface::unpack_forward_comm(int n, int first, double *buf)
 {
-  int i, k, m, last;
   double *rho = atom->rho;
-  m = 0;
-  last = first + n;
-  for (i = first; i < last; i++) {
+  int m = 0;
+  int last = first + n;
+  for (int i = first; i < last; i++) {
     if (comm_stage == 0) {
       fp_store[i][0] = buf[m++];
       fp_store[i][1] = buf[m++];
@@ -270,12 +267,10 @@ void ComputeRHEOInterface::unpack_forward_comm(int n, int first, double *buf)
 
 int ComputeRHEOInterface::pack_reverse_comm(int n, int first, double *buf)
 {
-  int i, k, m, last;
   double *rho = atom->rho;
-
-  m = 0;
-  last = first + n;
-  for (i = first; i < last; i++) {
+  int m = 0;
+  int last = first + n;
+  for (int i = first; i < last; i++) {
     buf[m++] = norm[i];
     buf[m++] = chi[i];
     buf[m++] = normwf[i];
@@ -288,15 +283,14 @@ int ComputeRHEOInterface::pack_reverse_comm(int n, int first, double *buf)
 
 void ComputeRHEOInterface::unpack_reverse_comm(int n, int *list, double *buf)
 {
-  int i, k, j, m;
   double *rho = atom->rho;
   int *status = atom->rheo_status;
-  m = 0;
-  for (i = 0; i < n; i++) {
-    j = list[i];
+  int m = 0;
+  for (int i = 0; i < n; i++) {
+    int j = list[i];
     norm[j] += buf[m++];
     chi[j] += buf[m++];
-    if (status[j] & PHASECHECK){
+    if (status[j] & PHASECHECK) {
       normwf[j] += buf[m++];
       rho[j] += buf[m++];
     } else {
@@ -324,7 +318,7 @@ void ComputeRHEOInterface::correct_v(double *v_solid, double *v_fluid, int i_sol
 
 /* ---------------------------------------------------------------------- */
 
-double ComputeRHEOInterface::correct_rho(int i_solid, int i_fluid)
+double ComputeRHEOInterface::correct_rho(int i_solid)
 {
   int itype = atom->type[i_solid];
   return MAX(rho0[itype], atom->rho[i_solid]);
@@ -338,6 +332,7 @@ void ComputeRHEOInterface::store_forces()
   int *type = atom->type;
   int *mask = atom->mask;
   double *mass = atom->mass;
+  double *rmass = atom->rmass;
   double **f = atom->f;
 
   // When this is called, fp_store stores the pressure force
@@ -349,20 +344,27 @@ void ComputeRHEOInterface::store_forces()
   if (fixlist.size() != 0) {
     for (const auto &fix : fixlist) {
       for (int i = 0; i < atom->nlocal; i++) {
-        minv = 1.0 / mass[type[i]];
-        if (mask[i] & fix->groupbit)
-          for (int a = 0; a < 3; a++)
-            fp_store[i][a] = f[i][a] * minv;
+        if (rmass)
+          minv = 1.0 / rmass[i];
         else
-          for (int a = 0; a < 3; a++)
-            fp_store[i][a] = (f[i][a] - fp_store[i][a]) * minv;
+          minv = 1.0 / mass[type[i]];
+        if (mask[i] & fix->groupbit)
+          for (int a = 0; a < 3; a++) fp_store[i][a] = f[i][a] * minv;
+        else
+          for (int a = 0; a < 3; a++) fp_store[i][a] = (f[i][a] - fp_store[i][a]) * minv;
       }
     }
   } else {
-    for (int i = 0; i < atom->nlocal; i++) {
-      minv = 1.0 / mass[type[i]];
-      for (int a = 0; a < 3; a++)
-        fp_store[i][a] = (f[i][a] - fp_store[i][a]) * minv;
+    if (rmass) {
+      for (int i = 0; i < atom->nlocal; i++) {
+        minv = 1.0 / rmass[i];
+        for (int a = 0; a < 3; a++) fp_store[i][a] = (f[i][a] - fp_store[i][a]) * minv;
+      }
+    } else {
+      for (int i = 0; i < atom->nlocal; i++) {
+        minv = 1.0 / mass[type[i]];
+        for (int a = 0; a < 3; a++) fp_store[i][a] = (f[i][a] - fp_store[i][a]) * minv;
+      }
     }
   }
 
@@ -381,4 +383,3 @@ double ComputeRHEOInterface::memory_usage()
   double bytes = 3 * nmax_store * sizeof(double);
   return bytes;
 }
-

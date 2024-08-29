@@ -38,6 +38,7 @@ static constexpr double SMALL =     0.001;
 template<class DeviceType>
 DihedralClass2Kokkos<DeviceType>::DihedralClass2Kokkos(LAMMPS *lmp) : DihedralClass2(lmp)
 {
+  kokkosable = 1;
   atomKK = (AtomKokkos *) atom;
   neighborKK = (NeighborKokkos *) neighbor;
   execution_space = ExecutionSpaceFromDevice<DeviceType>::space;
@@ -137,7 +138,7 @@ void DihedralClass2Kokkos<DeviceType>::compute(int eflag_in, int vflag_in)
   newton_bond = force->newton_bond;
 
   h_warning_flag() = 0;
-  k_warning_flag.template modify<LMPHostType>();
+  k_warning_flag.modify_host();
   k_warning_flag.template sync<DeviceType>();
 
   copymode = 1;
@@ -163,7 +164,7 @@ void DihedralClass2Kokkos<DeviceType>::compute(int eflag_in, int vflag_in)
   // error check
 
   k_warning_flag.template modify<DeviceType>();
-  k_warning_flag.template sync<LMPHostType>();
+  k_warning_flag.sync_host();
   if (h_warning_flag())
     error->warning(FLERR,"Dihedral problem");
 
@@ -179,12 +180,12 @@ void DihedralClass2Kokkos<DeviceType>::compute(int eflag_in, int vflag_in)
 
   if (eflag_atom) {
     k_eatom.template modify<DeviceType>();
-    k_eatom.template sync<LMPHostType>();
+    k_eatom.sync_host();
   }
 
   if (vflag_atom) {
     k_vatom.template modify<DeviceType>();
-    k_vatom.template sync<LMPHostType>();
+    k_vatom.sync_host();
   }
 
   copymode = 0;
@@ -786,44 +787,44 @@ void DihedralClass2Kokkos<DeviceType>::coeff(int narg, char **arg)
     k_setflag_bb13t.h_view[i] = setflag_bb13t[i];
   }
 
-  k_k1.template modify<LMPHostType>();
-  k_k2.template modify<LMPHostType>();
-  k_k3.template modify<LMPHostType>();
-  k_phi1.template modify<LMPHostType>();
-  k_phi2.template modify<LMPHostType>();
-  k_phi3.template modify<LMPHostType>();
-  k_mbt_f1.template modify<LMPHostType>();
-  k_mbt_f2.template modify<LMPHostType>();
-  k_mbt_f3.template modify<LMPHostType>();
-  k_mbt_r0.template modify<LMPHostType>();
-  k_ebt_f1_1.template modify<LMPHostType>();
-  k_ebt_f2_1.template modify<LMPHostType>();
-  k_ebt_f3_1.template modify<LMPHostType>();
-  k_ebt_r0_1.template modify<LMPHostType>();
-  k_ebt_f1_2.template modify<LMPHostType>();
-  k_ebt_f2_2.template modify<LMPHostType>();
-  k_ebt_f3_2.template modify<LMPHostType>();
-  k_ebt_r0_2.template modify<LMPHostType>();
-  k_at_f1_1.template modify<LMPHostType>();
-  k_at_f2_1.template modify<LMPHostType>();
-  k_at_f3_1.template modify<LMPHostType>();
-  k_at_f1_2.template modify<LMPHostType>();
-  k_at_f2_2.template modify<LMPHostType>();
-  k_at_f3_2.template modify<LMPHostType>();
-  k_at_theta0_1.template modify<LMPHostType>();
-  k_at_theta0_2.template modify<LMPHostType>();
-  k_aat_k.template modify<LMPHostType>();
-  k_aat_theta0_1.template modify<LMPHostType>();
-  k_aat_theta0_2.template modify<LMPHostType>();
-  k_bb13t_k.template modify<LMPHostType>();
-  k_bb13t_r10.template modify<LMPHostType>();
-  k_bb13t_r30.template modify<LMPHostType>();
-  k_setflag_d.template modify<LMPHostType>();
-  k_setflag_mbt.template modify<LMPHostType>();
-  k_setflag_ebt.template modify<LMPHostType>();
-  k_setflag_at.template modify<LMPHostType>();
-  k_setflag_aat.template modify<LMPHostType>();
-  k_setflag_bb13t.template modify<LMPHostType>();
+  k_k1.modify_host();
+  k_k2.modify_host();
+  k_k3.modify_host();
+  k_phi1.modify_host();
+  k_phi2.modify_host();
+  k_phi3.modify_host();
+  k_mbt_f1.modify_host();
+  k_mbt_f2.modify_host();
+  k_mbt_f3.modify_host();
+  k_mbt_r0.modify_host();
+  k_ebt_f1_1.modify_host();
+  k_ebt_f2_1.modify_host();
+  k_ebt_f3_1.modify_host();
+  k_ebt_r0_1.modify_host();
+  k_ebt_f1_2.modify_host();
+  k_ebt_f2_2.modify_host();
+  k_ebt_f3_2.modify_host();
+  k_ebt_r0_2.modify_host();
+  k_at_f1_1.modify_host();
+  k_at_f2_1.modify_host();
+  k_at_f3_1.modify_host();
+  k_at_f1_2.modify_host();
+  k_at_f2_2.modify_host();
+  k_at_f3_2.modify_host();
+  k_at_theta0_1.modify_host();
+  k_at_theta0_2.modify_host();
+  k_aat_k.modify_host();
+  k_aat_theta0_1.modify_host();
+  k_aat_theta0_2.modify_host();
+  k_bb13t_k.modify_host();
+  k_bb13t_r10.modify_host();
+  k_bb13t_r30.modify_host();
+  k_setflag_d.modify_host();
+  k_setflag_mbt.modify_host();
+  k_setflag_ebt.modify_host();
+  k_setflag_at.modify_host();
+  k_setflag_aat.modify_host();
+  k_setflag_bb13t.modify_host();
 }
 
 
@@ -956,44 +957,44 @@ void DihedralClass2Kokkos<DeviceType>::read_restart(FILE *fp)
     k_setflag_bb13t.h_view[i] = setflag_bb13t[i];
   }
 
-  k_k1.template modify<LMPHostType>();
-  k_k2.template modify<LMPHostType>();
-  k_k3.template modify<LMPHostType>();
-  k_phi1.template modify<LMPHostType>();
-  k_phi2.template modify<LMPHostType>();
-  k_phi3.template modify<LMPHostType>();
-  k_mbt_f1.template modify<LMPHostType>();
-  k_mbt_f2.template modify<LMPHostType>();
-  k_mbt_f3.template modify<LMPHostType>();
-  k_mbt_r0.template modify<LMPHostType>();
-  k_ebt_f1_1.template modify<LMPHostType>();
-  k_ebt_f2_1.template modify<LMPHostType>();
-  k_ebt_f3_1.template modify<LMPHostType>();
-  k_ebt_r0_1.template modify<LMPHostType>();
-  k_ebt_f1_2.template modify<LMPHostType>();
-  k_ebt_f2_2.template modify<LMPHostType>();
-  k_ebt_f3_2.template modify<LMPHostType>();
-  k_ebt_r0_2.template modify<LMPHostType>();
-  k_at_f1_1.template modify<LMPHostType>();
-  k_at_f2_1.template modify<LMPHostType>();
-  k_at_f3_1.template modify<LMPHostType>();
-  k_at_f1_2.template modify<LMPHostType>();
-  k_at_f2_2.template modify<LMPHostType>();
-  k_at_f3_2.template modify<LMPHostType>();
-  k_at_theta0_1.template modify<LMPHostType>();
-  k_at_theta0_2.template modify<LMPHostType>();
-  k_aat_k.template modify<LMPHostType>();
-  k_aat_theta0_1.template modify<LMPHostType>();
-  k_aat_theta0_2.template modify<LMPHostType>();
-  k_bb13t_k.template modify<LMPHostType>();
-  k_bb13t_r10.template modify<LMPHostType>();
-  k_bb13t_r30.template modify<LMPHostType>();
-  k_setflag_d.template modify<LMPHostType>();
-  k_setflag_mbt.template modify<LMPHostType>();
-  k_setflag_ebt.template modify<LMPHostType>();
-  k_setflag_at.template modify<LMPHostType>();
-  k_setflag_aat.template modify<LMPHostType>();
-  k_setflag_bb13t.template modify<LMPHostType>();
+  k_k1.modify_host();
+  k_k2.modify_host();
+  k_k3.modify_host();
+  k_phi1.modify_host();
+  k_phi2.modify_host();
+  k_phi3.modify_host();
+  k_mbt_f1.modify_host();
+  k_mbt_f2.modify_host();
+  k_mbt_f3.modify_host();
+  k_mbt_r0.modify_host();
+  k_ebt_f1_1.modify_host();
+  k_ebt_f2_1.modify_host();
+  k_ebt_f3_1.modify_host();
+  k_ebt_r0_1.modify_host();
+  k_ebt_f1_2.modify_host();
+  k_ebt_f2_2.modify_host();
+  k_ebt_f3_2.modify_host();
+  k_ebt_r0_2.modify_host();
+  k_at_f1_1.modify_host();
+  k_at_f2_1.modify_host();
+  k_at_f3_1.modify_host();
+  k_at_f1_2.modify_host();
+  k_at_f2_2.modify_host();
+  k_at_f3_2.modify_host();
+  k_at_theta0_1.modify_host();
+  k_at_theta0_2.modify_host();
+  k_aat_k.modify_host();
+  k_aat_theta0_1.modify_host();
+  k_aat_theta0_2.modify_host();
+  k_bb13t_k.modify_host();
+  k_bb13t_r10.modify_host();
+  k_bb13t_r30.modify_host();
+  k_setflag_d.modify_host();
+  k_setflag_mbt.modify_host();
+  k_setflag_ebt.modify_host();
+  k_setflag_at.modify_host();
+  k_setflag_aat.modify_host();
+  k_setflag_bb13t.modify_host();
 }
 
 /* ----------------------------------------------------------------------

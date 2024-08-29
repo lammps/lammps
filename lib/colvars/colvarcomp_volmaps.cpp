@@ -9,32 +9,15 @@
 
 #include "colvarmodule.h"
 #include "colvarvalue.h"
-#include "colvarparse.h"
 #include "colvar.h"
 #include "colvarcomp.h"
 
 
 
 colvar::map_total::map_total()
-  : cvc()
 {
   set_function_type("mapTotal");
-  volmap_id = -1;
-  volmap_index = -1;
-  atoms = NULL;
   x.type(colvarvalue::type_scalar);
-}
-
-
-colvar::map_total::map_total(std::string const &conf)
-  : cvc() // init() will take care of this
-{
-  set_function_type("mapTotal");
-  volmap_id = -1;
-  volmap_index = -1;
-  atoms = NULL;
-  x.type(colvarvalue::type_scalar);
-  map_total::init(conf);
 }
 
 
@@ -50,12 +33,12 @@ int colvar::map_total::init(std::string const &conf)
 
   if ((volmap_name.size() > 0) && (volmap_id >= 0)) {
     error_code |=
-      cvm::error("Error: mapName and mapID are mutually exclusive.\n");
+        cvm::error("Error: mapName and mapID are mutually exclusive.\n", COLVARS_INPUT_ERROR);
   }
 
   // Parse optional group
   atoms = parse_group(conf, "atoms", true);
-  if (atoms != NULL) {
+  if (atoms) {
 
     // Using internal selection
     if (volmap_name.size()) {
@@ -74,11 +57,11 @@ int colvar::map_total::init(std::string const &conf)
     if (volmap_id >= 0) {
       volmap_index = proxy->init_volmap_by_id(volmap_id);
     }
-    error_code |= volmap_index > 0 ? COLVARS_OK : COLVARS_INPUT_ERROR;
+    error_code |= (volmap_index >= 0) ? COLVARS_OK : COLVARS_INPUT_ERROR;
   }
 
   if (get_keyval(conf, "atomWeights", atom_weights, atom_weights)) {
-    if (atoms == NULL) {
+    if (!atoms) {
       error_code |= cvm::error("Error: weights can only be assigned when atoms "
                                "are selected explicitly in Colvars.\n",
                                COLVARS_INPUT_ERROR);
@@ -133,11 +116,10 @@ void colvar::map_total::calc_gradients()
 
 void colvar::map_total::apply_force(colvarvalue const &force)
 {
-  colvarproxy *proxy = cvm::main()->proxy;
   if (atoms) {
-    if (!atoms->noforce)
-      atoms->apply_colvar_force(force.real_value);
+    cvc::apply_force(force);
   } else {
+    colvarproxy *proxy = cvm::main()->proxy;
     proxy->apply_volmap_force(volmap_index, force.real_value);
   }
 }

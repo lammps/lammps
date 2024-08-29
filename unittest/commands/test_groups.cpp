@@ -229,6 +229,7 @@ TEST_F(GroupTest, SelectRestart)
                  command("group five subtract all half xxx"););
     TEST_FAILURE(".*ERROR: Group ID xxx does not exist.*",
                  command("group five intersect half top xxx"););
+    delete[] flags;
 }
 
 TEST_F(GroupTest, Molecular)
@@ -314,7 +315,7 @@ TEST_F(GroupTest, Dynamic)
                  command("group ramp variable grow"););
 }
 
-constexpr double EPSILON = 1.0e-13;
+static constexpr double EPSILON = 1.0e-13;
 
 TEST_F(GroupTest, VariableFunctions)
 {

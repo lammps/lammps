@@ -1,4 +1,4 @@
-Fix ave/spatial command
+fix ave/spatial command
 =======================
 
 .. meta::

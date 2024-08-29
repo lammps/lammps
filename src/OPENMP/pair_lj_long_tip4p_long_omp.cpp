@@ -1614,7 +1614,7 @@ void PairLJLongTIP4PLongOMP::eval_outer(int iifrom, int iito, ThrData * const th
   double qtmp,xtmp,ytmp,ztmp,delx,dely,delz;
   double r2inv,forcecoul,forcelj,cforce, respa_coul, respa_lj, frespa;
   double fdx,fdy,fdz,fOx,fOy,fOz,fHx,fHy,fHz;
-  double v[6];
+  double v[6] = {0.0, 0.0, 0.0, 0.0, 0.0, 0.0};
   dbl3_t x1,x2,xH1,xH2;
 
   const auto * _noalias const x = (dbl3_t *) atom->x[0];

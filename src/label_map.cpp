@@ -40,8 +40,7 @@ static const char cite_type_label_framework[] =
 
 LabelMap::LabelMap(LAMMPS *_lmp, int _natomtypes, int _nbondtypes, int _nangletypes,
                    int _ndihedraltypes, int _nimpropertypes) :
-    Pointers(_lmp),
-    natomtypes(_natomtypes), nbondtypes(_nbondtypes), nangletypes(_nangletypes),
+    Pointers(_lmp), natomtypes(_natomtypes), nbondtypes(_nbondtypes), nangletypes(_nangletypes),
     ndihedraltypes(_ndihedraltypes), nimpropertypes(_nimpropertypes)
 {
   if (lmp->citeme) lmp->citeme->add(cite_type_label_framework);
@@ -370,35 +369,35 @@ void LabelMap::read_restart(FILE *fp)
   for (int i = 0; i < natomtypes; i++) {
     charlabel = read_string(fp);
     typelabel[i] = charlabel;
-    typelabel_map[charlabel] = i + 1;
+    if (strlen(charlabel) > 0) typelabel_map[charlabel] = i + 1;
     delete[] charlabel;
   }
 
   for (int i = 0; i < nbondtypes; i++) {
     charlabel = read_string(fp);
     btypelabel[i] = charlabel;
-    btypelabel_map[charlabel] = i + 1;
+    if (strlen(charlabel) > 0) btypelabel_map[charlabel] = i + 1;
     delete[] charlabel;
   }
 
   for (int i = 0; i < nangletypes; i++) {
     charlabel = read_string(fp);
     atypelabel[i] = charlabel;
-    atypelabel_map[charlabel] = i + 1;
+    if (strlen(charlabel) > 0) atypelabel_map[charlabel] = i + 1;
     delete[] charlabel;
   }
 
   for (int i = 0; i < ndihedraltypes; i++) {
     charlabel = read_string(fp);
     dtypelabel[i] = charlabel;
-    dtypelabel_map[charlabel] = i + 1;
+    if (strlen(charlabel) > 0) dtypelabel_map[charlabel] = i + 1;
     delete[] charlabel;
   }
 
   for (int i = 0; i < nimpropertypes; i++) {
     charlabel = read_string(fp);
     itypelabel[i] = charlabel;
-    itypelabel_map[charlabel] = i + 1;
+    if (strlen(charlabel) > 0) itypelabel_map[charlabel] = i + 1;
     delete[] charlabel;
   }
 }

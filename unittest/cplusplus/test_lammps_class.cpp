@@ -253,6 +253,15 @@ protected:
     {
         LAMMPS::argv args = {"LAMMPS_test", "-log", "none", "-echo", "none", "-screen", "none",
                              "-k",          "on",   "t",    "1",     "-sf",  "kk"};
+
+        // when GPU support is enabled in KOKKOS, it *must* be used
+        if (Info::has_accelerator_feature("KOKKOS", "api", "hip") ||
+            Info::has_accelerator_feature("KOKKOS", "api", "cuda") ||
+            Info::has_accelerator_feature("KOKKOS", "api", "sycl")) {
+            args = {"LAMMPS_test", "-log", "none", "-echo", "none", "-screen", "none", "-k",
+                    "on",          "t",    "1",    "g",     "1",    "-sf",     "kk"};
+        }
+
         if (Info::has_accelerator_feature("KOKKOS", "api", "openmp")) args[10] = "2";
 
         if (LAMMPS::is_installed_pkg("KOKKOS")) {

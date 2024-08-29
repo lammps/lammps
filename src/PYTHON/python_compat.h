@@ -20,13 +20,12 @@
 #if PY_MAJOR_VERSION == 2
 #if defined(_MSC_VER) || defined(__MINGW32__)
 #define PY_INT_FROM_LONG(X) PyLong_FromLongLong(X)
+#define PY_INT_AS_LONG(X) PyLong_AsLongLong(X)
+#define PY_LONG_FROM_STRING(X) std::stoll(X)
 #else
 #define PY_INT_FROM_LONG(X) PyInt_FromLong(X)
-#endif
-#if defined(_MSC_VER) || defined(__MINGW32__)
-#define PY_INT_AS_LONG(X) PyLong_AsLongLong(X)
-#else
 #define PY_INT_AS_LONG(X) PyInt_AsLong(X)
+#define PY_LONG_FROM_STRING(X) std::stol(X)
 #endif
 #define PY_STRING_FROM_STRING(X) PyString_FromString(X)
 #define PY_VOID_POINTER(X) PyCObject_FromVoidPtr((void *) X, nullptr)
@@ -35,13 +34,12 @@
 #elif PY_MAJOR_VERSION == 3
 #if defined(_MSC_VER) || defined(__MINGW32__)
 #define PY_INT_FROM_LONG(X) PyLong_FromLongLong(X)
+#define PY_INT_AS_LONG(X) PyLong_AsLongLong(X)
+#define PY_LONG_FROM_STRING(X) std::stoll(X)
 #else
 #define PY_INT_FROM_LONG(X) PyLong_FromLong(X)
-#endif
-#if defined(_MSC_VER) || defined(__MINGW32__)
-#define PY_INT_AS_LONG(X) PyLong_AsLongLong(X)
-#else
 #define PY_INT_AS_LONG(X) PyLong_AsLong(X)
+#define PY_LONG_FROM_STRING(X) std::stol(X)
 #endif
 #define PY_STRING_FROM_STRING(X) PyUnicode_FromString(X)
 #define PY_VOID_POINTER(X) PyCapsule_New((void *) X, nullptr, nullptr)

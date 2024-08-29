@@ -63,6 +63,7 @@ Update::Update(LAMMPS *lmp) :
   restrict_output = 0;
   setupflag = 0;
   multireplica = 0;
+  nsteps = 0;
 
   eflag_global = vflag_global = -1;
   eflag_atom = vflag_atom = 0;
@@ -403,7 +404,6 @@ void Update::create_minimize(int narg, char **arg, int trysuffix)
   // temporarily assign the style name without suffix (for error messages during creation)
   minimize_style = utils::strdup(arg[0]);
   minimize = nullptr;
-
 
   int sflag;
   new_minimize(arg[0], narg - 1, &arg[1], trysuffix, sflag);

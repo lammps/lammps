@@ -19,6 +19,7 @@
 #include <QApplication>
 #include <QDialogButtonBox>
 #include <QDir>
+#include <QFile>
 #include <QFileDialog>
 #include <QFileInfo>
 #include <QGuiApplication>
@@ -31,7 +32,6 @@
 #include <QProcess>
 #include <QPushButton>
 #include <QScreen>
-#include <QSettings>
 #include <QShortcut>
 #include <QSpacerItem>
 #include <QTemporaryFile>
@@ -75,6 +75,9 @@ SlideShow::SlideShow(const QString &fileName, QWidget *parent) :
     tomovie->setToolTip("Export to movie file");
     tomovie->setEnabled(has_exe("ffmpeg"));
 
+    auto *totrash = new QPushButton(QIcon(":/icons/trash.png"), "");
+    totrash->setToolTip("Delete all image files");
+
     auto *gofirst = new QPushButton(QIcon(":/icons/go-first.png"), "");
     gofirst->setToolTip("Go to first Image");
     auto *goprev = new QPushButton(QIcon(":/icons/go-previous-2.png"), "");
@@ -101,6 +104,7 @@ SlideShow::SlideShow(const QString &fileName, QWidget *parent) :
     normal->setToolTip("Reset zoom to normal");
 
     connect(tomovie, &QPushButton::released, this, &SlideShow::movie);
+    connect(totrash, &QPushButton::released, this, &SlideShow::delete_images);
     connect(gofirst, &QPushButton::released, this, &SlideShow::first);
     connect(goprev, &QPushButton::released, this, &SlideShow::prev);
     connect(goplay, &QPushButton::released, this, &SlideShow::play);
@@ -115,6 +119,7 @@ SlideShow::SlideShow(const QString &fileName, QWidget *parent) :
     navLayout->addSpacerItem(new QSpacerItem(10, 10, QSizePolicy::Expanding, QSizePolicy::Minimum));
     navLayout->addWidget(dummy);
     navLayout->addWidget(tomovie);
+    navLayout->addWidget(totrash);
     navLayout->addWidget(gofirst);
     navLayout->addWidget(goprev);
     navLayout->addWidget(goplay);
@@ -155,6 +160,14 @@ void SlideShow::add_image(const QString &filename)
         imagefiles.append(filename);
         loadImage(lastidx);
     }
+}
+
+void SlideShow::delete_images()
+{
+    for (const auto &file : imagefiles) {
+        QFile::remove(file);
+    }
+    clear();
 }
 
 void SlideShow::clear()
@@ -316,7 +329,7 @@ void SlideShow::prev()
 void SlideShow::loop()
 {
     auto *button = qobject_cast<QPushButton *>(sender());
-    do_loop             = !do_loop;
+    do_loop      = !do_loop;
     button->setChecked(do_loop);
 }
 

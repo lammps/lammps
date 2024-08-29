@@ -68,7 +68,7 @@ must be set before this command can be invoked.
 The table of the angle energy and force data data is created by using a
 separate, internally created, new LAMMPS instance with a dummy system of
 3 atoms for which the angle potential energy is computed after
-transferring the angle style and coefficients and arranging the 3 atoms
+transferring the angle style and coefficients and arranging the three atoms
 into the corresponding geometries.  The angle force is then determined
 from the potential energies through numerical differentiation.  As a
 consequence of this approach, not all angle styles are compatible. The

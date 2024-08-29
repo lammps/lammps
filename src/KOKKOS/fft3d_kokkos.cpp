@@ -643,14 +643,14 @@ struct fft_plan_3d_kokkos<DeviceType>* FFT3dKokkos<DeviceType>::fft_3d_create_pl
   
   plan->desc_mid = new descriptor_t (nmid);
   plan->desc_mid->set_value(oneapi::mkl::dft::config_param::BACKWARD_SCALE, (FFT_SCALAR)(1.0/nmid));
-  plan->desc_mid->set_value(oneapi::mkl::dft::config_param::NUMBER_OF_TRANSFORMS, plan->total1/nmid);
+  plan->desc_mid->set_value(oneapi::mkl::dft::config_param::NUMBER_OF_TRANSFORMS, plan->total2/nmid);
   plan->desc_mid->set_value(oneapi::mkl::dft::config_param::FWD_DISTANCE, nmid);
   plan->desc_mid->set_value(oneapi::mkl::dft::config_param::BWD_DISTANCE, nmid);
   plan->desc_mid->commit(queue);
   
   plan->desc_slow = new descriptor_t (nslow);
   plan->desc_slow->set_value(oneapi::mkl::dft::config_param::BACKWARD_SCALE, (FFT_SCALAR)(1.0/nslow));
-  plan->desc_slow->set_value(oneapi::mkl::dft::config_param::NUMBER_OF_TRANSFORMS, plan->total1/nslow);
+  plan->desc_slow->set_value(oneapi::mkl::dft::config_param::NUMBER_OF_TRANSFORMS, plan->total3/nslow);
   plan->desc_slow->set_value(oneapi::mkl::dft::config_param::FWD_DISTANCE, nslow);
   plan->desc_slow->set_value(oneapi::mkl::dft::config_param::BWD_DISTANCE, nslow);
   plan->desc_slow->commit(queue);

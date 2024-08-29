@@ -20,9 +20,13 @@
 #include "fftdata_kokkos.h"
 
 namespace LAMMPS_NS {
-  
+
+#ifdef FFT_SINGLE
+  typedef oneapi::mkl::dft::descriptor<oneapi::mkl::dft::precision::SINGLE, oneapi::mkl::dft::domain::COMPLEX> descriptor_t;
+#else
   typedef oneapi::mkl::dft::descriptor<oneapi::mkl::dft::precision::DOUBLE, oneapi::mkl::dft::domain::COMPLEX> descriptor_t;
-  
+#endif
+
 // -------------------------------------------------------------------------
 
 // plan for how to perform a 3d FFT

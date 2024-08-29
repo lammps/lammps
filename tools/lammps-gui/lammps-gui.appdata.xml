@@ -56,7 +56,8 @@
   <releases>
     <release version="1.6.10" timestamp="1724585189">
       <description>
-
+        Resolve plugin mode issues.
+        Add -p command line flag to override path to liblammps.so
       </description>
     </release>
     <release version="1.6.9" timestamp="1724308872">

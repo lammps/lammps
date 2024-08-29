@@ -55,7 +55,7 @@ commands.  The decomposition can be changed via the
 Restrictions
 """"""""""""
 
-None
+none
 
 Related commands
 """"""""""""""""

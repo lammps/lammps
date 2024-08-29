@@ -13,10 +13,11 @@
  ------------------------------------------------------------------------- */
 
 #include "fix_sph_stationary.h"
+
 #include "atom.h"
+#include "error.h"
 #include "force.h"
 #include "update.h"
-#include "error.h"
 
 using namespace LAMMPS_NS;
 using namespace FixConst;
@@ -24,11 +25,10 @@ using namespace FixConst;
 /* ---------------------------------------------------------------------- */
 
 FixSPHStationary::FixSPHStationary(LAMMPS *lmp, int narg, char **arg) :
-  Fix(lmp, narg, arg) {
-
+  Fix(lmp, narg, arg)
+{
   if ((atom->esph_flag != 1) || (atom->rho_flag != 1))
-    error->all(FLERR,
-        "Fix sph/stationary command requires atom_style with both energy and density, e.g. meso");
+    error->all(FLERR, "Fix sph/stationary requires atom attributes energy and density, e.g. in atom_style sph");
 
   if (narg != 3)
     error->all(FLERR,"Illegal number of arguments for fix sph/stationary command");
@@ -38,7 +38,8 @@ FixSPHStationary::FixSPHStationary(LAMMPS *lmp, int narg, char **arg) :
 
 /* ---------------------------------------------------------------------- */
 
-int FixSPHStationary::setmask() {
+int FixSPHStationary::setmask()
+{
   int mask = 0;
   mask |= INITIAL_INTEGRATE;
   mask |= FINAL_INTEGRATE;
@@ -47,7 +48,8 @@ int FixSPHStationary::setmask() {
 
 /* ---------------------------------------------------------------------- */
 
-void FixSPHStationary::init() {
+void FixSPHStationary::init()
+{
   dtv = update->dt;
   dtf = 0.5 * update->dt * force->ftm2v;
 }
@@ -56,8 +58,8 @@ void FixSPHStationary::init() {
  allow for both per-type and per-atom mass
  ------------------------------------------------------------------------- */
 
-void FixSPHStationary::initial_integrate(int /*vflag*/) {
-
+void FixSPHStationary::initial_integrate(int /*vflag*/)
+{
   double *rho = atom->rho;
   double *drho = atom->drho;
   double *esph = atom->esph;
@@ -80,8 +82,8 @@ void FixSPHStationary::initial_integrate(int /*vflag*/) {
 
 /* ---------------------------------------------------------------------- */
 
-void FixSPHStationary::final_integrate() {
-
+void FixSPHStationary::final_integrate()
+{
   double *esph = atom->esph;
   double *desph = atom->desph;
   double *rho = atom->rho;
@@ -101,7 +103,8 @@ void FixSPHStationary::final_integrate() {
 
 /* ---------------------------------------------------------------------- */
 
-void FixSPHStationary::reset_dt() {
+void FixSPHStationary::reset_dt()
+{
   dtv = update->dt;
   dtf = 0.5 * update->dt * force->ftm2v;
 }

@@ -28,32 +28,39 @@ These examples assume one or more 16-core nodes.
 
 .. code-block:: bash
 
-   env OMP_NUM_THREADS=16 lmp_omp -sf omp -in in.script           # 1 MPI task, 16 threads according to OMP_NUM_THREADS
-   lmp_mpi -sf omp -in in.script                                  # 1 MPI task, no threads, optimized kernels
-   mpirun -np 4 lmp_omp -sf omp -pk omp 4 -in in.script           # 4 MPI tasks, 4 threads/task
-   mpirun -np 32 -ppn 4 lmp_omp -sf omp -pk omp 4 -in in.script   # 8 nodes, 4 MPI tasks/node, 4 threads/task
+   # 1 MPI task, 16 threads according to OMP_NUM_THREADS
+   env OMP_NUM_THREADS=16 lmp_omp -sf omp -in in.script
+
+   # 1 MPI task, no threads, optimized kernels
+   lmp_mpi -sf omp -in in.script
+
+   # 4 MPI tasks, 4 threads/task
+   mpirun -np 4 lmp_omp -sf omp -pk omp 4 -in in.script
+
+   # 8 nodes, 4 MPI tasks/node, 4 threads/task
+   mpirun -np 32 -ppn 4 lmp_omp -sf omp -pk omp 4 -in in.script
 
 The ``mpirun`` or ``mpiexec`` command sets the total number of MPI tasks
 used by LAMMPS (one or multiple per compute node) and the number of MPI
 tasks used per node.  E.g. the mpirun command in MPICH does this via
-its -np and -ppn switches.  Ditto for OpenMPI via -np and -npernode.
+its ``-np`` and ``-ppn`` switches.  Ditto for OpenMPI via ``-np`` and ``-npernode``.
 
 You need to choose how many OpenMP threads per MPI task will be used
 by the OPENMP package.  Note that the product of MPI tasks \*
 threads/task should not exceed the physical number of cores (on a
 node), otherwise performance will suffer.
 
-As in the lines above, use the "-sf omp" :doc:`command-line switch <Run_options>`, which will automatically append "omp" to
-styles that support it.  The "-sf omp" switch also issues a default
+As in the lines above, use the ``-sf omp`` :doc:`command-line switch <Run_options>`, which will automatically append "omp" to
+styles that support it.  The ``-sf omp`` switch also issues a default
 :doc:`package omp 0 <package>` command, which will set the number of
-threads per MPI task via the OMP_NUM_THREADS environment variable.
+threads per MPI task via the ``OMP_NUM_THREADS`` environment variable.
 
-You can also use the "-pk omp Nt" :doc:`command-line switch <Run_options>`, to explicitly set Nt = # of OpenMP threads
+You can also use the ``-pk omp Nt`` :doc:`command-line switch <Run_options>`, to explicitly set ``Nt`` = # of OpenMP threads
 per MPI task to use, as well as additional options.  Its syntax is the
 same as the :doc:`package omp <package>` command whose page gives
 details, including the default values used if it is not specified.  It
 also gives more details on how to set the number of threads via the
-OMP_NUM_THREADS environment variable.
+``OMP_NUM_THREADS`` environment variable.
 
 Or run with the OPENMP package by editing an input script
 """""""""""""""""""""""""""""""""""""""""""""""""""""""""""
@@ -71,7 +78,7 @@ Use the :doc:`suffix omp <suffix>` command, or you can explicitly add an
 You must also use the :doc:`package omp <package>` command to enable the
 OPENMP package.  When you do this you also specify how many threads
 per MPI task to use.  The command page explains other options and
-how to set the number of threads via the OMP_NUM_THREADS environment
+how to set the number of threads via the ``OMP_NUM_THREADS`` environment
 variable.
 
 Speed-up to expect

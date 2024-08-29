@@ -238,14 +238,14 @@ This fix computes a global vector of length 8, which can be accessed by
 various output commands. The vector values are the following global
 quantities:
 
-* 1 = cumulative MC attempts
-* 2 = cumulative MC successes
-* 3 = current # of neutral acid atoms
-* 4 = current # of -1 charged acid atoms
-* 5 = current # of neutral base atoms
-* 6 = current # of +1 charged base atoms
-* 7 = current # of free cations
-* 8 = current # of free anions
+  #. cumulative MC attempts
+  #. cumulative MC successes
+  #. current # of neutral acid atoms
+  #. current # of -1 charged acid atoms
+  #. current # of neutral base atoms
+  #. current # of +1 charged base atoms
+  #. current # of free cations
+  #. current # of free anions
 
 
 Restrictions

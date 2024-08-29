@@ -1771,9 +1771,9 @@ void PairExp6rxKokkos<DeviceType>::read_file(char *file)
     params[nparams].potential = utils::strdup(words[1]);
 
     if (strcmp(params[nparams].potential,"exp6") == 0) {
-      params[nparams].alpha = atof(words[2]);
-      params[nparams].epsilon = atof(words[3]);
-      params[nparams].rm = atof(words[4]);
+      params[nparams].alpha = std::stod(words[2]);
+      params[nparams].epsilon = std::stod(words[3]);
+      params[nparams].rm = std::stod(words[4]);
       if (params[nparams].epsilon <= 0.0 || params[nparams].rm <= 0.0 ||
           params[nparams].alpha < 0.0)
         error->all(FLERR,"Illegal exp6/rx parameters.  Rm and Epsilon must be greater than zero.  Alpha cannot be negative.");

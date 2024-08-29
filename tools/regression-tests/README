@@ -1,0 +1,123 @@
+The script `run_tests.py` in this folder is used to perform regression tests
+using in-place example scripts.
+
+What this single script does is to launch the selected LAMMPS binary
+using a testing configuration defined in a `.yaml` file (e.g., `config.yaml`)
+for the set of input scripts inside the given `examples/` subfolders,
+and compare the output thermo with that in the existing log file with the same number of procs.
+If there are multiple log files with the same input script (e.g., `log.melt.*.g++.1` and `log.melt.*.g++.4`),
+the one with the highest number of procs is chosen.
+
+The output includes the number of passed and failed tests and
+an `output.xml` file in the JUnit XML format for downstream reporting.
+The output and error of any crashed runs are logged.
+
+A test with an input script is considered passed when the given LAMMPS binary produces
+thermo output quantities consistent with those in the reference log file
+within the specified tolerances in the test configuration `config.yaml` file.
+
+With the current features, users can:
+
+    + specify which LAMMPS binary version to test (e.g., the version from a commit, or those from `lammps-testing`)
+    + specify the examples subfolders (thus the reference log files) seperately (e.g. from other LAMMPS versions or commits)
+    + specify tolerances for individual quantities for any input script to override the global values
+    + launch tests with `mpirun` with all supported command line features (multiple procs, multiple paritions, and suffices)
+    + skip certain input files if not interested, or no reference log file exists
+    + simplify the main LAMMPS builds, as long as a LAMMPS binary is available
+
+Limitations:
+
+    - input scripts use thermo style multi (e.g., examples/peptide) do not work with the expected thermo output format
+    - input scripts that require partition runs (e.g. examples/neb) need a separate config file, e.g. "args: --partition 2x1"
+    - testing accelerator packages (GPU, INTEL, KOKKOS, OPENMP) need separate config files, "args: -sf omp -pk omp 4"
+
+TODO:
+
+    + keep track of the testing progress to resume the testing from the last checkpoint
+    + distribute the input list across multiple processes via multiprocessing, or 
+      split the list of input scripts into separate runs (there are 800+ input script under the top-level examples)
+    + be able to be invoked from run_tests in the lammps-testing infrastruture
+
+
+The following Python packages need to be installed into an activated environment:
+    
+    python3 -m venv testing-env
+    source testing-env/bin/activate
+    pip install numpy pyyaml junit_xml
+
+
+Example uses:
+
+    1) Simple use (using the provided tools/regression-tests/config.yaml and the examples/ folder at the top level)
+           python3 run_tests.py --lmp-bin=/path/to/lmp_binary
+
+    2) Use a custom testing configuration
+           python3 run_tests.py --lmp-bin=/path/to/lmp_binary --config-file=/path/to/config/file/config.yaml
+
+    3) Specify a list of example folders
+           python3 run_tests.py --lmp-bin=/path/to/lmp_binary --config-file=/path/to/config/file/config.yaml \
+                --example-folders="/path/to/examples/folder1;/path/to/examples/folder2"
+
+       The example folders can also be loaded from a text file list_subfolders1.txt:
+           python3 run_tests.py --lmp-bin=/path/to/lmp_binary --config-file=/path/to/config/file/config.yaml \
+                --list-input=list_subfolders1.txt --output-file=output1.txt --progress-file=progress1.yaml \
+                --log-file=run1.log
+          
+    4) Test a LAMMPS binary with the whole top-level /examples folder in a LAMMPS source tree
+           python3 run_tests.py --lmp-bin=/path/to/lmp_binary --examples-top-level=/path/to/lammps/examples
+
+    5) Analyze (dry run) the LAMMPS binary annd whole top-level /examples folder in a LAMMPS source tree 
+       and generate separate input lists for 8 workers:
+           python3 run_tests.py --lmp-bin=/path/to/lmp_binary --examples-top-level=/path/to/lammps/examples \
+                --dry-run --num-workers=8
+
+       This is used for splitting the subfolders into separate input lists and launching different instances
+       of run_tests.py simultaneously.
+
+An example of the test configuration `config.yaml` is given as below.
+
+  ---
+    lmp_binary: ""
+    nprocs: "4"
+    args: "-cite none"
+    mpiexec: "mpirun"
+    mpiexec_numproc_flag: "-np"
+    tolerance:
+      PotEng:
+        abs: 1e-4
+        rel: 1e-7
+      TotEng:
+        abs: 1e-4
+        rel: 1e-7
+      Press:
+        abs: 1e-4
+        rel: 1e-7
+      Temp:
+        abs: 1e-4
+        rel: 1e-7
+      E_vdwl:
+        abs: 1e-3
+        rel: 1e-7
+    overrides:
+      in.rigid.tnr:
+        Temp:
+          abs: 1e-3
+          rel: 1e-5
+        Press:
+          abs: 1e-2
+          rel: 1e-4
+    skip:
+      [ in.rigid.poems3,
+        in.rigid.poems4,
+        in.rigid.poems5,
+      ]
+
+    nugget: 1.0
+    epsilon: 1e-16
+
+An example of the list of input scripts in a text file `list_subfolders1.txt`
+
+/home/codes/lammps/examples/melt
+/home/codes/lammps/examples/body
+/home/codes/lammps/examples/PACKAGES/dielectric
+/home/codes/lammps/examples/PACKAGES/tally

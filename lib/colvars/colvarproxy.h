@@ -12,7 +12,6 @@
 
 #include "colvarmodule.h"
 #include "colvartypes.h"
-#include "colvarvalue.h"
 #include "colvarproxy_io.h"
 #include "colvarproxy_system.h"
 #include "colvarproxy_tcl.h"
@@ -56,6 +55,9 @@ public:
   /// corresponding atom yet
   virtual int check_atom_id(int atom_number);
 
+  /// Check whether it is possible to select atoms by residue number name
+  virtual int check_atom_name_selections_available();
+
   /// Select this atom for collective variables calculation, using name and
   /// residue number.  Not all programs support this: leave this function as
   /// is in those cases.
@@ -71,31 +73,6 @@ public:
   /// \brief Used by the atom class destructor: rather than deleting the array slot
   /// (costly) set the corresponding atoms_refcount to zero
   virtual void clear_atom(int index);
-
-  /// \brief Select atom IDs from a file (usually PDB) \param filename name of
-  /// the file \param atoms array to which atoms read from "filename" will be
-  /// appended \param pdb_field (optional) if the file is a PDB and this
-  /// string is non-empty, select atoms for which this field is non-zero
-  /// \param pdb_field_value (optional) if non-zero, select only atoms whose
-  /// pdb_field equals this
-  virtual int load_atoms(char const *filename,
-                         cvm::atom_group &atoms,
-                         std::string const &pdb_field,
-                         double pdb_field_value = 0.0);
-
-  /// \brief Load a set of coordinates from a file (usually PDB); if "pos" is
-  /// already allocated, the number of its elements must match the number of
-  /// entries in "filename" \param filename name of the file \param pos array
-  /// of coordinates \param sorted_ids array of sorted internal IDs, used to
-  /// loop through the file only once \param pdb_field (optional) if the file
-  /// is a PDB and this string is non-empty, select atoms for which this field
-  /// is non-zero \param pdb_field_value (optional) if non-zero, select only
-  /// atoms whose pdb_field equals this
-  virtual int load_coords(char const *filename,
-                          std::vector<cvm::atom_pos> &pos,
-                          std::vector<int> const &sorted_ids,
-                          std::string const &pdb_field,
-                          double pdb_field_value = 0.0);
 
   /// Clear atomic data
   int reset();
@@ -245,6 +222,18 @@ public:
     return atoms_max_applied_force_id_;
   }
 
+  /// Whether the atom list has been modified internally
+  inline bool modified_atom_list() const
+  {
+    return modified_atom_list_;
+  }
+
+  /// Reset the modified atom list flag
+  inline void reset_modified_atom_list()
+  {
+    modified_atom_list_ = false;
+  }
+
   /// Record whether masses have been updated
   inline bool updated_masses() const
   {
@@ -283,6 +272,9 @@ protected:
 
   /// ID of the atom with the maximum norm among all applied forces
   int atoms_max_applied_force_id_;
+
+  /// Whether the atom list has been modified internally
+  bool modified_atom_list_;
 
   /// Whether the masses and charges have been updated from the host code
   bool updated_masses_, updated_charges_;
@@ -466,7 +458,7 @@ public:
   bool b_smp_active;
 
   /// Whether threaded parallelization is available (TODO: make this a cvm::deps feature)
-  virtual int smp_enabled();
+  virtual int check_smp_enabled();
 
   /// Distribute calculation of colvars (and their components) across threads
   virtual int smp_colvars_loop();
@@ -565,9 +557,9 @@ public:
 
 
 
-/// \brief Interface between the collective variables module and
-/// the simulation or analysis program (NAMD, VMD, LAMMPS...).
-/// This is the base class: each interfaced program is supported by a derived class.
+/// Interface between Colvars and MD engine (GROMACS, LAMMPS, NAMD, VMD...)
+///
+/// This is the base class: each engine is supported by a derived class.
 class colvarproxy
   : public colvarproxy_system,
     public colvarproxy_atoms,
@@ -589,15 +581,20 @@ public:
   colvarproxy();
 
   /// Destructor
-  virtual ~colvarproxy();
+  ~colvarproxy() override;
 
-  virtual bool io_available() /* override */;
+  inline std::string const &engine_name() const
+  {
+    return engine_name_;
+  }
+
+  bool io_available() override;
 
   /// Request deallocation of the module (currently only implemented by VMD)
   virtual int request_deletion();
 
   /// Whether deallocation was requested
-  inline bool delete_requested()
+  inline bool delete_requested() const
   {
     return b_delete_requested;
   }
@@ -607,6 +604,26 @@ public:
 
   /// (Re)initialize the module
   virtual int parse_module_config();
+
+  /// \brief Read a selection of atom IDs from a PDB coordinate file
+  /// \param[in] filename name of the file
+  /// \param[in,out] atoms array into which atoms will be read from "filename"
+  /// \param[in] pdb_field if the file is a PDB and this string is non-empty,
+  /// select atoms for which this field is non-zero
+  /// \param[in] pdb_field_value if non-zero, select only atoms whose pdb_field equals this
+  virtual int load_atoms_pdb(char const *filename, cvm::atom_group &atoms,
+                             std::string const &pdb_field, double pdb_field_value);
+
+  /// \brief Load a set of coordinates from a PDB file
+  /// \param[in] filename name of the file
+  /// \param[in,out] pos array of coordinates to fill; if not empty, the number of its elements must match
+  /// the number of entries in "filename"
+  /// \param[in] sorted_ids array of sorted internal IDs, used to loop through the file only once
+  /// \param[in] pdb_field if non-empty, only atoms for which this field is non-zero will be processed
+  /// \param[in] pdb_field_value if non-zero, process only atoms whose pdb_field equals this
+  virtual int load_coords_pdb(char const *filename, std::vector<cvm::atom_pos> &pos,
+                              std::vector<int> const &sorted_ids, std::string const &pdb_field,
+                              double pdb_field_value);
 
   /// (Re)initialize required member data (called after the module)
   virtual int setup();
@@ -703,7 +720,10 @@ protected:
   /// Track which features have been acknowledged during the last run
   size_t features_hash;
 
-private:
+protected:
+
+  /// Name of the simulation engine that the derived proxy object supports
+  std::string engine_name_ = "standalone";
 
   /// Queue of config strings or files to be fed to the module
   void *config_queue_;

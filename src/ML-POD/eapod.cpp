@@ -35,7 +35,7 @@ using MathConst::MY_PI;
 using MathSpecial::cube;
 using MathSpecial::powint;
 
-#define MAXLINE 1024
+static constexpr int MAXLINE=1024;
 
 // constructor
 EAPOD::EAPOD(LAMMPS *_lmp, const std::string &pod_file, const std::string &coeff_file) :
@@ -229,7 +229,6 @@ void EAPOD::read_pod_file(std::string pod_file)
         P44 = utils::inumeric(FLERR,words[1],false,lmp);
     }
   }
-  // if (nrbf2 < nrbf3) error->all(FLERR,"number of three-body radial basis functions must be equal or less than number of two-body radial basis functions");
   if (nrbf3 < nrbf4) error->all(FLERR,"number of four-body radial basis functions must be equal or less than number of three-body radial basis functions");
   if (nrbf4 < nrbf33) error->all(FLERR,"number of five-body radial basis functions must be equal or less than number of four-body radial basis functions");
   if (nrbf4 < nrbf34) error->all(FLERR,"number of six-body radial basis functions must be equal or less than number of four-body radial basis functions");
@@ -642,7 +641,7 @@ int EAPOD::read_coeff_file(std::string coeff_file)
   return ncoeffall;
 }
 
-//funcion to read the projection matrix from file.
+// funcion to read the projection matrix from file.
 int EAPOD::read_projection_matrix(std::string proj_file)
 {
   std::string projfilename = proj_file;
@@ -1447,7 +1446,7 @@ void EAPOD::base_descriptors(double *basedesc, double *x,
         Njmax = Nj;
         free_temp_memory();
         allocate_temp_memory(Njmax);
-        if (comm->me == 0) utils::logmesg(lmp, "reallocate temporary memory with Njmax = %d ...\n", Njmax);                
+        if (comm->me == 0) utils::logmesg(lmp, "reallocate temporary memory with Njmax = %d ...\n", Njmax);
       }
 
       double *rij = &tmpmem[0]; // 3*Nj
@@ -1490,7 +1489,7 @@ void EAPOD::descriptors(double *gd, double *gdd, double *basedesc, double *x,
         Njmax = Nj;
         free_temp_memory();
         allocate_temp_memory(Njmax);
-        if (comm->me == 0) utils::logmesg(lmp, "reallocate temporary memory with Njmax = %d ...\n", Njmax);                
+        if (comm->me == 0) utils::logmesg(lmp, "reallocate temporary memory with Njmax = %d ...\n", Njmax);
       }
 
       double *rij = &tmpmem[0]; // 3*Nj
@@ -1547,7 +1546,7 @@ void EAPOD::descriptors(double *gd, double *gdd, double *basedesc, double *probd
         Njmax = Nj;
         free_temp_memory();
         allocate_temp_memory(Njmax);
-        if (comm->me == 0) utils::logmesg(lmp, "reallocate temporary memory with Njmax = %d ...\n", Njmax);                
+        if (comm->me == 0) utils::logmesg(lmp, "reallocate temporary memory with Njmax = %d ...\n", Njmax);
       }
 
       double *rij = &tmpmem[0]; // 3*Nj

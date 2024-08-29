@@ -261,7 +261,7 @@ void Info::command(int narg, char **arg)
         ++idx;
       }
     } else {
-      error->warning(FLERR,"Ignoring unknown or incorrect info command flag");
+      error->warning(FLERR,"Ignoring unknown or incorrect info command flag: {}",arg[idx]);
       ++idx;
     }
   }
@@ -296,6 +296,7 @@ void Info::command(int narg, char **arg)
     if (has_png_support()) fputs("-DLAMMPS_PNG\n",out);
     if (has_jpeg_support()) fputs("-DLAMMPS_JPEG\n",out);
     if (has_ffmpeg_support()) fputs("-DLAMMPS_FFMPEG\n",out);
+    if (has_curl_support()) fputs("-DLAMMPS_CURL\n",out);
     if (has_fft_single_support()) fputs("-DFFT_SINGLE\n",out);
 
 #if defined(LAMMPS_BIGBIG)
@@ -417,6 +418,12 @@ void Info::command(int narg, char **arg)
     fmt::print(out,"Atoms     = {:12},  types = {:8d},  style = {}\n",
                atom->natoms, atom->ntypes, force->pair_style);
 
+    if (atom->tag_enable) fmt::print(out,"Atoms with atom IDs\n");
+    if (atom->molecule) fmt::print(out,"Atoms with molecule IDs\n");
+    if (atom->mass) fmt::print(out,"Atoms with per-type masses\n");
+    if (atom->rmass) fmt::print(out,"Atoms with per-atom masses\n");
+    if (atom->q) fmt::print(out,"Atoms with per-atom charges\n");
+
     if (force->pair && utils::strmatch(force->pair_style,"^hybrid")) {
       auto hybrid = dynamic_cast<PairHybrid *>(force->pair);
       fmt::print(out,"Hybrid sub-styles:");
@@ -472,6 +479,8 @@ void Info::command(int narg, char **arg)
     } else {
       fputs("\nBox has not yet been created\n",out);
     }
+    fmt::print(out,"\nCurrent timestep number = {}\n", update->ntimestep);
+    fmt::print(out,"Current timestep size = {}\n", update->dt);
   }
 
   if (domain->box_exist && (flags & COEFFS)) {
@@ -857,6 +866,8 @@ bool Info::is_available(const char *category, const char *name)
       return has_jpeg_support();
     } else if (strcmp(name,"ffmpeg") == 0) {
       return has_ffmpeg_support();
+    } else if (strcmp(name,"curl") == 0) {
+      return has_curl_support();
     } else if (strcmp(name,"fft_single") == 0) {
       return has_fft_single_support();
     } else if (strcmp(name,"exceptions") == 0) {
@@ -1071,6 +1082,14 @@ bool Info::has_jpeg_support() {
 
 bool Info::has_ffmpeg_support() {
 #ifdef LAMMPS_FFMPEG
+  return true;
+#else
+  return false;
+#endif
+}
+
+bool Info::has_curl_support() {
+#ifdef LAMMPS_CURL
   return true;
 #else
   return false;

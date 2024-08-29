@@ -277,22 +277,6 @@ void AtomKokkos::sort_device()
 }
 
 /* ----------------------------------------------------------------------
-   reallocate memory to the pointer selected by the mask
-------------------------------------------------------------------------- */
-
-void AtomKokkos::grow(unsigned int mask)
-{
-  if (mask & SPECIAL_MASK) {
-    memoryKK->destroy_kokkos(k_special, special);
-    sync(Device, mask);
-    modified(Device, mask);
-    memoryKK->grow_kokkos(k_special, special, nmax, maxspecial, "atom:special");
-    avec->grow_pointers();
-    sync(Host, mask);
-  }
-}
-
-/* ----------------------------------------------------------------------
    add a custom variable with name of type flag = 0/1 for int/double
    assumes name does not already exist
    return index in ivector or dvector of its location

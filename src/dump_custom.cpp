@@ -325,13 +325,13 @@ void DumpCustom::init_style()
         pack_choice[n] = &DumpCustom::pack_z;
       else if (pack_choice[n] == &DumpCustom::pack_xu_triclinic_general) {
         if (domain->triclinic) pack_choice[n] = &DumpCustom::pack_xu_triclinic;
-        else pack_choice[n] == &DumpCustom::pack_xu;
+        else pack_choice[n] = &DumpCustom::pack_xu;
       } else if (pack_choice[n] == &DumpCustom::pack_yu_triclinic_general) {
         if (domain->triclinic) pack_choice[n] = &DumpCustom::pack_yu_triclinic;
-        else pack_choice[n] == &DumpCustom::pack_yu;
+        else pack_choice[n] = &DumpCustom::pack_yu;
       } else if (pack_choice[n] == &DumpCustom::pack_zu_triclinic_general) {
         if (domain->triclinic) pack_choice[n] = &DumpCustom::pack_zu_triclinic;
-        else pack_choice[n] == &DumpCustom::pack_zu;
+        else pack_choice[n] = &DumpCustom::pack_zu;
       }
 
       else if (pack_choice[n] == &DumpCustom::pack_vx_triclinic_general)
@@ -1358,20 +1358,21 @@ int DumpCustom::convert_string(int n, double *mybuf)
     }
 
     for (j = 0; j < nfield; j++) {
+      const auto maxsize = maxsbuf - offset;
       if (vtype[j] == Dump::INT)
-        offset += sprintf(&sbuf[offset],vformat[j],static_cast<int> (mybuf[m]));
+        offset += snprintf(&sbuf[offset],maxsize,vformat[j],static_cast<int> (mybuf[m]));
       else if (vtype[j] == Dump::DOUBLE)
-        offset += sprintf(&sbuf[offset],vformat[j],mybuf[m]);
+        offset += snprintf(&sbuf[offset],maxsize,vformat[j],mybuf[m]);
       else if (vtype[j] == Dump::STRING)
-        offset += sprintf(&sbuf[offset],vformat[j],typenames[(int) mybuf[m]]);
+        offset += snprintf(&sbuf[offset],maxsize,vformat[j],typenames[(int) mybuf[m]]);
       else if (vtype[j] == Dump::STRING2)
-        offset += sprintf(&sbuf[offset],vformat[j],atom->lmap->typelabel[(int) mybuf[m]-1].c_str());
+        offset += snprintf(&sbuf[offset],maxsize,vformat[j],atom->lmap->typelabel[(int) mybuf[m]-1].c_str());
       else if (vtype[j] == Dump::BIGINT)
-        offset += sprintf(&sbuf[offset],vformat[j],
+        offset += snprintf(&sbuf[offset],maxsize,vformat[j],
                           static_cast<bigint> (mybuf[m]));
       m++;
     }
-    offset += sprintf(&sbuf[offset],"\n");
+    offset += snprintf(&sbuf[offset],maxsbuf-offset,"\n");
   }
 
   return offset;
@@ -1909,9 +1910,9 @@ int DumpCustom::modify_param(int narg, char **arg)
       if (ptr == nullptr)
         error->all(FLERR,"Dump_modify int format does not contain d character");
       char str[8];
-      sprintf(str,"%s",BIGINT_FORMAT);
+      snprintf(str,8,"%s",BIGINT_FORMAT);
       *ptr = '\0';
-      sprintf(format_bigint_user,"%s%s%s",format_int_user,&str[1],ptr+1);
+      snprintf(format_bigint_user,n,"%s%s%s",format_int_user,&str[1],ptr+1);
       *ptr = 'd';
 
     } else if (strcmp(arg[1],"float") == 0) {

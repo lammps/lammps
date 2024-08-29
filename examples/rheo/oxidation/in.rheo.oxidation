@@ -1,0 +1,102 @@
+# ------ 2D oxidizing bar ------ #
+
+dimension          2
+units              lj
+atom_style         hybrid rheo/thermal bond
+boundary           m m p
+comm_modify        vel yes
+newton             off
+
+region             box block -60 60 0 80 -0.01 0.01 units box
+create_box         3 box bond/types 2 extra/bond/per/atom 20 extra/special/per/atom 50
+
+region             lbar block -15 0 3 80 EDGE EDGE units box
+region             rbar block 0 15 3 80 EDGE EDGE units box
+region             bar union 2 lbar rbar
+region             floor block EDGE EDGE EDGE 3.0 EDGE EDGE units box
+
+lattice            hex 1.0
+create_atoms       1 region bar
+create_atoms       3 region floor
+
+set                region rbar type 2
+group              bar type 1 2
+group              rbar type 2
+group              floor type 3
+
+set                group all sph/e 0.0
+set                group all rheo/status 1
+
+# ------ Model parameters ------#
+
+variable           cut equal 3.0
+variable           n equal 1.0
+variable           rho0 equal 1.0
+variable           cs equal 1.0
+variable           mp equal ${rho0}/${n}
+variable           zeta equal 0.05
+variable           kappa equal 0.1*${rho0}/${mp}
+variable           dt_max equal 0.1*${cut}/${cs}/3
+variable           eta equal 0.05
+variable           Cv equal 1.0
+variable           L equal 0.1
+variable           Tf equal 1.0
+
+mass               * ${mp}
+timestep           0.1
+
+pair_style         hybrid/overlay rheo ${cut} artificial/visc ${zeta} rheo/solid
+pair_coeff         * * rheo
+pair_coeff         * * rheo/solid 1.0 1.0 1.0
+
+special_bonds      lj 0.0 1.0 1.0 coul 0.0 1.0 1.0
+create_bonds       many bar bar 1 0 1.5
+special_bonds      lj 0.0 1.0 1.0 coul 1.0 1.0 1.0
+
+bond_style         hybrid bpm/spring rheo/shell t/form 100
+bond_coeff         1 bpm/spring 1.0 1.0 1.0
+bond_coeff         2 rheo/shell 0.2 0.2 0.1
+
+# ------ Apply dynamics ------#
+
+# Note: surface detection is not performed on solid bodies, so cannot use surface property
+compute         coord all rheo/property/atom coordination
+variable        surf atom c_coord<22
+group           surf dynamic all var surf every 10
+
+fix             1 all rheo ${cut} quintic 0 &
+                           thermal &
+                           shift &
+                           surface/detection coordination 22 8
+fix             2 all rheo/viscosity * constant ${eta}
+fix             3 all rheo/pressure * linear
+fix             4 all rheo/thermal conductivity * constant ${kappa} &
+                                   specific/heat * constant ${Cv} &
+                                   Tfreeze * constant ${Tf} &
+                                   latent/heat * constant ${L} &
+                                   react 1.5 1
+
+fix             5 rbar rheo/oxidation 1.5 2 1.0
+fix             6 all wall/harmonic ylo EDGE 2.0 1.0 1.0
+fix             7 all gravity 5e-5 vector 0 -1 0
+fix             8 floor setforce 0.0 0.0 0.0
+fix             9 surf add/heat linear 1.1 0.5
+fix             10 floor add/heat constant 0 overwrite yes # fix the temperature of the floor
+fix             11 all enforce2d
+
+compute         surf all rheo/property/atom surface
+compute         rho all rheo/property/atom rho
+compute         phase all rheo/property/atom phase
+compute         temp all rheo/property/atom temperature
+compute         eng all rheo/property/atom energy
+compute         nbond_shell all rheo/property/atom nbond/shell
+compute         nbond_solid all nbond/atom bond/type 1
+
+# ------ Output & Run ------ #
+
+thermo          200
+thermo_style    custom step time ke press atoms
+
+#dump            1 all custom 200 atomDump id type x y vx vy fx fy c_phase c_temp c_eng c_nbond_solid c_nbond_shell c_rho c_surf
+
+run             40000

@@ -90,6 +90,11 @@ FixPIMDLangevin::FixPIMDLangevin(LAMMPS *lmp, int narg, char **arg) :
   integrator = OBABO;
   thermostat = PILE_L;
   barostat = BZP;
+  lj_epsilon = 1;
+  lj_sigma = 1;
+  lj_mass = 1;
+  other_planck = 1;
+  other_mvv2e = 1;
   fmass = 1.0;
   np = universe->nworlds;
   inverse_np = 1.0 / np;

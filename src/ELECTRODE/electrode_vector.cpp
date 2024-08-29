@@ -37,8 +37,7 @@ using namespace LAMMPS_NS;
 using namespace MathConst;
 
 ElectrodeVector::ElectrodeVector(LAMMPS *lmp, int sensor_group, int source_group, double eta,
-                                 bool invert_source) :
-    Pointers(lmp)
+                                 bool invert_source) : Pointers(lmp)
 {
   igroup = sensor_group;                // group of all atoms at which we calculate potential
   this->source_group = source_group;    // group of all atoms influencing potential

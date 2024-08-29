@@ -28,28 +28,28 @@ Syntax
 
   .. parsed-literal::
 
-     natom1, natom2 = store IDs of 2 atoms in each pair (within neighbor cutoff)
-     ntype1, ntype2 = store types of 2 atoms in each pair (within neighbor cutoff)
+     natom1, natom2 = store IDs of two atoms in each pair (within neighbor cutoff)
+     ntype1, ntype2 = store types of two atoms in each pair (within neighbor cutoff)
 
   * Pair attributes
 
   .. parsed-literal::
 
-     patom1, patom2 = store IDs of 2 atoms in each pair (within force cutoff)
-     ptype1, ptype2 = store types of 2 atoms in each pair (within force cutoff)
+     patom1, patom2 = store IDs of two atoms in each pair (within force cutoff)
+     ptype1, ptype2 = store types of two atoms in each pair (within force cutoff)
 
   * Bond attributes
 
   .. parsed-literal::
 
-     batom1, batom2 = store IDs of 2 atoms in each bond
+     batom1, batom2 = store IDs of two atoms in each bond
      btype = store bond type of each bond
 
   * Angle attributes
 
   .. parsed-literal::
 
-     aatom1, aatom2, aatom3 = store IDs of 3 atoms in each angle
+     aatom1, aatom2, aatom3 = store IDs of three atoms in each angle
      atype = store angle type of each angle
 
   * Dihedral attributes
@@ -146,10 +146,10 @@ from this command and output by the :doc:`dump local <dump>` command
 in a consistent way.
 
 The *natom1* and *natom2* or *patom1* and *patom2* attributes refer
-to the atom IDs of the 2 atoms in each pairwise interaction computed
+to the atom IDs of the two atoms in each pairwise interaction computed
 by the :doc:`pair_style <pair_style>` command.  The *ntype1* and
 *ntype2* or *ptype1* and *ptype2* attributes refer to the atom types
-of the 2 atoms in each pairwise interaction.
+of the two atoms in each pairwise interaction.
 
 .. note::
 

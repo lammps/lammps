@@ -163,6 +163,9 @@ pairclass(nullptr), pairnames(nullptr), pairmasks(nullptr)
   npair_perpetual = 0;
   plist = nullptr;
 
+  npair_occasional = 0;
+  olist = nullptr;
+
   nrequest = maxrequest = 0;
   requests = nullptr;
   j_sorted = nullptr;
@@ -253,6 +256,7 @@ Neighbor::~Neighbor()
 
   delete[] slist;
   delete[] plist;
+  delete[] olist;
 
   for (int i = 0; i < nrequest; i++)
     if (requests[i]) delete requests[i];
@@ -1008,6 +1012,9 @@ int Neighbor::init_pair()
   for (i = 0; i < nrequest; i++) {
     requests[i]->index_pair = -1;
     flag = lists[i]->pair_method;
+
+    // 22 Jul 2024 NOTE, don't think flag = 0 occurs in current code
+
     if (flag == 0) {
       neigh_pair[i] = nullptr;
       continue;
@@ -1054,19 +1061,25 @@ int Neighbor::init_pair()
 
   // plist = indices of perpetual NPair classes
   //         perpetual = non-occasional, re-built at every reneighboring
+  // olist = indices of occasional NPair classes
+  //         occasional = built only when requested
   // slist = indices of perpetual NStencil classes
   //         perpetual = used by any perpetual NPair class
 
-  delete[] slist;
   delete[] plist;
-  nstencil_perpetual = npair_perpetual = 0;
-  slist = new int[nstencil];
+  delete[] olist;
+  delete[] slist;
+  npair_perpetual = npair_occasional = nstencil_perpetual = 0;
   plist = new int[nlist];
+  olist = new int[nlist];
+  slist = new int[nstencil];
 
   for (i = 0; i < nlist; i++) {
     if (lists[i]->occasional == 0 && lists[i]->pair_method)
       plist[npair_perpetual++] = i;
-  }
+    if (lists[i]->occasional && lists[i]->pair_method)
+      olist[npair_occasional++] = i;
+ }
 
   for (i = 0; i < nstencil; i++) {
     flag = 0;
@@ -1173,7 +1186,7 @@ void Neighbor::morph_unique()
     irq = requests[i];
 
     // if cut flag set by requestor and cutoff is different than default,
-    //  set unique flag, otherwise unset cut flag
+    //   set unique flag, otherwise unset cut flag
     // this forces Pair,Stencil,Bin styles to be instantiated separately
     // also add skin to cutoff of perpetual lists
 
@@ -2416,7 +2429,9 @@ void Neighbor::build(int topoflag)
 
   int nlocal = atom->nlocal;
   int nall = nlocal + atom->nghost;
+
   // rebuild collection array from scratch
+
   if (style == Neighbor::MULTI) build_collection(0);
 
   // check that using special bond flags will not overflow neigh lists
@@ -2488,6 +2503,16 @@ void Neighbor::build(int topoflag)
   // skip if GPU package styles will call it explicitly to overlap with GPU computation.
 
   if ((atom->molecular != Atom::ATOMIC) && topoflag && !overlap_topo) build_topology();
+
+  // reset last_build in all occasional lists
+  // this will force them rebuild on next request
+  // all occasional lists are now out-of-date b/c
+  //   comm->exchange() occurred before neighbor->build()
+
+  for (i = 0; i < npair_occasional; i++) {
+    m = olist[i];
+    neigh_pair[m]->last_build = -1;
+  }
 }
 
 /* ----------------------------------------------------------------------
@@ -2524,7 +2549,7 @@ void Neighbor::build_topology()
    called by other classes
 ------------------------------------------------------------------------- */
 
-void Neighbor::build_one(class NeighList *mylist, int preflag)
+void Neighbor::build_one(class NeighList *mylist)
 {
   // check if list structure is initialized
 
@@ -2535,18 +2560,12 @@ void Neighbor::build_one(class NeighList *mylist, int preflag)
 
   if (!mylist->occasional) error->all(FLERR,"Neighbor::build_one() invoked on perpetual list");
 
-  // no need to build if already built since last re-neighbor
-  // preflag is set by fix bond/create and fix bond/swap
-  //   b/c they invoke build_one() on same step neigh list is re-built,
-  //   but before re-build, so need to use ">" instead of ">="
+  // no need to build this occasional list if already built
+  //   since last comm->exchange() and re-neighbor which invoked build()
+  // build() method resets last_build for all occasional lists to -1
 
   NPair *np = neigh_pair[mylist->index];
-
-  if (preflag) {
-    if (np->last_build > lastcall) return;
-  } else {
-    if (np->last_build >= lastcall) return;
-  }
+  if (np->last_build >= lastcall) return;
 
   // if this is copy list and parent is occasional list,
   // or this is halffull and parent is occasional list,
@@ -2554,11 +2573,11 @@ void Neighbor::build_one(class NeighList *mylist, int preflag)
   // ensure parent is current
 
   if (mylist->listcopy && mylist->listcopy->occasional)
-    build_one(mylist->listcopy,preflag);
+    build_one(mylist->listcopy);
   if (mylist->listfull && mylist->listfull->occasional)
-    build_one(mylist->listfull,preflag);
+    build_one(mylist->listfull);
   if (mylist->listskip && mylist->listskip->occasional)
-    build_one(mylist->listskip,preflag);
+    build_one(mylist->listskip);
 
   // create stencil if hasn't been created since last setup_bins() call
 
@@ -2686,8 +2705,8 @@ void Neighbor::modify_params(int narg, char **arg)
           memory->grow(ex1_type,maxex_type,"neigh:ex1_type");
           memory->grow(ex2_type,maxex_type,"neigh:ex2_type");
         }
-        ex1_type[nex_type] = utils::inumeric(FLERR,arg[iarg+2],false,lmp);
-        ex2_type[nex_type] = utils::inumeric(FLERR,arg[iarg+3],false,lmp);
+        ex1_type[nex_type] = utils::expand_type_int(FLERR, arg[iarg+2], Atom::ATOM, lmp);
+        ex2_type[nex_type] = utils::expand_type_int(FLERR, arg[iarg+3], Atom::ATOM, lmp);
         nex_type++;
         iarg += 4;
       } else if (strcmp(arg[iarg+1],"group") == 0) {
@@ -2702,7 +2721,9 @@ void Neighbor::modify_params(int narg, char **arg)
         if (ex1_group[nex_group] == -1)
           error->all(FLERR, "Invalid exclude group keyword: group {} not found", arg[iarg+2]);
         if (ex2_group[nex_group] == -1)
-            error->all(FLERR, "Invalid exclude group keyword: group {} not found", arg[iarg+3]);
+          error->all(FLERR, "Invalid exclude group keyword: group {} not found", arg[iarg+3]);
+        if (group->dynamic[ex1_group[nex_group]] || group->dynamic[ex2_group[nex_group]])
+          error->all(FLERR, "Neigh_modify exclude group is not compatible with dynamic groups");
         nex_group++;
         iarg += 4;
       } else if (strcmp(arg[iarg+1],"molecule/inter") == 0 ||

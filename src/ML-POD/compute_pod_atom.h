@@ -32,8 +32,8 @@ class ComputePODAtom : public Compute {
   void init_list(int, class NeighList *) override;
   void compute_peratom() override;
   double memory_usage() override;
-  void lammpsNeighborList(double **x, int **firstneigh, tagint *atomid, int *atomtype, int *numneigh,
-                        double rcutsq, int i);
+  void lammpsNeighborList(double **x, int **firstneigh, tagint *atomid, int *atomtype,
+                          int *numneigh, double rcutsq, int i);
   void map_element2type(int narg, char **arg, int nelements);
 
  private:
@@ -45,14 +45,14 @@ class ComputePODAtom : public Compute {
   int nij;
   int nijmax;
 
-  double *tmpmem;      // temporary memory
-  double *rij;         // (xj - xi) for all pairs (I, J)
+  double *tmpmem;    // temporary memory
+  double *rij;       // (xj - xi) for all pairs (I, J)
   char **elements;
   int *map;
-  int *ai;             // IDs of atoms I for all pairs (I, J)
-  int *aj;             // IDs of atoms J for all pairs (I, J)
-  int *ti;             // types of atoms I for all pairs (I, J)
-  int *tj;             // types of atoms J  for all pairs (I, J)
+  int *ai;    // IDs of atoms I for all pairs (I, J)
+  int *aj;    // IDs of atoms J for all pairs (I, J)
+  int *ti;    // types of atoms I for all pairs (I, J)
+  int *tj;    // types of atoms J  for all pairs (I, J)
 };
 
 }    // namespace LAMMPS_NS

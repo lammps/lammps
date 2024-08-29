@@ -153,11 +153,11 @@ void BondHybridKokkos::compute(int eflag, int vflag)
 void BondHybridKokkos::allocate()
 {
   allocated = 1;
-  int n = atom->nbondtypes;
+  int np1 = atom->nbondtypes + 1;
 
-  memoryKK->create_kokkos(k_map, map, n + 1, "bond:map");
-  memory->create(setflag, n + 1, "bond:setflag");
-  for (int i = 1; i <= n; i++) setflag[i] = 0;
+  memoryKK->create_kokkos(k_map, map, np1, "bond:map");
+  memory->create(setflag, np1, "bond:setflag");
+  for (int i = 1; i < np1; i++) setflag[i] = 0;
 
   k_nbondlist = DAT::tdual_int_1d("bond:nbondlist", nstyles);
 }

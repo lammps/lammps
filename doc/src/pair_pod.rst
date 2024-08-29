@@ -1,4 +1,5 @@
 .. index:: pair_style pod
+.. index:: pair_style pod/kk
 
 pair_style pod command
 ========================
@@ -26,23 +27,25 @@ Description
 .. versionadded:: 22Dec2022
 
 Pair style *pod* defines the proper orthogonal descriptor (POD)
-potential :ref:`(Nguyen and Rohskopf) <Nguyen20222>`,
-:ref:`(Nguyen2023) <Nguyen20232>`, :ref:`(Nguyen2024) <Nguyen20242>`, and :ref:`(Nguyen and Sema) <Nguyen20243>`.
-The :doc:`fitpod <fitpod_command>` is used to fit the POD potential.
+potential :ref:`(Nguyen and Rohskopf) <Nguyen20222b>`,
+:ref:`(Nguyen2023) <Nguyen20232b>`, :ref:`(Nguyen2024) <Nguyen20242b>`,
+and :ref:`(Nguyen and Sema) <Nguyen20243b>`.  The :doc:`fitpod
+<fitpod_command>` is used to fit the POD potential.
 
 Only a single pair_coeff command is used with the *pod* style which
-specifies a POD parameter file followed by a coefficient file,
-a projection matrix file, and a centroid file.
+specifies a POD parameter file followed by a coefficient file, a
+projection matrix file, and a centroid file.
 
-The POD parameter file (``Ta_param.pod``) can contain blank and comment lines
-(start with #) anywhere. Each non-blank non-comment line must contain
-one keyword/value pair. See :doc:`fitpod <fitpod_command>` for the description
-of all the keywords that can be assigned in the parameter file.
+The POD parameter file (``Ta_param.pod``) can contain blank and comment
+lines (start with #) anywhere. Each non-blank non-comment line must
+contain one keyword/value pair. See :doc:`fitpod <fitpod_command>` for
+the description of all the keywords that can be assigned in the
+parameter file.
 
-The coefficient file (``Ta_coefficients.pod``) contains coefficients for the
-POD potential. The top of the coefficient file can contain any number of
-blank and comment lines (start with #), but follows a strict format
-after that. The first non-blank non-comment line must contain:
+The coefficient file (``Ta_coefficients.pod``) contains coefficients for
+the POD potential. The top of the coefficient file can contain any
+number of blank and comment lines (start with #), but follows a strict
+format after that. The first non-blank non-comment line must contain:
 
 * model_coefficients: *ncoeff* *nproj* *ncentroid*
 
@@ -124,19 +127,19 @@ none
 
 ----------
 
-.. _Nguyen20222:
+.. _Nguyen20222b:
 
 **(Nguyen and Rohskopf)** Nguyen and Rohskopf,  Journal of Computational Physics, 480, 112030, (2023).
 
-.. _Nguyen20232:
+.. _Nguyen20232b:
 
 **(Nguyen2023)** Nguyen, Physical Review B, 107(14), 144103, (2023).
 
-.. _Nguyen20242:
+.. _Nguyen20242b:
 
 **(Nguyen2024)** Nguyen, Journal of Computational Physics, 113102, (2024).
 
-.. _Nguyen20243:
+.. _Nguyen20243b:
 
 **(Nguyen and Sema)** Nguyen and Sema, https://arxiv.org/abs/2405.00306, (2024).
 

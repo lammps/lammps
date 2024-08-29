@@ -24,15 +24,18 @@ Examples
    info all out log
    info all out append info.txt
    info styles all
-   info styles atom
+   info styles atom styles command
 
 Description
 """""""""""
 
 Print out information about the current internal state of the running
-LAMMPS process. This can be helpful when debugging or validating
-complex input scripts.  Several output categories are available and
-one or more output category may be requested.
+LAMMPS process. This can be helpful when debugging or validating complex
+input scripts.  Several output categories are available and one or more
+output categories may be requested.  All category keywords take no
+arguments, only *out* and *styles* take arguments as shown below.  The
+keywords are cumulative, may be abbreviated, and unknown keywords are
+ignored.
 
 The *out* flag controls where the output is sent. It can only be sent
 to one target. By default this is the screen, if it is active. The
@@ -99,9 +102,12 @@ support.  This lists the 3d-FFT engine, FFT precision, FFT library
 used by the FFT engine. If the KOKKOS package is included, the settings
 used for the KOKKOS package are displayed as well.
 
-The *styles* category prints the list of styles available in the
-current LAMMPS binary. It supports one of the following options
-to control which category of styles is printed out:
+The *styles* category prints the list of styles available in the current
+LAMMPS binary. The *styles* keyword without option is the same as using
+the "all" option.  One of the following options may be used to control
+which category of styles is printed out.  To select multiple categories,
+the styles keyword needs to be used multiple times with the desired
+categories:
 
 * all
 * angle
@@ -124,7 +130,8 @@ process that writes output (usually MPI rank 0).
 
 Restrictions
 """"""""""""
- none
+
+none
 
 Related commands
 """"""""""""""""

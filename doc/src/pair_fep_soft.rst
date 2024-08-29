@@ -97,8 +97,8 @@ Syntax
        cutoff = global cutoff for LJ (and Coulombic if only 1 arg) (distance units)
        cutoff2 = global cutoff for Coulombic (optional) (distance units)
      *lj/cut/tip4p/long/soft* args = otype htype btype atype qdist n alpha_LJ alpha_C cutoff (cutoff2)
-       otype,htype = atom types for TIP4P O and H
-       btype,atype = bond and angle types for TIP4P waters
+       otype,htype = atom types (numeric or type label) for TIP4P O and H
+       btype,atype = bond and angle types (numeric or type label) for TIP4P waters
        qdist = distance from O atom to massless charge (distance units)
        n, alpha_LJ, alpha_C = parameters of the soft-core potential
        cutoff = global cutoff for LJ (and Coulombic if only 1 arg) (distance units)
@@ -125,8 +125,8 @@ Syntax
        n, alpha_C = parameters of the soft-core potential
        cutoff = global cutoff for Coulomb interactions (distance units)
      *tip4p/long/soft* args = otype htype btype atype qdist n alpha_C cutoff
-       otype,htype = atom types for TIP4P O and H
-       btype,atype = bond and angle types for TIP4P waters
+       otype,htype = atom types (numeric or type label) for TIP4P O and H
+       btype,atype = bond and angle types (numeric or type label) for TIP4P waters
        qdist = distance from O atom to massless charge (distance units)
        n, alpha_C = parameters of the soft-core potential
        cutoff = global cutoff for Coulomb interactions (distance units)
@@ -160,6 +160,13 @@ Examples
    pair_style lj/cut/tip4p/long/soft 1 2 7 8 0.15 2.0 0.5 10.0 9.8 9.5
    pair_coeff * * 0.155 3.1536 1.0
    pair_coeff 1 1 0.155 3.1536 1.0 9.5
+
+   pair_style lj/cut/tip4p/long/soft OW HW HW-OW HW-OW-HW 0.15 2.0 0.5 10.0 9.8
+   labelmap atom 1 OW 2 HW
+   labelmap bond 1 HW-OW
+   labelmap angle 1 HW-OW-HW
+   pair_coeff * * 0.155 3.1536 1.0
+   pair_coeff OW OW 0.155 3.1536 1.0 9.5
 
    pair_style lj/charmm/coul/long 2.0 0.5 10.0 8.0 10.0
    pair_style lj/charmm/coul/long 2.0 0.5 10.0 8.0 10.0 9.0
@@ -221,7 +228,7 @@ Coulomb interactions can also be damped with a soft core at short distance,
    (1-\lambda)^2 + r^2 \right]^{1/2}} \qquad r < r_c
 
 In the Coulomb part :math:`C` is an energy-conversion constant, :math:`q_i` and
-:math:`q_j` are the charges on the 2 atoms, and epsilon is the dielectric
+:math:`q_j` are the charges on the two atoms, and epsilon is the dielectric
 constant which can be set by the :doc:`dielectric <dielectric>` command.
 
 The coefficient lambda is an activation parameter. When :math:`\lambda = 1` the
@@ -274,6 +281,11 @@ model. The usage of the TIP4P pair style is documented in the :doc:`pair_lj
 TIP4P water model and before the cutoffs. The activation parameter lambda is
 supplied as an argument of the :doc:`pair_coeff <pair_coeff>` command, after
 epsilon and sigma and before the optional cutoffs.
+
+.. note::
+
+   If using type labels, the type labels must be defined before calling
+   the :doc:`pair_coeff <pair_coeff>` command.
 
 Style *lj/charmm/coul/long/soft* implements a soft-core version of the modified
 12-6 LJ potential used in CHARMM and documented in the :doc:`pair_style

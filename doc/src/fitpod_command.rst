@@ -1,7 +1,7 @@
 .. index:: fitpod
 
 fitpod command
-======================
+==============
 
 Syntax
 """"""
@@ -28,19 +28,23 @@ Description
 .. versionadded:: 22Dec2022
 
 Fit a machine-learning interatomic potential (ML-IAP) based on proper
-orthogonal descriptors (POD); please see :ref:`(Nguyen and Rohskopf) <Nguyen20222>`,
-:ref:`(Nguyen2023) <Nguyen20232>`, :ref:`(Nguyen2024) <Nguyen20242>`, and :ref:`(Nguyen and Sema) <Nguyen20243>` for details.
-The fitted POD potential can be used to run MD simulations via :doc:`pair_style pod <pair_pod>`.
+orthogonal descriptors (POD); please see :ref:`(Nguyen and Rohskopf)
+<Nguyen20222a>`, :ref:`(Nguyen2023) <Nguyen20232a>`, :ref:`(Nguyen2024)
+<Nguyen20242a>`, and :ref:`(Nguyen and Sema) <Nguyen20243a>` for details.
+The fitted POD potential can be used to run MD simulations via
+:doc:`pair_style pod <pair_pod>`.
 
-Two input files are required for this command. The first input file describes a POD potential parameter
-settings, while the second input file specifies the DFT data used for
-the fitting procedure. All keywords except *species* have default values. If a keyword is not
-set in the input file, its default value is used. The table below has one-line descriptions of all the keywords that can
-be used in the first input file  (i.e. ``Ta_param.pod``)
+Two input files are required for this command. The first input file
+describes a POD potential parameter settings, while the second input
+file specifies the DFT data used for the fitting procedure. All keywords
+except *species* have default values. If a keyword is not set in the
+input file, its default value is used. The table below has one-line
+descriptions of all the keywords that can be used in the first input
+file (i.e. ``Ta_param.pod``)
 
 .. list-table::
    :header-rows: 1
-   :widths: auto
+   :widths: 40 9 10 41
 
    * - Keyword
      - Default
@@ -127,13 +131,15 @@ be used in the first input file  (i.e. ``Ta_param.pod``)
      - INT
      - angular degree for seven-body potential
 
-Note that both the number of radial basis functions and angular degree must decrease as the body order increases. The next table describes all keywords that can be used in the second input file
-(i.e. ``Ta_data.pod`` in the example above):
+Note that both the number of radial basis functions and angular degree
+must decrease as the body order increases. The next table describes all
+keywords that can be used in the second input file (i.e. ``Ta_data.pod``
+in the example above):
 
 
 .. list-table::
    :header-rows: 1
-   :widths: auto
+   :widths: 38 9 10 43
 
    * - Keyword
      - Default
@@ -218,17 +224,19 @@ successful training, a number of output files are produced, if enabled:
 * ``<basename>_test_analysis.pod`` reports detailed errors for all test configurations
 * ``<basename>_coefficients.pod`` contains the coefficients of the POD potential
 
-After training the POD potential, ``Ta_param.pod`` and ``<basename>_coefficients.pod``
-are the two files needed to use the POD potential in LAMMPS.
-See :doc:`pair_style pod <pair_pod>` for using the POD potential. Examples
-about training and using POD potentials are found in the directory
-lammps/examples/PACKAGES/pod and the Github repo https://github.com/cesmix-mit/pod-examples.
+After training the POD potential, ``Ta_param.pod`` and
+``<basename>_coefficients.pod`` are the two files needed to use the POD
+potential in LAMMPS.  See :doc:`pair_style pod <pair_pod>` for using the
+POD potential. Examples about training and using POD potentials are
+found in the directory lammps/examples/PACKAGES/pod and the Github repo
+https://github.com/cesmix-mit/pod-examples.
 
 Loss Function Group Weights
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-The ``group_weights`` keyword in the ``data.pod`` file is responsible for weighting certain groups
-of configurations in the loss function. For example:
+The *group_weights* keyword in the ``data.pod`` file is responsible for
+weighting certain groups of configurations in the loss function. For
+example:
 
 .. code-block:: LAMMPS
 
@@ -246,9 +254,10 @@ of configurations in the loss function. For example:
     Volume_BCC    100.0 1.0
     Volume_FCC    100.0 1.0
 
-This will apply an energy weight of ``100.0`` and a force weight of ``1.0`` for all groups in the
-``Ta`` example. The groups are named by their respective filename. If certain groups are left out of
-this table, then the globally defined weights from the ``fitting_weight_energy`` and
+This will apply an energy weight of ``100.0`` and a force weight of
+``1.0`` for all groups in the ``Ta`` example. The groups are named by
+their respective filename. If certain groups are left out of this table,
+then the globally defined weights from the ``fitting_weight_energy`` and
 ``fitting_weight_force`` keywords will be used.
 
 POD Potential
@@ -269,38 +278,43 @@ POD potential is expressed as :math:`E(\boldsymbol R, \boldsymbol Z) =
     E_i(\boldsymbol R_i, \boldsymbol Z_i) \ = \ \sum_{m=1}^M c_m \mathcal{D}_{im}(\boldsymbol R_i, \boldsymbol Z_i)
 
 
-Here :math:`c_m` are trainable coefficients and :math:`\mathcal{D}_{im}(\boldsymbol R_i, \boldsymbol Z_i)`
-are per-atom POD descriptors. Summing the per-atom descriptors over :math:`i` yields the
-global descriptors :math:`d_m(\boldsymbol R, \boldsymbol Z) = \sum_{i=1}^N \mathcal{D}_{im}(\boldsymbol R_i, \boldsymbol Z_i)`.
-It thus follows that :math:`E(\boldsymbol R, \boldsymbol Z) =
-\sum_{m=1}^M c_m d_m(\boldsymbol R, \boldsymbol Z)`.
+Here :math:`c_m` are trainable coefficients and
+:math:`\mathcal{D}_{im}(\boldsymbol R_i, \boldsymbol Z_i)` are per-atom
+POD descriptors. Summing the per-atom descriptors over :math:`i` yields
+the global descriptors :math:`d_m(\boldsymbol R, \boldsymbol Z) =
+\sum_{i=1}^N \mathcal{D}_{im}(\boldsymbol R_i, \boldsymbol Z_i)`.  It
+thus follows that :math:`E(\boldsymbol R, \boldsymbol Z) = \sum_{m=1}^M
+c_m d_m(\boldsymbol R, \boldsymbol Z)`.
 
-The per-atom POD descriptors include one, two, three, four, five, six, and seven-body
-descriptors, which can be specified in the first input file. Furthermore, the per-atom POD descriptors
-also depend on the number of environment clusters specified in the first input file.
-Please see :ref:`(Nguyen2024) <Nguyen20242>` and :ref:`(Nguyen and Sema) <Nguyen20243>` for the detailed description of the per-atom POD descriptors.
+The per-atom POD descriptors include one, two, three, four, five, six,
+and seven-body descriptors, which can be specified in the first input
+file. Furthermore, the per-atom POD descriptors also depend on the
+number of environment clusters specified in the first input file.
+Please see :ref:`(Nguyen2024) <Nguyen20242a>` and :ref:`(Nguyen and Sema)
+<Nguyen20243a>` for the detailed description of the per-atom POD
+descriptors.
 
 Training
 """"""""
 
-POD potential is trained using the least-squares regression against
+A POD potential is trained using the least-squares regression against
 density functional theory (DFT) data.  Let :math:`J` be the number of
 training configurations, with :math:`N_j` being the number of atoms in
 the j-th configuration. The training configurations are extracted from
-the extended XYZ files located in a directory (i.e., path_to_training_data_set
-in the second input file).  Let :math:`\{E^{\star}_j\}_{j=1}^{J}` and
-:math:`\{\boldsymbol F^{\star}_j\}_{j=1}^{J}` be the DFT energies and
-forces for :math:`J` configurations. Next, we calculate the global
-descriptors and their derivatives for all training configurations. Let
-:math:`d_{jm}, 1 \le m \le M`, be the global descriptors associated with
-the j-th configuration, where :math:`M` is the number of global
-descriptors. We then form a matrix :math:`\boldsymbol A \in
-\mathbb{R}^{J \times M}` with entries :math:`A_{jm} = d_{jm}/ N_j` for
-:math:`j=1,\ldots,J` and :math:`m=1,\ldots,M`.  Moreover, we form a
-matrix :math:`\boldsymbol B \in \mathbb{R}^{\mathcal{N} \times M}` by
-stacking the derivatives of the global descriptors for all training
-configurations from top to bottom, where :math:`\mathcal{N} =
-3\sum_{j=1}^{J} N_j`.
+the extended XYZ files located in a directory (i.e.,
+path_to_training_data_set in the second input file).  Let
+:math:`\{E^{\star}_j\}_{j=1}^{J}` and :math:`\{\boldsymbol
+F^{\star}_j\}_{j=1}^{J}` be the DFT energies and forces for :math:`J`
+configurations. Next, we calculate the global descriptors and their
+derivatives for all training configurations. Let :math:`d_{jm}, 1 \le m
+\le M`, be the global descriptors associated with the j-th
+configuration, where :math:`M` is the number of global descriptors. We
+then form a matrix :math:`\boldsymbol A \in \mathbb{R}^{J \times M}`
+with entries :math:`A_{jm} = d_{jm}/ N_j` for :math:`j=1,\ldots,J` and
+:math:`m=1,\ldots,M`.  Moreover, we form a matrix :math:`\boldsymbol B
+\in \mathbb{R}^{\mathcal{N} \times M}` by stacking the derivatives of
+the global descriptors for all training configurations from top to
+bottom, where :math:`\mathcal{N} = 3\sum_{j=1}^{J} N_j`.
 
 The coefficient vector :math:`\boldsymbol c` of the POD potential is
 found by solving the following least-squares problem
@@ -311,20 +325,22 @@ found by solving the following least-squares problem
 
 where :math:`w_E` and :math:`w_F` are weights for the energy
 (*fitting_weight_energy*) and force (*fitting_weight_force*),
-respectively; and :math:`w_R` is the regularization parameter (*fitting_regularization_parameter*).  Here :math:`\bar{\boldsymbol E}^{\star} \in
-\mathbb{R}^{J}` is a vector of with entries :math:`\bar{E}^{\star}_j =
-E^{\star}_j/N_j` and :math:`\boldsymbol F^{\star}` is a vector of
-:math:`\mathcal{N}` entries obtained by stacking :math:`\{\boldsymbol
-F^{\star}_j\}_{j=1}^{J}` from top to bottom.
+respectively; and :math:`w_R` is the regularization parameter
+(*fitting_regularization_parameter*).  Here :math:`\bar{\boldsymbol
+E}^{\star} \in \mathbb{R}^{J}` is a vector of with entries
+:math:`\bar{E}^{\star}_j = E^{\star}_j/N_j` and :math:`\boldsymbol
+F^{\star}` is a vector of :math:`\mathcal{N}` entries obtained by
+stacking :math:`\{\boldsymbol F^{\star}_j\}_{j=1}^{J}` from top to
+bottom.
 
 Validation
 """"""""""
 
-POD potential can be validated on a test dataset in a directory specified
-by setting path_to_test_data_set in the second input file. It is possible to
-validate the POD potential after the training is complete. This is done by
-providing the coefficient file as an input to :doc:`fitpod <fitpod_command>`,
-for example,
+POD potential can be validated on a test dataset in a directory
+specified by setting path_to_test_data_set in the second input file.  It
+is possible to validate the POD potential after the training is
+complete.  This is done by providing the coefficient file as an input to
+:doc:`fitpod <fitpod_command>`, for example,
 
 .. code-block:: LAMMPS
 
@@ -353,19 +369,19 @@ The keyword defaults are also given in the description of the input files.
 
 ----------
 
-.. _Nguyen20222:
+.. _Nguyen20222a:
 
 **(Nguyen and Rohskopf)** Nguyen and Rohskopf,  Journal of Computational Physics, 480, 112030, (2023).
 
-.. _Nguyen20232:
+.. _Nguyen20232a:
 
 **(Nguyen2023)** Nguyen, Physical Review B, 107(14), 144103, (2023).
 
-.. _Nguyen20242:
+.. _Nguyen20242a:
 
 **(Nguyen2024)** Nguyen, Journal of Computational Physics, 113102, (2024).
 
-.. _Nguyen20243:
+.. _Nguyen20243a:
 
 **(Nguyen and Sema)** Nguyen and Sema, https://arxiv.org/abs/2405.00306, (2024).
 

@@ -62,6 +62,7 @@ packages:
    * :ref:`POEMS <poems>`
    * :ref:`PYTHON <python>`
    * :ref:`QMMM <qmmm>`
+   * :ref:`RHEO <rheo>`
    * :ref:`SCAFACOS <scafacos>`
    * :ref:`VORONOI <voronoi>`
    * :ref:`VTK <vtk>`
@@ -99,10 +100,10 @@ versus make.
       .. code-block:: bash
 
          cd lammps/src
-         make ps                    # check which packages are currently installed
-         make yes-name              # install a package with name
-         make no-name               # uninstall a package with name
-         make mpi                   # build LAMMPS with whatever packages are now installed
+         make ps        # check which packages are currently installed
+         make yes-name  # install a package with name
+         make no-name   # uninstall a package with name
+         make mpi       # build LAMMPS with whatever packages are now installed
 
       Examples:
 
@@ -171,18 +172,41 @@ make a copy of one of them and modify it to suit your needs.
 
 .. code-block:: bash
 
-    cmake -C ../cmake/presets/basic.cmake    [OPTIONS] ../cmake  # enable just a few core packages
-    cmake -C ../cmake/presets/most.cmake     [OPTIONS] ../cmake  # enable most packages
-    cmake -C ../cmake/presets/download.cmake [OPTIONS] ../cmake  # enable packages which download sources or potential files
-    cmake -C ../cmake/presets/nolib.cmake    [OPTIONS] ../cmake  # disable packages that do require extra libraries or tools
-    cmake -C ../cmake/presets/clang.cmake    [OPTIONS] ../cmake  # change settings to use the Clang compilers by default
-    cmake -C ../cmake/presets/gcc.cmake      [OPTIONS] ../cmake  # change settings to use the GNU compilers by default
-    cmake -C ../cmake/presets/intel.cmake    [OPTIONS] ../cmake  # change settings to use the Intel compilers by default
-    cmake -C ../cmake/presets/pgi.cmake      [OPTIONS] ../cmake  # change settings to use the PGI compilers by default
-    cmake -C ../cmake/presets/all_on.cmake   [OPTIONS] ../cmake  # enable all packages
-    cmake -C ../cmake/presets/all_off.cmake  [OPTIONS] ../cmake  # disable all packages
-    mingw64-cmake -C ../cmake/presets/mingw-cross.cmake [OPTIONS] ../cmake  #  compile with MinGW cross-compilers
-    cmake -C ../cmake/presets/macos-multiarch.cmake [OPTIONS] ../cmake # compile serial multi-arch binaries on macOS
+    # enable just a few core packages
+    cmake -C ../cmake/presets/basic.cmake    [OPTIONS] ../cmake
+
+    # enable most packages
+    cmake -C ../cmake/presets/most.cmake     [OPTIONS] ../cmake
+
+    # enable packages which download sources or potential files
+    cmake -C ../cmake/presets/download.cmake [OPTIONS] ../cmake
+
+    # disable packages that do require extra libraries or tools
+    cmake -C ../cmake/presets/nolib.cmake    [OPTIONS] ../cmake
+
+    # change settings to use the Clang compilers by default
+    cmake -C ../cmake/presets/clang.cmake    [OPTIONS] ../cmake
+
+    # change settings to use the GNU compilers by default
+    cmake -C ../cmake/presets/gcc.cmake      [OPTIONS] ../cmake
+
+    # change settings to use the Intel compilers by default
+    cmake -C ../cmake/presets/intel.cmake    [OPTIONS] ../cmake
+
+    # change settings to use the PGI compilers by default
+    cmake -C ../cmake/presets/pgi.cmake      [OPTIONS] ../cmake
+
+    # enable all packages
+    cmake -C ../cmake/presets/all_on.cmake   [OPTIONS] ../cmake
+
+    # disable all packages
+    cmake -C ../cmake/presets/all_off.cmake  [OPTIONS] ../cmake
+
+    #  compile with MinGW cross-compilers
+    mingw64-cmake -C ../cmake/presets/mingw-cross.cmake [OPTIONS] ../cmake
+
+    # compile serial multi-arch binaries on macOS
+    cmake -C ../cmake/presets/macos-multiarch.cmake [OPTIONS] ../cmake
 
 Presets that have names starting with "windows" are specifically for
 compiling LAMMPS :doc:`natively on Windows <Build_windows>` and
@@ -208,7 +232,8 @@ Example
    # GPU package and configure it for using CUDA. You can run.
    mkdir build
    cd build
-   cmake -C ../cmake/presets/most.cmake -C ../cmake/presets/nolib.cmake -D PKG_GPU=on -D GPU_API=cuda ../cmake
+   cmake -C ../cmake/presets/most.cmake -C ../cmake/presets/nolib.cmake \
+         -D PKG_GPU=on -D GPU_API=cuda ../cmake
 
    # to add another package, say BODY to the previous configuration you can run:
    cmake -D PKG_BODY=on .

@@ -25,7 +25,7 @@ Examples
 .. code-block:: LAMMPS
 
    pair_style dpd/coul/slater/long 1.0 2.5 34387 0.25 3.0
-   
+
    pair_coeff 1 1 78.0 4.5          # not charged by default
    pair_coeff 2 2 78.0 4.5 yes
 
@@ -33,7 +33,7 @@ Examples
 Description
 """""""""""
 
-.. versionadded:: TBD
+.. versionadded:: 27June2024
 
 Style *dpd/coul/slater/long* computes a force field for dissipative
 particle dynamics (DPD) following the exposition in :ref:`(Groot)
@@ -178,10 +178,7 @@ command for more details.
 Related commands
 """"""""""""""""
 
-:doc:`pair_style dpd <pair_dpd>`, :doc:`pair_style coul/slater/long
-:doc:<pair_coul_slater>`, `pair_coeff <pair_coeff>`, :doc:`fix nvt
-:doc:<fix_nh>`, :doc:`fix langevin <fix_langevin>`, `pair_style srp
-:doc:<pair_srp>`, :doc:`fix mvv/dpd <fix_mvv_dpd>`.
+:doc:`pair_style dpd <pair_dpd>`, :doc:`pair_style coul/slater/long <pair_coul_slater>`,
 
 Default
 """""""

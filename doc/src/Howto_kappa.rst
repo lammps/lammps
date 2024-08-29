@@ -1,20 +1,22 @@
 Calculate thermal conductivity
 ==============================
 
-The thermal conductivity kappa of a material can be measured in at
-least 4 ways using various options in LAMMPS.  See the examples/KAPPA
+The thermal conductivity :math:`\kappa` of a material can be measured in at
+least 4 ways using various options in LAMMPS.  See the ``examples/KAPPA``
 directory for scripts that implement the 4 methods discussed here for
 a simple Lennard-Jones fluid model.  Also, see the :doc:`Howto viscosity <Howto_viscosity>` page for an analogous discussion
 for viscosity.
 
-The thermal conductivity tensor kappa is a measure of the propensity
+The thermal conductivity tensor :math:`\mathbf{\kappa}` is a measure of the propensity
 of a material to transmit heat energy in a diffusive manner as given
 by Fourier's law
 
-J = -kappa grad(T)
+.. math::
 
-where J is the heat flux in units of energy per area per time and
-grad(T) is the spatial gradient of temperature.  The thermal
+   J = -\kappa \cdot \text{grad}(T)
+
+where :math:`J` is the heat flux in units of energy per area per time and
+:math:`\text{grad}(T)` is the spatial gradient of temperature.  The thermal
 conductivity thus has units of energy per distance per time per degree
 K and is often approximated as an isotropic quantity, i.e. as a
 scalar.
@@ -49,7 +51,7 @@ details.
 
 The fourth method is based on the Green-Kubo (GK) formula which
 relates the ensemble average of the auto-correlation of the heat flux
-to kappa.  The heat flux can be calculated from the fluctuations of
+to :math:`\kappa`.  The heat flux can be calculated from the fluctuations of
 per-atom potential and kinetic energies and per-atom stress tensor in
 a steady-state equilibrated simulation.  This is in contrast to the
 two preceding non-equilibrium methods, where energy flows continuously

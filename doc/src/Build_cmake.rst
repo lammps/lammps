@@ -131,20 +131,20 @@ file called ``CMakeLists.txt`` (for LAMMPS it is located in the
 configuration step.  The cache file contains all current CMake settings.
 
 To modify settings, enable or disable features, you need to set
-*variables* with either the *-D* command line flag (``-D
+*variables* with either the ``-D`` command line flag (``-D
 VARIABLE1_NAME=value``) or change them in the text mode of the graphical
-user interface.  The *-D* flag can be used several times in one command.
+user interface.  The ``-D`` flag can be used several times in one command.
 
 For your convenience, we provide :ref:`CMake presets <cmake_presets>`
 that combine multiple settings to enable optional LAMMPS packages or use
-a different compiler tool chain.  Those are loaded with the *-C* flag
+a different compiler tool chain.  Those are loaded with the ``-C`` flag
 (``-C ../cmake/presets/basic.cmake``).  This step would only be needed
 once, as the settings from the preset files are stored in the
 ``CMakeCache.txt`` file. It is also possible to customize the build
-by adding one or more *-D* flags to the CMake command line.
+by adding one or more ``-D`` flags to the CMake command line.
 
 Generating files for alternate build tools (e.g. Ninja) and project files
-for IDEs like Eclipse, CodeBlocks, or Kate can be selected using the *-G*
+for IDEs like Eclipse, CodeBlocks, or Kate can be selected using the ``-G``
 command line flag.  A list of available generator settings for your
 specific CMake version is given when running ``cmake --help``.
 
@@ -171,7 +171,7 @@ files. E.g.  with:
 In that case the resulting binaries are not in the build folder directly
 but in subdirectories corresponding to the build type (i.e. Release in
 the example from above).  Similarly, for running unit tests the
-configuration is selected with the *-C* flag:
+configuration is selected with the ``-C`` flag:
 
 .. code-block:: bash
 

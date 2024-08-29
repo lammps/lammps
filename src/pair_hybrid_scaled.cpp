@@ -254,6 +254,7 @@ void PairHybridScaled::settings(int narg, char **arg)
       delete[] special_coul[m];
     }
     delete[] styles;
+    delete[] cutmax_style;
     delete[] keywords;
     delete[] multiple;
     delete[] special_lj;

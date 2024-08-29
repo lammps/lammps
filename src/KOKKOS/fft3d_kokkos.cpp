@@ -45,7 +45,11 @@ FFT3dKokkos<DeviceType>::FFT3dKokkos(LAMMPS *lmp, MPI_Comm comm, int nfast, int 
   ExecutionSpace execution_space = ExecutionSpaceFromDevice<DeviceType>::space;
 #endif
 
-#if defined(FFT_KOKKOS_MKL)
+  // CHRIS:: what about supporting MKL on both CPU and GPU in same build??
+#if defined(FFT_KOKKOS_MKL_GPU)
+  if (ngpus > 0 && execution_space == Host)
+    lmp->error->all(FLERR,"Cannot use the MKL library with Kokkos on the host CPUs in a GPU build");
+#elif defined(FFT_KOKKOS_MKL)
   if (ngpus > 0 && execution_space == Device)
     lmp->error->all(FLERR,"Cannot use the MKL library with Kokkos on GPUs");
 #elif defined(FFT_KOKKOS_FFTW3)
@@ -156,6 +160,8 @@ public:
     *(out_ptr++) *= norm;
 #elif defined(FFT_KOKKOS_MKL)
     d_out(i) *= norm;
+#elif defined(FFT_KOKKOS_MKL_GPU)
+    d_out(i) *= norm;
 #else // FFT_KOKKOS_KISS
     d_out(i).re *= norm;
     d_out(i).im *= norm;
@@ -219,8 +225,13 @@ void FFT3dKokkos<DeviceType>::fft_3d_kokkos(typename FFT_AT::t_FFT_DATA_1d d_in,
 
   total = plan->total1;
   length = plan->length1;
-
-  #if defined(FFT_KOKKOS_MKL)
+  
+  #if defined(FFT_KOKKOS_MKL_GPU)
+    if (flag == 1)
+      oneapi::mkl::dft::compute_forward(*(plan->desc_fast), d_data.data());
+    else
+      oneapi::mkl::dft::compute_backward(*(plan->desc_fast), d_data.data());
+  #elif defined(FFT_KOKKOS_MKL)
     if (flag == 1)
       DftiComputeForward(plan->handle_fast,d_data.data());
     else
@@ -265,8 +276,13 @@ void FFT3dKokkos<DeviceType>::fft_3d_kokkos(typename FFT_AT::t_FFT_DATA_1d d_in,
 
   total = plan->total2;
   length = plan->length2;
-
-  #if defined(FFT_KOKKOS_MKL)
+  
+  #if defined(FFT_KOKKOS_MKL_GPU)
+    if (flag == 1)
+      oneapi::mkl::dft::compute_forward(*(plan->desc_mid), d_data.data());
+    else
+      oneapi::mkl::dft::compute_backward(*(plan->desc_mid), d_data.data());
+  #elif defined(FFT_KOKKOS_MKL)
     if (flag == 1)
       DftiComputeForward(plan->handle_mid,d_data.data());
     else
@@ -310,7 +326,12 @@ void FFT3dKokkos<DeviceType>::fft_3d_kokkos(typename FFT_AT::t_FFT_DATA_1d d_in,
   total = plan->total3;
   length = plan->length3;
 
-  #if defined(FFT_KOKKOS_MKL)
+  #if defined(FFT_KOKKOS_MKL_GPU)
+    if (flag == 1)
+      oneapi::mkl::dft::compute_forward(*(plan->desc_slow), d_data.data());
+    else
+      oneapi::mkl::dft::compute_backward(*(plan->desc_slow), d_data.data());
+  #elif defined(FFT_KOKKOS_MKL)
     if (flag == 1)
       DftiComputeForward(plan->handle_slow,d_data.data());
     else
@@ -609,7 +630,31 @@ struct fft_plan_3d_kokkos<DeviceType>* FFT3dKokkos<DeviceType>::fft_3d_create_pl
   // system specific pre-computation of 1d FFT coeffs
   // and scaling normalization
 
-#if defined(FFT_KOKKOS_MKL)
+#if defined(FFT_KOKKOS_MKL_GPU)
+  sycl::queue queue = LMPDeviceType().sycl_queue(); // is this the correct queue?
+  
+  plan->desc_fast = new descriptor_t (nfast);
+  plan->desc_fast->set_value(oneapi::mkl::dft::config_param::BACKWARD_SCALE, (FFT_SCALAR)(1.0/nfast));
+  plan->desc_fast->set_value(oneapi::mkl::dft::config_param::NUMBER_OF_TRANSFORMS, plan->total1/nfast);
+  plan->desc_fast->set_value(oneapi::mkl::dft::config_param::FWD_DISTANCE, nfast);
+  plan->desc_fast->set_value(oneapi::mkl::dft::config_param::BWD_DISTANCE, nfast);
+  plan->desc_fast->commit(queue);
+  
+  plan->desc_mid = new descriptor_t (nmid);
+  plan->desc_mid->set_value(oneapi::mkl::dft::config_param::BACKWARD_SCALE, (FFT_SCALAR)(1.0/nmid));
+  plan->desc_mid->set_value(oneapi::mkl::dft::config_param::NUMBER_OF_TRANSFORMS, plan->total1/nmid);
+  plan->desc_mid->set_value(oneapi::mkl::dft::config_param::FWD_DISTANCE, nmid);
+  plan->desc_mid->set_value(oneapi::mkl::dft::config_param::BWD_DISTANCE, nmid);
+  plan->desc_mid->commit(queue);
+  
+  plan->desc_slow = new descriptor_t (nslow);
+  plan->desc_slow->set_value(oneapi::mkl::dft::config_param::BACKWARD_SCALE, (FFT_SCALAR)(1.0/nslow));
+  plan->desc_slow->set_value(oneapi::mkl::dft::config_param::NUMBER_OF_TRANSFORMS, plan->total1/nslow);
+  plan->desc_slow->set_value(oneapi::mkl::dft::config_param::FWD_DISTANCE, nslow);
+  plan->desc_slow->set_value(oneapi::mkl::dft::config_param::BWD_DISTANCE, nslow);
+  plan->desc_slow->commit(queue);
+  
+#elif defined(FFT_KOKKOS_MKL)
   DftiCreateDescriptor( &(plan->handle_fast), FFT_KOKKOS_MKL_PREC, DFTI_COMPLEX, 1,
                         (MKL_LONG)nfast);
   DftiSetValue(plan->handle_fast, DFTI_NUMBER_OF_TRANSFORMS,
@@ -781,7 +826,11 @@ void FFT3dKokkos<DeviceType>::fft_3d_destroy_plan_kokkos(struct fft_plan_3d_kokk
   if (plan->mid2_plan) remapKK->remap_3d_destroy_plan_kokkos(plan->mid2_plan);
   if (plan->post_plan) remapKK->remap_3d_destroy_plan_kokkos(plan->post_plan);
 
-#if defined(FFT_KOKKOS_MKL)
+#if defined(FFT_KOKKOS_MKL_GPU)
+  delete plan->desc_fast;
+  delete plan->desc_mid;
+  delete plan->desc_slow;
+#elif defined(FFT_KOKKOS_MKL)
   DftiFreeDescriptor(&(plan->handle_fast));
   DftiFreeDescriptor(&(plan->handle_mid));
   DftiFreeDescriptor(&(plan->handle_slow));
@@ -856,7 +905,7 @@ void FFT3dKokkos<DeviceType>::fft_3d_1d_only_kokkos(typename FFT_AT::t_FFT_DATA_
   // fftw3 and Dfti in MKL encode the number of transforms
   // into the plan, so we cannot operate on a smaller data set
 
-#if defined(FFT_KOKKOS_MKL) || defined(FFT_KOKKOS_FFTW3)
+#if defined(FFT_KOKKOS_MKL_GPU) || defined(FFT_KOKKOS_MKL) || defined(FFT_KOKKOS_FFTW3)
   if ((total1 > nsize) || (total2 > nsize) || (total3 > nsize))
     return;
 #endif
@@ -866,8 +915,18 @@ void FFT3dKokkos<DeviceType>::fft_3d_1d_only_kokkos(typename FFT_AT::t_FFT_DATA_
 
   // perform 1d FFTs in each of 3 dimensions
   // data is just an array of 0.0
-
-#if defined(FFT_KOKKOS_MKL)
+  
+#if defined(FFT_KOKKOS_MKL_GPU)
+  if (flag == -1) {
+    oneapi::mkl::dft::compute_forward(*(plan->desc_fast), d_data.data());
+    oneapi::mkl::dft::compute_forward(*(plan->desc_mid), d_data.data());
+    oneapi::mkl::dft::compute_forward(*(plan->desc_slow), d_data.data());
+  } else {
+    oneapi::mkl::dft::compute_backward(*(plan->desc_fast), d_data.data());
+    oneapi::mkl::dft::compute_backward(*(plan->desc_mid), d_data.data());
+    oneapi::mkl::dft::compute_backward(*(plan->desc_slow), d_data.data());
+  }
+#elif defined(FFT_KOKKOS_MKL)
   if (flag == -1) {
     DftiComputeForward(plan->handle_fast,d_data.data());
     DftiComputeForward(plan->handle_mid,d_data.data());

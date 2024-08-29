@@ -116,6 +116,6 @@ depend : fastdep.exe $(SRC)
 	@./fastdep.exe $(EXTRA_INC) -- $^ > .depend || exit 1
 
 fastdep.exe: ../DEPEND/fastdep.c
-	cc -O -o $@ $<
+	icx -O -o $@ $<
 
 sinclude .depend

@@ -1,0 +1,13 @@
+# O2 molecule file, with no bonds as workaround for REAXFF example
+
+2 atoms
+
+Coords
+
+1    0.0000    0.0000    0.0000
+2    1.2075    0.0000    0.0000
+
+Types
+
+1        2
+2        2

@@ -1,21 +1,20 @@
-# REAX potential for CHO system
-# .....
-
 units real
 dimension 3
 boundary p p p
 atom_style charge
+newton on
 
-region box block 0 20 0 20 0 20
+region box block 0 99 0 99 0 99
 create_box 2 box
 
-labelmap atom 1 H 2 O
-mass H 1.008
-mass O 15.999
+mass 1 1.008
+mass 2 15.999
 
-create_atoms H random 200 12345 NULL overlap 1.2 maxtry 100
-create_atoms O random 200 12345 NULL overlap 1.5 maxtry 100
+molecule H2 H2.txt
+molecule O2 O2.txt
 
+create_atoms 0 random 2000 12345 NULL overlap 1.0 maxtry 100 mol H2 12345
+create_atoms 0 random 1000 12345 NULL overlap 1.0 maxtry 100 mol O2 12345
 velocity all create 1000 12345
 
 pair_style      reaxff lmp_control
@@ -24,17 +23,19 @@ pair_coeff      * * ffield.reax.cho H O
 neighbor        2 bin
 neigh_modify    every 10 delay 0 check no
 
-fix             1 all nve
-fix             2 all qeq/reax 1 0.0 10.0 1e-6 param.qeq
-#fix             3 all temp/berendsen 500.0 500.0 100.0
-fix             4 all reaxff/species 10 10 100 species.out
+variable dt equal 0.1
+timestep        ${dt}
 
-timestep        0.25
+#fix             1 all nvt temp 2500 2500 $(100.0*dt)
+#fix             1 all nve
+fix             1 all nph iso 1.0 1.0 $(1000.0*dt)
+fix             2 all qeq/reax 1 0.0 10.0 1e-6 param.qeq
+fix             3 all reaxff/species 10 10 100 species.out
 
 thermo 100
-#dump           1 all atom 30 dump.reax.cho
+thermo_style custom step time spcpu cpuremain temp press vol density
 
-dump 1 all movie 10 hydrogen_combustion.mkv type type size 800 800
+dump 1 all movie 100 hydrogen_combustion.mkv type type size 800 800
 dump_modify 1 acolor * white/red/green/blue/aqua/magenta
 
-run             3000
+run           $(500*1000/dt)

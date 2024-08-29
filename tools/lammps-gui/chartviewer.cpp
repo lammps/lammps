@@ -424,7 +424,7 @@ void ChartViewer::add_data(int step, double data)
     if (last_step < step) {
         last_step = step;
 
-        // do not add data that deviates by more than 5 sigma from the average
+        // do not add data that deviates by more than 4 sigma from the average
         // over the last 5 to 20 data items.  this is a hack to work around
         // getting corrupted data from lammps_get_last_thermo()
         const auto &points = series->points();

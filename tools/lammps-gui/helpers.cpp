@@ -13,9 +13,12 @@
 
 #include "helpers.h"
 
+#include <QBrush>
+#include <QColor>
 #include <QDir>
 #include <QFile>
 #include <QFileInfo>
+#include <QPalette>
 #include <QProcess>
 #include <QStringList>
 
@@ -82,6 +85,16 @@ void purge_directory(const QString &dir)
             directory.cdUp();
         }
     }
+}
+
+// compare black level of foreground and background color
+bool is_light_theme()
+{
+    QPalette p;
+    int fg = p.brush(QPalette::Active, QPalette::WindowText).color().black();
+    int bg = p.brush(QPalette::Active, QPalette::Window).color().black();
+
+    return (fg > bg);
 }
 
 // Local Variables:

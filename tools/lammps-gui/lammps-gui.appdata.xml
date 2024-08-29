@@ -54,8 +54,17 @@
   </provides>
 
   <releases>
+    <release version="1.6.10" timestamp="1724585189">
+      <description>
+
+      </description>
+    </release>
     <release version="1.6.9" timestamp="1724308872">
       <description>
+        Added search and replace functionality
+        Converged command line argument parsing using Qt facilities
+        Added dark mode adjustments to syntax highlighting
+        Add field to enter Atom size, if not determined otherwise
       </description>
     </release>
     <release version="1.6.8" timestamp="1723581926">

@@ -86,12 +86,17 @@ where KE is the total kinetic energy of the group of atoms (sum of
 :math:`N` is the number of atoms in the group, :math:`k_B` is the Boltzmann
 constant, and :math:`T` is the absolute temperature.
 
-A kinetic energy tensor, stored as a six-element vector, is also
-calculated by this compute for use in the computation of a pressure
-tensor. The formula for the components of the tensor is the same as
-the above formula, except that :math:`v^2` is replaced by :math:`v_x v_y` for
-the :math:`xy` component, and so on. The six components of the vector are
-ordered :math:`xx`, :math:`yy`, :math:`zz`, :math:`xy`, :math:`xz`, :math:`yz`.
+A symmetric tensor, stored as a six-element vector, is also calculated
+by this compute for use in the computation of a pressure tensor by the
+:doc:`compute pressue <compute_pressure>` command.  The formula for
+the components of the tensor is the same as the above expression for
+:math:`E_\mathrm{kin}`, except that the 1/2 factor is NOT included and
+the :math:`v_i^2` is replaced by :math:`v_{i,x} v_{i,y}` for the
+:math:`xy` component, and so on.  Note that because it lacks the 1/2
+factor, these tensor components are twice those of the traditional
+kinetic energy tensor.  The six components of the vector are ordered
+:math:`xx`, :math:`yy`, :math:`zz`, :math:`xy`, :math:`xz`,
+:math:`yz`.
 
 The number of atoms contributing to the temperature is assumed to be
 constant for the duration of the run; use the *dynamic* option of the
@@ -126,21 +131,21 @@ Output info
 """""""""""
 
 This compute calculates a global scalar (the temperature) and a global
-vector of length 7, which can be accessed by indices 1--7.
-The first six elements of the vector are the KE tensor,
-and the seventh is the cosine-shaped velocity amplitude :math:`V`,
-which can be used to calculate the reciprocal viscosity, as shown in the example.
-These values can be used by any command that uses global scalar or
-vector values from a compute as input.
-See the :doc:`Howto output <Howto_output>` page for an overview of LAMMPS output options.
+vector of length 7, which can be accessed by indices 1--7.  The first
+six elements of the vector are those of the symmetric tensor discussed
+above.  The seventh is the cosine-shaped velocity amplitude :math:`V`,
+which can be used to calculate the reciprocal viscosity, as shown in
+the example.  These values can be used by any command that uses global
+scalar or vector values from a compute as input.  See the :doc:`Howto
+output <Howto_output>` page for an overview of LAMMPS output options.
 
 The scalar value calculated by this compute is "intensive".  The
 first six elements of vector values are "extensive",
 and the seventh element of vector values is "intensive".
 
-The scalar value will be in temperature :doc:`units <units>`.
-The first six elements of vector values will be in energy :doc:`units <units>`.
-The seventh element of vector value will be in velocity :doc:`units <units>`.
+The scalar value is in temperature :doc:`units <units>`.  The first
+six elements of vector values are in energy :doc:`units <units>`.  The
+seventh element of vector value us in velocity :doc:`units <units>`.
 
 Restrictions
 """"""""""""

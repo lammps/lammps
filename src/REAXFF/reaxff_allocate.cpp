@@ -179,7 +179,7 @@ namespace ReaxFF {
       if ((system->my_atoms[i].Hindex) >= 0) {
         total_hbonds_big += system->my_atoms[i].num_hbonds;
       }
-    total_hbonds_big = (int)(MAX(total_hbonds_big*saferzone, mincap*system->minhbonds));
+    total_hbonds_big = (LAMMPS_NS::bigint)(MAX(total_hbonds_big*saferzone, mincap*system->minhbonds));
 
     auto error = system->error_ptr;
     if (total_hbonds_big > MAXSMALLINT)
@@ -208,7 +208,7 @@ namespace ReaxFF {
       *est_3body += SQR(system->my_atoms[i].num_bonds);
       total_bonds_big += system->my_atoms[i].num_bonds;
     }
-    total_bonds_big = (int)(MAX(total_bonds_big * safezone, mincap*MIN_BONDS));
+    total_bonds_big = (LAMMPS_NS::bigint)(MAX(total_bonds_big * safezone, mincap*MIN_BONDS));
 
     auto error = system->error_ptr;
     if (total_bonds_big > MAXSMALLINT)

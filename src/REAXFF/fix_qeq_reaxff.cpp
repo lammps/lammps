@@ -361,7 +361,7 @@ void FixQEqReaxFF::allocate_matrix()
     i = ilist[ii];
     m += numneigh[i];
   }
-  bigint m_cap_big = MAX((int)(m * safezone), mincap * REAX_MIN_NBRS);
+  bigint m_cap_big = (bigint)MAX(m * safezone, mincap * REAX_MIN_NBRS);
   if (m_cap_big > MAXSMALLINT)
     error->one(FLERR,"Too many neighbors in fix qeq/reaxff");
   m_cap = m_cap_big;

@@ -324,7 +324,7 @@ void FixQEqReaxFFKokkos<DeviceType>::allocate_matrix()
     Kokkos::parallel_reduce(nn,neigh_functor,m_cap_big);
   }
   if (m_cap_big > MAXSMALLINT)
-    error->one(FLERR,"Number of neighbors too large in fix qeq/reaxff");
+    error->one(FLERR,"Too many neighbors in fix qeq/reaxff");
   m_cap = m_cap_big;
 
   // deallocate first to reduce memory overhead

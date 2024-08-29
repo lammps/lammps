@@ -1,0 +1,49 @@
+HEADER    Model coordinates
+ for PDB-CCD F6P
+COMPND    F6P
+AUTHOR    pdbccdutils 0.8.4
+AUTHOR    RDKit 2023.03.3
+HETATM    1 O1   F6P A   1      11.417   9.162  27.021  1.00 20.00           O  
+HETATM    2 C1   F6P A   1      10.029   9.578  26.955  1.00 20.00           C  
+HETATM    3 C2   F6P A   1       9.093   8.372  27.022  1.00 20.00           C  
+HETATM    4 O2   F6P A   1       9.437   7.444  25.994  1.00 20.00           O  
+HETATM    5 C3   F6P A   1       7.604   8.804  26.928  1.00 20.00           C  
+HETATM    6 O3   F6P A   1       7.047   8.518  25.672  1.00 20.00           O  
+HETATM    7 C4   F6P A   1       6.924   7.919  27.954  1.00 20.00           C  
+HETATM    8 O4   F6P A   1       5.705   8.377  28.486  1.00 20.00           O  
+HETATM    9 C5   F6P A   1       7.999   7.753  28.985  1.00 20.00           C  
+HETATM   10 O5   F6P A   1       9.243   7.652  28.266  1.00 20.00           O  
+HETATM   11 C6   F6P A   1       7.793   6.503  29.757  1.00 20.00           C  
+HETATM   12 O6   F6P A   1       8.840   6.513  30.705  1.00 20.00           O  
+HETATM   13 P    F6P A   1       8.996   5.442  31.883  1.00 20.00           P  
+HETATM   14 O1P  F6P A   1       9.935   6.067  32.852  1.00 20.00           O  
+HETATM   15 O2P  F6P A   1       9.610   4.208  31.338  1.00 20.00           O  
+HETATM   16 O3P  F6P A   1       7.696   5.128  32.503  1.00 20.00           O  
+HETATM   17 HO1  F6P A   1      11.998   9.911  26.979  1.00 20.00           H  
+HETATM   18 H11  F6P A   1       9.787  10.330  27.741  1.00 20.00           H  
+HETATM   19 H12  F6P A   1       9.829  10.204  26.054  1.00 20.00           H  
+HETATM   20 HO2  F6P A   1       8.855   6.694  26.035  1.00 20.00           H  
+HETATM   21 H3   F6P A   1       7.487   9.901  27.090  1.00 20.00           H  
+HETATM   22 HO3  F6P A   1       6.136   8.782  25.614  1.00 20.00           H  
+HETATM   23 H4   F6P A   1       6.568   6.969  27.490  1.00 20.00           H  
+HETATM   24 HO4  F6P A   1       5.278   7.822  29.128  1.00 20.00           H  
+HETATM   25 H5   F6P A   1       7.991   8.610  29.697  1.00 20.00           H  
+HETATM   26 H61  F6P A   1       6.774   6.398  30.198  1.00 20.00           H  
+HETATM   27 H62  F6P A   1       7.747   5.580  29.132  1.00 20.00           H  
+HETATM   28 HOP2 F6P A   1       9.702   3.572  32.037  1.00 20.00           H  
+HETATM   29 HOP3 F6P A   1       7.788   4.492  33.202  1.00 20.00           H  
+CONECT    1    2   17
+CONECT    2    3   18   19
+CONECT    3    4    5   10
+CONECT    4   20
+CONECT    5    6    7   21
+CONECT    6   22
+CONECT    7    8    9   23
+CONECT    8   24
+CONECT    9   10   11   25
+CONECT   11   12   26   27
+CONECT   12   13
+CONECT   13   14   14   15   16
+CONECT   15   28
+CONECT   16   29
+END

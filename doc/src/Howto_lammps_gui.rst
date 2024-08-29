@@ -19,9 +19,9 @@ to the online LAMMPS documentation for known LAMMPS commands and styles.
    Pre-compiled, ready-to-use LAMMPS-GUI executables for Linux x86\_64
    (Ubuntu 20.04LTS or later and compatible), macOS (version 11 aka Big
    Sur or later), and Windows (version 10 or later) :ref:`are available
-   <lammps_gui_install>` for download.  None-MPI LAMMPS executables for
-   running LAMMPS from the command line and :doc:`some LAMMPS tools <Tools>`
-   are also included.
+   <lammps_gui_install>` for download.  Non-MPI LAMMPS executables (as
+   ``lmp``) for running LAMMPS from the command line and :doc:`some
+   LAMMPS tools <Tools>` compiled executables are also included.
 
    The source code for LAMMPS-GUI is included in the LAMMPS source code
    distribution and can be found in the ``tools/lammps-gui`` folder.  It
@@ -29,40 +29,50 @@ to the online LAMMPS documentation for known LAMMPS commands and styles.
    <Build_cmake>`.
 
 LAMMPS-GUI tries to provide an experience similar to what people
-traditionally would have running LAMMPS using a command line window
-and the console LAMMPS executable but just rolled into a single executable:
+traditionally would have running LAMMPS using a command line window and
+the console LAMMPS executable but just rolled into a single executable:
 
 - writing & editing LAMMPS input files with a text editor
 - run LAMMPS on those input file with selected command line flags
-- use or extract data from the created files and visualize it with
-  either a molecular visualization program or a plotting program
+- extract data from the created files and visualize it with and
+  external software
 
 That procedure is quite effective for people proficient in using the
 command line, as that allows them to use tools for the individual steps
-that they are most comfortable with.  It is often *required* to adopt
-this workflow when running LAMMPS simulations on high-performance
+that they are most comfortable with.  In fact, it is often *required* to
+adopt this workflow when running LAMMPS simulations on high-performance
 computing facilities.
 
 The main benefit of using LAMMPS-GUI is that many basic tasks can be
-done directly from the GUI without switching to a text console window or
-using external programs, let alone writing scripts to extract data from
-the generated output.  It also integrates well with graphical desktop
-environments where the `.lmp` filename extension can be registered with
-LAMMPS-GUI as the executable to launch when double clicking on such
-files.  Also, LAMMPS-GUI has support for drag-n-drop, i.e.  an input
-file can be selected and then moved and dropped on the LAMMPS-GUI
-executable, and LAMMPS-GUI will launch and read the file into its
-buffer.
+done directly from the GUI **without** switching to a text console
+window or using external programs, let alone writing scripts to extract
+data from the generated output.  It also integrates well with graphical
+desktop environments where the `.lmp` filename extension can be
+registered with LAMMPS-GUI as the executable to launch when double
+clicking on such files.  Also, LAMMPS-GUI has support for drag-n-drop,
+i.e.  an input file can be selected and then moved and dropped on the
+LAMMPS-GUI executable, and LAMMPS-GUI will launch and read the file into
+its buffer.  In many cases LAMMPS-GUI will be integrated into the
+graphical desktop environment and can be launched like other
+applications.
 
 LAMMPS-GUI thus makes it easier for beginners to get started running
 simple LAMMPS simulations.  It is very suitable for tutorials on LAMMPS
 since you only need to learn how to use a single program for most tasks
 and thus time can be saved and people can focus on learning LAMMPS.
-The tutorials at https://lammpstutorials.github.io/ were specifically
+The tutorials at https://lammpstutorials.github.io/ are specifically
 updated for use with LAMMPS-GUI.
 
 Another design goal is to keep the barrier low when replacing part of
-the functionality of LAMMPS-GUI with external tools.
+the functionality of LAMMPS-GUI with external tools.  That said, LAMMPS-GUI
+has some unique functionality that is not found elsewhere:
+
+- auto-adapting to features available in the integrated LAMMPS library
+- interactive visualization using the :doc:`dump image <dump_image>`
+  command with the option to copy-paste the resulting settings
+- automatic slide show generation from dump image out at runtime
+- automatic plotting of thermodynamics data at runtime
+- inspection of binary restart files
 
 The following text provides a detailed tour of the features and
 functionality of LAMMPS-GUI.  Suggestions for new features and
@@ -134,9 +144,13 @@ When LAMMPS-GUI starts, it shows the main window, labeled *Editor*, with
 either an empty buffer or the contents of the file used as argument. In
 the latter case it may look like the following:
 
-.. image:: JPG/lammps-gui-main.png
-   :align: center
-   :scale: 50%
+.. |gui-main1| image:: JPG/lammps-gui-main.png
+   :width: 48%
+
+.. |gui-main2| image:: JPG/lammps-gui-dark.png
+   :width: 48%
+
+|gui-main1|  |gui-main2|
 
 There is the typical menu bar at the top, then the main editor buffer,
 and a status bar at the bottom.  The input file contents are shown
@@ -276,8 +290,6 @@ right mouse button into the *Output* window text area.
    :align: center
    :scale: 50%
 
-.. versionadded:: 1.6
-
 Should the *Output* window contain embedded YAML format text (see above for a
 demonstration), for example from using :doc:`thermo_style yaml
 <thermo_style>` or :doc:`thermo_modify line yaml <thermo_modify>`, the
@@ -288,10 +300,6 @@ text area.
 
 Charts Window
 -------------
-
-.. versionadded:: 1.6
-
-   Plot smoothing support
 
 By default, when starting a run, a *Charts* window opens that displays a
 plot of thermodynamic output of the LAMMPS calculation as shown below.
@@ -326,10 +334,6 @@ The window title shows the current run number that this chart window
 corresponds to.  Same as for the *Output* window, the chart window is
 replaced on each new run, but the behavior can be changed in the
 *Preferences* dialog.
-
-.. versionadded:: 1.6
-
-   Support for YAML export added
 
 From the *File* menu on the top left, it is possible to save an image
 of the currently displayed plot or export the data in either plain text
@@ -371,8 +375,6 @@ zoom in or zoom out of the displayed images. The button on the very
 left triggers an export of the slide show animation to a movie file,
 provided the `FFmpeg program <https://ffmpeg.org/>`_ is installed.
 
-.. versionadded:: 1.6
-
 When clicking on the "garbage can" icon, all image files of the slide
 show will be deleted.  Since their number can be large for long
 simulations, this option enables to safely and quickly clean up the
@@ -391,7 +393,7 @@ below.
 
 .. image:: JPG/lammps-gui-variable-info.png
    :align: center
-   :scale: 75%
+   :scale: 50%
 
 Like for the *Output* and *Charts* windows, its content is continuously
 updated during a run.  It will show "(none)" if there are no variables
@@ -435,20 +437,21 @@ instance when using reduced (= 'lj') :doc:`units <units>`, then
 LAMMPS-GUI will check the current pair style and if it is a
 Lennard-Jones type potential, it will extract the *sigma* parameter
 for each atom type and assign atom diameters from those numbers.
+For cases where atom diameters are not auto-detected, the *Atom size* field
+can be edited and a suitable value set manually. The default value
+is inferred from the x-direction lattice spacing.
 
-Otherwise the default sequence of colors of the :doc:`dump image
-<dump_image>` command is assigned to the different atom types and the
-diameters are all the same.
+If elements cannot be detected the default sequence of colors of the
+:doc:`dump image <dump_image>` command is assigned to the different atom
+types.
 
-.. figure:: JPG/lammps-gui-image.png
-   :align: center
-   :scale: 50%
+.. |gui-image1| image:: JPG/lammps-gui-image.png
+   :width: 48%
 
-   Visualization of LAMMPS "peptide" example
+.. |gui-image2| image:: JPG/lammps-gui-funnel.png
+   :width: 48%
 
-.. versionchanged:: 1.6
-
-   Buttons for toggling shininess and re-centering were added.
+|gui-image1|  |gui-image2|
 
 The default image size, some default image quality settings, the view
 style and some colors can be changed in the *Preferences* dialog
@@ -468,8 +471,6 @@ current image can be saved to a file (keyboard shortcut `Ctrl-S`) or
 copied to the clipboard (keyboard shortcut `Ctrl-C`) for pasting the
 image into another application.
 
-.. versionadded:: 1.6
-
 From the *File* menu it is also possible to copy the current
 :doc:`dump image <dump_image>` and :doc:`dump_modify <dump_image>`
 commands to the clipboard so they can be pasted into a LAMMPS input file
@@ -487,8 +488,6 @@ Paste (`Ctrl-V`), Undo (`Ctrl-Z`), Redo (`Ctrl-Shift-Z`), Select All
 (`Ctrl-A`).  When trying to exit the editor with a modified buffer, a
 dialog will pop up asking whether to cancel the exit operation, or to
 save or not save the buffer contents to a file.
-
-.. versionadded:: 1.6
 
 The editor has an auto-save mode that can be enabled or disabled in the
 *Preferences* dialog.  In auto-save mode, the editor buffer is
@@ -553,8 +552,6 @@ context menu that open the corresponding documentation page in the
 online LAMMPS documentation in a web browser window.  When using the
 keyboard, the first of those entries is chosen.
 
-.. versionadded:: 1.6
-
 If the word under the cursor is a file, then additionally the context
 menu has an entry to open the file in a read-only text viewer window.
 If the file is a LAMMPS restart file, instead the menu entry offers to
@@ -571,8 +568,6 @@ will contain a corresponding message.
 
 Inspecting a Restart file
 ^^^^^^^^^^^^^^^^^^^^^^^^^
-
-.. versionadded:: 1.6
 
 When LAMMPS-GUI is asked to "Inspect a Restart", it will read the
 restart file into a LAMMPS instance and then open three different
@@ -629,9 +624,10 @@ Edit
 ^^^^
 
 The *Edit* menu offers the usual editor functions like *Undo*, *Redo*,
-*Cut*, *Copy*, *Paste*.  It can also open a *Preferences* dialog
-(keyboard shortcut `Ctrl-P`) and allows deleting all stored preferences
-and settings, so they are reset to their default values.
+*Cut*, *Copy*, *Paste*, and a *Find and Replace* dialog (keyboard
+shortcut `Ctrl-F`).  It can also open a *Preferences* dialog (keyboard
+shortcut `Ctrl-P`) and allows deleting all stored preferences and
+settings, so they are reset to their default values.
 
 Run
 ^^^
@@ -667,7 +663,7 @@ set *before* a run is started.
 
 .. image:: JPG/lammps-gui-variables.png
    :align: center
-   :scale: 75%
+   :scale: 50%
 
 The *Set Variables* dialog will be pre-populated with entries that
 are set as index variables in the input and any variables that are
@@ -715,6 +711,43 @@ LAMMPS tutorials authored and maintained by Simon Gravelle at
 https://lammpstutorials.github.io/ in a web browser window.
 
 -----
+
+Find and Replace
+----------------
+
+.. image:: JPG/lammps-gui-find.png
+   :align: center
+   :scale: 33%
+
+The *Find and Replace* dialog allows searching for and replacing
+text in the *Editor* window.
+
+The dialog can be opened either from the *Edit* menu or with the
+keyboard shortcut `Ctrl-F`. You can enter the text to search for.
+Through three check-boxes the search behavior can be adjusted:
+
+- If checked, "Match case" does a case sensitive search; otherwise
+  the search is case insensitive.
+
+- If checked, "Wrap around" starts searching from the start of the
+  document, if there is no match found from the current cursor position
+  until the end of the document; otherwise the search will stop.
+
+- If checked, the "Whole word" setting only finds full word matches
+  (white space and special characters are word boundaries).
+
+Clicking on the *Next* button will search for the next occurrence of the
+search text and select / highlight it. Clicking on the *Replace* button
+will replace an already highlighted search text and find the next one.
+If no text is selected, or the selected text does not match the
+selection string, then the first click on the *Replace* button will
+only search and highlight the next occurrence of the search string.
+Clicking on the *Replace All* button will replace all occurrences from
+the cursor position to the end of the file; if the *Wrap around* box is
+checked, then it will replace **all** occurrences in the **entire**
+document.  Clicking on the *Done* button will dismiss the dialog.
+
+------
 
 Preferences
 -----------
@@ -848,7 +881,7 @@ available (On macOS use the Command key instead of Ctrl/Control).
 
 .. list-table::
    :header-rows: 1
-   :widths: auto
+   :widths: 16 19 13 16 13 22
 
    * - Shortcut
      - Function
@@ -890,32 +923,32 @@ available (On macOS use the Command key instead of Ctrl/Control).
      - Quit Application
      - Ctrl+A
      - Select All
-     - Ctrl+P
-     - Preferences
+     - Ctrl+F
+     - Find and Replace
    * - Ctrl+W
      - Close Window
-     - Ctrl+Shift+H
-     - Quick Help
-     - Ctrl+Shift+G
-     - LAMMPS-GUI Howto
-   * - Ctrl+Shift+A
-     - About LAMMPS
-     - Ctrl+?
-     - Context Help
-     - Ctrl+Shift+W
-     - Show Variables
-   * - Ctrl+Shift+M
-     - LAMMPS Manual
      - TAB
      - Reformat line
      - Shift+TAB
      - Show Completions
-   * - Ctrl+Shift+T
-     - LAMMPS Tutorial
-     - Ctrl+Shift+Enter
+   * - Ctrl+Shift+Enter
      - Run File
-     -
-     -
+     - Ctrl+Shift+W
+     - Show Variables
+     - Ctrl+P
+     - Preferences
+   * - Ctrl+Shift+A
+     - About LAMMPS
+     - Ctrl+Shift+H
+     - Quick Help
+     - Ctrl+Shift+G
+     - LAMMPS-GUI Howto
+   * - Ctrl+Shift+M
+     - LAMMPS Manual
+     - Ctrl+?
+     - Context Help
+     - Ctrl+Shift+T
+     - LAMMPS Tutorial
 
 Further editing keybindings `are documented with the Qt documentation
 <https://doc.qt.io/qt-5/qplaintextedit.html#editing-key-bindings>`_.  In

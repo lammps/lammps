@@ -1823,7 +1823,8 @@ Aidan Thompson^3, Gabor Csanyi^2, Christoph Ortner^4, Ralf Drautz^1.
 **Install:**
 
 This package has :ref:`specific installation instructions <ml-pace>` on the
-:doc:`Build extras <Build_extras>` page.
+:doc:`Build extras <Build_extras>` page.  This package may also be compiled
+as a plugin to avoid licensing conflicts when distributing binaries.
 
 **Supporting info:**
 
@@ -2344,7 +2345,9 @@ and Gareth Tribello.
 
 **Install:**
 
-This package has :ref:`specific installation instructions <plumed>` on the :doc:`Build extras <Build_extras>` page.
+This package has :ref:`specific installation instructions <plumed>` on the
+:doc:`Build extras <Build_extras>` page.  This package may also be compiled
+as a plugin to avoid licensing conflicts when distributing binaries.
 
 **Supporting info:**
 

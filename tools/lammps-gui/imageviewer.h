@@ -34,13 +34,15 @@ class ImageViewer : public QDialog {
     Q_OBJECT
 
 public:
-    explicit ImageViewer(const QString &fileName, LammpsWrapper *_lammps, QWidget *parent = nullptr);
+    explicit ImageViewer(const QString &fileName, LammpsWrapper *_lammps,
+                         QWidget *parent = nullptr);
 
 private slots:
     void saveAs();
     void copy();
     void quit();
 
+    void set_atom_size();
     void edit_size();
     void reset_view();
     void toggle_ssao();
@@ -75,7 +77,8 @@ private:
     QLabel *imageLabel;
     QScrollArea *scrollArea;
     QDialogButtonBox *buttonBox;
-    double scaleFactor = 1.0;
+    double scaleFactor;
+    double atomSize;
 
     QAction *saveAsAct;
     QAction *copyAct;

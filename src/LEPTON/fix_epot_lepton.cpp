@@ -37,11 +37,16 @@
 using namespace LAMMPS_NS;
 using namespace FixConst;
 
+#define EPSILON 1.0e-10
+
 /* ---------------------------------------------------------------------- */
 
 FixEpotLepton::FixEpotLepton(LAMMPS *lmp, int narg, char **arg) :
     Fix(lmp, narg, arg), idregion(nullptr), region(nullptr)
 {
+  if (domain->xperiodic || domain->yperiodic || domain->zperiodic) {
+    error->warning(FLERR, "Fix {} uses unwrapped coordinates", style);
+  }
   if (narg < 4) utils::missing_cmd_args(FLERR, std::string("fix ") + style, error);
 
   scalar_flag = 1;
@@ -52,17 +57,27 @@ FixEpotLepton::FixEpotLepton(LAMMPS *lmp, int narg, char **arg) :
   respa_level_support = 1;
   ilevel_respa = 0;
 
-  // optional region keyword
-  if (narg > 4) {
-    if (strcmp(arg[4], "region") == 0) {
-      if (narg != 6) utils::missing_cmd_args(FLERR, std::string("fix ") + style + " region", error);
-      region = domain->get_region_by_id(arg[5]);
-      if (!region) error->all(FLERR, "Region {} for fix epot/lepton does not exist.", arg[5]);
-      idregion = utils::strdup(arg[5]);
+  // optional args
+  int iarg = 4;
+  while (iarg < narg) {
+    if (strcmp(arg[iarg], "region") == 0) {
+      if (iarg + 2 > narg)
+        utils::missing_cmd_args(FLERR, std::string("fix ") + style + " region", error);
+      region = domain->get_region_by_id(arg[iarg + 1]);
+      if (!region) error->all(FLERR, "Region {} for fix {} does not exist", arg[iarg + 1], style);
+      idregion = utils::strdup(arg[iarg + 1]);
+      iarg += 2;
+    } else if (strcmp(arg[iarg], "step") == 0) {
+      if (iarg + 2 > narg)
+        utils::missing_cmd_args(FLERR, std::string("fix ") + style + "step", error);
+      h = utils::numeric(FLERR, arg[iarg+1], false, lmp);
+      iarg += 2;
+    } else {
+      error->all(FLERR, "Unknown keyword for fix {} command: {}", style, arg[iarg]);
     }
   }
-
-  // check validity of lepton expression
+  
+  // check validity of Lepton expression
   // remove whitespace and quotes from expression string and then
   // check if the expression can be parsed without error
   expr = LeptonUtils::condense(arg[3]);
@@ -114,6 +129,14 @@ void FixEpotLepton::init()
     ilevel_respa = (dynamic_cast<Respa *>(update->integrate))->nlevels - 1;
     if (respa_level >= 0) ilevel_respa = MIN(respa_level, ilevel_respa);
   }
+
+  // unit conversion factors and restrictions (see issue #1377)
+  char *unit_style = update->unit_style;
+  qe2f = force->qe2f;
+  mue2e = qe2f;
+  if (strcmp(unit_style, "electron") == 0 || strcmp(unit_style, "micro") == 0 || strcmp(unit_style, "nano") == 0) {
+    error->all(FLERR, "Fix {} does not support {} units", style, unit_style);
+  }
 }
 
 /* ---------------------------------------------------------------------- */
@@ -147,54 +170,50 @@ void FixEpotLepton::post_force(int vflag)
 {
   double **f = atom->f;
   double **x = atom->x;
-  double *q = nullptr;
-  double **mu = nullptr, **t = nullptr;
   int *mask = atom->mask;
   imageint *image = atom->image;
   int nlocal = atom->nlocal;
 
-  const double qe2f = force->qe2f;
-  const double qqr2e = force->qqr2e;
-
   auto parsed = Lepton::Parser::parse(LeptonUtils::substitute(expr, lmp)).optimize();
-  Lepton::CompiledExpression phi, dphi_x, dphi_y, dphi_z, dphi_xx, dphi_xy, dphi_xz, dphi_yy, dphi_yz, dphi_zz; 
-
-  dphi_x = parsed.differentiate("x").createCompiledExpression();
-  dphi_y = parsed.differentiate("y").createCompiledExpression();
-  dphi_z = parsed.differentiate("z").createCompiledExpression();
-
-  std::vector<Lepton::CompiledExpression*> cexprs = {&dphi_x, &dphi_y, &dphi_z};
-
-  if (atom->q_flag) {
-    q = atom->q;
-    phi = parsed.createCompiledExpression();
-    cexprs.push_back(&phi);
-  }
-  if (atom->mu_flag) {
-    mu = atom->mu; t = atom->torque;
-    dphi_xx = parsed.differentiate("x").differentiate("x").createCompiledExpression();
-    dphi_xy = parsed.differentiate("x").differentiate("y").createCompiledExpression();
-    dphi_xz = parsed.differentiate("x").differentiate("z").createCompiledExpression();
-    dphi_yy = parsed.differentiate("y").differentiate("y").createCompiledExpression();
-    dphi_yz = parsed.differentiate("y").differentiate("z").createCompiledExpression();
-    dphi_zz = parsed.differentiate("z").differentiate("z").createCompiledExpression();
-    cexprs.insert(cexprs.end(), {&dphi_xx, &dphi_xy, &dphi_xz, &dphi_yy, &dphi_yz, &dphi_zz}); 
-  }
+  Lepton::CompiledExpression phi;
+  auto dphi_x = parsed.differentiate("x").createCompiledExpression();
+  auto dphi_y = parsed.differentiate("y").createCompiledExpression();
+  auto dphi_z = parsed.differentiate("z").createCompiledExpression();
+  std::vector<Lepton::CompiledExpression*> dphis = {&dphi_x, &dphi_y, &dphi_z};
 
   // check if reference to x, y, z exist
   const std::array<std::string, 3> variableNames = {"x", "y", "z"}; 
-  std::vector<std::array<bool, 3>> has_ref;
-  for (auto &cexpr : cexprs) {
-    has_ref.push_back({true, true, true});
+  std::array<bool, 3> phi_has_ref = {true, true, true}; 
+  if (atom->q_flag){
+    phi = parsed.createCompiledExpression();
     for (size_t i = 0; i < 3; i++) {
       try { 
-        (*cexpr).getVariableReference(variableNames[i]);
+        phi.getVariableReference(variableNames[i]);
       }
       catch (Lepton::Exception &) {
-        has_ref.back()[i] = false;
+        phi_has_ref[i] = false;
       }
     }
   }
+  std::vector<std::array<bool, 3>> dphis_has_ref;
+  bool e_uniform = true;
+  for (auto &dphi : dphis) {
+    dphis_has_ref.push_back({false, false, false});
+    for (size_t i = 0; i < 3; i++) {
+      try { 
+        (*dphi).getVariableReference(variableNames[i]);
+        dphis_has_ref.back()[i] = true;
+        e_uniform = false;
+      }
+      catch (Lepton::Exception &) {
+        // do nothing
+      }
+    }
+  }
+  if (!e_uniform && atom->mu_flag && h < 0) {
+    error->all(FLERR, "Fix {} requires keyword `step' for dipoles in a non-uniform electric field", style);
+  }
+
   // virial setup
   v_init(vflag);
 
@@ -206,35 +225,96 @@ void FixEpotLepton::post_force(int vflag)
   fsum[0] = fsum[1] = fsum[2] = fsum[3] = 0.0;
   force_flag = 0;
 
+  double ex, ey, ez;  
   double fx, fy, fz;
-  double v[6], unwrap[3];
+  double v[6], unwrap[3];  
+  double xf, yf, zf, xb, yb, zb;
+  double exf, eyf, ezf, exb, eyb, ezb;
+  double tx, ty, tz;
+  double mu_norm, h_mu;
 
-  for (int i = 0; i < nlocal; i++) {
-    if (mask[i] & groupbit) {
-      if (region && !region->match(x[i][0], x[i][1], x[i][2])) continue;
-      domain->unmap(x[i], image[i], unwrap);
-      
-      // substitute x, y, z if they exist           
-      for (size_t j = 0; j< cexprs.size(); j++) {
-        if (has_ref[j][0]) (*cexprs[j]).getVariableReference("x") = unwrap[0];
-        if (has_ref[j][1]) (*cexprs[j]).getVariableReference("y") = unwrap[1];
-        if (has_ref[j][2]) (*cexprs[j]).getVariableReference("z") = unwrap[2];
-      }
+  if (atom->q_flag && atom->mu_flag) {
+    double *q = atom->q;
+    double **mu = atom->mu;
+    double **t = atom->torque;
+    for (int i = 0; i < nlocal; i++) {
+      if (mask[i] & groupbit) {
+        if (region && !region->match(x[i][0], x[i][1], x[i][2])) continue;
+        domain->unmap(x[i], image[i], unwrap);
 
-      // charges
-      // force = q E, potential energy = q phi
-      if (atom->q_flag) {
-        fx = -qe2f * q[i] * dphi_x.evaluate();
-        fy = -qe2f * q[i] * dphi_y.evaluate();
-        fz = -qe2f * q[i] * dphi_z.evaluate();
+        // evaluate e-field, used by q and mu
+        for (size_t j = 0; j < 3; j++) {
+          if (dphis_has_ref[j][0]) (*dphis[j]).getVariableReference("x") = unwrap[0];
+          if (dphis_has_ref[j][1]) (*dphis[j]).getVariableReference("y") = unwrap[1];
+          if (dphis_has_ref[j][2]) (*dphis[j]).getVariableReference("z") = unwrap[2];
+        }
+        ex = -dphi_x.evaluate();
+        ey = -dphi_y.evaluate();
+        ez = -dphi_z.evaluate();
+
+        if (phi_has_ref[0]) phi.getVariableReference("x") = unwrap[0];
+        if (phi_has_ref[1]) phi.getVariableReference("y") = unwrap[1];
+        if (phi_has_ref[2]) phi.getVariableReference("z") = unwrap[2];
+
+        // charges
+        // force = q E
+        fx = qe2f * q[i] * ex;
+        fy = qe2f * q[i] * ey;
+        fz = qe2f * q[i] * ez;
+        // potential energy = q phi
+        fsum[0] += qe2f * q[i] * phi.evaluate();
+
+        // dipoles
+        mu_norm = sqrt(mu[i][0]*mu[i][0] + mu[i][1]*mu[i][1] + mu[i][2]*mu[i][2]);
+        if (mu_norm > EPSILON) {
+          // torque = mu cross E
+          t[i][0] += mue2e * (ez * mu[i][1] - ey * mu[i][2]);
+          t[i][1] += mue2e * (ex * mu[i][2] - ez * mu[i][0]);
+          t[i][2] += mue2e * (ey * mu[i][0] - ex * mu[i][1]);
+          // potential energy = - mu dot E
+          fsum[0] -= mue2e * (mu[i][0] * ex + mu[i][1] * ey + mu[i][2] * ez);
+
+          // force = (mu dot D) E 
+          // using central difference method
+          h_mu = h / mu_norm;
+          
+          xf = unwrap[0] + h_mu * mu[i][0];
+          yf = unwrap[1] + h_mu * mu[i][1];
+          zf = unwrap[2] + h_mu * mu[i][2];
+          for (size_t j = 0; j < 3; j++) {
+            if (dphis_has_ref[j][0]) (*dphis[j]).getVariableReference("x") = xf;
+            if (dphis_has_ref[j][1]) (*dphis[j]).getVariableReference("y") = yf;
+            if (dphis_has_ref[j][2]) (*dphis[j]).getVariableReference("z") = zf;
+          }
+          exf = -dphi_x.evaluate();
+          eyf = -dphi_y.evaluate();
+          ezf = -dphi_z.evaluate();
+
+          xb = unwrap[0] - h_mu * mu[i][0];
+          yb = unwrap[1] - h_mu * mu[i][1];
+          zb = unwrap[2] - h_mu * mu[i][2];
+          for (size_t j = 0; j < 3; j++) {
+            if (dphis_has_ref[j][0]) (*dphis[j]).getVariableReference("x") = xb;
+            if (dphis_has_ref[j][1]) (*dphis[j]).getVariableReference("y") = yb;
+            if (dphis_has_ref[j][2]) (*dphis[j]).getVariableReference("z") = zb;
+          }
+          exb = -dphi_x.evaluate();
+          eyb = -dphi_y.evaluate();
+          ezb = -dphi_z.evaluate();
+
+          fx += qe2f * (exf - exb) / 2.0 / h_mu;
+          fy += qe2f * (eyf - eyb) / 2.0 / h_mu;
+          fz += qe2f * (ezf - ezb) / 2.0 / h_mu;
+        }
+
         f[i][0] += fx;
         f[i][1] += fy;
         f[i][2] += fz;
 
-        fsum[0] += qqr2e * q[i] * phi.evaluate();
         fsum[1] += fx;
         fsum[2] += fy;
         fsum[3] += fz;
+
         if (evflag) {
           v[0] = fx * unwrap[0];
           v[1] = fy * unwrap[1];
@@ -245,31 +325,33 @@ void FixEpotLepton::post_force(int vflag)
           v_tally(i, v);
         }
       }
+    }
+  } else if (atom->q_flag && !atom->mu_flag) {
+    double *q = atom->q;
+    for (int i = 0; i < nlocal; i++) {
+      if (mask[i] & groupbit) {
+        if (region && !region->match(x[i][0], x[i][1], x[i][2])) continue;
+        domain->unmap(x[i], image[i], unwrap);
 
-      // dipoles
-      // force = (mu dot D) E, torque = mu cross E, potential energy = - mu dot E
-      if (atom->mu_flag) {
-        double tx, ty, tz;
-        auto ex = -dphi_x.evaluate();
-        auto ey = -dphi_y.evaluate();
-        auto ez = -dphi_z.evaluate();
-        tx = ez * mu[i][1] - ey * mu[i][2];
-        ty = ex * mu[i][2] - ez * mu[i][0];
-        tz = ey * mu[i][0] - ex * mu[i][1];
-        t[i][0] += qqr2e * tx;
-        t[i][1] += qqr2e * ty;
-        t[i][2] += qqr2e * tz;
-        fsum[0] -= qqr2e * (mu[i][0] * ex + mu[i][1] * ey + mu[i][2] * ez);
+        for (size_t j = 0; j < 3; j++) {
+          if (dphis_has_ref[j][0]) (*dphis[j]).getVariableReference("x") = unwrap[0];
+          if (dphis_has_ref[j][1]) (*dphis[j]).getVariableReference("y") = unwrap[1];
+          if (dphis_has_ref[j][2]) (*dphis[j]).getVariableReference("z") = unwrap[2];
+        }
+        ex = -dphi_x.evaluate();
+        ey = -dphi_y.evaluate();
+        ez = -dphi_z.evaluate();
 
-        fx = -qe2f *
-            (mu[i][0] * dphi_xx.evaluate() + mu[i][1] * dphi_xy.evaluate() +
-             mu[i][2] * dphi_xz.evaluate());
-        fy = -qe2f *
-            (mu[i][0] * dphi_xy.evaluate() + mu[i][1] * dphi_yy.evaluate() +
-             mu[i][2] * dphi_yz.evaluate());
-        fz = -qe2f *
-            (mu[i][0] * dphi_xz.evaluate() + mu[i][1] * dphi_yz.evaluate() +
-             mu[i][2] * dphi_zz.evaluate());
+        if (phi_has_ref[0]) phi.getVariableReference("x") = unwrap[0];
+        if (phi_has_ref[1]) phi.getVariableReference("y") = unwrap[1];
+        if (phi_has_ref[2]) phi.getVariableReference("z") = unwrap[2];
+
+        // force = q E
+        fx = qe2f * q[i] * ex;
+        fy = qe2f * q[i] * ey;
+        fz = qe2f * q[i] * ez;
+        // potential energy = q phi
+        fsum[0] += qe2f * q[i] * phi.evaluate();
 
         f[i][0] += fx;
         f[i][1] += fy;
@@ -278,11 +360,100 @@ void FixEpotLepton::post_force(int vflag)
         fsum[1] += fx;
         fsum[2] += fy;
         fsum[3] += fz;
+
+        if (evflag) {
+          v[0] = fx * unwrap[0];
+          v[1] = fy * unwrap[1];
+          v[2] = fz * unwrap[2];
+          v[3] = fx * unwrap[1];
+          v[4] = fx * unwrap[2];
+          v[5] = fy * unwrap[2];
+          v_tally(i, v);
+        }
+      }
+    }
+  } else if (!atom->q_flag && atom->mu_flag) {
+    double **mu = atom->mu;
+    double **t = atom->torque;
+    for (int i = 0; i < nlocal; i++) {
+      if (mask[i] & groupbit) {
+        if (region && !region->match(x[i][0], x[i][1], x[i][2])) continue;
+        
+        mu_norm = sqrt(mu[i][0]*mu[i][0] + mu[i][1]*mu[i][1] + mu[i][2]*mu[i][2]);
+        if (mu_norm > EPSILON) continue;
+
+        domain->unmap(x[i], image[i], unwrap);
+
+        for (size_t j = 0; j < 3; j++) {
+          if (dphis_has_ref[j][0]) (*dphis[j]).getVariableReference("x") = unwrap[0];
+          if (dphis_has_ref[j][1]) (*dphis[j]).getVariableReference("y") = unwrap[1];
+          if (dphis_has_ref[j][2]) (*dphis[j]).getVariableReference("z") = unwrap[2];
+        }
+        ex = -dphi_x.evaluate();
+        ey = -dphi_y.evaluate();
+        ez = -dphi_z.evaluate();
+
+        // torque = mu cross E
+        t[i][0] += mue2e * (ez * mu[i][1] - ey * mu[i][2]);
+        t[i][1] += mue2e * (ex * mu[i][2] - ez * mu[i][0]);
+        t[i][2] += mue2e * (ey * mu[i][0] - ex * mu[i][1]);
+        // potential energy = - mu dot E
+        fsum[0] -= mue2e * (mu[i][0] * ex + mu[i][1] * ey + mu[i][2] * ez);
+
+        // force = (mu dot D) E 
+        // using central difference method
+        h_mu = h / sqrt(mu[i][0]*mu[i][0] + mu[i][1]*mu[i][1] + mu[i][2]*mu[i][2]);
+        
+        xf = unwrap[0] + h_mu * mu[i][0];
+        yf = unwrap[1] + h_mu * mu[i][1];
+        zf = unwrap[2] + h_mu * mu[i][2];
+        for (size_t j = 0; j < 3; j++) {
+          if (dphis_has_ref[j][0]) (*dphis[j]).getVariableReference("x") = xf;
+          if (dphis_has_ref[j][1]) (*dphis[j]).getVariableReference("y") = yf;
+          if (dphis_has_ref[j][2]) (*dphis[j]).getVariableReference("z") = zf;
+        }
+        exf = -dphi_x.evaluate();
+        eyf = -dphi_y.evaluate();
+        ezf = -dphi_z.evaluate();
+
+        xb = unwrap[0] - h_mu * mu[i][0];
+        yb = unwrap[1] - h_mu * mu[i][1];
+        zb = unwrap[2] - h_mu * mu[i][2];
+        for (size_t j = 0; j < 3; j++) {
+          if (dphis_has_ref[j][0]) (*dphis[j]).getVariableReference("x") = xb;
+          if (dphis_has_ref[j][1]) (*dphis[j]).getVariableReference("y") = yb;
+          if (dphis_has_ref[j][2]) (*dphis[j]).getVariableReference("z") = zb;
+        }
+        exb = -dphi_x.evaluate();
+        eyb = -dphi_y.evaluate();
+        ezb = -dphi_z.evaluate();
+
+        fx = qe2f * (exf - exb) / 2.0 / h_mu;
+        fy = qe2f * (eyf - eyb) / 2.0 / h_mu;
+        fz = qe2f * (ezf - ezb) / 2.0 / h_mu;
+
+        f[i][0] += fx;
+        f[i][1] += fy;
+        f[i][2] += fz;
+
+        fsum[1] += fx;
+        fsum[2] += fy;
+        fsum[3] += fz;
+
+        if (evflag) {
+          v[0] = fx * unwrap[0];
+          v[1] = fy * unwrap[1];
+          v[2] = fz * unwrap[2];
+          v[3] = fx * unwrap[1];
+          v[4] = fx * unwrap[2];
+          v[5] = fy * unwrap[2];
+          v_tally(i, v);
+        }
       }
     }
   }
 }
-
+        
 /* ---------------------------------------------------------------------- */
 
 void FixEpotLepton::post_force_respa(int vflag, int ilevel, int /*iloop*/)

@@ -51,6 +51,8 @@ class FixEpotLepton : public Fix {
   std::string expr;
 
   int force_flag;
+  double h = -1.0;
+  double qe2f, mue2e; 
   double fsum[4], fsum_all[4];
 };
 }    // namespace LAMMPS_NS

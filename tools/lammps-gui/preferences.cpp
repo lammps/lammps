@@ -43,7 +43,6 @@
 #include <QThread>
 #endif
 #include <QVBoxLayout>
-#include <QThread>
 
 #if defined(_OPENMP)
 #include <omp.h>
@@ -62,7 +61,7 @@
 Preferences::Preferences(LammpsWrapper *_lammps, QWidget *parent) :
     QDialog(parent), need_relaunch(false), tabWidget(new QTabWidget),
     buttonBox(new QDialogButtonBox(QDialogButtonBox::Ok | QDialogButtonBox::Cancel)),
-    settings(new QSettings), lammps(_lammps), need_relaunch(false)
+    settings(new QSettings), lammps(_lammps)
 {
     tabWidget->addTab(new GeneralTab(settings, lammps), "&General Settings");
     tabWidget->addTab(new AcceleratorTab(settings, lammps), "&Accelerators");
@@ -205,16 +204,6 @@ void Preferences::accept()
     if (box) settings->setValue("autosave", box->isChecked());
     settings->endGroup();
 
-    if (need_relaunch) {
-        QMessageBox msg(QMessageBox::Information, QString("Relaunching LAMMPS-GUI"),
-                        QString("LAMMPS library plugin path was changed.\n"
-                                "LAMMPS-GUI must be relaunched."),
-                        QMessageBox::Ok);
-        msg.exec();
-        const char *path = mystrdup(QCoreApplication::applicationFilePath().toStdString());
-        const char *arg0 = mystrdup(QCoreApplication::arguments().at(0).toStdString());
-        execl(path, arg0, (char *)NULL);
-    }
     QDialog::accept();
 }
 

@@ -17,7 +17,6 @@
 
 #include "python_impl.h"
 
-#include "comm.h"
 #include "error.h"
 #include "input.h"
 #include "memory.h"
@@ -87,8 +86,6 @@ PythonImpl::PythonImpl(LAMMPS *lmp) : Pointers(lmp)
   // Python Global configuration variable
   Py_UnbufferedStdioFlag = unbuffered;
 #endif
-#else
-#warning Cannot force stdout and stderr to be unbuffered
 #endif
 
 #ifdef MLIAP_PYTHON

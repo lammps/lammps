@@ -1432,45 +1432,6 @@ void LammpsGui::setFont(const QFont &newfont)
     }
 }
 
-void LammpsGui::view_chart()
-{
-    QSettings settings;
-    if (chartwindow) {
-        if (chartwindow->isVisible()) {
-            chartwindow->hide();
-            settings.setValue("viewchart", false);
-        } else {
-            chartwindow->show();
-            settings.setValue("viewchart", true);
-        }
-    }
-}
-
-void LammpsGui::view_log()
-{
-    QSettings settings;
-    if (logwindow) {
-        if (logwindow->isVisible()) {
-            logwindow->hide();
-            settings.setValue("viewlog", false);
-        } else {
-            logwindow->show();
-            settings.setValue("viewlog", true);
-        }
-    }
-}
-
-void LammpsGui::view_image()
-{
-    if (imagewindow) {
-        if (imagewindow->isVisible()) {
-            imagewindow->hide();
-        } else {
-            imagewindow->show();
-        }
-    }
-}
-
 void LammpsGui::about()
 {
     std::string version = "This is LAMMPS-GUI version " LAMMPS_GUI_VERSION;
@@ -1886,11 +1847,6 @@ void LammpsGui::howto()
     if (docver.isEmpty()) setDocver();
     QDesktopServices::openUrl(
         QUrl(QString("https://docs.lammps.org%1Howto_lammps_gui.html").arg(docver)));
-}
-
-void LammpsGui::howto()
-{
-    QDesktopServices::openUrl(QUrl("https://docs.lammps.org/Howto_lammps_gui.html"));
 }
 
 void LammpsGui::defaults()

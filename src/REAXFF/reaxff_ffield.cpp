@@ -30,7 +30,6 @@
 #include "error.h"
 #include "memory.h"
 #include "text_file_reader.h"
-#include "tokenizer.h"
 #include "utils.h"
 
 #include <cmath>

@@ -64,24 +64,6 @@ private slots:
 public:
     void createImage();
 
-    void edit_size();
-    void reset_view();
-    void toggle_ssao();
-    void toggle_anti();
-    void toggle_vdw();
-    void toggle_box();
-    void toggle_axes();
-    void do_zoom_in();
-    void do_zoom_out();
-    void do_rot_left();
-    void do_rot_right();
-    void do_rot_up();
-    void do_rot_down();
-    void change_group(int);
-
-public:
-    void createImage();
-
 private:
     void createActions();
     void updateActions();

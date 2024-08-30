@@ -215,9 +215,6 @@ class Neighbor : protected Pointers {
   int npair_occasional;      // # of occasional NeighPair classes
   int *olist;                // indices of them in neigh_pair
 
-  int npair_occasional;      // # of occasional NeighPair classes
-  int *olist;                // indices of them in neigh_pair
-
   int maxex_type;     // max # in exclusion type list
   int maxex_group;    // max # in exclusion group list
   int maxex_mol;      // max # in exclusion molecule list

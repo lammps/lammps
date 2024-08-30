@@ -14,7 +14,6 @@
 
 #include "atom.h"               // IWYU pragma: export
 #include "kokkos_type.h"
-#include "fix_property_atom_kokkos.h"
 
 #include <Kokkos_Sort.hpp>
 

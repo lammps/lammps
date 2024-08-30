@@ -12,7 +12,6 @@
 ------------------------------------------------------------------------- */
 
 #include "imageviewer.h"
-#include "lammpswrapper.h"
 
 #include "lammpsgui.h"
 #include "lammpswrapper.h"

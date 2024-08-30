@@ -43,11 +43,6 @@ if(DOWNLOAD_QUIP)
   set(temp "${temp}HAVE_TURBOGAP=0\nHAVE_QR=1\nHAVE_THIRDPARTY=0\nHAVE_FX=0\nHAVE_SCME=0\nHAVE_MTP=0\n")
   set(temp "${temp}HAVE_MBD=0\nHAVE_TTM_NF=0\nHAVE_CH4=0\nHAVE_NETCDF4=0\nHAVE_MDCORE=0\nHAVE_ASAP=0\n")
   set(temp "${temp}HAVE_CGAL=0\nHAVE_METIS=0\nHAVE_LMTO_TBE=0\nHAVE_SCALAPACK=0\n")
-  # for gfortran, the -std= flag, if present, *must* be -std=gnu or else the compilation will fail.
-  if(CMAKE_Fortran_COMPILER_ID STREQUAL GNU)
-    string(REGEX REPLACE -std=f[0-9]+ -std=gnu newtemp "${temp}")
-    set(temp "${newtemp}")
-  endif()
   file(WRITE ${CMAKE_BINARY_DIR}/quip.config "${temp}")
 
   message(STATUS "QUIP download via git requested - we will build our own")

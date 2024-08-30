@@ -32,10 +32,6 @@ from __future__ import print_function
 """
 Import basic modules
 """
-
-# for python2/3 compatibility
-from __future__ import print_function
-
 import sys, os, timeit
 
 from timeit import default_timer as timer

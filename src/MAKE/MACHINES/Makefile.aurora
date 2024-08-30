@@ -1,4 +1,4 @@
-# aurora_kokkos = KOKKOS/SYCL, Intel Data Center Max (Ponte Vecchio) GPU, Intel Sapphire Rapids CPU, mpicxx compiler
+# aurora = Intel Sapphire Rapids CPU, mpicxx compiler (compatible w/ GPU package)
 
 SHELL = /bin/sh
 

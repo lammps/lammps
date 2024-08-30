@@ -113,10 +113,10 @@
   #include "oneapi/mkl/dfti.hpp"
   #include "mkl.h"
   #if defined(FFT_SINGLE)
-    typedef float FFT_KOKKOS_DATA;
+    typedef std::complex<float> FFT_KOKKOS_DATA;
     #define FFT_KOKKOS_MKL_PREC DFTI_SINGLE
   #else
-    typedef double FFT_KOKKOS_DATA;
+    typedef std::complex<double> FFT_KOKKOS_DATA;
     #define FFT_KOKKOS_MKL_PREC DFTI_DOUBLE
   #endif
 #elif defined(FFT_KOKKOS_MKL)

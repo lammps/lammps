@@ -227,9 +227,9 @@ void FFT3dKokkos<DeviceType>::fft_3d_kokkos(typename FFT_AT::t_FFT_DATA_1d d_in,
   
   #if defined(FFT_KOKKOS_MKL_GPU)
     if (flag == 1)
-      oneapi::mkl::dft::compute_forward(*(plan->desc_fast), d_data.data());
+      oneapi::mkl::dft::compute_forward(*(plan->desc_fast), (FFT_SCALAR*)d_data.data());
     else
-      oneapi::mkl::dft::compute_backward(*(plan->desc_fast), d_data.data());
+      oneapi::mkl::dft::compute_backward(*(plan->desc_fast), (FFT_SCALAR*)d_data.data());
   #elif defined(FFT_KOKKOS_MKL)
     if (flag == 1)
       DftiComputeForward(plan->handle_fast,d_data.data());
@@ -278,9 +278,9 @@ void FFT3dKokkos<DeviceType>::fft_3d_kokkos(typename FFT_AT::t_FFT_DATA_1d d_in,
   
   #if defined(FFT_KOKKOS_MKL_GPU)
     if (flag == 1)
-      oneapi::mkl::dft::compute_forward(*(plan->desc_mid), d_data.data());
+      oneapi::mkl::dft::compute_forward(*(plan->desc_mid), (FFT_SCALAR*)d_data.data());
     else
-      oneapi::mkl::dft::compute_backward(*(plan->desc_mid), d_data.data());
+      oneapi::mkl::dft::compute_backward(*(plan->desc_mid), (FFT_SCALAR*)d_data.data());
   #elif defined(FFT_KOKKOS_MKL)
     if (flag == 1)
       DftiComputeForward(plan->handle_mid,d_data.data());
@@ -327,9 +327,9 @@ void FFT3dKokkos<DeviceType>::fft_3d_kokkos(typename FFT_AT::t_FFT_DATA_1d d_in,
 
   #if defined(FFT_KOKKOS_MKL_GPU)
     if (flag == 1)
-      oneapi::mkl::dft::compute_forward(*(plan->desc_slow), d_data.data());
+      oneapi::mkl::dft::compute_forward(*(plan->desc_slow), (FFT_SCALAR*)d_data.data());
     else
-      oneapi::mkl::dft::compute_backward(*(plan->desc_slow), d_data.data());
+      oneapi::mkl::dft::compute_backward(*(plan->desc_slow), (FFT_SCALAR*)d_data.data());
   #elif defined(FFT_KOKKOS_MKL)
     if (flag == 1)
       DftiComputeForward(plan->handle_slow,d_data.data());
@@ -914,13 +914,13 @@ void FFT3dKokkos<DeviceType>::fft_3d_1d_only_kokkos(typename FFT_AT::t_FFT_DATA_
   
 #if defined(FFT_KOKKOS_MKL_GPU)
   if (flag == -1) {
-    oneapi::mkl::dft::compute_forward(*(plan->desc_fast), d_data.data());
-    oneapi::mkl::dft::compute_forward(*(plan->desc_mid), d_data.data());
-    oneapi::mkl::dft::compute_forward(*(plan->desc_slow), d_data.data());
+    oneapi::mkl::dft::compute_forward(*(plan->desc_fast), (FFT_SCALAR*)d_data.data());
+    oneapi::mkl::dft::compute_forward(*(plan->desc_mid), (FFT_SCALAR*)d_data.data());
+    oneapi::mkl::dft::compute_forward(*(plan->desc_slow), (FFT_SCALAR*)d_data.data());
   } else {
-    oneapi::mkl::dft::compute_backward(*(plan->desc_fast), d_data.data());
-    oneapi::mkl::dft::compute_backward(*(plan->desc_mid), d_data.data());
-    oneapi::mkl::dft::compute_backward(*(plan->desc_slow), d_data.data());
+    oneapi::mkl::dft::compute_backward(*(plan->desc_fast), (FFT_SCALAR*)d_data.data());
+    oneapi::mkl::dft::compute_backward(*(plan->desc_mid), (FFT_SCALAR*)d_data.data());
+    oneapi::mkl::dft::compute_backward(*(plan->desc_slow), (FFT_SCALAR*)d_data.data());
   }
 #elif defined(FFT_KOKKOS_MKL)
   if (flag == -1) {

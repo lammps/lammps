@@ -49,6 +49,7 @@ protected:
         if (verbose) std::cout << output;
         EXPECT_THAT(output, StartsWith("LAMMPS ("));
     }
+
     void TearDown() override
     {
         ::testing::internal::CaptureStdout();
@@ -470,9 +471,9 @@ TEST_F(LibraryProperties, global)
     EXPECT_EQ(lammps_extract_global_datatype(lmp, "xlattice"), LAMMPS_DOUBLE);
     EXPECT_EQ(lammps_extract_global_datatype(lmp, "ylattice"), LAMMPS_DOUBLE);
     EXPECT_EQ(lammps_extract_global_datatype(lmp, "zlattice"), LAMMPS_DOUBLE);
-    auto *xlattice   = (double *)lammps_extract_global(lmp, "xlattice");
-    auto *ylattice   = (double *)lammps_extract_global(lmp, "ylattice");
-    auto *zlattice   = (double *)lammps_extract_global(lmp, "zlattice");
+    auto *xlattice = (double *)lammps_extract_global(lmp, "xlattice");
+    auto *ylattice = (double *)lammps_extract_global(lmp, "ylattice");
+    auto *zlattice = (double *)lammps_extract_global(lmp, "zlattice");
     EXPECT_NE(xlattice, nullptr);
     EXPECT_NE(ylattice, nullptr);
     EXPECT_NE(zlattice, nullptr);
@@ -484,9 +485,9 @@ TEST_F(LibraryProperties, global)
     lammps_command(lmp, "units real");
     lammps_command(lmp, "lattice fcc 2.0");
     if (!verbose) ::testing::internal::GetCapturedStdout();
-    xlattice   = (double *)lammps_extract_global(lmp, "xlattice");
-    ylattice   = (double *)lammps_extract_global(lmp, "ylattice");
-    zlattice   = (double *)lammps_extract_global(lmp, "zlattice");
+    xlattice = (double *)lammps_extract_global(lmp, "xlattice");
+    ylattice = (double *)lammps_extract_global(lmp, "ylattice");
+    zlattice = (double *)lammps_extract_global(lmp, "zlattice");
     EXPECT_NE(xlattice, nullptr);
     EXPECT_NE(ylattice, nullptr);
     EXPECT_NE(zlattice, nullptr);
@@ -695,10 +696,8 @@ class AtomProperties : public ::testing::Test {
 protected:
     void *lmp;
 
-    AtomProperties() = default;
-    ;
+    AtomProperties()           = default;
     ~AtomProperties() override = default;
-    ;
 
     void SetUp() override
     {
@@ -713,11 +712,26 @@ protected:
         if (verbose) std::cout << output;
         EXPECT_THAT(output, StartsWith("LAMMPS ("));
         ::testing::internal::CaptureStdout();
+        lammps_command(lmp, "fix props all property/atom i_one i2_two 2 d_three d2_four 2");
+        lammps_command(lmp, "fix rmass all property/atom mol q rmass ghost yes");
         lammps_command(lmp, "region box block 0 2 0 2 0 2");
         lammps_command(lmp, "create_box 1 box");
         lammps_command(lmp, "mass 1 3.0");
         lammps_command(lmp, "create_atoms 1 single 1.0 1.0 1.5");
         lammps_command(lmp, "create_atoms 1 single 0.2 0.1 0.1");
+        lammps_command(lmp, "set group all mass 2.0");
+        lammps_command(lmp, "set atom 1 charge -1");
+        lammps_command(lmp, "set atom 2 charge  1");
+        lammps_command(lmp, "set atom 1 mol 2");
+        lammps_command(lmp, "set atom 2 mol 1");
+        lammps_command(lmp, "set atom 1 i_one -3");
+        lammps_command(lmp, "set atom 2 i_one  3");
+        lammps_command(lmp, "set atom 1 d_three -1.3");
+        lammps_command(lmp, "set atom 2 d_three  3.5");
+        lammps_command(lmp, "set atom 1 i_two[1] -3");
+        lammps_command(lmp, "set atom 2 i_two[2]  3");
+        lammps_command(lmp, "set atom * d_four[1] -1.3");
+        lammps_command(lmp, "set atom * d_four[2]  3.5");
         output = ::testing::internal::GetCapturedStdout();
         if (verbose) std::cout << output;
     }
@@ -743,6 +757,29 @@ TEST_F(AtomProperties, mass)
     auto *mass = (double *)lammps_extract_atom(lmp, "mass");
     ASSERT_NE(mass, nullptr);
     ASSERT_DOUBLE_EQ(mass[1], 3.0);
+    EXPECT_EQ(lammps_extract_atom_datatype(lmp, "rmass"), LAMMPS_DOUBLE);
+    mass = (double *)lammps_extract_atom(lmp, "rmass");
+    ASSERT_NE(mass, nullptr);
+    ASSERT_DOUBLE_EQ(mass[0], 2.0);
+    ASSERT_DOUBLE_EQ(mass[1], 2.0);
+}
+
+TEST_F(AtomProperties, charge)
+{
+    EXPECT_EQ(lammps_extract_atom_datatype(lmp, "q"), LAMMPS_DOUBLE);
+    auto *charge = (double *)lammps_extract_atom(lmp, "q");
+    ASSERT_NE(charge, nullptr);
+    ASSERT_DOUBLE_EQ(charge[0], -1.0);
+    ASSERT_DOUBLE_EQ(charge[1], 1.0);
+}
+
+TEST_F(AtomProperties, molecule)
+{
+    EXPECT_EQ(lammps_extract_atom_datatype(lmp, "molecule"), LAMMPS_TAGINT);
+    auto *molecule = (tagint *)lammps_extract_atom(lmp, "molecule");
+    ASSERT_NE(molecule, nullptr);
+    ASSERT_EQ(molecule[0], 2);
+    ASSERT_EQ(molecule[1], 1);
 }
 
 TEST_F(AtomProperties, id)
@@ -774,6 +811,35 @@ TEST_F(AtomProperties, position)
     EXPECT_DOUBLE_EQ(x[1][0], 0.2);
     EXPECT_DOUBLE_EQ(x[1][1], 0.1);
     EXPECT_DOUBLE_EQ(x[1][2], 0.1);
+}
+
+TEST_F(AtomProperties, custom)
+{
+    EXPECT_EQ(lammps_extract_atom_datatype(lmp, "i_one"), LAMMPS_INT);
+    auto *one = (int *)lammps_extract_atom(lmp, "i_one");
+    ASSERT_NE(one, nullptr);
+    EXPECT_EQ(lammps_extract_atom_datatype(lmp, "i2_two"), LAMMPS_INT_2D);
+    auto **two = (int **)lammps_extract_atom(lmp, "i2_two");
+    ASSERT_NE(two, nullptr);
+    EXPECT_EQ(lammps_extract_atom_datatype(lmp, "d_three"), LAMMPS_DOUBLE);
+    auto *three = (double *)lammps_extract_atom(lmp, "d_three");
+    ASSERT_NE(three, nullptr);
+    EXPECT_EQ(lammps_extract_atom_datatype(lmp, "d2_four"), LAMMPS_DOUBLE_2D);
+    auto **four = (double **)lammps_extract_atom(lmp, "d2_four");
+    ASSERT_NE(four, nullptr);
+
+    EXPECT_EQ(one[0], -3);
+    EXPECT_EQ(one[1], 3);
+    EXPECT_EQ(two[0][0], -3);
+    EXPECT_EQ(two[0][1], 0);
+    EXPECT_EQ(two[1][0], 0);
+    EXPECT_EQ(two[1][1], 3);
+    EXPECT_DOUBLE_EQ(three[0], -1.3);
+    EXPECT_DOUBLE_EQ(three[1], 3.5);
+    EXPECT_DOUBLE_EQ(four[0][0], -1.3);
+    EXPECT_DOUBLE_EQ(four[0][1], 3.5);
+    EXPECT_DOUBLE_EQ(four[1][0], -1.3);
+    EXPECT_DOUBLE_EQ(four[1][1], 3.5);
 }
 
 TEST(SystemSettings, kokkos)

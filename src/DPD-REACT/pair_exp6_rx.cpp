@@ -889,15 +889,15 @@ void PairExp6rx::read_file2(char *file)
 
     if (strcmp(words[0],"alpha") == 0) {
       for (int ii=1; ii<params_per_line; ii++)
-        coeffAlpha[ii-1] = atof(words[ii]);
+        coeffAlpha[ii-1] = std::stod(words[ii]);
     }
     if (strcmp(words[0],"epsilon") == 0) {
       for (int ii=1; ii<params_per_line; ii++)
-        coeffEps[ii-1] = atof(words[ii]);
+        coeffEps[ii-1] = std::stod(words[ii]);
     }
     if (strcmp(words[0],"rm") == 0) {
       for (int ii=1; ii<params_per_line; ii++)
-        coeffRm[ii-1] = atof(words[ii]);
+        coeffRm[ii-1] = std::stod(words[ii]);
     }
   }
 

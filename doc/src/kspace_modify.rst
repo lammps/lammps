@@ -459,7 +459,7 @@ The option defaults are as follows:
 * diff = ik (PPPM)
 * disp/auto = no
 * fftbench = no (PPPM)
-* force = -1.0,
+* force = -1.0
 * force/disp/kspace = -1.0
 * force/disp/real = -1.0
 * gewald = gewald/disp = 0.0

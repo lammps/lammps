@@ -9,7 +9,7 @@
 
 
 CVSCRIPT(colvar_addforce,
-         "Apply the given force onto this colvar and return the same\n"
+         "Apply the given force onto this colvar (no effects outside run)\n"
          "force : float or array - Applied force; matches colvar dimensionality",
          1, 1,
          "force : float or array - Applied force; must match colvar dimensionality",

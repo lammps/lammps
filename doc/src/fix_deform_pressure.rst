@@ -172,10 +172,10 @@ specific details of a simulation. Testing different values is recommended.
 
 By default, there is no limit on the resulting strain rate in any dimension.
 A maximum limit can be applied using the :ref:`max/rate <deform_max_rate>`
-option. Akin to :doc:`fix nh <fix_nh>`, pressures in different dimensions
-can be coupled using the :ref:`couple <deform_couple>` option. This means
-the instantaneous pressure along coupled dimensions are averaged and the box
-strains identically along the coupled dimensions.
+option. Akin to :doc:`fix npt and nph <fix_nh>`, pressures in different
+dimensions can be coupled using the :ref:`couple <deform_couple>` option.
+This means the instantaneous pressure along coupled dimensions are averaged
+and the box strains identically along the coupled dimensions.
 
 The *pressure/mean* style changes a dimension's box length to maintain
 a constant mean pressure defined as the trace of the pressure tensor.
@@ -204,7 +204,7 @@ off-diagonal component of the pressure tensor. This option attempts to
 maintain a specified target value using a linear controller where the
 tilt factor T evolves according to the equation
 
-.. parsed-literal::
+.. math::
 
    \frac{d T(t)}{dt} = L(t) k (P - P_t)
 
@@ -225,17 +225,17 @@ the applied strain using the :ref:`max/rate <deform_max_rate>` option.
 The *erate/rescale* style operates similarly to the *erate* style with
 a specified strain rate in units of 1/time. The difference is that
 the change in the tilt factor will depend on the current length of
-the box perpendicular to the shear direction, L, instead of the
-original length, L0. The tilt factor T as a function of time will
+the box perpendicular to the shear direction, *L*, instead of the
+original length, *L0*. The tilt factor T as a function of time will
 change as
 
-.. parsed-literal::
+.. math::
 
-   T(t) = T(t-1) + L\*erate\* \Delta t
+   T(t) = T(t-1) + L \cdot \mathrm{erate} \cdot \Delta t
 
-where T(t-1) is the tilt factor on the previous timestep and :math:`\Delta t`
-is the timestep size. This option may be useful in scenarios where
-L changes in time.
+where T(t-1) is the tilt factor on the previous timestep and
+:math:`\Delta t` is the timestep size. This option may be useful
+in scenarios where *L* changes in time.
 
 ----------
 
@@ -397,5 +397,4 @@ The option defaults are normalize/pressure = no.
 
 .. _Huang2014:
 
-**(Huang2014)** X. Huang, "Exploring critical-state behavior using DEM",
-Doctoral dissertation, Imperial College. (2014). https://doi.org/10.25560/25316
+**(Huang2014)** X. Huang, "Exploring critical-state behavior using DEM", Doctoral dissertation, Imperial College. (2014). https://doi.org/10.25560/25316

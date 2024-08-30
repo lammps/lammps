@@ -191,7 +191,7 @@ LAMMPS::LAMMPS(int narg, char **arg, MPI_Comm communicator) :
     int me,nprocs;
     MPI_Comm_rank(communicator,&me);
     MPI_Comm_size(communicator,&nprocs);
-    int color = atoi(arg[iarg+1]);
+    int color = std::stoi(arg[iarg+1]);
     MPI_Comm subcomm;
     MPI_Comm_split(communicator,color,me,&subcomm);
     external_comm = communicator;
@@ -210,6 +210,7 @@ LAMMPS::LAMMPS(int narg, char **arg, MPI_Comm communicator) :
   int kokkosflag = 0;
   int restart2data = 0;
   int restart2dump = 0;
+  int restart2info = 0;
   int restartremap = 0;
   int citeflag = 1;
   int citescreen = CiteMe::TERSE;
@@ -382,8 +383,9 @@ LAMMPS::LAMMPS(int narg, char **arg, MPI_Comm communicator) :
       if (iarg+3 > narg)
         error->universe_all(FLERR,"Invalid command-line argument");
       if (restart2dump)
-        error->universe_all(FLERR,
-                            "Cannot use both -restart2data and -restart2dump");
+        error->universe_all(FLERR, "Cannot use both -restart2data and -restart2dump");
+      if (restart2info)
+        error->universe_all(FLERR, "Cannot use both -restart2data and -restart2info");
       restart2data = 1;
       restartfile = arg[iarg+1];
       inflag = -1;               // skip inflag check
@@ -405,8 +407,9 @@ LAMMPS::LAMMPS(int narg, char **arg, MPI_Comm communicator) :
       if (iarg+3 > narg)
         error->universe_all(FLERR,"Invalid command-line argument");
       if (restart2data)
-        error->universe_all(FLERR,
-                            "Cannot use both -restart2data and -restart2dump");
+        error->universe_all(FLERR, "Cannot use both -restart2data and -restart2dump");
+      if (restart2info)
+        error->universe_all(FLERR, "Cannot use both -restart2dump and -restart2info");
       restart2dump = 1;
       restartfile = arg[iarg+1];
       inflag = -1;               // skip inflag check
@@ -419,6 +422,23 @@ LAMMPS::LAMMPS(int narg, char **arg, MPI_Comm communicator) :
       }
       iarg += 2;
       // delimit args for the write_dump command
+      wfirst = iarg;
+      while (iarg < narg && arg[iarg][0] != '-') iarg++;
+      wlast = iarg;
+
+    } else if (strcmp(arg[iarg],"-restart2info") == 0 ||
+               strcmp(arg[iarg],"-r2info") == 0) {
+      if (iarg+2 > narg)
+        error->universe_all(FLERR,"Invalid command-line argument");
+      if (restart2data)
+        error->universe_all(FLERR, "Cannot use both -restart2data and -restart2info");
+      if (restart2dump)
+        error->universe_all(FLERR, "Cannot use both -restart2dump and -restart2info");
+      restart2info = 1;
+      restartfile = arg[iarg+1];
+      inflag = -1;               // skip inflag check
+      iarg += 2;
+      // delimit args for the info command
       wfirst = iarg;
       while (iarg < narg && arg[iarg][0] != '-') iarg++;
       wlast = iarg;
@@ -728,17 +748,18 @@ LAMMPS::LAMMPS(int narg, char **arg, MPI_Comm communicator) :
   // if either restart conversion option was used, invoke 2 commands and quit
   // add args between wfirst and wlast to write_data or write_data command
   // add "noinit" to write_data to prevent a system init
-  // write_dump will just give a warning message about no init
 
-  if (restart2data || restart2dump) {
+  if (restart2data || restart2dump || restart2info) {
     std::string cmd = fmt::format("read_restart {}",restartfile);
     if (restartremap) cmd += " remap\n";
     input->one(cmd);
     if (restart2data) cmd = "write_data ";
-    else cmd = "write_dump";
+    else if (restart2dump) cmd = "write_dump";
+    else cmd = "info system group compute fix";
     for (iarg = wfirst; iarg < wlast; iarg++)
        cmd += fmt::format(" {}", arg[iarg]);
-    if (restart2data) cmd += " noinit";
+    if (restart2data || restart2dump)
+      cmd += " noinit";
     input->one(cmd);
     error->done(0);
   }
@@ -1150,7 +1171,7 @@ bool LAMMPS::is_installed_pkg(const char *pkg)
 /** \brief Return name of package that a specific style belongs to
  *
  * This function checks the given name against all list of styles
- * for all type of styles and if the name and the style match, it
+ * for all types of styles and if the name and the style match, it
  * returns which package this style belongs to.
  *
  * \param style Type of style (e.g. atom, pair, fix, etc.)
@@ -1263,6 +1284,7 @@ void _noopt LAMMPS::help()
           "-restart2data rfile dfile ... : convert restart to data file (-r2data)\n"
           "-restart2dump rfile dgroup dstyle dfile ... \n"
           "                            : convert restart to dump file (-r2dump)\n"
+          "-restart2info rfile         : print info about restart rfile (-r2info)\n"
           "-reorder topology-specs     : processor reordering (-r)\n"
           "-screen none/filename       : where to send screen output (-sc)\n"
           "-skiprun                    : skip loops in run and minimize (-sr)\n"
@@ -1454,6 +1476,7 @@ void LAMMPS::print_config(FILE *fp)
   if (Info::has_png_support()) fputs("-DLAMMPS_PNG\n",fp);
   if (Info::has_jpeg_support()) fputs("-DLAMMPS_JPEG\n",fp);
   if (Info::has_ffmpeg_support()) fputs("-DLAMMPS_FFMPEG\n",fp);
+  if (Info::has_curl_support()) fputs("-DLAMMPS_CURL\n",fp);
   if (Info::has_fft_single_support()) fputs("-DFFT_SINGLE\n",fp);
 #if defined(LAMMPS_BIGBIG)
   fputs("-DLAMMPS_BIGBIG\n",fp);

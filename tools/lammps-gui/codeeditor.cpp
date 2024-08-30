@@ -12,7 +12,9 @@
 ------------------------------------------------------------------------- */
 
 #include "codeeditor.h"
+#include "fileviewer.h"
 #include "lammpsgui.h"
+#include "lammpswrapper.h"
 #include "linenumberarea.h"
 
 #include <QAbstractItemView>
@@ -23,20 +25,27 @@
 #include <QDragEnterEvent>
 #include <QDropEvent>
 #include <QFileInfo>
+#include <QFont>
 #include <QIcon>
 #include <QKeySequence>
 #include <QMenu>
 #include <QMimeData>
 #include <QPainter>
+#include <QRect>
 #include <QRegularExpression>
 #include <QScrollBar>
 #include <QSettings>
 #include <QShortcut>
 #include <QStringListModel>
 #include <QTextBlock>
+#include <QTextCursor>
 #include <QTextDocumentFragment>
 #include <QUrl>
+#include <QVariant>
+#include <QWidget>
 
+#include <cstdlib>
+#include <cstring>
 #include <string>
 #include <vector>
 
@@ -134,10 +143,12 @@ CodeEditor::CodeEditor(QWidget *parent) :
     minimize_comp(new QCompleter(this)), variable_comp(new QCompleter(this)),
     units_comp(new QCompleter(this)), group_comp(new QCompleter(this)),
     varname_comp(new QCompleter(this)), fixid_comp(new QCompleter(this)),
-    compid_comp(new QCompleter(this)), file_comp(new QCompleter(this)), highlight(NO_HIGHLIGHT)
+    compid_comp(new QCompleter(this)), file_comp(new QCompleter(this)),
+    extra_comp(new QCompleter(this)), highlight(NO_HIGHLIGHT)
 {
     help_action = new QShortcut(QKeySequence::fromString("Ctrl+?"), parent);
     connect(help_action, &QShortcut::activated, this, &CodeEditor::get_help);
+    docver = "";
 
     // set up completer class (without a model currently)
 #define COMPLETER_SETUP(completer)                                                            \
@@ -170,6 +181,7 @@ CodeEditor::CodeEditor(QWidget *parent) :
     COMPLETER_SETUP(fixid_comp);
     COMPLETER_SETUP(compid_comp);
     COMPLETER_SETUP(file_comp);
+    COMPLETER_SETUP(extra_comp);
 #undef COMPLETER_SETUP
 
     // initialize help system
@@ -206,7 +218,10 @@ CodeEditor::CodeEditor(QWidget *parent) :
         help_index.close();
     }
 
+    setBackgroundRole(QPalette::Light);
     lineNumberArea = new LineNumberArea(this);
+    lineNumberArea->setBackgroundRole(QPalette::Dark);
+    lineNumberArea->setAutoFillBackground(true);
     connect(this, &CodeEditor::blockCountChanged, this, &CodeEditor::updateLineNumberAreaWidth);
     connect(this, &CodeEditor::updateRequest, this, &CodeEditor::updateLineNumberArea);
     updateLineNumberAreaWidth(0);
@@ -238,6 +253,7 @@ CodeEditor::~CodeEditor()
     delete fixid_comp;
     delete compid_comp;
     delete file_comp;
+    delete extra_comp;
 }
 
 int CodeEditor::lineNumberAreaWidth()
@@ -386,6 +402,7 @@ COMPLETER_INIT_FUNC(integrate, Integrate)
 COMPLETER_INIT_FUNC(minimize, Minimize)
 COMPLETER_INIT_FUNC(variable, Variable)
 COMPLETER_INIT_FUNC(units, Units)
+COMPLETER_INIT_FUNC(extra, Extra)
 
 #undef COMPLETER_INIT_FUNC
 
@@ -419,7 +436,7 @@ void CodeEditor::setVarNameList()
 {
     QStringList vars;
 
-    // variable "gui_run" is always defined by LAMMPS GUI
+    // variable "gui_run" is always defined by LAMMPS-GUI
     vars << QString("${gui_run}");
     vars << QString("v_gui_run");
 
@@ -574,7 +591,7 @@ void CodeEditor::keyPressEvent(QKeyEvent *event)
         auto line   = cursor.block().text();
         if (line.isEmpty()) return;
 
-        // QTextCursor::WordUnderCursor is unusable here since recognizes '/' as word boundary.
+        // QTextCursor::WordUnderCursor is unusable here since it recognizes '/' as word boundary.
         // Work around it by manually searching for the location of the beginning of the word.
         int begin = qMin(cursor.positionInBlock(), line.length() - 1);
 
@@ -655,7 +672,7 @@ void CodeEditor::lineNumberAreaPaintEvent(QPaintEvent *event)
         if (block.isVisible() && bottom >= event->rect().top()) {
             QString number = QString::number(blockNumber + 1) + " ";
             if ((highlight == NO_HIGHLIGHT) || (blockNumber != std::abs(highlight))) {
-                painter.setPen(Qt::black);
+                painter.setPen(palette().color(QPalette::WindowText));
             } else {
                 number = QString(">") + QString::number(blockNumber + 1) + "<";
                 if (highlight < 0)
@@ -736,10 +753,62 @@ void CodeEditor::contextMenuEvent(QContextMenuEvent *event)
             connect(action2, &QAction::triggered, this, &CodeEditor::open_help);
         }
     }
+
+    // check if word under cursor is file
+    {
+        auto cursor = textCursor();
+        auto line   = cursor.block().text();
+        if (!line.isEmpty()) {
+            // QTextCursor::WordUnderCursor is unusable here since it recognizes '/' as word
+            // boundary. Work around it by manually searching for the location of the beginning of
+            // the word.
+            int begin = qMin(cursor.positionInBlock(), line.length() - 1);
+
+            while (begin >= 0) {
+                if (line[begin].isSpace()) break;
+                --begin;
+            }
+            int end = begin + 1;
+            while (end < line.length()) {
+                if (line[end].isSpace()) break;
+                ++end;
+            }
+
+            QString word = line.mid(begin, end - begin).trimmed();
+            QFileInfo fi(word);
+            if (fi.exists() && fi.isFile()) {
+                // check if file is a LAMMPS restart
+                char magic[16] = "               ";
+                QFile file(word);
+                if (file.open(QIODevice::ReadOnly)) {
+                    QDataStream in(&file);
+                    in.readRawData(magic, 16);
+                    file.close();
+                }
+                if (strcmp(magic, LAMMPS_MAGIC) == 0) {
+                    auto *action = menu->addAction(QString("Inspect restart file '%1'").arg(word));
+                    action->setIcon(QIcon(":/icons/document-open.png"));
+                    action->setData(word);
+                    connect(action, &QAction::triggered, this, &CodeEditor::inspect_file);
+                } else {
+                    auto *action = menu->addAction(QString("View file '%1'").arg(word));
+                    action->setIcon(QIcon(":/icons/document-open.png"));
+                    action->setData(word);
+                    connect(action, &QAction::triggered, this, &CodeEditor::view_file);
+                }
+            }
+        }
+    }
+
     auto *action = menu->addAction(QString("LAMMPS Manual"));
     action->setIcon(QIcon(":/icons/help-browser.png"));
     action->setData(QString());
     connect(action, &QAction::triggered, this, &CodeEditor::open_help);
+
+    action = menu->addAction(QString("LAMMPS Tutorial"));
+    action->setIcon(QIcon(":/icons/help-tutorial.png"));
+    action->setData(QString("https://lammpstutorials.github.io/"));
+    connect(action, &QAction::triggered, this, &CodeEditor::open_url);
 
     menu->exec(event->globalPos());
     delete menu;
@@ -989,6 +1058,8 @@ void CodeEditor::runCompletion()
             current_comp = fixid_comp;
         else if (selected.startsWith("F_"))
             current_comp = fixid_comp;
+        else if ((words[0] == "read_data") && selected.startsWith("ex"))
+            current_comp = extra_comp;
         else if ((words[0] == "fitpod") || (words[0] == "molecule")) {
             if (selected.contains('/')) {
                 if (popup && popup->isVisible()) popup->hide();
@@ -1037,6 +1108,8 @@ void CodeEditor::runCompletion()
             current_comp = fixid_comp;
         else if (selected.startsWith("F_"))
             current_comp = fixid_comp;
+        else if ((words[0] == "read_data") && selected.startsWith("ex"))
+            current_comp = extra_comp;
 
         if (current_comp) {
             current_comp->setCompletionPrefix(words[3].c_str());
@@ -1066,6 +1139,8 @@ void CodeEditor::runCompletion()
             current_comp = fixid_comp;
         else if (selected.startsWith("F_"))
             current_comp = fixid_comp;
+        else if ((words[0] == "read_data") && selected.startsWith("ex"))
+            current_comp = extra_comp;
 
         if (current_comp) {
             current_comp->setCompletionPrefix(selected);
@@ -1091,7 +1166,7 @@ void CodeEditor::insertCompletedCommand(const QString &completion)
     if (completer->widget() != this) return;
 
     // select the entire word (non-space text) under the cursor
-    // we need to do it in this compicated way, since QTextCursor does not recognize
+    // we need to do it in this complicated way, since QTextCursor does not recognize
     // special characters as part of a word.
     auto cursor = textCursor();
     auto line   = cursor.block().text();
@@ -1114,12 +1189,30 @@ void CodeEditor::insertCompletedCommand(const QString &completion)
     setTextCursor(cursor);
 }
 
+void CodeEditor::setDocver()
+{
+    LammpsWrapper *lammps = &qobject_cast<LammpsGui *>(parent())->lammps;
+    docver                = "/";
+    if (lammps) {
+        QString git_branch = (const char *)lammps->extract_global("git_branch");
+        if ((git_branch == "stable") || (git_branch == "maintenance")) {
+            docver = "/stable/";
+        } else if (git_branch == "release") {
+            docver = "/";
+        } else {
+            docver = "/latest/";
+        }
+    }
+}
+
 void CodeEditor::get_help()
 {
     QString page, help;
     find_help(page, help);
+    if (docver.isEmpty()) setDocver();
     if (!page.isEmpty())
-        QDesktopServices::openUrl(QUrl(QString("https://docs.lammps.org/%1").arg(page)));
+        QDesktopServices::openUrl(
+            QUrl(QString("https://docs.lammps.org%1%2").arg(docver).arg(page)));
 }
 
 void CodeEditor::find_help(QString &page, QString &help)
@@ -1170,8 +1263,31 @@ void CodeEditor::find_help(QString &page, QString &help)
 void CodeEditor::open_help()
 {
     auto *act = qobject_cast<QAction *>(sender());
+    if (docver.isEmpty()) setDocver();
     QDesktopServices::openUrl(
-        QUrl(QString("https://docs.lammps.org/%1").arg(act->data().toString())));
+        QUrl(QString("https://docs.lammps.org%1%2").arg(docver).arg(act->data().toString())));
+}
+
+void CodeEditor::open_url()
+{
+    auto *act = qobject_cast<QAction *>(sender());
+    QDesktopServices::openUrl(QUrl(act->data().toString()));
+}
+
+// forward requests to view or inspect files to the corresponding LammpsGui methods
+
+void CodeEditor::view_file()
+{
+    auto *act     = qobject_cast<QAction *>(sender());
+    auto *guimain = qobject_cast<LammpsGui *>(parent());
+    guimain->view_file(act->data().toString());
+}
+
+void CodeEditor::inspect_file()
+{
+    auto *act     = qobject_cast<QAction *>(sender());
+    auto *guimain = qobject_cast<LammpsGui *>(parent());
+    guimain->inspect_file(act->data().toString());
 }
 
 // Local Variables:

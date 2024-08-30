@@ -33,6 +33,7 @@ class PairLJLongTIP4PLong : public PairLJLongCoulLong {
   void compute_middle() override;
   void compute_outer(int, int) override;
   void settings(int, char **) override;
+  void coeff(int, char **) override;
   void init_style() override;
   double init_one(int, int) override;
   void write_restart_settings(FILE *fp) override;
@@ -41,6 +42,7 @@ class PairLJLongTIP4PLong : public PairLJLongCoulLong {
   double memory_usage() override;
 
  protected:
+  std::string typeH_str, typeO_str, typeA_str, typeB_str;
   int typeH, typeO;    // atom types of TIP4P water H and O atoms
   int typeA, typeB;    // angle and bond types of TIP4P water
   double alpha;        // geometric constraint parameter for TIP4P

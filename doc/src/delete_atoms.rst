@@ -73,7 +73,7 @@ keyword discussion below.
 
 For style *overlap* pairs of atoms whose distance of separation is
 within the specified cutoff distance are searched for, and one of the
-2 atoms is deleted.  Only pairs where one of the two atoms is in the
+two atoms is deleted.  Only pairs where one of the two atoms is in the
 first group specified and the other atom is in the second group are
 considered.  The atom that is in the first group is the one that is
 deleted.

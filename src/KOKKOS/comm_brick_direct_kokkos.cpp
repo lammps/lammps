@@ -49,6 +49,8 @@ CommBrickDirectKokkos::CommBrickDirectKokkos(LAMMPS *lmp) : CommBrickDirect(lmp)
 
 CommBrickDirectKokkos::~CommBrickDirectKokkos()
 {
+  buf_send_direct = nullptr;
+  buf_recv_direct = nullptr;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -60,8 +62,6 @@ CommBrickDirectKokkos::~CommBrickDirectKokkos()
 
 CommBrickDirectKokkos::CommBrickDirectKokkos(LAMMPS *lmp, Comm *oldcomm) : CommBrickDirect(lmp, oldcomm)
 {
-  buf_send_direct = nullptr;
-  buf_recv_direct = nullptr;
 }
 
 /* ----------------------------------------------------------------------

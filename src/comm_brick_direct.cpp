@@ -47,7 +47,6 @@ CommBrickDirect::CommBrickDirect(LAMMPS *lmp) : CommBrick(lmp)
 {
   style = Comm::BRICK_DIRECT;
   init_pointers();
-  init_buffers_direct();
 }
 
 /* ---------------------------------------------------------------------- */
@@ -116,7 +115,6 @@ CommBrickDirect::CommBrickDirect(LAMMPS *lmp, Comm *oldcomm) : CommBrick(lmp, ol
   layout = oldcomm->layout;
   Comm::copy_arrays(oldcomm);
   init_pointers();
-  init_buffers_direct();
 }
 
 /* ----------------------------------------------------------------------
@@ -128,7 +126,7 @@ void CommBrickDirect::init_buffers_direct()
   buf_send_direct = buf_recv_direct = nullptr;
   maxsend_direct = maxrecv_direct = BUFMIN;
   grow_send_direct(maxsend_direct,2);
-  memory->create(buf_recv_direct,maxrecv_direct,"comm:buf_recv_direct");
+  grow_recv_direct(maxrecv_direct);
 
   ndirect = 0;
   if (domain->dimension == 2) {
@@ -147,6 +145,7 @@ void CommBrickDirect::init_buffers_direct()
 
 void CommBrickDirect::init()
 {
+  init_buffers_direct();
   CommBrick::init();
 
   // disallow options not supported by CommBrickDirect

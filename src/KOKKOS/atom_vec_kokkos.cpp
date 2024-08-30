@@ -187,7 +187,7 @@ struct AtomVecKokkos_PackCommDirect {
 
   AtomVecKokkos_PackCommDirect(
       const typename DAT::tdual_x_array &x,
-      const typename DAT::tdual_xfloat_2d &buf,
+      const typename DAT::tdual_xfloat_1d &buf,
       const typename DAT::tdual_int_2d &list,
       const typename DAT::tdual_int_2d &pbc,
       const typename DAT::tdual_int_1d &pbc_flag,
@@ -207,7 +207,7 @@ struct AtomVecKokkos_PackCommDirect {
       _self_flags(self_flags.view<DeviceType>()),
       _xprd(xprd),_yprd(yprd),_zprd(zprd),
       _xy(xy),_xz(xz),_yz(yz) {
-        const size_t maxsend = (buf.view<DeviceType>().extent(0)*buf.view<DeviceType>().extent(1))/3;
+        const size_t maxsend = buf.view<DeviceType>().extent(0)/3;
         const size_t elements = 3;
         buffer_view<DeviceType>(_buf,buf,maxsend,elements);
       };
@@ -270,7 +270,7 @@ int AtomVecKokkos::pack_comm_direct(const int &n, const DAT::tdual_int_2d &list,
                                       const DAT::tdual_int_1d &pbc_flag,
                                       const DAT::tdual_int_2d &pbc,
                                       const DAT::tdual_int_1d &swap2list,
-                                      const DAT::tdual_xfloat_2d &buf,
+                                      const DAT::tdual_xfloat_1d &buf,
                                       const DAT::tdual_int_1d &k_self_flags)
 {
   if (lmp->kokkos->forward_comm_on_host) {

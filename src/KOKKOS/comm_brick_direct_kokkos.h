@@ -32,7 +32,7 @@ class CommBrickDirectKokkos : public CommBrickDirect {
   template<class DeviceType> void forward_comm_device();
 
  private:
-  DAT::tdual_xfloat_2d k_buf_send_direct,k_buf_recv_direct;
+  DAT::tdual_xfloat_1d k_buf_send_direct,k_buf_recv_direct;
   DAT::tdual_int_2d k_sendatoms_list;
   DAT::tdual_int_1d k_swap2list;
   DAT::tdual_int_2d k_pbc_direct;

@@ -49,11 +49,6 @@ CommBrickDirectKokkos::CommBrickDirectKokkos(LAMMPS *lmp) : CommBrickDirect(lmp)
 
 CommBrickDirectKokkos::~CommBrickDirectKokkos()
 {
-  deallocate_direct();
-  deallocate_lists(maxlist);
-
-  memory->destroy(buf_send_direct);
-  memory->destroy(buf_recv_direct);
 }
 
 /* ---------------------------------------------------------------------- */
@@ -65,6 +60,8 @@ CommBrickDirectKokkos::~CommBrickDirectKokkos()
 
 CommBrickDirectKokkos::CommBrickDirectKokkos(LAMMPS *lmp, Comm *oldcomm) : CommBrickDirect(lmp, oldcomm)
 {
+  buf_send_direct = nullptr;
+  buf_recv_direct = nullptr;
 }
 
 /* ----------------------------------------------------------------------

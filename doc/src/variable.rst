@@ -53,7 +53,7 @@ Syntax
                           x == y, x != y, x < y, x <= y, x > y, x >= y, x && y, x \|\| y, x \|\^ y, !x
          math functions = sqrt(x), exp(x), ln(x), log(x), abs(x),
                           sin(x), cos(x), tan(x), asin(x), acos(x), atan(x), atan2(y,x),
-                          random(x,y,z), normal(x,y,z), ceil(x), floor(x), round(x)
+                          random(x,y,z), normal(x,y,z), ceil(x), floor(x), round(x), ternary(x,y,z),
                           ramp(x,y), stagger(x,y), logfreq(x,y,z), logfreq2(x,y,z),
                           logfreq3(x,y,z), stride(x,y,z), stride2(x,y,z,a,b,c),
                           vdisplace(x,y), swiggle(x,y,z), cwiggle(x,y,z)
@@ -67,10 +67,11 @@ Syntax
                            bound(group,dir,region), gyration(group,region), ke(group,reigon),
                            angmom(group,dim,region), torque(group,dim,region),
                            inertia(group,dimdim,region), omega(group,dim,region)
-         special functions = sum(x), min(x), max(x), ave(x), trap(x), slope(x), gmask(x), rmask(x), grmask(x,y), next(x), is_file(name), is_os(name), extract_setting(name), label2type(kind,label), is_typelabel(kind,label)
+         special functions = sum(x), min(x), max(x), ave(x), trap(x), slope(x), sort(x), rsort(x), gmask(x), rmask(x), grmask(x,y), next(x), is_file(name), is_os(name), extract_setting(name), label2type(kind,label), is_typelabel(kind,label), is_timeout()
          feature functions = is_available(category,feature), is_active(category,feature), is_defined(category,id)
          atom value = id[i], mass[i], type[i], mol[i], x[i], y[i], z[i], vx[i], vy[i], vz[i], fx[i], fy[i], fz[i], q[i]
          atom vector = id, mass, type, mol, radius, q, x, y, z, vx, vy, vz, fx, fy, fz
+         custom atom property = i_name, d_name, i_name[i], d_name[i], i2_name[i], d2_name[i], i2_name[i][j], d_name[i][j]
          compute references = c_ID, c_ID[i], c_ID[i][j], C_ID, C_ID[i]
          fix references = f_ID, f_ID[i], f_ID[i][j], F_ID, F_ID[i]
          variable references = v_name, v_name[i]
@@ -278,9 +279,9 @@ This means the variable can then be evaluated as many times as desired
 and will return those values.  There are two ways to cause the next
 set of per-atom values from the file to be read: use the
 :doc:`next <next>` command or the next() function in an atom-style
-variable, as discussed below.  Unlike most variable styles
-atomfile-style variables are **deleted** during a :doc:`clear <clear>`
-command.
+variable, as discussed below.  Unlike most variable styles, which
+remain defined, atomfile-style variables are **deleted** during a
+:doc:`clear <clear>` command.
 
 The rules for formatting the file are as follows.  Each time a set of
 per-atom values is read, a non-blank line is searched for in the file.
@@ -288,23 +289,37 @@ The file is read line by line but only up to 254 characters are used.
 The rest are ignored.  A comment character "#" can be used anywhere
 on a line and all text following and the "#" character are ignored;
 text starting with the comment character is stripped.  Blank lines
-are skipped.  The first "word" of a non-blank line, delimited by
-white-space, is read as the count N of per-atom lines to immediately
-follow.  N can be the total number of atoms in the system, or only a
-subset.  The next N lines have the following format
-
-.. parsed-literal::
-
-   ID value
-
-where ID is an atom ID and value is the per-atom numeric value that
-will be assigned to that atom.  IDs can be listed in any order.
+are skipped.  The first non-blank line is expected to contain a single
+integer number as the count *N* of per-atom lines to follow.  *N* can
+be the total number of atoms in the system or less, indicating that data
+for a subset is read.  The next N lines must consist of two numbers,
+the atom-ID of the atom for which a value is set followed by a floating
+point number with the value.  The atom-IDs may be listed in any order.
 
 .. note::
 
-   Every time a set of per-atom lines is read, the value for all
-   atoms is first set to 0.0.  Thus values for atoms whose ID does not
-   appear in the set, will remain 0.0.
+   Every time a set of per-atom lines is read, the value of the atomfile
+   variable for **all** atoms is first initialized to 0.0.  Thus values
+   for atoms whose ID do not appear in the set in the file will remain
+   at 0.0.
+
+Below is a small example for the atomfile variable file format:
+
+ .. parsed-literal::
+
+   # first set
+   4
+   # atom-ID value
+   3 1
+   4 -4
+   1 0.5
+   2 -0.5
+
+   # second set
+   2
+
+   2  1.0
+   4 -1.0
 
 ----------
 
@@ -514,48 +529,49 @@ is a valid (though strange) variable formula:
 Specifically, a formula can contain numbers, constants, thermo
 keywords, math operators, math functions, group functions, region
 functions, special functions, feature functions, atom values, atom
-vectors, compute references, fix references, and references to other
+vectors, custom atom properties, compute references, fix references, and references to other
 variables.
 
-+--------------------+------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+
-| Number             | 0.2, 100, 1.0e20, -15.4, etc                                                                                                                                                                                                                                                                                                       |
-+--------------------+------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+
-| Constant           | PI, version, on, off, true, false, yes, no                                                                                                                                                                                                                                                                                         |
-+--------------------+------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+
-| Thermo keywords    | vol, pe, ebond, etc                                                                                                                                                                                                                                                                                                                |
-+--------------------+------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+
-| Math operators     | (), -x, x+y, x-y, x\*y, x/y, x\^y, x%y, x == y, x != y, x < y, x <= y, x > y, x >= y, x && y, x \|\| y, x \|\^ y, !x                                                                                                                                                                                                               |
-+--------------------+------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+
-| Math functions     | sqrt(x), exp(x), ln(x), log(x), abs(x), sin(x), cos(x), tan(x), asin(x), acos(x), atan(x), atan2(y,x), random(x,y,z), normal(x,y,z), ceil(x), floor(x), round(x), ramp(x,y), stagger(x,y), logfreq(x,y,z), logfreq2(x,y,z), logfreq3(x,y,z), stride(x,y,z), stride2(x,y,z,a,b,c), vdisplace(x,y), swiggle(x,y,z), cwiggle(x,y,z)   |
-+--------------------+------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+
-| Group functions    | count(ID), mass(ID), charge(ID), xcm(ID,dim), vcm(ID,dim), fcm(ID,dim), bound(ID,dir), gyration(ID), ke(ID), angmom(ID,dim), torque(ID,dim), inertia(ID,dimdim), omega(ID,dim)                                                                                                                                                     |
-+--------------------+------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+
-| Region functions   | count(ID,IDR), mass(ID,IDR), charge(ID,IDR), xcm(ID,dim,IDR), vcm(ID,dim,IDR), fcm(ID,dim,IDR), bound(ID,dir,IDR), gyration(ID,IDR), ke(ID,IDR), angmom(ID,dim,IDR), torque(ID,dim,IDR), inertia(ID,dimdim,IDR), omega(ID,dim,IDR)                                                                                                 |
-+--------------------+------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+
-| Special functions  | sum(x), min(x), max(x), ave(x), trap(x), slope(x), gmask(x), rmask(x), grmask(x,y), next(x), is_file(name), is_os(name), extract_setting(name), label2type(kind,label), is_typelabel(kind,label)                                                                                                                                   |
-+--------------------+------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+
-| Feature functions  | is_available(category,feature), is_active(category,feature), is_defined(category,id)                                                                                                                                                                                                                                               |
-+--------------------+------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+
-| Atom values        | id[i], mass[i], type[i], mol[i], x[i], y[i], z[i], vx[i], vy[i], vz[i], fx[i], fy[i], fz[i], q[i]                                                                                                                                                                                                                                  |
-+--------------------+------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+
-| Atom vectors       | id, mass, type, mol, x, y, z, vx, vy, vz, fx, fy, fz, q                                                                                                                                                                                                                                                                            |
-+--------------------+------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+
-| Compute references | c_ID, c_ID[i], c_ID[i][j], C_ID, C_ID[i]                                                                                                                                                                                                                                                                                           |
-+--------------------+------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+
-| Fix references     | f_ID, f_ID[i], f_ID[i][j], F_ID, F_ID[i]                                                                                                                                                                                                                                                                                           |
-+--------------------+------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+
-| Other variables    | v_name, v_name[i]                                                                                                                                                                                                                                                                                                                  |
-+--------------------+------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+
++------------------------+---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+
+| Number                 | 0.2, 100, 1.0e20, -15.4, etc                                                                                                                                                                                                                                                                                                                      |
++------------------------+---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+
+| Constant               | PI, version, on, off, true, false, yes, no                                                                                                                                                                                                                                                                                                        |
++------------------------+---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+
+| Thermo keywords        | vol, pe, ebond, etc                                                                                                                                                                                                                                                                                                                               |
++------------------------+---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+
+| Math operators         | (), -x, x+y, x-y, x\*y, x/y, x\^y, x%y, x == y, x != y, x < y, x <= y, x > y, x >= y, x && y, x \|\| y, x \|\^ y, !x                                                                                                                                                                                                                              |
++------------------------+---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+
+| Math functions         | sqrt(x), exp(x), ln(x), log(x), abs(x), sin(x), cos(x), tan(x), asin(x), acos(x), atan(x), atan2(y,x), random(x,y,z), normal(x,y,z), ceil(x), floor(x), round(x), ternary(x,y,z), ramp(x,y), stagger(x,y), logfreq(x,y,z), logfreq2(x,y,z), logfreq3(x,y,z), stride(x,y,z), stride2(x,y,z,a,b,c), vdisplace(x,y), swiggle(x,y,z), cwiggle(x,y,z)  |
++------------------------+---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+
+| Group functions        | count(ID), mass(ID), charge(ID), xcm(ID,dim), vcm(ID,dim), fcm(ID,dim), bound(ID,dir), gyration(ID), ke(ID), angmom(ID,dim), torque(ID,dim), inertia(ID,dimdim), omega(ID,dim)                                                                                                                                                                    |
++------------------------+---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+
+| Region functions       | count(ID,IDR), mass(ID,IDR), charge(ID,IDR), xcm(ID,dim,IDR), vcm(ID,dim,IDR), fcm(ID,dim,IDR), bound(ID,dir,IDR), gyration(ID,IDR), ke(ID,IDR), angmom(ID,dim,IDR), torque(ID,dim,IDR), inertia(ID,dimdim,IDR), omega(ID,dim,IDR)                                                                                                                |
++------------------------+---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+
+| Special functions      | sum(x), min(x), max(x), ave(x), trap(x), slope(x), sort(x), rsort(x), gmask(x), rmask(x), grmask(x,y), next(x), is_file(name), is_os(name), extract_setting(name), label2type(kind,label), is_typelabel(kind,label), is_timeout()                                                                                                                 |
++------------------------+---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+
+| Feature functions      | is_available(category,feature), is_active(category,feature), is_defined(category,id)                                                                                                                                                                                                                                                              |
++------------------------+---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+
+| Atom values            | id[i], mass[i], type[i], mol[i], x[i], y[i], z[i], vx[i], vy[i], vz[i], fx[i], fy[i], fz[i], q[i]                                                                                                                                                                                                                                                 |
++------------------------+---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+
+| Atom vectors           | id, mass, type, mol, x, y, z, vx, vy, vz, fx, fy, fz, q                                                                                                                                                                                                                                                                                           |
++------------------------+---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+
+| Custom atom properties | i_name, d_name, i_name[i], d_name[i], i2_name[i], d2_name[i], i2_name[i][j], d_name[i][j]                                                                                                                                                                                                                                                         |
++------------------------+---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+
+| Compute references     | c_ID, c_ID[i], c_ID[i][j], C_ID, C_ID[i]                                                                                                                                                                                                                                                                                                          |
++------------------------+---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+
+| Fix references         | f_ID, f_ID[i], f_ID[i][j], F_ID, F_ID[i]                                                                                                                                                                                                                                                                                                          |
++------------------------+---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+
+| Other variables        | v_name, v_name[i]                                                                                                                                                                                                                                                                                                                                 |
++------------------------+---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+
 
 Most of the formula elements produce a scalar value.  Some produce a
 global or per-atom vector of values.  Global vectors can be produced
 by computes or fixes or by other vector-style variables.  Per-atom
-vectors are produced by atom vectors, compute references that
-represent a per-atom vector, fix references that represent a per-atom
-vector, and variables that are atom-style variables.  Math functions
-that operate on scalar values produce a scalar value; math function
-that operate on global or per-atom vectors do so element-by-element
-and produce a global or per-atom vector.
+vectors are produced by atom vectors, computes or fixes which output a
+per-atom vector or array, and variables that are atom-style variables.
+Math functions that operate on scalar values produce a scalar value;
+math function that operate on global or per-atom vectors do so
+element-by-element and produce a global or per-atom vector.
 
 A formula for equal-style variables cannot use any formula element
 that produces a global or per-atom vector.  A formula for a
@@ -564,12 +580,13 @@ scalar value or a global vector value, but cannot use a formula
 element that produces a per-atom vector.  A formula for an atom-style
 variable can use formula elements that produce either a scalar value
 or a per-atom vector, but not one that produces a global vector.
+
 Atom-style variables are evaluated by other commands that define a
-:doc:`group <group>` on which they operate, e.g. a :doc:`dump <dump>` or
-:doc:`compute <compute>` or :doc:`fix <fix>` command.  When they invoke
-the atom-style variable, only atoms in the group are included in the
-formula evaluation.  The variable evaluates to 0.0 for atoms not in
-the group.
+:doc:`group <group>` on which they operate, e.g. a :doc:`dump <dump>`
+or :doc:`compute <compute>` or :doc:`fix <fix>` command.  When they
+invoke the atom-style variable, only atoms in the group are included
+in the formula evaluation.  The variable evaluates to 0.0 for atoms
+not in the group.
 
 ----------
 
@@ -702,6 +719,13 @@ The ceil(), floor(), and round() functions are those in the C math
 library.  Ceil() is the smallest integer not less than its argument.
 Floor() if the largest integer not greater than its argument.  Round()
 is the nearest integer to its argument.
+
+.. versionadded:: 7Feb2024
+
+The ternary(x,y,z) function is the equivalent of the ternary operator
+(? and :) in C or C++.  It takes 3 arguments.  The first argument is a
+conditional.  The result of the function is y if x evaluates to true
+(non-zero).  The result is z if x evaluates to false (zero).
 
 The ramp(x,y) function uses the current timestep to generate a value
 linearly interpolated between the specified x,y values over the course
@@ -889,23 +913,27 @@ Special Functions
 Special functions take specific kinds of arguments, meaning their
 arguments cannot be formulas themselves.
 
-The sum(x), min(x), max(x), ave(x), trap(x), and slope(x) functions
-each take 1 argument which is of the form "c_ID" or "c_ID[N]" or
-"f_ID" or "f_ID[N]" or "v_name".  The first two are computes and the
-second two are fixes; the ID in the reference should be replaced by
-the ID of a compute or fix defined elsewhere in the input script.  The
-compute or fix must produce either a global vector or array.  If it
-produces a global vector, then the notation without "[N]" should be
-used.  If it produces a global array, then the notation with "[N]"
-should be used, when N is an integer, to specify which column of the
-global array is being referenced.  The last form of argument "v_name"
-is for a vector-style variable where "name" is replaced by the name of
-the variable.
+The sum(x), min(x), max(x), ave(x), trap(x), slope(x), sort(x), and
+rsort(x) functions each take 1 argument which is of the form "c_ID" or
+"c_ID[N]" or "f_ID" or "f_ID[N]" or "v_name".  The first two are
+computes and the second two are fixes; the ID in the reference should be
+replaced by the ID of a compute or fix defined elsewhere in the input
+script.  The compute or fix must produce either a global vector or
+array.  If it produces a global vector, then the notation without "[N]"
+should be used.  If it produces a global array, then the notation with
+"[N]" should be used, where N is an integer, to specify which column of
+the global array is being referenced.  The last form of argument
+"v_name" is for a vector-style variable where "name" is replaced by the
+name of the variable.
 
-These functions operate on a global vector of inputs and reduce it to
-a single scalar value.  This is analogous to the operation of the
-:doc:`compute reduce <compute_reduce>` command, which performs similar
-operations on per-atom and local vectors.
+The sum(x), min(x), max(x), ave(x), trap(x), and slope(x) functions
+operate on a global vector of inputs and reduce it to a single scalar
+value.  This is analogous to the operation of the :doc:`compute reduce
+<compute_reduce>` command, which performs similar operations on per-atom
+and local vectors.
+
+The sort(x) and rsort(x) functions operate on a global vector of inputs
+and return a global vector of the same length.
 
 The sum() function calculates the sum of all the vector elements.  The
 min() and max() functions find the minimum and maximum element
@@ -928,6 +956,12 @@ of points, equally spaced by 1 in their x coordinate: (1,V1), (2,V2),
 ..., (N,VN), where the Vi are the values in the global vector of
 length N.  The returned value is the slope of the line.  If the line
 has a single point or is vertical, it returns 1.0e20.
+
+.. versionadded:: 27June2024
+
+The sort(x) and rsort(x) functions sort the data of the input vector by
+their numeric value: sort(x) sorts in ascending order, rsort(x) sorts
+in descending order.
 
 The gmask(x) function takes 1 argument which is a group ID.  It
 can only be used in atom-style variables.  It returns a 1 for
@@ -1008,6 +1042,20 @@ label2type(), but returns 1 if the type label has been assigned,
 otherwise it returns 0.  This function can be used to check if a
 particular type label already exists in the simulation.
 
+.. versionadded:: 29Aug2024
+
+The is_timeout() function returns 1 when the :doc:`timer timeout
+<timer>` has expired otherwise it returns 0.  This function can be used
+to check inputs in combination with the :doc:`if command <if>` to
+execute commands after the timer has expired. Example:
+
+.. code-block:: LAMMPS
+
+   variable timeout equal is_timeout()
+   timer timeout 0:10:00 every 10
+   run 10000
+   if ${timeout} then "print 'Timer has expired'"
+
 ----------
 
 Feature Functions
@@ -1034,10 +1082,9 @@ to built-in commands.  For all of these styles except *command*,
 appending of active suffixes is also tried before reporting failure.
 
 The *feature* category checks the availability of the following
-compile-time enabled features: GZIP support, PNG support, JPEG
-support, FFMPEG support, and C++ exceptions for error
-handling. Corresponding names are *gzip*, *png*, *jpeg*, *ffmpeg* and
-*exceptions*\ .
+compile-time enabled features: GZIP support, PNG support, JPEG support,
+FFMPEG support, and C++ exceptions for error handling. Corresponding
+names are *gzip*, *png*, *jpeg*, *ffmpeg* and *exceptions*\ .
 
 Example: Only dump in a given format if the compiled binary supports it.
 
@@ -1138,69 +1185,124 @@ only defined if an :doc:`atom_style <atom_style>` is being used that
 defines molecule IDs.
 
 Note that many other atom attributes can be used as inputs to a
-variable by using the :doc:`compute property/atom <compute_property_atom>` command and then specifying
-a quantity from that compute.
+variable by using the :doc:`compute property/atom
+<compute_property_atom>` command and then referencing that compute.
+
+----------
+
+Custom atom properties
+----------------------
+
+.. versionadded:: 7Feb2024
+
+Custom atom properties refer to per-atom integer and floating point
+vectors or arrays that have been added via the :doc:`fix property/atom
+<fix_property_atom>` command.  When that command is used specific
+names are given to each attribute which are the "name" portion of
+these references.  References beginning with *i* and *d* refer to
+integer and floating point properties respectively.  Per-atom vectors
+are referenced by *i_name* and *d_name*; per-atom arrays are
+referenced by *i2_name* and *d2_name*.
+
+The various allowed references to integer custom atom properties in
+the variable formulas for equal-, vector-, and atom-style variables
+are listed in the following table.  References to floating point
+custom atom properties are the same; just replace the leading "i" with
+"d".
+
++--------+---------------+------------------------------------------+
+| equal  | i_name[I]     | element of per-atom vector (I = atom ID) |
++--------+---------------+------------------------------------------+
+| equal  | i2_name[I][J] | element of per-atom array (I = atom ID)  |
++--------+---------------+------------------------------------------+
++--------+---------------+------------------------------------------+
+| vector | i_name[I]     | element of per-atom vector (I = atom ID) |
++--------+---------------+------------------------------------------+
+| vector | i2_name[I][J] | element of per-atom array (I = atom ID)  |
++--------+---------------+------------------------------------------+
++--------+---------------+------------------------------------------+
+| atom   | i_name        | per-atom vector                          |
++--------+---------------+------------------------------------------+
+| atom   | i2_name[I]    | column of per-atom array                 |
++--------+---------------+------------------------------------------+
+
+The I and J indices in these custom atom property references can be
+integers or can be a variable name, specified as v_name, where name is
+the name of the variable.  The rules for this syntax are the same as
+for indices in the "Atom Values and Vectors" discussion above.
 
 ----------
 
 Compute References
 ------------------
 
-Compute references access quantities calculated by a
-:doc:`compute <compute>`.  The ID in the reference should be replaced by
-the ID of a compute defined elsewhere in the input script.  As
-discussed in the page for the :doc:`compute <compute>` command,
-computes can produce global, per-atom, or local values.  Only global
-and per-atom values can be used in a variable.  Computes can also
-produce a scalar, vector, or array.
+Compute references access quantities calculated by a :doc:`compute
+<compute>`.  The ID in the reference should be replaced by the ID of a
+compute defined elsewhere in the input script.
 
-An equal-style variable can only use scalar values, which means a
-global scalar, or an element of a global or per-atom vector or array.
-A vector-style variable can use scalar values or a global vector of
-values, or a column of a global array of values.  Atom-style variables
-can use global scalar values.  They can also use per-atom vector
-values, or a column of a per-atom array.  See the doc pages for
-individual computes to see what kind of values they produce.
+As discussed on the page for the :doc:`compute <compute>` command,
+computes can produce global, per-atom, local, and per-grid values.
+Only global and per-atom values can be used in a variable.  Computes
+can also produce scalars (global only), vectors, and arrays.  See the
+doc pages for individual computes to see what different kinds of data
+they produce.
 
-Examples of different kinds of compute references are as follows.
-There is typically no ambiguity (see exception below) as to what a
-reference means, since computes only produce either global or per-atom
-quantities, never both.
+An equal-style variable can only use scalar values, either from global
+or per-atom data.  In the case of per-atom data, this would be a value
+for a specific atom.
 
-+-------------+-------------------------------------------------------------------------------------------------------+
-| c_ID       | global scalar, or per-atom vector                                                                      |
-+-------------+-------------------------------------------------------------------------------------------------------+
-| c_ID[I]    | Ith element of global vector, or atom I's value in per-atom vector, or Ith column from per-atom array  |
-+-------------+-------------------------------------------------------------------------------------------------------+
-| c_ID[I][J] | I,J element of global array, or atom I's Jth value in per-atom array                                   |
-+-------------+-------------------------------------------------------------------------------------------------------+
+A vector-style variable can use scalar values (same as for equal-style
+variables), or global vectors of values.  The latter can also be a
+column of a global array.
 
-For I and J indices, integers can be specified or a variable name,
-specified as v_name, where name is the name of the variable.  The
-rules for this syntax are the same as for the "Atom Values and
-Vectors" discussion above.
+Atom-style variables can use scalar values (same as for equal-style
+variables), or per-atom vectors of values.  The latter can also be a
+column of a per-atom array.
 
-One source of ambiguity for compute references is when a vector-style
-variable refers to a compute that produces both a global scalar and a
-global vector.  Consider a compute with ID "foo" that does this,
-referenced as follows by variable "a", where "myVec" is another
-vector-style variable:
+The various allowed compute references in the variable formulas for
+equal-, vector-, and atom-style variables are listed in the following
+table:
 
-.. code-block:: LAMMPS
++--------+------------+------------------------------------------+
+| equal  | c_ID       | global scalar                            |
++--------+------------+------------------------------------------+
+| equal  | c_ID[I]    | element of global vector                 |
++--------+------------+------------------------------------------+
+| equal  | c_ID[I][J] | element of global array                  |
++--------+------------+------------------------------------------+
+| equal  | C_ID[I]    | element of per-atom vector (I = atom ID) |
++--------+------------+------------------------------------------+
+| equal  | C_ID[I][J] | element of per-atom array (I = atom ID)  |
++--------+------------+------------------------------------------+
++--------+------------+------------------------------------------+
+| vector | c_ID       | global vector                            |
++--------+------------+------------------------------------------+
+| vector | c_ID[I]    | column of global array                   |
++--------+------------+------------------------------------------+
++--------+------------+------------------------------------------+
+| atom   | c_ID       | per-atom vector                          |
++--------+------------+------------------------------------------+
+| atom   | c_ID[I]    | column of per-atom array                 |
++--------+------------+------------------------------------------+
 
-   variable a vector c_foo*v_myVec
+Note that if an equal-style variable formula wishes to access per-atom
+data from a compute, it must use capital "C" as the ID prefix and not
+lower-case "c".
 
-The reference "c_foo" could refer to either the global scalar or
-global vector produced by compute "foo".  In this case, "c_foo" will
-always refer to the global scalar, and "C_foo" can be used to
-reference the global vector.  Similarly if the compute produces both a
-global vector and global array, then "c_foo[I]" will always refer to
-an element of the global vector, and "C_foo[I]" can be used to
-reference the Ith column of the global array.
+Also note that if a vector- or atom-style variable formula needs to
+access a scalar value from a compute (i.e. the 5 kinds of values in
+the first 5 lines of the table), it can not do so directly.  Instead,
+it can use a reference to an equal-style variable which stores the
+scalar value from the compute.
 
-Note that if a variable containing a compute is evaluated directly in
-an input script (not during a run), then the values accessed by the
-compute must be current.  See the discussion below about "Variable
+The I and J indices in these compute references can be integers or can
+be a variable name, specified as v_name, where name is the name of the
+variable.  The rules for this syntax are the same as for indices in
+the "Atom Values and Vectors" discussion above.
+
+If a variable containing a compute is evaluated directly in an input
+script (not during a run), then the values accessed by the compute
+should be current.  See the discussion below about "Variable
 Accuracy".
 
 ----------
@@ -1208,57 +1310,77 @@ Accuracy".
 Fix References
 --------------
 
-Fix references access quantities calculated by a :doc:`fix <compute>`.
+Fix references access quantities calculated by a :doc:`fix <fix>`.
 The ID in the reference should be replaced by the ID of a fix defined
-elsewhere in the input script.  As discussed in the page for the
-:doc:`fix <fix>` command, fixes can produce global, per-atom, or local
-values.  Only global and per-atom values can be used in a variable.
-Fixes can also produce a scalar, vector, or array.  An equal-style
-variable can only use scalar values, which means a global scalar, or
-an element of a global or per-atom vector or array.  Atom-style
-variables can use the same scalar values.  They can also use per-atom
-vector values.  A vector value can be a per-atom vector itself, or a
-column of an per-atom array.  See the doc pages for individual fixes
-to see what kind of values they produce.
+elsewhere in the input script.
 
-The different kinds of fix references are exactly the same as the
-compute references listed in the above table, where "c\_" is replaced
-by "f\_".  Again, there is typically no ambiguity (see exception below)
-as to what a reference means, since fixes only produce either global
-or per-atom quantities, never both.
+As discussed on the page for the :doc:`fix <fix>` command, fixes can
+produce global, per-atom, local, and per-grid values.  Only global and
+per-atom values can be used in a variable.  Fixes can also produce
+scalars (global only), vectors, and arrays.  See the doc pages for
+individual fixes to see what different kinds of data they produce.
 
-+-------------+-------------------------------------------------------------------------------------------------------+
-| f_ID       | global scalar, or per-atom vector                                                                      |
-+-------------+-------------------------------------------------------------------------------------------------------+
-| f_ID[I]    | Ith element of global vector, or atom I's value in per-atom vector, or Ith column from per-atom array  |
-+-------------+-------------------------------------------------------------------------------------------------------+
-| f_ID[I][J] | I,J element of global array, or atom I's Jth value in per-atom array                                   |
-+-------------+-------------------------------------------------------------------------------------------------------+
+An equal-style variable can only use scalar values, either from global
+or per-atom data.  In the case of per-atom data, this would be a value
+for a specific atom.
 
-For I and J indices, integers can be specified or a variable name,
-specified as v_name, where name is the name of the variable.  The
-rules for this syntax are the same as for the "Atom Values and
-Vectors" discussion above.
+A vector-style variable can use scalar values (same as for equal-style
+variables), or global vectors of values.  The latter can also be a
+column of a global array.
 
-One source of ambiguity for fix references is the same ambiguity
-discussed for compute references above.  Namely when a vector-style
-variable refers to a fix that produces both a global scalar and a
-global vector.  The solution is the same as for compute references.
-For a fix with ID "foo", "f_foo" will always refer to the global
-scalar, and "F_foo" can be used to reference the global vector.  And
-similarly for distinguishing between a fix's global vector versus
-global array with "f_foo[I]" versus "F_foo[I]".
+Atom-style variables can use scalar values (same as for equal-style
+variables), or per-atom vectors of values.  The latter can also be a
+column of a per-atom array.
 
-Note that if a variable containing a fix is evaluated directly in an
-input script (not during a run), then the values accessed by the fix
-should be current.  See the discussion below about "Variable
-Accuracy".
+The allowed fix references in variable formulas for equal-, vector-,
+and atom-style variables are listed in the following table:
+
++--------+------------+------------------------------------------+
+| equal  | f_ID       | global scalar                            |
++--------+------------+------------------------------------------+
+| equal  | f_ID[I]    | element of global vector                 |
++--------+------------+------------------------------------------+
+| equal  | f_ID[I][J] | element of global array                  |
++--------+------------+------------------------------------------+
+| equal  | F_ID[I]    | element of per-atom vector (I = atom ID) |
++--------+------------+------------------------------------------+
+| equal  | F_ID[I][J] | element of per-atom array (I = atom ID)  |
++--------+------------+------------------------------------------+
++--------+------------+------------------------------------------+
+| vector | f_ID       | global vector                            |
++--------+------------+------------------------------------------+
+| vector | f_ID[I]    | column of global array                   |
++--------+------------+------------------------------------------+
++--------+------------+------------------------------------------+
+| atom   | f_ID       | per-atom vector                          |
++--------+------------+------------------------------------------+
+| atom   | f_ID[I]    | column of per-atom array                 |
++--------+------------+------------------------------------------+
+
+Note that if an equal-style variable formula wishes to access per-atom
+data from a fix, it must use capital "F" as the ID prefix and not
+lower-case "f".
+
+Also note that if a vector- or atom-style variable formula needs to
+access a scalar value from a fix (i.e. the 5 kinds of values in the
+first 5 lines of the table), it can not do so directly.  Instead, it
+can use a reference to an equal-style variable which stores the scalar
+value from the fix.
+
+The I and J indices in these fix references can be integers or can be
+a variable name, specified as v_name, where name is the name of the
+variable.  The rules for this syntax are the same as for indices in
+the "Atom Values and Vectors" discussion above.
 
 Note that some fixes only generate quantities on certain timesteps.
 If a variable attempts to access the fix on non-allowed timesteps, an
 error is generated.  For example, the :doc:`fix ave/time <fix_ave_time>`
 command may only generate averaged quantities every 100 steps.  See
 the doc pages for individual fix commands for details.
+
+If a variable containing a fix is evaluated directly in an input
+script (not during a run), then the values accessed by the fix should
+be current.  See the discussion below about "Variable Accuracy".
 
 ----------
 
@@ -1294,26 +1416,42 @@ including other atom-style or atomfile-style variables.  If it uses a
 vector-style variable, a subscript must be used to access a single
 value from the vector-style variable.
 
-Examples of different kinds of variable references are as follows.
-There is no ambiguity as to what a reference means, since variables
-produce only a global scalar or global vector or per-atom vector.
+The allowed variable references in variable formulas for equal-,
+vector-, and atom-style variables are listed in the following table.
+Note that there is no ambiguity as to what a reference means, since
+referenced variables produce only a global scalar or global vector or
+per-atom vector.
 
-+------------+----------------------------------------------------------------------+
-| v_name    | global scalar from equal-style variable                               |
-+------------+----------------------------------------------------------------------+
-| v_name    | global vector from vector-style variable                              |
-+------------+----------------------------------------------------------------------+
-| v_name    | per-atom vector from atom-style or atomfile-style variable            |
-+------------+----------------------------------------------------------------------+
-| v_name[I] | Ith element of a global vector from vector-style variable             |
-+------------+----------------------------------------------------------------------+
-| v_name[I] | value of atom with ID = I from atom-style or atomfile-style variable  |
-+------------+----------------------------------------------------------------------+
++--------+-----------+-----------------------------------------------------------------------------------+
+| equal  | v_name    | global scalar from an equal-style variable                                        |
++--------+-----------+-----------------------------------------------------------------------------------+
+| equal  | v_name[I] | element of global vector from a vector-style variable                             |
++--------+-----------+-----------------------------------------------------------------------------------+
+| equal  | v_name[I] | element of per-atom vector (I = atom ID) from an atom- or atomfile-style variable |
++--------+-----------+-----------------------------------------------------------------------------------+
++--------+-----------+-----------------------------------------------------------------------------------+
+| vector | v_name    | global scalar from an equal-style variable                                        |
++--------+-----------+-----------------------------------------------------------------------------------+
+| vector | v_name    | global vector from a vector-style variable                                        |
++--------+-----------+-----------------------------------------------------------------------------------+
+| vector | v_name[I] | element of global vector from a vector-style variable                             |
++--------+-----------+-----------------------------------------------------------------------------------+
+| vector | v_name[I] | element of per-atom vector (I = atom ID) from an atom- or atomfile-style variable |
++--------+-----------+-----------------------------------------------------------------------------------+
++--------+-----------+-----------------------------------------------------------------------------------+
+| atom   | v_name    | global scalar from an equal-style variable                                        |
++--------+-----------+-----------------------------------------------------------------------------------+
+| atom   | v_name    | per-atom vector from an atom-style or atomfile-style variable                     |
++--------+-----------+-----------------------------------------------------------------------------------+
+| atom   | v_name[I] | element of global vector from a vector-style variable                             |
++--------+-----------+-----------------------------------------------------------------------------------+
+| atom   | v_name[I] | element of per-atom vector (I = atom ID) from an atom- or atomfile-style variable |
++--------+-----------+-----------------------------------------------------------------------------------+
 
 For the I index, an integer can be specified or a variable name,
 specified as v_name, where name is the name of the variable.  The
-rules for this syntax are the same as for the "Atom Values and
-Vectors" discussion above.
+rules for this syntax are the same as for indices in the "Atom Values
+and Vectors" discussion above.
 
 ----------
 

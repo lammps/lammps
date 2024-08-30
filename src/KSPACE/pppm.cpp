@@ -24,14 +24,12 @@
 #include "angle.h"
 #include "atom.h"
 #include "bond.h"
-#include "comm.h"
 #include "domain.h"
 #include "error.h"
 #include "fft3d_wrap.h"
 #include "force.h"
 #include "grid3d.h"
 #include "math_const.h"
-#include "math_extra.h"
 #include "math_special.h"
 #include "memory.h"
 #include "neighbor.h"
@@ -45,22 +43,15 @@ using namespace LAMMPS_NS;
 using namespace MathConst;
 using namespace MathSpecial;
 
-#define MAXORDER 7
-#define OFFSET 16384
-#define LARGE 10000.0
-#define SMALL 0.00001
-#define EPS_HOC 1.0e-7
+static constexpr int MAXORDER = 7;
+static constexpr int OFFSET = 16384;
+static constexpr double LARGE = 10000.0;
+static constexpr double SMALL = 0.00001;
+static constexpr double EPS_HOC = 1.0e-7;
+static constexpr FFT_SCALAR ZEROF = 0.0;
 
-enum{REVERSE_RHO};
-enum{FORWARD_IK,FORWARD_AD,FORWARD_IK_PERATOM,FORWARD_AD_PERATOM};
-
-#ifdef FFT_SINGLE
-#define ZEROF 0.0f
-#define ONEF  1.0f
-#else
-#define ZEROF 0.0
-#define ONEF  1.0
-#endif
+enum { REVERSE_RHO };
+enum { FORWARD_IK, FORWARD_AD, FORWARD_IK_PERATOM, FORWARD_AD_PERATOM };
 
 /* ---------------------------------------------------------------------- */
 

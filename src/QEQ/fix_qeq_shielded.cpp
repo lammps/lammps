@@ -56,6 +56,7 @@ void FixQEqShielded::init()
   neighbor->add_request(this, NeighConst::REQ_FULL);
 
   const int ntypes = atom->ntypes;
+  memory->destroy(shld);
   memory->create(shld, ntypes + 1, ntypes + 1, "qeq:shielding");
 
   init_shielding();
@@ -83,8 +84,8 @@ void FixQEqShielded::extract_reax()
   const int *mask = atom->mask;
   const int *type = atom->type;
 
-  Pair *pair = force->pair_match("^reax..", 0);
-  if (pair == nullptr) error->all(FLERR, "No pair reaxff for fix qeq/shielded");
+  Pair *pair = force->pair_match("^reaxff", 0);
+  if (pair == nullptr) error->all(FLERR, "No reaxff pair style for fix qeq/shielded");
   int tmp, tmp_all;
   chi = (double *) pair->extract("chi", tmp);
   eta = (double *) pair->extract("eta", tmp);

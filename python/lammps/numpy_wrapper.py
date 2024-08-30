@@ -203,6 +203,13 @@ class numpy_wrapper:
     It behaves the same as the original method, but returns NumPy arrays
     instead of ``ctypes`` pointers.
 
+    .. note::
+
+       When requesting global data, the fix data can only be accessed one
+       item at a time without access to the whole vector or array.  Thus this
+       function will always return a scalar.  To access vector or array elements
+       the "nrow" and "ncol" arguments need to be set accordingly (they default to 0).
+
     :param fid: fix ID
     :type fid:  string
     :param fstyle: style of the data retrieve (global, atom, or local), see :ref:`py_style_constants`
@@ -264,11 +271,11 @@ class numpy_wrapper:
     # -------------------------------------------------------------------------
 
   def gather_bonds(self):
-    """Retrieve global list of bonds as NumPy array
+    """Retrieve global list of bonds as a NumPy array
 
     .. versionadded:: 28Jul2021
 
-    This is a wrapper around :py:meth:`lammps.gather_bonds() <lammps.lammps.gather_bonds()>`
+    This is a wrapper around :py:meth:`lammps.gather_bonds() <lammps.lammps.gather_bonds()>`.
     It behaves the same as the original method, but returns a NumPy array instead
     of a ``ctypes`` list.
 
@@ -282,11 +289,11 @@ class numpy_wrapper:
     # -------------------------------------------------------------------------
 
   def gather_angles(self):
-    """ Retrieve global list of angles as NumPy array
+    """ Retrieve global list of angles as a NumPy array
 
     .. versionadded:: 8Feb2023
 
-    This is a wrapper around :py:meth:`lammps.gather_angles() <lammps.lammps.gather_angles()>`
+    This is a wrapper around :py:meth:`lammps.gather_angles() <lammps.lammps.gather_angles()>`.
     It behaves the same as the original method, but returns a NumPy array instead
     of a ``ctypes`` list.
 
@@ -300,11 +307,11 @@ class numpy_wrapper:
     # -------------------------------------------------------------------------
 
   def gather_dihedrals(self):
-    """ Retrieve global list of dihedrals as NumPy array
+    """ Retrieve global list of dihedrals as a NumPy array
 
     .. versionadded:: 8Feb2023
 
-    This is a wrapper around :py:meth:`lammps.gather_dihedrals() <lammps.lammps.gather_dihedrals()>`
+    This is a wrapper around :py:meth:`lammps.gather_dihedrals() <lammps.lammps.gather_dihedrals()>`.
     It behaves the same as the original method, but returns a NumPy array instead
     of a ``ctypes`` list.
 
@@ -318,11 +325,11 @@ class numpy_wrapper:
     # -------------------------------------------------------------------------
 
   def gather_impropers(self):
-    """ Retrieve global list of impropers as NumPy array
+    """ Retrieve global list of impropers as a NumPy array
 
     .. versionadded:: 8Feb2023
 
-    This is a wrapper around :py:meth:`lammps.gather_impropers() <lammps.lammps.gather_impropers()>`
+    This is a wrapper around :py:meth:`lammps.gather_impropers() <lammps.lammps.gather_impropers()>`.
     It behaves the same as the original method, but returns a NumPy array instead
     of a ``ctypes`` list.
 

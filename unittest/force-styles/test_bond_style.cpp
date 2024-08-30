@@ -27,6 +27,7 @@
 #include "bond.h"
 #include "compute.h"
 #include "exceptions.h"
+#include "fix.h"
 #include "fmt/format.h"
 #include "force.h"
 #include "info.h"
@@ -69,7 +70,7 @@ LAMMPS *init_lammps(LAMMPS::argv &args, const TestConfig &cfg, const bool newton
     // check if prerequisite styles are available
     Info *info = new Info(lmp);
     int nfail  = 0;
-    for (auto &prerequisite : cfg.prerequisites) {
+    for (const auto &prerequisite : cfg.prerequisites) {
         std::string style = prerequisite.second;
 
         // this is a test for bond styles, so if the suffixed
@@ -119,7 +120,7 @@ LAMMPS *init_lammps(LAMMPS::argv &args, const TestConfig &cfg, const bool newton
 
     command("variable input_dir index " + INPUT_FOLDER);
 
-    for (auto &pre_command : cfg.pre_commands) {
+    for (const auto &pre_command : cfg.pre_commands) {
         command(pre_command);
     }
 
@@ -128,17 +129,18 @@ LAMMPS *init_lammps(LAMMPS::argv &args, const TestConfig &cfg, const bool newton
 
     command("bond_style " + cfg.bond_style);
 
-    for (auto &bond_coeff : cfg.bond_coeff) {
+    for (const auto &bond_coeff : cfg.bond_coeff) {
         command("bond_coeff " + bond_coeff);
     }
 
-    for (auto &post_command : cfg.post_commands) {
+    for (const auto &post_command : cfg.post_commands) {
         command(post_command);
     }
 
     command("run 0 post no");
+    command("variable write_data_pair index ii");
     command("write_restart " + cfg.basename + ".restart");
-    command("write_data " + cfg.basename + ".data nofix");
+    command("write_data " + cfg.basename + ".data nofix pair ${write_data_pair}");
     command("write_coeff " + cfg.basename + "-coeffs.in");
 
     return lmp;
@@ -174,12 +176,12 @@ void restart_lammps(LAMMPS *lmp, const TestConfig &cfg)
     }
 
     if ((cfg.bond_style.substr(0, 6) == "hybrid") || !lmp->force->bond->writedata) {
-        for (auto &bond_coeff : cfg.bond_coeff) {
+        for (const auto &bond_coeff : cfg.bond_coeff) {
             command("bond_coeff " + bond_coeff);
         }
     }
 
-    for (auto &post_command : cfg.post_commands) {
+    for (const auto &post_command : cfg.post_commands) {
         command(post_command);
     }
 
@@ -202,7 +204,7 @@ void data_lammps(LAMMPS *lmp, const TestConfig &cfg)
     command("variable newton_bond delete");
     command("variable newton_bond index on");
 
-    for (auto &pre_command : cfg.pre_commands) {
+    for (const auto &pre_command : cfg.pre_commands) {
         command(pre_command);
     }
 
@@ -212,10 +214,10 @@ void data_lammps(LAMMPS *lmp, const TestConfig &cfg)
     std::string input_file = platform::path_join(INPUT_FOLDER, cfg.input_file);
     parse_input_script(input_file);
 
-    for (auto &bond_coeff : cfg.bond_coeff) {
+    for (const auto &bond_coeff : cfg.bond_coeff) {
         command("bond_coeff " + bond_coeff);
     }
-    for (auto &post_command : cfg.post_commands) {
+    for (const auto &post_command : cfg.post_commands) {
         command(post_command);
     }
     command("run 0 post no");
@@ -232,7 +234,7 @@ void generate_yaml_file(const char *outfile, const TestConfig &config)
     if (!lmp) {
         std::cerr << "One or more prerequisite styles are not available "
                      "in this LAMMPS configuration:\n";
-        for (auto &prerequisite : config.prerequisites) {
+        for (const auto &prerequisite : config.prerequisites) {
             std::cerr << prerequisite.first << "_style " << prerequisite.second << "\n";
         }
         return;
@@ -251,7 +253,7 @@ void generate_yaml_file(const char *outfile, const TestConfig &config)
 
     // bond_coeff
     block.clear();
-    for (auto &bond_coeff : config.bond_coeff) {
+    for (const auto &bond_coeff : config.bond_coeff) {
         block += bond_coeff + "\n";
     }
     writer.emit_block("bond_coeff", block);
@@ -275,14 +277,14 @@ void generate_yaml_file(const char *outfile, const TestConfig &config)
     writer.emit("init_energy", lmp->force->bond->energy);
 
     // init_stress
-    auto stress = lmp->force->bond->virial;
+    auto *stress = lmp->force->bond->virial;
     block = fmt::format("{:23.16e} {:23.16e} {:23.16e} {:23.16e} {:23.16e} {:23.16e}", stress[0],
                         stress[1], stress[2], stress[3], stress[4], stress[5]);
     writer.emit_block("init_stress", block);
 
     // init_forces
     block.clear();
-    auto f = lmp->atom->f;
+    auto *f = lmp->atom->f;
     for (int i = 1; i <= natoms; ++i) {
         const int j = lmp->atom->map(i);
         block += fmt::format("{:3} {:23.16e} {:23.16e} {:23.16e}\n", i, f[j][0], f[j][1], f[j][2]);
@@ -343,7 +345,7 @@ TEST(BondStyle, plain)
     double epsilon = test_config.epsilon;
 
     ErrorStats stats;
-    auto bond = lmp->force->bond;
+    auto *bond = lmp->force->bond;
 
     EXPECT_FORCES("init_forces (newton on)", lmp->atom, test_config.init_forces, epsilon);
     EXPECT_STRESS("init_stress (newton on)", bond->virial, test_config.init_stress, epsilon);
@@ -360,8 +362,9 @@ TEST(BondStyle, plain)
     EXPECT_STRESS("run_stress (newton on)", bond->virial, test_config.run_stress, epsilon);
 
     stats.reset();
-    int id        = lmp->modify->find_compute("sum");
-    double energy = lmp->modify->compute[id]->compute_scalar();
+    auto *icompute = lmp->modify->get_compute_by_id("sum");
+    double energy  = 0.0;
+    if (icompute) energy = icompute->compute_scalar();
     EXPECT_FP_LE_WITH_EPS(bond->energy, test_config.run_energy, epsilon);
     EXPECT_FP_LE_WITH_EPS(bond->energy, energy, epsilon);
     if (print_stats) std::cerr << "run_energy  stats, newton on: " << stats << std::endl;
@@ -391,8 +394,8 @@ TEST(BondStyle, plain)
         EXPECT_STRESS("run_stress (newton off)", bond->virial, test_config.run_stress, epsilon);
 
         stats.reset();
-        id     = lmp->modify->find_compute("sum");
-        energy = lmp->modify->compute[id]->compute_scalar();
+        icompute = lmp->modify->get_compute_by_id("sum");
+        if (icompute) energy = icompute->compute_scalar();
         EXPECT_FP_LE_WITH_EPS(bond->energy, test_config.run_energy, epsilon);
         EXPECT_FP_LE_WITH_EPS(bond->energy, energy, epsilon);
         if (print_stats) std::cerr << "run_energy  stats, newton off:" << stats << std::endl;
@@ -463,7 +466,7 @@ TEST(BondStyle, omp)
     double epsilon = 5.0 * test_config.epsilon;
 
     ErrorStats stats;
-    auto bond = lmp->force->bond;
+    auto *bond = lmp->force->bond;
 
     EXPECT_FORCES("init_forces (newton on)", lmp->atom, test_config.init_forces, epsilon);
     EXPECT_STRESS("init_stress (newton on)", bond->virial, test_config.init_stress, 10 * epsilon);
@@ -480,8 +483,9 @@ TEST(BondStyle, omp)
     EXPECT_STRESS("run_stress (newton on)", bond->virial, test_config.run_stress, 10 * epsilon);
 
     stats.reset();
-    int id        = lmp->modify->find_compute("sum");
-    double energy = lmp->modify->compute[id]->compute_scalar();
+    auto *icompute = lmp->modify->get_compute_by_id("sum");
+    double energy  = 0.0;
+    if (icompute) energy = icompute->compute_scalar();
     EXPECT_FP_LE_WITH_EPS(bond->energy, test_config.run_energy, epsilon);
     // TODO: this is currently broken for OPENMP with bond style hybrid
     // needs to be fixed in the main code somewhere. Not sure where, though.
@@ -515,8 +519,8 @@ TEST(BondStyle, omp)
                       10 * epsilon);
 
         stats.reset();
-        id     = lmp->modify->find_compute("sum");
-        energy = lmp->modify->compute[id]->compute_scalar();
+        icompute = lmp->modify->get_compute_by_id("sum");
+        if (icompute) energy = icompute->compute_scalar();
         EXPECT_FP_LE_WITH_EPS(bond->energy, test_config.run_energy, epsilon);
         // TODO: this is currently broken for OPENMP with bond style hybrid
         // needs to be fixed in the main code somewhere. Not sure where, though.
@@ -529,6 +533,165 @@ TEST(BondStyle, omp)
     cleanup_lammps(lmp, test_config);
     if (!verbose) ::testing::internal::GetCapturedStdout();
 };
+
+TEST(BondStyle, kokkos_omp)
+{
+    if (!LAMMPS::is_installed_pkg("KOKKOS")) GTEST_SKIP();
+    if (test_config.skip_tests.count(test_info_->name())) GTEST_SKIP();
+    if (!Info::has_accelerator_feature("KOKKOS", "api", "openmp")) GTEST_SKIP();
+
+    LAMMPS::argv args = {"BondStyle", "-log", "none", "-echo", "screen", "-nocite",
+                         "-k",        "on",   "t",    "4",     "-sf",    "kk"};
+
+    ::testing::internal::CaptureStdout();
+    LAMMPS *lmp = init_lammps(args, test_config, true);
+
+    std::string output = ::testing::internal::GetCapturedStdout();
+    if (verbose) std::cout << output;
+
+    if (!lmp) {
+        std::cerr << "One or more prerequisite styles with /kk suffix\n"
+                     "are not available in this LAMMPS configuration:\n";
+        for (auto &prerequisite : test_config.prerequisites) {
+            std::cerr << prerequisite.first << "_style " << prerequisite.second << "\n";
+        }
+        GTEST_SKIP();
+    }
+
+    EXPECT_THAT(output, StartsWith("LAMMPS ("));
+    EXPECT_THAT(output, HasSubstr("Loop time"));
+
+    // abort if running in parallel and not all atoms are local
+    const int nlocal = lmp->atom->nlocal;
+    ASSERT_EQ(lmp->atom->natoms, nlocal);
+
+    // relax error a bit for KOKKOS package
+    double epsilon = 5.0 * test_config.epsilon;
+
+    ErrorStats stats;
+    auto bond = lmp->force->bond;
+
+    EXPECT_FORCES("init_forces (newton on)", lmp->atom, test_config.init_forces, epsilon);
+    EXPECT_STRESS("init_stress (newton on)", bond->virial, test_config.init_stress, 10 * epsilon);
+
+    stats.reset();
+    EXPECT_FP_LE_WITH_EPS(bond->energy, test_config.init_energy, epsilon);
+    if (print_stats) std::cerr << "init_energy stats, newton on: " << stats << std::endl;
+
+    if (!verbose) ::testing::internal::CaptureStdout();
+    run_lammps(lmp);
+    if (!verbose) ::testing::internal::GetCapturedStdout();
+
+    EXPECT_FORCES("run_forces (newton on)", lmp->atom, test_config.run_forces, 10 * epsilon);
+    EXPECT_STRESS("run_stress (newton on)", bond->virial, test_config.run_stress, 10 * epsilon);
+
+    stats.reset();
+    auto *icompute = lmp->modify->get_compute_by_id("sum");
+    if (icompute) icompute->compute_scalar();
+    EXPECT_FP_LE_WITH_EPS(bond->energy, test_config.run_energy, epsilon);
+
+    // FIXME: this is currently broken ??? for KOKKOS with bond style hybrid
+    // needs to be fixed in the main code somewhere. Not sure where, though.
+    // if (test_config.bond_style.substr(0, 6) != "hybrid")
+    //    EXPECT_FP_LE_WITH_EPS(bond->energy, energy, epsilon);
+
+    if (print_stats) std::cerr << "run_energy  stats, newton on: " << stats << std::endl;
+
+    if (!verbose) ::testing::internal::CaptureStdout();
+    cleanup_lammps(lmp, test_config);
+    lmp = init_lammps(args, test_config, false);
+    if (!verbose) ::testing::internal::GetCapturedStdout();
+
+    // skip over these tests if newton bond is forced to be on
+    if (lmp->force->newton_bond == 0) {
+        bond = lmp->force->bond;
+
+        EXPECT_FORCES("init_forces (newton off)", lmp->atom, test_config.init_forces, epsilon);
+        EXPECT_STRESS("init_stress (newton off)", bond->virial, test_config.init_stress,
+                      10 * epsilon);
+
+        stats.reset();
+        EXPECT_FP_LE_WITH_EPS(bond->energy, test_config.init_energy, epsilon);
+        if (print_stats) std::cerr << "init_energy stats, newton off:" << stats << std::endl;
+
+        if (!verbose) ::testing::internal::CaptureStdout();
+        run_lammps(lmp);
+        if (!verbose) ::testing::internal::GetCapturedStdout();
+
+        EXPECT_FORCES("run_forces (newton off)", lmp->atom, test_config.run_forces, 10 * epsilon);
+        EXPECT_STRESS("run_stress (newton off)", bond->virial, test_config.run_stress,
+                      10 * epsilon);
+
+        stats.reset();
+        icompute = lmp->modify->get_compute_by_id("sum");
+        if (icompute) icompute->compute_scalar();
+        EXPECT_FP_LE_WITH_EPS(bond->energy, test_config.run_energy, epsilon);
+
+        // FIXME: this is currently broken ??? for KOKKOS with bond style hybrid
+        // needs to be fixed in the main code somewhere. Not sure where, though.
+        // if (test_config.bond_style.substr(0, 6) != "hybrid")
+        //    EXPECT_FP_LE_WITH_EPS(bond->energy, energy, epsilon);
+
+        if (print_stats) std::cerr << "run_energy  stats, newton off:" << stats << std::endl;
+    }
+
+    if (!verbose) ::testing::internal::CaptureStdout();
+    cleanup_lammps(lmp, test_config);
+    if (!verbose) ::testing::internal::GetCapturedStdout();
+};
+
+TEST(BondStyle, numdiff)
+{
+    if (!LAMMPS::is_installed_pkg("EXTRA-FIX")) GTEST_SKIP();
+    if (test_config.skip_tests.count(test_info_->name())) GTEST_SKIP();
+
+    LAMMPS::argv args = {"BondStyle", "-log", "none", "-echo", "screen", "-nocite"};
+
+    ::testing::internal::CaptureStdout();
+    LAMMPS *lmp = init_lammps(args, test_config, true);
+
+    std::string output = ::testing::internal::GetCapturedStdout();
+    if (verbose) std::cout << output;
+
+    if (!lmp) {
+        std::cerr << "One or more prerequisite styles are not available "
+                     "in this LAMMPS configuration:\n";
+        for (auto &prerequisite : test_config.prerequisites) {
+            std::cerr << prerequisite.first << "_style " << prerequisite.second << "\n";
+        }
+        GTEST_SKIP();
+    }
+
+    EXPECT_THAT(output, StartsWith("LAMMPS ("));
+    EXPECT_THAT(output, HasSubstr("Loop time"));
+
+    // abort if running in parallel and not all atoms are local
+    const int nlocal = lmp->atom->nlocal;
+    ASSERT_EQ(lmp->atom->natoms, nlocal);
+
+    if (!verbose) ::testing::internal::CaptureStdout();
+    lmp->input->one("fix diff all numdiff 2 6.05504e-6");
+    lmp->input->one("run 2 post no");
+    if (!verbose) ::testing::internal::GetCapturedStdout();
+    Fix *ifix = lmp->modify->get_fix_by_id("diff");
+    if (ifix) {
+        double epsilon = test_config.epsilon * 5.0e8;
+        ErrorStats stats;
+        double **f1 = lmp->atom->f;
+        double **f2 = ifix->array_atom;
+        SCOPED_TRACE("EXPECT FORCES: numdiff");
+        for (int i = 0; i < nlocal; ++i) {
+            EXPECT_FP_LE_WITH_EPS(f1[i][0], f2[i][0], epsilon);
+            EXPECT_FP_LE_WITH_EPS(f1[i][1], f2[i][1], epsilon);
+            EXPECT_FP_LE_WITH_EPS(f1[i][2], f2[i][2], epsilon);
+        }
+        if (print_stats)
+            std::cerr << "numdiff  stats: " << stats << " epsilon: " << epsilon << std::endl;
+    }
+    if (!verbose) ::testing::internal::CaptureStdout();
+    cleanup_lammps(lmp, test_config);
+    if (!verbose) ::testing::internal::GetCapturedStdout();
+}
 
 TEST(BondStyle, single)
 {
@@ -596,7 +759,7 @@ TEST(BondStyle, single)
     command("pair_coeff * *");
 
     command("bond_style " + test_config.bond_style);
-    auto bond = lmp->force->bond;
+    auto *bond = lmp->force->bond;
 
     for (auto &bond_coeff : test_config.bond_coeff) {
         command("bond_coeff " + bond_coeff);
@@ -804,9 +967,9 @@ TEST(BondStyle, extract)
         GTEST_SKIP();
     }
 
-    auto bond = lmp->force->bond;
-    void *ptr = nullptr;
-    int dim   = 0;
+    auto *bond = lmp->force->bond;
+    void *ptr  = nullptr;
+    int dim    = 0;
     for (auto extract : test_config.extract) {
         ptr = bond->extract(extract.first.c_str(), dim);
         EXPECT_NE(ptr, nullptr);

@@ -51,6 +51,15 @@ FixDeprecated::FixDeprecated(LAMMPS *lmp, int narg, char **arg) : Fix(lmp, narg,
   } else if (my_style == "client/md") {
     if (lmp->comm->me == 0)
       utils::logmesg(lmp, "\nThe MESSAGE package has been replaced by the MDI package.\n\n");
+  } else if (my_style == "mscg") {
+    if (lmp->comm->me == 0)
+      utils::logmesg(lmp, "\nThe MSCG package has been removed from LAMMPS.\n\n");
+  } else if (utils::strmatch(my_style, "^reax/c/bonds")) {
+    if (lmp->comm->me == 0)
+      utils::logmesg(lmp, "\nFix style 'reax/c/bonds' has been renamed to 'reaxff/bonds'.\n\n");
+  } else if (utils::strmatch(my_style, "^reax/c/species")) {
+    if (lmp->comm->me == 0)
+      utils::logmesg(lmp, "\nFix style 'reax/c/species' has been renamed to 'reaxff/species'.\n\n");
   }
   error->all(FLERR, "This fix style is no longer available");
 }

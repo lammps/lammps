@@ -1,46 +1,18 @@
-/*
 //@HEADER
 // ************************************************************************
 //
-//                        Kokkos v. 3.0
-//       Copyright (2020) National Technology & Engineering
+//                        Kokkos v. 4.0
+//       Copyright (2022) National Technology & Engineering
 //               Solutions of Sandia, LLC (NTESS).
 //
 // Under the terms of Contract DE-NA0003525 with NTESS,
 // the U.S. Government retains certain rights in this software.
 //
-// Redistribution and use in source and binary forms, with or without
-// modification, are permitted provided that the following conditions are
-// met:
+// Part of Kokkos, under the Apache License v2.0 with LLVM Exceptions.
+// See https://kokkos.org/LICENSE for license information.
+// SPDX-License-Identifier: Apache-2.0 WITH LLVM-exception
 //
-// 1. Redistributions of source code must retain the above copyright
-// notice, this list of conditions and the following disclaimer.
-//
-// 2. Redistributions in binary form must reproduce the above copyright
-// notice, this list of conditions and the following disclaimer in the
-// documentation and/or other materials provided with the distribution.
-//
-// 3. Neither the name of the Corporation nor the names of the
-// contributors may be used to endorse or promote products derived from
-// this software without specific prior written permission.
-//
-// THIS SOFTWARE IS PROVIDED BY NTESS "AS IS" AND ANY
-// EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
-// IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR
-// PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL NTESS OR THE
-// CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
-// EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
-// PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR
-// PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF
-// LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING
-// NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
-// SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-//
-// Questions? Contact Christian R. Trott (crtrott@sandia.gov)
-//
-// ************************************************************************
 //@HEADER
-*/
 
 #ifndef KOKKOS_STD_ALGORITHMS_COPY_IMPL_HPP
 #define KOKKOS_STD_ALGORITHMS_COPY_IMPL_HPP
@@ -55,13 +27,18 @@ namespace Kokkos {
 namespace Experimental {
 namespace Impl {
 
-template <class IndexType, class InputIterator, class OutputIterator>
+template <class InputIterator, class OutputIterator>
 struct StdCopyFunctor {
+  // we can use difference type from InputIterator since
+  // the calling functions below already static assert that
+  // the iterators have matching difference type
+  using index_type = typename InputIterator::difference_type;
+
   InputIterator m_first;
   OutputIterator m_dest_first;
 
   KOKKOS_FUNCTION
-  void operator()(IndexType i) const { m_dest_first[i] = m_first[i]; }
+  void operator()(index_type i) const { m_dest_first[i] = m_first[i]; }
 
   KOKKOS_FUNCTION
   StdCopyFunctor(InputIterator _first, OutputIterator _dest_first)
@@ -69,23 +46,20 @@ struct StdCopyFunctor {
 };
 
 template <class ExecutionSpace, class InputIterator, class OutputIterator>
-OutputIterator copy_impl(const std::string& label, const ExecutionSpace& ex,
-                         InputIterator first, InputIterator last,
-                         OutputIterator d_first) {
+OutputIterator copy_exespace_impl(const std::string& label,
+                                  const ExecutionSpace& ex, InputIterator first,
+                                  InputIterator last, OutputIterator d_first) {
   // checks
   Impl::static_assert_random_access_and_accessible(ex, first, d_first);
   Impl::static_assert_iterators_have_matching_difference_type(first, d_first);
   Impl::expect_valid_range(first, last);
 
-  // aliases
-  using index_type = typename InputIterator::difference_type;
-  using func_t     = StdCopyFunctor<index_type, InputIterator, OutputIterator>;
-
   // run
   const auto num_elements = Kokkos::Experimental::distance(first, last);
   ::Kokkos::parallel_for(label,
                          RangePolicy<ExecutionSpace>(ex, 0, num_elements),
-                         func_t(first, d_first));
+                         // use CTAD
+                         StdCopyFunctor(first, d_first));
   ex.fence("Kokkos::copy: fence after operation");
 
   // return
@@ -94,16 +68,61 @@ OutputIterator copy_impl(const std::string& label, const ExecutionSpace& ex,
 
 template <class ExecutionSpace, class InputIterator, class Size,
           class OutputIterator>
-OutputIterator copy_n_impl(const std::string& label, const ExecutionSpace& ex,
-                           InputIterator first_from, Size count,
-                           OutputIterator first_dest) {
+OutputIterator copy_n_exespace_impl(const std::string& label,
+                                    const ExecutionSpace& ex,
+                                    InputIterator first_from, Size count,
+                                    OutputIterator first_dest) {
   // checks
   Impl::static_assert_random_access_and_accessible(ex, first_from, first_dest);
   Impl::static_assert_iterators_have_matching_difference_type(first_from,
                                                               first_dest);
 
   if (count > 0) {
-    return copy_impl(label, ex, first_from, first_from + count, first_dest);
+    return copy_exespace_impl(label, ex, first_from, first_from + count,
+                              first_dest);
+  } else {
+    return first_dest;
+  }
+}
+
+//
+// team-level impl
+//
+template <class TeamHandleType, class InputIterator, class OutputIterator>
+KOKKOS_FUNCTION OutputIterator copy_team_impl(const TeamHandleType& teamHandle,
+                                              InputIterator first,
+                                              InputIterator last,
+                                              OutputIterator d_first) {
+  // checks
+  Impl::static_assert_random_access_and_accessible(teamHandle, first, d_first);
+  Impl::static_assert_iterators_have_matching_difference_type(first, d_first);
+  Impl::expect_valid_range(first, last);
+
+  // run
+  const auto num_elements = Kokkos::Experimental::distance(first, last);
+  ::Kokkos::parallel_for(TeamThreadRange(teamHandle, 0, num_elements),
+                         // use CTAD
+                         StdCopyFunctor(first, d_first));
+  teamHandle.team_barrier();
+
+  // return
+  return d_first + num_elements;
+}
+
+template <class TeamHandleType, class InputIterator, class Size,
+          class OutputIterator>
+KOKKOS_FUNCTION OutputIterator
+copy_n_team_impl(const TeamHandleType& teamHandle, InputIterator first_from,
+                 Size count, OutputIterator first_dest) {
+  // checks
+  Impl::static_assert_random_access_and_accessible(teamHandle, first_from,
+                                                   first_dest);
+  Impl::static_assert_iterators_have_matching_difference_type(first_from,
+                                                              first_dest);
+
+  if (count > 0) {
+    return copy_team_impl(teamHandle, first_from, first_from + count,
+                          first_dest);
   } else {
     return first_dest;
   }

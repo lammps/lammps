@@ -61,6 +61,13 @@
 #include <fcntl.h>
 #include <sys/syslimits.h>
 #endif
+
+// for disk_free()
+#if defined(__linux__) || defined(__APPLE__) || defined(__FreeBSD__) || defined(__DragonFly__) || \
+    defined(__OpenBSD__) || defined(__NetBSD__)
+#include <sys/statvfs.h>
+#endif
+
 ////////////////////////////////////////////////////////////////////////
 
 #include <chrono>
@@ -935,7 +942,7 @@ int platform::ftruncate(FILE *fp, bigint length)
     return 1;
   }
 #else
-  platform::fseek(fp, length);
+  (void) platform::fseek(fp, length);
   return ::ftruncate(fileno(fp), (off_t) length);
 #endif
 }
@@ -1044,6 +1051,36 @@ bool platform::file_is_readable(const std::string &path)
   }
   return false;
 }
+/* ----------------------------------------------------------------------
+   determine available disk space, if supported. Return -1 if not.
+------------------------------------------------------------------------- */
+
+double platform::disk_free(const std::string &path)
+{
+  double bytes_free = -1.0;
+
+#if defined(__linux__) || defined(__APPLE__) || defined(__FreeBSD__) || defined(__DragonFly__) || \
+    defined(__OpenBSD__) || defined(__NetBSD__)
+  struct statvfs fs;
+
+  if (path.size()) {
+    int rv = statvfs(path.c_str(), &fs);
+    if (rv == 0) {
+#if defined(__linux__)
+      bytes_free = fs.f_bavail * fs.f_bsize;
+#elif defined(__APPLE__) || defined(__FreeBSD__) || defined(__DragonFly__) || \
+    defined(__OpenBSD__) || defined(__NetBSD__)
+      bytes_free = fs.f_bavail * fs.f_frsize;
+#endif
+    }
+  }
+#elif defined(_WIN32)
+  uint64_t is_free = 0;
+  if (GetDiskFreeSpaceEx(path.c_str(), (PULARGE_INTEGER) &is_free, nullptr, nullptr))
+    bytes_free = is_free;
+#endif
+  return bytes_free;
+}
 
 /* ----------------------------------------------------------------------
    check if filename has a known compression extension
@@ -1063,7 +1100,7 @@ FILE *platform::compressed_read(const std::string &file)
   FILE *fp = nullptr;
 
 #if defined(LAMMPS_GZIP)
-  auto compress = find_compress_type(file);
+  const auto &compress = find_compress_type(file);
   if (compress.style == ::compress_info::NONE) return nullptr;
 
   if (find_exe_path(compress.command).size())
@@ -1082,7 +1119,7 @@ FILE *platform::compressed_write(const std::string &file)
   FILE *fp = nullptr;
 
 #if defined(LAMMPS_GZIP)
-  auto compress = find_compress_type(file);
+  const auto &compress = find_compress_type(file);
   if (compress.style == ::compress_info::NONE) return nullptr;
 
   if (find_exe_path(compress.command).size())

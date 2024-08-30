@@ -2,7 +2,7 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    https://www.lammps.org/, Sandia National Laboratories
-   LAMMPS Development team: developers@lammps.org
+   LAMMPS development team: developers@lammps.org
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
@@ -50,7 +50,7 @@ enum{GORDON1,GORDON2};
 // same as in pair_amoeba.cpp
 enum{MPOLE_GRID,POLAR_GRID,POLAR_GRIDC,DISP_GRID,INDUCE_GRID,INDUCE_GRIDC};
 
-#define DEBYE 4.80321    // conversion factor from q-Angs (real units) to Debye
+static constexpr double DEBYE = 4.80321;    // conversion factor from q-Angs (real units) to Debye
 
 // External functions from cuda library for atom decomposition
 

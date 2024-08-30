@@ -139,9 +139,7 @@ template<class DeviceType>
 template<bool STACKPARAMS, class Specialisation>
 KOKKOS_INLINE_FUNCTION
 F_FLOAT PairLJClass2Kokkos<DeviceType>::
-compute_fpair(const F_FLOAT& rsq, const int& i, const int&j, const int& itype, const int& jtype) const {
-  (void) i;
-  (void) j;
+compute_fpair(const F_FLOAT &rsq, const int &, const int &, const int &itype, const int &jtype) const {
   const F_FLOAT r2inv = 1.0/rsq;
   const F_FLOAT rinv = sqrt(r2inv);
   const F_FLOAT r3inv = r2inv*rinv;
@@ -159,9 +157,7 @@ template<class DeviceType>
 template<bool STACKPARAMS, class Specialisation>
 KOKKOS_INLINE_FUNCTION
 F_FLOAT PairLJClass2Kokkos<DeviceType>::
-compute_evdwl(const F_FLOAT& rsq, const int& i, const int&j, const int& itype, const int& jtype) const {
-  (void) i;
-  (void) j;
+compute_evdwl(const F_FLOAT &rsq, const int &, const int &, const int &itype, const int &jtype) const {
   const F_FLOAT r2inv = 1.0/rsq;
   const F_FLOAT rinv = sqrt(r2inv);
   const F_FLOAT r3inv = r2inv*rinv;
@@ -224,9 +220,9 @@ void PairLJClass2Kokkos<DeviceType>::init_style()
 
   neighflag = lmp->kokkos->neighflag;
   auto request = neighbor->find_request(this);
-  request->set_kokkos_host(std::is_same<DeviceType,LMPHostType>::value &&
-                           !std::is_same<DeviceType,LMPDeviceType>::value);
-  request->set_kokkos_device(std::is_same<DeviceType,LMPDeviceType>::value);
+  request->set_kokkos_host(std::is_same_v<DeviceType,LMPHostType> &&
+                           !std::is_same_v<DeviceType,LMPDeviceType>);
+  request->set_kokkos_device(std::is_same_v<DeviceType,LMPDeviceType>);
   if (neighflag == FULL) request->enable_full();
 }
 

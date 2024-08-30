@@ -22,6 +22,17 @@ namespace LAMMPS_NS {
 
 class Update : protected Pointers {
  public:
+  Update(class LAMMPS *);
+  ~Update() override;
+  void init();
+  void set_units(const char *);
+  void create_integrate(int, char **, int);
+  void create_minimize(int, char **, int);
+  void reset_timestep(int, char **);
+  void reset_timestep(bigint, bool);
+  void update_time();
+  double memory_usage();
+
   double dt;                     // timestep
   double etol, ftol;             // minimizer tolerances on energy/force
   bigint ntimestep;              // current step (dynamics or min iterations)
@@ -57,17 +68,6 @@ class Update : protected Pointers {
 
   IntegrateCreatorMap *integrate_map;
   MinimizeCreatorMap *minimize_map;
-
-  Update(class LAMMPS *);
-  ~Update() override;
-  void init();
-  void set_units(const char *);
-  void create_integrate(int, char **, int);
-  void create_minimize(int, char **, int);
-  void reset_timestep(int, char **);
-  void reset_timestep(bigint, bool);
-  void update_time();
-  double memory_usage();
 
  private:
   void new_integrate(char *, int, char **, int, int &);

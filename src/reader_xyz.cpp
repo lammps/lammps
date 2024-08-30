@@ -23,9 +23,7 @@
 
 using namespace LAMMPS_NS;
 
-#define MAXLINE 1024        // max line length in dump file
-
-enum{ID,TYPE,X,Y,Z};
+static constexpr int MAXLINE = 1024;        // max line length in dump file
 
 /* ---------------------------------------------------------------------- */
 
@@ -40,7 +38,7 @@ ReaderXYZ::ReaderXYZ(LAMMPS *lmp) : Reader(lmp)
 
 ReaderXYZ::~ReaderXYZ()
 {
-  delete [] line;
+  delete[] line;
   memory->destroy(fieldindex);
 }
 
@@ -92,11 +90,11 @@ void ReaderXYZ::skip()
 {
   // invoke read_lines() in chunks no larger than MAXSMALLINT
 
-  int nchunk;
+  bigint nchunk;
   bigint nremain = natoms;
   while (nremain) {
     nchunk = MIN(nremain,MAXSMALLINT);
-    read_lines(nchunk);
+    read_lines((int)nchunk);
     nremain -= nchunk;
   }
 }
@@ -184,7 +182,7 @@ void ReaderXYZ::read_atoms(int n, int nfield, double **fields)
     // XXX: we could insert an element2type translation here
     // XXX: for now we flag unrecognized types as type 0,
     // XXX: which should trigger an error, if LAMMPS uses it.
-    mytype = atoi(line);
+    mytype = std::stoi(line);
 
     for (m = 0; m < nfield; m++) {
       switch (fieldindex[m]) {

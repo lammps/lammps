@@ -42,7 +42,11 @@ fix fxforce_au gold setforce 0.0 0.0 0.0
 
 # equilibrate z-coordinate of upper electrode while keeping the electrode rigid
 fix fxforce_wa wall setforce 0.0 0.0 NULL
-fix fxpressure wall aveforce 0 0 -0.005246 # atomspheric pressure: area/force->nktv2p
+variable atm equal 1/68568.415 # 1/force->nktv2p
+variable area equal (xhi-xlo)*(yhi-ylo)
+variable wall_force equal -v_atm*v_area/count(wall)
+print "Wall force per atom: ${wall_force}"
+fix fxpressure wall aveforce 0 0 ${wall_force} # atomspheric pressure: area/force->nktv2p
 fix fxdrag     wall viscous 100
 fix fxrigid    wall rigid/nve single
 

@@ -26,10 +26,10 @@ mode = "static"
 
 HELP = """
 Syntax from src dir: make lib-plumed args="-b"
-                 or: make lib-plumed args="-b -v 2.8.2"
+                 or: make lib-plumed args="-b -v 2.8.3"
                  or: make lib-plumed args="-p /usr/local/plumed2 -m shared"
 
-Syntax from lib dir: python Install.py -b -v 2.8.2
+Syntax from lib dir: python Install.py -b -v 2.8.3
                  or: python Install.py -b
                  or: python Install.py -p /usr/local/plumed2 -m shared
 

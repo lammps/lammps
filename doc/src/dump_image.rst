@@ -24,7 +24,7 @@ Syntax
 * color = atom attribute that determines color of each atom
 * diameter = atom attribute that determines size of each atom
 * zero or more keyword/value pairs may be appended
-* keyword = *atom* or *adiam* or *bond* or *grid* or *line* or *tri* or *body* or *fix* or *size* or *view* or *center* or *up* or *zoom* or *box* or *axes* or *subbox* or *shiny* or *ssao*
+* keyword = *atom* or *adiam* or *bond* or *grid* or *line* or *tri* or *body* or *fix* or *size* or *view* or *center* or *up* or *zoom* or *box* or *axes* or *subbox* or *shiny* or *fsaa* or *ssao*
 
   .. parsed-literal::
 
@@ -85,6 +85,8 @@ Syntax
          diam = diameter of subdomain lines as fraction of shortest box length
        *shiny* value = sfactor = shinyness of spheres and cylinders
          sfactor = shinyness of spheres and cylinders from 0.0 to 1.0
+       *fsaa* arg = yes/no
+         yes/no = do or do not apply anti-aliasing
        *ssao* value = shading seed dfactor = SSAO depth shading
          shading = *yes* or *no* = turn depth shading on/off
          seed = random # seed (positive integer)
@@ -109,10 +111,10 @@ Syntax
   .. parsed-literal::
 
        *acolor* args = type color
-         type = atom type or range of types (see below)
+         type = atom type (numeric or type label) or range of numeric types (see below)
          color = name of color or color1/color2/...
        *adiam* args = type diam
-         type = atom type or range of types (see below)
+         type = atom type (numeric or type label) or range of numeric types (see below)
          diam = diameter of atoms of that type (distance units)
        *amap* args = lo hi style delta N entry1 entry2 ... entryN
          lo = number or *min* = lower bound of range of color map
@@ -137,10 +139,10 @@ Syntax
        *backcolor* arg = color
          color = name of color for background
        *bcolor* args = type color
-         type = bond type or range of types (see below)
+         type = bond type (numeric or type label) or range of numeric types (see below)
          color = name of color or color1/color2/...
        *bdiam* args = type diam
-         type = bond type or range of types (see below)
+         type = bond type (numeric or type label) or range of numeric types (see below)
          diam = diameter of bonds of that type (distance units)
        *bitrate* arg = rate
          rate = target bitrate for movie in kbps
@@ -166,6 +168,9 @@ Examples
    dump m2 all movie 100 movie.m4v type type zoom 1.8 adiam v_value size 1280 720
 
    dump_modify 1 amap min max cf 0.0 3 min green 0.5 yellow max blue boxcolor red
+
+   labelmap atom 1 C 2 H 3 O 4 N
+   dump_modify 1 acolor C gray acolor H white acolor O red acolor N blue
 
 Description
 """""""""""
@@ -227,7 +232,7 @@ details have to be looked up in the `FFmpeg documentation
 described below.
 
 To write out JPEG and PNG format files, you must build LAMMPS with
-support for the corresponding JPEG or PNG library. To convert images
+support for the corresponding JPEG or PNG library.  To convert images
 into movies, LAMMPS has to be compiled with the -DLAMMPS_FFMPEG
 flag. See the :doc:`Build settings <Build_settings>` page for
 details.
@@ -384,7 +389,7 @@ cylinders with that diameter, e.g. 1.0, which is in whatever distance
 
 If *atom* is specified for the *width* value, then each bond
 will be drawn with a width corresponding to the minimum diameter
-of the 2 atoms in the bond.
+of the two atoms in the bond.
 
 If *type* is specified for the *width* value then the diameter of each
 bond is determined by its bond type.  By default all types have
@@ -597,13 +602,47 @@ image will appear.  The *sfactor* value must be a value 0.0 <=
 *sfactor* <= 1.0, where *sfactor* = 1 is a highly reflective surface
 and *sfactor* = 0 is a rough non-shiny surface.
 
-The *ssao* keyword turns on/off a screen space ambient occlusion
-(SSAO) model for depth shading.  If *yes* is set, then atoms further
-away from the viewer are darkened via a randomized process, which is
-perceived as depth.  The calculation of this effect can increase the
-cost of computing the image by roughly 2x.  The strength of the effect
-can be scaled by the *dfactor* parameter.  If *no* is set, no depth
-shading is performed.
+.. versionadded:: 21Nov2023
+
+The *fsaa* keyword can be used with the dump image command to improve
+the image quality by enabling full scene anti-aliasing.  Internally the
+image is rendered at twice the width and height and then scaled down by
+computing the average of each 2x2 block of pixels to produce a single
+pixel in the final image at the original size. This produces images with
+smoother, less ragged edges.  The application of this algorithm can
+increase the cost of computing the image by about 3x or more.
+
+The *ssao* keyword turns on/off a screen space ambient occlusion (SSAO)
+model for depth shading.  If *yes* is set, then atoms further away from
+the viewer are darkened via a randomized process, which is perceived as
+depth.  The strength of the effect can be scaled by the *dfactor*
+parameter.  If *no* is set, no depth shading is performed.  The
+calculation of this effect can increase the cost of computing the image
+substantially by 5x or more, especially with larger images.  When used
+in combination with the *fsaa* keyword the computational cost of depth
+shading is particularly large.
+
+----------
+
+Image Quality Settings
+""""""""""""""""""""""
+
+The two keywords *fsaa* and *ssao* can be used to improve the image
+quality at the expense of additional computational cost to render the
+images. The images below show from left to right the same render with
+default settings, with *fsaa* added, with *ssao* added, and with both
+keywords added.
+
+.. |imagequality1| image:: JPG/image.default.png
+   :width: 24%
+.. |imagequality2| image:: JPG/image.fsaa.png
+   :width: 24%
+.. |imagequality3| image:: JPG/image.ssao.png
+   :width: 24%
+.. |imagequality4| image:: JPG/image.both.png
+   :width: 24%
+
+|imagequality1|  |imagequality2|  |imagequality3|  |imagequality4|
 
 ----------
 
@@ -703,15 +742,15 @@ The *acolor* keyword can be used with the dump image command, when its
 atom color setting is *type*, to set the color that atoms of each type
 will be drawn in the image.
 
-The specified *type* should be an integer from 1 to Ntypes = the
-number of atom types.  A wildcard asterisk can be used in place of or
-in conjunction with the *type* argument to specify a range of atom
-types.  This takes the form "\*" or "\*n" or "n\*" or "m\*n".  If N =
-the number of atom types, then an asterisk with no numeric values
-means all types from 1 to N.  A leading asterisk means all types from
-1 to n (inclusive).  A trailing asterisk means all types from n to N
-(inclusive).  A middle asterisk means all types from m to n
-(inclusive).
+The specified *type* should be a type label or integer from 1 to Ntypes
+= the number of atom types.  For numeric types, a wildcard asterisk can
+be used in place of or in conjunction with the *type* argument to
+specify a range of atom types.  This takes the form "\*" or "\*n" or
+"n\*" or "m\*n". If N = the number of atom types, then an asterisk with
+no numeric values means all types from 1 to N.  A leading asterisk
+means all types from 1 to n (inclusive).  A trailing asterisk means all
+types from n to N (inclusive).  A middle asterisk means all types from
+m to n (inclusive).
 
 The specified *color* can be a single color which is any of the 140
 pre-defined colors (see below) or a color name defined by the
@@ -725,11 +764,12 @@ fashion to each of the specified atom types.
 
 The *adiam* keyword can be used with the dump image command, when its
 atom diameter setting is *type*, to set the size that atoms of each
-type will be drawn in the image.  The specified *type* should be an
-integer from 1 to Ntypes.  As with the *acolor* keyword, a wildcard
-asterisk can be used as part of the *type* argument to specify a range
-of atom types.  The specified *diam* is the size in whatever distance
-:doc:`units <units>` the input script is using, e.g. Angstroms.
+type will be drawn in the image.  The specified *type* should be a type
+label or integer from 1 to Ntypes.  As with the *acolor* keyword, a
+wildcard asterisk can be used as part of the *type* argument to specify
+a range of numeric atom types.  The specified *diam* is the size in
+whatever distance :doc:`units <units>` the input script is using, e.g.
+Angstroms.
 
 ----------
 
@@ -872,14 +912,15 @@ The *bcolor* keyword can be used with the dump image command, with its
 *bond* keyword, when its color setting is *type*, to set the color
 that bonds of each type will be drawn in the image.
 
-The specified *type* should be an integer from 1 to :math:`N`, where :math:`N`
-is the number of bond types.  A wildcard asterisk can be used in place of or
-in conjunction with the *type* argument to specify a range of bond
-types.  This takes the form "\*" or "\*n" or "m\*" or "m\*n".  If :math:`N`
-is the number of bond types, then an asterisk with no numerical values
-means all types from 1 to :math:`N`.  A leading asterisk means all types from
-1 to n (inclusive).  A trailing asterisk means all types from m to :math:`N`
-(inclusive).  A middle asterisk means all types from m to n
+The specified *type* should be a type label or integer from 1 to
+:math:`N`, where :math:`N` is the number of bond types.  For numeric
+types, a wildcard asterisk can be used in place of or in conjunction
+with the *type* argument to specify a range of bond types.  This takes
+the form "\*" or "\*n" or "m\*" or "m\*n".  If :math:`N` is the number
+of bond types, then an asterisk with no numerical values means all
+types from 1 to :math:`N`.  A leading asterisk means all types from 1
+to n (inclusive).  A trailing asterisk means all types from m to
+:math:`N` (inclusive).  A middle asterisk means all types from m to n
 (inclusive).
 
 The specified *color* can be a single color which is any of the 140
@@ -895,11 +936,11 @@ of the specified bond types.
 The *bdiam* keyword can be used with the dump image command, with its
 *bond* keyword, when its *diam* setting is *type*, to set the diameter
 that bonds of each type will be drawn in the image.  The specified
-*type* should be an integer from 1 to Nbondtypes.  As with the
-*bcolor* keyword, a wildcard asterisk can be used as part of the
-*type* argument to specify a range of bond types.  The specified
-*diam* is the size in whatever distance :doc:`units <units>` you are
-using (e.g., Angstroms).
+*type* should be a type label or integer from 1 to Nbondtypes.  As with
+the *bcolor* keyword, a wildcard asterisk can be used as part of the
+*type* argument to specify a range of numeric bond types.  The
+specified *diam* is the size in whatever distance :doc:`units <units>`
+you are using (e.g., Angstroms).
 
 ----------
 
@@ -1051,6 +1092,7 @@ The defaults for the dump_modify keywords specific to dump image and dump movie 
 * boxcolor = yellow
 * color = 140 color names are pre-defined as listed below
 * framerate = 24
+* fsaa = no
 * gmap = min max cf 0.0 2 min blue max red
 
 ----------

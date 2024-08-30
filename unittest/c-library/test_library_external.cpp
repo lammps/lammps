@@ -18,8 +18,8 @@ extern "C" {
 typedef int32_t step_t;
 typedef int32_t tag_t;
 #elif LAMMPS_SMALLBIG
-typedef int64_t step_t;
-typedef int32_t tag_t;
+using step_t = int64_t;
+using tag_t  = int32_t;
 #else
 typedef int64_t step_t;
 typedef int64_t tag_t;
@@ -42,10 +42,10 @@ static void callback(void *handle, step_t timestep, int nlocal, tag_t *, double 
         lammps_fix_external_set_vector(handle, "ext", 5, -1.0);
         lammps_fix_external_set_vector(handle, "ext", 6, 0.25);
     }
-    double *eatom  = new double[nlocal];
-    double **vatom = new double *[nlocal];
-    vatom[0]       = new double[nlocal * 6];
-    eatom[0]       = 0.0;
+    auto *eatom  = new double[nlocal];
+    auto **vatom = new double *[nlocal];
+    vatom[0]     = new double[nlocal * 6];
+    eatom[0]     = 0.0;
     vatom[0][0] = vatom[0][1] = vatom[0][2] = vatom[0][3] = vatom[0][4] = vatom[0][5] = 0.0;
 
     for (int i = 1; i < nlocal; ++i) {
@@ -107,7 +107,7 @@ TEST(lammps_external, callback)
         val += *valp;
         lammps_free(valp);
     }
-    double *reduce =
+    auto *reduce =
         (double *)lammps_extract_compute(handle, "sum", LMP_STYLE_GLOBAL, LMP_TYPE_VECTOR);
     output = ::testing::internal::GetCapturedStdout();
     if (verbose) std::cout << output;

@@ -21,6 +21,7 @@
 #include "atom.h"
 #include "comm.h"
 #include "error.h"
+#include "ewald_const.h"
 #include "force.h"
 #include "kspace.h"
 #include "memory.h"
@@ -35,14 +36,7 @@
 
 using namespace LAMMPS_NS;
 using namespace LJSPICAParms;
-
-#define EWALD_F 1.12837917
-#define EWALD_P 0.3275911
-#define A1 0.254829592
-#define A2 -0.284496736
-#define A3 1.421413741
-#define A4 -1.453152027
-#define A5 1.061405429
+using namespace EwaldConst;
 
 /* ---------------------------------------------------------------------- */
 
@@ -61,6 +55,8 @@ PairLJSPICACoulLong::PairLJSPICACoulLong(LAMMPS *lmp) :
 
 PairLJSPICACoulLong::~PairLJSPICACoulLong()
 {
+  if (copymode) return;
+
   if (allocated) {
     memory->destroy(setflag);
     memory->destroy(lj_type);
@@ -362,7 +358,7 @@ void PairLJSPICACoulLong::coeff(int narg, char **arg)
 
 void PairLJSPICACoulLong::init_style()
 {
-  if (!atom->q_flag) error->all(FLERR, "Pair style lj/cut/coul/long requires atom attribute q");
+  if (!atom->q_flag) error->all(FLERR, "Pair style lj/spica/coul/long requires atom attribute q");
 
   neighbor->add_request(this);
 
@@ -391,7 +387,8 @@ double PairLJSPICACoulLong::init_one(int i, int j)
 
   const int ljt = lj_type[i][j];
 
-  if (ljt == LJ_NOT_SET) error->all(FLERR, "unrecognized LJ parameter flag");
+  if (ljt == LJ_NOT_SET)
+    error->all(FLERR,"unrecognized LJ parameter flag");
 
   double cut = MAX(cut_lj[i][j], cut_coul);
   cut_ljsq[i][j] = cut_lj[i][j] * cut_lj[i][j];

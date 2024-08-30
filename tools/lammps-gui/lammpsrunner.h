@@ -27,16 +27,22 @@ public:
     // execute LAMMPS in runner thread
     void run() override
     {
-        lammps->commands_string(input);
-        delete[] input;
+        if (input) {
+            lammps->commands_string(input);
+            delete[] input;
+        } else if (file) {
+            lammps->file(file);
+            delete[] file;
+        }
         emit resultReady();
     }
 
     // transfer info to worker thread and reset LAMMPS instance
-    void setup_run(LammpsWrapper *_lammps, const char *_input)
+    void setup_run(LammpsWrapper *_lammps, const char *_input, const char *_file = nullptr)
     {
         lammps = _lammps;
         input  = _input;
+        file   = _file;
         lammps->command("clear");
     }
 
@@ -46,6 +52,7 @@ signals:
 private:
     LammpsWrapper *lammps;
     const char *input;
+    const char *file;
 };
 
 #endif

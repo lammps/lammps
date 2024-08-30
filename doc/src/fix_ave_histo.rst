@@ -35,7 +35,7 @@ Syntax
        v_name[I] = value calculated by a vector-style variable with name, I can include wildcard (see below)
 
 * zero or more keyword/arg pairs may be appended
-* keyword = *mode* or *kind* or *file* or *ave* or *start* or *beyond* or *overwrite* or *title1* or *title2* or *title3*
+* keyword = *mode* or *kind* or *file* or *append* or *ave* or *start* or *beyond* or *overwrite* or *title1* or *title2* or *title3*
 
   .. parsed-literal::
 
@@ -45,6 +45,8 @@ Syntax
        *kind* arg = *global* or *peratom* or *local*
        *file* arg = filename
          filename = name of file to output histogram(s) to
+       *append* arg = filename
+         filename = name of file to append histogram(s) to
        *ave* args = *one* or *running* or *window*
          one = output a new average value every Nfreq steps
          running = output cumulative average of all previous Nfreq steps
@@ -79,9 +81,10 @@ Description
 
 Use one or more values as inputs every few timesteps to create a
 single histogram.  The histogram can then be averaged over longer
-timescales.  The resulting histogram can be used by other :doc:`output commands <Howto_output>`, and can also be written to a file.  The
-fix ave/histo/weight command has identical syntax to fix ave/histo,
-except that exactly two values must be specified.  See details below.
+timescales.  The resulting histogram can be used by other :doc:`output
+commands <Howto_output>`, and can also be written to a file.  The fix
+ave/histo/weight command has identical syntax to fix ave/histo, except
+that exactly two values must be specified.  See details below.
 
 The group specified with this command is ignored for global and local
 input values.  For per-atom input values, only atoms in the group
@@ -96,14 +99,18 @@ different ways; see the discussion of the *beyond* keyword below.
 
 Each input value can be an atom attribute (position, velocity, force
 component) or can be the result of a :doc:`compute <compute>` or
-:doc:`fix <fix>` or the evaluation of an equal-style or vector-style or
-atom-style :doc:`variable <variable>`.  The set of input values can be
-either all global, all per-atom, or all local quantities.  Inputs of
-different kinds (e.g. global and per-atom) cannot be mixed.  Atom
-attributes are per-atom vector values.  See the page for
-individual "compute" and "fix" commands to see what kinds of
-quantities they generate.  See the optional *kind* keyword below for
-how to force the fix ave/histo command to disambiguate if necessary.
+:doc:`fix <fix>` or the evaluation of an equal-style or vector-style
+or atom-style :doc:`variable <variable>`.  The set of input values can
+be either all global, all per-atom, or all local quantities.  Inputs
+of different kinds (e.g. global and per-atom) cannot be mixed.  Atom
+attributes are per-atom vector values.  See the page for individual
+"compute" and "fix" commands to see what kinds of quantities they
+generate.
+
+Note that a compute or fix can produce multiple kinds of data (global,
+per-atom, local).  If LAMMPS cannot unambiguously determine which kind
+of data to use, the optional *kind* keyword discussed below can force
+the desired disambiguation.
 
 Note that the output of this command is a single histogram for all
 input values combined together, not one histogram per input value.
@@ -258,13 +265,14 @@ keyword is set to *vector*, then all input values must be global or
 per-atom or local vectors, or columns of global or per-atom or local
 arrays.
 
-The *kind* keyword only needs to be set if a compute or fix produces
-more than one kind of output (global, per-atom, local).  If this is
-not the case, then LAMMPS will determine what kind of input is
-provided and whether all the input arguments are consistent.  If a
-compute or fix produces more than one kind of output, the *kind*
-keyword should be used to specify which output will be used.  The
-remaining input arguments must still be consistent.
+The *kind* keyword only needs to be used if any of the specified input
+computes or fixes produce more than one kind of output (global,
+per-atom, local).  If not, LAMMPS will determine the kind of data all
+the inputs produce and verify it is all the same kind.  If not, an
+error will be triggered.  If a compute or fix produces more than one
+kind of output, the *kind* keyword should be used to specify which
+output will be used.  The other input arguments must still be
+consistent.
 
 The *beyond* keyword determines how input values that fall outside the
 *lo* to *hi* bounds are treated.  Values such that *lo* :math:`\le` value
@@ -311,19 +319,25 @@ on.  The default is step 0.  Often input values can be 0.0 at time 0,
 so setting *start* to a larger value can avoid including a 0.0 in
 a running or windowed histogram.
 
-The *file* keyword allows a filename to be specified.  Every *Nfreq*
-steps, one histogram is written to the file.  This includes a leading
-line that contains the timestep, number of bins, the total count of
-values contributing to the histogram, the count of values that were
-not histogrammed (see the *beyond* keyword), the minimum value
-encountered, and the maximum value encountered.  The min/max values
-include values that were not histogrammed.  Following the leading
-line, one line per bin is written into the file.  Each line contains
-the bin #, the coordinate for the center of the bin (between *lo* and
-*hi*\ ), the count of values in the bin, and the normalized count.  The
-normalized count is the bin count divided by the total count (not
-including values not histogrammed), so that the normalized values sum
-to 1.0 across all bins.
+.. versionadded:: 17Apr2024
+   new keyword *append*
+
+The *file* or *append* keywords allow a filename to be specified.  If
+*file* is used, then the filename is overwritten if it already exists.
+If *append* is used, then the filename is appended to if it already
+exists, or created if it does not exist.  Every *Nfreq* steps, one
+histogram is written to the file.  This includes a leading line that
+contains the timestep, number of bins, the total count of values
+contributing to the histogram, the count of values that were not
+histogrammed (see the *beyond* keyword), the minimum value encountered,
+and the maximum value encountered.  The min/max values include values
+that were not histogrammed.  Following the leading line, one line per
+bin is written into the file.  Each line contains the bin #, the
+coordinate for the center of the bin (between *lo* and *hi*\ ), the
+count of values in the bin, and the normalized count.  The normalized
+count is the bin count divided by the total count (not including values
+not histogrammed), so that the normalized values sum to 1.0 across all
+bins.
 
 The *overwrite* keyword will continuously overwrite the output file
 with the latest output, so that it only contains one timestep worth of
@@ -362,10 +376,10 @@ can only be accessed on timesteps that are multiples of :math:`N_\text{freq}`
 since that is when a histogram is generated.  The global vector has four
 values:
 
-* 1 = total counts in the histogram
-* 2 = values that were not histogrammed (see *beyond* keyword)
-* 3 = min value of all input values, including ones not histogrammed
-* 4 = max value of all input values, including ones not histogrammed
+  #. total counts in the histogram
+  #. values that were not histogrammed (see *beyond* keyword)
+  #. min value of all input values, including ones not histogrammed
+  #. max value of all input values, including ones not histogrammed
 
 The global array has :math:`N_\text{bins}` rows and three columns.  The
 first column has the bin coordinate, the second column has the count of

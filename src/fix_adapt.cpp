@@ -99,10 +99,22 @@ FixAdapt::FixAdapt(LAMMPS *lmp, int narg, char **arg) :
       adapt[nadapt].pair = nullptr;
       adapt[nadapt].pstyle = utils::strdup(arg[iarg+1]);
       adapt[nadapt].pparam = utils::strdup(arg[iarg+2]);
-      utils::bounds(FLERR,arg[iarg+3],1,atom->ntypes,
-                    adapt[nadapt].ilo,adapt[nadapt].ihi,error);
-      utils::bounds(FLERR,arg[iarg+4],1,atom->ntypes,
-                    adapt[nadapt].jlo,adapt[nadapt].jhi,error);
+      utils::bounds_typelabel(FLERR, arg[iarg+3], 1, atom->ntypes,
+                              adapt[nadapt].ilo, adapt[nadapt].ihi, lmp, Atom::ATOM);
+      utils::bounds_typelabel(FLERR, arg[iarg+4], 1, atom->ntypes,
+                              adapt[nadapt].jlo, adapt[nadapt].jhi, lmp, Atom::ATOM);
+
+      // switch i,j if i > j, if wildcards were not used
+
+      if ( (adapt[nadapt].ilo == adapt[nadapt].ihi) &&
+           (adapt[nadapt].jlo == adapt[nadapt].jhi) &&
+           (adapt[nadapt].ilo > adapt[nadapt].jlo) ) {
+        adapt[nadapt].jlo = adapt[nadapt].ihi;
+        adapt[nadapt].ilo = adapt[nadapt].jhi;
+        adapt[nadapt].ihi = adapt[nadapt].ilo;
+        adapt[nadapt].jhi = adapt[nadapt].jlo;
+      }
+
       if (utils::strmatch(arg[iarg+5],"^v_")) {
         adapt[nadapt].var = utils::strdup(arg[iarg+5]+2);
       } else error->all(FLERR,"Argument #{} must be variable not {}", iarg+6, arg[iarg+5]);
@@ -114,8 +126,8 @@ FixAdapt::FixAdapt(LAMMPS *lmp, int narg, char **arg) :
       adapt[nadapt].bond = nullptr;
       adapt[nadapt].bstyle = utils::strdup(arg[iarg+1]);
       adapt[nadapt].bparam = utils::strdup(arg[iarg+2]);
-      utils::bounds(FLERR,arg[iarg+3],1,atom->nbondtypes,
-                    adapt[nadapt].ilo,adapt[nadapt].ihi,error);
+      utils::bounds_typelabel(FLERR, arg[iarg+3], 1, atom->nbondtypes,
+                              adapt[nadapt].ilo, adapt[nadapt].ihi, lmp, Atom::BOND);
       if (utils::strmatch(arg[iarg+4],"^v_")) {
         adapt[nadapt].var = utils::strdup(arg[iarg+4]+2);
       } else error->all(FLERR,"Argument #{} must be variable not {}", iarg+5, arg[iarg+4]);
@@ -127,8 +139,8 @@ FixAdapt::FixAdapt(LAMMPS *lmp, int narg, char **arg) :
       adapt[nadapt].angle = nullptr;
       adapt[nadapt].astyle = utils::strdup(arg[iarg+1]);
       adapt[nadapt].aparam = utils::strdup(arg[iarg+2]);
-      utils::bounds(FLERR,arg[iarg+3],1,atom->nangletypes,
-                    adapt[nadapt].ilo,adapt[nadapt].ihi,error);
+      utils::bounds_typelabel(FLERR, arg[iarg+3], 1, atom->nangletypes,
+                              adapt[nadapt].ilo, adapt[nadapt].ihi, lmp, Atom::ANGLE);
       if (utils::strmatch(arg[iarg+4],"^v_")) {
         adapt[nadapt].var = utils::strdup(arg[iarg+4]+2);
       } else error->all(FLERR,"Argument #{} must be variable not {}", iarg+5, arg[iarg+4]);
@@ -270,7 +282,7 @@ void FixAdapt::post_constructor()
   if (diam_flag && atom->radius_flag) {
     id_fix_diam = utils::strdup(id + std::string("_FIX_STORE_DIAM"));
     fix_diam = dynamic_cast<FixStoreAtom *>(
-      modify->add_fix(fmt::format("{} {} STORE/ATOM 1 0 0 1", id_fix_diam,group->names[igroup])));
+      modify->add_fix(fmt::format("{} {} STORE/ATOM 1 0 0 1", id_fix_diam, group->names[igroup])));
     if (fix_diam->restart_reset) fix_diam->restart_reset = 0;
     else {
       double *vec = fix_diam->vstore;
@@ -288,7 +300,7 @@ void FixAdapt::post_constructor()
   if (chgflag && atom->q_flag) {
     id_fix_chg = utils::strdup(id + std::string("_FIX_STORE_CHG"));
     fix_chg = dynamic_cast<FixStoreAtom *>(
-      modify->add_fix(fmt::format("{} {} STORE/ATOM 1 0 0 1",id_fix_chg,group->names[igroup])));
+      modify->add_fix(fmt::format("{} {} STORE/ATOM 1 0 0 1", id_fix_chg, group->names[igroup])));
     if (fix_chg->restart_reset) fix_chg->restart_reset = 0;
     else {
       double *vec = fix_chg->vstore;

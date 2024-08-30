@@ -25,12 +25,10 @@
 #include "error.h"
 #include "fix_mdi_engine.h"
 #include "force.h"
-#include "group.h"
 #include "input.h"
 #include "integrate.h"
 #include "irregular.h"
 #include "library.h"
-#include "library_mdi.h"
 #include "memory.h"
 #include "min.h"
 #include "modify.h"
@@ -54,7 +52,7 @@ enum { DEFAULT, MD, OPT };       // top-level MDI engine modes
 
 enum { TYPE, CHARGE, MASS, COORD, VELOCITY, FORCE, ADDFORCE };
 
-#define MAXELEMENT 118
+static constexpr int MAXELEMENT = 118;
 
 /* ----------------------------------------------------------------------
    trigger LAMMPS to start acting as an MDI engine
@@ -103,9 +101,8 @@ MDIEngine::MDIEngine(LAMMPS *_lmp, int narg, char **arg) : Pointers(_lmp)
       for (int i = 1; i <= ntypes; i++) {
         int anum;
         for (anum = 0; anum < MAXELEMENT; anum++)
-          if (strcmp(arg[iarg + i],symbols[anum]) == 0) break;
-        if (anum == MAXELEMENT)
-          error->all(FLERR,"Invalid chemical element in mdi engine command");
+          if (strcmp(arg[iarg + i], symbols[anum]) == 0) break;
+        if (anum == MAXELEMENT) error->all(FLERR, "Invalid chemical element in mdi engine command");
         elements[i] = anum + 1;
       }
       iarg += ntypes + 1;
@@ -240,7 +237,7 @@ MDIEngine::MDIEngine(LAMMPS *_lmp, int narg, char **arg) : Pointers(_lmp)
       break;
 
     } else
-      error->all(FLERR, fmt::format("MDI engine exited with invalid command: {}", mdicmd));
+      error->all(FLERR, "MDI engine exited with invalid command: {}", mdicmd);
   }
 
   // clean up
@@ -698,7 +695,7 @@ void MDIEngine::mdi_md()
   if (strcmp(mdicmd, "EXIT") == 0) return;
 
   // run one step at a time forever
-  // driver triggers exit with @ command other than @COORDS,@FORCES,@ENDSTEP
+  // driver triggers exit with @ command other than @COORDS,@FORCES,@ENDSTEP,@
 
   update->integrate->setup(1);
 
@@ -714,7 +711,7 @@ void MDIEngine::mdi_md()
     update->integrate->run(1);
 
     if (strcmp(mdicmd, "@COORDS") != 0 && strcmp(mdicmd, "@FORCES") != 0 &&
-        strcmp(mdicmd, "@ENDSTEP") != 0)
+        strcmp(mdicmd, "@ENDSTEP") != 0 && strcmp(mdicmd, "@") != 0)
       break;
   }
 

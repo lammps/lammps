@@ -171,7 +171,7 @@ void FixAtomSwap::options(int narg, char **arg)
       while (iarg < narg) {
         if (isalpha(arg[iarg][0])) break;
         if (nswaptypes >= atom->ntypes) error->all(FLERR, "Illegal fix atom/swap command");
-        type_list[nswaptypes] = utils::numeric(FLERR, arg[iarg], false, lmp);
+        type_list[nswaptypes] = utils::expand_type_int(FLERR, arg[iarg], Atom::ATOM, lmp);
         nswaptypes++;
         iarg++;
       }

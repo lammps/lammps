@@ -1,19 +1,5 @@
-.. table_from_list::
-   :columns: 3
-
-   * :doc:`General commands <Commands_all>`
-   * :doc:`Fix styles <Commands_fix>`
-   * :doc:`Compute styles <Commands_compute>`
-   * :doc:`Pair styles <Commands_pair>`
-   * :ref:`Bond styles <bond>`
-   * :ref:`Angle styles <angle>`
-   * :ref:`Dihedral styles <dihedral>`
-   * :ref:`Improper styles <improper>`
-   * :doc:`KSpace styles <Commands_kspace>`
-   * :doc:`Dump styles <Commands_dump>`
-
-Fix commands
-============
+Fix styles
+==========
 
 An alphabetic list of all LAMMPS :doc:`fix <fix>` commands.  Some styles
 have accelerated versions.  This is indicated by additional letters in
@@ -21,13 +7,14 @@ parenthesis: g = GPU, i = INTEL, k = KOKKOS, o = OPENMP, t =
 OPT.
 
 .. table_from_list::
-   :columns: 5
+   :columns: 4
 
    * :doc:`accelerate/cos <fix_accelerate_cos>`
    * :doc:`acks2/reaxff (k) <fix_acks2_reaxff>`
    * :doc:`adapt <fix_adapt>`
    * :doc:`adapt/fep <fix_adapt_fep>`
    * :doc:`addforce <fix_addforce>`
+   * :doc:`add/heat <fix_add_heat>`
    * :doc:`addtorque <fix_addtorque>`
    * :doc:`alchemy <fix_alchemy>`
    * :doc:`amoeba/bitorsion <fix_amoeba_bitorsion>`
@@ -61,6 +48,7 @@ OPT.
    * :doc:`controller <fix_controller>`
    * :doc:`damping/cundall <fix_damping_cundall>`
    * :doc:`deform (k) <fix_deform>`
+   * :doc:`deform/pressure <fix_deform_pressure>`
    * :doc:`deposit <fix_deposit>`
    * :doc:`dpd/energy (k) <fix_dpd_energy>`
    * :doc:`drag <fix_drag>`
@@ -69,7 +57,7 @@ OPT.
    * :doc:`drude/transform/inverse <fix_drude_transform>`
    * :doc:`dt/reset (k) <fix_dt_reset>`
    * :doc:`edpd/source <fix_dpd_source>`
-   * :doc:`efield <fix_efield>`
+   * :doc:`efield (k) <fix_efield>`
    * :doc:`efield/tip4p <fix_efield>`
    * :doc:`ehex <fix_ehex>`
    * :doc:`electrode/conp (i) <fix_electrode>`
@@ -116,13 +104,13 @@ OPT.
    * :doc:`momentum (k) <fix_momentum>`
    * :doc:`momentum/chunk <fix_momentum>`
    * :doc:`move <fix_move>`
-   * :doc:`mscg <fix_mscg>`
    * :doc:`msst <fix_msst>`
    * :doc:`mvv/dpd <fix_mvv_dpd>`
    * :doc:`mvv/edpd <fix_mvv_dpd>`
    * :doc:`mvv/tdpd <fix_mvv_dpd>`
    * :doc:`neb <fix_neb>`
    * :doc:`neb/spin <fix_neb_spin>`
+   * :doc:`nonaffine/displacement <fix_nonaffine_displacement>`
    * :doc:`nph (ko) <fix_nh>`
    * :doc:`nph/asphere (o) <fix_nph_asphere>`
    * :doc:`nph/body <fix_nph_body>`
@@ -182,6 +170,7 @@ OPT.
    * :doc:`pour <fix_pour>`
    * :doc:`precession/spin <fix_precession_spin>`
    * :doc:`press/berendsen <fix_press_berendsen>`
+   * :doc:`press/langevin <fix_press_langevin>`
    * :doc:`print <fix_print>`
    * :doc:`propel/self <fix_propel_self>`
    * :doc:`property/atom (k) <fix_property_atom>`
@@ -202,6 +191,11 @@ OPT.
    * :doc:`reaxff/species (k) <fix_reaxff_species>`
    * :doc:`recenter <fix_recenter>`
    * :doc:`restrain <fix_restrain>`
+   * :doc:`rheo <fix_rheo>`
+   * :doc:`rheo/oxidation <fix_rheo_oxidation>`
+   * :doc:`rheo/pressure <fix_rheo_pressure>`
+   * :doc:`rheo/thermal <fix_rheo_thermal>`
+   * :doc:`rheo/viscosity <fix_rheo_viscosity>`
    * :doc:`rhok <fix_rhok>`
    * :doc:`rigid (o) <fix_rigid>`
    * :doc:`rigid/meso <fix_rigid_meso>`
@@ -233,15 +227,15 @@ OPT.
    * :doc:`spring <fix_spring>`
    * :doc:`spring/chunk <fix_spring_chunk>`
    * :doc:`spring/rg <fix_spring_rg>`
-   * :doc:`spring/self <fix_spring_self>`
+   * :doc:`spring/self (k) <fix_spring_self>`
    * :doc:`srd <fix_srd>`
    * :doc:`store/force <fix_store_force>`
    * :doc:`store/state <fix_store_state>`
    * :doc:`tdpd/source <fix_dpd_source>`
-   * :doc:`temp/berendsen <fix_temp_berendsen>`
+   * :doc:`temp/berendsen (k) <fix_temp_berendsen>`
    * :doc:`temp/csld <fix_temp_csvr>`
    * :doc:`temp/csvr <fix_temp_csvr>`
-   * :doc:`temp/rescale <fix_temp_rescale>`
+   * :doc:`temp/rescale (k) <fix_temp_rescale>`
    * :doc:`temp/rescale/eff <fix_temp_rescale_eff>`
    * :doc:`tfmc <fix_tfmc>`
    * :doc:`tgnpt/drude <fix_tgnh_drude>`
@@ -261,6 +255,7 @@ OPT.
    * :doc:`wall/body/polyhedron <fix_wall_body_polyhedron>`
    * :doc:`wall/colloid <fix_wall>`
    * :doc:`wall/ees <fix_wall_ees>`
+   * :doc:`wall/flow (k) <fix_wall_flow>`
    * :doc:`wall/gran (k) <fix_wall_gran>`
    * :doc:`wall/gran/region <fix_wall_gran_region>`
    * :doc:`wall/harmonic <fix_wall>`

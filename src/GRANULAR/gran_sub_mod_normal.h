@@ -38,7 +38,7 @@ namespace Granular_NS {
     virtual double calculate_contact_radius();
     virtual double calculate_forces() = 0;
 
-    double get_cohesive_flag() const { return cohesive_flag; }
+    int get_cohesive_flag() const { return cohesive_flag; }
     double get_damp() const { return damp; }
     double get_emod() const { return Emod; }
     double get_fncrit() const { return Fncrit; }
@@ -49,6 +49,7 @@ namespace Granular_NS {
 
    protected:
     double damp;    // argument historically needed by damping
+                    // typically (but not always) equals eta_n0
     double Emod, poiss;
     double Fncrit;
     int material_properties, cohesive_flag;

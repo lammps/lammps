@@ -16,8 +16,7 @@ environments is on a :doc:`separate page <Howto_cmake>`.
 
 .. note::
 
-   LAMMPS currently requires that CMake version 3.10 or later is available;
-   version 3.12 or later is preferred.
+   LAMMPS currently requires that CMake version 3.16 or later is available.
 
 .. warning::
 
@@ -34,19 +33,18 @@ Advantages of using CMake
 ^^^^^^^^^^^^^^^^^^^^^^^^^
 
 CMake is an alternative to compiling LAMMPS in the traditional way
-through :doc:`(manually customized) makefiles <Build_make>` and a recent
-addition to LAMMPS thanks to the efforts of Christoph Junghans (LANL)
-and Richard Berger (Temple U).  Using CMake has multiple advantages that
-are specifically helpful for people with limited experience in compiling
-software or for people that want to modify or extend LAMMPS.
+through :doc:`(manually customized) makefiles <Build_make>`.  Using
+CMake has multiple advantages that are specifically helpful for
+people with limited experience in compiling software or for people
+that want to modify or extend LAMMPS.
 
 - CMake can detect available hardware, tools, features, and libraries
   and adapt the LAMMPS default build configuration accordingly.
 - CMake can generate files for different build tools and integrated
   development environments (IDE).
 - CMake supports customization of settings with a command line, text
-  mode, or graphical user interface.  No knowledge of file formats or
-  complex command line syntax is required.
+  mode, or graphical user interface.  No manual editing of files,
+  knowledge of file formats or complex command line syntax is required.
 - All enabled components are compiled in a single build operation.
 - Automated dependency tracking for all files and configuration options.
 - Support for true out-of-source compilation. Multiple configurations
@@ -133,20 +131,20 @@ file called ``CMakeLists.txt`` (for LAMMPS it is located in the
 configuration step.  The cache file contains all current CMake settings.
 
 To modify settings, enable or disable features, you need to set
-*variables* with either the *-D* command line flag (``-D
+*variables* with either the ``-D`` command line flag (``-D
 VARIABLE1_NAME=value``) or change them in the text mode of the graphical
-user interface.  The *-D* flag can be used several times in one command.
+user interface.  The ``-D`` flag can be used several times in one command.
 
 For your convenience, we provide :ref:`CMake presets <cmake_presets>`
 that combine multiple settings to enable optional LAMMPS packages or use
-a different compiler tool chain.  Those are loaded with the *-C* flag
+a different compiler tool chain.  Those are loaded with the ``-C`` flag
 (``-C ../cmake/presets/basic.cmake``).  This step would only be needed
 once, as the settings from the preset files are stored in the
 ``CMakeCache.txt`` file. It is also possible to customize the build
-by adding one or more *-D* flags to the CMake command line.
+by adding one or more ``-D`` flags to the CMake command line.
 
 Generating files for alternate build tools (e.g. Ninja) and project files
-for IDEs like Eclipse, CodeBlocks, or Kate can be selected using the *-G*
+for IDEs like Eclipse, CodeBlocks, or Kate can be selected using the ``-G``
 command line flag.  A list of available generator settings for your
 specific CMake version is given when running ``cmake --help``.
 
@@ -173,19 +171,19 @@ files. E.g.  with:
 In that case the resulting binaries are not in the build folder directly
 but in subdirectories corresponding to the build type (i.e. Release in
 the example from above).  Similarly, for running unit tests the
-configuration is selected with the *-C* flag:
+configuration is selected with the ``-C`` flag:
 
 .. code-block:: bash
 
    ctest -C Debug
 
-The CMake scripts in LAMMPS have basic support for being compiled using a
-multi-config build system, but not all of it has been ported.  This is in
-particular applicable to compiling packages that require additional libraries
-that would be downloaded and compiled by CMake.  The "windows" preset file
-tries to keep track of which packages can be compiled natively with the
-MSVC compilers out-of-the box.  Not all of those external libraries are
-portable to Windows, either.
+The CMake scripts in LAMMPS have basic support for being compiled using
+a multi-config build system, but not all of it has been ported.  This is
+in particular applicable to compiling packages that require additional
+libraries that would be downloaded and compiled by CMake.  The
+``windows.cmake`` preset file tries to keep track of which packages can
+be compiled natively with the MSVC compilers out-of-the box.  Not all of
+the external libraries are portable to Windows, either.
 
 
 Installing CMake

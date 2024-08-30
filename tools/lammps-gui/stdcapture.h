@@ -31,7 +31,6 @@ private:
     int m_pipe[2];
     int m_oldStdOut;
     bool m_capturing;
-    bool m_init;
     std::string m_captured;
 
     static constexpr int bufSize = 1025;

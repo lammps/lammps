@@ -22,19 +22,14 @@
 #include "force.h"
 #include "neighbor.h"
 #include "error.h"
+#include "ewald_const.h"
 #include "memory.h"
 #include "neigh_list.h"
 
 #include "suffix.h"
-using namespace LAMMPS_NS;
 
-#define EWALD_F   1.12837917
-#define EWALD_P   0.3275911
-#define A1        0.254829592
-#define A2       -0.284496736
-#define A3        1.421413741
-#define A4       -1.453152027
-#define A5        1.061405429
+using namespace LAMMPS_NS;
+using namespace EwaldConst;
 
 /* ---------------------------------------------------------------------- */
 
@@ -129,7 +124,7 @@ void PairTIP4PLongSoftOMP::eval(int iifrom, int iito, ThrData * const thr)
   double r,rsq,forcecoul,cforce;
   double factor_coul,denc;
   double grij,expm2,prefactor,t,erfc;
-  double v[6];
+  double v[6] = {0.0, 0.0, 0.0, 0.0, 0.0, 0.0};
   double fdx,fdy,fdz,fOx,fOy,fOz,fHx,fHy,fHz;
   dbl3_t x1,x2,xH1,xH2;
 

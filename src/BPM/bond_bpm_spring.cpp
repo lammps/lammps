@@ -26,7 +26,7 @@
 #include <cmath>
 #include <cstring>
 
-#define EPSILON 1e-10
+static constexpr double EPSILON = 1e-10;
 
 using namespace LAMMPS_NS;
 
@@ -38,6 +38,9 @@ BondBPMSpring::BondBPMSpring(LAMMPS *_lmp) :
   partial_flag = 1;
   smooth_flag = 1;
   normalize_flag = 0;
+
+  nhistory = 1;
+  id_fix_bond_history = utils::strdup("HISTORY_BPM_SPRING");
 
   single_extra = 1;
   svector = new double[1];
@@ -137,6 +140,9 @@ void BondBPMSpring::compute(int eflag, int vflag)
     store_data();
   }
 
+  if (hybrid_flag)
+    fix_bond_history->compress_history();
+
   int i1, i2, itmp, n, type;
   double delx, dely, delz, delvx, delvy, delvz;
   double e, rsq, r, r0, rinv, smooth, fbond, dot;
@@ -226,6 +232,9 @@ void BondBPMSpring::compute(int eflag, int vflag)
 
     if (evflag) ev_tally(i1, i2, nlocal, newton_bond, 0.0, fbond, delx, dely, delz);
   }
+
+  if (hybrid_flag)
+    fix_bond_history->uncompress_history();
 }
 
 /* ---------------------------------------------------------------------- */
@@ -283,14 +292,6 @@ void BondBPMSpring::init_style()
 
   if (comm->ghost_velocity == 0)
     error->all(FLERR, "Bond bpm/spring requires ghost atoms store velocity");
-
-  if (!id_fix_bond_history) {
-    id_fix_bond_history = utils::strdup("HISTORY_BPM_SPRING");
-    fix_bond_history = dynamic_cast<FixBondHistory *>(modify->replace_fix(
-        id_fix_dummy2, fmt::format("{} all BOND_HISTORY 0 1", id_fix_bond_history), 1));
-    delete[] id_fix_dummy2;
-    id_fix_dummy2 = nullptr;
-  }
 }
 
 /* ---------------------------------------------------------------------- */

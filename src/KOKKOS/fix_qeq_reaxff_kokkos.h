@@ -70,7 +70,7 @@ class FixQEqReaxFFKokkos : public FixQEqReaxFF, public KokkosBase {
   void pre_force(int) override;
 
   KOKKOS_INLINE_FUNCTION
-  void num_neigh_item(int, int&) const;
+  void num_neigh_item(int, bigint&) const;
 
   KOKKOS_INLINE_FUNCTION
   void operator()(TagQEqZero, const int&) const;
@@ -154,7 +154,7 @@ class FixQEqReaxFFKokkos : public FixQEqReaxFF, public KokkosBase {
     F_FLOAT chi, eta, gamma;
   };
 
-  int pack_forward_comm_kokkos(int, DAT::tdual_int_2d, int, DAT::tdual_xfloat_1d&,
+  int pack_forward_comm_kokkos(int, DAT::tdual_int_1d, DAT::tdual_xfloat_1d&,
                        int, int *) override;
   void unpack_forward_comm_kokkos(int, int, DAT::tdual_xfloat_1d&) override;
   int pack_forward_comm(int, int *, double *, int, int *) override;
@@ -255,9 +255,9 @@ class FixQEqReaxFFKokkos : public FixQEqReaxFF, public KokkosBase {
   DupScatterView<F_FLOAT**, typename AT::t_ffloat2_1d::array_layout> dup_o;
   NonDupScatterView<F_FLOAT**, typename AT::t_ffloat2_1d::array_layout> ndup_o;
 
-  int iswap,nsend;
+  int nsend;
   int first;
-  typename AT::t_int_2d d_sendlist;
+  typename AT::t_int_1d d_sendlist;
   typename AT::t_xfloat_1d d_buf;
   typename AT::t_int_1d d_copylist;
   typename AT::t_int_1d d_indices;
@@ -290,13 +290,13 @@ class FixQEqReaxFFKokkos : public FixQEqReaxFF, public KokkosBase {
 template <class DeviceType>
 struct FixQEqReaxFFKokkosNumNeighFunctor {
   typedef DeviceType device_type;
-  typedef int value_type;
+  typedef bigint value_type;
   FixQEqReaxFFKokkos<DeviceType> c;
   FixQEqReaxFFKokkosNumNeighFunctor(FixQEqReaxFFKokkos<DeviceType>* c_ptr):c(*c_ptr) {
     c.cleanup_copy();
   };
   KOKKOS_INLINE_FUNCTION
-  void operator()(const int ii, int &maxneigh) const {
+  void operator()(const int ii, bigint &maxneigh) const {
     c.num_neigh_item(ii, maxneigh);
   }
 };

@@ -23,26 +23,17 @@
 #include "atom_masks.h"
 #include "bond.h"
 #include "comm.h"
-#include "compute.h"
 #include "dihedral.h"
 #include "domain.h"
-#include "error.h"
-#include "finish.h"
 #include "force.h"
-#include "group.h"
 #include "improper.h"
 #include "kokkos.h"
 #include "kspace.h"
-#include "memory.h"
 #include "modify.h"
 #include "neighbor.h"
 #include "pair.h"
 #include "timer.h"
 #include "update.h"
-
-#include <cmath>
-#include <cstring>
-#include <algorithm>
 
 using namespace LAMMPS_NS;
 enum{REGULAR,ESKM};
@@ -174,71 +165,44 @@ void DynamicalMatrixKokkos::update_force()
   }
 
   bool execute_on_host = false;
-  unsigned int datamask_read_device = 0;
-  unsigned int datamask_modify_device = 0;
   unsigned int datamask_read_host = 0;
 
   if (pair_compute_flag) {
     if (force->pair->execution_space==Host) {
       execute_on_host  = true;
       datamask_read_host   |= force->pair->datamask_read;
-      datamask_modify_device |= force->pair->datamask_modify;
-    } else {
-      datamask_read_device   |= force->pair->datamask_read;
-      datamask_modify_device |= force->pair->datamask_modify;
     }
   }
   if (atomKK->molecular && force->bond)  {
     if (force->bond->execution_space==Host) {
       execute_on_host  = true;
       datamask_read_host   |= force->bond->datamask_read;
-      datamask_modify_device |= force->bond->datamask_modify;
-    } else {
-      datamask_read_device   |= force->bond->datamask_read;
-      datamask_modify_device |= force->bond->datamask_modify;
     }
   }
   if (atomKK->molecular && force->angle) {
     if (force->angle->execution_space==Host) {
       execute_on_host  = true;
       datamask_read_host   |= force->angle->datamask_read;
-      datamask_modify_device |= force->angle->datamask_modify;
-    } else {
-      datamask_read_device   |= force->angle->datamask_read;
-      datamask_modify_device |= force->angle->datamask_modify;
     }
   }
   if (atomKK->molecular && force->dihedral) {
     if (force->dihedral->execution_space==Host) {
       execute_on_host  = true;
       datamask_read_host   |= force->dihedral->datamask_read;
-      datamask_modify_device |= force->dihedral->datamask_modify;
-    } else {
-      datamask_read_device   |= force->dihedral->datamask_read;
-      datamask_modify_device |= force->dihedral->datamask_modify;
     }
   }
   if (atomKK->molecular && force->improper) {
     if (force->improper->execution_space==Host) {
       execute_on_host  = true;
       datamask_read_host   |= force->improper->datamask_read;
-      datamask_modify_device |= force->improper->datamask_modify;
-    } else {
-      datamask_read_device   |= force->improper->datamask_read;
-      datamask_modify_device |= force->improper->datamask_modify;
     }
   }
   if (kspace_compute_flag) {
     if (force->kspace->execution_space==Host) {
       execute_on_host  = true;
       datamask_read_host   |= force->kspace->datamask_read;
-      datamask_modify_device |= force->kspace->datamask_modify;
-    } else {
-      datamask_read_device   |= force->kspace->datamask_read;
-      datamask_modify_device |= force->kspace->datamask_modify;
     }
   }
-
 
   if (pair_compute_flag) {
     atomKK->sync(force->pair->execution_space,force->pair->datamask_read);
@@ -290,7 +254,7 @@ void DynamicalMatrixKokkos::update_force()
     timer->stamp(Timer::KSPACE);
   }
 
-  if (execute_on_host && !std::is_same<LMPHostType,LMPDeviceType>::value) {
+  if (execute_on_host && !std::is_same_v<LMPHostType,LMPDeviceType>) {
     if (f_merge_copy.extent(0)<atomKK->k_f.extent(0)) {
       f_merge_copy = DAT::t_f_array("DynamicalMatrixKokkos::f_merge_copy",atomKK->k_f.extent(0));
     }

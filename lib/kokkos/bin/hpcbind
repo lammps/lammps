@@ -36,8 +36,14 @@ fi
 ################################################################################
 declare -i HPCBIND_HAS_NVIDIA=0
 type nvidia-smi >/dev/null 2>&1
-HPCBIND_HAS_NVIDIA=$((!$?))
+HPCBIND_HAS_NVIDIA=$((! $?))
 
+################################################################################
+# Check if rocm-smi exist
+################################################################################
+declare -i HPCBIND_HAS_AMD=0
+type rocm-smi >/dev/null 2>&1
+HPCBIND_HAS_AMD=$((! $?))
 
 ################################################################################
 # Get visible gpu
@@ -45,11 +51,30 @@ HPCBIND_HAS_NVIDIA=$((!$?))
 declare -i NUM_GPUS=0
 HPCBIND_VISIBLE_GPUS=""
 if [[ ${HPCBIND_HAS_NVIDIA} -eq 1 ]]; then
-  NUM_GPUS=$(nvidia-smi -L | wc -l);
-  HPCBIND_HAS_NVIDIA=$((!$?))
+  nvidia-smi >/dev/null 2>&1
+  HPCBIND_HAS_NVIDIA=$((! $?))
   if [[ ${HPCBIND_HAS_NVIDIA} -eq 1 ]]; then
-    GPU_LIST="$( seq 0 $((NUM_GPUS-1)) )"
-    HPCBIND_VISIBLE_GPUS=${CUDA_VISIBLE_DEVICES:-${GPU_LIST}}
+    NUM_GPUS=$(nvidia-smi -L | wc -l);
+    HPCBIND_HAS_NVIDIA=$((! $?))
+    if [[ ${HPCBIND_HAS_NVIDIA} -eq 1 ]]; then
+      GPU_LIST="$( seq 0 $((NUM_GPUS-1)) )"
+      HPCBIND_VISIBLE_GPUS=${CUDA_VISIBLE_DEVICES:-${GPU_LIST}}
+    fi
+  fi
+fi
+
+if [[ ${HPCBIND_HAS_AMD} -eq 1 ]]; then
+  # rocm-smi doesn't have an error code if there is no hardware
+  # check for /sys/module/amdgpu/initstate instead
+  stat /sys/module/amdgpu/initstate >/dev/null 2>&1
+  HPCBIND_HAS_AMD=$((! $?))
+  if [[ ${HPCBIND_HAS_AMD} -eq 1 ]]; then
+    NUM_GPUS=$(rocm-smi -i --csv | sed '/^$/d' | tail -n +2 | wc -l);
+    HPCBIND_HAS_AMD=$((! $?))
+    if [[ ${HPCBIND_HAS_AMD} -eq 1 ]]; then
+      GPU_LIST="$( seq 0 $((NUM_GPUS-1)) )"
+      HPCBIND_VISIBLE_GPUS=${ROCR_VISIBLE_DEVICES:-${GPU_LIST}}
+    fi
   fi
 fi
 
@@ -80,7 +105,7 @@ elif [[ ! -z "${MV2_COMM_WORLD_RANK}" ]]; then
   HPCBIND_QUEUE_NAME="mvapich2"
   HPCBIND_QUEUE_RANK=${MV2_COMM_WORLD_RANK}
   HPCBIND_QUEUE_SIZE=${MV2_COMM_WORLD_SIZE}
-elif [[ ! -z "${SLURM_LOCAL_ID}" ]]; then
+elif [[ ! -z "${SLURM_LOCALID}" ]]; then
   HPCBIND_QUEUE_MAPPING=1
   HPCBIND_QUEUE_NAME="slurm"
   HPCBIND_QUEUE_RANK=${SLURM_PROCID}
@@ -101,8 +126,8 @@ fi
 function show_help {
   local cmd=$(basename "$0")
   echo "Usage: ${cmd} <options> -- command ..."
-  echo "  Set the process mask, OMP environment variables and CUDA environment"
-  echo "  variables to sane values if possible. Uses hwloc and nvidia-smi if"
+  echo "  Set the process mask, OMP environment variables and CUDA/ROCm environment"
+  echo "  variables to sane values if possible. Uses hwloc and nvidia-smi/rocm-smi if"
   echo "  available.  Will preserve the current process binding, so it is safe"
   echo "  to use with a queuing system or mpiexec."
   echo ""
@@ -116,10 +141,10 @@ function show_help {
   echo "  --distribute-partition=I"
   echo "                        Use the i'th partition (zero based)"
   echo "  --visible-gpus=<L>    Comma separated list of gpu ids"
-  echo "                        Default: CUDA_VISIBLE_DEVICES or all gpus in"
+  echo "                        Default: CUDA_VISIBLE_DEVICES/ROCR_VISIBLE_DEVICES or all gpus in"
   echo "                        sequential order"
   echo "  --ignore-queue        Ignore queue job id when choosing visible GPU and partition"
-  echo "  --no-gpu-mapping      Do not set CUDA_VISIBLE_DEVICES"
+  echo "  --no-gpu-mapping      Do not set CUDA_VISIBLE_DEVICES/ROCR_VISIBLE_DEVICES"
   echo "  --openmp=M.m          Set env variables for the given OpenMP version"
   echo "                        Default: 4.0"
   echo "  --openmp-ratio=N/D    Ratio of the cpuset to use for OpenMP"
@@ -525,13 +550,24 @@ fi
 ################################################################################
 
 if [[ ${HPCBIND_ENABLE_GPU_MAPPING} -eq 1 ]]; then
-  if [[ ${HPCBIND_QUEUE_MAPPING} -eq 0 ]]; then
-    declare -i GPU_ID=$((HPCBIND_PARTITION % NUM_GPUS))
-    export CUDA_VISIBLE_DEVICES="${HPCBIND_VISIBLE_GPUS[${GPU_ID}]}"
-  else
-    declare -i MY_TASK_ID=$((HPCBIND_QUEUE_RANK * HPCBIND_DISTRIBUTE + HPCBIND_PARTITION))
-    declare -i GPU_ID=$((MY_TASK_ID % NUM_GPUS))
-    export CUDA_VISIBLE_DEVICES="${HPCBIND_VISIBLE_GPUS[${GPU_ID}]}"
+  if [[ ${HPCBIND_HAS_NVIDIA} -eq 1 ]]; then
+    if [[ ${HPCBIND_QUEUE_MAPPING} -eq 0 ]]; then
+      declare -i GPU_ID=$((HPCBIND_PARTITION % NUM_GPUS))
+      export CUDA_VISIBLE_DEVICES="${HPCBIND_VISIBLE_GPUS[${GPU_ID}]}"
+    else
+      declare -i MY_TASK_ID=$((HPCBIND_QUEUE_RANK * HPCBIND_DISTRIBUTE + HPCBIND_PARTITION))
+      declare -i GPU_ID=$((MY_TASK_ID % NUM_GPUS))
+      export CUDA_VISIBLE_DEVICES="${HPCBIND_VISIBLE_GPUS[${GPU_ID}]}"
+    fi
+  elif [[ ${HPCBIND_HAS_AMD} -eq 1 ]]; then
+    if [[ ${HPCBIND_QUEUE_MAPPING} -eq 0 ]]; then
+      declare -i GPU_ID=$((HPCBIND_PARTITION % NUM_GPUS))
+      export ROCR_VISIBLE_DEVICES="${HPCBIND_VISIBLE_GPUS[${GPU_ID}]}"
+    else
+      declare -i MY_TASK_ID=$((HPCBIND_QUEUE_RANK * HPCBIND_DISTRIBUTE + HPCBIND_PARTITION))
+      declare -i GPU_ID=$((MY_TASK_ID % NUM_GPUS))
+      export ROCR_VISIBLE_DEVICES="${HPCBIND_VISIBLE_GPUS[${GPU_ID}]}"
+    fi
   fi
 fi
 
@@ -541,6 +577,7 @@ fi
 export HPCBIND_HWLOC_VERSION=${HPCBIND_HWLOC_VERSION}
 export HPCBIND_HAS_HWLOC=${HPCBIND_HAS_HWLOC}
 export HPCBIND_HAS_NVIDIA=${HPCBIND_HAS_NVIDIA}
+export HPCBIND_HAS_AMD=${HPCBIND_HAS_AMD}
 export HPCBIND_NUM_PUS=${HPCBIND_NUM_PUS}
 export HPCBIND_NUM_CORES=${HPCBIND_NUM_CORES}
 export HPCBIND_NUM_NUMAS=${HPCBIND_NUM_NUMAS}
@@ -555,8 +592,14 @@ else
   export HPCBIND_HWLOC_PARENT_CPUSET="${HPCBIND_HWLOC_PARENT_CPUSET}"
 fi
 export HPCBIND_HWLOC_PROC_BIND="${HPCBIND_PROC_BIND}"
-export HPCBIND_NVIDIA_ENABLE_GPU_MAPPING=${HPCBIND_ENABLE_GPU_MAPPING}
-export HPCBIND_NVIDIA_VISIBLE_GPUS=$(echo "${HPCBIND_VISIBLE_GPUS[*]}" | tr ' ' ',')
+if [[ ${HPCBIND_HAS_NVIDIA} -eq 1 ]]; then
+  export HPCBIND_NVIDIA_ENABLE_GPU_MAPPING=${HPCBIND_ENABLE_GPU_MAPPING}
+  export HPCBIND_NVIDIA_VISIBLE_GPUS=$(echo "${HPCBIND_VISIBLE_GPUS[*]}" | tr ' ' ',')
+fi
+if [[ ${HPCBIND_HAS_AMD} -eq 1 ]]; then
+  export HPCBIND_AMD_ENABLE_GPU_MAPPING=${HPCBIND_ENABLE_GPU_MAPPING}
+  export HPCBIND_AMD_VISIBLE_GPUS=$(echo "${HPCBIND_VISIBLE_GPUS[*]}" | tr ' ' ',')
+fi
 export HPCBIND_OPENMP_VERSION="${HPCBIND_OPENMP_VERSION}"
 if [[ "${HPCBIND_QUEUE_NAME}" != "" ]]; then
   export HPCBIND_QUEUE_RANK=${HPCBIND_QUEUE_RANK}
@@ -580,14 +623,15 @@ if [[ ${HPCBIND_TEE} -eq 0 || ${HPCBIND_VERBOSE} -eq 0 ]]; then
   echo "${TMP_ENV}" | grep -E "^HWLOC_" >> ${HPCBIND_LOG}
   echo "[CUDA]" >> ${HPCBIND_LOG}
   echo "${TMP_ENV}" | grep -E "^CUDA_" >> ${HPCBIND_LOG}
+  echo "[ROCM]" >> ${HPCBIND_LOG}
+  echo "${TMP_ENV}" | grep -E "^ROCM_" >> ${HPCBIND_LOG}
+  echo "${TMP_ENV}" | grep -E "^ROCR_" >> ${HPCBIND_LOG}
   echo "[OPENMP]" >> ${HPCBIND_LOG}
   echo "${TMP_ENV}" | grep -E "^OMP_" >> ${HPCBIND_LOG}
   echo "[GOMP] (gcc, g++, and gfortran)" >> ${HPCBIND_LOG}
   echo "${TMP_ENV}" | grep -E "^GOMP_" >> ${HPCBIND_LOG}
   echo "[KMP] (icc, icpc, and ifort)" >> ${HPCBIND_LOG}
   echo "${TMP_ENV}" | grep -E "^KMP_" >> ${HPCBIND_LOG}
-  echo "[XLSMPOPTS] (xlc, xlc++, and xlf)" >> ${HPCBIND_LOG}
-  echo "${TMP_ENV}" | grep -E "^XLSMPOPTS" >> ${HPCBIND_LOG}
 
   if [[ ${HPCBIND_HAS_HWLOC} -eq 1 ]]; then
     echo "[BINDINGS]" >> ${HPCBIND_LOG}
@@ -604,14 +648,15 @@ else
   echo "${TMP_ENV}" | grep -E "^HWLOC_" > >(tee -a ${HPCBIND_LOG})
   echo "[CUDA]" > >(tee -a ${HPCBIND_LOG})
   echo "${TMP_ENV}" | grep -E "^CUDA_" > >(tee -a ${HPCBIND_LOG})
+  echo "[ROCM]" > >(tee -a ${HPCBIND_LOG})
+  echo "${TMP_ENV}" | grep -E "^ROCM_" > >(tee -a ${HPCBIND_LOG})
+  echo "${TMP_ENV}" | grep -E "^ROCR_" > >(tee -a ${HPCBIND_LOG})
   echo "[OPENMP]" > >(tee -a ${HPCBIND_LOG})
   echo "${TMP_ENV}" | grep -E "^OMP_" > >(tee -a ${HPCBIND_LOG})
   echo "[GOMP] (gcc, g++, and gfortran)" > >(tee -a ${HPCBIND_LOG})
   echo "${TMP_ENV}" | grep -E "^GOMP_" > >(tee -a ${HPCBIND_LOG})
   echo "[KMP] (icc, icpc, and ifort)" > >(tee -a ${HPCBIND_LOG})
   echo "${TMP_ENV}" | grep -E "^KMP_" > >(tee -a ${HPCBIND_LOG})
-  echo "[XLSMPOPTS] (xlc, xlc++, and xlf)" > >(tee -a ${HPCBIND_LOG})
-  echo "${TMP_ENV}" | grep -E "^XLSMPOPTS" > >(tee -a ${HPCBIND_LOG})
 
   if [[ ${HPCBIND_HAS_HWLOC} -eq 1 ]]; then
     echo "[BINDINGS]" > >(tee -a ${HPCBIND_LOG})

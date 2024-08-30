@@ -1,10 +1,9 @@
-##########################################
-# CMake build system for plugin examples.
+# -*- CMake -*- file for building plugins.
 # The is meant to be used as a template for plugins that are
 # distributed independent from the LAMMPS package.
 ##########################################
 
-cmake_minimum_required(VERSION 3.10)
+cmake_minimum_required(VERSION 3.16)
 
 project(kimplugin VERSION 1.0 LANGUAGES CXX)
 
@@ -31,12 +30,7 @@ target_link_libraries(kimplugin PRIVATE KIM-API::kim-api)
 # need libcurl
 find_package(CURL)
 if(CURL_FOUND)
-  if(CMAKE_VERSION VERSION_LESS 3.12)
-    target_include_directories(kimplugin PRIVATE ${CURL_INCLUDE_DIRS})
-    target_link_libraries(kimplugin PRIVATE ${CURL_LIBRARIES})
-  else()
-    target_link_libraries(kimplugin PRIVATE CURL::libcurl)
-  endif()
+  target_link_libraries(kimplugin PRIVATE CURL::libcurl)
   target_compile_definitions(kimplugin PRIVATE -DLMP_KIM_CURL)
   set(LMP_DEBUG_CURL OFF CACHE STRING "Set libcurl verbose mode on/off. If on, it displays a lot of verbose information about its operations.")
   mark_as_advanced(LMP_DEBUG_CURL)

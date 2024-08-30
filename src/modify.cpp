@@ -33,8 +33,8 @@
 using namespace LAMMPS_NS;
 using namespace FixConst;
 
-#define DELTA 4
-#define BIG 1.0e20
+static constexpr int DELTA = 4;
+static constexpr double BIG = 1.0e20;
 
 // template for factory function:
 // there will be one instance for each style keyword in the respective style_xxx.h files
@@ -188,6 +188,8 @@ void Modify::init()
   //   since any of them may be invoked by initial thermo
   // do not clear out invocation times stored within a compute,
   //   b/c some may be holdovers from previous run, like for ave fixes
+  // perform check whether extscalar, extvector, and extarray have been
+  //   set when scalar_flag, vector_flag, or array_flag are true.
 
   for (i = 0; i < ncompute; i++) {
     compute[i]->init();
@@ -200,8 +202,13 @@ void Modify::init()
   //   used to b/c temperature computes called fix->dof() in their init,
   //   and fix rigid required its own init before its dof() could be called,
   //   but computes now do their DOF in setup()
+  // perform check whether extscalar, extvector, and extarray have been
+  //   set when scalar_flag, vector_flag, or array_flag are true.
 
-  for (i = 0; i < nfix; i++) fix[i]->init();
+  for (i = 0; i < nfix; i++) {
+    fix[i]->init();
+    fix[i]->init_flags();
+  }
 
   // set global flag if any fix has its restart_pbc flag set
 

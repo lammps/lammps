@@ -1,82 +1,30 @@
-/*
 //@HEADER
 // ************************************************************************
 //
-//                        Kokkos v. 3.0
-//       Copyright (2020) National Technology & Engineering
+//                        Kokkos v. 4.0
+//       Copyright (2022) National Technology & Engineering
 //               Solutions of Sandia, LLC (NTESS).
 //
 // Under the terms of Contract DE-NA0003525 with NTESS,
 // the U.S. Government retains certain rights in this software.
 //
-// Redistribution and use in source and binary forms, with or without
-// modification, are permitted provided that the following conditions are
-// met:
+// Part of Kokkos, under the Apache License v2.0 with LLVM Exceptions.
+// See https://kokkos.org/LICENSE for license information.
+// SPDX-License-Identifier: Apache-2.0 WITH LLVM-exception
 //
-// 1. Redistributions of source code must retain the above copyright
-// notice, this list of conditions and the following disclaimer.
-//
-// 2. Redistributions in binary form must reproduce the above copyright
-// notice, this list of conditions and the following disclaimer in the
-// documentation and/or other materials provided with the distribution.
-//
-// 3. Neither the name of the Corporation nor the names of the
-// contributors may be used to endorse or promote products derived from
-// this software without specific prior written permission.
-//
-// THIS SOFTWARE IS PROVIDED BY NTESS "AS IS" AND ANY
-// EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
-// IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR
-// PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL NTESS OR THE
-// CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
-// EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
-// PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR
-// PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF
-// LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING
-// NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
-// SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-//
-// Questions? Contact Christian R. Trott (crtrott@sandia.gov)
-//
-// ************************************************************************
 //@HEADER
-*/
 
 #include <cstdio>
 #include <cstring>
 #include <cstdlib>
 
+#include <benchmark/benchmark.h>
+#include "Benchmark_Context.hpp"
+
 #include <Kokkos_Core.hpp>
 #include <Kokkos_Timer.hpp>
 
 using exec_space = Kokkos::DefaultExecutionSpace;
-
-#define RESET 0
-#define BRIGHT 1
-#define DIM 2
-#define UNDERLINE 3
-#define BLINK 4
-#define REVERSE 7
-#define HIDDEN 8
-
-#define BLACK 0
-#define RED 1
-#define GREEN 2
-#define YELLOW 3
-#define BLUE 4
-#define MAGENTA 5
-#define CYAN 6
-#define GREY 7
-#define WHITE 8
-
-void textcolor(int attr, int fg, int bg) {
-  char command[40];
-
-  /* Command is the control command to the terminal */
-  snprintf(command, 40, "%c[%d;%d;%dm", 0x1B, attr, fg + 30, bg + 40);
-  printf("%s", command);
-}
-void textcolor_standard() { textcolor(RESET, BLACK, WHITE); }
 
 template <class T, class DEVICE_TYPE>
 struct ZeroFunctor {
@@ -398,7 +346,9 @@ T LoopVariantNonAtomic(int loop, int test) {
 }
 
 template <class T>
-void Loop(int loop, int test, const char* type_name) {
+void Loop(benchmark::State& state, int test) {
+  int loop = state.range(0);
+
   LoopVariant<T>(loop, test);
 
   Kokkos::Timer timer;
@@ -416,86 +366,36 @@ void Loop(int loop, int test, const char* type_name) {
   time *= 1e6 / loop;
   timeNonAtomic *= 1e6 / loop;
   timeSerial *= 1e6 / loop;
-  // textcolor_standard();
-  bool passed = true;
-  if (resSerial != res) passed = false;
-  // if(!passed) textcolor(RESET,BLACK,YELLOW);
-  printf(
-      "%s Test %i %s  --- Loop: %i Value (S,A,NA): %e %e %e Time: %7.4e %7.4e "
-      "%7.4e Size of Type %i)",
-      type_name, test, passed ? "PASSED" : "FAILED", loop, 1.0 * resSerial,
-      1.0 * res, 1.0 * resNonAtomic, timeSerial, time, timeNonAtomic,
-      (int)sizeof(T));
-  // if(!passed) textcolor_standard();
-  printf("\n");
+
+  bool passed = (resSerial == res);
+
+  state.counters["Passed"]           = benchmark::Counter(passed);
+  state.counters["Value serial"]     = benchmark::Counter(resSerial);
+  state.counters["Value atomic"]     = benchmark::Counter(res);
+  state.counters["Value non-atomic"] = benchmark::Counter(resNonAtomic);
+  state.counters["Time serial"]      = benchmark::Counter(timeSerial);
+  state.counters["Time atomic"]      = benchmark::Counter(time);
+  state.counters["Time non-atomic"]  = benchmark::Counter(timeNonAtomic);
+  state.counters["Size of type"]     = benchmark::Counter(sizeof(T));
 }
 
 template <class T>
-void Test(int loop, int test, const char* type_name) {
-  if (test == -1) {
-    Loop<T>(loop, 1, type_name);
-    Loop<T>(loop, 2, type_name);
-    Loop<T>(loop, 3, type_name);
-
-  } else
-    Loop<T>(loop, test, type_name);
+static void Test_Atomic(benchmark::State& state) {
+  for (auto _ : state) {
+    Loop<T>(state, 1);
+    Loop<T>(state, 2);
+    Loop<T>(state, 3);
+  }
 }
 
-int main(int argc, char* argv[]) {
-  int type = -1;
-  int loop = 100000;
-  int test = -1;
+static constexpr int LOOP = 100'000;
 
-  for (int i = 0; i < argc; i++) {
-    if ((strcmp(argv[i], "--test") == 0)) {
-      test = std::stoi(argv[++i]);
-      continue;
-    }
-    if ((strcmp(argv[i], "--type") == 0)) {
-      type = std::stoi(argv[++i]);
-      continue;
-    }
-    if ((strcmp(argv[i], "-l") == 0) || (strcmp(argv[i], "--loop") == 0)) {
-      loop = std::stoi(argv[++i]);
-      continue;
-    }
-  }
-
-  Kokkos::initialize(argc, argv);
-
-  printf("Using %s\n", Kokkos::atomic_query_version());
-  bool all_tests = false;
-  if (type == -1) all_tests = true;
-  while (type < 100) {
-    if (type == 1) {
-      Test<int>(loop, test, "int                    ");
-    }
-    if (type == 2) {
-      Test<long int>(loop, test, "long int               ");
-    }
-    if (type == 3) {
-      Test<long long int>(loop, test, "long long int          ");
-    }
-    if (type == 4) {
-      Test<unsigned int>(loop, test, "unsigned int           ");
-    }
-    if (type == 5) {
-      Test<unsigned long int>(loop, test, "unsigned long int      ");
-    }
-    if (type == 6) {
-      Test<unsigned long long int>(loop, test, "unsigned long long int ");
-    }
-    if (type == 10) {
-      // Test<float>(loop,test,"float                  ");
-    }
-    if (type == 11) {
-      Test<double>(loop, test, "double                 ");
-    }
-    if (!all_tests)
-      type = 100;
-    else
-      type++;
-  }
-
-  Kokkos::finalize();
-}
+BENCHMARK(Test_Atomic<int>)->Arg(LOOP)->Iterations(10);
+BENCHMARK(Test_Atomic<long int>)->Arg(LOOP)->Iterations(10);
+BENCHMARK(Test_Atomic<long long int>)->Arg(LOOP)->Iterations(10);
+BENCHMARK(Test_Atomic<unsigned int>)->Arg(LOOP)->Iterations(10);
+BENCHMARK(Test_Atomic<unsigned long int>)->Arg(LOOP)->Iterations(10);
+BENCHMARK(Test_Atomic<unsigned long long int>)->Arg(LOOP)->Iterations(10);
+BENCHMARK(Test_Atomic<float>)->Arg(LOOP)->Iterations(10);
+BENCHMARK(Test_Atomic<double>)->Arg(LOOP)->Iterations(10);
+BENCHMARK(Test_Atomic<int>)->Arg(LOOP)->Iterations(10);

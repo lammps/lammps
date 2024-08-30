@@ -26,7 +26,7 @@ read_data large_nylon_melt.data.gz &
   extra/angle/per/atom 15 &
   extra/dihedral/per/atom 15 &
   extra/improper/per/atom 25 &
-  extra/special/per/atom 25 
+  extra/special/per/atom 25
 
 velocity all create 800.0 4928459 dist gaussian
 
@@ -38,6 +38,7 @@ molecule mol4 rxn1_stp2_reacted.molecule_template
 thermo 50
 
 # dump 1 all xyz 100 test_vis.xyz
+# dump_modify 1 types labels
 
 fix myrxns all bond/react stabilization yes statted_grp .03 &
   react rxn1 all 1 0.0 2.9 mol1 mol2 rxn1_stp1_map &
@@ -50,7 +51,7 @@ fix 1 statted_grp_REACT nvt temp 800 800 100
 # you can use the internally created 'bond_react_MASTER_group', like so:
 # fix 2 bond_react_MASTER_group temp/rescale 1 800 800 10 1
 
-thermo_style custom step temp press density f_myrxns[1] f_myrxns[2] # cumulative reaction counts
+thermo_style custom step temp press density f_myrxns[*] # cumulative reaction counts
 
 # restart 100 restart1 restart2
 

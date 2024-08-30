@@ -28,7 +28,7 @@ class WriteRestart : public Command {
  public:
   WriteRestart(class LAMMPS *);
   void command(int, char **) override;
-  void multiproc_options(int, int, int, char **);
+  void multiproc_options(int, int, char **);
   void write(const std::string &);
 
  private:
@@ -43,12 +43,6 @@ class WriteRestart : public Command {
   int filewriter;       // 1 if this proc writes a file, else 0
   int fileproc;         // ID of proc in my cluster who writes to file
   int icluster;         // which cluster I am in
-
-  // MPI-IO values
-
-  int mpiioflag;                // 1 for MPIIO output, else 0
-  class RestartMPIIO *mpiio;    // MPIIO for restart file output
-  MPI_Offset headerOffset;
 
   void header();
   void type_arrays();
@@ -66,8 +60,6 @@ class WriteRestart : public Command {
   void write_int_vec(int, int, int *);
   void write_double_vec(int, int, double *);
 };
-
 }    // namespace LAMMPS_NS
-
 #endif
 #endif

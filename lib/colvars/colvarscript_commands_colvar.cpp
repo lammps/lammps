@@ -11,8 +11,8 @@
 #include <vector>
 #include <cstdlib>
 #include <stdlib.h>
-#include <string.h>
 
+#include "colvar.h"
 #include "colvarproxy.h"
 #include "colvardeps.h"
 #include "colvarscript.h"

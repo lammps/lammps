@@ -1,7 +1,7 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    https://www.lammps.org/, Sandia National Laboratories
-   LAMMPS Development team: developers@lammps.org
+   LAMMPS development team: developers@lammps.org
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
@@ -27,7 +27,7 @@
 
 using namespace LAMMPS_NS;
 
-#define DELTA 16
+static constexpr int DELTA = 16;
 
 static constexpr int OFFSET = 16384;
 
@@ -93,11 +93,10 @@ Grid2d::Grid2d(LAMMPS *lmp, MPI_Comm gcomm, int gnx, int gny) :
 
 Grid2d::Grid2d(LAMMPS *lmp, MPI_Comm gcomm, int gnx, int gny, int ixlo, int ixhi, int iylo,
                int iyhi, int oxlo, int oxhi, int oylo, int oyhi) :
-    Pointers(lmp),
-    swap(nullptr), requests(nullptr), srequest(nullptr), rrequest(nullptr), sresponse(nullptr),
-    rresponse(nullptr), send(nullptr), recv(nullptr), copy(nullptr), send_remap(nullptr),
-    recv_remap(nullptr), overlap_procs(nullptr), xsplit(nullptr), ysplit(nullptr), zsplit(nullptr),
-    grid2proc(nullptr), rcbinfo(nullptr), overlap_list(nullptr)
+    Pointers(lmp), swap(nullptr), requests(nullptr), srequest(nullptr), rrequest(nullptr),
+    sresponse(nullptr), rresponse(nullptr), send(nullptr), recv(nullptr), copy(nullptr),
+    send_remap(nullptr), recv_remap(nullptr), overlap_procs(nullptr), xsplit(nullptr),
+    ysplit(nullptr), zsplit(nullptr), grid2proc(nullptr), rcbinfo(nullptr), overlap_list(nullptr)
 {
   gridcomm = gcomm;
   MPI_Comm_rank(gridcomm, &me);

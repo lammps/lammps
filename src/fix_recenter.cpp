@@ -125,13 +125,12 @@ void FixRecenter::init()
 
   int after = 0;
   int flag = 0;
-  for (int i = 0; i < modify->nfix; i++) {
-    if (strcmp(id,modify->fix[i]->id) == 0) after = 1;
-    else if ((modify->fmask[i] & INITIAL_INTEGRATE) && after) flag = 1;
+  for (const auto &ifix : modify->get_fix_list()) {
+    if (strcmp(id, ifix->id) == 0) after = 1;
+    else if ((modify->get_fix_mask(ifix) & INITIAL_INTEGRATE) && after) flag = 1;
   }
   if (flag && comm->me == 0)
-    error->warning(FLERR,"Fix recenter should come after all other "
-                   "integration fixes");
+    error->warning(FLERR,"Fix recenter should come after all other integration fixes");
 
   masstotal = group->mass(igroup);
 

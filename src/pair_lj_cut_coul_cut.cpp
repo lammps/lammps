@@ -462,8 +462,8 @@ double PairLJCutCoulCut::single(int i, int j, int itype, int jtype, double rsq, 
 /* ---------------------------------------------------------------------- */
 
 void PairLJCutCoulCut::born_matrix(int i, int j, int itype, int jtype, double rsq,
-                            double factor_coul, double factor_lj, double &dupair,
-                            double &du2pair)
+                                   double factor_coul, double factor_lj, double &dupair,
+                                   double &du2pair)
 {
   double rinv, r2inv, r3inv, r6inv;
   double du_lj, du2_lj, du_coul, du2_coul;

@@ -31,17 +31,10 @@
 #include "neigh_list.h"
 #include "memory.h"
 #include "error.h"
-
+#include "ewald_const.h"
 
 using namespace LAMMPS_NS;
-
-#define EWALD_F   1.12837917
-#define EWALD_P   0.3275911
-#define A1        0.254829592
-#define A2       -0.284496736
-#define A3        1.421413741
-#define A4       -1.453152027
-#define A5        1.061405429
+using namespace EwaldConst;
 
 /* ---------------------------------------------------------------------- */
 
@@ -399,13 +392,32 @@ void PairTIP4PLong::settings(int narg, char **arg)
 {
   if (narg != 6) error->all(FLERR,"Illegal pair_style command");
 
-  typeO = utils::inumeric(FLERR,arg[0],false,lmp);
-  typeH = utils::inumeric(FLERR,arg[1],false,lmp);
-  typeB = utils::inumeric(FLERR,arg[2],false,lmp);
-  typeA = utils::inumeric(FLERR,arg[3],false,lmp);
-  qdist = utils::numeric(FLERR,arg[4],false,lmp);
+  typeO_str = arg[0];
+  typeH_str = arg[1];
+  typeB_str = arg[2];
+  typeA_str = arg[3];
+  qdist = utils::numeric(FLERR, arg[4], false, lmp);
 
-  cut_coul = utils::numeric(FLERR,arg[5],false,lmp);
+  cut_coul = utils::numeric(FLERR, arg[5], false, lmp);
+}
+
+/* ----------------------------------------------------------------------
+   set coeffs for one or more type pairs
+------------------------------------------------------------------------- */
+
+void PairTIP4PLong::coeff(int narg, char **arg)
+{
+  // set atom types from pair_style command unless we were restarted
+  // and the types are already set and the strings are empty.
+
+  if (typeO_str.size() > 0) {
+    typeO = utils::expand_type_int(FLERR, typeO_str, Atom::ATOM, lmp, true);
+    typeH = utils::expand_type_int(FLERR, typeH_str, Atom::ATOM, lmp, true);
+    typeB = utils::expand_type_int(FLERR, typeB_str, Atom::BOND, lmp, true);
+    typeA = utils::expand_type_int(FLERR, typeA_str, Atom::ANGLE, lmp, true);
+  }
+
+  PairCoulLong::coeff(narg, arg);
 }
 
 /* ----------------------------------------------------------------------

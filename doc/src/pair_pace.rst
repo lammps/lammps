@@ -40,6 +40,9 @@ Examples
    pair_style pace product chunksize 2048
    pair_coeff * * Cu-PBE-core-rep.ace Cu
 
+   pair_style pace
+   pair_coeff * * Cu.yaml Cu
+
    pair_style pace/extrapolation
    pair_coeff * * Cu.yaml Cu.asi Cu
 
@@ -64,7 +67,7 @@ specifies an ACE coefficient file followed by N additional arguments
 specifying the mapping of ACE elements to LAMMPS atom types, where N is
 the number of LAMMPS atom types:
 
-* ACE coefficient file
+* ACE coefficient file (.yaml or .yace/.ace format)
 * N element names = mapping of ACE elements to atom types
 
 Only a single pair_coeff command is used with the *pace* style which
@@ -135,6 +138,22 @@ product B-basis evaluator is always used and only *linear* ASI is supported.
 
 See the :doc:`pair_coeff <pair_coeff>` page for alternate ways
 to specify the path for the ACE coefficient file.
+
+Core repulsion
+"""""""""""""""""""
+The ACE potential can be configured to initiate core-repulsion from an inner cutoff,
+seamlessly transitioning from ACE to ZBL. The core repulsion factor can be accessed
+as a per-atom quantity, as demonstrated in the example below:
+
+.. code-block:: LAMMPS
+
+    pair_style  pace
+    pair_coeff  * * CuNi.yaml Cu Ni
+
+    fix pace_corerep all pair 1 pace corerep 1
+
+In this case, per-atom `f_pace_corerep` quantities represent the fraction of ZBL
+core-repulsion for each atom.
 
 Mixing, shift, table, tail correction, restart, rRESPA info
 """""""""""""""""""""""""""""""""""""""""""""""""""""""""""

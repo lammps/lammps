@@ -1,46 +1,18 @@
-/*
 //@HEADER
 // ************************************************************************
 //
-//                        Kokkos v. 3.0
-//       Copyright (2020) National Technology & Engineering
+//                        Kokkos v. 4.0
+//       Copyright (2022) National Technology & Engineering
 //               Solutions of Sandia, LLC (NTESS).
 //
 // Under the terms of Contract DE-NA0003525 with NTESS,
 // the U.S. Government retains certain rights in this software.
 //
-// Redistribution and use in source and binary forms, with or without
-// modification, are permitted provided that the following conditions are
-// met:
+// Part of Kokkos, under the Apache License v2.0 with LLVM Exceptions.
+// See https://kokkos.org/LICENSE for license information.
+// SPDX-License-Identifier: Apache-2.0 WITH LLVM-exception
 //
-// 1. Redistributions of source code must retain the above copyright
-// notice, this list of conditions and the following disclaimer.
-//
-// 2. Redistributions in binary form must reproduce the above copyright
-// notice, this list of conditions and the following disclaimer in the
-// documentation and/or other materials provided with the distribution.
-//
-// 3. Neither the name of the Corporation nor the names of the
-// contributors may be used to endorse or promote products derived from
-// this software without specific prior written permission.
-//
-// THIS SOFTWARE IS PROVIDED BY NTESS "AS IS" AND ANY
-// EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
-// IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR
-// PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL NTESS OR THE
-// CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
-// EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
-// PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR
-// PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF
-// LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING
-// NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
-// SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-//
-// Questions? Contact Christian R. Trott (crtrott@sandia.gov)
-//
-// ************************************************************************
 //@HEADER
-*/
 
 #ifndef KOKKOS_BLAS_KERNELS_HPP
 #define KOKKOS_BLAS_KERNELS_HPP
@@ -53,8 +25,8 @@ template <class Type>
 struct Dot {
   using execution_space = typename Type::execution_space;
 
-  static_assert(static_cast<unsigned>(Type::Rank) == static_cast<unsigned>(1),
-                "Dot static_assert Fail: Rank != 1");
+  static_assert(static_cast<unsigned>(Type::rank) == static_cast<unsigned>(1),
+                "Dot static_assert Fail: rank != 1");
 
   using value_type = double;
 
@@ -84,8 +56,8 @@ template <class Type>
 struct DotSingle {
   using execution_space = typename Type::execution_space;
 
-  static_assert(static_cast<unsigned>(Type::Rank) == static_cast<unsigned>(1),
-                "DotSingle static_assert Fail: Rank != 1");
+  static_assert(static_cast<unsigned>(Type::rank) == static_cast<unsigned>(1),
+                "DotSingle static_assert Fail: rank != 1");
 
   using value_type = double;
 
@@ -116,13 +88,13 @@ template <class ScalarType, class VectorType>
 struct Scale {
   using execution_space = typename VectorType::execution_space;
 
-  static_assert(static_cast<unsigned>(ScalarType::Rank) ==
+  static_assert(static_cast<unsigned>(ScalarType::rank) ==
                     static_cast<unsigned>(0),
-                "Scale static_assert Fail: ScalarType::Rank != 0");
+                "Scale static_assert Fail: ScalarType::rank != 0");
 
-  static_assert(static_cast<unsigned>(VectorType::Rank) ==
+  static_assert(static_cast<unsigned>(VectorType::rank) ==
                     static_cast<unsigned>(1),
-                "Scale static_assert Fail: VectorType::Rank != 1");
+                "Scale static_assert Fail: VectorType::rank != 1");
 
 #if 1
   typename ScalarType::const_type alpha;
@@ -143,17 +115,17 @@ template <class ScalarType, class ConstVectorType, class VectorType>
 struct AXPBY {
   using execution_space = typename VectorType::execution_space;
 
-  static_assert(static_cast<unsigned>(ScalarType::Rank) ==
+  static_assert(static_cast<unsigned>(ScalarType::rank) ==
                     static_cast<unsigned>(0),
-                "AXPBY static_assert Fail: ScalarType::Rank != 0");
+                "AXPBY static_assert Fail: ScalarType::rank != 0");
 
-  static_assert(static_cast<unsigned>(ConstVectorType::Rank) ==
+  static_assert(static_cast<unsigned>(ConstVectorType::rank) ==
                     static_cast<unsigned>(1),
-                "AXPBY static_assert Fail: ConstVectorType::Rank != 1");
+                "AXPBY static_assert Fail: ConstVectorType::rank != 1");
 
-  static_assert(static_cast<unsigned>(VectorType::Rank) ==
+  static_assert(static_cast<unsigned>(VectorType::rank) ==
                     static_cast<unsigned>(1),
-                "AXPBY static_assert Fail: VectorType::Rank != 1");
+                "AXPBY static_assert Fail: VectorType::rank != 1");
 
 #if 1
   typename ScalarType::const_type alpha, beta;

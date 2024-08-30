@@ -38,16 +38,15 @@ using namespace LAMMPS_NS;
 using namespace FixConst;
 using namespace MathSpecial;
 
-enum{NONE,HARMONIC};
-enum{LUCY};
+enum { NONE, HARMONIC };
+enum { LUCY };
 
-#define MAXLINE 1024
-#define DELTA 4
+static constexpr int MAXLINE = 1024;
 
 #ifdef DBL_EPSILON
-  #define MY_EPSILON (10.0*DBL_EPSILON)
+static constexpr double MY_EPSILON = 10.0*DBL_EPSILON;
 #else
-  #define MY_EPSILON (10.0*2.220446049250313e-16)
+static constexpr double MY_EPSILON = 10.0*2.220446049250313e-16;
 #endif
 
 #define SparseKinetics_enableIntegralReactions (true)
@@ -250,7 +249,8 @@ void FixRX::post_constructor()
   // Assign species names to tmpspecies array and determine the number of unique species
 
   int n;
-  char line[MAXLINE],*ptr;
+  char line[MAXLINE] = {'\0'};
+  char *ptr;
   int eof = 0;
   char * word;
 
@@ -784,7 +784,8 @@ void FixRX::read_file(char *file)
   // Count the number of reactions from kinetics file
 
   int n,ispecies;
-  char line[MAXLINE],*ptr;
+  char line[MAXLINE] = {'\0'};
+  char *ptr;
   int eof = 0;
 
   while (true) {
@@ -862,7 +863,7 @@ void FixRX::read_file(char *file)
 
     word = strtok(line," \t\n\r\f");
     while (word != nullptr) {
-      tmpStoich = atof(word);
+      tmpStoich = std::stod(word);
       word = strtok(nullptr, " \t\n\r\f");
       for (ispecies = 0; ispecies < nspecies; ispecies++) {
         if (strcmp(word,&atom->dvname[ispecies][0]) == 0) {
@@ -885,13 +886,13 @@ void FixRX::read_file(char *file)
       if (strcmp(word,"=") == 0) sign = 1.0;
       if (strcmp(word,"+") != 0 && strcmp(word,"=") != 0) {
         if (word==nullptr) error->all(FLERR,"Missing parameters in reaction kinetic equation");
-        Arr[nreactions] = atof(word);
+        Arr[nreactions] = std::stod(word);
         word = strtok(nullptr, " \t\n\r\f");
         if (word==nullptr) error->all(FLERR,"Missing parameters in reaction kinetic equation");
-        nArr[nreactions]  = atof(word);
+        nArr[nreactions]  = std::stod(word);
         word = strtok(nullptr, " \t\n\r\f");
         if (word==nullptr) error->all(FLERR,"Missing parameters in reaction kinetic equation");
-        Ea[nreactions]  = atof(word);
+        Ea[nreactions]  = std::stod(word);
         sign = -1.0;
         break;
       }

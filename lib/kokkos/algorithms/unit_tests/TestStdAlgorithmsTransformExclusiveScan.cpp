@@ -1,49 +1,22 @@
-/*
 //@HEADER
 // ************************************************************************
 //
-//                        Kokkos v. 3.0
-//       Copyright (2020) National Technology & Engineering
+//                        Kokkos v. 4.0
+//       Copyright (2022) National Technology & Engineering
 //               Solutions of Sandia, LLC (NTESS).
 //
 // Under the terms of Contract DE-NA0003525 with NTESS,
 // the U.S. Government retains certain rights in this software.
 //
-// Redistribution and use in source and binary forms, with or without
-// modification, are permitted provided that the following conditions are
-// met:
+// Part of Kokkos, under the Apache License v2.0 with LLVM Exceptions.
+// See https://kokkos.org/LICENSE for license information.
+// SPDX-License-Identifier: Apache-2.0 WITH LLVM-exception
 //
-// 1. Redistributions of source code must retain the above copyright
-// notice, this list of conditions and the following disclaimer.
-//
-// 2. Redistributions in binary form must reproduce the above copyright
-// notice, this list of conditions and the following disclaimer in the
-// documentation and/or other materials provided with the distribution.
-//
-// 3. Neither the name of the Corporation nor the names of the
-// contributors may be used to endorse or promote products derived from
-// this software without specific prior written permission.
-//
-// THIS SOFTWARE IS PROVIDED BY NTESS "AS IS" AND ANY
-// EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
-// IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR
-// PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL NTESS OR THE
-// CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
-// EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
-// PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR
-// PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF
-// LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING
-// NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
-// SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-//
-// Questions? Contact Christian R. Trott (crtrott@sandia.gov)
-//
-// ************************************************************************
 //@HEADER
-*/
 
 #include <TestStdAlgorithmsCommon.hpp>
 #include <utility>
+#include <iomanip>
 
 namespace Test {
 namespace stdalgos {
@@ -188,24 +161,15 @@ void verify_data(ViewType1 data_view,  // contains data
       create_mirror_view_and_copy(Kokkos::HostSpace(), test_view_dc);
   if (test_view_h.extent(0) > 0) {
     for (std::size_t i = 0; i < test_view_h.extent(0); ++i) {
-      // std::cout << i << " " << std::setprecision(15) << data_view_h(i) << " "
-      //           << gold_h(i) << " " << test_view_h(i) << " "
-      //           << std::abs(gold_h(i) - test_view_h(i)) << std::endl;
-
       if (std::is_same<gold_view_value_type, int>::value) {
-        EXPECT_EQ(gold_h(i), test_view_h(i));
+        ASSERT_EQ(gold_h(i), test_view_h(i));
       } else {
         const auto error = std::abs(gold_h(i) - test_view_h(i));
-        if (error > 1e-10) {
-          std::cout << i << " " << std::setprecision(15) << data_view_h(i)
-                    << " " << gold_h(i) << " " << test_view_h(i) << " "
-                    << std::abs(gold_h(i) - test_view_h(i)) << std::endl;
-        }
-        EXPECT_LT(error, 1e-10);
+        ASSERT_LT(error, 1e-10) << i << " " << std::setprecision(15) << error
+                                << static_cast<double>(test_view_h(i)) << " "
+                                << static_cast<double>(gold_h(i));
       }
     }
-    // std::cout << " last el: " << test_view_h(test_view_h.extent(0)-1) <<
-    // std::endl;
   }
 }
 
@@ -233,23 +197,19 @@ void run_single_scenario(const InfoType& scenario_info, ValueType init_value,
                          BinaryOp bop, UnaryOp uop) {
   const auto name            = std::get<0>(scenario_info);
   const std::size_t view_ext = std::get<1>(scenario_info);
-  // std::cout << "transform_exclusive_scan custom op: " << name << ", "
-  //           << view_tag_to_string(Tag{}) << ", "
-  //           << value_type_to_string(ValueType()) << ", "
-  //           << "init = " << init_value << std::endl;
 
-  auto view_dest =
-      create_view<ValueType>(Tag{}, view_ext, "transform_exclusive_scan");
-  auto view_from =
-      create_view<ValueType>(Tag{}, view_ext, "transform_exclusive_scan");
+  auto view_from = create_view<ValueType>(Tag{}, view_ext,
+                                          "transform_exclusive_scan_view_from");
   fill_view(view_from, name);
 
+  auto view_dest = create_view<ValueType>(Tag{}, view_ext,
+                                          "transform_exclusive_scan_view_dest");
   {
     fill_zero(view_dest);
     auto r = KE::transform_exclusive_scan(
         exespace(), KE::cbegin(view_from), KE::cend(view_from),
         KE::begin(view_dest), init_value, bop, uop);
-    EXPECT_EQ(r, KE::end(view_dest));
+    ASSERT_EQ(r, KE::end(view_dest));
     verify_data(view_from, view_dest, init_value, bop, uop);
   }
 
@@ -258,7 +218,7 @@ void run_single_scenario(const InfoType& scenario_info, ValueType init_value,
     auto r = KE::transform_exclusive_scan(
         "label", exespace(), KE::cbegin(view_from), KE::cend(view_from),
         KE::begin(view_dest), init_value, bop, uop);
-    EXPECT_EQ(r, KE::end(view_dest));
+    ASSERT_EQ(r, KE::end(view_dest));
     verify_data(view_from, view_dest, init_value, bop, uop);
   }
 
@@ -266,7 +226,7 @@ void run_single_scenario(const InfoType& scenario_info, ValueType init_value,
     fill_zero(view_dest);
     auto r = KE::transform_exclusive_scan(exespace(), view_from, view_dest,
                                           init_value, bop, uop);
-    EXPECT_EQ(r, KE::end(view_dest));
+    ASSERT_EQ(r, KE::end(view_dest));
     verify_data(view_from, view_dest, init_value, bop, uop);
   }
 
@@ -274,8 +234,67 @@ void run_single_scenario(const InfoType& scenario_info, ValueType init_value,
     fill_zero(view_dest);
     auto r = KE::transform_exclusive_scan("label", exespace(), view_from,
                                           view_dest, init_value, bop, uop);
-    EXPECT_EQ(r, KE::end(view_dest));
+    ASSERT_EQ(r, KE::end(view_dest));
     verify_data(view_from, view_dest, init_value, bop, uop);
+  }
+
+  Kokkos::fence();
+}
+
+template <class Tag, class ValueType, class InfoType, class BinaryOp,
+          class UnaryOp>
+void run_single_scenario_inplace(const InfoType& scenario_info,
+                                 ValueType init_value, BinaryOp bop,
+                                 UnaryOp uop) {
+  const auto name            = std::get<0>(scenario_info);
+  const std::size_t view_ext = std::get<1>(scenario_info);
+
+  // since here we call the in-place operation, we need to use two views:
+  // view1: filled according to what the scenario asks for and is not modified
+  // view2: filled according to what the scenario asks for and used for the
+  // in-place op Therefore, after the op is done, view2 should contain the
+  // result of doing exclusive scan NOTE: view2 is filled below every time
+  // because the algorithm acts in place
+
+  auto view1 =
+      create_view<ValueType>(Tag{}, view_ext, "transform_exclusive_scan_view1");
+  fill_view(view1, name);
+
+  auto view2 =
+      create_view<ValueType>(Tag{}, view_ext, "transform_exclusive_scan_view2");
+
+  {
+    fill_view(view2, name);
+    auto r = KE::transform_exclusive_scan(exespace(), KE::cbegin(view2),
+                                          KE::cend(view2), KE::begin(view2),
+                                          init_value, bop, uop);
+    ASSERT_EQ(r, KE::end(view2));
+    verify_data(view1, view2, init_value, bop, uop);
+  }
+
+  {
+    fill_view(view2, name);
+    auto r = KE::transform_exclusive_scan(
+        "label", exespace(), KE::cbegin(view2), KE::cend(view2),
+        KE::begin(view2), init_value, bop, uop);
+    ASSERT_EQ(r, KE::end(view2));
+    verify_data(view1, view2, init_value, bop, uop);
+  }
+
+  {
+    fill_view(view2, name);
+    auto r = KE::transform_exclusive_scan(exespace(), view2, view2, init_value,
+                                          bop, uop);
+    ASSERT_EQ(r, KE::end(view2));
+    verify_data(view1, view2, init_value, bop, uop);
+  }
+
+  {
+    fill_view(view2, name);
+    auto r = KE::transform_exclusive_scan("label", exespace(), view2, view2,
+                                          init_value, bop, uop);
+    ASSERT_EQ(r, KE::end(view2));
+    verify_data(view1, view2, init_value, bop, uop);
   }
 
   Kokkos::fence();
@@ -295,6 +314,11 @@ void run_all_scenarios() {
     run_single_scenario<Tag, ValueType>(it, ValueType{1}, bop_t(), uop_t());
     run_single_scenario<Tag, ValueType>(it, ValueType{-2}, bop_t(), uop_t());
     run_single_scenario<Tag, ValueType>(it, ValueType{3}, bop_t(), uop_t());
+
+    run_single_scenario_inplace<Tag, ValueType>(it, ValueType{0}, bop_t(),
+                                                uop_t());
+    run_single_scenario_inplace<Tag, ValueType>(it, ValueType{-2}, bop_t(),
+                                                uop_t());
   }
 }
 
@@ -306,6 +330,59 @@ TEST(std_algorithms_numeric_ops_test, transform_exclusive_scan) {
   run_all_scenarios<StridedThreeTag, int>();
 }
 #endif
+
+template <class ValueType>
+struct MultiplyFunctor {
+  KOKKOS_INLINE_FUNCTION
+  ValueType operator()(const ValueType& a, const ValueType& b) const {
+    return (a * b);
+  }
+};
+
+TEST(std_algorithms_numeric_ops_test, transform_exclusive_scan_functor) {
+  int dummy       = 0;
+  using view_type = Kokkos::View<int*, exespace>;
+  view_type dummy_view("dummy_view", 0);
+  using unary_op_type =
+      Kokkos::Experimental::Impl::StdNumericScanIdentityReferenceUnaryFunctor<
+          int>;
+  using functor_type =
+      Kokkos::Experimental::Impl::TransformExclusiveScanFunctorWithValueWrapper<
+          exespace, int, int, view_type, view_type, MultiplyFunctor<int>,
+          unary_op_type>;
+  functor_type functor(dummy, dummy_view, dummy_view, {}, {});
+  using value_type = functor_type::value_type;
+
+  value_type value1;
+  functor.init(value1);
+  ASSERT_EQ(value1.val, 0);
+  ASSERT_EQ(value1.is_initial, true);
+
+  value_type value2;
+  value2.val        = 1;
+  value2.is_initial = false;
+  functor.join(value1, value2);
+  ASSERT_EQ(value1.val, 1);
+  ASSERT_EQ(value1.is_initial, false);
+
+  functor.init(value1);
+  functor.join(value2, value1);
+  ASSERT_EQ(value2.val, 1);
+  ASSERT_EQ(value2.is_initial, false);
+
+  functor.init(value2);
+  functor.join(value2, value1);
+  ASSERT_EQ(value2.val, 0);
+  ASSERT_EQ(value2.is_initial, true);
+
+  value1.val        = 3;
+  value1.is_initial = false;
+  value2.val        = 2;
+  value2.is_initial = false;
+  functor.join(value2, value1);
+  ASSERT_EQ(value2.val, 6);
+  ASSERT_EQ(value2.is_initial, false);
+}
 
 }  // namespace TransformEScan
 }  // namespace stdalgos

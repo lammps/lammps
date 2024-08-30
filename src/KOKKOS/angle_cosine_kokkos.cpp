@@ -31,13 +31,12 @@
 using namespace LAMMPS_NS;
 using namespace MathConst;
 
-#define SMALL 0.001
-
 /* ---------------------------------------------------------------------- */
 
 template<class DeviceType>
 AngleCosineKokkos<DeviceType>::AngleCosineKokkos(LAMMPS *lmp) : AngleCosine(lmp)
 {
+  kokkosable = 1;
   atomKK = (AtomKokkos *) atom;
   neighborKK = (NeighborKokkos *) neighbor;
   execution_space = ExecutionSpaceFromDevice<DeviceType>::space;
@@ -126,12 +125,12 @@ void AngleCosineKokkos<DeviceType>::compute(int eflag_in, int vflag_in)
 
   if (eflag_atom) {
     k_eatom.template modify<DeviceType>();
-    k_eatom.template sync<LMPHostType>();
+    k_eatom.sync_host();
   }
 
   if (vflag_atom) {
     k_vatom.template modify<DeviceType>();
-    k_vatom.template sync<LMPHostType>();
+    k_vatom.sync_host();
   }
 
   copymode = 0;
@@ -256,7 +255,7 @@ void AngleCosineKokkos<DeviceType>::coeff(int narg, char **arg)
   for (int i = 1; i <= n; i++)
     k_k.h_view[i] = k[i];
 
-  k_k.template modify<LMPHostType>();
+  k_k.modify_host();
 }
 
 /* ----------------------------------------------------------------------
@@ -272,7 +271,7 @@ void AngleCosineKokkos<DeviceType>::read_restart(FILE *fp)
   for (int i = 1; i <= n; i++)
     k_k.h_view[i] = k[i];
 
-  k_k.template modify<LMPHostType>();
+  k_k.modify_host();
 }
 
 /* ----------------------------------------------------------------------

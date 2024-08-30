@@ -16,9 +16,6 @@
 FixStyle(reaxff/bonds/kk,FixReaxFFBondsKokkos);
 FixStyle(reaxff/bonds/kk/device,FixReaxFFBondsKokkos);
 FixStyle(reaxff/bonds/kk/host,FixReaxFFBondsKokkos);
-FixStyle(reax/c/bonds/kk,FixReaxFFBondsKokkos);
-FixStyle(reax/c/bonds/kk/device,FixReaxFFBondsKokkos);
-FixStyle(reax/c/bonds/kk/host,FixReaxFFBondsKokkos);
 // clang-format on
 #else
 

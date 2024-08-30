@@ -37,7 +37,7 @@
 
 using namespace LAMMPS_NS;
 
-#define EPSILON 1.0e-10
+static constexpr double EPSILON = 1.0e-10;
 
 
 template<class DeviceType>
@@ -94,9 +94,9 @@ void PairDPDExtTstatKokkos<DeviceType>::init_style()
     error->all(FLERR,"Must use half neighbor list style and newton on with pair dpd/ext/kk");
 
   auto request = neighbor->find_request(this);
-  request->set_kokkos_host(std::is_same<DeviceType,LMPHostType>::value &&
-                           !std::is_same<DeviceType,LMPDeviceType>::value);
-  request->set_kokkos_device(std::is_same<DeviceType,LMPDeviceType>::value);
+  request->set_kokkos_host(std::is_same_v<DeviceType,LMPHostType> &&
+                           !std::is_same_v<DeviceType,LMPDeviceType>);
+  request->set_kokkos_device(std::is_same_v<DeviceType,LMPDeviceType>);
 }
 
 /* ---------------------------------------------------------------------- */
@@ -232,7 +232,7 @@ template<int NEIGHFLAG, int VFLAG>
 KOKKOS_INLINE_FUNCTION
 void PairDPDExtTstatKokkos<DeviceType>::operator() (TagDPDExtTstatKokkos<NEIGHFLAG,VFLAG>, const int &ii, EV_FLOAT &ev) const {
 
-  // The f array is duplicated for OpenMP, atomic for CUDA, and neither for Serial
+  // The f array is duplicated for OpenMP, atomic for GPU, and neither for Serial
 
   auto v_f = ScatterViewHelper<NeedDup_v<NEIGHFLAG,DeviceType>,decltype(dup_f),decltype(ndup_f)>::get(dup_f,ndup_f);
   auto a_f = v_f.template access<AtomicDup_v<NEIGHFLAG,DeviceType>>();
@@ -346,7 +346,7 @@ void PairDPDExtTstatKokkos<DeviceType>::v_tally_xyz(EV_FLOAT &ev, const int &i, 
       const F_FLOAT &delx, const F_FLOAT &dely, const F_FLOAT &delz) const
 {
 
-  // The vatom array is duplicated for OpenMP, atomic for CUDA, and neither for Serial
+  // The vatom array is duplicated for OpenMP, atomic for GPU, and neither for Serial
 
   auto v_vatom = ScatterViewHelper<NeedDup_v<NEIGHFLAG,DeviceType>,decltype(dup_vatom),decltype(ndup_vatom)>::get(dup_vatom,ndup_vatom);
   auto a_vatom = v_vatom.template access<AtomicDup_v<NEIGHFLAG,DeviceType>>();

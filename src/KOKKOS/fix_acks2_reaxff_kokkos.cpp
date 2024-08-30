@@ -24,13 +24,11 @@
 #include "comm.h"
 #include "error.h"
 #include "force.h"
-#include "integrate.h"
 #include "kokkos.h"
 #include "memory_kokkos.h"
 #include "neigh_list_kokkos.h"
 #include "neigh_request.h"
 #include "neighbor.h"
-#include "pair_reaxff_kokkos.h"
 #include "update.h"
 
 #include <cmath>
@@ -38,8 +36,7 @@
 using namespace LAMMPS_NS;
 using namespace FixConst;
 
-#define SMALL 0.0001
-#define EV_TO_KCAL_PER_MOL 14.4
+static constexpr double EV_TO_KCAL_PER_MOL = 14.4;
 
 /* ---------------------------------------------------------------------- */
 
@@ -101,9 +98,9 @@ void FixACKS2ReaxFFKokkos<DeviceType>::init()
 
   neighflag = lmp->kokkos->neighflag_qeq;
   auto request = neighbor->find_request(this);
-  request->set_kokkos_host(std::is_same<DeviceType,LMPHostType>::value &&
-                           !std::is_same<DeviceType,LMPDeviceType>::value);
-  request->set_kokkos_device(std::is_same<DeviceType,LMPDeviceType>::value);
+  request->set_kokkos_host(std::is_same_v<DeviceType,LMPHostType> &&
+                           !std::is_same_v<DeviceType,LMPDeviceType>);
+  request->set_kokkos_device(std::is_same_v<DeviceType,LMPDeviceType>);
   if (neighflag == FULL) request->enable_full();
 
   int ntypes = atom->ntypes;
@@ -192,7 +189,7 @@ void FixACKS2ReaxFFKokkos<DeviceType>::setup_pre_force(int vflag)
 /* ---------------------------------------------------------------------- */
 
 template<class DeviceType>
-void FixACKS2ReaxFFKokkos<DeviceType>::pre_force(int vflag)
+void FixACKS2ReaxFFKokkos<DeviceType>::pre_force(int /*vflag*/)
 {
   if (update->ntimestep % nevery) return;
 
@@ -298,8 +295,8 @@ void FixACKS2ReaxFFKokkos<DeviceType>::pre_force(int vflag)
   } else { // GPU, use teams
     Kokkos::deep_copy(d_mfill_offset,0);
 
-    int vector_length = 32;
     int atoms_per_team = 4;
+    int vector_length = 32;
     int num_teams = nn / atoms_per_team + (nn % atoms_per_team ? 1 : 0);
 
     Kokkos::TeamPolicy<DeviceType> policy(num_teams, atoms_per_team,
@@ -537,7 +534,7 @@ void FixACKS2ReaxFFKokkos<DeviceType>::deallocate_array()
 {
   memoryKK->destroy_kokkos(k_s,s);
   memoryKK->destroy_kokkos(k_chi_field,chi_field);
-  memoryKK->destroy_kokkos(X_diag);
+  memoryKK->destroy_kokkos(k_X_diag,X_diag);
   memoryKK->destroy_kokkos(k_d,d);
   memoryKK->destroy_kokkos(k_q_hat,q_hat);
   memoryKK->destroy_kokkos(k_y,y);
@@ -866,7 +863,7 @@ template <int NEIGHFLAG>
 KOKKOS_INLINE_FUNCTION
 void FixACKS2ReaxFFKokkos<DeviceType>::compute_x_item(int ii, int &m_fill, const bool &final) const
 {
-  // The X_diag array is duplicated for OpenMP, atomic for CUDA, and neither for Serial
+  // The X_diag array is duplicated for OpenMP, atomic for GPU, and neither for Serial
   auto v_X_diag = ScatterViewHelper<NeedDup_v<NEIGHFLAG,DeviceType>,decltype(dup_X_diag),decltype(ndup_X_diag)>::get(dup_X_diag,ndup_X_diag);
   auto a_X_diag = v_X_diag.template access<AtomicDup_v<NEIGHFLAG,DeviceType>>();
 
@@ -944,7 +941,7 @@ void FixACKS2ReaxFFKokkos<DeviceType>::compute_x_team(
     const typename Kokkos::TeamPolicy<DeviceType>::member_type &team,
     int atoms_per_team, int vector_length) const {
 
-  // The X_diag array is duplicated for OpenMP, atomic for CUDA, and neither for Serial
+  // The X_diag array is duplicated for OpenMP, atomic for GPU, and neither for Serial
   auto v_X_diag = ScatterViewHelper<NeedDup_v<NEIGHFLAG,DeviceType>,decltype(dup_X_diag),decltype(ndup_X_diag)>::get(dup_X_diag,ndup_X_diag);
   auto a_X_diag = v_X_diag.template access<AtomicDup_v<NEIGHFLAG,DeviceType>>();
 
@@ -1458,7 +1455,7 @@ template<int NEIGHFLAG>
 KOKKOS_INLINE_FUNCTION
 void FixACKS2ReaxFFKokkos<DeviceType>::operator() (TagACKS2SparseMatvec3_Half<NEIGHFLAG>, const int &ii) const
 {
-  // The bb array is duplicated for OpenMP, atomic for CUDA, and neither for Serial
+  // The bb array is duplicated for OpenMP, atomic for GPU, and neither for Serial
   auto v_bb = ScatterViewHelper<NeedDup_v<NEIGHFLAG,DeviceType>,decltype(dup_bb),decltype(ndup_bb)>::get(dup_bb,ndup_bb);
   auto a_bb = v_bb.template access<AtomicDup_v<NEIGHFLAG,DeviceType>>();
 

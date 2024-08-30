@@ -24,14 +24,11 @@
 
 #include "atom_kokkos.h"
 #include "atom_masks.h"
-#include "kokkos.h"
 #include "math_const.h"
 #include "math_special.h"
 #include "memory_kokkos.h"
-#include "neigh_list.h"
 #include "neigh_request.h"
 #include "neighbor_kokkos.h"
-#include "pair.h"
 #include "update.h"
 
 #include <cmath>
@@ -103,9 +100,9 @@ void ComputeOrientOrderAtomKokkos<DeviceType>::init()
   // need an occasional full neighbor list
 
   auto request = neighbor->find_request(this);
-  request->set_kokkos_host(std::is_same<DeviceType,LMPHostType>::value &&
-                           !std::is_same<DeviceType,LMPDeviceType>::value);
-  request->set_kokkos_device(std::is_same<DeviceType,LMPDeviceType>::value);
+  request->set_kokkos_host(std::is_same_v<DeviceType,LMPHostType> &&
+                           !std::is_same_v<DeviceType,LMPDeviceType>);
+  request->set_kokkos_device(std::is_same_v<DeviceType,LMPDeviceType>);
 }
 
 /* ---------------------------------------------------------------------- */

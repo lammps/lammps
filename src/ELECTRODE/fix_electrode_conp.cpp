@@ -43,12 +43,13 @@
 #include <cmath>
 #include <cstring>
 #include <exception>
+#include <memory>
 #include <utility>
 
 using namespace LAMMPS_NS;
 using namespace MathConst;
 
-#define SMALL 1e-16
+static constexpr double SMALL = 1e-16;
 
 extern "C" {
 void dgetrf_(const int *M, const int *N, double *A, const int *lda, int *ipiv, int *info);
@@ -78,12 +79,18 @@ FixElectrodeConp::FixElectrodeConp(LAMMPS *lmp, int narg, char **arg) :
     potential_i(nullptr), potential_iele(nullptr)
 {
   if (lmp->citeme) lmp->citeme->add(cite_fix_electrode);
+  if (atom->map_style == Atom::MAP_NONE)
+    error->all(FLERR, "Fix {} requires an atom map, see atom_modify", style);
+
   // fix.h output flags
   scalar_flag = 1;
   vector_flag = 1;
   extscalar = 1;
   extvector = 0;
   extarray = 0;
+
+  virial_global_flag = 1;    // use virials of this fix
+  thermo_virial = 1;         // set vflags for v_tally
 
   bool default_algo = true;
   algo = Algo::MATRIX_INV;
@@ -97,11 +104,15 @@ FixElectrodeConp::FixElectrodeConp(LAMMPS *lmp, int narg, char **arg) :
   top_group = 0;
   intelflag = false;
   tfflag = false;
+  etaflag = false;
   timer_flag = false;
 
   update_time = 0;
   mult_time = 0;
   n_call = n_cg_step = 0;
+
+  qtotal = 0.;
+  qtotal_var_style = VarStyle::UNSET;
 
   // read fix command
   fixname = std::string(arg[0]);
@@ -109,16 +120,17 @@ FixElectrodeConp::FixElectrodeConp(LAMMPS *lmp, int narg, char **arg) :
   group_bits = std::vector<int>(1, groupbit);
   group_psi_var_names = std::vector<std::string>(1);
   group_psi_var_styles = std::vector<VarStyle>(1, VarStyle::CONST);
-  group_psi = std::vector<double>(1);
+  group_psi_const = std::vector<double>(1);
   etypes_neighlists = false;
   if (strstr(arg[3], "v_") == arg[3]) {
     std::string vname = arg[3];
     group_psi_var_names[0] = vname.substr(2);
     group_psi_var_styles[0] = VarStyle::EQUAL;
   } else
-    group_psi[0] = utils::numeric(FLERR, arg[3], false, lmp);
+    group_psi_const[0] = utils::numeric(FLERR, arg[3], false, lmp);
   char *eta_str = arg[4];
-  eta = utils::numeric(FLERR, eta_str, false, lmp);
+  bool etanull = (strcmp(eta_str, "NULL") == 0);
+  if (!etanull) eta = utils::numeric(FLERR, eta_str, false, lmp);
   int iarg = 5;
   while (iarg < narg) {
     if ((strcmp(arg[iarg], "couple") == 0)) {
@@ -132,17 +144,17 @@ FixElectrodeConp::FixElectrodeConp(LAMMPS *lmp, int narg, char **arg) :
         std::string vname = arg[iarg];
         group_psi_var_names.push_back(vname.substr(2));
         group_psi_var_styles.push_back(VarStyle::EQUAL);
-        group_psi.push_back(0.);
+        group_psi_const.push_back(0.);
       } else {
         std::string null;
         group_psi_var_names.push_back(null);
         group_psi_var_styles.push_back(VarStyle::CONST);
-        group_psi.push_back(utils::numeric(FLERR, arg[iarg], false, lmp));
+        group_psi_const.push_back(utils::numeric(FLERR, arg[iarg], false, lmp));
       }
     } else if ((strcmp(arg[iarg], "algo") == 0)) {
       if (!default_algo) error->one(FLERR, "Algorithm can be set only once");
       default_algo = false;
-      if (iarg + 2 > narg) error->all(FLERR, "Need one argument after algo command");
+      if (iarg + 2 > narg) error->all(FLERR, "Need at least one argument after algo command");
       char *algo_arg = arg[++iarg];
       bool cg_algo = false;
       if ((strcmp(algo_arg, "mat_inv") == 0)) {
@@ -160,7 +172,7 @@ FixElectrodeConp::FixElectrodeConp(LAMMPS *lmp, int narg, char **arg) :
         error->all(FLERR, "Unknown algo keyword {}", algo_arg);
       }
       if (cg_algo) {
-        if (iarg + 2 > narg) error->all(FLERR, "Need one argument after algo *cg command");
+        if (iarg + 2 > narg) error->all(FLERR, "Need one argument after algo cg command");
         cg_threshold = utils::numeric(FLERR, arg[++iarg], false, lmp);
       }
     } else if ((strncmp(arg[iarg], "write", 5) == 0)) {
@@ -195,8 +207,32 @@ FixElectrodeConp::FixElectrodeConp(LAMMPS *lmp, int narg, char **arg) :
       thermo_temp = force->boltz / force->qe2f * utils::numeric(FLERR, arg[++iarg], false, lmp);
       thermo_time = utils::numeric(FLERR, arg[++iarg], false, lmp);
       thermo_init = utils::inumeric(FLERR, arg[++iarg], false, lmp);
-      // toggle parameters
-    } else if ((strcmp(arg[iarg], "etypes") == 0)) {
+    } else if ((strcmp(arg[iarg], "qtotal") == 0)) {
+      if (iarg + 2 > narg) error->all(FLERR, "Need one argument after qtotal keyword");
+      if (strcmp(this->style, "electrode/conq") == 0)
+        error->all(FLERR, "qtotal keyword not available for electrode/conq");
+      ++iarg;
+      if (strstr(arg[iarg], "v_") == arg[iarg]) {
+        std::string vname = arg[iarg];
+        qtotal_var_name = vname.substr(2);
+        qtotal_var_style = VarStyle::EQUAL;
+      } else {
+        qtotal = utils::numeric(FLERR, arg[iarg], false, lmp);
+        qtotal_var_style = VarStyle::CONST;
+      }
+    } else if ((strcmp(arg[iarg], "eta") == 0)) {
+      if (iarg + 2 > narg) error->all(FLERR, "Need one argument after eta command");
+      etaflag = true;
+      int is_double, cols, ghost;
+      eta_index = atom->find_custom_ghost(arg[++iarg] + 2, is_double, cols, ghost);
+      if (eta_index == -1)
+        error->all(FLERR, "eta keyword requires name of previously defined property");
+      if (!is_double) error->all(FLERR, "eta keyword requires double-valued property/atom vector");
+      if (cols != 0) error->all(FLERR, "eta keyword requires property/atom vector not an array");
+      if (!ghost) error->all(FLERR, "eta keyword requires property/atom fix with ghost on");
+    }
+    // toggle parameters
+    else if ((strcmp(arg[iarg], "etypes") == 0)) {
       etypes_neighlists = utils::logical(FLERR, arg[++iarg], false, lmp);
     } else if ((strncmp(arg[iarg], "symm", 4) == 0)) {
       symm = utils::logical(FLERR, arg[++iarg], false, lmp);
@@ -208,6 +244,13 @@ FixElectrodeConp::FixElectrodeConp(LAMMPS *lmp, int narg, char **arg) :
     iarg++;
   }
 
+  if (qtotal_var_style != VarStyle::UNSET) {
+    if (symm) error->all(FLERR, "{} cannot use qtotal keyword with symm on", this->style);
+  }
+  if (etanull && !etaflag) error->all(FLERR, "If eta is NULL the eta keyword must be used");
+
+  // computatonal potential
+  group_psi = std::vector<double>(groups.size());
   // union of all coupled groups
   std::string union_group = "conp_group";
   std::string group_cmd = union_group + " union";
@@ -225,6 +268,7 @@ FixElectrodeConp::FixElectrodeConp(LAMMPS *lmp, int narg, char **arg) :
   if (need_elec_vector) elec_vector = new ElectrodeVector(lmp, igroup, igroup, eta, false);
   assert(groups.size() == group_bits.size());
   assert(groups.size() == group_psi.size());
+  assert(groups.size() == group_psi_const.size());
   assert(groups.size() == group_psi_var_styles.size());
   assert(groups.size() == group_psi_var_names.size());
   assert(igroup == elyt_vector->igroup);
@@ -310,7 +354,7 @@ int FixElectrodeConp::modify_param(int narg, char **arg)
     MPI_Allreduce(MPI_IN_PLACE, &in_ele, 1, MPI_INT, MPI_SUM, world);
     if (in_ele == 0) error->all(FLERR, "No atoms of type in electrode");
     MPI_Allreduce(MPI_IN_PLACE, &not_in_ele, 1, MPI_INT, MPI_SUM, world);
-    if (not_in_ele)
+    if (not_in_ele && (comm->me == 0))
       error->warning(FLERR,
                      "Not all atoms of type in electrode; Thomas-Fermi parameters will be ignored "
                      "for electrolyte");
@@ -369,10 +413,31 @@ void FixElectrodeConp::init()
   if (pair == nullptr) error->all(FLERR, "Fix electrode couldn't find a Coulombic pair style");
 
   // error if more than one fix electrode/*
-  int count = 0;
-  for (int i = 0; i < modify->nfix; i++)
-    if (strncmp(modify->fix[i]->style, "electrode", 9) == 0) count++;
-  if (count > 1) error->all(FLERR, "More than one fix electrode");
+  if (modify->get_fix_by_style("^electrode").size() > 1)
+    error->all(FLERR, "More than one fix electrode");
+
+  // make sure electrode atoms are not integrated if a matrix is used for electrode-electrode interaction
+  int const nlocal = atom->nlocal;
+  int *mask = atom->mask;
+  if (matrix_algo) {
+    std::vector<Fix *> integrate_fixes;
+    for (auto fix : modify->get_fix_list()) {
+      if (fix->time_integrate == 0) continue;
+      int electrode_mover = 0;
+      int fix_groupbit = fix->groupbit;
+      for (int j = 0; j < nlocal; j++)
+        if ((mask[j] & fix_groupbit) && (mask[j] & groupbit)) electrode_mover = 1;
+      MPI_Allreduce(MPI_IN_PLACE, &electrode_mover, 1, MPI_INT, MPI_SUM, world);
+      if (electrode_mover && comm->me == 0) integrate_fixes.push_back(fix);
+    }
+    if (comm->me == 0)
+      for (const auto fix : integrate_fixes)
+        error->warning(FLERR,
+                       "Electrode atoms are integrated by fix {} {}, but fix electrode is using a "
+                       "matrix method. For mobile electrodes use the conjugate gradient algorithm "
+                       "without matrix ('algo cg').",
+                       fix->id, fix->style);
+  }
 
   // check for package intel
   if (etypes_neighlists)
@@ -417,7 +482,7 @@ void FixElectrodeConp::post_constructor()
   input->variable->set(fmt::format("{} equal f_{}[{}]", var_vtop, fixname, 1 + top_group));
   input->variable->set(fmt::format("{} equal (v_{}-v_{})/lz", var_efield, var_vbot, var_vtop));
   // check for other efields and warn if found
-  if (modify->get_fix_by_style("^efield").size() > 0 && comm->me == 0)
+  if ((modify->get_fix_by_style("^efield").size() > 0) && (comm->me == 0))
     error->warning(FLERR, "Other efield fixes found -- please make sure this is intended!");
   // call fix command:
   // fix [varstem]_efield all efield 0.0 0.0 [var_vdiff]/lz
@@ -448,6 +513,7 @@ void FixElectrodeConp::setup_post_neighbor()
   // get equal-style variable ids:
   group_psi_var_ids = std::vector<int>(num_of_groups, -1);
   for (int g = 0; g < num_of_groups; g++) {
+    assert(group_psi_var_styles[g] != VarStyle::UNSET);
     if (group_psi_var_styles[g] == VarStyle::CONST) continue;
     const char *var_name = group_psi_var_names[g].c_str();
     int var_id = input->variable->find(var_name);
@@ -456,13 +522,23 @@ void FixElectrodeConp::setup_post_neighbor()
       error->all(FLERR, "Variable '{}' for fix {} is not equal-style", var_name, style);
     group_psi_var_ids[g] = var_id;
   }
+  if (qtotal_var_style == VarStyle::EQUAL) {
+    const char *var_name = qtotal_var_name.c_str();
+    int var_id = input->variable->find(var_name);
+    if (var_id < 0) error->all(FLERR, "Variable '{}' for fix electrode does not exist", var_name);
+    if (!input->variable->equalstyle(var_id))
+      error->all(FLERR, "Variable '{}' for fix electrode is not equal-style", var_name);
+    qtotal_var_id = var_id;
+  }
 
   // pair and list setups:
 
   evscale = force->qe2f / force->qqrd2e;
   elyt_vector->setup(pair, vec_neighlist, timer_flag);
+  if (etaflag) elyt_vector->setup_eta(eta_index);
   if (need_elec_vector) {
     elec_vector->setup(pair, mat_neighlist, timer_flag);
+    if (etaflag) elec_vector->setup_eta(eta_index);
     if (tfflag) elec_vector->setup_tf(tf_types);
   }
 
@@ -497,7 +573,8 @@ void FixElectrodeConp::setup_post_neighbor()
       if (etypes_neighlists) neighbor->build_one(mat_neighlist);
       auto array_compute = std::unique_ptr<ElectrodeMatrix>(new ElectrodeMatrix(lmp, igroup, eta));
       array_compute->setup(tag_to_iele, pair, mat_neighlist);
-      if (tfflag) { array_compute->setup_tf(tf_types); }
+      if (etaflag) array_compute->setup_eta(eta_index);
+      if (tfflag) array_compute->setup_tf(tf_types);
       array_compute->compute_array(elastance, timer_flag);
     }    // write_mat before proceeding
     if (comm->me == 0 && write_mat) {
@@ -565,13 +642,14 @@ void FixElectrodeConp::setup_post_neighbor()
 
 /* ---------------------------------------------------------------------- */
 
-void FixElectrodeConp::setup_pre_reverse(int eflag, int /*vflag*/)
+void FixElectrodeConp::setup_pre_reverse(int eflag, int vflag)
 {
+  if (pair->did_tally_callback() && (comm->me == 0))
+    error->warning(FLERR, "Computation of virials in fix {} is incompatible with TALLY package", style);
   // correct forces for initial timestep
-  gausscorr(eflag, true);
+  ev_init(eflag, vflag);
+  gausscorr(eflag, vflag, true);
   self_energy(eflag);
-  // potential_energy(eflag); // not always part of the energy, depending on ensemble, therefore
-  // removed
 }
 
 /* ---------------------------------------------------------------------- */
@@ -601,7 +679,7 @@ void FixElectrodeConp::invert()
 void FixElectrodeConp::symmetrize()
 {
   // S matrix to enforce charge neutrality constraint
-  if (read_inv && comm->me == 0)
+  if (read_inv && (comm->me == 0))
     error->warning(FLERR,
                    "Symmetrizing matrix from file. Make sure the provided matrix has not been "
                    "symmetrized yet.");
@@ -682,11 +760,11 @@ void FixElectrodeConp::setup_pre_exchange()    // create_taglist
   // if memory_usage > 0.5 GiB, warn with expected usage
   double mem_needed = memory_usage();
   mem_needed /= (1024 * 1024 * 1024);    // convert to GiB
-  if (mem_needed > 0.5 && comm->me == 0)
+  if ((mem_needed > 0.5) && (comm->me == 0))
     error->warning(FLERR,
-                   "Please ensure there is sufficient memory for fix electrode "
+                   "Please ensure there is sufficient memory for fix {} "
                    "(anticipated usage is at least {:.1f} GiB per proc)",
-                   mem_needed);
+                   style, mem_needed);
 }
 
 /* ---------------------------------------------------------------------- */
@@ -698,12 +776,11 @@ void FixElectrodeConp::pre_force(int)
 
 /* ---------------------------------------------------------------------- */
 
-void FixElectrodeConp::pre_reverse(int eflag, int /*vflag*/)
+void FixElectrodeConp::pre_reverse(int eflag, int vflag)
 {
-  gausscorr(eflag, true);
+  ev_init(eflag, vflag);
+  gausscorr(eflag, vflag, true);
   self_energy(eflag);
-  //potential_energy(eflag); // not always part of the energy, depending on ensemble, therefore
-  // removed
 }
 
 /* ---------------------------------------------------------------------- */
@@ -804,6 +881,8 @@ void FixElectrodeConp::update_charges()
     }
     MPI_Allreduce(MPI_IN_PLACE, &sb_charges.front(), num_of_groups, MPI_DOUBLE, MPI_SUM, world);
     update_psi();    // use for equal-style and conq
+    if (qtotal_var_style != VarStyle::UNSET)
+      update_psi_qtotal();    // use for qtotal; same for thermo
     for (int g = 0; g < num_of_groups; g++)
       for (int j = 0; j < nlocalele; j++) q_local[j] += sd_vectors[g][list_iele[j]] * group_psi[g];
     MPI_Barrier(world);
@@ -840,20 +919,21 @@ void FixElectrodeConp::update_charges()
         a = ele_ele_interaction(q_local);
         r = add_nlocalele(b, a);
       } else {
-        r = add_nlocalele(r, scale_vector(alpha, y));
+        r = add_nlocalele(r, scale_vector(alpha, std::move(y)));
       }
       auto p = constraint_projection(r);
       double dot_new = dot_nlocalele(r, p);
-      d = add_nlocalele(p, scale_vector(dot_new / dot_old, d));
+      d = add_nlocalele(std::move(p), scale_vector(dot_new / dot_old, d));
       delta = dot_nlocalele(r, d);
       dot_old = dot_new;
     }
-    recompute_potential(b, q_local);
-    if (delta > cg_threshold && comm->me == 0) error->warning(FLERR, "CG threshold not reached");
+    recompute_potential(std::move(b), q_local);
+    if ((delta > cg_threshold) && (comm->me == 0))
+      error->warning(FLERR, "CG threshold not reached");
   } else {
     error->all(FLERR, "This algorithm is not implemented, yet");
   }
-  set_charges(q_local);
+  set_charges(std::move(q_local));
   update_time += MPI_Wtime() - start;
 }
 
@@ -906,12 +986,22 @@ std::vector<double> FixElectrodeConp::gather_ngroup(std::vector<double> x_local)
 }
 
 /* ----------------------------------------------------------------------
-   ensure total electrode charge is 0 if symm
+   ensure total electrode charge is 0 if symm and qtotal if qtotal is used
 ------------------------------------------------------------------------- */
 
 std::vector<double> FixElectrodeConp::constraint_correction(std::vector<double> x)
 {
-  return constraint_projection(std::move(x));
+  if (symm || qtotal_var_style != VarStyle::UNSET) {
+    if (qtotal_var_style == VarStyle::EQUAL) qtotal = input->variable->compute_equal(qtotal_var_id);
+    double sum = 0.;
+    for (double xi : x) sum += xi;
+    MPI_Allreduce(MPI_IN_PLACE, &sum, 1, MPI_DOUBLE, MPI_SUM, world);
+    if (qtotal_var_style != VarStyle::UNSET) sum -= qtotal;
+    sum /= ngroup;
+    for (double &xi : x) xi -= sum;
+    return x;
+  }
+  return x;
 }
 
 /* ----------------------------------------------------------------------
@@ -920,7 +1010,7 @@ std::vector<double> FixElectrodeConp::constraint_correction(std::vector<double> 
 
 std::vector<double> FixElectrodeConp::constraint_projection(std::vector<double> x)
 {
-  if (symm) {
+  if (symm || qtotal_var_style != VarStyle::UNSET) {
     double sum = 0.;
     for (double xi : x) sum += xi;
     MPI_Allreduce(MPI_IN_PLACE, &sum, 1, MPI_DOUBLE, MPI_SUM, world);
@@ -978,11 +1068,26 @@ std::vector<double> FixElectrodeConp::times_elastance(std::vector<double> x)
 void FixElectrodeConp::update_psi()
 {
   for (int g = 0; g < num_of_groups; g++) {
-    if (group_psi_var_styles[g] == VarStyle::CONST) continue;
-    group_psi[g] = input->variable->compute_equal(group_psi_var_ids[g]);
+    if (group_psi_var_styles[g] == VarStyle::CONST)
+      group_psi[g] = group_psi_const[g];
+    else
+      group_psi[g] = input->variable->compute_equal(group_psi_var_ids[g]);
   }
 }
 
+/* ---------------------------------------------------------------------- */
+
+void FixElectrodeConp::update_psi_qtotal()
+{
+  if (qtotal_var_style == VarStyle::EQUAL) qtotal = input->variable->compute_equal(qtotal_var_id);
+  double q_current = 0.;
+  for (int i = 0; i < num_of_groups; i++) {
+    q_current += sb_charges[i];
+    for (int j = 0; j < num_of_groups; j++) q_current += macro_capacitance[i][j] * group_psi[j];
+  }
+  double add_psi = (qtotal - q_current) / macro_capacitance_sum;
+  for (int i = 0; i < num_of_groups; i++) group_psi[i] += add_psi;
+}
 /* ---------------------------------------------------------------------- */
 
 void FixElectrodeConp::compute_macro_matrices()
@@ -1040,6 +1145,10 @@ void FixElectrodeConp::compute_macro_matrices()
       }
     }
   }
+
+  macro_capacitance_sum = 0.;
+  for (int i = 0; i < num_of_groups; i++)
+    for (int j = 0; j < num_of_groups; j++) macro_capacitance_sum += macro_capacitance[i][j];
 }
 
 /* ---------------------------------------------------------------------- */
@@ -1096,7 +1205,7 @@ double FixElectrodeConp::self_energy(int eflag)
   // corrections to energy due to self interaction
   double const qqrd2e = force->qqrd2e;
   int const nlocal = atom->nlocal;
-  double const pre = eta / sqrt(MY_2PI) * qqrd2e;
+  double const pre = 1. / sqrt(MY_2PI) * qqrd2e;
   int *mask = atom->mask;
   int *type = atom->type;
   double *q = atom->q;
@@ -1104,7 +1213,8 @@ double FixElectrodeConp::self_energy(int eflag)
   for (int i = 0; i < nlocal; i++) {
     if (groupbit & mask[i]) {
       double const q2 = q[i] * q[i];
-      double e = pre * q2;
+      double ieta = etaflag ? atom->dvector[eta_index][i] : eta;
+      double e = ieta * pre * q2;
       if (tfflag && (groupbit & mask[i])) e += 0.5 * qqrd2e * q2 * tf_types[type[i]];
       energy += e;
       if (eflag) {
@@ -1119,11 +1229,10 @@ double FixElectrodeConp::self_energy(int eflag)
 
 /* ---------------------------------------------------------------------- */
 
-double FixElectrodeConp::gausscorr(int eflag, bool fflag)
+double FixElectrodeConp::gausscorr(int eflag, int vflag, bool fflag)
 {
   // correction to short range interaction due to eta
 
-  int evflag = pair->evflag;
   double const qqrd2e = force->qqrd2e;
   int const nlocal = atom->nlocal;
   int *mask = atom->mask;
@@ -1144,6 +1253,7 @@ double FixElectrodeConp::gausscorr(int eflag, bool fflag)
     double xtmp = x[i][0];
     double ytmp = x[i][1];
     double ztmp = x[i][2];
+    double const eta_i = etaflag ? atom->dvector[eta_index][i] : eta;
     int itype = type[i];
     int *jlist = firstneigh[i];
     int jnum = numneigh[i];
@@ -1152,7 +1262,6 @@ double FixElectrodeConp::gausscorr(int eflag, bool fflag)
       int const j = jlist[jj] & NEIGHMASK;
       bool j_in_ele = groupbit & mask[j];
       if (!(i_in_ele || j_in_ele)) continue;
-      double eta_ij = (i_in_ele && j_in_ele) ? eta / MY_SQRT2 : eta;
 
       double delx = xtmp - x[j][0];
       double dely = ytmp - x[j][1];
@@ -1161,6 +1270,16 @@ double FixElectrodeConp::gausscorr(int eflag, bool fflag)
       int jtype = type[j];
 
       if (rsq < force->pair->cutsq[itype][jtype]) {
+        double const eta_j = etaflag ? atom->dvector[eta_index][j] : eta;
+        double eta_ij;
+        if (i_in_ele && j_in_ele)
+          eta_ij = eta_i * eta_j / sqrt(eta_i * eta_i + eta_j * eta_j);
+        else if (i_in_ele)
+          eta_ij = eta_i;
+        else {
+          assert(j_in_ele);
+          eta_ij = eta_j;
+        }
         double r2inv = 1.0 / rsq;
         double r = sqrt(rsq);
         double erfc_etar = 0.;
@@ -1179,13 +1298,11 @@ double FixElectrodeConp::gausscorr(int eflag, bool fflag)
             f[j][2] -= delz * fpair;
           }
         }
-
-        double ecoul = 0.;
-        if (eflag) ecoul = -prefactor * erfc_etar;
-
-        if (evflag) {
-          force->pair->ev_tally(i, j, nlocal, newton_pair, 0., ecoul, fpair, delx, dely, delz);
+        if (eflag) {
+          double ecoul = -prefactor * erfc_etar;
+          force->pair->ev_tally(i, j, nlocal, newton_pair, 0., ecoul, 0., 0., 0., 0.);
         }
+        if (vflag) v_tally(i, j, nlocal, newton_pair, fpair, delx, dely, delz);
       }
     }
   }
@@ -1505,4 +1622,71 @@ void FixElectrodeConp::unpack_forward_comm(int n, int first, double *buf)
 {
   int const last = first + n;
   for (int i = first, m = 0; i < last; i++) atom->q[i] = buf[m++];
+}
+
+/* ----------------------------------------------------------------------
+   Tally virial of pair interactions in pre_reverse. This cannot be done with pair->ev_tally()
+   because compute_fdotr is called before pre_reverse, i.e. Virials need to be tallied even if fdotr
+   is used.
+------------------------------------------------------------------------- */
+
+void FixElectrodeConp::v_tally(int i, int j, int nlocal, int newton_pair, double fpair, double delx,
+                               double dely, double delz)
+{
+  double v[6];
+  if (vflag_either) {
+    v[0] = delx * delx * fpair;
+    v[1] = dely * dely * fpair;
+    v[2] = delz * delz * fpair;
+    v[3] = delx * dely * fpair;
+    v[4] = delx * delz * fpair;
+    v[5] = dely * delz * fpair;
+
+    if (vflag_global) {
+      if (newton_pair) {
+        virial[0] += v[0];
+        virial[1] += v[1];
+        virial[2] += v[2];
+        virial[3] += v[3];
+        virial[4] += v[4];
+        virial[5] += v[5];
+      } else {
+        if (i < nlocal) {
+          virial[0] += 0.5 * v[0];
+          virial[1] += 0.5 * v[1];
+          virial[2] += 0.5 * v[2];
+          virial[3] += 0.5 * v[3];
+          virial[4] += 0.5 * v[4];
+          virial[5] += 0.5 * v[5];
+        }
+        if (j < nlocal) {
+          virial[0] += 0.5 * v[0];
+          virial[1] += 0.5 * v[1];
+          virial[2] += 0.5 * v[2];
+          virial[3] += 0.5 * v[3];
+          virial[4] += 0.5 * v[4];
+          virial[5] += 0.5 * v[5];
+        }
+      }
+    }
+
+    if (vflag_atom) {
+      if (newton_pair || i < nlocal) {
+        vatom[i][0] += 0.5 * v[0];
+        vatom[i][1] += 0.5 * v[1];
+        vatom[i][2] += 0.5 * v[2];
+        vatom[i][3] += 0.5 * v[3];
+        vatom[i][4] += 0.5 * v[4];
+        vatom[i][5] += 0.5 * v[5];
+      }
+      if (newton_pair || j < nlocal) {
+        vatom[j][0] += 0.5 * v[0];
+        vatom[j][1] += 0.5 * v[1];
+        vatom[j][2] += 0.5 * v[2];
+        vatom[j][3] += 0.5 * v[3];
+        vatom[j][4] += 0.5 * v[4];
+        vatom[j][5] += 0.5 * v[5];
+      }
+    }
+  }
 }

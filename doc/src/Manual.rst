@@ -2,6 +2,13 @@
 LAMMPS Documentation (|version| version)
 ########################################
 
+.. toctree::
+   :caption: About LAMMPS
+
+****************************
+About LAMMPS and this manual
+****************************
+
 LAMMPS stands for **L**\ arge-scale **A**\ tomic/**M**\ olecular
 **M**\ assively **P**\ arallel **S**\ imulator.
 
@@ -39,9 +46,12 @@ doc directory.
 
 If needed, you can build a copy on your local machine of the manual
 (HTML pages or PDF file) for the version of LAMMPS you have
-downloaded.  Follow the steps on the :doc:`Build_manual` page.  If you
-have difficulties viewing the pages, please :ref:`see this note
-<webbrowser>`.
+downloaded.  Follow the steps on the :doc:`Build_manual` page.
+
+.. only:: html
+
+   If you have difficulties viewing the HTML pages, please :ref:`see this note
+   <webbrowser>` about compatibility with web browsers.
 
 -----------
 

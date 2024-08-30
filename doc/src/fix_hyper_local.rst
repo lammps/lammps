@@ -135,9 +135,9 @@ to this fix.
 
    To run an LHD simulation, the input script must also use the
    :doc:`fix langevin <fix_langevin>` command to thermostat the atoms at
-   the same *Tequil* as specified by this fix, so that the system is
-   running constant-temperature (NVT) dynamics.  LAMMPS does not check
-   that this is done.
+   the same :math:`T_{equil}` as specified by this fix, so that the
+   system is running constant-temperature (NVT) dynamics.  LAMMPS does
+   not check that this is done.
 
 Note that if *ij*\ == *kl*, then bond *ij* is a biased bond on that
 timestep, otherwise it is not.  But regardless, the boost factor
@@ -219,10 +219,11 @@ guarantee an accelerated time-accurate trajectory of the system.
    as for GHD), so that the :math:`C_{ij}` remain near unity.
 
 The *Tequil* argument is the temperature at which the system is
-simulated; see the comment above about the :doc:`fix langevin <fix_langevin>` thermostatting.  It is also part of the
-beta term in the exponential factor that determines how much boost is
-achieved as a function of the bias potential.  See the discussion of
-the *Btarget* argument below.
+simulated; see the comment above about the :doc:`fix langevin
+<fix_langevin>` thermostatting.  It is also part of the beta term in the
+exponential factor that determines how much boost is achieved as a
+function of the bias potential.  See the discussion of the *Btarget*
+argument below.
 
 As discussed above, the *Dcut* argument is the distance required
 between two locally maxstrain bonds for them to both be selected as
@@ -382,41 +383,41 @@ which can be accessed by various :doc:`output commands
 (energy units) applied on the current timestep, summed over all biased
 bonds.  The vector stores the following quantities:
 
-* 1 = average boost for all bonds on this step (unitless)
-* 2 = # of biased bonds on this step
-* 3 = max strain :math:`E_{ij}` of any bond on this step (absolute value, unitless)
-* 4 = value of :math:`V^{max}` on this step (energy units)
-* 5 = average bias coeff for all bonds on this step (unitless)
-* 6 = min bias coeff for all bonds on this step (unitless)
-* 7 = max bias coeff for all bonds on this step (unitless)
-* 8 = average # of bonds/atom on this step
-* 9 = average neighbor bonds/bond on this step within *Dcut*
+  #. average boost for all bonds on this step (unitless)
+  #. # of biased bonds on this step
+  #. max strain :math:`E_{ij}` of any bond on this step (absolute value, unitless)
+  #. value of :math:`V^{max}` on this step (energy units)
+  #. average bias coeff for all bonds on this step (unitless)
+  #. min bias coeff for all bonds on this step (unitless)
+  #. max bias coeff for all bonds on this step (unitless)
+  #. average # of bonds/atom on this step
+  #. average neighbor bonds/bond on this step within *Dcut*
 
-* 10 = average boost for all bonds during this run (unitless)
-* 11 = average # of biased bonds/step during this run
-* 12 = fraction of biased bonds with no bias during this run
-* 13 = fraction of biased bonds with negative strain during this run
-* 14 = max bond length during this run (distance units)
-* 15 = average bias coeff for all bonds during this run (unitless)
-* 16 = min bias coeff for any bond during this run (unitless)
-* 17 = max bias coeff for any bond during this run (unitless)
+  #. average boost for all bonds during this run (unitless)
+  #. average # of biased bonds/step during this run
+  #. fraction of biased bonds with no bias during this run
+  #. fraction of biased bonds with negative strain during this run
+  #. max bond length during this run (distance units)
+  #. average bias coeff for all bonds during this run (unitless)
+  #. min bias coeff for any bond during this run (unitless)
+  #. max bias coeff for any bond during this run (unitless)
 
-* 18 = max drift distance of any bond atom during this run (distance units)
-* 19 = max distance from proc subbox of any ghost atom with maxstrain < qfactor during this run (distance units)
-* 20 = max distance outside my box of any ghost atom with any maxstrain during this run (distance units)
-* 21 = count of ghost atoms that could not be found on reneighbor steps during this run
-* 22 = count of bias overlaps (< Dcut) found during this run
+  #. max drift distance of any bond atom during this run (distance units)
+  #. max distance from proc subbox of any ghost atom with maxstrain < qfactor during this run (distance units)
+  #. max distance outside my box of any ghost atom with any maxstrain during this run (distance units)
+  #. count of ghost atoms that could not be found on reneighbor steps during this run
+  #. count of bias overlaps (< *Dcut*) found during this run
 
-* 23 = cumulative hyper time since fix created (time units)
-* 24 = cumulative count of event timesteps since fix created
-* 25 = cumulative count of atoms in events since fix created
-* 26 = cumulative # of new bonds formed since fix created
+  #. cumulative hyper time since fix created (time units)
+  #. cumulative count of event timesteps since fix created
+  #. cumulative count of atoms in events since fix created
+  #. cumulative # of new bonds formed since fix created
 
-27 = average boost for biased bonds on this step (unitless)
-28 = # of bonds with absolute strain >= q on this step
+  #. average boost for biased bonds on this step (unitless)
+  #. # of bonds with absolute strain >= q on this step
 
-The first quantities 1-9 are for the current timestep.  Quantities
-10-22 are for the current hyper run.  They are reset each time a new
+Quantities 1-9 are for the current timestep.  Quantities 10-22
+are for the current hyper run.  They are reset each time a new
 hyper run is performed.  Quantities 23-26 are cumulative across
 multiple runs (since the point in the input script the fix was
 defined).
@@ -512,8 +513,7 @@ Value 27 computes the average boost for biased bonds only on this step.
 Value 28 is the count of bonds with an absolute value of strain >= q
 on this step.
 
-The scalar value is an "extensive" quantity since it grows with the
-system size; the vector values are all "intensive".
+The scalar value and vector values are all "intensive".
 
 This fix also computes a local vector of length the number of bonds
 currently in the system.  The value for each bond is its :math:`C_{ij}`

@@ -31,11 +31,12 @@ class WriteData : public Command {
   void write(const std::string &);
 
  private:
-  int me, nprocs;
   int pairflag;
   int coeffflag;
   int fixflag;
+  int triclinic_general;
   int lmapflag;
+  int noinitflag;
   FILE *fp;
   bigint nbonds_local, nbonds;
   bigint nangles_local, nangles;

@@ -21,7 +21,6 @@
 #include "input.h"
 #include "memory.h"
 #include "modify.h"
-#include "respa.h"
 #include "universe.h"
 #include "update.h"
 #include "variable.h"
@@ -196,7 +195,7 @@ void FixAlchemy::init()
   synchronize_box(domain, samerank);
 
   sync_box = 0;
-  for (auto ifix : modify->get_fix_list())
+  for (const auto &ifix : modify->get_fix_list())
     if (ifix->box_change) sync_box = 1;
 }
 

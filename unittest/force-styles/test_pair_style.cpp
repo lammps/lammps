@@ -71,7 +71,7 @@ LAMMPS *init_lammps(LAMMPS::argv &args, const TestConfig &cfg, const bool newton
     // check if prerequisite styles are available
     Info *info = new Info(lmp);
     int nfail  = 0;
-    for (auto &prerequisite : cfg.prerequisites) {
+    for (const auto &prerequisite : cfg.prerequisites) {
         std::string style = prerequisite.second;
 
         // this is a test for pair styles, so if the suffixed
@@ -122,7 +122,7 @@ LAMMPS *init_lammps(LAMMPS::argv &args, const TestConfig &cfg, const bool newton
 
     command("variable input_dir index " + INPUT_FOLDER);
 
-    for (auto &pre_command : cfg.pre_commands) {
+    for (const auto &pre_command : cfg.pre_commands) {
         command(pre_command);
     }
 
@@ -131,7 +131,7 @@ LAMMPS *init_lammps(LAMMPS::argv &args, const TestConfig &cfg, const bool newton
 
     command("pair_style " + cfg.pair_style);
 
-    for (auto &pair_coeff : cfg.pair_coeff) {
+    for (const auto &pair_coeff : cfg.pair_coeff) {
         command("pair_coeff " + pair_coeff);
     }
 
@@ -142,7 +142,7 @@ LAMMPS *init_lammps(LAMMPS::argv &args, const TestConfig &cfg, const bool newton
     command("pair_modify table 0");
     command("pair_modify table/disp 0");
 
-    for (auto &post_command : cfg.post_commands) {
+    for (const auto &post_command : cfg.post_commands) {
         command(post_command);
     }
 
@@ -188,12 +188,12 @@ void restart_lammps(LAMMPS *lmp, const TestConfig &cfg, bool nofdotr = false, bo
         command("pair_style " + cfg.pair_style);
     }
     if (!lmp->force->pair->restartinfo || !lmp->force->pair->writedata) {
-        for (auto &pair_coeff : cfg.pair_coeff) {
+        for (const auto &pair_coeff : cfg.pair_coeff) {
             command("pair_coeff " + pair_coeff);
         }
     }
 
-    for (auto &post_command : cfg.post_commands) {
+    for (const auto &post_command : cfg.post_commands) {
         command(post_command);
     }
     if (nofdotr) command("pair_modify nofdotr");
@@ -217,7 +217,7 @@ void data_lammps(LAMMPS *lmp, const TestConfig &cfg)
     command("variable newton_pair delete");
     command("variable newton_pair index on");
 
-    for (auto &pre_command : cfg.pre_commands) {
+    for (const auto &pre_command : cfg.pre_commands) {
         command(pre_command);
     }
 
@@ -227,10 +227,10 @@ void data_lammps(LAMMPS *lmp, const TestConfig &cfg)
     std::string input_file = platform::path_join(INPUT_FOLDER, cfg.input_file);
     parse_input_script(input_file);
 
-    for (auto &pair_coeff : cfg.pair_coeff) {
+    for (const auto &pair_coeff : cfg.pair_coeff) {
         command("pair_coeff " + pair_coeff);
     }
-    for (auto &post_command : cfg.post_commands) {
+    for (const auto &post_command : cfg.post_commands) {
         command(post_command);
     }
     command("run 0 post no");
@@ -287,7 +287,7 @@ void generate_yaml_file(const char *outfile, const TestConfig &config)
     writer.emit("init_coul", lmp->force->pair->eng_coul);
 
     // init_stress
-    auto stress = lmp->force->pair->virial;
+    auto *stress = lmp->force->pair->virial;
     // avoid false positives on tiny stresses. force to zero instead.
     for (int i = 0; i < 6; ++i)
         if (fabs(stress[i]) < 1.0e-13) stress[i] = 0.0;
@@ -297,7 +297,7 @@ void generate_yaml_file(const char *outfile, const TestConfig &config)
 
     // init_forces
     block.clear();
-    auto f = lmp->atom->f;
+    auto *f = lmp->atom->f;
     for (int i = 1; i <= natoms; ++i) {
         const int j = lmp->atom->map(i);
         block += fmt::format("{:3} {:23.16e} {:23.16e} {:23.16e}\n", i, f[j][0], f[j][1], f[j][2]);
@@ -367,7 +367,7 @@ TEST(PairStyle, plain)
     if (lmp->force->kspace && lmp->force->kspace->compute_flag)
         if (utils::strmatch(lmp->force->kspace_style, "^pppm")) epsilon *= 2.0e8;
 #endif
-    auto pair = lmp->force->pair;
+    auto *pair = lmp->force->pair;
 
     EXPECT_FORCES("init_forces (newton on)", lmp->atom, test_config.init_forces, epsilon);
     EXPECT_STRESS("init_stress (newton on)", pair->virial, test_config.init_stress, epsilon);
@@ -547,7 +547,7 @@ TEST(PairStyle, omp)
     if (lmp->force->kspace && lmp->force->kspace->compute_flag)
         if (utils::strmatch(lmp->force->kspace_style, "^pppm")) epsilon *= 2.0e8;
 #endif
-    auto pair = lmp->force->pair;
+    auto *pair = lmp->force->pair;
     ErrorStats stats;
 
     EXPECT_FORCES("init_forces (newton on)", lmp->atom, test_config.init_forces, epsilon);
@@ -679,7 +679,7 @@ TEST(PairStyle, kokkos_omp)
     if (lmp->force->kspace && lmp->force->kspace->compute_flag)
         if (utils::strmatch(lmp->force->kspace_style, "^pppm")) epsilon *= 2.0e8;
 #endif
-    auto pair = lmp->force->pair;
+    auto *pair = lmp->force->pair;
     ErrorStats stats;
 
     EXPECT_FORCES("init_forces (newton on)", lmp->atom, test_config.init_forces, epsilon);
@@ -821,7 +821,7 @@ TEST(PairStyle, gpu)
         if (utils::strmatch(lmp->force->kspace_style, "^pppm")) epsilon *= 2.0e8;
 #endif
     ErrorStats stats;
-    auto pair = lmp->force->pair;
+    auto *pair = lmp->force->pair;
 
     EXPECT_FORCES("init_forces (newton off)", lmp->atom, test_config.init_forces, epsilon);
     EXPECT_STRESS("init_stress (newton off)", pair->virial, test_config.init_stress, 10 * epsilon);
@@ -902,7 +902,7 @@ TEST(PairStyle, intel)
     ASSERT_EQ(lmp->atom->natoms, nlocal);
 
     ErrorStats stats;
-    auto pair = lmp->force->pair;
+    auto *pair = lmp->force->pair;
 
     EXPECT_FORCES("init_forces", lmp->atom, test_config.init_forces, epsilon);
     EXPECT_STRESS("init_stress", pair->virial, test_config.init_stress, 10 * epsilon);
@@ -973,7 +973,7 @@ TEST(PairStyle, opt)
         if (utils::strmatch(lmp->force->kspace_style, "^pppm")) epsilon *= 2.0e8;
 #endif
     ErrorStats stats;
-    auto pair = lmp->force->pair;
+    auto *pair = lmp->force->pair;
 
     EXPECT_FORCES("init_forces (newton off)", lmp->atom, test_config.init_forces, epsilon);
     EXPECT_STRESS("init_stress", pair->virial, test_config.init_stress, 10 * epsilon);
@@ -1284,7 +1284,7 @@ TEST(PairStyle, extract)
         GTEST_SKIP();
     }
 
-    auto pair = lmp->force->pair;
+    auto *pair = lmp->force->pair;
     if (!pair->compute_flag) {
         std::cerr << "Pair style disabled" << std::endl;
         if (!verbose) ::testing::internal::CaptureStdout();

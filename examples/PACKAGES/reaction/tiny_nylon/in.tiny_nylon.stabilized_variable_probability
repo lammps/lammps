@@ -43,10 +43,11 @@ molecule mol4 rxn1_stp2_reacted.molecule_template
 thermo 50
 
 # dump 1 all xyz 1 test_vis.xyz
+# dump_modify 1 types labels
 
 fix myrxns all bond/react stabilization yes statted_grp .03 &
   react rxn1 all 1 0.0 5.0 mol1 mol2 rxn1_stp1_map prob v_prob1 1234 &
-  react rxn2 all 1 0.0 5.0 mol3 mol4 rxn1_stp2_map prob v_prob2 1234
+  react rxn2 all 1 0.0 5.0 mol3 mol4 rxn1_stp2_map prob v_prob2 1234 rescale_charges yes
 
 fix 1 statted_grp_REACT nvt temp 300 300 100
 
@@ -54,7 +55,7 @@ fix 1 statted_grp_REACT nvt temp 300 300 100
 # by using the internally-created 'bond_react_MASTER_group', like so:
 fix 4 bond_react_MASTER_group temp/rescale 1 300 300 10 1
 
-thermo_style custom step temp press density v_prob1 v_prob2 f_myrxns[1] f_myrxns[2]
+thermo_style custom step temp press density v_prob1 v_prob2 f_myrxns[*]
 
 # restart 100 restart1 restart2
 

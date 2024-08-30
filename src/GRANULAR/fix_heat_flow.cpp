@@ -19,8 +19,9 @@
 #include "force.h"
 #include "memory.h"
 #include "modify.h"
-#include "respa.h"
 #include "update.h"
+
+#include <cstring>
 
 using namespace LAMMPS_NS;
 using namespace FixConst;
@@ -127,7 +128,7 @@ void FixHeatFlow::final_integrate()
   if (igroup == atom->firstgroup) nlocal = atom->nfirst;
 
   // add ghost contributions to heatflow if first instance of fix
-  if (first_flag) comm->reverse_comm(this);
+  if (force->newton_pair && first_flag) comm->reverse_comm(this);
 
   if (rmass) {
     for (int i = 0; i < nlocal; i++)

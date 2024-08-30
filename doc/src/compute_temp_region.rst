@@ -49,12 +49,17 @@ where KE = is the total kinetic energy of the group of atoms (sum of
 :math:`N` is the  number of atoms in both the group and region, :math:`k_B` is
 the Boltzmann constant, and :math:`T` temperature.
 
-A kinetic energy tensor, stored as a six-element vector, is also
-calculated by this compute for use in the computation of a pressure
-tensor.  The formula for the components of the tensor is the same as
-the above formula, except that :math:`v^2` is replaced by :math:`v_x v_y`
-for the :math:`xy` component, and so on.  The six components of the vector are
-ordered :math:`xx`, :math:`yy`, :math:`zz`, :math:`xy`, :math:`xz`, :math:`yz`.
+A symmetric tensor, stored as a six-element vector, is also calculated
+by this compute for use in the computation of a pressure tensor by the
+:doc:`compute pressue <compute_pressure>` command.  The formula for
+the components of the tensor is the same as the above expression for
+:math:`E_\mathrm{kin}`, except that the 1/2 factor is NOT included and
+the :math:`v_i^2` is replaced by :math:`v_{i,x} v_{i,y}` for the
+:math:`xy` component, and so on.  Note that because it lacks the 1/2
+factor, these tensor components are twice those of the traditional
+kinetic energy tensor.  The six components of the vector are ordered
+:math:`xx`, :math:`yy`, :math:`zz`, :math:`xy`, :math:`xz`,
+:math:`yz`.
 
 The number of atoms contributing to the temperature is calculated each
 time the temperature is evaluated since it is assumed atoms can
@@ -78,12 +83,13 @@ will operate only on atoms that are currently in the geometric region.
 
 Unlike other compute styles that calculate temperature, this compute
 does not subtract out degrees-of-freedom due to fixes that constrain
-motion, such as :doc:`fix shake <fix_shake>` and :doc:`fix rigid <fix_rigid>`.  This is because those degrees of freedom
-(e.g., a constrained bond) could apply to sets of atoms that straddle
-the region boundary, and hence the concept is somewhat ill-defined.
-If needed the number of subtracted degrees of freedom can be set
-explicitly using the *extra* option of the
-:doc:`compute_modify <compute_modify>` command.
+motion, such as :doc:`fix shake <fix_shake>` and :doc:`fix rigid
+<fix_rigid>`.  This is because those degrees of freedom (e.g., a
+constrained bond) could apply to sets of atoms that straddle the
+region boundary, and hence the concept is somewhat ill-defined.  If
+needed the number of subtracted degrees of freedom can be set
+explicitly using the *extra* option of the :doc:`compute_modify
+<compute_modify>` command.
 
 See the :doc:`Howto thermostat <Howto_thermostat>` page for a
 discussion of different ways to compute temperature and perform
@@ -93,17 +99,17 @@ Output info
 """""""""""
 
 This compute calculates a global scalar (the temperature) and a global
-vector of length 6 (KE tensor), which can be accessed by indices 1--6.
-These values can be used by any command that uses global scalar or
-vector values from a compute as input.  See the
-:doc:`Howto output <Howto_output>` page for an overview of LAMMPS output
-options.
+vector of length 6 (symmetric tensor), which can be accessed by
+indices 1--6.  These values can be used by any command that uses
+global scalar or vector values from a compute as input.  See the
+:doc:`Howto output <Howto_output>` page for an overview of LAMMPS
+output options.
 
 The scalar value calculated by this compute is "intensive".  The
 vector values are "extensive".
 
-The scalar value will be in temperature :doc:`units <units>`.
-The vector values will be in energy :doc:`units <units>`.
+The scalar value is in temperature :doc:`units <units>`.  The vector
+values are in energy :doc:`units <units>`.
 
 Restrictions
 """"""""""""

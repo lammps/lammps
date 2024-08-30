@@ -39,13 +39,6 @@ class ReadRestart : public Command {
   int nprocs_file;       // total # of procs that wrote restart file
   int revision;          // revision number of the restart file format
 
-  // MPI-IO values
-
-  int mpiioflag;                // 1 for MPIIO output, else 0
-  class RestartMPIIO *mpiio;    // MPIIO for restart file input
-  bigint assignedChunkSize;
-  MPI_Offset assignedChunkOffset, headerOffset;
-
   std::string file_search(const std::string &);
   void header();
   void type_arrays();

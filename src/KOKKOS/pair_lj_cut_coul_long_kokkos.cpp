@@ -17,6 +17,7 @@
 #include "atom_kokkos.h"
 #include "atom_masks.h"
 #include "error.h"
+#include "ewald_const.h"
 #include "force.h"
 #include "kokkos.h"
 #include "math_const.h"
@@ -32,15 +33,7 @@
 
 using namespace LAMMPS_NS;
 using namespace MathConst;
-
-
-#define EWALD_F   1.12837917
-#define EWALD_P   0.3275911
-#define A1        0.254829592
-#define A2       -0.284496736
-#define A3        1.421413741
-#define A4       -1.453152027
-#define A5        1.061405429
+using namespace EwaldConst;
 
 /* ---------------------------------------------------------------------- */
 
@@ -82,7 +75,6 @@ void PairLJCutCoulLongKokkos<DeviceType>::compute(int eflag_in, int vflag_in)
   if (neighflag == FULL) no_virial_fdotr_compute = 1;
 
   ev_init(eflag,vflag,0);
-
 
   // reallocate per-atom arrays if necessary
 
@@ -132,11 +124,11 @@ void PairLJCutCoulLongKokkos<DeviceType>::compute(int eflag_in, int vflag_in)
     ev = pair_compute<PairLJCutCoulLongKokkos<DeviceType>,CoulLongTable<0> >
       (this,(NeighListKokkos<DeviceType>*)list);
 
-
   if (eflag) {
     eng_vdwl += ev.evdwl;
     eng_coul += ev.ecoul;
   }
+
   if (vflag_global) {
     virial[0] += ev.v[0];
     virial[1] += ev.v[1];
@@ -437,9 +429,9 @@ void PairLJCutCoulLongKokkos<DeviceType>::init_style()
 
   neighflag = lmp->kokkos->neighflag;
   auto request = neighbor->find_request(this);
-  request->set_kokkos_host(std::is_same<DeviceType,LMPHostType>::value &&
-                           !std::is_same<DeviceType,LMPDeviceType>::value);
-  request->set_kokkos_device(std::is_same<DeviceType,LMPDeviceType>::value);
+  request->set_kokkos_host(std::is_same_v<DeviceType,LMPHostType> &&
+                           !std::is_same_v<DeviceType,LMPDeviceType>);
+  request->set_kokkos_device(std::is_same_v<DeviceType,LMPDeviceType>);
   if (neighflag == FULL) request->enable_full();
 }
 

@@ -38,14 +38,14 @@ Syntax
        *electrode/thermo* args = potential eta *temp* values
             potential = electrode potential
             charge = electrode charge
-            eta = reciprocal width of electrode charge smearing
+            eta = reciprocal width of electrode charge smearing (can be NULL if eta keyword is used)
             *temp* values = T_v tau_v rng_v
                 T_v = temperature of thermo-potentiostat
                 tau_v = time constant of thermo-potentiostat
                 rng_v = integer used to initialize random number generator
 
 * zero or more keyword/value pairs may be appended
-* keyword = *algo* or *symm* or *couple* or *etypes* or *ffield* or *write_mat* or *write_inv* or *read_mat* or *read_inv*
+* keyword = *algo* or *symm* or *couple* or *etypes* or *ffield* or *write_mat* or *write_inv* or *read_mat* or *read_inv* or *qtotal* or *eta*
 
 .. parsed-literal::
 
@@ -68,6 +68,10 @@ Syntax
         filename = file from which to read elastance matrix
     *read_inv* value = filename
         filename = file from which to read inverted matrix
+    *qtotal* value = number or *v_* equal-style variable
+        add overall potential so that all electrode charges add up to *qtotal*
+    *eta* value = d_propname
+        d_propname = a custom double vector defined via fix property/atom
 
 Examples
 """"""""
@@ -106,7 +110,7 @@ electrostatic configurations:
   :ref:`(Deissenbeck)<Deissenbeck>` between two electrodes
 
   * (resulting in changing charges and potentials with appropriate
-     average potential difference and thermal variance)
+    average potential difference and thermal variance)
 
 The first group-ID provided to each fix specifies the first electrode
 group, and more group(s) are added using the *couple* keyword for each
@@ -249,6 +253,27 @@ be enabled if any electrode particle has the same type as any
 electrolyte particle (which would be unusual in a typical simulation)
 and the fix will issue an error in that case.
 
+.. versionadded:: 17Apr2024
+
+The keyword *qtotal* causes *fix electrode/conp* and *fix
+electrode/thermo* to add an overall potential to all electrodes so that
+the total charge on the electrodes is a specified amount (which may be
+an equal-style variable).  For example, if a user wanted to simulate a
+solution of excess cations such that the total electrolyte charge is +2,
+setting *qtotal -2* would cause the total electrode charge to be -2, so
+that the simulation box remains overall electroneutral. Since *fix
+electrode/conq* constrains the total charges of individual electrodes,
+and since *symm on* constrains the total charge of all electrodes to be
+zero, either option is incompatible with the *qtotal* keyword (even if
+*qtotal* is set to zero).
+
+.. versionadded:: 17Apr2024
+
+The keyword *eta* takes the name of a custom double vector defined via
+fix property/atom.  The values will be used instead of the standard eta
+value.  The property/atom fix must be for vector of double values and
+use the *ghost on* option.
+
 Restart, fix_modify, output, run start/stop, minimize info
 """""""""""""""""""""""""""""""""""""""""""""""""""""""""""
 
@@ -262,8 +287,18 @@ The *fix_modify tf* option enables the Thomas-Fermi metallicity model
    fix_modify ID tf type length voronoi
 
 
-If this option is used parameters must be set for all atom types of the
-electrode.
+If this option is used, these two parameters must be set for
+all atom types of the electrode:
+
+* `tf` is the Thomas-Fermi length :math:`l_{TF}`
+* `voronoi` is the Voronoi volume per atom in units of length cubed
+
+Different types may have different `tf` and `voronoi` values.
+The following self-energy term is then added for all electrode atoms:
+
+.. math::
+
+  A_{ii} += \frac{1}{4 \pi \epsilon_0} \times \frac{4 \pi l_{TF}^2}{\mathrm{Voronoi volume}}
 
 The *fix_modify timer* option turns on (off) additional timer outputs in the log
 file, for code developers to track optimization.
@@ -296,9 +331,11 @@ The global array has *N* rows and *2N+1* columns, where the fix manages
 array, the elements are:
 
 * array[I][1] = total charge that group *I* would have had *if it were
-  at 0 V applied potential* * array[I][2 to *N* + 1] = the *N* entries
+  at 0 V applied potential*
+* array[I][2 to *N* + 1] = the *N* entries
   of the *I*-th row of the electrode capacitance matrix (definition
-  follows) * array[I][*N* + 2 to *2N* + 1] = the *N* entries of the
+  follows)
+* array[I][*N* + 2 to *2N* + 1] = the *N* entries of the
   *I*-th row of the electrode elastance matrix (the inverse of the
   electrode capacitance matrix)
 

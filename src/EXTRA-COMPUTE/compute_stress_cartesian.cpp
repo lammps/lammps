@@ -32,7 +32,7 @@
 
 using namespace LAMMPS_NS;
 
-#define SMALL 1.0e-10
+static constexpr double SMALL = 1.0e-10;
 /*-----------------------------------------------------------------------------------
   Contributing author: Olav Galteland (Norwegian University of Science and Technology)
                         olav.galteland@ntnu.no
@@ -136,7 +136,7 @@ ComputeStressCartesian::ComputeStressCartesian(LAMMPS *lmp, int narg, char **arg
 
   // check for variable box dimension
   int box_incompatible = 0;
-  for (auto ifix : modify->get_fix_list()) {
+  for (auto &ifix : modify->get_fix_list()) {
     if (((dir1 == 0) && (ifix->box_change & Fix::BOX_CHANGE_X)) ||
         ((dir1 == 1) && (ifix->box_change & Fix::BOX_CHANGE_Y)) ||
         ((dir1 == 2) && (ifix->box_change & Fix::BOX_CHANGE_Z)))

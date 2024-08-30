@@ -1,49 +1,22 @@
-/*
 //@HEADER
 // ************************************************************************
 //
-//                        Kokkos v. 3.0
-//       Copyright (2020) National Technology & Engineering
+//                        Kokkos v. 4.0
+//       Copyright (2022) National Technology & Engineering
 //               Solutions of Sandia, LLC (NTESS).
 //
 // Under the terms of Contract DE-NA0003525 with NTESS,
 // the U.S. Government retains certain rights in this software.
 //
-// Redistribution and use in source and binary forms, with or without
-// modification, are permitted provided that the following conditions are
-// met:
+// Part of Kokkos, under the Apache License v2.0 with LLVM Exceptions.
+// See https://kokkos.org/LICENSE for license information.
+// SPDX-License-Identifier: Apache-2.0 WITH LLVM-exception
 //
-// 1. Redistributions of source code must retain the above copyright
-// notice, this list of conditions and the following disclaimer.
-//
-// 2. Redistributions in binary form must reproduce the above copyright
-// notice, this list of conditions and the following disclaimer in the
-// documentation and/or other materials provided with the distribution.
-//
-// 3. Neither the name of the Corporation nor the names of the
-// contributors may be used to endorse or promote products derived from
-// this software without specific prior written permission.
-//
-// THIS SOFTWARE IS PROVIDED BY NTESS "AS IS" AND ANY
-// EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
-// IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR
-// PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL NTESS OR THE
-// CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
-// EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
-// PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR
-// PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF
-// LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING
-// NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
-// SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-//
-// Questions? Contact Christian R. Trott (crtrott@sandia.gov)
-//
-// ************************************************************************
 //@HEADER
-*/
 
 #include <TestStdAlgorithmsCommon.hpp>
 #include <utility>
+#include <iomanip>
 
 namespace Test {
 namespace stdalgos {
@@ -171,51 +144,6 @@ void my_host_inclusive_scan(it1 first, it1 last, it2 dest, BinOp bop,
   }
 }
 
-template <class ViewType1, class ViewType2, class BinaryOp, class... Args>
-void verify_data(ViewType1 data_view,  // contains data
-                 ViewType2 test_view,  // the view to test
-                 BinaryOp bop, Args... args /* copy on purpose */) {
-  //! always careful because views might not be deep copyable
-
-  auto data_view_dc = create_deep_copyable_compatible_clone(data_view);
-  auto data_view_h =
-      create_mirror_view_and_copy(Kokkos::HostSpace(), data_view_dc);
-
-  using gold_view_value_type = typename ViewType2::value_type;
-  Kokkos::View<gold_view_value_type*, Kokkos::HostSpace> gold_h(
-      "goldh", data_view.extent(0));
-  my_host_inclusive_scan(KE::cbegin(data_view_h), KE::cend(data_view_h),
-                         KE::begin(gold_h), bop, args...);
-
-  auto test_view_dc = create_deep_copyable_compatible_clone(test_view);
-  auto test_view_h =
-      create_mirror_view_and_copy(Kokkos::HostSpace(), test_view_dc);
-
-  const auto ext = test_view_h.extent(0);
-  if (ext > 0) {
-    for (std::size_t i = 0; i < ext; ++i) {
-      // std::cout << i << " " << std::setprecision(15) << data_view_h(i) << " "
-      //           << gold_h(i) << " " << test_view_h(i) << " "
-      //           << std::abs(gold_h(i) - test_view_h(i)) << std::endl;
-
-      if (std::is_same<gold_view_value_type, int>::value) {
-        EXPECT_EQ(gold_h(i), test_view_h(i));
-      } else {
-        const auto error =
-            std::abs(static_cast<double>(gold_h(i) - test_view_h(i)));
-        if (error > 1e-10) {
-          std::cout << i << " " << std::setprecision(15) << data_view_h(i)
-                    << " " << gold_h(i) << " " << test_view_h(i) << " "
-                    << std::abs(static_cast<double>(gold_h(i) - test_view_h(i)))
-                    << std::endl;
-        }
-        EXPECT_LT(error, 1e-10);
-      }
-    }
-    // std::cout << " last el: " << test_view_h(ext-1) << std::endl;
-  }
-}
-
 template <class ValueType>
 struct MultiplyFunctor {
   KOKKOS_INLINE_FUNCTION
@@ -232,107 +160,151 @@ struct SumFunctor {
   }
 };
 
+struct VerifyData {
+  template <class ViewType1, class ViewType2, class BinaryOp, class... Args>
+  void operator()(ViewType1 data_view,  // contains data
+                  ViewType2 test_view,  // the view to test
+                  BinaryOp bop, Args... args /* copy on purpose */) {
+    //! always careful because views might not be deep copyable
+
+    auto data_view_dc = create_deep_copyable_compatible_clone(data_view);
+    auto data_view_h =
+        create_mirror_view_and_copy(Kokkos::HostSpace(), data_view_dc);
+
+    using gold_view_value_type = typename ViewType2::value_type;
+    Kokkos::View<gold_view_value_type*, Kokkos::HostSpace> gold_h(
+        "goldh", data_view.extent(0));
+    my_host_inclusive_scan(KE::cbegin(data_view_h), KE::cend(data_view_h),
+                           KE::begin(gold_h), bop, args...);
+
+    auto test_view_dc = create_deep_copyable_compatible_clone(test_view);
+    auto test_view_h =
+        create_mirror_view_and_copy(Kokkos::HostSpace(), test_view_dc);
+
+    const auto ext = test_view_h.extent(0);
+    if (ext > 0) {
+      for (std::size_t i = 0; i < ext; ++i) {
+        if (std::is_same<gold_view_value_type, int>::value) {
+          ASSERT_EQ(gold_h(i), test_view_h(i));
+        } else {
+          const auto error =
+              std::abs(static_cast<double>(gold_h(i) - test_view_h(i)));
+          ASSERT_LT(error, 1e-10) << i << " " << std::setprecision(15) << error
+                                  << static_cast<double>(test_view_h(i)) << " "
+                                  << static_cast<double>(gold_h(i));
+        }
+      }
+    }
+  }
+
+  template <class ViewType1, class ViewType2>
+  void operator()(ViewType1 data_view,  // contains data
+                  ViewType2 test_view)  // the view to test
+  {
+    using value_type = typename ViewType1::non_const_value_type;
+    (*this)(data_view, test_view, SumFunctor<value_type>());
+  }
+};
+
 std::string value_type_to_string(int) { return "int"; }
 std::string value_type_to_string(double) { return "double"; }
 
-template <class Tag, class ValueType, class InfoType>
-void run_single_scenario_default_op(const InfoType& scenario_info) {
-  using default_op           = SumFunctor<ValueType>;
+template <class Tag, class ValueType, class InfoType, class... Args>
+void run_single_scenario(const InfoType& scenario_info,
+                         Args... args /* copy on purpose */) {
   const auto name            = std::get<0>(scenario_info);
   const std::size_t view_ext = std::get<1>(scenario_info);
-  // std::cout << "inclusive_scan default op: " << name << ", "
-  //           << view_tag_to_string(Tag{}) << ", "
-  //           << value_type_to_string(ValueType()) << std::endl;
 
   auto view_dest = create_view<ValueType>(Tag{}, view_ext, "inclusive_scan");
   auto view_from = create_view<ValueType>(Tag{}, view_ext, "inclusive_scan");
   fill_view(view_from, name);
+  // view_dest is filled with zeros before calling the algorithm everytime to
+  // ensure the algorithm does something meaningful
 
   {
     fill_zero(view_dest);
-    auto r = KE::inclusive_scan(exespace(), KE::cbegin(view_from),
-                                KE::cend(view_from), KE::begin(view_dest));
-    EXPECT_EQ(r, KE::end(view_dest));
-    verify_data(view_from, view_dest, default_op());
+    auto r =
+        KE::inclusive_scan(exespace(), KE::cbegin(view_from),
+                           KE::cend(view_from), KE::begin(view_dest), args...);
+    ASSERT_EQ(r, KE::end(view_dest));
+    VerifyData()(view_from, view_dest, args...);
   }
 
   {
     fill_zero(view_dest);
-    auto r = KE::inclusive_scan("label", exespace(), KE::cbegin(view_from),
-                                KE::cend(view_from), KE::begin(view_dest));
-    EXPECT_EQ(r, KE::end(view_dest));
-    verify_data(view_from, view_dest, default_op());
+    auto r =
+        KE::inclusive_scan("label", exespace(), KE::cbegin(view_from),
+                           KE::cend(view_from), KE::begin(view_dest), args...);
+    ASSERT_EQ(r, KE::end(view_dest));
+    VerifyData()(view_from, view_dest, args...);
   }
 
   {
     fill_zero(view_dest);
-    auto r = KE::inclusive_scan(exespace(), view_from, view_dest);
-    EXPECT_EQ(r, KE::end(view_dest));
-    verify_data(view_from, view_dest, default_op());
+    auto r = KE::inclusive_scan(exespace(), view_from, view_dest, args...);
+    ASSERT_EQ(r, KE::end(view_dest));
+    VerifyData()(view_from, view_dest, args...);
   }
 
   {
     fill_zero(view_dest);
-    auto r = KE::inclusive_scan("label", exespace(), view_from, view_dest);
-    EXPECT_EQ(r, KE::end(view_dest));
-    verify_data(view_from, view_dest, default_op());
+    auto r =
+        KE::inclusive_scan("label", exespace(), view_from, view_dest, args...);
+    ASSERT_EQ(r, KE::end(view_dest));
+    VerifyData()(view_from, view_dest, args...);
   }
 
   Kokkos::fence();
 }
 
-template <class Tag, class ValueType, class InfoType, class BinaryOp,
-          class... Args>
-void run_single_scenario_custom_op(const InfoType& scenario_info, BinaryOp bop,
-                                   Args... args /* copy on purpose */) {
+template <class Tag, class ValueType, class InfoType, class... Args>
+void run_single_scenario_inplace(const InfoType& scenario_info,
+                                 Args... args /* copy on purpose */) {
   const auto name            = std::get<0>(scenario_info);
   const std::size_t view_ext = std::get<1>(scenario_info);
 
-  // if (1 == sizeof...(Args)) {
-  //   std::cout << "inclusive_scan custom op and init value: " << name << ", "
-  //             << view_tag_to_string(Tag{}) << ", "
-  //             << value_type_to_string(ValueType()) << ", " << std::endl;
-  // } else {
-  //   std::cout << "inclusive_scan custom op: " << name << ", "
-  //             << view_tag_to_string(Tag{}) << ", "
-  //             << value_type_to_string(ValueType()) << ", " << std::endl;
-  // }
+  // since here we call the in-place operation, we need to use two views:
+  // view1: filled according to what the scenario asks for and is not modified
+  // view2: filled according to what the scenario asks for and used for the
+  // in-place op Therefore, after the op is done, view_2 should contain the
+  // result of doing exclusive scan NOTE: view2 is filled below every time
+  // because the algorithm acts in place
 
-  auto view_dest = create_view<ValueType>(Tag{}, view_ext, "inclusive_scan");
-  auto view_from = create_view<ValueType>(Tag{}, view_ext, "inclusive_scan");
-  fill_view(view_from, name);
+  auto view1 =
+      create_view<ValueType>(Tag{}, view_ext, "inclusive_scan_inplace_view1");
+  fill_view(view1, name);
+
+  auto view2 =
+      create_view<ValueType>(Tag{}, view_ext, "inclusive_scan_inplace_view2");
 
   {
-    fill_zero(view_dest);
-    auto r = KE::inclusive_scan(exespace(), KE::cbegin(view_from),
-                                KE::cend(view_from), KE::begin(view_dest), bop,
-                                args...);
-    EXPECT_EQ(r, KE::end(view_dest));
-    verify_data(view_from, view_dest, bop, args...);
+    fill_view(view2, name);
+    auto r = KE::inclusive_scan(exespace(), KE::cbegin(view2), KE::cend(view2),
+                                KE::begin(view2), args...);
+    ASSERT_EQ(r, KE::end(view2));
+    VerifyData()(view1, view2, args...);
   }
 
   {
-    fill_zero(view_dest);
-    auto r = KE::inclusive_scan("label", exespace(), KE::cbegin(view_from),
-                                KE::cend(view_from), KE::begin(view_dest), bop,
-                                args...);
-    EXPECT_EQ(r, KE::end(view_dest));
-    verify_data(view_from, view_dest, bop, args...);
+    fill_view(view2, name);
+    auto r = KE::inclusive_scan("label", exespace(), KE::cbegin(view2),
+                                KE::cend(view2), KE::begin(view2), args...);
+    ASSERT_EQ(r, KE::end(view2));
+    VerifyData()(view1, view2, args...);
   }
 
   {
-    fill_zero(view_dest);
-    auto r = KE::inclusive_scan(exespace(), view_from, view_dest, bop, args...);
-    EXPECT_EQ(r, KE::end(view_dest));
-    verify_data(view_from, view_dest, bop, args...);
+    fill_view(view2, name);
+    auto r = KE::inclusive_scan(exespace(), view2, view2, args...);
+    ASSERT_EQ(r, KE::end(view2));
+    VerifyData()(view1, view2, args...);
   }
 
   {
-    fill_zero(view_dest);
-    auto r = KE::inclusive_scan("label", exespace(), view_from, view_dest, bop,
-                                args...);
-    EXPECT_EQ(r, KE::end(view_dest));
-    verify_data(view_from, view_dest, bop, args...);
+    fill_view(view2, name);
+    auto r = KE::inclusive_scan("label", exespace(), view2, view2, args...);
+    ASSERT_EQ(r, KE::end(view2));
+    VerifyData()(view1, view2, args...);
   }
 
   Kokkos::fence();
@@ -346,27 +318,35 @@ void run_inclusive_scan_all_scenarios() {
       {"medium-a", 313},     {"medium-b", 1103}, {"large", 10513}};
 
   for (const auto& it : scenarios) {
-    run_single_scenario_default_op<Tag, ValueType>(it);
+    run_single_scenario<Tag, ValueType>(it);
+    run_single_scenario_inplace<Tag, ValueType>(it);
 
 #if !defined KOKKOS_ENABLE_OPENMPTARGET
     // the sum custom op is always run
     using sum_binary_op = SumFunctor<ValueType>;
     sum_binary_op sbop;
-    run_single_scenario_custom_op<Tag, ValueType>(it, sbop);
-    run_single_scenario_custom_op<Tag, ValueType>(it, sbop, ValueType{0});
-    run_single_scenario_custom_op<Tag, ValueType>(it, sbop, ValueType{1});
-    run_single_scenario_custom_op<Tag, ValueType>(it, sbop, ValueType{-2});
-    run_single_scenario_custom_op<Tag, ValueType>(it, sbop, ValueType{3});
+    run_single_scenario<Tag, ValueType>(it, sbop);
+    run_single_scenario<Tag, ValueType>(it, sbop, ValueType{0});
+    run_single_scenario<Tag, ValueType>(it, sbop, ValueType{1});
+    run_single_scenario<Tag, ValueType>(it, sbop, ValueType{-2});
+    run_single_scenario<Tag, ValueType>(it, sbop, ValueType{3});
+
+    run_single_scenario_inplace<Tag, ValueType>(it, sbop, ValueType{0});
+    run_single_scenario_inplace<Tag, ValueType>(it, sbop, ValueType{-2});
 
     // custom multiply only for small views to avoid overflows
     if (it.first == "small-a" || it.first == "small-b") {
       using mult_binary_op = MultiplyFunctor<ValueType>;
       mult_binary_op mbop;
-      run_single_scenario_custom_op<Tag, ValueType>(it, mbop);
-      run_single_scenario_custom_op<Tag, ValueType>(it, mbop, ValueType{0});
-      run_single_scenario_custom_op<Tag, ValueType>(it, mbop, ValueType{1});
-      run_single_scenario_custom_op<Tag, ValueType>(it, mbop, ValueType{-2});
-      run_single_scenario_custom_op<Tag, ValueType>(it, mbop, ValueType{3});
+      run_single_scenario<Tag, ValueType>(it, mbop);
+      run_single_scenario<Tag, ValueType>(it, mbop, ValueType{0});
+      run_single_scenario<Tag, ValueType>(it, mbop, ValueType{1});
+      run_single_scenario<Tag, ValueType>(it, mbop, ValueType{-2});
+      run_single_scenario<Tag, ValueType>(it, mbop, ValueType{3});
+
+      run_single_scenario_inplace<Tag, ValueType>(it, mbop);
+      run_single_scenario_inplace<Tag, ValueType>(it, mbop, ValueType{0});
+      run_single_scenario_inplace<Tag, ValueType>(it, mbop, ValueType{-2});
     }
 #endif
   }
@@ -379,6 +359,45 @@ TEST(std_algorithms_numeric_ops_test, inclusive_scan) {
   run_inclusive_scan_all_scenarios<StridedThreeTag, int>();
   run_inclusive_scan_all_scenarios<DynamicTag, CustomValueType>();
   run_inclusive_scan_all_scenarios<StridedThreeTag, CustomValueType>();
+}
+
+TEST(std_algorithms_numeric_ops_test, inclusive_scan_functor) {
+  using view_type = Kokkos::View<int*, exespace>;
+  view_type dummy_view("dummy_view", 0);
+  using functor_type = Kokkos::Experimental::Impl::InclusiveScanDefaultFunctor<
+      exespace, int, int, view_type, view_type>;
+  functor_type functor(dummy_view, dummy_view);
+  using value_type = functor_type::value_type;
+
+  value_type value1;
+  functor.init(value1);
+  ASSERT_EQ(value1.val, 0);
+  ASSERT_EQ(value1.is_initial, true);
+
+  value_type value2;
+  value2.val        = 1;
+  value2.is_initial = false;
+  functor.join(value1, value2);
+  ASSERT_EQ(value1.val, 1);
+  ASSERT_EQ(value1.is_initial, false);
+
+  functor.init(value1);
+  functor.join(value2, value1);
+  ASSERT_EQ(value2.val, 1);
+  ASSERT_EQ(value2.is_initial, false);
+
+  functor.init(value2);
+  functor.join(value2, value1);
+  ASSERT_EQ(value2.val, 0);
+  ASSERT_EQ(value2.is_initial, true);
+
+  value1.val        = 1;
+  value1.is_initial = false;
+  value2.val        = 2;
+  value2.is_initial = false;
+  functor.join(value2, value1);
+  ASSERT_EQ(value2.val, 3);
+  ASSERT_EQ(value2.is_initial, false);
 }
 
 }  // namespace IncScan

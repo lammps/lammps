@@ -4,7 +4,7 @@ extern "C" {
 #include "lmp_f2c.h"
 static integer c__1 = 1;
 static integer c__0 = 0;
-static doublereal c_b8 = 1.;
+static doublereal c_b7 = 1.;
 int dlasd8_(integer *icompq, integer *k, doublereal *d__, doublereal *z__, doublereal *vf,
             doublereal *vl, doublereal *difl, doublereal *difr, integer *lddifr, doublereal *dsigma,
             doublereal *work, integer *info)
@@ -62,19 +62,15 @@ int dlasd8_(integer *icompq, integer *k, doublereal *d__, doublereal *z__, doubl
         }
         return 0;
     }
-    i__1 = *k;
-    for (i__ = 1; i__ <= i__1; ++i__) {
-        dsigma[i__] = dlamc3_(&dsigma[i__], &dsigma[i__]) - dsigma[i__];
-    }
     iwk1 = 1;
     iwk2 = iwk1 + *k;
     iwk3 = iwk2 + *k;
     iwk2i = iwk2 - 1;
     iwk3i = iwk3 - 1;
     rho = dnrm2_(k, &z__[1], &c__1);
-    dlascl_((char *)"G", &c__0, &c__0, &rho, &c_b8, k, &c__1, &z__[1], k, info, (ftnlen)1);
+    dlascl_((char *)"G", &c__0, &c__0, &rho, &c_b7, k, &c__1, &z__[1], k, info, (ftnlen)1);
     rho *= rho;
-    dlaset_((char *)"A", k, &c__1, &c_b8, &c_b8, &work[iwk3], k, (ftnlen)1);
+    dlaset_((char *)"A", k, &c__1, &c_b7, &c_b7, &work[iwk3], k, (ftnlen)1);
     i__1 = *k;
     for (j = 1; j <= i__1; ++j) {
         dlasd4_(k, &j, &dsigma[1], &z__[1], &work[iwk1], &rho, &d__[j], &work[iwk2], info);

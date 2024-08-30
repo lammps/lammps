@@ -34,12 +34,11 @@
 using namespace LAMMPS_NS;
 using namespace MathSpecial;
 
-#define TOL 1.0e-9
+static constexpr double TOL = 1.0e-9;
 
 /* ---------------------------------------------------------------------- */
 
-PairAIREBOOMP::PairAIREBOOMP(LAMMPS *lmp) :
-  PairAIREBO(lmp), ThrOMP(lmp, THR_PAIR)
+PairAIREBOOMP::PairAIREBOOMP(LAMMPS *lmp) : PairAIREBO(lmp), ThrOMP(lmp, THR_PAIR)
 {
   suffix_flag |= Suffix::OMP;
   respa_enable = 0;
@@ -386,7 +385,7 @@ void PairAIREBOOMP::FLJ_thr(int ifrom, int ito, int eflag, double *pv1, ThrData 
         // if best = 1.0, done
 
         REBO_neighs_i = REBO_firstneigh[i];
-        for (kk = 0; kk < REBO_numneigh[i] && done==0; kk++) {
+        for (kk = 0; (kk < REBO_numneigh[i]) && (done == 0); kk++) {
           k = REBO_neighs_i[kk];
           if (k == j) continue;
           ktype = map[type[k]];
@@ -398,7 +397,10 @@ void PairAIREBOOMP::FLJ_thr(int ifrom, int ito, int eflag, double *pv1, ThrData 
           if (rsq < rcmaxsq[itype][ktype]) {
             rik = sqrt(rsq);
             wik = Sp(rik,rcmin[itype][ktype],rcmax[itype][ktype],dwik);
-          } else { dwik = wik = 0.0; rikS = rik = 1.0; }
+          } else {
+            dwik = wik = 0.0;
+            rikS = rik = 1.0;
+          }
 
           if (wik > best) {
             deljk[0] = x[j][0] - x[k][0];
@@ -437,7 +439,7 @@ void PairAIREBOOMP::FLJ_thr(int ifrom, int ito, int eflag, double *pv1, ThrData 
             // if best = 1.0, done
 
             REBO_neighs_k = REBO_firstneigh[k];
-            for (mm = 0; mm < REBO_numneigh[k] && done==0; mm++) {
+            for (mm = 0; (mm < REBO_numneigh[k]) && (done == 0); mm++) {
               m = REBO_neighs_k[mm];
               if (m == i || m == j) continue;
               mtype = map[type[m]];
@@ -448,7 +450,10 @@ void PairAIREBOOMP::FLJ_thr(int ifrom, int ito, int eflag, double *pv1, ThrData 
               if (rsq < rcmaxsq[ktype][mtype]) {
                 rkm = sqrt(rsq);
                 wkm = Sp(rkm,rcmin[ktype][mtype],rcmax[ktype][mtype],dwkm);
-              } else { dwkm = wkm = 0.0; rkmS = rkm = 1.0; }
+              } else {
+                dwkm = wkm = 0.0;
+                rkmS = rkm = 1.0;
+              }
 
               if (wik*wkm > best) {
                 deljm[0] = x[j][0] - x[m][0];
@@ -1121,12 +1126,9 @@ double PairAIREBOOMP::bondorder_thr(int i, int j, double rij[3], double rijmag,
       cosjik = MIN(cosjik,1.0);
       cosjik = MAX(cosjik,-1.0);
 
-      dcosjikdri[0] = ((rij[0]+rik[0])*invrijkm) -
-        (cosjik*((rij[0]*invrijm2)+(rik[0]*invrikm2)));
-      dcosjikdri[1] = ((rij[1]+rik[1])*invrijkm) -
-        (cosjik*((rij[1]*invrijm2)+(rik[1]*invrikm2)));
-      dcosjikdri[2] = ((rij[2]+rik[2])*invrijkm) -
-        (cosjik*((rij[2]*invrijm2)+(rik[2]*invrikm2)));
+      dcosjikdri[0] = ((rij[0]+rik[0])*invrijkm) - (cosjik*((rij[0]*invrijm2)+(rik[0]*invrikm2)));
+      dcosjikdri[1] = ((rij[1]+rik[1])*invrijkm) - (cosjik*((rij[1]*invrijm2)+(rik[1]*invrikm2)));
+      dcosjikdri[2] = ((rij[2]+rik[2])*invrijkm) - (cosjik*((rij[2]*invrijm2)+(rik[2]*invrikm2)));
       dcosjikdrk[0] = (-rij[0]*invrijkm) + (cosjik*(rik[0]*invrikm2));
       dcosjikdrk[1] = (-rij[1]*invrijkm) + (cosjik*(rik[1]*invrikm2));
       dcosjikdrk[2] = (-rij[2]*invrijkm) + (cosjik*(rik[2]*invrikm2));

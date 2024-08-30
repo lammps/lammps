@@ -1,7 +1,8 @@
+# -*- CMake -*- configuration for building the PHONON package analysis tool: phana
 
 # Support Linux from Ubuntu 20.04LTS onward, CentOS 7.x (with EPEL),
 # macOS, MSVC 2019 (=Version 16)
-cmake_minimum_required(VERSION 3.10)
+cmake_minimum_required(VERSION 3.16)
 
 # set timestamp of downloaded files to that of archive
 if(POLICY CMP0135)
@@ -26,6 +27,7 @@ if(MSVC)
   add_compile_options(/wd4711)
   add_compile_options(/wd4820)
   add_compile_options(/wd5045)
+  add_compile_options(/wd4250)
   add_compile_definitions(_CRT_SECURE_NO_WARNINGS)
 endif()
 
@@ -100,7 +102,7 @@ if(USE_SPGLIB)
     -DCMAKE_OSX_ARCHITECTURES=${CMAKE_OSX_ARCHITECTURES_}
     -DCMAKE_OSX_DEPLOYMENT_TARGET=${CMAKE_OSX_DEPLOYMENT_TARGET}
     UPDATE_COMMAND ${CMAKE_COMMAND} -E copy_if_different ${CMAKE_CURRENT_SOURCE_DIR}/CMakeLists.spglib ${CMAKE_CURRENT_BINARY_DIR}/spglib_build_ext/src/spglib_build/CMakeLists.txt
-    INSTALL_COMMAND ${CMAKE_COMMAND} --build ${CMAKE_CURRENT_BINARY_DIR}/spglib_build_ext/src/spglib_build-build --target install
+    INSTALL_COMMAND ${CMAKE_COMMAND} --install ${CMAKE_CURRENT_BINARY_DIR}/spglib_build_ext/src/spglib_build-build --prefix ${CMAKE_CURRENT_BINARY_DIR}/spglib_build_ext
     BUILD_BYPRODUCTS "${CMAKE_CURRENT_BINARY_DIR}/spglib_build_ext/lib/${CMAKE_STATIC_LIBRARY_PREFIX}symspg${CMAKE_STATIC_LIBRARY_SUFFIX}"
   )
 

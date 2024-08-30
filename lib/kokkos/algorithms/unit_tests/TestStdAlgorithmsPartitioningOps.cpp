@@ -1,46 +1,18 @@
-/*
 //@HEADER
 // ************************************************************************
 //
-//                        Kokkos v. 3.0
-//       Copyright (2020) National Technology & Engineering
+//                        Kokkos v. 4.0
+//       Copyright (2022) National Technology & Engineering
 //               Solutions of Sandia, LLC (NTESS).
 //
 // Under the terms of Contract DE-NA0003525 with NTESS,
 // the U.S. Government retains certain rights in this software.
 //
-// Redistribution and use in source and binary forms, with or without
-// modification, are permitted provided that the following conditions are
-// met:
+// Part of Kokkos, under the Apache License v2.0 with LLVM Exceptions.
+// See https://kokkos.org/LICENSE for license information.
+// SPDX-License-Identifier: Apache-2.0 WITH LLVM-exception
 //
-// 1. Redistributions of source code must retain the above copyright
-// notice, this list of conditions and the following disclaimer.
-//
-// 2. Redistributions in binary form must reproduce the above copyright
-// notice, this list of conditions and the following disclaimer in the
-// documentation and/or other materials provided with the distribution.
-//
-// 3. Neither the name of the Corporation nor the names of the
-// contributors may be used to endorse or promote products derived from
-// this software without specific prior written permission.
-//
-// THIS SOFTWARE IS PROVIDED BY NTESS "AS IS" AND ANY
-// EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
-// IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR
-// PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL NTESS OR THE
-// CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
-// EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
-// PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR
-// PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF
-// LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING
-// NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
-// SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-//
-// Questions? Contact Christian R. Trott (crtrott@sandia.gov)
-//
-// ************************************************************************
 //@HEADER
-*/
 
 #include <TestStdAlgorithmsCommon.hpp>
 
@@ -155,7 +127,7 @@ struct std_algorithms_partitioning_test : public std_algorithms_test {
       case Mixed: return false;
       case NegativeFirst: return true;
       case AllNegative: return true;
-      case AllPositive: return false;
+      case AllPositive: return true;
       case NegativeLast: return false;
       case SingleNegative: return true;
       default: return false;
@@ -199,15 +171,15 @@ TEST_F(std_algorithms_partitioning_test, is_partitioned_accepting_iterators) {
         goldSolutionIsPartitioned(static_cast<FixtureViews>(id));
     const auto result1 = KE::is_partitioned(
         exespace(), KE::cbegin(m_static_view), KE::cend(m_static_view), p);
-    EXPECT_EQ(goldBool, result1);
+    ASSERT_EQ(goldBool, result1);
 
     const auto result2 = KE::is_partitioned(
         exespace(), KE::cbegin(m_dynamic_view), KE::cend(m_dynamic_view), p);
-    EXPECT_EQ(goldBool, result2);
+    ASSERT_EQ(goldBool, result2);
 
     const auto result3 = KE::is_partitioned(
         exespace(), KE::cbegin(m_strided_view), KE::cend(m_strided_view), p);
-    EXPECT_EQ(goldBool, result3);
+    ASSERT_EQ(goldBool, result3);
   }
 }
 
@@ -219,13 +191,13 @@ TEST_F(std_algorithms_partitioning_test, is_partitioned_accepting_view) {
     const bool goldBool =
         goldSolutionIsPartitioned(static_cast<FixtureViews>(id));
     const auto result1 = KE::is_partitioned(exespace(), m_static_view, p);
-    EXPECT_EQ(goldBool, result1);
+    ASSERT_EQ(goldBool, result1);
 
     const auto result2 = KE::is_partitioned(exespace(), m_dynamic_view, p);
-    EXPECT_EQ(goldBool, result2);
+    ASSERT_EQ(goldBool, result2);
 
     const auto result3 = KE::is_partitioned(exespace(), m_strided_view, p);
-    EXPECT_EQ(goldBool, result3);
+    ASSERT_EQ(goldBool, result3);
   }
 }
 
@@ -239,17 +211,17 @@ TEST_F(std_algorithms_partitioning_test, partition_point) {
     auto first1        = KE::cbegin(m_static_view);
     auto last1         = KE::cend(m_static_view);
     const auto result1 = KE::partition_point(exespace(), first1, last1, p);
-    EXPECT_EQ(goldIndex, result1 - first1);
+    ASSERT_EQ(goldIndex, result1 - first1);
 
     auto first2        = KE::cbegin(m_dynamic_view);
     auto last2         = KE::cend(m_dynamic_view);
     const auto result2 = KE::partition_point(exespace(), first2, last2, p);
-    EXPECT_EQ(goldIndex, result2 - first2);
+    ASSERT_EQ(goldIndex, result2 - first2);
 
     auto first3        = KE::cbegin(m_strided_view);
     auto last3         = KE::cend(m_strided_view);
     const auto result3 = KE::partition_point(exespace(), first3, last3, p);
-    EXPECT_EQ(goldIndex, result3 - first3);
+    ASSERT_EQ(goldIndex, result3 - first3);
   }
 }
 

@@ -104,8 +104,6 @@ Lowercase directories
 +-------------+------------------------------------------------------------------+
 | min         | energy minimization of 2d LJ melt                                |
 +-------------+------------------------------------------------------------------+
-| mscg        | parameterize a multi-scale coarse-graining (MSCG) model          |
-+-------------+------------------------------------------------------------------+
 | msst        | MSST shock dynamics                                              |
 +-------------+------------------------------------------------------------------+
 | multi       | multi neighboring for systems with large interaction disparities |
@@ -135,6 +133,8 @@ Lowercase directories
 | reax        | RDX and TATB models using the ReaxFF                             |
 +-------------+------------------------------------------------------------------+
 | rerun       | use of rerun and read_dump commands                              |
++-------------+------------------------------------------------------------------+
+| rheo        | RHEO simulations of fluid flows and phase transitions            |
 +-------------+------------------------------------------------------------------+
 | rigid       | rigid bodies modeled as independent or coupled                   |
 +-------------+------------------------------------------------------------------+

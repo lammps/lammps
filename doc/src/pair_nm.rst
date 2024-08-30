@@ -98,7 +98,7 @@ Style *nm/cut/coul/cut* adds a Coulombic pairwise interaction given by
    E = \frac{C q_i q_j}{\epsilon  r} \qquad r < r_c
 
 where :math:`C` is an energy-conversion constant, :math:`q_i` and :math:`q_j`
-are the charges on the 2 atoms, and epsilon is the dielectric constant which can
+are the charges on the two atoms, and epsilon is the dielectric constant which can
 be set by the :doc:`dielectric <dielectric>` command.  If one cutoff is
 specified in the pair_style command, it is used for both the N-M and Coulombic
 terms.  If two cutoffs are specified, they are used as cutoffs for the N-M and

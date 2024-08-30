@@ -16,7 +16,7 @@
 #include "atom_masks.h"
 #include "atom_vec.h"
 #include "atom_vec_kokkos.h"
-#include "comm_kokkos.h"
+#include "comm.h"
 #include "domain.h"
 #include "error.h"
 #include "kokkos.h"
@@ -25,6 +25,7 @@
 #include "kokkos_base.h"
 #include "modify.h"
 #include "fix.h"
+#include "fix_property_atom_kokkos.h"
 
 using namespace LAMMPS_NS;
 
@@ -276,36 +277,22 @@ void AtomKokkos::sort_device()
 }
 
 /* ----------------------------------------------------------------------
-   reallocate memory to the pointer selected by the mask
-------------------------------------------------------------------------- */
-
-void AtomKokkos::grow(unsigned int mask)
-{
-  if (mask & SPECIAL_MASK) {
-    memoryKK->destroy_kokkos(k_special, special);
-    sync(Device, mask);
-    modified(Device, mask);
-    memoryKK->grow_kokkos(k_special, special, nmax, maxspecial, "atom:special");
-    avec->grow_pointers();
-    sync(Host, mask);
-  }
-}
-
-/* ----------------------------------------------------------------------
    add a custom variable with name of type flag = 0/1 for int/double
    assumes name does not already exist
    return index in ivector or dvector of its location
 ------------------------------------------------------------------------- */
 
-int AtomKokkos::add_custom(const char *name, int flag, int cols)
+int AtomKokkos::add_custom(const char *name, int flag, int cols, int ghost)
 {
-  int index;
+  int index = -1;
 
   if (flag == 0 && cols == 0) {
     index = nivector;
     nivector++;
     ivname = (char **) memory->srealloc(ivname, nivector * sizeof(char *), "atom:ivname");
     ivname[index] = utils::strdup(name);
+    ivghost = (int *) memory->srealloc(ivghost,nivector * sizeof(int),"atom:ivghost");
+    ivghost[index] = ghost;
     ivector = (int **) memory->srealloc(ivector, nivector * sizeof(int *), "atom:ivector");
     memory->create(ivector[index], nmax, "atom:ivector");
 
@@ -314,6 +301,8 @@ int AtomKokkos::add_custom(const char *name, int flag, int cols)
     ndvector++;
     dvname = (char **) memory->srealloc(dvname, ndvector * sizeof(char *), "atom:dvname");
     dvname[index] = utils::strdup(name);
+    dvghost = (int *) memory->srealloc(dvghost, ndvector * sizeof(int), "atom:dvghost");
+    dvghost[index] = ghost;
     dvector = (double **) memory->srealloc(dvector, ndvector * sizeof(double *), "atom:dvector");
     this->sync(Device, DVECTOR_MASK);
     memoryKK->grow_kokkos(k_dvector, dvector, ndvector, nmax, "atom:dvector");
@@ -324,6 +313,8 @@ int AtomKokkos::add_custom(const char *name, int flag, int cols)
     niarray++;
     ianame = (char **) memory->srealloc(ianame, niarray * sizeof(char *), "atom:ianame");
     ianame[index] = utils::strdup(name);
+    iaghost = (int *) memory->srealloc(iaghost, niarray * sizeof(int), "atom:iaghost");
+    iaghost[index] = ghost;
     iarray = (int ***) memory->srealloc(iarray, niarray * sizeof(int **), "atom:iarray");
     memory->create(iarray[index], nmax, cols, "atom:iarray");
 
@@ -335,12 +326,17 @@ int AtomKokkos::add_custom(const char *name, int flag, int cols)
     ndarray++;
     daname = (char **) memory->srealloc(daname, ndarray * sizeof(char *), "atom:daname");
     daname[index] = utils::strdup(name);
+    daghost = (int *) memory->srealloc(daghost, ndarray * sizeof(int), "atom:daghost");
+    daghost[index] = ghost;
     darray = (double ***) memory->srealloc(darray, ndarray * sizeof(double **), "atom:darray");
     memory->create(darray[index], nmax, cols, "atom:darray");
 
     dcols = (int *) memory->srealloc(dcols, ndarray * sizeof(int), "atom:dcols");
     dcols[index] = cols;
   }
+
+  if (index < 0)
+    error->all(FLERR,"Invalid call to AtomKokkos::add_custom()");
 
   return index;
 }

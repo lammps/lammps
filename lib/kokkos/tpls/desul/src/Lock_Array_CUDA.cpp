@@ -11,8 +11,7 @@ SPDX-License-Identifier: (BSD-3-Clause)
 #include <sstream>
 #include <string>
 
-#ifdef DESUL_HAVE_CUDA_ATOMICS
-#ifdef __CUDACC_RDC__
+#ifdef DESUL_ATOMICS_ENABLE_CUDA_SEPARABLE_COMPILATION
 namespace desul {
 namespace Impl {
 __device__ __constant__ int32_t* CUDA_SPACE_ATOMIC_LOCKS_DEVICE = nullptr;
@@ -84,7 +83,7 @@ void finalize_lock_arrays_cuda() {
   cudaFreeHost(CUDA_SPACE_ATOMIC_LOCKS_NODE_h);
   CUDA_SPACE_ATOMIC_LOCKS_DEVICE_h = nullptr;
   CUDA_SPACE_ATOMIC_LOCKS_NODE_h = nullptr;
-#ifdef __CUDACC_RDC__
+#ifdef DESUL_ATOMICS_ENABLE_CUDA_SEPARABLE_COMPILATION
   copy_cuda_lock_arrays_to_device();
 #endif
 }
@@ -96,4 +95,3 @@ template void finalize_lock_arrays_cuda<int>();
 }  // namespace Impl
 
 }  // namespace desul
-#endif

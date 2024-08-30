@@ -204,6 +204,8 @@ void NPairIntel::bin_newton(const int offload, NeighList *list,
   }
   const int special_bound = sb;
 
+  const double delta = 0.01 * force->angstrom;
+
   #ifdef _LMP_INTEL_OFFLOAD
   const int * _noalias const binhead = this->binhead;
   const int * _noalias const bins = this->bins;
@@ -229,7 +231,7 @@ void NPairIntel::bin_newton(const int offload, NeighList *list,
     in(ncache_stride,maxnbors,nthreads,maxspecial,nstencil,e_nall,offload) \
     in(offload_end,separate_buffers,astart,aend,nlocal,molecular) \
     in(ntypes,xperiodic,yperiodic,zperiodic,xprd_half,yprd_half,zprd_half) \
-    in(pack_width,special_bound)                                        \
+    in(pack_width,special_bound,delta)                                  \
     out(overflow:length(5) alloc_if(0) free_if(0)) \
     out(timer_compute:length(1) alloc_if(0) free_if(0)) \
     signal(tag)
@@ -331,7 +333,7 @@ void NPairIntel::bin_newton(const int offload, NeighList *list,
         const flt_t ztmp = x[i].z;
         const int itype = x[i].w;
         tagint itag;
-        if (THREE) itag = tag[i];
+        if (THREE || (TRI && !FULL)) itag = tag[i];
         const int ioffset = ntypes * itype;
 
         const int ibin = atombin[i];
@@ -365,7 +367,7 @@ void NPairIntel::bin_newton(const int offload, NeighList *list,
             ty[u] = x[j].y;
             tz[u] = x[j].z;
             tjtype[u] = x[j].w;
-            if (THREE) ttag[u] = tag[j];
+            if (THREE || (TRI && !FULL)) ttag[u] = tag[j];
           }
 
           if (FULL == 0 && TRI != 1) {
@@ -486,12 +488,32 @@ void NPairIntel::bin_newton(const int offload, NeighList *list,
 
           // Triclinic
           if (TRI) {
-            if (tz[u] < ztmp) addme = 0;
-            if (tz[u] == ztmp) {
-              if (ty[u] < ytmp) addme = 0;
-              if (ty[u] == ytmp) {
-                if (tx[u] < xtmp) addme = 0;
-                if (tx[u] == xtmp && j <= i) addme = 0;
+            if (FULL) {
+              if (tz[u] < ztmp) addme = 0;
+              if (tz[u] == ztmp) {
+                if (ty[u] < ytmp) addme = 0;
+                if (ty[u] == ytmp) {
+                  if (tx[u] < xtmp) addme = 0;
+                  if (tx[u] == xtmp && j <= i) addme = 0;
+                }
+              }
+            } else {
+              if (j <= i) addme = 0;
+              if (j >= nlocal) {
+                const tagint jtag = ttag[u];
+                if (itag > jtag) {
+                  if ((itag+jtag) % 2 == 0) addme = 0;
+                } else if (itag < jtag) {
+                  if ((itag+jtag) % 2 == 1) addme = 0;
+                } else {
+                  if (fabs(tz[u]-ztmp) > delta) {
+                    if (tz[u] < ztmp) addme = 0;
+                  } else if (fabs(ty[u]-ytmp) > delta) {
+                    if (ty[u] < ytmp) addme = 0;
+                  } else {
+                    if (tx[u] < xtmp) addme = 0;
+                  }
+                }
               }
             }
           }

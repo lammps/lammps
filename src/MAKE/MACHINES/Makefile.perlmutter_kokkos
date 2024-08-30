@@ -54,7 +54,7 @@ MPI_LIB = -L${MPICH_DIR}/lib -lmpi -L${CRAY_MPICH_ROOTDIR}/gtl/lib -lmpi_gtl_cud
 # PATH = path for FFT library
 # LIB = name of FFT library
 
-FFT_INC = -DFFT_CUFFT
+FFT_INC = -DFFT_KOKKOS_CUFFT
 FFT_PATH = 
 FFT_LIB = ${CRAY_CUDATOOLKIT_POST_LINK_OPTS} -lcufft
 

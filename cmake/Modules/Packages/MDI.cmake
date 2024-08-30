@@ -26,29 +26,9 @@ if(DOWNLOAD_MDI)
 
   # detect if we have python development support and thus can enable python plugins
   set(MDI_USE_PYTHON_PLUGINS OFF)
-  if(CMAKE_VERSION VERSION_LESS 3.12)
-    if(NOT PYTHON_VERSION_STRING)
-      set(Python_ADDITIONAL_VERSIONS 3.12 3.11 3.10 3.9 3.8 3.7 3.6)
-      # search for interpreter first, so we have a consistent library
-      find_package(PythonInterp) # Deprecated since version 3.12
-      if(PYTHONINTERP_FOUND)
-        set(Python_EXECUTABLE ${PYTHON_EXECUTABLE})
-      endif()
-    endif()
-    # search for the library matching the selected interpreter
-    set(Python_ADDITIONAL_VERSIONS ${PYTHON_VERSION_MAJOR}.${PYTHON_VERSION_MINOR})
-    find_package(PythonLibs QUIET) # Deprecated since version 3.12
-    if(PYTHONLIBS_FOUND)
-      if(NOT (PYTHON_VERSION_STRING STREQUAL PYTHONLIBS_VERSION_STRING))
-        message(FATAL_ERROR "Python Library version ${PYTHONLIBS_VERSION_STRING} does not match Interpreter version ${PYTHON_VERSION_STRING}")
-      endif()
-      set(MDI_USE_PYTHON_PLUGINS ON)
-    endif()
-  else()
-    find_package(Python QUIET COMPONENTS Development)
-    if(Python_Development_FOUND)
-      set(MDI_USE_PYTHON_PLUGINS ON)
-    endif()
+  find_package(Python QUIET COMPONENTS Development)
+  if(Python_Development_FOUND)
+    set(MDI_USE_PYTHON_PLUGINS ON)
   endif()
   # python plugins are not supported and thus must be always off on Windows
   if(CMAKE_SYSTEM_NAME STREQUAL "Windows")
@@ -102,13 +82,9 @@ if(DOWNLOAD_MDI)
   # if compiling with python plugins we need
   # to add python libraries as dependency.
   if(MDI_USE_PYTHON_PLUGINS)
-    if(CMAKE_VERSION VERSION_LESS 3.12)
-      list(APPEND MDI_DEP_LIBS ${PYTHON_LIBRARIES})
-    else()
-      list(APPEND MDI_DEP_LIBS Python::Python)
-    endif()
-
+    list(APPEND MDI_DEP_LIBS Python::Python)
   endif()
+
   # need to add support for dlopen/dlsym, except when compiling for Windows.
   if(NOT (CMAKE_SYSTEM_NAME STREQUAL "Windows"))
     list(APPEND MDI_DEP_LIBS "${CMAKE_DL_LIBS}")

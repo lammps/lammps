@@ -28,14 +28,6 @@
 #include "suffix.h"
 using namespace LAMMPS_NS;
 
-#define EWALD_F   1.12837917
-#define EWALD_P   0.3275911
-#define A1        0.254829592
-#define A2       -0.284496736
-#define A3        1.421413741
-#define A4       -1.453152027
-#define A5        1.061405429
-
 /* ---------------------------------------------------------------------- */
 
 PairLJCutTIP4PCutOMP::PairLJCutTIP4PCutOMP(LAMMPS *lmp) :
@@ -128,7 +120,7 @@ void PairLJCutTIP4PCutOMP::eval(int iifrom, int iito, ThrData * const thr)
   double qtmp,xtmp,ytmp,ztmp,delx,dely,delz,evdwl,ecoul;
   double r,rsq,r2inv,r6inv,forcecoul,forcelj,cforce;
   double factor_coul,factor_lj;
-  double v[6];
+  double v[6] = {0.0, 0.0, 0.0, 0.0, 0.0, 0.0};
   double fdx,fdy,fdz,fOx,fOy,fOz,fHx,fHy,fHz;
   dbl3_t x1,x2,xH1,xH2;
 

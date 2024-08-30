@@ -162,6 +162,11 @@ int lammps_extract_setting(void *handle, const char *keyword);
 int lammps_extract_global_datatype(void *handle, const char *name);
 void *lammps_extract_global(void *handle, const char *name);
 
+int lammps_extract_pair_dimension(void *handle, const char *name);
+void *lammps_extract_pair(void *handle, const char *name);
+
+int lammps_map_atom(void *handle, const void *id);
+
 /* ----------------------------------------------------------------------
  * Library functions to read or modify per-atom data in LAMMPS
  * ---------------------------------------------------------------------- */
@@ -173,11 +178,14 @@ void *lammps_extract_atom(void *handle, const char *name);
  * Library functions to access data from computes, fixes, variables in LAMMPS
  * ---------------------------------------------------------------------- */
 
-void *lammps_extract_compute(void *handle, const char *, int, int);
-void *lammps_extract_fix(void *handle, const char *, int, int, int, int);
-void *lammps_extract_variable(void *handle, const char *, const char *);
+void *lammps_extract_compute(void *handle, const char *id, int style, int type);
+void *lammps_extract_fix(void *handle, const char *id, int style, int type, int nrow, int ncol);
+void *lammps_extract_variable(void *handle, const char *name, const char *group);
 int lammps_extract_variable_datatype(void *handle, const char *name);
-int lammps_set_variable(void *, char *, char *);
+int lammps_set_variable(void *handle, const char *name, const char *str);
+int lammps_set_string_variable(void *handle, const char *name, const char *str);
+int lammps_set_internal_variable(void *handle, const char *name, double value);
+int lammps_variable_info(void *handle, int idx, char *buf, int bufsize);
 
 /* ----------------------------------------------------------------------
  * Library functions for scatter/gather operations of data
@@ -198,11 +206,11 @@ void lammps_gather_impropers(void *handle, void *data);
 
 void lammps_gather(void *handle, const char *name, int type, int count, void *data);
 void lammps_gather_concat(void *handle, const char *name, int type, int count, void *data);
-void lammps_gather_subset(void *handle, const char *name, int type, int count, int ndata,
-                          int *ids, void *data);
+void lammps_gather_subset(void *handle, const char *name, int type, int count, int ndata, int *ids,
+                          void *data);
 void lammps_scatter(void *handle, const char *name, int type, int count, void *data);
-void lammps_scatter_subset(void *handle, const char *name, int type, int count, int ndata,
-                           int *ids, void *data);
+void lammps_scatter_subset(void *handle, const char *name, int type, int count, int ndata, int *ids,
+                           void *data);
 
 #if !defined(LAMMPS_BIGBIG)
 int lammps_create_atoms(void *handle, int n, const int *id, const int *type, const double *x,
@@ -235,6 +243,7 @@ int lammps_config_has_gzip_support();
 int lammps_config_has_png_support();
 int lammps_config_has_jpeg_support();
 int lammps_config_has_ffmpeg_support();
+int lammps_config_has_curl_support();
 int lammps_config_has_exceptions();
 
 int lammps_config_has_package(const char *);

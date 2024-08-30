@@ -1,46 +1,18 @@
-/*
 //@HEADER
 // ************************************************************************
 //
-//                        Kokkos v. 3.0
-//       Copyright (2020) National Technology & Engineering
+//                        Kokkos v. 4.0
+//       Copyright (2022) National Technology & Engineering
 //               Solutions of Sandia, LLC (NTESS).
 //
 // Under the terms of Contract DE-NA0003525 with NTESS,
 // the U.S. Government retains certain rights in this software.
 //
-// Redistribution and use in source and binary forms, with or without
-// modification, are permitted provided that the following conditions are
-// met:
+// Part of Kokkos, under the Apache License v2.0 with LLVM Exceptions.
+// See https://kokkos.org/LICENSE for license information.
+// SPDX-License-Identifier: Apache-2.0 WITH LLVM-exception
 //
-// 1. Redistributions of source code must retain the above copyright
-// notice, this list of conditions and the following disclaimer.
-//
-// 2. Redistributions in binary form must reproduce the above copyright
-// notice, this list of conditions and the following disclaimer in the
-// documentation and/or other materials provided with the distribution.
-//
-// 3. Neither the name of the Corporation nor the names of the
-// contributors may be used to endorse or promote products derived from
-// this software without specific prior written permission.
-//
-// THIS SOFTWARE IS PROVIDED BY NTESS "AS IS" AND ANY
-// EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
-// IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR
-// PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL NTESS OR THE
-// CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
-// EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
-// PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR
-// PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF
-// LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING
-// NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
-// SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-//
-// Questions? Contact Christian R. Trott (crtrott@sandia.gov)
-//
-// ************************************************************************
 //@HEADER
-*/
 
 #include <TestStdAlgorithmsCommon.hpp>
 #include <std_algorithms/Kokkos_BeginEnd.hpp>
@@ -185,7 +157,7 @@ void verify_data(TestViewType test_view, GoldViewType gold) {
   const auto gold_h = create_mirror_view_and_copy(Kokkos::HostSpace(), gold);
 
   for (std::size_t i = 0; i < test_view.extent(0); ++i) {
-    EXPECT_EQ(gold_h(i), test_view_dc_h(i));
+    ASSERT_EQ(gold_h(i), test_view_dc_h(i));
   }
 }
 
@@ -225,7 +197,7 @@ void run_single_scenario(const InfoType& scenario_info,
     auto res1 = KE::adjacent_difference(exespace(), KE::cbegin(view_from),
                                         KE::cend(view_from),
                                         KE::begin(view_dest), args...);
-    EXPECT_EQ(res1, KE::end(view_dest));
+    ASSERT_EQ(res1, KE::end(view_dest));
     verify_data(view_dest, gold);
   }
 
@@ -235,7 +207,7 @@ void run_single_scenario(const InfoType& scenario_info,
     auto res2 = KE::adjacent_difference(
         "label", exespace(), KE::cbegin(view_from), KE::cend(view_from),
         KE::begin(view_dest), args...);
-    EXPECT_EQ(res2, KE::end(view_dest));
+    ASSERT_EQ(res2, KE::end(view_dest));
     verify_data(view_dest, gold);
   }
 
@@ -244,7 +216,7 @@ void run_single_scenario(const InfoType& scenario_info,
         create_view<ValueType>(Tag{}, view_ext, "adj_diff_dest_view");
     auto res3 =
         KE::adjacent_difference(exespace(), view_from, view_dest, args...);
-    EXPECT_EQ(res3, KE::end(view_dest));
+    ASSERT_EQ(res3, KE::end(view_dest));
     verify_data(view_dest, gold);
   }
 
@@ -253,7 +225,7 @@ void run_single_scenario(const InfoType& scenario_info,
         create_view<ValueType>(Tag{}, view_ext, "adj_diff_dest_view");
     auto res4 = KE::adjacent_difference("label", exespace(), view_from,
                                         view_dest, args...);
-    EXPECT_EQ(res4, KE::end(view_dest));
+    ASSERT_EQ(res4, KE::end(view_dest));
     verify_data(view_dest, gold);
   }
 

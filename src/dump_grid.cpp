@@ -2,7 +2,7 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    https://www.lammps.org/, Sandia National Laboratories
-   LAMMPS Development team: developers@lammps.org
+   LAMMPS development team: developers@lammps.org
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
@@ -23,7 +23,6 @@
 #include "grid3d.h"
 #include "memory.h"
 #include "modify.h"
-#include "region.h"
 #include "update.h"
 
 #include <cstring>
@@ -35,8 +34,8 @@ using namespace LAMMPS_NS;
 
 enum {COMPUTE,FIX};
 
-#define ONEFIELD 32
-#define DELTA 1048576
+static constexpr int ONEFIELD = 32;
+static constexpr int DELTA = 1048576;
 
 /* ---------------------------------------------------------------------- */
 
@@ -591,15 +590,16 @@ int DumpGrid::convert_string(int n, double *mybuf)
     }
 
     for (j = 0; j < nfield; j++) {
+      const auto maxsize = maxsbuf - offset;
       if (vtype[j] == Dump::INT)
-        offset += sprintf(&sbuf[offset],vformat[j],static_cast<int> (mybuf[m]));
+        offset += snprintf(&sbuf[offset],maxsize,vformat[j],static_cast<int> (mybuf[m]));
       else if (vtype[j] == Dump::DOUBLE)
-        offset += sprintf(&sbuf[offset],vformat[j],mybuf[m]);
+        offset += snprintf(&sbuf[offset],maxsize,vformat[j],mybuf[m]);
       else if (vtype[j] == Dump::BIGINT)
-        offset += sprintf(&sbuf[offset],vformat[j], static_cast<bigint> (mybuf[m]));
+        offset += snprintf(&sbuf[offset],maxsize,vformat[j], static_cast<bigint> (mybuf[m]));
       m++;
     }
-    offset += sprintf(&sbuf[offset],"\n");
+    offset += snprintf(&sbuf[offset],maxsbuf-offset,"\n");
   }
 
   return offset;
@@ -777,9 +777,9 @@ int DumpGrid::modify_param(int narg, char **arg)
       if (ptr == nullptr)
         error->all(FLERR,"Dump_modify int format does not contain d character");
       char str[8];
-      sprintf(str,"%s",BIGINT_FORMAT);
+      snprintf(str,8,"%s",BIGINT_FORMAT);
       *ptr = '\0';
-      sprintf(format_bigint_user,"%s%s%s",format_int_user,&str[1],ptr+1);
+      snprintf(format_bigint_user,n,"%s%s%s",format_int_user,&str[1],ptr+1);
       *ptr = 'd';
 
     } else if (strcmp(arg[1],"float") == 0) {

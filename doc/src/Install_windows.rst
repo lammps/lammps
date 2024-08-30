@@ -18,11 +18,10 @@ needed to run in parallel with MPI.
 
 The LAMMPS binaries contain *all* :doc:`optional packages <Packages>`
 included in the source distribution except: ADIOS, H5MD, KIM, ML-PACE,
-ML-QUIP, MSCG, NETCDF, PLUMED, QMMM, SCAFACOS, and VTK.  The serial
-version also does not include the MPIIO and LATBOLTZ packages.  The
-PYTHON package is only available in the Python installers that bundle a
-Python runtime.  The GPU package is compiled for OpenCL with mixed
-precision kernels.
+ML-QUIP, MSCG, NETCDF, QMMM, SCAFACOS, and VTK.  The serial version also
+does not include the LATBOLTZ package.  The PYTHON package is only
+available in the Python installers that bundle a Python runtime.  The
+GPU package is compiled for OpenCL with mixed precision kernels.
 
 The LAMMPS library is compiled as a shared library and the
 :doc:`LAMMPS Python module <Python_module>` is installed, so that
@@ -35,7 +34,7 @@ When you download the installer package, you run it on your Windows
 machine.  It will then prompt you with a dialog, where you can choose
 the installation directory, unpack and copy several executables,
 potential files, documentation PDFs, selected example files, etc.  It
-will then update a few system settings (e.g. PATH, LAMMPS_POTENTIALS)
+will then update a few system settings (e.g. ``PATH``, ``LAMMPS_POTENTIALS``)
 and add an entry into the Start Menu (with references to the
 documentation, LAMMPS homepage and more).  From that menu, there is
 also a link to an uninstaller that removes the files and undoes the

@@ -202,9 +202,7 @@ template<class DeviceType>
 template<bool STACKPARAMS, class Specialisation>
 KOKKOS_INLINE_FUNCTION
 F_FLOAT PairTableKokkos<DeviceType>::
-compute_fpair(const F_FLOAT& rsq, const int& i, const int&j, const int& itype, const int& jtype) const {
-  (void) i;
-  (void) j;
+compute_fpair(const F_FLOAT &rsq, const int &, const int &, const int &itype, const int &jtype) const {
   union_int_float_t rsq_lookup;
   double fpair;
   const int tidx = d_table_const.tabindex(itype,jtype);
@@ -236,9 +234,7 @@ template<class DeviceType>
 template<bool STACKPARAMS, class Specialisation>
 KOKKOS_INLINE_FUNCTION
 F_FLOAT PairTableKokkos<DeviceType>::
-compute_evdwl(const F_FLOAT& rsq, const int& i, const int&j, const int& itype, const int& jtype) const {
-  (void) i;
-  (void) j;
+compute_evdwl(const F_FLOAT &rsq, const int &, const int &, const int &itype, const int &jtype) const {
   double evdwl;
   union_int_float_t rsq_lookup;
   const int tidx = d_table_const.tabindex(itype,jtype);
@@ -514,9 +510,9 @@ void PairTableKokkos<DeviceType>::init_style()
 {
   neighflag = lmp->kokkos->neighflag;
   auto request = neighbor->add_request(this);
-  request->set_kokkos_host(std::is_same<DeviceType,LMPHostType>::value &&
-                           !std::is_same<DeviceType,LMPDeviceType>::value);
-  request->set_kokkos_device(std::is_same<DeviceType,LMPDeviceType>::value);
+  request->set_kokkos_host(std::is_same_v<DeviceType,LMPHostType> &&
+                           !std::is_same_v<DeviceType,LMPDeviceType>);
+  request->set_kokkos_device(std::is_same_v<DeviceType,LMPDeviceType>);
   if (neighflag == FULL) request->enable_full();
 }
 

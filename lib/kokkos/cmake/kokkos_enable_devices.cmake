@@ -20,13 +20,6 @@ KOKKOS_DEPRECATED_LIST(DEVICES ENABLE)
 
 
 KOKKOS_DEVICE_OPTION(THREADS OFF HOST "Whether to build C++ threads backend")
-IF(Kokkos_ENABLE_PTHREAD)  # for backward compatibility
-  SET(Kokkos_ENABLE_THREADS ON CACHE BOOL "Whether to build C++ threads backend" FORCE)
-  SET(KOKKOS_ENABLE_THREADS ON)
-  LIST(APPEND KOKKOS_ENABLED_DEVICES THREADS)
-  SET(KOKKOS_HAS_HOST ON)
-  MESSAGE(DEPRECATION "The Kokkos_ENABLE_PTHREAD option is deprecated. Use Kokkos_ENABLE_THREADS instead!")
-ENDIF()
 
 # detect clang++ / cl / clang-cl clashes
 IF (CMAKE_CXX_COMPILER_ID STREQUAL Clang AND "x${CMAKE_CXX_SIMULATE_ID}" STREQUAL "xMSVC")
@@ -46,47 +39,38 @@ ELSE()
   SET(OMP_DEFAULT OFF)
 ENDIF()
 KOKKOS_DEVICE_OPTION(OPENMP ${OMP_DEFAULT} HOST "Whether to build OpenMP backend")
-IF(KOKKOS_ENABLE_OPENMP)
-  SET(ClangOpenMPFlag -fopenmp=libomp)
-  IF(KOKKOS_CLANG_IS_CRAY)
-    SET(ClangOpenMPFlag -fopenmp)
-  ENDIF()
-  IF(KOKKOS_COMPILER_CLANG_MSVC)
-    #for clang-cl expression /openmp yields an error, so directly add the specific Clang flag
-    SET(ClangOpenMPFlag /clang:-fopenmp=libomp)
-  ENDIF()
-  IF(WIN32 AND CMAKE_CXX_COMPILER_ID STREQUAL Clang)
-    #link omp library from LLVM lib dir, no matter if it is clang-cl or clang++
-    get_filename_component(LLVM_BIN_DIR ${CMAKE_CXX_COMPILER_AR} DIRECTORY)
-    COMPILER_SPECIFIC_LIBS(Clang "${LLVM_BIN_DIR}/../lib/libomp.lib")
-  ENDIF()
-  IF(KOKKOS_CXX_COMPILER_ID STREQUAL NVIDIA)
-    COMPILER_SPECIFIC_FLAGS(
-      COMPILER_ID KOKKOS_CXX_HOST_COMPILER_ID
-      Clang      -Xcompiler ${ClangOpenMPFlag}
-      IntelLLVM  -Xcompiler -fiopenmp
-      NVHPC      -Xcompiler -mp
-      Cray       NO-VALUE-SPECIFIED
-      XL         -Xcompiler -qsmp=omp
-      DEFAULT    -Xcompiler -fopenmp
-    )
-  ELSE()
-    COMPILER_SPECIFIC_FLAGS(
-      Clang      ${ClangOpenMPFlag}
-      IntelLLVM  -fiopenmp
-      AppleClang -Xpreprocessor -fopenmp
-      NVHPC      -mp
-      Cray       NO-VALUE-SPECIFIED
-      XL         -qsmp=omp
-      DEFAULT    -fopenmp
-    )
-    COMPILER_SPECIFIC_LIBS(
-      AppleClang -lomp
-    )
+
+
+# We want this to default to OFF for cache reasons, but if no
+# host space is given, then activate serial
+IF (KOKKOS_HAS_TRILINOS)
+  #However, Trilinos always wants Serial ON
+  SET(SERIAL_DEFAULT ON)
+ELSEIF (KOKKOS_HAS_HOST)
+  SET(SERIAL_DEFAULT OFF)
+ELSE()
+  SET(SERIAL_DEFAULT ON)
+  IF (NOT DEFINED Kokkos_ENABLE_SERIAL)
+    MESSAGE(STATUS "SERIAL backend is being turned on to ensure there is at least one Host space. To change this, you must enable another host execution space and configure with -DKokkos_ENABLE_SERIAL=OFF or change CMakeCache.txt")
   ENDIF()
 ENDIF()
+KOKKOS_DEVICE_OPTION(SERIAL ${SERIAL_DEFAULT} HOST "Whether to build serial backend")
 
+KOKKOS_DEVICE_OPTION(HPX OFF HOST "Whether to build HPX backend (experimental)")
+
+# Device backends have to come after host backends for header include order reasons
+# Without this we can't make e.g. CudaSpace accessible by HostSpace
 KOKKOS_DEVICE_OPTION(OPENACC OFF DEVICE "Whether to build the OpenACC backend")
+IF (KOKKOS_ENABLE_OPENACC)
+  COMPILER_SPECIFIC_FLAGS(
+    Clang -fopenacc -fopenacc-fake-async-wait
+          -Wno-openacc-and-cxx -Wno-openmp-mapping -Wno-unknown-cuda-version
+          -Wno-pass-failed
+  )
+  COMPILER_SPECIFIC_DEFS(
+    Clang KOKKOS_WORKAROUND_OPENMPTARGET_CLANG
+  )
+ENDIF()
 
 KOKKOS_DEVICE_OPTION(OPENMPTARGET OFF DEVICE "Whether to build the OpenMP target backend")
 IF (KOKKOS_ENABLE_OPENMPTARGET)
@@ -98,12 +82,10 @@ IF (KOKKOS_ENABLE_OPENMPTARGET)
   COMPILER_SPECIFIC_FLAGS(
     Clang      ${ClangOpenMPFlag} -Wno-openmp-mapping
     IntelLLVM  -fiopenmp -Wno-openmp-mapping
-    XL         -qsmp=omp -qoffload -qnoeh
     NVHPC      -mp=gpu
     DEFAULT    -fopenmp
   )
   COMPILER_SPECIFIC_DEFS(
-    XL    KOKKOS_IBM_XL_OMP45_WORKAROUND
     Clang KOKKOS_WORKAROUND_OPENMPTARGET_CLANG
   )
 # Are there compilers which identify as Clang and need this library?
@@ -127,23 +109,6 @@ IF (KOKKOS_ENABLE_CUDA)
 ## Cuda has extra setup requirements, turn on Kokkos_Setup_Cuda.hpp in macros
   LIST(APPEND DEVICE_SETUP_LIST Cuda)
 ENDIF()
-
-# We want this to default to OFF for cache reasons, but if no
-# host space is given, then activate serial
-IF (KOKKOS_HAS_TRILINOS)
-  #However, Trilinos always wants Serial ON
-  SET(SERIAL_DEFAULT ON)
-ELSEIF (KOKKOS_HAS_HOST)
-  SET(SERIAL_DEFAULT OFF)
-ELSE()
-  SET(SERIAL_DEFAULT ON)
-  IF (NOT DEFINED Kokkos_ENABLE_SERIAL)
-    MESSAGE(STATUS "SERIAL backend is being turned on to ensure there is at least one Host space. To change this, you must enable another host execution space and configure with -DKokkos_ENABLE_SERIAL=OFF or change CMakeCache.txt")
-  ENDIF()
-ENDIF()
-KOKKOS_DEVICE_OPTION(SERIAL ${SERIAL_DEFAULT} HOST "Whether to build serial backend")
-
-KOKKOS_DEVICE_OPTION(HPX OFF HOST "Whether to build HPX backend (experimental)")
 
 KOKKOS_DEVICE_OPTION(HIP OFF DEVICE "Whether to build HIP backend")
 

@@ -4,19 +4,43 @@ SET(Kokkos_TPLS @KOKKOS_ENABLED_TPLS@)
 SET(Kokkos_ARCH @KOKKOS_ENABLED_ARCH_LIST@)
 SET(Kokkos_CXX_COMPILER "@CMAKE_CXX_COMPILER@")
 SET(Kokkos_CXX_COMPILER_ID "@KOKKOS_CXX_COMPILER_ID@")
+SET(Kokkos_CXX_COMPILER_VERSION "@KOKKOS_CXX_COMPILER_VERSION@")
 SET(Kokkos_CXX_STANDARD @KOKKOS_CXX_STANDARD@)
 
-# These are needed by KokkosKernels
+# Required to be a TriBITS-compliant external package
+IF(NOT TARGET Kokkos::all_libs)
+  # CMake Error at <prefix>/lib/cmake/Kokkos/KokkosConfigCommon.cmake:10 (ADD_LIBRARY):
+  #   ADD_LIBRARY cannot create ALIAS target "Kokkos::all_libs" because target
+  #   "Kokkos::kokkos" is imported but not globally visible.
+  IF(CMAKE_VERSION VERSION_LESS "3.18")
+    SET_TARGET_PROPERTIES(Kokkos::kokkos PROPERTIES IMPORTED_GLOBAL ON)
+  ENDIF()
+  ADD_LIBRARY(Kokkos::all_libs ALIAS Kokkos::kokkos)
+ENDIF()
+
+# Export Kokkos_ENABLE_<BACKEND> for each backend that was enabled.
+# NOTE: "Devices" is a little bit of a misnomer here.  These are really
+# backends, e.g. Kokkos_ENABLE_OPENMP, Kokkos_ENABLE_CUDA, Kokkos_ENABLE_HIP,
+# or Kokkos_ENABLE_SYCL.
 FOREACH(DEV ${Kokkos_DEVICES})
   SET(Kokkos_ENABLE_${DEV} ON)
 ENDFOREACH()
+# Export relevant Kokkos_ENABLE<OPTION> variables, e.g.
+# Kokkos_ENABLE_CUDA_RELOCATABLE_DEVICE_CODE, Kokkos_ENABLE_DEBUG, etc.
+FOREACH(OPT ${Kokkos_OPTIONS})
+  SET(Kokkos_ENABLE_${OPT} ON)
+ENDFOREACH()
+
+IF(Kokkos_ENABLE_CUDA)
+  SET(Kokkos_CUDA_ARCHITECTURES @KOKKOS_CUDA_ARCHITECTURES@)
+ENDIF()
+
+IF(Kokkos_ENABLE_HIP)
+  SET(Kokkos_HIP_ARCHITECTURES @KOKKOS_HIP_ARCHITECTURES@)
+ENDIF()
 
 IF(NOT Kokkos_FIND_QUIETLY)
   MESSAGE(STATUS "Enabled Kokkos devices: ${Kokkos_DEVICES}")
-ENDIF()
-IF(Kokkos_ENABLE_THREADS AND NOT DEPRECATED_CODE_3 IN_LIST Kokkos_OPTIONS)  # for backward compatibility
-  SET(Kokkos_ENABLE_PTHREAD ON)
-  LIST(APPEND Kokkos_DEVICES PTHREAD)
 ENDIF()
 
 IF (Kokkos_ENABLE_CUDA)

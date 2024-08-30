@@ -31,10 +31,10 @@
 
 using namespace LAMMPS_NS;
 
-#define EPSILON 1.0e-7
-#define MAX_FACE_SIZE 4  // maximum number of vertices per face (for now)
+static constexpr double EPSILON = 1.0e-7;
+static constexpr int MAX_FACE_SIZE = 4;  // maximum number of vertices per face (for now)
 
-enum{SPHERE,LINE};       // also in DumpImage
+enum { SPHERE, LINE };       // also in DumpImage
 
 /* ---------------------------------------------------------------------- */
 
@@ -187,7 +187,7 @@ int BodyRoundedPolyhedron::unpack_border_body(AtomVecBody::Bonus *bonus, double 
 }
 
 /* ----------------------------------------------------------------------
-   populate bonus data structure with data file values
+   populate bonus data structure with data file values for one body
 ------------------------------------------------------------------------- */
 
 void BodyRoundedPolyhedron::data_body(int ibonus, int ninteger, int ndouble,

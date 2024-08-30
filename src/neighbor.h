@@ -189,10 +189,9 @@ class Neighbor : protected Pointers {
   int triclinic;      // 0 if domain is orthog, 1 if triclinic
   int newton_pair;    // 0 if newton off for pairwise, 1 if on
 
-  int must_check;       // 1 if must check other classes to reneigh
-  int restart_check;    // 1 if restart enabled, 0 if no
-  int fix_check;        // # of fixes that induce reneigh
-  int *fixchecklist;    // which fixes to check
+  int must_check;                     // 1 if must check other classes to reneigh
+  int restart_check;                  // 1 if restart enabled, 0 if no
+  std::vector<Fix *> fixchecklist;    // which fixes to check
 
   double triggersq;    // trigger = build when atom moves this dist
 
@@ -213,6 +212,8 @@ class Neighbor : protected Pointers {
   int npair_perpetual;       // # of perpetual NeighPair classes
   int *slist;                // indices of them in neigh_stencil
   int *plist;                // indices of them in neigh_pair
+  int npair_occasional;      // # of occasional NeighPair classes
+  int *olist;                // indices of them in neigh_pair
 
   int npair_occasional;      // # of occasional NeighPair classes
   int *olist;                // indices of them in neigh_pair
@@ -310,8 +311,9 @@ namespace NeighConst {
     NS_ORTHO = 1 << 6,
     NS_TRI = 1 << 7,
     NS_GHOST = 1 << 8,
-    NS_SSA = 1 << 9,
-    NS_MULTI_OLD = 1 << 10
+    NS_INTEL = 1 << 9,
+    NS_SSA = 1 << 10,
+    NS_MULTI_OLD = 1 << 11
   };
 
   enum {

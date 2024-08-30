@@ -36,15 +36,13 @@
 using namespace LAMMPS_NS;
 using namespace MathConst;
 
-#define MAXLINE 256
-#define CHUNK 1024
-#define ATTRIBUTE_PERLINE 4
+static constexpr int MAXLINE = 256;
+static constexpr int CHUNK = 1024;
+static constexpr int ATTRIBUTE_PERLINE = 4;
 
 enum { DEFAULT, TERSE, VERBOSE };
 
-/* ----------------------------------------------------------------------
-   default constructor. NOTE: this is also called from the constructor below
- ---------------------------------------------------------------------- */
+/* ---------------------------------------------------------------------- */
 
 NEB::NEB(LAMMPS *lmp) : Command(lmp), fp(nullptr), all(nullptr), rdist(nullptr)
 {
@@ -432,7 +430,7 @@ void NEB::readfile(char *file, int flag)
   int i, nchunk, eofflag, nlines;
   tagint tag;
   char *eof, *start, *next, *buf;
-  char line[MAXLINE];
+  char line[MAXLINE] = {'\0'};
   double delx, dely, delz;
 
   if (me_universe == 0 && universe->uscreen)

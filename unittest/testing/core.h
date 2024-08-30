@@ -32,22 +32,20 @@ using LAMMPS_NS::LAMMPSException;
 
 using ::testing::ContainsRegex;
 
-#define TEST_FAILURE(errmsg, ...)                                                               \
-    if (Info::has_exceptions()) {                                                               \
-        ::testing::internal::CaptureStdout();                                                   \
-        ASSERT_ANY_THROW({__VA_ARGS__});                                                        \
-        auto mesg = ::testing::internal::GetCapturedStdout();                                   \
-        ASSERT_THAT(mesg, ContainsRegex(errmsg));                                               \
-    } else {                                                                                    \
-        if (LAMMPS_NS::platform::mpi_vendor() != "Open MPI") {                                             \
-            ::testing::internal::CaptureStdout();                                               \
-            ASSERT_DEATH({__VA_ARGS__}, "");                                                    \
-            auto mesg = ::testing::internal::GetCapturedStdout();                               \
-            ASSERT_THAT(mesg, ContainsRegex(errmsg));                                           \
-        } else {                                                                                \
-            std::cerr << "[          ] [ INFO ] Skipping death test (no exception support) \n"; \
-        }                                                                                       \
+#if defined(LAMMPS_SKIP_DEATH_TESTS)
+#define TEST_FAILURE(errmsg, ...)                             \
+    {                                                         \
+        ;                                                     \
     }
+#else
+#define TEST_FAILURE(errmsg, ...)                             \
+    {                                                         \
+        ::testing::internal::CaptureStdout();                 \
+        ASSERT_ANY_THROW({__VA_ARGS__});                      \
+        auto mesg = ::testing::internal::GetCapturedStdout(); \
+        ASSERT_THAT(mesg, ContainsRegex(errmsg));             \
+    }
+#endif
 
 // whether to print verbose output (i.e. not capturing LAMMPS screen output).
 extern bool verbose;
@@ -116,7 +114,7 @@ public:
 
 protected:
     std::string testbinary = "LAMMPSTest";
-    LAMMPS::argv args = {"-log", "none", "-echo", "screen", "-nocite"};
+    LAMMPS::argv args      = {"-log", "none", "-echo", "screen", "-nocite"};
     LAMMPS *lmp;
     Info *info;
 

@@ -43,12 +43,12 @@
 #include "domain.h"
 #include "error.h"
 #include "force.h"
-#include "memory_kokkos.h"
 #include "neigh_list_kokkos.h"
 #include "neigh_request.h"
 #include "neighbor.h"
 #include "npair_ssa_kokkos.h"
 #include "pair_dpd_fdt_energy_kokkos.h"
+#include "random_external_state.h"
 #include "update.h"
 
 #include <cmath>
@@ -57,8 +57,8 @@ using namespace LAMMPS_NS;
 using namespace FixConst;
 using namespace random_external_state;
 
-#define EPSILON 1.0e-10
-#define EPSILON_SQUARED ((EPSILON) * (EPSILON))
+static constexpr double EPSILON = 1.0e-10;
+static constexpr double EPSILON_SQUARED = EPSILON * EPSILON;
 
 /* ---------------------------------------------------------------------- */
 
@@ -128,9 +128,9 @@ void FixShardlowKokkos<DeviceType>::init()
   // adjust neighbor list request for KOKKOS
 
   auto request = neighbor->find_request(this);
-  request->set_kokkos_host(std::is_same<DeviceType,LMPHostType>::value &&
-                           !std::is_same<DeviceType,LMPDeviceType>::value);
-  request->set_kokkos_device(std::is_same<DeviceType,LMPDeviceType>::value);
+  request->set_kokkos_host(std::is_same_v<DeviceType,LMPHostType> &&
+                           !std::is_same_v<DeviceType,LMPDeviceType>);
+  request->set_kokkos_device(std::is_same_v<DeviceType,LMPDeviceType>);
 
   int ntypes = atom->ntypes;
   k_params = Kokkos::DualView<params_ssa**,Kokkos::LayoutRight,DeviceType>

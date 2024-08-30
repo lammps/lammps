@@ -1,50 +1,23 @@
-/*
 //@HEADER
 // ************************************************************************
 //
-//                        Kokkos v. 3.0
-//       Copyright (2020) National Technology & Engineering
+//                        Kokkos v. 4.0
+//       Copyright (2022) National Technology & Engineering
 //               Solutions of Sandia, LLC (NTESS).
 //
 // Under the terms of Contract DE-NA0003525 with NTESS,
 // the U.S. Government retains certain rights in this software.
 //
-// Redistribution and use in source and binary forms, with or without
-// modification, are permitted provided that the following conditions are
-// met:
+// Part of Kokkos, under the Apache License v2.0 with LLVM Exceptions.
+// See https://kokkos.org/LICENSE for license information.
+// SPDX-License-Identifier: Apache-2.0 WITH LLVM-exception
 //
-// 1. Redistributions of source code must retain the above copyright
-// notice, this list of conditions and the following disclaimer.
-//
-// 2. Redistributions in binary form must reproduce the above copyright
-// notice, this list of conditions and the following disclaimer in the
-// documentation and/or other materials provided with the distribution.
-//
-// 3. Neither the name of the Corporation nor the names of the
-// contributors may be used to endorse or promote products derived from
-// this software without specific prior written permission.
-//
-// THIS SOFTWARE IS PROVIDED BY NTESS "AS IS" AND ANY
-// EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
-// IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR
-// PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL NTESS OR THE
-// CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
-// EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
-// PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR
-// PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF
-// LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING
-// NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
-// SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-//
-// Questions? Contact Christian R. Trott (crtrott@sandia.gov)
-//
-// ************************************************************************
 //@HEADER
-*/
 
 #include <Kokkos_Core.hpp>
-#include <gtest/gtest.h>
-#include <PerfTest_Category.hpp>
+#include <benchmark/benchmark.h>
+#include "Benchmark_Context.hpp"
+#include "PerfTest_Category.hpp"
 
 namespace Test {
 
@@ -223,78 +196,43 @@ struct HexGrad {
 
   //--------------------------------------------------------------------------
 
-  static double test(const int count, const int iter = 1) {
+  static double test(const int count) {
     elem_coord_type coord("coord", count);
     elem_grad_type grad("grad", count);
 
     // Execute the parallel kernels on the arrays:
-
-    double dt_min = 0;
-
     Kokkos::parallel_for(count, Init(coord));
     execution_space().fence();
 
-    for (int i = 0; i < iter; ++i) {
-      Kokkos::Timer timer;
-      Kokkos::parallel_for(count, HexGrad<execution_space>(coord, grad));
-      execution_space().fence();
-      const double dt = timer.seconds();
-      if (0 == i)
-        dt_min = dt;
-      else
-        dt_min = dt < dt_min ? dt : dt_min;
-    }
-
-    return dt_min;
+    Kokkos::Timer timer;
+    Kokkos::parallel_for(count, HexGrad<execution_space>(coord, grad));
+    execution_space().fence();
+    return timer.seconds();
   }
 };
 
-template <class DeviceType>
-void run_test_hexgrad(int exp_beg, int exp_end, int num_trials,
-                      const char deviceTypeName[]) {
-  std::string label_hexgrad;
-  label_hexgrad.append("\"HexGrad< double , ");
-  label_hexgrad.append(deviceTypeName);
-  label_hexgrad.append(" >\"");
+template <class CoordScalarType>
+static void HexGrad_Benchmark(benchmark::State& state) {
+  const auto parallel_work_length = state.range(0);
 
-  for (int i = exp_beg; i < exp_end; ++i) {
-    double min_seconds = 0.0;
-    double max_seconds = 0.0;
-    double avg_seconds = 0.0;
+  for (auto _ : state) {
+    const auto time =
+        HexGrad<Kokkos::DefaultExecutionSpace, CoordScalarType>::test(
+            parallel_work_length);
 
-    const int parallel_work_length = 1 << i;
-
-    for (int j = 0; j < num_trials; ++j) {
-      const double seconds = HexGrad<DeviceType>::test(parallel_work_length);
-
-      if (0 == j) {
-        min_seconds = seconds;
-        max_seconds = seconds;
-      } else {
-        if (seconds < min_seconds) min_seconds = seconds;
-        if (seconds > max_seconds) max_seconds = seconds;
-      }
-      avg_seconds += seconds;
-    }
-    avg_seconds /= num_trials;
-
-    std::cout << label_hexgrad << " , " << parallel_work_length << " , "
-              << min_seconds << " , " << (min_seconds / parallel_work_length)
-              << avg_seconds << std::endl;
+    state.SetIterationTime(time);
+    state.counters["Count"] = benchmark::Counter(parallel_work_length);
+    state.counters["Time normalized"] =
+        benchmark::Counter(time / parallel_work_length);
   }
 }
 
-TEST(default_exec, hexgrad) {
-  int exp_beg    = 10;
-  int exp_end    = 20;
-  int num_trials = 5;
-
-  if (command_line_num_args() > 1) exp_beg = std::stoi(command_line_arg(1));
-  if (command_line_num_args() > 2) exp_end = std::stoi(command_line_arg(2));
-  if (command_line_num_args() > 3) num_trials = std::stoi(command_line_arg(3));
-
-  EXPECT_NO_THROW(run_test_hexgrad<Kokkos::DefaultExecutionSpace>(
-      exp_beg, exp_end, num_trials, Kokkos::DefaultExecutionSpace::name()));
-}
+BENCHMARK(HexGrad_Benchmark<double>)
+    ->ArgName("count")
+    ->ArgsProduct({
+        benchmark::CreateRange(1 << 10, 1 << 19, 2),
+    })
+    ->UseManualTime()
+    ->Iterations(5);
 
 }  // namespace Test

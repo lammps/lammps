@@ -38,12 +38,13 @@ static int compare_coords(const void *, const void *);
 static int compare_coords(const int, const int, void *);
 #endif
 
-#define PERBIN 10
-#define BIG 1.0e20
+static constexpr int PERBIN = 10;
+static constexpr double BIG = 1.0e20;
 
 /* ---------------------------------------------------------------------- */
 
-ResetAtomsID::ResetAtomsID(LAMMPS *lmp) : Command(lmp) {
+ResetAtomsID::ResetAtomsID(LAMMPS *lmp) : Command(lmp)
+{
   binlo = binhi = -1;
 }
 

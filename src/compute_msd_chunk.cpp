@@ -27,11 +27,12 @@ using namespace LAMMPS_NS;
 /* ---------------------------------------------------------------------- */
 
 ComputeMSDChunk::ComputeMSDChunk(LAMMPS *lmp, int narg, char **arg) :
-    ComputeChunk(lmp, narg, arg), id_fix(nullptr), massproc(nullptr), masstotal(nullptr),
-    com(nullptr), comall(nullptr), msd(nullptr)
+    ComputeChunk(lmp, narg, arg), id_fix(nullptr), fix(nullptr), massproc(nullptr),
+    masstotal(nullptr), com(nullptr), comall(nullptr), msd(nullptr)
 {
   if (narg != 4) error->all(FLERR, "Illegal compute msd/chunk command");
 
+  msdnchunk = 0;
   array_flag = 1;
   size_array_cols = 4;
   size_array_rows = 0;
@@ -117,14 +118,14 @@ void ComputeMSDChunk::compute_array()
   double massone;
   double unwrap[3];
 
-  int oldnchunk = nchunk;
   ComputeChunk::compute_array();
   int *ichunk = cchunk->ichunk;
 
   // first time call, allocate per-chunk arrays
   // thereafter, require nchunk remain the same
 
-  if (!firstflag && (oldnchunk != nchunk))
+  if (firstflag) msdnchunk = nchunk;
+  else if (msdnchunk != nchunk)
     error->all(FLERR, "Compute msd/chunk nchunk is not static");
 
   // zero local per-chunk values
@@ -196,6 +197,12 @@ void ComputeMSDChunk::compute_array()
 void ComputeMSDChunk::allocate()
 {
   ComputeChunk::allocate();
+  memory->destroy(massproc);
+  memory->destroy(masstotal);
+  memory->destroy(com);
+  memory->destroy(comall);
+  memory->destroy(msd);
+
   memory->create(massproc, nchunk, "msd/chunk:massproc");
   memory->create(masstotal, nchunk, "msd/chunk:masstotal");
   memory->create(com, nchunk, 3, "msd/chunk:com");

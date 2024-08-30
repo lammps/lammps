@@ -15,7 +15,10 @@ orientation for rotational models. This produces a stress-free initial
 state. Furthermore, bonds are allowed to break under large strains,
 producing fracture. The examples/bpm directory has sample input scripts
 for simulations of the fragmentation of an impacted plate and the
-pouring of extended, elastic bodies.
+pouring of extended, elastic bodies. See :ref:`(Clemmer) <howto-Clemmer>`
+for more general information on the approach and the LAMMPS implementation.
+Example movies illustrating some of these capabilities are found at
+https://www.lammps.org/movies.html#bpmpackage.
 
 ----------
 
@@ -150,3 +153,9 @@ the following are currently compatible with BPM bond styles:
    interactions, one will need to switch between different *special_bonds*
    settings in the input script. An example is found in
    ``examples/bpm/impact``.
+
+----------
+
+.. _howto-Clemmer:
+
+**(Clemmer)** Clemmer, Monti, Lechman, Soft Matter, 20, 1702 (2024).

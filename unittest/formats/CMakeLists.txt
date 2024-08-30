@@ -1,3 +1,4 @@
+# -*- CMake -*- file for tests of file reading or writing classes and functions in LAMMPS
 
 add_executable(test_atom_styles test_atom_styles.cpp)
 target_link_libraries(test_atom_styles PRIVATE lammps GTest::GMock)
@@ -40,6 +41,8 @@ set_tests_properties(TextFileReader PROPERTIES ENVIRONMENT "LAMMPS_POTENTIALS=${
 add_executable(test_file_operations test_file_operations.cpp)
 target_link_libraries(test_file_operations PRIVATE lammps GTest::GMock)
 add_test(NAME FileOperations COMMAND test_file_operations)
+# try to mitigate possible OpenMPI bug
+set_tests_properties(TextFileReader PROPERTIES ENVIRONMENT "OMPI_MCA_sharedfp=\"^sm\"")
 
 add_executable(test_dump_atom test_dump_atom.cpp)
 target_link_libraries(test_dump_atom PRIVATE lammps GTest::GMock)

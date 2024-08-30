@@ -1,3 +1,5 @@
+# -*- CMake -*- file for testing the Fortran interface to LAMMPS
+
 include(CheckGeneratorSupport)
 if(NOT CMAKE_GENERATOR_SUPPORT_FORTRAN)
   message(STATUS "Skipping Tests for the LAMMPS Fortran Module: no Fortran support in build tool")

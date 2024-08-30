@@ -1,7 +1,8 @@
+# -*- CMake -*- configuration for building the tricubic library
 
 # Support Linux from Ubuntu 20.04LTS onward, CentOS 7.x (with EPEL),
 # macOS, MSVC 2019 (=Version 16)
-cmake_minimum_required(VERSION 3.10)
+cmake_minimum_required(VERSION 3.16)
 
 # set up project
 project(tricubic VERSION 1.1 DESCRIPTION "Tricubic library" LANGUAGES CXX)
@@ -11,6 +12,7 @@ set(CMAKE_POSITION_INDEPENDENT_CODE ON)
 if(MSVC)
   add_compile_options(/wd4244)
   add_compile_options(/wd4267)
+  add_compile_options(/wd4250)
   add_compile_definitions(_CRT_SECURE_NO_WARNINGS)
 endif()
 

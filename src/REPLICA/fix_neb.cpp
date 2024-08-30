@@ -40,7 +40,7 @@ using namespace MathConst;
 enum { SINGLE_PROC_DIRECT, SINGLE_PROC_MAP, MULTI_PROC };
 enum { NEIGHBOR, IDEAL, EQUAL };
 
-#define BUFSIZE 8
+static constexpr int BUFSIZE = 8;
 
 /* ---------------------------------------------------------------------- */
 

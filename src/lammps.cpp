@@ -149,7 +149,7 @@ LAMMPS::LAMMPS(int narg, char **arg, MPI_Comm communicator) :
   if (has_git_info() && ((update_string == " - Development") || (update_string == " - Maintenance")))
     update_string += fmt::format(" - {}", git_descriptor());
 
-  external_comm = 0;
+  external_comm = MPI_COMM_NULL;
   mdicomm = nullptr;
 
   skiprunflag = 0;
@@ -191,7 +191,7 @@ LAMMPS::LAMMPS(int narg, char **arg, MPI_Comm communicator) :
     int me,nprocs;
     MPI_Comm_rank(communicator,&me);
     MPI_Comm_size(communicator,&nprocs);
-    int color = atoi(arg[iarg+1]);
+    int color = std::stoi(arg[iarg+1]);
     MPI_Comm subcomm;
     MPI_Comm_split(communicator,color,me,&subcomm);
     external_comm = communicator;
@@ -210,6 +210,7 @@ LAMMPS::LAMMPS(int narg, char **arg, MPI_Comm communicator) :
   int kokkosflag = 0;
   int restart2data = 0;
   int restart2dump = 0;
+  int restart2info = 0;
   int restartremap = 0;
   int citeflag = 1;
   int citescreen = CiteMe::TERSE;
@@ -276,6 +277,7 @@ LAMMPS::LAMMPS(int narg, char **arg, MPI_Comm communicator) :
         error->universe_all(FLERR,"Invalid command-line argument");
       helpflag = 1;
       citeflag = 0;
+      inflag = -1;              // skip inflag check
       iarg += 1;
 
     } else if (strcmp(arg[iarg],"-in") == 0 ||
@@ -381,10 +383,12 @@ LAMMPS::LAMMPS(int narg, char **arg, MPI_Comm communicator) :
       if (iarg+3 > narg)
         error->universe_all(FLERR,"Invalid command-line argument");
       if (restart2dump)
-        error->universe_all(FLERR,
-                            "Cannot use both -restart2data and -restart2dump");
+        error->universe_all(FLERR, "Cannot use both -restart2data and -restart2dump");
+      if (restart2info)
+        error->universe_all(FLERR, "Cannot use both -restart2data and -restart2info");
       restart2data = 1;
       restartfile = arg[iarg+1];
+      inflag = -1;               // skip inflag check
       // check for restart remap flag
       if (strcmp(arg[iarg+2],"remap") == 0) {
         if (iarg+4 > narg)
@@ -403,10 +407,12 @@ LAMMPS::LAMMPS(int narg, char **arg, MPI_Comm communicator) :
       if (iarg+3 > narg)
         error->universe_all(FLERR,"Invalid command-line argument");
       if (restart2data)
-        error->universe_all(FLERR,
-                            "Cannot use both -restart2data and -restart2dump");
+        error->universe_all(FLERR, "Cannot use both -restart2data and -restart2dump");
+      if (restart2info)
+        error->universe_all(FLERR, "Cannot use both -restart2dump and -restart2info");
       restart2dump = 1;
       restartfile = arg[iarg+1];
+      inflag = -1;               // skip inflag check
       // check for restart remap flag
       if (strcmp(arg[iarg+2],"remap") == 0) {
         if (iarg+4 > narg)
@@ -416,6 +422,23 @@ LAMMPS::LAMMPS(int narg, char **arg, MPI_Comm communicator) :
       }
       iarg += 2;
       // delimit args for the write_dump command
+      wfirst = iarg;
+      while (iarg < narg && arg[iarg][0] != '-') iarg++;
+      wlast = iarg;
+
+    } else if (strcmp(arg[iarg],"-restart2info") == 0 ||
+               strcmp(arg[iarg],"-r2info") == 0) {
+      if (iarg+2 > narg)
+        error->universe_all(FLERR,"Invalid command-line argument");
+      if (restart2data)
+        error->universe_all(FLERR, "Cannot use both -restart2data and -restart2info");
+      if (restart2dump)
+        error->universe_all(FLERR, "Cannot use both -restart2dump and -restart2info");
+      restart2info = 1;
+      restartfile = arg[iarg+1];
+      inflag = -1;               // skip inflag check
+      iarg += 2;
+      // delimit args for the info command
       wfirst = iarg;
       while (iarg < narg && arg[iarg][0] != '-') iarg++;
       wlast = iarg;
@@ -535,13 +558,13 @@ LAMMPS::LAMMPS(int narg, char **arg, MPI_Comm communicator) :
     world = universe->uworld;
 
     if (universe->me == 0) {
-      if (inflag == 0) infile = stdin;
+      if (inflag <= 0) infile = stdin;
       else if (strcmp(arg[inflag], "none") == 0) infile = stdin;
       else infile = fopen(arg[inflag],"r");
       if (infile == nullptr)
         error->one(FLERR,"Cannot open input script {}: {}", arg[inflag], utils::getsyserror());
       if (!helpflag)
-        utils::logmesg(this,fmt::format("LAMMPS ({}{})\n", version, update_string));
+        utils::logmesg(this,"LAMMPS ({}{})\n", version, update_string);
 
      // warn against using I/O redirection in parallel runs
       if ((inflag == 0) && (universe->nprocs > 1))
@@ -637,8 +660,7 @@ LAMMPS::LAMMPS(int narg, char **arg, MPI_Comm communicator) :
     }
 
     if ((me == 0) && (!helpflag))
-      utils::logmesg(this,fmt::format("LAMMPS ({})\nProcessor partition = {}\n",
-                                      version, universe->iworld));
+      utils::logmesg(this,"LAMMPS ({})\nProcessor partition = {}\n", version, universe->iworld);
   }
 
   // check consistency of datatype settings in lmptype.h
@@ -726,17 +748,18 @@ LAMMPS::LAMMPS(int narg, char **arg, MPI_Comm communicator) :
   // if either restart conversion option was used, invoke 2 commands and quit
   // add args between wfirst and wlast to write_data or write_data command
   // add "noinit" to write_data to prevent a system init
-  // write_dump will just give a warning message about no init
 
-  if (restart2data || restart2dump) {
+  if (restart2data || restart2dump || restart2info) {
     std::string cmd = fmt::format("read_restart {}",restartfile);
     if (restartremap) cmd += " remap\n";
     input->one(cmd);
     if (restart2data) cmd = "write_data ";
-    else cmd = "write_dump";
+    else if (restart2dump) cmd = "write_dump";
+    else cmd = "info system group compute fix";
     for (iarg = wfirst; iarg < wlast; iarg++)
        cmd += fmt::format(" {}", arg[iarg]);
-    if (restart2data) cmd += " noinit";
+    if (restart2data || restart2dump)
+      cmd += " noinit";
     input->one(cmd);
     error->done(0);
   }
@@ -749,7 +772,7 @@ LAMMPS::LAMMPS(int narg, char **arg, MPI_Comm communicator) :
  * and files and MPI communicators in sub-partitions ("universes"). Then it
  * deletes the fundamental class instances and copies of data inside the class.
  */
-LAMMPS::~LAMMPS()
+LAMMPS::~LAMMPS() noexcept(false)
 {
   const int me = comm->me;
 
@@ -773,8 +796,7 @@ LAMMPS::~LAMMPS()
     totalclock  = (totalclock - seconds) / 60.0;
     int minutes = fmod(totalclock,60.0);
     int hours = (totalclock - minutes) / 60.0;
-    utils::logmesg(this,fmt::format("Total wall time: {}:{:02d}:{:02d}\n",
-                                    hours, minutes, seconds));
+    utils::logmesg(this, "Total wall time: {}:{:02d}:{:02d}\n", hours, minutes, seconds);
   }
 
   if (universe->nworlds == 1) {
@@ -805,7 +827,7 @@ LAMMPS::~LAMMPS()
   // free a copy of uorig here, so check in universe destructor will still work
 
   MPI_Comm copy = universe->uorig;
-  if (external_comm) MPI_Comm_free(&copy);
+  if (external_comm != MPI_COMM_NULL) MPI_Comm_free(&copy);
 
   delete input;
   delete universe;
@@ -1149,7 +1171,7 @@ bool LAMMPS::is_installed_pkg(const char *pkg)
 /** \brief Return name of package that a specific style belongs to
  *
  * This function checks the given name against all list of styles
- * for all type of styles and if the name and the style match, it
+ * for all types of styles and if the name and the style match, it
  * returns which package this style belongs to.
  *
  * \param style Type of style (e.g. atom, pair, fix, etc.)
@@ -1262,10 +1284,11 @@ void _noopt LAMMPS::help()
           "-restart2data rfile dfile ... : convert restart to data file (-r2data)\n"
           "-restart2dump rfile dgroup dstyle dfile ... \n"
           "                            : convert restart to dump file (-r2dump)\n"
+          "-restart2info rfile         : print info about restart rfile (-r2info)\n"
           "-reorder topology-specs     : processor reordering (-r)\n"
           "-screen none/filename       : where to send screen output (-sc)\n"
           "-skiprun                    : skip loops in run and minimize (-sr)\n"
-          "-suffix gpu/intel/opt/omp   : style suffix to apply (-sf)\n"
+          "-suffix gpu/intel/kk/opt/omp: style suffix to apply (-sf)\n"
           "-var varname value          : set index style variable (-v)\n\n",
           exename);
 
@@ -1445,13 +1468,16 @@ void LAMMPS::print_config(FILE *fp)
   fmt::print(fp,"Compatible GPU present: {}\n\n",Info::has_gpu_device() ? "yes" : "no");
 #endif
 
-  fputs("Active compile time flags:\n\n",fp);
+  fputs("FFT information:\n\n",fp);
+  fputs(Info::get_fft_info().c_str(),fp);
+
+  fputs("\nActive compile time flags:\n\n",fp);
   if (Info::has_gzip_support()) fputs("-DLAMMPS_GZIP\n",fp);
   if (Info::has_png_support()) fputs("-DLAMMPS_PNG\n",fp);
   if (Info::has_jpeg_support()) fputs("-DLAMMPS_JPEG\n",fp);
   if (Info::has_ffmpeg_support()) fputs("-DLAMMPS_FFMPEG\n",fp);
+  if (Info::has_curl_support()) fputs("-DLAMMPS_CURL\n",fp);
   if (Info::has_fft_single_support()) fputs("-DFFT_SINGLE\n",fp);
-  if (Info::has_exceptions()) fputs("-DLAMMPS_EXCEPTIONS\n",fp);
 #if defined(LAMMPS_BIGBIG)
   fputs("-DLAMMPS_BIGBIG\n",fp);
 #elif defined(LAMMPS_SMALLBIG)

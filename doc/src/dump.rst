@@ -14,10 +14,6 @@
 .. index:: dump custom/gz
 .. index:: dump local/gz
 .. index:: dump xyz/gz
-.. index:: dump atom/mpiio
-.. index:: dump cfg/mpiio
-.. index:: dump custom/mpiio
-.. index:: dump xyz/mpiio
 .. index:: dump atom/zstd
 .. index:: dump cfg/zstd
 .. index:: dump custom/zstd
@@ -63,7 +59,7 @@ Syntax
 
 * ID = user-assigned name for the dump
 * group-ID = ID of the group of atoms to be dumped
-* style = *atom* or *atom/adios* or *atom/gz* or *atom/zstd* or *atom/mpiio* or *cfg* or *cfg/gz* or *cfg/zstd* or *cfg/mpiio* or *cfg/uef* or *custom* or *custom/gz* or *custom/zstd* or *custom/mpiio* or *custom/adios* or *dcd* or *grid* or *grid/vtk* or *h5md* or *image* or *local* or *local/gz* or *local/zstd* or *molfile* or *movie* or *netcdf* or *netcdf/mpiio* or *vtk* or *xtc* or *xyz* or *xyz/gz* or *xyz/zstd* or *xyz/mpiio* or *yaml*
+* style = *atom* or *atom/adios* or *atom/gz* or *atom/zstd* or *cfg* or *cfg/gz* or *cfg/zstd* or *cfg/uef* or *custom* or *custom/gz* or *custom/zstd* or *custom/adios* or *dcd* or *grid* or *grid/vtk* or *h5md* or *image* or *local* or *local/gz* or *local/zstd* or *molfile* or *movie* or *netcdf* or *netcdf/mpiio* or *vtk* or *xtc* or *xyz* or *xyz/gz* or *xyz/zstd* or *yaml*
 * N = dump on timesteps which are multiples of N
 * file = name of file to write dump info to
 * attribute1,attribute2,... = list of attributes for a particular style
@@ -74,13 +70,11 @@ Syntax
        *atom/adios* attributes = none,  discussed on :doc:`dump atom/adios <dump_adios>` page
        *atom/gz* attributes = none
        *atom/zstd* attributes = none
-       *atom/mpiio* attributes = none
        *cfg* attributes = same as *custom* attributes, see below
        *cfg/gz* attributes = same as *custom* attributes, see below
        *cfg/zstd* attributes = same as *custom* attributes, see below
-       *cfg/mpiio* attributes = same as *custom* attributes, see below
        *cfg/uef* attributes = same as *custom* attributes, discussed on :doc:`dump cfg/uef <dump_cfg_uef>` page
-       *custom*, *custom/gz*, *custom/zstd*, *custom/mpiio* attributes = see below
+       *custom*, *custom/gz*, *custom/zstd* attributes = see below
        *custom/adios* attributes = same as *custom* attributes, discussed on :doc:`dump custom/adios <dump_adios>` page
        *dcd* attributes = none
        *h5md* attributes = discussed on :doc:`dump h5md <dump_h5md>` page
@@ -97,10 +91,9 @@ Syntax
        *xyz* attributes = none
        *xyz/gz* attributes = none
        *xyz/zstd* attributes = none
-       *xyz/mpiio* attributes = none
        *yaml* attributes = same as *custom* attributes, see below
 
-* *custom* or *custom/gz* or *custom/zstd* or *custom/mpiio* or *cfg* or *cfg/gz* or *cfg/zstd* or *cfg/mpiio* or *cfg/uef* or *netcdf* or *netcdf/mpiio* or *yaml* attributes:
+* *custom* or *custom/gz* or *custom/zstd* or *cfg* or *cfg/gz* or *cfg/zstd* or *cfg/uef* or *netcdf* or *netcdf/mpiio* or *yaml* attributes:
 
   .. parsed-literal::
 
@@ -111,7 +104,6 @@ Syntax
                                q, mux, muy, muz, mu,
                                radius, diameter, omegax, omegay, omegaz,
                                angmomx, angmomy, angmomz, tqx, tqy, tqz,
-                               heatflow, temperature,
                                c_ID, c_ID[I], f_ID, f_ID[I], v_name,
                                i_name, d_name, i2_name[I], d2_name[I]
 
@@ -122,6 +114,7 @@ Syntax
            proc = ID of processor that owns atom
            procp1 = ID+1 of processor that owns atom
            type = atom type
+           typelabel = atom :doc:`type label <Howto_type_labels>`
            element = name of atom element, as defined by :doc:`dump_modify <dump_modify>` command
            mass = atom mass
            x,y,z = unscaled atom coordinates
@@ -138,8 +131,6 @@ Syntax
            omegax,omegay,omegaz = angular velocity of spherical particle
            angmomx,angmomy,angmomz = angular momentum of aspherical particle
            tqx,tqy,tqz = torque on finite-size particles
-           heatflow = rate of heat flow into particle
-           temperature = temperature of particle
            c_ID = per-atom vector calculated by a compute with ID
            c_ID[I] = Ith column of per-atom array calculated by a compute with ID, I can include wildcard (see below)
            f_ID = per-atom vector calculated by a fix with ID
@@ -179,11 +170,9 @@ Examples
 .. code-block:: LAMMPS
 
    dump myDump all atom 100 dump.lammpstrj
-   dump myDump all atom/mpiio 100 dump.atom.mpiio
    dump myDump all atom/gz 100 dump.atom.gz
    dump myDump all atom/zstd 100 dump.atom.zst
    dump 2 subgroup atom 50 dump.run.bin
-   dump 2 subgroup atom/mpiio 50 dump.run.mpiio.bin
    dump 4a all custom 100 dump.myforce.* id type x y vx fx
    dump 4a all custom 100 dump.myvel.lammpsbin id type x y z vx vy vz
    dump 4b flow custom 100 dump.%.myforce id type c_myF[3] v_ke
@@ -287,16 +276,20 @@ format <dump_modify>` command and its options.
 Format of native LAMMPS format dump files:
 
 The *atom*, *custom*, *grid*, and *local* styles create files in a
-simple LAMMPS-specific text format that is self-explanatory when
-viewing a dump file.  Many post-processing tools either included with
-LAMMPS or third-party tools can read this format, as does the
+simple LAMMPS-specific text format that is mostly self-explanatory
+when viewing a dump file.  Many post-processing tools either included
+with LAMMPS or third-party tools can read this format, as does the
 :doc:`rerun <rerun>` command.  See tools described on the :doc:`Tools
 <Tools>` doc page for examples, including `Pizza.py
 <https://lammps.github.io/pizza>`_.
 
 For all these styles, the dimensions of the simulation box are
-included in each snapshot.  For an orthogonal simulation box this
-information is formatted as:
+included in each snapshot.  The simulation box in LAMMPS can be
+defined in one of 3 ways: orthogonal, restricted triclinic, and
+general triclinic.  See the :doc:`Howto triclinic <Howto_triclinic>`
+doc page for a detailed description of all 3 options.
+
+For an orthogonal simulation box the box information is formatted as:
 
 .. parsed-literal::
 
@@ -313,10 +306,10 @@ the six characters is one of *p* (periodic), *f* (fixed), *s* (shrink wrap),
 or *m* (shrink wrapped with a minimum value).  See the
 :doc:`boundary <boundary>` command for details.
 
-For triclinic simulation boxes (non-orthogonal), an orthogonal
-bounding box which encloses the triclinic simulation box is output,
-along with the three tilt factors (*xy*, *xz*, *yz*) of the triclinic box,
-formatted as follows:
+For a restricted triclinic simulation box, an orthogonal bounding box
+which encloses the restricted triclinic simulation box is output,
+along with the three tilt factors (*xy*, *xz*, *yz*) of the triclinic
+box, formatted as follows:
 
 .. parsed-literal::
 
@@ -337,6 +330,10 @@ triclinic boxes, as defined by LAMMPS, simple formulas for how the six
 bounding box extents (xlo_bound, xhi_bound, etc.) are calculated from the
 triclinic parameters, and how to transform those parameters to and
 from other commonly used triclinic representations.
+
+For a general triclinic simulation box, see the "General triclinic"
+section below for a description of the ITEM: BOX BOUNDS format as well
+as how per-atom coordinates and per-atom vector quantities are output.
 
 The *atom* and *custom* styles output a "ITEM: NUMBER OF ATOMS" line
 with the count of atoms in the snapshot.  Likewise they output an
@@ -409,7 +406,6 @@ command.
 
 Dump files in other popular formats:
 
-
 .. note::
 
    This section only discusses file formats relevant to this doc page.
@@ -475,8 +471,9 @@ followed by one line per atom with the atom type and the :math:`x`-,
 :math:`y`-, and :math:`z`-coordinate of that atom.  You can use the
 :doc:`dump_modify element <dump_modify>` option to change the output
 from using the (numerical) atom type to an element name (or some other
-label). This will help many visualization programs to guess bonds and
-colors.
+label). This option will help many visualization programs to guess bonds
+and colors. You can use the :doc:`dump_modify types labels <dump_modify>`
+option to replace numeric atom types with :doc:`type labels <Howto_type_labels>`.
 
 .. versionadded:: 22Dec2022
 
@@ -622,27 +619,10 @@ when running on large numbers of processors.
 Note that using the "\*" and "%" characters together can produce a
 large number of small dump files!
 
-For styles that end with *mpiio* an ".mpiio" must appear somewhere in
-the specified filename.  These styles write their dump file in
-parallel via the MPI-IO library, which is part of the MPI standard for
-versions 2.0 and above.  Note these styles are identical in command
-syntax to the corresponding styles without "mpiio".  Likewise, the
-dump files produced by these MPI-IO styles are identical in format to
-the files produced by their non-MPI-IO style counterparts.  This means
-you can write a dump file using MPI-IO and use the :doc:`read_dump
-<read_dump>` command or perform other post-processing, just as if the
-dump file was not written using MPI-IO.
+.. deprecated:: 21Nov2023
 
-Because MPI-IO dump files are one large file which all processors
-write to, you cannot use the "%" wildcard character described above in
-the filename.  However you can use the ".bin" or ".lammpsbin" suffix
-described below.  Again, this file will be written in parallel and
-have the same binary format as if it were written without MPI-IO.
-
-.. warning::
-
-   The MPIIO package within LAMMPS is currently unmaintained and has
-   become unreliable. Use with caution.
+The MPIIO package and the the corresponding "/mpiio" dump styles, except
+for the unrelated "netcdf/mpiio" style were removed from LAMMPS.
 
 ----------
 
@@ -682,6 +662,87 @@ how to control the compression level in both variants.
 
 ----------
 
+General triclinic simulation box output for the *atom* and *custom* styles:
+
+As mentioned above, the simulation box can be defined as a general
+triclinic box, which means that 3 arbitrary box edge vectors **A**,
+**B**, **C** can be specified.  See the :doc:`Howto triclinic
+<Howto_triclinic>` doc page for a detailed description of general
+triclinic boxes.
+
+This option is provided as a convenience for users who may be
+converting data from solid-state crystallographic representations or
+from DFT codes for input to LAMMPS.  However, as explained on the
+:doc:`Howto_triclinic <Howto_triclinic>` doc page, internally, LAMMPS
+only uses restricted triclinic simulation boxes.  This means the box
+and per-atom information (e.g. coordinates, velocities) LAMMPS stores
+are converted (rotated) from general to restricted triclinic form when
+the system is created.
+
+For dump output, if the :doc:`dump_modify triclinic/general
+<dump_modify>` command is used, the box description and per-atom
+coordinates and other per-atom vectors will be converted (rotated)
+from restricted to general form when each dump file snapshots is
+output.  This option can only be used if the simulation box was
+initially created as general triclinic.  If the option is not used,
+and the simulation box is general triclinic, then the dump file
+snapshots will reflect the internal restricted triclinic geometry.
+
+The dump_modify triclinic/general option affects 3 aspects of the dump
+file output.
+
+First, the format for the BOX BOUNDS is as follows
+
+.. parsed-literal::
+
+   ITEM: BOX BOUNDS abc origin
+   ax ay az originx
+   bx by bz originy
+   cx cy cz originz
+
+where the **A** edge vector of the box is (ax,ay,az) and similarly
+for **B** and **C**.  The origin of all 3 edge vectors is (originx,
+originy, originz).
+
+Second, the coordinates of each atom are converted (rotated) so that
+the atom is inside (or near) the general triclinic box defined by the
+**A**, **B**, **C** edge vectors.  For style *atom*, this only alters
+output for unscaled atom coords, via the :doc:`dump_modify scaled no
+<dump_modify>` setting. For style *custom*, this alters output for
+either unscaled or unwrapped output of atom coords, via the *x,y,z* or
+*xu,yu,zu* attributes.  For output of scaled atom coords by both
+styles, there is no difference between restricted and general
+triclinic values.
+
+Third, the output for any attribute of the *custom* style which
+represents a per-atom vector quantity will be converted (rotated) to
+be oriented consistent with the general triclinic box and its
+orientation relative to the standard xyz coordinate axes.
+
+This applies to the following *custom* style attributes:
+
+* vx,vy,vz = atom velocities
+* fx,fy,fz = forces on atoms
+* mux,muy,muz = orientation of dipole moment of atom
+* omegax,omegay,omegaz = angular velocity of spherical particle
+* angmomx,angmomy,angmomz = angular momentum of aspherical particle
+* tqx,tqy,tqz = torque on finite-size particles
+
+For example, if the velocity of an atom in a restricted triclinic box
+is along the x-axis, then it will be output for a general triclinic
+box as a vector along the **A** edge vector of the box.
+
+.. note::
+
+   For style *custom*, the :doc:`dump_modify thresh <dump_modify>`
+   command may access per-atom attributes either directly or
+   indirectly through a compute or variable.  If the attribute is an
+   atom coordinate or one of the vectors mentioned above, its value
+   will *NOT* be a general triclinic (rotated) value.  Rather it will
+   be a restricted triclinic value.
+
+----------
+
 Arguments for different styles:
 
 The sections below describe per-atom, local, and per grid cell
@@ -715,21 +776,21 @@ command creates a per-atom array with six columns:
 
 Per-atom attributes used as arguments to the *custom* and *cfg* styles:
 
-The *id*, *mol*, *proc*, *procp1*, *type*, *element*, *mass*, *vx*,
-*vy*, *vz*, *fx*, *fy*, *fz*, *q* attributes are self-explanatory.
+The *id*, *mol*, *proc*, *procp1*, *type*, *typelabel*, *element*, *mass*,
+*vx*, *vy*, *vz*, *fx*, *fy*, *fz*, *q* attributes are self-explanatory.
 
-*Id* is the atom ID.  *Mol* is the molecule ID, included in the data
-file for molecular systems.  *Proc* is the ID of the processor (0 to
+*Id* is the atom ID.  *Mol* is the molecule ID, included in the data file
+for molecular systems.  *Proc* is the ID of the processor (0 to
 :math:`N_\text{procs}-1`) that currently owns the atom.  *Procp1* is the
 proc ID+1, which can be convenient in place of a *type* attribute (1 to
 :math:`N_\text{types}`) for coloring atoms in a visualization program.
-*Type* is the atom type (1 to :math:`N_\text{types}`).  *Element* is
-typically the chemical name of an element, which you must assign to each
-type via the :doc:`dump_modify element <dump_modify>` command.  More
-generally, it can be any string you wish to associated with an atom
-type.  *Mass* is the atom mass. The quantities *vx*, *vy*, *vz*, *fx*,
-*fy*, *fz*, and *q* are components of atom velocity and force and atomic
-charge.
+*Type* is the atom type (1 to :math:`N_\text{types}`).  *Typelabel* is the
+atom :doc:`type label <Howto_type_labels>`.  *Element* is typically the
+chemical name of an element, which you must assign to each type via the
+:doc:`dump_modify element <dump_modify>` command.  More generally, it can
+be any string you wish to associated with an atom type.  *Mass* is the atom
+mass.  The quantities *vx*, *vy*, *vz*, *fx*, *fy*, *fz*, and *q* are
+components of atom velocity and force and atomic charge.
 
 There are several options for outputting atom coordinates.  The *x*,
 *y*, and *z* attributes write atom coordinates "unscaled", in the
@@ -831,16 +892,16 @@ computes, fixes, or variables when they are evaluated, so this is a very
 general means of creating quantities to output to a dump file.
 
 The *i_name*, *d_name*, *i2_name*, *d2_name* attributes refer to
-per-atom integer and floating-point vectors or arrays that have been
-added via the :doc:`fix property/atom <fix_property_atom>` command.
-When that command is used specific names are given to each attribute
-which are the "name" portion of these keywords.  For arrays *i2_name*
-and *d2_name*, the column of the array must also be included following
-the name in brackets (e.g., d2_xyz[i], i2_mySpin[i], where :math:`i` is
-in the range from 1 to :math:`M`, where :math:`M` is the number of
-columns in the custom array). See the discussion above for how :math:`i`
-can be specified with a wildcard asterisk to effectively specify
-multiple values.
+custom per-atom integer and floating-point vectors or arrays that have
+been added via the :doc:`fix property/atom <fix_property_atom>`
+command.  When that command is used specific names are given to each
+attribute which are the "name" portion of these keywords.  For arrays
+*i2_name* and *d2_name*, the column of the array must also be included
+following the name in brackets (e.g., d2_xyz[i], i2_mySpin[i], where
+:math:`i` is in the range from 1 to :math:`M`, where :math:`M` is the
+number of columns in the custom array).  See the discussion above for
+how :math:`i` can be specified with a wildcard asterisk to effectively
+specify multiple values.
 
 See the :doc:`Modify <Modify>` page for information on how to add
 new compute and fix styles to LAMMPS to calculate per-atom quantities
@@ -956,11 +1017,6 @@ the COMPRESS package.  They are only enabled if LAMMPS was built with
 that package.  See the :doc:`Build package <Build_package>` page for
 more info.
 
-The *atom/mpiio*, *cfg/mpiio*, *custom/mpiio*, and *xyz/mpiio* styles
-are part of the MPIIO package.  They are only enabled if LAMMPS was
-built with that package.  See the :doc:`Build package <Build_package>`
-page for more info.
-
 The *xtc*, *dcd*, and *yaml* styles are part of the EXTRA-DUMP package.
 They are only enabled if LAMMPS was built with that package.  See the
 :doc:`Build package <Build_package>` page for more info.
@@ -971,6 +1027,7 @@ Related commands
 :doc:`dump atom/adios <dump_adios>`, :doc:`dump custom/adios <dump_adios>`,
 :doc:`dump cfg/uef <dump_cfg_uef>`, :doc:`dump h5md <dump_h5md>`,
 :doc:`dump image <dump_image>`, :doc:`dump molfile <dump_molfile>`,
+:doc:`dump netcdf <dump_netcdf>`, :doc:`dump netcdf/mpiio <dump_netcdf>`,
 :doc:`dump_modify <dump_modify>`, :doc:`undump <undump>`,
 :doc:`write_dump <write_dump>`
 

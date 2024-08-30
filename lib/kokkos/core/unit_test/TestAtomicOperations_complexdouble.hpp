@@ -1,60 +1,53 @@
-/*
 //@HEADER
 // ************************************************************************
 //
-//                        Kokkos v. 3.0
-//       Copyright (2020) National Technology & Engineering
+//                        Kokkos v. 4.0
+//       Copyright (2022) National Technology & Engineering
 //               Solutions of Sandia, LLC (NTESS).
 //
 // Under the terms of Contract DE-NA0003525 with NTESS,
 // the U.S. Government retains certain rights in this software.
 //
-// Redistribution and use in source and binary forms, with or without
-// modification, are permitted provided that the following conditions are
-// met:
+// Part of Kokkos, under the Apache License v2.0 with LLVM Exceptions.
+// See https://kokkos.org/LICENSE for license information.
+// SPDX-License-Identifier: Apache-2.0 WITH LLVM-exception
 //
-// 1. Redistributions of source code must retain the above copyright
-// notice, this list of conditions and the following disclaimer.
-//
-// 2. Redistributions in binary form must reproduce the above copyright
-// notice, this list of conditions and the following disclaimer in the
-// documentation and/or other materials provided with the distribution.
-//
-// 3. Neither the name of the Corporation nor the names of the
-// contributors may be used to endorse or promote products derived from
-// this software without specific prior written permission.
-//
-// THIS SOFTWARE IS PROVIDED BY NTESS "AS IS" AND ANY
-// EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
-// IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR
-// PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL NTESS OR THE
-// CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
-// EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
-// PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR
-// PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF
-// LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING
-// NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
-// SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-//
-// Questions? Contact Christian R. Trott (crtrott@sandia.gov)
-//
-// ************************************************************************
 //@HEADER
-*/
 
 #include <TestAtomicOperations.hpp>
 
+using namespace TestAtomicOperations;
+
 namespace Test {
 TEST(TEST_CATEGORY, atomic_operations_complexdouble) {
-  const int start = 1;  // Avoid zero for division.
+#if defined(KOKKOS_ENABLE_SYCL) && \
+    !defined(KOKKOS_IMPL_SYCL_DEVICE_GLOBAL_SUPPORTED)
+  if (std::is_same_v<TEST_EXECSPACE, Kokkos::Experimental::SYCL>)
+    GTEST_SKIP() << "skipping since device_global variables are not available";
+#endif
+  const int start = -5;
   const int end   = 11;
   for (int i = start; i < end; ++i) {
+    using T   = Kokkos::complex<double>;
+    T old_val = static_cast<T>(i);
+    T update  = static_cast<T>(end - i - start);
     ASSERT_TRUE(
-        (TestAtomicOperations::MulAtomicTest<Kokkos::complex<double>,
-                                             TEST_EXECSPACE>(start, end - i)));
+        (atomic_op_test<AddAtomicTest, T, TEST_EXECSPACE>(old_val, update)));
     ASSERT_TRUE(
-        (TestAtomicOperations::DivAtomicTest<Kokkos::complex<double>,
-                                             TEST_EXECSPACE>(start, end - i)));
+        (atomic_op_test<SubAtomicTest, T, TEST_EXECSPACE>(old_val, update)));
+    ASSERT_TRUE(
+        (atomic_op_test<MulAtomicTest, T, TEST_EXECSPACE>(old_val, update)));
+
+    // FIXME_32BIT disable division test for 32bit where we have accuracy issues
+    // with division atomics still compile it though
+    if (sizeof(void*) == 8) {
+      ASSERT_TRUE((update != 0
+                       ? atomic_op_test<DivAtomicTest, T, TEST_EXECSPACE>(
+                             old_val, update)
+                       : true));
+    }
+    ASSERT_TRUE((atomic_op_test<LoadStoreAtomicTest, T, TEST_EXECSPACE>(
+        old_val, update)));
   }
 }
 }  // namespace Test

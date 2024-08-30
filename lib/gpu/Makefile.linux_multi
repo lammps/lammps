@@ -1,4 +1,4 @@
-# /* ----------------------------------------------------------------------   
+# /* ----------------------------------------------------------------------
 #  Generic Linux Makefile for CUDA complied for multiple compute capabilities
 #     - Add your GPU to CUDA_CODE
 # ------------------------------------------------------------------------- */
@@ -65,7 +65,7 @@ CUDA_PRECISION = -D_SINGLE_DOUBLE
 
 CUDA_INCLUDE = -I$(CUDA_HOME)/include
 CUDA_LIB = -L$(CUDA_HOME)/lib64 -L$(CUDA_HOME)/lib64/stubs
-CUDA_OPTS = -DUNIX -O3 --use_fast_math $(LMP_INC) -Xcompiler -fPIC
+CUDA_OPTS = -DUNIX -O3 --use_fast_math $(LMP_INC) -Xcompiler -fPIC -allow-unsupported-compiler
 
 CUDR_CPP = mpicxx -DMPI_GERYON -DUCL_NO_EXIT -DMPICH_IGNORE_CXX_SEEK -DOMPI_SKIP_MPICXX=1 -fPIC -std=c++11
 CUDR_OPTS = -O2 $(LMP_INC) # -xHost -no-prec-div -ansi-alias

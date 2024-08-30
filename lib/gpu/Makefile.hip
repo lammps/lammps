@@ -98,10 +98,10 @@ HIP_GPU_OPTS += $(HIP_OPTS) -I./
 ifeq (spirv,$(HIP_PLATFORM))
 	HIP_HOST_OPTS += -fPIC
 	HIP_GPU_CC  = $(HIP_PATH)/bin/hipcc -c
-	HIP_GPU_OPTS_S = 
+	HIP_GPU_OPTS_S =
 	HIP_GPU_OPTS_E =
 	HIP_KERNEL_SUFFIX = .cpp
-	HIP_LIBS_TARGET = 
+	HIP_LIBS_TARGET =
 	export HCC_AMDGPU_TARGET := $(HIP_ARCH)
 else ifeq (clang,$(HIP_COMPILER))
 	HIP_HOST_OPTS += -fPIC

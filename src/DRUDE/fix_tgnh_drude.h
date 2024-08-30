@@ -63,8 +63,7 @@ class FixTGNHDrude : public Fix {
   double omega_mass[6];
   double p_current[6];
   int kspace_flag;               // 1 if KSpace invoked, 0 if not
-  int nrigid;                    // number of rigid fixes
-  int *rfix;                     // indices of rigid fixes
+  std::vector<Fix *> rfix;       // indices of rigid fixes
   class Irregular *irregular;    // for migrating atoms after box flips
 
   int nlevels_respa;

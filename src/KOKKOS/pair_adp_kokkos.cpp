@@ -321,9 +321,9 @@ void PairADPKokkos<DeviceType>::init_style()
 
   neighflag = lmp->kokkos->neighflag;
   auto request = neighbor->find_request(this);
-  request->set_kokkos_host(std::is_same<DeviceType,LMPHostType>::value &&
-                           !std::is_same<DeviceType,LMPDeviceType>::value);
-  request->set_kokkos_device(std::is_same<DeviceType,LMPDeviceType>::value);
+  request->set_kokkos_host(std::is_same_v<DeviceType,LMPHostType> &&
+                           !std::is_same_v<DeviceType,LMPDeviceType>);
+  request->set_kokkos_device(std::is_same_v<DeviceType,LMPDeviceType>);
   if (neighflag == FULL) request->enable_full();
 }
 
@@ -472,12 +472,11 @@ void PairADPKokkos<DeviceType>::interpolate(int n, double delta, double *f, t_ho
 /* ---------------------------------------------------------------------- */
 
 template<class DeviceType>
-int PairADPKokkos<DeviceType>::pack_forward_comm_kokkos(int n, DAT::tdual_int_2d k_sendlist,
-                                                        int iswap_in, DAT::tdual_xfloat_1d &buf,
+int PairADPKokkos<DeviceType>::pack_forward_comm_kokkos(int n, DAT::tdual_int_1d k_sendlist,
+                                                        DAT::tdual_xfloat_1d &buf,
                                                         int /*pbc_flag*/, int * /*pbc*/)
 {
   d_sendlist = k_sendlist.view<DeviceType>();
-  iswap = iswap_in;
   v_buf = buf.view<DeviceType>();
   Kokkos::parallel_for(Kokkos::RangePolicy<DeviceType, TagPairADPPackForwardComm>(0,n),*this);
   return n*10;
@@ -486,7 +485,7 @@ int PairADPKokkos<DeviceType>::pack_forward_comm_kokkos(int n, DAT::tdual_int_2d
 template<class DeviceType>
 KOKKOS_INLINE_FUNCTION
 void PairADPKokkos<DeviceType>::operator()(TagPairADPPackForwardComm, const int &i) const {
-  int j = d_sendlist(iswap, i);
+  int j = d_sendlist(i);
   v_buf[10 * i] = d_fp(j);
   v_buf[10 * i + 1] = d_mu(j, 0);
   v_buf[10 * i + 2] = d_mu(j, 1);
@@ -671,14 +670,14 @@ void PairADPKokkos<DeviceType>::operator()(TagPairADPKernelA<NEIGHFLAG,NEWTON_PA
   // vector mu and tensor lambda are ADP-specific
   // loop over neighbors of my atoms
 
-  // The rho array is duplicated for OpenMP, atomic for CUDA, and neither for Serial
+  // The rho array is duplicated for OpenMP, atomic for GPU, and neither for Serial
 
-  auto v_rho = ScatterViewHelper<typename NeedDup<NEIGHFLAG,DeviceType>::value,decltype(dup_rho),decltype(ndup_rho)>::get(dup_rho,ndup_rho);
-  auto a_rho = v_rho.template access<typename AtomicDup<NEIGHFLAG,DeviceType>::value>();
-  auto v_mu = ScatterViewHelper<typename NeedDup<NEIGHFLAG,DeviceType>::value,decltype(dup_mu),decltype(ndup_mu)>::get(dup_mu,ndup_mu);
-  auto a_mu = v_mu.template access<typename AtomicDup<NEIGHFLAG,DeviceType>::value>();
-  auto v_lambda = ScatterViewHelper<typename NeedDup<NEIGHFLAG,DeviceType>::value,decltype(dup_lambda),decltype(ndup_lambda)>::get(dup_lambda,ndup_lambda);
-  auto a_lambda = v_lambda.template access<typename AtomicDup<NEIGHFLAG,DeviceType>::value>();
+  auto v_rho = ScatterViewHelper<NeedDup_v<NEIGHFLAG,DeviceType>,decltype(dup_rho),decltype(ndup_rho)>::get(dup_rho,ndup_rho);
+  auto a_rho = v_rho.template access<AtomicDup_v<NEIGHFLAG,DeviceType>>();
+  auto v_mu = ScatterViewHelper<NeedDup_v<NEIGHFLAG,DeviceType>,decltype(dup_mu),decltype(ndup_mu)>::get(dup_mu,ndup_mu);
+  auto a_mu = v_mu.template access<AtomicDup_v<NEIGHFLAG,DeviceType>>();
+  auto v_lambda = ScatterViewHelper<NeedDup_v<NEIGHFLAG,DeviceType>,decltype(dup_lambda),decltype(ndup_lambda)>::get(dup_lambda,ndup_lambda);
+  auto a_lambda = v_lambda.template access<AtomicDup_v<NEIGHFLAG,DeviceType>>();
 
   const int i = d_ilist[ii];
   const X_FLOAT xtmp = x(i,0);
@@ -929,10 +928,10 @@ template<int NEIGHFLAG, int NEWTON_PAIR, int EVFLAG>
 KOKKOS_INLINE_FUNCTION
 void PairADPKokkos<DeviceType>::operator()(TagPairADPKernelC<NEIGHFLAG,NEWTON_PAIR,EVFLAG>, const int &ii, EV_FLOAT& ev) const {
 
-  // The f array is duplicated for OpenMP, atomic for CUDA, and neither for Serial
+  // The f array is duplicated for OpenMP, atomic for GPU, and neither for Serial
 
-  auto v_f = ScatterViewHelper<typename NeedDup<NEIGHFLAG,DeviceType>::value,decltype(dup_f),decltype(ndup_f)>::get(dup_f,ndup_f);
-  auto a_f = v_f.template access<typename AtomicDup<NEIGHFLAG,DeviceType>::value>();
+  auto v_f = ScatterViewHelper<NeedDup_v<NEIGHFLAG,DeviceType>,decltype(dup_f),decltype(ndup_f)>::get(dup_f,ndup_f);
+  auto a_f = v_f.template access<AtomicDup_v<NEIGHFLAG,DeviceType>>();
 
   const int i = d_ilist[ii];
   const X_FLOAT xtmp = x(i,0);
@@ -1087,7 +1086,7 @@ void PairADPKokkos<DeviceType>::ev_tally_xyz(EV_FLOAT &ev, const int &i, const i
   const int EFLAG = eflag;
   const int VFLAG = vflag_either;
 
-  // The eatom and vatom arrays are duplicated for OpenMP, atomic for CUDA, and neither for Serial
+  // The eatom and vatom arrays are duplicated for OpenMP, atomic for GPU, and neither for Serial
 
   auto v_eatom = ScatterViewHelper<NeedDup_v<NEIGHFLAG,DeviceType>,decltype(dup_eatom),decltype(ndup_eatom)>::get(dup_eatom,ndup_eatom);
   auto a_eatom = v_eatom.template access<AtomicDup_v<NEIGHFLAG,DeviceType>>();

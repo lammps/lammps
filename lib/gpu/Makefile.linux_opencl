@@ -1,4 +1,4 @@
-# /* ----------------------------------------------------------------------   
+# /* ----------------------------------------------------------------------
 #  Generic Linux Makefile for OpenCL - Mixed precision
 # ------------------------------------------------------------------------- */
 
@@ -11,7 +11,7 @@ EXTRAMAKE = Makefile.lammps.opencl
 
 LMP_INC = -DLAMMPS_SMALLBIG
 
-OCL_INC = 
+OCL_INC =
 OCL_CPP = mpic++ -std=c++11 -O3 -DMPICH_IGNORE_CXX_SEEK $(LMP_INC) $(OCL_INC)
 OCL_LINK = -lOpenCL
 OCL_PREC = -D_SINGLE_DOUBLE

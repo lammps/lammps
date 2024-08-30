@@ -1,19 +1,5 @@
-.. table_from_list::
-   :columns: 3
-
-   * :doc:`General commands <Commands_all>`
-   * :doc:`Fix styles <Commands_fix>`
-   * :doc:`Compute styles <Commands_compute>`
-   * :doc:`Pair styles <Commands_pair>`
-   * :ref:`Bond styles <bond>`
-   * :ref:`Angle styles <angle>`
-   * :ref:`Dihedral styles <dihedral>`
-   * :ref:`Improper styles <improper>`
-   * :doc:`KSpace styles <Commands_kspace>`
-   * :doc:`Dump styles <Commands_dump>`
-
-Compute commands
-================
+Compute styles
+==============
 
 An alphabetic list of all LAMMPS :doc:`compute <compute>` commands.
 Some styles have accelerated versions.  This is indicated by
@@ -21,7 +7,7 @@ additional letters in parenthesis: g = GPU, i = INTEL, k =
 KOKKOS, o = OPENMP, t = OPT.
 
 .. table_from_list::
-   :columns: 5
+   :columns: 4
 
    * :doc:`ackland/atom <compute_ackland_atom>`
    * :doc:`adf <compute_adf>`
@@ -91,6 +77,7 @@ KOKKOS, o = OPENMP, t = OPT.
    * :doc:`ke/atom/eff <compute_ke_atom_eff>`
    * :doc:`ke/eff <compute_ke_eff>`
    * :doc:`ke/rigid <compute_ke_rigid>`
+   * :doc:`composition/atom (k) <compute_composition_atom>`
    * :doc:`mliap <compute_mliap>`
    * :doc:`momentum <compute_momentum>`
    * :doc:`msd <compute_msd>`
@@ -99,6 +86,7 @@ KOKKOS, o = OPENMP, t = OPT.
    * :doc:`nbond/atom <compute_nbond_atom>`
    * :doc:`omega/chunk <compute_omega_chunk>`
    * :doc:`orientorder/atom (k) <compute_orientorder_atom>`
+   * :doc:`pace <compute_pace>`
    * :doc:`pair <compute_pair>`
    * :doc:`pair/local <compute_pair_local>`
    * :doc:`pe <compute_pe>`
@@ -106,6 +94,10 @@ KOKKOS, o = OPENMP, t = OPT.
    * :doc:`pe/mol/tally <compute_tally>`
    * :doc:`pe/tally <compute_tally>`
    * :doc:`plasticity/atom <compute_plasticity_atom>`
+   * :doc:`pod/atom <compute_pod_atom>`
+   * :doc:`podd/atom <compute_pod_atom>`
+   * :doc:`pod/local <compute_pod_atom>`
+   * :doc:`pod/global <compute_pod_atom>`
    * :doc:`pressure <compute_pressure>`
    * :doc:`pressure/alchemy <compute_pressure_alchemy>`
    * :doc:`pressure/uef <compute_pressure_uef>`
@@ -114,12 +106,16 @@ KOKKOS, o = OPENMP, t = OPT.
    * :doc:`property/grid <compute_property_grid>`
    * :doc:`property/local <compute_property_local>`
    * :doc:`ptm/atom <compute_ptm_atom>`
+   * :doc:`rattlers/atom <compute_rattlers_atom>`
    * :doc:`rdf <compute_rdf>`
+   * :doc:`reaxff/atom (k) <compute_reaxff_atom>`
    * :doc:`reduce <compute_reduce>`
    * :doc:`reduce/chunk <compute_reduce_chunk>`
    * :doc:`reduce/region <compute_reduce>`
+   * :doc:`rheo/property/atom <compute_rheo_property_atom>`
    * :doc:`rigid/local <compute_rigid_local>`
    * :doc:`saed <compute_saed>`
+   * :doc:`slcsa/atom <compute_slcsa_atom>`
    * :doc:`slice <compute_slice>`
    * :doc:`smd/contact/radius <compute_smd_contact_radius>`
    * :doc:`smd/damage <compute_smd_damage>`

@@ -37,6 +37,7 @@ includes several public variables that describe the geometry/dynamics of the
 contact such as
 
 .. list-table::
+   :widths: 25 75
 
    * - ``xi`` and ``xj``
      - Positions of the two contacting bodies
@@ -64,38 +65,31 @@ GranSubMod classes. All GranSubMod classes share several general methods which m
 need to be defined
 
 .. list-table::
+   :widths: 25 75
 
-   * - ``GranSubMod->mix_coeff()``
+   * - ``mix_coeff()``
      - Optional method to define how coefficients are mixed for different atom types. By default, coefficients are mixed using a geometric mean.
-   * - ``GranSubMod->coeffs_to_local()``
+   * - ``coeffs_to_local()``
      - Parses coefficients to define local variables. Run once at model construction.
-   * - ``GranSubMod->init()``
+   * - ``init()``
      - Optional method to define local variables after other GranSubMod types were created. For instance, this method may be used by a tangential model that derives parameters from the normal model.
 
-There are also several type-specific methods
+The Normal, Damping, Tangential, Twisting, and Rolling sub-models also have a
+``calculate_forces()`` method which calculate the respective forces/torques.
+Correspondingly, the Heat sub-model has a ``calculate_heat()`` method. Lastly,
+the Normal sub-model has a few extra optional methods:
 
 .. list-table::
+   :widths: 25 75
 
-   * - ``GranSubModNormal->touch()``
-     - Optional method to test when particles are in contact. By default, this is when particles overlap.
-   * - ``GranSubModNormal->pulloff_distance()``
-     - Optional method to return the distance at which particles stop interacting. By default, this is when particles no longer overlap.
-   * - ``GranSubModNormal->calculate_radius()``
-     - Optional method to return the radius of the contact. By default, this returns the radius of the geometric cross section.
-   * - ``GranSubModNormal->set_fncrit()``
-     - Optional method that defines the critical force to break the contact used by some tangential, rolling, and twisting sub-models. By default, this is the current total normal force including damping.
-   * - ``GranSubModNormal->calculate_forces()``
-     - Required method that returns the normal contact force
-   * - ``GranSubModDamping->calculate_forces()``
-     - Required method that returns the normal damping force
-   * - ``GranSubModTangential->calculate_forces()``
-     - Required method that calculates tangential forces/torques
-   * - ``GranSubModTwisting->calculate_forces()``
-     - Required method that calculates twisting friction forces/torques
-   * - ``GranSubModRolling->calculate_forces()``
-     - Required method that calculates rolling friction forces/torques
-   * - ``GranSubModHeat->calculate_heat()``
-     - Required method that returns the rate of heat flow
+   * - ``touch()``
+     - Tests whether particles are in contact. By default, when particles overlap.
+   * - ``pulloff_distance()``
+     - Returns the distance at which particles stop interacting. By default, when particles no longer overlap.
+   * - ``calculate_radius()``
+     - Returns the radius of the contact. By default, the radius of the geometric cross section.
+   * - ``set_fncrit()``
+     - Defines the critical force to break the contact used by some tangential, rolling, and twisting sub-models. By default, the current total normal force including damping.
 
 As an example, say one wanted to create a new normal force option that consisted
 of a Hookean force with a piecewise stiffness. This could be done by adding a new
@@ -125,7 +119,6 @@ set of files ``gran_sub_mod_custom.h``:
       protected:
        double k1, k2, delta_switch;
      };
-
    }    // namespace Granular_NS
    }    // namespace LAMMPS_NS
 

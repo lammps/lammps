@@ -69,9 +69,9 @@ In case of compute *stress/atom*, the virial contribution is:
 
 The first term is a pairwise energy contribution where :math:`n` loops
 over the :math:`N_p` neighbors of atom :math:`I`, :math:`\mathbf{r}_1`
-and :math:`\mathbf{r}_2` are the positions of the 2 atoms in the
+and :math:`\mathbf{r}_2` are the positions of the two atoms in the
 pairwise interaction, and :math:`\mathbf{F}_1` and
-:math:`\mathbf{F}_2` are the forces on the 2 atoms resulting from the
+:math:`\mathbf{F}_2` are the forces on the two atoms resulting from the
 pairwise interaction.  The second term is a bond contribution of
 similar form for the :math:`N_b` bonds which atom :math:`I` is part
 of.  There are similar terms for the :math:`N_a` angle, :math:`N_d`
@@ -127,11 +127,11 @@ result in more consistent heat flux values for angle, dihedrals,
 improper and constraint force contributions
 when computed via :doc:`compute heat/flux <compute_heat_flux>`.
 
-If no extra keywords are listed, the kinetic contribution all of the
-virial contribution terms are included in the per-atom stress tensor.
-If any extra keywords are listed, only those terms are summed to
-compute the tensor.  The *virial* keyword means include all terms
-except the kinetic energy *ke*\ .
+If no extra keywords are listed, the kinetic contribution *and* all
+of the virial contribution terms are included in the per-atom stress
+tensor.  If any extra keywords are listed, only those terms are
+summed to compute the tensor.  The *virial* keyword means include all
+terms except the kinetic energy *ke*\ .
 
 Note that the stress for each atom is due to its interaction with all
 other atoms in the simulation, not just with other atoms in the group.
@@ -289,7 +289,8 @@ Related commands
 Default
 """""""
 
-none
+By default the compute includes contributions from the keywords:
+``ke pair bond angle dihedral improper kspace fix``
 
 ----------
 

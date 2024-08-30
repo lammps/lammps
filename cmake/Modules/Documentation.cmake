@@ -5,24 +5,18 @@ option(BUILD_DOC "Build LAMMPS HTML documentation" OFF)
 
 if(BUILD_DOC)
   # Current Sphinx versions require at least Python 3.8
-  if(CMAKE_VERSION VERSION_LESS 3.12)
-    find_package(PythonInterp 3.8 REQUIRED)
-    set(VIRTUALENV ${PYTHON_EXECUTABLE} -m venv)
-  else()
-    # use default (or custom) Python executable, if version is sufficient
-    if(Python_VERSION VERSION_GREATER_EQUAL 3.8)
-      set(Python3_EXECUTABLE ${Python_EXECUTABLE})
-    endif()
-    find_package(Python3 REQUIRED COMPONENTS Interpreter)
-    if(Python3_VERSION VERSION_LESS 3.8)
-      message(FATAL_ERROR "Python 3.8 and up is required to build the HTML documentation")
-    endif()
-    set(VIRTUALENV ${Python3_EXECUTABLE} -m venv)
+  # use default (or custom) Python executable, if version is sufficient
+  if(Python_VERSION VERSION_GREATER_EQUAL 3.8)
+    set(Python3_EXECUTABLE ${Python_EXECUTABLE})
   endif()
+  find_package(Python3 REQUIRED COMPONENTS Interpreter)
+  if(Python3_VERSION VERSION_LESS 3.8)
+    message(FATAL_ERROR "Python 3.8 and up is required to build the HTML documentation")
+  endif()
+  set(VIRTUALENV ${Python3_EXECUTABLE} -m venv)
+
   find_package(Doxygen 1.8.10 REQUIRED)
-
-  file(GLOB DOC_SOURCES ${CONFIGURE_DEPENDS} ${LAMMPS_DOC_DIR}/src/[^.]*.rst)
-
+  file(GLOB DOC_SOURCES CONFIGURE_DEPENDS ${LAMMPS_DOC_DIR}/src/[^.]*.rst)
 
   add_custom_command(
     OUTPUT docenv
@@ -80,7 +74,7 @@ if(BUILD_DOC)
       message(STATUS "Using already downloaded archive ${CMAKE_BINARY_DIR}/libpace.tar.gz")
     endif()
     execute_process(COMMAND ${CMAKE_COMMAND} -E tar xzf mathjax.tar.gz WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR})
-    file(GLOB MATHJAX_VERSION_DIR ${CONFIGURE_DEPENDS} ${CMAKE_CURRENT_BINARY_DIR}/MathJax-*)
+    file(GLOB MATHJAX_VERSION_DIR CONFIGURE_DEPENDS ${CMAKE_CURRENT_BINARY_DIR}/MathJax-*)
     execute_process(COMMAND ${CMAKE_COMMAND} -E rename ${MATHJAX_VERSION_DIR} ${DOC_BUILD_STATIC_DIR}/mathjax)
   endif()
 

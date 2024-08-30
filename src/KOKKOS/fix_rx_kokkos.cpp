@@ -25,13 +25,12 @@
 #include "math_special_kokkos.h"
 #include "memory_kokkos.h"
 #include "modify.h"
-#include "neigh_list_kokkos.h"
 #include "neigh_request.h"
 #include "neighbor.h"
 #include "update.h"
 
 #include <cfloat> // DBL_EPSILON
-#include <cstring>
+#include <cmath>
 
 using namespace LAMMPS_NS;
 using namespace FixConst;
@@ -85,9 +84,6 @@ FixRxKokkos<DeviceType>::~FixRxKokkos()
     memoryKK->destroy_kokkos(k_dpdThetaLocal, dpdThetaLocal);
 
   memoryKK->destroy_kokkos(k_sumWeights, sumWeights);
-  memoryKK->destroy_kokkos(d_scratchSpace);
-
-  memoryKK->destroy_kokkos(k_cutsq);
 }
 
 /* ---------------------------------------------------------------------- */
@@ -130,9 +126,9 @@ void FixRxKokkos<DeviceType>::init()
   // built whenever re-neighboring occurs
 
   auto request = neighbor->add_request(this);
-  request->set_kokkos_host(std::is_same<DeviceType,LMPHostType>::value &&
-                           !std::is_same<DeviceType,LMPDeviceType>::value);
-  request->set_kokkos_device(std::is_same<DeviceType,LMPDeviceType>::value);
+  request->set_kokkos_host(std::is_same_v<DeviceType,LMPHostType> &&
+                           !std::is_same_v<DeviceType,LMPDeviceType>);
+  request->set_kokkos_device(std::is_same_v<DeviceType,LMPDeviceType>);
   if (lmp->kokkos->neighflag == FULL) request->enable_full();
 }
 
@@ -1463,8 +1459,8 @@ void FixRxKokkos<DeviceType>::solve_reactions(const int /*vflag*/, const bool is
   this->scratchSpaceSize = (8*nspecies + 2*nreactions);
 
   if (nlocal*scratchSpaceSize > d_scratchSpace.extent(0)) {
-    memoryKK->destroy_kokkos (d_scratchSpace);
-    memoryKK->create_kokkos (d_scratchSpace, nlocal*scratchSpaceSize, "FixRxKokkos::d_scratchSpace");
+    d_scratchSpace = typename AT::t_double_1d();
+    d_scratchSpace = typename AT::t_double_1d("FixRxKokkos::d_scratchSpace", nlocal*scratchSpaceSize);
   }
 
   if (setRatesToZero)
@@ -1822,8 +1818,8 @@ void FixRxKokkos<DeviceType>::computeLocalTemperature()
     const int ntypes = atom->ntypes;
 
     if (ntypes+1 > (int) k_cutsq.extent(0)) {
-      memoryKK->destroy_kokkos (k_cutsq);
-      memoryKK->create_kokkos (k_cutsq, ntypes+1, ntypes+1, "FixRxKokkos::k_cutsq");
+      k_cutsq = typename AT::tdual_ffloat_2d();
+      k_cutsq = typename AT::tdual_ffloat_2d("FixRxKokkos::k_cutsq", ntypes+1, ntypes+1);
       d_cutsq = k_cutsq.template view<DeviceType>();
     }
 
@@ -1843,7 +1839,7 @@ void FixRxKokkos<DeviceType>::computeLocalTemperature()
 
   if (sumWeightsCt > (int)k_sumWeights.template view<DeviceType>().extent(0)) {
     memoryKK->destroy_kokkos(k_sumWeights, sumWeights);
-    memoryKK->create_kokkos (k_sumWeights, sumWeightsCt, "FixRxKokkos::sumWeights");
+    memoryKK->create_kokkos(k_sumWeights, sumWeights, sumWeightsCt, "FixRxKokkos::sumWeights");
     d_sumWeights = k_sumWeights.template view<DeviceType>();
     h_sumWeights = k_sumWeights.h_view;
   }

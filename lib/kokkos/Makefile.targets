@@ -20,8 +20,6 @@ Kokkos_TaskQueue.o: $(KOKKOS_CPP_DEPENDS) $(KOKKOS_PATH)/core/src/impl/Kokkos_Ta
 	$(CXX) $(KOKKOS_CPPFLAGS) $(KOKKOS_CXXFLAGS) $(CXXFLAGS) -c $(KOKKOS_PATH)/core/src/impl/Kokkos_TaskQueue.cpp
 Kokkos_HostThreadTeam.o: $(KOKKOS_CPP_DEPENDS) $(KOKKOS_PATH)/core/src/impl/Kokkos_HostThreadTeam.cpp
 	$(CXX) $(KOKKOS_CPPFLAGS) $(KOKKOS_CXXFLAGS) $(CXXFLAGS) -c $(KOKKOS_PATH)/core/src/impl/Kokkos_HostThreadTeam.cpp
-Kokkos_Spinwait.o: $(KOKKOS_CPP_DEPENDS) $(KOKKOS_PATH)/core/src/impl/Kokkos_Spinwait.cpp
-	$(CXX) $(KOKKOS_CPPFLAGS) $(KOKKOS_CXXFLAGS) $(CXXFLAGS) -c $(KOKKOS_PATH)/core/src/impl/Kokkos_Spinwait.cpp
 Kokkos_HostBarrier.o: $(KOKKOS_CPP_DEPENDS) $(KOKKOS_PATH)/core/src/impl/Kokkos_HostBarrier.cpp
 	$(CXX) $(KOKKOS_CPPFLAGS) $(KOKKOS_CXXFLAGS) $(CXXFLAGS) -c $(KOKKOS_PATH)/core/src/impl/Kokkos_HostBarrier.cpp
 Kokkos_Profiling.o: $(KOKKOS_CPP_DEPENDS) $(KOKKOS_PATH)/core/src/impl/Kokkos_Profiling.cpp
@@ -30,12 +28,12 @@ Kokkos_SharedAlloc.o: $(KOKKOS_CPP_DEPENDS) $(KOKKOS_PATH)/core/src/impl/Kokkos_
 	$(CXX) $(KOKKOS_CPPFLAGS) $(KOKKOS_CXXFLAGS) $(CXXFLAGS) -c $(KOKKOS_PATH)/core/src/impl/Kokkos_SharedAlloc.cpp
 Kokkos_MemoryPool.o: $(KOKKOS_CPP_DEPENDS) $(KOKKOS_PATH)/core/src/impl/Kokkos_MemoryPool.cpp
 	$(CXX) $(KOKKOS_CPPFLAGS) $(KOKKOS_CXXFLAGS) $(CXXFLAGS) -c $(KOKKOS_PATH)/core/src/impl/Kokkos_MemoryPool.cpp
-Kokkos_MemorySpace.o: $(KOKKOS_CPP_DEPENDS) $(KOKKOS_PATH)/core/src/impl/Kokkos_MemorySpace.cpp
-	$(CXX) $(KOKKOS_CPPFLAGS) $(KOKKOS_CXXFLAGS) $(CXXFLAGS) -c $(KOKKOS_PATH)/core/src/impl/Kokkos_MemorySpace.cpp
 Kokkos_HostSpace_deepcopy.o: $(KOKKOS_CPP_DEPENDS) $(KOKKOS_PATH)/core/src/impl/Kokkos_HostSpace_deepcopy.cpp 
 	$(CXX) $(KOKKOS_CPPFLAGS) $(KOKKOS_CXXFLAGS) $(CXXFLAGS) -c $(KOKKOS_PATH)/core/src/impl/Kokkos_HostSpace_deepcopy.cpp
 Kokkos_NumericTraits.o: $(KOKKOS_CPP_DEPENDS) $(KOKKOS_PATH)/core/src/impl/Kokkos_NumericTraits.cpp
 	$(CXX) $(KOKKOS_CPPFLAGS) $(KOKKOS_CXXFLAGS) $(CXXFLAGS) -c $(KOKKOS_PATH)/core/src/impl/Kokkos_NumericTraits.cpp
+Kokkos_Abort.o: $(KOKKOS_CPP_DEPENDS) $(KOKKOS_PATH)/core/src/impl/Kokkos_Abort.cpp
+	$(CXX) $(KOKKOS_CPPFLAGS) $(KOKKOS_CXXFLAGS) $(CXXFLAGS) -c $(KOKKOS_PATH)/core/src/impl/Kokkos_Abort.cpp
 
 ifeq ($(KOKKOS_INTERNAL_USE_SERIAL), 1)
 Kokkos_Serial.o: $(KOKKOS_CPP_DEPENDS) $(KOKKOS_PATH)/core/src/Serial/Kokkos_Serial.cpp
@@ -51,8 +49,6 @@ Kokkos_CudaSpace.o: $(KOKKOS_CPP_DEPENDS) $(KOKKOS_PATH)/core/src/Cuda/Kokkos_Cu
 	$(CXX) $(KOKKOS_CPPFLAGS) $(KOKKOS_CXXFLAGS) $(CXXFLAGS) -c $(KOKKOS_PATH)/core/src/Cuda/Kokkos_CudaSpace.cpp
 Kokkos_Cuda_Task.o: $(KOKKOS_CPP_DEPENDS) $(KOKKOS_PATH)/core/src/Cuda/Kokkos_Cuda_Task.cpp
 	$(CXX) $(KOKKOS_CPPFLAGS) $(KOKKOS_CXXFLAGS) $(CXXFLAGS) -c $(KOKKOS_PATH)/core/src/Cuda/Kokkos_Cuda_Task.cpp
-Kokkos_Cuda_Locks.o: $(KOKKOS_CPP_DEPENDS) $(KOKKOS_PATH)/core/src/Cuda/Kokkos_Cuda_Locks.cpp
-	$(CXX) $(KOKKOS_CPPFLAGS) $(KOKKOS_CXXFLAGS) $(CXXFLAGS) -c $(KOKKOS_PATH)/core/src/Cuda/Kokkos_Cuda_Locks.cpp
 Lock_Array_CUDA.o: $(KOKKOS_CPP_DEPENDS) $(KOKKOS_PATH)/tpls/desul/src/Lock_Array_CUDA.cpp
 	$(CXX) $(KOKKOS_CPPFLAGS) $(KOKKOS_CXXFLAGS) $(CXXFLAGS) -c $(KOKKOS_PATH)/tpls/desul/src/Lock_Array_CUDA.cpp
 endif
@@ -67,22 +63,30 @@ Kokkos_SYCL_Instance.o: $(KOKKOS_CPP_DEPENDS) $(KOKKOS_PATH)/core/src/SYCL/Kokko
 endif
 
 ifeq ($(KOKKOS_INTERNAL_USE_HIP), 1)
+Kokkos_HIP.o: $(KOKKOS_CPP_DEPENDS) $(KOKKOS_PATH)/core/src/HIP/Kokkos_HIP.cpp
+	$(CXX) $(KOKKOS_CPPFLAGS) $(KOKKOS_CXXFLAGS) $(CXXFLAGS) -c $(KOKKOS_PATH)/core/src/HIP/Kokkos_HIP.cpp
+Kokkos_HIP_SharedAllocationRecord.o: $(KOKKOS_CPP_DEPENDS) $(KOKKOS_PATH)/core/src/HIP/Kokkos_HIP_SharedAllocationRecord.cpp
+	$(CXX) $(KOKKOS_CPPFLAGS) $(KOKKOS_CXXFLAGS) $(CXXFLAGS) -c $(KOKKOS_PATH)/core/src/HIP/Kokkos_HIP_SharedAllocationRecord.cpp
+Kokkos_HIP_DeepCopy.o: $(KOKKOS_CPP_DEPENDS) $(KOKKOS_PATH)/core/src/HIP/Kokkos_HIP_DeepCopy.cpp
+	$(CXX) $(KOKKOS_CPPFLAGS) $(KOKKOS_CXXFLAGS) $(CXXFLAGS) -c $(KOKKOS_PATH)/core/src/HIP/Kokkos_HIP_DeepCopy.cpp
 Kokkos_HIP_Space.o: $(KOKKOS_CPP_DEPENDS) $(KOKKOS_PATH)/core/src/HIP/Kokkos_HIP_Space.cpp
 	$(CXX) $(KOKKOS_CPPFLAGS) $(KOKKOS_CXXFLAGS) $(CXXFLAGS) -c $(KOKKOS_PATH)/core/src/HIP/Kokkos_HIP_Space.cpp
 Kokkos_HIP_Instance.o: $(KOKKOS_CPP_DEPENDS) $(KOKKOS_PATH)/core/src/HIP/Kokkos_HIP_Instance.cpp
 	$(CXX) $(KOKKOS_CPPFLAGS) $(KOKKOS_CXXFLAGS) $(CXXFLAGS) -c $(KOKKOS_PATH)/core/src/HIP/Kokkos_HIP_Instance.cpp
-Kokkos_HIP_Locks.o: $(KOKKOS_CPP_DEPENDS) $(KOKKOS_PATH)/core/src/HIP/Kokkos_HIP_Locks.cpp
-	$(CXX) $(KOKKOS_CPPFLAGS) $(KOKKOS_CXXFLAGS) $(CXXFLAGS) -c $(KOKKOS_PATH)/core/src/HIP/Kokkos_HIP_Locks.cpp
 Lock_Array_HIP.o: $(KOKKOS_CPP_DEPENDS) $(KOKKOS_PATH)/tpls/desul/src/Lock_Array_HIP.cpp
 	$(CXX) $(KOKKOS_CPPFLAGS) $(KOKKOS_CXXFLAGS) $(CXXFLAGS) -c $(KOKKOS_PATH)/tpls/desul/src/Lock_Array_HIP.cpp
 endif
 
 ifeq ($(KOKKOS_INTERNAL_USE_THREADS), 1)
-Kokkos_ThreadsExec.o: $(KOKKOS_CPP_DEPENDS) $(KOKKOS_PATH)/core/src/Threads/Kokkos_ThreadsExec.cpp
-	$(CXX) $(KOKKOS_CPPFLAGS) $(KOKKOS_CXXFLAGS) $(CXXFLAGS) -c $(KOKKOS_PATH)/core/src/Threads/Kokkos_ThreadsExec.cpp
+Kokkos_Threads_Instance.o: $(KOKKOS_CPP_DEPENDS) $(KOKKOS_PATH)/core/src/Threads/Kokkos_Threads_Instance.cpp
+	$(CXX) $(KOKKOS_CPPFLAGS) $(KOKKOS_CXXFLAGS) $(CXXFLAGS) -c $(KOKKOS_PATH)/core/src/Threads/Kokkos_Threads_Instance.cpp
+Kokkos_Threads_Spinwait.o: $(KOKKOS_CPP_DEPENDS) $(KOKKOS_PATH)/core/src/Threads/Kokkos_Threads_Spinwait.cpp
+	$(CXX) $(KOKKOS_CPPFLAGS) $(KOKKOS_CXXFLAGS) $(CXXFLAGS) -c $(KOKKOS_PATH)/core/src/Threads/Kokkos_Spinwait.cpp
 endif
 
 ifeq ($(KOKKOS_INTERNAL_USE_OPENMP), 1)
+Kokkos_OpenMP.o: $(KOKKOS_CPP_DEPENDS) $(KOKKOS_PATH)/core/src/OpenMP/Kokkos_OpenMP.cpp
+	$(CXX) $(KOKKOS_CPPFLAGS) $(KOKKOS_CXXFLAGS) $(CXXFLAGS) -c $(KOKKOS_PATH)/core/src/OpenMP/Kokkos_OpenMP.cpp
 Kokkos_OpenMP_Instance.o: $(KOKKOS_CPP_DEPENDS) $(KOKKOS_PATH)/core/src/OpenMP/Kokkos_OpenMP_Instance.cpp
 	$(CXX) $(KOKKOS_CPPFLAGS) $(KOKKOS_CXXFLAGS) $(CXXFLAGS) -c $(KOKKOS_PATH)/core/src/OpenMP/Kokkos_OpenMP_Instance.cpp
 Kokkos_OpenMP_Task.o: $(KOKKOS_CPP_DEPENDS) $(KOKKOS_PATH)/core/src/OpenMP/Kokkos_OpenMP_Task.cpp
@@ -107,5 +111,13 @@ Kokkos_OpenMPTarget_Task.o: $(KOKKOS_CPP_DEPENDS) $(KOKKOS_PATH)/core/src/OpenMP
 	$(CXX) $(KOKKOS_CPPFLAGS) $(KOKKOS_CXXFLAGS) $(CXXFLAGS) -c $(KOKKOS_PATH)/core/src/OpenMPTarget/Kokkos_OpenMPTarget_Task.cpp
 endif
 
-Kokkos_HBWSpace.o: $(KOKKOS_CPP_DEPENDS) $(KOKKOS_PATH)/core/src/impl/Kokkos_HBWSpace.cpp
-	$(CXX) $(KOKKOS_CPPFLAGS) $(KOKKOS_CXXFLAGS) $(CXXFLAGS) -c $(KOKKOS_PATH)/core/src/impl/Kokkos_HBWSpace.cpp
+ifeq ($(KOKKOS_INTERNAL_USE_OPENACC), 1)
+Kokkos_OpenACC.o: $(KOKKOS_CPP_DEPENDS) $(KOKKOS_PATH)/core/src/OpenACC/Kokkos_OpenACC.cpp
+	$(CXX) $(KOKKOS_CPPFLAGS) $(KOKKOS_CXXFLAGS) $(CXXFLAGS) -c $(KOKKOS_PATH)/core/src/OpenACC/Kokkos_OpenACC.cpp
+Kokkos_OpenACCSpace.o: $(KOKKOS_CPP_DEPENDS) $(KOKKOS_PATH)/core/src/OpenACC/Kokkos_OpenACCSpace.cpp
+	$(CXX) $(KOKKOS_CPPFLAGS) $(KOKKOS_CXXFLAGS) $(CXXFLAGS) -c $(KOKKOS_PATH)/core/src/OpenACC/Kokkos_OpenACCSpace.cpp
+Kokkos_OpenACC_Instance.o: $(KOKKOS_CPP_DEPENDS) $(KOKKOS_PATH)/core/src/OpenACC/Kokkos_OpenACC_Instance.cpp
+	$(CXX) $(KOKKOS_CPPFLAGS) $(KOKKOS_CXXFLAGS) $(CXXFLAGS) -c $(KOKKOS_PATH)/core/src/OpenACC/Kokkos_OpenACC_Instance.cpp
+Kokkos_OpenACC_SharedAllocationRecord.o: $(KOKKOS_CPP_DEPENDS) $(KOKKOS_PATH)/core/src/OpenACC/Kokkos_OpenACC_SharedAllocationRecord.cpp
+	$(CXX) $(KOKKOS_CPPFLAGS) $(KOKKOS_CXXFLAGS) $(CXXFLAGS) -c $(KOKKOS_PATH)/core/src/OpenACC/Kokkos_OpenACC_SharedAllocationRecord.cpp
+endif

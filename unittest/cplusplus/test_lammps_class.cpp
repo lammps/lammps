@@ -21,9 +21,9 @@ protected:
     LAMMPS *lmp;
     LAMMPS_plain() : lmp(nullptr)
     {
-        const char * args[] = {"LAMMPS_test", nullptr};
-        char ** argv = (char**)args;
-        int argc = 1;
+        const char *args[] = {"LAMMPS_test", nullptr};
+        char **argv        = (char **)args;
+        int argc           = 1;
 
         int flag;
         MPI_Initialized(&flag);
@@ -37,7 +37,7 @@ protected:
         LAMMPS::argv args = {"LAMMPS_test", "-log", "none", "-echo", "both", "-nocite"};
 
         ::testing::internal::CaptureStdout();
-        lmp = new LAMMPS(args, MPI_COMM_WORLD);
+        lmp                = new LAMMPS(args, MPI_COMM_WORLD);
         std::string output = ::testing::internal::GetCapturedStdout();
         EXPECT_THAT(output, StartsWith("LAMMPS ("));
     }
@@ -157,9 +157,9 @@ protected:
     LAMMPS *lmp;
     LAMMPS_omp() : lmp(nullptr)
     {
-        const char * args[] = {"LAMMPS_test", nullptr};
-        char ** argv = (char**)args;
-        int argc = 1;
+        const char *args[] = {"LAMMPS_test", nullptr};
+        char **argv        = (char **)args;
+        int argc           = 1;
 
         int flag;
         MPI_Initialized(&flag);
@@ -238,9 +238,9 @@ protected:
     LAMMPS *lmp;
     LAMMPS_kokkos() : lmp(nullptr)
     {
-        const char * args[] = {"LAMMPS_test", nullptr};
-        char ** argv = (char**)args;
-        int argc = 1;
+        const char *args[] = {"LAMMPS_test", nullptr};
+        char **argv        = (char **)args;
+        int argc           = 1;
 
         int flag;
         MPI_Initialized(&flag);
@@ -253,6 +253,15 @@ protected:
     {
         LAMMPS::argv args = {"LAMMPS_test", "-log", "none", "-echo", "none", "-screen", "none",
                              "-k",          "on",   "t",    "1",     "-sf",  "kk"};
+
+        // when GPU support is enabled in KOKKOS, it *must* be used
+        if (Info::has_accelerator_feature("KOKKOS", "api", "hip") ||
+            Info::has_accelerator_feature("KOKKOS", "api", "cuda") ||
+            Info::has_accelerator_feature("KOKKOS", "api", "sycl")) {
+            args = {"LAMMPS_test", "-log", "none", "-echo", "none", "-screen", "none", "-k",
+                    "on",          "t",    "1",    "g",     "1",    "-sf",     "kk"};
+        }
+
         if (Info::has_accelerator_feature("KOKKOS", "api", "openmp")) args[10] = "2";
 
         if (LAMMPS::is_installed_pkg("KOKKOS")) {
@@ -330,7 +339,7 @@ TEST(LAMMPS_init, OpenMP)
     LAMMPS::argv args = {"LAMMPS_init", "-in", "in.lammps_empty", "-log", "none", "-nocite"};
 
     ::testing::internal::CaptureStdout();
-    LAMMPS *lmp        = new LAMMPS(args, MPI_COMM_WORLD);
+    auto *lmp          = new LAMMPS(args, MPI_COMM_WORLD);
     std::string output = ::testing::internal::GetCapturedStdout();
     EXPECT_THAT(output, ContainsRegex(".*using 2 OpenMP thread.*per MPI task.*"));
 
@@ -361,7 +370,7 @@ TEST(LAMMPS_init, NoOpenMP)
     LAMMPS::argv args = {"LAMMPS_init", "-in", "in.lammps_class_noomp", "-log", "none", "-nocite"};
 
     ::testing::internal::CaptureStdout();
-    LAMMPS *lmp        = new LAMMPS(args, MPI_COMM_WORLD);
+    auto *lmp          = new LAMMPS(args, MPI_COMM_WORLD);
     std::string output = ::testing::internal::GetCapturedStdout();
     EXPECT_THAT(output, ContainsRegex(
                             ".*OMP_NUM_THREADS environment is not set.*Defaulting to 1 thread.*"));

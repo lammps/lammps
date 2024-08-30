@@ -38,6 +38,9 @@ Examples
    pair_style hybrid/overlay lj/cut 10.0 hbond/dreiding/morse 2 9.0 11.0 90
    pair_coeff 1 2 hbond/dreiding/morse 3 i 3.88 1.7241379 2.9 2 9 11 90
 
+   labelmap atom 1 C 2 O 3 H
+   pair_coeff C O hbond/dreiding/morse H i 3.88 1.7241379 2.9 2 9 11 90
+
 Description
 """""""""""
 
@@ -144,7 +147,7 @@ in the examples above.
 For the *hbond/dreiding/lj* style the list of coefficients is as
 follows:
 
-* K = hydrogen atom type = 1 to Ntypes
+* K = hydrogen atom type = 1 to Ntypes, or type label
 * donor flag = *i* or *j*
 * :math:`\epsilon` (energy units)
 * :math:`\sigma` (distance units)
@@ -156,7 +159,7 @@ follows:
 For the *hbond/dreiding/morse* style the list of coefficients is as
 follows:
 
-* K = hydrogen atom type = 1 to Ntypes
+* K = hydrogen atom type = 1 to Ntypes, or type label
 * donor flag = *i* or *j*
 * :math:`D_0` (energy units)
 * :math:`\alpha` (1/distance units)
@@ -240,7 +243,10 @@ heading) the following commands could be included in an input script:
 
 Restrictions
 """"""""""""
- none
+
+This pair style can only be used if LAMMPS was built with the
+MOLECULE package.  See the :doc:`Build package <Build_package>` doc page
+for more info.
 
 Related commands
 """"""""""""""""

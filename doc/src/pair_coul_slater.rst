@@ -1,6 +1,7 @@
 .. index:: pair_style coul/slater
 .. index:: pair_style coul/slater/cut
 .. index:: pair_style coul/slater/long
+.. index:: pair_style coul/slater/long/gpu
 
 pair_style coul/slater command
 ==============================
@@ -10,6 +11,8 @@ pair_style coul/slater/cut command
 
 pair_style coul/slater/long command
 ===================================
+
+Accelerator Variants: *coul/slater/long/gpu*
 
 Syntax
 """"""
@@ -40,7 +43,7 @@ Examples
 Description
 """""""""""
 
-Styles *coul/slater* compute electrostatic interactions in mesoscopic models
+Styles *coul/slater/** compute electrostatic interactions in mesoscopic models
 which employ potentials without explicit excluded-volume interactions.
 The goal is to prevent artificial ionic pair formation by including a charge
 distribution in the Coulomb potential, following the formulation of

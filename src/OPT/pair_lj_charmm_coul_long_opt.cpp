@@ -20,21 +20,16 @@
 ------------------------------------------------------------------------- */
 
 #include "pair_lj_charmm_coul_long_opt.h"
-#include <cmath>
 
 #include "atom.h"
+#include "ewald_const.h"
 #include "force.h"
 #include "neigh_list.h"
 
-using namespace LAMMPS_NS;
+#include <cmath>
 
-#define EWALD_F   1.12837917
-#define EWALD_P   0.3275911
-#define EWALD_A1  0.254829592
-#define EWALD_A2 -0.284496736
-#define EWALD_A3  1.421413741
-#define EWALD_A4 -1.453152027
-#define EWALD_A5  1.061405429
+using namespace LAMMPS_NS;
+using namespace EwaldConst;
 
 /* ---------------------------------------------------------------------- */
 
@@ -158,9 +153,7 @@ void PairLJCharmmCoulLongOpt::eval()
               grij = g_ewald * r;
               expm2 = exp(-grij*grij);
               t = 1.0 / (1.0 + EWALD_P*grij);
-              erfc = t *
-                (EWALD_A1+t*(EWALD_A2+t*(EWALD_A3+t*(EWALD_A4+t*EWALD_A5)))) *
-                expm2;
+              erfc = t * (A1 + t*(A2 + t*(A3 + t*(A4 + t*A5)))) * expm2;
               prefactor = qqrd2e * tmp_coef3/r;
               forcecoul = prefactor * (erfc + EWALD_F*grij*expm2);
             } else {
@@ -247,9 +240,7 @@ void PairLJCharmmCoulLongOpt::eval()
               grij = g_ewald * r;
               expm2 = exp(-grij*grij);
               t = 1.0 / (1.0 + EWALD_P*grij);
-              erfc = t *
-                (EWALD_A1+t*(EWALD_A2+t*(EWALD_A3+t*(EWALD_A4+t*EWALD_A5)))) *
-                expm2;
+              erfc = t * (A1 + t*(A2 + t*(A3 + t*(A4 + t*A5)))) * expm2;
               prefactor = qqrd2e * tmp_coef3/r;
               forcecoul = prefactor * (erfc + EWALD_F*grij*expm2);
               if (factor_coul < 1.0) {

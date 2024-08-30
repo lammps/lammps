@@ -44,6 +44,7 @@ Add an electric potential :math:`V` that applies to a group of charged atoms a f
 :math:`\vec{F} = q \vec{E}` and to dipoles a force :math:`\vec{F} = (\vec{p} \cdot \nabla) \vec{E}`
 and torque :math:`\vec{T} = \vec{p} \times \vec{E}`, where :math:`\vec{E} = - \nabla V`.
 
+The fix also evaluates the additional electrostatic energy due to this potential when `fix/modify energy yes` is applied.
 The `Lepton library <https://simtk.org/projects/lepton>`_, that the
 *epot/lepton* fix style interfaces with, evaluates this expression string at
 run time to compute the energy, forces, and torques. It creates an analytical

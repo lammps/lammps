@@ -508,7 +508,7 @@ e.g. the *nfile* and *fileper* keywords.  See the
 
 **-restart2info restartfile keyword ...**
 
-.. versionadded:: TBD
+.. versionadded:: 29Aug2024
 
 Write out some info about the restart file and and immediately exit.
 This is the same operation as if the following 2-line input script were

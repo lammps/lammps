@@ -1042,7 +1042,7 @@ label2type(), but returns 1 if the type label has been assigned,
 otherwise it returns 0.  This function can be used to check if a
 particular type label already exists in the simulation.
 
-.. versionadded:: TBD
+.. versionadded:: 29Aug2024
 
 The is_timeout() function returns 1 when the :doc:`timer timeout
 <timer>` has expired otherwise it returns 0.  This function can be used

@@ -110,7 +110,7 @@
 
 #if defined(FFT_KOKKOS_MKL_GPU)
   #include "CL/sycl.hpp"
-  #include "oneapi/mkl/dfti.hpp" // conflict between PRECISION macro in dfti.hpp and kokkos_type.h
+  #include "oneapi/mkl/dfti.hpp"
   #include "mkl.h"
   #if defined(FFT_SINGLE)
     typedef float FFT_KOKKOS_DATA;

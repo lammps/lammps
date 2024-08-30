@@ -3248,14 +3248,16 @@ int Atom::extract_datatype(const char *name)
     if (!array) index = find_custom(&name[2],flag,cols);
     else index = find_custom(&name[3],flag,cols);
 
+    // consistency checks
     if (index < 0) return -1;
     if (which != flag) return -1;
     if ((!array && cols) || (array && !cols)) return -1;
 
-    if (which == 0) return LAMMPS_INT;
-    else return LAMMPS_DOUBLE;
+    if (!which && !array) return LAMMPS_INT;
+    if (which && !array) return LAMMPS_DOUBLE;
+    if (!which && array) return LAMMPS_INT_2D;
+    if (which && array) return LAMMPS_DOUBLE_2D;
   }
-
   return -1;
 }
 

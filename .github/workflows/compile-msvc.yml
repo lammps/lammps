@@ -62,16 +62,15 @@ jobs:
               -S cmake -B build \
               -D BUILD_SHARED_LIBS=on \
               -D ENABLE_TESTING=on
-        cmake --build build
-        ccache -s
+        cmake --build build --config Release --parallel 2
 
     - name: Run LAMMPS executable
       shell: bash
       run: |
-        ./build/lmp.exe -h
-        ./build/lmp.exe -in bench/in.lj
+        ./build/Release/lmp.exe -h
+        ./build/Release/lmp.exe -in bench/in.lj
 
     - name: Run Unit Tests
       working-directory: build
       shell: bash
-      run: ctest -V -E FixTimestep:python_move_nve
+      run: ctest -V -C Release -E FixTimestep:python_move_nve

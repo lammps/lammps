@@ -26,7 +26,9 @@ jobs:
         fetch-depth: 2
 
     - name: Install Ccache
-      run: choco install ccache
+      run: |
+        choco install ccache
+        choco install ninja
 
     - name: Install MSMPI
       run: |
@@ -52,25 +54,26 @@ jobs:
         python3 -m pip install numpy
         python3 -m pip install pyyaml
         cmake -C cmake/presets/windows.cmake \
-              -D CMAKE_CXX_COMPILER_LAUNCHER=ccache \
-              -D CMAKE_C_COMPILER_LAUNCHER=ccache \
+              -D CMAKE_CXX_COMPILER_LAUNCHER=$(which ccache) \
+              -D CMAKE_C_COMPILER_LAUNCHER=$(which ccache) \
               -D DOWNLOAD_POTENTIALS=off \
               -D PKG_PYTHON=on \
               -D WITH_PNG=off \
               -D WITH_JPEG=off \
               -S cmake -B build \
               -D BUILD_SHARED_LIBS=on \
-              -D ENABLE_TESTING=on
-        cmake --build build --config Release --parallel 2
+              -D ENABLE_TESTING=on \
+              -G Ninja
+        cmake --build build
         ccache -s
 
     - name: Run LAMMPS executable
       shell: bash
       run: |
-        ./build/Release/lmp.exe -h
-        ./build/Release/lmp.exe -in bench/in.lj
+        ./build/lmp.exe -h
+        ./build/lmp.exe -in bench/in.lj
 
     - name: Run Unit Tests
       working-directory: build
       shell: bash
-      run: ctest -V -C Release -E FixTimestep:python_move_nve
+      run: ctest -V -E FixTimestep:python_move_nve

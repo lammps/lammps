@@ -1,5 +1,5 @@
 # GitHub action to build LAMMPS on Windows with Visual C++
-name: "Native Windows Compilation and Unit Tests"
+name: "Windows Unit Tests"
 
 on:
   push:
@@ -16,12 +16,29 @@ jobs:
     name: Windows Compilation Test
     if: ${{ github.repository == 'lammps/lammps' }}
     runs-on: windows-latest
+    env:
+      CCACHE_DIR: ${{ github.workspace }}/.ccache
 
     steps:
     - name: Checkout repository
       uses: actions/checkout@v4
       with:
         fetch-depth: 2
+
+    - name: Install Ccache
+      run: winget install Ccache.Ccache
+
+    - name: Install MSMPI
+      run: |
+        nuget install MSMPIsdk
+        nuget install MSMPIDIST
+
+    - name: Set up ccache
+      uses: actions/cache@v4
+      with:
+        path: ${{ env.CCACHE_DIR }}
+        key: win-unit-ccache-${{ github.sha }}
+        restore-keys: win-unit-ccache-
 
     - name: Select Python version
       uses: actions/setup-python@v5
@@ -31,20 +48,21 @@ jobs:
     - name: Building LAMMPS via CMake
       shell: bash
       run: |
+        ccache -z
         python3 -m pip install numpy
         python3 -m pip install pyyaml
-        nuget install MSMPIsdk
-        nuget install MSMPIDIST
         cmake -C cmake/presets/windows.cmake \
+              -D CMAKE_CXX_COMPILER_LAUNCHER=ccache \
+              -D CMAKE_C_COMPILER_LAUNCHER=ccache \
               -D DOWNLOAD_POTENTIALS=off \
               -D PKG_PYTHON=on \
               -D WITH_PNG=off \
               -D WITH_JPEG=off \
               -S cmake -B build \
               -D BUILD_SHARED_LIBS=on \
-              -D LAMMPS_EXCEPTIONS=on \
               -D ENABLE_TESTING=on
         cmake --build build --config Release --parallel 2
+        ccache -s
 
     - name: Run LAMMPS executable
       shell: bash

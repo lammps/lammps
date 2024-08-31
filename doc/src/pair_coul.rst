@@ -93,12 +93,19 @@ Syntax
    pair_style coul/long cutoff
    pair_style coul/wolf alpha cutoff
    pair_style coul/streitz cutoff keyword alpha
+
+   * cutoff = global cutoff for Coulombic interactions
+   * kappa = Debye length (inverse distance units)
+   * alpha = damping parameter (inverse distance units)
+
+.. code-block:: LAMMPS
+
    pair_style tip4p/cut otype htype btype atype qdist cutoff
    pair_style tip4p/long otype htype btype atype qdist cutoff
 
-* cutoff = global cutoff for Coulombic interactions
-* kappa = Debye length (inverse distance units)
-* alpha = damping parameter (inverse distance units)
+   * otype,htype = atom types (numeric or type label) for TIP4P O and H
+   * btype,atype = bond and angle types (numeric or type label) for TIP4P waters
+   * qdist = distance from O atom to massless charge (distance units)
 
 Examples
 """"""""
@@ -138,6 +145,12 @@ Examples
    pair_style tip4p/long 1 2 7 8 0.15 10.0
    pair_coeff * *
 
+   pair_style tip4p/cut OW HW HW-OW HW-OW-HW 0.15 12.0
+   labelmap atom 1 OW 2 HW
+   labelmap bond 1 HW-OW
+   labelmap angle 1 HW-OW-HW
+   pair_coeff * *
+
 Description
 """""""""""
 
@@ -149,7 +162,7 @@ potential given by
    E = \frac{C q_i q_j}{\epsilon  r} \qquad r < r_c
 
 where C is an energy-conversion constant, Qi and Qj are the charges on
-the 2 atoms, and :math:`\epsilon` is the dielectric constant which can be set
+the two atoms, and :math:`\epsilon` is the dielectric constant which can be set
 by the :doc:`dielectric <dielectric>` command.  The cutoff :math:`r_c` truncates
 the interaction distance.
 
@@ -307,6 +320,11 @@ Coulombic solver (Ewald or PPPM).
    atom.  For example, if the atom ID of an O atom in a TIP4P water
    molecule is 500, then its 2 H atoms must have IDs 501 and 502.
 
+.. note::
+
+   If using type labels, the type labels must be defined before calling
+   the :doc:`pair_coeff <pair_coeff>` command.
+
 See the :doc:`Howto tip4p <Howto_tip4p>` page for more information
 on how to use the TIP4P pair styles and lists of parameters to set.
 Note that the neighbor list cutoff for Coulomb interactions is
@@ -381,9 +399,10 @@ Restrictions
 """"""""""""
 
 The *coul/long*, *coul/msm*, *coul/streitz*, and *tip4p/long* styles are
-part of the KSPACE package.  The *coul/cut/global* and *coul/exclude* are
-part of the EXTRA-PAIR package.  A pair style is only enabled if LAMMPS was
-built with its corresponding package.  See the :doc:`Build package <Build_package>`
+part of the KSPACE package.  The *coul/cut/global*, *coul/exclude* styles are
+part of the EXTRA-PAIR package.  The *tip4p/cut* style is part of the MOLECULE
+package.  A pair style is only enabled if LAMMPS was built with its
+corresponding package.  See the :doc:`Build package <Build_package>`
 doc page for more info.
 
 Related commands

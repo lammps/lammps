@@ -1,0 +1,33 @@
+---
+  lmp_binary: ""
+  nprocs: "4"
+  args: "-cite none -k on g 1 -sf kk -pk kokkos newton on neigh half"
+  mpiexec: "mpirun"
+  mpiexec_numproc_flag: "-np"
+  tolerance:
+    PotEng:
+      abs: 1e-4
+      rel: 1e-7
+    TotEng:
+      abs: 1e-4
+      rel: 1e-7
+    Press:
+      abs: 1e-4
+      rel: 1e-7
+    Temp:
+      abs: 1e-4
+      rel: 1e-7
+    E_vdwl:
+      abs: 1e-3
+      rel: 1e-7
+  overrides:
+    in.rigid.tnr:
+      Temp:
+        abs: 1e-3
+        rel: 1e-5
+      Press:
+        abs: 1e-2
+        rel: 1e-4
+
+  nugget: 1.0
+  epsilon: 1e-16

@@ -229,6 +229,7 @@ TEST_F(GroupTest, SelectRestart)
                  command("group five subtract all half xxx"););
     TEST_FAILURE(".*ERROR: Group ID xxx does not exist.*",
                  command("group five intersect half top xxx"););
+    delete[] flags;
 }
 
 TEST_F(GroupTest, Molecular)

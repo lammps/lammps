@@ -42,10 +42,14 @@ static constexpr int BUFEXTRA = 1024;
 
 /* ---------------------------------------------------------------------- */
 
-Irregular::Irregular(LAMMPS *lmp) : Pointers(lmp)
+Irregular::Irregular(LAMMPS *lmp) :
+    Pointers(lmp), buf_send(nullptr), buf_recv(nullptr), dbuf(nullptr), buf(nullptr),
+    mproclist(nullptr), msizes(nullptr), proc_send(nullptr), num_send(nullptr), index_send(nullptr),
+    proc_recv(nullptr), request(nullptr), status(nullptr), length_send(nullptr),
+    length_recv(nullptr), offset_send(nullptr), num_recv(nullptr), index_self(nullptr)
 {
-  MPI_Comm_rank(world,&me);
-  MPI_Comm_size(world,&nprocs);
+  MPI_Comm_rank(world, &me);
+  MPI_Comm_size(world, &nprocs);
 
   triclinic = domain->triclinic;
   map_style = atom->map_style;
@@ -53,29 +57,24 @@ Irregular::Irregular(LAMMPS *lmp) : Pointers(lmp)
   // migrate work vectors
 
   maxlocal = 0;
-  mproclist = nullptr;
-  msizes = nullptr;
 
   // send buffers
 
   maxdbuf = 0;
-  dbuf = nullptr;
   maxbuf = 0;
-  buf = nullptr;
 
   // universal work vectors
 
-  memory->create(work1,nprocs,"irregular:work1");
-  memory->create(work2,nprocs,"irregular:work2");
+  memory->create(work1, nprocs, "irregular:work1");
+  memory->create(work2, nprocs, "irregular:work2");
 
   // initialize buffers for migrate atoms, not used for datum comm
   // these can persist for multiple irregular operations
 
-  buf_send = buf_recv = nullptr;
   maxsend = maxrecv = BUFMIN;
   bufextra = BUFEXTRA;
-  grow_send(maxsend,2);
-  memory->create(buf_recv,maxrecv,"comm:buf_recv");
+  grow_send(maxsend, 2);
+  memory->create(buf_recv, maxrecv, "comm:buf_recv");
 }
 
 /* ---------------------------------------------------------------------- */
@@ -453,9 +452,9 @@ int Irregular::create_atom(int n, int *sizes, int *proclist, int sortflag)
 
     memcpy(proc_recv,proc_recv_ordered,nrecv_proc*sizeof(int));
     memcpy(length_recv,length_recv_ordered,nrecv_proc*sizeof(int));
-    delete [] order;
-    delete [] proc_recv_ordered;
-    delete [] length_recv_ordered;
+    delete[] order;
+    delete[] proc_recv_ordered;
+    delete[] length_recv_ordered;
   }
 
   // barrier to ensure all MPI_ANY_SOURCE messages are received
@@ -727,9 +726,9 @@ int Irregular::create_data(int n, int *proclist, int sortflag)
 
     memcpy(proc_recv,proc_recv_ordered,nrecv_proc*sizeof(int));
     memcpy(num_recv,num_recv_ordered,nrecv_proc*sizeof(int));
-    delete [] order;
-    delete [] proc_recv_ordered;
-    delete [] num_recv_ordered;
+    delete[] order;
+    delete[] proc_recv_ordered;
+    delete[] num_recv_ordered;
   }
 
   // barrier to ensure all MPI_ANY_SOURCE messages are received
@@ -900,9 +899,9 @@ int Irregular::create_data_grouped(int n, int *procs, int sortflag)
 
     memcpy(proc_recv,proc_recv_ordered,nrecv_proc*sizeof(int));
     memcpy(num_recv,num_recv_ordered,nrecv_proc*sizeof(int));
-    delete [] order;
-    delete [] proc_recv_ordered;
-    delete [] num_recv_ordered;
+    delete[] order;
+    delete[] proc_recv_ordered;
+    delete[] num_recv_ordered;
   }
 
   // barrier to ensure all MPI_ANY_SOURCE messages are received

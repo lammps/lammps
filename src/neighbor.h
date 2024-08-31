@@ -212,7 +212,6 @@ class Neighbor : protected Pointers {
   int npair_perpetual;       // # of perpetual NeighPair classes
   int *slist;                // indices of them in neigh_stencil
   int *plist;                // indices of them in neigh_pair
-
   int npair_occasional;      // # of occasional NeighPair classes
   int *olist;                // indices of them in neigh_pair
 

@@ -165,8 +165,8 @@ This fix computes a global vector of length 2, which can be accessed
 by various :doc:`output commands <Howto_output>`.  The vector values are
 the following global cumulative quantities:
 
-* 1 = swap attempts
-* 2 = swap accepts
+  #. swap attempts
+  #. swap accepts
 
 The vector values calculated by this fix are "intensive".
 

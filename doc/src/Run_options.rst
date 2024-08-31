@@ -22,6 +22,7 @@ letter abbreviation can be used:
 * :ref:`-ro or -reorder <reorder>`
 * :ref:`-r2data or -restart2data <restart2data>`
 * :ref:`-r2dump or -restart2dump <restart2dump>`
+* :ref:`-r2info or -restart2info <restart2info>`
 * :ref:`-sc or -screen <screen>`
 * :ref:`-sr or skiprun <skiprun>`
 * :ref:`-sf or -suffix <suffix>`
@@ -274,13 +275,13 @@ impact can be significant, especially for large parallel runs.
 
 Invoke the :doc:`package <package>` command with style and args.  The
 syntax is the same as if the command appeared at the top of the input
-script.  For example "-package gpu 2" or "-pk gpu 2" is the same as
+script.  For example ``-package gpu 2`` or ``-pk gpu 2`` is the same as
 :doc:`package gpu 2 <package>` in the input script.  The possible styles
 and args are documented on the :doc:`package <package>` doc page.  This
 switch can be used multiple times, e.g. to set options for the
 INTEL and OPENMP packages which can be used together.
 
-Along with the "-suffix" command-line switch, this is a convenient
+Along with the ``-suffix`` command-line switch, this is a convenient
 mechanism for invoking accelerator packages and their options without
 having to edit an input script.
 
@@ -299,7 +300,7 @@ specify the number of processors in each partition.  Arguments of the
 form MxN mean M partitions, each with N processors.  Arguments of the
 form N mean a single partition with N processors.  The sum of
 processors in all partitions must equal P.  Thus the command
-"-partition 8x2 4 5" has 10 partitions and runs on a total of 25
+``-partition 8x2 4 5`` has 10 partitions and runs on a total of 25
 processors.
 
 Running with multiple partitions can be useful for running
@@ -377,8 +378,8 @@ processors will be in the first partition, the second set in the second
 partition.  The -reorder command-line switch can alter this so that
 the first N procs in the first partition and one proc in the second partition
 will be ordered consecutively, e.g. as the cores on one physical node.
-This can boost performance.  For example, if you use "-reorder nth 4"
-and "-partition 9 3" and you are running on 12 processors, the
+This can boost performance.  For example, if you use ``-reorder nth 4``
+and ``-partition 9 3`` and you are running on 12 processors, the
 processors will be reordered from
 
 .. parsed-literal::
@@ -503,6 +504,37 @@ e.g. the *nfile* and *fileper* keywords.  See the
 
 ----------
 
+.. _restart2info:
+
+**-restart2info restartfile keyword ...**
+
+.. versionadded:: 29Aug2024
+
+Write out some info about the restart file and and immediately exit.
+This is the same operation as if the following 2-line input script were
+run:
+
+.. code-block:: LAMMPS
+
+   read_restart restartfile
+   info system group computes fixes
+
+The specified restartfile name may contain the wild-card character "\*".
+The restartfile name may also contain the wild-card character "%".  The
+meaning of these characters is explained on the :doc:`read_restart
+<read_restart>` documentation.  The use of "%" means that a parallel
+restart file can be read.  Note that a filename such as file.\* may need
+to be enclosed in quotes or the "\*" character prefixed with a backslash
+("\") to avoid shell expansion of the "\*" character.
+
+Optional keywords may follow the restartfile argument.  These must be
+valid keywords for the :doc:`info command <info>`.  The most useful
+ones - *system*, *group*, *computes*, and *fixes* - are already applied.
+Appending keywords like *coeffs* or *communication* may provide
+additional useful information stored in the restart file.
+
+----------
+
 .. _screen:
 
 **-screen file**
@@ -552,11 +584,11 @@ style that accepts arguments. It allows for two packages to be
 specified. The first package specified is the default and will be used
 if it is available. If no style is available for the first package,
 the style for the second package will be used if available. For
-example, "-suffix hybrid intel omp" will use styles from the
+example, ``-suffix hybrid intel omp`` will use styles from the
 INTEL package if they are installed and available, but styles for
 the OPENMP package otherwise.
 
-Along with the "-package" command-line switch, this is a convenient
+Along with the ``-package`` command-line switch, this is a convenient
 mechanism for invoking accelerator packages and their options without
 having to edit an input script.
 
@@ -573,30 +605,30 @@ variant version does not exist, the standard version is created.
 For the GPU package, using this command-line switch also invokes the
 default GPU settings, as if the command "package gpu 1" were used at
 the top of your input script.  These settings can be changed by using
-the "-package gpu" command-line switch or the :doc:`package gpu <package>` command in your script.
+the ``-package gpu`` command-line switch or the :doc:`package gpu <package>` command in your script.
 
 For the INTEL package, using this command-line switch also
 invokes the default INTEL settings, as if the command "package
 intel 1" were used at the top of your input script.  These settings
-can be changed by using the "-package intel" command-line switch or
+can be changed by using the ``-package intel`` command-line switch or
 the :doc:`package intel <package>` command in your script. If the
 OPENMP package is also installed, the hybrid style with "intel omp"
 arguments can be used to make the omp suffix a second choice, if a
 requested style is not available in the INTEL package.  It will
 also invoke the default OPENMP settings, as if the command "package
 omp 0" were used at the top of your input script.  These settings can
-be changed by using the "-package omp" command-line switch or the
+be changed by using the ``-package omp`` command-line switch or the
 :doc:`package omp <package>` command in your script.
 
 For the KOKKOS package, using this command-line switch also invokes
 the default KOKKOS settings, as if the command "package kokkos" were
 used at the top of your input script.  These settings can be changed
-by using the "-package kokkos" command-line switch or the :doc:`package kokkos <package>` command in your script.
+by using the ``-package kokkos`` command-line switch or the :doc:`package kokkos <package>` command in your script.
 
 For the OMP package, using this command-line switch also invokes the
 default OMP settings, as if the command "package omp 0" were used at
 the top of your input script.  These settings can be changed by using
-the "-package omp" command-line switch or the :doc:`package omp <package>` command in your script.
+the ``-package omp`` command-line switch or the :doc:`package omp <package>` command in your script.
 
 The :doc:`suffix <suffix>` command can also be used within an input
 script to set a suffix, or to turn off or back on any suffix setting

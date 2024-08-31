@@ -1,5 +1,10 @@
 # Plumed2 support for PLUMED package
 
+# set policy to silence warnings about timestamps of downloaded files. review occasionally if it may be set to NEW
+if(POLICY CMP0135)
+  cmake_policy(SET CMP0135 OLD)
+endif()
+
 # for supporting multiple concurrent plumed2 installations for debugging and testing
 set(PLUMED_SUFFIX "" CACHE STRING "Suffix for Plumed2 library")
 mark_as_advanced(PLUMED_SUFFIX)
@@ -81,6 +86,9 @@ if((CMAKE_SYSTEM_NAME STREQUAL "Windows") AND (CMAKE_CROSSCOMPILING))
     DEPENDS plumed_build
     COMMENT "Copying Plumed files"
   )
+  if(CMAKE_PROJECT_NAME STREQUAL "lammps")
+    target_link_libraries(lammps INTERFACE LAMMPS::PLUMED)
+  endif()
 
 else()
 
@@ -155,6 +163,9 @@ else()
     endif()
     set_target_properties(LAMMPS::PLUMED PROPERTIES INTERFACE_INCLUDE_DIRECTORIES ${INSTALL_DIR}/include)
     file(MAKE_DIRECTORY ${INSTALL_DIR}/include)
+    if(CMAKE_PROJECT_NAME STREQUAL "lammps")
+      target_link_libraries(lammps PRIVATE LAMMPS::PLUMED)
+    endif()
   else()
     find_package(PkgConfig REQUIRED)
     pkg_check_modules(PLUMED REQUIRED plumed${PLUMED_SUFFIX})
@@ -169,7 +180,9 @@ else()
     endif()
     set_target_properties(LAMMPS::PLUMED PROPERTIES INTERFACE_LINK_LIBRARIES "${PLUMED_LOAD}")
     set_target_properties(LAMMPS::PLUMED PROPERTIES INTERFACE_INCLUDE_DIRECTORIES "${PLUMED_INCLUDE_DIRS}")
+    if(CMAKE_PROJECT_NAME STREQUAL "lammps")
+      target_link_libraries(lammps PUBLIC LAMMPS::PLUMED)
+    endif()
   endif()
 endif()
 
-target_link_libraries(lammps PRIVATE LAMMPS::PLUMED)

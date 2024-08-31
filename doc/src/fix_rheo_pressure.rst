@@ -33,7 +33,7 @@ Examples
 Description
 """""""""""
 
-.. versionadded:: TBD
+.. versionadded:: 29Aug2024
 
 This fix defines a pressure equation of state for RHEO particles. One can
 define different equations of state for different atom types. An equation

@@ -38,7 +38,7 @@ Examples
 Description
 """""""""""
 
-.. versionadded:: TBD
+.. versionadded:: 29Aug2024
 
 This fix defines a viscosity for RHEO particles. One can define different
 viscosities for different atom types, but a viscosity must be specified for
@@ -71,8 +71,6 @@ is assigned. This implies a value of
 
 .. math::
    \tau_0 = \eta \dot{\gamma}_0 - K \dot{\gamma}_0^N
-
-as further discussed in :ref:`(Palermo) <rheo_palermo2>`.
 
 
 Restart, fix_modify, output, run start/stop, minimize info
@@ -110,8 +108,3 @@ Default
 
 none
 
-----------
-
-.. _rheo_palermo2:
-
-**(Palermo)** Palermo, Wolf, Clemmer, O'Connor, in preparation.

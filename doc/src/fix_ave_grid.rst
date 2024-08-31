@@ -98,27 +98,29 @@ group is ignored.
 
 ----------
 
-The *Nevery*, *Nrepeat*, and *Nfreq* arguments specify on what
-timesteps the input values will be accessed and contribute to the
-average.  The final averaged quantities are generated on timesteps
-that are a multiples of *Nfreq*\ .  The average is over *Nrepeat*
-quantities, computed in the preceding portion of the simulation every
-*Nevery* timesteps.  *Nfreq* must be a multiple of *Nevery* and
-*Nevery* must be non-zero even if *Nrepeat* is 1.  Also, the timesteps
-contributing to the average value cannot overlap, i.e. Nrepeat\*Nevery
-can not exceed Nfreq.
+The :math:`N_\text{every}`, :math:`N_\text{repeat}`, and :math:`N_\text{freq}`
+arguments specify on what time steps the input values will be accessed and
+contribute to the average.  The final averaged quantities are generated on time
+steps that are a multiples of :math:`N_\text{freq}`\ .  The average is over
+:math:`N_\text{repeat}` quantities, computed in the preceding portion of the
+simulation every :math:`N_\text{every}` time steps.  :math:`N_\text{freq}`
+must be a multiple of :math:`N_\text{every}` and :math:`N_\text{every}` must be
+non-zero even if :math:`N_\text{repeat} = 1`\ .  Also, the time steps
+contributing to the average value cannot overlap (i.e.,
+:math:`N_\text{repeat} \times N_\text{every}` cannot exceed :math:`N_\text{freq}`).
 
-For example, if Nevery=2, Nrepeat=6, and Nfreq=100, then values on
-timesteps 90,92,94,96,98,100 will be used to compute the final average
+For example, if :math:`N_\text{every}=2`, :math:`N_\text{repeat}=6`, and
+:math:`N_\text{freq}=100`, then values on
+time steps 90,92,94,96,98,100 will be used to compute the final average
 on timestep 100.  Similarly for timesteps 190,192,194,196,198,200 on
-timestep 200, etc.  If Nrepeat=1 and Nfreq = 100, then no time
+timestep 200, etc.  If :math:`N_\text{repeat}=1` and :math:`N_\text{freq} = 100`, then no time
 averaging is done; values are simply generated on timesteps
 100,200,etc.
 
 In per-atom mode, each input value can also be averaged over the atoms
-in each grid cell.  The way the averaging is done across the *Nrepeat*
-timesteps to produce output on the *Nfreq* timesteps, and across
-multiple *Nfreq* outputs, is determined by the *norm* and *ave*
+in each grid cell.  The way the averaging is done across the :math:`N_\text{repeat}`
+timesteps to produce output on the :math:`N_\text{freq}` timesteps, and across
+multiple :math:`N_\text{freq}` outputs, is determined by the *norm* and *ave*
 keyword settings, as discussed below.
 
 ----------
@@ -270,7 +272,7 @@ appended, the per-atom vector calculated by the fix is used.  If a
 bracketed integer is appended, the Ith column of the per-atom array
 calculated by the fix is used.  Note that some fixes only produce
 their values on certain timesteps, which must be compatible with
-*Nevery*, else an error results.  Users can also write code for their
+:math:`N_\text{every}`, else an error results.  Users can also write code for their
 own fix styles and :doc:`add them to LAMMPS <Modify>`.  See the
 discussion above for how I can be specified with a wildcard asterisk
 to effectively specify multiple values.
@@ -338,11 +340,11 @@ to *no* the atom will be ignored.
 
 The *norm* keyword is only applicable to per-atom mode.  In per-grid
 mode, the *norm* keyword setting is ignored.  The output grid value on
-an *Nfreq* timestep is the sum of the grid values in each of the
-*Nrepeat* samples, divided by *Nrepeat*.
+an :math:`N_\text{freq}` timestep is the sum of the grid values in each of the
+:math:`N_\text{repeat}` samples, divided by :math:`N_\text{repeat}`.
 
-In per-atom mode, the *norm" keywod affects how averaging is done for
-the per-grid values that are output on an *Nfreq* timestep.  *Nrepeat*
+In per-atom mode, the *norm* keyword affects how averaging is done for
+the per-grid values that are output on an :math:`N_\text{freq}` timestep. :math:`N_\text{repeat}`
 samples contribute to the output.  The *norm* keyword has 3 possible
 settings: *all* or *sample* or *none*.  *All* is the default.
 
@@ -352,25 +354,25 @@ varies from 1 to N, and N = Nrepeat.  These formulas are used for any
 per-atom input value listed above, except *density/number*,
 *density/mass*, and *temp*.  Those input values are discussed below.
 
-In per-atom mode, for *norm all* the output grid value on the *Nfreq*
-timestep is an average over atoms across the entire *Nfreq* timescale:
+In per-atom mode, for *norm all* the output grid value on the :math:`N_\text{freq}`
+timestep is an average over atoms across the entire :math:`N_\text{freq}` timescale:
 
 Output = (Sum1 + Sum2 + ... + SumN) / (Count1 + Count2 + ... + CountN)
 
 In per-atom mode, for *norm sample* the output grid value on the
-*Nfreq* timestep is an average of an average:
+:math:`N_\text{freq}` timestep is an average of an average:
 
 Output = (Sum1/Count1 + Sum2/Count2 + ... + SumN/CountN) / Nrepeat
 
 In per-atom mode, for *norm none* the output grid value on the
-*Nfreq* timestep is not normalized by the atom counts:
+:math:`N_\text{freq}` timestep is not normalized by the atom counts:
 
 Output = (Sum1 + Sum2 + ... SumN) / Nrepeat
 
 For *density/number* and *density/mass*, the output value is the same
 as in the formulas above for *norm all* and *norm sample*, except that
 the result is also divided by the grid cell volume.  For *norm all*,
-this will be the volume at the final *Nfreq* timestep.  For *norm
+this will be the volume at the final :math:`N_\text{freq}` timestep.  For *norm
 sample*, the divide-by-volume is done for each sample, using the grid
 cell volume at the sample timestep.  For *norm none*, the output is
 the same as for *norm all*.
@@ -381,7 +383,7 @@ KE listed above, and is normalized similarly to the formulas above for
 freedom (DOF) are calculated.  For *norm none*, the output is the same
 as for *norm all*.
 
-For *norm all*, the DOF = *Nrepeat* times *cdof* plus *Count* times
+For *norm all*, the DOF = :math:`N_\text{repeat} \times` *cdof* plus *Count* times
 *adof*, where *Count* = (Count1 + Count2 + ... + CountN).  The *cdof*
 and *adof* keywords are discussed below.  The output temperature is
 computed with all atoms across all samples contributing.
@@ -402,17 +404,17 @@ This count is the same for all per-atom input values, including
 ----------
 
 The *ave* keyword is applied to both per-atom and per-grid mode.  It
-determines how the per-grid values produced once every *Nfreq* steps
+determines how the per-grid values produced once every :math:`N_\text{freq}` steps
 are averaged with values produced on previous steps that were
-multiples of *Nfreq*, before they are accessed by another output
+multiples of :math:`N_\text{freq}`, before they are accessed by another output
 command.
 
 If the *ave* setting is *one*, which is the default, then the grid
-values produced on *Nfreq* timesteps are independent of each other;
+values produced on :math:`N_\text{freq}` timesteps are independent of each other;
 they are output as-is without further averaging.
 
 If the *ave* setting is *running*, then the grid values produced on
-*Nfreq* timesteps are summed and averaged in a cumulative sense before
+:math:`N_\text{freq}` timesteps are summed and averaged in a cumulative sense before
 being output.  Each output grid value is thus the average of the grid
 value produced on that timestep with all preceding values for the same
 grid value.  This running average begins when the fix is defined; it
@@ -420,7 +422,7 @@ can only be restarted by deleting the fix via the :doc:`unfix <unfix>`
 command, or re-defining the fix by re-specifying it.
 
 If the *ave* setting is *window*, then the grid values produced on
-*Nfreq* timesteps are summed and averaged within a moving "window" of
+:math:`N_\text{freq}` timesteps are summed and averaged within a moving "window" of
 time, so that the last M values for the same grid are used to produce
 the output.  E.g. if M = 3 and Nfreq = 1000, then the grid value
 output on step 10000 will be the average of the grid values on steps

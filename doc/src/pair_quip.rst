@@ -103,7 +103,7 @@ Related commands
 
 .. _Bartok_2010:
 
-**(Bartok_2010)** AP Bartok, MC Payne, R Kondor, and G Csanyi, Physical
+**(Bartok2010)** AP Bartok, MC Payne, R Kondor, and G Csanyi, Physical
 Review Letters 104, 136403 (2010).
 
 .. _Bartok_PhD:

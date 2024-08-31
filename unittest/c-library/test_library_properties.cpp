@@ -466,6 +466,33 @@ TEST_F(LibraryProperties, global)
     if (!verbose) ::testing::internal::GetCapturedStdout();
     map_style = *(int *)lammps_extract_global(lmp, "map_style");
     EXPECT_EQ(map_style, Atom::MAP_ARRAY);
+
+    EXPECT_EQ(lammps_extract_global_datatype(lmp, "xlattice"), LAMMPS_DOUBLE);
+    EXPECT_EQ(lammps_extract_global_datatype(lmp, "ylattice"), LAMMPS_DOUBLE);
+    EXPECT_EQ(lammps_extract_global_datatype(lmp, "zlattice"), LAMMPS_DOUBLE);
+    auto *xlattice   = (double *)lammps_extract_global(lmp, "xlattice");
+    auto *ylattice   = (double *)lammps_extract_global(lmp, "ylattice");
+    auto *zlattice   = (double *)lammps_extract_global(lmp, "zlattice");
+    EXPECT_NE(xlattice, nullptr);
+    EXPECT_NE(ylattice, nullptr);
+    EXPECT_NE(zlattice, nullptr);
+    EXPECT_DOUBLE_EQ(*xlattice, 1.0);
+    EXPECT_DOUBLE_EQ(*ylattice, 1.0);
+    EXPECT_DOUBLE_EQ(*zlattice, 1.0);
+    if (!verbose) ::testing::internal::CaptureStdout();
+    lammps_command(lmp, "clear");
+    lammps_command(lmp, "units real");
+    lammps_command(lmp, "lattice fcc 2.0");
+    if (!verbose) ::testing::internal::GetCapturedStdout();
+    xlattice   = (double *)lammps_extract_global(lmp, "xlattice");
+    ylattice   = (double *)lammps_extract_global(lmp, "ylattice");
+    zlattice   = (double *)lammps_extract_global(lmp, "zlattice");
+    EXPECT_NE(xlattice, nullptr);
+    EXPECT_NE(ylattice, nullptr);
+    EXPECT_NE(zlattice, nullptr);
+    EXPECT_DOUBLE_EQ(*xlattice, 2.0);
+    EXPECT_DOUBLE_EQ(*ylattice, 2.0);
+    EXPECT_DOUBLE_EQ(*zlattice, 2.0);
 };
 
 TEST_F(LibraryProperties, pair1)
@@ -547,13 +574,22 @@ TEST_F(LibraryProperties, neighlist)
     lammps_command(lmp, "run 0 post no");
     if (!verbose) ::testing::internal::GetCapturedStdout();
 
-    int nhisto =
-        *(double *)lammps_extract_fix(lmp, "dist", LMP_STYLE_GLOBAL, LMP_TYPE_VECTOR, 0, 0);
-    int nskip = *(double *)lammps_extract_fix(lmp, "dist", LMP_STYLE_GLOBAL, LMP_TYPE_VECTOR, 1, 0);
-    double minval =
-        *(double *)lammps_extract_fix(lmp, "dist", LMP_STYLE_GLOBAL, LMP_TYPE_VECTOR, 2, 0);
-    double maxval =
-        *(double *)lammps_extract_fix(lmp, "dist", LMP_STYLE_GLOBAL, LMP_TYPE_VECTOR, 3, 0);
+    void *ptr  = lammps_extract_fix(lmp, "dist", LMP_STYLE_GLOBAL, LMP_TYPE_VECTOR, 0, 0);
+    int nhisto = *(double *)ptr;
+    lammps_free(ptr);
+
+    ptr       = lammps_extract_fix(lmp, "dist", LMP_STYLE_GLOBAL, LMP_TYPE_VECTOR, 1, 0);
+    int nskip = *(double *)ptr;
+    lammps_free(ptr);
+
+    ptr           = lammps_extract_fix(lmp, "dist", LMP_STYLE_GLOBAL, LMP_TYPE_VECTOR, 2, 0);
+    double minval = *(double *)ptr;
+    lammps_free(ptr);
+
+    ptr           = lammps_extract_fix(lmp, "dist", LMP_STYLE_GLOBAL, LMP_TYPE_VECTOR, 3, 0);
+    double maxval = *(double *)ptr;
+    lammps_free(ptr);
+
     // 21 pair distances counted, none skipped, smallest 1.0, largest 2.1
     EXPECT_EQ(nhisto, 21);
     EXPECT_EQ(nskip, 0);

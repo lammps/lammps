@@ -12,6 +12,11 @@ endif()
 if(POLICY CMP0075)
   cmake_policy(SET CMP0075 NEW)
 endif()
+# set policy to silence warnings about requiring execute permission for find_program
+# we use OLD because the python-config script for the Fedora MinGW cross-compiler requires it currently
+if(POLICY CMP0109)
+  cmake_policy(SET CMP0109 OLD)
+endif()
 # set policy to silence warnings about timestamps of downloaded files. review occasionally if it may be set to NEW
 if(POLICY CMP0135)
   cmake_policy(SET CMP0135 OLD)
@@ -510,6 +515,14 @@ if(PKG_ATC OR PKG_AWPMD OR PKG_ML-QUIP OR PKG_ML-POD OR PKG_ELECTRODE OR BUILD_T
   endif()
 endif()
 
+find_package(CURL QUIET COMPONENTS HTTP HTTPS)
+option(WITH_CURL "Enable libcurl support" ${CURL_FOUND})
+if(WITH_CURL)
+  find_package(CURL REQUIRED COMPONENTS HTTP HTTPS)
+  target_compile_definitions(lammps PRIVATE -DLAMMPS_CURL)
+  target_link_libraries(lammps PRIVATE CURL::libcurl)
+endif()
+
 # tweak jpeg library names to avoid linker errors with MinGW cross-compilation
 set(JPEG_NAMES libjpeg libjpeg-62)
 find_package(JPEG QUIET)
@@ -887,7 +900,7 @@ endif()
 include(Testing)
 include(CodeCoverage)
 include(CodingStandard)
-find_package(ClangFormat 8.0)
+find_package(ClangFormat 11.0)
 
 if(ClangFormat_FOUND)
   add_custom_target(format-src

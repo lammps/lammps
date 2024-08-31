@@ -74,8 +74,7 @@ The next method we need to implement is ``setmask()``:
 
 Here the we specify which methods of the fix should be called during
 :doc:`execution of a timestep <Developer_flow>`.  The constant
-``END_OF_STEP`` corresponds to the ``end_of_step()`` method. The most
-important available methods that are called during a timestep.
+``END_OF_STEP`` corresponds to the ``end_of_step()`` method.
 
 .. code-block:: c++
 
@@ -127,7 +126,7 @@ there is no need to inherit from it directly.
 The code above computes average velocity for all particles in the
 simulation.  Yet you have one unused parameter in fix call from the
 script: ``group_name``.  This parameter specifies the group of atoms
-used in the fix. So we should compute average for all particles in the
+used in the fix. So we should compute the average for all particles in the
 simulation only if ``group_name == "all"``, but it can be any group.
 The group membership information of an atom is contained in the *mask*
 property of an atom and the bit corresponding to a given group is
@@ -142,7 +141,7 @@ stored in the groupbit variable which is defined in Fix base class:
    }
 
 Class Atom encapsulates atoms positions, velocities, forces, etc. Users
-can access them using particle index. Note, that particle indexes are
+can access them using the particle index. Note, that particle indexes are
 usually changed every few timesteps because of neighbor list rebuilds
 and spatial sorting (to improve cache efficiency).
 
@@ -154,8 +153,8 @@ this situation there are several methods which should be implemented:
 - ``double memory_usage()``: return how much memory the fix uses (optional)
 - ``void grow_arrays(int)``: do reallocation of the per-particle arrays in your fix
 - ``void copy_arrays(int i, int j, int delflag)``: copy i-th per-particle
-  information to j-th. Used when atom sorting is performed. if delflag is set
-  and atom j owns a body, move the body information to atom i.
+  information to j-th particle position. Used when atom sorting is performed.
+  if delflag is set and atom j owns a body, move the body information to atom i.
 - ``void set_arrays(int i)``: sets i-th particle related information to zero
 
 Note, that if your class implements these methods, it must add calls of
@@ -230,11 +229,11 @@ is just a bunch of template functions for allocating 1D and 2D
 arrays. So you need to add include ``memory.h`` to have access to them.
 
 Finally, if you need to write/read some global information used in
-your fix to the restart file, you might do it by setting flag
-``restart_global = 1`` in the constructor and implementing methods void
-``write_restart(FILE *fp)`` and ``void restart(char *buf)``.
+your fix to the restart file, you might do it by setting the flag
+``restart_global = 1`` in the constructor and implementing methods
+``void write_restart(FILE *fp)`` and ``void restart(char *buf)``.
 If, in addition, you want to write the per-atom property to restart
-files additional settings and functions are needed:
+files then these additional settings and functions are needed:
 
 - a fix flag indicating this needs to be set ``restart_peratom = 1;``
 - ``atom->add_callback()`` and ``atom->delete_callback()`` must be called

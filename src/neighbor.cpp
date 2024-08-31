@@ -2721,7 +2721,9 @@ void Neighbor::modify_params(int narg, char **arg)
         if (ex1_group[nex_group] == -1)
           error->all(FLERR, "Invalid exclude group keyword: group {} not found", arg[iarg+2]);
         if (ex2_group[nex_group] == -1)
-            error->all(FLERR, "Invalid exclude group keyword: group {} not found", arg[iarg+3]);
+          error->all(FLERR, "Invalid exclude group keyword: group {} not found", arg[iarg+3]);
+        if (group->dynamic[ex1_group[nex_group]] || group->dynamic[ex2_group[nex_group]])
+          error->all(FLERR, "Neigh_modify exclude group is not compatible with dynamic groups");
         nex_group++;
         iarg += 4;
       } else if (strcmp(arg[iarg+1],"molecule/inter") == 0 ||

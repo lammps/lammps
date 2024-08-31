@@ -44,7 +44,7 @@ file (i.e. ``Ta_param.pod``)
 
 .. list-table::
    :header-rows: 1
-   :widths: auto
+   :widths: 40 9 10 41
 
    * - Keyword
      - Default
@@ -139,7 +139,7 @@ in the example above):
 
 .. list-table::
    :header-rows: 1
-   :widths: auto
+   :widths: 38 9 10 43
 
    * - Keyword
      - Default

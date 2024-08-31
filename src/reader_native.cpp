@@ -139,10 +139,10 @@ void ReaderNative::skip()
 
     // invoke read_lines() in chunks no larger than MAXSMALLINT
 
-    int nchunk;
+    bigint nchunk;
     while (nremain) {
       nchunk = MIN(nremain,MAXSMALLINT);
-      read_lines(nchunk);
+      read_lines((int)nchunk);
       nremain -= nchunk;
     }
   }
@@ -542,7 +542,7 @@ void ReaderNative::skip_buf(size_t size)
 {
   bigint pos = platform::ftell(fp);
   pos += size;
-  platform::fseek(fp,pos);
+  (void) platform::fseek(fp,pos);
 }
 
 bool ReaderNative::is_known_magic_str() const

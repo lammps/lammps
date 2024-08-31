@@ -10,7 +10,6 @@
 #include <iostream>
 #include <fstream>
 
-#if (__cplusplus >= 201103L)
 #include "colvar_neuralnetworkcompute.h"
 #include "colvarparse.h"
 #include "colvarproxy.h"
@@ -272,9 +271,12 @@ std::vector<std::vector<double>> neuralNetworkCompute::multiply_matrix(const std
     const size_t t = B[0].size();
     std::vector<std::vector<double>> C(m, std::vector<double>(t, 0.0));
     for (size_t i = 0; i < m; ++i) {
-        for (size_t j = 0; j < t; ++j) {
-            for (size_t k = 0; k < n; ++k) {
-                C[i][j] += A[i][k] * B[k][j];
+        for (size_t k = 0; k < n; ++k) {
+            const auto tmp = A[i][k];
+            auto& C_i = C[i];
+            auto& B_k = B[k];
+            for (size_t j = 0; j < t; ++j) {
+                C_i[j] += tmp * B_k[j];
             }
         }
     }
@@ -306,5 +308,3 @@ void neuralNetworkCompute::compute() {
     }
 }
 }
-
-#endif

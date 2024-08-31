@@ -82,7 +82,7 @@ are updated by the AtomVec class as needed.
 
 /** Atom class constructor
  *
- * This resets and initialized all kinds of settings,
+ * This resets and initializes all kinds of settings,
  * parameters, and pointer variables for per-atom arrays.
  * This also initializes the factory for creating
  * instances of classes derived from the AtomVec base
@@ -2831,7 +2831,7 @@ This will remove a property that was requested, e.g. by the
 :doc:`fix property/atom <fix_property_atom>` command.  It frees the
 allocated memory and sets the pointer to ``nullptr`` for the entry in
 the list so it can be reused. The lists of these pointers are never
-compacted or shrink, so that indices to name mappings remain valid.
+compacted or shrunk, so that indices to name mappings remain valid.
 \endverbatim
  * \param index Index of property in the respective list of properties
  * \param flag Data type of property: 0 for int, 1 for double
@@ -2991,11 +2991,11 @@ length of the data area, and a short description.
      - single double value defined by fix property/atom vector name
    * - i2_name
      - int
-     - n
+     - N
      - N integer values defined by fix property/atom array name
    * - d2_name
      - double
-     - n
+     - N
      - N double values defined by fix property/atom array name
 
 *See also*
@@ -3090,7 +3090,7 @@ void *Atom::extract(const char *name)
     return (void *) eff_plastic_strain_rate;
   if (strcmp(name, "damage") == 0) return (void *) damage;
 
-  // DPD-REACT pakage
+  // DPD-REACT package
 
   if (strcmp(name,"dpdTheta") == 0) return (void *) dpdTheta;
 

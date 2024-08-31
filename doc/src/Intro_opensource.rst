@@ -34,18 +34,20 @@ choose, including for commercial purposes.
 
 (2) If you **distribute** a modified version of LAMMPS, it must remain
 open-source, meaning you are required to distribute **all** of it under
-the terms of the GPL.  You should clearly annotate such a modified code
-as a derivative version of LAMMPS.
+the terms of the GPLv2.  You should **clearly** annotate such a modified
+code as a derivative version of LAMMPS.  This is best done by changing
+the name (example: LIGGGHTS is such a modified and extended version of
+LAMMPS).
 
 (3) If you release any code that includes or uses LAMMPS source code,
-then it must also be open-sourced, meaning you distribute it under
-the terms of the GPL.  You may write code that interfaces LAMMPS to
-a differently licensed library.  In that case the code that provides
-the interface must be licensed GPL, but not necessarily that library
+then it must also be open-sourced, meaning you distribute it under the
+terms of the GPLv2.  You may write code that interfaces LAMMPS to a
+differently licensed library.  In that case the code that provides the
+interface must be licensed GPLv2, but not necessarily that library
 unless you are distributing binaries that require the library to run.
 
-(4) If you give LAMMPS files to someone else, the GPL LICENSE file and
-source file headers (including the copyright and GPL notices) should
+(4) If you give LAMMPS files to someone else, the GPLv2 LICENSE file and
+source file headers (including the copyright and GPLv2 notices) should
 remain part of the code.
 
 

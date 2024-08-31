@@ -70,7 +70,7 @@ class FixQEqReaxFFKokkos : public FixQEqReaxFF, public KokkosBase {
   void pre_force(int) override;
 
   KOKKOS_INLINE_FUNCTION
-  void num_neigh_item(int, int&) const;
+  void num_neigh_item(int, bigint&) const;
 
   KOKKOS_INLINE_FUNCTION
   void operator()(TagQEqZero, const int&) const;
@@ -290,13 +290,13 @@ class FixQEqReaxFFKokkos : public FixQEqReaxFF, public KokkosBase {
 template <class DeviceType>
 struct FixQEqReaxFFKokkosNumNeighFunctor {
   typedef DeviceType device_type;
-  typedef int value_type;
+  typedef bigint value_type;
   FixQEqReaxFFKokkos<DeviceType> c;
   FixQEqReaxFFKokkosNumNeighFunctor(FixQEqReaxFFKokkos<DeviceType>* c_ptr):c(*c_ptr) {
     c.cleanup_copy();
   };
   KOKKOS_INLINE_FUNCTION
-  void operator()(const int ii, int &maxneigh) const {
+  void operator()(const int ii, bigint &maxneigh) const {
     c.num_neigh_item(ii, maxneigh);
   }
 };

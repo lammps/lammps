@@ -12,6 +12,11 @@ endif()
 if(POLICY CMP0075)
   cmake_policy(SET CMP0075 NEW)
 endif()
+# set policy to silence warnings about requiring execute permission for find_program
+# we use OLD because the python-config script for the Fedora MinGW cross-compiler requires it currently
+if(POLICY CMP0109)
+  cmake_policy(SET CMP0109 OLD)
+endif()
 # set policy to silence warnings about timestamps of downloaded files. review occasionally if it may be set to NEW
 if(POLICY CMP0135)
   cmake_policy(SET CMP0135 OLD)

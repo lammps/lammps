@@ -28,8 +28,15 @@ jobs:
 
     - name: Install extra packages
       run: |
-        sudo apt-get install -y ccache mold ninja-build
-        sudo apt-get install -y libeigen3-dev libgsl-dev libcurl4-openssl-dev python3-dev
+        sudo apt-get install -y ccache \
+                                libeigen3-dev \
+                                libgsl-dev \
+                                libcurl4-openssl-dev \
+                                mold \
+                                mpi-default-bin \
+                                mpi-default-dev \
+                                ninja-build \
+                                python3-dev
 
     - name: Create Build Environment
       run: mkdir build

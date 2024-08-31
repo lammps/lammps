@@ -22,8 +22,6 @@
 
 using namespace LAMMPS_NS;
 
-enum { CONSTANT, VARIABLE };
-
 /* ---------------------------------------------------------------------- */
 
 RegPlane::RegPlane(LAMMPS *lmp, int narg, char **arg) : Region(lmp, narg, arg),

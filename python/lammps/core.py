@@ -2557,4 +2557,3 @@ class lammps(object):
 # Local Variables:
 # fill-column: 80
 # End:
-  

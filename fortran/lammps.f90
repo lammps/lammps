@@ -1469,9 +1469,8 @@ CONTAINS
     ntypes = lmp_extract_setting(self, 'ntypes')
     Cname = f2c_string(name)
     datatype = lammps_extract_atom_datatype(self%handle, Cname)
-    ! Fortran and C/C++ have rows and columns switched
-    ncols = lammps_extract_atom_size(self%handle, Cname, LMP_SIZE_ROWS)
-    nrows = lammps_extract_atom_size(self%handle, Cname, LMP_SIZE_COLS)
+    nrows = lammps_extract_atom_size(self%handle, Cname, LMP_SIZE_ROWS)
+    ncols = lammps_extract_atom_size(self%handle, Cname, LMP_SIZE_COLS)
     Cptr = lammps_extract_atom(self%handle, Cname)
     CALL lammps_free(Cname)
 
@@ -1479,25 +1478,25 @@ CONTAINS
     SELECT CASE (datatype)
       CASE (LAMMPS_INT)
         peratom_data%datatype = DATA_INT_1D
-        CALL C_F_POINTER(Cptr, peratom_data%i32_vec, [ncols])
+        CALL C_F_POINTER(Cptr, peratom_data%i32_vec, [nrows])
       CASE (LAMMPS_INT64)
         peratom_data%datatype = DATA_INT64_1D
-        CALL C_F_POINTER(Cptr, peratom_data%i64_vec, [ncols])
+        CALL C_F_POINTER(Cptr, peratom_data%i64_vec, [nrows])
       CASE (LAMMPS_DOUBLE)
         peratom_data%datatype = DATA_DOUBLE_1D
         ! The mass array is allocated from 0, but only used from 1. We also want to use it from 1.
         IF (name == 'mass') THEN
-          CALL C_F_POINTER(Cptr, dummy, [ncols])
+          CALL C_F_POINTER(Cptr, dummy, [nrows])
           peratom_data%r64_vec(0:) => dummy
         ELSE
-          CALL C_F_POINTER(Cptr, peratom_data%r64_vec, [ncols])
+          CALL C_F_POINTER(Cptr, peratom_data%r64_vec, [nrows])
         END IF
       CASE (LAMMPS_DOUBLE_2D)
         peratom_data%datatype = DATA_DOUBLE_2D
         ! First, we dereference the void** pointer to point to the void*
-        CALL C_F_POINTER(Cptr, Catomptr, [ncols])
+        CALL C_F_POINTER(Cptr, Catomptr, [nrows])
         ! Catomptr(1) now points to the first element of the array
-        CALL C_F_POINTER(Catomptr(1), peratom_data%r64_mat, [nrows,ncols])
+        CALL C_F_POINTER(Catomptr(1), peratom_data%r64_mat, [ncols,nrows])
       CASE (-1)
         CALL lmp_error(self, LMP_ERROR_ALL + LMP_ERROR_WORLD, &
           'per-atom property ' // name // ' not found in extract_setting')

@@ -191,7 +191,7 @@ FixBondReact::FixBondReact(LAMMPS *lmp, int narg, char **arg) :
 
   int iarg = 3;
   stabilization_flag = 0;
-  reset_mol_ids_flag = 1;
+  molid_mode = Reset_mol_ids::Yes;
   int num_common_keywords = 2;
   for (int m = 0; m < num_common_keywords; m++) {
     if (strcmp(arg[iarg],"stabilization") == 0) {
@@ -208,14 +208,18 @@ FixBondReact::FixBondReact(LAMMPS *lmp, int narg, char **arg) :
     } else if (strcmp(arg[iarg],"reset_mol_ids") == 0) {
       if (iarg+2 > narg) error->all(FLERR,"Illegal fix bond/react command: "
                                     "'reset_mol_ids' keyword has too few arguments");
-      reset_mol_ids_flag = utils::logical(FLERR,arg[iarg+1],false,lmp);
+      std::string str = arg[iarg+1];
+      if (str == "yes") molid_mode = Reset_mol_ids::Yes;
+      else if (str == "no") molid_mode = Reset_mol_ids::No;
+      else if (str == "molmap") molid_mode = Reset_mol_ids::Molmap;
+      else error->all(FLERR,"Unknown option for 'reset_mol_ids' keyword");
       iarg += 2;
     } else if (strcmp(arg[iarg],"react") == 0) {
       break;
     } else error->all(FLERR,"Illegal fix bond/react command: unknown keyword");
   }
 
-  if (reset_mol_ids_flag) {
+  if (molid_mode == Reset_mol_ids::Yes) {
     delete reset_mol_ids;
     reset_mol_ids = new ResetAtomsMol(lmp);
     reset_mol_ids->create_computes(id,group->names[igroup]);
@@ -441,6 +445,19 @@ FixBondReact::FixBondReact(LAMMPS *lmp, int narg, char **arg) :
           } else break;
         }
       } else error->all(FLERR,"Illegal fix bond/react command: unknown keyword");
+    }
+  }
+
+  if (molid_mode == Reset_mol_ids::Molmap) {
+    for (int myrxn = 0; myrxn < nreacts; myrxn++) {
+      onemol = atom->molecules[unreacted_mol[myrxn]];
+      twomol = atom->molecules[reacted_mol[myrxn]];
+      if (!onemol->moleculeflag || !twomol->moleculeflag) {
+        if (comm->me == 0)
+          error->warning(FLERR,"Fix bond/react ('reset_mol_ids molmap' option): The pre- and post-reaction "
+                               "templates must both contain a 'Molecules' section for molecule IDs to be updated");
+        break;
+      }
     }
   }
 
@@ -3181,6 +3198,36 @@ void FixBondReact::update_everything()
       }
     }
 
+    // for 'reset_mol_ids molmap', update molecule IDs
+    // assumes consistent molecule IDs in pre- and post-reaction template
+    if (molid_mode == Reset_mol_ids::Molmap) {
+      tagint *newmolids;
+      memory->create(newmolids,max_natoms,"bond/react:newmolids");
+      for (int i = 0; i < max_natoms; i++) newmolids[i] = -1;
+
+      for (int i = 0; i < update_num_mega; i++) {
+        rxnID = update_mega_glove[0][i];
+        onemol = atom->molecules[unreacted_mol[rxnID]];
+        twomol = atom->molecules[reacted_mol[rxnID]];
+        if (!onemol->moleculeflag || !twomol->moleculeflag) continue;
+        for (int j = 0; j < twomol->natoms; j++) {
+          for (int k = 0; k < onemol->natoms; k++) {
+            if (twomol->molecule[j] == onemol->molecule[k]) {
+              newmolids[j] = atom->molecule[atom->map(update_mega_glove[k+1][i])];
+              break;
+            }
+          }
+        }
+        for (int j = 0; j < twomol->natoms; j++) {
+          if (newmolids[j] == -1) continue; // !! does not update molids if no equivalent molid in pre-reaction template. would be better to add to max molid
+          int jj = equivalences[j][1][rxnID]-1;
+          int jlocal = atom->map(update_mega_glove[jj+1][i]);
+          atom->molecule[jlocal] = newmolids[j];
+        }
+      }
+      memory->destroy(newmolids);
+    }
+
     int insert_num;
     // very nice and easy to completely overwrite special bond info for landlocked atoms
     for (int i = 0; i < update_num_mega; i++) {
@@ -4391,7 +4438,7 @@ void FixBondReact::post_integrate_respa(int ilevel, int /*iloop*/)
 
 void FixBondReact::post_force(int /*vflag*/)
 {
-  if (reset_mol_ids_flag) reset_mol_ids->reset();
+  if (molid_mode == Reset_mol_ids::Yes) reset_mol_ids->reset();
 }
 
 /* ---------------------------------------------------------------------- */

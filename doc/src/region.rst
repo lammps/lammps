@@ -167,7 +167,7 @@ extending in the y-direction from -5.0 to the upper box boundary.
 
 .. versionadded:: 4May2022
 
-For style *ellipsoid*, an axis-aligned ellipsoid is defined. The
+For style *ellipsoid*, an axis-aligned ellipsoid is defined.  The
 ellipsoid has its center at (x,y,z) and is defined by 3 axis-aligned
 vectors given by A = (a,0,0); B = (0,b,0); C = (0,0,c).  Note that
 although the ellipsoid is specified as axis-aligned it can be rotated
@@ -204,13 +204,13 @@ and with radius as its radius.
 
 The *radius* value for styles *sphere* and *cylinder*, and the
 parameters a,b,c for style *ellipsoid*, can each be specified as an
-equal-style :doc:`variable <variable>`. Likewise, for style *sphere*
+equal-style :doc:`variable <variable>`.  Likewise, for style *sphere*
 and *ellipsoid* the x-, y-, and z- coordinates of the center of the
-sphere/ellipsoid can be specified as an equal-style variable. And for
-style *cylinder* the two center positions c1 and c2 for the location
-of the cylinder axes can be specified as a equal-style variable. For style *cone*
-all properties can be defined via equal-style variables. For style *plane*
-the point can be defined via equal-style variables.
+sphere/ellipsoid can be specified as an equal-style variable.  And for
+style *cylinder* the two center positions c1 and c2 for the location of
+the cylinder axes can be specified as a equal-style variable.  For style
+*cone* all properties can be defined via equal-style variables.  For
+style *plane* the point can be defined via equal-style variables.
 
 If the value is a variable, it should be specified as v_name, where
 name is the variable name.  In this case, the variable will be

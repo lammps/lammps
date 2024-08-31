@@ -18,13 +18,13 @@ Syntax
        *delete* = no args
        *block* args = xlo xhi ylo yhi zlo zhi
          xlo,xhi,ylo,yhi,zlo,zhi = bounds of block in all dimensions (distance units)
-         xlo,xhi,ylo,yhi,zlo,zhi can be a variable
+           xlo,xhi,ylo,yhi,zlo,zhi can be a variable
        *cone* args = dim c1 c2 radlo radhi lo hi
          dim = *x* or *y* or *z* = axis of cone
          c1,c2 = coords of cone axis in other 2 dimensions (distance units)
          radlo,radhi = cone radii at lo and hi end (distance units)
          lo,hi = bounds of cone in dim (distance units)
-         c1,c2,radlo,radhi,lo,hi can be a variable (see below)
+           c1,c2,radlo,radhi,lo,hi can be a variable (see below)
        *cylinder* args = dim c1 c2 radius lo hi
          dim = *x* or *y* or *z* = axis of cylinder
          c1,c2 = coords of cylinder axis in other 2 dimensions (distance units)
@@ -34,7 +34,7 @@ Syntax
        *ellipsoid* args = x y z a b c
          x,y,z = center of ellipsoid (distance units)
          a,b,c = half the length of the principal axes of the ellipsoid (distance units)
-         x,y,z,a,b and c can be a variable (see below)
+           x,y,z,a,b and c can be a variable (see below)
        *plane* args = px py pz nx ny nz
          px,py,pz = point on the plane (distance units)
          nx,ny,nz = direction normal to plane (distance units)
@@ -47,7 +47,7 @@ Syntax
        *sphere* args = x y z radius
          x,y,z = center of sphere (distance units)
          radius = radius of sphere (distance units)
-         x,y,z, and radius can be a variable (see below)
+           x,y,z, and radius can be a variable (see below)
        *union* args = N reg-ID1 reg-ID2 ...
          N = # of regions to follow, must be 2 or greater
          reg-ID1,reg-ID2, ... = IDs of regions to join together
@@ -209,7 +209,7 @@ and *ellipsoid* the x-, y-, and z- coordinates of the center of the
 sphere/ellipsoid can be specified as an equal-style variable. And for
 style *cylinder* the two center positions c1 and c2 for the location
 of the cylinder axes can be specified as a equal-style variable. For style *cone*
-all properties can be defined via equal-style variables. For style *plane* 
+all properties can be defined via equal-style variables. For style *plane*
 the point can be defined via equal-style variables.
 
 If the value is a variable, it should be specified as v_name, where

@@ -295,6 +295,7 @@ void PairQUIP::coeff(int narg, char **arg)
   // the location of the previously initialised potential to the quip_potential
   // variable, and we will use it as a handle when calling the actual calculation
   // routine. We return the cutoff as well.
+  delete[] quip_potential;
   quip_potential = new int[n_quip_potential];
   quip_lammps_potential_initialise(quip_potential, &n_quip_potential, &cutoff, quip_file,
                                    &n_quip_file, quip_string, &n_quip_string);

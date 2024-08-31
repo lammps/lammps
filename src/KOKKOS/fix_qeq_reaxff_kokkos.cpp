@@ -301,7 +301,7 @@ void FixQEqReaxFFKokkos<DeviceType>::pre_force(int /*vflag*/)
 
 template<class DeviceType>
 KOKKOS_INLINE_FUNCTION
-void FixQEqReaxFFKokkos<DeviceType>::num_neigh_item(int ii, int &maxneigh) const
+void FixQEqReaxFFKokkos<DeviceType>::num_neigh_item(int ii, bigint &maxneigh) const
 {
   const int i = d_ilist[ii];
   maxneigh += d_numneigh[i];
@@ -316,13 +316,16 @@ void FixQEqReaxFFKokkos<DeviceType>::allocate_matrix()
 
   // determine the total space for the H matrix
 
-  m_cap = 0;
+  bigint m_cap_big = 0;
 
   // limit scope of functor to allow deallocation of views
   {
     FixQEqReaxFFKokkosNumNeighFunctor<DeviceType> neigh_functor(this);
-    Kokkos::parallel_reduce(nn,neigh_functor,m_cap);
+    Kokkos::parallel_reduce(nn,neigh_functor,m_cap_big);
   }
+  if (m_cap_big > MAXSMALLINT)
+    error->one(FLERR,"Too many neighbors in fix qeq/reaxff");
+  m_cap = m_cap_big;
 
   // deallocate first to reduce memory overhead
 

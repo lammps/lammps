@@ -492,7 +492,7 @@ during a run.
 Support for downloading files
 -----------------------------
 
-.. versionadded:: TBD
+.. versionadded:: 29Aug2024
 
 The :doc:`geturl command <geturl>` command uses the `the libcurl library
 <https://curl.se/libcurl/>`_ to download files.  This requires that

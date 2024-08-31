@@ -1991,7 +1991,7 @@ void *lammps_extract_global(void *handle, const char *name)
  *
 \verbatim embed:rst
 
-.. versionadded:: TBD
+.. versionadded:: 29Aug2024
 
 This function returns an integer that specified the dimensionality of
 the data that can be extracted from the current pair style with ``Pair::extract()``.
@@ -2024,7 +2024,7 @@ int lammps_extract_pair_dimension(void * handle, const char *name)
  *
 \verbatim embed:rst
 
-.. versionadded:: TBD
+.. versionadded:: 29Aug2024
 
 This function returns a pointer to data available from the current pair
 style with ``Pair::extract()``. The dimensionality of the returned
@@ -5878,7 +5878,7 @@ int lammps_config_has_ffmpeg_support() {
 
 \verbatim embed:rst
 
-.. versionadded::TBD
+.. versionadded::29Aug2024
 
 The LAMMPS :doc:`geturl command <geturl>` supports downloading files
 through using `the libcurl library <https://curl.se/libcurl/>`_.

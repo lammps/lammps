@@ -108,5 +108,5 @@ modules:
       - -D BUILD_TOOLS=yes
     sources:
       - type: git
-        url: https://github.com/akohlmey/lammps.git
-        branch: collected-small-fixes
+        url: https://github.com/lammps/lammps.git
+        branch: release

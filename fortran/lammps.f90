@@ -1496,6 +1496,7 @@ CONTAINS
         ! First, we dereference the void** pointer to point to the void*
         CALL C_F_POINTER(Cptr, Catomptr, [nrows])
         ! Catomptr(1) now points to the first element of the array
+        ! rows and columns are swapped in Fortran
         CALL C_F_POINTER(Catomptr(1), peratom_data%r64_mat, [ncols,nrows])
       CASE (-1)
         CALL lmp_error(self, LMP_ERROR_ALL + LMP_ERROR_WORLD, &

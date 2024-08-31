@@ -26,7 +26,7 @@ jobs:
         fetch-depth: 2
 
     - name: Install Ccache
-      run: winget install Ccache.Ccache
+      run: choco install ccache
 
     - name: Install MSMPI
       run: |

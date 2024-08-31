@@ -22,12 +22,14 @@ jobs:
     steps:
     - name: Checkout repository
       uses: actions/checkout@v4
+      uses: ilammy/msvc-dev-cmd@v1
       with:
         fetch-depth: 2
 
     - name: Install Ccache
       run: |
         choco install ccache
+        choco install ninja
 
     - name: Install MSMPI
       run: |
@@ -47,7 +49,6 @@ jobs:
         python-version: '3.11'
 
     - name: Building LAMMPS via CMake
-      shell: bash
       run: |
         ccache -z
         python3 -m pip install numpy
@@ -61,16 +62,15 @@ jobs:
               -D WITH_JPEG=off \
               -S cmake -B build \
               -D BUILD_SHARED_LIBS=on \
-              -D ENABLE_TESTING=on
-        cmake --build build --config Release --parallel 2
+              -D ENABLE_TESTING=on \
+              -D Ninja
+        cmake --build build --parallel 2
 
     - name: Run LAMMPS executable
-      shell: bash
       run: |
-        ./build/Release/lmp.exe -h
-        ./build/Release/lmp.exe -in bench/in.lj
+        ./build/lmp.exe -h
+        ./build/lmp.exe -in bench/in.lj
 
     - name: Run Unit Tests
       working-directory: build
-      shell: bash
-      run: ctest -V -C Release -E FixTimestep:python_move_nve
+      run: ctest -V -E FixTimestep:python_move_nve

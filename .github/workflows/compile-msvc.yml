@@ -26,7 +26,7 @@ jobs:
         fetch-depth: 2
 
     - name: Enable MSVC++
-      uses: ilammy/msvc-dev-cmd@v1
+      uses:  TheMrMilchmann/setup-msvc-dev@v3
       with:
         arch: x64
 

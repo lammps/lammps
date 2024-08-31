@@ -32,13 +32,7 @@ jobs:
 
     - name: Install Ccache
       run: |
-        choco install ccache
-        choco install ninja
-
-    - name: Install MSMPI
-      run: |
-        nuget install MSMPIsdk
-        nuget install MSMPIDIST
+        choco install ccache ninja -y
 
     - name: Set up ccache
       uses: actions/cache@v4
